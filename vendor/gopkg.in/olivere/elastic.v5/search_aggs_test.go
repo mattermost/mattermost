@@ -3067,6 +3067,34 @@ func TestAggsPipelineDerivative(t *testing.T) {
 	}
 }
 
+func TestAggsPipelinePercentilesBucket(t *testing.T) {
+	s := `{
+	"sales_percentiles": {
+	  "values": {
+        "25.0": 100,
+        "50.0": 200,
+        "75.0": 300
+      }
+    }
+}`
+	aggs := new(Aggregations)
+	err := json.Unmarshal([]byte(s), &aggs)
+	if err != nil {
+		t.Fatalf("expected no error decoding; got: %v", err)
+	}
+
+	agg, found := aggs.PercentilesBucket("sales_percentiles")
+	if !found {
+		t.Fatalf("expected aggregation to be found; got: %v", found)
+	}
+	if agg == nil {
+		t.Fatalf("expected aggregation != nil; got: %v", agg)
+	}
+	if len(agg.Values) != 3 {
+		t.Fatalf("expected aggregation map with three entries; got: %v", agg.Values)
+	}
+}
+
 func TestAggsPipelineStatsBucket(t *testing.T) {
 	s := `{
 	"stats_monthly_sales": {

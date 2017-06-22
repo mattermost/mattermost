@@ -48,14 +48,17 @@ func TestIngestGetPipelineURL(t *testing.T) {
 func TestIngestLifecycle(t *testing.T) {
 	client := setupTestClientAndCreateIndexAndAddDocs(t) //, SetTraceLog(log.New(os.Stdout, "", 0)))
 
-	// Get all pipelines (returns 404 that indicates an error)
-	getres, err := client.IngestGetPipeline().Do(context.TODO())
-	if err == nil {
-		t.Fatal(err)
-	}
-	if getres != nil {
-		t.Fatalf("expected no response, got %v", getres)
-	}
+	// With the new ES Docker images, XPack is already installed and returns a pipeline. So we cannot test for "no pipelines". Skipping for now.
+	/*
+		// Get all pipelines (returns 404 that indicates an error)
+		getres, err := client.IngestGetPipeline().Do(context.TODO())
+		if err == nil {
+			t.Fatal(err)
+		}
+		if getres != nil {
+			t.Fatalf("expected no response, got %v", getres)
+		}
+	//*/
 
 	// Add a pipeline
 	pipelineDef := `{
@@ -81,18 +84,18 @@ func TestIngestLifecycle(t *testing.T) {
 	}
 
 	// Get all pipelines again
-	getres, err = client.IngestGetPipeline().Do(context.TODO())
+	getres, err := client.IngestGetPipeline().Do(context.TODO())
 	if err != nil {
 		t.Fatal(err)
 	}
-	if want, have := 1, len(getres); want != have {
-		t.Fatalf("expected %d pipelines, got %d", want, have)
+	if have := len(getres); have == 0 {
+		t.Fatalf("expected at least 1 pipeline, got %d", have)
 	}
 	if _, found := getres["my-pipeline"]; !found {
 		t.Fatalf("expected to find pipline with id %q", "my-pipeline")
 	}
 
-	// Get all pipeline by ID
+	// Get pipeline by ID
 	getres, err = client.IngestGetPipeline("my-pipeline").Do(context.TODO())
 	if err != nil {
 		t.Fatal(err)

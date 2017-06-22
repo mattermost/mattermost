@@ -62,23 +62,36 @@ func (q *SuggesterCategoryMapping) Source() (interface{}, error) {
 // See https://www.elastic.co/guide/en/elasticsearch/reference/5.2/suggester-context.html#_category_query.
 type SuggesterCategoryQuery struct {
 	name   string
-	values []string
+	values map[string]*int
 }
 
 // NewSuggesterCategoryQuery creates a new SuggesterCategoryQuery.
 func NewSuggesterCategoryQuery(name string, values ...string) *SuggesterCategoryQuery {
 	q := &SuggesterCategoryQuery{
 		name:   name,
-		values: make([]string, 0),
+		values: make(map[string]*int),
 	}
+
 	if len(values) > 0 {
-		q.values = append(q.values, values...)
+		q.Values(values...)
 	}
 	return q
 }
 
+func (q *SuggesterCategoryQuery) Value(val string) *SuggesterCategoryQuery {
+	q.values[val] = nil
+	return q
+}
+
+func (q *SuggesterCategoryQuery) ValueWithBoost(val string, boost int) *SuggesterCategoryQuery {
+	q.values[val] = &boost
+	return q
+}
+
 func (q *SuggesterCategoryQuery) Values(values ...string) *SuggesterCategoryQuery {
-	q.values = append(q.values, values...)
+	for _, val := range values {
+		q.values[val] = nil
+	}
 	return q
 }
 
@@ -88,11 +101,18 @@ func (q *SuggesterCategoryQuery) Source() (interface{}, error) {
 
 	switch len(q.values) {
 	case 0:
-		source[q.name] = q.values
-	case 1:
-		source[q.name] = q.values[0]
+		source[q.name] = make([]string, 0)
 	default:
-		source[q.name] = q.values
+		contexts := make([]interface{}, 0)
+		for val, boost := range q.values {
+			context := make(map[string]interface{})
+			context["context"] = val
+			if boost != nil {
+				context["boost"] = *boost
+			}
+			contexts = append(contexts, context)
+		}
+		source[q.name] = contexts
 	}
 
 	return source, nil

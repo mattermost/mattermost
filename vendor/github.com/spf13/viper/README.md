@@ -575,13 +575,13 @@ initialization needed to begin using Viper. Since most applications will want
 to use a single central repository for their configuration, the viper package
 provides this. It is similar to a singleton.
 
-In all of the examples above, they demonstrate using viper in it's singleton
+In all of the examples above, they demonstrate using viper in its singleton
 style approach.
 
 ### Working with multiple vipers
 
 You can also create many different vipers for use in your application. Each will
-have it’s own unique set of configurations and values. Each can read from a
+have its own unique set of configurations and values. Each can read from a
 different config file, key value store, etc. All of the functions that viper
 package supports are mirrored as methods on a viper.
 

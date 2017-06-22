@@ -283,10 +283,12 @@ func (b *UpdateService) Do(ctx context.Context) (*UpdateResponse, error) {
 
 // UpdateResponse is the result of updating a document in Elasticsearch.
 type UpdateResponse struct {
-	Index     string     `json:"_index"`
-	Type      string     `json:"_type"`
-	Id        string     `json:"_id"`
-	Version   int        `json:"_version"`
-	Created   bool       `json:"created"`
-	GetResult *GetResult `json:"get"`
+	Index         string      `json:"_index"`
+	Type          string      `json:"_type"`
+	Id            string      `json:"_id"`
+	Version       int         `json:"_version"`
+	Shards        *shardsInfo `json:"_shards"`
+	Result        bool        `json:"string,omitempty"`
+	ForcedRefresh bool        `json:"forced_refresh,omitempty"`
+	GetResult     *GetResult  `json:"get,omitempty"`
 }

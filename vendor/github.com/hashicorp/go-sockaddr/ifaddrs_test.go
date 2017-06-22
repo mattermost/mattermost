@@ -9,6 +9,13 @@ import (
 	sockaddr "github.com/hashicorp/go-sockaddr"
 )
 
+const (
+	// NOTE(seanc@): Assume "en0" is the interface with a default route attached
+	// to it.  When this is not the case, change this one constant and tests
+	// should pass (i.e. "net0").
+	ifNameWithDefault = "en0"
+)
+
 // NOTE: A number of these code paths are exercised in template/ and
 // cmd/sockaddr/.
 //
@@ -690,30 +697,54 @@ func TestGetDefaultInterface(t *testing.T) {
 	}
 }
 
-func TestGetPrivateIP(t *testing.T) {
-	reportOnPrivate := func(args ...interface{}) {
-		if havePrivateIP() {
-			t.Fatalf(args[0].(string), args[1:]...)
-		} else {
-			t.Skipf(args[0].(string), args[1:]...)
-		}
-	}
-
-	ip, err := sockaddr.GetPrivateIP()
-	if err != nil {
-		reportOnPrivate("private IP failed: %v", err)
-	}
-
-	if len(ip) == 0 {
-		reportOnPrivate("no private IP found", nil)
-	}
-}
-
 func TestIfAddrAttrs(t *testing.T) {
 	const expectedNumAttrs = 2
 	attrs := sockaddr.IfAddrAttrs()
 	if len(attrs) != expectedNumAttrs {
 		t.Fatalf("wrong number of attrs")
+	}
+
+	tests := []struct {
+		name     string
+		ifAddr   sockaddr.IfAddr
+		attr     string
+		expected string
+	}{
+		{
+			name: "name",
+			ifAddr: sockaddr.IfAddr{
+				Interface: net.Interface{
+					Name: "abc0",
+				},
+			},
+			attr:     "name",
+			expected: "abc0",
+		},
+	}
+
+	for i, test := range tests {
+		if test.name == "" {
+			t.Fatalf("test %d must have a name", i)
+		}
+
+		result, err := sockaddr.IfAttrs(test.attr, sockaddr.IfAddrs{test.ifAddr})
+		if err != nil {
+			t.Errorf("failed to get attr %q from %v", test.name, test.ifAddr)
+		}
+
+		if result != test.expected {
+			t.Errorf("unexpected result")
+		}
+	}
+
+	// Test an empty array
+	result, err := sockaddr.IfAttrs("name", sockaddr.IfAddrs{})
+	if err != nil {
+		t.Error(`failed to get attr "name" from an empty array`)
+	}
+
+	if result != "" {
+		t.Errorf("unexpected result")
 	}
 }
 
@@ -788,7 +819,7 @@ func TestGetPrivateInterfaces(t *testing.T) {
 	}
 
 	if len(ifAddrs) == 0 {
-		reportOnPrivate("no public IPs found", nil)
+		reportOnPrivate("no public IPs found")
 	}
 
 	if len(ifAddrs[0].String()) == 0 {
@@ -1669,6 +1700,82 @@ func TestSortIfBy(t *testing.T) {
 			},
 		},
 		{
+			// NOTE(seanc@): This test requires macOS, or at least a computer where
+			// en0 has the default route.
+			name:    "sort default",
+			sortStr: "default",
+			in: sockaddr.IfAddrs{
+				sockaddr.IfAddr{
+					SockAddr:  sockaddr.MustIPv4Addr("1.2.3.4"),
+					Interface: net.Interface{Name: ifNameWithDefault},
+				},
+				sockaddr.IfAddr{
+					SockAddr:  sockaddr.MustIPv4Addr("1.2.3.3"),
+					Interface: net.Interface{Name: "other0"},
+				},
+			},
+			out: sockaddr.IfAddrs{
+				sockaddr.IfAddr{
+					SockAddr:  sockaddr.MustIPv4Addr("1.2.3.4"),
+					Interface: net.Interface{Name: ifNameWithDefault},
+				},
+				sockaddr.IfAddr{
+					SockAddr:  sockaddr.MustIPv4Addr("1.2.3.3"),
+					Interface: net.Interface{Name: "other0"},
+				},
+			},
+		},
+		{
+			// NOTE(seanc@): This test requires macOS, or at least a computer where
+			// en0 has the default route.
+			name:    "sort +default",
+			sortStr: "+default",
+			in: sockaddr.IfAddrs{
+				sockaddr.IfAddr{
+					SockAddr:  sockaddr.MustIPv4Addr("1.2.3.4"),
+					Interface: net.Interface{Name: "other0"},
+				},
+				sockaddr.IfAddr{
+					SockAddr:  sockaddr.MustIPv4Addr("1.2.3.3"),
+					Interface: net.Interface{Name: ifNameWithDefault},
+				},
+			},
+			out: sockaddr.IfAddrs{
+				sockaddr.IfAddr{
+					SockAddr:  sockaddr.MustIPv4Addr("1.2.3.3"),
+					Interface: net.Interface{Name: ifNameWithDefault},
+				},
+				sockaddr.IfAddr{
+					SockAddr:  sockaddr.MustIPv4Addr("1.2.3.4"),
+					Interface: net.Interface{Name: "other0"},
+				},
+			},
+		},
+		{
+			name:    "sort -default",
+			sortStr: "-default",
+			in: sockaddr.IfAddrs{
+				sockaddr.IfAddr{
+					SockAddr:  sockaddr.MustIPv4Addr("1.2.3.3"),
+					Interface: net.Interface{Name: ifNameWithDefault},
+				},
+				sockaddr.IfAddr{
+					SockAddr:  sockaddr.MustIPv4Addr("1.2.3.4"),
+					Interface: net.Interface{Name: "other0"},
+				},
+			},
+			out: sockaddr.IfAddrs{
+				sockaddr.IfAddr{
+					SockAddr:  sockaddr.MustIPv4Addr("1.2.3.4"),
+					Interface: net.Interface{Name: "other0"},
+				},
+				sockaddr.IfAddr{
+					SockAddr:  sockaddr.MustIPv4Addr("1.2.3.3"),
+					Interface: net.Interface{Name: ifNameWithDefault},
+				},
+			},
+		},
+		{
 			name:    "sort name",
 			sortStr: "name",
 			in: sockaddr.IfAddrs{
@@ -1877,5 +1984,4 @@ func TestSortIfBy(t *testing.T) {
 			}
 		})
 	}
-
 }

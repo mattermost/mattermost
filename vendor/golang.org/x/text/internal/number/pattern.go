@@ -65,7 +65,27 @@ type Pattern struct {
 	MinExponentDigits    uint8
 }
 
-// A PatternFlag is a bit mask for the flag field of a Format.
+func (f *Pattern) needsSep(pos int) bool {
+	p := pos - 1
+	size := int(f.GroupingSize[0])
+	if size == 0 || p == 0 {
+		return false
+	}
+	if p == size {
+		return true
+	}
+	if p -= size; p < 0 {
+		return false
+	}
+	// TODO: make second groupingsize the same as first if 0 so that we can
+	// avoid this check.
+	if x := int(f.GroupingSize[1]); x != 0 {
+		size = x
+	}
+	return p%size == 0
+}
+
+// A PatternFlag is a bit mask for the flag field of a Pattern.
 type PatternFlag uint8
 
 const (
@@ -104,7 +124,8 @@ func (p *parser) setError(err error) {
 }
 
 func (p *parser) updateGrouping() {
-	if p.hasGroup && p.groupingCount < 255 {
+	if p.hasGroup &&
+		0 < p.groupingCount && p.groupingCount < 255 {
 		p.GroupingSize[1] = p.GroupingSize[0]
 		p.GroupingSize[0] = uint8(p.groupingCount)
 	}
@@ -163,6 +184,7 @@ func (p *parser) parseSubPattern(s string) string {
 	s = p.parsePad(s, PadAfterPrefix)
 
 	s = p.parse(p.number, s)
+	p.updateGrouping()
 
 	s = p.parsePad(s, PadBeforeSuffix)
 	s = p.parseAffix(s)
@@ -294,6 +316,8 @@ func (p *parser) integer(r rune) state {
 			next = p.exponent
 		case '.':
 			next = p.fraction
+		case ',':
+			next = p.integer
 		}
 		p.updateGrouping()
 		return next

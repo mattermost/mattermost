@@ -25,45 +25,6 @@ import (
 	dto "github.com/prometheus/client_model/go"
 )
 
-func TestSummaryWithDefaultObjectives(t *testing.T) {
-	reg := NewRegistry()
-	summaryWithDefaultObjectives := NewSummary(SummaryOpts{
-		Name: "default_objectives",
-		Help: "Test help.",
-	})
-	if err := reg.Register(summaryWithDefaultObjectives); err != nil {
-		t.Error(err)
-	}
-
-	m := &dto.Metric{}
-	if err := summaryWithDefaultObjectives.Write(m); err != nil {
-		t.Error(err)
-	}
-	if len(m.GetSummary().Quantile) != len(DefObjectives) {
-		t.Error("expected default objectives in summary")
-	}
-}
-
-func TestSummaryWithoutObjectives(t *testing.T) {
-	reg := NewRegistry()
-	summaryWithEmptyObjectives := NewSummary(SummaryOpts{
-		Name:       "empty_objectives",
-		Help:       "Test help.",
-		Objectives: map[float64]float64{},
-	})
-	if err := reg.Register(summaryWithEmptyObjectives); err != nil {
-		t.Error(err)
-	}
-
-	m := &dto.Metric{}
-	if err := summaryWithEmptyObjectives.Write(m); err != nil {
-		t.Error(err)
-	}
-	if len(m.GetSummary().Quantile) != 0 {
-		t.Error("expected no objectives in summary")
-	}
-}
-
 func benchmarkSummaryObserve(w int, b *testing.B) {
 	b.StopTimer()
 
@@ -175,9 +136,8 @@ func TestSummaryConcurrency(t *testing.T) {
 		end.Add(concLevel)
 
 		sum := NewSummary(SummaryOpts{
-			Name:       "test_summary",
-			Help:       "helpless",
-			Objectives: map[float64]float64{0.5: 0.05, 0.9: 0.01, 0.99: 0.001},
+			Name: "test_summary",
+			Help: "helpless",
 		})
 
 		allVars := make([]float64, total)
@@ -263,9 +223,8 @@ func TestSummaryVecConcurrency(t *testing.T) {
 
 		sum := NewSummaryVec(
 			SummaryOpts{
-				Name:       "test_summary",
-				Help:       "helpless",
-				Objectives: map[float64]float64{0.5: 0.05, 0.9: 0.01, 0.99: 0.001},
+				Name: "test_summary",
+				Help: "helpless",
 			},
 			[]string{"label"},
 		)
@@ -301,7 +260,7 @@ func TestSummaryVecConcurrency(t *testing.T) {
 		for i := 0; i < vecLength; i++ {
 			m := &dto.Metric{}
 			s := sum.WithLabelValues(string('A' + i))
-			s.(Summary).Write(m)
+			s.Write(m)
 			if got, want := int(*m.Summary.SampleCount), len(allVars[i]); got != want {
 				t.Errorf("got sample count %d for label %c, want %d", got, 'A'+i, want)
 			}
@@ -346,7 +305,7 @@ func TestSummaryDecay(t *testing.T) {
 	m := &dto.Metric{}
 	i := 0
 	tick := time.NewTicker(time.Millisecond)
-	for range tick.C {
+	for _ = range tick.C {
 		i++
 		sum.Observe(float64(i))
 		if i%10 == 0 {

@@ -21,7 +21,7 @@ install:: $(BIN)
 
 .PHONY: test
 test::	$(BIN)
-	@make -C regression
+	@$(MAKE) -C regression
 
 .PHONY: world
 world::

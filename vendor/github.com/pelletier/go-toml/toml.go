@@ -54,8 +54,7 @@ func (t *Tree) HasPath(keys []string) bool {
 	return t.GetPath(keys) != nil
 }
 
-// Keys returns the keys of the toplevel tree.
-// Warning: this is a costly operation.
+// Keys returns the keys of the toplevel tree (does not recurse).
 func (t *Tree) Keys() []string {
 	keys := make([]string, len(t.values))
 	i := 0

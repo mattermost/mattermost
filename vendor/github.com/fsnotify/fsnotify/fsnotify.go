@@ -9,7 +9,6 @@ package fsnotify
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
 )
 
@@ -61,6 +60,3 @@ func (op Op) String() string {
 func (e Event) String() string {
 	return fmt.Sprintf("%q: %s", e.Name, e.Op.String())
 }
-
-// Common errors that can be reported by a watcher
-var ErrEventOverflow = errors.New("fsnotify queue overflow")

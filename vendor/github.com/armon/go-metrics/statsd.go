@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"net/url"
 	"strings"
 	"time"
 )
@@ -21,6 +22,12 @@ const (
 type StatsdSink struct {
 	addr        string
 	metricQueue chan string
+}
+
+// NewStatsdSinkFromURL creates an StatsdSink from a URL. It is used
+// (and tested) from NewMetricSinkFromURL.
+func NewStatsdSinkFromURL(u *url.URL) (MetricSink, error) {
+	return NewStatsdSink(u.Host)
 }
 
 // NewStatsdSink is used to create a new StatsdSink
