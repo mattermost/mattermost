@@ -122,9 +122,7 @@ export default class InstalledOAuthApps extends React.Component {
                                         defaultMessage='OAuth 2.0 applications'
                                     />
                                 </a>
-                            )
-                        },
-                            {
+                            ),
                             link2: (
                                 <a
                                     target='_blank'
