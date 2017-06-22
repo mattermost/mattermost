@@ -4,10 +4,10 @@
 import * as TextFormatting from './text_formatting.jsx';
 import * as SyntaxHighlighting from './syntax_highlighting.jsx';
 
+import {postListScrollChange} from 'actions/global_actions.jsx';
+
 import marked from 'marked';
 import katex from 'katex';
-
-import ScrollStore from 'stores/scroll_store.jsx';
 
 function markdownImageLoaded(image) {
     if (image.hasAttribute('height') && image.attributes.height.value !== 'auto') {
@@ -22,7 +22,8 @@ function markdownImageLoaded(image) {
     } else {
         image.style.height = 'auto';
     }
-    ScrollStore.emitPostScroll();
+
+    postListScrollChange();
 }
 global.markdownImageLoaded = markdownImageLoaded;
 

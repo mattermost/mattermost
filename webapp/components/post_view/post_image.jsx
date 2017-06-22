@@ -4,6 +4,8 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
+import {postListScrollChange} from 'actions/global_actions.jsx';
+
 export default class PostImageEmbed extends React.PureComponent {
     static propTypes = {
 
@@ -66,6 +68,9 @@ export default class PostImageEmbed extends React.PureComponent {
             loaded: true,
             errored: false
         });
+
+        postListScrollChange();
+
         if (this.props.onLinkLoaded) {
             this.props.onLinkLoaded();
         }
