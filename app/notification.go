@@ -63,7 +63,10 @@ func SendNotifications(post *model.Post, team *model.Team, channel *model.Channe
 			otherUserId = userIds[0]
 		}
 
-		mentionedUserIds[otherUserId] = true
+		if _, ok := profileMap[otherUserId]; ok {
+			mentionedUserIds[otherUserId] = true
+		}
+
 		if post.Props["from_webhook"] == "true" {
 			mentionedUserIds[post.UserId] = true
 		}
