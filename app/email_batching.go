@@ -13,7 +13,6 @@ import (
 	"github.com/mattermost/platform/utils"
 
 	l4g "github.com/alecthomas/log4go"
-	"github.com/cpanato/html2text"
 	"github.com/nicksnyder/go-i18n/i18n"
 )
 
@@ -218,10 +217,7 @@ func sendBatchedEmailNotification(userId string, notifications []*batchedNotific
 	body.Props["Posts"] = template.HTML(contents)
 	body.Props["BodyText"] = translateFunc("api.email_batching.send_batched_email_notification.body_text", len(notifications))
 
-	renderedHtmlBody := body.Render()
-	textBody, _ := html2text.FromString(renderedHtmlBody)
-
-	if err := utils.SendMail(user.Email, subject, renderedHtmlBody, textBody); err != nil {
+	if err := utils.SendMail(user.Email, subject, body.Render()); err != nil {
 		l4g.Warn(utils.T("api.email_batchings.send_batched_email_notification.send.app_error"), user.Email, err)
 	}
 }

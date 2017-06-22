@@ -42,7 +42,7 @@ func TestSendMail(t *testing.T) {
 	//Delete all the messages before check the sample email
 	DeleteMailBox(emailTo)
 
-	if err := SendMail(emailTo, emailSubject, emailBody, emailBody); err != nil {
+	if err := SendMail(emailTo, emailSubject, emailBody); err != nil {
 		t.Log(err)
 		t.Fatal("Should connect to the STMP Server")
 	} else {

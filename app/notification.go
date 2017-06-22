@@ -18,7 +18,6 @@ import (
 	"unicode"
 
 	l4g "github.com/alecthomas/log4go"
-	"github.com/cpanato/html2text"
 	"github.com/mattermost/platform/einterfaces"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/store"
