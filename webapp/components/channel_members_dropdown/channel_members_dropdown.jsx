@@ -189,6 +189,12 @@ export default class ChannelMembersDropdown extends React.Component {
                 );
             }
 
+            if (!makeChannelMember || !makeChannelAdmin || !removeFromChannel) {
+                return (
+                    <div/>
+                );
+            }
+
             return (
                 <div className='dropdown member-drop'>
                     <a
