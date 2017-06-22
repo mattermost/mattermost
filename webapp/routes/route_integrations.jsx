@@ -86,7 +86,7 @@ export default {
                 {
                     path: 'confirm',
                     getComponents: (location, callback) => {
-                        System.import('components/integrations/components/confirm_integration.jsx').then(RouteUtils.importComponentSuccess(callback));
+                        System.import('components/integrations/components/confirm_integration').then(RouteUtils.importComponentSuccess(callback));
                     }
                 }
             ]
@@ -110,7 +110,7 @@ export default {
         {
             path: 'confirm',
             getComponents: (location, callback) => {
-                System.import('components/integrations/components/confirm_integration.jsx').then(RouteUtils.importComponentSuccess(callback));
+                System.import('components/integrations/components/confirm_integration').then(RouteUtils.importComponentSuccess(callback));
             }
         }
     ]
