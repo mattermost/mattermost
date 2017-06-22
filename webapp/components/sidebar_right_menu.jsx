@@ -520,8 +520,8 @@ export default class SidebarRightMenu extends React.Component {
                         {teamSettingsLink}
                         {manageLink}
                         {createTeam}
-                        {leaveTeam}
                         {joinAnotherTeamLink}
+                        {leaveTeam}
                         {consoleDivider}
                         {consoleLink}
                         <li className='divider'/>
