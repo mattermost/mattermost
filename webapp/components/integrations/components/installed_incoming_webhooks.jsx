@@ -154,9 +154,7 @@ export default class InstalledIncomingWebhooks extends React.Component {
                                         defaultMessage='Build your own'
                                     />
                                 </a>
-                            )
-                        },
-                            {
+                            ),
                             link2: (
                                 <a
                                     target='_blank'
