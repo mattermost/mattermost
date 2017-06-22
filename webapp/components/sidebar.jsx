@@ -203,7 +203,11 @@ export default class Sidebar extends React.Component {
 
     handleOpenMoreDirectChannelsModal(e) {
         e.preventDefault();
-        this.showMoreDirectChannelsModal();
+        if (this.state.showDirectChannelsModal) {
+            this.hideMoreDirectChannelsModal();
+        } else {
+            this.showMoreDirectChannelsModal();
+        }
     }
 
     onChange() {
