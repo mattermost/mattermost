@@ -87,7 +87,7 @@ export default class DeletePostModal extends React.Component {
             commentWarning = (
                 <FormattedMessage
                     id='delete_post.warning'
-                    defaultMessage='This post has {count} comment(s) on it.'
+                    defaultMessage='This post has {count, number} {count, plural, one {comment} other {comments}} on it.'
                     values={{
                         count: this.state.commentCount
                     }}

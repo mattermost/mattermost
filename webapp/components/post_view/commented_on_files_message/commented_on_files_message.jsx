@@ -1,9 +1,9 @@
 // Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import PropTypes from 'prop-types';
 import React from 'react';
-
-import * as Utils from 'utils/utils.jsx';
+import {FormattedMessage} from 'react-intl';
 
 export default class CommentedOnFilesMessage extends React.PureComponent {
     static propTypes = {
@@ -11,19 +11,19 @@ export default class CommentedOnFilesMessage extends React.PureComponent {
         /*
          * The id of the post that was commented on
          */
-        parentPostId: React.PropTypes.string.isRequired,
+        parentPostId: PropTypes.string.isRequired,
 
         /*
          * An array of file metadata for the parent post
          */
-        fileInfos: React.PropTypes.arrayOf(React.PropTypes.object),
+        fileInfos: PropTypes.arrayOf(PropTypes.object),
 
-        actions: React.PropTypes.shape({
+        actions: PropTypes.shape({
 
             /*
              * Function to get file metadata for a post
              */
-            getFilesForPost: React.PropTypes.func.isRequired
+            getFilesForPost: PropTypes.func.isRequired
         }).isRequired
     }
 
@@ -34,18 +34,28 @@ export default class CommentedOnFilesMessage extends React.PureComponent {
     }
 
     render() {
-        let message = ' ';
-
-        if (this.props.fileInfos && this.props.fileInfos.length > 0) {
-            message = this.props.fileInfos[0].name;
-
-            if (this.props.fileInfos.length === 2) {
-                message += Utils.localizeMessage('post_body.plusOne', ' plus 1 other file');
-            } else if (this.props.fileInfos.length > 2) {
-                message += Utils.localizeMessage('post_body.plusMore', ' plus {count} other files').replace('{count}', (this.props.fileInfos.length - 1).toString());
-            }
+        if (!this.props.fileInfos || this.props.fileInfos.length === 0) {
+            return null;
         }
 
-        return <span>{message}</span>;
+        let plusMore = null;
+        if (this.props.fileInfos.length > 1) {
+            plusMore = (
+                <FormattedMessage
+                    id='post_body.plusMore'
+                    defaultMessage=' plus {count, number} other {count, plural, one {file} other {files}}'
+                    values={{
+                        count: this.props.fileInfos.length
+                    }}
+                />
+            );
+        }
+
+        return (
+            <span>
+                {this.props.fileInfos[0].name}
+                {plusMore}
+            </span>
+        );
     }
 }
