@@ -8,7 +8,13 @@
 
 .search-bar__container {
     @include flex(0 0 56px);
-    padding: 12px 8px 0 0;
+    padding: 12px 5px 0 0;
+
+    .channel-header__links {
+        .sidebar--right & {
+            line-height: 25px;
+        }
+    }
 }
 
 .icon--rotate {
@@ -54,13 +60,13 @@
 .sidebar__search-clear {
     @include opacity(.5);
     color: $dark-gray;
-    width: 40px;
+    cursor: pointer;
     margin-right: 20px;
     position: absolute;
-    top: 12px;
     right: 0;
-    cursor: pointer;
+    top: 12px;
     visibility: hidden;
+    width: 40px;
 }
 
 .search__form {
@@ -74,10 +80,9 @@
     }
 
     .sidebar--right & {
-        width: 300px;
         float: left;
-        margin-left: 17px;
-        margin-right: 9px;
+        margin-right: 7px;
+        width: 325px;
     }
 
     .search-bar {
