@@ -1662,8 +1662,6 @@ func (o *Config) Sanitize() {
 		o.SqlSettings.DataSourceSearchReplicas[i] = FAKE_SETTING
 	}
 
-	*o.ElasticSearchSettings.ConnectionUrl = FAKE_SETTING
-	*o.ElasticSearchSettings.Username = FAKE_SETTING
 	*o.ElasticSearchSettings.Password = FAKE_SETTING
 }
 
