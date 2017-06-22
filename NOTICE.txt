@@ -4655,7 +4655,7 @@ MIT license
 This product contains a modified portion of 'html2text', an HTML to raw text converter by Carlos Tadeu Panato Junior, based on `html2text` by Jay Taylor.
 
 * HOMEPAGE
-  * https://github.com/cpanato/html2text
+  * https://github.com/mattermost/html2text
 
 * LICENSE
 

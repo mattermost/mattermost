@@ -101,11 +101,11 @@ func TestConnection(config *model.Config) {
 	defer c.Close()
 }
 
-func SendMail(to, subject, htmlBody, txtBody string) *model.AppError {
-	return SendMailUsingConfig(to, subject, htmlBody, txtBody, Cfg)
+func SendMail(to, subject, htmlBody string) *model.AppError {
+	return SendMailUsingConfig(to, subject, htmlBody, Cfg)
 }
 
-func SendMailUsingConfig(to, subject, htmlBody, txtBody string, config *model.Config) *model.AppError {
+func SendMailUsingConfig(to, subject, htmlBody string, config *model.Config) *model.AppError {
 	if !config.EmailSettings.SendEmailNotifications || len(config.EmailSettings.SMTPServer) == 0 {
 		return nil
 	}
@@ -115,6 +115,12 @@ func SendMailUsingConfig(to, subject, htmlBody, txtBody string, config *model.Co
 	htmlMessage := "\r\n<html><body>" + htmlBody + "</body></html>"
 
 	fromMail := mail.Address{Name: config.EmailSettings.FeedbackName, Address: config.EmailSettings.FeedbackEmail}
+
+	txtBody, err := html2text.FromString(htmlBody)
+	if err != nil {
+		l4g.Warn(err)
+		txtBody = ""
+	}
 
 	m := gomail.NewMessage(gomail.SetCharset("UTF-8"))
 	m.SetHeaders(map[string][]string{
