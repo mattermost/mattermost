@@ -230,7 +230,7 @@ func ExecuteCommand(args *model.CommandArgs) (*model.CommandResponse, *model.App
 		}
 	}
 
-	return nil, model.NewAppError("command", "api.command.execute_command.not_found.app_error", nil, "", http.StatusNotFound)
+	return nil, model.NewAppError("command", "api.command.execute_command.not_found.app_error", map[string]interface{}{"Trigger": trigger}, "", http.StatusNotFound)
 }
 
 func HandleCommandResponse(command *model.Command, args *model.CommandArgs, response *model.CommandResponse, builtIn bool) (*model.CommandResponse, *model.AppError) {
