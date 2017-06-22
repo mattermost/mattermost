@@ -6,10 +6,7 @@ import (
 	"time"
 )
 
-// supported values:
-// string, bool, int64, uint64, float64, time.Time, int, int8, int16, int32, uint, uint8, uint16, uint32, float32
-
-var kindToTypeMapping = map[reflect.Kind]reflect.Type{
+var kindToType = [reflect.String + 1]reflect.Type{
 	reflect.Bool:    reflect.TypeOf(true),
 	reflect.String:  reflect.TypeOf(""),
 	reflect.Float32: reflect.TypeOf(float64(1)),
@@ -24,6 +21,16 @@ var kindToTypeMapping = map[reflect.Kind]reflect.Type{
 	reflect.Uint16:  reflect.TypeOf(uint64(1)),
 	reflect.Uint32:  reflect.TypeOf(uint64(1)),
 	reflect.Uint64:  reflect.TypeOf(uint64(1)),
+}
+
+// typeFor returns a reflect.Type for a reflect.Kind, or nil if none is found.
+// supported values:
+// string, bool, int64, uint64, float64, time.Time, int, int8, int16, int32, uint, uint8, uint16, uint32, float32
+func typeFor(k reflect.Kind) reflect.Type {
+	if k > 0 && int(k) < len(kindToType) {
+		return kindToType[k]
+	}
+	return nil
 }
 
 func simpleValueCoercion(object interface{}) (interface{}, error) {
@@ -82,7 +89,7 @@ func sliceToTree(object interface{}) (interface{}, error) {
 		return tablesArray, nil
 	}
 
-	sliceType := kindToTypeMapping[insideType.Kind()]
+	sliceType := typeFor(insideType.Kind())
 	if sliceType == nil {
 		sliceType = insideType
 	}

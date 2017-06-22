@@ -45,6 +45,7 @@ package unix
 #include <sys/utsname.h>
 #include <sys/wait.h>
 #include <linux/filter.h>
+#include <linux/keyctl.h>
 #include <linux/netlink.h>
 #include <linux/rtnetlink.h>
 #include <linux/icmpv6.h>
@@ -58,6 +59,7 @@ package unix
 #include <linux/if_alg.h>
 #include <linux/fs.h>
 #include <linux/vm_sockets.h>
+#include <linux/random.h>
 
 // On mips64, the glibc stat and kernel stat do not agree
 #if (defined(__mips__) && _MIPS_SIM == _MIPS_SIM_ABI64)
@@ -260,6 +262,10 @@ type Flock_t C.struct_flock
 type FscryptPolicy C.struct_fscrypt_policy
 
 type FscryptKey C.struct_fscrypt_key
+
+// Structure for Keyctl
+
+type KeyctlDHParams C.struct_keyctl_dh_params
 
 // Advice to Fadvise
 
@@ -524,6 +530,8 @@ const (
 )
 
 type Sigset_t C.sigset_t
+
+const RNDGETENTCNT = C.RNDGETENTCNT
 
 // sysconf information
 

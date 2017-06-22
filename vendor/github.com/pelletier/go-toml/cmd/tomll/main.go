@@ -1,3 +1,8 @@
+// Tomll is a linter for TOML
+//
+// Usage:
+//   cat file.toml | tomll > file_linted.toml
+//   tomll file1.toml file2.toml # lint the two files in place
 package main
 
 import (

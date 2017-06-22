@@ -169,6 +169,12 @@ type FscryptKey struct {
 	Size uint32
 }
 
+type KeyctlDHParams struct {
+	Private int32
+	Prime   int32
+	Base    int32
+}
+
 const (
 	FADV_NORMAL     = 0x0
 	FADV_RANDOM     = 0x1
@@ -650,6 +656,8 @@ const (
 type Sigset_t struct {
 	X__val [16]uint64
 }
+
+const RNDGETENTCNT = 0x80045200
 
 const _SC_PAGESIZE = 0x1e
 

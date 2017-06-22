@@ -39,7 +39,7 @@ func TestGetSeedSignature(t *testing.T) {
 		t.Fatalf("Failed to parse time - %v", err)
 	}
 
-	req = StreamingSignV4(req, accessKeyID, secretAccessKeyID, "", "us-east-1", int64(dataLen), reqTime)
+	req = StreamingSignV4(req, accessKeyID, secretAccessKeyID, "us-east-1", int64(dataLen), reqTime)
 	actualSeedSignature := req.Body.(*StreamingReader).seedSignature
 
 	expectedSeedSignature := "007480502de61457e955731b0f5d191f7e6f54a8a0f6cc7974a5ebd887965686"
@@ -72,7 +72,7 @@ func TestSetStreamingAuthorization(t *testing.T) {
 
 	dataLen := int64(65 * 1024)
 	reqTime, _ := time.Parse(iso8601DateFormat, "20130524T000000Z")
-	req = StreamingSignV4(req, accessKeyID, secretAccessKeyID, "", location, dataLen, reqTime)
+	req = StreamingSignV4(req, accessKeyID, secretAccessKeyID, location, dataLen, reqTime)
 
 	expectedAuthorization := "AWS4-HMAC-SHA256 Credential=AKIAIOSFODNN7EXAMPLE/20130524/us-east-1/s3/aws4_request,SignedHeaders=content-encoding;host;x-amz-content-sha256;x-amz-date;x-amz-decoded-content-length;x-amz-storage-class,Signature=007480502de61457e955731b0f5d191f7e6f54a8a0f6cc7974a5ebd887965686"
 
@@ -96,7 +96,7 @@ func TestStreamingReader(t *testing.T) {
 
 	baseReader := ioutil.NopCloser(bytes.NewReader(bytes.Repeat([]byte("a"), 65*1024)))
 	req.Body = baseReader
-	req = StreamingSignV4(req, accessKeyID, secretAccessKeyID, "", location, dataLen, reqTime)
+	req = StreamingSignV4(req, accessKeyID, secretAccessKeyID, location, dataLen, reqTime)
 
 	b, err := ioutil.ReadAll(req.Body)
 	if err != nil {

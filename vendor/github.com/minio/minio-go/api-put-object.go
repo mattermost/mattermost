@@ -109,24 +109,14 @@ func getReaderSize(reader io.Reader) (size int64, err error) {
 			case "|0", "|1":
 				return
 			}
-			var pos int64
-			pos, err = v.Seek(0, 1) // SeekCurrent.
-			if err != nil {
-				return -1, err
-			}
-			size = st.Size() - pos
+			size = st.Size()
 		case *Object:
 			var st ObjectInfo
 			st, err = v.Stat()
 			if err != nil {
 				return
 			}
-			var pos int64
-			pos, err = v.Seek(0, 1) // SeekCurrent.
-			if err != nil {
-				return -1, err
-			}
-			size = st.Size - pos
+			size = st.Size
 		}
 	}
 	// Returns the size here.
@@ -210,7 +200,7 @@ func (c Client) putObjectSingle(bucketName, objectName string, reader io.Reader,
 	hashAlgos := make(map[string]hash.Hash)
 	hashSums := make(map[string][]byte)
 	hashAlgos["md5"] = md5.New()
-	if c.overrideSignerType.IsV4() && !c.secure {
+	if c.signature.isV4() && !c.secure {
 		hashAlgos["sha256"] = sha256.New()
 	}
 

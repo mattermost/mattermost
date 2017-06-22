@@ -1,11 +1,13 @@
 #!/bin/sh --
 
+FIND=`/usr/bin/which 2> /dev/null gfind find | /usr/bin/grep -v ^no | /usr/bin/head -n 1`
+XARGS=`/usr/bin/which 2> /dev/null gxargs xargs | /usr/bin/grep -v ^no | /usr/bin/head -n 1`
 set -e
 set -u
 
 num_cpus=$(getconf NPROCESSORS_ONLN)
 set +e
-find . -name 'test_*.sh' -depth 1 | xargs -n1 -P${num_cpus} ./run_one.sh
+${FIND} . -maxdepth 1 -name 'test_*.sh' -print0 | ${XARGS} -0 -n1 -P${num_cpus} ./run_one.sh
 set -e
 
 # rune_one.sh generates the .diff files

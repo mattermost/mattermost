@@ -64,6 +64,9 @@ const (
 )
 
 var (
+	// ErrColoredGlyph indicates that the requested glyph is not a monochrome
+	// vector glyph, such as a colored (bitmap or vector) emoji glyph.
+	ErrColoredGlyph = errors.New("sfnt: colored glyph")
 	// ErrNotFound indicates that the requested value was not found.
 	ErrNotFound = errors.New("sfnt: not found")
 
@@ -544,6 +547,12 @@ type Font struct {
 	cff table
 
 	// https://www.microsoft.com/typography/otspec/otff.htm#otttables
+	// "Tables Related to Bitmap Glyphs".
+	//
+	// TODO: Others?
+	cblc table
+
+	// https://www.microsoft.com/typography/otspec/otff.htm#otttables
 	// "Advanced Typographic Tables".
 	//
 	// TODO: base, gdef, gpos, gsub, jstf, math?
@@ -559,6 +568,7 @@ type Font struct {
 		glyphIndex       glyphIndexFunc
 		bounds           [4]int16
 		indexToLocFormat bool // false means short, true means long.
+		isColorBitmap    bool
 		isPostScript     bool
 		kernNumPairs     int32
 		kernOffset       int32
@@ -599,7 +609,7 @@ func (f *Font) initialize(offset int, isDfont bool) error {
 	if err != nil {
 		return err
 	}
-	buf, glyphData, err := f.parseGlyphData(buf, numGlyphs, indexToLocFormat, isPostScript)
+	buf, glyphData, isColorBitmap, err := f.parseGlyphData(buf, numGlyphs, indexToLocFormat, isPostScript)
 	if err != nil {
 		return err
 	}
@@ -628,6 +638,7 @@ func (f *Font) initialize(offset int, isDfont bool) error {
 	f.cached.glyphIndex = glyphIndex
 	f.cached.bounds = bounds
 	f.cached.indexToLocFormat = indexToLocFormat
+	f.cached.isColorBitmap = isColorBitmap
 	f.cached.isPostScript = isPostScript
 	f.cached.kernNumPairs = kernNumPairs
 	f.cached.kernOffset = kernOffset
@@ -701,6 +712,8 @@ func (f *Font) initializeTables(offset int, isDfont bool) (buf1 []byte, isPostSc
 
 		// Match the 4-byte tag as a uint32. For example, "OS/2" is 0x4f532f32.
 		switch tag {
+		case 0x43424c43:
+			f.cblc = table{o, n}
 		case 0x43464620:
 			f.cff = table{o, n}
 		case 0x4f532f32:
@@ -983,7 +996,7 @@ type glyphData struct {
 	fdSelect fdSelect
 }
 
-func (f *Font) parseGlyphData(buf []byte, numGlyphs int32, indexToLocFormat, isPostScript bool) (buf1 []byte, ret glyphData, err error) {
+func (f *Font) parseGlyphData(buf []byte, numGlyphs int32, indexToLocFormat, isPostScript bool) (buf1 []byte, ret glyphData, isColorBitmap bool, err error) {
 	if isPostScript {
 		p := cffParser{
 			src:    &f.src,
@@ -993,19 +1006,25 @@ func (f *Font) parseGlyphData(buf []byte, numGlyphs int32, indexToLocFormat, isP
 		}
 		ret, err = p.parse(numGlyphs)
 		if err != nil {
-			return nil, glyphData{}, err
+			return nil, glyphData{}, false, err
 		}
-	} else {
+	} else if f.loca.length != 0 {
 		ret.locations, err = parseLoca(&f.src, f.loca, f.glyf.offset, indexToLocFormat, numGlyphs)
 		if err != nil {
-			return nil, glyphData{}, err
+			return nil, glyphData{}, false, err
 		}
-	}
-	if len(ret.locations) != int(numGlyphs+1) {
-		return nil, glyphData{}, errInvalidLocationData
+	} else if f.cblc.length != 0 {
+		isColorBitmap = true
+		// TODO: parse the CBLC (and CBDT) tables. For now, we return a font
+		// with empty glyphs.
+		ret.locations = make([]uint32, numGlyphs+1)
 	}
 
-	return buf, ret, nil
+	if len(ret.locations) != int(numGlyphs+1) {
+		return nil, glyphData{}, false, errInvalidLocationData
+	}
+
+	return buf, ret, isColorBitmap, nil
 }
 
 func (f *Font) parsePost(buf []byte, numGlyphs int32) (buf1 []byte, postTableVersion uint32, err error) {
@@ -1105,13 +1124,18 @@ type LoadGlyphOptions struct {
 //
 // In the returned Segments' (x, y) coordinates, the Y axis increases down.
 //
-// It returns ErrNotFound if the glyph index is out of range.
+// It returns ErrNotFound if the glyph index is out of range. It returns
+// ErrColoredGlyph if the glyph is not a monochrome vector glyph, such as a
+// colored (bitmap or vector) emoji glyph.
 func (f *Font) LoadGlyph(b *Buffer, x GlyphIndex, ppem fixed.Int26_6, opts *LoadGlyphOptions) ([]Segment, error) {
 	if b == nil {
 		b = &Buffer{}
 	}
 
 	b.segments = b.segments[:0]
+	if f.cached.isColorBitmap {
+		return nil, ErrColoredGlyph
+	}
 	if f.cached.isPostScript {
 		buf, offset, length, err := f.viewGlyphData(b, x)
 		if err != nil {
@@ -1124,10 +1148,8 @@ func (f *Font) LoadGlyph(b *Buffer, x GlyphIndex, ppem fixed.Int26_6, opts *Load
 		if !b.psi.type2Charstrings.ended {
 			return nil, errInvalidCFFTable
 		}
-	} else {
-		if err := loadGlyf(f, b, x, 0, 0); err != nil {
-			return nil, err
-		}
+	} else if err := loadGlyf(f, b, x, 0, 0); err != nil {
+		return nil, err
 	}
 
 	// Scale the segments. If we want to support hinting, we'll have to push

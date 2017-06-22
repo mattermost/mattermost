@@ -3686,47 +3686,36 @@ func TestRequestBodyReadCloseRace(t *testing.T) {
 	}
 }
 
-func TestServerGracefulShutdown(t *testing.T) {
-	shutdownCh := make(chan struct{})
-	defer func() { testh1ServerShutdownChan = nil }()
-	testh1ServerShutdownChan = func(*http.Server) <-chan struct{} { return shutdownCh }
+func TestIssue20704Race(t *testing.T) {
+	if testing.Short() && os.Getenv("GO_BUILDER_NAME") == "" {
+		t.Skip("skipping in short mode")
+	}
+	const (
+		itemSize  = 1 << 10
+		itemCount = 100
+	)
 
-	var st *serverTester
-	handlerDone := make(chan struct{})
-	st = newServerTester(t, func(w http.ResponseWriter, r *http.Request) {
-		defer close(handlerDone)
-		close(shutdownCh)
-
-		ga := st.wantGoAway()
-		if ga.ErrCode != ErrCodeNo {
-			t.Errorf("GOAWAY error = %v; want ErrCodeNo", ga.ErrCode)
+	st := newServerTester(t, func(w http.ResponseWriter, r *http.Request) {
+		for i := 0; i < itemCount; i++ {
+			_, err := w.Write(make([]byte, itemSize))
+			if err != nil {
+				return
+			}
 		}
-		if ga.LastStreamID != 1 {
-			t.Errorf("GOAWAY LastStreamID = %v; want 1", ga.LastStreamID)
-		}
-
-		w.Header().Set("x-foo", "bar")
-	})
+	}, optOnlyServer)
 	defer st.Close()
 
-	st.greet()
-	st.bodylessReq1()
+	tr := &Transport{TLSClientConfig: tlsConfigInsecure}
+	defer tr.CloseIdleConnections()
+	cl := &http.Client{Transport: tr}
 
-	<-handlerDone
-	hf := st.wantHeaders()
-	goth := st.decodeHeader(hf.HeaderBlockFragment())
-	wanth := [][2]string{
-		{":status", "200"},
-		{"x-foo", "bar"},
-		{"content-type", "text/plain; charset=utf-8"},
-		{"content-length", "0"},
-	}
-	if !reflect.DeepEqual(goth, wanth) {
-		t.Errorf("Got headers %v; want %v", goth, wanth)
-	}
-
-	n, err := st.cc.Read([]byte{0})
-	if n != 0 || err == nil {
-		t.Errorf("Read = %v, %v; want 0, non-nil", n, err)
+	for i := 0; i < 1000; i++ {
+		resp, err := cl.Get(st.ts.URL)
+		if err != nil {
+			t.Fatal(err)
+		}
+		// Force a RST stream to the server by closing without
+		// reading the body:
+		resp.Body.Close()
 	}
 }

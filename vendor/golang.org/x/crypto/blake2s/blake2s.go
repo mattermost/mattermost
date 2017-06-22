@@ -15,8 +15,12 @@ import (
 const (
 	// The blocksize of BLAKE2s in bytes.
 	BlockSize = 64
+
 	// The hash size of BLAKE2s-256 in bytes.
 	Size = 32
+
+	// The hash size of BLAKE2s-128 in bytes.
+	Size128 = 16
 )
 
 var errKeySize = errors.New("blake2s: invalid key size")
@@ -36,6 +40,17 @@ func Sum256(data []byte) [Size]byte {
 // New256 returns a new hash.Hash computing the BLAKE2s-256 checksum. A non-nil
 // key turns the hash into a MAC. The key must between zero and 32 bytes long.
 func New256(key []byte) (hash.Hash, error) { return newDigest(Size, key) }
+
+// New128 returns a new hash.Hash computing the BLAKE2s-128 checksum given a
+// non-empty key. Note that a 128-bit digest is too small to be secure as a
+// cryptographic hash and should only be used as a MAC, thus the key argument
+// is not optional.
+func New128(key []byte) (hash.Hash, error) {
+	if len(key) == 0 {
+		return nil, errors.New("blake2s: a key is required for a 128-bit hash")
+	}
+	return newDigest(Size128, key)
+}
 
 func newDigest(hashSize int, key []byte) (*digest, error) {
 	if len(key) > Size {

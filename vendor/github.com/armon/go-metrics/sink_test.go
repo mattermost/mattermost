@@ -2,6 +2,7 @@ package metrics
 
 import (
 	"reflect"
+	"strings"
 	"testing"
 )
 
@@ -116,5 +117,52 @@ func TestFanoutSink_Sample(t *testing.T) {
 	}
 	if !reflect.DeepEqual(m2.vals[0], v) {
 		t.Fatalf("val not equal")
+	}
+}
+
+func TestNewMetricSinkFromURL(t *testing.T) {
+	for _, tc := range []struct {
+		desc      string
+		input     string
+		expect    reflect.Type
+		expectErr string
+	}{
+		{
+			desc:   "statsd scheme yields a StatsdSink",
+			input:  "statsd://someserver:123",
+			expect: reflect.TypeOf(&StatsdSink{}),
+		},
+		{
+			desc:   "statsite scheme yields a StatsiteSink",
+			input:  "statsite://someserver:123",
+			expect: reflect.TypeOf(&StatsiteSink{}),
+		},
+		{
+			desc:   "inmem scheme yields an InmemSink",
+			input:  "inmem://?interval=30s&retain=30s",
+			expect: reflect.TypeOf(&InmemSink{}),
+		},
+		{
+			desc:      "unknown scheme yields an error",
+			input:     "notasink://whatever",
+			expectErr: "unrecognized sink name: \"notasink\"",
+		},
+	} {
+		t.Run(tc.desc, func(t *testing.T) {
+			ms, err := NewMetricSinkFromURL(tc.input)
+			if tc.expectErr != "" {
+				if !strings.Contains(err.Error(), tc.expectErr) {
+					t.Fatalf("expected err: %q to contain: %q", err, tc.expectErr)
+				}
+			} else {
+				if err != nil {
+					t.Fatalf("unexpected err: %s", err)
+				}
+				got := reflect.TypeOf(ms)
+				if got != tc.expect {
+					t.Fatalf("expected return type to be %v, got: %v", tc.expect, got)
+				}
+			}
+		})
 	}
 }

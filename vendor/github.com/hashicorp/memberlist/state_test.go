@@ -669,7 +669,7 @@ func TestMemberList_ProbeNode_Awareness_MissedNack(t *testing.T) {
 
 	// We should have gotten dinged for the missed nack.
 	time.Sleep(probeTimeMax)
-	if score := m1.GetHealthScore(); score != 2 {
+	if score := m1.GetHealthScore(); score != 1 {
 		t.Fatalf("bad: %d", score)
 	}
 }

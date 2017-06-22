@@ -10,6 +10,4 @@ Options:
   -s  Silent, only return different exit codes
 
 Subcommands:
-
     list    Lists all known RFCs
-

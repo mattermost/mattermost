@@ -54,9 +54,6 @@ type Summary interface {
 }
 
 // DefObjectives are the default Summary quantile values.
-//
-// Deprecated: DefObjectives will not be used as the default objectives in
-// v0.10 of the library. The default Summary will have no quantiles then.
 var (
 	DefObjectives = map[float64]float64{0.5: 0.05, 0.9: 0.01, 0.99: 0.001}
 
@@ -116,15 +113,9 @@ type SummaryOpts struct {
 	ConstLabels Labels
 
 	// Objectives defines the quantile rank estimates with their respective
-	// absolute error. If Objectives[q] = e, then the value reported for q
-	// will be the φ-quantile value for some φ between q-e and q+e.  The
-	// default value is DefObjectives. It is used if Objectives is left at
-	// its zero value (i.e. nil). To create a Summary without Objectives,
-	// set it to an empty map (i.e. map[float64]float64{}).
-	//
-	// Deprecated: Note that the current value of DefObjectives is
-	// deprecated. It will be replaced by an empty map in v0.10 of the
-	// library. Please explicitly set Objectives to the desired value.
+	// absolute error. If Objectives[q] = e, then the value reported
+	// for q will be the φ-quantile value for some φ between q-e and q+e.
+	// The default value is DefObjectives.
 	Objectives map[float64]float64
 
 	// MaxAge defines the duration for which an observation stays relevant
@@ -192,7 +183,7 @@ func newSummary(desc *Desc, opts SummaryOpts, labelValues ...string) Summary {
 		}
 	}
 
-	if opts.Objectives == nil {
+	if len(opts.Objectives) == 0 {
 		opts.Objectives = DefObjectives
 	}
 
@@ -419,24 +410,24 @@ func NewSummaryVec(opts SummaryOpts, labelNames []string) *SummaryVec {
 	}
 }
 
-// GetMetricWithLabelValues replaces the method of the same name in MetricVec.
-// The difference is that this method returns an Observer and not a Metric so
-// that no type conversion to an Observer is required.
-func (m *SummaryVec) GetMetricWithLabelValues(lvs ...string) (Observer, error) {
+// GetMetricWithLabelValues replaces the method of the same name in
+// MetricVec. The difference is that this method returns a Summary and not a
+// Metric so that no type conversion is required.
+func (m *SummaryVec) GetMetricWithLabelValues(lvs ...string) (Summary, error) {
 	metric, err := m.MetricVec.GetMetricWithLabelValues(lvs...)
 	if metric != nil {
-		return metric.(Observer), err
+		return metric.(Summary), err
 	}
 	return nil, err
 }
 
 // GetMetricWith replaces the method of the same name in MetricVec. The
-// difference is that this method returns an Observer and not a Metric so that
-// no type conversion to an Observer is required.
-func (m *SummaryVec) GetMetricWith(labels Labels) (Observer, error) {
+// difference is that this method returns a Summary and not a Metric so that no
+// type conversion is required.
+func (m *SummaryVec) GetMetricWith(labels Labels) (Summary, error) {
 	metric, err := m.MetricVec.GetMetricWith(labels)
 	if metric != nil {
-		return metric.(Observer), err
+		return metric.(Summary), err
 	}
 	return nil, err
 }
@@ -445,15 +436,15 @@ func (m *SummaryVec) GetMetricWith(labels Labels) (Observer, error) {
 // GetMetricWithLabelValues would have returned an error. By not returning an
 // error, WithLabelValues allows shortcuts like
 //     myVec.WithLabelValues("404", "GET").Observe(42.21)
-func (m *SummaryVec) WithLabelValues(lvs ...string) Observer {
-	return m.MetricVec.WithLabelValues(lvs...).(Observer)
+func (m *SummaryVec) WithLabelValues(lvs ...string) Summary {
+	return m.MetricVec.WithLabelValues(lvs...).(Summary)
 }
 
 // With works as GetMetricWith, but panics where GetMetricWithLabels would have
 // returned an error. By not returning an error, With allows shortcuts like
 //     myVec.With(Labels{"code": "404", "method": "GET"}).Observe(42.21)
-func (m *SummaryVec) With(labels Labels) Observer {
-	return m.MetricVec.With(labels).(Observer)
+func (m *SummaryVec) With(labels Labels) Summary {
+	return m.MetricVec.With(labels).(Summary)
 }
 
 type constSummary struct {

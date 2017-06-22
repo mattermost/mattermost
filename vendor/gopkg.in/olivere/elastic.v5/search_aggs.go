@@ -533,6 +533,21 @@ func (a Aggregations) StatsBucket(name string) (*AggregationPipelineStatsMetric,
 	return nil, false
 }
 
+// PercentilesBucket returns stats bucket pipeline aggregation results.
+// See https://www.elastic.co/guide/en/elasticsearch/reference/5.2/search-aggregations-pipeline-percentiles-bucket-aggregation.html
+func (a Aggregations) PercentilesBucket(name string) (*AggregationPipelinePercentilesMetric, bool) {
+	if raw, found := a[name]; found {
+		agg := new(AggregationPipelinePercentilesMetric)
+		if raw == nil {
+			return agg, true
+		}
+		if err := json.Unmarshal(*raw, agg); err == nil {
+			return agg, true
+		}
+	}
+	return nil, false
+}
+
 // MaxBucket returns maximum bucket pipeline aggregation results.
 // See https://www.elastic.co/guide/en/elasticsearch/reference/5.2/search-aggregations-pipeline-max-bucket-aggregation.html
 func (a Aggregations) MaxBucket(name string) (*AggregationPipelineBucketMetricValue, bool) {
@@ -1399,6 +1414,33 @@ func (a *AggregationPipelineStatsMetric) UnmarshalJSON(data []byte) error {
 	}
 	if v, ok := aggs["sum_as_string"]; ok && v != nil {
 		json.Unmarshal(*v, &a.SumAsString)
+	}
+	if v, ok := aggs["meta"]; ok && v != nil {
+		json.Unmarshal(*v, &a.Meta)
+	}
+	a.Aggregations = aggs
+	return nil
+}
+
+// -- Pipeline percentiles
+
+// AggregationPipelinePercentilesMetric is the value returned by a pipeline
+// percentiles Metric aggregation
+type AggregationPipelinePercentilesMetric struct {
+	Aggregations
+
+	Values map[string]float64     // `json:"values"`
+	Meta   map[string]interface{} // `json:"meta,omitempty"`
+}
+
+// UnmarshalJSON decodes JSON data and initializes an AggregationPipelinePercentilesMetric structure.
+func (a *AggregationPipelinePercentilesMetric) UnmarshalJSON(data []byte) error {
+	var aggs map[string]*json.RawMessage
+	if err := json.Unmarshal(data, &aggs); err != nil {
+		return err
+	}
+	if v, ok := aggs["values"]; ok && v != nil {
+		json.Unmarshal(*v, &a.Values)
 	}
 	if v, ok := aggs["meta"]; ok && v != nil {
 		json.Unmarshal(*v, &a.Meta)
