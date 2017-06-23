@@ -19,6 +19,7 @@ import {trackEvent} from 'actions/diagnostics_actions.jsx';
 
 import Constants from 'utils/constants.jsx';
 const ActionTypes = Constants.ActionTypes;
+import EventTypes from 'utils/event_types.jsx';
 
 import Client from 'client/web_client.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
@@ -559,4 +560,10 @@ export function requestOpenGraphMetadata(url) {
             }
         );
     }
+}
+
+export function postListScrollChange() {
+    AppDispatcher.handleViewAction({
+        type: EventTypes.POST_LIST_SCROLL_CHANGE
+    });
 }

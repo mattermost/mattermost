@@ -15,6 +15,7 @@ import WebrtcStore from 'stores/webrtc_store.jsx';
 
 import {getFlaggedPosts, getPinnedPosts} from 'actions/post_actions.jsx';
 import {trackEvent} from 'actions/diagnostics_actions.jsx';
+import {postListScrollChange} from 'actions/global_actions.jsx';
 
 import * as Utils from 'utils/utils.jsx';
 import Constants from 'utils/constants.jsx';
@@ -120,10 +121,16 @@ export default class SidebarRight extends React.Component {
         return null;
     }
 
-    componentDidUpdate() {
+    componentDidUpdate(prevProps, prevState) {
         const isOpen = this.state.searchVisible || this.props.postRightVisible;
         WebrtcStore.emitRhsChanged(isOpen);
         this.doStrangeThings();
+
+        const wasOpen = prevState.searchVisible || prevProps.postRightVisible;
+
+        if (isOpen && !wasOpen) {
+            postListScrollChange();
+        }
     }
 
     onPreferenceChange() {
