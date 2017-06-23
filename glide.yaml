@@ -82,4 +82,3 @@ import:
 - package: gopkg.in/olivere/elastic.v5
   version: v5.0.41
 - package: github.com/mattermost/gorp
-  version: cab337059e349c91a4b917c9be50708813619543

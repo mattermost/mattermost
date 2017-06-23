@@ -173,13 +173,9 @@ func exec(e SqlExecutor, query string, doTimeout bool, args ...interface{}) (sql
 		query, args = maybeExpandNamedQuery(dbMap, query, args)
 	}
 
-	if doTimeout && dbMap.Dialect.Name() != "PostgresDialect" {
-		ctx, cancel := context.WithTimeout(context.Background(), dbMap.QueryTimeout)
-		defer cancel()
-		return executor.ExecContext(ctx, query, args...)
-	} else {
-		return executor.Exec(query, args...)
-	}
+	ctx, cancel := context.WithTimeout(context.Background(), dbMap.QueryTimeout)
+	defer cancel()
+	return executor.ExecContext(ctx, query, args...)
 }
 
 // maybeExpandNamedQuery checks the given arg to see if it's eligible to be used
@@ -410,14 +406,9 @@ func get(m *DbMap, exec SqlExecutor, i interface{},
 		dest[x] = target
 	}
 
-	var row *sql.Row
-	if m.Dialect.Name() != "PostgresDialect" {
-		ctx, cancel := context.WithTimeout(context.Background(), m.QueryTimeout)
-		defer cancel()
-		row = exec.QueryRowContext(ctx, plan.query, keys...)
-	} else {
-		row = exec.QueryRow(plan.query, keys...)
-	}
+	ctx, cancel := context.WithTimeout(context.Background(), m.QueryTimeout)
+	defer cancel()
+	row := exec.QueryRowContext(ctx, plan.query, keys...)
 
 	err = row.Scan(dest...)
 	if err != nil {
