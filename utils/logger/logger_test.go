@@ -1,6 +1,6 @@
 // this is a new logger interface for mattermost
 
-package utils
+package logger
 
 import (
 	"context"
@@ -15,7 +15,7 @@ func Test_NewLogger(t *testing.T) {
 	t.Run("Logger name test", func(t *testing.T) {
 		var log = NewLogger()
 		var found = log.filename
-		var expected = "/platform/utils/logger_test.go"
+		var expected = "/platform/utils/logger/logger_test.go"
 		if !strings.HasSuffix(found, expected) {
 			t.Errorf("Found logger suffix = %v, want %v", found, expected)
 		}
@@ -73,7 +73,7 @@ func Test_serializeLogMessage_EmptyContext(t *testing.T) {
 	if len(deserialized.Context) != 0 {
 		t.Error("Context is non-empty")
 	}
-	var expectedLoggerSuffix = "/platform/utils/logger_test.go"
+	var expectedLoggerSuffix = "/platform/utils/logger/logger_test.go"
 	if !strings.HasSuffix(deserialized.Logger, expectedLoggerSuffix) {
 		t.Errorf("Invalid logger %v. Expected logger to have suffix %v", deserialized.Logger, expectedLoggerSuffix)
 	}
@@ -110,7 +110,7 @@ func Test_serializeLogMessage_PopulatedContext(t *testing.T) {
 	if deserialized.Context["user-id"] != "bar" {
 		t.Errorf("Invalid user-id %v. Expected %v", deserialized.Context["user-id"], "bar")
 	}
-	var expectedLoggerSuffix = "/platform/utils/logger_test.go"
+	var expectedLoggerSuffix = "/platform/utils/logger/logger_test.go"
 	if !strings.HasSuffix(deserialized.Logger, expectedLoggerSuffix) {
 		t.Errorf("Invalid logger %v. Expected logger to have suffix %v", deserialized.Logger, expectedLoggerSuffix)
 	}
@@ -155,7 +155,7 @@ func TestDebug(t *testing.T) {
 		if len(deserialized.Context) != 0 {
 			t.Error("Context is non-empty")
 		}
-		var expectedLoggerSuffix = "/platform/utils/logger_test.go"
+		var expectedLoggerSuffix = "/platform/utils/logger/logger_test.go"
 		if !strings.HasSuffix(deserialized.Logger, expectedLoggerSuffix) {
 			t.Errorf("Invalid logger %v. Expected logger to have suffix %v", deserialized.Logger, expectedLoggerSuffix)
 		}
@@ -201,7 +201,7 @@ func TestInfo(t *testing.T) {
 		if len(deserialized.Context) != 0 {
 			t.Error("Context is non-empty")
 		}
-		var expectedLoggerSuffix = "/platform/utils/logger_test.go"
+		var expectedLoggerSuffix = "/platform/utils/logger/logger_test.go"
 		if !strings.HasSuffix(deserialized.Logger, expectedLoggerSuffix) {
 			t.Errorf("Invalid logger %v. Expected logger to have suffix %v", deserialized.Logger, expectedLoggerSuffix)
 		}
@@ -250,7 +250,7 @@ func TestError(t *testing.T) {
 		if len(deserialized.Context) != 0 {
 			t.Error("Context is non-empty")
 		}
-		var expectedLoggerSuffix = "/platform/utils/logger_test.go"
+		var expectedLoggerSuffix = "/platform/utils/logger/logger_test.go"
 		if !strings.HasSuffix(deserialized.Logger, expectedLoggerSuffix) {
 			t.Errorf("Invalid logger %v. Expected logger to have suffix %v", deserialized.Logger, expectedLoggerSuffix)
 		}

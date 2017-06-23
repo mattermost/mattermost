@@ -1,6 +1,6 @@
 // this is a new logger interface for mattermost
 
-package utils
+package logger
 
 import (
 	"context"
