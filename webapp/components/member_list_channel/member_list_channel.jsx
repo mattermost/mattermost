@@ -113,7 +113,7 @@ export default class MemberListChannel extends React.Component {
 
         const searchTimeoutId = setTimeout(
             () => {
-                searchUsers(term, TeamStore.getCurrentId(), {},
+                searchUsers(term, '', {in_channel_id: ChannelStore.getCurrentId()},
                     (users) => {
                         if (searchTimeoutId !== this.searchTimeoutId) {
                             return;
