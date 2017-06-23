@@ -10,29 +10,16 @@ import (
 	"testing"
 )
 
-// ensures that creating a new instance of Logger properly records the name of the file that created it
-func Test_NewLogger(t *testing.T) {
-	t.Run("Logger name test", func(t *testing.T) {
-		var log = NewLogger()
-		var found = log.filename
-		var expected = "/platform/utils/logger/logger_test.go"
-		if !strings.HasSuffix(found, expected) {
-			t.Errorf("Found logger suffix = %v, want %v", found, expected)
-		}
-	})
-}
-
 // ensures that values can be recorded on a Context object, and that the data in question is serialized as a part of the log message
 func Test_serializeContext(t *testing.T) {
 	t.Run("Context values test", func(t *testing.T) {
 		ctx := context.Background()
-		var log = NewLogger()
 
 		expectedUserID := "some-fake-user-id"
-		ctx = log.WithUserID(ctx, expectedUserID)
+		ctx = WithUserID(ctx, expectedUserID)
 
 		expectedRequestID := "some-fake-request-id"
-		ctx = log.WithRequestID(ctx, expectedRequestID)
+		ctx = WithRequestID(ctx, expectedRequestID)
 
 		serialized := serializeContext(ctx)
 
@@ -57,10 +44,9 @@ func Test_serializeContext(t *testing.T) {
 // ensures that an entire log message with an empty context can be properly serialized into a JSON object
 func Test_serializeLogMessage_EmptyContext(t *testing.T) {
 	emptyContext := context.Background()
-	var log = NewLogger()
 
 	var logMessage = "This is a log message"
-	var serialized = serializeLogMessage(emptyContext, log, logMessage)
+	var serialized = serializeLogMessage(emptyContext, logMessage)
 
 	type LogMessage struct {
 		Context map[string]string
@@ -85,13 +71,12 @@ func Test_serializeLogMessage_EmptyContext(t *testing.T) {
 // ensures that an entire log message with a populated context can be properly serialized into a JSON object
 func Test_serializeLogMessage_PopulatedContext(t *testing.T) {
 	populatedContext := context.Background()
-	var log = NewLogger()
 
-	populatedContext = log.WithRequestID(populatedContext, "foo")
-	populatedContext = log.WithUserID(populatedContext, "bar")
+	populatedContext = WithRequestID(populatedContext, "foo")
+	populatedContext = WithUserID(populatedContext, "bar")
 
 	var logMessage = "This is a log message"
-	var serialized = serializeLogMessage(populatedContext, log, logMessage)
+	var serialized = serializeLogMessage(populatedContext, logMessage)
 
 	type LogMessage struct {
 		Context map[string]string
@@ -138,10 +123,8 @@ func TestDebug(t *testing.T) {
 
 		// log something
 		emptyContext := context.Background()
-		var log = NewLogger()
-
 		var logMessage = "Some log message"
-		log.Debug(emptyContext, logMessage)
+		Debug(emptyContext, logMessage)
 
 		// check to see that the message is logged to the underlying log system, in this case our mock method
 		type LogMessage struct {
@@ -184,10 +167,8 @@ func TestInfo(t *testing.T) {
 
 		// log something
 		emptyContext := context.Background()
-		var log = NewLogger()
-
 		var logMessage = "Some log message"
-		log.Info(emptyContext, logMessage)
+		Info(emptyContext, logMessage)
 
 		// check to see that the message is logged to the underlying log system, in this case our mock method
 		type LogMessage struct {
@@ -233,10 +214,8 @@ func TestError(t *testing.T) {
 
 		// log something
 		emptyContext := context.Background()
-		var log = NewLogger()
-
 		var logMessage = "Some log message"
-		log.Error(emptyContext, logMessage)
+		Error(emptyContext, logMessage)
 
 		// check to see that the message is logged to the underlying log system, in this case our mock method
 		type LogMessage struct {
