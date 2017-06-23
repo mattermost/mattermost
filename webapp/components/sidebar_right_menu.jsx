@@ -4,7 +4,6 @@
 import AppDispatcher from 'dispatcher/app_dispatcher.jsx';
 import TeamMembersModal from './team_members_modal.jsx';
 import ToggleModalButton from './toggle_modal_button.jsx';
-import UserSettingsModal from './user_settings/user_settings_modal.jsx';
 import AboutBuildModal from './about_build_modal.jsx';
 import AddUsersToTeam from 'components/add_users_to_team';
 
@@ -46,7 +45,6 @@ export default class SidebarRightMenu extends React.Component {
         this.getFlagged = this.getFlagged.bind(this);
 
         const state = this.getStateFromStores();
-        state.showUserSettingsModal = false;
         state.showAboutModal = false;
         state.showAddUsersToTeamModal = false;
 
@@ -503,7 +501,7 @@ export default class SidebarRightMenu extends React.Component {
                         <li>
                             <a
                                 href='#'
-                                onClick={() => this.setState({showUserSettingsModal: true})}
+                                onClick={() => GlobalActions.showAccountSettingsModal()}
                             >
                                 <i className='icon fa fa-cog'/>
                                 <FormattedMessage
@@ -555,10 +553,6 @@ export default class SidebarRightMenu extends React.Component {
                         </li>
                     </ul>
                 </div>
-                <UserSettingsModal
-                    show={this.state.showUserSettingsModal}
-                    onModalDismissed={() => this.setState({showUserSettingsModal: false})}
-                />
                 <AboutBuildModal
                     show={this.state.showAboutModal}
                     onModalDismissed={this.aboutModalDismissed}

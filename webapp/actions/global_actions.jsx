@@ -197,6 +197,13 @@ export function emitUserCommentedEvent(post) {
     });
 }
 
+export function showAccountSettingsModal() {
+    AppDispatcher.handleViewAction({
+        type: ActionTypes.TOGGLE_ACCOUNT_SETTINGS_MODAL,
+        value: true
+    });
+}
+
 export function showDeletePostModal(post, commentCount = 0) {
     AppDispatcher.handleViewAction({
         type: ActionTypes.TOGGLE_DELETE_POST_MODAL,
