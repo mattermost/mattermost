@@ -93,7 +93,7 @@
   },
   {
     "id": "api.admin.test_email.body",
-    "translation": "<br/><br/><br/>Ihr Mattermost E-Mail Setup scheint korrekt zu sein!"
+    "translation": "<br/><br/><br/>Ihre Mattermost E-Mail-Einrichtung scheint korrekt zu sein!"
   },
   {
     "id": "api.admin.test_email.missing_server",
@@ -281,7 +281,7 @@
   },
   {
     "id": "api.channel.get_channels.error",
-    "translation": "Fehler beim Finden des Benutzerprofils mit id=%v. Erzwinge Abmeldung"
+    "translation": "Fehler beim Abrufen des Benutzerprofils mit id=%v erzwinge Abmeldung"
   },
   {
     "id": "api.channel.init.debug",
@@ -389,7 +389,7 @@
   },
   {
     "id": "api.channel.update_last_viewed_at.get_unread_count_for_channel.error",
-    "translation": "Konnte die Ungelesen-Zahl für user_id=%v und channel_id=%v nicht abrufen, err=%v"
+    "translation": "Konnte den Ungelesen-Zähler für user_id=%v und channel_id=%v nicht abrufen, err=%v"
   },
   {
     "id": "api.cluster.init.debug",
@@ -521,7 +521,7 @@
   },
   {
     "id": "api.command_echo.high_volume.app_error",
-    "translation": "Die Anzahl der Echo-Anfragen ist zu hoch. Prozess kann nicht verarbeitet werden"
+    "translation": "Hohe Anzahl an Echo-Anfragen, Anfrage kann nicht verarbeitet werden"
   },
   {
     "id": "api.command_echo.hint",
@@ -533,7 +533,7 @@
   },
   {
     "id": "api.command_echo.name",
-    "translation": "Echo"
+    "translation": "echo"
   },
   {
     "id": "api.command_expand.desc",
@@ -541,7 +541,7 @@
   },
   {
     "id": "api.command_expand.name",
-    "translation": "Erweitern"
+    "translation": "erweitern"
   },
   {
     "id": "api.command_expand.success",
@@ -573,7 +573,7 @@
   },
   {
     "id": "api.command_join.name",
-    "translation": "Beitreten"
+    "translation": "beitreten"
   },
   {
     "id": "api.command_join.success",
@@ -589,7 +589,7 @@
   },
   {
     "id": "api.command_logout.name",
-    "translation": "Abmelden"
+    "translation": "logout"
   },
   {
     "id": "api.command_me.desc",
@@ -601,7 +601,7 @@
   },
   {
     "id": "api.command_me.name",
-    "translation": "Ich"
+    "translation": "ich"
   },
   {
     "id": "api.command_msg.desc",
@@ -629,7 +629,7 @@
   },
   {
     "id": "api.command_msg.name",
-    "translation": "Nachricht"
+    "translation": "nachricht"
   },
   {
     "id": "api.command_msg.success",
@@ -769,7 +769,7 @@
   },
   {
     "id": "api.command_shortcuts.name",
-    "translation": "Tastaturkürzel"
+    "translation": "tastaturkürzel"
   },
   {
     "id": "api.command_shortcuts.nav.direct_messages_menu",
@@ -917,11 +917,11 @@
   },
   {
     "id": "api.email_batching.check_pending_emails.status.app_error",
-    "translation": "Konnte Status für Empfänger der gestapelten E-Mail Benachrichtigung nicht finden"
+    "translation": "Konnte Status für Empfänger der gestapelten E-Mail-Benachrichtigung nicht finden"
   },
   {
     "id": "api.email_batching.render_batched_post.channel.app_error",
-    "translation": "Konnte Kanal für gestapelte E-Mail Benachrichtigung nicht finden"
+    "translation": "Konnte Kanal für gestapelte E-Mail-Benachrichtigung nicht finden"
   },
   {
     "id": "api.email_batching.render_batched_post.date",
@@ -941,7 +941,7 @@
   },
   {
     "id": "api.email_batching.render_batched_post.sender.app_error",
-    "translation": "Konnte Absender der Nachricht für gestapelte E-Mail Benachrichtigung nicht finden"
+    "translation": "Konnte Absender der Nachricht für gestapelte E-Mail-Benachrichtigung nicht finden"
   },
   {
     "id": "api.email_batching.send_batched_email_notification.body_text",
@@ -952,11 +952,11 @@
   },
   {
     "id": "api.email_batching.send_batched_email_notification.preferences.app_error",
-    "translation": "Konnte Darstellungsoptionen für Empfänger der gestapelten E-Mail Benachrichtigung nicht finden"
+    "translation": "Konnte Darstellungsoptionen für Empfänger der gestapelten E-Mail-Benachrichtigung nicht finden"
   },
   {
     "id": "api.email_batching.send_batched_email_notification.send.app_error",
-    "translation": "Konnte gestapelte E-Mail Benachrichtigungen nicht an %v versenden: %v"
+    "translation": "Konnte gestapelte E-Mail-Benachrichtigungen nicht an %v versenden: %v"
   },
   {
     "id": "api.email_batching.send_batched_email_notification.subject",
@@ -967,11 +967,11 @@
   },
   {
     "id": "api.email_batching.send_batched_email_notification.user.app_error",
-    "translation": "Konnte Empfänger für gestapelte E-Mail Benachrichtigungen nicht finden"
+    "translation": "Konnte Empfänger für gestapelte E-Mail-Benachrichtigungen nicht finden"
   },
   {
     "id": "api.email_batching.start.starting",
-    "translation": "E-Mail-Stapelverarbeitungs-Job started. Überprüfe auf ausstehende E-Mails alle %v Sekunden."
+    "translation": "E-Mail-Stapelverarbeitungs-Job startet. Überprüfe alle %v Sekunden auf ausstehende E-Mails."
   },
   {
     "id": "api.emoji.create.duplicate.app_error",
@@ -1267,7 +1267,7 @@
   },
   {
     "id": "api.import.import_user.set_email.error",
-    "translation": "Fehler beim Setzen der E-Mail-Adresse als geprüft. Fehler=%v"
+    "translation": "Fehler beim Setzen der E-Mail-Adresse als geprüft err=%v"
   },
   {
     "id": "api.incoming_webhook.disabled.app_errror",
@@ -1291,7 +1291,7 @@
   },
   {
     "id": "api.license.add_license.invalid_count.app_error",
-    "translation": "Konnte die Zahl der Benutzer nicht ermitteln."
+    "translation": "Konnte die Anzahl der eindeutigen Benutzer nicht ermitteln."
   },
   {
     "id": "api.license.add_license.no_file.app_error",
@@ -1471,7 +1471,7 @@
   },
   {
     "id": "api.post.check_for_out_of_channel_mentions.message.one",
-    "translation": "{{.Username}} wurde benachrichtigt, aber er hat keine Benachrichtigung erhalten, weil er nicht im Kanal ist."
+    "translation": "{{.Username}} wurde erwähnt, aber hat keine Benachrichtigung erhalten, da kein Kanalmitglied."
   },
   {
     "id": "api.post.create_post.attach_files.error",
@@ -1626,6 +1626,10 @@
   {
     "id": "api.post.send_notifications_and_forget.message_subject",
     "translation": "Neue Direktnachricht"
+  },
+  {
+    "id": "api.post.send_notifications_and_forget.push_image_only",
+    "translation": " Eine oder mehrere Dateien hochgeladen "
   },
   {
     "id": "api.post.send_notifications_and_forget.push_in",
@@ -1985,11 +1989,11 @@
   },
   {
     "id": "api.team.add_user_to_team.invalid_data.app_error",
-    "translation": "Ungültige Daten"
+    "translation": "Ungültige Daten."
   },
   {
     "id": "api.team.add_user_to_team.invalid_invite_id.app_error",
-    "translation": "Ungültige Einladungs-ID. Kein Team entspricht dieser Einladungs-ID"
+    "translation": "Ungültige Einladungs-ID. Kein Team entspricht dieser Einladungs-ID."
   },
   {
     "id": "api.team.add_user_to_team.missing_parameter.app_error",
@@ -2101,7 +2105,7 @@
   },
   {
     "id": "api.team.permanent_delete_team.deleted.warn",
-    "translation": "Team permanent gelöscht. %v id=%v"
+    "translation": "Team permanent gelöscht %v id=%v"
   },
   {
     "id": "api.team.remove_user_from_team.missing.app_error",
@@ -2169,7 +2173,7 @@
   },
   {
     "id": "api.templates.error.title",
-    "translation": "{{.SiteName}} braucht Ihre Hilfe:"
+    "translation": "{{ .SiteName }} braucht Ihre Hilfe:"
   },
   {
     "id": "api.templates.find_teams_body.found",
@@ -2193,7 +2197,7 @@
   },
   {
     "id": "api.templates.invite_body.extra_info",
-    "translation": "Mattermost lässt Sie Nachrichten und Dateien von Ihrem PC oder Smartphone teilen, mit Sofortsuche und Archivierung. Nach dem Sie <strong>{{.TeamDisplayName}}</strong> beigetreten sind, können Sie sich bei Ihrem neuen Team anmelden und auf all diese Features von folgender Webadresse aus zugreifen:<br/><br/><a href='{{.TeamURL}}'>{{.TeamURL}}</a>"
+    "translation": "Mattermost lässt Sie Nachrichten und Dateien von Ihrem PC oder Smartphone teilen, mit Sofortsuche und Archivierung. Nachdem Sie <strong>{{.TeamDisplayName}}</strong> beigetreten sind, können Sie sich bei Ihrem neuen Team anmelden und auf all diese Funktionen von folgender Webadresse aus zugreifen:<br/><br/><a href='{{.TeamURL}}'>{{.TeamURL}}</a>"
   },
   {
     "id": "api.templates.invite_body.info",
@@ -3257,15 +3261,15 @@
   },
   {
     "id": "ent.cluster.config_changed.info",
-    "translation": "Cluster Konfiguration hat sich für id=%v geändert.  Versuche den Cluster Dienst neuzustarten.  Um sicherzustellen das der Cluster korrekt Konfiguriert ist, sollten Sie nicht auf diesen Neustart verlassen da eine Kernkonfigurationsänderung festgestellt wurde."
+    "translation": "Cluster-Konfiguration hat sich für id=%v geändert.  Versuche den Cluster-Dienst neuzustarten.  Um sicherzustellen, dass der Cluster korrekt konfiguriert ist, sollten Sie nicht auf diesen Neustart verlassen, da eine Kernkonfigurationsänderung festgestellt wurde."
   },
   {
     "id": "ent.cluster.debug_fail.debug",
-    "translation": "Cluster send fehlgeschlagen um '%v' detail=%v, extra=%v, wiederholung=%v"
+    "translation": "Cluster send fehlgeschlagen um `%v` detail=%v, extra=%v, wiederholung=%v"
   },
   {
     "id": "ent.cluster.final_fail.error",
-    "translation": "Cluster send abschließend fehlgeschlagen um '%v' detail=%v, extra=%v, wiederholung=%v"
+    "translation": "Cluster send abschließend fehlgeschlagen um `%v` detail=%v, extra=%v, wiederholung=%v"
   },
   {
     "id": "ent.cluster.incompatible.warn",
@@ -3405,7 +3409,7 @@
   },
   {
     "id": "ent.ldap.syncdone.info",
-    "translation": "AD/LDAD Synchronisation abgeschlossen"
+    "translation": "AD/LDAP-Synchronisierung abgeschlossen"
   },
   {
     "id": "ent.ldap.syncronize.get_all.app_error",
@@ -3537,7 +3541,7 @@
   },
   {
     "id": "ent.saml.update_saml_user.unable_error",
-    "translation": "Konnte existierenden SAML User nicht aktualisieren. Erlaube login trotzdem. err=%v"
+    "translation": "Konnte existierenden SAML-Benutzer nicht aktualisieren. Erlaube Login trotzdem. err=%v"
   },
   {
     "id": "error.generic.link_message",
@@ -3873,7 +3877,7 @@
   },
   {
     "id": "model.command.is_valid.url_http.app_error",
-    "translation": "Ungültige URL. Muss eine gültige URL sein und mit http:// oder https:// beginnen."
+    "translation": "Ungültige URL. Muss eine gültige URL sein und mit http:// oder https:// beginnen"
   },
   {
     "id": "model.command.is_valid.user_id.app_error",
@@ -3933,15 +3937,15 @@
   },
   {
     "id": "model.config.is_valid.email_reset_salt.app_error",
-    "translation": "Ungültiger Passwort zurücksetzen Salt in E-Mail Einstellungen.  Muss 32 Zeichen oder mehr sein."
+    "translation": "Ungültiger Salt für Passwort-Zuücksetzung in E-Mail-Einstellungen.  Muss 32 Zeichen oder mehr sein."
   },
   {
     "id": "model.config.is_valid.email_salt.app_error",
-    "translation": "Ungültiger Salt für Einladung in E-Mail Einstellungen.  Muss 32 Zeichen oder mehr sein."
+    "translation": "Ungültiger Salt für Einladung in E-Mail-Einstellungen.  Muss 32 Zeichen oder mehr sein."
   },
   {
     "id": "model.config.is_valid.email_security.app_error",
-    "translation": "Ungültige Verbindungssicherheit in E-Mail Einstellungen.  Muss '', 'TLS' oder 'STARTTLS' sein"
+    "translation": "Ungültige Verbindungssicherheit in E-Mail-Einstellungen.  Muss '', 'TLS' oder 'STARTTLS' sein"
   },
   {
     "id": "model.config.is_valid.encrypt_sql.app_error",
@@ -4029,7 +4033,7 @@
   },
   {
     "id": "model.config.is_valid.ldap_sync_interval.app_error",
-    "translation": "Ungültiges Synchronisationsintervall. Muss mindestens eine Minute sein."
+    "translation": "Ungültiges Synchronisierungsintervall. Muss mindestens eine Minute sein."
   },
   {
     "id": "model.config.is_valid.ldap_username",
@@ -4093,7 +4097,7 @@
   },
   {
     "id": "model.config.is_valid.saml_email_attribute.app_error",
-    "translation": "Ungültiges E-Mail Attribut. Muss gesetzt sein."
+    "translation": "Ungültiges E-Mail-Attribut. Muss gesetzt sein."
   },
   {
     "id": "model.config.is_valid.saml_idp_cert.app_error",
@@ -4121,7 +4125,7 @@
   },
   {
     "id": "model.config.is_valid.site_url.app_error",
-    "translation": "Seiten-URL muss eine gültige URL sein und mit http:// oder https:// beginnen."
+    "translation": "Seiten-URL muss eine gültige URL sein und mit http:// oder https:// beginnen"
   },
   {
     "id": "model.config.is_valid.site_url_email_batching.app_error",
@@ -4169,7 +4173,7 @@
   },
   {
     "id": "model.config.is_valid.webrtc_stun_uri.app_error",
-    "translation": "Die WebRTC-STUN-URI muss eine gültige URL sein und mit stun: beginnen."
+    "translation": "Die WebRTC-STUN-URI muss eine gültige URL sein und mit stun: beginnen"
   },
   {
     "id": "model.config.is_valid.webrtc_turn_shared_key.app_error",
@@ -4565,7 +4569,7 @@
   },
   {
     "id": "model.user.is_valid.pwd_lowercase_symbol.app_error",
-    "translation": "Ihr Passwort muss mindestens {{.Min}} Zeichen lang sein und mindestens einen Kleinbuchstaben und ein Symbol (wie \"~!@#$%^&*()\"). enthalten."
+    "translation": "Ihr Passwort muss mindestens {{.Min}} Zeichen lang sein und mindestens einen Kleinbuchstaben und ein Symbol (wie \"~!@#$%^&*()\") enthalten."
   },
   {
     "id": "model.user.is_valid.pwd_lowercase_uppercase.app_error",
@@ -4706,14 +4710,6 @@
   {
     "id": "store.sql.open_conn.panic",
     "translation": "Fehler beim Öffnen der SQL Verbindung %v"
-  },
-  {
-    "id": "store.sql.ping.critical",
-    "translation": "Fehler beim DB Ping err:%v"
-  },
-  {
-    "id": "store.sql.pinging.info",
-    "translation": "Pinge SQL %v Datenbank"
   },
   {
     "id": "store.sql.read_replicas_not_licensed.critical",
@@ -5025,7 +5021,7 @@
   },
   {
     "id": "store.sql_command.analytics_command_count.app_error",
-    "translation": "Die Befehle konnten nicht gezählt werden"
+    "translation": "Die Anzahl der Befehle konnte nicht gezählt werden"
   },
   {
     "id": "store.sql_command.save.delete.app_error",
@@ -5285,7 +5281,7 @@
   },
   {
     "id": "store.sql_post.get_posts_by_ids.app_error",
-    "translation": "Die Nachrichten konnten nicht abgerufen werden."
+    "translation": "Die Nachrichten konnten nicht abgerufen werden"
   },
   {
     "id": "store.sql_post.get_posts_created_att.app_error",
@@ -5349,7 +5345,7 @@
   },
   {
     "id": "store.sql_preference.delete_unused_features.debug",
-    "translation": "Lösche alle ungenutzten Pre-Release Features"
+    "translation": "Lösche alle ungenutzten Pre-Release-Features"
   },
   {
     "id": "store.sql_preference.get.app_error",
@@ -5373,7 +5369,7 @@
   },
   {
     "id": "store.sql_preference.is_feature_enabled.app_error",
-    "translation": "Es trat ein Fehler während der Suche nach Pre-Release Feature Einstellungen auf"
+    "translation": "Es trat ein Fehler während der Suche nach Pre-Release Feature-Einstellungen auf"
   },
   {
     "id": "store.sql_preference.permanent_delete_by_user.app_error",
@@ -5705,7 +5701,7 @@
   },
   {
     "id": "store.sql_user.get_for_login.app_error",
-    "translation": "Es konnte kein existierender Account entsprechend Ihrer Zugangsdaten gefunden werden. Dieses Team erfordert eventuell eine Einladung vom Teambesitzer um beizutreten."
+    "translation": "Es konnte kein Konto mit den angegeben Zugangsdaten gefunden werden. Dieses Team erfordert eventuell eine Einladung vom Teambesitzer um beizutreten."
   },
   {
     "id": "store.sql_user.get_for_login.multiple_users",
@@ -5729,7 +5725,7 @@
   },
   {
     "id": "store.sql_user.get_unread_count.app_error",
-    "translation": "Es konnte nicht die Anzahl der ungelesenen Nachrichten für den Benutzer abgerufen werden"
+    "translation": "Die Anzahl der ungelesenen Nachrichten für den Benutzer konnte nicht abgerufen werden"
   },
   {
     "id": "store.sql_user.get_unread_count_for_channel.app_error",
@@ -5737,11 +5733,11 @@
   },
   {
     "id": "store.sql_user.migrate_theme.critical",
-    "translation": "Fehler beim Migrieren von User.ThemeProps in die Einstellungen Tabelle %v"
+    "translation": "Fehler beim Migrieren von User.ThemeProps in die Einstellungen-Tabelle %v"
   },
   {
     "id": "store.sql_user.missing_account.const",
-    "translation": "Der Benutzer konnte nicht gefunden werden"
+    "translation": "Der Benutzer konnte nicht gefunden werden."
   },
   {
     "id": "store.sql_user.permanent_delete.app_error",
@@ -5857,11 +5853,11 @@
   },
   {
     "id": "store.sql_webhooks.analytics_incoming_count.app_error",
-    "translation": "Es konnte die Anzahl der eingehenden Webhooks nicht gezählt werden"
+    "translation": "Die Anzahl der eingehenden Webhooks konnte nicht gezählt werden"
   },
   {
     "id": "store.sql_webhooks.analytics_outgoing_count.app_error",
-    "translation": "Es konnte die Anzahl der ausgehenden Webhooks nicht gezählt werden"
+    "translation": "Die Anzahl der ausgehenden Webhooks konnte nicht gezählt werden"
   },
   {
     "id": "store.sql_webhooks.delete_incoming.app_error",
@@ -6041,7 +6037,7 @@
   },
   {
     "id": "utils.mail.send_mail.sending.debug",
-    "translation": "E-Mail an %v mit dem Betreff '%v' senden"
+    "translation": "sende E-Mail an %v mit dem Betreff '%v'"
   },
   {
     "id": "utils.mail.send_mail.to_address.app_error",
@@ -6089,7 +6085,7 @@
   },
   {
     "id": "web.do_load_channel.error",
-    "translation": "Fehler beim Finden des Benutzerprofils mit id=%v. Erzwinge Abmeldung"
+    "translation": "Fehler beim Finden des Benutzerprofils mit id=%v erzwinge Abmeldung"
   },
   {
     "id": "web.doc.title",

@@ -73,7 +73,7 @@ export default class ChannelHeader extends React.Component {
     getStateFromStores() {
         const channel = ChannelStore.get(this.props.channelId);
         const stats = ChannelStore.getStats(this.props.channelId);
-        const users = UserStore.getProfileListInChannel(this.props.channelId);
+        const users = UserStore.getProfileListInChannel(this.props.channelId, false, true);
 
         let otherUserId = null;
         if (channel && channel.type === 'D') {
@@ -227,7 +227,7 @@ export default class ChannelHeader extends React.Component {
         AppDispatcher.handleViewAction({
             type: ActionTypes.TOGGLE_DM_MODAL,
             value: true,
-            startingUsers: UserStore.getProfileListInChannel(this.props.channelId, true)
+            startingUsers: UserStore.getProfileListInChannel(this.props.channelId, true, false)
         });
     }
 

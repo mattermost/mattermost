@@ -5,6 +5,7 @@ cli is the library that powers the CLI for
 [Packer](https://github.com/mitchellh/packer),
 [Serf](https://github.com/hashicorp/serf),
 [Consul](https://github.com/hashicorp/consul),
+[Vault](https://github.com/hashicorp/vault),
 [Terraform](https://github.com/hashicorp/terraform), and
 [Nomad](https://github.com/hashicorp/nomad).
 

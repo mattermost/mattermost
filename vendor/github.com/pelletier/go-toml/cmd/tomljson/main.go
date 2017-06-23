@@ -1,3 +1,8 @@
+// Tomljson reads TOML and converts to JSON.
+//
+// Usage:
+//   cat file.toml | tomljson > file.json
+//   tomljson file1.toml > file.json
 package main
 
 import (

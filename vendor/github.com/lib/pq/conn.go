@@ -506,13 +506,17 @@ func (cn *conn) checkIsInTransaction(intxn bool) {
 }
 
 func (cn *conn) Begin() (_ driver.Tx, err error) {
+	return cn.begin("")
+}
+
+func (cn *conn) begin(mode string) (_ driver.Tx, err error) {
 	if cn.bad {
 		return nil, driver.ErrBadConn
 	}
 	defer cn.errRecover(&err)
 
 	cn.checkIsInTransaction(false)
-	_, commandTag, err := cn.simpleExec("BEGIN")
+	_, commandTag, err := cn.simpleExec("BEGIN" + mode)
 	if err != nil {
 		return nil, err
 	}

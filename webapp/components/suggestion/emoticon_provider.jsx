@@ -3,11 +3,14 @@
 
 import React from 'react';
 
-import EmojiStore from 'stores/emoji_store.jsx';
+import {default as EmojiStore, EmojiMap} from 'stores/emoji_store.jsx';
 import * as Emoticons from 'utils/emoticons.jsx';
 import SuggestionStore from 'stores/suggestion_store.jsx';
 
 import Suggestion from './suggestion.jsx';
+
+import store from 'stores/redux_store.jsx';
+import {getCustomEmojisByName} from 'mattermost-redux/selectors/entities/emojis';
 
 const MIN_EMOTICON_LENGTH = 2;
 
@@ -71,8 +74,10 @@ export default class EmoticonProvider {
                 }
             }
 
+            const emojis = new EmojiMap(getCustomEmojisByName(store.getState()));
+
             // check for named emoji
-            for (const [name, emoji] of EmojiStore.getEmojis()) {
+            for (const [name, emoji] of emojis) {
                 if (emoji.aliases) {
                     // This is a system emoji so it may have multiple names
                     for (const alias of emoji.aliases) {

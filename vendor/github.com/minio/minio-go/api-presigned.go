@@ -122,38 +122,21 @@ func (c Client) PresignedPostPolicy(p *PostPolicy) (u *url.URL, formData map[str
 		return nil, nil, err
 	}
 
-	// Get credentials from the configured credentials provider.
-	credValues, err := c.credsProvider.Get()
-	if err != nil {
-		return nil, nil, err
-	}
-
-	var (
-		signerType      = credValues.SignerType
-		sessionToken    = credValues.SessionToken
-		accessKeyID     = credValues.AccessKeyID
-		secretAccessKey = credValues.SecretAccessKey
-	)
-
-	if signerType.IsAnonymous() {
-		return nil, nil, ErrInvalidArgument("Presigned operations are not supported for anonymous credentials")
-	}
-
 	// Keep time.
 	t := time.Now().UTC()
 	// For signature version '2' handle here.
-	if signerType.IsV2() {
+	if c.signature.isV2() {
 		policyBase64 := p.base64()
 		p.formData["policy"] = policyBase64
 		// For Google endpoint set this value to be 'GoogleAccessId'.
 		if s3utils.IsGoogleEndpoint(c.endpointURL) {
-			p.formData["GoogleAccessId"] = accessKeyID
+			p.formData["GoogleAccessId"] = c.accessKeyID
 		} else {
 			// For all other endpoints set this value to be 'AWSAccessKeyId'.
-			p.formData["AWSAccessKeyId"] = accessKeyID
+			p.formData["AWSAccessKeyId"] = c.accessKeyID
 		}
 		// Sign the policy.
-		p.formData["signature"] = s3signer.PostPresignSignatureV2(policyBase64, secretAccessKey)
+		p.formData["signature"] = s3signer.PostPresignSignatureV2(policyBase64, c.secretAccessKey)
 		return u, p.formData, nil
 	}
 
@@ -176,7 +159,7 @@ func (c Client) PresignedPostPolicy(p *PostPolicy) (u *url.URL, formData map[str
 	}
 
 	// Add a credential policy.
-	credential := s3signer.GetCredential(accessKeyID, location, t)
+	credential := s3signer.GetCredential(c.accessKeyID, location, t)
 	if err = p.addNewPolicy(policyCondition{
 		matchType: "eq",
 		condition: "$x-amz-credential",
@@ -185,27 +168,13 @@ func (c Client) PresignedPostPolicy(p *PostPolicy) (u *url.URL, formData map[str
 		return nil, nil, err
 	}
 
-	if sessionToken != "" {
-		if err = p.addNewPolicy(policyCondition{
-			matchType: "eq",
-			condition: "$x-amz-security-token",
-			value:     sessionToken,
-		}); err != nil {
-			return nil, nil, err
-		}
-	}
-
 	// Get base64 encoded policy.
 	policyBase64 := p.base64()
-
 	// Fill in the form data.
 	p.formData["policy"] = policyBase64
 	p.formData["x-amz-algorithm"] = signV4Algorithm
 	p.formData["x-amz-credential"] = credential
 	p.formData["x-amz-date"] = t.Format(iso8601DateFormat)
-	if sessionToken != "" {
-		p.formData["x-amz-security-token"] = sessionToken
-	}
-	p.formData["x-amz-signature"] = s3signer.PostPresignSignatureV4(policyBase64, t, secretAccessKey, location)
+	p.formData["x-amz-signature"] = s3signer.PostPresignSignatureV4(policyBase64, t, c.secretAccessKey, location)
 	return u, p.formData, nil
 }

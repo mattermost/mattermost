@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import keyMirror from 'key-mirror/keyMirror.js';
+import keyMirror from 'key-mirror';
 
 import audioIcon from 'images/icons/audio.png';
 import videoIcon from 'images/icons/video.png';
@@ -166,6 +166,7 @@ export const ActionTypes = keyMirror({
 
     USER_TYPING: null,
 
+    TOGGLE_ACCOUNT_SETTINGS_MODAL: null,
     TOGGLE_IMPORT_THEME_MODAL: null,
     TOGGLE_INVITE_MEMBER_MODAL: null,
     TOGGLE_LEAVE_TEAM_MODAL: null,
@@ -222,6 +223,7 @@ export const SocketEvents = {
     POST_DELETED: 'post_deleted',
     CHANNEL_CREATED: 'channel_created',
     CHANNEL_DELETED: 'channel_deleted',
+    CHANNEL_UPDATED: 'channel_updated',
     CHANNEL_VIEWED: 'channel_viewed',
     DIRECT_ADDED: 'direct_added',
     NEW_USER: 'new_user',
@@ -240,7 +242,8 @@ export const SocketEvents = {
     HELLO: 'hello',
     WEBRTC: 'webrtc',
     REACTION_ADDED: 'reaction_added',
-    REACTION_REMOVED: 'reaction_removed'
+    REACTION_REMOVED: 'reaction_removed',
+    EMOJI_ADDED: 'emoji_added'
 };
 
 export const TutorialSteps = {

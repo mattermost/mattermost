@@ -18,17 +18,13 @@
     }
 
     a {
-        color: $white;
+        color: inherit !important;
         text-decoration: underline;
 
-        .app__body & {
-            color: $white;
-
-            &:hover,
-            &:active,
-            &:focus {
-                color: $white;
-            }
+        &:hover,
+        &:active,
+        &:focus {
+            color: inherit !important;
         }
 
         &.error-bar__close {

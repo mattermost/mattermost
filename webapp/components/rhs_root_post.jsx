@@ -28,6 +28,24 @@ import {Link} from 'react-router/es6';
 import {FormattedMessage} from 'react-intl';
 
 export default class RhsRootPost extends React.Component {
+    static propTypes = {
+        post: PropTypes.object.isRequired,
+        user: PropTypes.object.isRequired,
+        currentUser: PropTypes.object.isRequired,
+        compactDisplay: PropTypes.bool,
+        useMilitaryTime: PropTypes.bool.isRequired,
+        commentCount: PropTypes.number.isRequired,
+        isFlagged: PropTypes.bool,
+        status: PropTypes.string,
+        previewCollapsed: PropTypes.string,
+        isBusy: PropTypes.bool,
+        getPostList: PropTypes.func.isRequired
+    }
+
+    static defaultProps = {
+        commentCount: 0
+    }
+
     constructor(props) {
         super(props);
 
@@ -362,6 +380,7 @@ export default class RhsRootPost extends React.Component {
                 post={this.props.post}
                 isFlagged={this.props.isFlagged}
                 handleDropdownOpened={this.handleDropdownOpened}
+                commentCount={this.props.commentCount}
             />
         );
 
@@ -411,19 +430,3 @@ export default class RhsRootPost extends React.Component {
         );
     }
 }
-
-RhsRootPost.defaultProps = {
-    commentCount: 0
-};
-RhsRootPost.propTypes = {
-    post: PropTypes.object.isRequired,
-    user: PropTypes.object.isRequired,
-    currentUser: PropTypes.object.isRequired,
-    compactDisplay: PropTypes.bool,
-    useMilitaryTime: PropTypes.bool.isRequired,
-    isFlagged: PropTypes.bool,
-    status: PropTypes.string,
-    previewCollapsed: PropTypes.string,
-    isBusy: PropTypes.bool,
-    getPostList: PropTypes.func.isRequired
-};

@@ -15,6 +15,7 @@ const (
 	WEBSOCKET_EVENT_POST_DELETED        = "post_deleted"
 	WEBSOCKET_EVENT_CHANNEL_DELETED     = "channel_deleted"
 	WEBSOCKET_EVENT_CHANNEL_CREATED     = "channel_created"
+	WEBSOCKET_EVENT_CHANNEL_UPDATED     = "channel_updated"
 	WEBSOCKET_EVENT_DIRECT_ADDED        = "direct_added"
 	WEBSOCKET_EVENT_GROUP_ADDED         = "group_added"
 	WEBSOCKET_EVENT_NEW_USER            = "new_user"
@@ -35,6 +36,7 @@ const (
 	WEBSOCKET_EVENT_REACTION_ADDED      = "reaction_added"
 	WEBSOCKET_EVENT_REACTION_REMOVED    = "reaction_removed"
 	WEBSOCKET_EVENT_RESPONSE            = "response"
+	WEBSOCKET_EVENT_EMOJI_ADDED         = "emoji_added"
 )
 
 type WebSocketMessage interface {

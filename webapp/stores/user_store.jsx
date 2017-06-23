@@ -390,10 +390,10 @@ class UserStoreClass extends EventEmitter {
         });
     }
 
-    getProfileListInChannel(channelId = ChannelStore.getCurrentId(), skipCurrent = false) {
+    getProfileListInChannel(channelId = ChannelStore.getCurrentId(), skipCurrent = false, skipInactive = false) {
         const userIds = Array.from(Selectors.getUserIdsInChannels(store.getState())[channelId] || []);
 
-        return this.getProfileListForIds(userIds, skipCurrent, false);
+        return this.getProfileListForIds(userIds, skipCurrent, skipInactive);
     }
 
     saveProfileNotInChannel(channelId = ChannelStore.getCurrentId(), profile) {

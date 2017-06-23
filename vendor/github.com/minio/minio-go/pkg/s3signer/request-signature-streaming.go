@@ -92,12 +92,9 @@ func buildChunkStringToSign(t time.Time, region, previousSig string, chunkData [
 
 // prepareStreamingRequest - prepares a request with appropriate
 // headers before computing the seed signature.
-func prepareStreamingRequest(req *http.Request, sessionToken string, dataLen int64, timestamp time.Time) {
+func prepareStreamingRequest(req *http.Request, dataLen int64, timestamp time.Time) {
 	// Set x-amz-content-sha256 header.
 	req.Header.Set("X-Amz-Content-Sha256", streamingSignAlgorithm)
-	if sessionToken != "" {
-		req.Header.Set("X-Amz-Security-Token", sessionToken)
-	}
 	req.Header.Set("Content-Encoding", streamingEncoding)
 	req.Header.Set("X-Amz-Date", timestamp.Format(iso8601DateFormat))
 
@@ -141,7 +138,6 @@ func (s *StreamingReader) setSeedSignature(req *http.Request) {
 type StreamingReader struct {
 	accessKeyID     string
 	secretAccessKey string
-	sessionToken    string
 	region          string
 	prevSignature   string
 	seedSignature   string
@@ -199,17 +195,16 @@ func (s *StreamingReader) setStreamingAuthHeader(req *http.Request) {
 
 // StreamingSignV4 - provides chunked upload signatureV4 support by
 // implementing io.Reader.
-func StreamingSignV4(req *http.Request, accessKeyID, secretAccessKey, sessionToken,
+func StreamingSignV4(req *http.Request, accessKeyID, secretAccessKey,
 	region string, dataLen int64, reqTime time.Time) *http.Request {
 
 	// Set headers needed for streaming signature.
-	prepareStreamingRequest(req, sessionToken, dataLen, reqTime)
+	prepareStreamingRequest(req, dataLen, reqTime)
 
 	stReader := &StreamingReader{
 		baseReadCloser:  req.Body,
 		accessKeyID:     accessKeyID,
 		secretAccessKey: secretAccessKey,
-		sessionToken:    sessionToken,
 		region:          region,
 		reqTime:         reqTime,
 		chunkBuf:        make([]byte, payloadChunkSize),

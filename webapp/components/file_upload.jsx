@@ -17,7 +17,7 @@ import {uploadFile} from 'actions/file_actions.jsx';
 const holders = defineMessages({
     limited: {
         id: 'file_upload.limited',
-        defaultMessage: 'Uploads limited to {count} files maximum. Please use additional posts for more files.'
+        defaultMessage: 'Uploads limited to {count, number} files maximum. Please use additional posts for more files.'
     },
     filesAbove: {
         id: 'file_upload.filesAbove',
@@ -94,13 +94,13 @@ class FileUpload extends React.Component {
             const clientId = Utils.generateId();
 
             const request = uploadFile(
-                    files[i],
-                    files[i].name,
-                    channelId,
-                    clientId,
-                    this.fileUploadSuccess.bind(this, channelId),
-                    this.fileUploadFail.bind(this, clientId)
-                );
+                files[i],
+                files[i].name,
+                channelId,
+                clientId,
+                this.fileUploadSuccess.bind(this, channelId),
+                this.fileUploadFail.bind(this, clientId)
+            );
 
             const requests = this.state.requests;
             requests[clientId] = request;

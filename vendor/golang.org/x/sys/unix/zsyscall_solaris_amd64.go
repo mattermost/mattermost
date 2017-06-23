@@ -519,7 +519,7 @@ func acct(path *byte) (err error) {
 	return
 }
 
-func ioctl(fd int, req int, arg uintptr) (err error) {
+func ioctl(fd int, req uint, arg uintptr) (err error) {
 	_, _, e1 := sysvicall6(uintptr(unsafe.Pointer(&procioctl)), 3, uintptr(fd), uintptr(req), uintptr(arg), 0, 0, 0)
 	if e1 != 0 {
 		err = e1

@@ -199,10 +199,12 @@ func (s *DeleteService) Do(ctx context.Context) (*DeleteResponse, error) {
 
 // DeleteResponse is the outcome of running DeleteService.Do.
 type DeleteResponse struct {
-	// TODO _shards { total, failed, successful }
-	Found   bool   `json:"found"`
-	Index   string `json:"_index"`
-	Type    string `json:"_type"`
-	Id      string `json:"_id"`
-	Version int64  `json:"_version"`
+	Index         string      `json:"_index"`
+	Type          string      `json:"_type"`
+	Id            string      `json:"_id"`
+	Version       int64       `json:"_version"`
+	Shards        *shardsInfo `json:"_shards"`
+	Result        bool        `json:"string,omitempty"`
+	ForcedRefresh bool        `json:"forced_refresh,omitempty"`
+	Found         bool        `json:"found"`
 }

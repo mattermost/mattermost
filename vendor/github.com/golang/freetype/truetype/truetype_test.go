@@ -282,7 +282,7 @@ func scalingTestParse(line string) (ret scalingTestData) {
 }
 
 // scalingTestEquals is equivalent to, but faster than, calling
-// reflect.DeepEquals(a, b), and also returns the index of the first non-equal
+// reflect.DeepEqual(a, b), and also returns the index of the first non-equal
 // element. It also treats a nil []Point and an empty non-nil []Point as equal.
 // a and b must have equal length.
 func scalingTestEquals(a, b []Point) (index int, equals bool) {

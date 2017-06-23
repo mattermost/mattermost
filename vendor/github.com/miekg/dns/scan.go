@@ -811,6 +811,12 @@ func zlexer(s *scan, c chan lex) {
 		debug.Printf("[%+v]", l.token)
 		c <- l
 	}
+	if brace != 0 {
+		l.token = "unbalanced brace"
+		l.tokenUpper = l.token
+		l.err = true
+		c <- l
+	}
 }
 
 // Extract the class number from CLASSxx

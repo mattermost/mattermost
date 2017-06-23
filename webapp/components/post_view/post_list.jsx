@@ -12,6 +12,8 @@ import * as Utils from 'utils/utils.jsx';
 import Constants from 'utils/constants.jsx';
 import {createChannelIntroMessage} from 'utils/channel_intro_messages.jsx';
 import DelayedAction from 'utils/delayed_action.jsx';
+import EventTypes from 'utils/event_types.jsx';
+import GlobalEventEmitter from 'utils/global_event_emitter.jsx';
 
 import {FormattedDate, FormattedMessage} from 'react-intl';
 
@@ -113,11 +115,13 @@ export default class PostList extends React.PureComponent {
 
     componentDidMount() {
         this.loadPosts(this.props.channel.id, this.props.focusedPostId);
+        GlobalEventEmitter.addListener(EventTypes.POST_LIST_SCROLL_CHANGE, this.handleResize);
 
         window.addEventListener('resize', this.handleResize);
     }
 
     componentWillUnmount() {
+        GlobalEventEmitter.removeListener(EventTypes.POST_LIST_SCROLL_CHANGE, this.handleResize);
         window.removeEventListener('resize', this.handleResize);
     }
 
@@ -171,14 +175,25 @@ export default class PostList extends React.PureComponent {
     }
 
     componentDidUpdate(prevProps) {
+        // Do not update scrolling unless posts change
+        if (this.props.posts === prevProps.posts) {
+            return;
+        }
+
+        const prevPosts = prevProps.posts;
+        const posts = this.props.posts;
+        const postList = this.refs.postlist;
+
         // Scroll to focused post on first load
         const focusedPost = this.refs[this.props.focusedPostId];
-        if (focusedPost) {
-            if (!this.hasScrolledToFocusedPost && this.props.posts) {
+        if (focusedPost && this.props.posts) {
+            if (!this.hasScrolledToFocusedPost) {
                 const element = ReactDOM.findDOMNode(focusedPost);
                 const rect = element.getBoundingClientRect();
-                const listHeight = this.refs.postlist.clientHeight / 2;
-                this.refs.postlist.scrollTop = this.refs.postlist.scrollTop + (rect.top - listHeight);
+                const listHeight = postList.clientHeight / 2;
+                postList.scrollTop += postList.scrollTop + (rect.top - listHeight);
+            } else if (this.previousScrollHeight !== postList.scrollHeight && posts[0].id === prevPosts[0].id) {
+                postList.scrollTop = this.previousScrollTop + (postList.scrollHeight - this.previousScrollHeight);
             }
             return;
         }
@@ -190,13 +205,9 @@ export default class PostList extends React.PureComponent {
             element.scrollIntoView();
             return;
         } else if (this.refs.postlist && !this.hasScrolledToNewMessageSeparator) {
-            this.refs.postlist.scrollTop = this.refs.postlist.scrollHeight;
+            postList.scrollTop = postList.scrollHeight;
             return;
         }
-
-        const prevPosts = prevProps.posts;
-        const posts = this.props.posts;
-        const postList = this.refs.postlist;
 
         if (postList && prevPosts && posts && posts[0] && prevPosts[0]) {
             // A new message was posted, so scroll to bottom if it was from current user
@@ -225,8 +236,8 @@ export default class PostList extends React.PureComponent {
             }
 
             // New posts added at the top, maintain scroll position
-            if (this.previousScrollHeight !== this.refs.postlist.scrollHeight && posts[0].id === prevPosts[0].id) {
-                this.refs.postlist.scrollTop = this.previousScrollTop + (this.refs.postlist.scrollHeight - this.previousScrollHeight);
+            if (this.previousScrollHeight !== postList.scrollHeight && posts[0].id === prevPosts[0].id) {
+                postList.scrollTop = this.previousScrollTop + (postList.scrollHeight - this.previousScrollHeight);
             }
         }
     }
@@ -358,6 +369,10 @@ export default class PostList extends React.PureComponent {
 
         for (let i = posts.length - 1; i >= 0; i--) {
             const post = posts[i];
+
+            if (post == null) {
+                continue;
+            }
 
             const postCtl = (
                 <Post

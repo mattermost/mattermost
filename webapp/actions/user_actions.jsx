@@ -33,55 +33,42 @@ import {savePreferences, deletePreferences} from 'mattermost-redux/actions/prefe
 
 import {Preferences as PreferencesRedux} from 'mattermost-redux/constants';
 
-export function loadMe(callback) {
-    UserActions.loadMe()(dispatch, getState).then(
-        () => {
-            if (window.mm_config) {
-                loadCurrentLocale();
-            }
-
-            if (callback) {
-                callback();
-            }
+export function loadMe() {
+    return UserActions.loadMe()(dispatch, getState).then(() => {
+        if (window.mm_config) {
+            loadCurrentLocale();
         }
-    );
+    });
 }
 
 export function loadMeAndConfig(callback) {
-    loadMe(() => {
-        getClientConfig()(store.dispatch, store.getState).then(
-            (config) => {
-                global.window.mm_config = config;
+    getClientConfig()(store.dispatch, store.getState).then((config) => {
+        global.window.mm_config = config;
 
-                if (global.window && global.window.analytics) {
-                    global.window.analytics.identify(global.window.mm_config.DiagnosticId, {}, {
-                        context: {
-                            ip: '0.0.0.0'
-                        },
-                        page: {
-                            path: '',
-                            referrer: '',
-                            search: '',
-                            title: '',
-                            url: ''
-                        },
-                        anonymousId: '00000000000000000000000000'
-                    });
+        if (global.window && global.window.analytics) {
+            global.window.analytics.identify(global.window.mm_config.DiagnosticId, {}, {
+                context: {
+                    ip: '0.0.0.0'
+                },
+                page: {
+                    path: '',
+                    referrer: '',
+                    search: '',
+                    title: '',
+                    url: ''
+                },
+                anonymousId: '00000000000000000000000000'
+            });
+        }
+
+        Promise.all([
+            loadMe(),
+            getLicenseConfig()(store.dispatch, store.getState).then(
+                (license) => {
+                    global.window.mm_license = license;
                 }
-
-                loadCurrentLocale();
-
-                getLicenseConfig()(store.dispatch, store.getState).then(
-                    (license) => { // eslint-disable-line max-nested-callbacks
-                        global.window.mm_license = license;
-
-                        if (callback) {
-                            callback();
-                        }
-                    }
-                );
-            }
-        );
+            )
+        ]).then(callback);
     });
 }
 
@@ -396,21 +383,18 @@ export function loadProfilesForDM() {
     }
 }
 
-export function saveTheme(teamId, theme, onSuccess, onError) {
+export function saveTheme(teamId, theme, cb) {
     const currentUserId = UserStore.getCurrentId();
-    savePreferences(currentUserId, [{
+    const preference = [{
         user_id: currentUserId,
         category: Preferences.CATEGORY_THEME,
         name: teamId,
         value: JSON.stringify(theme)
-    }])(dispatch, getState).then(
-        (data) => {
-            if (data && onSuccess) {
-                onThemeSaved(teamId, theme, onSuccess);
-            } else if (data == null && onError) {
-                const serverError = getState().requests.users.savePreferences.error;
-                onError({id: serverError.server_error_id, ...serverError});
-            }
+    }];
+
+    savePreferences(currentUserId, preference)(dispatch, getState).then(
+        () => {
+            onThemeSaved(teamId, theme, cb);
         }
     );
 }

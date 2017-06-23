@@ -19,6 +19,7 @@ import {trackEvent} from 'actions/diagnostics_actions.jsx';
 
 import Constants from 'utils/constants.jsx';
 const ActionTypes = Constants.ActionTypes;
+import EventTypes from 'utils/event_types.jsx';
 
 import Client from 'client/web_client.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
@@ -193,6 +194,13 @@ export function emitUserCommentedEvent(post) {
     AppDispatcher.handleServerAction({
         type: ActionTypes.CREATE_COMMENT,
         post
+    });
+}
+
+export function showAccountSettingsModal() {
+    AppDispatcher.handleViewAction({
+        type: ActionTypes.TOGGLE_ACCOUNT_SETTINGS_MODAL,
+        value: true
     });
 }
 
@@ -559,4 +567,10 @@ export function requestOpenGraphMetadata(url) {
             }
         );
     }
+}
+
+export function postListScrollChange() {
+    AppDispatcher.handleViewAction({
+        type: EventTypes.POST_LIST_SCROLL_CHANGE
+    });
 }

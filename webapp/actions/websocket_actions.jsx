@@ -186,6 +186,10 @@ function handleEvent(msg) {
         handleChannelDeletedEvent(msg);
         break;
 
+    case SocketEvents.CHANNEL_UPDATED:
+        handleChannelUpdatedEvent(msg);
+        break;
+
     case SocketEvents.DIRECT_ADDED:
         handleDirectAddedEvent(msg);
         break;
@@ -224,6 +228,10 @@ function handleEvent(msg) {
 
     case SocketEvents.REACTION_REMOVED:
         handleReactionRemovedEvent(msg);
+        break;
+
+    case SocketEvents.EMOJI_ADDED:
+        handleAddEmoji(msg);
         break;
 
     default:
@@ -358,6 +366,11 @@ function handleUserRemovedEvent(msg) {
     }
 }
 
+function handleChannelUpdatedEvent(msg) {
+    const channel = JSON.parse(msg.data.channel);
+    dispatch({type: ChannelTypes.RECEIVED_CHANNEL, data: channel});
+}
+
 function handleUserUpdatedEvent(msg) {
     const user = msg.data.user;
     if (UserStore.getCurrentId() !== user.id) {
@@ -426,6 +439,15 @@ function handleReactionAddedEvent(msg) {
     dispatch({
         type: PostTypes.RECEIVED_REACTION,
         data: reaction
+    });
+}
+
+function handleAddEmoji(msg) {
+    const data = JSON.parse(msg.data.emoji);
+
+    AppDispatcher.handleServerAction({
+        type: ActionTypes.RECEIVED_CUSTOM_EMOJI,
+        emoji: data
     });
 }
 
