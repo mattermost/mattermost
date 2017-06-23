@@ -4784,6 +4784,34 @@
     "translation": "Invalid job type"
   },
   {
+    "id": "model.command_hook.id.app_error",
+    "translation": "Invalid command hook id"
+  },
+  {
+    "id": "model.command_hook.create_at.app_error",
+    "translation": "Create at must be a valid time"
+  },
+  {
+    "id": "model.command_hook.command_id.app_error",
+    "translation": "Invalid command id"
+  },
+  {
+    "id": "model.command_hook.user_id.app_error",
+    "translation": "Invalid user id"
+  },
+  {
+    "id": "model.command_hook.channel_id.app_error",
+    "translation": "Invalid channel id"
+  },
+  {
+    "id": "model.command_hook.root_id.app_error",
+    "translation": "Invalid root id"
+  },
+  {
+    "id": "model.command_hook.parent_id.app_error",
+    "translation": "Invalid parent id"
+  },
+  {
     "id": "model.oauth.is_valid.app_id.app_error",
     "translation": "Invalid app id"
   },
@@ -6504,6 +6532,26 @@
     "translation": "We couldn't update the webhook"
   },
   {
+    "id": "store.sql_webhooks.save_command.existing.app_error",
+    "translation": "You cannot update an existing CommandWebhook"
+  },
+  {
+    "id": "store.sql_webhooks.save_command.app_error",
+    "translation": "We couldn't save the CommandWebhook"
+  },
+  {
+    "id": "store.sql_webhooks.get_command.app_error",
+    "translation": "We couldn't get the webhook"
+  },
+  {
+    "id": "store.sql_webhooks.try_use_command.app_error",
+    "translation": "Unable to use the webhook"
+  },
+  {
+    "id": "store.sql_webhooks.try_use_command.invalid.app_error",
+    "translation": "Invalid webhook"
+  },
+  {
     "id": "system.message.name",
     "translation": "System"
   },
@@ -6726,6 +6774,18 @@
   {
     "id": "web.incoming_webhook.user.app_error",
     "translation": "Couldn't find the user"
+  },
+  {
+    "id": "web.command_webhook.parse.app_error",
+    "translation": "Unable to parse incoming data"
+  },
+  {
+    "id": "web.command_webhook.invalid.app_error",
+    "translation": "Invalid webhook"
+  },
+  {
+    "id": "web.command_webhook.command.app_error",
+    "translation": "Couldn't find the command"
   },
   {
     "id": "web.init.debug",

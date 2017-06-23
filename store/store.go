@@ -313,6 +313,11 @@ type WebhookStore interface {
 	AnalyticsIncomingCount(teamId string) StoreChannel
 	AnalyticsOutgoingCount(teamId string) StoreChannel
 	InvalidateWebhookCache(webhook string)
+
+	SaveCommand(webhook *model.CommandWebhook) StoreChannel
+	GetCommand(id string) StoreChannel
+	TryUseCommand(id string, limit int) StoreChannel
+	CleanupCommand()
 }
 
 type CommandStore interface {

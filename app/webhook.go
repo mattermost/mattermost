@@ -533,3 +533,54 @@ func HandleIncomingWebhook(hookId string, req *model.IncomingWebhookRequest) *mo
 
 	return nil
 }
+
+func CreateCommandWebhook(commandId string, args *model.CommandArgs) (*model.CommandWebhook, *model.AppError) {
+	hook := &model.CommandWebhook{
+		CommandId: commandId,
+		UserId:    args.UserId,
+		ChannelId: args.ChannelId,
+		RootId:    args.RootId,
+		ParentId:  args.ParentId,
+	}
+
+	if result := <-Srv.Store.Webhook().SaveCommand(hook); result.Err != nil {
+		return nil, result.Err
+	} else {
+		return result.Data.(*model.CommandWebhook), nil
+	}
+}
+
+func HandleCommandWebhook(hookId string, response *model.CommandResponse) *model.AppError {
+	if response == nil {
+		return model.NewAppError("HandleCommandWebhook", "web.command_webhook.parse.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	var hook *model.CommandWebhook
+	if result := <-Srv.Store.Webhook().GetCommand(hookId); result.Err != nil {
+		return model.NewAppError("HandleCommandWebhook", "web.command_webhook.invalid.app_error", nil, "err="+result.Err.Message, result.Err.StatusCode)
+	} else {
+		hook = result.Data.(*model.CommandWebhook)
+	}
+
+	var cmd *model.Command
+	if result := <-Srv.Store.Command().Get(hook.CommandId); result.Err != nil {
+		return model.NewAppError("HandleCommandWebhook", "web.command_webhook.command.app_error", nil, "err="+result.Err.Message, http.StatusBadRequest)
+	} else {
+		cmd = result.Data.(*model.Command)
+	}
+
+	args := &model.CommandArgs{
+		UserId:    hook.UserId,
+		ChannelId: hook.ChannelId,
+		TeamId:    cmd.TeamId,
+		RootId:    hook.RootId,
+		ParentId:  hook.ParentId,
+	}
+
+	if result := <-Srv.Store.Webhook().TryUseCommand(hook.Id, 5); result.Err != nil {
+		return model.NewAppError("HandleCommandWebhook", "web.command_webhook.invalid.app_error", nil, "err="+result.Err.Message, result.Err.StatusCode)
+	}
+
+	_, err := HandleCommandResponse(cmd, args, response, false)
+	return err
+}

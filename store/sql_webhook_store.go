@@ -8,6 +8,8 @@ import (
 
 	"database/sql"
 
+	l4g "github.com/alecthomas/log4go"
+
 	"github.com/mattermost/platform/einterfaces"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
@@ -52,6 +54,14 @@ func NewSqlWebhookStore(sqlStore SqlStore) WebhookStore {
 		tableo.ColMap("Description").SetMaxSize(128)
 		tableo.ColMap("ContentType").SetMaxSize(128)
 		tableo.ColMap("TriggerWhen").SetMaxSize(1)
+
+		tablec := db.AddTableWithName(model.CommandWebhook{}, "CommandWebhooks").SetKeys(false, "Id")
+		tablec.ColMap("Id").SetMaxSize(26)
+		tablec.ColMap("CommandId").SetMaxSize(26)
+		tablec.ColMap("UserId").SetMaxSize(26)
+		tablec.ColMap("ChannelId").SetMaxSize(26)
+		tablec.ColMap("RootId").SetMaxSize(26)
+		tablec.ColMap("ParentId").SetMaxSize(26)
 	}
 
 	return s
@@ -69,6 +79,8 @@ func (s SqlWebhookStore) CreateIndexesIfNotExists() {
 	s.CreateIndexIfNotExists("idx_outgoing_webhook_update_at", "OutgoingWebhooks", "UpdateAt")
 	s.CreateIndexIfNotExists("idx_outgoing_webhook_create_at", "OutgoingWebhooks", "CreateAt")
 	s.CreateIndexIfNotExists("idx_outgoing_webhook_delete_at", "OutgoingWebhooks", "DeleteAt")
+
+	s.CreateIndexIfNotExists("idx_command_webhook_create_at", "CommandWebhooks", "CreateAt")
 }
 
 func (s SqlWebhookStore) InvalidateWebhookCache(webhookId string) {
@@ -567,4 +579,93 @@ func (s SqlWebhookStore) AnalyticsOutgoingCount(teamId string) StoreChannel {
 	}()
 
 	return storeChannel
+}
+
+func (s SqlWebhookStore) SaveCommand(webhook *model.CommandWebhook) StoreChannel {
+	storeChannel := make(StoreChannel, 1)
+
+	go func() {
+		result := StoreResult{}
+
+		if len(webhook.Id) > 0 {
+			result.Err = model.NewLocAppError("SqlWebhookStore.SaveCommand",
+				"store.sql_webhooks.save_command.existing.app_error", nil, "id="+webhook.Id)
+			storeChannel <- result
+			close(storeChannel)
+			return
+		}
+
+		webhook.PreSave()
+		if result.Err = webhook.IsValid(); result.Err != nil {
+			storeChannel <- result
+			close(storeChannel)
+			return
+		}
+
+		if err := s.GetMaster().Insert(webhook); err != nil {
+			result.Err = model.NewLocAppError("SqlWebhookStore.SaveCommand", "store.sql_webhooks.save_command.app_error", nil, "id="+webhook.Id+", "+err.Error())
+		} else {
+			result.Data = webhook
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
+func (s SqlWebhookStore) GetCommand(id string) StoreChannel {
+	storeChannel := make(StoreChannel, 1)
+
+	go func() {
+		result := StoreResult{}
+
+		var webhook model.CommandWebhook
+
+		exptime := model.GetMillis() - model.COMMAND_WEBHOOK_LIFETIME
+		if err := s.GetReplica().SelectOne(&webhook, "SELECT * FROM CommandWebhooks WHERE Id = :Id AND CreateAt > :ExpTime", map[string]interface{}{"Id": id, "ExpTime": exptime}); err != nil {
+			result.Err = model.NewLocAppError("SqlWebhookStore.GetCommand", "store.sql_webhooks.get_command.app_error", nil, "id="+id+", err="+err.Error())
+			if err == sql.ErrNoRows {
+				result.Err.StatusCode = http.StatusNotFound
+			}
+		}
+
+		result.Data = &webhook
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
+func (s SqlWebhookStore) TryUseCommand(id string, limit int) StoreChannel {
+	storeChannel := make(StoreChannel, 1)
+
+	go func() {
+		result := StoreResult{}
+
+		if sqlResult, err := s.GetMaster().Exec("UPDATE CommandWebhooks SET UseCount = UseCount + 1 WHERE Id = :Id AND UseCount < :UseLimit", map[string]interface{}{"Id": id, "UseLimit": limit}); err != nil {
+			result.Err = model.NewLocAppError("SqlWebhookStore.TryUseCommand", "store.sql_webhooks.try_use_command.app_error", nil, "id="+id+", err="+err.Error())
+		} else if rows, _ := sqlResult.RowsAffected(); rows == 0 {
+			result.Err = model.NewLocAppError("SqlWebhookStore.TryUseCommand", "store.sql_webhooks.try_use_command.invalid.app_error", nil, "id="+id)
+			result.Err.StatusCode = http.StatusBadRequest
+		}
+
+		result.Data = id
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
+func (s SqlWebhookStore) CleanupCommand() {
+	l4g.Debug("Cleaning up command webhook store.")
+	exptime := model.GetMillis() - model.COMMAND_WEBHOOK_LIFETIME
+	if _, err := s.GetMaster().Exec("DELETE FROM CommandWebhooks WHERE CreateAt < :ExpTime", map[string]interface{}{"ExpTime": exptime}); err != nil {
+		l4g.Error("Unable to cleanup command webhook store.")
+	}
 }
