@@ -17,7 +17,7 @@ func TestLoadTestHelpCommands(t *testing.T) {
 	Client := th.BasicClient
 	channel := th.BasicChannel
 
-	// enable testing to use /loadtest but don't save it since we don't want to overwrite config.json
+	// enable testing to use /test but don't save it since we don't want to overwrite config.json
 	enableTesting := utils.Cfg.ServiceSettings.EnableTesting
 	defer func() {
 		utils.Cfg.ServiceSettings.EnableTesting = enableTesting
@@ -80,7 +80,7 @@ func TestLoadTestChannelsCommands(t *testing.T) {
 	Client := th.BasicClient
 	channel := th.BasicChannel
 
-	// enable testing to use /loadtest but don't save it since we don't want to overwrite config.json
+	// enable testing to use /test but don't save it since we don't want to overwrite config.json
 	enableTesting := utils.Cfg.ServiceSettings.EnableTesting
 	defer func() {
 		utils.Cfg.ServiceSettings.EnableTesting = enableTesting
@@ -101,7 +101,7 @@ func TestLoadTestPostsCommands(t *testing.T) {
 	Client := th.BasicClient
 	channel := th.BasicChannel
 
-	// enable testing to use /loadtest but don't save it since we don't want to overwrite config.json
+	// enable testing to use /test but don't save it since we don't want to overwrite config.json
 	enableTesting := utils.Cfg.ServiceSettings.EnableTesting
 	defer func() {
 		utils.Cfg.ServiceSettings.EnableTesting = enableTesting
