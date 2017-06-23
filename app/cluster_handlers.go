@@ -49,7 +49,7 @@ func ClusterInvalidateCacheForWebhookHandler(msg *model.ClusterMessage) {
 }
 
 func ClusterInvalidateCacheForChannelPostsHandler(msg *model.ClusterMessage) {
-	InvalidateCacheForWebhookSkipClusterSend(msg.Data)
+	InvalidateCacheForChannelPostsSkipClusterSend(msg.Data)
 }
 
 func ClusterInvalidateCacheForChannelMembersNotifyPropHandler(msg *model.ClusterMessage) {
