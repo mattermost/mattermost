@@ -528,18 +528,16 @@ export default class AdminSidebar extends React.Component {
                                     />
                                 }
                             >
-                                {[
-                                    <AdminSidebarSection
-                                        key='storage'
-                                        name='storage'
-                                        title={
-                                            <FormattedMessage
-                                                id='admin.sidebar.storage'
-                                                defaultMessage='Storage'
-                                            />
-                                        }
-                                    />
-                                ]}
+                                <AdminSidebarSection
+                                    key='storage'
+                                    name='storage'
+                                    title={
+                                        <FormattedMessage
+                                            id='admin.sidebar.storage'
+                                            defaultMessage='Storage'
+                                        />
+                                    }
+                                />
                             </AdminSidebarSection>
                             <AdminSidebarSection
                                 name='customization'
