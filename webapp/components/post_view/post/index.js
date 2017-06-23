@@ -12,12 +12,13 @@ import {Preferences} from 'utils/constants.jsx';
 import Post from './post.jsx';
 
 function mapStateToProps(state, ownProps) {
-    const detailedPost = ownProps.post;
+    const detailedPost = ownProps.post || {};
+
     return {
         post: getPost(state, detailedPost.id),
         lastPostCount: ownProps.lastPostCount,
-        user: getUser(state, ownProps.post.user_id),
-        status: getStatusForUserId(state, ownProps.post.user_id),
+        user: getUser(state, detailedPost.user_id),
+        status: getStatusForUserId(state, detailedPost.user_id),
         currentUser: getCurrentUser(state),
         isFirstReply: Boolean(detailedPost.isFirstReply && detailedPost.commentedOnPost),
         highlight: detailedPost.highlight,

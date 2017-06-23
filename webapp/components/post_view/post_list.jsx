@@ -370,6 +370,10 @@ export default class PostList extends React.PureComponent {
         for (let i = posts.length - 1; i >= 0; i--) {
             const post = posts[i];
 
+            if (post == null) {
+                continue;
+            }
+
             const postCtl = (
                 <Post
                     ref={post.id}
