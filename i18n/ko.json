@@ -1628,6 +1628,10 @@
     "translation": "신규 메시지"
   },
   {
+    "id": "api.post.send_notifications_and_forget.push_image_only",
+    "translation": " Uploaded one or more files "
+  },
+  {
     "id": "api.post.send_notifications_and_forget.push_in",
     "translation": " in "
   },
@@ -4706,14 +4710,6 @@
   {
     "id": "store.sql.open_conn.panic",
     "translation": "Failed to open sql connection %v"
-  },
-  {
-    "id": "store.sql.ping.critical",
-    "translation": "Failed to ping db err:%v"
-  },
-  {
-    "id": "store.sql.pinging.info",
-    "translation": "Pinging sql %v database"
   },
   {
     "id": "store.sql.read_replicas_not_licensed.critical",

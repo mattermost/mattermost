@@ -1628,6 +1628,10 @@
     "translation": "Nouveau message privé"
   },
   {
+    "id": "api.post.send_notifications_and_forget.push_image_only",
+    "translation": " Un ou plusieurs fichiers envoyés "
+  },
+  {
     "id": "api.post.send_notifications_and_forget.push_in",
     "translation": " dans "
   },
@@ -2161,7 +2165,7 @@
   },
   {
     "id": "api.templates.email_organization",
-    "translation": "Envoyée par"
+    "translation": "Envoyée par "
   },
   {
     "id": "api.templates.error.link",
@@ -2437,7 +2441,7 @@
   },
   {
     "id": "api.user.complete_switch_with_oauth.unavailable.app_error",
-    "translation": "{{.Service}} SSO avec OAuth 2.0 n'est pas disponible sur ce serveur"
+    "translation": "{{.Service}} authentification unique (SSO) avec OAuth 2.0 n'est pas disponible sur ce serveur"
   },
   {
     "id": "api.user.create_oauth_user.already_attached.app_error",
@@ -2453,7 +2457,7 @@
   },
   {
     "id": "api.user.create_oauth_user.not_available.app_error",
-    "translation": "{{.Service}} SSO avec OAuth 2.0 n'est pas disponible sur ce serveur"
+    "translation": "{{.Service}} authentification unique (SSO) avec OAuth 2.0 n'est pas disponible sur ce serveur"
   },
   {
     "id": "api.user.create_profile_image.default_font.app_error",
@@ -2577,7 +2581,7 @@
   },
   {
     "id": "api.user.login_by_oauth.not_available.app_error",
-    "translation": "{{.Service}} SSO avec OAuth 2.0 n'est pas disponible sur ce serveur"
+    "translation": "{{.Service}} authentification unique (SSO) avec OAuth 2.0 n'est pas disponible sur ce serveur"
   },
   {
     "id": "api.user.login_by_oauth.parse.app_error",
@@ -2629,7 +2633,7 @@
   },
   {
     "id": "api.user.reset_password.sso.app_error",
-    "translation": "Impossible de réinitialiser le mot de passe pour les comptes \"Single Sign-On\""
+    "translation": "Impossible de réinitialiser le mot de passe pour les comptes à authentification unique (SSO)"
   },
   {
     "id": "api.user.reset_password.wrong_team.app_error",
@@ -2665,7 +2669,7 @@
   },
   {
     "id": "api.user.send_password_reset.sso.app_error",
-    "translation": "Impossible de réinitialiser le mot de passe pour les comptes \"Single Sign-On\""
+    "translation": "Impossible de réinitialiser le mot de passe pour les comptes à authentification unique (SSO)"
   },
   {
     "id": "api.user.send_sign_in_change_email_and_forget.error",
@@ -4105,7 +4109,7 @@
   },
   {
     "id": "model.config.is_valid.saml_idp_url.app_error",
-    "translation": "URL SSO SAML invalide. Il doit s'agir d'une URL valide et commencer par http:// ou https://."
+    "translation": "URL d'authentification unique (SSO) SAML invalide. L'URL doit être valide et commencer par http:// ou https://."
   },
   {
     "id": "model.config.is_valid.saml_private_key.app_error",
@@ -4121,7 +4125,7 @@
   },
   {
     "id": "model.config.is_valid.site_url.app_error",
-    "translation": "URL du site invalide. Il doit s'agir d'une URL valide et commencer par http:// ou https://."
+    "translation": "URL de site invalide. Il doit s'agir d'une URL valide et commencer par http:// ou https://."
   },
   {
     "id": "model.config.is_valid.site_url_email_batching.app_error",
@@ -4273,7 +4277,7 @@
   },
   {
     "id": "model.oauth.is_valid.homepage.app_error",
-    "translation": "URL du site invalide. Il doit s'agir d'une URL valide et commencer par http:// ou https://."
+    "translation": "URL de site invalide. Il doit s'agir d'une URL valide et commencer par http:// ou https://."
   },
   {
     "id": "model.oauth.is_valid.icon_url.app_error",
@@ -4706,14 +4710,6 @@
   {
     "id": "store.sql.open_conn.panic",
     "translation": "Impossible d'ouvrir une connexion SQL %v"
-  },
-  {
-    "id": "store.sql.ping.critical",
-    "translation": "Impossible de pinger base de données err:%v"
-  },
-  {
-    "id": "store.sql.pinging.info",
-    "translation": "Ping de la base de données SQL %v"
   },
   {
     "id": "store.sql.read_replicas_not_licensed.critical",
