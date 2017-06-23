@@ -230,6 +230,10 @@ function handleEvent(msg) {
         handleReactionRemovedEvent(msg);
         break;
 
+    case SocketEvents.EMOJI_ADDED:
+        handleAddEmoji(msg);
+        break;
+
     default:
     }
 }
@@ -435,6 +439,15 @@ function handleReactionAddedEvent(msg) {
     dispatch({
         type: PostTypes.RECEIVED_REACTION,
         data: reaction
+    });
+}
+
+function handleAddEmoji(msg) {
+    const data = JSON.parse(msg.data.emoji);
+
+    AppDispatcher.handleServerAction({
+        type: ActionTypes.RECEIVED_CUSTOM_EMOJI,
+        emoji: data
     });
 }
 
