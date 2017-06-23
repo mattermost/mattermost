@@ -9,6 +9,8 @@ import ChannelStore from 'stores/channel_store.jsx';
 import * as ChannelUtils from 'utils/channel_utils.jsx';
 import PreferenceStore from 'stores/preference_store.jsx';
 
+import * as GlobalActions from 'actions/global_actions.jsx';
+
 import {loadProfilesForSidebar, loadNewDMIfNeeded, loadNewGMIfNeeded} from 'actions/user_actions.jsx';
 import {trackEvent} from 'actions/diagnostics_actions.jsx';
 
@@ -66,9 +68,15 @@ export function goToChannel(channel) {
 export function executeCommand(message, args, success, error) {
     let msg = message;
 
-    msg = msg.substring(0, msg.indexOf(' ')).toLowerCase() + msg.substring(msg.indexOf(' '), msg.length);
+    let cmdLength = msg.indexOf(' ');
+    if (cmdLength < 0) {
+        cmdLength = msg.length;
+    }
+    const cmd = msg.substring(0, cmdLength).toLowerCase();
+    msg = cmd + msg.substring(cmdLength, msg.length);
 
-    if (message.indexOf('/shortcuts') !== -1) {
+    switch (cmd) {
+    case '/shortcuts':
         if (UserAgent.isMobile()) {
             const err = {message: Utils.localizeMessage('create_post.shortcutsNotSupported', 'Keyboard shortcuts are not supported on your device')};
             error(err);
@@ -78,7 +86,12 @@ export function executeCommand(message, args, success, error) {
         } else if (message.indexOf('mac') !== -1) {
             msg = '/shortcuts';
         }
+        break;
+    case '/settings':
+        GlobalActions.showAccountSettingsModal();
+        return;
     }
+
     Client.executeCommand(msg, args, success,
         (err) => {
             AsyncClient.dispatchError(err, 'executeCommand');
@@ -86,7 +99,8 @@ export function executeCommand(message, args, success, error) {
             if (error) {
                 error(err);
             }
-        });
+        }
+    );
 }
 
 export function setChannelAsRead(channelIdParam) {

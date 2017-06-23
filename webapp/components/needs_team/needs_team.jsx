@@ -33,6 +33,7 @@ import store from 'stores/redux_store.jsx';
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
 
 // Modals
+import UserSettingsModal from 'components/user_settings/user_settings_modal.jsx';
 import GetPostLinkModal from 'components/get_post_link_modal.jsx';
 import GetPublicLinkModal from 'components/get_public_link_modal.jsx';
 import GetTeamInviteLinkModal from 'components/get_team_invite_link_modal.jsx';
@@ -218,6 +219,7 @@ export default class NeedsTeam extends React.Component {
                     <WebrtcSidebar/>
                     {content}
 
+                    <UserSettingsModal/>
                     <GetPostLinkModal/>
                     <GetPublicLinkModal/>
                     <GetTeamInviteLinkModal/>

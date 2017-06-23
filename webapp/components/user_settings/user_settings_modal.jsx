@@ -7,8 +7,10 @@ import ConfirmModal from '../confirm_modal.jsx';
 import UserSettings from './user_settings.jsx';
 import SettingsSidebar from '../settings_sidebar.jsx';
 
+import ModalStore from 'stores/modal_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 import * as Utils from 'utils/utils.jsx';
+import Constants from 'utils/constants.jsx';
 
 import {Modal} from 'react-bootstrap';
 
@@ -49,8 +51,6 @@ const holders = defineMessages({
     }
 });
 
-import PropTypes from 'prop-types';
-
 import React from 'react';
 
 class UserSettingsModal extends React.Component {
@@ -62,6 +62,8 @@ class UserSettingsModal extends React.Component {
         this.handleCollapse = this.handleCollapse.bind(this);
         this.handleConfirm = this.handleConfirm.bind(this);
         this.handleCancelConfirmation = this.handleCancelConfirmation.bind(this);
+        this.handleToggle = this.handleToggle.bind(this);
+        this.handleKeyDown = this.handleKeyDown.bind(this);
 
         this.closeModal = this.closeModal.bind(this);
         this.collapseModal = this.collapseModal.bind(this);
@@ -75,7 +77,8 @@ class UserSettingsModal extends React.Component {
             active_section: '',
             showConfirmModal: false,
             enforceFocus: true,
-            currentUser: UserStore.getCurrentUser()
+            currentUser: UserStore.getCurrentUser(),
+            show: false
         };
 
         this.requireConfirm = false;
@@ -91,10 +94,14 @@ class UserSettingsModal extends React.Component {
     componentDidMount() {
         this.mounted = true;
         UserStore.addChangeListener(this.onUserChanged);
+        ModalStore.addModalListener(Constants.ActionTypes.TOGGLE_ACCOUNT_SETTINGS_MODAL, this.handleToggle);
+        document.addEventListener('keydown', this.handleKeyDown);
     }
 
     componentWillUnmount() {
         this.mounted = false;
+        ModalStore.removeModalListener(Constants.ActionTypes.TOGGLE_ACCOUNT_SETTINGS_MODAL, this.handleToggle);
+        document.removeEventListener('keydown', this.handleKeyDown);
     }
 
     componentDidUpdate() {
@@ -102,6 +109,20 @@ class UserSettingsModal extends React.Component {
         if (!Utils.isMobile()) {
             $('.settings-modal .modal-body').perfectScrollbar();
         }
+    }
+
+    handleKeyDown(e) {
+        if (Utils.cmdOrCtrlPressed(e) && e.shiftKey && e.keyCode === Constants.KeyCodes.A) {
+            this.setState({
+                show: true
+            });
+        }
+    }
+
+    handleToggle(value) {
+        this.setState({
+            show: value
+        });
     }
 
     // Called when the close button is pressed on the main modal
@@ -113,7 +134,9 @@ class UserSettingsModal extends React.Component {
             return;
         }
 
-        this.props.onModalDismissed();
+        this.setState({
+            show: false
+        });
     }
 
     // called after the dialog is fully hidden and faded out
@@ -225,7 +248,7 @@ class UserSettingsModal extends React.Component {
         return (
             <Modal
                 dialogClassName='settings-modal'
-                show={this.props.show}
+                show={this.state.show}
                 onHide={this.handleHide}
                 onExited={this.handleHidden}
                 enforceFocus={this.state.enforceFocus}
@@ -280,9 +303,7 @@ class UserSettingsModal extends React.Component {
 }
 
 UserSettingsModal.propTypes = {
-    intl: intlShape.isRequired,
-    show: PropTypes.bool.isRequired,
-    onModalDismissed: PropTypes.func.isRequired
+    intl: intlShape.isRequired
 };
 
 export default injectIntl(UserSettingsModal);
