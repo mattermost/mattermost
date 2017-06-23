@@ -139,7 +139,7 @@ export default class InstalledIncomingWebhooks extends React.Component {
                 helpText={
                     <FormattedMessage
                         id='installed_incoming_webhooks.help'
-                        defaultMessage='Create incoming webhook URLs for use in external integrations. Please see {link} to learn more.'
+                        defaultMessage='Use incoming webhooks to connect external tools to Mattermost. {link} or visit the {link2} to find self-hosted, third-party apps and integrations.'
                         values={{
                             link: (
                                 <a
@@ -149,7 +149,19 @@ export default class InstalledIncomingWebhooks extends React.Component {
                                 >
                                     <FormattedMessage
                                         id='installed_incoming_webhooks.helpLink'
-                                        defaultMessage='documentation'
+                                        defaultMessage='Build your own'
+                                    />
+                                </a>
+                            ),
+                            link2: (
+                                <a
+                                    target='_blank'
+                                    rel='noopener noreferrer'
+                                    href='https://about.mattermost.com/default-app-directory/'
+                                >
+                                    <FormattedMessage
+                                        id='installed_incoming_webhooks.helpLink2'
+                                        defaultMessage='App Directory'
                                     />
                                 </a>
                             )
