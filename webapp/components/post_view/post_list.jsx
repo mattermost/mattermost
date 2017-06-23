@@ -175,6 +175,11 @@ export default class PostList extends React.PureComponent {
     }
 
     componentDidUpdate(prevProps) {
+        // Do not update scrolling unless posts change
+        if (this.props.posts === prevProps.posts) {
+            return;
+        }
+
         const prevPosts = prevProps.posts;
         const posts = this.props.posts;
         const postList = this.refs.postlist;
