@@ -7,10 +7,10 @@ package query
 
 import (
 	"fmt"
+	"github.com/pelletier/go-toml"
 	"strconv"
 	"strings"
 	"unicode/utf8"
-	"github.com/pelletier/go-toml"
 )
 
 // Lexer state function
@@ -55,7 +55,7 @@ func (l *queryLexer) nextStart() {
 
 func (l *queryLexer) emit(t tokenType) {
 	l.tokens <- token{
-		Position: toml.Position{Line:l.line, Col:l.col},
+		Position: toml.Position{Line: l.line, Col: l.col},
 		typ:      t,
 		val:      l.input[l.start:l.pos],
 	}
@@ -64,7 +64,7 @@ func (l *queryLexer) emit(t tokenType) {
 
 func (l *queryLexer) emitWithValue(t tokenType, value string) {
 	l.tokens <- token{
-		Position: toml.Position{Line:l.line, Col:l.col},
+		Position: toml.Position{Line: l.line, Col: l.col},
 		typ:      t,
 		val:      value,
 	}
@@ -92,7 +92,7 @@ func (l *queryLexer) backup() {
 
 func (l *queryLexer) errorf(format string, args ...interface{}) queryLexStateFn {
 	l.tokens <- token{
-		Position: toml.Position{Line:l.line, Col:l.col},
+		Position: toml.Position{Line: l.line, Col: l.col},
 		typ:      tokenError,
 		val:      fmt.Sprintf(format, args...),
 	}

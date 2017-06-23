@@ -42,7 +42,7 @@ export default class ViewImagePopoverBar extends React.Component {
                 <span className='pull-left text'>
                     <FormattedMessage
                         id='view_image_popover.file'
-                        defaultMessage='File {count} of {total}'
+                        defaultMessage='File {count, number} of {total, number}'
                         values={{
                             count: (this.props.fileId + 1),
                             total: this.props.totalFiles

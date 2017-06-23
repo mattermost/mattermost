@@ -64,3 +64,45 @@ func TestFSXFSStats(t *testing.T) {
 		}
 	}
 }
+
+func TestFSBcacheStats(t *testing.T) {
+	stats, err := FS("fixtures").BcacheStats()
+	if err != nil {
+		t.Fatalf("failed to parse bcache stats: %v", err)
+	}
+
+	tests := []struct {
+		name   string
+		bdevs  int
+		caches int
+	}{
+		{
+			name:   "deaddd54-c735-46d5-868e-f331c5fd7c74",
+			bdevs:  1,
+			caches: 1,
+		},
+	}
+
+	const expect = 1
+
+	if l := len(stats); l != expect {
+		t.Fatalf("unexpected number of bcache stats: %d", l)
+	}
+	if l := len(tests); l != expect {
+		t.Fatalf("unexpected number of tests: %d", l)
+	}
+
+	for i, tt := range tests {
+		if want, got := tt.name, stats[i].Name; want != got {
+			t.Errorf("unexpected stats name:\nwant: %q\nhave: %q", want, got)
+		}
+
+		if want, got := tt.bdevs, len(stats[i].Bdevs); want != got {
+			t.Errorf("unexpected value allocated:\nwant: %d\nhave: %d", want, got)
+		}
+
+		if want, got := tt.caches, len(stats[i].Caches); want != got {
+			t.Errorf("unexpected value allocated:\nwant: %d\nhave: %d", want, got)
+		}
+	}
+}

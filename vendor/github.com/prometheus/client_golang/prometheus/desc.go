@@ -16,13 +16,18 @@ package prometheus
 import (
 	"errors"
 	"fmt"
+	"regexp"
 	"sort"
 	"strings"
 
 	"github.com/golang/protobuf/proto"
-	"github.com/prometheus/common/model"
 
 	dto "github.com/prometheus/client_model/go"
+)
+
+var (
+	metricNameRE = regexp.MustCompile(`^[a-zA-Z_][a-zA-Z0-9_:]*$`)
+	labelNameRE  = regexp.MustCompile("^[a-zA-Z_][a-zA-Z0-9_]*$")
 )
 
 // reservedLabelPrefix is a prefix which is not legal in user-supplied
@@ -73,7 +78,7 @@ type Desc struct {
 	// Help string. Each Desc with the same fqName must have the same
 	// dimHash.
 	dimHash uint64
-	// err is an error that occurred during construction. It is reported on
+	// err is an error that occured during construction. It is reported on
 	// registration time.
 	err error
 }
@@ -98,7 +103,7 @@ func NewDesc(fqName, help string, variableLabels []string, constLabels Labels) *
 		d.err = errors.New("empty help string")
 		return d
 	}
-	if !model.IsValidMetricName(model.LabelValue(fqName)) {
+	if !metricNameRE.MatchString(fqName) {
 		d.err = fmt.Errorf("%q is not a valid metric name", fqName)
 		return d
 	}
@@ -195,6 +200,6 @@ func (d *Desc) String() string {
 }
 
 func checkLabelName(l string) bool {
-	return model.LabelName(l).IsValid() &&
+	return labelNameRE.MatchString(l) &&
 		!strings.HasPrefix(l, reservedLabelPrefix)
 }

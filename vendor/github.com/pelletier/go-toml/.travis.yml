@@ -2,15 +2,17 @@ sudo: false
 language: go
 go:
   - 1.6.4
-  - 1.7.5
-  - 1.8
+  - 1.7.6
+  - 1.8.3
   - tip
 matrix:
   allow_failures:
     - go: tip
   fast_finish: true
 script:
+  - if [ -n "$(go fmt ./...)" ]; then exit 1; fi
   - ./test.sh
+  - ./benchmark.sh $TRAVIS_BRANCH https://github.com/$TRAVIS_REPO_SLUG.git
 before_install:
   - go get github.com/axw/gocov/gocov
   - go get github.com/mattn/goveralls

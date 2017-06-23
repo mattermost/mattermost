@@ -23,7 +23,7 @@ import (
 
 var (
 	// Used for flags.
-	cfgFile, projectBase, userLicense string
+	cfgFile, userLicense string
 
 	rootCmd = &cobra.Command{
 		Use:   "cobra",
@@ -36,28 +36,23 @@ to quickly create a Cobra application.`,
 
 // Execute executes the root command.
 func Execute() {
-	if err := rootCmd.Execute(); err != nil {
-		er(err)
-	}
+	rootCmd.Execute()
 }
 
 func init() {
 	initViper()
 
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.cobra.yaml)")
-	rootCmd.PersistentFlags().StringVarP(&projectBase, "projectbase", "b", "", "base project directory, e.g. github.com/spf13/")
-	rootCmd.PersistentFlags().StringP("author", "a", "YOUR NAME", "Author name for copyright attribution")
-	rootCmd.PersistentFlags().StringVarP(&userLicense, "license", "l", "", "Name of license for the project (can provide `license` in config)")
-	rootCmd.PersistentFlags().Bool("viper", true, "Use Viper for configuration")
+	rootCmd.PersistentFlags().StringP("author", "a", "YOUR NAME", "author name for copyright attribution")
+	rootCmd.PersistentFlags().StringVarP(&userLicense, "license", "l", "", "name of license for the project")
+	rootCmd.PersistentFlags().Bool("viper", true, "use Viper for configuration")
 	viper.BindPFlag("author", rootCmd.PersistentFlags().Lookup("author"))
-	viper.BindPFlag("projectbase", rootCmd.PersistentFlags().Lookup("projectbase"))
 	viper.BindPFlag("useViper", rootCmd.PersistentFlags().Lookup("viper"))
 	viper.SetDefault("author", "NAME HERE <EMAIL ADDRESS>")
 	viper.SetDefault("license", "apache")
 
-	rootCmd.AddCommand(initCmd)
 	rootCmd.AddCommand(addCmd)
-
+	rootCmd.AddCommand(initCmd)
 }
 
 func initViper() {

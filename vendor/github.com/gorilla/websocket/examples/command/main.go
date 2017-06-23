@@ -12,14 +12,16 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"text/template"
 	"time"
 
 	"github.com/gorilla/websocket"
 )
 
 var (
-	addr    = flag.String("addr", "127.0.0.1:8080", "http service address")
-	cmdPath string
+	addr      = flag.String("addr", "127.0.0.1:8080", "http service address")
+	cmdPath   string
+	homeTempl = template.Must(template.ParseFiles("home.html"))
 )
 
 const (
@@ -174,7 +176,8 @@ func serveHome(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Method not allowed", 405)
 		return
 	}
-	http.ServeFile(w, r, "home.html")
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	homeTempl.Execute(w, r.Host)
 }
 
 func main() {

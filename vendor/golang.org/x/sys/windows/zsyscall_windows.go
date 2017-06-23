@@ -64,6 +64,7 @@ var (
 	procQueryServiceConfigW                = modadvapi32.NewProc("QueryServiceConfigW")
 	procChangeServiceConfig2W              = modadvapi32.NewProc("ChangeServiceConfig2W")
 	procQueryServiceConfig2W               = modadvapi32.NewProc("QueryServiceConfig2W")
+	procEnumServicesStatusExW              = modadvapi32.NewProc("EnumServicesStatusExW")
 	procGetLastError                       = modkernel32.NewProc("GetLastError")
 	procLoadLibraryW                       = modkernel32.NewProc("LoadLibraryW")
 	procLoadLibraryExW                     = modkernel32.NewProc("LoadLibraryExW")
@@ -420,6 +421,18 @@ func ChangeServiceConfig2(service Handle, infoLevel uint32, info *byte) (err err
 
 func QueryServiceConfig2(service Handle, infoLevel uint32, buff *byte, buffSize uint32, bytesNeeded *uint32) (err error) {
 	r1, _, e1 := syscall.Syscall6(procQueryServiceConfig2W.Addr(), 5, uintptr(service), uintptr(infoLevel), uintptr(unsafe.Pointer(buff)), uintptr(buffSize), uintptr(unsafe.Pointer(bytesNeeded)), 0)
+	if r1 == 0 {
+		if e1 != 0 {
+			err = errnoErr(e1)
+		} else {
+			err = syscall.EINVAL
+		}
+	}
+	return
+}
+
+func EnumServicesStatusEx(mgr Handle, infoLevel uint32, serviceType uint32, serviceState uint32, services *byte, bufSize uint32, bytesNeeded *uint32, servicesReturned *uint32, resumeHandle *uint32, groupName *uint16) (err error) {
+	r1, _, e1 := syscall.Syscall12(procEnumServicesStatusExW.Addr(), 10, uintptr(mgr), uintptr(infoLevel), uintptr(serviceType), uintptr(serviceState), uintptr(unsafe.Pointer(services)), uintptr(bufSize), uintptr(unsafe.Pointer(bytesNeeded)), uintptr(unsafe.Pointer(servicesReturned)), uintptr(unsafe.Pointer(resumeHandle)), uintptr(unsafe.Pointer(groupName)), 0, 0)
 	if r1 == 0 {
 		if e1 != 0 {
 			err = errnoErr(e1)

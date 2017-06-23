@@ -179,6 +179,7 @@ package main
 import (
     "fmt"
     "net/http"
+    "strings"
 
     "github.com/gorilla/mux"
 )
@@ -190,15 +191,25 @@ func handler(w http.ResponseWriter, r *http.Request) {
 func main() {
     r := mux.NewRouter()
     r.HandleFunc("/", handler)
-    r.HandleFunc("/products", handler)
-    r.HandleFunc("/articles", handler)
-    r.HandleFunc("/articles/{id}", handler)
+    r.Methods("POST").HandleFunc("/products", handler)
+    r.Methods("GET").HandleFunc("/articles", handler)
+    r.Methods("GET", "PUT").HandleFunc("/articles/{id}", handler)
     r.Walk(func(route *mux.Route, router *mux.Router, ancestors []*mux.Route) error {
         t, err := route.GetPathTemplate()
         if err != nil {
             return err
         }
-        fmt.Println(t)
+        // p will contain regular expression is compatible with regular expression in Perl, Python, and other languages.
+        // for instance the regular expression for path '/articles/{id}' will be '^/articles/(?P<v0>[^/]+)$'
+        p, err := route.GetPathRegexp()
+        if err != nil {
+            return err
+        }
+        m, err := route.GetMethods()
+        if err != nil {
+            return err
+        }
+        fmt.Println(strings.Join(m, ","), t, p)
         return nil
     })
     http.Handle("/", r)

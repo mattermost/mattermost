@@ -32,23 +32,28 @@ class EditChannelHeaderModal extends React.Component {
         super(props);
 
         this.handleChange = this.handleChange.bind(this);
-        this.handleSubmit = this.handleSubmit.bind(this);
+        this.handleSave = this.handleSave.bind(this);
         this.handleKeyDown = this.handleKeyDown.bind(this);
-        this.handleEditKeyPress = this.handleEditKeyPress.bind(this);
+        this.handleKeyPress = this.handleKeyPress.bind(this);
         this.onShow = this.onShow.bind(this);
         this.onHide = this.onHide.bind(this);
         this.handlePostError = this.handlePostError.bind(this);
         this.focusTextbox = this.focusTextbox.bind(this);
         this.onPreferenceChange = this.onPreferenceChange.bind(this);
 
-        this.ctrlSend = PreferenceStore.getBool(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS, 'send_on_ctrl_enter');
-
         this.state = {
             header: props.channel.header,
             show: true,
             serverError: '',
-            submitted: false
+            submitted: false,
+            ctrlSend: PreferenceStore.getBool(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS, 'send_on_ctrl_enter')
         };
+    }
+
+    componentWillMount() {
+        this.setState({
+            ctrlSend: PreferenceStore.getBool(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS, 'send_on_ctrl_enter')
+        });
     }
 
     componentDidMount() {
@@ -68,10 +73,12 @@ class EditChannelHeaderModal extends React.Component {
     }
 
     onPreferenceChange() {
-        this.ctrlSend = PreferenceStore.getBool(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS, 'send_on_ctrl_enter');
+        this.setState({
+            ctrlSend: PreferenceStore.getBool(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS, 'send_on_ctrl_enter')
+        });
     }
 
-    handleSubmit() {
+    handleSave() {
         this.setState({submitted: true});
 
         updateChannelHeader(
@@ -101,29 +108,23 @@ class EditChannelHeaderModal extends React.Component {
 
     focusTextbox() {
         if (!Utils.isMobile()) {
-            this.refs.textbox.focus();
+            this.refs.editChannelHeaderTextbox.focus();
         }
     }
 
     handleKeyDown(e) {
-        if (this.ctrlSend && e.keyCode === Constants.KeyCodes.ENTER && e.ctrlKey) {
-            e.preventDefault();
-            this.handleSubmit(e);
-        } else if (!this.ctrlSend && e.keyCode === Constants.KeyCodes.ENTER && !e.shiftKey && !e.altKey) {
-            e.preventDefault();
-            this.handleSubmit(e);
+        if (this.state.ctrlSend && e.keyCode === KeyCodes.ENTER && e.ctrlKey === true) {
+            this.handleKeyPress(e);
         }
     }
 
-    handleEditKeyPress(e) {
-        if (!UserAgent.isMobile() && !this.state.ctrlSend && e.which === KeyCodes.ENTER && !e.shiftKey && !e.altKey) {
-            e.preventDefault();
-            ReactDOM.findDOMNode(this.refs.editbox).blur();
-            this.handleEdit();
-        } else if (this.state.ctrlSend && e.ctrlKey && e.which === KeyCodes.ENTER) {
-            e.preventDefault();
-            ReactDOM.findDOMNode(this.refs.editbox).blur();
-            this.handleEdit();
+    handleKeyPress(e) {
+        if (!UserAgent.isMobile() && ((this.state.ctrlSend && e.ctrlKey) || !this.state.ctrlSend)) {
+            if (e.which === KeyCodes.ENTER && !e.shiftKey && !e.altKey) {
+                e.preventDefault();
+                ReactDOM.findDOMNode(this.refs.editChannelHeaderTextbox).blur();
+                this.handleSave(e);
+            }
         }
     }
 
@@ -179,7 +180,7 @@ class EditChannelHeaderModal extends React.Component {
                         <Textbox
                             value={this.state.header}
                             onChange={this.handleChange}
-                            onKeyPress={this.handleEditKeyPress}
+                            onKeyPress={this.handleKeyPress}
                             onKeyDown={this.handleKeyDown}
                             supportsCommands={false}
                             suggestionListStyle='bottom'
@@ -187,7 +188,7 @@ class EditChannelHeaderModal extends React.Component {
                             previewMessageLink={Utils.localizeMessage('edit_channel_header.previewHeader', 'Edit Header')}
                             handlePostError={this.handlePostError}
                             id='edit_textbox'
-                            ref='textbox'
+                            ref='editChannelHeaderTextbox'
                         />
                         <br/>
                         {serverError}
@@ -208,7 +209,7 @@ class EditChannelHeaderModal extends React.Component {
                         disabled={this.state.submitted}
                         type='button'
                         className='btn btn-primary'
-                        onClick={this.handleSubmit}
+                        onClick={this.handleSave}
                     >
                         <FormattedMessage
                             id='edit_channel_header_modal.save'

@@ -4,6 +4,8 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
+import {postListScrollChange} from 'actions/global_actions.jsx';
+
 import Reaction from 'components/post_view/reaction';
 
 export default class ReactionListView extends React.PureComponent {
@@ -35,6 +37,12 @@ export default class ReactionListView extends React.PureComponent {
     componentDidMount() {
         if (this.props.post.has_reactions) {
             this.props.actions.getReactionsForPost(this.props.post.id);
+        }
+    }
+
+    componentDidUpdate(prevProps) {
+        if (this.props.reactions !== prevProps.reactions) {
+            postListScrollChange();
         }
     }
 

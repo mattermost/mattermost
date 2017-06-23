@@ -186,6 +186,10 @@ function handleEvent(msg) {
         handleChannelDeletedEvent(msg);
         break;
 
+    case SocketEvents.CHANNEL_UPDATED:
+        handleChannelUpdatedEvent(msg);
+        break;
+
     case SocketEvents.DIRECT_ADDED:
         handleDirectAddedEvent(msg);
         break;
@@ -356,6 +360,11 @@ function handleUserRemovedEvent(msg) {
     } else if (ChannelStore.getCurrentId() === msg.broadcast.channel_id) {
         getChannelStats(ChannelStore.getCurrentId())(dispatch, getState);
     }
+}
+
+function handleChannelUpdatedEvent(msg) {
+    const channel = JSON.parse(msg.data.channel);
+    dispatch({type: ChannelTypes.RECEIVED_CHANNEL, data: channel});
 }
 
 function handleUserUpdatedEvent(msg) {

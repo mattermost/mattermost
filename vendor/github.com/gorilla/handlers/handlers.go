@@ -79,9 +79,9 @@ func (h combinedLoggingHandler) ServeHTTP(w http.ResponseWriter, req *http.Reque
 }
 
 func makeLogger(w http.ResponseWriter) loggingResponseWriter {
-	var logger loggingResponseWriter = &responseLogger{w: w}
+	var logger loggingResponseWriter = &responseLogger{w: w, status: http.StatusOK}
 	if _, ok := w.(http.Hijacker); ok {
-		logger = &hijackLogger{responseLogger{w: w}}
+		logger = &hijackLogger{responseLogger{w: w, status: http.StatusOK}}
 	}
 	h, ok1 := logger.(http.Hijacker)
 	c, ok2 := w.(http.CloseNotifier)
@@ -114,10 +114,6 @@ func (l *responseLogger) Header() http.Header {
 }
 
 func (l *responseLogger) Write(b []byte) (int, error) {
-	if l.status == 0 {
-		// The status will be StatusOK if WriteHeader has not been called yet
-		l.status = http.StatusOK
-	}
 	size, err := l.w.Write(b)
 	l.size += size
 	return size, err

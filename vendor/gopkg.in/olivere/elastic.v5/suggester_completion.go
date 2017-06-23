@@ -123,7 +123,7 @@ func (q *CompletionSuggester) Source(includeName bool) (interface{}, error) {
 				ctxq[k] = v
 			}
 		}
-		suggester["context"] = ctxq
+		suggester["contexts"] = ctxq
 	}
 
 	// TODO(oe) Add completion-suggester specific parameters here

@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import keyMirror from 'key-mirror/keyMirror.js';
+import keyMirror from 'key-mirror';
 
 import audioIcon from 'images/icons/audio.png';
 import videoIcon from 'images/icons/video.png';
@@ -222,6 +222,7 @@ export const SocketEvents = {
     POST_DELETED: 'post_deleted',
     CHANNEL_CREATED: 'channel_created',
     CHANNEL_DELETED: 'channel_deleted',
+    CHANNEL_UPDATED: 'channel_updated',
     CHANNEL_VIEWED: 'channel_viewed',
     DIRECT_ADDED: 'direct_added',
     NEW_USER: 'new_user',

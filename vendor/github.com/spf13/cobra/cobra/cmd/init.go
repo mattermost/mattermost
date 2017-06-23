@@ -59,7 +59,7 @@ Init will not use an existing directory with contents.`,
 				project = NewProject(arg)
 			}
 		} else {
-			er("please enter the name")
+			er("please provide only one argument")
 		}
 
 		initializeProject(project)
@@ -142,13 +142,13 @@ package cmd
 import (
 	"fmt"
 	"os"
+{{if .viper}}
+	homedir "github.com/mitchellh/go-homedir"{{end}}
+	"github.com/spf13/cobra"{{if .viper}}
+	"github.com/spf13/viper"{{end}}
+){{if .viper}}
 
-	homedir "github.com/mitchellh/go-homedir"
-	"github.com/spf13/cobra"
-{{if .viper}}	"github.com/spf13/viper"{{end}}
-)
-
-{{if .viper}}var cfgFile string{{end}}
+var cfgFile string{{end}}
 
 // RootCmd represents the base command when called without any subcommands
 var RootCmd = &cobra.Command{
@@ -174,9 +174,9 @@ func Execute() {
 	}
 }
 
-func init() {
-{{if .viper}}	cobra.OnInitialize(initConfig){{end}}
-
+func init() { {{if .viper}}
+	cobra.OnInitialize(initConfig)
+{{end}}
 	// Here you will define your flags and configuration settings.
 	// Cobra supports persistent flags, which, if defined here,
 	// will be global for your application.{{ if .viper }}

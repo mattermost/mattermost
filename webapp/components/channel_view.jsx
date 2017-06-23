@@ -44,7 +44,7 @@ export default class ChannelView extends React.Component {
         $('body').addClass('app__body');
 
         // IE Detection
-        if (UserAgent.isInternetExplorer()) {
+        if (UserAgent.isInternetExplorer() || UserAgent.isEdge()) {
             $('body').addClass('browser--ie');
         }
     }

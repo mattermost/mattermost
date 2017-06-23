@@ -1,4 +1,4 @@
-usage: sockaddr [--version] [--help] <command> [<args>]
+Usage: sockaddr [--version] [--help] <command> [<args>]
 
 Available commands are:
     dump            Parses input as an IP or interface name(s) and dumps various information

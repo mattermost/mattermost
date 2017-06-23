@@ -1,6 +1,5 @@
 /*
- * Minio Go Library for Amazon S3 Compatible Cloud Storage
- * (C) 2015, 2016, 2017 Minio, Inc.
+ * Minio Go Library for Amazon S3 Compatible Cloud Storage (C) 2015 Minio, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +25,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/minio/minio-go/pkg/credentials"
 	"github.com/minio/minio-go/pkg/policy"
 )
 
@@ -230,18 +228,18 @@ func TestErrorResponse(t *testing.T) {
 // Tests signature type.
 func TestSignatureType(t *testing.T) {
 	clnt := Client{}
-	if !clnt.overrideSignerType.IsV4() {
+	if !clnt.signature.isV4() {
 		t.Fatal("Error")
 	}
-	clnt.overrideSignerType = credentials.SignatureV2
-	if !clnt.overrideSignerType.IsV2() {
+	clnt.signature = SignatureV2
+	if !clnt.signature.isV2() {
 		t.Fatal("Error")
 	}
-	if clnt.overrideSignerType.IsV4() {
+	if clnt.signature.isV4() {
 		t.Fatal("Error")
 	}
-	clnt.overrideSignerType = credentials.SignatureV4
-	if !clnt.overrideSignerType.IsV4() {
+	clnt.signature = SignatureV4
+	if !clnt.signature.isV4() {
 		t.Fatal("Error")
 	}
 }

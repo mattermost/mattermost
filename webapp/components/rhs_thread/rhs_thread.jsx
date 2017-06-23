@@ -124,8 +124,8 @@ export default class RhsThread extends React.Component {
         this.mounted = false;
     }
 
-    componentDidUpdate(prevProps, prevState) {
-        const prevPostsArray = prevState.postsArray || [];
+    componentDidUpdate(prevProps) {
+        const prevPostsArray = prevProps.posts || [];
         const curPostsArray = this.props.posts || [];
 
         if (prevPostsArray.length >= curPostsArray.length) {

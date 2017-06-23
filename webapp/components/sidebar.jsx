@@ -203,7 +203,11 @@ export default class Sidebar extends React.Component {
 
     handleOpenMoreDirectChannelsModal(e) {
         e.preventDefault();
-        this.showMoreDirectChannelsModal();
+        if (this.state.showDirectChannelsModal) {
+            this.hideMoreDirectChannelsModal();
+        } else {
+            this.showMoreDirectChannelsModal();
+        }
     }
 
     onChange() {
@@ -654,7 +658,7 @@ export default class Sidebar extends React.Component {
         // create elements for all 4 types of channels
         const favoriteItems = this.state.favoriteChannels.
             map((channel, index, arr) => {
-                if (channel.type === Constants.DM_CHANNEL) {
+                if (channel.type === Constants.DM_CHANNEL || channel.type === Constants.GM_CHANNEL) {
                     return this.createChannelElement(channel, index, arr, this.handleLeaveDirectChannel);
                 }
 
