@@ -125,11 +125,6 @@ export default class ThemeSetting extends React.Component {
                 this.originalTheme = Object.assign({}, this.state.theme);
                 this.scrollToTop();
                 this.props.updateSection('');
-            },
-            (err) => {
-                var state = this.getStateFromStores();
-                state.serverError = err;
-                this.setState(state);
             }
         );
     }

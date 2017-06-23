@@ -383,21 +383,18 @@ export function loadProfilesForDM() {
     }
 }
 
-export function saveTheme(teamId, theme, onSuccess, onError) {
+export function saveTheme(teamId, theme, cb) {
     const currentUserId = UserStore.getCurrentId();
-    savePreferences(currentUserId, [{
+    const preference = [{
         user_id: currentUserId,
         category: Preferences.CATEGORY_THEME,
         name: teamId,
         value: JSON.stringify(theme)
-    }])(dispatch, getState).then(
-        (data) => {
-            if (data && onSuccess) {
-                onThemeSaved(teamId, theme, onSuccess);
-            } else if (data == null && onError) {
-                const serverError = getState().requests.users.savePreferences.error;
-                onError({id: serverError.server_error_id, ...serverError});
-            }
+    }];
+
+    savePreferences(currentUserId, preference)(dispatch, getState).then(
+        () => {
+            onThemeSaved(teamId, theme, cb);
         }
     );
 }
