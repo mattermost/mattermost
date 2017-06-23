@@ -146,27 +146,27 @@ export default class Integrations extends React.Component {
                     </h1>
                 </div>
                 <div className='backstage-help'>
-                    <hr />
-                        <h5>
-                            <FormattedMessage
-                                id='integrations.help'
-                                defaultMessage='Visit the {link} to find self-hosted, third-party apps and integrations for Mattermost.'
-                                values={{
-                                    link: (
-                                        <a
-                                            target='_blank'
-                                            rel='noopener noreferrer'
-                                            href='https://about.mattermost.com/default-app-directory/'
-                                        >
-                                            <FormattedMessage
-                                                id='integrations.helpLink'
-                                                defaultMessage='App Directory'
-                                            />
-                                        </a>
-                                    )
-                                }}
-                            />
-                        </h5>
+                    <hr/>
+                    <h5>
+                        <FormattedMessage
+                            id='integrations.help'
+                            defaultMessage='Visit the {link} to find self-hosted, third-party apps and integrations for Mattermost.'
+                            values={{
+                                link: (
+                                    <a
+                                        target='_blank'
+                                        rel='noopener noreferrer'
+                                        href='https://about.mattermost.com/default-app-directory/'
+                                    >
+                                        <FormattedMessage
+                                            id='integrations.helpLink'
+                                            defaultMessage='App Directory'
+                                        />
+                                    </a>
+                                )
+                            }}
+                        />
+                    </h5>
                 </div>
                 <div>
                     {options}
