@@ -4,6 +4,7 @@
 import Constants from 'utils/constants.jsx';
 import UserStore from 'stores/user_store.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
+import PostStore from 'stores/post_store.jsx';
 import NotificationStore from 'stores/notification_store.jsx';
 
 import {isSystemMessage} from 'utils/post_utils.jsx';
@@ -38,6 +39,13 @@ export function sendDesktopNotification(post, msgProps) {
     if (notifyLevel === 'none') {
         return;
     } else if (notifyLevel === 'mention' && mentions.indexOf(user.id) === -1 && msgProps.channel_type !== Constants.DM_CHANNEL) {
+        return;
+    }
+
+    const sidebarOpenedPostId = PostStore.getSelectedPostId();
+
+    // Check if the message is not a comment for currently opened thread in right sidebar
+    if (sidebarOpenedPostId && NotificationStore.getFocus() && post.root_id === sidebarOpenedPostId) {
         return;
     }
 
