@@ -119,8 +119,8 @@ func (s *LayeredStore) Reaction() ReactionStore {
 	return s.DatabaseLayer.Reaction()
 }
 
-func (s *LayeredStore) JobStatus() JobStatusStore {
-	return s.DatabaseLayer.JobStatus()
+func (s *LayeredStore) Job() JobStore {
+	return s.DatabaseLayer.Job()
 }
 
 func (s *LayeredStore) MarkSystemRanUnitTests() {

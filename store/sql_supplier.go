@@ -82,7 +82,7 @@ type SqlSupplierOldStores struct {
 	status     StatusStore
 	fileInfo   FileInfoStore
 	reaction   ReactionStore
-	jobStatus  JobStatusStore
+	job        JobStore
 }
 
 type SqlSupplier struct {
@@ -121,7 +121,7 @@ func NewSqlSupplier() *SqlSupplier {
 	supplier.oldStores.status = NewSqlStatusStore(supplier)
 	supplier.oldStores.fileInfo = NewSqlFileInfoStore(supplier)
 	supplier.oldStores.reaction = NewSqlReactionStore(supplier)
-	supplier.oldStores.jobStatus = NewSqlJobStatusStore(supplier)
+	supplier.oldStores.job = NewSqlJobStore(supplier)
 
 	err := supplier.GetMaster().CreateTablesIfNotExists()
 	if err != nil {
@@ -150,7 +150,7 @@ func NewSqlSupplier() *SqlSupplier {
 	supplier.oldStores.status.(*SqlStatusStore).CreateIndexesIfNotExists()
 	supplier.oldStores.fileInfo.(*SqlFileInfoStore).CreateIndexesIfNotExists()
 	supplier.oldStores.reaction.(*SqlReactionStore).CreateIndexesIfNotExists()
-	supplier.oldStores.jobStatus.(*SqlJobStatusStore).CreateIndexesIfNotExists()
+	supplier.oldStores.job.(*SqlJobStore).CreateIndexesIfNotExists()
 
 	supplier.oldStores.preference.(*SqlPreferenceStore).DeleteUnusedFeatures()
 
@@ -752,8 +752,8 @@ func (ss *SqlSupplier) Reaction() ReactionStore {
 	return ss.oldStores.reaction
 }
 
-func (ss *SqlSupplier) JobStatus() JobStatusStore {
-	return ss.oldStores.jobStatus
+func (ss *SqlSupplier) Job() JobStore {
+	return ss.oldStores.job
 }
 
 func (ss *SqlSupplier) DropAllTables() {

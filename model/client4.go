@@ -2790,22 +2790,22 @@ func (c *Client4) OpenGraph(url string) (map[string]string, *Response) {
 
 // Jobs Section
 
-// GetJobStatus gets the status of a single job.
-func (c *Client4) GetJobStatus(id string) (*JobStatus, *Response) {
+// GetJob gets a single job.
+func (c *Client4) GetJob(id string) (*Job, *Response) {
 	if r, err := c.DoApiGet(c.GetJobsRoute()+fmt.Sprintf("/%v/status", id), ""); err != nil {
 		return nil, BuildErrorResponse(r, err)
 	} else {
 		defer closeBody(r)
-		return JobStatusFromJson(r.Body), BuildResponse(r)
+		return JobFromJson(r.Body), BuildResponse(r)
 	}
 }
 
-// GetJobStatusesByType gets the status of all jobs of a given type, sorted with the job that most recently started first.
-func (c *Client4) GetJobStatusesByType(jobType string, page int, perPage int) ([]*JobStatus, *Response) {
+// GetJobsByType gets all jobs of a given type, sorted with the job that most recently started first.
+func (c *Client4) GetJobsByType(jobType string, page int, perPage int) ([]*Job, *Response) {
 	if r, err := c.DoApiGet(c.GetJobsRoute()+fmt.Sprintf("/type/%v/statuses?page=%v&per_page=%v", jobType, page, perPage), ""); err != nil {
 		return nil, BuildErrorResponse(r, err)
 	} else {
 		defer closeBody(r)
-		return JobStatusesFromJson(r.Body), BuildResponse(r)
+		return JobsFromJson(r.Body), BuildResponse(r)
 	}
 }

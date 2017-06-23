@@ -79,4 +79,5 @@ type SqlStore interface {
 	Status() StatusStore
 	FileInfo() FileInfoStore
 	Reaction() ReactionStore
+	Job() JobStore
 }
