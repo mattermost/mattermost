@@ -112,7 +112,7 @@ export default class NewChannelModal extends React.PureComponent {
 
     componentDidMount() {
         // ???
-        if (UserAgent.isInternetExplorer()) {
+        if (UserAgent.isInternetExplorer() || UserAgent.isEdge()) {
             $('body').addClass('browser--ie');
         }
     }
