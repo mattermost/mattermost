@@ -6,8 +6,6 @@ import PropTypes from 'prop-types';
 import {OverlayTrigger, Tooltip} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 
-import {postListScrollChange} from 'actions/global_actions.jsx';
-
 import * as Utils from 'utils/utils.jsx';
 
 export default class Reaction extends React.PureComponent {
@@ -77,10 +75,6 @@ export default class Reaction extends React.PureComponent {
 
         this.addReaction = this.addReaction.bind(this);
         this.removeReaction = this.removeReaction.bind(this);
-    }
-
-    componentDidMount() {
-        postListScrollChange();
     }
 
     addReaction(e) {
