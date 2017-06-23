@@ -242,7 +242,8 @@ export const SocketEvents = {
     HELLO: 'hello',
     WEBRTC: 'webrtc',
     REACTION_ADDED: 'reaction_added',
-    REACTION_REMOVED: 'reaction_removed'
+    REACTION_REMOVED: 'reaction_removed',
+    EMOJI_ADDED: 'emoji_added'
 };
 
 export const TutorialSteps = {

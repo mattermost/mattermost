@@ -122,6 +122,10 @@ func createEmoji(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = result.Err
 		return
 	} else {
+		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_EMOJI_ADDED, "", "", "", nil)
+		message.Add("emoji", result.Data.(*model.Emoji).ToJson())
+
+		app.Publish(message)
 		w.Write([]byte(result.Data.(*model.Emoji).ToJson()))
 	}
 }
