@@ -496,9 +496,9 @@ export default class CreatePost extends React.Component {
             return;
         }
 
-        const latestNonEphemeralPost = PostStore.getLatestNonEphemeralPost(this.state.channelId);
-        const latestNonEphemeralPostId = latestNonEphemeralPost == null ? '' : latestNonEphemeralPost.id;
-        const lastPostEl = document.getElementById(`commentIcon_${this.state.channelId}_${latestNonEphemeralPostId}`);
+        const latestReplyablePost = PostStore.getLatestReplyablePost(this.state.channelId);
+        const latestReplyablePostId = latestReplyablePost == null ? '' : latestReplyablePost.id;
+        const lastPostEl = document.getElementById(`commentIcon_${this.state.channelId}_${latestReplyablePostId}`);
 
         if (!e.ctrlKey && !e.metaKey && !e.altKey && !e.shiftKey && e.keyCode === KeyCodes.UP && this.state.message === '') {
             e.preventDefault();

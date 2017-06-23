@@ -69,13 +69,13 @@ class PostStoreClass extends EventEmitter {
         return postsInChannel[0];
     }
 
-    getLatestNonEphemeralPost(channelId) {
+    getLatestReplyablePost(channelId) {
         const postIds = getState().entities.posts.postsInChannel[channelId];
         const posts = getState().entities.posts.posts;
 
         for (const postId of postIds) {
             const post = posts[postId] || {};
-            if (post.state !== Constants.POST_DELETED && post.type !== Constants.PostTypes.EPHEMERAL) {
+            if (post.state !== Constants.POST_DELETED && post.type === '') {
                 return post;
             }
         }
