@@ -94,7 +94,7 @@ export default class InstalledCommands extends React.Component {
                 helpText={
                     <FormattedMessage
                         id='installed_commands.help'
-                        defaultMessage='Create slash commands for use in external integrations. Please see {link} to learn more.'
+                        defaultMessage='Use slash commands to connect external tools to Mattermost. {link} or visit the {link2} to find self-hosted, third-party apps and integrations.'
                         values={{
                             link: (
                                 <a
@@ -104,7 +104,19 @@ export default class InstalledCommands extends React.Component {
                                 >
                                     <FormattedMessage
                                         id='installed_commands.helpLink'
-                                        defaultMessage='documentation'
+                                        defaultMessage='Build your own'
+                                    />
+                                </a>
+                            ),
+                            link2: (
+                                <a
+                                    target='_blank'
+                                    rel='noopener noreferrer'
+                                    href='https://about.mattermost.com/default-app-directory/'
+                                >
+                                    <FormattedMessage
+                                        id='installed_commands.helpLink2'
+                                        defaultMessage='App Directory'
                                     />
                                 </a>
                             )
