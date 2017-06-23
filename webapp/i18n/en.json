@@ -1121,7 +1121,7 @@
   "channel_invite.close": "Close",
   "channel_loader.connection_error": "There appears to be a problem with your internet connection.",
   "channel_loader.posted": "Posted",
-  "channel_loader.socketError": "Please check connection, Mattermost unreachable. If issue persists, ask administrator to check WebSocket port.",
+  "channel_loader.socketError": "Please check connection, Mattermost unreachable. If issue persists, ask administrator to <a href=\"https://about.mattermost.com/default-websocket-port-help\" target=\"_blank\">check WebSocket port.</a>",
   "channel_loader.someone": "Someone",
   "channel_loader.something": " did something new",
   "channel_loader.unknown_error": "We received an unexpected status code from the server.",

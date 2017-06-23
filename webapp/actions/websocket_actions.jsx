@@ -132,7 +132,7 @@ function handleFirstConnect() {
 
 function handleClose(failCount) {
     if (failCount > MAX_WEBSOCKET_FAILS) {
-        ErrorStore.storeLastError({message: Utils.localizeMessage('channel_loader.socketError', 'Please check connection, Mattermost unreachable. If issue persists, ask administrator to check WebSocket port.')});
+        ErrorStore.storeLastError({message: Utils.localizeMessage('channel_loader.socketError', 'Please check connection, Mattermost unreachable. If issue persists, ask administrator to <a href="https://about.mattermost.com/default-websocket-port-help" target="_blank">check WebSocket port.</a>')});
     }
 
     ErrorStore.setConnectionErrorCount(failCount);
