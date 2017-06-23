@@ -15,15 +15,11 @@ import DelayedAction from 'utils/delayed_action.jsx';
 import EventTypes from 'utils/event_types.jsx';
 import GlobalEventEmitter from 'utils/global_event_emitter.jsx';
 
-import TeamStore from 'stores/team_store.jsx';
-import ChannelStore from 'stores/channel_store.jsx';
-
 import {FormattedDate, FormattedMessage} from 'react-intl';
 
 import React from 'react';
 import ReactDOM from 'react-dom';
 import PropTypes from 'prop-types';
-import {browserHistory} from 'react-router/es6';
 
 const CLOSE_TO_BOTTOM_SCROLL_MARGIN = 10;
 const POSTS_PER_PAGE = Constants.POST_CHUNK_SIZE / 2;
@@ -458,12 +454,7 @@ export default class PostList extends React.PureComponent {
         const posts = this.props.posts;
         const channel = this.props.channel;
 
-        if (posts == null) {
-            if (channel == null) {
-                const townsquare = ChannelStore.getByName('town-square');
-                browserHistory.push(TeamStore.getCurrentTeamRelativeUrl() + '/channels/' + townsquare.name);
-            }
-
+        if (posts == null || channel == null) {
             return (
                 <div id='post-list'>
                     <LoadingScreen
