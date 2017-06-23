@@ -16,15 +16,17 @@ var info = l4g.Info
 var err = l4g.Error
 
 // Logger - an instance of the log framework that can be used to log messages
-type Logger string
+type Logger struct {
+	filename string
+}
 
 // NewLogger - creates a new instance of Logger named after the file that created it
 func NewLogger() Logger {
 	_, file, _, ok := runtime.Caller(1)
 	if ok {
-		return Logger(file)
+		return Logger{file}
 	}
-	return Logger("Unknown Logger")
+	return Logger{"Unknown Logger"}
 }
 
 // contextKey lets us add contextual information to log messages
@@ -72,7 +74,7 @@ func serializeLogMessage(ctx context.Context, log Logger, message string) string
 		Message string            `json:"message"`
 	}{
 		serializeContext(ctx),
-		string(log),
+		log.filename,
 		message,
 	})
 	if err != nil {

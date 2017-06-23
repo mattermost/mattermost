@@ -14,7 +14,7 @@ import (
 func Test_NewLogger(t *testing.T) {
 	t.Run("Logger name test", func(t *testing.T) {
 		var log = NewLogger()
-		var found = string(log)
+		var found = log.filename
 		var expected = "/platform/utils/logger_test.go"
 		if !strings.HasSuffix(found, expected) {
 			t.Errorf("Found logger suffix = %v, want %v", found, expected)
