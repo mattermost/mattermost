@@ -61,7 +61,7 @@ func CreateEmoji(sessionUserId string, emoji *model.Emoji, multiPartImageData *m
 		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_EMOJI_ADDED, "", "", "", nil)
 		message.Add("emoji", emoji.ToJson())
 
-		go Publish(message)
+		Publish(message)
 		return result.Data.(*model.Emoji), nil
 	}
 }
