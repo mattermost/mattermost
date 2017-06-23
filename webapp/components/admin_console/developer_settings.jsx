@@ -54,7 +54,7 @@ export default class DeveloperSettings extends AdminSettings {
                     helpText={
                         <FormattedMessage
                             id='admin.service.testingDescription'
-                            defaultMessage='When true, /loadtest slash command is enabled to load test accounts, data and text formatting. Changing this requires a server restart before taking effect.'
+                            defaultMessage='When true, /test slash command is enabled to load test accounts, data and text formatting. Changing this requires a server restart before taking effect.'
                         />
                     }
                     value={this.state.enableTesting}
