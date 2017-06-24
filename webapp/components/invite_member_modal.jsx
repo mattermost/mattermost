@@ -97,7 +97,8 @@ class InviteMemberModal extends React.Component {
 
     handleToggle(value) {
         this.setState({
-            show: value
+            show: value,
+            serverError: null
         });
     }
 
