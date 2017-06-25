@@ -254,6 +254,13 @@ export default class AnnouncementBar extends React.PureComponent {
                     defaultMessage='Enterprise license is expired and some features may be disabled. Please contact your System Administrator for details.'
                 />
             );
+        } else if (message === ErrorBarTypes.WEBSOCKET_PORT_ERROR) {
+            message = (
+                <FormattedHTMLMessage
+                    id={ErrorBarTypes.WEBSOCKET_PORT_ERROR}
+                    defaultMessage='Please check connection, Mattermost unreachable. If issue persists, ask administrator to <a href="https://about.mattermost.com/default-websocket-port-help" target="_blank">check WebSocket port</a>.'
+                />
+            );
         } else if (message === ErrorBarTypes.SITE_URL) {
             let id;
             let defaultMessage;

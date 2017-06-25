@@ -13,7 +13,6 @@ import NotificationStore from 'stores/notification_store.jsx'; //eslint-disable-
 
 import WebSocketClient from 'client/web_websocket_client.jsx';
 import * as WebrtcActions from './webrtc_actions.jsx';
-import * as Utils from 'utils/utils.jsx';
 
 import * as GlobalActions from 'actions/global_actions.jsx';
 import {handleNewPost, loadProfilesForPosts} from 'actions/post_actions.jsx';
@@ -21,7 +20,7 @@ import {loadProfilesForSidebar} from 'actions/user_actions.jsx';
 import {loadChannelsForCurrentUser} from 'actions/channel_actions.jsx';
 import * as StatusActions from 'actions/status_actions.jsx';
 
-import {Constants, Preferences, SocketEvents, UserStatuses} from 'utils/constants.jsx';
+import {Constants, Preferences, SocketEvents, UserStatuses, ErrorBarTypes} from 'utils/constants.jsx';
 
 import {browserHistory} from 'react-router/es6';
 
@@ -124,7 +123,7 @@ function handleFirstConnect() {
 
 function handleClose(failCount) {
     if (failCount > MAX_WEBSOCKET_FAILS) {
-        ErrorStore.storeLastError({message: Utils.localizeMessage('channel_loader.socketError', 'Please check connection, Mattermost unreachable. If issue persists, ask administrator to check WebSocket port.')});
+        ErrorStore.storeLastError({message: ErrorBarTypes.WEBSOCKET_PORT_ERROR});
     }
 
     ErrorStore.setConnectionErrorCount(failCount);
