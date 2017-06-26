@@ -18,7 +18,6 @@ import {viewChannel} from 'mattermost-redux/actions/channels';
 import * as TeamActions from 'mattermost-redux/actions/teams';
 
 import {TeamTypes} from 'mattermost-redux/action_types';
-import {batchActions} from 'redux-batched-actions';
 
 export function checkIfTeamExists(teamName, onSuccess, onError) {
     TeamActions.checkIfTeamExists(teamName)(dispatch, getState).then(
