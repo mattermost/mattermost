@@ -413,7 +413,7 @@ func TestGetEmojiImage(t *testing.T) {
 	CheckNotFoundStatus(t, resp)
 
 	_, resp = Client.GetEmojiImage(model.NewId())
-	CheckInternalErrorStatus(t, resp)
+	CheckNotFoundStatus(t, resp)
 
 	_, resp = Client.GetEmojiImage("")
 	CheckBadRequestStatus(t, resp)
