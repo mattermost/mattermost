@@ -176,7 +176,7 @@ func IsFirstUserAccount() bool {
 }
 
 func CreateUser(user *model.User) (*model.User, *model.AppError) {
-	if !user.IsSSOUser() && !CheckUserDomain(user, utils.Cfg.TeamSettings.RestrictCreationToDomains) {
+	if !user.IsLDAPUser() && !user.IsSAMLUser() && !CheckUserDomain(user, utils.Cfg.TeamSettings.RestrictCreationToDomains) {
 		return nil, model.NewLocAppError("CreateUser", "api.user.create_user.accepted_domain.app_error", nil, "")
 	}
 
@@ -313,15 +313,13 @@ func CheckUserDomain(user *model.User, domains string) bool {
 
 	domainArray := strings.Fields(strings.TrimSpace(strings.ToLower(strings.Replace(strings.Replace(domains, "@", " ", -1), ",", " ", -1))))
 
-	matched := false
 	for _, d := range domainArray {
 		if strings.HasSuffix(strings.ToLower(user.Email), "@"+d) {
-			matched = true
-			break
+			return true
 		}
 	}
 
-	return matched
+	return false
 }
 
 // Check if the username is already used by another user. Return false if the username is invalid.
