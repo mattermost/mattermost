@@ -1289,12 +1289,10 @@ func SendEmailVerification(user *model.User) *model.AppError {
 	}
 
 	if _, err := GetStatus(user.Id); err != nil {
-		go SendVerifyEmail(user.Email, user.Locale, utils.GetSiteURL(), token.Token)
+		return SendVerifyEmail(user.Email, user.Locale, utils.GetSiteURL(), token.Token)
 	} else {
-		go SendEmailChangeVerifyEmail(user.Email, user.Locale, utils.GetSiteURL(), token.Token)
+		return SendEmailChangeVerifyEmail(user.Email, user.Locale, utils.GetSiteURL(), token.Token)
 	}
-
-	return nil
 }
 
 func VerifyEmailFromToken(userSuppliedTokenString string) *model.AppError {
