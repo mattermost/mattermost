@@ -496,7 +496,13 @@ func (s SqlTeamStore) SaveMember(member *model.TeamMember) StoreChannel {
 				TeamMembers
 			WHERE
 				TeamId = :TeamId
-				AND DeleteAt = 0`, map[string]interface{}{"TeamId": member.TeamId}); err != nil {
+				AND DeleteAt = 0
+				AND (SELECT
+						Users.DeleteAt
+					FROM
+						Users
+					WHERE
+						Id = TeamMembers.UserId) = 0`, map[string]interface{}{"TeamId": member.TeamId}); err != nil {
 			result.Err = model.NewLocAppError("SqlUserStore.Save", "store.sql_user.save.member_count.app_error", nil, "teamId="+member.TeamId+", "+err.Error())
 			storeChannel <- result
 			close(storeChannel)
