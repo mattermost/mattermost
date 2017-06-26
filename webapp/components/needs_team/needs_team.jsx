@@ -1,9 +1,8 @@
-import PropTypes from 'prop-types';
-
 // Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 import React from 'react';
+import PropTypes from 'prop-types';
 
 import $ from 'jquery';
 
@@ -14,7 +13,6 @@ import UserStore from 'stores/user_store.jsx';
 import PreferenceStore from 'stores/preference_store.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
 import PostStore from 'stores/post_store.jsx';
-import * as GlobalActions from 'actions/global_actions.jsx';
 import {startPeriodicStatusUpdates, stopPeriodicStatusUpdates} from 'actions/status_actions.jsx';
 import {startPeriodicSync, stopPeriodicSync} from 'actions/websocket_actions.jsx';
 import {loadProfilesForSidebar} from 'actions/user_actions.jsx';
@@ -23,15 +21,19 @@ import Constants from 'utils/constants.jsx';
 const TutorialSteps = Constants.TutorialSteps;
 const Preferences = Constants.Preferences;
 
-import ErrorBar from 'components/error_bar.jsx';
-import SidebarRight from 'components/sidebar_right.jsx';
+import AnnouncementBar from 'components/announcement_bar';
+import SidebarRight from 'components/sidebar_right';
 import SidebarRightMenu from 'components/sidebar_right_menu.jsx';
 import Navbar from 'components/navbar.jsx';
 import WebrtcSidebar from 'components/webrtc/components/webrtc_sidebar.jsx';
 
 import WebrtcNotification from 'components/webrtc/components/webrtc_notification.jsx';
 
+import store from 'stores/redux_store.jsx';
+import {getPost} from 'mattermost-redux/selectors/entities/posts';
+
 // Modals
+import UserSettingsModal from 'components/user_settings/user_settings_modal.jsx';
 import GetPostLinkModal from 'components/get_post_link_modal.jsx';
 import GetPublicLinkModal from 'components/get_public_link_modal.jsx';
 import GetTeamInviteLinkModal from 'components/get_team_invite_link_modal.jsx';
@@ -42,6 +44,7 @@ import RemovedFromChannelModal from 'components/removed_from_channel_modal.jsx';
 import ImportThemeModal from 'components/user_settings/import_theme_modal.jsx';
 import InviteMemberModal from 'components/invite_member_modal.jsx';
 import LeaveTeamModal from 'components/leave_team_modal.jsx';
+import ResetStatusModal from 'components/reset_status_modal';
 
 import iNoBounce from 'inobounce';
 import * as UserAgent from 'utils/user_agent.jsx';
@@ -111,20 +114,17 @@ export default class NeedsTeam extends React.Component {
         TeamStore.addChangeListener(this.onTeamChanged);
         PreferenceStore.addChangeListener(this.onPreferencesChanged);
 
-        // Emit view action
-        GlobalActions.viewLoggedIn();
-
         startPeriodicStatusUpdates();
         startPeriodicSync();
 
         // Set up tracking for whether the window is active
         window.isActive = true;
-        $(window).on('focus', () => {
-            this.props.actions.viewChannel(ChannelStore.getCurrentId());
+        $(window).on('focus', async () => {
             ChannelStore.resetCounts([ChannelStore.getCurrentId()]);
             ChannelStore.emitChange();
-
             window.isActive = true;
+
+            await this.props.actions.viewChannel(ChannelStore.getCurrentId());
             if (new Date().getTime() - this.blurTime > UNREAD_CHECK_TIME_MILLISECONDS) {
                 this.props.actions.getMyChannelMembers(TeamStore.getCurrentId()).then(loadProfilesForSidebar);
             }
@@ -201,7 +201,7 @@ export default class NeedsTeam extends React.Component {
         if (channel == null) {
             // the permalink view is not really tied to a particular channel but still needs it
             const postId = PostStore.getFocusedPostId();
-            const post = PostStore.getEarliestPostFromPage(postId);
+            const post = getPost(store.getState(), postId);
 
             // the post take some time before being available on page load
             if (post != null) {
@@ -211,7 +211,7 @@ export default class NeedsTeam extends React.Component {
 
         return (
             <div className='channel-view'>
-                <ErrorBar/>
+                <AnnouncementBar/>
                 <WebrtcNotification/>
                 <div className='container-fluid'>
                     <SidebarRight channel={channel}/>
@@ -219,6 +219,7 @@ export default class NeedsTeam extends React.Component {
                     <WebrtcSidebar/>
                     {content}
 
+                    <UserSettingsModal/>
                     <GetPostLinkModal/>
                     <GetPublicLinkModal/>
                     <GetTeamInviteLinkModal/>
@@ -229,6 +230,7 @@ export default class NeedsTeam extends React.Component {
                     <EditPostModal/>
                     <DeletePostModal/>
                     <RemovedFromChannelModal/>
+                    <ResetStatusModal/>
                 </div>
             </div>
         );

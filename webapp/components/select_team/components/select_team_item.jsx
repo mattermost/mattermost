@@ -1,30 +1,28 @@
-import PropTypes from 'prop-types';
-
 // Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import React from 'react';
+import * as Utils from 'utils/utils.jsx';
+import {addUserToTeamFromInvite} from 'actions/team_actions.jsx';
 
-import {Link} from 'react-router/es6';
+import React from 'react';
+import PropTypes from 'prop-types';
+import {Link, browserHistory} from 'react-router/es6';
 import {Tooltip, OverlayTrigger} from 'react-bootstrap';
 import {Constants} from 'utils/constants.jsx';
-import * as Utils from 'utils/utils.jsx';
 
-export default class SelectTeamItem extends React.Component {
+export default class SelectTeamItem extends React.PureComponent {
     static propTypes = {
         team: PropTypes.object.isRequired,
-        url: PropTypes.string.isRequired,
         onTeamClick: PropTypes.func.isRequired,
         loading: PropTypes.bool.isRequired
     };
 
-    constructor(props) {
-        super(props);
-
-        this.handleTeamClick = this.handleTeamClick.bind(this);
-    }
-
-    handleTeamClick() {
+    handleTeamClick = () => {
+        addUserToTeamFromInvite('', '', this.props.team.invite_id,
+            () => {
+                browserHistory.push(`/${this.props.team.name}/channels/town-square`);
+            }
+        );
         this.props.onTeamClick(this.props.team);
     }
 
@@ -71,7 +69,6 @@ export default class SelectTeamItem extends React.Component {
                 {showDescriptionTooltip}
                 <Link
                     id={Utils.createSafeId(this.props.team.display_name)}
-                    to={this.props.url}
                     onClick={this.handleTeamClick}
                 >
                     <span className='signup-team-dir__name'>{this.props.team.display_name}</span>

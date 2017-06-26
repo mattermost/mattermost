@@ -53,19 +53,19 @@
   },
   {
     "id": "api.admin.add_certificate.open.app_error",
-    "translation": "証明書ファイルを開くことができませんでした"
+    "translation": "証明書ファイルを開くことができませんでした。"
   },
   {
     "id": "api.admin.add_certificate.saving.app_error",
-    "translation": "証明書ファイルを保存できませんでした"
+    "translation": "証明書ファイルを保存できませんでした。"
   },
   {
     "id": "api.admin.file_read_error",
-    "translation": "ログファイルの読み込み中にエラーが発生しました"
+    "translation": "ログファイルの読み込み中にエラーが発生しました。"
   },
   {
     "id": "api.admin.get_brand_image.not_available.app_error",
-    "translation": "独自ブランディングは設定されていないか、このサーバーではサポートされていません"
+    "translation": "独自ブランディングは設定されていないか、このサーバーではサポートされていません。"
   },
   {
     "id": "api.admin.get_brand_image.storage.app_error",
@@ -73,15 +73,15 @@
   },
   {
     "id": "api.admin.init.debug",
-    "translation": "管理者APIルートを初期化しています"
+    "translation": "管理者APIルートを初期化しています。"
   },
   {
     "id": "api.admin.recycle_db_end.warn",
-    "translation": "データベース接続の再利用が完了しました"
+    "translation": "データベース接続の再利用が完了しました。"
   },
   {
     "id": "api.admin.recycle_db_start.warn",
-    "translation": "データベース接続を再利用しようとしています"
+    "translation": "データベース接続を再利用しようとしています。"
   },
   {
     "id": "api.admin.remove_certificate.delete.app_error",
@@ -89,7 +89,7 @@
   },
   {
     "id": "api.admin.saml.metadata.app_error",
-    "translation": "サービスプロバイダーのメタデータを構築中にエラーが発生しました"
+    "translation": "サービスプロバイダーのメタデータを構築中にエラーが発生しました。"
   },
   {
     "id": "api.admin.test_email.body",
@@ -756,6 +756,10 @@
     "translation": "ESC: 現在のチャンネルの全てのメッセージを既読にする\n"
   },
   {
+    "id": "api.command_shortcuts.msgs.reply",
+    "translation": "SHIFT+UP (空白の入力欄で): 現在のチャンネルの最新のメッセージに返信する\n"
+  },
+  {
     "id": "api.command_shortcuts.msgs.reprint_next",
     "translation": "{{.CmdOrCtrl}}+DOWN (空白の入力欄で): 一つ次に入力したメッセージやスラッシュコマンドを呼び出す\n"
   },
@@ -766,6 +770,10 @@
   {
     "id": "api.command_shortcuts.name",
     "translation": "ショートカット"
+  },
+  {
+    "id": "api.command_shortcuts.nav.direct_messages_menu",
+    "translation": "{{.CmdOrCtrl}}+SHIFT+K: ダイレクトメッセージメニューを開く\n"
   },
   {
     "id": "api.command_shortcuts.nav.header",
@@ -790,6 +798,10 @@
   {
     "id": "api.command_shortcuts.nav.switcher",
     "translation": "{{.CmdOrCtrl}}+K: 高速チャンネル切り替えダイアログボックスを開く\n"
+  },
+  {
+    "id": "api.command_shortcuts.nav.switcher_team",
+    "translation": "{{.CmdOrCtrl}}+ALT+K: 高速チーム切り替えダイアログを開く\n"
   },
   {
     "id": "api.command_shortcuts.nav.unread_next",
@@ -1347,7 +1359,7 @@
   },
   {
     "id": "api.oauth.complete_oauth.missing_code.app_error",
-    "translation": "サービスプロバイダー {{.service}} はリダイレクトURLで認証コードを提供していません。\n\n[Google Apps](https://docs.mattermost.com/deployment/sso-google.html)で、あなたの管理者がGoogle+ APIを有効にしているか確認してください。\n\n[Office 365](https://docs.mattermost.com/deployment/sso-office.html)で、あなたのMicrosoft組織の管理者がMattermostアプリを有効にしている確認してください。\n\n[GitLab](https://docs.mattermost.com/deployment/sso-gitlab.html)で、セットアップ手順に従っているか確認してください。\n\n以上を確認しても設定が上手くいかない場合は、[Troubleshooting forum](https://forum.mattermost.org/c/general/trouble-shoot)へ投稿してください。私たちはセットアップ中の問題について喜んでお手伝いします。"
+    "translation": "サービスプロバイダー {{.service}} はリダイレクトURLで認証コードを提供していません。\n\n[Google Apps](https://docs.mattermost.com/deployment/sso-google.html)で、あなたの管理者がGoogle+ APIを有効にしているか確認してください。\n\n[Office 365](https://docs.mattermost.com/deployment/sso-office.html)で、あなたのMicrosoft組織の管理者がMattermostアプリを有効にしている確認してください。\n\n[GitLab](https://docs.mattermost.com/deployment/sso-gitlab.html)で、セットアップ手順に従っているか確認してください。\n\n以上を確認しても設定が上手くいかない場合は、[トラブルシューティングフォーラム](https://forum.mattermost.org/c/general/trouble-shoot)へ投稿してください。私たちはセットアップ中の問題について喜んでお手伝いします。"
   },
   {
     "id": "api.oauth.delete.permissions.app_error",
@@ -1448,6 +1460,10 @@
   {
     "id": "api.oauth.singup_with_oauth.invalid_link.app_error",
     "translation": "利用登録リンクが不正です"
+  },
+  {
+    "id": "api.opengraph.init.debug",
+    "translation": "オープングラフプロトコルのAPIルートを初期化しています"
   },
   {
     "id": "api.post.check_for_out_of_channel_mentions.message.multiple",
@@ -1612,6 +1628,10 @@
     "translation": "新しいダイレクトメッセージ"
   },
   {
+    "id": "api.post.send_notifications_and_forget.push_image_only",
+    "translation": " 一つ以上のファイルをアップロードしました "
+  },
+  {
     "id": "api.post.send_notifications_and_forget.push_in",
     "translation": " in "
   },
@@ -1626,10 +1646,6 @@
   {
     "id": "api.post.send_notifications_and_forget.push_non_mention",
     "translation": " posted in "
-  },
-  {
-    "id": "api.post.send_notifications_and_forget.push_notification.debug",
-    "translation": "%vにメッセージ'%v'のプッシュ通知を送っています。"
   },
   {
     "id": "api.post.send_notifications_and_forget.push_notification.error",
@@ -1968,6 +1984,10 @@
     "translation": "ユーザーが見付かりません"
   },
   {
+    "id": "api.system.go_routines",
+    "translation": "動作中のgoroutineの数が正常動作の上限を超えています %v / %v"
+  },
+  {
     "id": "api.team.add_user_to_team.invalid_data.app_error",
     "translation": "不正なデータです。"
   },
@@ -2273,7 +2293,7 @@
   },
   {
     "id": "api.templates.signin_change_email.subject",
-    "translation": "[{{ .SiteName }}] {{ .SiteName }}のサインイン方法が更新されました"
+    "translation": "[{{ .SiteName }}] あなたのパスワードが更新されました"
   },
   {
     "id": "api.templates.signup_team_body.button",
@@ -2462,6 +2482,14 @@
   {
     "id": "api.user.create_user.joining.error",
     "translation": "デフォルトのチャンネルへの参加に問題が発生しました user_id=%s, team_id=%s, err=%v"
+  },
+  {
+    "id": "api.user.create_user.missing_hash_or_data.app_error",
+    "translation": "クエリデータのハッシュ、もしくはURLが見つかりません。"
+  },
+  {
+    "id": "api.user.create_user.missing_invite_id.app_error",
+    "translation": "招待IDが存在しません。"
   },
   {
     "id": "api.user.create_user.no_open_server",
@@ -2725,7 +2753,7 @@
   },
   {
     "id": "api.user.upload_profile_user.decode_config.app_error",
-    "translation": "プロフィール画像の設定をデコードできませんでした。"
+    "translation": "プロフィール画像を保存できませんでした。ファイルは有効な画像として表示されません。"
   },
   {
     "id": "api.user.upload_profile_user.encode.app_error",
@@ -3017,7 +3045,7 @@
   },
   {
     "id": "app.import.validate_post_import_data.create_at_zero.error",
-    "translation": "投稿の作成日には0を設定できません。"
+    "translation": "投稿の作成日時には0を設定できません。"
   },
   {
     "id": "app.import.validate_post_import_data.message_length.error",
@@ -3294,6 +3322,38 @@
   {
     "id": "ent.compliance.run_started.info",
     "translation": "コンプライアンスエクスポートが開始されました ジョブ='{{.JobName}}'、ファイル='{{.FilePath}}'"
+  },
+  {
+    "id": "ent.elasticsearch.search_posts.disabled",
+    "translation": "このサーバーではElasticSearchによる検索は無効です。"
+  },
+  {
+    "id": "ent.elasticsearch.search_posts.search_failed",
+    "translation": "検索を完了できませんでした"
+  },
+  {
+    "id": "ent.elasticsearch.search_posts.unmarshall_post_failed",
+    "translation": "検索結果をデコードできませんでした"
+  },
+  {
+    "id": "ent.elasticsearch.start.connect_failed",
+    "translation": "ElasticSearchクライアントを設定できませんでした"
+  },
+  {
+    "id": "ent.elasticsearch.start.index_create_failed",
+    "translation": "ElasticSearchのインデックスを作成できませんでした"
+  },
+  {
+    "id": "ent.elasticsearch.start.index_exists_failed",
+    "translation": "ElasticSearchインデックスの存在を確認できませんでした"
+  },
+  {
+    "id": "ent.elasticsearch.start.index_mapping_failed",
+    "translation": "ElasticSearchインデックスのマッピングを設定できませんでした"
+  },
+  {
+    "id": "ent.elasticsearch.start.index_settings_failed",
+    "translation": "ElasticSearchインデックス設定を設定できませんでした"
   },
   {
     "id": "ent.emoji.licence_disable.app_error",
@@ -3852,6 +3912,22 @@
     "translation": "クラスタリングが有効化されている場合、電子メールバッチ処理は有効化できません。"
   },
   {
+    "id": "model.config.is_valid.elastic_search.connection_url.app_error",
+    "translation": "Elastic Searchインデックスが有効な場合、Elastic SearchのConnectionUrl設定は必須です。"
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.enable_searching.app_error",
+    "translation": "Elastic Search検索有効化に有効が設定されている場合、Elastic Searchインデックス有効化設定は有効でなければなりません。"
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.password.app_error",
+    "translation": "Elastic Searchインデックスが有効な場合、Elastic Searchパスワード設定は必須です。"
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.username.app_error",
+    "translation": "Elastic Searchインデックスが有効な場合、Elastic Searchユーザー名設定は必須です。"
+  },
+  {
     "id": "model.config.is_valid.email_batching_buffer_size.app_error",
     "translation": "電子メール設定の電子メールバッチ処理バッファーサイズが不正です。  ゼロ以上の数を指定してください。"
   },
@@ -4074,6 +4150,10 @@
   {
     "id": "model.config.is_valid.sql_max_conn.app_error",
     "translation": "SQL設定の最大稼働接続数が不正です。正の数を指定してください。"
+  },
+  {
+    "id": "model.config.is_valid.sql_query_timeout.app_error",
+    "translation": "SQL設定の問い合わせタイムアウトが不正です。  ゼロ以上の数を指定してください。"
   },
   {
     "id": "model.config.is_valid.time_between_user_typing.app_error",
@@ -4632,14 +4712,6 @@
     "translation": "SQL接続%vを開けませんでした"
   },
   {
-    "id": "store.sql.ping.critical",
-    "translation": "DBから応答がありません: %v"
-  },
-  {
-    "id": "store.sql.pinging.info",
-    "translation": "SQL%vデータベースからの応答を確認中です"
-  },
-  {
     "id": "store.sql.read_replicas_not_licensed.critical",
     "translation": "現在のライセンスでは、2以上のレプリカ機能は無効になっています。システム管理者にエンタープライズライセンスをアップグレードするように連絡してください。"
   },
@@ -5036,6 +5108,30 @@
     "translation": "ファイル情報を保存できませんでした"
   },
   {
+    "id": "store.sql_file_info.save_or_update.app_error",
+    "translation": "ファイル情報を保存、または更新できませんでした"
+  },
+  {
+    "id": "store.sql_job_status.delete_by_type.app_error",
+    "translation": "ジョブの状態を削除できませんでした"
+  },
+  {
+    "id": "store.sql_job_status.get.app_error",
+    "translation": "ジョブの状態を取得できませんでした"
+  },
+  {
+    "id": "store.sql_job_status.get_all.app_error",
+    "translation": "すべてのジョブの状態を取得できませんでした"
+  },
+  {
+    "id": "store.sql_job_status.save.app_error",
+    "translation": "ジョブの状態を保存できませんでした"
+  },
+  {
+    "id": "store.sql_job_status.update.app_error",
+    "translation": "ジョブの状態を更新できませんでした"
+  },
+  {
     "id": "store.sql_license.get.app_error",
     "translation": "ライセンスを取得する際にエラーが発生しました"
   },
@@ -5182,6 +5278,10 @@
   {
     "id": "store.sql_post.get_posts_around.get_parent.app_error",
     "translation": "チャンネルの親に当たる投稿を取得できませんでした"
+  },
+  {
+    "id": "store.sql_post.get_posts_by_ids.app_error",
+    "translation": "投稿を取得できませんでした"
   },
   {
     "id": "store.sql_post.get_posts_created_att.app_error",
@@ -5896,6 +5996,10 @@
     "translation": "ライセンスに署名中にエラーが発生しました err=%v"
   },
   {
+    "id": "utils.mail.connect_smtp.helo.app_error",
+    "translation": "HELOを設定できませんでした"
+  },
+  {
     "id": "utils.mail.connect_smtp.open.app_error",
     "translation": "接続できませんでした"
   },
@@ -5908,6 +6012,10 @@
     "translation": "SMTPサーバーの認証に失敗しました"
   },
   {
+    "id": "utils.mail.new_client.helo.error",
+    "translation": "SMTPサーバー %v にHELOを設定できませんでした"
+  },
+  {
     "id": "utils.mail.new_client.open.error",
     "translation": "SMTPサーバー%vに接続できませんでした"
   },
@@ -5917,7 +6025,7 @@
   },
   {
     "id": "utils.mail.send_mail.from_address.app_error",
-    "translation": "差出元の電子メールアドレスを追加できませんでした"
+    "translation": "通知の送信元電子メールアドレス設定が存在しないか不正です。"
   },
   {
     "id": "utils.mail.send_mail.msg.app_error",
@@ -5933,7 +6041,7 @@
   },
   {
     "id": "utils.mail.send_mail.to_address.app_error",
-    "translation": "宛先の電子メールアドレスを追加できませんでした"
+    "translation": "通知の送信先電子メールアドレス設定が存在しないか不正です。"
   },
   {
     "id": "utils.mail.test.configured.error",

@@ -18,7 +18,7 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/Sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 )
 
 func TestFileLineLogging(t *testing.T) {

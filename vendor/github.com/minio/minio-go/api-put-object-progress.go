@@ -20,7 +20,6 @@ import (
 	"io"
 	"strings"
 
-	"github.com/minio/minio-go/pkg/credentials"
 	"github.com/minio/minio-go/pkg/encrypt"
 	"github.com/minio/minio-go/pkg/s3utils"
 )
@@ -104,7 +103,6 @@ func (c Client) PutObjectWithMetadata(bucketName, objectName string, reader io.R
 	if size < minPartSize && size >= 0 {
 		return c.putObjectSingle(bucketName, objectName, reader, size, metaData, progress)
 	}
-
 	// For all sizes greater than 5MiB do multipart.
 	n, err = c.putObjectMultipart(bucketName, objectName, reader, size, metaData, progress)
 	if err != nil {
@@ -145,8 +143,8 @@ func (c Client) PutObjectStreamingWithProgress(bucketName, objectName string, re
 			BucketName: bucketName,
 		}
 	}
-
-	if c.overrideSignerType.IsV2() {
+	// This method should return error with signature v2 minioClient.
+	if c.signature.isV2() {
 		return 0, ErrorResponse{
 			Code:       "NotImplemented",
 			Message:    "AWS streaming signature v4 is not supported with minio client initialized for AWS signature v2",
@@ -175,8 +173,8 @@ func (c Client) PutObjectStreamingWithProgress(bucketName, objectName string, re
 		return c.putObjectMultipartStream(bucketName, objectName, reader, size, metadata, progress)
 	}
 
-	// Set streaming signature.
-	c.overrideSignerType = credentials.SignatureV4Streaming
+	// Set signature type to streaming signature v4.
+	c.signature = SignatureV4Streaming
 
 	if size < minPartSize && size >= 0 {
 		return c.putObjectNoChecksum(bucketName, objectName, reader, size, metadata, progress)

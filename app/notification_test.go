@@ -14,14 +14,14 @@ func TestSendNotifications(t *testing.T) {
 
 	AddUserToChannel(th.BasicUser2, th.BasicChannel)
 
-	post1, postErr := CreatePost(&model.Post{
+	post1, err := CreatePost(&model.Post{
 		UserId:    th.BasicUser.Id,
 		ChannelId: th.BasicChannel.Id,
 		Message:   "@" + th.BasicUser2.Username,
 	}, th.BasicTeam.Id, true)
 
-	if postErr != nil {
-		t.Fatal(postErr)
+	if err != nil {
+		t.Fatal(err)
 	}
 
 	mentions, err := SendNotifications(post1, th.BasicTeam, th.BasicChannel, th.BasicUser)
@@ -33,6 +33,44 @@ func TestSendNotifications(t *testing.T) {
 	} else if mentions[0] != th.BasicUser2.Id {
 		t.Log(mentions)
 		t.Fatal("user should have been mentioned")
+	}
+
+	dm, err := CreateDirectChannel(th.BasicUser.Id, th.BasicUser2.Id)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	post2, err := CreatePost(&model.Post{
+		UserId:    th.BasicUser.Id,
+		ChannelId: dm.Id,
+		Message:   "dm message",
+	}, th.BasicTeam.Id, true)
+
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	_, err = SendNotifications(post2, th.BasicTeam, dm, th.BasicUser)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	UpdateActive(th.BasicUser2, false)
+	InvalidateAllCaches()
+
+	post3, err := CreatePost(&model.Post{
+		UserId:    th.BasicUser.Id,
+		ChannelId: dm.Id,
+		Message:   "dm message",
+	}, th.BasicTeam.Id, true)
+
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	_, err = SendNotifications(post3, th.BasicTeam, dm, th.BasicUser)
+	if err != nil {
+		t.Fatal(err)
 	}
 }
 

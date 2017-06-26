@@ -1,11 +1,14 @@
 // Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import Client from '../client/web_client.jsx';
-import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
+import AppDispatcher from 'dispatcher/app_dispatcher.jsx';
 import Constants from 'utils/constants.jsx';
 import EventEmitter from 'events';
 import * as Emoji from 'utils/emoji.jsx';
+
+import store from 'stores/redux_store.jsx';
+import {getCustomEmojisByName} from 'mattermost-redux/selectors/entities/emojis';
+import {Client4} from 'mattermost-redux/client';
 
 const ActionTypes = Constants.ActionTypes;
 
@@ -15,7 +18,7 @@ const MAXIMUM_RECENT_EMOJI = 27;
 // Wrap the contents of the store so that we don't need to construct an ES6 map where most of the content
 // (the system emojis) will never change. It provides the get/has functions of a map and an iterator so
 // that it can be used in for..of loops
-class EmojiMap {
+export class EmojiMap {
     constructor(customEmojis) {
         this.customEmojis = customEmojis;
 
@@ -72,10 +75,20 @@ class EmojiStore extends EventEmitter {
 
         this.setMaxListeners(600);
 
-        this.receivedCustomEmojis = false;
-        this.customEmojis = new Map();
+        this.map = new EmojiMap(getCustomEmojisByName(store.getState()));
 
-        this.map = new EmojiMap(this.customEmojis);
+        this.entities = {};
+
+        store.subscribe(() => {
+            const newEntities = store.getState().entities.emojis.customEmoji;
+
+            if (newEntities !== this.entities) {
+                this.map = new EmojiMap(getCustomEmojisByName(store.getState()));
+                this.emitChange();
+            }
+
+            this.entities = newEntities;
+        });
     }
 
     addChangeListener(callback) {
@@ -90,41 +103,12 @@ class EmojiStore extends EventEmitter {
         this.emit(CHANGE_EVENT);
     }
 
-    hasReceivedCustomEmojis() {
-        return this.receivedCustomEmojis;
-    }
-
-    setCustomEmojis(customEmojis) {
-        customEmojis.sort((a, b) => a.name.localeCompare(b.name));
-
-        this.customEmojis = new Map();
-
-        for (const emoji of customEmojis) {
-            this.addCustomEmoji(emoji);
-        }
-
-        this.map = new EmojiMap(this.customEmojis);
-    }
-
-    addCustomEmoji(emoji) {
-        this.customEmojis.set(emoji.name, emoji);
-    }
-
-    removeCustomEmoji(id) {
-        for (const [name, emoji] of this.customEmojis) {
-            if (emoji.id === id) {
-                this.customEmojis.delete(name);
-                break;
-            }
-        }
-    }
-
     hasSystemEmoji(name) {
         return Emoji.EmojiIndicesByAlias.has(name);
     }
 
     getCustomEmojiMap() {
-        return this.customEmojis;
+        return getCustomEmojisByName(store.getState());
     }
 
     getEmojis() {
@@ -202,7 +186,7 @@ class EmojiStore extends EventEmitter {
 
     getEmojiImageUrl(emoji) {
         if (emoji.id) {
-            return Client.getCustomEmojiImageUrl(emoji.id);
+            return Client4.getUrlVersion() + '/emoji/' + emoji.id + '/image';
         }
 
         const filename = emoji.filename || emoji.aliases[0];
@@ -214,20 +198,6 @@ class EmojiStore extends EventEmitter {
         const action = payload.action;
 
         switch (action.type) {
-        case ActionTypes.RECEIVED_CUSTOM_EMOJIS:
-            this.setCustomEmojis(action.emojis);
-            this.receivedCustomEmojis = true;
-            this.emitChange();
-            break;
-        case ActionTypes.RECEIVED_CUSTOM_EMOJI:
-            this.addCustomEmoji(action.emoji);
-            this.emitChange();
-            break;
-        case ActionTypes.REMOVED_CUSTOM_EMOJI:
-            this.removeCustomEmoji(action.id);
-            this.removeRecentEmoji(action.id);
-            this.emitChange();
-            break;
         case ActionTypes.EMOJI_POSTED:
             this.addRecentEmoji(action.alias);
             this.emitChange();

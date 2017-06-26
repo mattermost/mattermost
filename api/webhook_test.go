@@ -1005,37 +1005,37 @@ func TestIncomingWebhooks(t *testing.T) {
 	}
 
 	attachmentPayload := `{
-        "text": "this is a test",
-        "attachments": [
-            {
-                "fallback": "Required plain-text summary of the attachment.",
+	       "text": "this is a test",
+	       "attachments": [
+	           {
+	               "fallback": "Required plain-text summary of the attachment.",
 
-                "color": "#36a64f",
+	               "color": "#36a64f",
 
-                "pretext": "Optional text that appears above the attachment block",
+	               "pretext": "Optional text that appears above the attachment block",
 
-                "author_name": "Bobby Tables",
-                "author_link": "http://flickr.com/bobby/",
-                "author_icon": "http://flickr.com/icons/bobby.jpg",
+	               "author_name": "Bobby Tables",
+	               "author_link": "http://flickr.com/bobby/",
+	               "author_icon": "http://flickr.com/icons/bobby.jpg",
 
-                "title": "Slack API Documentation",
-                "title_link": "https://api.slack.com/",
+	               "title": "Slack API Documentation",
+	               "title_link": "https://api.slack.com/",
 
-                "text": "Optional text that appears within the attachment",
+	               "text": "Optional text that appears within the attachment",
 
-                "fields": [
-                    {
-                        "title": "Priority",
-                        "value": "High",
-                        "short": false
-                    }
-                ],
+	               "fields": [
+	                   {
+	                       "title": "Priority",
+	                       "value": "High",
+	                       "short": false
+	                   }
+	               ],
 
-                "image_url": "http://my-website.com/path/to/image.jpg",
-                "thumb_url": "http://example.com/path/to/thumb.png"
-            }
-        ]
-    }`
+	               "image_url": "http://my-website.com/path/to/image.jpg",
+	               "thumb_url": "http://example.com/path/to/thumb.png"
+	           }
+	       ]
+	   }`
 
 	if _, err := Client.DoPost(url, attachmentPayload, "application/json"); err != nil {
 		t.Fatal(err)
@@ -1050,42 +1050,42 @@ func TestIncomingWebhooks(t *testing.T) {
 		tooLongText += "a"
 	}
 
-	if _, err := Client.DoPost(url, "{\"text\":\""+tooLongText+"\"}", "application/json"); err == nil || err.StatusCode != http.StatusBadRequest {
-		t.Fatal("should have failed - text too long")
+	if _, err := Client.DoPost(url, "{\"text\":\""+tooLongText+"\"}", "application/json"); err != nil {
+		t.Fatal(err)
 	}
 
 	attachmentPayload = `{
-        "text": "this is a test",
-        "attachments": [
-            {
-                "fallback": "Required plain-text summary of the attachment.",
+	       "text": "this is a test",
+	       "attachments": [
+	           {
+	               "fallback": "Required plain-text summary of the attachment.",
 
-                "color": "#36a64f",
+	               "color": "#36a64f",
 
-                "pretext": "Optional text that appears above the attachment block",
+	               "pretext": "Optional text that appears above the attachment block",
 
-                "author_name": "Bobby Tables",
-                "author_link": "http://flickr.com/bobby/",
-                "author_icon": "http://flickr.com/icons/bobby.jpg",
+	               "author_name": "Bobby Tables",
+	               "author_link": "http://flickr.com/bobby/",
+	               "author_icon": "http://flickr.com/icons/bobby.jpg",
 
-                "title": "Slack API Documentation",
-                "title_link": "https://api.slack.com/",
+	               "title": "Slack API Documentation",
+	               "title_link": "https://api.slack.com/",
 
-                "text": "` + tooLongText + `",
+	               "text": "` + tooLongText + `",
 
-                "fields": [
-                    {
-                        "title": "Priority",
-                        "value": "High",
-                        "short": false
-                    }
-                ],
+	               "fields": [
+	                   {
+	                       "title": "Priority",
+	                       "value": "High",
+	                       "short": false
+	                   }
+	               ],
 
-                "image_url": "http://my-website.com/path/to/image.jpg",
-                "thumb_url": "http://example.com/path/to/thumb.png"
-            }
-        ]
-    }`
+	               "image_url": "http://my-website.com/path/to/image.jpg",
+	               "thumb_url": "http://example.com/path/to/thumb.png"
+	           }
+	       ]
+	   }`
 
 	if _, err := Client.DoPost(url, attachmentPayload, "application/json"); err == nil || err.StatusCode != http.StatusBadRequest {
 		t.Fatal("should have failed with bad request - attachment too long")

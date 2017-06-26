@@ -12,12 +12,17 @@ import (
 var versionCmd = &cobra.Command{
 	Use:   "version",
 	Short: "Display version information",
-	Run:   versionCmdF,
+	RunE:  versionCmdF,
 }
 
-func versionCmdF(cmd *cobra.Command, args []string) {
-	initDBCommandContextCobra(cmd)
+func versionCmdF(cmd *cobra.Command, args []string) error {
+	if err := initDBCommandContextCobra(cmd); err != nil {
+		return err
+	}
+
 	printVersion()
+
+	return nil
 }
 
 func printVersion() {

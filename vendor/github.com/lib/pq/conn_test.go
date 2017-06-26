@@ -160,11 +160,11 @@ func TestPgpass(t *testing.T) {
 		rows, err := txn.Query("SELECT USER")
 		if err != nil {
 			txn.Rollback()
-			rows.Close()
 			if expected != "fail" {
 				t.Fatalf(reason, err)
 			}
 		} else {
+			rows.Close()
 			if expected != "ok" {
 				t.Fatalf(reason, err)
 			}

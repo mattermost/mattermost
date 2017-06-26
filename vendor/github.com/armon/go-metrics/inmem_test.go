@@ -2,6 +2,8 @@ package metrics
 
 import (
 	"math"
+	"net/url"
+	"strings"
 	"testing"
 	"time"
 )
@@ -99,9 +101,78 @@ func TestInmemSink(t *testing.T) {
 	}
 }
 
+func TestNewInmemSinkFromURL(t *testing.T) {
+	for _, tc := range []struct {
+		desc           string
+		input          string
+		expectErr      string
+		expectInterval time.Duration
+		expectRetain   time.Duration
+	}{
+		{
+			desc:           "interval and duration are set via query params",
+			input:          "inmem://?interval=11s&retain=22s",
+			expectInterval: duration(t, "11s"),
+			expectRetain:   duration(t, "22s"),
+		},
+		{
+			desc:      "interval is required",
+			input:     "inmem://?retain=22s",
+			expectErr: "Bad 'interval' param",
+		},
+		{
+			desc:      "interval must be a duration",
+			input:     "inmem://?retain=30s&interval=HIYA",
+			expectErr: "Bad 'interval' param",
+		},
+		{
+			desc:      "retain is required",
+			input:     "inmem://?interval=30s",
+			expectErr: "Bad 'retain' param",
+		},
+		{
+			desc:      "retain must be a valid duration",
+			input:     "inmem://?interval=30s&retain=HELLO",
+			expectErr: "Bad 'retain' param",
+		},
+	} {
+		t.Run(tc.desc, func(t *testing.T) {
+			u, err := url.Parse(tc.input)
+			if err != nil {
+				t.Fatalf("error parsing URL: %s", err)
+			}
+			ms, err := NewInmemSinkFromURL(u)
+			if tc.expectErr != "" {
+				if !strings.Contains(err.Error(), tc.expectErr) {
+					t.Fatalf("expected err: %q, to contain: %q", err, tc.expectErr)
+				}
+			} else {
+				if err != nil {
+					t.Fatalf("unexpected err: %s", err)
+				}
+				is := ms.(*InmemSink)
+				if is.interval != tc.expectInterval {
+					t.Fatalf("expected interval %s, got: %s", tc.expectInterval, is.interval)
+				}
+				if is.retain != tc.expectRetain {
+					t.Fatalf("expected retain %s, got: %s", tc.expectRetain, is.retain)
+				}
+			}
+		})
+	}
+}
+
 func min(a, b int) int {
 	if a < b {
 		return a
 	}
 	return b
+}
+
+func duration(t *testing.T, s string) time.Duration {
+	dur, err := time.ParseDuration(s)
+	if err != nil {
+		t.Fatalf("error parsing duration: %s", err)
+	}
+	return dur
 }

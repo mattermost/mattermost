@@ -17,7 +17,7 @@ func TestLoadTestHelpCommands(t *testing.T) {
 	Client := th.BasicClient
 	channel := th.BasicChannel
 
-	// enable testing to use /loadtest but don't save it since we don't want to overwrite config.json
+	// enable testing to use /test but don't save it since we don't want to overwrite config.json
 	enableTesting := utils.Cfg.ServiceSettings.EnableTesting
 	defer func() {
 		utils.Cfg.ServiceSettings.EnableTesting = enableTesting
@@ -25,8 +25,8 @@ func TestLoadTestHelpCommands(t *testing.T) {
 
 	utils.Cfg.ServiceSettings.EnableTesting = true
 
-	rs := Client.Must(Client.Command(channel.Id, "/loadtest help")).Data.(*model.CommandResponse)
-	if !strings.Contains(rs.Text, "Mattermost load testing commands to help") {
+	rs := Client.Must(Client.Command(channel.Id, "/test help")).Data.(*model.CommandResponse)
+	if !strings.Contains(rs.Text, "Mattermost testing commands to help") {
 		t.Fatal(rs.Text)
 	}
 
@@ -38,7 +38,7 @@ func TestLoadTestSetupCommands(t *testing.T) {
 	Client := th.BasicClient
 	channel := th.BasicChannel
 
-	// enable testing to use /loadtest but don't save it since we don't want to overwrite config.json
+	// enable testing to use /test but don't save it since we don't want to overwrite config.json
 	enableTesting := utils.Cfg.ServiceSettings.EnableTesting
 	defer func() {
 		utils.Cfg.ServiceSettings.EnableTesting = enableTesting
@@ -46,7 +46,7 @@ func TestLoadTestSetupCommands(t *testing.T) {
 
 	utils.Cfg.ServiceSettings.EnableTesting = true
 
-	rs := Client.Must(Client.Command(channel.Id, "/loadtest setup fuzz 1 1 1")).Data.(*model.CommandResponse)
+	rs := Client.Must(Client.Command(channel.Id, "/test setup fuzz 1 1 1")).Data.(*model.CommandResponse)
 	if rs.Text != "Created enviroment" {
 		t.Fatal(rs.Text)
 	}
@@ -59,7 +59,7 @@ func TestLoadTestUsersCommands(t *testing.T) {
 	Client := th.BasicClient
 	channel := th.BasicChannel
 
-	// enable testing to use /loadtest but don't save it since we don't want to overwrite config.json
+	// enable testing to use /test but don't save it since we don't want to overwrite config.json
 	enableTesting := utils.Cfg.ServiceSettings.EnableTesting
 	defer func() {
 		utils.Cfg.ServiceSettings.EnableTesting = enableTesting
@@ -67,7 +67,7 @@ func TestLoadTestUsersCommands(t *testing.T) {
 
 	utils.Cfg.ServiceSettings.EnableTesting = true
 
-	rs := Client.Must(Client.Command(channel.Id, "/loadtest users fuzz 1 2")).Data.(*model.CommandResponse)
+	rs := Client.Must(Client.Command(channel.Id, "/test users fuzz 1 2")).Data.(*model.CommandResponse)
 	if rs.Text != "Added users" {
 		t.Fatal(rs.Text)
 	}
@@ -80,7 +80,7 @@ func TestLoadTestChannelsCommands(t *testing.T) {
 	Client := th.BasicClient
 	channel := th.BasicChannel
 
-	// enable testing to use /loadtest but don't save it since we don't want to overwrite config.json
+	// enable testing to use /test but don't save it since we don't want to overwrite config.json
 	enableTesting := utils.Cfg.ServiceSettings.EnableTesting
 	defer func() {
 		utils.Cfg.ServiceSettings.EnableTesting = enableTesting
@@ -88,7 +88,7 @@ func TestLoadTestChannelsCommands(t *testing.T) {
 
 	utils.Cfg.ServiceSettings.EnableTesting = true
 
-	rs := Client.Must(Client.Command(channel.Id, "/loadtest channels fuzz 1 2")).Data.(*model.CommandResponse)
+	rs := Client.Must(Client.Command(channel.Id, "/test channels fuzz 1 2")).Data.(*model.CommandResponse)
 	if rs.Text != "Added channels" {
 		t.Fatal(rs.Text)
 	}
@@ -101,7 +101,7 @@ func TestLoadTestPostsCommands(t *testing.T) {
 	Client := th.BasicClient
 	channel := th.BasicChannel
 
-	// enable testing to use /loadtest but don't save it since we don't want to overwrite config.json
+	// enable testing to use /test but don't save it since we don't want to overwrite config.json
 	enableTesting := utils.Cfg.ServiceSettings.EnableTesting
 	defer func() {
 		utils.Cfg.ServiceSettings.EnableTesting = enableTesting
@@ -109,7 +109,7 @@ func TestLoadTestPostsCommands(t *testing.T) {
 
 	utils.Cfg.ServiceSettings.EnableTesting = true
 
-	rs := Client.Must(Client.Command(channel.Id, "/loadtest posts fuzz 2 3 2")).Data.(*model.CommandResponse)
+	rs := Client.Must(Client.Command(channel.Id, "/test posts fuzz 2 3 2")).Data.(*model.CommandResponse)
 	if rs.Text != "Added posts" {
 		t.Fatal(rs.Text)
 	}

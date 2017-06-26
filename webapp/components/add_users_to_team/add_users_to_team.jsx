@@ -12,7 +12,7 @@ import TeamStore from 'stores/team_store.jsx';
 
 import Constants from 'utils/constants.jsx';
 import {displayUsernameForUser} from 'utils/utils.jsx';
-import Client from 'client/web_client.jsx';
+import {Client4} from 'mattermost-redux/client';
 
 import PropTypes from 'prop-types';
 
@@ -170,7 +170,7 @@ export default class AddUsersToTeam extends React.Component {
                 onClick={() => onAdd(option)}
             >
                 <ProfilePicture
-                    src={`${Client.getUsersRoute()}/${option.id}/image?time=${option.last_picture_update}`}
+                    src={Client4.getProfilePictureUrl(option.id, option.last_picture_update)}
                     width='32'
                     height='32'
                 />
@@ -201,7 +201,7 @@ export default class AddUsersToTeam extends React.Component {
         const numRemainingText = (
             <FormattedMessage
                 id='multiselect.numPeopleRemaining'
-                defaultMessage='You can add {num, number} more {num, plural, =0 {people} one {person} other {people}}. '
+                defaultMessage='Use ↑↓ to browse, ↵ to select. You can add {num, number} more {num, plural, one {person} other {people}}. '
                 values={{
                     num: MAX_SELECTABLE_VALUES - this.state.values.length
                 }}

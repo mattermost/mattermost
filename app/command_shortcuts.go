@@ -37,7 +37,7 @@ func (me *ShortcutsProvider) GetCommand(T goi18n.TranslateFunc) *model.Command {
 }
 
 func (me *ShortcutsProvider) DoCommand(args *model.CommandArgs, message string) *model.CommandResponse {
-	shortcutIds := [28]string{
+	shortcutIds := [...]string{
 		"api.command_shortcuts.header",
 		// Nav shortcuts
 		"api.command_shortcuts.nav.header",
@@ -46,6 +46,7 @@ func (me *ShortcutsProvider) DoCommand(args *model.CommandArgs, message string) 
 		"api.command_shortcuts.nav.unread_prev",
 		"api.command_shortcuts.nav.unread_next",
 		"api.command_shortcuts.nav.switcher",
+		"api.command_shortcuts.nav.direct_messages_menu",
 		"api.command_shortcuts.nav.settings",
 		"api.command_shortcuts.nav.recent_mentions",
 		// Files shortcuts
@@ -57,6 +58,7 @@ func (me *ShortcutsProvider) DoCommand(args *model.CommandArgs, message string) 
 		"api.command_shortcuts.msgs.reprint_prev",
 		"api.command_shortcuts.msgs.reprint_next",
 		"api.command_shortcuts.msgs.edit",
+		"api.command_shortcuts.msgs.reply",
 		"api.command_shortcuts.msgs.comp_username",
 		"api.command_shortcuts.msgs.comp_channel",
 		"api.command_shortcuts.msgs.comp_emoji",

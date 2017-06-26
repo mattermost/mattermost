@@ -2,7 +2,7 @@
 // See License.txt for license information.
 
 import LoginMfa from './components/login_mfa.jsx';
-import ErrorBar from 'components/error_bar.jsx';
+import AnnouncementBar from 'components/announcement_bar';
 import FormError from 'components/form_error.jsx';
 
 import * as GlobalActions from 'actions/global_actions.jsx';
@@ -11,8 +11,7 @@ import {checkMfa, webLogin} from 'actions/user_actions.jsx';
 import BrowserStore from 'stores/browser_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 
-import Client from 'client/web_client.jsx';
-import * as AsyncClient from 'utils/async_client.jsx';
+import {Client4} from 'mattermost-redux/client';
 import * as TextFormatting from 'utils/text_formatting.jsx';
 
 import * as Utils from 'utils/utils.jsx';
@@ -71,8 +70,6 @@ export default class LoginController extends React.Component {
         if (this.props.location.query.extra === Constants.SIGNIN_VERIFIED && this.props.location.query.email) {
             this.refs.password.focus();
         }
-
-        AsyncClient.checkVersion();
     }
 
     preSubmit(e) {
@@ -213,7 +210,7 @@ export default class LoginController extends React.Component {
     finishSignin(team) {
         const query = this.props.location.query;
         GlobalActions.loadCurrentLocale();
-        if (query.redirect_to) {
+        if (query.redirect_to && query.redirect_to.match(/^\//)) {
             browserHistory.push(query.redirect_to);
         } else if (team) {
             browserHistory.push(`/${team.name}`);
@@ -243,7 +240,7 @@ export default class LoginController extends React.Component {
             return (
                 <div>
                     <img
-                        src={Client.getAdminRoute() + '/get_brand_image'}
+                        src={Client4.getBrandImageUrl(0)}
                     />
                     <p dangerouslySetInnerHTML={{__html: TextFormatting.formatText(text)}}/>
                 </div>
@@ -493,7 +490,7 @@ export default class LoginController extends React.Component {
                 <a
                     className='btn btn-custom-login gitlab'
                     key='gitlab'
-                    href={Client.getOAuthRoute() + '/gitlab/login' + this.props.location.search}
+                    href={Client4.getUrl() + '/oauth/gitlab/login' + this.props.location.search}
                 >
                     <span>
                         <span className='icon'/>
@@ -513,7 +510,7 @@ export default class LoginController extends React.Component {
                 <a
                     className='btn btn-custom-login google'
                     key='google'
-                    href={Client.getOAuthRoute() + '/google/login' + this.props.location.search}
+                    href={Client4.getUrl() + '/oauth/google/login' + this.props.location.search}
                 >
                     <span>
                         <span className='icon'/>
@@ -533,7 +530,7 @@ export default class LoginController extends React.Component {
                 <a
                     className='btn btn-custom-login office365'
                     key='office365'
-                    href={Client.getOAuthRoute() + '/office365/login' + this.props.location.search}
+                    href={Client4.getUrl() + '/oauth/office365/login' + this.props.location.search}
                 >
                     <span>
                         <span className='icon'/>
@@ -621,7 +618,7 @@ export default class LoginController extends React.Component {
 
         return (
             <div>
-                <ErrorBar/>
+                <AnnouncementBar/>
                 <div className='col-sm-12'>
                     <div className={'signup-team__container ' + customClass}>
                         <div className='signup__markdown'>

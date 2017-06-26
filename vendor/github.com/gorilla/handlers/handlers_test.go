@@ -73,6 +73,30 @@ func TestMethodHandler(t *testing.T) {
 	}
 }
 
+func TestMakeLogger(t *testing.T) {
+	rec := httptest.NewRecorder()
+	logger := makeLogger(rec)
+	// initial status
+	if logger.Status() != http.StatusOK {
+		t.Fatalf("wrong status, got %d want %d", logger.Status(), http.StatusOK)
+	}
+	// WriteHeader
+	logger.WriteHeader(http.StatusInternalServerError)
+	if logger.Status() != http.StatusInternalServerError {
+		t.Fatalf("wrong status, got %d want %d", logger.Status(), http.StatusInternalServerError)
+	}
+	// Write
+	logger.Write([]byte(ok))
+	if logger.Size() != len(ok) {
+		t.Fatalf("wrong size, got %d want %d", logger.Size(), len(ok))
+	}
+	// Header
+	logger.Header().Set("key", "value")
+	if val := logger.Header().Get("key"); val != "value" {
+		t.Fatalf("wrong header, got %s want %s", val, "value")
+	}
+}
+
 func TestWriteLog(t *testing.T) {
 	loc, err := time.LoadLocation("Europe/Warsaw")
 	if err != nil {

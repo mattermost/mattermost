@@ -80,15 +80,6 @@ export default class ChannelMembersDropdown extends React.Component {
         );
     }
 
-    // Checks if the user this menu is for is a channel admin or not.
-    isChannelAdmin() {
-        if (Utils.isChannelAdmin(this.props.channelMember.roles)) {
-            return true;
-        }
-
-        return false;
-    }
-
     // Checks if the current user has the power to change the roles of this member.
     canChangeMemberRoles() {
         if (UserStore.isSystemAdminForCurrentUser()) {
@@ -108,6 +99,9 @@ export default class ChannelMembersDropdown extends React.Component {
     }
 
     render() {
+        const supportsChannelAdmin = global.mm_license.IsLicensed === 'true';
+        const isChannelAdmin = supportsChannelAdmin && Utils.isChannelAdmin(this.props.channelMember.roles);
+
         let serverError = null;
         if (this.state.serverError) {
             serverError = (
@@ -129,7 +123,7 @@ export default class ChannelMembersDropdown extends React.Component {
                 />
             );
 
-            if (this.isChannelAdmin()) {
+            if (isChannelAdmin) {
                 role = (
                     <FormattedMessage
                         id='channel_members_dropdown.channel_admin'
@@ -158,7 +152,7 @@ export default class ChannelMembersDropdown extends React.Component {
             }
 
             let makeChannelMember = null;
-            if (this.isChannelAdmin()) {
+            if (isChannelAdmin) {
                 makeChannelMember = (
                     <li role='presentation'>
                         <a
@@ -177,7 +171,7 @@ export default class ChannelMembersDropdown extends React.Component {
             }
 
             let makeChannelAdmin = null;
-            if (!this.isChannelAdmin()) {
+            if (supportsChannelAdmin && !isChannelAdmin) {
                 makeChannelAdmin = (
                     <li role='presentation'>
                         <a
@@ -192,6 +186,12 @@ export default class ChannelMembersDropdown extends React.Component {
                             />
                         </a>
                     </li>
+                );
+            }
+
+            if (!makeChannelMember || !makeChannelAdmin || !removeFromChannel) {
+                return (
+                    <div/>
                 );
             }
 
@@ -233,7 +233,7 @@ export default class ChannelMembersDropdown extends React.Component {
                     />
                 </button>
             );
-        } else if (this.isChannelAdmin()) {
+        } else if (isChannelAdmin) {
             if (this.props.channel.name === Constants.DEFAULT_CHANNEL) {
                 return (
                     <div/>

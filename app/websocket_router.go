@@ -42,6 +42,10 @@ func (wr *WebSocketRouter) ServeWebSocket(conn *WebConn, r *model.WebSocketReque
 	}
 
 	if r.Action == model.WEBSOCKET_AUTHENTICATION_CHALLENGE {
+		if conn.SessionToken != "" {
+			return
+		}
+
 		token, ok := r.Data["token"].(string)
 		if !ok {
 			conn.WebSocket.Close()

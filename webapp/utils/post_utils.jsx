@@ -1,12 +1,13 @@
 // Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import Client from 'client/web_client.jsx';
+import {Client4} from 'mattermost-redux/client';
 import Constants from 'utils/constants.jsx';
 import * as Utils from 'utils/utils.jsx';
 
 import TeamStore from 'stores/team_store.jsx';
 import UserStore from 'stores/user_store.jsx';
+import ChannelStore from 'stores/channel_store.jsx';
 
 export function isSystemMessage(post) {
     return post.type && (post.type.lastIndexOf(Constants.SYSTEM_MESSAGE_PREFIX) === 0);
@@ -32,7 +33,7 @@ export function isEdited(post) {
 }
 
 export function getProfilePicSrcForPost(post, timestamp) {
-    let src = Client.getUsersRoute() + '/' + post.user_id + '/image?time=' + timestamp;
+    let src = Client4.getUsersRoute() + '/' + post.user_id + '/image?time=' + timestamp;
     if (post.props && post.props.from_webhook && global.window.mm_config.EnablePostIconOverride === 'true') {
         if (post.props.override_icon_url) {
             src = post.props.override_icon_url;
@@ -48,14 +49,17 @@ export function getProfilePicSrcForPost(post, timestamp) {
 
 export function canDeletePost(post) {
     var isOwner = isPostOwner(post);
-    var isAdmin = TeamStore.isTeamAdminForCurrentTeam() || UserStore.isSystemAdminForCurrentUser();
     var isSystemAdmin = UserStore.isSystemAdminForCurrentUser();
+    var isTeamAdmin = TeamStore.isTeamAdminForCurrentTeam() || isSystemAdmin;
+    var isChannelAdmin = ChannelStore.isChannelAdminForCurrentChannel() || isTeamAdmin;
+    var isAdmin = isChannelAdmin || isTeamAdmin || isSystemAdmin;
 
     if (global.window.mm_license.IsLicensed === 'true') {
-        return (global.window.mm_config.RestrictPostDelete === Constants.PERMISSIONS_DELETE_POST_ALL && (isOwner || isAdmin)) ||
-            (global.window.mm_config.RestrictPostDelete === Constants.PERMISSIONS_DELETE_POST_TEAM_ADMIN && isAdmin) ||
+        return (global.window.mm_config.RestrictPostDelete === Constants.PERMISSIONS_DELETE_POST_ALL && (isOwner || isChannelAdmin)) ||
+            (global.window.mm_config.RestrictPostDelete === Constants.PERMISSIONS_DELETE_POST_TEAM_ADMIN && isTeamAdmin) ||
             (global.window.mm_config.RestrictPostDelete === Constants.PERMISSIONS_DELETE_POST_SYSTEM_ADMIN && isSystemAdmin);
     }
+
     return isOwner || isAdmin;
 }
 

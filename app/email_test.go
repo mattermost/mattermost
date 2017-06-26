@@ -12,6 +12,9 @@ import (
 )
 
 func TestSendChangeUsernameEmail(t *testing.T) {
+	if testing.Short() {
+		t.SkipNow()
+	}
 	Setup()
 
 	var emailTo string = "test@example.com"
@@ -60,6 +63,9 @@ func TestSendChangeUsernameEmail(t *testing.T) {
 }
 
 func TestSendEmailChangeVerifyEmail(t *testing.T) {
+	if testing.Short() {
+		t.SkipNow()
+	}
 	Setup()
 
 	var newUserEmail string = "newtest@example.com"
@@ -111,6 +117,9 @@ func TestSendEmailChangeVerifyEmail(t *testing.T) {
 }
 
 func TestSendEmailChangeEmail(t *testing.T) {
+	if testing.Short() {
+		t.SkipNow()
+	}
 	Setup()
 
 	var oldEmail string = "test@example.com"
@@ -158,6 +167,9 @@ func TestSendEmailChangeEmail(t *testing.T) {
 }
 
 func TestSendVerifyEmail(t *testing.T) {
+	if testing.Short() {
+		t.SkipNow()
+	}
 	Setup()
 
 	var userEmail string = "test@example.com"
@@ -209,6 +221,9 @@ func TestSendVerifyEmail(t *testing.T) {
 }
 
 func TestSendSignInChangeEmail(t *testing.T) {
+	if testing.Short() {
+		t.SkipNow()
+	}
 	Setup()
 
 	var email string = "test@example.com"
@@ -256,6 +271,9 @@ func TestSendSignInChangeEmail(t *testing.T) {
 }
 
 func TestSendWelcomeEmail(t *testing.T) {
+	if testing.Short() {
+		t.SkipNow()
+	}
 	Setup()
 
 	var userId string = "32432nkjnijn432uj32"
@@ -349,6 +367,9 @@ func TestSendWelcomeEmail(t *testing.T) {
 }
 
 func TestSendPasswordChangeEmail(t *testing.T) {
+	if testing.Short() {
+		t.SkipNow()
+	}
 	Setup()
 
 	var email string = "test@example.com"
@@ -396,6 +417,9 @@ func TestSendPasswordChangeEmail(t *testing.T) {
 }
 
 func TestSendMfaChangeEmail(t *testing.T) {
+	if testing.Short() {
+		t.SkipNow()
+	}
 	Setup()
 
 	var email string = "test@example.com"
@@ -480,6 +504,9 @@ func TestSendMfaChangeEmail(t *testing.T) {
 }
 
 func TestSendInviteEmails(t *testing.T) {
+	if testing.Short() {
+		t.SkipNow()
+	}
 	th := Setup().InitBasic()
 
 	var email1 string = "test1@example.com"
@@ -555,6 +582,9 @@ func TestSendInviteEmails(t *testing.T) {
 }
 
 func TestSendPasswordReset(t *testing.T) {
+	if testing.Short() {
+		t.SkipNow()
+	}
 	th := Setup().InitBasic()
 
 	var siteURL string = "http://test.mattermost.io"

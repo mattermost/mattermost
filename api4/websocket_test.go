@@ -71,3 +71,12 @@ func TestWebSocket(t *testing.T) {
 		}
 	}
 }
+
+func TestZZWebSocketTearDown(t *testing.T) {
+	// *IMPORTANT* - Kind of hacky
+	// This should be the last function in any test file
+	// that calls Setup()
+	// Should be in the last file too sorted by name
+	time.Sleep(2 * time.Second)
+	StopServer()
+}

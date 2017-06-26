@@ -9,10 +9,9 @@ import IntegrationStore from 'stores/integration_store.jsx';
 import TeamStore from 'stores/team_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 
-import {loadOutgoingHooks} from 'actions/integration_actions.jsx';
+import {loadOutgoingHooks, regenOutgoingHookToken, deleteOutgoingHook} from 'actions/integration_actions.jsx';
 
 import * as Utils from 'utils/utils.jsx';
-import * as AsyncClient from 'utils/async_client.jsx';
 
 import PropTypes from 'prop-types';
 
@@ -50,7 +49,7 @@ export default class InstalledOutgoingWebhooks extends React.Component {
         UserStore.addChangeListener(this.handleUserChange);
 
         if (window.mm_config.EnableOutgoingWebhooks === 'true') {
-            loadOutgoingHooks();
+            loadOutgoingHooks(() => this.setState({loading: false}));
         }
     }
 
@@ -63,8 +62,7 @@ export default class InstalledOutgoingWebhooks extends React.Component {
         const teamId = TeamStore.getCurrentId();
 
         this.setState({
-            outgoingWebhooks: IntegrationStore.getOutgoingWebhooks(teamId),
-            loading: !IntegrationStore.hasReceivedOutgoingWebhooks(teamId)
+            outgoingWebhooks: IntegrationStore.getOutgoingWebhooks(teamId)
         });
     }
 
@@ -73,11 +71,11 @@ export default class InstalledOutgoingWebhooks extends React.Component {
     }
 
     regenOutgoingWebhookToken(outgoingWebhook) {
-        AsyncClient.regenOutgoingHookToken(outgoingWebhook.id);
+        regenOutgoingHookToken(outgoingWebhook.id);
     }
 
     deleteOutgoingWebhook(outgoingWebhook) {
-        AsyncClient.deleteOutgoingHook(outgoingWebhook.id);
+        deleteOutgoingHook(outgoingWebhook.id);
     }
 
     outgoingWebhookCompare(a, b) {

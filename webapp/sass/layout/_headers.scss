@@ -259,6 +259,8 @@
 
     .team__header {
         @include legacy-pie-clearfix;
+        @include display-flex();
+        @include flex-direction(row-reverse);
         padding: 9px 10px;
         position: relative;
 
@@ -297,6 +299,7 @@
 
         a {
             text-decoration: none;
+            @include flex-grow(1);
         }
 
         .sidebar-header-dropdown,
@@ -307,7 +310,6 @@
             position: absolute;
             right: 22px;
             top: 10px;
-            z-index: 5;
 
             li {
                 width: 100%;
@@ -351,16 +353,15 @@
             @include border-radius(36px);
             float: left;
             height: 36px;
-            margin-right: 6px;
             width: 36px;
         }
 
         .header__info {
             @include clearfix;
+            @include flex-grow(1);
             color: $white;
-            padding-left: 2px;
+            padding-left: 8px;
             position: relative;
-            z-index: 1;
         }
 
         .team__name,
@@ -425,6 +426,7 @@
 .app__body {
 
     .channel-header__links {
+        display: inline-block;
         font-family: 'Open Sans', sans-serif;
         font-size: 22px;
         height: 30px;

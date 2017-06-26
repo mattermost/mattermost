@@ -4,12 +4,8 @@
 package app
 
 import (
-	"net"
 	"net/http"
-	"net/url"
-	"os"
 	"regexp"
-	"time"
 
 	l4g "github.com/alecthomas/log4go"
 	"github.com/dyatlov/go-opengraph/opengraph"
@@ -19,35 +15,7 @@ import (
 	"github.com/mattermost/platform/utils"
 )
 
-var (
-	httpClient *http.Client
-
-	httpTimeout       = time.Duration(5 * time.Second)
-	linkWithTextRegex = regexp.MustCompile(`<([^<\|]+)\|([^>]+)>`)
-)
-
-func dialTimeout(network, addr string) (net.Conn, error) {
-	return net.DialTimeout(network, addr, httpTimeout)
-}
-
-func init() {
-	p, ok := os.LookupEnv("HTTP_PROXY")
-	if ok {
-		if u, err := url.Parse(p); err == nil {
-			httpClient = &http.Client{
-				Transport: &http.Transport{
-					Proxy: http.ProxyURL(u),
-					Dial:  dialTimeout,
-				},
-			}
-			return
-		}
-	}
-
-	httpClient = &http.Client{
-		Timeout: httpTimeout,
-	}
-}
+var linkWithTextRegex = regexp.MustCompile(`<([^<\|]+)\|([^>]+)>`)
 
 func CreatePostAsUser(post *model.Post) (*model.Post, *model.AppError) {
 	// Check that channel has not been deleted
@@ -126,7 +94,7 @@ func CreatePost(post *model.Post, teamId string, triggerWebhooks bool) (*model.P
 	}
 
 	esInterface := einterfaces.GetElasticSearchInterface()
-	if (esInterface != nil && *utils.Cfg.ElasticSearchSettings.EnableIndexing) {
+	if esInterface != nil && *utils.Cfg.ElasticSearchSettings.EnableIndexing {
 		go esInterface.IndexPost(rpost, teamId)
 	}
 
@@ -271,11 +239,6 @@ func UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model.AppError
 			return nil, err
 		}
 
-		if oldPost.UserId != post.UserId {
-			err := model.NewAppError("UpdatePost", "api.post.update_post.permissions.app_error", nil, "oldUserId="+oldPost.UserId, http.StatusBadRequest)
-			return nil, err
-		}
-
 		if oldPost.DeleteAt != 0 {
 			err := model.NewAppError("UpdatePost", "api.post.update_post.permissions_details.app_error", map[string]interface{}{"PostId": post.Id}, "", http.StatusBadRequest)
 			return nil, err
@@ -314,7 +277,7 @@ func UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model.AppError
 		rpost := result.Data.(*model.Post)
 
 		esInterface := einterfaces.GetElasticSearchInterface()
-		if (esInterface != nil && *utils.Cfg.ElasticSearchSettings.EnableIndexing) {
+		if esInterface != nil && *utils.Cfg.ElasticSearchSettings.EnableIndexing {
 			go func() {
 				if rchannel := <-Srv.Store.Channel().GetForPost(rpost.Id); rchannel.Err != nil {
 					l4g.Error("Couldn't get channel %v for post %v for ElasticSearch indexing.", rpost.ChannelId, rpost.Id)
@@ -501,7 +464,7 @@ func DeletePost(postId string) (*model.Post, *model.AppError) {
 		go DeleteFlaggedPosts(post.Id)
 
 		esInterface := einterfaces.GetElasticSearchInterface()
-		if (esInterface != nil && *utils.Cfg.ElasticSearchSettings.EnableIndexing) {
+		if esInterface != nil && *utils.Cfg.ElasticSearchSettings.EnableIndexing {
 			go esInterface.DeletePost(post.Id)
 		}
 
@@ -532,7 +495,7 @@ func SearchPostsInTeam(terms string, userId string, teamId string, isOrSearch bo
 	paramsList := model.ParseSearchParams(terms)
 
 	esInterface := einterfaces.GetElasticSearchInterface()
-	if (esInterface != nil && *utils.Cfg.ElasticSearchSettings.EnableSearching && utils.IsLicensed && *utils.License.Features.ElasticSearch) {
+	if esInterface != nil && *utils.Cfg.ElasticSearchSettings.EnableSearching && utils.IsLicensed && *utils.License.Features.ElasticSearch {
 		finalParamsList := []*model.SearchParams{}
 
 		for _, params := range paramsList {
@@ -643,7 +606,7 @@ func GetFileInfosForPost(postId string, readFromMaster bool) ([]*model.FileInfo,
 func GetOpenGraphMetadata(url string) *opengraph.OpenGraph {
 	og := opengraph.NewOpenGraph()
 
-	res, err := httpClient.Get(url)
+	res, err := utils.HttpClient().Get(url)
 	if err != nil {
 		l4g.Error("GetOpenGraphMetadata request failed for url=%v with err=%v", url, err.Error())
 		return og

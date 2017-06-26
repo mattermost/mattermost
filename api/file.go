@@ -280,7 +280,7 @@ func getPublicFileOld(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func writeFileResponse(filename string, contentType string, bytes []byte, w http.ResponseWriter, r *http.Request) *model.AppError {
-	w.Header().Set("Cache-Control", "max-age=2592000, public")
+	w.Header().Set("Cache-Control", "max-age=2592000, private")
 	w.Header().Set("Content-Length", strconv.Itoa(len(bytes)))
 
 	if contentType != "" {

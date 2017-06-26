@@ -8,9 +8,8 @@ import (
 )
 
 type goCollector struct {
-	goroutinesDesc *Desc
-	threadsDesc    *Desc
-	gcDesc         *Desc
+	goroutines Gauge
+	gcDesc     *Desc
 
 	// metrics to describe and collect
 	metrics memStatsMetrics
@@ -20,14 +19,11 @@ type goCollector struct {
 // go process.
 func NewGoCollector() Collector {
 	return &goCollector{
-		goroutinesDesc: NewDesc(
-			"go_goroutines",
-			"Number of goroutines that currently exist.",
-			nil, nil),
-		threadsDesc: NewDesc(
-			"go_threads",
-			"Number of OS threads created",
-			nil, nil),
+		goroutines: NewGauge(GaugeOpts{
+			Namespace: "go",
+			Name:      "goroutines",
+			Help:      "Number of goroutines that currently exist.",
+		}),
 		gcDesc: NewDesc(
 			"go_gc_duration_seconds",
 			"A summary of the GC invocation durations.",
@@ -52,7 +48,7 @@ func NewGoCollector() Collector {
 			}, {
 				desc: NewDesc(
 					memstatNamespace("sys_bytes"),
-					"Number of bytes obtained from system.",
+					"Number of bytes obtained by system. Sum of all system allocations.",
 					nil, nil,
 				),
 				eval:    func(ms *runtime.MemStats) float64 { return float64(ms.Sys) },
@@ -115,12 +111,12 @@ func NewGoCollector() Collector {
 				valType: GaugeValue,
 			}, {
 				desc: NewDesc(
-					memstatNamespace("heap_released_bytes"),
-					"Number of heap bytes released to OS.",
+					memstatNamespace("heap_released_bytes_total"),
+					"Total number of heap bytes released to OS.",
 					nil, nil,
 				),
 				eval:    func(ms *runtime.MemStats) float64 { return float64(ms.HeapReleased) },
-				valType: GaugeValue,
+				valType: CounterValue,
 			}, {
 				desc: NewDesc(
 					memstatNamespace("heap_objects"),
@@ -217,14 +213,6 @@ func NewGoCollector() Collector {
 				),
 				eval:    func(ms *runtime.MemStats) float64 { return float64(ms.LastGC) / 1e9 },
 				valType: GaugeValue,
-			}, {
-				desc: NewDesc(
-					memstatNamespace("gc_cpu_fraction"),
-					"The fraction of this program's available CPU time used by the GC since the program started.",
-					nil, nil,
-				),
-				eval:    func(ms *runtime.MemStats) float64 { return ms.GCCPUFraction },
-				valType: GaugeValue,
 			},
 		},
 	}
@@ -236,9 +224,9 @@ func memstatNamespace(s string) string {
 
 // Describe returns all descriptions of the collector.
 func (c *goCollector) Describe(ch chan<- *Desc) {
-	ch <- c.goroutinesDesc
-	ch <- c.threadsDesc
+	ch <- c.goroutines.Desc()
 	ch <- c.gcDesc
+
 	for _, i := range c.metrics {
 		ch <- i.desc
 	}
@@ -246,9 +234,8 @@ func (c *goCollector) Describe(ch chan<- *Desc) {
 
 // Collect returns the current state of all metrics of the collector.
 func (c *goCollector) Collect(ch chan<- Metric) {
-	ch <- MustNewConstMetric(c.goroutinesDesc, GaugeValue, float64(runtime.NumGoroutine()))
-	n, _ := runtime.ThreadCreateProfile(nil)
-	ch <- MustNewConstMetric(c.threadsDesc, GaugeValue, float64(n))
+	c.goroutines.Set(float64(runtime.NumGoroutine()))
+	ch <- c.goroutines
 
 	var stats debug.GCStats
 	stats.PauseQuantiles = make([]time.Duration, 5)

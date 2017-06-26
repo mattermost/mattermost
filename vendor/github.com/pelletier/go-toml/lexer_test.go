@@ -1,6 +1,7 @@
 package toml
 
 import (
+	"os"
 	"strings"
 	"testing"
 )
@@ -747,4 +748,32 @@ func TestLexUnknownRvalue(t *testing.T) {
 		{Position{1, 3}, tokenEqual, "="},
 		{Position{1, 5}, tokenError, `no value can start with \`},
 	})
+}
+
+func BenchmarkLexer(b *testing.B) {
+	sample := `title = "Hugo: A Fast and Flexible Website Generator"
+baseurl = "http://gohugo.io/"
+MetaDataFormat = "yaml"
+pluralizeListTitles = false
+
+[params]
+  description = "Documentation of Hugo, a fast and flexible static site generator built with love by spf13, bep and friends in Go"
+  author = "Steve Francia (spf13) and friends"
+  release = "0.22-DEV"
+
+[[menu.main]]
+	name = "Download Hugo"
+	pre = "<i class='fa fa-download'></i>"
+	url = "https://github.com/spf13/hugo/releases"
+	weight = -200
+`
+	rd := strings.NewReader(sample)
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		rd.Seek(0, os.SEEK_SET)
+		ch := lexToml(rd)
+		for _ = range ch {
+		}
+	}
 }

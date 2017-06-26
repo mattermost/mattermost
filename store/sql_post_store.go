@@ -46,6 +46,7 @@ func NewSqlPostStore(sqlStore *SqlStore) PostStore {
 		table.ColMap("ChannelId").SetMaxSize(26)
 		table.ColMap("RootId").SetMaxSize(26)
 		table.ColMap("ParentId").SetMaxSize(26)
+		table.ColMap("OriginalId").SetMaxSize(26)
 		table.ColMap("Message").SetMaxSize(4000)
 		table.ColMap("Type").SetMaxSize(26)
 		table.ColMap("Hashtags").SetMaxSize(1000)
@@ -317,7 +318,7 @@ func (s SqlPostStore) Get(id string) StoreChannel {
 		var post model.Post
 		err := s.GetReplica().SelectOne(&post, "SELECT * FROM Posts WHERE Id = :Id AND DeleteAt = 0", map[string]interface{}{"Id": id})
 		if err != nil {
-			result.Err = model.NewLocAppError("SqlPostStore.GetPost", "store.sql_post.get.app_error", nil, "id="+id+err.Error())
+			result.Err = model.NewAppError("SqlPostStore.GetPost", "store.sql_post.get.app_error", nil, "id="+id+err.Error(), http.StatusNotFound)
 			storeChannel <- result
 			close(storeChannel)
 			return
@@ -370,7 +371,7 @@ func (s SqlPostStore) GetSingle(id string) StoreChannel {
 		var post model.Post
 		err := s.GetReplica().SelectOne(&post, "SELECT * FROM Posts WHERE Id = :Id AND DeleteAt = 0", map[string]interface{}{"Id": id})
 		if err != nil {
-			result.Err = model.NewLocAppError("SqlPostStore.GetSingle", "store.sql_post.get.app_error", nil, "id="+id+err.Error())
+			result.Err = model.NewAppError("SqlPostStore.GetSingle", "store.sql_post.get.app_error", nil, "id="+id+err.Error(), http.StatusNotFound)
 		}
 
 		result.Data = &post

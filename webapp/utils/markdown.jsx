@@ -4,6 +4,8 @@
 import * as TextFormatting from './text_formatting.jsx';
 import * as SyntaxHighlighting from './syntax_highlighting.jsx';
 
+import {postListScrollChange} from 'actions/global_actions.jsx';
+
 import marked from 'marked';
 import katex from 'katex';
 
@@ -20,6 +22,8 @@ function markdownImageLoaded(image) {
     } else {
         image.style.height = 'auto';
     }
+
+    postListScrollChange();
 }
 global.markdownImageLoaded = markdownImageLoaded;
 
@@ -200,8 +204,15 @@ class MattermostMarkdownRenderer extends marked.Renderer {
 
         output += '" href="' + outHref + '" rel="noreferrer"';
 
-        // special case for channel links and permalinks that are inside the app
-        if (this.formattingOptions.siteURL && new RegExp('^' + TextFormatting.escapeRegex(this.formattingOptions.siteURL) + '\\/[^\\/]+\\/(pl|channels)\\/').test(outHref)) {
+        // special case for team invite links, channel links, and permalinks that are inside the app
+        let internalLink = false;
+        if (this.formattingOptions.siteURL) {
+            const pattern = new RegExp('^' + TextFormatting.escapeRegex(this.formattingOptions.siteURL) + '\\/(?:signup_user_complete|[^\\/]+\\/(?:pl|channels))\\/');
+
+            internalLink = pattern.test(outHref);
+        }
+
+        if (internalLink) {
             output += ' data-link="' + outHref.substring(this.formattingOptions.siteURL) + '"';
         } else {
             output += ' target="_blank"';

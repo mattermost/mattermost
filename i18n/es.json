@@ -49,23 +49,23 @@
   },
   {
     "id": "api.admin.add_certificate.no_file.app_error",
-    "translation": "No hay un archivo bajo la solicitud de 'certificate'"
+    "translation": "No hay un archivo bajo 'certificate' en la solicitud."
   },
   {
     "id": "api.admin.add_certificate.open.app_error",
-    "translation": "No se pudo abrir el archivo del certificado"
+    "translation": "No se pudo abrir el archivo del certificado."
   },
   {
     "id": "api.admin.add_certificate.saving.app_error",
-    "translation": "No se pudo guardar el archivo con el certificado"
+    "translation": "No se pudo guardar el archivo con el certificado."
   },
   {
     "id": "api.admin.file_read_error",
-    "translation": "Error leyendo el archivo de registro"
+    "translation": "Error leyendo el archivo de registro."
   },
   {
     "id": "api.admin.get_brand_image.not_available.app_error",
-    "translation": "La marca personalizada no está configurada o no está soportada en este servidor"
+    "translation": "La marca personalizada no está configurada o no está soportada en este servidor."
   },
   {
     "id": "api.admin.get_brand_image.storage.app_error",
@@ -73,15 +73,15 @@
   },
   {
     "id": "api.admin.init.debug",
-    "translation": "Inicializando rutas del API para la administración"
+    "translation": "Inicializando rutas del API para la administración."
   },
   {
     "id": "api.admin.recycle_db_end.warn",
-    "translation": "Terminado el reciclaje de la conexión de base de datos"
+    "translation": "Terminado el reciclaje de la conexión de base de datos."
   },
   {
     "id": "api.admin.recycle_db_start.warn",
-    "translation": "Tratando de reciclar la conexión de base de datos"
+    "translation": "Intentando reciclar la conexión de base de datos."
   },
   {
     "id": "api.admin.remove_certificate.delete.app_error",
@@ -89,7 +89,7 @@
   },
   {
     "id": "api.admin.saml.metadata.app_error",
-    "translation": "Se ha producido un error mientras que la se contruía los Metadatos del Proveedor de Servicio"
+    "translation": "Se ha producido un error mientras se construían los Metadatos del Proveedor de Servicio."
   },
   {
     "id": "api.admin.test_email.body",
@@ -756,6 +756,10 @@
     "translation": "ESC: Marca todos los mensajes como leídos en el canal actual\n"
   },
   {
+    "id": "api.command_shortcuts.msgs.reply",
+    "translation": "MAYÚS+ARRIBA (en el campo de entrada vacío): Responder al mensaje más reciente en el canal actual\n"
+  },
+  {
     "id": "api.command_shortcuts.msgs.reprint_next",
     "translation": "{{.CmdOrCtrl}}+ABAJO (con el cuadro de texto vacío): Reimprime el siguiente mensaje o comando de barra que ingresaste\n"
   },
@@ -766,6 +770,10 @@
   {
     "id": "api.command_shortcuts.name",
     "translation": "accesos rápidos de teclado"
+  },
+  {
+    "id": "api.command_shortcuts.nav.direct_messages_menu",
+    "translation": "{{.CmdOrCtrl}}+MAYÚS+K: Abre el menú de mensajes directos\n"
   },
   {
     "id": "api.command_shortcuts.nav.header",
@@ -790,6 +798,10 @@
   {
     "id": "api.command_shortcuts.nav.switcher",
     "translation": "{{.CmdOrCtrl}}+K: Abre un cuadro de dialogo para cambiar rápidamente de canal\n"
+  },
+  {
+    "id": "api.command_shortcuts.nav.switcher_team",
+    "translation": "{{.CmdOrCtrl}}+K: Abre un dialogo para cambiar rápidamente de canal\n"
   },
   {
     "id": "api.command_shortcuts.nav.unread_next",
@@ -1450,6 +1462,10 @@
     "translation": "El enlace de registro parece ser inválido"
   },
   {
+    "id": "api.opengraph.init.debug",
+    "translation": "Inicializando rutas del API para el protocolo open graph"
+  },
+  {
     "id": "api.post.check_for_out_of_channel_mentions.message.multiple",
     "translation": "{{.Usernames}} y {{.LastUsername}} fueron mencionados, pero no recibieron una notificación porque no pertenecen a este canal."
   },
@@ -1612,6 +1628,10 @@
     "translation": "Nuevo Mensaje Directo"
   },
   {
+    "id": "api.post.send_notifications_and_forget.push_image_only",
+    "translation": " Subió uno o más archivos "
+  },
+  {
     "id": "api.post.send_notifications_and_forget.push_in",
     "translation": " en "
   },
@@ -1626,10 +1646,6 @@
   {
     "id": "api.post.send_notifications_and_forget.push_non_mention",
     "translation": " publicado en "
-  },
-  {
-    "id": "api.post.send_notifications_and_forget.push_notification.debug",
-    "translation": "Enviando notificaciones push a %v con el mensaje '%v'"
   },
   {
     "id": "api.post.send_notifications_and_forget.push_notification.error",
@@ -1968,6 +1984,10 @@
     "translation": "Usuario no encontrado"
   },
   {
+    "id": "api.system.go_routines",
+    "translation": "El número de goroutines supera umbral recomendado %v %v"
+  },
+  {
     "id": "api.team.add_user_to_team.invalid_data.app_error",
     "translation": "datos inválidos."
   },
@@ -2273,7 +2293,7 @@
   },
   {
     "id": "api.templates.signin_change_email.subject",
-    "translation": "[{{ .SiteName }}] has actualizado el método de inicio de sesión en {{ .SiteName }}"
+    "translation": "[{{ .SiteName }}] Tu método de inicio de sesión ha sido actualizado"
   },
   {
     "id": "api.templates.signup_team_body.button",
@@ -2462,6 +2482,14 @@
   {
     "id": "api.user.create_user.joining.error",
     "translation": "Se encontró un problema al unirse a los canales predeterminados user_id=%s, team_id=%s, err=%v"
+  },
+  {
+    "id": "api.user.create_user.missing_hash_or_data.app_error",
+    "translation": "Falta el Hash o la URL en los datos de la consulta."
+  },
+  {
+    "id": "api.user.create_user.missing_invite_id.app_error",
+    "translation": "Falta el Id de invitación."
   },
   {
     "id": "api.user.create_user.no_open_server",
@@ -2725,7 +2753,7 @@
   },
   {
     "id": "api.user.upload_profile_user.decode_config.app_error",
-    "translation": "No se pudo decodificar la configuración de la imagen del perfil."
+    "translation": "No se pudo guardar la imagen de perfil. El archivo no parece ser una imagen válida."
   },
   {
     "id": "api.user.upload_profile_user.encode.app_error",
@@ -2965,7 +2993,7 @@
   },
   {
     "id": "app.import.validate_channel_import_data.create_at_zero.error",
-    "translation": "La propiedad create_at del canal no debe ser 0 si se proporciona."
+    "translation": "La propiedad create_at del canal no debe ser cero si se proporciona."
   },
   {
     "id": "app.import.validate_channel_import_data.display_name_length.error",
@@ -3017,7 +3045,7 @@
   },
   {
     "id": "app.import.validate_post_import_data.create_at_zero.error",
-    "translation": "La propiedad CreateAt del mensaje no debe ser cero si se proporciona."
+    "translation": "La propiedad CreateAt del Mensaje no debe ser cero si se proporciona."
   },
   {
     "id": "app.import.validate_post_import_data.message_length.error",
@@ -3041,7 +3069,7 @@
   },
   {
     "id": "app.import.validate_team_import_data.create_at_zero.error",
-    "translation": "La propiedad create_at del equipo no debe ser 0 si se proporciona."
+    "translation": "La propiedad create_at del equipo no debe ser cero si se proporciona."
   },
   {
     "id": "app.import.validate_team_import_data.description_length.error",
@@ -3294,6 +3322,38 @@
   {
     "id": "ent.compliance.run_started.info",
     "translation": "Iniciado el trabajo '{{.JobName}}' para exportar el Cumplimiento en '{{.FilePath}}'"
+  },
+  {
+    "id": "ent.elasticsearch.search_posts.disabled",
+    "translation": "La búsqueda con ElasticSearch está deshabilitada en este servidor"
+  },
+  {
+    "id": "ent.elasticsearch.search_posts.search_failed",
+    "translation": "La búsqueda no se pudo completar"
+  },
+  {
+    "id": "ent.elasticsearch.search_posts.unmarshall_post_failed",
+    "translation": "No pudo decodificar los resultados de búsqueda"
+  },
+  {
+    "id": "ent.elasticsearch.start.connect_failed",
+    "translation": "La configuración de ElasticSearch Cliente falló"
+  },
+  {
+    "id": "ent.elasticsearch.start.index_create_failed",
+    "translation": "No se pudo crear el índice de ElasticSearch"
+  },
+  {
+    "id": "ent.elasticsearch.start.index_exists_failed",
+    "translation": "No se pudo establecer si existe un índice de ElasticSearch"
+  },
+  {
+    "id": "ent.elasticsearch.start.index_mapping_failed",
+    "translation": "Error al configurar el mapa de índices de ElasticSearch"
+  },
+  {
+    "id": "ent.elasticsearch.start.index_settings_failed",
+    "translation": "No se pudo establecer el índice de configuración de ElasticSearch"
   },
   {
     "id": "ent.emoji.licence_disable.app_error",
@@ -3852,6 +3912,22 @@
     "translation": "No se puede habilitar el correo electrónico por lotes cuando la agrupación de servidores está habilitada"
   },
   {
+    "id": "model.config.is_valid.elastic_search.connection_url.app_error",
+    "translation": "El valor de Elastic Search ConnectionUrl debe ser proporcionado cuando está habilitado la indización de Elastic Search."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.enable_searching.app_error",
+    "translation": "El valor de Elastic Search IndexingEnabled debe ser verdadero cuando el valor de Elastic Search SearchEnabled es verdadero."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.password.app_error",
+    "translation": "El valor de Elastic Search Password debe ser proporcionado cuando está habilitado la indización de Elastic Search."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.username.app_error",
+    "translation": "El valor de Elastic Search Username debe ser proporcionado cuando está habilitado la indización de Elastic Search."
+  },
+  {
     "id": "model.config.is_valid.email_batching_buffer_size.app_error",
     "translation": "Tamaño del búfer inválido para los correos electrónicos por lotes en la configuración de correo electrónico. Debe ser cero o un número positivo."
   },
@@ -4074,6 +4150,10 @@
   {
     "id": "model.config.is_valid.sql_max_conn.app_error",
     "translation": "Inválida cantidad de conexiones abiertas para la configuración de SQL.  Debe ser un número positivo."
+  },
+  {
+    "id": "model.config.is_valid.sql_query_timeout.app_error",
+    "translation": "Tiempo de espera para las consultas en la configuración de SQL no es válido.  Debe ser un número positivo."
   },
   {
     "id": "model.config.is_valid.time_between_user_typing.app_error",
@@ -4632,14 +4712,6 @@
     "translation": "Falla al abrir una conexión SQL %v"
   },
   {
-    "id": "store.sql.ping.critical",
-    "translation": "Falla al hacer ping a la BD err:%v"
-  },
-  {
-    "id": "store.sql.pinging.info",
-    "translation": "Verificando conexión con la base de datos SQL %v"
-  },
-  {
     "id": "store.sql.read_replicas_not_licensed.critical",
     "translation": "La funcionalidad de más de 1 replica ha sido inhabilitada debido a la licencia actual. Por favor contacta a un administrador del sistema para realizar una actualización de la licencia empresarial."
   },
@@ -5036,6 +5108,30 @@
     "translation": "No pudimos guardar la información del archivo"
   },
   {
+    "id": "store.sql_file_info.save_or_update.app_error",
+    "translation": "No pudimos guardar o actualizar la información del archivo"
+  },
+  {
+    "id": "store.sql_job_status.delete_by_type.app_error",
+    "translation": "No pudimos eliminar el trabajo de estatus"
+  },
+  {
+    "id": "store.sql_job_status.get.app_error",
+    "translation": "No pudimos obtener el trabajo de estatus"
+  },
+  {
+    "id": "store.sql_job_status.get_all.app_error",
+    "translation": "No pudimos obtener todos los trabajos de estatus"
+  },
+  {
+    "id": "store.sql_job_status.save.app_error",
+    "translation": "No pudimos guardar el trabajo de estatus"
+  },
+  {
+    "id": "store.sql_job_status.update.app_error",
+    "translation": "No pudimos actualizar el trabajo de estatus"
+  },
+  {
     "id": "store.sql_license.get.app_error",
     "translation": "Encontramos un error al obtener la licencia"
   },
@@ -5182,6 +5278,10 @@
   {
     "id": "store.sql_post.get_posts_around.get_parent.app_error",
     "translation": "No pudimos obtener los mensajes padres del canal"
+  },
+  {
+    "id": "store.sql_post.get_posts_by_ids.app_error",
+    "translation": "No pudimos obtener los mensajes"
   },
   {
     "id": "store.sql_post.get_posts_created_att.app_error",
@@ -5896,6 +5996,10 @@
     "translation": "Encontramos un error al firmar la licencia, err=%v"
   },
   {
+    "id": "utils.mail.connect_smtp.helo.app_error",
+    "translation": "Falla a establecer HELO"
+  },
+  {
     "id": "utils.mail.connect_smtp.open.app_error",
     "translation": "Falla al abrir conexión"
   },
@@ -5908,6 +6012,10 @@
     "translation": "Falla autenticando contra el servidor SMTP"
   },
   {
+    "id": "utils.mail.new_client.helo.error",
+    "translation": "Falla al establecer el HELP para el servidor SMTP %v"
+  },
+  {
     "id": "utils.mail.new_client.open.error",
     "translation": "Falla al abrir la conexión al servidor SMTP %v"
   },
@@ -5917,7 +6025,7 @@
   },
   {
     "id": "utils.mail.send_mail.from_address.app_error",
-    "translation": "Falla al agregar el correo electrónico desde"
+    "translation": "Notificación la Dirección del remitente falta o no es válida."
   },
   {
     "id": "utils.mail.send_mail.msg.app_error",
@@ -5933,7 +6041,7 @@
   },
   {
     "id": "utils.mail.send_mail.to_address.app_error",
-    "translation": "Falla al agregar el correo electrónico para"
+    "translation": "Notificación la Dirección de recepción falta o no es válida."
   },
   {
     "id": "utils.mail.test.configured.error",

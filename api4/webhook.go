@@ -71,7 +71,7 @@ func updateIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	hookID := c.Params.HookId
+	hookId := c.Params.HookId
 
 	updatedHook := model.IncomingWebhookFromJson(r.Body)
 	if updatedHook == nil {
@@ -81,10 +81,14 @@ func updateIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	c.LogAudit("attempt")
 
-	oldHook, err := app.GetIncomingWebhook(hookID)
+	oldHook, err := app.GetIncomingWebhook(hookId)
 	if err != nil {
 		c.Err = err
 		return
+	}
+
+	if updatedHook.TeamId == "" {
+		updatedHook.TeamId = oldHook.TeamId
 	}
 
 	if updatedHook.TeamId != oldHook.TeamId {
@@ -161,13 +165,13 @@ func getIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	hookID := c.Params.HookId
+	hookId := c.Params.HookId
 
 	var err *model.AppError
 	var hook *model.IncomingWebhook
 	var channel *model.Channel
 
-	if hook, err = app.GetIncomingWebhook(hookID); err != nil {
+	if hook, err = app.GetIncomingWebhook(hookId); err != nil {
 		c.Err = err
 		return
 	} else {
@@ -195,13 +199,13 @@ func deleteIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	hookID := c.Params.HookId
+	hookId := c.Params.HookId
 
 	var err *model.AppError
 	var hook *model.IncomingWebhook
 	var channel *model.Channel
 
-	if hook, err = app.GetIncomingWebhook(hookID); err != nil {
+	if hook, err = app.GetIncomingWebhook(hookId); err != nil {
 		c.Err = err
 		return
 	} else {
@@ -217,7 +221,7 @@ func deleteIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.SetPermissionError(model.PERMISSION_MANAGE_WEBHOOKS)
 			return
 		} else {
-			if err = app.DeleteIncomingWebhook(hookID); err != nil {
+			if err = app.DeleteIncomingWebhook(hookId); err != nil {
 				c.Err = err
 				return
 			}

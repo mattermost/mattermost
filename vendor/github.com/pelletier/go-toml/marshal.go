@@ -9,24 +9,6 @@ import (
 	"time"
 )
 
-/*
-Tree structural types and corresponding marshal types
--------------------------------------------------------------------------------
-*Tree                        (*)struct, (*)map[string]interface{}
-[]*Tree                      (*)[](*)struct, (*)[](*)map[string]interface{}
-[]interface{} (as interface{})   (*)[]primitive, (*)[]([]interface{})
-interface{}                      (*)primitive
-
-Tree primitive types and  corresponding marshal types
------------------------------------------------------------
-uint64     uint, uint8-uint64, pointers to same
-int64      int, int8-uint64, pointers to same
-float64    float32, float64, pointers to same
-string     string, pointers to same
-bool       bool, pointers to same
-time.Time  time.Time{}, pointers to same
-*/
-
 type tomlOpts struct {
 	name      string
 	include   bool
@@ -115,6 +97,22 @@ function for sub-structs, and currently only definite types can be marshaled
 Note that pointers are automatically assigned the "omitempty" option, as TOML
 explicity does not handle null values (saying instead the label should be
 dropped).
+
+Tree structural types and corresponding marshal types:
+
+  *Tree                            (*)struct, (*)map[string]interface{}
+  []*Tree                          (*)[](*)struct, (*)[](*)map[string]interface{}
+  []interface{} (as interface{})   (*)[]primitive, (*)[]([]interface{})
+  interface{}                      (*)primitive
+
+Tree primitive types and corresponding marshal types:
+
+  uint64     uint, uint8-uint64, pointers to same
+  int64      int, int8-uint64, pointers to same
+  float64    float32, float64, pointers to same
+  string     string, pointers to same
+  bool       bool, pointers to same
+  time.Time  time.Time{}, pointers to same
 */
 func Marshal(v interface{}) ([]byte, error) {
 	mtype := reflect.TypeOf(v)
@@ -247,6 +245,8 @@ func (t *Tree) Unmarshal(v interface{}) error {
 // is no concept of an Unmarshaler interface or UnmarshalTOML function for
 // sub-structs, and currently only definite types can be unmarshaled to (i.e. no
 // `interface{}`).
+//
+// See Marshal() documentation for types mapping table.
 func Unmarshal(data []byte, v interface{}) error {
 	t, err := LoadReader(bytes.NewReader(data))
 	if err != nil {

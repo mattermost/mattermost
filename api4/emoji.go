@@ -55,9 +55,14 @@ func createEmoji(c *Context, w http.ResponseWriter, r *http.Request) {
 	m := r.MultipartForm
 	props := m.Value
 
+	if len(props["emoji"]) == 0 {
+		c.SetInvalidParam("emoji")
+		return
+	}
+
 	emoji := model.EmojiFromJson(strings.NewReader(props["emoji"][0]))
 	if emoji == nil {
-		c.SetInvalidParam("createEmoji")
+		c.SetInvalidParam("emoji")
 		return
 	}
 

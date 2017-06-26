@@ -148,6 +148,25 @@ func TestParseEncryptedPrivateKeysFails(t *testing.T) {
 	}
 }
 
+// Parse encrypted private keys with passphrase
+func TestParseEncryptedPrivateKeysWithPassphrase(t *testing.T) {
+	data := []byte("sign me")
+	for _, tt := range testdata.PEMEncryptedKeys {
+		s, err := ParsePrivateKeyWithPassphrase(tt.PEMBytes, []byte(tt.EncryptionKey))
+		if err != nil {
+			t.Fatalf("ParsePrivateKeyWithPassphrase returned error: %s", err)
+			continue
+		}
+		sig, err := s.Sign(rand.Reader, data)
+		if err != nil {
+			t.Fatalf("dsa.Sign: %v", err)
+		}
+		if err := s.PublicKey().Verify(data, sig); err != nil {
+			t.Errorf("Verify failed: %v", err)
+		}
+	}
+}
+
 func TestParseDSA(t *testing.T) {
 	// We actually exercise the ParsePrivateKey codepath here, as opposed to
 	// using the ParseRawPrivateKey+NewSignerFromKey path that testdata_test.go

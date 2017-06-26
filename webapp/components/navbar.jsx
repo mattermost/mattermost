@@ -21,8 +21,9 @@ import ChannelStore from 'stores/channel_store.jsx';
 import TeamStore from 'stores/team_store.jsx';
 import PreferenceStore from 'stores/preference_store.jsx';
 import SearchStore from 'stores/search_store.jsx';
+import ModalStore from 'stores/modal_store.jsx';
 
-import ChannelSwitchModal from './channel_switch_modal.jsx';
+import QuickSwitchModal from 'components/quick_switch_modal';
 
 import * as Utils from 'utils/utils.jsx';
 import * as ChannelUtils from 'utils/channel_utils.jsx';
@@ -64,8 +65,9 @@ export default class Navbar extends React.Component {
         this.showMembersModal = this.showMembersModal.bind(this);
         this.hideMembersModal = this.hideMembersModal.bind(this);
 
-        this.showChannelSwitchModal = this.showChannelSwitchModal.bind(this);
-        this.hideChannelSwitchModal = this.hideChannelSwitchModal.bind(this);
+        this.toggleQuickSwitchModal = this.toggleQuickSwitchModal.bind(this);
+        this.hideQuickSwitchModal = this.hideQuickSwitchModal.bind(this);
+        this.handleQuickSwitchKeyPress = this.handleQuickSwitchKeyPress.bind(this);
 
         this.openDirectMessageModal = this.openDirectMessageModal.bind(this);
         this.getPinnedPosts = this.getPinnedPosts.bind(this);
@@ -78,7 +80,8 @@ export default class Navbar extends React.Component {
         state.showEditChannelHeaderModal = false;
         state.showMembersModal = false;
         state.showRenameChannelModal = false;
-        state.showChannelSwitchModal = false;
+        state.showQuickSwitchModal = false;
+        state.quickSwitchMode = 'channel';
         this.state = state;
     }
 
@@ -106,8 +109,9 @@ export default class Navbar extends React.Component {
         UserStore.addStatusesChangeListener(this.onChange);
         UserStore.addChangeListener(this.onChange);
         PreferenceStore.addChangeListener(this.onChange);
+        ModalStore.addModalListener(ActionTypes.TOGGLE_QUICK_SWITCH_MODAL, this.toggleQuickSwitchModal);
         $('.inner-wrap').click(this.hideSidebars);
-        document.addEventListener('keydown', this.showChannelSwitchModal);
+        document.addEventListener('keydown', this.handleQuickSwitchKeyPress);
     }
 
     componentWillUnmount() {
@@ -116,7 +120,8 @@ export default class Navbar extends React.Component {
         UserStore.removeStatusesChangeListener(this.onChange);
         UserStore.removeChangeListener(this.onChange);
         PreferenceStore.removeChangeListener(this.onChange);
-        document.removeEventListener('keydown', this.showChannelSwitchModal);
+        ModalStore.removeModalListener(ActionTypes.TOGGLE_QUICK_SWITCH_MODAL, this.toggleQuickSwitchModal);
+        document.removeEventListener('keydown', this.handleQuickSwitchKeyPress);
     }
 
     handleSubmit(e) {
@@ -212,16 +217,27 @@ export default class Navbar extends React.Component {
         this.setState({showMembersModal: false});
     }
 
-    showChannelSwitchModal(e) {
-        if (Utils.cmdOrCtrlPressed(e) && e.keyCode === Constants.KeyCodes.K) {
-            e.preventDefault();
-            this.setState({showChannelSwitchModal: !this.state.showChannelSwitchModal});
+    handleQuickSwitchKeyPress(e) {
+        if (Utils.cmdOrCtrlPressed(e) && !e.shiftKey && e.keyCode === Constants.KeyCodes.K) {
+            if (!e.altKey) {
+                e.preventDefault();
+                this.toggleQuickSwitchModal('channel');
+            }
         }
     }
 
-    hideChannelSwitchModal() {
+    toggleQuickSwitchModal(mode = 'channel') {
+        if (this.state.showQuickSwitchModal) {
+            this.setState({showQuickSwitchModal: false, quickSwitchMode: 'channel'});
+        } else {
+            this.setState({showQuickSwitchModal: true, quickSwitchMode: mode});
+        }
+    }
+
+    hideQuickSwitchModal() {
         this.setState({
-            showChannelSwitchModal: false
+            showQuickSwitchModal: false,
+            quickSwitchMode: 'channel'
         });
     }
 
@@ -730,7 +746,7 @@ export default class Navbar extends React.Component {
                 title={title}
                 message={message}
                 confirmButtonClass={buttonClass}
-                confirmButton={button}
+                confirmButtonText={button}
                 onConfirm={() => ChannelActions.leaveChannel(this.state.channel.id)}
                 onCancel={this.hideLeaveChannelModal}
             />
@@ -770,7 +786,7 @@ export default class Navbar extends React.Component {
         var editChannelPurposeModal = null;
         let renameChannelModal = null;
         let channelMembersModal = null;
-        let channelSwitchModal = null;
+        let quickSwitchModal = null;
 
         if (channel) {
             popoverContent = (
@@ -883,10 +899,11 @@ export default class Navbar extends React.Component {
                 );
             }
 
-            channelSwitchModal = (
-                <ChannelSwitchModal
-                    show={this.state.showChannelSwitchModal}
-                    onHide={this.hideChannelSwitchModal}
+            quickSwitchModal = (
+                <QuickSwitchModal
+                    show={this.state.showQuickSwitchModal}
+                    onHide={this.hideQuickSwitchModal}
+                    initialMode={this.state.quickSwitchMode}
                 />
             );
         }
@@ -926,7 +943,7 @@ export default class Navbar extends React.Component {
                 {leaveChannelModal}
                 {renameChannelModal}
                 {channelMembersModal}
-                {channelSwitchModal}
+                {quickSwitchModal}
             </div>
         );
     }

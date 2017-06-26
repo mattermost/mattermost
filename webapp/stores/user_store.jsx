@@ -3,9 +3,6 @@
 
 import EventEmitter from 'events';
 
-import ChannelStore from 'stores/channel_store.jsx';
-import TeamStore from 'stores/team_store.jsx';
-
 import Constants from 'utils/constants.jsx';
 const UserStatuses = Constants.UserStatuses;
 
@@ -22,6 +19,9 @@ const CHANGE_EVENT_STATUSES = 'change_statuses';
 import store from 'stores/redux_store.jsx';
 import * as Selectors from 'mattermost-redux/selectors/entities/users';
 import {UserTypes} from 'mattermost-redux/action_types';
+
+import ChannelStore from 'stores/channel_store.jsx';
+import TeamStore from 'stores/team_store.jsx';
 
 var Utils;
 
@@ -232,6 +232,10 @@ class UserStoreClass extends EventEmitter {
         return Selectors.getUsersByUsername(store.getState());
     }
 
+    getProfileByEmail(email) {
+        return Selectors.getUsersByEmail(store.getState())[email];
+    }
+
     getActiveOnlyProfiles(skipCurrent) {
         const active = {};
         const profiles = this.getProfiles();
@@ -386,10 +390,10 @@ class UserStoreClass extends EventEmitter {
         });
     }
 
-    getProfileListInChannel(channelId = ChannelStore.getCurrentId(), skipCurrent = false) {
+    getProfileListInChannel(channelId = ChannelStore.getCurrentId(), skipCurrent = false, skipInactive = false) {
         const userIds = Array.from(Selectors.getUserIdsInChannels(store.getState())[channelId] || []);
 
-        return this.getProfileListForIds(userIds, skipCurrent, false);
+        return this.getProfileListForIds(userIds, skipCurrent, skipInactive);
     }
 
     saveProfileNotInChannel(channelId = ChannelStore.getCurrentId(), profile) {

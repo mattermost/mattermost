@@ -12,6 +12,7 @@
         "ReadTimeout": 300,
         "WriteTimeout": 300,
         "MaximumLoginAttempts": 10,
+        "GoroutineHealthThreshold": -1,
         "GoogleDeveloperKey": "",
         "EnableOAuthServiceProvider": false,
         "EnableIncomingWebhooks": true,
@@ -85,7 +86,8 @@
         "MaxIdleConns": 20,
         "MaxOpenConns": 300,
         "Trace": false,
-        "AtRestEncryptKey": ""
+        "AtRestEncryptKey": "",
+        "QueryTimeout": 30
     },
     "LogSettings": {
         "EnableConsole": true,
@@ -123,7 +125,8 @@
         "AmazonS3Bucket": "",
         "AmazonS3Region": "us-east-1",
         "AmazonS3Endpoint": "s3.amazonaws.com",
-        "AmazonS3SSL": true
+        "AmazonS3SSL": true,
+        "AmazonS3SignV2": false
     },
     "EmailSettings": {
         "EnableSignUpWithEmail": true,
@@ -167,6 +170,13 @@
         "HelpLink": "https://about.mattermost.com/default-help/",
         "ReportAProblemLink": "https://about.mattermost.com/default-report-a-problem/",
         "SupportEmail": "feedback@mattermost.com"
+    },
+    "AnnouncementSettings": {
+        "EnableBanner": false,
+        "BannerText": "",
+        "BannerColor": "#f2a93b",
+        "BannerTextColor": "#333333",
+        "AllowBannerDismissal": true
     },
     "GitLabSettings": {
         "Enable": false,
@@ -253,8 +263,13 @@
     },
     "ClusterSettings": {
         "Enable": false,
-        "InterNodeListenAddress": ":8075",
-        "InterNodeUrls": []
+        "ClusterName": "",
+        "OverrideHostname": "",
+        "UseIpAddress": true,
+        "UseExperimentalGossip": false,
+        "ReadOnlyConfig": true,
+        "GossipPort": 8074,
+        "StreamingPort": 8075
     },
     "MetricsSettings": {
         "Enable": false,

@@ -1,9 +1,8 @@
-import PropTypes from 'prop-types';
-
 // Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 import React from 'react';
+import PropTypes from 'prop-types';
 import {FormattedMessage} from 'react-intl';
 
 import {
@@ -13,14 +12,12 @@ import {
     searchUsers
 } from 'actions/user_actions.jsx';
 
-import AdminStore from 'stores/admin_store.jsx';
 import AnalyticsStore from 'stores/analytics_store.jsx';
 import TeamStore from 'stores/team_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 
-import {getStandardAnalytics} from 'utils/async_client.jsx';
+import {getStandardAnalytics} from 'actions/admin_actions.jsx';
 import {Constants, StatTypes, UserSearchOptions} from 'utils/constants.jsx';
-import {convertTeamMapToList} from 'utils/team_utils.jsx';
 import * as Utils from 'utils/utils.jsx';
 
 import SystemUsersList from './system_users_list.jsx';
@@ -36,9 +33,27 @@ const USERS_PER_PAGE = 50;
 
 export default class SystemUsers extends React.Component {
     static propTypes = {
+
+        /*
+         * Array of team objects
+         */
+        teams: PropTypes.arrayOf(PropTypes.object).isRequired,
+
         actions: PropTypes.shape({
+
+            /*
+             * Function to get teams
+             */
             getTeams: PropTypes.func.isRequired,
+
+            /*
+             * Function to get statistics for a team
+             */
             getTeamStats: PropTypes.func.isRequired,
+
+            /*
+             * Function to get a user
+             */
             getUser: PropTypes.func.isRequired
         }).isRequired
     }
@@ -46,7 +61,6 @@ export default class SystemUsers extends React.Component {
     constructor(props) {
         super(props);
 
-        this.updateTeamsFromStore = this.updateTeamsFromStore.bind(this);
         this.updateTotalUsersFromStore = this.updateTotalUsersFromStore.bind(this);
         this.updateUsersFromStore = this.updateUsersFromStore.bind(this);
 
@@ -64,7 +78,6 @@ export default class SystemUsers extends React.Component {
         this.renderFilterRow = this.renderFilterRow.bind(this);
 
         this.state = {
-            teams: convertTeamMapToList(AdminStore.getAllTeams()),
             totalUsers: AnalyticsStore.getAllSystem()[StatTypes.TOTAL_USERS],
             users: UserStore.getProfileList(),
 
@@ -76,8 +89,6 @@ export default class SystemUsers extends React.Component {
     }
 
     componentDidMount() {
-        AdminStore.addAllTeamsChangeListener(this.updateTeamsFromStore);
-
         AnalyticsStore.addChangeListener(this.updateTotalUsersFromStore);
         TeamStore.addStatsChangeListener(this.updateTotalUsersFromStore);
 
@@ -101,18 +112,12 @@ export default class SystemUsers extends React.Component {
     }
 
     componentWillUnmount() {
-        AdminStore.removeAllTeamsChangeListener(this.updateTeamsFromStore);
-
         AnalyticsStore.removeChangeListener(this.updateTotalUsersFromStore);
         TeamStore.removeStatsChangeListener(this.updateTotalUsersFromStore);
 
         UserStore.removeChangeListener(this.updateUsersFromStore);
         UserStore.removeInTeamChangeListener(this.updateUsersFromStore);
         UserStore.removeWithoutTeamChangeListener(this.updateUsersFromStore);
-    }
-
-    updateTeamsFromStore() {
-        this.setState({teams: convertTeamMapToList(AdminStore.getAllTeams())});
     }
 
     updateTotalUsersFromStore(teamId = this.state.teamId) {
@@ -158,6 +163,11 @@ export default class SystemUsers extends React.Component {
     }
 
     loadDataForTeam(teamId) {
+        if (this.state.term) {
+            this.search(this.state.term, teamId);
+            return;
+        }
+
         if (teamId === ALL_USERS) {
             loadProfiles(0, Constants.PROFILE_CHUNK_SIZE, this.loadComplete);
             getStandardAnalytics();
@@ -193,9 +203,9 @@ export default class SystemUsers extends React.Component {
         }
     }
 
-    search(term) {
+    search(term, teamId = this.state.teamId) {
         if (term === '') {
-            this.updateUsersFromStore(this.state.teamId, term);
+            this.updateUsersFromStore(teamId, term);
 
             this.setState({
                 loading: false
@@ -205,7 +215,7 @@ export default class SystemUsers extends React.Component {
             return;
         }
 
-        this.doSearch(this.state.teamId, term);
+        this.doSearch(teamId, term);
     }
 
     doSearch(teamId, term, now = false) {
@@ -266,7 +276,7 @@ export default class SystemUsers extends React.Component {
     }
 
     renderFilterRow(doSearch) {
-        const teams = this.state.teams.map((team) => {
+        const teams = this.props.teams.map((team) => {
             return (
                 <option
                     key={team.id}
@@ -334,7 +344,7 @@ export default class SystemUsers extends React.Component {
                         users={users}
                         usersPerPage={USERS_PER_PAGE}
                         total={this.state.totalUsers}
-                        teams={this.state.teams}
+                        teams={this.props.teams}
                         teamId={this.state.teamId}
                         term={this.state.term}
                         onTermChange={this.handleTermChange}

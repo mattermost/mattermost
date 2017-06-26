@@ -281,6 +281,11 @@ func UpdateChannel(channel *model.Channel) (*model.Channel, *model.AppError) {
 		return nil, result.Err
 	} else {
 		InvalidateCacheForChannel(channel)
+
+		messageWs := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CHANNEL_UPDATED, "", channel.Id, "", nil)
+		messageWs.Add("channel", channel.ToJson())
+		Publish(messageWs)
+
 		return channel, nil
 	}
 }
@@ -1041,7 +1046,7 @@ func SetActiveChannel(userId string, channelId string) *model.AppError {
 	} else {
 		oldStatus = status.Status
 		status.ActiveChannel = channelId
-		if !status.Manual {
+		if !status.Manual && channelId != "" {
 			status.Status = model.STATUS_ONLINE
 		}
 		status.LastActivityAt = model.GetMillis()

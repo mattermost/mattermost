@@ -5,7 +5,7 @@ BUILD_SERVER_DIR = ..
 check-style: .yarninstall
 	@echo Checking for style guide compliance
 
-	yarn run check
+	yarn run check --mutex file:/tmp/.yarn-mutex
 
 test: .yarninstall
 	cd $(BUILD_SERVER_DIR) && $(MAKE) internal-test-web-client
@@ -13,7 +13,7 @@ test: .yarninstall
 .yarninstall: package.json
 	@echo Getting dependencies using yarn
 
-	yarn install --pure-lockfile
+	yarn install --pure-lockfile --mutex file:/tmp/.yarn-mutex
 
 	touch $@
 
@@ -22,7 +22,7 @@ build: .yarninstall
 
 	rm -rf dist
 
-	yarn run build
+	yarn run build --mutex file:/tmp/.yarn-mutex
 
 run: .yarninstall
 	@echo Running mattermost Webapp for development
@@ -49,6 +49,9 @@ endif
 clean:
 	@echo Cleaning Webapp
 
+	yarn cache clean --mutex file:/tmp/.yarn-mutex
+
 	rm -rf dist
 	rm -rf node_modules
 	rm -f .yarninstall
+	rm -f /tmp/.yarn-mutex

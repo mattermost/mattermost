@@ -326,6 +326,12 @@ func TestMemberList_ResolveAddr(t *testing.T) {
 	if _, err := m.resolveAddr("[2001:db8:a0b:12f0::1]:80"); err != nil {
 		t.Fatalf("Could not understand hostname port combo: %s", err)
 	}
+	if _, err := m.resolveAddr("127.0.0.1"); err != nil {
+		t.Fatalf("Could not understand IPv4 only %s", err)
+	}
+	if _, err := m.resolveAddr("[2001:db8:a0b:12f0::1]"); err != nil {
+		t.Fatalf("Could not understand IPv6 only %s", err)
+	}
 }
 
 type dnsHandler struct {
@@ -1312,6 +1318,129 @@ func TestMemberlist_PingDelegate(t *testing.T) {
 
 	if bytes.Compare(mock.payload, []byte(DEFAULT_PAYLOAD)) != 0 {
 		t.Fatalf("incorrect payload. expected: %v; actual: %v", []byte(DEFAULT_PAYLOAD), mock.payload)
+	}
+}
+
+func TestMemberlist_EncryptedGossipTransition(t *testing.T) {
+	m1 := GetMemberlist(t)
+	m1.setAlive()
+	m1.schedule()
+	defer m1.Shutdown()
+
+	// Create a second node with the first stage of gossip transition settings
+	conf2 := DefaultLANConfig()
+	addr2 := getBindAddr()
+	conf2.Name = addr2.String()
+	conf2.BindAddr = addr2.String()
+	conf2.BindPort = m1.config.BindPort
+	conf2.GossipInterval = time.Millisecond
+	conf2.SecretKey = []byte("Hi16ZXu2lNCRVwtr20khAg==")
+	conf2.GossipVerifyIncoming = false
+	conf2.GossipVerifyOutgoing = false
+
+	m2, err := Create(conf2)
+	if err != nil {
+		t.Fatalf("unexpected err: %s", err)
+	}
+	defer m2.Shutdown()
+
+	// Join the second node. m1 has no encryption while m2 has encryption configured and
+	// can receive encrypted gossip, but will not encrypt outgoing gossip.
+	num, err := m2.Join([]string{m1.config.BindAddr})
+	if num != 1 {
+		t.Fatalf("unexpected 1: %d", num)
+	}
+	if err != nil {
+		t.Fatalf("unexpected err: %s", err)
+	}
+
+	// Check the hosts
+	if len(m2.Members()) != 2 {
+		t.Fatalf("should have 2 nodes! %v", m2.Members())
+	}
+	if m2.estNumNodes() != 2 {
+		t.Fatalf("should have 2 nodes! %v", m2.Members())
+	}
+
+	// Leave with the first node
+	m1.Leave(time.Second)
+
+	// Wait for leave
+	time.Sleep(10 * time.Millisecond)
+
+	// Create a third node that has the second stage of gossip transition settings
+	conf3 := DefaultLANConfig()
+	addr3 := getBindAddr()
+	conf3.Name = addr3.String()
+	conf3.BindAddr = addr3.String()
+	conf3.BindPort = m1.config.BindPort
+	conf3.GossipInterval = time.Millisecond
+	conf3.SecretKey = conf2.SecretKey
+	conf3.GossipVerifyIncoming = false
+
+	m3, err := Create(conf3)
+	if err != nil {
+		t.Fatalf("unexpected err: %s", err)
+	}
+	defer m3.Shutdown()
+
+	// Join the third node to the second node. At this step, both nodes have encryption
+	// configured but only m3 is sending encrypted gossip.
+	num, err = m3.Join([]string{m2.config.BindAddr})
+	if num != 1 {
+		t.Fatalf("unexpected 1: %d", num)
+	}
+	if err != nil {
+		t.Fatalf("unexpected err: %s", err)
+	}
+
+	// Check the hosts
+	if len(m3.Members()) != 2 {
+		t.Fatalf("should have 2 nodes! %v", m3.Members())
+
+	}
+	if m3.estNumNodes() != 2 {
+		t.Fatalf("should have 2 nodes! %v", m3.Members())
+	}
+
+	// Leave with the second node
+	m2.Leave(time.Second)
+
+	// Wait for leave
+	time.Sleep(10 * time.Millisecond)
+
+	// Create a fourth node that has the second stage of gossip transition settings
+	conf4 := DefaultLANConfig()
+	addr4 := getBindAddr()
+	conf4.Name = addr4.String()
+	conf4.BindAddr = addr4.String()
+	conf4.BindPort = m3.config.BindPort
+	conf4.GossipInterval = time.Millisecond
+	conf4.SecretKey = conf2.SecretKey
+
+	m4, err := Create(conf4)
+	if err != nil {
+		t.Fatalf("unexpected err: %s", err)
+	}
+	defer m4.Shutdown()
+
+	// Join the fourth node to the third node. At this step, both m3 and m4 are speaking
+	// encrypted gossip and m3 is still accepting insecure gossip.
+	num, err = m4.Join([]string{m3.config.BindAddr})
+	if num != 1 {
+		t.Fatalf("unexpected 1: %d", num)
+	}
+	if err != nil {
+		t.Fatalf("unexpected err: %s", err)
+	}
+
+	// Check the hosts
+	if len(m4.Members()) != 2 {
+		t.Fatalf("should have 2 nodes! %v", m4.Members())
+
+	}
+	if m4.estNumNodes() != 2 {
+		t.Fatalf("should have 2 nodes! %v", m4.Members())
 	}
 }
 

@@ -3,9 +3,9 @@
 
 import React from 'react';
 
-import * as AsyncClient from 'utils/async_client.jsx';
-
 import Suggestion from './suggestion.jsx';
+
+import {getSuggestedCommands} from 'actions/integration_actions.jsx';
 
 class CommandSuggestion extends Suggestion {
     render() {
@@ -35,7 +35,7 @@ class CommandSuggestion extends Suggestion {
 export default class CommandProvider {
     handlePretextChanged(suggestionId, pretext) {
         if (pretext.startsWith('/')) {
-            AsyncClient.getSuggestedCommands(pretext.toLowerCase(), suggestionId, CommandSuggestion, pretext.toLowerCase());
+            getSuggestedCommands(pretext.toLowerCase(), suggestionId, CommandSuggestion, pretext.toLowerCase());
         }
     }
 }

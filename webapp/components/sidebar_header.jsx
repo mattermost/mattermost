@@ -1,11 +1,9 @@
-import PropTypes from 'prop-types';
-
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 import React from 'react';
+import PropTypes from 'prop-types';
 
-import Client from 'client/web_client.jsx';
 import PreferenceStore from 'stores/preference_store.jsx';
 import * as Utils from 'utils/utils.jsx';
 
@@ -14,57 +12,67 @@ import {Tooltip, OverlayTrigger} from 'react-bootstrap';
 
 import {Preferences, TutorialSteps, Constants} from 'utils/constants.jsx';
 import {createMenuTip} from 'components/tutorial/tutorial_tip.jsx';
+import StatusDropdown from 'components/status_dropdown/index.jsx';
 
 export default class SidebarHeader extends React.Component {
     constructor(props) {
         super(props);
-
-        this.toggleDropdown = this.toggleDropdown.bind(this);
-        this.onPreferenceChange = this.onPreferenceChange.bind(this);
 
         this.state = this.getStateFromStores();
     }
 
     componentDidMount() {
         PreferenceStore.addChangeListener(this.onPreferenceChange);
+        window.addEventListener('resize', this.handleResize);
     }
 
     componentWillUnmount() {
         PreferenceStore.removeChangeListener(this.onPreferenceChange);
+        window.removeEventListener('resize', this.handleResize);
     }
 
-    getStateFromStores() {
+    handleResize = () => {
+        const isMobile = Utils.isMobile();
+        this.setState({isMobile});
+    }
+
+    getPreferences = () => {
+        if (!this.props.currentUser) {
+            return {};
+        }
         const tutorialStep = PreferenceStore.getInt(Preferences.TUTORIAL_STEP, this.props.currentUser.id, 999);
+        const showTutorialTip = tutorialStep === TutorialSteps.MENU_POPOVER && !Utils.isMobile();
 
-        return {showTutorialTip: tutorialStep === TutorialSteps.MENU_POPOVER && !Utils.isMobile()};
+        return {showTutorialTip};
     }
 
-    onPreferenceChange() {
-        this.setState(this.getStateFromStores());
+    getStateFromStores = () => {
+        const preferences = this.getPreferences();
+        const isMobile = Utils.isMobile();
+        return {...preferences, isMobile};
     }
 
-    toggleDropdown(e) {
+    onPreferenceChange = () => {
+        this.setState(this.getPreferences());
+    }
+
+    toggleDropdown = (e) => {
         e.preventDefault();
 
         this.refs.dropdown.toggleDropdown();
     }
 
-    render() {
-        var me = this.props.currentUser;
-        var profilePicture = null;
-
-        if (!me) {
+    renderStatusDropdown = () => {
+        if (this.state.isMobile) {
             return null;
         }
+        return (
+            <StatusDropdown/>
+        );
+    }
 
-        if (me.last_picture_update) {
-            profilePicture = (
-                <img
-                    className='user__picture'
-                    src={Client.getUsersRoute() + '/' + me.id + '/image?time=' + me.last_picture_update}
-                />
-            );
-        }
+    render() {
+        const statusDropdown = this.renderStatusDropdown();
 
         let tutorialTip = null;
         if (this.state.showTutorialTip) {
@@ -93,12 +101,9 @@ export default class SidebarHeader extends React.Component {
         return (
             <div className='team__header theme'>
                 {tutorialTip}
-                <div>
-                    {profilePicture}
-                    <div className='header__info'>
-                        <div className='user__name'>{'@' + me.username}</div>
-                        {teamNameWithToolTip}
-                    </div>
+                <div className='header__info'>
+                    <div className='user__name'>{'@' + this.props.currentUser.username}</div>
+                    {teamNameWithToolTip}
                 </div>
                 <SidebarHeaderDropdown
                     ref='dropdown'
@@ -107,6 +112,7 @@ export default class SidebarHeader extends React.Component {
                     teamName={this.props.teamName}
                     currentUser={this.props.currentUser}
                 />
+                {statusDropdown}
             </div>
         );
     }

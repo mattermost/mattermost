@@ -18,6 +18,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/prometheus/procfs/bcache"
 	"github.com/prometheus/procfs/xfs"
 )
 
@@ -70,6 +71,31 @@ func (fs FS) XFSStats() ([]*xfs.Stats, error) {
 		// failure.  Defer is not used because of the loop.
 		s, err := xfs.ParseStats(f)
 		_ = f.Close()
+		if err != nil {
+			return nil, err
+		}
+
+		s.Name = name
+		stats = append(stats, s)
+	}
+
+	return stats, nil
+}
+
+// BcacheStats retrieves bcache runtime statistics for each bcache.
+func (fs FS) BcacheStats() ([]*bcache.Stats, error) {
+	matches, err := filepath.Glob(fs.Path("fs/bcache/*-*"))
+	if err != nil {
+		return nil, err
+	}
+
+	stats := make([]*bcache.Stats, 0, len(matches))
+	for _, uuidPath := range matches {
+		// "*-*" in glob above indicates the name of the bcache.
+		name := filepath.Base(uuidPath)
+
+		// stats
+		s, err := bcache.GetStats(uuidPath)
 		if err != nil {
 			return nil, err
 		}

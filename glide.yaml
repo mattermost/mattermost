@@ -11,17 +11,15 @@ import:
   - opengraph
 - package: github.com/fsnotify/fsnotify
   version: v1.4.2
-- package: github.com/go-gorp/gorp
-  version: 0c9bc0918534d133cedb439a24adc7cbe66e4a9d
 - package: github.com/go-ldap/ldap
   version: v2.5.0
 - package: github.com/go-sql-driver/mysql
   version: v1.3
 - package: github.com/golang/freetype
 - package: github.com/gorilla/handlers
-  version: v1.2
+  version: v1.2.1
 - package: github.com/gorilla/mux
-  version: v1.3.0
+  version: v1.4.0
 - package: github.com/gorilla/websocket
   version: v1.1.0
 - package: github.com/lib/pq
@@ -82,4 +80,6 @@ import:
 - package: github.com/prometheus/procfs
 - package: github.com/cpanato/html2text
 - package: gopkg.in/olivere/elastic.v5
-  version: v5.0.38
+  version: v5.0.41
+- package: github.com/mattermost/gorp
+  version: cab337059e349c91a4b917c9be50708813619543

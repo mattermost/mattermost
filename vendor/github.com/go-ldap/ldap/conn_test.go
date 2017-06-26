@@ -60,7 +60,7 @@ func TestUnresponsiveConnection(t *testing.T) {
 
 // TestFinishMessage tests that we do not enter deadlock when a goroutine makes
 // a request but does not handle all responses from the server.
-func TestFinishMessage(t *testing.T) {
+func TestConn(t *testing.T) {
 	ptc := newPacketTranslatorConn()
 	defer ptc.Close()
 
@@ -174,11 +174,15 @@ func testSendUnhandledResponsesAndFinish(t *testing.T, ptc *packetTranslatorConn
 }
 
 func runWithTimeout(t *testing.T, timeout time.Duration, f func()) {
+	runtime.Gosched()
+
 	done := make(chan struct{})
 	go func() {
 		f()
 		close(done)
 	}()
+
+	runtime.Gosched()
 
 	select {
 	case <-done: // Success!

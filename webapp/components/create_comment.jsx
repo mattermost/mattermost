@@ -24,6 +24,7 @@ import * as PostActions from 'actions/post_actions.jsx';
 import Constants from 'utils/constants.jsx';
 
 import {FormattedMessage} from 'react-intl';
+import {RootCloseWrapper} from 'react-overlays';
 import {browserHistory} from 'react-router/es6';
 
 const ActionTypes = Constants.ActionTypes;
@@ -58,10 +59,7 @@ export default class CreateComment extends React.Component {
         this.showPostDeletedModal = this.showPostDeletedModal.bind(this);
         this.hidePostDeletedModal = this.hidePostDeletedModal.bind(this);
         this.handlePostError = this.handlePostError.bind(this);
-        this.handleEmojiPickerClick = this.handleEmojiPickerClick.bind(this);
         this.handleEmojiClick = this.handleEmojiClick.bind(this);
-        this.onKeyPress = this.onKeyPress.bind(this);
-        this.closeEmoji = this.closeEmoji.bind(this);
 
         PostStore.clearCommentDraftUploads();
         MessageHistoryStore.resetHistoryIndex('comment');
@@ -77,38 +75,14 @@ export default class CreateComment extends React.Component {
             showPostDeletedModal: false,
             enableAddButton,
             showEmojiPicker: false,
-            emojiOffset: 0,
             emojiPickerEnabled: Utils.isFeatureEnabled(Constants.PRE_RELEASE_FEATURES.EMOJI_PICKER_PREVIEW)
         };
 
         this.lastBlurAt = 0;
     }
 
-    closeEmoji(clickEvent) {
-        /*
-        if the user clicked something outside the component, except the RHS emojipicker icon
-        and the picker is open, then close it
-         */
-        if (clickEvent && clickEvent.srcElement &&
-            clickEvent.srcElement.className !== '' &&
-            clickEvent.srcElement.className.indexOf('emoji-rhs') === -1 &&
-            this.state.showEmojiPicker) {
-            this.setState({showEmojiPicker: !this.state.showEmojiPicker});
-        }
-    }
-
-    handleEmojiPickerClick() {
-        const threadHeight = document.getElementById('thread--root') ? document.getElementById('thread--root').offsetHeight : 0;
-        const messagesHeight = document.querySelector('div.post-right-comments-container') ? document.querySelector('div.post-right-comments-container').offsetHeight : 0;
-
-        const totalHeight = threadHeight + messagesHeight;
-        let pickerOffset = 0;
-        if (totalHeight > 361) {
-            pickerOffset = -361;
-        } else {
-            pickerOffset = -1 * totalHeight;
-        }
-        this.setState({showEmojiPicker: !this.state.showEmojiPicker, emojiOffset: pickerOffset});
+    toggleEmojiPicker = () => {
+        this.setState({showEmojiPicker: !this.state.showEmojiPicker});
     }
 
     handleEmojiClick(emoji) {
@@ -120,34 +94,28 @@ export default class CreateComment extends React.Component {
         }
 
         if (this.state.message === '') {
-            this.setState({message: ':' + emojiAlias + ': ', showEmojiPicker: false});
+            this.setState({message: ':' + emojiAlias + ': '});
         } else {
             //check whether there is already a blank at the end of the current message
             const newMessage = (/\s+$/.test(this.state.message)) ?
             this.state.message + ':' + emojiAlias + ': ' : this.state.message + ' :' + emojiAlias + ': ';
 
-            this.setState({message: newMessage, showEmojiPicker: false});
+            this.setState({message: newMessage});
         }
+
+        this.setState({showEmojiPicker: false});
 
         this.focusTextbox();
     }
 
     componentDidMount() {
         PreferenceStore.addChangeListener(this.onPreferenceChange);
-        document.addEventListener('keydown', this.onKeyPress);
 
         this.focusTextbox();
     }
 
     componentWillUnmount() {
         PreferenceStore.removeChangeListener(this.onPreferenceChange);
-        document.removeEventListener('keydown', this.onKeyPress);
-    }
-
-    onKeyPress(e) {
-        if (e.which === Constants.KeyCodes.ESCAPE && this.state.showEmojiPicker === true) {
-            this.setState({showEmojiPicker: !this.state.showEmojiPicker});
-        }
     }
 
     onPreferenceChange() {
@@ -174,11 +142,7 @@ export default class CreateComment extends React.Component {
     handleSubmit(e) {
         e.preventDefault();
 
-        if (this.state.uploadsInProgress.length > 0) {
-            return;
-        }
-
-        if (this.state.submitting) {
+        if (this.state.uploadsInProgress.length > 0 || this.state.submitting) {
             return;
         }
 
@@ -265,7 +229,6 @@ export default class CreateComment extends React.Component {
         post.channel_id = this.props.channelId;
         post.root_id = this.props.rootId;
         post.parent_id = this.props.rootId;
-        post.file_ids = this.state.fileInfos.map((info) => info.id);
         post.pending_post_id = `${userId}:${time}`;
         post.user_id = userId;
         post.create_at = time;
@@ -280,7 +243,7 @@ export default class CreateComment extends React.Component {
             });
         }
 
-        PostActions.queuePost(post, false, null,
+        PostActions.createPost(post, this.state.fileInfos, null,
             (err) => {
                 if (err.id === 'api.post.create_post.root_id.app_error') {
                     this.showPostDeletedModal();
@@ -584,12 +547,12 @@ export default class CreateComment extends React.Component {
         let emojiPicker = null;
         if (this.state.showEmojiPicker) {
             emojiPicker = (
-                <EmojiPicker
-                    onEmojiClick={this.handleEmojiClick}
-                    pickerLocation='bottom'
-                    emojiOffset={this.state.emojiOffset}
-                    outsideClick={this.closeEmoji}
-                />
+                <RootCloseWrapper onRootClose={this.toggleEmojiPicker}>
+                    <EmojiPicker
+                        onEmojiClick={this.handleEmojiClick}
+                        onHide={this.toggleEmojiPicker}
+                    />
+                </RootCloseWrapper>
             );
         }
 
@@ -625,7 +588,7 @@ export default class CreateComment extends React.Component {
                                 onUploadError={this.handleUploadError}
                                 postType='comment'
                                 channelId={this.props.channelId}
-                                onEmojiClick={this.handleEmojiPickerClick}
+                                onEmojiClick={this.toggleEmojiPicker}
                                 emojiEnabled={this.state.emojiPickerEnabled}
                                 navBarName='rhs'
                             />

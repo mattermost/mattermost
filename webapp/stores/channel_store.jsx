@@ -159,7 +159,8 @@ class ChannelStoreClass extends EventEmitter {
     setCurrentId(id) {
         store.dispatch({
             type: ChannelTypes.SELECT_CHANNEL,
-            data: id
+            data: id,
+            member: this.getMyMember(id)
         });
     }
 

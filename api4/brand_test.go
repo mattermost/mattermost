@@ -13,27 +13,15 @@ func TestGetBrandImage(t *testing.T) {
 	defer TearDown()
 	Client := th.Client
 
-	data, resp := Client.GetBrandImage()
-	CheckNoError(t, resp)
-
-	if len(data) != 0 {
-		t.Fatal("no image uploaded - should be empty")
-	}
+	_, resp := Client.GetBrandImage()
+	CheckNotFoundStatus(t, resp)
 
 	Client.Logout()
-	data, resp = Client.GetBrandImage()
-	CheckNoError(t, resp)
+	_, resp = Client.GetBrandImage()
+	CheckNotFoundStatus(t, resp)
 
-	if len(data) != 0 {
-		t.Fatal("no image uploaded - should be empty")
-	}
-
-	data, resp = th.SystemAdminClient.GetBrandImage()
-	CheckNoError(t, resp)
-
-	if len(data) != 0 {
-		t.Fatal("no image uploaded - should be empty")
-	}
+	_, resp = th.SystemAdminClient.GetBrandImage()
+	CheckNotFoundStatus(t, resp)
 }
 
 func TestUploadBrandImage(t *testing.T) {

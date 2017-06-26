@@ -42,7 +42,8 @@ func WriteSamlFile(fileData *multipart.FileHeader) *model.AppError {
 		return model.NewLocAppError("AddSamlCertificate", "api.admin.add_certificate.open.app_error", nil, err.Error())
 	}
 
-	out, err := os.Create(utils.FindDir("config") + filename)
+	configDir, _ := utils.FindDir("config")
+	out, err := os.Create(configDir + filename)
 	if err != nil {
 		return model.NewLocAppError("AddSamlCertificate", "api.admin.add_certificate.saving.app_error", nil, err.Error())
 	}

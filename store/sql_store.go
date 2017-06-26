@@ -4,6 +4,7 @@
 package store
 
 import (
+	"context"
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/hmac"
@@ -24,9 +25,9 @@ import (
 
 	l4g "github.com/alecthomas/log4go"
 
-	"github.com/go-gorp/gorp"
 	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/lib/pq"
+	"github.com/mattermost/gorp"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
 )
@@ -35,6 +36,8 @@ const (
 	INDEX_TYPE_FULL_TEXT = "full_text"
 	INDEX_TYPE_DEFAULT   = "default"
 	MAX_DB_CONN_LIFETIME = 60
+	DB_PING_ATTEMPTS     = 18
+	DB_PING_TIMEOUT_SECS = 10
 )
 
 const (
@@ -66,31 +69,32 @@ const (
 )
 
 type SqlStore struct {
-	master         *gorp.DbMap
-	replicas       []*gorp.DbMap
-	searchReplicas []*gorp.DbMap
-	team           TeamStore
-	channel        ChannelStore
-	post           PostStore
-	user           UserStore
-	audit          AuditStore
-	compliance     ComplianceStore
-	session        SessionStore
-	oauth          OAuthStore
-	system         SystemStore
-	webhook        WebhookStore
-	command        CommandStore
-	preference     PreferenceStore
-	license        LicenseStore
-	token          TokenStore
-	emoji          EmojiStore
-	status         StatusStore
-	fileInfo       FileInfoStore
-	reaction       ReactionStore
-	jobStatus      JobStatusStore
-	SchemaVersion  string
-	rrCounter      int64
-	srCounter      int64
+	master           *gorp.DbMap
+	replicas         []*gorp.DbMap
+	searchReplicas   []*gorp.DbMap
+	team             TeamStore
+	channel          ChannelStore
+	post             PostStore
+	user             UserStore
+	audit            AuditStore
+	clusterDiscovery ClusterDiscoveryStore
+	compliance       ComplianceStore
+	session          SessionStore
+	oauth            OAuthStore
+	system           SystemStore
+	webhook          WebhookStore
+	command          CommandStore
+	preference       PreferenceStore
+	license          LicenseStore
+	token            TokenStore
+	emoji            EmojiStore
+	status           StatusStore
+	fileInfo         FileInfoStore
+	reaction         ReactionStore
+	jobStatus        JobStatusStore
+	SchemaVersion    string
+	rrCounter        int64
+	srCounter        int64
 }
 
 func initConnection() *SqlStore {
@@ -139,6 +143,7 @@ func NewSqlStore() Store {
 	sqlStore.post = NewSqlPostStore(sqlStore)
 	sqlStore.user = NewSqlUserStore(sqlStore)
 	sqlStore.audit = NewSqlAuditStore(sqlStore)
+	sqlStore.clusterDiscovery = NewSqlClusterDiscoveryStore(sqlStore)
 	sqlStore.compliance = NewSqlComplianceStore(sqlStore)
 	sqlStore.session = NewSqlSessionStore(sqlStore)
 	sqlStore.oauth = NewSqlOAuthStore(sqlStore)
@@ -197,12 +202,23 @@ func setupConnection(con_type string, driver string, dataSource string, maxIdle 
 		os.Exit(EXIT_DB_OPEN)
 	}
 
-	l4g.Info(utils.T("store.sql.pinging.info"), con_type)
-	err = db.Ping()
-	if err != nil {
-		l4g.Critical(utils.T("store.sql.ping.critical"), err)
-		time.Sleep(time.Second)
-		os.Exit(EXIT_PING)
+	for i := 0; i < DB_PING_ATTEMPTS; i++ {
+		l4g.Info("Pinging SQL %v database", con_type)
+		ctx, cancel := context.WithTimeout(context.Background(), DB_PING_TIMEOUT_SECS*time.Second)
+		defer cancel()
+		err = db.PingContext(ctx)
+		if err == nil {
+			break
+		} else {
+			if i == DB_PING_ATTEMPTS-1 {
+				l4g.Critical("Failed to ping DB, server will exit err=%v", err)
+				time.Sleep(time.Second)
+				os.Exit(EXIT_PING)
+			} else {
+				l4g.Error("Failed to ping DB retrying in %v seconds err=%v", DB_PING_TIMEOUT_SECS, err)
+				time.Sleep(DB_PING_TIMEOUT_SECS * time.Second)
+			}
+		}
 	}
 
 	db.SetMaxIdleConns(maxIdle)
@@ -211,12 +227,14 @@ func setupConnection(con_type string, driver string, dataSource string, maxIdle 
 
 	var dbmap *gorp.DbMap
 
+	connectionTimeout := time.Duration(*utils.Cfg.SqlSettings.QueryTimeout) * time.Second
+
 	if driver == "sqlite3" {
-		dbmap = &gorp.DbMap{Db: db, TypeConverter: mattermConverter{}, Dialect: gorp.SqliteDialect{}}
+		dbmap = &gorp.DbMap{Db: db, TypeConverter: mattermConverter{}, Dialect: gorp.SqliteDialect{}, QueryTimeout: connectionTimeout}
 	} else if driver == model.DATABASE_DRIVER_MYSQL {
-		dbmap = &gorp.DbMap{Db: db, TypeConverter: mattermConverter{}, Dialect: gorp.MySQLDialect{Engine: "InnoDB", Encoding: "UTF8MB4"}}
+		dbmap = &gorp.DbMap{Db: db, TypeConverter: mattermConverter{}, Dialect: gorp.MySQLDialect{Engine: "InnoDB", Encoding: "UTF8MB4"}, QueryTimeout: connectionTimeout}
 	} else if driver == model.DATABASE_DRIVER_POSTGRES {
-		dbmap = &gorp.DbMap{Db: db, TypeConverter: mattermConverter{}, Dialect: gorp.PostgresDialect{}}
+		dbmap = &gorp.DbMap{Db: db, TypeConverter: mattermConverter{}, Dialect: gorp.PostgresDialect{}, QueryTimeout: connectionTimeout}
 	} else {
 		l4g.Critical(utils.T("store.sql.dialect_driver.critical"))
 		time.Sleep(time.Second)
@@ -384,7 +402,7 @@ func (ss *SqlStore) CreateColumnIfNotExists(tableName string, columnName string,
 	}
 
 	if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_POSTGRES {
-		_, err := ss.GetMaster().Exec("ALTER TABLE " + tableName + " ADD " + columnName + " " + postgresColType + " DEFAULT '" + defaultValue + "'")
+		_, err := ss.GetMaster().ExecNoTimeout("ALTER TABLE " + tableName + " ADD " + columnName + " " + postgresColType + " DEFAULT '" + defaultValue + "'")
 		if err != nil {
 			l4g.Critical(utils.T("store.sql.create_column.critical"), err)
 			time.Sleep(time.Second)
@@ -394,7 +412,7 @@ func (ss *SqlStore) CreateColumnIfNotExists(tableName string, columnName string,
 		return true
 
 	} else if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_MYSQL {
-		_, err := ss.GetMaster().Exec("ALTER TABLE " + tableName + " ADD " + columnName + " " + mySqlColType + " DEFAULT '" + defaultValue + "'")
+		_, err := ss.GetMaster().ExecNoTimeout("ALTER TABLE " + tableName + " ADD " + columnName + " " + mySqlColType + " DEFAULT '" + defaultValue + "'")
 		if err != nil {
 			l4g.Critical(utils.T("store.sql.create_column.critical"), err)
 			time.Sleep(time.Second)
@@ -417,7 +435,7 @@ func (ss *SqlStore) RemoveColumnIfExists(tableName string, columnName string) bo
 		return false
 	}
 
-	_, err := ss.GetMaster().Exec("ALTER TABLE " + tableName + " DROP COLUMN " + columnName)
+	_, err := ss.GetMaster().ExecNoTimeout("ALTER TABLE " + tableName + " DROP COLUMN " + columnName)
 	if err != nil {
 		l4g.Critical("Failed to drop column %v", err)
 		time.Sleep(time.Second)
@@ -432,7 +450,7 @@ func (ss *SqlStore) RemoveTableIfExists(tableName string) bool {
 		return false
 	}
 
-	_, err := ss.GetMaster().Exec("DROP TABLE " + tableName)
+	_, err := ss.GetMaster().ExecNoTimeout("DROP TABLE " + tableName)
 	if err != nil {
 		l4g.Critical("Failed to drop table %v", err)
 		time.Sleep(time.Second)
@@ -449,9 +467,9 @@ func (ss *SqlStore) RenameColumnIfExists(tableName string, oldColumnName string,
 
 	var err error
 	if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_MYSQL {
-		_, err = ss.GetMaster().Exec("ALTER TABLE " + tableName + " CHANGE " + oldColumnName + " " + newColumnName + " " + colType)
+		_, err = ss.GetMaster().ExecNoTimeout("ALTER TABLE " + tableName + " CHANGE " + oldColumnName + " " + newColumnName + " " + colType)
 	} else if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_POSTGRES {
-		_, err = ss.GetMaster().Exec("ALTER TABLE " + tableName + " RENAME COLUMN " + oldColumnName + " TO " + newColumnName)
+		_, err = ss.GetMaster().ExecNoTimeout("ALTER TABLE " + tableName + " RENAME COLUMN " + oldColumnName + " TO " + newColumnName)
 	}
 
 	if err != nil {
@@ -492,9 +510,9 @@ func (ss *SqlStore) AlterColumnTypeIfExists(tableName string, columnName string,
 
 	var err error
 	if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_MYSQL {
-		_, err = ss.GetMaster().Exec("ALTER TABLE " + tableName + " MODIFY " + columnName + " " + mySqlColType)
+		_, err = ss.GetMaster().ExecNoTimeout("ALTER TABLE " + tableName + " MODIFY " + columnName + " " + mySqlColType)
 	} else if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_POSTGRES {
-		_, err = ss.GetMaster().Exec("ALTER TABLE " + strings.ToLower(tableName) + " ALTER COLUMN " + strings.ToLower(columnName) + " TYPE " + postgresColType)
+		_, err = ss.GetMaster().ExecNoTimeout("ALTER TABLE " + strings.ToLower(tableName) + " ALTER COLUMN " + strings.ToLower(columnName) + " TYPE " + postgresColType)
 	}
 
 	if err != nil {
@@ -540,7 +558,7 @@ func (ss *SqlStore) createIndexIfNotExists(indexName string, tableName string, c
 			query = "CREATE " + uniqueStr + "INDEX " + indexName + " ON " + tableName + " (" + columnName + ")"
 		}
 
-		_, err = ss.GetMaster().Exec(query)
+		_, err = ss.GetMaster().ExecNoTimeout(query)
 		if err != nil {
 			l4g.Critical(utils.T("store.sql.create_index.critical"), err)
 			time.Sleep(time.Second)
@@ -564,7 +582,7 @@ func (ss *SqlStore) createIndexIfNotExists(indexName string, tableName string, c
 			fullTextIndex = " FULLTEXT "
 		}
 
-		_, err = ss.GetMaster().Exec("CREATE  " + uniqueStr + fullTextIndex + " INDEX " + indexName + " ON " + tableName + " (" + columnName + ")")
+		_, err = ss.GetMaster().ExecNoTimeout("CREATE  " + uniqueStr + fullTextIndex + " INDEX " + indexName + " ON " + tableName + " (" + columnName + ")")
 		if err != nil {
 			l4g.Critical(utils.T("store.sql.create_index.critical"), err)
 			time.Sleep(time.Second)
@@ -588,7 +606,7 @@ func (ss *SqlStore) RemoveIndexIfExists(indexName string, tableName string) bool
 			return false
 		}
 
-		_, err = ss.GetMaster().Exec("DROP INDEX " + indexName)
+		_, err = ss.GetMaster().ExecNoTimeout("DROP INDEX " + indexName)
 		if err != nil {
 			l4g.Critical(utils.T("store.sql.remove_index.critical"), err)
 			time.Sleep(time.Second)
@@ -609,7 +627,7 @@ func (ss *SqlStore) RemoveIndexIfExists(indexName string, tableName string) bool
 			return false
 		}
 
-		_, err = ss.GetMaster().Exec("DROP INDEX " + indexName + " ON " + tableName)
+		_, err = ss.GetMaster().ExecNoTimeout("DROP INDEX " + indexName + " ON " + tableName)
 		if err != nil {
 			l4g.Critical(utils.T("store.sql.remove_index.critical"), err)
 			time.Sleep(time.Second)
@@ -688,6 +706,10 @@ func (ss *SqlStore) Session() SessionStore {
 
 func (ss *SqlStore) Audit() AuditStore {
 	return ss.audit
+}
+
+func (ss *SqlStore) ClusterDiscovery() ClusterDiscoveryStore {
+	return ss.clusterDiscovery
 }
 
 func (ss *SqlStore) Compliance() ComplianceStore {

@@ -1,21 +1,20 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import $ from 'jquery';
-import ReactDOM from 'react-dom';
-import * as GlobalActions from 'actions/global_actions.jsx';
 import SuggestionStore from 'stores/suggestion_store.jsx';
-import {FormattedMessage} from 'react-intl';
 
-import PropTypes from 'prop-types';
-
+import $ from 'jquery';
 import React from 'react';
+import ReactDOM from 'react-dom';
+import PropTypes from 'prop-types';
+import {FormattedMessage} from 'react-intl';
 
 export default class SuggestionList extends React.Component {
     static propTypes = {
         suggestionId: PropTypes.string.isRequired,
         location: PropTypes.string,
-        renderDividers: PropTypes.bool
+        renderDividers: PropTypes.bool,
+        onCompleteWord: PropTypes.func.isRequired
     };
 
     static defaultProps = {
@@ -29,7 +28,6 @@ export default class SuggestionList extends React.Component {
 
         this.getContent = this.getContent.bind(this);
 
-        this.handleItemClick = this.handleItemClick.bind(this);
         this.handleSuggestionsChanged = this.handleSuggestionsChanged.bind(this);
 
         this.scrollToItem = this.scrollToItem.bind(this);
@@ -65,10 +63,6 @@ export default class SuggestionList extends React.Component {
 
     getContent() {
         return $(ReactDOM.findDOMNode(this.refs.content));
-    }
-
-    handleItemClick(term, matchedPretext) {
-        GlobalActions.emitCompleteWordSuggestion(this.props.suggestionId, term, matchedPretext);
     }
 
     handleSuggestionsChanged() {
@@ -117,6 +111,17 @@ export default class SuggestionList extends React.Component {
         );
     }
 
+    renderLoading(type) {
+        return (
+            <div
+                key={type + '-loading'}
+                className='suggestion-loader'
+            >
+                <i className='fa fa-spinner fa-pulse fa-fw margin-bottom'/>
+            </div>
+        );
+    }
+
     render() {
         if (this.state.items.length === 0) {
             return null;
@@ -137,6 +142,11 @@ export default class SuggestionList extends React.Component {
                 lastType = item.type;
             }
 
+            if (item.loading) {
+                items.push(this.renderLoading(item.type));
+                continue;
+            }
+
             items.push(
                 <Component
                     key={term}
@@ -145,7 +155,7 @@ export default class SuggestionList extends React.Component {
                     term={term}
                     matchedPretext={this.state.matchedPretext[i]}
                     isSelection={isSelection}
-                    onClick={this.handleItemClick}
+                    onClick={this.props.onCompleteWord}
                 />
             );
         }

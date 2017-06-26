@@ -1,7 +1,7 @@
 // Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import Client from 'client/web_client.jsx';
+import {Client4} from 'mattermost-redux/client';
 import WebSocketClient from 'client/web_websocket_client.jsx';
 
 import UserStore from 'stores/user_store.jsx';
@@ -197,7 +197,7 @@ export default class WebrtcNotification extends React.Component {
         const user = this.state.userCalling;
         if (user) {
             const username = Utils.displayUsername(user.id);
-            const profileImgSrc = Client.getUsersRoute() + '/' + user.id + '/image?time=' + (user.last_picture_update || new Date().getTime());
+            const profileImgSrc = Client4.getUsersRoute() + '/' + user.id + '/image?time=' + (user.last_picture_update || new Date().getTime());
             const profileImg = (
                 <img
                     className='user-popover__image'

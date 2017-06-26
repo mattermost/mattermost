@@ -46,7 +46,7 @@ func TestUserStoreSave(t *testing.T) {
 		t.Fatal("should be unique username")
 	}
 
-	for i := 0; i < 50; i++ {
+	for i := 0; i < 49; i++ {
 		u1.Id = ""
 		u1.Email = model.NewId()
 		u1.Username = model.NewId()
@@ -1501,7 +1501,7 @@ func TestUserStoreSearch(t *testing.T) {
 	c1 := model.Channel{}
 	c1.TeamId = tid
 	c1.DisplayName = "NameName"
-	c1.Name = "a" + model.NewId() + "b"
+	c1.Name = "zz" + model.NewId() + "b"
 	c1.Type = model.CHANNEL_OPEN
 	c1 = *Must(store.Channel().Save(&c1)).(*model.Channel)
 

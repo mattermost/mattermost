@@ -49,23 +49,23 @@
   },
   {
     "id": "api.admin.add_certificate.no_file.app_error",
-    "translation": "Нет файла 'certificate' в запросе"
+    "translation": "Нет файла под атрибутом 'certificate' в запросе."
   },
   {
     "id": "api.admin.add_certificate.open.app_error",
-    "translation": "Невозможно открыть файл сертификата"
+    "translation": "Невозможно открыть файл сертификата."
   },
   {
     "id": "api.admin.add_certificate.saving.app_error",
-    "translation": "Невозможно сохранить файл сертификата"
+    "translation": "Невозможно сохранить файл сертификата."
   },
   {
     "id": "api.admin.file_read_error",
-    "translation": "Ошибка чтения лог файла"
+    "translation": "Ошибка чтения лог файла."
   },
   {
     "id": "api.admin.get_brand_image.not_available.app_error",
-    "translation": "Фирменная символика не настроена или не поддерживается на этом сервере"
+    "translation": "Фирменная символика не настроена или не поддерживается на этом сервере."
   },
   {
     "id": "api.admin.get_brand_image.storage.app_error",
@@ -73,15 +73,15 @@
   },
   {
     "id": "api.admin.init.debug",
-    "translation": "Инициализация административных маршрутов API"
+    "translation": "Инициализация административных маршрутов API."
   },
   {
     "id": "api.admin.recycle_db_end.warn",
-    "translation": "Завершение переподключения к базе данных"
+    "translation": "Переподключение к базе данных завершено."
   },
   {
     "id": "api.admin.recycle_db_start.warn",
-    "translation": "Попытка восстановления соединения с базой данных"
+    "translation": "Попытка восстановления соединения с базой данных."
   },
   {
     "id": "api.admin.remove_certificate.delete.app_error",
@@ -89,7 +89,7 @@
   },
   {
     "id": "api.admin.saml.metadata.app_error",
-    "translation": "Произошла ошибка при построении поставщика метаданных"
+    "translation": "Произошла ошибка при построении метаданных поставщика услуг."
   },
   {
     "id": "api.admin.test_email.body",
@@ -756,6 +756,10 @@
     "translation": "ESC: Пометить все сообщения в текущем канале как прочитанные\n"
   },
   {
+    "id": "api.command_shortcuts.msgs.reply",
+    "translation": "SHIFT+ВВЕРХ (в пустом поле ввода): Ответить на последнее сообщение в канале\n"
+  },
+  {
     "id": "api.command_shortcuts.msgs.reprint_next",
     "translation": "{{.CmdOrCtrl}}+ВНИЗ (в пустом поле ввода): Ввести следующее сообщение или команду\n"
   },
@@ -766,6 +770,10 @@
   {
     "id": "api.command_shortcuts.name",
     "translation": "комбинации клавиш"
+  },
+  {
+    "id": "api.command_shortcuts.nav.direct_messages_menu",
+    "translation": "{{.CmdOrCtrl}}+SHIFT+K: Открыть меню личных сообщений\n"
   },
   {
     "id": "api.command_shortcuts.nav.header",
@@ -790,6 +798,10 @@
   {
     "id": "api.command_shortcuts.nav.switcher",
     "translation": "{{.CmdOrCtrl}}+K: Открыть диалог переключения между каналами\n"
+  },
+  {
+    "id": "api.command_shortcuts.nav.switcher_team",
+    "translation": "{{.CmdOrCtrl}}+ALT+K: Открыть диалог быстрого переключения между каналами\n"
   },
   {
     "id": "api.command_shortcuts.nav.unread_next",
@@ -1450,6 +1462,10 @@
     "translation": "Неправильная ссылка на регистрацию"
   },
   {
+    "id": "api.opengraph.init.debug",
+    "translation": "Initializing open graph protocol api routes"
+  },
+  {
     "id": "api.post.check_for_out_of_channel_mentions.message.multiple",
     "translation": "{{.Usernames}} и {{.LastUsername}} были упомянуты, но они не получили уведомлений поскольку не состоят в этом канале."
   },
@@ -1612,6 +1628,10 @@
     "translation": "Новое личное сообщение"
   },
   {
+    "id": "api.post.send_notifications_and_forget.push_image_only",
+    "translation": " Uploaded one or more files "
+  },
+  {
     "id": "api.post.send_notifications_and_forget.push_in",
     "translation": " в "
   },
@@ -1626,10 +1646,6 @@
   {
     "id": "api.post.send_notifications_and_forget.push_non_mention",
     "translation": " опубликовано в "
-  },
-  {
-    "id": "api.post.send_notifications_and_forget.push_notification.debug",
-    "translation": "Посылаем push-уведомление пользователю %v с сообщением '%v'"
   },
   {
     "id": "api.post.send_notifications_and_forget.push_notification.error",
@@ -1968,6 +1984,10 @@
     "translation": "Пользователь не найден"
   },
   {
+    "id": "api.system.go_routines",
+    "translation": "The number of running goroutines is over the health threshold %v of %v"
+  },
+  {
     "id": "api.team.add_user_to_team.invalid_data.app_error",
     "translation": "Неверные данные."
   },
@@ -2273,7 +2293,7 @@
   },
   {
     "id": "api.templates.signin_change_email.subject",
-    "translation": "[{{ .SiteName }}] Вы обновили свой метод входа на {{ .SiteName }}"
+    "translation": "[{{ .SiteName }}] Ваш метод входа обновлён"
   },
   {
     "id": "api.templates.signup_team_body.button",
@@ -2462,6 +2482,14 @@
   {
     "id": "api.user.create_user.joining.error",
     "translation": "Возникла проблема при присоединении к каналам по умолчанию user_id=%s, team_id=%s, err=%v"
+  },
+  {
+    "id": "api.user.create_user.missing_hash_or_data.app_error",
+    "translation": "Missing Hash or URL query data."
+  },
+  {
+    "id": "api.user.create_user.missing_invite_id.app_error",
+    "translation": "Missing Invite Id."
   },
   {
     "id": "api.user.create_user.no_open_server",
@@ -2725,7 +2753,7 @@
   },
   {
     "id": "api.user.upload_profile_user.decode_config.app_error",
-    "translation": "Не удалось декодировать конфигурацию изображения профиля."
+    "translation": "Не удалось сохранить изображения профиля. Файл должен быть картинкой."
   },
   {
     "id": "api.user.upload_profile_user.encode.app_error",
@@ -3017,7 +3045,7 @@
   },
   {
     "id": "app.import.validate_post_import_data.create_at_zero.error",
-    "translation": "Post CreateAt не может быть нулевым, если задан."
+    "translation": "Post CreateAt property must not be zero if provided."
   },
   {
     "id": "app.import.validate_post_import_data.message_length.error",
@@ -3077,7 +3105,7 @@
   },
   {
     "id": "app.import.validate_team_import_data.type_missing.error",
-    "translation": "Пропущено необходимое свойство team: type"
+    "translation": "Пропущено необходимое свойство team: type."
   },
   {
     "id": "app.import.validate_user_channels_import_data.channel_name_missing.error",
@@ -3157,11 +3185,11 @@
   },
   {
     "id": "authentication.permissions.create_group_channel.description",
-    "translation": "Ability to create new group message channels"
+    "translation": "Возможность создания новых групповых каналов сообщений"
   },
   {
     "id": "authentication.permissions.create_group_channel.name",
-    "translation": "Create Group Message"
+    "translation": "Создать Групповое Сообщение"
   },
   {
     "id": "authentication.permissions.create_team_roles.description",
@@ -3181,7 +3209,7 @@
   },
   {
     "id": "authentication.permissions.read_public_channel.description",
-    "translation": "Ability to read public channels"
+    "translation": "Возможность чтения публичных каналов"
   },
   {
     "id": "authentication.permissions.read_public_channel.name",
@@ -3294,6 +3322,38 @@
   {
     "id": "ent.compliance.run_started.info",
     "translation": "Экспорт комплаенс-листа начат для задачи '{{.JobName}}' в '{{.FilePath}}'"
+  },
+  {
+    "id": "ent.elasticsearch.search_posts.disabled",
+    "translation": "ElasticSearch searching is disabled on this server"
+  },
+  {
+    "id": "ent.elasticsearch.search_posts.search_failed",
+    "translation": "Search failed to complete"
+  },
+  {
+    "id": "ent.elasticsearch.search_posts.unmarshall_post_failed",
+    "translation": "Failed to decode search results"
+  },
+  {
+    "id": "ent.elasticsearch.start.connect_failed",
+    "translation": "Setting up ElasticSearch Client Failed"
+  },
+  {
+    "id": "ent.elasticsearch.start.index_create_failed",
+    "translation": "Ошибка создания индекса ElasticSearch"
+  },
+  {
+    "id": "ent.elasticsearch.start.index_exists_failed",
+    "translation": "Failed to establish whether ElasticSearch index exists"
+  },
+  {
+    "id": "ent.elasticsearch.start.index_mapping_failed",
+    "translation": "Failed to setup ElasticSearch index mapping"
+  },
+  {
+    "id": "ent.elasticsearch.start.index_settings_failed",
+    "translation": "Failed to set ElasticSearch index settings"
   },
   {
     "id": "ent.emoji.licence_disable.app_error",
@@ -3629,7 +3689,7 @@
   },
   {
     "id": "model.authorize.is_valid.response_type.app_error",
-    "translation": "Invalid response type"
+    "translation": "Неправильный тип отклика"
   },
   {
     "id": "model.authorize.is_valid.scope.app_error",
@@ -3850,6 +3910,22 @@
   {
     "id": "model.config.is_valid.cluster_email_batching.app_error",
     "translation": "Невозможно включить пакетную обработку почты при включенной кластеризации."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.connection_url.app_error",
+    "translation": "Elastic Search ConnectionUrl setting must be provided when Elastic Search indexing is enabled."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.enable_searching.app_error",
+    "translation": "Elastic Search IndexingEnabled setting must be set to true when Elastic Search SearchEnabled is set to true."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.password.app_error",
+    "translation": "Elastic Search Password setting must be provided when Elastic Search indexing is enabled."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.username.app_error",
+    "translation": "Elastic Search Username setting must be provided when Elastic Search indexing is enabled."
   },
   {
     "id": "model.config.is_valid.email_batching_buffer_size.app_error",
@@ -4074,6 +4150,10 @@
   {
     "id": "model.config.is_valid.sql_max_conn.app_error",
     "translation": "Неверное значение максимального количества открытых соединений в настройках SQL. Число должно быть положительным."
+  },
+  {
+    "id": "model.config.is_valid.sql_query_timeout.app_error",
+    "translation": "Неверная высота профиля в настройках файлов. Число должно быть положительным."
   },
   {
     "id": "model.config.is_valid.time_between_user_typing.app_error",
@@ -4632,14 +4712,6 @@
     "translation": "Не удалось открыть SQL соединение %v"
   },
   {
-    "id": "store.sql.ping.critical",
-    "translation": "Не удалось проверить соединение с базой данных err:%v"
-  },
-  {
-    "id": "store.sql.pinging.info",
-    "translation": "Проверка соединения c базой данных %v"
-  },
-  {
     "id": "store.sql.read_replicas_not_licensed.critical",
     "translation": "Функция многократной репликации чтения недоступна при текущей лицензии. Пожалуйста, свяжитесь с системным администратором по поводу улучшения вашей корпоративной лицензии."
   },
@@ -5036,6 +5108,30 @@
     "translation": "Мы не смогли сохранить информацию о файле"
   },
   {
+    "id": "store.sql_file_info.save_or_update.app_error",
+    "translation": "Не удалсоь сохранить информацию о файле"
+  },
+  {
+    "id": "store.sql_job_status.delete_by_type.app_error",
+    "translation": "Неудачная попытка удалить пост"
+  },
+  {
+    "id": "store.sql_job_status.get.app_error",
+    "translation": "Не удалось получить пост"
+  },
+  {
+    "id": "store.sql_job_status.get_all.app_error",
+    "translation": "Не удалось получить пост"
+  },
+  {
+    "id": "store.sql_job_status.save.app_error",
+    "translation": "Не удалось сохранить Пост"
+  },
+  {
+    "id": "store.sql_job_status.update.app_error",
+    "translation": "Мы не смогли обновить Пост"
+  },
+  {
     "id": "store.sql_license.get.app_error",
     "translation": "Возникла ошибка с получением лицензии"
   },
@@ -5184,6 +5280,10 @@
     "translation": "Не удалось получить родительские посты для канала"
   },
   {
+    "id": "store.sql_post.get_posts_by_ids.app_error",
+    "translation": "Не удалось получить сообщения"
+  },
+  {
     "id": "store.sql_post.get_posts_created_att.app_error",
     "translation": "Не удалось получить сообщения из канала"
   },
@@ -5229,7 +5329,7 @@
   },
   {
     "id": "store.sql_post.search.disabled",
-    "translation": "Searching has been disabled on this server. Please contact your System Administrator."
+    "translation": "Поиск на этом сервере отключен. Пожалуйста, обратитесь к администратору."
   },
   {
     "id": "store.sql_post.search.warn",
@@ -5896,6 +5996,10 @@
     "translation": "Обнаружена ошибка подписывания лицензии, err=%v"
   },
   {
+    "id": "utils.mail.connect_smtp.helo.app_error",
+    "translation": "Не удалось установить HELO"
+  },
+  {
     "id": "utils.mail.connect_smtp.open.app_error",
     "translation": "Не удалось открыть соединение."
   },
@@ -5908,6 +6012,10 @@
     "translation": "Не удалось авторизоваться на SMTP сервере"
   },
   {
+    "id": "utils.mail.new_client.helo.error",
+    "translation": "Failed to to set the HELO to SMTP server %v"
+  },
+  {
     "id": "utils.mail.new_client.open.error",
     "translation": "Не удалось установить соединение с SMTP сервером %v"
   },
@@ -5917,7 +6025,7 @@
   },
   {
     "id": "utils.mail.send_mail.from_address.app_error",
-    "translation": "Не удалось добавить из адреса электронной почты"
+    "translation": "Notification From Address setting is missing or invalid."
   },
   {
     "id": "utils.mail.send_mail.msg.app_error",
@@ -5933,7 +6041,7 @@
   },
   {
     "id": "utils.mail.send_mail.to_address.app_error",
-    "translation": "Не удалось добавить адрес электронной почты"
+    "translation": "Notification To Address setting is missing or invalid."
   },
   {
     "id": "utils.mail.test.configured.error",

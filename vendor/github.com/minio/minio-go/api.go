@@ -1,6 +1,5 @@
 /*
- * Minio Go Library for Amazon S3 Compatible Cloud Storage
- * (C) 2015, 2016, 2017 Minio, Inc.
+ * Minio Go Library for Amazon S3 Compatible Cloud Storage (C) 2015, 2016 Minio, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,7 +35,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/minio/minio-go/pkg/credentials"
 	"github.com/minio/minio-go/pkg/s3signer"
 	"github.com/minio/minio-go/pkg/s3utils"
 )
@@ -48,11 +46,14 @@ type Client struct {
 	// Parsed endpoint url provided by the user.
 	endpointURL url.URL
 
-	// Holds various credential providers.
-	credsProvider *credentials.Credentials
-
-	// Custom signerType value overrides all credentials.
-	overrideSignerType credentials.SignatureType
+	// AccessKeyID required for authorized requests.
+	accessKeyID string
+	// SecretAccessKey required for authorized requests.
+	secretAccessKey string
+	// Choose a signature type if necessary.
+	signature SignatureType
+	// Set to 'true' if Client has no access and secret keys.
+	anonymous bool
 
 	// User supplied.
 	appInfo struct {
@@ -99,58 +100,58 @@ const (
 // NewV2 - instantiate minio client with Amazon S3 signature version
 // '2' compatibility.
 func NewV2(endpoint string, accessKeyID, secretAccessKey string, secure bool) (*Client, error) {
-	creds := credentials.NewStaticV2(accessKeyID, secretAccessKey, "")
-	clnt, err := privateNew(endpoint, creds, secure, "")
+	clnt, err := privateNew(endpoint, accessKeyID, secretAccessKey, secure)
 	if err != nil {
 		return nil, err
 	}
-	clnt.overrideSignerType = credentials.SignatureV2
+
+	// Set to use signature version '2'.
+	clnt.signature = SignatureV2
 	return clnt, nil
 }
 
 // NewV4 - instantiate minio client with Amazon S3 signature version
 // '4' compatibility.
 func NewV4(endpoint string, accessKeyID, secretAccessKey string, secure bool) (*Client, error) {
-	creds := credentials.NewStaticV4(accessKeyID, secretAccessKey, "")
-	clnt, err := privateNew(endpoint, creds, secure, "")
+	clnt, err := privateNew(endpoint, accessKeyID, secretAccessKey, secure)
 	if err != nil {
 		return nil, err
 	}
-	clnt.overrideSignerType = credentials.SignatureV4
+
+	// Set to use signature version '4'.
+	clnt.signature = SignatureV4
 	return clnt, nil
 }
 
-// New - instantiate minio client, adds automatic verification of signature.
+// New - instantiate minio client Client, adds automatic verification of signature.
 func New(endpoint, accessKeyID, secretAccessKey string, secure bool) (*Client, error) {
-	creds := credentials.NewStaticV4(accessKeyID, secretAccessKey, "")
-	clnt, err := privateNew(endpoint, creds, secure, "")
-	if err != nil {
-		return nil, err
-	}
-	// Google cloud storage should be set to signature V2, force it if not.
-	if s3utils.IsGoogleEndpoint(clnt.endpointURL) {
-		clnt.overrideSignerType = credentials.SignatureV2
-	}
-	// If Amazon S3 set to signature v4.
-	if s3utils.IsAmazonEndpoint(clnt.endpointURL) {
-		clnt.overrideSignerType = credentials.SignatureV4
-	}
-	return clnt, nil
-}
-
-// NewWithCredentials - instantiate minio client with credentials provider
-// for retrieving credentials from various credentials provider such as
-// IAM, File, Env etc.
-func NewWithCredentials(endpoint string, creds *credentials.Credentials, secure bool, region string) (*Client, error) {
-	return privateNew(endpoint, creds, secure, region)
+	return NewWithRegion(endpoint, accessKeyID, secretAccessKey, secure, "")
 }
 
 // NewWithRegion - instantiate minio client, with region configured. Unlike New(),
 // NewWithRegion avoids bucket-location lookup operations and it is slightly faster.
 // Use this function when if your application deals with single region.
 func NewWithRegion(endpoint, accessKeyID, secretAccessKey string, secure bool, region string) (*Client, error) {
-	creds := credentials.NewStaticV4(accessKeyID, secretAccessKey, "")
-	return privateNew(endpoint, creds, secure, region)
+	clnt, err := privateNew(endpoint, accessKeyID, secretAccessKey, secure)
+	if err != nil {
+		return nil, err
+	}
+
+	// Google cloud storage should be set to signature V2, force it if not.
+	if s3utils.IsGoogleEndpoint(clnt.endpointURL) {
+		clnt.signature = SignatureV2
+	}
+
+	// If Amazon S3 set to signature v2.n
+	if s3utils.IsAmazonEndpoint(clnt.endpointURL) {
+		clnt.signature = SignatureV4
+	}
+
+	// Sets custom region, if region is empty bucket location cache is used automatically.
+	clnt.region = region
+
+	// Success..
+	return clnt, nil
 }
 
 // lockedRandSource provides protected rand source, implements rand.Source interface.
@@ -187,7 +188,7 @@ func redirectHeaders(req *http.Request, via []*http.Request) error {
 	return nil
 }
 
-func privateNew(endpoint string, creds *credentials.Credentials, secure bool, region string) (*Client, error) {
+func privateNew(endpoint, accessKeyID, secretAccessKey string, secure bool) (*Client, error) {
 	// construct endpoint.
 	endpointURL, err := getEndpointURL(endpoint, secure)
 	if err != nil {
@@ -196,9 +197,8 @@ func privateNew(endpoint string, creds *credentials.Credentials, secure bool, re
 
 	// instantiate new Client.
 	clnt := new(Client)
-
-	// Save the credentials.
-	clnt.credsProvider = creds
+	clnt.accessKeyID = accessKeyID
+	clnt.secretAccessKey = secretAccessKey
 
 	// Remember whether we are using https or not
 	clnt.secure = secure
@@ -212,10 +212,7 @@ func privateNew(endpoint string, creds *credentials.Credentials, secure bool, re
 		CheckRedirect: redirectHeaders,
 	}
 
-	// Sets custom region, if region is empty bucket location cache is used automatically.
-	clnt.region = region
-
-	// Instantiate bucket location cache.
+	// Instantiae bucket location cache.
 	clnt.bucketLocCache = newBucketLocationCache()
 
 	// Introduce a new locked random seed.
@@ -317,12 +314,11 @@ var regSign = regexp.MustCompile("Signature=([[0-9a-f]+)")
 
 // Filter out signature value from Authorization header.
 func (c Client) filterSignature(req *http.Request) {
-	origAuth := req.Header.Get("Authorization")
-	if origAuth != "" {
+	if _, ok := req.Header["Authorization"]; !ok {
 		return
 	}
-
-	if !strings.HasPrefix(origAuth, signV4Algorithm) {
+	// Handle if Signature V2.
+	if c.signature.isV2() {
 		// Set a temporary redacted auth
 		req.Header.Set("Authorization", "AWS **REDACTED**:**REDACTED**")
 		return
@@ -330,6 +326,8 @@ func (c Client) filterSignature(req *http.Request) {
 
 	/// Signature V4 authorization header.
 
+	// Save the original auth.
+	origAuth := req.Header.Get("Authorization")
 	// Strip out accessKeyID from:
 	// Credential=<access-key-id>/<date>/<aws-region>/<aws-service>/aws4_request
 	newAuth := regCred.ReplaceAllString(origAuth, "Credential=**REDACTED**/")
@@ -339,7 +337,6 @@ func (c Client) filterSignature(req *http.Request) {
 
 	// Set a temporary redacted auth
 	req.Header.Set("Authorization", newAuth)
-
 	return
 }
 
@@ -556,7 +553,7 @@ func (c Client) executeMethod(method string, metadata requestMetadata) (res *htt
 		// Bucket region if set in error response and the error
 		// code dictates invalid region, we can retry the request
 		// with the new region.
-		if res.StatusCode == http.StatusBadRequest && errResponse.Region != "" {
+		if errResponse.Code == "InvalidRegion" && errResponse.Region != "" {
 			c.bucketLocCache.Set(metadata.bucketName, errResponse.Region)
 			continue // Retry.
 		}
@@ -617,41 +614,20 @@ func (c Client) newRequest(method string, metadata requestMetadata) (req *http.R
 		return nil, err
 	}
 
-	// Get credentials from the configured credentials provider.
-	value, err := c.credsProvider.Get()
-	if err != nil {
-		return nil, err
-	}
-
-	var (
-		signerType      = value.SignerType
-		accessKeyID     = value.AccessKeyID
-		secretAccessKey = value.SecretAccessKey
-		sessionToken    = value.SessionToken
-	)
-
-	// Custom signer set then override the behavior.
-	if c.overrideSignerType != credentials.SignatureDefault {
-		signerType = c.overrideSignerType
-	}
-
-	// If signerType returned by credentials helper is anonymous,
-	// then do not sign regardless of signerType override.
-	if value.SignerType == credentials.SignatureAnonymous {
-		signerType = credentials.SignatureAnonymous
-	}
+	// Anonymous request.
+	anonymous := c.accessKeyID == "" || c.secretAccessKey == ""
 
 	// Generate presign url if needed, return right here.
 	if metadata.expires != 0 && metadata.presignURL {
-		if signerType.IsAnonymous() {
-			return nil, ErrInvalidArgument("Presigned URLs cannot be generated with anonymous credentials.")
+		if anonymous {
+			return nil, ErrInvalidArgument("Requests cannot be presigned with anonymous credentials.")
 		}
-		if signerType.IsV2() {
+		if c.signature.isV2() {
 			// Presign URL with signature v2.
-			req = s3signer.PreSignV2(*req, accessKeyID, secretAccessKey, metadata.expires)
-		} else if signerType.IsV4() {
+			req = s3signer.PreSignV2(*req, c.accessKeyID, c.secretAccessKey, metadata.expires)
+		} else if c.signature.isV4() {
 			// Presign URL with signature v4.
-			req = s3signer.PreSignV4(*req, accessKeyID, secretAccessKey, sessionToken, location, metadata.expires)
+			req = s3signer.PreSignV4(*req, c.accessKeyID, c.secretAccessKey, location, metadata.expires)
 		}
 		return req, nil
 	}
@@ -674,18 +650,17 @@ func (c Client) newRequest(method string, metadata requestMetadata) (req *http.R
 		req.Header.Set("Content-Md5", base64.StdEncoding.EncodeToString(metadata.contentMD5Bytes))
 	}
 
-	// For anonymous requests just return.
-	if signerType.IsAnonymous() {
+	if anonymous {
 		return req, nil
-	}
+	} // Sign the request for all authenticated requests.
 
 	switch {
-	case signerType.IsV2():
+	case c.signature.isV2():
 		// Add signature version '2' authorization header.
-		req = s3signer.SignV2(*req, accessKeyID, secretAccessKey)
-	case signerType.IsStreamingV4() && method == "PUT":
-		req = s3signer.StreamingSignV4(req, accessKeyID,
-			secretAccessKey, sessionToken, location, metadata.contentLength, time.Now().UTC())
+		req = s3signer.SignV2(*req, c.accessKeyID, c.secretAccessKey)
+	case c.signature.isStreamingV4() && method == "PUT":
+		req = s3signer.StreamingSignV4(req, c.accessKeyID,
+			c.secretAccessKey, location, metadata.contentLength, time.Now().UTC())
 	default:
 		// Set sha256 sum for signature calculation only with signature version '4'.
 		shaHeader := unsignedPayload
@@ -695,7 +670,7 @@ func (c Client) newRequest(method string, metadata requestMetadata) (req *http.R
 		req.Header.Set("X-Amz-Content-Sha256", shaHeader)
 
 		// Add signature version '4' authorization header.
-		req = s3signer.SignV4(*req, accessKeyID, secretAccessKey, sessionToken, location)
+		req = s3signer.SignV4(*req, c.accessKeyID, c.secretAccessKey, location)
 	}
 
 	// Return request.
@@ -757,16 +732,13 @@ func (c Client) makeTargetURL(bucketName, objectName, bucketLocation string, que
 			}
 		}
 	}
-
 	// If there are any query values, add them to the end.
 	if len(queryValues) > 0 {
 		urlStr = urlStr + "?" + s3utils.QueryEncode(queryValues)
 	}
-
 	u, err := url.Parse(urlStr)
 	if err != nil {
 		return nil, err
 	}
-
 	return u, nil
 }

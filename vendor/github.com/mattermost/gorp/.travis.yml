@@ -1,0 +1,33 @@
+language: go
+go:
+- 1.6
+- 1.7
+- tip
+
+matrix:
+  allow_failures:
+  - go: tip
+
+services:
+- mysql
+- postgres
+- sqlite3
+
+env:
+  global:
+  - secure: RriLxF6+2yMl67hdVv8ImXlu0h62mhcpqjaOgYNU+IEbUQ7hx96CKY6gkpYubW3BgApvF5RH6j3+HKvh2kGp0XhDOYOQCODfBSaSipZ5Aa5RKjsEYLtuVIobvJ80awR9hUeql69+WXs0/s72WThG0qTbOUY4pqHWfteeY235hWM=
+
+before_script:
+- mysql -e "CREATE DATABASE gorptest;"
+- mysql -u root -e "GRANT ALL ON gorptest.* TO gorptest@localhost IDENTIFIED BY 'gorptest'"
+- psql -c "CREATE DATABASE gorptest;" -U postgres
+- psql -c "CREATE USER "gorptest" WITH SUPERUSER PASSWORD 'gorptest';" -U postgres
+- go get github.com/lib/pq
+- go get github.com/mattn/go-sqlite3
+- go get github.com/ziutek/mymysql/godrv
+- go get github.com/go-sql-driver/mysql
+- go get golang.org/x/tools/cmd/cover
+- go get github.com/mattn/goveralls
+- go get github.com/onsi/ginkgo/ginkgo
+
+script: ./test_all.sh

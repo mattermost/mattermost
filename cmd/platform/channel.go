@@ -102,7 +102,9 @@ func init() {
 }
 
 func createChannelCmdF(cmd *cobra.Command, args []string) error {
-	initDBCommandContextCobra(cmd)
+	if err := initDBCommandContextCobra(cmd); err != nil {
+		return err
+	}
 
 	if !utils.IsLicensed {
 		return errors.New(utils.T("cli.license.critical"))
@@ -152,7 +154,9 @@ func createChannelCmdF(cmd *cobra.Command, args []string) error {
 }
 
 func removeChannelUsersCmdF(cmd *cobra.Command, args []string) error {
-	initDBCommandContextCobra(cmd)
+	if err := initDBCommandContextCobra(cmd); err != nil {
+		return err
+	}
 
 	if !utils.IsLicensed {
 		return errors.New(utils.T("cli.license.critical"))
@@ -186,7 +190,9 @@ func removeUserFromChannel(channel *model.Channel, user *model.User, userArg str
 }
 
 func addChannelUsersCmdF(cmd *cobra.Command, args []string) error {
-	initDBCommandContextCobra(cmd)
+	if err := initDBCommandContextCobra(cmd); err != nil {
+		return err
+	}
 
 	if !utils.IsLicensed {
 		return errors.New(utils.T("cli.license.critical"))
@@ -220,7 +226,9 @@ func addUserToChannel(channel *model.Channel, user *model.User, userArg string) 
 }
 
 func archiveChannelsCmdF(cmd *cobra.Command, args []string) error {
-	initDBCommandContextCobra(cmd)
+	if err := initDBCommandContextCobra(cmd); err != nil {
+		return err
+	}
 
 	if len(args) < 1 {
 		return errors.New("Enter at least one channel to delete.")
@@ -241,7 +249,9 @@ func archiveChannelsCmdF(cmd *cobra.Command, args []string) error {
 }
 
 func deleteChannelsCmdF(cmd *cobra.Command, args []string) error {
-	initDBCommandContextCobra(cmd)
+	if err := initDBCommandContextCobra(cmd); err != nil {
+		return err
+	}
 
 	if len(args) < 1 {
 		return errors.New("Enter at least one channel to delete.")
@@ -278,7 +288,9 @@ func deleteChannel(channel *model.Channel) *model.AppError {
 }
 
 func listChannelsCmdF(cmd *cobra.Command, args []string) error {
-	initDBCommandContextCobra(cmd)
+	if err := initDBCommandContextCobra(cmd); err != nil {
+		return err
+	}
 
 	if !utils.IsLicensed {
 		return errors.New(utils.T("cli.license.critical"))
@@ -313,7 +325,9 @@ func listChannelsCmdF(cmd *cobra.Command, args []string) error {
 }
 
 func restoreChannelsCmdF(cmd *cobra.Command, args []string) error {
-	initDBCommandContextCobra(cmd)
+	if err := initDBCommandContextCobra(cmd); err != nil {
+		return err
+	}
 
 	if !utils.IsLicensed {
 		return errors.New(utils.T("cli.license.critical"))

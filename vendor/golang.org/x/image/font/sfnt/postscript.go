@@ -969,7 +969,8 @@ var psOperators = [...][2][]psOperator{
 		31: {-1, "hvcurveto", t2CHvcurveto},
 	}, {
 		// 2-byte operators. The first byte is the escape byte.
-		0: {}, // Reserved.
+		34: {+7, "hflex", t2CHflex},
+		36: {+9, "hflex1", t2CHflex1},
 		// TODO: more operators.
 	}},
 }
@@ -1268,6 +1269,44 @@ func t2CRrcurveto(p *psInterpreter) error {
 			p.argStack.a[i+5],
 		)
 	}
+	return nil
+}
+
+// For the flex operators, we ignore the flex depth and always produce cubic
+// segments, not linear segments. It's not obvious why the Type 2 Charstring
+// format cares about switching behavior based on a metric in pixels, not in
+// ideal font units. The Go vector rasterizer has no problems with almost
+// linear cubic segments.
+
+func t2CHflex(p *psInterpreter) error {
+	p.type2Charstrings.cubeTo(
+		p.argStack.a[0], 0,
+		p.argStack.a[1], +p.argStack.a[2],
+		p.argStack.a[3], 0,
+	)
+	p.type2Charstrings.cubeTo(
+		p.argStack.a[4], 0,
+		p.argStack.a[5], -p.argStack.a[2],
+		p.argStack.a[6], 0,
+	)
+	return nil
+}
+
+func t2CHflex1(p *psInterpreter) error {
+	dy1 := p.argStack.a[1]
+	dy2 := p.argStack.a[3]
+	dy5 := p.argStack.a[7]
+	dy6 := -dy1 - dy2 - dy5
+	p.type2Charstrings.cubeTo(
+		p.argStack.a[0], dy1,
+		p.argStack.a[2], dy2,
+		p.argStack.a[4], 0,
+	)
+	p.type2Charstrings.cubeTo(
+		p.argStack.a[5], 0,
+		p.argStack.a[6], dy5,
+		p.argStack.a[8], dy6,
+	)
 	return nil
 }
 

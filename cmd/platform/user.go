@@ -141,6 +141,8 @@ func init() {
 
 	deleteAllUsersCmd.Flags().Bool("confirm", false, "Confirm you really want to delete the user and a DB backup has been performed.")
 
+	migrateAuthCmd.Flags().Bool("force", false, "Force the migration to occour even if there are duplicates on the LDAP server. Duplicates will not be migrated.")
+
 	userCmd.AddCommand(
 		userActivateCmd,
 		userDeactivateCmd,
@@ -157,7 +159,9 @@ func init() {
 }
 
 func userActivateCmdF(cmd *cobra.Command, args []string) error {
-	initDBCommandContextCobra(cmd)
+	if err := initDBCommandContextCobra(cmd); err != nil {
+		return err
+	}
 
 	if len(args) < 1 {
 		return errors.New("Enter user(s) to activate.")
@@ -193,7 +197,9 @@ func changeUserActiveStatus(user *model.User, userArg string, activate bool) err
 }
 
 func userDeactivateCmdF(cmd *cobra.Command, args []string) error {
-	initDBCommandContextCobra(cmd)
+	if err := initDBCommandContextCobra(cmd); err != nil {
+		return err
+	}
 
 	if len(args) < 1 {
 		return errors.New("Enter user(s) to deactivate.")
@@ -204,7 +210,10 @@ func userDeactivateCmdF(cmd *cobra.Command, args []string) error {
 }
 
 func userCreateCmdF(cmd *cobra.Command, args []string) error {
-	initDBCommandContextCobra(cmd)
+	if err := initDBCommandContextCobra(cmd); err != nil {
+		return err
+	}
+
 	username, erru := cmd.Flags().GetString("username")
 	if erru != nil || username == "" {
 		return errors.New("Username is required")
@@ -248,7 +257,10 @@ func userCreateCmdF(cmd *cobra.Command, args []string) error {
 }
 
 func userInviteCmdF(cmd *cobra.Command, args []string) error {
-	initDBCommandContextCobra(cmd)
+	if err := initDBCommandContextCobra(cmd); err != nil {
+		return err
+	}
+
 	utils.InitHTML()
 
 	if len(args) < 2 {
@@ -285,7 +297,10 @@ func inviteUser(email string, team *model.Team, teamArg string) error {
 }
 
 func resetUserPasswordCmdF(cmd *cobra.Command, args []string) error {
-	initDBCommandContextCobra(cmd)
+	if err := initDBCommandContextCobra(cmd); err != nil {
+		return err
+	}
+
 	if len(args) != 2 {
 		return errors.New("Incorect number of arguments.")
 	}
@@ -304,7 +319,10 @@ func resetUserPasswordCmdF(cmd *cobra.Command, args []string) error {
 }
 
 func resetUserMfaCmdF(cmd *cobra.Command, args []string) error {
-	initDBCommandContextCobra(cmd)
+	if err := initDBCommandContextCobra(cmd); err != nil {
+		return err
+	}
+
 	if len(args) < 1 {
 		return errors.New("Enter at least one user.")
 	}
@@ -325,7 +343,10 @@ func resetUserMfaCmdF(cmd *cobra.Command, args []string) error {
 }
 
 func deleteUserCmdF(cmd *cobra.Command, args []string) error {
-	initDBCommandContextCobra(cmd)
+	if err := initDBCommandContextCobra(cmd); err != nil {
+		return err
+	}
+
 	if len(args) < 1 {
 		return errors.New("Enter at least one user.")
 	}
@@ -362,7 +383,10 @@ func deleteUserCmdF(cmd *cobra.Command, args []string) error {
 }
 
 func deleteAllUsersCommandF(cmd *cobra.Command, args []string) error {
-	initDBCommandContextCobra(cmd)
+	if err := initDBCommandContextCobra(cmd); err != nil {
+		return err
+	}
+
 	if len(args) > 0 {
 		return errors.New("Don't enter any agruments.")
 	}
@@ -393,7 +417,10 @@ func deleteAllUsersCommandF(cmd *cobra.Command, args []string) error {
 }
 
 func migrateAuthCmdF(cmd *cobra.Command, args []string) error {
-	initDBCommandContextCobra(cmd)
+	if err := initDBCommandContextCobra(cmd); err != nil {
+		return err
+	}
+
 	if len(args) != 3 {
 		return errors.New("Enter the correct number of arguments.")
 	}
@@ -419,8 +446,10 @@ func migrateAuthCmdF(cmd *cobra.Command, args []string) error {
 		return errors.New("Invalid match_field argument")
 	}
 
+	forceFlag, _ := cmd.Flags().GetBool("force")
+
 	if migrate := einterfaces.GetAccountMigrationInterface(); migrate != nil {
-		if err := migrate.MigrateToLdap(fromAuth, matchField); err != nil {
+		if err := migrate.MigrateToLdap(fromAuth, matchField, forceFlag); err != nil {
 			return errors.New("Error while migrating users: " + err.Error())
 		} else {
 			CommandPrettyPrintln("Sucessfully migrated accounts.")
@@ -431,7 +460,10 @@ func migrateAuthCmdF(cmd *cobra.Command, args []string) error {
 }
 
 func verifyUserCmdF(cmd *cobra.Command, args []string) error {
-	initDBCommandContextCobra(cmd)
+	if err := initDBCommandContextCobra(cmd); err != nil {
+		return err
+	}
+
 	if len(args) < 1 {
 		return errors.New("Enter at least one user.")
 	}
@@ -452,7 +484,10 @@ func verifyUserCmdF(cmd *cobra.Command, args []string) error {
 }
 
 func searchUserCmdF(cmd *cobra.Command, args []string) error {
-	initDBCommandContextCobra(cmd)
+	if err := initDBCommandContextCobra(cmd); err != nil {
+		return err
+	}
+
 	if len(args) < 1 {
 		return errors.New("Enter at least one query.")
 	}

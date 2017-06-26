@@ -1,16 +1,19 @@
-import PropTypes from 'prop-types';
-
 // Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 import React from 'react';
+import PropTypes from 'prop-types';
 import {FormattedMessage, FormattedHTMLMessage} from 'react-intl';
 
 import ManageTeamsModal from 'components/admin_console/manage_teams_modal/manage_teams_modal.jsx';
 import ResetPasswordModal from 'components/admin_console/reset_password_modal.jsx';
 import SearchableUserList from 'components/searchable_user_list/searchable_user_list.jsx';
 
-import {getUser} from 'utils/async_client.jsx';
+import store from 'stores/redux_store.jsx';
+const dispatch = store.dispatch;
+const getState = store.getState;
+
+import {getUser} from 'mattermost-redux/actions/users';
 import {Constants} from 'utils/constants.jsx';
 import * as Utils from 'utils/utils.jsx';
 
@@ -107,7 +110,7 @@ export default class SystemUsersList extends React.Component {
     }
 
     doPasswordResetSubmit(user) {
-        getUser(user.id);
+        getUser(user.id)(dispatch, getState);
 
         this.setState({
             showPasswordModal: false,
@@ -180,7 +183,7 @@ export default class SystemUsersList extends React.Component {
                 return (
                     <FormattedMessage
                         id='system_users_list.countSearch'
-                        defaultMessage='{count, number} {count, plural, one {user} other {users}} of {total} total'
+                        defaultMessage='{count, number} {count, plural, one {user} other {users}} of {total, number} total'
                         values={{
                             count,
                             total
@@ -191,7 +194,7 @@ export default class SystemUsersList extends React.Component {
                 return (
                     <FormattedMessage
                         id='system_users_list.countPage'
-                        defaultMessage='{startCount, number} - {endCount, number} {count, plural, one {user} other {users}} of {total} total'
+                        defaultMessage='{startCount, number} - {endCount, number} {count, plural, one {user} other {users}} of {total, number} total'
                         values={{
                             count,
                             startCount: startCount + 1,

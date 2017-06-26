@@ -120,7 +120,13 @@ func (c *CLI) Run() (int, error) {
 	// Just show the version and exit if instructed.
 	if c.IsVersion() && c.Version != "" {
 		c.HelpWriter.Write([]byte(c.Version + "\n"))
-		return 1, nil
+		return 0, nil
+	}
+
+	// Just print the help when only '-h' or '--help' is passed.
+	if c.IsHelp() && c.Subcommand() == "" {
+		c.HelpWriter.Write([]byte(c.HelpFunc(c.Commands) + "\n"))
+		return 0, nil
 	}
 
 	// Attempt to get the factory function for creating the command
@@ -133,13 +139,13 @@ func (c *CLI) Run() (int, error) {
 
 	command, err := raw.(CommandFactory)()
 	if err != nil {
-		return 0, err
+		return 1, err
 	}
 
 	// If we've been instructed to just print the help, then print it
 	if c.IsHelp() {
 		c.commandHelp(command)
-		return 1, nil
+		return 0, nil
 	}
 
 	// If there is an invalid flag, then error
@@ -454,7 +460,7 @@ const defaultHelpTemplate = `
 {{.Help}}{{if gt (len .Subcommands) 0}}
 
 Subcommands:
-{{ range $value := .Subcommands }}
+{{- range $value := .Subcommands }}
     {{ $value.NameAligned }}    {{ $value.Synopsis }}{{ end }}
-{{ end }}
+{{- end }}
 `

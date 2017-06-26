@@ -110,8 +110,6 @@ func closeResponse(resp *http.Response) {
 	}
 }
 
-var emptySHA256 = sum256(nil)
-
 // Sentinel URL is the default url value which is invalid.
 var sentinelURL = url.URL{}
 

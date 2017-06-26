@@ -106,6 +106,19 @@ const messages = defineMessages({
 const HEX_CODE_LENGTH = 7;
 
 class CustomThemeChooser extends React.Component {
+    constructor(props) {
+        super(props);
+        this.selectTheme = this.selectTheme.bind(this);
+
+        const copyTheme = Object.assign({}, this.props.theme);
+        delete copyTheme.type;
+        delete copyTheme.image;
+
+        this.state = {
+            copyTheme: JSON.stringify(copyTheme)
+        };
+    }
+
     componentDidMount() {
         $('.color-picker').colorpicker({
             format: 'hex'
@@ -144,9 +157,11 @@ class CustomThemeChooser extends React.Component {
         }
 
         const theme = this.props.theme;
-        theme[e.target.id] = e.color.toHex();
-        theme.type = 'custom';
-        this.props.updateTheme(theme);
+        if (theme[e.target.id] !== e.color.toHex()) {
+            theme[e.target.id] = e.color.toHex();
+            theme.type = 'custom';
+            this.props.updateTheme(theme);
+        }
     }
 
     pasteBoxChange = (e) => {
@@ -169,12 +184,22 @@ class CustomThemeChooser extends React.Component {
             return;
         }
 
+        this.setState({
+            copyTheme: JSON.stringify(theme)
+        });
+
         theme.type = 'custom';
         this.props.updateTheme(theme);
     }
 
     onChangeHandle = (e) => {
         e.stopPropagation();
+    }
+
+    selectTheme() {
+        const textarea = this.refs.textarea;
+        textarea.focus();
+        textarea.setSelectionRange(0, this.state.copyTheme.length);
     }
 
     toggleSidebarStyles = (e) => {
@@ -346,10 +371,6 @@ class CustomThemeChooser extends React.Component {
             }
         });
 
-        const copyTheme = Object.assign({}, theme);
-        delete copyTheme.type;
-        delete copyTheme.image;
-
         const pasteBox = (
             <div className='col-sm-12'>
                 <label className='custom-label'>
@@ -359,10 +380,12 @@ class CustomThemeChooser extends React.Component {
                     />
                 </label>
                 <textarea
+                    ref='textarea'
                     className='form-control'
-                    value={JSON.stringify(copyTheme)}
+                    value={this.state.copyTheme}
                     onPaste={this.pasteBoxChange}
                     onChange={this.onChangeHandle}
+                    onClick={this.selectTheme}
                 />
             </div>
         );

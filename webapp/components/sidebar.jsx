@@ -17,7 +17,7 @@ import TeamStore from 'stores/team_store.jsx';
 import PreferenceStore from 'stores/preference_store.jsx';
 import ModalStore from 'stores/modal_store.jsx';
 
-import * as AsyncClient from 'utils/async_client.jsx';
+import AppDispatcher from 'dispatcher/app_dispatcher.jsx';
 import {sortTeamsByDisplayName} from 'utils/team_utils.jsx';
 import * as Utils from 'utils/utils.jsx';
 import * as ChannelUtils from 'utils/channel_utils.jsx';
@@ -41,8 +41,12 @@ import favicon from 'images/favicon/favicon-16x16.png';
 import redFavicon from 'images/favicon/redfavicon-16x16.png';
 
 import store from 'stores/redux_store.jsx';
+const dispatch = store.dispatch;
+const getState = store.getState;
+
 import {getMyPreferences} from 'mattermost-redux/selectors/entities/preferences';
 import {getUsers} from 'mattermost-redux/selectors/entities/users';
+import {savePreferences} from 'mattermost-redux/actions/preferences';
 
 export default class Sidebar extends React.Component {
     constructor(props) {
@@ -67,6 +71,7 @@ export default class Sidebar extends React.Component {
         this.hideNewChannelModal = this.hideNewChannelModal.bind(this);
         this.showMoreDirectChannelsModal = this.showMoreDirectChannelsModal.bind(this);
         this.hideMoreDirectChannelsModal = this.hideMoreDirectChannelsModal.bind(this);
+        this.handleOpenMoreDirectChannelsModal = this.handleOpenMoreDirectChannelsModal.bind(this);
 
         this.createChannelElement = this.createChannelElement.bind(this);
         this.updateTitle = this.updateTitle.bind(this);
@@ -104,11 +109,12 @@ export default class Sidebar extends React.Component {
         const preferences = getMyPreferences(store.getState());
         const profiles = getUsers(store.getState());
         let displayableChannels = {};
-        if (channels !== this.oldChannels ||
-            preferences !== this.oldPreferences ||
-            profiles !== this.oldProfiles) {
+        if (!Utils.areObjectsEqual(channels, this.oldChannels) ||
+                !Utils.areObjectsEqual(preferences, this.oldPreferences) ||
+                !Utils.areObjectsEqual(profiles, this.oldProfiles)) {
             const channelsArray = channels.map((channel) => Object.assign({}, channel));
             displayableChannels = ChannelUtils.buildDisplayableChannelList(channelsArray);
+            displayableChannels.favoriteChannels.sort(sortTeamsByDisplayName);
         }
         this.oldChannels = channels;
         this.oldPreferences = preferences;
@@ -198,6 +204,15 @@ export default class Sidebar extends React.Component {
         this.showMoreDirectChannelsModal(args.startingUsers);
     }
 
+    handleOpenMoreDirectChannelsModal(e) {
+        e.preventDefault();
+        if (this.state.showDirectChannelsModal) {
+            this.hideMoreDirectChannelsModal();
+        } else {
+            this.showMoreDirectChannelsModal();
+        }
+    }
+
     onChange() {
         if (this.state.currentTeam.id !== TeamStore.getCurrentId()) {
             ChannelStore.clear();
@@ -241,10 +256,13 @@ export default class Sidebar extends React.Component {
         var showTopUnread = false;
         var showBottomUnread = false;
 
+        // Consider partially obscured channels as above/below
+        const unreadMargin = 15;
+
         if (this.firstUnreadChannel) {
             var firstUnreadElement = $(ReactDOM.findDOMNode(this.refs[this.firstUnreadChannel]));
 
-            if (firstUnreadElement.position().top + firstUnreadElement.height() < 0) {
+            if (firstUnreadElement.position().top + firstUnreadElement.height() < unreadMargin) {
                 showTopUnread = true;
             }
         }
@@ -252,7 +270,7 @@ export default class Sidebar extends React.Component {
         if (this.lastUnreadChannel) {
             var lastUnreadElement = $(ReactDOM.findDOMNode(this.refs[this.lastUnreadChannel]));
 
-            if (lastUnreadElement.position().top > container.height()) {
+            if (lastUnreadElement.position().top > container.height() - unreadMargin) {
                 showBottomUnread = true;
             }
         }
@@ -299,6 +317,8 @@ export default class Sidebar extends React.Component {
             ChannelActions.goToChannel(nextChannel);
             this.updateScrollbarOnChannelChange(nextChannel);
             this.isSwitchingChannel = false;
+        } else if (Utils.cmdOrCtrlPressed(e) && e.shiftKey && e.keyCode === Constants.KeyCodes.K) {
+            this.handleOpenMoreDirectChannelsModal(e);
         }
     }
 
@@ -364,13 +384,8 @@ export default class Sidebar extends React.Component {
                 category = Constants.Preferences.CATEGORY_GROUP_CHANNEL_SHOW;
             }
 
-            AsyncClient.savePreference(
-                category,
-                id,
-                'false',
-                () => {
-                    this.isLeaving.set(channel.id, false);
-                },
+            const currentUserId = UserStore.getCurrentId();
+            savePreferences(currentUserId, [{user_id: currentUserId, category, name: id, value: 'false'}])(dispatch, getState).then(
                 () => {
                     this.isLeaving.set(channel.id, false);
                 }
@@ -422,6 +437,13 @@ export default class Sidebar extends React.Component {
                 document.querySelector('.app__body .sidebar--left').classList.add('move--right');
             });
         }
+    }
+
+    openQuickSwitcher(e) {
+        e.preventDefault();
+        AppDispatcher.handleViewAction({
+            type: ActionTypes.TOGGLE_QUICK_SWITCH_MODAL
+        });
     }
 
     createTutorialTip() {
@@ -517,7 +539,7 @@ export default class Sidebar extends React.Component {
         var badge = null;
         if (channelMember) {
             if (unreadCount.mentions) {
-                badge = <span className='mention-badge pull-right small'>{unreadCount.mentions}</span>;
+                badge = <span className='badge pull-right small'>{unreadCount.mentions}</span>;
                 this.badgesActive = true;
             }
         } else if (this.state.loadingDMChannel === index && channel.type === Constants.DM_CHANNEL) {
@@ -633,9 +655,8 @@ export default class Sidebar extends React.Component {
 
         // create elements for all 4 types of channels
         const favoriteItems = this.state.favoriteChannels.
-            sort(sortTeamsByDisplayName).
             map((channel, index, arr) => {
-                if (channel.type === Constants.DM_CHANNEL) {
+                if (channel.type === Constants.DM_CHANNEL || channel.type === Constants.GM_CHANNEL) {
                     return this.createChannelElement(channel, index, arr, this.handleLeaveDirectChannel);
                 }
 
@@ -672,11 +693,9 @@ export default class Sidebar extends React.Component {
         var directMessageMore = (
             <li key='more'>
                 <a
+                    id='moreDirectMessage'
                     href='#'
-                    onClick={(e) => {
-                        e.preventDefault();
-                        this.showMoreDirectChannelsModal();
-                    }}
+                    onClick={this.handleOpenMoreDirectChannelsModal}
                 >
                     <FormattedMessage
                         id='sidebar.moreElips'
@@ -733,6 +752,7 @@ export default class Sidebar extends React.Component {
                 overlay={createChannelTootlip}
             >
                 <a
+                    id='createPublicChannel'
                     className='add-channel-btn'
                     href='#'
                     onClick={this.showNewChannelModal.bind(this, Constants.OPEN_CHANNEL)}
@@ -750,6 +770,7 @@ export default class Sidebar extends React.Component {
                 overlay={createGroupTootlip}
             >
                 <a
+                    id='createPrivateChannel'
                     className='add-channel-btn'
                     href='#'
                     onClick={this.showNewChannelModal.bind(this, Constants.PRIVATE_CHANNEL)}
@@ -788,6 +809,15 @@ export default class Sidebar extends React.Component {
                     }}
                 />
             );
+        }
+
+        const quickSwitchText = 'channel_switch_modal.title';
+
+        let quickSwitchTextShortcut = 'quick_switch_modal.channelsShortcut.windows';
+        let quickSwitchDefault = '- CTRL+K';
+        if (Utils.isMac()) {
+            quickSwitchTextShortcut = 'quick_switch_modal.channelsShortcut.mac';
+            quickSwitchDefault = '- ⌘K';
         }
 
         return (
@@ -889,6 +919,23 @@ export default class Sidebar extends React.Component {
                         {directMessageItems}
                         {directMessageMore}
                     </ul>
+                </div>
+                <div className='sidebar__switcher'>
+                    <button
+                        className='btn btn-link'
+                        onClick={this.openQuickSwitcher}
+                    >
+                        <FormattedMessage
+                            id={quickSwitchText}
+                            defaultMessage='Switch Channels'
+                        />
+                        <span className='switch__shortcut'>
+                            <FormattedMessage
+                                id={quickSwitchTextShortcut}
+                                defaultMessage={quickSwitchDefault}
+                            />
+                        </span>
+                    </button>
                 </div>
             </div>
         );

@@ -340,7 +340,6 @@ func (u *User) ClearNonProfileFields() {
 	u.Props = StringMap{}
 	u.NotifyProps = StringMap{}
 	u.LastPasswordUpdate = 0
-	u.LastPictureUpdate = 0
 	u.FailedAttempts = 0
 }
 
@@ -458,31 +457,25 @@ func IsInRole(userRoles string, inRole string) bool {
 		if r == inRole {
 			return true
 		}
-
 	}
 
 	return false
 }
 
 func (u *User) IsSSOUser() bool {
-	if u.AuthService != "" && u.AuthService != USER_AUTH_SERVICE_EMAIL {
-		return true
-	}
-	return false
+	return u.AuthService != "" && u.AuthService != USER_AUTH_SERVICE_EMAIL
 }
 
 func (u *User) IsOAuthUser() bool {
-	if u.AuthService == USER_AUTH_SERVICE_GITLAB {
-		return true
-	}
-	return false
+	return u.AuthService == USER_AUTH_SERVICE_GITLAB
 }
 
 func (u *User) IsLDAPUser() bool {
-	if u.AuthService == USER_AUTH_SERVICE_LDAP {
-		return true
-	}
-	return false
+	return u.AuthService == USER_AUTH_SERVICE_LDAP
+}
+
+func (u *User) IsSAMLUser() bool {
+	return u.AuthService == USER_AUTH_SERVICE_SAML
 }
 
 // UserFromJson will decode the input and return a User

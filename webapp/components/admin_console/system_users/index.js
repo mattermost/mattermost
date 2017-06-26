@@ -6,10 +6,13 @@ import {bindActionCreators} from 'redux';
 import {getTeams, getTeamStats} from 'mattermost-redux/actions/teams';
 import {getUser} from 'mattermost-redux/actions/users';
 
+import {getTeamsList} from 'mattermost-redux/selectors/entities/teams';
+
 import SystemUsers from './system_users.jsx';
 
 function mapStateToProps(state, ownProps) {
     return {
+        teams: getTeamsList(state),
         ...ownProps
     };
 }

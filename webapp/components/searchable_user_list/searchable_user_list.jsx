@@ -135,7 +135,7 @@ export default class SearchableUserList extends React.Component {
                 return (
                     <FormattedMessage
                         id='filtered_user_list.countTotal'
-                        defaultMessage='{count} {count, plural, =0 {0 members} one {member} other {members}} of {total} total'
+                        defaultMessage='{count, number} {count, plural, one {member} other {members}} of {total, number} total'
                         values={{
                             count,
                             total
@@ -147,7 +147,7 @@ export default class SearchableUserList extends React.Component {
             return (
                 <FormattedMessage
                     id='filtered_user_list.countTotalPage'
-                    defaultMessage='{startCount, number} - {endCount, number} {count, plural, =0 {0 members} one {member} other {members}} of {total} total'
+                    defaultMessage='{startCount, number} - {endCount, number} {count, plural, one {member} other {members}} of {total, number} total'
                     values={{
                         count,
                         startCount: startCount + 1,

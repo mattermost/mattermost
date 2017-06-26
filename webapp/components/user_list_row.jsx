@@ -8,7 +8,7 @@ import PreferenceStore from 'stores/preference_store.jsx';
 
 import Constants from 'utils/constants.jsx';
 import * as Utils from 'utils/utils.jsx';
-import Client from 'client/web_client.jsx';
+import {Client4} from 'mattermost-redux/client';
 
 import PropTypes from 'prop-types';
 
@@ -73,7 +73,7 @@ export default function UserListRow({user, extraInfo, actions, actionProps, acti
             className='more-modal__row'
         >
             <ProfilePicture
-                src={`${Client.getUsersRoute()}/${user.id}/image?time=${user.last_picture_update}`}
+                src={Client4.getProfilePictureUrl(user.id, user.last_picture_update)}
                 status={status}
                 width='32'
                 height='32'

@@ -1,35 +1,34 @@
 // Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import UserStore from 'stores/user_store.jsx';
+import TeamStore from 'stores/team_store.jsx';
+
+import * as UserAgent from 'utils/user_agent.jsx';
+import {ActionTypes} from 'utils/constants.jsx';
 import AppDispatcher from 'dispatcher/app_dispatcher.jsx';
 
-import TeamStore from 'stores/team_store.jsx';
-import UserStore from 'stores/user_store.jsx';
-
-import * as AsyncClient from 'utils/async_client.jsx';
-import Client from 'client/web_client.jsx';
-
-import {ActionTypes} from 'utils/constants.jsx';
-
-// Redux actions
 import store from 'stores/redux_store.jsx';
 const dispatch = store.dispatch;
 const getState = store.getState;
+
+import {Client4} from 'mattermost-redux/client';
+
 import {getProfilesByIds} from 'mattermost-redux/actions/users';
+import * as IntegrationActions from 'mattermost-redux/actions/integrations';
 
-export function loadIncomingHooks() {
-    Client.listIncomingHooks(
+import request from 'superagent';
+
+export function loadIncomingHooks(complete) {
+    IntegrationActions.getIncomingHooks('', 0, 10000)(dispatch, getState).then(
         (data) => {
-            AppDispatcher.handleServerAction({
-                type: ActionTypes.RECEIVED_INCOMING_WEBHOOKS,
-                teamId: TeamStore.getCurrentId(),
-                incomingWebhooks: data
-            });
+            if (data) {
+                loadProfilesForIncomingHooks(data);
+            }
 
-            loadProfilesForIncomingHooks(data);
-        },
-        (err) => {
-            AsyncClient.dispatchError(err, 'listIncomingHooks');
+            if (complete) {
+                complete(data);
+            }
         }
     );
 }
@@ -51,19 +50,16 @@ function loadProfilesForIncomingHooks(hooks) {
     getProfilesByIds(list)(dispatch, getState);
 }
 
-export function loadOutgoingHooks() {
-    Client.listOutgoingHooks(
+export function loadOutgoingHooks(complete) {
+    IntegrationActions.getOutgoingHooks('', '', 0, 10000)(dispatch, getState).then(
         (data) => {
-            AppDispatcher.handleServerAction({
-                type: ActionTypes.RECEIVED_OUTGOING_WEBHOOKS,
-                teamId: TeamStore.getCurrentId(),
-                outgoingWebhooks: data
-            });
+            if (data) {
+                loadProfilesForOutgoingHooks(data);
+            }
 
-            loadProfilesForOutgoingHooks(data);
-        },
-        (err) => {
-            AsyncClient.dispatchError(err, 'listOutgoingHooks');
+            if (complete) {
+                complete(data);
+            }
         }
     );
 }
@@ -85,19 +81,16 @@ function loadProfilesForOutgoingHooks(hooks) {
     getProfilesByIds(list)(dispatch, getState);
 }
 
-export function loadTeamCommands() {
-    Client.listTeamCommands(
+export function loadTeamCommands(complete) {
+    IntegrationActions.getCustomTeamCommands(TeamStore.getCurrentId())(dispatch, getState).then(
         (data) => {
-            AppDispatcher.handleServerAction({
-                type: ActionTypes.RECEIVED_COMMANDS,
-                teamId: Client.teamId,
-                commands: data
-            });
+            if (data) {
+                loadProfilesForCommands(data);
+            }
 
-            loadProfilesForCommands(data);
-        },
-        (err) => {
-            AsyncClient.dispatchError(err, 'loadTeamCommands');
+            if (complete) {
+                complete(data);
+            }
         }
     );
 }
@@ -117,4 +110,160 @@ function loadProfilesForCommands(commands) {
     }
 
     getProfilesByIds(list)(dispatch, getState);
+}
+
+export function addIncomingHook(hook, success, error) {
+    IntegrationActions.createIncomingHook(hook)(dispatch, getState).then(
+        (data) => {
+            if (data && success) {
+                success(data);
+            } else if (data == null && error) {
+                const serverError = getState().requests.integrations.createIncomingHook.error;
+                error({id: serverError.server_error_id, ...serverError});
+            }
+        }
+    );
+}
+
+export function updateIncomingHook(hook, success, error) {
+    IntegrationActions.updateIncomingHook(hook)(dispatch, getState).then(
+        (data) => {
+            if (data && success) {
+                success(data);
+            } else if (data == null && error) {
+                const serverError = getState().requests.integrations.updateIncomingHook.error;
+                error({id: serverError.server_error_id, ...serverError});
+            }
+        }
+    );
+}
+
+export function addOutgoingHook(hook, success, error) {
+    IntegrationActions.createOutgoingHook(hook)(dispatch, getState).then(
+        (data) => {
+            if (data && success) {
+                success(data);
+            } else if (data == null && error) {
+                const serverError = getState().requests.integrations.createOutgoingHook.error;
+                error({id: serverError.server_error_id, ...serverError});
+            }
+        }
+    );
+}
+
+export function updateOutgoingHook(hook, success, error) {
+    IntegrationActions.updateOutgoingHook(hook)(dispatch, getState).then(
+        (data) => {
+            if (data && success) {
+                success(data);
+            } else if (data == null && error) {
+                const serverError = getState().requests.integrations.updateOutgoingHook.error;
+                error({id: serverError.server_error_id, ...serverError});
+            }
+        }
+    );
+}
+
+export function deleteIncomingHook(id) {
+    IntegrationActions.removeIncomingHook(id)(dispatch, getState);
+}
+
+export function deleteOutgoingHook(id) {
+    IntegrationActions.removeOutgoingHook(id)(dispatch, getState);
+}
+
+export function regenOutgoingHookToken(id) {
+    IntegrationActions.regenOutgoingHookToken(id)(dispatch, getState);
+}
+
+export function addCommand(command, success, error) {
+    IntegrationActions.addCommand(command)(dispatch, getState).then(
+        (data) => {
+            if (data && success) {
+                success(data);
+            } else if (data == null && error) {
+                const serverError = getState().requests.integrations.addCommand.error;
+                error({id: serverError.server_error_id, ...serverError});
+            }
+        }
+    );
+}
+
+export function editCommand(command, success, error) {
+    IntegrationActions.editCommand(command)(dispatch, getState).then(
+        (data) => {
+            if (data && success) {
+                success(data);
+            } else if (data == null && error) {
+                const serverError = getState().requests.integrations.editCommand.error;
+                error({id: serverError.server_error_id, ...serverError});
+            }
+        }
+    );
+}
+
+export function deleteCommand(id) {
+    IntegrationActions.deleteCommand(id)(dispatch, getState);
+}
+
+export function regenCommandToken(id) {
+    IntegrationActions.regenCommandToken(id)(dispatch, getState);
+}
+
+export function getSuggestedCommands(command, suggestionId, component) {
+    Client4.getCommandsList(TeamStore.getCurrentId()).then(
+        (data) => {
+            var matches = [];
+            data.forEach((cmd) => {
+                if (cmd.trigger !== 'shortcuts' || !UserAgent.isMobile()) {
+                    if (('/' + cmd.trigger).indexOf(command) === 0) {
+                        const s = '/' + cmd.trigger;
+                        let hint = '';
+                        if (cmd.auto_complete_hint && cmd.auto_complete_hint.length !== 0) {
+                            hint = cmd.auto_complete_hint;
+                        }
+                        matches.push({
+                            suggestion: s,
+                            hint,
+                            description: cmd.auto_complete_desc
+                        });
+                    }
+                }
+            });
+
+            matches = matches.sort((a, b) => a.suggestion.localeCompare(b.suggestion));
+
+            // pull out the suggested commands from the returned data
+            const terms = matches.map((suggestion) => suggestion.suggestion);
+
+            if (terms.length > 0) {
+                AppDispatcher.handleServerAction({
+                    type: ActionTypes.SUGGESTION_RECEIVED_SUGGESTIONS,
+                    id: suggestionId,
+                    matchedPretext: command,
+                    terms,
+                    items: matches,
+                    component
+                });
+            }
+        }
+    ).catch(
+        () => {} //eslint-disable-line no-empty-function
+    );
+}
+
+export function getYoutubeVideoInfo(googleKey, videoId, success, error) {
+    request.get('https://www.googleapis.com/youtube/v3/videos').
+    query({part: 'snippet', id: videoId, key: googleKey}).
+    end((err, res) => {
+        if (err) {
+            return error(err);
+        }
+
+        if (!res.body) {
+            console.error('Missing response body for getYoutubeVideoInfo'); // eslint-disable-line no-console
+        }
+
+        return success(res.body);
+    });
 }

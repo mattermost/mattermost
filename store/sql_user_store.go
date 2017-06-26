@@ -546,7 +546,7 @@ func (us SqlUserStore) GetProfilesInChannel(channelId string, offset int, limit 
 
 		var users []*model.User
 
-		query := "SELECT Users.* FROM Users, ChannelMembers WHERE ChannelMembers.ChannelId = :ChannelId AND Users.Id = ChannelMembers.UserId AND Users.DeleteAt = 0 ORDER BY Users.Username ASC LIMIT :Limit OFFSET :Offset"
+		query := "SELECT Users.* FROM Users, ChannelMembers WHERE ChannelMembers.ChannelId = :ChannelId AND Users.Id = ChannelMembers.UserId ORDER BY Users.Username ASC LIMIT :Limit OFFSET :Offset"
 
 		if _, err := us.GetReplica().Select(&users, query, map[string]interface{}{"ChannelId": channelId, "Offset": offset, "Limit": limit}); err != nil {
 			result.Err = model.NewLocAppError("SqlUserStore.GetProfilesInChannel", "store.sql_user.get_profiles.app_error", nil, err.Error())

@@ -274,7 +274,7 @@ type NodesStatsNode struct {
 	HTTP *NodesStatsNodeHTTP `json:"http"`
 
 	// Breaker contains information about circuit breakers.
-	Breaker map[string]*NodesStatsBreaker `json:"breaker"`
+	Breaker map[string]*NodesStatsBreaker `json:"breakers"`
 
 	// ScriptStats information.
 	ScriptStats *NodesStatsScriptStats `json:"script"`

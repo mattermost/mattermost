@@ -112,7 +112,7 @@ export default class NewChannelModal extends React.PureComponent {
 
     componentDidMount() {
         // ???
-        if (UserAgent.isInternetExplorer()) {
+        if (UserAgent.isInternetExplorer() || UserAgent.isEdge()) {
             $('body').addClass('browser--ie');
         }
     }
@@ -203,6 +203,7 @@ export default class NewChannelModal extends React.PureComponent {
         }
 
         var channelSwitchText = '';
+        let inputPrefixId = '';
         switch (this.props.channelType) {
         case 'P':
             channelSwitchText = (
@@ -214,6 +215,7 @@ export default class NewChannelModal extends React.PureComponent {
                     {createPublicChannelLink}
                 </div>
             );
+            inputPrefixId = 'newPrivateChannel';
             break;
         case 'O':
             channelSwitchText = (
@@ -225,6 +227,7 @@ export default class NewChannelModal extends React.PureComponent {
                     {createPrivateChannelLink}
                 </div>
             );
+            inputPrefixId = 'newPublicChannel';
             break;
         }
 
@@ -264,6 +267,7 @@ export default class NewChannelModal extends React.PureComponent {
                                 </label>
                                 <div className='col-sm-9'>
                                     <input
+                                        id={inputPrefixId + 'Name'}
                                         onChange={this.handleChange}
                                         type='text'
                                         ref='display_name'
@@ -307,6 +311,7 @@ export default class NewChannelModal extends React.PureComponent {
                                 </div>
                                 <div className='col-sm-9'>
                                     <textarea
+                                        id={inputPrefixId + 'Purpose'}
                                         className='form-control no-resize'
                                         ref='channel_purpose'
                                         rows='4'
@@ -341,6 +346,7 @@ export default class NewChannelModal extends React.PureComponent {
                                 </div>
                                 <div className='col-sm-9'>
                                     <textarea
+                                        id={inputPrefixId + 'Header'}
                                         className='form-control no-resize'
                                         ref='channel_header'
                                         rows='4'

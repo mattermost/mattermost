@@ -3,7 +3,7 @@
 
 import ProfilePopover from './profile_popover.jsx';
 import * as Utils from 'utils/utils.jsx';
-import Client from 'client/web_client.jsx';
+import {Client4} from 'mattermost-redux/client';
 
 import {OverlayTrigger} from 'react-bootstrap';
 
@@ -56,9 +56,14 @@ export default class UserProfile extends React.Component {
     render() {
         let name = '...';
         let profileImg = '';
+        let popoverPosition = 'right';
+        if (Utils.isMobile()) {
+            popoverPosition = 'bottom';
+        }
+
         if (this.props.user) {
             name = Utils.displayUsername(this.props.user.id);
-            profileImg = Client.getUsersRoute() + '/' + this.props.user.id + '/image?time=' + this.props.user.last_picture_update;
+            profileImg = Client4.getUsersRoute() + '/' + this.props.user.id + '/image?time=' + this.props.user.last_picture_update;
         }
 
         if (this.props.overwriteName) {
@@ -73,7 +78,7 @@ export default class UserProfile extends React.Component {
             <OverlayTrigger
                 ref='overlay'
                 trigger='click'
-                placement='right'
+                placement={popoverPosition}
                 rootClose={true}
                 overlay={
                     <ProfilePopover
@@ -87,7 +92,6 @@ export default class UserProfile extends React.Component {
             >
                 <div
                     className='user-popover'
-                    id={'profile_' + this.uniqueId}
                 >
                     {name}
                 </div>

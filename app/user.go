@@ -176,7 +176,7 @@ func IsFirstUserAccount() bool {
 }
 
 func CreateUser(user *model.User) (*model.User, *model.AppError) {
-	if !user.IsSSOUser() && !CheckUserDomain(user, utils.Cfg.TeamSettings.RestrictCreationToDomains) {
+	if !user.IsLDAPUser() && !user.IsSAMLUser() && !CheckUserDomain(user, utils.Cfg.TeamSettings.RestrictCreationToDomains) {
 		return nil, model.NewLocAppError("CreateUser", "api.user.create_user.accepted_domain.app_error", nil, "")
 	}
 
@@ -269,7 +269,7 @@ func CreateOAuthUser(service string, userData io.Reader, teamId string) (*model.
 	}
 
 	if result := <-suchan; result.Err == nil {
-		return nil, model.NewLocAppError("CreateOAuthUser", "api.user.create_oauth_user.already_used.app_error", map[string]interface{}{"Service": service}, "email="+user.Email)
+		return result.Data.(*model.User), nil
 	}
 
 	if result := <-euchan; result.Err == nil {
@@ -313,15 +313,13 @@ func CheckUserDomain(user *model.User, domains string) bool {
 
 	domainArray := strings.Fields(strings.TrimSpace(strings.ToLower(strings.Replace(strings.Replace(domains, "@", " ", -1), ",", " ", -1))))
 
-	matched := false
 	for _, d := range domainArray {
 		if strings.HasSuffix(strings.ToLower(user.Email), "@"+d) {
-			matched = true
-			break
+			return true
 		}
 	}
 
-	return matched
+	return false
 }
 
 // Check if the username is already used by another user. Return false if the username is invalid.
@@ -709,7 +707,8 @@ func CreateProfileImage(username string, userId string) ([]byte, *model.AppError
 
 	initial := string(strings.ToUpper(username)[0])
 
-	fontBytes, err := ioutil.ReadFile(utils.FindDir("fonts") + utils.Cfg.FileSettings.InitialFont)
+	fontDir, _ := utils.FindDir("fonts")
+	fontBytes, err := ioutil.ReadFile(fontDir + utils.Cfg.FileSettings.InitialFont)
 	if err != nil {
 		return nil, model.NewLocAppError("CreateProfileImage", "api.user.create_profile_image.default_font.app_error", nil, err.Error())
 	}
@@ -803,6 +802,11 @@ func SetProfileImage(userId string, imageData *multipart.FileHeader) *model.AppE
 	if err != nil {
 		return model.NewLocAppError("SetProfileImage", "api.user.upload_profile_user.decode.app_error", nil, err.Error())
 	}
+
+	file.Seek(0, 0)
+
+	orientation, _ := getImageOrientation(file)
+	img = makeImageUpright(img, orientation)
 
 	// Scale profile image
 	img = imaging.Fill(img, utils.Cfg.FileSettings.ProfileWidth, utils.Cfg.FileSettings.ProfileHeight, imaging.Center, imaging.Lanczos)

@@ -84,7 +84,7 @@ func push(job string, grouping map[string]string, pushURL string, g prometheus.G
 	}
 	urlComponents := []string{url.QueryEscape(job)}
 	for ln, lv := range grouping {
-		if !model.LabelName(ln).IsValid() {
+		if !model.LabelNameRE.MatchString(ln) {
 			return fmt.Errorf("grouping label has invalid name: %s", ln)
 		}
 		if strings.Contains(lv, "/") {

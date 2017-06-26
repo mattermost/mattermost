@@ -684,7 +684,7 @@ func TestDateTime(t *testing.T) {
 				for _, setup := range setups.tests {
 					allowBinTime := true
 					if setup.s == "" {
-						// fill time string wherever Go can reliable produce it
+						// fill time string whereever Go can reliable produce it
 						setup.s = setup.t.Format(setups.tlayout)
 					} else if setup.s[0] == '!' {
 						// skip tests using setup.t as source in queries
@@ -856,14 +856,14 @@ func TestNULL(t *testing.T) {
 			dbt.Fatal(err)
 		}
 		if b != nil {
-			dbt.Error("non-nil []byte which should be nil")
+			dbt.Error("non-nil []byte wich should be nil")
 		}
 		// Read non-nil
 		if err = nonNullStmt.QueryRow().Scan(&b); err != nil {
 			dbt.Fatal(err)
 		}
 		if b == nil {
-			dbt.Error("nil []byte which should be non-nil")
+			dbt.Error("nil []byte wich should be non-nil")
 		}
 		// Insert nil
 		b = nil
@@ -1054,36 +1054,22 @@ func TestLoadData(t *testing.T) {
 				dbt.Fatalf("rows count mismatch. Got %d, want 4", i)
 			}
 		}
-
-		dbt.db.Exec("DROP TABLE IF EXISTS test")
-		dbt.mustExec("CREATE TABLE test (id INT NOT NULL PRIMARY KEY, value TEXT NOT NULL) CHARACTER SET utf8")
-
-		// Local File
 		file, err := ioutil.TempFile("", "gotest")
 		defer os.Remove(file.Name())
 		if err != nil {
 			dbt.Fatal(err)
 		}
-		RegisterLocalFile(file.Name())
-
-		// Try first with empty file
-		dbt.mustExec(fmt.Sprintf("LOAD DATA LOCAL INFILE %q INTO TABLE test", file.Name()))
-		var count int
-		err = dbt.db.QueryRow("SELECT COUNT(*) FROM test").Scan(&count)
-		if err != nil {
-			dbt.Fatal(err.Error())
-		}
-		if count != 0 {
-			dbt.Fatalf("unexpected row count: got %d, want 0", count)
-		}
-
-		// Then fille File with data and try to load it
 		file.WriteString("1\ta string\n2\ta string containing a \\t\n3\ta string containing a \\n\n4\ta string containing both \\t\\n\n")
 		file.Close()
+
+		dbt.db.Exec("DROP TABLE IF EXISTS test")
+		dbt.mustExec("CREATE TABLE test (id INT NOT NULL PRIMARY KEY, value TEXT NOT NULL) CHARACTER SET utf8")
+
+		// Local File
+		RegisterLocalFile(file.Name())
 		dbt.mustExec(fmt.Sprintf("LOAD DATA LOCAL INFILE %q INTO TABLE test", file.Name()))
 		verifyLoadDataResult()
-
-		// Try with non-existing file
+		// negative test
 		_, err = dbt.db.Exec("LOAD DATA LOCAL INFILE 'doesnotexist' INTO TABLE test")
 		if err == nil {
 			dbt.Fatal("load non-existent file didn't fail")
@@ -1915,37 +1901,4 @@ func TestInterruptBySignal(t *testing.T) {
 			}
 		}
 	})
-}
-
-func TestColumnsReusesSlice(t *testing.T) {
-	rows := mysqlRows{
-		rs: resultSet{
-			columns: []mysqlField{
-				{
-					tableName: "test",
-					name:      "A",
-				},
-				{
-					tableName: "test",
-					name:      "B",
-				},
-			},
-		},
-	}
-
-	allocs := testing.AllocsPerRun(1, func() {
-		cols := rows.Columns()
-
-		if len(cols) != 2 {
-			t.Fatalf("expected 2 columns, got %d", len(cols))
-		}
-	})
-
-	if allocs != 0 {
-		t.Fatalf("expected 0 allocations, got %d", int(allocs))
-	}
-
-	if rows.rs.columnNames == nil {
-		t.Fatalf("expected columnNames to be set, got nil")
-	}
 }

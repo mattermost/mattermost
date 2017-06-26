@@ -8,7 +8,7 @@ import StatisticCount from './statistic_count.jsx';
 import AnalyticsStore from 'stores/analytics_store.jsx';
 
 import * as Utils from 'utils/utils.jsx';
-import * as AsyncClient from 'utils/async_client.jsx';
+import * as AdminActions from 'actions/admin_actions.jsx';
 import Constants from 'utils/constants.jsx';
 const StatTypes = Constants.StatTypes;
 
@@ -28,12 +28,12 @@ export default class SystemAnalytics extends React.Component {
     componentDidMount() {
         AnalyticsStore.addChangeListener(this.onChange);
 
-        AsyncClient.getStandardAnalytics();
-        AsyncClient.getPostsPerDayAnalytics();
-        AsyncClient.getUsersPerDayAnalytics();
+        AdminActions.getStandardAnalytics();
+        AdminActions.getPostsPerDayAnalytics();
+        AdminActions.getUsersPerDayAnalytics();
 
         if (global.window.mm_license.IsLicensed === 'true') {
-            AsyncClient.getAdvancedAnalytics();
+            AdminActions.getAdvancedAnalytics();
         }
     }
 
