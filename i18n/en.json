@@ -2004,14 +2004,6 @@
     "translation": "The number of running goroutines is over the health threshold %v of %v"
   },
   {
-    "id": "api.team.add_user_to_team.invalid_data.app_error",
-    "translation": "Invalid data."
-  },
-  {
-    "id": "api.team.add_user_to_team.invalid_invite_id.app_error",
-    "translation": "Invalid invite id. No team matches with this invite id."
-  },
-  {
     "id": "api.team.add_user_to_team.missing_parameter.app_error",
     "translation": "Parameter required to add user to team."
   },

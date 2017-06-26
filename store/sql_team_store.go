@@ -191,7 +191,7 @@ func (s SqlTeamStore) GetByInviteId(inviteId string) StoreChannel {
 		team := model.Team{}
 
 		if err := s.GetReplica().SelectOne(&team, "SELECT * FROM Teams WHERE Id = :InviteId OR InviteId = :InviteId", map[string]interface{}{"InviteId": inviteId}); err != nil {
-			result.Err = model.NewLocAppError("SqlTeamStore.GetByInviteId", "store.sql_team.get_by_invite_id.finding.app_error", nil, "inviteId="+inviteId+", "+err.Error())
+			result.Err = model.NewAppError("SqlTeamStore.GetByInviteId", "store.sql_team.get_by_invite_id.finding.app_error", nil, "inviteId="+inviteId+", "+err.Error(), http.StatusNotFound)
 		}
 
 		if len(team.InviteId) == 0 {
@@ -199,7 +199,7 @@ func (s SqlTeamStore) GetByInviteId(inviteId string) StoreChannel {
 		}
 
 		if len(inviteId) == 0 || team.InviteId != inviteId {
-			result.Err = model.NewLocAppError("SqlTeamStore.GetByInviteId", "store.sql_team.get_by_invite_id.find.app_error", nil, "inviteId="+inviteId)
+			result.Err = model.NewAppError("SqlTeamStore.GetByInviteId", "store.sql_team.get_by_invite_id.find.app_error", nil, "inviteId="+inviteId, http.StatusNotFound)
 		}
 
 		result.Data = &team
