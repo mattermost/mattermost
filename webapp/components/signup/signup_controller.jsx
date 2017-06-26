@@ -113,7 +113,7 @@ export default class SignupController extends React.Component {
 
     handleInvalidInvite = (err) => {
         let serverError;
-        if (err.id === 'store.sql_user.save.max_accounts.app_error') {
+        if (err.server_error_id === 'store.sql_user.save.max_accounts.app_error') {
             serverError = err.message;
         } else {
             serverError = (
@@ -209,7 +209,7 @@ export default class SignupController extends React.Component {
                         </span>
                     </span>
                 </a>
-           );
+            );
         }
 
         if (global.window.mm_license.IsLicensed === 'true' && global.window.mm_config.EnableLdap === 'true') {

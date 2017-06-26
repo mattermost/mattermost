@@ -373,14 +373,8 @@ func addUserToTeamFromInvite(c *Context, w http.ResponseWriter, r *http.Request)
 
 	if len(hash) > 0 && len(data) > 0 {
 		member, err = app.AddTeamMemberByHash(c.Session.UserId, hash, data)
-		if err != nil {
-			err = model.NewAppError("addTeamMember", "api.team.add_user_to_team.invalid_data.app_error", nil, "", http.StatusNotFound)
-		}
 	} else if len(inviteId) > 0 {
 		member, err = app.AddTeamMemberByInviteId(inviteId, c.Session.UserId)
-		if err != nil {
-			err = model.NewAppError("addTeamMember", "api.team.add_user_to_team.invalid_invite_id.app_error", nil, "", http.StatusNotFound)
-		}
 	} else {
 		err = model.NewAppError("addTeamMember", "api.team.add_user_to_team.missing_parameter.app_error", nil, "", http.StatusBadRequest)
 	}
