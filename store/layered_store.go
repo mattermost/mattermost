@@ -10,34 +10,37 @@ import (
 )
 
 type LayeredStore struct {
-	TmpContext    context.Context
-	ReactionStore ReactionStore
-	DatabaseLayer *SqlSupplier
+	TmpContext      context.Context
+	ReactionStore   ReactionStore
+	DatabaseLayer   *SqlSupplier
+	LocalCacheLayer *LocalCacheSupplier
+	LayerChainHead  LayeredStoreSupplier
 }
 
 func NewLayeredStore() Store {
-	return &LayeredStore{
-		TmpContext:    context.TODO(),
-		ReactionStore: &LayeredReactionStore{},
-		DatabaseLayer: NewSqlSupplier(),
+	store := &LayeredStore{
+		TmpContext:      context.TODO(),
+		DatabaseLayer:   NewSqlSupplier(),
+		LocalCacheLayer: NewLocalCacheSupplier(),
 	}
+
+	store.ReactionStore = &LayeredReactionStore{store}
+
+	// Setup the chain
+	store.LocalCacheLayer.SetChainNext(store.DatabaseLayer)
+	store.LayerChainHead = store.LocalCacheLayer
+
+	return store
 }
 
-type QueryFunction func(LayeredStoreSupplier) LayeredStoreSupplierResult
+type QueryFunction func(LayeredStoreSupplier) *LayeredStoreSupplierResult
 
 func (s *LayeredStore) RunQuery(queryFunction QueryFunction) StoreChannel {
 	storeChannel := make(StoreChannel)
 
 	go func() {
-		finalResult := StoreResult{}
-		// Logic for determining what layers to run
-		if result := queryFunction(s.DatabaseLayer); result.Err == nil {
-			finalResult.Data = result.Result
-		} else {
-			finalResult.Err = result.Err
-		}
-
-		storeChannel <- finalResult
+		result := queryFunction(s.LayerChainHead)
+		storeChannel <- result.StoreResult
 	}()
 
 	return storeChannel
@@ -152,35 +155,25 @@ type LayeredReactionStore struct {
 }
 
 func (s *LayeredReactionStore) Save(reaction *model.Reaction) StoreChannel {
-	return s.RunQuery(func(supplier LayeredStoreSupplier) LayeredStoreSupplierResult {
+	return s.RunQuery(func(supplier LayeredStoreSupplier) *LayeredStoreSupplierResult {
 		return supplier.ReactionSave(s.TmpContext, reaction)
 	})
 }
 
 func (s *LayeredReactionStore) Delete(reaction *model.Reaction) StoreChannel {
-	return s.RunQuery(func(supplier LayeredStoreSupplier) LayeredStoreSupplierResult {
+	return s.RunQuery(func(supplier LayeredStoreSupplier) *LayeredStoreSupplierResult {
 		return supplier.ReactionDelete(s.TmpContext, reaction)
 	})
 }
 
-// TODO: DELETE ME
-func (s *LayeredReactionStore) InvalidateCacheForPost(postId string) {
-	return
-}
-
-// TODO: DELETE ME
-func (s *LayeredReactionStore) InvalidateCache() {
-	return
-}
-
 func (s *LayeredReactionStore) GetForPost(postId string, allowFromCache bool) StoreChannel {
-	return s.RunQuery(func(supplier LayeredStoreSupplier) LayeredStoreSupplierResult {
+	return s.RunQuery(func(supplier LayeredStoreSupplier) *LayeredStoreSupplierResult {
 		return supplier.ReactionGetForPost(s.TmpContext, postId)
 	})
 }
 
 func (s *LayeredReactionStore) DeleteAllWithEmojiName(emojiName string) StoreChannel {
-	return s.RunQuery(func(supplier LayeredStoreSupplier) LayeredStoreSupplierResult {
+	return s.RunQuery(func(supplier LayeredStoreSupplier) *LayeredStoreSupplierResult {
 		return supplier.ReactionDeleteAllWithEmojiName(s.TmpContext, emojiName)
 	})
 }

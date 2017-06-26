@@ -81,6 +81,7 @@ type SqlSupplierOldStores struct {
 }
 
 type SqlSupplier struct {
+	next           LayeredStoreSupplier
 	master         *gorp.DbMap
 	replicas       []*gorp.DbMap
 	searchReplicas []*gorp.DbMap
@@ -115,8 +116,9 @@ func NewSqlSupplier() *SqlSupplier {
 	supplier.oldStores.emoji = NewSqlEmojiStore(supplier)
 	supplier.oldStores.status = NewSqlStatusStore(supplier)
 	supplier.oldStores.fileInfo = NewSqlFileInfoStore(supplier)
-	supplier.oldStores.reaction = NewSqlReactionStore(supplier)
 	supplier.oldStores.job = NewSqlJobStore(supplier)
+
+	initSqlSupplierReactions(supplier)
 
 	err := supplier.GetMaster().CreateTablesIfNotExists()
 	if err != nil {
@@ -144,12 +146,19 @@ func NewSqlSupplier() *SqlSupplier {
 	supplier.oldStores.emoji.(*SqlEmojiStore).CreateIndexesIfNotExists()
 	supplier.oldStores.status.(*SqlStatusStore).CreateIndexesIfNotExists()
 	supplier.oldStores.fileInfo.(*SqlFileInfoStore).CreateIndexesIfNotExists()
-	supplier.oldStores.reaction.(*SqlReactionStore).CreateIndexesIfNotExists()
 	supplier.oldStores.job.(*SqlJobStore).CreateIndexesIfNotExists()
 
 	supplier.oldStores.preference.(*SqlPreferenceStore).DeleteUnusedFeatures()
 
 	return supplier
+}
+
+func (s *SqlSupplier) SetChainNext(next LayeredStoreSupplier) {
+	s.next = next
+}
+
+func (s *SqlSupplier) Next() LayeredStoreSupplier {
+	return s.next
 }
 
 func setupConnection(con_type string, driver string, dataSource string, maxIdle int, maxOpen int, trace bool) *gorp.DbMap {

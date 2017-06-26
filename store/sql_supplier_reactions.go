@@ -21,7 +21,7 @@ func initSqlSupplierReactions(sqlStore SqlStore) {
 	}
 }
 
-func (s *SqlSupplier) ReactionSave(ctx context.Context, reaction *model.Reaction, hints ...LayeredStoreHint) LayeredStoreSupplierResult {
+func (s *SqlSupplier) ReactionSave(ctx context.Context, reaction *model.Reaction, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
 	result := NewSupplierResult()
 
 	reaction.PreSave()
@@ -56,7 +56,7 @@ func (s *SqlSupplier) ReactionSave(ctx context.Context, reaction *model.Reaction
 	return result
 }
 
-func (s *SqlSupplier) ReactionDelete(ctx context.Context, reaction *model.Reaction, hints ...LayeredStoreHint) LayeredStoreSupplierResult {
+func (s *SqlSupplier) ReactionDelete(ctx context.Context, reaction *model.Reaction, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
 	result := NewSupplierResult()
 
 	if transaction, err := s.GetMaster().Begin(); err != nil {
@@ -79,7 +79,7 @@ func (s *SqlSupplier) ReactionDelete(ctx context.Context, reaction *model.Reacti
 	return result
 }
 
-func (s *SqlSupplier) ReactionGetForPost(ctx context.Context, postId string, hints ...LayeredStoreHint) LayeredStoreSupplierResult {
+func (s *SqlSupplier) ReactionGetForPost(ctx context.Context, postId string, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
 	result := NewSupplierResult()
 
 	var reactions []*model.Reaction
@@ -101,7 +101,7 @@ func (s *SqlSupplier) ReactionGetForPost(ctx context.Context, postId string, hin
 	return result
 }
 
-func (s *SqlSupplier) ReactionDeleteAllWithEmojiName(ctx context.Context, emojiName string, hints ...LayeredStoreHint) LayeredStoreSupplierResult {
+func (s *SqlSupplier) ReactionDeleteAllWithEmojiName(ctx context.Context, emojiName string, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
 	result := NewSupplierResult()
 
 	var reactions []*model.Reaction
