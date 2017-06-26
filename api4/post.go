@@ -302,6 +302,10 @@ func searchPosts(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequirePostId()
+	if c.Err != nil {
+		return
+	}
+
 	post := model.PostFromJson(r.Body)
 
 	if post == nil {
