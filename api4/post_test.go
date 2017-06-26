@@ -137,6 +137,8 @@ func TestUpdatePost(t *testing.T) {
 
 	msg := "zz" + model.NewId() + " update post"
 	rpost.Message = msg
+	rpost.UserId = ""
+
 	rupost, resp := Client.UpdatePost(rpost.Id, rpost)
 	CheckNoError(t, resp)
 

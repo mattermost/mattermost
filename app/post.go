@@ -239,11 +239,6 @@ func UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model.AppError
 			return nil, err
 		}
 
-		if oldPost.UserId != post.UserId {
-			err := model.NewAppError("UpdatePost", "api.post.update_post.permissions.app_error", nil, "oldUserId="+oldPost.UserId, http.StatusBadRequest)
-			return nil, err
-		}
-
 		if oldPost.DeleteAt != 0 {
 			err := model.NewAppError("UpdatePost", "api.post.update_post.permissions_details.app_error", map[string]interface{}{"PostId": post.Id}, "", http.StatusBadRequest)
 			return nil, err
