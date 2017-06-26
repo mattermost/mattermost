@@ -27,7 +27,25 @@ export default class CommandsContainer extends React.PureComponent {
             /**
             * Set if user is admin
             */
-            isAdmin: PropTypes.bool
+            isAdmin: PropTypes.bool,
+
+            /**
+            * The users collection
+            */
+            users: PropTypes.object,
+
+            /**
+            * Installed splash commands to display
+            */
+            commands: PropTypes.array,
+
+            actions: PropTypes.shape({
+
+                /**
+                * The function to call to fetch team commands
+                */
+                getCustomTeamCommands: PropTypes.func.isRequired,
+            }).isRequired
     }
 
     constructor(props) {
