@@ -21,8 +21,6 @@ import Constants from 'utils/constants.jsx';
 const ActionTypes = Constants.ActionTypes;
 import EventTypes from 'utils/event_types.jsx';
 
-import Client from 'client/web_client.jsx';
-import * as AsyncClient from 'utils/async_client.jsx';
 import WebSocketClient from 'client/web_websocket_client.jsx';
 import {sortTeamsByDisplayName} from 'utils/team_utils.jsx';
 import * as Utils from 'utils/utils.jsx';
@@ -35,20 +33,24 @@ import {browserHistory} from 'react-router/es6';
 import store from 'stores/redux_store.jsx';
 const dispatch = store.dispatch;
 const getState = store.getState;
+
+import {Client4} from 'mattermost-redux/client';
+
 import {removeUserFromTeam} from 'mattermost-redux/actions/teams';
-import {viewChannel, getChannelStats, getMyChannelMember, getChannelAndMyMember} from 'mattermost-redux/actions/channels';
+import {viewChannel, getChannelStats, getMyChannelMember, getChannelAndMyMember, createDirectChannel} from 'mattermost-redux/actions/channels';
 import {getPostThread} from 'mattermost-redux/actions/posts';
 
 export function emitChannelClickEvent(channel) {
     function userVisitedFakeChannel(chan, success, fail) {
+        const currentUserId = UserStore.getCurrentId();
         const otherUserId = Utils.getUserIdFromChannelName(chan);
-        Client.createDirectChannel(
-            otherUserId,
+        createDirectChannel(currentUserId, otherUserId)(dispatch, getState).then(
             (data) => {
-                success(data);
-            },
-            () => {
-                fail();
+                if (data) {
+                    success(data);
+                } else {
+                    fail();
+                }
             }
         );
     }
@@ -119,32 +121,29 @@ export function doFocusPost(channelId, postId, data) {
 
 export function emitPostFocusEvent(postId, onSuccess) {
     loadChannelsForCurrentUser();
-    Client.getPermalinkTmp(
-        postId,
+    getPostThread(postId)(dispatch, getState).then(
         (data) => {
-            if (!data) {
-                return;
-            }
-            const channelId = data.posts[data.order[0]].channel_id;
-            doFocusPost(channelId, postId, data);
+            if (data) {
+                const channelId = data.posts[data.order[0]].channel_id;
+                doFocusPost(channelId, postId, data);
 
-            if (onSuccess) {
-                onSuccess();
-            }
-        },
-        () => {
-            let link = `${TeamStore.getCurrentTeamRelativeUrl()}/channels/`;
-            const channel = ChannelStore.getCurrent();
-            if (channel) {
-                link += channel.name;
+                if (onSuccess) {
+                    onSuccess();
+                }
             } else {
-                link += 'town-square';
+                let link = `${TeamStore.getCurrentTeamRelativeUrl()}/channels/`;
+                const channel = ChannelStore.getCurrent();
+                if (channel) {
+                    link += channel.name;
+                } else {
+                    link += 'town-square';
+                }
+
+                const message = encodeURIComponent(Utils.localizeMessage('permalink.error.access', 'Permalink belongs to a deleted message or to a channel to which you do not have access.'));
+                const title = encodeURIComponent(Utils.localizeMessage('permalink.error.title', 'Message Not Found'));
+
+                browserHistory.push('/error?message=' + message + '&title=' + title + '&link=' + encodeURIComponent(link));
             }
-
-            const message = encodeURIComponent(Utils.localizeMessage('permalink.error.access', 'Permalink belongs to a deleted message or to a channel to which you do not have access.'));
-            const title = encodeURIComponent(Utils.localizeMessage('permalink.error.title', 'Message Not Found'));
-
-            browserHistory.push('/error?message=' + message + '&title=' + title + '&link=' + encodeURIComponent(link));
         }
     );
 }
@@ -353,8 +352,7 @@ export function newLocalizationSelected(locale) {
     } else {
         const localeInfo = I18n.getLanguageInfo(locale);
 
-        Client.getTranslations(
-            localeInfo.url,
+        Client4.getTranslations(localeInfo.url).then(
             (data, res) => {
                 let translations = data;
                 if (!data && res.text) {
@@ -365,10 +363,9 @@ export function newLocalizationSelected(locale) {
                     locale,
                     translations
                 });
-            },
-            (err) => {
-                AsyncClient.dispatchError(err, 'getTranslations');
             }
+        ).catch(
+            () => {} //eslint-disable-line no-empty-function
         );
     }
 }
@@ -414,14 +411,15 @@ export function emitRemoteUserTypingEvent(channelId, userId, postParentId) {
 }
 
 export function emitUserLoggedOutEvent(redirectTo = '/', shouldSignalLogout = true) {
-    Client.logout(
+    Client4.logout().then(
         () => {
             if (shouldSignalLogout) {
                 BrowserStore.signalLogout();
             }
 
             clientLogout(redirectTo);
-        },
+        }
+    ).catch(
         () => {
             browserHistory.push(redirectTo);
         }
@@ -523,7 +521,6 @@ export function redirectUserToDefaultTeam() {
         if (channel) {
             redirect(teams[teamId].name, channel);
         } else if (channelId) {
-            Client.setTeamId(teamId);
             getChannelAndMyMember(channelId)(dispatch, getState).then(
                 (data) => {
                     if (data) {
@@ -538,34 +535,6 @@ export function redirectUserToDefaultTeam() {
         }
     } else {
         browserHistory.push('/select_team');
-    }
-}
-
-requestOpenGraphMetadata.openGraphMetadataOnGoingRequests = {};  // Format: {<url>: true}
-export function requestOpenGraphMetadata(url) {
-    if (global.mm_config.EnableLinkPreviews !== 'true') {
-        return;
-    }
-
-    const onself = requestOpenGraphMetadata;
-
-    if (!onself.openGraphMetadataOnGoingRequests[url]) {
-        onself.openGraphMetadataOnGoingRequests[url] = true;
-
-        Client.getOpenGraphMetadata(url,
-            (data) => {
-                AppDispatcher.handleServerAction({
-                    type: ActionTypes.RECIVED_OPEN_GRAPH_METADATA,
-                    url,
-                    data
-                });
-                delete onself.openGraphMetadataOnGoingRequests[url];
-            },
-            (err) => {
-                AsyncClient.dispatchError(err, 'getOpenGraphMetadata');
-                delete onself.openGraphMetadataOnGoingRequests[url];
-            }
-        );
     }
 }
 

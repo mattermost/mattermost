@@ -7,7 +7,7 @@ import Provider from './provider.jsx';
 import {autocompleteUsersInTeam} from 'actions/user_actions.jsx';
 
 import AppDispatcher from 'dispatcher/app_dispatcher.jsx';
-import Client from 'client/web_client.jsx';
+import {Client4} from 'mattermost-redux/client';
 import * as Utils from 'utils/utils.jsx';
 import {ActionTypes} from 'utils/constants.jsx';
 
@@ -41,7 +41,7 @@ class SearchUserSuggestion extends Suggestion {
                 <i className='fa fa fa-plus-square'/>
                 <img
                     className='profile-img rounded'
-                    src={Client.getUsersRoute() + '/' + item.id + '/image?time=' + item.last_picture_update}
+                    src={Client4.getUsersRoute() + '/' + item.id + '/image?time=' + item.last_picture_update}
                 />
                 <div className='mention--align'>
                     <span>

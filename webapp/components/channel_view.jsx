@@ -25,11 +25,9 @@ export default class ChannelView extends React.Component {
 
         this.state = this.getStateFromStores(props);
     }
-    getStateFromStores(props) {
-        const channel = ChannelStore.getByName(props.params.channel);
-        const channelId = channel ? channel.id : '';
+    getStateFromStores() {
         return {
-            channelId
+            channelId: ChannelStore.getCurrentId()
         };
     }
     isStateValid() {

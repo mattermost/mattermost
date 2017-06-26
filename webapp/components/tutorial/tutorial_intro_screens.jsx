@@ -4,7 +4,7 @@
 import UserStore from 'stores/user_store.jsx';
 import TeamStore from 'stores/team_store.jsx';
 import PreferenceStore from 'stores/preference_store.jsx';
-import * as AsyncClient from 'utils/async_client.jsx';
+import {savePreference} from 'actions/user_actions.jsx';
 import * as GlobalActions from 'actions/global_actions.jsx';
 import {trackEvent} from 'actions/diagnostics_actions.jsx';
 
@@ -60,7 +60,7 @@ export default class TutorialIntroScreens extends React.Component {
 
         const step = PreferenceStore.getInt(Preferences.TUTORIAL_STEP, UserStore.getCurrentId(), 0);
 
-        AsyncClient.savePreference(
+        savePreference(
             Preferences.TUTORIAL_STEP,
             UserStore.getCurrentId(),
             (step + 1).toString()
@@ -81,7 +81,7 @@ export default class TutorialIntroScreens extends React.Component {
             break;
         }
 
-        AsyncClient.savePreference(
+        savePreference(
             Preferences.TUTORIAL_STEP,
             UserStore.getCurrentId(),
             '999'

@@ -4,8 +4,6 @@
 import TeamStore from 'stores/team_store.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
 
-import Client from 'client/web_client.jsx';
-
 import {browserHistory} from 'react-router/es6';
 
 // Redux actions
@@ -13,26 +11,17 @@ import store from 'stores/redux_store.jsx';
 const dispatch = store.dispatch;
 const getState = store.getState;
 
+import {Client4} from 'mattermost-redux/client';
+
 import {getUser} from 'mattermost-redux/actions/users';
 import {viewChannel} from 'mattermost-redux/actions/channels';
-import {
-    createTeam as createTeamRedux,
-    updateTeam as updateTeamRedux,
-    removeUserFromTeam as removeUserFromTeamRedux,
-    getTeamStats,
-    checkIfTeamExists as checkIfTeamExistsRedux,
-    updateTeamMemberRoles as updateTeamMemberRolesRedux,
-    addUsersToTeam as addUsersToTeamRedux,
-    sendEmailInvitesToTeam,
-    getTeamsForUser as getTeamsForUserRedux,
-    getTeamMembersForUser as getTeamMembersForUserRedux
-} from 'mattermost-redux/actions/teams';
+import * as TeamActions from 'mattermost-redux/actions/teams';
 
 import {TeamTypes} from 'mattermost-redux/action_types';
 import {batchActions} from 'redux-batched-actions';
 
 export function checkIfTeamExists(teamName, onSuccess, onError) {
-    checkIfTeamExistsRedux(teamName)(dispatch, getState).then(
+    TeamActions.checkIfTeamExists(teamName)(dispatch, getState).then(
         (exists) => {
             if (exists != null && onSuccess) {
                 onSuccess(exists);
@@ -45,7 +34,7 @@ export function checkIfTeamExists(teamName, onSuccess, onError) {
 }
 
 export function createTeam(team, onSuccess, onError) {
-    createTeamRedux(team)(dispatch, getState).then(
+    TeamActions.createTeam(team)(dispatch, getState).then(
         (rteam) => {
             if (rteam && onSuccess) {
                 browserHistory.push('/' + rteam.name + '/channels/town-square');
@@ -59,7 +48,7 @@ export function createTeam(team, onSuccess, onError) {
 }
 
 export function updateTeam(team, onSuccess, onError) {
-    updateTeamRedux(team)(dispatch, getState).then(
+    TeamActions.updateTeam(team)(dispatch, getState).then(
         (rteam) => {
             if (rteam && onSuccess) {
                 browserHistory.push('/' + rteam.name + '/channels/town-square');
@@ -73,10 +62,10 @@ export function updateTeam(team, onSuccess, onError) {
 }
 
 export function removeUserFromTeam(teamId, userId, success, error) {
-    removeUserFromTeamRedux(teamId, userId)(dispatch, getState).then(
+    TeamActions.removeUserFromTeam(teamId, userId)(dispatch, getState).then(
         (data) => {
             getUser(userId)(dispatch, getState);
-            getTeamStats(teamId)(dispatch, getState);
+            TeamActions.getTeamStats(teamId)(dispatch, getState);
 
             if (data && success) {
                 success();
@@ -89,7 +78,7 @@ export function removeUserFromTeam(teamId, userId, success, error) {
 }
 
 export function updateTeamMemberRoles(teamId, userId, newRoles, success, error) {
-    updateTeamMemberRolesRedux(teamId, userId, newRoles)(dispatch, getState).then(
+    TeamActions.updateTeamMemberRoles(teamId, userId, newRoles)(dispatch, getState).then(
         (data) => {
             if (data && success) {
                 success();
@@ -102,10 +91,7 @@ export function updateTeamMemberRoles(teamId, userId, newRoles, success, error) 
 }
 
 export function addUserToTeamFromInvite(data, hash, inviteId, success, error) {
-    Client.addUserToTeamFromInvite(
-        data,
-        hash,
-        inviteId,
+    Client4.addToTeamFromInvite(hash, data, inviteId).then(
         (team) => {
             const member = {
                 team_id: team.id,
@@ -131,6 +117,7 @@ export function addUserToTeamFromInvite(data, hash, inviteId, success, error) {
                 success(team);
             }
         },
+    ).catch(
         (err) => {
             if (error) {
                 error(err);
@@ -140,7 +127,7 @@ export function addUserToTeamFromInvite(data, hash, inviteId, success, error) {
 }
 
 export function addUsersToTeam(teamId, userIds, success, error) {
-    addUsersToTeamRedux(teamId, userIds)(dispatch, getState).then(
+    TeamActions.addUsersToTeam(teamId, userIds)(dispatch, getState).then(
         (teamMembers) => {
             if (teamMembers && success) {
                 success(teamMembers);
@@ -153,13 +140,13 @@ export function addUsersToTeam(teamId, userIds, success, error) {
 }
 
 export function getInviteInfo(inviteId, success, error) {
-    Client.getInviteInfo(
-        inviteId,
+    Client4.getTeamInviteInfo(inviteId).then(
         (inviteData) => {
             if (success) {
                 success(inviteData);
             }
-        },
+        }
+    ).catch(
         (err) => {
             if (error) {
                 error(err);
@@ -176,7 +163,7 @@ export function inviteMembers(data, success, error) {
     data.invites.forEach((i) => {
         emails.push(i.email);
     });
-    sendEmailInvitesToTeam(TeamStore.getCurrentId(), emails)(dispatch, getState).then(
+    TeamActions.sendEmailInvitesToTeam(TeamStore.getCurrentId(), emails)(dispatch, getState).then(
         (result) => {
             if (result && success) {
                 success();
@@ -194,7 +181,7 @@ export function switchTeams(url) {
 }
 
 export function getTeamsForUser(userId, success, error) {
-    getTeamsForUserRedux(userId)(dispatch, getState).then(
+    TeamActions.getTeamsForUser(userId)(dispatch, getState).then(
         (result) => {
             if (result && success) {
                 success(result);
@@ -207,7 +194,7 @@ export function getTeamsForUser(userId, success, error) {
 }
 
 export function getTeamMembersForUser(userId, success, error) {
-    getTeamMembersForUserRedux(userId)(dispatch, getState).then(
+    TeamActions.getTeamMembersForUser(userId)(dispatch, getState).then(
         (result) => {
             if (result && success) {
                 success(result);

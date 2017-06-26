@@ -1091,7 +1091,7 @@ func TestRestoreChannel(t *testing.T) {
 
 	_, resp = Client.RestoreChannel(privateChannel1.Id)
 	CheckOKStatus(t, resp)
-	}
+}
 
 func TestGetChannelByName(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
@@ -1684,7 +1684,7 @@ func TestAddChannelMember(t *testing.T) {
 	privateChannel := th.CreatePrivateChannel()
 
 	user3 := th.CreateUserWithClient(th.SystemAdminClient)
-	_, resp := th.SystemAdminClient.AddTeamMember(team.Id, user3.Id, "", "", team.InviteId)
+	_, resp := th.SystemAdminClient.AddTeamMember(team.Id, user3.Id)
 	CheckNoError(t, resp)
 
 	cm, resp := Client.AddChannelMember(publicChannel.Id, user2.Id)

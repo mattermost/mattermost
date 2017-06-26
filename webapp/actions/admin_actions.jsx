@@ -3,8 +3,6 @@
 
 import {clientLogout} from 'actions/global_actions.jsx';
 
-import Client from 'client/web_client.jsx';
-
 import store from 'stores/redux_store.jsx';
 const dispatch = store.dispatch;
 const getState = store.getState;
@@ -267,31 +265,26 @@ export function uploadBrandImage(brandImage, success, error) {
 }
 
 export function uploadLicenseFile(file, success, error) {
-    Client.uploadLicenseFile(
-        file,
-        () => {
-            if (success) {
-                success();
-            }
-        },
-        (err) => {
-            if (error) {
-                error(err);
+    AdminActions.uploadLicense(file)(dispatch, getState).then(
+        (data) => {
+            if (data && success) {
+                success(data);
+            } else if (data == null && error) {
+                const serverError = getState().requests.admin.uploadLicense.error;
+                error({id: serverError.server_error_id, ...serverError});
             }
         }
     );
 }
 
 export function removeLicenseFile(success, error) {
-    Client.removeLicenseFile(
-        () => {
-            if (success) {
-                success();
-            }
-        },
-        (err) => {
-            if (error) {
-                error(err);
+    AdminActions.removeLicense()(dispatch, getState).then(
+        (data) => {
+            if (data && success) {
+                success(data);
+            } else if (data == null && error) {
+                const serverError = getState().requests.admin.removeLicense.error;
+                error({id: serverError.server_error_id, ...serverError});
             }
         }
     );
@@ -373,4 +366,20 @@ export function removeIdpSamlCertificate(success, error) {
             }
         }
     );
+}
+
+export function getStandardAnalytics(teamId) {
+    AdminActions.getStandardAnalytics(teamId)(dispatch, getState);
+}
+
+export function getAdvancedAnalytics(teamId) {
+    AdminActions.getAdvancedAnalytics(teamId)(dispatch, getState);
+}
+
+export function getPostsPerDayAnalytics(teamId) {
+    AdminActions.getPostsPerDayAnalytics(teamId)(dispatch, getState);
+}
+
+export function getUsersPerDayAnalytics(teamId) {
+    AdminActions.getUsersPerDayAnalytics(teamId)(dispatch, getState);
 }

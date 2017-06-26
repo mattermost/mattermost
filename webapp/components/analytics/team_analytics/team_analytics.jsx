@@ -11,7 +11,7 @@ import LoadingScreen from 'components/loading_screen.jsx';
 import AnalyticsStore from 'stores/analytics_store.jsx';
 import BrowserStore from 'stores/browser_store.jsx';
 
-import * as AsyncClient from 'utils/async_client.jsx';
+import * as AdminActions from 'actions/admin_actions.jsx';
 import {StatTypes} from 'utils/constants.jsx';
 
 import LineChart from 'components/analytics/line_chart.jsx';
@@ -71,10 +71,9 @@ export default class TeamAnalytics extends React.Component {
     }
 
     getData(id) {
-        AsyncClient.getStandardAnalytics(id);
-        AsyncClient.getPostsPerDayAnalytics(id);
-        AsyncClient.getUsersPerDayAnalytics(id);
-        AsyncClient.getRecentAndNewUsersAnalytics(id);
+        AdminActions.getStandardAnalytics(id);
+        AdminActions.getPostsPerDayAnalytics(id);
+        AdminActions.getUsersPerDayAnalytics(id);
     }
 
     componentWillUnmount() {

@@ -6,34 +6,25 @@ import AppDispatcher from 'dispatcher/app_dispatcher.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 import PostStore from 'stores/post_store.jsx';
+import TeamStore from 'stores/team_store.jsx';
 
 import {loadNewDMIfNeeded, loadNewGMIfNeeded} from 'actions/user_actions.jsx';
-import {trackEvent} from 'actions/diagnostics_actions.jsx';
 import {sendDesktopNotification} from 'actions/notification_actions.jsx';
-
-import Client from 'client/web_client.jsx';
-import * as AsyncClient from 'utils/async_client.jsx';
 
 import Constants from 'utils/constants.jsx';
 const ActionTypes = Constants.ActionTypes;
-const Preferences = Constants.Preferences;
 
 // Redux actions
 import store from 'stores/redux_store.jsx';
 const dispatch = store.dispatch;
 const getState = store.getState;
+
 import {getProfilesByIds} from 'mattermost-redux/actions/users';
-import {
-    createPost as createPostRedux,
-    getPostThread,
-    editPost,
-    deletePost as deletePostRedux,
-    getPosts,
-    getPostsBefore,
-    addReaction as addReactionRedux,
-    removeReaction as removeReactionRedux
-} from 'mattermost-redux/actions/posts';
+import * as PostActions from 'mattermost-redux/actions/posts';
 import {getMyChannelMember} from 'mattermost-redux/actions/channels';
+
+import {Client4} from 'mattermost-redux/client';
+
 import {PostTypes} from 'mattermost-redux/action_types';
 import * as Selectors from 'mattermost-redux/selectors/entities/posts';
 import {batchActions} from 'redux-batched-actions';
@@ -47,11 +38,6 @@ export function handleNewPost(post, msg) {
     if (ChannelStore.getMyMember(post.channel_id)) {
         completePostReceive(post, websocketMessageProps);
     } else {
-        // This API call requires any real team id in API v3, so set one if we don't already have one
-        if (!Client.teamId && msg && msg.data) {
-            Client.setTeamId(msg.data.team_id);
-        }
-
         getMyChannelMember(post.channel_id)(dispatch, getState).then(() => completePostReceive(post, websocketMessageProps));
     }
 
@@ -66,7 +52,7 @@ export function handleNewPost(post, msg) {
 
 function completePostReceive(post, websocketMessageProps) {
     if (post.root_id && Selectors.getPost(getState(), post.root_id) == null) {
-        getPostThread(post.root_id)(dispatch, getState).then(
+        PostActions.getPostThread(post.root_id)(dispatch, getState).then(
             (data) => {
                 // Need manual dispatch to remove pending post
                 dispatch({
@@ -116,31 +102,16 @@ function completePostReceive(post, websocketMessageProps) {
     sendDesktopNotification(post, websocketMessageProps);
 }
 
-export function pinPost(channelId, postId) {
-    AsyncClient.pinPost(channelId, postId);
-}
-
-export function unpinPost(channelId, postId) {
-    AsyncClient.unpinPost(channelId, postId);
-}
-
 export function flagPost(postId) {
-    trackEvent('api', 'api_posts_flagged');
-    AsyncClient.savePreference(Preferences.CATEGORY_FLAGGED_POST, postId, 'true');
+    PostActions.flagPost(postId)(dispatch, getState);
 }
 
-export function unflagPost(postId, success) {
-    trackEvent('api', 'api_posts_unflagged');
-    const pref = {
-        user_id: UserStore.getCurrentId(),
-        category: Preferences.CATEGORY_FLAGGED_POST,
-        name: postId
-    };
-    AsyncClient.deletePreferences([pref], success);
+export function unflagPost(postId) {
+    PostActions.unflagPost(postId)(dispatch, getState);
 }
 
 export function getFlaggedPosts() {
-    Client.getFlaggedPosts(0, Constants.POST_CHUNK_SIZE,
+    Client4.getFlaggedPosts(UserStore.getCurrentId(), '', TeamStore.getCurrentId()).then(
         (data) => {
             AppDispatcher.handleServerAction({
                 type: ActionTypes.RECEIVED_SEARCH_TERM,
@@ -157,15 +128,14 @@ export function getFlaggedPosts() {
             });
 
             loadProfilesForPosts(data.posts);
-        },
-        (err) => {
-            AsyncClient.dispatchError(err, 'getFlaggedPosts');
         }
+    ).catch(
+        () => {} //eslint-disable-line no-empty-function
     );
 }
 
 export function getPinnedPosts(channelId = ChannelStore.getCurrentId()) {
-    Client.getPinnedPosts(channelId,
+    Client4.getPinnedPosts(channelId).then(
         (data) => {
             AppDispatcher.handleServerAction({
                 type: ActionTypes.RECEIVED_SEARCH_TERM,
@@ -182,10 +152,9 @@ export function getPinnedPosts(channelId = ChannelStore.getCurrentId()) {
             });
 
             loadProfilesForPosts(data.posts);
-        },
-        (err) => {
-            AsyncClient.dispatchError(err, 'getPinnedPosts');
         }
+    ).catch(
+        () => {} //eslint-disable-line no-empty-function
     );
 }
 
@@ -211,15 +180,15 @@ export function loadProfilesForPosts(posts) {
 }
 
 export function addReaction(channelId, postId, emojiName) {
-    addReactionRedux(postId, emojiName)(dispatch, getState);
+    PostActions.addReaction(postId, emojiName)(dispatch, getState);
 }
 
 export function removeReaction(channelId, postId, emojiName) {
-    removeReactionRedux(postId, emojiName)(dispatch, getState);
+    PostActions.removeReaction(postId, emojiName)(dispatch, getState);
 }
 
 export function createPost(post, files, success) {
-    createPostRedux(post, files)(dispatch, getState).then(() => {
+    PostActions.createPost(post, files)(dispatch, getState).then(() => {
         if (post.root_id) {
             PostStore.storeCommentDraft(post.root_id, null);
         } else {
@@ -233,7 +202,7 @@ export function createPost(post, files, success) {
 }
 
 export function updatePost(post, success) {
-    editPost(post)(dispatch, getState).then(
+    PostActions.editPost(post)(dispatch, getState).then(
         (data) => {
             if (data && success) {
                 success();
@@ -257,7 +226,7 @@ export function deletePost(channelId, post, success) {
         hardDelete = true;
     }
 
-    deletePostRedux(post, hardDelete)(dispatch, getState).then(
+    PostActions.deletePost(post, hardDelete)(dispatch, getState).then(
         () => {
             if (post.id === getState().views.rhs.selectedPostId) {
                 dispatch({
@@ -279,9 +248,7 @@ export function deletePost(channelId, post, success) {
 }
 
 export function performSearch(terms, isMentionSearch, success, error) {
-    Client.search(
-        terms,
-        isMentionSearch,
+    Client4.searchPosts(TeamStore.getCurrentId(), terms, isMentionSearch).then(
         (data) => {
             AppDispatcher.handleServerAction({
                 type: ActionTypes.RECEIVED_SEARCH,
@@ -294,10 +261,9 @@ export function performSearch(terms, isMentionSearch, success, error) {
             if (success) {
                 success(data);
             }
-        },
+        }
+    ).catch(
         (err) => {
-            AsyncClient.dispatchError(err, 'search');
-
             if (error) {
                 error(err);
             }
@@ -337,9 +303,9 @@ export function increasePostVisibility(channelId, focusedPostId) {
 
         let posts;
         if (focusedPostId) {
-            posts = await getPostsBefore(channelId, focusedPostId, page, POST_INCREASE_AMOUNT)(dispatch, getState);
+            posts = await PostActions.getPostsBefore(channelId, focusedPostId, page, POST_INCREASE_AMOUNT)(dispatch, getState);
         } else {
-            posts = await getPosts(channelId, page, POST_INCREASE_AMOUNT)(doDispatch, doGetState);
+            posts = await PostActions.getPosts(channelId, page, POST_INCREASE_AMOUNT)(doDispatch, doGetState);
         }
 
         doDispatch({

@@ -3,20 +3,21 @@
 
 import UserStore from 'stores/user_store.jsx';
 
+import AppDispatcher from 'dispatcher/app_dispatcher.jsx';
+import {ActionTypes} from 'utils/constants.jsx';
+
 import store from 'stores/redux_store.jsx';
 const dispatch = store.dispatch;
 const getState = store.getState;
 import {getProfilesByIds} from 'mattermost-redux/actions/users';
-import {getAllCustomEmojis} from 'mattermost-redux/actions/emojis';
+import * as EmojiActions from 'mattermost-redux/actions/emojis';
 
-export function loadEmoji(getProfiles = true) {
-    getAllCustomEmojis(10000)(dispatch, getState).then(
-        (data) => {
-            if (getProfiles) {
-                loadProfilesForEmoji(data);
-            }
-        }
-    );
+export async function loadEmoji(getProfiles = true) {
+    const data = await EmojiActions.getAllCustomEmojis(10000)(dispatch, getState);
+
+    if (data && getProfiles) {
+        loadProfilesForEmoji(data);
+    }
 }
 
 function loadProfilesForEmoji(emojiList) {
@@ -34,4 +35,38 @@ function loadProfilesForEmoji(emojiList) {
     }
 
     getProfilesByIds(list)(dispatch, getState);
+}
+
+export function addEmoji(emoji, image, success, error) {
+    EmojiActions.createCustomEmoji(emoji, image)(dispatch, getState).then(
+        (data) => {
+            if (data && success) {
+                success(data);
+            } else if (data == null && error) {
+                const serverError = getState().requests.emojis.createCustomEmoji.error;
+                error({id: serverError.server_error_id, ...serverError});
+            }
+        }
+    );
+}
+
+export function deleteEmoji(emojiId, success, error) {
+    EmojiActions.deleteCustomEmoji(emojiId)(dispatch, getState).then(
+        (data) => {
+            if (data) {
+                // Needed to remove recently used emoji
+                AppDispatcher.handleServerAction({
+                    type: ActionTypes.REMOVED_CUSTOM_EMOJI,
+                    id: emojiId
+                });
+
+                if (success) {
+                    success(data);
+                }
+            } else if (data == null && error) {
+                const serverError = getState().requests.emojis.deleteCustomEmoji.error;
+                error({id: serverError.server_error_id, ...serverError});
+            }
+        }
+    );
 }
