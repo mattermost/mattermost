@@ -147,7 +147,7 @@ export default class Integrations extends React.Component {
                 </div>
                 <div className='backstage-help'>
                     <h5>
-                    <hr/>
+                        <hr/>
                         <FormattedMessage
                             id='integrations.help'
                             defaultMessage='Visit the {link} to find self-hosted, third-party apps and integrations for Mattermost.'
