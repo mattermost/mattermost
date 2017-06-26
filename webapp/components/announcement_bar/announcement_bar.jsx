@@ -9,7 +9,7 @@ import AnalyticsStore from 'stores/analytics_store.jsx';
 import ErrorStore from 'stores/error_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 
-import * as AsyncClient from 'utils/async_client.jsx';
+import * as AdminActions from 'actions/admin_actions.jsx';
 import {ErrorBarTypes, StatTypes} from 'utils/constants.jsx';
 import {isLicenseExpiring, isLicenseExpired, isLicensePastGracePeriod, displayExpiryDate} from 'utils/license_utils.jsx';
 import * as Utils from 'utils/utils.jsx';
@@ -150,7 +150,7 @@ export default class AnnouncementBar extends React.PureComponent {
     onErrorChange() {
         const newState = this.getState();
         if (newState.message === ErrorBarTypes.LICENSE_EXPIRING && !this.state.totalUsers) {
-            AsyncClient.getStandardAnalytics();
+            AdminActions.getStandardAnalytics();
         }
         this.setState(newState);
     }

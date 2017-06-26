@@ -10,9 +10,9 @@ import PreferenceStore from 'stores/preference_store.jsx';
 import TeamStore from 'stores/team_store.jsx';
 import Constants from 'utils/constants.jsx';
 var ActionTypes = Constants.ActionTypes;
-import Client from 'client/web_client.jsx';
 import * as UserAgent from 'utils/user_agent.jsx';
 import {Posts} from 'mattermost-redux/constants';
+import {Client4} from 'mattermost-redux/client';
 
 import {browserHistory} from 'react-router/es6';
 import {FormattedMessage} from 'react-intl';
@@ -1116,12 +1116,7 @@ export function isDirectChannelForUser(otherUserId, channel) {
 }
 
 export function importSlack(file, success, error) {
-    var formData = new FormData();
-    formData.append('file', file, file.name);
-    formData.append('filesize', file.size);
-    formData.append('importFrom', 'slack');
-
-    Client.importSlack(formData, success, error);
+    Client4.importTeam(file, 'slack').then(success).catch(error);
 }
 
 export function windowWidth() {

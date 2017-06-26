@@ -4,7 +4,7 @@
 import AppDispatcher from 'dispatcher/app_dispatcher.jsx';
 import {WebrtcActionTypes} from 'utils/constants.jsx';
 
-import Client from 'client/web_client.jsx';
+import {Client4} from 'mattermost-redux/client';
 
 export function initWebrtc(userId, isCalling) {
     AppDispatcher.handleServerAction({
@@ -22,15 +22,17 @@ export function handle(message) {
 }
 
 export function webrtcToken(success, error) {
-    Client.webrtcToken(
+    Client4.webrtcToken().then(
         (data) => {
             if (success) {
                 success(data);
             }
-        },
+        }
+    ).catch(
         () => {
             if (error) {
                 error();
             }
-        });
+        }
+    );
 }

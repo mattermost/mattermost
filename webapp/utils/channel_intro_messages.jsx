@@ -11,8 +11,9 @@ import UserStore from 'stores/user_store.jsx';
 import TeamStore from 'stores/team_store.jsx';
 import Constants from 'utils/constants.jsx';
 import * as GlobalActions from 'actions/global_actions.jsx';
-import Client from 'client/web_client.jsx';
 import ProfilePicture from 'components/profile_picture.jsx';
+
+import {Client4} from 'mattermost-redux/client';
 
 import {showManagementOptions} from './channel_utils.jsx';
 
@@ -51,7 +52,7 @@ export function createGMIntroMessage(channel, centeredIntro) {
             pictures.push(
                 <ProfilePicture
                     key={'introprofilepicture' + profile.id}
-                    src={Client.getUsersRoute() + '/' + profile.id + '/image?time=' + profile.last_picture_update}
+                    src={Client4.getUsersRoute() + '/' + profile.id + '/image?time=' + profile.last_picture_update}
                     width='50'
                     height='50'
                     user={profile}
@@ -111,7 +112,7 @@ export function createDMIntroMessage(channel, centeredIntro) {
             <div className={'channel-intro ' + centeredIntro}>
                 <div className='post-profile-img__container channel-intro-img'>
                     <ProfilePicture
-                        src={Client.getUsersRoute() + '/' + teammate.id + '/image?time=' + teammate.last_picture_update}
+                        src={Client4.getUsersRoute() + '/' + teammate.id + '/image?time=' + teammate.last_picture_update}
                         width='50'
                         height='50'
                         user={teammate}

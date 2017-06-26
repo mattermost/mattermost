@@ -1102,9 +1102,20 @@ func (c *Client4) GetTeamMembersByIds(teamId string, userIds []string) ([]*TeamM
 }
 
 // AddTeamMember adds user to a team and return a team member.
-func (c *Client4) AddTeamMember(teamId, userId, hash, dataToHash, inviteId string) (*TeamMember, *Response) {
+func (c *Client4) AddTeamMember(teamId, userId string) (*TeamMember, *Response) {
 	member := &TeamMember{TeamId: teamId, UserId: userId}
 
+	if r, err := c.DoApiPost(c.GetTeamMembersRoute(teamId), member.ToJson()); err != nil {
+		return nil, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return TeamMemberFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// AddTeamMemberFromInvite adds a user to a team and return a team member using an invite id
+// or an invite hash/data pair.
+func (c *Client4) AddTeamMemberFromInvite(hash, dataToHash, inviteId string) (*TeamMember, *Response) {
 	var query string
 
 	if inviteId != "" {
@@ -1115,7 +1126,7 @@ func (c *Client4) AddTeamMember(teamId, userId, hash, dataToHash, inviteId strin
 		query += fmt.Sprintf("?hash=%v&data=%v", hash, dataToHash)
 	}
 
-	if r, err := c.DoApiPost(c.GetTeamMembersRoute(teamId)+query, member.ToJson()); err != nil {
+	if r, err := c.DoApiPost(c.GetTeamsRoute()+"/members/invite"+query, ""); err != nil {
 		return nil, BuildErrorResponse(r, err)
 	} else {
 		defer closeBody(r)
@@ -1123,7 +1134,7 @@ func (c *Client4) AddTeamMember(teamId, userId, hash, dataToHash, inviteId strin
 	}
 }
 
-// AddTeamMember adds a number of users to a team and returns the team members.
+// AddTeamMembers adds a number of users to a team and returns the team members.
 func (c *Client4) AddTeamMembers(teamId string, userIds []string) ([]*TeamMember, *Response) {
 	var members []*TeamMember
 	for _, userId := range userIds {

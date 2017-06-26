@@ -4,7 +4,6 @@
 import Suggestion from './suggestion.jsx';
 import Provider from './provider.jsx';
 
-import Client from 'client/web_client.jsx';
 import AppDispatcher from 'dispatcher/app_dispatcher.jsx';
 import {Constants, ActionTypes} from 'utils/constants.jsx';
 import * as Utils from 'utils/utils.jsx';
@@ -47,7 +46,7 @@ class SwitchChannelSuggestion extends Suggestion {
                 <div className='pull-left'>
                     <img
                         className='mention__image'
-                        src={Client.getUsersRoute() + '/' + channel.id + '/image?time=' + channel.last_picture_update}
+                        src={Client4.getUsersRoute() + '/' + channel.id + '/image?time=' + channel.last_picture_update}
                     />
                 </div>
             );

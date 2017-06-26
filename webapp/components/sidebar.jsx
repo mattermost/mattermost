@@ -18,7 +18,6 @@ import PreferenceStore from 'stores/preference_store.jsx';
 import ModalStore from 'stores/modal_store.jsx';
 
 import AppDispatcher from 'dispatcher/app_dispatcher.jsx';
-import * as AsyncClient from 'utils/async_client.jsx';
 import {sortTeamsByDisplayName} from 'utils/team_utils.jsx';
 import * as Utils from 'utils/utils.jsx';
 import * as ChannelUtils from 'utils/channel_utils.jsx';
@@ -42,8 +41,12 @@ import favicon from 'images/favicon/favicon-16x16.png';
 import redFavicon from 'images/favicon/redfavicon-16x16.png';
 
 import store from 'stores/redux_store.jsx';
+const dispatch = store.dispatch;
+const getState = store.getState;
+
 import {getMyPreferences} from 'mattermost-redux/selectors/entities/preferences';
 import {getUsers} from 'mattermost-redux/selectors/entities/users';
+import {savePreferences} from 'mattermost-redux/actions/preferences';
 
 export default class Sidebar extends React.Component {
     constructor(props) {
@@ -381,13 +384,8 @@ export default class Sidebar extends React.Component {
                 category = Constants.Preferences.CATEGORY_GROUP_CHANNEL_SHOW;
             }
 
-            AsyncClient.savePreference(
-                category,
-                id,
-                'false',
-                () => {
-                    this.isLeaving.set(channel.id, false);
-                },
+            const currentUserId = UserStore.getCurrentId();
+            savePreferences(currentUserId, [{user_id: currentUserId, category, name: id, value: 'false'}])(dispatch, getState).then(
                 () => {
                     this.isLeaving.set(channel.id, false);
                 }

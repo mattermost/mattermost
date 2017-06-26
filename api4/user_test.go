@@ -649,7 +649,7 @@ func TestSearchUsers(t *testing.T) {
 		t.Fatal("should have found user")
 	}
 
-	_, resp = th.SystemAdminClient.AddTeamMember(th.BasicTeam.Id, oddUser.Id, "", "", th.BasicTeam.InviteId)
+	_, resp = th.SystemAdminClient.AddTeamMember(th.BasicTeam.Id, oddUser.Id)
 	CheckNoError(t, resp)
 
 	users, resp = Client.SearchUsers(search)

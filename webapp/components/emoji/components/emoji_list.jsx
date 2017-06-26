@@ -7,14 +7,12 @@ import LoadingScreen from 'components/loading_screen.jsx';
 import EmojiStore from 'stores/emoji_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 
-import {loadEmoji} from 'actions/emoji_actions.jsx';
+import * as EmojiActions from 'actions/emoji_actions.jsx';
 
-import * as AsyncClient from 'utils/async_client.jsx';
 import * as Utils from 'utils/utils.jsx';
 
-import PropTypes from 'prop-types';
-
 import React from 'react';
+import PropTypes from 'prop-types';
 import {Link} from 'react-router';
 import {FormattedMessage} from 'react-intl';
 
@@ -38,7 +36,7 @@ export default class EmojiList extends React.Component {
 
         this.state = {
             emojis: EmojiStore.getCustomEmojiMap(),
-            loading: !EmojiStore.hasReceivedCustomEmojis(),
+            loading: true,
             filter: '',
             users: UserStore.getProfiles()
         };
@@ -49,7 +47,7 @@ export default class EmojiList extends React.Component {
         UserStore.addChangeListener(this.handleUserChange);
 
         if (window.mm_config.EnableCustomEmoji === 'true') {
-            loadEmoji();
+            EmojiActions.loadEmoji().then(() => this.setState({loading: false}));
         }
 
         this.updateTitle();
@@ -71,8 +69,7 @@ export default class EmojiList extends React.Component {
 
     handleEmojiChange() {
         this.setState({
-            emojis: EmojiStore.getCustomEmojiMap(),
-            loading: !EmojiStore.hasReceivedCustomEmojis()
+            emojis: EmojiStore.getCustomEmojiMap()
         });
     }
 
@@ -87,7 +84,7 @@ export default class EmojiList extends React.Component {
     }
 
     deleteEmoji(emoji) {
-        AsyncClient.deleteEmoji(emoji.id);
+        EmojiActions.deleteEmoji(emoji.id);
     }
 
     render() {

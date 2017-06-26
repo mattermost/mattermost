@@ -1,8 +1,6 @@
 // Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import AppDispatcher from 'dispatcher/app_dispatcher.jsx';
-
 import TeamStore from 'stores/team_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
@@ -14,36 +12,19 @@ import * as GlobalActions from 'actions/global_actions.jsx';
 import {loadProfilesForSidebar, loadNewDMIfNeeded, loadNewGMIfNeeded} from 'actions/user_actions.jsx';
 import {trackEvent} from 'actions/diagnostics_actions.jsx';
 
-import Client from 'client/web_client.jsx';
-import * as AsyncClient from 'utils/async_client.jsx';
 import * as UserAgent from 'utils/user_agent.jsx';
 import * as Utils from 'utils/utils.jsx';
-import {Constants, Preferences, ActionTypes} from 'utils/constants.jsx';
+import {Constants, Preferences} from 'utils/constants.jsx';
 
 import {browserHistory} from 'react-router/es6';
 
-// Redux actions
 import store from 'stores/redux_store.jsx';
 const dispatch = store.dispatch;
 const getState = store.getState;
 
-import {
-    viewChannel,
-    addChannelMember,
-    removeChannelMember,
-    updateChannelMemberRoles,
-    createDirectChannel,
-    fetchMyChannelsAndMembers,
-    joinChannel as joinChannelRedux,
-    leaveChannel as leaveChannelRedux,
-    updateChannel as updateChannelRedux,
-    searchChannels,
-    updateChannelNotifyProps as updateChannelNotifyPropsRedux,
-    createChannel as createChannelRedux,
-    patchChannel,
-    getChannelMembersByIds,
-    deleteChannel as deleteChannelRedux
-} from 'mattermost-redux/actions/channels';
+import * as ChannelActions from 'mattermost-redux/actions/channels';
+import {savePreferences, deletePreferences} from 'mattermost-redux/actions/preferences';
+import {Client4} from 'mattermost-redux/client';
 
 import {getMyChannelMemberships} from 'mattermost-redux/selectors/entities/channels';
 
@@ -92,10 +73,8 @@ export function executeCommand(message, args, success, error) {
         return;
     }
 
-    Client.executeCommand(msg, args, success,
+    Client4.executeCommand(msg, args).then(success).catch(
         (err) => {
-            AsyncClient.dispatchError(err, 'executeCommand');
-
             if (error) {
                 error(err);
             }
@@ -105,7 +84,7 @@ export function executeCommand(message, args, success, error) {
 
 export function setChannelAsRead(channelIdParam) {
     const channelId = channelIdParam || ChannelStore.getCurrentId();
-    viewChannel(channelId)(dispatch, getState);
+    ChannelActions.viewChannel(channelId)(dispatch, getState);
     ChannelStore.resetCounts([channelId]);
     ChannelStore.emitChange();
     if (channelId === ChannelStore.getCurrentId()) {
@@ -114,7 +93,7 @@ export function setChannelAsRead(channelIdParam) {
 }
 
 export function addUserToChannel(channelId, userId, success, error) {
-    addChannelMember(channelId, userId)(dispatch, getState).then(
+    ChannelActions.addChannelMember(channelId, userId)(dispatch, getState).then(
         (data) => {
             if (data && success) {
                 success(data);
@@ -127,7 +106,7 @@ export function addUserToChannel(channelId, userId, success, error) {
 }
 
 export function removeUserFromChannel(channelId, userId, success, error) {
-    removeChannelMember(channelId, userId)(dispatch, getState).then(
+    ChannelActions.removeChannelMember(channelId, userId)(dispatch, getState).then(
         (data) => {
             if (data && success) {
                 success(data);
@@ -140,7 +119,7 @@ export function removeUserFromChannel(channelId, userId, success, error) {
 }
 
 export function makeUserChannelAdmin(channelId, userId, success, error) {
-    updateChannelMemberRoles(channelId, userId, 'channel_user channel_admin')(dispatch, getState).then(
+    ChannelActions.updateChannelMemberRoles(channelId, userId, 'channel_user channel_admin')(dispatch, getState).then(
         (data) => {
             if (data && success) {
                 success(data);
@@ -153,7 +132,7 @@ export function makeUserChannelAdmin(channelId, userId, success, error) {
 }
 
 export function makeUserChannelMember(channelId, userId, success, error) {
-    updateChannelMemberRoles(channelId, userId, 'channel_user')(dispatch, getState).then(
+    ChannelActions.updateChannelMemberRoles(channelId, userId, 'channel_user')(dispatch, getState).then(
         (data) => {
             if (data && success) {
                 success(data);
@@ -174,11 +153,8 @@ export function openDirectChannelToUser(userId, success, error) {
         PreferenceStore.setPreference(Preferences.CATEGORY_DIRECT_CHANNEL_SHOW, userId, 'true');
         loadProfilesForSidebar();
 
-        AsyncClient.savePreference(
-            Preferences.CATEGORY_DIRECT_CHANNEL_SHOW,
-            userId,
-            'true'
-        );
+        const currentUserId = UserStore.getCurrentId();
+        savePreferences(currentUserId, [{user_id: currentUserId, category: Preferences.CATEGORY_DIRECT_CHANNEL_SHOW, name: userId, value: 'true'}])(dispatch, getState);
 
         if (success) {
             success(channel, true);
@@ -187,7 +163,7 @@ export function openDirectChannelToUser(userId, success, error) {
         return;
     }
 
-    createDirectChannel(UserStore.getCurrentId(), userId)(dispatch, getState).then(
+    ChannelActions.createDirectChannel(UserStore.getCurrentId(), userId)(dispatch, getState).then(
         (data) => {
             loadProfilesForSidebar();
             if (data && success) {
@@ -202,37 +178,15 @@ export function openDirectChannelToUser(userId, success, error) {
 }
 
 export function openGroupChannelToUsers(userIds, success, error) {
-    Client.createGroupChannel(
-        userIds,
+    ChannelActions.createGroupChannel(userIds)(dispatch, getState).then(
         (data) => {
-            Client.getChannelMember(
-                data.id,
-                UserStore.getCurrentId(),
-                (data2) => {
-                    AppDispatcher.handleServerAction({
-                        type: ActionTypes.RECEIVED_CHANNEL,
-                        channel: data,
-                        member: data2
-                    });
-
-                    PreferenceStore.setPreference(Preferences.CATEGORY_GROUP_CHANNEL_SHOW, data.id, 'true');
-                    loadProfilesForSidebar();
-
-                    AsyncClient.savePreference(
-                        Preferences.CATEGORY_GROUP_CHANNEL_SHOW,
-                        data.id,
-                        'true'
-                    );
-
-                    if (success) {
-                        success(data);
-                    }
-                }
-            );
-        },
-        () => {
-            if (error) {
-                error();
+            loadProfilesForSidebar();
+            if (data && success) {
+                success(data, false);
+            } else if (data == null && error) {
+                browserHistory.push(TeamStore.getCurrentTeamUrl());
+                const serverError = getState().requests.channels.createChannel.error;
+                error({id: serverError.server_error_id, ...serverError});
             }
         }
     );
@@ -240,22 +194,25 @@ export function openGroupChannelToUsers(userIds, success, error) {
 
 export function markFavorite(channelId) {
     trackEvent('api', 'api_channels_favorited');
-    AsyncClient.savePreference(Preferences.CATEGORY_FAVORITE_CHANNEL, channelId, 'true');
+    const currentUserId = UserStore.getCurrentId();
+    savePreferences(currentUserId, [{user_id: currentUserId, category: Preferences.CATEGORY_FAVORITE_CHANNEL, name: channelId, value: 'true'}])(dispatch, getState);
 }
 
 export function unmarkFavorite(channelId) {
     trackEvent('api', 'api_channels_unfavorited');
+    const currentUserId = UserStore.getCurrentId();
+
     const pref = {
-        user_id: UserStore.getCurrentId(),
+        user_id: currentUserId,
         category: Preferences.CATEGORY_FAVORITE_CHANNEL,
         name: channelId
     };
 
-    AsyncClient.deletePreferences([pref]);
+    deletePreferences(currentUserId, [pref])(dispatch, getState);
 }
 
 export function loadChannelsForCurrentUser() {
-    fetchMyChannelsAndMembers(TeamStore.getCurrentId())(dispatch, getState).then(
+    ChannelActions.fetchMyChannelsAndMembers(TeamStore.getCurrentId())(dispatch, getState).then(
         () => {
             loadDMsAndGMsForUnreads();
         }
@@ -281,7 +238,7 @@ export function loadDMsAndGMsForUnreads() {
 }
 
 export function joinChannel(channel, success, error) {
-    joinChannelRedux(UserStore.getCurrentId(), null, channel.id)(dispatch, getState).then(
+    ChannelActions.joinChannel(UserStore.getCurrentId(), null, channel.id)(dispatch, getState).then(
         (data) => {
             if (data && success) {
                 success(data);
@@ -294,7 +251,7 @@ export function joinChannel(channel, success, error) {
 }
 
 export function updateChannel(channel, success, error) {
-    updateChannelRedux(channel)(dispatch, getState).then(
+    ChannelActions.updateChannel(channel)(dispatch, getState).then(
         (data) => {
             if (data && success) {
                 success(data);
@@ -307,7 +264,7 @@ export function updateChannel(channel, success, error) {
 }
 
 export function searchMoreChannels(term, success, error) {
-    searchChannels(TeamStore.getCurrentId(), term)(dispatch, getState).then(
+    ChannelActions.searchChannels(TeamStore.getCurrentId(), term)(dispatch, getState).then(
         (data) => {
             if (data && success) {
                 const myMembers = getMyChannelMemberships(getState());
@@ -322,7 +279,7 @@ export function searchMoreChannels(term, success, error) {
 }
 
 export function autocompleteChannels(term, success, error) {
-    searchChannels(TeamStore.getCurrentId(), term)(dispatch, getState).then(
+    ChannelActions.searchChannels(TeamStore.getCurrentId(), term)(dispatch, getState).then(
         (data) => {
             if (data && success) {
                 success(data);
@@ -335,7 +292,7 @@ export function autocompleteChannels(term, success, error) {
 }
 
 export function updateChannelNotifyProps(data, options, success, error) {
-    updateChannelNotifyPropsRedux(data.user_id, data.channel_id, Object.assign({}, data, options))(dispatch, getState).then(
+    ChannelActions.updateChannelNotifyProps(data.user_id, data.channel_id, Object.assign({}, data, options))(dispatch, getState).then(
         (result) => {
             if (result && success) {
                 success(result);
@@ -348,7 +305,7 @@ export function updateChannelNotifyProps(data, options, success, error) {
 }
 
 export function createChannel(channel, success, error) {
-    createChannelRedux(channel)(dispatch, getState).then(
+    ChannelActions.createChannel(channel)(dispatch, getState).then(
         (data) => {
             if (data && success) {
                 success(data);
@@ -361,7 +318,7 @@ export function createChannel(channel, success, error) {
 }
 
 export function updateChannelPurpose(channelId, purpose, success, error) {
-    patchChannel(channelId, {purpose})(dispatch, getState).then(
+    ChannelActions.patchChannel(channelId, {purpose})(dispatch, getState).then(
         (data) => {
             if (data && success) {
                 success(data);
@@ -374,7 +331,7 @@ export function updateChannelPurpose(channelId, purpose, success, error) {
 }
 
 export function updateChannelHeader(channelId, header, success, error) {
-    patchChannel(channelId, {header})(dispatch, getState).then(
+    ChannelActions.patchChannel(channelId, {header})(dispatch, getState).then(
         (data) => {
             if (data && success) {
                 success(data);
@@ -387,7 +344,7 @@ export function updateChannelHeader(channelId, header, success, error) {
 }
 
 export function getChannelMembersForUserIds(channelId, userIds, success, error) {
-    getChannelMembersByIds(channelId, userIds)(dispatch, getState).then(
+    ChannelActions.getChannelMembersByIds(channelId, userIds)(dispatch, getState).then(
         (data) => {
             if (data && success) {
                 success(data);
@@ -400,7 +357,7 @@ export function getChannelMembersForUserIds(channelId, userIds, success, error) 
 }
 
 export function leaveChannel(channelId, success) {
-    leaveChannelRedux(channelId)(dispatch, getState).then(
+    ChannelActions.leaveChannel(channelId)(dispatch, getState).then(
         () => {
             if (ChannelUtils.isFavoriteChannelId(channelId)) {
                 unmarkFavorite(channelId);
@@ -417,7 +374,7 @@ export function leaveChannel(channelId, success) {
 }
 
 export function deleteChannel(channelId, success, error) {
-    deleteChannelRedux(channelId)(dispatch, getState).then(
+    ChannelActions.deleteChannel(channelId)(dispatch, getState).then(
         (data) => {
             if (data && success) {
                 success(data);
