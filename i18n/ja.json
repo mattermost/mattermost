@@ -660,6 +660,22 @@
     "translation": "あなたはオンライン状態です"
   },
   {
+    "id": "api.command_open.name",
+    "translation": "open"
+  },
+  {
+    "id": "api.command_settings.desc",
+    "translation": "アカウント設定ダイアログを開く"
+  },
+  {
+    "id": "api.command_settings.name",
+    "translation": "設定"
+  },
+  {
+    "id": "api.command_settings.unsupported.app_error",
+    "translation": "このデバイスでは設定コマンドはサポートされていません"
+  },
+  {
     "id": "api.command_shortcuts.browser.channel_next",
     "translation": "{{.ChannelNextCmd}}: 履歴の次のチャンネル\n"
   },
@@ -3261,7 +3277,7 @@
   },
   {
     "id": "ent.cluster.config_changed.info",
-    "translation": "クラスター設定はid=%vへ変更されました。  クラスターサービスを再起動しようとしています。  コア部分の設定変更を検出したため、クラスターが正常に設定されていることを確実にするために、この再起動を信頼すべきではありません。"
+    "translation": "id={{ .id }} のクラスター設定が変更されました。  このクラスターは不安定になる可能性があるため再起動が必要です。  このクラスターを正常に設定するため、すぐにローリングリスタートを実施してください。"
   },
   {
     "id": "ent.cluster.debug_fail.debug",
@@ -3293,7 +3309,7 @@
   },
   {
     "id": "ent.cluster.save_config.error",
-    "translation": "高可用モードを有効にした場合、システムコンソールは読み込み専用となります。"
+    "translation": "高可用モードが有効な場合、設定ファイルのReadOnlyConfigが無効でない限りシステムコンソールは読み取り専用です"
   },
   {
     "id": "ent.cluster.starting.info",
