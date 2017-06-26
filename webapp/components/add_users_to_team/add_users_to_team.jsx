@@ -201,7 +201,7 @@ export default class AddUsersToTeam extends React.Component {
         const numRemainingText = (
             <FormattedMessage
                 id='multiselect.numPeopleRemaining'
-                defaultMessage='You can add {num, number} more {num, plural, one {person} other {people}}. '
+                defaultMessage='Use ↑↓ to browse, ↵ to select. You can add {num, number} more {num, plural, one {person} other {people}}. '
                 values={{
                     num: MAX_SELECTABLE_VALUES - this.state.values.length
                 }}
