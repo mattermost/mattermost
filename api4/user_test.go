@@ -261,7 +261,7 @@ func TestCreateUserWithInviteId(t *testing.T) {
 		inviteId := model.NewId()
 
 		_, resp := Client.CreateUserWithInviteId(&user, inviteId)
-		CheckInternalErrorStatus(t, resp)
+		CheckNotFoundStatus(t, resp)
 		CheckErrorMessage(t, resp, "store.sql_team.get_by_invite_id.find.app_error")
 	})
 
@@ -283,7 +283,7 @@ func TestCreateUserWithInviteId(t *testing.T) {
 		CheckNoError(t, resp)
 
 		_, resp = Client.CreateUserWithInviteId(&user, inviteId)
-		CheckInternalErrorStatus(t, resp)
+		CheckNotFoundStatus(t, resp)
 		CheckErrorMessage(t, resp, "store.sql_team.get_by_invite_id.find.app_error")
 	})
 
