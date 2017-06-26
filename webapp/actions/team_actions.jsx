@@ -18,7 +18,6 @@ import {viewChannel} from 'mattermost-redux/actions/channels';
 import * as TeamActions from 'mattermost-redux/actions/teams';
 
 import {TeamTypes} from 'mattermost-redux/action_types';
-import {batchActions} from 'redux-batched-actions';
 
 export function checkIfTeamExists(teamName, onSuccess, onError) {
     TeamActions.checkIfTeamExists(teamName)(dispatch, getState).then(
@@ -92,30 +91,24 @@ export function updateTeamMemberRoles(teamId, userId, newRoles, success, error) 
 
 export function addUserToTeamFromInvite(data, hash, inviteId, success, error) {
     Client4.addToTeamFromInvite(hash, data, inviteId).then(
-        (team) => {
-            const member = {
-                team_id: team.id,
-                user_id: getState().entities.users.currentUserId,
-                roles: 'team_user',
-                delete_at: 0,
-                msg_count: 0,
-                mention_count: 0
-            };
+        (member) => {
+            TeamActions.getTeam(member.team_id)(dispatch, getState).then(
+                (team) => {
+                    dispatch({
+                        type: TeamTypes.RECEIVED_MY_TEAM_MEMBER,
+                        data: {
+                            ...member,
+                            delete_at: 0,
+                            msg_count: 0,
+                            mention_count: 0
+                        }
+                    });
 
-            dispatch(batchActions([
-                {
-                    type: TeamTypes.RECEIVED_TEAMS_LIST,
-                    data: [team]
-                },
-                {
-                    type: TeamTypes.RECEIVED_MY_TEAM_MEMBER,
-                    data: member
+                    if (success) {
+                        success(team);
+                    }
                 }
-            ]));
-
-            if (success) {
-                success(team);
-            }
+            );
         },
     ).catch(
         (err) => {
