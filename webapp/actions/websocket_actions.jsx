@@ -31,6 +31,7 @@ const getState = store.getState;
 
 import {batchActions} from 'redux-batched-actions';
 import {Client4} from 'mattermost-redux/client';
+import {getSiteURL} from 'utils/url.jsx';
 
 import * as TeamActions from 'mattermost-redux/actions/teams';
 import {viewChannel, getChannelAndMyMember, getChannelStats} from 'mattermost-redux/actions/channels';
@@ -46,7 +47,7 @@ export function initialize() {
         return;
     }
 
-    let connUrl = Client4.getWebSocketUrl();
+    let connUrl = getSiteURL();
 
     // replace the protocol with a websocket one
     if (connUrl.startsWith('https:')) {
@@ -56,13 +57,15 @@ export function initialize() {
     }
 
     // append a port number if one isn't already specified
-    if (!(/:\d+/).test(connUrl)) {
+    if (!(/:\d+$/).test(connUrl)) {
         if (connUrl.startsWith('wss:')) {
             connUrl += ':' + global.window.mm_config.WebsocketSecurePort;
         } else {
             connUrl += ':' + global.window.mm_config.WebsocketPort;
         }
     }
+
+    connUrl += Client4.getUrlVersion() + '/websocket';
 
     WebSocketClient.setEventCallback(handleEvent);
     WebSocketClient.setFirstConnectCallback(handleFirstConnect);
