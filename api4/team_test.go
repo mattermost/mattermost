@@ -927,14 +927,14 @@ func TestAddTeamMember(t *testing.T) {
 	}
 
 	tm, resp = Client.AddTeamMemberFromInvite("junk", data, "")
-	CheckNotFoundStatus(t, resp)
+	CheckBadRequestStatus(t, resp)
 
 	if tm != nil {
 		t.Fatal("should have not returned team member")
 	}
 
 	_, resp = Client.AddTeamMemberFromInvite(hashed, "junk", "")
-	CheckNotFoundStatus(t, resp)
+	CheckBadRequestStatus(t, resp)
 
 	// expired data of more than 50 hours
 	dataObject["time"] = fmt.Sprintf("%v", model.GetMillis()-1000*60*60*50)
@@ -942,7 +942,7 @@ func TestAddTeamMember(t *testing.T) {
 	hashed = utils.HashSha256(fmt.Sprintf("%v:%v", data, utils.Cfg.EmailSettings.InviteSalt))
 
 	tm, resp = Client.AddTeamMemberFromInvite(hashed, data, "")
-	CheckNotFoundStatus(t, resp)
+	CheckBadRequestStatus(t, resp)
 
 	// invalid team id
 	dataObject["id"] = GenerateTestId()
@@ -950,7 +950,7 @@ func TestAddTeamMember(t *testing.T) {
 	hashed = utils.HashSha256(fmt.Sprintf("%v:%v", data, utils.Cfg.EmailSettings.InviteSalt))
 
 	tm, resp = Client.AddTeamMemberFromInvite(hashed, data, "")
-	CheckNotFoundStatus(t, resp)
+	CheckBadRequestStatus(t, resp)
 
 	// by invite_id
 	Client.Login(otherUser.Email, otherUser.Password)
@@ -971,14 +971,14 @@ func TestAddTeamMember(t *testing.T) {
 	}
 
 	tm, resp = Client.AddTeamMemberFromInvite("", "", "junk")
-	CheckNotFoundStatus(t, resp)
+	CheckBadRequestStatus(t, resp)
 
 	if tm != nil {
 		t.Fatal("should have not returned team member")
 	}
 
 	_, resp = Client.AddTeamMemberFromInvite("", "", "junk")
-	CheckNotFoundStatus(t, resp)
+	CheckBadRequestStatus(t, resp)
 }
 
 func TestAddTeamMembers(t *testing.T) {

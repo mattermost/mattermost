@@ -84,7 +84,6 @@ export default class SelectTeam extends React.Component {
                     <SelectTeamItem
                         key={'team_' + openTeam.name}
                         team={openTeam}
-                        url={`/signup_user_complete/?id=${openTeam.invite_id}`}
                         onTeamClick={this.handleTeamClick}
                         loading={this.state.loadingTeamId === openTeam.id}
                     />
