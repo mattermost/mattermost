@@ -94,9 +94,6 @@ export default class UserSettingsDisplay extends React.Component {
         savePreferences([timePreference, namePreference, fontPreference, channelDisplayModePreference, messageDisplayPreference, collapseDisplayPreference],
             () => {
                 this.updateSection('');
-            },
-            (err) => {
-                this.setState({serverError: err.message});
             }
         );
     }
