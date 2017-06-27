@@ -164,7 +164,6 @@ export default class Integrations extends React.Component {
                             )
                         }}
                     />
-                    <hr/>
                 </div>
                 <div>
                     {options}
