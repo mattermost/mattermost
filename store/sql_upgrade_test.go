@@ -12,17 +12,17 @@ import (
 func TestStoreUpgrade(t *testing.T) {
 	Setup()
 
-	saveSchemaVersion(store.(*SqlStore), VERSION_3_0_0)
-	UpgradeDatabase(store.(*SqlStore))
+	saveSchemaVersion(store.(*LayeredStore).DatabaseLayer, VERSION_3_0_0)
+	UpgradeDatabase(store.(*LayeredStore).DatabaseLayer)
 
-	store.(*SqlStore).SchemaVersion = ""
-	UpgradeDatabase(store.(*SqlStore))
+	saveSchemaVersion(store.(*LayeredStore).DatabaseLayer, "")
+	UpgradeDatabase(store.(*LayeredStore).DatabaseLayer)
 }
 
 func TestSaveSchemaVersion(t *testing.T) {
 	Setup()
 
-	saveSchemaVersion(store.(*SqlStore), VERSION_3_0_0)
+	saveSchemaVersion(store.(*LayeredStore).DatabaseLayer, VERSION_3_0_0)
 	if result := <-store.System().Get(); result.Err != nil {
 		t.Fatal(result.Err)
 	} else {
@@ -32,9 +32,9 @@ func TestSaveSchemaVersion(t *testing.T) {
 		}
 	}
 
-	if store.(*SqlStore).SchemaVersion != VERSION_3_0_0 {
+	if store.(*LayeredStore).DatabaseLayer.GetCurrentSchemaVersion() != VERSION_3_0_0 {
 		t.Fatal("version not updated")
 	}
 
-	saveSchemaVersion(store.(*SqlStore), model.CurrentVersion)
+	saveSchemaVersion(store.(*LayeredStore).DatabaseLayer, model.CurrentVersion)
 }

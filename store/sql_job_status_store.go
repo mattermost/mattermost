@@ -11,10 +11,10 @@ import (
 )
 
 type SqlJobStatusStore struct {
-	*SqlStore
+	SqlStore
 }
 
-func NewSqlJobStatusStore(sqlStore *SqlStore) JobStatusStore {
+func NewSqlJobStatusStore(sqlStore SqlStore) JobStatusStore {
 	s := &SqlJobStatusStore{sqlStore}
 
 	for _, db := range sqlStore.GetAllConns() {

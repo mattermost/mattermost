@@ -10,10 +10,10 @@ import (
 )
 
 type SqlSessionStore struct {
-	*SqlStore
+	SqlStore
 }
 
-func NewSqlSessionStore(sqlStore *SqlStore) SessionStore {
+func NewSqlSessionStore(sqlStore SqlStore) SessionStore {
 	us := &SqlSessionStore{sqlStore}
 
 	for _, db := range sqlStore.GetAllConns() {
