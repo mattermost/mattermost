@@ -4,8 +4,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
-import {getCustomTeamCommands} from 'mattermost-redux/actions/integrations';
-
 export default class CommandsContainer extends React.PureComponent {
     static propTypes = {
 
