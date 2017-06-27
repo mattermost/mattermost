@@ -9,43 +9,43 @@ import {getCustomTeamCommands} from 'mattermost-redux/actions/integrations';
 export default class CommandsContainer extends React.PureComponent {
     static propTypes = {
 
-            /**
-            * The team data needed to pass into child components
-            */
-            team: PropTypes.object,
+        /**
+        * The team data needed to pass into child components
+        */
+        team: PropTypes.object,
+
+        /**
+        * The user data needed to pass into child components
+        */
+        user: PropTypes.object,
+
+        /**
+        * The children prop needed to render child component
+        */
+        children: PropTypes.node.isRequired,
+
+        /**
+        * Set if user is admin
+        */
+        isAdmin: PropTypes.bool,
+
+        /**
+        * The users collection
+        */
+        users: PropTypes.object,
+
+        /**
+        * Installed splash commands to display
+        */
+        commands: PropTypes.array,
+
+        actions: PropTypes.shape({
 
             /**
-            * The user data needed to pass into child components
+            * The function to call to fetch team commands
             */
-            user: PropTypes.object,
-
-            /**
-            * The children prop needed to render child component
-            */
-            children: PropTypes.node.isRequired,
-
-            /**
-            * Set if user is admin
-            */
-            isAdmin: PropTypes.bool,
-
-            /**
-            * The users collection
-            */
-            users: PropTypes.object,
-
-            /**
-            * Installed splash commands to display
-            */
-            commands: PropTypes.array,
-
-            actions: PropTypes.shape({
-
-                /**
-                * The function to call to fetch team commands
-                */
-                getCustomTeamCommands: PropTypes.func.isRequired,
-            }).isRequired
+            getCustomTeamCommands: PropTypes.func.isRequired
+        }).isRequired
     }
 
     constructor(props) {
