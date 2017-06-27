@@ -391,7 +391,7 @@ export function saveTheme(teamId, theme, cb) {
         value: JSON.stringify(theme)
     }];
 
-    savePreferences(currentUserId, preference)(dispatch, getState).then(
+    savePreferencesRedux(currentUserId, preference)(dispatch, getState).then(
         () => {
             onThemeSaved(teamId, theme, cb);
         }
@@ -793,17 +793,10 @@ export function loadMyTeamMembers() {
     );
 }
 
-export function savePreferences(prefs, success, error) {
+export function savePreferences(prefs, callback) {
     const currentUserId = UserStore.getCurrentId();
     savePreferencesRedux(currentUserId, prefs)(dispatch, getState).then(
-        (data) => {
-            if (data && success) {
-                success(data);
-            } else if (data == null && error) {
-                const serverError = getState().requests.preferences.savePreferences.error;
-                error({id: serverError.server_error_id, ...serverError});
-            }
-        }
+        () => callback()
     );
 }
 

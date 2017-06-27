@@ -137,9 +137,6 @@ export default class AdvancedSettingsDisplay extends React.Component {
             preferences,
             () => {
                 this.updateSection('');
-            },
-            (err) => {
-                this.setState({serverError: err.message});
             }
         );
     }
