@@ -281,6 +281,13 @@ export function showLeaveTeamModal() {
     });
 }
 
+export function showLeavePrivateChannelModal(channel) {
+    AppDispatcher.handleViewAction({
+        type: ActionTypes.TOGGLE_LEAVE_PRIVATE_CHANNEL_MODAL,
+        value: channel
+    });
+}
+
 export function emitSuggestionPretextChanged(suggestionId, pretext) {
     AppDispatcher.handleViewAction({
         type: ActionTypes.SUGGESTION_PRETEXT_CHANGED,
