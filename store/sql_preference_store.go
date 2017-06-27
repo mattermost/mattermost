@@ -11,14 +11,14 @@ import (
 )
 
 type SqlPreferenceStore struct {
-	*SqlStore
+	SqlStore
 }
 
 const (
 	FEATURE_TOGGLE_PREFIX = "feature_enabled_"
 )
 
-func NewSqlPreferenceStore(sqlStore *SqlStore) PreferenceStore {
+func NewSqlPreferenceStore(sqlStore SqlStore) PreferenceStore {
 	s := &SqlPreferenceStore{sqlStore}
 
 	for _, db := range sqlStore.GetAllConns() {

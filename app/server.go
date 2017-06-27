@@ -87,7 +87,7 @@ func NewServer() {
 }
 
 func InitStores() {
-	Srv.Store = store.NewSqlStore()
+	Srv.Store = store.NewLayeredStore()
 }
 
 type VaryBy struct{}

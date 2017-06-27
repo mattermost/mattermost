@@ -17,7 +17,7 @@ import (
 )
 
 type SqlPostStore struct {
-	*SqlStore
+	SqlStore
 }
 
 const (
@@ -36,7 +36,7 @@ func ClearPostCaches() {
 	lastPostsCache.Purge()
 }
 
-func NewSqlPostStore(sqlStore *SqlStore) PostStore {
+func NewSqlPostStore(sqlStore SqlStore) PostStore {
 	s := &SqlPostStore{sqlStore}
 
 	for _, db := range sqlStore.GetAllConns() {

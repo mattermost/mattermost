@@ -185,7 +185,7 @@ func RecycleDatabaseConnection() {
 	oldStore := Srv.Store
 
 	l4g.Warn(utils.T("api.admin.recycle_db_start.warn"))
-	Srv.Store = store.NewSqlStore()
+	Srv.Store = store.NewLayeredStore()
 
 	time.Sleep(20 * time.Second)
 	oldStore.Close()

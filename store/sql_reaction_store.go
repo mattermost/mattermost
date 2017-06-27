@@ -20,10 +20,10 @@ const (
 var reactionCache *utils.Cache = utils.NewLru(REACTION_CACHE_SIZE)
 
 type SqlReactionStore struct {
-	*SqlStore
+	SqlStore
 }
 
-func NewSqlReactionStore(sqlStore *SqlStore) ReactionStore {
+func NewSqlReactionStore(sqlStore SqlStore) ReactionStore {
 	s := &SqlReactionStore{sqlStore}
 
 	for _, db := range sqlStore.GetAllConns() {

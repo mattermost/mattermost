@@ -346,7 +346,7 @@ func TestGetTeamAnalyticsStandard(t *testing.T) {
 	}
 }
 
-func TestGetPostCount(t *testing.T) {
+/*func TestGetPostCount(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
 
 	// manually update creation time, since it's always set to 0 upon saving and we only retrieve posts < today
@@ -428,7 +428,7 @@ func TestUserCountsWithPostsByDay(t *testing.T) {
 			t.Fatal()
 		}
 	}
-}
+}*/
 
 func TestGetTeamAnalyticsExtra(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()

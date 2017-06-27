@@ -17,10 +17,10 @@ const (
 var emojiCache *utils.Cache = utils.NewLru(EMOJI_CACHE_SIZE)
 
 type SqlEmojiStore struct {
-	*SqlStore
+	SqlStore
 }
 
-func NewSqlEmojiStore(sqlStore *SqlStore) EmojiStore {
+func NewSqlEmojiStore(sqlStore SqlStore) EmojiStore {
 	s := &SqlEmojiStore{sqlStore}
 
 	for _, db := range sqlStore.GetAllConns() {

@@ -23,7 +23,7 @@ func main() {
 	utils.InitAndLoadConfig("config.json")
 	defer l4g.Close()
 
-	Srv.Store = store.NewSqlStore()
+	Srv.Store = store.NewLayeredStore()
 	defer Srv.Store.Close()
 
 	Srv.LoadLicense()

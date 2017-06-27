@@ -33,7 +33,7 @@ const (
 )
 
 type SqlUserStore struct {
-	*SqlStore
+	SqlStore
 }
 
 var profilesInChannelCache *utils.Cache = utils.NewLru(PROFILES_IN_CHANNEL_CACHE_SIZE)
@@ -48,7 +48,7 @@ func (us SqlUserStore) InvalidatProfileCacheForUser(userId string) {
 	profileByIdsCache.Remove(userId)
 }
 
-func NewSqlUserStore(sqlStore *SqlStore) UserStore {
+func NewSqlUserStore(sqlStore SqlStore) UserStore {
 	us := &SqlUserStore{sqlStore}
 
 	for _, db := range sqlStore.GetAllConns() {
