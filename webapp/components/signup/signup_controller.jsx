@@ -74,7 +74,7 @@ export default class SignupController extends React.Component {
                     hash,
                     inviteId,
                     (team) => {
-                        loadMe(
+                        loadMe().then(
                             () => {
                                 browserHistory.push('/' + team.name + '/channels/town-square');
                             }

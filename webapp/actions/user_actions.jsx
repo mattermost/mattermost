@@ -32,12 +32,12 @@ import {savePreferences as savePreferencesRedux, deletePreferences} from 'matter
 
 import {Preferences as PreferencesRedux} from 'mattermost-redux/constants';
 
-export function loadMe() {
-    return UserActions.loadMe()(dispatch, getState).then(() => {
-        if (window.mm_config) {
-            loadCurrentLocale();
-        }
-    });
+export async function loadMe() {
+    await UserActions.loadMe()(dispatch, getState);
+
+    if (window.mm_config) {
+        loadCurrentLocale();
+    }
 }
 
 export function loadMeAndConfig(callback) {

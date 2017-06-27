@@ -99,7 +99,7 @@ export default class SignupLdap extends React.Component {
     }
 
     finishSignup() {
-        loadMe(
+        loadMe().then(
             () => {
                 const query = this.props.location.query;
                 GlobalActions.loadDefaultLocale();

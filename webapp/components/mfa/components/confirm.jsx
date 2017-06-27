@@ -27,7 +27,7 @@ export default class Confirm extends React.Component {
 
     submit(e) {
         e.preventDefault();
-        loadMe(() => {
+        loadMe().then(() => {
             browserHistory.push('/');
         });
     }
