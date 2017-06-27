@@ -1012,6 +1012,21 @@ func ImportDirectChannel(data *DirectChannelImportData, dryRun bool) *model.AppE
 		}
 	}
 
+	for _, userId := range userIds {
+		preferences := model.Preferences{
+			model.Preference{
+				UserId: userId,
+				Category: model.PREFERENCE_CATEGORY_DIRECT_CHANNEL_SHOW,
+				Name: channel.Id,
+				Value: "true",
+			},
+		}
+		if result := <-Srv.Store.Preference().Save(&preferences); result.Err != nil {
+			result.Err.StatusCode = http.StatusBadRequest
+			return result.Err
+		}
+	}
+
 	if data.Header != nil {
 		channel.Header = *data.Header
 		if result := <-Srv.Store.Channel().Update(channel); result.Err != nil {
