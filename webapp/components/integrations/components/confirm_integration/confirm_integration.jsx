@@ -94,7 +94,7 @@ export default class ConfirmIntegration extends React.Component {
                         id='add_command.token'
                         defaultMessage='<b>Token</b>: {token}'
                         values={{
-                            token: ''
+                            token: this.props.commands[this.state.id].token
                         }}
                     />
                 </p>
