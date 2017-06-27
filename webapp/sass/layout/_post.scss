@@ -1221,7 +1221,7 @@
         }
 
         p + p {
-            margin: 1.2em 0 0;
+            margin: 0.5em 0 0;
         }
 
         img {
@@ -1232,6 +1232,7 @@
         ol {
             font-size: 13.5px;
             margin-bottom: .4em;
+            margin-top: 3px;
             padding-left: 20px;
 
             p {
@@ -1283,12 +1284,12 @@
 
         ul + p,
         ol + p {
-            margin-top: 1.2em;
+            margin-top: .6em;
         }
 
         p + ul,
         p + ol {
-            margin-top: 1.2em;
+            margin-top: .6em;
         }
 
         .pending-post-actions {
