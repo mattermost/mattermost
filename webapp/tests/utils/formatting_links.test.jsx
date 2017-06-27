@@ -489,7 +489,7 @@ describe('Markdown.Links', function() {
     it('Searching for links', function(done) {
         assert.equal(
             TextFormatting.formatText('https://en.wikipedia.org/wiki/Unix', {searchTerm: 'wikipedia'}).trim(),
-            '<p><a class="theme markdown__link search-highlight" href="https://en.wikipedia.org/wiki/Unix" rel="noreferrer" target="_blank">https:/<wbr />/<wbr />en.wikipedia.org/<wbr />wiki/<wbr />Unix</a></p>'
+            '<p><a class="theme markdown__link search-highlight" href="https://en.wikipedia.org/wiki/Unix" rel="noreferrer" target="_blank">https://en.wikipedia.org/wiki/Unix</a></p>'
         );
 
         assert.equal(
