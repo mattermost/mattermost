@@ -74,7 +74,13 @@ export function executeCommand(message, args, success, error) {
         break;
     case '/leave': {
         const channel = ChannelStore.getCurrent();
-        if (channel.type === Constants.DM_CHANNEL || channel.type === Constants.GM_CHANNEL) {
+        if (channel.type === Constants.PRIVATE_CHANNEL) {
+            GlobalActions.showLeavePrivateChannelModal(channel);
+            return;
+        } else if (
+            channel.type === Constants.DM_CHANNEL ||
+            channel.type === Constants.GM_CHANNEL
+        ) {
             let name;
             let category;
             if (channel.type === Constants.DM_CHANNEL) {
