@@ -8,6 +8,7 @@ import ChannelStore from 'stores/channel_store.jsx';
 import BrowserStore from 'stores/browser_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 
+import * as PostUtils from 'utils/post_utils.jsx';
 import {Constants} from 'utils/constants.jsx';
 const ActionTypes = Constants.ActionTypes;
 
@@ -69,13 +70,13 @@ class PostStoreClass extends EventEmitter {
         return postsInChannel[0];
     }
 
-    getLatestNonEphemeralPost(channelId) {
+    getLatestReplyablePost(channelId) {
         const postIds = getState().entities.posts.postsInChannel[channelId];
         const posts = getState().entities.posts.posts;
 
         for (const postId of postIds) {
             const post = posts[postId] || {};
-            if (post.state !== Constants.POST_DELETED && post.type !== Constants.PostTypes.EPHEMERAL) {
+            if (post.state !== Constants.POST_DELETED && !PostUtils.isSystemMessage(post)) {
                 return post;
             }
         }
