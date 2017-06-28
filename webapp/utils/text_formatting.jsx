@@ -53,11 +53,6 @@ export function formatText(text, inputOptions) {
         output = replaceNewlines(output);
     }
 
-    // Add <wbr /> tags to recommend line breaking on slashes within URLs
-    if (!options.singleline) {
-        output = insertLongLinkWbr(output);
-    }
-
     return output;
 }
 
@@ -476,11 +471,4 @@ export function replaceTokens(text, tokens) {
 
 function replaceNewlines(text) {
     return text.replace(/\n/g, ' ');
-}
-
-//replace all "/" inside <a> tags to "/<wbr />"
-function insertLongLinkWbr(test) {
-    return test.replace(/\//g, (match, position, string) => {
-        return match + ((/a[^>]*>[^<]*$/).test(string.substr(0, position)) ? '<wbr />' : '');
-    });
 }
