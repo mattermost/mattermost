@@ -138,7 +138,10 @@ export default class TutorialTip extends React.Component {
         }
 
         return (
-            <div className={'tip-div ' + this.props.overlayClass}>
+            <div 
+                className={'tip-div ' + this.props.overlayClass}
+                onClick={this.toggle}
+            >
                 <img
                     className='tip-button'
                     src={tutorialGifImage}
