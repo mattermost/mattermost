@@ -19,33 +19,31 @@ export function uploadFile(file, name, channelId, clientId, successCallback, err
             let e;
             if (res && res.body && res.body.id) {
                 e = res.body;
+            } else if (err.status === 0 || !err.status) {
+                e = {message: this.translations.connectionError};
             } else {
-                if (err.status === 0 || !err.status) {
-                    e = {message: this.translations.connectionError};
-                } else {
-                    e = {message: this.translations.unknownError + ' (' + err.status + ')'};
-                }
+                e = {message: this.translations.unknownError + ' (' + err.status + ')'};
             }
 
-            forceLogoutIfNecessary(error, dispatch);
+            forceLogoutIfNecessary(err, dispatch);
 
             const failure = {
                 type: FileTypes.UPLOAD_FILES_FAILURE,
-                clientIds,
+                clientIds: [clientId],
                 channelId,
                 rootId: null,
-                error
+                error: err
             };
 
-            dispatch(batchActions([failure, getLogErrorAction(error)]), getState);
+            dispatch(batchActions([failure, getLogErrorAction(err)]), getState);
 
             if (errorCallback) {
                 errorCallback(e, err, res);
             }
         } else if (res) {
-            const data = res.body.file_infos.map((file, index) => {
+            const data = res.body.file_infos.map((fileInfo, index) => {
                 return {
-                    ...file,
+                    ...fileInfo,
                     clientId: res.body.client_ids[index]
                 };
             });
