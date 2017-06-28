@@ -756,6 +756,7 @@ export default class ChannelHeader extends React.Component {
                             id='channelConvert'
                             key='convert_channel'
                             role='presentation'
+
                         >
                             <a
                                 role='menuitem'
@@ -770,8 +771,6 @@ export default class ChannelHeader extends React.Component {
                         </li>
                     );
                 }
-                            
-                );
             }
 
             if (ChannelUtils.showDeleteOption(channel, isAdmin, isSystemAdmin, isChannelAdmin, this.state.userCount)) {
