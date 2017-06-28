@@ -109,20 +109,6 @@ export default class SignupEmail extends React.Component {
         };
     }
 
-    finishSignup() {
-        loadMe(
-            () => {
-                const query = this.props.location.query;
-                GlobalActions.loadDefaultLocale();
-                if (query.redirect_to) {
-                    browserHistory.push(query.redirect_to);
-                } else {
-                    GlobalActions.redirectUserToDefaultTeam();
-                }
-            }
-        );
-    }
-
     handleSignupSuccess(user, data) {
         trackEvent('signup', 'signup_user_02_complete');
         loginById(
@@ -134,7 +120,7 @@ export default class SignupEmail extends React.Component {
                     BrowserStore.setGlobalItem(this.state.hash, JSON.stringify({usedBefore: true}));
                 }
 
-                loadMe(
+                loadMe().then(
                     () => {
                         const query = this.props.location.query;
                         if (query.redirect_to) {
