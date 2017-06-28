@@ -99,7 +99,7 @@ class FileUpload extends React.Component {
                 channelId,
                 clientId,
                 this.fileUploadSuccess.bind(this, channelId),
-                this.fileUploadFail.bind(this, clientId)
+                this.fileUploadFail.bind(this, clientId, channelId)
             );
 
             const requests = this.state.requests;
