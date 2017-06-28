@@ -1016,10 +1016,10 @@ func sendVerificationEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	app.SendEmailVerification(user)
+	err = app.SendEmailVerification(user)
 	if err != nil {
 		// Don't want to leak whether the email is valid or not
-		l4g.Error("Unable to create email verification token: " + err.Error())
+		l4g.Error(err.Error())
 		ReturnStatusOK(w)
 		return
 	}
