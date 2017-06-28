@@ -103,17 +103,16 @@ function preNeedsTeam(nextState, replace, callback) {
         return;
     }
 
+    // If current team is set, then this is not first load
+    // The first load action pulls team unreads
+    if (TeamStore.getCurrentId()) {
+        getMyTeamUnreads()(dispatch, getState);
+    }
+
     TeamStore.saveMyTeam(team);
     BrowserStore.setGlobalItem('team', team.id);
     TeamStore.emitChange();
     GlobalActions.emitCloseRightHandSide();
-
-    if (nextState.location.pathname.indexOf('/channels/') > -1 ||
-        nextState.location.pathname.indexOf('/pl/') > -1 ||
-        nextState.location.pathname.indexOf('/messages/') > -1) {
-        getMyTeamUnreads()(dispatch, getState);
-        fetchMyChannelsAndMembers(team.id)(dispatch, getState);
-    }
 
     const d1 = $.Deferred(); //eslint-disable-line new-cap
 
