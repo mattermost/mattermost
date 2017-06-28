@@ -7,6 +7,7 @@ import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import AtMention from 'components/at_mention';
+import MarkdownImage from 'components/markdown_image';
 
 import store from 'stores/redux_store.jsx';
 
@@ -111,6 +112,22 @@ export default class PostMessageView extends React.PureComponent {
                     const mentionName = node.attribs[attrib];
 
                     return <AtMention mentionName={mentionName}/>;
+                }
+            },
+            {
+                shouldProcessNode: (node) => node.type === 'tag' && node.name === 'img',
+                processNode: (node) => {
+                    const {
+                        class: className,
+                        ...attribs
+                    } = node.attribs;
+
+                    return (
+                        <MarkdownImage
+                            className={className}
+                            {...attribs}
+                        />
+                    );
                 }
             },
             {
