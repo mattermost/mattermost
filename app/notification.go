@@ -110,9 +110,10 @@ func SendNotifications(post *model.Post, team *model.Team, channel *model.Channe
 		for _, profile := range profileMap {
 			if (profile.NotifyProps[model.PUSH_NOTIFY_PROP] == model.USER_NOTIFY_ALL ||
 				channelMemberNotifyPropsMap[profile.Id][model.PUSH_NOTIFY_PROP] == model.CHANNEL_NOTIFY_ALL) &&
-				(post.UserId != profile.Id || post.Props["from_webhook"] == "true") &&
-				!post.IsSystemMessage() {
-				allActivityPushUserIds = append(allActivityPushUserIds, profile.Id)
+				(post.UserId != profile.Id || post.Props["from_webhook"] == "true") {
+				if !post.IsSystemMessage() || (post.IsSystemMessage() && channelNotification) {
+					allActivityPushUserIds = append(allActivityPushUserIds, profile.Id)
+				}
 			}
 		}
 	}
