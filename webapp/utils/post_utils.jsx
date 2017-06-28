@@ -82,3 +82,23 @@ export function canEditPost(post, editDisableAction) {
     }
     return canEdit;
 }
+
+export function shouldShowDotMenu(post) {
+    if (Utils.isMobile()) {
+        return true;
+    }
+
+    if (!isSystemMessage(post)) {
+        return true;
+    }
+
+    if (canDeletePost(post)) {
+        return true;
+    }
+
+    if (canEditPost(post)) {
+        return true;
+    }
+
+    return false;
+}
