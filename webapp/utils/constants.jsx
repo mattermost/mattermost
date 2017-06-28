@@ -299,7 +299,8 @@ export const ErrorBarTypes = {
     LICENSE_EXPIRED: 'error_bar.license_expired',
     LICENSE_PAST_GRACE: 'error_bar.past_grace',
     PREVIEW_MODE: 'error_bar.preview_mode',
-    SITE_URL: 'error_bar.site_url'
+    SITE_URL: 'error_bar.site_url',
+    WEBSOCKET_PORT_ERROR: 'channel_loader.socketError'
 };
 
 export const Constants = {
