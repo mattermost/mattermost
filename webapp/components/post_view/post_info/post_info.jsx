@@ -192,7 +192,7 @@ export default class PostInfo extends React.PureComponent {
                 />
             );
 
-            if (dotMenu) {
+            if (PostUtils.shouldShowDotMenu(this.props.post)) {
                 options = (
                     <div
                         ref='dotMenu'
