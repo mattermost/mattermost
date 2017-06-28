@@ -781,7 +781,7 @@ func TestAddTeamMember(t *testing.T) {
 	tm, resp := Client.AddTeamMember(team.Id, otherUser.Id)
 	CheckForbiddenStatus(t, resp)
 	if resp.Error == nil {
-		t.Fatalf("ERror is nhul")
+		t.Fatalf("Error is nhul")
 	}
 	Client.Logout()
 
@@ -971,14 +971,11 @@ func TestAddTeamMember(t *testing.T) {
 	}
 
 	tm, resp = Client.AddTeamMemberFromInvite("", "", "junk")
-	CheckBadRequestStatus(t, resp)
+	CheckNotFoundStatus(t, resp)
 
 	if tm != nil {
 		t.Fatal("should have not returned team member")
 	}
-
-	_, resp = Client.AddTeamMemberFromInvite("", "", "junk")
-	CheckBadRequestStatus(t, resp)
 }
 
 func TestAddTeamMembers(t *testing.T) {
