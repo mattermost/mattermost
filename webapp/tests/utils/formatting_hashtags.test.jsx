@@ -53,7 +53,7 @@ describe('TextFormatting.Hashtags', function() {
 
         assert.equal(
             TextFormatting.formatText('#test1/#test2').trim(),
-            "<p><a class='mention-link' href='#' data-hashtag='#test1'>#test1</a>/<wbr /><a class='mention-link' href='#' data-hashtag='#test2'>#test2</a></p>"
+            "<p><a class='mention-link' href='#' data-hashtag='#test1'>#test1</a>/<a class='mention-link' href='#' data-hashtag='#test2'>#test2</a></p>"
         );
 
         assert.equal(
@@ -137,12 +137,12 @@ describe('TextFormatting.Hashtags', function() {
 
         assert.equal(
             TextFormatting.formatText('#foo/#bar', {searchTerm: '#foo'}).trim(),
-            "<p><span class='search-highlight'><a class='mention-link' href='#' data-hashtag='#foo'>#foo</a></span>/<wbr /><a class='mention-link' href='#' data-hashtag='#bar'>#bar</a></p>"
+            "<p><span class='search-highlight'><a class='mention-link' href='#' data-hashtag='#foo'>#foo</a></span>/<a class='mention-link' href='#' data-hashtag='#bar'>#bar</a></p>"
         );
 
         assert.equal(
             TextFormatting.formatText('#foo/#bar', {searchTerm: 'bar'}).trim(),
-            "<p><a class='mention-link' href='#' data-hashtag='#foo'>#foo</a>/<wbr /><span class='search-highlight'><a class='mention-link' href='#' data-hashtag='#bar'>#bar</a></span></p>"
+            "<p><a class='mention-link' href='#' data-hashtag='#foo'>#foo</a>/<span class='search-highlight'><a class='mention-link' href='#' data-hashtag='#bar'>#bar</a></span></p>"
         );
 
         assert.equal(
