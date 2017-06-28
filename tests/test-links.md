@@ -23,12 +23,9 @@ http://192.168.1.1:4040
 http://[::1]:80
 http://[::1]:8065
 https://[::1]:80
-http://[2001:0:5ef5:79fb:303a:62d5:3312:ff42]:80
+http://[2001:0:5ef5:79fb:303a:62d5:3312:ff42]
 http://[2001:0:5ef5:79fb:303a:62d5:3312:ff42]:8065
-https://[2001:0:5ef5:79fb:303a:62d5:3312:ff42]:443
-http://username:password@example.com
-http://username:password@127.0.0.1
-http://username:password@[2001:0:5ef5:79fb:303a:62d5:3312:ff42]:80
+https://[2001:0:5ef5:79fb:303a:62d5:3312:ff42]
 test@example.com
 http://example.com/more_(than)_one_(parens)
 http://example.com/(something)?after=parens
