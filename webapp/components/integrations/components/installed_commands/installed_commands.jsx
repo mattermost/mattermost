@@ -1,10 +1,9 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2017 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 import BackstageList from 'components/backstage/components/backstage_list.jsx';
-import InstalledCommand from './installed_command.jsx';
+import InstalledCommand from '../installed_command.jsx';
 
-import {regenCommandToken, deleteCommand} from 'actions/integration_actions.jsx';
 import * as Utils from 'utils/utils.jsx';
 
 import PropTypes from 'prop-types';
@@ -12,31 +11,59 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-export default class InstalledCommands extends React.Component {
-    static get propTypes() {
-        return {
-            team: PropTypes.object,
-            user: PropTypes.object,
-            users: PropTypes.object,
-            commands: PropTypes.array,
-            loading: PropTypes.bool,
-            isAdmin: PropTypes.bool
-        };
+export default class InstalledCommands extends React.PureComponent {
+    static propTypes = {
+
+        /**
+        * The team object
+        */
+        team: PropTypes.object,
+
+        /**
+        * The user object
+        */
+        user: PropTypes.object,
+
+        /**
+        * The users collection
+        */
+        users: PropTypes.object,
+
+        /**
+        * Installed splash commands to display
+        */
+        commands: PropTypes.array,
+
+        /**
+        * Set whether to show the loading... animation or not
+        */
+        loading: PropTypes.bool,
+
+        /**
+        * Set to allow changes to installed splash commands
+        */
+        isAdmin: PropTypes.bool,
+
+        actions: PropTypes.shape({
+
+            /**
+            * The function to call when Regenerate Token link is clicked
+            */
+            regenCommandToken: PropTypes.func.isRequired,
+
+            /**
+            * The function to call when Delete link is clicked
+            */
+            deleteCommand: PropTypes.func.isRequired
+        }).isRequired
     }
 
-    constructor(props) {
-        super(props);
-
-        this.regenCommandToken = this.regenCommandToken.bind(this);
-        this.deleteCommand = this.deleteCommand.bind(this);
+    regenCommandToken = (command) => {
+        this.props.actions.regenCommandToken(command.id);
     }
 
-    regenCommandToken(command) {
-        regenCommandToken(command.id);
-    }
-
-    deleteCommand(command) {
-        deleteCommand(command.id);
+    deleteCommand = (command) => {
+        this.props.actions.deleteCommand(command.id);
     }
 
     commandCompare(a, b) {
