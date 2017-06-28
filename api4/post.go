@@ -277,18 +277,14 @@ func searchPosts(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	props := model.MapFromJson(r.Body)
-	terms := props["terms"]
-
-	if len(terms) == 0 {
+	props := model.StringInterfaceFromJson(r.Body)
+	terms, ok := props["terms"].(string)
+	if !ok || len(terms) == 0 {
 		c.SetInvalidParam("terms")
 		return
 	}
 
-	isOrSearch := false
-	if val, ok := props["is_or_search"]; ok && val != "" {
-		isOrSearch, _ = strconv.ParseBool(val)
-	}
+	isOrSearch, _ := props["is_or_search"].(bool)
 
 	posts, err := app.SearchPostsInTeam(terms, c.Session.UserId, c.Params.TeamId, isOrSearch)
 	if err != nil {
