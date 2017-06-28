@@ -142,7 +142,7 @@ export default class DatabaseSettings extends AdminSettings {
                     helpText={
                         <FormattedMessage
                             id='admin.sql.queryTimeoutDescription'
-                            defaultMessage='The number of seconds to wait for a response from the database after opening a connection and sending the query. Errors that you see in the UI or in the logs as a result of a query timeout can vary depending on the type of query. This setting has no effect on PostgreSQL databases.'
+                            defaultMessage='The number of seconds to wait for a response from the database after opening a connection and sending the query. Errors that you see in the UI or in the logs as a result of a query timeout can vary depending on the type of query.'
                         />
                     }
                     value={this.state.queryTimeout}

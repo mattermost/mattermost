@@ -167,15 +167,9 @@ func selectVal(e SqlExecutor, holder interface{}, query string, args ...interfac
 		query, args = maybeExpandNamedQuery(dbMap, query, args)
 	}
 
-	var rows *sql.Rows
-	var err error
-	if dbMap.Dialect.Name() != "PostgresDialect" {
-		ctx, cancel := context.WithTimeout(context.Background(), dbMap.QueryTimeout)
-		defer cancel()
-		rows, err = e.QueryContext(ctx, query, args...)
-	} else {
-		rows, err = e.Query(query, args...)
-	}
+	ctx, cancel := context.WithTimeout(context.Background(), dbMap.QueryTimeout)
+	defer cancel()
+	rows, err := e.QueryContext(ctx, query, args...)
 
 	if err != nil {
 		return err
@@ -267,14 +261,9 @@ func rawselect(m *DbMap, exec SqlExecutor, i interface{}, query string,
 	}
 
 	// Run the query
-	var rows *sql.Rows
-	if m.Dialect.Name() != "PostgresDialect" {
-		ctx, cancel := context.WithTimeout(context.Background(), m.QueryTimeout)
-		defer cancel()
-		rows, err = exec.QueryContext(ctx, query, args...)
-	} else {
-		rows, err = exec.Query(query, args...)
-	}
+	ctx, cancel := context.WithTimeout(context.Background(), m.QueryTimeout)
+	defer cancel()
+	rows, err := exec.QueryContext(ctx, query, args...)
 
 	if err != nil {
 		return nil, err
