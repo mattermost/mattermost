@@ -316,6 +316,10 @@
     "translation": "%v has left the channel."
   },
   {
+    "id": "api.channel.post_update_channel_type_message_and_forget.update_success",
+    "translation": "@channel: {username} has converted this channel to a private channel."
+  },
+  {
     "id": "api.channel.post_update_channel_displayname_message_and_forget.create_post.error",
     "translation": "Failed to post displayname update message"
   },
