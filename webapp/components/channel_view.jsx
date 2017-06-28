@@ -5,13 +5,19 @@ import $ from 'jquery';
 import PropTypes from 'prop-types';
 import React from 'react';
 
+import Constants from 'utils/constants.jsx';
 import * as UserAgent from 'utils/user_agent.jsx';
 import ChannelHeader from 'components/channel_header.jsx';
 import FileUploadOverlay from 'components/file_upload_overlay.jsx';
 import CreatePost from 'components/create_post.jsx';
 import PostView from 'components/post_view';
+import TutorialView from 'components/tutorial/tutorial_view.jsx';
+const TutorialSteps = Constants.TutorialSteps;
+const Preferences = Constants.Preferences;
 
 import ChannelStore from 'stores/channel_store.jsx';
+import PreferenceStore from 'stores/preference_store.jsx';
+import UserStore from 'stores/user_store.jsx';
 
 import * as Utils from 'utils/utils.jsx';
 
@@ -27,7 +33,8 @@ export default class ChannelView extends React.Component {
     }
     getStateFromStores() {
         return {
-            channelId: ChannelStore.getCurrentId()
+            channelId: ChannelStore.getCurrentId(),
+            tutorialStep: PreferenceStore.getInt(Preferences.TUTORIAL_STEP, UserStore.getCurrentId(), 999)
         };
     }
     isStateValid() {
@@ -66,6 +73,10 @@ export default class ChannelView extends React.Component {
         return false;
     }
     render() {
+        if (this.state.tutorialStep <= TutorialSteps.INTRO_SCREENS) {
+            return (<TutorialView/>);
+        }
+
         return (
             <div
                 id='app-content'
