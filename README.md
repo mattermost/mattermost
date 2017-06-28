@@ -33,6 +33,7 @@ Get Involved:
 - [File Bugs](http://www.mattermost.org/filing-issues/)
 - [Share Feature Ideas](http://www.mattermost.org/feature-requests/)
 - [Get Troubleshooting Help](https://forum.mattermost.org/t/how-to-use-the-troubleshooting-forum/150)
+- Create C# driver!
 
 Learn More:
 
