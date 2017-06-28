@@ -66,7 +66,7 @@ class MattermostMarkdownRenderer extends marked.Renderer {
         if (SyntaxHighlighting.canHighlight(usedLanguage)) {
             header = (
                 '<span class="post-code__language">' +
-                    SyntaxHighlighting.getLanguageName(language) +
+                    SyntaxHighlighting.getLanguageName(usedLanguage) +
                 '</span>'
             );
         }
