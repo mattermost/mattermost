@@ -832,7 +832,7 @@
   "admin.sql.maxOpenTitle": "Maximum Open Connections:",
   "admin.sql.noteDescription": "Changing properties in this section will require a server restart before taking effect.",
   "admin.sql.noteTitle": "Note:",
-  "admin.sql.queryTimeoutDescription": "The number of seconds to wait for a response from the database after opening a connection and sending the query. Errors that you see in the UI or in the logs as a result of a query timeout can vary depending on the type of query. This setting has no effect on PostgreSQL databases.",
+  "admin.sql.queryTimeoutDescription": "The number of seconds to wait for a response from the database after opening a connection and sending the query. Errors that you see in the UI or in the logs as a result of a query timeout can vary depending on the type of query.",
   "admin.sql.queryTimeoutExample": "E.g.: \"30\"",
   "admin.sql.queryTimeoutTitle": "Query Timeout:",
   "admin.sql.replicas": "Data Source Replicas:",

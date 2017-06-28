@@ -1,5 +1,5 @@
-hash: 8abe00d58923fa7855f666aac2a2ee1636aad6734c05e3b9895a084ff0f1b56c
-updated: 2017-06-20T15:53:07.620238453-07:00
+hash: 4c29ee4e38944411744a2a1af3e71836591d28feea24b328ab3d440a9ad1cef0
+updated: 2017-06-23T08:58:13.944294825-04:00
 imports:
 - name: github.com/alecthomas/log4go
   version: 3fbce08846379ec7f4f6bc7fce6dd01ce28fae4c
@@ -83,7 +83,7 @@ imports:
 - name: github.com/magiconair/properties
   version: 51463bfca2576e06c62a8504b5c0f06d61312647
 - name: github.com/mattermost/gorp
-  version: cab337059e349c91a4b917c9be50708813619543
+  version: 995ddf2264c4ad45fbaf342f7500e4787ebae84a
 - name: github.com/mattermost/rsc
   version: bbaefb05eaa0389ea712340066837c8ce4d287f9
   subpackages:
