@@ -188,6 +188,7 @@ func trackConfig() {
 		"allow_edit_post":                               *utils.Cfg.ServiceSettings.AllowEditPost,
 		"post_edit_time_limit":                          *utils.Cfg.ServiceSettings.PostEditTimeLimit,
 		"enable_user_typing_messages":                   *utils.Cfg.ServiceSettings.EnableUserTypingMessages,
+		"enable_channel_viewed_messages":                *utils.Cfg.ServiceSettings.EnablChannelViewedMessages,
 		"time_between_user_typing_updates_milliseconds": *utils.Cfg.ServiceSettings.TimeBetweenUserTypingUpdatesMilliseconds,
 		"cluster_log_timeout_milliseconds":              *utils.Cfg.ServiceSettings.ClusterLogTimeoutMilliseconds,
 	})

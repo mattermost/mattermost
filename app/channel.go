@@ -266,7 +266,7 @@ func createGroupChannel(userIds []string, creatorId string) (*model.Channel, *mo
 	}
 
 	if len(users) != len(userIds) {
-		return nil, model.NewAppError("CreateGroupChannel", "api.channel.create_group.bad_user.app_error", nil, "user_ids=" + model.ArrayToJson(userIds), http.StatusBadRequest)
+		return nil, model.NewAppError("CreateGroupChannel", "api.channel.create_group.bad_user.app_error", nil, "user_ids="+model.ArrayToJson(userIds), http.StatusBadRequest)
 	}
 
 	group := &model.Channel{
@@ -1091,6 +1091,14 @@ func UpdateChannelLastViewedAt(channelIds []string, userId string) *model.AppErr
 		return result.Err
 	}
 
+	if *utils.Cfg.ServiceSettings.EnablChannelViewedMessages {
+		for _, channelId := range channelIds {
+			message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CHANNEL_VIEWED, "", "", userId, nil)
+			message.Add("channel_id", channelId)
+			go Publish(message)
+		}
+	}
+
 	return nil
 }
 
@@ -1148,6 +1156,12 @@ func ViewChannel(view *model.ChannelView, userId string, clearPushNotifications 
 
 	if result := <-uchan; result.Err != nil {
 		return result.Err
+	}
+
+	if *utils.Cfg.ServiceSettings.EnablChannelViewedMessages {
+		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CHANNEL_VIEWED, "", "", userId, nil)
+		message.Add("channel_id", view.ChannelId)
+		go Publish(message)
 	}
 
 	return nil

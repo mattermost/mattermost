@@ -225,6 +225,10 @@ function handleEvent(msg) {
         handleAddEmoji(msg);
         break;
 
+    case SocketEvents.CHANNEL_VIEWED:
+        handleChannelViewedEvent(msg);
+        break;
+
     default:
     }
 }
@@ -432,4 +436,13 @@ function handleReactionRemovedEvent(msg) {
         type: PostTypes.REACTION_DELETED,
         data: reaction
     });
+}
+
+function handleChannelViewedEvent(msg) {
+// Useful for when multiple devices have the app open to different channels
+    if (ChannelStore.getCurrentId() !== msg.data.channel_id &&
+        UserStore.getCurrentId() === msg.broadcast.user_id) {
+        // Mark previous and next channel as read
+        ChannelStore.resetCounts([msg.data.channel_id]);
+    }
 }
