@@ -1,9 +1,8 @@
-import PropTypes from 'prop-types';
-
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 import React from 'react';
+import PropTypes from 'prop-types';
 
 import BackstageHeader from 'components/backstage/components/backstage_header.jsx';
 import {FormattedMessage, FormattedHTMLMessage} from 'react-intl';
@@ -19,6 +18,7 @@ export default class ConfirmIntegration extends React.Component {
         return {
             team: PropTypes.object,
             location: PropTypes.object,
+            commands: PropTypes.object,
             loading: PropTypes.bool
         };
     }
@@ -94,7 +94,7 @@ export default class ConfirmIntegration extends React.Component {
                         id='add_command.token'
                         defaultMessage='<b>Token</b>: {token}'
                         values={{
-                            token: IntegrationStore.getCommand(this.props.team.id, this.state.id).token
+                            token: this.props.commands[this.state.id].token
                         }}
                     />
                 </p>

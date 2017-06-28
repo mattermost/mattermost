@@ -61,14 +61,14 @@ export default {
         {
             path: 'commands',
             getComponents: (location, callback) => {
-                System.import('components/integrations/components/commands_container.jsx').then(RouteUtils.importComponentSuccess(callback));
+                System.import('components/integrations/components/commands_container').then(RouteUtils.importComponentSuccess(callback));
             },
             indexRoute: {onEnter: (nextState, replace) => replace(nextState.location.pathname + '/installed')},
             childRoutes: [
                 {
                     path: 'installed',
                     getComponents: (location, callback) => {
-                        System.import('components/integrations/components/installed_commands.jsx').then(RouteUtils.importComponentSuccess(callback));
+                        System.import('components/integrations/components/installed_commands').then(RouteUtils.importComponentSuccess(callback));
                     }
                 },
                 {
@@ -86,7 +86,7 @@ export default {
                 {
                     path: 'confirm',
                     getComponents: (location, callback) => {
-                        System.import('components/integrations/components/confirm_integration.jsx').then(RouteUtils.importComponentSuccess(callback));
+                        System.import('components/integrations/components/confirm_integration').then(RouteUtils.importComponentSuccess(callback));
                     }
                 }
             ]
@@ -110,7 +110,7 @@ export default {
         {
             path: 'confirm',
             getComponents: (location, callback) => {
-                System.import('components/integrations/components/confirm_integration.jsx').then(RouteUtils.importComponentSuccess(callback));
+                System.import('components/integrations/components/confirm_integration').then(RouteUtils.importComponentSuccess(callback));
             }
         }
     ]
