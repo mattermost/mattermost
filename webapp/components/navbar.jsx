@@ -548,8 +548,7 @@ export default class Navbar extends React.Component {
                             </a>
                         </li>
                     );
-
-                    if (!ChannelStore.isDefault(channel) && channel.type === Constants.OPEN_CHANNEL) {
+                    if (!ChannelStore.isDefault(channel) && channel.type === Constants.OPEN_CHANNEL && isAdmin) {
                         convertChannelOption = (
                             <li role='presentation'>
                                 <a
