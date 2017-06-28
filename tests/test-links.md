@@ -47,7 +47,6 @@ https://groups.google.com/forum/#!msg
 
 example.com
 readme.md
-@example.com
 ./make-compiled-client.sh
 test.:test
 `https://example.com`
