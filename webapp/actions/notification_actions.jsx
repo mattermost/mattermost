@@ -16,7 +16,7 @@ export function sendDesktopNotification(post, msgProps) {
         return;
     }
 
-    if (isSystemMessage(post) && post.message.indexOf("@channel") <= -1) {
+    if (isSystemMessage(post) && post.message.indexOf('@channel') <= -1) {
         return;
     }
 
