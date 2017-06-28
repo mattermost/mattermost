@@ -260,13 +260,7 @@ export default class SystemUsers extends React.Component {
             return;
         }
 
-        this.props.actions.getUser(
-            id,
-            () => {
-                this.setState({
-                    loading: false
-                });
-            },
+        this.props.actions.getUser(id).then(
             () => {
                 this.setState({
                     loading: false
