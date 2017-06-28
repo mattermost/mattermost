@@ -2968,8 +2968,48 @@
     "translation": "Error importing channel. Team with name \"{{.TeamName}}\" could not be found."
   },
   {
+    "id": "app.import.import_direct_channel.member_not_found.error",
+    "translation": "Could not find channel member when importing direct channel"
+  },
+  {
+    "id": "app.import.import_direct_channel.create_direct_channel.error",
+    "translation": "Failed to create direct channel"
+  },
+  {
+    "id": "app.import.import_direct_channel.create_group_channel.error",
+    "translation": "Failed to create group channel"
+  },
+  {
+    "id": "app.import.import_direct_channel.update_header_failed.error",
+    "translation": "Failed to update direct channel header"
+  },
+  {
+    "id": "app.import.import_direct_post.channel_member_not_found.error",
+    "translation": "Could not find channel member when importing direct channel post"
+  },
+  {
+    "id": "app.import.import_direct_channel.create_direct_channel.error",
+    "translation": "Failed to get direct channel"
+  },
+  {
+    "id": "app.import.import_direct_channel.create_group_channel.error",
+    "translation": "Failed to get group channel"
+  },
+  {
+    "id": "app.import.import_direct_post.user_not_found.error",
+    "translation": "Post user does not exist"
+  },
+  {
     "id": "app.import.import_line.null_channel.error",
     "translation": "Import data line has type \"channel\" but the channel object is null."
+  },
+  {
+    "id": "app.import.import_line.null_direct_channel.error",
+    "translation": "Import data line has type \"direct_channel\" but the direct_channel object is null."
+  },
+  {
+    "id": "app.import.import_line.null_direct_post.error",
+    "translation": "Import data line has type \"direct_post\" but the direct_post object is null."
   },
   {
     "id": "app.import.import_line.null_post.error",
@@ -3042,6 +3082,54 @@
   {
     "id": "app.import.validate_channel_import_data.type_missing.error",
     "translation": "Missing required channel property: type."
+  },
+  {
+    "id": "app.import.validate_direct_channel_import_data.members_required.error",
+    "translation": "Missing required direct channel property: members"
+  },
+  {
+    "id": "app.import.validate_direct_channel_import_data.members_too_few.error",
+    "translation": "Direct channel members list contains too few items"
+  },
+  {
+    "id": "app.import.validate_direct_channel_import_data.members_too_many.error",
+    "translation": "Direct channel members list contains too many items"
+  },
+  {
+    "id": "app.import.validate_direct_channel_import_data.header_length.error",
+    "translation": "Direct channel header is too long"
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.channel_members_required.error",
+    "translation": "Missing required direct post property: channel_members"
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.channel_members_too_few.error",
+    "translation": "Direct post channel members list contains too few items"
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.channel_members_too_many.error",
+    "translation": "Direct post channel members list contains too many items"
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.user_missing.error",
+    "translation": "Missing required direct post property: user"
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.message_missing.error",
+    "translation": "Missing required direct post property: message"
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.message_length.error",
+    "translation": "Message is too long"
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.create_at_missing.error",
+    "translation": "Missing required direct post property: create_at"
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.create_at_zero.error",
+    "translation": "CreateAt must be greater than 0"
   },
   {
     "id": "app.import.validate_post_import_data.channel_missing.error",

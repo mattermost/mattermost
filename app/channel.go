@@ -160,6 +160,27 @@ func CreateChannel(channel *model.Channel, addMember bool) (*model.Channel, *mod
 }
 
 func CreateDirectChannel(userId string, otherUserId string) (*model.Channel, *model.AppError) {
+	if channel, err := createDirectChannel(userId, otherUserId); err != nil {
+		if err.Id == store.CHANNEL_EXISTS_ERROR {
+			return channel, nil
+		} else {
+			return nil, err
+		}
+	} else {
+		WaitForChannelMembership(channel.Id, userId)
+
+		InvalidateCacheForUser(userId)
+		InvalidateCacheForUser(otherUserId)
+
+		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_DIRECT_ADDED, "", channel.Id, "", nil)
+		message.Add("teammate_id", otherUserId)
+		Publish(message)
+
+		return channel, nil
+	}
+}
+
+func createDirectChannel(userId string, otherUserId string) (*model.Channel, *model.AppError) {
 	uc1 := Srv.Store.User().Get(userId)
 	uc2 := Srv.Store.User().Get(otherUserId)
 
@@ -173,22 +194,12 @@ func CreateDirectChannel(userId string, otherUserId string) (*model.Channel, *mo
 
 	if result := <-Srv.Store.Channel().CreateDirectChannel(userId, otherUserId); result.Err != nil {
 		if result.Err.Id == store.CHANNEL_EXISTS_ERROR {
-			return result.Data.(*model.Channel), nil
+			return result.Data.(*model.Channel), result.Err
 		} else {
 			return nil, result.Err
 		}
 	} else {
 		channel := result.Data.(*model.Channel)
-
-		WaitForChannelMembership(channel.Id, userId)
-
-		InvalidateCacheForUser(userId)
-		InvalidateCacheForUser(otherUserId)
-
-		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_DIRECT_ADDED, "", channel.Id, "", nil)
-		message.Add("teammate_id", otherUserId)
-		Publish(message)
-
 		return channel, nil
 	}
 }
@@ -219,6 +230,30 @@ func WaitForChannelMembership(channelId string, userId string) {
 }
 
 func CreateGroupChannel(userIds []string, creatorId string) (*model.Channel, *model.AppError) {
+	if channel, err := createGroupChannel(userIds, creatorId); err != nil {
+		if err.Id == store.CHANNEL_EXISTS_ERROR {
+			return channel, nil
+		} else {
+			return nil, err
+		}
+	} else {
+		for _, userId := range userIds {
+			if userId == creatorId {
+				WaitForChannelMembership(channel.Id, creatorId)
+			}
+
+			InvalidateCacheForUser(userId)
+		}
+
+		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_GROUP_ADDED, "", channel.Id, "", nil)
+		message.Add("teammate_ids", model.ArrayToJson(userIds))
+		Publish(message)
+
+		return channel, nil
+	}
+}
+
+func createGroupChannel(userIds []string, creatorId string) (*model.Channel, *model.AppError) {
 	if len(userIds) > model.CHANNEL_GROUP_MAX_USERS || len(userIds) < model.CHANNEL_GROUP_MIN_USERS {
 		return nil, model.NewAppError("CreateGroupChannel", "api.channel.create_group.bad_size.app_error", nil, "", http.StatusBadRequest)
 	}
@@ -231,7 +266,7 @@ func CreateGroupChannel(userIds []string, creatorId string) (*model.Channel, *mo
 	}
 
 	if len(users) != len(userIds) {
-		return nil, model.NewAppError("CreateGroupChannel", "api.channel.create_group.bad_user.app_error", nil, "user_ids="+model.ArrayToJson(userIds), http.StatusBadRequest)
+		return nil, model.NewAppError("CreateGroupChannel", "api.channel.create_group.bad_user.app_error", nil, "user_ids=" + model.ArrayToJson(userIds), http.StatusBadRequest)
 	}
 
 	group := &model.Channel{
@@ -242,7 +277,7 @@ func CreateGroupChannel(userIds []string, creatorId string) (*model.Channel, *mo
 
 	if result := <-Srv.Store.Channel().Save(group); result.Err != nil {
 		if result.Err.Id == store.CHANNEL_EXISTS_ERROR {
-			return result.Data.(*model.Channel), nil
+			return result.Data.(*model.Channel), result.Err
 		} else {
 			return nil, result.Err
 		}
@@ -260,17 +295,7 @@ func CreateGroupChannel(userIds []string, creatorId string) (*model.Channel, *mo
 			if result := <-Srv.Store.Channel().SaveMember(cm); result.Err != nil {
 				return nil, result.Err
 			}
-
-			if user.Id == creatorId {
-				WaitForChannelMembership(group.Id, creatorId)
-			}
-
-			InvalidateCacheForUser(user.Id)
 		}
-
-		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_GROUP_ADDED, "", group.Id, "", nil)
-		message.Add("teammate_ids", model.ArrayToJson(userIds))
-		Publish(message)
 
 		return channel, nil
 	}

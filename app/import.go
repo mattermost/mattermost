@@ -17,17 +17,20 @@ import (
 	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
+	"github.com/mattermost/platform/store"
 )
 
 // Import Data Models
 
 type LineImportData struct {
-	Type    string             `json:"type"`
-	Team    *TeamImportData    `json:"team"`
-	Channel *ChannelImportData `json:"channel"`
-	User    *UserImportData    `json:"user"`
-	Post    *PostImportData    `json:"post"`
-	Version *int               `json:"version"`
+	Type          string                   `json:"type"`
+	Team          *TeamImportData          `json:"team"`
+	Channel       *ChannelImportData       `json:"channel"`
+	User          *UserImportData          `json:"user"`
+	Post          *PostImportData          `json:"post"`
+	DirectChannel *DirectChannelImportData `json:"direct_channel"`
+	DirectPost    *DirectPostImportData    `json:"direct_post"`
+	Version       *int                     `json:"version"`
 }
 
 type TeamImportData struct {
@@ -92,6 +95,20 @@ type PostImportData struct {
 	Team    *string `json:"team"`
 	Channel *string `json:"channel"`
 	User    *string `json:"user"`
+
+	Message  *string `json:"message"`
+	CreateAt *int64  `json:"create_at"`
+}
+
+type DirectChannelImportData struct {
+	Members *[]string `json:"members"`
+
+	Header *string `json:"header"`
+}
+
+type DirectPostImportData struct {
+	ChannelMembers *[]string `json:"channel_members"`
+	User           *string   `json:"user"`
 
 	Message  *string `json:"message"`
 	CreateAt *int64  `json:"create_at"`
@@ -232,6 +249,18 @@ func ImportLine(line LineImportData, dryRun bool) *model.AppError {
 			return model.NewAppError("BulkImport", "app.import.import_line.null_post.error", nil, "", http.StatusBadRequest)
 		} else {
 			return ImportPost(line.Post, dryRun)
+		}
+	case line.Type == "direct_channel":
+		if line.DirectChannel == nil {
+			return model.NewAppError("BulkImport", "app.import.import_line.null_direct_channel.error", nil, "", http.StatusBadRequest)
+		} else {
+			return ImportDirectChannel(line.DirectChannel, dryRun)
+		}
+	case line.Type == "direct_post":
+		if line.DirectPost == nil {
+			return model.NewAppError("BulkImport", "app.import.import_line.null_direct_post.error", nil, "", http.StatusBadRequest)
+		} else {
+			return ImportDirectPost(line.DirectPost, dryRun)
 		}
 	default:
 		return model.NewLocAppError("BulkImport", "app.import.import_line.unknown_line_type.error", map[string]interface{}{"Type": line.Type}, "")
@@ -940,6 +969,205 @@ func validatePostImportData(data *PostImportData) *model.AppError {
 		return model.NewAppError("BulkImport", "app.import.validate_post_import_data.create_at_missing.error", nil, "", http.StatusBadRequest)
 	} else if *data.CreateAt == 0 {
 		return model.NewAppError("BulkImport", "app.import.validate_post_import_data.create_at_zero.error", nil, "", http.StatusBadRequest)
+	}
+
+	return nil
+}
+
+func ImportDirectChannel(data *DirectChannelImportData, dryRun bool) *model.AppError {
+	if err := validateDirectChannelImportData(data); err != nil {
+		return err
+	}
+
+	// If this is a Dry Run, do not continue any further.
+	if dryRun {
+		return nil
+	}
+
+	var userIds []string
+	for _, username := range *data.Members {
+		if result := <-Srv.Store.User().GetByUsername(username); result.Err == nil {
+			user := result.Data.(*model.User)
+			userIds = append(userIds, user.Id)
+		} else {
+			return model.NewAppError("BulkImport", "app.import.import_direct_channel.member_not_found.error", nil, "", http.StatusBadRequest)
+		}
+	}
+
+	var channel *model.Channel
+
+	if len(userIds) == 2 {
+		ch, err := createDirectChannel(userIds[0], userIds[1])
+		if err != nil && err.Id != store.CHANNEL_EXISTS_ERROR {
+			return model.NewAppError("BulkImport", "app.import.import_direct_channel.create_direct_channel.error", nil, "", http.StatusBadRequest)
+		} else {
+			channel = ch
+		}
+	} else {
+		ch, err := createGroupChannel(userIds, userIds[0])
+		if err != nil && err.Id != store.CHANNEL_EXISTS_ERROR  {
+			return model.NewAppError("BulkImport", "app.import.import_direct_channel.create_group_channel.error", nil, "", http.StatusBadRequest)
+		} else {
+			channel = ch
+		}
+	}
+
+	for _, userId := range userIds {
+		preferences := model.Preferences{
+			model.Preference{
+				UserId: userId,
+				Category: model.PREFERENCE_CATEGORY_DIRECT_CHANNEL_SHOW,
+				Name: channel.Id,
+				Value: "true",
+			},
+		}
+		if result := <-Srv.Store.Preference().Save(&preferences); result.Err != nil {
+			result.Err.StatusCode = http.StatusBadRequest
+			return result.Err
+		}
+	}
+
+	if data.Header != nil {
+		channel.Header = *data.Header
+		if result := <-Srv.Store.Channel().Update(channel); result.Err != nil {
+			return model.NewAppError("BulkImport", "app.import.import_direct_channel.update_header_failed.error", nil, "", http.StatusBadRequest)
+		}
+	}
+
+	return nil
+}
+
+func validateDirectChannelImportData(data *DirectChannelImportData) *model.AppError {
+	if data.Members == nil {
+		return model.NewLocAppError("BulkImport", "app.import.validate_direct_channel_import_data.members_required.error", nil, "")
+	}
+
+	if len(*data.Members) != 2 {
+		if len(*data.Members) < model.CHANNEL_GROUP_MIN_USERS {
+			return model.NewLocAppError("BulkImport", "app.import.validate_direct_channel_import_data.members_too_few.error", nil, "")
+		} else if len(*data.Members) > model.CHANNEL_GROUP_MAX_USERS {
+			return model.NewLocAppError("BulkImport", "app.import.validate_direct_channel_import_data.members_too_many.error", nil, "")
+		}
+	}
+
+	if data.Header != nil && utf8.RuneCountInString(*data.Header) > model.CHANNEL_HEADER_MAX_RUNES {
+		return model.NewLocAppError("BulkImport", "app.import.validate_direct_channel_import_data.header_length.error", nil, "")
+	}
+
+	return nil
+}
+
+func ImportDirectPost(data *DirectPostImportData, dryRun bool) *model.AppError {
+	if err := validateDirectPostImportData(data); err != nil {
+		return err
+	}
+
+	// If this is a Dry Run, do not continue any further.
+	if dryRun {
+		return nil
+	}
+
+	var userIds []string
+	for _, username := range *data.ChannelMembers {
+		if result := <-Srv.Store.User().GetByUsername(username); result.Err == nil {
+			user := result.Data.(*model.User)
+			userIds = append(userIds, user.Id)
+		} else {
+			return model.NewAppError("BulkImport", "app.import.import_direct_post.channel_member_not_found.error", nil, "", http.StatusBadRequest)
+		}
+	}
+
+	var channel *model.Channel
+	if len(userIds) == 2 {
+		ch, err := createDirectChannel(userIds[0], userIds[1])
+		if err != nil && err.Id != store.CHANNEL_EXISTS_ERROR {
+			return model.NewAppError("BulkImport", "app.import.import_direct_channel.create_direct_channel.error", nil, "", http.StatusBadRequest)
+		} else {
+			channel = ch
+		}
+	} else {
+		ch, err := createGroupChannel(userIds, userIds[0])
+		if err != nil && err.Id != store.CHANNEL_EXISTS_ERROR  {
+			return model.NewAppError("BulkImport", "app.import.import_direct_channel.create_group_channel.error", nil, "", http.StatusBadRequest)
+		} else {
+			channel = ch
+		}
+	}
+
+	var user *model.User
+	if result := <-Srv.Store.User().GetByUsername(*data.User); result.Err != nil {
+		return model.NewAppError("BulkImport", "app.import.import_direct_post.user_not_found.error", map[string]interface{}{"Username": *data.User}, "", http.StatusBadRequest)
+	} else {
+		user = result.Data.(*model.User)
+	}
+
+	// Check if this post already exists.
+	var posts []*model.Post
+	if result := <-Srv.Store.Post().GetPostsCreatedAt(channel.Id, *data.CreateAt); result.Err != nil {
+		return result.Err
+	} else {
+		posts = result.Data.([]*model.Post)
+	}
+
+	var post *model.Post
+	for _, p := range posts {
+		if p.Message == *data.Message {
+			post = p
+			break
+		}
+	}
+
+	if post == nil {
+		post = &model.Post{}
+	}
+
+	post.ChannelId = channel.Id
+	post.Message = *data.Message
+	post.UserId = user.Id
+	post.CreateAt = *data.CreateAt
+
+	post.Hashtags, _ = model.ParseHashtags(post.Message)
+
+	if post.Id == "" {
+		if result := <-Srv.Store.Post().Save(post); result.Err != nil {
+			return result.Err
+		}
+	} else {
+		if result := <-Srv.Store.Post().Overwrite(post); result.Err != nil {
+			return result.Err
+		}
+	}
+
+	return nil
+}
+
+func validateDirectPostImportData(data *DirectPostImportData) *model.AppError {
+	if data.ChannelMembers == nil {
+		return model.NewLocAppError("BulkImport", "app.import.validate_direct_post_import_data.channel_members_required.error", nil, "")
+	}
+
+	if len(*data.ChannelMembers) != 2 {
+		if len(*data.ChannelMembers) < model.CHANNEL_GROUP_MIN_USERS {
+			return model.NewLocAppError("BulkImport", "app.import.validate_direct_post_import_data.channel_members_too_few.error", nil, "")
+		} else if len(*data.ChannelMembers) > model.CHANNEL_GROUP_MAX_USERS {
+			return model.NewLocAppError("BulkImport", "app.import.validate_direct_post_import_data.channel_members_too_many.error", nil, "")
+		}
+	}
+
+	if data.User == nil {
+		return model.NewAppError("BulkImport", "app.import.validate_direct_post_import_data.user_missing.error", nil, "", http.StatusBadRequest)
+	}
+
+	if data.Message == nil {
+		return model.NewAppError("BulkImport", "app.import.validate_direct_post_import_data.message_missing.error", nil, "", http.StatusBadRequest)
+	} else if utf8.RuneCountInString(*data.Message) > model.POST_MESSAGE_MAX_RUNES {
+		return model.NewAppError("BulkImport", "app.import.validate_direct_post_import_data.message_length.error", nil, "", http.StatusBadRequest)
+	}
+
+	if data.CreateAt == nil {
+		return model.NewAppError("BulkImport", "app.import.validate_direct_post_import_data.create_at_missing.error", nil, "", http.StatusBadRequest)
+	} else if *data.CreateAt == 0 {
+		return model.NewAppError("BulkImport", "app.import.validate_direct_post_import_data.create_at_zero.error", nil, "", http.StatusBadRequest)
 	}
 
 	return nil
