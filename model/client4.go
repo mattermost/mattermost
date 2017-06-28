@@ -1684,8 +1684,8 @@ func (c *Client4) GetPostsBefore(channelId, postId string, page, perPage int, et
 
 // SearchPosts returns any posts with matching terms string.
 func (c *Client4) SearchPosts(teamId string, terms string, isOrSearch bool) (*PostList, *Response) {
-	requestBody := map[string]string{"terms": terms, "is_or_search": strconv.FormatBool(isOrSearch)}
-	if r, err := c.DoApiPost(c.GetTeamRoute(teamId)+"/posts/search", MapToJson(requestBody)); err != nil {
+	requestBody := map[string]interface{}{"terms": terms, "is_or_search": isOrSearch}
+	if r, err := c.DoApiPost(c.GetTeamRoute(teamId)+"/posts/search", StringInterfaceToJson(requestBody)); err != nil {
 		return nil, BuildErrorResponse(r, err)
 	} else {
 		defer closeBody(r)
