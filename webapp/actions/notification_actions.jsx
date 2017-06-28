@@ -73,7 +73,21 @@ export function sendDesktopNotification(post, msgProps) {
         }
     }
 
-    let notifyText = post.message.replace(/\n+/g, ' ');
+    let notifyText = post.message;
+
+    const msgPropsPost = JSON.parse(msgProps.post);
+    const attachments = msgPropsPost && msgPropsPost.props && msgPropsPost.props.attachments ? msgPropsPost.props.attachments : [];
+    let image = false;
+    attachments.forEach((attachment) => {
+        if (notifyText.length === 0) {
+            notifyText = attachment.fallback ||
+                         attachment.pretext ||
+                         attachment.text;
+        }
+        image |= attachment.image_url.length > 0;
+    });
+
+    notifyText.replace(/\n+/g, ' ');
     if (notifyText.length > 50) {
         notifyText = notifyText.substring(0, 49) + '...';
     }
@@ -84,6 +98,8 @@ export function sendDesktopNotification(post, msgProps) {
             body = username + Utils.localizeMessage('channel_loader.uploadedImage', ' uploaded an image');
         } else if (msgProps.otherFile) {
             body = username + Utils.localizeMessage('channel_loader.uploadedFile', ' uploaded a file');
+        } else if (image) {
+            body = username + Utils.localizeMessage('channel_loader.postedImage', ' posted an image');
         } else {
             body = username + Utils.localizeMessage('channel_loader.something', ' did something new');
         }
