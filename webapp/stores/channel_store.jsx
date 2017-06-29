@@ -448,7 +448,8 @@ class ChannelStoreClass extends EventEmitter {
 
     incrementMessages(id, markRead = false) {
         if (!this.unreadCounts[id]) {
-            return;
+            // Should never happen
+            console.log(`Missing channel_id=${id} in unreads object`); //eslint-disable-line no-console
         }
 
         const member = this.getMyMember(id);
@@ -483,11 +484,11 @@ class ChannelStoreClass extends EventEmitter {
         }
 
         if (!this.unreadCounts[id]) {
-            return;
+            // Should never happen
+            console.log(`Missing channel_id=${id} in unreads object`); //eslint-disable-line no-console
         }
 
         if (mentions.indexOf(UserStore.getCurrentId()) !== -1) {
-            this.unreadCounts[id].mentions++;
             const member = {...this.getMyMember(id)};
             member.mention_count++;
             store.dispatch({
