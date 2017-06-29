@@ -170,10 +170,11 @@ export default class CreatePost extends React.Component {
                     if (err.sendMessage) {
                         this.sendMessage(post);
                     } else {
-                        const state = {};
-                        state.serverError = err.message;
-                        state.submitting = false;
-                        this.setState({state});
+                        this.setState({
+                            serverError: err.message,
+                            submitting: false,
+                            message: post.message
+                        });
                     }
                 }
             );
