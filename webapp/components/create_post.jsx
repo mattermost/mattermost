@@ -76,14 +76,15 @@ export default class CreatePost extends React.Component {
 
         PostStore.clearDraftUploads();
 
-        const channelId = ChannelStore.getCurrentId();
-        const draft = PostStore.getDraft(channelId);
-
+        const channel = ChannelStore.getCurrent();
+        const channelId = channel.id;
+        const draft = PostStore.getPostDraft(channelId);
         const stats = ChannelStore.getCurrentStats();
         const members = stats.member_count - 1;
 
         this.state = {
             channelId,
+            channel,
             message: draft.message,
             uploadsInProgress: draft.uploadsInProgress,
             fileInfos: draft.fileInfos,
@@ -213,12 +214,20 @@ export default class CreatePost extends React.Component {
     handleSubmit(e) {
         const stats = ChannelStore.getCurrentStats();
         const members = stats.member_count - 1;
+        const updateChannel = ChannelStore.getCurrent();
 
         if ((this.state.message.includes('@all') || this.state.message.includes('@channel')) && members >= Constants.NOTIFY_ALL_MEMBERS) {
             this.setState({totalMembers: members});
             this.showNotifyAllModal();
             return;
         }
+
+        if (this.state.message.endsWith('/header ')) {
+            GlobalActions.showChannelHeaderUpdateModal(updateChannel);
+            this.setState({message: ''});
+            return;
+        }
+
         this.doSubmit(e);
     }
 
