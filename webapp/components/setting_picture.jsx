@@ -7,8 +7,9 @@ import React, {Component} from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import FormError from 'components/form_error.jsx';
-
 import loadingGif from 'images/load.gif';
+
+import Constants from 'utils/constants.jsx';
 
 export default class SettingPicture extends Component {
     static propTypes = {
@@ -114,8 +115,8 @@ export default class SettingPicture extends Component {
                                 id='setting_picture.help'
                                 defaultMessage='Upload a profile picture in BMP, JPG, JPEG or PNG format, at least {width}px in width and {height}px height.'
                                 values={{
-                                    width: global.mm_config.ProfileWidth,
-                                    height: global.mm_config.ProfileHeight
+                                    width: Constants.PROFILE_WIDTH,
+                                    height: Constants.PROFILE_WIDTH
                                 }}
                             />
                         </li>
