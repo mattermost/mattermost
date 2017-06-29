@@ -4,6 +4,8 @@
 package store
 
 import (
+	"net/http"
+
 	"github.com/mattermost/platform/einterfaces"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
@@ -104,7 +106,7 @@ func (es SqlEmojiStore) Get(id string, allowFromCache bool) StoreChannel {
 			WHERE
 				Id = :Id
 				AND DeleteAt = 0`, map[string]interface{}{"Id": id}); err != nil {
-			result.Err = model.NewLocAppError("SqlEmojiStore.Get", "store.sql_emoji.get.app_error", nil, "id="+id+", "+err.Error())
+			result.Err = model.NewAppError("SqlEmojiStore.Get", "store.sql_emoji.get.app_error", nil, "id="+id+", "+err.Error(), http.StatusNotFound)
 		} else {
 			result.Data = emoji
 
@@ -194,6 +196,8 @@ func (es SqlEmojiStore) Delete(id string, time int64) StoreChannel {
 		} else if rows, _ := sqlResult.RowsAffected(); rows == 0 {
 			result.Err = model.NewLocAppError("SqlEmojiStore.Delete", "store.sql_emoji.delete.no_results", nil, "id="+id+", err="+err.Error())
 		}
+
+		emojiCache.Remove(id)
 
 		storeChannel <- result
 		close(storeChannel)
