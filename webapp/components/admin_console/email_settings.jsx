@@ -203,6 +203,44 @@ export default class EmailSettings extends AdminSettings {
                     onChange={this.handleChange}
                     disabled={!this.state.sendEmailNotifications}
                 />
+                <TextSetting
+                    id='smtpServer'
+                    label={
+                        <FormattedMessage
+                            id='admin.email.smtpServerTitle'
+                            defaultMessage='SMTP Server:'
+                        />
+                    }
+                    placeholder={Utils.localizeMessage('admin.email.smtpServerExample', 'Ex: "smtp.yourcompany.com", "email-smtp.us-east-1.amazonaws.com"')}
+                    helpText={
+                        <FormattedMessage
+                            id='admin.email.smtpServerDescription'
+                            defaultMessage='Location of SMTP email server.'
+                        />
+                    }
+                    value={this.state.smtpServer}
+                    onChange={this.handleChange}
+                    disabled={!this.state.sendEmailNotifications}
+                />
+                <TextSetting
+                    id='smtpPort'
+                    label={
+                        <FormattedMessage
+                            id='admin.email.smtpPortTitle'
+                            defaultMessage='SMTP Server Port:'
+                        />
+                    }
+                    placeholder={Utils.localizeMessage('admin.email.smtpPortExample', 'Ex: "25", "465", "587"')}
+                    helpText={
+                        <FormattedMessage
+                            id='admin.email.smtpPortDescription'
+                            defaultMessage='Port of SMTP email server.'
+                        />
+                    }
+                    value={this.state.smtpPort}
+                    onChange={this.handleChange}
+                    disabled={!this.state.sendEmailNotifications}
+                />
                 <BooleanSetting
                     id='enableSMTPAuth'
                     label={
@@ -259,44 +297,6 @@ export default class EmailSettings extends AdminSettings {
                     value={this.state.smtpPassword}
                     onChange={this.handleChange}
                     disabled={!this.state.sendEmailNotifications || !this.state.enableSMTPAuth}
-                />
-                <TextSetting
-                    id='smtpServer'
-                    label={
-                        <FormattedMessage
-                            id='admin.email.smtpServerTitle'
-                            defaultMessage='SMTP Server:'
-                        />
-                    }
-                    placeholder={Utils.localizeMessage('admin.email.smtpServerExample', 'Ex: "smtp.yourcompany.com", "email-smtp.us-east-1.amazonaws.com"')}
-                    helpText={
-                        <FormattedMessage
-                            id='admin.email.smtpServerDescription'
-                            defaultMessage='Location of SMTP email server.'
-                        />
-                    }
-                    value={this.state.smtpServer}
-                    onChange={this.handleChange}
-                    disabled={!this.state.sendEmailNotifications}
-                />
-                <TextSetting
-                    id='smtpPort'
-                    label={
-                        <FormattedMessage
-                            id='admin.email.smtpPortTitle'
-                            defaultMessage='SMTP Server Port:'
-                        />
-                    }
-                    placeholder={Utils.localizeMessage('admin.email.smtpPortExample', 'Ex: "25", "465", "587"')}
-                    helpText={
-                        <FormattedMessage
-                            id='admin.email.smtpPortDescription'
-                            defaultMessage='Port of SMTP email server.'
-                        />
-                    }
-                    value={this.state.smtpPort}
-                    onChange={this.handleChange}
-                    disabled={!this.state.sendEmailNotifications}
                 />
                 <ConnectionSecurityDropdownSettingEmail
                     value={this.state.connectionSecurity}
