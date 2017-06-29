@@ -77,6 +77,8 @@ type Routes struct {
 
 	LDAP *mux.Router // 'api/v4/ldap'
 
+	Elasticsearch *mux.Router // 'api/v4/elasticsearch'
+
 	Brand *mux.Router // 'api/v4/brand'
 
 	System *mux.Router // 'api/v4/system'
@@ -171,6 +173,7 @@ func InitApi(full bool) {
 	BaseRoutes.Public = BaseRoutes.ApiRoot.PathPrefix("/public").Subrouter()
 	BaseRoutes.Reactions = BaseRoutes.ApiRoot.PathPrefix("/reactions").Subrouter()
 	BaseRoutes.Jobs = BaseRoutes.ApiRoot.PathPrefix("/jobs").Subrouter()
+	BaseRoutes.Elasticsearch = BaseRoutes.ApiRoot.PathPrefix("/elasticsearch").Subrouter()
 
 	BaseRoutes.Emojis = BaseRoutes.ApiRoot.PathPrefix("/emoji").Subrouter()
 	BaseRoutes.Emoji = BaseRoutes.Emojis.PathPrefix("/{emoji_id:[A-Za-z0-9]+}").Subrouter()
@@ -193,6 +196,7 @@ func InitApi(full bool) {
 	InitCompliance()
 	InitCluster()
 	InitLdap()
+	InitElasticsearch()
 	InitBrand()
 	InitJob()
 	InitCommand()

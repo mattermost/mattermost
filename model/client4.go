@@ -230,6 +230,10 @@ func (c *Client4) GetBrandRoute() string {
 	return fmt.Sprintf("/brand")
 }
 
+func (c *Client4) GetElasticsearchRoute() string {
+	return fmt.Sprintf("/elasticsearch")
+}
+
 func (c *Client4) GetCommandsRoute() string {
 	return fmt.Sprintf("/commands")
 }
@@ -2507,6 +2511,19 @@ func (c *Client4) AuthorizeOAuthApp(authRequest *AuthorizeRequest) (string, *Res
 func (c *Client4) DeauthorizeOAuthApp(appId string) (bool, *Response) {
 	requestData := map[string]string{"client_id": appId}
 	if r, err := c.DoApiRequest(http.MethodPost, c.Url+"/oauth/deauthorize", MapToJson(requestData), ""); err != nil {
+		return false, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return CheckStatusOK(r), BuildResponse(r)
+	}
+}
+
+// Elasticsearch Section
+
+// TestElasticsearch will attempt to connect to the configured Elasticsearch server and return OK if configured
+// correctly.
+func (c *Client4) TestElasticsearch() (bool, *Response) {
+	if r, err := c.DoApiPost(c.GetElasticsearchRoute()+"/test", ""); err != nil {
 		return false, BuildErrorResponse(r, err)
 	} else {
 		defer closeBody(r)
