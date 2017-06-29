@@ -190,9 +190,13 @@ export function showManagementOptions(channel, isAdmin, isSystemAdmin, isChannel
     return true;
 }
 
-export function showDeleteOption(channel, isAdmin, isSystemAdmin, isChannelAdmin) {
+export function showDeleteOption(channel, isAdmin, isSystemAdmin, isChannelAdmin, userCount) {
     if (global.window.mm_license.IsLicensed !== 'true') {
         return true;
+    }
+
+    if (ChannelStore.isDefault(channel)) {
+        return false;
     }
 
     if (channel.type === Constants.OPEN_CHANNEL) {
@@ -213,6 +217,9 @@ export function showDeleteOption(channel, isAdmin, isSystemAdmin, isChannelAdmin
             return false;
         }
         if (global.window.mm_config.RestrictPrivateChannelDeletion === Constants.PERMISSIONS_CHANNEL_ADMIN && !isChannelAdmin && !isAdmin) {
+            return false;
+        }
+        if (userCount === 1) {
             return false;
         }
     }

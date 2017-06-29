@@ -240,6 +240,10 @@
     "translation": "Cannot delete the default channel {{.Channel}}"
   },
   {
+    "id": "api.channel.delete_channel.private.last_member.cannot.app_error",
+    "translation": "Cannot delete a private channel {{.Channel}} with only one member left"
+  },
+  {
     "id": "api.channel.delete_channel.deleted.app_error",
     "translation": "The channel has been archived or deleted"
   },
