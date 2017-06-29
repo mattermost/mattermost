@@ -528,6 +528,8 @@ govet:
 	$(GO) vet $(GOFLAGS) ./app || exit 1
 	$(GO) vet $(GOFLAGS) ./cmd/platform || exit 1
 	$(GO) vet $(GOFLAGS) ./einterfaces || exit 1
+	$(GO) vet $(GOFLAGS) ./jobs || exit 1
+	$(GO) vet $(GOFLAGS) ./jobs/jobserver || exit 1
 	$(GO) vet $(GOFLAGS) ./manualtesting || exit 1
 	$(GO) vet $(GOFLAGS) ./model || exit 1
 	$(GO) vet $(GOFLAGS) ./model/gitlab || exit 1
@@ -541,6 +543,7 @@ ifeq ($(BUILD_ENTERPRISE_READY),true)
 	$(GO) vet $(GOFLAGS) ./enterprise/cluster || exit 1
 	$(GO) vet $(GOFLAGS) ./enterprise/compliance || exit 1
 	$(GO) vet $(GOFLAGS) ./enterprise/data_retention || exit 1
+	$(GO) vet $(GOFLAGS) ./enterprise/elasticsearch || exit 1
 	$(GO) vet $(GOFLAGS) ./enterprise/emoji || exit 1
 	$(GO) vet $(GOFLAGS) ./enterprise/imports || exit 1
 	$(GO) vet $(GOFLAGS) ./enterprise/ldap || exit 1
