@@ -20,6 +20,7 @@
         width: 37px;
 
         &.wide {
+            @include border-radius(37px);
             padding: 0 13px 0 15px;
             width: auto;
         }
