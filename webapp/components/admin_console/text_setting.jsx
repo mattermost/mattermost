@@ -6,7 +6,6 @@ import PropTypes from 'prop-types';
 import React from 'react';
 
 import Setting from './setting.jsx';
-import Constants from 'utils/constants.jsx';
 
 export default class TextSetting extends React.Component {
     static get propTypes() {
@@ -32,7 +31,7 @@ export default class TextSetting extends React.Component {
     static get defaultProps() {
         return {
             type: 'input',
-            maxLength: Constants.MAX_TEXTSETTING_LENGTH
+            maxLength: null
         };
     }
 
@@ -67,9 +66,9 @@ export default class TextSetting extends React.Component {
                     id={this.props.id}
                     className='form-control'
                     rows='5'
-                    maxLength='1024'
                     placeholder={this.props.placeholder}
                     value={this.props.value}
+                    maxLength={this.props.maxLength}
                     onChange={this.handleChange}
                     disabled={this.props.disabled}
                 />
