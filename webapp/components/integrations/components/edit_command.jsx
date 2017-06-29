@@ -170,7 +170,8 @@ export default class EditCommand extends React.Component {
             method: this.state.method,
             username: this.state.username,
             icon_url: this.state.iconUrl,
-            auto_complete: this.state.autocomplete
+            auto_complete: this.state.autocomplete,
+            team_id: this.props.team.id
         };
 
         if (this.originalCommand.id) {
