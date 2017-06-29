@@ -251,11 +251,11 @@ func TestDeleteEmoji(t *testing.T) {
 
 	// Try to delete just deleted emoji
 	_, resp = Client.DeleteEmoji(newEmoji.Id)
-	CheckInternalErrorStatus(t, resp)
+	CheckNotFoundStatus(t, resp)
 
 	//Try to delete non-existing emoji
 	_, resp = Client.DeleteEmoji(model.NewId())
-	CheckInternalErrorStatus(t, resp)
+	CheckNotFoundStatus(t, resp)
 
 	//Try to delete without Id
 	_, resp = Client.DeleteEmoji("")
@@ -297,7 +297,7 @@ func TestGetEmoji(t *testing.T) {
 	}
 
 	_, resp = Client.GetEmoji(model.NewId())
-	CheckInternalErrorStatus(t, resp)
+	CheckNotFoundStatus(t, resp)
 }
 
 func TestGetEmojiImage(t *testing.T) {
@@ -413,7 +413,7 @@ func TestGetEmojiImage(t *testing.T) {
 	CheckNotFoundStatus(t, resp)
 
 	_, resp = Client.GetEmojiImage(model.NewId())
-	CheckInternalErrorStatus(t, resp)
+	CheckNotFoundStatus(t, resp)
 
 	_, resp = Client.GetEmojiImage("")
 	CheckBadRequestStatus(t, resp)
