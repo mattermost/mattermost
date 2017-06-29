@@ -23,6 +23,7 @@ import (
 	"os"
 
 	"github.com/minio/minio-go"
+	"github.com/minio/minio-go/pkg/encrypt"
 )
 
 func main() {
@@ -65,10 +66,10 @@ func main() {
 	////
 
 	// Build a symmetric key
-	symmetricKey := minio.NewSymmetricKey([]byte("my-secret-key-00"))
+	symmetricKey := encrypt.NewSymmetricKey([]byte("my-secret-key-00"))
 
 	// Build encryption materials which will encrypt uploaded data
-	cbcMaterials, err := minio.NewCBCSecureMaterials(symmetricKey)
+	cbcMaterials, err := encrypt.NewCBCSecureMaterials(symmetricKey)
 	if err != nil {
 		log.Fatalln(err)
 	}

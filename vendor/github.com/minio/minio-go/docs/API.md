@@ -771,7 +771,7 @@ if err != nil {
 ```
 
 <a name="GetEncryptedObject"></a>
-### GetEncryptedObject(bucketName, objectName string, encryptMaterials minio.EncryptionMaterials) (io.Reader, error)
+### GetEncryptedObject(bucketName, objectName string, encryptMaterials minio.EncryptionMaterials) (io.ReadCloser, error)
 
 Returns the decrypted stream of the object data based of the given encryption materiels. Most of the common errors occur when reading the stream.
 
@@ -788,7 +788,7 @@ __Return Value__
 
 |Param   |Type   |Description   |
 |:---|:---| :---|
-|`stream`  | _io.Reader_ | Returns the deciphered object reader. |
+|`stream`  | _io.ReadCloser_ | Returns the deciphered object reader, caller should close after reading. |
 |`err`  | _error | Returns errors. |
 
 
@@ -810,11 +810,14 @@ if err != nil {
     fmt.Println(err)
     return
 }
+defer object.Close()
+
 localFile, err := os.Create("/tmp/local-file.jpg")
 if err != nil {
     fmt.Println(err)
     return
 }
+
 if _, err = io.Copy(localFile, object); err != nil {
     fmt.Println(err)
     return

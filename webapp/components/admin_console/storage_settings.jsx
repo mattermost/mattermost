@@ -25,6 +25,8 @@ export default class StorageSettings extends AdminSettings {
     }
 
     getConfigFromState(config) {
+        config.FileSettings.EnableClientSideEncryption = this.state.EnableClientSideEncryption;
+        config.FileSettings.ClientSideEncryptionKey = this.state.ClientSideEncryptionKey;
         config.FileSettings.EnableFileAttachments = this.state.enableFileAttachments;
         config.FileSettings.MaxFileSize = this.parseInt(this.state.maxFileSize) * 1024 * 1024;
         config.FileSettings.DriverName = this.state.driverName;
@@ -40,6 +42,8 @@ export default class StorageSettings extends AdminSettings {
 
     getStateFromConfig(config) {
         return {
+            enableClientSideEncryption: config.FileSettings.EnableClientSideEncryption,
+            clientSideEncryptionKey: config.FileSettings.ClientSideEncryptionKey,
             enableFileAttachments: config.FileSettings.EnableFileAttachments,
             maxFileSize: config.FileSettings.MaxFileSize / 1024 / 1024,
             driverName: config.FileSettings.DriverName,
@@ -236,6 +240,43 @@ export default class StorageSettings extends AdminSettings {
                     value={this.state.maxFileSize}
                     onChange={this.handleChange}
                     disabled={!this.state.enableFileAttachments}
+                />
+                <BooleanSetting
+                    id='EnableClientSideEncryption'
+                    label={
+                        <FormattedMessage
+                            id='admin.file.enableClientSideEncryptionTitle'
+                            defaultMessage='Encrypt Files at the Mattermost server'
+                        />
+                    }
+                    helpText={
+                        <FormattedMessage
+                            id='admin.file.enableClientSideEncryptionDescription'
+                            defaultMessage='The mattermost server will encrypt all files uploaded to storage.'
+                        />
+                    }
+                    value={this.state.enableClientSideEncryption}
+                    onChange={this.handleChange}
+                    disabled={!this.state.enableFileAttachments || this.state.driverName !== DRIVER_S3}
+                />
+                <TextSetting
+                    id='ClientSideEncryptionKey'
+                    label={
+                        <FormattedMessage
+                            id='admin.file.clientSideEncryptionKeyTitle'
+                            defaultMessage='Encryption Key'
+                        />
+                    }
+                    placeholder={Utils.localizeMessage('admin.file.clientSideEncryptionKeyExample', 'Ex "gxHVDcKUyP2y1eiyW8S8na1UYQAfq6J6"')}
+                    helpText={
+                        <FormattedMessage
+                            id='admin.file.clientSideEncryptionKeyDescription'
+                            defaultMessage='Key for client encryption of files (Minimum of 32 Characters).  Caution: If this value changes after files (including user pictures) have been uploaded, old files will no longer be accessible.'
+                        />
+                    }
+                    value={this.state.clientSideEncryptionKey}
+                    onChange={this.handleChange}
+                    disabled={!this.state.enableClientSideEncryption}
                 />
             </SettingsGroup>
         );

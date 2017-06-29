@@ -225,26 +225,28 @@ type PasswordSettings struct {
 }
 
 type FileSettings struct {
-	EnableFileAttachments   *bool
-	MaxFileSize             *int64
-	DriverName              string
-	Directory               string
-	EnablePublicLink        bool
-	PublicLinkSalt          *string
-	ThumbnailWidth          int
-	ThumbnailHeight         int
-	PreviewWidth            int
-	PreviewHeight           int
-	ProfileWidth            int
-	ProfileHeight           int
-	InitialFont             string
-	AmazonS3AccessKeyId     string
-	AmazonS3SecretAccessKey string
-	AmazonS3Bucket          string
-	AmazonS3Region          string
-	AmazonS3Endpoint        string
-	AmazonS3SSL             *bool
-	AmazonS3SignV2          *bool
+	EnableClientSideEncryption *bool
+	ClientSideEncryptionKey    *string
+	EnableFileAttachments      *bool
+	MaxFileSize                *int64
+	DriverName                 string
+	Directory                  string
+	EnablePublicLink           bool
+	PublicLinkSalt             *string
+	ThumbnailWidth             int
+	ThumbnailHeight            int
+	PreviewWidth               int
+	PreviewHeight              int
+	ProfileWidth               int
+	ProfileHeight              int
+	InitialFont                string
+	AmazonS3AccessKeyId        string
+	AmazonS3SecretAccessKey    string
+	AmazonS3Bucket             string
+	AmazonS3Region             string
+	AmazonS3Endpoint           string
+	AmazonS3SSL                *bool
+	AmazonS3SignV2             *bool
 }
 
 type EmailSettings struct {
@@ -501,6 +503,21 @@ func (o *Config) SetDefaults() {
 	if o.SqlSettings.QueryTimeout == nil {
 		o.SqlSettings.QueryTimeout = new(int)
 		*o.SqlSettings.QueryTimeout = 30
+	}
+
+	if o.FileSettings.EnableClientSideEncryption == nil {
+		o.FileSettings.EnableClientSideEncryption = new(bool)
+		*o.FileSettings.EnableClientSideEncryption = false
+	}
+
+	if *o.FileSettings.EnableClientSideEncryption {
+		if o.FileSettings.ClientSideEncryptionKey == nil || *o.FileSettings.ClientSideEncryptionKey == "" {
+			o.FileSettings.ClientSideEncryptionKey = new(string)
+			*o.FileSettings.ClientSideEncryptionKey = NewRandomString(32)
+		}
+	} else if o.FileSettings.ClientSideEncryptionKey == nil {
+		o.FileSettings.ClientSideEncryptionKey = new(string)
+		*o.FileSettings.ClientSideEncryptionKey = ""
 	}
 
 	if o.FileSettings.AmazonS3Endpoint == "" {
@@ -1454,6 +1471,10 @@ func (o *Config) IsValid() *AppError {
 		return NewLocAppError("Config.IsValid", "model.config.is_valid.file_salt.app_error", nil, "")
 	}
 
+	if len(*o.FileSettings.ClientSideEncryptionKey) > 0 && len(*o.FileSettings.ClientSideEncryptionKey) < 32 {
+		return NewLocAppError("Config.IsValid", "model.config.is_valid.encrypt_file.app_error", nil, "")
+	}
+
 	if !(o.EmailSettings.ConnectionSecurity == CONN_SECURITY_NONE || o.EmailSettings.ConnectionSecurity == CONN_SECURITY_TLS || o.EmailSettings.ConnectionSecurity == CONN_SECURITY_STARTTLS || o.EmailSettings.ConnectionSecurity == CONN_SECURITY_PLAIN) {
 		return NewLocAppError("Config.IsValid", "model.config.is_valid.email_security.app_error", nil, "")
 	}
@@ -1615,6 +1636,9 @@ func (o *Config) Sanitize() {
 	*o.FileSettings.PublicLinkSalt = FAKE_SETTING
 	if len(o.FileSettings.AmazonS3SecretAccessKey) > 0 {
 		o.FileSettings.AmazonS3SecretAccessKey = FAKE_SETTING
+	}
+	if len(*o.FileSettings.ClientSideEncryptionKey) > 0 {
+		*o.FileSettings.ClientSideEncryptionKey = FAKE_SETTING
 	}
 
 	o.EmailSettings.InviteSalt = FAKE_SETTING
