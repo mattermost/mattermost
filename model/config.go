@@ -231,12 +231,6 @@ type FileSettings struct {
 	Directory               string
 	EnablePublicLink        bool
 	PublicLinkSalt          *string
-	ThumbnailWidth          int
-	ThumbnailHeight         int
-	PreviewWidth            int
-	PreviewHeight           int
-	ProfileWidth            int
-	ProfileHeight           int
 	InitialFont             string
 	AmazonS3AccessKeyId     string
 	AmazonS3SecretAccessKey string
@@ -1424,30 +1418,6 @@ func (o *Config) IsValid() *AppError {
 
 	if !(o.FileSettings.DriverName == IMAGE_DRIVER_LOCAL || o.FileSettings.DriverName == IMAGE_DRIVER_S3) {
 		return NewLocAppError("Config.IsValid", "model.config.is_valid.file_driver.app_error", nil, "")
-	}
-
-	if o.FileSettings.PreviewHeight < 0 {
-		return NewLocAppError("Config.IsValid", "model.config.is_valid.file_preview_height.app_error", nil, "")
-	}
-
-	if o.FileSettings.PreviewWidth <= 0 {
-		return NewLocAppError("Config.IsValid", "model.config.is_valid.file_preview_width.app_error", nil, "")
-	}
-
-	if o.FileSettings.ProfileHeight <= 0 {
-		return NewLocAppError("Config.IsValid", "model.config.is_valid.file_profile_height.app_error", nil, "")
-	}
-
-	if o.FileSettings.ProfileWidth <= 0 {
-		return NewLocAppError("Config.IsValid", "model.config.is_valid.file_profile_width.app_error", nil, "")
-	}
-
-	if o.FileSettings.ThumbnailHeight <= 0 {
-		return NewLocAppError("Config.IsValid", "model.config.is_valid.file_thumb_height.app_error", nil, "")
-	}
-
-	if o.FileSettings.ThumbnailWidth <= 0 {
-		return NewLocAppError("Config.IsValid", "model.config.is_valid.file_thumb_width.app_error", nil, "")
 	}
 
 	if len(*o.FileSettings.PublicLinkSalt) < 32 {

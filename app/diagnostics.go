@@ -245,12 +245,6 @@ func trackConfig() {
 		"driver_name":         utils.Cfg.FileSettings.DriverName,
 		"amazon_s3_ssl":       *utils.Cfg.FileSettings.AmazonS3SSL,
 		"amazon_s3_signv2":    *utils.Cfg.FileSettings.AmazonS3SignV2,
-		"thumbnail_width":     utils.Cfg.FileSettings.ThumbnailWidth,
-		"thumbnail_height":    utils.Cfg.FileSettings.ThumbnailHeight,
-		"preview_width":       utils.Cfg.FileSettings.PreviewWidth,
-		"preview_height":      utils.Cfg.FileSettings.PreviewHeight,
-		"profile_width":       utils.Cfg.FileSettings.ProfileWidth,
-		"profile_height":      utils.Cfg.FileSettings.ProfileHeight,
 		"max_file_size":       *utils.Cfg.FileSettings.MaxFileSize,
 	})
 
