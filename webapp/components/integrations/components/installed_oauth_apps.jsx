@@ -102,28 +102,28 @@ export default class InstalledOAuthApps extends React.Component {
                 helpText={
                     <FormattedMessage
                         id='installed_oauth_apps.help'
-                        defaultMessage='Create {link} to securely integrate bots and third-party apps with Mattermost. Visit the {link2} to find available self-hosted apps.'
+                        defaultMessage='Create {oauthApplications} to securely integrate bots and third-party apps with Mattermost. Visit the {appDirectory} to find available self-hosted apps.'
                         values={{
-                            link: (
+                            oauthApplications: (
                                 <a
                                     target='_blank'
                                     rel='noopener noreferrer'
                                     href='https://docs.mattermost.com/developer/oauth-2-0-applications.html'
                                 >
                                     <FormattedMessage
-                                        id='installed_oauth_apps.helpLink'
+                                        id='installed_oauth_apps.help.oauthApplications'
                                         defaultMessage='OAuth 2.0 applications'
                                     />
                                 </a>
                             ),
-                            link2: (
+                            appDirectory: (
                                 <a
                                     target='_blank'
                                     rel='noopener noreferrer'
                                     href='https://about.mattermost.com/default-app-directory/'
                                 >
                                     <FormattedMessage
-                                        id='installed_oauth_apps.helpLink2'
+                                        id='installed_oauth_apps.help.appDirectory'
                                         defaultMessage='App Directory'
                                     />
                                 </a>
