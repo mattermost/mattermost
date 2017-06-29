@@ -4,6 +4,8 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
+import {postListScrollChange} from 'actions/global_actions.jsx';
+
 import * as Utils from 'utils/utils.jsx';
 import * as CommonUtils from 'utils/commons.jsx';
 
@@ -80,6 +82,10 @@ export default class PostAttachmentOpenGraph extends React.PureComponent {
                 imageVisible: nextProps.previewCollapsed.startsWith('false')
             });
         }
+    }
+
+    componentDidUpdate() {
+        postListScrollChange();
     }
 
     fetchData(url) {
