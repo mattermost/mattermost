@@ -328,18 +328,6 @@ export default {
                         (comarr) => callback(null, {team_sidebar: comarr[0].default, sidebar: comarr[1].default, center: comarr[2].default})
                         );
                     }
-                },
-                {
-                    path: 'tutorial',
-                    getComponents: (location, callback) => {
-                        Promise.all([
-                            System.import('components/team_sidebar'),
-                            System.import('components/sidebar.jsx'),
-                            System.import('components/tutorial/tutorial_view.jsx')
-                        ]).then(
-                        (comarr) => callback(null, {team_sidebar: comarr[0].default, sidebar: comarr[1].default, center: comarr[2].default})
-                        );
-                    }
                 }
             ]
         }
