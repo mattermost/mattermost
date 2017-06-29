@@ -226,8 +226,12 @@ func (webCon *WebConn) ShouldSendEvent(msg *model.WebSocketEvent) bool {
 	}
 
 	// If the event is destined to a specific user
-	if len(msg.Broadcast.UserId) > 0 && webCon.UserId != msg.Broadcast.UserId {
-		return false
+	if len(msg.Broadcast.UserId) > 0 {
+		if webCon.UserId == msg.Broadcast.UserId {
+			return true
+		} else {
+			return false
+		}
 	}
 
 	// if the user is omitted don't send the message

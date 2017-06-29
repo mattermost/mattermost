@@ -45,6 +45,7 @@
         "EnablePostSearch": true,
         "EnableUserTypingMessages": true,
         "EnableUserStatuses": true,
+        "EnablChannelViewedMessages": true,
         "ClusterLogTimeoutMilliseconds": 2000
     },
     "ElasticSearchSettings": {
