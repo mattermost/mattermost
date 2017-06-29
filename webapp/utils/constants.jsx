@@ -707,20 +707,6 @@ export const Constants = {
         }
     ],
     DEFAULT_CODE_THEME: 'github',
-    FONTS: {
-        'Droid Serif': 'font--droid_serif',
-        'Roboto Slab': 'font--roboto_slab',
-        Lora: 'font--lora',
-        Arvo: 'font--arvo',
-        'Open Sans': 'font--open_sans',
-        Roboto: 'font--roboto',
-        'PT Sans': 'font--pt_sans',
-        Lato: 'font--lato',
-        'Source Sans Pro': 'font--source_sans_pro',
-        'Exo 2': 'font--exo_2',
-        Ubuntu: 'font--ubuntu'
-    },
-    DEFAULT_FONT: 'Open Sans',
     KeyCodes: {
         BACKSPACE: 8,
         TAB: 9,

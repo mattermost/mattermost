@@ -2176,8 +2176,6 @@
   "user.settings.display.collapseOff": "Collapsed",
   "user.settings.display.collapseOn": "Expanded",
   "user.settings.display.fixedWidthCentered": "Fixed width, centered",
-  "user.settings.display.fontDesc": "Select the font displayed in the Mattermost user interface.",
-  "user.settings.display.fontTitle": "Display Font",
   "user.settings.display.fullScreen": "Full width",
   "user.settings.display.language": "Language",
   "user.settings.display.messageDisplayClean": "Standard",
