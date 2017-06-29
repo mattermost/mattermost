@@ -700,6 +700,22 @@
     "translation": "open"
   },
   {
+    "id": "api.command_search.desc",
+    "translation": "Search text in messages"
+  },
+  {
+    "id": "api.command_search.hint",
+    "translation": "[text]"
+  },
+  {
+    "id": "api.command_search.name",
+    "translation": "search"
+  },
+  {
+    "id": "api.command_search.unsupported.app_error",
+    "translation": "The search command is not supported on your device"
+  },
+  {
     "id": "api.command_settings.desc",
     "translation": "Open the Account Settings dialog"
   },
