@@ -30,7 +30,11 @@ h6 {
 .markdown__heading {
     font-weight: 700;
     line-height: 1.5;
-    margin: 5px 0 10px;
+    margin: 10px 0;
+
+    &:first-child {
+        margin: 5px 0 10px;
+    }
 
     .emoticon {
         min-height: 1.5em;
