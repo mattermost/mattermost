@@ -37,7 +37,7 @@ const getState = store.getState;
 import {Client4} from 'mattermost-redux/client';
 
 import {removeUserFromTeam} from 'mattermost-redux/actions/teams';
-import {viewChannel, getChannelStats, getMyChannelMember, getChannelAndMyMember, createDirectChannel} from 'mattermost-redux/actions/channels';
+import {viewChannel, getChannelStats, getMyChannelMember, getChannelAndMyMember, createDirectChannel, joinChannel} from 'mattermost-redux/actions/channels';
 import {getPostThread} from 'mattermost-redux/actions/posts';
 
 export function emitChannelClickEvent(channel) {
@@ -101,7 +101,7 @@ export function emitChannelClickEvent(channel) {
     }
 }
 
-export function doFocusPost(channelId, postId, data) {
+export async function doFocusPost(channelId, postId, data) {
     AppDispatcher.handleServerAction({
         type: ActionTypes.RECEIVED_FOCUSED_POST,
         postId,
@@ -115,6 +115,11 @@ export function doFocusPost(channelId, postId, data) {
         channelId
     });
 
+    const member = getState().entities.channels.myMembers[channelId];
+    if (member == null) {
+        await joinChannel(UserStore.getCurrentId(), null, channelId)(dispatch, getState);
+    }
+
     loadChannelsForCurrentUser();
     getChannelStats(channelId)(dispatch, getState);
 }
@@ -125,11 +130,11 @@ export function emitPostFocusEvent(postId, onSuccess) {
         (data) => {
             if (data) {
                 const channelId = data.posts[data.order[0]].channel_id;
-                doFocusPost(channelId, postId, data);
-
-                if (onSuccess) {
-                    onSuccess();
-                }
+                doFocusPost(channelId, postId, data).then(() => {
+                    if (onSuccess) {
+                        onSuccess();
+                    }
+                });
             } else {
                 let link = `${TeamStore.getCurrentTeamRelativeUrl()}/channels/`;
                 const channel = ChannelStore.getCurrent();
