@@ -770,15 +770,31 @@ export default class ChannelHeader extends React.Component {
         }
 
         let headerText;
+        let headerTextContainer;
         if (channel.header) {
             if (this.state.enableFormatting) {
                 headerText = TextFormatting.formatText(channel.header, {singleline: true, mentionHighlight: false, siteURL: getSiteURL()});
             } else {
                 headerText = channel.header;
             }
+
+            headerTextContainer = (
+                <div
+                    onClick={Utils.handleFormattedTextClick}
+                    className='channel-header__description light'
+                    dangerouslySetInnerHTML={{__html: headerText}}
+                />
+            );
         } else {
             //saturnino to add formatted text here, and make this clickable so that it opens up the channel header modal
             headerText = 'Add a channel description';
+            headerTextContainer = (
+                <a
+                    href='#'
+                    className='channel-header__description'
+                    dangerouslySetInnerHTML={{__html: headerText}}
+                />
+            );
         }
 
         let toggleFavoriteTooltip;
@@ -881,12 +897,7 @@ export default class ChannelHeader extends React.Component {
                                         overlay={popoverContent}
                                         ref='headerOverlay'
                                     >
-                                        <a
-                                            href='#'
-                                            onClick={Utils.handleFormattedTextClick}
-                                            className='channel-header__description'
-                                            dangerouslySetInnerHTML={{__html: headerText}}
-                                        />
+                                        {headerTextContainer}
                                     </OverlayTrigger>
                                 </div>
                             </th>

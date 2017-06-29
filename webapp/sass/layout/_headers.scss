@@ -116,6 +116,7 @@
         font-size: 20px;
         font-weight: 400;
         margin: 0 4px 0 0;
+        max-width: calc(100vw - 780px);
         overflow: hidden;
         text-overflow: ellipsis;
         vertical-align: top;
@@ -178,11 +179,15 @@
     .channel-header__description {
         display: inline-block;
         margin-top: 3px;
-        max-width: 45vw;
+        max-width: calc(100vw - 730px);
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
         word-break: break-word;
+
+        &.light {
+            @include opacity(.7);
+        }
 
         .markdown-inline-img {
             max-height: 45px;

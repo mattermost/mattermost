@@ -10,13 +10,13 @@
 
     .channel-header__info {
         .channel-header__description {
-            max-width: 140px;
+            max-width: calc(100vw - 660px);
         }
     }
 
     .channel-header {
         .heading {
-            max-width: 90px;
+            max-width: calc(100vw - 730px);
         }
     }
 
