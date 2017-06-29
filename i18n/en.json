@@ -1645,7 +1645,11 @@
   },
   {
     "id": "api.post.send_notifications_and_forget.push_image_only",
-    "translation": " Uploaded one or more files "
+    "translation": " Uploaded one or more files in "
+  },
+  {
+    "id": "api.post.send_notifications_and_forget.push_image_only_dm",
+    "translation": " Uploaded one or more files in a direct message"
   },
   {
     "id": "api.post.send_notifications_and_forget.push_in",
