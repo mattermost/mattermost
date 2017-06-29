@@ -45,7 +45,7 @@ const dispatch = store.dispatch;
 const getState = store.getState;
 
 import {getMyPreferences} from 'mattermost-redux/selectors/entities/preferences';
-import {getUsers} from 'mattermost-redux/selectors/entities/users';
+import {getUsers, getUserStatuses} from 'mattermost-redux/selectors/entities/users';
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 
 export default class Sidebar extends React.Component {
@@ -108,10 +108,12 @@ export default class Sidebar extends React.Component {
         const channels = ChannelStore.getAll();
         const preferences = getMyPreferences(store.getState());
         const profiles = getUsers(store.getState());
+        const statuses = getUserStatuses(store.getState());
         let displayableChannels = {};
         if (!Utils.areObjectsEqual(channels, this.oldChannels) ||
                 !Utils.areObjectsEqual(preferences, this.oldPreferences) ||
-                !Utils.areObjectsEqual(profiles, this.oldProfiles)) {
+                !Utils.areObjectsEqual(profiles, this.oldProfiles) ||
+                !Utils.areObjectsEqual(statuses, this.oldStatuses)) {
             const channelsArray = channels.map((channel) => Object.assign({}, channel));
             displayableChannels = ChannelUtils.buildDisplayableChannelList(channelsArray);
             displayableChannels.favoriteChannels.sort(sortTeamsByDisplayName);
@@ -119,6 +121,7 @@ export default class Sidebar extends React.Component {
         this.oldChannels = channels;
         this.oldPreferences = preferences;
         this.oldProfiles = profiles;
+        this.oldStatuses = statuses;
 
         return {
             activeId: currentChannelId,
