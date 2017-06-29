@@ -118,6 +118,7 @@
         "AmazonS3Bucket": "",
         "AmazonS3Region": "us-east-1",
         "AmazonS3Endpoint": "s3.amazonaws.com",
+        "AmazonS3IamProfile": false,
         "AmazonS3SSL": true,
         "AmazonS3SignV2": false
     },

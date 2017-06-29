@@ -261,6 +261,7 @@ type FileSettings struct {
 	AmazonS3Region          string
 	AmazonS3Endpoint        string
 	AmazonS3SSL             *bool
+	AmazonS3IamProfile      *bool
 	AmazonS3SignV2          *bool
 	AmazonS3SSE             *bool
 }
@@ -540,6 +541,11 @@ func (o *Config) SetDefaults() {
 	if o.FileSettings.AmazonS3Endpoint == "" {
 		// Defaults to "s3.amazonaws.com"
 		o.FileSettings.AmazonS3Endpoint = "s3.amazonaws.com"
+	}
+
+	if o.FileSettings.AmazonS3IamProfile == nil {
+		o.FileSettings.AmazonS3IamProfile = new(bool)
+		*o.FileSettings.AmazonS3IamProfile = false
 	}
 
 	if o.FileSettings.AmazonS3SSL == nil {
