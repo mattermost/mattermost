@@ -37,7 +37,7 @@ export function goToChannel(channel) {
         openDirectChannelToUser(
             user.id,
             () => {
-                browserHistory.push(TeamStore.getCurrentTeamRelativeUrl() + '/channels/' + channel.name);
+                browserHistory.push(TeamStore.getCurrentTeamRelativeUrl() + '/messages/@' + user.username);
             },
             null
         );
@@ -169,7 +169,7 @@ export function openDirectChannelToUser(userId, success, error) {
             if (data && success) {
                 success(data, false);
             } else if (data == null && error) {
-                browserHistory.push(TeamStore.getCurrentTeamUrl() + '/channels/' + channelName);
+                browserHistory.push(TeamStore.getCurrentTeamUrl() + '/messages/@' + UserStore.getProfile(userId).username);
                 const serverError = getState().requests.channels.createChannel.error;
                 error({id: serverError.server_error_id, ...serverError});
             }

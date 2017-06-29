@@ -125,6 +125,9 @@ export default class MoreDirectChannels extends React.Component {
             // the new channel information until the modal is fully exited.
             // The channel information will be pushed in `handleExit`
             this.exitToChannel = TeamStore.getCurrentTeamRelativeUrl() + '/channels/' + channel.name;
+            if (channel.type == Constants.DM_CHANNEL) {
+                this.exitToChannel = TeamStore.getCurrentTeamRelativeUrl() + '/messages/@' + channel.display_name;
+            }
             this.setState({loadingChannel: -1});
             this.handleHide();
         };
