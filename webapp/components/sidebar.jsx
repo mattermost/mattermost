@@ -752,7 +752,6 @@ export default class Sidebar extends React.Component {
             <OverlayTrigger
                 trigger={['hover', 'focus']}
                 delayShow={500}
-                trigger='hover'
                 placement='top'
                 overlay={createChannelTootlip}
             >
@@ -772,7 +771,6 @@ export default class Sidebar extends React.Component {
                 trigger={['hover', 'focus']}
                 delayShow={500}
                 placement='top'
-                trigger='hover'
                 overlay={createGroupTootlip}
             >
                 <a
