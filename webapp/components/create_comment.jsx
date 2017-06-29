@@ -203,7 +203,11 @@ export default class CreateComment extends React.Component {
             (data) => {
                 this.setState({submitting: false});
                 if (data.goto_location && data.goto_location.length > 0) {
-                    browserHistory.push(data.goto_location);
+                    if (data.goto_location.startsWith('/') || data.goto_location.includes(window.location.hostname)) {
+                        browserHistory.push(data.goto_location);
+                    } else {
+                        window.open(data.goto_location);
+                    }
                 }
             },
             (err) => {
