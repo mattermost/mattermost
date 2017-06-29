@@ -78,7 +78,7 @@ export default class CreatePost extends React.Component {
 
         const channel = ChannelStore.getCurrent();
         const channelId = channel.id;
-        const draft = PostStore.getPostDraft(channelId);
+        const draft = PostStore.getDraft(channelId);
         const stats = ChannelStore.getCurrentStats();
         const members = stats.member_count - 1;
 
