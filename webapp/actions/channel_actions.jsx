@@ -164,14 +164,12 @@ export function openDirectChannelToUser(userId, success, error) {
     }
 
     ChannelActions.createDirectChannel(UserStore.getCurrentId(), userId)(dispatch, getState).then(
-        (data) => {
+        (result) => {
             loadProfilesForSidebar();
-            if (data && success) {
-                success(data, false);
-            } else if (data == null && error) {
-                browserHistory.push(TeamStore.getCurrentTeamUrl() + '/channels/' + channelName);
-                const serverError = getState().requests.channels.createChannel.error;
-                error({id: serverError.server_error_id, ...serverError});
+            if (result.data && success) {
+                success(result.data, false);
+            } else if (result.error && error) {
+                error({id: result.error.server_error_id, ...result.error});
             }
         }
     );
@@ -237,17 +235,14 @@ export function loadDMsAndGMsForUnreads() {
     }
 }
 
-export function joinChannel(channel, success, error) {
-    ChannelActions.joinChannel(UserStore.getCurrentId(), null, channel.id)(dispatch, getState).then(
-        (data) => {
-            if (data && success) {
-                success(data);
-            } else if (data == null && error) {
-                const serverError = getState().requests.channels.joinChannel.error;
-                error({id: serverError.server_error_id, ...serverError});
-            }
-        }
-    );
+export async function joinChannel(channel, success, error) {
+    const {data, serverError} = await ChannelActions.joinChannel(UserStore.getCurrentId(), null, channel.id)(dispatch, getState);
+
+    if (data && success) {
+        success(data);
+    } else if (data == null && error) {
+        error({id: serverError.server_error_id, ...serverError});
+    }
 }
 
 export function updateChannel(channel, success, error) {
@@ -373,15 +368,12 @@ export function leaveChannel(channelId, success) {
     );
 }
 
-export function deleteChannel(channelId, success, error) {
-    ChannelActions.deleteChannel(channelId)(dispatch, getState).then(
-        (data) => {
-            if (data && success) {
-                success(data);
-            } else if (data == null && error) {
-                const serverError = getState().requests.channels.members.error;
-                error({id: serverError.server_error_id, ...serverError});
-            }
-        }
-    );
+export async function deleteChannel(channelId, success, error) {
+    const {data, serverError} = await ChannelActions.deleteChannel(channelId)(dispatch, getState);
+
+    if (data && success) {
+        success(data);
+    } else if (serverError && error) {
+        error({id: serverError.server_error_id, ...serverError});
+    }
 }

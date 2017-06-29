@@ -51,10 +51,10 @@ function doChannelChange(state, replace, callback) {
 
         if (!channel) {
             joinChannel(UserStore.getCurrentId(), TeamStore.getCurrentId(), null, state.params.channel)(dispatch, getState).then(
-                (data) => {
-                    if (data) {
-                        GlobalActions.emitChannelClickEvent(data.channel);
-                    } else if (data == null) {
+                (result) => {
+                    if (result.data) {
+                        GlobalActions.emitChannelClickEvent(result.data.channel);
+                    } else if (result.error) {
                         if (state.params.team) {
                             replace('/' + state.params.team + '/channels/town-square');
                         } else {
@@ -192,11 +192,11 @@ function onChannelByIdentifierEnter(state, replace, callback) {
                 callback();
             } else {
                 joinChannel(UserStore.getCurrentId(), TeamStore.getCurrentId(), null, identifier)(dispatch, getState).then(
-                    (data) => {
-                        if (data) {
-                            GlobalActions.emitChannelClickEvent(data.channel);
+                    (result) => {
+                        if (result.data) {
+                            GlobalActions.emitChannelClickEvent(result.data.channel);
                             callback();
-                        } else if (data == null) {
+                        } else if (result.error) {
                             handleError(state, replace, callback);
                         }
                     }
