@@ -348,7 +348,7 @@ type EmojiStore interface {
 	Save(emoji *model.Emoji) StoreChannel
 	Get(id string, allowFromCache bool) StoreChannel
 	GetByName(name string) StoreChannel
-	GetAll() StoreChannel
+	GetList(offset, limit int) StoreChannel
 	Delete(id string, time int64) StoreChannel
 }
 

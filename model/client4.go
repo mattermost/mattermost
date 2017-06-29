@@ -2660,9 +2660,10 @@ func (c *Client4) CreateEmoji(emoji *Emoji, image []byte, filename string) (*Emo
 	return c.DoEmojiUploadFile(c.GetEmojisRoute(), body.Bytes(), writer.FormDataContentType())
 }
 
-// GetEmojiList returns a list of custom emoji in the system.
-func (c *Client4) GetEmojiList() ([]*Emoji, *Response) {
-	if r, err := c.DoApiGet(c.GetEmojisRoute(), ""); err != nil {
+// GetEmojiList returns a page of custom emoji on the system.
+func (c *Client4) GetEmojiList(page, perPage int) ([]*Emoji, *Response) {
+	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)
+	if r, err := c.DoApiGet(c.GetEmojisRoute()+query, ""); err != nil {
 		return nil, BuildErrorResponse(r, err)
 	} else {
 		defer closeBody(r)
