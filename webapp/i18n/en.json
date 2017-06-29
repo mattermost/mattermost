@@ -1903,6 +1903,8 @@
   "post_delete.okay": "Okay",
   "post_delete.someone": "Someone deleted the message on which you tried to post a comment.",
   "post_focus_view.beginning": "Beginning of Channel Archives",
+  "post_info.message.visible": "(Only visible to you)",
+  "post_info.message.visible.compact": " (Only visible to you)",
   "post_info.del": "Delete",
   "post_info.edit": "Edit",
   "post_info.mobile.flag": "Flag",
