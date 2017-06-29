@@ -2132,6 +2132,10 @@
     "translation": "Failed to send invite email successfully err=%v"
   },
   {
+    "id": "api.team.invite_members.invalid_email.app_error",
+    "translation": "The following email addresses do not belong to an accepted domain: {{.Addresses}}. Please contact your System Administrator for details."
+  },
+  {
     "id": "api.team.invite_members.sending.info",
     "translation": "sending invitation to %v %v"
   },
