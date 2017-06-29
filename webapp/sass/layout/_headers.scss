@@ -1,7 +1,7 @@
 @charset 'UTF-8';
 
 .channel-header {
-    @include flex(0 0 81px);
+    @include flex(0 0 70px);
     border-bottom: 2px solid;
     font-size: 14px;
     position: relative;
@@ -14,7 +14,7 @@
         cursor: pointer;
         height: 37px;
         line-height: 36px;
-        margin: 21px 10px 0 0;
+        margin: 16px 10px 0 0;
         min-width: 30px;
         text-align: center;
         width: 37px;
@@ -89,14 +89,14 @@
 
         &:first-child {
             border-left: none;
-            padding: 0 0 0 27px;
+            padding: 0 0 0 20px;
             text-align: left !important;
             width: 100%;
         }
 
         &:last-child {
             .channel-header__icon {
-                margin-right: 24px;
+                margin-right: 17px;
             }
         }
     }
@@ -113,7 +113,7 @@
 
     .heading {
         display: inline-block;
-        font-size: 20px;
+        font-size: 17px;
         font-weight: 400;
         margin: 0 4px 0 0;
         max-width: calc(100vw - 780px);
@@ -155,11 +155,11 @@
     font-size: 21px;
     margin-left: 1px;
     position: relative;
-    top: 3px;
+    top: 1px;
 }
 
 .channel-header__info {
-    margin-top: 16px;
+    margin-top: 12px;
 
     .channel-header__title {
         .header-dropdown__icon {
@@ -184,6 +184,10 @@
         text-overflow: ellipsis;
         white-space: nowrap;
         word-break: break-word;
+
+        .move--left & {
+            max-width: calc(100vw - 780px);
+        }
 
         &.light {
             @include opacity(.7);
@@ -434,8 +438,8 @@
 .channel-header__favorites {
     @include opacity(.5);
     float: left;
-    height: 25px;
-    margin: 1px 9px 0 0;
+    height: 20px;
+    margin: 0 8px 0 0;
     padding-top: 3px;
     position: relative;
     z-index: 1;
@@ -454,7 +458,7 @@
     }
 
     i {
-        font-size: 20px;
+        font-size: 17px;
     }
 }
 

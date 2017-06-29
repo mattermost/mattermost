@@ -222,10 +222,11 @@
     max-width: initial;
 
     .more-modal__header {
-        padding: 19px 0;
+        padding: 14px 0;
 
         .icon {
-            margin: 0 28px;
+            @include opacity(.8);
+            margin: 0 38px 0 24px;
             position: relative;
             top: 2px;
         }
@@ -240,7 +241,7 @@
             border-bottom: none;
             border-top: 1px solid;
             cursor: pointer;
-            height: 51px;
+            height: 45px;
             padding: 5px 19px 5px 17px;
 
             &:hover {
@@ -269,7 +270,7 @@
         }
 
         .more-modal__name {
-            line-height: 40px;
+            line-height: 33px;
         }
 
         .more-modal__image {
@@ -283,7 +284,7 @@
 
         .more-modal__actions {
             @include opacity(0);
-            line-height: 47px;
+            line-height: 42px;
             margin: 0;
         }
     }

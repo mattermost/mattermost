@@ -124,8 +124,8 @@ export default class PopoverListMembers extends React.Component {
                         >
                             <ProfilePicture
                                 src={Client4.getProfilePictureUrl(m.id, m.last_picture_update)}
-                                width='40'
-                                height='40'
+                                width='32'
+                                height='32'
                             />
                             <div className='more-modal__details'>
                                 <div

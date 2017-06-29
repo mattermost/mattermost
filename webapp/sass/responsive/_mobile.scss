@@ -871,7 +871,7 @@
                 white-space: nowrap;
 
                 .heading {
-                    font-size: 20px;
+                    font-size: 17px;
                     font-weight: 400;
                     line-height: normal;
                     position: relative;
@@ -882,7 +882,7 @@
                 .header-dropdown__icon {
                     font-size: 12px;
                     margin-left: 5px;
-                    top: 22px;
+                    top: 20px;
                     vertical-align: top;
                 }
             }
@@ -991,7 +991,7 @@
     }
 
     .search-bar__container {
-        @include flex(0 0 56px);
+        @include flex(0 0 50px);
         background: $primary-color;
         color: $white;
         padding: 0;
@@ -1004,18 +1004,18 @@
             @include single-transition(all, .2s, linear);
             @include translateX(0);
             border: none;
-            margin-top: 10px;
+            margin-top: 9px;
             width: 100%;
 
             .search-bar {
                 font-size: 14px;
-                height: 36px;
-                padding: 0 40px 0 45px;
+                height: 32px;
+                padding: 0 40px;
             }
 
             .search__icon {
-                left: 19px;
-                top: 10px;
+                left: 15px;
+                top: 7px;
 
                 svg {
                     width: 17px;
@@ -1205,11 +1205,11 @@
             @include opacity(1);
             color: inherit;
             display: block;
-            height: 35px;
+            height: 32px;
             margin-right: 0;
             text-align: center;
             top: 0;
-            width: 45px;
+            width: 42px;
 
             &.visible {
                 visibility: visible;
@@ -1217,11 +1217,11 @@
         }
 
         .sidebar__search-clear-x {
-            font-size: 25px;
+            font-size: 21px;
             font-weight: 700;
             line-height: 0;
             position: relative;
-            top: 13px;
+            top: 9px;
         }
 
         .sidebar--right__close {

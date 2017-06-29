@@ -47,7 +47,7 @@
 
             &:last-child {
                 .channel-header__icon {
-                    margin-right: 24px;
+                    margin-right: 17px;
                 }
             }
         }
@@ -262,7 +262,7 @@
     @include translateX(0);
     cursor: pointer;
     font-size: 16px;
-    height: 54px;
+    height: 48px;
     line-height: 0;
     padding-left: 1px;
     text-align: center;
@@ -271,6 +271,6 @@
 
     .fa {
         position: relative;
-        top: 20px;
+        top: 18px;
     }
 }

@@ -31,17 +31,17 @@
     .navbar-default {
         background: $primary-color;
         border: none;
-        min-height: 56px;
+        min-height: 50px;
         position: absolute;
 
         .navbar-nav {
             > li {
                 > a {
-                    height: 56px;
+                    height: 50px;
                     padding: 0 1.3em;
 
                     i {
-                        line-height: 56px;
+                        line-height: 50px;
                     }
                 }
             }
@@ -52,20 +52,20 @@
             border-radius: 0;
             fill: $white;
             float: left;
-            height: 56px;
+            height: 50px;
             line-height: 48px;
             margin: 0;
             padding: 0 10px;
-            width: 65px;
+            width: 50px;
             z-index: 5;
 
             &.navbar-right__icon {
                 @include border-radius(50px);
-                height: 36px;
+                height: 32px;
                 line-height: 0;
-                margin: 10px 10px 0 0;
+                margin: 9px 10px 0 0;
                 padding: 0;
-                width: 36px;
+                width: 32px;
             }
 
             &.menu-toggle {
@@ -99,15 +99,15 @@
         .navbar-brand {
             float: none;
             font-size: 16px;
-            height: 56px;
-            line-height: 56px;
+            height: 50px;
+            line-height: 50px;
             padding: 0 .5em;
 
             .heading {
                 color: $white;
                 display: inline-block;
                 font-weight: 600;
-                line-height: 56px;
+                line-height: 50px;
                 margin-right: 5px;
                 max-width: calc(100% - 200px);
                 overflow: hidden;
@@ -131,13 +131,13 @@
                 &.info-popover {
                     @include border-radius(50px);
                     cursor: pointer;
-                    height: 36px;
-                    line-height: 36px;
-                    margin: 10px 10px 0 0;
+                    height: 32px;
+                    line-height: 32px;
+                    margin: 9px 10px 0 0;
                     position: relative;
                     text-align: center;
                     vertical-align: top;
-                    width: 36px;
+                    width: 32px;
 
                     svg {
                         position: relative;
