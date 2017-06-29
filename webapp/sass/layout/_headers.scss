@@ -9,7 +9,7 @@
     z-index: 9;
 
     .channel-header__icon {
-        @include border-radius(50px);
+        @include border-radius(50%);
         border: 1px solid;
         cursor: pointer;
         height: 37px;
