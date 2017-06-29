@@ -37,7 +37,6 @@ export default class UserSettingsDisplay extends React.Component {
 
         this.handleSubmit = this.handleSubmit.bind(this);
         this.handleClockRadio = this.handleClockRadio.bind(this);
-        this.handleNameRadio = this.handleNameRadio.bind(this);
         this.handleFont = this.handleFont.bind(this);
         this.updateSection = this.updateSection.bind(this);
         this.updateState = this.updateState.bind(this);
