@@ -52,6 +52,7 @@ export default function PostFlagIcon(props) {
     if (!props.isEphemeral) {
         return (
             <OverlayTrigger
+                trigger={['hover', 'focus']}
                 key={'flagtooltipkey' + flagVisible}
                 delayShow={Constants.OVERLAY_TIME_DELAY}
                 placement='top'

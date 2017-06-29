@@ -24,6 +24,12 @@
             .help__format-text {
                 display: none;
             }
+
+            .channel-header__info {
+                .channel-header__description {
+                    max-width: 30vw;
+                }
+            }
         }
     }
 
@@ -40,9 +46,39 @@
     .backstage-content {
         margin: 46px 46px 46px 150px;
     }
+
+    .channel-header__info {
+        .channel-header__description {
+            max-width: 35vw;
+        }
+    }
 }
 
 @media screen and (max-width: 1140px) {
+    .inner-wrap {
+        &.move--left,
+        &.webrtc--show {
+            .channel-header__info {
+                .channel-header__description {
+                    max-width: 140px;
+                }
+            }
+
+            .channel-header {
+                .heading {
+                    max-width: 90px;
+                }
+            }
+
+        }
+    }
+
+    .channel-header__info {
+        .channel-header__description {
+            max-width: 30vw;
+        }
+    }
+
     .tip-overlay {
         &.tip-overlay--chat {
             margin: -10px 0 0 -10px;

@@ -31,17 +31,17 @@
     .navbar-default {
         background: $primary-color;
         border: none;
-        min-height: 45px;
+        min-height: 56px;
         position: absolute;
 
         .navbar-nav {
             > li {
                 > a {
-                    height: 45px;
+                    height: 56px;
                     padding: 0 1.3em;
 
                     i {
-                        line-height: 45px;
+                        line-height: 56px;
                     }
                 }
             }
@@ -52,22 +52,37 @@
             border-radius: 0;
             fill: $white;
             float: left;
-            height: 44px;
+            height: 56px;
             line-height: 48px;
             margin: 0;
             padding: 0 10px;
-            width: 43px;
+            width: 65px;
             z-index: 5;
+
+            &.navbar-right__icon {
+                @include border-radius(50px);
+                height: 36px;
+                line-height: 0;
+                margin: 10px 10px 0 0;
+                padding: 0;
+                width: 36px;
+            }
+
+            &.menu-toggle {
+                margin-right: 16px;
+            }
 
             .icon-bar {
                 background: $white;
                 width: 21px;
             }
 
-            .icon-search {
-                font-size: 17px;
-                position: relative;
-                top: -2px;
+            .icon__search {
+                svg {
+                    left: -1px;
+                    position: relative;
+                    width: 17px;
+                }
             }
 
             .icon--white {
@@ -84,15 +99,15 @@
         .navbar-brand {
             float: none;
             font-size: 16px;
-            height: 45px;
-            line-height: 45px;
+            height: 56px;
+            line-height: 56px;
             padding: 0 .5em;
 
             .heading {
                 color: $white;
                 display: inline-block;
                 font-weight: 600;
-                line-height: 47px;
+                line-height: 56px;
                 margin-right: 5px;
                 max-width: calc(100% - 200px);
                 overflow: hidden;
@@ -114,14 +129,20 @@
                 margin-right: 1em;
 
                 &.info-popover {
-                    @include background-size(100% 100%);
-                    background-image: url('../images/info__icon.png');
+                    @include border-radius(50px);
                     cursor: pointer;
-                    height: 19px;
+                    height: 36px;
+                    line-height: 36px;
+                    margin: 10px 10px 0 0;
                     position: relative;
-                    top: 13px;
-                    vertical-align: middle;
-                    width: 19px;
+                    text-align: center;
+                    vertical-align: top;
+                    width: 36px;
+
+                    svg {
+                        position: relative;
+                        top: 5px;
+                    }
                 }
             }
         }

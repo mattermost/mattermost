@@ -295,6 +295,7 @@ class CustomThemeChooser extends React.Component {
                                 {codeThemeOptions}
                             </select>
                             <OverlayTrigger
+                                trigger={['hover', 'focus']}
                                 placement='top'
                                 overlay={popoverContent}
                                 ref='headerOverlay'

@@ -281,7 +281,8 @@ export default class ChannelHeader extends React.Component {
 
     render() {
         const flagIcon = Constants.FLAG_ICON_SVG;
-        const pinIcon = Constants.PIN_ICON;
+        const pinIcon = Constants.PIN_ICON_SVG;
+        const mentionsIcon = Constants.MENTIONS_ICON_SVG;
 
         if (!this.validState()) {
             // Use an empty div to make sure the header's height stays constant
@@ -296,6 +297,15 @@ export default class ChannelHeader extends React.Component {
                 <FormattedMessage
                     id='channel_header.recentMentions'
                     defaultMessage='Recent Mentions'
+                />
+            </Tooltip>
+        );
+
+        const pinnedPostTooltip = (
+            <Tooltip id='pinnedPostTooltip'>
+                <FormattedMessage
+                    id='channel_header.pinnedPosts'
+                    defaultMessage='Pinned Posts'
                 />
             </Tooltip>
         );
@@ -382,13 +392,14 @@ export default class ChannelHeader extends React.Component {
                 );
 
                 webrtc = (
-                    <div className='webrtc__header'>
+                    <div className='webrtc__header channel-header__icon'>
                         <a
                             href='#'
                             onClick={() => this.initWebrtc(otherUserId, !isOffline)}
                             disabled={isOffline}
                         >
                             <OverlayTrigger
+                                trigger={['hover', 'focus']}
                                 delayShow={Constants.WEBRTC_TIME_DELAY}
                                 placement='bottom'
                                 overlay={webrtcTooltip}
@@ -759,10 +770,15 @@ export default class ChannelHeader extends React.Component {
         }
 
         let headerText;
-        if (this.state.enableFormatting) {
-            headerText = TextFormatting.formatText(channel.header, {singleline: true, mentionHighlight: false, siteURL: getSiteURL()});
+        if (channel.header) {
+            if (this.state.enableFormatting) {
+                headerText = TextFormatting.formatText(channel.header, {singleline: true, mentionHighlight: false, siteURL: getSiteURL()});
+            } else {
+                headerText = channel.header;
+            }
         } else {
-            headerText = channel.header;
+            //saturnino to add formatted text here, and make this clickable so that it opens up the channel header modal
+            headerText = 'Add a channel description';
         }
 
         let toggleFavoriteTooltip;
@@ -788,6 +804,7 @@ export default class ChannelHeader extends React.Component {
 
         const toggleFavorite = (
             <OverlayTrigger
+                trigger={['hover', 'focus']}
                 delayShow={Constants.OVERLAY_TIME_DELAY}
                 placement='bottom'
                 overlay={toggleFavoriteTooltip}
@@ -796,7 +813,7 @@ export default class ChannelHeader extends React.Component {
                     id='toggleFavorite'
                     href='#'
                     onClick={this.toggleFavorite}
-                    className='channel-header__favorites'
+                    className={'channel-header__favorites ' + (this.state.isFavorite ? 'active' : 'inactive')}
                 >
                     <i className={'icon fa ' + (this.state.isFavorite ? 'fa-star' : 'fa-star-o')}/>
                 </a>
@@ -829,16 +846,15 @@ export default class ChannelHeader extends React.Component {
         return (
             <div
                 id='channel-header'
-                className='channel-header'
+                className='channel-header alt'
             >
-                <table className='channel-header alt'>
+                <table>
                     <tbody>
                         <tr>
                             <th>
                                 <div className='channel-header__info'>
-                                    {webrtc}
                                     {toggleFavorite}
-                                    <div className='dropdown'>
+                                    <div className='channel-header__title dropdown'>
                                         <a
                                             id='channelHeaderDropdown'
                                             href='#'
@@ -848,7 +864,7 @@ export default class ChannelHeader extends React.Component {
                                             aria-expanded='true'
                                         >
                                             <strong className='heading'>{channelTitle} </strong>
-                                            <span className='fa fa-chevron-down header-dropdown__icon'/>
+                                            <span className='fa fa-angle-down header-dropdown__icon'/>
                                         </a>
                                         <ul
                                             className='dropdown-menu'
@@ -865,28 +881,39 @@ export default class ChannelHeader extends React.Component {
                                         overlay={popoverContent}
                                         ref='headerOverlay'
                                     >
-                                        <div
+                                        <a
+                                            href='#'
                                             onClick={Utils.handleFormattedTextClick}
-                                            className='description'
+                                            className='channel-header__description'
                                             dangerouslySetInnerHTML={{__html: headerText}}
                                         />
                                     </OverlayTrigger>
                                 </div>
                             </th>
-                            <th className='header-list__right'>
+                            <th>
+                                {webrtc}
+                            </th>
+                            <th>
                                 {popoverListMembers}
-                                <a
-                                    href='#'
-                                    type='button'
-                                    id='pinnedPostsButton'
-                                    className='pinned-posts-button'
-                                    onClick={this.getPinnedPosts}
+                            </th>
+                            <th>
+                                <OverlayTrigger
+                                    trigger={['hover', 'focus']}
+                                    delayShow={Constants.OVERLAY_TIME_DELAY}
+                                    placement='bottom'
+                                    overlay={pinnedPostTooltip}
                                 >
-                                    <span
-                                        dangerouslySetInnerHTML={{__html: pinIcon}}
-                                        aria-hidden='true'
-                                    />
-                                </a>
+                                    <div
+                                        className='channel-header__icon'
+                                        onClick={this.getPinnedPosts}
+                                    >
+                                        <span
+                                            className='icon icon__pin'
+                                            dangerouslySetInnerHTML={{__html: pinIcon}}
+                                            aria-hidden='true'
+                                        />
+                                    </div>
+                                </OverlayTrigger>
                             </th>
                             <th className='search-bar__container'>
                                 <NavbarSearchBox
@@ -895,43 +922,39 @@ export default class ChannelHeader extends React.Component {
                                 />
                             </th>
                             <th>
-                                <div className='dropdown channel-header__links search-btns'>
-                                    <OverlayTrigger
-                                        delayShow={Constants.OVERLAY_TIME_DELAY}
-                                        placement='bottom'
-                                        overlay={recentMentionsTooltip}
-                                    >
-                                        <a
-                                            id='searchMentions'
-                                            href='#'
-                                            type='button'
-                                            onClick={this.searchMentions}
-                                        >
-                                            {'@'}
-                                        </a>
-                                    </OverlayTrigger>
-                                </div>
+                                <OverlayTrigger
+                                    trigger={['hover', 'focus']}
+                                    delayShow={Constants.OVERLAY_TIME_DELAY}
+                                    placement='bottom'
+                                    overlay={recentMentionsTooltip}
+                                >
+                                    <div className='channel-header__icon icon--hidden'>
+                                        <span
+                                            className='icon icon__mentions'
+                                            dangerouslySetInnerHTML={{__html: mentionsIcon}}
+                                            aria-hidden='true'
+                                        />
+                                    </div>
+                                </OverlayTrigger>
                             </th>
                             <th>
-                                <div className='dropdown channel-header__links search-btns'>
-                                    <OverlayTrigger
-                                        delayShow={Constants.OVERLAY_TIME_DELAY}
-                                        placement='bottom'
-                                        overlay={flaggedTooltip}
+                                <OverlayTrigger
+                                    trigger={['hover', 'focus']}
+                                    delayShow={Constants.OVERLAY_TIME_DELAY}
+                                    placement='bottom'
+                                    overlay={flaggedTooltip}
+                                >
+                                    <div
+                                        className='channel-header__icon icon--hidden'
+                                        onClick={this.getFlagged}
+
                                     >
-                                        <a
-                                            id='flaggedPostsButton'
-                                            href='#'
-                                            type='button'
-                                            onClick={this.getFlagged}
-                                        >
-                                            <span
-                                                className='icon icon__flag'
-                                                dangerouslySetInnerHTML={{__html: flagIcon}}
-                                            />
-                                        </a>
-                                    </OverlayTrigger>
-                                </div>
+                                        <span
+                                            className='icon icon__flag'
+                                            dangerouslySetInnerHTML={{__html: flagIcon}}
+                                        />
+                                    </div>
+                                </OverlayTrigger>
                             </th>
                         </tr>
                     </tbody>

@@ -69,6 +69,7 @@ export default class TeamButton extends React.Component {
         } else {
             btn = (
                 <OverlayTrigger
+                    trigger={['hover', 'focus']}
                     delayShow={Constants.OVERLAY_TIME_DELAY}
                     placement={this.props.placement}
                     overlay={

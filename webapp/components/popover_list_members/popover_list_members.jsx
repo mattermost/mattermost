@@ -21,7 +21,7 @@ import {canManageMembers} from 'utils/channel_utils.jsx';
 import $ from 'jquery';
 import PropTypes from 'prop-types';
 import React from 'react';
-import {Popover, Overlay} from 'react-bootstrap';
+import {Tooltip, OverlayTrigger, Popover, Overlay} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 import {browserHistory} from 'react-router/es6';
 
@@ -94,6 +94,7 @@ export default class PopoverListMembers extends React.Component {
         const isSystemAdmin = UserStore.isSystemAdminForCurrentUser();
         const isTeamAdmin = TeamStore.isTeamAdminForCurrentTeam();
         const isChannelAdmin = ChannelStore.isChannelAdminForCurrentChannel();
+        const membersIcon = Constants.MEMBERS_ICON_SVG;
 
         if (members && teamMembers) {
             members.sort((a, b) => {
@@ -104,20 +105,9 @@ export default class PopoverListMembers extends React.Component {
             });
 
             members.forEach((m, i) => {
-                let button = '';
+                let messageIcon = '';
                 if (currentUserId !== m.id && this.props.channel.type !== Constants.DM_CHANNEl) {
-                    button = (
-                        <a
-                            href='#'
-                            className='btn-message'
-                            onClick={(e) => this.handleShowDirectChannel(m, e)}
-                        >
-                            <FormattedMessage
-                                id='members_popover.msg'
-                                defaultMessage='Message'
-                            />
-                        </a>
-                    );
+                    messageIcon = Constants.MESSAGE_ICON_SVG;
                 }
 
                 let name = '';
@@ -129,12 +119,13 @@ export default class PopoverListMembers extends React.Component {
                     popoverHtml.push(
                         <div
                             className='more-modal__row'
+                            onClick={(e) => this.handleShowDirectChannel(m, e)}
                             key={'popover-member-' + i}
                         >
                             <ProfilePicture
                                 src={Client4.getProfilePictureUrl(m.id, m.last_picture_update)}
-                                width='26'
-                                height='26'
+                                width='40'
+                                height='40'
                             />
                             <div className='more-modal__details'>
                                 <div
@@ -146,7 +137,11 @@ export default class PopoverListMembers extends React.Component {
                             <div
                                 className='more-modal__actions'
                             >
-                                {button}
+                                <span
+                                    className='icon icon__message'
+                                    dangerouslySetInnerHTML={{__html: messageIcon}}
+                                    aria-hidden='true'
+                                />
                             </div>
                         </div>
                     );
@@ -175,21 +170,15 @@ export default class PopoverListMembers extends React.Component {
 
                 popoverHtml.push(
                     <div
-                        className='more-modal__row'
+                        className='more-modal__row more-modal__row--button'
                         key={'popover-member-more'}
                     >
-                        <div className='more-modal__details text-center'>
-                            <div
-                                className='more-modal__name'
-                            >
-                                <a
-                                    href='#'
-                                    onClick={this.showMembersModal}
-                                >
-                                    {membersName}
-                                </a>
-                            </div>
-                        </div>
+                        <button
+                            className='btn btn-primary'
+                            onClick={this.showMembersModal}
+                        >
+                            {membersName}
+                        </button>
                     </div>
                 );
             }
@@ -239,23 +228,40 @@ export default class PopoverListMembers extends React.Component {
             );
         }
 
+        const channelMembersTooltip = (
+            <Tooltip id='channelMembersTooltip'>
+                <FormattedMessage
+                    id='channel_header.channelMembers'
+                    defaultMessage='Members'
+                />
+            </Tooltip>
+        );
+
         return (
-            <div className='member-popover__container'>
-                <div
-                    id='member_popover'
-                    className='member-popover__trigger'
-                    ref='member_popover_target'
-                    onClick={(e) => {
-                        this.setState({popoverTarget: e.target, showPopover: !this.state.showPopover});
-                        this.props.actions.getProfilesInChannel(this.props.channel.id, 0);
-                    }}
+            <div className='channel-header__icon wide'>
+                <OverlayTrigger
+                    trigger={['hover', 'focus']}
+                    delayShow={Constants.OVERLAY_TIME_DELAY}
+                    placement='bottom'
+                    overlay={channelMembersTooltip}
                 >
-                    {countText}
-                    <span
-                        className='fa fa-user'
-                        aria-hidden='true'
-                    />
-                </div>
+                    <div
+                        id='member_popover'
+                        className='member-popover__trigger'
+                        ref='member_popover_target'
+                        onClick={(e) => {
+                            this.setState({popoverTarget: e.target, showPopover: !this.state.showPopover});
+                            this.props.actions.getProfilesInChannel(this.props.channel.id, 0);
+                        }}
+                    >
+                        <span className='icon__text'>{countText}</span>
+                        <span
+                            className='icon icon__members'
+                            dangerouslySetInnerHTML={{__html: membersIcon}}
+                            aria-hidden='true'
+                        />
+                    </div>
+                </OverlayTrigger>
                 <Overlay
                     rootClose={true}
                     onHide={this.closePopover}
@@ -265,10 +271,17 @@ export default class PopoverListMembers extends React.Component {
                 >
                     <Popover
                         ref='memebersPopover'
-                        title={title}
                         className='member-list__popover'
                         id='member-list-popover'
                     >
+                        <div className='more-modal__header'>
+                            <span
+                                className='icon icon__members'
+                                dangerouslySetInnerHTML={{__html: membersIcon}}
+                                aria-hidden='true'
+                            />
+                            {title}
+                        </div>
                         <div className='more-modal__list'>{popoverHtml}</div>
                     </Popover>
                 </Overlay>

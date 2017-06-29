@@ -589,6 +589,7 @@ export default class Sidebar extends React.Component {
         if (handleClose && !badge) {
             closeButton = (
                 <OverlayTrigger
+                    trigger={['hover', 'focus']}
                     delayShow={1000}
                     placement='top'
                     overlay={removeTooltip}
@@ -749,6 +750,7 @@ export default class Sidebar extends React.Component {
 
         let createPublicChannelIcon = (
             <OverlayTrigger
+                trigger={['hover', 'focus']}
                 delayShow={500}
                 trigger='hover'
                 placement='top'
@@ -767,6 +769,7 @@ export default class Sidebar extends React.Component {
 
         let createPrivateChannelIcon = (
             <OverlayTrigger
+                trigger={['hover', 'focus']}
                 delayShow={500}
                 placement='top'
                 trigger='hover'

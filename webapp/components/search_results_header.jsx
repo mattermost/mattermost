@@ -104,6 +104,7 @@ export default class SearchResultsHeader extends React.Component {
                         onClick={this.toggleSize}
                     >
                         <OverlayTrigger
+                            trigger={['hover', 'focus']}
                             delayShow={Constants.OVERLAY_TIME_DELAY}
                             placement='top'
                             overlay={expandSidebarTooltip}
@@ -111,6 +112,7 @@ export default class SearchResultsHeader extends React.Component {
                             <i className='fa fa-expand'/>
                         </OverlayTrigger>
                         <OverlayTrigger
+                            trigger={['hover', 'focus']}
                             delayShow={Constants.OVERLAY_TIME_DELAY}
                             placement='top'
                             overlay={shrinkSidebarTooltip}
@@ -126,6 +128,7 @@ export default class SearchResultsHeader extends React.Component {
                         onClick={this.handleClose}
                     >
                         <OverlayTrigger
+                            trigger={['hover', 'focus']}
                             delayShow={Constants.OVERLAY_TIME_DELAY}
                             placement='top'
                             overlay={closeSidebarTooltip}
