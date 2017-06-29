@@ -27,7 +27,7 @@ export default class AddCommand extends React.PureComponent {
         /**
         * The request state for addCommand action. Contains status and error
         */
-        addCommandRequest: PropTypes.object,
+        addCommandRequest: PropTypes.object.isRequired,
 
         actions: PropTypes.shape({
 
