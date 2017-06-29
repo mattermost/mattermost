@@ -452,6 +452,10 @@
     "translation": "Email has not been configured, no invite(s) sent"
   },
   {
+    "id": "api.command.invite_people.invite_off",
+    "translation": "User creation has been disabled on this server, no invite(s) sent"
+  },
+  {
     "id": "api.command.invite_people.fail",
     "translation": "Encountered an error sending email invite(s)"
   },
