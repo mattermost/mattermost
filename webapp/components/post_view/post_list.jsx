@@ -174,9 +174,9 @@ export default class PostList extends React.PureComponent {
         }
     }
 
-    componentDidUpdate(prevProps) {
-        // Do not update scrolling unless posts change
-        if (this.props.posts === prevProps.posts) {
+    componentDidUpdate(prevProps, prevState) {
+        // Do not update scrolling unless posts, visibility or intro message change
+        if (this.props.posts === prevProps.posts && this.props.postVisibility === prevProps.postVisibility && this.state.atEnd === prevState.atEnd) {
             return;
         }
 
@@ -191,7 +191,7 @@ export default class PostList extends React.PureComponent {
                 const element = ReactDOM.findDOMNode(focusedPost);
                 const rect = element.getBoundingClientRect();
                 const listHeight = postList.clientHeight / 2;
-                postList.scrollTop += postList.scrollTop + (rect.top - listHeight);
+                postList.scrollTop += rect.top - listHeight;
             } else if (this.previousScrollHeight !== postList.scrollHeight && posts[0].id === prevPosts[0].id) {
                 postList.scrollTop = this.previousScrollTop + (postList.scrollHeight - this.previousScrollHeight);
             }
@@ -204,7 +204,7 @@ export default class PostList extends React.PureComponent {
             const element = ReactDOM.findDOMNode(messageSeparator);
             element.scrollIntoView();
             return;
-        } else if (this.refs.postlist && !this.hasScrolledToNewMessageSeparator) {
+        } else if (postList && !this.hasScrolledToNewMessageSeparator) {
             postList.scrollTop = postList.scrollHeight;
             return;
         }
@@ -356,7 +356,9 @@ export default class PostList extends React.PureComponent {
     }
 
     scrollToBottom = () => {
-        this.refs.postlist.scrollTop = this.refs.postlist.scrollHeight;
+        if (this.refs.postlist) {
+            this.refs.postlist.scrollTop = this.refs.postlist.scrollHeight;
+        }
     }
 
     createPosts = (posts) => {
