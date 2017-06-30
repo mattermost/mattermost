@@ -1224,6 +1224,64 @@ func TestGetUsers(t *testing.T) {
 	CheckUnauthorizedStatus(t, resp)
 }
 
+func TestGetNewUsersInTeam(t *testing.T) {
+	th := Setup().InitBasic()
+	defer TearDown()
+	Client := th.Client
+	teamId := th.BasicTeam.Id
+
+	rusers, resp := Client.GetNewUsersInTeam(teamId, 0, 60, "")
+	CheckNoError(t, resp)
+
+	lastCreateAt := model.GetMillis()
+	for _, u := range rusers {
+		if u.CreateAt > lastCreateAt {
+			t.Fatal("bad sorting")
+		}
+		lastCreateAt = u.CreateAt
+		CheckUserSanitization(t, u)
+	}
+
+	rusers, resp = Client.GetNewUsersInTeam(teamId, 1, 1, "")
+	CheckNoError(t, resp)
+	if len(rusers) != 1 {
+		t.Fatal("should be 1 per page")
+	}
+
+	Client.Logout()
+	_, resp = Client.GetNewUsersInTeam(teamId, 1, 1, "")
+	CheckUnauthorizedStatus(t, resp)
+}
+
+func TestGetRecentlyActiveUsersInTeam(t *testing.T) {
+	th := Setup().InitBasic()
+	defer TearDown()
+	Client := th.Client
+	teamId := th.BasicTeam.Id
+
+	app.SetStatusOnline(th.BasicUser.Id, "", true)
+
+	rusers, resp := Client.GetRecentlyActiveUsersInTeam(teamId, 0, 60, "")
+	CheckNoError(t, resp)
+
+	for _, u := range rusers {
+		if u.LastActivityAt == 0 {
+			t.Fatal("did not return last activity at")
+		}
+		CheckUserSanitization(t, u)
+	}
+
+	rusers, resp = Client.GetRecentlyActiveUsersInTeam(teamId, 0, 1, "")
+	CheckNoError(t, resp)
+	if len(rusers) != 1 {
+		t.Fatal("should be 1 per page")
+	}
+
+	Client.Logout()
+	_, resp = Client.GetRecentlyActiveUsersInTeam(teamId, 0, 1, "")
+	CheckUnauthorizedStatus(t, resp)
+}
+
 func TestGetUsersWithoutTeam(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
 	defer TearDown()

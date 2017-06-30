@@ -5876,6 +5876,10 @@
     "translation": "We encountered an error while finding the recently active users"
   },
   {
+    "id": "store.sql_user.get_new_users.app_error",
+    "translation": "We encountered an error while finding the new users"
+  },
+  {
     "id": "store.sql_user.get_sysadmin_profiles.app_error",
     "translation": "We encountered an error while finding user profiles"
   },
