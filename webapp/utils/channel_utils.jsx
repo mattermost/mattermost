@@ -107,7 +107,7 @@ export function sortChannelsByDisplayName(a, b) {
     const aDisplayName = getChannelDisplayName(a);
     const bDisplayName = getChannelDisplayName(b);
 
-    if (aDisplayName !== bDisplayName) {
+    if (aDisplayName !== null && bDisplayName !== null && aDisplayName !== bDisplayName) {
         return aDisplayName.localeCompare(bDisplayName, locale, {numeric: true});
     }
 
