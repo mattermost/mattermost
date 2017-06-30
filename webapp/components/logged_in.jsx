@@ -4,14 +4,12 @@
 import LoadingScreen from 'components/loading_screen.jsx';
 
 import UserStore from 'stores/user_store.jsx';
-import PreferenceStore from 'stores/preference_store.jsx';
 
 import * as GlobalActions from 'actions/global_actions.jsx';
 import * as WebSocketActions from 'actions/websocket_actions.jsx';
 import {loadEmoji} from 'actions/emoji_actions.jsx';
 
 import * as Utils from 'utils/utils.jsx';
-import Constants from 'utils/constants.jsx';
 
 const BACKSPACE_CHAR = 8;
 
@@ -36,10 +34,6 @@ export default class LoggedIn extends React.Component {
         if (iOS) {
             $('body').addClass('ios');
         }
-
-        // if preferences have already been stored in local storage do not wait until preference store change is fired and handled in channel.jsx
-        const selectedFont = PreferenceStore.get(Constants.Preferences.CATEGORY_DISPLAY_SETTINGS, 'selected_font', Constants.DEFAULT_FONT);
-        Utils.applyFont(selectedFont);
 
         this.state = {
             user: UserStore.getCurrentUser()

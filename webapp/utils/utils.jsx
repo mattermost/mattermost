@@ -732,22 +732,6 @@ export function resetTheme() {
     applyTheme(Constants.THEMES.default);
 }
 
-export function applyFont(fontName) {
-    const body = $('body');
-
-    for (const key of Reflect.ownKeys(Constants.FONTS)) {
-        const className = Constants.FONTS[key];
-
-        if (fontName === key) {
-            if (!body.hasClass(className)) {
-                body.addClass(className);
-            }
-        } else {
-            body.removeClass(className);
-        }
-    }
-}
-
 export function changeCss(className, classValue) {
     let styleEl = document.querySelector('style[data-class="' + className + '"]');
     if (!styleEl) {

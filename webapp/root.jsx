@@ -17,7 +17,6 @@ import * as I18n from 'i18n/i18n.jsx';
 
 // Import our styles
 import 'bootstrap-colorpicker/dist/css/bootstrap-colorpicker.css';
-import 'google-fonts/google-fonts.css';
 import 'sass/styles.scss';
 import 'katex/dist/katex.min.css';
 
