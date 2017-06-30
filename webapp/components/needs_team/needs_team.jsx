@@ -6,6 +6,7 @@ import PropTypes from 'prop-types';
 
 import $ from 'jquery';
 
+import {browserHistory} from 'react-router/es6';
 import * as Utils from 'utils/utils.jsx';
 import TeamStore from 'stores/team_store.jsx';
 import UserStore from 'stores/user_store.jsx';
@@ -17,6 +18,7 @@ import {startPeriodicSync, stopPeriodicSync} from 'actions/websocket_actions.jsx
 import {loadProfilesForSidebar} from 'actions/user_actions.jsx';
 
 import Constants from 'utils/constants.jsx';
+const TutorialSteps = Constants.TutorialSteps;
 const Preferences = Constants.Preferences;
 
 import AnnouncementBar from 'components/announcement_bar';
@@ -97,6 +99,14 @@ export default class NeedsTeam extends React.Component {
             this.setState({
                 theme: PreferenceStore.getTheme(this.state.team.id)
             });
+        }
+    }
+
+    componentWillMount() {
+        // Go to tutorial if we are first arriving
+        const tutorialStep = PreferenceStore.getInt(Preferences.TUTORIAL_STEP, UserStore.getCurrentId(), 999);
+        if (tutorialStep <= TutorialSteps.INTRO_SCREENS) {
+            browserHistory.push(TeamStore.getCurrentTeamRelativeUrl() + '/tutorial');
         }
     }
 
