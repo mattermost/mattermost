@@ -32,6 +32,10 @@ h6 {
     line-height: 1.5;
     margin: 10px 0;
 
+    &:first-child {
+        margin: 5px 0 10px;
+    }
+
     .emoticon {
         min-height: 1.5em;
         min-width: 1.5em;
