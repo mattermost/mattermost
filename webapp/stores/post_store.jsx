@@ -71,7 +71,7 @@ class PostStoreClass extends EventEmitter {
     }
 
     getLatestReplyablePost(channelId) {
-        const postIds = getState().entities.posts.postsInChannel[channelId];
+        const postIds = getState().entities.posts.postsInChannel[channelId] || [];
         const posts = getState().entities.posts.posts;
 
         for (const postId of postIds) {
