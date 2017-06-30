@@ -756,7 +756,7 @@ type UserWithLastActivityAt struct {
 	LastActivityAt int64
 }
 
-func (us SqlUserStore) GetRecentlyActiveUsersForTeam(teamId string) StoreChannel {
+func (us SqlUserStore) GetRecentlyActiveUsersForTeam(teamId string, offset, limit int) StoreChannel {
 
 	storeChannel := make(StoreChannel)
 
@@ -774,21 +774,55 @@ func (us SqlUserStore) GetRecentlyActiveUsersForTeam(teamId string) StoreChannel
                 INNER JOIN Status AS s ON s.UserId = t.UserId
             WHERE t.TeamId = :TeamId
             ORDER BY s.LastActivityAt DESC
-            LIMIT 100
-            `, map[string]interface{}{"TeamId": teamId}); err != nil {
-			result.Err = model.NewLocAppError("SqlUserStore.GetRecentlyActiveUsers", "store.sql_user.get_recently_active_users.app_error", nil, err.Error())
+            LIMIT :Limit OFFSET :Offset
+            `, map[string]interface{}{"TeamId": teamId, "Offset": offset, "Limit": limit}); err != nil {
+			result.Err = model.NewAppError("SqlUserStore.GetRecentlyActiveUsers", "store.sql_user.get_recently_active_users.app_error", nil, err.Error(), http.StatusInternalServerError)
 		} else {
 
-			userMap := make(map[string]*model.User)
+			userList := []*model.User{}
 
 			for _, userWithLastActivityAt := range users {
 				u := userWithLastActivityAt.User
 				u.Sanitize(map[string]bool{})
 				u.LastActivityAt = userWithLastActivityAt.LastActivityAt
-				userMap[u.Id] = &u
+				userList = append(userList, &u)
 			}
 
-			result.Data = userMap
+			result.Data = userList
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
+func (us SqlUserStore) GetNewUsersForTeam(teamId string, offset, limit int) StoreChannel {
+
+	storeChannel := make(StoreChannel)
+
+	go func() {
+		result := StoreResult{}
+
+		var users []*model.User
+
+		if _, err := us.GetReplica().Select(&users, `
+            SELECT
+                u.*
+            FROM Users AS u
+                INNER JOIN TeamMembers AS t ON u.Id = t.UserId
+            WHERE t.TeamId = :TeamId
+            ORDER BY u.CreateAt DESC
+            LIMIT :Limit OFFSET :Offset
+            `, map[string]interface{}{"TeamId": teamId, "Offset": offset, "Limit": limit}); err != nil {
+			result.Err = model.NewAppError("SqlUserStore.GetNewUsersForTeam", "store.sql_user.get_new_users.app_error", nil, err.Error(), http.StatusInternalServerError)
+		} else {
+			for _, u := range users {
+				u.Sanitize(map[string]bool{})
+			}
+
+			result.Data = users
 		}
 
 		storeChannel <- result
