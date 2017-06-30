@@ -696,6 +696,10 @@
     "translation": "You are now online"
   },
   {
+    "id": "api.command_open.name",
+    "translation": "open"
+  },
+  {
     "id": "api.command_settings.desc",
     "translation": "Open the Account Settings dialog"
   },
@@ -706,10 +710,6 @@
   {
     "id": "api.command_settings.unsupported.app_error",
     "translation": "The settings command is not supported on your device"
-  },
-  {
-    "id": "api.command_open.name",
-    "translation": "open"
   },
   {
     "id": "api.command_shortcuts.browser.channel_next",

@@ -660,6 +660,22 @@
     "translation": "Sie sind nun online"
   },
   {
+    "id": "api.command_open.name",
+    "translation": "open"
+  },
+  {
+    "id": "api.command_settings.desc",
+    "translation": "Open the Account Settings dialog"
+  },
+  {
+    "id": "api.command_settings.name",
+    "translation": "settings"
+  },
+  {
+    "id": "api.command_settings.unsupported.app_error",
+    "translation": "The settings command is not supported on your device"
+  },
+  {
     "id": "api.command_shortcuts.browser.channel_next",
     "translation": "{{.ChannelNextCmd}}: Nächster Kanal in Ihrem Verlauf\n"
   },
@@ -3261,7 +3277,7 @@
   },
   {
     "id": "ent.cluster.config_changed.info",
-    "translation": "Cluster-Konfiguration hat sich für id=%v geändert.  Versuche den Cluster-Dienst neuzustarten.  Um sicherzustellen, dass der Cluster korrekt konfiguriert ist, sollten Sie nicht auf diesen Neustart verlassen, da eine Kernkonfigurationsänderung festgestellt wurde."
+    "translation": "Cluster-Konfiguration geändert für id={{ .id }}.  Der Cluster könnte instabil werden und ein Neustart ist notwendig.  Um sicherzustellen, dass der Cluster korrekt konfiguriert ist, sollten Sie sofort einen rollenden Neustart durchführen."
   },
   {
     "id": "ent.cluster.debug_fail.debug",
@@ -3293,7 +3309,7 @@
   },
   {
     "id": "ent.cluster.save_config.error",
-    "translation": "Wenn High Availability aktiviert ist, steht die Systemkonsole nur lesend zur Verfügung."
+    "translation": "Systemkonsole ist im Hochverfügbarkeitsmodus nur lesbar  außer ReadOnlyConfig ist in der Konfigurationsdatei deaktiviert."
   },
   {
     "id": "ent.cluster.starting.info",

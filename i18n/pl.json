@@ -660,6 +660,22 @@
     "translation": "Jesteś teraz dostępny"
   },
   {
+    "id": "api.command_open.name",
+    "translation": "open"
+  },
+  {
+    "id": "api.command_settings.desc",
+    "translation": "Open the Account Settings dialog"
+  },
+  {
+    "id": "api.command_settings.name",
+    "translation": "settings"
+  },
+  {
+    "id": "api.command_settings.unsupported.app_error",
+    "translation": "The settings command is not supported on your device"
+  },
+  {
     "id": "api.command_shortcuts.browser.channel_next",
     "translation": "{{.ChannelNextCmd}}: Następny kanał w Twojej historii\n"
   },
@@ -757,7 +773,7 @@
   },
   {
     "id": "api.command_shortcuts.msgs.reply",
-    "translation": "SHIFT+UP (in empty input field): Reply to the most recent message in the current channel\n"
+    "translation": "SHIFT+STRZAŁKA W GÓRĘ (w pustym polu) : Odpowiedź na ostatnią wiadomość w aktualnym kanale\n"
   },
   {
     "id": "api.command_shortcuts.msgs.reprint_next",
@@ -773,7 +789,7 @@
   },
   {
     "id": "api.command_shortcuts.nav.direct_messages_menu",
-    "translation": "{{.CmdOrCtrl}}+SHIFT+K: Open direct messages menu\n"
+    "translation": "{{.CmdOrCtrl}}+SHIFT+K: Otwórz menu wiadomości bezpośrednich\n"
   },
   {
     "id": "api.command_shortcuts.nav.header",
@@ -2753,7 +2769,7 @@
   },
   {
     "id": "api.user.upload_profile_user.decode_config.app_error",
-    "translation": "Could not save profile image. File does not appear to be a valid image."
+    "translation": "Nie można zapisać obrazka profilowego. Plik nie jest obrazem."
   },
   {
     "id": "api.user.upload_profile_user.encode.app_error",
@@ -3125,7 +3141,7 @@
   },
   {
     "id": "app.import.validate_user_import_data.auth_data_and_password.error",
-    "translation": "User AuthData and Password are mutually exclusive."
+    "translation": "Dane autoryzacyjne użytkownika i hasło wykluczają się wzajemnie"
   },
   {
     "id": "app.import.validate_user_import_data.auth_data_length.error",
@@ -3261,7 +3277,7 @@
   },
   {
     "id": "ent.cluster.config_changed.info",
-    "translation": "Konfiguracja klastra zmieniła się dla id=%v. Próba ponownego uruchomienia usługi klastrowania. Aby upewnić się, że klaster jest ustawiony prawidłowo, nie powinieneś polegać na tym ponownym uruchomieniu ponieważ wykryliśmy zmiany w konfiguracji jądra."
+    "translation": "Cluster configuration has changed for id={{ .id }}.  The cluster may become unstable and a restart is required.  To ensure the cluster is configured correctly you should perform a rolling restart immediately."
   },
   {
     "id": "ent.cluster.debug_fail.debug",
@@ -3293,7 +3309,7 @@
   },
   {
     "id": "ent.cluster.save_config.error",
-    "translation": "Konsola systemu jest ustawiona tylko do odczytu, jeśli jest włączony wysoki poziom dostępności."
+    "translation": "System Console is set to read-only when High Availability is enabled  unless ReadOnlyConfig is disabled in the configuration file."
   },
   {
     "id": "ent.cluster.starting.info",
@@ -3325,23 +3341,23 @@
   },
   {
     "id": "ent.elasticsearch.search_posts.disabled",
-    "translation": "ElasticSearch searching is disabled on this server"
+    "translation": "Na tym serwerze wyszukiwanie ElasticSearch jest wyłączone."
   },
   {
     "id": "ent.elasticsearch.search_posts.search_failed",
-    "translation": "Search failed to complete"
+    "translation": "Nie udało się zakończyć wyszukiwania."
   },
   {
     "id": "ent.elasticsearch.search_posts.unmarshall_post_failed",
-    "translation": "Failed to decode search results"
+    "translation": "Błąd w dekodowaniu wyników wyszukiwania."
   },
   {
     "id": "ent.elasticsearch.start.connect_failed",
-    "translation": "Setting up ElasticSearch Client Failed"
+    "translation": "Nie udało się ustawić parametrów klienta ElasticSearch."
   },
   {
     "id": "ent.elasticsearch.start.index_create_failed",
-    "translation": "Failed to create ElasticSearch index"
+    "translation": "Nie udało się utworzyć indeksu ElasticSearch"
   },
   {
     "id": "ent.elasticsearch.start.index_exists_failed",
@@ -3913,7 +3929,7 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.connection_url.app_error",
-    "translation": "Elastic Search ConnectionUrl setting must be provided when Elastic Search indexing is enabled."
+    "translation": "Aby włączyć indeksowanie Elastic Search, należy ustawić hasło dla Elastic Search"
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_searching.app_error",
@@ -3921,11 +3937,11 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.password.app_error",
-    "translation": "Elastic Search Password setting must be provided when Elastic Search indexing is enabled."
+    "translation": "Aby włączyć indeksowanie Elastic Search, należy ustawić hasło dla Elastic Search"
   },
   {
     "id": "model.config.is_valid.elastic_search.username.app_error",
-    "translation": "Elastic Search Username setting must be provided when Elastic Search indexing is enabled."
+    "translation": "Aby włączyć indeksowanie Elastic Search, należy ustawić nazwę użytkownika"
   },
   {
     "id": "model.config.is_valid.email_batching_buffer_size.app_error",
@@ -5689,7 +5705,7 @@
   },
   {
     "id": "store.sql_user.get_by_auth.missing_account.app_error",
-    "translation": "We couldn't find an existing account matching your authentication type for this team. This team may require an invite from the team owner to join."
+    "translation": "Nie znaleziono istniejącego konta dla tego zespołu. Wybrany zespół może wymagać zaproszenia aby do niego dołączyć."
   },
   {
     "id": "store.sql_user.get_by_auth.other.app_error",
@@ -5697,11 +5713,11 @@
   },
   {
     "id": "store.sql_user.get_by_username.app_error",
-    "translation": "We couldn't find an existing account matching your username for this team. This team may require an invite from the team owner to join."
+    "translation": "Nie znaleziono istniejącego konta dla tego zespołu. Wybrany zespół może wymagać zaproszenia aby do niego dołączyć."
   },
   {
     "id": "store.sql_user.get_for_login.app_error",
-    "translation": "We couldn't find an existing account matching your credentials. This team may require an invite from the team owner to join."
+    "translation": "Nie znaleziono istniejącego konta dla tego zespołu. Wybrany zespół może wymagać zaproszenia aby do niego dołączyć."
   },
   {
     "id": "store.sql_user.get_for_login.multiple_users",
@@ -5753,11 +5769,11 @@
   },
   {
     "id": "store.sql_user.save.email_exists.ldap_app_error",
-    "translation": "This account does not use AD/LDAP authentication. Please sign in using email and password."
+    "translation": "To konto nie używa usługi AD/LDAP do autoryzacji, zamiast tego użyj maila i hasła."
   },
   {
     "id": "store.sql_user.save.email_exists.saml_app_error",
-    "translation": "This account does not use SAML authentication. Please sign in using email and password."
+    "translation": "To konto nie używa protokołu SAML do autoryzacji, zamiast tego użyj maila i hasła."
   },
   {
     "id": "store.sql_user.save.existing.app_error",
@@ -5817,7 +5833,7 @@
   },
   {
     "id": "store.sql_user.update_auth_data.email_exists.app_error",
-    "translation": "Unable to switch account to {{.Service}}. An account using the email {{.Email}} already exists."
+    "translation": "Nie można przełączyć konta na {{.Service}}. Konto z podanym adresem {{.Email}} już istnieje."
   },
   {
     "id": "store.sql_user.update_failed_pwd_attempts.app_error",
@@ -5945,15 +5961,15 @@
   },
   {
     "id": "utils.config.save_config.saving.app_error",
-    "translation": "An error occurred while saving the file to {{.Filename}}"
+    "translation": "Błąd w trakcie zapisywania pliku {{.Filename}}"
   },
   {
     "id": "utils.config.supported_client_locale.app_error",
-    "translation": "Unable to load mattermost configuration file:  DefaultClientLocale must be one of the supported locales"
+    "translation": "Nie można odczytać pliku konfiguracyjnego mattermost. Domyślny język Klienta musi być wspierany przez ustawienia lokalizacyjne."
   },
   {
     "id": "utils.config.supported_server_locale.app_error",
-    "translation": "Unable to load mattermost configuration file:  DefaultServerLocale must be one of the supported locales"
+    "translation": "Nie można odczytać pliku konfiguracyjnego mattermost. Domyślne ustawiania lokalizacyjne serwera muszą być wspierane przez ustawienia lokalizacyjne."
   },
   {
     "id": "utils.config.validate_locale.app_error",

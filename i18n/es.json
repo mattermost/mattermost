@@ -660,6 +660,22 @@
     "translation": "Ahora estás disponible"
   },
   {
+    "id": "api.command_open.name",
+    "translation": "abrir"
+  },
+  {
+    "id": "api.command_settings.desc",
+    "translation": "Abrir el diálogo Configuración de la Cuenta"
+  },
+  {
+    "id": "api.command_settings.name",
+    "translation": "configuración"
+  },
+  {
+    "id": "api.command_settings.unsupported.app_error",
+    "translation": "El comando de configuración no es compatible con tu dispositivo"
+  },
+  {
     "id": "api.command_shortcuts.browser.channel_next",
     "translation": "{{.ChannelNextCmd}}: canal Siguiente en el historial\n"
   },
@@ -3261,7 +3277,7 @@
   },
   {
     "id": "ent.cluster.config_changed.info",
-    "translation": "La configuración del nodo con el id=%v ha cambiado.  Intentando reiniciar el servicio del nodo.  Para asegurar que el nodo ha sido configurado correctamente no debería confiar en este reinicio porque hemos detectado un cambio en la configuración principal."
+    "translation": "Configuración del agrupamiento de servidores ha cambiado para id={{ .id }}.  El agrupamiento de servidores puede volverse inestable y se requiere un reinicio.  Para asegurarse de que el agrupamiento de servidores está configurado correctamente, debes realizar un reinicio continuo de inmediato."
   },
   {
     "id": "ent.cluster.debug_fail.debug",
@@ -3293,7 +3309,7 @@
   },
   {
     "id": "ent.cluster.save_config.error",
-    "translation": "La Consola del Sistema es de sólo lectura cuando la Alta Disponibilidad está habilitada."
+    "translation": "La Consola del Sistema es de sólo lectura cuando la Alta Disponibilidad es activada a menos que ReadOnlyConfig está deshabilitado en el archivo de configuración."
   },
   {
     "id": "ent.cluster.starting.info",
