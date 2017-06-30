@@ -212,6 +212,7 @@ func trackConfig() {
 		"max_notifications_per_channel":           *utils.Cfg.TeamSettings.MaxNotificationsPerChannel,
 		"max_users_per_team":                      utils.Cfg.TeamSettings.MaxUsersPerTeam,
 		"max_channels_per_team":                   *utils.Cfg.TeamSettings.MaxChannelsPerTeam,
+		"teammate_name_display":                   *utils.Cfg.TeamSettings.TeammateNameDisplay,
 		"isdefault_site_name":                     isDefault(utils.Cfg.TeamSettings.SiteName, "Mattermost"),
 		"isdefault_custom_brand_text":             isDefault(*utils.Cfg.TeamSettings.CustomBrandText, model.TEAM_SETTINGS_DEFAULT_CUSTOM_BRAND_TEXT),
 		"isdefault_custom_description_text":       isDefault(*utils.Cfg.TeamSettings.CustomDescriptionText, model.TEAM_SETTINGS_DEFAULT_CUSTOM_DESCRIPTION_TEXT),
@@ -254,7 +255,6 @@ func trackConfig() {
 		"amazon_s3_signv2":        *utils.Cfg.FileSettings.AmazonS3SignV2,
 		"max_file_size":           *utils.Cfg.FileSettings.MaxFileSize,
 		"enable_file_attachments": *utils.Cfg.FileSettings.EnableFileAttachments,
-		"amazon_s3_sign_v2":       *utils.Cfg.FileSettings.AmazonS3SignV2,
 	})
 
 	SendDiagnostic(TRACK_CONFIG_EMAIL, map[string]interface{}{
@@ -375,10 +375,10 @@ func trackConfig() {
 	})
 
 	SendDiagnostic(TRACK_CONFIG_ANNOUNCEMENT, map[string]interface{}{
-		"enable_banner":          *utils.Cfg.AnnouncementSettings.EnableBanner,
-		"banner_color":           isDefault(*utils.Cfg.AnnouncementSettings.BannerColor, model.ANNOUNCEMENT_SETTINGS_DEFAULT_BANNER_COLOR),
-		"banner_text_color":      isDefault(*utils.Cfg.AnnouncementSettings.BannerTextColor, model.ANNOUNCEMENT_SETTINGS_DEFAULT_BANNER_TEXT_COLOR),
-		"allow_banner_dismissal": *utils.Cfg.AnnouncementSettings.AllowBannerDismissal,
+		"enable_banner":               *utils.Cfg.AnnouncementSettings.EnableBanner,
+		"isdefault_banner_color":      isDefault(*utils.Cfg.AnnouncementSettings.BannerColor, model.ANNOUNCEMENT_SETTINGS_DEFAULT_BANNER_COLOR),
+		"isdefault_banner_text_color": isDefault(*utils.Cfg.AnnouncementSettings.BannerTextColor, model.ANNOUNCEMENT_SETTINGS_DEFAULT_BANNER_TEXT_COLOR),
+		"allow_banner_dismissal":      *utils.Cfg.AnnouncementSettings.AllowBannerDismissal,
 	})
 }
 
