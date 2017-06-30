@@ -155,7 +155,7 @@
     font-size: 21px;
     margin-left: 1px;
     position: relative;
-    top: 1px;
+    top: 2px;
 }
 
 .channel-header__info {
@@ -187,10 +187,6 @@
 
         .move--left & {
             max-width: calc(100vw - 780px);
-        }
-
-        &.light {
-            @include opacity(.7);
         }
 
         .markdown-inline-img {

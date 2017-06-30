@@ -1,6 +1,22 @@
 @charset 'UTF-8';
 
 @media screen and (max-width: 960px) {
+    .inner-wrap {
+        &.move--left {
+            .channel-header {
+                .heading {
+                    max-width: calc(100vw - 600px);
+                }
+            }
+
+            .channel-header__info {
+                .channel-header__description {
+                    max-width: calc(100vw - 600px);
+                }
+            }
+        }
+    }
+
     .textarea-wrapper {
         .textbox-preview-link,
         .textbox-help-link {
@@ -17,12 +33,6 @@
     .channel-header {
         .heading {
             max-width: calc(100vw - 730px);
-        }
-    }
-
-    .search__form {
-        .sidebar--right & {
-            width: 300px;
         }
     }
 
@@ -143,7 +153,6 @@
             transform: translateX(0) !important;
 
             .search-bar__container {
-                padding-right: 8px;
                 z-index: 5;
             }
         }

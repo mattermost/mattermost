@@ -82,10 +82,10 @@
         @include box-shadow(none);
         background: alpha-color($black, .8);
         border: none;
-        height: calc(100% - 40px);
+        height: calc(100% - 50px);
         max-width: 100%;
         position: fixed;
-        top: 47px;
+        top: 40px !important;
         width: 100%;
 
         &.in {
