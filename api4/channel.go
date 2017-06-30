@@ -540,18 +540,13 @@ func deleteChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Do not allow delete if there's only one member left in a private channel
-	if memberCount == 1 && channel.Type == model.CHANNEL_PRIVATE && !c.IsSystemAdmin() {
-		c.Err = model.NewAppError("deleteChannel", "api.channel.delete_channel.private.last_member.cannot.app_error", map[string]interface{}{"Channel": channel.DisplayName}, "", http.StatusForbidden)
-		return
-	}
-
 	if channel.Type == model.CHANNEL_OPEN && !app.SessionHasPermissionToChannel(c.Session, channel.Id, model.PERMISSION_DELETE_PUBLIC_CHANNEL) {
 		c.SetPermissionError(model.PERMISSION_DELETE_PUBLIC_CHANNEL)
 		return
 	}
 
-	if channel.Type == model.CHANNEL_PRIVATE && !app.SessionHasPermissionToChannel(c.Session, channel.Id, model.PERMISSION_DELETE_PRIVATE_CHANNEL) {
+	// Allow delete if there's only one member left in a private channel
+	if memberCount > 1 && channel.Type == model.CHANNEL_PRIVATE && !app.SessionHasPermissionToChannel(c.Session, channel.Id, model.PERMISSION_DELETE_PRIVATE_CHANNEL) {
 		c.SetPermissionError(model.PERMISSION_DELETE_PRIVATE_CHANNEL)
 		return
 	}

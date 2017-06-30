@@ -210,6 +210,9 @@ export function showDeleteOption(channel, isAdmin, isSystemAdmin, isChannelAdmin
             return false;
         }
     } else if (channel.type === Constants.PRIVATE_CHANNEL) {
+        if (userCount === 1) {
+            return true;
+        }
         if (global.window.mm_config.RestrictPrivateChannelDeletion === Constants.PERMISSIONS_SYSTEM_ADMIN && !isSystemAdmin) {
             return false;
         }
@@ -217,9 +220,6 @@ export function showDeleteOption(channel, isAdmin, isSystemAdmin, isChannelAdmin
             return false;
         }
         if (global.window.mm_config.RestrictPrivateChannelDeletion === Constants.PERMISSIONS_CHANNEL_ADMIN && !isChannelAdmin && !isAdmin) {
-            return false;
-        }
-        if (userCount === 1) {
             return false;
         }
     }
