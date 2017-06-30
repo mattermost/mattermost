@@ -1015,21 +1015,19 @@ export function displayUsername(userId) {
 }
 
 export function displayUsernameForUser(user) {
-    const nameFormat = PreferenceStore.get(Constants.Preferences.CATEGORY_DISPLAY_SETTINGS, 'name_format', 'false');
-
-    let username = '';
     if (user) {
-        if (nameFormat === Constants.Preferences.DISPLAY_PREFER_NICKNAME) {
-            username = user.nickname || getFullName(user);
-        } else if (nameFormat === Constants.Preferences.DISPLAY_PREFER_FULL_NAME) {
-            username = getFullName(user);
+        const nameFormat = global.window.mm_config.TeammateNameDisplay;
+        let name = user.username;
+        if (nameFormat === Constants.TEAMMATE_NAME_DISPLAY.SHOW_NICKNAME_FULLNAME && user.nickname && user.nickname !== '') {
+            name = user.nickname;
+        } else if ((user.first_name || user.last_name) && (nameFormat === Constants.TEAMMATE_NAME_DISPLAY.SHOW_NICKNAME_FULLNAME || nameFormat === Constants.TEAMMATE_NAME_DISPLAY.SHOW_FULLNAME)) {
+            name = getFullName(user);
         }
-        if (!username.trim().length) {
-            username = user.username;
-        }
+
+        return name;
     }
 
-    return username;
+    return null;
 }
 
 // Converts a file size in bytes into a human-readable string of the form '123MB'.

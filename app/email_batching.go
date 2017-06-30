@@ -4,7 +4,6 @@
 package app
 
 import (
-	"database/sql"
 	"fmt"
 	"html/template"
 	"strconv"
@@ -163,7 +162,6 @@ func (job *EmailBatchingJob) checkPendingNotifications(now time.Time, handler fu
 
 func sendBatchedEmailNotification(userId string, notifications []*batchedNotification) {
 	uchan := Srv.Store.User().Get(userId)
-	pchan := Srv.Store.Preference().Get(userId, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, model.PREFERENCE_NAME_DISPLAY_NAME_FORMAT)
 
 	var user *model.User
 	if result := <-uchan; result.Err != nil {
@@ -174,17 +172,7 @@ func sendBatchedEmailNotification(userId string, notifications []*batchedNotific
 	}
 
 	translateFunc := utils.GetUserTranslations(user.Locale)
-
-	var displayNameFormat string
-	if result := <-pchan; result.Err != nil && result.Err.DetailedError != sql.ErrNoRows.Error() {
-		l4g.Warn("api.email_batching.send_batched_email_notification.preferences.app_error")
-		return
-	} else if result.Err != nil {
-		// no display name format saved, so fall back to default
-		displayNameFormat = model.PREFERENCE_DEFAULT_DISPLAY_NAME_FORMAT
-	} else {
-		displayNameFormat = result.Data.(model.Preference).Value
-	}
+	displayNameFormat := *utils.Cfg.TeamSettings.TeammateNameDisplay
 
 	var contents string
 	for _, notification := range notifications {
@@ -236,7 +224,7 @@ func renderBatchedPost(template *utils.HTMLTemplate, post *model.Post, teamName 
 		l4g.Warn(utils.T("api.email_batching.render_batched_post.sender.app_error"))
 		return ""
 	} else {
-		template.Props["SenderName"] = result.Data.(*model.User).GetDisplayNameForPreference(displayNameFormat)
+		template.Props["SenderName"] = result.Data.(*model.User).GetDisplayName(displayNameFormat)
 	}
 
 	if result := <-cchan; result.Err != nil {

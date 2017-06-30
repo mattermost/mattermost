@@ -1422,7 +1422,8 @@ func TestInviteUsersToTeam(t *testing.T) {
 		t.Fatal("should return true")
 	}
 
-	expectedSubject := "[Mattermost] " + th.SystemAdminUser.GetDisplayName() + " invited you to join " + th.BasicTeam.DisplayName + " Team"
+	nameFormat := *utils.Cfg.TeamSettings.TeammateNameDisplay
+	expectedSubject := "[Mattermost] " + th.SystemAdminUser.GetDisplayName(nameFormat) + " invited you to join " + th.BasicTeam.DisplayName + " Team"
 	//Check if the email was send to the rigth email address
 	for _, email := range emailList {
 		var resultsMailbox utils.JSONMessageHeaderInbucket

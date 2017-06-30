@@ -209,6 +209,7 @@ func trackConfig() {
 		"max_notifications_per_channel":       *utils.Cfg.TeamSettings.MaxNotificationsPerChannel,
 		"max_users_per_team":                  utils.Cfg.TeamSettings.MaxUsersPerTeam,
 		"max_channels_per_team":               *utils.Cfg.TeamSettings.MaxChannelsPerTeam,
+		"teammate_name_display":               *utils.Cfg.TeamSettings.TeammateNameDisplay,
 		"isdefault_site_name":                 isDefault(utils.Cfg.TeamSettings.SiteName, "Mattermost"),
 		"isdefault_custom_brand_text":         isDefault(*utils.Cfg.TeamSettings.CustomBrandText, model.TEAM_SETTINGS_DEFAULT_CUSTOM_BRAND_TEXT),
 		"isdefault_custom_description_text":   isDefault(*utils.Cfg.TeamSettings.CustomDescriptionText, model.TEAM_SETTINGS_DEFAULT_CUSTOM_DESCRIPTION_TEXT),
