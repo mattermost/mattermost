@@ -77,7 +77,7 @@ export default class CreateComment extends React.Component {
             showPostDeletedModal: false,
             enableAddButton,
             showEmojiPicker: false,
-            emojiPickerEnabled: Utils.isFeatureEnabled(Constants.PRE_RELEASE_FEATURES.EMOJI_PICKER_PREVIEW)
+            emojiPickerEnabled: window.mm_config.EnableEmojiPicker === 'true'
         };
 
         this.lastBlurAt = 0;
@@ -126,8 +126,7 @@ export default class CreateComment extends React.Component {
 
     onPreferenceChange() {
         this.setState({
-            ctrlSend: PreferenceStore.getBool(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS, 'send_on_ctrl_enter'),
-            emojiPickerEnabled: Utils.isFeatureEnabled(Constants.PRE_RELEASE_FEATURES.EMOJI_PICKER_PREVIEW)
+            ctrlSend: PreferenceStore.getBool(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS, 'send_on_ctrl_enter')
         });
     }
 

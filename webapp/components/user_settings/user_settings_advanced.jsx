@@ -350,13 +350,6 @@ export default class AdvancedSettingsDisplay extends React.Component {
                     defaultMessage='Enable the ability to make and receive one-on-one WebRTC calls'
                 />
             );
-        case 'EMOJI_PICKER_PREVIEW':
-            return (
-                <FormattedMessage
-                    id='user.settings.advance.emojipicker'
-                    defaultMessage='Enable emoji picker for reactions and message input box'
-                />
-            );
         default:
             return null;
         }

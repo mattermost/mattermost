@@ -554,8 +554,8 @@ export default class AdminSidebar extends React.Component {
                                     name='custom_emoji'
                                     title={
                                         <FormattedMessage
-                                            id='admin.sidebar.customEmoji'
-                                            defaultMessage='Custom Emoji'
+                                            id='admin.sidebar.emoji'
+                                            defaultMessage='Emoji'
                                         />
 
                                     }
