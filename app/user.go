@@ -823,7 +823,9 @@ func SetProfileImage(userId string, imageData *multipart.FileHeader) *model.AppE
 		return model.NewLocAppError("SetProfileImage", "api.user.upload_profile_user.upload_profile.app_error", nil, "")
 	}
 
-	Srv.Store.User().UpdateLastPictureUpdate(userId)
+	<-Srv.Store.User().UpdateLastPictureUpdate(userId)
+
+	InvalidateCacheForUser(userId)
 
 	if user, err := GetUser(userId); err != nil {
 		l4g.Error(utils.T("api.user.get_me.getting.error"), userId)
