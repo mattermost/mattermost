@@ -21,7 +21,6 @@ import {FormattedMessage} from 'react-intl';
 function getDisplayStateFromStores() {
     return {
         militaryTime: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, 'use_military_time', 'false'),
-        selectedFont: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, 'selected_font', Constants.DEFAULT_FONT),
         channelDisplayMode: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.CHANNEL_DISPLAY_MODE, Preferences.CHANNEL_DISPLAY_MODE_DEFAULT),
         messageDisplay: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.MESSAGE_DISPLAY, Preferences.MESSAGE_DISPLAY_DEFAULT),
         collapseDisplay: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.COLLAPSE_DISPLAY, Preferences.COLLAPSE_DISPLAY_DEFAULT)
@@ -37,16 +36,11 @@ export default class UserSettingsDisplay extends React.Component {
 
         this.handleSubmit = this.handleSubmit.bind(this);
         this.handleClockRadio = this.handleClockRadio.bind(this);
-        this.handleFont = this.handleFont.bind(this);
         this.updateSection = this.updateSection.bind(this);
         this.updateState = this.updateState.bind(this);
         this.createCollapseSection = this.createCollapseSection.bind(this);
 
         this.state = getDisplayStateFromStores();
-    }
-
-    componentWillUnmount() {
-        Utils.applyFont(PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, 'selected_font', Constants.DEFAULT_FONT));
     }
 
     handleSubmit() {
@@ -58,12 +52,7 @@ export default class UserSettingsDisplay extends React.Component {
             name: 'use_military_time',
             value: this.state.militaryTime
         };
-        const fontPreference = {
-            user_id: userId,
-            category: Preferences.CATEGORY_DISPLAY_SETTINGS,
-            name: 'selected_font',
-            value: this.state.selectedFont
-        };
+
         const channelDisplayModePreference = {
             user_id: userId,
             category: Preferences.CATEGORY_DISPLAY_SETTINGS,
@@ -83,7 +72,7 @@ export default class UserSettingsDisplay extends React.Component {
             value: this.state.collapseDisplay
         };
 
-        savePreferences([timePreference, fontPreference, channelDisplayModePreference, messageDisplayPreference, collapseDisplayPreference],
+        savePreferences([timePreference, channelDisplayModePreference, messageDisplayPreference, collapseDisplayPreference],
             () => {
                 this.updateSection('');
             }
@@ -102,11 +91,6 @@ export default class UserSettingsDisplay extends React.Component {
         this.setState({messageDisplay});
     }
 
-    handleFont(selectedFont) {
-        Utils.applyFont(selectedFont);
-        this.setState({selectedFont});
-    }
-
     handleCollapseRadio(collapseDisplay) {
         this.setState({collapseDisplay});
     }
@@ -122,7 +106,6 @@ export default class UserSettingsDisplay extends React.Component {
     updateState() {
         const newState = getDisplayStateFromStores();
         if (!Utils.areObjectsEqual(newState, this.state)) {
-            this.handleFont(newState.selectedFont);
             this.setState(newState);
         }
     }
@@ -240,7 +223,6 @@ export default class UserSettingsDisplay extends React.Component {
         const serverError = this.state.serverError || null;
         let clockSection;
         let channelDisplayModeSection;
-        let fontSection;
         let languagesSection;
         let messageDisplaySection;
 
@@ -573,80 +555,6 @@ export default class UserSettingsDisplay extends React.Component {
             );
         }
 
-        if (this.props.activeSection === 'font') {
-            const options = [];
-            Object.keys(Constants.FONTS).forEach((fontName, idx) => {
-                const className = Constants.FONTS[fontName];
-                options.push(
-                    <option
-                        key={'font_' + idx}
-                        value={fontName}
-                        className={className}
-                    >
-                        {fontName}
-                    </option>
-                );
-            });
-
-            const inputs = [
-                <div key='userDisplayNameOptions'>
-                    <div
-                        className='dropdown'
-                    >
-                        <select
-                            id='displayFontSelect'
-                            className='form-control'
-                            type='text'
-                            value={this.state.selectedFont}
-                            onChange={(e) => this.handleFont(e.target.value)}
-                        >
-                            {options}
-                        </select>
-                    </div>
-                    <div>
-                        <br/>
-                        <FormattedMessage
-                            id='user.settings.display.fontDesc'
-                            defaultMessage='Select the font displayed in the Mattermost user interface.'
-                        />
-                    </div>
-                </div>
-            ];
-
-            fontSection = (
-                <SettingItemMax
-                    title={
-                        <FormattedMessage
-                            id='user.settings.display.fontTitle'
-                            defaultMessage='Display Font'
-                        />
-                    }
-                    inputs={inputs}
-                    submit={this.handleSubmit}
-                    server_error={serverError}
-                    updateSection={(e) => {
-                        this.updateSection('');
-                        e.preventDefault();
-                    }}
-                />
-            );
-        } else {
-            fontSection = (
-                <SettingItemMin
-                    title={
-                        <FormattedMessage
-                            id='user.settings.display.fontTitle'
-                            defaultMessage='Display Font'
-                        />
-                    }
-                    describe={this.state.selectedFont}
-                    updateSection={() => {
-                        this.props.updateSection('font');
-                    }}
-                />
-            );
-        }
-
         const userLocale = this.props.user.locale;
         if (this.props.activeSection === 'languages') {
             if (!I18n.isLanguageAvailable(userLocale)) {
@@ -729,8 +637,6 @@ export default class UserSettingsDisplay extends React.Component {
                         setRequireConfirm={this.props.setRequireConfirm}
                         setEnforceFocus={this.props.setEnforceFocus}
                     />
-                    <div className='divider-dark'/>
-                    {fontSection}
                     <div className='divider-dark'/>
                     {clockSection}
                     <div className='divider-dark'/>
