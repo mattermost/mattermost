@@ -383,26 +383,16 @@ func (u *User) GetFullName() string {
 	}
 }
 
-func (u *User) GetDisplayName() string {
-	if u.Nickname != "" {
-		return u.Nickname
-	} else if fullName := u.GetFullName(); fullName != "" {
-		return fullName
-	} else {
-		return u.Username
-	}
-}
-
-func (u *User) GetDisplayNameForPreference(nameFormat string) string {
+func (u *User) GetDisplayName(nameFormat string) string {
 	displayName := u.Username
 
-	if nameFormat == PREFERENCE_VALUE_DISPLAY_NAME_NICKNAME {
+	if nameFormat == SHOW_NICKNAME_FULLNAME {
 		if u.Nickname != "" {
 			displayName = u.Nickname
 		} else if fullName := u.GetFullName(); fullName != "" {
 			displayName = fullName
 		}
-	} else if nameFormat == PREFERENCE_VALUE_DISPLAY_NAME_FULL {
+	} else if nameFormat == SHOW_FULLNAME {
 		if fullName := u.GetFullName(); fullName != "" {
 			displayName = fullName
 		}

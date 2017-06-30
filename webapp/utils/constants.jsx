@@ -37,8 +37,6 @@ export const Preferences = {
     CATEGORY_DIRECT_CHANNEL_SHOW: 'direct_channel_show',
     CATEGORY_GROUP_CHANNEL_SHOW: 'group_channel_show',
     CATEGORY_DISPLAY_SETTINGS: 'display_settings',
-    DISPLAY_PREFER_NICKNAME: 'nickname_full_name',
-    DISPLAY_PREFER_FULL_NAME: 'full_name',
     CATEGORY_ADVANCED_SETTINGS: 'advanced_settings',
     TUTORIAL_STEP: 'tutorial_step',
     CHANNEL_DISPLAY_MODE: 'channel_display_mode',
@@ -970,7 +968,12 @@ export const Constants = {
     TEST_ID_COUNT: 10,
     CENTER: 'center',
     RHS: 'rhs',
-    RHS_ROOT: 'rhsroot'
+    RHS_ROOT: 'rhsroot',
+    TEAMMATE_NAME_DISPLAY: {
+        SHOW_USERNAME: 'username',
+        SHOW_NICKNAME_FULLNAME: 'nickname_full_name',
+        SHOW_FULLNAME: 'full_name'
+    }
 };
 
 export default Constants;

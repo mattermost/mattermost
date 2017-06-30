@@ -4,9 +4,7 @@
 import ProfilePicture from 'components/profile_picture.jsx';
 
 import UserStore from 'stores/user_store.jsx';
-import PreferenceStore from 'stores/preference_store.jsx';
 
-import Constants from 'utils/constants.jsx';
 import * as Utils from 'utils/utils.jsx';
 import {Client4} from 'mattermost-redux/client';
 
@@ -16,13 +14,10 @@ import React from 'react';
 import {FormattedHTMLMessage} from 'react-intl';
 
 export default function UserListRow({user, extraInfo, actions, actionProps, actionUserProps, userCount}) {
-    const nameFormat = PreferenceStore.get(Constants.Preferences.CATEGORY_DISPLAY_SETTINGS, 'name_format', '');
-
-    let name = user.username;
-    if (user.nickname && nameFormat === Constants.Preferences.DISPLAY_PREFER_NICKNAME) {
-        name = `${user.nickname} (@${user.username})`;
-    } else if ((user.first_name || user.last_name) && (nameFormat === Constants.Preferences.DISPLAY_PREFER_NICKNAME || nameFormat === Constants.Preferences.DISPLAY_PREFER_FULL_NAME)) {
-        name = `${Utils.getFullName(user)} (@${user.username})`;
+    const displayName = Utils.displayUsernameForUser(user);
+    let name = `${displayName} (@${user.username})`;
+    if (displayName === user.username) {
+        name = user.username;
     }
 
     let buttons = null;

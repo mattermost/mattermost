@@ -21,7 +21,6 @@ import {FormattedMessage} from 'react-intl';
 function getDisplayStateFromStores() {
     return {
         militaryTime: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, 'use_military_time', 'false'),
-        nameFormat: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, 'name_format', 'username'),
         selectedFont: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, 'selected_font', Constants.DEFAULT_FONT),
         channelDisplayMode: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.CHANNEL_DISPLAY_MODE, Preferences.CHANNEL_DISPLAY_MODE_DEFAULT),
         messageDisplay: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.MESSAGE_DISPLAY, Preferences.MESSAGE_DISPLAY_DEFAULT),
@@ -38,7 +37,6 @@ export default class UserSettingsDisplay extends React.Component {
 
         this.handleSubmit = this.handleSubmit.bind(this);
         this.handleClockRadio = this.handleClockRadio.bind(this);
-        this.handleNameRadio = this.handleNameRadio.bind(this);
         this.handleFont = this.handleFont.bind(this);
         this.updateSection = this.updateSection.bind(this);
         this.updateState = this.updateState.bind(this);
@@ -59,12 +57,6 @@ export default class UserSettingsDisplay extends React.Component {
             category: Preferences.CATEGORY_DISPLAY_SETTINGS,
             name: 'use_military_time',
             value: this.state.militaryTime
-        };
-        const namePreference = {
-            user_id: userId,
-            category: Preferences.CATEGORY_DISPLAY_SETTINGS,
-            name: 'name_format',
-            value: this.state.nameFormat
         };
         const fontPreference = {
             user_id: userId,
@@ -91,7 +83,7 @@ export default class UserSettingsDisplay extends React.Component {
             value: this.state.collapseDisplay
         };
 
-        savePreferences([timePreference, namePreference, fontPreference, channelDisplayModePreference, messageDisplayPreference, collapseDisplayPreference],
+        savePreferences([timePreference, fontPreference, channelDisplayModePreference, messageDisplayPreference, collapseDisplayPreference],
             () => {
                 this.updateSection('');
             }
@@ -100,10 +92,6 @@ export default class UserSettingsDisplay extends React.Component {
 
     handleClockRadio(militaryTime) {
         this.setState({militaryTime});
-    }
-
-    handleNameRadio(nameFormat) {
-        this.setState({nameFormat});
     }
 
     handleChannelDisplayModeRadio(channelDisplayMode) {
@@ -251,7 +239,6 @@ export default class UserSettingsDisplay extends React.Component {
     render() {
         const serverError = this.state.serverError || null;
         let clockSection;
-        let nameFormatSection;
         let channelDisplayModeSection;
         let fontSection;
         let languagesSection;
@@ -362,143 +349,6 @@ export default class UserSettingsDisplay extends React.Component {
                     }
                     describe={describe}
                     updateSection={handleUpdateClockSection}
-                />
-            );
-        }
-
-        const showUsername = (
-            <FormattedMessage
-                id='user.settings.display.showUsername'
-                defaultMessage='Show username (default)'
-            />
-        );
-        const showNickname = (
-            <FormattedMessage
-                id='user.settings.display.showNickname'
-                defaultMessage='Show nickname if one exists, otherwise show first and last name'
-            />
-        );
-        const showFullName = (
-            <FormattedMessage
-                id='user.settings.display.showFullname'
-                defaultMessage='Show first and last name'
-            />
-        );
-        if (this.props.activeSection === 'name_format') {
-            const nameFormat = [false, false, false];
-            if (this.state.nameFormat === 'nickname_full_name') {
-                nameFormat[0] = true;
-            } else if (this.state.nameFormat === 'full_name') {
-                nameFormat[2] = true;
-            } else {
-                nameFormat[1] = true;
-            }
-
-            const inputs = [
-                <div key='userDisplayNameOptions'>
-                    <div className='radio'>
-                        <label>
-                            <input
-                                id='nameFormatUsername'
-                                type='radio'
-                                name='nameFormat'
-                                checked={nameFormat[1]}
-                                onChange={this.handleNameRadio.bind(this, 'username')}
-                            />
-                            {showUsername}
-                        </label>
-                        <br/>
-                    </div>
-                    <div className='radio'>
-                        <label>
-                            <input
-                                id='nameFormatNickname'
-                                type='radio'
-                                name='nameFormat'
-                                checked={nameFormat[0]}
-                                onChange={this.handleNameRadio.bind(this, 'nickname_full_name')}
-                            />
-                            {showNickname}
-                        </label>
-                        <br/>
-                    </div>
-                    <div className='radio'>
-                        <label>
-                            <input
-                                id='nameFormatFullName'
-                                type='radio'
-                                name='nameFormat'
-                                checked={nameFormat[2]}
-                                onChange={this.handleNameRadio.bind(this, 'full_name')}
-                            />
-                            {showFullName}
-                        </label>
-                        <br/>
-                    </div>
-                    <div>
-                        <br/>
-                        <FormattedMessage
-                            id='user.settings.display.nameOptsDesc'
-                            defaultMessage="Set how to display other user's names in posts and the Direct Messages list."
-                        />
-                    </div>
-                </div>
-            ];
-
-            nameFormatSection = (
-                <SettingItemMax
-                    title={
-                        <FormattedMessage
-                            id='user.settings.display.teammateDisplay'
-                            defaultMessage='Teammate Name Display'
-                        />
-                    }
-                    inputs={inputs}
-                    submit={this.handleSubmit}
-                    server_error={serverError}
-                    updateSection={(e) => {
-                        this.updateSection('');
-                        e.preventDefault();
-                    }}
-                />
-            );
-        } else {
-            let describe;
-            if (this.state.nameFormat === 'username') {
-                describe = (
-                    <FormattedMessage
-                        id='user.settings.display.showUsername'
-                        defaultMessage='Show username (default)'
-                    />
-                );
-            } else if (this.state.nameFormat === 'full_name') {
-                describe = (
-                    <FormattedMessage
-                        id='user.settings.display.showFullname'
-                        defaultMessage='Show first and last name'
-                    />
-                );
-            } else {
-                describe = (
-                    <FormattedMessage
-                        id='user.settings.display.showNickname'
-                        defaultMessage='Show nickname if one exists, otherwise show first and last name'
-                    />
-                );
-            }
-
-            nameFormatSection = (
-                <SettingItemMin
-                    title={
-                        <FormattedMessage
-                            id='user.settings.display.teammateDisplay'
-                            defaultMessage='Teammate Name Display'
-                        />
-                    }
-                    describe={describe}
-                    updateSection={() => {
-                        this.props.updateSection('name_format');
-                    }}
                 />
             );
         }
@@ -883,8 +733,6 @@ export default class UserSettingsDisplay extends React.Component {
                     {fontSection}
                     <div className='divider-dark'/>
                     {clockSection}
-                    <div className='divider-dark'/>
-                    {nameFormatSection}
                     <div className='divider-dark'/>
                     {collapseSection}
                     <div className='divider-dark'/>
