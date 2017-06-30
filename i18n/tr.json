@@ -660,6 +660,22 @@
     "translation": "Durumunuz: çevrimiçi"
   },
   {
+    "id": "api.command_open.name",
+    "translation": "open"
+  },
+  {
+    "id": "api.command_settings.desc",
+    "translation": "Hesap Ayarları Penceresini Aç"
+  },
+  {
+    "id": "api.command_settings.name",
+    "translation": "ayarlar"
+  },
+  {
+    "id": "api.command_settings.unsupported.app_error",
+    "translation": "Ayarlar komutu aygıtınız için desteklenmiyor"
+  },
+  {
     "id": "api.command_shortcuts.browser.channel_next",
     "translation": "{{.ChannelNextCmd}}: Geçmişinizdeki sonraki kanal\n"
   },
@@ -1629,7 +1645,7 @@
   },
   {
     "id": "api.post.send_notifications_and_forget.push_image_only",
-    "translation": " Uploaded one or more files "
+    "translation": "Bir ya da bir kaç dosya yüklendi"
   },
   {
     "id": "api.post.send_notifications_and_forget.push_in",
@@ -3261,7 +3277,7 @@
   },
   {
     "id": "ent.cluster.config_changed.info",
-    "translation": "%v kodu için küme yapılandırması değiştirildi. Küme hizmeti yeniden başlatılıyor. Kümenin doğru şekilde yapılandırıldığından emin olmak için bu yalnız yeniden başlatmaya güvenmeyin çünkü bir çekirdek yapılandırma değişikliği algılandı."
+    "translation": "id={{ .id }} için küme yapılandırması değiştirildi.  Küme artık kararlı olmayabilir ve bir yeniden başlatma gerekli.  Kümenin doğru olarak yapılandırıldığından emin olmak için hemen yeniden başlatın."
   },
   {
     "id": "ent.cluster.debug_fail.debug",
@@ -3293,7 +3309,7 @@
   },
   {
     "id": "ent.cluster.save_config.error",
-    "translation": "Yüksek Erişilebilirlik etkinleştirildiğinde Sistem Panosu salt okunur olarak ayarlanır."
+    "translation": "Yüksek Erişilebilirlik kipi etkin olduğunda, yapılandırma dosyasında ReadOnlyConfig seçeneği devre dışı bırakılmamış ise Sistem Panosu salt okunur olarak ayarlanır."
   },
   {
     "id": "ent.cluster.starting.info",

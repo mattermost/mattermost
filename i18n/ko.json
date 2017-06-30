@@ -289,7 +289,7 @@
   },
   {
     "id": "api.channel.join_channel.already_deleted.app_error",
-    "translation": "Channel is already deleted"
+    "translation": "채널이 이미 삭제되었습니다"
   },
   {
     "id": "api.channel.join_channel.permissions.app_error",
@@ -658,6 +658,22 @@
   {
     "id": "api.command_online.success",
     "translation": "이제 온라인 상태입니다."
+  },
+  {
+    "id": "api.command_open.name",
+    "translation": "open"
+  },
+  {
+    "id": "api.command_settings.desc",
+    "translation": "Open the Account Settings dialog"
+  },
+  {
+    "id": "api.command_settings.name",
+    "translation": "설정"
+  },
+  {
+    "id": "api.command_settings.unsupported.app_error",
+    "translation": "The settings command is not supported on your device"
   },
   {
     "id": "api.command_shortcuts.browser.channel_next",
@@ -3261,7 +3277,7 @@
   },
   {
     "id": "ent.cluster.config_changed.info",
-    "translation": "Cluster configuration has changed for id=%v.  Attempting to restart cluster service.  To ensure the cluster is configured correctly you should not rely on this restart because we detected a core configuration change."
+    "translation": "Cluster configuration has changed for id={{ .id }}.  The cluster may become unstable and a restart is required.  To ensure the cluster is configured correctly you should perform a rolling restart immediately."
   },
   {
     "id": "ent.cluster.debug_fail.debug",
@@ -3293,7 +3309,7 @@
   },
   {
     "id": "ent.cluster.save_config.error",
-    "translation": "System Console is set to read-only when High Availability is enabled."
+    "translation": "System Console is set to read-only when High Availability is enabled  unless ReadOnlyConfig is disabled in the configuration file."
   },
   {
     "id": "ent.cluster.starting.info",

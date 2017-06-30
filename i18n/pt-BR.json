@@ -660,6 +660,22 @@
     "translation": "Você está agora conectado"
   },
   {
+    "id": "api.command_open.name",
+    "translation": "open"
+  },
+  {
+    "id": "api.command_settings.desc",
+    "translation": "Abrir a janela de Configurações de Conta"
+  },
+  {
+    "id": "api.command_settings.name",
+    "translation": "configurações"
+  },
+  {
+    "id": "api.command_settings.unsupported.app_error",
+    "translation": "O comando de configurações não é suportado no seu equipamento"
+  },
+  {
     "id": "api.command_shortcuts.browser.channel_next",
     "translation": "{{.ChannelNextCmd}}: Próximo canal no seu histórico\n"
   },
@@ -3261,7 +3277,7 @@
   },
   {
     "id": "ent.cluster.config_changed.info",
-    "translation": "Configuração de Cluster foi alterado para id=%v.  Tentando reiniciar o serviço de cluster.  Para garantir que o cluster está configurado corretamente você não deve contar com este reinício porque detectamos uma alteração na configuração do núcleo."
+    "translation": "Configuração de cluster foi alterada para o id={{ .id }}.  O cluster pode se tornar instável e uma reinicialização pode ser necessária.  Para ter certeza de que o cluster está configurado corretamente você deve executar um reinício contínuo imediatamente."
   },
   {
     "id": "ent.cluster.debug_fail.debug",
@@ -3293,7 +3309,7 @@
   },
   {
     "id": "ent.cluster.save_config.error",
-    "translation": "Console do Sistema é definido como somente leitura quando Alta Disponibilidade está ativo."
+    "translation": "Console do Sistema é definido como somente leitura quando Alta Disponibilidade está ativo  a menos que ReadOnlyConfig estiver desativado no arquivo de configurações."
   },
   {
     "id": "ent.cluster.starting.info",
