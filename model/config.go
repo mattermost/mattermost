@@ -115,6 +115,9 @@ const (
 	WEBRTC_SETTINGS_DEFAULT_TURN_URI = ""
 
 	ANALYTICS_SETTINGS_DEFAULT_MAX_USERS_FOR_STATISTICS = 2500
+
+	ANNOUNCEMENT_SETTINGS_DEFAULT_BANNER_COLOR      = "#f2a93b"
+	ANNOUNCEMENT_SETTINGS_DEFAULT_BANNER_TEXT_COLOR = "#333333"
 )
 
 type ServiceSettings struct {
@@ -856,12 +859,12 @@ func (o *Config) SetDefaults() {
 
 	if o.AnnouncementSettings.BannerColor == nil {
 		o.AnnouncementSettings.BannerColor = new(string)
-		*o.AnnouncementSettings.BannerColor = "#f2a93b"
+		*o.AnnouncementSettings.BannerColor = ANNOUNCEMENT_SETTINGS_DEFAULT_BANNER_COLOR
 	}
 
 	if o.AnnouncementSettings.BannerTextColor == nil {
 		o.AnnouncementSettings.BannerTextColor = new(string)
-		*o.AnnouncementSettings.BannerTextColor = "#333333"
+		*o.AnnouncementSettings.BannerTextColor = ANNOUNCEMENT_SETTINGS_DEFAULT_BANNER_TEXT_COLOR
 	}
 
 	if o.AnnouncementSettings.AllowBannerDismissal == nil {

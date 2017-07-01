@@ -36,6 +36,7 @@ const (
 	TRACK_CONFIG_SUPPORT      = "config_support"
 	TRACK_CONFIG_NATIVEAPP    = "config_nativeapp"
 	TRACK_CONFIG_ANALYTICS    = "config_analytics"
+	TRACK_CONFIG_ANNOUNCEMENT = "config_announcement"
 
 	TRACK_ACTIVITY = "activity"
 	TRACK_LICENSE  = "license"
@@ -191,37 +192,42 @@ func trackConfig() {
 		"enable_channel_viewed_messages":                *utils.Cfg.ServiceSettings.EnablChannelViewedMessages,
 		"time_between_user_typing_updates_milliseconds": *utils.Cfg.ServiceSettings.TimeBetweenUserTypingUpdatesMilliseconds,
 		"cluster_log_timeout_milliseconds":              *utils.Cfg.ServiceSettings.ClusterLogTimeoutMilliseconds,
+		"enable_post_search":                            *utils.Cfg.ServiceSettings.EnablePostSearch,
+		"enable_user_statuses":                          *utils.Cfg.ServiceSettings.EnableUserStatuses,
 	})
 
 	SendDiagnostic(TRACK_CONFIG_TEAM, map[string]interface{}{
-		"enable_user_creation":                utils.Cfg.TeamSettings.EnableUserCreation,
-		"enable_team_creation":                utils.Cfg.TeamSettings.EnableTeamCreation,
-		"restrict_team_invite":                *utils.Cfg.TeamSettings.RestrictTeamInvite,
-		"restrict_public_channel_creation":    *utils.Cfg.TeamSettings.RestrictPublicChannelCreation,
-		"restrict_private_channel_creation":   *utils.Cfg.TeamSettings.RestrictPrivateChannelCreation,
-		"restrict_public_channel_management":  *utils.Cfg.TeamSettings.RestrictPublicChannelManagement,
-		"restrict_private_channel_management": *utils.Cfg.TeamSettings.RestrictPrivateChannelManagement,
-		"restrict_public_channel_deletion":    *utils.Cfg.TeamSettings.RestrictPublicChannelDeletion,
-		"restrict_private_channel_deletion":   *utils.Cfg.TeamSettings.RestrictPrivateChannelDeletion,
-		"enable_open_server":                  *utils.Cfg.TeamSettings.EnableOpenServer,
-		"enable_custom_brand":                 *utils.Cfg.TeamSettings.EnableCustomBrand,
-		"restrict_direct_message":             *utils.Cfg.TeamSettings.RestrictDirectMessage,
-		"max_notifications_per_channel":       *utils.Cfg.TeamSettings.MaxNotificationsPerChannel,
-		"max_users_per_team":                  utils.Cfg.TeamSettings.MaxUsersPerTeam,
-		"max_channels_per_team":               *utils.Cfg.TeamSettings.MaxChannelsPerTeam,
-		"teammate_name_display":               *utils.Cfg.TeamSettings.TeammateNameDisplay,
-		"isdefault_site_name":                 isDefault(utils.Cfg.TeamSettings.SiteName, "Mattermost"),
-		"isdefault_custom_brand_text":         isDefault(*utils.Cfg.TeamSettings.CustomBrandText, model.TEAM_SETTINGS_DEFAULT_CUSTOM_BRAND_TEXT),
-		"isdefault_custom_description_text":   isDefault(*utils.Cfg.TeamSettings.CustomDescriptionText, model.TEAM_SETTINGS_DEFAULT_CUSTOM_DESCRIPTION_TEXT),
-		"isdefault_user_status_away_timeout":  isDefault(*utils.Cfg.TeamSettings.UserStatusAwayTimeout, model.TEAM_SETTINGS_DEFAULT_USER_STATUS_AWAY_TIMEOUT),
+		"enable_user_creation":                    utils.Cfg.TeamSettings.EnableUserCreation,
+		"enable_team_creation":                    utils.Cfg.TeamSettings.EnableTeamCreation,
+		"restrict_team_invite":                    *utils.Cfg.TeamSettings.RestrictTeamInvite,
+		"restrict_public_channel_creation":        *utils.Cfg.TeamSettings.RestrictPublicChannelCreation,
+		"restrict_private_channel_creation":       *utils.Cfg.TeamSettings.RestrictPrivateChannelCreation,
+		"restrict_public_channel_management":      *utils.Cfg.TeamSettings.RestrictPublicChannelManagement,
+		"restrict_private_channel_management":     *utils.Cfg.TeamSettings.RestrictPrivateChannelManagement,
+		"restrict_public_channel_deletion":        *utils.Cfg.TeamSettings.RestrictPublicChannelDeletion,
+		"restrict_private_channel_deletion":       *utils.Cfg.TeamSettings.RestrictPrivateChannelDeletion,
+		"enable_open_server":                      *utils.Cfg.TeamSettings.EnableOpenServer,
+		"enable_custom_brand":                     *utils.Cfg.TeamSettings.EnableCustomBrand,
+		"restrict_direct_message":                 *utils.Cfg.TeamSettings.RestrictDirectMessage,
+		"max_notifications_per_channel":           *utils.Cfg.TeamSettings.MaxNotificationsPerChannel,
+		"max_users_per_team":                      utils.Cfg.TeamSettings.MaxUsersPerTeam,
+		"max_channels_per_team":                   *utils.Cfg.TeamSettings.MaxChannelsPerTeam,
+		"teammate_name_display":                   *utils.Cfg.TeamSettings.TeammateNameDisplay,
+		"isdefault_site_name":                     isDefault(utils.Cfg.TeamSettings.SiteName, "Mattermost"),
+		"isdefault_custom_brand_text":             isDefault(*utils.Cfg.TeamSettings.CustomBrandText, model.TEAM_SETTINGS_DEFAULT_CUSTOM_BRAND_TEXT),
+		"isdefault_custom_description_text":       isDefault(*utils.Cfg.TeamSettings.CustomDescriptionText, model.TEAM_SETTINGS_DEFAULT_CUSTOM_DESCRIPTION_TEXT),
+		"isdefault_user_status_away_timeout":      isDefault(*utils.Cfg.TeamSettings.UserStatusAwayTimeout, model.TEAM_SETTINGS_DEFAULT_USER_STATUS_AWAY_TIMEOUT),
+		"restrict_private_channel_manage_members": *utils.Cfg.TeamSettings.RestrictPrivateChannelManageMembers,
 	})
 
 	SendDiagnostic(TRACK_CONFIG_SQL, map[string]interface{}{
-		"driver_name":          utils.Cfg.SqlSettings.DriverName,
-		"trace":                utils.Cfg.SqlSettings.Trace,
-		"max_idle_conns":       utils.Cfg.SqlSettings.MaxIdleConns,
-		"max_open_conns":       utils.Cfg.SqlSettings.MaxOpenConns,
-		"data_source_replicas": len(utils.Cfg.SqlSettings.DataSourceReplicas),
+		"driver_name":                 utils.Cfg.SqlSettings.DriverName,
+		"trace":                       utils.Cfg.SqlSettings.Trace,
+		"max_idle_conns":              utils.Cfg.SqlSettings.MaxIdleConns,
+		"max_open_conns":              utils.Cfg.SqlSettings.MaxOpenConns,
+		"data_source_replicas":        len(utils.Cfg.SqlSettings.DataSourceReplicas),
+		"data_source_search_replicas": len(utils.Cfg.SqlSettings.DataSourceSearchReplicas),
+		"query_timeout":               *utils.Cfg.SqlSettings.QueryTimeout,
 	})
 
 	SendDiagnostic(TRACK_CONFIG_LOG, map[string]interface{}{
@@ -243,28 +249,30 @@ func trackConfig() {
 	})
 
 	SendDiagnostic(TRACK_CONFIG_FILE, map[string]interface{}{
-		"enable_public_links": utils.Cfg.FileSettings.EnablePublicLink,
-		"driver_name":         utils.Cfg.FileSettings.DriverName,
-		"amazon_s3_ssl":       *utils.Cfg.FileSettings.AmazonS3SSL,
-		"amazon_s3_signv2":    *utils.Cfg.FileSettings.AmazonS3SignV2,
-		"max_file_size":       *utils.Cfg.FileSettings.MaxFileSize,
+		"enable_public_links":     utils.Cfg.FileSettings.EnablePublicLink,
+		"driver_name":             utils.Cfg.FileSettings.DriverName,
+		"amazon_s3_ssl":           *utils.Cfg.FileSettings.AmazonS3SSL,
+		"amazon_s3_signv2":        *utils.Cfg.FileSettings.AmazonS3SignV2,
+		"max_file_size":           *utils.Cfg.FileSettings.MaxFileSize,
+		"enable_file_attachments": *utils.Cfg.FileSettings.EnableFileAttachments,
 	})
 
 	SendDiagnostic(TRACK_CONFIG_EMAIL, map[string]interface{}{
-		"enable_sign_up_with_email":       utils.Cfg.EmailSettings.EnableSignUpWithEmail,
-		"enable_sign_in_with_email":       *utils.Cfg.EmailSettings.EnableSignInWithEmail,
-		"enable_sign_in_with_username":    *utils.Cfg.EmailSettings.EnableSignInWithUsername,
-		"require_email_verification":      utils.Cfg.EmailSettings.RequireEmailVerification,
-		"send_email_notifications":        utils.Cfg.EmailSettings.SendEmailNotifications,
-		"connection_security":             utils.Cfg.EmailSettings.ConnectionSecurity,
-		"send_push_notifications":         *utils.Cfg.EmailSettings.SendPushNotifications,
-		"push_notification_contents":      *utils.Cfg.EmailSettings.PushNotificationContents,
-		"enable_email_batching":           *utils.Cfg.EmailSettings.EnableEmailBatching,
-		"email_batching_buffer_size":      *utils.Cfg.EmailSettings.EmailBatchingBufferSize,
-		"email_batching_interval":         *utils.Cfg.EmailSettings.EmailBatchingInterval,
-		"isdefault_feedback_name":         isDefault(utils.Cfg.EmailSettings.FeedbackName, ""),
-		"isdefault_feedback_email":        isDefault(utils.Cfg.EmailSettings.FeedbackEmail, ""),
-		"isdefault_feedback_organization": isDefault(*utils.Cfg.EmailSettings.FeedbackOrganization, model.EMAIL_SETTINGS_DEFAULT_FEEDBACK_ORGANIZATION),
+		"enable_sign_up_with_email":            utils.Cfg.EmailSettings.EnableSignUpWithEmail,
+		"enable_sign_in_with_email":            *utils.Cfg.EmailSettings.EnableSignInWithEmail,
+		"enable_sign_in_with_username":         *utils.Cfg.EmailSettings.EnableSignInWithUsername,
+		"require_email_verification":           utils.Cfg.EmailSettings.RequireEmailVerification,
+		"send_email_notifications":             utils.Cfg.EmailSettings.SendEmailNotifications,
+		"connection_security":                  utils.Cfg.EmailSettings.ConnectionSecurity,
+		"send_push_notifications":              *utils.Cfg.EmailSettings.SendPushNotifications,
+		"push_notification_contents":           *utils.Cfg.EmailSettings.PushNotificationContents,
+		"enable_email_batching":                *utils.Cfg.EmailSettings.EnableEmailBatching,
+		"email_batching_buffer_size":           *utils.Cfg.EmailSettings.EmailBatchingBufferSize,
+		"email_batching_interval":              *utils.Cfg.EmailSettings.EmailBatchingInterval,
+		"isdefault_feedback_name":              isDefault(utils.Cfg.EmailSettings.FeedbackName, ""),
+		"isdefault_feedback_email":             isDefault(utils.Cfg.EmailSettings.FeedbackEmail, ""),
+		"isdefault_feedback_organization":      isDefault(*utils.Cfg.EmailSettings.FeedbackOrganization, model.EMAIL_SETTINGS_DEFAULT_FEEDBACK_ORGANIZATION),
+		"skip_server_certificate_verification": *utils.Cfg.EmailSettings.SkipServerCertificateVerification,
 	})
 
 	SendDiagnostic(TRACK_CONFIG_RATE, map[string]interface{}{
@@ -339,7 +347,10 @@ func trackConfig() {
 	})
 
 	SendDiagnostic(TRACK_CONFIG_CLUSTER, map[string]interface{}{
-		"enable": *utils.Cfg.ClusterSettings.Enable,
+		"enable":                  *utils.Cfg.ClusterSettings.Enable,
+		"use_ip_address":          *utils.Cfg.ClusterSettings.UseIpAddress,
+		"use_experimental_gossip": *utils.Cfg.ClusterSettings.UseExperimentalGossip,
+		"read_only_config":        *utils.Cfg.ClusterSettings.ReadOnlyConfig,
 	})
 
 	SendDiagnostic(TRACK_CONFIG_METRICS, map[string]interface{}{
@@ -361,6 +372,13 @@ func trackConfig() {
 
 	SendDiagnostic(TRACK_CONFIG_ANALYTICS, map[string]interface{}{
 		"isdefault_max_users_for_statistics": isDefault(*utils.Cfg.AnalyticsSettings.MaxUsersForStatistics, model.ANALYTICS_SETTINGS_DEFAULT_MAX_USERS_FOR_STATISTICS),
+	})
+
+	SendDiagnostic(TRACK_CONFIG_ANNOUNCEMENT, map[string]interface{}{
+		"enable_banner":               *utils.Cfg.AnnouncementSettings.EnableBanner,
+		"isdefault_banner_color":      isDefault(*utils.Cfg.AnnouncementSettings.BannerColor, model.ANNOUNCEMENT_SETTINGS_DEFAULT_BANNER_COLOR),
+		"isdefault_banner_text_color": isDefault(*utils.Cfg.AnnouncementSettings.BannerTextColor, model.ANNOUNCEMENT_SETTINGS_DEFAULT_BANNER_TEXT_COLOR),
+		"allow_banner_dismissal":      *utils.Cfg.AnnouncementSettings.AllowBannerDismissal,
 	})
 }
 
