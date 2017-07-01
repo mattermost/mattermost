@@ -1011,7 +1011,7 @@ export function displayUsernameForUser(user) {
         return name;
     }
 
-    return null;
+    return '';
 }
 
 // Converts a file size in bytes into a human-readable string of the form '123MB'.
