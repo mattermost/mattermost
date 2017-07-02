@@ -52,7 +52,7 @@ export default class SignupEmail extends React.Component {
         let teamDisplayName = '';
         let teamName = '';
         let teamId = '';
-        let loading = true;
+        let loading = false;
         let serverError = '';
         let noOpenServerError = false;
 
@@ -62,37 +62,40 @@ export default class SignupEmail extends React.Component {
             teamDisplayName = parsedData.display_name;
             teamName = parsedData.name;
             teamId = parsedData.id;
-            loading = false;
         } else if (inviteId && inviteId.length > 0) {
             loading = true;
             getInviteInfo(
                 inviteId,
                 (inviteData) => {
                     if (!inviteData) {
+                        this.setState({ loading: false });
                         return;
                     }
 
-                    serverError = '';
-                    teamDisplayName = inviteData.display_name;
-                    teamName = inviteData.name;
-                    teamId = inviteData.id;
+                    this.setState({
+                        loading: false,
+                        serverError: '',
+                        teamDisplayName: inviteData.display_name,
+                        teamName: inviteData.name,
+                        teamId: inviteData.id
+                    });
                 },
                 () => {
-                    noOpenServerError = true;
-                    serverError = (
-                        <FormattedMessage
-                            id='signup_user_completed.invalid_invite'
-                            defaultMessage='The invite link was invalid.  Please speak with your Administrator to receive an invitation.'
-                        />
-                    );
+                    this.setState({
+                        loading: false,
+                        noOpenServerError: true,
+                        serverError: (
+                          <FormattedMessage
+                              id='signup_user_completed.invalid_invite'
+                              defaultMessage='The invite link was invalid.  Please speak with your Administrator to receive an invitation.'
+                          />
+                        )
+                    });
                 }
             );
 
-            loading = false;
             data = null;
             hash = null;
-        } else {
-            loading = false;
         }
 
         return {
