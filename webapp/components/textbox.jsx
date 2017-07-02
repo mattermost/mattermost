@@ -157,7 +157,9 @@ export default class Textbox extends React.Component {
     showPreview(e) {
         e.preventDefault();
         e.target.blur();
-        this.setState({preview: !this.state.preview});
+        this.setState(prevState => {
+            return {preview: prevState.preview};
+        });
     }
 
     hidePreview() {
