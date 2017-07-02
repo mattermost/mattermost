@@ -1,0 +1,7 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/integrations/EditOutgoingWebhook should match snapshot 1`] = `
+<LoadingScreen
+  position="relative"
+/>
+`;

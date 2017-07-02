@@ -16,61 +16,81 @@ import {Link} from 'react-router/es6';
 import SpinnerButton from 'components/spinner_button.jsx';
 
 export default class AbstractOutgoingWebhook extends React.Component {
-    static get propTypes() {
-        return {
-            team: PropTypes.object
-        };
+    static propTypes = {
+
+        /**
+         * The current team
+         */
+        team: PropTypes.object.isRequired,
+
+        /**
+         * The header text to render, has id and defaultMessage
+         */
+        header: PropTypes.object.isRequired,
+
+        /**
+         * The footer text to render, has id and defaultMessage
+         */
+        footer: PropTypes.object.isRequired,
+
+        /**
+         * Any extra component/node to render
+         */
+        renderExtra: PropTypes.node.isRequired,
+
+        /**
+         * The server error text after a failed action
+         */
+        serverError: PropTypes.string.isRequired,
+
+        /**
+         * The hook used to set the initial state
+         */
+        initialHook: PropTypes.object,
+
+        /**
+         * The async function to run when the action button is pressed
+         */
+        action: PropTypes.func.isRequired
     }
 
     constructor(props) {
         super(props);
 
-        this.handleSubmit = this.handleSubmit.bind(this);
-
-        this.updateDisplayName = this.updateDisplayName.bind(this);
-        this.updateDescription = this.updateDescription.bind(this);
-        this.updateContentType = this.updateContentType.bind(this);
-        this.updateChannelId = this.updateChannelId.bind(this);
-        this.updateTriggerWords = this.updateTriggerWords.bind(this);
-        this.updateTriggerWhen = this.updateTriggerWhen.bind(this);
-        this.updateCallbackUrls = this.updateCallbackUrls.bind(this);
-
-        this.state = {
-            displayName: '',
-            description: '',
-            contentType: 'application/x-www-form-urlencoded',
-            channelId: '',
-            triggerWords: '',
-            triggerWhen: 0,
-            callbackUrls: '',
-            saving: false,
-            serverError: '',
-            clientError: null
-        };
-
-        if (typeof this.performAction === 'undefined') {
-            throw new TypeError('Subclasses must override performAction');
-        }
-
-        if (typeof this.header === 'undefined') {
-            throw new TypeError('Subclasses must override header');
-        }
-
-        if (typeof this.footer === 'undefined') {
-            throw new TypeError('Subclasses must override footer');
-        }
-
-        if (typeof this.renderExtra === 'undefined') {
-            throw new TypeError('Subclasses must override renderExtra');
-        }
-
-        this.performAction = this.performAction.bind(this);
-        this.header = this.header.bind(this);
-        this.footer = this.footer.bind(this);
-        this.renderExtra = this.renderExtra.bind(this);
+        this.state = this.getStateFromHook(this.props.initialHook || {});
     }
 
-    handleSubmit(e) {
+    getStateFromHook = (hook) => {
+        let triggerWords = '';
+        if (hook.trigger_words) {
+            let i = 0;
+            for (i = 0; i < hook.trigger_words.length; i++) {
+                triggerWords += hook.trigger_words[i] + '\n';
+            }
+        }
+
+        let callbackUrls = '';
+        if (hook.callback_urls) {
+            let i = 0;
+            for (i = 0; i < hook.callback_urls.length; i++) {
+                callbackUrls += hook.callback_urls[i] + '\n';
+            }
+        }
+
+        return {
+            displayName: hook.display_name || '',
+            description: hook.description || '',
+            contentType: hook.content_type || 'application/x-www-form-urlencoded',
+            channelId: hook.channel_id || '',
+            triggerWords,
+            triggerWhen: hook.trigger_when || 0,
+            callbackUrls,
+            saving: false,
+            clientError: null
+        };
+    }
+
+    handleSubmit = (e) => {
         e.preventDefault();
 
         if (this.state.saving) {
@@ -79,7 +99,6 @@ export default class AbstractOutgoingWebhook extends React.Component {
 
         this.setState({
             saving: true,
-            serverError: '',
             clientError: ''
         });
 
@@ -142,46 +161,46 @@ export default class AbstractOutgoingWebhook extends React.Component {
             description: this.state.description
         };
 
-        this.performAction(hook);
+        this.props.action(hook).then(() => this.setState({saving: false}));
     }
 
-    updateDisplayName(e) {
+    updateDisplayName = (e) => {
         this.setState({
             displayName: e.target.value
         });
     }
 
-    updateDescription(e) {
+    updateDescription = (e) => {
         this.setState({
             description: e.target.value
         });
     }
 
-    updateContentType(e) {
+    updateContentType = (e) => {
         this.setState({
             contentType: e.target.value
         });
     }
 
-    updateChannelId(e) {
+    updateChannelId = (e) => {
         this.setState({
             channelId: e.target.value
         });
     }
 
-    updateTriggerWords(e) {
+    updateTriggerWords = (e) => {
         this.setState({
             triggerWords: e.target.value
         });
     }
 
-    updateTriggerWhen(e) {
+    updateTriggerWhen = (e) => {
         this.setState({
             triggerWhen: e.target.value
         });
     }
 
-    updateCallbackUrls(e) {
+    updateCallbackUrls = (e) => {
         this.setState({
             callbackUrls: e.target.value
         });
@@ -191,9 +210,9 @@ export default class AbstractOutgoingWebhook extends React.Component {
         const contentTypeOption1 = 'application/x-www-form-urlencoded';
         const contentTypeOption2 = 'application/json';
 
-        var headerToRender = this.header();
-        var footerToRender = this.footer();
-        var renderExtra = this.renderExtra();
+        var headerToRender = this.props.header;
+        var footerToRender = this.props.footer;
+        var renderExtra = this.props.renderExtra;
 
         return (
             <div className='backstage-content'>
@@ -432,7 +451,7 @@ export default class AbstractOutgoingWebhook extends React.Component {
                         <div className='backstage-form__footer'>
                             <FormError
                                 type='backstage'
-                                errors={[this.state.serverError, this.state.clientError]}
+                                errors={[this.props.serverError, this.state.clientError]}
                             />
                             <Link
                                 className='btn btn-sm'
