@@ -49,7 +49,7 @@ func CreatePostAsUser(post *model.Post) (*model.Post, *model.AppError) {
 				l4g.Error(utils.T("api.post.create_post.last_viewed.error"), post.ChannelId, post.UserId, result.Err)
 			}
 
-			if *utils.Cfg.ServiceSettings.EnablChannelViewedMessages {
+			if *utils.Cfg.ServiceSettings.EnableChannelViewedMessages {
 				message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CHANNEL_VIEWED, "", "", post.UserId, nil)
 				message.Add("channel_id", post.ChannelId)
 				go Publish(message)
