@@ -2720,6 +2720,10 @@ executable@^1.0.0:
   dependencies:
     meow "^3.1.0"
 
+exif2css@^1.2.0:
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/exif2css/-/exif2css-1.2.0.tgz#8438e116921508e3dcc30cbe2407b1d5535e1b45"
+
 exit-hook@^1.0.0:
   version "1.1.1"
   resolved "https://registry.yarnpkg.com/exit-hook/-/exit-hook-1.1.1.tgz#f05ca233b48c05d54fff07765df8507e95c02ff8"

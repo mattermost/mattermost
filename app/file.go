@@ -480,15 +480,24 @@ func DoUploadFile(teamId string, channelId string, userId string, rawFilename st
 }
 
 func HandleImages(previewPathList []string, thumbnailPathList []string, fileData [][]byte) {
-	for i, data := range fileData {
-		go func(i int, data []byte) {
-			img, width, height := prepareImage(fileData[i])
-			if img != nil {
-				go generateThumbnailImage(*img, thumbnailPathList[i], width, height)
-				go generatePreviewImage(*img, previewPathList[i], width)
-			}
-		}(i, data)
+	wg := new(sync.WaitGroup)
+
+	for i := range fileData {
+		img, width, height := prepareImage(fileData[i])
+		if img != nil {
+			wg.Add(2)
+			go func(img *image.Image, path string, width int, height int) {
+				defer wg.Done()
+				generateThumbnailImage(*img, path, width, height)
+			}(img,thumbnailPathList[i], width, height)
+
+			go func(img *image.Image, path string, width int) {
+				defer wg.Done()
+				generatePreviewImage(*img, path, width)
+			}(img, previewPathList[i], width)
+		}
 	}
+	wg.Wait()
 }
 
 func prepareImage(fileData []byte) (*image.Image, int, int) {
