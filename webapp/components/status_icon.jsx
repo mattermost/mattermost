@@ -7,8 +7,6 @@ import React from 'react';
 
 export default function StatusIcon(props) {
     const status = props.status;
-    const type = props.type;
-
     if (!status) {
         return null;
     }
