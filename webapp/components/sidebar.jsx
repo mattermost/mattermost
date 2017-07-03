@@ -658,6 +658,7 @@ export default class Sidebar extends React.Component {
 
     render() {
         const switchChannelIcon = Constants.SWITCH_CHANNEL_ICON_SVG;
+
         // Check if we have all info needed to render
         if (this.state.currentTeam == null || this.state.currentUser == null) {
             return (<div/>);
