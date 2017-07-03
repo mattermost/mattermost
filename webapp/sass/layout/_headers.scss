@@ -274,7 +274,7 @@
         @include legacy-pie-clearfix;
         @include display-flex();
         @include flex-direction(row-reverse);
-        padding: 9px 10px;
+        padding: 16px 47px 12px 12px;
         position: relative;
 
         &:before {
@@ -318,11 +318,12 @@
         .sidebar-header-dropdown,
         .admin-navbar-dropdown {
             font-size: .85em;
+            height: 100%;
             left: 0;
-            margin-right: -15px;
+            margin-right: -22px;
             position: absolute;
             right: 22px;
-            top: 10px;
+            top: 0;
 
             li {
                 width: 100%;
@@ -336,7 +337,7 @@
                 color: $white;
                 display: block;
                 font-size: 1em;
-                height: 40px;
+                height: 100%;
                 left: 0;
                 line-height: 1.8;
                 padding: 10px;
@@ -344,7 +345,7 @@
             }
 
             .dropdown-menu {
-                margin-right: 3px;
+                margin-right: 10px;
                 margin-top: 4px;
                 width: 199px;
 
@@ -357,8 +358,17 @@
 
             .sidebar-header-dropdown__icon,
             .admin-navbar-dropdown__icon {
+                background: alpha-color($black, .1);
+                border-radius: 36px;
                 fill: $white;
                 float: right;
+                height: 36px;
+                line-height: 36px;
+                position: relative;
+                right: 3px;
+                text-align: center;
+                top: 7px;
+                width: 36px;
             }
         }
 

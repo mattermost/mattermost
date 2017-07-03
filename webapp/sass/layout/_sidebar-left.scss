@@ -16,6 +16,31 @@
         padding-top: 44px;
     }
 
+    .sidebar-item {
+        .icon {
+            display: inline-block;
+            margin-right: 8px;
+            position: relative;
+            text-align: center;
+            vertical-align: top;
+            width: 15px;
+        }
+
+        .icon__lock,
+        .icon__globe {
+            top: 1px;
+        }
+    }
+
+    .sidebar-item__name {
+        display: inline-block;
+        margin-right: 7px;
+        max-width: 130px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        vertical-align: top;
+    }
+
     .sidebar__divider {
         color: $white;
         font-size: .9em;
@@ -44,7 +69,6 @@
     }
 
     .sidebar__switcher {
-        border-top: 1px solid;
         bottom: 0;
         display: block;
         padding-bottom: 0;
@@ -54,16 +78,31 @@
         button {
             @include single-transition(all, .15s, ease-in);
             display: block;
-            height: 42px;
-            text-align: center;
+            font-weight: 600;
+            height: 50px;
+            line-height: 50px;
+            padding: 0;
             text-decoration: none;
             width: 100%;
 
             > span {
-                @include single-transition(all, .15s, ease-in);
-                @include opacity(.6);
+                display: inline-block;
                 position: relative;
+                vertical-align: middle;
                 z-index: 5;
+            }
+
+            .icon {
+                margin-right: 15px;
+
+                svg {
+                    position: relative;
+                    top: 7px;
+                }
+            }
+
+            .switch__shortcut {
+                display: none;
             }
 
             &:hover {
@@ -93,10 +132,13 @@
     }
 
     .badge {
-        background-color: $primary-color;
-        position: absolute;
-        right: 10px;
-        top: 5px;
+        @include border-radius(100px);
+        font-size: 11px;
+        height: 16px;
+        line-height: 15px;
+        min-width: 25px;
+        padding: 0 5px;
+        position: relative;
     }
 
     .nav-pills__container {
@@ -135,12 +177,10 @@
 
         li {
             > h4 {
-                color: #aaaaaa;
                 font-size: 1em;
-                font-weight: 400;
-                letter-spacing: -.3px;
-                margin: 1.1em 0 .5em;
-                padding: 0 10px 0 15px;
+                font-weight: 600;
+                margin: 1.5em 0 .7em;
+                padding: 0 12px 0 17px;
                 text-transform: uppercase;
             }
 
@@ -155,17 +195,11 @@
                 line-height: 1.5;
                 outline: none;
                 overflow: hidden;
-                padding: 3px 10px 3px 25px;
+                padding: 5px 17px;
                 text-overflow: ellipsis;
                 white-space: nowrap;
 
-                &.has-badge {
-                    padding-right: 30px;
-                }
-
                 &.has-close {
-                    padding-right: 30px;
-
                     &:hover {
                         .btn-close {
                             @include opacity(.8);
@@ -204,7 +238,7 @@
                         left: 0;
                         position: absolute;
                         top: 0;
-                        width: 5px;
+                        width: 3px;
                     }
                 }
 
@@ -229,12 +263,11 @@
     }
 
     .add-channel-btn {
-        color: #aaaaaa;
         float: right;
-        font-size: 22px;
+        font-size: 2em;
         font-weight: 700;
         line-height: 18px;
-        margin: -2px 0 0 0;
+        margin: -3px 0 0;
         outline: none;
         padding: 0 5px;
         text-decoration: none;
@@ -245,15 +278,18 @@
     }
 
     .status-wrapper {
+        height: 36px;
+        width: 36px;
+
         .status {
-            bottom: -9px;
+            bottom: -5px;
             height: 18px;
             right: -5px;
             width: 18px;
 
             svg {
-                top: 3px;
                 max-height: 12px;
+                top: 3px;
             }
 
             .icon__container {

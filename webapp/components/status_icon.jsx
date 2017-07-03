@@ -16,13 +16,14 @@ export default function StatusIcon(props) {
     }
 
     let statusIcon = '';
+    let statusHtml = '';
     if (type === 'avatar') {
         if (status === 'online') {
-            statusIcon = Constants.ONLINE_AVATAR_SVG;
+            statusIcon = <i className='fa fa-circle'/>;
         } else if (status === 'away') {
-            statusIcon = Constants.AWAY_AVATAR_SVG;
+            statusIcon = <i className='fa fa-clock-o'/>;
         } else {
-            statusIcon = Constants.OFFLINE_AVATAR_SVG;
+            statusIcon = <i className='fa fa-circle-o'/>;
         }
     } else if (status === 'online') {
         statusIcon = Constants.ONLINE_ICON_SVG;
@@ -32,11 +33,19 @@ export default function StatusIcon(props) {
         statusIcon = Constants.OFFLINE_ICON_SVG;
     }
 
+    if (type === 'avatar') {
+        statusHtml = <span className={'status status--' + props.status}>{statusIcon}</span>;
+    } else {
+        statusHtml = (
+            <span
+                className={'status ' + props.className}
+                dangerouslySetInnerHTML={{__html: statusIcon}}
+            />
+        );
+    }
+
     return (
-        <span
-            className={'status ' + props.className}
-            dangerouslySetInnerHTML={{__html: statusIcon}}
-        />
+        <span>{statusHtml}</span>
     );
 }
 

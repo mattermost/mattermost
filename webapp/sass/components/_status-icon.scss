@@ -42,10 +42,13 @@
 
 .status {
     display: inline-block;
+    font-size: 15px;
+    height: 10px;
     margin-right: 6px;
+    margin-top: -2px;
     position: relative;
-    top: 1px;
-    width: 12px;
+    text-align: center;
+    width: 15px;
 
     &.status--group {
         border-radius: 2px;
@@ -69,19 +72,12 @@
         }
     }
 
-    svg {
-        max-height: 14px;
+    &.status--offline {
+        @include opacity(.4);
     }
 
-    i,
-    path,
-    ellipse {
-        @include opacity(.5);
-
-        &.online--icon,
-        &.away--icon {
-            @include opacity(1);
-        }
+    svg {
+        max-height: 14px;
     }
 
     .fa-lock {

@@ -491,18 +491,21 @@ export function applyTheme(theme) {
 
     if (theme.sidebarText) {
         changeCss('.app__body .ps-container > .ps-scrollbar-y-rail > .ps-scrollbar-y', 'background:' + theme.sidebarText);
-        changeCss('.app__body .ps-container:hover .ps-scrollbar-y-rail:hover', 'background:' + changeOpacity(theme.sidebarText, 0.15));
+        changeCss('.app__body .ps-container:hover .ps-scrollbar-y-rail:hover, .app__body .sidebar__switcher button:hover', 'background:' + changeOpacity(theme.sidebarText, 0.15));
         changeCss('.sidebar--left .nav-pills__container li > a, .app__body .sidebar--right, .app__body .modal .settings-modal .nav-pills>li a', 'color:' + changeOpacity(theme.sidebarText, 0.6));
         changeCss('@media(max-width: 768px){.app__body .modal .settings-modal .settings-table .nav>li>a, .app__body .sidebar--menu', 'color:' + changeOpacity(theme.sidebarText, 0.8));
-        changeCss('.sidebar--left .nav-pills__container li > h4, .sidebar--left .add-channel-btn', 'color:' + changeOpacity(theme.sidebarText, 0.6));
-        changeCss('.app__body .sidebar--left .sidebar__switcher button, .sidebar--left .add-channel-btn:hover, .sidebar--left .add-channel-btn:focus', 'color:' + theme.sidebarText);
+        changeCss('.app__body .sidebar--left .add-channel-btn', 'color:' + changeOpacity(theme.sidebarText, 0.8));
         changeCss('.sidebar--left .add-channel-btn:hover, .sidebar--left .add-channel-btn:focus', 'color:' + theme.sidebarText);
-        changeCss('.sidebar--left .status .offline--icon, .app__body .sidebar--menu svg', 'fill:' + theme.sidebarText);
+        changeCss('.sidebar--left .add-channel-btn:hover, .sidebar--left .add-channel-btn:focus, .app__body .sidebar--left .nav-pills__container li > h4', 'color:' + theme.sidebarText);
+        changeCss('.sidebar--left .status .offline--icon, .app__body .sidebar--menu svg, .app__body .sidebar-item .icon', 'fill:' + theme.sidebarText);
         changeCss('.sidebar--left .status.status--group', 'background:' + changeOpacity(theme.sidebarText, 0.3));
         changeCss('@media(max-width: 768px){.app__body .modal .settings-modal .settings-table .nav>li>a, .app__body .sidebar--menu .divider', 'border-color:' + changeOpacity(theme.sidebarText, 0.2));
         changeCss('.app__body .sidebar--left .sidebar__switcher', 'border-color:' + changeOpacity(theme.sidebarText, 0.2));
         changeCss('@media(max-width: 768px){.sidebar--left .add-channel-btn:hover, .sidebar--left .add-channel-btn:focus', 'color:' + changeOpacity(theme.sidebarText, 0.6));
         changeCss('@media(max-width: 768px){.app__body .search__icon svg', 'stroke:' + theme.sidebarText);
+        changeCss('.app__body .sidebar--left .sidebar__switcher button', 'color:' + theme.sidebarText);
+        changeCss('.app__body .sidebar--left .sidebar__switcher button svg', 'fill:' + theme.sidebarText);
+        changeCss('.app__body .sidebar__switcher button', 'background:' + changeOpacity(theme.sidebarText, 0.08));
     }
 
     if (theme.sidebarUnreadText) {
@@ -510,7 +513,7 @@ export function applyTheme(theme) {
     }
 
     if (theme.sidebarTextHoverBg) {
-        changeCss('.sidebar--left .nav-pills__container li > a:hover, .app__body .modal .settings-modal .nav-pills>li:hover a, .app__body .sidebar__switcher button:hover', 'background:' + theme.sidebarTextHoverBg);
+        changeCss('.sidebar--left .nav-pills__container li > a:hover, .app__body .modal .settings-modal .nav-pills>li:hover a', 'background:' + theme.sidebarTextHoverBg);
     }
 
     if (theme.sidebarTextActiveBorder) {
@@ -552,13 +555,13 @@ export function applyTheme(theme) {
     }
 
     if (theme.onlineIndicator) {
-        changeCss('.app__body .status .online--icon', 'fill:' + theme.onlineIndicator);
+        changeCss('.app__body .status.status--online', 'color:' + theme.onlineIndicator);
         changeCss('.app__body .channel-header__info .status .online--icon', 'fill:' + theme.onlineIndicator);
         changeCss('.app__body .navbar .status .online--icon', 'fill:' + theme.onlineIndicator);
     }
 
     if (theme.awayIndicator) {
-        changeCss('.app__body .status .away--icon', 'fill:' + theme.awayIndicator);
+        changeCss('.app__body .status.status--away', 'color:' + theme.awayIndicator);
         changeCss('.app__body .channel-header__info .status .away--icon', 'fill:' + theme.awayIndicator);
         changeCss('.app__body .navbar .status .away--icon', 'fill:' + theme.awayIndicator);
     }
@@ -604,7 +607,7 @@ export function applyTheme(theme) {
         changeCss('.app__body .post-list__arrows, .app__body .post .flag-icon__container', 'fill:' + changeOpacity(theme.centerChannelColor, 0.3));
         changeCss('@media(min-width: 768px){.app__body .search__icon svg', 'stroke:' + changeOpacity(theme.centerChannelColor, 0.4));
         changeCss('.app__body .channel-header__icon svg', 'fill:' + changeOpacity(theme.centerChannelColor, 0.4));
-        changeCss('.app__body .modal .status .offline--icon, .app__body .channel-header__links .icon, .app__body .sidebar--right .sidebar--right__subheader .usage__icon, .app__body .more-modal__header svg', 'fill:' + theme.centerChannelColor);
+        changeCss('.app__body .modal .status .offline--icon, .app__body .channel-header__links .icon, .app__body .sidebar--right .sidebar--right__subheader .usage__icon, .app__body .more-modal__header svg, .app__body .icon--body', 'fill:' + theme.centerChannelColor);
         changeCss('@media(min-width: 768px){.app__body .post:hover .post__header .col__reply, .app__body .post.post--hovered .post__header .col__reply', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2));
         changeCss('.app__body .nav-tabs > li > a:hover, .app__body .nav-tabs, .app__body .nav-tabs > li.active > a, .app__body .nav-tabs, .app__body .nav-tabs > li.active > a:focus, .app__body .nav-tabs, .app__body .nav-tabs > li.active > a:hover, .app__body .post .dropdown-menu a, .sidebar--left, .app__body .suggestion-list__content .command', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2));
         changeCss('.app__body .post.post--system .post__body, .app__body .modal .channel-switch-modal .modal-header .close', 'color:' + changeOpacity(theme.centerChannelColor, 0.6));
