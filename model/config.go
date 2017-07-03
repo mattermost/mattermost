@@ -165,7 +165,7 @@ type ServiceSettings struct {
 	TimeBetweenUserTypingUpdatesMilliseconds *int64
 	EnablePostSearch                         *bool
 	EnableUserTypingMessages                 *bool
-	EnablChannelViewedMessages               *bool
+	EnableChannelViewedMessages              *bool
 	EnableUserStatuses                       *bool
 	ClusterLogTimeoutMilliseconds            *int
 }
@@ -1314,9 +1314,9 @@ func (o *Config) SetDefaults() {
 		*o.ServiceSettings.EnableUserTypingMessages = true
 	}
 
-	if o.ServiceSettings.EnablChannelViewedMessages == nil {
-		o.ServiceSettings.EnablChannelViewedMessages = new(bool)
-		*o.ServiceSettings.EnablChannelViewedMessages = true
+	if o.ServiceSettings.EnableChannelViewedMessages == nil {
+		o.ServiceSettings.EnableChannelViewedMessages = new(bool)
+		*o.ServiceSettings.EnableChannelViewedMessages = true
 	}
 
 	if o.ServiceSettings.EnableUserStatuses == nil {
