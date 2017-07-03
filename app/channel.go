@@ -1091,7 +1091,7 @@ func UpdateChannelLastViewedAt(channelIds []string, userId string) *model.AppErr
 		return result.Err
 	}
 
-	if *utils.Cfg.ServiceSettings.EnablChannelViewedMessages {
+	if *utils.Cfg.ServiceSettings.EnableChannelViewedMessages {
 		for _, channelId := range channelIds {
 			message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CHANNEL_VIEWED, "", "", userId, nil)
 			message.Add("channel_id", channelId)
@@ -1158,7 +1158,7 @@ func ViewChannel(view *model.ChannelView, userId string, clearPushNotifications 
 		return result.Err
 	}
 
-	if *utils.Cfg.ServiceSettings.EnablChannelViewedMessages {
+	if *utils.Cfg.ServiceSettings.EnableChannelViewedMessages {
 		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CHANNEL_VIEWED, "", "", userId, nil)
 		message.Add("channel_id", view.ChannelId)
 		go Publish(message)
