@@ -38,7 +38,7 @@ export default class ManageTeamsDropdown extends React.Component {
     }
 
     toggleDropdown() {
-        this.setState(prevState => {
+        this.setState((prevState) => {
             return {show: !prevState.show};
         });
     }

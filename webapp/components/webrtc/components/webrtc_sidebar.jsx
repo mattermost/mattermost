@@ -76,7 +76,7 @@ export default class SidebarRight extends React.Component {
         if (e) {
             e.preventDefault();
         }
-        this.setState(prevState => {
+        this.setState((prevState) => {
             return {expanded: !prevState.expanded};
         });
     }

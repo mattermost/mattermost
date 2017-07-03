@@ -62,7 +62,7 @@ export default class PostBodyAdditionalContent extends React.PureComponent {
     }
 
     toggleEmbedVisibility() {
-        this.setState(prevState => {
+        this.setState((prevState) => {
             return {embedVisible: !prevState.embedVisible};
         });
     }
