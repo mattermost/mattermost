@@ -1,8 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import Constants from 'utils/constants.jsx';
-
 import PropTypes from 'prop-types';
 
 import React from 'react';
@@ -16,36 +14,16 @@ export default function StatusIcon(props) {
     }
 
     let statusIcon = '';
-    let statusHtml = '';
-    if (type === 'avatar') {
-        if (status === 'online') {
-            statusIcon = <i className='fa fa-circle'/>;
-        } else if (status === 'away') {
-            statusIcon = <i className='fa fa-clock-o'/>;
-        } else {
-            statusIcon = <i className='fa fa-circle-o'/>;
-        }
-    } else if (status === 'online') {
-        statusIcon = Constants.ONLINE_ICON_SVG;
+    if (status === 'online') {
+        statusIcon = <i className='fa fa-circle'/>;
     } else if (status === 'away') {
-        statusIcon = Constants.AWAY_ICON_SVG;
+        statusIcon = <i className='fa fa-clock-o'/>;
     } else {
-        statusIcon = Constants.OFFLINE_ICON_SVG;
-    }
-
-    if (type === 'avatar') {
-        statusHtml = <span className={'status status--' + props.status}>{statusIcon}</span>;
-    } else {
-        statusHtml = (
-            <span
-                className={'status ' + props.className}
-                dangerouslySetInnerHTML={{__html: statusIcon}}
-            />
-        );
+        statusIcon = <i className='fa fa-circle-o'/>;
     }
 
     return (
-        <span>{statusHtml}</span>
+        <span className={'status status--' + props.status}>{statusIcon}</span>
     );
 }
 

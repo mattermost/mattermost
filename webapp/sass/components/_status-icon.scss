@@ -23,11 +23,13 @@
         &.status-edit {
             text-align: center;
 
-            i {
-                @include opacity(1);
-                font-size: 10px;
-                position: relative;
-                top: 4px;
+            .sidebar--left & {
+                i {
+                    @include opacity(1);
+                    font-size: 10px;
+                    position: relative;
+                    top: 4px;
+                }
             }
         }
 
@@ -73,7 +75,9 @@
     }
 
     &.status--offline {
-        @include opacity(.4);
+        .fa {
+            @include opacity(.4);
+        }
     }
 
     svg {

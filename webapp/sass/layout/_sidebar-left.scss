@@ -282,14 +282,14 @@
         width: 36px;
 
         .status {
-            bottom: -5px;
+            bottom: -4px;
             height: 18px;
             right: -5px;
             width: 18px;
 
-            svg {
-                max-height: 12px;
-                top: 3px;
+            .fa {
+                position: relative;
+                top: 2px;
             }
 
             .icon__container {
