@@ -165,7 +165,7 @@ type ServiceSettings struct {
 	TimeBetweenUserTypingUpdatesMilliseconds *int64
 	EnablePostSearch                         *bool
 	EnableUserTypingMessages                 *bool
-	EnableChannelViewedMessages               *bool
+	EnableChannelViewedMessages              *bool
 	EnableUserStatuses                       *bool
 	ClusterLogTimeoutMilliseconds            *int
 }
