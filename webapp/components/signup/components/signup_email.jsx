@@ -53,8 +53,8 @@ export default class SignupEmail extends React.Component {
         let teamName = '';
         let teamId = '';
         let loading = false;
-        let serverError = '';
-        let noOpenServerError = false;
+        const serverError = '';
+        const noOpenServerError = false;
 
         if (hash && hash.length > 0) {
             const parsedData = JSON.parse(data);
@@ -68,7 +68,7 @@ export default class SignupEmail extends React.Component {
                 inviteId,
                 (inviteData) => {
                     if (!inviteData) {
-                        this.setState({ loading: false });
+                        this.setState({loading: false});
                         return;
                     }
 
@@ -85,10 +85,10 @@ export default class SignupEmail extends React.Component {
                         loading: false,
                         noOpenServerError: true,
                         serverError: (
-                          <FormattedMessage
-                              id='signup_user_completed.invalid_invite'
-                              defaultMessage='The invite link was invalid.  Please speak with your Administrator to receive an invitation.'
-                          />
+                            <FormattedMessage
+                                id='signup_user_completed.invalid_invite'
+                                defaultMessage='The invite link was invalid.  Please speak with your Administrator to receive an invitation.'
+                            />
                         )
                     });
                 }
