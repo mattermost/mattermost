@@ -77,11 +77,11 @@
   },
   {
     "id": "api.admin.recycle_db_end.warn",
-    "translation": "Ukończono wznawianie połączenia do bazy danych"
+    "translation": "Ukończono wznawianie połączenia do bazy danych."
   },
   {
     "id": "api.admin.recycle_db_start.warn",
-    "translation": "Próba wznowienia połączenia do bazy danych"
+    "translation": "Próba wznowienia połączenia do bazy danych."
   },
   {
     "id": "api.admin.remove_certificate.delete.app_error",
@@ -89,7 +89,7 @@
   },
   {
     "id": "api.admin.saml.metadata.app_error",
-    "translation": "Podczas budowania metadanych dostawcy usługi (Service Provider Metadata) wystąpił błąd."
+    "translation": "Wystąpił błąd podczas budowania metadanych dostawcy usługi (Service Provider Metadata)."
   },
   {
     "id": "api.admin.test_email.body",
@@ -429,7 +429,7 @@
   },
   {
     "id": "api.command.execute_command.not_found.app_error",
-    "translation": "Polecenie z wyzwalaczem '{{.Trigger}}' nie odnalezione"
+    "translation": "Command with a trigger of '{{.Trigger}}' not found. To send a message beginning with \"/\", try adding an empty space at the beginning of the message."
   },
   {
     "id": "api.command.execute_command.save.app_error",
@@ -458,6 +458,10 @@
   {
     "id": "api.command.invite_people.hint",
     "translation": "[nazwa@domena.com ...]"
+  },
+  {
+    "id": "api.command.invite_people.invite_off",
+    "translation": "User creation has been disabled on this server, no invite(s) sent"
   },
   {
     "id": "api.command.invite_people.name",
@@ -494,6 +498,38 @@
   {
     "id": "api.command_away.success",
     "translation": "Jesteś teraz nieobecny"
+  },
+  {
+    "id": "api.command_channel_header.channel.app_error",
+    "translation": "Error to retrieve the current channel."
+  },
+  {
+    "id": "api.command_channel_header.desc",
+    "translation": "Edit the channel header"
+  },
+  {
+    "id": "api.command_channel_header.hint",
+    "translation": "[tekst]"
+  },
+  {
+    "id": "api.command_channel_header.message.app_error",
+    "translation": "Text must be provided with the /header command."
+  },
+  {
+    "id": "api.command_channel_header.name",
+    "translation": "nagłówek"
+  },
+  {
+    "id": "api.command_channel_header.permission.app_error",
+    "translation": "You do not have the appropriate permissions to edit the channel header."
+  },
+  {
+    "id": "api.command_channel_header.update_channel.app_error",
+    "translation": "Error to update the current channel."
+  },
+  {
+    "id": "api.command_channel_header.update_channel.success",
+    "translation": "Nagłówek kanału zaktualizowany poprawnie"
   },
   {
     "id": "api.command_collapse.desc",
@@ -550,6 +586,14 @@
   {
     "id": "api.command_expand_collapse.fail.app_error",
     "translation": "Wystąpił błąd podczas rozwijania podglądów"
+  },
+  {
+    "id": "api.command_help.desc",
+    "translation": "Open the Mattermost help page"
+  },
+  {
+    "id": "api.command_help.name",
+    "translation": "help"
   },
   {
     "id": "api.command_join.desc",
@@ -661,19 +705,19 @@
   },
   {
     "id": "api.command_open.name",
-    "translation": "open"
+    "translation": "otwórz"
   },
   {
     "id": "api.command_settings.desc",
-    "translation": "Open the Account Settings dialog"
+    "translation": "Otwórz dialog ustawień konta"
   },
   {
     "id": "api.command_settings.name",
-    "translation": "settings"
+    "translation": "ustawienia"
   },
   {
     "id": "api.command_settings.unsupported.app_error",
-    "translation": "The settings command is not supported on your device"
+    "translation": "Komenda ustawień nie jest wspierana na Twoim urządzeniu"
   },
   {
     "id": "api.command_shortcuts.browser.channel_next",
@@ -1479,7 +1523,7 @@
   },
   {
     "id": "api.opengraph.init.debug",
-    "translation": "Initializing open graph protocol api routes"
+    "translation": "Inicjalizacja tras protokołów otwartego grafu API"
   },
   {
     "id": "api.post.check_for_out_of_channel_mentions.message.multiple",
@@ -1645,7 +1689,11 @@
   },
   {
     "id": "api.post.send_notifications_and_forget.push_image_only",
-    "translation": " Uploaded one or more files "
+    "translation": "Wysłał jeden albo więcej plików"
+  },
+  {
+    "id": "api.post.send_notifications_and_forget.push_image_only_dm",
+    "translation": " Uploaded one or more files in a direct message"
   },
   {
     "id": "api.post.send_notifications_and_forget.push_in",
@@ -1653,11 +1701,11 @@
   },
   {
     "id": "api.post.send_notifications_and_forget.push_mention",
-    "translation": "wspomniał o Tobie w"
+    "translation": " wspomniał o Tobie w "
   },
   {
     "id": "api.post.send_notifications_and_forget.push_message",
-    "translation": "wysłał Ci bezpośrednią wiadomość"
+    "translation": "  wysłał Ci bezpośrednią wiadomość"
   },
   {
     "id": "api.post.send_notifications_and_forget.push_non_mention",
@@ -2001,15 +2049,7 @@
   },
   {
     "id": "api.system.go_routines",
-    "translation": "The number of running goroutines is over the health threshold %v of %v"
-  },
-  {
-    "id": "api.team.add_user_to_team.invalid_data.app_error",
-    "translation": "Nieprawidłowe dane."
-  },
-  {
-    "id": "api.team.add_user_to_team.invalid_invite_id.app_error",
-    "translation": "Nieprawidłowe id zaproszenia. Żaden zespół nie pasuje to tego id zaproszenia."
+    "translation": "Numer działających procesów go jest powyżej zdrowego poziomu %v z %v"
   },
   {
     "id": "api.team.add_user_to_team.missing_parameter.app_error",
@@ -2082,6 +2122,10 @@
   {
     "id": "api.team.invite_members.already.app_error",
     "translation": "Ta osoba jest już w twoim zespole"
+  },
+  {
+    "id": "api.team.invite_members.invalid_email.app_error",
+    "translation": "The following email addresses do not belong to an accepted domain: {{.Addresses}}. Please contact your System Administrator for details."
   },
   {
     "id": "api.team.invite_members.member",
@@ -2501,7 +2545,7 @@
   },
   {
     "id": "api.user.create_user.missing_hash_or_data.app_error",
-    "translation": "Missing Hash or URL query data."
+    "translation": "Brakujące zapytanie Hash albo URL."
   },
   {
     "id": "api.user.create_user.missing_invite_id.app_error",
@@ -2976,8 +3020,48 @@
     "translation": "Błąd podczas importowania kanału. Zespół o nazwie \"{{.TeamName}}\" nie został odnaleziony."
   },
   {
+    "id": "app.import.import_direct_channel.create_direct_channel.error",
+    "translation": "Failed to get direct channel"
+  },
+  {
+    "id": "app.import.import_direct_channel.create_direct_channel.error",
+    "translation": "Failed to get direct channel"
+  },
+  {
+    "id": "app.import.import_direct_channel.create_group_channel.error",
+    "translation": "Failed to get group channel"
+  },
+  {
+    "id": "app.import.import_direct_channel.create_group_channel.error",
+    "translation": "Failed to get group channel"
+  },
+  {
+    "id": "app.import.import_direct_channel.member_not_found.error",
+    "translation": "Could not find channel member when importing direct channel"
+  },
+  {
+    "id": "app.import.import_direct_channel.update_header_failed.error",
+    "translation": "Failed to update direct channel header"
+  },
+  {
+    "id": "app.import.import_direct_post.channel_member_not_found.error",
+    "translation": "Could not find channel member when importing direct channel post"
+  },
+  {
+    "id": "app.import.import_direct_post.user_not_found.error",
+    "translation": "Post user does not exist"
+  },
+  {
     "id": "app.import.import_line.null_channel.error",
     "translation": "Dane wejściowe mają typ \"channel\", ale obiekt channel jest null."
+  },
+  {
+    "id": "app.import.import_line.null_direct_channel.error",
+    "translation": "Dane wejściowe mają typ \"channel\", ale obiekt channel jest null."
+  },
+  {
+    "id": "app.import.import_line.null_direct_post.error",
+    "translation": "Dane wejściowe mają typ \"post\" ale obiekt post jest null."
   },
   {
     "id": "app.import.import_line.null_post.error",
@@ -3009,7 +3093,7 @@
   },
   {
     "id": "app.import.validate_channel_import_data.create_at_zero.error",
-    "translation": "Kanał create_at nie może być 0 jeśli podany."
+    "translation": "Kanał create_at nie może być zero jeśli podany."
   },
   {
     "id": "app.import.validate_channel_import_data.display_name_length.error",
@@ -3052,6 +3136,54 @@
     "translation": "Brak wymaganej właściwości kanału: type."
   },
   {
+    "id": "app.import.validate_direct_channel_import_data.header_length.error",
+    "translation": "Direct channel header is too long"
+  },
+  {
+    "id": "app.import.validate_direct_channel_import_data.members_required.error",
+    "translation": "Brak wymaganej właściwości kanału: name"
+  },
+  {
+    "id": "app.import.validate_direct_channel_import_data.members_too_few.error",
+    "translation": "Direct channel members list contains too few items"
+  },
+  {
+    "id": "app.import.validate_direct_channel_import_data.members_too_many.error",
+    "translation": "Direct channel members list contains too many items"
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.channel_members_required.error",
+    "translation": "Brak wymaganej właściwości Post: create_at."
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.channel_members_too_few.error",
+    "translation": "Direct post channel members list contains too few items"
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.channel_members_too_many.error",
+    "translation": "Direct post channel members list contains too many items"
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.create_at_missing.error",
+    "translation": "Brak wymaganej właściwości Post: create_at."
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.create_at_zero.error",
+    "translation": "CreateAt must be greater than 0"
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.message_length.error",
+    "translation": "Message is too long"
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.message_missing.error",
+    "translation": "Brak wymaganej właściwości Post: Message."
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.user_missing.error",
+    "translation": "Brak wymaganej właściwości Post: User."
+  },
+  {
     "id": "app.import.validate_post_import_data.channel_missing.error",
     "translation": "Brak wymaganej właściwości Post: Channel. "
   },
@@ -3061,7 +3193,7 @@
   },
   {
     "id": "app.import.validate_post_import_data.create_at_zero.error",
-    "translation": "Post CreateAt property must not be zero if provided."
+    "translation": "Właściwość Post CreateAt nie może być zero jeśli podany."
   },
   {
     "id": "app.import.validate_post_import_data.message_length.error",
@@ -3085,7 +3217,7 @@
   },
   {
     "id": "app.import.validate_team_import_data.create_at_zero.error",
-    "translation": "Drużyna create_at nie może być 0 jeśli jest podana."
+    "translation": "Drużyna create_at nie może być zero jeśli jest podana."
   },
   {
     "id": "app.import.validate_team_import_data.description_length.error",
@@ -3097,7 +3229,7 @@
   },
   {
     "id": "app.import.validate_team_import_data.display_name_missing.error",
-    "translation": "Brak wymaganej właściwości drużyny: display_name"
+    "translation": "Brak wymaganej właściwości drużyny: display_name."
   },
   {
     "id": "app.import.validate_team_import_data.name_characters.error",
@@ -3121,7 +3253,7 @@
   },
   {
     "id": "app.import.validate_team_import_data.type_missing.error",
-    "translation": "Brak wymaganej właściwości drużyny: type"
+    "translation": "Brak wymaganej właściwości drużyny: type."
   },
   {
     "id": "app.import.validate_user_channels_import_data.channel_name_missing.error",
@@ -3370,6 +3502,14 @@
   {
     "id": "ent.elasticsearch.start.index_settings_failed",
     "translation": "Failed to set ElasticSearch index settings"
+  },
+  {
+    "id": "ent.elasticsearch.test_config.indexing_disabled.error",
+    "translation": "Elasticsearch is disabled."
+  },
+  {
+    "id": "ent.elasticsearch.test_config.license.error",
+    "translation": "License does not support Elasticsearch."
   },
   {
     "id": "ent.emoji.licence_disable.app_error",
@@ -4170,6 +4310,10 @@
   {
     "id": "model.config.is_valid.sql_query_timeout.app_error",
     "translation": "Nieprawidłowa wysokość profilu dla ustawień plików. Musi być liczbą większą od 0."
+  },
+  {
+    "id": "model.config.is_valid.teammate_name_display.app_error",
+    "translation": "Invalid teammate display.  Must be 'full_name', 'nickname_full_name' or 'username'"
   },
   {
     "id": "model.config.is_valid.time_between_user_typing.app_error",
@@ -5724,12 +5868,16 @@
     "translation": "We found multiple users matching your credentials and were unable to log you in. Please contact an administrator."
   },
   {
+    "id": "store.sql_user.get_new_users.app_error",
+    "translation": "Wystąpił błąd w trakcie pobierania ustawień"
+  },
+  {
     "id": "store.sql_user.get_profiles.app_error",
     "translation": "Napotkaliśmy błąd podczas odczytu pliku"
   },
   {
     "id": "store.sql_user.get_recently_active_users.app_error",
-    "translation": "We encountered an error while finding the recently active users"
+    "translation": "Wystąpił błąd w trakcie pobierania ustawień"
   },
   {
     "id": "store.sql_user.get_sysadmin_profiles.app_error",

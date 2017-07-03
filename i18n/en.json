@@ -452,16 +452,16 @@
     "translation": "Email has not been configured, no invite(s) sent"
   },
   {
-    "id": "api.command.invite_people.invite_off",
-    "translation": "User creation has been disabled on this server, no invite(s) sent"
-  },
-  {
     "id": "api.command.invite_people.fail",
     "translation": "Encountered an error sending email invite(s)"
   },
   {
     "id": "api.command.invite_people.hint",
     "translation": "[name@domain.com ...]"
+  },
+  {
+    "id": "api.command.invite_people.invite_off",
+    "translation": "User creation has been disabled on this server, no invite(s) sent"
   },
   {
     "id": "api.command.invite_people.name",
@@ -498,6 +498,38 @@
   {
     "id": "api.command_away.success",
     "translation": "You are now away"
+  },
+  {
+    "id": "api.command_channel_header.channel.app_error",
+    "translation": "Error to retrieve the current channel."
+  },
+  {
+    "id": "api.command_channel_header.desc",
+    "translation": "Edit the channel header"
+  },
+  {
+    "id": "api.command_channel_header.hint",
+    "translation": "[text]"
+  },
+  {
+    "id": "api.command_channel_header.message.app_error",
+    "translation": "Text must be provided with the /header command."
+  },
+  {
+    "id": "api.command_channel_header.name",
+    "translation": "header"
+  },
+  {
+    "id": "api.command_channel_header.permission.app_error",
+    "translation": "You do not have the appropriate permissions to edit the channel header."
+  },
+  {
+    "id": "api.command_channel_header.update_channel.app_error",
+    "translation": "Error to update the current channel."
+  },
+  {
+    "id": "api.command_channel_header.update_channel.success",
+    "translation": "Channel header successfully updated."
   },
   {
     "id": "api.command_collapse.desc",
@@ -540,38 +572,6 @@
     "translation": "echo"
   },
   {
-    "id": "api.command_channel_header.desc",
-    "translation": "Edit the channel header"
-  },
-  {
-    "id": "api.command_channel_header.hint",
-    "translation": "[text]"
-  },
-  {
-    "id": "api.command_channel_header.name",
-    "translation": "header"
-  },
-  {
-    "id": "api.command_channel_header.message.app_error",
-    "translation": "Text must be provided with the /header command."
-  },
-  {
-    "id": "api.command_channel_header.channel.app_error",
-    "translation": "Error to retrieve the current channel."
-  },
-  {
-    "id": "api.command_channel_header.permission.app_error",
-    "translation": "You do not have the appropriate permissions to edit the channel header."
-  },
-  {
-    "id": "api.command_channel_header.update_channel.app_error",
-    "translation": "Error to update the current channel."
-  },
-  {
-    "id": "api.command_channel_header.update_channel.success",
-    "translation": "Channel header successfully updated."
-  },
-  {
     "id": "api.command_expand.desc",
     "translation": "Turn off auto-collapsing of image previews"
   },
@@ -586,6 +586,14 @@
   {
     "id": "api.command_expand_collapse.fail.app_error",
     "translation": "An error occurred while expanding previews"
+  },
+  {
+    "id": "api.command_help.desc",
+    "translation": "Open the Mattermost help page"
+  },
+  {
+    "id": "api.command_help.name",
+    "translation": "help"
   },
   {
     "id": "api.command_join.desc",
@@ -874,14 +882,6 @@
   {
     "id": "api.command_shrug.name",
     "translation": "shrug"
-  },
-  {
-    "id": "api.command_help.desc",
-    "translation": "Open the Mattermost help page"
-  },
-  {
-    "id": "api.command_help.name",
-    "translation": "help"
   },
   {
     "id": "api.compliance.init.debug",
@@ -2124,6 +2124,10 @@
     "translation": "This person is already on your team"
   },
   {
+    "id": "api.team.invite_members.invalid_email.app_error",
+    "translation": "The following email addresses do not belong to an accepted domain: {{.Addresses}}. Please contact your System Administrator for details."
+  },
+  {
     "id": "api.team.invite_members.member",
     "translation": "member"
   },
@@ -2142,10 +2146,6 @@
   {
     "id": "api.team.invite_members.send.error",
     "translation": "Failed to send invite email successfully err=%v"
-  },
-  {
-    "id": "api.team.invite_members.invalid_email.app_error",
-    "translation": "The following email addresses do not belong to an accepted domain: {{.Addresses}}. Please contact your System Administrator for details."
   },
   {
     "id": "api.team.invite_members.sending.info",
@@ -3020,16 +3020,24 @@
     "translation": "Error importing channel. Team with name \"{{.TeamName}}\" could not be found."
   },
   {
-    "id": "app.import.import_direct_channel.member_not_found.error",
-    "translation": "Could not find channel member when importing direct channel"
-  },
-  {
     "id": "app.import.import_direct_channel.create_direct_channel.error",
     "translation": "Failed to create direct channel"
   },
   {
+    "id": "app.import.import_direct_channel.create_direct_channel.error",
+    "translation": "Failed to get direct channel"
+  },
+  {
     "id": "app.import.import_direct_channel.create_group_channel.error",
     "translation": "Failed to create group channel"
+  },
+  {
+    "id": "app.import.import_direct_channel.create_group_channel.error",
+    "translation": "Failed to get group channel"
+  },
+  {
+    "id": "app.import.import_direct_channel.member_not_found.error",
+    "translation": "Could not find channel member when importing direct channel"
   },
   {
     "id": "app.import.import_direct_channel.update_header_failed.error",
@@ -3038,14 +3046,6 @@
   {
     "id": "app.import.import_direct_post.channel_member_not_found.error",
     "translation": "Could not find channel member when importing direct channel post"
-  },
-  {
-    "id": "app.import.import_direct_channel.create_direct_channel.error",
-    "translation": "Failed to get direct channel"
-  },
-  {
-    "id": "app.import.import_direct_channel.create_group_channel.error",
-    "translation": "Failed to get group channel"
   },
   {
     "id": "app.import.import_direct_post.user_not_found.error",
@@ -3136,6 +3136,10 @@
     "translation": "Missing required channel property: type."
   },
   {
+    "id": "app.import.validate_direct_channel_import_data.header_length.error",
+    "translation": "Direct channel header is too long"
+  },
+  {
     "id": "app.import.validate_direct_channel_import_data.members_required.error",
     "translation": "Missing required direct channel property: members"
   },
@@ -3146,10 +3150,6 @@
   {
     "id": "app.import.validate_direct_channel_import_data.members_too_many.error",
     "translation": "Direct channel members list contains too many items"
-  },
-  {
-    "id": "app.import.validate_direct_channel_import_data.header_length.error",
-    "translation": "Direct channel header is too long"
   },
   {
     "id": "app.import.validate_direct_post_import_data.channel_members_required.error",
@@ -3164,24 +3164,24 @@
     "translation": "Direct post channel members list contains too many items"
   },
   {
-    "id": "app.import.validate_direct_post_import_data.user_missing.error",
-    "translation": "Missing required direct post property: user"
-  },
-  {
-    "id": "app.import.validate_direct_post_import_data.message_missing.error",
-    "translation": "Missing required direct post property: message"
-  },
-  {
-    "id": "app.import.validate_direct_post_import_data.message_length.error",
-    "translation": "Message is too long"
-  },
-  {
     "id": "app.import.validate_direct_post_import_data.create_at_missing.error",
     "translation": "Missing required direct post property: create_at"
   },
   {
     "id": "app.import.validate_direct_post_import_data.create_at_zero.error",
     "translation": "CreateAt must be greater than 0"
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.message_length.error",
+    "translation": "Message is too long"
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.message_missing.error",
+    "translation": "Missing required direct post property: message"
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.user_missing.error",
+    "translation": "Missing required direct post property: user"
   },
   {
     "id": "app.import.validate_post_import_data.channel_missing.error",
@@ -5868,16 +5868,16 @@
     "translation": "We found multiple users matching your credentials and were unable to log you in. Please contact an administrator."
   },
   {
+    "id": "store.sql_user.get_new_users.app_error",
+    "translation": "We encountered an error while finding the new users"
+  },
+  {
     "id": "store.sql_user.get_profiles.app_error",
     "translation": "We encountered an error while finding user profiles"
   },
   {
     "id": "store.sql_user.get_recently_active_users.app_error",
     "translation": "We encountered an error while finding the recently active users"
-  },
-  {
-    "id": "store.sql_user.get_new_users.app_error",
-    "translation": "We encountered an error while finding the new users"
   },
   {
     "id": "store.sql_user.get_sysadmin_profiles.app_error",

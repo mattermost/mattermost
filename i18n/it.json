@@ -429,7 +429,7 @@
   },
   {
     "id": "api.command.execute_command.not_found.app_error",
-    "translation": "Il comando per '{{.Trigger}}' non è stato trovato"
+    "translation": "Il comando per '{{.Trigger}}' non è stato trovato. Per inviare un messaggio iniziante per \"/\" occorre aggiungere uno spazio all'inizio del messaggio."
   },
   {
     "id": "api.command.execute_command.save.app_error",
@@ -458,6 +458,10 @@
   {
     "id": "api.command.invite_people.hint",
     "translation": "[nome@dominio.com ...]"
+  },
+  {
+    "id": "api.command.invite_people.invite_off",
+    "translation": "La creazione di utenti è stata disattivata per questo server, nessun invito inviato"
   },
   {
     "id": "api.command.invite_people.name",
@@ -494,6 +498,38 @@
   {
     "id": "api.command_away.success",
     "translation": "Ora sei \"Assente\""
+  },
+  {
+    "id": "api.command_channel_header.channel.app_error",
+    "translation": "Errore nel caricamento del canale."
+  },
+  {
+    "id": "api.command_channel_header.desc",
+    "translation": "Modifica l'intestazione del canale"
+  },
+  {
+    "id": "api.command_channel_header.hint",
+    "translation": "[text]"
+  },
+  {
+    "id": "api.command_channel_header.message.app_error",
+    "translation": "Il testo deve essere specificato per il comando /header."
+  },
+  {
+    "id": "api.command_channel_header.name",
+    "translation": "intestazione"
+  },
+  {
+    "id": "api.command_channel_header.permission.app_error",
+    "translation": "Non si dispone dei permessi necessari per modificare l'intestazione del canale."
+  },
+  {
+    "id": "api.command_channel_header.update_channel.app_error",
+    "translation": "Errore nell'aggiornamento del canale."
+  },
+  {
+    "id": "api.command_channel_header.update_channel.success",
+    "translation": "Intestazione del canale aggiornata."
   },
   {
     "id": "api.command_collapse.desc",
@@ -550,6 +586,14 @@
   {
     "id": "api.command_expand_collapse.fail.app_error",
     "translation": "Errore durante l' espansione delle anteprime"
+  },
+  {
+    "id": "api.command_help.desc",
+    "translation": "Vai alla pagina di aiuto di Mattermost"
+  },
+  {
+    "id": "api.command_help.name",
+    "translation": "aiuto"
   },
   {
     "id": "api.command_join.desc",
@@ -661,7 +705,7 @@
   },
   {
     "id": "api.command_open.name",
-    "translation": "open"
+    "translation": "Apri"
   },
   {
     "id": "api.command_settings.desc",
@@ -1645,7 +1689,11 @@
   },
   {
     "id": "api.post.send_notifications_and_forget.push_image_only",
-    "translation": " Caricati uno o più file "
+    "translation": " ha caricato uno o più file in "
+  },
+  {
+    "id": "api.post.send_notifications_and_forget.push_image_only_dm",
+    "translation": " ha caricato uno o più file in un messaggio diretto"
   },
   {
     "id": "api.post.send_notifications_and_forget.push_in",
@@ -2004,14 +2052,6 @@
     "translation": "Il numero di goroutines è oltre la soglia ottimale %v di %v"
   },
   {
-    "id": "api.team.add_user_to_team.invalid_data.app_error",
-    "translation": "Informazione non valida."
-  },
-  {
-    "id": "api.team.add_user_to_team.invalid_invite_id.app_error",
-    "translation": "Id invito non valido. Nessun gruppo corrispondente a questo id invito."
-  },
-  {
     "id": "api.team.add_user_to_team.missing_parameter.app_error",
     "translation": "Parametro necessario per aggiungere l'utente al gruppo."
   },
@@ -2082,6 +2122,10 @@
   {
     "id": "api.team.invite_members.already.app_error",
     "translation": "Questa persona è già nel tuo gruppo"
+  },
+  {
+    "id": "api.team.invite_members.invalid_email.app_error",
+    "translation": "I seguenti indirizzi eMail non appartengono ad un dominio accettato: {{.Addresses}}. Contattare l'amministratore del sistema per maggiori dettagli."
   },
   {
     "id": "api.team.invite_members.member",
@@ -2976,8 +3020,48 @@
     "translation": "Errore di importazione del canale. Il gruppo di nome \"{{.TeamName}}\" non è stato trovato."
   },
   {
+    "id": "app.import.import_direct_channel.create_direct_channel.error",
+    "translation": "Errore durante la ricerca del canale diretto"
+  },
+  {
+    "id": "app.import.import_direct_channel.create_direct_channel.error",
+    "translation": "Errore durante la ricerca del canale diretto"
+  },
+  {
+    "id": "app.import.import_direct_channel.create_group_channel.error",
+    "translation": "Errore durante la ricerca del canale di gruppo"
+  },
+  {
+    "id": "app.import.import_direct_channel.create_group_channel.error",
+    "translation": "Errore durante la ricerca del canale di gruppo"
+  },
+  {
+    "id": "app.import.import_direct_channel.member_not_found.error",
+    "translation": "Errore nella ricerca del membro del canale durante l'importazione del canale diretto"
+  },
+  {
+    "id": "app.import.import_direct_channel.update_header_failed.error",
+    "translation": "Errore durante l'aggiornamento del titolo del canale diretto"
+  },
+  {
+    "id": "app.import.import_direct_post.channel_member_not_found.error",
+    "translation": "Errore nella ricerca del membro del canale durante l'importazione della pubblicazione sul canale diretto"
+  },
+  {
+    "id": "app.import.import_direct_post.user_not_found.error",
+    "translation": "L'utente della pubblicazione non esiste"
+  },
+  {
     "id": "app.import.import_line.null_channel.error",
     "translation": "La riga di dati da importare è di tipo \"channel\" ma l'oggetto channel è nullo."
+  },
+  {
+    "id": "app.import.import_line.null_direct_channel.error",
+    "translation": "La riga di dati da importare è di tipo \"canale_diretto\" ma l'oggetto canale_diretto è nullo."
+  },
+  {
+    "id": "app.import.import_line.null_direct_post.error",
+    "translation": "La riga di dati da importare è di tipo \"pubblicazione_diretta\" ma l'oggetto pubblicazione_diretta è nullo."
   },
   {
     "id": "app.import.import_line.null_post.error",
@@ -3050,6 +3134,54 @@
   {
     "id": "app.import.validate_channel_import_data.type_missing.error",
     "translation": "Manca una proprietà richiesta del canale: tipo"
+  },
+  {
+    "id": "app.import.validate_direct_channel_import_data.header_length.error",
+    "translation": "Il titolo del canale diretto è troppo lungo"
+  },
+  {
+    "id": "app.import.validate_direct_channel_import_data.members_required.error",
+    "translation": "Manca una proprietà richiesta del canale diretto: membri"
+  },
+  {
+    "id": "app.import.validate_direct_channel_import_data.members_too_few.error",
+    "translation": "La lista dei membri del canale diretto contiene pochi elementi"
+  },
+  {
+    "id": "app.import.validate_direct_channel_import_data.members_too_many.error",
+    "translation": "La lista dei membri del canale diretto contiene troppi elementi"
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.channel_members_required.error",
+    "translation": "Manca una proprietà richiesta nella pubblicazione diretta: membri del canale"
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.channel_members_too_few.error",
+    "translation": "La lista dei membri del canale della pubblicazione diretta contiene pochi elementi"
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.channel_members_too_many.error",
+    "translation": "La lista dei membri del canale della pubblicazione diretta contiene troppi elementi"
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.create_at_missing.error",
+    "translation": "Manca una proprietà richiesta nella pubblicazione diretta: creato il"
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.create_at_zero.error",
+    "translation": "CreateAt deve essere maggiore di 0"
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.message_length.error",
+    "translation": "Il messaggio è troppo lungo"
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.message_missing.error",
+    "translation": "Manca una proprietà richiesta nella pubblicazione diretta: messaggio"
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.user_missing.error",
+    "translation": "Manca una proprietà richiesta nella pubblicazione diretta: utente"
   },
   {
     "id": "app.import.validate_post_import_data.channel_missing.error",
@@ -3370,6 +3502,14 @@
   {
     "id": "ent.elasticsearch.start.index_settings_failed",
     "translation": "Impossibile salvare le impostazioni dell'index ElasticSearch"
+  },
+  {
+    "id": "ent.elasticsearch.test_config.indexing_disabled.error",
+    "translation": "Elasticsearch non è attivo."
+  },
+  {
+    "id": "ent.elasticsearch.test_config.license.error",
+    "translation": "La licenza non supporta l'uso di Elasticsearch."
   },
   {
     "id": "ent.emoji.licence_disable.app_error",
@@ -4170,6 +4310,10 @@
   {
     "id": "model.config.is_valid.sql_query_timeout.app_error",
     "translation": "Timeout query SQL non valido.  Deve essere un numero positivo."
+  },
+  {
+    "id": "model.config.is_valid.teammate_name_display.app_error",
+    "translation": "Invalid teammate display.  Must be 'full_name', 'nickname_full_name' or 'username'"
   },
   {
     "id": "model.config.is_valid.time_between_user_typing.app_error",
@@ -5722,6 +5866,10 @@
   {
     "id": "store.sql_user.get_for_login.multiple_users",
     "translation": "Sono stati trovati diversi utenti con le credenziali fornite ed è stato impossibile effettuare l'accesso. Per favore contatta un amministratore."
+  },
+  {
+    "id": "store.sql_user.get_new_users.app_error",
+    "translation": "Errore riscontrato durante la ricerca delle preferenze"
   },
   {
     "id": "store.sql_user.get_profiles.app_error",
