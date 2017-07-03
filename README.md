@@ -1,4 +1,4 @@
-# Mattermost Blah
+# Mattermost Blah 2
 
 Mattermost is an open source, self-hosted Slack-alternative from [https://mattermost.org](https://mattermost.org).
 
