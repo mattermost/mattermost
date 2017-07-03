@@ -356,15 +356,15 @@ export function sendEphemeralPost(message, channelId) {
 }
 
 export function newLocalizationSelected(locale) {
-    if (locale === 'en') {
+    const localeInfo = I18n.getLanguageInfo(locale);
+
+    if (locale === 'en' || !localeInfo) {
         AppDispatcher.handleServerAction({
             type: ActionTypes.RECEIVED_LOCALE,
             locale,
             translations: en
         });
     } else {
-        const localeInfo = I18n.getLanguageInfo(locale);
-
         Client4.getTranslations(localeInfo.url).then(
             (data, res) => {
                 let translations = data;
