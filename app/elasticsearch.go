@@ -11,7 +11,7 @@ import (
 )
 
 func TestElasticsearch() *model.AppError {
-	if esI := einterfaces.GetElasticSearchInterface(); esI != nil {
+	if esI := einterfaces.GetElasticsearchInterface(); esI != nil {
 		if err := esI.TestConfig(); err != nil {
 			return err
 		}
