@@ -266,9 +266,11 @@ func UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model.AppError
 	newPost := &model.Post{}
 	*newPost = *oldPost
 
-	newPost.Message = post.Message
-	newPost.EditAt = model.GetMillis()
-	newPost.Hashtags, _ = model.ParseHashtags(post.Message)
+	if newPost.Message != post.Message {
+		newPost.Message = post.Message
+		newPost.EditAt = model.GetMillis()
+		newPost.Hashtags, _ = model.ParseHashtags(post.Message)
+	}
 
 	if !safeUpdate {
 		newPost.IsPinned = post.IsPinned
