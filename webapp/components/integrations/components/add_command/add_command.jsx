@@ -1,12 +1,10 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 import React from 'react';
 import PropTypes from 'prop-types';
 
 import * as Utils from 'utils/utils.jsx';
-
-import {addCommand} from 'actions/integration_actions.jsx';
 
 import BackstageHeader from 'components/backstage/components/backstage_header.jsx';
 import {FormattedMessage} from 'react-intl';
@@ -18,28 +16,30 @@ import Constants from 'utils/constants.jsx';
 const REQUEST_POST = 'P';
 const REQUEST_GET = 'G';
 
-export default class AddCommand extends React.Component {
-    static get propTypes() {
-        return {
-            team: PropTypes.object
-        };
+export default class AddCommand extends React.PureComponent {
+    static propTypes = {
+
+        /**
+        * The team data
+        */
+        team: PropTypes.object,
+
+        /**
+        * The request state for addCommand action. Contains status and error
+        */
+        addCommandRequest: PropTypes.object.isRequired,
+
+        actions: PropTypes.shape({
+
+            /**
+            * The function to call to add new command
+            */
+            addCommand: PropTypes.func.isRequired
+        }).isRequired
     }
 
     constructor(props) {
         super(props);
-
-        this.handleSubmit = this.handleSubmit.bind(this);
-
-        this.updateDisplayName = this.updateDisplayName.bind(this);
-        this.updateDescription = this.updateDescription.bind(this);
-        this.updateTrigger = this.updateTrigger.bind(this);
-        this.updateUrl = this.updateUrl.bind(this);
-        this.updateMethod = this.updateMethod.bind(this);
-        this.updateUsername = this.updateUsername.bind(this);
-        this.updateIconUrl = this.updateIconUrl.bind(this);
-        this.updateAutocomplete = this.updateAutocomplete.bind(this);
-        this.updateAutocompleteHint = this.updateAutocompleteHint.bind(this);
-        this.updateAutocompleteDescription = this.updateAutocompleteDescription.bind(this);
 
         this.state = {
             displayName: '',
@@ -58,7 +58,7 @@ export default class AddCommand extends React.Component {
         };
     }
 
-    handleSubmit(e) {
+    handleSubmit = (e) => {
         e.preventDefault();
 
         if (this.state.saving) {
@@ -134,7 +134,8 @@ export default class AddCommand extends React.Component {
             return;
         }
 
-        if (command.trigger.length < Constants.MIN_TRIGGER_LENGTH || command.trigger.length > Constants.MAX_TRIGGER_LENGTH) {
+        if (command.trigger.length < Constants.MIN_TRIGGER_LENGTH ||
+            command.trigger.length > Constants.MAX_TRIGGER_LENGTH) {
             this.setState({
                 saving: false,
                 clientError: (
@@ -166,75 +167,75 @@ export default class AddCommand extends React.Component {
             return;
         }
 
-        addCommand(
-            command,
+        this.props.actions.addCommand(command).then(
             (data) => {
-                browserHistory.push('/' + this.props.team.name + '/integrations/commands/confirm?type=commands&id=' + data.id);
-            },
-            (err) => {
-                this.setState({
-                    saving: false,
-                    serverError: err.message
-                });
+                if (data) {
+                    browserHistory.push(`/${this.props.team.name}/integrations/commands/confirm?type=commands&id=${data.id}`);
+                } else {
+                    this.setState({
+                        saving: false,
+                        serverError: this.props.addCommandRequest.error.message
+                    });
+                }
             }
         );
     }
 
-    updateDisplayName(e) {
+    updateDisplayName = (e) => {
         this.setState({
             displayName: e.target.value
         });
     }
 
-    updateDescription(e) {
+    updateDescription = (e) => {
         this.setState({
             description: e.target.value
         });
     }
 
-    updateTrigger(e) {
+    updateTrigger = (e) => {
         this.setState({
             trigger: e.target.value
         });
     }
 
-    updateUrl(e) {
+    updateUrl = (e) => {
         this.setState({
             url: e.target.value
         });
     }
 
-    updateMethod(e) {
+    updateMethod = (e) => {
         this.setState({
             method: e.target.value
         });
     }
 
-    updateUsername(e) {
+    updateUsername = (e) => {
         this.setState({
             username: e.target.value
         });
     }
 
-    updateIconUrl(e) {
+    updateIconUrl = (e) => {
         this.setState({
             iconUrl: e.target.value
         });
     }
 
-    updateAutocomplete(e) {
+    updateAutocomplete = (e) => {
         this.setState({
             autocomplete: e.target.checked
         });
     }
 
-    updateAutocompleteHint(e) {
+    updateAutocompleteHint = (e) => {
         this.setState({
             autocompleteHint: e.target.value
         });
     }
 
-    updateAutocompleteDescription(e) {
+    updateAutocompleteDescription = (e) => {
         this.setState({
             autocompleteDescription: e.target.value
         });
