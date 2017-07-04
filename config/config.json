@@ -77,7 +77,8 @@
         "RestrictPrivateChannelManageMembers": "all",
         "UserStatusAwayTimeout": 300,
         "MaxChannelsPerTeam": 2000,
-        "MaxNotificationsPerChannel": 1000
+        "MaxNotificationsPerChannel": 1000,
+        "TeammateNameDisplay": "full_name"
     },
     "SqlSettings": {
         "DriverName": "mysql",
