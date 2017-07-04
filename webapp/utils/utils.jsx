@@ -556,14 +556,12 @@ export function applyTheme(theme) {
 
     if (theme.onlineIndicator) {
         changeCss('.app__body .status.status--online', 'color:' + theme.onlineIndicator);
-        changeCss('.app__body .channel-header__info .status .online--icon', 'fill:' + theme.onlineIndicator);
-        changeCss('.app__body .navbar .status .online--icon', 'fill:' + theme.onlineIndicator);
+        changeCss('.app__body .status .online--icon', 'fill:' + theme.onlineIndicator);
     }
 
     if (theme.awayIndicator) {
         changeCss('.app__body .status.status--away', 'color:' + theme.awayIndicator);
-        changeCss('.app__body .channel-header__info .status .away--icon', 'fill:' + theme.awayIndicator);
-        changeCss('.app__body .navbar .status .away--icon', 'fill:' + theme.awayIndicator);
+        changeCss('.app__body .status .away--icon', 'fill:' + theme.awayIndicator);
     }
 
     if (theme.mentionBj) {

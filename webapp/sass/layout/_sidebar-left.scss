@@ -311,29 +311,33 @@
             right: -5px;
             width: 18px;
 
+            &.status-edit {
+                .fa {
+                    top: 4px;
+                }
+            }
+
             .fa {
                 position: relative;
                 top: 2px;
             }
 
             .icon__container {
-                position: relative;
-                top: 3px;
-
                 &:after {
                     border-radius: 20px;
                     content: '';
-                    height: 9px;
+                    height: 8px;
                     left: 5px;
                     position: absolute;
-                    top: 2px;
-                    width: 9px;
+                    top: 6px;
+                    width: 8px;
                 }
+            }
 
-                svg {
-                    top: 0;
-                    z-index: 1;
-                }
+            svg {
+                position: relative;
+                top: 4px;
+                z-index: 1;
             }
         }
     }
