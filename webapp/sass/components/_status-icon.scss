@@ -23,13 +23,11 @@
         &.status-edit {
             text-align: center;
 
-            .sidebar--left & {
-                i {
-                    @include opacity(1);
-                    font-size: 10px;
-                    position: relative;
-                    top: 4px;
-                }
+            i {
+                @include opacity(1);
+                font-size: 10px;
+                position: relative;
+                top: 4px;
             }
         }
 
@@ -44,13 +42,10 @@
 
 .status {
     display: inline-block;
-    font-size: 15px;
-    height: 10px;
     margin-right: 6px;
-    margin-top: -2px;
     position: relative;
-    text-align: center;
-    width: 16px;
+    top: 1px;
+    width: 12px;
 
     &.status--group {
         border-radius: 2px;
@@ -74,14 +69,19 @@
         }
     }
 
-    &.status--offline {
-        .fa {
-            @include opacity(.4);
-        }
-    }
-
     svg {
         max-height: 14px;
+    }
+
+    i,
+    path,
+    ellipse {
+        @include opacity(.5);
+
+        &.online--icon,
+        &.away--icon {
+            @include opacity(1);
+        }
     }
 
     .fa-lock {

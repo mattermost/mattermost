@@ -206,7 +206,7 @@
                 .icon {
                     &.icon__globe,
                     &.icon__lock {
-                        @include opacity(.4);
+                        @include opacity(.5);
                     }
                 }
 
