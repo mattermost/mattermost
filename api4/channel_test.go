@@ -901,12 +901,14 @@ func TestDeleteChannel(t *testing.T) {
 	Client = th.Client
 	team = th.BasicTeam
 	user = th.BasicUser
+	user2 = th.BasicUser2
 
 	// channels created by SystemAdmin
 	publicChannel6 := th.CreateChannelWithClient(th.SystemAdminClient, model.CHANNEL_OPEN)
 	privateChannel7 := th.CreateChannelWithClient(th.SystemAdminClient, model.CHANNEL_PRIVATE)
 	app.AddUserToChannel(user, publicChannel6)
 	app.AddUserToChannel(user, privateChannel7)
+	app.AddUserToChannel(user2, privateChannel7)
 
 	// successful delete by user
 	_, resp = Client.DeleteChannel(publicChannel6.Id)
@@ -924,6 +926,7 @@ func TestDeleteChannel(t *testing.T) {
 	privateChannel7 = th.CreateChannelWithClient(th.SystemAdminClient, model.CHANNEL_PRIVATE)
 	app.AddUserToChannel(user, publicChannel6)
 	app.AddUserToChannel(user, privateChannel7)
+	app.AddUserToChannel(user2, privateChannel7)
 
 	// cannot delete by user
 	_, resp = Client.DeleteChannel(publicChannel6.Id)
@@ -948,6 +951,7 @@ func TestDeleteChannel(t *testing.T) {
 	privateChannel7 = th.CreateChannelWithClient(th.SystemAdminClient, model.CHANNEL_PRIVATE)
 	app.AddUserToChannel(user, publicChannel6)
 	app.AddUserToChannel(user, privateChannel7)
+	app.AddUserToChannel(user2, privateChannel7)
 
 	// successful delete by team admin
 	UpdateUserToTeamAdmin(user, team)
@@ -976,6 +980,7 @@ func TestDeleteChannel(t *testing.T) {
 	privateChannel7 = th.CreateChannelWithClient(th.SystemAdminClient, model.CHANNEL_PRIVATE)
 	app.AddUserToChannel(user, publicChannel6)
 	app.AddUserToChannel(user, privateChannel7)
+	app.AddUserToChannel(user2, privateChannel7)
 
 	// cannot delete by user
 	_, resp = Client.DeleteChannel(publicChannel6.Id)
@@ -1017,6 +1022,7 @@ func TestDeleteChannel(t *testing.T) {
 	privateChannel7 = th.CreateChannelWithClient(th.SystemAdminClient, model.CHANNEL_PRIVATE)
 	app.AddUserToChannel(user, publicChannel6)
 	app.AddUserToChannel(user, privateChannel7)
+	app.AddUserToChannel(user2, privateChannel7)
 
 	// cannot delete by user
 	_, resp = Client.DeleteChannel(publicChannel6.Id)
@@ -1056,12 +1062,14 @@ func TestDeleteChannel(t *testing.T) {
 	_, resp = th.SystemAdminClient.DeleteChannel(privateChannel7.Id)
 	CheckNoError(t, resp)
 
-	// last member of a channel should be able to delete it regardless of required permissions
+	// last member of a public channel should have required permission to delete
 	publicChannel6 = th.CreateChannelWithClient(th.Client, model.CHANNEL_OPEN)
-	privateChannel7 = th.CreateChannelWithClient(th.Client, model.CHANNEL_PRIVATE)
 
 	_, resp = Client.DeleteChannel(publicChannel6.Id)
-	CheckNoError(t, resp)
+	CheckForbiddenStatus(t, resp)
+
+	// last member of a private channel should be able to delete it regardless of required permissions
+	privateChannel7 = th.CreateChannelWithClient(th.Client, model.CHANNEL_PRIVATE)
 
 	_, resp = Client.DeleteChannel(privateChannel7.Id)
 	CheckNoError(t, resp)

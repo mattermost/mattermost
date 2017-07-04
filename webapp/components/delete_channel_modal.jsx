@@ -33,6 +33,7 @@ export default class DeleteChannelModal extends React.Component {
 
         browserHistory.push(TeamStore.getCurrentTeamRelativeUrl() + '/channels/town-square');
         deleteChannel(this.props.channel.id);
+        this.onHide();
     }
 
     onHide() {

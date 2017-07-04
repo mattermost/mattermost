@@ -529,23 +529,21 @@ export default class Navbar extends React.Component {
                     );
                 }
 
-                if (ChannelUtils.showDeleteOption(channel, isAdmin, isSystemAdmin, isChannelAdmin) || this.state.userCount === 1) {
-                    if (!ChannelStore.isDefault(channel)) {
-                        deleteChannelOption = (
-                            <li role='presentation'>
-                                <ToggleModalButton
-                                    role='menuitem'
-                                    dialogType={DeleteChannelModal}
-                                    dialogProps={{channel}}
-                                >
-                                    <FormattedMessage
-                                        id='channel_header.delete'
-                                        defaultMessage='Delete Channel'
-                                    />
-                                </ToggleModalButton>
-                            </li>
-                        );
-                    }
+                if (ChannelUtils.showDeleteOption(channel, isAdmin, isSystemAdmin, isChannelAdmin, this.state.userCount)) {
+                    deleteChannelOption = (
+                        <li role='presentation'>
+                            <ToggleModalButton
+                                role='menuitem'
+                                dialogType={DeleteChannelModal}
+                                dialogProps={{channel}}
+                            >
+                                <FormattedMessage
+                                    id='channel_header.delete'
+                                    defaultMessage='Delete Channel'
+                                />
+                            </ToggleModalButton>
+                        </li>
+                    );
                 }
 
                 const canLeave = channel.type === Constants.PRIVATE_CHANNEL ? this.state.userCount > 1 : true;
