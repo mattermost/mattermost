@@ -142,6 +142,7 @@ type ServiceSettings struct {
 	EnableOnlyAdminIntegrations              *bool
 	EnablePostUsernameOverride               bool
 	EnablePostIconOverride                   bool
+	EnableAPIv3                              *bool
 	EnableLinkPreviews                       *bool
 	EnableTesting                            bool
 	EnableDeveloper                          *bool
@@ -561,6 +562,11 @@ func (o *Config) SetDefaults() {
 
 	if o.ServiceSettings.LicenseFileLocation == nil {
 		o.ServiceSettings.LicenseFileLocation = new(string)
+	}
+
+	if o.ServiceSettings.EnableAPIv3 == nil {
+		o.ServiceSettings.EnableAPIv3 = new(bool)
+		*o.ServiceSettings.EnableAPIv3 = true
 	}
 
 	if o.ServiceSettings.EnableLinkPreviews == nil {
