@@ -121,7 +121,11 @@ export default class SwitchChannelProvider extends Provider {
     }
 
     async fetchUsersAndChannels(channelPrefix, suggestionId) {
-        const usersAsync = Client4.autocompleteUsers(channelPrefix, '', '');
+        let teamId = '';
+        if (global.window.mm_config.RestrictDirectMessage === 'team') {
+            teamId = store.getState().entities.teams.currentTeamId;
+        }
+        const usersAsync = Client4.autocompleteUsers(channelPrefix, teamId, '');
         const channelsAsync = Client4.searchChannels(getCurrentTeamId(getState()), channelPrefix);
 
         let usersFromServer = [];
