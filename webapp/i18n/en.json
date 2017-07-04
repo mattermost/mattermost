@@ -694,6 +694,8 @@
   "admin.service.corsTitle": "Enable cross-origin requests from:",
   "admin.service.developerDesc": "When true, JavaScript errors are shown in a purple bar at the top of the user interface. Not recommended for use in production. ",
   "admin.service.developerTitle": "Enable Developer Mode: ",
+  "admin.service.enableAPIv3": "Allow use of API v3 endpoints:",
+  "admin.service.enableAPIv3Description": "Set to false to disable all version 3 endpoints of the REST API. Integrations that rely on API v3 will fail and can then be identified for migration to API v4. API v3 is deprecated and will be removed in the near future. See <a href='https://api.mattermost.com' target='_blank'>https://api.mattermost.com</a> for details.",
   "admin.service.enforceMfaDesc": "When true, <a href='https://docs.mattermost.com/deployment/auth.html' target='_blank'>multi-factor authentication</a> is required for login. New users will be required to configure MFA on signup. Logged in users without MFA configured are redirected to the MFA setup page until configuration is complete.<br/><br/>If your system has users with login methods other than AD/LDAP and email, MFA must be enforced with the authentication provider outside of Mattermost.",
   "admin.service.enforceMfaTitle": "Enforce Multi-factor Authentication:",
   "admin.service.forward80To443": "Forward port 80 to 443:",

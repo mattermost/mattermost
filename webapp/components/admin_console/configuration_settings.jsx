@@ -263,13 +263,13 @@ export default class ConfigurationSettings extends AdminSettings {
                     label={
                         <FormattedMessage
                             id='admin.service.enableAPIv3'
-                            defaultMessage='Enable API version 3:'
+                            defaultMessage='Allow use of API v3 endpoints:'
                         />
                     }
                     helpText={
                         <FormattedHTMLMessage
                             id='admin.service.enableAPIv3Description'
-                            defaultMessage='When true, disables all version 3 endpoints of the REST API. Version 3 of the API is scheduled for deprecation, see <a href="https://api.mattermost.com" target="_blank">https://api.mattermost.com</a> for details. Caution: Disabling may break existing integrations that use v3 endpoints.'
+                            defaultMessage='Set to false to disable all version 3 endpoints of the REST API. Integrations that rely on API v3 will fail and can then be identified for migration to API v4. API v3 is deprecated and will be removed in the near future. See <a href="https://api.mattermost.com" target="_blank">https://api.mattermost.com</a> for details.'
                         />
                     }
                     value={this.state.enableAPIv3}
