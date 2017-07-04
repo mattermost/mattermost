@@ -760,9 +760,10 @@ func (o *Config) SetDefaults() {
 		} else {
 			*o.EmailSettings.EnableSMTPAuth = true
 		}
-		if o.EmailSettings.ConnectionSecurity == CONN_SECURITY_PLAIN {
-			o.EmailSettings.ConnectionSecurity = CONN_SECURITY_NONE
-		}
+	}
+
+	if o.EmailSettings.ConnectionSecurity == CONN_SECURITY_PLAIN {
+		o.EmailSettings.ConnectionSecurity = CONN_SECURITY_NONE
 	}
 
 	if o.EmailSettings.SkipServerCertificateVerification == nil {

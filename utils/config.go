@@ -434,7 +434,6 @@ func getClientConfig(c *model.Config) map[string]string {
 	props["EnableSignInWithUsername"] = strconv.FormatBool(*c.EmailSettings.EnableSignInWithUsername)
 	props["RequireEmailVerification"] = strconv.FormatBool(c.EmailSettings.RequireEmailVerification)
 	props["EnableEmailBatching"] = strconv.FormatBool(*c.EmailSettings.EnableEmailBatching)
-	props["EnableSMTPAuth"] = strconv.FormatBool(*c.EmailSettings.EnableSMTPAuth)
 
 	props["EnableSignUpWithGitLab"] = strconv.FormatBool(c.GitLabSettings.Enable)
 
