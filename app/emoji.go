@@ -16,10 +16,11 @@ import (
 
 	l4g "github.com/alecthomas/log4go"
 
+	"image/color/palette"
+
 	"github.com/disintegration/imaging"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
-	"image/color/palette"
 )
 
 const (
@@ -131,8 +132,8 @@ func DeleteEmoji(emoji *model.Emoji) *model.AppError {
 		return err
 	}
 
-	go deleteEmojiImage(emoji.Id)
-	go deleteReactionsForEmoji(emoji.Name)
+	deleteEmojiImage(emoji.Id)
+	deleteReactionsForEmoji(emoji.Name)
 	return nil
 }
 
