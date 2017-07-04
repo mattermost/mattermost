@@ -6487,9 +6487,9 @@ redux-persist@4.6.0:
     lodash "^4.17.4"
     lodash-es "^4.17.4"
 
-redux-persist@4.8.0, redux-persist@^4.5.0:
-  version "4.8.0"
-  resolved "https://registry.yarnpkg.com/redux-persist/-/redux-persist-4.8.0.tgz#17fd998949bdeef9275e4cf60ad5bbe1c73675fc"
+redux-persist@4.8.2, redux-persist@^4.5.0:
+  version "4.8.2"
+  resolved "https://registry.yarnpkg.com/redux-persist/-/redux-persist-4.8.2.tgz#7941202e0ce0a9fcc0263d66965f5263d34f43b9"
   dependencies:
     json-stringify-safe "^5.0.1"
     lodash "^4.17.4"

@@ -40,7 +40,7 @@
     "react-router": "2.8.1",
     "react-select": "1.0.0-rc.5",
     "redux-batched-actions": "0.2.0",
-    "redux-persist": "4.8.0",
+    "redux-persist": "4.8.2",
     "redux-persist-transform-filter": "0.0.13",
     "superagent": "3.5.2",
     "twemoji": "2.3.0",
