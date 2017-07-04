@@ -6,12 +6,20 @@
             .channel-header {
                 .heading {
                     max-width: calc(100vw - 600px);
+
+                    .multi-teams & {
+                        max-width: calc(100vw - 650px);
+                    }
                 }
             }
 
             .channel-header__info {
                 .channel-header__description {
                     max-width: calc(100vw - 600px);
+
+                    .multi-teams & {
+                        max-width: calc(100vw - 650px);
+                    }
                 }
             }
         }
@@ -27,12 +35,20 @@
     .channel-header__info {
         .channel-header__description {
             max-width: calc(100vw - 660px);
+
+            .multi-teams & {
+                max-width: calc(100vw - 710px);
+            }
         }
     }
 
     .channel-header {
         .heading {
             max-width: calc(100vw - 730px);
+
+            .multi-teams & {
+                max-width: calc(100vw - 780px);
+            }
         }
     }
 

@@ -185,6 +185,10 @@
         white-space: nowrap;
         word-break: break-word;
 
+        .multi-teams & {
+            max-width: calc(100vw - 780px);
+        }
+
         &.light {
             @include opacity(.6);
             color: inherit;
