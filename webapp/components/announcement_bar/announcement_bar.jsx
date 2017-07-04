@@ -196,9 +196,9 @@ export default class AnnouncementBar extends React.PureComponent {
             barStyle.color = this.state.textColor;
             linkStyle.color = this.state.textColor;
         } else if (this.state.type === BAR_DEVELOPER_TYPE) {
-            errClass = 'error-bar-developer';
+            errClass = 'error-bar error-bar-developer';
         } else if (this.state.type === BAR_CRITICAL_TYPE) {
-            errClass = 'error-bar-critical';
+            errClass = 'error-bar error-bar-critical';
         }
 
         let closeButton;
