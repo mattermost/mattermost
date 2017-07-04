@@ -64,6 +64,7 @@ export default class ChannelHeader extends React.Component {
         this.hideLeaveChannelModal = this.hideLeaveChannelModal.bind(this);
 
         const state = this.getStateFromStores();
+        state.showEditChannelHeaderModal = false;
         state.showEditChannelPurposeModal = false;
         state.showMembersModal = false;
         state.showRenameChannelModal = false;
@@ -772,27 +773,47 @@ export default class ChannelHeader extends React.Component {
         let headerText;
         let headerTextContainer;
         if (channel.header) {
+            headerText = channel.header;
             if (this.state.enableFormatting) {
                 headerText = TextFormatting.formatText(channel.header, {singleline: true, mentionHighlight: false, siteURL: getSiteURL()});
-            } else {
-                headerText = channel.header;
             }
 
             headerTextContainer = (
-                <div
-                    onClick={Utils.handleFormattedTextClick}
-                    className='channel-header__description'
-                    dangerouslySetInnerHTML={{__html: headerText}}
-                />
+                <OverlayTrigger
+                    trigger={'click'}
+                    placement='bottom'
+                    rootClose={true}
+                    overlay={popoverContent}
+                    ref='headerOverlay'
+                >
+                    <div
+                        onClick={Utils.handleFormattedTextClick}
+                        className='channel-header__description'
+                        dangerouslySetInnerHTML={{__html: headerText}}
+                    />
+                </OverlayTrigger>
             );
         } else {
-            //saturnino to add formatted text here, and make this clickable so that it opens up the channel header modal
-            headerText = 'Add a channel description';
             headerTextContainer = (
                 <a
                     href='#'
                     className='channel-header__description light'
-                    dangerouslySetInnerHTML={{__html: headerText}}
+                    onClick={() => this.setState({showEditChannelHeaderModal: true})}
+                >
+                    <FormattedMessage
+                        id='channel_header.addChannelHeader'
+                        defaultMessage='Add a channel description'
+                    />
+                </a>
+            );
+        }
+
+        let editHeaderModal;
+        if (this.state.showEditChannelHeaderModal) {
+            editHeaderModal = (
+                <EditChannelHeaderModal
+                    onHide={() => this.setState({showEditChannelHeaderModal: false})}
+                    channel={channel}
                 />
             );
         }
@@ -890,15 +911,7 @@ export default class ChannelHeader extends React.Component {
                                             {dropdownContents}
                                         </ul>
                                     </div>
-                                    <OverlayTrigger
-                                        trigger={'click'}
-                                        placement='bottom'
-                                        rootClose={true}
-                                        overlay={popoverContent}
-                                        ref='headerOverlay'
-                                    >
-                                        {headerTextContainer}
-                                    </OverlayTrigger>
+                                    {headerTextContainer}
                                 </div>
                             </th>
                             <th>
@@ -970,6 +983,7 @@ export default class ChannelHeader extends React.Component {
                         </tr>
                     </tbody>
                 </table>
+                {editHeaderModal}
                 {editPurposeModal}
                 {channelMembersModal}
                 {leaveChannelModal}
