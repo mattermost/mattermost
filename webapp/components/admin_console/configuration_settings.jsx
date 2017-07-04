@@ -9,12 +9,12 @@ import ErrorStore from 'stores/error_store.jsx';
 import {ErrorBarTypes} from 'utils/constants.jsx';
 import * as Utils from 'utils/utils.jsx';
 
+import {invalidateAllCaches, reloadConfig} from 'actions/admin_actions.jsx';
 import AdminSettings from './admin_settings.jsx';
 import BooleanSetting from './boolean_setting.jsx';
 import {ConnectionSecurityDropdownSettingWebserver} from './connection_security_dropdown_setting.jsx';
-import PurgeCachesButton from './purge_caches.jsx';
-import ReloadConfigButton from './reload_config.jsx';
 import SettingsGroup from './settings_group.jsx';
+import RequestButton from './request_button/request_button';
 import TextSetting from './text_setting.jsx';
 import WebserverModeDropdownSetting from './webserver_mode_dropdown_setting.jsx';
 
@@ -83,6 +83,54 @@ export default class ConfigurationSettings extends AdminSettings {
     }
 
     renderSettings() {
+        const reloadConfigurationHelpText = (
+            <FormattedMessage
+                id='admin.reload.reloadDescription'
+                defaultMessage='Deployments using multiple databases can switch from one master database to another without restarting the Mattermost server by updating "config.json" to the new desired configuration and using the {featureName} feature to load the new settings while the server is running. The administrator should then use the {recycleDatabaseConnections} feature to recycle the database connections based on the new settings.'
+                values={{
+                    featureName: (
+                        <b>
+                            <FormattedMessage
+                                id='admin.reload.reloadDescription.featureName'
+                                defaultMessage='Reload Configuration from Disk'
+                            />
+                        </b>
+                    ),
+                    recycleDatabaseConnections: (
+                        <a href='../advanced/database'>
+                            <b>
+                                <FormattedMessage
+                                    id='admin.reload.reloadDescription.recycleDatabaseConnections'
+                                    defaultMessage='Database > Recycle Database Connections'
+                                />
+                            </b>
+                        </a>
+                    )
+                }}
+            />
+        );
+
+        let reloadConfigButton = <div/>;
+        if (global.window.mm_license.IsLicensed === 'true') {
+            reloadConfigButton = (
+                <RequestButton
+                    requestAction={reloadConfig}
+                    helpText={reloadConfigurationHelpText}
+                    buttonText={
+                        <FormattedMessage
+                            id='admin.reload.button'
+                            defaultMessage='Reload Configuration From Disk'
+                        />
+                    }
+                    showSuccessMessage={false}
+                    errorMessage={{
+                        id: 'admin.reload.reloadFail',
+                        defaultMessage: 'Reload unsuccessful: {error}'
+                    }}
+                />
+            );
+        }
+
         return (
             <SettingsGroup>
                 <div className='banner'>
@@ -261,8 +309,28 @@ export default class ConfigurationSettings extends AdminSettings {
                     onChange={this.handleChange}
                     disabled={false}
                 />
-                <ReloadConfigButton/>
-                <PurgeCachesButton/>
+                {reloadConfigButton}
+                <RequestButton
+                    requestAction={invalidateAllCaches}
+                    helpText={
+                        <FormattedMessage
+                            id='admin.purge.purgeDescription'
+                            defaultMessage='This will purge all the in-memory caches for things like sessions, accounts, channels, etc. Deployments using High Availability will attempt to purge all the servers in the cluster.  Purging the caches may adversely impact performance.'
+                        />
+                    }
+                    buttonText={
+                        <FormattedMessage
+                            id='admin.purge.button'
+                            defaultMessage='Purge All Caches'
+                        />
+                    }
+                    showSuccessMessage={false}
+                    includeDetailedError={true}
+                    errorMessage={{
+                        id: 'admin.purge.purgeFail',
+                        defaultMessage: 'Purging unsuccessful: {error}'
+                    }}
+                />
             </SettingsGroup>
         );
     }
