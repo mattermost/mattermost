@@ -47,9 +47,7 @@ func CreateCommandPost(post *model.Post, teamId string, response *model.CommandR
 
 	if response.ResponseType == model.COMMAND_RESPONSE_TYPE_IN_CHANNEL {
 		return CreatePost(post, teamId, true)
-	}
-
-	if response.ResponseType == "" || response.ResponseType == model.COMMAND_RESPONSE_TYPE_EPHEMERAL {
+	} else if response.ResponseType == "" || response.ResponseType == model.COMMAND_RESPONSE_TYPE_EPHEMERAL {
 		if response.Text == "" {
 			return post, nil
 		}

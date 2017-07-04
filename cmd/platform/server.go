@@ -212,5 +212,5 @@ func doTokenCleanup() {
 }
 
 func doCommandWebhookCleanup() {
-	app.Srv.Store.Webhook().CleanupCommand()
+	app.Srv.Store.CommandWebhook().Cleanup()
 }

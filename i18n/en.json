@@ -6532,23 +6532,23 @@
     "translation": "We couldn't update the webhook"
   },
   {
-    "id": "store.sql_webhooks.save_command.existing.app_error",
+    "id": "store.sql_command_webhooks.save.existing.app_error",
     "translation": "You cannot update an existing CommandWebhook"
   },
   {
-    "id": "store.sql_webhooks.save_command.app_error",
+    "id": "store.sql_command_webhooks.save.app_error",
     "translation": "We couldn't save the CommandWebhook"
   },
   {
-    "id": "store.sql_webhooks.get_command.app_error",
+    "id": "store.sql_command_webhooks.get.app_error",
     "translation": "We couldn't get the webhook"
   },
   {
-    "id": "store.sql_webhooks.try_use_command.app_error",
+    "id": "store.sql_command_webhooks.try_use.app_error",
     "translation": "Unable to use the webhook"
   },
   {
-    "id": "store.sql_webhooks.try_use_command.invalid.app_error",
+    "id": "store.sql_command_webhooks.try_use.invalid.app_error",
     "translation": "Invalid webhook"
   },
   {

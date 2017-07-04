@@ -41,6 +41,7 @@ type Store interface {
 	System() SystemStore
 	Webhook() WebhookStore
 	Command() CommandStore
+	CommandWebhook() CommandWebhookStore
 	Preference() PreferenceStore
 	License() LicenseStore
 	Token() TokenStore
@@ -313,11 +314,6 @@ type WebhookStore interface {
 	AnalyticsIncomingCount(teamId string) StoreChannel
 	AnalyticsOutgoingCount(teamId string) StoreChannel
 	InvalidateWebhookCache(webhook string)
-
-	SaveCommand(webhook *model.CommandWebhook) StoreChannel
-	GetCommand(id string) StoreChannel
-	TryUseCommand(id string, limit int) StoreChannel
-	CleanupCommand()
 }
 
 type CommandStore interface {
@@ -329,6 +325,13 @@ type CommandStore interface {
 	PermanentDeleteByUser(userId string) StoreChannel
 	Update(hook *model.Command) StoreChannel
 	AnalyticsCommandCount(teamId string) StoreChannel
+}
+
+type CommandWebhookStore interface {
+	Save(webhook *model.CommandWebhook) StoreChannel
+	Get(id string) StoreChannel
+	TryUse(id string, limit int) StoreChannel
+	Cleanup()
 }
 
 type PreferenceStore interface {
