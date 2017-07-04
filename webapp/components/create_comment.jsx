@@ -76,8 +76,7 @@ export default class CreateComment extends React.Component {
             ctrlSend: PreferenceStore.getBool(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS, 'send_on_ctrl_enter'),
             showPostDeletedModal: false,
             enableAddButton,
-            showEmojiPicker: false,
-            emojiPickerEnabled: window.mm_config.EnableEmojiPicker === 'true'
+            showEmojiPicker: false
         };
 
         this.lastBlurAt = 0;
@@ -608,7 +607,7 @@ export default class CreateComment extends React.Component {
                                 value={this.state.message}
                                 onBlur={this.handleBlur}
                                 createMessage={Utils.localizeMessage('create_comment.addComment', 'Add a comment...')}
-                                emojiEnabled={this.state.emojiPickerEnabled}
+                                emojiEnabled={window.mm_config.EnableEmojiPicker === 'true'}
                                 initialText=''
                                 channelId={this.props.channelId}
                                 id='reply_textbox'

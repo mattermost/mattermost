@@ -96,7 +96,6 @@ export default class CreatePost extends React.Component {
             showPostDeletedModal: false,
             enableSendButton: false,
             showEmojiPicker: false,
-            emojiPickerEnabled: window.mm_config.EnableEmojiPicker === 'true',
             showConfirmModal: false,
             totalMembers: members
         };
@@ -488,8 +487,7 @@ export default class CreatePost extends React.Component {
         this.setState({
             showTutorialTip: tutorialStep === TutorialSteps.POST_POPOVER,
             ctrlSend: PreferenceStore.getBool(Preferences.CATEGORY_ADVANCED_SETTINGS, 'send_on_ctrl_enter'),
-            fullWidthTextBox: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.CHANNEL_DISPLAY_MODE, Preferences.CHANNEL_DISPLAY_MODE_DEFAULT) === Preferences.CHANNEL_DISPLAY_MODE_FULL_SCREEN,
-            emojiPickerEnabled: window.mm_config.EnableEmojiPicker === 'true'
+            fullWidthTextBox: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.CHANNEL_DISPLAY_MODE, Preferences.CHANNEL_DISPLAY_MODE_DEFAULT) === Preferences.CHANNEL_DISPLAY_MODE_FULL_SCREEN
         });
     }
 
@@ -761,7 +759,7 @@ export default class CreatePost extends React.Component {
                                 handlePostError={this.handlePostError}
                                 value={this.state.message}
                                 onBlur={this.handleBlur}
-                                emojiEnabled={this.state.emojiPickerEnabled}
+                                emojiEnabled={window.mm_config.EnableEmojiPicker === 'true'}
                                 createMessage={Utils.localizeMessage('create_post.write', 'Write a message...')}
                                 channelId={this.state.channelId}
                                 id='post_textbox'
