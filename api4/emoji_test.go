@@ -173,7 +173,7 @@ func TestGetEmojiList(t *testing.T) {
 		emojis[idx] = emoji
 	}
 
-	listEmoji, resp := Client.GetEmojiList()
+	listEmoji, resp := Client.GetEmojiList(0, 100)
 	CheckNoError(t, resp)
 	for _, emoji := range emojis {
 		found := false
@@ -190,7 +190,7 @@ func TestGetEmojiList(t *testing.T) {
 
 	_, resp = Client.DeleteEmoji(emojis[0].Id)
 	CheckNoError(t, resp)
-	listEmoji, resp = Client.GetEmojiList()
+	listEmoji, resp = Client.GetEmojiList(0, 100)
 	CheckNoError(t, resp)
 	found := false
 	for _, savedEmoji := range listEmoji {
@@ -201,6 +201,13 @@ func TestGetEmojiList(t *testing.T) {
 		if found {
 			t.Fatalf("should not get a deleted emoji %v", emojis[0].Id)
 		}
+	}
+
+	listEmoji, resp = Client.GetEmojiList(0, 1)
+	CheckNoError(t, resp)
+
+	if len(listEmoji) != 1 {
+		t.Fatal("should only return 1")
 	}
 }
 

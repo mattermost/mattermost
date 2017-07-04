@@ -150,7 +150,7 @@ func (es SqlEmojiStore) GetByName(name string) StoreChannel {
 	return storeChannel
 }
 
-func (es SqlEmojiStore) GetAll() StoreChannel {
+func (es SqlEmojiStore) GetList(offset, limit int) StoreChannel {
 	storeChannel := make(StoreChannel, 1)
 
 	go func() {
@@ -164,8 +164,9 @@ func (es SqlEmojiStore) GetAll() StoreChannel {
 			FROM
 				Emoji
 			WHERE
-				DeleteAt = 0`); err != nil {
-			result.Err = model.NewLocAppError("SqlEmojiStore.Get", "store.sql_emoji.get_all.app_error", nil, err.Error())
+				DeleteAt = 0
+			LIMIT :Limit OFFSET :Offset`, map[string]interface{}{"Offset": offset, "Limit": limit}); err != nil {
+			result.Err = model.NewAppError("SqlEmojiStore.GetList", "store.sql_emoji.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
 		} else {
 			result.Data = emoji
 		}
