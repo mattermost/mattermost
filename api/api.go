@@ -6,6 +6,7 @@ package api
 import (
 	"net/http"
 
+	l4g "github.com/alecthomas/log4go"
 	"github.com/gorilla/mux"
 	"github.com/mattermost/platform/app"
 	"github.com/mattermost/platform/einterfaces"
@@ -115,6 +116,10 @@ func InitApi() {
 	utils.InitHTML()
 
 	app.InitEmailBatching()
+
+	if *utils.Cfg.ServiceSettings.EnableAPIv3 {
+		l4g.Info("API version 3 is scheduled for deprecation. Please see https://api.mattermost.com for details.")
+	}
 }
 
 func HandleEtag(etag string, routeName string, w http.ResponseWriter, r *http.Request) bool {

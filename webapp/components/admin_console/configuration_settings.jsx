@@ -2,7 +2,7 @@
 // See License.txt for license information.
 
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, FormattedHTMLMessage} from 'react-intl';
 
 import ErrorStore from 'stores/error_store.jsx';
 
@@ -47,6 +47,7 @@ export default class ConfigurationSettings extends AdminSettings {
         config.ServiceSettings.Forward80To443 = this.state.forward80To443;
         config.ServiceSettings.ReadTimeout = this.parseIntNonZero(this.state.readTimeout);
         config.ServiceSettings.WriteTimeout = this.parseIntNonZero(this.state.writeTimeout);
+        config.ServiceSettings.EnableAPIv3 = this.state.enableAPIv3;
 
         return config;
     }
@@ -63,7 +64,8 @@ export default class ConfigurationSettings extends AdminSettings {
             letsEncryptCertificateCacheFile: config.ServiceSettings.LetsEncryptCertificateCacheFile,
             forward80To443: config.ServiceSettings.Forward80To443,
             readTimeout: config.ServiceSettings.ReadTimeout,
-            writeTimeout: config.ServiceSettings.WriteTimeout
+            writeTimeout: config.ServiceSettings.WriteTimeout,
+            enableAPIv3: config.ServiceSettings.EnableAPIv3
         };
     }
 
@@ -302,6 +304,23 @@ export default class ConfigurationSettings extends AdminSettings {
                         />
                     }
                     value={this.state.writeTimeout}
+                    onChange={this.handleChange}
+                />
+                <BooleanSetting
+                    id='enableAPIv3'
+                    label={
+                        <FormattedMessage
+                            id='admin.service.enableAPIv3'
+                            defaultMessage='Allow use of API v3 endpoints:'
+                        />
+                    }
+                    helpText={
+                        <FormattedHTMLMessage
+                            id='admin.service.enableAPIv3Description'
+                            defaultMessage='Set to false to disable all version 3 endpoints of the REST API. Integrations that rely on API v3 will fail and can then be identified for migration to API v4. API v3 is deprecated and will be removed in the near future. See <a href="https://api.mattermost.com" target="_blank">https://api.mattermost.com</a> for details.'
+                        />
+                    }
+                    value={this.state.enableAPIv3}
                     onChange={this.handleChange}
                 />
                 <WebserverModeDropdownSetting

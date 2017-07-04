@@ -896,6 +896,10 @@
     "translation": "Sorry, we could not find the page."
   },
   {
+    "id": "api.context.v3_disabled.app_error",
+    "translation": "API version 3 has been disabled on this server. Please use API version 4. See https://api.mattermost.com for details."
+  },
+  {
     "id": "api.context.invalid_body_param.app_error",
     "translation": "Invalid or missing {{.Name}} in request body"
   },

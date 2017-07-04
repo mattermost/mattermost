@@ -205,6 +205,10 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		c.Path = "/" + strings.Join(splitURL[2:], "/")
 	}
 
+	if h.isApi && !*utils.Cfg.ServiceSettings.EnableAPIv3 {
+		c.Err = model.NewAppError("ServeHTTP", "api.context.v3_disabled.app_error", nil, "", http.StatusNotImplemented)
+	}
+
 	if c.Err == nil && h.requireUser {
 		c.UserRequired()
 	}
