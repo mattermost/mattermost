@@ -551,7 +551,7 @@ export default class AdminSidebar extends React.Component {
                             >
                                 {customBranding}
                                 <AdminSidebarSection
-                                    name='custom_emoji'
+                                    name='emoji'
                                     title={
                                         <FormattedMessage
                                             id='admin.sidebar.emoji'
