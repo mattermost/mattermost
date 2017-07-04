@@ -554,7 +554,7 @@ export default class Sidebar extends React.Component {
             );
         }
 
-        if (msgCount > 0) {
+        if (unreadCount.mentions > 0) {
             rowClass += ' has-badge';
         }
 

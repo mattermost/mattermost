@@ -26,7 +26,10 @@
             width: 15px;
         }
 
-        .icon__lock,
+        .icon__lock {
+            top: 2px;
+        }
+
         .icon__globe {
             top: 1px;
         }
@@ -34,8 +37,7 @@
 
     .sidebar-item__name {
         display: inline-block;
-        margin-right: 7px;
-        max-width: 130px;
+        max-width: 167px;
         overflow: hidden;
         text-overflow: ellipsis;
         vertical-align: top;
@@ -133,17 +135,19 @@
 
     .badge {
         @include border-radius(100px);
-        font-size: 11px;
-        height: 16px;
-        line-height: 15px;
-        min-width: 25px;
+        font-size: 13px;
+        height: 17px;
+        line-height: 16px;
+        min-width: 18px;
         padding: 0 5px;
-        position: relative;
+        position: absolute;
+        right: 15px;
+        top: 8px;
     }
 
     .nav-pills__container {
         -webkit-overflow-scrolling: touch;
-        height: calc(100% - 99px);
+        height: calc(100% - 120px);
         overflow: auto;
         position: relative;
     }
@@ -161,11 +165,11 @@
     }
 
     .nav-pills__unread-indicator-top {
-        top: 66px;
+        top: 80px;
     }
 
     .nav-pills__unread-indicator-bottom {
-        bottom: 50px;
+        bottom: 60px;
     }
 
     .nav {
@@ -195,9 +199,22 @@
                 line-height: 1.5;
                 outline: none;
                 overflow: hidden;
-                padding: 5px 17px;
+                padding: 5px 0 5px 17px;
                 text-overflow: ellipsis;
                 white-space: nowrap;
+
+                .icon {
+                    &.icon__globe,
+                    &.icon__lock {
+                        @include opacity(.4);
+                    }
+                }
+
+                &.has-badge {
+                    .sidebar-item__name {
+                        max-width: 142px;
+                    }
+                }
 
                 &.has-close {
                     &:hover {
@@ -211,11 +228,11 @@
                         @include opacity(0);
                         display: none;
                         font-family: 'Open Sans', sans-serif;
-                        font-size: 20px;
+                        font-size: 21px;
                         font-weight: 600;
                         position: absolute;
-                        right: 15px;
-                        top: -1px;
+                        right: 18px;
+                        top: 0px;
 
                         &:hover {
                             @include opacity(1);
@@ -239,6 +256,13 @@
                         position: absolute;
                         top: 0;
                         width: 3px;
+                    }
+                }
+
+                .icon {
+                    &.icon__globe,
+                    &.icon__lock {
+                        @include opacity(.7);
                     }
                 }
 
@@ -267,7 +291,7 @@
         font-size: 2em;
         font-weight: 700;
         line-height: 18px;
-        margin: -3px 0 0;
+        margin: -3px -1px 0 0;
         outline: none;
         padding: 0 5px;
         text-decoration: none;

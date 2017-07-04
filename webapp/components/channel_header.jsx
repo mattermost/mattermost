@@ -781,7 +781,7 @@ export default class ChannelHeader extends React.Component {
             headerTextContainer = (
                 <div
                     onClick={Utils.handleFormattedTextClick}
-                    className='channel-header__description light'
+                    className='channel-header__description'
                     dangerouslySetInnerHTML={{__html: headerText}}
                 />
             );
@@ -791,7 +791,7 @@ export default class ChannelHeader extends React.Component {
             headerTextContainer = (
                 <a
                     href='#'
-                    className='channel-header__description'
+                    className='channel-header__description light'
                     dangerouslySetInnerHTML={{__html: headerText}}
                 />
             );

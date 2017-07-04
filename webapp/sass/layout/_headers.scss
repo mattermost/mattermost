@@ -185,6 +185,16 @@
         white-space: nowrap;
         word-break: break-word;
 
+        &.light {
+            @include opacity(.6);
+            color: inherit;
+
+            &:hover,
+            &:focus {
+                color: inherit;
+            }
+        }
+
         .move--left & {
             max-width: calc(100vw - 780px);
         }
@@ -358,14 +368,13 @@
 
             .sidebar-header-dropdown__icon,
             .admin-navbar-dropdown__icon {
-                background: alpha-color($black, .1);
                 border-radius: 36px;
                 fill: $white;
                 float: right;
                 height: 36px;
                 line-height: 36px;
                 position: relative;
-                right: 3px;
+                right: -3px;
                 text-align: center;
                 top: 7px;
                 width: 36px;
@@ -400,9 +409,7 @@
         }
 
         .team__name {
-            float: left;
             line-height: 22px;
-            margin-top: -2px;
         }
 
         .user__name {

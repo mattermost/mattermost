@@ -901,12 +901,12 @@
                 @include translate3d(0, 100%, 0);
                 background: alpha-color($black, .9);
                 display: block;
-                height: calc(100% - 50px);
+                height: calc(100% - 48px);
                 left: 0;
                 overflow: auto;
                 padding: 1.4em 0 0;
                 position: fixed;
-                top: 54px;
+                top: 48px;
                 visibility: hidden;
                 width: 100%;
 
@@ -1078,7 +1078,7 @@
         }
 
         .nav-pills__container {
-            height: calc(100% - 42px);
+            height: calc(100% - 60px);
         }
 
         > div {
@@ -1135,7 +1135,7 @@
                 }
 
                 h4 {
-                    margin: 16px 0 8px;
+                    margin: 2em 0 1.5em;
                 }
 
                 > a {
