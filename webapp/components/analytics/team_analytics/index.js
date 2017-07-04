@@ -4,6 +4,7 @@
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import {getTeams} from 'mattermost-redux/actions/teams';
+import {getProfilesInTeam} from 'mattermost-redux/actions/users';
 
 import {getTeamsList} from 'mattermost-redux/selectors/entities/teams';
 import BrowserStore from 'stores/browser_store.jsx';
@@ -26,7 +27,8 @@ function mapStateToProps(state, ownProps) {
 function mapDispatchToProps(dispatch) {
     return {
         actions: bindActionCreators({
-            getTeams
+            getTeams,
+            getProfilesInTeam
         }, dispatch)
     };
 }
