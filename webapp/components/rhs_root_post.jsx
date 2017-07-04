@@ -228,6 +228,7 @@ export default class RhsRootPost extends React.Component {
                         target={() => this.refs.dotMenu}
                         container={this.props.getPostList}
                         onEmojiClick={this.reactEmojiClick}
+                        rightOffset={15}
                     />
                     <a
                         href='#'
