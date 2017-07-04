@@ -66,8 +66,8 @@ func CreateEmoji(sessionUserId string, emoji *model.Emoji, multiPartImageData *m
 	}
 }
 
-func GetEmojiList() ([]*model.Emoji, *model.AppError) {
-	if result := <-Srv.Store.Emoji().GetAll(); result.Err != nil {
+func GetEmojiList(page, perPage int) ([]*model.Emoji, *model.AppError) {
+	if result := <-Srv.Store.Emoji().GetList(page*perPage, perPage); result.Err != nil {
 		return nil, result.Err
 	} else {
 		return result.Data.([]*model.Emoji), nil
