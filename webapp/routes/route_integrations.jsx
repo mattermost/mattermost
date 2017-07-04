@@ -74,7 +74,7 @@ export default {
                 {
                     path: 'add',
                     getComponents: (location, callback) => {
-                        System.import('components/integrations/components/add_command.jsx').then(RouteUtils.importComponentSuccess(callback));
+                        System.import('components/integrations/components/add_command').then(RouteUtils.importComponentSuccess(callback));
                     }
                 },
                 {
