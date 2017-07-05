@@ -117,12 +117,12 @@ export default class PostList extends React.PureComponent {
         this.loadPosts(this.props.channel.id, this.props.focusedPostId);
         GlobalEventEmitter.addListener(EventTypes.POST_LIST_SCROLL_CHANGE, this.handleResize);
 
-        window.addEventListener('resize', this.handleResize);
+        window.addEventListener('resize', () => this.handleResize());
     }
 
     componentWillUnmount() {
         GlobalEventEmitter.removeListener(EventTypes.POST_LIST_SCROLL_CHANGE, this.handleResize);
-        window.removeEventListener('resize', this.handleResize);
+        window.removeEventListener('resize', () => this.handleResize());
     }
 
     componentWillReceiveProps(nextProps) {
@@ -210,17 +210,15 @@ export default class PostList extends React.PureComponent {
         }
 
         if (postList && prevPosts && posts && posts[0] && prevPosts[0]) {
-            // A new message was posted, so scroll to bottom if it was from current user
-            // or if user was already scrolled close to bottom
+            // A new message was posted, so scroll to bottom if user
+            // was already scrolled close to bottom
             let doScrollToBottom = false;
-            if (posts[0].id !== prevPosts[0].id && posts[0].pending_post_id !== prevPosts[0].pending_post_id) {
+            const postId = posts[0].id;
+            const prevPostId = prevPosts[0].id;
+            const pendingPostId = posts[0].pending_post_id;
+            if (postId !== prevPostId && pendingPostId !== prevPostId) {
                 // If already scrolled to bottom
                 if (this.wasAtBottom()) {
-                    doScrollToBottom = true;
-                }
-
-                // If new post was by current user
-                if (posts[0].user_id === this.props.currentUserId) {
                     doScrollToBottom = true;
                 }
 
@@ -252,10 +250,11 @@ export default class PostList extends React.PureComponent {
         return this.previousClientHeight + this.previousScrollTop >= this.previousScrollHeight - CLOSE_TO_BOTTOM_SCROLL_MARGIN;
     }
 
-    handleResize = () => {
+    handleResize = (forceScrollToBottom) => {
         const postList = this.refs.postlist;
+        const doScrollToBottom = this.wasAtBottom() || forceScrollToBottom;
 
-        if (postList && this.wasAtBottom()) {
+        if (postList && doScrollToBottom) {
             postList.scrollTop = postList.scrollHeight;
 
             this.previousScrollHeight = postList.scrollHeight;

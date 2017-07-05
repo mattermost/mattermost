@@ -256,7 +256,8 @@ export default class CreatePost extends React.Component {
             });
         }
 
-        PostActions.createPost(post, this.state.fileInfos, null,
+        PostActions.createPost(post, this.state.fileInfos,
+            () => GlobalActions.postListScrollChange(true),
             (err) => {
                 if (err.id === 'api.post.create_post.root_id.app_error') {
                     // this should never actually happen since you can't reply from this textbox
