@@ -3040,11 +3040,11 @@
     "translation": "Could not find channel member when importing direct channel post"
   },
   {
-    "id": "app.import.import_direct_channel.create_direct_channel.error",
+    "id": "app.import.import_direct_post.create_direct_channel.error",
     "translation": "Failed to get direct channel"
   },
   {
-    "id": "app.import.import_direct_channel.create_group_channel.error",
+    "id": "app.import.import_direct_post.create_group_channel.error",
     "translation": "Failed to get group channel"
   },
   {

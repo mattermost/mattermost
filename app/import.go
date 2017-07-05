@@ -1081,14 +1081,14 @@ func ImportDirectPost(data *DirectPostImportData, dryRun bool) *model.AppError {
 	if len(userIds) == 2 {
 		ch, err := createDirectChannel(userIds[0], userIds[1])
 		if err != nil && err.Id != store.CHANNEL_EXISTS_ERROR {
-			return model.NewAppError("BulkImport", "app.import.import_direct_channel.create_direct_channel.error", nil, "", http.StatusBadRequest)
+			return model.NewAppError("BulkImport", "app.import.import_direct_post.create_direct_channel.error", nil, "", http.StatusBadRequest)
 		} else {
 			channel = ch
 		}
 	} else {
 		ch, err := createGroupChannel(userIds, userIds[0])
 		if err != nil && err.Id != store.CHANNEL_EXISTS_ERROR  {
-			return model.NewAppError("BulkImport", "app.import.import_direct_channel.create_group_channel.error", nil, "", http.StatusBadRequest)
+			return model.NewAppError("BulkImport", "app.import.import_direct_post.create_group_channel.error", nil, "", http.StatusBadRequest)
 		} else {
 			channel = ch
 		}
