@@ -55,7 +55,7 @@ const (
 
 	MaxImageSize                 = 6048 * 4032 // 24 megapixels, roughly 36MB as a raw image
 	IMAGE_THUMBNAIL_PIXEL_WIDTH  = 120
-	IMAGE_THUMBNAIL_PIXEL_HEIGTH = 100
+	IMAGE_THUMBNAIL_PIXEL_HEIGHT = 100
 	IMAGE_PREVIEW_PIXEL_WIDTH    = 1024
 )
 
@@ -556,11 +556,16 @@ func getImageOrientation(input io.Reader) (int, error) {
 }
 
 func generateThumbnailImage(img image.Image, thumbnailPath string, width int, height int) {
+	thumbWidth := float64(IMAGE_THUMBNAIL_PIXEL_WIDTH)
+	thumbHeight := float64(IMAGE_THUMBNAIL_PIXEL_HEIGHT)
+	imgWidth := float64(width)
+	imgHeight := float64(height)
+
 	var thumbnail image.Image
-	if height < IMAGE_THUMBNAIL_PIXEL_HEIGTH && width < IMAGE_THUMBNAIL_PIXEL_WIDTH {
+	if imgHeight < IMAGE_THUMBNAIL_PIXEL_HEIGHT && imgWidth < thumbWidth {
 		thumbnail = img
-	} else if height/width < IMAGE_THUMBNAIL_PIXEL_HEIGTH/IMAGE_THUMBNAIL_PIXEL_WIDTH {
-		thumbnail = imaging.Resize(img, 0, IMAGE_THUMBNAIL_PIXEL_HEIGTH, imaging.Lanczos)
+	} else if imgHeight/imgWidth < thumbHeight/thumbWidth {
+		thumbnail = imaging.Resize(img, 0, IMAGE_THUMBNAIL_PIXEL_HEIGHT, imaging.Lanczos)
 	} else {
 		thumbnail = imaging.Resize(img, IMAGE_THUMBNAIL_PIXEL_WIDTH, 0, imaging.Lanczos)
 	}
