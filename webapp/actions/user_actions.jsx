@@ -500,7 +500,7 @@ export function updateUser(user, type, success, error) {
 }
 
 export function generateMfaSecret(success, error) {
-    UserActions.generateMfaSecret()(dispatch, getState).then(
+    UserActions.generateMfaSecret(UserStore.getCurrentId())(dispatch, getState).then(
         (data) => {
             if (data && success) {
                 success(data);
