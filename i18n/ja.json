@@ -429,7 +429,7 @@
   },
   {
     "id": "api.command.execute_command.not_found.app_error",
-    "translation": "トリガー'{{.Trigger}}'によるコマンドは見付かりませんでした"
+    "translation": "'{{.Trigger}}'がトリガーのコマンドが見つかりませんでした。\"/\"で始まるメッセージを送信するには、メッセージの最初にスペースを加えてみてください。"
   },
   {
     "id": "api.command.execute_command.save.app_error",
@@ -458,6 +458,10 @@
   {
     "id": "api.command.invite_people.hint",
     "translation": "[name@domain.com ...]"
+  },
+  {
+    "id": "api.command.invite_people.invite_off",
+    "translation": "このサーバーではユーザー作成が無効化されており、招待は送信されません。"
   },
   {
     "id": "api.command.invite_people.name",
@@ -494,6 +498,38 @@
   {
     "id": "api.command_away.success",
     "translation": "あなたは離席中です"
+  },
+  {
+    "id": "api.command_channel_header.channel.app_error",
+    "translation": "現在のチャンネルを取得する際にエラーが発生しました。"
+  },
+  {
+    "id": "api.command_channel_header.desc",
+    "translation": "チャンネルヘッダーを編集する"
+  },
+  {
+    "id": "api.command_channel_header.hint",
+    "translation": "[テキスト]"
+  },
+  {
+    "id": "api.command_channel_header.message.app_error",
+    "translation": "/headerコマンドはテキストを指定しなくてはいけません。"
+  },
+  {
+    "id": "api.command_channel_header.name",
+    "translation": "ヘッダー"
+  },
+  {
+    "id": "api.command_channel_header.permission.app_error",
+    "translation": "あなたにはチャンネルヘッダーを編集するのに必要な権限が付与されていません。"
+  },
+  {
+    "id": "api.command_channel_header.update_channel.app_error",
+    "translation": "現在のチャンネルを更新する際にエラーが発生しました。"
+  },
+  {
+    "id": "api.command_channel_header.update_channel.success",
+    "translation": "チャンネルヘッダーは正常に更新されました。"
   },
   {
     "id": "api.command_collapse.desc",
@@ -550,6 +586,14 @@
   {
     "id": "api.command_expand_collapse.fail.app_error",
     "translation": "プレビューの展開中にエラーが発生しました"
+  },
+  {
+    "id": "api.command_help.desc",
+    "translation": "Mattermostヘルプページを開く"
+  },
+  {
+    "id": "api.command_help.name",
+    "translation": "ヘルプ"
   },
   {
     "id": "api.command_join.desc",
@@ -661,7 +705,7 @@
   },
   {
     "id": "api.command_open.name",
-    "translation": "open"
+    "translation": "開く"
   },
   {
     "id": "api.command_settings.desc",
@@ -1648,6 +1692,10 @@
     "translation": " 一つ以上のファイルをアップロードしました "
   },
   {
+    "id": "api.post.send_notifications_and_forget.push_image_only_dm",
+    "translation": " 一つ以上のファイルをダイレクトメッセージにアップロードしました"
+  },
+  {
     "id": "api.post.send_notifications_and_forget.push_in",
     "translation": " in "
   },
@@ -2004,14 +2052,6 @@
     "translation": "動作中のgoroutineの数が正常動作の上限を超えています %v / %v"
   },
   {
-    "id": "api.team.add_user_to_team.invalid_data.app_error",
-    "translation": "不正なデータです。"
-  },
-  {
-    "id": "api.team.add_user_to_team.invalid_invite_id.app_error",
-    "translation": "不正な招待IDです。この招待IDに一致するチームはありません。"
-  },
-  {
     "id": "api.team.add_user_to_team.missing_parameter.app_error",
     "translation": "チームにユーザーを追加するにはパラメーターが必要です。"
   },
@@ -2082,6 +2122,10 @@
   {
     "id": "api.team.invite_members.already.app_error",
     "translation": "この人は既にあなたのチームのメンバーです"
+  },
+  {
+    "id": "api.team.invite_members.invalid_email.app_error",
+    "translation": "以下の電子メールアドレスのドメインは許可されていません: {{.Addresses}}。詳細についてはシステム管理者に問い合わせてください。"
   },
   {
     "id": "api.team.invite_members.member",
@@ -2976,8 +3020,48 @@
     "translation": "チャンネルのインポート中にエラーが発生しました。 名前 \"{{.TeamName}}\" のチームが見つかりません。"
   },
   {
+    "id": "app.import.import_direct_channel.create_direct_channel.error",
+    "translation": "ダイレクトチャンネルを取得できませんでした"
+  },
+  {
+    "id": "app.import.import_direct_channel.create_direct_channel.error",
+    "translation": "ダイレクトチャンネルを取得できませんでした"
+  },
+  {
+    "id": "app.import.import_direct_channel.create_group_channel.error",
+    "translation": "グループチャンネルを取得できませんでした"
+  },
+  {
+    "id": "app.import.import_direct_channel.create_group_channel.error",
+    "translation": "グループチャンネルを取得できませんでした"
+  },
+  {
+    "id": "app.import.import_direct_channel.member_not_found.error",
+    "translation": "ダイレクトチャンネルをインポートする際にチャンネルメンバーが見つかりませんでした"
+  },
+  {
+    "id": "app.import.import_direct_channel.update_header_failed.error",
+    "translation": "ダイレクトチャンネルのヘッダーを更新できませんでした"
+  },
+  {
+    "id": "app.import.import_direct_post.channel_member_not_found.error",
+    "translation": "ダイレクトチャンネルの投稿をインポートする際にチャンネルメンバーが見つかりませんでした"
+  },
+  {
+    "id": "app.import.import_direct_post.user_not_found.error",
+    "translation": "投稿ユーザーが存在しません"
+  },
+  {
     "id": "app.import.import_line.null_channel.error",
     "translation": "インポートデータに \"channel\" という型がありましたが、そのチャンネルのオブジェクトがnullでした。"
+  },
+  {
+    "id": "app.import.import_line.null_direct_channel.error",
+    "translation": "インポートデータに \"direct_channel\" という型がありましたが、そのダイレクトチャンネルのオブジェクトがnullでした。"
+  },
+  {
+    "id": "app.import.import_line.null_direct_post.error",
+    "translation": "インポートデータに \"direct_post\" という型がありましたが、そのダイレクト投稿のオブジェクトがnullでした。"
   },
   {
     "id": "app.import.import_line.null_post.error",
@@ -3050,6 +3134,54 @@
   {
     "id": "app.import.validate_channel_import_data.type_missing.error",
     "translation": "必須のチャンネル設定値 type が存在しません。"
+  },
+  {
+    "id": "app.import.validate_direct_channel_import_data.header_length.error",
+    "translation": "ダイレクトチャンネルのヘッダーが長すぎます"
+  },
+  {
+    "id": "app.import.validate_direct_channel_import_data.members_required.error",
+    "translation": "必須のダイレクトチャンネル設定値 members が存在しません。"
+  },
+  {
+    "id": "app.import.validate_direct_channel_import_data.members_too_few.error",
+    "translation": "ダイレクトチャンネルのメンバーリストに含まれる項目が少なすぎます"
+  },
+  {
+    "id": "app.import.validate_direct_channel_import_data.members_too_many.error",
+    "translation": "ダイレクトチャンネルのメンバーリストに含まれる項目が多すぎます"
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.channel_members_required.error",
+    "translation": "必須の投稿設定値 channel_members が存在しません。"
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.channel_members_too_few.error",
+    "translation": "ダイレクト投稿チャンネルのメンバーリストに含まれる項目が少なすぎます"
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.channel_members_too_many.error",
+    "translation": "ダイレクト投稿チャンネルのメンバーリストに含まれる項目が多すぎます"
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.create_at_missing.error",
+    "translation": "必須のダイレクト投稿設定値 create_at が存在しません。"
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.create_at_zero.error",
+    "translation": "CreateAtは0より大きい数値にしてください"
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.message_length.error",
+    "translation": "メッセージが長すぎます"
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.message_missing.error",
+    "translation": "必須のダイレクト投稿設定値 message が存在しません。"
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.user_missing.error",
+    "translation": "必須のダイレクト投稿設定値 user が存在しません。"
   },
   {
     "id": "app.import.validate_post_import_data.channel_missing.error",
@@ -3165,7 +3297,7 @@
   },
   {
     "id": "app.import.validate_user_import_data.last_name_length.error",
-    "translation": "ユーザーの姓（ラストネーム）が長すぎます。"
+    "translation": "ユーザーの苗字（ラストネーム）が長すぎます。"
   },
   {
     "id": "app.import.validate_user_import_data.nickname_length.error",
@@ -3370,6 +3502,14 @@
   {
     "id": "ent.elasticsearch.start.index_settings_failed",
     "translation": "ElasticSearchインデックス設定を設定できませんでした"
+  },
+  {
+    "id": "ent.elasticsearch.test_config.indexing_disabled.error",
+    "translation": "Elasticsearchは無効です。"
+  },
+  {
+    "id": "ent.elasticsearch.test_config.license.error",
+    "translation": "ライセンスはElasticsearchをサポートしていません。"
   },
   {
     "id": "ent.emoji.licence_disable.app_error",
@@ -4172,6 +4312,10 @@
     "translation": "SQL設定の問い合わせタイムアウトが不正です。  ゼロ以上の数を指定してください。"
   },
   {
+    "id": "model.config.is_valid.teammate_name_display.app_error",
+    "translation": "無効なチームメイト表示です。  'フルネーム'、'ニックネーム_フルネーム'、'ユーザー名'のいずれかにしてください。"
+  },
+  {
     "id": "model.config.is_valid.time_between_user_typing.app_error",
     "translation": "ユーザー入力の更新間隔は1000ミリ秒未満に設定しないでください。"
   },
@@ -4553,7 +4697,7 @@
   },
   {
     "id": "model.user.is_valid.last_name.app_error",
-    "translation": "不正な名前です"
+    "translation": "不正な苗字です"
   },
   {
     "id": "model.user.is_valid.nickname.app_error",
@@ -5722,6 +5866,10 @@
   {
     "id": "store.sql_user.get_for_login.multiple_users",
     "translation": "あなたの認証情報に合致する複数のユーザーが見付かり、ログインできません。システム管理者に連絡してください。"
+  },
+  {
+    "id": "store.sql_user.get_new_users.app_error",
+    "translation": "新しいユーザーを探す際にエラーが発生しました"
   },
   {
     "id": "store.sql_user.get_profiles.app_error",
