@@ -13,6 +13,7 @@ import BrowserStore from 'stores/browser_store.jsx';
 
 import * as AdminActions from 'actions/admin_actions.jsx';
 import {StatTypes} from 'utils/constants.jsx';
+import {General} from 'mattermost-redux/constants';
 
 import LineChart from 'components/analytics/line_chart.jsx';
 import StatisticCount from 'components/analytics/statistic_count.jsx';
@@ -39,7 +40,12 @@ export default class TeamAnalytics extends React.Component {
             /*
              * Function to get teams
              */
-            getTeams: PropTypes.func.isRequired
+            getTeams: PropTypes.func.isRequired,
+
+            /*
+             * Function to get users in a team
+             */
+            getProfilesInTeam: PropTypes.func.isRequired
         }).isRequired
     }
 
@@ -50,7 +56,9 @@ export default class TeamAnalytics extends React.Component {
 
         this.state = {
             team: props.initialTeam,
-            stats: AnalyticsStore.getAllTeam(teamId)
+            stats: AnalyticsStore.getAllTeam(teamId),
+            recentlyActiveUsers: [],
+            newUsers: []
         };
     }
 
@@ -70,10 +78,17 @@ export default class TeamAnalytics extends React.Component {
         }
     }
 
-    getData(id) {
+    getData = async (id) => {
         AdminActions.getStandardAnalytics(id);
         AdminActions.getPostsPerDayAnalytics(id);
         AdminActions.getUsersPerDayAnalytics(id);
+        const recentlyActiveUsers = await this.props.actions.getProfilesInTeam(id, 0, General.PROFILE_CHUNK_SIZE, 'last_activity_at');
+        const newUsers = await this.props.actions.getProfilesInTeam(id, 0, General.PROFILE_CHUNK_SIZE, 'create_at');
+
+        this.setState({
+            recentlyActiveUsers,
+            newUsers
+        });
     }
 
     componentWillUnmount() {
@@ -200,8 +215,8 @@ export default class TeamAnalytics extends React.Component {
             );
         }
 
-        const recentActiveUsers = formatRecentUsersData(stats[StatTypes.RECENTLY_ACTIVE_USERS]);
-        const newlyCreatedUsers = formatNewUsersData(stats[StatTypes.NEWLY_CREATED_USERS]);
+        const recentActiveUsers = formatRecentUsersData(this.state.recentlyActiveUsers);
+        const newlyCreatedUsers = formatNewUsersData(this.state.newUsers);
 
         const teams = this.props.teams.map((team) => {
             return (

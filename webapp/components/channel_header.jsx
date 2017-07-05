@@ -720,11 +720,7 @@ export default class ChannelHeader extends React.Component {
                 );
             }
 
-            if (ChannelUtils.showDeleteOption(channel, isAdmin, isSystemAdmin, isChannelAdmin)) {
-                if (!ChannelStore.isDefault(channel)) {
-                    dropdownContents.push(deleteOption);
-                }
-            } else if (this.state.userCount === 1) {
+            if (ChannelUtils.showDeleteOption(channel, isAdmin, isSystemAdmin, isChannelAdmin, this.state.userCount)) {
                 dropdownContents.push(deleteOption);
             }
 

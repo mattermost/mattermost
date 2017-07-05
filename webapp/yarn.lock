@@ -5043,7 +5043,7 @@ math-expression-evaluator@^1.2.14:
 
 mattermost-redux@mattermost/mattermost-redux#webapp-master:
   version "0.0.1"
-  resolved "https://codeload.github.com/mattermost/mattermost-redux/tar.gz/36bdc456028c19605263958ecb2e5b9612b4a67f"
+  resolved "https://codeload.github.com/mattermost/mattermost-redux/tar.gz/dd48556075c8be41aa5ac4a0165bbe830d496875"
   dependencies:
     deep-equal "1.0.1"
     harmony-reflect "1.5.1"
@@ -6487,9 +6487,9 @@ redux-persist@4.6.0:
     lodash "^4.17.4"
     lodash-es "^4.17.4"
 
-redux-persist@4.8.0, redux-persist@^4.5.0:
-  version "4.8.0"
-  resolved "https://registry.yarnpkg.com/redux-persist/-/redux-persist-4.8.0.tgz#17fd998949bdeef9275e4cf60ad5bbe1c73675fc"
+redux-persist@4.8.2, redux-persist@^4.5.0:
+  version "4.8.2"
+  resolved "https://registry.yarnpkg.com/redux-persist/-/redux-persist-4.8.2.tgz#7941202e0ce0a9fcc0263d66965f5263d34f43b9"
   dependencies:
     json-stringify-safe "^5.0.1"
     lodash "^4.17.4"

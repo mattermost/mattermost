@@ -121,17 +121,29 @@ export default class InstalledCommands extends React.PureComponent {
                 helpText={
                     <FormattedMessage
                         id='installed_commands.help'
-                        defaultMessage='Create slash commands for use in external integrations. Please see {link} to learn more.'
+                        defaultMessage='Use slash commands to connect external tools to Mattermost. {buildYourOwn} or visit the {appDirectory} to find self-hosted, third-party apps and integrations.'
                         values={{
-                            link: (
+                            buildYourOwn: (
                                 <a
                                     target='_blank'
                                     rel='noopener noreferrer'
                                     href='http://docs.mattermost.com/developer/slash-commands.html'
                                 >
                                     <FormattedMessage
-                                        id='installed_commands.helpLink'
-                                        defaultMessage='documentation'
+                                        id='installed_commands.help.buildYourOwn'
+                                        defaultMessage='Build your own'
+                                    />
+                                </a>
+                            ),
+                            appDirectory: (
+                                <a
+                                    target='_blank'
+                                    rel='noopener noreferrer'
+                                    href='https://about.mattermost.com/default-app-directory/'
+                                >
+                                    <FormattedMessage
+                                        id='installed_commands.help.appDirectory'
+                                        defaultMessage='App Directory'
                                     />
                                 </a>
                             )

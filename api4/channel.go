@@ -428,7 +428,7 @@ func getDeletedChannelsForTeam(c *Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	if channels, err := app.GetDeletedChannels(c.Params.TeamId, c.Params.Page * c.Params.PerPage, c.Params.PerPage); err != nil {
+	if channels, err := app.GetDeletedChannels(c.Params.TeamId, c.Params.Page*c.Params.PerPage, c.Params.PerPage); err != nil {
 		c.Err = err
 		return
 	} else {
@@ -540,17 +540,15 @@ func deleteChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Allow delete if user is the only member left in channel
-	if memberCount > 1 {
-		if channel.Type == model.CHANNEL_OPEN && !app.SessionHasPermissionToChannel(c.Session, channel.Id, model.PERMISSION_DELETE_PUBLIC_CHANNEL) {
-			c.SetPermissionError(model.PERMISSION_DELETE_PUBLIC_CHANNEL)
-			return
-		}
+	if channel.Type == model.CHANNEL_OPEN && !app.SessionHasPermissionToChannel(c.Session, channel.Id, model.PERMISSION_DELETE_PUBLIC_CHANNEL) {
+		c.SetPermissionError(model.PERMISSION_DELETE_PUBLIC_CHANNEL)
+		return
+	}
 
-		if channel.Type == model.CHANNEL_PRIVATE && !app.SessionHasPermissionToChannel(c.Session, channel.Id, model.PERMISSION_DELETE_PRIVATE_CHANNEL) {
-			c.SetPermissionError(model.PERMISSION_DELETE_PRIVATE_CHANNEL)
-			return
-		}
+	// Allow delete if there's only one member left in a private channel
+	if memberCount > 1 && channel.Type == model.CHANNEL_PRIVATE && !app.SessionHasPermissionToChannel(c.Session, channel.Id, model.PERMISSION_DELETE_PRIVATE_CHANNEL) {
+		c.SetPermissionError(model.PERMISSION_DELETE_PRIVATE_CHANNEL)
+		return
 	}
 
 	err = app.DeleteChannel(channel, c.Session.UserId)

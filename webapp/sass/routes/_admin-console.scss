@@ -369,6 +369,10 @@
 
         .nav__sub-menu {
             margin-bottom: 7px;
+
+            &:empty {
+                display: none;
+            }
         }
     }
 
@@ -386,11 +390,11 @@
     }
 
     .sidebar-section-title {
-        padding: 5px 35px 5px 15px;
+        padding: 7px 35px 7px 15px;
     }
 
     .sidebar-subsection-title {
-        padding: 5px 35px 5px 30px;
+        padding: 7px 35px 7px 30px;
     }
 
     .sidebar-section-title,
@@ -437,7 +441,7 @@
     .sidebar-subsection-title {
         &--active {
             &:after {
-                top: 2px;
+                top: 4px;
             }
         }
     }

@@ -21,6 +21,7 @@
         "EnableOnlyAdminIntegrations": true,
         "EnablePostUsernameOverride": false,
         "EnablePostIconOverride": false,
+        "EnableAPIv3": true,
         "EnableLinkPreviews": false,
         "EnableTesting": false,
         "EnableDeveloper": false,
@@ -77,7 +78,8 @@
         "RestrictPrivateChannelManageMembers": "all",
         "UserStatusAwayTimeout": 300,
         "MaxChannelsPerTeam": 2000,
-        "MaxNotificationsPerChannel": 1000
+        "MaxNotificationsPerChannel": 1000,
+        "TeammateNameDisplay": "full_name"
     },
     "SqlSettings": {
         "DriverName": "mysql",
