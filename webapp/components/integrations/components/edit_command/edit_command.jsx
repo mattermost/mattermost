@@ -101,7 +101,7 @@ export default class EditCommand extends React.PureComponent {
     }
 
     submitCommand = async () => {
-        const data = await this.props.actions.editCommand(this.newCmd);
+        const data = await this.props.actions.editCommand(this.newCommand);
 
         if (data) {
             browserHistory.push(`/${this.props.team.name}/integrations/commands`);
@@ -239,11 +239,11 @@ export default class EditCommand extends React.PureComponent {
             return;
         }
 
-        this.newCmd = command;
+        this.newCommand = command;
 
-        if (this.originalCommand.url !== this.newCmd.url ||
-            this.originalCommand.trigger !== this.newCmd.trigger ||
-            this.originalCommand.method !== this.newCmd.method) {
+        if (this.originalCommand.url !== this.newCommand.url ||
+            this.originalCommand.trigger !== this.newCommand.trigger ||
+            this.originalCommand.method !== this.newCommand.method) {
             this.handleConfirmModal();
             this.setState({
                 saving: false
