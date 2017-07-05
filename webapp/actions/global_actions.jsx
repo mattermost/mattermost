@@ -551,8 +551,9 @@ export function redirectUserToDefaultTeam() {
     }
 }
 
-export function postListScrollChange() {
+export function postListScrollChange(forceScrollToBottom = false) {
     AppDispatcher.handleViewAction({
-        type: EventTypes.POST_LIST_SCROLL_CHANGE
+        type: EventTypes.POST_LIST_SCROLL_CHANGE,
+        value: forceScrollToBottom
     });
 }
