@@ -297,7 +297,6 @@ export default class PostList extends React.PureComponent {
     }
 
     handleScroll = () => {
-        this.hasScrolledToFocusedPost = true;
         this.hasScrolled = true;
         this.previousScrollTop = this.refs.postlist.scrollTop;
 
