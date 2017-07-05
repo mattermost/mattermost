@@ -95,16 +95,13 @@
             }
 
             .icon {
+                display: none;
                 margin-right: 15px;
 
                 svg {
                     position: relative;
                     top: 7px;
                 }
-            }
-
-            .switch__shortcut {
-                display: none;
             }
 
             &:hover {
@@ -135,8 +132,8 @@
 
     .badge {
         @include border-radius(100px);
-        font-size: 13px;
-        height: 17px;
+        font-size: 11px;
+        height: 16px;
         line-height: 16px;
         min-width: 18px;
         padding: 0 5px;
