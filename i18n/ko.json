@@ -429,7 +429,7 @@
   },
   {
     "id": "api.command.execute_command.not_found.app_error",
-    "translation": "트리거 '{{.Trigger}}'에 의한 명령어를 찾을 수 없습니다"
+    "translation": "Command with a trigger of '{{.Trigger}}' not found. To send a message beginning with \"/\", try adding an empty space at the beginning of the message."
   },
   {
     "id": "api.command.execute_command.save.app_error",
@@ -458,6 +458,10 @@
   {
     "id": "api.command.invite_people.hint",
     "translation": "[name@domain.com ...]"
+  },
+  {
+    "id": "api.command.invite_people.invite_off",
+    "translation": "User creation has been disabled on this server, no invite(s) sent"
   },
   {
     "id": "api.command.invite_people.name",
@@ -494,6 +498,38 @@
   {
     "id": "api.command_away.success",
     "translation": "이제 자리비움 상태입니다."
+  },
+  {
+    "id": "api.command_channel_header.channel.app_error",
+    "translation": "Error to retrieve the current channel."
+  },
+  {
+    "id": "api.command_channel_header.desc",
+    "translation": "Edit the channel header"
+  },
+  {
+    "id": "api.command_channel_header.hint",
+    "translation": "[text]"
+  },
+  {
+    "id": "api.command_channel_header.message.app_error",
+    "translation": "Text must be provided with the /header command."
+  },
+  {
+    "id": "api.command_channel_header.name",
+    "translation": "header"
+  },
+  {
+    "id": "api.command_channel_header.permission.app_error",
+    "translation": "You do not have the appropriate permissions to edit the channel header."
+  },
+  {
+    "id": "api.command_channel_header.update_channel.app_error",
+    "translation": "Error to update the current channel."
+  },
+  {
+    "id": "api.command_channel_header.update_channel.success",
+    "translation": "Channel header successfully updated."
   },
   {
     "id": "api.command_collapse.desc",
@@ -550,6 +586,14 @@
   {
     "id": "api.command_expand_collapse.fail.app_error",
     "translation": "미리보기를 펼치는 중 오류가 발생하였습니다."
+  },
+  {
+    "id": "api.command_help.desc",
+    "translation": "Open the Mattermost help page"
+  },
+  {
+    "id": "api.command_help.name",
+    "translation": "help"
   },
   {
     "id": "api.command_join.desc",
@@ -1645,7 +1689,11 @@
   },
   {
     "id": "api.post.send_notifications_and_forget.push_image_only",
-    "translation": " Uploaded one or more files "
+    "translation": " Uploaded one or more files in "
+  },
+  {
+    "id": "api.post.send_notifications_and_forget.push_image_only_dm",
+    "translation": " Uploaded one or more files in a direct message"
   },
   {
     "id": "api.post.send_notifications_and_forget.push_in",
@@ -2004,14 +2052,6 @@
     "translation": "The number of running goroutines is over the health threshold %v of %v"
   },
   {
-    "id": "api.team.add_user_to_team.invalid_data.app_error",
-    "translation": "Invalid data."
-  },
-  {
-    "id": "api.team.add_user_to_team.invalid_invite_id.app_error",
-    "translation": "Invalid invite id. No team matches with this invite id."
-  },
-  {
     "id": "api.team.add_user_to_team.missing_parameter.app_error",
     "translation": "Parameter required to add user to team."
   },
@@ -2082,6 +2122,10 @@
   {
     "id": "api.team.invite_members.already.app_error",
     "translation": "이미 팀에 가입되어 있는 사용자입니다."
+  },
+  {
+    "id": "api.team.invite_members.invalid_email.app_error",
+    "translation": "The following email addresses do not belong to an accepted domain: {{.Addresses}}. Please contact your System Administrator for details."
   },
   {
     "id": "api.team.invite_members.member",
@@ -2976,8 +3020,48 @@
     "translation": "Error importing channel. Team with name \"{{.TeamName}}\" could not be found."
   },
   {
+    "id": "app.import.import_direct_channel.create_direct_channel.error",
+    "translation": "Failed to get direct channel"
+  },
+  {
+    "id": "app.import.import_direct_channel.create_direct_channel.error",
+    "translation": "Failed to get direct channel"
+  },
+  {
+    "id": "app.import.import_direct_channel.create_group_channel.error",
+    "translation": "Failed to get group channel"
+  },
+  {
+    "id": "app.import.import_direct_channel.create_group_channel.error",
+    "translation": "Failed to get group channel"
+  },
+  {
+    "id": "app.import.import_direct_channel.member_not_found.error",
+    "translation": "Could not find channel member when importing direct channel"
+  },
+  {
+    "id": "app.import.import_direct_channel.update_header_failed.error",
+    "translation": "Failed to update direct channel header"
+  },
+  {
+    "id": "app.import.import_direct_post.channel_member_not_found.error",
+    "translation": "Could not find channel member when importing direct channel post"
+  },
+  {
+    "id": "app.import.import_direct_post.user_not_found.error",
+    "translation": "Post user does not exist"
+  },
+  {
     "id": "app.import.import_line.null_channel.error",
     "translation": "Import data line has type \"channel\" but the channel object is null."
+  },
+  {
+    "id": "app.import.import_line.null_direct_channel.error",
+    "translation": "Import data line has type \"direct_channel\" but the direct_channel object is null."
+  },
+  {
+    "id": "app.import.import_line.null_direct_post.error",
+    "translation": "Import data line has type \"direct_post\" but the direct_post object is null."
   },
   {
     "id": "app.import.import_line.null_post.error",
@@ -3050,6 +3134,54 @@
   {
     "id": "app.import.validate_channel_import_data.type_missing.error",
     "translation": "Missing required channel property: type."
+  },
+  {
+    "id": "app.import.validate_direct_channel_import_data.header_length.error",
+    "translation": "Direct channel header is too long"
+  },
+  {
+    "id": "app.import.validate_direct_channel_import_data.members_required.error",
+    "translation": "Missing required direct channel property: members"
+  },
+  {
+    "id": "app.import.validate_direct_channel_import_data.members_too_few.error",
+    "translation": "Direct channel members list contains too few items"
+  },
+  {
+    "id": "app.import.validate_direct_channel_import_data.members_too_many.error",
+    "translation": "Direct channel members list contains too many items"
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.channel_members_required.error",
+    "translation": "Missing required direct post property: channel_members"
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.channel_members_too_few.error",
+    "translation": "Direct post channel members list contains too few items"
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.channel_members_too_many.error",
+    "translation": "Direct post channel members list contains too many items"
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.create_at_missing.error",
+    "translation": "Missing required direct post property: create_at"
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.create_at_zero.error",
+    "translation": "CreateAt must be greater than 0"
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.message_length.error",
+    "translation": "Message is too long"
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.message_missing.error",
+    "translation": "Missing required direct post property: message"
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.user_missing.error",
+    "translation": "Missing required direct post property: user"
   },
   {
     "id": "app.import.validate_post_import_data.channel_missing.error",
@@ -3370,6 +3502,14 @@
   {
     "id": "ent.elasticsearch.start.index_settings_failed",
     "translation": "Failed to set ElasticSearch index settings"
+  },
+  {
+    "id": "ent.elasticsearch.test_config.indexing_disabled.error",
+    "translation": "Elasticsearch is disabled."
+  },
+  {
+    "id": "ent.elasticsearch.test_config.license.error",
+    "translation": "License does not support Elasticsearch."
   },
   {
     "id": "ent.emoji.licence_disable.app_error",
@@ -4170,6 +4310,10 @@
   {
     "id": "model.config.is_valid.sql_query_timeout.app_error",
     "translation": "파일 세팅에 대해 잘못된 프로파일 높이 값입니다. 0보다 큰 값이여야 합니다."
+  },
+  {
+    "id": "model.config.is_valid.teammate_name_display.app_error",
+    "translation": "Invalid teammate display.  Must be 'full_name', 'nickname_full_name' or 'username'"
   },
   {
     "id": "model.config.is_valid.time_between_user_typing.app_error",
@@ -5724,12 +5868,16 @@
     "translation": "We found multiple users matching your credentials and were unable to log you in. Please contact an administrator."
   },
   {
+    "id": "store.sql_user.get_new_users.app_error",
+    "translation": "We encountered an error while finding preferences"
+  },
+  {
     "id": "store.sql_user.get_profiles.app_error",
     "translation": "We encountered an error while finding user profiles"
   },
   {
     "id": "store.sql_user.get_recently_active_users.app_error",
-    "translation": "We encountered an error while finding the recently active users"
+    "translation": "We encountered an error while finding preferences"
   },
   {
     "id": "store.sql_user.get_sysadmin_profiles.app_error",
