@@ -565,13 +565,13 @@ export function applyTheme(theme) {
     }
 
     if (theme.mentionBj) {
-        changeCss('.sidebar--left .nav-pills__unread-indicator, .app__body .new-messages__button div', 'background:' + theme.mentionBj);
+        changeCss('.sidebar--left .nav-pills__unread-indicator', 'background:' + theme.mentionBj);
         changeCss('.app__body .sidebar--left .badge', 'background:' + theme.mentionBj);
         changeCss('.multi-teams .team-sidebar .badge', 'background:' + theme.mentionBj);
     }
 
     if (theme.mentionColor) {
-        changeCss('.app__body .sidebar--left .nav-pills__unread-indicator, .app__body .new-messages__button div', 'color:' + theme.mentionColor);
+        changeCss('.app__body .sidebar--left .nav-pills__unread-indicator', 'color:' + theme.mentionColor);
         changeCss('.app__body .sidebar--left .badge', 'color:' + theme.mentionColor);
         changeCss('.app__body .multi-teams .team-sidebar .badge', 'color:' + theme.mentionColor);
     }
@@ -711,12 +711,12 @@ export function applyTheme(theme) {
     }
 
     if (theme.buttonBg) {
-        changeCss('.app__body .btn.btn-primary, .app__body .tutorial__circles .circle.active, .app__body .post__pinned-badge', 'background:' + theme.buttonBg);
+        changeCss('.app__body .new-messages__button div, .app__body .btn.btn-primary, .app__body .tutorial__circles .circle.active, .app__body .post__pinned-badge', 'background:' + theme.buttonBg);
         changeCss('.app__body .btn.btn-primary:hover, .app__body .btn.btn-primary:active, .app__body .btn.btn-primary:focus', 'background:' + changeColor(theme.buttonBg, -0.15));
     }
 
     if (theme.buttonColor) {
-        changeCss('.app__body .btn.btn-primary, .app__body .post__pinned-badge', 'color:' + theme.buttonColor);
+        changeCss('.app__body .new-messages__button div, .app__body .btn.btn-primary, .app__body .post__pinned-badge', 'color:' + theme.buttonColor);
     }
 
     if (theme.errorTextColor) {

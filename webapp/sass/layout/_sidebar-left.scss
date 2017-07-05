@@ -19,9 +19,9 @@
     .sidebar-item {
         .icon {
             display: inline-block;
-            margin-right: 8px;
+            margin: 0 7px 0 1px;
             position: relative;
-            text-align: center;
+            text-align: left;
             vertical-align: top;
             width: 15px;
         }
@@ -288,10 +288,10 @@
 
     .add-channel-btn {
         float: right;
-        font-size: 2em;
+        font-size: 1.9em;
         font-weight: 700;
         line-height: 18px;
-        margin: -3px -1px 0 0;
+        margin: -2px 0 0 0;
         outline: none;
         padding: 0 5px;
         text-decoration: none;
@@ -326,17 +326,21 @@
                 &:after {
                     border-radius: 20px;
                     content: '';
-                    height: 8px;
-                    left: 5px;
+                    height: 10px;
+                    left: 4px;
                     position: absolute;
-                    top: 6px;
-                    width: 8px;
+                    top: 4px;
+                    width: 10px;
                 }
             }
 
             svg {
+                height: 13px;
+                left: 3px;
+                max-height: initial;
                 position: relative;
-                top: 4px;
+                top: 3px;
+                width: 13px;
                 z-index: 1;
             }
         }

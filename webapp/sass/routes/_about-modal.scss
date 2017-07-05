@@ -29,6 +29,12 @@
                     margin: 0 5px 0 8px;
                     position: relative;
                     top: 1px;
+
+                    svg {
+                        @include opacity(.8);
+                        height: 14px;
+                        width: 14px;
+                    }
                 }
             }
         }

@@ -37,13 +37,21 @@
     z-index: 101;
 
     .icon {
+        @include opacity(.5);
         display: inline-block;
-        margin: 0 5px 0 0;
+        margin: 0 7px 0 0;
         position: relative;
         text-align: center;
         top: 2px;
         vertical-align: top;
-        width: 15px;
+        width: 16px;
+
+        &.icon__globe {
+            svg {
+                height: 14px;
+                width: 14px;
+            }
+        }
     }
 
     .status {
@@ -69,11 +77,12 @@
     @include border-radius(20px);
     display: block;
     font-size: 15px;
-    height: 20px;
-    line-height: 20px;
-    margin-right: 6px;
+    height: 16px;
+    line-height: 16px;
+    margin-right: 7px;
+    margin-top: 3px;
     text-align: center;
-    width: 20px;
+    width: 16px;
 
     .mention--align {
         display: inline-block;

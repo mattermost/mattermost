@@ -178,12 +178,18 @@
 
     .channel-header__description {
         display: inline-block;
+        height: 22px;
         margin-top: 3px;
         max-width: calc(100vw - 730px);
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
         word-break: break-word;
+
+        .markdown__heading {
+            font-size: 1em;
+            margin: 0;
+        }
 
         .multi-teams & {
             max-width: calc(100vw - 780px);
