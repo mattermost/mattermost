@@ -543,6 +543,14 @@ func AddUserToChannel(user *model.User, channel *model.Channel) (*model.ChannelM
 }
 
 func AddChannelMember(userId string, channel *model.Channel, userRequestorId string) (*model.ChannelMember, *model.AppError) {
+	if result := <-Srv.Store.Channel().GetMember(channel.Id, userId); result.Err != nil {
+		if result.Err.Id != store.MISSING_CHANNEL_MEMBER_ERROR {
+			return nil, result.Err
+		}
+	} else {
+		return result.Data.(*model.ChannelMember), nil
+	}
+
 	var user *model.User
 	var err *model.AppError
 
