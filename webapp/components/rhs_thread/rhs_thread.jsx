@@ -9,11 +9,9 @@ import FloatingTimestamp from 'components/post_view/floating_timestamp.jsx';
 import DateSeparator from 'components/post_view/date_separator.jsx';
 
 import UserStore from 'stores/user_store.jsx';
-import ChannelStore from 'stores/channel_store.jsx';
 import PreferenceStore from 'stores/preference_store.jsx';
 import WebrtcStore from 'stores/webrtc_store.jsx';
 
-import * as GlobalActions from 'actions/global_actions.jsx';
 import * as Utils from 'utils/utils.jsx';
 import DelayedAction from 'utils/delayed_action.jsx';
 
@@ -322,21 +320,11 @@ export default class RhsThread extends React.Component {
         return this.refs.postListContainer;
     }
 
-    handleClose() {
-        GlobalActions.emitCloseRightHandSide();
-        this.props.shrink();
-    }
-
     render() {
         if (this.props.posts == null || this.props.selected == null) {
             return (
                 <div/>
             );
-        }
-
-        const isCurrentUserChannelMember = ChannelStore.isCurrentUserChannelMember(this.props.selected.channel_id);
-        if (!isCurrentUserChannelMember) {
-            this.handleClose();
         }
 
         const postsArray = this.filterPosts(this.props.posts, this.props.selected, this.state.openTime);

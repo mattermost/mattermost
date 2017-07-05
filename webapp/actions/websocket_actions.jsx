@@ -341,6 +341,8 @@ function handleUserRemovedEvent(msg) {
             $('#removed_from_channel').modal('show');
         }
 
+        GlobalActions.toggleSideBarAction(false);
+
         const townsquare = ChannelStore.getByName('town-square');
         browserHistory.push(TeamStore.getCurrentTeamRelativeUrl() + '/channels/' + townsquare.name);
 

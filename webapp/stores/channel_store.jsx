@@ -205,14 +205,6 @@ class ChannelStoreClass extends EventEmitter {
         return null;
     }
 
-    isCurrentUserChannelMember(channelId) {
-        if (this.getMyMembers()[channelId]) {
-            return true;
-        }
-
-        return false;
-    }
-
     getCurrentStats() {
         return this.getStats(this.getCurrentId());
     }
