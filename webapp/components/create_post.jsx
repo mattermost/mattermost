@@ -8,7 +8,7 @@ import FileUpload from './file_upload.jsx';
 import FilePreview from './file_preview.jsx';
 import PostDeletedModal from './post_deleted_modal.jsx';
 import TutorialTip from './tutorial/tutorial_tip.jsx';
-import EmojiPicker from './emoji_picker/emoji_picker.jsx';
+import EmojiPickerOverlay from 'components/emoji_picker/emoji_picker_overlay.jsx';
 
 import AppDispatcher from 'dispatcher/app_dispatcher.jsx';
 import * as GlobalActions from 'actions/global_actions.jsx';
@@ -28,7 +28,6 @@ import ConfirmModal from './confirm_modal.jsx';
 import Constants from 'utils/constants.jsx';
 
 import {FormattedHTMLMessage, FormattedMessage} from 'react-intl';
-import {RootCloseWrapper} from 'react-overlays';
 import {browserHistory} from 'react-router/es6';
 
 const Preferences = Constants.Preferences;
@@ -37,6 +36,7 @@ const ActionTypes = Constants.ActionTypes;
 const KeyCodes = Constants.KeyCodes;
 
 import React from 'react';
+import PropTypes from 'prop-types';
 
 export const REACTION_PATTERN = /^(\+|-):([^:\s]+):\s*$/;
 export const EMOJI_PATTERN = /:[A-Za-z-_0-9]*:/g;
@@ -60,6 +60,7 @@ export default class CreatePost extends React.Component {
         this.onPreferenceChange = this.onPreferenceChange.bind(this);
         this.getFileCount = this.getFileCount.bind(this);
         this.getFileUploadTarget = this.getFileUploadTarget.bind(this);
+        this.getCreatePostControls = this.getCreatePostControls.bind(this);
         this.handleKeyDown = this.handleKeyDown.bind(this);
         this.handleBlur = this.handleBlur.bind(this);
         this.sendMessage = this.sendMessage.bind(this);
@@ -109,6 +110,10 @@ export default class CreatePost extends React.Component {
 
     toggleEmojiPicker = () => {
         this.setState({showEmojiPicker: !this.state.showEmojiPicker});
+    }
+
+    hideEmojiPicker = () => {
+        this.setState({showEmojiPicker: false});
     }
 
     doSubmit(e) {
@@ -500,6 +505,10 @@ export default class CreatePost extends React.Component {
         return this.refs.textbox;
     }
 
+    getCreatePostControls() {
+        return this.refs.createPostControls;
+    }
+
     handleKeyDown(e) {
         if (this.state.ctrlSend && e.keyCode === KeyCodes.ENTER && e.ctrlKey === true) {
             this.postMsgKeyPress(e);
@@ -693,21 +702,44 @@ export default class CreatePost extends React.Component {
             sendButtonClass += ' disabled';
         }
 
-        let emojiPicker = null;
-        if (this.state.showEmojiPicker) {
-            emojiPicker = (
-                <RootCloseWrapper onRootClose={this.toggleEmojiPicker}>
-                    <EmojiPicker
-                        onHide={this.toggleEmojiPicker}
-                        onEmojiClick={this.handleEmojiClick}
-                    />
-                </RootCloseWrapper>
-            );
-        }
-
         let attachmentsDisabled = '';
         if (global.window.mm_config.EnableFileAttachments === 'false') {
             attachmentsDisabled = ' post-create--attachment-disabled';
+        }
+
+        const fileUpload = (
+            <FileUpload
+                ref='fileUpload'
+                getFileCount={this.getFileCount}
+                getTarget={this.getFileUploadTarget}
+                onFileUploadChange={this.handleFileUploadChange}
+                onUploadStart={this.handleUploadStart}
+                onFileUpload={this.handleFileUploadComplete}
+                onUploadError={this.handleUploadError}
+                postType='post'
+                channelId=''
+            />
+        );
+
+        let emojiPicker = null;
+        if (Utils.isFeatureEnabled(Constants.PRE_RELEASE_FEATURES.EMOJI_PICKER_PREVIEW)) {
+            emojiPicker = (
+                <span>
+                    <EmojiPickerOverlay
+                        show={this.state.showEmojiPicker}
+                        container={this.props.getChannelView}
+                        target={this.getCreatePostControls}
+                        onHide={this.hideEmojiPicker}
+                        onEmojiClick={this.handleEmojiClick}
+                        rightOffset={15}
+                        topOffset={-7}
+                    />
+                    <span
+                        className={'fa fa-smile-o icon--emoji-picker emoji-main'}
+                        onClick={this.toggleEmojiPicker}
+                    />
+                </span>
+            );
         }
 
         return (
@@ -734,22 +766,13 @@ export default class CreatePost extends React.Component {
                                 id='post_textbox'
                                 ref='textbox'
                             />
-                            <FileUpload
-                                ref='fileUpload'
-                                getFileCount={this.getFileCount}
-                                getTarget={this.getFileUploadTarget}
-                                onFileUploadChange={this.handleFileUploadChange}
-                                onUploadStart={this.handleUploadStart}
-                                onFileUpload={this.handleFileUploadComplete}
-                                onUploadError={this.handleUploadError}
-                                postType='post'
-                                channelId=''
-                                onEmojiClick={this.toggleEmojiPicker}
-                                emojiEnabled={this.state.emojiPickerEnabled}
-                                navBarName='main'
-                            />
-
-                            {emojiPicker}
+                            <span
+                                ref='createPostControls'
+                                className='btn btn-file'
+                            >
+                                {fileUpload}
+                                {emojiPicker}
+                            </span>
                         </div>
                         <a
                             className={sendButtonClass}
@@ -785,3 +808,7 @@ export default class CreatePost extends React.Component {
         );
     }
 }
+
+CreatePost.propTypes = {
+    getChannelView: PropTypes.func
+};

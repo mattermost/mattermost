@@ -320,6 +320,10 @@ export default class RhsThread extends React.Component {
         return this.refs.postListContainer;
     }
 
+    getSidebarBody = () => {
+        return this.refs.sidebarbody;
+    }
+
     render() {
         if (this.props.posts == null || this.props.selected == null) {
             return (
@@ -403,7 +407,10 @@ export default class RhsThread extends React.Component {
         }
 
         return (
-            <div className='sidebar-right__body'>
+            <div
+                className='sidebar-right__body'
+                ref='sidebarbody'
+            >
                 <FloatingTimestamp
                     isScrolling={this.state.isScrolling}
                     isMobile={Utils.isMobile()}
@@ -460,6 +467,7 @@ export default class RhsThread extends React.Component {
                                 channelId={selected.channel_id}
                                 rootId={selected.id}
                                 latestPostId={postsLength > 0 ? postsArray[postsLength - 1].id : selected.id}
+                                getSidebarBody={this.getSidebarBody}
                             />
                         </div>
                     </div>
