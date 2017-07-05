@@ -31,10 +31,17 @@ const CATEGORIES = [
 export default class EmojiPicker extends React.Component {
     static propTypes = {
         style: PropTypes.object,
+        rightOffset: PropTypes.number,
+        topOffset: PropTypes.number,
         placement: PropTypes.oneOf(['top', 'bottom', 'left']),
         customEmojis: PropTypes.object,
         onEmojiClick: PropTypes.func.isRequired
     }
+
+    static defaultProps = {
+        rightOffset: 0,
+        topOffset: 0
+    };
 
     constructor(props) {
         super(props);
@@ -299,11 +306,15 @@ export default class EmojiPicker extends React.Component {
                 pickerStyle = {
                     top: this.props.style.top,
                     bottom: this.props.style.bottom,
-                    right: 1
+                    right: this.props.rightOffset
                 };
             } else {
                 pickerStyle = this.props.style;
             }
+        }
+
+        if (pickerStyle && pickerStyle.top) {
+            pickerStyle.top += this.props.topOffset;
         }
 
         return (
