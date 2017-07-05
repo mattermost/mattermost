@@ -129,7 +129,7 @@ export default class SidebarRight extends React.Component {
         const wasOpen = prevState.searchVisible || prevProps.postRightVisible;
 
         if (isOpen && !wasOpen) {
-            postListScrollChange();
+            setTimeout(() => postListScrollChange(), 0);
         }
     }
 

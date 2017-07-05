@@ -91,7 +91,8 @@ export default class ChannelHeader extends React.Component {
             enableFormatting: PreferenceStore.getBool(Preferences.CATEGORY_ADVANCED_SETTINGS, 'formatting', true),
             isBusy: WebrtcStore.isBusy(),
             isFavorite: channel && ChannelUtils.isFavoriteChannel(channel),
-            showLeaveChannelModal: false
+            showLeaveChannelModal: false,
+            pinsOpen: SearchStore.getIsPinnedPosts()
         };
     }
 
@@ -880,6 +881,11 @@ export default class ChannelHeader extends React.Component {
 
         const leaveChannelModal = this.createLeaveChannelModal();
 
+        let pinnedIconClass = 'channel-header__icon';
+        if (this.state.pinsOpen) {
+            pinnedIconClass += ' active';
+        }
+
         return (
             <div
                 id='channel-header'
@@ -928,7 +934,7 @@ export default class ChannelHeader extends React.Component {
                                     overlay={pinnedPostTooltip}
                                 >
                                     <div
-                                        className='channel-header__icon'
+                                        className={pinnedIconClass}
                                         onClick={this.getPinnedPosts}
                                     >
                                         <span
