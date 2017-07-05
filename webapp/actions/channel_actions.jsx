@@ -8,6 +8,7 @@ import * as ChannelUtils from 'utils/channel_utils.jsx';
 import PreferenceStore from 'stores/preference_store.jsx';
 
 import * as GlobalActions from 'actions/global_actions.jsx';
+import * as PostActions from 'actions/post_actions.jsx';
 
 import {loadProfilesForSidebar, loadNewDMIfNeeded, loadNewGMIfNeeded} from 'actions/user_actions.jsx';
 import {trackEvent} from 'actions/diagnostics_actions.jsx';
@@ -57,6 +58,9 @@ export function executeCommand(message, args, success, error) {
     msg = cmd + msg.substring(cmdLength, msg.length);
 
     switch (cmd) {
+    case '/search':
+        PostActions.searchForTerm(msg.substring(cmdLength + 1, msg.length));
+        return;
     case '/shortcuts':
         if (UserAgent.isMobile()) {
             const err = {message: Utils.localizeMessage('create_post.shortcutsNotSupported', 'Keyboard shortcuts are not supported on your device')};
