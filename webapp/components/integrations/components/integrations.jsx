@@ -145,6 +145,26 @@ export default class Integrations extends React.Component {
                         />
                     </h1>
                 </div>
+                <div className='backstage-list__help'>
+                    <FormattedMessage
+                        id='integrations.help'
+                        defaultMessage='Visit the {appDirectory} to find self-hosted, third-party apps and integrations for Mattermost.'
+                        values={{
+                            appDirectory: (
+                                <a
+                                    target='_blank'
+                                    rel='noopener noreferrer'
+                                    href='https://about.mattermost.com/default-app-directory/'
+                                >
+                                    <FormattedMessage
+                                        id='integrations.help.appDirectory'
+                                        defaultMessage='App Directory'
+                                    />
+                                </a>
+                            )
+                        }}
+                    />
+                </div>
                 <div>
                     {options}
                 </div>
