@@ -54,26 +54,7 @@ function completePostReceive(post, websocketMessageProps) {
     if (post.root_id && Selectors.getPost(getState(), post.root_id) == null) {
         PostActions.getPostThread(post.root_id)(dispatch, getState).then(
             (data) => {
-                // Need manual dispatch to remove pending post
-                dispatch({
-                    type: PostTypes.RECEIVED_POSTS,
-                    data: {
-                        order: [],
-                        posts: {
-                            [post.id]: post
-                        }
-                    },
-                    channelId: post.channel_id
-                });
-
-                // Still needed to update unreads
-                AppDispatcher.handleServerAction({
-                    type: ActionTypes.RECEIVED_POST,
-                    post,
-                    websocketMessageProps
-                });
-
-                sendDesktopNotification(post, websocketMessageProps);
+                dispatchPostActions(post, websocketMessageProps);
                 loadProfilesForPosts(data.posts);
             }
         );
@@ -81,6 +62,21 @@ function completePostReceive(post, websocketMessageProps) {
         return;
     }
 
+    dispatchPostActions(post, websocketMessageProps);
+}
+
+function dispatchPostActions(post, websocketMessageProps) {
+    const {currentChannelId} = getState().entities.channels;
+
+    if (post.channel_id === currentChannelId) {
+        dispatch({
+            type: ActionTypes.INCREASE_POST_VISIBILITY,
+            data: post.channel_id,
+            amount: 1
+        });
+    }
+
+    // Need manual dispatch to remove pending post
     dispatch({
         type: PostTypes.RECEIVED_POSTS,
         data: {
