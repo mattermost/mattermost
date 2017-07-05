@@ -644,7 +644,24 @@ func TestSaveTeamMemberMaxMembers(t *testing.T) {
 	if result := <-store.Team().GetTotalMemberCount(team.Id); result.Err != nil {
 		t.Fatal(result.Err)
 	} else if count := result.Data.(int64); int(count) != utils.Cfg.TeamSettings.MaxUsersPerTeam {
-		t.Fatalf("should still have 5 team members again, had %v instead", count)
+		t.Fatalf("should have 5 team members again, had %v instead", count)
+	}
+
+	// Deactivating a user should make them stop counting against max members
+	user2 := Must(store.User().Get(userIds[1])).(*model.User)
+	user2.DeleteAt = 1234
+	Must(store.User().Update(user2, true))
+
+	newUserId2 := Must(store.User().Save(&model.User{
+		Username: model.NewId(),
+		Email:    model.NewId(),
+	})).(*model.User).Id
+	if result := <-store.Team().SaveMember(&model.TeamMember{TeamId: team.Id, UserId: newUserId2}); result.Err != nil {
+		t.Fatal("should've been able to save new member after deleting one", result.Err)
+	} else {
+		defer func(userId string) {
+			<-store.Team().RemoveMember(team.Id, userId)
+		}(newUserId2)
 	}
 }
 
