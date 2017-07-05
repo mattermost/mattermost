@@ -70,7 +70,7 @@ export default class PostBody extends React.PureComponent {
         let comment = '';
         let postClass = '';
 
-        if (parentPost && this.props.parentPostUser) {
+        if (parentPost) {
             const profile = this.props.parentPostUser;
 
             let apostrophe = '';
