@@ -717,11 +717,6 @@ func (o *Config) SetDefaults() {
 		*o.TeamSettings.MaxNotificationsPerChannel = 1000
 	}
 
-	if o.TeamSettings.TeammateNameDisplay == nil {
-		o.TeamSettings.TeammateNameDisplay = new(string)
-		*o.TeamSettings.TeammateNameDisplay = SHOW_FULLNAME
-	}
-
 	if o.EmailSettings.EnableSignInWithEmail == nil {
 		o.EmailSettings.EnableSignInWithEmail = new(bool)
 
@@ -1234,6 +1229,15 @@ func (o *Config) SetDefaults() {
 	if o.SamlSettings.LocaleAttribute == nil {
 		o.SamlSettings.LocaleAttribute = new(string)
 		*o.SamlSettings.LocaleAttribute = SAML_SETTINGS_DEFAULT_LOCALE_ATTRIBUTE
+	}
+
+	if o.TeamSettings.TeammateNameDisplay == nil {
+		o.TeamSettings.TeammateNameDisplay = new(string)
+		*o.TeamSettings.TeammateNameDisplay = SHOW_USERNAME
+
+		if *o.SamlSettings.Enable || *o.LdapSettings.Enable {
+			*o.TeamSettings.TeammateNameDisplay = SHOW_FULLNAME
+		}
 	}
 
 	if o.NativeAppSettings.AppDownloadLink == nil {
