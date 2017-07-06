@@ -771,12 +771,26 @@ export default class ChannelHeader extends React.Component {
             }
         }
 
-        let headerText;
         let headerTextContainer;
         if (channel.header) {
-            headerText = channel.header;
+            let headerTextElement;
             if (this.state.enableFormatting) {
-                headerText = TextFormatting.formatText(channel.header, {singleline: true, mentionHighlight: false, siteURL: getSiteURL()});
+                headerTextElement = (
+                    <div
+                        onClick={Utils.handleFormattedTextClick}
+                        className='channel-header__description'
+                        dangerouslySetInnerHTML={{__html: TextFormatting.formatText(channel.header, {singleline: true, mentionHighlight: false, siteURL: getSiteURL()})}}
+                    />
+                );
+            } else {
+                headerTextElement = (
+                    <div
+                        onClick={Utils.handleFormattedTextClick}
+                        className='channel-header__description'
+                    >
+                        {channel.header}
+                    </div>
+                );
             }
 
             headerTextContainer = (
@@ -787,11 +801,7 @@ export default class ChannelHeader extends React.Component {
                     overlay={popoverContent}
                     ref='headerOverlay'
                 >
-                    <div
-                        onClick={Utils.handleFormattedTextClick}
-                        className='channel-header__description'
-                        dangerouslySetInnerHTML={{__html: headerText}}
-                    />
+                    {headerTextElement}
                 </OverlayTrigger>
             );
         } else {
