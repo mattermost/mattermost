@@ -12,48 +12,58 @@ import SpinnerButton from 'components/spinner_button.jsx';
 import {Link} from 'react-router/es6';
 
 export default class AbstractIncomingWebhook extends React.Component {
-    static get propTypes() {
-        return {
-            team: PropTypes.object
-        };
+         static propTypes = {
+
+         /**
+          * The current team
+          */
+         team: PropTypes.object.isRequired,
+
+         /**
+          * The header text to render, has id and defaultMessage
+          */
+         header: PropTypes.object.isRequired,
+
+         /**
+          * The footer text to render, has id and defaultMessage
+          */
+         footer: PropTypes.object.isRequired,
+
+         /**
+          * The server error text after a failed action
+          */
+         serverError: PropTypes.string.isRequired,
+
+         /**
+          * The hook used to set the initial state
+          */
+         initialHook: PropTypes.object,
+
+         /**
+          * The async function to run when the action button is pressed
+          */
+         action: PropTypes.func.isRequired
     }
 
     constructor(props) {
         super(props);
 
-        this.handleSubmit = this.handleSubmit.bind(this);
+         this.state = this.getStateFromHook(this.props.initialHook || {});
 
-        this.updateDisplayName = this.updateDisplayName.bind(this);
-        this.updateDescription = this.updateDescription.bind(this);
-        this.updateChannelId = this.updateChannelId.bind(this);
+    }
 
-        this.state = {
-            displayName: '',
-            description: '',
-            channelId: '',
+    getStateFromHook = (hook) => {
+        return {
+            displayName: hook.display_name || '',
+            description: hook.description || '',
+            channelId: hook.channel_id || '',
             saving: false,
             serverError: '',
             clientError: null
         };
-
-        if (typeof this.performAction === 'undefined') {
-            throw new TypeError('Subclasses must override performAction');
-        }
-
-        if (typeof this.header === 'undefined') {
-            throw new TypeError('Subclasses must override header');
-        }
-
-        if (typeof this.footer === 'undefined') {
-            throw new TypeError('Subclasses must override footer');
-        }
-
-        this.performAction = this.performAction.bind(this);
-        this.header = this.header.bind(this);
-        this.footer = this.footer.bind(this);
     }
 
-    handleSubmit(e) {
+    handleSubmit = (e) => {
         e.preventDefault();
 
         if (this.state.saving) {
@@ -86,30 +96,30 @@ export default class AbstractIncomingWebhook extends React.Component {
             description: this.state.description
         };
 
-        this.performAction(hook);
+        this.props.action(hook).then(() => this.setState({saving: false}));
     }
 
-    updateDisplayName(e) {
+    updateDisplayName = (e) => {
         this.setState({
             displayName: e.target.value
         });
     }
 
-    updateDescription(e) {
+    updateDescription = (e) => {
         this.setState({
             description: e.target.value
         });
     }
 
-    updateChannelId(e) {
+    updateChannelId = (e) => {
         this.setState({
             channelId: e.target.value
         });
     }
 
     render() {
-        var headerToRender = this.header();
-        var footerToRender = this.footer();
+        var headerToRender = this.props.header();
+        var footerToRender = this.props.footer();
         return (
             <div className='backstage-content'>
                 <BackstageHeader>
@@ -212,7 +222,7 @@ export default class AbstractIncomingWebhook extends React.Component {
                         <div className='backstage-form__footer'>
                             <FormError
                                 type='backstage'
-                                errors={[this.state.serverError, this.state.clientError]}
+                                errors={[this.props.serverError, this.state.clientError]}
                             />
                             <Link
                                 className='btn btn-sm'
