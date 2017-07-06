@@ -197,7 +197,7 @@
         display: inline-block;
         height: 35px;
         margin-top: -10px;
-        max-width: calc(100vw - 730px);
+        max-width: calc(100vw - 720px);
         overflow: hidden;
         padding: 3px 0 0;
         position: relative;
@@ -212,7 +212,7 @@
         }
 
         .multi-teams & {
-            max-width: calc(100vw - 780px);
+            max-width: calc(100vw - 790px);
         }
 
         &.light {
@@ -226,7 +226,11 @@
         }
 
         .move--left & {
-            max-width: calc(100vw - 780px);
+            max-width: calc(100vw - 790px);
+
+            .multi-teams & {
+                max-width: calc(100vw - 840px);
+            }
         }
 
         .markdown-inline-img {
