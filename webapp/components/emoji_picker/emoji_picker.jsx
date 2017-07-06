@@ -309,7 +309,7 @@ export default class EmojiPicker extends React.Component {
                     right: this.props.rightOffset
                 };
             } else {
-                pickerStyle = this.props.style;
+                pickerStyle = {...this.props.style};
             }
         }
 
