@@ -272,9 +272,7 @@ func UpgradeDatabaseToVersion310(sqlStore SqlStore) {
 }
 
 func UpgradeDatabaseToVersion40(sqlStore SqlStore) {
-	// TODO: Uncomment following condition when version 4.0.0 is released
-	//if shouldPerformUpgrade(sqlStore, VERSION_3_10_0, VERSION_4_0_0) {
-
-	//	saveSchemaVersion(sqlStore, VERSION_4_0_0)
-	//}
+	if shouldPerformUpgrade(sqlStore, VERSION_3_10_0, VERSION_4_0_0) {
+		saveSchemaVersion(sqlStore, VERSION_4_0_0)
+	}
 }
