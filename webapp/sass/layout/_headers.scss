@@ -195,11 +195,14 @@
 
     .channel-header__description {
         display: inline-block;
-        height: 22px;
-        margin-top: 3px;
-        max-width: calc(100vw - 730px);
+        height: 35px;
+        margin-top: -10px;
+        max-width: calc(100vw - 720px);
         overflow: hidden;
+        padding: 3px 0 0;
+        position: relative;
         text-overflow: ellipsis;
+        top: 10px;
         white-space: nowrap;
         word-break: break-word;
 
@@ -209,7 +212,7 @@
         }
 
         .multi-teams & {
-            max-width: calc(100vw - 780px);
+            max-width: calc(100vw - 790px);
         }
 
         &.light {
@@ -223,7 +226,11 @@
         }
 
         .move--left & {
-            max-width: calc(100vw - 780px);
+            max-width: calc(100vw - 790px);
+
+            .multi-teams & {
+                max-width: calc(100vw - 840px);
+            }
         }
 
         .markdown-inline-img {
