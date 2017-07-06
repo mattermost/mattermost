@@ -48,6 +48,10 @@ func (me *PurposeProvider) DoCommand(args *model.CommandArgs, message string) *m
 		return &model.CommandResponse{Text: args.T("api.command_channel_purpose.permission.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 	}
 
+	if channel.Type == model.CHANNEL_GROUP || channel.Type == model.CHANNEL_DIRECT {
+		return &model.CommandResponse{Text: args.T("api.command_channel_purpose.direct_group.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+	}
+
 	if len(message) == 0 {
 		return &model.CommandResponse{Text: args.T("api.command_channel_purpose.message.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 	}
