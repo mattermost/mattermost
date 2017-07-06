@@ -9,11 +9,16 @@ import (
 	"github.com/mattermost/platform/model"
 )
 
+const (
+	ENABLE_EXPERIMENTAL_REDIS = false
+)
+
 type LayeredStore struct {
 	TmpContext      context.Context
 	ReactionStore   ReactionStore
 	DatabaseLayer   *SqlSupplier
 	LocalCacheLayer *LocalCacheSupplier
+	RedisLayer      *RedisSupplier
 	LayerChainHead  LayeredStoreSupplier
 }
 
@@ -27,8 +32,14 @@ func NewLayeredStore() Store {
 	store.ReactionStore = &LayeredReactionStore{store}
 
 	// Setup the chain
-	store.LocalCacheLayer.SetChainNext(store.DatabaseLayer)
-	store.LayerChainHead = store.LocalCacheLayer
+	if ENABLE_EXPERIMENTAL_REDIS {
+		store.RedisLayer = NewRedisSupplier()
+		store.RedisLayer.SetChainNext(store.DatabaseLayer)
+		store.LayerChainHead = store.RedisLayer
+	} else {
+		store.LocalCacheLayer.SetChainNext(store.DatabaseLayer)
+		store.LayerChainHead = store.LocalCacheLayer
+	}
 
 	return store
 }
