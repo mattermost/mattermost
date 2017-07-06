@@ -216,6 +216,9 @@ export default class SearchBar extends React.Component {
 
     render() {
         const flagIcon = Constants.FLAG_ICON_SVG;
+        const searchIcon = Constants.SEARCH_ICON_SVG;
+        const mentionsIcon = Constants.MENTIONS_ICON_SVG;
+
         var isSearching = null;
         if (this.state.isSearching) {
             isSearching = <span className={'fa fa-refresh fa-refresh-animate icon--refresh icon--rotate'}/>;
@@ -253,50 +256,49 @@ export default class SearchBar extends React.Component {
             var mentionBtnClass = SearchStore.isMentionSearch ? 'active' : '';
 
             mentionBtn = (
-                <div
-                    className='dropdown channel-header__links'
+                <OverlayTrigger
+                    trigger={['hover', 'focus']}
+                    delayShow={Constants.OVERLAY_TIME_DELAY}
+                    placement='bottom'
+                    overlay={recentMentionsTooltip}
                 >
-                    <OverlayTrigger
-                        delayShow={Constants.OVERLAY_TIME_DELAY}
-                        placement='bottom'
-                        overlay={recentMentionsTooltip}
+                    <div
+                        className={'channel-header__icon ' + mentionBtnClass}
+                        onClick={this.searchMentions}
                     >
-                        <a
-                            href='#'
-                            type='button'
-                            onClick={this.searchMentions}
-                            className={mentionBtnClass}
-                        >
-                            {'@'}
-                        </a>
-                    </OverlayTrigger>
-                </div>
+                        <span
+                            className='icon icon__mentions'
+                            dangerouslySetInnerHTML={{__html: mentionsIcon}}
+                            aria-hidden='true'
+                        />
+                    </div>
+                </OverlayTrigger>
             );
 
             var flagBtnClass = SearchStore.isFlaggedPosts ? 'active' : '';
 
             flagBtn = (
-                <div
-                    className='dropdown channel-header__links'
+                <OverlayTrigger
+                    trigger={['hover', 'focus']}
+                    delayShow={Constants.OVERLAY_TIME_DELAY}
+                    placement='bottom'
+                    overlay={flaggedTooltip}
                 >
-                    <OverlayTrigger
-                        delayShow={Constants.OVERLAY_TIME_DELAY}
-                        placement='bottom'
-                        overlay={flaggedTooltip}
+                    <div
+                        className={'channel-header__icon ' + flagBtnClass}
                     >
                         <a
                             href='#'
                             type='button'
                             onClick={this.getFlagged}
-                            className={flagBtnClass}
                         >
                             <span
                                 className='icon icon__flag'
                                 dangerouslySetInnerHTML={{__html: flagIcon}}
                             />
                         </a>
-                    </OverlayTrigger>
-                </div>
+                    </div>
+                </OverlayTrigger>
             );
         }
 
@@ -305,55 +307,71 @@ export default class SearchBar extends React.Component {
             clearClass += ' visible';
         }
 
+        let searchFormClass = 'search__form';
+        if (this.state.focused) {
+            searchFormClass += ' focused';
+        }
+
         return (
-            <div>
-                <div
-                    className='sidebar__collapse'
-                    onClick={this.handleClose}
-                >
-                    <span className='fa fa-angle-left'/>
-                </div>
-                <form
-                    role='form'
-                    className='search__form'
-                    onSubmit={this.handleSubmit}
-                    style={{overflow: 'visible'}}
-                    autoComplete='off'
-                >
-                    <span className='fa fa-search sidebar__search-icon'/>
-                    <SuggestionBox
-                        ref={(search) => {
-                            this.search = search;
-                        }}
-                        className='form-control search-bar'
-                        placeholder={Utils.localizeMessage('search_bar.search', 'Search')}
-                        value={this.state.searchTerm}
-                        onFocus={this.handleUserFocus}
-                        onBlur={this.handleUserBlur}
-                        onChange={this.handleChange}
-                        onKeyDown={this.handleKeyDown}
-                        listComponent={SearchSuggestionList}
-                        providers={this.suggestionProviders}
-                        type='search'
-                        autoFocus={this.props.isFocus && this.state.searchTerm === ''}
-                    />
+            <div className='sidebar-right__table'>
+                <div className='sidebar-collapse__container'>
                     <div
-                        className={clearClass}
-                        onClick={this.handleClear}
+                        className='sidebar-collapse'
+                        onClick={this.handleClose}
+                    >
+                        <span className='fa fa-chevron-left'/>
+                    </div>
+                </div>
+                <div className='search-form__container'>
+                    <form
+                        role='form'
+                        className={searchFormClass}
+                        onSubmit={this.handleSubmit}
+                        style={{overflow: 'visible'}}
+                        autoComplete='off'
                     >
                         <span
-                            className='sidebar__search-clear-x'
+                            className='search__icon'
+                            dangerouslySetInnerHTML={{__html: searchIcon}}
                             aria-hidden='true'
+                        />
+                        <SuggestionBox
+                            ref={(search) => {
+                                this.search = search;
+                            }}
+                            className='search-bar'
+                            placeholder={Utils.localizeMessage('search_bar.search', 'Search')}
+                            value={this.state.searchTerm}
+                            onFocus={this.handleUserFocus}
+                            onBlur={this.handleUserBlur}
+                            onChange={this.handleChange}
+                            onKeyDown={this.handleKeyDown}
+                            listComponent={SearchSuggestionList}
+                            providers={this.suggestionProviders}
+                            type='search'
+                            autoFocus={this.props.isFocus && this.state.searchTerm === ''}
+                        />
+                        <div
+                            className={clearClass}
+                            onClick={this.handleClear}
                         >
-                            {'×'}
-                        </span>
-                    </div>
-                    {isSearching}
-                    {this.renderHintPopover(helpClass)}
-                </form>
-
-                {mentionBtn}
-                {flagBtn}
+                            <span
+                                className='sidebar__search-clear-x'
+                                aria-hidden='true'
+                            >
+                                {'×'}
+                            </span>
+                        </div>
+                        {isSearching}
+                        {this.renderHintPopover(helpClass)}
+                    </form>
+                </div>
+                <div>
+                    {mentionBtn}
+                </div>
+                <div>
+                    {flagBtn}
+                </div>
             </div>
         );
     }

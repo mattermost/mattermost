@@ -102,8 +102,8 @@ export default class SidebarHeader extends React.Component {
             <div className='team__header theme'>
                 {tutorialTip}
                 <div className='header__info'>
-                    <div className='user__name'>{'@' + this.props.currentUser.username}</div>
                     {teamNameWithToolTip}
+                    <div className='user__name'>{'@' + this.props.currentUser.username}</div>
                 </div>
                 <SidebarHeaderDropdown
                     ref='dropdown'

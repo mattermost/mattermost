@@ -25,8 +25,16 @@
                     font-size: 16px;
                 }
 
-                .fa {
-                    margin: 0 4px 0 8px;
+                .icon {
+                    margin: 0 5px 0 8px;
+                    position: relative;
+                    top: 1px;
+
+                    svg {
+                        @include opacity(.8);
+                        height: 14px;
+                        width: 14px;
+                    }
                 }
             }
         }

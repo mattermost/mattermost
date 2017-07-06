@@ -80,20 +80,18 @@
 }
 
 @media (max-width: 1024px) {
-    .inner-wrap {
-        &.move--left {
-            .channel-header {
-                .heading {
-                    width: 100px;
-                }
-            }
-        }
-    }
-
     .channel-header {
         .search-bar__container {
             .search__form {
                 width: 150px;
+            }
+        }
+
+        .heading {
+            max-width: calc(100vw - 800px);
+
+            .multi-teams & {
+                max-width: calc(100vw - 750px);
             }
         }
     }
