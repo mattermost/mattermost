@@ -21,9 +21,13 @@
 
         &.wide {
             @include border-radius(37px);
-            padding: 0 13px 0 15px;
+            padding: 0;
             white-space: nowrap;
             width: auto;
+
+            > div {
+                padding: 0 13px 0 15px;
+            }
         }
 
         .icon__text {
@@ -122,6 +126,18 @@
         text-overflow: ellipsis;
         vertical-align: top;
         white-space: nowrap;
+
+        .move--left & {
+            max-width: calc(100vw - 830px);
+
+            .multi-teams & {
+                max-width: calc(100vw - 880px);
+            }
+        }
+
+        .multi-teams & {
+            max-width: calc(100vw - 830px);
+        }
     }
 
     .caret {

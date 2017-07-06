@@ -32,8 +32,6 @@ export default class SearchBar extends React.Component {
         this.handleUserFocus = this.handleUserFocus.bind(this);
         this.handleClear = this.handleClear.bind(this);
         this.handleUserBlur = this.handleUserBlur.bind(this);
-        this.handleOnMouseOver = this.handleOnMouseOver.bind(this);
-        this.handleOnMouseOut = this.handleOnMouseOut.bind(this);
         this.handleSearch = this.handleSearch.bind(this);
         this.handleSearchOnSuccess = this.handleSearchOnSuccess.bind(this);
         this.handleSearchOnError = this.handleSearchOnError.bind(this);
@@ -44,7 +42,6 @@ export default class SearchBar extends React.Component {
 
         const state = this.getSearchTermStateFromStores();
         state.focused = false;
-        state.hovered = false;
         state.isPristine = true;
         this.state = state;
 
@@ -126,14 +123,6 @@ export default class SearchBar extends React.Component {
 
     handleUserBlur() {
         this.setState({focused: false});
-    }
-
-    handleOnMouseOver() {
-        this.setState({hovered: true});
-    }
-
-    handleOnMouseOut() {
-        this.setState({hovered: false});
     }
 
     handleClear() {
@@ -319,7 +308,7 @@ export default class SearchBar extends React.Component {
         }
 
         let searchFormClass = 'search__form';
-        if (this.state.hovered) {
+        if (this.state.focused) {
             searchFormClass += ' focused';
         }
 
@@ -357,8 +346,6 @@ export default class SearchBar extends React.Component {
                             onBlur={this.handleUserBlur}
                             onChange={this.handleChange}
                             onKeyDown={this.handleKeyDown}
-                            onMouseOver={this.handleOnMouseOver}
-                            onMouseOut={this.handleOnMouseOut}
                             listComponent={SearchSuggestionList}
                             providers={this.suggestionProviders}
                             type='search'

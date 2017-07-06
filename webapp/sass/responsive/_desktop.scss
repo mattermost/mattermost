@@ -86,6 +86,14 @@
                 width: 150px;
             }
         }
+
+        .heading {
+            max-width: calc(100vw - 800px);
+
+            .multi-teams & {
+                max-width: calc(100vw - 750px);
+            }
+        }
     }
 
     .integration-option {
