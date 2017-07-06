@@ -157,7 +157,7 @@ func loginWithOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if authUrl, err := app.GetOAuthLoginEndpoint(service, teamId, redirectTo, loginHint); err != nil {
+	if authUrl, err := app.GetOAuthLoginEndpoint(w, r, service, teamId, redirectTo, loginHint); err != nil {
 		c.Err = err
 		return
 	} else {
@@ -180,7 +180,7 @@ func signupWithOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if authUrl, err := app.GetOAuthSignupEndpoint(service, teamId); err != nil {
+	if authUrl, err := app.GetOAuthSignupEndpoint(w, r, service, teamId); err != nil {
 		c.Err = err
 		return
 	} else {

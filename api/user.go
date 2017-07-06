@@ -866,7 +866,7 @@ func emailToOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	link, err := app.SwitchEmailToOAuth(email, password, mfaToken, service)
+	link, err := app.SwitchEmailToOAuth(w, r, email, password, mfaToken, service)
 	if err != nil {
 		c.Err = err
 		return

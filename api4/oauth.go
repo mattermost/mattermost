@@ -397,7 +397,7 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	uri := c.GetSiteURLHeader() + "/signup/" + service + "/complete"
 
-	body, teamId, props, err := app.AuthorizeOAuthUser(service, code, state, uri)
+	body, teamId, props, err := app.AuthorizeOAuthUser(w, r, service, code, state, uri)
 	if err != nil {
 		c.Err = err
 		return
@@ -450,7 +450,7 @@ func loginWithOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if authUrl, err := app.GetOAuthLoginEndpoint(c.Params.Service, teamId, redirectTo, loginHint); err != nil {
+	if authUrl, err := app.GetOAuthLoginEndpoint(w, r, c.Params.Service, teamId, redirectTo, loginHint); err != nil {
 		c.Err = err
 		return
 	} else {
@@ -475,7 +475,7 @@ func signupWithOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if authUrl, err := app.GetOAuthSignupEndpoint(c.Params.Service, teamId); err != nil {
+	if authUrl, err := app.GetOAuthSignupEndpoint(w, r, c.Params.Service, teamId); err != nil {
 		c.Err = err
 		return
 	} else {
