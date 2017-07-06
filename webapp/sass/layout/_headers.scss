@@ -195,11 +195,14 @@
 
     .channel-header__description {
         display: inline-block;
-        height: 22px;
-        margin-top: 3px;
+        height: 35px;
+        margin-top: -10px;
         max-width: calc(100vw - 730px);
         overflow: hidden;
+        padding: 3px 0 0;
+        position: relative;
         text-overflow: ellipsis;
+        top: 10px;
         white-space: nowrap;
         word-break: break-word;
 
