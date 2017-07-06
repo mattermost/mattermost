@@ -462,6 +462,7 @@ func getClientConfig(c *model.Config) map[string]string {
 	props["SQLDriverName"] = c.SqlSettings.DriverName
 
 	props["EnableCustomEmoji"] = strconv.FormatBool(*c.ServiceSettings.EnableCustomEmoji)
+	props["EnableEmojiPicker"] = strconv.FormatBool(*c.ServiceSettings.EnableEmojiPicker)
 	props["RestrictCustomEmojiCreation"] = *c.ServiceSettings.RestrictCustomEmojiCreation
 	props["MaxFileSize"] = strconv.FormatInt(*c.FileSettings.MaxFileSize, 10)
 

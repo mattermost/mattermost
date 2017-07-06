@@ -151,7 +151,7 @@ export default class PostInfo extends React.PureComponent {
                 />
             );
 
-            if (Utils.isFeatureEnabled(Constants.PRE_RELEASE_FEATURES.EMOJI_PICKER_PREVIEW)) {
+            if (window.mm_config.EnableEmojiPicker === 'true') {
                 react = (
                     <span>
                         <EmojiPickerOverlay
