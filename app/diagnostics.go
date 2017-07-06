@@ -165,6 +165,7 @@ func trackConfig() {
 		"enable_post_icon_override":                     utils.Cfg.ServiceSettings.EnablePostIconOverride,
 		"enable_apiv3":                                  *utils.Cfg.ServiceSettings.EnableAPIv3,
 		"enable_custom_emoji":                           *utils.Cfg.ServiceSettings.EnableCustomEmoji,
+		"enable_emoji_picker":                           *utils.Cfg.ServiceSettings.EnableEmojiPicker,
 		"restrict_custom_emoji_creation":                *utils.Cfg.ServiceSettings.RestrictCustomEmojiCreation,
 		"enable_testing":                                utils.Cfg.ServiceSettings.EnableTesting,
 		"enable_developer":                              *utils.Cfg.ServiceSettings.EnableDeveloper,

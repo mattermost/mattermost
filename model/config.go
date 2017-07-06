@@ -159,6 +159,7 @@ type ServiceSettings struct {
 	WebsocketPort                            *int
 	WebserverMode                            *string
 	EnableCustomEmoji                        *bool
+	EnableEmojiPicker                        *bool
 	RestrictCustomEmojiCreation              *string
 	RestrictPostDelete                       *string
 	AllowEditPost                            *string
@@ -1032,7 +1033,12 @@ func (o *Config) SetDefaults() {
 
 	if o.ServiceSettings.EnableCustomEmoji == nil {
 		o.ServiceSettings.EnableCustomEmoji = new(bool)
-		*o.ServiceSettings.EnableCustomEmoji = true
+		*o.ServiceSettings.EnableCustomEmoji = false
+	}
+
+	if o.ServiceSettings.EnableEmojiPicker == nil {
+		o.ServiceSettings.EnableEmojiPicker = new(bool)
+		*o.ServiceSettings.EnableEmojiPicker = false
 	}
 
 	if o.ServiceSettings.RestrictCustomEmojiCreation == nil {

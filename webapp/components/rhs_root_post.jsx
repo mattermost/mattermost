@@ -219,7 +219,7 @@ export default class RhsRootPost extends React.Component {
 
         let react;
 
-        if (!isEphemeral && !post.failed && !isSystemMessage && Utils.isFeatureEnabled(Constants.PRE_RELEASE_FEATURES.EMOJI_PICKER_PREVIEW)) {
+        if (!isEphemeral && !post.failed && !isSystemMessage && window.mm_config.EnableEmojiPicker === 'true') {
             react = (
                 <span>
                     <EmojiPickerOverlay

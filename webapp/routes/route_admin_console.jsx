@@ -173,7 +173,7 @@ export default (
                 component={CustomBrandSettings}
             />
             <Route
-                path='custom_emoji'
+                path='emoji'
                 component={CustomEmojiSettings}
             />
             <Route
