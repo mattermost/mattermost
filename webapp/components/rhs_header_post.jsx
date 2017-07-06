@@ -136,6 +136,7 @@ export default class RhsHeaderPost extends React.Component {
                     className='sidebar--right__back'
                 >
                     <OverlayTrigger
+                        trigger={['hover', 'focus']}
                         delayShow={Constants.OVERLAY_TIME_DELAY}
                         placement='top'
                         overlay={backToResultsTooltip}
@@ -163,6 +164,7 @@ export default class RhsHeaderPost extends React.Component {
                         onClick={this.toggleSize}
                     >
                         <OverlayTrigger
+                            trigger={['hover', 'focus']}
                             delayShow={Constants.OVERLAY_TIME_DELAY}
                             placement='top'
                             overlay={expandSidebarTooltip}
@@ -170,6 +172,7 @@ export default class RhsHeaderPost extends React.Component {
                             <i className='fa fa-expand'/>
                         </OverlayTrigger>
                         <OverlayTrigger
+                            trigger={['hover', 'focus']}
                             delayShow={Constants.OVERLAY_TIME_DELAY}
                             placement='top'
                             overlay={shrinkSidebarTooltip}
@@ -185,6 +188,7 @@ export default class RhsHeaderPost extends React.Component {
                     >
 
                         <OverlayTrigger
+                            trigger={['hover', 'focus']}
                             delayShow={Constants.OVERLAY_TIME_DELAY}
                             placement='top'
                             overlay={closeSidebarTooltip}

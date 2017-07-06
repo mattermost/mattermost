@@ -39,6 +39,25 @@
         }
     }
 
+    .sidebar-right__table {
+        display: table;
+
+        > div:not(.sidebar-collapse__container) {
+            display: table-cell;
+
+            &:last-child {
+                .channel-header__icon {
+                    margin-right: 17px;
+                }
+            }
+        }
+
+        .search-form__container {
+            padding-right: 10px;
+            width: 100%;
+        }
+    }
+
     .post-body {
         img {
             max-height: 200px;
@@ -131,7 +150,6 @@
         @include flex(1 1 auto);
         @include flex-direction(column);
         border-left: $border-gray;
-        border-top: $border-gray;
         height: calc(100% - 56px);
     }
 
@@ -191,7 +209,7 @@
 
     .sidebar--right__header {
         @include flex(0 0 44px);
-        border-bottom: $border-gray;
+        border-bottom: 1px solid;
         color: inherit;
         font-size: 1em;
         height: 44px;
@@ -222,7 +240,7 @@
             @include opacity(.9);
             margin: 0 3px;
             position: relative;
-            top: 1px;
+            top: 3px;
         }
     }
 
@@ -233,4 +251,26 @@
 
 .sidebar-right-container {
     height: 100%;
+}
+
+.sidebar-collapse__container {
+    display: none;
+}
+
+.sidebar-collapse {
+    @include single-transition(all, .2s, linear);
+    @include translateX(0);
+    cursor: pointer;
+    font-size: 16px;
+    height: 48px;
+    line-height: 0;
+    padding-left: 1px;
+    text-align: center;
+    width: 50px;
+    z-index: 5;
+
+    .fa {
+        position: relative;
+        top: 18px;
+    }
 }

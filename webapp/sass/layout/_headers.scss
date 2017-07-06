@@ -1,57 +1,82 @@
 @charset 'UTF-8';
 
 .channel-header {
-    @include flex(0 0 57px);
-    border-left: none;
+    @include flex(0 0 70px);
+    border-bottom: 1px solid;
     font-size: 14px;
-    line-height: 56px;
     position: relative;
     width: 100%;
     z-index: 9;
 
-    .member-popover__trigger,
-    .pinned-posts-button {
+    .channel-header__icon {
+        @include border-radius(50%);
+        border: 1px solid;
         cursor: pointer;
-        display: inline-block;
-        margin-left: 7px;
+        height: 37px;
+        line-height: 36px;
+        margin: 16px 10px 0 0;
         min-width: 30px;
         text-align: center;
-        white-space: nowrap;
+        width: 37px;
+
+        &.wide {
+            @include border-radius(37px);
+            padding: 0;
+            white-space: nowrap;
+            width: auto;
+
+            > div {
+                padding: 0 13px 0 15px;
+            }
+        }
+
+        .icon__text {
+            font-weight: 600;
+            margin-right: 9px;
+        }
+
+        a {
+            display: block;
+        }
 
         .fa {
             font-size: 19px;
         }
-    }
 
-    .member-popover__container,
-    .member-popover__trigger {
-        display: inline;
-    }
-
-    .member-popover__trigger {
         & + div {
             display: none;
         }
-    }
 
-    .member-popover__trigger {
-        .fa {
-            margin-left: 4px;
+        .icon {
             position: relative;
+        }
+
+        .icon__pin,
+        .icon__members {
             top: 2px;
+        }
+
+        .icon__mentions {
+            top: 5px;
+        }
+
+        .icon__flag {
+            top: 3px;
         }
     }
 
-    .pinned-posts-button svg {
-        position: relative;
-        top: 5px;
+    .move--left & {
+        .icon--hidden {
+            display: none;
+        }
     }
 
     &.alt {
         margin: 0;
 
         th {
-            font-weight: normal !important;
+            font-weight: normal;
+            vertical-align: top;
 
             &.header-list__right {
                 padding-right: 4px;
@@ -69,15 +94,15 @@
 
         &:first-child {
             border-left: none;
-            padding-left: 15px;
-            padding-right: 1em;
+            padding: 0 0 0 20px;
             text-align: left !important;
             width: 100%;
         }
 
         &:last-child {
-            padding-right: 6px;
-            width: 8.9%;
+            .channel-header__icon {
+                margin-right: 17px;
+            }
         }
     }
 
@@ -93,13 +118,26 @@
 
     .heading {
         display: inline-block;
-        font-size: 1.3em;
-        font-weight: 600;
+        font-size: 17px;
+        font-weight: 400;
         margin: 0 4px 0 0;
-        max-width: 100%;
+        max-width: calc(100vw - 780px);
         overflow: hidden;
         text-overflow: ellipsis;
-        vertical-align: middle;
+        vertical-align: top;
+        white-space: nowrap;
+
+        .move--left & {
+            max-width: calc(100vw - 830px);
+
+            .multi-teams & {
+                max-width: calc(100vw - 880px);
+            }
+        }
+
+        .multi-teams & {
+            max-width: calc(100vw - 830px);
+        }
     }
 
     .caret {
@@ -131,62 +169,74 @@
 
 .header-dropdown__icon {
     color: inherit;
-    font-size: 12px;
+    font-size: 21px;
     margin-left: 1px;
     position: relative;
-    top: 1px;
+    top: 2px;
 }
 
 .channel-header__info {
-    display: table;
-    table-layout: fixed;
-    width: 100%;
+    margin-top: 12px;
 
-    > div {
-        display: block;
+    .channel-header__title {
+        .header-dropdown__icon {
+            color: $dark-gray;
+        }
+
+        > a {
+            display: inline-block;
+            text-decoration: none;
+        }
+
+        .modal {
+            white-space: normal;
+        }
+    }
+
+    .channel-header__description {
+        display: inline-block;
+        height: 22px;
+        margin-top: 3px;
+        max-width: calc(100vw - 730px);
+        overflow: hidden;
+        text-overflow: ellipsis;
         white-space: nowrap;
         word-break: break-word;
 
-        &.dropdown {
-            float: left;
-            max-width: 90%;
-            padding-right: 1em;
+        .markdown__heading {
+            font-size: 1em;
+            margin: 0;
+        }
 
-            .header-dropdown__icon {
-                color: $dark-gray;
-            }
+        .multi-teams & {
+            max-width: calc(100vw - 780px);
+        }
 
-            a {
-                text-decoration: none;
-            }
+        &.light {
+            @include opacity(.6);
+            color: inherit;
 
-            .modal {
-                white-space: normal;
+            &:hover,
+            &:focus {
+                color: inherit;
             }
         }
 
-        &.description {
-            margin-top: 2px;
+        .move--left & {
+            max-width: calc(100vw - 780px);
+        }
+
+        .markdown-inline-img {
             max-height: 45px;
-            overflow: hidden;
-            text-overflow: ellipsis;
-
-            .markdown-inline-img {
-                max-height: 45px;
-            }
         }
+    }
 
-        &.popover {
-            white-space: normal;
-        }
+    .status {
+        width: 18px;
 
-        .status {
-            width: 18px;
-
-            svg {
-                max-height: 20px;
-                width: 16px;
-            }
+        svg {
+            max-height: 20px;
+            width: 16px;
         }
     }
 }
@@ -261,7 +311,7 @@
         @include legacy-pie-clearfix;
         @include display-flex();
         @include flex-direction(row-reverse);
-        padding: 9px 10px;
+        padding: 16px 47px 12px 12px;
         position: relative;
 
         &:before {
@@ -305,11 +355,12 @@
         .sidebar-header-dropdown,
         .admin-navbar-dropdown {
             font-size: .85em;
+            height: 100%;
             left: 0;
-            margin-right: -15px;
+            margin-right: -22px;
             position: absolute;
             right: 22px;
-            top: 10px;
+            top: 0;
 
             li {
                 width: 100%;
@@ -323,7 +374,7 @@
                 color: $white;
                 display: block;
                 font-size: 1em;
-                height: 40px;
+                height: 100%;
                 left: 0;
                 line-height: 1.8;
                 padding: 10px;
@@ -331,7 +382,7 @@
             }
 
             .dropdown-menu {
-                margin-right: 3px;
+                margin-right: 10px;
                 margin-top: 4px;
                 width: 199px;
 
@@ -344,8 +395,16 @@
 
             .sidebar-header-dropdown__icon,
             .admin-navbar-dropdown__icon {
+                border-radius: 36px;
                 fill: $white;
                 float: right;
+                height: 36px;
+                line-height: 36px;
+                position: relative;
+                right: -3px;
+                text-align: center;
+                top: 7px;
+                width: 36px;
             }
         }
 
@@ -377,9 +436,7 @@
         }
 
         .team__name {
-            float: left;
             line-height: 22px;
-            margin-top: -2px;
         }
 
         .user__name {
@@ -419,8 +476,30 @@
 }
 
 .channel-header__favorites {
+    @include opacity(.5);
     float: left;
-    margin: 1px 10px 0 0;
+    height: 20px;
+    margin: 0 8px 0 0;
+    padding-top: 3px;
+    position: relative;
+    z-index: 1;
+
+    &.inactive {
+        color: inherit;
+
+        &:hover,
+        &:active {
+            color: inherit;
+        }
+    }
+
+    &.active {
+        @include opacity(1);
+    }
+
+    i {
+        font-size: 17px;
+    }
 }
 
 .app__body {
@@ -476,6 +555,7 @@
             &.active {
                 color: $primary-color;
                 @include opacity(1);
+
                 .icon {
                     fill: $primary-color;
                 }

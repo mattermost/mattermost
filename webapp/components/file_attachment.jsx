@@ -105,6 +105,7 @@ export default class FileAttachment extends React.Component {
         if (this.props.compactDisplay) {
             filenameOverlay = (
                 <OverlayTrigger
+                    trigger={['hover', 'focus']}
                     delayShow={1000}
                     placement='top'
                     overlay={<Tooltip id='file-name__tooltip'>{fileName}</Tooltip>}
@@ -126,6 +127,7 @@ export default class FileAttachment extends React.Component {
         } else {
             filenameOverlay = (
                 <OverlayTrigger
+                    trigger={['hover', 'focus']}
                     delayShow={1000}
                     placement='top'
                     overlay={<Tooltip id='file-name__tooltip'>{Utils.localizeMessage('file_attachment.download', 'Download') + ' "' + fileName + '"'}</Tooltip>}

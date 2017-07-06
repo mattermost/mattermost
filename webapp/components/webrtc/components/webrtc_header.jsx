@@ -59,6 +59,7 @@ export default function WebrtcHeader(props) {
                     onClick={props.toggleSize}
                 >
                     <OverlayTrigger
+                        trigger={['hover', 'focus']}
                         delayShow={Constants.OVERLAY_TIME_DELAY}
                         placement='top'
                         overlay={expandSidebarTooltip}
@@ -66,6 +67,7 @@ export default function WebrtcHeader(props) {
                         <i className='fa fa-expand'/>
                     </OverlayTrigger>
                     <OverlayTrigger
+                        trigger={['hover', 'focus']}
                         delayShow={Constants.OVERLAY_TIME_DELAY}
                         placement='top'
                         overlay={shrinkSidebarTooltip}

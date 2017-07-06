@@ -129,7 +129,7 @@ export default class SidebarRight extends React.Component {
         const wasOpen = prevState.searchVisible || prevProps.postRightVisible;
 
         if (isOpen && !wasOpen) {
-            postListScrollChange();
+            setTimeout(() => postListScrollChange(), 0);
         }
     }
 
@@ -210,7 +210,7 @@ export default class SidebarRight extends React.Component {
         if (this.state.searchVisible) {
             content = (
                 <div className='sidebar--right__content'>
-                    <div className='search-bar__container sidebar--right__search-header'>{searchForm}</div>
+                    <div className='search-bar__container channel-header alt'>{searchForm}</div>
                     <SearchResults
                         isMentionSearch={this.state.isMentionSearch}
                         isFlaggedPosts={this.state.isFlaggedPosts}
@@ -226,7 +226,7 @@ export default class SidebarRight extends React.Component {
             content = (
                 <div className='post-right__container'>
                     <FileUploadOverlay overlayType='right'/>
-                    <div className='search-bar__container sidebar--right__search-header'>{searchForm}</div>
+                    <div className='search-bar__container channel-header alt'>{searchForm}</div>
                     <RhsThread
                         fromFlaggedPosts={this.props.fromFlaggedPosts}
                         fromSearch={this.props.fromSearch}

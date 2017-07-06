@@ -279,6 +279,7 @@ export default class Navbar extends React.Component {
 
     createDropdown(channel, channelTitle, isSystemAdmin, isTeamAdmin, isChannelAdmin, isDirect, isGroup, popoverContent) {
         const isAdmin = isSystemAdmin || isTeamAdmin;
+        const infoIcon = Constants.INFO_ICON_SVG;
 
         if (channel) {
             let viewInfoOption;
@@ -599,7 +600,13 @@ export default class Navbar extends React.Component {
                             className='description'
                             rootClose={true}
                         >
-                            <div className='pull-right description info-popover'/>
+                            <div className='pull-right description navbar-right__icon info-popover'>
+                                <span
+                                    className='icon icon__info'
+                                    dangerouslySetInnerHTML={{__html: infoIcon}}
+                                    aria-hidden='true'
+                                />
+                            </div>
                         </OverlayTrigger>
                         <a
                             href='#'
@@ -652,6 +659,8 @@ export default class Navbar extends React.Component {
 
     createCollapseButtons(currentId) {
         var buttons = [];
+        const menuIcon = Constants.MENU_ICON_SVG;
+
         if (currentId == null) {
             buttons.push(
                 <button
@@ -688,9 +697,11 @@ export default class Navbar extends React.Component {
                             defaultMessage='Toggle sidebar'
                         />
                     </span>
-                    <span className='icon-bar'/>
-                    <span className='icon-bar'/>
-                    <span className='icon-bar'/>
+                    <span
+                        className='icon icon__menu'
+                        dangerouslySetInnerHTML={{__html: menuIcon}}
+                        aria-hidden='true'
+                    />
                     <NotifyCounts/>
                 </button>
             );
@@ -699,7 +710,7 @@ export default class Navbar extends React.Component {
                 <button
                     key='navbar-toggle-menu'
                     type='button'
-                    className='navbar-toggle menu-toggle pull-right'
+                    className='navbar-toggle navbar-right__icon menu-toggle pull-right'
                     data-toggle='collapse'
                     data-target='#sidebar-nav'
                     onClick={this.toggleRightSidebar}
@@ -917,13 +928,18 @@ export default class Navbar extends React.Component {
 
         var collapseButtons = this.createCollapseButtons(currentId);
 
+        const searchIcon = Constants.SEARCH_ICON_SVG;
         const searchButton = (
             <button
                 type='button'
-                className='navbar-toggle navbar-search pull-right'
+                className='navbar-toggle navbar-right__icon navbar-search pull-right'
                 onClick={this.showSearch}
             >
-                <span className='fa fa-search icon-search icon--white'/>
+                <span
+                    className='icon icon__search'
+                    dangerouslySetInnerHTML={{__html: searchIcon}}
+                    aria-hidden='true'
+                />
             </button>
         );
 
