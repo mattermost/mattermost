@@ -325,91 +325,111 @@ export default class EmojiPicker extends React.Component {
                 <div className='emoji-picker__categories'>
                     <EmojiPickerCategory
                         category='recent'
-                        icon={<i
-                            className='fa fa-clock-o'
-                            title={Utils.localizeMessage('emoji_picker.recent', 'Recently Used')}
-                              />}
+                        icon={
+                            <i
+                                className='fa fa-clock-o'
+                                title={Utils.localizeMessage('emoji_picker.recent', 'Recently Used')}
+                            />
+                        }
                         onCategoryClick={this.handleCategoryClick}
                         selected={this.state.category === 'recent'}
                     />
                     <EmojiPickerCategory
                         category='people'
-                        icon={<i
-                            className='fa fa-smile-o'
-                            title={Utils.localizeMessage('emoji_picker.people', 'People')}
-                              />}
+                        icon={
+                            <i
+                                className='fa fa-smile-o'
+                                title={Utils.localizeMessage('emoji_picker.people', 'People')}
+                            />
+                        }
                         onCategoryClick={this.handleCategoryClick}
                         selected={this.state.category === 'people'}
                     />
                     <EmojiPickerCategory
                         category='nature'
-                        icon={<i
-                            className='fa fa-leaf'
-                            title={Utils.localizeMessage('emoji_picker.nature', 'Nature')}
-                              />}
+                        icon={
+                            <i
+                                className='fa fa-leaf'
+                                title={Utils.localizeMessage('emoji_picker.nature', 'Nature')}
+                            />
+                        }
                         onCategoryClick={this.handleCategoryClick}
                         selected={this.state.category === 'nature'}
                     />
                     <EmojiPickerCategory
                         category='food'
-                        icon={<i
-                            className='fa fa-cutlery'
-                            title={Utils.localizeMessage('emoji_picker.food', 'Food')}
-                              />}
+                        icon={
+                            <i
+                                className='fa fa-cutlery'
+                                title={Utils.localizeMessage('emoji_picker.food', 'Food')}
+                            />
+                        }
                         onCategoryClick={this.handleCategoryClick}
                         selected={this.state.category === 'food'}
                     />
                     <EmojiPickerCategory
                         category='activity'
-                        icon={<i
-                            className='fa fa-futbol-o'
-                            title={Utils.localizeMessage('emoji_picker.activity', 'Activity')}
-                              />}
+                        icon={
+                            <i
+                                className='fa fa-futbol-o'
+                                title={Utils.localizeMessage('emoji_picker.activity', 'Activity')}
+                            />
+                        }
                         onCategoryClick={this.handleCategoryClick}
                         selected={this.state.category === 'activity'}
                     />
                     <EmojiPickerCategory
                         category='travel'
-                        icon={<i
-                            className='fa fa-plane'
-                            title={Utils.localizeMessage('emoji_picker.travel', 'Travel')}
-                              />}
+                        icon={
+                            <i
+                                className='fa fa-plane'
+                                title={Utils.localizeMessage('emoji_picker.travel', 'Travel')}
+                            />
+                        }
                         onCategoryClick={this.handleCategoryClick}
                         selected={this.state.category === 'travel'}
                     />
                     <EmojiPickerCategory
                         category='objects'
-                        icon={<i
-                            className='fa fa-lightbulb-o'
-                            title={Utils.localizeMessage('emoji_picker.objects', 'Objects')}
-                              />}
+                        icon={
+                            <i
+                                className='fa fa-lightbulb-o'
+                                title={Utils.localizeMessage('emoji_picker.objects', 'Objects')}
+                            />
+                        }
                         onCategoryClick={this.handleCategoryClick}
                         selected={this.state.category === 'objects'}
                     />
                     <EmojiPickerCategory
                         category='symbols'
-                        icon={<i
-                            className='fa fa-heart-o'
-                            title={Utils.localizeMessage('emoji_picker.symbols', 'Symbols')}
-                              />}
+                        icon={
+                            <i
+                                className='fa fa-heart-o'
+                                title={Utils.localizeMessage('emoji_picker.symbols', 'Symbols')}
+                            />
+                        }
                         onCategoryClick={this.handleCategoryClick}
                         selected={this.state.category === 'symbols'}
                     />
                     <EmojiPickerCategory
                         category='flags'
-                        icon={<i
-                            className='fa fa-flag-o'
-                            title={Utils.localizeMessage('emoji_picker.flags', 'Flags')}
-                              />}
+                        icon={
+                            <i
+                                className='fa fa-flag-o'
+                                title={Utils.localizeMessage('emoji_picker.flags', 'Flags')}
+                            />
+                        }
                         onCategoryClick={this.handleCategoryClick}
                         selected={this.state.category === 'flags'}
                     />
                     <EmojiPickerCategory
                         category='custom'
-                        icon={<i
-                            className='fa fa-at'
-                            title={Utils.localizeMessage('emoji_picker.custom', 'Custom')}
-                              />}
+                        icon={
+                            <i
+                                className='fa fa-at'
+                                title={Utils.localizeMessage('emoji_picker.custom', 'Custom')}
+                            />
+                        }
                         onCategoryClick={this.handleCategoryClick}
                         selected={this.state.category === 'custom'}
                     />
