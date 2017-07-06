@@ -2700,6 +2700,10 @@
     "translation": "You are deleting %v that is a system administrator.  You may need to set another account as the system administrator using the command line tools."
   },
   {
+    "id": "api.oauth.invalid_state_token.app_error",
+    "translation": "Invalid state token"
+  },
+  {
     "id": "api.user.reset_password.invalid_link.app_error",
     "translation": "The reset password link does not appear to be valid"
   },
