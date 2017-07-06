@@ -571,7 +571,7 @@ export default class CreateComment extends React.Component {
         );
 
         let emojiPicker = null;
-        if (Utils.isFeatureEnabled(Constants.PRE_RELEASE_FEATURES.EMOJI_PICKER_PREVIEW)) {
+        if (window.mm_config.EnableEmojiPicker === 'true') {
             emojiPicker = (
                 <span>
                     <EmojiPickerOverlay
