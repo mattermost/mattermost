@@ -698,7 +698,7 @@ export default class Navbar extends React.Component {
                         />
                     </span>
                     <span
-                        className='icon icon__menu'
+                        className='icon icon__menu icon--sidebarHeaderTextColor'
                         dangerouslySetInnerHTML={{__html: menuIcon}}
                         aria-hidden='true'
                     />
