@@ -80,7 +80,7 @@
         "UserStatusAwayTimeout": 300,
         "MaxChannelsPerTeam": 2000,
         "MaxNotificationsPerChannel": 1000,
-        "TeammateNameDisplay": "full_name"
+        "TeammateNameDisplay": "username"
     },
     "SqlSettings": {
         "DriverName": "mysql",
