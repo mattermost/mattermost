@@ -207,6 +207,10 @@
         }
     }
 
+    .sidebar--right__title {
+        @include clearfix;
+    }
+
     .sidebar--right__header {
         @include flex(0 0 44px);
         border-bottom: 1px solid;
@@ -214,6 +218,7 @@
         font-size: 1em;
         height: 44px;
         line-height: 44px;
+        overflow: hidden;
         padding: 0 5px 0 15px;
         text-transform: uppercase;
     }
