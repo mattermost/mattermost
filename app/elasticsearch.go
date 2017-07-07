@@ -8,11 +8,20 @@ import (
 
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/einterfaces"
+	"github.com/mattermost/platform/utils"
 )
 
-func TestElasticsearch() *model.AppError {
+func TestElasticsearch(cfg *model.Config) *model.AppError {
+	if *cfg.ElasticSearchSettings.Password == model.FAKE_SETTING {
+		if *cfg.ElasticSearchSettings.ConnectionUrl == *utils.Cfg.ElasticSearchSettings.ConnectionUrl && *cfg.ElasticSearchSettings.Username == *utils.Cfg.ElasticSearchSettings.Username {
+			*cfg.ElasticSearchSettings.Password = *utils.Cfg.ElasticSearchSettings.Password
+		} else {
+			return model.NewAppError("TestElasticsearch", "ent.elasticsearch.test_config.reenter_password", nil, "", http.StatusBadRequest)
+		}
+	}
+
 	if esI := einterfaces.GetElasticSearchInterface(); esI != nil {
-		if err := esI.TestConfig(); err != nil {
+		if err := esI.TestConfig(cfg); err != nil {
 			return err
 		}
 	} else {

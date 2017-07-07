@@ -10,7 +10,7 @@ type ElasticSearchInterface interface {
 	IndexPost(post *model.Post, teamId string)
 	SearchPosts(channels *model.ChannelList, searchParams []*model.SearchParams) ([]string, *model.AppError)
 	DeletePost(postId string)
-	TestConfig() *model.AppError
+	TestConfig(cfg *model.Config) *model.AppError
 }
 
 var theElasticSearchInterface ElasticSearchInterface
