@@ -1651,7 +1651,7 @@ func (c *Client4) GetFlaggedPostsForUserInTeam(userId string, teamId string, pag
 		return nil, &Response{StatusCode: http.StatusBadRequest, Error: NewAppError("GetFlaggedPostsForUserInTeam", "model.client.get_flagged_posts_in_team.missing_parameter.app_error", nil, "", http.StatusBadRequest)}
 	}
 
-	query := fmt.Sprintf("?in_team=%v&page=%v&per_page=%v", teamId, page, perPage)
+	query := fmt.Sprintf("?team_id=%v&page=%v&per_page=%v", teamId, page, perPage)
 	if r, err := c.DoApiGet(c.GetUserRoute(userId)+"/posts/flagged"+query, ""); err != nil {
 		return nil, BuildErrorResponse(r, err)
 	} else {
@@ -1666,7 +1666,7 @@ func (c *Client4) GetFlaggedPostsForUserInChannel(userId string, channelId strin
 		return nil, &Response{StatusCode: http.StatusBadRequest, Error: NewAppError("GetFlaggedPostsForUserInChannel", "model.client.get_flagged_posts_in_channel.missing_parameter.app_error", nil, "", http.StatusBadRequest)}
 	}
 
-	query := fmt.Sprintf("?in_channel=%v&page=%v&per_page=%v", channelId, page, perPage)
+	query := fmt.Sprintf("?channel_id=%v&page=%v&per_page=%v", channelId, page, perPage)
 	if r, err := c.DoApiGet(c.GetUserRoute(userId)+"/posts/flagged"+query, ""); err != nil {
 		return nil, BuildErrorResponse(r, err)
 	} else {
