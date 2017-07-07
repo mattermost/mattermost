@@ -38,7 +38,7 @@
         "WebsocketPort": 80,
         "WebserverMode": "gzip",
         "EnableCustomEmoji": false,
-        "EnableEmojiPicker": false,
+        "EnableEmojiPicker": true,
         "RestrictCustomEmojiCreation": "all",
         "RestrictPostDelete": "all",
         "AllowEditPost": "always",

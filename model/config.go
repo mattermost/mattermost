@@ -1033,7 +1033,7 @@ func (o *Config) SetDefaults() {
 
 	if o.ServiceSettings.EnableEmojiPicker == nil {
 		o.ServiceSettings.EnableEmojiPicker = new(bool)
-		*o.ServiceSettings.EnableEmojiPicker = false
+		*o.ServiceSettings.EnableEmojiPicker = true
 	}
 
 	if o.ServiceSettings.RestrictCustomEmojiCreation == nil {
