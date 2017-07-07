@@ -16,7 +16,7 @@ function mapStateToProps(state, ownProps) {
     let parentPostUser;
     if (ownProps.post.root_id) {
         parentPost = getPost(state, ownProps.post.root_id);
-        parentPostUser = getUser(state, parentPost.user_id);
+        parentPostUser = parentPost ? getUser(state, parentPost.user_id) : null;
     }
 
     return {
