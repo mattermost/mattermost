@@ -309,14 +309,13 @@ export default class Sidebar extends React.Component {
                     curIndex = i;
                 }
             }
-            let nextChannel = allChannels[curIndex];
             let nextIndex = curIndex;
             if (e.keyCode === Constants.KeyCodes.DOWN) {
                 nextIndex = curIndex + 1;
             } else if (e.keyCode === Constants.KeyCodes.UP) {
                 nextIndex = curIndex - 1;
             }
-            nextChannel = allChannels[Utils.mod(nextIndex, allChannels.length)];
+            const nextChannel = allChannels[Utils.mod(nextIndex, allChannels.length)];
             ChannelActions.goToChannel(nextChannel);
             this.updateScrollbarOnChannelChange(nextChannel);
             this.isSwitchingChannel = false;
@@ -342,7 +341,6 @@ export default class Sidebar extends React.Component {
                     curIndex = i;
                 }
             }
-            let nextChannel = allChannels[curIndex];
             let nextIndex = curIndex;
             let count = 0;
             let increment = 0;
@@ -359,7 +357,7 @@ export default class Sidebar extends React.Component {
                 unreadCounts = ChannelStore.getUnreadCount(allChannels[nextIndex].id);
             }
             if (unreadCounts.msgs !== 0 || unreadCounts.mentions !== 0) {
-                nextChannel = allChannels[nextIndex];
+                const nextChannel = allChannels[nextIndex];
                 ChannelActions.goToChannel(nextChannel);
                 this.updateScrollbarOnChannelChange(nextChannel);
             }

@@ -79,8 +79,6 @@ export default class PushSettings extends AdminSettings {
             agree = true;
         } else if (config.EmailSettings.PushNotificationServer === Constants.MTPNS) {
             pushNotificationServerType = PUSH_NOTIFICATIONS_MTPNS;
-        } else {
-            pushNotificationServerType = PUSH_NOTIFICATIONS_CUSTOM;
         }
 
         let pushNotificationServer = config.EmailSettings.PushNotificationServer;

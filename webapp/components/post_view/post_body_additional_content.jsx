@@ -62,7 +62,9 @@ export default class PostBodyAdditionalContent extends React.PureComponent {
     }
 
     toggleEmbedVisibility() {
-        this.setState({embedVisible: !this.state.embedVisible});
+        this.setState((prevState) => {
+            return {embedVisible: !prevState.embedVisible};
+        });
     }
 
     getSlackAttachment() {
