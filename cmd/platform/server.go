@@ -120,8 +120,8 @@ func runServer(configFileLocation string) {
 		einterfaces.GetMetricsInterface().StartServer()
 	}
 
-	if einterfaces.GetElasticSearchInterface() != nil {
-		if err := einterfaces.GetElasticSearchInterface().Start(); err != nil {
+	if einterfaces.GetElasticsearchInterface() != nil {
+		if err := einterfaces.GetElasticsearchInterface().Start(); err != nil {
 			l4g.Error(err.Error())
 		}
 	}
