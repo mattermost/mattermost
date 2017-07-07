@@ -536,7 +536,7 @@ func getClientConfig(c *model.Config) map[string]string {
 			props["PasswordRequireSymbol"] = strconv.FormatBool(*c.PasswordSettings.Symbol)
 		}
 
-		if *License.Features.ElasticSearch {
+		if *License.Features.Elasticsearch {
 			props["ElasticSearchEnableIndexing"] = strconv.FormatBool(*c.ElasticSearchSettings.EnableIndexing)
 			props["ElasticSearchEnableSearching"] = strconv.FormatBool(*c.ElasticSearchSettings.EnableSearching)
 		}
