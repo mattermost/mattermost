@@ -152,7 +152,7 @@ export default class PostList extends React.PureComponent {
                 return;
             }
 
-            if (!this.wasAtBottom() && this.props.posts !== nextProps.posts) {
+            if (!this.wasAtBottom() && this.props.posts !== nextProps.posts && this.hasScrolledToNewMessageSeparator) {
                 const unViewedCount = nextProps.posts.reduce((count, post) => {
                     if (post.create_at > this.state.lastViewed &&
                         post.user_id !== nextProps.currentUserId &&
