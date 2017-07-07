@@ -289,5 +289,9 @@
     },
     "DataRetentionSettings": {
         "Enable": false
+    },
+    "JobSettings": {
+        "RunJobs": true,
+        "RunScheduler": true
     }
 }

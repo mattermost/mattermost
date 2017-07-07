@@ -16,6 +16,7 @@ import (
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/store"
 	"github.com/mattermost/platform/utils"
+	"github.com/mattermost/platform/jobs"
 )
 
 func GetLogs(page, perPage int) ([]string, *model.AppError) {
@@ -186,6 +187,8 @@ func RecycleDatabaseConnection() {
 
 	l4g.Warn(utils.T("api.admin.recycle_db_start.warn"))
 	Srv.Store = store.NewLayeredStore()
+
+	jobs.Srv.Store = Srv.Store
 
 	time.Sleep(20 * time.Second)
 	oldStore.Close()

@@ -11,9 +11,12 @@ import (
 )
 
 type JobServer struct {
-	Store store.Store
-	Jobs  *Jobs
+	Store      store.Store
+	Workers    *Workers
+	Schedulers *Schedulers
 }
+
+var Srv JobServer
 
 func (server *JobServer) LoadLicense() {
 	licenseId := ""
@@ -42,5 +45,29 @@ func (server *JobServer) LoadLicense() {
 		l4g.Info("License key valid unlocking enterprise features.")
 	} else {
 		l4g.Info(utils.T("mattermost.load_license.find.warn"))
+	}
+}
+
+func (server *JobServer) StartWorkers() {
+	if *utils.Cfg.JobSettings.RunJobs {
+		Srv.Workers = InitWorkers().Start()
+	}
+}
+
+func (server *JobServer) StartSchedulers() {
+	if *utils.Cfg.JobSettings.RunJobs {
+		Srv.Schedulers = InitSchedulers().Start()
+	}
+}
+
+func (server *JobServer) StopWorkers() {
+	if Srv.Workers != nil {
+		Srv.Workers.Stop()
+	}
+}
+
+func (server *JobServer) StopSchedulers() {
+	if Srv.Schedulers != nil {
+		Srv.Schedulers.Stop()
 	}
 }

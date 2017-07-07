@@ -5,11 +5,11 @@ package jobs
 
 import (
 	"github.com/mattermost/platform/model"
-	"github.com/mattermost/platform/store"
 )
 
 type DataRetentionInterface interface {
-	MakeJob(store store.Store) model.Job
+	MakeWorker() model.Worker
+	MakeScheduler() model.Scheduler
 }
 
 var theDataRetentionInterface DataRetentionInterface

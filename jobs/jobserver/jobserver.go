@@ -16,22 +16,20 @@ import (
 	_ "github.com/mattermost/platform/imports"
 )
 
-var Srv jobs.JobServer
-
 func main() {
 	// Initialize
 	utils.InitAndLoadConfig("config.json")
 	defer l4g.Close()
 
-	Srv.Store = store.NewLayeredStore()
-	defer Srv.Store.Close()
+	jobs.Srv.Store = store.NewLayeredStore()
+	defer jobs.Srv.Store.Close()
 
-	Srv.LoadLicense()
+	jobs.Srv.LoadLicense()
 
 	// Run jobs
 	l4g.Info("Starting Mattermost job server")
-	Srv.Jobs = jobs.InitJobs(Srv.Store)
-	Srv.Jobs.Start()
+	jobs.Srv.StartWorkers()
+	jobs.Srv.StartSchedulers()
 
 	var signalChan chan os.Signal = make(chan os.Signal)
 	signal.Notify(signalChan, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
@@ -40,7 +38,8 @@ func main() {
 	// Cleanup anything that isn't handled by a defer statement
 	l4g.Info("Stopping Mattermost job server")
 
-	Srv.Jobs.Stop()
+	jobs.Srv.StopSchedulers()
+	jobs.Srv.StopWorkers()
 
 	l4g.Info("Stopped Mattermost job server")
 }
