@@ -5,7 +5,6 @@ import SettingItemMin from 'components/setting_item_min.jsx';
 import SettingItemMax from 'components/setting_item_max.jsx';
 
 import * as Utils from 'utils/utils.jsx';
-import * as UserAgent from 'utils/user_agent.jsx';
 
 import PropTypes from 'prop-types';
 
@@ -45,7 +44,7 @@ export default class DesktopNotificationSettings extends React.Component {
                 soundRadio[0] = true;
             }
 
-            if (UserAgent.isFirefox()) {
+            if (Utils.hasNoSoundOptions()) {
                 soundSection = (
                     <div>
                         <hr/>
@@ -109,7 +108,7 @@ export default class DesktopNotificationSettings extends React.Component {
                         <span>
                             <FormattedMessage
                                 id='user.settings.notifications.sounds_info'
-                                defaultMessage='Notification sounds are available on IE11, Edge, Safari, Chrome and Mattermost Desktop Apps.'
+                                defaultMessage='Notification sounds are available on IE11, Safari, Chrome and Mattermost Desktop Apps.'
                             />
                         </span>
                     </div>
@@ -304,18 +303,18 @@ export default class DesktopNotificationSettings extends React.Component {
     buildMinimizedSetting() {
         let describe = '';
         if (this.props.activity === 'mention') {
-            if (UserAgent.isFirefox()) {
+            if (Utils.hasNoSoundOptions()) {
                 if (this.props.duration === '0') {
                     describe = (
                         <FormattedMessage
-                            id='user.settings.notifications.desktop.mentionsFirefoxForever'
+                            id='user.settings.notifications.desktop.mentionsSansSoundForever'
                             defaultMessage='For mentions and direct messages, shown indefinitely'
                         />
                     );
                 } else {
                     describe = (
                         <FormattedMessage
-                            id='user.settings.notifications.desktop.mentionsFirefoxTimed'
+                            id='user.settings.notifications.desktop.mentionsSansSoundTimed'
                             defaultMessage='For mentions and direct messages, shown for {seconds} seconds'
                             values={{
                                 seconds: this.props.duration
@@ -370,18 +369,18 @@ export default class DesktopNotificationSettings extends React.Component {
                 />
             );
         } else {
-            if (UserAgent.isFirefox()) {  //eslint-disable-line no-lonely-if
+            if (Utils.hasNoSoundOptions()) {  //eslint-disable-line no-lonely-if
                 if (this.props.duration === '0') {
                     describe = (
                         <FormattedMessage
-                            id='user.settings.notifications.desktop.allFirefoxForever'
+                            id='user.settings.notifications.desktop.allSansSoundForever'
                             defaultMessage='For all activity, shown indefinitely'
                         />
                     );
                 } else {
                     describe = (
                         <FormattedMessage
-                            id='user.settings.notifications.desktop.allFirefoxTimed'
+                            id='user.settings.notifications.desktop.allSansSoundTimed'
                             defaultMessage='For all activity, shown for {seconds} seconds'
                             values={{
                                 seconds: this.props.duration
