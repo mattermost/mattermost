@@ -1036,7 +1036,7 @@ func SendPasswordReset(email string, siteURL string) (bool, *model.AppError) {
 		return false, err
 	}
 
-	if _, err := SendPasswordResetEmail(email, recovery, user.Locale, siteURL); err != nil {
+	if _, err := SendPasswordResetEmail(user.Email, recovery, user.Locale, siteURL); err != nil {
 		return false, model.NewLocAppError("SendPasswordReset", "api.user.send_password_reset.send.app_error", nil, "err="+err.Message)
 	}
 
