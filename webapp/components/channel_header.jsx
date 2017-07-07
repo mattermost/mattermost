@@ -660,9 +660,22 @@ export default class ChannelHeader extends React.Component {
 
         let headerText;
         if (this.state.enableFormatting) {
-            headerText = TextFormatting.formatText(channel.header, {singleline: true, mentionHighlight: false, siteURL: getSiteURL()});
+            headerText = (
+                <div
+                    onClick={Utils.handleFormattedTextClick}
+                    className='description'
+                    dangerouslySetInnerHTML={{__html: TextFormatting.formatText(channel.header, {singleline: true, mentionHighlight: false, siteURL: getSiteURL()})}}
+                />
+            );
         } else {
-            headerText = channel.header;
+            headerText = (
+                <div
+                    onClick={Utils.handleFormattedTextClick}
+                    className='description'
+                >
+                    {channel.header}
+                </div>
+            );
         }
 
         const toggleFavoriteTooltip = (
@@ -754,11 +767,7 @@ export default class ChannelHeader extends React.Component {
                                         overlay={popoverContent}
                                         ref='headerOverlay'
                                     >
-                                        <div
-                                            onClick={Utils.handleFormattedTextClick}
-                                            className='description'
-                                            dangerouslySetInnerHTML={{__html: headerText}}
-                                        />
+                                        {headerText}
                                     </OverlayTrigger>
                                 </div>
                             </th>
