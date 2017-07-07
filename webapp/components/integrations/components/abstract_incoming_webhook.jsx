@@ -12,44 +12,43 @@ import SpinnerButton from 'components/spinner_button.jsx';
 import {Link} from 'react-router/es6';
 
 export default class AbstractIncomingWebhook extends React.Component {
-         static propTypes = {
+    static propTypes = {
 
-         /**
-          * The current team
-          */
-         team: PropTypes.object.isRequired,
+        /**
+        * The current team
+        */
+        team: PropTypes.object.isRequired,
 
-         /**
-          * The header text to render, has id and defaultMessage
-          */
-         header: PropTypes.object.isRequired,
+        /**
+        * The header text to render, has id and defaultMessage
+        */
+        header: PropTypes.object.isRequired,
 
-         /**
-          * The footer text to render, has id and defaultMessage
-          */
-         footer: PropTypes.object.isRequired,
+        /**
+        * The footer text to render, has id and defaultMessage
+        */
+        footer: PropTypes.object.isRequired,
 
-         /**
-          * The server error text after a failed action
-          */
-         serverError: PropTypes.string.isRequired,
+        /**
+        * The server error text after a failed action
+        */
+        serverError: PropTypes.string.isRequired,
 
-         /**
-          * The hook used to set the initial state
-          */
-         initialHook: PropTypes.object,
+        /**
+        * The hook used to set the initial state
+        */
+        initialHook: PropTypes.object,
 
-         /**
-          * The async function to run when the action button is pressed
-          */
-         action: PropTypes.func.isRequired
+        /**
+        * The async function to run when the action button is pressed
+        */
+        action: PropTypes.func.isRequired
     }
 
     constructor(props) {
         super(props);
 
-         this.state = this.getStateFromHook(this.props.initialHook || {});
-
+        this.state = this.getStateFromHook(this.props.initialHook || {});
     }
 
     getStateFromHook = (hook) => {
@@ -118,8 +117,9 @@ export default class AbstractIncomingWebhook extends React.Component {
     }
 
     render() {
-        var headerToRender = this.props.header();
-        var footerToRender = this.props.footer();
+        var headerToRender = this.props.header;
+        var footerToRender = this.props.footer;
+
         return (
             <div className='backstage-content'>
                 <BackstageHeader>
