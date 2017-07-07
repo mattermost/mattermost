@@ -14,11 +14,11 @@ import (
 func InitJob() {
 	l4g.Info("Initializing job API routes")
 
-	BaseRoutes.Jobs.Handle("/type/{job_type:[A-Za-z0-9_-]+}/statuses", ApiSessionRequired(getJobStatusesByType)).Methods("GET")
-	BaseRoutes.Jobs.Handle("/{job_id:[A-Za-z0-9]+}/status", ApiSessionRequired(getJobStatus)).Methods("GET")
+	BaseRoutes.Jobs.Handle("/type/{job_type:[A-Za-z0-9_-]+}/statuses", ApiSessionRequired(getJobsByType)).Methods("GET")
+	BaseRoutes.Jobs.Handle("/{job_id:[A-Za-z0-9]+}/status", ApiSessionRequired(getJob)).Methods("GET")
 }
 
-func getJobStatus(c *Context, w http.ResponseWriter, r *http.Request) {
+func getJob(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequireJobId()
 	if c.Err != nil {
 		return
@@ -29,7 +29,7 @@ func getJobStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if status, err := app.GetJobStatus(c.Params.JobId); err != nil {
+	if status, err := app.GetJob(c.Params.JobId); err != nil {
 		c.Err = err
 		return
 	} else {
@@ -37,7 +37,7 @@ func getJobStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func getJobStatusesByType(c *Context, w http.ResponseWriter, r *http.Request) {
+func getJobsByType(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequireJobType()
 	if c.Err != nil {
 		return
@@ -48,10 +48,10 @@ func getJobStatusesByType(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if statuses, err := app.GetJobStatusesByTypePage(c.Params.JobType, c.Params.Page, c.Params.PerPage); err != nil {
+	if statuses, err := app.GetJobsByTypePage(c.Params.JobType, c.Params.Page, c.Params.PerPage); err != nil {
 		c.Err = err
 		return
 	} else {
-		w.Write([]byte(model.JobStatusesToJson(statuses)))
+		w.Write([]byte(model.JobsToJson(statuses)))
 	}
 }

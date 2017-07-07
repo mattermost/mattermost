@@ -3744,6 +3744,10 @@
     "translation": "Page not found"
   },
   {
+    "id": "jobs.request_cancellation.status.error",
+    "translation": "Could not request cancellation for job that is not in a cancelable state."
+  },
+  {
     "id": "manaultesting.get_channel_id.no_found.debug",
     "translation": "Could not find channel: %v, %v possibilities searched"
   },
@@ -5292,24 +5296,24 @@
     "translation": "We couldn't save or update the file info"
   },
   {
-    "id": "store.sql_job_status.delete_by_type.app_error",
-    "translation": "We couldn't delete the job status"
+    "id": "store.sql_job.delete.app_error",
+    "translation": "We couldn't delete the job"
   },
   {
-    "id": "store.sql_job_status.get.app_error",
-    "translation": "We couldn't get the job status"
+    "id": "store.sql_job.get.app_error",
+    "translation": "We couldn't get the job"
   },
   {
-    "id": "store.sql_job_status.get_all.app_error",
-    "translation": "We couldn't get all job statuses"
+    "id": "store.sql_job.get_all.app_error",
+    "translation": "We couldn't get the jobs"
   },
   {
-    "id": "store.sql_job_status.save.app_error",
-    "translation": "We couldn't save the job status"
+    "id": "store.sql_job.save.app_error",
+    "translation": "We couldn't save the job"
   },
   {
-    "id": "store.sql_job_status.update.app_error",
-    "translation": "We couldn't update the job status"
+    "id": "store.sql_job.update.app_error",
+    "translation": "We couldn't update the job"
   },
   {
     "id": "store.sql_license.get.app_error",

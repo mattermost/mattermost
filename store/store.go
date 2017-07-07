@@ -48,7 +48,7 @@ type Store interface {
 	Status() StatusStore
 	FileInfo() FileInfoStore
 	Reaction() ReactionStore
-	JobStatus() JobStatusStore
+	Job() JobStore
 	MarkSystemRanUnitTests()
 	Close()
 	DropAllTables()
@@ -384,10 +384,14 @@ type ReactionStore interface {
 	DeleteAllWithEmojiName(emojiName string) StoreChannel
 }
 
-type JobStatusStore interface {
-	SaveOrUpdate(status *model.JobStatus) StoreChannel
+type JobStore interface {
+	Save(job *model.Job) StoreChannel
+	UpdateOptimistically(job *model.Job, currentStatus string) StoreChannel
+	UpdateStatus(id string, status string) StoreChannel
+	UpdateStatusOptimistically(id string, currentStatus string, newStatus string) StoreChannel
 	Get(id string) StoreChannel
 	GetAllByType(jobType string) StoreChannel
 	GetAllByTypePage(jobType string, offset int, limit int) StoreChannel
+	GetAllByStatus(status string) StoreChannel
 	Delete(id string) StoreChannel
 }

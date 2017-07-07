@@ -436,6 +436,11 @@ type DataRetentionSettings struct {
 	Enable *bool
 }
 
+type JobSettings struct {
+	RunJobs      *bool
+	RunScheduler *bool
+}
+
 type Config struct {
 	ServiceSettings       ServiceSettings
 	TeamSettings          TeamSettings
@@ -462,6 +467,7 @@ type Config struct {
 	WebrtcSettings        WebrtcSettings
 	ElasticSearchSettings ElasticSearchSettings
 	DataRetentionSettings DataRetentionSettings
+	JobSettings           JobSettings
 }
 
 func (o *Config) ToJson() string {
@@ -1378,6 +1384,16 @@ func (o *Config) SetDefaults() {
 	if o.DataRetentionSettings.Enable == nil {
 		o.DataRetentionSettings.Enable = new(bool)
 		*o.DataRetentionSettings.Enable = false
+	}
+
+	if o.JobSettings.RunJobs == nil {
+		o.JobSettings.RunJobs = new(bool)
+		*o.JobSettings.RunJobs = true
+	}
+
+	if o.JobSettings.RunScheduler == nil {
+		o.JobSettings.RunScheduler = new(bool)
+		*o.JobSettings.RunScheduler = true
 	}
 
 	o.defaultWebrtcSettings()
