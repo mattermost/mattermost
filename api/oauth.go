@@ -4,6 +4,8 @@
 package api
 
 import (
+	"crypto/hmac"
+	"crypto/sha256"
 	"crypto/tls"
 	b64 "encoding/base64"
 	"fmt"
@@ -13,6 +15,7 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
+	"time"
 
 	l4g "github.com/alecthomas/log4go"
 	"github.com/gorilla/mux"
@@ -21,6 +24,11 @@ import (
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/store"
 	"github.com/mattermost/platform/utils"
+)
+
+const (
+	OAUTH_COOKIE_MAX_AGE_SECONDS = 30 * 60 // 30 minutes
+	COOKIE_OAUTH                 = "MMOAUTH"
 )
 
 func InitOAuth() {
@@ -273,7 +281,7 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	uri := c.GetSiteURLHeader() + "/signup/" + service + "/complete"
 
-	if body, teamId, props, err := AuthorizeOAuthUser(service, code, state, uri); err != nil {
+	if body, teamId, props, err := AuthorizeOAuthUser(w, r, service, code, state, uri); err != nil {
 		c.Err = err
 		return
 	} else {
@@ -621,7 +629,7 @@ func loginWithOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 		stateProps["redirect_to"] = redirectTo
 	}
 
-	if authUrl, err := GetAuthorizationCode(c, service, stateProps, loginHint); err != nil {
+	if authUrl, err := GetAuthorizationCode(c, w, r, service, stateProps, loginHint); err != nil {
 		c.Err = err
 		return
 	} else {
@@ -681,7 +689,7 @@ func signupWithOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 		stateProps["team_id"] = teamId
 	}
 
-	if authUrl, err := GetAuthorizationCode(c, service, stateProps, ""); err != nil {
+	if authUrl, err := GetAuthorizationCode(c, w, r, service, stateProps, ""); err != nil {
 		c.Err = err
 		return
 	} else {
@@ -689,18 +697,53 @@ func signupWithOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func GetAuthorizationCode(c *Context, service string, props map[string]string, loginHint string) (string, *model.AppError) {
+func generateOAuthStateMessage(email, action, cookie string) string {
+	return email + ":" + action + ":" + cookie
+}
+
+func CheckMAC(message, messageMAC, key []byte) bool {
+	mac := hmac.New(sha256.New, key)
+	mac.Write(message)
+	expectedMAC := mac.Sum(nil)
+	return hmac.Equal(messageMAC, expectedMAC)
+}
+
+func GetAuthorizationCode(c *Context, w http.ResponseWriter, r *http.Request, service string, props map[string]string, loginHint string) (string, *model.AppError) {
 
 	sso := utils.Cfg.GetSSOService(service)
 	if sso != nil && !sso.Enable {
 		return "", model.NewLocAppError("GetAuthorizationCode", "api.user.get_authorization_code.unsupported.app_error", nil, "service="+service)
 	}
 
+	secure := false
+	if app.GetProtocol(r) == "https" {
+		secure = true
+	}
+
+	cookieValue := model.NewId()
+	expiresAt := time.Unix(model.GetMillis()/1000+int64(OAUTH_COOKIE_MAX_AGE_SECONDS), 0)
+	oauthCookie := &http.Cookie{
+		Name:     COOKIE_OAUTH,
+		Value:    cookieValue,
+		Path:     "/",
+		MaxAge:   OAUTH_COOKIE_MAX_AGE_SECONDS,
+		Expires:  expiresAt,
+		HttpOnly: true,
+		Secure:   secure,
+	}
+
+	http.SetCookie(w, oauthCookie)
+
 	clientId := sso.Id
 	endpoint := sso.AuthEndpoint
 	scope := sso.Scope
 
-	props["hash"] = model.HashSha256(clientId)
+	message := []byte(generateOAuthStateMessage(props["email"], props["action"], cookieValue))
+	mac := hmac.New(sha256.New, []byte(utils.Cfg.SqlSettings.AtRestEncryptKey))
+	mac.Write(message)
+	hash := string(mac.Sum(nil))
+
+	props["hash"] = hash
 	state := b64.StdEncoding.EncodeToString([]byte(model.MapToJson(props)))
 
 	redirectUri := c.GetSiteURLHeader() + "/signup/" + service + "/complete"
@@ -718,7 +761,7 @@ func GetAuthorizationCode(c *Context, service string, props map[string]string, l
 	return authUrl, nil
 }
 
-func AuthorizeOAuthUser(service, code, state, redirectUri string) (io.ReadCloser, string, map[string]string, *model.AppError) {
+func AuthorizeOAuthUser(w http.ResponseWriter, r *http.Request, service, code, state, redirectUri string) (io.ReadCloser, string, map[string]string, *model.AppError) {
 	sso := utils.Cfg.GetSSOService(service)
 	if sso == nil || !sso.Enable {
 		return nil, "", nil, model.NewLocAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.unsupported.app_error", nil, "service="+service)
@@ -733,9 +776,38 @@ func AuthorizeOAuthUser(service, code, state, redirectUri string) (io.ReadCloser
 
 	stateProps := model.MapFromJson(strings.NewReader(stateStr))
 
-	if stateProps["hash"] != model.HashSha256(sso.Id) {
-		return nil, "", nil, model.NewLocAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.invalid_state.app_error", nil, "")
+	stateEmail := stateProps["email"]
+	stateAction := stateProps["action"]
+	if stateAction == model.OAUTH_ACTION_EMAIL_TO_SSO && stateEmail == "" {
+		return nil, "", nil, model.NewAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.invalid_state.app_error", nil, "", http.StatusBadRequest)
 	}
+
+	stateHash := stateProps["hash"]
+	if stateHash == "" {
+		return nil, "", nil, model.NewAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.invalid_state.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	cookieValue := ""
+	if cookie, err := r.Cookie(COOKIE_OAUTH); err != nil {
+		return nil, "", nil, model.NewAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.invalid_state.app_error", nil, "", http.StatusBadRequest)
+	} else {
+		cookieValue = cookie.Value
+	}
+
+	message := []byte(generateOAuthStateMessage(stateEmail, stateAction, cookieValue))
+	if CheckMAC(message, []byte(stateHash), []byte(utils.Cfg.SqlSettings.AtRestEncryptKey)) {
+		return nil, "", nil, model.NewAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.invalid_state.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	cookie := &http.Cookie{
+		Name:     COOKIE_OAUTH,
+		Value:    "",
+		Path:     "/",
+		MaxAge:   -1,
+		HttpOnly: true,
+	}
+
+	http.SetCookie(w, cookie)
 
 	teamId := stateProps["team_id"]
 

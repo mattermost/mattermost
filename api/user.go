@@ -940,7 +940,7 @@ func emailToOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	if service == model.USER_AUTH_SERVICE_SAML {
 		m["follow_link"] = c.GetSiteURL() + "/login/sso/saml?action=" + model.OAUTH_ACTION_EMAIL_TO_SSO + "&email=" + email
 	} else {
-		if authUrl, err := GetAuthorizationCode(c, service, stateProps, ""); err != nil {
+		if authUrl, err := GetAuthorizationCode(c, w, r, service, stateProps, ""); err != nil {
 			c.LogAuditWithUserId(user.Id, "fail - oauth issue")
 			c.Err = err
 			return
