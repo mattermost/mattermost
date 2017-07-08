@@ -1021,9 +1021,8 @@
 
             .icon--refresh {
                 @include opacity(.6);
-                color: $black;
-                right: 30px;
-                top: 15px;
+                right: 16px;
+                top: 9px;
             }
 
             .form-control {
@@ -1075,7 +1074,7 @@
         }
 
         .nav-pills__container {
-            height: calc(100% - 60px);
+            height: calc(100% - 55px);
         }
 
         > div {
