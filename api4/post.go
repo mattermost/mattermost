@@ -139,8 +139,8 @@ func getFlaggedPostsForUser(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	channelId := r.URL.Query().Get("in_channel")
-	teamId := r.URL.Query().Get("in_team")
+	channelId := r.URL.Query().Get("channel_id")
+	teamId := r.URL.Query().Get("team_id")
 
 	var posts *model.PostList
 	var err *model.AppError
