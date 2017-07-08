@@ -5,7 +5,6 @@ import SettingItemMin from 'components/setting_item_min.jsx';
 import SettingItemMax from 'components/setting_item_max.jsx';
 
 import * as Utils from 'utils/utils.jsx';
-import * as UserAgent from 'utils/user_agent.jsx';
 
 import PropTypes from 'prop-types';
 

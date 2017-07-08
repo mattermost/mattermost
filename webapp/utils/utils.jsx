@@ -166,8 +166,8 @@ export function ding() {
 }
 
 export function hasNoSoundOptions() {
-        return (UserAgent.isFirefox() || UserAgent.isEdge());
-    }
+    return (UserAgent.isFirefox() || UserAgent.isEdge());
+}
 
 export function getDateForUnixTicks(ticks) {
     return new Date(ticks);
