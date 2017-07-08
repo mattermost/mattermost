@@ -19,7 +19,6 @@ import store from 'stores/redux_store.jsx';
 const dispatch = store.dispatch;
 const getState = store.getState;
 
-import {getProfilesByIds} from 'mattermost-redux/actions/users';
 import * as PostActions from 'mattermost-redux/actions/posts';
 import {getMyChannelMember} from 'mattermost-redux/actions/channels';
 
@@ -55,7 +54,7 @@ function completePostReceive(post, websocketMessageProps) {
         PostActions.getPostThread(post.root_id)(dispatch, getState).then(
             (data) => {
                 dispatchPostActions(post, websocketMessageProps);
-                loadProfilesForPosts(data.posts);
+                PostActions.getProfilesAndStatusesForPosts(data.posts, dispatch, getState);
             }
         );
 
@@ -123,7 +122,7 @@ export function getFlaggedPosts() {
                 is_pinned_posts: false
             });
 
-            loadProfilesForPosts(data.posts);
+            PostActions.getProfilesAndStatusesForPosts(data.posts, dispatch, getState);
         }
     ).catch(
         () => {} //eslint-disable-line no-empty-function
@@ -147,32 +146,11 @@ export function getPinnedPosts(channelId = ChannelStore.getCurrentId()) {
                 is_pinned_posts: true
             });
 
-            loadProfilesForPosts(data.posts);
+            PostActions.getProfilesAndStatusesForPosts(data.posts, dispatch, getState);
         }
     ).catch(
         () => {} //eslint-disable-line no-empty-function
     );
-}
-
-export function loadProfilesForPosts(posts) {
-    const profilesToLoad = {};
-    for (const pid in posts) {
-        if (!posts.hasOwnProperty(pid)) {
-            continue;
-        }
-
-        const post = posts[pid];
-        if (!UserStore.hasProfile(post.user_id)) {
-            profilesToLoad[post.user_id] = true;
-        }
-    }
-
-    const list = Object.keys(profilesToLoad);
-    if (list.length === 0) {
-        return;
-    }
-
-    getProfilesByIds(list)(dispatch, getState);
 }
 
 export function addReaction(channelId, postId, emojiName) {
@@ -252,7 +230,7 @@ export function performSearch(terms, isMentionSearch, success, error) {
                 is_mention_search: isMentionSearch
             });
 
-            loadProfilesForPosts(data.posts);
+            PostActions.getProfilesAndStatusesForPosts(data.posts, dispatch, getState);
 
             if (success) {
                 success(data);
