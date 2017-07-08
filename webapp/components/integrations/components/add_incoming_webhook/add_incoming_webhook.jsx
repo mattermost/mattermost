@@ -19,14 +19,14 @@ export default class AddIncomingWebhook extends React.PureComponent {
         team: PropTypes.object.isRequired,
 
         /**
-        * The request state for createOutgoingHook action. Contains status and error
+        * The request state for createIncomingHook action. Contains status and error
         */
         createIncomingHookRequest: PropTypes.object.isRequired,
 
         actions: PropTypes.shape({
 
             /**
-            * The function to call to add a new outgoing webhook
+            * The function to call to add a new incoming webhook
             */
             createIncomingHook: PropTypes.func.isRequired
         }).isRequired

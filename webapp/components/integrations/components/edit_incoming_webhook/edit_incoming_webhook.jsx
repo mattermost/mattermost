@@ -21,29 +21,29 @@ export default class EditIncomingWebhook extends React.PureComponent {
         team: PropTypes.object.isRequired,
 
         /**
-        * The outgoing webhook to edit
+        * The incoming webhook to edit
         */
         hook: PropTypes.object,
 
         /**
-        * The id of the outgoing webhook to edit
+        * The id of the incoming webhook to edit
         */
         hookId: PropTypes.string.isRequired,
 
         /**
-        * The request state for updateOutgoingHook action. Contains status and error
+        * The request state for updateIncomingHook action. Contains status and error
         */
         updateIncomingHookRequest: PropTypes.object.isRequired,
 
         actions: PropTypes.shape({
 
             /**
-            * The function to call to update an outgoing webhook
+            * The function to call to update an incoming webhook
             */
             updateIncomingHook: PropTypes.func.isRequired,
 
             /**
-            * The function to call to get an outgoing webhook
+            * The function to call to get an incoming webhook
             */
             getIncomingHook: PropTypes.func.isRequired
         }).isRequired
