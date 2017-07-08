@@ -155,7 +155,7 @@ export function notifyMe(title, body, channel, teamId, duration, silent) {
 var canDing = true;
 
 export function ding() {
-    if (!UserAgent.isFirefox() && canDing) {
+    if (!hasNoSoundOptions() && canDing) {
         var audio = new Audio(bing);
         audio.play();
         canDing = false;
@@ -164,6 +164,10 @@ export function ding() {
         }, 3000);
     }
 }
+
+export function hasNoSoundOptions() {
+        return (UserAgent.isFirefox() || UserAgent.isEdge());
+    }
 
 export function getDateForUnixTicks(ticks) {
     return new Date(ticks);

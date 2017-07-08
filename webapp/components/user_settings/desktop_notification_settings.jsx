@@ -18,7 +18,6 @@ export default class DesktopNotificationSettings extends React.Component {
 
         this.buildMaximizedSetting = this.buildMaximizedSetting.bind(this);
         this.buildMinimizedSetting = this.buildMinimizedSetting.bind(this);
-        this.hasNoSoundOptions = this.hasNoSoundOptions.bind(this);
 
         this.state = {};
     }
@@ -46,7 +45,7 @@ export default class DesktopNotificationSettings extends React.Component {
                 soundRadio[0] = true;
             }
 
-            if (this.hasNoSoundOptions()) {
+            if (Utils.hasNoSoundOptions()) {
                 soundSection = (
                     <div>
                         <hr/>
@@ -305,7 +304,7 @@ export default class DesktopNotificationSettings extends React.Component {
     buildMinimizedSetting() {
         let describe = '';
         if (this.props.activity === 'mention') {
-            if (this.hasNoSoundOptions()) {
+            if (Utils.hasNoSoundOptions()) {
                 if (this.props.duration === '0') {
                     describe = (
                         <FormattedMessage
@@ -371,7 +370,7 @@ export default class DesktopNotificationSettings extends React.Component {
                 />
             );
         } else {
-            if (this.hasNoSoundOptions()) {  //eslint-disable-line no-lonely-if
+            if (Utils.hasNoSoundOptions()) {  //eslint-disable-line no-lonely-if
                 if (this.props.duration === '0') {
                     describe = (
                         <FormattedMessage
@@ -442,10 +441,6 @@ export default class DesktopNotificationSettings extends React.Component {
                 updateSection={handleUpdateDesktopSection}
             />
         );
-    }
-
-    hasNoSoundOptions() {
-        return (UserAgent.isFirefox() || UserAgent.isEdge());
     }
 
     render() {
