@@ -329,3 +329,23 @@ export function searchForTerm(term) {
         do_search: true
     });
 }
+
+export function pinPost(postId) {
+    return async (doDispatch, doGetState) => {
+        await PostActions.pinPost(postId)(doDispatch, doGetState);
+
+        AppDispatcher.handleServerAction({
+            type: ActionTypes.RECEIVED_POST_PINNED
+        });
+    };
+}
+
+export function unpinPost(postId) {
+    return async (doDispatch, doGetState) => {
+        await PostActions.unpinPost(postId)(doDispatch, doGetState);
+
+        AppDispatcher.handleServerAction({
+            type: ActionTypes.RECEIVED_POST_UNPINNED
+        });
+    };
+}

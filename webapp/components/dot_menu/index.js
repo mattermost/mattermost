@@ -3,7 +3,8 @@
 
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
-import {flagPost, unflagPost, pinPost, unpinPost} from 'mattermost-redux/actions/posts';
+import {flagPost, unflagPost} from 'mattermost-redux/actions/posts';
+import {pinPost, unpinPost} from 'actions/post_actions.jsx';
 
 import DotMenu from './dot_menu.jsx';
 
