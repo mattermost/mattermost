@@ -123,6 +123,10 @@ func (s *LayeredStore) Job() JobStore {
 	return s.DatabaseLayer.Job()
 }
 
+func (s *LayeredStore) UserAccessToken() UserAccessTokenStore {
+	return s.DatabaseLayer.UserAccessToken()
+}
+
 func (s *LayeredStore) MarkSystemRanUnitTests() {
 	s.DatabaseLayer.MarkSystemRanUnitTests()
 }

@@ -20,6 +20,7 @@ type ApiParams struct {
 	UserId         string
 	TeamId         string
 	InviteId       string
+	TokenId        string
 	ChannelId      string
 	PostId         string
 	FileId         string
@@ -58,6 +59,10 @@ func ApiParamsFromRequest(r *http.Request) *ApiParams {
 
 	if val, ok := props["invite_id"]; ok {
 		params.InviteId = val
+	}
+
+	if val, ok := props["token_id"]; ok {
+		params.TokenId = val
 	}
 
 	if val, ok := props["channel_id"]; ok {

@@ -70,6 +70,10 @@ func (c *Client4) GetUserRoute(userId string) string {
 	return fmt.Sprintf(c.GetUsersRoute()+"/%v", userId)
 }
 
+func (c *Client4) GetUserAccessTokenRoute(tokenId string) string {
+	return fmt.Sprintf(c.GetUsersRoute()+"/tokens/%v", tokenId)
+}
+
 func (c *Client4) GetUserByUsernameRoute(userName string) string {
 	return fmt.Sprintf(c.GetUsersRoute()+"/username/%v", userName)
 }
@@ -954,6 +958,60 @@ func (c *Client4) SetProfileImage(userId string, data []byte) (bool, *Response) 
 	} else {
 		defer closeBody(rp)
 		return CheckStatusOK(rp), BuildResponse(rp)
+	}
+}
+
+// CreateUserAccessToken will generate a user access token that can be used in place
+// of a session token to access the REST API. Must have the 'create_user_access_token'
+// permission and if generating for another user, must have the 'edit_other_users'
+// permission. A non-blank description is required.
+func (c *Client4) CreateUserAccessToken(userId, description string) (*UserAccessToken, *Response) {
+	requestBody := map[string]string{"description": description}
+	if r, err := c.DoApiPost(c.GetUserRoute(userId)+"/tokens", MapToJson(requestBody)); err != nil {
+		return nil, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return UserAccessTokenFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// GetUserAccessToken will get a user access token's id, description and the user_id
+// of the user it is for. The actual token will not be returned. Must have the
+// 'read_user_access_token' permission and if getting for another user, must have the
+// 'edit_other_users' permission.
+func (c *Client4) GetUserAccessToken(tokenId string) (*UserAccessToken, *Response) {
+	if r, err := c.DoApiGet(c.GetUserAccessTokenRoute(tokenId), ""); err != nil {
+		return nil, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return UserAccessTokenFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// GetUserAccessTokensForUser will get a paged list of user access tokens showing id,
+// description and user_id for each. The actual tokens will not be returned. Must have
+// the 'read_user_access_token' permission and if getting for another user, must have the
+// 'edit_other_users' permission.
+func (c *Client4) GetUserAccessTokensForUser(userId string, page, perPage int) ([]*UserAccessToken, *Response) {
+	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)
+	if r, err := c.DoApiGet(c.GetUserRoute(userId)+"/tokens"+query, ""); err != nil {
+		return nil, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return UserAccessTokenListFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// RevokeUserAccessToken will revoke a user access token by id. Must have the
+// 'revoke_user_access_token' permission and if revoking for another user, must have the
+// 'edit_other_users' permission.
+func (c *Client4) RevokeUserAccessToken(tokenId string) (bool, *Response) {
+	requestBody := map[string]string{"token_id": tokenId}
+	if r, err := c.DoApiPost(c.GetUsersRoute()+"/tokens/revoke", MapToJson(requestBody)); err != nil {
+		return false, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return CheckStatusOK(r), BuildResponse(r)
 	}
 }
 

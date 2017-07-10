@@ -2139,3 +2139,255 @@ func TestSwitchAccount(t *testing.T) {
 	_, resp = Client.SwitchAccountType(sr)
 	CheckUnauthorizedStatus(t, resp)
 }
+
+func TestCreateUserAccessToken(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+	AdminClient := th.SystemAdminClient
+
+	testDescription := "test token"
+
+	enableUserAccessTokens := *utils.Cfg.ServiceSettings.EnableUserAccessTokens
+	defer func() {
+		*utils.Cfg.ServiceSettings.EnableUserAccessTokens = enableUserAccessTokens
+	}()
+	*utils.Cfg.ServiceSettings.EnableUserAccessTokens = true
+
+	_, resp := Client.CreateUserAccessToken(th.BasicUser.Id, testDescription)
+	CheckForbiddenStatus(t, resp)
+
+	_, resp = Client.CreateUserAccessToken("notarealuserid", testDescription)
+	CheckBadRequestStatus(t, resp)
+
+	_, resp = Client.CreateUserAccessToken(th.BasicUser.Id, "")
+	CheckBadRequestStatus(t, resp)
+
+	app.UpdateUserRoles(th.BasicUser.Id, model.ROLE_SYSTEM_USER.Id+" "+model.ROLE_SYSTEM_USER_ACCESS_TOKEN.Id)
+
+	*utils.Cfg.ServiceSettings.EnableUserAccessTokens = false
+	_, resp = Client.CreateUserAccessToken(th.BasicUser.Id, testDescription)
+	CheckNotImplementedStatus(t, resp)
+	*utils.Cfg.ServiceSettings.EnableUserAccessTokens = true
+
+	rtoken, resp := Client.CreateUserAccessToken(th.BasicUser.Id, testDescription)
+	CheckNoError(t, resp)
+
+	if rtoken.UserId != th.BasicUser.Id {
+		t.Fatal("wrong user id")
+	} else if rtoken.Token == "" {
+		t.Fatal("token should not be empty")
+	} else if rtoken.Id == "" {
+		t.Fatal("id should not be empty")
+	} else if rtoken.Description != testDescription {
+		t.Fatal("description did not match")
+	}
+
+	oldSessionToken := Client.AuthToken
+	Client.AuthToken = rtoken.Token
+	ruser, resp := Client.GetMe("")
+	CheckNoError(t, resp)
+
+	if ruser.Id != th.BasicUser.Id {
+		t.Fatal("returned wrong user")
+	}
+
+	Client.AuthToken = oldSessionToken
+
+	_, resp = Client.CreateUserAccessToken(th.BasicUser2.Id, testDescription)
+	CheckForbiddenStatus(t, resp)
+
+	rtoken, resp = AdminClient.CreateUserAccessToken(th.BasicUser.Id, testDescription)
+	CheckNoError(t, resp)
+
+	if rtoken.UserId != th.BasicUser.Id {
+		t.Fatal("wrong user id")
+	}
+
+	oldSessionToken = Client.AuthToken
+	Client.AuthToken = rtoken.Token
+	ruser, resp = Client.GetMe("")
+	CheckNoError(t, resp)
+
+	if ruser.Id != th.BasicUser.Id {
+		t.Fatal("returned wrong user")
+	}
+}
+
+func TestGetUserAccessToken(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+	AdminClient := th.SystemAdminClient
+
+	testDescription := "test token"
+
+	enableUserAccessTokens := *utils.Cfg.ServiceSettings.EnableUserAccessTokens
+	defer func() {
+		*utils.Cfg.ServiceSettings.EnableUserAccessTokens = enableUserAccessTokens
+	}()
+	*utils.Cfg.ServiceSettings.EnableUserAccessTokens = true
+
+	_, resp := Client.GetUserAccessToken("123")
+	CheckBadRequestStatus(t, resp)
+
+	_, resp = Client.GetUserAccessToken(model.NewId())
+	CheckForbiddenStatus(t, resp)
+
+	app.UpdateUserRoles(th.BasicUser.Id, model.ROLE_SYSTEM_USER.Id+" "+model.ROLE_SYSTEM_USER_ACCESS_TOKEN.Id)
+	token, resp := Client.CreateUserAccessToken(th.BasicUser.Id, testDescription)
+	CheckNoError(t, resp)
+
+	rtoken, resp := Client.GetUserAccessToken(token.Id)
+	CheckNoError(t, resp)
+
+	if rtoken.UserId != th.BasicUser.Id {
+		t.Fatal("wrong user id")
+	} else if rtoken.Token != "" {
+		t.Fatal("token should be blank")
+	} else if rtoken.Id == "" {
+		t.Fatal("id should not be empty")
+	} else if rtoken.Description != testDescription {
+		t.Fatal("description did not match")
+	}
+
+	_, resp = AdminClient.GetUserAccessToken(token.Id)
+	CheckNoError(t, resp)
+
+	token, resp = Client.CreateUserAccessToken(th.BasicUser.Id, testDescription)
+	CheckNoError(t, resp)
+
+	rtokens, resp := Client.GetUserAccessTokensForUser(th.BasicUser.Id, 0, 100)
+	CheckNoError(t, resp)
+
+	if len(rtokens) != 2 {
+		t.Fatal("should have 2 tokens")
+	}
+
+	for _, uat := range rtokens {
+		if uat.UserId != th.BasicUser.Id {
+			t.Fatal("wrong user id")
+		}
+	}
+
+	rtokens, resp = Client.GetUserAccessTokensForUser(th.BasicUser.Id, 1, 1)
+	CheckNoError(t, resp)
+
+	if len(rtokens) != 1 {
+		t.Fatal("should have 1 token")
+	}
+
+	rtokens, resp = AdminClient.GetUserAccessTokensForUser(th.BasicUser.Id, 0, 100)
+	CheckNoError(t, resp)
+
+	if len(rtokens) != 2 {
+		t.Fatal("should have 2 tokens")
+	}
+}
+
+func TestRevokeUserAccessToken(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+	AdminClient := th.SystemAdminClient
+
+	testDescription := "test token"
+
+	enableUserAccessTokens := *utils.Cfg.ServiceSettings.EnableUserAccessTokens
+	defer func() {
+		*utils.Cfg.ServiceSettings.EnableUserAccessTokens = enableUserAccessTokens
+	}()
+	*utils.Cfg.ServiceSettings.EnableUserAccessTokens = true
+
+	app.UpdateUserRoles(th.BasicUser.Id, model.ROLE_SYSTEM_USER.Id+" "+model.ROLE_SYSTEM_USER_ACCESS_TOKEN.Id)
+	token, resp := Client.CreateUserAccessToken(th.BasicUser.Id, testDescription)
+	CheckNoError(t, resp)
+
+	oldSessionToken := Client.AuthToken
+	Client.AuthToken = token.Token
+	_, resp = Client.GetMe("")
+	CheckNoError(t, resp)
+	Client.AuthToken = oldSessionToken
+
+	ok, resp := Client.RevokeUserAccessToken(token.Id)
+	CheckNoError(t, resp)
+
+	if !ok {
+		t.Fatal("should have passed")
+	}
+
+	oldSessionToken = Client.AuthToken
+	Client.AuthToken = token.Token
+	_, resp = Client.GetMe("")
+	CheckUnauthorizedStatus(t, resp)
+	Client.AuthToken = oldSessionToken
+
+	token, resp = AdminClient.CreateUserAccessToken(th.BasicUser2.Id, testDescription)
+	CheckNoError(t, resp)
+
+	ok, resp = Client.RevokeUserAccessToken(token.Id)
+	CheckForbiddenStatus(t, resp)
+
+	if ok {
+		t.Fatal("should have failed")
+	}
+}
+
+func TestUserAccessTokenInactiveUser(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+
+	testDescription := "test token"
+
+	enableUserAccessTokens := *utils.Cfg.ServiceSettings.EnableUserAccessTokens
+	defer func() {
+		*utils.Cfg.ServiceSettings.EnableUserAccessTokens = enableUserAccessTokens
+	}()
+	*utils.Cfg.ServiceSettings.EnableUserAccessTokens = true
+
+	app.UpdateUserRoles(th.BasicUser.Id, model.ROLE_SYSTEM_USER.Id+" "+model.ROLE_SYSTEM_USER_ACCESS_TOKEN.Id)
+	token, resp := Client.CreateUserAccessToken(th.BasicUser.Id, testDescription)
+	CheckNoError(t, resp)
+
+	Client.AuthToken = token.Token
+	_, resp = Client.GetMe("")
+	CheckNoError(t, resp)
+
+	app.UpdateActive(th.BasicUser, false)
+
+	_, resp = Client.GetMe("")
+	CheckUnauthorizedStatus(t, resp)
+}
+
+func TestUserAccessTokenDisableConfig(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+
+	testDescription := "test token"
+
+	enableUserAccessTokens := *utils.Cfg.ServiceSettings.EnableUserAccessTokens
+	defer func() {
+		*utils.Cfg.ServiceSettings.EnableUserAccessTokens = enableUserAccessTokens
+	}()
+	*utils.Cfg.ServiceSettings.EnableUserAccessTokens = true
+
+	app.UpdateUserRoles(th.BasicUser.Id, model.ROLE_SYSTEM_USER.Id+" "+model.ROLE_SYSTEM_USER_ACCESS_TOKEN.Id)
+	token, resp := Client.CreateUserAccessToken(th.BasicUser.Id, testDescription)
+	CheckNoError(t, resp)
+
+	oldSessionToken := Client.AuthToken
+	Client.AuthToken = token.Token
+	_, resp = Client.GetMe("")
+	CheckNoError(t, resp)
+
+	*utils.Cfg.ServiceSettings.EnableUserAccessTokens = false
+
+	_, resp = Client.GetMe("")
+	CheckUnauthorizedStatus(t, resp)
+
+	Client.AuthToken = oldSessionToken
+	_, resp = Client.GetMe("")
+	CheckNoError(t, resp)
+}

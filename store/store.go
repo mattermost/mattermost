@@ -49,6 +49,7 @@ type Store interface {
 	FileInfo() FileInfoStore
 	Reaction() ReactionStore
 	Job() JobStore
+	UserAccessToken() UserAccessTokenStore
 	MarkSystemRanUnitTests()
 	Close()
 	DropAllTables()
@@ -396,4 +397,13 @@ type JobStore interface {
 	GetAllByTypePage(jobType string, offset int, limit int) StoreChannel
 	GetAllByStatus(status string) StoreChannel
 	Delete(id string) StoreChannel
+}
+
+type UserAccessTokenStore interface {
+	Save(token *model.UserAccessToken) StoreChannel
+	Delete(tokenId string) StoreChannel
+	DeleteAllForUser(userId string) StoreChannel
+	Get(tokenId string) StoreChannel
+	GetByToken(tokenString string) StoreChannel
+	GetByUser(userId string, page, perPage int) StoreChannel
 }
