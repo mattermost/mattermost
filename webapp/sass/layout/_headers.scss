@@ -203,7 +203,7 @@
         position: relative;
         text-overflow: ellipsis;
         top: 10px;
-        white-space: nowrap;
+        white-space: pre;
         word-break: break-word;
 
         .markdown__heading {
