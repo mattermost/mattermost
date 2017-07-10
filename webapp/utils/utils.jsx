@@ -1110,7 +1110,7 @@ export function isDirectChannelForUser(otherUserId, channel) {
 }
 
 export function importSlack(file, success, error) {
-    Client4.importTeam(file, 'slack').then(success).catch(error);
+    Client4.importTeam(TeamStore.getCurrent().id, file, 'slack').then(success).catch(error);
 }
 
 export function windowWidth() {
