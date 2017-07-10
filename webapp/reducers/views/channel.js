@@ -62,8 +62,20 @@ function loadingPosts(state = {}, action) {
     }
 }
 
+function focusedPostId(state = '', action) {
+    switch (action.type) {
+    case ActionTypes.RECEIVED_FOCUSED_POST:
+        return action.data;
+    case ChannelTypes.SELECT_CHANNEL:
+        return '';
+    default:
+        return state;
+    }
+}
+
 export default combineReducers({
     postVisibility,
     lastChannelViewTime,
-    loadingPosts
+    loadingPosts,
+    focusedPostId
 });
