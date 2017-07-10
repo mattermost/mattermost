@@ -80,6 +80,8 @@
 
 .emoji-picker__search-container {
     position: relative;
+    border-top-style: solid;
+    border-top-width: 1px;
 
     .emoji-picker__search-icon {
         padding-left: 6px;
@@ -108,6 +110,8 @@
     overflow-y: auto;
     padding: 0px 8px 8px 8px;
     position: relative;
+    border-top-style: solid;
+    border-top-width: 1px;
 
     .emoji-picker__category-header {
         font-size: 12px;
