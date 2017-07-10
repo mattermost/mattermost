@@ -708,6 +708,22 @@
     "translation": "abrir"
   },
   {
+    "id": "api.command_search.desc",
+    "translation": "Pesquisar texto nas mensagens"
+  },
+  {
+    "id": "api.command_search.hint",
+    "translation": "[texto]"
+  },
+  {
+    "id": "api.command_search.name",
+    "translation": "pesquisar"
+  },
+  {
+    "id": "api.command_search.unsupported.app_error",
+    "translation": "O comando de busca não é suportado no seu equipamento"
+  },
+  {
     "id": "api.command_settings.desc",
     "translation": "Abrir a janela de Configurações de Conta"
   },
@@ -958,6 +974,10 @@
   {
     "id": "api.context.unknown.app_error",
     "translation": "Ocorreu um erro desconhecido. Por favor contato com o suporte."
+  },
+  {
+    "id": "api.context.v3_disabled.app_error",
+    "translation": "API versão 3 foi desabilitada neste servidor. Por favor use a API versão 4. Veja https://api.mattermost.com para mais detalhes"
   },
   {
     "id": "api.deprecated.init.debug",
@@ -1488,6 +1508,10 @@
   {
     "id": "api.oauth.init.debug",
     "translation": "Inicializando as rotas de API oauth"
+  },
+  {
+    "id": "api.oauth.invalid_state_token.app_error",
+    "translation": "State token inválido"
   },
   {
     "id": "api.oauth.regenerate_secret.app_error",
@@ -3021,19 +3045,11 @@
   },
   {
     "id": "app.import.import_direct_channel.create_direct_channel.error",
-    "translation": "Falha ao buscar o canal direto"
-  },
-  {
-    "id": "app.import.import_direct_channel.create_direct_channel.error",
-    "translation": "Falha ao buscar o canal direto"
+    "translation": "Falha ao criar o canal direto"
   },
   {
     "id": "app.import.import_direct_channel.create_group_channel.error",
-    "translation": "Falha ao buscar o canal de grupo"
-  },
-  {
-    "id": "app.import.import_direct_channel.create_group_channel.error",
-    "translation": "Falha ao buscar o canal de grupo"
+    "translation": "Falha ao criar o canal de grupo"
   },
   {
     "id": "app.import.import_direct_channel.member_not_found.error",
@@ -3046,6 +3062,14 @@
   {
     "id": "app.import.import_direct_post.channel_member_not_found.error",
     "translation": "Não foi possível achar o membro do canal enquanto importava os posts do canal direto"
+  },
+  {
+    "id": "app.import.import_direct_post.create_direct_channel.error",
+    "translation": "Falha ao obter o canal direto"
+  },
+  {
+    "id": "app.import.import_direct_post.create_group_channel.error",
+    "translation": "Falha ao obter o canal de grupo"
   },
   {
     "id": "app.import.import_direct_post.user_not_found.error",
