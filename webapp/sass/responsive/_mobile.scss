@@ -1043,8 +1043,8 @@
         @include single-transition(transform, .35s, ease);
         @include translate3d(290px, 0, 0);
         border: none;
-        width: 290px;
         visibility: hidden;
+        width: 290px;
 
         &.visible {
             display: block;
@@ -1287,10 +1287,10 @@
 
     .app__content {
         margin: 0;
-        padding-top: 56px;
+        padding-top: 50px;
 
         .channel__wrap & {
-            padding-top: 56px;
+            padding-top: 50px;
         }
 
         #channel-header {
@@ -1575,6 +1575,10 @@
 }
 
 @media screen and (max-width: 480px) {
+    #user-profile-popover {
+        left: 50px !important;
+    }
+
     .post {
         .img-div {
             max-width: 100%;

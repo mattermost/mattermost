@@ -5,20 +5,20 @@
         &.move--left {
             .channel-header {
                 .heading {
-                    max-width: calc(100vw - 600px);
+                    max-width: calc(100vw - 620px);
 
                     .multi-teams & {
-                        max-width: calc(100vw - 650px);
+                        max-width: calc(100vw - 670px);
                     }
                 }
             }
 
             .channel-header__info {
                 .channel-header__description {
-                    max-width: calc(100vw - 600px);
+                    max-width: calc(100vw - 620px);
 
                     .multi-teams & {
-                        max-width: calc(100vw - 650px);
+                        max-width: calc(100vw - 670px);
                     }
                 }
             }
@@ -34,20 +34,20 @@
 
     .channel-header__info {
         .channel-header__description {
-            max-width: calc(100vw - 660px);
+            max-width: calc(100vw - 680px);
 
             .multi-teams & {
-                max-width: calc(100vw - 710px);
+                max-width: calc(100vw - 730px);
             }
         }
     }
 
     .channel-header {
         .heading {
-            max-width: calc(100vw - 700px);
+            max-width: calc(100vw - 720px);
 
             .multi-teams & {
-                max-width: calc(100vw - 750px);
+                max-width: calc(100vw - 770px);
             }
         }
     }
