@@ -384,8 +384,8 @@ export function getUsersPerDayAnalytics(teamId) {
     AdminActions.getUsersPerDayAnalytics(teamId)(dispatch, getState);
 }
 
-export function elasticsearchTest(success, error) {
-    AdminActions.testElasticsearch()(dispatch, getState).then(
+export function elasticsearchTest(config, success, error) {
+    AdminActions.testElasticsearch(config)(dispatch, getState).then(
         (data) => {
             if (data && success) {
                 success(data);

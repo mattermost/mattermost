@@ -19,6 +19,9 @@ export default class ElasticsearchSettings extends AdminSettings {
 
         this.getConfigFromState = this.getConfigFromState.bind(this);
 
+        this.doTestConfig = this.doTestConfig.bind(this);
+        this.handleChange = this.handleChange.bind(this);
+
         this.renderSettings = this.renderSettings.bind(this);
     }
 
@@ -40,8 +43,61 @@ export default class ElasticsearchSettings extends AdminSettings {
             password: config.ElasticSearchSettings.Password,
             sniff: config.ElasticSearchSettings.Sniff,
             enableIndexing: config.ElasticSearchSettings.EnableIndexing,
-            enableSearching: config.ElasticSearchSettings.EnableSearching
+            enableSearching: config.ElasticSearchSettings.EnableSearching,
+            configTested: true,
+            canSave: true
         };
+    }
+
+    handleChange(id, value) {
+        if (id === 'enableIndexing') {
+            if (value === false) {
+                this.setState({
+                    enableSearching: false
+                });
+            } else {
+                this.setState({
+                    canSave: false,
+                    configTested: false
+                });
+            }
+        }
+
+        if (id === 'connectionUrl' || id === 'username' || id === 'password' || id === 'sniff') {
+            this.setState({
+                configTested: false,
+                canSave: false
+            });
+        }
+
+        super.handleChange(id, value);
+    }
+
+    canSave() {
+        return this.state.canSave;
+    }
+
+    doTestConfig(success, error) {
+        const config = JSON.parse(JSON.stringify(this.props.config));
+        this.getConfigFromState(config);
+
+        elasticsearchTest(
+            config,
+            () => {
+                this.setState({
+                    configTested: true,
+                    canSave: true
+                });
+                success();
+            },
+            (err) => {
+                this.setState({
+                    configTested: false,
+                    canSave: false
+                });
+                error(err);
+            }
+        );
     }
 
     renderTitle() {
@@ -183,7 +239,7 @@ export default class ElasticsearchSettings extends AdminSettings {
                     onChange={this.handleChange}
                 />
                 <RequestButton
-                    requestAction={elasticsearchTest}
+                    requestAction={this.doTestConfig}
                     helpText={
                         <FormattedMessage
                             id='admin.elasticsearch.testHelpText'
@@ -197,8 +253,6 @@ export default class ElasticsearchSettings extends AdminSettings {
                         />
                     }
                     disabled={!this.state.enableIndexing}
-                    saveNeeded={this.state.saveNeeded}
-                    saveConfigAction={this.doSubmit}
                 />
                 <BooleanSetting
                     id='enableSearching'
@@ -215,7 +269,7 @@ export default class ElasticsearchSettings extends AdminSettings {
                         />
                     }
                     value={this.state.enableSearching}
-                    disabled={!this.state.enableIndexing}
+                    disabled={!this.state.enableIndexing || !this.state.configTested}
                     onChange={this.handleChange}
                 />
             </SettingsGroup>
