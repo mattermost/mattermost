@@ -55,6 +55,8 @@ func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	app.SetStatusOnline(c.Session.UserId, c.Session.Id, false)
+
 	w.WriteHeader(http.StatusCreated)
 	w.Write([]byte(rp.ToJson()))
 }

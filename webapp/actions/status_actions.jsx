@@ -74,6 +74,9 @@ export function loadStatusesForChannelAndSidebar() {
         }
     }
 
+    const {currentUserId} = getState().entities.users;
+    statusesToLoad[currentUserId] = true;
+
     loadStatusesByIds(Object.keys(statusesToLoad));
 }
 
