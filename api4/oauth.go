@@ -392,7 +392,9 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	code := r.URL.Query().Get("code")
 	if len(code) == 0 {
-		c.Err = model.NewAppError("completeOAuth", "api.oauth.complete_oauth.missing_code.app_error", map[string]interface{}{"service": strings.Title(service)}, "URL: "+r.URL.String(), http.StatusBadRequest)
+		err := model.NewAppError("completeOAuth", "api.oauth.complete_oauth.missing_code.app_error", map[string]interface{}{"service": strings.Title(service)}, "URL: "+r.URL.String(), http.StatusBadRequest)
+		err.Translate(c.T)
+		http.Redirect(w, r, c.GetSiteURLHeader()+"/error?message="+err.Message, http.StatusTemporaryRedirect)
 		return
 	}
 
@@ -402,13 +404,17 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	body, teamId, props, err := app.AuthorizeOAuthUser(w, r, service, code, state, uri)
 	if err != nil {
-		c.Err = err
+		err.Translate(c.T)
+		l4g.Error(err.Error())
+		http.Redirect(w, r, c.GetSiteURLHeader()+"/error?message="+err.Message, http.StatusTemporaryRedirect)
 		return
 	}
 
 	user, err := app.CompleteOAuth(service, body, teamId, props)
 	if err != nil {
-		c.Err = err
+		err.Translate(c.T)
+		l4g.Error(err.Error())
+		http.Redirect(w, r, c.GetSiteURLHeader()+"/error?message="+err.Message, http.StatusTemporaryRedirect)
 		return
 	}
 
