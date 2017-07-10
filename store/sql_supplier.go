@@ -63,26 +63,27 @@ type SqlSupplierResult struct {
 }
 
 type SqlSupplierOldStores struct {
-	team       TeamStore
-	channel    ChannelStore
-	post       PostStore
-	user       UserStore
-	audit      AuditStore
-	cluster    ClusterDiscoveryStore
-	compliance ComplianceStore
-	session    SessionStore
-	oauth      OAuthStore
-	system     SystemStore
-	webhook    WebhookStore
-	command    CommandStore
-	preference PreferenceStore
-	license    LicenseStore
-	token      TokenStore
-	emoji      EmojiStore
-	status     StatusStore
-	fileInfo   FileInfoStore
-	reaction   ReactionStore
-	job        JobStore
+	team            TeamStore
+	channel         ChannelStore
+	post            PostStore
+	user            UserStore
+	audit           AuditStore
+	cluster         ClusterDiscoveryStore
+	compliance      ComplianceStore
+	session         SessionStore
+	oauth           OAuthStore
+	system          SystemStore
+	webhook         WebhookStore
+	command         CommandStore
+	preference      PreferenceStore
+	license         LicenseStore
+	token           TokenStore
+	emoji           EmojiStore
+	status          StatusStore
+	fileInfo        FileInfoStore
+	reaction        ReactionStore
+	job             JobStore
+	userAccessToken UserAccessTokenStore
 }
 
 type SqlSupplier struct {
@@ -122,6 +123,7 @@ func NewSqlSupplier() *SqlSupplier {
 	supplier.oldStores.fileInfo = NewSqlFileInfoStore(supplier)
 	supplier.oldStores.reaction = NewSqlReactionStore(supplier)
 	supplier.oldStores.job = NewSqlJobStore(supplier)
+	supplier.oldStores.userAccessToken = NewSqlUserAccessTokenStore(supplier)
 
 	err := supplier.GetMaster().CreateTablesIfNotExists()
 	if err != nil {
@@ -151,6 +153,7 @@ func NewSqlSupplier() *SqlSupplier {
 	supplier.oldStores.fileInfo.(*SqlFileInfoStore).CreateIndexesIfNotExists()
 	supplier.oldStores.reaction.(*SqlReactionStore).CreateIndexesIfNotExists()
 	supplier.oldStores.job.(*SqlJobStore).CreateIndexesIfNotExists()
+	supplier.oldStores.userAccessToken.(*SqlUserAccessTokenStore).CreateIndexesIfNotExists()
 
 	supplier.oldStores.preference.(*SqlPreferenceStore).DeleteUnusedFeatures()
 
@@ -754,6 +757,10 @@ func (ss *SqlSupplier) Reaction() ReactionStore {
 
 func (ss *SqlSupplier) Job() JobStore {
 	return ss.oldStores.job
+}
+
+func (ss *SqlSupplier) UserAccessToken() UserAccessTokenStore {
+	return ss.oldStores.userAccessToken
 }
 
 func (ss *SqlSupplier) DropAllTables() {

@@ -3008,6 +3008,14 @@
     "translation": "Invalid {{.Name}} parameter"
   },
   {
+    "id": "app.user_access_token.disabled",
+    "translation": "User access tokens are disabled on this server. Please contact your system administrator for details."
+  },
+  {
+    "id": "app.user_access_token.invalid_or_missing",
+    "translation": "Invalid or missing token"
+  },
+  {
     "id": "app.channel.create_channel.no_team_id.app_error",
     "translation": "Must specify the team ID to create a channel"
   },
@@ -3354,6 +3362,62 @@
   {
     "id": "app.import.validate_user_teams_import_data.team_name_missing.error",
     "translation": "Team name missing from User's Team Membership."
+  },
+  {
+    "id": "authentication.roles.system_post_all_public.name",
+    "translation": "Post in Public Channels"
+  },
+  {
+    "id": "authentication.roles.system_post_all_public.description",
+    "translation": "A role with the permission to post in any public channel on the system"
+  },
+  {
+    "id": "authentication.roles.team_post_all_public.name",
+    "translation": "Post in Public Channels"
+  },
+  {
+    "id": "authentication.roles.team_post_all_public.description",
+    "translation": "A role with the permission to post in any public channel on the team"
+  },
+  {
+    "id": "authentication.roles.system_user_access_token.name",
+    "translation": "User Access Token"
+  },
+  {
+    "id": "authentication.roles.system_user_access_token.description",
+    "translation": "A role with the permissions to create, read and revoke user access tokens"
+  },
+  {
+    "id": "authentication.permissions.create_post_public.name",
+    "translation": "Create Posts in Public Channels"
+  },
+  {
+    "id": "authentication.permissions.create_post_public.description",
+    "translation": "Ability to create posts in public channels"
+  },
+  {
+    "id": "authentication.permissions.create_user_access_token.name",
+    "translation": "Create User Access Token"
+  },
+  {
+    "id": "authentication.permissions.create_user_access_token.description",
+    "translation": "Ability to create user access tokens"
+  },
+  {
+    "id": "authentication.permissions.read_user_access_token.name",
+    "translation": "Read User Access Tokens"
+  },
+  {
+    "id": "authentication.permissions.read_user_access_token.description",
+    "translation": "Ability to read user access tokens' id, description and user_id fields"
+  },
+  {
+    "id": "authentication.permissions.revoke_user_access_token.name",
+    "translation": "Revoke User Access Token"
+  },
+  {
+    "id": "authentication.permissions.revoke_user_access_token.description",
+    "translation": "Ability to revoke user access tokens"
   },
   {
     "id": "authentication.permissions.create_group_channel.description",
@@ -3866,6 +3930,18 @@
   {
     "id": "model.access.is_valid.access_token.app_error",
     "translation": "Invalid access token"
+  },
+  {
+    "id": "model.user_access_token.is_valid.token.app_error",
+    "translation": "Invalid access token"
+  },
+  {
+    "id": "model.user_access_token.is_valid.user_id.app_error",
+    "translation": "Invalid user id"
+  },
+  {
+    "id": "model.user_access_token.is_valid.description.app_error",
+    "translation": "Invalid description, must be 255 or less characters"
   },
   {
     "id": "model.access.is_valid.client_id.app_error",
@@ -5890,6 +5966,26 @@
   {
     "id": "store.sql_team.update_display_name.app_error",
     "translation": "We couldn't update the team name"
+  },
+  {
+    "id": "store.sql_user_access_token.get_by_user.app_error",
+    "translation": "We couldn't get the user access tokens by user"
+  },
+  {
+    "id": "store.sql_user_access_token.get_by_token.app_error",
+    "translation": "We couldn't get the user access token by token"
+  },
+  {
+    "id": "store.sql_user_access_token.get.app_error",
+    "translation": "We couldn't get the user access token"
+  },
+  {
+    "id": "store.sql_user_access_token.delete.app_error",
+    "translation": "We couldn't delete the user access token"
+  },
+  {
+    "id": "store.sql_user_access_token.save.app_error",
+    "translation": "We couldn't save the user access token"
   },
   {
     "id": "store.sql_user.analytics_get_inactive_users_count.app_error",

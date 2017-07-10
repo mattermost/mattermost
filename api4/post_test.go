@@ -197,7 +197,7 @@ func testCreatePostWithOutgoingHook(
 	if triggerWord != "" {
 		triggerWords = []string{triggerWord}
 	}
-	
+
 	hook = &model.OutgoingWebhook{
 		ChannelId:    channel.Id,
 		TeamId:       team.Id,
@@ -255,6 +255,51 @@ func TestCreatePostWithOutgoingHook_no_content_type(t *testing.T) {
 	testCreatePostWithOutgoingHook(t, "", "application/x-www-form-urlencoded", "triggerwordaaazzz lorem ipsum", "triggerword", []string{"file_id_1"}, app.TRIGGERWORDS_STARTS_WITH)
 	testCreatePostWithOutgoingHook(t, "", "application/x-www-form-urlencoded", "triggerword lorem ipsum", "", []string{"file_id_1, file_id_2"}, app.TRIGGERWORDS_EXACT_MATCH)
 	testCreatePostWithOutgoingHook(t, "", "application/x-www-form-urlencoded", "triggerwordaaazzz lorem ipsum", "", []string{"file_id_1, file_id_2"}, app.TRIGGERWORDS_STARTS_WITH)
+}
+
+func TestCreatePostPublic(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+
+	post := &model.Post{ChannelId: th.BasicChannel.Id, Message: "#hashtag a" + model.NewId() + "a"}
+
+	user := model.User{Email: GenerateTestEmail(), Nickname: "Joram Wilander", Password: "hello1", Username: GenerateTestUsername(), Roles: model.ROLE_SYSTEM_USER.Id}
+
+	ruser, resp := Client.CreateUser(&user)
+	CheckNoError(t, resp)
+
+	Client.Login(user.Email, user.Password)
+
+	_, resp = Client.CreatePost(post)
+	CheckForbiddenStatus(t, resp)
+
+	app.UpdateUserRoles(ruser.Id, model.ROLE_SYSTEM_USER.Id+" "+model.ROLE_SYSTEM_POST_ALL_PUBLIC.Id)
+	app.InvalidateAllCaches()
+
+	Client.Login(user.Email, user.Password)
+
+	_, resp = Client.CreatePost(post)
+	CheckNoError(t, resp)
+
+	post.ChannelId = th.BasicPrivateChannel.Id
+	_, resp = Client.CreatePost(post)
+	CheckForbiddenStatus(t, resp)
+
+	app.UpdateUserRoles(ruser.Id, model.ROLE_SYSTEM_USER.Id)
+	app.JoinUserToTeam(th.BasicTeam, ruser, "")
+	app.UpdateTeamMemberRoles(th.BasicTeam.Id, ruser.Id, model.ROLE_TEAM_USER.Id+" "+model.ROLE_TEAM_POST_ALL_PUBLIC.Id)
+	app.InvalidateAllCaches()
+
+	Client.Login(user.Email, user.Password)
+
+	post.ChannelId = th.BasicPrivateChannel.Id
+	_, resp = Client.CreatePost(post)
+	CheckForbiddenStatus(t, resp)
+
+	post.ChannelId = th.BasicChannel.Id
+	_, resp = Client.CreatePost(post)
+	CheckNoError(t, resp)
 }
 
 func TestUpdatePost(t *testing.T) {

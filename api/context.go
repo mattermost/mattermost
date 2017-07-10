@@ -308,9 +308,13 @@ func (c *Context) LogDebug(err *model.AppError) {
 }
 
 func (c *Context) UserRequired() {
+	if !*utils.Cfg.ServiceSettings.EnableUserAccessTokens && c.Session.Props[model.SESSION_PROP_TYPE] == model.SESSION_TYPE_USER_ACCESS_TOKEN {
+		c.Err = model.NewAppError("", "api.context.session_expired.app_error", nil, "UserAccessToken", http.StatusUnauthorized)
+		return
+	}
+
 	if len(c.Session.UserId) == 0 {
-		c.Err = model.NewLocAppError("", "api.context.session_expired.app_error", nil, "UserRequired")
-		c.Err.StatusCode = http.StatusUnauthorized
+		c.Err = model.NewAppError("", "api.context.session_expired.app_error", nil, "UserRequired", http.StatusUnauthorized)
 		return
 	}
 }
