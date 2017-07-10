@@ -870,16 +870,20 @@
                 .heading {
                     font-size: 17px;
                     font-weight: 400;
-                    line-height: normal;
+                    line-height: 50px;
                     position: relative;
-                    top: 14px;
                     vertical-align: top;
+
+                    .ios & {
+                        line-height: 48px;
+                    }
                 }
 
                 .header-dropdown__icon {
                     font-size: 12px;
+                    line-height: 50px;
                     margin-left: 5px;
-                    top: 20px;
+                    top: 0;
                     vertical-align: top;
                 }
             }
