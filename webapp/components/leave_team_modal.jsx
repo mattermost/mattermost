@@ -61,6 +61,7 @@ class LeaveTeamModal extends React.Component {
         }
 
         GlobalActions.emitLeaveTeam();
+        GlobalActions.toggleSideBarRightMenuAction();
     }
 
     handleHide() {
