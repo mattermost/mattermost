@@ -11,6 +11,7 @@
     "bootstrap-colorpicker": "2.5.1",
     "chart.js": "2.5.0",
     "compass-mixins": "0.12.10",
+    "exif2css": "1.2.0",
     "fastclick": "1.0.6",
     "flux": "3.1.2",
     "font-awesome": "4.7.0",
