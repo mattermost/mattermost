@@ -14,6 +14,8 @@ import {sendDesktopNotification} from 'actions/notification_actions.jsx';
 import Constants from 'utils/constants.jsx';
 const ActionTypes = Constants.ActionTypes;
 
+import {browserHistory} from 'react-router/es6';
+
 // Redux actions
 import store from 'stores/redux_store.jsx';
 const dispatch = store.dispatch;
@@ -235,6 +237,12 @@ export function deletePost(channelId, post, success) {
                 type: PostTypes.REMOVE_POST,
                 data: post
             });
+
+            const {focusedPostId} = getState().views.channel;
+            const channel = getState().entities.channels.channels[post.channel_id];
+            if (post.id === focusedPostId && channel) {
+                browserHistory.push(TeamStore.getCurrentTeamRelativeUrl() + '/channels/' + channel.name);
+            }
 
             if (success) {
                 success();
