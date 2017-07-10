@@ -231,7 +231,7 @@ func archiveChannelsCmdF(cmd *cobra.Command, args []string) error {
 	}
 
 	if len(args) < 1 {
-		return errors.New("Enter at least one channel to delete.")
+		return errors.New("Enter at least one channel to archive.")
 	}
 
 	channels := getChannelsFromChannelArgs(args)
@@ -241,7 +241,7 @@ func archiveChannelsCmdF(cmd *cobra.Command, args []string) error {
 			continue
 		}
 		if result := <-app.Srv.Store.Channel().Delete(channel.Id, model.GetMillis()); result.Err != nil {
-			CommandPrintErrorln("Unable to delete channel '" + channel.Name + "' error: " + result.Err.Error())
+			CommandPrintErrorln("Unable to archive channel '" + channel.Name + "' error: " + result.Err.Error())
 		}
 	}
 
