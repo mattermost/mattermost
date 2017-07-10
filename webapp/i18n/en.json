@@ -284,7 +284,7 @@
   "admin.email.selfPush": "Manually enter Push Notification Service location",
   "admin.email.skipServerCertificateVerification.description": "When true, Mattermost will not verify the email server certificate.",
   "admin.email.skipServerCertificateVerification.title": "Skip Server Certificate Verification: ",
-  "admin.email.smtpPasswordDescription": "The password for the SMTP server username.",
+  "admin.email.smtpPasswordDescription": "The password associated with the SMTP username.",
   "admin.email.smtpPasswordExample": "E.g.: \"yourpassword\", \"jcuS8PuvcpGhpgHhlcpT1Mx42pnqMxQY\"",
   "admin.email.smtpPasswordTitle": "SMTP Server Password:",
   "admin.email.smtpPortDescription": "Port of SMTP email server.",
