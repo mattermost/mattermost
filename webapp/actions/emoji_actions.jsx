@@ -13,7 +13,7 @@ import {getProfilesByIds} from 'mattermost-redux/actions/users';
 import * as EmojiActions from 'mattermost-redux/actions/emojis';
 
 export async function loadEmoji(getProfiles = true) {
-    const data = await EmojiActions.getAllCustomEmojis(10000)(dispatch, getState);
+    const data = await EmojiActions.getAllCustomEmojis()(dispatch, getState);
 
     if (data && getProfiles) {
         loadProfilesForEmoji(data);

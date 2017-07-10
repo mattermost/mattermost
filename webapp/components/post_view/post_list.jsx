@@ -104,6 +104,7 @@ export default class PostList extends React.PureComponent {
         this.previousScrollTop = Number.MAX_SAFE_INTEGER;
         this.previousScrollHeight = 0;
         this.previousClientHeight = 0;
+        this.atBottom = false;
 
         this.state = {
             atEnd: false,
@@ -144,6 +145,7 @@ export default class PostList extends React.PureComponent {
                 this.hasScrolled = false;
                 this.hasScrolledToFocusedPost = false;
                 this.hasScrolledToNewMessageSeparator = false;
+                this.atBottom = false;
                 this.setState({atEnd: false});
 
                 if (nextChannel.id) {
@@ -152,7 +154,7 @@ export default class PostList extends React.PureComponent {
                 return;
             }
 
-            if (!this.wasAtBottom() && this.props.posts !== nextProps.posts && this.hasScrolledToNewMessageSeparator) {
+            if (!this.atBottom && this.props.posts !== nextProps.posts && this.hasScrolledToNewMessageSeparator) {
                 const unViewedCount = nextProps.posts.reduce((count, post) => {
                     if (post.create_at > this.state.lastViewed &&
                         post.user_id !== nextProps.currentUserId &&
@@ -206,6 +208,7 @@ export default class PostList extends React.PureComponent {
             return;
         } else if (postList && !this.hasScrolledToNewMessageSeparator) {
             postList.scrollTop = postList.scrollHeight;
+            this.atBottom = true;
             return;
         }
 
@@ -218,7 +221,7 @@ export default class PostList extends React.PureComponent {
             const pendingPostId = posts[0].pending_post_id;
             if (postId !== prevPostId && pendingPostId !== prevPostId) {
                 // If already scrolled to bottom
-                if (this.wasAtBottom()) {
+                if (this.atBottom) {
                     doScrollToBottom = true;
                 }
 
@@ -229,6 +232,7 @@ export default class PostList extends React.PureComponent {
             }
 
             if (doScrollToBottom) {
+                this.atBottom = true;
                 postList.scrollTop = postList.scrollHeight;
                 return;
             }
@@ -246,13 +250,13 @@ export default class PostList extends React.PureComponent {
         });
     }
 
-    wasAtBottom = () => {
-        return this.previousClientHeight + this.previousScrollTop >= this.previousScrollHeight - CLOSE_TO_BOTTOM_SCROLL_MARGIN;
+    checkBottom = () => {
+        return this.refs.postlist.clientHeight + this.refs.postlist.scrollTop >= this.refs.postlist.scrollHeight - CLOSE_TO_BOTTOM_SCROLL_MARGIN;
     }
 
     handleResize = (forceScrollToBottom) => {
         const postList = this.refs.postlist;
-        const doScrollToBottom = this.wasAtBottom() || forceScrollToBottom;
+        const doScrollToBottom = this.atBottom || forceScrollToBottom;
 
         if (postList && doScrollToBottom) {
             postList.scrollTop = postList.scrollHeight;
@@ -298,6 +302,9 @@ export default class PostList extends React.PureComponent {
     handleScroll = () => {
         this.hasScrolled = true;
         this.previousScrollTop = this.refs.postlist.scrollTop;
+        if (this.refs.postlist.scrollHeight === this.previousScrollHeight) {
+            this.atBottom = this.checkBottom();
+        }
 
         this.updateFloatingTimestamp();
 
@@ -307,7 +314,7 @@ export default class PostList extends React.PureComponent {
             });
         }
 
-        if (this.wasAtBottom()) {
+        if (this.atBottom) {
             this.setState({
                 lastViewed: new Date().getTime(),
                 unViewedCount: 0,
@@ -509,7 +516,7 @@ export default class PostList extends React.PureComponent {
                 />
                 <ScrollToBottomArrows
                     isScrolling={this.state.isScrolling}
-                    atBottom={this.wasAtBottom()}
+                    atBottom={this.atBottom}
                     onClick={this.scrollToBottom}
                 />
                 <NewMessageIndicator
