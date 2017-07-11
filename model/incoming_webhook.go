@@ -6,10 +6,8 @@ package model
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"io"
 	"regexp"
-	"strings"
 )
 
 const (
@@ -193,53 +191,6 @@ func decodeIncomingWebhookRequest(by []byte) (*IncomingWebhookRequest, error) {
 	}
 }
 
-// To mention @channel via a webhook in Slack, the message should contain
-// <!channel>, as explained at the bottom of this article:
-// https://get.slack.help/hc/en-us/articles/202009646-Making-announcements
-func expandAnnouncement(text string) string {
-	c1 := "<!channel>"
-	c2 := "@channel"
-	if strings.Contains(text, c1) {
-		return strings.Replace(text, c1, c2, -1)
-	}
-	return text
-}
-
-// Expand announcements in incoming webhooks from Slack. Those announcements
-// can be found in the text attribute, or in the pretext, text, title and value
-// attributes of the attachment structure. The Slack attachment structure is
-// documented here: https://api.slack.com/docs/attachments
-func expandAnnouncements(i *IncomingWebhookRequest) {
-	i.Text = expandAnnouncement(i.Text)
-
-	var nonNilAttachments []*SlackAttachment
-	for _, attachment := range i.Attachments {
-		if attachment == nil {
-			continue
-		}
-		nonNilAttachments = append(nonNilAttachments, attachment)
-
-		attachment.Pretext = expandAnnouncement(attachment.Pretext)
-		attachment.Text = expandAnnouncement(attachment.Text)
-		attachment.Title = expandAnnouncement(attachment.Title)
-
-		var nonNilFields []*SlackAttachmentField
-		for _, field := range attachment.Fields {
-			if field == nil {
-				continue
-			}
-			nonNilFields = append(nonNilFields, field)
-
-			if field.Value != nil {
-				// Ensure the value is set to a string if it is set
-				field.Value = expandAnnouncement(fmt.Sprintf("%v", field.Value))
-			}
-		}
-		attachment.Fields = nonNilFields
-	}
-	i.Attachments = nonNilAttachments
-}
-
 func IncomingWebhookRequestFromJson(data io.Reader) *IncomingWebhookRequest {
 	buf := new(bytes.Buffer)
 	buf.ReadFrom(data)
@@ -255,7 +206,8 @@ func IncomingWebhookRequestFromJson(data io.Reader) *IncomingWebhookRequest {
 		}
 	}
 
-	expandAnnouncements(o)
+	o.Text = expandAnnouncement(o.Text)
+	processAttachments(&o.Attachments)
 
 	return o
 }
