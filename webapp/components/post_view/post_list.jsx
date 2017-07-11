@@ -110,7 +110,7 @@ export default class PostList extends React.PureComponent {
             atEnd: false,
             unViewedCount: 0,
             isScrolling: false,
-            lastViewed: Number.MAX_SAFE_INTEGER
+            lastViewed: props.lastViewedAt
         };
     }
 
@@ -146,24 +146,19 @@ export default class PostList extends React.PureComponent {
                 this.hasScrolledToFocusedPost = false;
                 this.hasScrolledToNewMessageSeparator = false;
                 this.atBottom = false;
-                this.setState({atEnd: false});
+                this.setState({atEnd: false, lastViewed: nextProps.lastViewedAt});
 
                 if (nextChannel.id) {
                     this.loadPosts(nextChannel.id);
                 }
-                return;
             }
 
-            if (!this.atBottom && this.props.posts !== nextProps.posts && this.hasScrolledToNewMessageSeparator) {
-                const unViewedCount = nextProps.posts.reduce((count, post) => {
-                    if (post.create_at > this.state.lastViewed &&
-                        post.user_id !== nextProps.currentUserId &&
-                        post.state !== Constants.POST_DELETED) {
-                        return count + 1;
-                    }
-                    return count;
-                }, 0);
-                this.setState({unViewedCount});
+            const nextPosts = nextProps.posts;
+            const posts = this.props.posts;
+            const hasNewPosts = (!posts && nextPosts) || (posts && nextPosts && posts[0].id !== nextPosts[0].id);
+
+            if (!this.checkBottom() && hasNewPosts) {
+                this.setUnreadsBelow(nextPosts, nextProps.currentUserId);
             }
         }
     }
@@ -205,6 +200,9 @@ export default class PostList extends React.PureComponent {
         if (messageSeparator && !this.hasScrolledToNewMessageSeparator) {
             const element = ReactDOM.findDOMNode(messageSeparator);
             element.scrollIntoView();
+            if (!this.checkBottom()) {
+                this.setUnreadsBelow(posts, this.props.currentUserId);
+            }
             return;
         } else if (postList && !this.hasScrolledToNewMessageSeparator) {
             postList.scrollTop = postList.scrollHeight;
@@ -244,6 +242,18 @@ export default class PostList extends React.PureComponent {
         }
     }
 
+    setUnreadsBelow = (posts, currentUserId) => {
+        const unViewedCount = posts.reduce((count, post) => {
+            if (post.create_at > this.state.lastViewed &&
+                post.user_id !== currentUserId &&
+                post.state !== Constants.POST_DELETED) {
+                return count + 1;
+            }
+            return count;
+        }, 0);
+        this.setState({unViewedCount});
+    }
+
     handleScrollStop = () => {
         this.setState({
             isScrolling: false
@@ -251,6 +261,10 @@ export default class PostList extends React.PureComponent {
     }
 
     checkBottom = () => {
+        if (!this.refs.postlist) {
+            return false;
+        }
+
         return this.refs.postlist.clientHeight + this.refs.postlist.scrollTop >= this.refs.postlist.scrollHeight - CLOSE_TO_BOTTOM_SCROLL_MARGIN;
     }
 
