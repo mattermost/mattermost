@@ -3516,19 +3516,19 @@
     "translation": "Failed to decode search results"
   },
   {
-    "id": "ent.elasticsearch.start.connect_failed",
+    "id": "ent.elasticsearch.create_client.connect_failed",
     "translation": "Setting up ElasticSearch Client Failed"
   },
   {
-    "id": "ent.elasticsearch.start.index_create_failed",
+    "id": "ent.elasticsearch.create_index_if_not_exists.index_create_failed",
     "translation": "Failed to create ElasticSearch index"
   },
   {
-    "id": "ent.elasticsearch.start.index_exists_failed",
+    "id": "ent.elasticsearch.create_index_if_not_exists.index_exists_failed",
     "translation": "Failed to establish whether ElasticSearch index exists"
   },
   {
-    "id": "ent.elasticsearch.start.index_mapping_failed",
+    "id": "ent.elasticsearch.create_index_if_not_exists.index_mapping_failed",
     "translation": "Failed to setup ElasticSearch index mapping"
   },
   {
@@ -3762,6 +3762,10 @@
   {
     "id": "error.not_found.title",
     "translation": "Page not found"
+  },
+  {
+    "id": "jobs.set_job_error.update.error",
+    "translation": "Failed to set job status to error"
   },
   {
     "id": "jobs.request_cancellation.status.error",
@@ -5482,6 +5486,10 @@
   {
     "id": "store.sql_post.get_posts_around.get_parent.app_error",
     "translation": "We couldn't get the parent posts for the channel"
+  },
+  {
+    "id": "store.sql_post.get_posts_batch_for_indexing.get.app_error",
+    "translation": "We couldn't get the posts batch for indexing"
   },
   {
     "id": "store.sql_post.get_posts_by_ids.app_error",
