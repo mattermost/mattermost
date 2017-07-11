@@ -13,13 +13,13 @@ import (
 )
 
 type Workers struct {
-	startOnce     sync.Once
-	watcher       *Watcher
+	startOnce sync.Once
+	watcher   *Watcher
 
-	DataRetention model.Worker
-	// SearchIndexing model.Job
+	DataRetention         model.Worker
+	ElasticsearchIndexing model.Worker
 
-	listenerId    string
+	listenerId string
 }
 
 func InitWorkers() *Workers {
@@ -30,6 +30,10 @@ func InitWorkers() *Workers {
 
 	if dataRetentionInterface := ejobs.GetDataRetentionInterface(); dataRetentionInterface != nil {
 		workers.DataRetention = dataRetentionInterface.MakeWorker()
+	}
+
+	if elasticsearchIndexerInterface := ejobs.GetElasticsearchIndexerInterface(); elasticsearchIndexerInterface != nil {
+		workers.ElasticsearchIndexing = elasticsearchIndexerInterface.MakeWorker()
 	}
 
 	return workers
@@ -43,7 +47,9 @@ func (workers *Workers) Start() *Workers {
 			go workers.DataRetention.Run()
 		}
 
-		// go workers.SearchIndexing.Run()
+		if workers.ElasticsearchIndexing != nil && *utils.Cfg.ElasticSearchSettings.EnableIndexing {
+			go workers.ElasticsearchIndexing.Run()
+		}
 
 		go workers.watcher.Start()
 	})
@@ -61,6 +67,14 @@ func (workers *Workers) handleConfigChange(oldConfig *model.Config, newConfig *m
 			workers.DataRetention.Stop()
 		}
 	}
+
+	if workers.ElasticsearchIndexing != nil {
+		if !*oldConfig.ElasticSearchSettings.EnableIndexing && *newConfig.ElasticSearchSettings.EnableIndexing {
+			go workers.ElasticsearchIndexing.Run()
+		} else if *oldConfig.ElasticSearchSettings.EnableIndexing && !*newConfig.ElasticSearchSettings.EnableIndexing {
+			workers.ElasticsearchIndexing.Stop()
+		}
+	}
 }
 
 func (workers *Workers) Stop() *Workers {
@@ -71,7 +85,10 @@ func (workers *Workers) Stop() *Workers {
 	if workers.DataRetention != nil && *utils.Cfg.DataRetentionSettings.Enable {
 		workers.DataRetention.Stop()
 	}
-	// workers.SearchIndexing.Stop()
+
+	if workers.ElasticsearchIndexing != nil && *utils.Cfg.ElasticSearchSettings.EnableIndexing {
+		workers.ElasticsearchIndexing.Stop()
+	}
 
 	l4g.Info("Stopped workers")
 

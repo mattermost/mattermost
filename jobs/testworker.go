@@ -85,7 +85,7 @@ func (worker *TestWorker) DoJob(job *model.Job) {
 				}
 				return
 			} else {
-				if _, err := SetJobProgress(job.Id, int64(counter*10)); err != nil {
+				if err := SetJobProgress(job, int64(counter*10)); err != nil {
 					l4g.Error("Job: %v: an error occured while trying to set job progress: %v", job.Id, err.Error())
 				}
 			}

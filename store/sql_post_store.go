@@ -1315,3 +1315,44 @@ func (s SqlPostStore) GetPostsByIds(postIds []string) StoreChannel {
 
 	return storeChannel
 }
+
+func (s SqlPostStore) GetPostsBatchForIndexing(startTime int64, limit int) StoreChannel {
+	storeChannel := make(StoreChannel, 1)
+
+	go func() {
+		result := StoreResult{}
+
+		var posts []*model.PostForIndexing
+		_, err1 := s.GetSearchReplica().Select(&posts,
+			`(SELECT
+			    Posts.*,
+			    Channels.TeamId,
+			    ParentPosts.CreateAt ParentCreateAt
+			FROM
+				Posts
+			LEFT JOIN
+				Channels
+			ON
+				Posts.ChannelId = Channels.Id
+			LEFT JOIN
+				Posts ParentPosts
+			ON
+				Posts.RootId = ParentPosts.Id
+			WHERE
+				Posts.CreateAt >= :StartTime
+			ORDER BY CreateAt ASC
+			LIMIT :NumPosts)`,
+			map[string]interface{}{"StartTime": startTime, "NumPosts": limit})
+
+		if err1 != nil {
+			result.Err = model.NewLocAppError("SqlPostStore.GetPostContext", "store.sql_post.get_posts_batch_for_indexing.get.app_error", nil, err1.Error())
+		} else {
+			result.Data = posts
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
