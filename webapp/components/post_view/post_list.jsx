@@ -256,14 +256,22 @@ export default class PostList extends React.PureComponent {
 
     handleResize = (forceScrollToBottom) => {
         const postList = this.refs.postlist;
+        const messageSeparator = this.refs.newMessageSeparator;
         const doScrollToBottom = this.atBottom || forceScrollToBottom;
 
-        if (postList && doScrollToBottom) {
-            postList.scrollTop = postList.scrollHeight;
+        if (postList) {
+            if (doScrollToBottom) {
+                postList.scrollTop = postList.scrollHeight;
+            } else if (!this.hasScrolled && messageSeparator) {
+                const element = ReactDOM.findDOMNode(messageSeparator);
+                element.scrollIntoView();
+            }
 
             this.previousScrollHeight = postList.scrollHeight;
             this.previousScrollTop = postList.scrollTop;
             this.previousClientHeight = postList.clientHeight;
+
+            this.atBottom = this.checkBottom();
         }
     }
 
@@ -300,7 +308,8 @@ export default class PostList extends React.PureComponent {
     }
 
     handleScroll = () => {
-        this.hasScrolled = true;
+        // Only count as user scroll if we've already performed our first load scroll
+        this.hasScrolled = this.hasScrolledToNewMessageSeparator || this.hasScrolledToFocusedPost;
         this.previousScrollTop = this.refs.postlist.scrollTop;
         if (this.refs.postlist.scrollHeight === this.previousScrollHeight) {
             this.atBottom = this.checkBottom();
