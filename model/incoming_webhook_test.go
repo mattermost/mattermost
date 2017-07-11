@@ -230,3 +230,17 @@ func TestIncomingWebhookRequestFromJson(t *testing.T) {
 		}
 	}
 }
+
+func TestIncomingWebhookNullArrayItems(t *testing.T) {
+	payload := `{"attachments":[{"fields":[{"title":"foo","value":"bar","short":true}, null]}, null]}`
+	iwr := IncomingWebhookRequestFromJson(strings.NewReader(payload))
+	if iwr == nil {
+		t.Fatal("IncomingWebhookRequest should not be nil")
+	}
+	if len(iwr.Attachments) != 1 {
+		t.Fatalf("expected one attachment")
+	}
+	if len(iwr.Attachments[0].Fields) != 1 {
+		t.Fatalf("expected one field")
+	}
+}

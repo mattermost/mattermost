@@ -212,18 +212,32 @@ func expandAnnouncement(text string) string {
 func expandAnnouncements(i *IncomingWebhookRequest) {
 	i.Text = expandAnnouncement(i.Text)
 
+	var nonNilAttachments []*SlackAttachment
 	for _, attachment := range i.Attachments {
+		if attachment == nil {
+			continue
+		}
+		nonNilAttachments = append(nonNilAttachments, attachment)
+
 		attachment.Pretext = expandAnnouncement(attachment.Pretext)
 		attachment.Text = expandAnnouncement(attachment.Text)
 		attachment.Title = expandAnnouncement(attachment.Title)
 
+		var nonNilFields []*SlackAttachmentField
 		for _, field := range attachment.Fields {
+			if field == nil {
+				continue
+			}
+			nonNilFields = append(nonNilFields, field)
+
 			if field.Value != nil {
 				// Ensure the value is set to a string if it is set
 				field.Value = expandAnnouncement(fmt.Sprintf("%v", field.Value))
 			}
 		}
+		attachment.Fields = nonNilFields
 	}
+	i.Attachments = nonNilAttachments
 }
 
 func IncomingWebhookRequestFromJson(data io.Reader) *IncomingWebhookRequest {

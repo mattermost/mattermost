@@ -41,13 +41,25 @@ func CommandResponseFromJson(data io.Reader) *CommandResponse {
 	}
 
 	// Ensure attachment fields are stored as strings
+	var nonNilAttachments []*SlackAttachment
 	for _, attachment := range o.Attachments {
+		if attachment == nil {
+			continue
+		}
+		nonNilAttachments = append(nonNilAttachments, attachment)
+		var nonNilFields []*SlackAttachmentField
 		for _, field := range attachment.Fields {
+			if field == nil {
+				continue
+			}
+			nonNilFields = append(nonNilFields, field)
 			if field.Value != nil {
 				field.Value = fmt.Sprintf("%v", field.Value)
 			}
 		}
+		attachment.Fields = nonNilFields
 	}
+	o.Attachments = nonNilAttachments
 
 	return &o
 }
