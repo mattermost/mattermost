@@ -27,13 +27,13 @@ type IncomingWebhook struct {
 }
 
 type IncomingWebhookRequest struct {
-	Text        string             `json:"text"`
-	Username    string             `json:"username"`
-	IconURL     string             `json:"icon_url"`
-	ChannelName string             `json:"channel"`
-	Props       StringInterface    `json:"props"`
-	Attachments []*SlackAttachment `json:"attachments"`
-	Type        string             `json:"type"`
+	Text        string           `json:"text"`
+	Username    string           `json:"username"`
+	IconURL     string           `json:"icon_url"`
+	ChannelName string           `json:"channel"`
+	Props       StringInterface  `json:"props"`
+	Attachments SlackAttachments `json:"attachments"`
+	Type        string           `json:"type"`
 }
 
 func (o *IncomingWebhook) ToJson() string {
@@ -206,8 +206,8 @@ func IncomingWebhookRequestFromJson(data io.Reader) *IncomingWebhookRequest {
 		}
 	}
 
-	o.Text = expandAnnouncement(o.Text)
-	processAttachments(&o.Attachments)
+	o.Text = ExpandAnnouncement(o.Text)
+	o.Attachments.Process()
 
 	return o
 }
