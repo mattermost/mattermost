@@ -11,7 +11,6 @@ import FailedPostOptions from 'components/post_view/failed_post_options';
 import DotMenu from 'components/dot_menu';
 import EmojiPickerOverlay from 'components/emoji_picker/emoji_picker_overlay.jsx';
 
-import * as GlobalActions from 'actions/global_actions.jsx';
 import {addReaction} from 'actions/post_actions.jsx';
 
 import TeamStore from 'stores/team_store.jsx';
@@ -56,7 +55,7 @@ export default class RhsComment extends React.Component {
     }
 
     removePost() {
-        GlobalActions.emitRemovePost(this.props.post);
+        this.props.removePost(this.props.post);
     }
 
     createRemovePostButton() {
@@ -447,5 +446,6 @@ RhsComment.propTypes = {
     isFlagged: PropTypes.bool,
     status: PropTypes.string,
     isBusy: PropTypes.bool,
-    getPostList: PropTypes.func.isRequired
+    getPostList: PropTypes.func.isRequired,
+    removePost: PropTypes.func.isRequired
 };
