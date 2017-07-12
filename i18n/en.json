@@ -912,10 +912,6 @@
     "translation": "Sorry, we could not find the page."
   },
   {
-    "id": "api.context.v3_disabled.app_error",
-    "translation": "API version 3 has been disabled on this server. Please use API version 4. See https://api.mattermost.com for details."
-  },
-  {
     "id": "api.context.invalid_body_param.app_error",
     "translation": "Invalid or missing {{.Name}} in request body"
   },
@@ -978,6 +974,10 @@
   {
     "id": "api.context.unknown.app_error",
     "translation": "An unknown error has occurred. Please contact support."
+  },
+  {
+    "id": "api.context.v3_disabled.app_error",
+    "translation": "API version 3 has been disabled on this server. Please use API version 4. See https://api.mattermost.com for details."
   },
   {
     "id": "api.deprecated.init.debug",
@@ -1508,6 +1508,10 @@
   {
     "id": "api.oauth.init.debug",
     "translation": "Initializing OAuth API routes"
+  },
+  {
+    "id": "api.oauth.invalid_state_token.app_error",
+    "translation": "Invalid state token"
   },
   {
     "id": "api.oauth.regenerate_secret.app_error",
@@ -2698,10 +2702,6 @@
   {
     "id": "api.user.permanent_delete_user.system_admin.warn",
     "translation": "You are deleting %v that is a system administrator.  You may need to set another account as the system administrator using the command line tools."
-  },
-  {
-    "id": "api.oauth.invalid_state_token.app_error",
-    "translation": "Invalid state token"
   },
   {
     "id": "api.user.reset_password.invalid_link.app_error",

@@ -708,6 +708,22 @@
     "translation": "açık"
   },
   {
+    "id": "api.command_search.desc",
+    "translation": "İletilerde aranacak metin"
+  },
+  {
+    "id": "api.command_search.hint",
+    "translation": "[text]"
+  },
+  {
+    "id": "api.command_search.name",
+    "translation": "ara"
+  },
+  {
+    "id": "api.command_search.unsupported.app_error",
+    "translation": "Arama komutu aygıtınız için desteklenmiyor"
+  },
+  {
     "id": "api.command_settings.desc",
     "translation": "Hesap Ayarları Penceresini Aç"
   },
@@ -958,6 +974,10 @@
   {
     "id": "api.context.unknown.app_error",
     "translation": "Bilinmeyen bir sorun çıktı. Lütfen destek ekibi ile görüşün."
+  },
+  {
+    "id": "api.context.v3_disabled.app_error",
+    "translation": "Bu sunucu üzerinde 3. API sürümü devre dışı bırakıldı. Lütfen 4. API sürümünü kullanın. Ayrıntılı bilgi almak için https://api.mattermost.com adresine bakın."
   },
   {
     "id": "api.deprecated.init.debug",
@@ -1488,6 +1508,10 @@
   {
     "id": "api.oauth.init.debug",
     "translation": "OAuth API rotaları hazırlanıyor"
+  },
+  {
+    "id": "api.oauth.invalid_state_token.app_error",
+    "translation": "Durum kodu geçersiz"
   },
   {
     "id": "api.oauth.regenerate_secret.app_error",
@@ -3021,19 +3045,11 @@
   },
   {
     "id": "app.import.import_direct_channel.create_direct_channel.error",
-    "translation": "Doğrudan kanal alınamadı"
-  },
-  {
-    "id": "app.import.import_direct_channel.create_direct_channel.error",
-    "translation": "Doğrudan kanal alınamadı"
+    "translation": "Doğrudan kanal oluşturulamadı"
   },
   {
     "id": "app.import.import_direct_channel.create_group_channel.error",
-    "translation": "Grup kanalı alınamadı"
-  },
-  {
-    "id": "app.import.import_direct_channel.create_group_channel.error",
-    "translation": "Grup kanalı alınamadı"
+    "translation": "Grup kanalı oluşturulamadı"
   },
   {
     "id": "app.import.import_direct_channel.member_not_found.error",
@@ -3046,6 +3062,14 @@
   {
     "id": "app.import.import_direct_post.channel_member_not_found.error",
     "translation": "Doğrudan kanal iletisi içe aktarılırken kanal üyesi bulunamadı"
+  },
+  {
+    "id": "app.import.import_direct_post.create_direct_channel.error",
+    "translation": "Doğrudan kanal alınamadı"
+  },
+  {
+    "id": "app.import.import_direct_post.create_group_channel.error",
+    "translation": "Grup kanalı alınamadı"
   },
   {
     "id": "app.import.import_direct_post.user_not_found.error",
