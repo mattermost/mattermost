@@ -83,7 +83,7 @@ exports[`components/integrations/InstalledCommand should match snapshot 1`] = `
     <Link
       onlyActiveOnIndex={false}
       style={Object {}}
-      to="/test/integrations/commands/edit?id=962267cf-b7f4-40a7-b7b8-0684c3ee2657"
+      to="/test/integrations/commands/edit?id=r5tpgt4iepf45jt768jz84djic"
     >
       <FormattedMessage
         defaultMessage="Edit"

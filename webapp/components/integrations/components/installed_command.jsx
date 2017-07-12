@@ -17,7 +17,7 @@ export default class InstalledCommand extends React.PureComponent {
         team: PropTypes.object.isRequired,
 
         /**
-        * Installed splash command to display
+        * Installed slash command to display
         */
         command: PropTypes.object.isRequired,
 

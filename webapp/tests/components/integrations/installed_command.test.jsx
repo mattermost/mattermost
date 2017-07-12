@@ -4,13 +4,12 @@
 import React from 'react';
 import {shallow} from 'enzyme';
 
-import * as Utils from 'utils/utils.jsx';
 import InstalledCommand from 'components/integrations/components/installed_command.jsx';
 
 describe('components/integrations/InstalledCommand', () => {
     const emptyFunction = jest.fn();
     const command = {
-        id: Utils.generateId(),
+        id: 'r5tpgt4iepf45jt768jz84djic',
         display_name: 'test',
         description: 'test',
         trigger: 'test',
@@ -54,7 +53,9 @@ describe('components/integrations/InstalledCommand', () => {
                 canChange={true}
             />
         );
-        wrapper.find('div.item-actions a').first().simulate('click');
+        wrapper.find('div.item-actions a').first().simulate('click', {preventDefault() {
+            return jest.fn();
+        }});
 
         expect(onRegenToken).toBeCalled();
     });
