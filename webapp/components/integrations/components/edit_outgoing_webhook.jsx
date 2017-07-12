@@ -43,21 +43,11 @@ export default class EditOutgoingWebhook extends AbstractOutgoingWebhook {
     handleIntegrationChange() {
         const teamId = TeamStore.getCurrentId();
 
-        this.setState({
-            hooks: IntegrationStore.getOutgoingWebhooks(teamId),
-            loading: !IntegrationStore.hasReceivedOutgoingWebhooks(teamId)
-        });
+        const hooks = IntegrationStore.getOutgoingWebhooks(teamId);
+        const loading = !IntegrationStore.hasReceivedOutgoingWebhooks(teamId);
 
-        if (!this.state.loading) {
-            this.originalOutgoingHook = this.state.hooks.filter((hook) => hook.id === this.props.location.query.id)[0];
-
-            this.setState({
-                displayName: this.originalOutgoingHook.display_name,
-                description: this.originalOutgoingHook.description,
-                channelId: this.originalOutgoingHook.channel_id,
-                contentType: this.originalOutgoingHook.content_type,
-                triggerWhen: this.originalOutgoingHook.trigger_when
-            });
+        if (!loading) {
+            this.originalOutgoingHook = hooks.filter((hook) => hook.id === this.props.location.query.id)[0];
 
             var triggerWords = '';
             if (this.originalOutgoingHook.trigger_words) {
@@ -76,6 +66,11 @@ export default class EditOutgoingWebhook extends AbstractOutgoingWebhook {
             }
 
             this.setState({
+                displayName: this.originalOutgoingHook.display_name,
+                description: this.originalOutgoingHook.description,
+                channelId: this.originalOutgoingHook.channel_id,
+                contentType: this.originalOutgoingHook.content_type,
+                triggerWhen: this.originalOutgoingHook.trigger_when,
                 triggerWords,
                 callbackUrls
             });
