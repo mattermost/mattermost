@@ -128,15 +128,15 @@
         white-space: nowrap;
 
         .move--left & {
-            max-width: calc(100vw - 830px);
+            max-width: calc(100vw - 850px);
 
             .multi-teams & {
-                max-width: calc(100vw - 880px);
+                max-width: calc(100vw - 905px);
             }
         }
 
         .multi-teams & {
-            max-width: calc(100vw - 830px);
+            max-width: calc(100vw - 850px);
         }
     }
 

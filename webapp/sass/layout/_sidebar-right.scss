@@ -128,7 +128,7 @@
         color: inherit;
         display: inline-block;
         font-size: 26px;
-        margin: 0 0 0 -14px;
+        margin-left: -14px;
         text-align: center;
         vertical-align: top;
         width: 30px;
@@ -209,6 +209,7 @@
 
     .sidebar--right__title {
         @include clearfix;
+        padding-left: 15px;
     }
 
     .sidebar--right__header {
@@ -219,13 +220,13 @@
         height: 44px;
         line-height: 44px;
         overflow: hidden;
-        padding: 0 5px 0 15px;
+        padding: 0 5px 0 0;
         text-transform: uppercase;
     }
 
     .sidebar--right__subheader {
         font-size: 1em;
-        padding: 0.5em 1em 0;
+        padding: .5em 1em 0;
 
         h4 {
             font-size: 1em;
