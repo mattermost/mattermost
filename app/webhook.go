@@ -490,6 +490,8 @@ func HandleIncomingWebhook(hookId string, req *model.IncomingWebhookRequest) *mo
 	channelNameOrId := req.ChannelName
 	if channelNameOrId == "" {
 		channelNameOrId = hook.ChannelId
+	} else if channelNameOrId[0] != '@' && channelNameOrId[0] != '#' {
+		channelNameOrId = "#" + channelNameOrId
 	}
 
 	if channel, err := GetOrCreateChannel(hook.TeamId, hook.UserId, channelNameOrId); err != nil {
