@@ -284,14 +284,6 @@
     "translation": "Error in getting users profile for id=%v forcing logout"
   },
   {
-    "id": "api.channel.get_or_create.channel.app_error",
-    "translation": "Couldn't find the channel"
-  },
-  {
-    "id": "api.channel.get_or_create.user.app_error",
-    "translation": "Couldn't find the user"
-  },
-  {
     "id": "api.channel.init.debug",
     "translation": "Initializing channel API routes"
   },
@@ -6628,6 +6620,10 @@
     "translation": "Maximum attachments length is {{.Max}} characters, received size is {{.Actual}}"
   },
   {
+    "id": "web.incoming_webhook.channel.app_error",
+    "translation": "Couldn't find the channel"
+  },
+  {
     "id": "web.incoming_webhook.disabled.app_error",
     "translation": "Incoming webhooks have been disabled by the system admin."
   },
@@ -6650,6 +6646,10 @@
   {
     "id": "web.incoming_webhook.text.length.app_error",
     "translation": "Maximum text length is {{.Max}} characters, received size is {{.Actual}}"
+  },
+  {
+    "id": "web.incoming_webhook.user.app_error",
+    "translation": "Couldn't find the user"
   },
   {
     "id": "web.init.debug",
