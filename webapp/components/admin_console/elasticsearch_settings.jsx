@@ -157,11 +157,11 @@ export default class ElasticsearchSettings extends AdminSettings {
                             defaultMessage='Server Connection Address:'
                         />
                     }
-                    placeholder={Utils.localizeMessage('admin.elasticsearch.connectionUrlExample', 'Ex https://elasticsearch.example.org:9200')}
+                    placeholder={Utils.localizeMessage('admin.elasticsearch.connectionUrlExample', 'E.g.: "https://elasticsearch.example.org:9200"')}
                     helpText={
                         <FormattedMessage
                             id='admin.elasticsearch.connectionUrlDescription'
-                            defaultMessage='The address of the elasticsearch server. {documentationLink}'
+                            defaultMessage='The address of the Elasticsearch server. {documentationLink}'
                             values={{
                                 documentationLink: (
                                     <a
@@ -190,7 +190,7 @@ export default class ElasticsearchSettings extends AdminSettings {
                             defaultMessage='Server Username:'
                         />
                     }
-                    placeholder={Utils.localizeMessage('admin.elasticsearch.usernameExample', 'Ex elastic')}
+                    placeholder={Utils.localizeMessage('admin.elasticsearch.usernameExample', 'E.g.: "elastic"')}
                     helpText={
                         <FormattedMessage
                             id='admin.elasticsearch.usernameDescription'
@@ -209,7 +209,7 @@ export default class ElasticsearchSettings extends AdminSettings {
                             defaultMessage='Server Password:'
                         />
                     }
-                    placeholder={Utils.localizeMessage('admin.elasticsearch.password', 'Ex changeme')}
+                    placeholder={Utils.localizeMessage('admin.elasticsearch.password', 'E.g.: "yourpassword"')}
                     helpText={
                         <FormattedMessage
                             id='admin.elasticsearch.passwordDescription'
@@ -243,7 +243,7 @@ export default class ElasticsearchSettings extends AdminSettings {
                     helpText={
                         <FormattedMessage
                             id='admin.elasticsearch.testHelpText'
-                            defaultMessage='Saves the configuration and tests if the Mattermost server can connect to the Elasticsearch server specified. See log file for more detailed error messages.'
+                            defaultMessage='Tests if the Mattermost server can connect to the Elasticsearch server specified. Testing the connection does not save the configuration. See log file for more detailed error messages.'
                         />
                     }
                     buttonText={
@@ -265,7 +265,7 @@ export default class ElasticsearchSettings extends AdminSettings {
                     helpText={
                         <FormattedMessage
                             id='admin.elasticsearch.enableSearchingDescription'
-                            defaultMessage='When true, Elasticsearch will be used for all search queries using the latest index. Search results may be incomplete until a bulk index of the existing post database is finished. When false, database search is used.'
+                            defaultMessage='Requires a successful connection to the Elasticsearch server. When true, Elasticsearch will be used for all search queries using the latest index. Search results may be incomplete until a bulk index of the existing post database is finished. When false, database search is used.'
                         />
                     }
                     value={this.state.enableSearching}
