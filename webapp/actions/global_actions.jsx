@@ -332,13 +332,6 @@ export function emitPreferencesDeletedEvent(preferences) {
     });
 }
 
-export function emitRemovePost(post) {
-    AppDispatcher.handleViewAction({
-        type: Constants.ActionTypes.REMOVE_POST,
-        post
-    });
-}
-
 export function sendEphemeralPost(message, channelId) {
     const timestamp = Utils.getTimestamp();
     const post = {

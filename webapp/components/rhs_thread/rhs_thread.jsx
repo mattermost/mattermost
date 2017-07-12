@@ -59,7 +59,10 @@ export default class RhsThread extends React.Component {
         currentUser: PropTypes.object.isRequired,
         useMilitaryTime: PropTypes.bool.isRequired,
         toggleSize: PropTypes.func,
-        shrink: PropTypes.func
+        shrink: PropTypes.func,
+        actions: PropTypes.shape({
+            removePost: PropTypes.func.isRequired
+        }).isRequired
     }
 
     static defaultProps = {
@@ -401,6 +404,7 @@ export default class RhsThread extends React.Component {
                         status={status}
                         isBusy={this.state.isBusy}
                         getPostList={this.getPostListContainer}
+                        removePost={this.props.actions.removePost}
                     />
                 </div>
             );
