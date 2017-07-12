@@ -2,7 +2,9 @@
 // See License.txt for license information.
 
 import {connect} from 'react-redux';
+import {bindActionCreators} from 'redux';
 import {getPost, makeGetPostsForThread} from 'mattermost-redux/selectors/entities/posts';
+import {removePost} from 'mattermost-redux/actions/posts';
 
 import RhsThread from './rhs_thread.jsx';
 
@@ -24,4 +26,12 @@ function makeMapStateToProps() {
     };
 }
 
-export default connect(makeMapStateToProps)(RhsThread);
+function mapDispatchToProps(dispatch) {
+    return {
+        actions: bindActionCreators({
+            removePost
+        }, dispatch)
+    };
+}
+
+export default connect(makeMapStateToProps, mapDispatchToProps)(RhsThread);
