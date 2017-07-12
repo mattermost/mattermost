@@ -129,14 +129,14 @@ export default class PushSettings extends AdminSettings {
             pushServerHelpText = (
                 <FormattedHTMLMessage
                     id='admin.email.mhpnsHelp'
-                    defaultMessage='Download <a href="https://itunes.apple.com/us/app/mattermost/id984966508?mt=8" target="_blank">Mattermost iOS app</a> from iTunes. Download <a href="https://play.google.com/store/apps/details?id=com.mattermost.mattermost&hl=en" target="_blank">Mattermost Android app</a> from Google Play. Learn more about the <a href="http://docs.mattermost.com/deployment/push.html#hosted-push-notifications-service-hpns" target="_blank">Mattermost Hosted Push Notification Service</a>.'
+                    defaultMessage='Download <a href="https://about.mattermost.com/mattermost-ios-app/" target="_blank">Mattermost iOS app</a> from iTunes. Download <a href="https://about.mattermost.com/mattermost-android-app/" target="_blank">Mattermost Android app</a> from Google Play. Learn more about the <a href="http://docs.mattermost.com/deployment/push.html#hosted-push-notifications-service-hpns" target="_blank">Mattermost Hosted Push Notification Service</a>.'
                 />
             );
         } else if (this.state.pushNotificationServerType === PUSH_NOTIFICATIONS_MTPNS) {
             pushServerHelpText = (
                 <FormattedHTMLMessage
                     id='admin.email.mtpnsHelp'
-                    defaultMessage='Download <a href="https://itunes.apple.com/us/app/mattermost/id984966508?mt=8" target="_blank">Mattermost iOS app</a> from iTunes. Download <a href="https://play.google.com/store/apps/details?id=com.mattermost.mattermost&hl=en" target="_blank">Mattermost Android app</a> from Google Play. Learn more about the <a href="http://docs.mattermost.com/deployment/push.html#test-push-notifications-service-tpns" target="_blank">Mattermost Test Push Notification Service</a>.'
+                    defaultMessage='Download <a href="https://about.mattermost.com/mattermost-ios-app/" target="_blank">Mattermost iOS app</a> from iTunes. Download <a href="https://about.mattermost.com/mattermost-android-app/" target="_blank">Mattermost Android app</a> from Google Play. Learn more about the <a href="http://docs.mattermost.com/deployment/push.html#test-push-notifications-service-tpns" target="_blank">Mattermost Test Push Notification Service</a>.'
                 />
             );
         } else {
