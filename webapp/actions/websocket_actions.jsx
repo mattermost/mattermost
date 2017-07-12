@@ -2,6 +2,7 @@
 // See License.txt for license information.
 
 import $ from 'jquery';
+import AppDispatcher from 'dispatcher/app_dispatcher.jsx';
 
 import UserStore from 'stores/user_store.jsx';
 import TeamStore from 'stores/team_store.jsx';
@@ -265,6 +266,12 @@ function handlePostEditEvent(msg) {
 function handlePostDeleteEvent(msg) {
     const post = JSON.parse(msg.data.post);
     dispatch({type: PostTypes.POST_DELETED, data: post});
+
+    // Needed for search store
+    AppDispatcher.handleViewAction({
+        type: Constants.ActionTypes.POST_DELETED,
+        post
+    });
 }
 
 async function handleTeamAddedEvent(msg) {
