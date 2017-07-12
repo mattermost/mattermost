@@ -910,8 +910,7 @@ func (s SqlPostStore) Search(teamId string, userId string, params *model.SearchP
 		result := StoreResult{}
 
 		if !*utils.Cfg.ServiceSettings.EnablePostSearch {
-			list := &model.PostList{}
-			list.MakeNonNil()
+			list := model.NewPostList()
 			result.Data = list
 
 			result.Err = model.NewLocAppError("SqlPostStore.Search", "store.sql_post.search.disabled", nil, fmt.Sprintf("teamId=%v userId=%v params=%v", teamId, userId, params.ToJson()))
