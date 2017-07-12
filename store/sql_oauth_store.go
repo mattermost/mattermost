@@ -521,6 +521,17 @@ func (as SqlOAuthStore) deleteApp(transaction *gorp.Transaction, clientId string
 		return result
 	}
 
+	return as.deleteOAuthAppSessions(transaction, clientId)
+}
+
+func (as SqlOAuthStore) deleteOAuthAppSessions(transaction *gorp.Transaction, clientId string) StoreResult {
+	result := StoreResult{}
+
+	if _, err := transaction.Exec("DELETE s.* FROM Sessions s INNER JOIN OAuthAccessData o ON o.Token = s.Token WHERE o.ClientId = :Id", map[string]interface{}{"Id": clientId}); err != nil {
+		result.Err = model.NewLocAppError("SqlOAuthStore.DeleteApp", "store.sql_oauth.delete_app.app_error", nil, "id="+clientId+", err="+err.Error())
+		return result
+	}
+
 	return as.deleteOAuthTokens(transaction, clientId)
 }
 

@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/mattermost/platform/model"
+	"github.com/mattermost/platform/utils"
 )
 
 func TestOAuthRevokeAccessToken(t *testing.T) {
@@ -40,5 +41,56 @@ func TestOAuthRevokeAccessToken(t *testing.T) {
 
 	if err := RevokeAccessToken(accessData.Token); err != nil {
 		t.Fatal(err)
+	}
+}
+
+func TestOAuthDeleteApp(t *testing.T) {
+	Setup()
+
+	oldSetting := utils.Cfg.ServiceSettings.EnableOAuthServiceProvider
+	defer func() {
+		utils.Cfg.ServiceSettings.EnableOAuthServiceProvider = oldSetting
+	}()
+	utils.Cfg.ServiceSettings.EnableOAuthServiceProvider = true
+
+	a1 := &model.OAuthApp{}
+	a1.CreatorId = model.NewId()
+	a1.Name = "TestApp" + model.NewId()
+	a1.CallbackUrls = []string{"https://nowhere.com"}
+	a1.Homepage = "https://nowhere.com"
+
+	var err *model.AppError
+	a1, err = CreateOAuthApp(a1)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	session := &model.Session{}
+	session.CreateAt = model.GetMillis()
+	session.UserId = model.NewId()
+	session.Token = model.NewId()
+	session.Roles = model.ROLE_SYSTEM_USER.Id
+	session.IsOAuth = true
+	session.SetExpireInDays(1)
+
+	session, _ = CreateSession(session)
+
+	accessData := &model.AccessData{}
+	accessData.Token = session.Token
+	accessData.UserId = session.UserId
+	accessData.RedirectUri = "http://example.com"
+	accessData.ClientId = a1.Id
+	accessData.ExpiresAt = session.ExpiresAt
+
+	if result := <-Srv.Store.OAuth().SaveAccessData(accessData); result.Err != nil {
+		t.Fatal(result.Err)
+	}
+
+	if err := DeleteOAuthApp(a1.Id); err != nil {
+		t.Fatal(err)
+	}
+
+	if _, err := GetSession(session.Token); err == nil {
+		t.Fatal("should not get session from cache or db")
 	}
 }
