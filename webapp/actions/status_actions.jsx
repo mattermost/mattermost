@@ -54,16 +54,9 @@ export function loadStatusesForChannelAndSidebar() {
     const statusesToLoad = {};
 
     const channelId = ChannelStore.getCurrentId();
-    const postList = PostStore.getVisiblePosts(channelId);
-    if (postList && postList.posts) {
-        for (const pid in postList.posts) {
-            if (!postList.posts.hasOwnProperty(pid)) {
-                continue;
-            }
-
-            const post = postList.posts[pid];
-            statusesToLoad[post.user_id] = true;
-        }
+    const posts = PostStore.getVisiblePosts(channelId) || [];
+    for (const post of posts) {
+        statusesToLoad[post.user_id] = true;
     }
 
     const dmPrefs = PreferenceStore.getCategory(Preferences.CATEGORY_DIRECT_CHANNEL_SHOW);
