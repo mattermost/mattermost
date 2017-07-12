@@ -31,7 +31,7 @@ export default class EditCommand extends React.PureComponent {
         commandId: PropTypes.string.isRequired,
 
         /**
-        * Installed splash commands to display
+        * Installed slash commands to display
         */
         commands: PropTypes.array,
 
