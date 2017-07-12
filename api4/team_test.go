@@ -15,6 +15,7 @@ import (
 	"github.com/mattermost/platform/app"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
+	"encoding/base64"
 )
 
 func TestCreateTeam(t *testing.T) {
@@ -1345,7 +1346,12 @@ func TestImportTeam(t *testing.T) {
 		fileResp, resp := th.SystemAdminClient.ImportTeam(data, binary.Size(data), "slack", "Fake_Team_Import.zip", th.BasicTeam.Id)
 		CheckNoError(t, resp)
 
-		fileReturned := fmt.Sprintf("%s", fileResp)
+		fileData, err := base64.StdEncoding.DecodeString(fileResp["results"])
+		if err != nil {
+			t.Fatal("failed to decode base64 results data")
+		}
+
+		fileReturned := fmt.Sprintf("%s", fileData)
 		if !strings.Contains(fileReturned, "darth.vader@stardeath.com") {
 			t.Log(fileReturned)
 			t.Fatal("failed to report the user was imported")
