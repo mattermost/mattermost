@@ -318,7 +318,7 @@
         @include legacy-pie-clearfix;
         @include display-flex();
         @include flex-direction(row-reverse);
-        padding: 16px 47px 12px 12px;
+        padding: 16px 40px 12px 12px;
         position: relative;
 
         &:before {
@@ -433,9 +433,9 @@
         .team__name,
         .user__name {
             display: block;
-            font-size: 16px;
+            font-size: 14px;
             font-weight: 600;
-            max-width: 85%;
+            max-width: 100%;
             overflow: hidden;
             text-decoration: none;
             text-overflow: ellipsis;
