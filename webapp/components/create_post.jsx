@@ -233,7 +233,8 @@ export default class CreatePost extends React.Component {
             return;
         }
 
-        if (this.state.message.endsWith('/purpose ')) {
+        const isDirectOrGroup = ((updateChannel.type === Constants.DM_CHANNEL) || (updateChannel.type === Constants.GM_CHANNEL));
+        if (!isDirectOrGroup && this.state.message.endsWith('/purpose ')) {
             GlobalActions.showChannelPurposeUpdateModal(updateChannel);
             this.setState({message: ''});
             return;

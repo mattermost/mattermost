@@ -593,7 +593,7 @@
   },
   {
     "id": "api.command_channel_purpose.direct_group.app_error",
-    "translation": "You cannnot change the channel purpose for this channel."
+    "translation": "Cannot set purpose for direct message channels. Use /header to set the header instead."
   },
   {
     "id": "api.command_channel_purpose.message.app_error",
