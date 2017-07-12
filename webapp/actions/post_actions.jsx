@@ -216,6 +216,12 @@ export function deletePost(channelId, post, success) {
                 data: post
             });
 
+            // Needed for search store
+            AppDispatcher.handleViewAction({
+                type: Constants.ActionTypes.REMOVE_POST,
+                post
+            });
+
             const {focusedPostId} = getState().views.channel;
             const channel = getState().entities.channels.channels[post.channel_id];
             if (post.id === focusedPostId && channel) {
