@@ -533,37 +533,21 @@ nuke: clean clean-docker
 setup-mac:
 	echo $$(boot2docker ip 2> /dev/null) dockerhost | sudo tee -a /etc/hosts
 
+NON_ENTERPRISE_PACKAGES=./api/... ./api4/... ./app/... ./cmd/... ./einterfaces/... ./imports/... ./jobs/... \
+                        ./manualtesting/... ./model/... ./store/... ./utils/... ./web/... ./wsapi/...
+
+ENTERPRISE_PACKAGES=./enterprise/account_migration ./enterprise/brand ./enterprise/cluster ./enterprise/compliance \
+                    ./enterprise/data_retention ./enterprise/elasticsearch ./enterprise/emoji ./enterprise/imports \
+                    ./enterprise/ldap ./enterprise/metrics ./enterprise/mfa ./enterprise/oauth/google \
+                    ./enterprise/oauth/office365 ./enterprise/saml
+
 govet:
 	@echo Running GOVET
 
-	$(GO) vet $(GOFLAGS) ./api || exit 1
-	$(GO) vet $(GOFLAGS) ./api4 || exit 1
-	$(GO) vet $(GOFLAGS) ./app || exit 1
-	$(GO) vet $(GOFLAGS) ./cmd/platform || exit 1
-	$(GO) vet $(GOFLAGS) ./einterfaces || exit 1
-	$(GO) vet $(GOFLAGS) ./jobs || exit 1
-	$(GO) vet $(GOFLAGS) ./manualtesting || exit 1
-	$(GO) vet $(GOFLAGS) ./model || exit 1
-	$(GO) vet $(GOFLAGS) ./model/gitlab || exit 1
-	$(GO) vet $(GOFLAGS) ./store || exit 1
-	$(GO) vet $(GOFLAGS) ./utils || exit 1
-	$(GO) vet $(GOFLAGS) ./web || exit 1
+	$(GO) vet $(GOFLAGS) $(NON_ENTERPRISE_PACKAGES) || exit 1
 
 ifeq ($(BUILD_ENTERPRISE_READY),true)
-	$(GO) vet $(GOFLAGS) ./enterprise/account_migration || exit 1
-	$(GO) vet $(GOFLAGS) ./enterprise/brand || exit 1
-	$(GO) vet $(GOFLAGS) ./enterprise/cluster || exit 1
-	$(GO) vet $(GOFLAGS) ./enterprise/compliance || exit 1
-	$(GO) vet $(GOFLAGS) ./enterprise/data_retention || exit 1
-	$(GO) vet $(GOFLAGS) ./enterprise/elasticsearch || exit 1
-	$(GO) vet $(GOFLAGS) ./enterprise/emoji || exit 1
-	$(GO) vet $(GOFLAGS) ./enterprise/imports || exit 1
-	$(GO) vet $(GOFLAGS) ./enterprise/ldap || exit 1
-	$(GO) vet $(GOFLAGS) ./enterprise/metrics || exit 1
-	$(GO) vet $(GOFLAGS) ./enterprise/mfa || exit 1
-	$(GO) vet $(GOFLAGS) ./enterprise/oauth/google || exit 1
-	$(GO) vet $(GOFLAGS) ./enterprise/oauth/office365 || exit 1
-	$(GO) vet $(GOFLAGS) ./enterprise/saml || exit 1
+	$(GO) vet $(GOFLAGS) $(ENTERPRISE_PACKAGES) || exit 1
 endif
 
 todo:
