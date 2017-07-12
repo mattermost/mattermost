@@ -26,6 +26,19 @@ import {Link} from 'react-router/es6';
 import {FormattedMessage} from 'react-intl';
 
 export default class RhsComment extends React.Component {
+    static propTypes = {
+        post: PropTypes.object,
+        lastPostCount: PropTypes.number,
+        user: PropTypes.object.isRequired,
+        currentUser: PropTypes.object.isRequired,
+        compactDisplay: PropTypes.bool,
+        useMilitaryTime: PropTypes.bool.isRequired,
+        isFlagged: PropTypes.bool,
+        status: PropTypes.string,
+        isBusy: PropTypes.bool,
+        removePost: PropTypes.func.isRequired
+    };
+
     constructor(props) {
         super(props);
 
@@ -332,9 +345,10 @@ export default class RhsComment extends React.Component {
                         show={this.state.showEmojiPicker}
                         onHide={this.toggleEmojiPicker}
                         target={() => this.refs.dotMenu}
-                        container={this.props.getPostList}
                         onEmojiClick={this.reactEmojiClick}
                         rightOffset={15}
+                        spaceRequiredAbove={342}
+                        spaceRequiredBelow={342}
                     />
                     <a
                         href='#'
@@ -435,17 +449,3 @@ export default class RhsComment extends React.Component {
         );
     }
 }
-
-RhsComment.propTypes = {
-    post: PropTypes.object,
-    lastPostCount: PropTypes.number,
-    user: PropTypes.object.isRequired,
-    currentUser: PropTypes.object.isRequired,
-    compactDisplay: PropTypes.bool,
-    useMilitaryTime: PropTypes.bool.isRequired,
-    isFlagged: PropTypes.bool,
-    status: PropTypes.string,
-    isBusy: PropTypes.bool,
-    getPostList: PropTypes.func.isRequired,
-    removePost: PropTypes.func.isRequired
-};

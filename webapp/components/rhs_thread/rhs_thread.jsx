@@ -319,10 +319,6 @@ export default class RhsThread extends React.Component {
         });
     }
 
-    getPostListContainer = () => {
-        return this.refs.postListContainer;
-    }
-
     getSidebarBody = () => {
         return this.refs.sidebarbody;
     }
@@ -403,7 +399,6 @@ export default class RhsThread extends React.Component {
                         isFlagged={isFlagged}
                         status={status}
                         isBusy={this.state.isBusy}
-                        getPostList={this.getPostListContainer}
                         removePost={this.props.actions.removePost}
                     />
                 </div>
@@ -439,10 +434,7 @@ export default class RhsThread extends React.Component {
                     renderView={renderView}
                     onScroll={this.handleScroll}
                 >
-                    <div
-                        ref='postListContainer'
-                        className='post-right__scroll'
-                    >
+                    <div className='post-right__scroll'>
                         <DateSeparator
                             date={rootPostDay}
                         />
@@ -458,7 +450,6 @@ export default class RhsThread extends React.Component {
                             status={rootStatus}
                             previewCollapsed={this.state.previewsCollapsed}
                             isBusy={this.state.isBusy}
-                            getPostList={this.getPostListContainer}
                         />
                         <div
                             ref='rhspostlist'
