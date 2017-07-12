@@ -153,9 +153,9 @@ export default class PostList extends React.PureComponent {
                 }
             }
 
-            const nextPosts = nextProps.posts;
-            const posts = this.props.posts;
-            const hasNewPosts = (!posts && nextPosts) || (posts && nextPosts && posts[0].id !== nextPosts[0].id);
+            const nextPosts = nextProps.posts || [];
+            const posts = this.props.posts || [];
+            const hasNewPosts = (posts.length === 0 && nextPosts.length > 0) || (posts.length > 0 && nextPosts.length > 0 && posts[0].id !== nextPosts[0].id);
 
             if (!this.checkBottom() && hasNewPosts) {
                 this.setUnreadsBelow(nextPosts, nextProps.currentUserId);
@@ -265,6 +265,11 @@ export default class PostList extends React.PureComponent {
             return false;
         }
 
+        // No scroll bar so we're at the bottom
+        if (this.refs.postlist.scrollHeight <= this.refs.postlist.clientHeight) {
+            return true;
+        }
+
         return this.refs.postlist.clientHeight + this.refs.postlist.scrollTop >= this.refs.postlist.scrollHeight - CLOSE_TO_BOTTOM_SCROLL_MARGIN;
     }
 
@@ -328,7 +333,7 @@ export default class PostList extends React.PureComponent {
             });
         }
 
-        if (this.atBottom) {
+        if (this.checkBottom()) {
             this.setState({
                 lastViewed: new Date().getTime(),
                 unViewedCount: 0,
