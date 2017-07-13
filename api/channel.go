@@ -602,16 +602,15 @@ func getMyChannelMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 func getPinnedPosts(c *Context, w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	channelId := params["channel_id"]
-	posts := &model.PostList{}
 
 	if result := <-app.Srv.Store.Channel().GetPinnedPosts(channelId); result.Err != nil {
 		c.Err = result.Err
 		return
 	} else {
-		posts = result.Data.(*model.PostList)
+		posts := result.Data.(*model.PostList)
+		w.Write([]byte(posts.ToJson()))
 	}
 
-	w.Write([]byte(posts.ToJson()))
 }
 
 func addMember(c *Context, w http.ResponseWriter, r *http.Request) {
