@@ -181,6 +181,10 @@ export default class PostList extends React.PureComponent {
         const posts = this.props.posts;
         const postList = this.refs.postlist;
 
+        if (!postList) {
+            return;
+        }
+
         // Scroll to focused post on first load
         const focusedPost = this.refs[this.props.focusedPostId];
         if (focusedPost && this.props.posts) {
@@ -262,7 +266,7 @@ export default class PostList extends React.PureComponent {
 
     checkBottom = () => {
         if (!this.refs.postlist) {
-            return false;
+            return true;
         }
 
         // No scroll bar so we're at the bottom
@@ -329,7 +333,12 @@ export default class PostList extends React.PureComponent {
     handleScroll = () => {
         // Only count as user scroll if we've already performed our first load scroll
         this.hasScrolled = this.hasScrolledToNewMessageSeparator || this.hasScrolledToFocusedPost;
+        if (!this.refs.postlist) {
+            return;
+        }
+
         this.previousScrollTop = this.refs.postlist.scrollTop;
+
         if (this.refs.postlist.scrollHeight === this.previousScrollHeight) {
             this.atBottom = this.checkBottom();
         }
