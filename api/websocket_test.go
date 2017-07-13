@@ -362,6 +362,15 @@ func TestWebsocketOriginSecurity(t *testing.T) {
 		t.Fatal("Should have errored because Origin contain AllowCorsFrom")
 	}
 
+	// Should fail because non-matching CORS
+	*utils.Cfg.ServiceSettings.AllowCorsFrom = "http://www.good.com"
+	_, _, err = websocket.DefaultDialer.Dial(url+model.API_URL_SUFFIX_V3+"/users/websocket", http.Header{
+		"Origin": []string{"http://www.good.co"},
+	})
+	if err == nil {
+		t.Fatal("Should have errored because Origin does not match host! SECURITY ISSUE!")
+	}
+
 	*utils.Cfg.ServiceSettings.AllowCorsFrom = ""
 }
 
