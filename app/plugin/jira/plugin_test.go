@@ -92,7 +92,7 @@ func TestHandleWebhook(t *testing.T) {
 		api := &plugintest.APIMock{}
 		defer api.AssertExpectations(t)
 
-		api.On("LoadConfiguration", mock.AnythingOfType("*jira.Configuration")).Run(func(args mock.Arguments) {
+		api.On("LoadPluginConfiguration", mock.AnythingOfType("*jira.Configuration")).Run(func(args mock.Arguments) {
 			*args.Get(0).(*Configuration) = tc.Configuration
 		}).Return(nil)
 
@@ -111,7 +111,7 @@ func TestHandleWebhook(t *testing.T) {
 		p.Initialize(api)
 
 		w := httptest.NewRecorder()
-		api.Router().ServeHTTP(w, tc.Request)
+		api.PluginRouter().ServeHTTP(w, tc.Request)
 		assert.Equal(t, tc.ExpectedStatusCode, w.Result().StatusCode, "test case: "+name)
 	}
 }

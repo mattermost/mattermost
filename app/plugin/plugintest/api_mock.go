@@ -16,11 +16,11 @@ type APIMock struct {
 	router *mux.Router
 }
 
-func (m *APIMock) LoadConfiguration(dest interface{}) error {
+func (m *APIMock) LoadPluginConfiguration(dest interface{}) error {
 	return m.Called(dest).Error(0)
 }
 
-func (m *APIMock) Router() *mux.Router {
+func (m *APIMock) PluginRouter() *mux.Router {
 	if m.router == nil {
 		m.router = mux.NewRouter()
 	}

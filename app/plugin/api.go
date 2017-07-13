@@ -9,10 +9,10 @@ import (
 
 type API interface {
 	// Loads the plugin's configuration
-	LoadConfiguration(dest interface{}) error
+	LoadPluginConfiguration(dest interface{}) error
 
 	// The plugin's router
-	Router() *mux.Router
+	PluginRouter() *mux.Router
 
 	// Creates a post
 	CreatePost(teamId, userId, channelNameOrId, text string) (*model.Post, *model.AppError)

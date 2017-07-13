@@ -15,22 +15,19 @@ import (
 )
 
 type PluginAPI struct {
-	configuration interface{}
-	router        *mux.Router
+	id     string
+	router *mux.Router
 }
 
-func (api *PluginAPI) LoadConfiguration(dest interface{}) error {
-	if api.configuration == nil {
-		return nil
-	}
-	if b, err := json.Marshal(api.configuration); err != nil {
+func (api *PluginAPI) LoadPluginConfiguration(dest interface{}) error {
+	if b, err := json.Marshal(utils.Cfg.PluginSettings.Plugins[api.id]); err != nil {
 		return err
 	} else {
 		return json.Unmarshal(b, dest)
 	}
 }
 
-func (api *PluginAPI) Router() *mux.Router {
+func (api *PluginAPI) PluginRouter() *mux.Router {
 	return api.router
 }
 
@@ -57,13 +54,23 @@ func (api *PluginAPI) I18n(id string, r *http.Request) string {
 }
 
 func InitPlugins() {
-	for id, p := range map[string]plugin.Plugin{
+	plugins := map[string]plugin.Plugin{
 		"jira": &jira.Plugin{},
-	} {
+	}
+	for id, p := range plugins {
 		l4g.Info("Initializing plugin: " + id)
-		p.Initialize(&PluginAPI{
-			configuration: utils.Cfg.PluginSettings.Plugins[id],
-			router:        Srv.Router.PathPrefix("/plugins/" + id).Subrouter(),
-		})
+		api := &PluginAPI{
+			id:     id,
+			router: Srv.Router.PathPrefix("/plugins/" + id).Subrouter(),
+		}
+		p.Initialize(api)
+	}
+	utils.AddConfigListener(func(before, after *model.Config) {
+		for _, p := range plugins {
+			p.OnConfigurationChange()
+		}
+	})
+	for _, p := range plugins {
+		p.OnConfigurationChange()
 	}
 }
