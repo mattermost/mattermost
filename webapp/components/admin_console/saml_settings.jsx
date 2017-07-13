@@ -77,15 +77,15 @@ export default class SamlSettings extends AdminSettings {
         AdminActions.samlCertificateStatus(
             (data) => {
                 const files = {};
-                if (!data.IdpCertificateFile) {
+                if (!data.idp_certificate_file) {
                     files.idpCertificateFile = '';
                 }
 
-                if (!data.PublicCertificateFile) {
+                if (!data.public_certificate_file) {
                     files.publicCertificateFile = '';
                 }
 
-                if (!data.PrivateKeyFile) {
+                if (!data.private_key_file) {
                     files.privateKeyFile = '';
                 }
                 this.setState(files);
