@@ -5,6 +5,7 @@ package app
 
 import (
 	"github.com/mattermost/platform/model"
+	"github.com/mattermost/platform/jobs"
 )
 
 func GetJob(id string) (*model.Job, *model.AppError) {
@@ -12,6 +13,18 @@ func GetJob(id string) (*model.Job, *model.AppError) {
 		return nil, result.Err
 	} else {
 		return result.Data.(*model.Job), nil
+	}
+}
+
+func GetJobsPage(page int, perPage int) ([]*model.Job, *model.AppError) {
+	return GetJobs(page*perPage, perPage)
+}
+
+func GetJobs(offset int, limit int) ([]*model.Job, *model.AppError) {
+	if result := <-Srv.Store.Job().GetAllPage(offset, limit); result.Err != nil {
+		return nil, result.Err
+	} else {
+		return result.Data.([]*model.Job), nil
 	}
 }
 
@@ -25,4 +38,12 @@ func GetJobsByType(jobType string, offset int, limit int) ([]*model.Job, *model.
 	} else {
 		return result.Data.([]*model.Job), nil
 	}
+}
+
+func CreateJob(job *model.Job) (*model.Job, *model.AppError) {
+	return jobs.CreateJob(job.Type, job.Data)
+}
+
+func CancelJob(jobId string) *model.AppError {
+	return jobs.RequestCancellation(jobId)
 }

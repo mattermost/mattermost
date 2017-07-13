@@ -210,6 +210,38 @@ func (jss SqlJobStore) Get(id string) StoreChannel {
 	return storeChannel
 }
 
+func (jss SqlJobStore) GetAllPage(offset int, limit int) StoreChannel {
+	storeChannel := make(StoreChannel, 1)
+
+	go func() {
+		result := StoreResult{}
+
+		var statuses []*model.Job
+
+		if _, err := jss.GetReplica().Select(&statuses,
+			`SELECT
+				*
+			FROM
+				Jobs
+			ORDER BY
+				CreateAt DESC
+			LIMIT
+				:Limit
+			OFFSET
+				:Offset`, map[string]interface{}{"Limit": limit, "Offset": offset}); err != nil {
+			result.Err = model.NewLocAppError("SqlJobStore.GetAllPage",
+				"store.sql_job.get_all.app_error", nil, err.Error())
+		} else {
+			result.Data = statuses
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
 func (jss SqlJobStore) GetAllByType(jobType string) StoreChannel {
 	storeChannel := make(StoreChannel, 1)
 
@@ -224,7 +256,9 @@ func (jss SqlJobStore) GetAllByType(jobType string) StoreChannel {
 			FROM
 				Jobs
 			WHERE
-				Type = :Type`, map[string]interface{}{"Type": jobType}); err != nil {
+				Type = :Type
+			ORDER BY
+				CreateAt DESC`, map[string]interface{}{"Type": jobType}); err != nil {
 			result.Err = model.NewLocAppError("SqlJobStore.GetAllByType",
 				"store.sql_job.get_all.app_error", nil, "Type="+jobType+", "+err.Error())
 		} else {
@@ -254,7 +288,7 @@ func (jss SqlJobStore) GetAllByTypePage(jobType string, offset int, limit int) S
 			WHERE
 				Type = :Type
 			ORDER BY
-				StartAt ASC
+				CreateAt DESC
 			LIMIT
 				:Limit
 			OFFSET
