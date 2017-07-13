@@ -536,11 +536,6 @@ func getClientConfig(c *model.Config) map[string]string {
 			props["PasswordRequireSymbol"] = strconv.FormatBool(*c.PasswordSettings.Symbol)
 		}
 
-		if *License.Features.Elasticsearch {
-			props["ElasticSearchEnableIndexing"] = strconv.FormatBool(*c.ElasticSearchSettings.EnableIndexing)
-			props["ElasticSearchEnableSearching"] = strconv.FormatBool(*c.ElasticSearchSettings.EnableSearching)
-		}
-
 		if *License.Features.Announcement {
 			props["EnableBanner"] = strconv.FormatBool(*c.AnnouncementSettings.EnableBanner)
 			props["BannerText"] = *c.AnnouncementSettings.BannerText
@@ -616,12 +611,6 @@ func Desanitize(cfg *model.Config) {
 		cfg.SqlSettings.AtRestEncryptKey = Cfg.SqlSettings.AtRestEncryptKey
 	}
 
-	if *cfg.ElasticSearchSettings.ConnectionUrl == model.FAKE_SETTING {
-		*cfg.ElasticSearchSettings.ConnectionUrl = *Cfg.ElasticSearchSettings.ConnectionUrl
-	}
-	if *cfg.ElasticSearchSettings.Username == model.FAKE_SETTING {
-		*cfg.ElasticSearchSettings.Username = *Cfg.ElasticSearchSettings.Username
-	}
 	if *cfg.ElasticSearchSettings.Password == model.FAKE_SETTING {
 		*cfg.ElasticSearchSettings.Password = *Cfg.ElasticSearchSettings.Password
 	}
