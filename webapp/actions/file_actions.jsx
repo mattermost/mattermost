@@ -6,6 +6,8 @@ import request from 'superagent';
 
 import store from 'stores/redux_store.jsx';
 
+import * as Utils from 'utils/utils.jsx';
+
 import {FileTypes} from 'mattermost-redux/action_types';
 import {forceLogoutIfNecessary} from 'mattermost-redux/actions/helpers';
 import {getLogErrorAction} from 'mattermost-redux/actions/errors';
@@ -20,9 +22,9 @@ export function uploadFile(file, name, channelId, clientId, successCallback, err
             if (res && res.body && res.body.id) {
                 e = res.body;
             } else if (err.status === 0 || !err.status) {
-                e = {message: this.translations.connectionError};
+                e = {message: Utils.localizeMessage('channel_loader.connection_error', 'There appears to be a problem with your internet connection.')};
             } else {
-                e = {message: this.translations.unknownError + ' (' + err.status + ')'};
+                e = {message: Utils.localizeMessage('channel_loader.unknown_error', 'We received an unexpected status code from the server.') + ' (' + err.status + ')'};
             }
 
             forceLogoutIfNecessary(err, dispatch);
