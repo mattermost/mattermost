@@ -3,7 +3,6 @@
 
 import PropTypes from 'prop-types';
 import React from 'react';
-import ReactDOM from 'react-dom';
 
 import loadingGif from 'images/load.gif';
 
@@ -13,6 +12,17 @@ import * as Utils from 'utils/utils.jsx';
 import {getFileThumbnailUrl} from 'mattermost-redux/utils/file_utils';
 
 export default class FilePreview extends React.Component {
+    static propTypes = {
+        onRemove: PropTypes.func.isRequired,
+        fileInfos: PropTypes.arrayOf(PropTypes.object).isRequired,
+        uploadsInProgress: PropTypes.array
+    };
+
+    static defaultProps = {
+        fileInfos: [],
+        uploadsInProgress: []
+    };
+
     constructor(props) {
         super(props);
 
@@ -21,7 +31,7 @@ export default class FilePreview extends React.Component {
 
     componentDidUpdate() {
         if (this.props.uploadsInProgress.length > 0) {
-            ReactDOM.findDOMNode(this.refs[this.props.uploadsInProgress[0]]).scrollIntoView();
+            this.refs[this.props.uploadsInProgress[0]].scrollIntoView();
         }
     }
 
@@ -106,13 +116,3 @@ export default class FilePreview extends React.Component {
         );
     }
 }
-
-FilePreview.defaultProps = {
-    fileInfos: [],
-    uploadsInProgress: []
-};
-FilePreview.propTypes = {
-    onRemove: PropTypes.func.isRequired,
-    fileInfos: PropTypes.arrayOf(PropTypes.object).isRequired,
-    uploadsInProgress: PropTypes.array
-};
