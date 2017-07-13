@@ -112,12 +112,14 @@ export default class ElasticsearchSettings extends AdminSettings {
     renderSettings() {
         return (
             <SettingsGroup>
-                <p>
-                    <FormattedMessage
-                        id='admin.elasticsearch.noteDescription'
-                        defaultMessage='Changing properties in this section will require a server restart before taking effect.'
-                    />
-                </p>
+                <div className='banner'>
+                    <div className='banner__content'>
+                        <FormattedMessage
+                            id='admin.elasticsearch.noteDescription'
+                            defaultMessage='Changing properties in this section will require a server restart before taking effect.'
+                        />
+                    </div>
+                </div>
                 <BooleanSetting
                     id='enableIndexing'
                     label={
