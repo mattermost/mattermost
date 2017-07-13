@@ -53,9 +53,8 @@ type CorsWrapper struct {
 
 func (cw *CorsWrapper) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if len(*utils.Cfg.ServiceSettings.AllowCorsFrom) > 0 {
-		origin := r.Header.Get("Origin")
-		if *utils.Cfg.ServiceSettings.AllowCorsFrom == "*" || strings.Contains(*utils.Cfg.ServiceSettings.AllowCorsFrom, origin) {
-			w.Header().Set("Access-Control-Allow-Origin", origin)
+		if utils.OriginChecker(r) {
+			w.Header().Set("Access-Control-Allow-Origin", r.Header.Get("Origin"))
 
 			if r.Method == "OPTIONS" {
 				w.Header().Set(
