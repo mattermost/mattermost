@@ -39,7 +39,7 @@ export default class MarkdownImage extends React.PureComponent {
 
     waitForHeight = () => {
         if (this.refs.image.height) {
-            postListScrollChange();
+            setTimeout(postListScrollChange, 0);
 
             this.heightTimeout = 0;
         } else {

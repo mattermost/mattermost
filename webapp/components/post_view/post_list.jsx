@@ -333,9 +333,11 @@ export default class PostList extends React.PureComponent {
     handleScroll = () => {
         // Only count as user scroll if we've already performed our first load scroll
         this.hasScrolled = this.hasScrolledToNewMessageSeparator || this.hasScrolledToFocusedPost;
-        if (this.refs.postlist) {
-            this.previousScrollTop = this.refs.postlist.scrollTop;
+        if (!this.refs.postlist) {
+            return;
         }
+
+        this.previousScrollTop = this.refs.postlist.scrollTop;
 
         if (this.refs.postlist.scrollHeight === this.previousScrollHeight) {
             this.atBottom = this.checkBottom();
