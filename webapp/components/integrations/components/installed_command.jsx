@@ -32,6 +32,11 @@ export default class InstalledCommand extends React.PureComponent {
         onDelete: PropTypes.func.isRequired,
 
         /**
+        * Set to filter command, comes from BackstageList
+        */
+        filter: PropTypes.string,
+
+        /**
         * The creator user data
         */
         creator: PropTypes.object.isRequired,
@@ -52,8 +57,24 @@ export default class InstalledCommand extends React.PureComponent {
         this.props.onDelete(this.props.command);
     }
 
+    matchesFilter(command, filter) {
+        if (!filter) {
+            return true;
+        }
+
+        return command.display_name.toLowerCase().indexOf(filter) !== -1 ||
+            command.description.toLowerCase().indexOf(filter) !== -1 ||
+            command.trigger.toLowerCase().indexOf(filter) !== -1;
+    }
+
     render() {
         const command = this.props.command;
+        const filter = this.props.filter ? this.props.filter.toLowerCase() : '';
+
+        if (!this.matchesFilter(command, filter)) {
+            return null;
+        }
+
         let name;
 
         if (command.display_name) {
