@@ -5047,7 +5047,7 @@ math-expression-evaluator@^1.2.14:
 
 mattermost-redux@mattermost/mattermost-redux#webapp-master:
   version "0.0.1"
-  resolved "https://codeload.github.com/mattermost/mattermost-redux/tar.gz/dd48556075c8be41aa5ac4a0165bbe830d496875"
+  resolved "https://codeload.github.com/mattermost/mattermost-redux/tar.gz/a850fc2696c7083a068f7852c1d4b8bce0ec72ba"
   dependencies:
     deep-equal "1.0.1"
     harmony-reflect "1.5.1"
