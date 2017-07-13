@@ -15,7 +15,15 @@ type OriginCheckerProc func(*http.Request) bool
 
 func OriginChecker(r *http.Request) bool {
 	origin := r.Header.Get("Origin")
-	return *Cfg.ServiceSettings.AllowCorsFrom == "*" || strings.Contains(*Cfg.ServiceSettings.AllowCorsFrom, origin)
+	if *Cfg.ServiceSettings.AllowCorsFrom == "*" {
+		return true
+	}
+	for _, allowed := range strings.Split(*Cfg.ServiceSettings.AllowCorsFrom, " ") {
+		if allowed == origin {
+			return true
+		}
+	}
+	return false
 }
 
 func GetOriginChecker(r *http.Request) OriginCheckerProc {
