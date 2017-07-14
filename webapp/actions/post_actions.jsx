@@ -182,6 +182,13 @@ export function updatePost(post, success) {
         (data) => {
             if (data && success) {
                 success();
+            } else {
+                const serverError = getState().requests.posts.editPost.error;
+                AppDispatcher.handleServerAction({
+                    type: ActionTypes.RECEIVED_ERROR,
+                    err: {id: serverError.server_error_id, ...serverError},
+                    method: 'editPost'
+                });
             }
         }
     );
