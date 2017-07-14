@@ -327,16 +327,16 @@ func writeFileResponse(filename string, contentType string, bytes []byte, forceD
 	if forceDownload {
 		toDownload = true
 	} else {
-		isImageType := false
+		isMediaType := false
 
 		for _, mediaContentType := range MEDIA_CONTENT_TYPES {
 			if strings.HasPrefix(contentType, mediaContentType) {
-				isImageType = true
+				isMediaType = true
 				break
 			}
 		}
 
-		toDownload = !isImageType
+		toDownload = !isMediaType
 	}
 
 	if toDownload {
