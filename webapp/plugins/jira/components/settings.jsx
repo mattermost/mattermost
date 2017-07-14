@@ -3,10 +3,8 @@
 
 import React from 'react';
 
-import * as Utils from 'utils/utils.jsx';
-
 import AdminSettings from '../../../components/admin_console/admin_settings.jsx';
-import {FormattedMessage, FormattedHTMLMessage} from 'react-intl';
+import {FormattedMessage} from 'react-intl';
 import SettingsGroup from '../../../components/admin_console/settings_group.jsx';
 import TextSetting from '../../../components/admin_console/text_setting.jsx';
 import GeneratedSetting from '../../../components/admin_console/generated_setting.jsx';
@@ -23,9 +21,9 @@ export default class JIRASettings extends AdminSettings {
         config.PluginSettings.Plugins = {
             jira: {
                 Secret: this.state.jiraSecret,
-                UserId: this.state.jiraUserId,
-            },
-        }
+                UserId: this.state.jiraUserId
+            }
+        };
 
         return config;
     }
@@ -33,13 +31,13 @@ export default class JIRASettings extends AdminSettings {
     getStateFromConfig(config) {
         const settings = config.PluginSettings;
 
-        let ret = {
+        const ret = {
             jiraSecret: '',
             jiraUserId: '',
-            siteURL: config.ServiceSettings.SiteURL,
+            siteURL: config.ServiceSettings.SiteURL
         };
 
-        if (settings.Plugins !== undefined && settings.Plugins.jira !== undefined) {
+        if (typeof settings.Plugins !== 'undefined' && typeof settings.Plugins.jira !== 'undefined') {
             ret.jiraSecret = settings.Plugins.jira.Secret || settings.Plugins.jira.secret || '';
             ret.jiraUserId = settings.Plugins.jira.UserId || settings.Plugins.jira.userid || '';
         }
@@ -95,11 +93,16 @@ export default class JIRASettings extends AdminSettings {
                 />
                 <div className='banner'>
                     <div className='banner__content'>
-                        <p><FormattedMessage
-                            id='admin.plugins.jira.setupDescription'
-                            defaultMessage='Once a secret and user id are configured, you can complete your JIRA integration by adding issue-created/updated/deleted webhooks of this form to your projects in JIRA:'
-                        /></p>
-                        <p><code>{this.state.siteURL}/plugins/jira/webhook?secret={encodeURIComponent(this.state.jiraSecret)}&team=<b>[some team id]</b>&channel=<b>[some channel name or id]</b></code></p>
+                        <p>
+                            <FormattedMessage
+                                id='admin.plugins.jira.setupDescription'
+                                defaultMessage='Once a secret and user id are configured, you can complete your JIRA integration by adding issue-created/updated/deleted webhooks of this form to your projects in JIRA:'
+                            />
+                        </p>
+                        <p>
+                            <code dangerouslySetInnerHTML={{__html: encodeURI(this.state.siteURL) + '/plugins/jira/webhook?secret=' + encodeURIComponent(this.state.jiraSecret) + '&team=<b>[some team id]</b>&channel=<b>[some channel name or id]</b>'}}>
+                            </code>
+                        </p>
                     </div>
                 </div>
             </SettingsGroup>
