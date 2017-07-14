@@ -1873,11 +1873,11 @@
   },
   {
     "id": "api.slackimport.slack_add_bot_user.email_pwd",
-    "translation": "Slack Bot/Post di Integrazione Importa Utente: Email, Password: {{.Email}}, {{.Password}}\r\n"
+    "translation": "Slack Bot/Integra pubblicazioni Importa Utente: Email, Password: {{.Email}}, {{.Password}}\r\n"
   },
   {
     "id": "api.slackimport.slack_add_bot_user.unable_import",
-    "translation": "Impossibile importare Slack Bot/Post di integrazione Utente: {{.Username}}\r\n"
+    "translation": "Impossibile importare Slack Bot/Integra pubblicazioni Utente: {{.Username}}\r\n"
   },
   {
     "id": "api.slackimport.slack_add_channels.added",
