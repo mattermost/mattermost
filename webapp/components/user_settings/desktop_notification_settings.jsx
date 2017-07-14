@@ -44,7 +44,7 @@ export default class DesktopNotificationSettings extends React.Component {
                 soundRadio[0] = true;
             }
 
-            if (!(Utils.hasSoundOptions()) {
+            if (!(Utils.hasSoundOptions())) {
                 soundSection = (
                     <div>
                         <hr/>
