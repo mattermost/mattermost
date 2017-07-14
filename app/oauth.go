@@ -63,6 +63,8 @@ func DeleteOAuthApp(appId string) *model.AppError {
 		return err
 	}
 
+	InvalidateAllCaches()
+
 	return nil
 }
 

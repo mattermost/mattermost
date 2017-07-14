@@ -414,7 +414,31 @@ func TestOAuthStoreDeleteApp(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	s1 := model.Session{}
+	s1.UserId = model.NewId()
+	s1.Token = model.NewId()
+	s1.IsOAuth = true
+
+	Must(store.Session().Save(&s1))
+
+	ad1 := model.AccessData{}
+	ad1.ClientId = a1.Id
+	ad1.UserId = a1.CreatorId
+	ad1.Token = s1.Token
+	ad1.RefreshToken = model.NewId()
+	ad1.RedirectUri = "http://example.com"
+
+	Must(store.OAuth().SaveAccessData(&ad1))
+
 	if err := (<-store.OAuth().DeleteApp(a1.Id)).Err; err != nil {
 		t.Fatal(err)
+	}
+
+	if err := (<-store.Session().Get(s1.Token)).Err; err == nil {
+		t.Fatal("should error - session should be deleted")
+	}
+
+	if err := (<-store.OAuth().GetAccessData(s1.Token)).Err; err == nil {
+		t.Fatal("should error - access data should be deleted")
 	}
 }

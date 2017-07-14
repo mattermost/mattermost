@@ -9,6 +9,7 @@ import (
 
 	"github.com/go-gorp/gorp"
 	"github.com/mattermost/platform/model"
+	"github.com/mattermost/platform/utils"
 )
 
 type SqlOAuthStore struct {
@@ -517,6 +518,24 @@ func (as SqlOAuthStore) deleteApp(transaction *gorp.Transaction, clientId string
 	result := StoreResult{}
 
 	if _, err := transaction.Exec("DELETE FROM OAuthApps WHERE Id = :Id", map[string]interface{}{"Id": clientId}); err != nil {
+		result.Err = model.NewLocAppError("SqlOAuthStore.DeleteApp", "store.sql_oauth.delete_app.app_error", nil, "id="+clientId+", err="+err.Error())
+		return result
+	}
+
+	return as.deleteOAuthAppSessions(transaction, clientId)
+}
+
+func (as SqlOAuthStore) deleteOAuthAppSessions(transaction *gorp.Transaction, clientId string) StoreResult {
+	result := StoreResult{}
+
+	query := ""
+	if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_POSTGRES {
+		query = "DELETE FROM Sessions s USING OAuthAccessData o WHERE o.Token = s.Token AND o.ClientId = :Id"
+	} else if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_MYSQL {
+		query = "DELETE s.* FROM Sessions s INNER JOIN OAuthAccessData o ON o.Token = s.Token WHERE o.ClientId = :Id"
+	}
+
+	if _, err := transaction.Exec(query, map[string]interface{}{"Id": clientId}); err != nil {
 		result.Err = model.NewLocAppError("SqlOAuthStore.DeleteApp", "store.sql_oauth.delete_app.app_error", nil, "id="+clientId+", err="+err.Error())
 		return result
 	}
