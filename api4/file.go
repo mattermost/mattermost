@@ -22,7 +22,7 @@ const (
 var UNSAFE_CONTENT_TYPES = [...]string{
 	"application/javascript",
 	"application/ecmascript",
-	"text/javaScript",
+	"text/javascript",
 	"text/ecmascript",
 	"application/x-javascript",
 	"text/html",

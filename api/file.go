@@ -15,6 +15,15 @@ import (
 	"github.com/mattermost/platform/utils"
 )
 
+var UNSAFE_CONTENT_TYPES = [...]string{
+	"application/javascript",
+	"application/ecmascript",
+	"text/javascript",
+	"text/ecmascript",
+	"application/x-javascript",
+	"text/html",
+}
+
 func InitFile() {
 	l4g.Debug(utils.T("api.file.init.debug"))
 
@@ -284,17 +293,18 @@ func writeFileResponse(filename string, contentType string, bytes []byte, w http
 	w.Header().Set("Content-Length", strconv.Itoa(len(bytes)))
 	w.Header().Set("X-Content-Type-Options", "nosniff")
 
-	if contentType == "application/javascript" || contentType == "application/ecmascript" ||
-		contentType == "text/javaScript" || contentType == "text/ecmascript" ||
-		contentType == "application/x-javascript" || contentType == "text/html" {
+	if contentType == "" {
 		contentType = "application/octet-stream"
+	} else {
+		for _, unsafeContentType := range UNSAFE_CONTENT_TYPES {
+			if strings.HasPrefix(contentType, unsafeContentType) {
+				contentType = "text/plain"
+				break
+			}
+		}
 	}
 
-	if contentType != "" {
-		w.Header().Set("Content-Type", contentType)
-	} else {
-		w.Header().Del("Content-Type") // Content-Type will be set automatically by the http writer
-	}
+	w.Header().Set("Content-Type", contentType)
 
 	w.Header().Set("Content-Disposition", "attachment;filename=\""+filename+"\"; filename*=UTF-8''"+url.QueryEscape(filename))
 
