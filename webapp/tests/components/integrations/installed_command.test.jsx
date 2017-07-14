@@ -12,7 +12,7 @@ describe('components/integrations/InstalledCommand', () => {
         id: 'r5tpgt4iepf45jt768jz84djic',
         display_name: 'test',
         description: 'test',
-        trigger: 'test',
+        trigger: 'trigger',
         auto_complete: 'test',
         auto_complete_hint: 'test',
         token: 'testToken',
@@ -28,6 +28,7 @@ describe('components/integrations/InstalledCommand', () => {
                 command={command}
                 onRegenToken={emptyFunction}
                 onDelete={emptyFunction}
+                filter={'trigger'}
                 creator={{
                     username: 'test'
                 }}
@@ -47,6 +48,7 @@ describe('components/integrations/InstalledCommand', () => {
                 command={command}
                 onRegenToken={onRegenToken}
                 onDelete={emptyFunction}
+                filter={''}
                 creator={{
                     username: 'test'
                 }}
@@ -58,5 +60,24 @@ describe('components/integrations/InstalledCommand', () => {
         }});
 
         expect(onRegenToken).toBeCalled();
+    });
+
+    test('should filter out command', () => {
+        const wrapper = shallow(
+            <InstalledCommand
+                team={{
+                    name: 'test'
+                }}
+                command={command}
+                onRegenToken={emptyFunction}
+                onDelete={emptyFunction}
+                filter={'filter'}
+                creator={{
+                    username: 'test'
+                }}
+                canChange={true}
+            />
+        );
+        expect(wrapper).toMatchSnapshot();
     });
 });

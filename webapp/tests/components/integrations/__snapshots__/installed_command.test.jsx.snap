@@ -1,5 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`components/integrations/InstalledCommand should filter out command 1`] = `null`;
+
 exports[`components/integrations/InstalledCommand should match snapshot 1`] = `
 <div
   className="backstage-list__item"
@@ -18,7 +20,7 @@ exports[`components/integrations/InstalledCommand should match snapshot 1`] = `
       <span
         className="item-details__trigger"
       >
-        - /test test
+        - /trigger test
       </span>
     </div>
     <div
