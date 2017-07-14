@@ -534,6 +534,26 @@ export default class AdminSidebar extends React.Component {
                                 />
                             </AdminSidebarSection>
                             <AdminSidebarSection
+                                name='plugins'
+                                type='text'
+                                title={
+                                    <FormattedMessage
+                                        id='admin.sidebar.plugins'
+                                        defaultMessage='Plugins'
+                                    />
+                                }
+                            >
+                                <AdminSidebarSection
+                                    name='jira'
+                                    title={
+                                        <FormattedMessage
+                                            id='admin.sidebar.jira'
+                                            defaultMessage='JIRA'
+                                        />
+                                    }
+                                />
+                            </AdminSidebarSection>
+                            <AdminSidebarSection
                                 name='files'
                                 type='text'
                                 title={
