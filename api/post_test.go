@@ -177,8 +177,8 @@ func TestCreatePostWithCreateAt(t *testing.T) {
 
 func testCreatePostWithOutgoingHook(
 	t *testing.T,
-	hookContentType string,
-	expectedContentType string,
+	hookContentType, expectedContentType, message string,
+	triggerWords, fileIds []string,
 ) {
 	th := Setup().InitSystemAdmin()
 	Client := th.SystemAdminClient
@@ -210,6 +210,11 @@ func testCreatePostWithOutgoingHook(
 			return
 		}
 
+		var triggerWord string
+		if len(triggerWords) > 0 {
+			triggerWord = triggerWords[0]
+		}
+
 		expectedPayload := &model.OutgoingWebhookPayload{
 			Token:       hook.Token,
 			TeamId:      hook.TeamId,
@@ -221,7 +226,8 @@ func testCreatePostWithOutgoingHook(
 			UserName:    user.Username,
 			PostId:      post.Id,
 			Text:        post.Message,
-			TriggerWord: strings.Fields(post.Message)[0],
+			TriggerWord: triggerWord,
+			FileIds:     strings.Join(post.FileIds, ","),
 		}
 
 		// depending on the Content-Type, we expect to find a JSON or form encoded payload
@@ -256,11 +262,10 @@ func testCreatePostWithOutgoingHook(
 	defer ts.Close()
 
 	// create an outgoing webhook, passing it the test server URL
-	triggerWord := "bingo"
 	hook = &model.OutgoingWebhook{
 		ChannelId:    channel.Id,
 		ContentType:  hookContentType,
-		TriggerWords: []string{triggerWord},
+		TriggerWords: triggerWords,
 		CallbackURLs: []string{ts.URL},
 	}
 
@@ -271,10 +276,10 @@ func testCreatePostWithOutgoingHook(
 	}
 
 	// create a post to trigger the webhook
-	message := triggerWord + " lorem ipusm"
 	post = &model.Post{
 		ChannelId: channel.Id,
 		Message:   message,
+		FileIds:   fileIds,
 	}
 
 	if result, err := Client.CreatePost(post); err != nil {
@@ -290,25 +295,28 @@ func testCreatePostWithOutgoingHook(
 	select {
 	case ok := <-success:
 		if !ok {
-			t.Fatal("Test server was sent an invalid webhook.")
+			t.Fatal("Test server did send an invalid webhook.")
 		}
 	case <-time.After(time.Second):
-		t.Fatal("Timeout, test server wasn't sent the webhook.")
+		t.Fatal("Timeout, test server did not send the webhook.")
 	}
 }
 
 func TestCreatePostWithOutgoingHook_form_urlencoded(t *testing.T) {
-	testCreatePostWithOutgoingHook(t, "application/x-www-form-urlencoded", "application/x-www-form-urlencoded")
+	testCreatePostWithOutgoingHook(t, "application/x-www-form-urlencoded", "application/x-www-form-urlencoded", "triggerword lorem ipsum", []string{"triggerword"}, []string{"file_id_1"})
+	testCreatePostWithOutgoingHook(t, "application/x-www-form-urlencoded", "application/x-www-form-urlencoded", "", []string{}, []string{"file_id_1"})
 }
 
 func TestCreatePostWithOutgoingHook_json(t *testing.T) {
-	testCreatePostWithOutgoingHook(t, "application/json", "application/json")
+	testCreatePostWithOutgoingHook(t, "application/json", "application/json", "triggerword lorem ipsum", []string{"triggerword"}, []string{"file_id_1, file_id_2"})
+	testCreatePostWithOutgoingHook(t, "application/json", "application/json", "triggerword lorem ipsum", []string{}, []string{"file_id_1"})
 }
 
 // hooks created before we added the ContentType field should be considered as
 // application/x-www-form-urlencoded
 func TestCreatePostWithOutgoingHook_no_content_type(t *testing.T) {
-	testCreatePostWithOutgoingHook(t, "", "application/x-www-form-urlencoded")
+	testCreatePostWithOutgoingHook(t, "", "application/x-www-form-urlencoded", "triggerword lorem ipsum", []string{"triggerword"}, []string{"file_id_1"})
+	testCreatePostWithOutgoingHook(t, "", "application/x-www-form-urlencoded", "triggerword lorem ipsum", []string{}, []string{"file_id_1, file_id_2"})
 }
 
 func TestUpdatePost(t *testing.T) {

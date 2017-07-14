@@ -42,74 +42,80 @@ func handleWebhookEvents(post *model.Post, team *model.Team, channel *model.Chan
 		return nil
 	}
 
+	var firstWord, triggerWord string
+
 	splitWords := strings.Fields(post.Message)
-	if len(splitWords) == 0 {
-		return nil
+	if len(splitWords) > 0 {
+		firstWord = splitWords[0]
 	}
-	firstWord := splitWords[0]
 
 	relevantHooks := []*model.OutgoingWebhook{}
 	for _, hook := range hooks {
 		if hook.ChannelId == post.ChannelId || len(hook.ChannelId) == 0 {
 			if hook.ChannelId == post.ChannelId && len(hook.TriggerWords) == 0 {
 				relevantHooks = append(relevantHooks, hook)
+				triggerWord = ""
 			} else if hook.TriggerWhen == TRIGGERWORDS_FULL && hook.HasTriggerWord(firstWord) {
 				relevantHooks = append(relevantHooks, hook)
+				triggerWord = firstWord
 			} else if hook.TriggerWhen == TRIGGERWORDS_STARTSWITH && hook.TriggerWordStartsWith(firstWord) {
 				relevantHooks = append(relevantHooks, hook)
+				triggerWord = firstWord
 			}
 		}
 	}
 
 	for _, hook := range relevantHooks {
-		go func(hook *model.OutgoingWebhook) {
-			payload := &model.OutgoingWebhookPayload{
-				Token:       hook.Token,
-				TeamId:      hook.TeamId,
-				TeamDomain:  team.Name,
-				ChannelId:   post.ChannelId,
-				ChannelName: channel.Name,
-				Timestamp:   post.CreateAt,
-				UserId:      post.UserId,
-				UserName:    user.Username,
-				PostId:      post.Id,
-				Text:        post.Message,
-				TriggerWord: firstWord,
-			}
-			var body io.Reader
-			var contentType string
-			if hook.ContentType == "application/json" {
-				body = strings.NewReader(payload.ToJSON())
-				contentType = "application/json"
-			} else {
-				body = strings.NewReader(payload.ToFormValues())
-				contentType = "application/x-www-form-urlencoded"
-			}
-
-			for _, url := range hook.CallbackURLs {
-				go func(url string) {
-					req, _ := http.NewRequest("POST", url, body)
-					req.Header.Set("Content-Type", contentType)
-					req.Header.Set("Accept", "application/json")
-					if resp, err := utils.HttpClient().Do(req); err != nil {
-						l4g.Error(utils.T("api.post.handle_webhook_events_and_forget.event_post.error"), err.Error())
-					} else {
-						defer CloseBody(resp)
-						respProps := model.MapFromJson(resp.Body)
-
-						if text, ok := respProps["text"]; ok {
-							if _, err := CreateWebhookPost(hook.CreatorId, hook.TeamId, post.ChannelId, text, respProps["username"], respProps["icon_url"], post.Props, post.Type); err != nil {
-								l4g.Error(utils.T("api.post.handle_webhook_events_and_forget.create_post.error"), err)
-							}
-						}
-					}
-				}(url)
-			}
-
-		}(hook)
+		payload := &model.OutgoingWebhookPayload{
+			Token:       hook.Token,
+			TeamId:      hook.TeamId,
+			TeamDomain:  team.Name,
+			ChannelId:   post.ChannelId,
+			ChannelName: channel.Name,
+			Timestamp:   post.CreateAt,
+			UserId:      post.UserId,
+			UserName:    user.Username,
+			PostId:      post.Id,
+			Text:        post.Message,
+			TriggerWord: triggerWord,
+			FileIds:     strings.Join(post.FileIds, ","),
+		}
+		go TriggerWebhook(payload, hook, post)
 	}
 
 	return nil
+}
+
+func TriggerWebhook(payload *model.OutgoingWebhookPayload, hook *model.OutgoingWebhook, post *model.Post) {
+	var body io.Reader
+	var contentType string
+	if hook.ContentType == "application/json" {
+		body = strings.NewReader(payload.ToJSON())
+		contentType = "application/json"
+	} else {
+		body = strings.NewReader(payload.ToFormValues())
+		contentType = "application/x-www-form-urlencoded"
+	}
+
+	for _, url := range hook.CallbackURLs {
+		go func(url string) {
+			req, _ := http.NewRequest("POST", url, body)
+			req.Header.Set("Content-Type", contentType)
+			req.Header.Set("Accept", "application/json")
+			if resp, err := utils.HttpClient().Do(req); err != nil {
+				l4g.Error(utils.T("api.post.handle_webhook_events_and_forget.event_post.error"), err.Error())
+			} else {
+				defer CloseBody(resp)
+				respProps := model.MapFromJson(resp.Body)
+
+				if text, ok := respProps["text"]; ok {
+					if _, err := CreateWebhookPost(hook.CreatorId, hook.TeamId, post.ChannelId, text, respProps["username"], respProps["icon_url"], post.Props, post.Type); err != nil {
+						l4g.Error(utils.T("api.post.handle_webhook_events_and_forget.create_post.error"), err)
+					}
+				}
+			}
+		}(url)
+	}
 }
 
 func CreateWebhookPost(userId, teamId, channelId, text, overrideUsername, overrideIconUrl string, props model.StringInterface, postType string) (*model.Post, *model.AppError) {

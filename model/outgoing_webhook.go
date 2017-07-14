@@ -42,6 +42,7 @@ type OutgoingWebhookPayload struct {
 	PostId      string `json:"post_id"`
 	Text        string `json:"text"`
 	TriggerWord string `json:"trigger_word"`
+	FileIds     string `json:"file_ids"`
 }
 
 func (o *OutgoingWebhookPayload) ToJSON() string {
@@ -66,6 +67,7 @@ func (o *OutgoingWebhookPayload) ToFormValues() string {
 	v.Set("post_id", o.PostId)
 	v.Set("text", o.Text)
 	v.Set("trigger_word", o.TriggerWord)
+	v.Set("file_ids", o.FileIds)
 
 	return v.Encode()
 }
@@ -199,7 +201,9 @@ func (o *OutgoingWebhook) PreUpdate() {
 }
 
 func (o *OutgoingWebhook) HasTriggerWord(word string) bool {
-	if len(o.TriggerWords) == 0 || len(word) == 0 {
+	if len(o.TriggerWords) == 0 {
+		return true
+	} else if len(word) == 0 {
 		return false
 	}
 
@@ -213,7 +217,9 @@ func (o *OutgoingWebhook) HasTriggerWord(word string) bool {
 }
 
 func (o *OutgoingWebhook) TriggerWordStartsWith(word string) bool {
-	if len(o.TriggerWords) == 0 || len(word) == 0 {
+	if len(o.TriggerWords) == 0 {
+		return true
+	} else if len(word) == 0 {
 		return false
 	}
 
