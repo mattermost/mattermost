@@ -165,6 +165,71 @@ func TestGetFile(t *testing.T) {
 	CheckNoError(t, resp)
 }
 
+func TestGetFileHeaders(t *testing.T) {
+	th := Setup().InitBasic()
+	defer TearDown()
+
+	Client := th.Client
+	channel := th.BasicChannel
+
+	if utils.Cfg.FileSettings.DriverName == "" {
+		t.Skip("skipping because no file driver is enabled")
+	}
+
+	testHeaders := func(data []byte, filename string, expectedContentType string, getInline bool) func(*testing.T) {
+		return func(t *testing.T) {
+			fileResp, resp := Client.UploadFile(data, channel.Id, filename)
+			CheckNoError(t, resp)
+
+			fileId := fileResp.FileInfos[0].Id
+
+			_, resp = Client.GetFile(fileId)
+			CheckNoError(t, resp)
+
+			if contentType := resp.Response.Header.Get("Content-Type"); !strings.HasPrefix(contentType, expectedContentType) {
+				t.Fatal("returned incorrect Content-Type", contentType)
+			}
+
+			if getInline {
+				if contentDisposition := resp.Response.Header.Get("Content-Disposition"); !strings.HasPrefix(contentDisposition, "inline") {
+					t.Fatal("returned incorrect Content-Disposition", contentDisposition)
+				}
+			} else {
+				if contentDisposition := resp.Response.Header.Get("Content-Disposition"); !strings.HasPrefix(contentDisposition, "attachment") {
+					t.Fatal("returned incorrect Content-Disposition", contentDisposition)
+				}
+			}
+
+			_, resp = Client.DownloadFile(fileId, true)
+			CheckNoError(t, resp)
+
+			if contentType := resp.Response.Header.Get("Content-Type"); !strings.HasPrefix(contentType, expectedContentType) {
+				t.Fatal("returned incorrect Content-Type", contentType)
+			}
+
+			if contentDisposition := resp.Response.Header.Get("Content-Disposition"); !strings.HasPrefix(contentDisposition, "attachment") {
+				t.Fatal("returned incorrect Content-Disposition", contentDisposition)
+			}
+		}
+	}
+
+	data := []byte("ABC")
+
+	t.Run("png", testHeaders(data, "test.png", "image/png", true))
+	t.Run("gif", testHeaders(data, "test.gif", "image/gif", true))
+	t.Run("mp4", testHeaders(data, "test.mp4", "video/mp4", true))
+	t.Run("mp3", testHeaders(data, "test.mp3", "audio/mpeg", true))
+	t.Run("pdf", testHeaders(data, "test.pdf", "application/pdf", false))
+	t.Run("txt", testHeaders(data, "test.txt", "text/plain", false))
+	t.Run("html", testHeaders(data, "test.html", "text/plain", false))
+	t.Run("js", testHeaders(data, "test.js", "text/plain", false))
+	t.Run("go", testHeaders(data, "test.go", "application/octet-stream", false))
+	t.Run("zip", testHeaders(data, "test.zip", "application/zip", false))
+	t.Run("exe", testHeaders(data, "test.exe", "application/x-msdownload", false))
+	t.Run("no extension", testHeaders(data, "test", "application/octet-stream", false))
+	t.Run("no extension 2", testHeaders([]byte("<html></html>"), "test", "application/octet-stream", false))
+}
+
 func TestGetFileThumbnail(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
 	defer TearDown()

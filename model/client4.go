@@ -21,6 +21,7 @@ type Response struct {
 	RequestId     string
 	Etag          string
 	ServerVersion string
+	Response      *http.Response
 }
 
 type Client4 struct {
@@ -36,10 +37,15 @@ func NewAPIv4Client(url string) *Client4 {
 }
 
 func BuildErrorResponse(r *http.Response, err *AppError) *Response {
-	if r == nil {
-		return &Response{StatusCode: 0, Error: err}
-	} else {
-		return &Response{StatusCode: r.StatusCode, Error: err}
+	statusCode := 0
+	if r != nil {
+		statusCode = r.StatusCode
+	}
+
+	return &Response{
+		StatusCode: statusCode,
+		Error:      err,
+		Response:   r,
 	}
 }
 
@@ -49,6 +55,7 @@ func BuildResponse(r *http.Response) *Response {
 		RequestId:     r.Header.Get(HEADER_REQUEST_ID),
 		Etag:          r.Header.Get(HEADER_ETAG_SERVER),
 		ServerVersion: r.Header.Get(HEADER_VERSION_ID),
+		Response:      r,
 	}
 }
 
@@ -328,9 +335,9 @@ func (c *Client4) DoUploadFile(url string, data []byte, contentType string) (*Fi
 	}
 
 	if rp, err := c.HttpClient.Do(rq); err != nil || rp == nil {
-		return nil, &Response{Error: NewAppError(url, "model.client.connecting.app_error", nil, err.Error(), 0)}
+		return nil, BuildErrorResponse(rp, NewAppError(url, "model.client.connecting.app_error", nil, err.Error(), 0))
 	} else if rp.StatusCode >= 300 {
-		return nil, &Response{StatusCode: rp.StatusCode, Error: AppErrorFromJson(rp.Body)}
+		return nil, BuildErrorResponse(rp, AppErrorFromJson(rp.Body))
 	} else {
 		defer closeBody(rp)
 		return FileUploadResponseFromJson(rp.Body), BuildResponse(rp)
@@ -347,9 +354,9 @@ func (c *Client4) DoEmojiUploadFile(url string, data []byte, contentType string)
 	}
 
 	if rp, err := c.HttpClient.Do(rq); err != nil || rp == nil {
-		return nil, &Response{Error: NewAppError(url, "model.client.connecting.app_error", nil, err.Error(), 0)}
+		return nil, BuildErrorResponse(rp, NewAppError(url, "model.client.connecting.app_error", nil, err.Error(), 0))
 	} else if rp.StatusCode >= 300 {
-		return nil, &Response{StatusCode: rp.StatusCode, Error: AppErrorFromJson(rp.Body)}
+		return nil, BuildErrorResponse(rp, AppErrorFromJson(rp.Body))
 	} else {
 		defer closeBody(rp)
 		return EmojiFromJson(rp.Body), BuildResponse(rp)
@@ -366,9 +373,9 @@ func (c *Client4) DoUploadImportTeam(url string, data []byte, contentType string
 	}
 
 	if rp, err := c.HttpClient.Do(rq); err != nil || rp == nil {
-		return nil, &Response{Error: NewAppError(url, "model.client.connecting.app_error", nil, err.Error(), 0)}
+		return nil, BuildErrorResponse(rp, NewAppError(url, "model.client.connecting.app_error", nil, err.Error(), 0))
 	} else if rp.StatusCode >= 300 {
-		return nil, &Response{StatusCode: rp.StatusCode, Error: AppErrorFromJson(rp.Body)}
+		return nil, BuildErrorResponse(rp, AppErrorFromJson(rp.Body))
 	} else {
 		defer closeBody(rp)
 		return MapFromJson(rp.Body), BuildResponse(rp)
@@ -585,7 +592,7 @@ func (c *Client4) GetProfileImage(userId, etag string) ([]byte, *Response) {
 	if r, err := c.DoApiGet(c.GetUserRoute(userId)+"/image", etag); err != nil {
 		return nil, BuildErrorResponse(r, err)
 	} else if data, err := ioutil.ReadAll(r.Body); err != nil {
-		return nil, &Response{StatusCode: r.StatusCode, Error: NewAppError("GetProfileImage", "model.client.read_file.app_error", nil, err.Error(), r.StatusCode)}
+		return nil, BuildErrorResponse(r, NewAppError("GetProfileImage", "model.client.read_file.app_error", nil, err.Error(), r.StatusCode))
 	} else {
 		return data, BuildResponse(r)
 	}
@@ -954,7 +961,7 @@ func (c *Client4) SetProfileImage(userId string, data []byte) (bool, *Response) 
 		// set to http.StatusForbidden(403)
 		return false, &Response{StatusCode: http.StatusForbidden, Error: NewAppError(c.GetUserRoute(userId)+"/image", "model.client.connecting.app_error", nil, err.Error(), 403)}
 	} else if rp.StatusCode >= 300 {
-		return false, &Response{StatusCode: rp.StatusCode, Error: AppErrorFromJson(rp.Body)}
+		return false, BuildErrorResponse(rp, AppErrorFromJson(rp.Body))
 	} else {
 		defer closeBody(rp)
 		return CheckStatusOK(rp), BuildResponse(rp)
@@ -1806,7 +1813,18 @@ func (c *Client4) GetFile(fileId string) ([]byte, *Response) {
 	if r, err := c.DoApiGet(c.GetFileRoute(fileId), ""); err != nil {
 		return nil, BuildErrorResponse(r, err)
 	} else if data, err := ioutil.ReadAll(r.Body); err != nil {
-		return nil, &Response{StatusCode: r.StatusCode, Error: NewAppError("GetFile", "model.client.read_file.app_error", nil, err.Error(), r.StatusCode)}
+		return nil, BuildErrorResponse(r, NewAppError("GetFile", "model.client.read_file.app_error", nil, err.Error(), r.StatusCode))
+	} else {
+		return data, BuildResponse(r)
+	}
+}
+
+// DownloadFile gets the bytes for a file by id, optionally adding headers to force the browser to download it
+func (c *Client4) DownloadFile(fileId string, download bool) ([]byte, *Response) {
+	if r, err := c.DoApiGet(c.GetFileRoute(fileId)+fmt.Sprintf("?download=%v", download), ""); err != nil {
+		return nil, BuildErrorResponse(r, err)
+	} else if data, err := ioutil.ReadAll(r.Body); err != nil {
+		return nil, BuildErrorResponse(r, NewAppError("GetFile", "model.client.read_file.app_error", nil, err.Error(), r.StatusCode))
 	} else {
 		return data, BuildResponse(r)
 	}
@@ -1817,7 +1835,18 @@ func (c *Client4) GetFileThumbnail(fileId string) ([]byte, *Response) {
 	if r, err := c.DoApiGet(c.GetFileRoute(fileId)+"/thumbnail", ""); err != nil {
 		return nil, BuildErrorResponse(r, err)
 	} else if data, err := ioutil.ReadAll(r.Body); err != nil {
-		return nil, &Response{StatusCode: r.StatusCode, Error: NewAppError("GetFileThumbnail", "model.client.read_file.app_error", nil, err.Error(), r.StatusCode)}
+		return nil, BuildErrorResponse(r, NewAppError("GetFileThumbnail", "model.client.read_file.app_error", nil, err.Error(), r.StatusCode))
+	} else {
+		return data, BuildResponse(r)
+	}
+}
+
+// DownloadFileThumbnail gets the bytes for a file by id, optionally adding headers to force the browser to download it.
+func (c *Client4) DownloadFileThumbnail(fileId string, download bool) ([]byte, *Response) {
+	if r, err := c.DoApiGet(c.GetFileRoute(fileId)+fmt.Sprintf("/thumbnail?download=%v", download), ""); err != nil {
+		return nil, BuildErrorResponse(r, err)
+	} else if data, err := ioutil.ReadAll(r.Body); err != nil {
+		return nil, BuildErrorResponse(r, NewAppError("GetFileThumbnail", "model.client.read_file.app_error", nil, err.Error(), r.StatusCode))
 	} else {
 		return data, BuildResponse(r)
 	}
@@ -1837,7 +1866,18 @@ func (c *Client4) GetFilePreview(fileId string) ([]byte, *Response) {
 	if r, err := c.DoApiGet(c.GetFileRoute(fileId)+"/preview", ""); err != nil {
 		return nil, BuildErrorResponse(r, err)
 	} else if data, err := ioutil.ReadAll(r.Body); err != nil {
-		return nil, &Response{StatusCode: r.StatusCode, Error: NewAppError("GetFilePreview", "model.client.read_file.app_error", nil, err.Error(), r.StatusCode)}
+		return nil, BuildErrorResponse(r, NewAppError("GetFilePreview", "model.client.read_file.app_error", nil, err.Error(), r.StatusCode))
+	} else {
+		return data, BuildResponse(r)
+	}
+}
+
+// DownloadFilePreview gets the bytes for a file by id.
+func (c *Client4) DownloadFilePreview(fileId string, download bool) ([]byte, *Response) {
+	if r, err := c.DoApiGet(c.GetFileRoute(fileId)+fmt.Sprintf("/preview?download=%v", download), ""); err != nil {
+		return nil, BuildErrorResponse(r, err)
+	} else if data, err := ioutil.ReadAll(r.Body); err != nil {
+		return nil, BuildErrorResponse(r, NewAppError("GetFilePreview", "model.client.read_file.app_error", nil, err.Error(), r.StatusCode))
 	} else {
 		return data, BuildResponse(r)
 	}
@@ -1986,7 +2026,7 @@ func (c *Client4) UploadLicenseFile(data []byte) (bool, *Response) {
 	if rp, err := c.HttpClient.Do(rq); err != nil || rp == nil {
 		return false, &Response{StatusCode: http.StatusForbidden, Error: NewAppError(c.GetLicenseRoute(), "model.client.connecting.app_error", nil, err.Error(), http.StatusForbidden)}
 	} else if rp.StatusCode >= 300 {
-		return false, &Response{StatusCode: rp.StatusCode, Error: AppErrorFromJson(rp.Body)}
+		return false, BuildErrorResponse(rp, AppErrorFromJson(rp.Body))
 	} else {
 		defer closeBody(rp)
 		return CheckStatusOK(rp), BuildResponse(rp)
@@ -2372,10 +2412,10 @@ func (c *Client4) DownloadComplianceReport(reportId string) ([]byte, *Response) 
 		return nil, &Response{Error: NewAppError("DownloadComplianceReport", "model.client.connecting.app_error", nil, err.Error(), http.StatusBadRequest)}
 	} else if rp.StatusCode >= 300 {
 		defer rp.Body.Close()
-		return nil, &Response{StatusCode: rp.StatusCode, Error: AppErrorFromJson(rp.Body)}
+		return nil, BuildErrorResponse(rp, AppErrorFromJson(rp.Body))
 	} else if data, err := ioutil.ReadAll(rp.Body); err != nil {
 		defer closeBody(rp)
-		return nil, &Response{StatusCode: rp.StatusCode, Error: NewAppError("DownloadComplianceReport", "model.client.read_file.app_error", nil, err.Error(), rp.StatusCode)}
+		return nil, BuildErrorResponse(rp, NewAppError("DownloadComplianceReport", "model.client.read_file.app_error", nil, err.Error(), rp.StatusCode))
 	} else {
 		defer closeBody(rp)
 		return data, BuildResponse(rp)
@@ -2437,7 +2477,7 @@ func (c *Client4) GetBrandImage() ([]byte, *Response) {
 	if r, err := c.DoApiGet(c.GetBrandRoute()+"/image", ""); err != nil {
 		return nil, BuildErrorResponse(r, err)
 	} else if data, err := ioutil.ReadAll(r.Body); err != nil {
-		return nil, &Response{StatusCode: r.StatusCode, Error: NewAppError("GetBrandImage", "model.client.read_file.app_error", nil, err.Error(), r.StatusCode)}
+		return nil, BuildErrorResponse(r, NewAppError("GetBrandImage", "model.client.read_file.app_error", nil, err.Error(), r.StatusCode))
 	} else {
 		return data, BuildResponse(r)
 	}
@@ -2469,7 +2509,7 @@ func (c *Client4) UploadBrandImage(data []byte) (bool, *Response) {
 	if rp, err := c.HttpClient.Do(rq); err != nil || rp == nil {
 		return false, &Response{StatusCode: http.StatusForbidden, Error: NewAppError(c.GetBrandRoute()+"/image", "model.client.connecting.app_error", nil, err.Error(), http.StatusForbidden)}
 	} else if rp.StatusCode >= 300 {
-		return false, &Response{StatusCode: rp.StatusCode, Error: AppErrorFromJson(rp.Body)}
+		return false, BuildErrorResponse(rp, AppErrorFromJson(rp.Body))
 	} else {
 		defer closeBody(rp)
 		return CheckStatusOK(rp), BuildResponse(rp)
@@ -2801,7 +2841,7 @@ func (c *Client4) GetEmojiImage(emojiId string) ([]byte, *Response) {
 	if r, err := c.DoApiGet(c.GetEmojiRoute(emojiId)+"/image", ""); err != nil {
 		return nil, BuildErrorResponse(r, err)
 	} else if data, err := ioutil.ReadAll(r.Body); err != nil {
-		return nil, &Response{StatusCode: r.StatusCode, Error: NewAppError("GetEmojiImage", "model.client.read_file.app_error", nil, err.Error(), r.StatusCode)}
+		return nil, BuildErrorResponse(r, NewAppError("GetEmojiImage", "model.client.read_file.app_error", nil, err.Error(), r.StatusCode))
 	} else {
 		return data, BuildResponse(r)
 	}
