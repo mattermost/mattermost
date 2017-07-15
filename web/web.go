@@ -5,6 +5,7 @@ package web
 
 import (
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/NYTimes/gziphandler"
@@ -46,7 +47,8 @@ func staticHandler(handler http.Handler) http.Handler {
 	})
 }
 
-var browsersNotSupported string = "MSIE/8;MSIE/9;MSIE/10;Internet Explorer/8;Internet Explorer/9;Internet Explorer/10;Safari/7;Safari/8"
+//List should be of minimum required browser version. Do not place a ; at the end of this string.
+var browsersNotSupported string = "MSIE/11;Internet Explorer/11;Safari/9;Chrome/43;Edge/38;Firefox/52"
 
 func CheckBrowserCompatability(c *api.Context, r *http.Request) bool {
 	ua := user_agent.New(r.UserAgent())
@@ -55,8 +57,11 @@ func CheckBrowserCompatability(c *api.Context, r *http.Request) bool {
 	browsers := strings.Split(browsersNotSupported, ";")
 	for _, browser := range browsers {
 		version := strings.Split(browser, "/")
+		curVersion := strings.Split(bversion, ".")
+		intCurVersion, _ := strconv.Atoi(curVersion[0])
+		intVersion, _ := strconv.Atoi(version[1])
 
-		if strings.HasPrefix(bname, version[0]) && strings.HasPrefix(bversion, version[1]) {
+		if strings.HasPrefix(bname, version[0]) && (intCurVersion < intVersion) {
 			return false
 		}
 	}
@@ -66,13 +71,13 @@ func CheckBrowserCompatability(c *api.Context, r *http.Request) bool {
 }
 
 func root(c *api.Context, w http.ResponseWriter, r *http.Request) {
-	if !CheckBrowserCompatability(c, r) {
-		errorURL := "/error?type=unsupported_browser"
-		w.Header().Set("Cache-Control", "no-store")
-		if r.URL.RequestURI() != errorURL {
+	errorURL := "/error?type=unsupported_browser"
+	if r.URL.RequestURI() != errorURL {
+		if !CheckBrowserCompatability(c, r) {
+			w.Header().Set("Cache-Control", "no-store")
 			http.Redirect(w, r, errorURL, http.StatusTemporaryRedirect)
+			return
 		}
-		return
 	}
 
 	if api.IsApiCall(r) {
