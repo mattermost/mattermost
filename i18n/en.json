@@ -3972,30 +3972,6 @@
     "translation": "Unable to update existing SAML user. Allowing login anyway. err=%v"
   },
   {
-    "id": "error.generic.link_message",
-    "translation": "Back to Mattermost"
-  },
-  {
-    "id": "error.generic.message",
-    "translation": "An error has occurred."
-  },
-  {
-    "id": "error.generic.title",
-    "translation": "Error"
-  },
-  {
-    "id": "error.not_found.link_message",
-    "translation": "Back to Mattermost"
-  },
-  {
-    "id": "error.not_found.message",
-    "translation": "The page you were trying to reach does not exist."
-  },
-  {
-    "id": "error.not_found.title",
-    "translation": "Page not found"
-  },
-  {
     "id": "jobs.set_job_error.update.error",
     "translation": "Failed to set job status to error"
   },
@@ -6562,10 +6538,6 @@
   {
     "id": "web.authorize_oauth.title",
     "translation": "Authorize Application"
-  },
-  {
-    "id": "web.check_browser_compatibility.app_error",
-    "translation": "Your current browser is not supported, please upgrade to one of the following browsers: Google Chrome 21 or higher, Internet Explorer 11 or higher, Firefox 14 or higher, Safari 9 or higher"
   },
   {
     "id": "web.claim_account.team.error",

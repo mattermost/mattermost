@@ -8,7 +8,6 @@ import {FormattedMessage} from 'react-intl';
 import {Link} from 'react-router/es6';
 
 import {ErrorPageTypes} from 'utils/constants.jsx';
-import * as TextFormatting from 'utils/text_formatting.jsx';
 import * as Utils from 'utils/utils.jsx';
 
 export default class ErrorPage extends React.Component {
@@ -37,63 +36,148 @@ export default class ErrorPage extends React.Component {
     }
 
     renderTitle() {
-        if (this.props.location.query.type === ErrorPageTypes.LOCAL_STORAGE) {
-            return (
-                <FormattedMessage
-                    id='error.local_storage.title'
-                    defaultMessage='Cannot Load Mattermost'
-                />
-            );
-        }
-
         if (this.props.location.query.title) {
             return this.props.location.query.title;
         }
+        var titleID;
+        if (this.props.location.query.type) {
+            titleID = 'error.' + this.props.location.query.type + '.title';
+        } else {
+            titleID = 'error.generic.title';
+        }
 
-        return Utils.localizeMessage('error.generic.title', 'Error');
+        return (
+            <FormattedMessage
+                id={titleID}
+                defaultMessage='Error'
+            />
+        );
+    }
+    renderHelp() {
+        switch (this.props.location.query.type) {
+        case ErrorPageTypes.LOCAL_STORAGE:
+            return (
+                <ul>
+                    <li>
+                        <FormattedMessage
+                            id='error.local_storage.help1'
+                            defaultMessage='Enable cookies'
+                        />
+                    </li>
+                    <li>
+                        <FormattedMessage
+                            id='error.local_storage.help2'
+                            defaultMessage='Turn off private browsing'
+                        />
+                    </li>
+                    <li>
+                        <FormattedMessage
+                            id='error.local_storage.help3'
+                            defaultMessage='Use a supported browser (IE 11, Chrome 43+, Firefox 52+, Safari 9+, Edge)'
+                        />
+                    </li>
+                </ul>
+            );
+        case ErrorPageTypes.UNSUPPORTED_BROWSER:
+            return (
+                <ul>
+                    <li>
+                        <a
+                            href='https://www.google.com/chrome/browser/desktop/index.html'
+                            target='_blank'
+                            rel='noopener noreferrer'
+                        >
+                            <FormattedMessage
+                                id='error.unsupported_browser.help1'
+                                defaultMessage='Google Chrome 43+'
+                            />
+                        </a>
+                    </li>
+                    <li>
+                        <a
+                            href='https://www.mozilla.org/en-US/firefox/new/'
+                            target='_blank'
+                            rel='noopener noreferrer'
+                        >
+                            <FormattedMessage
+                                id='error.unsupported_browser.help2'
+                                defaultMessage='Mozzilla Firefox 52+'
+                            />
+                        </a>
+                    </li>
+                    <li>
+                        <a
+                            href='https://www.microsoft.com/en-ca/download/internet-explorer.aspx'
+                            target='_blank'
+                            rel='noopener noreferrer'
+                        >
+                            <FormattedMessage
+                                id='error.unsupported_browser.help3'
+                                defaultMessage='Microsoft Internet Explorer 11+)'
+                            />
+                        </a>
+                    </li>
+                    <li>
+                        <a
+                            href='https://www.microsoft.com/en-ca/download/details.aspx?id=48126'
+                            target='_blank'
+                            rel='noopener noreferrer'
+                        >
+                            <FormattedMessage
+                                id='error.unsupported_browser.help4'
+                                defaultMessage='Microsoft Edge'
+                            />
+                        </a>
+                    </li>
+                    <li>
+                        <a
+                            href='https://support.apple.com/en-us/HT204416'
+                            target='_blank'
+                            rel='noopener noreferrer'
+                        >
+                            <FormattedMessage
+                                id='error.unsupported_browser.help5'
+                                defaultMessage='Apple Safari 9+'
+                            />
+                        </a>
+                    </li>
+                </ul>
+            );
+        default:
+            return null;
+        }
     }
 
     renderMessage() {
-        if (this.props.location.query.type === ErrorPageTypes.LOCAL_STORAGE) {
-            return (
-                <div>
-                    <FormattedMessage
-                        id='error.local_storage.message'
-                        defaultMessage='Mattermost was unable to load because a setting in your browser prevents the use of its local storage features. To allow Mattermost to load, try the following actions:'
-                    />
-                    <ul>
-                        <li>
-                            <FormattedMessage
-                                id='error.local_storage.help1'
-                                defaultMessage='Enable cookies'
-                            />
-                        </li>
-                        <li>
-                            <FormattedMessage
-                                id='error.local_storage.help2'
-                                defaultMessage='Turn off private browsing'
-                            />
-                        </li>
-                        <li>
-                            <FormattedMessage
-                                id='error.local_storage.help3'
-                                defaultMessage='Use a supported browser (IE 11, Chrome 43+, Firefox 38+, Safari 9, Edge)'
-                            />
-                        </li>
-                    </ul>
-                </div>
-            );
+        const help = this.renderHelp();
+
+        if (this.props.location.query.message) {
+            return this.props.location.query.message;
         }
 
-        let message = this.props.location.query.message;
-        if (!message) {
-            message = Utils.localizeMessage('error.generic.message', 'An error has occoured.');
+        var msgID;
+        if (this.props.location.query.type) {
+            msgID = 'error.' + this.props.location.query.type + '.message';
+        } else {
+            msgID = 'error.generic.message';
         }
 
-        return <div dangerouslySetInnerHTML={{__html: TextFormatting.formatText(message, {linkFilter: this.linkFilter})}}/>;
+        return (
+            <div>
+                <FormattedMessage
+                    id={msgID}
+                    defaultMessage='Mattermost encountered an error.'
+                />
+                {help}
+            </div>
+        );
     }
 
     renderLink() {
+        if (this.props.location.query.type === ErrorPageTypes.UNSUPPORTED_BROWSER) {
+            return null;
+        }
+
         let link = this.props.location.query.link;
         if (link) {
             link = link.trim();

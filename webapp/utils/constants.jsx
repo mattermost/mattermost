@@ -293,7 +293,8 @@ export const StatTypes = keyMirror({
 });
 
 export const ErrorPageTypes = {
-    LOCAL_STORAGE: 'local_storage'
+    LOCAL_STORAGE: 'local_storage',
+    UNSUPPORTED_BROWSER: 'unsupported_browser'
 };
 
 export const ErrorBarTypes = {
