@@ -84,14 +84,14 @@ export default class WebrtcController extends React.Component {
 
         const currentUser = UserStore.getCurrentUser();
         const remoteUser = UserStore.getProfile(props.userId);
-        const remoteUserImage = Client4.getUsersRoute() + '/' + remoteUser.id + '/image?time=' + remoteUser.last_picture_update;
+        const remoteUserImage = Utils.imageURLForUser(remoteUser);
 
         this.state = {
             windowWidth: Utils.windowWidth(),
             windowHeight: Utils.windowHeight(),
             channelId: ChannelStore.getCurrentId(),
             currentUser,
-            currentUserImage: Client4.getUsersRoute() + '/' + currentUser.id + '/image?time=' + currentUser.last_picture_update,
+            currentUserImage: Utils.imageURLForUser(currentUser),
             remoteUserImage,
             localMediaLoaded: false,
             isPaused: false,
@@ -133,7 +133,7 @@ export default class WebrtcController extends React.Component {
             (nextProps.userId !== this.props.userId) ||
             (nextProps.isCaller !== this.props.isCaller)) {
             const remoteUser = UserStore.getProfile(nextProps.userId);
-            const remoteUserImage = Client4.getUsersRoute() + '/' + remoteUser.id + '/image?time=' + remoteUser.last_picture_update;
+            const remoteUserImage = Utils.imageURLForUser(remoteUser);
             this.setState({
                 error: null,
                 remoteUserImage

@@ -1026,6 +1026,18 @@ export function displayUsernameForUser(user) {
     return '';
 }
 
+export function imageURLForUser(userIdOrObject) {
+    if (typeof userIdOrObject == 'string') {
+        const profile = UserStore.getProfile(userIdOrObject);
+        if (profile) {
+            userIdOrObject = profile;
+        } else {
+            return Client4.getUsersRoute() + '/' + userIdOrObject + '/image?_=' + Date.now();
+        }
+    }
+    return Client4.getUsersRoute() + '/' + userIdOrObject.id + '/image?_=' + (userIdOrObject.last_picture_update || 0);
+}
+
 // Converts a file size in bytes into a human-readable string of the form '123MB'.
 export function fileSizeToString(bytes) {
     // it's unlikely that we'll have files bigger than this

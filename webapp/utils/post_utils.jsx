@@ -33,7 +33,7 @@ export function isEdited(post) {
 }
 
 export function getProfilePicSrcForPost(post, timestamp) {
-    let src = Client4.getUsersRoute() + '/' + post.user_id + '/image?time=' + timestamp;
+    let src = Utils.imageURLForUser(post.user_id);
     if (post.props && post.props.from_webhook && global.window.mm_config.EnablePostIconOverride === 'true') {
         if (post.props.override_icon_url) {
             src = post.props.override_icon_url;

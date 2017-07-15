@@ -1141,7 +1141,7 @@ class UserSettingsGeneralTab extends React.Component {
                 <SettingPicture
                     title={formatMessage(holders.profilePicture)}
                     submit={this.submitPicture}
-                    src={Client4.getUsersRoute() + '/' + user.id + '/image?time=' + user.last_picture_update}
+                    src={Utils.imageURLForUser(user)}
                     serverError={serverError}
                     clientError={clientError}
                     updateSection={(e) => {
