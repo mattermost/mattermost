@@ -341,6 +341,22 @@ class TeamStoreClass extends EventEmitter {
         return false;
     }
 
+    updateMyRoles(member) {
+        const teamMembers = this.getMyTeamMembers();
+        const teamMember = teamMembers.find((m) => m.user_id === member.user_id && m.team_id === member.team_id);
+
+        if (teamMember) {
+            const newMember = Object.assign({}, teamMember, {
+                roles: member.roles
+            });
+
+            store.dispatch({
+                type: TeamTypes.RECEIVED_MY_TEAM_MEMBER,
+                data: newMember
+            });
+        }
+    }
+
     subtractUnread(teamId, msgs, mentions) {
         let member = this.getMyTeamMembers().filter((m) => m.team_id === teamId)[0];
         if (member) {
