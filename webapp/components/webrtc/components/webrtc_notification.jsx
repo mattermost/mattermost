@@ -1,7 +1,6 @@
 // Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import {Client4} from 'mattermost-redux/client';
 import WebSocketClient from 'client/web_websocket_client.jsx';
 
 import UserStore from 'stores/user_store.jsx';

@@ -7,7 +7,6 @@ import Provider from './provider.jsx';
 import {autocompleteUsersInTeam} from 'actions/user_actions.jsx';
 
 import AppDispatcher from 'dispatcher/app_dispatcher.jsx';
-import {Client4} from 'mattermost-redux/client';
 import * as Utils from 'utils/utils.jsx';
 import {ActionTypes} from 'utils/constants.jsx';
 

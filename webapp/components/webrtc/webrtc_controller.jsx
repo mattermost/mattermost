@@ -5,7 +5,6 @@ import UserStore from 'stores/user_store.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
 import WebrtcStore from 'stores/webrtc_store.jsx';
 
-import {Client4} from 'mattermost-redux/client';
 import WebSocketClient from 'client/web_websocket_client.jsx';
 import Janus from 'janus';
 

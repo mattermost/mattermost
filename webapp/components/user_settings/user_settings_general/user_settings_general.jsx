@@ -9,7 +9,6 @@ import SettingPicture from 'components/setting_picture.jsx';
 import UserStore from 'stores/user_store.jsx';
 import ErrorStore from 'stores/error_store.jsx';
 
-import {Client4} from 'mattermost-redux/client';
 import Constants from 'utils/constants.jsx';
 import * as Utils from 'utils/utils.jsx';
 

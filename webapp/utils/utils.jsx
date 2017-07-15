@@ -1030,10 +1030,9 @@ export function imageURLForUser(userIdOrObject) {
     if (typeof userIdOrObject == 'string') {
         const profile = UserStore.getProfile(userIdOrObject);
         if (profile) {
-            userIdOrObject = profile;
-        } else {
-            return Client4.getUsersRoute() + '/' + userIdOrObject + '/image?_=' + Date.now();
+            return imageURLForUser(profile);
         }
+        return Client4.getUsersRoute() + '/' + userIdOrObject + '/image?_=' + Date.now();
     }
     return Client4.getUsersRoute() + '/' + userIdOrObject.id + '/image?_=' + (userIdOrObject.last_picture_update || 0);
 }

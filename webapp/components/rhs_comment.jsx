@@ -200,8 +200,6 @@ export default class RhsComment extends React.Component {
         const isEphemeral = Utils.isPostEphemeral(post);
         const isSystemMessage = PostUtils.isSystemMessage(post);
 
-        var timestamp = this.props.currentUser.last_picture_update;
-
         let status = this.props.status;
         if (post.props && post.props.from_webhook === 'true') {
             status = null;
@@ -265,7 +263,7 @@ export default class RhsComment extends React.Component {
 
         let profilePic = (
             <ProfilePicture
-                src={PostUtils.getProfilePicSrcForPost(post, timestamp)}
+                src={PostUtils.getProfilePicSrcForPost(post, this.props.user)}
                 status={status}
                 width='36'
                 height='36'
@@ -277,7 +275,7 @@ export default class RhsComment extends React.Component {
         if (post.props && post.props.from_webhook) {
             profilePic = (
                 <ProfilePicture
-                    src={PostUtils.getProfilePicSrcForPost(post, timestamp)}
+                    src={PostUtils.getProfilePicSrcForPost(post, this.props.user)}
                     width='36'
                     height='36'
                 />

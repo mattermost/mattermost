@@ -3,7 +3,6 @@
 
 import ProfilePopover from './profile_popover.jsx';
 import * as Utils from 'utils/utils.jsx';
-import {Client4} from 'mattermost-redux/client';
 
 import {OverlayTrigger} from 'react-bootstrap';
 

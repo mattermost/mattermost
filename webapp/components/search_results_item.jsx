@@ -9,7 +9,6 @@ import ProfilePicture from './profile_picture.jsx';
 import CommentIcon from 'components/common/comment_icon.jsx';
 
 import TeamStore from 'stores/team_store.jsx';
-import UserStore from 'stores/user_store.jsx';
 
 import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
 import * as GlobalActions from 'actions/global_actions.jsx';
@@ -114,7 +113,6 @@ export default class SearchResultsItem extends React.Component {
     render() {
         let channelName = null;
         const channel = this.props.channel;
-        const timestamp = UserStore.getCurrentUser().last_picture_update;
         const user = this.props.user || {};
         const post = this.props.post;
 
@@ -155,7 +153,7 @@ export default class SearchResultsItem extends React.Component {
 
         const profilePic = (
             <ProfilePicture
-                src={PostUtils.getProfilePicSrcForPost(post, timestamp)}
+                src={PostUtils.getProfilePicSrcForPost(post, user)}
                 user={this.props.user}
                 status={this.props.status}
                 isBusy={this.props.isBusy}

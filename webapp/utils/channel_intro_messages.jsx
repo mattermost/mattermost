@@ -13,8 +13,6 @@ import Constants from 'utils/constants.jsx';
 import * as GlobalActions from 'actions/global_actions.jsx';
 import ProfilePicture from 'components/profile_picture.jsx';
 
-import {Client4} from 'mattermost-redux/client';
-
 import {showManagementOptions} from './channel_utils.jsx';
 
 import React from 'react';
