@@ -100,8 +100,7 @@ export default class JIRASettings extends AdminSettings {
                             />
                         </p>
                         <p>
-                            <code dangerouslySetInnerHTML={{__html: encodeURI(this.state.siteURL) + '/plugins/jira/webhook?secret=' + encodeURIComponent(this.state.jiraSecret) + '&team=<b>[some team id]</b>&channel=<b>[some channel name or id]</b>'}}>
-                            </code>
+                            <code dangerouslySetInnerHTML={{__html: encodeURI(this.state.siteURL) + '/plugins/jira/webhook?secret=' + encodeURIComponent(this.state.jiraSecret) + '&team=<b>[some team id]</b>&channel=<b>[some channel name or id]</b>'}}/>
                         </p>
                     </div>
                 </div>
