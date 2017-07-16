@@ -504,6 +504,8 @@ func HandleIncomingWebhook(hookId string, req *model.IncomingWebhookRequest) *mo
 			}
 		} else if channelName[0] == '#' {
 			cchan = Srv.Store.Channel().GetByName(hook.TeamId, channelName[1:], true)
+		} else {
+			cchan = Srv.Store.Channel().GetByName(hook.TeamId, channelName, true)
 		}
 	} else {
 		cchan = Srv.Store.Channel().Get(hook.ChannelId, true)

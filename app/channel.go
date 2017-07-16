@@ -1216,6 +1216,7 @@ func GetDirectChannel(userId1, userId2 string) (*model.Channel, *model.AppError)
 		}
 		InvalidateCacheForUser(userId1)
 		InvalidateCacheForUser(userId2)
+		return result.Data.(*model.Channel), nil
 	} else if result.Err != nil {
 		return nil, model.NewAppError("GetOrCreateDMChannel", "web.incoming_webhook.channel.app_error", nil, "err="+result.Err.Message, result.Err.StatusCode)
 	}
