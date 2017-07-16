@@ -47,9 +47,17 @@
         "TimeBetweenUserTypingUpdatesMilliseconds": 5000,
         "EnablePostSearch": true,
         "EnableUserTypingMessages": true,
-        "EnableChannelViewedMessages": true,
         "EnableUserStatuses": true,
+        "EnableChannelViewedMessages": true,
         "ClusterLogTimeoutMilliseconds": 2000
+    },
+    "ElasticSearchSettings": {
+        "ConnectionUrl": "http://dockerhost:9200",
+        "Username": "elastic",
+        "Password": "changeme",
+        "EnableIndexing": false,
+        "EnableSearching": false,
+        "Sniff": true
     },
     "TeamSettings": {
         "SiteName": "Mattermost",
@@ -77,13 +85,13 @@
     },
     "SqlSettings": {
         "DriverName": "mysql",
-        "DataSource": "mmuser:mostest@tcp(dockerhost:3306)/mattermost_test?charset=utf8mb4,utf8\u0026readTimeout=30s\u0026writeTimeout=30s",
+        "DataSource": "mmuser:mostest@tcp(dockerhost:3306)/mattermost_test?charset=utf8mb4,utf8&readTimeout=30s&writeTimeout=30s",
         "DataSourceReplicas": [],
         "DataSourceSearchReplicas": [],
         "MaxIdleConns": 20,
         "MaxOpenConns": 300,
         "Trace": false,
-        "AtRestEncryptKey": "c7bnswon1tky5ihhnr3adgrzuzgd3j6z",
+        "AtRestEncryptKey": "",
         "QueryTimeout": 30
     },
     "LogSettings": {
@@ -111,7 +119,7 @@
         "DriverName": "local",
         "Directory": "./data/",
         "EnablePublicLink": false,
-        "PublicLinkSalt": "8eny1bzoo5naxhyrt9s6wgwkiub17473",
+        "PublicLinkSalt": "",
         "InitialFont": "luximbi.ttf",
         "AmazonS3AccessKeyId": "",
         "AmazonS3SecretAccessKey": "",
@@ -136,7 +144,7 @@
         "SMTPServer": "dockerhost",
         "SMTPPort": "2500",
         "ConnectionSecurity": "",
-        "InviteSalt": "rpbemsfcgmfjrtaqh11ezgc4cw6h8a3i",
+        "InviteSalt": "",
         "SendPushNotifications": false,
         "PushNotificationServer": "",
         "PushNotificationContents": "generic",
@@ -163,9 +171,6 @@
         "AboutLink": "https://about.mattermost.com/default-about/",
         "HelpLink": "https://about.mattermost.com/default-help/",
         "ReportAProblemLink": "https://about.mattermost.com/default-report-a-problem/",
-        "AdministratorsGuideLink": "https://about.mattermost.com/administrators-guide/",
-        "TroubleshootingForumLink": "https://about.mattermost.com/troubleshooting-forum/",
-        "CommercialSupportLink": "https://about.mattermost.com/commercial-support/",
         "SupportEmail": "feedback@mattermost.com"
     },
     "AnnouncementSettings": {
@@ -300,14 +305,5 @@
     "JobSettings": {
         "RunJobs": true,
         "RunScheduler": true
-    },
-    "PluginSettings": {
-        "Plugins": {
-            "jira": {
-                "Enabled": true,
-                "Secret": "9tD2RvHAXDeN3zfHYj5caoZ1pRP86mNP",
-                "UserName": "ccbrown"
-            }
-        }
     }
 }
