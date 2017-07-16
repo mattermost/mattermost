@@ -462,6 +462,7 @@ func HandleIncomingWebhook(hookId string, req *model.IncomingWebhookRequest) *mo
 		return model.NewAppError("HandleIncomingWebhook", "web.incoming_webhook.text.app_error", nil, "", http.StatusBadRequest)
 	}
 
+	channelName := req.ChannelName
 	webhookType := req.Type
 
 	// attachments is in here for slack compatibility
@@ -487,18 +488,44 @@ func HandleIncomingWebhook(hookId string, req *model.IncomingWebhookRequest) *mo
 		hook = result.Data.(*model.IncomingWebhook)
 	}
 
-	channelNameOrId := req.ChannelName
-	if channelNameOrId == "" {
-		channelNameOrId = hook.ChannelId
-	} else if channelNameOrId[0] != '@' && channelNameOrId[0] != '#' {
-		channelNameOrId = "#" + channelNameOrId
+	var channel *model.Channel
+	var cchan store.StoreChannel
+
+	if len(channelName) != 0 {
+		if channelName[0] == '@' {
+			if result := <-Srv.Store.User().GetByUsername(channelName[1:]); result.Err != nil {
+				return model.NewAppError("HandleIncomingWebhook", "web.incoming_webhook.user.app_error", nil, "err="+result.Err.Message, http.StatusBadRequest)
+			} else {
+				if ch, err := GetDirectChannel(hook.UserId, result.Data.(*model.User).Id); err != nil {
+					return err
+				} else {
+					channel = ch
+				}
+			}
+		} else if channelName[0] == '#' {
+			cchan = Srv.Store.Channel().GetByName(hook.TeamId, channelName[1:], true)
+		}
+	} else {
+		cchan = Srv.Store.Channel().Get(hook.ChannelId, true)
 	}
 
-	if channel, err := GetOrCreateChannel(hook.TeamId, hook.UserId, channelNameOrId); err != nil {
-		return err
-	} else if channel.Type != model.CHANNEL_OPEN && !HasPermissionToChannel(hook.UserId, channel.Id, model.PERMISSION_READ_CHANNEL) {
+	if channel == nil {
+		result := <-cchan
+		if result.Err != nil {
+			return model.NewAppError("HandleIncomingWebhook", "web.incoming_webhook.channel.app_error", nil, "err="+result.Err.Message, result.Err.StatusCode)
+		} else {
+			channel = result.Data.(*model.Channel)
+		}
+	}
+
+	if channel.Type != model.CHANNEL_OPEN && !HasPermissionToChannel(hook.UserId, channel.Id, model.PERMISSION_READ_CHANNEL) {
 		return model.NewAppError("HandleIncomingWebhook", "web.incoming_webhook.permissions.app_error", nil, "", http.StatusForbidden)
-	} else if _, err := CreateWebhookPost(hook.UserId, hook.TeamId, channel.Id, text, req.Username, req.IconURL, req.Props, webhookType); err != nil {
+	}
+
+	overrideUsername := req.Username
+	overrideIconUrl := req.IconURL
+
+	if _, err := CreateWebhookPost(hook.UserId, hook.TeamId, channel.Id, text, overrideUsername, overrideIconUrl, req.Props, webhookType); err != nil {
 		return err
 	}
 

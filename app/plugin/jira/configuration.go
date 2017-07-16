@@ -1,6 +1,7 @@
 package jira
 
 type Configuration struct {
-	Secret string
-	UserId string
+	Enabled  bool
+	Secret   string
+	UserName string
 }

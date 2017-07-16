@@ -160,9 +160,6 @@ export default (
                 path='webrtc'
                 component={WebrtcSettings}
             />
-        </Route>
-        <Route path='plugins'>
-            <IndexRedirect to='jira'/>
             <Route
                 path='jira'
                 component={JIRASettings}

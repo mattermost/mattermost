@@ -31,17 +31,29 @@ func (api *PluginAPI) PluginRouter() *mux.Router {
 	return api.router
 }
 
-func (api *PluginAPI) CreatePost(teamId, userId, channelNameOrId, text string) (*model.Post, *model.AppError) {
-	if channel, err := GetOrCreateChannel(teamId, userId, channelNameOrId); err != nil {
-		return nil, err
-	} else {
-		return CreatePost(&model.Post{
-			ChannelId: channel.Id,
-			Message:   text,
-			Type:      model.POST_DEFAULT,
-			UserId:    userId,
-		}, teamId, true)
-	}
+func (api *PluginAPI) GetTeamByName(name string) (*model.Team, *model.AppError) {
+	return GetTeamByName(name)
+}
+
+func (api *PluginAPI) GetUserByName(name string) (*model.User, *model.AppError) {
+	return GetUserByUsername(name)
+}
+
+func (api *PluginAPI) GetChannelByName(teamId, name string) (*model.Channel, *model.AppError) {
+	return GetChannelByName(name, teamId)
+}
+
+func (api *PluginAPI) GetDirectChannel(userId1, userId2 string) (*model.Channel, *model.AppError) {
+	return GetDirectChannel(userId1, userId2)
+}
+
+func (api *PluginAPI) CreatePost(teamId, userId, channelId, text string) (*model.Post, *model.AppError) {
+	return CreatePost(&model.Post{
+		ChannelId: channelId,
+		Message:   text,
+		Type:      model.POST_DEFAULT,
+		UserId:    userId,
+	}, teamId, true)
 }
 
 func (api *PluginAPI) I18n(id string, r *http.Request) string {

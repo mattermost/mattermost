@@ -77,13 +77,13 @@
     },
     "SqlSettings": {
         "DriverName": "mysql",
-        "DataSource": "mmuser:mostest@tcp(dockerhost:3306)/mattermost_test?charset=utf8mb4,utf8&readTimeout=30s&writeTimeout=30s",
+        "DataSource": "mmuser:mostest@tcp(dockerhost:3306)/mattermost_test?charset=utf8mb4,utf8\u0026readTimeout=30s\u0026writeTimeout=30s",
         "DataSourceReplicas": [],
         "DataSourceSearchReplicas": [],
         "MaxIdleConns": 20,
         "MaxOpenConns": 300,
         "Trace": false,
-        "AtRestEncryptKey": "",
+        "AtRestEncryptKey": "c7bnswon1tky5ihhnr3adgrzuzgd3j6z",
         "QueryTimeout": 30
     },
     "LogSettings": {
@@ -111,7 +111,7 @@
         "DriverName": "local",
         "Directory": "./data/",
         "EnablePublicLink": false,
-        "PublicLinkSalt": "",
+        "PublicLinkSalt": "8eny1bzoo5naxhyrt9s6wgwkiub17473",
         "InitialFont": "luximbi.ttf",
         "AmazonS3AccessKeyId": "",
         "AmazonS3SecretAccessKey": "",
@@ -136,7 +136,7 @@
         "SMTPServer": "dockerhost",
         "SMTPPort": "2500",
         "ConnectionSecurity": "",
-        "InviteSalt": "",
+        "InviteSalt": "rpbemsfcgmfjrtaqh11ezgc4cw6h8a3i",
         "SendPushNotifications": false,
         "PushNotificationServer": "",
         "PushNotificationContents": "generic",
@@ -300,5 +300,14 @@
     "JobSettings": {
         "RunJobs": true,
         "RunScheduler": true
+    },
+    "PluginSettings": {
+        "Plugins": {
+            "jira": {
+                "Enabled": true,
+                "Secret": "9tD2RvHAXDeN3zfHYj5caoZ1pRP86mNP",
+                "UserName": "ccbrown"
+            }
+        }
     }
 }

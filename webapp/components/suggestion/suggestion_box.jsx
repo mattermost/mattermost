@@ -228,7 +228,8 @@ export default class SuggestionBox extends React.Component {
 
         const suffix = text.substring(caret);
 
-        this.refs.textbox.value = prefix + term + ' ' + suffix;
+        const newValue = prefix + term + ' ' + suffix;
+        this.refs.textbox.value = newValue;
 
         if (this.props.onChange) {
             // fake an input event to send back to parent components
@@ -242,9 +243,10 @@ export default class SuggestionBox extends React.Component {
 
         if (this.props.onItemSelected) {
             const items = SuggestionStore.getItems(this.suggestionId);
-            for (const i of items) {
-                if (i.name === term) {
-                    this.props.onItemSelected(i);
+            const terms = SuggestionStore.getTerms(this.suggestionId);
+            for (let i = 0; i < terms.length; i++) {
+                if (terms[i] === term) {
+                    this.props.onItemSelected(items[i]);
                     break;
                 }
             }
@@ -254,7 +256,9 @@ export default class SuggestionBox extends React.Component {
 
         // set the caret position after the next rendering
         window.requestAnimationFrame(() => {
-            Utils.setCaretPosition(textbox, prefix.length + term.length + 1);
+            if (textbox.value === newValue) {
+                Utils.setCaretPosition(textbox, newValue.length);
+            }
         });
 
         for (const provider of this.props.providers) {
@@ -326,6 +330,7 @@ export default class SuggestionBox extends React.Component {
             ref: 'textbox',
             onBlur: this.handleBlur,
             onInput: this.handleChange,
+            onChange() { /* this is only here to suppress warnings about onChange not being implemented for read-write inputs */ },
             onCompositionStart: this.handleCompositionStart,
             onCompositionUpdate: this.handleCompositionUpdate,
             onCompositionEnd: this.handleCompositionEnd,

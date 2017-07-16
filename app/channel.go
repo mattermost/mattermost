@@ -1207,38 +1207,17 @@ func GetPinnedPosts(channelId string) (*model.PostList, *model.AppError) {
 	}
 }
 
-func GetOrCreateChannel(teamId, userId, channelNameOrId string) (*model.Channel, *model.AppError) {
-	if len(channelNameOrId) == 0 {
-		return nil, model.NewAppError("GetOrCreateChannel", "web.incoming_webhook.channel.app_error", nil, "", http.StatusBadRequest)
-	}
-
-	var cchan store.StoreChannel
-	var directUserId string
-
-	if channelNameOrId[0] == '@' {
-		if result := <-Srv.Store.User().GetByUsername(channelNameOrId[1:]); result.Err != nil {
-			return nil, model.NewAppError("GetOrCreateChannel", "web.incoming_webhook.user.app_error", nil, "err="+result.Err.Message, http.StatusBadRequest)
-		} else {
-			directUserId = result.Data.(*model.User).Id
-			cchan = Srv.Store.Channel().GetByName(teamId, model.GetDMNameFromIds(directUserId, userId), true)
+func GetDirectChannel(userId1, userId2 string) (*model.Channel, *model.AppError) {
+	result := <-Srv.Store.Channel().GetByName("", model.GetDMNameFromIds(userId1, userId2), true)
+	if result.Err != nil && result.Err.Id == store.MISSING_CHANNEL_ERROR {
+		result := <-Srv.Store.Channel().CreateDirectChannel(userId1, userId2)
+		if result.Err != nil {
+			return nil, model.NewAppError("GetOrCreateDMChannel", "web.incoming_webhook.channel.app_error", nil, "err="+result.Err.Message, http.StatusBadRequest)
 		}
-	} else if channelNameOrId[0] == '#' {
-		cchan = Srv.Store.Channel().GetByName(teamId, channelNameOrId[1:], true)
-	} else {
-		cchan = Srv.Store.Channel().Get(channelNameOrId, true)
-	}
-
-	result := <-cchan
-	if result.Err != nil && result.Err.Id == store.MISSING_CHANNEL_ERROR && directUserId != "" {
-		newChanResult := <-Srv.Store.Channel().CreateDirectChannel(directUserId, userId)
-		if newChanResult.Err != nil {
-			return nil, model.NewAppError("GetOrCreateChannel", "web.incoming_webhook.channel.app_error", nil, "err="+newChanResult.Err.Message, http.StatusBadRequest)
-		}
-		InvalidateCacheForUser(directUserId)
-		InvalidateCacheForUser(userId)
-		return newChanResult.Data.(*model.Channel), nil
+		InvalidateCacheForUser(userId1)
+		InvalidateCacheForUser(userId2)
 	} else if result.Err != nil {
-		return nil, model.NewAppError("GetOrCreateChannel", "web.incoming_webhook.channel.app_error", nil, "err="+result.Err.Message, result.Err.StatusCode)
+		return nil, model.NewAppError("GetOrCreateDMChannel", "web.incoming_webhook.channel.app_error", nil, "err="+result.Err.Message, result.Err.StatusCode)
 	}
 	return result.Data.(*model.Channel), nil
 }
