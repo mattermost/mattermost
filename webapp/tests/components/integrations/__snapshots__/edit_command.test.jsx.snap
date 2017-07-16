@@ -51,6 +51,7 @@ exports[`components/integrations/EditCommand should match snapshot 1`] = `
             maxLength="64"
             onChange={[Function]}
             type="text"
+            value=""
           />
           <div
             className="form__help"
@@ -85,6 +86,7 @@ exports[`components/integrations/EditCommand should match snapshot 1`] = `
             maxLength="128"
             onChange={[Function]}
             type="text"
+            value=""
           />
           <div
             className="form__help"
@@ -120,6 +122,7 @@ exports[`components/integrations/EditCommand should match snapshot 1`] = `
             onChange={[Function]}
             placeholder="Command trigger e.g. \\"hello\\" not including the slash"
             type="text"
+            value=""
           />
           <div
             className="form__help"
@@ -187,6 +190,7 @@ exports[`components/integrations/EditCommand should match snapshot 1`] = `
             onChange={[Function]}
             placeholder="Must start with http:// or https://"
             type="text"
+            value=""
           />
           <div
             className="form__help"
@@ -219,6 +223,7 @@ exports[`components/integrations/EditCommand should match snapshot 1`] = `
             className="form-control"
             id="method"
             onChange={[Function]}
+            value="P"
           >
             <option
               value="P"
@@ -265,6 +270,7 @@ exports[`components/integrations/EditCommand should match snapshot 1`] = `
             onChange={[Function]}
             placeholder="Username"
             type="text"
+            value=""
           />
           <div
             className="form__help"
@@ -300,6 +306,7 @@ exports[`components/integrations/EditCommand should match snapshot 1`] = `
             onChange={[Function]}
             placeholder="https://www.example.com/myicon.png"
             type="text"
+            value=""
           />
           <div
             className="form__help"
@@ -329,6 +336,7 @@ exports[`components/integrations/EditCommand should match snapshot 1`] = `
           className="col-md-5 col-sm-8 checkbox"
         >
           <input
+            checked={false}
             id="autocomplete"
             onChange={[Function]}
             type="checkbox"

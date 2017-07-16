@@ -4,16 +4,14 @@
 import React from 'react';
 import {shallow} from 'enzyme';
 
-import * as Utils from 'utils/utils.jsx';
 import EditCommand from 'components/integrations/components/edit_command/edit_command.jsx';
 
 describe('components/integrations/EditCommand', () => {
     test('should match snapshot', () => {
         const emptyFunction = jest.fn();
+        const id = 'r5tpgt4iepf45jt768jz84djic';
         global.window.mm_config = {};
         global.window.mm_config.EnableCommands = 'true';
-
-        const id = Utils.generateId();
 
         const wrapper = shallow(
             <EditCommand

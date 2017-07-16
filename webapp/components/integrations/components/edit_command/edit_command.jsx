@@ -33,7 +33,7 @@ export default class EditCommand extends React.PureComponent {
         /**
         * Installed slash commands to display
         */
-        commands: PropTypes.array,
+        commands: PropTypes.object,
 
         /**
         * The request state for editCommand action. Contains status and error
@@ -61,6 +61,16 @@ export default class EditCommand extends React.PureComponent {
         this.newCommand = null;
 
         this.state = {
+            displayName: '',
+            description: '',
+            trigger: '',
+            url: '',
+            method: REQUEST_POST,
+            username: '',
+            iconUrl: '',
+            autocomplete: false,
+            autocompleteHint: '',
+            autocompleteDescription: '',
             saving: false,
             serverError: '',
             clientError: null,
@@ -73,7 +83,7 @@ export default class EditCommand extends React.PureComponent {
         if (window.mm_config.EnableCommands === 'true') {
             this.props.actions.getCustomTeamCommands(this.props.team.id).then(
                 () => {
-                    this.originalCommand = this.props.commands.filter((command) => command.id === this.props.commandId)[0];
+                    this.originalCommand = Object.values(this.props.commands).filter((command) => command.id === this.props.commandId)[0];
                     this.setState({
                         displayName: this.originalCommand.display_name,
                         description: this.originalCommand.description,
