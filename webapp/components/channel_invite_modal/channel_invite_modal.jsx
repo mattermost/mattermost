@@ -143,13 +143,18 @@ export default class ChannelInviteModal extends React.Component {
             inviteError = (<label className='has-error control-label'>{this.state.inviteError}</label>);
         }
 
+        let users = [];
+        if (this.state.users) {
+            users = this.state.users.filter((user) => user.delete_at === 0);
+        }
+
         let content;
         if (this.state.loading) {
             content = (<LoadingScreen/>);
         } else {
             content = (
                 <SearchableUserList
-                    users={this.state.users}
+                    users={users}
                     usersPerPage={USERS_PER_PAGE}
                     total={this.state.total}
                     nextPage={this.nextPage}
