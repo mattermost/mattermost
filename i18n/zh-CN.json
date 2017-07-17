@@ -429,7 +429,7 @@
   },
   {
     "id": "api.command.execute_command.not_found.app_error",
-    "translation": "Command with a trigger of '{{.Trigger}}' not found. To send a message beginning with \"/\", try adding an empty space at the beginning of the message."
+    "translation": "未找到拥有触发 '{{.Trigger}}' 的命令。如果像发送以 \"/\" 开头的消息，请在前面加个空格。"
   },
   {
     "id": "api.command.execute_command.save.app_error",
@@ -461,7 +461,7 @@
   },
   {
     "id": "api.command.invite_people.invite_off",
-    "translation": "User creation has been disabled on this server, no invite(s) sent"
+    "translation": "本服务器已经禁止创建用户，未发送任何邀请"
   },
   {
     "id": "api.command.invite_people.name",
@@ -501,35 +501,35 @@
   },
   {
     "id": "api.command_channel_header.channel.app_error",
-    "translation": "Error to retrieve the current channel."
+    "translation": "获取当前频道错误。"
   },
   {
     "id": "api.command_channel_header.desc",
-    "translation": "Edit the channel header"
+    "translation": "修改频道标题"
   },
   {
     "id": "api.command_channel_header.hint",
-    "translation": "[text]"
+    "translation": "[文字]"
   },
   {
     "id": "api.command_channel_header.message.app_error",
-    "translation": "Text must be provided with the /header command."
+    "translation": "比如提供 /header 命令的文字。"
   },
   {
     "id": "api.command_channel_header.name",
-    "translation": "header"
+    "translation": "标题"
   },
   {
     "id": "api.command_channel_header.permission.app_error",
-    "translation": "You do not have the appropriate permissions to edit the channel header."
+    "translation": "您没有权限更改频道标题。"
   },
   {
     "id": "api.command_channel_header.update_channel.app_error",
-    "translation": "Error to update the current channel."
+    "translation": "更新当前频道错误。"
   },
   {
     "id": "api.command_channel_header.update_channel.success",
-    "translation": "Channel header successfully updated."
+    "translation": "成功更新频道标题。"
   },
   {
     "id": "api.command_collapse.desc",
@@ -589,7 +589,7 @@
   },
   {
     "id": "api.command_help.desc",
-    "translation": "Open the Mattermost help page"
+    "translation": "打开 Mattermost 帮助页面"
   },
   {
     "id": "api.command_help.name",
@@ -706,6 +706,22 @@
   {
     "id": "api.command_open.name",
     "translation": "打开"
+  },
+  {
+    "id": "api.command_search.desc",
+    "translation": "在消息中搜索文字"
+  },
+  {
+    "id": "api.command_search.hint",
+    "translation": "[文字]"
+  },
+  {
+    "id": "api.command_search.name",
+    "translation": "搜索"
+  },
+  {
+    "id": "api.command_search.unsupported.app_error",
+    "translation": "您的设备不支持搜索命令"
   },
   {
     "id": "api.command_settings.desc",
@@ -958,6 +974,10 @@
   {
     "id": "api.context.unknown.app_error",
     "translation": "发生未知错误。请联系我们。"
+  },
+  {
+    "id": "api.context.v3_disabled.app_error",
+    "translation": "API 版本 3 已在本服务器停用。请使用 API 版本 4。详情见 https://api.mattermost.com。"
   },
   {
     "id": "api.deprecated.init.debug",
@@ -1689,11 +1709,11 @@
   },
   {
     "id": "api.post.send_notifications_and_forget.push_image_only",
-    "translation": " 已上传一个或更多个文件 "
+    "translation": " 已上传一个或更多个文件在 "
   },
   {
     "id": "api.post.send_notifications_and_forget.push_image_only_dm",
-    "translation": " Uploaded one or more files in a direct message"
+    "translation": " 在私信里上传一个或更多个文件"
   },
   {
     "id": "api.post.send_notifications_and_forget.push_in",
@@ -2125,7 +2145,7 @@
   },
   {
     "id": "api.team.invite_members.invalid_email.app_error",
-    "translation": "The following email addresses do not belong to an accepted domain: {{.Addresses}}. Please contact your System Administrator for details."
+    "translation": "以下邮箱地址不在允许的域名范围内：{{.Addresses}}。请联系您的系统管理员了解详情。"
   },
   {
     "id": "api.team.invite_members.member",
@@ -3021,35 +3041,35 @@
   },
   {
     "id": "app.import.import_direct_channel.create_direct_channel.error",
-    "translation": "Failed to get direct channel"
-  },
-  {
-    "id": "app.import.import_direct_channel.create_direct_channel.error",
-    "translation": "Failed to get direct channel"
+    "translation": "船舰私信组频道失败"
   },
   {
     "id": "app.import.import_direct_channel.create_group_channel.error",
-    "translation": "Failed to get group channel"
-  },
-  {
-    "id": "app.import.import_direct_channel.create_group_channel.error",
-    "translation": "Failed to get group channel"
+    "translation": "创建群频道失败"
   },
   {
     "id": "app.import.import_direct_channel.member_not_found.error",
-    "translation": "Could not find channel member when importing direct channel"
+    "translation": "导入私信频道时无法找到频道成员"
   },
   {
     "id": "app.import.import_direct_channel.update_header_failed.error",
-    "translation": "Failed to update direct channel header"
+    "translation": "更新私信频道标题失败"
   },
   {
     "id": "app.import.import_direct_post.channel_member_not_found.error",
-    "translation": "Could not find channel member when importing direct channel post"
+    "translation": "导入私信频道消息时无法找到频道成员"
+  },
+  {
+    "id": "app.import.import_direct_post.create_direct_channel.error",
+    "translation": "获取私信频道失败"
+  },
+  {
+    "id": "app.import.import_direct_post.create_group_channel.error",
+    "translation": "获取组频道失败"
   },
   {
     "id": "app.import.import_direct_post.user_not_found.error",
-    "translation": "Post user does not exist"
+    "translation": "消息用户不存在"
   },
   {
     "id": "app.import.import_line.null_channel.error",
@@ -3057,11 +3077,11 @@
   },
   {
     "id": "app.import.import_line.null_direct_channel.error",
-    "translation": "导入数据行有类型 \"channel\" 但频道对象是无。"
+    "translation": "导入数据行有类型 \"direct_channel\" 但 direct_channel 对象为 null。"
   },
   {
     "id": "app.import.import_line.null_direct_post.error",
-    "translation": "导入数据行有类型 \"post\" 但消息对象是无。"
+    "translation": "导入数据行有类型 \"direct_post\" 但 direct_post 对象为 null。"
   },
   {
     "id": "app.import.import_line.null_post.error",
@@ -3137,51 +3157,51 @@
   },
   {
     "id": "app.import.validate_direct_channel_import_data.header_length.error",
-    "translation": "Direct channel header is too long"
+    "translation": "私信频道标题过长"
   },
   {
     "id": "app.import.validate_direct_channel_import_data.members_required.error",
-    "translation": "缺少频道必须属性：name"
+    "translation": "缺少私信频道必须属性：members"
   },
   {
     "id": "app.import.validate_direct_channel_import_data.members_too_few.error",
-    "translation": "Direct channel members list contains too few items"
+    "translation": "私信频道成员列表数量过少"
   },
   {
     "id": "app.import.validate_direct_channel_import_data.members_too_many.error",
-    "translation": "Direct channel members list contains too many items"
+    "translation": "私信频道成员列表数量过多"
   },
   {
     "id": "app.import.validate_direct_post_import_data.channel_members_required.error",
-    "translation": "缺少消息必须属性：create_at。"
+    "translation": "缺少私信消息必须属性：channel_members"
   },
   {
     "id": "app.import.validate_direct_post_import_data.channel_members_too_few.error",
-    "translation": "Direct post channel members list contains too few items"
+    "translation": "私信频道成员列表数量过少"
   },
   {
     "id": "app.import.validate_direct_post_import_data.channel_members_too_many.error",
-    "translation": "Direct post channel members list contains too many items"
+    "translation": "私信频道成员列表数量过多"
   },
   {
     "id": "app.import.validate_direct_post_import_data.create_at_missing.error",
-    "translation": "缺少消息必须属性：create_at。"
+    "translation": "缺少私信消息必须属性：create_at"
   },
   {
     "id": "app.import.validate_direct_post_import_data.create_at_zero.error",
-    "translation": "CreateAt must be greater than 0"
+    "translation": "CreateAt 比如大于 0"
   },
   {
     "id": "app.import.validate_direct_post_import_data.message_length.error",
-    "translation": "Message is too long"
+    "translation": "消息过长"
   },
   {
     "id": "app.import.validate_direct_post_import_data.message_missing.error",
-    "translation": "缺少消息必须属性：Message。"
+    "translation": "缺少私信必须属性：message"
   },
   {
     "id": "app.import.validate_direct_post_import_data.user_missing.error",
-    "translation": "缺少消息必须属性：User。"
+    "translation": "缺少私信必须属性：user"
   },
   {
     "id": "app.import.validate_post_import_data.channel_missing.error",
@@ -3409,7 +3429,7 @@
   },
   {
     "id": "ent.cluster.config_changed.info",
-    "translation": "Cluster configuration has changed for id={{ .id }}.  The cluster may become unstable and a restart is required.  To ensure the cluster is configured correctly you should perform a rolling restart immediately."
+    "translation": "机群设定 id={{ .id }} 已更改。机群可能不稳定并且需要重启。为了确保机群配置正确您应该立刻逐进重启。"
   },
   {
     "id": "ent.cluster.debug_fail.debug",
@@ -3441,7 +3461,7 @@
   },
   {
     "id": "ent.cluster.save_config.error",
-    "translation": "System Console is set to read-only when High Availability is enabled  unless ReadOnlyConfig is disabled in the configuration file."
+    "translation": "当高可用性模式开启时，系统控制台将设为只读且只能通过修改配置文件进行改动除非禁止配置文件里的 ReadOnlyConfig。"
   },
   {
     "id": "ent.cluster.starting.info",
@@ -3472,6 +3492,34 @@
     "translation": "导出审核自'{{.FilePath}}'的'{{.JobName}}'任务开始"
   },
   {
+    "id": "ent.elasticsearch.create_client.connect_failed",
+    "translation": "设置 ElasticSearch 客户端失败"
+  },
+  {
+    "id": "ent.elasticsearch.create_index_if_not_exists.index_create_failed",
+    "translation": "创建 ElasticSearch 索引失败"
+  },
+  {
+    "id": "ent.elasticsearch.create_index_if_not_exists.index_exists_failed",
+    "translation": "无法确认 ElasticSearch 索引是否存在"
+  },
+  {
+    "id": "ent.elasticsearch.create_index_if_not_exists.index_mapping_failed",
+    "translation": "无法配置 ElasticSearch 索引映像"
+  },
+  {
+    "id": "ent.elasticsearch.delete_post.error",
+    "translation": "Failed to delete the post"
+  },
+  {
+    "id": "ent.elasticsearch.index_post.error",
+    "translation": "Failed to index the post"
+  },
+  {
+    "id": "ent.elasticsearch.not_started.error",
+    "translation": "Elasticsearch is not started"
+  },
+  {
     "id": "ent.elasticsearch.search_posts.disabled",
     "translation": "ElasticSearch 搜索已在本服务器禁用"
   },
@@ -3484,32 +3532,24 @@
     "translation": "解码搜索结果失败"
   },
   {
-    "id": "ent.elasticsearch.start.connect_failed",
-    "translation": "设置 ElasticSearch 客户端失败"
-  },
-  {
-    "id": "ent.elasticsearch.start.index_create_failed",
-    "translation": "创建 ElasticSearch 索引失败"
-  },
-  {
-    "id": "ent.elasticsearch.start.index_exists_failed",
-    "translation": "无法确认 ElasticSearch 索引是否存在"
-  },
-  {
-    "id": "ent.elasticsearch.start.index_mapping_failed",
-    "translation": "无法配置 ElasticSearch 索引映像"
-  },
-  {
     "id": "ent.elasticsearch.start.index_settings_failed",
     "translation": "无法设置 ElasticSearch 索引设定"
   },
   {
+    "id": "ent.elasticsearch.test_config.connect_failed",
+    "translation": "Connecting to Elasticsearch server failed."
+  },
+  {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
-    "translation": "Elasticsearch is disabled."
+    "translation": "Elasticsearch 已停用。"
   },
   {
     "id": "ent.elasticsearch.test_config.license.error",
-    "translation": "License does not support Elasticsearch."
+    "translation": "许可证不支持 Elasticsearch。"
+  },
+  {
+    "id": "ent.elasticsearch.test_config.reenter_password",
+    "translation": "The Elasticsearch Server URL or Username has changed. Please re-enter the Elasticsearch password to test connection."
   },
   {
     "id": "ent.emoji.licence_disable.app_error",
@@ -3722,6 +3762,14 @@
   {
     "id": "error.not_found.title",
     "translation": "未找到该页面"
+  },
+  {
+    "id": "jobs.request_cancellation.status.error",
+    "translation": "Could not request cancellation for job that is not in a cancelable state."
+  },
+  {
+    "id": "jobs.set_job_error.update.error",
+    "translation": "Failed to set job status to error"
   },
   {
     "id": "manaultesting.get_channel_id.no_found.debug",
@@ -4313,7 +4361,7 @@
   },
   {
     "id": "model.config.is_valid.teammate_name_display.app_error",
-    "translation": "Invalid teammate display.  Must be 'full_name', 'nickname_full_name' or 'username'"
+    "translation": "无效的团员显示。必须为 'full_name'，'nickname_full_name' 或 'username'"
   },
   {
     "id": "model.config.is_valid.time_between_user_typing.app_error",
@@ -5272,24 +5320,24 @@
     "translation": "我们无法保存或更新文件信息"
   },
   {
-    "id": "store.sql_job_status.delete_by_type.app_error",
-    "translation": "我们不能删除这个作业状态"
+    "id": "store.sql_job.delete.app_error",
+    "translation": "我们不能删除这个邮件"
   },
   {
-    "id": "store.sql_job_status.get.app_error",
-    "translation": "我们无法获取这个作业状态"
+    "id": "store.sql_job.get.app_error",
+    "translation": "我们无法获取这个邮件"
   },
   {
-    "id": "store.sql_job_status.get_all.app_error",
-    "translation": "我们无法获取所有作业状态"
+    "id": "store.sql_job.get_all.app_error",
+    "translation": "我们无法获取消息"
   },
   {
-    "id": "store.sql_job_status.save.app_error",
-    "translation": "我们无法保存这个作业状态"
+    "id": "store.sql_job.save.app_error",
+    "translation": "我们无法保存这个邮件"
   },
   {
-    "id": "store.sql_job_status.update.app_error",
-    "translation": "我们不能更新这个作业状态"
+    "id": "store.sql_job.update.app_error",
+    "translation": "我们不能更新这个邮件"
   },
   {
     "id": "store.sql_license.get.app_error",
@@ -5438,6 +5486,10 @@
   {
     "id": "store.sql_post.get_posts_around.get_parent.app_error",
     "translation": "我们无法获取这个频道的父信息"
+  },
+  {
+    "id": "store.sql_post.get_posts_batch_for_indexing.get.app_error",
+    "translation": "We couldn't get the posts batch for indexing"
   },
   {
     "id": "store.sql_post.get_posts_by_ids.app_error",
@@ -5869,7 +5921,7 @@
   },
   {
     "id": "store.sql_user.get_new_users.app_error",
-    "translation": "我们在查找偏好设置时遇到了一个错误"
+    "translation": "我们在查找新用户时发生错误"
   },
   {
     "id": "store.sql_user.get_profiles.app_error",

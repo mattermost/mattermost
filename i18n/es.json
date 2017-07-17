@@ -708,6 +708,22 @@
     "translation": "abrir"
   },
   {
+    "id": "api.command_search.desc",
+    "translation": "Buscar texto en mensajes"
+  },
+  {
+    "id": "api.command_search.hint",
+    "translation": "[texto]"
+  },
+  {
+    "id": "api.command_search.name",
+    "translation": "buscar"
+  },
+  {
+    "id": "api.command_search.unsupported.app_error",
+    "translation": "El comando de búsqueda no es compatible con tu dispositivo"
+  },
+  {
     "id": "api.command_settings.desc",
     "translation": "Abrir el diálogo Configuración de la Cuenta"
   },
@@ -958,6 +974,10 @@
   {
     "id": "api.context.unknown.app_error",
     "translation": "Ocurrió un error inesperado. Por favor contacta a soporte."
+  },
+  {
+    "id": "api.context.v3_disabled.app_error",
+    "translation": "API versión 3 ha sido inhabilitado en este servidor. Por favor utiliza la API versión 4. Revisa https://api.mattermost.com para más información. "
   },
   {
     "id": "api.deprecated.init.debug",
@@ -3021,19 +3041,11 @@
   },
   {
     "id": "app.import.import_direct_channel.create_direct_channel.error",
-    "translation": "No se pudo obtener el canal directo"
-  },
-  {
-    "id": "app.import.import_direct_channel.create_direct_channel.error",
-    "translation": "No se pudo obtener el canal directo"
+    "translation": "No se pudo crear el canal directo"
   },
   {
     "id": "app.import.import_direct_channel.create_group_channel.error",
-    "translation": "No se pudo obtener el canal de grupo"
-  },
-  {
-    "id": "app.import.import_direct_channel.create_group_channel.error",
-    "translation": "No se pudo obtener el canal de grupo"
+    "translation": "No se pudo crear el canal de grupo"
   },
   {
     "id": "app.import.import_direct_channel.member_not_found.error",
@@ -3046,6 +3058,14 @@
   {
     "id": "app.import.import_direct_post.channel_member_not_found.error",
     "translation": "No se pudo encontrar a los miembros del canal, al importar un mensaje en el canal directo"
+  },
+  {
+    "id": "app.import.import_direct_post.create_direct_channel.error",
+    "translation": "No se pudo obtener el canal directo"
+  },
+  {
+    "id": "app.import.import_direct_post.create_group_channel.error",
+    "translation": "No se pudo obtener el canal de grupo"
   },
   {
     "id": "app.import.import_direct_post.user_not_found.error",
@@ -3472,6 +3492,34 @@
     "translation": "Iniciado el trabajo '{{.JobName}}' para exportar el Cumplimiento en '{{.FilePath}}'"
   },
   {
+    "id": "ent.elasticsearch.create_client.connect_failed",
+    "translation": "La configuración del cliente de ElasticSearch falló"
+  },
+  {
+    "id": "ent.elasticsearch.create_index_if_not_exists.index_create_failed",
+    "translation": "No se pudo crear el índice de ElasticSearch"
+  },
+  {
+    "id": "ent.elasticsearch.create_index_if_not_exists.index_exists_failed",
+    "translation": "No se pudo establecer si existe un índice de ElasticSearch"
+  },
+  {
+    "id": "ent.elasticsearch.create_index_if_not_exists.index_mapping_failed",
+    "translation": "Error al configurar el mapa de índices de ElasticSearch"
+  },
+  {
+    "id": "ent.elasticsearch.delete_post.error",
+    "translation": "Error al eliminar el mensaje"
+  },
+  {
+    "id": "ent.elasticsearch.index_post.error",
+    "translation": "Error al indexar el mensaje"
+  },
+  {
+    "id": "ent.elasticsearch.not_started.error",
+    "translation": "Elasticsearch no se ha iniciado"
+  },
+  {
     "id": "ent.elasticsearch.search_posts.disabled",
     "translation": "La búsqueda con ElasticSearch está deshabilitada en este servidor"
   },
@@ -3484,24 +3532,12 @@
     "translation": "No pudo decodificar los resultados de búsqueda"
   },
   {
-    "id": "ent.elasticsearch.start.connect_failed",
-    "translation": "La configuración de ElasticSearch Cliente falló"
-  },
-  {
-    "id": "ent.elasticsearch.start.index_create_failed",
-    "translation": "No se pudo crear el índice de ElasticSearch"
-  },
-  {
-    "id": "ent.elasticsearch.start.index_exists_failed",
-    "translation": "No se pudo establecer si existe un índice de ElasticSearch"
-  },
-  {
-    "id": "ent.elasticsearch.start.index_mapping_failed",
-    "translation": "Error al configurar el mapa de índices de ElasticSearch"
-  },
-  {
     "id": "ent.elasticsearch.start.index_settings_failed",
     "translation": "No se pudo establecer el índice de configuración de ElasticSearch"
+  },
+  {
+    "id": "ent.elasticsearch.test_config.connect_failed",
+    "translation": "La conexión al servidor Elasticsearch no pudo establecer."
   },
   {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
@@ -3510,6 +3546,10 @@
   {
     "id": "ent.elasticsearch.test_config.license.error",
     "translation": "La licencia no admite Elasticsearch."
+  },
+  {
+    "id": "ent.elasticsearch.test_config.reenter_password",
+    "translation": "La dirección URL del Servidor Elasticsearch o el nombre de Usuario ha cambiado. Por favor, vuelva a introducir la contraseña de Elasticsearch para probar la conexión."
   },
   {
     "id": "ent.emoji.licence_disable.app_error",
@@ -3722,6 +3762,14 @@
   {
     "id": "error.not_found.title",
     "translation": "Página no encontrada"
+  },
+  {
+    "id": "jobs.request_cancellation.status.error",
+    "translation": "No se puede solicitar la cancelación de un trabajo que no está en un estado cancelable."
+  },
+  {
+    "id": "jobs.set_job_error.update.error",
+    "translation": "No se puede establecer el estado al trabajo de error"
   },
   {
     "id": "manaultesting.get_channel_id.no_found.debug",
@@ -5272,24 +5320,24 @@
     "translation": "No pudimos guardar o actualizar la información del archivo"
   },
   {
-    "id": "store.sql_job_status.delete_by_type.app_error",
-    "translation": "No pudimos eliminar el trabajo de estatus"
+    "id": "store.sql_job.delete.app_error",
+    "translation": "No pudimos eliminar el trabajo"
   },
   {
-    "id": "store.sql_job_status.get.app_error",
-    "translation": "No pudimos obtener el trabajo de estatus"
+    "id": "store.sql_job.get.app_error",
+    "translation": "No pudimos obtener el trabajo"
   },
   {
-    "id": "store.sql_job_status.get_all.app_error",
-    "translation": "No pudimos obtener todos los trabajos de estatus"
+    "id": "store.sql_job.get_all.app_error",
+    "translation": "No pudimos obtener los trabajos"
   },
   {
-    "id": "store.sql_job_status.save.app_error",
-    "translation": "No pudimos guardar el trabajo de estatus"
+    "id": "store.sql_job.save.app_error",
+    "translation": "No pudimos guardar el trabajo"
   },
   {
-    "id": "store.sql_job_status.update.app_error",
-    "translation": "No pudimos actualizar el trabajo de estatus"
+    "id": "store.sql_job.update.app_error",
+    "translation": "No pudimos actualizar el trabajo"
   },
   {
     "id": "store.sql_license.get.app_error",
@@ -5438,6 +5486,10 @@
   {
     "id": "store.sql_post.get_posts_around.get_parent.app_error",
     "translation": "No pudimos obtener los mensajes padres del canal"
+  },
+  {
+    "id": "store.sql_post.get_posts_batch_for_indexing.get.app_error",
+    "translation": "No se pudo obtener los mensajes en lote para la indexación"
   },
   {
     "id": "store.sql_post.get_posts_by_ids.app_error",

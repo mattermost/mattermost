@@ -708,6 +708,22 @@
     "translation": "開く"
   },
   {
+    "id": "api.command_search.desc",
+    "translation": "メッセージ内のテキストを検索する"
+  },
+  {
+    "id": "api.command_search.hint",
+    "translation": "[テキスト]"
+  },
+  {
+    "id": "api.command_search.name",
+    "translation": "検索"
+  },
+  {
+    "id": "api.command_search.unsupported.app_error",
+    "translation": "このデバイスでは検索コマンドはサポートされていません"
+  },
+  {
     "id": "api.command_settings.desc",
     "translation": "アカウント設定ダイアログを開く"
   },
@@ -958,6 +974,10 @@
   {
     "id": "api.context.unknown.app_error",
     "translation": "詳細不明なエラーが発生しました。サポートに問い合わせしてください。"
+  },
+  {
+    "id": "api.context.v3_disabled.app_error",
+    "translation": "APIバージョン3はこのサーバーでは無効化されています。APIバージョン4を使用してください。詳しくは https://api.mattermost.com を参照してください。"
   },
   {
     "id": "api.deprecated.init.debug",
@@ -3021,19 +3041,11 @@
   },
   {
     "id": "app.import.import_direct_channel.create_direct_channel.error",
-    "translation": "ダイレクトチャンネルを取得できませんでした"
-  },
-  {
-    "id": "app.import.import_direct_channel.create_direct_channel.error",
-    "translation": "ダイレクトチャンネルを取得できませんでした"
+    "translation": "ダイレクトチャンネルを作成できませんでした"
   },
   {
     "id": "app.import.import_direct_channel.create_group_channel.error",
-    "translation": "グループチャンネルを取得できませんでした"
-  },
-  {
-    "id": "app.import.import_direct_channel.create_group_channel.error",
-    "translation": "グループチャンネルを取得できませんでした"
+    "translation": "グループチャンネルを作成できませんでした"
   },
   {
     "id": "app.import.import_direct_channel.member_not_found.error",
@@ -3046,6 +3058,14 @@
   {
     "id": "app.import.import_direct_post.channel_member_not_found.error",
     "translation": "ダイレクトチャンネルの投稿をインポートする際にチャンネルメンバーが見つかりませんでした"
+  },
+  {
+    "id": "app.import.import_direct_post.create_direct_channel.error",
+    "translation": "ダイレクトチャンネルを取得できませんでした"
+  },
+  {
+    "id": "app.import.import_direct_post.create_group_channel.error",
+    "translation": "グループチャンネルを取得できませんでした"
   },
   {
     "id": "app.import.import_direct_post.user_not_found.error",
@@ -3472,6 +3492,34 @@
     "translation": "コンプライアンスエクスポートが開始されました ジョブ='{{.JobName}}'、ファイル='{{.FilePath}}'"
   },
   {
+    "id": "ent.elasticsearch.create_client.connect_failed",
+    "translation": "ElasticSearchクライアントを設定できませんでした"
+  },
+  {
+    "id": "ent.elasticsearch.create_index_if_not_exists.index_create_failed",
+    "translation": "ElasticSearchのインデックスを作成できませんでした"
+  },
+  {
+    "id": "ent.elasticsearch.create_index_if_not_exists.index_exists_failed",
+    "translation": "ElasticSearchインデックスの存在を確認できませんでした"
+  },
+  {
+    "id": "ent.elasticsearch.create_index_if_not_exists.index_mapping_failed",
+    "translation": "ElasticSearchインデックスのマッピングを設定できませんでした"
+  },
+  {
+    "id": "ent.elasticsearch.delete_post.error",
+    "translation": "Failed to delete the post"
+  },
+  {
+    "id": "ent.elasticsearch.index_post.error",
+    "translation": "Failed to index the post"
+  },
+  {
+    "id": "ent.elasticsearch.not_started.error",
+    "translation": "Elasticsearch is not started"
+  },
+  {
     "id": "ent.elasticsearch.search_posts.disabled",
     "translation": "このサーバーではElasticSearchによる検索は無効です。"
   },
@@ -3484,24 +3532,12 @@
     "translation": "検索結果をデコードできませんでした"
   },
   {
-    "id": "ent.elasticsearch.start.connect_failed",
-    "translation": "ElasticSearchクライアントを設定できませんでした"
-  },
-  {
-    "id": "ent.elasticsearch.start.index_create_failed",
-    "translation": "ElasticSearchのインデックスを作成できませんでした"
-  },
-  {
-    "id": "ent.elasticsearch.start.index_exists_failed",
-    "translation": "ElasticSearchインデックスの存在を確認できませんでした"
-  },
-  {
-    "id": "ent.elasticsearch.start.index_mapping_failed",
-    "translation": "ElasticSearchインデックスのマッピングを設定できませんでした"
-  },
-  {
     "id": "ent.elasticsearch.start.index_settings_failed",
     "translation": "ElasticSearchインデックス設定を設定できませんでした"
+  },
+  {
+    "id": "ent.elasticsearch.test_config.connect_failed",
+    "translation": "Connecting to Elasticsearch server failed."
   },
   {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
@@ -3510,6 +3546,10 @@
   {
     "id": "ent.elasticsearch.test_config.license.error",
     "translation": "ライセンスはElasticsearchをサポートしていません。"
+  },
+  {
+    "id": "ent.elasticsearch.test_config.reenter_password",
+    "translation": "The Elasticsearch Server URL or Username has changed. Please re-enter the Elasticsearch password to test connection."
   },
   {
     "id": "ent.emoji.licence_disable.app_error",
@@ -3722,6 +3762,14 @@
   {
     "id": "error.not_found.title",
     "translation": "ページが見付かりません"
+  },
+  {
+    "id": "jobs.request_cancellation.status.error",
+    "translation": "Could not request cancellation for job that is not in a cancelable state."
+  },
+  {
+    "id": "jobs.set_job_error.update.error",
+    "translation": "Failed to set job status to error"
   },
   {
     "id": "manaultesting.get_channel_id.no_found.debug",
@@ -5272,24 +5320,24 @@
     "translation": "ファイル情報を保存、または更新できませんでした"
   },
   {
-    "id": "store.sql_job_status.delete_by_type.app_error",
-    "translation": "ジョブの状態を削除できませんでした"
+    "id": "store.sql_job.delete.app_error",
+    "translation": "投稿を削除できませんでした"
   },
   {
-    "id": "store.sql_job_status.get.app_error",
-    "translation": "ジョブの状態を取得できませんでした"
+    "id": "store.sql_job.get.app_error",
+    "translation": "投稿を取得できませんでした"
   },
   {
-    "id": "store.sql_job_status.get_all.app_error",
-    "translation": "すべてのジョブの状態を取得できませんでした"
+    "id": "store.sql_job.get_all.app_error",
+    "translation": "投稿を取得できませんでした"
   },
   {
-    "id": "store.sql_job_status.save.app_error",
-    "translation": "ジョブの状態を保存できませんでした"
+    "id": "store.sql_job.save.app_error",
+    "translation": "投稿を保存できませんでした"
   },
   {
-    "id": "store.sql_job_status.update.app_error",
-    "translation": "ジョブの状態を更新できませんでした"
+    "id": "store.sql_job.update.app_error",
+    "translation": "投稿を更新できませんでした"
   },
   {
     "id": "store.sql_license.get.app_error",
@@ -5438,6 +5486,10 @@
   {
     "id": "store.sql_post.get_posts_around.get_parent.app_error",
     "translation": "チャンネルの親に当たる投稿を取得できませんでした"
+  },
+  {
+    "id": "store.sql_post.get_posts_batch_for_indexing.get.app_error",
+    "translation": "We couldn't get the posts batch for indexing"
   },
   {
     "id": "store.sql_post.get_posts_by_ids.app_error",
