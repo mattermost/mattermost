@@ -6,6 +6,7 @@ package model
 import (
 	"bytes"
 	"fmt"
+	l4g "github.com/alecthomas/log4go"
 	"io"
 	"io/ioutil"
 	"mime/multipart"
@@ -314,8 +315,27 @@ func (c *Client4) DoApiRequest(method, url, data, etag string) (*http.Response, 
 	}
 }
 
+// TODO remove this before 4.1 is cut
+
+var ExtraUploadFileDebugging = false
+
+type DebugReader struct {
+	reader io.Reader
+}
+
+func (r *DebugReader) Read(p []byte) (int, error) {
+	count, err := r.reader.Read(p)
+	l4g.Debug("DoUploadFile - Read %v bytes with error %v", count, err)
+	return count, err
+}
+
 func (c *Client4) DoUploadFile(url string, data []byte, contentType string) (*FileUploadResponse, *Response) {
-	rq, _ := http.NewRequest("POST", c.ApiUrl+url, bytes.NewReader(data))
+	var rq *http.Request
+	if ExtraUploadFileDebugging {
+		rq, _ = http.NewRequest("POST", c.ApiUrl+url, &DebugReader{reader: bytes.NewReader(data)}) // TODO remove before 4.1 is cut
+	} else {
+		rq, _ = http.NewRequest("POST", c.ApiUrl+url, bytes.NewReader(data))
+	}
 	rq.Header.Set("Content-Type", contentType)
 	rq.Close = true
 
@@ -323,7 +343,18 @@ func (c *Client4) DoUploadFile(url string, data []byte, contentType string) (*Fi
 		rq.Header.Set(HEADER_AUTH, c.AuthType+" "+c.AuthToken)
 	}
 
-	if rp, err := c.HttpClient.Do(rq); err != nil || rp == nil {
+	rp, err := c.HttpClient.Do(rq)
+
+	if ExtraUploadFileDebugging {
+		l4g.Debug("DoUploadFile - rp=%v", rp)
+		l4g.Debug("DoUploadFile - err=%v", err)
+	}
+
+	if err != nil || rp == nil {
+		if ExtraUploadFileDebugging {
+			l4g.Debug("DoUploadFile - Returning status code 0")
+		}
+
 		return nil, &Response{Error: NewAppError(url, "model.client.connecting.app_error", nil, err.Error(), 0)}
 	} else if rp.StatusCode >= 300 {
 		return nil, &Response{StatusCode: rp.StatusCode, Error: AppErrorFromJson(rp.Body)}

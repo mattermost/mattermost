@@ -21,6 +21,14 @@ func TestUploadFile(t *testing.T) {
 	defer TearDown()
 	Client := th.Client
 
+	// TODO remove this before 4.1 is cut
+	model.ExtraUploadFileDebugging = true
+	extraUploadFileDebugging = true
+	defer func() {
+		model.ExtraUploadFileDebugging = false
+		extraUploadFileDebugging = false
+	}()
+
 	user := th.BasicUser
 	channel := th.BasicChannel
 
@@ -110,6 +118,7 @@ func TestUploadFile(t *testing.T) {
 	*utils.Cfg.FileSettings.EnableFileAttachments = false
 
 	_, resp = th.SystemAdminClient.UploadFile(data, channel.Id, "test.png")
+	t.Logf("TestUploadFile - Received response %v", resp) // TODO remove this before 4.1 is cut
 	CheckNotImplementedStatus(t, resp)
 }
 
