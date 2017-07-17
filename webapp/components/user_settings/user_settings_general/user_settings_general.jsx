@@ -132,10 +132,10 @@ class UserSettingsGeneralTab extends React.Component {
         const {formatMessage} = this.props.intl;
         const usernameError = Utils.isValidUsername(username);
         if (usernameError === 'Cannot use a reserved word as a username.') {
-            this.setState({clientError: formatMessage(holders.usernameReserved)});
+            this.setState({clientError: formatMessage(holders.usernameReserved), serverError: ''});
             return;
         } else if (usernameError) {
-            this.setState({clientError: formatMessage(holders.usernameRestrictions, {min: Constants.MIN_USERNAME_LENGTH, max: Constants.MAX_USERNAME_LENGTH})});
+            this.setState({clientError: formatMessage(holders.usernameRestrictions, {min: Constants.MIN_USERNAME_LENGTH, max: Constants.MAX_USERNAME_LENGTH}), serverError: ''});
             return;
         }
 
@@ -260,10 +260,10 @@ class UserSettingsGeneralTab extends React.Component {
         const file = this.state.pictureFile;
 
         if (file.type !== 'image/jpeg' && file.type !== 'image/png') {
-            this.setState({clientError: formatMessage(holders.validImage)});
+            this.setState({clientError: formatMessage(holders.validImage), serverError: ''});
             return;
         } else if (file.size > this.state.maxFileSize) {
-            this.setState({clientError: formatMessage(holders.imageTooLarge)});
+            this.setState({clientError: formatMessage(holders.imageTooLarge), serverError: ''});
             return;
         }
 
