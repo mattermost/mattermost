@@ -10,8 +10,8 @@ import (
 )
 
 const (
-	JOB_TYPE_DATA_RETENTION  = "data_retention"
-	JOB_TYPE_SEARCH_INDEXING = "search_indexing"
+	JOB_TYPE_DATA_RETENTION              = "data_retention"
+	JOB_TYPE_ELASTICSEARCH_POST_INDEXING = "elasticsearch_post_indexing"
 
 	JOB_STATUS_PENDING          = "pending"
 	JOB_STATUS_IN_PROGRESS      = "in_progress"
@@ -44,7 +44,7 @@ func (j *Job) IsValid() *AppError {
 
 	switch j.Type {
 	case JOB_TYPE_DATA_RETENTION:
-	case JOB_TYPE_SEARCH_INDEXING:
+	case JOB_TYPE_ELASTICSEARCH_POST_INDEXING:
 	default:
 		return NewAppError("Job.IsValid", "model.job.is_valid.type.app_error", nil, "id="+j.Id, http.StatusBadRequest)
 	}

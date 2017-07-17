@@ -6,12 +6,14 @@ import React from 'react';
 import * as Utils from 'utils/utils.jsx';
 
 import AdminSettings from './admin_settings.jsx';
-import {elasticsearchTest} from 'actions/admin_actions.jsx';
+import {elasticsearchTest, elasticsearchPurgeIndexes} from 'actions/admin_actions.jsx';
 import BooleanSetting from './boolean_setting.jsx';
 import {FormattedMessage} from 'react-intl';
 import SettingsGroup from './settings_group.jsx';
 import TextSetting from './text_setting.jsx';
 import RequestButton from './request_button/request_button.jsx';
+import ElasticsearchStatus from './elasticsearch_status';
+import {saveConfig} from "../../actions/admin_actions";
 
 export default class ElasticsearchSettings extends AdminSettings {
     constructor(props) {
@@ -21,6 +23,7 @@ export default class ElasticsearchSettings extends AdminSettings {
 
         this.doTestConfig = this.doTestConfig.bind(this);
         this.handleChange = this.handleChange.bind(this);
+        this.handleSaved = this.handleSaved.bind(this);
 
         this.renderSettings = this.renderSettings.bind(this);
     }
@@ -45,7 +48,8 @@ export default class ElasticsearchSettings extends AdminSettings {
             enableIndexing: config.ElasticsearchSettings.EnableIndexing,
             enableSearching: config.ElasticsearchSettings.EnableSearching,
             configTested: true,
-            canSave: true
+            canSave: true,
+            canPurgeAndIndex: config.ElasticSearchSettings.EnableIndexing
         };
     }
 
@@ -70,7 +74,19 @@ export default class ElasticsearchSettings extends AdminSettings {
             });
         }
 
+        if (id !== 'enableSearching') {
+            this.setState({
+                canPurgeAndIndex: false
+            });
+        }
+
         super.handleChange(id, value);
+    }
+
+    handleSaved() {
+        this.setState({
+            canPurgeAndIndex: this.state.enableIndexing
+        });
     }
 
     canSave() {
@@ -89,6 +105,7 @@ export default class ElasticsearchSettings extends AdminSettings {
                     canSave: true
                 });
                 success();
+                this.doSubmit();
             },
             (err) => {
                 this.setState({
@@ -135,7 +152,7 @@ export default class ElasticsearchSettings extends AdminSettings {
                             values={{
                                 documentationLink: (
                                     <a
-                                        href='http://www.mattermost.com'
+                                        href='https://about.mattermost.com/default-elasticsearch-documentation/'
                                         rel='noopener noreferrer'
                                         target='_blank'
                                     >
@@ -167,7 +184,7 @@ export default class ElasticsearchSettings extends AdminSettings {
                             values={{
                                 documentationLink: (
                                     <a
-                                        href='http://www.mattermost.com'
+                                        href='https://about.mattermost.com/default-elasticsearch-server-setup/'
                                         rel='noopener noreferrer'
                                         target='_blank'
                                     >
@@ -245,7 +262,7 @@ export default class ElasticsearchSettings extends AdminSettings {
                     helpText={
                         <FormattedMessage
                             id='admin.elasticsearch.testHelpText'
-                            defaultMessage='Tests if the Mattermost server can connect to the Elasticsearch server specified. Testing the connection does not save the configuration. See log file for more detailed error messages.'
+                            defaultMessage='Tests if the Mattermost server can connect to the Elasticsearch server specified. Testing the connection only saves the configuration if the test is successful. See log file for more detailed error messages.'
                         />
                     }
                     buttonText={
@@ -254,7 +271,44 @@ export default class ElasticsearchSettings extends AdminSettings {
                             defaultMessage='Test Connection'
                         />
                     }
+                    successMessage={{
+                        id: 'admin.elasticsearch.testConfigSuccess',
+                        defaultMessage: 'Test successful. Configuration saved.'
+                    }}
                     disabled={!this.state.enableIndexing}
+                />
+                <ElasticsearchStatus
+                    isConfigured={this.state.canPurgeAndIndex}
+                />
+                <RequestButton
+                    requestAction={elasticsearchPurgeIndexes}
+                    helpText={
+                        <FormattedMessage
+                            id='admin.elasticsearch.purgeIndexesHelpText'
+                            defaultMessage='Purging will entirely remove the index on the Elasticsearch server. Search results may be incomplete until a bulk index of the existing post database is rebuilt.'
+                        />
+                    }
+                    buttonText={
+                        <FormattedMessage
+                            id='admin.elasticsearch.purgeIndexesButton'
+                            defaultMessage='Purge Index'
+                        />
+                    }
+                    successMessage={{
+                        id: 'admin.elasticsearch.purgeIndexesButton.success',
+                        defaultMessage: 'Indexes purged successfully.'
+                    }}
+                    errorMessage={{
+                        id: 'admin.elasticsearch.purgeIndexesButton.error',
+                        defaultMessage: 'Failed to purge indexes: {error}'
+                    }}
+                    disabled={!this.state.canPurgeAndIndex}
+                    label={(
+                        <FormattedMessage
+                            id='admin.elasticsearch.purgeIndexesButton.label'
+                            defaultMessage='Purge Indexes:'
+                        />
+                    )}
                 />
                 <BooleanSetting
                     id='enableSearching'
