@@ -900,6 +900,10 @@
     "translation": "code"
   },
   {
+    "id": "api.command_code.message.app_error",
+    "translation": "A message must be provided with the /code command."
+  },
+  {
     "id": "api.command_shrug.desc",
     "translation": "Adds ¯\\_(ツ)_/¯ to your message"
   },
