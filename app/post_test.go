@@ -5,10 +5,36 @@ package app
 
 import (
 	"testing"
+	"time"
 
-	"github.com/mattermost/platform/model"
 	"fmt"
+	"github.com/mattermost/platform/model"
 )
+
+func TestUpdatePostEditAt(t *testing.T) {
+	th := Setup().InitBasic()
+
+	post := &model.Post{}
+	*post = *th.BasicPost
+
+	post.IsPinned = true
+	if saved, err := UpdatePost(post, true); err != nil {
+		t.Fatal(err)
+	} else if saved.EditAt != post.EditAt {
+		t.Fatal("shouldn't have updated post.EditAt when pinning post")
+
+		*post = *saved
+	}
+
+	time.Sleep(time.Millisecond * 100)
+
+	post.Message = model.NewId()
+	if saved, err := UpdatePost(post, true); err != nil {
+		t.Fatal(err)
+	} else if saved.EditAt == post.EditAt {
+		t.Fatal("should have updated post.EditAt when updating post message")
+	}
+}
 
 func TestPostReplyToPostWhereRootPosterLeftChannel(t *testing.T) {
 	// This test ensures that when replying to a root post made by a user who has since left the channel, the reply
@@ -29,13 +55,13 @@ func TestPostReplyToPostWhereRootPosterLeftChannel(t *testing.T) {
 	}
 
 	replyPost := model.Post{
-		Message: "asd",
-		ChannelId: channel.Id,
-		RootId: rootPost.Id,
-		ParentId: rootPost.Id,
+		Message:       "asd",
+		ChannelId:     channel.Id,
+		RootId:        rootPost.Id,
+		ParentId:      rootPost.Id,
 		PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
-		UserId: userInChannel.Id,
-		CreateAt: 0,
+		UserId:        userInChannel.Id,
+		CreateAt:      0,
 	}
 
 	if _, err := CreatePostAsUser(&replyPost); err != nil {

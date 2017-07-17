@@ -1,6 +1,12 @@
 @charset 'UTF-8';
 
 @media screen and (max-width: 768px) {
+    .channel-header {
+        .channel-header__icon {
+            display: none;
+        }
+    }
+
     .member-role .member-menu,
     .member-drop .member-menu {
         right: 0;
@@ -76,10 +82,10 @@
         @include box-shadow(none);
         background: alpha-color($black, .8);
         border: none;
-        height: calc(100% - 40px);
+        height: calc(100% - 50px);
         max-width: 100%;
         position: fixed;
-        top: 47px;
+        top: 40px !important;
         width: 100%;
 
         &.in {
@@ -865,14 +871,18 @@
                 white-space: nowrap;
 
                 .heading {
+                    font-size: 17px;
+                    font-weight: 400;
                     line-height: normal;
                     position: relative;
-                    top: 11px;
+                    top: 14px;
                     vertical-align: top;
                 }
 
                 .header-dropdown__icon {
-                    top: 18px;
+                    font-size: 12px;
+                    margin-left: 5px;
+                    top: 20px;
                     vertical-align: top;
                 }
             }
@@ -891,12 +901,12 @@
                 @include translate3d(0, 100%, 0);
                 background: alpha-color($black, .9);
                 display: block;
-                height: calc(100% - 40px);
+                height: calc(100% - 48px);
                 left: 0;
                 overflow: auto;
                 padding: 1.4em 0 0;
                 position: fixed;
-                top: 42px;
+                top: 48px;
                 visibility: hidden;
                 width: 100%;
 
@@ -981,21 +991,36 @@
     }
 
     .search-bar__container {
-        @include flex(0 0 44px);
+        @include flex(0 0 50px);
         background: $primary-color;
         color: $white;
         padding: 0;
+
+        .search-form__container {
+            padding: 0;
+        }
 
         .search__form {
             @include single-transition(all, .2s, linear);
             @include translateX(0);
             border: none;
-            height: 45px;
-            padding: 7px 20px 0 49px;
-            position: relative;
+            margin-top: 9px;
             width: 100%;
-            margin-left: 0px;
-            margin-right: 0px;
+
+            .search-bar {
+                font-size: 14px;
+                height: 32px;
+                padding: 0 40px;
+            }
+
+            .search__icon {
+                left: 15px;
+                top: 7px;
+
+                svg {
+                    width: 17px;
+                }
+            }
 
             .icon--refresh {
                 @include opacity(.6);
@@ -1009,7 +1034,7 @@
                 background: $white;
                 border: none;
                 color: $dark-gray;
-                padding: 0 31px 0 31px;
+                padding: 0 31px;
             }
         }
 
@@ -1053,7 +1078,7 @@
         }
 
         .nav-pills__container {
-            height: calc(100% - 42px);
+            height: calc(100% - 60px);
         }
 
         > div {
@@ -1110,7 +1135,7 @@
                 }
 
                 h4 {
-                    margin: 16px 0 8px;
+                    margin: 2em 0 1.5em;
                 }
 
                 > a {
@@ -1148,10 +1173,10 @@
             }
 
             .emoji-rhs {
-                position: relative;
                 display: none;
-                top: 1px;
+                position: relative;
                 right: -1px;
+                top: 1px;
             }
 
             .msg-typing:empty {
@@ -1171,27 +1196,32 @@
             }
         }
 
-        .sidebar__collapse,
-        .sidebar__search-icon {
-            display: block;
+        .sidebar-collapse__container {
+            display: table-cell;
+            vertical-align: top;
         }
 
         .sidebar__search-clear {
+            @include opacity(1);
+            color: inherit;
             display: block;
-            top: 6px;
-            height: 30px;
-            width: 35px;
-            margin-right: 18px;
+            height: 32px;
+            margin-right: 0;
+            text-align: center;
+            top: 0;
+            width: 42px;
+
             &.visible {
                 visibility: visible;
             }
         }
 
         .sidebar__search-clear-x {
-            margin-left: 14px;
-            font-size: 22px;
+            font-size: 21px;
             font-weight: 700;
-            opacity: .7;
+            line-height: 0;
+            position: relative;
+            top: 9px;
         }
 
         .sidebar--right__close {
@@ -1199,12 +1229,12 @@
         }
 
         .sidebar-right__body {
-            height: calc(100% - 44px);
+            height: calc(100% - 56px);
         }
     }
 
     .search-items-container {
-        height: calc(100% - 44px);
+        height: calc(100% - 56px);
     }
 
     .inner-wrap {
@@ -1261,10 +1291,10 @@
 
     .app__content {
         margin: 0;
-        padding-top: 45px;
+        padding-top: 56px;
 
         .channel__wrap & {
-            padding-top: 45px;
+            padding-top: 56px;
         }
 
         #channel-header {

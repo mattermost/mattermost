@@ -5,19 +5,20 @@ package einterfaces
 
 import "github.com/mattermost/platform/model"
 
-type ElasticSearchInterface interface {
+type ElasticsearchInterface interface {
 	Start() *model.AppError
-	IndexPost(post *model.Post, teamId string)
+	IndexPost(post *model.Post, teamId string) *model.AppError
 	SearchPosts(channels *model.ChannelList, searchParams []*model.SearchParams) ([]string, *model.AppError)
-	DeletePost(postId string)
+	DeletePost(postId string) *model.AppError
+	TestConfig(cfg *model.Config) *model.AppError
 }
 
-var theElasticSearchInterface ElasticSearchInterface
+var theElasticsearchInterface ElasticsearchInterface
 
-func RegisterElasticSearchInterface(newInterface ElasticSearchInterface) {
-	theElasticSearchInterface = newInterface
+func RegisterElasticsearchInterface(newInterface ElasticsearchInterface) {
+	theElasticsearchInterface = newInterface
 }
 
-func GetElasticSearchInterface() ElasticSearchInterface {
-	return theElasticSearchInterface
+func GetElasticsearchInterface() ElasticsearchInterface {
+	return theElasticsearchInterface
 }

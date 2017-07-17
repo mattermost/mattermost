@@ -277,9 +277,21 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 	inChannelId := r.URL.Query().Get("in_channel")
 	notInChannelId := r.URL.Query().Get("not_in_channel")
 	withoutTeam := r.URL.Query().Get("without_team")
+	sort := r.URL.Query().Get("sort")
 
 	if len(notInChannelId) > 0 && len(inTeamId) == 0 {
-		c.SetInvalidParam("team_id")
+		c.SetInvalidUrlParam("team_id")
+		return
+	}
+
+	if sort != "" && sort != "last_activity_at" && sort != "create_at" {
+		c.SetInvalidUrlParam("sort")
+		return
+	}
+
+	// Currently only supports sorting on a team
+	if (sort == "last_activity_at" || sort == "create_at") && (inTeamId == "" || notInTeamId != "" || inChannelId != "" || notInChannelId != "" || withoutTeam != "") {
+		c.SetInvalidUrlParam("sort")
 		return
 	}
 
@@ -287,7 +299,7 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 	var err *model.AppError
 	etag := ""
 
-	if withoutTeamBool, err := strconv.ParseBool(withoutTeam); err == nil && withoutTeamBool {
+	if withoutTeamBool, _ := strconv.ParseBool(withoutTeam); withoutTeamBool {
 		// Use a special permission for now
 		if !app.SessionHasPermissionTo(c.Session, model.PERMISSION_LIST_USERS_WITHOUT_TEAM) {
 			c.SetPermissionError(model.PERMISSION_LIST_USERS_WITHOUT_TEAM)
@@ -320,12 +332,18 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		etag = app.GetUsersInTeamEtag(inTeamId)
-		if HandleEtag(etag, "Get Users in Team", w, r) {
-			return
-		}
+		if sort == "last_activity_at" {
+			profiles, err = app.GetRecentlyActiveUsersForTeamPage(inTeamId, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin())
+		} else if sort == "create_at" {
+			profiles, err = app.GetNewUsersForTeamPage(inTeamId, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin())
+		} else {
+			etag = app.GetUsersInTeamEtag(inTeamId)
+			if HandleEtag(etag, "Get Users in Team", w, r) {
+				return
+			}
 
-		profiles, err = app.GetUsersInTeamPage(inTeamId, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin())
+			profiles, err = app.GetUsersInTeamPage(inTeamId, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin())
+		}
 	} else if len(inChannelId) > 0 {
 		if !app.SessionHasPermissionToChannel(c.Session, inChannelId, model.PERMISSION_READ_CHANNEL) {
 			c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
@@ -1016,10 +1034,10 @@ func sendVerificationEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	app.SendEmailVerification(user)
+	err = app.SendEmailVerification(user)
 	if err != nil {
 		// Don't want to leak whether the email is valid or not
-		l4g.Error("Unable to create email verification token: " + err.Error())
+		l4g.Error(err.Error())
 		ReturnStatusOK(w)
 		return
 	}

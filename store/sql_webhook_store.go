@@ -14,7 +14,7 @@ import (
 )
 
 type SqlWebhookStore struct {
-	*SqlStore
+	SqlStore
 }
 
 const (
@@ -28,7 +28,7 @@ func ClearWebhookCaches() {
 	webhookCache.Purge()
 }
 
-func NewSqlWebhookStore(sqlStore *SqlStore) WebhookStore {
+func NewSqlWebhookStore(sqlStore SqlStore) WebhookStore {
 	s := &SqlWebhookStore{sqlStore}
 
 	for _, db := range sqlStore.GetAllConns() {

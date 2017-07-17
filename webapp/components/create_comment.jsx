@@ -15,7 +15,7 @@ import Textbox from './textbox.jsx';
 import MsgTyping from './msg_typing.jsx';
 import FileUpload from './file_upload.jsx';
 import FilePreview from './file_preview.jsx';
-import EmojiPicker from './emoji_picker/emoji_picker.jsx';
+import EmojiPickerOverlay from 'components/emoji_picker/emoji_picker_overlay.jsx';
 import * as Utils from 'utils/utils.jsx';
 import * as UserAgent from 'utils/user_agent.jsx';
 import * as GlobalActions from 'actions/global_actions.jsx';
@@ -24,7 +24,6 @@ import * as PostActions from 'actions/post_actions.jsx';
 import Constants from 'utils/constants.jsx';
 
 import {FormattedMessage} from 'react-intl';
-import {RootCloseWrapper} from 'react-overlays';
 import {browserHistory} from 'react-router/es6';
 
 const ActionTypes = Constants.ActionTypes;
@@ -54,12 +53,15 @@ export default class CreateComment extends React.Component {
         this.removePreview = this.removePreview.bind(this);
         this.getFileCount = this.getFileCount.bind(this);
         this.getFileUploadTarget = this.getFileUploadTarget.bind(this);
+        this.getCreateCommentControls = this.getCreateCommentControls.bind(this);
         this.onPreferenceChange = this.onPreferenceChange.bind(this);
         this.focusTextbox = this.focusTextbox.bind(this);
         this.showPostDeletedModal = this.showPostDeletedModal.bind(this);
         this.hidePostDeletedModal = this.hidePostDeletedModal.bind(this);
         this.handlePostError = this.handlePostError.bind(this);
         this.handleEmojiClick = this.handleEmojiClick.bind(this);
+        this.toggleEmojiPicker = this.toggleEmojiPicker.bind(this);
+        this.hideEmojiPicker = this.hideEmojiPicker.bind(this);
 
         PostStore.clearCommentDraftUploads();
         MessageHistoryStore.resetHistoryIndex('comment');
@@ -74,15 +76,18 @@ export default class CreateComment extends React.Component {
             ctrlSend: PreferenceStore.getBool(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS, 'send_on_ctrl_enter'),
             showPostDeletedModal: false,
             enableAddButton,
-            showEmojiPicker: false,
-            emojiPickerEnabled: Utils.isFeatureEnabled(Constants.PRE_RELEASE_FEATURES.EMOJI_PICKER_PREVIEW)
+            showEmojiPicker: false
         };
 
         this.lastBlurAt = 0;
     }
 
-    toggleEmojiPicker = () => {
+    toggleEmojiPicker() {
         this.setState({showEmojiPicker: !this.state.showEmojiPicker});
+    }
+
+    hideEmojiPicker() {
+        this.setState({showEmojiPicker: false});
     }
 
     handleEmojiClick(emoji) {
@@ -120,8 +125,7 @@ export default class CreateComment extends React.Component {
 
     onPreferenceChange() {
         this.setState({
-            ctrlSend: PreferenceStore.getBool(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS, 'send_on_ctrl_enter'),
-            emojiPickerEnabled: Utils.isFeatureEnabled(Constants.PRE_RELEASE_FEATURES.EMOJI_PICKER_PREVIEW)
+            ctrlSend: PreferenceStore.getBool(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS, 'send_on_ctrl_enter')
         });
     }
 
@@ -203,7 +207,11 @@ export default class CreateComment extends React.Component {
             (data) => {
                 this.setState({submitting: false});
                 if (data.goto_location && data.goto_location.length > 0) {
-                    browserHistory.push(data.goto_location);
+                    if (data.goto_location.startsWith('/') || data.goto_location.includes(window.location.hostname)) {
+                        browserHistory.push(data.goto_location);
+                    } else {
+                        window.open(data.goto_location);
+                    }
                 }
             },
             (err) => {
@@ -466,6 +474,10 @@ export default class CreateComment extends React.Component {
         return this.refs.textbox;
     }
 
+    getCreateCommentControls() {
+        return this.refs.createCommentControls;
+    }
+
     focusTextbox(keepFocus = false) {
         if (keepFocus || !Utils.isMobile()) {
             this.refs.textbox.focus();
@@ -544,15 +556,38 @@ export default class CreateComment extends React.Component {
             addButtonClass += ' disabled';
         }
 
+        const fileUpload = (
+            <FileUpload
+                ref='fileUpload'
+                getFileCount={this.getFileCount}
+                getTarget={this.getFileUploadTarget}
+                onFileUploadChange={this.handleFileUploadChange}
+                onUploadStart={this.handleUploadStart}
+                onFileUpload={this.handleFileUploadComplete}
+                onUploadError={this.handleUploadError}
+                postType='comment'
+                channelId={this.props.channelId}
+            />
+        );
+
         let emojiPicker = null;
-        if (this.state.showEmojiPicker) {
+        if (window.mm_config.EnableEmojiPicker === 'true') {
             emojiPicker = (
-                <RootCloseWrapper onRootClose={this.toggleEmojiPicker}>
-                    <EmojiPicker
+                <span>
+                    <EmojiPickerOverlay
+                        show={this.state.showEmojiPicker}
+                        container={this.props.getSidebarBody}
+                        target={this.getCreateCommentControls}
+                        onHide={this.hideEmojiPicker}
                         onEmojiClick={this.handleEmojiClick}
-                        onHide={this.toggleEmojiPicker}
+                        rightOffset={15}
+                        topOffset={55}
                     />
-                </RootCloseWrapper>
+                    <span
+                        className={'fa fa-smile-o icon--emoji-picker emoji-rhs'}
+                        onClick={this.toggleEmojiPicker}
+                    />
+                </span>
             );
         }
 
@@ -572,28 +607,19 @@ export default class CreateComment extends React.Component {
                                 value={this.state.message}
                                 onBlur={this.handleBlur}
                                 createMessage={Utils.localizeMessage('create_comment.addComment', 'Add a comment...')}
-                                emojiEnabled={this.state.emojiPickerEnabled}
+                                emojiEnabled={window.mm_config.EnableEmojiPicker === 'true'}
                                 initialText=''
                                 channelId={this.props.channelId}
                                 id='reply_textbox'
                                 ref='textbox'
                             />
-                            <FileUpload
-                                ref='fileUpload'
-                                getFileCount={this.getFileCount}
-                                getTarget={this.getFileUploadTarget}
-                                onFileUploadChange={this.handleFileUploadChange}
-                                onUploadStart={this.handleUploadStart}
-                                onFileUpload={this.handleFileUploadComplete}
-                                onUploadError={this.handleUploadError}
-                                postType='comment'
-                                channelId={this.props.channelId}
-                                onEmojiClick={this.toggleEmojiPicker}
-                                emojiEnabled={this.state.emojiPickerEnabled}
-                                navBarName='rhs'
-                            />
-
-                            {emojiPicker}
+                            <span
+                                ref='createCommentControls'
+                                className='btn btn-file'
+                            >
+                                {fileUpload}
+                                {emojiPicker}
+                            </span>
                         </div>
                     </div>
                     <MsgTyping
@@ -625,5 +651,6 @@ export default class CreateComment extends React.Component {
 CreateComment.propTypes = {
     channelId: PropTypes.string.isRequired,
     rootId: PropTypes.string.isRequired,
-    latestPostId: PropTypes.string
+    latestPostId: PropTypes.string,
+    getSidebarBody: PropTypes.func
 };

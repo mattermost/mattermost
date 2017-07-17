@@ -4,7 +4,6 @@
 import Suggestion from './suggestion.jsx';
 import Provider from './provider.jsx';
 
-import Client from 'client/web_client.jsx';
 import AppDispatcher from 'dispatcher/app_dispatcher.jsx';
 import {Constants, ActionTypes} from 'utils/constants.jsx';
 import * as Utils from 'utils/utils.jsx';
@@ -27,6 +26,8 @@ class SwitchChannelSuggestion extends Suggestion {
     render() {
         const {item, isSelection} = this.props;
         const channel = item.channel;
+        const globeIcon = Constants.GLOBE_ICON_SVG;
+        const lockIcon = Constants.LOCK_ICON_SVG;
 
         let className = 'mentions__name';
         if (isSelection) {
@@ -36,9 +37,19 @@ class SwitchChannelSuggestion extends Suggestion {
         let displayName = channel.display_name;
         let icon = null;
         if (channel.type === Constants.OPEN_CHANNEL) {
-            icon = <div className='status'><i className='fa fa-globe'/></div>;
+            icon = (
+                <span
+                    className='icon icon__globe icon--body'
+                    dangerouslySetInnerHTML={{__html: globeIcon}}
+                />
+            );
         } else if (channel.type === Constants.PRIVATE_CHANNEL) {
-            icon = <div className='status'><i className='fa fa-lock'/></div>;
+            icon = (
+                <span
+                    className='icon icon__lock icon--body'
+                    dangerouslySetInnerHTML={{__html: lockIcon}}
+                />
+            );
         } else if (channel.type === Constants.GM_CHANNEL) {
             displayName = getChannelDisplayName(channel);
             icon = <div className='status status--group'>{'G'}</div>;
@@ -47,7 +58,7 @@ class SwitchChannelSuggestion extends Suggestion {
                 <div className='pull-left'>
                     <img
                         className='mention__image'
-                        src={Client.getUsersRoute() + '/' + channel.id + '/image?time=' + channel.last_picture_update}
+                        src={Client4.getUsersRoute() + '/' + channel.id + '/image?time=' + channel.last_picture_update}
                     />
                 </div>
             );
@@ -122,7 +133,11 @@ export default class SwitchChannelProvider extends Provider {
     }
 
     async fetchUsersAndChannels(channelPrefix, suggestionId) {
-        const usersAsync = Client4.autocompleteUsers(channelPrefix, '', '');
+        let teamId = '';
+        if (global.window.mm_config.RestrictDirectMessage === 'team') {
+            teamId = store.getState().entities.teams.currentTeamId;
+        }
+        const usersAsync = Client4.autocompleteUsers(channelPrefix, teamId, '');
         const channelsAsync = Client4.searchChannels(getCurrentTeamId(getState()), channelPrefix);
 
         let usersFromServer = [];

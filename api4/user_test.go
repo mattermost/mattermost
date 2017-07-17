@@ -261,7 +261,7 @@ func TestCreateUserWithInviteId(t *testing.T) {
 		inviteId := model.NewId()
 
 		_, resp := Client.CreateUserWithInviteId(&user, inviteId)
-		CheckInternalErrorStatus(t, resp)
+		CheckNotFoundStatus(t, resp)
 		CheckErrorMessage(t, resp, "store.sql_team.get_by_invite_id.find.app_error")
 	})
 
@@ -283,7 +283,7 @@ func TestCreateUserWithInviteId(t *testing.T) {
 		CheckNoError(t, resp)
 
 		_, resp = Client.CreateUserWithInviteId(&user, inviteId)
-		CheckInternalErrorStatus(t, resp)
+		CheckNotFoundStatus(t, resp)
 		CheckErrorMessage(t, resp, "store.sql_team.get_by_invite_id.find.app_error")
 	})
 
@@ -649,7 +649,7 @@ func TestSearchUsers(t *testing.T) {
 		t.Fatal("should have found user")
 	}
 
-	_, resp = th.SystemAdminClient.AddTeamMember(th.BasicTeam.Id, oddUser.Id, "", "", th.BasicTeam.InviteId)
+	_, resp = th.SystemAdminClient.AddTeamMember(th.BasicTeam.Id, oddUser.Id)
 	CheckNoError(t, resp)
 
 	users, resp = Client.SearchUsers(search)
@@ -1221,6 +1221,64 @@ func TestGetUsers(t *testing.T) {
 
 	Client.Logout()
 	_, resp = Client.GetUsers(0, 60, "")
+	CheckUnauthorizedStatus(t, resp)
+}
+
+func TestGetNewUsersInTeam(t *testing.T) {
+	th := Setup().InitBasic()
+	defer TearDown()
+	Client := th.Client
+	teamId := th.BasicTeam.Id
+
+	rusers, resp := Client.GetNewUsersInTeam(teamId, 0, 60, "")
+	CheckNoError(t, resp)
+
+	lastCreateAt := model.GetMillis()
+	for _, u := range rusers {
+		if u.CreateAt > lastCreateAt {
+			t.Fatal("bad sorting")
+		}
+		lastCreateAt = u.CreateAt
+		CheckUserSanitization(t, u)
+	}
+
+	rusers, resp = Client.GetNewUsersInTeam(teamId, 1, 1, "")
+	CheckNoError(t, resp)
+	if len(rusers) != 1 {
+		t.Fatal("should be 1 per page")
+	}
+
+	Client.Logout()
+	_, resp = Client.GetNewUsersInTeam(teamId, 1, 1, "")
+	CheckUnauthorizedStatus(t, resp)
+}
+
+func TestGetRecentlyActiveUsersInTeam(t *testing.T) {
+	th := Setup().InitBasic()
+	defer TearDown()
+	Client := th.Client
+	teamId := th.BasicTeam.Id
+
+	app.SetStatusOnline(th.BasicUser.Id, "", true)
+
+	rusers, resp := Client.GetRecentlyActiveUsersInTeam(teamId, 0, 60, "")
+	CheckNoError(t, resp)
+
+	for _, u := range rusers {
+		if u.LastActivityAt == 0 {
+			t.Fatal("did not return last activity at")
+		}
+		CheckUserSanitization(t, u)
+	}
+
+	rusers, resp = Client.GetRecentlyActiveUsersInTeam(teamId, 0, 1, "")
+	CheckNoError(t, resp)
+	if len(rusers) != 1 {
+		t.Fatal("should be 1 per page")
+	}
+
+	Client.Logout()
+	_, resp = Client.GetRecentlyActiveUsersInTeam(teamId, 0, 1, "")
 	CheckUnauthorizedStatus(t, resp)
 }
 

@@ -48,6 +48,12 @@ func CreatePostAsUser(post *model.Post) (*model.Post, *model.AppError) {
 			if result := <-Srv.Store.Channel().UpdateLastViewedAt([]string{post.ChannelId}, post.UserId); result.Err != nil {
 				l4g.Error(utils.T("api.post.create_post.last_viewed.error"), post.ChannelId, post.UserId, result.Err)
 			}
+
+			if *utils.Cfg.ServiceSettings.EnableChannelViewedMessages {
+				message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CHANNEL_VIEWED, "", "", post.UserId, nil)
+				message.Add("channel_id", post.ChannelId)
+				go Publish(message)
+			}
 		}
 
 		return rp, nil
@@ -93,7 +99,7 @@ func CreatePost(post *model.Post, teamId string, triggerWebhooks bool) (*model.P
 		rpost = result.Data.(*model.Post)
 	}
 
-	esInterface := einterfaces.GetElasticSearchInterface()
+	esInterface := einterfaces.GetElasticsearchInterface()
 	if esInterface != nil && *utils.Cfg.ElasticSearchSettings.EnableIndexing {
 		go esInterface.IndexPost(rpost, teamId)
 	}
@@ -239,11 +245,6 @@ func UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model.AppError
 			return nil, err
 		}
 
-		if oldPost.UserId != post.UserId {
-			err := model.NewAppError("UpdatePost", "api.post.update_post.permissions.app_error", nil, "oldUserId="+oldPost.UserId, http.StatusBadRequest)
-			return nil, err
-		}
-
 		if oldPost.DeleteAt != 0 {
 			err := model.NewAppError("UpdatePost", "api.post.update_post.permissions_details.app_error", map[string]interface{}{"PostId": post.Id}, "", http.StatusBadRequest)
 			return nil, err
@@ -265,9 +266,11 @@ func UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model.AppError
 	newPost := &model.Post{}
 	*newPost = *oldPost
 
-	newPost.Message = post.Message
-	newPost.EditAt = model.GetMillis()
-	newPost.Hashtags, _ = model.ParseHashtags(post.Message)
+	if newPost.Message != post.Message {
+		newPost.Message = post.Message
+		newPost.EditAt = model.GetMillis()
+		newPost.Hashtags, _ = model.ParseHashtags(post.Message)
+	}
 
 	if !safeUpdate {
 		newPost.IsPinned = post.IsPinned
@@ -281,7 +284,7 @@ func UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model.AppError
 	} else {
 		rpost := result.Data.(*model.Post)
 
-		esInterface := einterfaces.GetElasticSearchInterface()
+		esInterface := einterfaces.GetElasticsearchInterface()
 		if esInterface != nil && *utils.Cfg.ElasticSearchSettings.EnableIndexing {
 			go func() {
 				if rchannel := <-Srv.Store.Channel().GetForPost(rpost.Id); rchannel.Err != nil {
@@ -468,7 +471,7 @@ func DeletePost(postId string) (*model.Post, *model.AppError) {
 		go DeletePostFiles(post)
 		go DeleteFlaggedPosts(post.Id)
 
-		esInterface := einterfaces.GetElasticSearchInterface()
+		esInterface := einterfaces.GetElasticsearchInterface()
 		if esInterface != nil && *utils.Cfg.ElasticSearchSettings.EnableIndexing {
 			go esInterface.DeletePost(post.Id)
 		}
@@ -499,8 +502,8 @@ func DeletePostFiles(post *model.Post) {
 func SearchPostsInTeam(terms string, userId string, teamId string, isOrSearch bool) (*model.PostList, *model.AppError) {
 	paramsList := model.ParseSearchParams(terms)
 
-	esInterface := einterfaces.GetElasticSearchInterface()
-	if esInterface != nil && *utils.Cfg.ElasticSearchSettings.EnableSearching && utils.IsLicensed && *utils.License.Features.ElasticSearch {
+	esInterface := einterfaces.GetElasticsearchInterface()
+	if esInterface != nil && *utils.Cfg.ElasticSearchSettings.EnableSearching && utils.IsLicensed && *utils.License.Features.Elasticsearch {
 		finalParamsList := []*model.SearchParams{}
 
 		for _, params := range paramsList {
@@ -536,7 +539,7 @@ func SearchPostsInTeam(terms string, userId string, teamId string, isOrSearch bo
 			return nil, err
 		}
 
-		postIds, err := einterfaces.GetElasticSearchInterface().SearchPosts(userChannels, finalParamsList)
+		postIds, err := einterfaces.GetElasticsearchInterface().SearchPosts(userChannels, finalParamsList)
 		if err != nil {
 			return nil, err
 		}

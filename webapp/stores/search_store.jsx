@@ -98,7 +98,7 @@ class SearchStoreClass extends EventEmitter {
         return this.searchTerm;
     }
 
-    storeSearchResults(results, isMentionSearch, isFlaggedPosts, isPinnedPosts) {
+    storeSearchResults(results, isMentionSearch = false, isFlaggedPosts = false, isPinnedPosts = false) {
         this.searchResults = results;
         this.isMentionSearch = isMentionSearch;
         this.isFlaggedPosts = isFlaggedPosts;

@@ -45,7 +45,7 @@ func TestLicenseFeaturesSetDefaults(t *testing.T) {
 	CheckTrue(t, *f.MHPNS)
 	CheckTrue(t, *f.SAML)
 	CheckTrue(t, *f.PasswordRequirements)
-	CheckTrue(t, *f.ElasticSearch)
+	CheckTrue(t, *f.Elasticsearch)
 	CheckTrue(t, *f.FutureFeatures)
 
 	f = Features{}
@@ -64,7 +64,7 @@ func TestLicenseFeaturesSetDefaults(t *testing.T) {
 	*f.MHPNS = true
 	*f.SAML = true
 	*f.PasswordRequirements = true
-	*f.ElasticSearch = true
+	*f.Elasticsearch = true
 
 	f.SetDefaults()
 
@@ -80,7 +80,7 @@ func TestLicenseFeaturesSetDefaults(t *testing.T) {
 	CheckTrue(t, *f.MHPNS)
 	CheckTrue(t, *f.SAML)
 	CheckTrue(t, *f.PasswordRequirements)
-	CheckTrue(t, *f.ElasticSearch)
+	CheckTrue(t, *f.Elasticsearch)
 	CheckFalse(t, *f.FutureFeatures)
 }
 
@@ -161,7 +161,7 @@ func TestLicenseToFromJson(t *testing.T) {
 	CheckBool(t, *f1.MHPNS, *f.MHPNS)
 	CheckBool(t, *f1.SAML, *f.SAML)
 	CheckBool(t, *f1.PasswordRequirements, *f.PasswordRequirements)
-	CheckBool(t, *f1.ElasticSearch, *f.ElasticSearch)
+	CheckBool(t, *f1.Elasticsearch, *f.Elasticsearch)
 	CheckBool(t, *f1.FutureFeatures, *f.FutureFeatures)
 
 	invalid := `{"asdf`

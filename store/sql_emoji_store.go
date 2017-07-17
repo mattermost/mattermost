@@ -4,6 +4,8 @@
 package store
 
 import (
+	"net/http"
+
 	"github.com/mattermost/platform/einterfaces"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
@@ -17,10 +19,10 @@ const (
 var emojiCache *utils.Cache = utils.NewLru(EMOJI_CACHE_SIZE)
 
 type SqlEmojiStore struct {
-	*SqlStore
+	SqlStore
 }
 
-func NewSqlEmojiStore(sqlStore *SqlStore) EmojiStore {
+func NewSqlEmojiStore(sqlStore SqlStore) EmojiStore {
 	s := &SqlEmojiStore{sqlStore}
 
 	for _, db := range sqlStore.GetAllConns() {
@@ -104,7 +106,7 @@ func (es SqlEmojiStore) Get(id string, allowFromCache bool) StoreChannel {
 			WHERE
 				Id = :Id
 				AND DeleteAt = 0`, map[string]interface{}{"Id": id}); err != nil {
-			result.Err = model.NewLocAppError("SqlEmojiStore.Get", "store.sql_emoji.get.app_error", nil, "id="+id+", "+err.Error())
+			result.Err = model.NewAppError("SqlEmojiStore.Get", "store.sql_emoji.get.app_error", nil, "id="+id+", "+err.Error(), http.StatusNotFound)
 		} else {
 			result.Data = emoji
 
@@ -148,7 +150,7 @@ func (es SqlEmojiStore) GetByName(name string) StoreChannel {
 	return storeChannel
 }
 
-func (es SqlEmojiStore) GetAll() StoreChannel {
+func (es SqlEmojiStore) GetList(offset, limit int) StoreChannel {
 	storeChannel := make(StoreChannel, 1)
 
 	go func() {
@@ -162,8 +164,9 @@ func (es SqlEmojiStore) GetAll() StoreChannel {
 			FROM
 				Emoji
 			WHERE
-				DeleteAt = 0`); err != nil {
-			result.Err = model.NewLocAppError("SqlEmojiStore.Get", "store.sql_emoji.get_all.app_error", nil, err.Error())
+				DeleteAt = 0
+			LIMIT :Limit OFFSET :Offset`, map[string]interface{}{"Offset": offset, "Limit": limit}); err != nil {
+			result.Err = model.NewAppError("SqlEmojiStore.GetList", "store.sql_emoji.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
 		} else {
 			result.Data = emoji
 		}
@@ -194,6 +197,8 @@ func (es SqlEmojiStore) Delete(id string, time int64) StoreChannel {
 		} else if rows, _ := sqlResult.RowsAffected(); rows == 0 {
 			result.Err = model.NewLocAppError("SqlEmojiStore.Delete", "store.sql_emoji.delete.no_results", nil, "id="+id+", err="+err.Error())
 		}
+
+		emojiCache.Remove(id)
 
 		storeChannel <- result
 		close(storeChannel)

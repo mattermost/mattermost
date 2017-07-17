@@ -14,8 +14,6 @@ import {reconnect} from 'actions/websocket_actions.jsx';
 import AppDispatcher from 'dispatcher/app_dispatcher.jsx';
 import Constants from 'utils/constants.jsx';
 const ActionTypes = Constants.ActionTypes;
-import * as AsyncClient from 'utils/async_client.jsx';
-import Client from 'client/web_client.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
 import BrowserStore from 'stores/browser_store.jsx';
 import * as Utils from 'utils/utils.jsx';
@@ -31,6 +29,8 @@ const dispatch = store.dispatch;
 const getState = store.getState;
 
 import {fetchMyChannelsAndMembers, joinChannel} from 'mattermost-redux/actions/channels';
+import {getMyTeamUnreads} from 'mattermost-redux/actions/teams';
+import {getUser, getUserByUsername, getUserByEmail} from 'mattermost-redux/actions/users';
 
 function onChannelEnter(nextState, replace, callback) {
     doChannelChange(nextState, replace, callback);
@@ -51,10 +51,10 @@ function doChannelChange(state, replace, callback) {
 
         if (!channel) {
             joinChannel(UserStore.getCurrentId(), TeamStore.getCurrentId(), null, state.params.channel)(dispatch, getState).then(
-                (data) => {
-                    if (data) {
-                        GlobalActions.emitChannelClickEvent(data.channel);
-                    } else if (data == null) {
+                (result) => {
+                    if (result.data) {
+                        GlobalActions.emitChannelClickEvent(result.data.channel);
+                    } else if (result.error) {
                         if (state.params.team) {
                             replace('/' + state.params.team + '/channels/town-square');
                         } else {
@@ -103,17 +103,16 @@ function preNeedsTeam(nextState, replace, callback) {
         return;
     }
 
+    // If current team is set, then this is not first load
+    // The first load action pulls team unreads
+    if (TeamStore.getCurrentId()) {
+        getMyTeamUnreads()(dispatch, getState);
+    }
+
     TeamStore.saveMyTeam(team);
     BrowserStore.setGlobalItem('team', team.id);
     TeamStore.emitChange();
     GlobalActions.emitCloseRightHandSide();
-
-    if (nextState.location.pathname.indexOf('/channels/') > -1 ||
-        nextState.location.pathname.indexOf('/pl/') > -1 ||
-        nextState.location.pathname.indexOf('/messages/') > -1) {
-        AsyncClient.getMyTeamsUnread();
-        fetchMyChannelsAndMembers(team.id)(dispatch, getState);
-    }
 
     const d1 = $.Deferred(); //eslint-disable-line new-cap
 
@@ -172,13 +171,14 @@ function onChannelByIdentifierEnter(state, replace, callback) {
                 replace(`/${state.params.team}/messages/@${teammate.username}`);
                 callback();
             } else {
-                Client.getUser(
-                    userId,
+                getUser(userId)(dispatch, getState).then(
                     (profile) => {
-                        replace(`/${state.params.team}/messages/@${profile.username}`);
-                        callback();
-                    }, () => {
-                        handleError(state, replace, callback);
+                        if (profile) {
+                            replace(`/${state.params.team}/messages/@${profile.username}`);
+                            callback();
+                        } else if (profile == null) {
+                            handleError(state, replace, callback);
+                        }
                     }
                 );
             }
@@ -192,11 +192,11 @@ function onChannelByIdentifierEnter(state, replace, callback) {
                 callback();
             } else {
                 joinChannel(UserStore.getCurrentId(), TeamStore.getCurrentId(), null, identifier)(dispatch, getState).then(
-                    (data) => {
-                        if (data) {
-                            GlobalActions.emitChannelClickEvent(data.channel);
+                    (result) => {
+                        if (result.data) {
+                            GlobalActions.emitChannelClickEvent(result.data.channel);
                             callback();
-                        } else if (data == null) {
+                        } else if (result.error) {
                             handleError(state, replace, callback);
                         }
                     }
@@ -224,7 +224,16 @@ function onChannelByIdentifierEnter(state, replace, callback) {
             if (teammate) {
                 directChannelToUser(teammate, state, replace, callback);
             } else {
-                Client.getByUsername(username, success, error);
+                getUserByUsername(username)(dispatch, getState).then(
+                    (data) => {
+                        if (data && success) {
+                            success(data);
+                        } else if (data == null && error) {
+                            const serverError = getState().requests.users.getUserByUsername.error;
+                            error({id: serverError.server_error_id, ...serverError});
+                        }
+                    }
+                );
             }
         } else if (identifier.indexOf('@') > 0) { // email identifier
             const email = identifier;
@@ -232,7 +241,16 @@ function onChannelByIdentifierEnter(state, replace, callback) {
             if (teammate) {
                 directChannelToUser(teammate, state, replace, callback);
             } else {
-                Client.getByEmail(email, success, error);
+                getUserByEmail(email)(dispatch, getState).then(
+                    (data) => {
+                        if (data && success) {
+                            success(data);
+                        } else if (data == null && error) {
+                            const serverError = getState().requests.users.getUser.error;
+                            error({id: serverError.server_error_id, ...serverError});
+                        }
+                    }
+                );
             }
         }
     }
@@ -242,10 +260,6 @@ function directChannelToUser(profile, state, replace, callback) {
     openDirectChannelToUser(
         profile.id,
         (channel) => {
-            AppDispatcher.handleServerAction({
-                type: ActionTypes.RECEIVED_CHANNEL,
-                channel
-            });
             GlobalActions.emitChannelClickEvent(channel);
             callback();
         },

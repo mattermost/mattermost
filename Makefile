@@ -123,6 +123,14 @@ ifeq ($(BUILD_ENTERPRISE_READY),true)
 		docker start mattermost-openldap > /dev/null; \
 		sleep 10; \
 	fi
+
+	@if [ $(shell docker ps -a | grep -ci mattermost-elasticsearch) -eq 0 ]; then \
+		echo starting mattermost-elasticsearch; \
+		docker run --name mattermost-elasticsearch -p 9200:9200 -e "http.host=0.0.0.0" -e "transport.host=127.0.0.1" -e "ES_JAVA_OPTS=-Xms250m -Xmx250m" -d grundleborg/elasticsearch:latest > /dev/null; \
+	elif [ $(shell docker ps | grep -ci mattermost-elasticsearch) -eq 0 ]; then \
+		echo restarting mattermost-elasticsearch; \
+		docker start mattermost-elasticsearch> /dev/null; \
+	fi
 endif
 
 stop-docker:
@@ -146,6 +154,11 @@ stop-docker:
 	@if [ $(shell docker ps -a | grep -ci mattermost-inbucket) -eq 1 ]; then \
 		echo stopping mattermost-inbucket; \
 		docker stop mattermost-inbucket > /dev/null; \
+	fi
+
+	@if [ $(shell docker ps -a | grep -ci mattermost-elasticsearch) -eq 1 ]; then \
+		echo stopping mattermost-elasticsearch; \
+		docker stop mattermost-elasticsearch > /dev/null; \
 	fi
 
 clean-docker:
@@ -173,6 +186,12 @@ clean-docker:
 		echo removing mattermost-inbucket; \
 		docker stop mattermost-inbucket > /dev/null; \
 		docker rm -v mattermost-inbucket > /dev/null; \
+	fi
+
+	@if [ $(shell docker ps -a | grep -ci mattermost-elasticsearch) -eq 1 ]; then \
+		echo removing mattermost-elasticsearch; \
+		docker stop mattermost-elasticsearch > /dev/null; \
+		docker rm -v mattermost-elasticsearch > /dev/null; \
 	fi
 
 check-client-style:
@@ -528,6 +547,8 @@ govet:
 	$(GO) vet $(GOFLAGS) ./app || exit 1
 	$(GO) vet $(GOFLAGS) ./cmd/platform || exit 1
 	$(GO) vet $(GOFLAGS) ./einterfaces || exit 1
+	$(GO) vet $(GOFLAGS) ./jobs || exit 1
+	$(GO) vet $(GOFLAGS) ./jobs/jobserver || exit 1
 	$(GO) vet $(GOFLAGS) ./manualtesting || exit 1
 	$(GO) vet $(GOFLAGS) ./model || exit 1
 	$(GO) vet $(GOFLAGS) ./model/gitlab || exit 1
@@ -541,6 +562,7 @@ ifeq ($(BUILD_ENTERPRISE_READY),true)
 	$(GO) vet $(GOFLAGS) ./enterprise/cluster || exit 1
 	$(GO) vet $(GOFLAGS) ./enterprise/compliance || exit 1
 	$(GO) vet $(GOFLAGS) ./enterprise/data_retention || exit 1
+	$(GO) vet $(GOFLAGS) ./enterprise/elasticsearch || exit 1
 	$(GO) vet $(GOFLAGS) ./enterprise/emoji || exit 1
 	$(GO) vet $(GOFLAGS) ./enterprise/imports || exit 1
 	$(GO) vet $(GOFLAGS) ./enterprise/ldap || exit 1

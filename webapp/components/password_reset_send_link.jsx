@@ -4,7 +4,7 @@
 import $ from 'jquery';
 import ReactDOM from 'react-dom';
 import * as Utils from 'utils/utils.jsx';
-import client from 'client/web_client.jsx';
+import {sendPasswordResetEmail} from 'actions/user_actions.jsx';
 
 import {FormattedMessage, FormattedHTMLMessage} from 'react-intl';
 
@@ -45,7 +45,7 @@ class PasswordResetSendLink extends React.Component {
             error: ''
         });
 
-        client.sendPasswordReset(
+        sendPasswordResetEmail(
             email,
             () => {
                 this.setState({

@@ -1592,3 +1592,72 @@ func TestPostStoreGetPostsByIds(t *testing.T) {
 		t.Fatalf("Expected 2 posts in results. Got %v", len(ro5))
 	}
 }
+
+func TestPostStoreGetPostsBatchForIndexing(t *testing.T) {
+	Setup()
+
+	c1 := &model.Channel{}
+	c1.TeamId = model.NewId()
+	c1.DisplayName = "Channel1"
+	c1.Name = "zz" + model.NewId() + "b"
+	c1.Type = model.CHANNEL_OPEN
+	c1 = (<-store.Channel().Save(c1)).Data.(*model.Channel)
+
+	c2 := &model.Channel{}
+	c2.TeamId = model.NewId()
+	c2.DisplayName = "Channel2"
+	c2.Name = "zz" + model.NewId() + "b"
+	c2.Type = model.CHANNEL_OPEN
+	c2 = (<-store.Channel().Save(c2)).Data.(*model.Channel)
+
+	o1 := &model.Post{}
+	o1.ChannelId = c1.Id
+	o1.UserId = model.NewId()
+	o1.Message = "zz" + model.NewId() + "AAAAAAAAAAA"
+	o1 = (<-store.Post().Save(o1)).Data.(*model.Post)
+
+	o2 := &model.Post{}
+	o2.ChannelId = c2.Id
+	o2.UserId = model.NewId()
+	o2.Message = "zz" + model.NewId() + "CCCCCCCCC"
+	o2 = (<-store.Post().Save(o2)).Data.(*model.Post)
+
+	o3 := &model.Post{}
+	o3.ChannelId = c1.Id
+	o3.UserId = model.NewId()
+	o3.ParentId = o1.Id
+	o3.RootId = o1.Id
+	o3.Message = "zz" + model.NewId() + "QQQQQQQQQQ"
+	o3 = (<-store.Post().Save(o3)).Data.(*model.Post)
+
+	if r := Must(store.Post().GetPostsBatchForIndexing(o1.CreateAt, 100)).([]*model.PostForIndexing); len(r) != 3 {
+		t.Fatalf("Expected 3 posts in results. Got %v", len(r))
+	} else {
+		for _, p := range r {
+			if p.Id == o1.Id {
+				if p.TeamId != c1.TeamId {
+					t.Fatalf("Unexpected team ID")
+				}
+				if p.ParentCreateAt != nil {
+					t.Fatalf("Unexpected parent create at")
+				}
+			} else if p.Id == o2.Id {
+				if p.TeamId != c2.TeamId {
+					t.Fatalf("Unexpected team ID")
+				}
+				if p.ParentCreateAt != nil {
+					t.Fatalf("Unexpected parent create at")
+				}
+			} else if p.Id == o3.Id {
+				if p.TeamId != c1.TeamId {
+					t.Fatalf("Unexpected team ID")
+				}
+				if *p.ParentCreateAt != o1.CreateAt {
+					t.Fatalf("Unexpected parent create at")
+				}
+			} else {
+				t.Fatalf("unexpected post returned")
+			}
+		}
+	}
+}

@@ -48,7 +48,7 @@ type Store interface {
 	Status() StatusStore
 	FileInfo() FileInfoStore
 	Reaction() ReactionStore
-	JobStatus() JobStatusStore
+	Job() JobStore
 	MarkSystemRanUnitTests()
 	Close()
 	DropAllTables()
@@ -168,6 +168,7 @@ type PostStore interface {
 	GetPostsCreatedAt(channelId string, time int64) StoreChannel
 	Overwrite(post *model.Post) StoreChannel
 	GetPostsByIds(postIds []string) StoreChannel
+	GetPostsBatchForIndexing(startTime int64, limit int) StoreChannel
 }
 
 type UserStore interface {
@@ -208,7 +209,8 @@ type UserStore interface {
 	AnalyticsActiveCount(time int64) StoreChannel
 	GetUnreadCount(userId string) StoreChannel
 	GetUnreadCountForChannel(userId string, channelId string) StoreChannel
-	GetRecentlyActiveUsersForTeam(teamId string) StoreChannel
+	GetRecentlyActiveUsersForTeam(teamId string, offset, limit int) StoreChannel
+	GetNewUsersForTeam(teamId string, offset, limit int) StoreChannel
 	Search(teamId string, term string, options map[string]bool) StoreChannel
 	SearchNotInTeam(notInTeamId string, term string, options map[string]bool) StoreChannel
 	SearchInChannel(channelId string, term string, options map[string]bool) StoreChannel
@@ -348,7 +350,7 @@ type EmojiStore interface {
 	Save(emoji *model.Emoji) StoreChannel
 	Get(id string, allowFromCache bool) StoreChannel
 	GetByName(name string) StoreChannel
-	GetAll() StoreChannel
+	GetList(offset, limit int) StoreChannel
 	Delete(id string, time int64) StoreChannel
 }
 
@@ -383,10 +385,14 @@ type ReactionStore interface {
 	DeleteAllWithEmojiName(emojiName string) StoreChannel
 }
 
-type JobStatusStore interface {
-	SaveOrUpdate(status *model.JobStatus) StoreChannel
+type JobStore interface {
+	Save(job *model.Job) StoreChannel
+	UpdateOptimistically(job *model.Job, currentStatus string) StoreChannel
+	UpdateStatus(id string, status string) StoreChannel
+	UpdateStatusOptimistically(id string, currentStatus string, newStatus string) StoreChannel
 	Get(id string) StoreChannel
 	GetAllByType(jobType string) StoreChannel
 	GetAllByTypePage(jobType string, offset int, limit int) StoreChannel
+	GetAllByStatus(status string) StoreChannel
 	Delete(id string) StoreChannel
 }

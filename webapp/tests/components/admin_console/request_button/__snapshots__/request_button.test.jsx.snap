@@ -1,0 +1,496 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/admin_console/request_button/request_button.jsx should match snapshot 1`] = `
+<div
+  className="form-group reload-config"
+>
+  <div
+    className="col-sm-offset-4 col-sm-8"
+  >
+    <div>
+      <button
+        className="btn btn-default"
+        disabled={false}
+        onClick={[Function]}
+      >
+        <FormattedMessage
+          defaultMessage="Button Text"
+          id="test"
+          values={Object {}}
+        />
+      </button>
+    </div>
+    <div
+      className="help-text"
+    >
+      <FormattedMessage
+        defaultMessage="Help Text"
+        id="test"
+        values={Object {}}
+      />
+    </div>
+  </div>
+</div>
+`;
+
+exports[`components/admin_console/request_button/request_button.jsx should match snapshot with request error 1`] = `
+<RequestButton
+  buttonText={
+    <FormattedMessage
+      defaultMessage="Button Text"
+      id="test"
+      values={Object {}}
+    />
+  }
+  disabled={false}
+  errorMessage={
+    Object {
+      "defaultMessage": "Error Message: {error}",
+      "id": "error.message",
+    }
+  }
+  helpText={
+    <FormattedMessage
+      defaultMessage="Help Text"
+      id="test"
+      values={Object {}}
+    />
+  }
+  includeDetailedError={true}
+  intl={
+    Object {
+      "defaultFormats": Object {},
+      "defaultLocale": "en",
+      "formatDate": [Function],
+      "formatHTMLMessage": [Function],
+      "formatMessage": [Function],
+      "formatNumber": [Function],
+      "formatPlural": [Function],
+      "formatRelative": [Function],
+      "formatTime": [Function],
+      "formats": Object {},
+      "formatters": Object {
+        "getDateTimeFormat": [Function],
+        "getMessageFormat": [Function],
+        "getNumberFormat": [Function],
+        "getPluralFormat": [Function],
+        "getRelativeFormat": [Function],
+      },
+      "locale": "en",
+      "messages": Object {},
+      "now": [Function],
+      "textComponent": "span",
+    }
+  }
+  requestAction={[Function]}
+  saveNeeded={false}
+  showSuccessMessage={true}
+  successMessage={
+    Object {
+      "defaultMessage": "Test Successful",
+      "id": "admin.requestButton.requestSuccess",
+    }
+  }
+>
+  <div
+    className="form-group reload-config"
+  >
+    <div
+      className="col-sm-offset-4 col-sm-8"
+    >
+      <div>
+        <button
+          className="btn btn-default"
+          disabled={false}
+          onClick={[Function]}
+        >
+          <FormattedMessage
+            defaultMessage="Button Text"
+            id="test"
+            values={Object {}}
+          >
+            <span>
+              Button Text
+            </span>
+          </FormattedMessage>
+        </button>
+        <div>
+          <div
+            className="alert alert-warning"
+          >
+            <i
+              className="fa fa-warning"
+            />
+            <FormattedMessage
+              defaultMessage="Error Message: {error}"
+              id="error.message"
+              values={
+                Object {
+                  "error": "__message__ - __detailed_error__",
+                }
+              }
+            >
+              <span>
+                Error Message: __message__ - __detailed_error__
+              </span>
+            </FormattedMessage>
+          </div>
+        </div>
+      </div>
+      <div
+        className="help-text"
+      >
+        <FormattedMessage
+          defaultMessage="Help Text"
+          id="test"
+          values={Object {}}
+        >
+          <span>
+            Help Text
+          </span>
+        </FormattedMessage>
+      </div>
+    </div>
+  </div>
+</RequestButton>
+`;
+
+exports[`components/admin_console/request_button/request_button.jsx should match snapshot with request error 2`] = `
+<RequestButton
+  buttonText={
+    <FormattedMessage
+      defaultMessage="Button Text"
+      id="test"
+      values={Object {}}
+    />
+  }
+  disabled={false}
+  errorMessage={
+    Object {
+      "defaultMessage": "Error Message: {error}",
+      "id": "error.message",
+    }
+  }
+  helpText={
+    <FormattedMessage
+      defaultMessage="Help Text"
+      id="test"
+      values={Object {}}
+    />
+  }
+  includeDetailedError={false}
+  intl={
+    Object {
+      "defaultFormats": Object {},
+      "defaultLocale": "en",
+      "formatDate": [Function],
+      "formatHTMLMessage": [Function],
+      "formatMessage": [Function],
+      "formatNumber": [Function],
+      "formatPlural": [Function],
+      "formatRelative": [Function],
+      "formatTime": [Function],
+      "formats": Object {},
+      "formatters": Object {
+        "getDateTimeFormat": [Function],
+        "getMessageFormat": [Function],
+        "getNumberFormat": [Function],
+        "getPluralFormat": [Function],
+        "getRelativeFormat": [Function],
+      },
+      "locale": "en",
+      "messages": Object {},
+      "now": [Function],
+      "textComponent": "span",
+    }
+  }
+  requestAction={[Function]}
+  saveNeeded={false}
+  showSuccessMessage={true}
+  successMessage={
+    Object {
+      "defaultMessage": "Test Successful",
+      "id": "admin.requestButton.requestSuccess",
+    }
+  }
+>
+  <div
+    className="form-group reload-config"
+  >
+    <div
+      className="col-sm-offset-4 col-sm-8"
+    >
+      <div>
+        <button
+          className="btn btn-default"
+          disabled={false}
+          onClick={[Function]}
+        >
+          <FormattedMessage
+            defaultMessage="Button Text"
+            id="test"
+            values={Object {}}
+          >
+            <span>
+              Button Text
+            </span>
+          </FormattedMessage>
+        </button>
+        <div>
+          <div
+            className="alert alert-warning"
+          >
+            <i
+              className="fa fa-warning"
+            />
+            <FormattedMessage
+              defaultMessage="Error Message: {error}"
+              id="error.message"
+              values={
+                Object {
+                  "error": "__message__",
+                }
+              }
+            >
+              <span>
+                Error Message: __message__
+              </span>
+            </FormattedMessage>
+          </div>
+        </div>
+      </div>
+      <div
+        className="help-text"
+      >
+        <FormattedMessage
+          defaultMessage="Help Text"
+          id="test"
+          values={Object {}}
+        >
+          <span>
+            Help Text
+          </span>
+        </FormattedMessage>
+      </div>
+    </div>
+  </div>
+</RequestButton>
+`;
+
+exports[`components/admin_console/request_button/request_button.jsx should match snapshot with successMessage 1`] = `
+<RequestButton
+  buttonText={
+    <FormattedMessage
+      defaultMessage="Button Text"
+      id="test"
+      values={Object {}}
+    />
+  }
+  disabled={false}
+  errorMessage={
+    Object {
+      "defaultMessage": "Test Failure: {error}",
+      "id": "admin.requestButton.requestFailure",
+    }
+  }
+  helpText={
+    <FormattedMessage
+      defaultMessage="Help Text"
+      id="test"
+      values={Object {}}
+    />
+  }
+  includeDetailedError={false}
+  intl={
+    Object {
+      "defaultFormats": Object {},
+      "defaultLocale": "en",
+      "formatDate": [Function],
+      "formatHTMLMessage": [Function],
+      "formatMessage": [Function],
+      "formatNumber": [Function],
+      "formatPlural": [Function],
+      "formatRelative": [Function],
+      "formatTime": [Function],
+      "formats": Object {},
+      "formatters": Object {
+        "getDateTimeFormat": [Function],
+        "getMessageFormat": [Function],
+        "getNumberFormat": [Function],
+        "getPluralFormat": [Function],
+        "getRelativeFormat": [Function],
+      },
+      "locale": "en",
+      "messages": Object {},
+      "now": [Function],
+      "textComponent": "span",
+    }
+  }
+  requestAction={[Function]}
+  saveNeeded={false}
+  showSuccessMessage={true}
+  successMessage={
+    Object {
+      "defaultMessage": "Success Message",
+      "id": "success.message",
+    }
+  }
+>
+  <div
+    className="form-group reload-config"
+  >
+    <div
+      className="col-sm-offset-4 col-sm-8"
+    >
+      <div>
+        <button
+          className="btn btn-default"
+          disabled={false}
+          onClick={[Function]}
+        >
+          <FormattedMessage
+            defaultMessage="Button Text"
+            id="test"
+            values={Object {}}
+          >
+            <span>
+              Button Text
+            </span>
+          </FormattedMessage>
+        </button>
+        <div>
+          <div
+            className="alert alert-success"
+          >
+            <i
+              className="fa fa-success"
+            />
+            <FormattedMessage
+              defaultMessage="Success Message"
+              id="success.message"
+              values={Object {}}
+            >
+              <span>
+                Success Message
+              </span>
+            </FormattedMessage>
+          </div>
+        </div>
+      </div>
+      <div
+        className="help-text"
+      >
+        <FormattedMessage
+          defaultMessage="Help Text"
+          id="test"
+          values={Object {}}
+        >
+          <span>
+            Help Text
+          </span>
+        </FormattedMessage>
+      </div>
+    </div>
+  </div>
+</RequestButton>
+`;
+
+exports[`components/admin_console/request_button/request_button.jsx should match snapshot with successMessage 2`] = `
+<RequestButton
+  buttonText={
+    <FormattedMessage
+      defaultMessage="Button Text"
+      id="test"
+      values={Object {}}
+    />
+  }
+  disabled={false}
+  errorMessage={
+    Object {
+      "defaultMessage": "Test Failure: {error}",
+      "id": "admin.requestButton.requestFailure",
+    }
+  }
+  helpText={
+    <FormattedMessage
+      defaultMessage="Help Text"
+      id="test"
+      values={Object {}}
+    />
+  }
+  includeDetailedError={false}
+  intl={
+    Object {
+      "defaultFormats": Object {},
+      "defaultLocale": "en",
+      "formatDate": [Function],
+      "formatHTMLMessage": [Function],
+      "formatMessage": [Function],
+      "formatNumber": [Function],
+      "formatPlural": [Function],
+      "formatRelative": [Function],
+      "formatTime": [Function],
+      "formats": Object {},
+      "formatters": Object {
+        "getDateTimeFormat": [Function],
+        "getMessageFormat": [Function],
+        "getNumberFormat": [Function],
+        "getPluralFormat": [Function],
+        "getRelativeFormat": [Function],
+      },
+      "locale": "en",
+      "messages": Object {},
+      "now": [Function],
+      "textComponent": "span",
+    }
+  }
+  requestAction={[Function]}
+  saveNeeded={false}
+  showSuccessMessage={false}
+  successMessage={
+    Object {
+      "defaultMessage": "Success Message",
+      "id": "success.message",
+    }
+  }
+>
+  <div
+    className="form-group reload-config"
+  >
+    <div
+      className="col-sm-offset-4 col-sm-8"
+    >
+      <div>
+        <button
+          className="btn btn-default"
+          disabled={false}
+          onClick={[Function]}
+        >
+          <FormattedMessage
+            defaultMessage="Button Text"
+            id="test"
+            values={Object {}}
+          >
+            <span>
+              Button Text
+            </span>
+          </FormattedMessage>
+        </button>
+      </div>
+      <div
+        className="help-text"
+      >
+        <FormattedMessage
+          defaultMessage="Help Text"
+          id="test"
+          values={Object {}}
+        >
+          <span>
+            Help Text
+          </span>
+        </FormattedMessage>
+      </div>
+    </div>
+  </div>
+</RequestButton>
+`;

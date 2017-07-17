@@ -16,7 +16,7 @@ export default class AdminSidebarSection extends React.Component {
             type: PropTypes.string,
             parentLink: PropTypes.string,
             subsection: PropTypes.bool,
-            children: PropTypes.arrayOf(PropTypes.element),
+            children: PropTypes.node,
             action: PropTypes.node,
             onlyActiveOnIndex: PropTypes.bool
         };
@@ -39,7 +39,7 @@ export default class AdminSidebarSection extends React.Component {
         const link = this.getLink();
 
         let clonedChildren = null;
-        if (this.props.children.length > 0) {
+        if (this.props.children) {
             clonedChildren = (
                 <ul className='nav nav__sub-menu subsections'>
                     {

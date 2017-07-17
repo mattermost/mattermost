@@ -429,7 +429,7 @@
   },
   {
     "id": "api.command.execute_command.not_found.app_error",
-    "translation": "Comando com um gatilho de '{{.Trigger}}' não encotrado"
+    "translation": "Comando com um gatilho '{{.Trigger}}' não encontrado. Para enviar uma mensagem começando com \"/\", tente adiciona um espaço no começo da mensagem."
   },
   {
     "id": "api.command.execute_command.save.app_error",
@@ -458,6 +458,10 @@
   {
     "id": "api.command.invite_people.hint",
     "translation": "[nome@dominio.com ...]"
+  },
+  {
+    "id": "api.command.invite_people.invite_off",
+    "translation": "Criação de usuários foi desativada neste servidor, nenhum convite enviado"
   },
   {
     "id": "api.command.invite_people.name",
@@ -494,6 +498,38 @@
   {
     "id": "api.command_away.success",
     "translation": "Você está agora ausente"
+  },
+  {
+    "id": "api.command_channel_header.channel.app_error",
+    "translation": "Error ao obter o canal atual."
+  },
+  {
+    "id": "api.command_channel_header.desc",
+    "translation": "Editar o cabeçalho do canal"
+  },
+  {
+    "id": "api.command_channel_header.hint",
+    "translation": "[texto]"
+  },
+  {
+    "id": "api.command_channel_header.message.app_error",
+    "translation": "O texto deve ser fornecido com o comando /header."
+  },
+  {
+    "id": "api.command_channel_header.name",
+    "translation": "cabeçalho"
+  },
+  {
+    "id": "api.command_channel_header.permission.app_error",
+    "translation": "Você não tem a permissão apropriada para editar o cabeçalho do canal."
+  },
+  {
+    "id": "api.command_channel_header.update_channel.app_error",
+    "translation": "Erro ao atualizar o canal atual."
+  },
+  {
+    "id": "api.command_channel_header.update_channel.success",
+    "translation": "Cabeçalho do canal atualizado com sucesso."
   },
   {
     "id": "api.command_collapse.desc",
@@ -550,6 +586,14 @@
   {
     "id": "api.command_expand_collapse.fail.app_error",
     "translation": "Um erro ocorreu ao expandir as visualizações"
+  },
+  {
+    "id": "api.command_help.desc",
+    "translation": "Abrir a página de ajuda do Mattermost"
+  },
+  {
+    "id": "api.command_help.name",
+    "translation": "ajuda"
   },
   {
     "id": "api.command_join.desc",
@@ -658,6 +702,22 @@
   {
     "id": "api.command_online.success",
     "translation": "Você está agora conectado"
+  },
+  {
+    "id": "api.command_open.name",
+    "translation": "abrir"
+  },
+  {
+    "id": "api.command_settings.desc",
+    "translation": "Abrir a janela de Configurações de Conta"
+  },
+  {
+    "id": "api.command_settings.name",
+    "translation": "configurações"
+  },
+  {
+    "id": "api.command_settings.unsupported.app_error",
+    "translation": "O comando de configurações não é suportado no seu equipamento"
   },
   {
     "id": "api.command_shortcuts.browser.channel_next",
@@ -1629,7 +1689,11 @@
   },
   {
     "id": "api.post.send_notifications_and_forget.push_image_only",
-    "translation": " Enviados um ou mais arquivos "
+    "translation": " Enviados um ou mais arquivos em "
+  },
+  {
+    "id": "api.post.send_notifications_and_forget.push_image_only_dm",
+    "translation": " Enviado um ou mais arquivos em uma mensagem direta"
   },
   {
     "id": "api.post.send_notifications_and_forget.push_in",
@@ -1988,14 +2052,6 @@
     "translation": "O número de goroutines rodando é maior que o limite configurado %v de %v"
   },
   {
-    "id": "api.team.add_user_to_team.invalid_data.app_error",
-    "translation": "Dado inválido."
-  },
-  {
-    "id": "api.team.add_user_to_team.invalid_invite_id.app_error",
-    "translation": "Id do convite inválido. Nenhum time possui este id."
-  },
-  {
     "id": "api.team.add_user_to_team.missing_parameter.app_error",
     "translation": "Parâmetro requerido para adicionar o usuário ao time."
   },
@@ -2066,6 +2122,10 @@
   {
     "id": "api.team.invite_members.already.app_error",
     "translation": "Essa pessoa já está em sua equipe"
+  },
+  {
+    "id": "api.team.invite_members.invalid_email.app_error",
+    "translation": "O seguinte endereço de email não pertence a um dominio aceito: {{.Addresses}}. Por favor contate o Administrador do Sistema para detalhes."
   },
   {
     "id": "api.team.invite_members.member",
@@ -2960,8 +3020,48 @@
     "translation": "Erro ao importar canal. A equipe com o nome \"{{.TeamName}}\" não foi encontrado."
   },
   {
+    "id": "app.import.import_direct_channel.create_direct_channel.error",
+    "translation": "Falha ao buscar o canal direto"
+  },
+  {
+    "id": "app.import.import_direct_channel.create_direct_channel.error",
+    "translation": "Falha ao buscar o canal direto"
+  },
+  {
+    "id": "app.import.import_direct_channel.create_group_channel.error",
+    "translation": "Falha ao buscar o canal de grupo"
+  },
+  {
+    "id": "app.import.import_direct_channel.create_group_channel.error",
+    "translation": "Falha ao buscar o canal de grupo"
+  },
+  {
+    "id": "app.import.import_direct_channel.member_not_found.error",
+    "translation": "Não foi possível achar o membro do canal enquanto importava o canal direto"
+  },
+  {
+    "id": "app.import.import_direct_channel.update_header_failed.error",
+    "translation": "Falha ao atualizar o cabeçalho do canal direto"
+  },
+  {
+    "id": "app.import.import_direct_post.channel_member_not_found.error",
+    "translation": "Não foi possível achar o membro do canal enquanto importava os posts do canal direto"
+  },
+  {
+    "id": "app.import.import_direct_post.user_not_found.error",
+    "translation": "Usuário do post não existe"
+  },
+  {
     "id": "app.import.import_line.null_channel.error",
     "translation": "A linha de dados de importação é do tipo \"channel\" mas o objeto channel é nulo."
+  },
+  {
+    "id": "app.import.import_line.null_direct_channel.error",
+    "translation": "A linha de dados de importação é do tipo \"direct_channel\" mas o objeto channel é nulo."
+  },
+  {
+    "id": "app.import.import_line.null_direct_post.error",
+    "translation": "A linha de dados de importação é do tipo \"direct_post\" mas o objeto post é nulo."
   },
   {
     "id": "app.import.import_line.null_post.error",
@@ -3034,6 +3134,54 @@
   {
     "id": "app.import.validate_channel_import_data.type_missing.error",
     "translation": "Faltando a propriedade obrigatória do canal: type."
+  },
+  {
+    "id": "app.import.validate_direct_channel_import_data.header_length.error",
+    "translation": "Cabeçalho do canal direto é muito longo"
+  },
+  {
+    "id": "app.import.validate_direct_channel_import_data.members_required.error",
+    "translation": "Faltando a propriedade obrigatória do canal: members"
+  },
+  {
+    "id": "app.import.validate_direct_channel_import_data.members_too_few.error",
+    "translation": "A lista de membros do canal direto tem muito poucos itens"
+  },
+  {
+    "id": "app.import.validate_direct_channel_import_data.members_too_many.error",
+    "translation": "A lista de membros do canal direto tem muitos itens"
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.channel_members_required.error",
+    "translation": "Propriedade obrigatória do post direto não foi informada: channel_members"
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.channel_members_too_few.error",
+    "translation": "A lista de membros do canal direto tem muito poucos itens"
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.channel_members_too_many.error",
+    "translation": "A lista de membros do canal direto tem muitos itens"
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.create_at_missing.error",
+    "translation": "Propriedade obrigatória do Post não foi informada: create_at"
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.create_at_zero.error",
+    "translation": "CreateAt deve ser maior do que 0"
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.message_length.error",
+    "translation": "Mensagem muito longa"
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.message_missing.error",
+    "translation": "Propriedade obrigatória do Post não foi informada: message"
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.user_missing.error",
+    "translation": "Propriedade obrigatória do Post não foi informada: user"
   },
   {
     "id": "app.import.validate_post_import_data.channel_missing.error",
@@ -3261,7 +3409,7 @@
   },
   {
     "id": "ent.cluster.config_changed.info",
-    "translation": "Configuração de Cluster foi alterado para id=%v.  Tentando reiniciar o serviço de cluster.  Para garantir que o cluster está configurado corretamente você não deve contar com este reinício porque detectamos uma alteração na configuração do núcleo."
+    "translation": "Configuração de cluster foi alterada para o id={{ .id }}.  O cluster pode se tornar instável e uma reinicialização pode ser necessária.  Para ter certeza de que o cluster está configurado corretamente você deve executar um reinício contínuo imediatamente."
   },
   {
     "id": "ent.cluster.debug_fail.debug",
@@ -3293,7 +3441,7 @@
   },
   {
     "id": "ent.cluster.save_config.error",
-    "translation": "Console do Sistema é definido como somente leitura quando Alta Disponibilidade está ativo."
+    "translation": "Console do Sistema é definido como somente leitura quando Alta Disponibilidade está ativo  a menos que ReadOnlyConfig estiver desativado no arquivo de configurações."
   },
   {
     "id": "ent.cluster.starting.info",
@@ -3354,6 +3502,14 @@
   {
     "id": "ent.elasticsearch.start.index_settings_failed",
     "translation": "Não foi possível configurar as opções do ElasticSearch index"
+  },
+  {
+    "id": "ent.elasticsearch.test_config.indexing_disabled.error",
+    "translation": "Elasticsearch está desativado."
+  },
+  {
+    "id": "ent.elasticsearch.test_config.license.error",
+    "translation": "Licença não suporta Elasticsearch."
   },
   {
     "id": "ent.emoji.licence_disable.app_error",
@@ -4154,6 +4310,10 @@
   {
     "id": "model.config.is_valid.sql_query_timeout.app_error",
     "translation": "Configuração do tempo de execução da consulta de SQL inválida.  Deve ser um número positivo."
+  },
+  {
+    "id": "model.config.is_valid.teammate_name_display.app_error",
+    "translation": "Nome do colega inválido.  Deve ser 'full_name', 'nickname_full_name' ou 'username'"
   },
   {
     "id": "model.config.is_valid.time_between_user_typing.app_error",
@@ -5706,6 +5866,10 @@
   {
     "id": "store.sql_user.get_for_login.multiple_users",
     "translation": "Encontramos vários usuários correspondentes as suas credenciais e não conseguimos fazer seu login. Por favor, entre em contato com um administrador."
+  },
+  {
+    "id": "store.sql_user.get_new_users.app_error",
+    "translation": "Encontramos um erro ao encontrar os novos usuários"
   },
   {
     "id": "store.sql_user.get_profiles.app_error",

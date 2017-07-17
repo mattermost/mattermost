@@ -4,12 +4,20 @@
 import UserStore from 'stores/user_store.jsx';
 import TeamStore from 'stores/team_store.jsx';
 
-// Redux actions
+import * as UserAgent from 'utils/user_agent.jsx';
+import {ActionTypes} from 'utils/constants.jsx';
+import AppDispatcher from 'dispatcher/app_dispatcher.jsx';
+
 import store from 'stores/redux_store.jsx';
 const dispatch = store.dispatch;
 const getState = store.getState;
+
+import {Client4} from 'mattermost-redux/client';
+
 import {getProfilesByIds} from 'mattermost-redux/actions/users';
 import * as IntegrationActions from 'mattermost-redux/actions/integrations';
+
+import request from 'superagent';
 
 export function loadIncomingHooks(complete) {
     IntegrationActions.getIncomingHooks('', 0, 10000)(dispatch, getState).then(
@@ -200,4 +208,62 @@ export function deleteCommand(id) {
 
 export function regenCommandToken(id) {
     IntegrationActions.regenCommandToken(id)(dispatch, getState);
+}
+
+export function getSuggestedCommands(command, suggestionId, component) {
+    Client4.getCommandsList(TeamStore.getCurrentId()).then(
+        (data) => {
+            var matches = [];
+            data.forEach((cmd) => {
+                if (cmd.trigger !== 'shortcuts' || !UserAgent.isMobile()) {
+                    if (('/' + cmd.trigger).indexOf(command) === 0) {
+                        const s = '/' + cmd.trigger;
+                        let hint = '';
+                        if (cmd.auto_complete_hint && cmd.auto_complete_hint.length !== 0) {
+                            hint = cmd.auto_complete_hint;
+                        }
+                        matches.push({
+                            suggestion: s,
+                            hint,
+                            description: cmd.auto_complete_desc
+                        });
+                    }
+                }
+            });
+
+            matches = matches.sort((a, b) => a.suggestion.localeCompare(b.suggestion));
+
+            // pull out the suggested commands from the returned data
+            const terms = matches.map((suggestion) => suggestion.suggestion);
+
+            if (terms.length > 0) {
+                AppDispatcher.handleServerAction({
+                    type: ActionTypes.SUGGESTION_RECEIVED_SUGGESTIONS,
+                    id: suggestionId,
+                    matchedPretext: command,
+                    terms,
+                    items: matches,
+                    component
+                });
+            }
+        }
+    ).catch(
+        () => {} //eslint-disable-line no-empty-function
+    );
+}
+
+export function getYoutubeVideoInfo(googleKey, videoId, success, error) {
+    request.get('https://www.googleapis.com/youtube/v3/videos').
+    query({part: 'snippet', id: videoId, key: googleKey}).
+    end((err, res) => {
+        if (err) {
+            return error(err);
+        }
+
+        if (!res.body) {
+            console.error('Missing response body for getYoutubeVideoInfo'); // eslint-disable-line no-console
+        }
+
+        return success(res.body);
+    });
 }

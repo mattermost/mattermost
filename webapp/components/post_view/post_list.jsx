@@ -40,7 +40,7 @@ export default class PostList extends React.PureComponent {
         /**
          * The channel the posts are in
          */
-        channel: PropTypes.object,
+        channel: PropTypes.object.isRequired,
 
         /**
          * The last time the channel was viewed, sets the new message separator
@@ -117,12 +117,12 @@ export default class PostList extends React.PureComponent {
         this.loadPosts(this.props.channel.id, this.props.focusedPostId);
         GlobalEventEmitter.addListener(EventTypes.POST_LIST_SCROLL_CHANGE, this.handleResize);
 
-        window.addEventListener('resize', this.handleResize);
+        window.addEventListener('resize', () => this.handleResize());
     }
 
     componentWillUnmount() {
         GlobalEventEmitter.removeListener(EventTypes.POST_LIST_SCROLL_CHANGE, this.handleResize);
-        window.removeEventListener('resize', this.handleResize);
+        window.removeEventListener('resize', () => this.handleResize());
     }
 
     componentWillReceiveProps(nextProps) {
@@ -174,9 +174,9 @@ export default class PostList extends React.PureComponent {
         }
     }
 
-    componentDidUpdate(prevProps) {
-        // Do not update scrolling unless posts change
-        if (this.props.posts === prevProps.posts) {
+    componentDidUpdate(prevProps, prevState) {
+        // Do not update scrolling unless posts, visibility or intro message change
+        if (this.props.posts === prevProps.posts && this.props.postVisibility === prevProps.postVisibility && this.state.atEnd === prevState.atEnd) {
             return;
         }
 
@@ -191,7 +191,7 @@ export default class PostList extends React.PureComponent {
                 const element = ReactDOM.findDOMNode(focusedPost);
                 const rect = element.getBoundingClientRect();
                 const listHeight = postList.clientHeight / 2;
-                postList.scrollTop += postList.scrollTop + (rect.top - listHeight);
+                postList.scrollTop += rect.top - listHeight;
             } else if (this.previousScrollHeight !== postList.scrollHeight && posts[0].id === prevPosts[0].id) {
                 postList.scrollTop = this.previousScrollTop + (postList.scrollHeight - this.previousScrollHeight);
             }
@@ -204,23 +204,21 @@ export default class PostList extends React.PureComponent {
             const element = ReactDOM.findDOMNode(messageSeparator);
             element.scrollIntoView();
             return;
-        } else if (this.refs.postlist && !this.hasScrolledToNewMessageSeparator) {
+        } else if (postList && !this.hasScrolledToNewMessageSeparator) {
             postList.scrollTop = postList.scrollHeight;
             return;
         }
 
         if (postList && prevPosts && posts && posts[0] && prevPosts[0]) {
-            // A new message was posted, so scroll to bottom if it was from current user
-            // or if user was already scrolled close to bottom
+            // A new message was posted, so scroll to bottom if user
+            // was already scrolled close to bottom
             let doScrollToBottom = false;
-            if (posts[0].id !== prevPosts[0].id && posts[0].pending_post_id !== prevPosts[0].pending_post_id) {
+            const postId = posts[0].id;
+            const prevPostId = prevPosts[0].id;
+            const pendingPostId = posts[0].pending_post_id;
+            if (postId !== prevPostId && pendingPostId !== prevPostId) {
                 // If already scrolled to bottom
                 if (this.wasAtBottom()) {
-                    doScrollToBottom = true;
-                }
-
-                // If new post was by current user
-                if (posts[0].user_id === this.props.currentUserId) {
                     doScrollToBottom = true;
                 }
 
@@ -252,10 +250,11 @@ export default class PostList extends React.PureComponent {
         return this.previousClientHeight + this.previousScrollTop >= this.previousScrollHeight - CLOSE_TO_BOTTOM_SCROLL_MARGIN;
     }
 
-    handleResize = () => {
+    handleResize = (forceScrollToBottom) => {
         const postList = this.refs.postlist;
+        const doScrollToBottom = this.wasAtBottom() || forceScrollToBottom;
 
-        if (postList && this.wasAtBottom()) {
+        if (postList && doScrollToBottom) {
             postList.scrollTop = postList.scrollHeight;
 
             this.previousScrollHeight = postList.scrollHeight;
@@ -297,7 +296,6 @@ export default class PostList extends React.PureComponent {
     }
 
     handleScroll = () => {
-        this.hasScrolledToFocusedPost = true;
         this.hasScrolled = true;
         this.previousScrollTop = this.refs.postlist.scrollTop;
 
@@ -356,7 +354,9 @@ export default class PostList extends React.PureComponent {
     }
 
     scrollToBottom = () => {
-        this.refs.postlist.scrollTop = this.refs.postlist.scrollHeight;
+        if (this.refs.postlist) {
+            this.refs.postlist.scrollTop = this.refs.postlist.scrollHeight;
+        }
     }
 
     createPosts = (posts) => {

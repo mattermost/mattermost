@@ -49,7 +49,7 @@ type Features struct {
 	MHPNS                *bool `json:"mhpns"`
 	SAML                 *bool `json:"saml"`
 	PasswordRequirements *bool `json:"password_requirements"`
-	ElasticSearch        *bool `json:"elastic_search"`
+	Elasticsearch        *bool `json:"elastic_search"`
 	Announcement         *bool `json:"announcement"`
 	// after we enabled more features for webrtc we'll need to control them with this
 	FutureFeatures *bool `json:"future_features"`
@@ -68,7 +68,7 @@ func (f *Features) ToMap() map[string]interface{} {
 		"mhpns":          *f.MHPNS,
 		"saml":           *f.SAML,
 		"password":       *f.PasswordRequirements,
-		"elastic_search": *f.ElasticSearch,
+		"elastic_search": *f.Elasticsearch,
 		"future":         *f.FutureFeatures,
 	}
 }
@@ -139,9 +139,9 @@ func (f *Features) SetDefaults() {
 		*f.PasswordRequirements = *f.FutureFeatures
 	}
 
-	if f.ElasticSearch == nil {
-		f.ElasticSearch = new(bool)
-		*f.ElasticSearch = *f.FutureFeatures
+	if f.Elasticsearch == nil {
+		f.Elasticsearch = new(bool)
+		*f.Elasticsearch = *f.FutureFeatures
 	}
 
 	if f.Announcement == nil {

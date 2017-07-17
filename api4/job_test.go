@@ -16,30 +16,30 @@ func TestGetJobStatus(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
 	defer TearDown()
 
-	status := &model.JobStatus{
+	status := &model.Job{
 		Id:     model.NewId(),
 		Status: model.NewId(),
 	}
-	if result := <-app.Srv.Store.JobStatus().SaveOrUpdate(status); result.Err != nil {
+	if result := <-app.Srv.Store.Job().Save(status); result.Err != nil {
 		t.Fatal(result.Err)
 	}
 
-	defer app.Srv.Store.JobStatus().Delete(status.Id)
+	defer app.Srv.Store.Job().Delete(status.Id)
 
-	received, resp := th.SystemAdminClient.GetJobStatus(status.Id)
+	received, resp := th.SystemAdminClient.GetJob(status.Id)
 	CheckNoError(t, resp)
 
 	if received.Id != status.Id || received.Status != status.Status {
 		t.Fatal("incorrect job status received")
 	}
 
-	_, resp = th.SystemAdminClient.GetJobStatus("1234")
+	_, resp = th.SystemAdminClient.GetJob("1234")
 	CheckBadRequestStatus(t, resp)
 
-	_, resp = th.Client.GetJobStatus(status.Id)
+	_, resp = th.Client.GetJob(status.Id)
 	CheckForbiddenStatus(t, resp)
 
-	_, resp = th.SystemAdminClient.GetJobStatus(model.NewId())
+	_, resp = th.SystemAdminClient.GetJob(model.NewId())
 	CheckNotFoundStatus(t, resp)
 }
 
@@ -49,7 +49,7 @@ func TestGetJobStatusesByType(t *testing.T) {
 
 	jobType := model.NewId()
 
-	statuses := []*model.JobStatus{
+	statuses := []*model.Job{
 		{
 			Id:      model.NewId(),
 			Type:    jobType,
@@ -68,11 +68,11 @@ func TestGetJobStatusesByType(t *testing.T) {
 	}
 
 	for _, status := range statuses {
-		store.Must(app.Srv.Store.JobStatus().SaveOrUpdate(status))
-		defer app.Srv.Store.JobStatus().Delete(status.Id)
+		store.Must(app.Srv.Store.Job().Save(status))
+		defer app.Srv.Store.Job().Delete(status.Id)
 	}
 
-	received, resp := th.SystemAdminClient.GetJobStatusesByType(jobType, 0, 2)
+	received, resp := th.SystemAdminClient.GetJobsByType(jobType, 0, 2)
 	CheckNoError(t, resp)
 
 	if len(received) != 2 {
@@ -83,7 +83,7 @@ func TestGetJobStatusesByType(t *testing.T) {
 		t.Fatal("should've received second newest job second")
 	}
 
-	received, resp = th.SystemAdminClient.GetJobStatusesByType(jobType, 1, 2)
+	received, resp = th.SystemAdminClient.GetJobsByType(jobType, 1, 2)
 	CheckNoError(t, resp)
 
 	if len(received) != 1 {
@@ -92,12 +92,12 @@ func TestGetJobStatusesByType(t *testing.T) {
 		t.Fatal("should've received oldest job last")
 	}
 
-	_, resp = th.SystemAdminClient.GetJobStatusesByType("", 0, 60)
+	_, resp = th.SystemAdminClient.GetJobsByType("", 0, 60)
 	CheckNotFoundStatus(t, resp)
 
-	_, resp = th.SystemAdminClient.GetJobStatusesByType(strings.Repeat("a", 33), 0, 60)
+	_, resp = th.SystemAdminClient.GetJobsByType(strings.Repeat("a", 33), 0, 60)
 	CheckBadRequestStatus(t, resp)
 
-	_, resp = th.Client.GetJobStatusesByType(jobType, 0, 60)
+	_, resp = th.Client.GetJobsByType(jobType, 0, 60)
 	CheckForbiddenStatus(t, resp)
 }

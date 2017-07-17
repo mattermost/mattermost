@@ -17,7 +17,7 @@ import (
 )
 
 type SqlPostStore struct {
-	*SqlStore
+	SqlStore
 }
 
 const (
@@ -36,7 +36,7 @@ func ClearPostCaches() {
 	lastPostsCache.Purge()
 }
 
-func NewSqlPostStore(sqlStore *SqlStore) PostStore {
+func NewSqlPostStore(sqlStore SqlStore) PostStore {
 	s := &SqlPostStore{sqlStore}
 
 	for _, db := range sqlStore.GetAllConns() {
@@ -318,7 +318,7 @@ func (s SqlPostStore) Get(id string) StoreChannel {
 		var post model.Post
 		err := s.GetReplica().SelectOne(&post, "SELECT * FROM Posts WHERE Id = :Id AND DeleteAt = 0", map[string]interface{}{"Id": id})
 		if err != nil {
-			result.Err = model.NewLocAppError("SqlPostStore.GetPost", "store.sql_post.get.app_error", nil, "id="+id+err.Error())
+			result.Err = model.NewAppError("SqlPostStore.GetPost", "store.sql_post.get.app_error", nil, "id="+id+err.Error(), http.StatusNotFound)
 			storeChannel <- result
 			close(storeChannel)
 			return
@@ -371,7 +371,7 @@ func (s SqlPostStore) GetSingle(id string) StoreChannel {
 		var post model.Post
 		err := s.GetReplica().SelectOne(&post, "SELECT * FROM Posts WHERE Id = :Id AND DeleteAt = 0", map[string]interface{}{"Id": id})
 		if err != nil {
-			result.Err = model.NewLocAppError("SqlPostStore.GetSingle", "store.sql_post.get.app_error", nil, "id="+id+err.Error())
+			result.Err = model.NewAppError("SqlPostStore.GetSingle", "store.sql_post.get.app_error", nil, "id="+id+err.Error(), http.StatusNotFound)
 		}
 
 		result.Data = &post
@@ -910,8 +910,7 @@ func (s SqlPostStore) Search(teamId string, userId string, params *model.SearchP
 		result := StoreResult{}
 
 		if !*utils.Cfg.ServiceSettings.EnablePostSearch {
-			list := &model.PostList{}
-			list.MakeNonNil()
+			list := model.NewPostList()
 			result.Data = list
 
 			result.Err = model.NewLocAppError("SqlPostStore.Search", "store.sql_post.search.disabled", nil, fmt.Sprintf("teamId=%v userId=%v params=%v", teamId, userId, params.ToJson()))
@@ -1305,6 +1304,47 @@ func (s SqlPostStore) GetPostsByIds(postIds []string) StoreChannel {
 		if err != nil {
 			l4g.Error(err)
 			result.Err = model.NewAppError("SqlPostStore.GetPostsCreatedAt", "store.sql_post.get_posts_by_ids.app_error", nil, "", http.StatusInternalServerError)
+		} else {
+			result.Data = posts
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
+func (s SqlPostStore) GetPostsBatchForIndexing(startTime int64, limit int) StoreChannel {
+	storeChannel := make(StoreChannel, 1)
+
+	go func() {
+		result := StoreResult{}
+
+		var posts []*model.PostForIndexing
+		_, err1 := s.GetSearchReplica().Select(&posts,
+			`(SELECT
+			    Posts.*,
+			    Channels.TeamId,
+			    ParentPosts.CreateAt ParentCreateAt
+			FROM
+				Posts
+			LEFT JOIN
+				Channels
+			ON
+				Posts.ChannelId = Channels.Id
+			LEFT JOIN
+				Posts ParentPosts
+			ON
+				Posts.RootId = ParentPosts.Id
+			WHERE
+				Posts.CreateAt >= :StartTime
+			ORDER BY CreateAt ASC
+			LIMIT :NumPosts)`,
+			map[string]interface{}{"StartTime": startTime, "NumPosts": limit})
+
+		if err1 != nil {
+			result.Err = model.NewLocAppError("SqlPostStore.GetPostContext", "store.sql_post.get_posts_batch_for_indexing.get.app_error", nil, err1.Error())
 		} else {
 			result.Data = posts
 		}

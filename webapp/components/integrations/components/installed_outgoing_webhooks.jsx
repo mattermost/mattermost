@@ -143,17 +143,29 @@ export default class InstalledOutgoingWebhooks extends React.Component {
                 helpText={
                     <FormattedMessage
                         id='installed_outgoing_webhooks.help'
-                        defaultMessage='Create outgoing webhook URLs for use in external integrations. Please see {link} to learn more.'
+                        defaultMessage='Use outgoing webhooks to connect external tools to Mattermost. {buildYourOwn} or visit the {appDirectory} to find self-hosted, third-party apps and integrations.'
                         values={{
-                            link: (
+                            buildYourOwn: (
                                 <a
                                     target='_blank'
                                     rel='noopener noreferrer'
                                     href='http://docs.mattermost.com/developer/webhooks-outgoing.html'
                                 >
                                     <FormattedMessage
-                                        id='installed_outgoing_webhooks.helpLink'
-                                        defaultMessage='documentation'
+                                        id='installed_outgoing_webhooks.help.buildYourOwn'
+                                        defaultMessage='Build your own'
+                                    />
+                                </a>
+                            ),
+                            appDirectory: (
+                                <a
+                                    target='_blank'
+                                    rel='noopener noreferrer'
+                                    href='https://about.mattermost.com/default-app-directory/'
+                                >
+                                    <FormattedMessage
+                                        id='installed_outgoing_webhooks.help.appDirectory'
+                                        defaultMessage='App Directory'
                                     />
                                 </a>
                             )

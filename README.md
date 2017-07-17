@@ -21,7 +21,7 @@ _Note: Heroku preview does not include email or persistent storage_
 Install on your own machine: 
 
 - [One-line Docker Preview](http://docs.mattermost.com/install/docker-local-machine.html#one-line-docker-install) 
-- [Developer Machine Setup](http://docs.mattermost.com/developer/developer-setup.html)
+- [Developer Machine Setup](https://docs.mattermost.com/developer/dev-setup.html)
 - [Production Install Guides using Linux Binary](http://www.mattermost.org/installation/)
 - [Production Docker Install](https://docs.mattermost.com/install/prod-docker.html) 
 

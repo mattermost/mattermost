@@ -15,7 +15,6 @@ import {getDirectChannelName, getUserIdFromChannelName} from 'utils/utils.jsx';
 import {Constants, ActionTypes, Preferences} from 'utils/constants.jsx';
 import {browserHistory} from 'react-router/es6';
 
-// Redux actions
 import store from 'stores/redux_store.jsx';
 const dispatch = store.dispatch;
 const getState = store.getState;
@@ -29,16 +28,16 @@ import {Client4} from 'mattermost-redux/client';
 import {getClientConfig, getLicenseConfig} from 'mattermost-redux/actions/general';
 import {getTeamMembersByIds, getMyTeamMembers, getMyTeamUnreads} from 'mattermost-redux/actions/teams';
 import {getChannelAndMyMember} from 'mattermost-redux/actions/channels';
-import {savePreferences, deletePreferences} from 'mattermost-redux/actions/preferences';
+import {savePreferences as savePreferencesRedux, deletePreferences} from 'mattermost-redux/actions/preferences';
 
 import {Preferences as PreferencesRedux} from 'mattermost-redux/constants';
 
-export function loadMe() {
-    return UserActions.loadMe()(dispatch, getState).then(() => {
-        if (window.mm_config) {
-            loadCurrentLocale();
-        }
-    });
+export async function loadMe() {
+    await UserActions.loadMe()(dispatch, getState);
+
+    if (window.mm_config) {
+        loadCurrentLocale();
+    }
 }
 
 export function loadMeAndConfig(callback) {
@@ -242,7 +241,7 @@ export function loadNewDMIfNeeded(channelId) {
         if (pref === false) {
             PreferenceStore.setPreference(Preferences.CATEGORY_DIRECT_CHANNEL_SHOW, userId, 'true');
             const currentUserId = UserStore.getCurrentId();
-            savePreferences(currentUserId, [{user_id: currentUserId, category: Preferences.CATEGORY_DIRECT_CHANNEL_SHOW, name: userId, value: 'true'}])(dispatch, getState);
+            savePreferencesRedux(currentUserId, [{user_id: currentUserId, category: Preferences.CATEGORY_DIRECT_CHANNEL_SHOW, name: userId, value: 'true'}])(dispatch, getState);
             loadProfilesForDM();
         }
     }
@@ -267,7 +266,7 @@ export function loadNewGMIfNeeded(channelId) {
         if (pref === false) {
             PreferenceStore.setPreference(Preferences.CATEGORY_GROUP_CHANNEL_SHOW, channelId, 'true');
             const currentUserId = UserStore.getCurrentId();
-            savePreferences(currentUserId, [{user_id: currentUserId, category: Preferences.CATEGORY_GROUP_CHANNEL_SHOW, name: channelId, value: 'true'}])(dispatch, getState);
+            savePreferencesRedux(currentUserId, [{user_id: currentUserId, category: Preferences.CATEGORY_GROUP_CHANNEL_SHOW, name: channelId, value: 'true'}])(dispatch, getState);
             loadProfilesForGM();
         }
     }
@@ -328,7 +327,7 @@ export function loadProfilesForGM() {
 
     if (newPreferences.length > 0) {
         const currentUserId = UserStore.getCurrentId();
-        savePreferences(currentUserId, newPreferences)(dispatch, getState);
+        savePreferencesRedux(currentUserId, newPreferences)(dispatch, getState);
     }
 }
 
@@ -369,7 +368,7 @@ export function loadProfilesForDM() {
 
     if (newPreferences.length > 0) {
         const currentUserId = UserStore.getCurrentId();
-        savePreferences(currentUserId, newPreferences)(dispatch, getState);
+        savePreferencesRedux(currentUserId, newPreferences)(dispatch, getState);
     }
 
     if (profilesToLoad.length > 0) {
@@ -392,7 +391,7 @@ export function saveTheme(teamId, theme, cb) {
         value: JSON.stringify(theme)
     }];
 
-    savePreferences(currentUserId, preference)(dispatch, getState).then(
+    savePreferencesRedux(currentUserId, preference)(dispatch, getState).then(
         () => {
             onThemeSaved(teamId, theme, cb);
         }
@@ -501,7 +500,7 @@ export function updateUser(user, type, success, error) {
 }
 
 export function generateMfaSecret(success, error) {
-    UserActions.generateMfaSecret()(dispatch, getState).then(
+    UserActions.generateMfaSecret(UserStore.getCurrentId())(dispatch, getState).then(
         (data) => {
             if (data && success) {
                 success(data);
@@ -794,6 +793,18 @@ export function loadMyTeamMembers() {
     );
 }
 
+export function savePreferences(prefs, callback) {
+    const currentUserId = UserStore.getCurrentId();
+    savePreferencesRedux(currentUserId, prefs)(dispatch, getState).then(
+        () => callback()
+    );
+}
+
+export async function savePreference(category, name, value) {
+    const currentUserId = UserStore.getCurrentId();
+    return savePreferencesRedux(currentUserId, [{user_id: currentUserId, category, name, value}])(dispatch, getState);
+}
+
 export function autoResetStatus() {
     return async (doDispatch, doGetState) => {
         const {currentUserId} = getState().entities.users;
@@ -812,4 +823,17 @@ export function autoResetStatus() {
 
         return userStatus;
     };
+}
+
+export function sendPasswordResetEmail(email, success, error) {
+    UserActions.sendPasswordResetEmail(email)(dispatch, getState).then(
+        (data) => {
+            if (data && success) {
+                success(data);
+            } else if (data == null && error) {
+                const serverError = getState().requests.users.passwordReset.error;
+                error({id: serverError.server_error_id, ...serverError});
+            }
+        }
+    );
 }

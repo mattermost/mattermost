@@ -21,11 +21,17 @@ function flagToolTip(isFlagged) {
     );
 }
 
-function flagIcon() {
+function flagIcon(isFlagged) {
+    let flagIconSvg = Constants.FLAG_ICON_SVG;
+
+    if (isFlagged) {
+        flagIconSvg = Constants.FLAG_FILLED_ICON_SVG;
+    }
+
     return (
         <span
             className='icon'
-            dangerouslySetInnerHTML={{__html: Constants.FLAG_ICON_SVG}}
+            dangerouslySetInnerHTML={{__html: flagIconSvg}}
         />
     );
 }
@@ -52,6 +58,7 @@ export default function PostFlagIcon(props) {
     if (!props.isEphemeral) {
         return (
             <OverlayTrigger
+                trigger={['hover', 'focus']}
                 key={'flagtooltipkey' + flagVisible}
                 delayShow={Constants.OVERLAY_TIME_DELAY}
                 placement='top'
@@ -63,7 +70,7 @@ export default function PostFlagIcon(props) {
                     className={'flag-icon__container ' + flagVisible}
                     onClick={flagFunc}
                 >
-                    {flagIcon()}
+                    {flagIcon(props.isFlagged)}
                 </a>
             </OverlayTrigger>
         );

@@ -31,6 +31,7 @@ export default function TableChart(props) {
                                         <tr key={'table-entry-' + item.name}>
                                             <td>
                                                 <OverlayTrigger
+                                                    trigger={['hover', 'focus']}
                                                     delayShow={Constants.OVERLAY_TIME_DELAY}
                                                     placement='top'
                                                     overlay={tooltip}

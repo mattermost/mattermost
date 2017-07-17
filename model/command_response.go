@@ -5,7 +5,6 @@ package model
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
 )
 
@@ -15,12 +14,12 @@ const (
 )
 
 type CommandResponse struct {
-	ResponseType string             `json:"response_type"`
-	Text         string             `json:"text"`
-	Username     string             `json:"username"`
-	IconURL      string             `json:"icon_url"`
-	GotoLocation string             `json:"goto_location"`
-	Attachments  []*SlackAttachment `json:"attachments"`
+	ResponseType string           `json:"response_type"`
+	Text         string           `json:"text"`
+	Username     string           `json:"username"`
+	IconURL      string           `json:"icon_url"`
+	GotoLocation string           `json:"goto_location"`
+	Attachments  SlackAttachments `json:"attachments"`
 }
 
 func (o *CommandResponse) ToJson() string {
@@ -40,14 +39,8 @@ func CommandResponseFromJson(data io.Reader) *CommandResponse {
 		return nil
 	}
 
-	// Ensure attachment fields are stored as strings
-	for _, attachment := range o.Attachments {
-		for _, field := range attachment.Fields {
-			if field.Value != nil {
-				field.Value = fmt.Sprintf("%v", field.Value)
-			}
-		}
-	}
+	o.Text = ExpandAnnouncement(o.Text)
+	o.Attachments.Process()
 
 	return &o
 }

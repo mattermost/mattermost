@@ -2,21 +2,21 @@
 // See License.txt for license information.
 
 import $ from 'jquery';
-import * as AsyncClient from 'utils/async_client.jsx';
 import SettingItemMin from '../setting_item_min.jsx';
 import SettingItemMax from '../setting_item_max.jsx';
-import Constants from 'utils/constants.jsx';
+
 import PreferenceStore from 'stores/preference_store.jsx';
 import UserStore from 'stores/user_store.jsx';
+
+import Constants from 'utils/constants.jsx';
+const PreReleaseFeatures = Constants.PRE_RELEASE_FEATURES;
 import * as Utils from 'utils/utils.jsx';
 
-import {FormattedMessage} from 'react-intl';
-
-const PreReleaseFeatures = Constants.PRE_RELEASE_FEATURES;
-
-import PropTypes from 'prop-types';
+import {savePreferences} from 'actions/user_actions.jsx';
 
 import React from 'react';
+import PropTypes from 'prop-types';
+import {FormattedMessage} from 'react-intl';
 
 export default class AdvancedSettingsDisplay extends React.Component {
     constructor(props) {
@@ -133,13 +133,10 @@ export default class AdvancedSettingsDisplay extends React.Component {
             });
         });
 
-        AsyncClient.savePreferences(
+        savePreferences(
             preferences,
             () => {
                 this.updateSection('');
-            },
-            (err) => {
-                this.setState({serverError: err.message});
             }
         );
     }
@@ -351,13 +348,6 @@ export default class AdvancedSettingsDisplay extends React.Component {
                 <FormattedMessage
                     id='user.settings.advance.webrtc_preview'
                     defaultMessage='Enable the ability to make and receive one-on-one WebRTC calls'
-                />
-            );
-        case 'EMOJI_PICKER_PREVIEW':
-            return (
-                <FormattedMessage
-                    id='user.settings.advance.emojipicker'
-                    defaultMessage='Enable emoji picker for reactions and message input box'
                 />
             );
         default:

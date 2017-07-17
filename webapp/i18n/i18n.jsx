@@ -4,6 +4,7 @@
 const de = require('!!file-loader?name=i18n/[name].[hash].[ext]!./de.json');
 const es = require('!!file-loader?name=i18n/[name].[hash].[ext]!./es.json');
 const fr = require('!!file-loader?name=i18n/[name].[hash].[ext]!./fr.json');
+const it = require('!!file-loader?name=i18n/[name].[hash].[ext]!./it.json');
 const ja = require('!!file-loader?name=i18n/[name].[hash].[ext]!./ja.json');
 const ko = require('!!file-loader?name=i18n/[name].[hash].[ext]!./ko.json');
 const nl = require('!!file-loader?name=i18n/[name].[hash].[ext]!./nl.json');
@@ -19,6 +20,7 @@ import deLocaleData from 'react-intl/locale-data/de';
 import enLocaleData from 'react-intl/locale-data/en';
 import esLocaleData from 'react-intl/locale-data/es';
 import frLocaleData from 'react-intl/locale-data/fr';
+import itLocaleData from 'react-intl/locale-data/it';
 import jaLocaleData from 'react-intl/locale-data/ja';
 import koLocaleData from 'react-intl/locale-data/ko';
 import nlLocaleData from 'react-intl/locale-data/nl';
@@ -54,58 +56,64 @@ const languages = {
         order: 3,
         url: fr
     },
+    it: {
+        value: 'it',
+        name: 'Italiano (Beta)',
+        order: 4,
+        url: it
+    },
     ja: {
         value: 'ja',
         name: '日本語',
-        order: 12,
+        order: 13,
         url: ja
     },
     ko: {
         value: 'ko',
         name: '한국어 (Alpha)',
-        order: 9,
+        order: 10,
         url: ko
     },
     nl: {
         value: 'nl',
         name: 'Nederlands (Alpha)',
-        order: 4,
+        order: 5,
         url: nl
     },
     pl: {
         value: 'pl',
         name: 'Polski (Beta)',
-        order: 5,
+        order: 6,
         url: pl
     },
     'pt-BR': {
         value: 'pt-BR',
         name: 'Português (Brasil)',
-        order: 6,
+        order: 7,
         url: pt_BR
     },
     tr: {
         value: 'tr',
         name: 'Türkçe (Beta)',
-        order: 7,
+        order: 8,
         url: tr
     },
     ru: {
         value: 'ru',
         name: 'Pусский (Beta)',
-        order: 8,
+        order: 9,
         url: ru
     },
     'zh-TW': {
         value: 'zh-TW',
         name: '中文 (繁體)',
-        order: 11,
+        order: 12,
         url: zh_TW
     },
     'zh-CN': {
         value: 'zh-CN',
         name: '中文 (简体)',
-        order: 10,
+        order: 11,
         url: zh_CN
     }
 };
@@ -155,6 +163,7 @@ export function safariFix(callback) {
         'intl/locale-data/jsonp/en.js',
         'intl/locale-data/jsonp/es.js',
         'intl/locale-data/jsonp/fr.js',
+        'intl/locale-data/jsonp/it.js',
         'intl/locale-data/jsonp/ja.js',
         'intl/locale-data/jsonp/ko.js',
         'intl/locale-data/jsonp/nl.js',
@@ -169,6 +178,7 @@ export function safariFix(callback) {
         require('intl/locale-data/jsonp/en.js');
         require('intl/locale-data/jsonp/es.js');
         require('intl/locale-data/jsonp/fr.js');
+        require('intl/locale-data/jsonp/it.js');
         require('intl/locale-data/jsonp/ja.js');
         require('intl/locale-data/jsonp/ko.js');
         require('intl/locale-data/jsonp/nl.js');
@@ -186,6 +196,7 @@ export function doAddLocaleData() {
     addLocaleData(deLocaleData);
     addLocaleData(esLocaleData);
     addLocaleData(frLocaleData);
+    addLocaleData(itLocaleData);
     addLocaleData(jaLocaleData);
     addLocaleData(koLocaleData);
     addLocaleData(nlLocaleData);

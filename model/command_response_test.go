@@ -82,3 +82,17 @@ func TestCommandResponseFromJson(t *testing.T) {
 		t.Fatal("should've received correct second attachment value")
 	}
 }
+
+func TestCommandResponseNullArrayItems(t *testing.T) {
+	payload := `{"attachments":[{"fields":[{"title":"foo","value":"bar","short":true}, null]}, null]}`
+	cr := CommandResponseFromJson(strings.NewReader(payload))
+	if cr == nil {
+		t.Fatal("CommandResponse should not be nil")
+	}
+	if len(cr.Attachments) != 1 {
+		t.Fatalf("expected one attachment")
+	}
+	if len(cr.Attachments[0].Fields) != 1 {
+		t.Fatalf("expected one field")
+	}
+}

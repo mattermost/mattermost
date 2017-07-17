@@ -137,6 +137,8 @@ func TestUpdatePost(t *testing.T) {
 
 	msg := "zz" + model.NewId() + " update post"
 	rpost.Message = msg
+	rpost.UserId = ""
+
 	rupost, resp := Client.UpdatePost(rpost.Id, rpost)
 	CheckNoError(t, resp)
 
@@ -752,6 +754,23 @@ func TestGetPost(t *testing.T) {
 	CheckBadRequestStatus(t, resp)
 
 	_, resp = Client.GetPost(model.NewId(), "")
+	CheckNotFoundStatus(t, resp)
+
+	Client.RemoveUserFromChannel(th.BasicChannel.Id, th.BasicUser.Id)
+
+	// Channel is public, should be able to read post
+	post, resp = Client.GetPost(th.BasicPost.Id, "")
+	CheckNoError(t, resp)
+
+	privatePost := th.CreatePostWithClient(Client, th.BasicPrivateChannel)
+
+	post, resp = Client.GetPost(privatePost.Id, "")
+	CheckNoError(t, resp)
+
+	Client.RemoveUserFromChannel(th.BasicPrivateChannel.Id, th.BasicUser.Id)
+
+	// Channel is private, should not be able to read post
+	post, resp = Client.GetPost(privatePost.Id, "")
 	CheckForbiddenStatus(t, resp)
 
 	Client.Logout()
@@ -831,6 +850,23 @@ func TestGetPostThread(t *testing.T) {
 	CheckBadRequestStatus(t, resp)
 
 	_, resp = Client.GetPostThread(model.NewId(), "")
+	CheckNotFoundStatus(t, resp)
+
+	Client.RemoveUserFromChannel(th.BasicChannel.Id, th.BasicUser.Id)
+
+	// Channel is public, should be able to read post
+	_, resp = Client.GetPostThread(th.BasicPost.Id, "")
+	CheckNoError(t, resp)
+
+	privatePost := th.CreatePostWithClient(Client, th.BasicPrivateChannel)
+
+	_, resp = Client.GetPostThread(privatePost.Id, "")
+	CheckNoError(t, resp)
+
+	Client.RemoveUserFromChannel(th.BasicPrivateChannel.Id, th.BasicUser.Id)
+
+	// Channel is private, should not be able to read post
+	_, resp = Client.GetPostThread(privatePost.Id, "")
 	CheckForbiddenStatus(t, resp)
 
 	Client.Logout()

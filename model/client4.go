@@ -230,6 +230,10 @@ func (c *Client4) GetBrandRoute() string {
 	return fmt.Sprintf("/brand")
 }
 
+func (c *Client4) GetElasticsearchRoute() string {
+	return fmt.Sprintf("/elasticsearch")
+}
+
 func (c *Client4) GetCommandsRoute() string {
 	return fmt.Sprintf("/commands")
 }
@@ -599,6 +603,28 @@ func (c *Client4) GetUsers(page int, perPage int, etag string) ([]*User, *Respon
 // GetUsersInTeam returns a page of users on a team. Page counting starts at 0.
 func (c *Client4) GetUsersInTeam(teamId string, page int, perPage int, etag string) ([]*User, *Response) {
 	query := fmt.Sprintf("?in_team=%v&page=%v&per_page=%v", teamId, page, perPage)
+	if r, err := c.DoApiGet(c.GetUsersRoute()+query, etag); err != nil {
+		return nil, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return UserListFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// GetNewUsersInTeam returns a page of users on a team. Page counting starts at 0.
+func (c *Client4) GetNewUsersInTeam(teamId string, page int, perPage int, etag string) ([]*User, *Response) {
+	query := fmt.Sprintf("?sort=create_at&in_team=%v&page=%v&per_page=%v", teamId, page, perPage)
+	if r, err := c.DoApiGet(c.GetUsersRoute()+query, etag); err != nil {
+		return nil, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return UserListFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// GetRecentlyActiveUsersInTeam returns a page of users on a team. Page counting starts at 0.
+func (c *Client4) GetRecentlyActiveUsersInTeam(teamId string, page int, perPage int, etag string) ([]*User, *Response) {
+	query := fmt.Sprintf("?sort=last_activity_at&in_team=%v&page=%v&per_page=%v", teamId, page, perPage)
 	if r, err := c.DoApiGet(c.GetUsersRoute()+query, etag); err != nil {
 		return nil, BuildErrorResponse(r, err)
 	} else {
@@ -1102,9 +1128,20 @@ func (c *Client4) GetTeamMembersByIds(teamId string, userIds []string) ([]*TeamM
 }
 
 // AddTeamMember adds user to a team and return a team member.
-func (c *Client4) AddTeamMember(teamId, userId, hash, dataToHash, inviteId string) (*TeamMember, *Response) {
+func (c *Client4) AddTeamMember(teamId, userId string) (*TeamMember, *Response) {
 	member := &TeamMember{TeamId: teamId, UserId: userId}
 
+	if r, err := c.DoApiPost(c.GetTeamMembersRoute(teamId), member.ToJson()); err != nil {
+		return nil, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return TeamMemberFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// AddTeamMemberFromInvite adds a user to a team and return a team member using an invite id
+// or an invite hash/data pair.
+func (c *Client4) AddTeamMemberFromInvite(hash, dataToHash, inviteId string) (*TeamMember, *Response) {
 	var query string
 
 	if inviteId != "" {
@@ -1115,7 +1152,7 @@ func (c *Client4) AddTeamMember(teamId, userId, hash, dataToHash, inviteId strin
 		query += fmt.Sprintf("?hash=%v&data=%v", hash, dataToHash)
 	}
 
-	if r, err := c.DoApiPost(c.GetTeamMembersRoute(teamId)+query, member.ToJson()); err != nil {
+	if r, err := c.DoApiPost(c.GetTeamsRoute()+"/members/invite"+query, ""); err != nil {
 		return nil, BuildErrorResponse(r, err)
 	} else {
 		defer closeBody(r)
@@ -1123,7 +1160,7 @@ func (c *Client4) AddTeamMember(teamId, userId, hash, dataToHash, inviteId strin
 	}
 }
 
-// AddTeamMember adds a number of users to a team and returns the team members.
+// AddTeamMembers adds a number of users to a team and returns the team members.
 func (c *Client4) AddTeamMembers(teamId string, userIds []string) ([]*TeamMember, *Response) {
 	var members []*TeamMember
 	for _, userId := range userIds {
@@ -1673,8 +1710,8 @@ func (c *Client4) GetPostsBefore(channelId, postId string, page, perPage int, et
 
 // SearchPosts returns any posts with matching terms string.
 func (c *Client4) SearchPosts(teamId string, terms string, isOrSearch bool) (*PostList, *Response) {
-	requestBody := map[string]string{"terms": terms, "is_or_search": strconv.FormatBool(isOrSearch)}
-	if r, err := c.DoApiPost(c.GetTeamRoute(teamId)+"/posts/search", MapToJson(requestBody)); err != nil {
+	requestBody := map[string]interface{}{"terms": terms, "is_or_search": isOrSearch}
+	if r, err := c.DoApiPost(c.GetTeamRoute(teamId)+"/posts/search", StringInterfaceToJson(requestBody)); err != nil {
 		return nil, BuildErrorResponse(r, err)
 	} else {
 		defer closeBody(r)
@@ -1774,7 +1811,7 @@ func (c *Client4) GetFileInfosForPost(postId string, etag string) ([]*FileInfo, 
 
 // GetPing will return ok if the running goRoutines are below the threshold and unhealthy for above.
 func (c *Client4) GetPing() (string, *Response) {
-	if r, err := c.DoApiGet(c.GetSystemRoute()+"/ping", ""); r.StatusCode == 500 {
+	if r, err := c.DoApiGet(c.GetSystemRoute()+"/ping", ""); r != nil && r.StatusCode == 500 {
 		defer r.Body.Close()
 		return "unhealthy", BuildErrorResponse(r, err)
 	} else if err != nil {
@@ -2503,6 +2540,19 @@ func (c *Client4) DeauthorizeOAuthApp(appId string) (bool, *Response) {
 	}
 }
 
+// Elasticsearch Section
+
+// TestElasticsearch will attempt to connect to the configured Elasticsearch server and return OK if configured
+// correctly.
+func (c *Client4) TestElasticsearch() (bool, *Response) {
+	if r, err := c.DoApiPost(c.GetElasticsearchRoute()+"/test", ""); err != nil {
+		return false, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return CheckStatusOK(r), BuildResponse(r)
+	}
+}
+
 // Commands Section
 
 // CreateCommand will create a new command if the user have the right permissions.
@@ -2649,9 +2699,10 @@ func (c *Client4) CreateEmoji(emoji *Emoji, image []byte, filename string) (*Emo
 	return c.DoEmojiUploadFile(c.GetEmojisRoute(), body.Bytes(), writer.FormDataContentType())
 }
 
-// GetEmojiList returns a list of custom emoji in the system.
-func (c *Client4) GetEmojiList() ([]*Emoji, *Response) {
-	if r, err := c.DoApiGet(c.GetEmojisRoute(), ""); err != nil {
+// GetEmojiList returns a page of custom emoji on the system.
+func (c *Client4) GetEmojiList(page, perPage int) ([]*Emoji, *Response) {
+	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)
+	if r, err := c.DoApiGet(c.GetEmojisRoute()+query, ""); err != nil {
 		return nil, BuildErrorResponse(r, err)
 	} else {
 		defer closeBody(r)
@@ -2739,22 +2790,22 @@ func (c *Client4) OpenGraph(url string) (map[string]string, *Response) {
 
 // Jobs Section
 
-// GetJobStatus gets the status of a single job.
-func (c *Client4) GetJobStatus(id string) (*JobStatus, *Response) {
+// GetJob gets a single job.
+func (c *Client4) GetJob(id string) (*Job, *Response) {
 	if r, err := c.DoApiGet(c.GetJobsRoute()+fmt.Sprintf("/%v/status", id), ""); err != nil {
 		return nil, BuildErrorResponse(r, err)
 	} else {
 		defer closeBody(r)
-		return JobStatusFromJson(r.Body), BuildResponse(r)
+		return JobFromJson(r.Body), BuildResponse(r)
 	}
 }
 
-// GetJobStatusesByType gets the status of all jobs of a given type, sorted with the job that most recently started first.
-func (c *Client4) GetJobStatusesByType(jobType string, page int, perPage int) ([]*JobStatus, *Response) {
+// GetJobsByType gets all jobs of a given type, sorted with the job that most recently started first.
+func (c *Client4) GetJobsByType(jobType string, page int, perPage int) ([]*Job, *Response) {
 	if r, err := c.DoApiGet(c.GetJobsRoute()+fmt.Sprintf("/type/%v/statuses?page=%v&per_page=%v", jobType, page, perPage), ""); err != nil {
 		return nil, BuildErrorResponse(r, err)
 	} else {
 		defer closeBody(r)
-		return JobStatusesFromJson(r.Body), BuildResponse(r)
+		return JobsFromJson(r.Body), BuildResponse(r)
 	}
 }

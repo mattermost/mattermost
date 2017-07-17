@@ -116,7 +116,9 @@ func (c *WebConn) WritePump() {
 			skipSend := false
 			if len(c.Send) >= SEND_SLOW_WARN {
 				// When the pump starts to get slow we'll drop non-critical messages
-				if msg.EventType() == model.WEBSOCKET_EVENT_TYPING || msg.EventType() == model.WEBSOCKET_EVENT_STATUS_CHANGE {
+				if msg.EventType() == model.WEBSOCKET_EVENT_TYPING ||
+					msg.EventType() == model.WEBSOCKET_EVENT_STATUS_CHANGE ||
+					msg.EventType() == model.WEBSOCKET_EVENT_CHANNEL_VIEWED {
 					l4g.Info(fmt.Sprintf("websocket.slow: dropping message userId=%v type=%v channelId=%v", c.UserId, msg.EventType(), evt.Broadcast.ChannelId))
 					skipSend = true
 				}
@@ -226,8 +228,12 @@ func (webCon *WebConn) ShouldSendEvent(msg *model.WebSocketEvent) bool {
 	}
 
 	// If the event is destined to a specific user
-	if len(msg.Broadcast.UserId) > 0 && webCon.UserId != msg.Broadcast.UserId {
-		return false
+	if len(msg.Broadcast.UserId) > 0 {
+		if webCon.UserId == msg.Broadcast.UserId {
+			return true
+		} else {
+			return false
+		}
 	}
 
 	// if the user is omitted don't send the message

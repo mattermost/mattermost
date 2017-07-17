@@ -2,14 +2,9 @@
 
 .webrtc__header {
     @include webrtc-button;
-    float: left;
-    margin-right: 10px;
-    position: relative;
-    top: 13px;
 
     svg {
         position: relative;
-        width: 20px;
     }
 }
 

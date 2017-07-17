@@ -16,7 +16,7 @@ import AnalyticsStore from 'stores/analytics_store.jsx';
 import TeamStore from 'stores/team_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 
-import {getStandardAnalytics} from 'utils/async_client.jsx';
+import {getStandardAnalytics} from 'actions/admin_actions.jsx';
 import {Constants, StatTypes, UserSearchOptions} from 'utils/constants.jsx';
 import * as Utils from 'utils/utils.jsx';
 
@@ -260,13 +260,7 @@ export default class SystemUsers extends React.Component {
             return;
         }
 
-        this.props.actions.getUser(
-            id,
-            () => {
-                this.setState({
-                    loading: false
-                });
-            },
+        this.props.actions.getUser(id).then(
             () => {
                 this.setState({
                     loading: false

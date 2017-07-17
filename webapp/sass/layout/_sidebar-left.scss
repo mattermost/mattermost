@@ -16,6 +16,33 @@
         padding-top: 44px;
     }
 
+    .sidebar-item {
+        .icon {
+            display: inline-block;
+            margin: 0 7px 0 1px;
+            position: relative;
+            text-align: left;
+            vertical-align: top;
+            width: 15px;
+        }
+
+        .icon__lock {
+            top: 2px;
+        }
+
+        .icon__globe {
+            top: 1px;
+        }
+    }
+
+    .sidebar-item__name {
+        display: inline-block;
+        max-width: 167px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        vertical-align: top;
+    }
+
     .sidebar__divider {
         color: $white;
         font-size: .9em;
@@ -44,7 +71,6 @@
     }
 
     .sidebar__switcher {
-        border-top: 1px solid;
         bottom: 0;
         display: block;
         padding-bottom: 0;
@@ -54,16 +80,28 @@
         button {
             @include single-transition(all, .15s, ease-in);
             display: block;
-            height: 42px;
-            text-align: center;
+            font-weight: 600;
+            height: 50px;
+            line-height: 50px;
+            padding: 0;
             text-decoration: none;
             width: 100%;
 
             > span {
-                @include single-transition(all, .15s, ease-in);
-                @include opacity(.6);
+                display: inline-block;
                 position: relative;
+                vertical-align: middle;
                 z-index: 5;
+            }
+
+            .icon {
+                display: none;
+                margin-right: 15px;
+
+                svg {
+                    position: relative;
+                    top: 7px;
+                }
             }
 
             &:hover {
@@ -93,15 +131,20 @@
     }
 
     .badge {
-        background-color: $primary-color;
+        @include border-radius(100px);
+        font-size: 11px;
+        height: 16px;
+        line-height: 16px;
+        min-width: 18px;
+        padding: 0 5px;
         position: absolute;
-        right: 10px;
-        top: 5px;
+        right: 15px;
+        top: 8px;
     }
 
     .nav-pills__container {
         -webkit-overflow-scrolling: touch;
-        height: calc(100% - 99px);
+        height: calc(100% - 120px);
         overflow: auto;
         position: relative;
     }
@@ -119,11 +162,11 @@
     }
 
     .nav-pills__unread-indicator-top {
-        top: 66px;
+        top: 80px;
     }
 
     .nav-pills__unread-indicator-bottom {
-        bottom: 50px;
+        bottom: 60px;
     }
 
     .nav {
@@ -135,12 +178,10 @@
 
         li {
             > h4 {
-                color: #aaaaaa;
                 font-size: 1em;
-                font-weight: 400;
-                letter-spacing: -.3px;
-                margin: 1.1em 0 .5em;
-                padding: 0 10px 0 15px;
+                font-weight: 600;
+                margin: 1.5em 0 .7em;
+                padding: 0 12px 0 17px;
                 text-transform: uppercase;
             }
 
@@ -155,17 +196,24 @@
                 line-height: 1.5;
                 outline: none;
                 overflow: hidden;
-                padding: 3px 10px 3px 25px;
+                padding: 5px 0 5px 17px;
                 text-overflow: ellipsis;
                 white-space: nowrap;
 
+                .icon {
+                    &.icon__globe,
+                    &.icon__lock {
+                        @include opacity(.5);
+                    }
+                }
+
                 &.has-badge {
-                    padding-right: 30px;
+                    .sidebar-item__name {
+                        max-width: 142px;
+                    }
                 }
 
                 &.has-close {
-                    padding-right: 30px;
-
                     &:hover {
                         .btn-close {
                             @include opacity(.8);
@@ -177,11 +225,11 @@
                         @include opacity(0);
                         display: none;
                         font-family: 'Open Sans', sans-serif;
-                        font-size: 20px;
+                        font-size: 21px;
                         font-weight: 600;
                         position: absolute;
-                        right: 15px;
-                        top: -1px;
+                        right: 18px;
+                        top: 0px;
 
                         &:hover {
                             @include opacity(1);
@@ -204,7 +252,14 @@
                         left: 0;
                         position: absolute;
                         top: 0;
-                        width: 5px;
+                        width: 3px;
+                    }
+                }
+
+                .icon {
+                    &.icon__globe,
+                    &.icon__lock {
+                        @include opacity(.7);
                     }
                 }
 
@@ -229,9 +284,8 @@
     }
 
     .add-channel-btn {
-        color: #aaaaaa;
         float: right;
-        font-size: 22px;
+        font-size: 1.9em;
         font-weight: 700;
         line-height: 18px;
         margin: -2px 0 0 0;
@@ -245,35 +299,46 @@
     }
 
     .status-wrapper {
+        height: 36px;
+        width: 36px;
+
         .status {
-            bottom: -9px;
+            bottom: -4px;
             height: 18px;
             right: -5px;
             width: 18px;
 
-            svg {
-                top: 3px;
-                max-height: 12px;
+            &.status-edit {
+                .fa {
+                    top: 4px;
+                }
+            }
+
+            .fa {
+                position: relative;
+                top: 2px;
             }
 
             .icon__container {
-                position: relative;
-                top: 3px;
-
                 &:after {
                     border-radius: 20px;
                     content: '';
-                    height: 9px;
-                    left: 5px;
+                    height: 10px;
+                    left: 4px;
                     position: absolute;
-                    top: 2px;
-                    width: 9px;
+                    top: 4px;
+                    width: 10px;
                 }
+            }
 
-                svg {
-                    top: 0;
-                    z-index: 1;
-                }
+            svg {
+                height: 13px;
+                left: 3px;
+                max-height: initial;
+                position: relative;
+                top: 3px;
+                width: 13px;
+                z-index: 1;
             }
         }
     }

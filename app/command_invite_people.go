@@ -28,9 +28,13 @@ func (me *InvitePeopleProvider) GetTrigger() string {
 }
 
 func (me *InvitePeopleProvider) GetCommand(T goi18n.TranslateFunc) *model.Command {
+	autoComplete := true
+	if !utils.Cfg.EmailSettings.SendEmailNotifications || !utils.Cfg.TeamSettings.EnableUserCreation {
+		autoComplete = false
+	}
 	return &model.Command{
 		Trigger:          CMD_INVITE_PEOPLE,
-		AutoComplete:     true,
+		AutoComplete:     autoComplete,
 		AutoCompleteDesc: T("api.command.invite_people.desc"),
 		AutoCompleteHint: T("api.command.invite_people.hint"),
 		DisplayName:      T("api.command.invite_people.name"),
@@ -40,6 +44,10 @@ func (me *InvitePeopleProvider) GetCommand(T goi18n.TranslateFunc) *model.Comman
 func (me *InvitePeopleProvider) DoCommand(args *model.CommandArgs, message string) *model.CommandResponse {
 	if !utils.Cfg.EmailSettings.SendEmailNotifications {
 		return &model.CommandResponse{ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL, Text: args.T("api.command.invite_people.email_off")}
+	}
+
+	if !utils.Cfg.TeamSettings.EnableUserCreation {
+		return &model.CommandResponse{ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL, Text: args.T("api.command.invite_people.invite_off")}
 	}
 
 	emailList := strings.Fields(message)

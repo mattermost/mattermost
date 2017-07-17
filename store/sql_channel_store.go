@@ -35,7 +35,7 @@ const (
 )
 
 type SqlChannelStore struct {
-	*SqlStore
+	SqlStore
 }
 
 var channelMemberCountsCache = utils.NewLru(CHANNEL_MEMBERS_COUNTS_CACHE_SIZE)
@@ -52,7 +52,7 @@ func ClearChannelCaches() {
 	channelByNameCache.Purge()
 }
 
-func NewSqlChannelStore(sqlStore *SqlStore) ChannelStore {
+func NewSqlChannelStore(sqlStore SqlStore) ChannelStore {
 	s := &SqlChannelStore{sqlStore}
 
 	for _, db := range sqlStore.GetAllConns() {
@@ -361,7 +361,7 @@ func (s SqlChannelStore) GetPinnedPosts(channelId string) StoreChannel {
 
 	go func() {
 		result := StoreResult{}
-		pl := &model.PostList{}
+		pl := model.NewPostList()
 
 		var posts []*model.Post
 		if _, err := s.GetReplica().Select(&posts, "SELECT * FROM Posts WHERE IsPinned = true AND ChannelId = :ChannelId AND DeleteAt = 0 ORDER BY CreateAt ASC", map[string]interface{}{"ChannelId": channelId}); err != nil {

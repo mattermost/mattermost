@@ -126,7 +126,7 @@ func TestEmojiGetByName(t *testing.T) {
 	}
 }
 
-func TestEmojiGetAll(t *testing.T) {
+func TestEmojiGetList(t *testing.T) {
 	Setup()
 
 	emojis := []model.Emoji{
@@ -153,7 +153,7 @@ func TestEmojiGetAll(t *testing.T) {
 		}
 	}()
 
-	if result := <-store.Emoji().GetAll(); result.Err != nil {
+	if result := <-store.Emoji().GetList(0, 100); result.Err != nil {
 		t.Fatal(result.Err)
 	} else {
 		for _, emoji := range emojis {

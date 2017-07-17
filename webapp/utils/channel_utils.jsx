@@ -107,7 +107,7 @@ export function sortChannelsByDisplayName(a, b) {
     const aDisplayName = getChannelDisplayName(a);
     const bDisplayName = getChannelDisplayName(b);
 
-    if (aDisplayName !== bDisplayName) {
+    if (aDisplayName !== null && bDisplayName !== null && aDisplayName !== bDisplayName) {
         return aDisplayName.localeCompare(bDisplayName, locale, {numeric: true});
     }
 
@@ -190,9 +190,13 @@ export function showManagementOptions(channel, isAdmin, isSystemAdmin, isChannel
     return true;
 }
 
-export function showDeleteOption(channel, isAdmin, isSystemAdmin, isChannelAdmin) {
+export function showDeleteOption(channel, isAdmin, isSystemAdmin, isChannelAdmin, userCount) {
     if (global.window.mm_license.IsLicensed !== 'true') {
         return true;
+    }
+
+    if (ChannelStore.isDefault(channel)) {
+        return false;
     }
 
     if (channel.type === Constants.OPEN_CHANNEL) {
@@ -206,6 +210,9 @@ export function showDeleteOption(channel, isAdmin, isSystemAdmin, isChannelAdmin
             return false;
         }
     } else if (channel.type === Constants.PRIVATE_CHANNEL) {
+        if (userCount === 1) {
+            return true;
+        }
         if (global.window.mm_config.RestrictPrivateChannelDeletion === Constants.PERMISSIONS_SYSTEM_ADMIN && !isSystemAdmin) {
             return false;
         }

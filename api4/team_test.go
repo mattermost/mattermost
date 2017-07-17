@@ -778,16 +778,16 @@ func TestAddTeamMember(t *testing.T) {
 
 	// Regular user can't add a member to a team they don't belong to.
 	th.LoginBasic2()
-	tm, resp := Client.AddTeamMember(team.Id, otherUser.Id, "", "", "")
+	tm, resp := Client.AddTeamMember(team.Id, otherUser.Id)
 	CheckForbiddenStatus(t, resp)
 	if resp.Error == nil {
-		t.Fatalf("ERror is nhul")
+		t.Fatalf("Error is nhul")
 	}
 	Client.Logout()
 
 	// Regular user can add a member to a team they belong to.
 	th.LoginBasic()
-	tm, resp = Client.AddTeamMember(team.Id, otherUser.Id, "", "", "")
+	tm, resp = Client.AddTeamMember(team.Id, otherUser.Id)
 	CheckNoError(t, resp)
 	CheckCreatedStatus(t, resp)
 
@@ -805,20 +805,20 @@ func TestAddTeamMember(t *testing.T) {
 	}
 
 	// Check with various invalid requests.
-	tm, resp = Client.AddTeamMember(team.Id, "junk", "", "", "")
+	tm, resp = Client.AddTeamMember(team.Id, "junk")
 	CheckBadRequestStatus(t, resp)
 
 	if tm != nil {
 		t.Fatal("should have not returned team member")
 	}
 
-	_, resp = Client.AddTeamMember("junk", otherUser.Id, "", "", "")
+	_, resp = Client.AddTeamMember("junk", otherUser.Id)
 	CheckBadRequestStatus(t, resp)
 
-	_, resp = Client.AddTeamMember(GenerateTestId(), otherUser.Id, "", "", "")
+	_, resp = Client.AddTeamMember(GenerateTestId(), otherUser.Id)
 	CheckForbiddenStatus(t, resp)
 
-	_, resp = Client.AddTeamMember(team.Id, GenerateTestId(), "", "", "")
+	_, resp = Client.AddTeamMember(team.Id, GenerateTestId())
 	CheckNotFoundStatus(t, resp)
 
 	Client.Logout()
@@ -840,7 +840,7 @@ func TestAddTeamMember(t *testing.T) {
 	th.LoginBasic()
 
 	// Test without the EE license to see that the permission restriction is ignored.
-	_, resp = Client.AddTeamMember(team.Id, otherUser.Id, "", "", "")
+	_, resp = Client.AddTeamMember(team.Id, otherUser.Id)
 	CheckNoError(t, resp)
 
 	// Add an EE license.
@@ -851,7 +851,7 @@ func TestAddTeamMember(t *testing.T) {
 	th.LoginBasic()
 
 	// Check that a regular user can't add someone to the team.
-	_, resp = Client.AddTeamMember(team.Id, otherUser.Id, "", "", "")
+	_, resp = Client.AddTeamMember(team.Id, otherUser.Id)
 	CheckForbiddenStatus(t, resp)
 
 	// Update user to team admin
@@ -865,7 +865,7 @@ func TestAddTeamMember(t *testing.T) {
 	th.LoginBasic()
 
 	// Should work as a team admin.
-	_, resp = Client.AddTeamMember(team.Id, otherUser.Id, "", "", "")
+	_, resp = Client.AddTeamMember(team.Id, otherUser.Id)
 	CheckNoError(t, resp)
 
 	// Change permission level to System Admin
@@ -873,11 +873,11 @@ func TestAddTeamMember(t *testing.T) {
 	utils.SetDefaultRolesBasedOnConfig()
 
 	// Should not work as team admin.
-	_, resp = Client.AddTeamMember(team.Id, otherUser.Id, "", "", "")
+	_, resp = Client.AddTeamMember(team.Id, otherUser.Id)
 	CheckForbiddenStatus(t, resp)
 
 	// Should work as system admin.
-	_, resp = th.SystemAdminClient.AddTeamMember(team.Id, otherUser.Id, "", "", "")
+	_, resp = th.SystemAdminClient.AddTeamMember(team.Id, otherUser.Id)
 	CheckNoError(t, resp)
 
 	// Change permission level to All
@@ -891,7 +891,7 @@ func TestAddTeamMember(t *testing.T) {
 	th.LoginBasic()
 
 	// Should work as a regular user.
-	_, resp = Client.AddTeamMember(team.Id, otherUser.Id, "", "", "")
+	_, resp = Client.AddTeamMember(team.Id, otherUser.Id)
 	CheckNoError(t, resp)
 
 	// Reset config and license.
@@ -911,7 +911,7 @@ func TestAddTeamMember(t *testing.T) {
 	data := model.MapToJson(dataObject)
 	hashed := utils.HashSha256(fmt.Sprintf("%v:%v", data, utils.Cfg.EmailSettings.InviteSalt))
 
-	tm, resp = Client.AddTeamMember(team.Id, "", hashed, data, "")
+	tm, resp = Client.AddTeamMemberFromInvite(hashed, data, "")
 	CheckNoError(t, resp)
 
 	if tm == nil {
@@ -926,36 +926,36 @@ func TestAddTeamMember(t *testing.T) {
 		t.Fatal("team ids should have matched")
 	}
 
-	tm, resp = Client.AddTeamMember(team.Id, "", "junk", data, "")
-	CheckNotFoundStatus(t, resp)
+	tm, resp = Client.AddTeamMemberFromInvite("junk", data, "")
+	CheckBadRequestStatus(t, resp)
 
 	if tm != nil {
 		t.Fatal("should have not returned team member")
 	}
 
-	_, resp = Client.AddTeamMember(team.Id, "", hashed, "junk", "")
-	CheckNotFoundStatus(t, resp)
+	_, resp = Client.AddTeamMemberFromInvite(hashed, "junk", "")
+	CheckBadRequestStatus(t, resp)
 
 	// expired data of more than 50 hours
 	dataObject["time"] = fmt.Sprintf("%v", model.GetMillis()-1000*60*60*50)
 	data = model.MapToJson(dataObject)
 	hashed = utils.HashSha256(fmt.Sprintf("%v:%v", data, utils.Cfg.EmailSettings.InviteSalt))
 
-	tm, resp = Client.AddTeamMember(team.Id, "", hashed, data, "")
-	CheckNotFoundStatus(t, resp)
+	tm, resp = Client.AddTeamMemberFromInvite(hashed, data, "")
+	CheckBadRequestStatus(t, resp)
 
 	// invalid team id
 	dataObject["id"] = GenerateTestId()
 	data = model.MapToJson(dataObject)
 	hashed = utils.HashSha256(fmt.Sprintf("%v:%v", data, utils.Cfg.EmailSettings.InviteSalt))
 
-	tm, resp = Client.AddTeamMember(team.Id, "", hashed, data, "")
-	CheckNotFoundStatus(t, resp)
+	tm, resp = Client.AddTeamMemberFromInvite(hashed, data, "")
+	CheckBadRequestStatus(t, resp)
 
 	// by invite_id
 	Client.Login(otherUser.Email, otherUser.Password)
 
-	tm, resp = Client.AddTeamMember(team.Id, "", "", "", team.InviteId)
+	tm, resp = Client.AddTeamMemberFromInvite("", "", team.InviteId)
 	CheckNoError(t, resp)
 
 	if tm == nil {
@@ -970,15 +970,12 @@ func TestAddTeamMember(t *testing.T) {
 		t.Fatal("team ids should have matched")
 	}
 
-	tm, resp = Client.AddTeamMember(team.Id, "", "", "", "junk")
+	tm, resp = Client.AddTeamMemberFromInvite("", "", "junk")
 	CheckNotFoundStatus(t, resp)
 
 	if tm != nil {
 		t.Fatal("should have not returned team member")
 	}
-
-	_, resp = Client.AddTeamMember(team.Id, "", "", "", "junk")
-	CheckNotFoundStatus(t, resp)
 }
 
 func TestAddTeamMembers(t *testing.T) {
@@ -1124,7 +1121,7 @@ func TestRemoveTeamMember(t *testing.T) {
 		t.Fatal("should have passed")
 	}
 
-	_, resp = th.SystemAdminClient.AddTeamMember(th.BasicTeam.Id, th.BasicUser.Id, "", "", "")
+	_, resp = th.SystemAdminClient.AddTeamMember(th.BasicTeam.Id, th.BasicUser.Id)
 	CheckNoError(t, resp)
 
 	_, resp = Client.RemoveTeamMember(th.BasicTeam.Id, "junk")
@@ -1425,7 +1422,8 @@ func TestInviteUsersToTeam(t *testing.T) {
 		t.Fatal("should return true")
 	}
 
-	expectedSubject := "[Mattermost] " + th.SystemAdminUser.GetDisplayName() + " invited you to join " + th.BasicTeam.DisplayName + " Team"
+	nameFormat := *utils.Cfg.TeamSettings.TeammateNameDisplay
+	expectedSubject := "[Mattermost] " + th.SystemAdminUser.GetDisplayName(nameFormat) + " invited you to join " + th.BasicTeam.DisplayName + " Team"
 	//Check if the email was send to the rigth email address
 	for _, email := range emailList {
 		var resultsMailbox utils.JSONMessageHeaderInbucket
@@ -1451,6 +1449,22 @@ func TestInviteUsersToTeam(t *testing.T) {
 				}
 			}
 		}
+	}
+
+	restrictCreationToDomains := utils.Cfg.TeamSettings.RestrictCreationToDomains
+	defer func() {
+		utils.Cfg.TeamSettings.RestrictCreationToDomains = restrictCreationToDomains
+	}()
+	utils.Cfg.TeamSettings.RestrictCreationToDomains = "@example.com"
+
+	err := app.InviteNewUsersToTeam(emailList, th.BasicTeam.Id, th.BasicUser.Id)
+
+	if err == nil {
+		t.Fatal("Adding users with non-restricted domains was allowed")
+	}
+	if err.Where != "InviteNewUsersToTeam" || err.Message != "api.team.invite_members.invalid_email.app_error" {
+		t.Log(err)
+		t.Fatal("Got wrong error message!")
 	}
 }
 

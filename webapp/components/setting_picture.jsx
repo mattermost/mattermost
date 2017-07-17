@@ -5,10 +5,12 @@ import PropTypes from 'prop-types';
 
 import React, {Component} from 'react';
 import {FormattedMessage} from 'react-intl';
+import exif2css from 'exif2css';
 
 import FormError from 'components/form_error.jsx';
-
 import loadingGif from 'images/load.gif';
+
+import Constants from 'utils/constants.jsx';
 
 export default class SettingPicture extends Component {
     static propTypes = {
@@ -40,26 +42,89 @@ export default class SettingPicture extends Component {
         }
     }
 
+    componentWillUnmount() {
+        if (this.previewBlob) {
+            URL.revokeObjectURL(this.previewBlob);
+        }
+    }
+
     setPicture = (file) => {
         if (file) {
-            var reader = new FileReader();
+            this.previewBlob = URL.createObjectURL(file);
 
+            var reader = new FileReader();
             reader.onload = (e) => {
+                const orientation = this.getExifOrientation(e.target.result);
+                const orientationStyles = this.getOrientationStyles(orientation);
+
                 this.setState({
-                    image: e.target.result
+                    image: this.previewBlob,
+                    orientationStyles
                 });
             };
-            reader.readAsDataURL(file);
+            reader.readAsArrayBuffer(file);
         }
+    }
+
+    // based on https://stackoverflow.com/questions/7584794/accessing-jpeg-exif-rotation-data-in-javascript-on-the-client-side/32490603#32490603
+    getExifOrientation(data) {
+        var view = new DataView(data);
+
+        if (view.getUint16(0, false) !== 0xFFD8) {
+            return -2;
+        }
+
+        var length = view.byteLength;
+        var offset = 2;
+
+        while (offset < length) {
+            var marker = view.getUint16(offset, false);
+            offset += 2;
+
+            if (marker === 0xFFE1) {
+                if (view.getUint32(offset += 2, false) !== 0x45786966) {
+                    return -1;
+                }
+
+                var little = view.getUint16(offset += 6, false) === 0x4949;
+                offset += view.getUint32(offset + 4, little);
+                var tags = view.getUint16(offset, little);
+                offset += 2;
+
+                for (var i = 0; i < tags; i++) {
+                    if (view.getUint16(offset + (i * 12), little) === 0x0112) {
+                        return view.getUint16(offset + (i * 12) + 8, little);
+                    }
+                }
+            } else if ((marker & 0xFF00) === 0xFF00) {
+                offset += view.getUint16(offset, false);
+            } else {
+                break;
+            }
+        }
+        return -1;
+    }
+
+    getOrientationStyles(orientation) {
+        const {
+            transform,
+            'transform-origin': transformOrigin
+        } = exif2css(orientation);
+        return {transform, transformOrigin};
     }
 
     render() {
         let img;
         if (this.props.file) {
+            const imageStyles = {
+                backgroundImage: 'url(' + this.state.image + ')',
+                ...this.state.orientationStyles
+            };
+
             img = (
                 <div
                     className='profile-img-preview'
-                    style={{backgroundImage: 'url(' + this.state.image + ')'}}
+                    style={imageStyles}
                 />
             );
         } else {
@@ -114,8 +179,8 @@ export default class SettingPicture extends Component {
                                 id='setting_picture.help'
                                 defaultMessage='Upload a profile picture in BMP, JPG, JPEG or PNG format, at least {width}px in width and {height}px height.'
                                 values={{
-                                    width: global.mm_config.ProfileWidth,
-                                    height: global.mm_config.ProfileHeight
+                                    width: Constants.PROFILE_WIDTH,
+                                    height: Constants.PROFILE_WIDTH
                                 }}
                             />
                         </li>

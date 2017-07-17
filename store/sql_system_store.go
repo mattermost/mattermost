@@ -8,10 +8,10 @@ import (
 )
 
 type SqlSystemStore struct {
-	*SqlStore
+	SqlStore
 }
 
-func NewSqlSystemStore(sqlStore *SqlStore) SystemStore {
+func NewSqlSystemStore(sqlStore SqlStore) SystemStore {
 	s := &SqlSystemStore{sqlStore}
 
 	for _, db := range sqlStore.GetAllConns() {

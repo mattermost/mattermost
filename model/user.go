@@ -383,26 +383,16 @@ func (u *User) GetFullName() string {
 	}
 }
 
-func (u *User) GetDisplayName() string {
-	if u.Nickname != "" {
-		return u.Nickname
-	} else if fullName := u.GetFullName(); fullName != "" {
-		return fullName
-	} else {
-		return u.Username
-	}
-}
-
-func (u *User) GetDisplayNameForPreference(nameFormat string) string {
+func (u *User) GetDisplayName(nameFormat string) string {
 	displayName := u.Username
 
-	if nameFormat == PREFERENCE_VALUE_DISPLAY_NAME_NICKNAME {
+	if nameFormat == SHOW_NICKNAME_FULLNAME {
 		if u.Nickname != "" {
 			displayName = u.Nickname
 		} else if fullName := u.GetFullName(); fullName != "" {
 			displayName = fullName
 		}
-	} else if nameFormat == PREFERENCE_VALUE_DISPLAY_NAME_FULL {
+	} else if nameFormat == SHOW_FULLNAME {
 		if fullName := u.GetFullName(); fullName != "" {
 			displayName = fullName
 		}
@@ -457,31 +447,25 @@ func IsInRole(userRoles string, inRole string) bool {
 		if r == inRole {
 			return true
 		}
-
 	}
 
 	return false
 }
 
 func (u *User) IsSSOUser() bool {
-	if u.AuthService != "" && u.AuthService != USER_AUTH_SERVICE_EMAIL {
-		return true
-	}
-	return false
+	return u.AuthService != "" && u.AuthService != USER_AUTH_SERVICE_EMAIL
 }
 
 func (u *User) IsOAuthUser() bool {
-	if u.AuthService == USER_AUTH_SERVICE_GITLAB {
-		return true
-	}
-	return false
+	return u.AuthService == USER_AUTH_SERVICE_GITLAB
 }
 
 func (u *User) IsLDAPUser() bool {
-	if u.AuthService == USER_AUTH_SERVICE_LDAP {
-		return true
-	}
-	return false
+	return u.AuthService == USER_AUTH_SERVICE_LDAP
+}
+
+func (u *User) IsSAMLUser() bool {
+	return u.AuthService == USER_AUTH_SERVICE_SAML
 }
 
 // UserFromJson will decode the input and return a User

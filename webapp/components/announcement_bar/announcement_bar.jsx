@@ -9,7 +9,7 @@ import AnalyticsStore from 'stores/analytics_store.jsx';
 import ErrorStore from 'stores/error_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 
-import * as AsyncClient from 'utils/async_client.jsx';
+import * as AdminActions from 'actions/admin_actions.jsx';
 import {ErrorBarTypes, StatTypes} from 'utils/constants.jsx';
 import {isLicenseExpiring, isLicenseExpired, isLicensePastGracePeriod, displayExpiryDate} from 'utils/license_utils.jsx';
 import * as Utils from 'utils/utils.jsx';
@@ -150,7 +150,7 @@ export default class AnnouncementBar extends React.PureComponent {
     onErrorChange() {
         const newState = this.getState();
         if (newState.message === ErrorBarTypes.LICENSE_EXPIRING && !this.state.totalUsers) {
-            AsyncClient.getStandardAnalytics();
+            AdminActions.getStandardAnalytics();
         }
         this.setState(newState);
     }
@@ -196,9 +196,9 @@ export default class AnnouncementBar extends React.PureComponent {
             barStyle.color = this.state.textColor;
             linkStyle.color = this.state.textColor;
         } else if (this.state.type === BAR_DEVELOPER_TYPE) {
-            errClass = 'error-bar-developer';
+            errClass = 'error-bar error-bar-developer';
         } else if (this.state.type === BAR_CRITICAL_TYPE) {
-            errClass = 'error-bar-critical';
+            errClass = 'error-bar error-bar-critical';
         }
 
         let closeButton;
@@ -252,6 +252,13 @@ export default class AnnouncementBar extends React.PureComponent {
                 <FormattedMessage
                     id={ErrorBarTypes.LICENSE_PAST_GRACE}
                     defaultMessage='Enterprise license is expired and some features may be disabled. Please contact your System Administrator for details.'
+                />
+            );
+        } else if (message === ErrorBarTypes.WEBSOCKET_PORT_ERROR) {
+            message = (
+                <FormattedHTMLMessage
+                    id={ErrorBarTypes.WEBSOCKET_PORT_ERROR}
+                    defaultMessage='Please check connection, Mattermost unreachable. If issue persists, ask administrator to <a href="https://about.mattermost.com/default-websocket-port-help" target="_blank">check WebSocket port</a>.'
                 />
             );
         } else if (message === ErrorBarTypes.SITE_URL) {

@@ -55,14 +55,18 @@ export default class PostBodyAdditionalContent extends React.PureComponent {
     }
 
     componentWillReceiveProps(nextProps) {
-        this.setState({
-            embedVisible: nextProps.previewCollapsed.startsWith('false'),
-            link: Utils.extractFirstLink(nextProps.post.message)
-        });
+        if (nextProps.previewCollapsed !== this.props.previewCollapsed || nextProps.post.message !== this.props.post.message) {
+            this.setState({
+                embedVisible: nextProps.previewCollapsed.startsWith('false'),
+                link: Utils.extractFirstLink(nextProps.post.message)
+            });
+        }
     }
 
     toggleEmbedVisibility() {
-        this.setState({embedVisible: !this.state.embedVisible});
+        this.setState((prevState) => {
+            return {embedVisible: !prevState.embedVisible};
+        });
     }
 
     getSlackAttachment() {
@@ -153,7 +157,7 @@ export default class PostBodyAdditionalContent extends React.PureComponent {
         }
 
         const link = Utils.extractFirstLink(this.props.post.message);
-        if (link && Utils.isFeatureEnabled(Constants.PRE_RELEASE_FEATURES.EMBED_PREVIEW)) {
+        if (link && Utils.isFeatureEnabled(Constants.PRE_RELEASE_FEATURES.EMBED_PREVIEW) && global.window.mm_config.EnableLinkPreviews === 'true') {
             return (
                 <PostAttachmentOpenGraph
                     link={link}

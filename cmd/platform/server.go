@@ -120,13 +120,15 @@ func runServer(configFileLocation string) {
 		einterfaces.GetMetricsInterface().StartServer()
 	}
 
-	if einterfaces.GetElasticSearchInterface() != nil {
-		if err := einterfaces.GetElasticSearchInterface().Start(); err != nil {
+	if einterfaces.GetElasticsearchInterface() != nil {
+		if err := einterfaces.GetElasticsearchInterface().Start(); err != nil {
 			l4g.Error(err.Error())
 		}
 	}
 
-	jobs := jobs.InitJobs(app.Srv.Store).Start()
+	jobs.Srv.Store = app.Srv.Store
+	jobs.Srv.StartWorkers()
+	jobs.Srv.StartSchedulers()
 
 	// wait for kill signal before attempting to gracefully shutdown
 	// the running service
@@ -142,7 +144,8 @@ func runServer(configFileLocation string) {
 		einterfaces.GetMetricsInterface().StopServer()
 	}
 
-	jobs.Stop()
+	jobs.Srv.StopSchedulers()
+	jobs.Srv.StopWorkers()
 
 	app.StopServer()
 }

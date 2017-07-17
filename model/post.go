@@ -62,6 +62,12 @@ type PostPatch struct {
 	HasReactions *bool            `json:"has_reactions"`
 }
 
+type PostForIndexing struct {
+	Post
+	TeamId         string `json:"team_id"`
+	ParentCreateAt *int64 `json:"parent_create_at"`
+}
+
 func (o *Post) ToJson() string {
 	b, err := json.Marshal(o)
 	if err != nil {

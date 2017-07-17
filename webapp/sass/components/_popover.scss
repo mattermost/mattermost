@@ -4,6 +4,7 @@
 .popover {
     @include border-radius($border-rad);
     color: lighten($black, 25%);
+    padding: 0;
 
     &.bottom,
     &.right,
@@ -220,17 +221,70 @@
 .member-list__popover {
     max-width: initial;
 
+    .more-modal__header {
+        padding: 14px 0;
+
+        .icon {
+            @include opacity(.8);
+            margin: 0 38px 0 24px;
+            position: relative;
+            top: 2px;
+        }
+
+        span {
+            font-weight: 500;
+        }
+    }
+
     .more-modal__list {
         .more-modal__row {
-            min-height: inherit;
+            border-bottom: none;
+            border-top: 1px solid;
+            cursor: pointer;
+            height: 45px;
+            padding: 5px 19px 5px 17px;
+
+            &:hover {
+                border-left: 3px solid transparent;
+                padding-left: 14px;
+
+                .more-modal__actions {
+                    @include opacity(1);
+                }
+            }
+
+            &.more-modal__row--button {
+                border-left: none;
+                height: 40px;
+                position: relative;
+
+                button {
+                    font-weight: 500;
+                    height: 100%;
+                    left: 0;
+                    position: absolute;
+                    top: 0;
+                    width: 100%;
+                }
+            }
+        }
+
+        .more-modal__name {
+            line-height: 33px;
+        }
+
+        .more-modal__image {
+            margin: 0;
         }
 
         .more-modal__details {
             line-height: 32px;
+            padding-left: 30px;
         }
 
         .more-modal__actions {
-            line-height: 31px;
+            @include opacity(0);
+            line-height: 42px;
             margin: 0;
         }
     }

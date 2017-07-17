@@ -231,9 +231,38 @@ func GetAnalytics(name string, teamId string) (model.AnalyticsRows, *model.AppEr
 }
 
 func GetRecentlyActiveUsersForTeam(teamId string) (map[string]*model.User, *model.AppError) {
-	if result := <-Srv.Store.User().GetRecentlyActiveUsersForTeam(teamId); result.Err != nil {
+	if result := <-Srv.Store.User().GetRecentlyActiveUsersForTeam(teamId, 0, 100); result.Err != nil {
 		return nil, result.Err
 	} else {
-		return result.Data.(map[string]*model.User), nil
+		users := result.Data.([]*model.User)
+		userMap := make(map[string]*model.User)
+
+		for _, user := range users {
+			userMap[user.Id] = user
+		}
+
+		return userMap, nil
 	}
+}
+
+func GetRecentlyActiveUsersForTeamPage(teamId string, page, perPage int, asAdmin bool) ([]*model.User, *model.AppError) {
+	var users []*model.User
+	if result := <-Srv.Store.User().GetRecentlyActiveUsersForTeam(teamId, page*perPage, perPage); result.Err != nil {
+		return nil, result.Err
+	} else {
+		users = result.Data.([]*model.User)
+	}
+
+	return sanitizeProfiles(users, asAdmin), nil
+}
+
+func GetNewUsersForTeamPage(teamId string, page, perPage int, asAdmin bool) ([]*model.User, *model.AppError) {
+	var users []*model.User
+	if result := <-Srv.Store.User().GetNewUsersForTeam(teamId, page*perPage, perPage); result.Err != nil {
+		return nil, result.Err
+	} else {
+		users = result.Data.([]*model.User)
+	}
+
+	return sanitizeProfiles(users, asAdmin), nil
 }

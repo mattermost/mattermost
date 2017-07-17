@@ -6,10 +6,8 @@ package model
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"io"
 	"regexp"
-	"strings"
 )
 
 const (
@@ -29,13 +27,13 @@ type IncomingWebhook struct {
 }
 
 type IncomingWebhookRequest struct {
-	Text        string             `json:"text"`
-	Username    string             `json:"username"`
-	IconURL     string             `json:"icon_url"`
-	ChannelName string             `json:"channel"`
-	Props       StringInterface    `json:"props"`
-	Attachments []*SlackAttachment `json:"attachments"`
-	Type        string             `json:"type"`
+	Text        string           `json:"text"`
+	Username    string           `json:"username"`
+	IconURL     string           `json:"icon_url"`
+	ChannelName string           `json:"channel"`
+	Props       StringInterface  `json:"props"`
+	Attachments SlackAttachments `json:"attachments"`
+	Type        string           `json:"type"`
 }
 
 func (o *IncomingWebhook) ToJson() string {
@@ -193,39 +191,6 @@ func decodeIncomingWebhookRequest(by []byte) (*IncomingWebhookRequest, error) {
 	}
 }
 
-// To mention @channel via a webhook in Slack, the message should contain
-// <!channel>, as explained at the bottom of this article:
-// https://get.slack.help/hc/en-us/articles/202009646-Making-announcements
-func expandAnnouncement(text string) string {
-	c1 := "<!channel>"
-	c2 := "@channel"
-	if strings.Contains(text, c1) {
-		return strings.Replace(text, c1, c2, -1)
-	}
-	return text
-}
-
-// Expand announcements in incoming webhooks from Slack. Those announcements
-// can be found in the text attribute, or in the pretext, text, title and value
-// attributes of the attachment structure. The Slack attachment structure is
-// documented here: https://api.slack.com/docs/attachments
-func expandAnnouncements(i *IncomingWebhookRequest) {
-	i.Text = expandAnnouncement(i.Text)
-
-	for _, attachment := range i.Attachments {
-		attachment.Pretext = expandAnnouncement(attachment.Pretext)
-		attachment.Text = expandAnnouncement(attachment.Text)
-		attachment.Title = expandAnnouncement(attachment.Title)
-
-		for _, field := range attachment.Fields {
-			if field.Value != nil {
-				// Ensure the value is set to a string if it is set
-				field.Value = expandAnnouncement(fmt.Sprintf("%v", field.Value))
-			}
-		}
-	}
-}
-
 func IncomingWebhookRequestFromJson(data io.Reader) *IncomingWebhookRequest {
 	buf := new(bytes.Buffer)
 	buf.ReadFrom(data)
@@ -241,7 +206,8 @@ func IncomingWebhookRequestFromJson(data io.Reader) *IncomingWebhookRequest {
 		}
 	}
 
-	expandAnnouncements(o)
+	o.Text = ExpandAnnouncement(o.Text)
+	o.Attachments.Process()
 
 	return o
 }

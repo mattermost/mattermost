@@ -1,9 +1,8 @@
-import PropTypes from 'prop-types';
-
 // Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 import React from 'react';
+import PropTypes from 'prop-types';
 
 import FormError from 'components/form_error.jsx';
 import LoadingScreen from 'components/loading_screen.jsx';
@@ -11,8 +10,7 @@ import LoadingScreen from 'components/loading_screen.jsx';
 import UserStore from 'stores/user_store.jsx';
 import BrowserStore from 'stores/browser_store.jsx';
 
-import * as AsyncClient from 'utils/async_client.jsx';
-import Client from 'client/web_client.jsx';
+import {Client4} from 'mattermost-redux/client';
 import * as GlobalActions from 'actions/global_actions.jsx';
 import {addUserToTeamFromInvite, getInviteInfo} from 'actions/team_actions.jsx';
 import {loadMe} from 'actions/user_actions.jsx';
@@ -62,7 +60,6 @@ export default class SignupController extends React.Component {
     }
 
     componentDidMount() {
-        AsyncClient.checkVersion();
         BrowserStore.removeGlobalItem('team');
         if (this.props.location.query) {
             const hash = this.props.location.query.h;
@@ -77,7 +74,7 @@ export default class SignupController extends React.Component {
                     hash,
                     inviteId,
                     (team) => {
-                        loadMe(
+                        loadMe().then(
                             () => {
                                 browserHistory.push('/' + team.name + '/channels/town-square');
                             }
@@ -116,7 +113,7 @@ export default class SignupController extends React.Component {
 
     handleInvalidInvite = (err) => {
         let serverError;
-        if (err.id === 'store.sql_user.save.max_accounts.app_error') {
+        if (err.server_error_id === 'store.sql_user.save.max_accounts.app_error') {
             serverError = err.message;
         } else {
             serverError = (
@@ -160,7 +157,7 @@ export default class SignupController extends React.Component {
                 <a
                     className='btn btn-custom-login btn--full gitlab'
                     key='gitlab'
-                    href={Client.getOAuthRoute() + '/gitlab/signup' + window.location.search}
+                    href={Client4.getOAuthRoute() + '/gitlab/signup' + window.location.search}
                 >
                     <span>
                         <span className='icon'/>
@@ -180,7 +177,7 @@ export default class SignupController extends React.Component {
                 <a
                     className='btn btn-custom-login btn--full google'
                     key='google'
-                    href={Client.getOAuthRoute() + '/google/signup' + window.location.search}
+                    href={Client4.getOAuthRoute() + '/google/signup' + window.location.search}
                 >
                     <span>
                         <span className='icon'/>
@@ -200,7 +197,7 @@ export default class SignupController extends React.Component {
                 <a
                     className='btn btn-custom-login btn--full office365'
                     key='office365'
-                    href={Client.getOAuthRoute() + '/office365/signup' + window.location.search}
+                    href={Client4.getOAuthRoute() + '/office365/signup' + window.location.search}
                 >
                     <span>
                         <span className='icon'/>
@@ -212,7 +209,7 @@ export default class SignupController extends React.Component {
                         </span>
                     </span>
                 </a>
-           );
+            );
         }
 
         if (global.window.mm_license.IsLicensed === 'true' && global.window.mm_config.EnableLdap === 'true') {

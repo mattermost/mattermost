@@ -326,7 +326,7 @@ export default class RhsComment extends React.Component {
 
         let react;
 
-        if (!isEphemeral && !post.failed && !isSystemMessage && Utils.isFeatureEnabled(Constants.PRE_RELEASE_FEATURES.EMOJI_PICKER_PREVIEW)) {
+        if (!isEphemeral && !post.failed && !isSystemMessage && window.mm_config.EnableEmojiPicker === 'true') {
             react = (
                 <span>
                     <EmojiPickerOverlay
@@ -335,6 +335,7 @@ export default class RhsComment extends React.Component {
                         target={() => this.refs.dotMenu}
                         container={this.props.getPostList}
                         onEmojiClick={this.reactEmojiClick}
+                        rightOffset={15}
                     />
                     <a
                         href='#'

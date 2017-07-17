@@ -429,7 +429,7 @@
   },
   {
     "id": "api.command.execute_command.not_found.app_error",
-    "translation": "'{{.Trigger}}' tetikleyicisinin komutu bulunamadı"
+    "translation": "'{{.Trigger}}' tetikleyici komutu bulunamadı. \"/\" ile başlayan bir ileti göndermek için iletinin başına bir boşluk eklemeyi deneyin."
   },
   {
     "id": "api.command.execute_command.save.app_error",
@@ -458,6 +458,10 @@
   {
     "id": "api.command.invite_people.hint",
     "translation": "[ad@etkialani.com ...]"
+  },
+  {
+    "id": "api.command.invite_people.invite_off",
+    "translation": "Bu sunucu üzerine kullanıcı eklemek devre dışı bırakılmış olduğundan çağrı gönderilmedi"
   },
   {
     "id": "api.command.invite_people.name",
@@ -494,6 +498,38 @@
   {
     "id": "api.command_away.success",
     "translation": "Durumunuz: uzakta"
+  },
+  {
+    "id": "api.command_channel_header.channel.app_error",
+    "translation": "Geçerli kanal alınırken sorun çıktı."
+  },
+  {
+    "id": "api.command_channel_header.desc",
+    "translation": "Kanal başlığını düzenle"
+  },
+  {
+    "id": "api.command_channel_header.hint",
+    "translation": "[text]"
+  },
+  {
+    "id": "api.command_channel_header.message.app_error",
+    "translation": "/header komutunun yanında metin de yazılmalıdır"
+  },
+  {
+    "id": "api.command_channel_header.name",
+    "translation": "başlık"
+  },
+  {
+    "id": "api.command_channel_header.permission.app_error",
+    "translation": "Kanal başlığını düzenleme izniniz yok."
+  },
+  {
+    "id": "api.command_channel_header.update_channel.app_error",
+    "translation": "Geçerli kanal güncellenirken sorun çıktı."
+  },
+  {
+    "id": "api.command_channel_header.update_channel.success",
+    "translation": "Kanal başlığı güncellendi."
   },
   {
     "id": "api.command_collapse.desc",
@@ -550,6 +586,14 @@
   {
     "id": "api.command_expand_collapse.fail.app_error",
     "translation": "Önizlemeler genişletilirken bir sorun çıktı"
+  },
+  {
+    "id": "api.command_help.desc",
+    "translation": "Mattermost yardım sayfasını aç"
+  },
+  {
+    "id": "api.command_help.name",
+    "translation": "yardım"
   },
   {
     "id": "api.command_join.desc",
@@ -658,6 +702,22 @@
   {
     "id": "api.command_online.success",
     "translation": "Durumunuz: çevrimiçi"
+  },
+  {
+    "id": "api.command_open.name",
+    "translation": "açık"
+  },
+  {
+    "id": "api.command_settings.desc",
+    "translation": "Hesap Ayarları Penceresini Aç"
+  },
+  {
+    "id": "api.command_settings.name",
+    "translation": "ayarlar"
+  },
+  {
+    "id": "api.command_settings.unsupported.app_error",
+    "translation": "Ayarlar komutu aygıtınız için desteklenmiyor"
   },
   {
     "id": "api.command_shortcuts.browser.channel_next",
@@ -1255,7 +1315,7 @@
   },
   {
     "id": "api.import.import_user.join_team.error",
-    "translation": "Alınırken takıma katılınamadı. Hata: %v"
+    "translation": "İçe aktarılırken takıma katılınamadı. Hata: %v"
   },
   {
     "id": "api.import.import_user.joining_default.error",
@@ -1629,7 +1689,11 @@
   },
   {
     "id": "api.post.send_notifications_and_forget.push_image_only",
-    "translation": " Uploaded one or more files "
+    "translation": " Şunun içine bir ya da bir kaç dosya yüklendi "
+  },
+  {
+    "id": "api.post.send_notifications_and_forget.push_image_only_dm",
+    "translation": " Bir doğrudan ileti içine bir ya da bir kaç dosya yüklendi"
   },
   {
     "id": "api.post.send_notifications_and_forget.push_in",
@@ -1785,11 +1849,11 @@
   },
   {
     "id": "api.slackimport.slack_add_bot_user.email_pwd",
-    "translation": "Slack Bot/Bütünleştirme İleti Alma Kullanıcısı: E-posta, Parola: {{.Email}}, {{.Password}}\r\n"
+    "translation": "Slack Bot/Bütünleştirme İleti İçe Aktarma Kullanıcısı: E-posta, Parola: {{.Email}}, {{.Password}}\r\n"
   },
   {
     "id": "api.slackimport.slack_add_bot_user.unable_import",
-    "translation": "Slack Bot/Bütünleştirme İleti Alma Kullanıcısı alınamadı: {{.Username}}\r\n"
+    "translation": "Slack Bot/Bütünleştirme İleti İçe Aktarma Kullanıcısı alınamadı: {{.Username}}\r\n"
   },
   {
     "id": "api.slackimport.slack_add_channels.added",
@@ -1801,11 +1865,11 @@
   },
   {
     "id": "api.slackimport.slack_add_channels.import_failed",
-    "translation": "Alınamadı: {{.DisplayName}}\r\n"
+    "translation": "İçe Aktarılamadı: {{.DisplayName}}\r\n"
   },
   {
     "id": "api.slackimport.slack_add_channels.import_failed.warn",
-    "translation": "Slack Alıcı: Kanal alınamadı: %s"
+    "translation": "Slack Alıcı: Kanal içe aktarılamadı: %s"
   },
   {
     "id": "api.slackimport.slack_add_channels.merge",
@@ -1817,11 +1881,11 @@
   },
   {
     "id": "api.slackimport.slack_add_posts.bot.warn",
-    "translation": "Slack bot iletileri henüz alınmamış"
+    "translation": "Slack bot iletileri henüz içe aktarılmamış"
   },
   {
     "id": "api.slackimport.slack_add_posts.bot_user_no_exists.warn",
-    "translation": "Slack Alıcı: Bot alma kullanıcısı bulunamadığından bot iletileri alınamıyor."
+    "translation": "Slack İçe Aktarıcı: Bot içe aktarma kullanıcısı bulunamadığından bot iletileri içe aktarılamıyor."
   },
   {
     "id": "api.slackimport.slack_add_posts.msg_no_comment.debug",
@@ -1833,7 +1897,7 @@
   },
   {
     "id": "api.slackimport.slack_add_posts.no_bot_id.warn",
-    "translation": "Slack Alıcı: BotId alanı eksik olduğundan bot iletisi alınamadı."
+    "translation": "Slack İçe Aktarıcı: BotId alanı eksik olduğundan bot iletisi içe aktarılamadı."
   },
   {
     "id": "api.slackimport.slack_add_posts.unsupported.warn",
@@ -1841,15 +1905,15 @@
   },
   {
     "id": "api.slackimport.slack_add_posts.upload_file_not_found.warn",
-    "translation": "Slack verme için dosya yükleme iletisinde {{.FileId}} kodlu dosya bulunamadı"
+    "translation": "Slack dışa aktarması için dosya yükleme iletisinde {{.FileId}} kodlu dosya bulunamadı"
   },
   {
     "id": "api.slackimport.slack_add_posts.upload_file_not_in_json.warn",
-    "translation": "Verilmiş verilerde bir \"file\" bölümü bulunmadığından yüklenen ileti için dosya alınamadı."
+    "translation": "Dışa aktarılmış verilerde bir \"file\" bölümü bulunmadığından yüklenen iletideki dosya içe aktarılamaz."
   },
   {
     "id": "api.slackimport.slack_add_posts.upload_file_open_failed.warn",
-    "translation": "Verilmiş veri arşivinden {{.FileId}} koduyla yüklenen dosya açılamadı. Hata: {{.Error}}"
+    "translation": "Dışa aktarılmış veri arşivinden {{.FileId}} koduyla yüklenen dosya açılamadı. Hata: {{.Error}}"
   },
   {
     "id": "api.slackimport.slack_add_posts.upload_file_upload_failed.warn",
@@ -1881,15 +1945,15 @@
   },
   {
     "id": "api.slackimport.slack_add_users.missing_email_address",
-    "translation": "{{.Username}} kullanıcısının verilen Slack bilgileri içinde bir e-posta adresi yok. Yerine {{.Email}} kullanılıyor. Kullanıcıların sistemde oturum açtıktan sonra e-posta adreslerini güncellemeleri gerekir.\r\n"
+    "translation": "Dışa aktarılan Slack verileri içinde {{.Username}} kullanıcısının e-posta adresi yok. Yerine {{.Email}} kullanılıyor. Kullanıcının sistemde oturum açtıktan sonra e-posta adresini güncellemesi gerekir.\r\n"
   },
   {
     "id": "api.slackimport.slack_add_users.missing_email_address.warn",
-    "translation": "{{.Username}} kullanıcısının verilen Slack bilgileri içinde bir e-posta adresi yok. Yerine {{.Email}} kullanılıyor. Kullanıcıların sistemde oturum açtıktan sonra e-posta adreslerini güncellemeleri gerekir."
+    "translation": "Dışa aktarılan Slack verileri içinde {{.Username}} kullanıcısının e-posta adresi yok. Yerine {{.Email}} kullanılıyor. Kullanıcının sistemde oturum açtıktan sonra e-posta adresini güncellemesi gerekir."
   },
   {
     "id": "api.slackimport.slack_add_users.unable_import",
-    "translation": "{{.Username}} kullanıcısı alınamadı\r\n"
+    "translation": "{{.Username}} kullanıcısı içe aktarılamadı\r\n"
   },
   {
     "id": "api.slackimport.slack_convert_channel_mentions.compile_regexp_failed.warn",
@@ -1905,15 +1969,15 @@
   },
   {
     "id": "api.slackimport.slack_deactivate_bot_user.failed_to_deactivate",
-    "translation": "Slack Alıcı: bot alma kullanıcısı devre dışı bırakılamadı."
+    "translation": "Slack İçe Aktarıcı: Bot içe aktarma kullanıcısı devre dışı bırakılamadı."
   },
   {
     "id": "api.slackimport.slack_import.log",
-    "translation": "Mattermost Slack Alma Günlüğü\r\n"
+    "translation": "Mattermost Slack İçe Aktarma Günlüğü\r\n"
   },
   {
     "id": "api.slackimport.slack_import.note1",
-    "translation": "- Alıcı tarafından desteklenmediğinden bazı iletiler alınamayabilir.\r\n"
+    "translation": "- Alıcı tarafından desteklenmediğinden bazı iletiler içe aktarılmayabilir.\r\n"
   },
   {
     "id": "api.slackimport.slack_import.note2",
@@ -1933,7 +1997,7 @@
   },
   {
     "id": "api.slackimport.slack_import.team_fail",
-    "translation": "Takım alma bilgileri alınamadı.\r\n"
+    "translation": "Takım içe aktarma bilgileri alınamadı.\r\n"
   },
   {
     "id": "api.slackimport.slack_import.zip.app_error",
@@ -1941,27 +2005,27 @@
   },
   {
     "id": "api.slackimport.slack_parse_channels.error",
-    "translation": "Slack kanalları işlenirken sorun çıktı. Gene de alma işlemi tamamlanabilir."
+    "translation": "Slack kanalları işlenirken sorun çıktı. Gene de içe aktarma işlemi tamamlanabilir."
   },
   {
     "id": "api.slackimport.slack_parse_posts.error",
-    "translation": "Bazı slack iletileri işlenirken sorun çıktı. Gene de alma işlemi tamamlanabilir."
+    "translation": "Bazı slack iletileri işlenirken sorun çıktı. Gene de içe aktarma işlemi tamamlanabilir."
   },
   {
     "id": "api.slackimport.slack_sanitise_channel_properties.display_name_too_long.warn",
-    "translation": "Slack Alıcı: {{.ChannelName}} kanalının görüntülenecek adı çok uzun. Alınırken budanacak."
+    "translation": "Slack İçe Aktarıcı: {{.ChannelName}} kanalının görüntülenecek adı çok uzun. İçe aktarılırken budanarak kısaltılacak."
   },
   {
     "id": "api.slackimport.slack_sanitise_channel_properties.header_too_long.warn",
-    "translation": "Slack Alıcı: {{.ChannelName}} kanalının başlığı çok uzun. Alınırken budanacak."
+    "translation": "Slack İçe Aktarıcı: {{.ChannelName}} kanalının başlığı çok uzun. İçe aktarılırken budanarak kısaltılacak."
   },
   {
     "id": "api.slackimport.slack_sanitise_channel_properties.name_too_long.warn",
-    "translation": "Slack Alıcı: {{.ChannelName}} kanalının adı çok uzun. Alınırken budanacak."
+    "translation": "Slack İçe Aktarıcı: {{.ChannelName}} kanalının adı çok uzun. İçe aktarılırken budanarak kısaltılacak."
   },
   {
     "id": "api.slackimport.slack_sanitise_channel_properties.purpose_too_long.warn",
-    "translation": "Slack Alıcı: {{.ChannelName}} kanalının amacı çok uzun. Alınırken budanacak."
+    "translation": "Slack İçe Aktarıcı: {{.ChannelName}} kanalının amacı çok uzun. İçe aktarılırken budanarak kısaltılacak."
   },
   {
     "id": "api.status.init.debug",
@@ -1986,14 +2050,6 @@
   {
     "id": "api.system.go_routines",
     "translation": "Çalışan yordamlar %v/%v sağlıklı eşiğin üzerinde "
-  },
-  {
-    "id": "api.team.add_user_to_team.invalid_data.app_error",
-    "translation": "Veri geçersiz."
-  },
-  {
-    "id": "api.team.add_user_to_team.invalid_invite_id.app_error",
-    "translation": "Çağrı kodu geçersiz. Bu çağrı kodunu kullanan bir takım bulunamadı."
   },
   {
     "id": "api.team.add_user_to_team.missing_parameter.app_error",
@@ -2029,7 +2085,7 @@
   },
   {
     "id": "api.team.import_team.admin.app_error",
-    "translation": "Yalnız bir takım yöneticisi veri alabilir."
+    "translation": "Yalnız bir takım yöneticisi verileri içe aktarabilir."
   },
   {
     "id": "api.team.import_team.array.app_error",
@@ -2066,6 +2122,10 @@
   {
     "id": "api.team.invite_members.already.app_error",
     "translation": "Bu kişi zaten takımınızda bulunuyor"
+  },
+  {
+    "id": "api.team.invite_members.invalid_email.app_error",
+    "translation": "Şu e-posta adresleri onaylanmış etki alanına ait değil: {{.Addresses}}. Ayrıntılar için sistem yöneticiniz ile görüşün."
   },
   {
     "id": "api.team.invite_members.member",
@@ -2949,7 +3009,7 @@
   },
   {
     "id": "app.import.bulk_import.file_scan.error",
-    "translation": "Alınacak veri dosyası okunamadı."
+    "translation": "İçe aktarılacak veri dosyası okunamadı."
   },
   {
     "id": "app.import.bulk_import.json_decode.error",
@@ -2957,39 +3017,79 @@
   },
   {
     "id": "app.import.import_channel.team_not_found.error",
-    "translation": "Kanal alınırken sorun çıktı. \"{{.TeamName}}\" takımı bulunamadı."
+    "translation": "Kanal içe aktarılırken sorun çıktı. \"{{.TeamName}}\" takımı bulunamadı."
+  },
+  {
+    "id": "app.import.import_direct_channel.create_direct_channel.error",
+    "translation": "Doğrudan kanal alınamadı"
+  },
+  {
+    "id": "app.import.import_direct_channel.create_direct_channel.error",
+    "translation": "Doğrudan kanal alınamadı"
+  },
+  {
+    "id": "app.import.import_direct_channel.create_group_channel.error",
+    "translation": "Grup kanalı alınamadı"
+  },
+  {
+    "id": "app.import.import_direct_channel.create_group_channel.error",
+    "translation": "Grup kanalı alınamadı"
+  },
+  {
+    "id": "app.import.import_direct_channel.member_not_found.error",
+    "translation": "Doğrudan kanal içe aktarılırken kanal üyesi bulunamadı"
+  },
+  {
+    "id": "app.import.import_direct_channel.update_header_failed.error",
+    "translation": "Doğrudan kanal başlığı güncellenemedi"
+  },
+  {
+    "id": "app.import.import_direct_post.channel_member_not_found.error",
+    "translation": "Doğrudan kanal iletisi içe aktarılırken kanal üyesi bulunamadı"
+  },
+  {
+    "id": "app.import.import_direct_post.user_not_found.error",
+    "translation": "İleti kullanıcısı bulunamadı"
   },
   {
     "id": "app.import.import_line.null_channel.error",
-    "translation": "Alınan veri satırı \"channel\" türünde ancak kanal nesnesi null."
+    "translation": "İçe aktarılan veri satırı \"channel\" türünde ancak kanal nesnesi null."
+  },
+  {
+    "id": "app.import.import_line.null_direct_channel.error",
+    "translation": "İçe aktarılan veri satırı \"channel\" türünde ancak kanal nesnesi null."
+  },
+  {
+    "id": "app.import.import_line.null_direct_post.error",
+    "translation": "İçe aktarılan veri satırı \"post\" türünde ancak ileti nesnesi null."
   },
   {
     "id": "app.import.import_line.null_post.error",
-    "translation": "Alınan veri satırı \"post\" türünde ancak ileti nesnesi null."
+    "translation": "İçe aktarılan veri satırı \"post\" türünde ancak ileti nesnesi null."
   },
   {
     "id": "app.import.import_line.null_team.error",
-    "translation": "Alınan veri satırı \"team\" türünde ancak takım nesnesi null."
+    "translation": "İçe aktarılan veri satırı \"team\" türünde ancak takım nesnesi null."
   },
   {
     "id": "app.import.import_line.null_user.error",
-    "translation": "Alınan veri satırı \"user\" türünde ancak kullanıcı nesnesi null."
+    "translation": "İçe aktarılan veri satırı \"user\" türünde ancak kullanıcı nesnesi null."
   },
   {
     "id": "app.import.import_line.unknown_line_type.error",
-    "translation": "Alınan veri satırı türü \"{{.Type}}\" bilinmiyor."
+    "translation": "İçe aktarılan veri satırı türü \"{{.Type}}\" bilinmiyor."
   },
   {
     "id": "app.import.import_post.channel_not_found.error",
-    "translation": "İleti alınırken sorun çıktı. \"{{.ChannelName}}\" kanalı bulunamadı."
+    "translation": "İleti içe aktarılırken sorun çıktı. \"{{.ChannelName}}\" kanalı bulunamadı."
   },
   {
     "id": "app.import.import_post.team_not_found.error",
-    "translation": "İleti alınırken sorun çıktı. \"{{.TeamName}}\" takımı bulunamadı."
+    "translation": "İleti içe aktarılırken sorun çıktı. \"{{.TeamName}}\" takımı bulunamadı."
   },
   {
     "id": "app.import.import_post.user_not_found.error",
-    "translation": "İleti alınırken sorun çıktı. \"{{.Username}}\" kullanıcı adına sahip kullanıcı bulunamadı."
+    "translation": "İleti içe aktarılırken sorun çıktı. \"{{.Username}}\" kullanıcı adına sahip kullanıcı bulunamadı."
   },
   {
     "id": "app.import.validate_channel_import_data.create_at_zero.error",
@@ -3034,6 +3134,54 @@
   {
     "id": "app.import.validate_channel_import_data.type_missing.error",
     "translation": "Zorunlu kanal özelliği eksik: Tür."
+  },
+  {
+    "id": "app.import.validate_direct_channel_import_data.header_length.error",
+    "translation": "Doğrudan kanal başlığı çok uzun"
+  },
+  {
+    "id": "app.import.validate_direct_channel_import_data.members_required.error",
+    "translation": "Zorunlu doğrudan kanal özelliği eksik: Üyeler"
+  },
+  {
+    "id": "app.import.validate_direct_channel_import_data.members_too_few.error",
+    "translation": "Doğrudan kanal üye listesinde çok az sayıda öge var"
+  },
+  {
+    "id": "app.import.validate_direct_channel_import_data.members_too_many.error",
+    "translation": "Doğrudan kanal üye listesinde çok fazla sayıda öge var"
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.channel_members_required.error",
+    "translation": "Zorunlu doğrudan kanal özelliği eksik: kanal_uyeleri"
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.channel_members_too_few.error",
+    "translation": "Doğrudan ileti kanalı üye listesinde çok az sayıda öge var"
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.channel_members_too_many.error",
+    "translation": "Doğrudan ileti kanalı üye listesinde çok fazla sayıda öge var"
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.create_at_missing.error",
+    "translation": "Zorunlu doğrudan kanal özelliği eksik: olusturulma_zamani"
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.create_at_zero.error",
+    "translation": "OlusturulmaZamani 0 değerinden büyük olmalıdır"
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.message_length.error",
+    "translation": "İleti çok uzun"
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.message_missing.error",
+    "translation": "Zorunlu doğrudan ileti özelliği eksik: ileti"
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.user_missing.error",
+    "translation": "Zorunlu doğrudan ileti özelliği eksik: kullanıcı"
   },
   {
     "id": "app.import.validate_post_import_data.channel_missing.error",
@@ -3261,7 +3409,7 @@
   },
   {
     "id": "ent.cluster.config_changed.info",
-    "translation": "%v kodu için küme yapılandırması değiştirildi. Küme hizmeti yeniden başlatılıyor. Kümenin doğru şekilde yapılandırıldığından emin olmak için bu yalnız yeniden başlatmaya güvenmeyin çünkü bir çekirdek yapılandırma değişikliği algılandı."
+    "translation": "id={{ .id }} için küme yapılandırması değiştirildi.  Küme artık kararlı olmayabilir ve bir yeniden başlatma gerekli.  Kümenin doğru olarak yapılandırıldığından emin olmak için hemen yeniden başlatın."
   },
   {
     "id": "ent.cluster.debug_fail.debug",
@@ -3293,7 +3441,7 @@
   },
   {
     "id": "ent.cluster.save_config.error",
-    "translation": "Yüksek Erişilebilirlik etkinleştirildiğinde Sistem Panosu salt okunur olarak ayarlanır."
+    "translation": "Yüksek Erişilebilirlik kipi etkin olduğunda, yapılandırma dosyasında ReadOnlyConfig seçeneği devre dışı bırakılmamış ise Sistem Panosu salt okunur olarak ayarlanır."
   },
   {
     "id": "ent.cluster.starting.info",
@@ -3309,19 +3457,19 @@
   },
   {
     "id": "ent.compliance.run_failed.error",
-    "translation": "'{{.JobName}}' görevi için '{{.FilePath}}' konumuna uygunluk verme işlemi tamamlanamadı"
+    "translation": "'{{.JobName}}' görevi için '{{.FilePath}}' konumuna uygunluk dışa aktarma işlemi tamamlanamadı"
   },
   {
     "id": "ent.compliance.run_finished.info",
-    "translation": "'{{.JobName}}' görevi için {{.Count}} kayıt '{{.FilePath}}' konumuna uygunluk verme işlemi tamamlandı"
+    "translation": "'{{.JobName}}' görevi için {{.Count}} kayıt '{{.FilePath}}' konumuna uygunluk dışa aktarma işlemi tamamlandı"
   },
   {
     "id": "ent.compliance.run_limit.warning",
-    "translation": "'{{.JobName}}' görevi için uygunluk verme işleminde çok fazla sayıda satır alındı ve '{{.FilePath}}' konumuna ilk 30,000 tanesi budanarak eklendi"
+    "translation": "'{{.JobName}}' görevi için uygunluk dışa aktarma işleminde çok fazla sayıda satır alındı ve ilk 30,000 tanesi budanarak '{{.FilePath}}' konumuna eklendi"
   },
   {
     "id": "ent.compliance.run_started.info",
-    "translation": "'{{.JobName}}' görevi için '{{.FilePath}}' konumuna uygunluk verme işlemi başlatıldı"
+    "translation": "'{{.JobName}}' görevi için '{{.FilePath}}' konumuna uygunluk dışa aktarma işlemi başlatıldı"
   },
   {
     "id": "ent.elasticsearch.search_posts.disabled",
@@ -3354,6 +3502,14 @@
   {
     "id": "ent.elasticsearch.start.index_settings_failed",
     "translation": "Failed to set ElasticSearch index settings"
+  },
+  {
+    "id": "ent.elasticsearch.test_config.indexing_disabled.error",
+    "translation": "Elasticsearch devre dışı."
+  },
+  {
+    "id": "ent.elasticsearch.test_config.license.error",
+    "translation": "Lisansta Elasticsearch desteklenmiyor."
   },
   {
     "id": "ent.emoji.licence_disable.app_error",
@@ -3825,7 +3981,7 @@
   },
   {
     "id": "model.client.upload_post_attachment.import_from.app_error",
-    "translation": "Alınacak konum çok parçalı forma yazılırken sorun çıktı"
+    "translation": "İçeri aktarılacak konum çok parçalı forma yazılırken sorun çıktı"
   },
   {
     "id": "model.client.upload_post_attachment.writer.app_error",
@@ -4154,6 +4310,10 @@
   {
     "id": "model.config.is_valid.sql_query_timeout.app_error",
     "translation": "SQL ayarlarında sorgu zaman aşımı değeri geçersiz. Sıfır ya da pozitif bir sayı olmalı."
+  },
+  {
+    "id": "model.config.is_valid.teammate_name_display.app_error",
+    "translation": "Takım arkadaşı görünümü geçersiz.  'tam_ad', 'takmaad_tam_ad' ya da 'kullaniciadi' olmalıdır"
   },
   {
     "id": "model.config.is_valid.time_between_user_typing.app_error",
@@ -5706,6 +5866,10 @@
   {
     "id": "store.sql_user.get_for_login.multiple_users",
     "translation": "Kimlik doğrulama bilgileriniz ile eşleşen birden çok kullanıcı olduğundan oturumunuz açılamadı. Lütfen bir yönetici ile görüşün."
+  },
+  {
+    "id": "store.sql_user.get_new_users.app_error",
+    "translation": "Yeni kullanıcılar bulunurken bir sorun çıktı"
   },
   {
     "id": "store.sql_user.get_profiles.app_error",

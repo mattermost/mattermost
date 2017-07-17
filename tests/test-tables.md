@@ -1,6 +1,6 @@
 # Markdown Tables
 
-Verify that all tables render as described.
+Verify that all tables render as described. First row is boldface.
 
 ### Normal Tables
 
@@ -78,3 +78,11 @@ The left column should be left aligned, the center column centered and the right
 | 1 | this text       |  $100 |
 | 2 | is              |   $10 |
 | 3 | centered        |    $1 |
+
+### Table with Escaped Pipes
+
+First row cells: single backslash, "asdf". Second row cells: "ab" , "a|d"
+
+| \\ | asdf|
+|----|-----|
+| ab | a\|d|

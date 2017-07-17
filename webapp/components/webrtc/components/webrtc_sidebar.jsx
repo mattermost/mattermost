@@ -76,7 +76,9 @@ export default class SidebarRight extends React.Component {
         if (e) {
             e.preventDefault();
         }
-        this.setState({expanded: !this.state.expanded});
+        this.setState((prevState) => {
+            return {expanded: !prevState.expanded};
+        });
     }
 
     onInitializeVideoCall(userId, isCaller) {

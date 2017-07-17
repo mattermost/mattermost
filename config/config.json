@@ -21,6 +21,7 @@
         "EnableOnlyAdminIntegrations": true,
         "EnablePostUsernameOverride": false,
         "EnablePostIconOverride": false,
+        "EnableAPIv3": true,
         "EnableLinkPreviews": false,
         "EnableTesting": false,
         "EnableDeveloper": false,
@@ -37,6 +38,7 @@
         "WebsocketPort": 80,
         "WebserverMode": "gzip",
         "EnableCustomEmoji": false,
+        "EnableEmojiPicker": false,
         "RestrictCustomEmojiCreation": "all",
         "RestrictPostDelete": "all",
         "AllowEditPost": "always",
@@ -45,6 +47,7 @@
         "EnablePostSearch": true,
         "EnableUserTypingMessages": true,
         "EnableUserStatuses": true,
+        "EnableChannelViewedMessages": true,
         "ClusterLogTimeoutMilliseconds": 2000
     },
     "ElasticSearchSettings": {
@@ -76,7 +79,8 @@
         "RestrictPrivateChannelManageMembers": "all",
         "UserStatusAwayTimeout": 300,
         "MaxChannelsPerTeam": 2000,
-        "MaxNotificationsPerChannel": 1000
+        "MaxNotificationsPerChannel": 1000,
+        "TeammateNameDisplay": "username"
     },
     "SqlSettings": {
         "DriverName": "mysql",
@@ -113,12 +117,6 @@
         "Directory": "./data/",
         "EnablePublicLink": false,
         "PublicLinkSalt": "",
-        "ThumbnailWidth": 120,
-        "ThumbnailHeight": 100,
-        "PreviewWidth": 1024,
-        "PreviewHeight": 0,
-        "ProfileWidth": 128,
-        "ProfileHeight": 128,
         "InitialFont": "luximbi.ttf",
         "AmazonS3AccessKeyId": "",
         "AmazonS3SecretAccessKey": "",
@@ -291,5 +289,9 @@
     },
     "DataRetentionSettings": {
         "Enable": false
+    },
+    "JobSettings": {
+        "RunJobs": true,
+        "RunScheduler": true
     }
 }

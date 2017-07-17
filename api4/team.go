@@ -37,6 +37,7 @@ func InitTeam() {
 	BaseRoutes.TeamMembers.Handle("/ids", ApiSessionRequired(getTeamMembersByIds)).Methods("POST")
 	BaseRoutes.TeamMembersForUser.Handle("", ApiSessionRequired(getTeamMembersForUser)).Methods("GET")
 	BaseRoutes.TeamMembers.Handle("", ApiSessionRequired(addTeamMember)).Methods("POST")
+	BaseRoutes.Teams.Handle("/members/invite", ApiSessionRequired(addUserToTeamFromInvite)).Methods("POST")
 	BaseRoutes.TeamMembers.Handle("/batch", ApiSessionRequired(addTeamMembers)).Methods("POST")
 	BaseRoutes.TeamMember.Handle("", ApiSessionRequired(removeTeamMember)).Methods("DELETE")
 
@@ -341,32 +342,39 @@ func addTeamMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if len(member.UserId) != 26 {
+		c.SetInvalidParam("user_id")
+		return
+	}
+
+	if !app.SessionHasPermissionToTeam(c.Session, member.TeamId, model.PERMISSION_ADD_USER_TO_TEAM) {
+		c.SetPermissionError(model.PERMISSION_ADD_USER_TO_TEAM)
+		return
+	}
+
+	member, err = app.AddTeamMember(member.TeamId, member.UserId)
+
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	w.WriteHeader(http.StatusCreated)
+	w.Write([]byte(member.ToJson()))
+}
+
+func addUserToTeamFromInvite(c *Context, w http.ResponseWriter, r *http.Request) {
 	hash := r.URL.Query().Get("hash")
 	data := r.URL.Query().Get("data")
 	inviteId := r.URL.Query().Get("invite_id")
 
-	if len(member.UserId) > 0 {
-		if len(member.UserId) != 26 {
-			c.SetInvalidParam("user_id")
-			return
-		}
+	var member *model.TeamMember
+	var err *model.AppError
 
-		if !app.SessionHasPermissionToTeam(c.Session, member.TeamId, model.PERMISSION_ADD_USER_TO_TEAM) {
-			c.SetPermissionError(model.PERMISSION_ADD_USER_TO_TEAM)
-			return
-		}
-
-		member, err = app.AddTeamMember(member.TeamId, member.UserId)
-	} else if len(hash) > 0 && len(data) > 0 {
+	if len(hash) > 0 && len(data) > 0 {
 		member, err = app.AddTeamMemberByHash(c.Session.UserId, hash, data)
-		if err != nil {
-			err = model.NewAppError("addTeamMember", "api.team.add_user_to_team.invalid_data.app_error", nil, "", http.StatusNotFound)
-		}
 	} else if len(inviteId) > 0 {
 		member, err = app.AddTeamMemberByInviteId(inviteId, c.Session.UserId)
-		if err != nil {
-			err = model.NewAppError("addTeamMember", "api.team.add_user_to_team.invalid_invite_id.app_error", nil, "", http.StatusNotFound)
-		}
 	} else {
 		err = model.NewAppError("addTeamMember", "api.team.add_user_to_team.missing_parameter.app_error", nil, "", http.StatusBadRequest)
 	}

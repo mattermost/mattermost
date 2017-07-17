@@ -4,11 +4,13 @@
 package app
 
 import (
-	"github.com/mattermost/platform/model"
-	"github.com/mattermost/platform/utils"
 	"runtime/debug"
 	"strings"
 	"testing"
+
+	"github.com/mattermost/platform/model"
+	"github.com/mattermost/platform/store"
+	"github.com/mattermost/platform/utils"
 )
 
 func ptrStr(s string) *string {
@@ -568,6 +570,234 @@ func TestImportValidatePostImportData(t *testing.T) {
 	}
 	if err := validatePostImportData(&data); err != nil {
 		t.Fatal("Should have succeeded.")
+	}
+}
+
+func TestImportValidateDirectChannelImportData(t *testing.T) {
+
+	// Test with valid number of members for direct message.
+	data := DirectChannelImportData{
+		Members: &[]string{
+			model.NewId(),
+			model.NewId(),
+		},
+	}
+	if err := validateDirectChannelImportData(&data); err != nil {
+		t.Fatal("Validation failed but should have been valid.")
+	}
+
+	// Test with valid number of members for group message.
+	data = DirectChannelImportData{
+		Members: &[]string{
+			model.NewId(),
+			model.NewId(),
+			model.NewId(),
+		},
+	}
+	if err := validateDirectChannelImportData(&data); err != nil {
+		t.Fatal("Validation failed but should have been valid.")
+	}
+
+	// Test with all the combinations of optional parameters.
+	data = DirectChannelImportData{
+		Members: &[]string{
+			model.NewId(),
+			model.NewId(),
+		},
+		Header: ptrStr("Channel Header Here"),
+	}
+	if err := validateDirectChannelImportData(&data); err != nil {
+		t.Fatal("Should have succeeded with valid optional properties.")
+	}
+
+	// Test with invalid Header.
+	data.Header = ptrStr(strings.Repeat("abcdefghij ", 103))
+	if err := validateDirectChannelImportData(&data); err == nil {
+		t.Fatal("Should have failed due to too long header.")
+	}
+
+	// Test with different combinations of invalid member counts.
+	data = DirectChannelImportData{
+		Members: &[]string{},
+	}
+	if err := validateDirectChannelImportData(&data); err == nil {
+		t.Fatal("Validation should have failed due to invalid number of members.")
+	}
+
+	data = DirectChannelImportData{
+		Members: &[]string{
+			model.NewId(),
+		},
+	}
+	if err := validateDirectChannelImportData(&data); err == nil {
+		t.Fatal("Validation should have failed due to invalid number of members.")
+	}
+
+	data = DirectChannelImportData{
+		Members: &[]string{
+			model.NewId(),
+			model.NewId(),
+			model.NewId(),
+			model.NewId(),
+			model.NewId(),
+			model.NewId(),
+			model.NewId(),
+			model.NewId(),
+			model.NewId(),
+		},
+	}
+	if err := validateDirectChannelImportData(&data); err == nil {
+		t.Fatal("Validation should have failed due to invalid number of members.")
+	}
+}
+
+func TestImportValidateDirectPostImportData(t *testing.T) {
+
+	// Test with minimum required valid properties.
+	data := DirectPostImportData{
+		ChannelMembers: &[]string{
+			model.NewId(),
+			model.NewId(),
+		},
+		User:     ptrStr("username"),
+		Message:  ptrStr("message"),
+		CreateAt: ptrInt64(model.GetMillis()),
+	}
+	if err := validateDirectPostImportData(&data); err != nil {
+		t.Fatal("Validation failed but should have been valid.")
+	}
+
+	// Test with missing required properties.
+	data = DirectPostImportData{
+		User:     ptrStr("username"),
+		Message:  ptrStr("message"),
+		CreateAt: ptrInt64(model.GetMillis()),
+	}
+	if err := validateDirectPostImportData(&data); err == nil {
+		t.Fatal("Should have failed due to missing required property.")
+	}
+
+	data = DirectPostImportData{
+		ChannelMembers: &[]string{
+			model.NewId(),
+			model.NewId(),
+		},
+		Message:  ptrStr("message"),
+		CreateAt: ptrInt64(model.GetMillis()),
+	}
+	if err := validateDirectPostImportData(&data); err == nil {
+		t.Fatal("Should have failed due to missing required property.")
+	}
+
+	data = DirectPostImportData{
+		ChannelMembers: &[]string{
+			model.NewId(),
+			model.NewId(),
+		},
+		User:     ptrStr("username"),
+		CreateAt: ptrInt64(model.GetMillis()),
+	}
+	if err := validateDirectPostImportData(&data); err == nil {
+		t.Fatal("Should have failed due to missing required property.")
+	}
+
+	data = DirectPostImportData{
+		ChannelMembers: &[]string{
+			model.NewId(),
+			model.NewId(),
+		},
+		User:    ptrStr("username"),
+		Message: ptrStr("message"),
+	}
+	if err := validateDirectPostImportData(&data); err == nil {
+		t.Fatal("Should have failed due to missing required property.")
+	}
+
+	// Test with invalid numbers of channel members.
+	data = DirectPostImportData{
+		ChannelMembers: &[]string{},
+		User:           ptrStr("username"),
+		Message:        ptrStr("message"),
+		CreateAt:       ptrInt64(model.GetMillis()),
+	}
+	if err := validateDirectPostImportData(&data); err == nil {
+		t.Fatal("Should have failed due to unsuitable number of members.")
+	}
+
+	data = DirectPostImportData{
+		ChannelMembers: &[]string{
+			model.NewId(),
+		},
+		User:     ptrStr("username"),
+		Message:  ptrStr("message"),
+		CreateAt: ptrInt64(model.GetMillis()),
+	}
+	if err := validateDirectPostImportData(&data); err == nil {
+		t.Fatal("Should have failed due to unsuitable number of members.")
+	}
+
+	data = DirectPostImportData{
+		ChannelMembers: &[]string{
+			model.NewId(),
+			model.NewId(),
+			model.NewId(),
+			model.NewId(),
+			model.NewId(),
+			model.NewId(),
+			model.NewId(),
+			model.NewId(),
+			model.NewId(),
+			model.NewId(),
+		},
+		User:     ptrStr("username"),
+		Message:  ptrStr("message"),
+		CreateAt: ptrInt64(model.GetMillis()),
+	}
+	if err := validateDirectPostImportData(&data); err == nil {
+		t.Fatal("Should have failed due to unsuitable number of members.")
+	}
+
+	// Test with group message number of members.
+	data = DirectPostImportData{
+		ChannelMembers: &[]string{
+			model.NewId(),
+			model.NewId(),
+			model.NewId(),
+		},
+		User:     ptrStr("username"),
+		Message:  ptrStr("message"),
+		CreateAt: ptrInt64(model.GetMillis()),
+	}
+	if err := validateDirectPostImportData(&data); err != nil {
+		t.Fatal("Validation failed but should have been valid.")
+	}
+
+	// Test with invalid message.
+	data = DirectPostImportData{
+		ChannelMembers: &[]string{
+			model.NewId(),
+			model.NewId(),
+		},
+		User:     ptrStr("username"),
+		Message:  ptrStr(strings.Repeat("1234567890", 500)),
+		CreateAt: ptrInt64(model.GetMillis()),
+	}
+	if err := validateDirectPostImportData(&data); err == nil {
+		t.Fatal("Should have failed due to too long message.")
+	}
+
+	// Test with invalid CreateAt
+	data = DirectPostImportData{
+		ChannelMembers: &[]string{
+			model.NewId(),
+			model.NewId(),
+		},
+		User:     ptrStr("username"),
+		Message:  ptrStr("message"),
+		CreateAt: ptrInt64(0),
+	}
+	if err := validateDirectPostImportData(&data); err == nil {
+		t.Fatal("Should have failed due to 0 create-at value.")
 	}
 }
 
@@ -1356,7 +1586,6 @@ func TestImportImportUser(t *testing.T) {
 		Theme:              ptrStr(`{"awayIndicator":"#DCBD4E","buttonBg":"#23A2FF","buttonColor":"#FFFFFF","centerChannelBg":"#ffffff","centerChannelColor":"#333333","codeTheme":"github","image":"/static/files/a4a388b38b32678e83823ef1b3e17766.png","linkColor":"#2389d7","mentionBj":"#2389d7","mentionColor":"#ffffff","mentionHighlightBg":"#fff2bb","mentionHighlightLink":"#2f81b7","newMessageSeparator":"#FF8800","onlineIndicator":"#7DBE00","sidebarBg":"#fafafa","sidebarHeaderBg":"#3481B9","sidebarHeaderTextColor":"#ffffff","sidebarText":"#333333","sidebarTextActiveBorder":"#378FD2","sidebarTextActiveColor":"#111111","sidebarTextHoverBg":"#e6f2fa","sidebarUnreadText":"#333333","type":"Mattermost"}`),
 		SelectedFont:       ptrStr("Roboto Slab"),
 		UseMilitaryTime:    ptrStr("true"),
-		NameFormat:         ptrStr("nickname_full_name"),
 		CollapsePreviews:   ptrStr("true"),
 		MessageDisplay:     ptrStr("compact"),
 		ChannelDisplayMode: ptrStr("centered"),
@@ -1395,10 +1624,6 @@ func TestImportImportUser(t *testing.T) {
 				t.Fatalf("Preference does not match.")
 			}
 
-			if preference.Name == "name_format" && preference.Value != *data.NameFormat {
-				t.Fatalf("Preference does not match.")
-			}
-
 			if preference.Name == "collapse_previews" && preference.Value != *data.CollapsePreviews {
 				t.Fatalf("Preference does not match.")
 			}
@@ -1420,7 +1645,6 @@ func TestImportImportUser(t *testing.T) {
 		Theme:              ptrStr(`{"awayIndicator":"#123456","buttonBg":"#23A2FF","buttonColor":"#FFFFFF","centerChannelBg":"#ffffff","centerChannelColor":"#333333","codeTheme":"github","image":"/static/files/a4a388b38b32678e83823ef1b3e17766.png","linkColor":"#2389d7","mentionBj":"#2389d7","mentionColor":"#ffffff","mentionHighlightBg":"#fff2bb","mentionHighlightLink":"#2f81b7","newMessageSeparator":"#FF8800","onlineIndicator":"#7DBE00","sidebarBg":"#fafafa","sidebarHeaderBg":"#3481B9","sidebarHeaderTextColor":"#ffffff","sidebarText":"#333333","sidebarTextActiveBorder":"#378FD2","sidebarTextActiveColor":"#111111","sidebarTextHoverBg":"#e6f2fa","sidebarUnreadText":"#333333","type":"Mattermost"}`),
 		SelectedFont:       ptrStr("Lato"),
 		UseMilitaryTime:    ptrStr("false"),
-		NameFormat:         ptrStr("full_name"),
 		CollapsePreviews:   ptrStr("false"),
 		MessageDisplay:     ptrStr("clean"),
 		ChannelDisplayMode: ptrStr("full"),
@@ -1451,10 +1675,6 @@ func TestImportImportUser(t *testing.T) {
 			}
 
 			if preference.Name == "use_military_time" && preference.Value != *data.UseMilitaryTime {
-				t.Fatalf("Preference does not match.")
-			}
-
-			if preference.Name == "name_format" && preference.Value != *data.NameFormat {
 				t.Fatalf("Preference does not match.")
 			}
 
@@ -1719,6 +1939,529 @@ func TestImportImportPost(t *testing.T) {
 	}
 }
 
+func TestImportImportDirectChannel(t *testing.T) {
+	th := Setup().InitBasic()
+
+	// Check how many channels are in the database.
+	var directChannelCount int64
+	if r := <-Srv.Store.Channel().AnalyticsTypeCount("", model.CHANNEL_DIRECT); r.Err == nil {
+		directChannelCount = r.Data.(int64)
+	} else {
+		t.Fatalf("Failed to get direct channel count.")
+	}
+
+	var groupChannelCount int64
+	if r := <-Srv.Store.Channel().AnalyticsTypeCount("", model.CHANNEL_GROUP); r.Err == nil {
+		groupChannelCount = r.Data.(int64)
+	} else {
+		t.Fatalf("Failed to get group channel count.")
+	}
+
+	// Do an invalid channel in dry-run mode.
+	data := DirectChannelImportData{
+		Members: &[]string{
+			model.NewId(),
+		},
+		Header: ptrStr("Channel Header"),
+	}
+	if err := ImportDirectChannel(&data, true); err == nil {
+		t.Fatalf("Expected error due to invalid name.")
+	}
+
+	// Check that no more channels are in the DB.
+	AssertChannelCount(t, model.CHANNEL_DIRECT, directChannelCount)
+	AssertChannelCount(t, model.CHANNEL_GROUP, groupChannelCount)
+
+	// Do a valid DIRECT channel with a nonexistent member in dry-run mode.
+	data.Members = &[]string{
+		model.NewId(),
+		model.NewId(),
+	}
+	if err := ImportDirectChannel(&data, true); err != nil {
+		t.Fatalf("Expected success as cannot validate existance of channel members in dry run mode.")
+	}
+
+	// Check that no more channels are in the DB.
+	AssertChannelCount(t, model.CHANNEL_DIRECT, directChannelCount)
+	AssertChannelCount(t, model.CHANNEL_GROUP, groupChannelCount)
+
+	// Do a valid GROUP channel with a nonexistent member in dry-run mode.
+	data.Members = &[]string{
+		model.NewId(),
+		model.NewId(),
+		model.NewId(),
+	}
+	if err := ImportDirectChannel(&data, true); err != nil {
+		t.Fatalf("Expected success as cannot validate existance of channel members in dry run mode.")
+	}
+
+	// Check that no more channels are in the DB.
+	AssertChannelCount(t, model.CHANNEL_DIRECT, directChannelCount)
+	AssertChannelCount(t, model.CHANNEL_GROUP, groupChannelCount)
+
+	// Do an invalid channel in apply mode.
+	data.Members = &[]string{
+		model.NewId(),
+	}
+	if err := ImportDirectChannel(&data, false); err == nil {
+		t.Fatalf("Expected error due to invalid member (apply mode).")
+	}
+
+	// Check that no more channels are in the DB.
+	AssertChannelCount(t, model.CHANNEL_DIRECT, directChannelCount)
+	AssertChannelCount(t, model.CHANNEL_GROUP, groupChannelCount)
+
+	// Do a valid DIRECT channel.
+	data.Members = &[]string{
+		th.BasicUser.Username,
+		th.BasicUser2.Username,
+	}
+	if err := ImportDirectChannel(&data, false); err != nil {
+		t.Fatalf("Expected success: %v", err.Error())
+	}
+
+	// Check that one more DIRECT channel is in the DB.
+	AssertChannelCount(t, model.CHANNEL_DIRECT, directChannelCount+1)
+	AssertChannelCount(t, model.CHANNEL_GROUP, groupChannelCount)
+
+	// Do the same DIRECT channel again.
+	if err := ImportDirectChannel(&data, false); err != nil {
+		t.Fatalf("Expected success.")
+	}
+
+	// Check that no more channels are in the DB.
+	AssertChannelCount(t, model.CHANNEL_DIRECT, directChannelCount+1)
+	AssertChannelCount(t, model.CHANNEL_GROUP, groupChannelCount)
+
+	// Update the channel's HEADER
+	data.Header = ptrStr("New Channel Header 2")
+	if err := ImportDirectChannel(&data, false); err != nil {
+		t.Fatalf("Expected success.")
+	}
+
+	// Check that no more channels are in the DB.
+	AssertChannelCount(t, model.CHANNEL_DIRECT, directChannelCount+1)
+	AssertChannelCount(t, model.CHANNEL_GROUP, groupChannelCount)
+
+	// Get the channel to check that the header was updated.
+	if channel, err := createDirectChannel(th.BasicUser.Id, th.BasicUser2.Id); err == nil || err.Id != store.CHANNEL_EXISTS_ERROR {
+		t.Fatal("Should have got store.CHANNEL_EXISTS_ERROR")
+	} else {
+		if channel.Header != *data.Header {
+			t.Fatal("Channel header has not been updated successfully.")
+		}
+	}
+
+	// Do a GROUP channel with an extra invalid member.
+	user3 := th.CreateUser()
+	data.Members = &[]string{
+		th.BasicUser.Username,
+		th.BasicUser2.Username,
+		user3.Username,
+		model.NewId(),
+	}
+	if err := ImportDirectChannel(&data, false); err == nil {
+		t.Fatalf("Should have failed due to invalid member in list.")
+	}
+
+	// Check that no more channels are in the DB.
+	AssertChannelCount(t, model.CHANNEL_DIRECT, directChannelCount+1)
+	AssertChannelCount(t, model.CHANNEL_GROUP, groupChannelCount)
+
+	// Do a valid GROUP channel.
+	data.Members = &[]string{
+		th.BasicUser.Username,
+		th.BasicUser2.Username,
+		user3.Username,
+	}
+	if err := ImportDirectChannel(&data, false); err != nil {
+		t.Fatalf("Expected success.")
+	}
+
+	// Check that one more GROUP channel is in the DB.
+	AssertChannelCount(t, model.CHANNEL_DIRECT, directChannelCount+1)
+	AssertChannelCount(t, model.CHANNEL_GROUP, groupChannelCount+1)
+
+	// Do the same DIRECT channel again.
+	if err := ImportDirectChannel(&data, false); err != nil {
+		t.Fatalf("Expected success.")
+	}
+
+	// Check that no more channels are in the DB.
+	AssertChannelCount(t, model.CHANNEL_DIRECT, directChannelCount+1)
+	AssertChannelCount(t, model.CHANNEL_GROUP, groupChannelCount+1)
+
+	// Update the channel's HEADER
+	data.Header = ptrStr("New Channel Header 3")
+	if err := ImportDirectChannel(&data, false); err != nil {
+		t.Fatalf("Expected success.")
+	}
+
+	// Check that no more channels are in the DB.
+	AssertChannelCount(t, model.CHANNEL_DIRECT, directChannelCount+1)
+	AssertChannelCount(t, model.CHANNEL_GROUP, groupChannelCount+1)
+
+	// Get the channel to check that the header was updated.
+	userIds := []string{
+		th.BasicUser.Id,
+		th.BasicUser2.Id,
+		user3.Id,
+	}
+	if channel, err := createGroupChannel(userIds, th.BasicUser.Id); err.Id != store.CHANNEL_EXISTS_ERROR {
+		t.Fatal("Should have got store.CHANNEL_EXISTS_ERROR")
+	} else {
+		if channel.Header != *data.Header {
+			t.Fatal("Channel header has not been updated successfully.")
+		}
+	}
+}
+
+func AssertChannelCount(t *testing.T, channelType string, expectedCount int64) {
+	if r := <-Srv.Store.Channel().AnalyticsTypeCount("", channelType); r.Err == nil {
+		count := r.Data.(int64)
+		if count != expectedCount {
+			debug.PrintStack()
+			t.Fatalf("Channel count of type: %v. Expected: %v, Got: %v", channelType, expectedCount, count)
+		}
+	} else {
+		debug.PrintStack()
+		t.Fatalf("Failed to get channel count.")
+	}
+}
+
+func TestImportImportDirectPost(t *testing.T) {
+	th := Setup().InitBasic()
+
+	// Create the DIRECT channel.
+	channelData := DirectChannelImportData{
+		Members: &[]string{
+			th.BasicUser.Username,
+			th.BasicUser2.Username,
+		},
+	}
+	if err := ImportDirectChannel(&channelData, false); err != nil {
+		t.Fatalf("Expected success: %v", err.Error())
+	}
+
+	// Get the channel.
+	var directChannel *model.Channel
+	if channel, err := createDirectChannel(th.BasicUser.Id, th.BasicUser2.Id); err.Id != store.CHANNEL_EXISTS_ERROR {
+		t.Fatal("Should have got store.CHANNEL_EXISTS_ERROR")
+	} else {
+		directChannel = channel
+	}
+
+	// Get the number of posts in the system.
+	var initialPostCount int64
+	if result := <-Srv.Store.Post().AnalyticsPostCount("", false, false); result.Err != nil {
+		t.Fatal(result.Err)
+	} else {
+		initialPostCount = result.Data.(int64)
+	}
+
+	// Try adding an invalid post in dry run mode.
+	data := &DirectPostImportData{
+		ChannelMembers: &[]string{
+			th.BasicUser.Username,
+			th.BasicUser2.Username,
+		},
+		User:     ptrStr(th.BasicUser.Username),
+		CreateAt: ptrInt64(model.GetMillis()),
+	}
+	if err := ImportDirectPost(data, true); err == nil {
+		t.Fatalf("Expected error.")
+	}
+	AssertAllPostsCount(t, initialPostCount, 0, "")
+
+	// Try adding a valid post in dry run mode.
+	data = &DirectPostImportData{
+		ChannelMembers: &[]string{
+			th.BasicUser.Username,
+			th.BasicUser2.Username,
+		},
+		User:     ptrStr(th.BasicUser.Username),
+		Message:  ptrStr("Message"),
+		CreateAt: ptrInt64(model.GetMillis()),
+	}
+	if err := ImportDirectPost(data, true); err != nil {
+		t.Fatalf("Expected success.")
+	}
+	AssertAllPostsCount(t, initialPostCount, 0, "")
+
+	// Try adding an invalid post in apply mode.
+	data = &DirectPostImportData{
+		ChannelMembers: &[]string{
+			th.BasicUser.Username,
+			model.NewId(),
+		},
+		User:     ptrStr(th.BasicUser.Username),
+		Message:  ptrStr("Message"),
+		CreateAt: ptrInt64(model.GetMillis()),
+	}
+	if err := ImportDirectPost(data, false); err == nil {
+		t.Fatalf("Expected error.")
+	}
+	AssertAllPostsCount(t, initialPostCount, 0, "")
+
+	// Try adding a valid post in apply mode.
+	data = &DirectPostImportData{
+		ChannelMembers: &[]string{
+			th.BasicUser.Username,
+			th.BasicUser2.Username,
+		},
+		User:     ptrStr(th.BasicUser.Username),
+		Message:  ptrStr("Message"),
+		CreateAt: ptrInt64(model.GetMillis()),
+	}
+	if err := ImportDirectPost(data, false); err != nil {
+		t.Fatalf("Expected success: %v", err.Error())
+	}
+	AssertAllPostsCount(t, initialPostCount, 1, "")
+
+	// Check the post values.
+	if result := <-Srv.Store.Post().GetPostsCreatedAt(directChannel.Id, *data.CreateAt); result.Err != nil {
+		t.Fatal(result.Err.Error())
+	} else {
+		posts := result.Data.([]*model.Post)
+		if len(posts) != 1 {
+			t.Fatal("Unexpected number of posts found.")
+		}
+		post := posts[0]
+		if post.Message != *data.Message || post.CreateAt != *data.CreateAt || post.UserId != th.BasicUser.Id {
+			t.Fatal("Post properties not as expected")
+		}
+	}
+
+	// Import the post again.
+	if err := ImportDirectPost(data, false); err != nil {
+		t.Fatalf("Expected success.")
+	}
+	AssertAllPostsCount(t, initialPostCount, 1, "")
+
+	// Check the post values.
+	if result := <-Srv.Store.Post().GetPostsCreatedAt(directChannel.Id, *data.CreateAt); result.Err != nil {
+		t.Fatal(result.Err.Error())
+	} else {
+		posts := result.Data.([]*model.Post)
+		if len(posts) != 1 {
+			t.Fatal("Unexpected number of posts found.")
+		}
+		post := posts[0]
+		if post.Message != *data.Message || post.CreateAt != *data.CreateAt || post.UserId != th.BasicUser.Id {
+			t.Fatal("Post properties not as expected")
+		}
+	}
+
+	// Save the post with a different time.
+	data.CreateAt = ptrInt64(*data.CreateAt + 1)
+	if err := ImportDirectPost(data, false); err != nil {
+		t.Fatalf("Expected success.")
+	}
+	AssertAllPostsCount(t, initialPostCount, 2, "")
+
+	// Save the post with a different message.
+	data.Message = ptrStr("Message 2")
+	if err := ImportDirectPost(data, false); err != nil {
+		t.Fatalf("Expected success.")
+	}
+	AssertAllPostsCount(t, initialPostCount, 3, "")
+
+	// Test with hashtags
+	data.Message = ptrStr("Message 2 #hashtagmashupcity")
+	data.CreateAt = ptrInt64(*data.CreateAt + 1)
+	if err := ImportDirectPost(data, false); err != nil {
+		t.Fatalf("Expected success.")
+	}
+	AssertAllPostsCount(t, initialPostCount, 4, "")
+
+	if result := <-Srv.Store.Post().GetPostsCreatedAt(directChannel.Id, *data.CreateAt); result.Err != nil {
+		t.Fatal(result.Err.Error())
+	} else {
+		posts := result.Data.([]*model.Post)
+		if len(posts) != 1 {
+			t.Fatal("Unexpected number of posts found.")
+		}
+		post := posts[0]
+		if post.Message != *data.Message || post.CreateAt != *data.CreateAt || post.UserId != th.BasicUser.Id {
+			t.Fatal("Post properties not as expected")
+		}
+		if post.Hashtags != "#hashtagmashupcity" {
+			t.Fatalf("Hashtags not as expected: %s", post.Hashtags)
+		}
+	}
+
+	// ------------------ Group Channel -------------------------
+
+	// Create the GROUP channel.
+	user3 := th.CreateUser()
+	channelData = DirectChannelImportData{
+		Members: &[]string{
+			th.BasicUser.Username,
+			th.BasicUser2.Username,
+			user3.Username,
+		},
+	}
+	if err := ImportDirectChannel(&channelData, false); err != nil {
+		t.Fatalf("Expected success: %v", err.Error())
+	}
+
+	// Get the channel.
+	var groupChannel *model.Channel
+	userIds := []string{
+		th.BasicUser.Id,
+		th.BasicUser2.Id,
+		user3.Id,
+	}
+	if channel, err := createGroupChannel(userIds, th.BasicUser.Id); err.Id != store.CHANNEL_EXISTS_ERROR {
+		t.Fatal("Should have got store.CHANNEL_EXISTS_ERROR")
+	} else {
+		groupChannel = channel
+	}
+
+	// Get the number of posts in the system.
+	if result := <-Srv.Store.Post().AnalyticsPostCount("", false, false); result.Err != nil {
+		t.Fatal(result.Err)
+	} else {
+		initialPostCount = result.Data.(int64)
+	}
+
+	// Try adding an invalid post in dry run mode.
+	data = &DirectPostImportData{
+		ChannelMembers: &[]string{
+			th.BasicUser.Username,
+			th.BasicUser2.Username,
+			user3.Username,
+		},
+		User:     ptrStr(th.BasicUser.Username),
+		CreateAt: ptrInt64(model.GetMillis()),
+	}
+	if err := ImportDirectPost(data, true); err == nil {
+		t.Fatalf("Expected error.")
+	}
+	AssertAllPostsCount(t, initialPostCount, 0, "")
+
+	// Try adding a valid post in dry run mode.
+	data = &DirectPostImportData{
+		ChannelMembers: &[]string{
+			th.BasicUser.Username,
+			th.BasicUser2.Username,
+			user3.Username,
+		},
+		User:     ptrStr(th.BasicUser.Username),
+		Message:  ptrStr("Message"),
+		CreateAt: ptrInt64(model.GetMillis()),
+	}
+	if err := ImportDirectPost(data, true); err != nil {
+		t.Fatalf("Expected success.")
+	}
+	AssertAllPostsCount(t, initialPostCount, 0, "")
+
+	// Try adding an invalid post in apply mode.
+	data = &DirectPostImportData{
+		ChannelMembers: &[]string{
+			th.BasicUser.Username,
+			th.BasicUser2.Username,
+			user3.Username,
+			model.NewId(),
+		},
+		User:     ptrStr(th.BasicUser.Username),
+		Message:  ptrStr("Message"),
+		CreateAt: ptrInt64(model.GetMillis()),
+	}
+	if err := ImportDirectPost(data, false); err == nil {
+		t.Fatalf("Expected error.")
+	}
+	AssertAllPostsCount(t, initialPostCount, 0, "")
+
+	// Try adding a valid post in apply mode.
+	data = &DirectPostImportData{
+		ChannelMembers: &[]string{
+			th.BasicUser.Username,
+			th.BasicUser2.Username,
+			user3.Username,
+		},
+		User:     ptrStr(th.BasicUser.Username),
+		Message:  ptrStr("Message"),
+		CreateAt: ptrInt64(model.GetMillis()),
+	}
+	if err := ImportDirectPost(data, false); err != nil {
+		t.Fatalf("Expected success: %v", err.Error())
+	}
+	AssertAllPostsCount(t, initialPostCount, 1, "")
+
+	// Check the post values.
+	if result := <-Srv.Store.Post().GetPostsCreatedAt(groupChannel.Id, *data.CreateAt); result.Err != nil {
+		t.Fatal(result.Err.Error())
+	} else {
+		posts := result.Data.([]*model.Post)
+		if len(posts) != 1 {
+			t.Fatal("Unexpected number of posts found.")
+		}
+		post := posts[0]
+		if post.Message != *data.Message || post.CreateAt != *data.CreateAt || post.UserId != th.BasicUser.Id {
+			t.Fatal("Post properties not as expected")
+		}
+	}
+
+	// Import the post again.
+	if err := ImportDirectPost(data, false); err != nil {
+		t.Fatalf("Expected success.")
+	}
+	AssertAllPostsCount(t, initialPostCount, 1, "")
+
+	// Check the post values.
+	if result := <-Srv.Store.Post().GetPostsCreatedAt(groupChannel.Id, *data.CreateAt); result.Err != nil {
+		t.Fatal(result.Err.Error())
+	} else {
+		posts := result.Data.([]*model.Post)
+		if len(posts) != 1 {
+			t.Fatal("Unexpected number of posts found.")
+		}
+		post := posts[0]
+		if post.Message != *data.Message || post.CreateAt != *data.CreateAt || post.UserId != th.BasicUser.Id {
+			t.Fatal("Post properties not as expected")
+		}
+	}
+
+	// Save the post with a different time.
+	data.CreateAt = ptrInt64(*data.CreateAt + 1)
+	if err := ImportDirectPost(data, false); err != nil {
+		t.Fatalf("Expected success.")
+	}
+	AssertAllPostsCount(t, initialPostCount, 2, "")
+
+	// Save the post with a different message.
+	data.Message = ptrStr("Message 2")
+	if err := ImportDirectPost(data, false); err != nil {
+		t.Fatalf("Expected success.")
+	}
+	AssertAllPostsCount(t, initialPostCount, 3, "")
+
+	// Test with hashtags
+	data.Message = ptrStr("Message 2 #hashtagmashupcity")
+	data.CreateAt = ptrInt64(*data.CreateAt + 1)
+	if err := ImportDirectPost(data, false); err != nil {
+		t.Fatalf("Expected success.")
+	}
+	AssertAllPostsCount(t, initialPostCount, 4, "")
+
+	if result := <-Srv.Store.Post().GetPostsCreatedAt(groupChannel.Id, *data.CreateAt); result.Err != nil {
+		t.Fatal(result.Err.Error())
+	} else {
+		posts := result.Data.([]*model.Post)
+		if len(posts) != 1 {
+			t.Fatal("Unexpected number of posts found.")
+		}
+		post := posts[0]
+		if post.Message != *data.Message || post.CreateAt != *data.CreateAt || post.UserId != th.BasicUser.Id {
+			t.Fatal("Post properties not as expected")
+		}
+		if post.Hashtags != "#hashtagmashupcity" {
+			t.Fatalf("Hashtags not as expected: %s", post.Hashtags)
+		}
+	}
+}
+
 func TestImportImportLine(t *testing.T) {
 	_ = Setup()
 
@@ -1754,6 +2497,18 @@ func TestImportImportLine(t *testing.T) {
 	if err := ImportLine(line, false); err == nil {
 		t.Fatalf("Expected an error when importing a line with type post with a nil post.")
 	}
+
+	// Try import line with direct_channel type but nil direct_channel.
+	line.Type = "direct_channel"
+	if err := ImportLine(line, false); err == nil {
+		t.Fatalf("Expected an error when importing a line with type direct_channel with a nil direct_channel.")
+	}
+
+	// Try import line with direct_post type but nil direct_post.
+	line.Type = "direct_post"
+	if err := ImportLine(line, false); err == nil {
+		t.Fatalf("Expected an error when importing a line with type direct_post with a nil direct_post.")
+	}
 }
 
 func TestImportBulkImport(t *testing.T) {
@@ -1762,13 +2517,21 @@ func TestImportBulkImport(t *testing.T) {
 	teamName := model.NewId()
 	channelName := model.NewId()
 	username := model.NewId()
+	username2 := model.NewId()
+	username3 := model.NewId()
 
 	// Run bulk import with a valid 1 of everything.
 	data1 := `{"type": "version", "version": 1}
 {"type": "team", "team": {"type": "O", "display_name": "lskmw2d7a5ao7ppwqh5ljchvr4", "name": "` + teamName + `"}}
 {"type": "channel", "channel": {"type": "O", "display_name": "xr6m6udffngark2uekvr3hoeny", "team": "` + teamName + `", "name": "` + channelName + `"}}
 {"type": "user", "user": {"username": "` + username + `", "email": "` + username + `@example.com", "teams": [{"name": "` + teamName + `", "channels": [{"name": "` + channelName + `"}]}]}}
-{"type": "post", "post": {"team": "` + teamName + `", "channel": "` + channelName + `", "user": "` + username + `", "message": "Hello World", "create_at": 123456789012}}`
+{"type": "user", "user": {"username": "` + username2 + `", "email": "` + username2 + `@example.com", "teams": [{"name": "` + teamName + `", "channels": [{"name": "` + channelName + `"}]}]}}
+{"type": "user", "user": {"username": "` + username3 + `", "email": "` + username3 + `@example.com", "teams": [{"name": "` + teamName + `", "channels": [{"name": "` + channelName + `"}]}]}}
+{"type": "post", "post": {"team": "` + teamName + `", "channel": "` + channelName + `", "user": "` + username + `", "message": "Hello World", "create_at": 123456789012}}
+{"type": "direct_channel", "direct_channel": {"members": ["` + username + `", "` + username2 + `"]}}
+{"type": "direct_channel", "direct_channel": {"members": ["` + username + `", "` + username2 + `", "` + username3 + `"]}}
+{"type": "direct_post", "direct_post": {"channel_members": ["` + username + `", "` + username2 + `"], "user": "` + username + `", "message": "Hello Direct Channel", "create_at": 123456789013}}
+{"type": "direct_post", "direct_post": {"channel_members": ["` + username + `", "` + username2 + `", "` + username3 + `"], "user": "` + username + `", "message": "Hello Group Channel", "create_at": 123456789014}}`
 
 	if err, line := BulkImport(strings.NewReader(data1), false, 2); err != nil || line != 0 {
 		t.Fatalf("BulkImport should have succeeded: %v, %v", err.Error(), line)

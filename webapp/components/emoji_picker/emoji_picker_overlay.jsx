@@ -13,7 +13,9 @@ export default class EmojiPickerOverlay extends React.PureComponent {
         container: PropTypes.func,
         target: PropTypes.func.isRequired,
         onEmojiClick: PropTypes.func.isRequired,
-        onHide: PropTypes.func.isRequired
+        onHide: PropTypes.func.isRequired,
+        rightOffset: PropTypes.number,
+        topOffset: PropTypes.number
     }
 
     constructor(props) {
@@ -55,7 +57,11 @@ export default class EmojiPickerOverlay extends React.PureComponent {
                 target={this.props.target}
                 animation={false}
             >
-                <EmojiPicker onEmojiClick={this.props.onEmojiClick}/>
+                <EmojiPicker
+                    onEmojiClick={this.props.onEmojiClick}
+                    rightOffset={this.props.rightOffset}
+                    topOffset={this.props.topOffset}
+                />
             </Overlay>
         );
     }

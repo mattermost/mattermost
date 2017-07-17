@@ -55,6 +55,7 @@ export default class Navbar extends React.Component {
         this.showSearch = this.showSearch.bind(this);
 
         this.showEditChannelHeaderModal = this.showEditChannelHeaderModal.bind(this);
+        this.hideEditChannelHeaderModal = this.hideEditChannelHeaderModal.bind(this);
         this.showRenameChannelModal = this.showRenameChannelModal.bind(this);
         this.hideRenameChannelModal = this.hideRenameChannelModal.bind(this);
         this.isStateValid = this.isStateValid.bind(this);
@@ -110,6 +111,7 @@ export default class Navbar extends React.Component {
         UserStore.addChangeListener(this.onChange);
         PreferenceStore.addChangeListener(this.onChange);
         ModalStore.addModalListener(ActionTypes.TOGGLE_QUICK_SWITCH_MODAL, this.toggleQuickSwitchModal);
+        ModalStore.addModalListener(ActionTypes.TOGGLE_CHANNEL_HEADER_UPDATE_MODAL, this.showEditChannelHeaderModal);
         $('.inner-wrap').click(this.hideSidebars);
         document.addEventListener('keydown', this.handleQuickSwitchKeyPress);
     }
@@ -121,6 +123,7 @@ export default class Navbar extends React.Component {
         UserStore.removeChangeListener(this.onChange);
         PreferenceStore.removeChangeListener(this.onChange);
         ModalStore.removeModalListener(ActionTypes.TOGGLE_QUICK_SWITCH_MODAL, this.toggleQuickSwitchModal);
+        ModalStore.addModalListener(ActionTypes.TOGGLE_CHANNEL_HEADER_UPDATE_MODAL, this.hideEditChannelHeaderModal);
         document.removeEventListener('keydown', this.handleQuickSwitchKeyPress);
     }
 
@@ -190,6 +193,12 @@ export default class Navbar extends React.Component {
 
         this.setState({
             showEditChannelHeaderModal: true
+        });
+    }
+
+    hideEditChannelHeaderModal() {
+        this.setState({
+            showEditChannelHeaderModal: false
         });
     }
 
@@ -270,6 +279,7 @@ export default class Navbar extends React.Component {
 
     createDropdown(channel, channelTitle, isSystemAdmin, isTeamAdmin, isChannelAdmin, isDirect, isGroup, popoverContent) {
         const isAdmin = isSystemAdmin || isTeamAdmin;
+        const infoIcon = Constants.INFO_ICON_SVG;
 
         if (channel) {
             let viewInfoOption;
@@ -520,23 +530,21 @@ export default class Navbar extends React.Component {
                     );
                 }
 
-                if (ChannelUtils.showDeleteOption(channel, isAdmin, isSystemAdmin, isChannelAdmin) || this.state.userCount === 1) {
-                    if (!ChannelStore.isDefault(channel)) {
-                        deleteChannelOption = (
-                            <li role='presentation'>
-                                <ToggleModalButton
-                                    role='menuitem'
-                                    dialogType={DeleteChannelModal}
-                                    dialogProps={{channel}}
-                                >
-                                    <FormattedMessage
-                                        id='channel_header.delete'
-                                        defaultMessage='Delete Channel'
-                                    />
-                                </ToggleModalButton>
-                            </li>
-                        );
-                    }
+                if (ChannelUtils.showDeleteOption(channel, isAdmin, isSystemAdmin, isChannelAdmin, this.state.userCount)) {
+                    deleteChannelOption = (
+                        <li role='presentation'>
+                            <ToggleModalButton
+                                role='menuitem'
+                                dialogType={DeleteChannelModal}
+                                dialogProps={{channel}}
+                            >
+                                <FormattedMessage
+                                    id='channel_header.delete'
+                                    defaultMessage='Delete Channel'
+                                />
+                            </ToggleModalButton>
+                        </li>
+                    );
                 }
 
                 const canLeave = channel.type === Constants.PRIVATE_CHANNEL ? this.state.userCount > 1 : true;
@@ -592,7 +600,13 @@ export default class Navbar extends React.Component {
                             className='description'
                             rootClose={true}
                         >
-                            <div className='pull-right description info-popover'/>
+                            <div className='pull-right description navbar-right__icon info-popover'>
+                                <span
+                                    className='icon icon__info'
+                                    dangerouslySetInnerHTML={{__html: infoIcon}}
+                                    aria-hidden='true'
+                                />
+                            </div>
                         </OverlayTrigger>
                         <a
                             href='#'
@@ -645,6 +659,8 @@ export default class Navbar extends React.Component {
 
     createCollapseButtons(currentId) {
         var buttons = [];
+        const menuIcon = Constants.MENU_ICON_SVG;
+
         if (currentId == null) {
             buttons.push(
                 <button
@@ -681,9 +697,11 @@ export default class Navbar extends React.Component {
                             defaultMessage='Toggle sidebar'
                         />
                     </span>
-                    <span className='icon-bar'/>
-                    <span className='icon-bar'/>
-                    <span className='icon-bar'/>
+                    <span
+                        className='icon icon__menu'
+                        dangerouslySetInnerHTML={{__html: menuIcon}}
+                        aria-hidden='true'
+                    />
                     <NotifyCounts/>
                 </button>
             );
@@ -692,7 +710,7 @@ export default class Navbar extends React.Component {
                 <button
                     key='navbar-toggle-menu'
                     type='button'
-                    className='navbar-toggle menu-toggle pull-right'
+                    className='navbar-toggle navbar-right__icon menu-toggle pull-right'
                     data-toggle='collapse'
                     data-target='#sidebar-nav'
                     onClick={this.toggleRightSidebar}
@@ -910,13 +928,18 @@ export default class Navbar extends React.Component {
 
         var collapseButtons = this.createCollapseButtons(currentId);
 
+        const searchIcon = Constants.SEARCH_ICON_SVG;
         const searchButton = (
             <button
                 type='button'
-                className='navbar-toggle navbar-search pull-right'
+                className='navbar-toggle navbar-right__icon navbar-search pull-right'
                 onClick={this.showSearch}
             >
-                <span className='fa fa-search icon-search icon--white'/>
+                <span
+                    className='icon icon__search'
+                    dangerouslySetInnerHTML={{__html: searchIcon}}
+                    aria-hidden='true'
+                />
             </button>
         );
 

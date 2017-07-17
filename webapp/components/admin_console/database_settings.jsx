@@ -3,6 +3,7 @@
 
 import React from 'react';
 
+import {recycleDatabaseConnection} from 'actions/admin_actions.jsx';
 import * as Utils from 'utils/utils.jsx';
 
 import AdminSettings from './admin_settings.jsx';
@@ -11,7 +12,7 @@ import {FormattedMessage} from 'react-intl';
 import GeneratedSetting from './generated_setting.jsx';
 import SettingsGroup from './settings_group.jsx';
 import TextSetting from './text_setting.jsx';
-import RecycleDbButton from './recycle_db.jsx';
+import RequestButton from './request_button/request_button.jsx';
 
 export default class DatabaseSettings extends AdminSettings {
     constructor(props) {
@@ -57,6 +58,53 @@ export default class DatabaseSettings extends AdminSettings {
 
     renderSettings() {
         const dataSource = '**********' + this.state.dataSource.substring(this.state.dataSource.indexOf('@'));
+
+        let recycleDbButton = <div/>;
+        if (global.window.mm_license.IsLicensed === 'true') {
+            recycleDbButton = (
+                <RequestButton
+                    requestAction={recycleDatabaseConnection}
+                    helpText={
+                        <FormattedMessage
+                            id='admin.recycle.recycleDescription'
+                            defaultMessage='Deployments using multiple databases can switch from one master database to another without restarting the Mattermost server by updating "config.json" to the new desired configuration and using the {reloadConfiguration} feature to load the new settings while the server is running. The administrator should then use {featureName} feature to recycle the database connections based on the new settings.'
+                            values={{
+                                featureName: (
+                                    <b>
+                                        <FormattedMessage
+                                            id='admin.recycle.recycleDescription.featureName'
+                                            defaultMessage='Recycle Database Connections'
+                                        />
+                                    </b>
+                                ),
+                                reloadConfiguration: (
+                                    <a href='../general/configuration'>
+                                        <b>
+                                            <FormattedMessage
+                                                id='admin.recycle.recycleDescription.reloadConfiguration'
+                                                defaultMessage='Configuration > Reload Configuration from Disk'
+                                            />
+                                        </b>
+                                    </a>
+                                )
+                            }}
+                        />
+                    }
+                    buttonText={
+                        <FormattedMessage
+                            id='admin.recycle.button'
+                            defaultMessage='Recycle Database Connections'
+                        />
+                    }
+                    showSuccessMessage={false}
+                    errorMessage={{
+                        id: 'admin.recycle.reloadFail',
+                        defaultMessage: 'Recycling unsuccessful: {error}'
+                    }}
+                    includeDetailedError={true}
+                />
+            );
+        }
 
         return (
             <SettingsGroup>
@@ -142,7 +190,7 @@ export default class DatabaseSettings extends AdminSettings {
                     helpText={
                         <FormattedMessage
                             id='admin.sql.queryTimeoutDescription'
-                            defaultMessage='The number of seconds to wait for a response from the database after opening a connection and sending the query. Errors that you see in the UI or in the logs as a result of a query timeout can vary depending on the type of query. This setting has no effect on PostgreSQL databases.'
+                            defaultMessage='The number of seconds to wait for a response from the database after opening a connection and sending the query. Errors that you see in the UI or in the logs as a result of a query timeout can vary depending on the type of query.'
                         />
                     }
                     value={this.state.queryTimeout}
@@ -183,7 +231,7 @@ export default class DatabaseSettings extends AdminSettings {
                     value={this.state.trace}
                     onChange={this.handleChange}
                 />
-                <RecycleDbButton/>
+                {recycleDbButton}
             </SettingsGroup>
         );
     }

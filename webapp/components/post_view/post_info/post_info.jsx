@@ -9,6 +9,7 @@ import DotMenu from 'components/dot_menu';
 
 import * as Utils from 'utils/utils.jsx';
 import * as PostUtils from 'utils/post_utils.jsx';
+import {emitEmojiPosted} from 'actions/post_actions.jsx';
 import Constants from 'utils/constants.jsx';
 
 import React from 'react';
@@ -119,6 +120,7 @@ export default class PostInfo extends React.PureComponent {
         this.setState({showEmojiPicker: false, reactionPickerOffset: pickerOffset});
         const emojiName = emoji.name || emoji.aliases[0];
         this.props.actions.addReaction(this.props.post.id, emojiName);
+        emitEmojiPosted(emojiName);
     }
 
     getDotMenu = () => {
@@ -149,7 +151,7 @@ export default class PostInfo extends React.PureComponent {
                 />
             );
 
-            if (Utils.isFeatureEnabled(Constants.PRE_RELEASE_FEATURES.EMOJI_PICKER_PREVIEW)) {
+            if (window.mm_config.EnableEmojiPicker === 'true') {
                 react = (
                     <span>
                         <EmojiPickerOverlay
@@ -158,6 +160,7 @@ export default class PostInfo extends React.PureComponent {
                             target={this.getDotMenu}
                             onHide={this.hideEmojiPicker}
                             onEmojiClick={this.reactEmojiClick}
+                            rightOffset={7}
                         />
                         <a
                             href='#'
@@ -192,7 +195,7 @@ export default class PostInfo extends React.PureComponent {
                 />
             );
 
-            if (dotMenu) {
+            if (PostUtils.shouldShowDotMenu(this.props.post)) {
                 options = (
                     <div
                         ref='dotMenu'

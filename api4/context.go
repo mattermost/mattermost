@@ -192,7 +192,7 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if einterfaces.GetMetricsInterface() != nil {
 		einterfaces.GetMetricsInterface().IncrementHttpRequest()
 
-		if r.URL.Path != model.API_URL_SUFFIX+"/users/websocket" {
+		if r.URL.Path != model.API_URL_SUFFIX+"/websocket" {
 			elapsed := float64(time.Since(now)) / float64(time.Second)
 			einterfaces.GetMetricsInterface().ObserveHttpRequestDuration(elapsed)
 		}

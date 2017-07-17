@@ -179,20 +179,37 @@ func TestUserGetFullName(t *testing.T) {
 }
 
 func TestUserGetDisplayName(t *testing.T) {
-	user := User{Username: "user"}
+	user := User{Username: "username"}
 
-	if displayName := user.GetDisplayName(); displayName != "user" {
+	if displayName := user.GetDisplayName(SHOW_FULLNAME); displayName != "username" {
+		t.Fatal("Display name should be username")
+	}
+
+	if displayName := user.GetDisplayName(SHOW_NICKNAME_FULLNAME); displayName != "username" {
+		t.Fatal("Display name should be username")
+	}
+
+	if displayName := user.GetDisplayName(SHOW_USERNAME); displayName != "username" {
 		t.Fatal("Display name should be username")
 	}
 
 	user.FirstName = "first"
 	user.LastName = "last"
-	if displayName := user.GetDisplayName(); displayName != "first last" {
+
+	if displayName := user.GetDisplayName(SHOW_FULLNAME); displayName != "first last" {
 		t.Fatal("Display name should be full name")
 	}
 
+	if displayName := user.GetDisplayName(SHOW_NICKNAME_FULLNAME); displayName != "first last" {
+		t.Fatal("Display name should be full name since there is no nickname")
+	}
+
+	if displayName := user.GetDisplayName(SHOW_USERNAME); displayName != "username" {
+		t.Fatal("Display name should be username")
+	}
+
 	user.Nickname = "nickname"
-	if displayName := user.GetDisplayName(); displayName != "nickname" {
+	if displayName := user.GetDisplayName(SHOW_NICKNAME_FULLNAME); displayName != "nickname" {
 		t.Fatal("Display name should be nickname")
 	}
 }

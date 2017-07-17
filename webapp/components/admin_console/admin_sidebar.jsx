@@ -258,6 +258,21 @@ export default class AdminSidebar extends React.Component {
             />
         );
 
+        let elasticSearchSettings = null;
+        if (window.mm_license.IsLicensed === 'true') {
+            elasticSearchSettings = (
+                <AdminSidebarSection
+                    name='elasticsearch'
+                    title={
+                        <FormattedMessage
+                            id='admin.sidebar.elasticsearch'
+                            defaultMessage='Elasticsearch'
+                        />
+                    }
+                />
+            );
+        }
+
         return (
             <div className='admin-sidebar'>
                 <AdminSidebarHeader/>
@@ -529,20 +544,12 @@ export default class AdminSidebar extends React.Component {
                                 }
                             >
                                 <AdminSidebarSection
+                                    key='storage'
                                     name='storage'
                                     title={
                                         <FormattedMessage
                                             id='admin.sidebar.storage'
                                             defaultMessage='Storage'
-                                        />
-                                    }
-                                />
-                                <AdminSidebarSection
-                                    name='images'
-                                    title={
-                                        <FormattedMessage
-                                            id='admin.sidebar.images'
-                                            defaultMessage='Images'
                                         />
                                     }
                                 />
@@ -559,11 +566,11 @@ export default class AdminSidebar extends React.Component {
                             >
                                 {customBranding}
                                 <AdminSidebarSection
-                                    name='custom_emoji'
+                                    name='emoji'
                                     title={
                                         <FormattedMessage
-                                            id='admin.sidebar.customEmoji'
-                                            defaultMessage='Custom Emoji'
+                                            id='admin.sidebar.emoji'
+                                            defaultMessage='Emoji'
                                         />
 
                                     }
@@ -626,6 +633,7 @@ export default class AdminSidebar extends React.Component {
                                         />
                                     }
                                 />
+                                {elasticSearchSettings}
                                 <AdminSidebarSection
                                     name='developer'
                                     title={

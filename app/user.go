@@ -31,10 +31,11 @@ import (
 )
 
 const (
-	TOKEN_TYPE_PASSWORD_RECOVERY = "password_recovery"
-	TOKEN_TYPE_VERIFY_EMAIL      = "verify_email"
-	PASSWORD_RECOVER_EXPIRY_TIME = 1000 * 60 * 60 // 1 hour
-	VERIFY_EMAIL_EXPIRY_TIME     = 1000 * 60 * 60 // 1 hour
+	TOKEN_TYPE_PASSWORD_RECOVERY  = "password_recovery"
+	TOKEN_TYPE_VERIFY_EMAIL       = "verify_email"
+	PASSWORD_RECOVER_EXPIRY_TIME  = 1000 * 60 * 60 // 1 hour
+	VERIFY_EMAIL_EXPIRY_TIME      = 1000 * 60 * 60 // 1 hour
+	IMAGE_PROFILE_PIXEL_DIMENSION = 128
 )
 
 func CreateUserWithHash(user *model.User, hash string, data string) (*model.User, *model.AppError) {
@@ -176,7 +177,7 @@ func IsFirstUserAccount() bool {
 }
 
 func CreateUser(user *model.User) (*model.User, *model.AppError) {
-	if !user.IsSSOUser() && !CheckUserDomain(user, utils.Cfg.TeamSettings.RestrictCreationToDomains) {
+	if !user.IsLDAPUser() && !user.IsSAMLUser() && !CheckUserDomain(user, utils.Cfg.TeamSettings.RestrictCreationToDomains) {
 		return nil, model.NewLocAppError("CreateUser", "api.user.create_user.accepted_domain.app_error", nil, "")
 	}
 
@@ -313,15 +314,13 @@ func CheckUserDomain(user *model.User, domains string) bool {
 
 	domainArray := strings.Fields(strings.TrimSpace(strings.ToLower(strings.Replace(strings.Replace(domains, "@", " ", -1), ",", " ", -1))))
 
-	matched := false
 	for _, d := range domainArray {
 		if strings.HasSuffix(strings.ToLower(user.Email), "@"+d) {
-			matched = true
-			break
+			return true
 		}
 	}
 
-	return matched
+	return false
 }
 
 // Check if the username is already used by another user. Return false if the username is invalid.
@@ -719,13 +718,11 @@ func CreateProfileImage(username string, userId string) ([]byte, *model.AppError
 		return nil, model.NewLocAppError("CreateProfileImage", "api.user.create_profile_image.default_font.app_error", nil, err.Error())
 	}
 
-	width := int(utils.Cfg.FileSettings.ProfileWidth)
-	height := int(utils.Cfg.FileSettings.ProfileHeight)
 	color := colors[int64(seed)%int64(len(colors))]
-	dstImg := image.NewRGBA(image.Rect(0, 0, width, height))
+	dstImg := image.NewRGBA(image.Rect(0, 0, IMAGE_PROFILE_PIXEL_DIMENSION, IMAGE_PROFILE_PIXEL_DIMENSION))
 	srcImg := image.White
 	draw.Draw(dstImg, dstImg.Bounds(), &image.Uniform{color}, image.ZP, draw.Src)
-	size := float64((width + height) / 4)
+	size := float64(IMAGE_PROFILE_PIXEL_DIMENSION / 2)
 
 	c := freetype.NewContext()
 	c.SetFont(font)
@@ -734,7 +731,7 @@ func CreateProfileImage(username string, userId string) ([]byte, *model.AppError
 	c.SetDst(dstImg)
 	c.SetSrc(srcImg)
 
-	pt := freetype.Pt(width/6, height*2/3)
+	pt := freetype.Pt(IMAGE_PROFILE_PIXEL_DIMENSION/6, IMAGE_PROFILE_PIXEL_DIMENSION*2/3)
 	_, err = c.DrawString(initial, pt)
 	if err != nil {
 		return nil, model.NewLocAppError("CreateProfileImage", "api.user.create_profile_image.initial.app_error", nil, err.Error())
@@ -811,7 +808,8 @@ func SetProfileImage(userId string, imageData *multipart.FileHeader) *model.AppE
 	img = makeImageUpright(img, orientation)
 
 	// Scale profile image
-	img = imaging.Fill(img, utils.Cfg.FileSettings.ProfileWidth, utils.Cfg.FileSettings.ProfileHeight, imaging.Center, imaging.Lanczos)
+	profileWidthAndHeight := 128
+	img = imaging.Fill(img, profileWidthAndHeight, profileWidthAndHeight, imaging.Center, imaging.Lanczos)
 
 	buf := new(bytes.Buffer)
 	err = png.Encode(buf, img)
@@ -825,7 +823,9 @@ func SetProfileImage(userId string, imageData *multipart.FileHeader) *model.AppE
 		return model.NewLocAppError("SetProfileImage", "api.user.upload_profile_user.upload_profile.app_error", nil, "")
 	}
 
-	Srv.Store.User().UpdateLastPictureUpdate(userId)
+	<-Srv.Store.User().UpdateLastPictureUpdate(userId)
+
+	InvalidateCacheForUser(userId)
 
 	if user, err := GetUser(userId); err != nil {
 		l4g.Error(utils.T("api.user.get_me.getting.error"), userId)
@@ -1144,7 +1144,7 @@ func SendPasswordReset(email string, siteURL string) (bool, *model.AppError) {
 		return false, err
 	}
 
-	if _, err := SendPasswordResetEmail(email, token, user.Locale, siteURL); err != nil {
+	if _, err := SendPasswordResetEmail(user.Email, token, user.Locale, siteURL); err != nil {
 		return false, model.NewLocAppError("SendPasswordReset", "api.user.send_password_reset.send.app_error", nil, "err="+err.Message)
 	}
 
@@ -1289,12 +1289,10 @@ func SendEmailVerification(user *model.User) *model.AppError {
 	}
 
 	if _, err := GetStatus(user.Id); err != nil {
-		go SendVerifyEmail(user.Email, user.Locale, utils.GetSiteURL(), token.Token)
+		return SendVerifyEmail(user.Email, user.Locale, utils.GetSiteURL(), token.Token)
 	} else {
-		go SendEmailChangeVerifyEmail(user.Email, user.Locale, utils.GetSiteURL(), token.Token)
+		return SendEmailChangeVerifyEmail(user.Email, user.Locale, utils.GetSiteURL(), token.Token)
 	}
-
-	return nil
 }
 
 func VerifyEmailFromToken(userSuppliedTokenString string) *model.AppError {
