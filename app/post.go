@@ -227,18 +227,18 @@ func SendEphemeralPost(teamId, userId string, post *model.Post) *model.Post {
 }
 
 func UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model.AppError) {
-	if utils.IsLicensed {
-		if *utils.Cfg.ServiceSettings.AllowEditPost == model.ALLOW_EDIT_POST_NEVER {
-			err := model.NewAppError("UpdatePost", "api.post.update_post.permissions_denied.app_error", nil, "", http.StatusForbidden)
-			return nil, err
-		}
-	}
-
 	var oldPost *model.Post
 	if result := <-Srv.Store.Post().Get(post.Id); result.Err != nil {
 		return nil, result.Err
 	} else {
 		oldPost = result.Data.(*model.PostList).Posts[post.Id]
+
+		if utils.IsLicensed {
+			if *utils.Cfg.ServiceSettings.AllowEditPost == model.ALLOW_EDIT_POST_NEVER && post.Message != oldPost.Message {
+				err := model.NewAppError("UpdatePost", "api.post.update_post.permissions_denied.app_error", nil, "", http.StatusForbidden)
+				return nil, err
+			}
+		}
 
 		if oldPost == nil {
 			err := model.NewAppError("UpdatePost", "api.post.update_post.find.app_error", nil, "id="+post.Id, http.StatusBadRequest)
