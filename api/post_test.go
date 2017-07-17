@@ -177,8 +177,9 @@ func TestCreatePostWithCreateAt(t *testing.T) {
 
 func testCreatePostWithOutgoingHook(
 	t *testing.T,
-	hookContentType, expectedContentType, message string,
-	triggerWords, fileIds []string,
+	hookContentType, expectedContentType, message, triggerWord string,
+	fileIds []string,
+	triggerWhen int,
 ) {
 	th := Setup().InitSystemAdmin()
 	Client := th.SystemAdminClient
@@ -208,11 +209,6 @@ func testCreatePostWithOutgoingHook(
 			t.Logf("Content-Type is %s, should be %s", requestContentType, expectedContentType)
 			success <- false
 			return
-		}
-
-		var triggerWord string
-		if len(triggerWords) > 0 {
-			triggerWord = triggerWords[0]
 		}
 
 		expectedPayload := &model.OutgoingWebhookPayload{
@@ -262,10 +258,17 @@ func testCreatePostWithOutgoingHook(
 	defer ts.Close()
 
 	// create an outgoing webhook, passing it the test server URL
+	var triggerWords []string
+	if triggerWord != "" {
+		triggerWords = []string{triggerWord}
+	}
+
 	hook = &model.OutgoingWebhook{
 		ChannelId:    channel.Id,
+		TeamId:       team.Id,
 		ContentType:  hookContentType,
 		TriggerWords: triggerWords,
+		TriggerWhen:  triggerWhen,
 		CallbackURLs: []string{ts.URL},
 	}
 
@@ -303,20 +306,26 @@ func testCreatePostWithOutgoingHook(
 }
 
 func TestCreatePostWithOutgoingHook_form_urlencoded(t *testing.T) {
-	testCreatePostWithOutgoingHook(t, "application/x-www-form-urlencoded", "application/x-www-form-urlencoded", "triggerword lorem ipsum", []string{"triggerword"}, []string{"file_id_1"})
-	testCreatePostWithOutgoingHook(t, "application/x-www-form-urlencoded", "application/x-www-form-urlencoded", "", []string{}, []string{"file_id_1"})
+	testCreatePostWithOutgoingHook(t, "application/x-www-form-urlencoded", "application/x-www-form-urlencoded", "triggerword lorem ipsum", "triggerword", []string{"file_id_1"}, app.TRIGGERWORDS_EXACT_MATCH)
+	testCreatePostWithOutgoingHook(t, "application/x-www-form-urlencoded", "application/x-www-form-urlencoded", "triggerwordaaazzz lorem ipsum", "triggerword", []string{"file_id_1"}, app.TRIGGERWORDS_STARTS_WITH)
+	testCreatePostWithOutgoingHook(t, "application/x-www-form-urlencoded", "application/x-www-form-urlencoded", "", "", []string{"file_id_1"}, app.TRIGGERWORDS_EXACT_MATCH)
+	testCreatePostWithOutgoingHook(t, "application/x-www-form-urlencoded", "application/x-www-form-urlencoded", "", "", []string{"file_id_1"}, app.TRIGGERWORDS_STARTS_WITH)
 }
 
 func TestCreatePostWithOutgoingHook_json(t *testing.T) {
-	testCreatePostWithOutgoingHook(t, "application/json", "application/json", "triggerword lorem ipsum", []string{"triggerword"}, []string{"file_id_1, file_id_2"})
-	testCreatePostWithOutgoingHook(t, "application/json", "application/json", "triggerword lorem ipsum", []string{}, []string{"file_id_1"})
+	testCreatePostWithOutgoingHook(t, "application/json", "application/json", "triggerword lorem ipsum", "triggerword", []string{"file_id_1, file_id_2"}, app.TRIGGERWORDS_EXACT_MATCH)
+	testCreatePostWithOutgoingHook(t, "application/json", "application/json", "triggerwordaaazzz lorem ipsum", "triggerword", []string{"file_id_1, file_id_2"}, app.TRIGGERWORDS_STARTS_WITH)
+	testCreatePostWithOutgoingHook(t, "application/json", "application/json", "triggerword lorem ipsum", "", []string{"file_id_1"}, app.TRIGGERWORDS_EXACT_MATCH)
+	testCreatePostWithOutgoingHook(t, "application/json", "application/json", "triggerwordaaazzz lorem ipsum", "", []string{"file_id_1"}, app.TRIGGERWORDS_STARTS_WITH)
 }
 
 // hooks created before we added the ContentType field should be considered as
 // application/x-www-form-urlencoded
 func TestCreatePostWithOutgoingHook_no_content_type(t *testing.T) {
-	testCreatePostWithOutgoingHook(t, "", "application/x-www-form-urlencoded", "triggerword lorem ipsum", []string{"triggerword"}, []string{"file_id_1"})
-	testCreatePostWithOutgoingHook(t, "", "application/x-www-form-urlencoded", "triggerword lorem ipsum", []string{}, []string{"file_id_1, file_id_2"})
+	testCreatePostWithOutgoingHook(t, "", "application/x-www-form-urlencoded", "triggerword lorem ipsum", "triggerword", []string{"file_id_1"}, app.TRIGGERWORDS_EXACT_MATCH)
+	testCreatePostWithOutgoingHook(t, "", "application/x-www-form-urlencoded", "triggerwordaaazzz lorem ipsum", "triggerword", []string{"file_id_1"}, app.TRIGGERWORDS_STARTS_WITH)
+	testCreatePostWithOutgoingHook(t, "", "application/x-www-form-urlencoded", "triggerword lorem ipsum", "", []string{"file_id_1, file_id_2"}, app.TRIGGERWORDS_EXACT_MATCH)
+	testCreatePostWithOutgoingHook(t, "", "application/x-www-form-urlencoded", "triggerwordaaazzz lorem ipsum", "", []string{"file_id_1, file_id_2"}, app.TRIGGERWORDS_STARTS_WITH)
 }
 
 func TestUpdatePost(t *testing.T) {

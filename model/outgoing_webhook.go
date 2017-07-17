@@ -200,10 +200,8 @@ func (o *OutgoingWebhook) PreUpdate() {
 	o.UpdateAt = GetMillis()
 }
 
-func (o *OutgoingWebhook) HasTriggerWord(word string) bool {
-	if len(o.TriggerWords) == 0 {
-		return true
-	} else if len(word) == 0 {
+func (o *OutgoingWebhook) TriggerWordExactMatch(word string) bool {
+	if len(word) == 0 {
 		return false
 	}
 
@@ -217,9 +215,7 @@ func (o *OutgoingWebhook) HasTriggerWord(word string) bool {
 }
 
 func (o *OutgoingWebhook) TriggerWordStartsWith(word string) bool {
-	if len(o.TriggerWords) == 0 {
-		return true
-	} else if len(word) == 0 {
+	if len(word) == 0 {
 		return false
 	}
 
@@ -230,4 +226,28 @@ func (o *OutgoingWebhook) TriggerWordStartsWith(word string) bool {
 	}
 
 	return false
+}
+
+func (o *OutgoingWebhook) GetTriggerWord(word string, isExactMatch bool) (triggerWord string) {
+	if len(word) == 0 {
+		return
+	}
+
+	if isExactMatch {
+		for _, trigger := range o.TriggerWords {
+			if trigger == word {
+				triggerWord = trigger
+				break
+			}
+		}
+	} else {
+		for _, trigger := range o.TriggerWords {
+			if strings.HasPrefix(word, trigger) {
+				triggerWord = trigger
+				break
+			}
+		}
+	}
+
+	return triggerWord
 }

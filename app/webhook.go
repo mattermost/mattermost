@@ -18,8 +18,8 @@ import (
 )
 
 const (
-	TRIGGERWORDS_FULL       = 0
-	TRIGGERWORDS_STARTSWITH = 1
+	TRIGGERWORDS_EXACT_MATCH = 0
+	TRIGGERWORDS_STARTS_WITH = 1
 )
 
 func handleWebhookEvents(post *model.Post, team *model.Team, channel *model.Channel, user *model.User) *model.AppError {
@@ -55,12 +55,12 @@ func handleWebhookEvents(post *model.Post, team *model.Team, channel *model.Chan
 			if hook.ChannelId == post.ChannelId && len(hook.TriggerWords) == 0 {
 				relevantHooks = append(relevantHooks, hook)
 				triggerWord = ""
-			} else if hook.TriggerWhen == TRIGGERWORDS_FULL && hook.HasTriggerWord(firstWord) {
+			} else if hook.TriggerWhen == TRIGGERWORDS_EXACT_MATCH && hook.TriggerWordExactMatch(firstWord) {
 				relevantHooks = append(relevantHooks, hook)
-				triggerWord = firstWord
-			} else if hook.TriggerWhen == TRIGGERWORDS_STARTSWITH && hook.TriggerWordStartsWith(firstWord) {
+				triggerWord = hook.GetTriggerWord(firstWord, true)
+			} else if hook.TriggerWhen == TRIGGERWORDS_STARTS_WITH && hook.TriggerWordStartsWith(firstWord) {
 				relevantHooks = append(relevantHooks, hook)
-				triggerWord = firstWord
+				triggerWord = hook.GetTriggerWord(firstWord, false)
 			}
 		}
 	}
