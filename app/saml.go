@@ -68,7 +68,6 @@ func AddSamlPublicCertificate(fileData *multipart.FileHeader) *model.AppError {
 	}
 
 	utils.SaveConfig(utils.CfgFileName, cfg)
-	utils.LoadConfig(utils.CfgFileName)
 
 	return nil
 }
@@ -88,7 +87,6 @@ func AddSamlPrivateCertificate(fileData *multipart.FileHeader) *model.AppError {
 	}
 
 	utils.SaveConfig(utils.CfgFileName, cfg)
-	utils.LoadConfig(utils.CfgFileName)
 
 	return nil
 }
@@ -108,7 +106,6 @@ func AddSamlIdpCertificate(fileData *multipart.FileHeader) *model.AppError {
 	}
 
 	utils.SaveConfig(utils.CfgFileName, cfg)
-	utils.LoadConfig(utils.CfgFileName)
 
 	return nil
 }
@@ -144,7 +141,6 @@ func RemoveSamlPublicCertificate() *model.AppError {
 	}
 
 	utils.SaveConfig(utils.CfgFileName, cfg)
-	utils.LoadConfig(utils.CfgFileName)
 
 	return nil
 }
@@ -165,7 +161,6 @@ func RemoveSamlPrivateCertificate() *model.AppError {
 	}
 
 	utils.SaveConfig(utils.CfgFileName, cfg)
-	utils.LoadConfig(utils.CfgFileName)
 
 	return nil
 }
@@ -186,7 +181,6 @@ func RemoveSamlIdpCertificate() *model.AppError {
 	}
 
 	utils.SaveConfig(utils.CfgFileName, cfg)
-	utils.LoadConfig(utils.CfgFileName)
 
 	return nil
 }
