@@ -429,7 +429,7 @@
   },
   {
     "id": "api.command.execute_command.not_found.app_error",
-    "translation": "Command with a trigger of '{{.Trigger}}' not found. To send a message beginning with \"/\", try adding an empty space at the beginning of the message."
+    "translation": "Befehl mit dem Auslösewort '{{.Trigger}}' nicht gefunden. Um eine Nachricht mit \"/\" beginnend zu senden, versuchen Sie ein Leerzeichen vor der Nachricht zu setzen."
   },
   {
     "id": "api.command.execute_command.save.app_error",
@@ -461,7 +461,7 @@
   },
   {
     "id": "api.command.invite_people.invite_off",
-    "translation": "User creation has been disabled on this server, no invite(s) sent"
+    "translation": "Benutzererstellung wurde auf diesem Server deaktiviert, keine Einladung(en) versendet"
   },
   {
     "id": "api.command.invite_people.name",
@@ -501,11 +501,11 @@
   },
   {
     "id": "api.command_channel_header.channel.app_error",
-    "translation": "Error to retrieve the current channel."
+    "translation": "Fehler beim Laden des aktuellen Kanals."
   },
   {
     "id": "api.command_channel_header.desc",
-    "translation": "Edit the channel header"
+    "translation": "Kanalüberschrift bearbeiten"
   },
   {
     "id": "api.command_channel_header.hint",
@@ -513,23 +513,23 @@
   },
   {
     "id": "api.command_channel_header.message.app_error",
-    "translation": "Text must be provided with the /header command."
+    "translation": "Der Befehl /überschrift muss Text beinhalten"
   },
   {
     "id": "api.command_channel_header.name",
-    "translation": "header"
+    "translation": "überschrift"
   },
   {
     "id": "api.command_channel_header.permission.app_error",
-    "translation": "You do not have the appropriate permissions to edit the channel header."
+    "translation": "Sie haben nicht die benötigten Berechtigungen, um die Kanalüberschrift zu bearbeiten."
   },
   {
     "id": "api.command_channel_header.update_channel.app_error",
-    "translation": "Error to update the current channel."
+    "translation": "Fehler beim Aktualisieren des aktuellen Kanals."
   },
   {
     "id": "api.command_channel_header.update_channel.success",
-    "translation": "Channel header successfully updated."
+    "translation": "Kanalüberschrift erfolgreich aktualisiert."
   },
   {
     "id": "api.command_collapse.desc",
@@ -589,11 +589,11 @@
   },
   {
     "id": "api.command_help.desc",
-    "translation": "Open the Mattermost help page"
+    "translation": "Die Mattermost-Hilfeseite öffnen"
   },
   {
     "id": "api.command_help.name",
-    "translation": "help"
+    "translation": "hilfe"
   },
   {
     "id": "api.command_join.desc",
@@ -705,19 +705,35 @@
   },
   {
     "id": "api.command_open.name",
-    "translation": "open"
+    "translation": "öffnen"
+  },
+  {
+    "id": "api.command_search.desc",
+    "translation": "Nach Text in Nachrichten suchen"
+  },
+  {
+    "id": "api.command_search.hint",
+    "translation": "[text]"
+  },
+  {
+    "id": "api.command_search.name",
+    "translation": "suche"
+  },
+  {
+    "id": "api.command_search.unsupported.app_error",
+    "translation": "Der Suchbefehl wird auf Ihrem Gerät nicht unterstützt"
   },
   {
     "id": "api.command_settings.desc",
-    "translation": "Open the Account Settings dialog"
+    "translation": "Öffnet die Kontoeinstellungen"
   },
   {
     "id": "api.command_settings.name",
-    "translation": "settings"
+    "translation": "einstellungen"
   },
   {
     "id": "api.command_settings.unsupported.app_error",
-    "translation": "The settings command is not supported on your device"
+    "translation": "Der Einstellungen-Befehl wird auf Ihrem Gerät nicht unterstützt"
   },
   {
     "id": "api.command_shortcuts.browser.channel_next",
@@ -958,6 +974,10 @@
   {
     "id": "api.context.unknown.app_error",
     "translation": "Ein unbekannter Fehler ist aufgetreten. Bitte kontaktieren Sie den Support."
+  },
+  {
+    "id": "api.context.v3_disabled.app_error",
+    "translation": "Die API-Version 3 wurde auf diesem Server deaktiviert. Bitte verwenden Sie API-Version 4. Details unter https://api.mattermost.com."
   },
   {
     "id": "api.deprecated.init.debug",
@@ -1488,6 +1508,10 @@
   {
     "id": "api.oauth.init.debug",
     "translation": "Initialisiere OAuth-API-Routen"
+  },
+  {
+    "id": "api.oauth.invalid_state_token.app_error",
+    "translation": "Ungültiges Status-Token"
   },
   {
     "id": "api.oauth.regenerate_secret.app_error",
@@ -3021,19 +3045,11 @@
   },
   {
     "id": "app.import.import_direct_channel.create_direct_channel.error",
-    "translation": "Failed to get direct channel"
-  },
-  {
-    "id": "app.import.import_direct_channel.create_direct_channel.error",
-    "translation": "Failed to get direct channel"
+    "translation": "Konnte Direktkanal nicht erstellen"
   },
   {
     "id": "app.import.import_direct_channel.create_group_channel.error",
-    "translation": "Failed to get group channel"
-  },
-  {
-    "id": "app.import.import_direct_channel.create_group_channel.error",
-    "translation": "Failed to get group channel"
+    "translation": "Konnte Gruppenkanal nicht erstellen"
   },
   {
     "id": "app.import.import_direct_channel.member_not_found.error",
@@ -3041,15 +3057,23 @@
   },
   {
     "id": "app.import.import_direct_channel.update_header_failed.error",
-    "translation": "Failed to update direct channel header"
+    "translation": "Konnte Direktkanalüberschrift nicht aktualisieren"
   },
   {
     "id": "app.import.import_direct_post.channel_member_not_found.error",
     "translation": "Konnte Kanalmitglied beim Import des Direktnachrichtenkanals nicht finden"
   },
   {
+    "id": "app.import.import_direct_post.create_direct_channel.error",
+    "translation": "Konnte Direktkanal nicht erstellen"
+  },
+  {
+    "id": "app.import.import_direct_post.create_group_channel.error",
+    "translation": "Konnte Gruppenkanal nicht erstellen"
+  },
+  {
     "id": "app.import.import_direct_post.user_not_found.error",
-    "translation": "Post user does not exist"
+    "translation": "Benutzer der Nachricht existiert nicht"
   },
   {
     "id": "app.import.import_line.null_channel.error",
@@ -3057,11 +3081,11 @@
   },
   {
     "id": "app.import.import_line.null_direct_channel.error",
-    "translation": "Importdatenzeile hat den Typ \"channel\", aber das Kanalobjekt ist null."
+    "translation": "Importdatenzeile hat den Typ \"direct_channel\", aber das direct_channel-Objekt ist null."
   },
   {
     "id": "app.import.import_line.null_direct_post.error",
-    "translation": "Importdatenzeile hat den Typ \"post\", aber das Nachrichtenobjekt ist null."
+    "translation": "Importdatenzeile hat den Typ \"direct_post\", aber das direct_post-Objekt ist null."
   },
   {
     "id": "app.import.import_line.null_post.error",
@@ -3137,51 +3161,51 @@
   },
   {
     "id": "app.import.validate_direct_channel_import_data.header_length.error",
-    "translation": "Direct channel header is too long"
+    "translation": "Direktkanal-Überschrift ist zu lang"
   },
   {
     "id": "app.import.validate_direct_channel_import_data.members_required.error",
-    "translation": "Fehlende erforderliche Kanaleigenschaft: name"
+    "translation": "Fehlende erforderliche Kanaleigenschaft: members"
   },
   {
     "id": "app.import.validate_direct_channel_import_data.members_too_few.error",
-    "translation": "Direct channel members list contains too few items"
+    "translation": "Direktkanalmitgliederliste enthält zu wenige Einträge"
   },
   {
     "id": "app.import.validate_direct_channel_import_data.members_too_many.error",
-    "translation": "Direct channel members list contains too many items"
+    "translation": "Direktkanalmitgliederliste enthält zu viele Einträge"
   },
   {
     "id": "app.import.validate_direct_post_import_data.channel_members_required.error",
-    "translation": "Fehlende erforderliche Nachrichteigenschaft: create_at."
+    "translation": "Fehlende erforderliche Nachrichteigenschaft: channel_members"
   },
   {
     "id": "app.import.validate_direct_post_import_data.channel_members_too_few.error",
-    "translation": "Direct post channel members list contains too few items"
+    "translation": "Direktnachrichtenkanalmitgliederliste enthält zu wenige Einträge"
   },
   {
     "id": "app.import.validate_direct_post_import_data.channel_members_too_many.error",
-    "translation": "Direct post channel members list contains too many items"
+    "translation": "Direktnachrichtenkanalmitgliederliste enthält zu viele Einträge"
   },
   {
     "id": "app.import.validate_direct_post_import_data.create_at_missing.error",
-    "translation": "Fehlende erforderliche Nachrichteigenschaft: create_at."
+    "translation": "Fehlende erforderliche Nachrichteigenschaft: create_at"
   },
   {
     "id": "app.import.validate_direct_post_import_data.create_at_zero.error",
-    "translation": "CreateAt must be greater than 0"
+    "translation": "CreateAt muss größer als 0 sein"
   },
   {
     "id": "app.import.validate_direct_post_import_data.message_length.error",
-    "translation": "Message is too long"
+    "translation": "Nachricht ist zu lang"
   },
   {
     "id": "app.import.validate_direct_post_import_data.message_missing.error",
-    "translation": "Fehlende erforderliche Nachrichteigenschaft: Message."
+    "translation": "Fehlende erforderliche Nachrichteigenschaft: message"
   },
   {
     "id": "app.import.validate_direct_post_import_data.user_missing.error",
-    "translation": "Fehlende erforderliche Nachrichteigenschaft: User."
+    "translation": "Fehlende erforderliche Nachrichteigenschaft: user"
   },
   {
     "id": "app.import.validate_post_import_data.channel_missing.error",
@@ -4313,7 +4337,7 @@
   },
   {
     "id": "model.config.is_valid.teammate_name_display.app_error",
-    "translation": "Invalid teammate display.  Must be 'full_name', 'nickname_full_name' or 'username'"
+    "translation": "Ungültige Teammitgliedsanzeige.  Muss entweder 'full_name', 'nickname_full_name' oder 'username' sein"
   },
   {
     "id": "model.config.is_valid.time_between_user_typing.app_error",
@@ -5869,7 +5893,7 @@
   },
   {
     "id": "store.sql_user.get_new_users.app_error",
-    "translation": "Es trat ein Fehler beim Sichen der Einstellungen auf"
+    "translation": "Es trat ein Fehler beim Suchen der neuen Benutzer auf"
   },
   {
     "id": "store.sql_user.get_profiles.app_error",

@@ -104,12 +104,13 @@ export default class PostList extends React.PureComponent {
         this.previousScrollTop = Number.MAX_SAFE_INTEGER;
         this.previousScrollHeight = 0;
         this.previousClientHeight = 0;
+        this.atBottom = false;
 
         this.state = {
             atEnd: false,
             unViewedCount: 0,
             isScrolling: false,
-            lastViewed: Number.MAX_SAFE_INTEGER
+            lastViewed: props.lastViewedAt
         };
     }
 
@@ -144,24 +145,20 @@ export default class PostList extends React.PureComponent {
                 this.hasScrolled = false;
                 this.hasScrolledToFocusedPost = false;
                 this.hasScrolledToNewMessageSeparator = false;
-                this.setState({atEnd: false});
+                this.atBottom = false;
+                this.setState({atEnd: false, lastViewed: nextProps.lastViewedAt});
 
                 if (nextChannel.id) {
                     this.loadPosts(nextChannel.id);
                 }
-                return;
             }
 
-            if (!this.wasAtBottom() && this.props.posts !== nextProps.posts) {
-                const unViewedCount = nextProps.posts.reduce((count, post) => {
-                    if (post.create_at > this.state.lastViewed &&
-                        post.user_id !== nextProps.currentUserId &&
-                        post.state !== Constants.POST_DELETED) {
-                        return count + 1;
-                    }
-                    return count;
-                }, 0);
-                this.setState({unViewedCount});
+            const nextPosts = nextProps.posts || [];
+            const posts = this.props.posts || [];
+            const hasNewPosts = (posts.length === 0 && nextPosts.length > 0) || (posts.length > 0 && nextPosts.length > 0 && posts[0].id !== nextPosts[0].id);
+
+            if (!this.checkBottom() && hasNewPosts) {
+                this.setUnreadsBelow(nextPosts, nextProps.currentUserId);
             }
         }
     }
@@ -184,6 +181,10 @@ export default class PostList extends React.PureComponent {
         const posts = this.props.posts;
         const postList = this.refs.postlist;
 
+        if (!postList) {
+            return;
+        }
+
         // Scroll to focused post on first load
         const focusedPost = this.refs[this.props.focusedPostId];
         if (focusedPost && this.props.posts) {
@@ -203,9 +204,13 @@ export default class PostList extends React.PureComponent {
         if (messageSeparator && !this.hasScrolledToNewMessageSeparator) {
             const element = ReactDOM.findDOMNode(messageSeparator);
             element.scrollIntoView();
+            if (!this.checkBottom()) {
+                this.setUnreadsBelow(posts, this.props.currentUserId);
+            }
             return;
         } else if (postList && !this.hasScrolledToNewMessageSeparator) {
             postList.scrollTop = postList.scrollHeight;
+            this.atBottom = true;
             return;
         }
 
@@ -218,7 +223,7 @@ export default class PostList extends React.PureComponent {
             const pendingPostId = posts[0].pending_post_id;
             if (postId !== prevPostId && pendingPostId !== prevPostId) {
                 // If already scrolled to bottom
-                if (this.wasAtBottom()) {
+                if (this.atBottom) {
                     doScrollToBottom = true;
                 }
 
@@ -229,6 +234,7 @@ export default class PostList extends React.PureComponent {
             }
 
             if (doScrollToBottom) {
+                this.atBottom = true;
                 postList.scrollTop = postList.scrollHeight;
                 return;
             }
@@ -240,26 +246,55 @@ export default class PostList extends React.PureComponent {
         }
     }
 
+    setUnreadsBelow = (posts, currentUserId) => {
+        const unViewedCount = posts.reduce((count, post) => {
+            if (post.create_at > this.state.lastViewed &&
+                post.user_id !== currentUserId &&
+                post.state !== Constants.POST_DELETED) {
+                return count + 1;
+            }
+            return count;
+        }, 0);
+        this.setState({unViewedCount});
+    }
+
     handleScrollStop = () => {
         this.setState({
             isScrolling: false
         });
     }
 
-    wasAtBottom = () => {
-        return this.previousClientHeight + this.previousScrollTop >= this.previousScrollHeight - CLOSE_TO_BOTTOM_SCROLL_MARGIN;
+    checkBottom = () => {
+        if (!this.refs.postlist) {
+            return true;
+        }
+
+        // No scroll bar so we're at the bottom
+        if (this.refs.postlist.scrollHeight <= this.refs.postlist.clientHeight) {
+            return true;
+        }
+
+        return this.refs.postlist.clientHeight + this.refs.postlist.scrollTop >= this.refs.postlist.scrollHeight - CLOSE_TO_BOTTOM_SCROLL_MARGIN;
     }
 
     handleResize = (forceScrollToBottom) => {
         const postList = this.refs.postlist;
-        const doScrollToBottom = this.wasAtBottom() || forceScrollToBottom;
+        const messageSeparator = this.refs.newMessageSeparator;
+        const doScrollToBottom = this.atBottom || forceScrollToBottom;
 
-        if (postList && doScrollToBottom) {
-            postList.scrollTop = postList.scrollHeight;
+        if (postList) {
+            if (doScrollToBottom) {
+                postList.scrollTop = postList.scrollHeight;
+            } else if (!this.hasScrolled && messageSeparator) {
+                const element = ReactDOM.findDOMNode(messageSeparator);
+                element.scrollIntoView();
+            }
 
             this.previousScrollHeight = postList.scrollHeight;
             this.previousScrollTop = postList.scrollTop;
             this.previousClientHeight = postList.clientHeight;
+
+            this.atBottom = this.checkBottom();
         }
     }
 
@@ -296,8 +331,17 @@ export default class PostList extends React.PureComponent {
     }
 
     handleScroll = () => {
-        this.hasScrolled = true;
+        // Only count as user scroll if we've already performed our first load scroll
+        this.hasScrolled = this.hasScrolledToNewMessageSeparator || this.hasScrolledToFocusedPost;
+        if (!this.refs.postlist) {
+            return;
+        }
+
         this.previousScrollTop = this.refs.postlist.scrollTop;
+
+        if (this.refs.postlist.scrollHeight === this.previousScrollHeight) {
+            this.atBottom = this.checkBottom();
+        }
 
         this.updateFloatingTimestamp();
 
@@ -307,7 +351,7 @@ export default class PostList extends React.PureComponent {
             });
         }
 
-        if (this.wasAtBottom()) {
+        if (this.checkBottom()) {
             this.setState({
                 lastViewed: new Date().getTime(),
                 unViewedCount: 0,
@@ -509,7 +553,7 @@ export default class PostList extends React.PureComponent {
                 />
                 <ScrollToBottomArrows
                     isScrolling={this.state.isScrolling}
-                    atBottom={this.wasAtBottom()}
+                    atBottom={this.atBottom}
                     onClick={this.scrollToBottom}
                 />
                 <NewMessageIndicator

@@ -708,6 +708,22 @@
     "translation": "開く"
   },
   {
+    "id": "api.command_search.desc",
+    "translation": "メッセージ内のテキストを検索する"
+  },
+  {
+    "id": "api.command_search.hint",
+    "translation": "[テキスト]"
+  },
+  {
+    "id": "api.command_search.name",
+    "translation": "検索"
+  },
+  {
+    "id": "api.command_search.unsupported.app_error",
+    "translation": "このデバイスでは検索コマンドはサポートされていません"
+  },
+  {
     "id": "api.command_settings.desc",
     "translation": "アカウント設定ダイアログを開く"
   },
@@ -958,6 +974,10 @@
   {
     "id": "api.context.unknown.app_error",
     "translation": "詳細不明なエラーが発生しました。サポートに問い合わせしてください。"
+  },
+  {
+    "id": "api.context.v3_disabled.app_error",
+    "translation": "APIバージョン3はこのサーバーでは無効化されています。APIバージョン4を使用してください。詳しくは https://api.mattermost.com を参照してください。"
   },
   {
     "id": "api.deprecated.init.debug",
@@ -1488,6 +1508,10 @@
   {
     "id": "api.oauth.init.debug",
     "translation": "OAuth APIルートを初期化しています"
+  },
+  {
+    "id": "api.oauth.invalid_state_token.app_error",
+    "translation": "不正な状態トークン"
   },
   {
     "id": "api.oauth.regenerate_secret.app_error",
@@ -3021,19 +3045,11 @@
   },
   {
     "id": "app.import.import_direct_channel.create_direct_channel.error",
-    "translation": "ダイレクトチャンネルを取得できませんでした"
-  },
-  {
-    "id": "app.import.import_direct_channel.create_direct_channel.error",
-    "translation": "ダイレクトチャンネルを取得できませんでした"
+    "translation": "ダイレクトチャンネルを作成できませんでした"
   },
   {
     "id": "app.import.import_direct_channel.create_group_channel.error",
-    "translation": "グループチャンネルを取得できませんでした"
-  },
-  {
-    "id": "app.import.import_direct_channel.create_group_channel.error",
-    "translation": "グループチャンネルを取得できませんでした"
+    "translation": "グループチャンネルを作成できませんでした"
   },
   {
     "id": "app.import.import_direct_channel.member_not_found.error",
@@ -3046,6 +3062,14 @@
   {
     "id": "app.import.import_direct_post.channel_member_not_found.error",
     "translation": "ダイレクトチャンネルの投稿をインポートする際にチャンネルメンバーが見つかりませんでした"
+  },
+  {
+    "id": "app.import.import_direct_post.create_direct_channel.error",
+    "translation": "ダイレクトチャンネルを取得できませんでした"
+  },
+  {
+    "id": "app.import.import_direct_post.create_group_channel.error",
+    "translation": "グループチャンネルを取得できませんでした"
   },
   {
     "id": "app.import.import_direct_post.user_not_found.error",

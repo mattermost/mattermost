@@ -5,7 +5,7 @@ package api4
 
 import (
 	"bytes"
-	"io"
+	"encoding/base64"
 	"net/http"
 	"strconv"
 
@@ -657,12 +657,12 @@ func importTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	w.Header().Set("Content-Disposition", "attachment; filename=MattermostImportLog.txt")
-	w.Header().Set("Content-Type", "application/octet-stream")
+	data := map[string]string{}
+	data["results"] = base64.StdEncoding.EncodeToString([]byte(log.Bytes()))
 	if c.Err != nil {
 		w.WriteHeader(c.Err.StatusCode)
 	}
-	io.Copy(w, bytes.NewReader(log.Bytes()))
+	w.Write([]byte(model.MapToJson(data)))
 }
 
 func inviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) {

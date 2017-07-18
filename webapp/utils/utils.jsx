@@ -540,11 +540,11 @@ export function applyTheme(theme) {
 
     if (theme.sidebarHeaderTextColor) {
         changeCss('.app__body .status-wrapper .status_dropdown__toggle .status-edit, .multi-teams .team-sidebar .team-wrapper .team-container .team-btn, .sidebar--left .team__header .header__info, .app__body .sidebar--menu .team__header .header__info, .app__body .post-list__timestamp > div', 'color:' + theme.sidebarHeaderTextColor);
-        changeCss('.app__body .sidebar--left .status-wrapper .status_dropdown__toggle .offline--icon, .app__body .sidebar-header-dropdown__icon svg', 'fill:' + theme.sidebarHeaderTextColor);
+        changeCss('.app__body .icon--sidebarHeaderTextColor svg, .app__body .sidebar--left .status-wrapper .status_dropdown__toggle .offline--icon, .app__body .sidebar-header-dropdown__icon svg', 'fill:' + theme.sidebarHeaderTextColor);
         changeCss('.sidebar--left .team__header .user__name, .app__body .sidebar--menu .team__header .user__name', 'color:' + changeOpacity(theme.sidebarHeaderTextColor, 0.8));
         changeCss('.sidebar--left .team__header:hover .user__name, .app__body .sidebar--menu .team__header:hover .user__name', 'color:' + theme.sidebarHeaderTextColor);
         changeCss('.app__body .modal .modal-header .modal-title, .app__body .modal .modal-header .modal-title .name, .app__body .modal .modal-header button.close', 'color:' + theme.sidebarHeaderTextColor);
-        changeCss('.app__body #navbar .navbar-default .navbar-brand .heading', 'color:' + theme.sidebarHeaderTextColor);
+        changeCss('.app__body #navbar .navbar-default .navbar-brand .dropdown-toggle', 'color:' + theme.sidebarHeaderTextColor);
         changeCss('.app__body #navbar .navbar-default .navbar-toggle .icon-bar', 'background:' + theme.sidebarHeaderTextColor);
         changeCss('.app__body .post-list__timestamp > div', 'border-color:' + changeOpacity(theme.sidebarHeaderTextColor, 0.5));
         changeCss('@media(max-width: 768px){.app__body .search-bar__container', 'color:' + theme.sidebarHeaderTextColor);
@@ -677,13 +677,10 @@ export function applyTheme(theme) {
         changeCss('.app__body .post-reaction:not(.post-reaction--current-user)', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.25));
         changeCss('.app__body .post-reaction:not(.post-reaction--current-user)', 'color:' + changeOpacity(theme.centerChannelColor, 0.7));
         changeCss('.app__body .emoji-picker', 'color:' + theme.centerChannelColor);
-        changeCss('.app__body .emoji-picker, .app__body .emoji-picker__search-container .emoji-picker__search', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2));
-        changeCss('.app__body .emoji-picker, .app__body .emoji-picker__items .emoji-picker__search-container .emoji-picker__search', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2));
+        changeCss('.app__body .emoji-picker', 'border-color:' + changeOpacity(theme.centerChannelColor, 0.2));
+        changeCss('.app__body .emoji-picker__preview, .app__body .emoji-picker__items, .app__body .emoji-picker__search-container', 'border-top-color:' + changeOpacity(theme.centerChannelColor, 0.2));
         changeCss('.app__body .emoji-picker__items', 'background-color:' + changeOpacity(theme.centerChannelColor, 0.05));
-        changeCss('.app__body .emoji-picker__categories', 'border-bottom-color:' + changeOpacity(theme.centerChannelColor, 0.2));
         changeCss('.emoji-picker__category .fa:hover', 'color:' + changeOpacity(theme.centerChannelColor, 0.8));
-
-        changeCss('.app__body .emoji-picker__preview', 'border-top-color:' + changeOpacity(theme.centerChannelColor, 0.2));
         changeCss('.app__body .emoji-picker__category, .app__body .emoji-picker__category:focus, .app__body .emoji-picker__category:hover', 'color:' + changeOpacity(theme.centerChannelColor, 0.3));
         changeCss('.app__body .emoji-picker__category--selected, .app__body .emoji-picker__category--selected:focus, .app__body .emoji-picker__category--selected:hover', 'color:' + theme.centerChannelColor);
         changeCss('.app__body .emoji-picker__item-wrapper:hover', 'background-color:' + changeOpacity(theme.centerChannelColor, 0.8));
@@ -1110,7 +1107,7 @@ export function isDirectChannelForUser(otherUserId, channel) {
 }
 
 export function importSlack(file, success, error) {
-    Client4.importTeam(file, 'slack').then(success).catch(error);
+    Client4.importTeam(TeamStore.getCurrent().id, file, 'slack').then(success).catch(error);
 }
 
 export function windowWidth() {

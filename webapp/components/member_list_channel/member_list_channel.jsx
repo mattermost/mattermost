@@ -146,7 +146,7 @@ export default class MemberListChannel extends React.Component {
             for (let i = 0; i < users.length; i++) {
                 const user = users[i];
 
-                if (teamMembers[user.id] && channelMembers[user.id]) {
+                if (teamMembers[user.id] && channelMembers[user.id] && user.delete_at === 0) {
                     usersToDisplay.push(user);
                     actionUserProps[user.id] = {
                         channel: this.props.channel,

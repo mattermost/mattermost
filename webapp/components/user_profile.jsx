@@ -56,10 +56,6 @@ export default class UserProfile extends React.Component {
     render() {
         let name = '...';
         let profileImg = '';
-        let popoverPosition = 'right';
-        if (Utils.isMobile()) {
-            popoverPosition = 'bottom';
-        }
 
         if (this.props.user) {
             name = Utils.displayUsername(this.props.user.id);
@@ -78,7 +74,7 @@ export default class UserProfile extends React.Component {
             <OverlayTrigger
                 ref='overlay'
                 trigger='click'
-                placement={popoverPosition}
+                placement='right'
                 rootClose={true}
                 overlay={
                     <ProfilePopover
