@@ -29,6 +29,7 @@ const MAX_SELECTABLE_VALUES = Constants.MAX_USERS_IN_GM - 1;
 
 export default class MoreDirectChannels extends React.Component {
     static propTypes = {
+        totalOptions: PropTypes.number.isRequired,
         startingUsers: PropTypes.arrayOf(PropTypes.object),
         onModalDismissed: PropTypes.func,
         actions: PropTypes.shape({
@@ -311,6 +312,7 @@ export default class MoreDirectChannels extends React.Component {
                     <MultiSelect
                         key='moreDirectChannelsList'
                         options={this.state.users}
+                        totalOptions={this.props.totalOptions}
                         optionRenderer={this.renderOption}
                         values={this.state.values}
                         valueRenderer={this.renderValue}

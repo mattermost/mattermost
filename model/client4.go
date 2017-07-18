@@ -210,6 +210,10 @@ func (c *Client4) GetPreferencesRoute(userId string) string {
 	return fmt.Sprintf(c.GetUserRoute(userId) + "/preferences")
 }
 
+func (c *Client4) GetUsersStatsRoute() string {
+	return fmt.Sprintf(c.GetUsersRoute() + "/stats")
+}
+
 func (c *Client4) GetUserStatusRoute(userId string) string {
 	return fmt.Sprintf(c.GetUserRoute(userId) + "/status")
 }
@@ -542,6 +546,16 @@ func (c *Client4) GetUserByEmail(email, etag string) (*User, *Response) {
 	} else {
 		defer closeBody(r)
 		return UserFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// GetUsersStats returns a team stats based on the team id string.
+func (c *Client4) GetUsersStats(etag string) (*UsersStats, *Response) {
+	if r, err := c.DoApiGet(c.GetUsersStatsRoute(), etag); err != nil {
+		return nil, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return UsersStatsFromJson(r.Body), BuildResponse(r)
 	}
 }
 

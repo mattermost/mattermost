@@ -1356,6 +1356,12 @@
 @media screen and (max-width: 640px) {
     .filtered-user-list {
         height: calc(100vh - 80px);
+
+        .filter-row {
+            .multi-select__help {
+                flex-direction: column;
+            }
+        }
     }
 
     .more-modal--action {

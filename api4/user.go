@@ -55,6 +55,8 @@ func InitUser() {
 	BaseRoutes.User.Handle("/sessions/revoke", ApiSessionRequired(revokeSession)).Methods("POST")
 	BaseRoutes.Users.Handle("/sessions/device", ApiSessionRequired(attachDeviceId)).Methods("PUT")
 	BaseRoutes.User.Handle("/audits", ApiSessionRequired(getUserAudits)).Methods("GET")
+
+	BaseRoutes.Users.Handle("/stats", ApiSessionRequired(getUsersStats)).Methods("GET")
 }
 
 func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -1080,4 +1082,14 @@ func switchAccountType(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	c.LogAudit("success")
 	w.Write([]byte(model.MapToJson(map[string]string{"follow_link": link})))
+}
+
+func getUsersStats(c *Context, w http.ResponseWriter, r *http.Request) {
+	stats, err := app.GetUsersStats()
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	w.Write([]byte(stats.ToJson()))
 }

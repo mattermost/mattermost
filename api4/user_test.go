@@ -537,6 +537,30 @@ func TestGetUserByEmail(t *testing.T) {
 	}
 }
 
+func TestGetUsersStats(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+
+	rstats, resp := Client.GetUsersStats("")
+	CheckNoError(t, resp)
+
+	if rstats.TotalUserCount != 1353 {
+		t.Fatal("Wrong count")
+	}
+
+	_, resp = th.SystemAdminClient.GetUsersStats("")
+	CheckNoError(t, resp)
+
+	if rstats.TotalUserCount != 1353 {
+		t.Fatal("Wrong count")
+	}
+
+	Client.Logout()
+	_, resp = Client.GetUsersStats("")
+	CheckUnauthorizedStatus(t, resp)
+}
+
 func TestSearchUsers(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
 	defer TearDown()

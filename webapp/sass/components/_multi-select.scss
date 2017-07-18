@@ -33,6 +33,8 @@
 }
 
 .multi-select__help {
+    display: flex;
+    justify-content: space-between;
     padding: 10px 15px 0;
 
     > div:not(.multi-select__note),
