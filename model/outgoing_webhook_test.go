@@ -136,6 +136,7 @@ func TestOutgoingWebhookPayloadToFormValues(t *testing.T) {
 		PostId:      "PostId",
 		Text:        "Text",
 		TriggerWord: "TriggerWord",
+		FileIds:     "FileIds",
 	}
 	v := url.Values{}
 	v.Set("token", "Token")
@@ -149,6 +150,7 @@ func TestOutgoingWebhookPayloadToFormValues(t *testing.T) {
 	v.Set("post_id", "PostId")
 	v.Set("text", "Text")
 	v.Set("trigger_word", "TriggerWord")
+	v.Set("file_ids", "FileIds")
 	if got, want := p.ToFormValues(), v.Encode(); !reflect.DeepEqual(got, want) {
 		t.Fatalf("Got %+v, wanted %+v", got, want)
 	}
