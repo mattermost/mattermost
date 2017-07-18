@@ -2553,6 +2553,16 @@ func (c *Client4) TestElasticsearch() (bool, *Response) {
 	}
 }
 
+// PurgeElasticsearchIndexes immediately deletes all Elasticsearch indexes.
+func (c *Client4) PurgeElasticsearchIndexes() (bool, *Response) {
+	if r, err := c.DoApiPost(c.GetElasticsearchRoute()+"/test", ""); err != nil {
+		return false, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return CheckStatusOK(r), BuildResponse(r)
+	}
+}
+
 // Commands Section
 
 // CreateCommand will create a new command if the user have the right permissions.
