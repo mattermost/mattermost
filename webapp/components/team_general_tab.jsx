@@ -64,7 +64,6 @@ class GeneralTab extends React.Component {
     }
 
     componentWillReceiveProps(nextProps) {
-
         this.setState({
             name: nextProps.team.display_name,
             description: nextProps.team.description,
@@ -144,7 +143,6 @@ class GeneralTab extends React.Component {
         e.preventDefault();
 
         var state = {serverError: '', clientError: ''};
-        let valid = true;
 
         this.setState(state);
 
@@ -458,16 +456,6 @@ class GeneralTab extends React.Component {
         if (this.props.activeSection === 'allowed_domains') {
             const inputs = [];
 
-            let allowedDomainsLabel = (
-                <FormattedMessage
-                    id='general_tab.allowedDomains'
-                    defaultMessage='Restrict team members to specified email domains.'
-                />
-            );
-            if (Utils.isMobile()) {
-                allowedDomainsLabel = '';
-            }
-
             inputs.push(
                 <div
                     key='allowedDomainsSetting'
@@ -505,7 +493,7 @@ class GeneralTab extends React.Component {
                 describemsg = (
                     <FormattedMessage
                         id='general_tab.allowedDomainsDesc'
-                        defaultMessage="Allowed Domains Description."
+                        defaultMessage='Allowed Domains Description.'
                     />
                 );
             }
