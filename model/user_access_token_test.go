@@ -32,6 +32,11 @@ func TestUserAccessTokenJson(t *testing.T) {
 func TestUserAccessTokenIsValid(t *testing.T) {
 	ad := UserAccessToken{}
 
+	if err := ad.IsValid(); err == nil || err.Id != "model.user_access_token.is_valid.id.app_error" {
+		t.Fatal(err)
+	}
+
+	ad.Id = NewRandomString(26)
 	if err := ad.IsValid(); err == nil || err.Id != "model.user_access_token.is_valid.token.app_error" {
 		t.Fatal(err)
 	}
