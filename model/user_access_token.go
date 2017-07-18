@@ -16,8 +16,6 @@ type UserAccessToken struct {
 	Description string `json:"description"`
 }
 
-// IsValid validates the AuthData and returns an error if it isn't configured
-// correctly.
 func (t *UserAccessToken) IsValid() *AppError {
 	if len(t.Id) != 26 {
 		return NewAppError("UserAccessToken.IsValid", "model.user_access_token.is_valid.id.app_error", nil, "", http.StatusBadRequest)
