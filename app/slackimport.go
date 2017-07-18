@@ -53,6 +53,8 @@ type SlackPost struct {
 	Attachments []*model.SlackAttachment `json:"attachments"`
 }
 
+var isValidChannelNameCharacters = regexp.MustCompile(`^[a-zA-Z0-9\-_]+$`).MatchString
+
 type SlackComment struct {
 	User    string `json:"user"`
 	Comment string `json:"comment"`
@@ -77,13 +79,17 @@ func SlackConvertTimeStamp(ts string) int64 {
 	return timeStamp * 1000 // Convert to milliseconds
 }
 
-func SlackConvertChannelName(channelName string) string {
+func SlackConvertChannelName(channelName string, channelId string) string {
 	newName := strings.Trim(channelName, "_-")
 	if len(newName) == 1 {
 		return "slack-channel-" + newName
 	}
 
-	return newName
+	if isValidChannelNameCharacters(newName) {
+		return newName
+	} else {
+		return strings.ToLower(channelId)
+	}
 }
 
 func SlackParseChannels(data io.Reader) ([]SlackChannel, error) {
@@ -466,7 +472,7 @@ func SlackAddChannels(teamId string, slackchannels []SlackChannel, posts map[str
 			TeamId:      teamId,
 			Type:        model.CHANNEL_OPEN,
 			DisplayName: sChannel.Name,
-			Name:        SlackConvertChannelName(sChannel.Name),
+			Name:        SlackConvertChannelName(sChannel.Name, sChannel.Id),
 			Purpose:     sChannel.Purpose["value"],
 			Header:      sChannel.Topic["value"],
 		}

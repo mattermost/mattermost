@@ -23,19 +23,21 @@ func TestSlackConvertTimeStamp(t *testing.T) {
 
 func TestSlackConvertChannelName(t *testing.T) {
 	var testData = []struct {
-		input  string
+		nameInput string
+		idInput string
 		output string
 	}{
-		{"test-channel", "test-channel"},
-		{"_test_channel_", "test_channel"},
-		{"__test", "test"},
-		{"-t", "slack-channel-t"},
-		{"a", "slack-channel-a"},
+		{"test-channel", "C0G08DLQH", "test-channel"},
+		{"_test_channel_", "C0G04DLQH", "test_channel"},
+		{"__test", "C0G07DLQH", "test"},
+		{"-t", "C0G06DLQH", "slack-channel-t"},
+		{"a", "C0G05DLQH", "slack-channel-a"},
+		{"случайный", "C0G05DLQD", "c0g05dlqd"},
 	}
 
 	for _, td := range testData {
-		if td.output != SlackConvertChannelName(td.input) {
-			t.Fatalf("Did not convert channel name correctly: %v", td.input)
+		if td.output != SlackConvertChannelName(td.nameInput, td.idInput) {
+			t.Fatalf("Did not convert channel name correctly: %v", td.nameInput)
 		}
 	}
 }
