@@ -191,7 +191,7 @@ export default class PostBodyAdditionalContent extends React.PureComponent {
             );
 
             const contents = [message];
-            if (this.state.linkLoaded) {
+            if (this.state.linkLoaded || this.props.previewCollapsed.startsWith('true')) {
                 if (prependToggle) {
                     contents.unshift(toggle);
                 } else {

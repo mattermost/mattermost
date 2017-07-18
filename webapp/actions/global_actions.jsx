@@ -332,13 +332,6 @@ export function emitPreferencesDeletedEvent(preferences) {
     });
 }
 
-export function emitRemovePost(post) {
-    AppDispatcher.handleViewAction({
-        type: Constants.ActionTypes.REMOVE_POST,
-        post
-    });
-}
-
 export function sendEphemeralPost(message, channelId) {
     const timestamp = Utils.getTimestamp();
     const post = {
@@ -495,6 +488,23 @@ export function toggleSideBarAction(visible) {
             postId: null
         });
     }
+}
+
+export function toggleSideBarRightMenuAction() {
+    AppDispatcher.handleServerAction({
+        type: ActionTypes.RECEIVED_SEARCH,
+        results: null
+    });
+
+    AppDispatcher.handleServerAction({
+        type: ActionTypes.RECEIVED_POST_SELECTED,
+        postId: null
+    });
+
+    document.querySelector('.app__body .inner-wrap').classList.remove('move--right', 'move--left', 'move--left-small');
+    document.querySelector('.app__body .sidebar--left').classList.remove('move--right');
+    document.querySelector('.app__body .sidebar--right').classList.remove('move--left');
+    document.querySelector('.app__body .sidebar--menu').classList.remove('move--left');
 }
 
 export function emitBrowserFocus(focus) {

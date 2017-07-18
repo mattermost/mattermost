@@ -38,8 +38,7 @@ export default class RhsRootPost extends React.Component {
         isFlagged: PropTypes.bool,
         status: PropTypes.string,
         previewCollapsed: PropTypes.string,
-        isBusy: PropTypes.bool,
-        getPostList: PropTypes.func.isRequired
+        isBusy: PropTypes.bool
     }
 
     static defaultProps = {
@@ -226,9 +225,10 @@ export default class RhsRootPost extends React.Component {
                         show={this.state.showEmojiPicker}
                         onHide={this.toggleEmojiPicker}
                         target={() => this.refs.dotMenu}
-                        container={this.props.getPostList}
                         onEmojiClick={this.reactEmojiClick}
                         rightOffset={15}
+                        spaceRequiredAbove={342}
+                        spaceRequiredBelow={342}
                     />
                     <a
                         href='#'

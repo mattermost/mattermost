@@ -91,7 +91,15 @@
             max-width: calc(100vw - 800px);
 
             .multi-teams & {
-                max-width: calc(100vw - 750px);
+                max-width: calc(100vw - 775px);
+            }
+        }
+    }
+
+    .channel-header__info {
+        .channel-header__description {
+            .multi-teams & {
+                max-width: calc(100vw - 730px);
             }
         }
     }

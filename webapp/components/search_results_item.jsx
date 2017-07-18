@@ -21,7 +21,6 @@ import * as PostUtils from 'utils/post_utils.jsx';
 
 import Constants from 'utils/constants.jsx';
 const ActionTypes = Constants.ActionTypes;
-import {Posts} from 'mattermost-redux/constants';
 
 import React from 'react';
 import PropTypes from 'prop-types';
@@ -187,7 +186,7 @@ export default class SearchResultsItem extends React.Component {
         let message;
         let flagContent;
         let rhsControls;
-        if (post.state === Posts.POST_DELETED) {
+        if (post.state === Constants.POST_DELETED) {
             message = (
                 <p>
                     <FormattedMessage

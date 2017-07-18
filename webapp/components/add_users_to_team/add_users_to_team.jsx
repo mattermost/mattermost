@@ -215,6 +215,11 @@ export default class AddUsersToTeam extends React.Component {
             />
         );
 
+        let users = [];
+        if (this.state.users) {
+            users = this.state.users.filter((user) => user.delete_at === 0);
+        }
+
         return (
             <Modal
                 dialogClassName={'more-modal more-direct-channels'}
@@ -238,7 +243,7 @@ export default class AddUsersToTeam extends React.Component {
                 <Modal.Body>
                     <MultiSelect
                         key='addUsersToTeamKey'
-                        options={this.state.users}
+                        options={users}
                         optionRenderer={this.renderOption}
                         values={this.state.values}
                         valueRenderer={this.renderValue}

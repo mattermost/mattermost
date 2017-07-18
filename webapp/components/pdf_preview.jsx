@@ -84,7 +84,7 @@ export default class PDFPreview extends React.Component {
             success: false
         });
 
-        PDFJS.getDocument(window.mm_config.SiteURL + props.fileUrl).then(this.onDocumentLoad);
+        PDFJS.getDocument(props.fileUrl).then(this.onDocumentLoad);
     }
 
     onDocumentLoad(pdf) {

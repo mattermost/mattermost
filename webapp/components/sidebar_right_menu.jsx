@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import AppDispatcher from 'dispatcher/app_dispatcher.jsx';
 import TeamMembersModal from './team_members_modal.jsx';
 import ToggleModalButton from './toggle_modal_button.jsx';
 import AboutBuildModal from './about_build_modal.jsx';
@@ -19,7 +18,6 @@ import * as UserAgent from 'utils/user_agent.jsx';
 import * as Utils from 'utils/utils.jsx';
 import {Constants, WebrtcActionTypes} from 'utils/constants.jsx';
 
-const ActionTypes = Constants.ActionTypes;
 const Preferences = Constants.Preferences;
 const TutorialSteps = Constants.TutorialSteps;
 
@@ -143,20 +141,7 @@ export default class SidebarRightMenu extends React.Component {
 
     hideSidebars() {
         if (Utils.isMobile()) {
-            AppDispatcher.handleServerAction({
-                type: ActionTypes.RECEIVED_SEARCH,
-                results: null
-            });
-
-            AppDispatcher.handleServerAction({
-                type: ActionTypes.RECEIVED_POST_SELECTED,
-                postId: null
-            });
-
-            document.querySelector('.app__body .inner-wrap').classList.remove('move--right', 'move--left', 'move--left-small');
-            document.querySelector('.app__body .sidebar--left').classList.remove('move--right');
-            document.querySelector('.app__body .sidebar--right').classList.remove('move--left');
-            document.querySelector('.app__body .sidebar--menu').classList.remove('move--left');
+            GlobalActions.toggleSideBarRightMenuAction();
         }
     }
 

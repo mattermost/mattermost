@@ -31,13 +31,11 @@ export default class EditIncomingWebhook extends AbstractIncomingWebhook {
     handleIntegrationChange() {
         const teamId = TeamStore.getCurrentId();
 
-        this.setState({
-            hooks: IntegrationStore.getIncomingWebhooks(teamId),
-            loading: !IntegrationStore.hasReceivedIncomingWebhooks(teamId)
-        });
+        const hooks = IntegrationStore.getIncomingWebhooks(teamId);
+        const loading = !IntegrationStore.hasReceivedIncomingWebhooks(teamId);
 
-        if (!this.state.loading) {
-            this.originalIncomingHook = this.state.hooks.filter((hook) => hook.id === this.props.location.query.id)[0];
+        if (!loading) {
+            this.originalIncomingHook = hooks.filter((hook) => hook.id === this.props.location.query.id)[0];
 
             this.setState({
                 displayName: this.originalIncomingHook.display_name,
