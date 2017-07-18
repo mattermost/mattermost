@@ -18,6 +18,9 @@ const (
 	FILE_TEAM_ID = "noteam"
 )
 
+// TODO remove this before 4.1
+var extraUploadFileDebugging = false
+
 func InitFile() {
 	l4g.Debug(utils.T("api.file.init.debug"))
 
@@ -29,13 +32,24 @@ func InitFile() {
 	BaseRoutes.File.Handle("/info", ApiSessionRequired(getFileInfo)).Methods("GET")
 
 	BaseRoutes.PublicFile.Handle("", ApiHandler(getPublicFile)).Methods("GET")
-
 }
 
 func uploadFile(c *Context, w http.ResponseWriter, r *http.Request) {
+	if extraUploadFileDebugging {
+		l4g.Debug("uploadFile - Start")
+	}
+
 	if !*utils.Cfg.FileSettings.EnableFileAttachments {
+		if extraUploadFileDebugging {
+			l4g.Debug("uploadFile - Returning 501")
+		}
+
 		c.Err = model.NewAppError("uploadFile", "api.file.attachments.disabled.app_error", nil, "", http.StatusNotImplemented)
 		return
+	}
+
+	if extraUploadFileDebugging {
+		l4g.Debug("uploadFile - Not returning 501")
 	}
 
 	if r.ContentLength > *utils.Cfg.FileSettings.MaxFileSize {
