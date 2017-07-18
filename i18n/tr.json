@@ -708,6 +708,22 @@
     "translation": "açık"
   },
   {
+    "id": "api.command_search.desc",
+    "translation": "İletilerde aranacak metin"
+  },
+  {
+    "id": "api.command_search.hint",
+    "translation": "[text]"
+  },
+  {
+    "id": "api.command_search.name",
+    "translation": "ara"
+  },
+  {
+    "id": "api.command_search.unsupported.app_error",
+    "translation": "Arama komutu aygıtınız için desteklenmiyor"
+  },
+  {
     "id": "api.command_settings.desc",
     "translation": "Hesap Ayarları Penceresini Aç"
   },
@@ -958,6 +974,10 @@
   {
     "id": "api.context.unknown.app_error",
     "translation": "Bilinmeyen bir sorun çıktı. Lütfen destek ekibi ile görüşün."
+  },
+  {
+    "id": "api.context.v3_disabled.app_error",
+    "translation": "Bu sunucu üzerinde 3. API sürümü devre dışı bırakıldı. Lütfen 4. API sürümünü kullanın. Ayrıntılı bilgi almak için https://api.mattermost.com adresine bakın."
   },
   {
     "id": "api.deprecated.init.debug",
@@ -3021,19 +3041,11 @@
   },
   {
     "id": "app.import.import_direct_channel.create_direct_channel.error",
-    "translation": "Doğrudan kanal alınamadı"
-  },
-  {
-    "id": "app.import.import_direct_channel.create_direct_channel.error",
-    "translation": "Doğrudan kanal alınamadı"
+    "translation": "Doğrudan kanal oluşturulamadı"
   },
   {
     "id": "app.import.import_direct_channel.create_group_channel.error",
-    "translation": "Grup kanalı alınamadı"
-  },
-  {
-    "id": "app.import.import_direct_channel.create_group_channel.error",
-    "translation": "Grup kanalı alınamadı"
+    "translation": "Grup kanalı oluşturulamadı"
   },
   {
     "id": "app.import.import_direct_channel.member_not_found.error",
@@ -3046,6 +3058,14 @@
   {
     "id": "app.import.import_direct_post.channel_member_not_found.error",
     "translation": "Doğrudan kanal iletisi içe aktarılırken kanal üyesi bulunamadı"
+  },
+  {
+    "id": "app.import.import_direct_post.create_direct_channel.error",
+    "translation": "Doğrudan kanal alınamadı"
+  },
+  {
+    "id": "app.import.import_direct_post.create_group_channel.error",
+    "translation": "Grup kanalı alınamadı"
   },
   {
     "id": "app.import.import_direct_post.user_not_found.error",
@@ -3472,6 +3492,34 @@
     "translation": "'{{.JobName}}' görevi için '{{.FilePath}}' konumuna uygunluk dışa aktarma işlemi başlatıldı"
   },
   {
+    "id": "ent.elasticsearch.create_client.connect_failed",
+    "translation": "Setting up ElasticSearch Client Failed"
+  },
+  {
+    "id": "ent.elasticsearch.create_index_if_not_exists.index_create_failed",
+    "translation": "Failed to create ElasticSearch index"
+  },
+  {
+    "id": "ent.elasticsearch.create_index_if_not_exists.index_exists_failed",
+    "translation": "Failed to establish whether ElasticSearch index exists"
+  },
+  {
+    "id": "ent.elasticsearch.create_index_if_not_exists.index_mapping_failed",
+    "translation": "Failed to setup ElasticSearch index mapping"
+  },
+  {
+    "id": "ent.elasticsearch.delete_post.error",
+    "translation": "Failed to delete the post"
+  },
+  {
+    "id": "ent.elasticsearch.index_post.error",
+    "translation": "Failed to index the post"
+  },
+  {
+    "id": "ent.elasticsearch.not_started.error",
+    "translation": "Elasticsearch is not started"
+  },
+  {
     "id": "ent.elasticsearch.search_posts.disabled",
     "translation": "ElasticSearch searching is disabled on this server"
   },
@@ -3484,24 +3532,12 @@
     "translation": "Failed to decode search results"
   },
   {
-    "id": "ent.elasticsearch.start.connect_failed",
-    "translation": "Setting up ElasticSearch Client Failed"
-  },
-  {
-    "id": "ent.elasticsearch.start.index_create_failed",
-    "translation": "Failed to create ElasticSearch index"
-  },
-  {
-    "id": "ent.elasticsearch.start.index_exists_failed",
-    "translation": "Failed to establish whether ElasticSearch index exists"
-  },
-  {
-    "id": "ent.elasticsearch.start.index_mapping_failed",
-    "translation": "Failed to setup ElasticSearch index mapping"
-  },
-  {
     "id": "ent.elasticsearch.start.index_settings_failed",
     "translation": "Failed to set ElasticSearch index settings"
+  },
+  {
+    "id": "ent.elasticsearch.test_config.connect_failed",
+    "translation": "Connecting to Elasticsearch server failed."
   },
   {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
@@ -3510,6 +3546,10 @@
   {
     "id": "ent.elasticsearch.test_config.license.error",
     "translation": "Lisansta Elasticsearch desteklenmiyor."
+  },
+  {
+    "id": "ent.elasticsearch.test_config.reenter_password",
+    "translation": "The Elasticsearch Server URL or Username has changed. Please re-enter the Elasticsearch password to test connection."
   },
   {
     "id": "ent.emoji.licence_disable.app_error",
@@ -3722,6 +3762,14 @@
   {
     "id": "error.not_found.title",
     "translation": "Sayfa bulunamadı"
+  },
+  {
+    "id": "jobs.request_cancellation.status.error",
+    "translation": "Could not request cancellation for job that is not in a cancelable state."
+  },
+  {
+    "id": "jobs.set_job_error.update.error",
+    "translation": "Failed to set job status to error"
   },
   {
     "id": "manaultesting.get_channel_id.no_found.debug",
@@ -5272,24 +5320,24 @@
     "translation": "We couldn't save or update the file info"
   },
   {
-    "id": "store.sql_job_status.delete_by_type.app_error",
-    "translation": "We couldn't delete the job status"
+    "id": "store.sql_job.delete.app_error",
+    "translation": "İleti silinemedi"
   },
   {
-    "id": "store.sql_job_status.get.app_error",
-    "translation": "We couldn't get the job status"
+    "id": "store.sql_job.get.app_error",
+    "translation": "İleti alınamadı"
   },
   {
-    "id": "store.sql_job_status.get_all.app_error",
-    "translation": "We couldn't get all job statuses"
+    "id": "store.sql_job.get_all.app_error",
+    "translation": "We couldn't get the posts"
   },
   {
-    "id": "store.sql_job_status.save.app_error",
-    "translation": "We couldn't save the job status"
+    "id": "store.sql_job.save.app_error",
+    "translation": "İleti kaydedilemedi"
   },
   {
-    "id": "store.sql_job_status.update.app_error",
-    "translation": "We couldn't update the job status"
+    "id": "store.sql_job.update.app_error",
+    "translation": "İleti güncellenemedi"
   },
   {
     "id": "store.sql_license.get.app_error",
@@ -5438,6 +5486,10 @@
   {
     "id": "store.sql_post.get_posts_around.get_parent.app_error",
     "translation": "Kanalın üst iletileri alınamadı"
+  },
+  {
+    "id": "store.sql_post.get_posts_batch_for_indexing.get.app_error",
+    "translation": "We couldn't get the posts batch for indexing"
   },
   {
     "id": "store.sql_post.get_posts_by_ids.app_error",

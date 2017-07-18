@@ -501,11 +501,11 @@
   },
   {
     "id": "api.command_channel_header.channel.app_error",
-    "translation": "Error to retrieve the current channel."
+    "translation": "Błąd aktualizacji bieżącego kanału."
   },
   {
     "id": "api.command_channel_header.desc",
-    "translation": "Edit the channel header"
+    "translation": "Edycja nagłówka kanału"
   },
   {
     "id": "api.command_channel_header.hint",
@@ -513,7 +513,7 @@
   },
   {
     "id": "api.command_channel_header.message.app_error",
-    "translation": "Text must be provided with the /header command."
+    "translation": "Tekst powinien być dostarczony za pomocą polecenia /header."
   },
   {
     "id": "api.command_channel_header.name",
@@ -521,11 +521,11 @@
   },
   {
     "id": "api.command_channel_header.permission.app_error",
-    "translation": "You do not have the appropriate permissions to edit the channel header."
+    "translation": "Nie posiadasz odpowiednich uprawnień do edycji nagłówka kanału."
   },
   {
     "id": "api.command_channel_header.update_channel.app_error",
-    "translation": "Error to update the current channel."
+    "translation": "Błąd aktualizacji bieżącego kanału."
   },
   {
     "id": "api.command_channel_header.update_channel.success",
@@ -589,7 +589,7 @@
   },
   {
     "id": "api.command_help.desc",
-    "translation": "Open the Mattermost help page"
+    "translation": "Otwórz stronę pomocy Mattermost"
   },
   {
     "id": "api.command_help.name",
@@ -706,6 +706,22 @@
   {
     "id": "api.command_open.name",
     "translation": "otwórz"
+  },
+  {
+    "id": "api.command_search.desc",
+    "translation": "Wyszukiwanie tekstu w wiadomościach"
+  },
+  {
+    "id": "api.command_search.hint",
+    "translation": "[tekst]"
+  },
+  {
+    "id": "api.command_search.name",
+    "translation": "search"
+  },
+  {
+    "id": "api.command_search.unsupported.app_error",
+    "translation": "Polecenie wyszukiwania nie jest wspierana na Twoim urządzeniu"
   },
   {
     "id": "api.command_settings.desc",
@@ -958,6 +974,10 @@
   {
     "id": "api.context.unknown.app_error",
     "translation": "Wystąpił nieznany błąd. Prosimy o kontakt z pomocą techniczną."
+  },
+  {
+    "id": "api.context.v3_disabled.app_error",
+    "translation": "API w wersji 3 zostało wyłączone na tym serwerze. Użyj API w wersji 4. Odwiedź https://api.mattermost.com w celu uzyskania szczegółowych informacji."
   },
   {
     "id": "api.deprecated.init.debug",
@@ -1689,7 +1709,7 @@
   },
   {
     "id": "api.post.send_notifications_and_forget.push_image_only",
-    "translation": "Wysłał jeden albo więcej plików"
+    "translation": " Wyślij jeden albo więcej plików w "
   },
   {
     "id": "api.post.send_notifications_and_forget.push_image_only_dm",
@@ -3021,35 +3041,35 @@
   },
   {
     "id": "app.import.import_direct_channel.create_direct_channel.error",
-    "translation": "Failed to get direct channel"
-  },
-  {
-    "id": "app.import.import_direct_channel.create_direct_channel.error",
-    "translation": "Failed to get direct channel"
+    "translation": "Nie udało się stworzyć bezpośredniego kanału"
   },
   {
     "id": "app.import.import_direct_channel.create_group_channel.error",
-    "translation": "Failed to get group channel"
-  },
-  {
-    "id": "app.import.import_direct_channel.create_group_channel.error",
-    "translation": "Failed to get group channel"
+    "translation": "Wyświetlanie nazwy zespołu:"
   },
   {
     "id": "app.import.import_direct_channel.member_not_found.error",
-    "translation": "Could not find channel member when importing direct channel"
+    "translation": "Nie udało się znaleźć członków kanału podczas importowania bezpośredniego kanału"
   },
   {
     "id": "app.import.import_direct_channel.update_header_failed.error",
-    "translation": "Failed to update direct channel header"
+    "translation": "Nie udało się zaktualizować tytułu bezpośredniego kanału"
   },
   {
     "id": "app.import.import_direct_post.channel_member_not_found.error",
-    "translation": "Could not find channel member when importing direct channel post"
+    "translation": "Nie udało się znaleźć członków kanału podczas importowania bezpośredniego kanału"
+  },
+  {
+    "id": "app.import.import_direct_post.create_direct_channel.error",
+    "translation": "Nie udało się uzyskać bezpośredniego kanału"
+  },
+  {
+    "id": "app.import.import_direct_post.create_group_channel.error",
+    "translation": "Nie udało się uzyskać kanału grupowego"
   },
   {
     "id": "app.import.import_direct_post.user_not_found.error",
-    "translation": "Post user does not exist"
+    "translation": "Post użytkownika nie istnieje"
   },
   {
     "id": "app.import.import_line.null_channel.error",
@@ -3057,11 +3077,11 @@
   },
   {
     "id": "app.import.import_line.null_direct_channel.error",
-    "translation": "Dane wejściowe mają typ \"channel\", ale obiekt channel jest null."
+    "translation": "Dane wejściowe mają typ \"direct_channel\", ale obiekt direct_channel jest null."
   },
   {
     "id": "app.import.import_line.null_direct_post.error",
-    "translation": "Dane wejściowe mają typ \"post\" ale obiekt post jest null."
+    "translation": "Dane wejściowe mają typ \"direct_post\" ale obiekt direct_post jest null."
   },
   {
     "id": "app.import.import_line.null_post.error",
@@ -3137,31 +3157,31 @@
   },
   {
     "id": "app.import.validate_direct_channel_import_data.header_length.error",
-    "translation": "Direct channel header is too long"
+    "translation": "Tytuł bezpośredniego kanału jest zbyt długi"
   },
   {
     "id": "app.import.validate_direct_channel_import_data.members_required.error",
-    "translation": "Brak wymaganej właściwości kanału: name"
+    "translation": "Brak wymaganej właściwości kanału: użytkownicy"
   },
   {
     "id": "app.import.validate_direct_channel_import_data.members_too_few.error",
-    "translation": "Direct channel members list contains too few items"
+    "translation": "Lista bezpośrednich uczestników kanału zawiera zbyt mało szczegółów"
   },
   {
     "id": "app.import.validate_direct_channel_import_data.members_too_many.error",
-    "translation": "Direct channel members list contains too many items"
+    "translation": "Lista bezpośrednich uczestników kanału zawiera zbyt wiele elementów"
   },
   {
     "id": "app.import.validate_direct_post_import_data.channel_members_required.error",
-    "translation": "Brak wymaganej właściwości Post: create_at."
+    "translation": "Brak wymaganej właściwości Post: channel_members."
   },
   {
     "id": "app.import.validate_direct_post_import_data.channel_members_too_few.error",
-    "translation": "Direct post channel members list contains too few items"
+    "translation": "Lista bezpośrednich uczestników kanału zawiera zbyt mało szczegółów"
   },
   {
     "id": "app.import.validate_direct_post_import_data.channel_members_too_many.error",
-    "translation": "Direct post channel members list contains too many items"
+    "translation": "Lista bezpośrednich uczestników kanału zawiera zbyt wiele elementów"
   },
   {
     "id": "app.import.validate_direct_post_import_data.create_at_missing.error",
@@ -3173,15 +3193,15 @@
   },
   {
     "id": "app.import.validate_direct_post_import_data.message_length.error",
-    "translation": "Message is too long"
+    "translation": "Wiadomość jest za długa"
   },
   {
     "id": "app.import.validate_direct_post_import_data.message_missing.error",
-    "translation": "Brak wymaganej właściwości Post: Message."
+    "translation": "Brak wymaganej właściwości Post: message."
   },
   {
     "id": "app.import.validate_direct_post_import_data.user_missing.error",
-    "translation": "Brak wymaganej właściwości Post: User."
+    "translation": "Brak wymaganej właściwości Post: user."
   },
   {
     "id": "app.import.validate_post_import_data.channel_missing.error",
@@ -3472,6 +3492,34 @@
     "translation": "Rozpoczęto eksport zgodności dla zadania '{{.JobName}}' do '{{.FilePath}}'"
   },
   {
+    "id": "ent.elasticsearch.create_client.connect_failed",
+    "translation": "Nie udało się ustawić parametrów klienta ElasticSearch."
+  },
+  {
+    "id": "ent.elasticsearch.create_index_if_not_exists.index_create_failed",
+    "translation": "Nie udało się utworzyć indeksu ElasticSearch"
+  },
+  {
+    "id": "ent.elasticsearch.create_index_if_not_exists.index_exists_failed",
+    "translation": "Nie udało się ustalić, czy indeks elasticsearch istnieje"
+  },
+  {
+    "id": "ent.elasticsearch.create_index_if_not_exists.index_mapping_failed",
+    "translation": "Nie można ustawić wyświetlanie indeksu elasticsearch"
+  },
+  {
+    "id": "ent.elasticsearch.delete_post.error",
+    "translation": "Failed to delete the post"
+  },
+  {
+    "id": "ent.elasticsearch.index_post.error",
+    "translation": "Failed to index the post"
+  },
+  {
+    "id": "ent.elasticsearch.not_started.error",
+    "translation": "Elasticsearch is not started"
+  },
+  {
     "id": "ent.elasticsearch.search_posts.disabled",
     "translation": "Na tym serwerze wyszukiwanie ElasticSearch jest wyłączone."
   },
@@ -3484,32 +3532,24 @@
     "translation": "Błąd w dekodowaniu wyników wyszukiwania."
   },
   {
-    "id": "ent.elasticsearch.start.connect_failed",
-    "translation": "Nie udało się ustawić parametrów klienta ElasticSearch."
-  },
-  {
-    "id": "ent.elasticsearch.start.index_create_failed",
-    "translation": "Nie udało się utworzyć indeksu ElasticSearch"
-  },
-  {
-    "id": "ent.elasticsearch.start.index_exists_failed",
-    "translation": "Failed to establish whether ElasticSearch index exists"
-  },
-  {
-    "id": "ent.elasticsearch.start.index_mapping_failed",
-    "translation": "Failed to setup ElasticSearch index mapping"
-  },
-  {
     "id": "ent.elasticsearch.start.index_settings_failed",
-    "translation": "Failed to set ElasticSearch index settings"
+    "translation": "Nie udało się określić ustawienia indeks elasticsearch"
+  },
+  {
+    "id": "ent.elasticsearch.test_config.connect_failed",
+    "translation": "Connecting to Elasticsearch server failed."
   },
   {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
-    "translation": "Elasticsearch is disabled."
+    "translation": "Elasticsearch jest wyłączony"
   },
   {
     "id": "ent.elasticsearch.test_config.license.error",
-    "translation": "License does not support Elasticsearch."
+    "translation": "Licencja nie obsługuje elasticsearch."
+  },
+  {
+    "id": "ent.elasticsearch.test_config.reenter_password",
+    "translation": "The Elasticsearch Server URL or Username has changed. Please re-enter the Elasticsearch password to test connection."
   },
   {
     "id": "ent.emoji.licence_disable.app_error",
@@ -3722,6 +3762,14 @@
   {
     "id": "error.not_found.title",
     "translation": "Strona nie odnaleziona"
+  },
+  {
+    "id": "jobs.request_cancellation.status.error",
+    "translation": "Could not request cancellation for job that is not in a cancelable state."
+  },
+  {
+    "id": "jobs.set_job_error.update.error",
+    "translation": "Failed to set job status to error"
   },
   {
     "id": "manaultesting.get_channel_id.no_found.debug",
@@ -5272,23 +5320,23 @@
     "translation": "Nie mogliśmy zapisać informacji o pliku"
   },
   {
-    "id": "store.sql_job_status.delete_by_type.app_error",
+    "id": "store.sql_job.delete.app_error",
     "translation": "Nie mogliśmy usunąć wpisu"
   },
   {
-    "id": "store.sql_job_status.get.app_error",
+    "id": "store.sql_job.get.app_error",
     "translation": "Nie udało się pobrać wiadomości"
   },
   {
-    "id": "store.sql_job_status.get_all.app_error",
+    "id": "store.sql_job.get_all.app_error",
     "translation": "Nie udało się pobrać wiadomości"
   },
   {
-    "id": "store.sql_job_status.save.app_error",
+    "id": "store.sql_job.save.app_error",
     "translation": "Nie udało się zapisać wiadomości"
   },
   {
-    "id": "store.sql_job_status.update.app_error",
+    "id": "store.sql_job.update.app_error",
     "translation": "Nie udało się zaktualizować wiadomości"
   },
   {
@@ -5438,6 +5486,10 @@
   {
     "id": "store.sql_post.get_posts_around.get_parent.app_error",
     "translation": "Nie można uzyskać wpisów nadrzędnych dla kanału"
+  },
+  {
+    "id": "store.sql_post.get_posts_batch_for_indexing.get.app_error",
+    "translation": "We couldn't get the posts batch for indexing"
   },
   {
     "id": "store.sql_post.get_posts_by_ids.app_error",
@@ -5805,7 +5857,7 @@
   },
   {
     "id": "store.sql_team.search_open_team.app_error",
-    "translation": "Napotkaliśmy błąd szukając kanału"
+    "translation": "Napotkaliśmy błąd szukając otwartych zespołów"
   },
   {
     "id": "store.sql_team.update.app_error",
@@ -5817,11 +5869,11 @@
   },
   {
     "id": "store.sql_team.update.finding.app_error",
-    "translation": "Napotkaliśmy błąd szukając kanału"
+    "translation": "Napotkaliśmy błąd szukając zespołu"
   },
   {
     "id": "store.sql_team.update.updating.app_error",
-    "translation": "Napotkaliśmy błąd zapisując audyty"
+    "translation": "Napotkaliśmy błąd aktualizując zespół"
   },
   {
     "id": "store.sql_team.update_display_name.app_error",
@@ -5841,7 +5893,7 @@
   },
   {
     "id": "store.sql_user.get.app_error",
-    "translation": "Napotkaliśmy błąd szukając audytów"
+    "translation": "Napotkaliśmy błąd szukając konta"
   },
   {
     "id": "store.sql_user.get_all_using_auth_service.other.app_error",
@@ -5877,11 +5929,11 @@
   },
   {
     "id": "store.sql_user.get_recently_active_users.app_error",
-    "translation": "Wystąpił błąd w trakcie pobierania ustawień"
+    "translation": "Wystąpił błąd podczas wyszukiwania ostatnio aktywnych użytkowników"
   },
   {
     "id": "store.sql_user.get_sysadmin_profiles.app_error",
-    "translation": "Napotkaliśmy błąd podczas odczytu pliku"
+    "translation": "Wystąpił błąd podczas wyszukiwania profili użytkowników"
   },
   {
     "id": "store.sql_user.get_total_users_count.app_error",
@@ -5889,15 +5941,15 @@
   },
   {
     "id": "store.sql_user.get_unread_count.app_error",
-    "translation": "We could not get the unread message count for the user"
+    "translation": "Nie mogliśmy uzyskać nieprzeczytanych wiadomości do użytkownika"
   },
   {
     "id": "store.sql_user.get_unread_count_for_channel.app_error",
-    "translation": "We could not get the unread message count for the user and channel"
+    "translation": "Nie mogliśmy uzyskać nieprzeczytanych wiadomości do użytkownika i kanału"
   },
   {
     "id": "store.sql_user.migrate_theme.critical",
-    "translation": "Failed to migrate User.ThemeProps to Preferences table %v"
+    "translation": "Nie udało się wykonać migracji użytkowników.ThemeProps na tabele Preferences %v"
   },
   {
     "id": "store.sql_user.missing_account.const",
@@ -5905,7 +5957,7 @@
   },
   {
     "id": "store.sql_user.permanent_delete.app_error",
-    "translation": "Nie odnaleziono kanału"
+    "translation": "Nie możemy usunąć istniejącego konta"
   },
   {
     "id": "store.sql_user.save.app_error",
@@ -5925,7 +5977,7 @@
   },
   {
     "id": "store.sql_user.save.existing.app_error",
-    "translation": "Wymagana aktualizacja zespołu"
+    "translation": "Należy wywołać aktualizacja dla dotychczasowych użytkowników"
   },
   {
     "id": "store.sql_user.save.max_accounts.app_error",
@@ -5953,7 +6005,7 @@
   },
   {
     "id": "store.sql_user.update.can_not_change_ldap.app_error",
-    "translation": "Can not change fields set by AD/LDAP"
+    "translation": "Nie można zmienić pola ustawioneg przez AD/LDAP"
   },
   {
     "id": "store.sql_user.update.email_taken.app_error",
@@ -5989,7 +6041,7 @@
   },
   {
     "id": "store.sql_user.update_last_activity.app_error",
-    "translation": "Nie udało się zaktualizować pola last_ping_at"
+    "translation": "Nie udało się zaktualizować pola last_activity_at"
   },
   {
     "id": "store.sql_user.update_last_picture_update.app_error",
@@ -6093,19 +6145,19 @@
   },
   {
     "id": "utils.config.load_config.decoding.panic",
-    "translation": "Error decoding config file={{.Filename}}, err={{.Error}}"
+    "translation": "Błąd podczas rozpakowywania pliku konfiguracyjnego={{.Filename}}, err={{.Error}}"
   },
   {
     "id": "utils.config.load_config.getting.panic",
-    "translation": "Error getting config info file={{.Filename}}, err={{.Error}}"
+    "translation": "Błąd podczas pobierania konfiguracji plik info={{.Filename}}, err={{.Error}}"
   },
   {
     "id": "utils.config.load_config.opening.panic",
-    "translation": "Error opening config file={{.Filename}}, err={{.Error}}"
+    "translation": "Błąd podczas otwierania pliku konfiguracyjnego={{.Filename}}, err={{.Error}}"
   },
   {
     "id": "utils.config.load_config.validating.panic",
-    "translation": "Error validating config file={{.Filename}}, err={{.Error}}"
+    "translation": "Błąd podczas sprawdzania pliku konfiguracyjnego={{.Filename}}, err={{.Error}}"
   },
   {
     "id": "utils.config.save_config.saving.app_error",
@@ -6121,11 +6173,11 @@
   },
   {
     "id": "utils.config.validate_locale.app_error",
-    "translation": "Unable to load mattermost configuration file:  AvailableLocales must include DefaultClientLocale"
+    "translation": "Nie udało się pobrać pliku konfiguracyjnego mattermost: AvailableLocales musi zawierać DefaultClientLocale"
   },
   {
     "id": "utils.diagnostic.analytics_not_found.app_error",
-    "translation": "Analytics not initialized"
+    "translation": "Analytics nie zainicjowany"
   },
   {
     "id": "utils.i18n.loaded",
@@ -6133,7 +6185,7 @@
   },
   {
     "id": "utils.iru.with_evict",
-    "translation": "Must provide a positive size"
+    "translation": "Należy podać dodatni rozmiar"
   },
   {
     "id": "utils.license.load_license.invalid.warn",
@@ -6145,11 +6197,11 @@
   },
   {
     "id": "utils.license.validate_license.decode.error",
-    "translation": "Encountered error decoding license, err=%v"
+    "translation": "Wystąpił błąd autoryzacji licencji, err=%v"
   },
   {
     "id": "utils.license.validate_license.invalid.error",
-    "translation": "Invalid signature, err=%v"
+    "translation": "Nieprawidłowa sygnatura, err=%v"
   },
   {
     "id": "utils.license.validate_license.not_long.error",
@@ -6157,11 +6209,11 @@
   },
   {
     "id": "utils.license.validate_license.signing.error",
-    "translation": "Encountered error signing license, err=%v"
+    "translation": "Wystąpił błąd autoryzacji licencji, err=%v"
   },
   {
     "id": "utils.mail.connect_smtp.helo.app_error",
-    "translation": "Failed to set HELO"
+    "translation": "Nie udało się ustawić HELO"
   },
   {
     "id": "utils.mail.connect_smtp.open.app_error",
@@ -6193,11 +6245,11 @@
   },
   {
     "id": "utils.mail.send_mail.msg.app_error",
-    "translation": "Failed to write email message"
+    "translation": "Nie można napisać wiadomość"
   },
   {
     "id": "utils.mail.send_mail.msg_data.app_error",
-    "translation": "Failed to add email message data"
+    "translation": "Błąd podczas dodawania danych wiadomości e-mail"
   },
   {
     "id": "utils.mail.send_mail.sending.debug",
@@ -6217,7 +6269,7 @@
   },
   {
     "id": "web.admin_console.title",
-    "translation": "Admin Console"
+    "translation": "Konsola Administracyjna"
   },
   {
     "id": "web.authorize_oauth.title",
@@ -6237,15 +6289,15 @@
   },
   {
     "id": "web.claim_account.user.error",
-    "translation": "Couldn't find user teamid=%v, email=%v, err=%v"
+    "translation": "Nie można znaleźć użytkownika teamid=%vv e-mail=%v, err=%v"
   },
   {
     "id": "web.create_dir.error",
-    "translation": "Failed to create directory watcher %v"
+    "translation": "Nie udało się utworzyć stróża katalogu %v"
   },
   {
     "id": "web.dir_fail.error",
-    "translation": "Failed in directory watcher %v"
+    "translation": "Nie udało się utworzyć stróża katalogu %v"
   },
   {
     "id": "web.do_load_channel.error",
@@ -6293,7 +6345,7 @@
   },
   {
     "id": "web.incoming_webhook.text.app_error",
-    "translation": "No text specified"
+    "translation": "Tekst nie jest określony"
   },
   {
     "id": "web.incoming_webhook.text.length.app_error",
@@ -6305,7 +6357,7 @@
   },
   {
     "id": "web.init.debug",
-    "translation": "Inicjalizowanie tras api administracyjnego"
+    "translation": "Inicjalizacja web routes"
   },
   {
     "id": "web.login.error",
@@ -6361,11 +6413,11 @@
   },
   {
     "id": "web.signup_team_complete.title",
-    "translation": "Complete Team Sign Up"
+    "translation": "Utwórzono konto użytkownika"
   },
   {
     "id": "web.signup_team_confirm.title",
-    "translation": "Signup Email Sent"
+    "translation": "E-Mail rejestracyjny wysłany"
   },
   {
     "id": "web.signup_user_complete.link_expired.app_error",
@@ -6381,7 +6433,7 @@
   },
   {
     "id": "web.signup_user_complete.title",
-    "translation": "Complete User Sign Up"
+    "translation": "Utwórzono konto użytkownika"
   },
   {
     "id": "web.singup_with_oauth.invalid_team.app_error",
@@ -6389,7 +6441,7 @@
   },
   {
     "id": "web.watcher_fail.error",
-    "translation": "Failed to add directory to watcher %v"
+    "translation": "Nie udało się utworzyć stróża katalogu %v"
   },
   {
     "id": "wsapi.status.init.debug",

@@ -912,10 +912,6 @@
     "translation": "Sorry, we could not find the page."
   },
   {
-    "id": "api.context.v3_disabled.app_error",
-    "translation": "API version 3 has been disabled on this server. Please use API version 4. See https://api.mattermost.com for details."
-  },
-  {
     "id": "api.context.invalid_body_param.app_error",
     "translation": "Invalid or missing {{.Name}} in request body"
   },
@@ -978,6 +974,10 @@
   {
     "id": "api.context.unknown.app_error",
     "translation": "An unknown error has occurred. Please contact support."
+  },
+  {
+    "id": "api.context.v3_disabled.app_error",
+    "translation": "API version 3 has been disabled on this server. Please use API version 4. See https://api.mattermost.com for details."
   },
   {
     "id": "api.deprecated.init.debug",
@@ -3492,6 +3492,22 @@
     "translation": "Compliance export started for job '{{.JobName}}' at '{{.FilePath}}'"
   },
   {
+    "id": "ent.elasticsearch.create_client.connect_failed",
+    "translation": "Setting up ElasticSearch Client Failed"
+  },
+  {
+    "id": "ent.elasticsearch.create_index_if_not_exists.index_create_failed",
+    "translation": "Failed to create ElasticSearch index"
+  },
+  {
+    "id": "ent.elasticsearch.create_index_if_not_exists.index_exists_failed",
+    "translation": "Failed to establish whether ElasticSearch index exists"
+  },
+  {
+    "id": "ent.elasticsearch.create_index_if_not_exists.index_mapping_failed",
+    "translation": "Failed to setup ElasticSearch index mapping"
+  },
+  {
     "id": "ent.elasticsearch.delete_post.error",
     "translation": "Failed to delete the post"
   },
@@ -3514,22 +3530,6 @@
   {
     "id": "ent.elasticsearch.search_posts.unmarshall_post_failed",
     "translation": "Failed to decode search results"
-  },
-  {
-    "id": "ent.elasticsearch.create_client.connect_failed",
-    "translation": "Setting up ElasticSearch Client Failed"
-  },
-  {
-    "id": "ent.elasticsearch.create_index_if_not_exists.index_create_failed",
-    "translation": "Failed to create ElasticSearch index"
-  },
-  {
-    "id": "ent.elasticsearch.create_index_if_not_exists.index_exists_failed",
-    "translation": "Failed to establish whether ElasticSearch index exists"
-  },
-  {
-    "id": "ent.elasticsearch.create_index_if_not_exists.index_mapping_failed",
-    "translation": "Failed to setup ElasticSearch index mapping"
   },
   {
     "id": "ent.elasticsearch.start.index_settings_failed",
@@ -3764,12 +3764,12 @@
     "translation": "Page not found"
   },
   {
-    "id": "jobs.set_job_error.update.error",
-    "translation": "Failed to set job status to error"
-  },
-  {
     "id": "jobs.request_cancellation.status.error",
     "translation": "Could not request cancellation for job that is not in a cancelable state."
+  },
+  {
+    "id": "jobs.set_job_error.update.error",
+    "translation": "Failed to set job status to error"
   },
   {
     "id": "manaultesting.get_channel_id.no_found.debug",

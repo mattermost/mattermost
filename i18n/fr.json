@@ -221,7 +221,7 @@
   },
   {
     "id": "api.channel.create_direct_channel.invalid_user.app_error",
-    "translation": "ID utilisateur invalide pour la création directe du canal"
+    "translation": "ID utilisateur invalide pour la création du canal de messages privés"
   },
   {
     "id": "api.channel.create_group.bad_size.app_error",
@@ -429,7 +429,7 @@
   },
   {
     "id": "api.command.execute_command.not_found.app_error",
-    "translation": "Command with a trigger of '{{.Trigger}}' not found. To send a message beginning with \"/\", try adding an empty space at the beginning of the message."
+    "translation": "Une commande avec le mot-clé déclencheur '{{.Trigger}}' n'a pas pu être trouvée. Pour envoyer un message commençant par \"/\", ajoutez un espace au début du message."
   },
   {
     "id": "api.command.execute_command.save.app_error",
@@ -461,7 +461,7 @@
   },
   {
     "id": "api.command.invite_people.invite_off",
-    "translation": "User creation has been disabled on this server, no invite(s) sent"
+    "translation": "La création d'utilisateur a été désactivée sur ce serveur, aucune invitation n'a été envoyée"
   },
   {
     "id": "api.command.invite_people.name",
@@ -501,35 +501,35 @@
   },
   {
     "id": "api.command_channel_header.channel.app_error",
-    "translation": "Error to retrieve the current channel."
+    "translation": "Impossible de récupérer le canal courant."
   },
   {
     "id": "api.command_channel_header.desc",
-    "translation": "Edit the channel header"
+    "translation": "Editer l'entête du canal"
   },
   {
     "id": "api.command_channel_header.hint",
-    "translation": "[text]"
+    "translation": "[texte]"
   },
   {
     "id": "api.command_channel_header.message.app_error",
-    "translation": "Text must be provided with the /header command."
+    "translation": "Du texte doit être fourni avec la commande /header."
   },
   {
     "id": "api.command_channel_header.name",
-    "translation": "header"
+    "translation": "entête"
   },
   {
     "id": "api.command_channel_header.permission.app_error",
-    "translation": "You do not have the appropriate permissions to edit the channel header."
+    "translation": "Vous ne disposez pas des permissions requises pour éditer l'entête du canal."
   },
   {
     "id": "api.command_channel_header.update_channel.app_error",
-    "translation": "Error to update the current channel."
+    "translation": "Une erreur s'est produite lors de la mise à jour du canal."
   },
   {
     "id": "api.command_channel_header.update_channel.success",
-    "translation": "Channel header successfully updated."
+    "translation": "L'entête du canal a été mis à jour avec succès."
   },
   {
     "id": "api.command_collapse.desc",
@@ -589,11 +589,11 @@
   },
   {
     "id": "api.command_help.desc",
-    "translation": "Open the Mattermost help page"
+    "translation": "Ouvrir l'aide de Mattermost"
   },
   {
     "id": "api.command_help.name",
-    "translation": "help"
+    "translation": "aide"
   },
   {
     "id": "api.command_join.desc",
@@ -613,7 +613,7 @@
   },
   {
     "id": "api.command_join.missing.app_error",
-    "translation": "Nous n'avons pas pu trouver le canal"
+    "translation": "Impossible de trouver le canal"
   },
   {
     "id": "api.command_join.name",
@@ -705,19 +705,35 @@
   },
   {
     "id": "api.command_open.name",
-    "translation": "open"
+    "translation": "ouvrir"
+  },
+  {
+    "id": "api.command_search.desc",
+    "translation": "Rechercher du texte dans les messages"
+  },
+  {
+    "id": "api.command_search.hint",
+    "translation": "[texte]"
+  },
+  {
+    "id": "api.command_search.name",
+    "translation": "rechercher"
+  },
+  {
+    "id": "api.command_search.unsupported.app_error",
+    "translation": "La commande de recherche n'est pas supportée sur votre périphérique"
   },
   {
     "id": "api.command_settings.desc",
-    "translation": "Open the Account Settings dialog"
+    "translation": "Ouvrir la page des Paramètres du compte"
   },
   {
     "id": "api.command_settings.name",
-    "translation": "settings"
+    "translation": "paramètres"
   },
   {
     "id": "api.command_settings.unsupported.app_error",
-    "translation": "The settings command is not supported on your device"
+    "translation": "La commande de paramètres n'est pas supportée sur votre périphérique"
   },
   {
     "id": "api.command_shortcuts.browser.channel_next",
@@ -797,7 +813,7 @@
   },
   {
     "id": "api.command_shortcuts.msgs.comp_emoji",
-    "translation": ":[caractère]+TAB: Saisi automatiquement l'émoticône commencant par [caractère]\n\n"
+    "translation": ":[caractère]+TAB: Saisi automatiquement l'émoticône commençant par [caractère]\n\n"
   },
   {
     "id": "api.command_shortcuts.msgs.comp_username",
@@ -960,6 +976,10 @@
     "translation": "Une erreur inconnue est survenue. Veuillez contacter le support."
   },
   {
+    "id": "api.context.v3_disabled.app_error",
+    "translation": "La version 3 de l'API a été désactivée sur ce serveur. Veuillez utilisez la version 4 de l'API. Référez-vous à https://api.mattermost.com pour plus de détails."
+  },
+  {
     "id": "api.deprecated.init.debug",
     "translation": "Initialisation des routes dépréciées de l'API"
   },
@@ -977,11 +997,11 @@
   },
   {
     "id": "api.email_batching.check_pending_emails.status.app_error",
-    "translation": "Impossible de trouver le statut du destinataire pour l'envoi par lot des notifications par e-mail"
+    "translation": "Impossible de trouver le statut du destinataire pour l'envoi par lot des e-mails de notification"
   },
   {
     "id": "api.email_batching.render_batched_post.channel.app_error",
-    "translation": "Impossible de trouver le canal du message pour l'envoi par lot des notifications par e-mail"
+    "translation": "Impossible de trouver le canal du message pour l'envoi par lot des e-mails de notification"
   },
   {
     "id": "api.email_batching.render_batched_post.date",
@@ -1001,7 +1021,7 @@
   },
   {
     "id": "api.email_batching.render_batched_post.sender.app_error",
-    "translation": "Impossible de trouver l’expéditeur du message pour l'envoi d'e-mails groupés"
+    "translation": "Impossible de trouver l’expéditeur du message pour l'envoi par lot d'e-mails de notification"
   },
   {
     "id": "api.email_batching.send_batched_email_notification.body_text",
@@ -1012,11 +1032,11 @@
   },
   {
     "id": "api.email_batching.send_batched_email_notification.preferences.app_error",
-    "translation": "Impossible de trouver les préférences d'affichage du destinataire pour l'envoi de e-mails groupés"
+    "translation": "Impossible de trouver les préférences d'affichage du destinataire pour l'envoi par lot d'e-mails de notification"
   },
   {
     "id": "api.email_batching.send_batched_email_notification.send.app_error",
-    "translation": "Impossible d'envoyer l'e-mail groupé à %v : %v"
+    "translation": "Impossible d'envoyer le lot d'e-mails de notification à %v : %v"
   },
   {
     "id": "api.email_batching.send_batched_email_notification.subject",
@@ -1027,7 +1047,7 @@
   },
   {
     "id": "api.email_batching.send_batched_email_notification.user.app_error",
-    "translation": "Impossible de trouver un destinataire pour l'envoi d'e-mails groupés"
+    "translation": "Impossible de trouver un destinataire pour l'envoi du lot d'e-mails de notification"
   },
   {
     "id": "api.email_batching.start.starting",
@@ -1689,11 +1709,11 @@
   },
   {
     "id": "api.post.send_notifications_and_forget.push_image_only",
-    "translation": " Un ou plusieurs fichiers envoyés "
+    "translation": " A envoyé un ou plusieurs fichiers sur "
   },
   {
     "id": "api.post.send_notifications_and_forget.push_image_only_dm",
-    "translation": " Uploaded one or more files in a direct message"
+    "translation": " A envoyé un ou plusieurs fichiers dans un message privé"
   },
   {
     "id": "api.post.send_notifications_and_forget.push_in",
@@ -1725,7 +1745,7 @@
   },
   {
     "id": "api.post.update_post.find.app_error",
-    "translation": "Nous n'avons pas pu trouver de message existant ou de commentaire à mettre à jour."
+    "translation": "Impossible de trouver le message existant ou commentaire à mettre à jour."
   },
   {
     "id": "api.post.update_post.permissions.app_error",
@@ -2125,7 +2145,7 @@
   },
   {
     "id": "api.team.invite_members.invalid_email.app_error",
-    "translation": "The following email addresses do not belong to an accepted domain: {{.Addresses}}. Please contact your System Administrator for details."
+    "translation": "Les adresses e-mail suivantes ne font pas partie d'un domaine accepté : {{.Addresses}}. Veuillez contacter votre administrateur système pour plus de détails."
   },
   {
     "id": "api.team.invite_members.member",
@@ -2585,7 +2605,7 @@
   },
   {
     "id": "api.user.email_to_ldap.not_available.app_error",
-    "translation": "LDAP n'est pas disponible sur ce serveur"
+    "translation": "AD/LDAP n'est pas disponible sur ce serveur"
   },
   {
     "id": "api.user.generate_mfa_qr.not_available.app_error",
@@ -2605,11 +2625,11 @@
   },
   {
     "id": "api.user.ldap_to_email.not_available.app_error",
-    "translation": "LDAP n'est pas disponible sur ce serveur"
+    "translation": "AD/LDAP n'est pas disponible sur ce serveur"
   },
   {
     "id": "api.user.ldap_to_email.not_ldap_account.app_error",
-    "translation": "Ce compte utilisateur n'utilise pas LDAP"
+    "translation": "Ce compte utilisateur n'utilise pas AD/LDAP"
   },
   {
     "id": "api.user.login.blank_pwd.app_error",
@@ -2653,7 +2673,7 @@
   },
   {
     "id": "api.user.login_ldap.disabled.app_error",
-    "translation": "LDAP n'est pas activé sur ce serveur"
+    "translation": "AD/LDAP n'est pas activé sur ce serveur"
   },
   {
     "id": "api.user.login_ldap.need_id.app_error",
@@ -2661,7 +2681,7 @@
   },
   {
     "id": "api.user.login_ldap.not_available.app_error",
-    "translation": "LDAP n'est pas disponible sur ce serveur"
+    "translation": "AD/LDAP n'est pas disponible sur ce serveur"
   },
   {
     "id": "api.user.oauth_to_email.context.app_error",
@@ -2709,7 +2729,7 @@
   },
   {
     "id": "api.user.send_email_change_username_and_forget.error",
-    "translation": "Impossible d'envoyer l'e-mail de changement de nom d'utilisateur"
+    "translation": "Impossible d'envoyer l'e-mail de notification de changement de nom d'utilisateur"
   },
   {
     "id": "api.user.send_email_change_verify_email_and_forget.error",
@@ -2745,7 +2765,7 @@
   },
   {
     "id": "api.user.update_active.no_deactivate_ldap.app_error",
-    "translation": "Vous ne pouvez pas modifier le statut actif des comptes LDAP. Veuillez désactiver ce compte dans votre serveur LDAP."
+    "translation": "Vous ne pouvez pas modifier le statut actif des comptes AD/LDAP. Veuillez désactiver ce compte dans votre serveur AD/LDAP."
   },
   {
     "id": "api.user.update_active.permissions.app_error",
@@ -3021,35 +3041,35 @@
   },
   {
     "id": "app.import.import_direct_channel.create_direct_channel.error",
-    "translation": "Failed to get direct channel"
-  },
-  {
-    "id": "app.import.import_direct_channel.create_direct_channel.error",
-    "translation": "Failed to get direct channel"
+    "translation": "Impossible de créer le canal de messages privés"
   },
   {
     "id": "app.import.import_direct_channel.create_group_channel.error",
-    "translation": "Failed to get group channel"
-  },
-  {
-    "id": "app.import.import_direct_channel.create_group_channel.error",
-    "translation": "Failed to get group channel"
+    "translation": "Impossible de créer le canal de groupe"
   },
   {
     "id": "app.import.import_direct_channel.member_not_found.error",
-    "translation": "Could not find channel member when importing direct channel"
+    "translation": "Impossible de trouver le membre du canal lors de l'import du canal de messages privés"
   },
   {
     "id": "app.import.import_direct_channel.update_header_failed.error",
-    "translation": "Failed to update direct channel header"
+    "translation": "Impossible de mettre à jour l'entête du canal de messages privés"
   },
   {
     "id": "app.import.import_direct_post.channel_member_not_found.error",
-    "translation": "Could not find channel member when importing direct channel post"
+    "translation": "Impossible de trouver le membre du canal lors de l'import du message du canal de messages privés"
+  },
+  {
+    "id": "app.import.import_direct_post.create_direct_channel.error",
+    "translation": "Impossible de récupérer le canal de messages directs"
+  },
+  {
+    "id": "app.import.import_direct_post.create_group_channel.error",
+    "translation": "Impossible de récupérer le canal de messages de groupe"
   },
   {
     "id": "app.import.import_direct_post.user_not_found.error",
-    "translation": "Post user does not exist"
+    "translation": "Le message de l'utilisateur n'existe pas"
   },
   {
     "id": "app.import.import_line.null_channel.error",
@@ -3057,11 +3077,11 @@
   },
   {
     "id": "app.import.import_line.null_direct_channel.error",
-    "translation": "La ligne de données importée dispose d'un type \"channel\", mais l'objet channel est null."
+    "translation": "La ligne de données importée dispose d'un type \"direct_channel\", mais l'objet direct_channel est null."
   },
   {
     "id": "app.import.import_line.null_direct_post.error",
-    "translation": "La ligne de données importée dispose d'un type \"post\", mais l'objet post est null."
+    "translation": "La ligne de données importée dispose d'un type \"direct_post\", mais l'objet direct_post est null."
   },
   {
     "id": "app.import.import_line.null_post.error",
@@ -3137,51 +3157,51 @@
   },
   {
     "id": "app.import.validate_direct_channel_import_data.header_length.error",
-    "translation": "Direct channel header is too long"
+    "translation": "L'entête du canal de messages privés est trop long"
   },
   {
     "id": "app.import.validate_direct_channel_import_data.members_required.error",
-    "translation": "La propriété de canal requise est manquante : name"
+    "translation": "La propriété requise pour un canal de messages privés est manquante: members"
   },
   {
     "id": "app.import.validate_direct_channel_import_data.members_too_few.error",
-    "translation": "Direct channel members list contains too few items"
+    "translation": "La liste des membres du canal de messages privés contient trop peu d'éléments"
   },
   {
     "id": "app.import.validate_direct_channel_import_data.members_too_many.error",
-    "translation": "Direct channel members list contains too many items"
+    "translation": "La liste des membres du canal de messages privés contient trop d'éléments"
   },
   {
     "id": "app.import.validate_direct_post_import_data.channel_members_required.error",
-    "translation": "La propriété de message requise est manquante : create_at."
+    "translation": "La propriété requise pour un message privé est manquante: channel_members"
   },
   {
     "id": "app.import.validate_direct_post_import_data.channel_members_too_few.error",
-    "translation": "Direct post channel members list contains too few items"
+    "translation": "La liste des messages des membres du canal de messages privés contient trop peu d'éléments"
   },
   {
     "id": "app.import.validate_direct_post_import_data.channel_members_too_many.error",
-    "translation": "Direct post channel members list contains too many items"
+    "translation": "La liste des messages des membres du canal de messages privés contient trop d'éléments"
   },
   {
     "id": "app.import.validate_direct_post_import_data.create_at_missing.error",
-    "translation": "La propriété de message requise est manquante : create_at."
+    "translation": "La propriété requise pour un message privé est manquante: create_at"
   },
   {
     "id": "app.import.validate_direct_post_import_data.create_at_zero.error",
-    "translation": "CreateAt must be greater than 0"
+    "translation": "CreateAt doit être plus grand que 0"
   },
   {
     "id": "app.import.validate_direct_post_import_data.message_length.error",
-    "translation": "Message is too long"
+    "translation": "Le message est trop long"
   },
   {
     "id": "app.import.validate_direct_post_import_data.message_missing.error",
-    "translation": "La propriété de message requise est manquante : Message."
+    "translation": "La propriété requise pour un message privé est manquante: message"
   },
   {
     "id": "app.import.validate_direct_post_import_data.user_missing.error",
-    "translation": "La propriété de message requise est manquante : User."
+    "translation": "La propriété requise pour un message privé est manquante: user"
   },
   {
     "id": "app.import.validate_post_import_data.channel_missing.error",
@@ -3409,7 +3429,7 @@
   },
   {
     "id": "ent.cluster.config_changed.info",
-    "translation": "Cluster configuration has changed for id={{ .id }}.  The cluster may become unstable and a restart is required.  To ensure the cluster is configured correctly you should perform a rolling restart immediately."
+    "translation": "La configuration du cluster a changé pour l'id={{ .id }}.  Le cluster peut devenir instable et un redémarrage est nécessaire.  Pour s'assurer que le cluster est configuré correctement, vous devriez effectuer un redémarrage immédiatement."
   },
   {
     "id": "ent.cluster.debug_fail.debug",
@@ -3441,7 +3461,7 @@
   },
   {
     "id": "ent.cluster.save_config.error",
-    "translation": "System Console is set to read-only when High Availability is enabled  unless ReadOnlyConfig is disabled in the configuration file."
+    "translation": "La console système est définie en lecture seule lorsque le mode haute disponibilité est activé  à moins que ReadOnlyConfig est désactivé dans le fichier de configuration. "
   },
   {
     "id": "ent.cluster.starting.info",
@@ -3472,6 +3492,34 @@
     "translation": "L'export de compatibilité a démarré pour le job '{{.JobName}}' à '{{.FilePath}}'"
   },
   {
+    "id": "ent.elasticsearch.create_client.connect_failed",
+    "translation": "La configuration du client ElasticSearch a échoué"
+  },
+  {
+    "id": "ent.elasticsearch.create_index_if_not_exists.index_create_failed",
+    "translation": "Impossible de créer l'index d'ElasticSearch"
+  },
+  {
+    "id": "ent.elasticsearch.create_index_if_not_exists.index_exists_failed",
+    "translation": "Impossible de savoir si l'index d'ElasticSearch existe"
+  },
+  {
+    "id": "ent.elasticsearch.create_index_if_not_exists.index_mapping_failed",
+    "translation": "Impossible de configurer le mappage de l'index d'ElasticSearch"
+  },
+  {
+    "id": "ent.elasticsearch.delete_post.error",
+    "translation": "Failed to delete the post"
+  },
+  {
+    "id": "ent.elasticsearch.index_post.error",
+    "translation": "Failed to index the post"
+  },
+  {
+    "id": "ent.elasticsearch.not_started.error",
+    "translation": "Elasticsearch is not started"
+  },
+  {
     "id": "ent.elasticsearch.search_posts.disabled",
     "translation": "La recherche ElasticSearch est désactivée sur ce serveur"
   },
@@ -3484,32 +3532,24 @@
     "translation": "Impossible de décoder les résultats de recherche"
   },
   {
-    "id": "ent.elasticsearch.start.connect_failed",
-    "translation": "La configuration du client ElasticSearch a échoué"
-  },
-  {
-    "id": "ent.elasticsearch.start.index_create_failed",
-    "translation": "Impossible de créer l'index d'ElasticSearch"
-  },
-  {
-    "id": "ent.elasticsearch.start.index_exists_failed",
-    "translation": "Impossible de savoir si l'index d'ElasticSearch existe"
-  },
-  {
-    "id": "ent.elasticsearch.start.index_mapping_failed",
-    "translation": "Impossible de configurer le mappage de l'index d'ElasticSearch"
-  },
-  {
     "id": "ent.elasticsearch.start.index_settings_failed",
     "translation": "Impossible de définir les paramètres de l'index d'ElasticSearch"
   },
   {
+    "id": "ent.elasticsearch.test_config.connect_failed",
+    "translation": "Connecting to Elasticsearch server failed."
+  },
+  {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
-    "translation": "Elasticsearch is disabled."
+    "translation": "Elasticsearch est désactivé."
   },
   {
     "id": "ent.elasticsearch.test_config.license.error",
-    "translation": "License does not support Elasticsearch."
+    "translation": "La licence actuelle ne supporte pas Elasticsearch."
+  },
+  {
+    "id": "ent.elasticsearch.test_config.reenter_password",
+    "translation": "The Elasticsearch Server URL or Username has changed. Please re-enter the Elasticsearch password to test connection."
   },
   {
     "id": "ent.emoji.licence_disable.app_error",
@@ -3525,7 +3565,7 @@
   },
   {
     "id": "ent.ldap.do_login.bind_admin_user.app_error",
-    "translation": "Impossible de se connecter au serveur LDAP. Vérifiez l'utilisateur et le mot de passe du compte utilisé pour se connecter au serveur LDAP."
+    "translation": "Impossible de se connecter au serveur AD/LDAP. Vérifiez l'utilisateur et le mot de passe du compte utilisé pour se connecter au serveur AD/LDAP."
   },
   {
     "id": "ent.ldap.do_login.invalid_password.app_error",
@@ -3533,7 +3573,7 @@
   },
   {
     "id": "ent.ldap.do_login.licence_disable.app_error",
-    "translation": "Fonctionnalité LDAP désactivée par la licence actuelle. Veuillez contacter votre administrateur système concernant la mise à niveau de votre licence entreprise."
+    "translation": "Fonctionnalité AD/LDAP désactivée par la licence actuelle. Veuillez contacter votre administrateur système concernant la mise à niveau de votre licence entreprise."
   },
   {
     "id": "ent.ldap.do_login.matched_to_many_users.app_error",
@@ -3541,11 +3581,11 @@
   },
   {
     "id": "ent.ldap.do_login.search_ldap_server.app_error",
-    "translation": "Échec de la recherche du serveur LDAP"
+    "translation": "Échec de la recherche du serveur AD/LDAP"
   },
   {
     "id": "ent.ldap.do_login.unable_to_connect.app_error",
-    "translation": "Impossible de se connecter au serveur LDAP"
+    "translation": "Impossible de se connecter au serveur AD/LDAP"
   },
   {
     "id": "ent.ldap.do_login.unable_to_create_user.app_error",
@@ -3553,27 +3593,27 @@
   },
   {
     "id": "ent.ldap.do_login.user_filtered.app_error",
-    "translation": "Votre compte LDAP ne dispose pas des permissions pour utiliser ce serveur Mattermost. Veuillez demander à votre administrateur système de vérifier le filtre des utilisateurs LDAP."
+    "translation": "Votre compte AD/LDAP ne dispose pas des permissions pour utiliser ce serveur Mattermost. Veuillez demander à votre administrateur système de vérifier le filtre des utilisateurs AD/LDAP."
   },
   {
     "id": "ent.ldap.do_login.user_not_registered.app_error",
-    "translation": "Utilisateur non enregistré sur le serveur LDAP"
+    "translation": "Utilisateur non enregistré sur le serveur AD/LDAP"
   },
   {
     "id": "ent.ldap.mattermost_user_update",
-    "translation": "L'utilisateur Mattermost a été mis à jour par le serveur LDAP."
+    "translation": "L'utilisateur Mattermost a été mis à jour par le serveur AD/LDAP."
   },
   {
     "id": "ent.ldap.syncdone.info",
-    "translation": "Synchronisation LDAP terminé"
+    "translation": "Synchronisation AD/LDAP terminé"
   },
   {
     "id": "ent.ldap.syncronize.get_all.app_error",
-    "translation": "Impossible d'obtenir tous les utilisateurs à l'aide de LDAP"
+    "translation": "Impossible d'obtenir tous les utilisateurs à l'aide de AD/LDAP"
   },
   {
     "id": "ent.ldap.validate_filter.app_error",
-    "translation": "Filtre LDAP Invalide"
+    "translation": "Filtre AD/LDAP Invalide"
   },
   {
     "id": "ent.metrics.starting.info",
@@ -3621,11 +3661,11 @@
   },
   {
     "id": "ent.migration.migratetoldap.duplicate_field",
-    "translation": "Impossible de migrer les utilisateurs LDAP avec le champ en question. Doublon détecté. Veuillez supprimer tous les doublons et réessayer."
+    "translation": "Impossible de migrer les utilisateurs AD/LDAP avec le champ en question. Doublon détecté. Veuillez supprimer tous les doublons et réessayer."
   },
   {
     "id": "ent.migration.migratetoldap.user_not_found",
-    "translation": "Impossible de trouver l'utilisateur sur le serveur LDAP : "
+    "translation": "Impossible de trouver l'utilisateur sur le serveur AD/LDAP : "
   },
   {
     "id": "ent.saml.attribute.app_error",
@@ -3722,6 +3762,14 @@
   {
     "id": "error.not_found.title",
     "translation": "Page introuvable"
+  },
+  {
+    "id": "jobs.request_cancellation.status.error",
+    "translation": "Could not request cancellation for job that is not in a cancelable state."
+  },
+  {
+    "id": "jobs.set_job_error.update.error",
+    "translation": "Failed to set job status to error"
   },
   {
     "id": "manaultesting.get_channel_id.no_found.debug",
@@ -3905,7 +3953,7 @@
   },
   {
     "id": "model.channel_member.is_valid.email_value.app_error",
-    "translation": "Valeur de la notification e-mail invalide"
+    "translation": "Valeur d'e-mail de notification invalide"
   },
   {
     "id": "model.channel_member.is_valid.notify_level.app_error",
@@ -4141,31 +4189,31 @@
   },
   {
     "id": "model.config.is_valid.ldap_basedn",
-    "translation": "Le champ LDAP \"BaseDN\" est requis."
+    "translation": "Le champ AD/LDAP \"BaseDN\" est requis."
   },
   {
     "id": "model.config.is_valid.ldap_bind_password",
-    "translation": "Le champ LDAP \"Bind Password\" est requis."
+    "translation": "Le champ AD/LDAP \"Bind Password\" est requis."
   },
   {
     "id": "model.config.is_valid.ldap_bind_username",
-    "translation": "Le champ LDAP \"Bind Username\" est requis."
+    "translation": "Le champ AD/LDAP \"Bind Username\" est requis."
   },
   {
     "id": "model.config.is_valid.ldap_email",
-    "translation": "Le champ LDAP \"Email Attribute\" est requis."
+    "translation": "Le champ AD/LDAP \"Email Attribute\" est requis."
   },
   {
     "id": "model.config.is_valid.ldap_firstname",
-    "translation": "L'attribut LDAP \"Prénom\" est obligatoire."
+    "translation": "Le champ AD/LDAP \"First Name Attribute\" est obligatoire."
   },
   {
     "id": "model.config.is_valid.ldap_id",
-    "translation": "L'attribut LDAP \"ID\" est obligatoire."
+    "translation": "Le champ AD/LDAP \"ID Attribute\" est obligatoire."
   },
   {
     "id": "model.config.is_valid.ldap_lastname",
-    "translation": "L'attribut LDAP \"nom\" est obligatoire."
+    "translation": "Le champ AD/LDAP \"Last Name Attribute\" est obligatoire."
   },
   {
     "id": "model.config.is_valid.ldap_max_page_size.app_error",
@@ -4173,11 +4221,11 @@
   },
   {
     "id": "model.config.is_valid.ldap_required.app_error",
-    "translation": "Champ LDAP manquant."
+    "translation": "Champ AD/LDAP manquant."
   },
   {
     "id": "model.config.is_valid.ldap_required.app_error",
-    "translation": "Champ LDAP manquant."
+    "translation": "Champ AD/LDAP manquant."
   },
   {
     "id": "model.config.is_valid.ldap_security.app_error",
@@ -4185,7 +4233,7 @@
   },
   {
     "id": "model.config.is_valid.ldap_server",
-    "translation": "Le champ \"serveur LDAP\" est obligatoire."
+    "translation": "Le champ \"AD/LDAP Server\" est requis."
   },
   {
     "id": "model.config.is_valid.ldap_sync_interval.app_error",
@@ -4193,7 +4241,7 @@
   },
   {
     "id": "model.config.is_valid.ldap_username",
-    "translation": "L'attribut LDAP \"Nom d'utilisateur\" est obligatoire."
+    "translation": "Le champ AD/LDAP \"Username Attribute\" est obligatoire."
   },
   {
     "id": "model.config.is_valid.listen_address.app_error",
@@ -4285,7 +4333,7 @@
   },
   {
     "id": "model.config.is_valid.site_url_email_batching.app_error",
-    "translation": "Impossible d'activer l'envoi d'e-mails par lot si SiteURL n'est pas défini."
+    "translation": "Impossible d'activer l'envoi d'e-mails par lot si l'URL de site n'est pas définie."
   },
   {
     "id": "model.config.is_valid.sitename_length.app_error",
@@ -4313,7 +4361,7 @@
   },
   {
     "id": "model.config.is_valid.teammate_name_display.app_error",
-    "translation": "Invalid teammate display.  Must be 'full_name', 'nickname_full_name' or 'username'"
+    "translation": "Affichage invalide du coéquipier.  Doit être 'full_name', 'nickname_full_name' ou 'username'"
   },
   {
     "id": "model.config.is_valid.time_between_user_typing.app_error",
@@ -4941,7 +4989,7 @@
   },
   {
     "id": "store.sql_channel.analytics_type_count.app_error",
-    "translation": "Nous n'avons pas pu obtenir le nombre de type de canaux"
+    "translation": "Impossible d'obtenir le nombre de type de canaux"
   },
   {
     "id": "store.sql_channel.check_open_channel_permissions.app_error",
@@ -4957,7 +5005,7 @@
   },
   {
     "id": "store.sql_channel.delete.channel.app_error",
-    "translation": "Nous n'avons pas pu supprimer le canal"
+    "translation": "Impossible de supprimer le canal"
   },
   {
     "id": "store.sql_channel.extra_updated.app_error",
@@ -4965,7 +5013,7 @@
   },
   {
     "id": "store.sql_channel.get.existing.app_error",
-    "translation": "Nous n'avons pas pu trouver le canal existant"
+    "translation": "Impossible de trouver le canal existant"
   },
   {
     "id": "store.sql_channel.get.find.app_error",
@@ -4973,11 +5021,11 @@
   },
   {
     "id": "store.sql_channel.get_all.app_error",
-    "translation": "Nous n'avons pas pu charger tous les canaux"
+    "translation": "Impossible de charger tous les canaux"
   },
   {
     "id": "store.sql_channel.get_by_name.existing.app_error",
-    "translation": "Nous n'avons pas pu trouver le canal existant"
+    "translation": "Impossible de trouver le canal existant"
   },
   {
     "id": "store.sql_channel.get_by_name.missing.app_error",
@@ -4985,11 +5033,11 @@
   },
   {
     "id": "store.sql_channel.get_channel_counts.get.app_error",
-    "translation": "Nous n'avons pas pu obtenir le nombre de canaux"
+    "translation": "Impossible d'obtenir le nombre de canaux"
   },
   {
     "id": "store.sql_channel.get_channels.get.app_error",
-    "translation": "Nous n'avons pas pu obtenir les canaux"
+    "translation": "Impossible d'obtenir les canaux"
   },
   {
     "id": "store.sql_channel.get_channels.not_found.app_error",
@@ -5013,7 +5061,7 @@
   },
   {
     "id": "store.sql_channel.get_extra_members.app_error",
-    "translation": "Nous n'avons pas pu charger les informations supplémentaires sur les membres du canal"
+    "translation": "Impossible de charger les informations supplémentaires sur les membres du canal"
   },
   {
     "id": "store.sql_channel.get_for_post.app_error",
@@ -5021,7 +5069,7 @@
   },
   {
     "id": "store.sql_channel.get_member.app_error",
-    "translation": "Nous n'avons pas pu obtenir les membres du canal"
+    "translation": "Impossible d'obtenir le membre du canal"
   },
   {
     "id": "store.sql_channel.get_member.missing.app_error",
@@ -5029,7 +5077,7 @@
   },
   {
     "id": "store.sql_channel.get_member_count.app_error",
-    "translation": "Nous n'avons pas pu obtenir le nombre de membres du canal"
+    "translation": "Impossible d'obtenir le nombre de membres du canal"
   },
   {
     "id": "store.sql_channel.get_member_for_post.app_error",
@@ -5037,7 +5085,7 @@
   },
   {
     "id": "store.sql_channel.get_members.app_error",
-    "translation": "Nous n'avons pas pu obtenir les membres du canal"
+    "translation": "Impossible d'obtenir les membres du canal"
   },
   {
     "id": "store.sql_channel.get_members_by_ids.app_error",
@@ -5045,7 +5093,7 @@
   },
   {
     "id": "store.sql_channel.get_more_channels.get.app_error",
-    "translation": "Nous n'avons pas pu obtenir les canaux"
+    "translation": "Impossible d'obtenir les canaux"
   },
   {
     "id": "store.sql_channel.get_public_channels.get.app_error",
@@ -5057,7 +5105,7 @@
   },
   {
     "id": "store.sql_channel.increment_mention_count.app_error",
-    "translation": "Nous n'avons pas pu incrémenter le nombre de mentions"
+    "translation": "Impossible d'incrémenter le nombre de mentions"
   },
   {
     "id": "store.sql_channel.permanent_delete.app_error",
@@ -5065,11 +5113,11 @@
   },
   {
     "id": "store.sql_channel.permanent_delete_by_team.app_error",
-    "translation": "Nous n'avons pas pu supprimer les canaux"
+    "translation": "Impossible de supprimer les canaux"
   },
   {
     "id": "store.sql_channel.permanent_delete_members_by_user.app_error",
-    "translation": "Nous n'avons pas pu retirer le membre du canal"
+    "translation": "Impossible de retirer le membre du canal"
   },
   {
     "id": "store.sql_channel.pinned_posts.app_error",
@@ -5077,7 +5125,7 @@
   },
   {
     "id": "store.sql_channel.remove_member.app_error",
-    "translation": "Nous n'avons pas pu retirer le membre du canal"
+    "translation": "Impossible de retirer le membre du canal"
   },
   {
     "id": "store.sql_channel.save.commit_transaction.app_error",
@@ -5113,7 +5161,7 @@
   },
   {
     "id": "store.sql_channel.save_channel.save.app_error",
-    "translation": "Nous n'avons pas pu enregistrer ce canal"
+    "translation": "Impossible d'enregistrer ce canal"
   },
   {
     "id": "store.sql_channel.save_direct_channel.add_members.app_error",
@@ -5145,7 +5193,7 @@
   },
   {
     "id": "store.sql_channel.save_member.save.app_error",
-    "translation": "Nous n'avons pas pu enregistrer le membre du canal"
+    "translation": "Impossible d'enregistrer le membre du canal"
   },
   {
     "id": "store.sql_channel.search.app_error",
@@ -5153,11 +5201,11 @@
   },
   {
     "id": "store.sql_channel.set_last_viewed_at.app_error",
-    "translation": "Nous n'avons pas pu mettre à jour la date de dernier affichage."
+    "translation": "Impossible de mettre à jour la date de dernier affichage"
   },
   {
     "id": "store.sql_channel.update.app_error",
-    "translation": "Nous n'avons pas pu mettre à jour le canal"
+    "translation": "Impossible de mettre à jour le canal"
   },
   {
     "id": "store.sql_channel.update.exists.app_error",
@@ -5173,7 +5221,7 @@
   },
   {
     "id": "store.sql_channel.update_last_viewed_at.app_error",
-    "translation": "Nous n'avons pas pu mettre à jour la date de dernier affichage."
+    "translation": "Impossible de mettre à jour la date de dernier affichage"
   },
   {
     "id": "store.sql_channel.update_member.app_error",
@@ -5181,27 +5229,27 @@
   },
   {
     "id": "store.sql_command.analytics_command_count.app_error",
-    "translation": "Nous n'avons pas pu compter les commandes"
+    "translation": "Impossible de compter les commandes"
   },
   {
     "id": "store.sql_command.save.delete.app_error",
-    "translation": "Nous n'avons pas pu supprimer la commande"
+    "translation": "Impossible de supprimer la commande"
   },
   {
     "id": "store.sql_command.save.delete_perm.app_error",
-    "translation": "Nous n'avons pas pu supprimer la commande"
+    "translation": "Impossible de supprimer la commande"
   },
   {
     "id": "store.sql_command.save.get.app_error",
-    "translation": "Nous n'avons pas pu obtenir la commande"
+    "translation": "Impossible d'obtenir la commande"
   },
   {
     "id": "store.sql_command.save.get_team.app_error",
-    "translation": "Nous n'avons pas pu obtenir les commandes"
+    "translation": "Impossible d'obtenir les commandes"
   },
   {
     "id": "store.sql_command.save.saving.app_error",
-    "translation": "Nous n'avons pas pu enregistrer la commande"
+    "translation": "Impossible d'enregistrer la commande"
   },
   {
     "id": "store.sql_command.save.saving_overwrite.app_error",
@@ -5221,27 +5269,27 @@
   },
   {
     "id": "store.sql_emoji.delete.app_error",
-    "translation": "Nous n'avons pas pu supprimer votre emoji"
+    "translation": "Impossible de supprimer l'émoticône"
   },
   {
     "id": "store.sql_emoji.delete.no_results",
-    "translation": "Nous n'avons pas trouvé l' emoji à supprimer"
+    "translation": "Impossible de trouver l'émoticône à supprimer"
   },
   {
     "id": "store.sql_emoji.get.app_error",
-    "translation": "Nous n'avons pas pu obtenir l'emoji"
+    "translation": "Impossible d'obtenir l'émoticône"
   },
   {
     "id": "store.sql_emoji.get_all.app_error",
-    "translation": "Nous n'avons pas pu obtenir l'emoji"
+    "translation": "Impossible de récupérer l'émoticône"
   },
   {
     "id": "store.sql_emoji.get_by_name.app_error",
-    "translation": "Impossible de récupérer l'Emoji"
+    "translation": "Impossible de récupérer l'émoticône"
   },
   {
     "id": "store.sql_emoji.save.app_error",
-    "translation": "Nous n'avons pas pu enregistrer l'Emoji"
+    "translation": "Impossible de sauvegarder l'émoticône"
   },
   {
     "id": "store.sql_file_info.attach_to_post.app_error",
@@ -5272,24 +5320,24 @@
     "translation": "Impossible de sauvegarder l'information ou modifier l'information du fichier"
   },
   {
-    "id": "store.sql_job_status.delete_by_type.app_error",
-    "translation": "Impossible de supprimer le statut du job"
+    "id": "store.sql_job.delete.app_error",
+    "translation": "Impossible de supprimer le message"
   },
   {
-    "id": "store.sql_job_status.get.app_error",
-    "translation": "Impossible de récupérer le statut du job"
+    "id": "store.sql_job.get.app_error",
+    "translation": "Impossible d'obtenir le message"
   },
   {
-    "id": "store.sql_job_status.get_all.app_error",
-    "translation": "Impossible de récupérer l'ensemble des statuts de job"
+    "id": "store.sql_job.get_all.app_error",
+    "translation": "Impossible de récupérer les messages"
   },
   {
-    "id": "store.sql_job_status.save.app_error",
-    "translation": "Impossible de sauvegarder le statut du job"
+    "id": "store.sql_job.save.app_error",
+    "translation": "Impossible d'enregistrer le message"
   },
   {
-    "id": "store.sql_job_status.update.app_error",
-    "translation": "Impossible de mettre à jour le statut du job"
+    "id": "store.sql_job.update.app_error",
+    "translation": "Impossible de mettre à jour le message"
   },
   {
     "id": "store.sql_license.get.app_error",
@@ -5329,11 +5377,11 @@
   },
   {
     "id": "store.sql_oauth.get_app.find.app_error",
-    "translation": "Nous n'avons pas pu trouver l'application"
+    "translation": "Impossible de trouver l'application"
   },
   {
     "id": "store.sql_oauth.get_app.finding.app_error",
-    "translation": "Nous n'avons pas pu trouver l'application"
+    "translation": "Impossible de trouver l'application"
   },
   {
     "id": "store.sql_oauth.get_app_by_user.find.app_error",
@@ -5345,7 +5393,7 @@
   },
   {
     "id": "store.sql_oauth.get_auth_data.find.app_error",
-    "translation": "Nous n'avons pas pu trouver le code d'autorisation existant"
+    "translation": "Impossible de trouver le code d'autorisation existant"
   },
   {
     "id": "store.sql_oauth.get_auth_data.finding.app_error",
@@ -5357,19 +5405,19 @@
   },
   {
     "id": "store.sql_oauth.permanent_delete_auth_data_by_user.app_error",
-    "translation": "Nous n'avons pas supprimer le code d'autorisation"
+    "translation": "Impossible de supprimer le code d'autorisation"
   },
   {
     "id": "store.sql_oauth.remove_access_data.app_error",
-    "translation": "Nous n'avons pas pu retirer le jeton d'accès"
+    "translation": "Impossible de retirer le jeton d'accès"
   },
   {
     "id": "store.sql_oauth.remove_auth_data.app_error",
-    "translation": "Nous n'avons pas pu retirer le code d'autorisation"
+    "translation": "Impossible de retirer le code d'autorisation"
   },
   {
     "id": "store.sql_oauth.save_access_data.app_error",
-    "translation": "Nous n'avons pas pu enregistrer le jeton d'accès."
+    "translation": "Impossible d'enregistrer le jeton d'accès."
   },
   {
     "id": "store.sql_oauth.save_app.existing.app_error",
@@ -5377,11 +5425,11 @@
   },
   {
     "id": "store.sql_oauth.save_app.save.app_error",
-    "translation": "Nous n'avons pas pu enregistrer l'application."
+    "translation": "Impossible d'enregistrer l'application."
   },
   {
     "id": "store.sql_oauth.save_auth_data.app_error",
-    "translation": "Nous n'avons pas pu enregistrer le code d'autorisation."
+    "translation": "Impossible d'enregistrer le code d'autorisation."
   },
   {
     "id": "store.sql_oauth.update_access_data.app_error",
@@ -5389,7 +5437,7 @@
   },
   {
     "id": "store.sql_oauth.update_app.find.app_error",
-    "translation": "Nous n'avons pas pu trouver d'application existante à mettre à jour"
+    "translation": "Impossible de trouver d'application existante à mettre à jour"
   },
   {
     "id": "store.sql_oauth.update_app.finding.app_error",
@@ -5397,7 +5445,7 @@
   },
   {
     "id": "store.sql_oauth.update_app.update.app_error",
-    "translation": "Nous n'avons pas pu mettre à jour l'application"
+    "translation": "Impossible de mettre à jour l'application"
   },
   {
     "id": "store.sql_oauth.update_app.updating.app_error",
@@ -5405,27 +5453,27 @@
   },
   {
     "id": "store.sql_post.analytics_posts_count.app_error",
-    "translation": "Nous n'avons pas pu obtenir le nombre de messages"
+    "translation": "Impossible d'obtenir le nombre de messages"
   },
   {
     "id": "store.sql_post.analytics_posts_count_by_day.app_error",
-    "translation": "Nous n'avons pas pu obtenir le nombre de messages par jour"
+    "translation": "Impossible d'obtenir le nombre de messages par jour"
   },
   {
     "id": "store.sql_post.analytics_user_counts_posts_by_day.app_error",
-    "translation": "Nous n'avons pas pu obtenir le nombre d'utilisateur avec des messages"
+    "translation": "Impossible d'obtenir le nombre d'utilisateur avec des messages"
   },
   {
     "id": "store.sql_post.delete.app_error",
-    "translation": "Nous n'avons pas pu supprimer le message"
+    "translation": "Impossible de supprimer le message"
   },
   {
     "id": "store.sql_post.get.app_error",
-    "translation": "Nous n'avons pas pu obtenir le message"
+    "translation": "Impossible d'obtenir le message"
   },
   {
     "id": "store.sql_post.get_parents_posts.app_error",
-    "translation": "Nous n'avons pas pu obtenir le message parent pour le canal"
+    "translation": "Impossible d'obtenir le message parent pour le canal"
   },
   {
     "id": "store.sql_post.get_posts.app_error",
@@ -5433,11 +5481,15 @@
   },
   {
     "id": "store.sql_post.get_posts_around.get.app_error",
-    "translation": "Nous n'avons pas pu obtenir les messages pour le canal"
+    "translation": "Impossible d'obtenir les messages pour le canal"
   },
   {
     "id": "store.sql_post.get_posts_around.get_parent.app_error",
-    "translation": "Nous n'avons pas pu obtenir les messages parent pour le canal"
+    "translation": "Impossible d'obtenir les messages parent pour le canal"
+  },
+  {
+    "id": "store.sql_post.get_posts_batch_for_indexing.get.app_error",
+    "translation": "We couldn't get the posts batch for indexing"
   },
   {
     "id": "store.sql_post.get_posts_by_ids.app_error",
@@ -5449,11 +5501,11 @@
   },
   {
     "id": "store.sql_post.get_posts_since.app_error",
-    "translation": "Nous n'avons pas pu obtenir les messages pour le canal"
+    "translation": "Impossible d'obtenir les messages pour le canal"
   },
   {
     "id": "store.sql_post.get_root_posts.app_error",
-    "translation": "Nous n'avons pas pu obtenir les messages pour le canal"
+    "translation": "Impossible d'obtenir les messages pour le canal"
   },
   {
     "id": "store.sql_post.overwrite.app_error",
@@ -5461,11 +5513,11 @@
   },
   {
     "id": "store.sql_post.permanent_delete.app_error",
-    "translation": "Nous n'avons pas pu supprimer le message"
+    "translation": "Impossible de supprimer le message"
   },
   {
     "id": "store.sql_post.permanent_delete_all_comments_by_user.app_error",
-    "translation": "Nous n'avons pas supprimer les commentaires de l'utilisateur"
+    "translation": "Impossible de supprimer les commentaires de l'utilisateur"
   },
   {
     "id": "store.sql_post.permanent_delete_by_channel.app_error",
@@ -5473,15 +5525,15 @@
   },
   {
     "id": "store.sql_post.permanent_delete_by_user.app_error",
-    "translation": "Nous n'avons pas pu sélectionner les messages à supprimer pour l'utilisateur"
+    "translation": "Impossible de sélectionner les messages à supprimer pour l'utilisateur"
   },
   {
     "id": "store.sql_post.permanent_delete_by_user.too_many.app_error",
-    "translation": "Nous n'avons pas pu sélectionner les messages à effacer pour l'utilisateur (trop nombreux), veuillez relancer"
+    "translation": "Impossible de sélectionner les messages à effacer pour l'utilisateur (trop nombreux), veuillez relancer"
   },
   {
     "id": "store.sql_post.save.app_error",
-    "translation": "Nous n'avons pas pu enregistrer le message"
+    "translation": "Impossible d'enregistrer le message"
   },
   {
     "id": "store.sql_post.save.existing.app_error",
@@ -5497,7 +5549,7 @@
   },
   {
     "id": "store.sql_post.update.app_error",
-    "translation": "Nous n'avons pas pu mettre à jour le message"
+    "translation": "Impossible de mettre à jour le message"
   },
   {
     "id": "store.sql_preference.delete.app_error",
@@ -5525,7 +5577,7 @@
   },
   {
     "id": "store.sql_preference.insert.save.app_error",
-    "translation": "Nous n'avons pas pu enregistrer les préférences"
+    "translation": "Impossible d'enregistrer les préférences"
   },
   {
     "id": "store.sql_preference.is_feature_enabled.app_error",
@@ -5557,7 +5609,7 @@
   },
   {
     "id": "store.sql_preference.update.app_error",
-    "translation": "Nous n'avons pas pu mettre à jour les préférences"
+    "translation": "Impossible de mettre à jour les préférences"
   },
   {
     "id": "store.sql_reaction.delete.begin.app_error",
@@ -5601,7 +5653,7 @@
   },
   {
     "id": "store.sql_session.analytics_session_count.app_error",
-    "translation": "Nous n'avons pas pu compter les sessions"
+    "translation": "Impossible de compter les sessions"
   },
   {
     "id": "store.sql_session.cleanup_expired_sessions.app_error",
@@ -5621,19 +5673,19 @@
   },
   {
     "id": "store.sql_session.permanent_delete_sessions_by_user.app_error",
-    "translation": "Nous n'avons pas pu supprimer toutes les sessions de l'utilisateur"
+    "translation": "Impossible de supprimer toutes les sessions de l'utilisateur"
   },
   {
     "id": "store.sql_session.remove.app_error",
-    "translation": "Nous n'avons pas pu supprimer la session"
+    "translation": "Impossible de supprimer la session"
   },
   {
     "id": "store.sql_session.remove_all_sessions_for_team.app_error",
-    "translation": "Nous n'avons pas pu supprimer toutes les sessions de l'équipe"
+    "translation": "Impossible de supprimer toutes les sessions de l'équipe"
   },
   {
     "id": "store.sql_session.save.app_error",
-    "translation": "Nous n'avons pas pu enregistrer la session"
+    "translation": "Impossible d'enregistrer la session"
   },
   {
     "id": "store.sql_session.save.cleanup.error",
@@ -5645,15 +5697,15 @@
   },
   {
     "id": "store.sql_session.update_device_id.app_error",
-    "translation": "Nous n'avons pas pu mettre à jour l'id de l'appareil"
+    "translation": "Impossible de mettre à jour l'id de l'appareil"
   },
   {
     "id": "store.sql_session.update_last_activity.app_error",
-    "translation": "Nous n'avons pas pu mettre à jour last_activity_at"
+    "translation": "Impossible de mettre à jour last_activity_at"
   },
   {
     "id": "store.sql_session.update_roles.app_error",
-    "translation": "Nous n'avons pas pu mettre à jour les rôles"
+    "translation": "Impossible de mettre à jour les rôles"
   },
   {
     "id": "store.sql_status.get.app_error",
@@ -5677,7 +5729,7 @@
   },
   {
     "id": "store.sql_status.get_total_active_users_count.app_error",
-    "translation": "Nous n'avons pas pu compter les utilisateurs"
+    "translation": "Impossible de compter les utilisateurs actifs"
   },
   {
     "id": "store.sql_status.reset_all.app_error",
@@ -5713,11 +5765,11 @@
   },
   {
     "id": "store.sql_team.analytics_team_count.app_error",
-    "translation": "Nous n'avons pas pu compter les équipes"
+    "translation": "Impossible de compter les équipes"
   },
   {
     "id": "store.sql_team.get.find.app_error",
-    "translation": "Nous n'avons pas pu trouver d'équipe existante"
+    "translation": "Impossible de trouver l'équipe existante"
   },
   {
     "id": "store.sql_team.get.finding.app_error",
@@ -5725,23 +5777,23 @@
   },
   {
     "id": "store.sql_team.get_all.app_error",
-    "translation": "Nous n'avons pas pu obtenir toutes les équipes"
+    "translation": "Impossible d'obtenir toutes les équipes"
   },
   {
     "id": "store.sql_team.get_all_team_listing.app_error",
-    "translation": "Nous n'avons pas pu obtenir toutes les équipes"
+    "translation": "Impossible d'obtenir toutes les équipes"
   },
   {
     "id": "store.sql_team.get_by_invite_id.find.app_error",
-    "translation": "Nous n'avons pas pu trouver d'équipe existante"
+    "translation": "Impossible de trouver l'équipe existante"
   },
   {
     "id": "store.sql_team.get_by_invite_id.finding.app_error",
-    "translation": "Nous n'avons pas pu trouver d'équipe existante"
+    "translation": "Impossible de trouver l'équipe existante"
   },
   {
     "id": "store.sql_team.get_by_name.app_error",
-    "translation": "Nous n'avons pas pu trouver d'équipe existante"
+    "translation": "Impossible de trouver l'équipe existante"
   },
   {
     "id": "store.sql_team.get_member.app_error",
@@ -5773,15 +5825,15 @@
   },
   {
     "id": "store.sql_team.permanent_delete.app_error",
-    "translation": "Nous n'avons pas pu supprimer l'équipe existante"
+    "translation": "Impossible de supprimer l'équipe existante"
   },
   {
     "id": "store.sql_team.remove_member.app_error",
-    "translation": "Nous n'avons pas pu retirer le membre de l'équipe"
+    "translation": "Impossible de retirer le membre de l'équipe"
   },
   {
     "id": "store.sql_team.save.app_error",
-    "translation": "Nous n'avons pas pu enregistrer l'équipe"
+    "translation": "Impossible d'enregistrer l'équipe"
   },
   {
     "id": "store.sql_team.save.domain_exists.app_error",
@@ -5797,7 +5849,7 @@
   },
   {
     "id": "store.sql_team.save_member.save.app_error",
-    "translation": "Nous n'avons pas pu enregistrer le membre du canal"
+    "translation": "Impossible d'enregistrer le membre du canal"
   },
   {
     "id": "store.sql_team.search_all_team.app_error",
@@ -5809,11 +5861,11 @@
   },
   {
     "id": "store.sql_team.update.app_error",
-    "translation": "Nous n'avons pas pu mettre à jour l'équipe"
+    "translation": "Impossible de mettre à jour l'équipe"
   },
   {
     "id": "store.sql_team.update.find.app_error",
-    "translation": "Nous n'avons pas pu trouver d'équipe existante à mettre à jour"
+    "translation": "Impossible de trouver l'équipe existante à mettre à jour"
   },
   {
     "id": "store.sql_team.update.finding.app_error",
@@ -5825,7 +5877,7 @@
   },
   {
     "id": "store.sql_team.update_display_name.app_error",
-    "translation": "Nous n'avons pas pu mettre à jour le nom de l'équipe"
+    "translation": "Impossible de mettre à jour le nom de l'équipe"
   },
   {
     "id": "store.sql_user.analytics_get_inactive_users_count.app_error",
@@ -5837,7 +5889,7 @@
   },
   {
     "id": "store.sql_user.analytics_unique_user_count.app_error",
-    "translation": "Nous n'avons pas pu obtenir le nombre d'utilisateurs uniques"
+    "translation": "Impossible d'obtenir le nombre d'utilisateurs uniques"
   },
   {
     "id": "store.sql_user.get.app_error",
@@ -5849,7 +5901,7 @@
   },
   {
     "id": "store.sql_user.get_by_auth.missing_account.app_error",
-    "translation": "Nous n'avons pas pu trouver un compte existant correspondant à votre type d'authentification pour cette équipe. Cette équipe nécessite peut-être une invitation de la part du propriétaire pour pouvoir la rejoindre."
+    "translation": "Impossible de trouver un compte existant correspondant à votre type d'authentification pour cette équipe. Cette équipe nécessite peut-être une invitation de la part du propriétaire pour pouvoir la rejoindre."
   },
   {
     "id": "store.sql_user.get_by_auth.other.app_error",
@@ -5857,11 +5909,11 @@
   },
   {
     "id": "store.sql_user.get_by_username.app_error",
-    "translation": "Nous n'avons pas pu trouver un compte existant correspondant à votre nom d'utilisateur pour cette équipe. Cette équipe nécessite peut-être une invitation de la part du propriétaire pour pouvoir la rejoindre."
+    "translation": "Impossible de trouver un compte existant correspondant à votre nom d'utilisateur pour cette équipe. Cette équipe nécessite peut-être une invitation de la part du propriétaire pour pouvoir la rejoindre."
   },
   {
     "id": "store.sql_user.get_for_login.app_error",
-    "translation": "Nous n'avons pas pu trouver un compte existant correspondant à votre nom d'utilisateur pour cette équipe. Cette équipe nécessite peut-être une invitation de la part du propriétaire pour pouvoir la rejoindre."
+    "translation": "Impossible de trouver un compte existant correspondant à votre nom d'utilisateur pour cette équipe. Cette équipe nécessite peut-être une invitation de la part du propriétaire pour pouvoir la rejoindre."
   },
   {
     "id": "store.sql_user.get_for_login.multiple_users",
@@ -5869,7 +5921,7 @@
   },
   {
     "id": "store.sql_user.get_new_users.app_error",
-    "translation": "Nous avons rencontré une erreur durant la recherche des préférences"
+    "translation": "Une erreur s'est produite lors de la recherche de nouveaux utilisateurs"
   },
   {
     "id": "store.sql_user.get_profiles.app_error",
@@ -5885,15 +5937,15 @@
   },
   {
     "id": "store.sql_user.get_total_users_count.app_error",
-    "translation": "Nous n'avons pas pu compter les utilisateurs"
+    "translation": "Impossible de compter les utilisateurs"
   },
   {
     "id": "store.sql_user.get_unread_count.app_error",
-    "translation": "Nous n'avons pas pu compter le nombre de messages non lus pour l'utilisateur"
+    "translation": "Impossible de compter le nombre de messages non lus pour l'utilisateur"
   },
   {
     "id": "store.sql_user.get_unread_count_for_channel.app_error",
-    "translation": "Nous n'avons pas pu compter le nombre de messages non lus pour l'utilisateur"
+    "translation": "Impossible de compter le nombre de messages non lus pour l'utilisateur et le canal"
   },
   {
     "id": "store.sql_user.migrate_theme.critical",
@@ -5905,11 +5957,11 @@
   },
   {
     "id": "store.sql_user.permanent_delete.app_error",
-    "translation": "Nous n'avons pas pu supprimer le compte existant"
+    "translation": "Impossible de supprimer le compte existant"
   },
   {
     "id": "store.sql_user.save.app_error",
-    "translation": "Nous n'avons pas pu enregistrer le compte."
+    "translation": "Impossible d'enregistrer le compte."
   },
   {
     "id": "store.sql_user.save.email_exists.app_error",
@@ -5917,7 +5969,7 @@
   },
   {
     "id": "store.sql_user.save.email_exists.ldap_app_error",
-    "translation": "Ce compte n'utilise pas l'authentification LDAP. Veuillez vous connecter avec votre adresse e-mail et votre mot de passe."
+    "translation": "Ce compte n'utilise pas l'authentification AD/LDAP. Veuillez vous connecter avec votre adresse e-mail et votre mot de passe."
   },
   {
     "id": "store.sql_user.save.email_exists.saml_app_error",
@@ -5949,11 +6001,11 @@
   },
   {
     "id": "store.sql_user.update.app_error",
-    "translation": "Nous n'avons pas pu mettre à jour le compte"
+    "translation": "Impossible de mettre à jour le compte"
   },
   {
     "id": "store.sql_user.update.can_not_change_ldap.app_error",
-    "translation": "Vous ne pouvez pas modifier les champs définis par LDAP"
+    "translation": "Vous ne pouvez pas modifier les champs définis par AD/LDAP"
   },
   {
     "id": "store.sql_user.update.email_taken.app_error",
@@ -5961,7 +6013,7 @@
   },
   {
     "id": "store.sql_user.update.find.app_error",
-    "translation": "Nous n'avons pas pu trouver de compte existant à mettre à jour"
+    "translation": "Impossible de trouver de compte existant à mettre à jour"
   },
   {
     "id": "store.sql_user.update.finding.app_error",
@@ -5977,7 +6029,7 @@
   },
   {
     "id": "store.sql_user.update_auth_data.app_error",
-    "translation": "Nous n'avons pas pu mettre à jour les données d'authentification"
+    "translation": "Impossible de mettre à jour les données d'authentification"
   },
   {
     "id": "store.sql_user.update_auth_data.email_exists.app_error",
@@ -5985,19 +6037,19 @@
   },
   {
     "id": "store.sql_user.update_failed_pwd_attempts.app_error",
-    "translation": "Nous n'avons pas pu mettre à jour failed_attempts"
+    "translation": "Impossible de mettre à jour failed_attempts"
   },
   {
     "id": "store.sql_user.update_last_activity.app_error",
-    "translation": "Nous n'avons pas pu mettre à jour last_activity_at"
+    "translation": "Impossible de mettre à jour last_activity_at"
   },
   {
     "id": "store.sql_user.update_last_picture_update.app_error",
-    "translation": "Nous n'avons pas pu mettre à jour update_at"
+    "translation": "Impossible de mettre à jour update_at"
   },
   {
     "id": "store.sql_user.update_last_ping.app_error",
-    "translation": "Nous n'avons pas pu mettre à jour last_ping_at"
+    "translation": "Impossible de mettre à jour last_ping_at"
   },
   {
     "id": "store.sql_user.update_mfa_active.app_error",
@@ -6009,7 +6061,7 @@
   },
   {
     "id": "store.sql_user.update_password.app_error",
-    "translation": "Nous n'avons pas pu mettre à jour le mot de passe de l'utilisateur"
+    "translation": "Impossible de mettre à jour le mot de passe de l'utilisateur"
   },
   {
     "id": "store.sql_user.verify_email.app_error",
@@ -6017,55 +6069,55 @@
   },
   {
     "id": "store.sql_webhooks.analytics_incoming_count.app_error",
-    "translation": "Nous n'avons pas pu compter les webhooks entrants"
+    "translation": "Impossible de compter les webhooks entrants"
   },
   {
     "id": "store.sql_webhooks.analytics_outgoing_count.app_error",
-    "translation": "Nous n'avons pas pu compter les webhooks sortants"
+    "translation": "Impossible de compter les webhooks sortants"
   },
   {
     "id": "store.sql_webhooks.delete_incoming.app_error",
-    "translation": "Nous n'avons pas pu supprimer le webhook"
+    "translation": "Impossible de supprimer le webhook"
   },
   {
     "id": "store.sql_webhooks.delete_outgoing.app_error",
-    "translation": "Nous n'avons pas pu supprimer le webhook"
+    "translation": "Impossible de supprimer le webhook"
   },
   {
     "id": "store.sql_webhooks.get_incoming.app_error",
-    "translation": "Nous n'avons pas pu obtenir le webhook"
+    "translation": "Impossible d'obtenir le webhook"
   },
   {
     "id": "store.sql_webhooks.get_incoming_by_channel.app_error",
-    "translation": "Nous n'avons pas pu obtenir les webhooks"
+    "translation": "Impossible d'obtenir les webhooks"
   },
   {
     "id": "store.sql_webhooks.get_incoming_by_user.app_error",
-    "translation": "Nous n'avons pas pu obtenir le webhook"
+    "translation": "Impossible d'obtenir le webhook"
   },
   {
     "id": "store.sql_webhooks.get_outgoing.app_error",
-    "translation": "Nous n'avons pas pu obtenir le webhook"
+    "translation": "Impossible d'obtenir le webhook"
   },
   {
     "id": "store.sql_webhooks.get_outgoing_by_channel.app_error",
-    "translation": "Nous n'avons pas pu obtenir les webhooks"
+    "translation": "Impossible d'obtenir les webhooks"
   },
   {
     "id": "store.sql_webhooks.get_outgoing_by_team.app_error",
-    "translation": "Nous n'avons pas pu obtenir les webhooks"
+    "translation": "Impossible d'obtenir les webhooks"
   },
   {
     "id": "store.sql_webhooks.permanent_delete_incoming_by_user.app_error",
-    "translation": "Nous n'avons pas pu supprimer le webhook"
+    "translation": "Impossible de supprimer le webhook"
   },
   {
     "id": "store.sql_webhooks.permanent_delete_outgoing_by_user.app_error",
-    "translation": "Nous n'avons pas pu supprimer le webhook"
+    "translation": "Impossible de supprimer le webhook"
   },
   {
     "id": "store.sql_webhooks.save_incoming.app_error",
-    "translation": "Nous n'avons pas pu enregistrer le IncomongWebhook"
+    "translation": "Impossible d'enregistrer le IncomingWebhook"
   },
   {
     "id": "store.sql_webhooks.save_incoming.existing.app_error",
@@ -6073,7 +6125,7 @@
   },
   {
     "id": "store.sql_webhooks.save_outgoing.app_error",
-    "translation": "Nous n'avons pas pu enregistrer le OutgoingWebhook"
+    "translation": "Impossible d'enregistrer le OutgoingWebhook"
   },
   {
     "id": "store.sql_webhooks.save_outgoing.override.app_error",
@@ -6085,7 +6137,7 @@
   },
   {
     "id": "store.sql_webhooks.update_outgoing.app_error",
-    "translation": "Nous n'avons pas pu mettre à jour le webhook"
+    "translation": "Impossible de mettre à jour le webhook"
   },
   {
     "id": "system.message.name",
@@ -6273,7 +6325,7 @@
   },
   {
     "id": "web.incoming_webhook.channel.app_error",
-    "translation": "Nous n'avons pas pu trouver le canal"
+    "translation": "Impossible de trouver le canal"
   },
   {
     "id": "web.incoming_webhook.disabled.app_error",
