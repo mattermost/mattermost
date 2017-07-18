@@ -24,11 +24,14 @@ class GeneralTab extends React.Component {
         this.handleInviteIdSubmit = this.handleInviteIdSubmit.bind(this);
         this.handleOpenInviteSubmit = this.handleOpenInviteSubmit.bind(this);
         this.handleDescriptionSubmit = this.handleDescriptionSubmit.bind(this);
+        this.handleAllowedDomainsSubmit = this.handleAllowedDomainsSubmit.bind(this);
         this.handleClose = this.handleClose.bind(this);
         this.onUpdateNameSection = this.onUpdateNameSection.bind(this);
         this.updateName = this.updateName.bind(this);
         this.updateDescription = this.updateDescription.bind(this);
         this.onUpdateDescriptionSection = this.onUpdateDescriptionSection.bind(this);
+        this.onUpdateAllowedDomainsSection = this.onUpdateAllowedDomainsSection.bind(this);
+        this.updateAllowedDomains = this.updateAllowedDomains.bind(this);
         this.onUpdateInviteIdSection = this.onUpdateInviteIdSection.bind(this);
         this.updateInviteId = this.updateInviteId.bind(this);
         this.onUpdateOpenInviteSection = this.onUpdateOpenInviteSection.bind(this);
@@ -54,15 +57,18 @@ class GeneralTab extends React.Component {
             invite_id: team.invite_id,
             allow_open_invite: team.allow_open_invite,
             description: team.description,
+            allowed_domains: team.allowed_domains,
             serverError: '',
             clientError: ''
         };
     }
 
     componentWillReceiveProps(nextProps) {
+
         this.setState({
             name: nextProps.team.display_name,
             description: nextProps.team.description,
+            allowed_domains: nextProps.team.allowed_domains,
             invite_id: nextProps.team.invite_id,
             allow_open_invite: nextProps.team.allow_open_invite
         });
@@ -123,6 +129,27 @@ class GeneralTab extends React.Component {
 
         var data = {...this.props.team};
         data.display_name = this.state.name;
+        updateTeam(data,
+            () => {
+                this.updateSection('');
+            },
+            (err) => {
+                state.serverError = err.message;
+                this.setState(state);
+            }
+        );
+    }
+
+    handleAllowedDomainsSubmit(e) {
+        e.preventDefault();
+
+        var state = {serverError: '', clientError: ''};
+        let valid = true;
+
+        this.setState(state);
+
+        var data = {...this.props.team};
+        data.allowed_domains = this.state.allowed_domains;
         updateTeam(data,
             () => {
                 this.updateSection('');
@@ -230,6 +257,15 @@ class GeneralTab extends React.Component {
         }
     }
 
+    onUpdateAllowedDomainsSection(e) {
+        e.preventDefault();
+        if (this.props.activeSection === 'allowed_domains') {
+            this.updateSection('');
+        } else {
+            this.updateSection('allowed_domains');
+        }
+    }
+
     onUpdateInviteIdSection(e) {
         e.preventDefault();
         if (this.props.activeSection === 'invite_id') {
@@ -254,6 +290,10 @@ class GeneralTab extends React.Component {
 
     updateDescription(e) {
         this.setState({description: e.target.value});
+    }
+
+    updateAllowedDomains(e) {
+        this.setState({allowed_domains: e.target.value});
     }
 
     updateInviteId(e) {
@@ -409,6 +449,72 @@ class GeneralTab extends React.Component {
                     title={Utils.localizeMessage('general_tab.codeTitle', 'Invite Code')}
                     describe={Utils.localizeMessage('general_tab.codeDesc', "Click 'Edit' to regenerate Invite Code.")}
                     updateSection={this.onUpdateInviteIdSection}
+                />
+            );
+        }
+
+        let allowedDomainsSection;
+
+        if (this.props.activeSection === 'allowed_domains') {
+            const inputs = [];
+
+            let allowedDomainsLabel = (
+                <FormattedMessage
+                    id='general_tab.allowedDomains'
+                    defaultMessage='Restrict team members to specified email domains.'
+                />
+            );
+            if (Utils.isMobile()) {
+                allowedDomainsLabel = '';
+            }
+
+            inputs.push(
+                <div
+                    key='allowedDomainsSetting'
+                    className='form-group'
+                >
+                    <input
+                        id='allowedDomains'
+                        className='form-control'
+                        type='text'
+                        placeholder={Utils.localizeMessage('general_tab.allowedDomainsEx', 'Ex "corp.mattermost.com, mattermost.org"')}
+                        value={this.state.allowed_domains}
+                        onChange={this.updateAllowedDomains}
+                    />
+                </div>
+            );
+
+            const allowedDomainsExtraInfo = <span>{Utils.localizeMessage('general_tab.allowedDomainsInfo', 'Allowed Domains Informations long long looooooooooooooong string.')}</span>;
+
+            allowedDomainsSection = (
+                <SettingItemMax
+                    title={Utils.localizeMessage('general_tab.allowedDomains', 'Restrict team members to specified email domains.')}
+                    inputs={inputs}
+                    submit={this.handleAllowedDomainsSubmit}
+                    server_error={serverError}
+                    client_error={clientError}
+                    updateSection={this.onUpdateAllowedDomainsSection}
+                    extraInfo={allowedDomainsExtraInfo}
+                />
+            );
+        } else {
+            let describemsg = '';
+            if (this.state.allowed_domains) {
+                describemsg = this.state.allowed_domains;
+            } else {
+                describemsg = (
+                    <FormattedMessage
+                        id='general_tab.allowedDomainsDesc'
+                        defaultMessage="Allowed Domains Description."
+                    />
+                );
+            }
+
+            allowedDomainsSection = (
+                <SettingItemMin
+                    title={Utils.localizeMessage('general_tab.allowedDomains', 'Restrict team members to specified email domains.')}
+                    describe={describemsg}
+                    updateSection={this.onUpdateAllowedDomainsSection}
                 />
             );
         }
@@ -582,6 +688,8 @@ class GeneralTab extends React.Component {
                     {nameSection}
                     <div className='divider-light'/>
                     {descriptionSection}
+                    <div className='divider-light'/>
+                    {allowedDomainsSection}
                     <div className='divider-light'/>
                     {openInviteSection}
                     <div className='divider-light'/>
