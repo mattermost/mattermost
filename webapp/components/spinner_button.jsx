@@ -16,6 +16,12 @@ export default class SpinnerButton extends React.Component {
         };
     }
 
+    static get defaultProps() {
+        return {
+            spinning: false
+        };
+    }
+
     render() {
         const {spinning, children, ...props} = this.props; // eslint-disable-line no-use-before-define
 

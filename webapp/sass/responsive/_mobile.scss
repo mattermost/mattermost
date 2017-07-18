@@ -781,10 +781,7 @@
 
                     .settings-content {
                         .section-edit {
-                            padding-right: 0;
-                            position: absolute;
-                            right: 15px;
-                            top: 14px;
+                            text-align: left;
 
                             .fa {
                                 display: inline-block;
@@ -873,16 +870,20 @@
                 .heading {
                     font-size: 17px;
                     font-weight: 400;
-                    line-height: normal;
+                    line-height: 50px;
                     position: relative;
-                    top: 14px;
                     vertical-align: top;
+
+                    .ios & {
+                        line-height: 48px;
+                    }
                 }
 
                 .header-dropdown__icon {
                     font-size: 12px;
+                    line-height: 50px;
                     margin-left: 5px;
-                    top: 20px;
+                    top: 0;
                     vertical-align: top;
                 }
             }
@@ -1024,9 +1025,8 @@
 
             .icon--refresh {
                 @include opacity(.6);
-                color: $black;
-                right: 30px;
-                top: 15px;
+                right: 16px;
+                top: 9px;
             }
 
             .form-control {
@@ -1047,8 +1047,8 @@
         @include single-transition(transform, .35s, ease);
         @include translate3d(290px, 0, 0);
         border: none;
-        width: 290px;
         visibility: hidden;
+        width: 290px;
 
         &.visible {
             display: block;
@@ -1078,7 +1078,7 @@
         }
 
         .nav-pills__container {
-            height: calc(100% - 60px);
+            height: calc(100% - 55px);
         }
 
         > div {
@@ -1291,10 +1291,10 @@
 
     .app__content {
         margin: 0;
-        padding-top: 56px;
+        padding-top: 50px;
 
         .channel__wrap & {
-            padding-top: 56px;
+            padding-top: 50px;
         }
 
         #channel-header {
@@ -1579,6 +1579,10 @@
 }
 
 @media screen and (max-width: 480px) {
+    #user-profile-popover {
+        left: 50px !important;
+    }
+
     .post {
         .img-div {
             max-width: 100%;

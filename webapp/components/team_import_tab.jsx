@@ -29,12 +29,12 @@ class TeamImportTab extends React.Component {
         };
     }
 
-    onImportFailure(e, err, res) {
-        this.setState({status: 'fail', link: 'data:application/octet-stream;charset=utf-8,' + encodeURIComponent(res.text)});
+    onImportFailure() {
+        this.setState({status: 'fail'});
     }
 
-    onImportSuccess(data, res) {
-        this.setState({status: 'done', link: 'data:application/octet-stream;charset=utf-8,' + encodeURIComponent(res.text)});
+    onImportSuccess(data) {
+        this.setState({status: 'done', link: 'data:application/octet-stream;charset=utf-8,' + encodeURIComponent(atob(data.results))});
     }
 
     doImportSlack(file) {

@@ -493,7 +493,7 @@ export const Constants = {
             buttonBg: '#166de0',
             buttonColor: '#ffffff',
             errorTextColor: '#fd5960',
-            mentionHighlightBg: '#fff2bb',
+            mentionHighlightBg: '#ffe577',
             mentionHighlightLink: '#166de0',
             codeTheme: 'github',
             image: mattermostThemeImage

@@ -81,8 +81,7 @@ export default class PostInfo extends React.PureComponent {
 
         this.state = {
             showEmojiPicker: false,
-            reactionPickerOffset: 21,
-            canEdit: PostUtils.canEditPost(props.post, this.editDisableAction)
+            reactionPickerOffset: 21
         };
     }
 
