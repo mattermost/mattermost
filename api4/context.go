@@ -355,7 +355,7 @@ func (c *Context) RequireInviteId() *Context {
 		return c
 	}
 
-	if len(c.Params.InviteId) != 26 {
+	if len(c.Params.InviteId) == 0 {
 		c.SetInvalidUrlParam("invite_id")
 	}
 	return c

@@ -58,10 +58,12 @@ export default class DotMenu extends Component {
     constructor(props) {
         super(props);
 
-        this.handleDropdownOpened = this.handleDropdownOpened.bind(this);
-        this.canDelete = false;
-        this.canEdit = false;
         this.editDisableAction = new DelayedAction(this.handleEditDisable);
+
+        this.state = {
+            canDelete: PostUtils.canDeletePost(props.post),
+            canEdit: PostUtils.canEditPost(props.post, this.editDisableAction)
+        };
     }
 
     componentDidMount() {
@@ -69,7 +71,11 @@ export default class DotMenu extends Component {
         $('#' + this.props.idPrefix + '_dropdown' + this.props.post.id).on('hidden.bs.dropdown', () => this.props.handleDropdownOpened(false));
     }
 
-    handleDropdownOpened() {
+    componentWillUnmount() {
+        this.editDisableAction.cancel();
+    }
+
+    handleDropdownOpened = () => {
         this.props.handleDropdownOpened(true);
 
         const position = $('#post-list').height() - $(this.refs.dropdownToggle).offset().top;
@@ -80,17 +86,15 @@ export default class DotMenu extends Component {
         }
     }
 
-    handleEditDisable() {
-        this.canEdit = false;
+    handleEditDisable = () => {
+        this.setState({canEdit: false});
     }
 
     render() {
         const isSystemMessage = PostUtils.isSystemMessage(this.props.post);
         const isMobile = Utils.isMobile();
-        this.canDelete = PostUtils.canDeletePost(this.props.post);
-        this.canEdit = PostUtils.canEditPost(this.props.post, this.editDisableAction);
 
-        if (this.props.idPrefix === Constants.CENTER && (!isMobile && isSystemMessage && !this.canDelete && !this.canEdit)) {
+        if (this.props.idPrefix === Constants.CENTER && (!isMobile && isSystemMessage && !this.state.canDelete && !this.state.canEdit)) {
             return null;
         }
 
@@ -157,7 +161,7 @@ export default class DotMenu extends Component {
         }
 
         let dotMenuDelete = null;
-        if (this.canDelete) {
+        if (this.state.canDelete) {
             dotMenuDelete = (
                 <DotMenuItem
                     idPrefix={idPrefix + 'Delete'}
@@ -169,7 +173,7 @@ export default class DotMenu extends Component {
         }
 
         let dotMenuEdit = null;
-        if (this.canEdit) {
+        if (this.state.canEdit) {
             dotMenuEdit = (
                 <DotMenuEdit
                     idPrefix={idPrefix + 'Edit'}

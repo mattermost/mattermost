@@ -11,7 +11,6 @@ import FailedPostOptions from 'components/post_view/failed_post_options';
 import DotMenu from 'components/dot_menu';
 import EmojiPickerOverlay from 'components/emoji_picker/emoji_picker_overlay.jsx';
 
-import * as GlobalActions from 'actions/global_actions.jsx';
 import {addReaction} from 'actions/post_actions.jsx';
 
 import TeamStore from 'stores/team_store.jsx';
@@ -27,6 +26,19 @@ import {Link} from 'react-router/es6';
 import {FormattedMessage} from 'react-intl';
 
 export default class RhsComment extends React.Component {
+    static propTypes = {
+        post: PropTypes.object,
+        lastPostCount: PropTypes.number,
+        user: PropTypes.object.isRequired,
+        currentUser: PropTypes.object.isRequired,
+        compactDisplay: PropTypes.bool,
+        useMilitaryTime: PropTypes.bool.isRequired,
+        isFlagged: PropTypes.bool,
+        status: PropTypes.string,
+        isBusy: PropTypes.bool,
+        removePost: PropTypes.func.isRequired
+    };
+
     constructor(props) {
         super(props);
 
@@ -56,7 +68,7 @@ export default class RhsComment extends React.Component {
     }
 
     removePost() {
-        GlobalActions.emitRemovePost(this.props.post);
+        this.props.removePost(this.props.post);
     }
 
     createRemovePostButton() {
@@ -333,9 +345,10 @@ export default class RhsComment extends React.Component {
                         show={this.state.showEmojiPicker}
                         onHide={this.toggleEmojiPicker}
                         target={() => this.refs.dotMenu}
-                        container={this.props.getPostList}
                         onEmojiClick={this.reactEmojiClick}
                         rightOffset={15}
+                        spaceRequiredAbove={342}
+                        spaceRequiredBelow={342}
                     />
                     <a
                         href='#'
@@ -436,16 +449,3 @@ export default class RhsComment extends React.Component {
         );
     }
 }
-
-RhsComment.propTypes = {
-    post: PropTypes.object,
-    lastPostCount: PropTypes.number,
-    user: PropTypes.object.isRequired,
-    currentUser: PropTypes.object.isRequired,
-    compactDisplay: PropTypes.bool,
-    useMilitaryTime: PropTypes.bool.isRequired,
-    isFlagged: PropTypes.bool,
-    status: PropTypes.string,
-    isBusy: PropTypes.bool,
-    getPostList: PropTypes.func.isRequired
-};

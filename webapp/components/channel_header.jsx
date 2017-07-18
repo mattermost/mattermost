@@ -964,7 +964,10 @@ export default class ChannelHeader extends React.Component {
                                     placement='bottom'
                                     overlay={recentMentionsTooltip}
                                 >
-                                    <div className='channel-header__icon icon--hidden'>
+                                    <div
+                                        className='channel-header__icon icon--hidden'
+                                        onClick={this.searchMentions}
+                                    >
                                         <span
                                             className='icon icon__mentions'
                                             dangerouslySetInnerHTML={{__html: mentionsIcon}}

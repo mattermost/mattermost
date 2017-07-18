@@ -708,6 +708,22 @@
     "translation": "open"
   },
   {
+    "id": "api.command_search.desc",
+    "translation": "Search text in messages"
+  },
+  {
+    "id": "api.command_search.hint",
+    "translation": "[text]"
+  },
+  {
+    "id": "api.command_search.name",
+    "translation": "search"
+  },
+  {
+    "id": "api.command_search.unsupported.app_error",
+    "translation": "The search command is not supported on your device"
+  },
+  {
     "id": "api.command_settings.desc",
     "translation": "Open the Account Settings dialog"
   },
@@ -958,6 +974,10 @@
   {
     "id": "api.context.unknown.app_error",
     "translation": "Een onbekende fout is opgetreden. Neem contact op met support."
+  },
+  {
+    "id": "api.context.v3_disabled.app_error",
+    "translation": "API version 3 has been disabled on this server. Please use API version 4. See https://api.mattermost.com for details."
   },
   {
     "id": "api.deprecated.init.debug",
@@ -1488,6 +1508,10 @@
   {
     "id": "api.oauth.init.debug",
     "translation": "Initialisatie van de oauth api"
+  },
+  {
+    "id": "api.oauth.invalid_state_token.app_error",
+    "translation": "Invalid state token"
   },
   {
     "id": "api.oauth.regenerate_secret.app_error",
@@ -3021,19 +3045,11 @@
   },
   {
     "id": "app.import.import_direct_channel.create_direct_channel.error",
-    "translation": "Failed to get direct channel"
-  },
-  {
-    "id": "app.import.import_direct_channel.create_direct_channel.error",
-    "translation": "Failed to get direct channel"
+    "translation": "Failed to create direct channel"
   },
   {
     "id": "app.import.import_direct_channel.create_group_channel.error",
-    "translation": "Failed to get group channel"
-  },
-  {
-    "id": "app.import.import_direct_channel.create_group_channel.error",
-    "translation": "Failed to get group channel"
+    "translation": "Failed to create group channel"
   },
   {
     "id": "app.import.import_direct_channel.member_not_found.error",
@@ -3046,6 +3062,14 @@
   {
     "id": "app.import.import_direct_post.channel_member_not_found.error",
     "translation": "Could not find channel member when importing direct channel post"
+  },
+  {
+    "id": "app.import.import_direct_post.create_direct_channel.error",
+    "translation": "Failed to get direct channel"
+  },
+  {
+    "id": "app.import.import_direct_post.create_group_channel.error",
+    "translation": "Failed to get group channel"
   },
   {
     "id": "app.import.import_direct_post.user_not_found.error",
