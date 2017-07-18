@@ -79,10 +79,10 @@ func isTeamEmailAllowed(user *model.User, team *model.Team) bool {
 		return true
 	}
 
-  restrictedDomains := utils.Cfg.TeamSettings.RestrictCreationToDomains
-  if len(team.AllowedDomains) > 0 {
-    restrictedDomains = team.AllowedDomains
-  }
+	restrictedDomains := utils.Cfg.TeamSettings.RestrictCreationToDomains
+	if len(team.AllowedDomains) > 0 {
+		restrictedDomains = team.AllowedDomains
+	}
 
 	return isTeamEmailAddressAllowed(email, restrictedDomains)
 }
@@ -657,10 +657,10 @@ func InviteNewUsersToTeam(emailList []string, teamId, senderId string) *model.Ap
 		user = result.Data.(*model.User)
 	}
 
-  restrictedDomains := utils.Cfg.TeamSettings.RestrictCreationToDomains
-  if len(team.AllowedDomains) > 0 {
-    restrictedDomains = team.AllowedDomains
-  }
+	restrictedDomains := utils.Cfg.TeamSettings.RestrictCreationToDomains
+	if len(team.AllowedDomains) > 0 {
+		restrictedDomains = team.AllowedDomains
+	}
 
 	var invalidEmailList []string
 
