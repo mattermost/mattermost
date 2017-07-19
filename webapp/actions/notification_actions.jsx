@@ -87,7 +87,7 @@ export function sendDesktopNotification(post, msgProps) {
         image |= attachment.image_url.length > 0;
     });
 
-    notifyText.replace(/\n+/g, ' ');
+    notifyText = notifyText.replace(/\n+/g, ' ');
     if (notifyText.length > 50) {
         notifyText = notifyText.substring(0, 49) + '...';
     }
