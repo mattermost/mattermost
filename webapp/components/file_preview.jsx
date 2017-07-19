@@ -1,17 +1,28 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import ReactDOM from 'react-dom';
-import * as Utils from 'utils/utils.jsx';
-import {getFileThumbnailUrl} from 'mattermost-redux/utils/file_utils';
-
 import PropTypes from 'prop-types';
-
 import React from 'react';
 
 import loadingGif from 'images/load.gif';
 
+import Constants from 'utils/constants.jsx';
+import * as Utils from 'utils/utils.jsx';
+
+import {getFileThumbnailUrl} from 'mattermost-redux/utils/file_utils';
+
 export default class FilePreview extends React.Component {
+    static propTypes = {
+        onRemove: PropTypes.func.isRequired,
+        fileInfos: PropTypes.arrayOf(PropTypes.object).isRequired,
+        uploadsInProgress: PropTypes.array
+    };
+
+    static defaultProps = {
+        fileInfos: [],
+        uploadsInProgress: []
+    };
+
     constructor(props) {
         super(props);
 
@@ -20,7 +31,7 @@ export default class FilePreview extends React.Component {
 
     componentDidUpdate() {
         if (this.props.uploadsInProgress.length > 0) {
-            ReactDOM.findDOMNode(this.refs[this.props.uploadsInProgress[0]]).scrollIntoView();
+            this.refs[this.props.uploadsInProgress[0]].scrollIntoView();
         }
     }
 
@@ -36,10 +47,20 @@ export default class FilePreview extends React.Component {
             let className = 'file-preview';
             let previewImage;
             if (type === 'image' || type === 'svg') {
+                let imageClassName = 'post-image';
+
+                if (info.width < Constants.THUMBNAIL_WIDTH && info.height < Constants.THUMBNAIL_HEIGHT) {
+                    imageClassName += ' small';
+                } else {
+                    imageClassName += ' normal';
+                }
+
                 previewImage = (
-                    <img
-                        className='file-preview__image'
-                        src={getFileThumbnailUrl(info.id)}
+                    <div
+                        className={imageClassName}
+                        style={{
+                            backgroundImage: `url(${getFileThumbnailUrl(info.id)})`
+                        }}
                     />
                 );
             } else {
@@ -95,13 +116,3 @@ export default class FilePreview extends React.Component {
         );
     }
 }
-
-FilePreview.defaultProps = {
-    fileInfos: [],
-    uploadsInProgress: []
-};
-FilePreview.propTypes = {
-    onRemove: PropTypes.func.isRequired,
-    fileInfos: PropTypes.arrayOf(PropTypes.object).isRequired,
-    uploadsInProgress: PropTypes.array
-};
