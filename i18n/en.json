@@ -3512,6 +3512,14 @@
     "translation": "ElasticSearch searching is disabled on this server"
   },
   {
+    "id": "ent.elasticsearch.generic.disabled",
+    "translation": "ElasticSearch search is not enabled on this server"
+  },
+  {
+    "id": "ent.elasticsearch.purge_indexes.delete_failed",
+    "translation": "Failed to delete Elasticsearch index"
+  },
+  {
     "id": "ent.elasticsearch.search_posts.search_failed",
     "translation": "Search failed to complete"
   },

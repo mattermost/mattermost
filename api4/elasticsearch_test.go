@@ -17,3 +17,14 @@ func TestElasticsearchTest(t *testing.T) {
 	_, resp = th.SystemAdminClient.TestElasticsearch()
 	CheckNotImplementedStatus(t, resp)
 }
+
+func TestElasticsearchPurgeIndexes(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+
+	_, resp := th.Client.PurgeElasticsearchIndexes()
+	CheckForbiddenStatus(t, resp)
+
+	_, resp = th.SystemAdminClient.PurgeElasticsearchIndexes()
+	CheckNotImplementedStatus(t, resp)
+}

@@ -31,3 +31,16 @@ func TestElasticsearch(cfg *model.Config) *model.AppError {
 
 	return nil
 }
+
+func PurgeElasticsearchIndexes() *model.AppError {
+	if esI := einterfaces.GetElasticsearchInterface(); esI != nil {
+		if err := esI.PurgeIndexes(); err != nil {
+			return err
+		}
+	} else {
+		err := model.NewAppError("PurgeElasticsearchIndexes", "ent.elasticsearch.test_config.license.error", nil, "", http.StatusNotImplemented)
+		return err
+	}
+
+	return nil
+}
