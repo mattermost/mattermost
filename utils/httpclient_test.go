@@ -45,7 +45,7 @@ func TestHttpClient(t *testing.T) {
 					success = e.Err != AddressForbidden
 				}
 				if success != allowed {
-					t.Fatal("that's not right")
+					t.Fatalf("failed for %v. allowed: %v, success %v", tc.URL, allowed, success)
 				}
 			}
 		}
@@ -56,7 +56,7 @@ func TestHttpClientWithProxy(t *testing.T) {
 	proxy := createProxyServer()
 	defer proxy.Close()
 
-	c := createHttpClient(true, true)
+	c := createHttpClient(true, nil, nil)
 	purl, _ := url.Parse(proxy.URL)
 	c.Transport.(*http.Transport).Proxy = http.ProxyURL(purl)
 
@@ -99,12 +99,16 @@ func TestDialContextFilter(t *testing.T) {
 		{
 			Addr: "127.0.0.1:80",
 		},
+		{
+			Addr:    "10.0.0.1:80",
+			IsValid: true,
+		},
 	} {
 		didDial := false
 		filter := dialContextFilter(func(ctx context.Context, network, addr string) (net.Conn, error) {
 			didDial = true
 			return nil, nil
-		}, reservedIPRanges)
+		}, func(host string) bool { return host == "10.0.0.1" }, func(ip net.IP) bool { return !isReserved(ip) })
 		_, err := filter(context.Background(), "", tc.Addr)
 		switch {
 		case tc.IsValid == (err == AddressForbidden) || (err != nil && err != AddressForbidden):

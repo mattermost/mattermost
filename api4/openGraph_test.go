@@ -19,13 +19,13 @@ func TestGetOpenGraphMetadata(t *testing.T) {
 	Client := th.Client
 
 	enableLinkPreviews := *utils.Cfg.ServiceSettings.EnableLinkPreviews
-	enableInternalConnections := *utils.Cfg.ServiceSettings.EnableUntrustedInternalConnections
+	allowedInternalConnections := *utils.Cfg.ServiceSettings.AllowedUntrustedInternalConnections
 	defer func() {
 		*utils.Cfg.ServiceSettings.EnableLinkPreviews = enableLinkPreviews
-		utils.Cfg.ServiceSettings.EnableUntrustedInternalConnections = &enableInternalConnections
+		utils.Cfg.ServiceSettings.AllowedUntrustedInternalConnections = &allowedInternalConnections
 	}()
 	*utils.Cfg.ServiceSettings.EnableLinkPreviews = true
-	*utils.Cfg.ServiceSettings.EnableUntrustedInternalConnections = true
+	*utils.Cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost 127.0.0.1"
 
 	ogDataCacheMissCount := 0
 

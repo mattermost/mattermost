@@ -155,7 +155,7 @@ type ServiceSettings struct {
 	EnableDeveloper                          *bool
 	EnableSecurityFixAlert                   *bool
 	EnableInsecureOutgoingConnections        *bool
-	EnableUntrustedInternalConnections       *bool
+	AllowedUntrustedInternalConnections      *string
 	EnableMultifactorAuthentication          *bool
 	EnforceMultifactorAuthentication         *bool
 	EnableUserAccessTokens                   *bool
@@ -620,9 +620,8 @@ func (o *Config) SetDefaults() {
 		*o.ServiceSettings.EnableInsecureOutgoingConnections = false
 	}
 
-	if o.ServiceSettings.EnableUntrustedInternalConnections == nil {
-		o.ServiceSettings.EnableUntrustedInternalConnections = new(bool)
-		*o.ServiceSettings.EnableUntrustedInternalConnections = false
+	if o.ServiceSettings.AllowedUntrustedInternalConnections == nil {
+		o.ServiceSettings.AllowedUntrustedInternalConnections = new(string)
 	}
 
 	if o.ServiceSettings.EnableMultifactorAuthentication == nil {

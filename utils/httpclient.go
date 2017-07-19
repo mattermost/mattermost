@@ -9,6 +9,7 @@ import (
 	"errors"
 	"net"
 	"net/http"
+	"strings"
 	"time"
 )
 
@@ -18,9 +19,9 @@ const (
 )
 
 var secureHttpClient *http.Client
-var secureInternalHttpClient *http.Client
+var secureUntrustedHttpClient *http.Client
 var insecureHttpClient *http.Client
-var insecureInternalHttpClient *http.Client
+var insecureUntrustedHttpClient *http.Client
 
 // HttpClient returns a variation the default implementation of Client.
 // It uses a Transport with the same settings as the default Transport
@@ -33,23 +34,28 @@ var insecureInternalHttpClient *http.Client
 //   via "ServiceSettings.EnableInsecureOutgoingConnections"
 func HttpClient(trustURLs bool) *http.Client {
 	insecure := Cfg.ServiceSettings.EnableInsecureOutgoingConnections != nil && *Cfg.ServiceSettings.EnableInsecureOutgoingConnections
-	internal := Cfg.ServiceSettings.EnableUntrustedInternalConnections != nil && *Cfg.ServiceSettings.EnableUntrustedInternalConnections
-	if trustURLs {
-		internal = true
-	}
 	switch {
-	case insecure && internal:
-		return insecureInternalHttpClient
-	case insecure:
+	case insecure && trustURLs:
 		return insecureHttpClient
-	case internal:
-		return secureInternalHttpClient
-	default:
+	case insecure:
+		return insecureUntrustedHttpClient
+	case trustURLs:
 		return secureHttpClient
+	default:
+		return secureUntrustedHttpClient
 	}
 }
 
 var reservedIPRanges []*net.IPNet
+
+func isReserved(ip net.IP) bool {
+	for _, ipRange := range reservedIPRanges {
+		if ipRange.Contains(ip) {
+			return true
+		}
+	}
+	return false
+}
 
 func init() {
 	for _, cidr := range []string{
@@ -72,21 +78,53 @@ func init() {
 		reservedIPRanges = append(reservedIPRanges, parsed)
 	}
 
-	secureHttpClient = createHttpClient(false, false)
-	secureInternalHttpClient = createHttpClient(false, true)
-	insecureHttpClient = createHttpClient(true, false)
-	insecureInternalHttpClient = createHttpClient(true, true)
+	allowHost := func(host string) bool {
+		if Cfg.ServiceSettings.AllowedUntrustedInternalConnections == nil {
+			return false
+		}
+		for _, allowed := range strings.Fields(*Cfg.ServiceSettings.AllowedUntrustedInternalConnections) {
+			if host == allowed {
+				return true
+			}
+		}
+		return false
+	}
+
+	allowIP := func(ip net.IP) bool {
+		if !isReserved(ip) {
+			return true
+		}
+		if Cfg.ServiceSettings.AllowedUntrustedInternalConnections == nil {
+			return false
+		}
+		for _, allowed := range strings.Fields(*Cfg.ServiceSettings.AllowedUntrustedInternalConnections) {
+			if _, ipRange, err := net.ParseCIDR(allowed); err == nil && ipRange.Contains(ip) {
+				return true
+			}
+		}
+		return false
+	}
+
+	secureHttpClient = createHttpClient(false, nil, nil)
+	insecureHttpClient = createHttpClient(true, nil, nil)
+
+	secureUntrustedHttpClient = createHttpClient(false, allowHost, allowIP)
+	insecureUntrustedHttpClient = createHttpClient(true, allowHost, allowIP)
 }
 
 type DialContextFunction func(ctx context.Context, network, addr string) (net.Conn, error)
 
 var AddressForbidden error = errors.New("address forbidden")
 
-func dialContextFilter(dial DialContextFunction, forbidden []*net.IPNet) DialContextFunction {
+func dialContextFilter(dial DialContextFunction, allowHost func(host string) bool, allowIP func(ip net.IP) bool) DialContextFunction {
 	return func(ctx context.Context, network, addr string) (net.Conn, error) {
 		host, port, err := net.SplitHostPort(addr)
 		if err != nil {
 			return nil, err
+		}
+
+		if allowHost != nil && allowHost(host) {
+			return dial(ctx, network, addr)
 		}
 
 		ips, err := net.LookupIP(host)
@@ -102,13 +140,7 @@ func dialContextFilter(dial DialContextFunction, forbidden []*net.IPNet) DialCon
 			default:
 			}
 
-			valid := true
-			for _, f := range forbidden {
-				if f.Contains(ip) {
-					valid = false
-				}
-			}
-			if !valid {
+			if allowIP == nil || !allowIP(ip) {
 				continue
 			}
 
@@ -127,14 +159,14 @@ func dialContextFilter(dial DialContextFunction, forbidden []*net.IPNet) DialCon
 	}
 }
 
-func createHttpClient(enableInsecureConnections, enableInternalNetwork bool) *http.Client {
+func createHttpClient(enableInsecureConnections bool, allowHost func(host string) bool, allowIP func(ip net.IP) bool) *http.Client {
 	dialContext := (&net.Dialer{
 		Timeout:   connectTimeout,
 		KeepAlive: 30 * time.Second,
 	}).DialContext
 
-	if !enableInternalNetwork {
-		dialContext = dialContextFilter(dialContext, reservedIPRanges)
+	if allowHost != nil || allowIP != nil {
+		dialContext = dialContextFilter(dialContext, allowHost, allowIP)
 	}
 
 	client := &http.Client{
