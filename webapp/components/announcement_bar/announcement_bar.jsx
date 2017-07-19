@@ -13,6 +13,7 @@ import * as AdminActions from 'actions/admin_actions.jsx';
 import {ErrorBarTypes, StatTypes} from 'utils/constants.jsx';
 import {isLicenseExpiring, isLicenseExpired, isLicensePastGracePeriod, displayExpiryDate} from 'utils/license_utils.jsx';
 import * as Utils from 'utils/utils.jsx';
+import * as TextFormatting from 'utils/text_formatting.jsx'
 
 const RENEWAL_LINK = 'https://licensing.mattermost.com/renew';
 
@@ -219,7 +220,13 @@ export default class AnnouncementBar extends React.PureComponent {
         const renewalLink = RENEWAL_LINK + '?id=' + global.window.mm_license.Id + '&user_count=' + this.state.totalUsers;
 
         let message = this.state.message;
-        if (message === ErrorBarTypes.PREVIEW_MODE) {
+        if (this.state.type === BAR_ANNOUNCEMENT_TYPE) {
+           message = (
+                <span
+                    dangerouslySetInnerHTML={{__html:TextFormatting.formatText(message, {singleline: true, mentionHighlight: false})}}
+                />
+            ); 
+        } else if (message === ErrorBarTypes.PREVIEW_MODE) {
             message = (
                 <FormattedMessage
                     id={ErrorBarTypes.PREVIEW_MODE}
