@@ -3,7 +3,6 @@
 
 import ProfilePopover from './profile_popover.jsx';
 import * as Utils from 'utils/utils.jsx';
-import {Client4} from 'mattermost-redux/client';
 
 import {OverlayTrigger} from 'react-bootstrap';
 
@@ -59,7 +58,7 @@ export default class UserProfile extends React.Component {
 
         if (this.props.user) {
             name = Utils.displayUsername(this.props.user.id);
-            profileImg = Client4.getUsersRoute() + '/' + this.props.user.id + '/image?time=' + this.props.user.last_picture_update;
+            profileImg = Utils.imageURLForUser(this.props.user);
         }
 
         if (this.props.overwriteName) {

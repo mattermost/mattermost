@@ -199,13 +199,6 @@ export default class Post extends React.PureComponent {
         const isSystemMessage = PostUtils.isSystemMessage(post);
         const fromWebhook = post.props && post.props.from_webhook === 'true';
 
-        let timestamp = 0;
-        if (!this.props.user || this.props.user.last_picture_update == null) {
-            timestamp = this.props.currentUser.last_picture_update;
-        } else {
-            timestamp = this.props.user.last_picture_update;
-        }
-
         let status = this.props.status;
         if (fromWebhook) {
             status = null;
@@ -213,7 +206,7 @@ export default class Post extends React.PureComponent {
 
         let profilePic = (
             <ProfilePicture
-                src={PostUtils.getProfilePicSrcForPost(post, timestamp)}
+                src={PostUtils.getProfilePicSrcForPost(post, this.props.user)}
                 status={status}
                 user={this.props.user}
                 isBusy={this.props.isBusy}
@@ -223,7 +216,7 @@ export default class Post extends React.PureComponent {
         if (fromWebhook) {
             profilePic = (
                 <ProfilePicture
-                    src={PostUtils.getProfilePicSrcForPost(post, timestamp)}
+                    src={PostUtils.getProfilePicSrcForPost(post, this.props.user)}
                 />
             );
         } else if (PostUtils.isSystemMessage(post)) {

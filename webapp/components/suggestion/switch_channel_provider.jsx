@@ -58,7 +58,7 @@ class SwitchChannelSuggestion extends Suggestion {
                 <div className='pull-left'>
                     <img
                         className='mention__image'
-                        src={Client4.getUsersRoute() + '/' + channel.id + '/image?time=' + channel.last_picture_update}
+                        src={Utils.imageURLForUser(channel)}
                     />
                 </div>
             );
@@ -239,7 +239,8 @@ export default class SwitchChannelProvider extends Provider {
                     name: user.username,
                     id: user.id,
                     update_at: user.update_at,
-                    type: Constants.DM_CHANNEL
+                    type: Constants.DM_CHANNEL,
+                    last_picture_update: user.last_picture_update || 0
                 },
                 name: user.username
             };

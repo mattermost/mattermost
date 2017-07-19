@@ -1,7 +1,6 @@
 // Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import {Client4} from 'mattermost-redux/client';
 import Constants from 'utils/constants.jsx';
 import * as Utils from 'utils/utils.jsx';
 
@@ -32,8 +31,14 @@ export function isEdited(post) {
     return post.edit_at > 0;
 }
 
-export function getProfilePicSrcForPost(post, timestamp) {
-    let src = Client4.getUsersRoute() + '/' + post.user_id + '/image?time=' + timestamp;
+export function getProfilePicSrcForPost(post, user) {
+    let src = '';
+    if (user && user.id === post.user_id) {
+        src = Utils.imageURLForUser(user);
+    } else {
+        src = Utils.imageURLForUser(post.user_id);
+    }
+
     if (post.props && post.props.from_webhook && global.window.mm_config.EnablePostIconOverride === 'true') {
         if (post.props.override_icon_url) {
             src = post.props.override_icon_url;

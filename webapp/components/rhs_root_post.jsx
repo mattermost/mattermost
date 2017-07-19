@@ -196,7 +196,6 @@ export default class RhsRootPost extends React.Component {
         const post = this.props.post;
         const user = this.props.user;
         const mattermostLogo = Constants.MATTERMOST_ICON_SVG;
-        var timestamp = user ? user.last_picture_update : 0;
         var channel = ChannelStore.get(post.channel_id);
 
         const isEphemeral = Utils.isPostEphemeral(post);
@@ -303,7 +302,7 @@ export default class RhsRootPost extends React.Component {
 
         let profilePic = (
             <ProfilePicture
-                src={PostUtils.getProfilePicSrcForPost(post, timestamp)}
+                src={PostUtils.getProfilePicSrcForPost(post, user)}
                 status={status}
                 width='36'
                 height='36'
@@ -315,7 +314,7 @@ export default class RhsRootPost extends React.Component {
         if (post.props && post.props.from_webhook) {
             profilePic = (
                 <ProfilePicture
-                    src={PostUtils.getProfilePicSrcForPost(post, timestamp)}
+                    src={PostUtils.getProfilePicSrcForPost(post, user)}
                     width='36'
                     height='36'
                 />
