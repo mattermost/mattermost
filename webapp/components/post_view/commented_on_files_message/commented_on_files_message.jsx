@@ -45,7 +45,7 @@ export default class CommentedOnFilesMessage extends React.PureComponent {
                     id='post_body.plusMore'
                     defaultMessage=' plus {count, number} other {count, plural, one {file} other {files}}'
                     values={{
-                        count: this.props.fileInfos.length
+                        count: this.props.fileInfos.length - 1
                     }}
                 />
             );

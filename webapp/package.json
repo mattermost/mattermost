@@ -25,7 +25,7 @@
     "localforage": "1.5.0",
     "marked": "mattermost/marked#c0b5f4a651b0af63e974522b20b93b7999490c53",
     "match-at": "0.1.0",
-    "mattermost-redux": "mattermost/mattermost-redux#webapp-4.0",
+    "mattermost-redux": "mattermost/mattermost-redux#master",
     "object-assign": "4.1.1",
     "pdfjs-dist": "1.8.474",
     "perfect-scrollbar": "0.7.1",
