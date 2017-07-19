@@ -7,6 +7,7 @@ import Constants from 'utils/constants.jsx';
 
 import {intlShape, injectIntl, defineMessages, FormattedMessage} from 'react-intl';
 import {updateChannel} from 'actions/channel_actions.jsx';
+import {trackEvent} from 'actions/diagnostics_actions.jsx';
 import React from 'react';
 import {Modal} from 'react-bootstrap';
 
@@ -93,6 +94,8 @@ export class ConvertChannelModal extends React.Component {
             return;
         }
 
+        trackEvent('api', 'api_channels_convert_private');
+
         updateChannel(channel,
             () => {
                 this.handleHide();
@@ -120,14 +123,13 @@ export class ConvertChannelModal extends React.Component {
 
         return (
             <Modal
-                dialogClassName={'modal-xl'}
                 show={this.props.show}
                 onHide={this.handleCancel}
             >
                 <Modal.Header closeButton={true}>
                     <Modal.Title>
                         <FormattedMessage
-                            id='convert_channel.convert_channel_question'
+                            id='convert_channel.title'
                             defaultMessage='Convert {displayName} to a private channel?'
                             values={{
                                 displayName: <strong>{displayName}</strong>
@@ -139,41 +141,39 @@ export class ConvertChannelModal extends React.Component {
                     <div>
                         <p>
                             <FormattedMessage
-                                id='convert_channel.channel_public_description'
-                                defaultMessage='{displayName} is currently a public channel.'
+                                id='convert_channel.channel_private_description'
+                                defaultMessage='When you convert {displayName} to a private channel:'
                                 values={{
                                     displayName: <strong>{displayName}</strong>
                                 }}
-                            />
-                        </p>
-                        <br/>
-                        <p>
-                            <FormattedMessage
-                                id='convert_channel.convert_private_description'
-                                defaultMessage='Converting it to a private channel means:'
                             />
                         </p>
                         <ul>
                             <li>
                                 <FormattedMessage
                                     id='convert_channel.convert_private_description_bullet_first'
-                                    defaultMessage='Only people currently in the channel will be able to see and message in the channel'
+                                    defaultMessage='History and membership are preserved'
                                 />
                             </li>
                             <li>
                                 <FormattedMessage
                                     id='convert_channel.convert_private_description_bullet_second'
-                                    defaultMessage='All previous uploaded files (unless accessed via the Public Link) and past conversations in the public channel will become inaccessible to users not in the channel'
+                                    defaultMessage='Files shared via a public link remain accessible to others'
                                 />
                             </li>
                             <li>
                                 <FormattedMessage
                                     id='convert_channel.convert_private_description_bullet_third'
-                                    defaultMessage='Members will have to be invited to join this channel in the future'
+                                    defaultMessage='New members need be added before they can join the conversation'
                                 />
                             </li>
                         </ul>
-                        <br/>
+                        <p>
+                            <FormattedMessage
+                                id='convert_channel.convert_channel_permanent'
+                                defaultMessage='The change is permanent and cannot be undone.'
+                            />
+                        </p>
                         <p>
                             <FormattedMessage
                                 id='convert_channel.convert_channel_confirm_question'
@@ -195,7 +195,7 @@ export class ConvertChannelModal extends React.Component {
                     >
                         <FormattedMessage
                             id='convert_channel.cancel'
-                            defaultMessage='No, cancel'
+                            defaultMessage='Cancel'
                         />
                     </button>
                     <button
@@ -206,7 +206,7 @@ export class ConvertChannelModal extends React.Component {
                     >
                         <FormattedMessage
                             id='convert_channel.accept'
-                            defaultMessage='Yes, convert to private channel'
+                            defaultMessage='Yes, convert'
                         />
                     </button>
                 </Modal.Footer>

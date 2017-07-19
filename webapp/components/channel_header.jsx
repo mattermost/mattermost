@@ -765,7 +765,7 @@ export default class ChannelHeader extends React.Component {
                             >
                                 <FormattedMessage
                                     id='channel_header.convert'
-                                    defaultMessage='Convert to Private Channel'
+                                    defaultMessage='Convert Channel to Private'
                                 />
                             </a>
                         </li>
