@@ -10,7 +10,6 @@ import {autocompleteUsersInChannel} from 'actions/user_actions.jsx';
 
 import AppDispatcher from 'dispatcher/app_dispatcher.jsx';
 import * as Utils from 'utils/utils.jsx';
-import {Client4} from 'mattermost-redux/client';
 import {Constants, ActionTypes} from 'utils/constants.jsx';
 
 import React from 'react';
@@ -66,7 +65,7 @@ class AtMentionSuggestion extends Suggestion {
             icon = (
                 <img
                     className='mention__image'
-                    src={Client4.getUsersRoute() + '/' + user.id + '/image?time=' + user.last_picture_update}
+                    src={Utils.imageURLForUser(user)}
                 />
             );
         }
