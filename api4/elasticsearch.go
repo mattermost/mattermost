@@ -16,6 +16,7 @@ func InitElasticsearch() {
 	l4g.Debug(utils.T("api.elasticsearch.init.debug"))
 
 	BaseRoutes.Elasticsearch.Handle("/test", ApiSessionRequired(testElasticsearch)).Methods("POST")
+	BaseRoutes.Elasticsearch.Handle("/purge_indexes", ApiSessionRequired(purgeElasticsearchIndexes)).Methods("POST")
 }
 
 func testElasticsearch(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -30,6 +31,20 @@ func testElasticsearch(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := app.TestElasticsearch(cfg); err != nil {
+		c.Err = err
+		return
+	}
+
+	ReturnStatusOK(w)
+}
+
+func purgeElasticsearchIndexes(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !app.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+
+	if err := app.PurgeElasticsearchIndexes(); err != nil {
 		c.Err = err
 		return
 	}
