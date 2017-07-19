@@ -582,7 +582,6 @@ export default class Navbar extends React.Component {
                         </li>
                     );
                 }
-                
 
                 const canLeave = channel.type === Constants.PRIVATE_CHANNEL ? this.state.userCount > 1 : true;
                 if (!ChannelStore.isDefault(channel) && canLeave) {
