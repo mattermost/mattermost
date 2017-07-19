@@ -35,12 +35,6 @@
     }
 }
 
-.file-preview__image {
-    display: block;
-    height: auto;
-    max-width: 100%;
-}
-
 .file-preview__remove {
     background: alpha-color($black, .5);
     border-radius: 0 0 0 2px;
