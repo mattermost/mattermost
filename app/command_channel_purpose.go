@@ -4,7 +4,6 @@
 package app
 
 import (
-	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/platform/model"
 	goi18n "github.com/nicksnyder/go-i18n/i18n"
 )
@@ -56,21 +55,26 @@ func (me *PurposeProvider) DoCommand(args *model.CommandArgs, message string) *m
 		return &model.CommandResponse{Text: args.T("api.command_channel_purpose.message.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 	}
 
-	oldChannelPurpose := channel.Purpose
-	channel.Purpose = message
+	patch := &model.ChannelPatch{
+		Name:        new(string),
+		DisplayName: new(string),
+		Header:      new(string),
+		Purpose:     new(string),
+	}
 
-	updateChannel, err := UpdateChannel(channel)
+	*patch.Name = channel.Name
+	*patch.DisplayName = channel.DisplayName
+	*patch.Header = channel.Header
+	*patch.Purpose = message
+
+	updateChannel, err := PatchChannel(channel, patch, args.UserId)
 	if err != nil {
 		return &model.CommandResponse{Text: args.T("api.command_channel_purpose.update_channel.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 	}
 
 	messageWs := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CHANNEL_UPDATED, "", channel.Id, "", nil)
-	messageWs.Add("channel", channel.ToJson())
+	messageWs.Add("channel", updateChannel.ToJson())
 	Publish(messageWs)
-
-	if err := PostUpdateChannelPurposeMessage(args.Session.UserId, channel.Id, args.TeamId, oldChannelPurpose, updateChannel.Purpose); err != nil {
-		l4g.Error(err.Error())
-	}
 
 	return &model.CommandResponse{}
 }

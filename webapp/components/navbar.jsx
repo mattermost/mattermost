@@ -520,7 +520,7 @@ export default class Navbar extends React.Component {
                             <a
                                 role='menuitem'
                                 href='#'
-                                onClick={() => this.showChannelPurposeModal()}
+                                onClick={this.showChannelPurposeModal}
                             >
                                 <FormattedMessage
                                     id='channel_header.setPurpose'
@@ -907,7 +907,7 @@ export default class Navbar extends React.Component {
             if (this.state.showEditChannelPurposeModal) {
                 editChannelPurposeModal = (
                     <EditChannelPurposeModal
-                        onModalDismissed={() => this.hideChannelPurposeModal()}
+                        onModalDismissed={this.hideChannelPurposeModal}
                         channel={channel}
                     />
                 );
