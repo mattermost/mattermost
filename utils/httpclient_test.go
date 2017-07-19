@@ -4,21 +4,63 @@
 package utils
 
 import (
+	"context"
 	"fmt"
 	"io/ioutil"
+	"net"
 	"net/http"
 	"net/http/httptest"
-	"os"
+	"net/url"
 	"testing"
 )
+
+func TestHttpClient(t *testing.T) {
+	for _, allowInternal := range []bool{true, false} {
+		c := HttpClient(allowInternal)
+		for _, tc := range []struct {
+			URL        string
+			IsInternal bool
+		}{
+			{
+				URL:        "https://google.com",
+				IsInternal: false,
+			},
+			{
+				URL:        "https://127.0.0.1",
+				IsInternal: true,
+			},
+		} {
+			_, err := c.Get(tc.URL)
+			if !tc.IsInternal {
+				if err != nil {
+					t.Fatal("google is down?")
+				}
+			} else {
+				allowed := !tc.IsInternal || allowInternal
+				success := err == nil
+				switch e := err.(type) {
+				case *net.OpError:
+					success = e.Err != AddressForbidden
+				case *url.Error:
+					success = e.Err != AddressForbidden
+				}
+				if success != allowed {
+					t.Fatal("that's not right")
+				}
+			}
+		}
+	}
+}
 
 func TestHttpClientWithProxy(t *testing.T) {
 	proxy := createProxyServer()
 	defer proxy.Close()
-	os.Setenv("HTTP_PROXY", proxy.URL)
 
-	client := HttpClient()
-	resp, err := client.Get("http://acme.com")
+	c := createHttpClient(true, true)
+	purl, _ := url.Parse(proxy.URL)
+	c.Transport.(*http.Transport).Proxy = http.ProxyURL(purl)
+
+	resp, err := c.Get("http://acme.com")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -39,4 +81,36 @@ func createProxyServer() *httptest.Server {
 		w.Header().Set("Content-Type", "text/plain; charset=us-ascii")
 		fmt.Fprint(w, "proxy")
 	}))
+}
+
+func TestDialContextFilter(t *testing.T) {
+	for _, tc := range []struct {
+		Addr    string
+		IsValid bool
+	}{
+		{
+			Addr:    "google.com:80",
+			IsValid: true,
+		},
+		{
+			Addr:    "8.8.8.8:53",
+			IsValid: true,
+		},
+		{
+			Addr: "127.0.0.1:80",
+		},
+	} {
+		didDial := false
+		filter := dialContextFilter(func(ctx context.Context, network, addr string) (net.Conn, error) {
+			didDial = true
+			return nil, nil
+		}, reservedIPRanges)
+		_, err := filter(context.Background(), "", tc.Addr)
+		switch {
+		case tc.IsValid == (err == AddressForbidden) || (err != nil && err != AddressForbidden):
+			t.Errorf("unexpected err for %v (%v)", tc.Addr, err)
+		case tc.IsValid != didDial:
+			t.Errorf("unexpected didDial for %v", tc.Addr)
+		}
+	}
 }

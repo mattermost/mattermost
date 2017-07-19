@@ -23,6 +23,7 @@ export default class ConnectionSettings extends AdminSettings {
     getConfigFromState(config) {
         config.ServiceSettings.AllowCorsFrom = this.state.allowCorsFrom;
         config.ServiceSettings.EnableInsecureOutgoingConnections = this.state.enableInsecureOutgoingConnections;
+        config.ServiceSettings.EnableUntrustedInternalConnections = this.state.enableUntrustedInternalConnections;
 
         return config;
     }
@@ -30,7 +31,8 @@ export default class ConnectionSettings extends AdminSettings {
     getStateFromConfig(config) {
         return {
             allowCorsFrom: config.ServiceSettings.AllowCorsFrom,
-            enableInsecureOutgoingConnections: config.ServiceSettings.EnableInsecureOutgoingConnections
+            enableInsecureOutgoingConnections: config.ServiceSettings.EnableInsecureOutgoingConnections,
+            enableUntrustedInternalConnections: config.ServiceSettings.EnableUntrustedInternalConnections
         };
     }
 
@@ -79,6 +81,23 @@ export default class ConnectionSettings extends AdminSettings {
                         />
                     }
                     value={this.state.enableInsecureOutgoingConnections}
+                    onChange={this.handleChange}
+                />
+                <BooleanSetting
+                    id='enableUntrustedInternalConnections'
+                    label={
+                        <FormattedMessage
+                            id='admin.service.internalConnectionsTitle'
+                            defaultMessage='Enable Untrusted Internal Connections: '
+                        />
+                    }
+                    helpText={
+                        <FormattedMessage
+                            id='admin.service.internalConnectionsDesc'
+                            defaultMessage='When true, untrusted URLs such as those used for Open Graph metadata, webhooks, or slash commands will be allowed to connect to reserved IP addresses such as loopback or link-local addresses. Note that this may allow users to exfiltrate sensitive data from your server or internal network.'
+                        />
+                    }
+                    value={this.state.enableUntrustedInternalConnections}
                     onChange={this.handleChange}
                 />
             </SettingsGroup>

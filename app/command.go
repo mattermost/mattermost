@@ -209,7 +209,7 @@ func ExecuteCommand(args *model.CommandArgs) (*model.CommandResponse, *model.App
 						req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 					}
 
-					if resp, err := utils.HttpClient().Do(req); err != nil {
+					if resp, err := utils.HttpClient(false).Do(req); err != nil {
 						return nil, model.NewAppError("command", "api.command.execute_command.failed.app_error", map[string]interface{}{"Trigger": trigger}, err.Error(), http.StatusInternalServerError)
 					} else {
 						if resp.StatusCode == http.StatusOK {

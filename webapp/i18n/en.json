@@ -786,6 +786,8 @@
   "admin.service.iconTitle": "Enable integrations to override profile picture icons:",
   "admin.service.insecureTlsDesc": "When true, any outgoing HTTPS requests will accept unverified, self-signed certificates. For example, outgoing webhooks to a server with a self-signed TLS certificate, using any domain, will be allowed. Note that this makes these connections susceptible to man-in-the-middle attacks.",
   "admin.service.insecureTlsTitle": "Enable Insecure Outgoing Connections: ",
+  "admin.service.internalConnectionsDesc": "When true, untrusted URLs such as those used for Open Graph metadata, webhooks, or slash commands will be allowed to connect to reserved IP addresses such as loopback or link-local addresses. Note that this may allow users to exfiltrate sensitive data from your server or internal network.",
+  "admin.service.internalConnectionsTitle": "Enable Untrusted Internal Connections: ",
   "admin.service.integrationAdmin": "Restrict managing integrations to Admins:",
   "admin.service.integrationAdminDesc": "When true, webhooks and slash commands can only be created, edited and viewed by Team and System Admins, and OAuth 2.0 applications by System Admins. Integrations are available to all users after they have been created by the Admin.",
   "admin.service.letsEncryptCertificateCacheFile": "Let's Encrypt Certificate Cache File:",
