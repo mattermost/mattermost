@@ -67,14 +67,10 @@ func (me *PurposeProvider) DoCommand(args *model.CommandArgs, message string) *m
 	*patch.Header = channel.Header
 	*patch.Purpose = message
 
-	updateChannel, err := PatchChannel(channel, patch, args.UserId)
+	_, err = PatchChannel(channel, patch, args.UserId)
 	if err != nil {
 		return &model.CommandResponse{Text: args.T("api.command_channel_purpose.update_channel.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 	}
-
-	messageWs := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CHANNEL_UPDATED, "", channel.Id, "", nil)
-	messageWs.Add("channel", updateChannel.ToJson())
-	Publish(messageWs)
 
 	return &model.CommandResponse{}
 }
