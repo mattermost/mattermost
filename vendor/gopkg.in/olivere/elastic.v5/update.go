@@ -25,6 +25,7 @@ type UpdateService struct {
 	parent              string
 	script              *Script
 	fields              []string
+	fsc                 *FetchSourceContext
 	version             *int64
 	versionType         string
 	retryOnConflict     *int
@@ -172,6 +173,23 @@ func (b *UpdateService) Pretty(pretty bool) *UpdateService {
 	return b
 }
 
+// FetchSource asks Elasticsearch to return the updated _source in the response.
+func (s *UpdateService) FetchSource(fetchSource bool) *UpdateService {
+	if s.fsc == nil {
+		s.fsc = NewFetchSourceContext(fetchSource)
+	} else {
+		s.fsc.SetFetchSource(fetchSource)
+	}
+	return s
+}
+
+// FetchSourceContext indicates that _source should be returned in the response,
+// allowing wildcard patterns to be defined via FetchSourceContext.
+func (s *UpdateService) FetchSourceContext(fetchSourceContext *FetchSourceContext) *UpdateService {
+	s.fsc = fetchSourceContext
+	return s
+}
+
 // url returns the URL part of the document request.
 func (b *UpdateService) url() (string, url.Values, error) {
 	// Build url
@@ -249,6 +267,13 @@ func (b *UpdateService) body() (interface{}, error) {
 	}
 	if b.detectNoop != nil {
 		source["detect_noop"] = *b.detectNoop
+	}
+	if b.fsc != nil {
+		src, err := b.fsc.Source()
+		if err != nil {
+			return nil, err
+		}
+		source["_source"] = src
 	}
 
 	return source, nil

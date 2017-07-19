@@ -2,7 +2,7 @@
 
 This example connects a websocket connection to stdin and stdout of a command.
 Received messages are written to stdin followed by a `\n`. Each line read from
-from standard out is sent as a message to the client.
+standard out is sent as a message to the client.
 
     $ go get github.com/gorilla/websocket
     $ cd `go list -f '{{.Dir}}' github.com/gorilla/websocket/examples/command`

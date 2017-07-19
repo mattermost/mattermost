@@ -6,11 +6,12 @@ package message
 
 import (
 	"bytes"
-	// TODO: consider copying interfaces from package fmt to avoid dependency.
-	"fmt"
+	"fmt" // TODO: consider copying interfaces from package fmt to avoid dependency.
+	"math"
 	"reflect"
 	"unicode/utf8"
 
+	"golang.org/x/text/internal/number"
 	"golang.org/x/text/language"
 	"golang.org/x/text/message/catalog"
 )
@@ -66,6 +67,9 @@ type printer struct {
 	panicking bool
 	// erroring is set when printing an error string to guard against calling handleMethods.
 	erroring bool
+
+	toDecimal    number.Formatter
+	toScientific number.Formatter
 }
 
 func (p *printer) reset() {
@@ -188,11 +192,15 @@ func (p *printer) fmtInteger(v uint64, isSigned bool, verb rune) {
 	case 'v':
 		if p.fmt.sharpV && !isSigned {
 			p.fmt0x64(v, true)
-		} else {
-			p.fmt.fmt_integer(v, 10, isSigned, ldigits)
+			return
 		}
+		fallthrough
 	case 'd':
-		p.fmt.fmt_integer(v, 10, isSigned, ldigits)
+		if p.fmt.sharp || p.fmt.sharpV {
+			p.fmt.fmt_integer(v, 10, isSigned, ldigits)
+		} else {
+			p.fmtDecimalInt(v, isSigned)
+		}
 	case 'b':
 		p.fmt.fmt_integer(v, 2, isSigned, ldigits)
 	case 'o':
@@ -220,17 +228,193 @@ func (p *printer) fmtInteger(v uint64, isSigned bool, verb rune) {
 // is specified as last argument in the call to fmt_float.
 func (p *printer) fmtFloat(v float64, size int, verb rune) {
 	switch verb {
-	case 'v':
-		p.fmt.fmt_float(v, size, 'g', -1)
-	case 'b', 'g', 'G':
+	case 'b':
 		p.fmt.fmt_float(v, size, verb, -1)
-	case 'f', 'e', 'E':
-		p.fmt.fmt_float(v, size, verb, 6)
-	case 'F':
-		p.fmt.fmt_float(v, size, 'f', 6)
+	case 'v':
+		verb = 'g'
+		fallthrough
+	case 'g', 'G':
+		if p.fmt.sharp || p.fmt.sharpV {
+			p.fmt.fmt_float(v, size, verb, -1)
+		} else {
+			p.fmtVariableFloat(v, size, -1)
+		}
+	case 'e', 'E':
+		if p.fmt.sharp || p.fmt.sharpV {
+			p.fmt.fmt_float(v, size, verb, 6)
+		} else {
+			p.fmtScientific(v, size, 6)
+		}
+	case 'f', 'F':
+		if p.fmt.sharp || p.fmt.sharpV {
+			p.fmt.fmt_float(v, size, verb, 6)
+		} else {
+			p.fmtDecimalFloat(v, size, 6)
+		}
 	default:
 		p.badVerb(verb)
 	}
+}
+
+func (p *printer) setFlags(f *number.Formatter) {
+	f.Flags &^= number.ElideSign
+	if p.fmt.plus || p.fmt.space {
+		f.Flags |= number.AlwaysSign
+		if !p.fmt.plus {
+			f.Flags |= number.ElideSign
+		}
+	} else {
+		f.Flags &^= number.AlwaysSign
+	}
+}
+
+func (p *printer) updatePadding(f *number.Formatter) {
+	f.Flags &^= number.PadMask
+	if p.fmt.minus {
+		f.Flags |= number.PadAfterSuffix
+	} else {
+		f.Flags |= number.PadBeforePrefix
+	}
+	f.PadRune = ' '
+	f.FormatWidth = uint16(p.fmt.wid)
+}
+
+func (p *printer) initDecimal(minFrac, maxFrac int) {
+	f := &p.toDecimal
+	f.MinIntegerDigits = 1
+	f.MaxIntegerDigits = 0
+	f.MinFractionDigits = uint8(minFrac)
+	f.MaxFractionDigits = uint8(maxFrac)
+	p.setFlags(f)
+	f.PadRune = 0
+	if p.fmt.widPresent {
+		if p.fmt.zero {
+			wid := p.fmt.wid
+			// Use significant integers for this.
+			// TODO: this is not the same as width, but so be it.
+			if f.MinFractionDigits > 0 {
+				wid -= 1 + int(f.MinFractionDigits)
+			}
+			if p.fmt.plus || p.fmt.space {
+				wid--
+			}
+			if wid > 0 && wid > int(f.MinIntegerDigits) {
+				f.MinIntegerDigits = uint8(wid)
+			}
+		}
+		p.updatePadding(f)
+	}
+}
+
+func (p *printer) initScientific(minFrac, maxFrac int) {
+	f := &p.toScientific
+	f.MinFractionDigits = uint8(minFrac)
+	f.MaxFractionDigits = uint8(maxFrac)
+	f.MinExponentDigits = 2
+	p.setFlags(f)
+	f.PadRune = 0
+	if p.fmt.widPresent {
+		f.Flags &^= number.PadMask
+		if p.fmt.zero {
+			f.PadRune = f.Digit(0)
+			f.Flags |= number.PadAfterPrefix
+		} else {
+			f.PadRune = ' '
+			f.Flags |= number.PadBeforePrefix
+		}
+		p.updatePadding(f)
+	}
+}
+
+func (p *printer) fmtDecimalInt(v uint64, isSigned bool) {
+	var d number.Decimal
+	p.toDecimal.RoundingContext.Scale = 0
+	d.ConvertInt(&p.toDecimal.RoundingContext, isSigned, v)
+
+	f := &p.toDecimal
+	if p.fmt.precPresent {
+		p.setFlags(f)
+		f.MinIntegerDigits = uint8(p.fmt.prec)
+		f.MaxIntegerDigits = 0
+		f.MinFractionDigits = 0
+		f.MaxFractionDigits = 0
+		if p.fmt.widPresent {
+			p.updatePadding(f)
+		}
+	} else {
+		p.initDecimal(0, 0)
+	}
+
+	out := p.toDecimal.Format([]byte(nil), &d)
+	p.Buffer.Write(out)
+}
+
+func (p *printer) fmtDecimalFloat(v float64, size, prec int) {
+	var d number.Decimal
+	if p.fmt.precPresent {
+		prec = p.fmt.prec
+	}
+	p.toDecimal.RoundingContext.Scale = int32(prec)
+	d.ConvertFloat(&p.toDecimal.RoundingContext, v, size)
+
+	p.initDecimal(prec, prec)
+
+	out := p.toDecimal.Format([]byte(nil), &d)
+	p.Buffer.Write(out)
+}
+
+func (p *printer) fmtVariableFloat(v float64, size, prec int) {
+	if p.fmt.precPresent {
+		prec = p.fmt.prec
+	}
+	var d number.Decimal
+	p.toScientific.RoundingContext.Precision = int32(prec)
+	d.ConvertFloat(&p.toScientific.RoundingContext, v, size)
+
+	// Copy logic of 'g' formatting from strconv. It is simplified a bit as
+	// we don't have to mind having prec > len(d.Digits).
+	shortest := prec < 0
+	ePrec := prec
+	if shortest {
+		prec = len(d.Digits)
+		ePrec = 6
+	} else if prec == 0 {
+		prec = 1
+		ePrec = 1
+	}
+	exp := int(d.Exp) - 1
+	if exp < -4 || exp >= ePrec {
+		p.initScientific(0, prec)
+
+		out := p.toScientific.Format([]byte(nil), &d)
+		p.Buffer.Write(out)
+	} else {
+		if prec > int(d.Exp) {
+			prec = len(d.Digits)
+		}
+		if prec -= int(d.Exp); prec < 0 {
+			prec = 0
+		}
+		p.initDecimal(0, prec)
+
+		out := p.toDecimal.Format([]byte(nil), &d)
+		p.Buffer.Write(out)
+	}
+}
+
+func (p *printer) fmtScientific(v float64, size, prec int) {
+	var d number.Decimal
+	if p.fmt.precPresent {
+		prec = p.fmt.prec
+	}
+	p.toScientific.RoundingContext.Precision = int32(prec)
+	d.ConvertFloat(&p.toScientific.RoundingContext, v, size)
+
+	p.initScientific(prec, prec)
+
+	out := p.toScientific.Format([]byte(nil), &d)
+	p.Buffer.Write(out)
+
 }
 
 // fmtComplex formats a complex number v with
@@ -241,13 +425,39 @@ func (p *printer) fmtComplex(v complex128, size int, verb rune) {
 	// calls to fmtFloat to not generate an incorrect error string.
 	switch verb {
 	case 'v', 'b', 'g', 'G', 'f', 'F', 'e', 'E':
-		oldPlus := p.fmt.plus
 		p.WriteByte('(')
 		p.fmtFloat(real(v), size/2, verb)
 		// Imaginary part always has a sign.
+		if math.IsNaN(imag(v)) {
+			// By CLDR's rules, NaNs do not use patterns or signs. As this code
+			// relies on AlwaysSign working for imaginary parts, we need to
+			// manually handle NaNs.
+			f := &p.toScientific
+			p.setFlags(f)
+			p.updatePadding(f)
+			p.setFlags(f)
+			nan := f.Symbol(number.SymNan)
+			extra := 0
+			if w, ok := p.Width(); ok {
+				extra = w - utf8.RuneCountInString(nan) - 1
+			}
+			if f.Flags&number.PadAfterNumber == 0 {
+				for ; extra > 0; extra-- {
+					p.WriteRune(f.PadRune)
+				}
+			}
+			p.WriteString(f.Symbol(number.SymPlusSign))
+			p.WriteString(nan)
+			for ; extra > 0; extra-- {
+				p.WriteRune(f.PadRune)
+			}
+			p.WriteString("i)")
+			return
+		}
+		oldPlus := p.fmt.plus
 		p.fmt.plus = true
 		p.fmtFloat(imag(v), size/2, verb)
-		p.WriteString("i)")
+		p.WriteString("i)") // TODO: use symbol?
 		p.fmt.plus = oldPlus
 	default:
 		p.badVerb(verb)
@@ -347,6 +557,9 @@ func (p *printer) fmtPointer(value reflect.Value, verb rune) {
 	case 'p':
 		p.fmt0x64(uint64(u), !p.fmt.sharp)
 	case 'b', 'o', 'd', 'x', 'X':
+		if verb == 'd' {
+			p.fmt.sharp = true // Print as standard go. TODO: does this make sense?
+		}
 		p.fmtInteger(uint64(u), unsigned, verb)
 	default:
 		p.badVerb(verb)

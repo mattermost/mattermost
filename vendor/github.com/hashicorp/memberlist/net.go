@@ -55,6 +55,7 @@ const (
 	encryptMsg
 	nackRespMsg
 	hasCrcMsg
+	errMsg
 )
 
 // compressionType is used to specify the compression algorithm
@@ -103,6 +104,11 @@ type ackResp struct {
 // that the indirect ping attempt happened but didn't succeed.
 type nackResp struct {
 	SeqNo uint32
+}
+
+// err response is sent to relay the error from the remote end
+type errResp struct {
+	Error string
 }
 
 // suspect is broadcast when we suspect a node is dead
@@ -209,6 +215,19 @@ func (m *Memberlist) handleConn(conn net.Conn) {
 	if err != nil {
 		if err != io.EOF {
 			m.logger.Printf("[ERR] memberlist: failed to receive: %s %s", err, LogConn(conn))
+
+			resp := errResp{err.Error()}
+			out, err := encode(errMsg, &resp)
+			if err != nil {
+				m.logger.Printf("[ERR] memberlist: Failed to encode error response: %s", err)
+				return
+			}
+
+			err = m.rawSendMsgStream(conn, out.Bytes())
+			if err != nil {
+				m.logger.Printf("[ERR] memberlist: Failed to send error: %s %s", err, LogConn(conn))
+				return
+			}
 		}
 		return
 	}
@@ -724,6 +743,14 @@ func (m *Memberlist) sendAndReceiveState(addr string, join bool) ([]pushNodeStat
 	msgType, bufConn, dec, err := m.readStream(conn)
 	if err != nil {
 		return nil, nil, err
+	}
+
+	if msgType == errMsg {
+		var resp errResp
+		if err := dec.Decode(&resp); err != nil {
+			return nil, nil, err
+		}
+		return nil, nil, fmt.Errorf("remote error: %v", resp.Error)
 	}
 
 	// Quit if not push/pull

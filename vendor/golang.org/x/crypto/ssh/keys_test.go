@@ -11,6 +11,7 @@ import (
 	"crypto/elliptic"
 	"crypto/rand"
 	"crypto/rsa"
+	"crypto/x509"
 	"encoding/base64"
 	"fmt"
 	"reflect"
@@ -164,6 +165,12 @@ func TestParseEncryptedPrivateKeysWithPassphrase(t *testing.T) {
 		if err := s.PublicKey().Verify(data, sig); err != nil {
 			t.Errorf("Verify failed: %v", err)
 		}
+	}
+
+	tt := testdata.PEMEncryptedKeys[0]
+	_, err := ParsePrivateKeyWithPassphrase(tt.PEMBytes, []byte("incorrect"))
+	if err != x509.IncorrectPasswordError {
+		t.Fatalf("got %v want IncorrectPasswordError", err)
 	}
 }
 

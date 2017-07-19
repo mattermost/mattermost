@@ -5,7 +5,7 @@ import:
   repo: https://github.com/mattermost/log4go.git
 - package: github.com/dgryski/dgoogauth
 - package: github.com/disintegration/imaging
-  version: v1.1.0
+  version: v1.2.0
 - package: github.com/dyatlov/go-opengraph
   subpackages:
   - opengraph
@@ -21,13 +21,13 @@ import:
 - package: github.com/gorilla/mux
   version: v1.4.0
 - package: github.com/gorilla/websocket
-  version: v1.1.0
+  version: v1.2.0
 - package: github.com/lib/pq
 - package: github.com/mattermost/rsc
   subpackages:
   - qr
 - package: github.com/minio/minio-go
-  version: v2.1.0
+  version: v3.0.0
 - package: github.com/mssola/user_agent
   version: v0.4.1
 - package: github.com/nicksnyder/go-i18n
@@ -35,8 +35,9 @@ import:
   subpackages:
   - i18n
 - package: github.com/pborman/uuid
-  version: v1.0
+  version: v1.1
 - package: github.com/rsc/letsencrypt
+  version: v0.0.1
 - package: github.com/rwcarlsen/goexif
   subpackages:
   - exif
@@ -80,6 +81,6 @@ import:
 - package: github.com/prometheus/procfs
 - package: github.com/cpanato/html2text
 - package: gopkg.in/olivere/elastic.v5
-  version: v5.0.41
+  version: v5.0.43
 - package: github.com/mattermost/gorp
   version: 995ddf2264c4ad45fbaf342f7500e4787ebae84a

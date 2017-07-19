@@ -48,7 +48,7 @@ func NewDNSChallengeProviderByName(name string) (acme.ChallengeProvider, error) 
 	case "dyn":
 		provider, err = dyn.NewDNSProvider()
 	case "exoscale":
-		provider, err = exoscale.NewDNSProvider()		
+		provider, err = exoscale.NewDNSProvider()
 	case "gandi":
 		provider, err = gandi.NewDNSProvider()
 	case "gcloud":

@@ -24,7 +24,7 @@ func TestTopHitsAggregation(t *testing.T) {
 		t.Fatalf("marshaling to JSON failed: %v", err)
 	}
 	got := string(data)
-	expected := `{"top_hits":{"_source":{"excludes":[],"includes":["title"]},"size":1,"sort":[{"last_activity_date":{"order":"desc"}}]}}`
+	expected := `{"top_hits":{"_source":{"includes":["title"]},"size":1,"sort":[{"last_activity_date":{"order":"desc"}}]}}`
 	if got != expected {
 		t.Errorf("expected\n%s\n,got:\n%s", expected, got)
 	}

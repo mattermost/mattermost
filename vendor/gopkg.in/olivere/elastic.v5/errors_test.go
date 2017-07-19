@@ -200,3 +200,96 @@ func TestIsTimeout(t *testing.T) {
 		t.Errorf("expected %v; got: %v", want, got)
 	}
 }
+
+func TestIsConflict(t *testing.T) {
+	if got, want := IsConflict(nil), false; got != want {
+		t.Errorf("expected %v; got: %v", want, got)
+	}
+	if got, want := IsConflict(""), false; got != want {
+		t.Errorf("expected %v; got: %v", want, got)
+	}
+	if got, want := IsConflict(200), false; got != want {
+		t.Errorf("expected %v; got: %v", want, got)
+	}
+	if got, want := IsConflict(http.StatusConflict), true; got != want {
+		t.Errorf("expected %v; got: %v", want, got)
+	}
+
+	if got, want := IsConflict(&Error{Status: 409}), true; got != want {
+		t.Errorf("expected %v; got: %v", want, got)
+	}
+	if got, want := IsConflict(&Error{Status: 200}), false; got != want {
+		t.Errorf("expected %v; got: %v", want, got)
+	}
+
+	if got, want := IsConflict(Error{Status: 409}), true; got != want {
+		t.Errorf("expected %v; got: %v", want, got)
+	}
+	if got, want := IsConflict(Error{Status: 200}), false; got != want {
+		t.Errorf("expected %v; got: %v", want, got)
+	}
+
+	if got, want := IsConflict(&http.Response{StatusCode: 409}), true; got != want {
+		t.Errorf("expected %v; got: %v", want, got)
+	}
+	if got, want := IsConflict(&http.Response{StatusCode: 200}), false; got != want {
+		t.Errorf("expected %v; got: %v", want, got)
+	}
+}
+
+func TestIsStatusCode(t *testing.T) {
+	tests := []struct {
+		Error interface{}
+		Code  int
+		Want  bool
+	}{
+		// #0
+		{
+			Error: nil,
+			Code:  200,
+			Want:  false,
+		},
+		// #1
+		{
+			Error: "",
+			Code:  200,
+			Want:  false,
+		},
+		// #2
+		{
+			Error: http.StatusConflict,
+			Code:  409,
+			Want:  true,
+		},
+		// #3
+		{
+			Error: http.StatusConflict,
+			Code:  http.StatusInternalServerError,
+			Want:  false,
+		},
+		// #4
+		{
+			Error: &Error{Status: http.StatusConflict},
+			Code:  409,
+			Want:  true,
+		},
+		// #5
+		{
+			Error: Error{Status: http.StatusConflict},
+			Code:  409,
+			Want:  true,
+		},
+		// #6
+		{
+			Error: &http.Response{StatusCode: http.StatusConflict},
+			Code:  409,
+			Want:  true,
+		},
+	}
+
+	for i, tt := range tests {
+		if have, want := IsStatusCode(tt.Error, tt.Code), tt.Want; have != want {
+			t.Errorf("#%d: have %v, want %v", i, have, want)
+		}
+	}
+}

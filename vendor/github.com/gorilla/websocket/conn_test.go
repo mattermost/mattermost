@@ -463,3 +463,35 @@ func TestFailedConnectionReadPanic(t *testing.T) {
 	}
 	t.Fatal("should not get here")
 }
+
+func TestBufioReuse(t *testing.T) {
+	brw := bufio.NewReadWriter(bufio.NewReader(nil), bufio.NewWriter(nil))
+	c := newConnBRW(nil, false, 0, 0, brw)
+
+	if c.br != brw.Reader {
+		t.Error("connection did not reuse bufio.Reader")
+	}
+
+	var wh writeHook
+	brw.Writer.Reset(&wh)
+	brw.WriteByte(0)
+	brw.Flush()
+	if &c.writeBuf[0] != &wh.p[0] {
+		t.Error("connection did not reuse bufio.Writer")
+	}
+
+	brw = bufio.NewReadWriter(bufio.NewReaderSize(nil, 0), bufio.NewWriterSize(nil, 0))
+	c = newConnBRW(nil, false, 0, 0, brw)
+
+	if c.br == brw.Reader {
+		t.Error("connection used bufio.Reader with small size")
+	}
+
+	brw.Writer.Reset(&wh)
+	brw.WriteByte(0)
+	brw.Flush()
+	if &c.writeBuf[0] != &wh.p[0] {
+		t.Error("connection used bufio.Writer with small size")
+	}
+
+}

@@ -42,24 +42,28 @@ func main() {
 	// Enable trace.
 	// s3Client.TraceOn(os.Stderr)
 
+	// Source object
+	src := minio.NewSourceInfo("my-sourcebucketname", "my-sourceobjectname", nil)
+
 	// All following conditions are allowed and can be combined together.
 
-	// Set copy conditions.
-	var copyConds = minio.CopyConditions{}
 	// Set modified condition, copy object modified since 2014 April.
-	copyConds.SetModified(time.Date(2014, time.April, 0, 0, 0, 0, 0, time.UTC))
+	src.SetModifiedSinceCond(time.Date(2014, time.April, 0, 0, 0, 0, 0, time.UTC))
 
 	// Set unmodified condition, copy object unmodified since 2014 April.
-	// copyConds.SetUnmodified(time.Date(2014, time.April, 0, 0, 0, 0, 0, time.UTC))
+	// src.SetUnmodifiedSinceCond(time.Date(2014, time.April, 0, 0, 0, 0, 0, time.UTC))
 
 	// Set matching ETag condition, copy object which matches the following ETag.
-	// copyConds.SetMatchETag("31624deb84149d2f8ef9c385918b653a")
+	// src.SetMatchETagCond("31624deb84149d2f8ef9c385918b653a")
 
 	// Set matching ETag except condition, copy object which does not match the following ETag.
-	// copyConds.SetMatchETagExcept("31624deb84149d2f8ef9c385918b653a")
+	// src.SetMatchETagExceptCond("31624deb84149d2f8ef9c385918b653a")
+
+	// Destination object
+	dst := minio.NewDestinationInfo("my-bucketname", "my-objectname", nil)
 
 	// Initiate copy object.
-	err = s3Client.CopyObject("my-bucketname", "my-objectname", "/my-sourcebucketname/my-sourceobjectname", copyConds)
+	err = s3Client.CopyObject(dst, src)
 	if err != nil {
 		log.Fatalln(err)
 	}

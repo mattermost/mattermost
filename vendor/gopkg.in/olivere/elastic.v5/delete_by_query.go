@@ -614,23 +614,24 @@ func (s *DeleteByQueryService) Do(ctx context.Context) (*BulkIndexByScrollRespon
 // BulkIndexByScrollResponse is the outcome of executing Do with
 // DeleteByQueryService and UpdateByQueryService.
 type BulkIndexByScrollResponse struct {
-	Took             int64 `json:"took"`
-	TimedOut         bool  `json:"timed_out"`
-	Total            int64 `json:"total"`
-	Updated          int64 `json:"updated"`
-	Created          int64 `json:"created"`
-	Deleted          int64 `json:"deleted"`
-	Batches          int64 `json:"batches"`
-	VersionConflicts int64 `json:"version_conflicts"`
-	Noops            int64 `json:"noops"`
+	Took             int64  `json:"took"`
+	SliceId          *int64 `json:"slice_id,omitempty"`
+	TimedOut         bool   `json:"timed_out"`
+	Total            int64  `json:"total"`
+	Updated          int64  `json:"updated,omitempty"`
+	Created          int64  `json:"created,omitempty"`
+	Deleted          int64  `json:"deleted"`
+	Batches          int64  `json:"batches"`
+	VersionConflicts int64  `json:"version_conflicts"`
+	Noops            int64  `json:"noops"`
 	Retries          struct {
 		Bulk   int64 `json:"bulk"`
 		Search int64 `json:"search"`
-	} `json:"retries"`
+	} `json:"retries,omitempty"`
 	Throttled            string                             `json:"throttled"`
 	ThrottledMillis      int64                              `json:"throttled_millis"`
 	RequestsPerSecond    float64                            `json:"requests_per_second"`
-	Canceled             string                             `json:"canceled"`
+	Canceled             string                             `json:"canceled,omitempty"`
 	ThrottledUntil       string                             `json:"throttled_until"`
 	ThrottledUntilMillis int64                              `json:"throttled_until_millis"`
 	Failures             []bulkIndexByScrollResponseFailure `json:"failures"`

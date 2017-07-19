@@ -29,6 +29,28 @@ func TestRangeAggregation(t *testing.T) {
 	}
 }
 
+func TestRangeAggregationWithPointers(t *testing.T) {
+	fifty := 50
+	hundred := 100
+	agg := NewRangeAggregation().Field("price")
+	agg = agg.AddRange(nil, &fifty)
+	agg = agg.AddRange(fifty, &hundred)
+	agg = agg.AddRange(hundred, nil)
+	src, err := agg.Source()
+	if err != nil {
+		t.Fatal(err)
+	}
+	data, err := json.Marshal(src)
+	if err != nil {
+		t.Fatalf("marshaling to JSON failed: %v", err)
+	}
+	got := string(data)
+	expected := `{"range":{"field":"price","ranges":[{"to":50},{"from":50,"to":100},{"from":100}]}}`
+	if got != expected {
+		t.Errorf("expected\n%s\n,got:\n%s", expected, got)
+	}
+}
+
 func TestRangeAggregationWithUnbounded(t *testing.T) {
 	agg := NewRangeAggregation().Field("field_name").
 		AddUnboundedFrom(50).

@@ -19,7 +19,6 @@ import (
 	"net/http"
 	"net/url"
 	"os"
-	"path"
 	"path/filepath"
 	"strings"
 	"sync"
@@ -114,8 +113,12 @@ func MoveFile(oldPath, newPath string) *model.AppError {
 		}
 		bucket := utils.Cfg.FileSettings.AmazonS3Bucket
 
-		var copyConds = s3.NewCopyConditions()
-		if err = s3Clnt.CopyObject(bucket, newPath, "/"+path.Join(bucket, oldPath), copyConds); err != nil {
+		source := s3.NewSourceInfo(bucket, oldPath, nil)
+		destination, err := s3.NewDestinationInfo(bucket, newPath, nil, nil)
+		if err != nil {
+			return model.NewLocAppError("moveFile", "api.file.write_file.s3.app_error", nil, err.Error())
+		}
+		if err = s3Clnt.CopyObject(destination, source); err != nil {
 			return model.NewLocAppError("moveFile", "api.file.move_file.delete_from_s3.app_error", nil, err.Error())
 		}
 		if err = s3Clnt.RemoveObject(bucket, oldPath); err != nil {
@@ -489,7 +492,7 @@ func HandleImages(previewPathList []string, thumbnailPathList []string, fileData
 			go func(img *image.Image, path string, width int, height int) {
 				defer wg.Done()
 				generateThumbnailImage(*img, path, width, height)
-			}(img,thumbnailPathList[i], width, height)
+			}(img, thumbnailPathList[i], width, height)
 
 			go func(img *image.Image, path string, width int) {
 				defer wg.Done()

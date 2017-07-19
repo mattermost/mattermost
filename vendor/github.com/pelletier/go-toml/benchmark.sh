@@ -13,7 +13,7 @@ fi
 
 tempdir=`mktemp -d /tmp/go-toml-benchmark-XXXXXX`
 ref_tempdir="${tempdir}/ref"
-ref_benchmark="${ref_tempdir}/benchmark-${reference_ref}.txt"
+ref_benchmark="${ref_tempdir}/benchmark-`echo -n ${reference_ref}|tr -s '/' '-'`.txt"
 local_benchmark="`pwd`/benchmark-local.txt"
 
 echo "=== ${reference_ref} (${ref_tempdir})"
@@ -25,7 +25,7 @@ popd >/dev/null
 
 echo ""
 echo "=== local"
-go test -bench=. -benchmem | tee ${local_benchmark}
+go test -bench=. -benchmem  | tee ${local_benchmark}
 
 echo ""
 echo "=== diff"

@@ -139,6 +139,9 @@ var (
 	procFlushViewOfFile                    = modkernel32.NewProc("FlushViewOfFile")
 	procVirtualLock                        = modkernel32.NewProc("VirtualLock")
 	procVirtualUnlock                      = modkernel32.NewProc("VirtualUnlock")
+	procVirtualAlloc                       = modkernel32.NewProc("VirtualAlloc")
+	procVirtualFree                        = modkernel32.NewProc("VirtualFree")
+	procVirtualProtect                     = modkernel32.NewProc("VirtualProtect")
 	procTransmitFile                       = modmswsock.NewProc("TransmitFile")
 	procReadDirectoryChangesW              = modkernel32.NewProc("ReadDirectoryChangesW")
 	procCertOpenSystemStoreW               = modcrypt32.NewProc("CertOpenSystemStoreW")
@@ -1374,6 +1377,43 @@ func VirtualLock(addr uintptr, length uintptr) (err error) {
 
 func VirtualUnlock(addr uintptr, length uintptr) (err error) {
 	r1, _, e1 := syscall.Syscall(procVirtualUnlock.Addr(), 2, uintptr(addr), uintptr(length), 0)
+	if r1 == 0 {
+		if e1 != 0 {
+			err = errnoErr(e1)
+		} else {
+			err = syscall.EINVAL
+		}
+	}
+	return
+}
+
+func VirtualAlloc(address uintptr, size uintptr, alloctype uint32, protect uint32) (value uintptr, err error) {
+	r0, _, e1 := syscall.Syscall6(procVirtualAlloc.Addr(), 4, uintptr(address), uintptr(size), uintptr(alloctype), uintptr(protect), 0, 0)
+	value = uintptr(r0)
+	if value == 0 {
+		if e1 != 0 {
+			err = errnoErr(e1)
+		} else {
+			err = syscall.EINVAL
+		}
+	}
+	return
+}
+
+func VirtualFree(address uintptr, size uintptr, freetype uint32) (err error) {
+	r1, _, e1 := syscall.Syscall(procVirtualFree.Addr(), 3, uintptr(address), uintptr(size), uintptr(freetype))
+	if r1 == 0 {
+		if e1 != 0 {
+			err = errnoErr(e1)
+		} else {
+			err = syscall.EINVAL
+		}
+	}
+	return
+}
+
+func VirtualProtect(address uintptr, size uintptr, newprotect uint32, oldprotect *uint32) (err error) {
+	r1, _, e1 := syscall.Syscall6(procVirtualProtect.Addr(), 4, uintptr(address), uintptr(size), uintptr(newprotect), uintptr(unsafe.Pointer(oldprotect)), 0, 0)
 	if r1 == 0 {
 		if e1 != 0 {
 			err = errnoErr(e1)
