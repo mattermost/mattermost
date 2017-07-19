@@ -136,9 +136,7 @@ export class ConvertChannelModal extends React.Component {
                     </Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
-                    <div
-                        className={'modal-padding'}
-                    >
+                    <div>
                         <p>
                             <FormattedMessage
                                 id='convert_channel.channel_public_description'
