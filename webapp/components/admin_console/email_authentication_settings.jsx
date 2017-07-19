@@ -37,7 +37,7 @@ export default class EmailAuthenticationSettings extends AdminSettings {
         return (
             <FormattedMessage
                 id='admin.authentication.email'
-                defaultMessage='Email'
+                defaultMessage='Email Authentication'
             />
         );
     }
@@ -56,7 +56,7 @@ export default class EmailAuthenticationSettings extends AdminSettings {
                     helpText={
                         <FormattedMessage
                             id='admin.email.allowSignupDescription'
-                            defaultMessage='When true, Mattermost allows team creation and account signup using email and password.  This value should be false only when you want to limit signup to a single sign-on service like OAuth or AD/LDAP.'
+                            defaultMessage='When true, Mattermost allows account creation using email and password. This value should be false only when you want to limit sign up to a single sign-on service like AD/LDAP, SAML or GitLab.'
                         />
                     }
                     value={this.state.enableSignUpWithEmail}
@@ -90,7 +90,7 @@ export default class EmailAuthenticationSettings extends AdminSettings {
                     helpText={
                         <FormattedMessage
                             id='admin.email.allowUsernameSignInDescription'
-                            defaultMessage='When true, Mattermost allows users to sign in using their username and password.  This setting is typically only used when email verification is disabled.'
+                            defaultMessage='When true, users with email login can sign in using their username and password. This setting does not affect AD/LDAP login.'
                         />
                     }
                     value={this.state.enableSignInWithUsername}
