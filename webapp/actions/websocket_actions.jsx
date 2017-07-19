@@ -261,6 +261,12 @@ function handlePostEditEvent(msg) {
             viewChannel(ChannelStore.getCurrentId())(dispatch, getState);
         }
     }
+
+    // Needed for search store
+    AppDispatcher.handleViewAction({
+        type: Constants.ActionTypes.POST_UPDATED,
+        post
+    });
 }
 
 function handlePostDeleteEvent(msg) {

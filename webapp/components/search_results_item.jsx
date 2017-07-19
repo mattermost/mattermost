@@ -7,7 +7,7 @@ import UserProfile from './user_profile.jsx';
 import FileAttachmentListContainer from 'components/file_attachment_list';
 import ProfilePicture from './profile_picture.jsx';
 import CommentIcon from 'components/common/comment_icon.jsx';
-import DotMenu from 'components/dot_menu/dot_menu.jsx';
+import DotMenu from 'components/dot_menu';
 import PostFlagIcon from 'components/post_view/post_flag_icon.jsx';
 
 import TeamStore from 'stores/team_store.jsx';
@@ -43,7 +43,7 @@ export default class SearchResultsItem extends React.Component {
     }
 
     shouldComponentUpdate(nextProps, nextState) {
-        if (nextProps.post.is_pinned !== this.props.post.is_pinned) {
+        if (!Utils.areObjectsEqual(nextState.post, this.props.post)) {
             return true;
         }
 
