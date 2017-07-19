@@ -233,10 +233,13 @@ func TestTestCommand(t *testing.T) {
 	channel1 := th.SystemAdminChannel
 
 	enableCommands := *utils.Cfg.ServiceSettings.EnableCommands
+	enableInternalConnections := *utils.Cfg.ServiceSettings.EnableUntrustedInternalConnections
 	defer func() {
 		utils.Cfg.ServiceSettings.EnableCommands = &enableCommands
+		utils.Cfg.ServiceSettings.EnableUntrustedInternalConnections = &enableInternalConnections
 	}()
 	*utils.Cfg.ServiceSettings.EnableCommands = true
+	*utils.Cfg.ServiceSettings.EnableUntrustedInternalConnections = true
 
 	cmd1 := &model.Command{
 		URL:     "http://localhost" + utils.Cfg.ServiceSettings.ListenAddress + model.API_URL_SUFFIX_V3 + "/teams/command_test",

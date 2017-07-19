@@ -388,10 +388,13 @@ func TestExecuteCommand(t *testing.T) {
 	channel := th.BasicChannel
 
 	enableCommands := *utils.Cfg.ServiceSettings.EnableCommands
+	enableInternalConnections := *utils.Cfg.ServiceSettings.EnableUntrustedInternalConnections
 	defer func() {
 		utils.Cfg.ServiceSettings.EnableCommands = &enableCommands
+		utils.Cfg.ServiceSettings.EnableUntrustedInternalConnections = &enableInternalConnections
 	}()
 	*utils.Cfg.ServiceSettings.EnableCommands = true
+	*utils.Cfg.ServiceSettings.EnableUntrustedInternalConnections = true
 
 	postCmd := &model.Command{
 		CreatorId: th.BasicUser.Id,
