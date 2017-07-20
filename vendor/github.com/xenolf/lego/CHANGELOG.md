@@ -1,5 +1,54 @@
 # Changelog
 
+## [0.4.0] - 2017-07-13
+
+### Added:
+- CLI: The `--http-timeout` switch. This allows for an override of the default client HTTP timeout.
+- lib: The `HTTPClient` field. This allows for an override of the default HTTP timeout for library HTTP requests.
+- CLI: The `--dns-timeout` switch. This allows for an override of the default DNS timeout for library DNS requests.
+- lib: The `DNSTimeout` switch. This allows for an override of the default client DNS timeout.
+- lib: The `QueryRegistration` function on `acme.Client`. This performs a POST on the client registration's URI and gets the updated registration info.
+- lib: The `DeleteRegistration` function on `acme.Client`. This deletes the registration as currently configured in the client.
+- lib: The `ObtainCertificateForCSR` function on `acme.Client`. The function allows to request a certificate for an already existing CSR.
+- CLI: The `--csr` switch. Allows to use already existing CSRs for certificate requests on the command line.
+- CLI: The `--pem` flag. This will change the certificate output so it outputs a .pem file concatanating the .key and .crt files together.
+- CLI: The `--dns-resolvers` flag. Allows for users to override the default DNS servers used for recursive lookup.
+- lib: Added a memcached provider for the HTTP challenge.
+- CLI: The `--memcached-host` flag. This allows to use memcached for challenge storage.
+- CLI: The `--must-staple` flag. This enables OCSP must staple in the generated CSR.
+- lib: The library will now honor entries in your resolv.conf.
+- lib: Added a field `IssuerCertificate` to the `CertificateResource` struct.
+- lib: A new DNS provider for OVH.
+- lib: A new DNS provider for DNSMadeEasy.
+- lib: A new DNS provider for Linode.
+- lib: A new DNS provider for AuroraDNS.
+- lib: A new DNS provider for NS1.
+- lib: A new DNS provider for Azure DNS.
+- lib: A new DNS provider for Rackspace DNS.
+- lib: A new DNS provider for Exoscale DNS.
+- lib: A new DNS provider for DNSPod.
+
+### Changed:
+- lib: Exported the `PreCheckDNS` field so library users can manage the DNS check in tests.
+- lib: The library will now skip challenge solving if a valid Authz already exists.
+
+### Removed:
+- lib: The library will no longer check for auto renewed certificates. This has been removed from the spec and is not supported in Boulder.
+
+### Fixed:
+- lib: Fix a problem with the Route53 provider where it was possible the verification was published to a private zone.
+- lib: Loading an account from file should fail if a integral part is nil
+- lib: Fix a potential issue where the Dyn provider could resolve to an incorrect zone.
+- lib: If a registration encounteres a conflict, the old registration is now recovered.
+- CLI: The account.json file no longer has the executable flag set.
+- lib: Made the client registration more robust in case of a 403 HTTP response.
+- lib: Fixed an issue with zone lookups when they have a CNAME in another zone.
+- lib: Fixed the lookup for the authoritative zone for Google Cloud.
+- lib: Fixed a race condition in the nonce store.
+- lib: The Google Cloud provider now removes old entries before trying to add new ones.
+- lib: Fixed a condition where we could stall due to an early error condition.
+- lib: Fixed an issue where Authz object could end up in an active state after an error condition.
+
 ## [0.3.1] - 2016-04-19
 
 ### Added:

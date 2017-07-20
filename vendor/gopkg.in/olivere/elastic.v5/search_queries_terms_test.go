@@ -26,6 +26,24 @@ func TestTermsQuery(t *testing.T) {
 	}
 }
 
+func TestTermsQueryWithEmptyArray(t *testing.T) {
+	included := make([]interface{}, 0)
+	q := NewTermsQuery("tags", included...)
+	src, err := q.Source()
+	if err != nil {
+		t.Fatal(err)
+	}
+	data, err := json.Marshal(src)
+	if err != nil {
+		t.Fatalf("marshaling to JSON failed: %v", err)
+	}
+	got := string(data)
+	expected := `{"terms":{"tags":[]}}`
+	if got != expected {
+		t.Errorf("expected\n%s\n,got:\n%s", expected, got)
+	}
+}
+
 func TestTermsQueryWithTermsLookup(t *testing.T) {
 	q := NewTermsQuery("user").
 		TermsLookup(NewTermsLookup().Index("users").Type("user").Id("2").Path("followers"))

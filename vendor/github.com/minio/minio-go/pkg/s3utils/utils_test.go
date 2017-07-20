@@ -17,6 +17,7 @@
 package s3utils
 
 import (
+	"errors"
 	"net/url"
 	"testing"
 )
@@ -281,4 +282,88 @@ func TestEncodePath(t *testing.T) {
 			t.Errorf("Test %d: Expected queryEncode result to be \"%s\", but found it to be \"%s\" instead", i+1, testCase.result, result)
 		}
 	}
+}
+
+// Tests validate the bucket name validator.
+func TestIsValidBucketName(t *testing.T) {
+	testCases := []struct {
+		// Input.
+		bucketName string
+		// Expected result.
+		err error
+		// Flag to indicate whether test should Pass.
+		shouldPass bool
+	}{
+		{".mybucket", errors.New("Bucket name contains invalid characters"), false},
+		{"$mybucket", errors.New("Bucket name contains invalid characters"), false},
+		{"mybucket-", errors.New("Bucket name contains invalid characters"), false},
+		{"my", errors.New("Bucket name cannot be smaller than 3 characters"), false},
+		{"", errors.New("Bucket name cannot be empty"), false},
+		{"my..bucket", errors.New("Bucket name contains invalid characters"), false},
+		{"192.168.1.168", errors.New("Bucket name cannot be an ip address"), false},
+		{"my.bucket.com", nil, true},
+		{"my-bucket", nil, true},
+		{"123my-bucket", nil, true},
+		{"Mybucket", nil, true},
+	}
+
+	for i, testCase := range testCases {
+		err := CheckValidBucketName(testCase.bucketName)
+		if err != nil && testCase.shouldPass {
+			t.Errorf("Test %d: Expected to pass, but failed with: <ERROR> %s", i+1, err.Error())
+		}
+		if err == nil && !testCase.shouldPass {
+			t.Errorf("Test %d: Expected to fail with <ERROR> \"%s\", but passed instead", i+1, testCase.err.Error())
+		}
+		// Failed as expected, but does it fail for the expected reason.
+		if err != nil && !testCase.shouldPass {
+			if err.Error() != testCase.err.Error() {
+				t.Errorf("Test %d: Expected to fail with error \"%s\", but instead failed with error \"%s\" instead", i+1, testCase.err.Error(), err.Error())
+			}
+		}
+
+	}
+
+}
+
+// Tests validate the bucket name validator stricter.
+func TestIsValidBucketNameStrict(t *testing.T) {
+	testCases := []struct {
+		// Input.
+		bucketName string
+		// Expected result.
+		err error
+		// Flag to indicate whether test should Pass.
+		shouldPass bool
+	}{
+		{".mybucket", errors.New("Bucket name contains invalid characters"), false},
+		{"$mybucket", errors.New("Bucket name contains invalid characters"), false},
+		{"mybucket-", errors.New("Bucket name contains invalid characters"), false},
+		{"my", errors.New("Bucket name cannot be smaller than 3 characters"), false},
+		{"", errors.New("Bucket name cannot be empty"), false},
+		{"my..bucket", errors.New("Bucket name contains invalid characters"), false},
+		{"192.168.1.168", errors.New("Bucket name cannot be an ip address"), false},
+		{"Mybucket", errors.New("Bucket name contains invalid characters"), false},
+		{"my.bucket.com", nil, true},
+		{"my-bucket", nil, true},
+		{"123my-bucket", nil, true},
+	}
+
+	for i, testCase := range testCases {
+		err := CheckValidBucketNameStrict(testCase.bucketName)
+		if err != nil && testCase.shouldPass {
+			t.Errorf("Test %d: Expected to pass, but failed with: <ERROR> %s", i+1, err.Error())
+		}
+		if err == nil && !testCase.shouldPass {
+			t.Errorf("Test %d: Expected to fail with <ERROR> \"%s\", but passed instead", i+1, testCase.err.Error())
+		}
+		// Failed as expected, but does it fail for the expected reason.
+		if err != nil && !testCase.shouldPass {
+			if err.Error() != testCase.err.Error() {
+				t.Errorf("Test %d: Expected to fail with error \"%s\", but instead failed with error \"%s\" instead", i+1, testCase.err.Error(), err.Error())
+			}
+		}
+
+	}
+
 }

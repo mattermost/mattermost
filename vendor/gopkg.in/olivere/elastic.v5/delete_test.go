@@ -69,13 +69,31 @@ func TestDelete(t *testing.T) {
 	// Delete non existent document 99
 	res, err = client.Delete().Index(testIndexName).Type("tweet").Id("99").Refresh("true").Do(context.TODO())
 	if err == nil {
-		t.Fatalf("expected error; got: %v", err)
+		t.Fatal("expected error")
 	}
 	if !IsNotFound(err) {
-		t.Errorf("expected NotFound error; got %v", err)
+		t.Fatalf("expected 404, got: %v", err)
 	}
-	if res != nil {
-		t.Fatalf("expected no response; got: %v", res)
+	if _, ok := err.(*Error); !ok {
+		t.Fatalf("expected error type *Error, got: %T", err)
+	}
+	if res == nil {
+		t.Fatal("expected response")
+	}
+	if res.Found {
+		t.Errorf("expected Found = false; got %v", res.Found)
+	}
+	if have, want := res.Id, "99"; have != want {
+		t.Errorf("expected _id = %q, got %q", have, want)
+	}
+	if have, want := res.Index, testIndexName; have != want {
+		t.Errorf("expected _index = %q, got %q", have, want)
+	}
+	if have, want := res.Type, "tweet"; have != want {
+		t.Errorf("expected _type = %q, got %q", have, want)
+	}
+	if have, want := res.Result, "not_found"; have != want {
+		t.Errorf("expected result = %q, got %q", have, want)
 	}
 
 	count, err = client.Count(testIndexName).Do(context.TODO())

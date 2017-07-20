@@ -502,7 +502,7 @@ func ParseResponseForCert(bytes []byte, cert, issuer *x509.Certificate) (*Respon
 	} else {
 		match := false
 		for _, resp := range basicResp.TBSResponseData.Responses {
-			if cert == nil || cert.SerialNumber.Cmp(resp.CertID.SerialNumber) == 0 {
+			if cert.SerialNumber.Cmp(resp.CertID.SerialNumber) == 0 {
 				singleResp = resp
 				match = true
 				break

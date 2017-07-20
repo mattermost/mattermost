@@ -19,7 +19,6 @@ package minio
 import (
 	"bytes"
 	"crypto/md5"
-	crand "crypto/rand"
 
 	"io"
 	"math/rand"
@@ -27,6 +26,13 @@ import (
 	"reflect"
 	"testing"
 	"time"
+)
+
+const (
+	serverEndpoint = "SERVER_ENDPOINT"
+	accessKey      = "ACCESS_KEY"
+	secretKey      = "SECRET_KEY"
+	enableSecurity = "ENABLE_HTTPS"
 )
 
 // Tests for Core GetObject() function.
@@ -40,10 +46,10 @@ func TestGetObjectCore(t *testing.T) {
 
 	// Instantiate new minio core client object.
 	c, err := NewCore(
-		os.Getenv("S3_ADDRESS"),
-		os.Getenv("ACCESS_KEY"),
-		os.Getenv("SECRET_KEY"),
-		mustParseBool(os.Getenv("S3_SECURE")),
+		os.Getenv(serverEndpoint),
+		os.Getenv(accessKey),
+		os.Getenv(secretKey),
+		mustParseBool(os.Getenv(enableSecurity)),
 	)
 	if err != nil {
 		t.Fatal("Error:", err)
@@ -214,10 +220,10 @@ func TestGetBucketPolicy(t *testing.T) {
 
 	// Instantiate new minio client object.
 	c, err := NewCore(
-		os.Getenv("S3_ADDRESS"),
-		os.Getenv("ACCESS_KEY"),
-		os.Getenv("SECRET_KEY"),
-		mustParseBool(os.Getenv("S3_SECURE")),
+		os.Getenv(serverEndpoint),
+		os.Getenv(accessKey),
+		os.Getenv(secretKey),
+		mustParseBool(os.Getenv(enableSecurity)),
 	)
 	if err != nil {
 		t.Fatal("Error:", err)
@@ -277,10 +283,10 @@ func TestCorePutObject(t *testing.T) {
 
 	// Instantiate new minio client object.
 	c, err := NewCore(
-		os.Getenv("S3_ADDRESS"),
-		os.Getenv("ACCESS_KEY"),
-		os.Getenv("SECRET_KEY"),
-		mustParseBool(os.Getenv("S3_SECURE")),
+		os.Getenv(serverEndpoint),
+		os.Getenv(accessKey),
+		os.Getenv(secretKey),
+		mustParseBool(os.Getenv(enableSecurity)),
 	)
 	if err != nil {
 		t.Fatal("Error:", err)
@@ -301,15 +307,7 @@ func TestCorePutObject(t *testing.T) {
 		t.Fatal("Error:", err, bucketName)
 	}
 
-	buf := make([]byte, minPartSize)
-
-	size, err := io.ReadFull(crand.Reader, buf)
-	if err != nil {
-		t.Fatal("Error:", err)
-	}
-	if size != minPartSize {
-		t.Fatalf("Error: number of bytes does not match, want %v, got %v\n", minPartSize, size)
-	}
+	buf := bytes.Repeat([]byte("a"), minPartSize)
 
 	// Save the data
 	objectName := randString(60, rand.NewSource(time.Now().UnixNano()), "")

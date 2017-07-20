@@ -295,6 +295,30 @@ func TestStatusCodes(t *testing.T) {
 	}
 }
 
+func TestDontWriteWhenNotWrittenTo(t *testing.T) {
+	// When using gzip as middleware without ANY writes in the handler,
+	// ensure the gzip middleware doesn't touch the actual ResponseWriter
+	// either.
+
+	handler0 := GzipHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	}))
+
+	handler1 := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		handler0.ServeHTTP(w, r)
+		w.WriteHeader(404) // this only works if gzip didn't do a WriteHeader(200)
+	})
+
+	r := httptest.NewRequest("GET", "/", nil)
+	r.Header.Set("Accept-Encoding", "gzip")
+	w := httptest.NewRecorder()
+	handler1.ServeHTTP(w, r)
+
+	result := w.Result()
+	if result.StatusCode != 404 {
+		t.Errorf("StatusCode should have been 404 but was %d", result.StatusCode)
+	}
+}
+
 // --------------------------------------------------------------------
 
 func BenchmarkGzipHandler_S2k(b *testing.B)   { benchmark(b, false, 2048) }

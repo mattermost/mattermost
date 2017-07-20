@@ -1,5 +1,6 @@
 /*
- * Minio Go Library for Amazon S3 Compatible Cloud Storage (C) 2015 Minio, Inc.
+ * Minio Go Library for Amazon S3 Compatible Cloud Storage
+ * (C) 2015, 2016, 2017 Minio, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,10 +22,12 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"net/url"
 	"os"
 	"strings"
 	"testing"
 
+	"github.com/minio/minio-go/pkg/credentials"
 	"github.com/minio/minio-go/pkg/policy"
 )
 
@@ -179,27 +182,6 @@ func TestValidBucketLocation(t *testing.T) {
 	}
 }
 
-// Tests temp file.
-func TestTempFile(t *testing.T) {
-	tmpFile, err := newTempFile("testing")
-	if err != nil {
-		t.Fatal("Error:", err)
-	}
-	fileName := tmpFile.Name()
-	// Closing temporary file purges the file.
-	err = tmpFile.Close()
-	if err != nil {
-		t.Fatal("Error:", err)
-	}
-	st, err := os.Stat(fileName)
-	if err != nil && !os.IsNotExist(err) {
-		t.Fatal("Error:", err)
-	}
-	if err == nil && st != nil {
-		t.Fatal("Error: file should be deleted and should not exist.")
-	}
-}
-
 // Tests error response structure.
 func TestErrorResponse(t *testing.T) {
 	var err error
@@ -228,18 +210,18 @@ func TestErrorResponse(t *testing.T) {
 // Tests signature type.
 func TestSignatureType(t *testing.T) {
 	clnt := Client{}
-	if !clnt.signature.isV4() {
+	if !clnt.overrideSignerType.IsV4() {
 		t.Fatal("Error")
 	}
-	clnt.signature = SignatureV2
-	if !clnt.signature.isV2() {
+	clnt.overrideSignerType = credentials.SignatureV2
+	if !clnt.overrideSignerType.IsV2() {
 		t.Fatal("Error")
 	}
-	if clnt.signature.isV4() {
+	if clnt.overrideSignerType.IsV4() {
 		t.Fatal("Error")
 	}
-	clnt.signature = SignatureV4
-	if !clnt.signature.isV4() {
+	clnt.overrideSignerType = credentials.SignatureV4
+	if !clnt.overrideSignerType.IsV4() {
 		t.Fatal("Error")
 	}
 }
@@ -298,5 +280,58 @@ func TestPartSize(t *testing.T) {
 	}
 	if lastPartSize != 134217728 {
 		t.Fatalf("Error: expecting last part size of 241172480: got %v instead", lastPartSize)
+	}
+}
+
+// TestMakeTargetURL - testing makeTargetURL()
+func TestMakeTargetURL(t *testing.T) {
+	testCases := []struct {
+		addr           string
+		secure         bool
+		bucketName     string
+		objectName     string
+		bucketLocation string
+		queryValues    map[string][]string
+		expectedURL    url.URL
+		expectedErr    error
+	}{
+		// Test 1
+		{"localhost:9000", false, "", "", "", nil, url.URL{Host: "localhost:9000", Scheme: "http", Path: "/"}, nil},
+		// Test 2
+		{"localhost", true, "", "", "", nil, url.URL{Host: "localhost", Scheme: "https", Path: "/"}, nil},
+		// Test 3
+		{"localhost:9000", true, "mybucket", "", "", nil, url.URL{Host: "localhost:9000", Scheme: "https", Path: "/mybucket/"}, nil},
+		// Test 4, testing against google storage API
+		{"storage.googleapis.com", true, "mybucket", "", "", nil, url.URL{Host: "mybucket.storage.googleapis.com", Scheme: "https", Path: "/"}, nil},
+		// Test 5, testing against AWS S3 API
+		{"s3.amazonaws.com", true, "mybucket", "myobject", "", nil, url.URL{Host: "mybucket.s3.amazonaws.com", Scheme: "https", Path: "/myobject"}, nil},
+		// Test 6
+		{"localhost:9000", false, "mybucket", "myobject", "", nil, url.URL{Host: "localhost:9000", Scheme: "http", Path: "/mybucket/myobject"}, nil},
+		// Test 7, testing with query
+		{"localhost:9000", false, "mybucket", "myobject", "", map[string][]string{"param": []string{"val"}}, url.URL{Host: "localhost:9000", Scheme: "http", Path: "/mybucket/myobject", RawQuery: "param=val"}, nil},
+		// Test 8, testing with port 80
+		{"localhost:80", false, "mybucket", "myobject", "", nil, url.URL{Host: "localhost", Scheme: "http", Path: "/mybucket/myobject"}, nil},
+		// Test 9, testing with port 443
+		{"localhost:443", true, "mybucket", "myobject", "", nil, url.URL{Host: "localhost", Scheme: "https", Path: "/mybucket/myobject"}, nil},
+	}
+
+	for i, testCase := range testCases {
+		// Initialize a Minio client
+		c, _ := New(testCase.addr, "foo", "bar", testCase.secure)
+		u, err := c.makeTargetURL(testCase.bucketName, testCase.objectName, testCase.bucketLocation, testCase.queryValues)
+		// Check the returned error
+		if testCase.expectedErr == nil && err != nil {
+			t.Fatalf("Test %d: Should succeed but failed with err = %v", i+1, err)
+		}
+		if testCase.expectedErr != nil && err == nil {
+			t.Fatalf("Test %d: Should fail but succeeded", i+1)
+		}
+		if err == nil {
+			// Check if the returned url is equal to what we expect
+			if u.String() != testCase.expectedURL.String() {
+				t.Fatalf("Test %d: Mismatched target url: expected = `%v`, found = `%v`",
+					i+1, testCase.expectedURL.String(), u.String())
+			}
+		}
 	}
 }

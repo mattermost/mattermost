@@ -300,7 +300,7 @@ func TestNode(t *testing.T) {
 		t.Error("nodeid is all zeros")
 	}
 
-	id := []byte{1,2,3,4,5,6,7,8}
+	id := []byte{1, 2, 3, 4, 5, 6, 7, 8}
 	SetNodeID(id)
 	ni = NodeID()
 	if !bytes.Equal(ni, id[:6]) {
@@ -421,13 +421,47 @@ func TestBadRand(t *testing.T) {
 	uuid1 := New()
 	uuid2 := New()
 	if uuid1 != uuid2 {
-		t.Errorf("execpted duplicates, got %q and %q", uuid1, uuid2)
+		t.Errorf("expected duplicates, got %q and %q", uuid1, uuid2)
 	}
 	SetRand(nil)
 	uuid1 = New()
 	uuid2 = New()
 	if uuid1 == uuid2 {
-		t.Errorf("unexecpted duplicates, got %q", uuid1)
+		t.Errorf("unexpected duplicates, got %q", uuid1)
+	}
+}
+
+func TestUUID_Array(t *testing.T) {
+	expect := Array{
+		0xf4, 0x7a, 0xc1, 0x0b,
+		0x58, 0xcc,
+		0x03, 0x72,
+		0x85, 0x67,
+		0x0e, 0x02, 0xb2, 0xc3, 0xd4, 0x79,
+	}
+	uuid := Parse("f47ac10b-58cc-0372-8567-0e02b2c3d479")
+	if uuid == nil {
+		t.Fatal("invalid uuid")
+	}
+	if uuid.Array() != expect {
+		t.Fatal("invalid array")
+	}
+}
+
+func TestArray_UUID(t *testing.T) {
+	array := Array{
+		0xf4, 0x7a, 0xc1, 0x0b,
+		0x58, 0xcc,
+		0x03, 0x72,
+		0x85, 0x67,
+		0x0e, 0x02, 0xb2, 0xc3, 0xd4, 0x79,
+	}
+	expect := Parse("f47ac10b-58cc-0372-8567-0e02b2c3d479")
+	if expect == nil {
+		t.Fatal("invalid uuid")
+	}
+	if !bytes.Equal(array.UUID(), expect) {
+		t.Fatal("invalid uuid")
 	}
 }
 
@@ -465,6 +499,44 @@ func BenchmarkUUID_URN(b *testing.B) {
 	}
 	for i := 0; i < b.N; i++ {
 		if uuid.URN() == "" {
+			b.Fatal("invalid uuid")
+		}
+	}
+}
+
+func BenchmarkUUID_Array(b *testing.B) {
+	expect := Array{
+		0xf4, 0x7a, 0xc1, 0x0b,
+		0x58, 0xcc,
+		0x03, 0x72,
+		0x85, 0x67,
+		0x0e, 0x02, 0xb2, 0xc3, 0xd4, 0x79,
+	}
+	uuid := Parse("f47ac10b-58cc-0372-8567-0e02b2c3d479")
+	if uuid == nil {
+		b.Fatal("invalid uuid")
+	}
+	for i := 0; i < b.N; i++ {
+		if uuid.Array() != expect {
+			b.Fatal("invalid array")
+		}
+	}
+}
+
+func BenchmarkArray_UUID(b *testing.B) {
+	array := Array{
+		0xf4, 0x7a, 0xc1, 0x0b,
+		0x58, 0xcc,
+		0x03, 0x72,
+		0x85, 0x67,
+		0x0e, 0x02, 0xb2, 0xc3, 0xd4, 0x79,
+	}
+	expect := Parse("f47ac10b-58cc-0372-8567-0e02b2c3d479")
+	if expect == nil {
+		b.Fatal("invalid uuid")
+	}
+	for i := 0; i < b.N; i++ {
+		if !bytes.Equal(array.UUID(), expect) {
 			b.Fatal("invalid uuid")
 		}
 	}

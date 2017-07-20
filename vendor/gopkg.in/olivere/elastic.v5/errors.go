@@ -93,32 +93,38 @@ func (e *Error) Error() string {
 // returned HTTP status 404. The err parameter can be of type *elastic.Error,
 // elastic.Error, *http.Response or int (indicating the HTTP status code).
 func IsNotFound(err interface{}) bool {
-	switch e := err.(type) {
-	case *http.Response:
-		return e.StatusCode == http.StatusNotFound
-	case *Error:
-		return e.Status == http.StatusNotFound
-	case Error:
-		return e.Status == http.StatusNotFound
-	case int:
-		return e == http.StatusNotFound
-	}
-	return false
+	return IsStatusCode(err, http.StatusNotFound)
 }
 
 // IsTimeout returns true if the given error indicates that Elasticsearch
 // returned HTTP status 408. The err parameter can be of type *elastic.Error,
 // elastic.Error, *http.Response or int (indicating the HTTP status code).
 func IsTimeout(err interface{}) bool {
+	return IsStatusCode(err, http.StatusRequestTimeout)
+}
+
+// IsConflict returns true if the given error indicates that the Elasticsearch
+// operation resulted in a version conflict. This can occur in operations like
+// `update` or `index` with `op_type=create`. The err parameter can be of
+// type *elastic.Error, elastic.Error, *http.Response or int (indicating the
+// HTTP status code).
+func IsConflict(err interface{}) bool {
+	return IsStatusCode(err, http.StatusConflict)
+}
+
+// IsStatusCode returns true if the given error indicates that the Elasticsearch
+// operation returned the specified HTTP status code. The err parameter can be of
+// type *http.Response, *Error, Error, or int (indicating the HTTP status code).
+func IsStatusCode(err interface{}, code int) bool {
 	switch e := err.(type) {
 	case *http.Response:
-		return e.StatusCode == http.StatusRequestTimeout
+		return e.StatusCode == code
 	case *Error:
-		return e.Status == http.StatusRequestTimeout
+		return e.Status == code
 	case Error:
-		return e.Status == http.StatusRequestTimeout
+		return e.Status == code
 	case int:
-		return e == http.StatusRequestTimeout
+		return e == code
 	}
 	return false
 }

@@ -140,8 +140,8 @@ import "github.com/spf13/cobra"
 
 # Getting Started
 
-While you are welcome to provide your own organization, typically a Cobra based
-application will follow the following organizational structure.
+While you are welcome to provide your own organization, typically a Cobra-based
+application will follow the following organizational structure:
 
 ```
   ▾ appName/
@@ -153,7 +153,7 @@ application will follow the following organizational structure.
       main.go
 ```
 
-In a Cobra app, typically the main.go file is very bare. It serves, one purpose, to initialize Cobra.
+In a Cobra app, typically the main.go file is very bare. It serves one purpose: initializing Cobra.
 
 ```go
 package main
@@ -216,10 +216,11 @@ cobra add create -p 'configCmd'
 ```
 
 *Note: Use camelCase (not snake_case/snake-case) for command names.
-Otherwise, you will become unexpected errors.
+Otherwise, you will encounter errors.
 For example, `cobra add add-user` is incorrect, but `cobra add addUser` is valid.*
 
-Once you have run these three commands you would have an app structure that would look like:
+Once you have run these three commands you would have an app structure similar to
+the following:
 
 ```
   ▾ app/
@@ -232,14 +233,14 @@ Once you have run these three commands you would have an app structure that woul
 
 At this point you can run `go run main.go` and it would run your app. `go run
 main.go serve`, `go run main.go config`, `go run main.go config create` along
-with `go run main.go help serve`, etc would all work.
+with `go run main.go help serve`, etc. would all work.
 
-Obviously you haven't added your own code to these yet, the commands are ready
+Obviously you haven't added your own code to these yet. The commands are ready
 for you to give them their tasks. Have fun!
 
 ### Configuring the cobra generator
 
-The cobra generator will be easier to use if you provide a simple configuration
+The Cobra generator will be easier to use if you provide a simple configuration
 file which will help you eliminate providing a bunch of repeated information in
 flags over and over.
 
@@ -269,7 +270,7 @@ You can also use built-in licenses. For example, **GPLv2**, **GPLv3**, **LGPL**,
 
 ## Manually implementing Cobra
 
-To manually implement cobra you need to create a bare main.go file and a RootCmd file.
+To manually implement Cobra you need to create a bare main.go file and a RootCmd file.
 You will optionally provide additional commands as you see fit.
 
 ### Create the root command
@@ -324,10 +325,10 @@ func init() {
 }
 
 func Execute() {
-	rootCmd.Execute()
+	RootCmd.Execute()
 }
 
-func main() {
+func initConfig() {
   // Don't forget to read config either from cfgFile or from home directory!
 	if cfgFile != "" {
 		// Use config file from the flag.
@@ -336,7 +337,7 @@ func main() {
 		// Find home directory.
 		home, err := homedir.Dir()
 		if err != nil {
-			fmt.Println(home)
+			fmt.Println(err)
 			os.Exit(1)
 		}
 

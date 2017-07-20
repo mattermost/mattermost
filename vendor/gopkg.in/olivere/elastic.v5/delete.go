@@ -9,6 +9,8 @@ import (
 	"fmt"
 	"net/url"
 
+	"net/http"
+
 	"gopkg.in/olivere/elastic.v5/uritemplates"
 )
 
@@ -168,7 +170,9 @@ func (s *DeleteService) Validate() error {
 	return nil
 }
 
-// Do executes the operation.
+// Do executes the operation. If the document is not found (404), Elasticsearch will
+// still return a response. This response is serialized and returned as well. In other
+// words, for HTTP status code 404, both an error and a response might be returned.
 func (s *DeleteService) Do(ctx context.Context) (*DeleteResponse, error) {
 	// Check pre-conditions
 	if err := s.Validate(); err != nil {
@@ -182,7 +186,7 @@ func (s *DeleteService) Do(ctx context.Context) (*DeleteResponse, error) {
 	}
 
 	// Get HTTP response
-	res, err := s.client.PerformRequest(ctx, "DELETE", path, params, nil)
+	res, err := s.client.PerformRequest(ctx, "DELETE", path, params, nil, http.StatusNotFound)
 	if err != nil {
 		return nil, err
 	}
@@ -192,6 +196,12 @@ func (s *DeleteService) Do(ctx context.Context) (*DeleteResponse, error) {
 	if err := s.client.decoder.Decode(res.Body, ret); err != nil {
 		return nil, err
 	}
+
+	// If we have a 404, we return both a result and an error, just like ES does
+	if res.StatusCode == http.StatusNotFound {
+		return ret, &Error{Status: http.StatusNotFound}
+	}
+
 	return ret, nil
 }
 
@@ -204,7 +214,7 @@ type DeleteResponse struct {
 	Id            string      `json:"_id"`
 	Version       int64       `json:"_version"`
 	Shards        *shardsInfo `json:"_shards"`
-	Result        bool        `json:"string,omitempty"`
+	Result        string      `json:"result,omitempty"`
 	ForcedRefresh bool        `json:"forced_refresh,omitempty"`
 	Found         bool        `json:"found"`
 }

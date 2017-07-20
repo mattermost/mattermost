@@ -29,6 +29,28 @@ func TestGeoDistanceAggregation(t *testing.T) {
 	}
 }
 
+func TestGeoDistanceAggregationWithPointers(t *testing.T) {
+	hundred := 100
+	threeHundred := 300
+	agg := NewGeoDistanceAggregation().Field("location").Point("52.3760, 4.894")
+	agg = agg.AddRange(nil, &hundred)
+	agg = agg.AddRange(hundred, &threeHundred)
+	agg = agg.AddRange(threeHundred, nil)
+	src, err := agg.Source()
+	if err != nil {
+		t.Fatal(err)
+	}
+	data, err := json.Marshal(src)
+	if err != nil {
+		t.Fatalf("marshaling to JSON failed: %v", err)
+	}
+	got := string(data)
+	expected := `{"geo_distance":{"field":"location","origin":"52.3760, 4.894","ranges":[{"to":100},{"from":100,"to":300},{"from":300}]}}`
+	if got != expected {
+		t.Errorf("expected\n%s\n,got:\n%s", expected, got)
+	}
+}
+
 func TestGeoDistanceAggregationWithUnbounded(t *testing.T) {
 	agg := NewGeoDistanceAggregation().Field("location").Point("52.3760, 4.894")
 	agg = agg.AddUnboundedFrom(100)

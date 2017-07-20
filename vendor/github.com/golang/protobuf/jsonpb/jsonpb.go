@@ -753,7 +753,7 @@ func (u *Unmarshaler) unmarshalValue(target reflect.Value, inputValue json.RawMe
 			if err != nil {
 				return fmt.Errorf("bad Timestamp: %v", err)
 			}
-			target.Field(0).SetInt(int64(t.Unix()))
+			target.Field(0).SetInt(t.Unix())
 			target.Field(1).SetInt(int64(t.Nanosecond()))
 			return nil
 		case "Struct":

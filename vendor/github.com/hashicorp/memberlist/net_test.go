@@ -785,3 +785,30 @@ func TestIngestPacket_CRC(t *testing.T) {
 		t.Fatalf("bad: %s", logs.String())
 	}
 }
+
+func TestGossip_MismatchedKeys(t *testing.T) {
+	c1 := testConfig()
+	c2 := testConfig()
+
+	// Create two agents with different gossip keys
+	c1.SecretKey = []byte("4W6DGn2VQVqDEceOdmuRTQ==")
+	c2.SecretKey = []byte("XhX/w702/JKKK7/7OtM9Ww==")
+
+	m1, err := Create(c1)
+	if err != nil {
+		t.Fatalf("err: %s", err)
+	}
+	defer m1.Shutdown()
+
+	m2, err := Create(c2)
+	if err != nil {
+		t.Fatalf("err: %s", err)
+	}
+	defer m2.Shutdown()
+
+	// Make sure we get this error on the joining side
+	_, err = m2.Join([]string{c1.BindAddr})
+	if err == nil || !strings.Contains(err.Error(), "No installed keys could decrypt the message") {
+		t.Fatalf("bad: %s", err)
+	}
+}

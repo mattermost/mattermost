@@ -559,6 +559,11 @@ metric_bucket{le="bla"} 3.14
 `,
 			err: "text format parsing error in line 3: expected float as value for 'le' label",
 		},
+		// 19: Invalid UTF-8 in label value.
+		{
+			in:  "metric{l=\"\xbd\"} 3.14\n",
+			err: "text format parsing error in line 1: invalid label value \"\\xbd\"",
+		},
 	}
 
 	for i, scenario := range scenarios {

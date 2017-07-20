@@ -21,10 +21,13 @@ import (
 	"errors"
 	"io"
 	"io/ioutil"
+	"log"
 	"math/rand"
 	"net/http"
 	"net/url"
 	"os"
+	"reflect"
+	"strings"
 	"testing"
 	"time"
 
@@ -36,7 +39,7 @@ func TestMakeBucketErrorV2(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping functional tests for short runs")
 	}
-	if os.Getenv("S3_ADDRESS") != "s3.amazonaws.com" {
+	if os.Getenv(serverEndpoint) != "s3.amazonaws.com" {
 		t.Skip("skipping region functional tests for non s3 runs")
 	}
 
@@ -45,10 +48,10 @@ func TestMakeBucketErrorV2(t *testing.T) {
 
 	// Instantiate new minio client object.
 	c, err := NewV2(
-		os.Getenv("S3_ADDRESS"),
-		os.Getenv("ACCESS_KEY"),
-		os.Getenv("SECRET_KEY"),
-		mustParseBool(os.Getenv("S3_SECURE")),
+		os.Getenv(serverEndpoint),
+		os.Getenv(accessKey),
+		os.Getenv(secretKey),
+		mustParseBool(os.Getenv(enableSecurity)),
 	)
 	if err != nil {
 		t.Fatal("Error:", err)
@@ -91,10 +94,10 @@ func TestGetObjectClosedTwiceV2(t *testing.T) {
 
 	// Instantiate new minio client object.
 	c, err := NewV2(
-		os.Getenv("S3_ADDRESS"),
-		os.Getenv("ACCESS_KEY"),
-		os.Getenv("SECRET_KEY"),
-		mustParseBool(os.Getenv("S3_SECURE")),
+		os.Getenv(serverEndpoint),
+		os.Getenv(accessKey),
+		os.Getenv(secretKey),
+		mustParseBool(os.Getenv(enableSecurity)),
 	)
 	if err != nil {
 		t.Fatal("Error:", err)
@@ -171,10 +174,10 @@ func TestRemovePartiallyUploadedV2(t *testing.T) {
 
 	// Instantiate new minio client object.
 	c, err := NewV2(
-		os.Getenv("S3_ADDRESS"),
-		os.Getenv("ACCESS_KEY"),
-		os.Getenv("SECRET_KEY"),
-		mustParseBool(os.Getenv("S3_SECURE")),
+		os.Getenv(serverEndpoint),
+		os.Getenv(accessKey),
+		os.Getenv(secretKey),
+		mustParseBool(os.Getenv(enableSecurity)),
 	)
 	if err != nil {
 		t.Fatal("Error:", err)
@@ -229,119 +232,6 @@ func TestRemovePartiallyUploadedV2(t *testing.T) {
 	}
 }
 
-// Tests resumable put object cloud to cloud.
-func TestResumablePutObjectV2(t *testing.T) {
-	// By passing 'go test -short' skips these tests.
-	if testing.Short() {
-		t.Skip("skipping functional tests for the short runs")
-	}
-
-	// Seed random based on current time.
-	rand.Seed(time.Now().Unix())
-
-	// Instantiate new minio client object.
-	c, err := NewV2(
-		os.Getenv("S3_ADDRESS"),
-		os.Getenv("ACCESS_KEY"),
-		os.Getenv("SECRET_KEY"),
-		mustParseBool(os.Getenv("S3_SECURE")),
-	)
-	if err != nil {
-		t.Fatal("Error:", err)
-	}
-
-	// Set user agent.
-	c.SetAppInfo("Minio-go-FunctionalTest", "0.1.0")
-
-	// Enable tracing, write to stdout.
-	// c.TraceOn(os.Stderr)
-
-	// Generate a new random bucket name.
-	bucketName := randString(60, rand.NewSource(time.Now().UnixNano()), "minio-go-test")
-
-	// Make a new bucket.
-	err = c.MakeBucket(bucketName, "us-east-1")
-	if err != nil {
-		t.Fatal("Error:", err, bucketName)
-	}
-
-	// Create a temporary file.
-	file, err := ioutil.TempFile(os.TempDir(), "resumable")
-	if err != nil {
-		t.Fatal("Error:", err)
-	}
-
-	r := bytes.NewReader(bytes.Repeat([]byte("b"), 11*1024*1024))
-	// Copy 11MiB worth of random data.
-	n, err := io.CopyN(file, r, 11*1024*1024)
-	if err != nil {
-		t.Fatal("Error:", err)
-	}
-	if n != int64(11*1024*1024) {
-		t.Fatalf("Error: number of bytes does not match, want %v, got %v\n", 11*1024*1024, n)
-	}
-
-	// Close the file pro-actively for windows.
-	if err = file.Close(); err != nil {
-		t.Fatal("Error:", err)
-	}
-
-	// New object name.
-	objectName := bucketName + "-resumable"
-
-	// Upload the file.
-	n, err = c.FPutObject(bucketName, objectName, file.Name(), "application/octet-stream")
-	if err != nil {
-		t.Fatal("Error:", err)
-	}
-	if n != int64(11*1024*1024) {
-		t.Fatalf("Error: number of bytes does not match, want %v, got %v\n", 11*1024*1024, n)
-	}
-
-	// Get the uploaded object.
-	reader, err := c.GetObject(bucketName, objectName)
-	if err != nil {
-		t.Fatal("Error:", err)
-	}
-
-	// Upload now cloud to cloud.
-	n, err = c.PutObject(bucketName, objectName+"-put", reader, "application/octest-stream")
-	if err != nil {
-		t.Fatal("Error:", err)
-	}
-
-	// Get object info.
-	objInfo, err := reader.Stat()
-	if err != nil {
-		t.Fatal("Error:", err)
-	}
-	if n != objInfo.Size {
-		t.Fatalf("Error: number of bytes does not match, want %v, got %v\n", objInfo.Size, n)
-	}
-
-	// Remove all temp files, objects and bucket.
-	err = c.RemoveObject(bucketName, objectName)
-	if err != nil {
-		t.Fatal("Error: ", err)
-	}
-
-	err = c.RemoveObject(bucketName, objectName+"-put")
-	if err != nil {
-		t.Fatal("Error: ", err)
-	}
-
-	err = c.RemoveBucket(bucketName)
-	if err != nil {
-		t.Fatal("Error:", err)
-	}
-
-	err = os.Remove(file.Name())
-	if err != nil {
-		t.Fatal("Error:", err)
-	}
-
-}
-
 // Tests FPutObject hidden contentType setting
 func TestFPutObjectV2(t *testing.T) {
 	if testing.Short() {
@@ -353,10 +243,10 @@ func TestFPutObjectV2(t *testing.T) {
 
 	// Instantiate new minio client object.
 	c, err := NewV2(
-		os.Getenv("S3_ADDRESS"),
-		os.Getenv("ACCESS_KEY"),
-		os.Getenv("SECRET_KEY"),
-		mustParseBool(os.Getenv("S3_SECURE")),
+		os.Getenv(serverEndpoint),
+		os.Getenv(accessKey),
+		os.Getenv(secretKey),
+		mustParseBool(os.Getenv(enableSecurity)),
 	)
 	if err != nil {
 		t.Fatal("Error:", err)
@@ -491,90 +381,12 @@ func TestFPutObjectV2(t *testing.T) {
 
 }
 
-// Tests resumable file based put object multipart upload.
-func TestResumableFPutObjectV2(t *testing.T) {
-	if testing.Short() {
-		t.Skip("skipping functional tests for the short runs")
-	}
-
-	// Seed random based on current time.
-	rand.Seed(time.Now().Unix())
-
-	// Instantiate new minio client object.
-	c, err := NewV2(
-		os.Getenv("S3_ADDRESS"),
-		os.Getenv("ACCESS_KEY"),
-		os.Getenv("SECRET_KEY"),
-		mustParseBool(os.Getenv("S3_SECURE")),
-	)
-	if err != nil {
-		t.Fatal("Error:", err)
-	}
-
-	// Set user agent.
-	c.SetAppInfo("Minio-go-FunctionalTest", "0.1.0")
-
-	// Enable tracing, write to stdout.
-	// c.TraceOn(os.Stderr)
-
-	// Generate a new random bucket name.
-	bucketName := randString(60, rand.NewSource(time.Now().UnixNano()), "minio-go-test")
-
-	// make a new bucket.
-	err = c.MakeBucket(bucketName, "us-east-1")
-	if err != nil {
-		t.Fatal("Error:", err, bucketName)
-	}
-
-	file, err := ioutil.TempFile(os.TempDir(), "resumable")
-	if err != nil {
-		t.Fatal("Error:", err)
-	}
-
-	r := bytes.NewReader(bytes.Repeat([]byte("b"), 11*1024*1024))
-	n, err := io.CopyN(file, r, 11*1024*1024)
-	if err != nil {
-		t.Fatal("Error:", err)
-	}
-	if n != int64(11*1024*1024) {
-		t.Fatalf("Error: number of bytes does not match, want %v, got %v\n", 11*1024*1024, n)
-	}
-
-	objectName := bucketName + "-resumable"
-
-	n, err = c.FPutObject(bucketName, objectName, file.Name(), "application/octet-stream")
-	if err != nil {
-		t.Fatal("Error:", err)
-	}
-	if n != int64(11*1024*1024) {
-		t.Fatalf("Error: number of bytes does not match, want %v, got %v\n", 11*1024*1024, n)
-	}
-
-	// Close the file pro-actively for windows.
-	file.Close()
-
-	err = c.RemoveObject(bucketName, objectName)
-	if err != nil {
-		t.Fatal("Error: ", err)
-	}
-
-	err = c.RemoveBucket(bucketName)
-	if err != nil {
-		t.Fatal("Error:", err)
-	}
-
-	err = os.Remove(file.Name())
-	if err != nil {
-		t.Fatal("Error:", err)
-	}
-}
-
 // Tests various bucket supported formats.
 func TestMakeBucketRegionsV2(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping functional tests for short runs")
 	}
-	if os.Getenv("S3_ADDRESS") != "s3.amazonaws.com" {
+	if os.Getenv(serverEndpoint) != "s3.amazonaws.com" {
 		t.Skip("skipping region functional tests for non s3 runs")
 	}
 
@@ -583,10 +395,10 @@ func TestMakeBucketRegionsV2(t *testing.T) {
 
 	// Instantiate new minio client object.
 	c, err := NewV2(
-		os.Getenv("S3_ADDRESS"),
-		os.Getenv("ACCESS_KEY"),
-		os.Getenv("SECRET_KEY"),
-		mustParseBool(os.Getenv("S3_SECURE")),
+		os.Getenv(serverEndpoint),
+		os.Getenv(accessKey),
+		os.Getenv(secretKey),
+		mustParseBool(os.Getenv(enableSecurity)),
 	)
 	if err != nil {
 		t.Fatal("Error:", err)
@@ -634,10 +446,10 @@ func TestGetObjectReadSeekFunctionalV2(t *testing.T) {
 
 	// Instantiate new minio client object.
 	c, err := NewV2(
-		os.Getenv("S3_ADDRESS"),
-		os.Getenv("ACCESS_KEY"),
-		os.Getenv("SECRET_KEY"),
-		mustParseBool(os.Getenv("S3_SECURE")),
+		os.Getenv(serverEndpoint),
+		os.Getenv(accessKey),
+		os.Getenv(secretKey),
+		mustParseBool(os.Getenv(enableSecurity)),
 	)
 	if err != nil {
 		t.Fatal("Error:", err)
@@ -767,10 +579,10 @@ func TestGetObjectReadAtFunctionalV2(t *testing.T) {
 
 	// Instantiate new minio client object.
 	c, err := NewV2(
-		os.Getenv("S3_ADDRESS"),
-		os.Getenv("ACCESS_KEY"),
-		os.Getenv("SECRET_KEY"),
-		mustParseBool(os.Getenv("S3_SECURE")),
+		os.Getenv(serverEndpoint),
+		os.Getenv(accessKey),
+		os.Getenv(secretKey),
+		mustParseBool(os.Getenv(enableSecurity)),
 	)
 	if err != nil {
 		t.Fatal("Error:", err)
@@ -903,10 +715,10 @@ func TestCopyObjectV2(t *testing.T) {
 
 	// Instantiate new minio client object
 	c, err := NewV2(
-		os.Getenv("S3_ADDRESS"),
-		os.Getenv("ACCESS_KEY"),
-		os.Getenv("SECRET_KEY"),
-		mustParseBool(os.Getenv("S3_SECURE")),
+		os.Getenv(serverEndpoint),
+		os.Getenv(accessKey),
+		os.Getenv(secretKey),
+		mustParseBool(os.Getenv(enableSecurity)),
 	)
 	if err != nil {
 		t.Fatal("Error:", err)
@@ -948,18 +760,19 @@ func TestCopyObjectV2(t *testing.T) {
 			len(buf), n)
 	}
 
-	// Set copy conditions.
-	copyConds := CopyConditions{}
-	err = copyConds.SetModified(time.Date(2014, time.April, 0, 0, 0, 0, 0, time.UTC))
+	dst, err := NewDestinationInfo(bucketName+"-copy", objectName+"-copy", nil, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	src := NewSourceInfo(bucketName, objectName, nil)
+	err = src.SetModifiedSinceCond(time.Date(2014, time.April, 0, 0, 0, 0, 0, time.UTC))
 	if err != nil {
 		t.Fatal("Error:", err)
 	}
 
-	// Copy source.
-	copySource := bucketName + "/" + objectName
-
 	// Perform the Copy
-	err = c.CopyObject(bucketName+"-copy", objectName+"-copy", copySource, copyConds)
+	err = c.CopyObject(dst, src)
 	if err != nil {
 		t.Fatal("Error:", err, bucketName+"-copy", objectName+"-copy")
 	}
@@ -1020,10 +833,10 @@ func TestFunctionalV2(t *testing.T) {
 	rand.Seed(time.Now().Unix())
 
 	c, err := NewV2(
-		os.Getenv("S3_ADDRESS"),
-		os.Getenv("ACCESS_KEY"),
-		os.Getenv("SECRET_KEY"),
-		mustParseBool(os.Getenv("S3_SECURE")),
+		os.Getenv(serverEndpoint),
+		os.Getenv(accessKey),
+		os.Getenv(secretKey),
+		mustParseBool(os.Getenv(enableSecurity)),
 	)
 	if err != nil {
 		t.Fatal("Error:", err)
@@ -1296,4 +1109,362 @@ func TestFunctionalV2(t *testing.T) {
 	if err = os.Remove(fileName + "-f"); err != nil {
 		t.Fatal("Error: ", err)
 	}
+}
+
+func testComposeObjectErrorCases(c *Client, t *testing.T) {
+	// Generate a new random bucket name.
+	bucketName := randString(60, rand.NewSource(time.Now().UnixNano()), "minio-go-test")
+
+	// Make a new bucket in 'us-east-1' (source bucket).
+	err := c.MakeBucket(bucketName, "us-east-1")
+	if err != nil {
+		t.Fatal("Error:", err, bucketName)
+	}
+
+	// Test that more than 10K source objects cannot be
+	// concatenated.
+	srcArr := [10001]SourceInfo{}
+	srcSlice := srcArr[:]
+	dst, err := NewDestinationInfo(bucketName, "object", nil, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if err := c.ComposeObject(dst, srcSlice); err == nil {
+		t.Fatal("Error was expected.")
+	} else if err.Error() != "There must be as least one and upto 10000 source objects." {
+		t.Fatal("Got unexpected error: ", err)
+	}
+
+	// Create a source with invalid offset spec and check that
+	// error is returned:
+	// 1. Create the source object.
+	const badSrcSize = 5 * 1024 * 1024
+	buf := bytes.Repeat([]byte("1"), badSrcSize)
+	_, err = c.PutObject(bucketName, "badObject", bytes.NewReader(buf), "")
+	if err != nil {
+		t.Fatal("Error:", err)
+	}
+	// 2. Set invalid range spec on the object (going beyond
+	// object size)
+	badSrc := NewSourceInfo(bucketName, "badObject", nil)
+	err = badSrc.SetRange(1, badSrcSize)
+	if err != nil {
+		t.Fatal("Error:", err)
+	}
+	// 3. ComposeObject call should fail.
+	if err := c.ComposeObject(dst, []SourceInfo{badSrc}); err == nil {
+		t.Fatal("Error was expected.")
+	} else if !strings.Contains(err.Error(), "has invalid segment-to-copy") {
+		t.Fatal("Got unexpected error: ", err)
+	}
+}
+
+// Test expected error cases
+func TestComposeObjectErrorCasesV2(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping functional tests for the short runs")
+	}
+
+	// Instantiate new minio client object
+	c, err := NewV2(
+		os.Getenv(serverEndpoint),
+		os.Getenv(accessKey),
+		os.Getenv(secretKey),
+		mustParseBool(os.Getenv(enableSecurity)),
+	)
+	if err != nil {
+		t.Fatal("Error:", err)
+	}
+
+	testComposeObjectErrorCases(c, t)
+}
+
+func testComposeMultipleSources(c *Client, t *testing.T) {
+	// Generate a new random bucket name.
+	bucketName := randString(60, rand.NewSource(time.Now().UnixNano()), "minio-go-test")
+	// Make a new bucket in 'us-east-1' (source bucket).
+	err := c.MakeBucket(bucketName, "us-east-1")
+	if err != nil {
+		t.Fatal("Error:", err, bucketName)
+	}
+
+	// Upload a small source object
+	const srcSize = 1024 * 1024 * 5
+	buf := bytes.Repeat([]byte("1"), srcSize)
+	_, err = c.PutObject(bucketName, "srcObject", bytes.NewReader(buf), "binary/octet-stream")
+	if err != nil {
+		t.Fatal("Error:", err)
+	}
+
+	// We will append 10 copies of the object.
+	srcs := []SourceInfo{}
+	for i := 0; i < 10; i++ {
+		srcs = append(srcs, NewSourceInfo(bucketName, "srcObject", nil))
+	}
+	// make the last part very small
+	err = srcs[9].SetRange(0, 0)
+	if err != nil {
+		t.Fatal("unexpected error:", err)
+	}
+
+	dst, err := NewDestinationInfo(bucketName, "dstObject", nil, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = c.ComposeObject(dst, srcs)
+	if err != nil {
+		t.Fatal("Error:", err)
+	}
+
+	objProps, err := c.StatObject(bucketName, "dstObject")
+	if err != nil {
+		t.Fatal("Error:", err)
+	}
+
+	if objProps.Size != 9*srcSize+1 {
+		t.Fatal("Size mismatched! Expected:", 10000*srcSize, "but got:", objProps.Size)
+	}
+}
+
+// Test concatenating multiple objects objects
+func TestCompose10KSourcesV2(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping functional tests for the short runs")
+	}
+
+	// Instantiate new minio client object
+	c, err := NewV2(
+		os.Getenv(serverEndpoint),
+		os.Getenv(accessKey),
+		os.Getenv(secretKey),
+		mustParseBool(os.Getenv(enableSecurity)),
+	)
+	if err != nil {
+		t.Fatal("Error:", err)
+	}
+
+	testComposeMultipleSources(c, t)
+}
+
+func testEncryptedCopyObject(c *Client, t *testing.T) {
+	// Generate a new random bucket name.
+	bucketName := randString(60, rand.NewSource(time.Now().UnixNano()), "minio-go-test")
+	// Make a new bucket in 'us-east-1' (source bucket).
+	err := c.MakeBucket(bucketName, "us-east-1")
+	if err != nil {
+		t.Fatal("Error:", err, bucketName)
+	}
+
+	key1 := NewSSEInfo([]byte("32byteslongsecretkeymustbegiven1"), "AES256")
+	key2 := NewSSEInfo([]byte("32byteslongsecretkeymustbegiven2"), "AES256")
+
+	// 1. create an sse-c encrypted object to copy by uploading
+	const srcSize = 1024 * 1024
+	buf := bytes.Repeat([]byte("abcde"), srcSize) // gives a buffer of 5MiB
+	metadata := make(map[string][]string)
+	for k, v := range key1.GetSSEHeaders() {
+		metadata[k] = append(metadata[k], v)
+	}
+	_, err = c.PutObjectWithSize(bucketName, "srcObject", bytes.NewReader(buf), int64(len(buf)), metadata, nil)
+	if err != nil {
+		t.Fatal("PutObjectWithSize Error:", err)
+	}
+
+	// 2. copy object and change encryption key
+	src := NewSourceInfo(bucketName, "srcObject", &key1)
+	dst, err := NewDestinationInfo(bucketName, "dstObject", &key2, nil)
+	if err != nil {
+		t.Fatal("Error:", err)
+	}
+
+	err = c.CopyObject(dst, src)
+	if err != nil {
+		t.Fatal("CopyObject Error:", err)
+	}
+
+	// 3. get copied object and check if content is equal
+	reqH := NewGetReqHeaders()
+	for k, v := range key2.GetSSEHeaders() {
+		reqH.Set(k, v)
+	}
+	coreClient := Core{c}
+	reader, _, err := coreClient.GetObject(bucketName, "dstObject", reqH)
+	if err != nil {
+		t.Fatal("GetObject Error:", err)
+	}
+	defer reader.Close()
+
+	decBytes, err := ioutil.ReadAll(reader)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	if !bytes.Equal(decBytes, buf) {
+		log.Fatal("downloaded object mismatched for encrypted object")
+	}
+}
+
+// Test encrypted copy object
+func TestEncryptedCopyObjectV2(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping functional tests for the short runs")
+	}
+
+	// Instantiate new minio client object
+	c, err := NewV2(
+		os.Getenv(serverEndpoint),
+		os.Getenv(accessKey),
+		os.Getenv(secretKey),
+		mustParseBool(os.Getenv(enableSecurity)),
+	)
+	if err != nil {
+		t.Fatal("Error:", err)
+	}
+
+	testEncryptedCopyObject(c, t)
+}
+
+func testUserMetadataCopying(c *Client, t *testing.T) {
+	// Generate a new random bucket name.
+	bucketName := randString(60, rand.NewSource(time.Now().UnixNano()), "minio-go-test")
+	// Make a new bucket in 'us-east-1' (source bucket).
+	err := c.MakeBucket(bucketName, "us-east-1")
+	if err != nil {
+		t.Fatal("Error:", err, bucketName)
+	}
+
+	fetchMeta := func(object string) (h http.Header) {
+		objInfo, err := c.StatObject(bucketName, object)
+		if err != nil {
+			t.Fatal("Metadata fetch error:", err)
+		}
+		h = make(http.Header)
+		for k, vs := range objInfo.Metadata {
+			if strings.HasPrefix(strings.ToLower(k), "x-amz-meta-") {
+				for _, v := range vs {
+					h.Add(k, v)
+				}
+			}
+		}
+		return h
+	}
+
+	// 1. create a client encrypted object to copy by uploading
+	const srcSize = 1024 * 1024
+	buf := bytes.Repeat([]byte("abcde"), srcSize) // gives a buffer of 5MiB
+	metadata := make(http.Header)
+	metadata.Set("x-amz-meta-myheader", "myvalue")
+	_, err = c.PutObjectWithMetadata(bucketName, "srcObject",
+		bytes.NewReader(buf), metadata, nil)
+	if err != nil {
+		t.Fatal("Put Error:", err)
+	}
+	if !reflect.DeepEqual(metadata, fetchMeta("srcObject")) {
+		t.Fatal("Unequal metadata")
+	}
+
+	// 2. create source
+	src := NewSourceInfo(bucketName, "srcObject", nil)
+	// 2.1 create destination with metadata set
+	dst1, err := NewDestinationInfo(bucketName, "dstObject-1", nil, map[string]string{"notmyheader": "notmyvalue"})
+	if err != nil {
+		t.Fatal("Error:", err)
+	}
+
+	// 3. Check that copying to an object with metadata set resets
+	// the headers on the copy.
+	err = c.CopyObject(dst1, src)
+	if err != nil {
+		t.Fatal("Error:", err)
+	}
+
+	expectedHeaders := make(http.Header)
+	expectedHeaders.Set("x-amz-meta-notmyheader", "notmyvalue")
+	if !reflect.DeepEqual(expectedHeaders, fetchMeta("dstObject-1")) {
+		t.Fatal("Unequal metadata")
+	}
+
+	// 4. create destination with no metadata set and same source
+	dst2, err := NewDestinationInfo(bucketName, "dstObject-2", nil, nil)
+	if err != nil {
+		t.Fatal("Error:", err)
+
+	}
+	src = NewSourceInfo(bucketName, "srcObject", nil)
+
+	// 5. Check that copying to an object with no metadata set,
+	// copies metadata.
+	err = c.CopyObject(dst2, src)
+	if err != nil {
+		t.Fatal("Error:", err)
+	}
+
+	expectedHeaders = metadata
+	if !reflect.DeepEqual(expectedHeaders, fetchMeta("dstObject-2")) {
+		t.Fatal("Unequal metadata")
+	}
+
+	// 6. Compose a pair of sources.
+	srcs := []SourceInfo{
+		NewSourceInfo(bucketName, "srcObject", nil),
+		NewSourceInfo(bucketName, "srcObject", nil),
+	}
+	dst3, err := NewDestinationInfo(bucketName, "dstObject-3", nil, nil)
+	if err != nil {
+		t.Fatal("Error:", err)
+
+	}
+
+	err = c.ComposeObject(dst3, srcs)
+	if err != nil {
+		t.Fatal("Error:", err)
+	}
+
+	// Check that no headers are copied in this case
+	if !reflect.DeepEqual(make(http.Header), fetchMeta("dstObject-3")) {
+		t.Fatal("Unequal metadata")
+	}
+
+	// 7. Compose a pair of sources with dest user metadata set.
+	srcs = []SourceInfo{
+		NewSourceInfo(bucketName, "srcObject", nil),
+		NewSourceInfo(bucketName, "srcObject", nil),
+	}
+	dst4, err := NewDestinationInfo(bucketName, "dstObject-4", nil, map[string]string{"notmyheader": "notmyvalue"})
+	if err != nil {
+		t.Fatal("Error:", err)
+
+	}
+
+	err = c.ComposeObject(dst4, srcs)
+	if err != nil {
+		t.Fatal("Error:", err)
+	}
+
+	// Check that no headers are copied in this case
+	expectedHeaders = make(http.Header)
+	expectedHeaders.Set("x-amz-meta-notmyheader", "notmyvalue")
+	if !reflect.DeepEqual(expectedHeaders, fetchMeta("dstObject-4")) {
+		t.Fatal("Unequal metadata")
+	}
+}
+
+func TestUserMetadataCopyingV2(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping functional tests for the short runs")
+	}
+
+	// Instantiate new minio client object
+	c, err := NewV2(
+		os.Getenv(serverEndpoint),
+		os.Getenv(accessKey),
+		os.Getenv(secretKey),
+		mustParseBool(os.Getenv(enableSecurity)),
+	)
+	if err != nil {
+		t.Fatal("Error:", err)
+	}
+
+	// c.TraceOn(os.Stderr)
+	testUserMetadataCopying(c, t)
 }

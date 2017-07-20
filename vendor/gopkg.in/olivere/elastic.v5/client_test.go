@@ -973,6 +973,22 @@ func TestPerformRequestWithLoggerAndTracer(t *testing.T) {
 		t.Errorf("expected tracer output; got: %q", tgot)
 	}
 }
+func TestPerformRequestWithTracerOnError(t *testing.T) {
+	var tw bytes.Buffer
+	tout := log.New(&tw, "TRACER ", log.LstdFlags)
+
+	client, err := NewClient(SetTraceLog(tout), SetSniff(false))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	client.PerformRequest(context.TODO(), "GET", "/no-such-index", nil, nil)
+
+	tgot := tw.String()
+	if tgot == "" {
+		t.Errorf("expected tracer output; got: %q", tgot)
+	}
+}
 
 type customLogger struct {
 	out bytes.Buffer

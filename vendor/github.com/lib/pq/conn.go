@@ -1339,7 +1339,12 @@ func (rs *rows) Close() error {
 		switch err {
 		case nil:
 		case io.EOF:
-			return nil
+			// rs.Next can return io.EOF on both 'Z' (ready for query) and 'T' (row
+			// description, used with HasNextResultSet). We need to fetch messages until
+			// we hit a 'Z', which is done by waiting for done to be set.
+			if rs.done {
+				return nil
+			}
 		default:
 			return err
 		}

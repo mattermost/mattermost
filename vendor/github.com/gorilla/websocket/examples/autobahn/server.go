@@ -85,7 +85,7 @@ func echoCopyFull(w http.ResponseWriter, r *http.Request) {
 
 // echoReadAll echoes messages from the client by reading the entire message
 // with ioutil.ReadAll.
-func echoReadAll(w http.ResponseWriter, r *http.Request, writeMessage bool) {
+func echoReadAll(w http.ResponseWriter, r *http.Request, writeMessage, writePrepared bool) {
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.Println("Upgrade:", err)
@@ -109,9 +109,21 @@ func echoReadAll(w http.ResponseWriter, r *http.Request, writeMessage bool) {
 			}
 		}
 		if writeMessage {
-			err = conn.WriteMessage(mt, b)
-			if err != nil {
-				log.Println("WriteMessage:", err)
+			if !writePrepared {
+				err = conn.WriteMessage(mt, b)
+				if err != nil {
+					log.Println("WriteMessage:", err)
+				}
+			} else {
+				pm, err := websocket.NewPreparedMessage(mt, b)
+				if err != nil {
+					log.Println("NewPreparedMessage:", err)
+					return
+				}
+				err = conn.WritePreparedMessage(pm)
+				if err != nil {
+					log.Println("WritePreparedMessage:", err)
+				}
 			}
 		} else {
 			w, err := conn.NextWriter(mt)
@@ -132,11 +144,15 @@ func echoReadAll(w http.ResponseWriter, r *http.Request, writeMessage bool) {
 }
 
 func echoReadAllWriter(w http.ResponseWriter, r *http.Request) {
-	echoReadAll(w, r, false)
+	echoReadAll(w, r, false, false)
 }
 
 func echoReadAllWriteMessage(w http.ResponseWriter, r *http.Request) {
-	echoReadAll(w, r, true)
+	echoReadAll(w, r, true, false)
+}
+
+func echoReadAllWritePreparedMessage(w http.ResponseWriter, r *http.Request) {
+	echoReadAll(w, r, true, true)
 }
 
 func serveHome(w http.ResponseWriter, r *http.Request) {
@@ -161,6 +177,7 @@ func main() {
 	http.HandleFunc("/f", echoCopyFull)
 	http.HandleFunc("/r", echoReadAllWriter)
 	http.HandleFunc("/m", echoReadAllWriteMessage)
+	http.HandleFunc("/p", echoReadAllWritePreparedMessage)
 	err := http.ListenAndServe(*addr, nil)
 	if err != nil {
 		log.Fatal("ListenAndServe: ", err)
