@@ -6,6 +6,7 @@ import SettingItemMax from 'components/setting_item_max.jsx';
 import AccessHistoryModal from 'components/access_history_modal';
 import ActivityLogModal from 'components/activity_log_modal';
 import ToggleModalButton from 'components/toggle_modal_button.jsx';
+import ConfirmModal from 'components/confirm_modal.jsx';
 
 import PreferenceStore from 'stores/preference_store.jsx';
 
@@ -17,10 +18,15 @@ import {updatePassword, getAuthorizedApps, deactivateMfa, deauthorizeOAuthApp} f
 import $ from 'jquery';
 import PropTypes from 'prop-types';
 import React from 'react';
-import {FormattedMessage, FormattedTime, FormattedDate} from 'react-intl';
+import * as UserUtils from 'mattermost-redux/utils/user_utils';
+import {FormattedMessage, FormattedTime, FormattedDate, FormattedHTMLMessage} from 'react-intl';
 import {browserHistory, Link} from 'react-router/es6';
 
 import icon50 from 'images/icon50x50.png';
+
+const TOKEN_CREATING = 'creating';
+const TOKEN_CREATED = 'created';
+const TOKEN_NOT_CREATING = 'not_creating';
 
 export default class SecurityTab extends React.Component {
     static propTypes = {
@@ -31,25 +37,39 @@ export default class SecurityTab extends React.Component {
         closeModal: PropTypes.func.isRequired,
         collapseModal: PropTypes.func.isRequired,
         setEnforceFocus: PropTypes.func.isRequired,
+
+        /*
+         * The user access tokens for the user
+         */
+        userAccessTokens: PropTypes.object,
+
+        /*
+         * Set if access tokens are enabled and this user can use them
+         */
+        canUseAccessTokens: PropTypes.bool,
+
         actions: PropTypes.shape({
-            getMe: PropTypes.func.isRequired
+            getMe: PropTypes.func.isRequired,
+
+            /*
+             * Function to get user access tokens for a user
+             */
+            getUserAccessTokensForUser: PropTypes.func.isRequired,
+
+            /*
+             * Function to create a user access token
+             */
+            createUserAccessToken: PropTypes.func.isRequired,
+
+            /*
+             * Function to revoke a user access token
+             */
+            revokeUserAccessToken: PropTypes.func.isRequired
         }).isRequired
     }
 
     constructor(props) {
         super(props);
-
-        this.submitPassword = this.submitPassword.bind(this);
-        this.setupMfa = this.setupMfa.bind(this);
-        this.removeMfa = this.removeMfa.bind(this);
-        this.updateCurrentPassword = this.updateCurrentPassword.bind(this);
-        this.updateNewPassword = this.updateNewPassword.bind(this);
-        this.updateConfirmPassword = this.updateConfirmPassword.bind(this);
-        this.getDefaultState = this.getDefaultState.bind(this);
-        this.createPasswordSection = this.createPasswordSection.bind(this);
-        this.createSignInSection = this.createSignInSection.bind(this);
-        this.createOAuthAppsSection = this.createOAuthAppsSection.bind(this);
-        this.deauthorizeApp = this.deauthorizeApp.bind(this);
 
         this.state = this.getDefaultState();
     }
@@ -61,6 +81,8 @@ export default class SecurityTab extends React.Component {
             confirmPassword: '',
             passwordError: '',
             serverError: '',
+            tokenError: '',
+            showConfirmModal: false,
             authService: this.props.user.auth_service
         };
     }
@@ -73,11 +95,17 @@ export default class SecurityTab extends React.Component {
                 },
                 (err) => {
                     this.setState({serverError: err.message}); //eslint-disable-line react/no-did-mount-set-state
-                });
+                }
+            );
+        }
+
+        if (this.props.canUseAccessTokens) {
+            const userId = this.props.user ? this.props.user.id : '';
+            this.props.actions.getUserAccessTokensForUser(userId, 0, 200);
         }
     }
 
-    submitPassword(e) {
+    submitPassword = (e) => {
         e.preventDefault();
 
         var user = this.props.user;
@@ -127,12 +155,12 @@ export default class SecurityTab extends React.Component {
         );
     }
 
-    setupMfa(e) {
+    setupMfa = (e) => {
         e.preventDefault();
         browserHistory.push('/mfa/setup');
     }
 
-    removeMfa() {
+    removeMfa = () => {
         deactivateMfa(
             () => {
                 if (global.window.mm_license.MFA === 'true' &&
@@ -157,19 +185,19 @@ export default class SecurityTab extends React.Component {
         );
     }
 
-    updateCurrentPassword(e) {
+    updateCurrentPassword = (e) => {
         this.setState({currentPassword: e.target.value});
     }
 
-    updateNewPassword(e) {
+    updateNewPassword = (e) => {
         this.setState({newPassword: e.target.value});
     }
 
-    updateConfirmPassword(e) {
+    updateConfirmPassword = (e) => {
         this.setState({confirmPassword: e.target.value});
     }
 
-    deauthorizeApp(e) {
+    deauthorizeApp = (e) => {
         e.preventDefault();
         const appId = e.currentTarget.getAttribute('data-app');
         deauthorizeOAuthApp(
@@ -183,10 +211,11 @@ export default class SecurityTab extends React.Component {
             },
             (err) => {
                 this.setState({serverError: err.message});
-            });
+            }
+        );
     }
 
-    createMfaSection() {
+    createMfaSection = () => {
         let updateSectionStatus;
         let submit;
 
@@ -321,7 +350,7 @@ export default class SecurityTab extends React.Component {
         );
     }
 
-    createPasswordSection() {
+    createPasswordSection = () => {
         let updateSectionStatus;
 
         if (this.props.activeSection === 'password') {
@@ -578,7 +607,7 @@ export default class SecurityTab extends React.Component {
         );
     }
 
-    createSignInSection() {
+    createSignInSection = () => {
         let updateSectionStatus;
         const user = this.props.user;
 
@@ -793,7 +822,7 @@ export default class SecurityTab extends React.Component {
         );
     }
 
-    createOAuthAppsSection() {
+    createOAuthAppsSection = () => {
         let updateSectionStatus;
 
         if (this.props.activeSection === 'apps') {
@@ -929,6 +958,323 @@ export default class SecurityTab extends React.Component {
         );
     }
 
+    startCreatingToken = () => {
+        this.setState({tokenCreationState: TOKEN_CREATING});
+    }
+
+    stopCreatingToken = () => {
+        this.setState({tokenCreationState: TOKEN_NOT_CREATING});
+    }
+
+    handleCreateToken = async () => {
+        this.handleCancelConfirm();
+
+        const description = this.refs.newtokendescription ? this.refs.newtokendescription.value : '';
+
+        if (description === '') {
+            this.setState({tokenError: Utils.localizeMessage('user.settings.tokens.nameRequired', 'Please enter a name.')});
+            return;
+        }
+
+        this.setState({tokenError: ''});
+
+        const userId = this.props.user ? this.props.user.id : '';
+        const {data, error} = await this.props.actions.createUserAccessToken(userId, description);
+
+        if (data) {
+            this.setState({tokenCreationState: TOKEN_CREATED, newToken: data});
+        } else if (error) {
+            this.setState({serverError: error.message});
+        }
+    }
+
+    handleCancelConfirm = () => {
+        this.setState({
+            showConfirmModal: false,
+            confirmTitle: null,
+            confirmMessage: null,
+            confirmButton: null,
+            confirmComplete: null
+        });
+    }
+
+    confirmCreateToken = () => {
+        if (UserUtils.isSystemAdmin(this.props.user.roles)) {
+            this.setState({
+                showConfirmModal: true,
+                confirmTitle: (
+                    <FormattedMessage
+                        id='user.settings.tokens.confirmCreateTitle'
+                        defaultMessage='Create System Admin User Access Token'
+                    />
+                ),
+                confirmMessage: (
+                    <FormattedHTMLMessage
+                        id='user.settings.tokens.confirmCreateMessage'
+                        defaultMessage='You are generating a user access token with System Admin permissions.<br/><br/>Are you sure want to create this token?'
+                    />
+                ),
+                confirmButton: (
+                    <FormattedMessage
+                        id='user.settings.tokens.confirmCreateButton'
+                        defaultMessage='Yes, Create'
+                    />
+                ),
+                confirmComplete: this.handleCreateToken
+            });
+
+            return;
+        }
+
+        this.handleCreateToken();
+    }
+
+    confirmRevokeToken = (tokenId) => {
+        const token = this.props.userAccessTokens[tokenId];
+
+        this.setState({
+            showConfirmModal: true,
+            confirmTitle: (
+                <FormattedMessage
+                    id='user.settings.tokens.confirmDeleteTitle'
+                    defaultMessage='Delete {name} Token?'
+                    values={{
+                        name: token.description
+                    }}
+                />
+            ),
+            confirmMessage: (
+                <FormattedHTMLMessage
+                    id='user.settings.tokens.confirmDeleteMessage'
+                    defaultMessage='Any integrations using this token will no longer be able to access the Mattermost API.<br/><br/>You cannot undo this action. Are you sure want to delete this token?'
+                />
+            ),
+            confirmButton: (
+                <FormattedMessage
+                    id='user.settings.tokens.confirmDeleteButton'
+                    defaultMessage='Yes, Delete'
+                />
+            ),
+            confirmComplete: () => this.revokeToken(tokenId)
+        });
+    }
+
+    revokeToken = async (tokenId) => {
+        const {error} = await this.props.actions.revokeUserAccessToken(tokenId);
+        if (error) {
+            this.setState({serverError: error.message});
+        }
+        this.handleCancelConfirm();
+    }
+
+    createTokensSection = () => {
+        let updateSectionStatus;
+        let submit;
+
+        if (this.props.activeSection === 'tokens') {
+            const tokenList = [];
+            Object.values(this.props.userAccessTokens).forEach((token) => {
+                if (this.state.newToken && this.state.newToken.id === token.id) {
+                    return;
+                }
+
+                tokenList.push(
+                    <div
+                        key={token.id}
+                        className='asaadaddclass'
+                    >
+                        <div className='asaadaddclass'>
+                            {token.description}
+                        </div>
+                        <div className='asaadaddclass'>
+                            <FormattedMessage
+                                id='user.settings.tokens.tokenId'
+                                defaultMessage='Token ID: '
+                            />
+                            {token.id}
+                        </div>
+                        <div className='asaadaddclass'>
+                            <a
+                                name={token.id}
+                                href='#'
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    this.confirmRevokeToken(token.id);
+                                }}
+                            >
+                                <FormattedMessage
+                                    id='user.settings.tokens.delete'
+                                    defaultMessage='Delete'
+                                />
+                            </a>
+                        </div>
+                    </div>
+                );
+            });
+
+            if (tokenList.length === 0) {
+                tokenList.push(
+                    <FormattedMessage
+                        key='notokens'
+                        id='user.settings.tokens.userAccessTokensNone'
+                        defaultMessage='No user access tokens.'
+                    />
+                );
+            }
+
+            const extraInfo = (
+                <span>
+                    <FormattedHTMLMessage
+                        id='user.settings.tokens.description'
+                        defaultMessage='User access tokens function similar to session tokens and can be used by integrations to <a href="https://about.mattermost.com/default-api-authentication" target="_blank">authenticate against the REST API</a>.'
+                    />
+                </span>
+            );
+
+            let newTokenSection;
+            if (this.state.tokenCreationState === TOKEN_CREATING) {
+                newTokenSection = (
+                    <div className='asaadaddclass'>
+                        <FormattedMessage
+                            id='user.settings.tokens.name'
+                            defaultMessage='Name: '
+                        />
+                        <input
+                            ref='newtokendescription'
+                            className='form-control'
+                            type='text'
+                        />
+                        <br/>
+                        <FormattedMessage
+                            id='user.settings.tokens.nameDescription'
+                            defaultMessage='Give a name for your token, so you remember what it’s used for. A token is generated after you hit "Save".'
+                        />
+                        <br/>
+                        <div className='form-group'>
+                            <label
+                                id='clientError'
+                                className='col-sm-12 has-error'
+                            >
+                                {this.state.tokenError}
+                            </label>
+                        </div>
+                        <button
+                            className='btn btn-primary'
+                            onClick={this.confirmCreateToken}
+                        >
+                            <FormattedMessage
+                                id='user.settings.tokens.save'
+                                defaultMessage='Save'
+                            />
+                        </button>
+                        <button
+                            className='btn btn-default'
+                            onClick={this.stopCreatingToken}
+                        >
+                            <FormattedMessage
+                                id='user.settings.tokens.cancel'
+                                defaultMessage='Cancel'
+                            />
+                        </button>
+                    </div>
+                );
+            } else if (this.state.tokenCreationState === TOKEN_CREATED) {
+                newTokenSection = (
+                    <div
+                        className='asaadaddclass'
+                        style={{backgroundColor: 'lightgrey'}}
+                    >
+                        <FormattedMessage
+                            id='user.settings.tokens.name'
+                            defaultMessage='Name: '
+                        />
+                        {this.state.newToken.description}
+                        <br/>
+                        <FormattedMessage
+                            id='user.settings.tokens.id'
+                            defaultMessage='ID: '
+                        />
+                        {this.state.newToken.id}
+                        <br/>
+                        <strong>
+                            <FormattedMessage
+                                id='user.settings.tokens.token'
+                                defaultMessage='Token: '
+                            />
+                            {this.state.newToken.token}
+                        </strong>
+                        <br/>
+                        <FormattedMessage
+                            id='user.settings.tokens.copy'
+                            defaultMessage="Make sure to copy the token now. You won't be able to see it again!"
+                        />
+                    </div>
+                );
+            } else {
+                newTokenSection = (
+                    <a
+                        className='btn btn-primary'
+                        href='#'
+                        onClick={this.startCreatingToken}
+                    >
+                        <FormattedMessage
+                            id='user.settings.tokens.create'
+                            defaultMessage='Create New Token'
+                        />
+                    </a>
+                );
+            }
+
+            const inputs = [];
+            inputs.push(
+                <div
+                    key='mfaSetting'
+                    className='padding-top'
+                >
+                    <div key='tokenList'>
+                        {tokenList}
+                        <div className='divider-light'/>
+                        <br/>
+                        {newTokenSection}
+                        <br/>
+                    </div>
+                </div>
+            );
+
+            updateSectionStatus = function resetSection(e) {
+                this.props.updateSection('');
+                this.setState({newToken: null, tokenCreationState: TOKEN_NOT_CREATING, serverError: null, tokenError: ''});
+                e.preventDefault();
+            }.bind(this);
+
+            return (
+                <SettingItemMax
+                    title={Utils.localizeMessage('user.settings.tokens.title', 'User Access Tokens')}
+                    inputs={inputs}
+                    extraInfo={extraInfo}
+                    submit={submit}
+                    server_error={this.state.serverError}
+                    updateSection={updateSectionStatus}
+                    width='medium'
+                />
+            );
+        }
+
+        const describe = Utils.localizeMessage('user.settings.tokens.clickToEdit', "Click 'Edit' to manage your user access tokens");
+
+        updateSectionStatus = function updateSection() {
+            this.props.updateSection('tokens');
+        }.bind(this);
+
+        return (
+            <SettingItemMin
+                title={Utils.localizeMessage('user.settings.tokens.title', 'User Access Tokens')}
+                describe={describe}
+                updateSection={updateSectionStatus}
+            />
+        );
+    }
+
     render() {
         const user = this.props.user;
         const config = window.mm_config;
@@ -957,6 +1303,11 @@ export default class SecurityTab extends React.Component {
         let oauthSection;
         if (config.EnableOAuthServiceProvider === 'true') {
             oauthSection = this.createOAuthAppsSection();
+        }
+
+        let tokensSection;
+        if (this.props.canUseAccessTokens) {
+            tokensSection = this.createTokensSection();
         }
 
         return (
@@ -1001,6 +1352,8 @@ export default class SecurityTab extends React.Component {
                     <div className='divider-light'/>
                     {oauthSection}
                     <div className='divider-light'/>
+                    {tokensSection}
+                    <div className='divider-light'/>
                     {signInSection}
                     <div className='divider-dark'/>
                     <br/>
@@ -1026,6 +1379,14 @@ export default class SecurityTab extends React.Component {
                         />
                     </ToggleModalButton>
                 </div>
+                <ConfirmModal
+                    title={this.state.confirmTitle}
+                    message={this.state.confirmMessage}
+                    confirmButtonText={this.state.confirmButton}
+                    show={this.state.showConfirmModal}
+                    onConfirm={this.state.confirmComplete || (() => {})} //eslint-disable-line no-empty-function
+                    onCancel={this.handleCancelConfirm}
+                />
             </div>
         );
     }

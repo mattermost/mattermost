@@ -70,11 +70,13 @@ var PERMISSION_MANAGE_SYSTEM *Permission
 
 var ROLE_SYSTEM_USER *Role
 var ROLE_SYSTEM_ADMIN *Role
+var ROLE_SYSTEM_POST_ALL *Role
 var ROLE_SYSTEM_POST_ALL_PUBLIC *Role
 var ROLE_SYSTEM_USER_ACCESS_TOKEN *Role
 
 var ROLE_TEAM_USER *Role
 var ROLE_TEAM_ADMIN *Role
+var ROLE_TEAM_POST_ALL *Role
 var ROLE_TEAM_POST_ALL_PUBLIC *Role
 
 var ROLE_CHANNEL_USER *Role
@@ -370,6 +372,16 @@ func InitalizeRoles() {
 	}
 	BuiltInRoles[ROLE_TEAM_USER.Id] = ROLE_TEAM_USER
 
+	ROLE_TEAM_POST_ALL = &Role{
+		"team_post_all",
+		"authentication.roles.team_post_all.name",
+		"authentication.roles.team_post_all.description",
+		[]string{
+			PERMISSION_CREATE_POST.Id,
+		},
+	}
+	BuiltInRoles[ROLE_TEAM_POST_ALL.Id] = ROLE_TEAM_POST_ALL
+
 	ROLE_TEAM_POST_ALL_PUBLIC = &Role{
 		"team_post_all_public",
 		"authentication.roles.team_post_all_public.name",
@@ -410,6 +422,16 @@ func InitalizeRoles() {
 		},
 	}
 	BuiltInRoles[ROLE_SYSTEM_USER.Id] = ROLE_SYSTEM_USER
+
+	ROLE_SYSTEM_POST_ALL = &Role{
+		"system_post_all",
+		"authentication.roles.system_post_all.name",
+		"authentication.roles.system_post_all.description",
+		[]string{
+			PERMISSION_CREATE_POST.Id,
+		},
+	}
+	BuiltInRoles[ROLE_SYSTEM_POST_ALL.Id] = ROLE_SYSTEM_POST_ALL
 
 	ROLE_SYSTEM_POST_ALL_PUBLIC = &Role{
 		"system_post_all_public",
