@@ -50,9 +50,8 @@ func main() {
 		log.Fatalln(err)
 	}
 
-	// progress reader is notified as PutObject makes progress with
-	// the read. For partial resume put object, progress reader is
-	// appropriately advanced.
+	// Progress reader is notified as PutObject makes progress with
+	// the Reads inside.
 	progress := pb.New64(objectInfo.Size)
 	progress.Start()
 

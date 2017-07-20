@@ -195,13 +195,10 @@ func TestRounding(t *testing.T) {
 		negModes := tc.modes
 		negModes[1], negModes[6] = negModes[6], negModes[1]
 		for i, res := range negModes {
-			if res != "0" {
-				negModes[i] = "-" + res
-			}
+			negModes[i] = "-" + res
 		}
-
 		for i, m := range modes {
-			t.Run(fmt.Sprintf("v:%s/n:%d/%s", tc.x, tc.n, m), func(t *testing.T) {
+			t.Run(fmt.Sprintf("x:%s/n:%d/%s", tc.x, tc.n, m), func(t *testing.T) {
 				d := mkdec(tc.x)
 				d.round(m, tc.n)
 				if got := d.String(); got != tc.modes[i] {
@@ -224,9 +221,7 @@ func TestRounding(t *testing.T) {
 					t.Errorf("neg decimal: got %q; want %q", d.String(), want)
 				}
 
-				if f = mkfloat(tc.x); f != 0 {
-					f = -f // avoid creating -0.0
-				}
+				f = -mkfloat(tc.x)
 				f = m.roundFloat(f/mult) * mult
 				if got := fmt.Sprintf("%.0f", f); got != negModes[i] {
 					t.Errorf("neg float: got %q; want %q", got, negModes[i])
@@ -257,6 +252,8 @@ func TestConvert(t *testing.T) {
 		{uint32(234), scale2, "234"},
 		{uint64(234), scale2, "234"},
 		{uint(234), scale2, "234"},
+		{-0.001, scale2, "-0"},
+		{-1e9, scale2, "-1000000000.00"},
 		{0.234, scale2, "0.23"},
 		{0.234, scale2away, "0.24"},
 		{0.1234, prec3, "0.123"},

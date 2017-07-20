@@ -33,7 +33,7 @@ func LoadTLSConfig(filename string) (*tls.Config, error) {
 	if err = yaml.Unmarshal(content, cfg); err != nil {
 		return nil, err
 	}
-	return cfg.GenerateConfig()
+	return NewTLSConfig(cfg)
 }
 
 var expectedTLSConfigs = []struct {
@@ -57,7 +57,7 @@ func TestValidTLSConfig(t *testing.T) {
 			t.Errorf("Error parsing %s: %s", cfg.filename, err)
 		}
 		if !reflect.DeepEqual(*got, *cfg.config) {
-			t.Fatalf("%s: unexpected config result: \n\n%s\n expected\n\n%s", cfg.filename, got, cfg.config)
+			t.Fatalf("%v: unexpected config result: \n\n%v\n expected\n\n%v", cfg.filename, got, cfg.config)
 		}
 	}
 }

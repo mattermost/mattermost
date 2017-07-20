@@ -11,8 +11,8 @@ lint:
 test: sysfs/fixtures/.unpacked
 	go test -v ./...
 
-sysfs/fixtures/.unpacked: sysfs/fixtures.tar.gz
-	cd sysfs && tar xzf fixtures.tar.gz
+sysfs/fixtures/.unpacked: sysfs/fixtures.ttar
+	./ttar -C sysfs -x -f sysfs/fixtures.ttar
 	touch $@
 
 .PHONY: fmt lint test ci

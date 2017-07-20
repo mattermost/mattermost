@@ -27,9 +27,9 @@ func TestInfo(t *testing.T) {
 		// U+096F DEVANAGARI DIGIT NINE ('९')
 		{"de-BE-u-nu-deva", SymGroup, ".", '\u096f'}, // miss -> latn -> de
 		{"de-Cyrl-BE", SymGroup, ",", '9'},           // inherits from root
-		{"de-CH", SymGroup, "'", '9'},                // overrides values in de
-		{"de-CH-oxendict", SymGroup, "'", '9'},       // inherits from de-CH (no compact index)
-		{"de-CH-u-nu-deva", SymGroup, "'", '\u096f'}, // miss -> latn -> de-CH
+		{"de-CH", SymGroup, "’", '9'},                // overrides values in de
+		{"de-CH-oxendict", SymGroup, "’", '9'},       // inherits from de-CH (no compact index)
+		{"de-CH-u-nu-deva", SymGroup, "’", '\u096f'}, // miss -> latn -> de-CH
 
 		{"pa", SymExponential, "E", '9'},
 

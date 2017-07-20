@@ -27,3 +27,23 @@ func TestTermSuggesterSource(t *testing.T) {
 		t.Errorf("expected\n%s\n,got:\n%s", expected, got)
 	}
 }
+
+func TestTermSuggesterWithPrefixLengthSource(t *testing.T) {
+	s := NewTermSuggester("name").
+		Text("n").
+		Field("suggest").
+		PrefixLength(0)
+	src, err := s.Source(true)
+	if err != nil {
+		t.Fatal(err)
+	}
+	data, err := json.Marshal(src)
+	if err != nil {
+		t.Fatalf("marshaling to JSON failed: %v", err)
+	}
+	got := string(data)
+	expected := `{"name":{"text":"n","term":{"field":"suggest","prefix_length":0}}}`
+	if got != expected {
+		t.Errorf("expected\n%s\n,got:\n%s", expected, got)
+	}
+}

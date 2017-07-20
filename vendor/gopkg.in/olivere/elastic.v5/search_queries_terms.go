@@ -20,7 +20,8 @@ type TermsQuery struct {
 // NewTermsQuery creates and initializes a new TermsQuery.
 func NewTermsQuery(name string, values ...interface{}) *TermsQuery {
 	q := &TermsQuery{
-		name: name,
+		name:   name,
+		values: make([]interface{}, 0),
 	}
 	if len(values) > 0 {
 		q.values = append(q.values, values...)

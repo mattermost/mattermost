@@ -16,26 +16,26 @@ type failingWriter struct {
 	buffer  bytes.Buffer
 }
 
-func (f failingWriter) Write(p []byte) (n int, err error) {
+func (f *failingWriter) Write(p []byte) (n int, err error) {
 	count := len(p)
-	toWrite := f.failAt - count + f.written
+	toWrite := f.failAt - (count + f.written)
 	if toWrite < 0 {
 		toWrite = 0
 	}
 	if toWrite > count {
 		f.written += count
-		f.buffer.WriteString(string(p))
+		f.buffer.Write(p)
 		return count, nil
 	}
 
-	f.buffer.WriteString(string(p[:toWrite]))
+	f.buffer.Write(p[:toWrite])
 	f.written = f.failAt
-	return f.written, fmt.Errorf("failingWriter failed after writting %d bytes", f.written)
+	return toWrite, fmt.Errorf("failingWriter failed after writting %d bytes", f.written)
 }
 
 func assertErrorString(t *testing.T, expected string, err error) {
 	expectedErr := errors.New(expected)
-	if err.Error() != expectedErr.Error() {
+	if err == nil || err.Error() != expectedErr.Error() {
 		t.Errorf("expecting error %s, but got %s instead", expected, err)
 	}
 }
@@ -175,7 +175,7 @@ func TestTreeWriteToInvalidTreeTomlValueArray(t *testing.T) {
 func TestTreeWriteToFailingWriterInSimpleValue(t *testing.T) {
 	toml, _ := Load(`a = 2`)
 	writer := failingWriter{failAt: 0, written: 0}
-	_, err := toml.WriteTo(writer)
+	_, err := toml.WriteTo(&writer)
 	assertErrorString(t, "failingWriter failed after writting 0 bytes", err)
 }
 
@@ -184,11 +184,11 @@ func TestTreeWriteToFailingWriterInTable(t *testing.T) {
 [b]
 a = 2`)
 	writer := failingWriter{failAt: 2, written: 0}
-	_, err := toml.WriteTo(writer)
+	_, err := toml.WriteTo(&writer)
 	assertErrorString(t, "failingWriter failed after writting 2 bytes", err)
 
 	writer = failingWriter{failAt: 13, written: 0}
-	_, err = toml.WriteTo(writer)
+	_, err = toml.WriteTo(&writer)
 	assertErrorString(t, "failingWriter failed after writting 13 bytes", err)
 }
 
@@ -197,11 +197,11 @@ func TestTreeWriteToFailingWriterInArray(t *testing.T) {
 [[b]]
 a = 2`)
 	writer := failingWriter{failAt: 2, written: 0}
-	_, err := toml.WriteTo(writer)
+	_, err := toml.WriteTo(&writer)
 	assertErrorString(t, "failingWriter failed after writting 2 bytes", err)
 
 	writer = failingWriter{failAt: 15, written: 0}
-	_, err = toml.WriteTo(writer)
+	_, err = toml.WriteTo(&writer)
 	assertErrorString(t, "failingWriter failed after writting 15 bytes", err)
 }
 

@@ -34,6 +34,8 @@ type RoundingContext struct {
 	Scale     int32 // maximum number of decimals after the dot.
 }
 
+const maxIntDigits = 20
+
 // A Decimal represents floating point number represented in digits of the base
 // in which a number is to be displayed. Digits represents a number [0, 1.0),
 // and the absolute value represented by Decimal is Digits * 10^Exp.
@@ -53,7 +55,7 @@ type Decimal struct {
 	Inf    bool // Takes precedence over Digits and Exp.
 	NaN    bool // Takes precedence over Inf.
 
-	buf [10]byte
+	buf [maxIntDigits]byte
 }
 
 // normalize retuns a new Decimal with leading and trailing zeros removed.
@@ -97,10 +99,9 @@ func (x *Decimal) String() string {
 		buf = append(buf, "Inf"...)
 		return string(buf)
 	}
-	if len(x.Digits) == 0 {
-		return "0"
-	}
 	switch {
+	case len(x.Digits) == 0:
+		buf = append(buf, '0')
 	case x.Exp <= 0:
 		// 0.00ddd
 		buf = append(buf, "0."...)
@@ -273,29 +274,29 @@ func (d *Decimal) Convert(r *RoundingContext, number interface{}) {
 		d.clear()
 		f.Convert(d, r)
 	case float32:
-		d.convertFloat64(r, float64(f), 32)
+		d.ConvertFloat(r, float64(f), 32)
 	case float64:
-		d.convertFloat64(r, f, 64)
+		d.ConvertFloat(r, f, 64)
 	case int:
-		d.convertInt(r, signed, uint64(f))
+		d.ConvertInt(r, signed, uint64(f))
 	case int8:
-		d.convertInt(r, signed, uint64(f))
+		d.ConvertInt(r, signed, uint64(f))
 	case int16:
-		d.convertInt(r, signed, uint64(f))
+		d.ConvertInt(r, signed, uint64(f))
 	case int32:
-		d.convertInt(r, signed, uint64(f))
+		d.ConvertInt(r, signed, uint64(f))
 	case int64:
-		d.convertInt(r, signed, uint64(f))
+		d.ConvertInt(r, signed, uint64(f))
 	case uint:
-		d.convertInt(r, unsigned, uint64(f))
+		d.ConvertInt(r, unsigned, uint64(f))
 	case uint8:
-		d.convertInt(r, unsigned, uint64(f))
+		d.ConvertInt(r, unsigned, uint64(f))
 	case uint16:
-		d.convertInt(r, unsigned, uint64(f))
+		d.ConvertInt(r, unsigned, uint64(f))
 	case uint32:
-		d.convertInt(r, unsigned, uint64(f))
+		d.ConvertInt(r, unsigned, uint64(f))
 	case uint64:
-		d.convertInt(r, unsigned, f)
+		d.ConvertInt(r, unsigned, f)
 
 		// TODO:
 		// case string: if produced by strconv, allows for easy arbitrary pos.
@@ -308,13 +309,14 @@ func (d *Decimal) Convert(r *RoundingContext, number interface{}) {
 	}
 }
 
-func (d *Decimal) convertInt(r *RoundingContext, signed bool, x uint64) {
+// ConvertInt converts an integer to decimals.
+func (d *Decimal) ConvertInt(r *RoundingContext, signed bool, x uint64) {
 	if r.Increment > 0 {
 		// TODO: if uint64 is too large, fall back to float64
 		if signed {
-			d.convertFloat64(r, float64(int64(x)), 64)
+			d.ConvertFloat(r, float64(int64(x)), 64)
 		} else {
-			d.convertFloat64(r, float64(x), 64)
+			d.ConvertFloat(r, float64(x), 64)
 		}
 		return
 	}
@@ -327,7 +329,8 @@ func (d *Decimal) convertInt(r *RoundingContext, signed bool, x uint64) {
 	d.Exp = int32(len(d.Digits))
 }
 
-func (d *Decimal) convertFloat64(r *RoundingContext, x float64, size int) {
+// ConvertFloat converts a floating point number to decimals.
+func (d *Decimal) ConvertFloat(r *RoundingContext, x float64, size int) {
 	d.clear()
 	if math.IsNaN(x) {
 		d.NaN = true
@@ -343,7 +346,7 @@ func (d *Decimal) convertFloat64(r *RoundingContext, x float64, size int) {
 		return
 	}
 	// Simple case: decimal notation
-	if r.Scale > 0 || r.Increment > 0 && r.Scale == 0 {
+	if r.Scale > 0 || r.Increment > 0 || r.Precision == 0 {
 		if int(r.Scale) > len(scales) {
 			x *= math.Pow(10, float64(r.Scale))
 		} else {
@@ -368,6 +371,7 @@ func (d *Decimal) convertFloat64(r *RoundingContext, x float64, size int) {
 	// TODO: expose functionality in strconv so we can avoid this hack.
 	//   Something like this would work:
 	//   AppendDigits(dst []byte, x float64, base, size, prec int) (digits []byte, exp, accuracy int)
+	// TODO: This only supports the nearest even rounding mode.
 
 	prec := int(r.Precision)
 	if prec > 0 {
@@ -401,11 +405,10 @@ func (d *Decimal) convertFloat64(r *RoundingContext, x float64, size int) {
 }
 
 func (d *Decimal) fillIntDigits(x uint64) {
-	const maxUintDigits = 10
-	if cap(d.Digits) < maxUintDigits {
+	if cap(d.Digits) < maxIntDigits {
 		d.Digits = d.buf[:]
 	} else {
-		d.Digits = d.buf[:maxUintDigits]
+		d.Digits = d.buf[:maxIntDigits]
 	}
 	i := 0
 	for ; x > 0; x /= 10 {

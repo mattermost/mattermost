@@ -61,7 +61,7 @@ func TestRFC2136ServerSuccess(t *testing.T) {
 	}
 	defer server.Shutdown()
 
-	provider, err := NewDNSProviderCredentials(addrstr, "", "", "")
+	provider, err := NewDNSProviderCredentials(addrstr, "", "", "", "")
 	if err != nil {
 		t.Fatalf("Expected NewDNSProviderCredentials() to return no error but the error was -> %v", err)
 	}
@@ -81,7 +81,7 @@ func TestRFC2136ServerError(t *testing.T) {
 	}
 	defer server.Shutdown()
 
-	provider, err := NewDNSProviderCredentials(addrstr, "", "", "")
+	provider, err := NewDNSProviderCredentials(addrstr, "", "", "", "")
 	if err != nil {
 		t.Fatalf("Expected NewDNSProviderCredentials() to return no error but the error was -> %v", err)
 	}
@@ -103,7 +103,7 @@ func TestRFC2136TsigClient(t *testing.T) {
 	}
 	defer server.Shutdown()
 
-	provider, err := NewDNSProviderCredentials(addrstr, "", rfc2136TestTsigKey, rfc2136TestTsigSecret)
+	provider, err := NewDNSProviderCredentials(addrstr, "", rfc2136TestTsigKey, rfc2136TestTsigSecret, "")
 	if err != nil {
 		t.Fatalf("Expected NewDNSProviderCredentials() to return no error but the error was -> %v", err)
 	}
@@ -135,7 +135,7 @@ func TestRFC2136ValidUpdatePacket(t *testing.T) {
 		t.Fatalf("Error packing expect msg: %v", err)
 	}
 
-	provider, err := NewDNSProviderCredentials(addrstr, "", "", "")
+	provider, err := NewDNSProviderCredentials(addrstr, "", "", "", "")
 	if err != nil {
 		t.Fatalf("Expected NewDNSProviderCredentials() to return no error but the error was -> %v", err)
 	}

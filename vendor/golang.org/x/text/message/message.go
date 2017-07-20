@@ -5,6 +5,10 @@
 // Package message implements formatted I/O for localized strings with functions
 // analogous to the fmt's print functions.
 //
+// These are the important differences with fmt:
+//   - Output varies per locale.
+//   - The '#' flag is used to bypass localization.
+//
 // NOTE: Under construction. See https://golang.org/design/12750-localization
 // and its corresponding proposal issue https://golang.org/issues/12750.
 package message // import "golang.org/x/text/message"
@@ -59,6 +63,8 @@ func NewPrinter(t language.Tag, opts ...Option) *Printer {
 	p := &Printer{printer{
 		tag: t,
 	}}
+	p.printer.toDecimal.InitDecimal(t)
+	p.printer.toScientific.InitScientific(t)
 	p.printer.catContext = options.cat.Context(t, &p.printer)
 	return p
 }

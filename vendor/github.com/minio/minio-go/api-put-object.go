@@ -17,17 +17,14 @@
 package minio
 
 import (
-	"bytes"
-	"crypto/md5"
-	"crypto/sha256"
-	"hash"
 	"io"
-	"io/ioutil"
-	"net/http"
 	"os"
 	"reflect"
 	"runtime"
 	"strings"
+
+	"github.com/minio/minio-go/pkg/credentials"
+	"github.com/minio/minio-go/pkg/s3utils"
 )
 
 // toInt - converts go value to its integer representation based
@@ -109,14 +106,24 @@ func getReaderSize(reader io.Reader) (size int64, err error) {
 			case "|0", "|1":
 				return
 			}
-			size = st.Size()
+			var pos int64
+			pos, err = v.Seek(0, 1) // SeekCurrent.
+			if err != nil {
+				return -1, err
+			}
+			size = st.Size() - pos
 		case *Object:
 			var st ObjectInfo
 			st, err = v.Stat()
 			if err != nil {
 				return
 			}
-			size = st.Size
+			var pos int64
+			pos, err = v.Seek(0, 1) // SeekCurrent.
+			if err != nil {
+				return -1, err
+			}
+			size = st.Size - pos
 		}
 	}
 	// Returns the size here.
@@ -135,184 +142,77 @@ func (a completedParts) Less(i, j int) bool { return a[i].PartNumber < a[j].Part
 //
 // You must have WRITE permissions on a bucket to create an object.
 //
-//  - For size smaller than 5MiB PutObject automatically does a single atomic Put operation.
-//  - For size larger than 5MiB PutObject automatically does a resumable multipart Put operation.
-//  - For size input as -1 PutObject does a multipart Put operation until input stream reaches EOF.
-//    Maximum object size that can be uploaded through this operation will be 5TiB.
-//
-// NOTE: Google Cloud Storage does not implement Amazon S3 Compatible multipart PUT.
-// So we fall back to single PUT operation with the maximum limit of 5GiB.
-//
+//  - For size smaller than 64MiB PutObject automatically does a
+//    single atomic Put operation.
+//  - For size larger than 64MiB PutObject automatically does a
+//    multipart Put operation.
+//  - For size input as -1 PutObject does a multipart Put operation
+//    until input stream reaches EOF. Maximum object size that can
+//    be uploaded through this operation will be 5TiB.
 func (c Client) PutObject(bucketName, objectName string, reader io.Reader, contentType string) (n int64, err error) {
-	return c.PutObjectWithProgress(bucketName, objectName, reader, contentType, nil)
+	return c.PutObjectWithMetadata(bucketName, objectName, reader, map[string][]string{
+		"Content-Type": []string{contentType},
+	}, nil)
 }
 
-// putObjectNoChecksum special function used Google Cloud Storage. This special function
-// is used for Google Cloud Storage since Google's multipart API is not S3 compatible.
-func (c Client) putObjectNoChecksum(bucketName, objectName string, reader io.Reader, size int64, metaData map[string][]string, progress io.Reader) (n int64, err error) {
-	// Input validation.
-	if err := isValidBucketName(bucketName); err != nil {
-		return 0, err
-	}
-	if err := isValidObjectName(objectName); err != nil {
-		return 0, err
-	}
-	if size > maxSinglePutObjectSize {
-		return 0, ErrEntityTooLarge(size, maxSinglePutObjectSize, bucketName, objectName)
-	}
+// PutObjectWithSize - is a helper PutObject similar in behavior to PutObject()
+// but takes the size argument explicitly, this function avoids doing reflection
+// internally to figure out the size of input stream. Also if the input size is
+// lesser than 0 this function returns an error.
+func (c Client) PutObjectWithSize(bucketName, objectName string, reader io.Reader, readerSize int64, metadata map[string][]string, progress io.Reader) (n int64, err error) {
+	return c.putObjectCommon(bucketName, objectName, reader, readerSize, metadata, progress)
+}
 
-	// Update progress reader appropriately to the latest offset as we
-	// read from the source.
-	readSeeker := newHook(reader, progress)
+// PutObjectWithMetadata using AWS streaming signature V4
+func (c Client) PutObjectWithMetadata(bucketName, objectName string, reader io.Reader, metadata map[string][]string, progress io.Reader) (n int64, err error) {
+	return c.PutObjectWithProgress(bucketName, objectName, reader, metadata, progress)
+}
 
-	// This function does not calculate sha256 and md5sum for payload.
-	// Execute put object.
-	st, err := c.putObjectDo(bucketName, objectName, readSeeker, nil, nil, size, metaData)
+// PutObjectWithProgress using AWS streaming signature V4
+func (c Client) PutObjectWithProgress(bucketName, objectName string, reader io.Reader, metadata map[string][]string, progress io.Reader) (n int64, err error) {
+	// Size of the object.
+	var size int64
+
+	// Get reader size.
+	size, err = getReaderSize(reader)
 	if err != nil {
 		return 0, err
 	}
-	if st.Size != size {
-		return 0, ErrUnexpectedEOF(st.Size, size, bucketName, objectName)
-	}
-	return size, nil
+	return c.putObjectCommon(bucketName, objectName, reader, size, metadata, progress)
 }
 
-// putObjectSingle is a special function for uploading single put object request.
-// This special function is used as a fallback when multipart upload fails.
-func (c Client) putObjectSingle(bucketName, objectName string, reader io.Reader, size int64, metaData map[string][]string, progress io.Reader) (n int64, err error) {
-	// Input validation.
-	if err := isValidBucketName(bucketName); err != nil {
-		return 0, err
-	}
-	if err := isValidObjectName(objectName); err != nil {
-		return 0, err
-	}
-	if size > maxSinglePutObjectSize {
-		return 0, ErrEntityTooLarge(size, maxSinglePutObjectSize, bucketName, objectName)
-	}
-	// If size is a stream, upload up to 5GiB.
-	if size <= -1 {
-		size = maxSinglePutObjectSize
+func (c Client) putObjectCommon(bucketName, objectName string, reader io.Reader, size int64, metadata map[string][]string, progress io.Reader) (n int64, err error) {
+	// Check for largest object size allowed.
+	if size > int64(maxMultipartPutObjectSize) {
+		return 0, ErrEntityTooLarge(size, maxMultipartPutObjectSize, bucketName, objectName)
 	}
 
-	// Add the appropriate hash algorithms that need to be calculated by hashCopyN
-	// In case of non-v4 signature request or HTTPS connection, sha256 is not needed.
-	hashAlgos := make(map[string]hash.Hash)
-	hashSums := make(map[string][]byte)
-	hashAlgos["md5"] = md5.New()
-	if c.signature.isV4() && !c.secure {
-		hashAlgos["sha256"] = sha256.New()
+	// NOTE: Streaming signature is not supported by GCS.
+	if s3utils.IsGoogleEndpoint(c.endpointURL) {
+		// Do not compute MD5 for Google Cloud Storage.
+		return c.putObjectNoChecksum(bucketName, objectName, reader, size, metadata, progress)
 	}
 
-	if size <= minPartSize {
-		// Initialize a new temporary buffer.
-		tmpBuffer := new(bytes.Buffer)
-		size, err = hashCopyN(hashAlgos, hashSums, tmpBuffer, reader, size)
-		reader = bytes.NewReader(tmpBuffer.Bytes())
-		tmpBuffer.Reset()
-	} else {
-		// Initialize a new temporary file.
-		var tmpFile *tempFile
-		tmpFile, err = newTempFile("single$-putobject-single")
-		if err != nil {
-			return 0, err
+	if c.overrideSignerType.IsV2() {
+		if size > 0 && size < minPartSize {
+			return c.putObjectNoChecksum(bucketName, objectName, reader, size, metadata, progress)
 		}
-		defer tmpFile.Close()
-		size, err = hashCopyN(hashAlgos, hashSums, tmpFile, reader, size)
-		if err != nil {
-			return 0, err
-		}
-		// Seek back to beginning of the temporary file.
-		if _, err = tmpFile.Seek(0, 0); err != nil {
-			return 0, err
-		}
-		reader = tmpFile
-	}
-	// Return error if its not io.EOF.
-	if err != nil && err != io.EOF {
-		return 0, err
-	}
-	// Execute put object.
-	st, err := c.putObjectDo(bucketName, objectName, reader, hashSums["md5"], hashSums["sha256"], size, metaData)
-	if err != nil {
-		return 0, err
-	}
-	if st.Size != size {
-		return 0, ErrUnexpectedEOF(st.Size, size, bucketName, objectName)
-	}
-	// Progress the reader to the size if putObjectDo is successful.
-	if progress != nil {
-		if _, err = io.CopyN(ioutil.Discard, progress, size); err != nil {
-			return size, err
-		}
-	}
-	return size, nil
-}
-
-// putObjectDo - executes the put object http operation.
-// NOTE: You must have WRITE permissions on a bucket to add an object to it.
-func (c Client) putObjectDo(bucketName, objectName string, reader io.Reader, md5Sum []byte, sha256Sum []byte, size int64, metaData map[string][]string) (ObjectInfo, error) {
-	// Input validation.
-	if err := isValidBucketName(bucketName); err != nil {
-		return ObjectInfo{}, err
-	}
-	if err := isValidObjectName(objectName); err != nil {
-		return ObjectInfo{}, err
+		return c.putObjectMultipart(bucketName, objectName, reader, size, metadata, progress)
 	}
 
-	if size <= -1 {
-		return ObjectInfo{}, ErrEntityTooSmall(size, bucketName, objectName)
+	// If size cannot be found on a stream, it is not possible
+	// to upload using streaming signature, fall back to multipart.
+	if size < 0 {
+		return c.putObjectMultipart(bucketName, objectName, reader, size, metadata, progress)
 	}
 
-	if size > maxSinglePutObjectSize {
-		return ObjectInfo{}, ErrEntityTooLarge(size, maxSinglePutObjectSize, bucketName, objectName)
+	// Set streaming signature.
+	c.overrideSignerType = credentials.SignatureV4Streaming
+
+	if size < minPartSize {
+		return c.putObjectNoChecksum(bucketName, objectName, reader, size, metadata, progress)
 	}
 
-	// Set headers.
-	customHeader := make(http.Header)
-
-	// Set metadata to headers
-	for k, v := range metaData {
-		if len(v) > 0 {
-			customHeader.Set(k, v[0])
-		}
-	}
-
-	// If Content-Type is not provided, set the default application/octet-stream one
-	if v, ok := metaData["Content-Type"]; !ok || len(v) == 0 {
-		customHeader.Set("Content-Type", "application/octet-stream")
-	}
-
-	// Populate request metadata.
-	reqMetadata := requestMetadata{
-		bucketName:         bucketName,
-		objectName:         objectName,
-		customHeader:       customHeader,
-		contentBody:        reader,
-		contentLength:      size,
-		contentMD5Bytes:    md5Sum,
-		contentSHA256Bytes: sha256Sum,
-	}
-
-	// Execute PUT an objectName.
-	resp, err := c.executeMethod("PUT", reqMetadata)
-	defer closeResponse(resp)
-	if err != nil {
-		return ObjectInfo{}, err
-	}
-	if resp != nil {
-		if resp.StatusCode != http.StatusOK {
-			return ObjectInfo{}, httpRespToErrorResponse(resp, bucketName, objectName)
-		}
-	}
-
-	var objInfo ObjectInfo
-	// Trim off the odd double quotes from ETag in the beginning and end.
-	objInfo.ETag = strings.TrimPrefix(resp.Header.Get("ETag"), "\"")
-	objInfo.ETag = strings.TrimSuffix(objInfo.ETag, "\"")
-	// A success here means data was written to server successfully.
-	objInfo.Size = size
-
-	// Return here.
-	return objInfo, nil
+	// For all sizes greater than 64MiB do multipart.
+	return c.putObjectMultipartStream(bucketName, objectName, reader, size, metadata, progress)
 }

@@ -30,7 +30,7 @@ func TestRoute53TTL(t *testing.T) {
 	// unexported.
 	fqdn := "_acme-challenge." + m["route53Domain"] + "."
 	svc := route53.New(session.New())
-	zoneID, err := getHostedZoneID(fqdn, svc)
+	zoneID, err := provider.getHostedZoneID(fqdn)
 	if err != nil {
 		provider.CleanUp(m["route53Domain"], "foo", "bar")
 		t.Fatalf("Fatal: %s", err.Error())

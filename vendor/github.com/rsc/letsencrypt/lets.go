@@ -671,7 +671,7 @@ func (m *Manager) verify(host string) (cert *tls.Certificate, refreshTime time.T
 	}
 	c.SetChallengeProvider(acme.TLSSNI01, tlsProvider{m})
 	c.ExcludeChallenges([]acme.Challenge{acme.HTTP01})
-	acmeCert, errmap := c.ObtainCertificate([]string{host}, true, nil)
+	acmeCert, errmap := c.ObtainCertificate([]string{host}, true, nil, false)
 	if len(errmap) > 0 {
 		if debug {
 			log.Printf("ObtainCertificate %v => %v", host, errmap)
@@ -728,7 +728,7 @@ type tlsProvider struct {
 }
 
 func (p tlsProvider) Present(domain, token, keyAuth string) error {
-	cert, dom, err := acme.TLSSNI01ChallengeCertDomain(keyAuth)
+	cert, dom, err := acme.TLSSNI01ChallengeCert(keyAuth)
 	if err != nil {
 		return err
 	}
@@ -741,7 +741,7 @@ func (p tlsProvider) Present(domain, token, keyAuth string) error {
 }
 
 func (p tlsProvider) CleanUp(domain, token, keyAuth string) error {
-	_, dom, err := acme.TLSSNI01ChallengeCertDomain(keyAuth)
+	_, dom, err := acme.TLSSNI01ChallengeCert(keyAuth)
 	if err != nil {
 		return err
 	}

@@ -54,7 +54,7 @@ func TestFetchSourceContextFetchSource(t *testing.T) {
 		t.Fatalf("marshaling to JSON failed: %v", err)
 	}
 	got := string(data)
-	expected := `{"excludes":[],"includes":[]}`
+	expected := `true`
 	if got != expected {
 		t.Errorf("expected\n%s\n,got:\n%s", expected, got)
 	}
@@ -71,7 +71,7 @@ func TestFetchSourceContextFetchSourceWithIncludesOnly(t *testing.T) {
 		t.Fatalf("marshaling to JSON failed: %v", err)
 	}
 	got := string(data)
-	expected := `{"excludes":[],"includes":["a","b"]}`
+	expected := `{"includes":["a","b"]}`
 	if got != expected {
 		t.Errorf("expected\n%s\n,got:\n%s", expected, got)
 	}

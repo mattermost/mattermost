@@ -2210,12 +2210,11 @@ func testTransportUsesGoAwayDebugError(t *testing.T, failMidBody bool) {
 	ct.run()
 }
 
-// See golang.org/issue/16481
-func TestTransportReturnsUnusedFlowControl(t *testing.T) {
+func testTransportReturnsUnusedFlowControl(t *testing.T, oneDataFrame bool) {
 	ct := newClientTester(t)
 
-	clientClosed := make(chan bool, 1)
-	serverWroteBody := make(chan bool, 1)
+	clientClosed := make(chan struct{})
+	serverWroteFirstByte := make(chan struct{})
 
 	ct.client = func() error {
 		req, _ := http.NewRequest("GET", "https://dummy.tld/", nil)
@@ -2223,13 +2222,13 @@ func TestTransportReturnsUnusedFlowControl(t *testing.T) {
 		if err != nil {
 			return err
 		}
-		<-serverWroteBody
+		<-serverWroteFirstByte
 
 		if n, err := res.Body.Read(make([]byte, 1)); err != nil || n != 1 {
 			return fmt.Errorf("body read = %v, %v; want 1, nil", n, err)
 		}
 		res.Body.Close() // leaving 4999 bytes unread
-		clientClosed <- true
+		close(clientClosed)
 
 		return nil
 	}
@@ -2264,10 +2263,27 @@ func TestTransportReturnsUnusedFlowControl(t *testing.T) {
 			EndStream:     false,
 			BlockFragment: buf.Bytes(),
 		})
-		ct.fr.WriteData(hf.StreamID, false, make([]byte, 5000)) // without ending stream
-		serverWroteBody <- true
 
-		<-clientClosed
+		// Two cases:
+		// - Send one DATA frame with 5000 bytes.
+		// - Send two DATA frames with 1 and 4999 bytes each.
+		//
+		// In both cases, the client should consume one byte of data,
+		// refund that byte, then refund the following 4999 bytes.
+		//
+		// In the second case, the server waits for the client connection to
+		// close before seconding the second DATA frame. This tests the case
+		// where the client receives a DATA frame after it has reset the stream.
+		if oneDataFrame {
+			ct.fr.WriteData(hf.StreamID, false /* don't end stream */, make([]byte, 5000))
+			close(serverWroteFirstByte)
+			<-clientClosed
+		} else {
+			ct.fr.WriteData(hf.StreamID, false /* don't end stream */, make([]byte, 1))
+			close(serverWroteFirstByte)
+			<-clientClosed
+			ct.fr.WriteData(hf.StreamID, false /* don't end stream */, make([]byte, 4999))
+		}
 
 		waitingFor := "RSTStreamFrame"
 		for {
@@ -2281,7 +2297,7 @@ func TestTransportReturnsUnusedFlowControl(t *testing.T) {
 			switch waitingFor {
 			case "RSTStreamFrame":
 				if rf, ok := f.(*RSTStreamFrame); !ok || rf.ErrCode != ErrCodeCancel {
-					return fmt.Errorf("Expected a WindowUpdateFrame with code cancel; got %v", summarizeFrame(f))
+					return fmt.Errorf("Expected a RSTStreamFrame with code cancel; got %v", summarizeFrame(f))
 				}
 				waitingFor = "WindowUpdateFrame"
 			case "WindowUpdateFrame":
@@ -2293,6 +2309,16 @@ func TestTransportReturnsUnusedFlowControl(t *testing.T) {
 		}
 	}
 	ct.run()
+}
+
+// See golang.org/issue/16481
+func TestTransportReturnsUnusedFlowControlSingleWrite(t *testing.T) {
+	testTransportReturnsUnusedFlowControl(t, true)
+}
+
+// See golang.org/issue/20469
+func TestTransportReturnsUnusedFlowControlMultipleWrites(t *testing.T) {
+	testTransportReturnsUnusedFlowControl(t, false)
 }
 
 // Issue 16612: adjust flow control on open streams when transport

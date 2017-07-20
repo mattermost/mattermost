@@ -114,6 +114,11 @@ var testCases = []struct {
 		MinExponentDigits: 1,
 	},
 }, {
+	// At least one exponent digit is required. As long as this is true, one can
+	// determine that scientific rendering is needed if MinExponentDigits > 0.
+	"#E#",
+	nil,
+}, {
 	"0E0",
 	&Pattern{
 		FormatWidth:       3,
@@ -230,7 +235,7 @@ var testCases = []struct {
 	"0.0%",
 	&Pattern{
 		Affix:             "\x00\x01%",
-		Multiplier:        100,
+		DigitShift:        2,
 		FormatWidth:       4,
 		MinIntegerDigits:  1,
 		MinFractionDigits: 1,
@@ -240,7 +245,7 @@ var testCases = []struct {
 	"0.0‰",
 	&Pattern{
 		Affix:             "\x00\x03‰",
-		Multiplier:        1000,
+		DigitShift:        3,
 		FormatWidth:       4,
 		MinIntegerDigits:  1,
 		MinFractionDigits: 1,
@@ -260,7 +265,7 @@ var testCases = []struct {
 	"#,##0.00 ¤;(#,##0.00 ¤)",
 	&Pattern{Affix: "\x00\x04\u00a0¤\x01(\x05\u00a0¤)",
 		NegOffset:         6,
-		Multiplier:        0,
+		DigitShift:        0,
 		FormatWidth:       10,
 		GroupingSize:      [2]uint8{3, 0},
 		MinIntegerDigits:  1,
@@ -313,6 +318,19 @@ var testCases = []struct {
 		FormatWidth: 7,
 		Flags:       PadAfterSuffix,
 	},
+}, {
+	`* #0 o''clock`,
+	&Pattern{Affix: "\x00\x09 o\\'clock",
+		FormatWidth:      10,
+		PadRune:          32,
+		MinIntegerDigits: 0x1},
+}, {
+	`'123'* #0'456'`,
+	&Pattern{Affix: "\x05'123'\x05'456'",
+		FormatWidth:      8,
+		PadRune:          32,
+		MinIntegerDigits: 0x1,
+		Flags:            PadAfterPrefix},
 }, {
 	// no duplicate padding
 	"*xpre#suf*x", nil,

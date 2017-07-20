@@ -802,6 +802,9 @@ func ParseRawPrivateKey(pemBytes []byte) (interface{}, error) {
 	}
 }
 
+// ParseRawPrivateKeyWithPassphrase returns a private key decrypted with
+// passphrase from a PEM encoded private key. If wrong passphrase, return
+// x509.IncorrectPasswordError.
 func ParseRawPrivateKeyWithPassphrase(pemBytes, passPhrase []byte) (interface{}, error) {
 	block, _ := pem.Decode(pemBytes)
 	if block == nil {
@@ -814,6 +817,9 @@ func ParseRawPrivateKeyWithPassphrase(pemBytes, passPhrase []byte) (interface{},
 			var err error
 			buf, err = x509.DecryptPEMBlock(block, passPhrase)
 			if err != nil {
+				if err == x509.IncorrectPasswordError {
+					return nil, err
+				}
 				return nil, fmt.Errorf("ssh: cannot decode encrypted private keys: %v", err)
 			}
 		}

@@ -192,9 +192,15 @@ func (a *DateRangeAggregation) Source() (interface{}, error) {
 			switch from := ent.From.(type) {
 			case int, int16, int32, int64, float32, float64:
 				r["from"] = from
+			case *int, *int16, *int32, *int64, *float32, *float64:
+				r["from"] = from
 			case time.Time:
 				r["from"] = from.Format(time.RFC3339)
+			case *time.Time:
+				r["from"] = from.Format(time.RFC3339)
 			case string:
+				r["from"] = from
+			case *string:
 				r["from"] = from
 			}
 		}
@@ -202,9 +208,15 @@ func (a *DateRangeAggregation) Source() (interface{}, error) {
 			switch to := ent.To.(type) {
 			case int, int16, int32, int64, float32, float64:
 				r["to"] = to
+			case *int, *int16, *int32, *int64, *float32, *float64:
+				r["to"] = to
 			case time.Time:
 				r["to"] = to.Format(time.RFC3339)
+			case *time.Time:
+				r["to"] = to.Format(time.RFC3339)
 			case string:
+				r["to"] = to
+			case *string:
 				r["to"] = to
 			}
 		}

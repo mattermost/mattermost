@@ -21,7 +21,34 @@ import (
 	"net/url"
 	"testing"
 	"time"
+
+	"github.com/minio/minio-go/pkg/s3utils"
 )
+
+// Tests signature redacting function used
+// in filtering on-wire Authorization header.
+func TestRedactSignature(t *testing.T) {
+	testCases := []struct {
+		authValue                 string
+		expectedRedactedAuthValue string
+	}{
+		{
+			authValue:                 "AWS 1231313:888x000231==",
+			expectedRedactedAuthValue: "AWS **REDACTED**:**REDACTED**",
+		},
+		{
+			authValue:                 "AWS4-HMAC-SHA256 Credential=12312313/20170613/us-east-1/s3/aws4_request, SignedHeaders=host;x-amz-content-sha256;x-amz-date, Signature=02131231312313213",
+			expectedRedactedAuthValue: "AWS4-HMAC-SHA256 Credential=**REDACTED**/20170613/us-east-1/s3/aws4_request, SignedHeaders=host;x-amz-content-sha256;x-amz-date, Signature=**REDACTED**",
+		},
+	}
+
+	for i, testCase := range testCases {
+		redactedAuthValue := redactSignature(testCase.authValue)
+		if redactedAuthValue != testCase.expectedRedactedAuthValue {
+			t.Errorf("Test %d: Expected %s, got %s", i+1, testCase.expectedRedactedAuthValue, redactedAuthValue)
+		}
+	}
+}
 
 // Tests filter header function by filtering out
 // some custom header keys.
@@ -57,9 +84,9 @@ func TestGetEndpointURL(t *testing.T) {
 		{"s3.cn-north-1.amazonaws.com.cn", false, "http://s3.cn-north-1.amazonaws.com.cn", nil, true},
 		{"192.168.1.1:9000", false, "http://192.168.1.1:9000", nil, true},
 		{"192.168.1.1:9000", true, "https://192.168.1.1:9000", nil, true},
+		{"s3.amazonaws.com:443", true, "https://s3.amazonaws.com:443", nil, true},
 		{"13333.123123.-", true, "", ErrInvalidArgument(fmt.Sprintf("Endpoint: %s does not follow ip address or domain name standards.", "13333.123123.-")), false},
 		{"13333.123123.-", true, "", ErrInvalidArgument(fmt.Sprintf("Endpoint: %s does not follow ip address or domain name standards.", "13333.123123.-")), false},
-		{"s3.amazonaws.com:443", true, "", ErrInvalidArgument("Amazon S3 endpoint should be 's3.amazonaws.com'."), false},
 		{"storage.googleapis.com:4000", true, "", ErrInvalidArgument("Google Cloud Storage endpoint should be 'storage.googleapis.com'."), false},
 		{"s3.aamzza.-", true, "", ErrInvalidArgument(fmt.Sprintf("Endpoint: %s does not follow ip address or domain name standards.", "s3.aamzza.-")), false},
 		{"", true, "", ErrInvalidArgument("Endpoint:  does not follow ip address or domain name standards."), false},
@@ -99,14 +126,17 @@ func TestIsValidEndpointURL(t *testing.T) {
 	}{
 		{"", ErrInvalidArgument("Endpoint url cannot be empty."), false},
 		{"/", nil, true},
-		{"https://s3.am1;4205;0cazonaws.com", nil, true},
+		{"https://s3.amazonaws.com", nil, true},
 		{"https://s3.cn-north-1.amazonaws.com.cn", nil, true},
+		{"https://s3-us-gov-west-1.amazonaws.com", nil, true},
+		{"https://s3-fips-us-gov-west-1.amazonaws.com", nil, true},
 		{"https://s3.amazonaws.com/", nil, true},
 		{"https://storage.googleapis.com/", nil, true},
+		{"https://z3.amazonaws.com", nil, true},
+		{"https://mybalancer.us-east-1.elb.amazonaws.com", nil, true},
 		{"192.168.1.1", ErrInvalidArgument("Endpoint url cannot have fully qualified paths."), false},
 		{"https://amazon.googleapis.com/", ErrInvalidArgument("Google Cloud Storage endpoint should be 'storage.googleapis.com'."), false},
 		{"https://storage.googleapis.com/bucket/", ErrInvalidArgument("Endpoint url cannot have fully qualified paths."), false},
-		{"https://z3.amazonaws.com", ErrInvalidArgument("Amazon S3 endpoint should be 's3.amazonaws.com'."), false},
 		{"https://s3.amazonaws.com/bucket/object", ErrInvalidArgument("Endpoint url cannot have fully qualified paths."), false},
 	}
 
@@ -135,6 +165,52 @@ func TestIsValidEndpointURL(t *testing.T) {
 			}
 		}
 
+	}
+}
+
+func TestDefaultBucketLocation(t *testing.T) {
+	testCases := []struct {
+		endpointURL      url.URL
+		regionOverride   string
+		expectedLocation string
+	}{
+		// Region override is set URL is ignored. - Test 1.
+		{
+			endpointURL:      url.URL{Host: "s3-fips-us-gov-west-1.amazonaws.com"},
+			regionOverride:   "us-west-1",
+			expectedLocation: "us-west-1",
+		},
+		// No region override, url based preferenced is honored - Test 2.
+		{
+			endpointURL:      url.URL{Host: "s3-fips-us-gov-west-1.amazonaws.com"},
+			regionOverride:   "",
+			expectedLocation: "us-gov-west-1",
+		},
+		// Region override is honored - Test 3.
+		{
+			endpointURL:      url.URL{Host: "s3.amazonaws.com"},
+			regionOverride:   "us-west-1",
+			expectedLocation: "us-west-1",
+		},
+		// China region should be honored, region override not provided. - Test 4.
+		{
+			endpointURL:      url.URL{Host: "s3.cn-north-1.amazonaws.com.cn"},
+			regionOverride:   "",
+			expectedLocation: "cn-north-1",
+		},
+		// No region provided, no standard region strings provided as well. - Test 5.
+		{
+			endpointURL:      url.URL{Host: "s3.amazonaws.com"},
+			regionOverride:   "",
+			expectedLocation: "us-east-1",
+		},
+	}
+
+	for i, testCase := range testCases {
+		retLocation := getDefaultLocation(testCase.endpointURL, testCase.regionOverride)
+		if testCase.expectedLocation != retLocation {
+			t.Errorf("Test %d: Expected location %s, got %s", i+1, testCase.expectedLocation, retLocation)
+		}
 	}
 }
 
@@ -184,19 +260,19 @@ func TestIsValidBucketName(t *testing.T) {
 		// Flag to indicate whether test should Pass.
 		shouldPass bool
 	}{
-		{".mybucket", ErrInvalidBucketName("Bucket name cannot start or end with a '.' dot."), false},
-		{"mybucket.", ErrInvalidBucketName("Bucket name cannot start or end with a '.' dot."), false},
-		{"mybucket-", ErrInvalidBucketName("Bucket name contains invalid characters."), false},
-		{"my", ErrInvalidBucketName("Bucket name cannot be smaller than 3 characters."), false},
-		{"", ErrInvalidBucketName("Bucket name cannot be empty."), false},
-		{"my..bucket", ErrInvalidBucketName("Bucket name cannot have successive periods."), false},
+		{".mybucket", ErrInvalidBucketName("Bucket name contains invalid characters"), false},
+		{"mybucket.", ErrInvalidBucketName("Bucket name contains invalid characters"), false},
+		{"mybucket-", ErrInvalidBucketName("Bucket name contains invalid characters"), false},
+		{"my", ErrInvalidBucketName("Bucket name cannot be smaller than 3 characters"), false},
+		{"", ErrInvalidBucketName("Bucket name cannot be empty"), false},
+		{"my..bucket", ErrInvalidBucketName("Bucket name contains invalid characters"), false},
 		{"my.bucket.com", nil, true},
 		{"my-bucket", nil, true},
 		{"123my-bucket", nil, true},
 	}
 
 	for i, testCase := range testCases {
-		err := isValidBucketName(testCase.bucketName)
+		err := s3utils.CheckValidBucketName(testCase.bucketName)
 		if err != nil && testCase.shouldPass {
 			t.Errorf("Test %d: Expected to pass, but failed with: <ERROR> %s", i+1, err.Error())
 		}

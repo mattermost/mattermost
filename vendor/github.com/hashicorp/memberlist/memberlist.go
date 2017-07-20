@@ -113,14 +113,43 @@ func newMemberlist(conf *Config) (*Memberlist, error) {
 			BindPort:  conf.BindPort,
 			Logger:    logger,
 		}
-		nt, err := NewNetTransport(nc)
+
+		// See comment below for details about the retry in here.
+		makeNetRetry := func(limit int) (*NetTransport, error) {
+			for try := 0; try < limit; try++ {
+				nt, err := NewNetTransport(nc)
+				if err == nil {
+					return nt, nil
+				}
+
+				if strings.Contains(err.Error(), "address already in use") {
+					logger.Printf("[DEBUG] Got bind error: %v", err)
+					continue
+				}
+			}
+
+			return nil, fmt.Errorf("ran out of tries to obtain an address")
+		}
+
+		// The dynamic bind port operation is inherently racy because
+		// even though we are using the kernel to find a port for us, we
+		// are attempting to bind multiple protocols (and potentially
+		// multiple addresses) with the same port number. We build in a
+		// few retries here since this often gets transient errors in
+		// busy unit tests.
+		limit := 1
+		if conf.BindPort == 0 {
+			limit = 10
+		}
+
+		nt, err := makeNetRetry(limit)
 		if err != nil {
 			return nil, fmt.Errorf("Could not set up network transport: %v", err)
 		}
-
 		if conf.BindPort == 0 {
 			port := nt.GetAutoBindPort()
 			conf.BindPort = port
+			conf.AdvertisePort = port
 			logger.Printf("[DEBUG] Using dynamic bind port %d", port)
 		}
 		transport = nt

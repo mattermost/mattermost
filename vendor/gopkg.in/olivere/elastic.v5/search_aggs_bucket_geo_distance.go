@@ -156,6 +156,8 @@ func (a *GeoDistanceAggregation) Source() (interface{}, error) {
 				r["from"] = from
 			case string:
 				r["from"] = from
+			case *string:
+				r["from"] = from
 			}
 		}
 		if ent.To != nil {
@@ -165,6 +167,8 @@ func (a *GeoDistanceAggregation) Source() (interface{}, error) {
 			case *int, *int16, *int32, *int64, *float32, *float64:
 				r["to"] = to
 			case string:
+				r["to"] = to
+			case *string:
 				r["to"] = to
 			}
 		}

@@ -1,6 +1,7 @@
 package sockaddr_test
 
 import (
+	"encoding/json"
 	"fmt"
 	"testing"
 
@@ -370,4 +371,70 @@ func TestToFoo(t *testing.T) {
 		}
 	}
 
+}
+
+func TestSockAddrMarshaler(t *testing.T) {
+	addr := "192.168.10.24/24"
+	sa, err := sockaddr.NewSockAddr(addr)
+	if err != nil {
+		t.Fatal(err)
+	}
+	sam := &sockaddr.SockAddrMarshaler{
+		SockAddr: sa,
+	}
+	marshaled, err := json.Marshal(sam)
+	if err != nil {
+		t.Fatal(err)
+	}
+	sam2 := &sockaddr.SockAddrMarshaler{}
+	err = json.Unmarshal(marshaled, sam2)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if sam.SockAddr.String() != sam2.SockAddr.String() {
+		t.Fatalf("mismatch after marshaling: %s vs %s", sam.SockAddr.String(), sam2.SockAddr.String())
+	}
+	if sam2.SockAddr.String() != addr {
+		t.Fatalf("mismatch after marshaling: %s vs %s", addr, sam2.SockAddr.String())
+	}
+}
+
+func TestSockAddrMultiMarshaler(t *testing.T) {
+	addr := "192.168.10.24/24"
+	type d struct {
+		Addr  *sockaddr.SockAddrMarshaler
+		Addrs []*sockaddr.SockAddrMarshaler
+	}
+	sa, err := sockaddr.NewSockAddr(addr)
+	if err != nil {
+		t.Fatal(err)
+	}
+	myD := &d{
+		Addr: &sockaddr.SockAddrMarshaler{SockAddr: sa},
+		Addrs: []*sockaddr.SockAddrMarshaler{
+			&sockaddr.SockAddrMarshaler{SockAddr: sa},
+			&sockaddr.SockAddrMarshaler{SockAddr: sa},
+			&sockaddr.SockAddrMarshaler{SockAddr: sa},
+		},
+	}
+	marshaled, err := json.Marshal(myD)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var myD2 d
+	err = json.Unmarshal(marshaled, &myD2)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if myD.Addr.String() != myD2.Addr.String() {
+		t.Fatalf("mismatch after marshaling: %s vs %s", myD.Addr.String(), myD2.Addr.String())
+	}
+	if len(myD.Addrs) != len(myD2.Addrs) {
+		t.Fatalf("mismatch after marshaling: %d vs %d", len(myD.Addrs), len(myD2.Addrs))
+	}
+	for i, v := range myD.Addrs {
+		if v.String() != myD2.Addrs[i].String() {
+			t.Fatalf("mismatch after marshaling: %s vs %s", v.String(), myD2.Addrs[i].String())
+		}
+	}
 }
