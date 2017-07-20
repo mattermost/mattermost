@@ -15,7 +15,7 @@ function makeMapStateToProps() {
     return function mapStateToProps(state, ownProps) {
         let fileInfos;
         if (ownProps.parentPostId) {
-            fileInfos = selectFileInfosForPost(state, {id: ownProps.parentPostId});
+            fileInfos = selectFileInfosForPost(state, ownProps.parentPostId);
         }
 
         return {
