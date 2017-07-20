@@ -6,6 +6,7 @@ package model
 import (
 	"encoding/json"
 	"io"
+	"net/http"
 )
 
 const (
@@ -32,6 +33,36 @@ type Job struct {
 	Data           map[string]interface{} `json:"data"`
 }
 
+func (j *Job) IsValid() *AppError {
+	if len(j.Id) != 26 {
+		return NewAppError("Job.IsValid", "model.job.is_valid.id.app_error", nil, "id="+j.Id, http.StatusBadRequest)
+	}
+
+	if j.CreateAt == 0 {
+		return NewAppError("Job.IsValid", "model.job.is_valid.create_at.app_error", nil, "id="+j.Id, http.StatusBadRequest)
+	}
+
+	switch j.Type {
+	case JOB_TYPE_DATA_RETENTION:
+	case JOB_TYPE_SEARCH_INDEXING:
+	default:
+		return NewAppError("Job.IsValid", "model.job.is_valid.type.app_error", nil, "id="+j.Id, http.StatusBadRequest)
+	}
+
+	switch j.Status {
+	case JOB_STATUS_PENDING:
+	case JOB_STATUS_IN_PROGRESS:
+	case JOB_STATUS_SUCCESS:
+	case JOB_STATUS_ERROR:
+	case JOB_STATUS_CANCEL_REQUESTED:
+	case JOB_STATUS_CANCELED:
+	default:
+		return NewAppError("Job.IsValid", "model.job.is_valid.status.app_error", nil, "id="+j.Id, http.StatusBadRequest)
+	}
+
+	return nil
+}
+
 func (js *Job) ToJson() string {
 	if b, err := json.Marshal(js); err != nil {
 		return ""
@@ -41,9 +72,9 @@ func (js *Job) ToJson() string {
 }
 
 func JobFromJson(data io.Reader) *Job {
-	var status Job
-	if err := json.NewDecoder(data).Decode(&status); err == nil {
-		return &status
+	var job Job
+	if err := json.NewDecoder(data).Decode(&job); err == nil {
+		return &job
 	} else {
 		return nil
 	}

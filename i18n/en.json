@@ -3372,6 +3372,14 @@
     "translation": "Create Teams"
   },
   {
+    "id": "authentication.permissions.manage_jobs.description",
+    "translation": "Ability to manage jobs"
+  },
+  {
+    "id": "authentication.permissions.manage_jobs.name",
+    "translation": "Manage Jobs"
+  },
+  {
     "id": "authentication.permissions.manage_team_roles.description",
     "translation": "Ability to change the roles of a team member"
   },
@@ -4470,6 +4478,22 @@
   {
     "id": "model.incoming_hook.user_id.app_error",
     "translation": "Invalid user id"
+  },
+  {
+    "id": "model.job.is_valid.id.app_error",
+    "translation": "Invalid job Id"
+  },
+  {
+    "id": "model.job.is_valid.create_at.app_error",
+    "translation": "Create at must be a valid time"
+  },
+  {
+    "id": "model.job.is_valid.type.app_error",
+    "translation": "Invalid job type"
+  },
+  {
+    "id": "model.job.is_valid.status.app_error",
+    "translation": "Invalid job status"
   },
   {
     "id": "model.oauth.is_valid.app_id.app_error",
