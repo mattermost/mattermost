@@ -48,7 +48,7 @@ func SessionHasPermissionToChannel(session model.Session, channelId string, perm
 	}
 
 	channel, err := GetChannel(channelId)
-	if err == nil {
+	if err == nil && channel.TeamId != "" {
 		return SessionHasPermissionToTeam(session, channel.TeamId, permission)
 	}
 

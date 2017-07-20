@@ -60,8 +60,13 @@ export default class SettingItemMax extends React.Component {
         }
 
         var extraInfo = null;
+        let hintClass = 'setting-list__hint';
+        if (this.props.infoPosition === 'top') {
+            hintClass = 'padding-bottom x2';
+        }
+
         if (this.props.extraInfo) {
-            extraInfo = (<div className='setting-list__hint'>{this.props.extraInfo}</div>);
+            extraInfo = (<div className={hintClass}>{this.props.extraInfo}</div>);
         }
 
         var submit = '';
@@ -95,15 +100,40 @@ export default class SettingItemMax extends React.Component {
             titleProp = this.props.title;
         }
 
+        let listContent = (
+            <li className='setting-list-item'>
+                {inputs}
+                {extraInfo}
+            </li>
+        );
+
+        if (this.props.infoPosition === 'top') {
+            listContent = (
+                <li>
+                    {extraInfo}
+                    {inputs}
+                </li>
+            );
+        }
+
+        let cancelButtonText;
+        if (this.props.cancelButtonText) {
+            cancelButtonText = this.props.cancelButtonText;
+        } else {
+            cancelButtonText = (
+                <FormattedMessage
+                    id='setting_item_max.cancel'
+                    defaultMessage='Cancel'
+                />
+            );
+        }
+
         return (
             <ul className='section-max form-horizontal'>
                 {title}
                 <li className={widthClass}>
                     <ul className='setting-list'>
-                        <li className='setting-list-item'>
-                            {inputs}
-                            {extraInfo}
-                        </li>
+                        {listContent}
                         <li className='setting-list-item'>
                             <hr/>
                             {this.props.submitExtra}
@@ -116,10 +146,7 @@ export default class SettingItemMax extends React.Component {
                                 href='#'
                                 onClick={this.props.updateSection}
                             >
-                                <FormattedMessage
-                                    id='setting_item_max.cancel'
-                                    defaultMessage='Cancel'
-                                />
+                                {cancelButtonText}
                             </a>
                         </li>
                     </ul>
@@ -134,9 +161,15 @@ SettingItemMax.propTypes = {
     client_error: PropTypes.string,
     server_error: PropTypes.string,
     extraInfo: PropTypes.element,
+    infoPosition: PropTypes.string,
     updateSection: PropTypes.func,
     submit: PropTypes.func,
     title: PropTypes.node,
     width: PropTypes.string,
-    submitExtra: PropTypes.node
+    submitExtra: PropTypes.node,
+    cancelButtonText: PropTypes.node
+};
+
+SettingItemMax.defaultProps = {
+    infoPosition: 'bottom'
 };
