@@ -11,7 +11,8 @@ import FileAttachmentList from './file_attachment_list.jsx';
 function makeMapStateToProps() {
     const selectFilesForPost = makeGetFilesForPost();
     return function mapStateToProps(state, ownProps) {
-        const fileInfos = selectFilesForPost(state, ownProps.post);
+        const postId = ownProps.post ? ownProps.post.id : '';
+        const fileInfos = selectFilesForPost(state, postId);
 
         let fileCount = 0;
         if (ownProps.post.file_ids) {
