@@ -64,8 +64,6 @@ class UserSettingsModal extends React.Component {
         this.handleCancelConfirmation = this.handleCancelConfirmation.bind(this);
         this.handleToggle = this.handleToggle.bind(this);
         this.handleKeyDown = this.handleKeyDown.bind(this);
-        this.showAccountSettingsModal = this.showAccountSettingsModal.bind(this);
-        this.hideAccountSettingsModal = this.hideAccountSettingsModal.bind(this);
 
         this.closeModal = this.closeModal.bind(this);
         this.collapseModal = this.collapseModal.bind(this);
@@ -115,24 +113,10 @@ class UserSettingsModal extends React.Component {
 
     handleKeyDown(e) {
         if (Utils.cmdOrCtrlPressed(e) && e.shiftKey && e.keyCode === Constants.KeyCodes.A) {
-            if (this.state.show) {
-                this.hideAccountSettingsModal();
-            } else {
-                this.showAccountSettingsModal();
-            }
+            this.setState({
+                show: !this.state.show
+            });
         }
-    }
-
-    showAccountSettingsModal() {
-        this.setState({
-            show: true
-        });
-    }
-
-    hideAccountSettingsModal() {
-        this.setState({
-            show: false
-        });
     }
 
     handleToggle(value) {
