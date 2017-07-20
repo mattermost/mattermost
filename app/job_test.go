@@ -39,17 +39,17 @@ func TestGetJobByType(t *testing.T) {
 		{
 			Id:      model.NewId(),
 			Type:    jobType,
-			StartAt: 1000,
+			CreateAt: 1000,
 		},
 		{
 			Id:      model.NewId(),
 			Type:    jobType,
-			StartAt: 999,
+			CreateAt: 999,
 		},
 		{
 			Id:      model.NewId(),
 			Type:    jobType,
-			StartAt: 1001,
+			CreateAt: 1001,
 		},
 	}
 
