@@ -1560,8 +1560,10 @@ func (us SqlUserStore) GetProfilesNotInTeam(teamId string, offset int, limit int
 		result := StoreResult{}
 
 		var users []*model.User
+		var query = ``
 
-		if _, err := us.GetReplica().Select(&users, `
+		if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_POSTGRES {
+			query = `
             SELECT
                 u.*
             FROM Users u
@@ -1569,10 +1571,44 @@ func (us SqlUserStore) GetProfilesNotInTeam(teamId string, offset int, limit int
                 ON tm.UserId = u.Id
                 AND tm.TeamId = :TeamId
                 AND tm.DeleteAt = 0
+            LEFT JOIN Teams t ON t.Id = :TeamId
             WHERE tm.UserId IS NULL
+            AND (
+              t.AllowedDomains IS NULL OR
+              t.AllowedDomains = '' OR
+              SUBSTRING (t.AllowedDomains FROM '@?' ||
+                         SUBSTRING (u.Email FROM '@(.*)')
+              ) IS NOT NULL
+            )
             ORDER BY u.Username ASC
             LIMIT :Limit OFFSET :Offset
-            `, map[string]interface{}{"TeamId": teamId, "Offset": offset, "Limit": limit}); err != nil {
+            `
+		} else if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_MYSQL {
+			query = `
+            SELECT
+                u.*
+            FROM Users u
+            LEFT JOIN TeamMembers tm
+                ON tm.UserId = u.Id
+                AND tm.TeamId = :TeamId
+                AND tm.DeleteAt = 0
+            LEFT JOIN Teams t ON t.id = :TeamId
+            WHERE tm.UserId IS NULL
+            AND (
+              t.AllowedDomains IS NULL OR
+              t.AllowedDomains = '' OR
+              t.AllowedDomains RLIKE
+                  CONCAT('[[:<:]]',
+                  SUBSTRING(u.Email FROM INSTR(u.Email, '@') + 1),
+                  '[[:>:]]')
+            )
+            ORDER BY u.Username ASC
+            LIMIT :Limit OFFSET :Offset
+            `
+		}
+
+		if _, err := us.GetReplica().Select(&users, query,
+			map[string]interface{}{"TeamId": teamId, "Offset": offset, "Limit": limit}); err != nil {
 			result.Err = model.NewLocAppError("SqlUserStore.GetProfilesNotInTeam", "store.sql_user.get_profiles.app_error", nil, err.Error())
 		} else {
 
