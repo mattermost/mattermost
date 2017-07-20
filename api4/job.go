@@ -27,8 +27,8 @@ func getJob(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !app.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+	if !app.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_JOBS) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_JOBS)
 		return
 	}
 
@@ -47,8 +47,8 @@ func createJob(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !app.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+	if !app.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_JOBS) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_JOBS)
 		return
 	}
 
@@ -66,8 +66,8 @@ func getJobs(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !app.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+	if !app.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_JOBS) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_JOBS)
 		return
 	}
 
@@ -85,8 +85,8 @@ func getJobsByType(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !app.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+	if !app.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_JOBS) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_JOBS)
 		return
 	}
 
@@ -104,8 +104,8 @@ func cancelJob(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !app.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+	if !app.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_JOBS) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_JOBS)
 		return
 	}
 

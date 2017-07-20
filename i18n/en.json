@@ -3372,6 +3372,14 @@
     "translation": "Create Teams"
   },
   {
+    "id": "authentication.permissions.manage_jobs.description",
+    "translation": "Ability to manage jobs"
+  },
+  {
+    "id": "authentication.permissions.manage_jobs.name",
+    "translation": "Manage Jobs"
+  },
+  {
     "id": "authentication.permissions.manage_team_roles.description",
     "translation": "Ability to change the roles of a team member"
   },
