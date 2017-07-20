@@ -391,6 +391,7 @@ type JobStore interface {
 	UpdateStatus(id string, status string) StoreChannel
 	UpdateStatusOptimistically(id string, currentStatus string, newStatus string) StoreChannel
 	Get(id string) StoreChannel
+	GetAllPage(offset int, limit int) StoreChannel
 	GetAllByType(jobType string) StoreChannel
 	GetAllByTypePage(jobType string, offset int, limit int) StoreChannel
 	GetAllByStatus(status string) StoreChannel

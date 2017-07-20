@@ -25,6 +25,10 @@ func CreateJob(jobType string, jobData map[string]interface{}) (*model.Job, *mod
 		Data:     jobData,
 	}
 
+	if err := job.IsValid(); err != nil {
+		return nil, err
+	}
+
 	if result := <-Srv.Store.Job().Save(&job); result.Err != nil {
 		return nil, result.Err
 	}
@@ -41,7 +45,7 @@ func ClaimJob(job *model.Job) (bool, *model.AppError) {
 	}
 }
 
-func SetJobProgress(job *model.Job, progress int64) (*model.AppError) {
+func SetJobProgress(job *model.Job, progress int64) *model.AppError {
 	job.Status = model.JOB_STATUS_IN_PROGRESS
 	job.Progress = progress
 
@@ -78,7 +82,7 @@ func SetJobError(job *model.Job, jobError *model.AppError) *model.AppError {
 				return result.Err
 			} else {
 				if !result.Data.(bool) {
-					return model.NewAppError("Jobs.SetJobError", "jobs.set_job_error.update.error", nil, "id=" + job.Id, http.StatusInternalServerError)
+					return model.NewAppError("Jobs.SetJobError", "jobs.set_job_error.update.error", nil, "id="+job.Id, http.StatusInternalServerError)
 				}
 			}
 		}
@@ -92,20 +96,20 @@ func SetJobCanceled(job *model.Job) *model.AppError {
 	return result.Err
 }
 
-func RequestCancellation(job *model.Job) *model.AppError {
-	if result := <-Srv.Store.Job().UpdateStatusOptimistically(job.Id, model.JOB_STATUS_PENDING, model.JOB_STATUS_CANCELED); result.Err != nil {
+func RequestCancellation(jobId string) *model.AppError {
+	if result := <-Srv.Store.Job().UpdateStatusOptimistically(jobId, model.JOB_STATUS_PENDING, model.JOB_STATUS_CANCELED); result.Err != nil {
 		return result.Err
 	} else if result.Data.(bool) {
 		return nil
 	}
 
-	if result := <-Srv.Store.Job().UpdateStatusOptimistically(job.Id, model.JOB_STATUS_IN_PROGRESS, model.JOB_STATUS_CANCEL_REQUESTED); result.Err != nil {
+	if result := <-Srv.Store.Job().UpdateStatusOptimistically(jobId, model.JOB_STATUS_IN_PROGRESS, model.JOB_STATUS_CANCEL_REQUESTED); result.Err != nil {
 		return result.Err
 	} else if result.Data.(bool) {
 		return nil
 	}
 
-	return model.NewAppError("Jobs.RequestCancellation", "jobs.request_cancellation.status.error", nil, "id=" + job.Id, http.StatusInternalServerError)
+	return model.NewAppError("Jobs.RequestCancellation", "jobs.request_cancellation.status.error", nil, "id="+jobId, http.StatusInternalServerError)
 }
 
 func CancellationWatcher(ctx context.Context, jobId string, cancelChan chan interface{}) {

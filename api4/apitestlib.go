@@ -24,6 +24,7 @@ import (
 	"github.com/mattermost/platform/wsapi"
 
 	s3 "github.com/minio/minio-go"
+	"github.com/mattermost/platform/jobs"
 )
 
 type TestHelper struct {
@@ -68,6 +69,10 @@ func SetupEnterprise() *TestHelper {
 		*utils.Cfg.TeamSettings.EnableOpenServer = true
 	}
 
+	if jobs.Srv.Store == nil {
+		jobs.Srv.Store = app.Srv.Store
+	}
+
 	th := &TestHelper{}
 	th.Client = th.CreateClient()
 	th.SystemAdminClient = th.CreateClient()
@@ -97,6 +102,10 @@ func Setup() *TestHelper {
 		app.Srv.Store.MarkSystemRanUnitTests()
 
 		*utils.Cfg.TeamSettings.EnableOpenServer = true
+	}
+
+	if jobs.Srv.Store == nil {
+		jobs.Srv.Store = app.Srv.Store
 	}
 
 	th := &TestHelper{}

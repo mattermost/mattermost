@@ -10,7 +10,7 @@ import (
 	"github.com/mattermost/platform/store"
 )
 
-func TestGetJobStatus(t *testing.T) {
+func TestGetJob(t *testing.T) {
 	Setup()
 
 	status := &model.Job{
@@ -30,7 +30,7 @@ func TestGetJobStatus(t *testing.T) {
 	}
 }
 
-func TestGetJobStatusesByType(t *testing.T) {
+func TestGetJobByType(t *testing.T) {
 	Setup()
 
 	jobType := model.NewId()
@@ -39,17 +39,17 @@ func TestGetJobStatusesByType(t *testing.T) {
 		{
 			Id:      model.NewId(),
 			Type:    jobType,
-			StartAt: 1000,
+			CreateAt: 1000,
 		},
 		{
 			Id:      model.NewId(),
 			Type:    jobType,
-			StartAt: 999,
+			CreateAt: 999,
 		},
 		{
 			Id:      model.NewId(),
 			Type:    jobType,
-			StartAt: 1001,
+			CreateAt: 1001,
 		},
 	}
 
@@ -62,7 +62,7 @@ func TestGetJobStatusesByType(t *testing.T) {
 		t.Fatal(err)
 	} else if len(received) != 2 {
 		t.Fatal("received wrong number of statuses")
-	} else if received[0].Id != statuses[1].Id {
+	} else if received[0].Id != statuses[2].Id {
 		t.Fatal("should've received newest job first")
 	} else if received[1].Id != statuses[0].Id {
 		t.Fatal("should've received second newest job second")
@@ -72,7 +72,7 @@ func TestGetJobStatusesByType(t *testing.T) {
 		t.Fatal(err)
 	} else if len(received) != 1 {
 		t.Fatal("received wrong number of statuses")
-	} else if received[0].Id != statuses[2].Id {
+	} else if received[0].Id != statuses[1].Id {
 		t.Fatal("should've received oldest job last")
 	}
 }

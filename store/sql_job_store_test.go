@@ -82,19 +82,24 @@ func TestJobGetAllByTypePage(t *testing.T) {
 
 	jobs := []*model.Job{
 		{
-			Id:      model.NewId(),
-			Type:    jobType,
-			StartAt: 1000,
+			Id:       model.NewId(),
+			Type:     jobType,
+			CreateAt: 1000,
 		},
 		{
-			Id:      model.NewId(),
-			Type:    jobType,
-			StartAt: 999,
+			Id:       model.NewId(),
+			Type:     jobType,
+			CreateAt: 999,
 		},
 		{
-			Id:      model.NewId(),
-			Type:    jobType,
-			StartAt: 1001,
+			Id:       model.NewId(),
+			Type:     jobType,
+			CreateAt: 1001,
+		},
+		{
+			Id:       model.NewId(),
+			Type:     model.NewId(),
+			CreateAt: 1002,
 		},
 	}
 
@@ -107,7 +112,7 @@ func TestJobGetAllByTypePage(t *testing.T) {
 		t.Fatal(result.Err)
 	} else if received := result.Data.([]*model.Job); len(received) != 2 {
 		t.Fatal("received wrong number of jobs")
-	} else if received[0].Id != jobs[1].Id {
+	} else if received[0].Id != jobs[2].Id {
 		t.Fatal("should've received newest job first")
 	} else if received[1].Id != jobs[0].Id {
 		t.Fatal("should've received second newest job second")
@@ -117,7 +122,54 @@ func TestJobGetAllByTypePage(t *testing.T) {
 		t.Fatal(result.Err)
 	} else if received := result.Data.([]*model.Job); len(received) != 1 {
 		t.Fatal("received wrong number of jobs")
+	} else if received[0].Id != jobs[1].Id {
+		t.Fatal("should've received oldest job last")
+	}
+}
+
+func TestJobGetAllPage(t *testing.T) {
+	Setup()
+
+	jobType := model.NewId()
+
+	jobs := []*model.Job{
+		{
+			Id:       model.NewId(),
+			Type:     jobType,
+			CreateAt: model.GetMillis() + 1,
+		},
+		{
+			Id:       model.NewId(),
+			Type:     jobType,
+			CreateAt: model.GetMillis(),
+		},
+		{
+			Id:       model.NewId(),
+			Type:     jobType,
+			CreateAt: model.GetMillis() + 2,
+		},
+	}
+
+	for _, job := range jobs {
+		Must(store.Job().Save(job))
+		defer store.Job().Delete(job.Id)
+	}
+
+	if result := <-store.Job().GetAllPage(0, 2); result.Err != nil {
+		t.Fatal(result.Err)
+	} else if received := result.Data.([]*model.Job); len(received) != 2 {
+		t.Fatal("received wrong number of jobs")
 	} else if received[0].Id != jobs[2].Id {
+		t.Fatal("should've received newest job first")
+	} else if received[1].Id != jobs[0].Id {
+		t.Fatal("should've received second newest job second")
+	}
+
+	if result := <-store.Job().GetAllPage(2, 2); result.Err != nil {
+		t.Fatal(result.Err)
+	} else if received := result.Data.([]*model.Job); len(received) < 1 {
+		t.Fatal("received wrong number of jobs")
+	} else if received[0].Id != jobs[1].Id {
 		t.Fatal("should've received oldest job last")
 	}
 }
@@ -331,11 +383,11 @@ func TestJobUpdateStatusUpdateStatusOptimistically(t *testing.T) {
 func TestJobDelete(t *testing.T) {
 	Setup()
 
-	status := Must(store.Job().Save(&model.Job{
+	job := Must(store.Job().Save(&model.Job{
 		Id: model.NewId(),
 	})).(*model.Job)
 
-	if result := <-store.Job().Delete(status.Id); result.Err != nil {
+	if result := <-store.Job().Delete(job.Id); result.Err != nil {
 		t.Fatal(result.Err)
 	}
 }

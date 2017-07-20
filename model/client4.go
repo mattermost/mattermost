@@ -2800,7 +2800,7 @@ func (c *Client4) OpenGraph(url string) (map[string]string, *Response) {
 
 // GetJob gets a single job.
 func (c *Client4) GetJob(id string) (*Job, *Response) {
-	if r, err := c.DoApiGet(c.GetJobsRoute()+fmt.Sprintf("/%v/status", id), ""); err != nil {
+	if r, err := c.DoApiGet(c.GetJobsRoute()+fmt.Sprintf("/%v", id), ""); err != nil {
 		return nil, BuildErrorResponse(r, err)
 	} else {
 		defer closeBody(r)
@@ -2808,12 +2808,42 @@ func (c *Client4) GetJob(id string) (*Job, *Response) {
 	}
 }
 
-// GetJobsByType gets all jobs of a given type, sorted with the job that most recently started first.
-func (c *Client4) GetJobsByType(jobType string, page int, perPage int) ([]*Job, *Response) {
-	if r, err := c.DoApiGet(c.GetJobsRoute()+fmt.Sprintf("/type/%v/statuses?page=%v&per_page=%v", jobType, page, perPage), ""); err != nil {
+// Get all jobs, sorted with the job that was created most recently first.
+func (c *Client4) GetJobs(page int, perPage int) ([]*Job, *Response) {
+	if r, err := c.DoApiGet(c.GetJobsRoute()+fmt.Sprintf("?page=%v&per_page=%v", page, perPage), ""); err != nil {
 		return nil, BuildErrorResponse(r, err)
 	} else {
 		defer closeBody(r)
 		return JobsFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// GetJobsByType gets all jobs of a given type, sorted with the job that was created most recently first.
+func (c *Client4) GetJobsByType(jobType string, page int, perPage int) ([]*Job, *Response) {
+	if r, err := c.DoApiGet(c.GetJobsRoute()+fmt.Sprintf("/type/%v?page=%v&per_page=%v", jobType, page, perPage), ""); err != nil {
+		return nil, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return JobsFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// CreateJob creates a job based on the provided job struct.
+func (c *Client4) CreateJob(job *Job) (*Job, *Response) {
+	if r, err := c.DoApiPost(c.GetJobsRoute(), job.ToJson()); err != nil {
+		return nil, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return JobFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// CancelJob requests the cancellation of the job with the provided Id.
+func (c *Client4) CancelJob(jobId string) (bool, *Response) {
+	if r, err := c.DoApiPost(c.GetJobsRoute()+fmt.Sprintf("/%v/cancel", jobId), ""); err != nil {
+		return false, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return CheckStatusOK(r), BuildResponse(r)
 	}
 }
