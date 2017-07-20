@@ -158,7 +158,7 @@ export default class Textbox extends React.Component {
         e.preventDefault();
         e.target.blur();
         this.setState((prevState) => {
-            return {preview: prevState.preview};
+            return {preview: !prevState.preview};
         });
     }
 
