@@ -326,7 +326,8 @@ export function pinPost(postId) {
         await PostActions.pinPost(postId)(doDispatch, doGetState);
 
         AppDispatcher.handleServerAction({
-            type: ActionTypes.RECEIVED_POST_PINNED
+            type: ActionTypes.RECEIVED_POST_PINNED,
+            postId
         });
     };
 }
@@ -336,7 +337,8 @@ export function unpinPost(postId) {
         await PostActions.unpinPost(postId)(doDispatch, doGetState);
 
         AppDispatcher.handleServerAction({
-            type: ActionTypes.RECEIVED_POST_UNPINNED
+            type: ActionTypes.RECEIVED_POST_UNPINNED,
+            postId
         });
     };
 }
