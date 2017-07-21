@@ -62,9 +62,6 @@ func (me *PurposeProvider) DoCommand(args *model.CommandArgs, message string) *m
 		Purpose:     new(string),
 	}
 
-	*patch.Name = channel.Name
-	*patch.DisplayName = channel.DisplayName
-	*patch.Header = channel.Header
 	*patch.Purpose = message
 
 	_, err = PatchChannel(channel, patch, args.UserId)

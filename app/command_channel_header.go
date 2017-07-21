@@ -59,10 +59,7 @@ func (me *HeaderProvider) DoCommand(args *model.CommandArgs, message string) *mo
 		Purpose:     new(string),
 	}
 
-	*patch.Name = channel.Name
-	*patch.DisplayName = channel.DisplayName
 	*patch.Header = message
-	*patch.Purpose = channel.Purpose
 
 	_, err = PatchChannel(channel, patch, args.UserId)
 	if err != nil {
