@@ -133,4 +133,4 @@ SpriteFactory.run!(
 end
 
 puts "spritesheet written to images/emojilarge.png and sass/components/_emojisprite.scss"
-puts "recompress the spritesheet image with something like pngcrush before committing"
+puts "compress the spritesheet image with tools like pngquant / pngcrush before committing"
