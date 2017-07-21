@@ -261,7 +261,7 @@ export default class EmojiPicker extends React.Component {
                 previewImage = (
                     <span>
                         <img
-                            src='/static/emoji/img_trans.gif'
+                            src='/static/images/img_trans.gif'
                             className={'  emojisprite-preview emoji-' + selected.filename + ' '}
                             align='absmiddle'
                         />
