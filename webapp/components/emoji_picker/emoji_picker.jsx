@@ -21,7 +21,7 @@ const CATEGORIES = [
     'nature',
     'food',
     'activity',
-    'travel',
+    'places',
     'objects',
     'symbols',
     'flags',
@@ -379,15 +379,15 @@ export default class EmojiPicker extends React.Component {
                         selected={this.state.category === 'activity'}
                     />
                     <EmojiPickerCategory
-                        category='travel'
+                        category='places'
                         icon={
                             <i
                                 className='fa fa-plane'
-                                title={Utils.localizeMessage('emoji_picker.travel', 'Travel')}
+                                title={Utils.localizeMessage('emoji_picker.places', 'Places')}
                             />
                         }
                         onCategoryClick={this.handleCategoryClick}
-                        selected={this.state.category === 'travel'}
+                        selected={this.state.category === 'places'}
                     />
                     <EmojiPickerCategory
                         category='objects'
