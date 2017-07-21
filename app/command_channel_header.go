@@ -53,12 +53,8 @@ func (me *HeaderProvider) DoCommand(args *model.CommandArgs, message string) *mo
 	}
 
 	patch := &model.ChannelPatch{
-		Name:        new(string),
-		DisplayName: new(string),
-		Header:      new(string),
-		Purpose:     new(string),
+		Header: new(string),
 	}
-
 	*patch.Header = message
 
 	_, err = PatchChannel(channel, patch, args.UserId)
