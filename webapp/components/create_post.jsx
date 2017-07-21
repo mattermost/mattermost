@@ -227,8 +227,15 @@ export default class CreatePost extends React.Component {
             return;
         }
 
-        if (this.state.message.endsWith('/header ')) {
+        if (this.state.message.trimRight() === '/header') {
             GlobalActions.showChannelHeaderUpdateModal(updateChannel);
+            this.setState({message: ''});
+            return;
+        }
+
+        const isDirectOrGroup = ((updateChannel.type === Constants.DM_CHANNEL) || (updateChannel.type === Constants.GM_CHANNEL));
+        if (!isDirectOrGroup && this.state.message.trimRight() === '/purpose') {
+            GlobalActions.showChannelPurposeUpdateModal(updateChannel);
             this.setState({message: ''});
             return;
         }
