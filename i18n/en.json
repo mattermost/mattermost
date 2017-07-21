@@ -3076,6 +3076,22 @@
     "translation": "Post user does not exist"
   },
   {
+    "id": "app.import.import_direct_post.save_preferences.error",
+    "translation": "Error importing direct post. Failed to save preferences."
+  },
+  {
+    "id": "app.import.import_user_channels.save_preferences.error",
+    "translation": "Error importing user channel memberships. Failed to save preferences."
+  },
+  {
+    "id": "app.import.validate_direct_channel_import_data.unknown_favoriter.error",
+    "translation": "Direct channel can only be favorited by members. \"{{.Username}}\" is not a member."
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.unknown_flagger.error",
+    "translation": "Direct post can only be flagged by members of the channel it is in. \"{{.Username}}\" is not a member."
+  },
+  {
     "id": "app.import.import_line.null_channel.error",
     "translation": "Import data line has type \"channel\" but the channel object is null."
   },
@@ -3114,6 +3130,10 @@
   {
     "id": "app.import.import_post.user_not_found.error",
     "translation": "Error importing post. User with username \"{{.Username}}\" could not be found."
+  },
+  {
+    "id": "app.import.import_post.save_preferences.error",
+    "translation": "Error importing post. Failed to save preferences."
   },
   {
     "id": "app.import.validate_channel_import_data.create_at_zero.error",

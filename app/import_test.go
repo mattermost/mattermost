@@ -29,6 +29,30 @@ func ptrBool(b bool) *bool {
 	return &b
 }
 
+func checkPreference(t *testing.T, userId string, category string, name string, value string) {
+	if res := <-Srv.Store.Preference().GetCategory(userId, category); res.Err != nil {
+		debug.PrintStack()
+		t.Fatalf("Failed to get preferences for user %v with category %v", userId, category)
+	} else {
+		preferences := res.Data.(model.Preferences)
+		found := false
+		for _, preference := range preferences {
+			if preference.Name == name {
+				found = true
+				if preference.Value != value {
+					debug.PrintStack()
+					t.Fatalf("Preference for user %v in category %v with name %v has value %v, expected %v", userId, category, name, preference.Value, value)
+				}
+				break
+			}
+		}
+		if !found {
+			debug.PrintStack()
+			t.Fatalf("Did not find preference for user %v in category %v with name %v", userId, category, name)
+		}
+	}
+}
+
 func TestImportValidateTeamImportData(t *testing.T) {
 
 	// Test with minimum required valid properties.
@@ -649,6 +673,38 @@ func TestImportValidateDirectChannelImportData(t *testing.T) {
 	if err := validateDirectChannelImportData(&data); err == nil {
 		t.Fatal("Validation should have failed due to invalid number of members.")
 	}
+
+	// Test with invalid FavoritedBy
+	member1 := model.NewId()
+	member2 := model.NewId()
+	data = DirectChannelImportData{
+		Members: &[]string{
+			member1,
+			member2,
+		},
+		FavoritedBy: &[]string{
+			member1,
+			model.NewId(),
+		},
+	}
+	if err := validateDirectChannelImportData(&data); err == nil {
+		t.Fatal("Validation should have failed due to non-member favorited.")
+	}
+
+	// Test with valid FavoritedBy
+	data = DirectChannelImportData{
+		Members: &[]string{
+			member1,
+			member2,
+		},
+		FavoritedBy: &[]string{
+			member1,
+			member2,
+		},
+	}
+	if err := validateDirectChannelImportData(&data); err != nil {
+		t.Fatal(err)
+	}
 }
 
 func TestImportValidateDirectPostImportData(t *testing.T) {
@@ -798,6 +854,44 @@ func TestImportValidateDirectPostImportData(t *testing.T) {
 	}
 	if err := validateDirectPostImportData(&data); err == nil {
 		t.Fatal("Should have failed due to 0 create-at value.")
+	}
+
+	// Test with invalid FlaggedBy
+	member1 := model.NewId()
+	member2 := model.NewId()
+	data = DirectPostImportData{
+		ChannelMembers: &[]string{
+			member1,
+			member2,
+		},
+		FlaggedBy: &[]string{
+			member1,
+			model.NewId(),
+		},
+		User:     ptrStr("username"),
+		Message:  ptrStr("message"),
+		CreateAt: ptrInt64(model.GetMillis()),
+	}
+	if err := validateDirectPostImportData(&data); err == nil {
+		t.Fatal("Validation should have failed due to non-member flagged.")
+	}
+
+	// Test with valid FlaggedBy
+	data = DirectPostImportData{
+		ChannelMembers: &[]string{
+			member1,
+			member2,
+		},
+		FlaggedBy: &[]string{
+			member1,
+			member2,
+		},
+		User:     ptrStr("username"),
+		Message:  ptrStr("message"),
+		CreateAt: ptrInt64(model.GetMillis()),
+	}
+	if err := validateDirectPostImportData(&data); err != nil {
+		t.Fatal(err)
 	}
 }
 
@@ -1544,6 +1638,7 @@ func TestImportImportUser(t *testing.T) {
 						Desktop:    ptrStr(model.USER_NOTIFY_MENTION),
 						MarkUnread: ptrStr(model.USER_NOTIFY_MENTION),
 					},
+					Favorite: ptrBool(true),
 				},
 			},
 		},
@@ -1565,6 +1660,8 @@ func TestImportImportUser(t *testing.T) {
 		t.Fatalf("Channel member properties not as expected")
 	}
 
+	checkPreference(t, user.Id, model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL, channel.Id, "true")
+
 	// No more new member objects.
 	if tmc, err := GetTeamMembers(team.Id, 0, 1000); err != nil {
 		t.Fatalf("Failed to get Team Member Count")
@@ -1584,11 +1681,11 @@ func TestImportImportUser(t *testing.T) {
 		Username:           &username,
 		Email:              ptrStr(model.NewId() + "@example.com"),
 		Theme:              ptrStr(`{"awayIndicator":"#DCBD4E","buttonBg":"#23A2FF","buttonColor":"#FFFFFF","centerChannelBg":"#ffffff","centerChannelColor":"#333333","codeTheme":"github","image":"/static/files/a4a388b38b32678e83823ef1b3e17766.png","linkColor":"#2389d7","mentionBj":"#2389d7","mentionColor":"#ffffff","mentionHighlightBg":"#fff2bb","mentionHighlightLink":"#2f81b7","newMessageSeparator":"#FF8800","onlineIndicator":"#7DBE00","sidebarBg":"#fafafa","sidebarHeaderBg":"#3481B9","sidebarHeaderTextColor":"#ffffff","sidebarText":"#333333","sidebarTextActiveBorder":"#378FD2","sidebarTextActiveColor":"#111111","sidebarTextHoverBg":"#e6f2fa","sidebarUnreadText":"#333333","type":"Mattermost"}`),
-		SelectedFont:       ptrStr("Roboto Slab"),
 		UseMilitaryTime:    ptrStr("true"),
 		CollapsePreviews:   ptrStr("true"),
 		MessageDisplay:     ptrStr("compact"),
 		ChannelDisplayMode: ptrStr("centered"),
+		TutorialStep:       ptrStr("3"),
 	}
 	if err := ImportUser(&data, false); err != nil {
 		t.Fatalf("Should have succeeded.")
@@ -1600,97 +1697,35 @@ func TestImportImportUser(t *testing.T) {
 		t.Fatalf("Failed to get user from database.")
 	}
 
-	if res := <-Srv.Store.Preference().GetCategory(user.Id, model.PREFERENCE_CATEGORY_THEME); res.Err != nil {
-		t.Fatalf("Failed to get theme category preferences")
-	} else {
-		preferences := res.Data.(model.Preferences)
-		for _, preference := range preferences {
-			if preference.Name == "" && preference.Value != *data.Theme {
-				t.Fatalf("Preference does not match.")
-			}
-		}
-	}
-
-	if res := <-Srv.Store.Preference().GetCategory(user.Id, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS); res.Err != nil {
-		t.Fatalf("Failed to get display category preferences")
-	} else {
-		preferences := res.Data.(model.Preferences)
-		for _, preference := range preferences {
-			if preference.Name == "selected_font" && preference.Value != *data.SelectedFont {
-				t.Fatalf("Preference does not match.")
-			}
-
-			if preference.Name == "use_military_time" && preference.Value != *data.UseMilitaryTime {
-				t.Fatalf("Preference does not match.")
-			}
-
-			if preference.Name == "collapse_previews" && preference.Value != *data.CollapsePreviews {
-				t.Fatalf("Preference does not match.")
-			}
-
-			if preference.Name == "message_display" && preference.Value != *data.MessageDisplay {
-				t.Fatalf("Preference does not match.")
-			}
-
-			if preference.Name == "channel_display_mode" && preference.Value != *data.ChannelDisplayMode {
-				t.Fatalf("Preference does not match.")
-			}
-		}
-	}
+	checkPreference(t, user.Id, model.PREFERENCE_CATEGORY_THEME, "", *data.Theme)
+	checkPreference(t, user.Id, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, "use_military_time", *data.UseMilitaryTime)
+	checkPreference(t, user.Id, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, "collapse_previews", *data.CollapsePreviews)
+	checkPreference(t, user.Id, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, "message_display", *data.MessageDisplay)
+	checkPreference(t, user.Id, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, "channel_display_mode", *data.ChannelDisplayMode)
+	checkPreference(t, user.Id, model.PREFERENCE_CATEGORY_TUTORIAL_STEPS, user.Id, *data.TutorialStep)
 
 	// Change those preferences.
 	data = UserImportData{
 		Username:           &username,
 		Email:              ptrStr(model.NewId() + "@example.com"),
 		Theme:              ptrStr(`{"awayIndicator":"#123456","buttonBg":"#23A2FF","buttonColor":"#FFFFFF","centerChannelBg":"#ffffff","centerChannelColor":"#333333","codeTheme":"github","image":"/static/files/a4a388b38b32678e83823ef1b3e17766.png","linkColor":"#2389d7","mentionBj":"#2389d7","mentionColor":"#ffffff","mentionHighlightBg":"#fff2bb","mentionHighlightLink":"#2f81b7","newMessageSeparator":"#FF8800","onlineIndicator":"#7DBE00","sidebarBg":"#fafafa","sidebarHeaderBg":"#3481B9","sidebarHeaderTextColor":"#ffffff","sidebarText":"#333333","sidebarTextActiveBorder":"#378FD2","sidebarTextActiveColor":"#111111","sidebarTextHoverBg":"#e6f2fa","sidebarUnreadText":"#333333","type":"Mattermost"}`),
-		SelectedFont:       ptrStr("Lato"),
 		UseMilitaryTime:    ptrStr("false"),
 		CollapsePreviews:   ptrStr("false"),
 		MessageDisplay:     ptrStr("clean"),
 		ChannelDisplayMode: ptrStr("full"),
+		TutorialStep:       ptrStr("2"),
 	}
 	if err := ImportUser(&data, false); err != nil {
 		t.Fatalf("Should have succeeded.")
 	}
 
 	// Check their values again.
-	if res := <-Srv.Store.Preference().GetCategory(user.Id, model.PREFERENCE_CATEGORY_THEME); res.Err != nil {
-		t.Fatalf("Failed to get theme category preferences")
-	} else {
-		preferences := res.Data.(model.Preferences)
-		for _, preference := range preferences {
-			if preference.Name == "" && preference.Value != *data.Theme {
-				t.Fatalf("Preference does not match.")
-			}
-		}
-	}
-
-	if res := <-Srv.Store.Preference().GetCategory(user.Id, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS); res.Err != nil {
-		t.Fatalf("Failed to get display category preferences")
-	} else {
-		preferences := res.Data.(model.Preferences)
-		for _, preference := range preferences {
-			if preference.Name == "selected_font" && preference.Value != *data.SelectedFont {
-				t.Fatalf("Preference does not match.")
-			}
-
-			if preference.Name == "use_military_time" && preference.Value != *data.UseMilitaryTime {
-				t.Fatalf("Preference does not match.")
-			}
-
-			if preference.Name == "collapse_previews" && preference.Value != *data.CollapsePreviews {
-				t.Fatalf("Preference does not match.")
-			}
-
-			if preference.Name == "message_display" && preference.Value != *data.MessageDisplay {
-				t.Fatalf("Preference does not match.")
-			}
-
-			if preference.Name == "channel_display_mode" && preference.Value != *data.ChannelDisplayMode {
-				t.Fatalf("Preference does not match.")
-			}
-		}
-	}
+	checkPreference(t, user.Id, model.PREFERENCE_CATEGORY_THEME, "", *data.Theme)
+	checkPreference(t, user.Id, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, "use_military_time", *data.UseMilitaryTime)
+	checkPreference(t, user.Id, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, "collapse_previews", *data.CollapsePreviews)
+	checkPreference(t, user.Id, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, "message_display", *data.MessageDisplay)
+	checkPreference(t, user.Id, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, "channel_display_mode", *data.ChannelDisplayMode)
+	checkPreference(t, user.Id, model.PREFERENCE_CATEGORY_TUTORIAL_STEPS, user.Id, *data.TutorialStep)
 }
 
 func AssertAllPostsCount(t *testing.T, initialCount int64, change int64, teamName string) {
@@ -1937,6 +1972,51 @@ func TestImportImportPost(t *testing.T) {
 			t.Fatalf("Hashtags not as expected: %s", post.Hashtags)
 		}
 	}
+
+	// Post with flags.
+	username2 := model.NewId()
+	ImportUser(&UserImportData{
+		Username: &username2,
+		Email:    ptrStr(model.NewId() + "@example.com"),
+	}, false)
+	user2, err := GetUserByUsername(username2)
+	if err != nil {
+		t.Fatalf("Failed to get user from database.")
+	}
+
+	flagsTime := hashtagTime + 1
+	data = &PostImportData{
+		Team:     &teamName,
+		Channel:  &channelName,
+		User:     &username,
+		Message:  ptrStr("Message with Favorites"),
+		CreateAt: &flagsTime,
+		FlaggedBy: &[]string{
+			username,
+			username2,
+		},
+	}
+	if err := ImportPost(data, false); err != nil {
+		t.Fatalf("Expected success.")
+	}
+	AssertAllPostsCount(t, initialPostCount, 5, team.Id)
+
+	// Check the post values.
+	if result := <-Srv.Store.Post().GetPostsCreatedAt(channel.Id, flagsTime); result.Err != nil {
+		t.Fatal(result.Err.Error())
+	} else {
+		posts := result.Data.([]*model.Post)
+		if len(posts) != 1 {
+			t.Fatal("Unexpected number of posts found.")
+		}
+		post := posts[0]
+		if post.Message != *data.Message || post.CreateAt != *data.CreateAt || post.UserId != user.Id {
+			t.Fatal("Post properties not as expected")
+		}
+
+		checkPreference(t, user.Id, model.PREFERENCE_CATEGORY_FLAGGED_POST, post.Id, "true")
+		checkPreference(t, user2.Id, model.PREFERENCE_CATEGORY_FLAGGED_POST, post.Id, "true")
+	}
 }
 
 func TestImportImportDirectChannel(t *testing.T) {
@@ -2114,6 +2194,26 @@ func TestImportImportDirectChannel(t *testing.T) {
 			t.Fatal("Channel header has not been updated successfully.")
 		}
 	}
+
+	// Import a channel with some favorites.
+	data.Members = &[]string{
+		th.BasicUser.Username,
+		th.BasicUser2.Username,
+	}
+	data.FavoritedBy = &[]string{
+		th.BasicUser.Username,
+		th.BasicUser2.Username,
+	}
+	if err := ImportDirectChannel(&data, false); err != nil {
+		t.Fatal(err)
+	}
+
+	if channel, err := createDirectChannel(th.BasicUser.Id, th.BasicUser2.Id); err == nil || err.Id != store.CHANNEL_EXISTS_ERROR {
+		t.Fatal("Should have got store.CHANNEL_EXISTS_ERROR")
+	} else {
+		checkPreference(t, th.BasicUser.Id, model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL, channel.Id, "true")
+		checkPreference(t, th.BasicUser2.Id, model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL, channel.Id, "true")
+	}
 }
 
 func AssertChannelCount(t *testing.T, channelType string, expectedCount int64) {
@@ -2290,6 +2390,38 @@ func TestImportImportDirectPost(t *testing.T) {
 		}
 	}
 
+	// Test with some flags.
+	data = &DirectPostImportData{
+		ChannelMembers: &[]string{
+			th.BasicUser.Username,
+			th.BasicUser2.Username,
+		},
+		FlaggedBy: &[]string{
+			th.BasicUser.Username,
+			th.BasicUser2.Username,
+		},
+		User:     ptrStr(th.BasicUser.Username),
+		Message:  ptrStr("Message"),
+		CreateAt: ptrInt64(model.GetMillis()),
+	}
+
+	if err := ImportDirectPost(data, false); err != nil {
+		t.Fatalf("Expected success: %v", err.Error())
+	}
+
+	// Check the post values.
+	if result := <-Srv.Store.Post().GetPostsCreatedAt(directChannel.Id, *data.CreateAt); result.Err != nil {
+		t.Fatal(result.Err.Error())
+	} else {
+		posts := result.Data.([]*model.Post)
+		if len(posts) != 1 {
+			t.Fatal("Unexpected number of posts found.")
+		}
+		post := posts[0]
+		checkPreference(t, th.BasicUser.Id, model.PREFERENCE_CATEGORY_FLAGGED_POST, post.Id, "true")
+		checkPreference(t, th.BasicUser2.Id, model.PREFERENCE_CATEGORY_FLAGGED_POST, post.Id, "true")
+	}
+
 	// ------------------ Group Channel -------------------------
 
 	// Create the GROUP channel.
@@ -2459,6 +2591,39 @@ func TestImportImportDirectPost(t *testing.T) {
 		if post.Hashtags != "#hashtagmashupcity" {
 			t.Fatalf("Hashtags not as expected: %s", post.Hashtags)
 		}
+	}
+
+	// Test with some flags.
+	data = &DirectPostImportData{
+		ChannelMembers: &[]string{
+			th.BasicUser.Username,
+			th.BasicUser2.Username,
+			user3.Username,
+		},
+		FlaggedBy: &[]string{
+			th.BasicUser.Username,
+			th.BasicUser2.Username,
+		},
+		User:     ptrStr(th.BasicUser.Username),
+		Message:  ptrStr("Message"),
+		CreateAt: ptrInt64(model.GetMillis()),
+	}
+
+	if err := ImportDirectPost(data, false); err != nil {
+		t.Fatalf("Expected success: %v", err.Error())
+	}
+
+	// Check the post values.
+	if result := <-Srv.Store.Post().GetPostsCreatedAt(groupChannel.Id, *data.CreateAt); result.Err != nil {
+		t.Fatal(result.Err.Error())
+	} else {
+		posts := result.Data.([]*model.Post)
+		if len(posts) != 1 {
+			t.Fatal("Unexpected number of posts found.")
+		}
+		post := posts[0]
+		checkPreference(t, th.BasicUser.Id, model.PREFERENCE_CATEGORY_FLAGGED_POST, post.Id, "true")
+		checkPreference(t, th.BasicUser2.Id, model.PREFERENCE_CATEGORY_FLAGGED_POST, post.Id, "true")
 	}
 }
 
