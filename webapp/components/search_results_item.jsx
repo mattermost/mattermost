@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import $ from 'jquery';
 import PostMessageContainer from 'components/post_view/post_message_view';
 import UserProfile from './user_profile.jsx';
 import FileAttachmentListContainer from 'components/file_attachment_list';
@@ -12,13 +11,10 @@ import PostFlagIcon from 'components/post_view/post_flag_icon.jsx';
 
 import TeamStore from 'stores/team_store.jsx';
 
-import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
 import * as GlobalActions from 'actions/global_actions.jsx';
 import * as Utils from 'utils/utils.jsx';
 import * as PostUtils from 'utils/post_utils.jsx';
-
 import Constants from 'utils/constants.jsx';
-const ActionTypes = Constants.ActionTypes;
 
 import React from 'react';
 import PropTypes from 'prop-types';
@@ -70,10 +66,6 @@ export default class SearchResultsItem extends React.Component {
         });
     }
 
-    hideSidebar() {
-        $('.sidebar--right').removeClass('move--left');
-    }
-
     shrinkSidebar() {
         setTimeout(() => {
             this.props.shrink();
@@ -87,25 +79,9 @@ export default class SearchResultsItem extends React.Component {
 
     handleJumpClick() {
         if (Utils.isMobile()) {
-            AppDispatcher.handleServerAction({
-                type: ActionTypes.RECEIVED_SEARCH,
-                results: null
-            });
-
-            AppDispatcher.handleServerAction({
-                type: ActionTypes.RECEIVED_SEARCH_TERM,
-                term: null,
-                do_search: false,
-                is_mention_search: false
-            });
-
-            AppDispatcher.handleServerAction({
-                type: ActionTypes.RECEIVED_POST_SELECTED,
-                postId: null
-            });
-
-            this.hideSidebar();
+            GlobalActions.toggleSideBarAction(false);
         }
+
         this.shrinkSidebar();
         browserHistory.push(TeamStore.getCurrentTeamRelativeUrl() + '/pl/' + this.props.post.id);
     }
