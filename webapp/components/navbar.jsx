@@ -56,6 +56,8 @@ export default class Navbar extends React.Component {
 
         this.showEditChannelHeaderModal = this.showEditChannelHeaderModal.bind(this);
         this.hideEditChannelHeaderModal = this.hideEditChannelHeaderModal.bind(this);
+        this.showChannelPurposeModal = this.showChannelPurposeModal.bind(this);
+        this.hideChannelPurposeModal = this.hideChannelPurposeModal.bind(this);
         this.showRenameChannelModal = this.showRenameChannelModal.bind(this);
         this.hideRenameChannelModal = this.hideRenameChannelModal.bind(this);
         this.isStateValid = this.isStateValid.bind(this);
@@ -112,6 +114,7 @@ export default class Navbar extends React.Component {
         PreferenceStore.addChangeListener(this.onChange);
         ModalStore.addModalListener(ActionTypes.TOGGLE_QUICK_SWITCH_MODAL, this.toggleQuickSwitchModal);
         ModalStore.addModalListener(ActionTypes.TOGGLE_CHANNEL_HEADER_UPDATE_MODAL, this.showEditChannelHeaderModal);
+        ModalStore.addModalListener(ActionTypes.TOGGLE_CHANNEL_PURPOSE_UPDATE_MODAL, this.showChannelPurposeModal);
         $('.inner-wrap').click(this.hideSidebars);
         document.addEventListener('keydown', this.handleQuickSwitchKeyPress);
     }
@@ -124,6 +127,7 @@ export default class Navbar extends React.Component {
         PreferenceStore.removeChangeListener(this.onChange);
         ModalStore.removeModalListener(ActionTypes.TOGGLE_QUICK_SWITCH_MODAL, this.toggleQuickSwitchModal);
         ModalStore.addModalListener(ActionTypes.TOGGLE_CHANNEL_HEADER_UPDATE_MODAL, this.hideEditChannelHeaderModal);
+        ModalStore.addModalListener(ActionTypes.TOGGLE_CHANNEL_PURPOSE_UPDATE_MODAL, this.hideChannelPurposeModal);
         document.removeEventListener('keydown', this.handleQuickSwitchKeyPress);
     }
 
@@ -199,6 +203,18 @@ export default class Navbar extends React.Component {
     hideEditChannelHeaderModal() {
         this.setState({
             showEditChannelHeaderModal: false
+        });
+    }
+
+    showChannelPurposeModal() {
+        this.setState({
+            showEditChannelPurposeModal: true
+        });
+    }
+
+    hideChannelPurposeModal() {
+        this.setState({
+            showEditChannelPurposeModal: false
         });
     }
 
@@ -504,7 +520,7 @@ export default class Navbar extends React.Component {
                             <a
                                 role='menuitem'
                                 href='#'
-                                onClick={() => this.setState({showEditChannelPurposeModal: true})}
+                                onClick={this.showChannelPurposeModal}
                             >
                                 <FormattedMessage
                                     id='channel_header.setPurpose'
@@ -891,7 +907,7 @@ export default class Navbar extends React.Component {
             if (this.state.showEditChannelPurposeModal) {
                 editChannelPurposeModal = (
                     <EditChannelPurposeModal
-                        onModalDismissed={() => this.setState({showEditChannelPurposeModal: false})}
+                        onModalDismissed={this.hideChannelPurposeModal}
                         channel={channel}
                     />
                 );
