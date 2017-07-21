@@ -473,7 +473,7 @@ func DeletePost(postId string) (*model.Post, *model.AppError) {
 
 		esInterface := einterfaces.GetElasticsearchInterface()
 		if esInterface != nil && *utils.Cfg.ElasticSearchSettings.EnableIndexing {
-			go esInterface.DeletePost(post.Id)
+			go esInterface.DeletePost(post)
 		}
 
 		InvalidateCacheForChannelPosts(post.ChannelId)
