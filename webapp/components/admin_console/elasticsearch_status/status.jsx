@@ -323,11 +323,9 @@ export default class Status extends React.PureComponent {
 
         if (statusHelp !== null) {
             statusHelp = (
-                <div className='form-group'>
-                    <div className='col-sm-offset-4 col-sm-8'>
-                        <div className='help-text'>
-                            {statusHelp}
-                        </div>
+                <div className='col-sm-offset-4 col-sm-8'>
+                    <div className='help-text'>
+                        {statusHelp}
                     </div>
                 </div>
             );
@@ -338,13 +336,13 @@ export default class Status extends React.PureComponent {
                 {indexButton}
                 <div className='form-group'>
                     <div className='col-sm-offset-4 col-sm-8'>
-                        <div className='help-text'>
+                        <div className='help-text no-margin'>
                             <FormattedMessage
                                 id='admin.elasticsearchStatus.status'
                                 defaultMessage='Status: '
                             />
                             <i
-                                className='fa fa-circle'
+                                className='fa fa-circle margin--right'
                                 style={{
                                     color: statusColor
                                 }}
@@ -352,8 +350,8 @@ export default class Status extends React.PureComponent {
                             {status}
                         </div>
                     </div>
+                    {statusHelp}
                 </div>
-                {statusHelp}
             </div>
         );
     }

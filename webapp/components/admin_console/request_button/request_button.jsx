@@ -238,7 +238,7 @@ export default class RequestButton extends React.Component {
         }
 
         return (
-            <div className='form-group reload-config'>
+            <div className='form-group'>
                 {label}
                 <div className={widgetClassNames}>
                     <div>
