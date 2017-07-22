@@ -14,7 +14,8 @@ export default class EmojiPickerItem extends React.Component {
         onItemOut: PropTypes.func.isRequired,
         onItemClick: PropTypes.func.isRequired,
         onItemUnmount: PropTypes.func.isRequired,
-        category: PropTypes.string.isRequired
+        category: PropTypes.string.isRequired,
+        isLoaded: PropTypes.bool.isRequired
     }
 
     constructor(props) {
@@ -62,7 +63,7 @@ export default class EmojiPickerItem extends React.Component {
                 (<div >
                     <img
                         src='/static/images/img_trans.gif'
-                        className={'  emojisprite emoji-' + this.props.emoji.filename + ' '}
+                        className={'  emojisprite' + (this.props.isLoaded ? '' : '-loading') + ' emoji-' + this.props.emoji.filename + ' '}
                         onMouseOver={this.handleMouseOver}
                         onMouseOut={this.handleMouseOut}
                         onClick={this.handleClick}
