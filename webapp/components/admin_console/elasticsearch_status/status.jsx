@@ -245,7 +245,7 @@ export default class Status extends React.PureComponent {
                         defaultMessage='Elasticsearch index job is queued on the job server. If Elasticsearch is enabled, search results may be incomplete until the job is finished.'
                     />
                 );
-                statusColor = 'yellow';
+                statusColor = '#eac262';
             } else if (chosenJob.status === JobStatuses.IN_PROGRESS) {
                 status = (
                     <FormattedMessage
@@ -262,7 +262,7 @@ export default class Status extends React.PureComponent {
                         defaultMessage='Indexing is in progress on the job server. If Elasticsearch is enabled, search results may be incomplete until the job is finished.'
                     />
                 );
-                statusColor = 'yellow';
+                statusColor = '#eac262';
             } else if (chosenJob.status === JobStatuses.SUCCESS) {
                 status = (
                     <FormattedMessage
@@ -276,7 +276,7 @@ export default class Status extends React.PureComponent {
                         defaultMessage='Indexing is complete and new posts are being automatically indexed.'
                     />
                 );
-                statusColor = 'green';
+                statusColor = '#69c169';
             } else if (chosenJob.status === JobStatuses.ERROR) {
                 status = (
                     <FormattedMessage
@@ -293,7 +293,7 @@ export default class Status extends React.PureComponent {
                         }}
                     />
                 );
-                statusColor = 'red';
+                statusColor = '##ea6262';
             } else if (chosenJob.status === JobStatuses.CANCEL_REQUESTED) {
                 status = (
                     <FormattedMessage
@@ -301,7 +301,7 @@ export default class Status extends React.PureComponent {
                         defaultMessage='Canceling Job...'
                     />
                 );
-                statusColor = 'yellow';
+                statusColor = '#eac262';
             } else if (chosenJob.status === JobStatuses.CANCELED) {
                 status = (
                     <FormattedMessage
@@ -309,7 +309,7 @@ export default class Status extends React.PureComponent {
                         defaultMessage='Indexing job cancelled.'
                     />
                 );
-                statusColor = 'red';
+                statusColor = '##ea6262';
             }
         } else {
             status = (
