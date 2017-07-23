@@ -1933,23 +1933,23 @@
   },
   {
     "id": "api.slackimport.slack_add_posts.attach_files.error",
-    "translation": "Slack Import: An error occurred when attaching files to post, post_id=%s, file_ids=%v, err=%v."
+    "translation": "Slack Import: An error occurred when attaching files to a message, post_id=%s, file_ids=%v, err=%v."
   },
   {
     "id": "api.slackimport.slack_add_posts.bot.warn",
-    "translation": "Slack Import: Slack bot posts cannot be imported yet."
+    "translation": "Slack Import: Slack bot messages cannot be imported yet."
   },
   {
     "id": "api.slackimport.slack_add_posts.bot_user_no_exists.warn",
-    "translation": "Slack Import: Unable to import the bot message as the user used for the bot does not exist."
+    "translation": "Slack Import: Unable to import the bot message as the bot user does not exist."
   },
   {
     "id": "api.slackimport.slack_add_posts.msg_no_comment.debug",
-    "translation": "Slack Import: Unable to import post as it has no comment."
+    "translation": "Slack Import: Unable to import the message as it has no comments."
   },
   {
     "id": "api.slackimport.slack_add_posts.msg_no_usr.debug",
-    "translation": "Slack Import: Unable to import post as it has no user."
+    "translation": "Slack Import: Unable to import the message as the user field is missing."
   },
   {
     "id": "api.slackimport.slack_add_posts.no_bot_id.warn",
@@ -1957,7 +1957,7 @@
   },
   {
     "id": "api.slackimport.slack_add_posts.unsupported.warn",
-    "translation": "Slack Import: Unable to import post as its type is not supported: post_type=%v, post_subtype=%v."
+    "translation": "Slack Import: Unable to import the message as its type is not supported: post_type=%v, post_subtype=%v."
   },
   {
     "id": "api.slackimport.slack_add_posts.upload_file_not_found.warn",
@@ -1977,11 +1977,11 @@
   },
   {
     "id": "api.slackimport.slack_add_posts.user_no_exists.debug",
-    "translation": "Slack Import: Unable to add post as the Slack user %v does not exist in Mattermost."
+    "translation": "Slack Import: Unable to add the message as the Slack user %v does not exist in Mattermost."
   },
   {
     "id": "api.slackimport.slack_add_posts.without_user.debug",
-    "translation": "Slack Import: Unable to import post as the message has no user."
+    "translation": "Slack Import: Unable to import the message as the user field is missing."
   },
   {
     "id": "api.slackimport.slack_add_users.created",
@@ -1993,19 +1993,19 @@
   },
   {
     "id": "api.slackimport.slack_add_users.merge_existing",
-    "translation": "Slack user merged with existing Mattermost user with email {{.Email}} and username {{.Username}}.\r\n"
+    "translation": "Slack user merged with an existing Mattermost user with matching email {{.Email}} and username {{.Username}}.\r\n"
   },
   {
     "id": "api.slackimport.slack_add_users.merge_existing_failed",
-    "translation": "Slack user merged with existing Mattermost user with email {{.Email}} and username {{.Username}}, but unable to add the user to their team.\r\n"
+    "translation": "Slack user merged with an existing Mattermost user with matching email {{.Email}} and username {{.Username}}, but was unable to add the user to their team.\r\n"
   },
   {
     "id": "api.slackimport.slack_add_users.missing_email_address",
-    "translation": "User {{.Username}} does not have an email address in the Slack export. Using {{.Email}} as a placeholder. The user should update their email address once logged in to the system.\r\n"
+    "translation": "User {{.Username}} does not have an email address in the Slack export. Used {{.Email}} as a placeholder. The user should update their email address once logged in to the system.\r\n"
   },
   {
     "id": "api.slackimport.slack_add_users.missing_email_address.warn",
-    "translation": "Slack Import: User {{.Username}} does not have an email address in the Slack export. Using {{.Email}} as a placeholder. The user should update their email address once logged in to the system."
+    "translation": "Slack Import: User {{.Username}} does not have an email address in the Slack export. Used {{.Email}} as a placeholder. The user should update their email address once logged in to the system."
   },
   {
     "id": "api.slackimport.slack_add_users.unable_import",
@@ -2013,7 +2013,7 @@
   },
   {
     "id": "api.slackimport.slack_convert_channel_mentions.compile_regexp_failed.warn",
-    "translation": "Slack Import: Unable to compile the !channel matching regular expression for the Slack channel {{.ChannelName}} (id={{.ChannelID}})."
+    "translation": "Slack Import: Unable to compile the !channel, matching regular expression for the Slack channel {{.ChannelName}} (id={{.ChannelID}})."
   },
   {
     "id": "api.slackimport.slack_convert_timestamp.bad.warn",
@@ -2021,11 +2021,11 @@
   },
   {
     "id": "api.slackimport.slack_convert_user_mentions.compile_regexp_failed.warn",
-    "translation": "Slack Import: Unable to compile the @mention matching regular expression for the Slack user {{.Username}} (id={{.UserID}})."
+    "translation": "Slack Import: Unable to compile the @mention, matching regular expression for the Slack user {{.Username}} (id={{.UserID}})."
   },
   {
     "id": "api.slackimport.slack_deactivate_bot_user.failed_to_deactivate",
-    "translation": "Slack Import: Unable to deactivate the user used for the bot."
+    "translation": "Slack Import: Unable to deactivate the user account used for the bot."
   },
   {
     "id": "api.slackimport.slack_import.log",
@@ -2033,11 +2033,11 @@
   },
   {
     "id": "api.slackimport.slack_import.note1",
-    "translation": "- Some posts may not have been imported because they were not supported by this importer.\r\n"
+    "translation": "- Some messages may not have been imported because they were not supported by this importer.\r\n"
   },
   {
     "id": "api.slackimport.slack_import.note2",
-    "translation": "- Slack bot posts are currently not supported.\r\n"
+    "translation": "- Slack bot messages are currently not supported.\r\n"
   },
   {
     "id": "api.slackimport.slack_import.note3",
@@ -2069,19 +2069,19 @@
   },
   {
     "id": "api.slackimport.slack_sanitise_channel_properties.display_name_too_long.warn",
-    "translation": "Slack Import: Channel {{.ChannelName}} has a too long display name. It will be truncated when imported."
+    "translation": "Slack Import: Channel {{.ChannelName}} display name exceeds the maximum length. It will be truncated when imported."
   },
   {
     "id": "api.slackimport.slack_sanitise_channel_properties.header_too_long.warn",
-    "translation": "Slack Import: Channel {{.ChannelName}} has a too long header. It will be truncated when imported."
+    "translation": "Slack Import: Channel {{.ChannelName}} header exceeds the maximum length. It will be truncated when imported."
   },
   {
     "id": "api.slackimport.slack_sanitise_channel_properties.name_too_long.warn",
-    "translation": "Slack Import: Channel {{.ChannelName}} has a too long name. It will be truncated when imported."
+    "translation": "Slack Import: Channel {{.ChannelName}} handle exceeds the maximum length. It will be truncated when imported."
   },
   {
     "id": "api.slackimport.slack_sanitise_channel_properties.purpose_too_long.warn",
-    "translation": "Slack Import: Channel {{.ChannelName}} has a too long channel purpose message. It will be truncated when imported."
+    "translation": "Slack Import: Channel {{.ChannelName}} purpose exceeds the maximum length. It will be truncated when imported."
   },
   {
     "id": "api.status.init.debug",
