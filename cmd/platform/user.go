@@ -127,14 +127,14 @@ var searchUserCmd = &cobra.Command{
 }
 
 func init() {
-	userCreateCmd.Flags().String("username", "", "Required. Username for the new user account")
-	userCreateCmd.Flags().String("email", "", "Required. The email address for the new user account")
-	userCreateCmd.Flags().String("password", "", "Required. The password for the new user account")
-	userCreateCmd.Flags().String("nickname", "", "Optional. The nickname for the new user account")
-	userCreateCmd.Flags().String("firstname", "", "Optional. The given name for the new user account")
-	userCreateCmd.Flags().String("lastname", "", "Optional. The family or hereditary name for the new user account")
-	userCreateCmd.Flags().String("locale", "", "Optional. The locale (ex: en, fr) for the new user account")
-	userCreateCmd.Flags().Bool("system_admin", false, "Optional. If supplied, the new user will be a system administrator. Defaults to false")
+	userCreateCmd.Flags().String("username", "", "Required. Username for the new user account.")
+	userCreateCmd.Flags().String("email", "", "Required. The email address for the new user account.")
+	userCreateCmd.Flags().String("password", "", "Required. The password for the new user account.")
+	userCreateCmd.Flags().String("nickname", "", "Optional. The nickname for the new user account.")
+	userCreateCmd.Flags().String("firstname", "", "Optional. The first name for the new user account.")
+	userCreateCmd.Flags().String("lastname", "", "Optional. The last name for the new user account.")
+	userCreateCmd.Flags().String("locale", "", "Optional. The locale (ex: en, fr) for the new user account.")
+	userCreateCmd.Flags().Bool("system_admin", false, "Optional. If supplied, the new user will be a system administrator. Defaults to false.")
 
 	deleteUserCmd.Flags().Bool("confirm", false, "Confirm you really want to delete the user and a DB backup has been performed.")
 
