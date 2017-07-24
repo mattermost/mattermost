@@ -14,12 +14,6 @@ import React from 'react';
 import {FormattedHTMLMessage} from 'react-intl';
 
 export default function UserListRow({user, extraInfo, actions, actionProps, actionUserProps, userCount}) {
-    const displayName = Utils.displayUsernameForUser(user);
-    let name = `${displayName} (@${user.username})`;
-    if (displayName === user.username) {
-        name = user.username;
-    }
-
     let buttons = null;
     if (actions) {
         buttons = actions.map((Action, index) => {
@@ -80,7 +74,7 @@ export default function UserListRow({user, extraInfo, actions, actionProps, acti
                     id={userCountID}
                     className='more-modal__name'
                 >
-                    {name}
+                    {Utils.displayEntireNameForUser(user)}
                 </div>
                 <div
                     id={userCountEmail}
