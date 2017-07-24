@@ -11,7 +11,7 @@ import UserStore from 'stores/user_store.jsx';
 import TeamStore from 'stores/team_store.jsx';
 
 import Constants from 'utils/constants.jsx';
-import {displayUsernameForUser} from 'utils/utils.jsx';
+import {displayEntireNameForUser} from 'utils/utils.jsx';
 import {Client4} from 'mattermost-redux/client';
 
 import PropTypes from 'prop-types';
@@ -236,7 +236,7 @@ export default class MoreDirectChannels extends React.Component {
                     className='more-modal__details'
                 >
                     <div className='more-modal__name'>
-                        {displayUsernameForUser(option)}
+                        {displayEntireNameForUser(option)}
                     </div>
                     <div className='more-modal__description'>
                         {option.email}

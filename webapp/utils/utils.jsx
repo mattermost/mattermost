@@ -1003,10 +1003,16 @@ export function getDisplayName(user) {
     return user.username;
 }
 
+/**
+ * Gets the display name of the user with the specified id, respecting the TeammateNameDisplay configuration setting
+ */
 export function displayUsername(userId) {
     return displayUsernameForUser(UserStore.getProfile(userId));
 }
 
+/**
+ * Gets the display name of the specified user, respecting the TeammateNameDisplay configuration setting
+ */
 export function displayUsernameForUser(user) {
     if (user) {
         const nameFormat = global.window.mm_config.TeammateNameDisplay;
@@ -1021,6 +1027,35 @@ export function displayUsernameForUser(user) {
     }
 
     return '';
+}
+
+/**
+ * Gets the entire name, including username, full name, and nickname, of the user with the specified id
+ */
+export function displayEntireName(userId) {
+    return displayEntireNameForUser(UserStore.getProfile(userId));
+}
+
+/**
+ * Gets the entire name, including username, full name, and nickname, of the specified user
+ */
+export function displayEntireNameForUser(user) {
+    if (!user) {
+        return '';
+    }
+
+    let displayName = user.username;
+    const fullName = getFullName(user);
+
+    if (fullName && user.nickname) {
+        displayName += ` - ${fullName} (${user.nickname})`;
+    } else if (fullName) {
+        displayName += ` - ${fullName}`;
+    } else if (user.nickname) {
+        displayName += ` - ${user.nickname}`;
+    }
+
+    return displayName;
 }
 
 export function imageURLForUser(userIdOrObject) {
