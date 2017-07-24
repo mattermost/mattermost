@@ -13,7 +13,6 @@ import SettingsGroup from './settings_group.jsx';
 import TextSetting from './text_setting.jsx';
 import RequestButton from './request_button/request_button.jsx';
 import ElasticsearchStatus from './elasticsearch_status';
-import {saveConfig} from "../../actions/admin_actions";
 
 export default class ElasticsearchSettings extends AdminSettings {
     constructor(props) {
