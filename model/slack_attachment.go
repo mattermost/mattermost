@@ -33,8 +33,6 @@ type SlackAttachmentField struct {
 	Short bool        `json:"short"`
 }
 
-type SlackAttachments []*SlackAttachment
-
 // To mention @channel via a webhook in Slack, the message should contain
 // <!channel>, as explained at the bottom of this article:
 // https://get.slack.help/hc/en-us/articles/202009646-Making-announcements
@@ -51,7 +49,7 @@ func ExpandAnnouncement(text string) string {
 // can be found in the text attribute, or in the pretext, text, title and value
 // attributes of the attachment structure. The Slack attachment structure is
 // documented here: https://api.slack.com/docs/attachments
-func (a *SlackAttachments) Process() {
+func ProcessSlackAttachments(a *[]*SlackAttachment) {
 	var nonNilAttachments []*SlackAttachment
 	for _, attachment := range *a {
 		if attachment == nil {

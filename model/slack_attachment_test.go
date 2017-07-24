@@ -10,8 +10,8 @@ func TestExpandAnnouncement(t *testing.T) {
 	}
 }
 
-func TestSlackAnnouncementProcess(t *testing.T) {
-	attachments := SlackAttachments{
+func TestProcessSlackAnnouncement(t *testing.T) {
+	attachments := []*SlackAttachment{
 		{
 			Pretext: "<!channel> pretext",
 			Text:    "<!channel> text",
@@ -25,7 +25,7 @@ func TestSlackAnnouncementProcess(t *testing.T) {
 			},
 		}, nil,
 	}
-	attachments.Process()
+	ProcessSlackAttachments(&attachments)
 	if len(attachments) != 1 || len(attachments[0].Fields) != 1 {
 		t.Fail()
 	}
