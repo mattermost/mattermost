@@ -120,12 +120,12 @@ export default class ClusterSettings extends AdminSettings {
             <SettingsGroup>
                 {configLoadedFromCluster}
                 {clusterTableContainer}
-                <p>
+                <div className='banner'>
                     <FormattedMessage
                         id='admin.cluster.noteDescription'
                         defaultMessage='Changing properties in this section will require a server restart before taking effect. When High Availability mode is enabled, the System Console is set to read-only and can only be changed from the configuration file unless ReadOnlyConfig is disabled in the configuration file.'
                     />
-                </p>
+                </div>
                 {warning}
                 <BooleanSetting
                     id='Enable'
