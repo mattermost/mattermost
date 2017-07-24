@@ -171,7 +171,16 @@ export default class SearchBar extends React.Component {
 
     handleSubmit(e) {
         e.preventDefault();
-        this.handleSearch(this.state.searchTerm.trim());
+        var terms = this.state.searchTerm.trim();
+        
+        AppDispatcher.handleServerAction({
+            type: ActionTypes.RECEIVED_SEARCH_TERM,
+            term: terms,
+            do_search: true,
+            is_mention_search: false
+        });
+        
+        this.handleSearch(terms);
         this.search.blur();
     }
 

@@ -65,12 +65,14 @@ export default class SearchResults extends React.Component {
         state.compactDisplay = PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.MESSAGE_DISPLAY, Preferences.MESSAGE_DISPLAY_DEFAULT) === Preferences.MESSAGE_DISPLAY_COMPACT;
         state.isBusy = WebrtcStore.isBusy();
         state.statuses = Object.assign({}, UserStore.getStatuses());
+        state.loading = true;
         this.state = state;
     }
 
     componentDidMount() {
         this.mounted = true;
 
+        SearchStore.addSearchTermChangeListener(this.onSearchTermChange);
         SearchStore.addSearchChangeListener(this.onChange);
         ChannelStore.addChangeListener(this.onChange);
         PreferenceStore.addChangeListener(this.onPreferenceChange);
@@ -113,6 +115,7 @@ export default class SearchResults extends React.Component {
     componentWillUnmount() {
         this.mounted = false;
 
+        SearchStore.removeSearchTermChangeListener(this.onSearchTermChange);
         SearchStore.removeSearchChangeListener(this.onChange);
         ChannelStore.removeChangeListener(this.onChange);
         PreferenceStore.removeChangeListener(this.onPreferenceChange);
@@ -142,6 +145,14 @@ export default class SearchResults extends React.Component {
             compactDisplay: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.MESSAGE_DISPLAY, Preferences.MESSAGE_DISPLAY_DEFAULT) === Preferences.MESSAGE_DISPLAY_COMPACT,
             flaggedPosts: PreferenceStore.getCategory(Constants.Preferences.CATEGORY_FLAGGED_POST)
         });
+    }
+
+    onSearchTermChange(doSearch, isMentionSearch) {
+        if (this.mounted && doSearch) {
+            this.setState({
+                loading: true
+            });
+        }
     }
 
     onChange() {
@@ -319,6 +330,7 @@ export default class SearchResults extends React.Component {
                     isFlaggedPosts={this.props.isFlaggedPosts}
                     isPinnedPosts={this.props.isPinnedPosts}
                     channelDisplayName={this.props.channelDisplayName}
+                    isLoading={this.state.loading}
                 />
                 <div
                     id='search-items-container'
