@@ -16,8 +16,8 @@ import (
 
 	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/platform/model"
-	"github.com/mattermost/platform/utils"
 	"github.com/mattermost/platform/store"
+	"github.com/mattermost/platform/utils"
 )
 
 // Import Data Models
@@ -66,12 +66,11 @@ type UserImportData struct {
 	Teams *[]UserTeamImportData `json:"teams"`
 
 	Theme              *string `json:"theme"`
-	SelectedFont       *string `json:"display_font"`
 	UseMilitaryTime    *string `json:"military_time"`
-	NameFormat         *string `json:"teammate_name_display"`
 	CollapsePreviews   *string `json:"link_previews"`
 	MessageDisplay     *string `json:"message_display"`
 	ChannelDisplayMode *string `json:"channel_display_mode"`
+	TutorialStep       *string `json:"tutorial_step"`
 }
 
 type UserTeamImportData struct {
@@ -84,6 +83,7 @@ type UserChannelImportData struct {
 	Name        *string                           `json:"name"`
 	Roles       *string                           `json:"roles"`
 	NotifyProps *UserChannelNotifyPropsImportData `json:"notify_props"`
+	Favorite    *bool                             `json:"favorite"`
 }
 
 type UserChannelNotifyPropsImportData struct {
@@ -98,10 +98,13 @@ type PostImportData struct {
 
 	Message  *string `json:"message"`
 	CreateAt *int64  `json:"create_at"`
+
+	FlaggedBy *[]string `json:"flagged_by"`
 }
 
 type DirectChannelImportData struct {
-	Members *[]string `json:"members"`
+	Members     *[]string `json:"members"`
+	FavoritedBy *[]string `json:"favorited_by"`
 
 	Header *string `json:"header"`
 }
@@ -112,6 +115,8 @@ type DirectPostImportData struct {
 
 	Message  *string `json:"message"`
 	CreateAt *int64  `json:"create_at"`
+
+	FlaggedBy *[]string `json:"flagged_by"`
 }
 
 type LineImportWorkerData struct {
@@ -599,30 +604,12 @@ func ImportUser(data *UserImportData, dryRun bool) *model.AppError {
 		})
 	}
 
-	if data.SelectedFont != nil {
-		preferences = append(preferences, model.Preference{
-			UserId:   user.Id,
-			Category: model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS,
-			Name:     "selected_font",
-			Value:    *data.SelectedFont,
-		})
-	}
-
 	if data.UseMilitaryTime != nil {
 		preferences = append(preferences, model.Preference{
 			UserId:   user.Id,
 			Category: model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS,
 			Name:     "use_military_time",
 			Value:    *data.UseMilitaryTime,
-		})
-	}
-
-	if data.NameFormat != nil {
-		preferences = append(preferences, model.Preference{
-			UserId:   user.Id,
-			Category: model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS,
-			Name:     "name_format",
-			Value:    *data.NameFormat,
 		})
 	}
 
@@ -650,6 +637,15 @@ func ImportUser(data *UserImportData, dryRun bool) *model.AppError {
 			Category: model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS,
 			Name:     "channel_display_mode",
 			Value:    *data.ChannelDisplayMode,
+		})
+	}
+
+	if data.TutorialStep != nil {
+		preferences = append(preferences, model.Preference{
+			UserId:   user.Id,
+			Category: model.PREFERENCE_CATEGORY_TUTORIAL_STEPS,
+			Name:     user.Id,
+			Value:    *data.TutorialStep,
 		})
 	}
 
@@ -713,6 +709,8 @@ func ImportUserChannels(user *model.User, team *model.Team, teamMember *model.Te
 		return nil
 	}
 
+	var preferences model.Preferences
+
 	// Loop through all channels.
 	for _, cdata := range *data {
 		channel, err := GetChannelByName(*cdata.Name, team.Id)
@@ -756,6 +754,21 @@ func ImportUserChannels(user *model.User, team *model.Team, teamMember *model.Te
 			if _, err := UpdateChannelMemberNotifyProps(notifyProps, channel.Id, user.Id); err != nil {
 				return err
 			}
+		}
+
+		if cdata.Favorite != nil && *cdata.Favorite == true {
+			preferences = append(preferences, model.Preference{
+				UserId:   user.Id,
+				Category: model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL,
+				Name:     channel.Id,
+				Value:    "true",
+			})
+		}
+	}
+
+	if len(preferences) > 0 {
+		if result := <-Srv.Store.Preference().Save(&preferences); result.Err != nil {
+			return model.NewAppError("BulkImport", "app.import.import_user_channels.save_preferences.error", nil, "", http.StatusInternalServerError)
 		}
 	}
 
@@ -943,6 +956,33 @@ func ImportPost(data *PostImportData, dryRun bool) *model.AppError {
 		}
 	}
 
+	if data.FlaggedBy != nil {
+		var preferences model.Preferences
+
+		for _, username := range *data.FlaggedBy {
+			var user *model.User
+
+			if result := <-Srv.Store.User().GetByUsername(username); result.Err != nil {
+				return model.NewAppError("BulkImport", "app.import.import_post.user_not_found.error", map[string]interface{}{"Username": username}, "", http.StatusBadRequest)
+			} else {
+				user = result.Data.(*model.User)
+			}
+
+			preferences = append(preferences, model.Preference{
+				UserId:   user.Id,
+				Category: model.PREFERENCE_CATEGORY_FLAGGED_POST,
+				Name:     post.Id,
+				Value:    "true",
+			})
+		}
+
+		if len(preferences) > 0 {
+			if result := <-Srv.Store.Preference().Save(&preferences); result.Err != nil {
+				return model.NewAppError("BulkImport", "app.import.import_post.save_preferences.error", nil, "", http.StatusInternalServerError)
+			}
+		}
+	}
+
 	return nil
 }
 
@@ -985,10 +1025,12 @@ func ImportDirectChannel(data *DirectChannelImportData, dryRun bool) *model.AppE
 	}
 
 	var userIds []string
+	userMap := make(map[string]string)
 	for _, username := range *data.Members {
 		if result := <-Srv.Store.User().GetByUsername(username); result.Err == nil {
 			user := result.Data.(*model.User)
 			userIds = append(userIds, user.Id)
+			userMap[username] = user.Id
 		} else {
 			return model.NewAppError("BulkImport", "app.import.import_direct_channel.member_not_found.error", nil, "", http.StatusBadRequest)
 		}
@@ -1005,26 +1047,38 @@ func ImportDirectChannel(data *DirectChannelImportData, dryRun bool) *model.AppE
 		}
 	} else {
 		ch, err := createGroupChannel(userIds, userIds[0])
-		if err != nil && err.Id != store.CHANNEL_EXISTS_ERROR  {
+		if err != nil && err.Id != store.CHANNEL_EXISTS_ERROR {
 			return model.NewAppError("BulkImport", "app.import.import_direct_channel.create_group_channel.error", nil, "", http.StatusBadRequest)
 		} else {
 			channel = ch
 		}
 	}
 
+	var preferences model.Preferences
+
 	for _, userId := range userIds {
-		preferences := model.Preferences{
-			model.Preference{
-				UserId: userId,
-				Category: model.PREFERENCE_CATEGORY_DIRECT_CHANNEL_SHOW,
-				Name: channel.Id,
-				Value: "true",
-			},
+		preferences = append(preferences, model.Preference{
+			UserId:   userId,
+			Category: model.PREFERENCE_CATEGORY_DIRECT_CHANNEL_SHOW,
+			Name:     channel.Id,
+			Value:    "true",
+		})
+	}
+
+	if data.FavoritedBy != nil {
+		for _, favoriter := range *data.FavoritedBy {
+			preferences = append(preferences, model.Preference{
+				UserId:   userMap[favoriter],
+				Category: model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL,
+				Name:     channel.Id,
+				Value:    "true",
+			})
 		}
-		if result := <-Srv.Store.Preference().Save(&preferences); result.Err != nil {
-			result.Err.StatusCode = http.StatusBadRequest
-			return result.Err
-		}
+	}
+
+	if result := <-Srv.Store.Preference().Save(&preferences); result.Err != nil {
+		result.Err.StatusCode = http.StatusBadRequest
+		return result.Err
 	}
 
 	if data.Header != nil {
@@ -1052,6 +1106,21 @@ func validateDirectChannelImportData(data *DirectChannelImportData) *model.AppEr
 
 	if data.Header != nil && utf8.RuneCountInString(*data.Header) > model.CHANNEL_HEADER_MAX_RUNES {
 		return model.NewLocAppError("BulkImport", "app.import.validate_direct_channel_import_data.header_length.error", nil, "")
+	}
+
+	if data.FavoritedBy != nil {
+		for _, favoriter := range *data.FavoritedBy {
+			found := false
+			for _, member := range *data.Members {
+				if favoriter == member {
+					found = true
+					break
+				}
+			}
+			if !found {
+				return model.NewLocAppError("BulkImport", "app.import.validate_direct_channel_import_data.unknown_favoriter.error", map[string]interface{}{"Username": favoriter}, "")
+			}
+		}
 	}
 
 	return nil
@@ -1087,7 +1156,7 @@ func ImportDirectPost(data *DirectPostImportData, dryRun bool) *model.AppError {
 		}
 	} else {
 		ch, err := createGroupChannel(userIds, userIds[0])
-		if err != nil && err.Id != store.CHANNEL_EXISTS_ERROR  {
+		if err != nil && err.Id != store.CHANNEL_EXISTS_ERROR {
 			return model.NewAppError("BulkImport", "app.import.import_direct_post.create_group_channel.error", nil, "", http.StatusBadRequest)
 		} else {
 			channel = ch
@@ -1138,6 +1207,33 @@ func ImportDirectPost(data *DirectPostImportData, dryRun bool) *model.AppError {
 		}
 	}
 
+	if data.FlaggedBy != nil {
+		var preferences model.Preferences
+
+		for _, username := range *data.FlaggedBy {
+			var user *model.User
+
+			if result := <-Srv.Store.User().GetByUsername(username); result.Err != nil {
+				return model.NewAppError("BulkImport", "app.import.import_direct_post.user_not_found.error", map[string]interface{}{"Username": username}, "", http.StatusBadRequest)
+			} else {
+				user = result.Data.(*model.User)
+			}
+
+			preferences = append(preferences, model.Preference{
+				UserId:   user.Id,
+				Category: model.PREFERENCE_CATEGORY_FLAGGED_POST,
+				Name:     post.Id,
+				Value:    "true",
+			})
+		}
+
+		if len(preferences) > 0 {
+			if result := <-Srv.Store.Preference().Save(&preferences); result.Err != nil {
+				return model.NewAppError("BulkImport", "app.import.import_direct_post.save_preferences.error", nil, "", http.StatusInternalServerError)
+			}
+		}
+	}
+
 	return nil
 }
 
@@ -1168,6 +1264,21 @@ func validateDirectPostImportData(data *DirectPostImportData) *model.AppError {
 		return model.NewAppError("BulkImport", "app.import.validate_direct_post_import_data.create_at_missing.error", nil, "", http.StatusBadRequest)
 	} else if *data.CreateAt == 0 {
 		return model.NewAppError("BulkImport", "app.import.validate_direct_post_import_data.create_at_zero.error", nil, "", http.StatusBadRequest)
+	}
+
+	if data.FlaggedBy != nil {
+		for _, flagger := range *data.FlaggedBy {
+			found := false
+			for _, member := range *data.ChannelMembers {
+				if flagger == member {
+					found = true
+					break
+				}
+			}
+			if !found {
+				return model.NewLocAppError("BulkImport", "app.import.validate_direct_post_import_data.unknown_flagger.error", map[string]interface{}{"Username": flagger}, "")
+			}
+		}
 	}
 
 	return nil

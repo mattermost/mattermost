@@ -98,8 +98,8 @@ export default class PopoverListMembers extends React.Component {
 
         if (members && teamMembers) {
             members.sort((a, b) => {
-                const aName = Utils.displayUsername(a.id);
-                const bName = Utils.displayUsername(b.id);
+                const aName = Utils.displayEntireName(a.id);
+                const bName = Utils.displayEntireName(b.id);
 
                 return aName.localeCompare(bName);
             });
@@ -112,7 +112,7 @@ export default class PopoverListMembers extends React.Component {
 
                 let name = '';
                 if (teamMembers[m.username]) {
-                    name = Utils.displayUsername(teamMembers[m.username].id);
+                    name = Utils.displayEntireNameForUser(teamMembers[m.username]);
                 }
 
                 if (name) {

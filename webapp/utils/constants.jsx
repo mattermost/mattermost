@@ -175,6 +175,7 @@ export const ActionTypes = keyMirror({
     TOGGLE_DM_MODAL: null,
     TOGGLE_QUICK_SWITCH_MODAL: null,
     TOGGLE_CHANNEL_HEADER_UPDATE_MODAL: null,
+    TOGGLE_CHANNEL_PURPOSE_UPDATE_MODAL: null,
 
     SUGGESTION_PRETEXT_CHANGED: null,
     SUGGESTION_RECEIVED_SUGGESTIONS: null,
@@ -964,7 +965,8 @@ export const Constants = {
         SHOW_USERNAME: 'username',
         SHOW_NICKNAME_FULLNAME: 'nickname_full_name',
         SHOW_FULLNAME: 'full_name'
-    }
+    },
+    SEARCH_POST: 'searchpost'
 };
 
 export default Constants;

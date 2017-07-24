@@ -4,7 +4,6 @@
 package app
 
 import (
-	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/platform/model"
 
 	goi18n "github.com/nicksnyder/go-i18n/i18n"
@@ -53,20 +52,14 @@ func (me *HeaderProvider) DoCommand(args *model.CommandArgs, message string) *mo
 		return &model.CommandResponse{Text: args.T("api.command_channel_header.message.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 	}
 
-	oldChannelHeader := channel.Header
-	channel.Header = message
+	patch := &model.ChannelPatch{
+		Header: new(string),
+	}
+	*patch.Header = message
 
-	updateChannel, err := UpdateChannel(channel)
+	_, err = PatchChannel(channel, patch, args.UserId)
 	if err != nil {
 		return &model.CommandResponse{Text: args.T("api.command_channel_header.update_channel.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
-	}
-
-	messageWs := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CHANNEL_UPDATED, "", channel.Id, "", nil)
-	messageWs.Add("channel", channel.ToJson())
-	Publish(messageWs)
-
-	if err := PostUpdateChannelHeaderMessage(args.Session.UserId, channel.Id, args.TeamId, oldChannelHeader, updateChannel.Header); err != nil {
-		l4g.Error(err.Error())
 	}
 
 	return &model.CommandResponse{}
