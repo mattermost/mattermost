@@ -4,7 +4,6 @@
 import {connect} from 'react-redux';
 
 import {getUsersByUsername} from 'mattermost-redux/selectors/entities/users';
-import {getUserByUsername} from 'mattermost-redux/actions/users';
 
 import AtMention from './at_mention.jsx';
 
@@ -15,12 +14,4 @@ function mapStateToProps(state, ownProps) {
     };
 }
 
-function mapDispatchToProps() {
-    return {
-        actions: {
-            getUserByUsername
-        }
-    };
-}
-
-export default connect(mapStateToProps, mapDispatchToProps)(AtMention);
+export default connect(mapStateToProps)(AtMention);

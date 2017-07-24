@@ -4,12 +4,6 @@
 import ProfilePopover from 'components/profile_popover.jsx';
 import {Client4} from 'mattermost-redux/client';
 
-import UserStore from 'stores/user_store.jsx';
-
-import store from 'stores/redux_store.jsx';
-const dispatch = store.dispatch;
-const getState = store.getState;
-
 import React from 'react';
 import PropTypes from 'prop-types';
 import {OverlayTrigger} from 'react-bootstrap';
@@ -17,10 +11,7 @@ import {OverlayTrigger} from 'react-bootstrap';
 export default class AtMention extends React.PureComponent {
     static propTypes = {
         mentionName: PropTypes.string.isRequired,
-        usersByUsername: PropTypes.object.isRequired,
-        actions: PropTypes.shape({
-            getUserByUsername: PropTypes.func.isRequired
-        }).isRequired
+        usersByUsername: PropTypes.object.isRequired
     };
 
     constructor(props) {
@@ -28,23 +19,15 @@ export default class AtMention extends React.PureComponent {
 
         this.hideProfilePopover = this.hideProfilePopover.bind(this);
 
-        const username = this.getUsernameFromMentionName(props);
-        const user = this.getProfileByUsername(username);
-
         this.state = {
-            username,
-            user
+            user: this.getUserFromMentionName(props)
         };
     }
 
     componentWillReceiveProps(nextProps) {
         if (nextProps.mentionName !== this.props.mentionName || nextProps.usersByUsername !== this.props.usersByUsername) {
-            const username = this.getUsernameFromMentionName(nextProps);
-            const user = this.getProfileByUsername(username);
-
             this.setState({
-                username,
-                user
+                user: this.getUserFromMentionName(nextProps)
             });
         }
     }
@@ -53,12 +36,13 @@ export default class AtMention extends React.PureComponent {
         this.refs.overlay.hide();
     }
 
-    getUsernameFromMentionName(props) {
+    getUserFromMentionName(props) {
+        const usersByUsername = props.usersByUsername;
         let mentionName = props.mentionName;
 
         while (mentionName.length > 0) {
-            if (props.usersByUsername[mentionName]) {
-                return props.usersByUsername[mentionName].username;
+            if (usersByUsername[mentionName]) {
+                return usersByUsername[mentionName];
             }
 
             // Repeatedly trim off trailing punctuation in case this is at the end of a sentence
@@ -72,54 +56,33 @@ export default class AtMention extends React.PureComponent {
         return '';
     }
 
-    getProfileByUsername(username) {
-        if (!username) {
-            return '';
-        }
-
-        let profile = UserStore.getProfileByUsername(username);
-        if (!profile) {
-            this.props.actions.getUserByUsername(username)(dispatch, getState).then(
-                (data) => {
-                    if (data) {
-                        profile = data;
-                    }
-                }
-            );
-        }
-
-        return profile;
-    }
-
     render() {
-        const username = this.state.username;
-        const user = this.state.user;
-
-        if (!username || !user) {
+        if (!this.state.user) {
             return <span>{'@' + this.props.mentionName}</span>;
         }
 
-        const suffix = this.props.mentionName.substring(username.length);
+        const user = this.state.user;
+        const suffix = this.props.mentionName.substring(user.username.length);
 
         return (
-            <OverlayTrigger
-                ref='overlay'
-                trigger='click'
-                placement='right'
-                rootClose={true}
-                overlay={
-                    <ProfilePopover
-                        user={user}
-                        src={Client4.getProfilePictureUrl(user.id, user.last_picture_update)}
-                        hide={this.hideProfilePopover}
-                    />
-                }
-            >
-                <span>
-                    <a className='mention-link'>{'@' + username}</a>
-                    {suffix}
-                </span>
-            </OverlayTrigger>
+            <span>
+                <OverlayTrigger
+                    ref='overlay'
+                    trigger='click'
+                    placement='right'
+                    rootClose={true}
+                    overlay={
+                        <ProfilePopover
+                            user={user}
+                            src={Client4.getProfilePictureUrl(user.id, user.last_picture_update)}
+                            hide={this.hideProfilePopover}
+                        />
+                    }
+                >
+                    <a className='mention-link'>{'@' + user.username}</a>
+                </OverlayTrigger>
+                {suffix}
+            </span>
         );
     }
 }
