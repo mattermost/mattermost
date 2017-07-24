@@ -81,7 +81,7 @@
   },
   {
     "id": "api.admin.recycle_db_start.warn",
-    "translation": "Versuche die Datenbankverbindung erneut zu verwenden."
+    "translation": "Versuche die Datenbankverbindung zu recyclen."
   },
   {
     "id": "api.admin.remove_certificate.delete.app_error",
@@ -429,7 +429,7 @@
   },
   {
     "id": "api.command.execute_command.not_found.app_error",
-    "translation": "Befehl mit dem Auslösewort '{{.Trigger}}' nicht gefunden. Um eine Nachricht mit \"/\" beginnend zu senden, versuchen Sie ein Leerzeichen vor der Nachricht zu setzen."
+    "translation": "Befehl mit dem Auslösewort '{{.Trigger}}' nicht gefunden. Um eine Nachricht mit \"/\" beginnend zu senden, versuchen Sie ein Leerzeichen an den Beginn der Nachricht zu setzen."
   },
   {
     "id": "api.command.execute_command.save.app_error",
@@ -521,7 +521,7 @@
   },
   {
     "id": "api.command_channel_header.permission.app_error",
-    "translation": "Sie haben nicht die benötigten Berechtigungen, um die Kanalüberschrift zu bearbeiten."
+    "translation": "Sie haben nicht die nötigen Berechtigungen, um die Kanalüberschrift zu bearbeiten."
   },
   {
     "id": "api.command_channel_header.update_channel.app_error",
@@ -530,6 +530,54 @@
   {
     "id": "api.command_channel_header.update_channel.success",
     "translation": "Kanalüberschrift erfolgreich aktualisiert."
+  },
+  {
+    "id": "api.command_channel_purpose.channel.app_error",
+    "translation": "Fehler beim Laden des aktuellen Kanals."
+  },
+  {
+    "id": "api.command_channel_purpose.desc",
+    "translation": "Edit the channel purpose"
+  },
+  {
+    "id": "api.command_channel_purpose.direct_group.app_error",
+    "translation": "Cannot set purpose for direct message channels. Use /header to set the header instead."
+  },
+  {
+    "id": "api.command_channel_purpose.hint",
+    "translation": "[text]"
+  },
+  {
+    "id": "api.command_channel_purpose.message.app_error",
+    "translation": "Es muss eine Nachricht für den /echo Befehl angegeben werden."
+  },
+  {
+    "id": "api.command_channel_purpose.name",
+    "translation": "purpose"
+  },
+  {
+    "id": "api.command_channel_purpose.permission.app_error",
+    "translation": "Sie haben nicht die nötigen Berechtigungen, um die Kanalüberschrift zu bearbeiten."
+  },
+  {
+    "id": "api.command_channel_purpose.update_channel.app_error",
+    "translation": "Fehler beim Aktualisieren des aktuellen Kanals."
+  },
+  {
+    "id": "api.command_code.desc",
+    "translation": "Display text as a code block"
+  },
+  {
+    "id": "api.command_code.hint",
+    "translation": "[text]"
+  },
+  {
+    "id": "api.command_code.message.app_error",
+    "translation": "A message must be provided with the /code command."
+  },
+  {
+    "id": "api.command_code.name",
+    "translation": "code"
   },
   {
     "id": "api.command_collapse.desc",
@@ -713,7 +761,7 @@
   },
   {
     "id": "api.command_search.hint",
-    "translation": "[text]"
+    "translation": "[Text]"
   },
   {
     "id": "api.command_search.name",
@@ -725,7 +773,7 @@
   },
   {
     "id": "api.command_settings.desc",
-    "translation": "Öffnet die Kontoeinstellungen"
+    "translation": "Kontoeinstellungen öffnen"
   },
   {
     "id": "api.command_settings.name",
@@ -1511,7 +1559,7 @@
   },
   {
     "id": "api.oauth.invalid_state_token.app_error",
-    "translation": "Ungültiges Status-Token"
+    "translation": "Ungültiger Status-Token"
   },
   {
     "id": "api.oauth.regenerate_secret.app_error",
@@ -1713,7 +1761,7 @@
   },
   {
     "id": "api.post.send_notifications_and_forget.push_image_only",
-    "translation": " Eine oder mehrere Dateien hochgeladen "
+    "translation": " Eine oder mehrere Dateien hochgeladen in "
   },
   {
     "id": "api.post.send_notifications_and_forget.push_image_only_dm",
@@ -3072,6 +3120,10 @@
     "translation": "Konnte Gruppenkanal nicht erstellen"
   },
   {
+    "id": "app.import.import_direct_post.save_preferences.error",
+    "translation": "Error importing direct post. Failed to save preferences."
+  },
+  {
     "id": "app.import.import_direct_post.user_not_found.error",
     "translation": "Benutzer der Nachricht existiert nicht"
   },
@@ -3108,12 +3160,20 @@
     "translation": "Fehler beim Importieren der Nachricht. Kanal mit dem Namen \"{{.ChannelName}}\" konnte nicht gefunden werden."
   },
   {
+    "id": "app.import.import_post.save_preferences.error",
+    "translation": "Error importing post. Failed to save preferences."
+  },
+  {
     "id": "app.import.import_post.team_not_found.error",
     "translation": "Fehler beim Importieren der Nachricht. Team mit dem Namen \"{{.TeamName}}\" konnte nicht gefunden werden."
   },
   {
     "id": "app.import.import_post.user_not_found.error",
     "translation": "Fehler beim Importieren der Nachricht. Benutzer mit dem Namen \"{{.Username}}\" konnte nicht gefunden werden."
+  },
+  {
+    "id": "app.import.import_user_channels.save_preferences.error",
+    "translation": "Error importing user channel memberships. Failed to save preferences."
   },
   {
     "id": "app.import.validate_channel_import_data.create_at_zero.error",
@@ -3176,8 +3236,12 @@
     "translation": "Direktkanalmitgliederliste enthält zu viele Einträge"
   },
   {
+    "id": "app.import.validate_direct_channel_import_data.unknown_favoriter.error",
+    "translation": "Direct channel can only be favorited by members. \"{{.Username}}\" is not a member."
+  },
+  {
     "id": "app.import.validate_direct_post_import_data.channel_members_required.error",
-    "translation": "Fehlende erforderliche Nachrichteigenschaft: channel_members"
+    "translation": "Fehlende erforderliche Direktnachrichteneigenschaft: channel_members"
   },
   {
     "id": "app.import.validate_direct_post_import_data.channel_members_too_few.error",
@@ -3202,6 +3266,10 @@
   {
     "id": "app.import.validate_direct_post_import_data.message_missing.error",
     "translation": "Fehlende erforderliche Nachrichteigenschaft: message"
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.unknown_flagger.error",
+    "translation": "Direct post can only be flagged by members of the channel it is in. \"{{.Username}}\" is not a member."
   },
   {
     "id": "app.import.validate_direct_post_import_data.user_missing.error",
@@ -3372,6 +3440,14 @@
     "translation": "Teams erstellen"
   },
   {
+    "id": "authentication.permissions.manage_jobs.description",
+    "translation": "Ability to manage jobs"
+  },
+  {
+    "id": "authentication.permissions.manage_jobs.name",
+    "translation": "Manage Jobs"
+  },
+  {
     "id": "authentication.permissions.manage_team_roles.description",
     "translation": "Die Möglichkeit, die Rollen eines Teammitgliedes zu ändern"
   },
@@ -3496,6 +3572,42 @@
     "translation": "Compliance Export gestartet für Job '{{.JobName}}' in '{{.FilePath}}'"
   },
   {
+    "id": "ent.elasticsearch.create_client.connect_failed",
+    "translation": "Fehler beim Einrichten des ElasticSearch-Client"
+  },
+  {
+    "id": "ent.elasticsearch.create_index_if_not_exists.index_create_failed",
+    "translation": "Konnte ElasticSearch-Index nicht erstellen"
+  },
+  {
+    "id": "ent.elasticsearch.create_index_if_not_exists.index_exists_failed",
+    "translation": "Konnte nicht bestimmen, ob der ElasticSearch-Index existiert"
+  },
+  {
+    "id": "ent.elasticsearch.create_index_if_not_exists.index_mapping_failed",
+    "translation": "Konnte ElasticSearch-Index-Mapping nicht einrichten"
+  },
+  {
+    "id": "ent.elasticsearch.delete_post.error",
+    "translation": "Löschen der Nachricht fehlgeschlagen"
+  },
+  {
+    "id": "ent.elasticsearch.generic.disabled",
+    "translation": "ElasticSearch-Suche ist auf diesem Server deaktiviert"
+  },
+  {
+    "id": "ent.elasticsearch.index_post.error",
+    "translation": "Indizierung der Nachricht fehlgeschlagen"
+  },
+  {
+    "id": "ent.elasticsearch.not_started.error",
+    "translation": "Elasticsearch ist nicht gestartet"
+  },
+  {
+    "id": "ent.elasticsearch.purge_indexes.delete_failed",
+    "translation": "Konnte ElasticSearch-Index nicht erstellen"
+  },
+  {
     "id": "ent.elasticsearch.search_posts.disabled",
     "translation": "ElasticSearch-Suche ist auf diesem Server deaktiviert"
   },
@@ -3508,24 +3620,12 @@
     "translation": "Konnte Suchergebnisse nicht dekodieren"
   },
   {
-    "id": "ent.elasticsearch.start.connect_failed",
-    "translation": "Fehler beim Einrichten des ElasticSearch-Client"
-  },
-  {
-    "id": "ent.elasticsearch.start.index_create_failed",
-    "translation": "Konnte ElasticSearch-Index nicht erstellen"
-  },
-  {
-    "id": "ent.elasticsearch.start.index_exists_failed",
-    "translation": "Konnte nicht bestimmen, ob der ElasticSearch-Index existiert"
-  },
-  {
-    "id": "ent.elasticsearch.start.index_mapping_failed",
-    "translation": "Konnte ElasticSearch-Index-Mapping nicht einrichten"
-  },
-  {
     "id": "ent.elasticsearch.start.index_settings_failed",
     "translation": "Konnte ElasticSearch-Index-Einstellungen nicht setzen"
+  },
+  {
+    "id": "ent.elasticsearch.test_config.connect_failed",
+    "translation": "Verbindung zum Elasticsearch-Server fehlgeschlagen."
   },
   {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
@@ -3534,6 +3634,10 @@
   {
     "id": "ent.elasticsearch.test_config.license.error",
     "translation": "Lizenz unterstützt Elasticsearch nicht."
+  },
+  {
+    "id": "ent.elasticsearch.test_config.reenter_password",
+    "translation": "Elasticsearch-Server-URL oder -Benutzername hat sich geändert. Bitte geben Sie das Elasticsearch-Passwort erneut ein, um die Verbindung zu testen."
   },
   {
     "id": "ent.emoji.licence_disable.app_error",
@@ -3746,6 +3850,14 @@
   {
     "id": "error.not_found.title",
     "translation": "Seite nicht gefunden"
+  },
+  {
+    "id": "jobs.request_cancellation.status.error",
+    "translation": "Konnte Abbruch für Job, der sich nicht in einem abbrechbaren Status befindet, nicht anfordern."
+  },
+  {
+    "id": "jobs.set_job_error.update.error",
+    "translation": "Failed to set job status to error"
   },
   {
     "id": "manaultesting.get_channel_id.no_found.debug",
@@ -4434,6 +4546,22 @@
   {
     "id": "model.incoming_hook.user_id.app_error",
     "translation": "Ungültige Benutzer-ID"
+  },
+  {
+    "id": "model.job.is_valid.create_at.app_error",
+    "translation": "Erstellt am muss eine gültige Zeit sein"
+  },
+  {
+    "id": "model.job.is_valid.id.app_error",
+    "translation": "Ungültiger Typ"
+  },
+  {
+    "id": "model.job.is_valid.status.app_error",
+    "translation": "Invalid job status"
+  },
+  {
+    "id": "model.job.is_valid.type.app_error",
+    "translation": "Ungültiger Typ"
   },
   {
     "id": "model.oauth.is_valid.app_id.app_error",
@@ -5296,24 +5424,24 @@
     "translation": "Die Dateiinformationen konnten nicht gespeichert oder aktualisiert werden"
   },
   {
-    "id": "store.sql_job_status.delete_by_type.app_error",
-    "translation": "Der Job-Status konnte nicht gelöscht werden"
+    "id": "store.sql_job.delete.app_error",
+    "translation": "Der Job konnte nicht gelöscht werden"
   },
   {
-    "id": "store.sql_job_status.get.app_error",
-    "translation": "Der Job-Status konnte nicht abgerufen werden"
+    "id": "store.sql_job.get.app_error",
+    "translation": "Der Job konnte nicht abgerufen werden"
   },
   {
-    "id": "store.sql_job_status.get_all.app_error",
-    "translation": "Wir konnten nicht den Status aller Jobs abrufen"
+    "id": "store.sql_job.get_all.app_error",
+    "translation": "Die Jobs konnten nicht abgerufen werden"
   },
   {
-    "id": "store.sql_job_status.save.app_error",
-    "translation": "Der Job-Status konnte nicht gespeichert werden"
+    "id": "store.sql_job.save.app_error",
+    "translation": "Der Job konnte nicht gespeichert werden"
   },
   {
-    "id": "store.sql_job_status.update.app_error",
-    "translation": "Der Job-Status konnte nicht aktualisiert werden"
+    "id": "store.sql_job.update.app_error",
+    "translation": "Der Job konnte nicht aktualisiert werden"
   },
   {
     "id": "store.sql_license.get.app_error",
@@ -5462,6 +5590,10 @@
   {
     "id": "store.sql_post.get_posts_around.get_parent.app_error",
     "translation": "Die übergeordneten Nachrichten des Kanals konnten nicht abgerufen werden"
+  },
+  {
+    "id": "store.sql_post.get_posts_batch_for_indexing.get.app_error",
+    "translation": "Die Nachrichten-Gruppe konnte nicht zur Indizierung abgerufen werden"
   },
   {
     "id": "store.sql_post.get_posts_by_ids.app_error",

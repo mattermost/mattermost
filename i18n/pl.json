@@ -532,6 +532,54 @@
     "translation": "Nagłówek kanału zaktualizowany poprawnie"
   },
   {
+    "id": "api.command_channel_purpose.channel.app_error",
+    "translation": "Błąd aktualizacji bieżącego kanału."
+  },
+  {
+    "id": "api.command_channel_purpose.desc",
+    "translation": "Edit the channel purpose"
+  },
+  {
+    "id": "api.command_channel_purpose.direct_group.app_error",
+    "translation": "Cannot set purpose for direct message channels. Use /header to set the header instead."
+  },
+  {
+    "id": "api.command_channel_purpose.hint",
+    "translation": "[tekst]"
+  },
+  {
+    "id": "api.command_channel_purpose.message.app_error",
+    "translation": "Dla polecenia /echo musi zostać podana wiadomość."
+  },
+  {
+    "id": "api.command_channel_purpose.name",
+    "translation": "purpose"
+  },
+  {
+    "id": "api.command_channel_purpose.permission.app_error",
+    "translation": "Nie posiadasz odpowiednich uprawnień do edycji nagłówka kanału."
+  },
+  {
+    "id": "api.command_channel_purpose.update_channel.app_error",
+    "translation": "Błąd aktualizacji bieżącego kanału."
+  },
+  {
+    "id": "api.command_code.desc",
+    "translation": "Display text as a code block"
+  },
+  {
+    "id": "api.command_code.hint",
+    "translation": "[text]"
+  },
+  {
+    "id": "api.command_code.message.app_error",
+    "translation": "A message must be provided with the /code command."
+  },
+  {
+    "id": "api.command_code.name",
+    "translation": "code"
+  },
+  {
     "id": "api.command_collapse.desc",
     "translation": "Włącz automatyczne zwijanie podglądu obrazków"
   },
@@ -3072,6 +3120,10 @@
     "translation": "Nie udało się uzyskać kanału grupowego"
   },
   {
+    "id": "app.import.import_direct_post.save_preferences.error",
+    "translation": "Error importing direct post. Failed to save preferences."
+  },
+  {
     "id": "app.import.import_direct_post.user_not_found.error",
     "translation": "Post użytkownika nie istnieje"
   },
@@ -3108,12 +3160,20 @@
     "translation": "Błąd podczas importowania wiadomości. Kanał o nazwie \"{{.ChannelName}}\" nie został odnaleziony."
   },
   {
+    "id": "app.import.import_post.save_preferences.error",
+    "translation": "Error importing post. Failed to save preferences."
+  },
+  {
     "id": "app.import.import_post.team_not_found.error",
     "translation": "Błąd podczas importowania wiadomości. Zespół o nazwie \"{{.TeamName}}\" nie został odnaleziony."
   },
   {
     "id": "app.import.import_post.user_not_found.error",
     "translation": "Błąd podczas importowania wiadomości. Użytkownik o nazwie \"{{.Username}}\" nie został odnaleziony."
+  },
+  {
+    "id": "app.import.import_user_channels.save_preferences.error",
+    "translation": "Error importing user channel memberships. Failed to save preferences."
   },
   {
     "id": "app.import.validate_channel_import_data.create_at_zero.error",
@@ -3176,6 +3236,10 @@
     "translation": "Lista bezpośrednich uczestników kanału zawiera zbyt wiele elementów"
   },
   {
+    "id": "app.import.validate_direct_channel_import_data.unknown_favoriter.error",
+    "translation": "Direct channel can only be favorited by members. \"{{.Username}}\" is not a member."
+  },
+  {
     "id": "app.import.validate_direct_post_import_data.channel_members_required.error",
     "translation": "Brak wymaganej właściwości Post: channel_members."
   },
@@ -3202,6 +3266,10 @@
   {
     "id": "app.import.validate_direct_post_import_data.message_missing.error",
     "translation": "Brak wymaganej właściwości Post: message."
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.unknown_flagger.error",
+    "translation": "Direct post can only be flagged by members of the channel it is in. \"{{.Username}}\" is not a member."
   },
   {
     "id": "app.import.validate_direct_post_import_data.user_missing.error",
@@ -3372,6 +3440,14 @@
     "translation": "Tworzenie zespołów"
   },
   {
+    "id": "authentication.permissions.manage_jobs.description",
+    "translation": "Ability to manage jobs"
+  },
+  {
+    "id": "authentication.permissions.manage_jobs.name",
+    "translation": "Manage Jobs"
+  },
+  {
     "id": "authentication.permissions.manage_team_roles.description",
     "translation": "Możliwość zmiany ról członka zespołu"
   },
@@ -3496,6 +3572,42 @@
     "translation": "Rozpoczęto eksport zgodności dla zadania '{{.JobName}}' do '{{.FilePath}}'"
   },
   {
+    "id": "ent.elasticsearch.create_client.connect_failed",
+    "translation": "Nie udało się ustawić parametrów klienta ElasticSearch."
+  },
+  {
+    "id": "ent.elasticsearch.create_index_if_not_exists.index_create_failed",
+    "translation": "Nie udało się utworzyć indeksu ElasticSearch"
+  },
+  {
+    "id": "ent.elasticsearch.create_index_if_not_exists.index_exists_failed",
+    "translation": "Nie udało się ustalić, czy indeks elasticsearch istnieje"
+  },
+  {
+    "id": "ent.elasticsearch.create_index_if_not_exists.index_mapping_failed",
+    "translation": "Nie można ustawić wyświetlanie indeksu elasticsearch"
+  },
+  {
+    "id": "ent.elasticsearch.delete_post.error",
+    "translation": "Failed to delete the post"
+  },
+  {
+    "id": "ent.elasticsearch.generic.disabled",
+    "translation": "Na tym serwerze wyszukiwanie ElasticSearch jest wyłączone."
+  },
+  {
+    "id": "ent.elasticsearch.index_post.error",
+    "translation": "Failed to index the post"
+  },
+  {
+    "id": "ent.elasticsearch.not_started.error",
+    "translation": "Elasticsearch is not started"
+  },
+  {
+    "id": "ent.elasticsearch.purge_indexes.delete_failed",
+    "translation": "Nie udało się utworzyć indeksu ElasticSearch"
+  },
+  {
     "id": "ent.elasticsearch.search_posts.disabled",
     "translation": "Na tym serwerze wyszukiwanie ElasticSearch jest wyłączone."
   },
@@ -3508,24 +3620,12 @@
     "translation": "Błąd w dekodowaniu wyników wyszukiwania."
   },
   {
-    "id": "ent.elasticsearch.start.connect_failed",
-    "translation": "Nie udało się ustawić parametrów klienta ElasticSearch."
-  },
-  {
-    "id": "ent.elasticsearch.start.index_create_failed",
-    "translation": "Nie udało się utworzyć indeksu ElasticSearch"
-  },
-  {
-    "id": "ent.elasticsearch.start.index_exists_failed",
-    "translation": "Nie udało się ustalić, czy indeks elasticsearch istnieje"
-  },
-  {
-    "id": "ent.elasticsearch.start.index_mapping_failed",
-    "translation": "Nie można ustawić wyświetlanie indeksu elasticsearch"
-  },
-  {
     "id": "ent.elasticsearch.start.index_settings_failed",
     "translation": "Nie udało się określić ustawienia indeks elasticsearch"
+  },
+  {
+    "id": "ent.elasticsearch.test_config.connect_failed",
+    "translation": "Connecting to Elasticsearch server failed."
   },
   {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
@@ -3534,6 +3634,10 @@
   {
     "id": "ent.elasticsearch.test_config.license.error",
     "translation": "Licencja nie obsługuje elasticsearch."
+  },
+  {
+    "id": "ent.elasticsearch.test_config.reenter_password",
+    "translation": "The Elasticsearch Server URL or Username has changed. Please re-enter the Elasticsearch password to test connection."
   },
   {
     "id": "ent.emoji.licence_disable.app_error",
@@ -3746,6 +3850,14 @@
   {
     "id": "error.not_found.title",
     "translation": "Strona nie odnaleziona"
+  },
+  {
+    "id": "jobs.request_cancellation.status.error",
+    "translation": "Could not request cancellation for job that is not in a cancelable state."
+  },
+  {
+    "id": "jobs.set_job_error.update.error",
+    "translation": "Failed to set job status to error"
   },
   {
     "id": "manaultesting.get_channel_id.no_found.debug",
@@ -4434,6 +4546,22 @@
   {
     "id": "model.incoming_hook.user_id.app_error",
     "translation": "Nieprawidłowe ID użytkownika"
+  },
+  {
+    "id": "model.job.is_valid.create_at.app_error",
+    "translation": "Utworzono dnia musi zawierać prawidłowy czas"
+  },
+  {
+    "id": "model.job.is_valid.id.app_error",
+    "translation": "Nieprawidłowy typ"
+  },
+  {
+    "id": "model.job.is_valid.status.app_error",
+    "translation": "Invalid job status"
+  },
+  {
+    "id": "model.job.is_valid.type.app_error",
+    "translation": "Nieprawidłowy typ"
   },
   {
     "id": "model.oauth.is_valid.app_id.app_error",
@@ -5296,23 +5424,23 @@
     "translation": "Nie mogliśmy zapisać informacji o pliku"
   },
   {
-    "id": "store.sql_job_status.delete_by_type.app_error",
+    "id": "store.sql_job.delete.app_error",
     "translation": "Nie mogliśmy usunąć wpisu"
   },
   {
-    "id": "store.sql_job_status.get.app_error",
+    "id": "store.sql_job.get.app_error",
     "translation": "Nie udało się pobrać wiadomości"
   },
   {
-    "id": "store.sql_job_status.get_all.app_error",
+    "id": "store.sql_job.get_all.app_error",
     "translation": "Nie udało się pobrać wiadomości"
   },
   {
-    "id": "store.sql_job_status.save.app_error",
+    "id": "store.sql_job.save.app_error",
     "translation": "Nie udało się zapisać wiadomości"
   },
   {
-    "id": "store.sql_job_status.update.app_error",
+    "id": "store.sql_job.update.app_error",
     "translation": "Nie udało się zaktualizować wiadomości"
   },
   {
@@ -5462,6 +5590,10 @@
   {
     "id": "store.sql_post.get_posts_around.get_parent.app_error",
     "translation": "Nie można uzyskać wpisów nadrzędnych dla kanału"
+  },
+  {
+    "id": "store.sql_post.get_posts_batch_for_indexing.get.app_error",
+    "translation": "We couldn't get the posts batch for indexing"
   },
   {
     "id": "store.sql_post.get_posts_by_ids.app_error",

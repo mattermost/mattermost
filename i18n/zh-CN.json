@@ -532,6 +532,54 @@
     "translation": "成功更新频道标题。"
   },
   {
+    "id": "api.command_channel_purpose.channel.app_error",
+    "translation": "获取当前频道错误。"
+  },
+  {
+    "id": "api.command_channel_purpose.desc",
+    "translation": "更改频道用途"
+  },
+  {
+    "id": "api.command_channel_purpose.direct_group.app_error",
+    "translation": "无法更改私信频道用途。可使用 /header 修改标题。"
+  },
+  {
+    "id": "api.command_channel_purpose.hint",
+    "translation": "[文字]"
+  },
+  {
+    "id": "api.command_channel_purpose.message.app_error",
+    "translation": "/purpose 命令必须有消息。"
+  },
+  {
+    "id": "api.command_channel_purpose.name",
+    "translation": "用途"
+  },
+  {
+    "id": "api.command_channel_purpose.permission.app_error",
+    "translation": "您没有权限更改频道用途。"
+  },
+  {
+    "id": "api.command_channel_purpose.update_channel.app_error",
+    "translation": "更新当前频道错误。"
+  },
+  {
+    "id": "api.command_code.desc",
+    "translation": "Display text as a code block"
+  },
+  {
+    "id": "api.command_code.hint",
+    "translation": "[text]"
+  },
+  {
+    "id": "api.command_code.message.app_error",
+    "translation": "A message must be provided with the /code command."
+  },
+  {
+    "id": "api.command_code.name",
+    "translation": "code"
+  },
+  {
     "id": "api.command_collapse.desc",
     "translation": "打开图像预览自动折叠"
   },
@@ -3072,6 +3120,10 @@
     "translation": "获取组频道失败"
   },
   {
+    "id": "app.import.import_direct_post.save_preferences.error",
+    "translation": "Error importing direct post. Failed to save preferences."
+  },
+  {
     "id": "app.import.import_direct_post.user_not_found.error",
     "translation": "消息用户不存在"
   },
@@ -3108,12 +3160,20 @@
     "translation": "导入消息失败。无法找到频道 \"{{.ChannelName}}\"。"
   },
   {
+    "id": "app.import.import_post.save_preferences.error",
+    "translation": "Error importing post. Failed to save preferences."
+  },
+  {
     "id": "app.import.import_post.team_not_found.error",
     "translation": "导入消息失败。无法找到团队 \"{{.TeamName}}\"。"
   },
   {
     "id": "app.import.import_post.user_not_found.error",
     "translation": "导入消息失败。无法找到用户 \"{{.Username}}\"。"
+  },
+  {
+    "id": "app.import.import_user_channels.save_preferences.error",
+    "translation": "Error importing user channel memberships. Failed to save preferences."
   },
   {
     "id": "app.import.validate_channel_import_data.create_at_zero.error",
@@ -3176,6 +3236,10 @@
     "translation": "私信频道成员列表数量过多"
   },
   {
+    "id": "app.import.validate_direct_channel_import_data.unknown_favoriter.error",
+    "translation": "Direct channel can only be favorited by members. \"{{.Username}}\" is not a member."
+  },
+  {
     "id": "app.import.validate_direct_post_import_data.channel_members_required.error",
     "translation": "缺少私信消息必须属性：channel_members"
   },
@@ -3202,6 +3266,10 @@
   {
     "id": "app.import.validate_direct_post_import_data.message_missing.error",
     "translation": "缺少私信必须属性：message"
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.unknown_flagger.error",
+    "translation": "Direct post can only be flagged by members of the channel it is in. \"{{.Username}}\" is not a member."
   },
   {
     "id": "app.import.validate_direct_post_import_data.user_missing.error",
@@ -3372,6 +3440,14 @@
     "translation": "创建团队"
   },
   {
+    "id": "authentication.permissions.manage_jobs.description",
+    "translation": "任务管理权限"
+  },
+  {
+    "id": "authentication.permissions.manage_jobs.name",
+    "translation": "管理任务"
+  },
+  {
     "id": "authentication.permissions.manage_team_roles.description",
     "translation": "能修改团队成员的角色"
   },
@@ -3496,6 +3572,42 @@
     "translation": "导出审核自'{{.FilePath}}'的'{{.JobName}}'任务开始"
   },
   {
+    "id": "ent.elasticsearch.create_client.connect_failed",
+    "translation": "设置 ElasticSearch 客户端失败"
+  },
+  {
+    "id": "ent.elasticsearch.create_index_if_not_exists.index_create_failed",
+    "translation": "创建 ElasticSearch 索引失败"
+  },
+  {
+    "id": "ent.elasticsearch.create_index_if_not_exists.index_exists_failed",
+    "translation": "无法确认 ElasticSearch 索引是否存在"
+  },
+  {
+    "id": "ent.elasticsearch.create_index_if_not_exists.index_mapping_failed",
+    "translation": "无法配置 ElasticSearch 索引映像"
+  },
+  {
+    "id": "ent.elasticsearch.delete_post.error",
+    "translation": "删除消息失败"
+  },
+  {
+    "id": "ent.elasticsearch.generic.disabled",
+    "translation": "ElasticSearch 搜索未在本服务器启用"
+  },
+  {
+    "id": "ent.elasticsearch.index_post.error",
+    "translation": "索引消息失败"
+  },
+  {
+    "id": "ent.elasticsearch.not_started.error",
+    "translation": "ElasticSearch没有启动"
+  },
+  {
+    "id": "ent.elasticsearch.purge_indexes.delete_failed",
+    "translation": "删除 ElasticSearch 索引失败"
+  },
+  {
     "id": "ent.elasticsearch.search_posts.disabled",
     "translation": "ElasticSearch 搜索已在本服务器禁用"
   },
@@ -3508,24 +3620,12 @@
     "translation": "解码搜索结果失败"
   },
   {
-    "id": "ent.elasticsearch.start.connect_failed",
-    "translation": "设置 ElasticSearch 客户端失败"
-  },
-  {
-    "id": "ent.elasticsearch.start.index_create_failed",
-    "translation": "创建 ElasticSearch 索引失败"
-  },
-  {
-    "id": "ent.elasticsearch.start.index_exists_failed",
-    "translation": "无法确认 ElasticSearch 索引是否存在"
-  },
-  {
-    "id": "ent.elasticsearch.start.index_mapping_failed",
-    "translation": "无法配置 ElasticSearch 索引映像"
-  },
-  {
     "id": "ent.elasticsearch.start.index_settings_failed",
     "translation": "无法设置 ElasticSearch 索引设定"
+  },
+  {
+    "id": "ent.elasticsearch.test_config.connect_failed",
+    "translation": "连接 Elasticsearch 服务器失败。"
   },
   {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
@@ -3534,6 +3634,10 @@
   {
     "id": "ent.elasticsearch.test_config.license.error",
     "translation": "许可证不支持 Elasticsearch。"
+  },
+  {
+    "id": "ent.elasticsearch.test_config.reenter_password",
+    "translation": "The Elasticsearch Server URL or Username has changed. Please re-enter the Elasticsearch password to test connection."
   },
   {
     "id": "ent.emoji.licence_disable.app_error",
@@ -3746,6 +3850,14 @@
   {
     "id": "error.not_found.title",
     "translation": "未找到该页面"
+  },
+  {
+    "id": "jobs.request_cancellation.status.error",
+    "translation": "无法请求取消任务到不允许取消的任务。"
+  },
+  {
+    "id": "jobs.set_job_error.update.error",
+    "translation": "设置任务状态为错误失败"
   },
   {
     "id": "manaultesting.get_channel_id.no_found.debug",
@@ -4434,6 +4546,22 @@
   {
     "id": "model.incoming_hook.user_id.app_error",
     "translation": "无效用户id"
+  },
+  {
+    "id": "model.job.is_valid.create_at.app_error",
+    "translation": "创建于必须为有效时间"
+  },
+  {
+    "id": "model.job.is_valid.id.app_error",
+    "translation": "无效任务 Id"
+  },
+  {
+    "id": "model.job.is_valid.status.app_error",
+    "translation": "无效任务状态"
+  },
+  {
+    "id": "model.job.is_valid.type.app_error",
+    "translation": "无效任务类型"
   },
   {
     "id": "model.oauth.is_valid.app_id.app_error",
@@ -5296,24 +5424,24 @@
     "translation": "我们无法保存或更新文件信息"
   },
   {
-    "id": "store.sql_job_status.delete_by_type.app_error",
-    "translation": "我们不能删除这个作业状态"
+    "id": "store.sql_job.delete.app_error",
+    "translation": "我们无法删除任务"
   },
   {
-    "id": "store.sql_job_status.get.app_error",
-    "translation": "我们无法获取这个作业状态"
+    "id": "store.sql_job.get.app_error",
+    "translation": "我们无法获取任务"
   },
   {
-    "id": "store.sql_job_status.get_all.app_error",
-    "translation": "我们无法获取所有作业状态"
+    "id": "store.sql_job.get_all.app_error",
+    "translation": "我们无法获取任务"
   },
   {
-    "id": "store.sql_job_status.save.app_error",
-    "translation": "我们无法保存这个作业状态"
+    "id": "store.sql_job.save.app_error",
+    "translation": "我们无法保存任务"
   },
   {
-    "id": "store.sql_job_status.update.app_error",
-    "translation": "我们不能更新这个作业状态"
+    "id": "store.sql_job.update.app_error",
+    "translation": "我们无法更新任务"
   },
   {
     "id": "store.sql_license.get.app_error",
@@ -5462,6 +5590,10 @@
   {
     "id": "store.sql_post.get_posts_around.get_parent.app_error",
     "translation": "我们无法获取这个频道的父信息"
+  },
+  {
+    "id": "store.sql_post.get_posts_batch_for_indexing.get.app_error",
+    "translation": "We couldn't get the posts batch for indexing"
   },
   {
     "id": "store.sql_post.get_posts_by_ids.app_error",

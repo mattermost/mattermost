@@ -532,6 +532,54 @@
     "translation": "Kanal başlığı güncellendi."
   },
   {
+    "id": "api.command_channel_purpose.channel.app_error",
+    "translation": "Geçerli kanal alınırken sorun çıktı."
+  },
+  {
+    "id": "api.command_channel_purpose.desc",
+    "translation": "Kanal amacını düzenle"
+  },
+  {
+    "id": "api.command_channel_purpose.direct_group.app_error",
+    "translation": "Doğrudan ileti kanalları için bir amaç ayarlanamaz. Amaç yerine başlığı ayarlamak için /header komutunu kullanın."
+  },
+  {
+    "id": "api.command_channel_purpose.hint",
+    "translation": "[text]"
+  },
+  {
+    "id": "api.command_channel_purpose.message.app_error",
+    "translation": "/purpose komutu ile bir ileti yazılmalıdır."
+  },
+  {
+    "id": "api.command_channel_purpose.name",
+    "translation": "amaç"
+  },
+  {
+    "id": "api.command_channel_purpose.permission.app_error",
+    "translation": "Kanal amacını düzenleme izniniz yok."
+  },
+  {
+    "id": "api.command_channel_purpose.update_channel.app_error",
+    "translation": "Geçerli kanal güncellenirken sorun çıktı."
+  },
+  {
+    "id": "api.command_code.desc",
+    "translation": "Display text as a code block"
+  },
+  {
+    "id": "api.command_code.hint",
+    "translation": "[text]"
+  },
+  {
+    "id": "api.command_code.message.app_error",
+    "translation": "A message must be provided with the /code command."
+  },
+  {
+    "id": "api.command_code.name",
+    "translation": "code"
+  },
+  {
     "id": "api.command_collapse.desc",
     "translation": "Görsel önizlemeleri otomatik daraltılsın"
   },
@@ -3072,6 +3120,10 @@
     "translation": "Grup kanalı alınamadı"
   },
   {
+    "id": "app.import.import_direct_post.save_preferences.error",
+    "translation": "Doğrudan ileti içe aktarılırken sorun çıktı. Ayarlar kaydedilemedi."
+  },
+  {
     "id": "app.import.import_direct_post.user_not_found.error",
     "translation": "İleti kullanıcısı bulunamadı"
   },
@@ -3108,12 +3160,20 @@
     "translation": "İleti içe aktarılırken sorun çıktı. \"{{.ChannelName}}\" kanalı bulunamadı."
   },
   {
+    "id": "app.import.import_post.save_preferences.error",
+    "translation": "İleti içe aktarılırken sorun çıktı. Ayarlar kaydedilemedi."
+  },
+  {
     "id": "app.import.import_post.team_not_found.error",
     "translation": "İleti içe aktarılırken sorun çıktı. \"{{.TeamName}}\" takımı bulunamadı."
   },
   {
     "id": "app.import.import_post.user_not_found.error",
     "translation": "İleti içe aktarılırken sorun çıktı. \"{{.Username}}\" kullanıcı adına sahip kullanıcı bulunamadı."
+  },
+  {
+    "id": "app.import.import_user_channels.save_preferences.error",
+    "translation": "Kullanıcı kanal üyelikleri içe aktarılırken sorun çıktı. Ayarlar kaydedilemedi."
   },
   {
     "id": "app.import.validate_channel_import_data.create_at_zero.error",
@@ -3176,6 +3236,10 @@
     "translation": "Doğrudan kanal üye listesinde çok fazla sayıda öge var"
   },
   {
+    "id": "app.import.validate_direct_channel_import_data.unknown_favoriter.error",
+    "translation": "Doğrudan kanal yalnız üyeleri tarafından sık kullanılanlara eklenebilir. \"{{.Username}}\" bir üye değil."
+  },
+  {
     "id": "app.import.validate_direct_post_import_data.channel_members_required.error",
     "translation": "Zorunlu doğrudan kanal özelliği eksik: kanal_uyeleri"
   },
@@ -3202,6 +3266,10 @@
   {
     "id": "app.import.validate_direct_post_import_data.message_missing.error",
     "translation": "Zorunlu doğrudan ileti özelliği eksik: ileti"
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.unknown_flagger.error",
+    "translation": "Doğrudan ileti yalnız kanal üyeleri tarafından işaretlenebilir. \"{{.Username}}\" bir üye değil."
   },
   {
     "id": "app.import.validate_direct_post_import_data.user_missing.error",
@@ -3372,6 +3440,14 @@
     "translation": "Takım Ekleme"
   },
   {
+    "id": "authentication.permissions.manage_jobs.description",
+    "translation": "Görevleri yönetebilme"
+  },
+  {
+    "id": "authentication.permissions.manage_jobs.name",
+    "translation": "Görev Yönetimi"
+  },
+  {
     "id": "authentication.permissions.manage_team_roles.description",
     "translation": "Bir takım üyesinin rollerini değiştirme izni"
   },
@@ -3496,6 +3572,42 @@
     "translation": "'{{.JobName}}' görevi için '{{.FilePath}}' konumuna uygunluk dışa aktarma işlemi başlatıldı"
   },
   {
+    "id": "ent.elasticsearch.create_client.connect_failed",
+    "translation": "ElasticSearch İstemcisi Kurulamadı"
+  },
+  {
+    "id": "ent.elasticsearch.create_index_if_not_exists.index_create_failed",
+    "translation": "ElasticSearch dizini oluşturulamadı"
+  },
+  {
+    "id": "ent.elasticsearch.create_index_if_not_exists.index_exists_failed",
+    "translation": "ElasticSearch dizininin var olup olmadığı anlaşılamadı"
+  },
+  {
+    "id": "ent.elasticsearch.create_index_if_not_exists.index_mapping_failed",
+    "translation": "ElasticSearch dizin eşleştirmesi kurulamadı"
+  },
+  {
+    "id": "ent.elasticsearch.delete_post.error",
+    "translation": "İleti silinemedi"
+  },
+  {
+    "id": "ent.elasticsearch.generic.disabled",
+    "translation": "ElasticSearch araması bu sunucu üzerinde etkinleştirilmemiş"
+  },
+  {
+    "id": "ent.elasticsearch.index_post.error",
+    "translation": "İleti dizine eklenemedi"
+  },
+  {
+    "id": "ent.elasticsearch.not_started.error",
+    "translation": "Elasticsearch başlatılmamış"
+  },
+  {
+    "id": "ent.elasticsearch.purge_indexes.delete_failed",
+    "translation": "ElasticSearch dizini silinemedi"
+  },
+  {
     "id": "ent.elasticsearch.search_posts.disabled",
     "translation": "ElasticSearch searching is disabled on this server"
   },
@@ -3508,24 +3620,12 @@
     "translation": "Failed to decode search results"
   },
   {
-    "id": "ent.elasticsearch.start.connect_failed",
-    "translation": "Setting up ElasticSearch Client Failed"
-  },
-  {
-    "id": "ent.elasticsearch.start.index_create_failed",
-    "translation": "Failed to create ElasticSearch index"
-  },
-  {
-    "id": "ent.elasticsearch.start.index_exists_failed",
-    "translation": "Failed to establish whether ElasticSearch index exists"
-  },
-  {
-    "id": "ent.elasticsearch.start.index_mapping_failed",
-    "translation": "Failed to setup ElasticSearch index mapping"
-  },
-  {
     "id": "ent.elasticsearch.start.index_settings_failed",
     "translation": "Failed to set ElasticSearch index settings"
+  },
+  {
+    "id": "ent.elasticsearch.test_config.connect_failed",
+    "translation": "Elasticsearch sunucusuna bağlanılamadı."
   },
   {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
@@ -3534,6 +3634,10 @@
   {
     "id": "ent.elasticsearch.test_config.license.error",
     "translation": "Lisansta Elasticsearch desteklenmiyor."
+  },
+  {
+    "id": "ent.elasticsearch.test_config.reenter_password",
+    "translation": "Elasticsearch sunucusunun adresi ya da Kullanıcı Adı değişmiş. Bağlantıyı sınamak için lütfen Elasticsearch parolasını yeniden yazın."
   },
   {
     "id": "ent.emoji.licence_disable.app_error",
@@ -3746,6 +3850,14 @@
   {
     "id": "error.not_found.title",
     "translation": "Sayfa bulunamadı"
+  },
+  {
+    "id": "jobs.request_cancellation.status.error",
+    "translation": "İş durumu iptal edilebilir olmadığından iptal isteğinde bulunulamadı."
+  },
+  {
+    "id": "jobs.set_job_error.update.error",
+    "translation": "İş durumu hata olarak ayarlanamadı"
   },
   {
     "id": "manaultesting.get_channel_id.no_found.debug",
@@ -4434,6 +4546,22 @@
   {
     "id": "model.incoming_hook.user_id.app_error",
     "translation": "Kullanıcı kodu geçersiz"
+  },
+  {
+    "id": "model.job.is_valid.create_at.app_error",
+    "translation": "Oluşturulma zamanı geçerli bir zaman olmalıdır"
+  },
+  {
+    "id": "model.job.is_valid.id.app_error",
+    "translation": "Görev kodu geçersiz"
+  },
+  {
+    "id": "model.job.is_valid.status.app_error",
+    "translation": "Görev durumu geçersiz"
+  },
+  {
+    "id": "model.job.is_valid.type.app_error",
+    "translation": "Görev türü geçersiz"
   },
   {
     "id": "model.oauth.is_valid.app_id.app_error",
@@ -5296,24 +5424,24 @@
     "translation": "We couldn't save or update the file info"
   },
   {
-    "id": "store.sql_job_status.delete_by_type.app_error",
-    "translation": "We couldn't delete the job status"
+    "id": "store.sql_job.delete.app_error",
+    "translation": "İş silinemedi"
   },
   {
-    "id": "store.sql_job_status.get.app_error",
-    "translation": "We couldn't get the job status"
+    "id": "store.sql_job.get.app_error",
+    "translation": "İş alınamadı"
   },
   {
-    "id": "store.sql_job_status.get_all.app_error",
-    "translation": "We couldn't get all job statuses"
+    "id": "store.sql_job.get_all.app_error",
+    "translation": "İşler alınamadı"
   },
   {
-    "id": "store.sql_job_status.save.app_error",
-    "translation": "We couldn't save the job status"
+    "id": "store.sql_job.save.app_error",
+    "translation": "İş kaydedilemedi"
   },
   {
-    "id": "store.sql_job_status.update.app_error",
-    "translation": "We couldn't update the job status"
+    "id": "store.sql_job.update.app_error",
+    "translation": "İş güncellenemedi"
   },
   {
     "id": "store.sql_license.get.app_error",
@@ -5462,6 +5590,10 @@
   {
     "id": "store.sql_post.get_posts_around.get_parent.app_error",
     "translation": "Kanalın üst iletileri alınamadı"
+  },
+  {
+    "id": "store.sql_post.get_posts_batch_for_indexing.get.app_error",
+    "translation": "Dizine eklenecek ileti yığını alınamadı"
   },
   {
     "id": "store.sql_post.get_posts_by_ids.app_error",
