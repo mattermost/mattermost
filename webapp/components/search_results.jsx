@@ -14,6 +14,8 @@ import * as Utils from 'utils/utils.jsx';
 import Constants from 'utils/constants.jsx';
 const Preferences = Constants.Preferences;
 
+import loadingGif from 'images/load.gif';
+
 import $ from 'jquery';
 import PropTypes from 'prop-types';
 import React from 'react';
@@ -39,7 +41,8 @@ function getStateFromStores() {
         results,
         channels,
         searchTerm: SearchStore.getSearchTerm(),
-        flaggedPosts: PreferenceStore.getCategory(Constants.Preferences.CATEGORY_FLAGGED_POST)
+        flaggedPosts: PreferenceStore.getCategory(Constants.Preferences.CATEGORY_FLAGGED_POST),
+        loading: SearchStore.isLoading()
     };
 }
 
@@ -65,7 +68,6 @@ export default class SearchResults extends React.Component {
         state.compactDisplay = PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.MESSAGE_DISPLAY, Preferences.MESSAGE_DISPLAY_DEFAULT) === Preferences.MESSAGE_DISPLAY_COMPACT;
         state.isBusy = WebrtcStore.isBusy();
         state.statuses = Object.assign({}, UserStore.getStatuses());
-        state.loading = true;
         this.state = state;
     }
 
@@ -186,7 +188,17 @@ export default class SearchResults extends React.Component {
 
         var ctls = null;
 
-        if (this.props.isFlaggedPosts && noResults) {
+        if (this.state.loading) {
+            ctls =
+            (
+                <div className='sidebar--right__subheader loading'>
+                    <img
+                        className='spinner'
+                        src={loadingGif}
+                    />
+                </div>
+            );
+        } else if (this.props.isFlaggedPosts && noResults) {
             ctls = (
                 <div className='sidebar--right__subheader'>
                     <ul>

@@ -42,10 +42,6 @@
     width: 40px;
 }
 
-.search-form__container {
-
-}
-
 .search__form {
     position: relative;
 
@@ -91,6 +87,14 @@
     overflow: auto;
     padding-top: 10px;
     position: relative;
+}
+
+.search-items-container div.loading {
+    text-align: center;
+}
+
+.search-items-container img {
+    display: inline-block;
 }
 
 .search-results-header {

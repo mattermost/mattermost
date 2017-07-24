@@ -24,6 +24,7 @@ class SearchStoreClass extends EventEmitter {
         this.isPinnedPosts = false;
         this.isVisible = false;
         this.searchTerm = '';
+        this.loading = false;
     }
 
     emitChange() {
@@ -157,6 +158,14 @@ class SearchStoreClass extends EventEmitter {
             results.order.splice(index, 1);
         }
     }
+
+    setLoading(loading) {
+        this.loading = loading;
+    }
+
+    isLoading() {
+        return this.loading;
+    }
 }
 
 var SearchStore = new SearchStoreClass();
@@ -173,10 +182,17 @@ SearchStore.dispatchToken = AppDispatcher.register((payload) => {
             // ignore pin posts update after switch to a new channel
             return;
         }
+        SearchStore.setLoading(false)
         SearchStore.storeSearchResults(action.results, action.is_mention_search, action.is_flagged_posts, action.is_pinned_posts);
         SearchStore.emitSearchChange();
         break;
     case ActionTypes.RECEIVED_SEARCH_TERM:
+        if (action.do_search) {
+            // while a search is in progress, hide results from previous search
+            SearchStore.setLoading(true);
+            SearchStore.storeSearchResults(null, false, false, false);
+            SearchStore.emitSearchChange();
+        }
         SearchStore.storeSearchTerm(action.term);
         SearchStore.emitSearchTermChange(action.do_search, action.is_mention_search);
         break;

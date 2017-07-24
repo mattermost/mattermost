@@ -70,7 +70,7 @@ export default class SearchResultsHeader extends React.Component {
         if (this.props.isLoading) {
             title = (
                 <FormattedMessage
-                    id='' //TODO: need internationalization
+                    id='search_header.loading'
                     defaultMessage='Loading...'
                 />
             );
