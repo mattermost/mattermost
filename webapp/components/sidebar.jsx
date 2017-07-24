@@ -827,13 +827,23 @@ export default class Sidebar extends React.Component {
             );
         }
 
-        const quickSwitchText = 'channel_switch_modal.title';
+        let quickSwitchTextShortcut = '';
+        if (!Utils.isMobile()) {
+            let quickSwitchTextShortcutId = 'quick_switch_modal.channelsShortcut.windows';
+            let quickSwitchTextShortcutDefault = '- CTRL+K';
+            if (Utils.isMac()) {
+                quickSwitchTextShortcutId = 'quick_switch_modal.channelsShortcut.mac';
+                quickSwitchTextShortcutDefault = '- ⌘K';
+            }
 
-        let quickSwitchTextShortcut = 'quick_switch_modal.channelsShortcut.windows';
-        let quickSwitchDefault = '- CTRL+K';
-        if (Utils.isMac()) {
-            quickSwitchTextShortcut = 'quick_switch_modal.channelsShortcut.mac';
-            quickSwitchDefault = '- ⌘K';
+            quickSwitchTextShortcut = (
+                <span className='switch__shortcut'>
+                    <FormattedMessage
+                        id={quickSwitchTextShortcutId}
+                        defaultMessage={quickSwitchTextShortcutDefault}
+                    />
+                </span>
+            );
         }
 
         return (
@@ -946,15 +956,10 @@ export default class Sidebar extends React.Component {
                             dangerouslySetInnerHTML={{__html: switchChannelIcon}}
                         />
                         <FormattedMessage
-                            id={quickSwitchText}
+                            id={'channel_switch_modal.title'}
                             defaultMessage='Switch Channels'
                         />
-                        <span className='switch__shortcut'>
-                            <FormattedMessage
-                                id={quickSwitchTextShortcut}
-                                defaultMessage={quickSwitchDefault}
-                            />
-                        </span>
+                        {quickSwitchTextShortcut}
                     </button>
                 </div>
             </div>
