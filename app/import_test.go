@@ -53,6 +53,30 @@ func checkPreference(t *testing.T, userId string, category string, name string, 
 	}
 }
 
+func checkNotifyProp(t *testing.T, user *model.User, key string, value string) {
+	if actual, ok := user.NotifyProps[key]; !ok {
+		debug.PrintStack()
+		t.Fatalf("Notify prop %v not found. User: %v", key, user.Id)
+	} else if actual != value {
+		debug.PrintStack()
+		t.Fatalf("Notify Prop %v was %v but expected %v. User: %v", key, actual, value, user.Id)
+	}
+}
+
+func checkError(t *testing.T, err *model.AppError) {
+	if err == nil {
+		debug.PrintStack()
+		t.Fatal("Should have returned an error.")
+	}
+}
+
+func checkNoError(t *testing.T, err *model.AppError) {
+	if err != nil {
+		debug.PrintStack()
+		t.Fatalf("Unexpected Error: %v", err.Error())
+	}
+}
+
 func TestImportValidateTeamImportData(t *testing.T) {
 
 	// Test with minimum required valid properties.
@@ -392,6 +416,44 @@ func TestImportValidateUserImportData(t *testing.T) {
 		t.Fatal("Validation failed but should have been valid.")
 	}
 	data.Roles = ptrStr("system_user")
+
+	// Try various valid/invalid notify props.
+	data.NotifyProps = &UserNotifyPropsImportData{}
+
+	data.NotifyProps.Desktop = ptrStr("invalid")
+	checkError(t, validateUserImportData(&data))
+
+	data.NotifyProps.Desktop = ptrStr(model.USER_NOTIFY_ALL)
+	data.NotifyProps.DesktopDuration = ptrStr("invalid")
+	checkError(t, validateUserImportData(&data))
+
+	data.NotifyProps.DesktopDuration = ptrStr("5")
+	data.NotifyProps.DesktopSound = ptrStr("invalid")
+	checkError(t, validateUserImportData(&data))
+
+	data.NotifyProps.DesktopSound = ptrStr("true")
+	data.NotifyProps.Email = ptrStr("invalid")
+	checkError(t, validateUserImportData(&data))
+
+	data.NotifyProps.Email = ptrStr("true")
+	data.NotifyProps.Mobile = ptrStr("invalid")
+	checkError(t, validateUserImportData(&data))
+
+	data.NotifyProps.Mobile = ptrStr(model.USER_NOTIFY_ALL)
+	data.NotifyProps.MobilePushStatus = ptrStr("invalid")
+	checkError(t, validateUserImportData(&data))
+
+	data.NotifyProps.MobilePushStatus = ptrStr(model.STATUS_ONLINE)
+	data.NotifyProps.ChannelTrigger = ptrStr("invalid")
+	checkError(t, validateUserImportData(&data))
+
+	data.NotifyProps.ChannelTrigger = ptrStr("true")
+	data.NotifyProps.CommentsTrigger = ptrStr("invalid")
+	checkError(t, validateUserImportData(&data))
+
+	data.NotifyProps.CommentsTrigger = ptrStr(model.COMMENTS_NOTIFY_ROOT)
+	data.NotifyProps.MentionKeys = ptrStr("valid")
+	checkNoError(t, validateUserImportData(&data))
 }
 
 func TestImportValidateUserTeamsImportData(t *testing.T) {
@@ -481,14 +543,21 @@ func TestImportValidateUserChannelsImportData(t *testing.T) {
 		t.Fatal("Should have failed with invalid desktop notify props.")
 	}
 
-	// Invalid desktop notify props.
+	// Invalid mobile notify props.
 	data[0].NotifyProps.Desktop = ptrStr("mention")
+	data[0].NotifyProps.Mobile = ptrStr("invalid")
+	if err := validateUserChannelsImportData(&data); err == nil {
+		t.Fatal("Should have failed with invalid mobile notify props.")
+	}
+
+	// Invalid mark_unread notify props.
+	data[0].NotifyProps.Mobile = ptrStr("mention")
 	data[0].NotifyProps.MarkUnread = ptrStr("invalid")
 	if err := validateUserChannelsImportData(&data); err == nil {
 		t.Fatal("Should have failed with invalid mark_unread notify props.")
 	}
 
-	// Empty notify props.
+	// Valid notify props.
 	data[0].NotifyProps.MarkUnread = ptrStr("mention")
 	if err := validateUserChannelsImportData(&data); err != nil {
 		t.Fatal("Should have succeeded with valid notify props.")
@@ -1621,7 +1690,7 @@ func TestImportImportUser(t *testing.T) {
 	// Check channel member properties.
 	if channelMember, err := GetChannelMember(channel.Id, user.Id); err != nil {
 		t.Fatalf("Failed to get channel member from database.")
-	} else if channelMember.Roles != "channel_user" || channelMember.NotifyProps[model.DESKTOP_NOTIFY_PROP] != "default" || channelMember.NotifyProps[model.MARK_UNREAD_NOTIFY_PROP] != "all" {
+	} else if channelMember.Roles != "channel_user" || channelMember.NotifyProps[model.DESKTOP_NOTIFY_PROP] != "default" || channelMember.NotifyProps[model.PUSH_NOTIFY_PROP] != "default" || channelMember.NotifyProps[model.MARK_UNREAD_NOTIFY_PROP] != "all" {
 		t.Fatalf("Channel member properties not as expected")
 	}
 
@@ -1636,6 +1705,7 @@ func TestImportImportUser(t *testing.T) {
 					Roles: ptrStr("channel_user channel_admin"),
 					NotifyProps: &UserChannelNotifyPropsImportData{
 						Desktop:    ptrStr(model.USER_NOTIFY_MENTION),
+						Mobile:     ptrStr(model.USER_NOTIFY_MENTION),
 						MarkUnread: ptrStr(model.USER_NOTIFY_MENTION),
 					},
 					Favorite: ptrBool(true),
@@ -1656,7 +1726,7 @@ func TestImportImportUser(t *testing.T) {
 
 	if channelMember, err := GetChannelMember(channel.Id, user.Id); err != nil {
 		t.Fatalf("Failed to get channel member Desktop from database.")
-	} else if channelMember.Roles != "channel_user channel_admin" && channelMember.NotifyProps[model.DESKTOP_NOTIFY_PROP] == model.USER_NOTIFY_MENTION && channelMember.NotifyProps[model.MARK_UNREAD_NOTIFY_PROP] == model.USER_NOTIFY_MENTION {
+	} else if channelMember.Roles != "channel_user channel_admin" || channelMember.NotifyProps[model.DESKTOP_NOTIFY_PROP] != model.USER_NOTIFY_MENTION || channelMember.NotifyProps[model.PUSH_NOTIFY_PROP] != model.USER_NOTIFY_MENTION || channelMember.NotifyProps[model.MARK_UNREAD_NOTIFY_PROP] != model.USER_NOTIFY_MENTION {
 		t.Fatalf("Channel member properties not as expected")
 	}
 
@@ -1726,6 +1796,105 @@ func TestImportImportUser(t *testing.T) {
 	checkPreference(t, user.Id, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, "message_display", *data.MessageDisplay)
 	checkPreference(t, user.Id, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, "channel_display_mode", *data.ChannelDisplayMode)
 	checkPreference(t, user.Id, model.PREFERENCE_CATEGORY_TUTORIAL_STEPS, user.Id, *data.TutorialStep)
+
+	// Set Notify Props
+	data.NotifyProps = &UserNotifyPropsImportData{
+		Desktop:          ptrStr(model.USER_NOTIFY_ALL),
+		DesktopDuration:  ptrStr("5"),
+		DesktopSound:     ptrStr("true"),
+		Email:            ptrStr("true"),
+		Mobile:           ptrStr(model.USER_NOTIFY_ALL),
+		MobilePushStatus: ptrStr(model.STATUS_ONLINE),
+		ChannelTrigger:   ptrStr("true"),
+		CommentsTrigger:  ptrStr(model.COMMENTS_NOTIFY_ROOT),
+		MentionKeys:      ptrStr("valid,misc"),
+	}
+	if err := ImportUser(&data, false); err != nil {
+		t.Fatalf("Should have succeeded.")
+	}
+
+	user, err = GetUserByUsername(username)
+	if err != nil {
+		t.Fatalf("Failed to get user from database.")
+	}
+
+	checkNotifyProp(t, user, model.DESKTOP_NOTIFY_PROP, model.USER_NOTIFY_ALL)
+	checkNotifyProp(t, user, model.DESKTOP_DURATION_NOTIFY_PROP, "5")
+	checkNotifyProp(t, user, model.DESKTOP_SOUND_NOTIFY_PROP, "true")
+	checkNotifyProp(t, user, model.EMAIL_NOTIFY_PROP, "true")
+	checkNotifyProp(t, user, model.PUSH_NOTIFY_PROP, model.USER_NOTIFY_ALL)
+	checkNotifyProp(t, user, model.PUSH_STATUS_NOTIFY_PROP, model.STATUS_ONLINE)
+	checkNotifyProp(t, user, model.CHANNEL_MENTIONS_NOTIFY_PROP, "true")
+	checkNotifyProp(t, user, model.COMMENTS_NOTIFY_PROP, model.COMMENTS_NOTIFY_ROOT)
+	checkNotifyProp(t, user, model.MENTION_KEYS_NOTIFY_PROP, "valid,misc")
+
+	// Change Notify Props
+	data.NotifyProps = &UserNotifyPropsImportData{
+		Desktop:          ptrStr(model.USER_NOTIFY_MENTION),
+		DesktopDuration:  ptrStr("3"),
+		DesktopSound:     ptrStr("false"),
+		Email:            ptrStr("false"),
+		Mobile:           ptrStr(model.USER_NOTIFY_NONE),
+		MobilePushStatus: ptrStr(model.STATUS_AWAY),
+		ChannelTrigger:   ptrStr("false"),
+		CommentsTrigger:  ptrStr(model.COMMENTS_NOTIFY_ANY),
+		MentionKeys:      ptrStr("misc"),
+	}
+	if err := ImportUser(&data, false); err != nil {
+		t.Fatalf("Should have succeeded.")
+	}
+
+	user, err = GetUserByUsername(username)
+	if err != nil {
+		t.Fatalf("Failed to get user from database.")
+	}
+
+	checkNotifyProp(t, user, model.DESKTOP_NOTIFY_PROP, model.USER_NOTIFY_MENTION)
+	checkNotifyProp(t, user, model.DESKTOP_DURATION_NOTIFY_PROP, "3")
+	checkNotifyProp(t, user, model.DESKTOP_SOUND_NOTIFY_PROP, "false")
+	checkNotifyProp(t, user, model.EMAIL_NOTIFY_PROP, "false")
+	checkNotifyProp(t, user, model.PUSH_NOTIFY_PROP, model.USER_NOTIFY_NONE)
+	checkNotifyProp(t, user, model.PUSH_STATUS_NOTIFY_PROP, model.STATUS_AWAY)
+	checkNotifyProp(t, user, model.CHANNEL_MENTIONS_NOTIFY_PROP, "false")
+	checkNotifyProp(t, user, model.COMMENTS_NOTIFY_PROP, model.COMMENTS_NOTIFY_ANY)
+	checkNotifyProp(t, user, model.MENTION_KEYS_NOTIFY_PROP, "misc")
+
+	// Check Notify Props get set on *create* user.
+	username = model.NewId()
+	data = UserImportData{
+		Username:           &username,
+		Email:              ptrStr(model.NewId() + "@example.com"),
+	}
+	data.NotifyProps = &UserNotifyPropsImportData{
+		Desktop:          ptrStr(model.USER_NOTIFY_MENTION),
+		DesktopDuration:  ptrStr("3"),
+		DesktopSound:     ptrStr("false"),
+		Email:            ptrStr("false"),
+		Mobile:           ptrStr(model.USER_NOTIFY_NONE),
+		MobilePushStatus: ptrStr(model.STATUS_AWAY),
+		ChannelTrigger:   ptrStr("false"),
+		CommentsTrigger:  ptrStr(model.COMMENTS_NOTIFY_ANY),
+		MentionKeys:      ptrStr("misc"),
+	}
+
+	if err := ImportUser(&data, false); err != nil {
+		t.Fatalf("Should have succeeded.")
+	}
+
+	user, err = GetUserByUsername(username)
+	if err != nil {
+		t.Fatalf("Failed to get user from database.")
+	}
+
+	checkNotifyProp(t, user, model.DESKTOP_NOTIFY_PROP, model.USER_NOTIFY_MENTION)
+	checkNotifyProp(t, user, model.DESKTOP_DURATION_NOTIFY_PROP, "3")
+	checkNotifyProp(t, user, model.DESKTOP_SOUND_NOTIFY_PROP, "false")
+	checkNotifyProp(t, user, model.EMAIL_NOTIFY_PROP, "false")
+	checkNotifyProp(t, user, model.PUSH_NOTIFY_PROP, model.USER_NOTIFY_NONE)
+	checkNotifyProp(t, user, model.PUSH_STATUS_NOTIFY_PROP, model.STATUS_AWAY)
+	checkNotifyProp(t, user, model.CHANNEL_MENTIONS_NOTIFY_PROP, "false")
+	checkNotifyProp(t, user, model.COMMENTS_NOTIFY_PROP, model.COMMENTS_NOTIFY_ANY)
+	checkNotifyProp(t, user, model.MENTION_KEYS_NOTIFY_PROP, "misc")
 }
 
 func AssertAllPostsCount(t *testing.T, initialCount int64, change int64, teamName string) {
