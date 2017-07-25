@@ -39,7 +39,7 @@ func (me *LeaveProvider) DoCommand(args *model.CommandArgs, message string) *mod
 		return &model.CommandResponse{Text: args.T("api.command_leave.fail.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 	}
 	if channel.Name == model.DEFAULT_CHANNEL {
-		return &model.CommandResponse{Text: args.T("api.channel.remove.default.app_error", map[string]interface{}{"Channel": model.DEFAULT_CHANNEL}), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+		return &model.CommandResponse{Text: args.T("api.channel.leave.default.app_error", map[string]interface{}{"Channel": model.DEFAULT_CHANNEL}), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 	}
 	err := LeaveChannel(args.ChannelId, args.UserId)
 	if err != nil {
@@ -48,7 +48,7 @@ func (me *LeaveProvider) DoCommand(args *model.CommandArgs, message string) *mod
 
 	team, err := GetTeam(args.TeamId)
 	if err != nil {
-		return &model.CommandResponse{Text: args.T("api.command_join.fail.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+		return &model.CommandResponse{Text: args.T("api.command_leave.fail.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 	}
 
 	return &model.CommandResponse{GotoLocation: args.SiteURL + "/" + team.Name + "/channels/" + model.DEFAULT_CHANNEL, Text: args.T("api.command_leave.success"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}

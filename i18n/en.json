@@ -693,7 +693,7 @@
   },
   {
     "id": "api.command_leave.desc",
-    "translation": "Leave the current channel."
+    "translation": "Leave the current channel"
   },
   {
     "id": "api.command_leave.fail.app_error",
