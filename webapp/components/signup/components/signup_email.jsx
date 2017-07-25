@@ -40,7 +40,7 @@ export default class SignupEmail extends React.Component {
         this.state = this.getInviteInfo();
     }
 
-    componentDidMount() {
+    static componentDidMount() {
         trackEvent('signup', 'signup_user_01_welcome');
     }
 
@@ -138,7 +138,10 @@ export default class SignupEmail extends React.Component {
                 if (err.id === 'api.user.login.not_verified.app_error') {
                     browserHistory.push('/should_verify_email?email=' + encodeURIComponent(user.email) + '&teamname=' + encodeURIComponent(this.state.teamName));
                 } else {
-                    this.setState({serverError: err.message});
+                    this.setState({
+                        serverError: err.message,
+                        isSubmitting: false
+                    });
                 }
             }
         );
@@ -222,12 +225,18 @@ export default class SignupEmail extends React.Component {
     handleSubmit(e) {
         e.preventDefault();
 
+        // bail out if a submission is already in progress
+        if (this.state.isSubmitting) {
+            return;
+        }
+
         if (this.isUserValid()) {
             this.setState({
                 nameError: '',
                 emailError: '',
                 passwordError: '',
-                serverError: ''
+                serverError: '',
+                isSubmitting: true
             });
 
             const user = {
@@ -243,7 +252,10 @@ export default class SignupEmail extends React.Component {
                 this.state.inviteId,
                 this.handleSignupSuccess.bind(this, user),
                 (err) => {
-                    this.setState({serverError: err.message});
+                    this.setState({
+                        serverError: err.message,
+                        isSubmitting: false
+                    });
                 }
             );
         }
@@ -388,6 +400,7 @@ export default class SignupEmail extends React.Component {
                             type='submit'
                             onClick={this.handleSubmit}
                             className='btn-primary btn'
+                            disabled={this.state.isSubmitting}
                         >
                             <FormattedMessage
                                 id='signup_user_completed.create'
