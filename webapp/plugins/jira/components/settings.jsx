@@ -103,6 +103,7 @@ export default class JIRASettings extends AdminSettings {
 
         this.getConfigFromState = this.getConfigFromState.bind(this);
         this.renderSettings = this.renderSettings.bind(this);
+        this.handleSecretChange = this.handleSecretChange.bind(this);
         this.handleEnabledChange = this.handleEnabledChange.bind(this);
         this.handleUserSelected = this.handleUserSelected.bind(this);
 
@@ -140,6 +141,10 @@ export default class JIRASettings extends AdminSettings {
         return ret;
     }
 
+    handleSecretChange(id, secret) {
+        this.handleChange(id, secret.replace('+', '-').replace('/', '_'));
+    }
+
     handleEnabledChange(enabled) {
         if (enabled && this.state.secret === '') {
             this.state.secret = crypto.randomBytes(256).toString('base64').substring(0, 32);
@@ -170,7 +175,7 @@ export default class JIRASettings extends AdminSettings {
                     label={Utils.localizeMessage('admin.plugins.jira.secretLabel', 'Secret:')}
                     helpText={Utils.localizeMessage('admin.plugins.jira.secretDescription', 'This secret is used to authenticate JIRA. Changing it will invalidate your existing JIRA integrations.')}
                     value={this.state.secret}
-                    onChange={this.handleChange}
+                    onChange={this.handleSecretChange}
                     disabled={!this.state.enabled}
                 />
                 <Setting
@@ -197,7 +202,7 @@ export default class JIRASettings extends AdminSettings {
                         <p>
                             <FormattedMessage
                                 id='admin.plugins.jira.setupDescription'
-                                defaultMessage='Once a secret and user are configured, you can complete your JIRA integration by adding issue-created/updated/deleted webhooks in one of these forms to your projects in JIRA:'
+                                defaultMessage='Once a secret and user are configured, you can complete your JIRA integration by adding an issue-created/updated/deleted webhook in this form to your projects in JIRA:'
                             />
                         </p>
                         <p>
@@ -210,18 +215,6 @@ export default class JIRASettings extends AdminSettings {
                                         Utils.localizeMessage('admin.plugins.jira.teamParamPlaceholder', 'teamname') +
                                         '</b>&channel=<b>' +
                                         Utils.localizeMessage('admin.plugins.jira.channelParamNamePlaceholder', 'channelname') +
-                                        '</b>'
-                                }}
-                            />
-                        </p>
-                        <p>
-                            <code
-                                dangerouslySetInnerHTML={{
-                                    __html: encodeURI(this.state.siteURL) +
-                                        '/plugins/jira/webhook?secret=' +
-                                        (this.state.secret ? encodeURIComponent(this.state.secret) : ('<b>' + Utils.localizeMessage('admin.plugins.jira.secretParamPlaceholder', 'secret') + '</b>')) +
-                                        '&channel=%40<b>' +
-                                        Utils.localizeMessage('admin.plugins.jira.channelParamUserPlaceholder', 'username') +
                                         '</b>'
                                 }}
                             />

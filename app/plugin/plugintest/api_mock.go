@@ -59,10 +59,10 @@ func (m *APIMock) GetDirectChannel(userId1, userId2 string) (*model.Channel, *mo
 	return ret.Get(0).(*model.Channel), ret.Get(1).(*model.AppError)
 }
 
-func (m *APIMock) CreatePost(teamId, userId, channelId, text string) (*model.Post, *model.AppError) {
-	ret := m.Called(teamId, userId, channelId, text)
-	if f, ok := ret.Get(0).(func(string, string, string, string) (*model.Post, *model.AppError)); ok {
-		return f(teamId, userId, channelId, text)
+func (m *APIMock) CreatePost(post *model.Post, teamId string) (*model.Post, *model.AppError) {
+	ret := m.Called(post, teamId)
+	if f, ok := ret.Get(0).(func(*model.Post, string) (*model.Post, *model.AppError)); ok {
+		return f(post, teamId)
 	}
 	return ret.Get(0).(*model.Post), ret.Get(1).(*model.AppError)
 }

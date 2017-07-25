@@ -98,15 +98,6 @@ func TestHandleWebhook(t *testing.T) {
 			Request:            httptest.NewRequest("POST", "/webhook?team=theteam&channel=thechannel&secret=thesecret", validRequestBody()),
 			ExpectedStatusCode: http.StatusOK,
 		},
-		"valid dm request": {
-			Configuration: Configuration{
-				Enabled:  true,
-				Secret:   "thesecret",
-				UserName: "theuser",
-			},
-			Request:            httptest.NewRequest("POST", "/webhook?channel=@theotheruser&secret=thesecret", validRequestBody()),
-			ExpectedStatusCode: http.StatusOK,
-		},
 		"create post error": {
 			Configuration: Configuration{
 				Enabled:  true,
@@ -146,16 +137,14 @@ func TestHandleWebhook(t *testing.T) {
 		api.On("GetTeamByName", "nottheteam").Return((*model.Team)(nil), model.NewAppError("foo", "bar", nil, "", http.StatusBadRequest))
 
 		api.On("GetChannelByName", "theteamid", "thechannel").Run(func(args mock.Arguments) {
-			api.On("CreatePost", "theteamid", "theuserid", "thechannelid", expectedText).Return(&model.Post{}, tc.CreatePostError)
+			api.On("CreatePost", mock.AnythingOfType("*model.Post"), "theteamid").Return(func(post *model.Post, teamId string) (*model.Post, *model.AppError) {
+				assert.Equal(t, post.ChannelId, "thechannelid")
+				assert.Equal(t, post.Message, expectedText)
+				return &model.Post{}, tc.CreatePostError
+			})
 		}).Return(&model.Channel{
 			Id:     "thechannelid",
 			TeamId: "theteamid",
-		}, (*model.AppError)(nil))
-
-		api.On("GetDirectChannel", "theuserid", "theotheruserid").Run(func(args mock.Arguments) {
-			api.On("CreatePost", "", "theuserid", "thedmchannelid", expectedText).Return(&model.Post{}, tc.CreatePostError)
-		}).Return(&model.Channel{
-			Id: "thedmchannelid",
 		}, (*model.AppError)(nil))
 
 		api.On("GetChannelByName", "theteamid", "notthechannel").Return((*model.Channel)(nil), model.NewAppError("foo", "bar", nil, "", http.StatusBadRequest))

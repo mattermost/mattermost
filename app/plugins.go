@@ -47,13 +47,8 @@ func (api *PluginAPI) GetDirectChannel(userId1, userId2 string) (*model.Channel,
 	return GetDirectChannel(userId1, userId2)
 }
 
-func (api *PluginAPI) CreatePost(teamId, userId, channelId, text string) (*model.Post, *model.AppError) {
-	return CreatePost(&model.Post{
-		ChannelId: channelId,
-		Message:   text,
-		Type:      model.POST_DEFAULT,
-		UserId:    userId,
-	}, teamId, true)
+func (api *PluginAPI) CreatePost(post *model.Post, teamId string) (*model.Post, *model.AppError) {
+	return CreatePost(post, teamId, true)
 }
 
 func (api *PluginAPI) I18n(id string, r *http.Request) string {

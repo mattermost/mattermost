@@ -45,56 +45,31 @@ func (p *Plugin) handleWebhook(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var userId string
-	var text string
 	var webhook Webhook
 
 	if err := json.NewDecoder(r.Body).Decode(&webhook); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	} else if text, err = webhook.PostText(); err != nil {
+	} else if text, err := webhook.PostText(); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
 	} else if text == "" {
 		return
-	}
-
-	channelParam := r.URL.Query().Get("channel")
-	if channelParam == "" {
+	} else if r.URL.Query().Get("channel") == "" {
 		http.Error(w, "You must provide a channel.", http.StatusBadRequest)
-		return
-	}
-
-	if user, err := p.api.GetUserByName(config.UserName); err != nil {
+	} else if user, err := p.api.GetUserByName(config.UserName); err != nil {
 		http.Error(w, p.api.I18n(err.Message, r), err.StatusCode)
-		return
-	} else {
-		userId = user.Id
-	}
-
-	var channel *model.Channel
-
-	if channelParam[0] == '@' {
-		if user2, err := p.api.GetUserByName(channelParam[1:]); err != nil {
-			http.Error(w, p.api.I18n(err.Message, r), err.StatusCode)
-			return
-		} else if c, err := p.api.GetDirectChannel(userId, user2.Id); err != nil {
-			http.Error(w, p.api.I18n(err.Message, r), err.StatusCode)
-			return
-		} else {
-			channel = c
-		}
 	} else if team, err := p.api.GetTeamByName(r.URL.Query().Get("team")); err != nil {
 		http.Error(w, p.api.I18n(err.Message, r), err.StatusCode)
-		return
-	} else if c, err := p.api.GetChannelByName(team.Id, channelParam); err != nil {
+	} else if channel, err := p.api.GetChannelByName(team.Id, r.URL.Query().Get("channel")); err != nil {
 		http.Error(w, p.api.I18n(err.Message, r), err.StatusCode)
-		return
-	} else {
-		channel = c
-	}
-
-	if _, err := p.api.CreatePost(channel.TeamId, userId, channel.Id, text); err != nil {
+	} else if _, err := p.api.CreatePost(&model.Post{
+		ChannelId: channel.Id,
+		Message:   text,
+		Type:      model.POST_DEFAULT,
+		UserId:    user.Id,
+		Props: map[string]interface{}{
+			"from_webhook": "true",
+		},
+	}, channel.TeamId); err != nil {
 		http.Error(w, p.api.I18n(err.Message, r), err.StatusCode)
 	}
 }
