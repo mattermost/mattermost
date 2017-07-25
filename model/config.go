@@ -423,7 +423,7 @@ type WebrtcSettings struct {
 	TurnSharedKey       *string
 }
 
-type ElasticSearchSettings struct {
+type ElasticsearchSettings struct {
 	ConnectionUrl   *string
 	Username        *string
 	Password        *string
@@ -465,7 +465,7 @@ type Config struct {
 	MetricsSettings       MetricsSettings
 	AnalyticsSettings     AnalyticsSettings
 	WebrtcSettings        WebrtcSettings
-	ElasticSearchSettings ElasticSearchSettings
+	ElasticsearchSettings ElasticsearchSettings
 	DataRetentionSettings DataRetentionSettings
 	JobSettings           JobSettings
 }
@@ -1351,34 +1351,34 @@ func (o *Config) SetDefaults() {
 		*o.ServiceSettings.ClusterLogTimeoutMilliseconds = 2000
 	}
 
-	if o.ElasticSearchSettings.ConnectionUrl == nil {
-		o.ElasticSearchSettings.ConnectionUrl = new(string)
-		*o.ElasticSearchSettings.ConnectionUrl = ""
+	if o.ElasticsearchSettings.ConnectionUrl == nil {
+		o.ElasticsearchSettings.ConnectionUrl = new(string)
+		*o.ElasticsearchSettings.ConnectionUrl = ""
 	}
 
-	if o.ElasticSearchSettings.Username == nil {
-		o.ElasticSearchSettings.Username = new(string)
-		*o.ElasticSearchSettings.Username = ""
+	if o.ElasticsearchSettings.Username == nil {
+		o.ElasticsearchSettings.Username = new(string)
+		*o.ElasticsearchSettings.Username = ""
 	}
 
-	if o.ElasticSearchSettings.Password == nil {
-		o.ElasticSearchSettings.Password = new(string)
-		*o.ElasticSearchSettings.Password = ""
+	if o.ElasticsearchSettings.Password == nil {
+		o.ElasticsearchSettings.Password = new(string)
+		*o.ElasticsearchSettings.Password = ""
 	}
 
-	if o.ElasticSearchSettings.EnableIndexing == nil {
-		o.ElasticSearchSettings.EnableIndexing = new(bool)
-		*o.ElasticSearchSettings.EnableIndexing = false
+	if o.ElasticsearchSettings.EnableIndexing == nil {
+		o.ElasticsearchSettings.EnableIndexing = new(bool)
+		*o.ElasticsearchSettings.EnableIndexing = false
 	}
 
-	if o.ElasticSearchSettings.EnableSearching == nil {
-		o.ElasticSearchSettings.EnableSearching = new(bool)
-		*o.ElasticSearchSettings.EnableSearching = false
+	if o.ElasticsearchSettings.EnableSearching == nil {
+		o.ElasticsearchSettings.EnableSearching = new(bool)
+		*o.ElasticsearchSettings.EnableSearching = false
 	}
 
-	if o.ElasticSearchSettings.Sniff == nil {
-		o.ElasticSearchSettings.Sniff = new(bool)
-		*o.ElasticSearchSettings.Sniff = true
+	if o.ElasticsearchSettings.Sniff == nil {
+		o.ElasticsearchSettings.Sniff = new(bool)
+		*o.ElasticsearchSettings.Sniff = true
 	}
 
 	if o.DataRetentionSettings.Enable == nil {
@@ -1611,13 +1611,13 @@ func (o *Config) IsValid() *AppError {
 		return NewLocAppError("Config.IsValid", "model.config.is_valid.time_between_user_typing.app_error", nil, "")
 	}
 
-	if *o.ElasticSearchSettings.EnableIndexing {
-		if len(*o.ElasticSearchSettings.ConnectionUrl) == 0 {
+	if *o.ElasticsearchSettings.EnableIndexing {
+		if len(*o.ElasticsearchSettings.ConnectionUrl) == 0 {
 			return NewLocAppError("Config.IsValid", "model.config.is_valid.elastic_search.connection_url.app_error", nil, "")
 		}
 	}
 
-	if *o.ElasticSearchSettings.EnableSearching && !*o.ElasticSearchSettings.EnableIndexing {
+	if *o.ElasticsearchSettings.EnableSearching && !*o.ElasticsearchSettings.EnableIndexing {
 		return NewLocAppError("Config.IsValid", "model.config.is_valid.elastic_search.enable_searching.app_error", nil, "")
 	}
 
@@ -1662,7 +1662,7 @@ func (o *Config) Sanitize() {
 		o.SqlSettings.DataSourceSearchReplicas[i] = FAKE_SETTING
 	}
 
-	*o.ElasticSearchSettings.Password = FAKE_SETTING
+	*o.ElasticsearchSettings.Password = FAKE_SETTING
 }
 
 func (o *Config) defaultWebrtcSettings() {

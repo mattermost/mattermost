@@ -3585,11 +3585,11 @@
   },
   {
     "id": "ent.elasticsearch.search_posts.disabled",
-    "translation": "ElasticSearch searching is disabled on this server"
+    "translation": "Elasticsearch searching is disabled on this server"
   },
   {
     "id": "ent.elasticsearch.generic.disabled",
-    "translation": "ElasticSearch search is not enabled on this server"
+    "translation": "Elasticsearch search is not enabled on this server"
   },
   {
     "id": "ent.elasticsearch.purge_indexes.delete_failed",
@@ -3605,23 +3605,23 @@
   },
   {
     "id": "ent.elasticsearch.create_client.connect_failed",
-    "translation": "Setting up ElasticSearch Client Failed"
+    "translation": "Setting up Elasticsearch Client Failed"
   },
   {
     "id": "ent.elasticsearch.create_index_if_not_exists.index_create_failed",
-    "translation": "Failed to create ElasticSearch index"
+    "translation": "Failed to create Elasticsearch index"
   },
   {
     "id": "ent.elasticsearch.create_index_if_not_exists.index_exists_failed",
-    "translation": "Failed to establish whether ElasticSearch index exists"
+    "translation": "Failed to establish whether Elasticsearch index exists"
   },
   {
     "id": "ent.elasticsearch.create_index_if_not_exists.index_mapping_failed",
-    "translation": "Failed to setup ElasticSearch index mapping"
+    "translation": "Failed to setup Elasticsearch index mapping"
   },
   {
     "id": "ent.elasticsearch.start.index_settings_failed",
-    "translation": "Failed to set ElasticSearch index settings"
+    "translation": "Failed to set Elasticsearch index settings"
   },
   {
     "id": "ent.elasticsearch.test_config.connect_failed",
