@@ -4,55 +4,60 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
-import UserStore from 'stores/user_store.jsx';
-import IntegrationStore from 'stores/integration_store.jsx';
-import * as OAuthActions from 'actions/oauth_actions.jsx';
 import {localizeMessage} from 'utils/utils.jsx';
-
 import BackstageList from 'components/backstage/components/backstage_list.jsx';
 import {FormattedMessage} from 'react-intl';
-import InstalledOAuthApp from './installed_oauth_app.jsx';
+import InstalledOAuthApp from '../installed_oauth_app.jsx';
 
-export default class InstalledOAuthApps extends React.Component {
-    static get propTypes() {
-        return {
-            team: PropTypes.object
-        };
+export default class InstalledOAuthApps extends React.PureComponent {
+    static propTypes = {
+
+        /**
+        * The team object
+        */
+        team: PropTypes.object,
+
+        /**
+        * The oauthApps object
+        */
+        oauthApps: PropTypes.object,
+
+        /**
+        * Set if user is admin
+        */
+        isSystemAdmin: PropTypes.bool,
+
+        actions: PropTypes.shape({
+
+            /**
+            * The function to call ...
+            */
+            getOAuthApps: PropTypes.func.isRequired,
+
+            /**
+            * The function to call ...
+            */
+            deleteOAuthApp: PropTypes.func.isRequired
+        }).isRequired
     }
 
     constructor(props) {
         super(props);
-
-        this.handleIntegrationChange = this.handleIntegrationChange.bind(this);
-
-        this.deleteOAuthApp = this.deleteOAuthApp.bind(this);
-
         this.state = {
-            oauthApps: IntegrationStore.getOAuthApps(),
-            loading: !IntegrationStore.hasReceivedOAuthApps()
+            loading: true
         };
     }
 
     componentDidMount() {
-        IntegrationStore.addChangeListener(this.handleIntegrationChange);
-
         if (window.mm_config.EnableOAuthServiceProvider === 'true') {
-            OAuthActions.listOAuthApps(() => this.setState({loading: false}));
+            this.props.actions.getOAuthApps().then(
+                () => this.setState({loading: false})
+            );
         }
     }
 
-    componentWillUnmount() {
-        IntegrationStore.removeChangeListener(this.handleIntegrationChange);
-    }
-
-    handleIntegrationChange() {
-        this.setState({
-            oauthApps: IntegrationStore.getOAuthApps()
-        });
-    }
-
-    deleteOAuthApp(app) {
-        OAuthActions.deleteOAuthApp(app.id);
+    deleteOAuthApp = (app) => {
+        this.props.actions.deleteOAuthApp(app.id);
     }
 
     oauthAppCompare(a, b) {
@@ -70,7 +75,7 @@ export default class InstalledOAuthApps extends React.Component {
     }
 
     render() {
-        const oauthApps = this.state.oauthApps.sort(this.oauthAppCompare).map((app) => {
+        const oauthApps = Object.values(this.props.oauthApps).sort(this.oauthAppCompare).map((app) => {
             return (
                 <InstalledOAuthApp
                     key={app.id}
@@ -80,9 +85,9 @@ export default class InstalledOAuthApps extends React.Component {
             );
         });
 
-        const isSystemAdmin = UserStore.isSystemAdminForCurrentUser();
         const config = global.mm_config;
-        const integrationsEnabled = (config.EnableOAuthServiceProvider === 'true' && (isSystemAdmin || config.EnableOnlyAdminIntegrations !== 'true'));
+        const integrationsEnabled = (config.EnableOAuthServiceProvider === 'true'
+            && (this.props.isSystemAdmin || config.EnableOnlyAdminIntegrations !== 'true'));
         let props;
         if (integrationsEnabled) {
             props = {
