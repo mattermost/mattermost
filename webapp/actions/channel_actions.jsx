@@ -73,6 +73,11 @@ export function executeCommand(message, args, success, error) {
         }
         break;
     case '/leave': {
+        // /leave command not supported in reply threads.
+        if (args.channel_id && (args.root_id || args.parent_id)) {
+            GlobalActions.sendEphemeralPost('/leave is not supported in reply threads. Use it in the center channel instead.', args.channel_id, args.parent_id);
+            return;
+        }
         const channel = ChannelStore.getCurrent();
         if (channel.type === Constants.PRIVATE_CHANNEL) {
             GlobalActions.showLeavePrivateChannelModal(channel);

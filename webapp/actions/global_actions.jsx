@@ -358,7 +358,7 @@ export function emitPreferencesDeletedEvent(preferences) {
     });
 }
 
-export function sendEphemeralPost(message, channelId) {
+export function sendEphemeralPost(message, channelId, parentId) {
     const timestamp = Utils.getTimestamp();
     const post = {
         id: Utils.generateId(),
@@ -368,6 +368,8 @@ export function sendEphemeralPost(message, channelId) {
         type: Constants.PostTypes.EPHEMERAL,
         create_at: timestamp,
         update_at: timestamp,
+        root_id: parentId,
+        parent_id: parentId,
         props: {}
     };
 
