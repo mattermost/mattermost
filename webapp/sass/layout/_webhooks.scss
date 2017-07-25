@@ -38,6 +38,8 @@
 
 .post {
     .attachment {
+        position: relative;
+
         &.attachment--opengraph {
             max-width: 800px;
         }
@@ -101,22 +103,23 @@
             }
 
             .btn-close {
-                @include single-transition(all, .25s, ease-in);
-                @include border-radius(10%);
-                @include alpha-property(background, $black, .5);
-                border: 1px solid $black;
+                @include opacity(.5);
+                background: transparent;
+                border: none;
+                color: inherit;
                 font-size: 21px;
-                font-weight: 700;
-                color: $white;
-                height: 30px;
-                width: 30px;
-                line-height: 30px;
+                font-weight: 600;
+                height: 20px;
+                left: -30px;
+                line-height: 20px;
+                outline: none;
+                padding-top: 0;
                 position: absolute;
-                right: 24px;
-                padding-top: 0px;
+                text-align: center;
+                text-decoration: none;
                 text-shadow: none;
+                width: 20px;
                 z-index: 5;
-                visibility: hidden;
 
                 span {
                     font-family: 'Open Sans', sans-serif;
@@ -124,7 +127,7 @@
                 }
 
                 &:hover {
-                    @include alpha-property(background, $black, .2);
+                    @include opacity(.9);
                 }
             }
 
