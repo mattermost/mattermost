@@ -58,6 +58,7 @@ export default class EmojiPicker extends React.Component {
         // All props are primitives or treated as immutable
         this.shouldComponentUpdate = PureRenderMixin.shouldComponentUpdate.bind(this);
 
+        this.handlePreload = this.handlePreload.bind(this);
         this.handleCategoryClick = this.handleCategoryClick.bind(this);
         this.handleFilterChange = this.handleFilterChange.bind(this);
         this.handleItemOver = this.handleItemOver.bind(this);
@@ -70,7 +71,8 @@ export default class EmojiPicker extends React.Component {
         this.state = {
             category: 'recent',
             filter: '',
-            selected: null
+            selected: null,
+            preloaded: []
         };
     }
 
@@ -81,11 +83,22 @@ export default class EmojiPicker extends React.Component {
             this.searchInput.focus();
         });
         beginPreloading();
-        subscribeToPreloads(this);
+        subscribeToPreloads(this.handlePreload);
+        this.handlePreload();
     }
 
     componentWillUnmount() {
-        unsubscribeFromPreloads(this);
+        unsubscribeFromPreloads(this.handlePreload);
+    }
+
+    handlePreload() {
+        const preloaded = [];
+        for (const category of CATEGORIES) {
+            if (didPreloadCategory(category)) {
+                preloaded.push(category);
+            }
+        }
+        this.setState({preloaded});
     }
 
     handleCategoryClick(category) {
@@ -312,7 +325,7 @@ export default class EmojiPicker extends React.Component {
             if (category === 'custom') {
                 items.push(this.renderCategory('custom', true, this.state.filter, this.props.customEmojis));
             } else {
-                items.push(this.renderCategory(category, category === 'recent' || didPreloadCategory(category), this.state.filter));
+                items.push(this.renderCategory(category, category === 'recent' || this.state.preloaded.indexOf(category) >= 0, this.state.filter));
             }
         }
 
@@ -514,7 +527,7 @@ var preloads = {
 
 var didBeginPreloading = false;
 
-var currentPicker = null;
+var preloadCallback = null;
 
 export function beginPreloading() {
     if (didBeginPreloading) {
@@ -537,8 +550,8 @@ function preloadNextCategory() {
         const img = new Image();
         img.onload = () => {
             sheet.didPreload = true;
-            if (currentPicker) {
-                currentPicker.forceUpdate();
+            if (preloadCallback) {
+                preloadCallback();
             }
             preloadNextCategory();
         };
@@ -551,12 +564,12 @@ export function didPreloadCategory(category) {
     return preload && preload.didPreload;
 }
 
-function subscribeToPreloads(picker) {
-    currentPicker = picker;
+function subscribeToPreloads(callback) {
+    preloadCallback = callback;
 }
 
-function unsubscribeFromPreloads(picker) {
-    if (picker === currentPicker) {
-        currentPicker = null;
+function unsubscribeFromPreloads(callback) {
+    if (callback === preloadCallback) {
+        preloadCallback = null;
     }
 }

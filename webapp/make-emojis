@@ -24,6 +24,8 @@ Dir.mkdir emoji_path
 Emoji.create('mattermost')
 FileUtils.cp(File.join(File.dirname(__FILE__), 'images', 'icon64x64.png'), File.join(emoji_path, 'mattermost.png'))
 
+blacklist = ['basecamp', 'basecampy']
+
 categories = []
 
 File.open(File.join(File.dirname(__FILE__), 'utils', 'emoji.jsx'), 'w') do |f|
@@ -33,6 +35,9 @@ File.open(File.join(File.dirname(__FILE__), 'utils', 'emoji.jsx'), 'w') do |f|
     emoji_indices_by_category = []
 
     Emoji.all.each do |emoji|
+        if blacklist.include? emoji.name
+            next
+        end
         emoji.aliases.each do |emoji_alias|
             emoji_indices_by_alias << [emoji_alias, emojis.length]
         end
@@ -70,6 +75,9 @@ require 'emoji/extractor'
 Emoji::Extractor.new(64, emoji_path).extract!
 
 Dir["#{Emoji.images_path}/*.png"].each do |png|
+    if blacklist.include? File.basename(png, '.png')
+        next
+    end
     FileUtils.cp(png, File.join(emoji_path, File.basename(png)))
 end
 
@@ -135,6 +143,9 @@ categories.each do |category|
     tmp_directory = File.join(spritesheet_path, 'temp')
     Dir.mkdir tmp_directory
     Emoji.all.each do |emoji|
+        if blacklist.include? emoji.name
+            next
+        end
         if category == (emoji.category ? emoji.category.downcase : 'custom')
             FileUtils.cp(File.join(emoji_path, emoji.image_filename), File.join(tmp_directory, emoji.image_filename))
             count += 1

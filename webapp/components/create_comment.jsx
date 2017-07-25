@@ -587,7 +587,7 @@ export default class CreateComment extends React.Component {
                     <span
                         className={'fa fa-smile-o icon--emoji-picker emoji-rhs'}
                         onClick={this.toggleEmojiPicker}
-                        onMouseOver={() => EmojiPicker.beginPreloading()}
+                        onMouseOver={EmojiPicker.beginPreloading}
                     />
                 </span>
             );

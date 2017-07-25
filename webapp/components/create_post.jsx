@@ -737,7 +737,7 @@ export default class CreatePost extends React.Component {
                     <span
                         className={'fa fa-smile-o icon--emoji-picker emoji-main'}
                         onClick={this.toggleEmojiPicker}
-                        onMouseOver={() => EmojiPicker.beginPreloading()}
+                        onMouseOver={EmojiPicker.beginPreloading}
                     />
                 </span>
             );
