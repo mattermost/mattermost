@@ -99,6 +99,40 @@
                 vertical-align: top;
                 width: 100%;
             }
+
+            .btn-close {
+                @include single-transition(all, .25s, ease-in);
+                @include border-radius(10%);
+                @include alpha-property(background, $black, .5);
+                border: 1px solid $black;
+                font-size: 21px;
+                font-weight: 700;
+                color: $white;
+                height: 30px;
+                width: 30px;
+                line-height: 30px;
+                position: absolute;
+                right: 24px;
+                padding-top: 0px;
+                text-shadow: none;
+                z-index: 5;
+                visibility: hidden;
+
+                span {
+                    font-family: 'Open Sans', sans-serif;
+                    line-height: 10px;
+                }
+
+                &:hover {
+                    @include alpha-property(background, $black, .2);
+                }
+            }
+
+            &:hover {
+                .btn-close {
+                    visibility: visible;
+                }
+            }
         }
 
         .attachment__body {

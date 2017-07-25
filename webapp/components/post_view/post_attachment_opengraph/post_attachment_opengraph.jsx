@@ -18,6 +18,16 @@ export default class PostAttachmentOpenGraph extends React.PureComponent {
         link: PropTypes.string.isRequired,
 
         /**
+         * The current user viewing the post
+         */
+        currentUser: PropTypes.object,
+
+        /**
+         * The post wherer this link is included
+         */
+        post: PropTypes.object,
+
+        /**
          * The open graph data to render
          */
         openGraphData: PropTypes.object,
@@ -62,13 +72,15 @@ export default class PostAttachmentOpenGraph extends React.PureComponent {
         this.toggleImageVisibility = this.toggleImageVisibility.bind(this);
         this.onImageLoad = this.onImageLoad.bind(this);
         this.onImageError = this.onImageError.bind(this);
+        this.handleClosePreview = this.handleClosePreview.bind(this);
     }
 
     componentWillMount() {
         this.setState({
             imageLoaded: this.IMAGE_LOADED.LOADING,
             imageVisible: this.props.previewCollapsed.startsWith('false'),
-            hasLargeImage: false
+            hasLargeImage: false,
+            closePreview: false
         });
         this.fetchData(this.props.link);
     }
@@ -208,8 +220,26 @@ export default class PostAttachmentOpenGraph extends React.PureComponent {
         return text;
     }
 
+    handleClosePreview() {
+        this.setState({closePreview: true});
+    }
+
     render() {
-        if (!this.props.openGraphData || Utils.isEmptyObject(this.props.openGraphData.description)) {
+        let closePreviewButton;
+        if (this.props.currentUser.id === this.props.post.user_id) {
+            closePreviewButton = (
+                <button
+                    id='closePreviewButton'
+                    type='button'
+                    className='btn-close'
+                    aria-label='Close'
+                    onClick={this.handleClosePreview}
+                >
+                    <span aria-hidden='true'>{'×'}</span>
+                </button>
+            );
+        }
+        if (!this.props.openGraphData || Utils.isEmptyObject(this.props.openGraphData.description) || this.state.closePreview) {
             return null;
         }
 
@@ -233,6 +263,7 @@ export default class PostAttachmentOpenGraph extends React.PureComponent {
                             className={'attachment__body__wrap attachment__body__wrap--opengraph'}
                         >
                             <span className='sitename'>{this.truncateText(data.site_name)}</span>
+                            {closePreviewButton}
                             <h1
                                 className={'attachment__title attachment__title--opengraph' + (data.title ? '' : ' is-url')}
                             >
