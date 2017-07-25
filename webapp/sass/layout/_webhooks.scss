@@ -135,6 +135,10 @@
                     font-family: 'Open Sans', sans-serif;
                     line-height: 10px;
                 }
+
+                &:hover {
+                    @include opacity(.9);
+                }
             }
 
             &:hover {
