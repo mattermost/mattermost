@@ -23,6 +23,7 @@ import PostStore from 'stores/post_store.jsx';
 import MessageHistoryStore from 'stores/message_history_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 import PreferenceStore from 'stores/preference_store.jsx';
+import TeamStore from 'stores/team_store.jsx';
 import ConfirmModal from './confirm_modal.jsx';
 
 import Constants from 'utils/constants.jsx';
@@ -151,6 +152,7 @@ export default class CreatePost extends React.Component {
 
             const args = {};
             args.channel_id = this.state.channelId;
+            args.team_id = TeamStore.getCurrentId();
             ChannelActions.executeCommand(
                 post.message,
                 args,
@@ -466,6 +468,7 @@ export default class CreatePost extends React.Component {
             e.preventDefault();
             const args = {};
             args.channel_id = this.state.channelId;
+            args.team_id = TeamStore.getCurrentId();
             ChannelActions.executeCommand(
                 '/shortcuts',
                 args,
