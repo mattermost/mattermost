@@ -5,8 +5,6 @@ import {connect} from 'react-redux';
 
 import {getUsersByUsername} from 'mattermost-redux/selectors/entities/users';
 
-import {searchForTerm} from 'actions/post_actions.jsx';
-
 import AtMention from './at_mention.jsx';
 
 function mapStateToProps(state, ownProps) {
@@ -16,12 +14,4 @@ function mapStateToProps(state, ownProps) {
     };
 }
 
-function mapDispatchToProps() {
-    return {
-        actions: {
-            searchForTerm
-        }
-    };
-}
-
-export default connect(mapStateToProps, mapDispatchToProps)(AtMention);
+export default connect(mapStateToProps)(AtMention);
