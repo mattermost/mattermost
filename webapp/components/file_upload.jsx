@@ -72,6 +72,8 @@ class FileUpload extends React.Component {
     }
 
     uploadFiles(files) {
+        const sortedFiles = Array.from(files).sort((a, b) => a.name.localeCompare(b.name));
+
         // clear any existing errors
         this.props.onUploadError(null);
 
@@ -83,9 +85,9 @@ class FileUpload extends React.Component {
         // keep track of how many files have been too large
         const tooLargeFiles = [];
 
-        for (let i = 0; i < files.length && numUploads < uploadsRemaining; i++) {
-            if (files[i].size > global.mm_config.MaxFileSize) {
-                tooLargeFiles.push(files[i]);
+        for (let i = 0; i < sortedFiles.length && numUploads < uploadsRemaining; i++) {
+            if (sortedFiles[i].size > global.mm_config.MaxFileSize) {
+                tooLargeFiles.push(sortedFiles[i]);
                 continue;
             }
 
@@ -93,8 +95,8 @@ class FileUpload extends React.Component {
             const clientId = Utils.generateId();
 
             const request = uploadFile(
-                files[i],
-                files[i].name,
+                sortedFiles[i],
+                sortedFiles[i].name,
                 channelId,
                 clientId,
                 this.fileUploadSuccess.bind(this, channelId),
@@ -111,7 +113,7 @@ class FileUpload extends React.Component {
         }
 
         const {formatMessage} = this.props.intl;
-        if (files.length > uploadsRemaining) {
+        if (sortedFiles.length > uploadsRemaining) {
             this.props.onUploadError(formatMessage(holders.limited, {count: Constants.MAX_UPLOAD_FILES}));
         } else if (tooLargeFiles.length > 1) {
             var tooLargeFilenames = tooLargeFiles.map((file) => file.name).join(', ');
