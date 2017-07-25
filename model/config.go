@@ -118,6 +118,10 @@ const (
 
 	ANNOUNCEMENT_SETTINGS_DEFAULT_BANNER_COLOR      = "#f2a93b"
 	ANNOUNCEMENT_SETTINGS_DEFAULT_BANNER_TEXT_COLOR = "#333333"
+
+	ELASTICSEARCH_SETTINGS_DEFAULT_CONNECTION_URL = ""
+	ELASTICSEARCH_SETTINGS_DEFAULT_USERNAME       = ""
+	ELASTICSEARCH_SETTINGS_DEFAULT_PASSWORD       = ""
 )
 
 type ServiceSettings struct {
@@ -1353,17 +1357,17 @@ func (o *Config) SetDefaults() {
 
 	if o.ElasticsearchSettings.ConnectionUrl == nil {
 		o.ElasticsearchSettings.ConnectionUrl = new(string)
-		*o.ElasticsearchSettings.ConnectionUrl = ""
+		*o.ElasticsearchSettings.ConnectionUrl = ELASTICSEARCH_SETTINGS_DEFAULT_CONNECTION_URL
 	}
 
 	if o.ElasticsearchSettings.Username == nil {
 		o.ElasticsearchSettings.Username = new(string)
-		*o.ElasticsearchSettings.Username = ""
+		*o.ElasticsearchSettings.Username = ELASTICSEARCH_SETTINGS_DEFAULT_USERNAME
 	}
 
 	if o.ElasticsearchSettings.Password == nil {
 		o.ElasticsearchSettings.Password = new(string)
-		*o.ElasticsearchSettings.Password = ""
+		*o.ElasticsearchSettings.Password = ELASTICSEARCH_SETTINGS_DEFAULT_PASSWORD
 	}
 
 	if o.ElasticsearchSettings.EnableIndexing == nil {
