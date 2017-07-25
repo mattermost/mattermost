@@ -123,6 +123,28 @@ class SuggestionStore extends EventEmitter {
     addSuggestions(id, terms, items, component, matchedPretext) {
         const suggestion = this.getSuggestions(id);
 
+        // Sort suggestions
+        terms.sort((a, b) => {
+            if (a.startsWith(matchedPretext)) {
+                return -1;
+            }
+            if (b.startsWith(matchedPretext)) {
+                return 1;
+            }
+            return 0;
+        });
+
+        const matchedUsernamePretext = matchedPretext.substring(1);
+        items.sort((a, b) => {
+            if (a.username.startsWith(matchedUsernamePretext)) {
+                return -1;
+            }
+            if (b.username.startsWith(matchedUsernamePretext)) {
+                return 1;
+            }
+            return 0;
+        });
+
         suggestion.terms.push(...terms);
         suggestion.items.push(...items);
 
