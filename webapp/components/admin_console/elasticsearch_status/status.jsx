@@ -181,6 +181,7 @@ export default class Status extends React.PureComponent {
                 cancelButton = (
                     <a
                         href='#'
+                        className='btn btn-link'
                         onClick={this.cancelIndexJob}
                     >
                         <FormattedMessage
