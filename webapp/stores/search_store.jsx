@@ -182,7 +182,7 @@ SearchStore.dispatchToken = AppDispatcher.register((payload) => {
             // ignore pin posts update after switch to a new channel
             return;
         }
-        SearchStore.setLoading(false)
+        SearchStore.setLoading(false);
         SearchStore.storeSearchResults(action.results, action.is_mention_search, action.is_flagged_posts, action.is_pinned_posts);
         SearchStore.emitSearchChange();
         break;

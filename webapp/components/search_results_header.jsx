@@ -155,5 +155,6 @@ SearchResultsHeader.propTypes = {
     shrink: PropTypes.func,
     isFlaggedPosts: PropTypes.bool,
     isPinnedPosts: PropTypes.bool,
-    channelDisplayName: PropTypes.string.isRequired
+    channelDisplayName: PropTypes.string.isRequired,
+    isLoading: PropTypes.bool.isRequired
 };

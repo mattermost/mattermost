@@ -48,7 +48,7 @@ export default class SearchBar extends React.Component {
         this.suggestionProviders = [new SearchChannelProvider(), new SearchUserProvider()];
     }
 
-    getSearchTermStateFromStores() {
+    static getSearchTermStateFromStores() {
         var term = SearchStore.getSearchTerm() || '';
         return {
             searchTerm: term
@@ -83,7 +83,7 @@ export default class SearchBar extends React.Component {
         }
     }
 
-    handleClose(e) {
+    static handleClose(e) {
         e.preventDefault();
 
         if (Utils.isMobile()) {
@@ -110,7 +110,7 @@ export default class SearchBar extends React.Component {
         });
     }
 
-    handleKeyDown() {
+    static handleKeyDown() {
         // This is just to prevent a JS error
     }
 
@@ -172,19 +172,19 @@ export default class SearchBar extends React.Component {
     handleSubmit(e) {
         e.preventDefault();
         var terms = this.state.searchTerm.trim();
-        
+
         AppDispatcher.handleServerAction({
             type: ActionTypes.RECEIVED_SEARCH_TERM,
             term: terms,
             do_search: true,
             is_mention_search: false
         });
-        
+
         this.handleSearch(terms);
         this.search.blur();
     }
 
-    searchMentions(e) {
+    static searchMentions(e) {
         e.preventDefault();
         const user = UserStore.getCurrentUser();
         if (SearchStore.isMentionSearch) {
@@ -195,7 +195,7 @@ export default class SearchBar extends React.Component {
         }
     }
 
-    getFlagged(e) {
+    static getFlagged(e) {
         e.preventDefault();
         if (SearchStore.isFlaggedPosts) {
             GlobalActions.toggleSideBarAction(false);

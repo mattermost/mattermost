@@ -149,7 +149,7 @@ export default class SearchResults extends React.Component {
         });
     }
 
-    onSearchTermChange(doSearch, isMentionSearch) {
+    onSearchTermChange(doSearch) {
         if (this.mounted && doSearch) {
             this.setState({
                 loading: true
@@ -175,7 +175,7 @@ export default class SearchResults extends React.Component {
         this.setState({statuses: Object.assign({}, UserStore.getStatuses())});
     }
 
-    resize() {
+    static resize() {
         $('#search-items-container').scrollTop(0);
     }
 
