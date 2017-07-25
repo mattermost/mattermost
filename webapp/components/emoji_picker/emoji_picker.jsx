@@ -14,14 +14,23 @@ import EmojiPickerCategory from './components/emoji_picker_category.jsx';
 import EmojiPickerItem from './components/emoji_picker_item.jsx';
 import EmojiPickerPreview from './components/emoji_picker_preview.jsx';
 
+import PeopleSpriteSheet from 'images/emoji-sheets/people.png';
+import NatureSpriteSheet from 'images/emoji-sheets/nature.png';
+import FoodsSpriteSheet from 'images/emoji-sheets/foods.png';
+import ActivitySpriteSheet from 'images/emoji-sheets/activity.png';
+import PlacesSpriteSheet from 'images/emoji-sheets/places.png';
+import ObjectsSpriteSheet from 'images/emoji-sheets/objects.png';
+import SymbolsSpriteSheet from 'images/emoji-sheets/symbols.png';
+import FlagsSpriteSheet from 'images/emoji-sheets/flags.png';
+
 // This should include all the categories available in Emoji.CategoryNames
 const CATEGORIES = [
     'recent',
     'people',
     'nature',
-    'food',
+    'foods',
     'activity',
-    'travel',
+    'places',
     'objects',
     'symbols',
     'flags',
@@ -49,6 +58,7 @@ export default class EmojiPicker extends React.Component {
         // All props are primitives or treated as immutable
         this.shouldComponentUpdate = PureRenderMixin.shouldComponentUpdate.bind(this);
 
+        this.handlePreload = this.handlePreload.bind(this);
         this.handleCategoryClick = this.handleCategoryClick.bind(this);
         this.handleFilterChange = this.handleFilterChange.bind(this);
         this.handleItemOver = this.handleItemOver.bind(this);
@@ -61,7 +71,8 @@ export default class EmojiPicker extends React.Component {
         this.state = {
             category: 'recent',
             filter: '',
-            selected: null
+            selected: null,
+            preloaded: []
         };
     }
 
@@ -71,6 +82,23 @@ export default class EmojiPicker extends React.Component {
         requestAnimationFrame(() => {
             this.searchInput.focus();
         });
+        beginPreloading();
+        subscribeToPreloads(this.handlePreload);
+        this.handlePreload();
+    }
+
+    componentWillUnmount() {
+        unsubscribeFromPreloads(this.handlePreload);
+    }
+
+    handlePreload() {
+        const preloaded = [];
+        for (const category of CATEGORIES) {
+            if (didPreloadCategory(category)) {
+                preloaded.push(category);
+            }
+        }
+        this.setState({preloaded});
     }
 
     handleCategoryClick(category) {
@@ -139,7 +167,8 @@ export default class EmojiPicker extends React.Component {
             }
         }
     }
-    renderCategory(category, filter) {
+
+    renderCategory(category, isLoaded, filter) {
         const items = [];
         let indices = [];
         let recentEmojis = [];
@@ -181,6 +210,7 @@ export default class EmojiPicker extends React.Component {
                     key={'system_' + (category === 'recent' ? 'recent_' : '') + (emoji.name || emoji.aliases[0])}
                     emoji={emoji}
                     category={category}
+                    isLoaded={isLoaded}
                     onItemOver={this.handleItemOver}
                     onItemOut={this.handleItemOut}
                     onItemClick={this.handleItemClick}
@@ -261,7 +291,7 @@ export default class EmojiPicker extends React.Component {
                 previewImage = (
                     <span>
                         <img
-                            src='/static/emoji/img_trans.gif'
+                            src='/static/images/img_trans.gif'
                             className={'  emojisprite-preview emoji-' + selected.filename + ' '}
                             align='absmiddle'
                         />
@@ -293,9 +323,9 @@ export default class EmojiPicker extends React.Component {
 
         for (const category of CATEGORIES) {
             if (category === 'custom') {
-                items.push(this.renderCategory('custom', this.state.filter, this.props.customEmojis));
+                items.push(this.renderCategory('custom', true, this.state.filter, this.props.customEmojis));
             } else {
-                items.push(this.renderCategory(category, this.state.filter));
+                items.push(this.renderCategory(category, category === 'recent' || this.state.preloaded.indexOf(category) >= 0, this.state.filter));
             }
         }
 
@@ -357,15 +387,15 @@ export default class EmojiPicker extends React.Component {
                         selected={this.state.category === 'nature'}
                     />
                     <EmojiPickerCategory
-                        category='food'
+                        category='foods'
                         icon={
                             <i
                                 className='fa fa-cutlery'
-                                title={Utils.localizeMessage('emoji_picker.food', 'Food')}
+                                title={Utils.localizeMessage('emoji_picker.foods', 'Foods')}
                             />
                         }
                         onCategoryClick={this.handleCategoryClick}
-                        selected={this.state.category === 'food'}
+                        selected={this.state.category === 'foods'}
                     />
                     <EmojiPickerCategory
                         category='activity'
@@ -379,15 +409,15 @@ export default class EmojiPicker extends React.Component {
                         selected={this.state.category === 'activity'}
                     />
                     <EmojiPickerCategory
-                        category='travel'
+                        category='places'
                         icon={
                             <i
                                 className='fa fa-plane'
-                                title={Utils.localizeMessage('emoji_picker.travel', 'Travel')}
+                                title={Utils.localizeMessage('emoji_picker.places', 'Places')}
                             />
                         }
                         onCategoryClick={this.handleCategoryClick}
-                        selected={this.state.category === 'travel'}
+                        selected={this.state.category === 'places'}
                     />
                     <EmojiPickerCategory
                         category='objects'
@@ -457,5 +487,89 @@ export default class EmojiPicker extends React.Component {
                 <EmojiPickerPreview emoji={this.state.selected}/>
             </div>
         );
+    }
+}
+
+var preloads = {
+    people: {
+        src: PeopleSpriteSheet,
+        didPreload: false
+    },
+    nature: {
+        src: NatureSpriteSheet,
+        didPreload: false
+    },
+    foods: {
+        src: FoodsSpriteSheet,
+        didPreload: false
+    },
+    activity: {
+        src: ActivitySpriteSheet,
+        didPreload: false
+    },
+    places: {
+        src: PlacesSpriteSheet,
+        didPreload: false
+    },
+    objects: {
+        src: ObjectsSpriteSheet,
+        didPreload: false
+    },
+    symbols: {
+        src: SymbolsSpriteSheet,
+        didPreload: false
+    },
+    flags: {
+        src: FlagsSpriteSheet,
+        didPreload: false
+    }
+};
+
+var didBeginPreloading = false;
+
+var preloadCallback = null;
+
+export function beginPreloading() {
+    if (didBeginPreloading) {
+        return;
+    }
+    didBeginPreloading = true;
+    preloadNextCategory();
+}
+
+function preloadNextCategory() {
+    let sheet = null;
+    for (const category of CATEGORIES) {
+        const preload = preloads[category];
+        if (preload && !preload.didPreload) {
+            sheet = preload;
+            break;
+        }
+    }
+    if (sheet) {
+        const img = new Image();
+        img.onload = () => {
+            sheet.didPreload = true;
+            if (preloadCallback) {
+                preloadCallback();
+            }
+            preloadNextCategory();
+        };
+        img.src = sheet.src;
+    }
+}
+
+export function didPreloadCategory(category) {
+    const preload = preloads[category];
+    return preload && preload.didPreload;
+}
+
+function subscribeToPreloads(callback) {
+    preloadCallback = callback;
+}
+
+function unsubscribeFromPreloads(callback) {
+    if (callback === preloadCallback) {
+        preloadCallback = null;
     }
 }

@@ -1,4 +1,4 @@
-.PHONY: build test run clean stop check-style run-unit
+.PHONY: build test run clean stop check-style run-unit emojis
 
 BUILD_SERVER_DIR = ..
 
@@ -54,3 +54,6 @@ clean:
 	rm -rf dist
 	rm -rf node_modules
 	rm -f .yarninstall
+
+emojis:
+	./make-emojis
