@@ -45,9 +45,11 @@ export function emitChannelClickEvent(channel) {
         const currentUserId = UserStore.getCurrentId();
         const otherUserId = Utils.getUserIdFromChannelName(chan);
         createDirectChannel(currentUserId, otherUserId)(dispatch, getState).then(
-            (data) => {
-                if (data) {
-                    success(data);
+            (result) => {
+                const receivedChannel = result.data;
+
+                if (receivedChannel) {
+                    success(receivedChannel);
                 } else {
                     fail();
                 }
