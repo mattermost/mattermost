@@ -745,15 +745,15 @@ export default class Sidebar extends React.Component {
 
         const above = (
             <FormattedMessage
-                id='sidebar.unreadAbove'
-                defaultMessage='Unread post(s) above'
+                id='sidebar.unreads'
+                defaultMessage='More unreads'
             />
         );
 
         const below = (
             <FormattedMessage
-                id='sidebar.unreadBelow'
-                defaultMessage='Unread post(s) below'
+                id='sidebar.unreads'
+                defaultMessage='More unreads'
             />
         );
 

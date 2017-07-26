@@ -570,6 +570,7 @@ export function applyTheme(theme) {
     }
 
     if (theme.mentionColor) {
+        changeCss('.sidebar--left .nav-pills__unread-indicator svg', 'fill:' + theme.mentionColor);
         changeCss('.app__body .sidebar--left .nav-pills__unread-indicator', 'color:' + theme.mentionColor);
         changeCss('.app__body .sidebar--left .badge', 'color:' + theme.mentionColor);
         changeCss('.app__body .multi-teams .team-sidebar .badge', 'color:' + theme.mentionColor);
@@ -714,6 +715,7 @@ export function applyTheme(theme) {
 
     if (theme.buttonColor) {
         changeCss('.app__body .new-messages__button div, .app__body .btn.btn-primary, .app__body .post__pinned-badge', 'color:' + theme.buttonColor);
+        changeCss('.app__body .new-messages__button svg', 'fill:' + theme.buttonColor);
     }
 
     if (theme.errorTextColor) {

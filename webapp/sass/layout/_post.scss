@@ -299,11 +299,15 @@
             top: 1px;
         }
 
+        .icon {
+            margin-left: 5px;
+        }
+
         div {
             @include border-radius(50px);
             cursor: pointer;
             display: inline-block;
-            padding: 5px 10px;
+            padding: 4px 20px 3px;
         }
 
         &.visible {

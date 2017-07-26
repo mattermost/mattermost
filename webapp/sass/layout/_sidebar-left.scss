@@ -154,15 +154,25 @@
         font-size: 13.5px;
         left: 15px;
         margin: 0 auto;
-        padding: 3px 0 4px;
+        padding: 4px 0 3px;
         position: fixed;
         text-align: center;
         width: 190px;
         z-index: 1;
+
+        .icon {
+            margin-left: 5px;
+        }
     }
 
     .nav-pills__unread-indicator-top {
         top: 80px;
+
+        .icon {
+            svg {
+                @include transform(rotate(180deg));
+            }
+        }
     }
 
     .nav-pills__unread-indicator-bottom {
