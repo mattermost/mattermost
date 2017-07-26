@@ -827,24 +827,21 @@ export default class Sidebar extends React.Component {
             );
         }
 
-        let quickSwitchTextShortcut = '';
-        if (!Utils.isMobile()) {
-            let quickSwitchTextShortcutId = 'quick_switch_modal.channelsShortcut.windows';
-            let quickSwitchTextShortcutDefault = '- CTRL+K';
-            if (Utils.isMac()) {
-                quickSwitchTextShortcutId = 'quick_switch_modal.channelsShortcut.mac';
-                quickSwitchTextShortcutDefault = '- ⌘K';
-            }
-
-            quickSwitchTextShortcut = (
-                <span className='switch__shortcut'>
-                    <FormattedMessage
-                        id={quickSwitchTextShortcutId}
-                        defaultMessage={quickSwitchTextShortcutDefault}
-                    />
-                </span>
-            );
+        let quickSwitchTextShortcutId = 'quick_switch_modal.channelsShortcut.windows';
+        let quickSwitchTextShortcutDefault = '- CTRL+K';
+        if (Utils.isMac()) {
+            quickSwitchTextShortcutId = 'quick_switch_modal.channelsShortcut.mac';
+            quickSwitchTextShortcutDefault = '- ⌘K';
         }
+
+        const quickSwitchTextShortcut = (
+            <span className='switch__shortcut hidden-xs'>
+                <FormattedMessage
+                    id={quickSwitchTextShortcutId}
+                    defaultMessage={quickSwitchTextShortcutDefault}
+                />
+            </span>
+        );
 
         return (
             <div
