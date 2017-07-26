@@ -25,7 +25,7 @@ func TestProcessSlackAnnouncement(t *testing.T) {
 			},
 		}, nil,
 	}
-	ProcessSlackAttachments(&attachments)
+	attachments = ProcessSlackAttachments(attachments)
 	if len(attachments) != 1 || len(attachments[0].Fields) != 1 {
 		t.Fail()
 	}

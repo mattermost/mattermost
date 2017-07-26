@@ -49,9 +49,9 @@ func ExpandAnnouncement(text string) string {
 // can be found in the text attribute, or in the pretext, text, title and value
 // attributes of the attachment structure. The Slack attachment structure is
 // documented here: https://api.slack.com/docs/attachments
-func ProcessSlackAttachments(a *[]*SlackAttachment) {
+func ProcessSlackAttachments(a []*SlackAttachment) []*SlackAttachment {
 	var nonNilAttachments []*SlackAttachment
-	for _, attachment := range *a {
+	for _, attachment := range a {
 		if attachment == nil {
 			continue
 		}
@@ -75,5 +75,5 @@ func ProcessSlackAttachments(a *[]*SlackAttachment) {
 		}
 		attachment.Fields = nonNilFields
 	}
-	*a = nonNilAttachments
+	return nonNilAttachments
 }

@@ -40,7 +40,7 @@ func CommandResponseFromJson(data io.Reader) *CommandResponse {
 	}
 
 	o.Text = ExpandAnnouncement(o.Text)
-	ProcessSlackAttachments(&o.Attachments)
+	o.Attachments = ProcessSlackAttachments(o.Attachments)
 
 	return &o
 }
