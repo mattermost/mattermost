@@ -23,7 +23,6 @@ export default class ConnectionSettings extends AdminSettings {
     getConfigFromState(config) {
         config.ServiceSettings.AllowCorsFrom = this.state.allowCorsFrom;
         config.ServiceSettings.EnableInsecureOutgoingConnections = this.state.enableInsecureOutgoingConnections;
-        config.ServiceSettings.AllowedUntrustedInternalConnections = this.state.allowedUntrustedInternalConnections;
 
         return config;
     }
@@ -31,8 +30,7 @@ export default class ConnectionSettings extends AdminSettings {
     getStateFromConfig(config) {
         return {
             allowCorsFrom: config.ServiceSettings.AllowCorsFrom,
-            enableInsecureOutgoingConnections: config.ServiceSettings.EnableInsecureOutgoingConnections,
-            allowedUntrustedInternalConnections: config.ServiceSettings.AllowedUntrustedInternalConnections
+            enableInsecureOutgoingConnections: config.ServiceSettings.EnableInsecureOutgoingConnections
         };
     }
 
@@ -81,24 +79,6 @@ export default class ConnectionSettings extends AdminSettings {
                         />
                     }
                     value={this.state.enableInsecureOutgoingConnections}
-                    onChange={this.handleChange}
-                />
-                <TextSetting
-                    id='allowedUntrustedInternalConnections'
-                    label={
-                        <FormattedMessage
-                            id='admin.service.internalConnectionsTitle'
-                            defaultMessage='Allowed Untrusted Internal Connections: '
-                        />
-                    }
-                    placeholder={Utils.localizeMessage('admin.service.internalConnectionsEx', 'webhooks.internal.example.com 127.0.0.1 10.0.16/28')}
-                    helpText={
-                        <FormattedMessage
-                            id='admin.service.internalConnectionsDesc'
-                            defaultMessage='By default, user-supplied URLs such as those used for Open Graph metadata, webhooks, or slash commands will not be allowed to connect to reserved IP addresses such as loopback or link-local addresses. You can specify domains, IP addresses, or CIDR notations to always allow. Note that this may allow users to exfiltrate sensitive data from your server or internal network.'
-                        />
-                    }
-                    value={this.state.allowedUntrustedInternalConnections}
                     onChange={this.handleChange}
                 />
             </SettingsGroup>
