@@ -10,12 +10,14 @@ import UserStore from 'stores/user_store.jsx';
 import PostDeletedModal from './post_deleted_modal.jsx';
 import PostStore from 'stores/post_store.jsx';
 import PreferenceStore from 'stores/preference_store.jsx';
+import TeamStore from 'stores/team_store.jsx';
 import MessageHistoryStore from 'stores/message_history_store.jsx';
 import Textbox from './textbox.jsx';
 import MsgTyping from './msg_typing.jsx';
 import FileUpload from './file_upload.jsx';
 import FilePreview from './file_preview.jsx';
 import EmojiPickerOverlay from 'components/emoji_picker/emoji_picker_overlay.jsx';
+import * as EmojiPicker from 'components/emoji_picker/emoji_picker.jsx';
 import * as Utils from 'utils/utils.jsx';
 import * as UserAgent from 'utils/user_agent.jsx';
 import * as GlobalActions from 'actions/global_actions.jsx';
@@ -199,6 +201,7 @@ export default class CreateComment extends React.Component {
 
         const args = {};
         args.channel_id = this.props.channelId;
+        args.team_id = TeamStore.getCurrentId();
         args.root_id = this.props.rootId;
         args.parent_id = this.props.rootId;
         ChannelActions.executeCommand(
@@ -586,6 +589,7 @@ export default class CreateComment extends React.Component {
                     <span
                         className={'fa fa-smile-o icon--emoji-picker emoji-rhs'}
                         onClick={this.toggleEmojiPicker}
+                        onMouseOver={EmojiPicker.beginPreloading}
                     />
                 </span>
             );

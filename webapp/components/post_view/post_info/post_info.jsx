@@ -55,6 +55,11 @@ export default class PostInfo extends React.PureComponent {
         lastPostCount: PropTypes.number,
 
         /**
+         * Set to render in compact view
+         */
+        compactDisplay: PropTypes.bool,
+
+        /**
          * Function to get the post list HTML element
          */
         getPostList: PropTypes.func.isRequired,
@@ -208,6 +213,18 @@ export default class PostInfo extends React.PureComponent {
             }
         }
 
+        let visibleMessage;
+        if (isEphemeral && !this.props.compactDisplay) {
+            visibleMessage = (
+                <span className='post__visibility'>
+                    <FormattedMessage
+                        id='post_info.message.visible'
+                        defaultMessage='(Only visible to you)'
+                    />
+                </span>
+            );
+        }
+
         let pinnedBadge;
         if (post.is_pinned) {
             pinnedBadge = (
@@ -237,6 +254,7 @@ export default class PostInfo extends React.PureComponent {
                         isFlagged={this.props.isFlagged}
                         isEphemeral={isEphemeral}
                     />
+                    {visibleMessage}
                 </div>
                 {options}
             </div>

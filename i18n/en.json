@@ -3356,6 +3356,10 @@
     "translation": "Invalid Desktop NotifyProps for User's Channel Membership."
   },
   {
+    "id": "app.import.validate_user_channels_import_data.invalid_notify_props_mobile.error",
+    "translation": "Invalid Mobile NotifyProps for User's Channel Membership."
+  },
+  {
     "id": "app.import.validate_user_channels_import_data.invalid_notify_props_mark_unread.error",
     "translation": "Invalid MarkUnread NotifyProps for User's Channel Membership."
   },
@@ -3414,6 +3418,38 @@
   {
     "id": "app.import.validate_user_import_data.username_missing.error",
     "translation": "Missing require user property: username."
+  },
+  {
+    "id": "app.import.validate_user_import_data.notify_props_desktop_invalid.error",
+    "translation": "Invalid Desktop Notify Prop value for user."
+  },
+  {
+    "id": "app.import.validate_user_import_data.notify_props_desktop_duration_invalid.error",
+    "translation": "Invalid Desktop Duration Notify Prop value for user."
+  },
+  {
+    "id": "app.import.validate_user_import_data.notify_props_desktop_sound_invalid.error",
+    "translation": "Invalid Desktop Sound Notify Prop value for user."
+  },
+  {
+    "id": "app.import.validate_user_import_data.notify_props_email_invalid.error",
+    "translation": "Invalid Email Notify Prop value for user."
+  },
+  {
+    "id": "app.import.validate_user_import_data.notify_props_mobile_invalid.error",
+    "translation": "Invalid Mobile Notify Prop value for user."
+  },
+  {
+    "id": "app.import.validate_user_import_data.notify_props_mobile_push_status_invalid.error",
+    "translation": "Invalid Mobile Push Status Notify Prop for user."
+  },
+  {
+    "id": "app.import.validate_user_import_data.notify_props_channel_trigger_invalid.error",
+    "translation": "Invalid Channel Trigger Notify Prop for user."
+  },
+  {
+    "id": "app.import.validate_user_import_data.notify_props_comment_trigger_invalid.error",
+    "translation": "Invalid Comment Trigger Notify Prop for user."
   },
   {
     "id": "app.import.validate_user_teams_import_data.invalid_roles.error",

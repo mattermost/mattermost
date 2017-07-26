@@ -212,7 +212,13 @@ func executeCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	commandArgs.TeamId = channel.TeamId
+	if commandArgs.TeamId == "" {
+		commandArgs.TeamId = channel.TeamId
+	} else if c.Session.GetTeamByTeamId(commandArgs.TeamId) == nil {
+		c.SetPermissionError(model.PERMISSION_USE_SLASH_COMMANDS)
+		return
+	}
+
 	commandArgs.UserId = c.Session.UserId
 	commandArgs.T = c.T
 	commandArgs.Session = c.Session

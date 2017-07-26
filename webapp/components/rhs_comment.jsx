@@ -226,6 +226,7 @@ export default class RhsComment extends React.Component {
             />
         );
 
+        let visibleMessage;
         if (post.props && post.props.from_webhook) {
             if (post.props.override_username && global.window.mm_config.EnablePostUsernameOverride === 'true') {
                 userProfile = (
@@ -258,6 +259,15 @@ export default class RhsComment extends React.Component {
                     overwriteImage={Constants.SYSTEM_MESSAGE_PROFILE_IMAGE}
                     disablePopover={true}
                 />
+            );
+
+            visibleMessage = (
+                <span className='post__visibility'>
+                    <FormattedMessage
+                        id='post_info.message.visible'
+                        defaultMessage='(Only visible to you)'
+                    />
+                </span>
             );
         }
 
@@ -430,6 +440,7 @@ export default class RhsComment extends React.Component {
                                     isFlagged={this.props.isFlagged}
                                     isEphemeral={isEphemeral}
                                 />
+                                {visibleMessage}
                             </div>
                             {options}
                         </div>
