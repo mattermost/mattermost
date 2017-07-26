@@ -1344,6 +1344,16 @@
 
     .post {
         .attachment {
+            .attachment__body__wrap {
+                .btn-close {
+                    height: 30px;
+                    left: -15px;
+                    top: 7px;
+                    visibility: visible;
+                    width: 30px;
+                }
+            }
+
             .attachment__image {
                 &.attachment__image--openraph {
                     max-width: 200px;
