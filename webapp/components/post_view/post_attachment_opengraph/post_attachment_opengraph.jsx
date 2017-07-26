@@ -27,7 +27,7 @@ export default class PostAttachmentOpenGraph extends React.PureComponent {
         /**
          * The post wherer this link is included
          */
-        post: PropTypes.object,
+        post: PropTypes.object.isRequired,
 
         /**
          * The open graph data to render
