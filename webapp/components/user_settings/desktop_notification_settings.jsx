@@ -44,24 +44,7 @@ export default class DesktopNotificationSettings extends React.Component {
                 soundRadio[0] = true;
             }
 
-            if (!(Utils.hasSoundOptions())) {
-                soundSection = (
-                    <div>
-                        <hr/>
-                        <label>
-                            <FormattedMessage
-                                id='user.settings.notifications.desktop.sound'
-                                defaultMessage='Notification sound'
-                            />
-                        </label>
-                        <br/>
-                        <FormattedMessage
-                            id='user.settings.notifications.soundConfig'
-                            defaultMessage='Please configure notification sounds in your browser settings'
-                        />
-                    </div>
-                );
-            } else {
+            if ((Utils.hasSoundOptions())) {
                 soundSection = (
                     <div>
                         <hr/>
@@ -111,6 +94,23 @@ export default class DesktopNotificationSettings extends React.Component {
                                 defaultMessage='Notification sounds are available on IE11, Safari, Chrome and Mattermost Desktop Apps.'
                             />
                         </span>
+                    </div>
+                );
+            } else {
+                soundSection = (
+                    <div>
+                        <hr/>
+                        <label>
+                            <FormattedMessage
+                                id='user.settings.notifications.desktop.sound'
+                                defaultMessage='Notification sound'
+                            />
+                        </label>
+                        <br/>
+                        <FormattedMessage
+                            id='user.settings.notifications.soundConfig'
+                            defaultMessage='Please configure notification sounds in your browser settings'
+                        />
                     </div>
                 );
             }
@@ -303,26 +303,26 @@ export default class DesktopNotificationSettings extends React.Component {
     buildMinimizedSetting() {
         let describe = '';
         if (this.props.activity === 'mention') {
-            if (!(Utils.hasSoundOptions())) {
-                if (this.props.duration === '0') {
+            if ((Utils.hasSoundOptions()) && (this.props.sound !== 'false')) {
+                if (this.props.duration === '0') { //eslint-disable-line no-lonely-if
                     describe = (
                         <FormattedMessage
-                            id='user.settings.notifications.desktop.mentionsSoundHiddenForever'
-                            defaultMessage='For mentions and direct messages, shown indefinitely'
+                            id='user.settings.notifications.desktop.mentionsSoundForever'
+                            defaultMessage='For mentions and direct messages, with sound, shown indefinitely'
                         />
                     );
                 } else {
                     describe = (
                         <FormattedMessage
-                            id='user.settings.notifications.desktop.mentionsSoundHiddenTimed'
-                            defaultMessage='For mentions and direct messages, shown for {seconds} seconds'
+                            id='user.settings.notifications.desktop.mentionsSoundTimed'
+                            defaultMessage='For mentions and direct messages, with sound, shown for {seconds} seconds'
                             values={{
                                 seconds: this.props.duration
                             }}
                         />
                     );
                 }
-            } else if (this.props.sound === 'false') {
+            } else if ((Utils.hasSoundOptions()) && (this.props.sound === 'false')) {
                 if (this.props.duration === '0') {
                     describe = (
                         <FormattedMessage
@@ -345,15 +345,15 @@ export default class DesktopNotificationSettings extends React.Component {
                 if (this.props.duration === '0') { //eslint-disable-line no-lonely-if
                     describe = (
                         <FormattedMessage
-                            id='user.settings.notifications.desktop.mentionsSoundForever'
-                            defaultMessage='For mentions and direct messages, with sound, shown indefinitely'
+                            id='user.settings.notifications.desktop.mentionsSoundHiddenForever'
+                            defaultMessage='For mentions and direct messages, shown indefinitely'
                         />
                     );
                 } else {
                     describe = (
                         <FormattedMessage
-                            id='user.settings.notifications.desktop.mentionsSoundTimed'
-                            defaultMessage='For mentions and direct messages, with sound, shown for {seconds} seconds'
+                            id='user.settings.notifications.desktop.mentionsSoundHiddenTimed'
+                            defaultMessage='For mentions and direct messages, shown for {seconds} seconds'
                             values={{
                                 seconds: this.props.duration
                             }}
@@ -369,26 +369,26 @@ export default class DesktopNotificationSettings extends React.Component {
                 />
             );
         } else {
-            if (!(Utils.hasSoundOptions())) {  //eslint-disable-line no-lonely-if
-                if (this.props.duration === '0') {
+            if ((Utils.hasSoundOptions()) && (this.props.sound !== 'false')) {  //eslint-disable-line no-lonely-if
+                if (this.props.duration === '0') { //eslint-disable-line no-lonely-if
                     describe = (
                         <FormattedMessage
-                            id='user.settings.notifications.desktop.allSoundHiddenForever'
-                            defaultMessage='For all activity, shown indefinitely'
+                            id='user.settings.notifications.desktop.allSoundForever'
+                            defaultMessage='For all activity, with sound, shown indefinitely'
                         />
                     );
                 } else {
                     describe = (
                         <FormattedMessage
-                            id='user.settings.notifications.desktop.allSoundHiddenTimed'
-                            defaultMessage='For all activity, shown for {seconds} seconds'
+                            id='user.settings.notifications.desktop.allSoundTimed'
+                            defaultMessage='For all activity, with sound, shown for {seconds} seconds'
                             values={{
                                 seconds: this.props.duration
                             }}
                         />
                     );
                 }
-            } else if (this.props.sound === 'false') {
+            } else if ((Utils.hasSoundOptions()) && (this.props.sound === 'false')) {
                 if (this.props.duration === '0') {
                     describe = (
                         <FormattedMessage
@@ -411,15 +411,15 @@ export default class DesktopNotificationSettings extends React.Component {
                 if (this.props.duration === '0') { //eslint-disable-line no-lonely-if
                     describe = (
                         <FormattedMessage
-                            id='user.settings.notifications.desktop.allSoundForever'
-                            defaultMessage='For all activity, with sound, shown indefinitely'
+                            id='user.settings.notifications.desktop.allSoundHiddenForever'
+                            defaultMessage='For all activity, shown indefinitely'
                         />
                     );
                 } else {
                     describe = (
                         <FormattedMessage
-                            id='user.settings.notifications.desktop.allSoundTimed'
-                            defaultMessage='For all activity, with sound, shown for {seconds} seconds'
+                            id='user.settings.notifications.desktop.allSoundHiddenTimed'
+                            defaultMessage='For all activity, shown for {seconds} seconds'
                             values={{
                                 seconds: this.props.duration
                             }}
