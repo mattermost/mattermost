@@ -21,9 +21,7 @@ export default class EmailSettings extends AdminSettings {
         super(props);
 
         this.getConfigFromState = this.getConfigFromState.bind(this);
-
         this.handleSaved = this.handleSaved.bind(this);
-
         this.renderSettings = this.renderSettings.bind(this);
     }
 
@@ -136,11 +134,11 @@ export default class EmailSettings extends AdminSettings {
                         <FormattedHTMLMessage
                             key='admin.email.enableEmailBatchingDesc'
                             id='admin.email.enableEmailBatchingDesc'
-                            defaultMessage='When true, users can have email notifications for multiple direct messages and mentions combined into a single email, configurable in <b>Account Settings > Notifications</b>.'
+                            defaultMessage='When true, users will have email notifications for multiple direct messages and mentions combined into a single email. Batching will occur at a default interval of 15 minutes, configurable in Account Settings > Notifications.'
                         />,
                         enableEmailBatchingDisabledText
                     ]}
-                    value={this.state.enableEmailBatching && !this.props.config.ClusterSettings.Enable && this.props.config.ServiceSettings.SiteURL}
+                    value={this.state.enableEmailBatching && !this.props.config.ClusterSettings.Enable && Boolean(this.props.config.ServiceSettings.SiteURL)}
                     onChange={this.handleChange}
                     disabled={!this.state.sendEmailNotifications || this.props.config.ClusterSettings.Enable || !this.props.config.ServiceSettings.SiteURL}
                 />
