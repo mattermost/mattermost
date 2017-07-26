@@ -73,7 +73,7 @@ export default class ErrorPage extends React.Component {
                     <li>
                         <FormattedMessage
                             id='error.local_storage.help3'
-                            defaultMessage='Use a supported browser (IE 11, Chrome 43+, Firefox 52+, Safari 9+, Edge)'
+                            defaultMessage='Use a supported browser (IE 11, Chrome 43+, Firefox 52+, Safari 9+, Edge 40+)'
                         />
                     </li>
                 </ul>

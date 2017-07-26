@@ -4,6 +4,7 @@
 package web
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
@@ -48,12 +49,12 @@ func staticHandler(handler http.Handler) http.Handler {
 }
 
 //List should be of minimum required browser version. Do not place a ; at the end of this string.
-var browsersNotSupported string = "MSIE/11;Internet Explorer/11;Safari/9;Chrome/43;Edge/38;Firefox/52"
+var browsersNotSupported string = "MSIE/11;Internet Explorer/11;Safari/9;Chrome/43;Edge/15;Firefox/52"
 
 func CheckBrowserCompatability(c *api.Context, r *http.Request) bool {
 	ua := user_agent.New(r.UserAgent())
 	bname, bversion := ua.Browser()
-
+	fmt.Println(ua.Browser())
 	browsers := strings.Split(browsersNotSupported, ";")
 	for _, browser := range browsers {
 		version := strings.Split(browser, "/")
