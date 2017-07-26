@@ -72,7 +72,7 @@ class FileUpload extends React.Component {
     }
 
     uploadFiles(files) {
-        const sortedFiles = Array.from(files).sort((a, b) => a.name.localeCompare(b.name));
+        const sortedFiles = Utils.sortFilesByName(files);
 
         // clear any existing errors
         this.props.onUploadError(null);

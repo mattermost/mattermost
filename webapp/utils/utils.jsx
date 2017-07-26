@@ -471,6 +471,11 @@ export function splitFileLocation(fileLocation) {
     return {ext, name: filename, path: filePath};
 }
 
+export function sortFilesByName(files) {
+    const locale = LocalizationStore.getLocale();
+    return Array.from(files).sort((a, b) => a.name.localeCompare(b.name, locale, {numeric: true}));
+}
+
 export function toTitleCase(str) {
     function doTitleCase(txt) {
         return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
