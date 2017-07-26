@@ -1184,6 +1184,14 @@ func PermanentDeleteChannel(channel *model.Channel) *model.AppError {
 		return result.Err
 	}
 
+	if result := <-Srv.Store.Webhook().PermanentDeleteIncomingByChannel(channel.Id); result.Err != nil {
+		return result.Err
+	}
+
+	if result := <-Srv.Store.Webhook().PermanentDeleteOutgoingByChannel(channel.Id); result.Err != nil {
+		return result.Err
+	}
+
 	if result := <-Srv.Store.Channel().PermanentDelete(channel.Id); result.Err != nil {
 		return result.Err
 	}

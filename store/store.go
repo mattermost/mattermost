@@ -296,6 +296,7 @@ type WebhookStore interface {
 	UpdateIncoming(webhook *model.IncomingWebhook) StoreChannel
 	GetIncomingByChannel(channelId string) StoreChannel
 	DeleteIncoming(webhookId string, time int64) StoreChannel
+	PermanentDeleteIncomingByChannel(channelId string) StoreChannel
 	PermanentDeleteIncomingByUser(userId string) StoreChannel
 
 	SaveOutgoing(webhook *model.OutgoingWebhook) StoreChannel
@@ -304,6 +305,7 @@ type WebhookStore interface {
 	GetOutgoingByChannel(channelId string, offset, limit int) StoreChannel
 	GetOutgoingByTeam(teamId string, offset, limit int) StoreChannel
 	DeleteOutgoing(webhookId string, time int64) StoreChannel
+	PermanentDeleteOutgoingByChannel(channelId string) StoreChannel
 	PermanentDeleteOutgoingByUser(userId string) StoreChannel
 	UpdateOutgoing(hook *model.OutgoingWebhook) StoreChannel
 
@@ -317,6 +319,7 @@ type CommandStore interface {
 	Get(id string) StoreChannel
 	GetByTeam(teamId string) StoreChannel
 	Delete(commandId string, time int64) StoreChannel
+	PermanentDeleteByTeam(teamId string) StoreChannel
 	PermanentDeleteByUser(userId string) StoreChannel
 	Update(hook *model.Command) StoreChannel
 	AnalyticsCommandCount(teamId string) StoreChannel
