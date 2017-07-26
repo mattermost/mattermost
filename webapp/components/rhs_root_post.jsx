@@ -256,6 +256,7 @@ export default class RhsRootPost extends React.Component {
                 user={user}
                 status={this.props.status}
                 isBusy={this.props.isBusy}
+                isRHS={true}
             />
         );
         let botIndicator;
@@ -308,6 +309,7 @@ export default class RhsRootPost extends React.Component {
                 height='36'
                 user={this.props.user}
                 isBusy={this.props.isBusy}
+                isRHS={true}
             />
         );
 
@@ -344,6 +346,7 @@ export default class RhsRootPost extends React.Component {
                         status={status}
                         user={this.props.user}
                         isBusy={this.props.isBusy}
+                        isRHS={true}
                     />
                 );
             }

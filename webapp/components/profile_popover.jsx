@@ -24,7 +24,7 @@ export default class ProfilePopover extends React.Component {
 
         this.initWebrtc = this.initWebrtc.bind(this);
         this.handleShowDirectChannel = this.handleShowDirectChannel.bind(this);
-        this.handleUsernameButtonClick = this.handleUsernameButtonClick.bind(this);
+        this.handleMentionKeyClick = this.handleMentionKeyClick.bind(this);
         this.state = {
             currentUserId: UserStore.getCurrentId(),
             loadingDMChannel: -1
@@ -104,7 +104,7 @@ export default class ProfilePopover extends React.Component {
         }
     }
 
-    handleUsernameButtonClick(e) {
+    handleMentionKeyClick(e) {
         e.preventDefault();
 
         if (!this.props.user) {
@@ -113,7 +113,7 @@ export default class ProfilePopover extends React.Component {
         if (this.props.hide) {
             this.props.hide();
         }
-        GlobalActions.emitPopoverMentionKeyClick(this.props.user.username);
+        GlobalActions.emitPopoverMentionKeyClick(this.props.isRHS, this.props.user.username);
     }
 
     render() {
@@ -123,6 +123,7 @@ export default class ProfilePopover extends React.Component {
         delete popoverProps.status;
         delete popoverProps.isBusy;
         delete popoverProps.hide;
+        delete popoverProps.isRHS;
 
         let webrtc;
         const userMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
@@ -264,7 +265,7 @@ export default class ProfilePopover extends React.Component {
             <Popover
                 {...popoverProps}
                 title={(
-                    <a onClick={this.handleUsernameButtonClick}>
+                    <a onClick={this.handleMentionKeyClick}>
                         {`@${this.props.user.username}`}
                     </a>
                 )}
@@ -281,6 +282,7 @@ ProfilePopover.propTypes = Object.assign({
     user: PropTypes.object.isRequired,
     status: PropTypes.string,
     isBusy: PropTypes.bool,
-    hide: PropTypes.func
+    hide: PropTypes.func,
+    isRHS: PropTypes.bool
 }, Popover.propTypes);
 delete ProfilePopover.propTypes.id;

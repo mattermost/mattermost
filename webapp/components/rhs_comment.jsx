@@ -223,6 +223,7 @@ export default class RhsComment extends React.Component {
                 user={this.props.user}
                 status={status}
                 isBusy={this.props.isBusy}
+                isRHS={true}
             />
         );
 
@@ -291,6 +292,7 @@ export default class RhsComment extends React.Component {
                 height='36'
                 user={this.props.user}
                 isBusy={this.props.isBusy}
+                isRHS={true}
             />
         );
 
@@ -327,6 +329,7 @@ export default class RhsComment extends React.Component {
                         status={status}
                         user={this.props.user}
                         isBusy={this.props.isBusy}
+                        isRHS={true}
                     />
                 );
             }

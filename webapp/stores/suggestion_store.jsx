@@ -76,14 +76,14 @@ class SuggestionStore extends EventEmitter {
         this.emit(COMPLETE_WORD_EVENT + id, term, matchedPretext);
     }
 
-    addPopoverMentionKeyClickListener(callback) {
-        this.on(POPOVER_MENTION_KEY_CLICK_EVENT, callback);
+    addPopoverMentionKeyClickListener(id, callback) {
+        this.on(POPOVER_MENTION_KEY_CLICK_EVENT + id, callback);
     }
-    removePopoverMentionKeyClickListener(callback) {
-        this.removeListener(POPOVER_MENTION_KEY_CLICK_EVENT, callback);
+    removePopoverMentionKeyClickListener(id, callback) {
+        this.removeListener(POPOVER_MENTION_KEY_CLICK_EVENT + id, callback);
     }
-    emitPopoverMentionKeyClick(mentionKey) {
-        this.emit(POPOVER_MENTION_KEY_CLICK_EVENT, mentionKey);
+    emitPopoverMentionKeyClick(isRHS, mentionKey) {
+        this.emit(POPOVER_MENTION_KEY_CLICK_EVENT + isRHS, mentionKey);
     }
 
     registerSuggestionBox(id) {
@@ -320,7 +320,7 @@ class SuggestionStore extends EventEmitter {
             }
             break;
         case ActionTypes.POPOVER_MENTION_KEY_CLICK:
-            this.emitPopoverMentionKeyClick(other.mentionKey);
+            this.emitPopoverMentionKeyClick(other.isRHS, other.mentionKey);
             break;
         }
     }

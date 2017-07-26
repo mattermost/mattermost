@@ -578,9 +578,10 @@ export function postListScrollChange(forceScrollToBottom = false) {
     });
 }
 
-export function emitPopoverMentionKeyClick(mentionKey) {
+export function emitPopoverMentionKeyClick(isRHS, mentionKey) {
     AppDispatcher.handleViewAction({
         type: ActionTypes.POPOVER_MENTION_KEY_CLICK,
+        isRHS,
         mentionKey
     });
 }

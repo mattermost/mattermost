@@ -62,6 +62,7 @@ export default class ProfilePicture extends React.Component {
                             status={this.props.status}
                             isBusy={this.props.isBusy}
                             hide={this.hideProfilePopover}
+                            isRHS={this.props.isRHS}
                         />
                 }
                 >
@@ -93,7 +94,8 @@ export default class ProfilePicture extends React.Component {
 
 ProfilePicture.defaultProps = {
     width: '36',
-    height: '36'
+    height: '36',
+    isRHS: false
 };
 ProfilePicture.propTypes = {
     src: PropTypes.string.isRequired,
@@ -101,5 +103,6 @@ ProfilePicture.propTypes = {
     width: PropTypes.string,
     height: PropTypes.string,
     user: PropTypes.object,
-    isBusy: PropTypes.bool
+    isBusy: PropTypes.bool,
+    isRHS: PropTypes.bool
 };

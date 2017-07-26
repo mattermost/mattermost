@@ -73,6 +73,11 @@ export default class SuggestionBox extends React.Component {
         onItemSelected: PropTypes.func,
 
         /**
+         * Flags if the suggestion_box is for the RHS (Reply).
+         */
+        isRHS: PropTypes.bool,
+
+        /**
          * Function called when @mention is clicked
          */
         popoverMentionKeyClick: PropTypes.bool
@@ -82,7 +87,8 @@ export default class SuggestionBox extends React.Component {
         type: 'input',
         listStyle: 'top',
         renderDividers: false,
-        completeOnTab: true
+        completeOnTab: true,
+        isRHS: false
     }
 
     constructor(props) {
@@ -109,14 +115,14 @@ export default class SuggestionBox extends React.Component {
 
     componentDidMount() {
         if (this.props.popoverMentionKeyClick) {
-            SuggestionStore.addPopoverMentionKeyClickListener(this.handlePopoverMentionKeyClick);
+            SuggestionStore.addPopoverMentionKeyClickListener(this.props.isRHS, this.handlePopoverMentionKeyClick);
         }
         SuggestionStore.addPretextChangedListener(this.suggestionId, this.handlePretextChanged);
     }
 
     componentWillUnmount() {
         if (this.props.popoverMentionKeyClick) {
-            SuggestionStore.removePopoverMentionKeyClickListener(this.handlePopoverMentionKeyClick);
+            SuggestionStore.removePopoverMentionKeyClickListener(this.props.isRHS, this.handlePopoverMentionKeyClick);
         }
         SuggestionStore.removePretextChangedListener(this.suggestionId, this.handlePretextChanged);
 
@@ -133,7 +139,8 @@ export default class SuggestionBox extends React.Component {
 
     getTextbox() {
         if (this.props.type === 'textarea') {
-            return this.refs.textbox.getDOMNode();
+            const node = this.refs.textbox.getDOMNode();
+            return node;
         }
 
         return this.refs.textbox;
@@ -199,10 +206,10 @@ export default class SuggestionBox extends React.Component {
             insertText = ' ' + insertText;
         }
 
-        this.handleCompleteWord(insertText, '');
+        this.handleCompleteWord(insertText, '', false);
     }
 
-    handleCompleteWord(term, matchedPretext) {
+    handleCompleteWord(term, matchedPretext, shouldEmitWordSuggestion = true) {
         const textbox = this.getTextbox();
         const caret = textbox.selectionEnd;
         const text = this.props.value;
@@ -255,8 +262,9 @@ export default class SuggestionBox extends React.Component {
                 provider.handleCompleteWord(term, matchedPretext);
             }
         }
-
-        GlobalActions.emitCompleteWordSuggestion(this.suggestionId);
+        if (shouldEmitWordSuggestion) {
+            GlobalActions.emitCompleteWordSuggestion(this.suggestionId);
+        }
     }
 
     handleKeyDown(e) {
@@ -311,6 +319,7 @@ export default class SuggestionBox extends React.Component {
         Reflect.deleteProperty(props, 'onChange'); // We use onInput instead of onChange on the actual input
         Reflect.deleteProperty(props, 'onItemSelected');
         Reflect.deleteProperty(props, 'completeOnTab');
+        Reflect.deleteProperty(props, 'isRHS');
         Reflect.deleteProperty(props, 'popoverMentionKeyClick');
 
         const childProps = {

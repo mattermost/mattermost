@@ -37,11 +37,13 @@ export default class Textbox extends React.Component {
         handlePostError: PropTypes.func,
         suggestionListStyle: PropTypes.string,
         emojiEnabled: PropTypes.bool,
+        isRHS: PropTypes.bool,
         popoverMentionKeyClick: React.PropTypes.bool
     };
 
     static defaultProps = {
-        supportsCommands: true
+        supportsCommands: true,
+        isRHS: false
     };
 
     constructor(props) {
@@ -297,6 +299,7 @@ export default class Textbox extends React.Component {
                     channelId={this.props.channelId}
                     value={this.props.value}
                     renderDividers={true}
+                    isRHS={this.props.isRHS}
                     popoverMentionKeyClick={this.props.popoverMentionKeyClick}
                 />
                 <div
