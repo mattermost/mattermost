@@ -33,6 +33,7 @@ export default class EmailNotificationSetting extends React.Component {
         this.collapse = this.collapse.bind(this);
 
         this.state = {
+            // TODO: change Preferences.INTERVAL_IMMEDIATE to Preferences.INTERVAL_FIFTEEN_MINUTES - this will set the default value for users that don't have this setting set
             emailInterval: PreferenceStore.getInt(Preferences.CATEGORY_NOTIFICATIONS, Preferences.EMAIL_INTERVAL, Preferences.INTERVAL_IMMEDIATE)
         };
     }
