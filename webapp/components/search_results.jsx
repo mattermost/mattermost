@@ -175,7 +175,7 @@ export default class SearchResults extends React.Component {
         this.setState({statuses: Object.assign({}, UserStore.getStatuses())});
     }
 
-    static resize() {
+    resize() {
         $('#search-items-container').scrollTop(0);
     }
 

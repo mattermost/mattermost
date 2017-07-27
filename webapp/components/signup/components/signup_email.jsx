@@ -40,7 +40,7 @@ export default class SignupEmail extends React.Component {
         this.state = this.getInviteInfo();
     }
 
-    static componentDidMount() {
+    componentDidMount() {
         trackEvent('signup', 'signup_user_01_welcome');
     }
 
