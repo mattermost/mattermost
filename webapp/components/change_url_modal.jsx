@@ -191,7 +191,7 @@ export default class ChangeUrlModal extends React.Component {
                                         type='text'
                                         ref='urlinput'
                                         className='form-control'
-                                        maxLength='22'
+                                        maxLength={Constants.MAX_CHANNELNAME_LENGTH}
                                         onChange={this.onURLChanged}
                                         value={this.state.currentURL}
                                         autoFocus={true}
