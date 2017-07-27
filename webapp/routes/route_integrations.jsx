@@ -25,13 +25,13 @@ export default {
                 {
                     path: 'add',
                     getComponents: (location, callback) => {
-                        System.import('components/integrations/components/add_incoming_webhook.jsx').then(RouteUtils.importComponentSuccess(callback));
+                        System.import('components/integrations/components/add_incoming_webhook').then(RouteUtils.importComponentSuccess(callback));
                     }
                 },
                 {
                     path: 'edit',
                     getComponents: (location, callback) => {
-                        System.import('components/integrations/components/edit_incoming_webhook.jsx').then(RouteUtils.importComponentSuccess(callback));
+                        System.import('components/integrations/components/edit_incoming_webhook').then(RouteUtils.importComponentSuccess(callback));
                     }
                 }
             ]
