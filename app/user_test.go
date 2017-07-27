@@ -247,7 +247,7 @@ func getGitlabUserPayload(gitlabUser oauthgitlab.GitLabUser, t *testing.T) []byt
 
 func createGitlabUser(t *testing.T, email string, username string) (*model.User, oauthgitlab.GitLabUser) {
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
-	gitlabUserObj := oauthgitlab.GitLabUser{Id: int64(r.Intn(1000)), Username: username, Login: "user1", Email: email, Name: "Test User"}
+	gitlabUserObj := oauthgitlab.GitLabUser{Id: int64(r.Intn(1000)) + 1, Username: username, Login: "user1", Email: email, Name: "Test User"}
 	gitlabUser := getGitlabUserPayload(gitlabUserObj, t)
 
 	var user *model.User
