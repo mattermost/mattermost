@@ -113,7 +113,7 @@ export default class Status extends React.PureComponent {
 
         if (this.props.jobs.length > 0) {
             this.props.jobs.forEach((job) => {
-                if (job.status === JobStatuses.CANCEL_REQUESTED || job.status === JobStatuses.IN_PROGRESSZ) {
+                if (job.status === JobStatuses.CANCEL_REQUESTED || job.status === JobStatuses.IN_PROGRESS) {
                     chosenJob = job;
                     return false;
                 }
@@ -216,7 +216,7 @@ export default class Status extends React.PureComponent {
 
         let status = null;
         let statusHelp = null;
-        let statusColor = null;
+        let statusClass = null;
         if (!this.props.isConfigured) {
             status = (
                 <FormattedMessage
@@ -231,7 +231,7 @@ export default class Status extends React.PureComponent {
                     defaultMessage='Loading...'
                 />
             );
-            statusColor = 'gray';
+            statusClass = 'status-icon-unknown';
         } else if (chosenJob) {
             if (chosenJob.status === JobStatuses.PENDING) {
                 status = (
@@ -246,7 +246,7 @@ export default class Status extends React.PureComponent {
                         defaultMessage='Elasticsearch index job is queued on the job server. If Elasticsearch is enabled, search results may be incomplete until the job is finished.'
                     />
                 );
-                statusColor = '#eac262';
+                statusClass = 'status-icon-warning';
             } else if (chosenJob.status === JobStatuses.IN_PROGRESS) {
                 status = (
                     <FormattedMessage
@@ -263,7 +263,7 @@ export default class Status extends React.PureComponent {
                         defaultMessage='Indexing is in progress on the job server. If Elasticsearch is enabled, search results may be incomplete until the job is finished.'
                     />
                 );
-                statusColor = '#eac262';
+                statusClass = 'status-icon-warning';
             } else if (chosenJob.status === JobStatuses.SUCCESS) {
                 status = (
                     <FormattedMessage
@@ -277,7 +277,7 @@ export default class Status extends React.PureComponent {
                         defaultMessage='Indexing is complete and new posts are being automatically indexed.'
                     />
                 );
-                statusColor = '#69c169';
+                statusClass = 'status-icon-success';
             } else if (chosenJob.status === JobStatuses.ERROR) {
                 status = (
                     <FormattedMessage
@@ -294,7 +294,7 @@ export default class Status extends React.PureComponent {
                         }}
                     />
                 );
-                statusColor = '##ea6262';
+                statusClass = 'status-icon-error';
             } else if (chosenJob.status === JobStatuses.CANCEL_REQUESTED) {
                 status = (
                     <FormattedMessage
@@ -302,7 +302,7 @@ export default class Status extends React.PureComponent {
                         defaultMessage='Canceling Job...'
                     />
                 );
-                statusColor = '#eac262';
+                statusClass = 'status-icon-warning';
             } else if (chosenJob.status === JobStatuses.CANCELED) {
                 status = (
                     <FormattedMessage
@@ -310,7 +310,7 @@ export default class Status extends React.PureComponent {
                         defaultMessage='Indexing job cancelled.'
                     />
                 );
-                statusColor = '##ea6262';
+                statusClass = 'status-icon-error';
             }
         } else {
             status = (
@@ -319,7 +319,7 @@ export default class Status extends React.PureComponent {
                     defaultMessage='No indexing jobs queued.'
                 />
             );
-            statusColor = 'gray';
+            statusClass = 'status-icon-unknown';
         }
 
         if (statusHelp !== null) {
@@ -332,6 +332,8 @@ export default class Status extends React.PureComponent {
             );
         }
 
+        statusClass = 'fa fa-circle margin--right ' + statusClass;
+
         return (
             <div>
                 {indexButton}
@@ -343,10 +345,7 @@ export default class Status extends React.PureComponent {
                                 defaultMessage='Status: '
                             />
                             <i
-                                className='fa fa-circle margin--right'
-                                style={{
-                                    color: statusColor
-                                }}
+                                className={statusClass}
                             />
                             {status}
                         </div>
