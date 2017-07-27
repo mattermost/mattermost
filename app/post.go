@@ -100,7 +100,7 @@ func CreatePost(post *model.Post, teamId string, triggerWebhooks bool) (*model.P
 	}
 
 	esInterface := einterfaces.GetElasticsearchInterface()
-	if esInterface != nil && *utils.Cfg.ElasticSearchSettings.EnableIndexing {
+	if esInterface != nil && *utils.Cfg.ElasticsearchSettings.EnableIndexing {
 		go esInterface.IndexPost(rpost, teamId)
 	}
 
@@ -285,10 +285,10 @@ func UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model.AppError
 		rpost := result.Data.(*model.Post)
 
 		esInterface := einterfaces.GetElasticsearchInterface()
-		if esInterface != nil && *utils.Cfg.ElasticSearchSettings.EnableIndexing {
+		if esInterface != nil && *utils.Cfg.ElasticsearchSettings.EnableIndexing {
 			go func() {
 				if rchannel := <-Srv.Store.Channel().GetForPost(rpost.Id); rchannel.Err != nil {
-					l4g.Error("Couldn't get channel %v for post %v for ElasticSearch indexing.", rpost.ChannelId, rpost.Id)
+					l4g.Error("Couldn't get channel %v for post %v for Elasticsearch indexing.", rpost.ChannelId, rpost.Id)
 				} else {
 					esInterface.IndexPost(rpost, rchannel.Data.(*model.Channel).TeamId)
 				}
@@ -472,7 +472,7 @@ func DeletePost(postId string) (*model.Post, *model.AppError) {
 		go DeleteFlaggedPosts(post.Id)
 
 		esInterface := einterfaces.GetElasticsearchInterface()
-		if esInterface != nil && *utils.Cfg.ElasticSearchSettings.EnableIndexing {
+		if esInterface != nil && *utils.Cfg.ElasticsearchSettings.EnableIndexing {
 			go esInterface.DeletePost(post)
 		}
 
@@ -503,7 +503,7 @@ func SearchPostsInTeam(terms string, userId string, teamId string, isOrSearch bo
 	paramsList := model.ParseSearchParams(terms)
 
 	esInterface := einterfaces.GetElasticsearchInterface()
-	if esInterface != nil && *utils.Cfg.ElasticSearchSettings.EnableSearching && utils.IsLicensed && *utils.License.Features.Elasticsearch {
+	if esInterface != nil && *utils.Cfg.ElasticsearchSettings.EnableSearching && utils.IsLicensed && *utils.License.Features.Elasticsearch {
 		finalParamsList := []*model.SearchParams{}
 
 		for _, params := range paramsList {

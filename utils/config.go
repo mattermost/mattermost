@@ -611,8 +611,8 @@ func Desanitize(cfg *model.Config) {
 		cfg.SqlSettings.AtRestEncryptKey = Cfg.SqlSettings.AtRestEncryptKey
 	}
 
-	if *cfg.ElasticSearchSettings.Password == model.FAKE_SETTING {
-		*cfg.ElasticSearchSettings.Password = *Cfg.ElasticSearchSettings.Password
+	if *cfg.ElasticsearchSettings.Password == model.FAKE_SETTING {
+		*cfg.ElasticsearchSettings.Password = *Cfg.ElasticsearchSettings.Password
 	}
 
 	for i := range cfg.SqlSettings.DataSourceReplicas {
