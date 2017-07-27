@@ -12,9 +12,9 @@ import (
 )
 
 func TestElasticsearch(cfg *model.Config) *model.AppError {
-	if *cfg.ElasticSearchSettings.Password == model.FAKE_SETTING {
-		if *cfg.ElasticSearchSettings.ConnectionUrl == *utils.Cfg.ElasticSearchSettings.ConnectionUrl && *cfg.ElasticSearchSettings.Username == *utils.Cfg.ElasticSearchSettings.Username {
-			*cfg.ElasticSearchSettings.Password = *utils.Cfg.ElasticSearchSettings.Password
+	if *cfg.ElasticsearchSettings.Password == model.FAKE_SETTING {
+		if *cfg.ElasticsearchSettings.ConnectionUrl == *utils.Cfg.ElasticsearchSettings.ConnectionUrl && *cfg.ElasticsearchSettings.Username == *utils.Cfg.ElasticsearchSettings.Username {
+			*cfg.ElasticsearchSettings.Password = *utils.Cfg.ElasticsearchSettings.Password
 		} else {
 			return model.NewAppError("TestElasticsearch", "ent.elasticsearch.test_config.reenter_password", nil, "", http.StatusBadRequest)
 		}

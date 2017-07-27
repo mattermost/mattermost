@@ -50,7 +50,7 @@
         "EnableChannelViewedMessages": true,
         "ClusterLogTimeoutMilliseconds": 2000
     },
-    "ElasticSearchSettings": {
+    "ElasticsearchSettings": {
         "ConnectionUrl": "http://dockerhost:9200",
         "Username": "elastic",
         "Password": "changeme",
