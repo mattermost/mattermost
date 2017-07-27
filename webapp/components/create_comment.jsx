@@ -397,8 +397,11 @@ export default class CreateComment extends React.Component {
         draft.fileInfos = draft.fileInfos.concat(fileInfos);
         PostStore.storeCommentDraft(this.props.rootId, draft);
 
-        // Focus on preview if needed
-        this.refs.preview.refs.container.scrollIntoView();
+        // Focus on preview if needed/possible - if user has switched teams since starting the file upload,
+        // the preview will be undefined and the switch will fail
+        if (typeof this.refs.preview != 'undefined' && this.refs.preview) {
+            this.refs.preview.refs.container.scrollIntoView();
+        }
 
         const enableAddButton = this.handleEnableAddButton(draft.message, draft.fileInfos);
 
