@@ -1009,10 +1009,12 @@ export default class SecurityTab extends React.Component {
                     />
                 ),
                 confirmMessage: (
-                    <FormattedHTMLMessage
-                        id='user.settings.tokens.confirmCreateMessage'
-                        defaultMessage='You are generating a user access token with System Admin permissions.<br/><br/>Are you sure want to create this token?'
-                    />
+                    <div className='alert alert-danger'>
+                        <FormattedHTMLMessage
+                            id='user.settings.tokens.confirmCreateMessage'
+                            defaultMessage='You are generating a user access token with System Admin permissions.<br/>Are you sure want to create this token?'
+                        />
+                    </div>
                 ),
                 confirmButton: (
                     <FormattedMessage
@@ -1081,19 +1083,19 @@ export default class SecurityTab extends React.Component {
                 tokenList.push(
                     <div
                         key={token.id}
-                        className='asaadaddclass'
+                        className='setting-box__item'
                     >
-                        <div className='asaadaddclass'>
-                            {token.description}
+                        <div>
+                            <strong>{token.description}</strong>
                         </div>
-                        <div className='asaadaddclass'>
+                        <div className='setting-box__token-id'>
                             <FormattedMessage
                                 id='user.settings.tokens.tokenId'
                                 defaultMessage='Token ID: '
                             />
                             {token.id}
                         </div>
-                        <div className='asaadaddclass'>
+                        <div>
                             <a
                                 name={token.id}
                                 href='#'
@@ -1108,6 +1110,7 @@ export default class SecurityTab extends React.Component {
                                 />
                             </a>
                         </div>
+                        <hr className='margin-bottom margin-top x2'/>
                     </div>
                 );
             });
@@ -1134,55 +1137,62 @@ export default class SecurityTab extends React.Component {
             let newTokenSection;
             if (this.state.tokenCreationState === TOKEN_CREATING) {
                 newTokenSection = (
-                    <div className='asaadaddclass'>
-                        <FormattedMessage
-                            id='user.settings.tokens.name'
-                            defaultMessage='Name: '
-                        />
-                        <input
-                            ref='newtokendescription'
-                            className='form-control'
-                            type='text'
-                        />
-                        <br/>
-                        <FormattedMessage
-                            id='user.settings.tokens.nameDescription'
-                            defaultMessage='Give a name for your token, so you remember what it’s used for. A token is generated after you hit "Save".'
-                        />
-                        <br/>
-                        <div className='form-group'>
-                            <label
-                                id='clientError'
-                                className='col-sm-12 has-error'
-                            >
-                                {this.state.tokenError}
+                    <div>
+                        <div className='row'>
+                            <label className='col-sm-3 control-label'>
+                                <FormattedMessage
+                                    id='user.settings.tokens.name'
+                                    defaultMessage='Name: '
+                                />
                             </label>
+                            <div className='col-sm-5'>
+                                <input
+                                    ref='newtokendescription'
+                                    className='form-control'
+                                    type='text'
+                                />
+                            </div>
                         </div>
-                        <button
-                            className='btn btn-primary'
-                            onClick={this.confirmCreateToken}
-                        >
-                            <FormattedMessage
-                                id='user.settings.tokens.save'
-                                defaultMessage='Save'
-                            />
-                        </button>
-                        <button
-                            className='btn btn-default'
-                            onClick={this.stopCreatingToken}
-                        >
-                            <FormattedMessage
-                                id='user.settings.tokens.cancel'
-                                defaultMessage='Cancel'
-                            />
-                        </button>
+                        <div>
+                            <div className='padding-top x2'>
+                                <FormattedMessage
+                                    id='user.settings.tokens.nameDescription'
+                                    defaultMessage='Give a name for your token, so you remember what it’s used for. A token is generated after you hit "Save".'
+                                />
+                            </div>
+                            <div>
+                                <label
+                                    id='clientError'
+                                    className='has-error margin-top margin-bottom x2'
+                                >
+                                    {this.state.tokenError}
+                                </label>
+                            </div>
+                            <button
+                                className='btn btn-primary'
+                                onClick={this.confirmCreateToken}
+                            >
+                                <FormattedMessage
+                                    id='user.settings.tokens.save'
+                                    defaultMessage='Save'
+                                />
+                            </button>
+                            <button
+                                className='btn btn-default'
+                                onClick={this.stopCreatingToken}
+                            >
+                                <FormattedMessage
+                                    id='user.settings.tokens.cancel'
+                                    defaultMessage='Cancel'
+                                />
+                            </button>
+                        </div>
                     </div>
                 );
             } else if (this.state.tokenCreationState === TOKEN_CREATED) {
                 newTokenSection = (
                     <div
-                        className='asaadaddclass'
-                        style={{backgroundColor: 'lightgrey'}}
+                        className='alert alert-warning'
                     >
                         <FormattedMessage
                             id='user.settings.tokens.name'
@@ -1232,11 +1242,12 @@ export default class SecurityTab extends React.Component {
                     className='padding-top'
                 >
                     <div key='tokenList'>
-                        {tokenList}
-                        <div className='divider-light'/>
+                        <div className='alert alert-transparent'>
+                            {tokenList}
+                        </div>
+                        <div className='divider-light margin-top x2'/>
                         <br/>
                         {newTokenSection}
-                        <br/>
                     </div>
                 </div>
             );
@@ -1252,10 +1263,11 @@ export default class SecurityTab extends React.Component {
                     title={Utils.localizeMessage('user.settings.tokens.title', 'User Access Tokens')}
                     inputs={inputs}
                     extraInfo={extraInfo}
+                    infoPosition='top'
                     submit={submit}
                     server_error={this.state.serverError}
                     updateSection={updateSectionStatus}
-                    width='medium'
+                    width='full'
                 />
             );
         }
@@ -1367,7 +1379,7 @@ export default class SecurityTab extends React.Component {
                             defaultMessage='View Access History'
                         />
                     </ToggleModalButton>
-                    <b/>
+                    <br/>
                     <ToggleModalButton
                         className='security-links theme'
                         dialogType={ActivityLogModal}

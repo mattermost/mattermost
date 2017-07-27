@@ -2431,7 +2431,7 @@
   "user.settings.push_notification.status": "Trigger push notifications when",
   "user.settings.push_notification.status_info": "Notification alerts are only pushed to your mobile device when your online status matches the selection above.",
   "user.settings.tokens.confirmCreateTitle": "Create System Admin User Access Token",
-  "user.settings.tokens.confirmCreateMessage": "You are generating a user access token with System Admin permissions.<br/><br/>Are you sure want to create this token?",
+  "user.settings.tokens.confirmCreateMessage": "You are generating a user access token with System Admin permissions.<br/>Are you sure want to create this token?",
   "user.settings.tokens.confirmCreateButton": "Yes, Create",
   "user.settings.tokens.confirmDeleteTitle": "Delete {name} Token?",
   "user.settings.tokens.confirmDeleteMessage": "Any integrations using this token will no longer be able to access the Mattermost API.<br/><br/>You cannot undo this action. Are you sure want to delete this token?",

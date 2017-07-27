@@ -523,11 +523,34 @@
 .manage-teams {
     .manage-teams__user {
         align-items: center;
-        border-bottom-color: lightgray;
-        border-bottom-style: solid;
-        border-bottom-width: 1px;
+        border-bottom: 1px solid #ddd;
         display: flex;
         padding-bottom: 15px;
+    }
+
+    .manage-teams__teams {
+        @include border-radius(2px);
+        border: 1px solid #ccc;
+        margin: 1em 0 .3em;
+
+        .btn-link {
+            &.danger {
+                color: #c55151;
+            }
+        }
+    }
+
+    .member-row--padded {
+        padding-left: 20px;
+
+        strong {
+            margin-right: 10px;
+        }
+    }
+
+    .manage-row--inner {
+        border-bottom: 1px solid #ddd;
+        padding: 9px 0 4px;
     }
 
     .manage-teams__profile-picture {
@@ -561,10 +584,22 @@
         padding-right: 10px;
     }
 
+    .manage-teams__teams {
+        margin-top: 1em;
+
+        .manage-row__empty {
+            padding: 9px 13px;
+        }
+    }
+
     .manage-teams__team {
         align-items: center;
         display: flex;
-        padding: 10px;
+        padding: 5px 5px 5px 15px;
+
+        .dropdown {
+            padding: 6px 12px;
+        }
     }
 
     .manage-teams__team + .manage-teams__team {
@@ -575,7 +610,6 @@
 
     .manage-teams__team-name {
         flex: 1;
-        font-weight: bold;
         overflow: hidden;
         text-overflow: ellipsis;
     }
