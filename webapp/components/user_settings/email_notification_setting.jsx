@@ -14,8 +14,6 @@ import SettingItemMax from 'components/setting_item_max.jsx';
 
 import {Preferences} from 'utils/constants.jsx';
 
-import * as AdminActions from 'mattermost-redux/actions/admin';
-
 export default class EmailNotificationSetting extends React.Component {
     static propTypes = {
         activeSection: PropTypes.string.isRequired,
