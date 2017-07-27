@@ -48,7 +48,7 @@ export default class ElasticsearchSettings extends AdminSettings {
             enableSearching: config.ElasticsearchSettings.EnableSearching,
             configTested: true,
             canSave: true,
-            canPurgeAndIndex: config.ElasticSearchSettings.EnableIndexing
+            canPurgeAndIndex: config.ElasticsearchSettings.EnableIndexing
         };
     }
 
