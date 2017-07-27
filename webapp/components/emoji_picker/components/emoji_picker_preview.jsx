@@ -27,7 +27,7 @@ export default class EmojiPickerPreview extends React.Component {
                 name = emoji.aliases[0];
                 aliases = emoji.aliases;
                 previewImage = (<span className='sprite-preview'><img
-                    src='/static/emoji/img_trans.gif'
+                    src='/static/images/img_trans.gif'
                     className={'  emojisprite-preview emoji-' + emoji.filename + ' '}
                                                                  /></span>);
             } else {

@@ -1,0 +1,26 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/integrations/AddIncomingWebhook should match snapshot 1`] = `
+<AbstractIncomingWebhook
+  action={[Function]}
+  footer={
+    Object {
+      "defaultMessage": "Save",
+      "id": "add_incoming_webhook.save",
+    }
+  }
+  header={
+    Object {
+      "defaultMessage": "Add",
+      "id": "integrations.add",
+    }
+  }
+  serverError=""
+  team={
+    Object {
+      "id": "testteamid",
+      "name": "test",
+    }
+  }
+/>
+`;

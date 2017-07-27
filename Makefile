@@ -68,7 +68,7 @@ else
 ALL_PACKAGES_COMMA=$(TE_PACKAGES_COMMA)
 endif
 
-all: dist
+all: run
 
 dist: | check-style test package
 

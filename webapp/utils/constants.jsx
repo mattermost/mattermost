@@ -233,6 +233,7 @@ export const SocketEvents = {
     USER_ADDED: 'user_added',
     USER_REMOVED: 'user_removed',
     USER_UPDATED: 'user_updated',
+    MEMBERROLE_UPDATED: 'memberrole_updated',
     TYPING: 'typing',
     PREFERENCE_CHANGED: 'preference_changed',
     PREFERENCES_CHANGED: 'preferences_changed',
