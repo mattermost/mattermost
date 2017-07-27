@@ -83,10 +83,12 @@ export default class ManageTokensModal extends React.PureComponent {
 
             if (userAccessTokensList.length === 0) {
                 tokenList = (
-                    <FormattedMessage
-                        id='admin.manage_tokens.userAccessTokensNone'
-                        defaultMessage='No user access tokens.'
-                    />
+                    <div className='manage-row__empty'>
+                        <FormattedMessage
+                            id='admin.manage_tokens.userAccessTokensNone'
+                            defaultMessage='No user access tokens.'
+                        />
+                    </div>
                 );
             } else {
                 tokenList = userAccessTokensList.map((token) => {
@@ -128,10 +130,12 @@ export default class ManageTokensModal extends React.PureComponent {
                         </div>
                     </div>
                 </div>
-                <FormattedHTMLMessage
-                    id='admin.manage_tokens.userAccessTokensDescription'
-                    defaultMessage='Read about <a href="https://about.mattermost.com/default-user-access-tokens" target="_blank">user access tokens</a>.'
-                />
+                <div className='padding-top'>
+                    <FormattedHTMLMessage
+                        id='admin.manage_tokens.userAccessTokensDescription'
+                        defaultMessage='Read about <a href="https://about.mattermost.com/default-user-access-tokens" target="_blank">user access tokens</a>.'
+                    />
+                </div>
                 <div className='manage-teams__teams'>
                     {tokenList}
                 </div>

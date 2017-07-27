@@ -360,6 +360,22 @@
                     padding: 0;
                 }
 
+                .setting-box__item {
+                    &:first-child {
+                        padding-top: 3px;
+                    }
+
+                    &:last-child {
+                        hr {
+                            display: none;
+                        }
+                    }
+                }
+
+                .setting-box__token-id {
+                    margin: 4px 0;
+                }
+
                 .setting-list__hint {
                     margin-top: 20px;
                 }
