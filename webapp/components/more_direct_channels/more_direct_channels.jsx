@@ -185,11 +185,18 @@ export default class MoreDirectChannels extends React.Component {
         }
     }
 
+    resetPaging = () => {
+        if (this.refs.multiselect) {
+            this.refs.multiselect.resetPaging();
+        }
+    }
+
     search(term) {
         clearTimeout(this.searchTimeoutId);
         this.term = term;
 
         if (term === '') {
+            this.resetPaging();
             this.onChange();
             return;
         }
@@ -203,7 +210,7 @@ export default class MoreDirectChannels extends React.Component {
 
         this.searchTimeoutId = setTimeout(
             () => {
-                searchUsers(term, teamId);
+                searchUsers(term, teamId, {}, this.resetPaging);
             },
             Constants.SEARCH_TIMEOUT_MILLISECONDS
         );
@@ -315,6 +322,7 @@ export default class MoreDirectChannels extends React.Component {
                 <Modal.Body>
                     <MultiSelect
                         key='moreDirectChannelsList'
+                        ref='multiselect'
                         options={users}
                         optionRenderer={this.renderOption}
                         values={this.state.values}
