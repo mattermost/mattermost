@@ -14,6 +14,8 @@ import (
 const (
 	REACTION_CACHE_SIZE = 20000
 	REACTION_CACHE_SEC  = 1800 // 30 minutes
+
+	CLEAR_CACHE_MESSAGE_DATA = ""
 )
 
 type LocalCacheSupplier struct {
@@ -33,7 +35,7 @@ func NewLocalCacheSupplier() *LocalCacheSupplier {
 
 func registerClusterHandlers(supplier *LocalCacheSupplier) {
 	if cluster := einterfaces.GetClusterInterface(); cluster != nil {
-		cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_REACTIONS, supplier.handleClusterInvalidatePost)
+		cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_REACTIONS, supplier.handleClusterInvalidateReaction)
 	}
 }
 
@@ -72,7 +74,7 @@ func doStandardReadCache(ctx context.Context, cache utils.ObjectCache, key strin
 }
 
 func doStandardAddToCache(ctx context.Context, cache utils.ObjectCache, key string, result *LayeredStoreSupplierResult, hints ...LayeredStoreHint) {
-	if result.Err != nil && result.Data != nil {
+	if result.Err == nil && result.Data != nil {
 		cache.AddWithDefaultExpires(key, result.Data)
 	}
 }
@@ -84,6 +86,18 @@ func doInvalidateCacheCluster(cache utils.ObjectCache, key string) {
 			Event:    cache.GetInvalidateClusterEvent(),
 			SendType: model.CLUSTER_SEND_BEST_EFFORT,
 			Data:     key,
+		}
+		einterfaces.GetClusterInterface().SendClusterMessage(msg)
+	}
+}
+
+func doClearCacheCluster(cache utils.ObjectCache) {
+	cache.Purge()
+	if einterfaces.GetClusterInterface() != nil {
+		msg := &model.ClusterMessage{
+			Event:    cache.GetInvalidateClusterEvent(),
+			SendType: model.CLUSTER_SEND_BEST_EFFORT,
+			Data:     CLEAR_CACHE_MESSAGE_DATA,
 		}
 		einterfaces.GetClusterInterface().SendClusterMessage(msg)
 	}

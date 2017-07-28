@@ -14,7 +14,7 @@ import (
 	"time"
 )
 
-// Cacheing Interface
+// Caching Interface
 type ObjectCache interface {
 	AddWithExpiresInSecs(key, value interface{}, expireAtSecs int64) bool
 	AddWithDefaultExpires(key, value interface{}) bool

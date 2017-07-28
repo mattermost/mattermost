@@ -7,7 +7,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/gob"
-	"fmt"
 
 	"time"
 
@@ -15,6 +14,8 @@ import (
 	"github.com/go-redis/redis"
 	"github.com/mattermost/platform/model"
 )
+
+const REDIS_EXPIRY_TIME = 30 * time.Minute
 
 type RedisSupplier struct {
 	next   LayeredStoreSupplier
@@ -49,8 +50,10 @@ func NewRedisSupplier() *RedisSupplier {
 		DB:       0,
 	})
 
-	pong, err := supplier.client.Ping().Result()
-	fmt.Println(pong, err)
+	if _, err := supplier.client.Ping().Result(); err != nil {
+		l4g.Error("Unable to ping redis server: " + err.Error())
+		return nil
+	}
 
 	return supplier
 }
@@ -117,7 +120,7 @@ func (s *RedisSupplier) ReactionGetForPost(ctx context.Context, postId string, h
 
 	result := s.Next().ReactionGetForPost(ctx, postId, hints...)
 
-	if err := s.save("reactions:"+postId, result.Data, 30*time.Minute); err != nil {
+	if err := s.save("reactions:"+postId, result.Data, REDIS_EXPIRY_TIME); err != nil {
 		l4g.Error("Redis encountered and error on write: " + err.Error())
 	}
 
@@ -125,6 +128,6 @@ func (s *RedisSupplier) ReactionGetForPost(ctx context.Context, postId string, h
 }
 
 func (s *RedisSupplier) ReactionDeleteAllWithEmojiName(ctx context.Context, emojiName string, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
-	// Not implemented because this is never called
+	// Ignoring this. It's probably OK to have the emoji slowly expire from Redis.
 	return s.Next().ReactionDeleteAllWithEmojiName(ctx, emojiName, hints...)
 }

@@ -9,8 +9,12 @@ import (
 	"github.com/mattermost/platform/model"
 )
 
-func (s *LocalCacheSupplier) handleClusterInvalidatePost(msg *model.ClusterMessage) {
-	s.reactionCache.Remove(msg.Data)
+func (s *LocalCacheSupplier) handleClusterInvalidateReaction(msg *model.ClusterMessage) {
+	if msg.Data == CLEAR_CACHE_MESSAGE_DATA {
+		s.reactionCache.Purge()
+	} else {
+		s.reactionCache.Remove(msg.Data)
+	}
 }
 
 func (s *LocalCacheSupplier) ReactionSave(ctx context.Context, reaction *model.Reaction, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
@@ -36,6 +40,8 @@ func (s *LocalCacheSupplier) ReactionGetForPost(ctx context.Context, postId stri
 }
 
 func (s *LocalCacheSupplier) ReactionDeleteAllWithEmojiName(ctx context.Context, emojiName string, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
-	// Currently no invalidation because this is never called.
+	// This could be improved. Right now we just clear the whole
+	// cache because we don't have a way find what post Ids have this emoji name.
+	doClearCacheCluster(s.reactionCache)
 	return s.Next().ReactionDeleteAllWithEmojiName(ctx, emojiName, hints...)
 }

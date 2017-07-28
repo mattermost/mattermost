@@ -6,6 +6,7 @@ package store
 import (
 	"context"
 
+	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/platform/model"
 )
 
@@ -33,6 +34,7 @@ func NewLayeredStore() Store {
 
 	// Setup the chain
 	if ENABLE_EXPERIMENTAL_REDIS {
+		l4g.Debug("Experimental redis enabled.")
 		store.RedisLayer = NewRedisSupplier()
 		store.RedisLayer.SetChainNext(store.DatabaseLayer)
 		store.LayerChainHead = store.RedisLayer
