@@ -25,9 +25,9 @@ export default class PostAttachmentOpenGraph extends React.PureComponent {
         currentUser: PropTypes.object,
 
         /**
-         * The post wherer this link is included
+         * The post where this link is included
          */
-        post: PropTypes.object.isRequired,
+        post: PropTypes.object,
 
         /**
          * The open graph data to render
@@ -78,11 +78,16 @@ export default class PostAttachmentOpenGraph extends React.PureComponent {
     }
 
     componentWillMount() {
+        let removePreview = false;
+        if (this.props.post && this.props.post.props && this.props.currentUser.id === this.props.post.user_id) {
+            removePreview = this.props.post.props[PostTypes.REMOVE_LINK_PREVIEW] && this.props.post.props[PostTypes.REMOVE_LINK_PREVIEW] === 'true';
+        }
+
         this.setState({
             imageLoaded: this.IMAGE_LOADED.LOADING,
             imageVisible: this.props.previewCollapsed.startsWith('false'),
             hasLargeImage: false,
-            removePreview: false
+            removePreview
         });
         this.fetchData(this.props.link);
     }
@@ -108,12 +113,12 @@ export default class PostAttachmentOpenGraph extends React.PureComponent {
         }
     }
 
-    getBestImageUrl() {
-        if (Utils.isEmptyObject(this.props.openGraphData.images)) {
+    getBestImageUrl(data) {
+        if (Utils.isEmptyObject(data.images)) {
             return null;
         }
 
-        const bestImage = CommonUtils.getNearestPoint(this.imageDimentions, this.props.openGraphData.images, 'width', 'height');
+        const bestImage = CommonUtils.getNearestPoint(this.imageDimentions, data.images, 'width', 'height');
         return bestImage.secure_url || bestImage.url;
     }
 
@@ -237,6 +242,11 @@ export default class PostAttachmentOpenGraph extends React.PureComponent {
     }
 
     render() {
+        const data = this.props.openGraphData;
+        if (!data || Utils.isEmptyObject(data.description) || this.state.removePreview) {
+            return null;
+        }
+
         let removePreviewButton;
         if (this.props.currentUser.id === this.props.post.user_id) {
             removePreviewButton = (
@@ -251,16 +261,8 @@ export default class PostAttachmentOpenGraph extends React.PureComponent {
                 </button>
             );
         }
-        if (!this.props.openGraphData ||
-            Utils.isEmptyObject(this.props.openGraphData.description) ||
-            this.state.removePreview ||
-            (this.props.currentUser.id === this.props.post.user_id && this.props.post.props[PostTypes.REMOVE_LINK_PREVIEW] && this.props.post.props[PostTypes.REMOVE_LINK_PREVIEW] === 'true')) {
-            return null;
-        }
 
-        const data = this.props.openGraphData;
-        const imageUrl = this.getBestImageUrl();
-
+        const imageUrl = this.getBestImageUrl(data);
         if (imageUrl) {
             this.loadImage(imageUrl);
         }
