@@ -5,6 +5,8 @@ import * as UserUtils from 'mattermost-redux/utils/user_utils';
 import {Client4} from 'mattermost-redux/client';
 import {General} from 'mattermost-redux/constants';
 
+import {trackEvent} from 'actions/diagnostics_actions.jsx';
+
 import React from 'react';
 import {Modal} from 'react-bootstrap';
 import PropTypes from 'prop-types';
@@ -99,6 +101,26 @@ export default class ManageRolesModal extends React.PureComponent {
         });
     };
 
+    trackRoleChanges = (roles, oldRoles) => {
+        if (UserUtils.hasUserAccessTokenRole(roles) && !UserUtils.hasUserAccessTokenRole(oldRoles)) {
+            trackEvent('actions', 'add_roles', {role: General.SYSTEM_USER_ACCESS_TOKEN_ROLE});
+        } else if (!UserUtils.hasUserAccessTokenRole(roles) && UserUtils.hasUserAccessTokenRole(oldRoles)) {
+            trackEvent('actions', 'remove_roles', {role: General.SYSTEM_USER_ACCESS_TOKEN_ROLE});
+        }
+
+        if (UserUtils.hasPostAllRole(roles) && !UserUtils.hasPostAllRole(oldRoles)) {
+            trackEvent('actions', 'add_roles', {role: General.SYSTEM_POST_ALL_ROLE});
+        } else if (!UserUtils.hasPostAllRole(roles) && UserUtils.hasPostAllRole(oldRoles)) {
+            trackEvent('actions', 'remove_roles', {role: General.SYSTEM_POST_ALL_ROLE});
+        }
+
+        if (UserUtils.hasPostAllPublicRole(roles) && !UserUtils.hasPostAllPublicRole(oldRoles)) {
+            trackEvent('actions', 'add_roles', {role: General.SYSTEM_POST_ALL_PUBLIC_ROLE});
+        } else if (!UserUtils.hasPostAllPublicRole(roles) && UserUtils.hasPostAllPublicRole(oldRoles)) {
+            trackEvent('actions', 'remove_roles', {role: General.SYSTEM_POST_ALL_PUBLIC_ROLE});
+        }
+    }
+
     handleSave = async () => {
         this.setState({error: null});
 
@@ -116,6 +138,8 @@ export default class ManageRolesModal extends React.PureComponent {
         }
 
         const data = await this.props.actions.updateUserRoles(this.props.user.id, roles);
+
+        this.trackRoleChanges(roles, this.props.user.roles);
 
         if (data) {
             this.props.onModalDismissed();

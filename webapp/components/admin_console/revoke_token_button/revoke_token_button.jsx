@@ -5,6 +5,8 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {FormattedMessage} from 'react-intl';
 
+import {trackEvent} from 'actions/diagnostics_actions.jsx';
+
 export default class RevokeTokenButton extends React.PureComponent {
     static propTypes = {
 
@@ -31,6 +33,7 @@ export default class RevokeTokenButton extends React.PureComponent {
         e.preventDefault();
 
         const {error} = await this.props.actions.revokeUserAccessToken(this.props.tokenId);
+        trackEvent('system_console', 'revoke_user_access_token');
 
         if (error) {
             this.props.onError(error.message);

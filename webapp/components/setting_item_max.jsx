@@ -116,6 +116,18 @@ export default class SettingItemMax extends React.Component {
             );
         }
 
+        let cancelButtonText;
+        if (this.props.cancelButtonText) {
+            cancelButtonText = this.props.cancelButtonText;
+        } else {
+            cancelButtonText = (
+                <FormattedMessage
+                    id='setting_item_max.cancel'
+                    defaultMessage='Cancel'
+                />
+            );
+        }
+
         return (
             <ul className='section-max form-horizontal'>
                 {title}
@@ -134,10 +146,7 @@ export default class SettingItemMax extends React.Component {
                                 href='#'
                                 onClick={this.props.updateSection}
                             >
-                                <FormattedMessage
-                                    id='setting_item_max.cancel'
-                                    defaultMessage='Cancel'
-                                />
+                                {cancelButtonText}
                             </a>
                         </li>
                     </ul>
@@ -157,7 +166,8 @@ SettingItemMax.propTypes = {
     submit: PropTypes.func,
     title: PropTypes.node,
     width: PropTypes.string,
-    submitExtra: PropTypes.node
+    submitExtra: PropTypes.node,
+    cancelButtonText: PropTypes.node
 };
 
 SettingItemMax.defaultProps = {

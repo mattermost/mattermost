@@ -3,7 +3,7 @@
 
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
-import {getMe, getUserAccessTokensForUser, createUserAccessToken, revokeUserAccessToken} from 'mattermost-redux/actions/users';
+import {getMe, getUserAccessTokensForUser, createUserAccessToken, revokeUserAccessToken, clearUserAccessTokens} from 'mattermost-redux/actions/users';
 import * as UserUtils from 'mattermost-redux/utils/user_utils';
 
 import SecurityTab from './user_settings_security.jsx';
@@ -25,7 +25,8 @@ function mapDispatchToProps(dispatch) {
             getMe,
             getUserAccessTokensForUser,
             createUserAccessToken,
-            revokeUserAccessToken
+            revokeUserAccessToken,
+            clearUserAccessTokens
         }, dispatch)
     };
 }

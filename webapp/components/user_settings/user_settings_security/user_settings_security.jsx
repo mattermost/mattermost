@@ -14,6 +14,8 @@ import * as Utils from 'utils/utils.jsx';
 import Constants from 'utils/constants.jsx';
 
 import {updatePassword, getAuthorizedApps, deactivateMfa, deauthorizeOAuthApp} from 'actions/user_actions.jsx';
+import {trackEvent} from 'actions/diagnostics_actions.jsx';
+import {isMobile} from 'utils/user_agent.jsx';
 
 import $ from 'jquery';
 import PropTypes from 'prop-types';
@@ -64,7 +66,12 @@ export default class SecurityTab extends React.Component {
             /*
              * Function to revoke a user access token
              */
-            revokeUserAccessToken: PropTypes.func.isRequired
+            revokeUserAccessToken: PropTypes.func.isRequired,
+
+            /*
+             * Function to clear user access tokens locally
+             */
+            clearUserAccessTokens: PropTypes.func.isRequired
         }).isRequired
     }
 
@@ -100,6 +107,7 @@ export default class SecurityTab extends React.Component {
         }
 
         if (this.props.canUseAccessTokens) {
+            this.props.actions.clearUserAccessTokens();
             const userId = this.props.user ? this.props.user.id : '';
             this.props.actions.getUserAccessTokensForUser(userId, 0, 200);
         }
@@ -1022,7 +1030,10 @@ export default class SecurityTab extends React.Component {
                         defaultMessage='Yes, Create'
                     />
                 ),
-                confirmComplete: this.handleCreateToken
+                confirmComplete: () => {
+                    this.handleCreateToken();
+                    trackEvent('settings', 'system_admin_create_user_access_token');
+                }
             });
 
             return;
@@ -1057,7 +1068,10 @@ export default class SecurityTab extends React.Component {
                     defaultMessage='Yes, Delete'
                 />
             ),
-            confirmComplete: () => this.revokeToken(tokenId)
+            confirmComplete: () => {
+                this.revokeToken(tokenId);
+                trackEvent('settings', 'revoke_user_access_token');
+            }
         });
     }
 
@@ -1071,7 +1085,6 @@ export default class SecurityTab extends React.Component {
 
     createTokensSection = () => {
         let updateSectionStatus;
-        let submit;
 
         if (this.props.activeSection === 'tokens') {
             const tokenList = [];
@@ -1124,15 +1137,27 @@ export default class SecurityTab extends React.Component {
                     />
                 );
             }
+            let extraInfo;
 
-            const extraInfo = (
-                <span>
-                    <FormattedHTMLMessage
-                        id='user.settings.tokens.description'
-                        defaultMessage='User access tokens function similar to session tokens and can be used by integrations to <a href="https://about.mattermost.com/default-api-authentication" target="_blank">authenticate against the REST API</a>.'
-                    />
-                </span>
-            );
+            if (isMobile()) {
+                extraInfo = (
+                    <span>
+                        <FormattedHTMLMessage
+                            id='user.settings.tokens.description_mobile'
+                            defaultMessage='<a href="https://about.mattermost.com/default-user-access-tokens" target="_blank">User access tokens</a> function similar to session tokens and can be used by integrations to <a href="https://about.mattermost.com/default-api-authentication" target="_blank">authenticate against the REST API</a>. Create new tokens on your desktop.'
+                        />
+                    </span>
+                );
+            } else {
+                extraInfo = (
+                    <span>
+                        <FormattedHTMLMessage
+                            id='user.settings.tokens.description'
+                            defaultMessage='<a href="https://about.mattermost.com/default-user-access-tokens" target="_blank">User access tokens</a> function similar to session tokens and can be used by integrations to <a href="https://about.mattermost.com/default-api-authentication" target="_blank">authenticate against the REST API</a>.'
+                        />
+                    </span>
+                );
+            }
 
             let newTokenSection;
             if (this.state.tokenCreationState === TOKEN_CREATING) {
@@ -1150,6 +1175,7 @@ export default class SecurityTab extends React.Component {
                                     ref='newtokendescription'
                                     className='form-control'
                                     type='text'
+                                    maxLength={64}
                                 />
                             </div>
                         </div>
@@ -1238,7 +1264,7 @@ export default class SecurityTab extends React.Component {
             const inputs = [];
             inputs.push(
                 <div
-                    key='mfaSetting'
+                    key='tokensSetting'
                     className='padding-top'
                 >
                     <div key='tokenList'>
@@ -1264,10 +1290,15 @@ export default class SecurityTab extends React.Component {
                     inputs={inputs}
                     extraInfo={extraInfo}
                     infoPosition='top'
-                    submit={submit}
                     server_error={this.state.serverError}
                     updateSection={updateSectionStatus}
                     width='full'
+                    cancelButtonText={
+                        <FormattedMessage
+                            id='user.settings.security.close'
+                            defaultMessage='Close'
+                        />
+                    }
                 />
             );
         }
