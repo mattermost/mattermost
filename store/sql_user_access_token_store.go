@@ -24,13 +24,15 @@ func NewSqlUserAccessTokenStore(sqlStore SqlStore) UserAccessTokenStore {
 		table.ColMap("Id").SetMaxSize(26)
 		table.ColMap("Token").SetMaxSize(26).SetUnique(true)
 		table.ColMap("UserId").SetMaxSize(26)
-		table.ColMap("Description").SetMaxSize(255)
+		table.ColMap("Description").SetMaxSize(512)
 	}
 
 	return s
 }
 
 func (s SqlUserAccessTokenStore) CreateIndexesIfNotExists() {
+	s.CreateIndexIfNotExists("idx_user_access_tokens_token", "UserAccessTokens", "Token")
+	s.CreateIndexIfNotExists("idx_user_access_tokens_user_id", "UserAccessTokens", "UserId")
 }
 
 func (s SqlUserAccessTokenStore) Save(token *model.UserAccessToken) StoreChannel {
