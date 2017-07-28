@@ -648,25 +648,6 @@ export default class ChannelHeader extends React.Component {
                 }
             }
 
-            const deleteOption = (
-                <li
-                    key='delete_channel'
-                    role='presentation'
-                >
-                    <ToggleModalButton
-                        id='channelDelete'
-                        role='menuitem'
-                        dialogType={DeleteChannelModal}
-                        dialogProps={{channel}}
-                    >
-                        <FormattedMessage
-                            id='channel_header.delete'
-                            defaultMessage='Delete Channel'
-                        />
-                    </ToggleModalButton>
-                </li>
-            );
-
             if (ChannelUtils.showManagementOptions(channel, isAdmin, isSystemAdmin, isChannelAdmin)) {
                 dropdownContents.push(
                     <li
@@ -733,8 +714,25 @@ export default class ChannelHeader extends React.Component {
                 );
             }
 
-            if (ChannelUtils.showDeleteOption(channel, isAdmin, isSystemAdmin, isChannelAdmin, this.state.userCount)) {
-                dropdownContents.push(deleteOption);
+            if (ChannelUtils.showDeleteOptionForCurrentUser(channel)) {
+                dropdownContents.push(
+                    <li
+                        key='delete_channel'
+                        role='presentation'
+                    >
+                        <ToggleModalButton
+                            id='channelDelete'
+                            role='menuitem'
+                            dialogType={DeleteChannelModal}
+                            dialogProps={{channel}}
+                        >
+                            <FormattedMessage
+                                id='channel_header.delete'
+                                defaultMessage='Delete Channel'
+                            />
+                        </ToggleModalButton>
+                    </li>
+                );
             }
 
             const canLeave = channel.type === Constants.PRIVATE_CHANNEL ? this.state.userCount > 1 : true;

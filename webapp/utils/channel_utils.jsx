@@ -190,40 +190,44 @@ export function showManagementOptions(channel, isAdmin, isSystemAdmin, isChannel
     return true;
 }
 
-export function showDeleteOption(channel, isAdmin, isSystemAdmin, isChannelAdmin, userCount) {
+export function showDeleteOptionForCurrentUser(channel) {
+    const isTeamAdmin = TeamStore.isTeamAdminForCurrentTeam();
+    const isSystemAdmin = UserStore.isSystemAdminForCurrentUser();
+    const isChannelAdmin = ChannelStore.isChannelAdminForCurrentChannel();
+
     if (global.window.mm_license.IsLicensed !== 'true') {
+        // policies are only enforced in enterprise editions
         return true;
     }
 
     if (ChannelStore.isDefault(channel)) {
+        // can't delete default channels, no matter who you are
         return false;
     }
 
-    if (channel.type === Constants.OPEN_CHANNEL) {
-        if (global.window.mm_config.RestrictPublicChannelDeletion === Constants.PERMISSIONS_SYSTEM_ADMIN && !isSystemAdmin) {
+    if (channel.type === Constants.PRIVATE_CHANNEL) {
+        if (global.window.mm_config.RestrictPrivateChannelDeletion === Constants.PERMISSIONS_CHANNEL_ADMIN && !(isChannelAdmin || isTeamAdmin || isSystemAdmin)) {
             return false;
         }
-        if (global.window.mm_config.RestrictPublicChannelDeletion === Constants.PERMISSIONS_TEAM_ADMIN && !isAdmin) {
+        if (global.window.mm_config.RestrictPrivateChannelDeletion === Constants.PERMISSIONS_TEAM_ADMIN && !(isTeamAdmin || isSystemAdmin)) {
             return false;
-        }
-        if (global.window.mm_config.RestrictPublicChannelDeletion === Constants.PERMISSIONS_CHANNEL_ADMIN && !isChannelAdmin && !isAdmin) {
-            return false;
-        }
-    } else if (channel.type === Constants.PRIVATE_CHANNEL) {
-        if (userCount === 1) {
-            return true;
         }
         if (global.window.mm_config.RestrictPrivateChannelDeletion === Constants.PERMISSIONS_SYSTEM_ADMIN && !isSystemAdmin) {
             return false;
         }
-        if (global.window.mm_config.RestrictPrivateChannelDeletion === Constants.PERMISSIONS_TEAM_ADMIN && !isAdmin) {
+    } else {
+        if (global.window.mm_config.RestrictPublicChannelDeletion === Constants.PERMISSIONS_CHANNEL_ADMIN && !(isChannelAdmin || isTeamAdmin || isSystemAdmin)) {
             return false;
         }
-        if (global.window.mm_config.RestrictPrivateChannelDeletion === Constants.PERMISSIONS_CHANNEL_ADMIN && !isChannelAdmin && !isAdmin) {
+        if (global.window.mm_config.RestrictPublicChannelDeletion === Constants.PERMISSIONS_TEAM_ADMIN && !(isTeamAdmin || isSystemAdmin)) {
+            return false;
+        }
+        if (global.window.mm_config.RestrictPublicChannelDeletion === Constants.PERMISSIONS_SYSTEM_ADMIN && !isSystemAdmin) {
             return false;
         }
     }
 
+    // all channel members can delete this channel
     return true;
 }
 

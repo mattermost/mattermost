@@ -546,7 +546,7 @@ export default class Navbar extends React.Component {
                     );
                 }
 
-                if (ChannelUtils.showDeleteOption(channel, isAdmin, isSystemAdmin, isChannelAdmin, this.state.userCount)) {
+                if (ChannelUtils.showDeleteOptionForCurrentUser(channel)) {
                     deleteChannelOption = (
                         <li role='presentation'>
                             <ToggleModalButton
