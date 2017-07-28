@@ -26,6 +26,8 @@ export default class StorageSettings extends AdminSettings {
 
     getConfigFromState(config) {
         config.FileSettings.EnableFileAttachments = this.state.enableFileAttachments;
+        config.FileSettings.EnableMobileUpload = this.state.enableMobileUpload;
+        config.FileSettings.EnableMobileDownload = this.state.enableMobileDownload;
         config.FileSettings.MaxFileSize = this.parseInt(this.state.maxFileSize) * 1024 * 1024;
         config.FileSettings.DriverName = this.state.driverName;
         config.FileSettings.Directory = this.state.directory;
@@ -41,6 +43,8 @@ export default class StorageSettings extends AdminSettings {
     getStateFromConfig(config) {
         return {
             enableFileAttachments: config.FileSettings.EnableFileAttachments,
+            enableMobileUpload: config.FileSettings.EnableMobileUpload,
+            enableMobileDownload: config.FileSettings.EnableMobileDownload,
             maxFileSize: config.FileSettings.MaxFileSize / 1024 / 1024,
             driverName: config.FileSettings.DriverName,
             directory: config.FileSettings.Directory,
@@ -206,17 +210,53 @@ export default class StorageSettings extends AdminSettings {
                     label={
                         <FormattedMessage
                             id='admin.file.enableFileAttachments'
-                            defaultMessage='Enable File Attachments:'
+                            defaultMessage='Allow File Sharing:'
                         />
                     }
                     helpText={
                         <FormattedMessage
                             id='admin.file.enableFileAttachmentsDesc'
-                            defaultMessage='When false, disable file and image uploads on messages.'
+                            defaultMessage='When false, disables file sharing on the server. All file and image uploads on messages are forbidden across clients and devices, including mobile.'
                         />
                     }
                     value={this.state.enableFileAttachments}
                     onChange={this.handleChange}
+                />
+                <BooleanSetting
+                    id='enableMobileUpload'
+                    label={
+                        <FormattedMessage
+                            id='admin.file.enableMobileUploadTitle'
+                            defaultMessage='Allow File Uploads on Mobile:'
+                        />
+                    }
+                    helpText={
+                        <FormattedMessage
+                            id='admin.file.enableMobileUploadDesc'
+                            defaultMessage='When false, disables file uploads on mobile apps. If Allow File Sharing is set to true, users can still upload files from a mobile web browser.'
+                        />
+                    }
+                    value={this.state.enableMobileUpload}
+                    onChange={this.handleChange}
+                    disabled={!this.state.enableFileAttachments}
+                />
+                <BooleanSetting
+                    id='enableMobileDownload'
+                    label={
+                        <FormattedMessage
+                            id='admin.file.enableMobileDownloadTitle'
+                            defaultMessage='Allow File Downloads on Mobile:'
+                        />
+                    }
+                    helpText={
+                        <FormattedMessage
+                            id='admin.file.enableMobileDownloadDesc'
+                            defaultMessage='When false, disables file downloads on mobile apps. Users can still download files from a mobile web browser.'
+                        />
+                    }
+                    value={this.state.enableMobileDownload}
+                    onChange={this.handleChange}
+                    disabled={!this.state.enableFileAttachments}
                 />
                 <TextSetting
                     id='maxFileSize'
