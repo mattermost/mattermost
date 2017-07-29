@@ -43,7 +43,8 @@ export default class Textbox extends React.Component {
 
     static defaultProps = {
         supportsCommands: true,
-        isRHS: false
+        isRHS: false,
+        popoverMentionKeyClick: false
     };
 
     constructor(props) {

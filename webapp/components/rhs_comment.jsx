@@ -224,6 +224,7 @@ export default class RhsComment extends React.Component {
                 status={status}
                 isBusy={this.props.isBusy}
                 isRHS={true}
+                hasMention={true}
             />
         );
 
@@ -293,6 +294,7 @@ export default class RhsComment extends React.Component {
                 user={this.props.user}
                 isBusy={this.props.isBusy}
                 isRHS={true}
+                hasMention={true}
             />
         );
 
@@ -330,6 +332,7 @@ export default class RhsComment extends React.Component {
                         user={this.props.user}
                         isBusy={this.props.isBusy}
                         isRHS={true}
+                        hasMention={true}
                     />
                 );
             }
@@ -450,7 +453,11 @@ export default class RhsComment extends React.Component {
                         <div className='post__body' >
                             <div className={postClass}>
                                 {failedPostOptions}
-                                <PostMessageContainer post={post}/>
+                                <PostMessageContainer
+                                    post={post}
+                                    isRHS={true}
+                                    hasMention={true}
+                                />
                             </div>
                             {fileAttachment}
                             <ReactionListContainer post={post}/>

@@ -124,6 +124,7 @@ export default class ProfilePopover extends React.Component {
         delete popoverProps.isBusy;
         delete popoverProps.hide;
         delete popoverProps.isRHS;
+        delete popoverProps.hasMention;
 
         let webrtc;
         const userMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
@@ -193,6 +194,7 @@ export default class ProfilePopover extends React.Component {
                     delayShow={Constants.WEBRTC_TIME_DELAY}
                     placement='top'
                     overlay={<Tooltip id='fullNameTooltip'>{fullname}</Tooltip>}
+                    key='user-popover-fullname'
                 >
                     <div
                         className='overflow--ellipsis text-nowrap padding-bottom'
@@ -261,14 +263,15 @@ export default class ProfilePopover extends React.Component {
             dataContent.push(webrtc);
         }
 
+        let title = `@${this.props.user.username}`;
+        if (this.props.hasMention) {
+            title = <a onClick={this.handleMentionKeyClick}>{title}</a>;
+        }
+
         return (
             <Popover
                 {...popoverProps}
-                title={(
-                    <a onClick={this.handleMentionKeyClick}>
-                        {`@${this.props.user.username}`}
-                    </a>
-                )}
+                title={title}
                 id='user-profile-popover'
             >
                 {dataContent}
@@ -277,12 +280,18 @@ export default class ProfilePopover extends React.Component {
     }
 }
 
+ProfilePopover.defaultProps = {
+    isRHS: false,
+    hasMention: false
+};
+
 ProfilePopover.propTypes = Object.assign({
     src: PropTypes.string.isRequired,
     user: PropTypes.object.isRequired,
     status: PropTypes.string,
     isBusy: PropTypes.bool,
     hide: PropTypes.func,
-    isRHS: PropTypes.bool
+    isRHS: PropTypes.bool,
+    hasMention: PropTypes.bool
 }, Popover.propTypes);
 delete ProfilePopover.propTypes.id;

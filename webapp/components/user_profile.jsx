@@ -83,6 +83,7 @@ export default class UserProfile extends React.Component {
                         isBusy={this.props.isBusy}
                         hide={this.hideProfilePopover}
                         isRHS={this.props.isRHS}
+                        hasMention={this.props.hasMention}
                     />
                 }
             >
@@ -101,7 +102,8 @@ UserProfile.defaultProps = {
     overwriteName: '',
     overwriteImage: '',
     disablePopover: false,
-    isRHS: false
+    isRHS: false,
+    hasMention: false
 };
 UserProfile.propTypes = {
     user: PropTypes.object,
@@ -111,5 +113,6 @@ UserProfile.propTypes = {
     displayNameType: PropTypes.string,
     status: PropTypes.string,
     isBusy: PropTypes.bool,
-    isRHS: PropTypes.bool
+    isRHS: PropTypes.bool,
+    hasMention: PropTypes.bool
 };
