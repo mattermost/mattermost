@@ -3,32 +3,70 @@ package jira
 import (
 	"encoding/json"
 	"os"
-	"reflect"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-func walkFields(prefix string, thing interface{}, f func(path string, value interface{})) {
-	rv := reflect.ValueOf(thing)
-	for i := 0; i < rv.NumField(); i++ {
-		path := prefix + "." + rv.Type().Field(i).Name
-		value := rv.Field(i).Interface()
-		f(path, value)
-		if rv.Field(i).Kind() == reflect.Struct {
-			walkFields(path, value, f)
-		}
-	}
-}
-
 func TestWebhookJSONUnmarshal(t *testing.T) {
-	f, err := os.Open("testdata/webhook_sample.json")
+	f, err := os.Open("testdata/webhook_issue_resolved.json")
 	require.NoError(t, err)
 	defer f.Close()
 	var w Webhook
 	require.NoError(t, json.NewDecoder(f).Decode(&w))
-	walkFields("", w, func(path string, value interface{}) {
-		assert.NotEmpty(t, value, path)
-	})
+	assert.Equal(t, w.WebhookEvent, "jira:issue_updated")
+	assert.NotNil(t, w.Issue.Fields.Assignee)
+	assert.Equal(t, w.Issue.Fields.Description, "asdfasdf")
+	assert.NotNil(t, w.Issue.Fields.Priority)
+	assert.NotNil(t, w.Issue.Fields.Status)
+	assert.NotNil(t, w.ChangeLog)
+}
+
+func TestWebhookSlackAttachment(t *testing.T) {
+	for _, tc := range []struct {
+		File                   string
+		ShouldHaveAttachment   bool
+		ExpectedNumberOfFields int
+	}{
+		{
+			File:                   "testdata/webhook_issue_created.json",
+			ShouldHaveAttachment:   true,
+			ExpectedNumberOfFields: 2,
+		},
+		{
+			File: "testdata/webhook_issue_comment.json",
+		},
+		{
+			File:                 "testdata/webhook_issue_resolved.json",
+			ShouldHaveAttachment: true,
+		},
+		{
+			File:                 "testdata/webhook_issue_reopened.json",
+			ShouldHaveAttachment: true,
+		},
+		{
+			File:                 "testdata/webhook_issue_deleted.json",
+			ShouldHaveAttachment: true,
+		},
+	} {
+		f, err := os.Open(tc.File)
+		require.NoError(t, err)
+		defer f.Close()
+		var w Webhook
+		require.NoError(t, json.NewDecoder(f).Decode(&w))
+		attachment, err := w.SlackAttachment()
+		require.NoError(t, err)
+		if tc.ShouldHaveAttachment {
+			assert.NotNil(t, attachment)
+		} else {
+			assert.Nil(t, attachment)
+		}
+		if attachment == nil {
+			continue
+		}
+		assert.Equal(t, tc.ExpectedNumberOfFields, len(attachment.Fields))
+		assert.NotEmpty(t, attachment.Fallback)
+		assert.NotEmpty(t, attachment.Text)
+	}
 }

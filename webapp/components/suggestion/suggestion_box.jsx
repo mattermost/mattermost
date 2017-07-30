@@ -81,6 +81,11 @@ export default class SuggestionBox extends React.Component {
          * Function called when @mention is clicked
          */
         popoverMentionKeyClick: PropTypes.bool
+
+        /**
+         * The number of characters required to show the suggestion list, defaults to 1
+         */
+        requiredCharacters: PropTypes.number
     }
 
     static defaultProps = {
@@ -88,13 +93,15 @@ export default class SuggestionBox extends React.Component {
         listStyle: 'top',
         renderDividers: false,
         completeOnTab: true,
-        isRHS: false
+        isRHS: false,
+        requiredCharacters: 1
     }
 
     constructor(props) {
         super(props);
 
         this.handleBlur = this.handleBlur.bind(this);
+        this.handleFocus = this.handleFocus.bind(this);
 
         this.handlePopoverMentionKeyClick = this.handlePopoverMentionKeyClick.bind(this);
         this.handleCompleteWord = this.handleCompleteWord.bind(this);
@@ -163,11 +170,22 @@ export default class SuggestionBox extends React.Component {
         }
     }
 
+    handleFocus() {
+        setTimeout(() => {
+            const textbox = this.getTextbox();
+            const pretext = textbox.value.substring(0, textbox.selectionEnd);
+
+            if (pretext.length >= this.props.requiredCharacters) {
+                GlobalActions.emitSuggestionPretextChanged(this.suggestionId, pretext);
+            }
+        });
+    }
+
     handleChange(e) {
         const textbox = this.getTextbox();
         const pretext = textbox.value.substring(0, textbox.selectionEnd);
 
-        if (!this.composing && SuggestionStore.getPretext(this.suggestionId) !== pretext) {
+        if (!this.composing && SuggestionStore.getPretext(this.suggestionId) !== pretext && pretext.length >= this.props.requiredCharacters) {
             GlobalActions.emitSuggestionPretextChanged(this.suggestionId, pretext);
         }
 
@@ -281,7 +299,9 @@ export default class SuggestionBox extends React.Component {
                 e.preventDefault();
             } else if (e.which === KeyCodes.ENTER || (this.props.completeOnTab && e.which === KeyCodes.TAB)) {
                 this.handleCompleteWord(SuggestionStore.getSelection(this.suggestionId), SuggestionStore.getSelectedMatchedPretext(this.suggestionId));
-                this.props.onKeyDown(e);
+                if (this.props.onKeyDown) {
+                    this.props.onKeyDown(e);
+                }
                 e.preventDefault();
             } else if (e.which === KeyCodes.ESCAPE) {
                 GlobalActions.emitClearSuggestions(this.suggestionId);
@@ -325,10 +345,12 @@ export default class SuggestionBox extends React.Component {
         Reflect.deleteProperty(props, 'completeOnTab');
         Reflect.deleteProperty(props, 'isRHS');
         Reflect.deleteProperty(props, 'popoverMentionKeyClick');
+        Reflect.deleteProperty(props, 'requiredCharacters');
 
         const childProps = {
             ref: 'textbox',
             onBlur: this.handleBlur,
+            onFocus: this.handleFocus,
             onInput: this.handleChange,
             onChange() { /* this is only here to suppress warnings about onChange not being implemented for read-write inputs */ },
             onCompositionStart: this.handleCompositionStart,
@@ -342,6 +364,7 @@ export default class SuggestionBox extends React.Component {
             textbox = (
                 <input
                     type='text'
+                    autoComplete='off'
                     {...props}
                     {...childProps}
                 />
@@ -350,6 +373,7 @@ export default class SuggestionBox extends React.Component {
             textbox = (
                 <input
                     type='search'
+                    autoComplete='off'
                     {...props}
                     {...childProps}
                 />
@@ -369,7 +393,7 @@ export default class SuggestionBox extends React.Component {
         return (
             <div ref='container'>
                 {textbox}
-                {this.props.value &&
+                {this.props.value.length >= this.props.requiredCharacters &&
                     <SuggestionListComponent
                         suggestionId={this.suggestionId}
                         location={listStyle}

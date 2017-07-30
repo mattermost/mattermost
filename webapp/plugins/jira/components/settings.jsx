@@ -23,11 +23,13 @@ import BooleanSetting from 'components/admin_console/boolean_setting.jsx';
 import GeneratedSetting from 'components/admin_console/generated_setting.jsx';
 import Setting from 'components/admin_console/setting.jsx';
 
+import './style.scss';
+
 class UserSuggestion extends Suggestion {
     render() {
         const {item, isSelection} = this.props;
 
-        let className = 'mentions__name';
+        let className = 'jirabots__name';
         if (isSelection) {
             className += ' suggestion--selected';
         }
@@ -50,15 +52,15 @@ class UserSuggestion extends Suggestion {
             >
                 <div className='pull-left'>
                     <img
-                        className='mention__image'
+                        className='jirabot__image'
                         src={Client4.getUsersRoute() + '/' + item.id + '/image?_=' + (item.last_picture_update || 0)}
                     />
                 </div>
-                <div className='pull-left mention--align'>
+                <div className='pull-left jirabot--align'>
                     <span>
                         {'@' + username}
                     </span>
-                    <span className='mention__fullname'>
+                    <span className='jirabot__fullname'>
                         {' '}
                         {description}
                     </span>
@@ -147,7 +149,7 @@ export default class JIRASettings extends AdminSettings {
 
     handleEnabledChange(enabled) {
         if (enabled && this.state.secret === '') {
-            this.state.secret = crypto.randomBytes(256).toString('base64').substring(0, 32);
+            this.handleSecretChange('secret', crypto.randomBytes(256).toString('base64').substring(0, 32));
         }
         this.handleChange('enabled', enabled);
     }
@@ -157,52 +159,74 @@ export default class JIRASettings extends AdminSettings {
     }
 
     renderTitle() {
-        return Utils.localizeMessage('admin.plugins.jira', 'JIRA');
+        return Utils.localizeMessage('admin.plugins.jira', 'JIRA (Beta)');
     }
 
     renderSettings() {
+        var webhookDocsLink = (
+            <a
+                href='https://developer.atlassian.com/jiradev/jira-apis/webhooks#Webhooks-configure'
+                target='_blank'
+                rel='noopener noreferrer'
+            >
+                <FormattedMessage
+                    id='admin.plugins.jira.webhookDocsLink'
+                    defaultMessage='documentation'
+                />
+            </a>
+        );
+
         return (
             <SettingsGroup>
                 <BooleanSetting
                     id='enabled'
                     label={Utils.localizeMessage('admin.plugins.jira.enabledLabel', 'Enabled:')}
-                    helpText={Utils.localizeMessage('admin.plugins.jira.enabledDescription', 'When true, you can configure JIRA webhooks to post message in Mattermost.')}
+                    helpText={Utils.localizeMessage('admin.plugins.jira.enabledDescription', 'When true, you can configure JIRA webhooks to post message in Mattermost. To help combat phishing attacks, all posts are labelled by a BOT tag.')}
                     value={this.state.enabled}
                     onChange={(id, value) => this.handleEnabledChange(value)}
                 />
+                <Setting
+                    label={Utils.localizeMessage('admin.plugins.jira.userLabel', 'User:')}
+                    helpText={Utils.localizeMessage('admin.plugins.jira.userDescription', 'Select the username that this integration is attached to.')}
+                    inputId='userName'
+                >
+                    <div
+                        className='jirabots__dropdown'
+                    >
+                        <SuggestionBox
+                            id='userName'
+                            className='form-control'
+                            placeholder={Utils.localizeMessage('search_bar.search', 'Search')}
+                            value={this.state.userName}
+                            onChange={(e) => this.handleChange('userName', e.target.value)}
+                            onItemSelected={this.handleUserSelected}
+                            listComponent={SuggestionList}
+                            listStyle='bottom'
+                            providers={this.userSuggestionProviders}
+                            disabled={!this.state.enabled}
+                            type='input'
+                            requiredCharacters={0}
+                        />
+                    </div>
+                </Setting>
                 <GeneratedSetting
                     id='secret'
                     label={Utils.localizeMessage('admin.plugins.jira.secretLabel', 'Secret:')}
-                    helpText={Utils.localizeMessage('admin.plugins.jira.secretDescription', 'This secret is used to authenticate JIRA. Changing it will invalidate your existing JIRA integrations.')}
+                    helpText={Utils.localizeMessage('admin.plugins.jira.secretDescription', 'This secret is used to authenticate to Mattermost.')}
+                    regenerateHelpText={Utils.localizeMessage('admin.plugins.jira.secretRegenerateDescription', 'Regenerates the secret for the webhook URL endpoint. Regenerating the secret invalidates your existing JIRA integrations.')}
                     value={this.state.secret}
                     onChange={this.handleSecretChange}
                     disabled={!this.state.enabled}
                 />
-                <Setting
-                    label={Utils.localizeMessage('admin.plugins.jira.userLabel', 'User:')}
-                    helpText={Utils.localizeMessage('admin.plugins.jira.userDescription', 'This is the user that will post messages in response to JIRA events.')}
-                    inputId='userName'
-                >
-                    <SuggestionBox
-                        id='userName'
-                        className='form-control'
-                        placeholder={Utils.localizeMessage('search_bar.search', 'Search')}
-                        value={this.state.userName}
-                        onChange={(e) => this.handleChange('userName', e.target.value)}
-                        onItemSelected={this.handleUserSelected}
-                        listComponent={SuggestionList}
-                        listStyle='bottom'
-                        providers={this.userSuggestionProviders}
-                        disabled={!this.state.enabled}
-                        type='input'
-                    />
-                </Setting>
                 <div className='banner'>
                     <div className='banner__content'>
                         <p>
                             <FormattedMessage
                                 id='admin.plugins.jira.setupDescription'
-                                defaultMessage='Once a secret and user are configured, you can complete your JIRA integration by adding an issue-created/updated/deleted webhook in this form to your projects in JIRA:'
+                                defaultMessage='Use this webhook URL to set up the JIRA integration. See {webhookDocsLink} to learn more.'
+                                values={{
+                                    webhookDocsLink
+                                }}
                             />
                         </p>
                         <p>

@@ -537,7 +537,7 @@ export default class AdminSidebar extends React.Component {
                                     title={
                                         <FormattedMessage
                                             id='admin.sidebar.jira'
-                                            defaultMessage='JIRA'
+                                            defaultMessage='JIRA (Beta)'
                                         />
                                     }
                                 />

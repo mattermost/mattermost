@@ -18,7 +18,7 @@ import (
 )
 
 func validRequestBody() io.ReadCloser {
-	if f, err := os.Open("testdata/webhook_sample.json"); err != nil {
+	if f, err := os.Open("testdata/webhook_issue_created.json"); err != nil {
 		panic(err)
 	} else {
 		return f
@@ -26,12 +26,12 @@ func validRequestBody() io.ReadCloser {
 }
 
 func TestHandleWebhook(t *testing.T) {
-	f, err := os.Open("testdata/webhook_sample.json")
+	f, err := os.Open("testdata/webhook_issue_created.json")
 	require.NoError(t, err)
 	defer f.Close()
 	var webhook Webhook
 	require.NoError(t, json.NewDecoder(f).Decode(&webhook))
-	expectedText, err := webhook.PostText()
+	expectedAttachment, err := webhook.SlackAttachment()
 	require.NoError(t, err)
 
 	for name, tc := range map[string]struct {
@@ -139,7 +139,7 @@ func TestHandleWebhook(t *testing.T) {
 		api.On("GetChannelByName", "theteamid", "thechannel").Run(func(args mock.Arguments) {
 			api.On("CreatePost", mock.AnythingOfType("*model.Post"), "theteamid").Return(func(post *model.Post, teamId string) (*model.Post, *model.AppError) {
 				assert.Equal(t, post.ChannelId, "thechannelid")
-				assert.Equal(t, post.Message, expectedText)
+				assert.Equal(t, post.Props["attachments"], []*model.SlackAttachment{expectedAttachment})
 				return &model.Post{}, tc.CreatePostError
 			})
 		}).Return(&model.Channel{

@@ -1,0 +1,60 @@
+@charset 'UTF-8';
+
+@import 'compass/utilities';
+@import 'compass/css3';
+
+.jirabots__dropdown {
+    position: relative;
+}
+
+.jirabots__dropdown::before {
+    position: absolute;
+    top: 13px;
+    right: 8px;
+    content: " ";
+    pointer-events: none;
+
+    width: 0; 
+    height: 0; 
+
+    border-left: 8px solid transparent;
+    border-right: 8px solid transparent;
+    border-top: 8px solid #e2e2e2;
+}
+
+.jirabots__name {
+    @include clearfix;
+    cursor: pointer;
+    font-size: 13px;
+    line-height: 20px;
+    margin: 0;
+    padding: 6px 10px;
+    position: relative;
+    white-space: nowrap;
+    width: 100%;
+    z-index: 101;
+}
+
+.jirabot__image {
+    @include border-radius(20px);
+    display: block;
+    font-size: 15px;
+    height: 16px;
+    line-height: 16px;
+    margin-right: 7px;
+    margin-top: 3px;
+    text-align: center;
+    width: 16px;
+
+    .jirabot--align {
+        display: inline-block;
+        max-width: 80%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+}
+
+.jirabot__fullname {
+    @include opacity(.5);
+}

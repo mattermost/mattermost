@@ -49,9 +49,9 @@ func (p *Plugin) handleWebhook(w http.ResponseWriter, r *http.Request) {
 
 	if err := json.NewDecoder(r.Body).Decode(&webhook); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
-	} else if text, err := webhook.PostText(); err != nil {
+	} else if attachment, err := webhook.SlackAttachment(); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
-	} else if text == "" {
+	} else if attachment == nil {
 		return
 	} else if r.URL.Query().Get("channel") == "" {
 		http.Error(w, "You must provide a channel.", http.StatusBadRequest)
@@ -63,11 +63,11 @@ func (p *Plugin) handleWebhook(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, p.api.I18n(err.Message, r), err.StatusCode)
 	} else if _, err := p.api.CreatePost(&model.Post{
 		ChannelId: channel.Id,
-		Message:   text,
-		Type:      model.POST_DEFAULT,
+		Type:      model.POST_SLACK_ATTACHMENT,
 		UserId:    user.Id,
 		Props: map[string]interface{}{
 			"from_webhook": "true",
+			"attachments":  []*model.SlackAttachment{attachment},
 		},
 	}, channel.TeamId); err != nil {
 		http.Error(w, p.api.I18n(err.Message, r), err.StatusCode)
