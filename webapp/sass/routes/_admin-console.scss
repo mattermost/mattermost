@@ -528,9 +528,13 @@
         padding-bottom: 15px;
     }
 
+    .manage-teams__user + .manage-teams__teams {
+        border: none;
+        margin-top: 0;
+    }
+
     .manage-teams__teams {
-        @include border-radius(2px);
-        border: 1px solid #ccc;
+        border-top: 1px solid #ddd;
         margin: 1em 0 .3em;
 
         .btn-link {
@@ -594,18 +598,13 @@
 
     .manage-teams__team {
         align-items: center;
+        border-bottom: 1px solid #ddd;
         display: flex;
         padding: 5px 5px 5px 15px;
 
         .dropdown {
             padding: 6px 12px;
         }
-    }
-
-    .manage-teams__team + .manage-teams__team {
-        border-top-color: lightgray;
-        border-top-style: solid;
-        border-top-width: 1px;
     }
 
     .manage-teams__team-name {

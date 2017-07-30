@@ -1020,7 +1020,7 @@ export default class SecurityTab extends React.Component {
                     <div className='alert alert-danger'>
                         <FormattedHTMLMessage
                             id='user.settings.tokens.confirmCreateMessage'
-                            defaultMessage='You are generating a user access token with System Admin permissions.<br/>Are you sure want to create this token?'
+                            defaultMessage='You are generating a user access token with System Admin permissions. Are you sure want to create this token?'
                         />
                     </div>
                 ),
@@ -1057,10 +1057,12 @@ export default class SecurityTab extends React.Component {
                 />
             ),
             confirmMessage: (
-                <FormattedHTMLMessage
-                    id='user.settings.tokens.confirmDeleteMessage'
-                    defaultMessage='Any integrations using this token will no longer be able to access the Mattermost API.<br/><br/>You cannot undo this action. Are you sure want to delete this token?'
-                />
+                <div className='alert alert-danger'>
+                    <FormattedHTMLMessage
+                        id='user.settings.tokens.confirmDeleteMessage'
+                        defaultMessage='Any integrations using this token will no longer be able to access the Mattermost API. You cannot undo this action. Are you sure want to delete this token?'
+                    />
+                </div>
             ),
             confirmButton: (
                 <FormattedMessage
@@ -1189,7 +1191,7 @@ export default class SecurityTab extends React.Component {
                             <div>
                                 <label
                                     id='clientError'
-                                    className='has-error margin-top margin-bottom x2'
+                                    className='has-error margin-top margin-bottom'
                                 >
                                     {this.state.tokenError}
                                 </label>
@@ -1220,6 +1222,13 @@ export default class SecurityTab extends React.Component {
                     <div
                         className='alert alert-warning'
                     >
+                        <i className='fa fa-warning margin-right'/>
+                        <FormattedMessage
+                            id='user.settings.tokens.copy'
+                            defaultMessage="Please copy the token below. You won't be able to see it again!"
+                        />
+                        <br/>
+                        <br/>
                         <FormattedMessage
                             id='user.settings.tokens.name'
                             defaultMessage='Name: '
@@ -1239,11 +1248,6 @@ export default class SecurityTab extends React.Component {
                             />
                             {this.state.newToken.token}
                         </strong>
-                        <br/>
-                        <FormattedMessage
-                            id='user.settings.tokens.copy'
-                            defaultMessage="Make sure to copy the token now. You won't be able to see it again!"
-                        />
                     </div>
                 );
             } else {
@@ -1271,7 +1275,6 @@ export default class SecurityTab extends React.Component {
                         <div className='alert alert-transparent'>
                             {tokenList}
                         </div>
-                        <div className='divider-light margin-top x2'/>
                         <br/>
                         {newTokenSection}
                     </div>
