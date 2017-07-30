@@ -4986,9 +4986,9 @@ map-obj@^1.0.0, map-obj@^1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/map-obj/-/map-obj-1.0.1.tgz#d933ceb9205d82bdcf4886f6742bdc2b4dea146d"
 
-marked@mattermost/marked#c0b5f4a651b0af63e974522b20b93b7999490c53:
+marked@mattermost/marked#186e3ea2a009979d251ef9fb1ca8b333f27fb11f:
   version "0.3.5"
-  resolved "https://codeload.github.com/mattermost/marked/tar.gz/c0b5f4a651b0af63e974522b20b93b7999490c53"
+  resolved "https://codeload.github.com/mattermost/marked/tar.gz/186e3ea2a009979d251ef9fb1ca8b333f27fb11f"
 
 match-at@0.1.0:
   version "0.1.0"

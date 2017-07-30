@@ -1,40 +1,48 @@
 // Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import ProfilePopover from 'components/profile_popover.jsx';
+import {Client4} from 'mattermost-redux/client';
+
 import React from 'react';
 import PropTypes from 'prop-types';
+import {OverlayTrigger} from 'react-bootstrap';
 
 export default class AtMention extends React.PureComponent {
     static propTypes = {
         mentionName: PropTypes.string.isRequired,
-        usersByUsername: PropTypes.object.isRequired,
-        actions: PropTypes.shape({
-            searchForTerm: PropTypes.func.isRequired
-        }).isRequired
+        usersByUsername: PropTypes.object.isRequired
     };
 
     constructor(props) {
         super(props);
 
+        this.hideProfilePopover = this.hideProfilePopover.bind(this);
+
         this.state = {
-            username: this.getUsernameFromMentionName(props)
+            user: this.getUserFromMentionName(props)
         };
     }
 
     componentWillReceiveProps(nextProps) {
         if (nextProps.mentionName !== this.props.mentionName || nextProps.usersByUsername !== this.props.usersByUsername) {
             this.setState({
-                username: this.getUsernameFromMentionName(nextProps)
+                user: this.getUserFromMentionName(nextProps)
             });
         }
     }
 
-    getUsernameFromMentionName(props) {
+    hideProfilePopover() {
+        this.refs.overlay.hide();
+    }
+
+    getUserFromMentionName(props) {
+        const usersByUsername = props.usersByUsername;
         let mentionName = props.mentionName;
 
         while (mentionName.length > 0) {
-            if (props.usersByUsername[mentionName]) {
-                return props.usersByUsername[mentionName].username;
+            if (usersByUsername[mentionName]) {
+                return usersByUsername[mentionName];
             }
 
             // Repeatedly trim off trailing punctuation in case this is at the end of a sentence
@@ -48,30 +56,31 @@ export default class AtMention extends React.PureComponent {
         return '';
     }
 
-    search = (e) => {
-        e.preventDefault();
-
-        this.props.actions.searchForTerm(this.state.username);
-    }
-
     render() {
-        const username = this.state.username;
-
-        if (!username) {
+        if (!this.state.user) {
             return <span>{'@' + this.props.mentionName}</span>;
         }
 
-        const suffix = this.props.mentionName.substring(username.length);
+        const user = this.state.user;
+        const suffix = this.props.mentionName.substring(user.username.length);
 
         return (
             <span>
-                <a
-                    className='mention-link'
-                    href='#'
-                    onClick={this.search}
+                <OverlayTrigger
+                    ref='overlay'
+                    trigger='click'
+                    placement='right'
+                    rootClose={true}
+                    overlay={
+                        <ProfilePopover
+                            user={user}
+                            src={Client4.getProfilePictureUrl(user.id, user.last_picture_update)}
+                            hide={this.hideProfilePopover}
+                        />
+                    }
                 >
-                    {'@' + username}
-                </a>
+                    <a className='mention-link'>{'@' + user.username}</a>
+                </OverlayTrigger>
                 {suffix}
             </span>
         );

@@ -17,14 +17,6 @@ export default class MultiSelect extends React.Component {
     constructor(props) {
         super(props);
 
-        this.onChange = this.onChange.bind(this);
-        this.onSelect = this.onSelect.bind(this);
-        this.onAdd = this.onAdd.bind(this);
-        this.onInput = this.onInput.bind(this);
-        this.handleEnterPress = this.handleEnterPress.bind(this);
-        this.nextPage = this.nextPage.bind(this);
-        this.prevPage = this.prevPage.bind(this);
-
         this.selected = null;
 
         this.state = {
@@ -41,7 +33,7 @@ export default class MultiSelect extends React.Component {
         document.removeEventListener('keydown', this.handleEnterPress);
     }
 
-    nextPage() {
+    nextPage = () => {
         if (this.props.handlePageChange) {
             this.props.handlePageChange(this.state.page + 1, this.state.page);
         }
@@ -49,7 +41,7 @@ export default class MultiSelect extends React.Component {
         this.setState({page: this.state.page + 1});
     }
 
-    prevPage() {
+    prevPage = () => {
         if (this.state.page === 0) {
             return;
         }
@@ -61,11 +53,15 @@ export default class MultiSelect extends React.Component {
         this.setState({page: this.state.page - 1});
     }
 
-    onSelect(selected) {
+    resetPaging = () => {
+        this.setState({page: 0});
+    }
+
+    onSelect = (selected) => {
         this.selected = selected;
     }
 
-    onAdd(value) {
+    onAdd = (value) => {
         if (this.props.maxValues && this.props.values.length >= this.props.maxValues) {
             return;
         }
@@ -83,7 +79,7 @@ export default class MultiSelect extends React.Component {
         this.refs.select.focus();
     }
 
-    onInput(input) {
+    onInput = (input) => {
         if (input === '') {
             this.refs.list.setSelected(-1);
         } else {
@@ -94,7 +90,7 @@ export default class MultiSelect extends React.Component {
         this.props.handleInput(input);
     }
 
-    handleEnterPress(e) {
+    handleEnterPress = (e) => {
         switch (e.keyCode) {
         case KeyCodes.ENTER:
             if (this.selected == null) {
@@ -106,7 +102,7 @@ export default class MultiSelect extends React.Component {
         }
     }
 
-    onChange(values) {
+    onChange = (values) => {
         if (values.length < this.props.values.length) {
             this.props.handleDelete(values);
         }

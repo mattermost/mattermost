@@ -184,8 +184,8 @@ describe('TextFormatting.Hashtags', function() {
         );
 
         assert.equal(
-            TextFormatting.formatText('#:taco:').trim(),
-            '<p>#<span alt=":taco:" class="emoticon" title=":taco:" style="background-image:url(/static/emoji/taco.png)"></span></p>'
+            TextFormatting.formatText('#:mattermost:').trim(),
+            '<p>#<span alt=":mattermost:" class="emoticon" title=":mattermost:" style="background-image:url(/static/emoji/mattermost.png)"></span></p>'
         );
 
         assert.equal(

@@ -170,6 +170,10 @@ function handleEvent(msg) {
         handleUserUpdatedEvent(msg);
         break;
 
+    case SocketEvents.MEMBERROLE_UPDATED:
+        handleUpdateMemberRoleEvent(msg);
+        break;
+
     case SocketEvents.CHANNEL_CREATED:
         handleChannelCreatedEvent(msg);
         break;
@@ -319,6 +323,11 @@ function handleLeaveTeamEvent(msg) {
 
 function handleUpdateTeamEvent(msg) {
     TeamStore.updateTeam(msg.data.team);
+}
+
+function handleUpdateMemberRoleEvent(msg) {
+    const member = JSON.parse(msg.data.member);
+    TeamStore.updateMyRoles(member);
 }
 
 function handleDirectAddedEvent(msg) {

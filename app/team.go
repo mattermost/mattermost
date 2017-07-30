@@ -164,7 +164,16 @@ func UpdateTeamMemberRoles(teamId string, userId string, newRoles string) (*mode
 
 	ClearSessionCacheForUser(userId)
 
+	sendUpdatedMemberRoleEvent(userId, member)
+
 	return member, nil
+}
+
+func sendUpdatedMemberRoleEvent(userId string, member *model.TeamMember) {
+	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_MEMBERROLE_UPDATED, "", "", userId, nil)
+	message.Add("member", member.ToJson())
+
+	go Publish(message)
 }
 
 func AddUserToTeam(teamId string, userId string, userRequestorId string) (*model.Team, *model.AppError) {
