@@ -13,12 +13,12 @@ export default class InstalledOAuthApps extends React.PureComponent {
     static propTypes = {
 
         /**
-        * The team object
+        * The team data
         */
         team: PropTypes.object,
 
         /**
-        * The oauthApps object
+        * The oauthApps data
         */
         oauthApps: PropTypes.object,
 
@@ -30,12 +30,12 @@ export default class InstalledOAuthApps extends React.PureComponent {
         actions: PropTypes.shape({
 
             /**
-            * The function to call ...
+            * The function to call to fetch OAuth apps
             */
             getOAuthApps: PropTypes.func.isRequired,
 
             /**
-            * The function to call ...
+            * The function to call when Delete link is clicked
             */
             deleteOAuthApp: PropTypes.func.isRequired
         }).isRequired
@@ -86,8 +86,8 @@ export default class InstalledOAuthApps extends React.PureComponent {
         });
 
         const config = global.mm_config;
-        const integrationsEnabled = (config.EnableOAuthServiceProvider === 'true'
-            && (this.props.isSystemAdmin || config.EnableOnlyAdminIntegrations !== 'true'));
+        const integrationsEnabled = (config.EnableOAuthServiceProvider === 'true' &&
+            (this.props.isSystemAdmin || config.EnableOnlyAdminIntegrations !== 'true'));
         let props;
         if (integrationsEnabled) {
             props = {

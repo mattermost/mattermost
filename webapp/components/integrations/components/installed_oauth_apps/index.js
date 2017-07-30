@@ -12,7 +12,7 @@ import InstalledOAuthApps from './installed_oauth_apps.jsx';
 function mapStateToProps(state, ownProps) {
     return {
         ...ownProps,
-        oauthApps : getOAuthApps(state),
+        oauthApps: getOAuthApps(state),
         isSystemAdmin: isCurrentUserSystemAdmin(state)
     };
 }
@@ -20,8 +20,8 @@ function mapStateToProps(state, ownProps) {
 function mapDispatchToProps(dispatch) {
     return {
         actions: bindActionCreators({
-            getOAuthApps : Actions.getOAuthApps,
-            deleteOAuthApp : Actions.deleteOAuthApp
+            getOAuthApps: Actions.getOAuthApps,
+            deleteOAuthApp: Actions.deleteOAuthApp
         }, dispatch)
     };
 }
