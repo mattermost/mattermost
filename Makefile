@@ -365,7 +365,7 @@ build-client:
 
 	cd $(BUILD_WEBAPP_DIR) && $(MAKE) build
 
-build-job-server: build-job-server-linux build-job-server-mac build-job-server-windows
+build-job-server: build-job-server-linux build-job-server-osx build-job-server-windows
 
 build-job-server-linux: .prebuild prepare-enterprise
 	@echo Build mattermost job server for Linux amd64
