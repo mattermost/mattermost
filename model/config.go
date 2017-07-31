@@ -526,11 +526,6 @@ func (o *Config) SetDefaults() {
 		o.FileSettings.AmazonS3Endpoint = "s3.amazonaws.com"
 	}
 
-	if o.FileSettings.AmazonS3Region == "" {
-		// Defaults to "us-east-1" region.
-		o.FileSettings.AmazonS3Region = "us-east-1"
-	}
-
 	if o.FileSettings.AmazonS3SSL == nil {
 		o.FileSettings.AmazonS3SSL = new(bool)
 		*o.FileSettings.AmazonS3SSL = true // Secure by default.
