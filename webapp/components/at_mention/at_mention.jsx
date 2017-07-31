@@ -11,8 +11,15 @@ import {OverlayTrigger} from 'react-bootstrap';
 export default class AtMention extends React.PureComponent {
     static propTypes = {
         mentionName: PropTypes.string.isRequired,
-        usersByUsername: PropTypes.object.isRequired
+        usersByUsername: PropTypes.object.isRequired,
+        isRHS: PropTypes.bool,
+        hasMention: PropTypes.bool
     };
+
+    static defaultProps = {
+        isRHS: false,
+        hasMention: false
+    }
 
     constructor(props) {
         super(props);
@@ -76,6 +83,8 @@ export default class AtMention extends React.PureComponent {
                             user={user}
                             src={Client4.getProfilePictureUrl(user.id, user.last_picture_update)}
                             hide={this.hideProfilePopover}
+                            isRHS={this.props.isRHS}
+                            hasMention={this.props.hasMention}
                         />
                     }
                 >
