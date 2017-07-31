@@ -897,107 +897,103 @@ export default class ChannelHeader extends React.Component {
                 id='channel-header'
                 className='channel-header alt'
             >
-                <table>
-                    <tbody>
-                        <tr>
-                            <th>
-                                <div className='channel-header__info'>
-                                    {toggleFavorite}
-                                    <div className='channel-header__title dropdown'>
-                                        <a
-                                            id='channelHeaderDropdown'
-                                            href='#'
-                                            className='dropdown-toggle theme'
-                                            type='button'
-                                            data-toggle='dropdown'
-                                            aria-expanded='true'
-                                        >
-                                            <strong className='heading'>{channelTitle} </strong>
-                                            <span className='fa fa-angle-down header-dropdown__icon'/>
-                                        </a>
-                                        <ul
-                                            className='dropdown-menu'
-                                            role='menu'
-                                            aria-labelledby='channel_header_dropdown'
-                                        >
-                                            {dropdownContents}
-                                        </ul>
-                                    </div>
-                                    {headerTextContainer}
-                                </div>
-                            </th>
-                            <th>
-                                {webrtc}
-                            </th>
-                            <th>
-                                {popoverListMembers}
-                            </th>
-                            <th>
-                                <OverlayTrigger
-                                    trigger={['hover', 'focus']}
-                                    delayShow={Constants.OVERLAY_TIME_DELAY}
-                                    placement='bottom'
-                                    overlay={pinnedPostTooltip}
+                <div className='flex-parent'>
+                    <div className='flex-child'>
+                        <div className='channel-header__info'>
+                            {toggleFavorite}
+                            <div className='channel-header__title dropdown'>
+                                <a
+                                    id='channelHeaderDropdown'
+                                    href='#'
+                                    className='dropdown-toggle theme'
+                                    type='button'
+                                    data-toggle='dropdown'
+                                    aria-expanded='true'
                                 >
-                                    <div
-                                        className={pinnedIconClass}
-                                        onClick={this.getPinnedPosts}
-                                    >
-                                        <span
-                                            className='icon icon__pin'
-                                            dangerouslySetInnerHTML={{__html: pinIcon}}
-                                            aria-hidden='true'
-                                        />
-                                    </div>
-                                </OverlayTrigger>
-                            </th>
-                            <th className='search-bar__container'>
-                                <NavbarSearchBox
-                                    showMentionFlagBtns={false}
-                                    isFocus={Utils.isMobile()}
+                                    <strong className='heading'>{channelTitle} </strong>
+                                    <span className='fa fa-angle-down header-dropdown__icon'/>
+                                </a>
+                                <ul
+                                    className='dropdown-menu'
+                                    role='menu'
+                                    aria-labelledby='channel_header_dropdown'
+                                >
+                                    {dropdownContents}
+                                </ul>
+                            </div>
+                            {headerTextContainer}
+                        </div>
+                    </div>
+                    <div className='flex-child'>
+                        {webrtc}
+                    </div>
+                    <div className='flex-child'>
+                        {popoverListMembers}
+                    </div>
+                    <div className='flex-child'>
+                        <OverlayTrigger
+                            trigger={['hover', 'focus']}
+                            delayShow={Constants.OVERLAY_TIME_DELAY}
+                            placement='bottom'
+                            overlay={pinnedPostTooltip}
+                        >
+                            <div
+                                className={pinnedIconClass}
+                                onClick={this.getPinnedPosts}
+                            >
+                                <span
+                                    className='icon icon__pin'
+                                    dangerouslySetInnerHTML={{__html: pinIcon}}
+                                    aria-hidden='true'
                                 />
-                            </th>
-                            <th>
-                                <OverlayTrigger
-                                    trigger={['hover', 'focus']}
-                                    delayShow={Constants.OVERLAY_TIME_DELAY}
-                                    placement='bottom'
-                                    overlay={recentMentionsTooltip}
-                                >
-                                    <div
-                                        className='channel-header__icon icon--hidden'
-                                        onClick={this.searchMentions}
-                                    >
-                                        <span
-                                            className='icon icon__mentions'
-                                            dangerouslySetInnerHTML={{__html: mentionsIcon}}
-                                            aria-hidden='true'
-                                        />
-                                    </div>
-                                </OverlayTrigger>
-                            </th>
-                            <th>
-                                <OverlayTrigger
-                                    trigger={['hover', 'focus']}
-                                    delayShow={Constants.OVERLAY_TIME_DELAY}
-                                    placement='bottom'
-                                    overlay={flaggedTooltip}
-                                >
-                                    <div
-                                        className='channel-header__icon icon--hidden'
-                                        onClick={this.getFlagged}
+                            </div>
+                        </OverlayTrigger>
+                    </div>
+                    <div className='flex-child search-bar__container'>
+                        <NavbarSearchBox
+                            showMentionFlagBtns={false}
+                            isFocus={Utils.isMobile()}
+                        />
+                    </div>
+                    <div className='flex-child'>
+                        <OverlayTrigger
+                            trigger={['hover', 'focus']}
+                            delayShow={Constants.OVERLAY_TIME_DELAY}
+                            placement='bottom'
+                            overlay={recentMentionsTooltip}
+                        >
+                            <div
+                                className='channel-header__icon icon--hidden'
+                                onClick={this.searchMentions}
+                            >
+                                <span
+                                    className='icon icon__mentions'
+                                    dangerouslySetInnerHTML={{__html: mentionsIcon}}
+                                    aria-hidden='true'
+                                />
+                            </div>
+                        </OverlayTrigger>
+                    </div>
+                    <div className='flex-child'>
+                        <OverlayTrigger
+                            trigger={['hover', 'focus']}
+                            delayShow={Constants.OVERLAY_TIME_DELAY}
+                            placement='bottom'
+                            overlay={flaggedTooltip}
+                        >
+                            <div
+                                className='channel-header__icon icon--hidden'
+                                onClick={this.getFlagged}
 
-                                    >
-                                        <span
-                                            className='icon icon__flag'
-                                            dangerouslySetInnerHTML={{__html: flagIcon}}
-                                        />
-                                    </div>
-                                </OverlayTrigger>
-                            </th>
-                        </tr>
-                    </tbody>
-                </table>
+                            >
+                                <span
+                                    className='icon icon__flag'
+                                    dangerouslySetInnerHTML={{__html: flagIcon}}
+                                />
+                            </div>
+                        </OverlayTrigger>
+                    </div>
+                </div>
                 {editHeaderModal}
                 {editPurposeModal}
                 {channelMembersModal}
