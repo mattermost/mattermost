@@ -223,8 +223,8 @@ func TestUpdateTeam(t *testing.T) {
 	uteam, resp = Client.UpdateTeam(team)
 	CheckNoError(t, resp)
 
-	if uteam.AllowedDomains == "domain" {
-		t.Fatal("Should not update allowed_domains")
+	if uteam.AllowedDomains != "domain" {
+		t.Fatal("Update failed")
 	}
 
 	originalTeamId := team.Id

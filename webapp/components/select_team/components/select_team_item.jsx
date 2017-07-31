@@ -14,13 +14,17 @@ export default class SelectTeamItem extends React.PureComponent {
     static propTypes = {
         team: PropTypes.object.isRequired,
         onTeamClick: PropTypes.func.isRequired,
-        loading: PropTypes.bool.isRequired
+        loading: PropTypes.bool.isRequired,
+        error: PropTypes.bool.isRequired
     };
 
     handleTeamClick = () => {
         addUserToTeamFromInvite('', '', this.props.team.invite_id,
             () => {
                 browserHistory.push(`/${this.props.team.name}/channels/town-square`);
+            },
+            (err) => {
+                this.props.onTeamClick(this.props.team, err.message);
             }
         );
         this.props.onTeamClick(this.props.team);
@@ -29,7 +33,11 @@ export default class SelectTeamItem extends React.PureComponent {
     render() {
         let icon;
         const infoIcon = Constants.TEAM_INFO_SVG;
-        if (this.props.loading) {
+        if (this.props.error) {
+            icon = (
+                <span className='fa fa-warning right signup-team__icon'/>
+            );
+        } else if (this.props.loading) {
             icon = (
                 <span className='fa fa-refresh fa-spin right signup-team__icon'/>
             );

@@ -39,10 +39,6 @@ func CreateTeamWithUser(team *model.Team, userId string) (*model.Team, *model.Ap
 		team.Email = user.Email
 	}
 
-	if !isTeamEmailAllowed(user) {
-		return nil, model.NewLocAppError("isTeamEmailAllowed", "api.team.is_team_creation_allowed.domain.app_error", nil, "")
-	}
-
 	var rteam *model.Team
 	if rteam, err = CreateTeam(team); err != nil {
 		return nil, err
@@ -55,11 +51,11 @@ func CreateTeamWithUser(team *model.Team, userId string) (*model.Team, *model.Ap
 	return rteam, nil
 }
 
-func isTeamEmailAddressAllowed(email string) bool {
+func isTeamEmailAddressAllowed(email string, restrictedDomains string) bool {
 	email = strings.ToLower(email)
 	// commas and @ signs are optional
 	// can be in the form of "@corp.mattermost.com, mattermost.com mattermost.org" -> corp.mattermost.com mattermost.com mattermost.org
-	domains := strings.Fields(strings.TrimSpace(strings.ToLower(strings.Replace(strings.Replace(utils.Cfg.TeamSettings.RestrictCreationToDomains, "@", " ", -1), ",", " ", -1))))
+	domains := strings.Fields(strings.TrimSpace(strings.ToLower(strings.Replace(strings.Replace(restrictedDomains, "@", " ", -1), ",", " ", -1))))
 
 	matched := false
 	for _, d := range domains {
@@ -69,21 +65,26 @@ func isTeamEmailAddressAllowed(email string) bool {
 		}
 	}
 
-	if len(utils.Cfg.TeamSettings.RestrictCreationToDomains) > 0 && !matched {
+	if len(restrictedDomains) > 0 && !matched {
 		return false
 	}
 
 	return true
 }
 
-func isTeamEmailAllowed(user *model.User) bool {
+func isTeamEmailAllowed(user *model.User, team *model.Team) bool {
 	email := strings.ToLower(user.Email)
 
 	if len(user.AuthService) > 0 && len(*user.AuthData) > 0 {
 		return true
 	}
 
-	return isTeamEmailAddressAllowed(email)
+	restrictedDomains := utils.Cfg.TeamSettings.RestrictCreationToDomains
+	if len(team.AllowedDomains) > 0 {
+		restrictedDomains = team.AllowedDomains
+	}
+
+	return isTeamEmailAddressAllowed(email, restrictedDomains)
 }
 
 func UpdateTeam(team *model.Team) (*model.Team, *model.AppError) {
@@ -304,6 +305,10 @@ func joinUserToTeam(team *model.Team, user *model.User) (bool, *model.AppError) 
 }
 
 func JoinUserToTeam(team *model.Team, user *model.User, userRequestorId string) *model.AppError {
+	if !isTeamEmailAllowed(user, team) {
+		return model.NewLocAppError("isTeamEmailAllowed", "api.team.is_team_creation_allowed.domain.app_error", nil, "")
+	}
+
 	if alreadyAdded, err := joinUserToTeam(team, user); err != nil {
 		return err
 	} else if alreadyAdded {
@@ -635,20 +640,6 @@ func InviteNewUsersToTeam(emailList []string, teamId, senderId string) *model.Ap
 		return err
 	}
 
-	var invalidEmailList []string
-
-	for _, email := range emailList {
-		if ! isTeamEmailAddressAllowed(email) {
-			invalidEmailList = append(invalidEmailList, email)
-		}
-	}
-
-	if len(invalidEmailList) > 0 {
-		s := strings.Join(invalidEmailList, ", ")
-		err := model.NewAppError("InviteNewUsersToTeam", "api.team.invite_members.invalid_email.app_error", map[string]interface{}{"Addresses": s}, "", http.StatusBadRequest)
-		return err
-	}
-
 	tchan := Srv.Store.Team().Get(teamId)
 	uchan := Srv.Store.User().Get(senderId)
 
@@ -664,6 +655,25 @@ func InviteNewUsersToTeam(emailList []string, teamId, senderId string) *model.Ap
 		return result.Err
 	} else {
 		user = result.Data.(*model.User)
+	}
+
+	restrictedDomains := utils.Cfg.TeamSettings.RestrictCreationToDomains
+	if len(team.AllowedDomains) > 0 {
+		restrictedDomains = team.AllowedDomains
+	}
+
+	var invalidEmailList []string
+
+	for _, email := range emailList {
+		if ! isTeamEmailAddressAllowed(email, restrictedDomains) {
+			invalidEmailList = append(invalidEmailList, email)
+		}
+	}
+
+	if len(invalidEmailList) > 0 {
+		s := strings.Join(invalidEmailList, ", ")
+		err := model.NewAppError("InviteNewUsersToTeam", "api.team.invite_members.invalid_email.app_error", map[string]interface{}{"Addresses": s}, "", http.StatusBadRequest)
+		return err
 	}
 
 	nameFormat := *utils.Cfg.TeamSettings.TeammateNameDisplay

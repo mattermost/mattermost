@@ -34,6 +34,7 @@ export default class SelectTeam extends React.Component {
 
         const state = this.getStateFromStores(false);
         state.loadingTeamId = '';
+        state.serverError = '';
         this.state = state;
     }
 
@@ -59,8 +60,8 @@ export default class SelectTeam extends React.Component {
         };
     }
 
-    handleTeamClick(team) {
-        this.setState({loadingTeamId: team.id});
+    handleTeamClick(team, serverError = '') {
+        this.setState({loadingTeamId: team.id, serverError});
     }
 
     teamContentsCompare(teamItemA, teamItemB) {
@@ -85,7 +86,8 @@ export default class SelectTeam extends React.Component {
                         key={'team_' + openTeam.name}
                         team={openTeam}
                         onTeamClick={this.handleTeamClick}
-                        loading={this.state.loadingTeamId === openTeam.id}
+                        loading={this.state.serverError === '' && this.state.loadingTeamId === openTeam.id}
+                        error={this.state.serverError !== '' && this.state.loadingTeamId === openTeam.id}
                     />
                 );
             }
@@ -119,6 +121,15 @@ export default class SelectTeam extends React.Component {
             openTeamContents = openTeamContents.sort(this.teamContentsCompare);
         }
 
+        let serverError = null;
+        if (this.state.serverError) {
+            serverError = (
+                <div className={'form-group has-error'}>
+                    <label className='control-label'>{this.state.serverError}</label>
+                </div>
+            );
+        }
+
         let openContent = (
             <div className='signup__content'>
                 <h4>
@@ -127,6 +138,7 @@ export default class SelectTeam extends React.Component {
                         defaultMessage='Teams you can join: '
                     />
                 </h4>
+                {serverError}
                 <div className='signup-team-all'>
                     {openTeamContents}
                 </div>
