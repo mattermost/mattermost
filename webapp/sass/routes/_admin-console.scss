@@ -78,7 +78,7 @@
 
     .log__panel {
         background-color: white;
-        border: 1px solid #ddd;
+        border: $border-gray;
         height: calc(100vh - 200px);
         margin-top: 10px;
         overflow: scroll;
@@ -180,7 +180,7 @@
 
     .banner {
         background: $white;
-        border: 1px solid #ddd;
+        border: $border-gray;
         font-size: .95em;
         margin: 2em 0;
         padding: .8em 1.5rem;
@@ -523,18 +523,11 @@
 .manage-teams {
     .manage-teams__user {
         align-items: center;
-        border-bottom: 1px solid #ddd;
         display: flex;
-        padding-bottom: 15px;
-    }
-
-    .manage-teams__user + .manage-teams__teams {
-        border: none;
-        margin-top: 0;
     }
 
     .manage-teams__teams {
-        border-top: 1px solid #ddd;
+        border-top: $border-gray;
         margin: 1em 0 .3em;
 
         .btn-link {
@@ -553,8 +546,11 @@
     }
 
     .manage-row--inner {
-        border-bottom: 1px solid #ddd;
-        padding: 9px 0 4px;
+        padding: 15px 0 4px;
+
+        & + div {
+            border-top: $border-gray;
+        }
     }
 
     .manage-teams__profile-picture {
@@ -592,18 +588,22 @@
         margin-top: 1em;
 
         .manage-row__empty {
-            padding: 9px 13px;
+            padding: 9px 0;
         }
     }
 
     .manage-teams__team {
         align-items: center;
-        border-bottom: 1px solid #ddd;
+        border-bottom: $border-gray;
         display: flex;
-        padding: 5px 5px 5px 15px;
+        padding: 7px 10px;
+
+        .btn {
+            font-size: .9em;
+        }
 
         .dropdown {
-            padding: 6px 12px;
+            padding: 6px 0;
         }
     }
 

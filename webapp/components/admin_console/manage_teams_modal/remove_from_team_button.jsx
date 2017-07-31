@@ -41,7 +41,7 @@ export default class RemoveFromTeamButton extends React.PureComponent {
     render() {
         return (
             <button
-                className='btn btn-link danger'
+                className='btn btn-danger'
                 onClick={this.handleClick}
             >
                 <FormattedMessage
