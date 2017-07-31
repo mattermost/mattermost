@@ -532,6 +532,54 @@
     "translation": "チャンネルヘッダーは正常に更新されました。"
   },
   {
+    "id": "api.command_channel_purpose.channel.app_error",
+    "translation": "現在のチャンネルを取得する際にエラーが発生しました。"
+  },
+  {
+    "id": "api.command_channel_purpose.desc",
+    "translation": "チャンネルの目的を編集する"
+  },
+  {
+    "id": "api.command_channel_purpose.direct_group.app_error",
+    "translation": "ダイレクトメッセージチャンネルに目的を設定できません。代わりにヘッダーを設定する /header を使用してください。"
+  },
+  {
+    "id": "api.command_channel_purpose.hint",
+    "translation": "[テキスト]"
+  },
+  {
+    "id": "api.command_channel_purpose.message.app_error",
+    "translation": "/purpose コマンドはメッセージを指定しなくてはいけません。"
+  },
+  {
+    "id": "api.command_channel_purpose.name",
+    "translation": "目的"
+  },
+  {
+    "id": "api.command_channel_purpose.permission.app_error",
+    "translation": "あなたにはチャンネルの目的を編集するのに必要な権限が付与されていません。"
+  },
+  {
+    "id": "api.command_channel_purpose.update_channel.app_error",
+    "translation": "現在のチャンネルを更新する際にエラーが発生しました。"
+  },
+  {
+    "id": "api.command_code.desc",
+    "translation": "Display text as a code block"
+  },
+  {
+    "id": "api.command_code.hint",
+    "translation": "[text]"
+  },
+  {
+    "id": "api.command_code.message.app_error",
+    "translation": "A message must be provided with the /code command."
+  },
+  {
+    "id": "api.command_code.name",
+    "translation": "code"
+  },
+  {
     "id": "api.command_collapse.desc",
     "translation": "画像プレビューの自動折りたたみをオンにします"
   },
@@ -3072,6 +3120,10 @@
     "translation": "グループチャンネルを取得できませんでした"
   },
   {
+    "id": "app.import.import_direct_post.save_preferences.error",
+    "translation": "ダイレクト投稿のインポートでエラーが発生しました。設定を保存できませんでした。"
+  },
+  {
     "id": "app.import.import_direct_post.user_not_found.error",
     "translation": "投稿ユーザーが存在しません"
   },
@@ -3108,12 +3160,20 @@
     "translation": "投稿のインポート中にエラーが発生しました。 名前 \"{{.ChannelName}}\" のチャンネルが見つかりません。"
   },
   {
+    "id": "app.import.import_post.save_preferences.error",
+    "translation": "投稿のインポートでエラーが発生しました。設定を保存できませんでした。"
+  },
+  {
     "id": "app.import.import_post.team_not_found.error",
     "translation": "投稿のインポート中にエラーが発生しました。 名前 \"{{.TeamName}}\" のチームが見つかりません。"
   },
   {
     "id": "app.import.import_post.user_not_found.error",
     "translation": "投稿のインポート中にエラーが発生しました。 名前 \"{{.Username}}\" のユーザーが見つかりません。"
+  },
+  {
+    "id": "app.import.import_user_channels.save_preferences.error",
+    "translation": "チャンネルメンバーシップのインポートでエラーが発生しました。設定を保存できませんでした。"
   },
   {
     "id": "app.import.validate_channel_import_data.create_at_zero.error",
@@ -3176,8 +3236,12 @@
     "translation": "ダイレクトチャンネルのメンバーリストに含まれる項目が多すぎます"
   },
   {
+    "id": "app.import.validate_direct_channel_import_data.unknown_favoriter.error",
+    "translation": "ダイレクトチャンネルはメンバーだけがお気に入りできます。 \"{{.Username}}\"はメンバーではありません。"
+  },
+  {
     "id": "app.import.validate_direct_post_import_data.channel_members_required.error",
-    "translation": "必須の投稿設定値 channel_members が存在しません。"
+    "translation": "必須のダイレクト投稿設定値 channel_members が存在しません。"
   },
   {
     "id": "app.import.validate_direct_post_import_data.channel_members_too_few.error",
@@ -3202,6 +3266,10 @@
   {
     "id": "app.import.validate_direct_post_import_data.message_missing.error",
     "translation": "必須のダイレクト投稿設定値 message が存在しません。"
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.unknown_flagger.error",
+    "translation": "ダイレクト投稿はそのチャンネルに所属するメンバーだけがフラグを立てることが出来ます。\"{{.Username}}\"はメンバーではありません。"
   },
   {
     "id": "app.import.validate_direct_post_import_data.user_missing.error",
@@ -3372,6 +3440,14 @@
     "translation": "チームを作成する"
   },
   {
+    "id": "authentication.permissions.manage_jobs.description",
+    "translation": "ジョブを管理できるようにする"
+  },
+  {
+    "id": "authentication.permissions.manage_jobs.name",
+    "translation": "ジョブ管理"
+  },
+  {
     "id": "authentication.permissions.manage_team_roles.description",
     "translation": "チームメンバーの役割を変更できるようにする"
   },
@@ -3496,6 +3572,42 @@
     "translation": "コンプライアンスエクスポートが開始されました ジョブ='{{.JobName}}'、ファイル='{{.FilePath}}'"
   },
   {
+    "id": "ent.elasticsearch.create_client.connect_failed",
+    "translation": "ElasticSearchクライアントを設定できませんでした"
+  },
+  {
+    "id": "ent.elasticsearch.create_index_if_not_exists.index_create_failed",
+    "translation": "ElasticSearchのインデックスを作成できませんでした"
+  },
+  {
+    "id": "ent.elasticsearch.create_index_if_not_exists.index_exists_failed",
+    "translation": "ElasticSearchインデックスの存在を確認できませんでした"
+  },
+  {
+    "id": "ent.elasticsearch.create_index_if_not_exists.index_mapping_failed",
+    "translation": "ElasticSearchインデックスのマッピングを設定できませんでした"
+  },
+  {
+    "id": "ent.elasticsearch.delete_post.error",
+    "translation": "投稿を削除できませんでした"
+  },
+  {
+    "id": "ent.elasticsearch.generic.disabled",
+    "translation": "このサーバーではElasticSearchによる検索は無効です。"
+  },
+  {
+    "id": "ent.elasticsearch.index_post.error",
+    "translation": "投稿にインデックスを付与できませんでした"
+  },
+  {
+    "id": "ent.elasticsearch.not_started.error",
+    "translation": "Elasticsearchが起動されていません"
+  },
+  {
+    "id": "ent.elasticsearch.purge_indexes.delete_failed",
+    "translation": "ElasticSearchのインデックスを削除できませんでした"
+  },
+  {
     "id": "ent.elasticsearch.search_posts.disabled",
     "translation": "このサーバーではElasticSearchによる検索は無効です。"
   },
@@ -3508,24 +3620,12 @@
     "translation": "検索結果をデコードできませんでした"
   },
   {
-    "id": "ent.elasticsearch.start.connect_failed",
-    "translation": "ElasticSearchクライアントを設定できませんでした"
-  },
-  {
-    "id": "ent.elasticsearch.start.index_create_failed",
-    "translation": "ElasticSearchのインデックスを作成できませんでした"
-  },
-  {
-    "id": "ent.elasticsearch.start.index_exists_failed",
-    "translation": "ElasticSearchインデックスの存在を確認できませんでした"
-  },
-  {
-    "id": "ent.elasticsearch.start.index_mapping_failed",
-    "translation": "ElasticSearchインデックスのマッピングを設定できませんでした"
-  },
-  {
     "id": "ent.elasticsearch.start.index_settings_failed",
     "translation": "ElasticSearchインデックス設定を設定できませんでした"
+  },
+  {
+    "id": "ent.elasticsearch.test_config.connect_failed",
+    "translation": "Elasticsearchサーバーへ接続できませんでした"
   },
   {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
@@ -3534,6 +3634,10 @@
   {
     "id": "ent.elasticsearch.test_config.license.error",
     "translation": "ライセンスはElasticsearchをサポートしていません。"
+  },
+  {
+    "id": "ent.elasticsearch.test_config.reenter_password",
+    "translation": "ElasticsearchサーバーのURLかユーザー名が変更されました。接続をテストするためにElasticsearchのパスワードを再度入力してください。"
   },
   {
     "id": "ent.emoji.licence_disable.app_error",
@@ -3746,6 +3850,14 @@
   {
     "id": "error.not_found.title",
     "translation": "ページが見付かりません"
+  },
+  {
+    "id": "jobs.request_cancellation.status.error",
+    "translation": "ジョブがキャンセル可能な状態でないため、ジョブのキャンセルをリクエストできませんでした。"
+  },
+  {
+    "id": "jobs.set_job_error.update.error",
+    "translation": "ジョブの状態をエラーに設定できませんでした"
   },
   {
     "id": "manaultesting.get_channel_id.no_found.debug",
@@ -4434,6 +4546,22 @@
   {
     "id": "model.incoming_hook.user_id.app_error",
     "translation": "不正なユーザーIDです"
+  },
+  {
+    "id": "model.job.is_valid.create_at.app_error",
+    "translation": "作成日時は有効な時刻にしてください"
+  },
+  {
+    "id": "model.job.is_valid.id.app_error",
+    "translation": "不正なジョブIDです"
+  },
+  {
+    "id": "model.job.is_valid.status.app_error",
+    "translation": "不正なジョブ状態です"
+  },
+  {
+    "id": "model.job.is_valid.type.app_error",
+    "translation": "不正なジョブ形式です"
   },
   {
     "id": "model.oauth.is_valid.app_id.app_error",
@@ -5296,24 +5424,24 @@
     "translation": "ファイル情報を保存、または更新できませんでした"
   },
   {
-    "id": "store.sql_job_status.delete_by_type.app_error",
-    "translation": "ジョブの状態を削除できませんでした"
+    "id": "store.sql_job.delete.app_error",
+    "translation": "ジョブを削除できませんでした"
   },
   {
-    "id": "store.sql_job_status.get.app_error",
-    "translation": "ジョブの状態を取得できませんでした"
+    "id": "store.sql_job.get.app_error",
+    "translation": "ジョブを取得できませんでした"
   },
   {
-    "id": "store.sql_job_status.get_all.app_error",
-    "translation": "すべてのジョブの状態を取得できませんでした"
+    "id": "store.sql_job.get_all.app_error",
+    "translation": "ジョブを取得できませんでした"
   },
   {
-    "id": "store.sql_job_status.save.app_error",
-    "translation": "ジョブの状態を保存できませんでした"
+    "id": "store.sql_job.save.app_error",
+    "translation": "ジョブを保存できませんでした"
   },
   {
-    "id": "store.sql_job_status.update.app_error",
-    "translation": "ジョブの状態を更新できませんでした"
+    "id": "store.sql_job.update.app_error",
+    "translation": "ジョブを更新できませんでした"
   },
   {
     "id": "store.sql_license.get.app_error",
@@ -5462,6 +5590,10 @@
   {
     "id": "store.sql_post.get_posts_around.get_parent.app_error",
     "translation": "チャンネルの親に当たる投稿を取得できませんでした"
+  },
+  {
+    "id": "store.sql_post.get_posts_batch_for_indexing.get.app_error",
+    "translation": "インデックス付与のための投稿のバッチ処理を取得できませんでした"
   },
   {
     "id": "store.sql_post.get_posts_by_ids.app_error",

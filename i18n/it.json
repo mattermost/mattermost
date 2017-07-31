@@ -532,6 +532,54 @@
     "translation": "Intestazione del canale aggiornata."
   },
   {
+    "id": "api.command_channel_purpose.channel.app_error",
+    "translation": "Errore nel caricamento del canale."
+  },
+  {
+    "id": "api.command_channel_purpose.desc",
+    "translation": "Modifica lo scopo del canale"
+  },
+  {
+    "id": "api.command_channel_purpose.direct_group.app_error",
+    "translation": "Impossibile impostare lo scopo dei canali per i messaggi diretti. E' possibile utilizzare il comando /header per impostare l'intestazione di questi canali."
+  },
+  {
+    "id": "api.command_channel_purpose.hint",
+    "translation": "[testo]"
+  },
+  {
+    "id": "api.command_channel_purpose.message.app_error",
+    "translation": "E necessarrio fornitre un messaggio al comando /purpose."
+  },
+  {
+    "id": "api.command_channel_purpose.name",
+    "translation": "scopo"
+  },
+  {
+    "id": "api.command_channel_purpose.permission.app_error",
+    "translation": "Non si dispone dei permessi necessari per modificare lo scopo del canale."
+  },
+  {
+    "id": "api.command_channel_purpose.update_channel.app_error",
+    "translation": "Errore nell'aggiornamento del canale."
+  },
+  {
+    "id": "api.command_code.desc",
+    "translation": "Display text as a code block"
+  },
+  {
+    "id": "api.command_code.hint",
+    "translation": "[text]"
+  },
+  {
+    "id": "api.command_code.message.app_error",
+    "translation": "A message must be provided with the /code command."
+  },
+  {
+    "id": "api.command_code.name",
+    "translation": "code"
+  },
+  {
     "id": "api.command_collapse.desc",
     "translation": "Abilita auto-compressione delle immagini di anteprima"
   },
@@ -3072,6 +3120,10 @@
     "translation": "Canale di gruppo non trovato"
   },
   {
+    "id": "app.import.import_direct_post.save_preferences.error",
+    "translation": "Errore durante l'importazione delle pubblicazioni dirette. Impossibile salvare le preferenze."
+  },
+  {
     "id": "app.import.import_direct_post.user_not_found.error",
     "translation": "L'utente della pubblicazione non esiste"
   },
@@ -3108,12 +3160,20 @@
     "translation": "Errore di importazione della pubblicazione. Il canale chiamato \"{{.ChannelName}}\" non è stato trovato."
   },
   {
+    "id": "app.import.import_post.save_preferences.error",
+    "translation": "Errore durante l'importazione delle pubblicazioni. Impossibile salvare le preferenze."
+  },
+  {
     "id": "app.import.import_post.team_not_found.error",
     "translation": "Errore di importazione della pubblicazione. Il gruppo chiamato \"{{.TeamName}}\" non è stato trovato."
   },
   {
     "id": "app.import.import_post.user_not_found.error",
     "translation": "Errore di importazione della pubblicazione. L'utente chiamato \"{{.TeamName}}\" non è stato trovato."
+  },
+  {
+    "id": "app.import.import_user_channels.save_preferences.error",
+    "translation": "Errore durante l'importazione dei membri del canale. Impossibile salvare le preferenze."
   },
   {
     "id": "app.import.validate_channel_import_data.create_at_zero.error",
@@ -3176,6 +3236,10 @@
     "translation": "La lista dei membri del canale diretto contiene troppi elementi"
   },
   {
+    "id": "app.import.validate_direct_channel_import_data.unknown_favoriter.error",
+    "translation": "Il canale diretto può diventare un canale preferito solo per i membri. \"{{.Username}}\" non è un membro."
+  },
+  {
     "id": "app.import.validate_direct_post_import_data.channel_members_required.error",
     "translation": "Manca una proprietà richiesta nella pubblicazione diretta: membri del canale"
   },
@@ -3202,6 +3266,10 @@
   {
     "id": "app.import.validate_direct_post_import_data.message_missing.error",
     "translation": "Manca una proprietà richiesta nella pubblicazione diretta: messaggio"
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.unknown_flagger.error",
+    "translation": "Una pubblicazione diretta può essere marcata solo dai membri del canali in cui si trova. \"{{.Username}}\" non è un membro."
   },
   {
     "id": "app.import.validate_direct_post_import_data.user_missing.error",
@@ -3372,6 +3440,14 @@
     "translation": "Creare gruppi"
   },
   {
+    "id": "authentication.permissions.manage_jobs.description",
+    "translation": "Possibilità di gestire i lavori"
+  },
+  {
+    "id": "authentication.permissions.manage_jobs.name",
+    "translation": "Gestione lavori"
+  },
+  {
     "id": "authentication.permissions.manage_team_roles.description",
     "translation": "Possibilità di cambiare i ruoli di un membro del gruppo"
   },
@@ -3496,6 +3572,42 @@
     "translation": "Esportazione di conformita fallita per l'attività '{{.JobName}}' in '{{.FilePath}}'"
   },
   {
+    "id": "ent.elasticsearch.create_client.connect_failed",
+    "translation": "Impostazione del Client ElasticSearch fallita"
+  },
+  {
+    "id": "ent.elasticsearch.create_index_if_not_exists.index_create_failed",
+    "translation": "Impossibile creare un indice ElasticSearch"
+  },
+  {
+    "id": "ent.elasticsearch.create_index_if_not_exists.index_exists_failed",
+    "translation": "Impossibile stabilire se esiste un indice ElasticSearch"
+  },
+  {
+    "id": "ent.elasticsearch.create_index_if_not_exists.index_mapping_failed",
+    "translation": "Impossibile impostare la mappe degli indici di ElasticSearch"
+  },
+  {
+    "id": "ent.elasticsearch.delete_post.error",
+    "translation": "Impossibile cancellare la pubblicazione"
+  },
+  {
+    "id": "ent.elasticsearch.generic.disabled",
+    "translation": "La ricerca ElasticSearch è disabilitata su questo server"
+  },
+  {
+    "id": "ent.elasticsearch.index_post.error",
+    "translation": "Impossibile indicizzare la pubblicazione"
+  },
+  {
+    "id": "ent.elasticsearch.not_started.error",
+    "translation": "Elasticsearch non è in esecuzione"
+  },
+  {
+    "id": "ent.elasticsearch.purge_indexes.delete_failed",
+    "translation": "Impossibile cancellare l'indice ElasticSearch"
+  },
+  {
     "id": "ent.elasticsearch.search_posts.disabled",
     "translation": "La ricerca ElasticSearch è disabilitata su questo server"
   },
@@ -3508,24 +3620,12 @@
     "translation": "Impossibile decodificare i risultati della ricerca"
   },
   {
-    "id": "ent.elasticsearch.start.connect_failed",
-    "translation": "Impostazione del client ElasticSearch fallita"
-  },
-  {
-    "id": "ent.elasticsearch.start.index_create_failed",
-    "translation": "Impossibile creare un indice ElasticSearch"
-  },
-  {
-    "id": "ent.elasticsearch.start.index_exists_failed",
-    "translation": "Impossibile stabilire se esiste un indice ElasticSearch"
-  },
-  {
-    "id": "ent.elasticsearch.start.index_mapping_failed",
-    "translation": "Impossibile impostare l'index mapping di ElasticSearch"
-  },
-  {
     "id": "ent.elasticsearch.start.index_settings_failed",
     "translation": "Impossibile salvare le impostazioni dell'index ElasticSearch"
+  },
+  {
+    "id": "ent.elasticsearch.test_config.connect_failed",
+    "translation": "Connessione al server Elasticsearch fallita."
   },
   {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
@@ -3534,6 +3634,10 @@
   {
     "id": "ent.elasticsearch.test_config.license.error",
     "translation": "La licenza non supporta l'uso di Elasticsearch."
+  },
+  {
+    "id": "ent.elasticsearch.test_config.reenter_password",
+    "translation": "L'URL o il nome utente del server Elasticsearch è cambiato. Reinserire la password di Elasticsearch per provare la connessione."
   },
   {
     "id": "ent.emoji.licence_disable.app_error",
@@ -3746,6 +3850,14 @@
   {
     "id": "error.not_found.title",
     "translation": "Pagina non trovata"
+  },
+  {
+    "id": "jobs.request_cancellation.status.error",
+    "translation": "L'attuale stato del lavoro non ne permette la cancellazione."
+  },
+  {
+    "id": "jobs.set_job_error.update.error",
+    "translation": "Impossibile impostare lo stato del lavoro in errore"
   },
   {
     "id": "manaultesting.get_channel_id.no_found.debug",
@@ -4434,6 +4546,22 @@
   {
     "id": "model.incoming_hook.user_id.app_error",
     "translation": "User id non valido"
+  },
+  {
+    "id": "model.job.is_valid.create_at.app_error",
+    "translation": "Creato alle deve essere un tempo valido"
+  },
+  {
+    "id": "model.job.is_valid.id.app_error",
+    "translation": "Id lavoro non valido"
+  },
+  {
+    "id": "model.job.is_valid.status.app_error",
+    "translation": "Stato lavoro non valido"
+  },
+  {
+    "id": "model.job.is_valid.type.app_error",
+    "translation": "Tipo lavoro non valido"
   },
   {
     "id": "model.oauth.is_valid.app_id.app_error",
@@ -5296,24 +5424,24 @@
     "translation": "Non è stato possibile salvare o aggiornare le informazioni sul file"
   },
   {
-    "id": "store.sql_job_status.delete_by_type.app_error",
-    "translation": "Non è stato possibile cancellare lo stato del job"
+    "id": "store.sql_job.delete.app_error",
+    "translation": "Non è possibile cancellare il lavoro"
   },
   {
-    "id": "store.sql_job_status.get.app_error",
-    "translation": "Impossibile recuperare lo stato del job"
+    "id": "store.sql_job.get.app_error",
+    "translation": "Impossibile recuperare il lavoro"
   },
   {
-    "id": "store.sql_job_status.get_all.app_error",
-    "translation": "Non è stato possibile recuperare lo stato di tutti i job"
+    "id": "store.sql_job.get_all.app_error",
+    "translation": "Impossibile recuperare i lavori"
   },
   {
-    "id": "store.sql_job_status.save.app_error",
-    "translation": "Non è stato possibile salvare lo stato del job"
+    "id": "store.sql_job.save.app_error",
+    "translation": "Impossibile salvare il lavoro"
   },
   {
-    "id": "store.sql_job_status.update.app_error",
-    "translation": "Non è stato possibile aggiornare lo stato del job"
+    "id": "store.sql_job.update.app_error",
+    "translation": "Impossibile aggiornare il lavoro"
   },
   {
     "id": "store.sql_license.get.app_error",
@@ -5462,6 +5590,10 @@
   {
     "id": "store.sql_post.get_posts_around.get_parent.app_error",
     "translation": "Impossibile recuperare la pubblicazione genitore per il canale"
+  },
+  {
+    "id": "store.sql_post.get_posts_batch_for_indexing.get.app_error",
+    "translation": "Impossibile trovare la coda delle pubblicazioni da indicizzare"
   },
   {
     "id": "store.sql_post.get_posts_by_ids.app_error",

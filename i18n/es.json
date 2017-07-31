@@ -532,6 +532,54 @@
     "translation": "El encabezado del canal fue actualizado correctamente."
   },
   {
+    "id": "api.command_channel_purpose.channel.app_error",
+    "translation": "Error al recuperar el canal actual."
+  },
+  {
+    "id": "api.command_channel_purpose.desc",
+    "translation": "Editar el propósito del canal"
+  },
+  {
+    "id": "api.command_channel_purpose.direct_group.app_error",
+    "translation": "No se puede establecer el propósito en los canales de mensaje directo. Utiliza /header para establecer el encabezado en su lugar."
+  },
+  {
+    "id": "api.command_channel_purpose.hint",
+    "translation": "[texto]"
+  },
+  {
+    "id": "api.command_channel_purpose.message.app_error",
+    "translation": "Un mensaje debe ser proporcionado con el comando /purpose."
+  },
+  {
+    "id": "api.command_channel_purpose.name",
+    "translation": "propósito"
+  },
+  {
+    "id": "api.command_channel_purpose.permission.app_error",
+    "translation": "No tienes los permisos adecuados para modificar el propósito del canal."
+  },
+  {
+    "id": "api.command_channel_purpose.update_channel.app_error",
+    "translation": "Error al actualizar el canal actual."
+  },
+  {
+    "id": "api.command_code.desc",
+    "translation": "Display text as a code block"
+  },
+  {
+    "id": "api.command_code.hint",
+    "translation": "[text]"
+  },
+  {
+    "id": "api.command_code.message.app_error",
+    "translation": "A message must be provided with the /code command."
+  },
+  {
+    "id": "api.command_code.name",
+    "translation": "code"
+  },
+  {
     "id": "api.command_collapse.desc",
     "translation": "Activar auto-colapso de previsualizaciones de imagen"
   },
@@ -3072,6 +3120,10 @@
     "translation": "No se pudo obtener el canal de grupo"
   },
   {
+    "id": "app.import.import_direct_post.save_preferences.error",
+    "translation": "Error en la importación mensajes directos. Error al guardar las preferencias."
+  },
+  {
     "id": "app.import.import_direct_post.user_not_found.error",
     "translation": "El usuario que publicó el mensaje no existe"
   },
@@ -3108,12 +3160,20 @@
     "translation": "Error al importar el mensaje. El canal con el nombre \"{{.ChannelName}}\" no pudo ser encontrado."
   },
   {
+    "id": "app.import.import_post.save_preferences.error",
+    "translation": "Error al importar el mensaje. Error al guardar las preferencias."
+  },
+  {
     "id": "app.import.import_post.team_not_found.error",
     "translation": "Error al importar el mensaje. El equipo con el nombre \"{{.TeamName}}\" no pudo ser encontrado."
   },
   {
     "id": "app.import.import_post.user_not_found.error",
     "translation": "Error al importar el mensaje. El usuario con nombre de usuario \"{{.Username}}\" no pudo ser encontrado."
+  },
+  {
+    "id": "app.import.import_user_channels.save_preferences.error",
+    "translation": "Error al importar las membresías del canal. Error al guardar las preferencias."
   },
   {
     "id": "app.import.validate_channel_import_data.create_at_zero.error",
@@ -3176,6 +3236,10 @@
     "translation": "La lista de miembros del canal directo contiene demasiados elementos"
   },
   {
+    "id": "app.import.validate_direct_channel_import_data.unknown_favoriter.error",
+    "translation": "Canales directos sólo pueden establecerse como favoritos por sus miembros. \"{{.Username}}\" no es un miembro."
+  },
+  {
     "id": "app.import.validate_direct_post_import_data.channel_members_required.error",
     "translation": "Falta la propiedad del mensaje: channel_members."
   },
@@ -3202,6 +3266,10 @@
   {
     "id": "app.import.validate_direct_post_import_data.message_missing.error",
     "translation": "Falta la propiedad obligatoria del mensaje del canal directo: message"
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.unknown_flagger.error",
+    "translation": "Mensajes en canales directos sólo pueden ser marcado por sus miembros. \"{{.Username}}\" no es un miembro."
   },
   {
     "id": "app.import.validate_direct_post_import_data.user_missing.error",
@@ -3372,6 +3440,14 @@
     "translation": "Crear Equipos"
   },
   {
+    "id": "authentication.permissions.manage_jobs.description",
+    "translation": "Capacidad para administrar los trabajos"
+  },
+  {
+    "id": "authentication.permissions.manage_jobs.name",
+    "translation": "Administrar Trabajos"
+  },
+  {
     "id": "authentication.permissions.manage_team_roles.description",
     "translation": "Capacidad para cambiar los roles de un miembro del equipo"
   },
@@ -3496,6 +3572,42 @@
     "translation": "Iniciado el trabajo '{{.JobName}}' para exportar el Cumplimiento en '{{.FilePath}}'"
   },
   {
+    "id": "ent.elasticsearch.create_client.connect_failed",
+    "translation": "La configuración del cliente de ElasticSearch falló"
+  },
+  {
+    "id": "ent.elasticsearch.create_index_if_not_exists.index_create_failed",
+    "translation": "No se pudo crear el índice de ElasticSearch"
+  },
+  {
+    "id": "ent.elasticsearch.create_index_if_not_exists.index_exists_failed",
+    "translation": "No se pudo establecer si existe un índice de ElasticSearch"
+  },
+  {
+    "id": "ent.elasticsearch.create_index_if_not_exists.index_mapping_failed",
+    "translation": "Error al configurar el mapa de índices de ElasticSearch"
+  },
+  {
+    "id": "ent.elasticsearch.delete_post.error",
+    "translation": "Error al eliminar el mensaje"
+  },
+  {
+    "id": "ent.elasticsearch.generic.disabled",
+    "translation": "La búsqueda con ElasticSearch está deshabilitada en este servidor"
+  },
+  {
+    "id": "ent.elasticsearch.index_post.error",
+    "translation": "Error al indexar el mensaje"
+  },
+  {
+    "id": "ent.elasticsearch.not_started.error",
+    "translation": "Elasticsearch no se ha iniciado"
+  },
+  {
+    "id": "ent.elasticsearch.purge_indexes.delete_failed",
+    "translation": "No se pudo borrar el índice de ElasticSearch"
+  },
+  {
     "id": "ent.elasticsearch.search_posts.disabled",
     "translation": "La búsqueda con ElasticSearch está deshabilitada en este servidor"
   },
@@ -3508,24 +3620,12 @@
     "translation": "No pudo decodificar los resultados de búsqueda"
   },
   {
-    "id": "ent.elasticsearch.start.connect_failed",
-    "translation": "La configuración de ElasticSearch Cliente falló"
-  },
-  {
-    "id": "ent.elasticsearch.start.index_create_failed",
-    "translation": "No se pudo crear el índice de ElasticSearch"
-  },
-  {
-    "id": "ent.elasticsearch.start.index_exists_failed",
-    "translation": "No se pudo establecer si existe un índice de ElasticSearch"
-  },
-  {
-    "id": "ent.elasticsearch.start.index_mapping_failed",
-    "translation": "Error al configurar el mapa de índices de ElasticSearch"
-  },
-  {
     "id": "ent.elasticsearch.start.index_settings_failed",
     "translation": "No se pudo establecer el índice de configuración de ElasticSearch"
+  },
+  {
+    "id": "ent.elasticsearch.test_config.connect_failed",
+    "translation": "La conexión al servidor Elasticsearch no pudo establecer."
   },
   {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
@@ -3534,6 +3634,10 @@
   {
     "id": "ent.elasticsearch.test_config.license.error",
     "translation": "La licencia no admite Elasticsearch."
+  },
+  {
+    "id": "ent.elasticsearch.test_config.reenter_password",
+    "translation": "La dirección URL del Servidor Elasticsearch o el nombre de Usuario ha cambiado. Por favor, vuelva a introducir la contraseña de Elasticsearch para probar la conexión."
   },
   {
     "id": "ent.emoji.licence_disable.app_error",
@@ -3746,6 +3850,14 @@
   {
     "id": "error.not_found.title",
     "translation": "Página no encontrada"
+  },
+  {
+    "id": "jobs.request_cancellation.status.error",
+    "translation": "No se puede solicitar la cancelación de un trabajo que no está en un estado cancelable."
+  },
+  {
+    "id": "jobs.set_job_error.update.error",
+    "translation": "No se puede establecer el estado al trabajo de error"
   },
   {
     "id": "manaultesting.get_channel_id.no_found.debug",
@@ -4434,6 +4546,22 @@
   {
     "id": "model.incoming_hook.user_id.app_error",
     "translation": "Id del Usuario inválido"
+  },
+  {
+    "id": "model.job.is_valid.create_at.app_error",
+    "translation": "Create debe ser un tiempo válido"
+  },
+  {
+    "id": "model.job.is_valid.id.app_error",
+    "translation": "ID de trabajo no válido."
+  },
+  {
+    "id": "model.job.is_valid.status.app_error",
+    "translation": "Estado del trabajo no válido"
+  },
+  {
+    "id": "model.job.is_valid.type.app_error",
+    "translation": "Tipo de trabajo inválido"
   },
   {
     "id": "model.oauth.is_valid.app_id.app_error",
@@ -5296,24 +5424,24 @@
     "translation": "No pudimos guardar o actualizar la información del archivo"
   },
   {
-    "id": "store.sql_job_status.delete_by_type.app_error",
-    "translation": "No pudimos eliminar el trabajo de estatus"
+    "id": "store.sql_job.delete.app_error",
+    "translation": "No pudimos eliminar el trabajo"
   },
   {
-    "id": "store.sql_job_status.get.app_error",
-    "translation": "No pudimos obtener el trabajo de estatus"
+    "id": "store.sql_job.get.app_error",
+    "translation": "No pudimos obtener el trabajo"
   },
   {
-    "id": "store.sql_job_status.get_all.app_error",
-    "translation": "No pudimos obtener todos los trabajos de estatus"
+    "id": "store.sql_job.get_all.app_error",
+    "translation": "No pudimos obtener los trabajos"
   },
   {
-    "id": "store.sql_job_status.save.app_error",
-    "translation": "No pudimos guardar el trabajo de estatus"
+    "id": "store.sql_job.save.app_error",
+    "translation": "No pudimos guardar el trabajo"
   },
   {
-    "id": "store.sql_job_status.update.app_error",
-    "translation": "No pudimos actualizar el trabajo de estatus"
+    "id": "store.sql_job.update.app_error",
+    "translation": "No pudimos actualizar el trabajo"
   },
   {
     "id": "store.sql_license.get.app_error",
@@ -5462,6 +5590,10 @@
   {
     "id": "store.sql_post.get_posts_around.get_parent.app_error",
     "translation": "No pudimos obtener los mensajes padres del canal"
+  },
+  {
+    "id": "store.sql_post.get_posts_batch_for_indexing.get.app_error",
+    "translation": "No se pudo obtener los mensajes en lote para la indexación"
   },
   {
     "id": "store.sql_post.get_posts_by_ids.app_error",
