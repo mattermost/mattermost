@@ -43,7 +43,7 @@ export default class RevokeTokenButton extends React.PureComponent {
     render() {
         return (
             <button
-                className='btn btn-link'
+                className='btn btn-danger'
                 onClick={this.handleClick}
             >
                 <FormattedMessage

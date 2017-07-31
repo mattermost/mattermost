@@ -1106,10 +1106,10 @@ export default class SecurityTab extends React.Component {
                         key={token.id}
                         className='setting-box__item'
                     >
-                        <div>
+                        <div className='whitespace--nowrap overflow--ellipsis'>
                             <strong>{token.description}</strong>
                         </div>
-                        <div className='setting-box__token-id'>
+                        <div className='setting-box__token-id whitespace--nowrap overflow--ellipsis'>
                             <FormattedMessage
                                 id='user.settings.tokens.tokenId'
                                 defaultMessage='Token ID: '
@@ -1170,9 +1170,9 @@ export default class SecurityTab extends React.Component {
             let newTokenSection;
             if (this.state.tokenCreationState === TOKEN_CREATING) {
                 newTokenSection = (
-                    <div>
+                    <div className='padding-left x2'>
                         <div className='row'>
-                            <label className='col-sm-3 control-label'>
+                            <label className='col-sm-auto control-label padding-right x2'>
                                 <FormattedMessage
                                     id='user.settings.tokens.name'
                                     defaultMessage='Name: '

@@ -98,7 +98,20 @@ export default class ManageTokensModal extends React.PureComponent {
                             className='manage-teams__team'
                         >
                             <div className='manage-teams__team-name'>
-                                {token.description + ' - ' + token.id}
+                                <div>
+                                    <FormattedMessage
+                                        id='admin.manage_tokens.userAccessTokensNameLabel'
+                                        defaultMessage='Name: '
+                                    />
+                                    {token.description}
+                                </div>
+                                <div>
+                                    <FormattedMessage
+                                        id='admin.manage_tokens.userAccessTokensIdLabel'
+                                        defaultMessage='Token ID: '
+                                    />
+                                    {token.id}
+                                </div>
                             </div>
                             <div className='manage-teams__team-actions'>
                                 <RevokeTokenButton
@@ -130,10 +143,10 @@ export default class ManageTokensModal extends React.PureComponent {
                         </div>
                     </div>
                 </div>
-                <div className='padding-top'>
+                <div className='padding-top x2'>
                     <FormattedHTMLMessage
                         id='admin.manage_tokens.userAccessTokensDescription'
-                        defaultMessage='Read about <a href="https://about.mattermost.com/default-user-access-tokens" target="_blank">user access tokens</a>.'
+                        defaultMessage='User access tokens function similar to session tokens and can be used by integrations to <a href="https://about.mattermost.com/default-api-authentication" target="_blank">authenticate against the REST API</a>. Learn more about <a href="https://about.mattermost.com/default-user-access-tokens" target="_blank">user access tokens</a>.'
                     />
                 </div>
                 <div className='manage-teams__teams'>
