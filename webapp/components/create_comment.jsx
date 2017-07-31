@@ -617,6 +617,8 @@ export default class CreateComment extends React.Component {
                                 emojiEnabled={window.mm_config.EnableEmojiPicker === 'true'}
                                 initialText=''
                                 channelId={this.props.channelId}
+                                isRHS={true}
+                                popoverMentionKeyClick={true}
                                 id='reply_textbox'
                                 ref='textbox'
                             />

@@ -25,3 +25,26 @@ func TestCompliancePost(t *testing.T) {
 		t.Fatal()
 	}
 }
+
+var cleanTests = []struct {
+	in       string
+	expected string
+}{
+	{"hello", "hello"},
+	{"=hello", "'=hello"},
+	{"+hello", "'+hello"},
+	{"-hello", "'-hello"},
+	{"  =hello", "'  =hello"},
+	{"  +hello", "'  +hello"},
+	{"  -hello", "'  -hello"},
+	{"\t  -hello", "'\t  -hello"},
+}
+
+func TestCleanComplianceStrings(t *testing.T) {
+	for _, tt := range cleanTests {
+		actual := cleanComplianceStrings(tt.in)
+		if actual != tt.expected {
+			t.Errorf("cleanComplianceStrings(%v): expected %v, actual %v", tt.in, tt.expected, actual)
+		}
+	}
+}
