@@ -522,6 +522,15 @@ export default class AdminSidebar extends React.Component {
                                         />
                                     }
                                 />
+                                <AdminSidebarSection
+                                    name='jira'
+                                    title={
+                                        <FormattedMessage
+                                            id='admin.sidebar.jira'
+                                            defaultMessage='JIRA (Beta)'
+                                        />
+                                    }
+                                />
                                 {webrtcSettings}
                                 <AdminSidebarSection
                                     name='external'
@@ -529,15 +538,6 @@ export default class AdminSidebar extends React.Component {
                                         <FormattedMessage
                                             id='admin.sidebar.external'
                                             defaultMessage='External Services'
-                                        />
-                                    }
-                                />
-                                <AdminSidebarSection
-                                    name='jira'
-                                    title={
-                                        <FormattedMessage
-                                            id='admin.sidebar.jira'
-                                            defaultMessage='JIRA (Beta)'
                                         />
                                     }
                                 />

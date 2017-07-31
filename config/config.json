@@ -47,17 +47,9 @@
         "TimeBetweenUserTypingUpdatesMilliseconds": 5000,
         "EnablePostSearch": true,
         "EnableUserTypingMessages": true,
-        "EnableUserStatuses": true,
         "EnableChannelViewedMessages": true,
+        "EnableUserStatuses": true,
         "ClusterLogTimeoutMilliseconds": 2000
-    },
-    "ElasticSearchSettings": {
-        "ConnectionUrl": "http://dockerhost:9200",
-        "Username": "elastic",
-        "Password": "changeme",
-        "EnableIndexing": false,
-        "EnableSearching": false,
-        "Sniff": true
     },
     "TeamSettings": {
         "SiteName": "Mattermost",
@@ -171,6 +163,9 @@
         "AboutLink": "https://about.mattermost.com/default-about/",
         "HelpLink": "https://about.mattermost.com/default-help/",
         "ReportAProblemLink": "https://about.mattermost.com/default-report-a-problem/",
+        "AdministratorsGuideLink": "https://about.mattermost.com/administrators-guide/",
+        "TroubleshootingForumLink": "https://about.mattermost.com/troubleshooting-forum/",
+        "CommercialSupportLink": "https://about.mattermost.com/commercial-support/",
         "SupportEmail": "feedback@mattermost.com"
     },
     "AnnouncementSettings": {
@@ -305,5 +300,8 @@
     "JobSettings": {
         "RunJobs": true,
         "RunScheduler": true
+    },
+    "PluginSettings": {
+        "Plugins": {}
     }
 }

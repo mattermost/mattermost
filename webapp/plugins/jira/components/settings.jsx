@@ -165,7 +165,7 @@ export default class JIRASettings extends AdminSettings {
     renderSettings() {
         var webhookDocsLink = (
             <a
-                href='https://developer.atlassian.com/jiradev/jira-apis/webhooks#Webhooks-configure'
+                href='https://about.mattermost.com/default-jira-plugin'
                 target='_blank'
                 rel='noopener noreferrer'
             >
