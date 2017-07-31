@@ -262,4 +262,252 @@ describe('Channel Utils', () => {
                 toEqual(true);
         });
     });
+
+    describe('showManagementOptions', () => {
+        test('all users can manage channel members on unlicensed instances', () => {
+            global.window.mm_license = {IsLicensed: 'false'};
+            expect(Utils.showManagementOptions(null, true, true, true)).
+                toEqual(true);
+        });
+
+        test('system admins can manage channel members in private channels, user is system admin test', () => {
+            global.window.mm_license = {IsLicensed: 'true'};
+            global.window.mm_config = {RestrictPrivateChannelManagement: Constants.PERMISSIONS_SYSTEM_ADMIN};
+
+            const channel = {
+                name: 'fakeChannelName',
+                type: Constants.PRIVATE_CHANNEL
+            };
+            expect(Utils.showManagementOptions(channel, false, false, true)).
+                toEqual(true);
+        });
+
+        test('system admins cannot manage channel members in private channels, user is not system admin test', () => {
+            global.window.mm_license = {IsLicensed: 'true'};
+            global.window.mm_config = {RestrictPrivateChannelManagement: Constants.PERMISSIONS_SYSTEM_ADMIN};
+
+            const channel = {
+                name: 'fakeChannelName',
+                type: Constants.PRIVATE_CHANNEL
+            };
+            expect(Utils.showManagementOptions(channel, false, false, false)).
+                toEqual(false);
+        });
+
+        test('system admins can manage channel members in public channels, user is system admin test', () => {
+            global.window.mm_license = {IsLicensed: 'true'};
+            global.window.mm_config = {RestrictPublicChannelManagement: Constants.PERMISSIONS_SYSTEM_ADMIN};
+
+            const channel = {
+                name: 'fakeChannelName',
+                type: Constants.OPEN_CHANNEL
+            };
+            expect(Utils.showManagementOptions(channel, false, false, true)).
+                toEqual(true);
+        });
+
+        test('system admins cannot manage channel members in public channels, user is not system admin test', () => {
+            global.window.mm_license = {IsLicensed: 'true'};
+            global.window.mm_config = {RestrictPublicChannelManagement: Constants.PERMISSIONS_SYSTEM_ADMIN};
+
+            const channel = {
+                name: 'fakeChannelName',
+                type: Constants.OPEN_CHANNEL
+            };
+            expect(Utils.showManagementOptions(channel, false, false, false)).
+                toEqual(false);
+        });
+
+        test('system admins or team admins can manage channel members in private channels, user is system admin test', () => {
+            global.window.mm_license = {IsLicensed: 'true'};
+            global.window.mm_config = {RestrictPrivateChannelManagement: Constants.PERMISSIONS_TEAM_ADMIN};
+
+            const channel = {
+                name: 'fakeChannelName',
+                type: Constants.PRIVATE_CHANNEL
+            };
+            expect(Utils.showManagementOptions(channel, false, false, true)).
+                toEqual(true);
+        });
+
+        test('system admins or team admins cannot manage channel members in private channels, user is not system admin or team admin test', () => {
+            global.window.mm_license = {IsLicensed: 'true'};
+            global.window.mm_config = {RestrictPrivateChannelManagement: Constants.PERMISSIONS_TEAM_ADMIN};
+
+            const channel = {
+                name: 'fakeChannelName',
+                type: Constants.PRIVATE_CHANNEL
+            };
+            expect(Utils.showManagementOptions(channel, false, false, false)).
+                toEqual(false);
+        });
+
+        test('system admins or team admins can manage channel members in public channels, user is system admin test', () => {
+            global.window.mm_license = {IsLicensed: 'true'};
+            global.window.mm_config = {RestrictPublicChannelManagement: Constants.PERMISSIONS_TEAM_ADMIN};
+
+            const channel = {
+                name: 'fakeChannelName',
+                type: Constants.OPEN_CHANNEL
+            };
+            expect(Utils.showManagementOptions(channel, false, false, true)).
+                toEqual(true);
+        });
+
+        test('system admins or team admins cannot manage channel members in public channels, user is not system admin or team admin test', () => {
+            global.window.mm_license = {IsLicensed: 'true'};
+            global.window.mm_config = {RestrictPublicChannelManagement: Constants.PERMISSIONS_TEAM_ADMIN};
+
+            const channel = {
+                name: 'fakeChannelName',
+                type: Constants.OPEN_CHANNEL
+            };
+            expect(Utils.showManagementOptions(channel, false, false, false)).
+                toEqual(false);
+        });
+
+        test('system admins or team admins can manage channel members in private channels, user is team admin test', () => {
+            global.window.mm_license = {IsLicensed: 'true'};
+            global.window.mm_config = {RestrictPrivateChannelManagement: Constants.PERMISSIONS_TEAM_ADMIN};
+
+            const channel = {
+                name: 'fakeChannelName',
+                type: Constants.PRIVATE_CHANNEL
+            };
+            expect(Utils.showManagementOptions(channel, false, true, false)).
+                toEqual(true);
+        });
+
+        test('system admins or team admins can manage channel members in public channels, user is team admin test', () => {
+            global.window.mm_license = {IsLicensed: 'true'};
+            global.window.mm_config = {RestrictPublicChannelManagement: Constants.PERMISSIONS_TEAM_ADMIN};
+
+            const channel = {
+                name: 'fakeChannelName',
+                type: Constants.OPEN_CHANNEL
+            };
+            expect(Utils.showManagementOptions(channel, false, true, false)).
+                toEqual(true);
+        });
+
+        test('channel, team, and system admins can manage channel members in public channels, user is channel admin test', () => {
+            global.window.mm_license = {IsLicensed: 'true'};
+            global.window.mm_config = {RestrictPublicChannelManagement: Constants.PERMISSIONS_CHANNEL_ADMIN};
+
+            const channel = {
+                name: 'fakeChannelName',
+                type: Constants.OPEN_CHANNEL
+            };
+            expect(Utils.showManagementOptions(channel, true, false, false)).
+                toEqual(true);
+        });
+
+        test('channel, team, and system admins can manage channel members in private channels, user is channel admin test', () => {
+            global.window.mm_license = {IsLicensed: 'true'};
+            global.window.mm_config = {RestrictPrivateChannelManagement: Constants.PERMISSIONS_CHANNEL_ADMIN};
+
+            const channel = {
+                name: 'fakeChannelName',
+                type: Constants.PRIVATE_CHANNEL
+            };
+            expect(Utils.showManagementOptions(channel, true, false, false)).
+                toEqual(true);
+        });
+
+        test('channel, team, and system admins can manage channel members in public channels, user is team admin test', () => {
+            global.window.mm_license = {IsLicensed: 'true'};
+            global.window.mm_config = {RestrictPublicChannelManagement: Constants.PERMISSIONS_CHANNEL_ADMIN};
+
+            const channel = {
+                name: 'fakeChannelName',
+                type: Constants.OPEN_CHANNEL
+            };
+            expect(Utils.showManagementOptions(channel, false, true, false)).
+                toEqual(true);
+        });
+
+        test('channel, team, and system admins can manage channel members in private channels, user is channel admin test', () => {
+            global.window.mm_license = {IsLicensed: 'true'};
+            global.window.mm_config = {RestrictPrivateChannelManagement: Constants.PERMISSIONS_CHANNEL_ADMIN};
+
+            const channel = {
+                name: 'fakeChannelName',
+                type: Constants.PRIVATE_CHANNEL
+            };
+            expect(Utils.showManagementOptions(channel, false, true, false)).
+                toEqual(true);
+        });
+
+        test('channel, team, and system admins can manage channel members in public channels, user is system admin test', () => {
+            global.window.mm_license = {IsLicensed: 'true'};
+            global.window.mm_config = {RestrictPublicChannelManagement: Constants.PERMISSIONS_CHANNEL_ADMIN};
+
+            const channel = {
+                name: 'fakeChannelName',
+                type: Constants.OPEN_CHANNEL
+            };
+            expect(Utils.showManagementOptions(channel, false, false, true)).
+                toEqual(true);
+        });
+
+        test('channel, team, and system admins can manage channel members in private channels, user is system admin test', () => {
+            global.window.mm_license = {IsLicensed: 'true'};
+            global.window.mm_config = {RestrictPrivateChannelManagement: Constants.PERMISSIONS_CHANNEL_ADMIN};
+
+            const channel = {
+                name: 'fakeChannelName',
+                type: Constants.PRIVATE_CHANNEL
+            };
+            expect(Utils.showManagementOptions(channel, false, false, true)).
+                toEqual(true);
+        });
+
+        test('channel, team, and system admins can manage channel mebers in public channels, user is not admin test', () => {
+            global.window.mm_license = {IsLicensed: 'true'};
+            global.window.mm_config = {RestrictPublicChannelManagement: Constants.PERMISSIONS_CHANNEL_ADMIN};
+
+            const channel = {
+                name: 'fakeChannelName',
+                type: Constants.OPEN_CHANNEL
+            };
+            expect(Utils.showManagementOptions(channel, false, false, false)).
+                toEqual(false);
+        });
+
+        test('channel, team, and system admins can manage channel members in private channels, user is channel admin test', () => {
+            global.window.mm_license = {IsLicensed: 'true'};
+            global.window.mm_config = {RestrictPrivateChannelManagement: Constants.PERMISSIONS_CHANNEL_ADMIN};
+
+            const channel = {
+                name: 'fakeChannelName',
+                type: Constants.PRIVATE_CHANNEL
+            };
+            expect(Utils.showManagementOptions(channel, false, false, false)).
+                toEqual(false);
+        });
+
+        test('any member can manage channel members in public channels, user is not admin test', () => {
+            global.window.mm_license = {IsLicensed: 'true'};
+            global.window.mm_config = {RestrictPublicChannelManagement: Constants.PERMISSIONS_ALL};
+
+            const channel = {
+                name: 'fakeChannelName',
+                type: Constants.OPEN_CHANNEL
+            };
+            expect(Utils.showManagementOptions(channel, false, false, false)).
+                toEqual(true);
+        });
+
+        test('any member can manage channel members in private channels, user is not admin test', () => {
+            global.window.mm_license = {IsLicensed: 'true'};
+            global.window.mm_config = {RestrictPrivateChannelManagement: Constants.PERMISSIONS_ALL};
+
+            const channel = {
+                name: 'fakeChannelName',
+                type: Constants.PRIVATE_CHANNEL
+            };
+            expect(Utils.showManagementOptions(channel, false, false, false)).
+                toEqual(true);
+        });
+    });
 });
