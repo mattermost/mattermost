@@ -17,7 +17,7 @@ export default class SettingItemMax extends React.Component {
     }
 
     onKeyDown(e) {
-        if (e.keyCode === Constants.KeyCodes.ENTER) {
+        if (e.keyCode === Constants.KeyCodes.ENTER && this.props.submit) {
             this.props.submit(e);
         }
     }

@@ -1042,6 +1042,12 @@ export default class SecurityTab extends React.Component {
         this.handleCreateToken();
     }
 
+    saveTokenKeyPress = (e) => {
+        if (e.which === Constants.KeyCodes.ENTER) {
+            this.confirmCreateToken();
+        }
+    }
+
     confirmRevokeToken = (tokenId) => {
         const token = this.props.userAccessTokens[tokenId];
 
@@ -1178,6 +1184,7 @@ export default class SecurityTab extends React.Component {
                                     className='form-control'
                                     type='text'
                                     maxLength={64}
+                                    onKeyPress={this.saveTokenKeyPress}
                                 />
                             </div>
                         </div>
