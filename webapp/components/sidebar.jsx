@@ -757,7 +757,7 @@ export default class Sidebar extends React.Component {
             />
         );
 
-        const isAdmin = TeamStore.isTeamAdminForCurrentTeam() || UserStore.isSystemAdminForCurrentUser();
+        const isTeamAdmin = TeamStore.isTeamAdminForCurrentTeam();
         const isSystemAdmin = UserStore.isSystemAdminForCurrentUser();
 
         let createPublicChannelIcon = (
@@ -796,11 +796,11 @@ export default class Sidebar extends React.Component {
             </OverlayTrigger>
         );
 
-        if (!ChannelUtils.showCreateOption(Constants.OPEN_CHANNEL, isAdmin, isSystemAdmin)) {
+        if (!ChannelUtils.showCreateOption(Constants.OPEN_CHANNEL, isTeamAdmin, isSystemAdmin)) {
             createPublicChannelIcon = null;
         }
 
-        if (!ChannelUtils.showCreateOption(Constants.PRIVATE_CHANNEL, isAdmin, isSystemAdmin)) {
+        if (!ChannelUtils.showCreateOption(Constants.PRIVATE_CHANNEL, isTeamAdmin, isSystemAdmin)) {
             createPrivateChannelIcon = null;
         }
 

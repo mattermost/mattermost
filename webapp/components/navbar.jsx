@@ -441,7 +441,7 @@ export default class Navbar extends React.Component {
                         </li>
                     );
 
-                    if (ChannelUtils.canManageMembers(channel, isSystemAdmin, isTeamAdmin, isChannelAdmin)) {
+                    if (ChannelUtils.canManageMembers(channel, isChannelAdmin, isTeamAdmin, isSystemAdmin)) {
                         manageMembersOption = (
                             <li
                                 key='manage_members'
@@ -499,7 +499,7 @@ export default class Navbar extends React.Component {
                     </li>
                 );
 
-                if (ChannelUtils.showManagementOptions(channel, isAdmin, isSystemAdmin, isChannelAdmin)) {
+                if (ChannelUtils.showManagementOptions(channel, isChannelAdmin, isTeamAdmin, isSystemAdmin)) {
                     setChannelHeaderOption = (
                         <li role='presentation'>
                             <a
@@ -546,7 +546,7 @@ export default class Navbar extends React.Component {
                     );
                 }
 
-                if (ChannelUtils.showDeleteOptionForCurrentUser(channel)) {
+                if (ChannelUtils.showDeleteOptionForCurrentUser(channel, isChannelAdmin, isTeamAdmin, isSystemAdmin)) {
                     deleteChannelOption = (
                         <li role='presentation'>
                             <ToggleModalButton

@@ -340,10 +340,9 @@ export default class ChannelHeader extends React.Component {
             </Popover>
         );
         let channelTitle = channel.display_name;
-        const isAdmin = TeamStore.isTeamAdminForCurrentTeam() || UserStore.isSystemAdminForCurrentUser();
+        const isChannelAdmin = ChannelStore.isChannelAdminForCurrentChannel();
         const isTeamAdmin = TeamStore.isTeamAdminForCurrentTeam();
         const isSystemAdmin = UserStore.isSystemAdminForCurrentUser();
-        const isChannelAdmin = ChannelStore.isChannelAdminForCurrentChannel();
         const isDirect = (this.state.channel.type === Constants.DM_CHANNEL);
         const isGroup = (this.state.channel.type === Constants.GM_CHANNEL);
         let webrtc;
@@ -587,7 +586,7 @@ export default class ChannelHeader extends React.Component {
                     />
                 );
 
-                if (ChannelUtils.canManageMembers(channel, isSystemAdmin, isTeamAdmin, isChannelAdmin)) {
+                if (ChannelUtils.canManageMembers(channel, isChannelAdmin, isTeamAdmin, isSystemAdmin)) {
                     dropdownContents.push(
                         <li
                             key='add_members'
@@ -648,7 +647,7 @@ export default class ChannelHeader extends React.Component {
                 }
             }
 
-            if (ChannelUtils.showManagementOptions(channel, isAdmin, isSystemAdmin, isChannelAdmin)) {
+            if (ChannelUtils.showManagementOptions(channel, isChannelAdmin, isTeamAdmin, isSystemAdmin)) {
                 dropdownContents.push(
                     <li
                         key='divider-2'
@@ -714,7 +713,7 @@ export default class ChannelHeader extends React.Component {
                 );
             }
 
-            if (ChannelUtils.showDeleteOptionForCurrentUser(channel)) {
+            if (ChannelUtils.showDeleteOptionForCurrentUser(channel, isChannelAdmin, isTeamAdmin, isSystemAdmin)) {
                 dropdownContents.push(
                     <li
                         key='delete_channel'

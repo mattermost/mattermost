@@ -156,7 +156,7 @@ export default class PopoverListMembers extends React.Component {
                     />
                 );
 
-                const manageMembers = canManageMembers(this.props.channel, isSystemAdmin, isTeamAdmin, isChannelAdmin);
+                const manageMembers = canManageMembers(this.props.channel, isChannelAdmin, isTeamAdmin, isSystemAdmin);
                 const isDefaultChannel = ChannelStore.isDefault(this.props.channel);
 
                 if ((manageMembers === false && isDefaultChannel === false) || isDefaultChannel) {
