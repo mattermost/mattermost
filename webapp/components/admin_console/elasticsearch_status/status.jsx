@@ -112,22 +112,25 @@ export default class Status extends React.PureComponent {
         let chosenJob = null;
 
         if (this.props.jobs.length > 0) {
-            this.props.jobs.forEach((job) => {
+            for (let i = 0; i < this.props.jobs.length; i++) {
+                const job = this.props.jobs[i];
                 if (job.status === JobStatuses.CANCEL_REQUESTED || job.status === JobStatuses.IN_PROGRESS) {
                     chosenJob = job;
-                    return false;
+                } else {
+                    break;
                 }
-                return true;
-            });
+            }
 
             if (!chosenJob) {
-                this.props.jobs.forEach((job) => {
+                for (let i = 0; i < this.props.jobs.length; i++) {
+                    const job = this.props.jobs[i];
                     if (job.status !== JobStatuses.PENDING && chosenJob) {
-                        return false;
+                        continue;
+                    } else {
+                        chosenJob = job;
+                        break;
                     }
-                    chosenJob = job;
-                    return true;
-                });
+                }
             }
         }
 
