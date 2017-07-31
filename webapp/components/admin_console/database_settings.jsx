@@ -108,12 +108,12 @@ export default class DatabaseSettings extends AdminSettings {
 
         return (
             <SettingsGroup>
-                <p>
+                <div className='banner'>
                     <FormattedMessage
                         id='admin.sql.noteDescription'
                         defaultMessage='Changing properties in this section will require a server restart before taking effect.'
                     />
-                </p>
+                </div>
                 <div className='form-group'>
                     <label
                         className='control-label col-sm-4'

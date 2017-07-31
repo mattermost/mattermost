@@ -181,14 +181,13 @@ export function openDirectChannelToUser(userId, success, error) {
 
 export function openGroupChannelToUsers(userIds, success, error) {
     ChannelActions.createGroupChannel(userIds)(dispatch, getState).then(
-        (data) => {
+        (result) => {
             loadProfilesForSidebar();
-            if (data && success) {
-                success(data, false);
-            } else if (data == null && error) {
+            if (result.data && success) {
+                success(result.data, false);
+            } else if (result.error && error) {
                 browserHistory.push(TeamStore.getCurrentTeamUrl());
-                const serverError = getState().requests.channels.createChannel.error;
-                error({id: serverError.server_error_id, ...serverError});
+                error({id: result.error.server_error_id, ...result.error});
             }
         }
     );

@@ -123,7 +123,7 @@ class SearchStoreClass extends EventEmitter {
 
     updatePost(post) {
         const results = this.getSearchResults();
-        if (results == null) {
+        if (!post || results == null) {
             return;
         }
 

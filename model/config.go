@@ -236,6 +236,8 @@ type PasswordSettings struct {
 
 type FileSettings struct {
 	EnableFileAttachments   *bool
+	EnableMobileUpload      *bool
+	EnableMobileDownload    *bool
 	MaxFileSize             *int64
 	DriverName              string
 	Directory               string
@@ -537,6 +539,16 @@ func (o *Config) SetDefaults() {
 	if o.FileSettings.EnableFileAttachments == nil {
 		o.FileSettings.EnableFileAttachments = new(bool)
 		*o.FileSettings.EnableFileAttachments = true
+	}
+
+	if o.FileSettings.EnableMobileUpload == nil {
+		o.FileSettings.EnableMobileUpload = new(bool)
+		*o.FileSettings.EnableMobileUpload = true
+	}
+
+	if o.FileSettings.EnableMobileDownload == nil {
+		o.FileSettings.EnableMobileDownload = new(bool)
+		*o.FileSettings.EnableMobileDownload = true
 	}
 
 	if o.FileSettings.MaxFileSize == nil {

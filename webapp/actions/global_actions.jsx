@@ -45,9 +45,11 @@ export function emitChannelClickEvent(channel) {
         const currentUserId = UserStore.getCurrentId();
         const otherUserId = Utils.getUserIdFromChannelName(chan);
         createDirectChannel(currentUserId, otherUserId)(dispatch, getState).then(
-            (data) => {
-                if (data) {
-                    success(data);
+            (result) => {
+                const receivedChannel = result.data;
+
+                if (receivedChannel) {
+                    success(receivedChannel);
                 } else {
                     fail();
                 }
@@ -573,5 +575,13 @@ export function postListScrollChange(forceScrollToBottom = false) {
     AppDispatcher.handleViewAction({
         type: EventTypes.POST_LIST_SCROLL_CHANGE,
         value: forceScrollToBottom
+    });
+}
+
+export function emitPopoverMentionKeyClick(isRHS, mentionKey) {
+    AppDispatcher.handleViewAction({
+        type: ActionTypes.POPOVER_MENTION_KEY_CLICK,
+        isRHS,
+        mentionKey
     });
 }

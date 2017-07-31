@@ -256,6 +256,8 @@ export default class RhsRootPost extends React.Component {
                 user={user}
                 status={this.props.status}
                 isBusy={this.props.isBusy}
+                isRHS={true}
+                hasMention={true}
             />
         );
         let botIndicator;
@@ -308,6 +310,8 @@ export default class RhsRootPost extends React.Component {
                 height='36'
                 user={this.props.user}
                 isBusy={this.props.isBusy}
+                isRHS={true}
+                hasMention={true}
             />
         );
 
@@ -344,6 +348,8 @@ export default class RhsRootPost extends React.Component {
                         status={status}
                         user={this.props.user}
                         isBusy={this.props.isBusy}
+                        isRHS={true}
+                        hasMention={true}
                     />
                 );
             }
@@ -417,7 +423,13 @@ export default class RhsRootPost extends React.Component {
                             <div className={postClass}>
                                 <PostBodyAdditionalContent
                                     post={post}
-                                    message={<PostMessageContainer post={post}/>}
+                                    message={
+                                        <PostMessageContainer
+                                            post={post}
+                                            isRHS={true}
+                                            hasMention={true}
+                                        />
+                                    }
                                     previewCollapsed={this.props.previewCollapsed}
                                 />
                             </div>

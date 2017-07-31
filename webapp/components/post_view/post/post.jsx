@@ -210,6 +210,7 @@ export default class Post extends React.PureComponent {
                 status={status}
                 user={this.props.user}
                 isBusy={this.props.isBusy}
+                hasMention={true}
             />
         );
 

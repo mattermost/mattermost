@@ -16,6 +16,14 @@
             padding: 7px 10px;
             text-align: left;
 
+            span {
+                display: inline-block;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+                width: calc(100% - 20px);
+            }
+
             .fa {
                 color: #555555;
                 float: right;
