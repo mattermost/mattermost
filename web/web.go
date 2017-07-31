@@ -72,13 +72,13 @@ func CheckBrowserCompatability(c *api.Context, r *http.Request) bool {
 }
 
 func root(c *api.Context, w http.ResponseWriter, r *http.Request) {
-	errorURL := "/error?type=unsupported_browser"
-	if r.URL.RequestURI() != errorURL {
-		if !CheckBrowserCompatability(c, r) {
-			w.Header().Set("Cache-Control", "no-store")
-			http.Redirect(w, r, errorURL, http.StatusTemporaryRedirect)
-			return
-		}
+	if !CheckBrowserCompatability(c, r) {
+		w.Header().Set("Cache-Control", "no-store")
+		page := utils.NewHTMLTemplate("unsupported_browser", c.Locale)
+		page.Props["Title"] = c.T("web.error.unsupported_browser.title")
+		page.Props["Message"] = c.T("web.error.unsupported_browser.message")
+		page.RenderToWriter(w)
+		return
 	}
 
 	if api.IsApiCall(r) {

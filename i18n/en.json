@@ -6572,6 +6572,34 @@
     "translation": "Email Verified"
   },
   {
+    "id": "web.error.unsupported_browser.title",
+    "translation": "Unsupported Browser"
+  },
+  {
+    "id": "web.error.unsupported_browser.message",
+    "translation": "Your current browser is not supported. Please upgrade to one of the following browsers:"
+  },
+  {
+    "id": "web.error.unsupported_browser.help1",
+    "translation": "Google Chrome 43+"
+  },
+  {
+    "id": "web.error.unsupported_browser.help2",
+    "translation": "Mozzilla Firefox 52+"
+  },
+  {
+    "id": "web.error.unsupported_browser.help3",
+    "translation": "Microsoft Internet Explorer 11+"
+  },
+  {
+    "id": "web.error.unsupported_browser.help4",
+    "translation": "Microsoft Edge 40+"
+  },
+  {
+    "id": "web.error.unsupported_browser.help5",
+    "translation": "Apple Safari 9+"
+  },
+  {
     "id": "web.find_team.title",
     "translation": "Find Team"
   },
