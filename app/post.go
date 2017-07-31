@@ -532,6 +532,11 @@ func SearchPostsInTeam(terms string, userId string, teamId string, isOrSearch bo
 			}
 		}
 
+		// If the processed search params are empty, return empty search results.
+		if len(finalParamsList) == 0 {
+			return model.NewPostList(), nil
+		}
+
 		// We only allow the user to search in channels they are a member of.
 		userChannels, err := GetChannelsForUser(teamId, userId)
 		if err != nil {
