@@ -100,7 +100,7 @@ export default class ViewImageModal extends React.Component {
             this.onModalHidden();
         }
 
-        if (this.props.fileInfos !== nextProps.fileInfos) {
+        if (this.props.fileInfos.length !== nextProps.fileInfos.length) {
             this.setState({
                 loaded: Utils.fillArray(false, nextProps.fileInfos.length),
                 progress: Utils.fillArray(0, nextProps.fileInfos.length)
