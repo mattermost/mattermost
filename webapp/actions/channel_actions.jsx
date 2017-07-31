@@ -57,6 +57,16 @@ export function executeCommand(message, args, success, error) {
     const cmd = msg.substring(0, cmdLength).toLowerCase();
     msg = cmd + msg.substring(cmdLength, msg.length);
 
+    function successFn(data) {
+        GlobalActions.showShortcutsModal(data.text);
+    }
+
+    function errorFn(err) {
+        if (error) {
+            error(err);
+        }
+    }
+
     switch (cmd) {
     case '/search':
         PostActions.searchForTerm(msg.substring(cmdLength + 1, msg.length));
@@ -71,7 +81,9 @@ export function executeCommand(message, args, success, error) {
         } else if (message.indexOf('mac') !== -1) {
             msg = '/shortcuts';
         }
-        break;
+
+        Client4.executeCommand(msg, args).then(successFn).catch(errorFn);
+        return;
     case '/leave': {
         // /leave command not supported in reply threads.
         if (args.channel_id && (args.root_id || args.parent_id)) {

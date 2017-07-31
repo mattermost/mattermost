@@ -2105,6 +2105,7 @@
   "setting_upload.import": "Import",
   "setting_upload.noFile": "No file selected.",
   "setting_upload.select": "Select file",
+  "shortcuts.info": "Begin a message with / for a list of all the commands at your disposal.",
   "sidebar.channels": "PUBLIC CHANNELS",
   "sidebar.createChannel": "Create new public channel",
   "sidebar.createGroup": "Create new private channel",

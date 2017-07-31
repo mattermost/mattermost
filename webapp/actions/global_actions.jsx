@@ -211,6 +211,14 @@ export function showAccountSettingsModal() {
     });
 }
 
+export function showShortcutsModal(data) {
+    AppDispatcher.handleViewAction({
+        type: ActionTypes.TOGGLE_SHORTCUTS_MODAL,
+        value: true,
+        data
+    });
+}
+
 export function showDeletePostModal(post, commentCount = 0) {
     AppDispatcher.handleViewAction({
         type: ActionTypes.TOGGLE_DELETE_POST_MODAL,

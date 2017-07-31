@@ -38,36 +38,41 @@ func (me *ShortcutsProvider) GetCommand(T goi18n.TranslateFunc) *model.Command {
 
 func (me *ShortcutsProvider) DoCommand(args *model.CommandArgs, message string) *model.CommandResponse {
 	shortcutIds := [...]string{
+		// Header
 		"api.command_shortcuts.header",
 		// Nav shortcuts
 		"api.command_shortcuts.nav.header",
 		"api.command_shortcuts.nav.prev",
 		"api.command_shortcuts.nav.next",
-		"api.command_shortcuts.nav.unread_prev",
 		"api.command_shortcuts.nav.unread_next",
+		"api.command_shortcuts.nav.unread_prev",
 		"api.command_shortcuts.nav.switcher",
+		"api.command_shortcuts.nav.switcher_team",
 		"api.command_shortcuts.nav.direct_messages_menu",
 		"api.command_shortcuts.nav.settings",
 		"api.command_shortcuts.nav.recent_mentions",
-		// Files shortcuts
-		"api.command_shortcuts.files.header",
-		"api.command_shortcuts.files.upload",
-		// Msg shortcuts
+		// Message shortcuts
 		"api.command_shortcuts.msgs.header",
 		"api.command_shortcuts.msgs.mark_as_read",
+		"api.command_shortcuts.msgs.reply",
+		"api.command_shortcuts.msgs.input.header",
 		"api.command_shortcuts.msgs.reprint_prev",
 		"api.command_shortcuts.msgs.reprint_next",
 		"api.command_shortcuts.msgs.edit",
-		"api.command_shortcuts.msgs.reply",
+		"api.command_shortcuts.msgs.comp.header",
 		"api.command_shortcuts.msgs.comp_username",
 		"api.command_shortcuts.msgs.comp_channel",
 		"api.command_shortcuts.msgs.comp_emoji",
+		// Files shortcuts
+		"api.command_shortcuts.files.header",
+		"api.command_shortcuts.files.upload",
 		// Browser shortcuts
 		"api.command_shortcuts.browser.header",
 		"api.command_shortcuts.browser.channel_prev",
 		"api.command_shortcuts.browser.channel_next",
 		"api.command_shortcuts.browser.font_increase",
 		"api.command_shortcuts.browser.font_decrease",
+		"api.command_shortcuts.browser.input.header",
 		"api.command_shortcuts.browser.highlight_prev",
 		"api.command_shortcuts.browser.highlight_next",
 		"api.command_shortcuts.browser.newline",
@@ -93,5 +98,5 @@ func (me *ShortcutsProvider) DoCommand(args *model.CommandArgs, message string) 
 		buffer.WriteString(args.T(element, osDependentWords))
 	}
 
-	return &model.CommandResponse{ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL, Text: buffer.String()}
+	return &model.CommandResponse{ResponseType: "", Text: buffer.String()}
 }

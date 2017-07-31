@@ -1,0 +1,68 @@
+@charset 'UTF-8';
+
+.modal {
+    
+
+    .modal-content {
+        @include box-shadow(0 0 10px rgba($black, .5));
+        border-radius: $border-rad;
+    }
+
+    .shortcuts-modal {
+        .shortcuts-content {
+            background-color: #0e0e0e;
+            color: $white;
+            .modal-header {
+                background: transparent;
+                border: none;
+                color: inherit;
+                padding: 20px 25px 0;
+
+                .close {
+                    color: inherit;
+                    font-weight: normal;
+                    right: 15px;
+                }
+
+                .modal-title {
+                    color: inherit;
+                    font-size: 16px;
+                }
+            }
+        }
+
+        .shortcuts-body {
+            padding: 10px 25px;
+            .section {
+                padding: 5px;
+                .shortcut-line {
+                    margin: 10px 0px;
+                    padding: 10px 0px;
+                    font-size: 12px;
+                    .shortcut-key {
+                        border-radius: 3px;
+                        background: $white;
+                        color: $black;
+                        margin: 5px 0px 5px 5px;
+                        padding: 5px 10px;
+                    }
+                }
+            }
+
+            .section-title {
+                font-size: 14px;
+            }
+
+            .subsection {
+                padding-left: 15px;
+                border-left: 2px solid $white;
+            }
+        }
+
+        &.large {
+            .shortcuts-body {
+                padding-bottom: 20px;
+            }
+        }
+    }
+}

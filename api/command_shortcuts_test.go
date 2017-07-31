@@ -4,9 +4,10 @@
 package api
 
 import (
-	"github.com/mattermost/platform/model"
 	"strings"
 	"testing"
+
+	"github.com/mattermost/platform/model"
 )
 
 func TestShortcutsCommand(t *testing.T) {
@@ -15,12 +16,12 @@ func TestShortcutsCommand(t *testing.T) {
 	channel := th.BasicChannel
 
 	rs := Client.Must(Client.Command(channel.Id, "/shortcuts ")).Data.(*model.CommandResponse)
-	if !strings.Contains(rs.Text, "CTRL") {
+	if !strings.Contains(rs.Text, "Ctrl") {
 		t.Fatal("failed to display shortcuts")
 	}
 
 	rs = Client.Must(Client.Command(channel.Id, "/shortcuts mac")).Data.(*model.CommandResponse)
-	if !strings.Contains(rs.Text, "CMD") {
+	if !strings.Contains(rs.Text, "Cmd") {
 		t.Fatal("failed to display Mac shortcuts")
 	}
 }
