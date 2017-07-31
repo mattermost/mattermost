@@ -1,6 +1,5 @@
 // Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
-
 package main
 
 import (
@@ -12,11 +11,16 @@ import (
 	"github.com/mattermost/platform/jobs"
 	"github.com/mattermost/platform/store"
 	"github.com/mattermost/platform/utils"
-
-	_ "github.com/mattermost/platform/imports"
+	"github.com/spf13/cobra"
 )
 
-func main() {
+var jobserverCmd = &cobra.Command{
+	Use:   "jobserver",
+	Short: "Start the Mattermost job server",
+	Run:   jobserverCmdF,
+}
+
+func jobserverCmdF(cmd *cobra.Command, args []string) {
 	// Initialize
 	utils.InitAndLoadConfig("config.json")
 	defer l4g.Close()
