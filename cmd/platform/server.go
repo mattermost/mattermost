@@ -127,8 +127,12 @@ func runServer(configFileLocation string) {
 	}
 
 	jobs.Srv.Store = app.Srv.Store
-	jobs.Srv.StartWorkers()
-	jobs.Srv.StartSchedulers()
+	if *utils.Cfg.JobSettings.RunJobs {
+		jobs.Srv.StartWorkers()
+	}
+	if *utils.Cfg.JobSettings.RunScheduler {
+		jobs.Srv.StartSchedulers()
+	}
 
 	// wait for kill signal before attempting to gracefully shutdown
 	// the running service
