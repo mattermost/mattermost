@@ -14,7 +14,6 @@ func RegisterAllClusterMessageHandlers() {
 	einterfaces.GetClusterInterface().RegisterClusterMessageHandler(model.CLUSTER_EVENT_PUBLISH, ClusterPublishHandler)
 	einterfaces.GetClusterInterface().RegisterClusterMessageHandler(model.CLUSTER_EVENT_UPDATE_STATUS, ClusterUpdateStatusHandler)
 	einterfaces.GetClusterInterface().RegisterClusterMessageHandler(model.CLUSTER_EVENT_INVALIDATE_ALL_CACHES, ClusterInvalidateAllCachesHandler)
-	einterfaces.GetClusterInterface().RegisterClusterMessageHandler(model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_REACTIONS, ClusterInvalidateCacheForReactionsHandler)
 	einterfaces.GetClusterInterface().RegisterClusterMessageHandler(model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_WEBHOOK, ClusterInvalidateCacheForWebhookHandler)
 	einterfaces.GetClusterInterface().RegisterClusterMessageHandler(model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_CHANNEL_POSTS, ClusterInvalidateCacheForChannelPostsHandler)
 	einterfaces.GetClusterInterface().RegisterClusterMessageHandler(model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_CHANNEL_MEMBERS_NOTIFY_PROPS, ClusterInvalidateCacheForChannelMembersNotifyPropHandler)
@@ -38,10 +37,6 @@ func ClusterUpdateStatusHandler(msg *model.ClusterMessage) {
 
 func ClusterInvalidateAllCachesHandler(msg *model.ClusterMessage) {
 	InvalidateAllCachesSkipSend()
-}
-
-func ClusterInvalidateCacheForReactionsHandler(msg *model.ClusterMessage) {
-	InvalidateCacheForReactionsSkipClusterSend(msg.Data)
 }
 
 func ClusterInvalidateCacheForWebhookHandler(msg *model.ClusterMessage) {
