@@ -112,3 +112,44 @@ func TestAddUserToTeamByTeamId(t *testing.T) {
 		t.Fatal("Should add user to the team")
 	}
 }
+
+func TestPermanentDeleteTeam(t *testing.T) {
+	th := Setup().InitBasic()
+
+	team, err := CreateTeam(&model.Team{
+		DisplayName: "deletion-test",
+		Name:        "deletion-test",
+		Email:       "foo@foo.com",
+		Type:        model.TEAM_OPEN,
+	})
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+	defer func() {
+		PermanentDeleteTeam(team)
+	}()
+
+	command, err := CreateCommand(&model.Command{
+		CreatorId: th.BasicUser.Id,
+		TeamId:    team.Id,
+		Trigger:   "foo",
+		URL:       "http://foo",
+		Method:    model.COMMAND_METHOD_POST,
+	})
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+	defer DeleteCommand(command.Id)
+
+	if command, err = GetCommand(command.Id); command == nil || err != nil {
+		t.Fatal("unable to get new command")
+	}
+
+	if err := PermanentDeleteTeam(team); err != nil {
+		t.Fatal(err.Error())
+	}
+
+	if command, err = GetCommand(command.Id); command != nil || err == nil {
+		t.Fatal("command wasn't deleted")
+	}
+}

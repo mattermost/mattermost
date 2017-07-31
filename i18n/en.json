@@ -6252,7 +6252,15 @@
     "translation": "We couldn't delete the webhook"
   },
   {
+    "id": "store.sql_webhooks.permanent_delete_incoming_by_channel.app_error",
+    "translation": "We couldn't delete the webhook"
+  },
+  {
     "id": "store.sql_webhooks.permanent_delete_outgoing_by_user.app_error",
+    "translation": "We couldn't delete the webhook"
+  },
+  {
+    "id": "store.sql_webhooks.permanent_delete_outgoing_by_channel.app_error",
     "translation": "We couldn't delete the webhook"
   },
   {
