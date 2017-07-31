@@ -337,7 +337,7 @@ func sendNotificationEmail(post *model.Post, user *model.User, channel *model.Ch
 			sendBatched = false
 		} else {
 			// if the user has chosen to receive notifications immediately, don't batch them
-			sendBatched = result.Data.(model.Preference).Value != model.PREFERENCE_EMAIL_INTERVAL_IMMEDIATE
+			sendBatched = result.Data.(model.Preference).Value != model.PREFERENCE_EMAIL_INTERVAL_NO_BATCHING_SECONDS
 		}
 
 		if sendBatched {

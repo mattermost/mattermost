@@ -34,8 +34,8 @@ const (
 	PREFERENCE_CATEGORY_NOTIFICATIONS = "notifications"
 	PREFERENCE_NAME_EMAIL_INTERVAL    = "email_interval"
 
-	PREFERENCE_EMAIL_INTERVAL_IMMEDIATE       = "30"  // the "immediate" setting is actually 30s
-	PREFERENCE_EMAIL_INTERVAL_FIFTEEN_MINUTES = "900" // fifteen minutes is 900 seconds
+	PREFERENCE_EMAIL_INTERVAL_NO_BATCHING_SECONDS = "30"  // the "immediate" setting is actually 30s
+	PREFERENCE_EMAIL_INTERVAL_BATCHING_SECONDS    = "900" // fifteen minutes is 900 seconds
 )
 
 type Preference struct {
