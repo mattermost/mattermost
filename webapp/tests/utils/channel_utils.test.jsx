@@ -264,13 +264,13 @@ describe('Channel Utils', () => {
     });
 
     describe('showManagementOptions', () => {
-        test('all users can manage channel members on unlicensed instances', () => {
+        test('all users can manage channel options on unlicensed instances', () => {
             global.window.mm_license = {IsLicensed: 'false'};
             expect(Utils.showManagementOptions(null, true, true, true)).
                 toEqual(true);
         });
 
-        test('system admins can manage channel members in private channels, user is system admin test', () => {
+        test('system admins can manage channel options in private channels, user is system admin test', () => {
             global.window.mm_license = {IsLicensed: 'true'};
             global.window.mm_config = {RestrictPrivateChannelManagement: Constants.PERMISSIONS_SYSTEM_ADMIN};
 
@@ -282,7 +282,7 @@ describe('Channel Utils', () => {
                 toEqual(true);
         });
 
-        test('system admins cannot manage channel members in private channels, user is not system admin test', () => {
+        test('system admins cannot manage channel options in private channels, user is not system admin test', () => {
             global.window.mm_license = {IsLicensed: 'true'};
             global.window.mm_config = {RestrictPrivateChannelManagement: Constants.PERMISSIONS_SYSTEM_ADMIN};
 
@@ -294,7 +294,7 @@ describe('Channel Utils', () => {
                 toEqual(false);
         });
 
-        test('system admins can manage channel members in public channels, user is system admin test', () => {
+        test('system admins can manage channel options in public channels, user is system admin test', () => {
             global.window.mm_license = {IsLicensed: 'true'};
             global.window.mm_config = {RestrictPublicChannelManagement: Constants.PERMISSIONS_SYSTEM_ADMIN};
 
@@ -306,7 +306,7 @@ describe('Channel Utils', () => {
                 toEqual(true);
         });
 
-        test('system admins cannot manage channel members in public channels, user is not system admin test', () => {
+        test('system admins cannot manage channel options in public channels, user is not system admin test', () => {
             global.window.mm_license = {IsLicensed: 'true'};
             global.window.mm_config = {RestrictPublicChannelManagement: Constants.PERMISSIONS_SYSTEM_ADMIN};
 
@@ -318,7 +318,7 @@ describe('Channel Utils', () => {
                 toEqual(false);
         });
 
-        test('system admins or team admins can manage channel members in private channels, user is system admin test', () => {
+        test('system admins or team admins can manage channel options in private channels, user is system admin test', () => {
             global.window.mm_license = {IsLicensed: 'true'};
             global.window.mm_config = {RestrictPrivateChannelManagement: Constants.PERMISSIONS_TEAM_ADMIN};
 
@@ -330,7 +330,7 @@ describe('Channel Utils', () => {
                 toEqual(true);
         });
 
-        test('system admins or team admins cannot manage channel members in private channels, user is not system admin or team admin test', () => {
+        test('system admins or team admins cannot manage channel options in private channels, user is not system admin or team admin test', () => {
             global.window.mm_license = {IsLicensed: 'true'};
             global.window.mm_config = {RestrictPrivateChannelManagement: Constants.PERMISSIONS_TEAM_ADMIN};
 
@@ -342,7 +342,7 @@ describe('Channel Utils', () => {
                 toEqual(false);
         });
 
-        test('system admins or team admins can manage channel members in public channels, user is system admin test', () => {
+        test('system admins or team admins can manage channel options in public channels, user is system admin test', () => {
             global.window.mm_license = {IsLicensed: 'true'};
             global.window.mm_config = {RestrictPublicChannelManagement: Constants.PERMISSIONS_TEAM_ADMIN};
 
@@ -354,7 +354,7 @@ describe('Channel Utils', () => {
                 toEqual(true);
         });
 
-        test('system admins or team admins cannot manage channel members in public channels, user is not system admin or team admin test', () => {
+        test('system admins or team admins cannot manage channel options in public channels, user is not system admin or team admin test', () => {
             global.window.mm_license = {IsLicensed: 'true'};
             global.window.mm_config = {RestrictPublicChannelManagement: Constants.PERMISSIONS_TEAM_ADMIN};
 
@@ -366,7 +366,7 @@ describe('Channel Utils', () => {
                 toEqual(false);
         });
 
-        test('system admins or team admins can manage channel members in private channels, user is team admin test', () => {
+        test('system admins or team admins can manage channel options in private channels, user is team admin test', () => {
             global.window.mm_license = {IsLicensed: 'true'};
             global.window.mm_config = {RestrictPrivateChannelManagement: Constants.PERMISSIONS_TEAM_ADMIN};
 
@@ -378,7 +378,7 @@ describe('Channel Utils', () => {
                 toEqual(true);
         });
 
-        test('system admins or team admins can manage channel members in public channels, user is team admin test', () => {
+        test('system admins or team admins can manage channel options in public channels, user is team admin test', () => {
             global.window.mm_license = {IsLicensed: 'true'};
             global.window.mm_config = {RestrictPublicChannelManagement: Constants.PERMISSIONS_TEAM_ADMIN};
 
@@ -390,7 +390,7 @@ describe('Channel Utils', () => {
                 toEqual(true);
         });
 
-        test('channel, team, and system admins can manage channel members in public channels, user is channel admin test', () => {
+        test('channel, team, and system admins can manage channel options in public channels, user is channel admin test', () => {
             global.window.mm_license = {IsLicensed: 'true'};
             global.window.mm_config = {RestrictPublicChannelManagement: Constants.PERMISSIONS_CHANNEL_ADMIN};
 
@@ -402,7 +402,7 @@ describe('Channel Utils', () => {
                 toEqual(true);
         });
 
-        test('channel, team, and system admins can manage channel members in private channels, user is channel admin test', () => {
+        test('channel, team, and system admins can manage channel options in private channels, user is channel admin test', () => {
             global.window.mm_license = {IsLicensed: 'true'};
             global.window.mm_config = {RestrictPrivateChannelManagement: Constants.PERMISSIONS_CHANNEL_ADMIN};
 
@@ -414,7 +414,7 @@ describe('Channel Utils', () => {
                 toEqual(true);
         });
 
-        test('channel, team, and system admins can manage channel members in public channels, user is team admin test', () => {
+        test('channel, team, and system admins can manage channel options in public channels, user is team admin test', () => {
             global.window.mm_license = {IsLicensed: 'true'};
             global.window.mm_config = {RestrictPublicChannelManagement: Constants.PERMISSIONS_CHANNEL_ADMIN};
 
@@ -426,7 +426,7 @@ describe('Channel Utils', () => {
                 toEqual(true);
         });
 
-        test('channel, team, and system admins can manage channel members in private channels, user is channel admin test', () => {
+        test('channel, team, and system admins can manage channel options in private channels, user is channel admin test', () => {
             global.window.mm_license = {IsLicensed: 'true'};
             global.window.mm_config = {RestrictPrivateChannelManagement: Constants.PERMISSIONS_CHANNEL_ADMIN};
 
@@ -438,7 +438,7 @@ describe('Channel Utils', () => {
                 toEqual(true);
         });
 
-        test('channel, team, and system admins can manage channel members in public channels, user is system admin test', () => {
+        test('channel, team, and system admins can manage channel options in public channels, user is system admin test', () => {
             global.window.mm_license = {IsLicensed: 'true'};
             global.window.mm_config = {RestrictPublicChannelManagement: Constants.PERMISSIONS_CHANNEL_ADMIN};
 
@@ -450,7 +450,7 @@ describe('Channel Utils', () => {
                 toEqual(true);
         });
 
-        test('channel, team, and system admins can manage channel members in private channels, user is system admin test', () => {
+        test('channel, team, and system admins can manage channel options in private channels, user is system admin test', () => {
             global.window.mm_license = {IsLicensed: 'true'};
             global.window.mm_config = {RestrictPrivateChannelManagement: Constants.PERMISSIONS_CHANNEL_ADMIN};
 
@@ -474,7 +474,7 @@ describe('Channel Utils', () => {
                 toEqual(false);
         });
 
-        test('channel, team, and system admins can manage channel members in private channels, user is channel admin test', () => {
+        test('channel, team, and system admins can manage channel options in private channels, user is channel admin test', () => {
             global.window.mm_license = {IsLicensed: 'true'};
             global.window.mm_config = {RestrictPrivateChannelManagement: Constants.PERMISSIONS_CHANNEL_ADMIN};
 
@@ -486,7 +486,7 @@ describe('Channel Utils', () => {
                 toEqual(false);
         });
 
-        test('any member can manage channel members in public channels, user is not admin test', () => {
+        test('any member can manage channel options in public channels, user is not admin test', () => {
             global.window.mm_license = {IsLicensed: 'true'};
             global.window.mm_config = {RestrictPublicChannelManagement: Constants.PERMISSIONS_ALL};
 
@@ -498,7 +498,7 @@ describe('Channel Utils', () => {
                 toEqual(true);
         });
 
-        test('any member can manage channel members in private channels, user is not admin test', () => {
+        test('any member can manage channel options in private channels, user is not admin test', () => {
             global.window.mm_license = {IsLicensed: 'true'};
             global.window.mm_config = {RestrictPrivateChannelManagement: Constants.PERMISSIONS_ALL};
 
