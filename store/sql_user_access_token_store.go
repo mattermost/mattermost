@@ -74,7 +74,7 @@ func (s SqlUserAccessTokenStore) Delete(tokenId string) StoreChannel {
 		if err != nil {
 			result.Err = model.NewAppError("SqlUserAccessTokenStore.Delete", "store.sql_user_access_token.delete.app_error", nil, err.Error(), http.StatusInternalServerError)
 		} else {
-			if extrasResult := s.deleteSessionsById(transaction, tokenId); extrasResult.Err != nil {
+			if extrasResult := s.deleteSessionsAndTokensById(transaction, tokenId); extrasResult.Err != nil {
 				result = extrasResult
 			}
 
@@ -97,7 +97,7 @@ func (s SqlUserAccessTokenStore) Delete(tokenId string) StoreChannel {
 	return storeChannel
 }
 
-func (s SqlUserAccessTokenStore) deleteSessionsById(transaction *gorp.Transaction, tokenId string) StoreResult {
+func (s SqlUserAccessTokenStore) deleteSessionsAndTokensById(transaction *gorp.Transaction, tokenId string) StoreResult {
 	result := StoreResult{}
 
 	query := ""
@@ -136,7 +136,7 @@ func (s SqlUserAccessTokenStore) DeleteAllForUser(userId string) StoreChannel {
 		if err != nil {
 			result.Err = model.NewAppError("SqlUserAccessTokenStore.DeleteAllForUser", "store.sql_user_access_token.delete.app_error", nil, err.Error(), http.StatusInternalServerError)
 		} else {
-			if extrasResult := s.deleteSessionsByUser(transaction, userId); extrasResult.Err != nil {
+			if extrasResult := s.deleteSessionsandTokensByUser(transaction, userId); extrasResult.Err != nil {
 				result = extrasResult
 			}
 
@@ -159,7 +159,7 @@ func (s SqlUserAccessTokenStore) DeleteAllForUser(userId string) StoreChannel {
 	return storeChannel
 }
 
-func (s SqlUserAccessTokenStore) deleteSessionsByUser(transaction *gorp.Transaction, userId string) StoreResult {
+func (s SqlUserAccessTokenStore) deleteSessionsandTokensByUser(transaction *gorp.Transaction, userId string) StoreResult {
 	result := StoreResult{}
 
 	query := ""

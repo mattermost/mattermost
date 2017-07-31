@@ -44,6 +44,7 @@ func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	if app.SessionHasPermissionToChannel(c.Session, post.ChannelId, model.PERMISSION_CREATE_POST) {
 		hasPermission = true
 	} else if channel, err := app.GetChannel(post.ChannelId); err == nil {
+		// Temporary permission check method until advanced permissions, please do not copy
 		if channel.Type == model.CHANNEL_OPEN && app.SessionHasPermissionToTeam(c.Session, channel.TeamId, model.PERMISSION_CREATE_POST_PUBLIC) {
 			hasPermission = true
 		}
