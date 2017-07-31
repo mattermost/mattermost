@@ -604,6 +604,42 @@
     "translation": "Error to update the current channel."
   },
   {
+    "id": "api.command_channel_rename.name",
+    "translation": "rename"
+  },
+  {
+    "id": "api.command_channel_rename.hint",
+    "translation": "[text]"
+  },
+  {
+    "id": "api.command_channel_rename.desc",
+    "translation": "Rename the channel"
+  },
+  {
+    "id": "api.command_channel_rename.channel.app_error",
+    "translation": "Error to retrieve the current channel."
+  },
+  {
+    "id": "api.command_channel_rename.permission.app_error",
+    "translation": "You do not have the appropriate permissions to rename the channel."
+  },
+  {
+    "id": "api.command_channel_rename.message.app_error",
+    "translation": "A message must be provided with the /rename command."
+  },
+  {
+    "id": "api.command_channel_rename.update_channel.app_error",
+    "translation": "Error to update the current channel."
+  },
+  {
+    "id": "api.command_channel_rename.update_channel.success",
+    "translation": "Channel name successfully updated."
+  },
+  {
+    "id": "api.command_channel_rename.direct_group.app_error",
+    "translation": "Cannot rename direct message channels."
+  },
+  {
     "id": "api.command_expand.desc",
     "translation": "Turn off auto-collapsing of image previews"
   },

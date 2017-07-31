@@ -235,6 +235,14 @@ export function showChannelPurposeUpdateModal(channel) {
     });
 }
 
+export function showChannelNameUpdateModal(channel) {
+    AppDispatcher.handleViewAction({
+        type: ActionTypes.TOGGLE_CHANNEL_NAME_UPDATE_MODAL,
+        value: true,
+        channel
+    });
+}
+
 export function showGetPostLinkModal(post) {
     AppDispatcher.handleViewAction({
         type: ActionTypes.TOGGLE_GET_POST_LINK_MODAL,
