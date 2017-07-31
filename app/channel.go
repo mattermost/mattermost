@@ -936,7 +936,12 @@ func updateUserActivitySystemMessage(post *model.Post, username, otherUsername, 
 	}
 
 	if val, ok := post.Props["messages"]; ok {
-		post.Props["messages"] = append(val.([]interface{}), props)
+		if oldProps, ok := val.([]interface{}); !ok {
+			// Just ignore whatever was stored here before since it wasn't the correct type of data
+			post.Props["messages"] = []interface{}{props}
+		} else {
+			post.Props["messages"] = append(oldProps, props)
+		}
 	} else {
 		oldProps := make(model.StringInterface)
 		for key, value := range post.Props {
