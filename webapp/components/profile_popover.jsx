@@ -24,6 +24,7 @@ export default class ProfilePopover extends React.Component {
 
         this.initWebrtc = this.initWebrtc.bind(this);
         this.handleShowDirectChannel = this.handleShowDirectChannel.bind(this);
+        this.handleMentionKeyClick = this.handleMentionKeyClick.bind(this);
         this.state = {
             currentUserId: UserStore.getCurrentId(),
             loadingDMChannel: -1
@@ -103,6 +104,18 @@ export default class ProfilePopover extends React.Component {
         }
     }
 
+    handleMentionKeyClick(e) {
+        e.preventDefault();
+
+        if (!this.props.user) {
+            return;
+        }
+        if (this.props.hide) {
+            this.props.hide();
+        }
+        GlobalActions.emitPopoverMentionKeyClick(this.props.isRHS, this.props.user.username);
+    }
+
     render() {
         const popoverProps = Object.assign({}, this.props);
         delete popoverProps.user;
@@ -110,6 +123,8 @@ export default class ProfilePopover extends React.Component {
         delete popoverProps.status;
         delete popoverProps.isBusy;
         delete popoverProps.hide;
+        delete popoverProps.isRHS;
+        delete popoverProps.hasMention;
 
         let webrtc;
         const userMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
@@ -179,6 +194,7 @@ export default class ProfilePopover extends React.Component {
                     delayShow={Constants.WEBRTC_TIME_DELAY}
                     placement='top'
                     overlay={<Tooltip id='fullNameTooltip'>{fullname}</Tooltip>}
+                    key='user-popover-fullname'
                 >
                     <div
                         className='overflow--ellipsis text-nowrap padding-bottom'
@@ -247,10 +263,15 @@ export default class ProfilePopover extends React.Component {
             dataContent.push(webrtc);
         }
 
+        let title = `@${this.props.user.username}`;
+        if (this.props.hasMention) {
+            title = <a onClick={this.handleMentionKeyClick}>{title}</a>;
+        }
+
         return (
             <Popover
                 {...popoverProps}
-                title={'@' + this.props.user.username}
+                title={title}
                 id='user-profile-popover'
             >
                 {dataContent}
@@ -259,11 +280,18 @@ export default class ProfilePopover extends React.Component {
     }
 }
 
+ProfilePopover.defaultProps = {
+    isRHS: false,
+    hasMention: false
+};
+
 ProfilePopover.propTypes = Object.assign({
     src: PropTypes.string.isRequired,
     user: PropTypes.object.isRequired,
     status: PropTypes.string,
     isBusy: PropTypes.bool,
-    hide: PropTypes.func
+    hide: PropTypes.func,
+    isRHS: PropTypes.bool,
+    hasMention: PropTypes.bool
 }, Popover.propTypes);
 delete ProfilePopover.propTypes.id;

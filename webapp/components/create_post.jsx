@@ -774,6 +774,7 @@ export default class CreatePost extends React.Component {
                                 emojiEnabled={window.mm_config.EnableEmojiPicker === 'true'}
                                 createMessage={Utils.localizeMessage('create_post.write', 'Write a message...')}
                                 channelId={this.state.channelId}
+                                popoverMentionKeyClick={true}
                                 id='post_textbox'
                                 ref='textbox'
                             />
