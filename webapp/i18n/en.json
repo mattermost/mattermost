@@ -267,7 +267,7 @@
   "admin.email.emailSuccess": "No errors were reported while sending an email.  Please check your inbox to make sure.",
   "admin.email.enableEmailBatching.clusterEnabled": "Email batching cannot be enabled when High Availability mode is enabled.",
   "admin.email.enableEmailBatching.siteURL": "Email batching cannot be enabled unless the SiteURL is configured in <b>Configuration > SiteURL</b>.",
-  "admin.email.enableEmailBatchingDesc": "When true, users can have email notifications for multiple direct messages and mentions combined into a single email, configurable in <b>Account Settings > Notifications</b>.",
+  "admin.email.enableEmailBatchingDesc": "When true, users will have email notifications for multiple direct messages and mentions combined into a single email. Batching will occur at a default interval of 15 minutes, configurable in Account Settings > Notifications.",
   "admin.email.enableEmailBatchingTitle": "Enable Email Batching:",
   "admin.email.fullPushNotification": "Send full message snippet",
   "admin.email.genericPushNotification": "Send generic description with user and channel names",
