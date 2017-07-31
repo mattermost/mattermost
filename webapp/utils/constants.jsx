@@ -144,6 +144,10 @@ export const ActionTypes = keyMirror({
     CREATED_TEAM: null,
     UPDATE_TEAM: null,
 
+    SET_NAVIGATION_BLOCKED: null,
+    DEFER_NAVIGATION: null,
+    CANCEL_NAVIGATION: null,
+    CONFIRM_NAVIGATION: null,
     RECEIVED_CONFIG: null,
     RECEIVED_LOGS: null,
     RECEIVED_SERVER_AUDITS: null,

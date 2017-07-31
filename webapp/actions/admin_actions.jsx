@@ -2,6 +2,7 @@
 // See License.txt for license information.
 
 import {clientLogout} from 'actions/global_actions.jsx';
+import {ActionTypes} from 'utils/constants.jsx';
 
 import store from 'stores/redux_store.jsx';
 const dispatch = store.dispatch;
@@ -11,6 +12,8 @@ import * as AdminActions from 'mattermost-redux/actions/admin';
 import * as UserActions from 'mattermost-redux/actions/users';
 import * as IntegrationActions from 'mattermost-redux/actions/integrations';
 import {Client4} from 'mattermost-redux/client';
+
+import {getOnNavigationConfirmed} from 'selectors/views/admin';
 
 export function saveConfig(config, success, error) {
     AdminActions.updateConfig(config)(dispatch, getState).then(
@@ -395,4 +398,39 @@ export function elasticsearchTest(config, success, error) {
             }
         }
     );
+}
+
+export function setNavigationBlocked(blocked) {
+    return {
+        type: ActionTypes.SET_NAVIGATION_BLOCKED,
+        blocked
+    };
+}
+
+export function deferNavigation(onNavigationConfirmed) {
+    return {
+        type: ActionTypes.DEFER_NAVIGATION,
+        onNavigationConfirmed
+    };
+}
+
+export function cancelNavigation() {
+    return {
+        type: ActionTypes.CANCEL_NAVIGATION
+    };
+}
+
+export function confirmNavigation() {
+    // have to rename these because of lint no-shadow
+    return (thunkDispatch, thunkGetState) => {
+        const callback = getOnNavigationConfirmed(thunkGetState());
+
+        if (callback) {
+            callback();
+        }
+
+        thunkDispatch({
+            type: ActionTypes.CONFIRM_NAVIGATION
+        });
+    };
 }
