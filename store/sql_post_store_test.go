@@ -1661,37 +1661,3 @@ func TestPostStoreGetPostsBatchForIndexing(t *testing.T) {
 		}
 	}
 }
-
-func TestGetLastPostForChannel(t *testing.T) {
-	Setup()
-
-	o1 := &model.Post{}
-	o1.ChannelId = model.NewId()
-	o1.UserId = model.NewId()
-	o1.Message = ""
-	o1.Type = model.POST_JOIN_CHANNEL
-
-	o1 = (<-store.Post().Save(o1)).Data.(*model.Post)
-
-	if r1 := <-store.Post().GetLastPostForChannel(o1.ChannelId); r1.Err != nil {
-		t.Fatal(r1.Err)
-	} else {
-		if r1.Data.(*model.Post).Id != o1.Id {
-			t.Fatal("invalid returned post")
-		}
-	}
-
-	o2 := &model.Post{}
-	o2.ChannelId = o1.ChannelId
-	o2.UserId = model.NewId()
-	o2.Message = ""
-
-	o2 = (<-store.Post().Save(o2)).Data.(*model.Post)
-	if r2 := <-store.Post().GetLastPostForChannel(o2.ChannelId); r2.Err != nil {
-		t.Fatal(r2.Err)
-	} else {
-		if r2.Data.(*model.Post).Id != o2.Id {
-			t.Fatal("invalid returned post")
-		}
-	}
-}
