@@ -44,7 +44,7 @@ export default class DesktopNotificationSettings extends React.Component {
                 soundRadio[0] = true;
             }
 
-            if ((Utils.hasSoundOptions())) {
+            if (Utils.hasSoundOptions()) {
                 soundSection = (
                     <div>
                         <hr/>
@@ -303,7 +303,7 @@ export default class DesktopNotificationSettings extends React.Component {
     buildMinimizedSetting() {
         let describe = '';
         if (this.props.activity === 'mention') {
-            if ((Utils.hasSoundOptions()) && (this.props.sound !== 'false')) {
+            if (Utils.hasSoundOptions() && this.props.sound !== 'false') {
                 if (this.props.duration === '0') { //eslint-disable-line no-lonely-if
                     describe = (
                         <FormattedMessage
@@ -322,7 +322,7 @@ export default class DesktopNotificationSettings extends React.Component {
                         />
                     );
                 }
-            } else if ((Utils.hasSoundOptions()) && (this.props.sound === 'false')) {
+            } else if (Utils.hasSoundOptions() && this.props.sound === 'false') {
                 if (this.props.duration === '0') {
                     describe = (
                         <FormattedMessage
@@ -369,7 +369,7 @@ export default class DesktopNotificationSettings extends React.Component {
                 />
             );
         } else {
-            if ((Utils.hasSoundOptions()) && (this.props.sound !== 'false')) {  //eslint-disable-line no-lonely-if
+            if (Utils.hasSoundOptions() && this.props.sound !== 'false') {  //eslint-disable-line no-lonely-if
                 if (this.props.duration === '0') { //eslint-disable-line no-lonely-if
                     describe = (
                         <FormattedMessage
@@ -388,7 +388,7 @@ export default class DesktopNotificationSettings extends React.Component {
                         />
                     );
                 }
-            } else if ((Utils.hasSoundOptions()) && (this.props.sound === 'false')) {
+            } else if (Utils.hasSoundOptions() && this.props.sound === 'false') {
                 if (this.props.duration === '0') {
                     describe = (
                         <FormattedMessage
