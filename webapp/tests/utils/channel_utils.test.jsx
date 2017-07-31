@@ -462,7 +462,7 @@ describe('Channel Utils', () => {
                 toEqual(true);
         });
 
-        test('channel, team, and system admins can manage channel mebers in public channels, user is not admin test', () => {
+        test('channel, team, and system admins can manage channel options in public channels, user is not admin test', () => {
             global.window.mm_license = {IsLicensed: 'true'};
             global.window.mm_config = {RestrictPublicChannelManagement: Constants.PERMISSIONS_CHANNEL_ADMIN};
 
@@ -507,6 +507,150 @@ describe('Channel Utils', () => {
                 type: Constants.PRIVATE_CHANNEL
             };
             expect(Utils.showManagementOptions(channel, false, false, false)).
+                toEqual(true);
+        });
+    });
+
+    describe('showCreateOption', () => {
+        test('all users can create new channels on unlicensed instances', () => {
+            global.window.mm_license = {IsLicensed: 'false'};
+            expect(Utils.showCreateOption(null, true, true)).
+                toEqual(true);
+        });
+
+        test('system admins can create new private channels, user is system admin test', () => {
+            global.window.mm_license = {IsLicensed: 'true'};
+            global.window.mm_config = {RestrictPrivateChannelCreation: Constants.PERMISSIONS_SYSTEM_ADMIN};
+
+            expect(Utils.showCreateOption(Constants.PRIVATE_CHANNEL, false, true)).
+                toEqual(true);
+        });
+
+        test('system admins cannot create new private channels, user is not system admin test', () => {
+            global.window.mm_license = {IsLicensed: 'true'};
+            global.window.mm_config = {RestrictPrivateChannelCreation: Constants.PERMISSIONS_SYSTEM_ADMIN};
+
+            expect(Utils.showCreateOption(Constants.PRIVATE_CHANNEL, false, false)).
+                toEqual(false);
+        });
+
+        test('system admins can create new public channels, user is system admin test', () => {
+            global.window.mm_license = {IsLicensed: 'true'};
+            global.window.mm_config = {RestrictPublicChannelCreation: Constants.PERMISSIONS_SYSTEM_ADMIN};
+
+            expect(Utils.showCreateOption(Constants.OPEN_CHANNEL, false, true)).
+                toEqual(true);
+        });
+
+        test('system admins cannot create new public channels, user is not system admin test', () => {
+            global.window.mm_license = {IsLicensed: 'true'};
+            global.window.mm_config = {RestrictPublicChannelCreation: Constants.PERMISSIONS_SYSTEM_ADMIN};
+
+            expect(Utils.showCreateOption(Constants.OPEN_CHANNEL, false, false)).
+                toEqual(false);
+        });
+
+        test('system admins or team admins can create new private channels, user is system admin test', () => {
+            global.window.mm_license = {IsLicensed: 'true'};
+            global.window.mm_config = {RestrictPrivateChannelCreation: Constants.PERMISSIONS_TEAM_ADMIN};
+
+            expect(Utils.showCreateOption(Constants.PRIVATE_CHANNEL, false, true)).
+                toEqual(true);
+        });
+
+        test('system admins or team admins cannot create new private channels, user is not system admin or team admin test', () => {
+            global.window.mm_license = {IsLicensed: 'true'};
+            global.window.mm_config = {RestrictPrivateChannelCreation: Constants.PERMISSIONS_TEAM_ADMIN};
+
+            expect(Utils.showCreateOption(Constants.PRIVATE_CHANNEL, false, false)).
+                toEqual(false);
+        });
+
+        test('system admins or team admins can create new public channels, user is system admin test', () => {
+            global.window.mm_license = {IsLicensed: 'true'};
+            global.window.mm_config = {RestrictPublicChannelCreation: Constants.PERMISSIONS_TEAM_ADMIN};
+
+            expect(Utils.showCreateOption(Constants.OPEN_CHANNEL, false, true)).
+                toEqual(true);
+        });
+
+        test('system admins or team admins cannot create new public channels, user is not system admin or team admin test', () => {
+            global.window.mm_license = {IsLicensed: 'true'};
+            global.window.mm_config = {RestrictPublicChannelCreation: Constants.PERMISSIONS_TEAM_ADMIN};
+
+            expect(Utils.showCreateOption(Constants.OPEN_CHANNEL, false, false)).
+                toEqual(false);
+        });
+
+        test('system admins or team admins can create new private channels, user is team admin test', () => {
+            global.window.mm_license = {IsLicensed: 'true'};
+            global.window.mm_config = {RestrictPrivateChannelCreation: Constants.PERMISSIONS_TEAM_ADMIN};
+
+            expect(Utils.showCreateOption(Constants.PRIVATE_CHANNEL, true, false)).
+                toEqual(true);
+        });
+
+        test('system admins or team admins can create new public channels, user is team admin test', () => {
+            global.window.mm_license = {IsLicensed: 'true'};
+            global.window.mm_config = {RestrictPublicChannelCreation: Constants.PERMISSIONS_TEAM_ADMIN};
+
+            expect(Utils.showCreateOption(Constants.OPEN_CHANNEL, true, false)).
+                toEqual(true);
+        });
+
+        test('channel, team, and system admins can create new public channels, user is channel admin test', () => {
+            global.window.mm_license = {IsLicensed: 'true'};
+            global.window.mm_config = {RestrictPublicChannelCreation: Constants.PERMISSIONS_CHANNEL_ADMIN};
+
+            expect(Utils.showCreateOption(Constants.OPEN_CHANNEL, false, false)).
+                toEqual(true);
+        });
+
+        test('channel, team, and system admins can create new public channels, user is team admin test', () => {
+            global.window.mm_license = {IsLicensed: 'true'};
+            global.window.mm_config = {RestrictPublicChannelCreation: Constants.PERMISSIONS_CHANNEL_ADMIN};
+
+            expect(Utils.showCreateOption(Constants.OPEN_CHANNEL, true, false)).
+                toEqual(true);
+        });
+
+        test('channel, team, and system admins can create new private channels, user is channel admin test', () => {
+            global.window.mm_license = {IsLicensed: 'true'};
+            global.window.mm_config = {RestrictPrivateChannelCreation: Constants.PERMISSIONS_CHANNEL_ADMIN};
+
+            expect(Utils.showCreateOption(Constants.PRIVATE_CHANNEL, true, false)).
+                toEqual(true);
+        });
+
+        test('channel, team, and system admins can create new public channels, user is system admin test', () => {
+            global.window.mm_license = {IsLicensed: 'true'};
+            global.window.mm_config = {RestrictPublicChannelCreation: Constants.PERMISSIONS_CHANNEL_ADMIN};
+
+            expect(Utils.showCreateOption(Constants.OPEN_CHANNEL, false, true)).
+                toEqual(true);
+        });
+
+        test('channel, team, and system admins can create new private channels, user is system admin test', () => {
+            global.window.mm_license = {IsLicensed: 'true'};
+            global.window.mm_config = {RestrictPrivateChannelCreation: Constants.PERMISSIONS_CHANNEL_ADMIN};
+
+            expect(Utils.showCreateOption(Constants.PRIVATE_CHANNEL, false, true)).
+                toEqual(true);
+        });
+
+        test('any member can create new public channels, user is not admin test', () => {
+            global.window.mm_license = {IsLicensed: 'true'};
+            global.window.mm_config = {RestrictPublicChannelCreation: Constants.PERMISSIONS_ALL};
+
+            expect(Utils.showCreateOption(Constants.OPEN_CHANNEL, false, false)).
+                toEqual(true);
+        });
+
+        test('any member can create new private channels, user is not admin test', () => {
+            global.window.mm_license = {IsLicensed: 'true'};
+            global.window.mm_config = {RestrictPrivateChannelCreation: Constants.PERMISSIONS_ALL};
+
+            expect(Utils.showCreateOption(Constants.PRIVATE_CHANNEL, false, false)).
                 toEqual(true);
         });
     });
