@@ -314,23 +314,6 @@ func InvalidateWebConnSessionCacheForUser(userId string) {
 	}
 }
 
-func InvalidateCacheForReactions(postId string) {
-	InvalidateCacheForReactionsSkipClusterSend(postId)
-
-	if einterfaces.GetClusterInterface() != nil {
-		msg := &model.ClusterMessage{
-			Event:    model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_REACTIONS,
-			SendType: model.CLUSTER_SEND_BEST_EFFORT,
-			Data:     postId,
-		}
-		einterfaces.GetClusterInterface().SendClusterMessage(msg)
-	}
-}
-
-func InvalidateCacheForReactionsSkipClusterSend(postId string) {
-	Srv.Store.Reaction().InvalidateCacheForPost(postId)
-}
-
 func (h *Hub) Register(webConn *WebConn) {
 	h.register <- webConn
 
