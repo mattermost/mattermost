@@ -294,7 +294,7 @@ export const StatTypes = keyMirror({
 
 export const ErrorPageTypes = {
     LOCAL_STORAGE: 'local_storage'
-  };
+};
 
 export const ErrorBarTypes = {
     LICENSE_EXPIRING: 'error_bar.license_expiring',
