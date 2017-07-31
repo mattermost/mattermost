@@ -91,6 +91,7 @@ export default class PostHeader extends React.PureComponent {
                 displayNameType={this.props.displayNameType}
                 status={this.props.status}
                 isBusy={this.props.isBusy}
+                hasMention={true}
             />
         );
         let botIndicator;
