@@ -232,6 +232,10 @@
     "translation": "有不存在的用户"
   },
   {
+    "id": "api.channel.create_user_activity_post.error",
+    "translation": "Failed to create user activity system message like add, remove, join or leave"
+  },
+  {
     "id": "api.channel.delete_channel.archived",
     "translation": "%v 已归档该频道。"
   },
@@ -392,6 +396,10 @@
     "translation": "无法获取未读数量：user_id=%v, channel_id=%v, err=%v"
   },
   {
+    "id": "api.channel.update_user_activity_post.error",
+    "translation": "Failed to update user activity system message like add, remove, join or leave"
+  },
+  {
     "id": "api.cluster.init.debug",
     "translation": "正在初始化机群 API 路由"
   },
@@ -530,6 +538,90 @@
   {
     "id": "api.command_channel_header.update_channel.success",
     "translation": "成功更新频道标题。"
+  },
+  {
+    "id": "api.command_channel_purpose.channel.app_error",
+    "translation": "获取当前频道错误。"
+  },
+  {
+    "id": "api.command_channel_purpose.desc",
+    "translation": "更改频道用途"
+  },
+  {
+    "id": "api.command_channel_purpose.direct_group.app_error",
+    "translation": "无法更改私信频道用途。可使用 /header 修改标题。"
+  },
+  {
+    "id": "api.command_channel_purpose.hint",
+    "translation": "[文字]"
+  },
+  {
+    "id": "api.command_channel_purpose.message.app_error",
+    "translation": "/purpose 命令必须有消息。"
+  },
+  {
+    "id": "api.command_channel_purpose.name",
+    "translation": "用途"
+  },
+  {
+    "id": "api.command_channel_purpose.permission.app_error",
+    "translation": "您没有权限更改频道用途。"
+  },
+  {
+    "id": "api.command_channel_purpose.update_channel.app_error",
+    "translation": "更新当前频道错误。"
+  },
+  {
+    "id": "api.command_channel_rename.channel.app_error",
+    "translation": "Error to retrieve the current channel."
+  },
+  {
+    "id": "api.command_channel_rename.desc",
+    "translation": "Rename the channel"
+  },
+  {
+    "id": "api.command_channel_rename.direct_group.app_error",
+    "translation": "Cannot rename direct message channels."
+  },
+  {
+    "id": "api.command_channel_rename.hint",
+    "translation": "[text]"
+  },
+  {
+    "id": "api.command_channel_rename.message.app_error",
+    "translation": "A message must be provided with the /rename command."
+  },
+  {
+    "id": "api.command_channel_rename.name",
+    "translation": "rename"
+  },
+  {
+    "id": "api.command_channel_rename.permission.app_error",
+    "translation": "You do not have the appropriate permissions to rename the channel."
+  },
+  {
+    "id": "api.command_channel_rename.update_channel.app_error",
+    "translation": "Error to update the current channel."
+  },
+  {
+    "id": "api.command_channel_rename.update_channel.success",
+    "translation": "Channel name successfully updated."
+  },
+  {
+    "id": "api.command_code.desc",
+    "translation": "Display text as a code block"
+  },
+  {
+    "id": "api.command_code.hint",
+    "translation": "[文字]"
+  },
+  {
+    "id": "api.command_code.message.app_error",
+    "translation": "/echo 命令必须有消息。"
+  },
+  {
+    "id": "api.command_code.name",
+    "translation": "代码"
   },
   {
     "id": "api.command_collapse.desc",
@@ -3072,6 +3164,10 @@
     "translation": "获取组频道失败"
   },
   {
+    "id": "app.import.import_direct_post.save_preferences.error",
+    "translation": "导入消息错误。无法保存偏好。"
+  },
+  {
     "id": "app.import.import_direct_post.user_not_found.error",
     "translation": "消息用户不存在"
   },
@@ -3108,12 +3204,20 @@
     "translation": "导入消息失败。无法找到频道 \"{{.ChannelName}}\"。"
   },
   {
+    "id": "app.import.import_post.save_preferences.error",
+    "translation": "导入消息错误。无法保存偏好。"
+  },
+  {
     "id": "app.import.import_post.team_not_found.error",
     "translation": "导入消息失败。无法找到团队 \"{{.TeamName}}\"。"
   },
   {
     "id": "app.import.import_post.user_not_found.error",
     "translation": "导入消息失败。无法找到用户 \"{{.Username}}\"。"
+  },
+  {
+    "id": "app.import.import_user_channels.save_preferences.error",
+    "translation": "导入用户频道成员错误。无法保存偏好。"
   },
   {
     "id": "app.import.validate_channel_import_data.create_at_zero.error",
@@ -3176,6 +3280,10 @@
     "translation": "私信频道成员列表数量过多"
   },
   {
+    "id": "app.import.validate_direct_channel_import_data.unknown_favoriter.error",
+    "translation": "Direct channel can only be favorited by members. \"{{.Username}}\" is not a member."
+  },
+  {
     "id": "app.import.validate_direct_post_import_data.channel_members_required.error",
     "translation": "缺少私信消息必须属性：channel_members"
   },
@@ -3202,6 +3310,10 @@
   {
     "id": "app.import.validate_direct_post_import_data.message_missing.error",
     "translation": "缺少私信必须属性：message"
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.unknown_flagger.error",
+    "translation": "Direct post can only be flagged by members of the channel it is in. \"{{.Username}}\" is not a member."
   },
   {
     "id": "app.import.validate_direct_post_import_data.user_missing.error",
@@ -3292,6 +3404,10 @@
     "translation": "用户的频道身份的 MarkUnread NotifyProps 无效。"
   },
   {
+    "id": "app.import.validate_user_channels_import_data.invalid_notify_props_mobile.error",
+    "translation": "用户的频道身份的移动设备 NotifyProps 无效。"
+  },
+  {
     "id": "app.import.validate_user_channels_import_data.invalid_roles.error",
     "translation": "用户频道成员资格的角色无效。"
   },
@@ -3328,6 +3444,38 @@
     "translation": "用户昵称过长。"
   },
   {
+    "id": "app.import.validate_user_import_data.notify_props_channel_trigger_invalid.error",
+    "translation": "无效用户频道触发 Notify Prop。"
+  },
+  {
+    "id": "app.import.validate_user_import_data.notify_props_comment_trigger_invalid.error",
+    "translation": "无效用户评论触发 Notify Prop。"
+  },
+  {
+    "id": "app.import.validate_user_import_data.notify_props_desktop_duration_invalid.error",
+    "translation": "Invalid Desktop Duration Notify Prop value for user."
+  },
+  {
+    "id": "app.import.validate_user_import_data.notify_props_desktop_invalid.error",
+    "translation": "用户的桌面 Notify Prop 值无效。"
+  },
+  {
+    "id": "app.import.validate_user_import_data.notify_props_desktop_sound_invalid.error",
+    "translation": "Invalid Desktop Sound Notify Prop value for user."
+  },
+  {
+    "id": "app.import.validate_user_import_data.notify_props_email_invalid.error",
+    "translation": "Invalid Email Notify Prop value for user."
+  },
+  {
+    "id": "app.import.validate_user_import_data.notify_props_mobile_invalid.error",
+    "translation": "无效用户移动 Notify Prop 值。"
+  },
+  {
+    "id": "app.import.validate_user_import_data.notify_props_mobile_push_status_invalid.error",
+    "translation": "Invalid Mobile Push Status Notify Prop for user."
+  },
+  {
     "id": "app.import.validate_user_import_data.pasword_length.error",
     "translation": "无效的用户密码长度。"
   },
@@ -3356,6 +3504,14 @@
     "translation": "用户的团队成员资格中缺少团队名称。"
   },
   {
+    "id": "app.user_access_token.disabled",
+    "translation": "User access tokens are disabled on this server. Please contact your system administrator for details."
+  },
+  {
+    "id": "app.user_access_token.invalid_or_missing",
+    "translation": "Invalid or missing token"
+  },
+  {
     "id": "authentication.permissions.create_group_channel.description",
     "translation": "允许新建团体消息频道"
   },
@@ -3364,12 +3520,36 @@
     "translation": "创建团体消息"
   },
   {
+    "id": "authentication.permissions.create_post_public.description",
+    "translation": "Ability to create posts in public channels"
+  },
+  {
+    "id": "authentication.permissions.create_post_public.name",
+    "translation": "Create Posts in Public Channels"
+  },
+  {
     "id": "authentication.permissions.create_team_roles.description",
     "translation": "能创建新团队"
   },
   {
     "id": "authentication.permissions.create_team_roles.name",
     "translation": "创建团队"
+  },
+  {
+    "id": "authentication.permissions.create_user_access_token.description",
+    "translation": "Ability to create user access tokens"
+  },
+  {
+    "id": "authentication.permissions.create_user_access_token.name",
+    "translation": "Create User Access Token"
+  },
+  {
+    "id": "authentication.permissions.manage_jobs.description",
+    "translation": "任务管理权限"
+  },
+  {
+    "id": "authentication.permissions.manage_jobs.name",
+    "translation": "管理任务"
   },
   {
     "id": "authentication.permissions.manage_team_roles.description",
@@ -3388,6 +3568,22 @@
     "translation": "读取公共频道"
   },
   {
+    "id": "authentication.permissions.read_user_access_token.description",
+    "translation": "Ability to read user access tokens' id, description and user_id fields"
+  },
+  {
+    "id": "authentication.permissions.read_user_access_token.name",
+    "translation": "Read User Access Tokens"
+  },
+  {
+    "id": "authentication.permissions.revoke_user_access_token.description",
+    "translation": "Ability to revoke user access tokens"
+  },
+  {
+    "id": "authentication.permissions.revoke_user_access_token.name",
+    "translation": "Revoke User Access Token"
+  },
+  {
     "id": "authentication.permissions.team_invite_user.description",
     "translation": "可以邀请用户到团队"
   },
@@ -3402,6 +3598,30 @@
   {
     "id": "authentication.permissions.team_use_slash_commands.name",
     "translation": "使用斜杠命令"
+  },
+  {
+    "id": "authentication.roles.system_post_all_public.description",
+    "translation": "A role with the permission to post in any public channel on the system"
+  },
+  {
+    "id": "authentication.roles.system_post_all_public.name",
+    "translation": "Post in Public Channels"
+  },
+  {
+    "id": "authentication.roles.system_user_access_token.description",
+    "translation": "A role with the permissions to create, read and revoke user access tokens"
+  },
+  {
+    "id": "authentication.roles.system_user_access_token.name",
+    "translation": "User Access Token"
+  },
+  {
+    "id": "authentication.roles.team_post_all_public.description",
+    "translation": "A role with the permission to post in any public channel on the team"
+  },
+  {
+    "id": "authentication.roles.team_post_all_public.name",
+    "translation": "Post in Public Channels"
   },
   {
     "id": "cli.license.critical",
@@ -3496,6 +3716,42 @@
     "translation": "导出审核自'{{.FilePath}}'的'{{.JobName}}'任务开始"
   },
   {
+    "id": "ent.elasticsearch.create_client.connect_failed",
+    "translation": "设置 ElasticSearch 客户端失败"
+  },
+  {
+    "id": "ent.elasticsearch.create_index_if_not_exists.index_create_failed",
+    "translation": "创建 ElasticSearch 索引失败"
+  },
+  {
+    "id": "ent.elasticsearch.create_index_if_not_exists.index_exists_failed",
+    "translation": "无法确认 ElasticSearch 索引是否存在"
+  },
+  {
+    "id": "ent.elasticsearch.create_index_if_not_exists.index_mapping_failed",
+    "translation": "无法配置 ElasticSearch 索引映像"
+  },
+  {
+    "id": "ent.elasticsearch.delete_post.error",
+    "translation": "删除消息失败"
+  },
+  {
+    "id": "ent.elasticsearch.generic.disabled",
+    "translation": "ElasticSearch 搜索未在本服务器启用"
+  },
+  {
+    "id": "ent.elasticsearch.index_post.error",
+    "translation": "索引消息失败"
+  },
+  {
+    "id": "ent.elasticsearch.not_started.error",
+    "translation": "ElasticSearch没有启动"
+  },
+  {
+    "id": "ent.elasticsearch.purge_indexes.delete_failed",
+    "translation": "删除 ElasticSearch 索引失败"
+  },
+  {
     "id": "ent.elasticsearch.search_posts.disabled",
     "translation": "ElasticSearch 搜索已在本服务器禁用"
   },
@@ -3508,24 +3764,12 @@
     "translation": "解码搜索结果失败"
   },
   {
-    "id": "ent.elasticsearch.start.connect_failed",
-    "translation": "设置 ElasticSearch 客户端失败"
-  },
-  {
-    "id": "ent.elasticsearch.start.index_create_failed",
-    "translation": "创建 ElasticSearch 索引失败"
-  },
-  {
-    "id": "ent.elasticsearch.start.index_exists_failed",
-    "translation": "无法确认 ElasticSearch 索引是否存在"
-  },
-  {
-    "id": "ent.elasticsearch.start.index_mapping_failed",
-    "translation": "无法配置 ElasticSearch 索引映像"
-  },
-  {
     "id": "ent.elasticsearch.start.index_settings_failed",
     "translation": "无法设置 ElasticSearch 索引设定"
+  },
+  {
+    "id": "ent.elasticsearch.test_config.connect_failed",
+    "translation": "连接 Elasticsearch 服务器失败。"
   },
   {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
@@ -3534,6 +3778,10 @@
   {
     "id": "ent.elasticsearch.test_config.license.error",
     "translation": "许可证不支持 Elasticsearch。"
+  },
+  {
+    "id": "ent.elasticsearch.test_config.reenter_password",
+    "translation": "The Elasticsearch Server URL or Username has changed. Please re-enter the Elasticsearch password to test connection."
   },
   {
     "id": "ent.emoji.licence_disable.app_error",
@@ -3746,6 +3994,14 @@
   {
     "id": "error.not_found.title",
     "translation": "未找到该页面"
+  },
+  {
+    "id": "jobs.request_cancellation.status.error",
+    "translation": "无法请求取消任务到不允许取消的任务。"
+  },
+  {
+    "id": "jobs.set_job_error.update.error",
+    "translation": "设置任务状态为错误失败"
   },
   {
     "id": "manaultesting.get_channel_id.no_found.debug",
@@ -4436,6 +4692,22 @@
     "translation": "无效用户id"
   },
   {
+    "id": "model.job.is_valid.create_at.app_error",
+    "translation": "创建于必须为有效时间"
+  },
+  {
+    "id": "model.job.is_valid.id.app_error",
+    "translation": "无效任务 Id"
+  },
+  {
+    "id": "model.job.is_valid.status.app_error",
+    "translation": "无效任务状态"
+  },
+  {
+    "id": "model.job.is_valid.type.app_error",
+    "translation": "无效任务类型"
+  },
+  {
     "id": "model.oauth.is_valid.app_id.app_error",
     "translation": "无效应用 id"
   },
@@ -4810,6 +5082,18 @@
   {
     "id": "model.user.is_valid.username.app_error",
     "translation": "无效用户名"
+  },
+  {
+    "id": "model.user_access_token.is_valid.description.app_error",
+    "translation": "Invalid description, must be 255 or less characters"
+  },
+  {
+    "id": "model.user_access_token.is_valid.token.app_error",
+    "translation": "Invalid access token"
+  },
+  {
+    "id": "model.user_access_token.is_valid.user_id.app_error",
+    "translation": "Invalid user id"
   },
   {
     "id": "model.utils.decode_json.app_error",
@@ -5296,24 +5580,24 @@
     "translation": "我们无法保存或更新文件信息"
   },
   {
-    "id": "store.sql_job_status.delete_by_type.app_error",
-    "translation": "我们不能删除这个作业状态"
+    "id": "store.sql_job.delete.app_error",
+    "translation": "我们无法删除任务"
   },
   {
-    "id": "store.sql_job_status.get.app_error",
-    "translation": "我们无法获取这个作业状态"
+    "id": "store.sql_job.get.app_error",
+    "translation": "我们无法获取任务"
   },
   {
-    "id": "store.sql_job_status.get_all.app_error",
-    "translation": "我们无法获取所有作业状态"
+    "id": "store.sql_job.get_all.app_error",
+    "translation": "我们无法获取任务"
   },
   {
-    "id": "store.sql_job_status.save.app_error",
-    "translation": "我们无法保存这个作业状态"
+    "id": "store.sql_job.save.app_error",
+    "translation": "我们无法保存任务"
   },
   {
-    "id": "store.sql_job_status.update.app_error",
-    "translation": "我们不能更新这个作业状态"
+    "id": "store.sql_job.update.app_error",
+    "translation": "我们无法更新任务"
   },
   {
     "id": "store.sql_license.get.app_error",
@@ -5462,6 +5746,10 @@
   {
     "id": "store.sql_post.get_posts_around.get_parent.app_error",
     "translation": "我们无法获取这个频道的父信息"
+  },
+  {
+    "id": "store.sql_post.get_posts_batch_for_indexing.get.app_error",
+    "translation": "We couldn't get the posts batch for indexing"
   },
   {
     "id": "store.sql_post.get_posts_by_ids.app_error",
@@ -6040,6 +6328,26 @@
     "translation": "无法更新验证电子邮件字段"
   },
   {
+    "id": "store.sql_user_access_token.delete.app_error",
+    "translation": "We couldn't delete the user access token"
+  },
+  {
+    "id": "store.sql_user_access_token.get.app_error",
+    "translation": "We couldn't get the user access token"
+  },
+  {
+    "id": "store.sql_user_access_token.get_by_token.app_error",
+    "translation": "We couldn't get the user access token by token"
+  },
+  {
+    "id": "store.sql_user_access_token.get_by_user.app_error",
+    "translation": "We couldn't get the user access tokens by user"
+  },
+  {
+    "id": "store.sql_user_access_token.save.app_error",
+    "translation": "We couldn't save the user access token"
+  },
+  {
     "id": "store.sql_webhooks.analytics_incoming_count.app_error",
     "translation": "我们无法计算传入的 webhooks"
   },
@@ -6080,8 +6388,16 @@
     "translation": "我们不能获取 webhooks"
   },
   {
+    "id": "store.sql_webhooks.permanent_delete_incoming_by_channel.app_error",
+    "translation": "We couldn't delete the webhook"
+  },
+  {
     "id": "store.sql_webhooks.permanent_delete_incoming_by_user.app_error",
     "translation": "我们无法删除 webhook"
+  },
+  {
+    "id": "store.sql_webhooks.permanent_delete_outgoing_by_channel.app_error",
+    "translation": "We couldn't delete the webhook"
   },
   {
     "id": "store.sql_webhooks.permanent_delete_outgoing_by_user.app_error",
