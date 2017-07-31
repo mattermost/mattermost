@@ -490,7 +490,7 @@ export default class LoginController extends React.Component {
                 <a
                     className='btn btn-custom-login gitlab'
                     key='gitlab'
-                    href={Client4.getUrl() + '/oauth/gitlab/login' + this.props.location.search}
+                    href={Client4.getOAuthRoute() + '/gitlab/login' + this.props.location.search}
                 >
                     <span>
                         <span className='icon'/>
@@ -510,7 +510,7 @@ export default class LoginController extends React.Component {
                 <a
                     className='btn btn-custom-login google'
                     key='google'
-                    href={Client4.getUrl() + '/oauth/google/login' + this.props.location.search}
+                    href={Client4.getOAuthRoute() + '/google/login' + this.props.location.search}
                 >
                     <span>
                         <span className='icon'/>
@@ -530,7 +530,7 @@ export default class LoginController extends React.Component {
                 <a
                     className='btn btn-custom-login office365'
                     key='office365'
-                    href={Client4.getUrl() + '/oauth/office365/login' + this.props.location.search}
+                    href={Client4.getOAuthRoute() + '/office365/login' + this.props.location.search}
                 >
                     <span>
                         <span className='icon'/>
