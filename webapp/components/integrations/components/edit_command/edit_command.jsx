@@ -4,56 +4,61 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
-import IntegrationStore from 'stores/integration_store.jsx';
-import TeamStore from 'stores/team_store.jsx';
+import {FormattedMessage} from 'react-intl';
+import {browserHistory, Link} from 'react-router/es6';
+import Constants from 'utils/constants.jsx';
 import * as Utils from 'utils/utils.jsx';
 
-import {loadTeamCommands, editCommand} from 'actions/integration_actions.jsx';
-import BackstageHeader from 'components/backstage/components/backstage_header.jsx';
-import {FormattedMessage} from 'react-intl';
 import FormError from 'components/form_error.jsx';
-import {browserHistory, Link} from 'react-router/es6';
 import SpinnerButton from 'components/spinner_button.jsx';
-import Constants from 'utils/constants.jsx';
 import ConfirmModal from 'components/confirm_modal.jsx';
+import BackstageHeader from 'components/backstage/components/backstage_header.jsx';
 
 const REQUEST_POST = 'P';
 const REQUEST_GET = 'G';
 
-export default class EditCommand extends React.Component {
-    static get propTypes() {
-        return {
-            team: PropTypes.object,
-            location: PropTypes.object
-        };
+export default class EditCommand extends React.PureComponent {
+    static propTypes = {
+
+        /**
+        * The current team
+        */
+        team: PropTypes.object.isRequired,
+
+        /**
+        * The id of the command to edit
+        */
+        commandId: PropTypes.string.isRequired,
+
+        /**
+        * Installed slash commands to display
+        */
+        commands: PropTypes.object,
+
+        /**
+        * The request state for editCommand action. Contains status and error
+        */
+        editCommandRequest: PropTypes.object.isRequired,
+
+        actions: PropTypes.shape({
+
+            /**
+            * The function to call to fetch team commands
+            */
+            getCustomTeamCommands: PropTypes.func.isRequired,
+
+            /**
+            * The function to call to edit command
+            */
+            editCommand: PropTypes.func.isRequired
+        }).isRequired
     }
 
     constructor(props) {
         super(props);
 
-        this.handleIntegrationChange = this.handleIntegrationChange.bind(this);
-
-        this.submitCommand = this.submitCommand.bind(this);
-        this.handleSubmit = this.handleSubmit.bind(this);
-        this.handleUpdate = this.handleUpdate.bind(this);
-        this.handleConfirmModal = this.handleConfirmModal.bind(this);
-        this.confirmModalDismissed = this.confirmModalDismissed.bind(this);
-
-        this.updateDisplayName = this.updateDisplayName.bind(this);
-        this.updateDescription = this.updateDescription.bind(this);
-        this.updateTrigger = this.updateTrigger.bind(this);
-        this.updateUrl = this.updateUrl.bind(this);
-        this.updateMethod = this.updateMethod.bind(this);
-        this.updateUsername = this.updateUsername.bind(this);
-        this.updateIconUrl = this.updateIconUrl.bind(this);
-        this.updateAutocomplete = this.updateAutocomplete.bind(this);
-        this.updateAutocompleteHint = this.updateAutocompleteHint.bind(this);
-        this.updateAutocompleteDescription = this.updateAutocompleteDescription.bind(this);
-
         this.originalCommand = null;
         this.newCommand = null;
-
-        const teamId = TeamStore.getCurrentId();
 
         this.state = {
             displayName: '',
@@ -70,81 +75,68 @@ export default class EditCommand extends React.Component {
             serverError: '',
             clientError: null,
             showConfirmModal: false,
-            commands: IntegrationStore.getCommands(teamId),
-            loading: !IntegrationStore.hasReceivedCommands(teamId)
+            loading: true
         };
     }
 
     componentDidMount() {
-        IntegrationStore.addChangeListener(this.handleIntegrationChange);
-
         if (window.mm_config.EnableCommands === 'true') {
-            loadTeamCommands();
+            this.props.actions.getCustomTeamCommands(this.props.team.id).then(
+                () => {
+                    this.originalCommand = Object.values(this.props.commands).filter((command) => command.id === this.props.commandId)[0];
+                    this.setState({
+                        displayName: this.originalCommand.display_name,
+                        description: this.originalCommand.description,
+                        trigger: this.originalCommand.trigger,
+                        url: this.originalCommand.url,
+                        method: this.originalCommand.method,
+                        username: this.originalCommand.username,
+                        iconUrl: this.originalCommand.icon_url,
+                        autocomplete: this.originalCommand.auto_complete,
+                        autocompleteHint: this.originalCommand.auto_complete_hint,
+                        autocompleteDescription: this.originalCommand.auto_complete_desc,
+                        loading: false
+                    });
+                }
+            );
         }
     }
 
-    componentWillUnmount() {
-        IntegrationStore.removeChangeListener(this.handleIntegrationChange);
-    }
-
-    handleConfirmModal() {
+    handleConfirmModal = () => {
         this.setState({showConfirmModal: true});
     }
 
-    confirmModalDismissed() {
+    confirmModalDismissed = () => {
         this.setState({showConfirmModal: false});
     }
 
-    submitCommand() {
-        editCommand(
-            this.newCmd,
-            browserHistory.push('/' + this.props.team.name + '/integrations/commands'),
-            (err) => {
-                this.setState({
-                    saving: false,
-                    serverError: err.message
-                });
-            }
-        );
+    submitCommand = async () => {
+        const data = await this.props.actions.editCommand(this.newCommand);
+
+        if (data) {
+            browserHistory.push(`/${this.props.team.name}/integrations/commands`);
+            return;
+        }
+
+        if (this.props.editCommandRequest.error) {
+            this.setState({
+                saving: false,
+                serverError: this.props.editCommandRequest.error.message
+            });
+        }
     }
 
-    handleUpdate() {
+    handleUpdate = async () => {
         this.setState({
             saving: true,
             serverError: '',
             clientError: ''
         });
 
-        this.submitCommand();
+        await this.submitCommand();
     }
 
-    handleIntegrationChange() {
-        const teamId = TeamStore.getCurrentId();
-
-        this.setState({
-            commands: IntegrationStore.getCommands(teamId),
-            loading: !IntegrationStore.hasReceivedCommands(teamId)
-        });
-
-        if (!this.state.loading) {
-            this.originalCommand = this.state.commands.filter((command) => command.id === this.props.location.query.id)[0];
-
-            this.setState({
-                displayName: this.originalCommand.display_name,
-                description: this.originalCommand.description,
-                trigger: this.originalCommand.trigger,
-                url: this.originalCommand.url,
-                method: this.originalCommand.method,
-                username: this.originalCommand.username,
-                iconUrl: this.originalCommand.icon_url,
-                autocomplete: this.originalCommand.auto_complete,
-                autocompleteHint: this.originalCommand.auto_complete_hint,
-                autocompleteDescription: this.originalCommand.auto_complete_desc
-            });
-        }
-    }
-
-    handleSubmit(e) {
+    handleSubmit = async (e) => {
         e.preventDefault();
 
         if (this.state.saving) {
@@ -224,7 +216,8 @@ export default class EditCommand extends React.Component {
             return;
         }
 
-        if (command.trigger.length < Constants.MIN_TRIGGER_LENGTH || command.trigger.length > Constants.MAX_TRIGGER_LENGTH) {
+        if (command.trigger.length < Constants.MIN_TRIGGER_LENGTH ||
+            command.trigger.length > Constants.MAX_TRIGGER_LENGTH) {
             this.setState({
                 saving: false,
                 clientError: (
@@ -256,73 +249,75 @@ export default class EditCommand extends React.Component {
             return;
         }
 
-        this.newCmd = command;
+        this.newCommand = command;
 
-        if (this.originalCommand.url !== this.newCmd.url || this.originalCommand.trigger !== this.newCmd.trigger || this.originalCommand.method !== this.newCmd.method) {
+        if (this.originalCommand.url !== this.newCommand.url ||
+            this.originalCommand.trigger !== this.newCommand.trigger ||
+            this.originalCommand.method !== this.newCommand.method) {
             this.handleConfirmModal();
             this.setState({
                 saving: false
             });
         } else {
-            this.submitCommand();
+            await this.submitCommand();
         }
     }
 
-    updateDisplayName(e) {
+    updateDisplayName = (e) => {
         this.setState({
             displayName: e.target.value
         });
     }
 
-    updateDescription(e) {
+    updateDescription = (e) => {
         this.setState({
             description: e.target.value
         });
     }
 
-    updateTrigger(e) {
+    updateTrigger = (e) => {
         this.setState({
             trigger: e.target.value
         });
     }
 
-    updateUrl(e) {
+    updateUrl = (e) => {
         this.setState({
             url: e.target.value
         });
     }
 
-    updateMethod(e) {
+    updateMethod = (e) => {
         this.setState({
             method: e.target.value
         });
     }
 
-    updateUsername(e) {
+    updateUsername = (e) => {
         this.setState({
             username: e.target.value
         });
     }
 
-    updateIconUrl(e) {
+    updateIconUrl = (e) => {
         this.setState({
             iconUrl: e.target.value
         });
     }
 
-    updateAutocomplete(e) {
+    updateAutocomplete = (e) => {
         this.setState({
             autocomplete: e.target.checked
         });
     }
 
-    updateAutocompleteHint(e) {
+    updateAutocompleteHint = (e) => {
         this.setState({
             autocompleteHint: e.target.value
         });
     }
 
-    updateAutocompleteDescription(e) {
+    updateAutocompleteDescription = (e) => {
         this.setState({
             autocompleteDescription: e.target.value
         });
