@@ -61,11 +61,17 @@ const (
 
 // Similar to s3.New() but allows initialization of signature v2 or signature v4 client.
 // If signV2 input is false, function always returns signature v4.
-func s3New(endpoint, accessKey, secretKey string, secure bool, signV2 bool) (*s3.Client, error) {
+//
+// Additionally this function also takes a user defined region, if set
+// disables automatic region lookup.
+func s3New(endpoint, accessKey, secretKey string, secure bool, signV2 bool, region string) (*s3.Client, error) {
 	if signV2 {
 		return s3.NewV2(endpoint, accessKey, secretKey, secure)
 	}
-	return s3.NewV4(endpoint, accessKey, secretKey, secure)
+	// Region can only be configured if using signature v4, use
+	// mattermost/platform-v4.1. For v2 signature regions are
+	// not quite meaningful and should work fine without.
+	return s3.NewWithRegion(endpoint, accessKey, secretKey, secure, region)
 }
 
 func ReadFile(path string) ([]byte, *model.AppError) {
@@ -75,7 +81,8 @@ func ReadFile(path string) ([]byte, *model.AppError) {
 		secretKey := utils.Cfg.FileSettings.AmazonS3SecretAccessKey
 		secure := *utils.Cfg.FileSettings.AmazonS3SSL
 		signV2 := *utils.Cfg.FileSettings.AmazonS3SignV2
-		s3Clnt, err := s3New(endpoint, accessKey, secretKey, secure, signV2)
+		region := utils.Cfg.FileSettings.AmazonS3Region
+		s3Clnt, err := s3New(endpoint, accessKey, secretKey, secure, signV2, region)
 		if err != nil {
 			return nil, model.NewLocAppError("ReadFile", "api.file.read_file.s3.app_error", nil, err.Error())
 		}
@@ -108,7 +115,8 @@ func MoveFile(oldPath, newPath string) *model.AppError {
 		secretKey := utils.Cfg.FileSettings.AmazonS3SecretAccessKey
 		secure := *utils.Cfg.FileSettings.AmazonS3SSL
 		signV2 := *utils.Cfg.FileSettings.AmazonS3SignV2
-		s3Clnt, err := s3New(endpoint, accessKey, secretKey, secure, signV2)
+		region := utils.Cfg.FileSettings.AmazonS3Region
+		s3Clnt, err := s3New(endpoint, accessKey, secretKey, secure, signV2, region)
 		if err != nil {
 			return model.NewLocAppError("moveFile", "api.file.write_file.s3.app_error", nil, err.Error())
 		}
@@ -143,7 +151,8 @@ func WriteFile(f []byte, path string) *model.AppError {
 		secretKey := utils.Cfg.FileSettings.AmazonS3SecretAccessKey
 		secure := *utils.Cfg.FileSettings.AmazonS3SSL
 		signV2 := *utils.Cfg.FileSettings.AmazonS3SignV2
-		s3Clnt, err := s3New(endpoint, accessKey, secretKey, secure, signV2)
+		region := utils.Cfg.FileSettings.AmazonS3Region
+		s3Clnt, err := s3New(endpoint, accessKey, secretKey, secure, signV2, region)
 		if err != nil {
 			return model.NewLocAppError("WriteFile", "api.file.write_file.s3.app_error", nil, err.Error())
 		}
