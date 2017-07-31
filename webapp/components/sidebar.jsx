@@ -745,15 +745,15 @@ export default class Sidebar extends React.Component {
 
         const above = (
             <FormattedMessage
-                id='sidebar.unreadAbove'
-                defaultMessage='Unread post(s) above'
+                id='sidebar.unreads'
+                defaultMessage='More unreads'
             />
         );
 
         const below = (
             <FormattedMessage
-                id='sidebar.unreadBelow'
-                defaultMessage='Unread post(s) below'
+                id='sidebar.unreads'
+                defaultMessage='More unreads'
             />
         );
 
@@ -827,14 +827,21 @@ export default class Sidebar extends React.Component {
             );
         }
 
-        const quickSwitchText = 'channel_switch_modal.title';
-
-        let quickSwitchTextShortcut = 'quick_switch_modal.channelsShortcut.windows';
-        let quickSwitchDefault = '- CTRL+K';
+        let quickSwitchTextShortcutId = 'quick_switch_modal.channelsShortcut.windows';
+        let quickSwitchTextShortcutDefault = '- CTRL+K';
         if (Utils.isMac()) {
-            quickSwitchTextShortcut = 'quick_switch_modal.channelsShortcut.mac';
-            quickSwitchDefault = '- ⌘K';
+            quickSwitchTextShortcutId = 'quick_switch_modal.channelsShortcut.mac';
+            quickSwitchTextShortcutDefault = '- ⌘K';
         }
+
+        const quickSwitchTextShortcut = (
+            <span className='switch__shortcut hidden-xs'>
+                <FormattedMessage
+                    id={quickSwitchTextShortcutId}
+                    defaultMessage={quickSwitchTextShortcutDefault}
+                />
+            </span>
+        );
 
         return (
             <div
@@ -946,15 +953,10 @@ export default class Sidebar extends React.Component {
                             dangerouslySetInnerHTML={{__html: switchChannelIcon}}
                         />
                         <FormattedMessage
-                            id={quickSwitchText}
+                            id={'channel_switch_modal.title'}
                             defaultMessage='Switch Channels'
                         />
-                        <span className='switch__shortcut'>
-                            <FormattedMessage
-                                id={quickSwitchTextShortcut}
-                                defaultMessage={quickSwitchDefault}
-                            />
-                        </span>
+                        {quickSwitchTextShortcut}
                     </button>
                 </div>
             </div>

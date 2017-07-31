@@ -36,11 +36,15 @@ export default class Textbox extends React.Component {
         supportsCommands: PropTypes.bool.isRequired,
         handlePostError: PropTypes.func,
         suggestionListStyle: PropTypes.string,
-        emojiEnabled: PropTypes.bool
+        emojiEnabled: PropTypes.bool,
+        isRHS: PropTypes.bool,
+        popoverMentionKeyClick: React.PropTypes.bool
     };
 
     static defaultProps = {
-        supportsCommands: true
+        supportsCommands: true,
+        isRHS: false,
+        popoverMentionKeyClick: false
     };
 
     constructor(props) {
@@ -296,6 +300,8 @@ export default class Textbox extends React.Component {
                     channelId={this.props.channelId}
                     value={this.props.value}
                     renderDividers={true}
+                    isRHS={this.props.isRHS}
+                    popoverMentionKeyClick={this.props.popoverMentionKeyClick}
                 />
                 <div
                     ref='preview'

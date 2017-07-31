@@ -162,6 +162,8 @@ export default class PostBody extends React.PureComponent {
                 <PostMessageView
                     lastPostCount={this.props.lastPostCount}
                     post={this.props.post}
+                    compactDisplay={this.props.compactDisplay}
+                    hasMention={true}
                 />
             </div>
         );

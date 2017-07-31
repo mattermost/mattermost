@@ -9,6 +9,7 @@ import FilePreview from './file_preview.jsx';
 import PostDeletedModal from './post_deleted_modal.jsx';
 import TutorialTip from './tutorial/tutorial_tip.jsx';
 import EmojiPickerOverlay from 'components/emoji_picker/emoji_picker_overlay.jsx';
+import * as EmojiPicker from 'components/emoji_picker/emoji_picker.jsx';
 
 import AppDispatcher from 'dispatcher/app_dispatcher.jsx';
 import * as GlobalActions from 'actions/global_actions.jsx';
@@ -23,6 +24,7 @@ import PostStore from 'stores/post_store.jsx';
 import MessageHistoryStore from 'stores/message_history_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 import PreferenceStore from 'stores/preference_store.jsx';
+import TeamStore from 'stores/team_store.jsx';
 import ConfirmModal from './confirm_modal.jsx';
 
 import Constants from 'utils/constants.jsx';
@@ -151,6 +153,7 @@ export default class CreatePost extends React.Component {
 
             const args = {};
             args.channel_id = this.state.channelId;
+            args.team_id = TeamStore.getCurrentId();
             ChannelActions.executeCommand(
                 post.message,
                 args,
@@ -466,6 +469,7 @@ export default class CreatePost extends React.Component {
             e.preventDefault();
             const args = {};
             args.channel_id = this.state.channelId;
+            args.team_id = TeamStore.getCurrentId();
             ChannelActions.executeCommand(
                 '/shortcuts',
                 args,
@@ -743,6 +747,7 @@ export default class CreatePost extends React.Component {
                     <span
                         className={'fa fa-smile-o icon--emoji-picker emoji-main'}
                         onClick={this.toggleEmojiPicker}
+                        onMouseOver={EmojiPicker.beginPreloading}
                     />
                 </span>
             );
@@ -769,6 +774,7 @@ export default class CreatePost extends React.Component {
                                 emojiEnabled={window.mm_config.EnableEmojiPicker === 'true'}
                                 createMessage={Utils.localizeMessage('create_post.write', 'Write a message...')}
                                 channelId={this.state.channelId}
+                                popoverMentionKeyClick={true}
                                 id='post_textbox'
                                 ref='textbox'
                             />

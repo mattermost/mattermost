@@ -284,7 +284,7 @@
         bottom: 0;
         font-size: 13.5px;
         left: 0;
-        margin: 0 auto;
+        margin: 5px auto;
         position: absolute;
         right: 0;
         text-align: center;
@@ -299,11 +299,15 @@
             top: 1px;
         }
 
+        .icon {
+            margin-left: 5px;
+        }
+
         div {
             @include border-radius(50px);
             cursor: pointer;
             display: inline-block;
-            padding: 5px 10px;
+            padding: 4px 20px 3px;
         }
 
         &.visible {
@@ -774,6 +778,7 @@
         }
 
         .markdown__heading {
+            clear: both;
             font-size: 1em;
             margin: 0;
         }
@@ -1381,6 +1386,12 @@
         &[data-expanded='true']:before {
             content: '\f066';
         }
+    }
+
+    .post__visibility {
+        @include opacity(.6);
+        font-size: .9em;
+        padding: 8px;
     }
 
     .post__time {

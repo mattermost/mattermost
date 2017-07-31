@@ -71,6 +71,23 @@ type UserImportData struct {
 	MessageDisplay     *string `json:"message_display"`
 	ChannelDisplayMode *string `json:"channel_display_mode"`
 	TutorialStep       *string `json:"tutorial_step"`
+
+	NotifyProps *UserNotifyPropsImportData `json:"notify_props"`
+}
+
+type UserNotifyPropsImportData struct {
+	Desktop         *string `json:"desktop"`
+	DesktopDuration *string `json:"desktop_duration"`
+	DesktopSound    *string `json:"desktop_sound"`
+
+	Email *string `json:"email"`
+
+	Mobile           *string `json:"mobile"`
+	MobilePushStatus *string `json:"mobile_push_status"`
+
+	ChannelTrigger  *string `json:"channel"`
+	CommentsTrigger *string `json:"comments"`
+	MentionKeys     *string `json:"mention_keys"`
 }
 
 type UserTeamImportData struct {
@@ -88,6 +105,7 @@ type UserChannelImportData struct {
 
 type UserChannelNotifyPropsImportData struct {
 	Desktop    *string `json:"desktop"`
+	Mobile     *string `json:"mobile"`
 	MarkUnread *string `json:"mark_unread"`
 }
 
@@ -444,6 +462,7 @@ func ImportUser(data *UserImportData, dryRun bool) *model.AppError {
 
 	// We want to avoid database writes if nothing has changed.
 	hasUserChanged := false
+	hasNotifyPropsChanged := false
 	hasUserRolesChanged := false
 	hasUserAuthDataChanged := false
 	hasUserEmailVerifiedChanged := false
@@ -453,6 +472,7 @@ func ImportUser(data *UserImportData, dryRun bool) *model.AppError {
 		user = result.Data.(*model.User)
 	} else {
 		user = &model.User{}
+		user.MakeNonNil()
 		hasUserChanged = true
 	}
 
@@ -557,6 +577,71 @@ func ImportUser(data *UserImportData, dryRun bool) *model.AppError {
 	}
 	user.Roles = roles
 
+	if data.NotifyProps != nil {
+		if data.NotifyProps.Desktop != nil {
+			if value, ok := user.NotifyProps[model.DESKTOP_NOTIFY_PROP]; !ok || value != *data.NotifyProps.Desktop {
+				user.AddNotifyProp(model.DESKTOP_NOTIFY_PROP, *data.NotifyProps.Desktop)
+				hasNotifyPropsChanged = true
+			}
+		}
+
+		if data.NotifyProps.DesktopDuration != nil {
+			if value, ok := user.NotifyProps[model.DESKTOP_DURATION_NOTIFY_PROP]; !ok || value != *data.NotifyProps.DesktopDuration {
+				user.AddNotifyProp(model.DESKTOP_DURATION_NOTIFY_PROP, *data.NotifyProps.DesktopDuration)
+				hasNotifyPropsChanged = true
+			}
+		}
+
+		if data.NotifyProps.DesktopSound != nil {
+			if value, ok := user.NotifyProps[model.DESKTOP_SOUND_NOTIFY_PROP]; !ok || value != *data.NotifyProps.DesktopSound {
+				user.AddNotifyProp(model.DESKTOP_SOUND_NOTIFY_PROP, *data.NotifyProps.DesktopSound)
+				hasNotifyPropsChanged = true
+			}
+		}
+
+		if data.NotifyProps.Email != nil {
+			if value, ok := user.NotifyProps[model.EMAIL_NOTIFY_PROP]; !ok || value != *data.NotifyProps.Email {
+				user.AddNotifyProp(model.EMAIL_NOTIFY_PROP, *data.NotifyProps.Email)
+				hasNotifyPropsChanged = true
+			}
+		}
+
+		if data.NotifyProps.Mobile != nil {
+			if value, ok := user.NotifyProps[model.PUSH_NOTIFY_PROP]; !ok || value != *data.NotifyProps.Mobile {
+				user.AddNotifyProp(model.PUSH_NOTIFY_PROP, *data.NotifyProps.Mobile)
+				hasNotifyPropsChanged = true
+			}
+		}
+
+		if data.NotifyProps.MobilePushStatus != nil {
+			if value, ok := user.NotifyProps[model.PUSH_STATUS_NOTIFY_PROP]; !ok || value != *data.NotifyProps.MobilePushStatus {
+				user.AddNotifyProp(model.PUSH_STATUS_NOTIFY_PROP, *data.NotifyProps.MobilePushStatus)
+				hasNotifyPropsChanged = true
+			}
+		}
+
+		if data.NotifyProps.ChannelTrigger != nil {
+			if value, ok := user.NotifyProps[model.CHANNEL_MENTIONS_NOTIFY_PROP]; !ok || value != *data.NotifyProps.ChannelTrigger {
+				user.AddNotifyProp(model.CHANNEL_MENTIONS_NOTIFY_PROP, *data.NotifyProps.ChannelTrigger)
+				hasNotifyPropsChanged = true
+			}
+		}
+
+		if data.NotifyProps.CommentsTrigger != nil {
+			if value, ok := user.NotifyProps[model.COMMENTS_NOTIFY_PROP]; !ok || value != *data.NotifyProps.CommentsTrigger {
+				user.AddNotifyProp(model.COMMENTS_NOTIFY_PROP, *data.NotifyProps.CommentsTrigger)
+				hasNotifyPropsChanged = true
+			}
+		}
+
+		if data.NotifyProps.MentionKeys != nil {
+			if value, ok := user.NotifyProps[model.MENTION_KEYS_NOTIFY_PROP]; !ok || value != *data.NotifyProps.MentionKeys {
+				user.AddNotifyProp(model.MENTION_KEYS_NOTIFY_PROP, *data.NotifyProps.MentionKeys)
+				hasNotifyPropsChanged = true
+			}
+		}
+	}
+
 	if user.Id == "" {
 		if _, err := createUser(user); err != nil {
 			return err
@@ -569,6 +654,11 @@ func ImportUser(data *UserImportData, dryRun bool) *model.AppError {
 		}
 		if hasUserRolesChanged {
 			if _, err := UpdateUserRoles(user.Id, roles); err != nil {
+				return err
+			}
+		}
+		if hasNotifyPropsChanged {
+			if _, err := UpdateUserNotifyProps(user.Id, user.NotifyProps); err != nil {
 				return err
 			}
 		}
@@ -747,6 +837,10 @@ func ImportUserChannels(user *model.User, team *model.Team, teamMember *model.Te
 				notifyProps[model.DESKTOP_NOTIFY_PROP] = *cdata.NotifyProps.Desktop
 			}
 
+			if cdata.NotifyProps.Mobile != nil {
+				notifyProps[model.PUSH_NOTIFY_PROP] = *cdata.NotifyProps.Mobile
+			}
+
 			if cdata.NotifyProps.MarkUnread != nil {
 				notifyProps[model.MARK_UNREAD_NOTIFY_PROP] = *cdata.NotifyProps.MarkUnread
 			}
@@ -829,6 +923,40 @@ func validateUserImportData(data *UserImportData) *model.AppError {
 		return model.NewAppError("BulkImport", "app.import.validate_user_import_data.roles_invalid.error", nil, "", http.StatusBadRequest)
 	}
 
+	if data.NotifyProps != nil {
+		if data.NotifyProps.Desktop != nil && !model.IsValidUserNotifyLevel(*data.NotifyProps.Desktop) {
+			return model.NewAppError("BulkImport", "app.import.validate_user_import_data.notify_props_desktop_invalid.error", nil, "", http.StatusBadRequest)
+		}
+
+		if data.NotifyProps.DesktopDuration != nil && !model.IsValidNumberString(*data.NotifyProps.DesktopDuration) {
+			return model.NewAppError("BulkImport", "app.import.validate_user_import_data.notify_props_desktop_duration_invalid.error", nil, "", http.StatusBadRequest)
+		}
+
+		if data.NotifyProps.DesktopSound != nil && !model.IsValidTrueOrFalseString(*data.NotifyProps.DesktopSound) {
+			return model.NewAppError("BulkImport", "app.import.validate_user_import_data.notify_props_desktop_sound_invalid.error", nil, "", http.StatusBadRequest)
+		}
+
+		if data.NotifyProps.Email != nil && !model.IsValidTrueOrFalseString(*data.NotifyProps.Email) {
+			return model.NewAppError("BulkImport", "app.import.validate_user_import_data.notify_props_email_invalid.error", nil, "", http.StatusBadRequest)
+		}
+
+		if data.NotifyProps.Mobile != nil && !model.IsValidUserNotifyLevel(*data.NotifyProps.Mobile) {
+			return model.NewAppError("BulkImport", "app.import.validate_user_import_data.notify_props_mobile_invalid.error", nil, "", http.StatusBadRequest)
+		}
+
+		if data.NotifyProps.MobilePushStatus != nil && !model.IsValidPushStatusNotifyLevel(*data.NotifyProps.MobilePushStatus) {
+			return model.NewAppError("BulkImport", "app.import.validate_user_import_data.notify_props_mobile_push_status_invalid.error", nil, "", http.StatusBadRequest)
+		}
+
+		if data.NotifyProps.ChannelTrigger != nil && !model.IsValidTrueOrFalseString(*data.NotifyProps.ChannelTrigger) {
+			return model.NewAppError("BulkImport", "app.import.validate_user_import_data.notify_props_channel_trigger_invalid.error", nil, "", http.StatusBadRequest)
+		}
+
+		if data.NotifyProps.CommentsTrigger != nil && !model.IsValidCommentsNotifyLevel(*data.NotifyProps.CommentsTrigger) {
+			return model.NewAppError("BulkImport", "app.import.validate_user_import_data.notify_props_comments_trigger_invalid.error", nil, "", http.StatusBadRequest)
+		}
+	}
+
 	if data.Teams != nil {
 		return validateUserTeamsImportData(data.Teams)
 	} else {
@@ -877,6 +1005,10 @@ func validateUserChannelsImportData(data *[]UserChannelImportData) *model.AppErr
 		if cdata.NotifyProps != nil {
 			if cdata.NotifyProps.Desktop != nil && !model.IsChannelNotifyLevelValid(*cdata.NotifyProps.Desktop) {
 				return model.NewAppError("BulkImport", "app.import.validate_user_channels_import_data.invalid_notify_props_desktop.error", nil, "", http.StatusBadRequest)
+			}
+
+			if cdata.NotifyProps.Mobile != nil && !model.IsChannelNotifyLevelValid(*cdata.NotifyProps.Mobile) {
+				return model.NewAppError("BulkImport", "app.import.validate_user_channels_import_data.invalid_notify_props_mobile.error", nil, "", http.StatusBadRequest)
 			}
 
 			if cdata.NotifyProps.MarkUnread != nil && !model.IsChannelMarkUnreadLevelValid(*cdata.NotifyProps.MarkUnread) {

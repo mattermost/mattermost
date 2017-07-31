@@ -24,6 +24,7 @@ const (
 	WEBSOCKET_EVENT_UPDATE_TEAM         = "update_team"
 	WEBSOCKET_EVENT_USER_ADDED          = "user_added"
 	WEBSOCKET_EVENT_USER_UPDATED        = "user_updated"
+	WEBSOCKET_EVENT_MEMBERROLE_UPDATED  = "memberrole_updated"
 	WEBSOCKET_EVENT_USER_REMOVED        = "user_removed"
 	WEBSOCKET_EVENT_PREFERENCE_CHANGED  = "preference_changed"
 	WEBSOCKET_EVENT_PREFERENCES_CHANGED = "preferences_changed"

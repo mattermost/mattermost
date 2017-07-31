@@ -3,6 +3,7 @@
 
 import React from 'react';
 import PropTypes from 'prop-types';
+import Constants from 'utils/constants.jsx';
 import {FormattedMessage} from 'react-intl';
 
 export default class NewMessageIndicator extends React.PureComponent {
@@ -30,6 +31,7 @@ export default class NewMessageIndicator extends React.PureComponent {
     }
 
     render() {
+        const unreadIcon = Constants.UNREAD_ICON_SVG;
         let className = 'new-messages__button';
         if (this.state.visible > 0) {
             className += ' visible';
@@ -44,13 +46,14 @@ export default class NewMessageIndicator extends React.PureComponent {
                 ref='indicator'
             >
                 <div onClick={this.props.onClick}>
-                    <i
-                        className='fa fa-angle-down'
-                    />
                     <FormattedMessage
                         id='posts_view.newMsgBelow'
-                        defaultMessage='New {count, plural, one {message} other {messages}} below'
+                        defaultMessage='New {count, plural, one {message} other {messages}}'
                         values={{count: this.props.newMessages}}
+                    />
+                    <span
+                        className='icon icon__unread'
+                        dangerouslySetInnerHTML={{__html: unreadIcon}}
                     />
                 </div>
             </div>

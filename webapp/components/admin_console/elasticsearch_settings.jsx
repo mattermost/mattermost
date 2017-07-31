@@ -26,24 +26,24 @@ export default class ElasticsearchSettings extends AdminSettings {
     }
 
     getConfigFromState(config) {
-        config.ElasticSearchSettings.ConnectionUrl = this.state.connectionUrl;
-        config.ElasticSearchSettings.Username = this.state.username;
-        config.ElasticSearchSettings.Password = this.state.password;
-        config.ElasticSearchSettings.Sniff = this.state.sniff;
-        config.ElasticSearchSettings.EnableIndexing = this.state.enableIndexing;
-        config.ElasticSearchSettings.EnableSearching = this.state.enableSearching;
+        config.ElasticsearchSettings.ConnectionUrl = this.state.connectionUrl;
+        config.ElasticsearchSettings.Username = this.state.username;
+        config.ElasticsearchSettings.Password = this.state.password;
+        config.ElasticsearchSettings.Sniff = this.state.sniff;
+        config.ElasticsearchSettings.EnableIndexing = this.state.enableIndexing;
+        config.ElasticsearchSettings.EnableSearching = this.state.enableSearching;
 
         return config;
     }
 
     getStateFromConfig(config) {
         return {
-            connectionUrl: config.ElasticSearchSettings.ConnectionUrl,
-            username: config.ElasticSearchSettings.Username,
-            password: config.ElasticSearchSettings.Password,
-            sniff: config.ElasticSearchSettings.Sniff,
-            enableIndexing: config.ElasticSearchSettings.EnableIndexing,
-            enableSearching: config.ElasticSearchSettings.EnableSearching,
+            connectionUrl: config.ElasticsearchSettings.ConnectionUrl,
+            username: config.ElasticsearchSettings.Username,
+            password: config.ElasticsearchSettings.Password,
+            sniff: config.ElasticsearchSettings.Sniff,
+            enableIndexing: config.ElasticsearchSettings.EnableIndexing,
+            enableSearching: config.ElasticsearchSettings.EnableSearching,
             configTested: true,
             canSave: true
         };

@@ -61,12 +61,29 @@ export default class PostMessageView extends React.PureComponent {
         /*
          * Post identifiers for selenium tests
          */
-        lastPostCount: PropTypes.number
+        lastPostCount: PropTypes.number,
+
+        /**
+         * Set to render post body compactly
+         */
+        compactDisplay: PropTypes.bool,
+
+        /**
+         * Flags if the post_message_view is for the RHS (Reply).
+         */
+        isRHS: PropTypes.bool,
+
+        /**
+         * Flags if the post_message_view is for the RHS (Reply).
+         */
+        hasMention: PropTypes.bool
     };
 
     static defaultProps = {
         options: {},
-        mentionKeys: []
+        mentionKeys: [],
+        isRHS: false,
+        hasMention: false
     };
 
     renderDeletedPost() {
@@ -111,7 +128,13 @@ export default class PostMessageView extends React.PureComponent {
                 processNode: (node) => {
                     const mentionName = node.attribs[attrib];
 
-                    return <AtMention mentionName={mentionName}/>;
+                    return (
+                        <AtMention
+                            mentionName={mentionName}
+                            isRHS={this.props.isRHS}
+                            hasMention={this.props.hasMention}
+                        />
+                    );
                 }
             },
             {
@@ -167,7 +190,13 @@ export default class PostMessageView extends React.PureComponent {
             postId = Utils.createSafeId('lastPostMessageText' + this.props.lastPostCount);
         }
 
-        const htmlFormattedText = TextFormatting.formatText(this.props.post.message, options);
+        let message = this.props.post.message;
+        const isEphemeral = Utils.isPostEphemeral(this.props.post);
+        if (this.props.compactDisplay && isEphemeral) {
+            const visibleMessage = Utils.localizeMessage('post_info.message.visible.compact', ' (Only visible to you)');
+            message = message.concat(visibleMessage);
+        }
+        const htmlFormattedText = TextFormatting.formatText(message, options);
         const postMessageComponent = this.postMessageHtmlToComponent(htmlFormattedText);
 
         return (

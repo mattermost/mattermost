@@ -11,13 +11,13 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"net"
 	"net/mail"
 	"net/url"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
-
-	"net"
 
 	goi18n "github.com/nicksnyder/go-i18n/i18n"
 	"github.com/pborman/uuid"
@@ -475,6 +475,18 @@ func IsValidWebsocketUrl(rawUrl string) bool {
 	}
 
 	if _, err := url.ParseRequestURI(rawUrl); err != nil {
+		return false
+	}
+
+	return true
+}
+
+func IsValidTrueOrFalseString(value string) bool {
+	return value == "true" || value == "false"
+}
+
+func IsValidNumberString(value string) bool {
+	if _, err := strconv.Atoi(value); err != nil {
 		return false
 	}
 

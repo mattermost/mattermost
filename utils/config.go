@@ -452,6 +452,8 @@ func getClientConfig(c *model.Config) map[string]string {
 	props["SupportEmail"] = *c.SupportSettings.SupportEmail
 
 	props["EnableFileAttachments"] = strconv.FormatBool(*c.FileSettings.EnableFileAttachments)
+	props["EnableMobileFileUpload"] = strconv.FormatBool(*c.FileSettings.EnableMobileUpload)
+	props["EnableMobileFileDownload"] = strconv.FormatBool(*c.FileSettings.EnableMobileDownload)
 	props["EnablePublicLink"] = strconv.FormatBool(c.FileSettings.EnablePublicLink)
 
 	props["WebsocketPort"] = fmt.Sprintf("%v", *c.ServiceSettings.WebsocketPort)
@@ -611,8 +613,8 @@ func Desanitize(cfg *model.Config) {
 		cfg.SqlSettings.AtRestEncryptKey = Cfg.SqlSettings.AtRestEncryptKey
 	}
 
-	if *cfg.ElasticSearchSettings.Password == model.FAKE_SETTING {
-		*cfg.ElasticSearchSettings.Password = *Cfg.ElasticSearchSettings.Password
+	if *cfg.ElasticsearchSettings.Password == model.FAKE_SETTING {
+		*cfg.ElasticsearchSettings.Password = *Cfg.ElasticsearchSettings.Password
 	}
 
 	for i := range cfg.SqlSettings.DataSourceReplicas {

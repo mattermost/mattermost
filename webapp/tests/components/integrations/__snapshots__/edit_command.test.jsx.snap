@@ -1,0 +1,424 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/integrations/EditCommand should match snapshot 1`] = `
+<div
+  className="backstage-content row"
+>
+  <BackstageHeader>
+    <Link
+      onlyActiveOnIndex={false}
+      style={Object {}}
+      to="/test/integrations/commands"
+    >
+      <FormattedMessage
+        defaultMessage="Slash Commands"
+        id="installed_command.header"
+        values={Object {}}
+      />
+    </Link>
+    <FormattedMessage
+      defaultMessage="Edit"
+      id="integrations.edit"
+      values={Object {}}
+    />
+  </BackstageHeader>
+  <div
+    className="backstage-form"
+  >
+    <form
+      className="form-horizontal"
+      onSubmit={[Function]}
+    >
+      <div
+        className="form-group"
+      >
+        <label
+          className="control-label col-sm-4"
+          htmlFor="displayName"
+        >
+          <FormattedMessage
+            defaultMessage="Display Name"
+            id="add_command.displayName"
+            values={Object {}}
+          />
+        </label>
+        <div
+          className="col-md-5 col-sm-8"
+        >
+          <input
+            className="form-control"
+            id="displayName"
+            maxLength="64"
+            onChange={[Function]}
+            type="text"
+            value=""
+          />
+          <div
+            className="form__help"
+          >
+            <FormattedMessage
+              defaultMessage="Display name for your slash command made of up to 64 characters."
+              id="add_command.displayName.help"
+              values={Object {}}
+            />
+          </div>
+        </div>
+      </div>
+      <div
+        className="form-group"
+      >
+        <label
+          className="control-label col-sm-4"
+          htmlFor="description"
+        >
+          <FormattedMessage
+            defaultMessage="Description"
+            id="add_command.description"
+            values={Object {}}
+          />
+        </label>
+        <div
+          className="col-md-5 col-sm-8"
+        >
+          <input
+            className="form-control"
+            id="description"
+            maxLength="128"
+            onChange={[Function]}
+            type="text"
+            value=""
+          />
+          <div
+            className="form__help"
+          >
+            <FormattedMessage
+              defaultMessage="Description for your incoming webhook."
+              id="add_command.description.help"
+              values={Object {}}
+            />
+          </div>
+        </div>
+      </div>
+      <div
+        className="form-group"
+      >
+        <label
+          className="control-label col-sm-4"
+          htmlFor="trigger"
+        >
+          <FormattedMessage
+            defaultMessage="Command Trigger Word"
+            id="add_command.trigger"
+            values={Object {}}
+          />
+        </label>
+        <div
+          className="col-md-5 col-sm-8"
+        >
+          <input
+            className="form-control"
+            id="trigger"
+            maxLength={128}
+            onChange={[Function]}
+            placeholder="Command trigger e.g. \\"hello\\" not including the slash"
+            type="text"
+            value=""
+          />
+          <div
+            className="form__help"
+          >
+            <FormattedMessage
+              defaultMessage="Trigger word must be unique, and cannot begin with a slash or contain any spaces."
+              id="add_command.trigger.help"
+              values={Object {}}
+            />
+          </div>
+          <div
+            className="form__help"
+          >
+            <FormattedMessage
+              defaultMessage="Examples: client, employee, patient, weather"
+              id="add_command.trigger.helpExamples"
+              values={Object {}}
+            />
+          </div>
+          <div
+            className="form__help"
+          >
+            <FormattedMessage
+              defaultMessage="Reserved: {link}"
+              id="add_command.trigger.helpReserved"
+              values={
+                Object {
+                  "link": <a
+                    href="https://docs.mattermost.com/help/messaging/executing-commands.html#built-in-commands"
+                    rel="noopener noreferrer"
+                    target="_blank"
+                >
+                    <FormattedMessage
+                        defaultMessage="see list of built-in slash commands"
+                        id="add_command.trigger.helpReservedLinkText"
+                        values={Object {}}
+                    />
+                </a>,
+                }
+              }
+            />
+          </div>
+        </div>
+      </div>
+      <div
+        className="form-group"
+      >
+        <label
+          className="control-label col-sm-4"
+          htmlFor="url"
+        >
+          <FormattedMessage
+            defaultMessage="Request URL"
+            id="add_command.url"
+            values={Object {}}
+          />
+        </label>
+        <div
+          className="col-md-5 col-sm-8"
+        >
+          <input
+            className="form-control"
+            id="url"
+            maxLength="1024"
+            onChange={[Function]}
+            placeholder="Must start with http:// or https://"
+            type="text"
+            value=""
+          />
+          <div
+            className="form__help"
+          >
+            <FormattedMessage
+              defaultMessage="The callback URL to receive the HTTP POST or GET event request when the slash command is run."
+              id="add_command.url.help"
+              values={Object {}}
+            />
+          </div>
+        </div>
+      </div>
+      <div
+        className="form-group"
+      >
+        <label
+          className="control-label col-sm-4"
+          htmlFor="method"
+        >
+          <FormattedMessage
+            defaultMessage="Request Method"
+            id="add_command.method"
+            values={Object {}}
+          />
+        </label>
+        <div
+          className="col-md-5 col-sm-8"
+        >
+          <select
+            className="form-control"
+            id="method"
+            onChange={[Function]}
+            value="P"
+          >
+            <option
+              value="P"
+            >
+              POST
+            </option>
+            <option
+              value="G"
+            >
+              GET
+            </option>
+          </select>
+          <div
+            className="form__help"
+          >
+            <FormattedMessage
+              defaultMessage="The type of command request issued to the Request URL."
+              id="add_command.method.help"
+              values={Object {}}
+            />
+          </div>
+        </div>
+      </div>
+      <div
+        className="form-group"
+      >
+        <label
+          className="control-label col-sm-4"
+          htmlFor="username"
+        >
+          <FormattedMessage
+            defaultMessage="Response Username"
+            id="add_command.username"
+            values={Object {}}
+          />
+        </label>
+        <div
+          className="col-md-5 col-sm-8"
+        >
+          <input
+            className="form-control"
+            id="username"
+            maxLength="64"
+            onChange={[Function]}
+            placeholder="Username"
+            type="text"
+            value=""
+          />
+          <div
+            className="form__help"
+          >
+            <FormattedMessage
+              defaultMessage="(Optional) Choose a username override for responses for this slash command. Usernames can consist of up to 22 characters consisting of lowercase letters, numbers and they symbols \\"-\\", \\"_\\", and \\".\\" ."
+              id="add_command.username.help"
+              values={Object {}}
+            />
+          </div>
+        </div>
+      </div>
+      <div
+        className="form-group"
+      >
+        <label
+          className="control-label col-sm-4"
+          htmlFor="iconUrl"
+        >
+          <FormattedMessage
+            defaultMessage="Response Icon"
+            id="add_command.iconUrl"
+            values={Object {}}
+          />
+        </label>
+        <div
+          className="col-md-5 col-sm-8"
+        >
+          <input
+            className="form-control"
+            id="iconUrl"
+            maxLength="1024"
+            onChange={[Function]}
+            placeholder="https://www.example.com/myicon.png"
+            type="text"
+            value=""
+          />
+          <div
+            className="form__help"
+          >
+            <FormattedMessage
+              defaultMessage="(Optional) Choose a profile picture override for the post responses to this slash command. Enter the URL of a .png or .jpg file at least 128 pixels by 128 pixels."
+              id="add_command.iconUrl.help"
+              values={Object {}}
+            />
+          </div>
+        </div>
+      </div>
+      <div
+        className="form-group"
+      >
+        <label
+          className="control-label col-sm-4"
+          htmlFor="autocomplete"
+        >
+          <FormattedMessage
+            defaultMessage="Autocomplete"
+            id="add_command.autocomplete"
+            values={Object {}}
+          />
+        </label>
+        <div
+          className="col-md-5 col-sm-8 checkbox"
+        >
+          <input
+            checked={false}
+            id="autocomplete"
+            onChange={[Function]}
+            type="checkbox"
+          />
+          <div
+            className="form__help"
+          >
+            <FormattedMessage
+              defaultMessage="(Optional) Show slash command in autocomplete list."
+              id="add_command.autocomplete.help"
+              values={Object {}}
+            />
+          </div>
+        </div>
+      </div>
+      <div
+        className="backstage-form__footer"
+      >
+        <FormError
+          error={null}
+          errors={
+            Array [
+              "",
+              null,
+            ]
+          }
+          type="backstage"
+        />
+        <Link
+          className="btn btn-sm"
+          onlyActiveOnIndex={false}
+          style={Object {}}
+          to="/test/integrations/commands"
+        >
+          <FormattedMessage
+            defaultMessage="Cancel"
+            id="add_command.cancel"
+            values={Object {}}
+          />
+        </Link>
+        <SpinnerButton
+          className="btn btn-primary"
+          disabled={true}
+          onClick={[Function]}
+          spinning={false}
+          type="submit"
+        >
+          <FormattedMessage
+            defaultMessage="Update"
+            id="edit_command.save"
+            values={Object {}}
+          />
+        </SpinnerButton>
+        <ConfirmModal
+          confirmButtonClass="btn btn-primary"
+          confirmButtonText={
+            <FormattedMessage
+              defaultMessage="Update"
+              id="update_command.update"
+              values={Object {}}
+            />
+          }
+          message={
+            <FormattedMessage
+              defaultMessage="Your changes may break the existing slash command. Are you sure you would like to update it?"
+              id="update_command.question"
+              values={Object {}}
+            />
+          }
+          onCancel={[Function]}
+          onConfirm={[Function]}
+          show={false}
+          title={
+            <FormattedMessage
+              defaultMessage="Edit Slash Command"
+              id="update_command.confirm"
+              values={Object {}}
+            />
+          }
+        />
+      </div>
+    </form>
+  </div>
+</div>
+`;

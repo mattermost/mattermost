@@ -223,9 +223,12 @@ export default class RhsComment extends React.Component {
                 user={this.props.user}
                 status={status}
                 isBusy={this.props.isBusy}
+                isRHS={true}
+                hasMention={true}
             />
         );
 
+        let visibleMessage;
         if (post.props && post.props.from_webhook) {
             if (post.props.override_username && global.window.mm_config.EnablePostUsernameOverride === 'true') {
                 userProfile = (
@@ -259,6 +262,15 @@ export default class RhsComment extends React.Component {
                     disablePopover={true}
                 />
             );
+
+            visibleMessage = (
+                <span className='post__visibility'>
+                    <FormattedMessage
+                        id='post_info.message.visible'
+                        defaultMessage='(Only visible to you)'
+                    />
+                </span>
+            );
         }
 
         let failedPostOptions;
@@ -281,6 +293,8 @@ export default class RhsComment extends React.Component {
                 height='36'
                 user={this.props.user}
                 isBusy={this.props.isBusy}
+                isRHS={true}
+                hasMention={true}
             />
         );
 
@@ -317,6 +331,8 @@ export default class RhsComment extends React.Component {
                         status={status}
                         user={this.props.user}
                         isBusy={this.props.isBusy}
+                        isRHS={true}
+                        hasMention={true}
                     />
                 );
             }
@@ -430,13 +446,18 @@ export default class RhsComment extends React.Component {
                                     isFlagged={this.props.isFlagged}
                                     isEphemeral={isEphemeral}
                                 />
+                                {visibleMessage}
                             </div>
                             {options}
                         </div>
                         <div className='post__body' >
                             <div className={postClass}>
                                 {failedPostOptions}
-                                <PostMessageContainer post={post}/>
+                                <PostMessageContainer
+                                    post={post}
+                                    isRHS={true}
+                                    hasMention={true}
+                                />
                             </div>
                             {fileAttachment}
                             <ReactionListContainer post={post}/>

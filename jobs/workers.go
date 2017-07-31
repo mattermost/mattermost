@@ -47,7 +47,7 @@ func (workers *Workers) Start() *Workers {
 			go workers.DataRetention.Run()
 		}
 
-		if workers.ElasticsearchIndexing != nil && *utils.Cfg.ElasticSearchSettings.EnableIndexing {
+		if workers.ElasticsearchIndexing != nil && *utils.Cfg.ElasticsearchSettings.EnableIndexing {
 			go workers.ElasticsearchIndexing.Run()
 		}
 
@@ -69,9 +69,9 @@ func (workers *Workers) handleConfigChange(oldConfig *model.Config, newConfig *m
 	}
 
 	if workers.ElasticsearchIndexing != nil {
-		if !*oldConfig.ElasticSearchSettings.EnableIndexing && *newConfig.ElasticSearchSettings.EnableIndexing {
+		if !*oldConfig.ElasticsearchSettings.EnableIndexing && *newConfig.ElasticsearchSettings.EnableIndexing {
 			go workers.ElasticsearchIndexing.Run()
-		} else if *oldConfig.ElasticSearchSettings.EnableIndexing && !*newConfig.ElasticSearchSettings.EnableIndexing {
+		} else if *oldConfig.ElasticsearchSettings.EnableIndexing && !*newConfig.ElasticsearchSettings.EnableIndexing {
 			workers.ElasticsearchIndexing.Stop()
 		}
 	}
@@ -86,7 +86,7 @@ func (workers *Workers) Stop() *Workers {
 		workers.DataRetention.Stop()
 	}
 
-	if workers.ElasticsearchIndexing != nil && *utils.Cfg.ElasticSearchSettings.EnableIndexing {
+	if workers.ElasticsearchIndexing != nil && *utils.Cfg.ElasticsearchSettings.EnableIndexing {
 		workers.ElasticsearchIndexing.Stop()
 	}
 

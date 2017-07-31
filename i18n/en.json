@@ -3356,6 +3356,10 @@
     "translation": "Invalid Desktop NotifyProps for User's Channel Membership."
   },
   {
+    "id": "app.import.validate_user_channels_import_data.invalid_notify_props_mobile.error",
+    "translation": "Invalid Mobile NotifyProps for User's Channel Membership."
+  },
+  {
     "id": "app.import.validate_user_channels_import_data.invalid_notify_props_mark_unread.error",
     "translation": "Invalid MarkUnread NotifyProps for User's Channel Membership."
   },
@@ -3414,6 +3418,38 @@
   {
     "id": "app.import.validate_user_import_data.username_missing.error",
     "translation": "Missing require user property: username."
+  },
+  {
+    "id": "app.import.validate_user_import_data.notify_props_desktop_invalid.error",
+    "translation": "Invalid Desktop Notify Prop value for user."
+  },
+  {
+    "id": "app.import.validate_user_import_data.notify_props_desktop_duration_invalid.error",
+    "translation": "Invalid Desktop Duration Notify Prop value for user."
+  },
+  {
+    "id": "app.import.validate_user_import_data.notify_props_desktop_sound_invalid.error",
+    "translation": "Invalid Desktop Sound Notify Prop value for user."
+  },
+  {
+    "id": "app.import.validate_user_import_data.notify_props_email_invalid.error",
+    "translation": "Invalid Email Notify Prop value for user."
+  },
+  {
+    "id": "app.import.validate_user_import_data.notify_props_mobile_invalid.error",
+    "translation": "Invalid Mobile Notify Prop value for user."
+  },
+  {
+    "id": "app.import.validate_user_import_data.notify_props_mobile_push_status_invalid.error",
+    "translation": "Invalid Mobile Push Status Notify Prop for user."
+  },
+  {
+    "id": "app.import.validate_user_import_data.notify_props_channel_trigger_invalid.error",
+    "translation": "Invalid Channel Trigger Notify Prop for user."
+  },
+  {
+    "id": "app.import.validate_user_import_data.notify_props_comment_trigger_invalid.error",
+    "translation": "Invalid Comment Trigger Notify Prop for user."
   },
   {
     "id": "app.import.validate_user_teams_import_data.invalid_roles.error",
@@ -3585,11 +3621,11 @@
   },
   {
     "id": "ent.elasticsearch.search_posts.disabled",
-    "translation": "ElasticSearch searching is disabled on this server"
+    "translation": "Elasticsearch searching is disabled on this server"
   },
   {
     "id": "ent.elasticsearch.generic.disabled",
-    "translation": "ElasticSearch search is not enabled on this server"
+    "translation": "Elasticsearch search is not enabled on this server"
   },
   {
     "id": "ent.elasticsearch.purge_indexes.delete_failed",
@@ -3605,23 +3641,23 @@
   },
   {
     "id": "ent.elasticsearch.create_client.connect_failed",
-    "translation": "Setting up ElasticSearch Client Failed"
+    "translation": "Setting up Elasticsearch Client Failed"
   },
   {
     "id": "ent.elasticsearch.create_index_if_not_exists.index_create_failed",
-    "translation": "Failed to create ElasticSearch index"
+    "translation": "Failed to create Elasticsearch index"
   },
   {
     "id": "ent.elasticsearch.create_index_if_not_exists.index_exists_failed",
-    "translation": "Failed to establish whether ElasticSearch index exists"
+    "translation": "Failed to establish whether Elasticsearch index exists"
   },
   {
     "id": "ent.elasticsearch.create_index_if_not_exists.index_mapping_failed",
-    "translation": "Failed to setup ElasticSearch index mapping"
+    "translation": "Failed to setup Elasticsearch index mapping"
   },
   {
     "id": "ent.elasticsearch.start.index_settings_failed",
-    "translation": "Failed to set ElasticSearch index settings"
+    "translation": "Failed to set Elasticsearch index settings"
   },
   {
     "id": "ent.elasticsearch.test_config.connect_failed",
