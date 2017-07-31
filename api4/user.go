@@ -55,6 +55,11 @@ func InitUser() {
 	BaseRoutes.User.Handle("/sessions/revoke", ApiSessionRequired(revokeSession)).Methods("POST")
 	BaseRoutes.Users.Handle("/sessions/device", ApiSessionRequired(attachDeviceId)).Methods("PUT")
 	BaseRoutes.User.Handle("/audits", ApiSessionRequired(getUserAudits)).Methods("GET")
+
+	BaseRoutes.User.Handle("/tokens", ApiSessionRequired(createUserAccessToken)).Methods("POST")
+	BaseRoutes.User.Handle("/tokens", ApiSessionRequired(getUserAccessTokens)).Methods("GET")
+	BaseRoutes.Users.Handle("/tokens/{token_id:[A-Za-z0-9]+}", ApiSessionRequired(getUserAccessToken)).Methods("GET")
+	BaseRoutes.Users.Handle("/tokens/revoke", ApiSessionRequired(revokeUserAccessToken)).Methods("POST")
 }
 
 func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -1080,4 +1085,133 @@ func switchAccountType(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	c.LogAudit("success")
 	w.Write([]byte(model.MapToJson(map[string]string{"follow_link": link})))
+}
+
+func createUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireUserId()
+	if c.Err != nil {
+		return
+	}
+
+	accessToken := model.UserAccessTokenFromJson(r.Body)
+	if accessToken == nil {
+		c.SetInvalidParam("user_access_token")
+		return
+	}
+
+	if accessToken.Description == "" {
+		c.SetInvalidParam("description")
+		return
+	}
+
+	c.LogAudit("")
+
+	if !app.SessionHasPermissionTo(c.Session, model.PERMISSION_CREATE_USER_ACCESS_TOKEN) {
+		c.SetPermissionError(model.PERMISSION_CREATE_USER_ACCESS_TOKEN)
+		return
+	}
+
+	if !app.SessionHasPermissionToUser(c.Session, c.Params.UserId) {
+		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
+		return
+	}
+
+	accessToken.UserId = c.Params.UserId
+	accessToken.Token = ""
+
+	var err *model.AppError
+	accessToken, err = app.CreateUserAccessToken(accessToken)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	c.LogAudit("success - token_id=" + accessToken.Id)
+	w.Write([]byte(accessToken.ToJson()))
+}
+
+func getUserAccessTokens(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireUserId()
+	if c.Err != nil {
+		return
+	}
+
+	if !app.SessionHasPermissionTo(c.Session, model.PERMISSION_READ_USER_ACCESS_TOKEN) {
+		c.SetPermissionError(model.PERMISSION_READ_USER_ACCESS_TOKEN)
+		return
+	}
+
+	if !app.SessionHasPermissionToUser(c.Session, c.Params.UserId) {
+		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
+		return
+	}
+
+	accessTokens, err := app.GetUserAccessTokensForUser(c.Params.UserId, c.Params.Page, c.Params.PerPage)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	w.Write([]byte(model.UserAccessTokenListToJson(accessTokens)))
+}
+
+func getUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireTokenId()
+	if c.Err != nil {
+		return
+	}
+
+	if !app.SessionHasPermissionTo(c.Session, model.PERMISSION_READ_USER_ACCESS_TOKEN) {
+		c.SetPermissionError(model.PERMISSION_READ_USER_ACCESS_TOKEN)
+		return
+	}
+
+	accessToken, err := app.GetUserAccessToken(c.Params.TokenId, true)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	if !app.SessionHasPermissionToUser(c.Session, accessToken.UserId) {
+		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
+		return
+	}
+
+	w.Write([]byte(accessToken.ToJson()))
+}
+
+func revokeUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
+	props := model.MapFromJson(r.Body)
+	tokenId := props["token_id"]
+
+	if tokenId == "" {
+		c.SetInvalidParam("token_id")
+	}
+
+	c.LogAudit("")
+
+	if !app.SessionHasPermissionTo(c.Session, model.PERMISSION_REVOKE_USER_ACCESS_TOKEN) {
+		c.SetPermissionError(model.PERMISSION_REVOKE_USER_ACCESS_TOKEN)
+		return
+	}
+
+	accessToken, err := app.GetUserAccessToken(tokenId, false)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	if !app.SessionHasPermissionToUser(c.Session, accessToken.UserId) {
+		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
+		return
+	}
+
+	err = app.RevokeUserAccessToken(accessToken)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	c.LogAudit("success - token_id=" + accessToken.Id)
+	ReturnStatusOK(w)
 }

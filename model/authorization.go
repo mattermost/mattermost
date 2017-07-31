@@ -48,6 +48,7 @@ var PERMISSION_MANAGE_OTHERS_WEBHOOKS *Permission
 var PERMISSION_MANAGE_OAUTH *Permission
 var PERMISSION_MANAGE_SYSTEM_WIDE_OAUTH *Permission
 var PERMISSION_CREATE_POST *Permission
+var PERMISSION_CREATE_POST_PUBLIC *Permission
 var PERMISSION_EDIT_POST *Permission
 var PERMISSION_EDIT_OTHERS_POSTS *Permission
 var PERMISSION_DELETE_POST *Permission
@@ -59,6 +60,9 @@ var PERMISSION_IMPORT_TEAM *Permission
 var PERMISSION_VIEW_TEAM *Permission
 var PERMISSION_LIST_USERS_WITHOUT_TEAM *Permission
 var PERMISSION_MANAGE_JOBS *Permission
+var PERMISSION_CREATE_USER_ACCESS_TOKEN *Permission
+var PERMISSION_READ_USER_ACCESS_TOKEN *Permission
+var PERMISSION_REVOKE_USER_ACCESS_TOKEN *Permission
 
 // General permission that encompases all system admin functions
 // in the future this could be broken up to allow access to some
@@ -67,9 +71,12 @@ var PERMISSION_MANAGE_SYSTEM *Permission
 
 var ROLE_SYSTEM_USER *Role
 var ROLE_SYSTEM_ADMIN *Role
+var ROLE_SYSTEM_POST_ALL_PUBLIC *Role
+var ROLE_SYSTEM_USER_ACCESS_TOKEN *Role
 
 var ROLE_TEAM_USER *Role
 var ROLE_TEAM_ADMIN *Role
+var ROLE_TEAM_POST_ALL_PUBLIC *Role
 
 var ROLE_CHANNEL_USER *Role
 var ROLE_CHANNEL_ADMIN *Role
@@ -243,6 +250,11 @@ func InitalizePermissions() {
 		"authentication.permissions.create_post.name",
 		"authentication.permissions.create_post.description",
 	}
+	PERMISSION_CREATE_POST_PUBLIC = &Permission{
+		"create_post_public",
+		"authentication.permissions.create_post_public.name",
+		"authentication.permissions.create_post_public.description",
+	}
 	PERMISSION_EDIT_POST = &Permission{
 		"edit_post",
 		"authentication.permissions.edit_post.name",
@@ -290,8 +302,23 @@ func InitalizePermissions() {
 	}
 	PERMISSION_LIST_USERS_WITHOUT_TEAM = &Permission{
 		"list_users_without_team",
-		"authentication.permisssions.list_users_without_team.name",
-		"authentication.permisssions.list_users_without_team.description",
+		"authentication.permissions.list_users_without_team.name",
+		"authentication.permissions.list_users_without_team.description",
+	}
+	PERMISSION_CREATE_USER_ACCESS_TOKEN = &Permission{
+		"create_user_access_token",
+		"authentication.permissions.create_user_access_token.name",
+		"authentication.permissions.create_user_access_token.description",
+	}
+	PERMISSION_READ_USER_ACCESS_TOKEN = &Permission{
+		"read_user_access_token",
+		"authentication.permissions.read_user_access_token.name",
+		"authentication.permissions.read_user_access_token.description",
+	}
+	PERMISSION_REVOKE_USER_ACCESS_TOKEN = &Permission{
+		"revoke_user_access_token",
+		"authentication.permissions.revoke_user_access_token.name",
+		"authentication.permissions.revoke_user_access_token.description",
 	}
 	PERMISSION_MANAGE_JOBS = &Permission{
 		"manage_jobs",
@@ -348,6 +375,17 @@ func InitalizeRoles() {
 		},
 	}
 	BuiltInRoles[ROLE_TEAM_USER.Id] = ROLE_TEAM_USER
+
+	ROLE_TEAM_POST_ALL_PUBLIC = &Role{
+		"team_post_all_public",
+		"authentication.roles.team_post_all_public.name",
+		"authentication.roles.team_post_all_public.description",
+		[]string{
+			PERMISSION_CREATE_POST_PUBLIC.Id,
+		},
+	}
+	BuiltInRoles[ROLE_TEAM_POST_ALL_PUBLIC.Id] = ROLE_TEAM_POST_ALL_PUBLIC
+
 	ROLE_TEAM_ADMIN = &Role{
 		"team_admin",
 		"authentication.roles.team_admin.name",
@@ -378,6 +416,29 @@ func InitalizeRoles() {
 		},
 	}
 	BuiltInRoles[ROLE_SYSTEM_USER.Id] = ROLE_SYSTEM_USER
+
+	ROLE_SYSTEM_POST_ALL_PUBLIC = &Role{
+		"system_post_all_public",
+		"authentication.roles.system_post_all_public.name",
+		"authentication.roles.system_post_all_public.description",
+		[]string{
+			PERMISSION_CREATE_POST_PUBLIC.Id,
+		},
+	}
+	BuiltInRoles[ROLE_SYSTEM_POST_ALL_PUBLIC.Id] = ROLE_SYSTEM_POST_ALL_PUBLIC
+
+	ROLE_SYSTEM_USER_ACCESS_TOKEN = &Role{
+		"system_user_access_token",
+		"authentication.roles.system_user_access_token.name",
+		"authentication.roles.system_user_access_token.description",
+		[]string{
+			PERMISSION_CREATE_USER_ACCESS_TOKEN.Id,
+			PERMISSION_READ_USER_ACCESS_TOKEN.Id,
+			PERMISSION_REVOKE_USER_ACCESS_TOKEN.Id,
+		},
+	}
+	BuiltInRoles[ROLE_SYSTEM_USER_ACCESS_TOKEN.Id] = ROLE_SYSTEM_USER_ACCESS_TOKEN
+
 	ROLE_SYSTEM_ADMIN = &Role{
 		"system_admin",
 		"authentication.roles.global_admin.name",
@@ -412,6 +473,10 @@ func InitalizeRoles() {
 							PERMISSION_ADD_USER_TO_TEAM.Id,
 							PERMISSION_LIST_USERS_WITHOUT_TEAM.Id,
 							PERMISSION_MANAGE_JOBS.Id,
+							PERMISSION_CREATE_POST_PUBLIC.Id,
+							PERMISSION_CREATE_USER_ACCESS_TOKEN.Id,
+							PERMISSION_READ_USER_ACCESS_TOKEN.Id,
+							PERMISSION_REVOKE_USER_ACCESS_TOKEN.Id,
 						},
 						ROLE_TEAM_USER.Permissions...,
 					),

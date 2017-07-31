@@ -154,6 +154,7 @@ type ServiceSettings struct {
 	EnableInsecureOutgoingConnections        *bool
 	EnableMultifactorAuthentication          *bool
 	EnforceMultifactorAuthentication         *bool
+	EnableUserAccessTokens                   *bool
 	AllowCorsFrom                            *string
 	SessionLengthWebInDays                   *int
 	SessionLengthMobileInDays                *int
@@ -616,6 +617,11 @@ func (o *Config) SetDefaults() {
 	if o.ServiceSettings.EnforceMultifactorAuthentication == nil {
 		o.ServiceSettings.EnforceMultifactorAuthentication = new(bool)
 		*o.ServiceSettings.EnforceMultifactorAuthentication = false
+	}
+
+	if o.ServiceSettings.EnableUserAccessTokens == nil {
+		o.ServiceSettings.EnableUserAccessTokens = new(bool)
+		*o.ServiceSettings.EnableUserAccessTokens = false
 	}
 
 	if o.PasswordSettings.MinimumLength == nil {
