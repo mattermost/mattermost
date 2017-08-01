@@ -30,7 +30,7 @@ export default class SaveButton extends React.Component {
             contents = (
                 <span>
                     <span className='icon fa fa-refresh icon--rotate'/>
-                     <FormattedMessage
+                    <FormattedMessage
                         id={messageId || 'admin.saving'}
                         defaultMessage='Saving Config...'
                     />

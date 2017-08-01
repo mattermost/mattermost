@@ -223,7 +223,7 @@ class UserSettingsGeneralTab extends React.Component {
 
         updateUser(user, type,
             () => {
-                    this.updateSection('');
+                this.updateSection('');
                 this.props.actions.getMe();
                 const verificationEnabled = global.window.mm_config.SendEmailNotifications === 'true' && global.window.mm_config.RequireEmailVerification === 'true' && emailUpdated;
 

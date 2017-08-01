@@ -67,11 +67,12 @@ export default class SettingItemMax extends React.Component {
 
         var submit = '';
         if (this.props.submit) {
-            let saving = (this.props.loading !== undefined)? this.props.loading : false;
+            const loading = this.props.loading || false;
+
             submit = (
                 <SaveButton
-                    saving={saving}
-                    disabled={this.props.loading}
+                    saving={loading}
+                    disabled={loading}
                     onClick={this.props.submit}
                     messageId='setting_item_max.saving'
                 />
