@@ -3504,12 +3504,28 @@
     "translation": "Team name missing from User's Team Membership."
   },
   {
+    "id": "authentication.roles.system_post_all.name",
+    "translation": "Post in Public, Private and Direct Channels"
+  },
+  {
+    "id": "authentication.roles.system_post_all.description",
+    "translation": "A role with the permission to post in any public, private or direct channel on the system"
+  },
+  {
     "id": "authentication.roles.system_post_all_public.name",
     "translation": "Post in Public Channels"
   },
   {
     "id": "authentication.roles.system_post_all_public.description",
     "translation": "A role with the permission to post in any public channel on the system"
+  },
+  {
+    "id": "authentication.roles.team_post_all.name",
+    "translation": "Post in Public and Private Channels"
+  },
+  {
+    "id": "authentication.roles.team_post_all.description",
+    "translation": "A role with the permission to post in any public or private channel on the team"
   },
   {
     "id": "authentication.roles.team_post_all_public.name",

@@ -54,7 +54,12 @@ export default class SystemUsers extends React.Component {
             /*
              * Function to get a user
              */
-            getUser: PropTypes.func.isRequired
+            getUser: PropTypes.func.isRequired,
+
+            /*
+             * Function to get a user access token
+             */
+            getUserAccessToken: PropTypes.func.isRequired
         }).isRequired
     }
 
@@ -240,7 +245,7 @@ export default class SystemUsers extends React.Component {
                     (users) => {
                         if (users.length === 0 && term.length === USER_ID_LENGTH) {
                             // This term didn't match any users name, but it does look like it might be a user's ID
-                            this.getUserById(term);
+                            this.getUserByTokenOrId(term);
                         } else {
                             this.setState({loading: false});
                         }
@@ -267,6 +272,22 @@ export default class SystemUsers extends React.Component {
                 });
             }
         );
+    }
+
+    getUserByTokenOrId = async (id) => {
+        if (global.window.mm_config.EnableUserAccessTokens === 'true') {
+            const {data} = await this.props.actions.getUserAccessToken(id);
+
+            if (data) {
+                this.term = data.user_id;
+                this.setState({term: data.user_id});
+                this.updateUsersFromStore(this.state.teamId, data.user_id);
+                this.getUserById(data.user_id);
+                return;
+            }
+        }
+
+        this.getUserById(id);
     }
 
     renderFilterRow(doSearch) {
