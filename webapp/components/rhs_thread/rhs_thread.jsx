@@ -343,7 +343,7 @@ export default class RhsThread extends React.Component {
 
         let isRootFlagged = false;
         if (this.state.flaggedPosts) {
-            isRootFlagged = this.state.flaggedPosts.get(selected.id) === 'true';
+            isRootFlagged = this.state.flaggedPosts.get(selected.id) != null;
         }
 
         let rootStatus = 'offline';
@@ -367,7 +367,7 @@ export default class RhsThread extends React.Component {
 
             let isFlagged = false;
             if (this.state.flaggedPosts) {
-                isFlagged = this.state.flaggedPosts.get(comPost.id) === 'true';
+                isFlagged = this.state.flaggedPosts.get(comPost.id) != null;
             }
 
             let status = 'offline';
