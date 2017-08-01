@@ -24,6 +24,19 @@ Dir.mkdir emoji_path
 Emoji.create('mattermost')
 FileUtils.cp(File.join(File.dirname(__FILE__), 'images', 'icon64x64.png'), File.join(emoji_path, 'mattermost.png'))
 
+custom_aliases = {
+    "ca" => "canada",
+    "pk" => "pakistan",
+    "za" => "south_africa"
+}
+custom_aliases.each do |custom, original|
+    emoji = Emoji.find_by_alias original
+
+    Emoji.edit_emoji(emoji) do |char|
+      char.add_alias custom
+    end
+end
+
 blacklist = ['basecamp', 'basecampy']
 
 categories = []
