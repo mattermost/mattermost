@@ -4,7 +4,6 @@
 package web
 
 import (
-	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
@@ -54,7 +53,7 @@ var browsersNotSupported string = "MSIE/11;Internet Explorer/11;Safari/9;Chrome/
 func CheckBrowserCompatability(c *api.Context, r *http.Request) bool {
 	ua := user_agent.New(r.UserAgent())
 	bname, bversion := ua.Browser()
-	fmt.Println(ua.Browser())
+	l4g.Debug("Detected Browser: %v %v", bname, bversion)
 	browsers := strings.Split(browsersNotSupported, ";")
 	for _, browser := range browsers {
 		version := strings.Split(browser, "/")
