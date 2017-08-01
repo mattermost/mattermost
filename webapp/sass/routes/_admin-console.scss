@@ -289,6 +289,22 @@
     .admin-console-header {
         border-bottom: 1px solid alpha-color($black, .1);
     }
+
+    .status-icon-unknown {
+        color: gray;
+    }
+
+    .status-icon-success {
+        color: #69c169;
+    }
+
+    .status-icon-warning {
+        color: #eac262;
+    }
+
+    .status-icon-error {
+        color: #ea6262;
+    }
 }
 
 .brand-img {
@@ -474,10 +490,6 @@
 
 .email-connection-test {
     margin-top: -15px;
-}
-
-.reload-config {
-    margin-bottom: 50px !important;
 }
 
 .recycle-db {
