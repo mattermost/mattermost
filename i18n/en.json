@@ -2412,6 +2412,18 @@
     "translation": "[{{ .SiteName }}] Your password has been updated"
   },
   {
+    "id": "api.templates.user_access_token_body.info",
+    "translation": "A user access token was added to your account on {{ .SiteURL }}. User access tokens can be used to access {{.SiteName}} as you.<br>If this change wasn't initiated by you, please contact your system administrator."
+  },
+  {
+    "id": "api.templates.user_access_token_body.title",
+    "translation": "A user access token was added to your account"
+  },
+  {
+    "id": "api.templates.user_access_token_subject",
+    "translation": "[{{ .SiteName }}] A user access token was added to your account"
+  },
+  {
     "id": "api.templates.post_body.button",
     "translation": "Go To Post"
   },
@@ -2826,6 +2838,10 @@
   {
     "id": "api.user.send_password_change_email_and_forget.error",
     "translation": "Failed to send update password email successfully"
+  },
+  {
+    "id": "api.user.send_user_access_token.error",
+    "translation": "Failed to send user access token added email successfully"
   },
   {
     "id": "api.user.send_password_reset.find.app_error",
