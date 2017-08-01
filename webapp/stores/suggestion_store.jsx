@@ -122,24 +122,24 @@ class SuggestionStore extends EventEmitter {
 
     addSuggestions(id, terms, items, component, matchedPretext) {
         const suggestion = this.getSuggestions(id);
+        const searchTerm = matchedPretext.replace(/^@/, '');
 
         // Sort suggestions
         terms.sort((a, b) => {
-            if (a.startsWith(matchedPretext)) {
+            if (a.startsWith(searchTerm)) {
                 return -1;
             }
-            if (b.startsWith(matchedPretext)) {
+            if (b.startsWith(searchTerm)) {
                 return 1;
             }
             return 0;
         });
 
-        const matchedUsernamePretext = matchedPretext.substring(1);
         items.sort((a, b) => {
-            if (a.username.startsWith(matchedUsernamePretext)) {
+            if (a.username.startsWith(searchTerm)) {
                 return -1;
             }
-            if (b.username.startsWith(matchedUsernamePretext)) {
+            if (b.username.startsWith(searchTerm)) {
                 return 1;
             }
             return 0;
