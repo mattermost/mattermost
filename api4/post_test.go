@@ -302,6 +302,61 @@ func TestCreatePostPublic(t *testing.T) {
 	CheckNoError(t, resp)
 }
 
+func TestCreatePostAll(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+
+	post := &model.Post{ChannelId: th.BasicChannel.Id, Message: "#hashtag a" + model.NewId() + "a"}
+
+	user := model.User{Email: GenerateTestEmail(), Nickname: "Joram Wilander", Password: "hello1", Username: GenerateTestUsername(), Roles: model.ROLE_SYSTEM_USER.Id}
+
+	directChannel, _ := app.CreateDirectChannel(th.BasicUser.Id, th.BasicUser2.Id)
+
+	ruser, resp := Client.CreateUser(&user)
+	CheckNoError(t, resp)
+
+	Client.Login(user.Email, user.Password)
+
+	_, resp = Client.CreatePost(post)
+	CheckForbiddenStatus(t, resp)
+
+	app.UpdateUserRoles(ruser.Id, model.ROLE_SYSTEM_USER.Id+" "+model.ROLE_SYSTEM_POST_ALL.Id)
+	app.InvalidateAllCaches()
+
+	Client.Login(user.Email, user.Password)
+
+	_, resp = Client.CreatePost(post)
+	CheckNoError(t, resp)
+
+	post.ChannelId = th.BasicPrivateChannel.Id
+	_, resp = Client.CreatePost(post)
+	CheckNoError(t, resp)
+
+	post.ChannelId = directChannel.Id
+	_, resp = Client.CreatePost(post)
+	CheckNoError(t, resp)
+
+	app.UpdateUserRoles(ruser.Id, model.ROLE_SYSTEM_USER.Id)
+	app.JoinUserToTeam(th.BasicTeam, ruser, "")
+	app.UpdateTeamMemberRoles(th.BasicTeam.Id, ruser.Id, model.ROLE_TEAM_USER.Id+" "+model.ROLE_TEAM_POST_ALL.Id)
+	app.InvalidateAllCaches()
+
+	Client.Login(user.Email, user.Password)
+
+	post.ChannelId = th.BasicPrivateChannel.Id
+	_, resp = Client.CreatePost(post)
+	CheckNoError(t, resp)
+
+	post.ChannelId = th.BasicChannel.Id
+	_, resp = Client.CreatePost(post)
+	CheckNoError(t, resp)
+
+	post.ChannelId = directChannel.Id
+	_, resp = Client.CreatePost(post)
+	CheckForbiddenStatus(t, resp)
+}
+
 func TestUpdatePost(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
 	defer TearDown()

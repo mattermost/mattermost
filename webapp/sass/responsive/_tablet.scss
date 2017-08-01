@@ -212,12 +212,14 @@
             }
         }
     }
+
     .post {
         .attachment {
             .attachment__image {
                 &.attachment__image--openraph {
                     max-height: 70px;
                     max-width: 300px;
+
                     &.loading {
                         height: 70px;
                     }
@@ -229,6 +231,10 @@
 
 // Tablet and desktop
 @media screen and (min-width: 768px) {
+    .col-sm-auto {
+        float: left;
+    }
+
     .second-bar {
         display: none;
     }
