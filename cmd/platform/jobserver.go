@@ -1,6 +1,5 @@
 // Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
-
 package main
 
 import (
@@ -12,11 +11,25 @@ import (
 	"github.com/mattermost/platform/jobs"
 	"github.com/mattermost/platform/store"
 	"github.com/mattermost/platform/utils"
-
-	_ "github.com/mattermost/platform/imports"
+	"github.com/spf13/cobra"
 )
 
-func main() {
+var jobserverCmd = &cobra.Command{
+	Use:   "jobserver",
+	Short: "Start the Mattermost job server",
+	Run:   jobserverCmdF,
+}
+
+func init() {
+	jobserverCmd.Flags().Bool("nojobs", false, "Do not run jobs on this jobserver.")
+	jobserverCmd.Flags().Bool("noschedule", false, "Do not schedule jobs from this jobserver.")
+}
+
+func jobserverCmdF(cmd *cobra.Command, args []string) {
+	// Options
+	noJobs, _ := cmd.Flags().GetBool("nojobs")
+	noSchedule, _ := cmd.Flags().GetBool("noschedule")
+
 	// Initialize
 	utils.InitAndLoadConfig("config.json")
 	defer l4g.Close()
@@ -28,8 +41,12 @@ func main() {
 
 	// Run jobs
 	l4g.Info("Starting Mattermost job server")
-	jobs.Srv.StartWorkers()
-	jobs.Srv.StartSchedulers()
+	if !noJobs {
+		jobs.Srv.StartWorkers()
+	}
+	if !noSchedule {
+		jobs.Srv.StartSchedulers()
+	}
 
 	var signalChan chan os.Signal = make(chan os.Signal)
 	signal.Notify(signalChan, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
