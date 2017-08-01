@@ -66,7 +66,7 @@ func UpgradeDatabase(sqlStore SqlStore) {
 
 	// If we're not on the current version then it's too old to be upgraded
 	if sqlStore.GetCurrentSchemaVersion() != model.CurrentVersion {
-		l4g.Critical(utils.T("store.sql.schema_version.critical"), sqlStore.GetCurrentSchemaVersion())
+		l4g.Critical(utils.T("store.sql.schema_version.critical"), sqlStore.GetCurrentSchemaVersion(), model.CurrentVersion)
 		time.Sleep(time.Second)
 		os.Exit(EXIT_TOO_OLD)
 	}
