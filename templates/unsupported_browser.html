@@ -1,6 +1,5 @@
 {{define "unsupported_browser"}}
   <head>
-  <script src="https://use.fontawesome.com/e9c63936da.js"></script>
   <style>
     body {
     margin-top: 0px;
@@ -61,6 +60,10 @@
     overflow-y: hidden;
     visibility: hidden;
   }
+  .exclamation-triangle {
+    width: 22px;
+    opacity: 0.6;
+  }
   body.error .container-fluid {
     display: table;
     height: 90%;
@@ -83,20 +86,6 @@
   body.error .error__icon {
     color: rgb(204, 204, 204);
     font-size: 4em;
-  }
-  .fa {
-    display: inline-block;
-    font-style: normal;
-    font-variant-caps: normal;
-    font-variant-ligatures: normal;
-    font-variant-numeric: normal;
-    font-weight: normal;
-    font-stretch: normal;
-    line-height: 1;
-    font-family: FontAwesome;
-    font-size: inherit;
-    text-rendering: auto;
-    -webkit-font-smoothing: antialiased;
   }
   h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
     font-family: inherit;
@@ -147,7 +136,7 @@
   <div data-reactroot="" class="container-fluid" >
   <div class="error__container" >
       <div class="error__icon" >
-        <i class="fa fa-exclamation-triangle" ></i>
+        <img src="/static/images/warning.png" alt="warning" class="exclamation-triangle" ></img>
       </div>
       <h2 >
         <span>{{.Props.Title}}</span>
