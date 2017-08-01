@@ -80,7 +80,7 @@ export default class SuggestionBox extends React.Component {
         /**
          * Function called when @mention is clicked
          */
-        popoverMentionKeyClick: PropTypes.bool
+        popoverMentionKeyClick: PropTypes.bool,
 
         /**
          * The number of characters required to show the suggestion list, defaults to 1
