@@ -2,6 +2,7 @@
 // See License.txt for license information.
 
 import {FormattedMessage} from 'react-intl';
+import SaveButton from 'components/admin_console/save_button.jsx';
 import * as Utils from 'utils/utils.jsx';
 import Constants from 'utils/constants.jsx';
 
@@ -66,14 +67,13 @@ export default class SettingItemMax extends React.Component {
 
         var submit = '';
         if (this.props.submit) {
+            let saving = (this.props.loading !== undefined)? this.props.loading : false;
             submit = (
-                <input
-                    id='saveSetting'
-                    type='submit'
-                    className='btn btn-sm btn-primary'
-                    href='#'
+                <SaveButton
+                    saving={saving}
+                    disabled={this.props.loading}
                     onClick={this.props.submit}
-                    value={Utils.localizeMessage('setting_item_max.save', 'Save')}
+                    messageId='setting_item_max.saving'
                 />
             );
         }
@@ -136,6 +136,7 @@ SettingItemMax.propTypes = {
     extraInfo: PropTypes.element,
     updateSection: PropTypes.func,
     submit: PropTypes.func,
+    loading: PropTypes.bool,
     title: PropTypes.node,
     width: PropTypes.string,
     submitExtra: PropTypes.node

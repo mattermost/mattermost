@@ -11,7 +11,8 @@ export default class SaveButton extends React.Component {
     static get propTypes() {
         return {
             saving: PropTypes.bool.isRequired,
-            disabled: PropTypes.bool
+            disabled: PropTypes.bool,
+            messageId: PropTypes.string
         };
     }
 
@@ -22,15 +23,15 @@ export default class SaveButton extends React.Component {
     }
 
     render() {
-        const {saving, disabled, ...props} = this.props; // eslint-disable-line no-use-before-define
+        const {saving, disabled, messageId, ...props} = this.props; // eslint-disable-line no-use-before-define
 
         let contents;
         if (saving) {
             contents = (
                 <span>
                     <span className='icon fa fa-refresh icon--rotate'/>
-                    <FormattedMessage
-                        id='admin.saving'
+                     <FormattedMessage
+                        id={messageId || 'admin.saving'}
                         defaultMessage='Saving Config...'
                     />
                 </span>
