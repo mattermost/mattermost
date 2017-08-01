@@ -23,13 +23,18 @@ function makeMapStateToProps() {
             emoji = ownProps.emojis.get(ownProps.emojiName);
         }
 
+        let emojiImageUrl = '';
+        if (emoji) {
+            emojiImageUrl = getEmojiImageUrl(emoji);
+        }
+
         return {
             ...ownProps,
             profiles,
             otherUsersCount: ownProps.reactions.length - profiles.length,
             currentUserId: getCurrentUserId(state),
             reactionCount: ownProps.reactions.length,
-            emojiImageUrl: getEmojiImageUrl(emoji)
+            emojiImageUrl
         };
     };
 }

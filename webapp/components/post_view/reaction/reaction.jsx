@@ -93,6 +93,10 @@ export default class Reaction extends React.PureComponent {
     }
 
     render() {
+        if (!this.props.emojiImageUrl) {
+            return null;
+        }
+
         let currentUserReacted = false;
         const users = [];
         const otherUsersCount = this.props.otherUsersCount;
