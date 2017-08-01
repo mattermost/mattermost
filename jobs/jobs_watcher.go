@@ -79,7 +79,7 @@ func (watcher *Watcher) PollAndNotify() {
 					default:
 					}
 				}
-			} else if js.Type == model.JOB_TYPE_SEARCH_INDEXING {
+			} else if js.Type == model.JOB_TYPE_ELASTICSEARCH_POST_INDEXING {
 				if watcher.workers.ElasticsearchIndexing != nil {
 					select {
 					case watcher.workers.ElasticsearchIndexing.JobChannel() <- j:

@@ -1,0 +1,33 @@
+@charset 'UTF-8';
+
+.margin--right {
+    margin-right: 5px;
+
+    &.x2 {
+        margin-right: 10px;
+    }
+}
+
+.margin--left {
+    margin-left: 5px;
+
+    &.x2 {
+        margin-left: 10px;
+    }
+}
+
+.padding--right {
+    padding-right: 5px;
+
+    &.x2 {
+        padding-right: 10px;
+    }
+}
+
+.padding--left {
+    padding-left: 5px;
+
+    &.x2 {
+        padding-left: 10px;
+    }
+}

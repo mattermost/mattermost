@@ -296,6 +296,20 @@ export const ErrorPageTypes = {
     LOCAL_STORAGE: 'local_storage'
 };
 
+export const JobTypes = {
+    DATA_RETENTION: 'data_retention',
+    ELASTICSEARCH_POST_INDEXING: 'elasticsearch_post_indexing'
+};
+
+export const JobStatuses = {
+    PENDING: 'pending',
+    IN_PROGRESS: 'in_progress',
+    SUCCESS: 'success',
+    ERROR: 'error',
+    CANCEL_REQUESTED: 'cancel_requested',
+    CANCELED: 'canceled'
+};
+
 export const ErrorBarTypes = {
     LICENSE_EXPIRING: 'error_bar.license_expiring',
     LICENSE_EXPIRED: 'error_bar.license_expired',
