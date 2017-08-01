@@ -1,6 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+/* eslint-disable no-magic-numbers */
+
 import keyMirror from 'key-mirror';
 
 import audioIcon from 'images/icons/audio.png';
@@ -294,6 +296,20 @@ export const StatTypes = keyMirror({
 
 export const ErrorPageTypes = {
     LOCAL_STORAGE: 'local_storage'
+};
+
+export const JobTypes = {
+    DATA_RETENTION: 'data_retention',
+    ELASTICSEARCH_POST_INDEXING: 'elasticsearch_post_indexing'
+};
+
+export const JobStatuses = {
+    PENDING: 'pending',
+    IN_PROGRESS: 'in_progress',
+    SUCCESS: 'success',
+    ERROR: 'error',
+    CANCEL_REQUESTED: 'cancel_requested',
+    CANCELED: 'canceled'
 };
 
 export const ErrorBarTypes = {
