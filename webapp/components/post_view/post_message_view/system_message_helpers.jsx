@@ -7,13 +7,6 @@ import {FormattedMessage} from 'react-intl';
 import {PostTypes} from 'utils/constants.jsx';
 import {formatText} from 'utils/text_formatting.jsx';
 
-const joinLeaveMessageGetters = {
-    [PostTypes.JOIN_CHANNEL]: getJoinChannelMessage,
-    [PostTypes.LEAVE_CHANNEL]: getLeaveChannelMessage,
-    [PostTypes.ADD_TO_CHANNEL]: getAddToChannelMessage,
-    [PostTypes.REMOVE_FROM_CHANNEL]: getRemoveFromChannelMessage
-};
-
 function renderUsername(value, options) {
     return renderFormattedText(value, {...options, markdown: false});
 }
@@ -22,60 +15,38 @@ function renderFormattedText(value, options) {
     return <span dangerouslySetInnerHTML={{__html: formatText(value, options)}}/>;
 }
 
-function renderJoinLeaveMessage(post, options, messageFunction) {
-    if (post.props.messages) {
-        return (
-            <div>
-                {post.props.messages.map((message, key) => <span key={key}> {joinLeaveMessageGetters[message.type](message, options)}</span>)}
-            </div>
-        );
-    }
-    return messageFunction(post.props, options);
-}
-
 function renderJoinChannelMessage(post, options) {
-    return renderJoinLeaveMessage(post, options, getJoinChannelMessage);
-}
-
-function getJoinChannelMessage(messageProps, options) {
-    const username = renderUsername(messageProps.username, options);
+    const username = renderUsername(post.props.username, options);
 
     return (
         <FormattedMessage
             id='api.channel.join_channel.post_and_forget'
-            defaultMessage='{username} joined the channel.'
+            defaultMessage='{username} has joined the channel.'
             values={{username}}
         />
     );
 }
 
 function renderLeaveChannelMessage(post, options) {
-    return renderJoinLeaveMessage(post, options, getLeaveChannelMessage);
-}
-
-function getLeaveChannelMessage(messageProps, options) {
-    const username = renderUsername(messageProps.username, options);
+    const username = renderUsername(post.props.username, options);
 
     return (
         <FormattedMessage
             id='api.channel.leave.left'
-            defaultMessage='{username} left the channel.'
+            defaultMessage='{username} has left the channel.'
             values={{username}}
         />
     );
 }
 
 function renderAddToChannelMessage(post, options) {
-    return renderJoinLeaveMessage(post, options, getAddToChannelMessage);
-}
+    const username = renderUsername(post.props.username, options);
+    const addedUsername = renderUsername(post.props.addedUsername, options);
 
-function getAddToChannelMessage(messageProps, options) {
-    const username = renderUsername(messageProps.username, options);
-    const addedUsername = renderUsername(messageProps.addedUsername, options);
     return (
         <FormattedMessage
             id='api.channel.add_member.added'
-            defaultMessage='{username} added {addedUsername} to the channel.'
+            defaultMessage='{addedUsername} added to the channel by {username}'
             values={{
                 username,
                 addedUsername
@@ -85,16 +56,12 @@ function getAddToChannelMessage(messageProps, options) {
 }
 
 function renderRemoveFromChannelMessage(post, options) {
-    return renderJoinLeaveMessage(post, options, getRemoveFromChannelMessage);
-}
-
-function getRemoveFromChannelMessage(messageProps, options) {
-    const removedUsername = renderUsername(messageProps.removedUsername, options);
+    const removedUsername = renderUsername(post.props.removedUsername, options);
 
     return (
         <FormattedMessage
             id='api.channel.remove_member.removed'
-            defaultMessage='{removedUsername} was removed from the channel.'
+            defaultMessage='{removedUsername} was removed from the channel'
             values={{
                 removedUsername
             }}

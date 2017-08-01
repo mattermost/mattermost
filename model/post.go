@@ -205,15 +205,6 @@ func (o *Post) IsSystemMessage() bool {
 	return len(o.Type) >= len(POST_SYSTEM_MESSAGE_PREFIX) && o.Type[:len(POST_SYSTEM_MESSAGE_PREFIX)] == POST_SYSTEM_MESSAGE_PREFIX
 }
 
-func (o *Post) IsUserActivitySystemMessage() bool {
-	return o.Type == POST_JOIN_LEAVE ||
-		o.Type == POST_JOIN_CHANNEL ||
-		o.Type == POST_LEAVE_CHANNEL ||
-		o.Type == POST_ADD_REMOVE ||
-		o.Type == POST_ADD_TO_CHANNEL ||
-		o.Type == POST_REMOVE_FROM_CHANNEL
-}
-
 func (p *Post) Patch(patch *PostPatch) {
 	if patch.IsPinned != nil {
 		p.IsPinned = *patch.IsPinned
