@@ -70,6 +70,7 @@ export const ActionTypes = keyMirror({
     CREATE_POST: null,
     CREATE_COMMENT: null,
     POST_DELETED: null,
+    POST_UPDATED: null,
     REMOVE_POST: null,
 
     RECEIVED_CHANNELS: null,
@@ -224,6 +225,7 @@ export const SocketEvents = {
     POSTED: 'posted',
     POST_EDITED: 'post_edited',
     POST_DELETED: 'post_deleted',
+    POST_UPDATED: 'post_updated',
     CHANNEL_CREATED: 'channel_created',
     CHANNEL_DELETED: 'channel_deleted',
     CHANNEL_UPDATED: 'channel_updated',
@@ -432,6 +434,7 @@ export const Constants = {
     POST_LOADING: 'loading',
     POST_FAILED: 'failed',
     POST_DELETED: 'deleted',
+    POST_UPDATED: 'updated',
     SYSTEM_MESSAGE_PREFIX: 'system_',
     SYSTEM_MESSAGE_PROFILE_IMAGE: logoImage,
     RESERVED_TEAM_NAMES: [
