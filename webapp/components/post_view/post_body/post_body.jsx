@@ -70,7 +70,7 @@ export default class PostBody extends React.PureComponent {
         let comment = '';
         let postClass = '';
 
-        if (parentPost) {
+        if (parentPost && !Utils.isPostEphemeral(post)) {
             const profile = this.props.parentPostUser;
 
             let apostrophe = '';
