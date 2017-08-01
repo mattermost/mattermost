@@ -64,47 +64,53 @@ export default class ShortcutsModal extends React.PureComponent {
                         </Modal.Title>
                     </Modal.Header>
                     <Modal.Body ref='modalBody'>
-                        <div className='shortcuts-body'>
-                            <div className='section'>
-                                <div>
-                                    <h4 className='section-title'><strong>{shortcuts[1]}</strong></h4>
-                                    {renderShortcuts(shortcuts.slice(2, 11))}
-                                </div>
-                            </div>
-                            <div className='section'>
-                                <div>
-                                    <h4 className='section-title'><strong>{shortcuts[11]}</strong></h4>
-                                    {renderShortcuts(shortcuts.slice(12, 14))}
-                                    <span><strong>{shortcuts[14]}</strong></span>
-                                    <div className='subsection'>
-                                        {renderShortcuts(shortcuts.slice(15, 18))}
-                                    </div>
-                                    <span><strong>{shortcuts[18]}</strong></span>
-                                    <div className='subsection'>
-                                        {renderShortcuts(shortcuts.slice(19, 22))}
+                        <div className='row'>
+                            <div className='col-sm-4'>
+                                <div className='section'>
+                                    <div>
+                                        <h4 className='section-title'><strong>{shortcuts[1]}</strong></h4>
+                                        {renderShortcuts(shortcuts.slice(2, 11))}
                                     </div>
                                 </div>
                             </div>
-                            <div className='section'>
-                                <div>
-                                    <h4 className='section-title'><strong>{shortcuts[22]}</strong></h4>
-                                    {renderShortcuts([shortcuts[23]])}
-                                </div>
-                                <div>
-                                    <h4 className='section-title'><strong>{shortcuts[24]}</strong></h4>
-                                    {renderShortcuts(shortcuts.slice(25, 29))}
-                                    <span><strong>{shortcuts[29]}</strong></span>
-                                    <div className='subsection'>
-                                        {renderShortcuts(shortcuts.slice(30, 33))}
+                            <div className='col-sm-4'>
+                                <div className='section'>
+                                    <div>
+                                        <h4 className='section-title'><strong>{shortcuts[11]}</strong></h4>
+                                        {renderShortcuts(shortcuts.slice(12, 14))}
+                                        <span><strong>{shortcuts[14]}</strong></span>
+                                        <div className='subsection'>
+                                            {renderShortcuts(shortcuts.slice(15, 18))}
+                                        </div>
+                                        <span><strong>{shortcuts[18]}</strong></span>
+                                        <div className='subsection'>
+                                            {renderShortcuts(shortcuts.slice(19, 22))}
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                            <div className='info__label'>
-                                <FormattedMessage
-                                    id='shortcuts.info'
-                                    defaultMessage='Begin a message with / for a list of all the commands at your disposal.'
-                                />
+                            <div className='col-sm-4'>
+                                <div className='section'>
+                                    <div>
+                                        <h4 className='section-title'><strong>{shortcuts[22]}</strong></h4>
+                                        {renderShortcuts([shortcuts[23]])}
+                                    </div>
+                                    <div className='seciton--lower'>
+                                        <h4 className='section-title'><strong>{shortcuts[24]}</strong></h4>
+                                        {renderShortcuts(shortcuts.slice(25, 29))}
+                                        <span><strong>{shortcuts[29]}</strong></span>
+                                        <div className='subsection'>
+                                            {renderShortcuts(shortcuts.slice(30, 33))}
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
+                        </div>
+                        <div className='info__label'>
+                            <FormattedMessage
+                                id='shortcuts.info'
+                                defaultMessage='Begin a message with / for a list of all the commands at your disposal.'
+                            />
                         </div>
                     </Modal.Body>
                 </div>
