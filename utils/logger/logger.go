@@ -8,12 +8,56 @@ import (
 	"runtime"
 
 	l4g "github.com/alecthomas/log4go"
+
+	"github.com/mattermost/platform/model"
+	"github.com/mattermost/platform/utils"
 )
 
 // this pattern allows us to "mock" the underlying l4g code when unit testing
 var debug = l4g.Debug
 var info = l4g.Info
 var err = l4g.Error
+
+func init() {
+	initL4g(utils.Cfg)
+}
+
+// listens for configuration changes that we might need to respond to
+var configListenerID = utils.AddConfigListener(func(oldConfig *model.Config, newConfig *model.Config) {
+	info("Configuration change detected, reloading log settings")
+	initL4g(newConfig)
+})
+
+// assumes that ../config.go::configureLog has already been called, and has in turn called l4g.close() to clean up
+// any old filters that we might have previously created
+func initL4g(config *model.Config) {
+	// TODO: add support for newConfig.LogSettings.EnableConsole. Right now, ../config.go sets it up in its configureLog
+	// method. If we also set it up here, messages will be written to the console twice. Eventually, when all instances
+	// of l4g have been replaced by this logger, we can move that code to here
+
+	if config.LogSettings.EnableFile {
+		var fileFormat = config.LogSettings.FileFormat
+		if fileFormat == "" {
+			fileFormat = "[%D %T] [%L] %M"
+		}
+
+		level := l4g.DEBUG
+		if config.LogSettings.FileLevel == "INFO" {
+			level = l4g.INFO
+		} else if config.LogSettings.FileLevel == "WARN" {
+			level = l4g.WARNING
+		} else if config.LogSettings.FileLevel == "ERROR" {
+			level = l4g.ERROR
+		}
+
+		// TODO: use a different writer that formats the entire log message as a JSON object
+		flw := l4g.NewFileLogWriter(utils.GetLogFileLocation(config.LogSettings.FileLocation)+".json", false)
+		flw.SetFormat(fileFormat)
+		flw.SetRotate(true)
+		flw.SetRotateLines(utils.LOG_ROTATE_SIZE)
+		l4g.AddFilter("file", level, flw)
+	}
+}
 
 // contextKey lets us add contextual information to log messages
 type contextKey string
