@@ -152,6 +152,8 @@ categories.each do |category|
         end
     end
 
+    css_rules << ".emoji-category-#{category} { background-image: url('../images/emoji-sheets/#{category}.png'); }"
+
     SpriteFactory.run!(
         tmp_directory,
         :layout => :packed,
@@ -162,9 +164,9 @@ categories.each do |category|
     ) do |images|
         images.each do |name, image|
             if image[:cssw] != 64 || image[:cssh] != 64
-                css_rules << ".emoji-#{name} { background-image: url(../images/emoji-sheets/#{category}.png); background-position: -#{image[:cssx]}px -#{image[:cssy]}px; width: #{image[:cssw]}px; height: #{image[:cssh]}px; }"
+                css_rules << ".emoji-#{name} { background-position: -#{image[:cssx]}px -#{image[:cssy]}px; width: #{image[:cssw]}px; height: #{image[:cssh]}px; }"
             else
-                css_rules << ".emoji-#{name} { background-image: url(../images/emoji-sheets/#{category}.png); background-position: -#{image[:cssx]}px -#{image[:cssy]}px; }"
+                css_rules << ".emoji-#{name} { background-position: -#{image[:cssx]}px -#{image[:cssy]}px; }"
             end
         end
     end
