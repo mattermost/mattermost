@@ -250,8 +250,8 @@ func UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model.AppError
 			return nil, err
 		}
 
-		if oldPost.IsSystemMessage() && !oldPost.IsUserActivitySystemMessage() {
-			err := model.NewAppError("updatePost", "api.post.update_post.system_message.app_error", nil, "id="+post.Id, http.StatusBadRequest)
+		if oldPost.IsSystemMessage() {
+			err := model.NewAppError("UpdatePost", "api.post.update_post.system_message.app_error", nil, "id="+post.Id, http.StatusBadRequest)
 			return nil, err
 		}
 
