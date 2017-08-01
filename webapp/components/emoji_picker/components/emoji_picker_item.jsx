@@ -7,7 +7,7 @@ import React from 'react';
 
 import EmojiStore from 'stores/emoji_store.jsx';
 
-export default class EmojiPickerItem extends React.Component {
+export default class EmojiPickerItem extends React.PureComponent {
     static propTypes = {
         emoji: PropTypes.object.isRequired,
         onItemOver: PropTypes.func.isRequired,
