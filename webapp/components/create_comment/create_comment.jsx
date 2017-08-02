@@ -3,19 +3,19 @@
 
 import $ from 'jquery';
 import ReactDOM from 'react-dom';
-import AppDispatcher from '../dispatcher/app_dispatcher.jsx';
+import AppDispatcher from 'dispatcher/app_dispatcher.jsx';
 import * as ChannelActions from 'actions/channel_actions.jsx';
 import EmojiStore from 'stores/emoji_store.jsx';
 import UserStore from 'stores/user_store.jsx';
-import PostDeletedModal from './post_deleted_modal.jsx';
+import PostDeletedModal from 'components/post_deleted_modal.jsx';
 import PostStore from 'stores/post_store.jsx';
 import PreferenceStore from 'stores/preference_store.jsx';
 import TeamStore from 'stores/team_store.jsx';
 import MessageHistoryStore from 'stores/message_history_store.jsx';
-import Textbox from './textbox.jsx';
-import MsgTyping from './msg_typing.jsx';
-import FileUpload from './file_upload.jsx';
-import FilePreview from './file_preview.jsx';
+import Textbox from 'components/textbox.jsx';
+import MsgTyping from 'components/msg_typing.jsx';
+import FileUpload from 'components/file_upload.jsx';
+import FilePreview from 'components/file_preview.jsx';
 import EmojiPickerOverlay from 'components/emoji_picker/emoji_picker_overlay.jsx';
 import * as EmojiPicker from 'components/emoji_picker/emoji_picker.jsx';
 import * as Utils from 'utils/utils.jsx';
@@ -31,39 +31,23 @@ import {browserHistory} from 'react-router/es6';
 const ActionTypes = Constants.ActionTypes;
 const KeyCodes = Constants.KeyCodes;
 
-import {REACTION_PATTERN, EMOJI_PATTERN} from './create_post.jsx';
+import {REACTION_PATTERN, EMOJI_PATTERN} from 'components/create_post.jsx';
 import PropTypes from 'prop-types';
 import React from 'react';
 
 export default class CreateComment extends React.Component {
+    static propTypes = {
+        channelId: PropTypes.string.isRequired,
+        rootId: PropTypes.string.isRequired,
+        latestPostId: PropTypes.string,
+        getSidebarBody: PropTypes.func,
+        createPostErrorId: PropTypes.string
+    }
+
     constructor(props) {
         super(props);
 
         this.lastTime = 0;
-
-        this.handleSubmit = this.handleSubmit.bind(this);
-        this.handleSubmitPost = this.handleSubmitPost.bind(this);
-        this.handleSubmitReaction = this.handleSubmitReaction.bind(this);
-        this.commentMsgKeyPress = this.commentMsgKeyPress.bind(this);
-        this.handleChange = this.handleChange.bind(this);
-        this.handleKeyDown = this.handleKeyDown.bind(this);
-        this.handleBlur = this.handleBlur.bind(this);
-        this.handleFileUploadChange = this.handleFileUploadChange.bind(this);
-        this.handleUploadStart = this.handleUploadStart.bind(this);
-        this.handleFileUploadComplete = this.handleFileUploadComplete.bind(this);
-        this.handleUploadError = this.handleUploadError.bind(this);
-        this.removePreview = this.removePreview.bind(this);
-        this.getFileCount = this.getFileCount.bind(this);
-        this.getFileUploadTarget = this.getFileUploadTarget.bind(this);
-        this.getCreateCommentControls = this.getCreateCommentControls.bind(this);
-        this.onPreferenceChange = this.onPreferenceChange.bind(this);
-        this.focusTextbox = this.focusTextbox.bind(this);
-        this.showPostDeletedModal = this.showPostDeletedModal.bind(this);
-        this.hidePostDeletedModal = this.hidePostDeletedModal.bind(this);
-        this.handlePostError = this.handlePostError.bind(this);
-        this.handleEmojiClick = this.handleEmojiClick.bind(this);
-        this.toggleEmojiPicker = this.toggleEmojiPicker.bind(this);
-        this.hideEmojiPicker = this.hideEmojiPicker.bind(this);
 
         PostStore.clearCommentDraftUploads();
         MessageHistoryStore.resetHistoryIndex('comment');
@@ -84,15 +68,15 @@ export default class CreateComment extends React.Component {
         this.lastBlurAt = 0;
     }
 
-    toggleEmojiPicker() {
+    toggleEmojiPicker = () => {
         this.setState({showEmojiPicker: !this.state.showEmojiPicker});
     }
 
-    hideEmojiPicker() {
+    hideEmojiPicker = () => {
         this.setState({showEmojiPicker: false});
     }
 
-    handleEmojiClick(emoji) {
+    handleEmojiClick = (emoji) => {
         const emojiAlias = emoji.name || emoji.aliases[0];
 
         if (!emojiAlias) {
@@ -125,7 +109,7 @@ export default class CreateComment extends React.Component {
         PreferenceStore.removeChangeListener(this.onPreferenceChange);
     }
 
-    onPreferenceChange() {
+    onPreferenceChange = () => {
         this.setState({
             ctrlSend: PreferenceStore.getBool(Constants.Preferences.CATEGORY_ADVANCED_SETTINGS, 'send_on_ctrl_enter')
         });
@@ -141,11 +125,11 @@ export default class CreateComment extends React.Component {
         }
     }
 
-    handlePostError(postError) {
+    handlePostError = (postError) => {
         this.setState({postError});
     }
 
-    handleSubmit(e) {
+    handleSubmit = (e) => {
         e.preventDefault();
 
         if (this.state.uploadsInProgress.length > 0 || this.state.submitting) {
@@ -190,7 +174,7 @@ export default class CreateComment extends React.Component {
         this.focusTextbox(forceFocus);
     }
 
-    handleSubmitCommand(message) {
+    handleSubmitCommand = (message) => {
         PostStore.storeCommentDraft(this.props.rootId, null);
         this.setState({
             message: '',
@@ -230,7 +214,7 @@ export default class CreateComment extends React.Component {
         );
     }
 
-    handleSubmitPost(message) {
+    handleSubmitPost = (message) => {
         const userId = UserStore.getCurrentId();
         const time = Utils.getTimestamp();
 
@@ -254,21 +238,7 @@ export default class CreateComment extends React.Component {
             });
         }
 
-        PostActions.createPost(post, this.state.fileInfos, null,
-            (err) => {
-                if (err.id === 'api.post.create_post.root_id.app_error') {
-                    this.showPostDeletedModal();
-                    PostStore.removePendingPost(post.channel_id, post.pending_post_id);
-                    this.setState({message: post.message});
-                } else {
-                    this.forceUpdate();
-                }
-
-                this.setState({
-                    submitting: false
-                });
-            }
-        );
+        PostActions.createPost(post, this.state.fileInfos);
 
         this.setState({
             message: '',
@@ -284,7 +254,7 @@ export default class CreateComment extends React.Component {
         this.focusTextbox(forceFocus);
     }
 
-    handleSubmitReaction(isReaction) {
+    handleSubmitReaction = (isReaction) => {
         const action = isReaction[1];
 
         const emojiName = isReaction[2];
@@ -299,7 +269,7 @@ export default class CreateComment extends React.Component {
         PostStore.storeCommentDraft(this.props.rootId, null);
     }
 
-    commentMsgKeyPress(e) {
+    commentMsgKeyPress = (e) => {
         if (!UserAgent.isMobile() && ((this.state.ctrlSend && e.ctrlKey) || !this.state.ctrlSend)) {
             if (e.which === KeyCodes.ENTER && !e.shiftKey && !e.altKey) {
                 e.preventDefault();
@@ -311,7 +281,7 @@ export default class CreateComment extends React.Component {
         GlobalActions.emitLocalUserTypingEvent(this.props.channelId, this.props.rootId);
     }
 
-    handleChange(e) {
+    handleChange = (e) => {
         const message = e.target.value;
 
         const draft = PostStore.getCommentDraft(this.props.rootId);
@@ -328,7 +298,7 @@ export default class CreateComment extends React.Component {
         });
     }
 
-    handleKeyDown(e) {
+    handleKeyDown = (e) => {
         if (this.state.ctrlSend && e.keyCode === KeyCodes.ENTER && e.ctrlKey === true) {
             this.commentMsgKeyPress(e);
             return;
@@ -365,11 +335,11 @@ export default class CreateComment extends React.Component {
         }
     }
 
-    handleFileUploadChange() {
+    handleFileUploadChange = () => {
         this.focusTextbox();
     }
 
-    handleUploadStart(clientIds) {
+    handleUploadStart = (clientIds) => {
         const draft = PostStore.getCommentDraft(this.props.rootId);
 
         draft.uploadsInProgress = draft.uploadsInProgress.concat(clientIds);
@@ -382,7 +352,7 @@ export default class CreateComment extends React.Component {
         this.focusTextbox();
     }
 
-    handleFileUploadComplete(fileInfos, clientIds) {
+    handleFileUploadComplete = (fileInfos, clientIds) => {
         const draft = PostStore.getCommentDraft(this.props.rootId);
 
         // remove each finished file from uploads
@@ -412,7 +382,7 @@ export default class CreateComment extends React.Component {
         });
     }
 
-    handleUploadError(err, clientId) {
+    handleUploadError = (err, clientId) => {
         if (clientId === -1) {
             this.setState({serverError: err});
         } else {
@@ -429,7 +399,7 @@ export default class CreateComment extends React.Component {
         }
     }
 
-    removePreview(id) {
+    removePreview = (id) => {
         const fileInfos = this.state.fileInfos;
         const uploadsInProgress = this.state.uploadsInProgress;
 
@@ -470,43 +440,47 @@ export default class CreateComment extends React.Component {
                 enableAddButton
             });
         }
+
+        if (newProps.createPostErrorId === 'api.post.create_post.root_id.app_error' && newProps.createPostErrorId !== this.props.createPostErrorId) {
+            this.showPostDeletedModal();
+        }
     }
 
-    getFileCount() {
+    getFileCount = () => {
         return this.state.fileInfos.length + this.state.uploadsInProgress.length;
     }
 
-    getFileUploadTarget() {
+    getFileUploadTarget = () => {
         return this.refs.textbox;
     }
 
-    getCreateCommentControls() {
+    getCreateCommentControls = () => {
         return this.refs.createCommentControls;
     }
 
-    focusTextbox(keepFocus = false) {
+    focusTextbox = (keepFocus = false) => {
         if (keepFocus || !Utils.isMobile()) {
             this.refs.textbox.focus();
         }
     }
 
-    showPostDeletedModal() {
+    showPostDeletedModal = () => {
         this.setState({
             showPostDeletedModal: true
         });
     }
 
-    hidePostDeletedModal() {
+    hidePostDeletedModal = () => {
         this.setState({
             showPostDeletedModal: false
         });
     }
 
-    handleBlur() {
+    handleBlur = () => {
         this.lastBlurAt = Date.now();
     }
 
-    handleEnableAddButton(message, fileInfos) {
+    handleEnableAddButton = (message, fileInfos) => {
         return message.trim().length !== 0 || fileInfos.length !== 0;
     }
 
@@ -656,10 +630,3 @@ export default class CreateComment extends React.Component {
         );
     }
 }
-
-CreateComment.propTypes = {
-    channelId: PropTypes.string.isRequired,
-    rootId: PropTypes.string.isRequired,
-    latestPostId: PropTypes.string,
-    getSidebarBody: PropTypes.func
-};
