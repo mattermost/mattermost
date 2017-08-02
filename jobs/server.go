@@ -49,15 +49,11 @@ func (server *JobServer) LoadLicense() {
 }
 
 func (server *JobServer) StartWorkers() {
-	if *utils.Cfg.JobSettings.RunJobs {
-		Srv.Workers = InitWorkers().Start()
-	}
+	Srv.Workers = InitWorkers().Start()
 }
 
 func (server *JobServer) StartSchedulers() {
-	if *utils.Cfg.JobSettings.RunJobs {
-		Srv.Schedulers = InitSchedulers().Start()
-	}
+	Srv.Schedulers = InitSchedulers().Start()
 }
 
 func (server *JobServer) StopWorkers() {

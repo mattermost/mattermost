@@ -114,6 +114,7 @@ export function createDMIntroMessage(channel, centeredIntro) {
                         width='50'
                         height='50'
                         user={teammate}
+                        hasMention={true}
                     />
                 </div>
                 <div className='channel-intro-profile'>
@@ -121,6 +122,7 @@ export function createDMIntroMessage(channel, centeredIntro) {
                         <UserProfile
                             user={teammate}
                             disablePopover={false}
+                            hasMention={true}
                         />
                     </strong>
                 </div>

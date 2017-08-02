@@ -1,6 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+/* eslint-disable no-magic-numbers */
+
 import keyMirror from 'key-mirror';
 
 import audioIcon from 'images/icons/audio.png';
@@ -68,6 +70,7 @@ export const ActionTypes = keyMirror({
     CREATE_POST: null,
     CREATE_COMMENT: null,
     POST_DELETED: null,
+    POST_UPDATED: null,
     REMOVE_POST: null,
 
     RECEIVED_CHANNELS: null,
@@ -176,6 +179,7 @@ export const ActionTypes = keyMirror({
     TOGGLE_QUICK_SWITCH_MODAL: null,
     TOGGLE_CHANNEL_HEADER_UPDATE_MODAL: null,
     TOGGLE_CHANNEL_PURPOSE_UPDATE_MODAL: null,
+    TOGGLE_CHANNEL_NAME_UPDATE_MODAL: null,
 
     SUGGESTION_PRETEXT_CHANGED: null,
     SUGGESTION_RECEIVED_SUGGESTIONS: null,
@@ -221,6 +225,7 @@ export const SocketEvents = {
     POSTED: 'posted',
     POST_EDITED: 'post_edited',
     POST_DELETED: 'post_deleted',
+    POST_UPDATED: 'post_updated',
     CHANNEL_CREATED: 'channel_created',
     CHANNEL_DELETED: 'channel_deleted',
     CHANNEL_UPDATED: 'channel_updated',
@@ -293,6 +298,20 @@ export const StatTypes = keyMirror({
 
 export const ErrorPageTypes = {
     LOCAL_STORAGE: 'local_storage'
+};
+
+export const JobTypes = {
+    DATA_RETENTION: 'data_retention',
+    ELASTICSEARCH_POST_INDEXING: 'elasticsearch_post_indexing'
+};
+
+export const JobStatuses = {
+    PENDING: 'pending',
+    IN_PROGRESS: 'in_progress',
+    SUCCESS: 'success',
+    ERROR: 'error',
+    CANCEL_REQUESTED: 'cancel_requested',
+    CANCELED: 'canceled'
 };
 
 export const ErrorBarTypes = {
@@ -415,6 +434,7 @@ export const Constants = {
     POST_LOADING: 'loading',
     POST_FAILED: 'failed',
     POST_DELETED: 'deleted',
+    POST_UPDATED: 'updated',
     SYSTEM_MESSAGE_PREFIX: 'system_',
     SYSTEM_MESSAGE_PROFILE_IMAGE: logoImage,
     RESERVED_TEAM_NAMES: [
@@ -446,6 +466,7 @@ export const Constants = {
     OPEN_TEAM: 'O',
     MAX_POST_LEN: 4000,
     EMOJI_SIZE: 16,
+    UNREAD_ICON_SVG: "<svg width='10px' height='10px' viewBox='0 0 10 10' version='1.1' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' xml:space='preserve' style='fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:1.41421;'><g transform='matrix(1,0,0,1,-20,-18)'><g transform='matrix(0.0330723,0,0,0.0322634,15.8132,12.3164)'><path d='M245.803,377.493C245.803,377.493 204.794,336.485 179.398,311.088C168.55,300.24 150.962,300.24 140.114,311.088C138.327,312.875 136.517,314.686 134.73,316.473C123.882,327.321 123.882,344.908 134.73,355.756C167.972,388.998 233.949,454.975 256.949,477.975C262.158,483.184 269.223,486.111 276.591,486.111C277.38,486.111 278.176,486.111 278.965,486.111C286.332,486.111 293.397,483.184 298.607,477.975C321.607,454.975 387.584,388.998 420.826,355.756C431.674,344.908 431.674,327.321 420.826,316.473C419.039,314.686 417.228,312.875 415.441,311.088C404.593,300.24 387.005,300.24 376.158,311.088C350.761,336.485 309.753,377.493 309.753,377.493C309.753,377.493 309.753,279.687 309.753,203.94C309.753,196.573 306.826,189.508 301.617,184.298C296.408,179.089 289.342,176.162 281.975,176.162C279.191,176.162 276.364,176.162 273.58,176.162C266.213,176.162 259.148,179.089 253.939,184.298C248.729,189.508 245.803,196.573 245.803,203.94L245.803,377.493Z'/></g></g></svg>",
     MEMBERS_ICON_SVG: "<svg width='16px' height='16px' viewBox='0 0 16 16' version='1.1' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink'><g id='Symbols' stroke='none' stroke-width='1' fill='inherit' fill-rule='evenodd'> <g id='Channel-Header/Web-HD' transform='translate(-725.000000, -32.000000)' fill-rule='nonzero' fill='inherit'> <g id='Channel-Header'> <g id='user-count' transform='translate(676.000000, 22.000000)'> <path d='M64.9481342,24 C64.6981342,20.955 63.2551342,19.076 60.6731342,18.354 C61.4831342,17.466 61.9881342,16.296 61.9881342,15 C61.9881342,12.238 59.7501342,10 56.9881342,10 C54.2261342,10 51.9881342,12.238 51.9881342,15 C51.9881342,16.297 52.4941342,17.467 53.3031342,18.354 C50.7221342,19.076 49.2771342,20.955 49.0271342,24 C49.0161342,24.146 49.0061342,24.577 49.0001342,25.001 C48.9911342,25.553 49.4361342,26 49.9881342,26 L63.9881342,26 C64.5411342,26 64.9851342,25.553 64.9761342,25.001 C64.9701342,24.577 64.9601342,24.146 64.9481342,24 Z M56.9881342,12 C58.6421342,12 59.9881342,13.346 59.9881342,15 C59.9881342,16.654 58.6421342,18 56.9881342,18 C55.3341342,18 53.9881342,16.654 53.9881342,15 C53.9881342,13.346 55.3341342,12 56.9881342,12 Z M51.0321342,24 C51.2981342,21.174 52.7911342,20 55.9881342,20 L57.9881342,20 C61.1851342,20 62.6781342,21.174 62.9441342,24 L51.0321342,24 Z' id='User_4_x2C__Profile_5-Copy-9'></path> </g> </g> </g> </g> </svg>",
     TEAM_INFO_SVG: "<svg width='100%' height='100%' viewBox='0 0 20 20' version='1.1' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' xml:space='preserve' style='fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:1.41421;'> <g transform='matrix(1.17647,0,0,1.17647,-1.55431e-15,-1.00573e-14)'> <path d='M8.5,0C3.797,0 0,3.797 0,8.5C0,13.203 3.797,17 8.5,17C13.203,17 17,13.203 17,8.5C17,3.797 13.203,0 8.5,0ZM10,8.5C10,7.672 9.328,7 8.5,7C7.672,7 7,7.672 7,8.5L7,12.45C7,13.278 7.672,13.95 8.5,13.95C9.328,13.95 10,13.278 10,12.45L10,8.5ZM8.5,3C9.328,3 10,3.672 10,4.5C10,5.328 9.328,6 8.5,6C7.672,6 7,5.328 7,4.5C7,3.672 7.672,3 8.5,3Z'/> </g> </svg>",
     FLAG_FILLED_ICON_SVG: "<svg width='16px' height='16px' viewBox='0 0 16 16' version='1.1' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink'> <g stroke='none' stroke-width='1' fill='inherit' fill-rule='evenodd'> <g transform='translate(-1073.000000, -33.000000)' fill-rule='nonzero' fill='inherit'> <g transform='translate(-1.000000, 0.000000)'> <g transform='translate(1064.000000, 22.000000)'> <g transform='translate(10.000000, 11.000000)'> <path d='M8,1 L2,1 C2,0.447 1.553,0 1,0 C0.447,0 0,0.447 0,1 L0,15.5 C0,15.776 0.224,16 0.5,16 L1.5,16 C1.776,16 2,15.776 2,15.5 L2,11 L7,11 L7,12 C7,12.553 7.447,13 8,13 L15,13 C15.553,13 16,12.553 16,12 L16,4 C16,3.447 15.553,3 15,3 L9,3 L9,2 C9,1.447 8.553,1 8,1 Z'></path> </g> </g> </g> </g> </g> </svg>",

@@ -49,6 +49,7 @@ type Store interface {
 	FileInfo() FileInfoStore
 	Reaction() ReactionStore
 	Job() JobStore
+	UserAccessToken() UserAccessTokenStore
 	MarkSystemRanUnitTests()
 	Close()
 	DropAllTables()
@@ -296,6 +297,7 @@ type WebhookStore interface {
 	UpdateIncoming(webhook *model.IncomingWebhook) StoreChannel
 	GetIncomingByChannel(channelId string) StoreChannel
 	DeleteIncoming(webhookId string, time int64) StoreChannel
+	PermanentDeleteIncomingByChannel(channelId string) StoreChannel
 	PermanentDeleteIncomingByUser(userId string) StoreChannel
 
 	SaveOutgoing(webhook *model.OutgoingWebhook) StoreChannel
@@ -304,6 +306,7 @@ type WebhookStore interface {
 	GetOutgoingByChannel(channelId string, offset, limit int) StoreChannel
 	GetOutgoingByTeam(teamId string, offset, limit int) StoreChannel
 	DeleteOutgoing(webhookId string, time int64) StoreChannel
+	PermanentDeleteOutgoingByChannel(channelId string) StoreChannel
 	PermanentDeleteOutgoingByUser(userId string) StoreChannel
 	UpdateOutgoing(hook *model.OutgoingWebhook) StoreChannel
 
@@ -317,6 +320,7 @@ type CommandStore interface {
 	Get(id string) StoreChannel
 	GetByTeam(teamId string) StoreChannel
 	Delete(commandId string, time int64) StoreChannel
+	PermanentDeleteByTeam(teamId string) StoreChannel
 	PermanentDeleteByUser(userId string) StoreChannel
 	Update(hook *model.Command) StoreChannel
 	AnalyticsCommandCount(teamId string) StoreChannel
@@ -379,8 +383,6 @@ type FileInfoStore interface {
 type ReactionStore interface {
 	Save(reaction *model.Reaction) StoreChannel
 	Delete(reaction *model.Reaction) StoreChannel
-	InvalidateCacheForPost(postId string)
-	InvalidateCache()
 	GetForPost(postId string, allowFromCache bool) StoreChannel
 	DeleteAllWithEmojiName(emojiName string) StoreChannel
 }
@@ -396,4 +398,13 @@ type JobStore interface {
 	GetAllByTypePage(jobType string, offset int, limit int) StoreChannel
 	GetAllByStatus(status string) StoreChannel
 	Delete(id string) StoreChannel
+}
+
+type UserAccessTokenStore interface {
+	Save(token *model.UserAccessToken) StoreChannel
+	Delete(tokenId string) StoreChannel
+	DeleteAllForUser(userId string) StoreChannel
+	Get(tokenId string) StoreChannel
+	GetByToken(tokenString string) StoreChannel
+	GetByUser(userId string, page, perPage int) StoreChannel
 }

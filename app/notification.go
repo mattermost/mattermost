@@ -332,13 +332,12 @@ func sendNotificationEmail(post *model.Post, user *model.User, channel *model.Ch
 	}
 	if *utils.Cfg.EmailSettings.EnableEmailBatching {
 		var sendBatched bool
-
 		if result := <-Srv.Store.Preference().Get(user.Id, model.PREFERENCE_CATEGORY_NOTIFICATIONS, model.PREFERENCE_NAME_EMAIL_INTERVAL); result.Err != nil {
-			// if the call fails, assume it hasn't been set and use the default
+			// if the call fails, assume it hasn't been set and don't batch notifications for this user
 			sendBatched = false
 		} else {
-			// default to not using batching if the setting is set to immediate
-			sendBatched = result.Data.(model.Preference).Value != model.PREFERENCE_DEFAULT_EMAIL_INTERVAL
+			// if the user has chosen to receive notifications immediately, don't batch them
+			sendBatched = result.Data.(model.Preference).Value != model.PREFERENCE_EMAIL_INTERVAL_NO_BATCHING_SECONDS
 		}
 
 		if sendBatched {

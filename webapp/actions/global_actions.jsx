@@ -67,6 +67,7 @@ export function emitChannelClickEvent(channel) {
 
             // Mark previous and next channel as read
             ChannelStore.resetCounts([chan.id, oldChannelId]);
+            reloadIfServerVersionChanged();
         });
 
         // Subtract mentions for the team
@@ -230,6 +231,14 @@ export function showChannelHeaderUpdateModal(channel) {
 export function showChannelPurposeUpdateModal(channel) {
     AppDispatcher.handleViewAction({
         type: ActionTypes.TOGGLE_CHANNEL_PURPOSE_UPDATE_MODAL,
+        value: true,
+        channel
+    });
+}
+
+export function showChannelNameUpdateModal(channel) {
+    AppDispatcher.handleViewAction({
+        type: ActionTypes.TOGGLE_CHANNEL_NAME_UPDATE_MODAL,
         value: true,
         channel
     });
@@ -576,4 +585,24 @@ export function postListScrollChange(forceScrollToBottom = false) {
         type: EventTypes.POST_LIST_SCROLL_CHANGE,
         value: forceScrollToBottom
     });
+}
+
+export function emitPopoverMentionKeyClick(isRHS, mentionKey) {
+    AppDispatcher.handleViewAction({
+        type: ActionTypes.POPOVER_MENTION_KEY_CLICK,
+        isRHS,
+        mentionKey
+    });
+}
+
+let serverVersion = '';
+
+export function reloadIfServerVersionChanged() {
+    const newServerVersion = Client4.getServerVersion();
+    if (serverVersion && serverVersion !== newServerVersion) {
+        console.log('Detected version update refreshing the page'); //eslint-disable-line no-console
+        window.location.reload(true);
+    }
+
+    serverVersion = newServerVersion;
 }

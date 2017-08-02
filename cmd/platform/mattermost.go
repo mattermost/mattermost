@@ -41,7 +41,7 @@ func init() {
 
 	resetCmd.Flags().Bool("confirm", false, "Confirm you really want to delete everything and a DB backup has been performed.")
 
-	rootCmd.AddCommand(serverCmd, versionCmd, userCmd, teamCmd, licenseCmd, importCmd, resetCmd, channelCmd, rolesCmd, testCmd, ldapCmd, configCmd)
+	rootCmd.AddCommand(serverCmd, versionCmd, userCmd, teamCmd, licenseCmd, importCmd, resetCmd, channelCmd, rolesCmd, testCmd, ldapCmd, configCmd, jobserverCmd)
 }
 
 var rootCmd = &cobra.Command{

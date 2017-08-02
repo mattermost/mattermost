@@ -186,6 +186,8 @@ func (s SqlWebhookStore) DeleteIncoming(webhookId string, time int64) StoreChann
 			result.Err = model.NewLocAppError("SqlWebhookStore.DeleteIncoming", "store.sql_webhooks.delete_incoming.app_error", nil, "id="+webhookId+", err="+err.Error())
 		}
 
+		s.InvalidateWebhookCache(webhookId)
+
 		storeChannel <- result
 		close(storeChannel)
 	}()
@@ -203,6 +205,28 @@ func (s SqlWebhookStore) PermanentDeleteIncomingByUser(userId string) StoreChann
 		if err != nil {
 			result.Err = model.NewLocAppError("SqlWebhookStore.DeleteIncomingByUser", "store.sql_webhooks.permanent_delete_incoming_by_user.app_error", nil, "id="+userId+", err="+err.Error())
 		}
+
+		ClearWebhookCaches()
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
+func (s SqlWebhookStore) PermanentDeleteIncomingByChannel(channelId string) StoreChannel {
+	storeChannel := make(StoreChannel, 1)
+
+	go func() {
+		result := StoreResult{}
+
+		_, err := s.GetMaster().Exec("DELETE FROM IncomingWebhooks WHERE ChannelId = :ChannelId", map[string]interface{}{"ChannelId": channelId})
+		if err != nil {
+			result.Err = model.NewLocAppError("SqlWebhookStore.DeleteIncomingByChannel", "store.sql_webhooks.permanent_delete_incoming_by_channel.app_error", nil, "id="+channelId+", err="+err.Error())
+		}
+
+		ClearWebhookCaches()
 
 		storeChannel <- result
 		close(storeChannel)
@@ -434,6 +458,26 @@ func (s SqlWebhookStore) PermanentDeleteOutgoingByUser(userId string) StoreChann
 		if err != nil {
 			result.Err = model.NewLocAppError("SqlWebhookStore.DeleteOutgoingByUser", "store.sql_webhooks.permanent_delete_outgoing_by_user.app_error", nil, "id="+userId+", err="+err.Error())
 		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
+func (s SqlWebhookStore) PermanentDeleteOutgoingByChannel(channelId string) StoreChannel {
+	storeChannel := make(StoreChannel, 1)
+
+	go func() {
+		result := StoreResult{}
+
+		_, err := s.GetMaster().Exec("DELETE FROM OutgoingWebhooks WHERE ChannelId = :ChannelId", map[string]interface{}{"ChannelId": channelId})
+		if err != nil {
+			result.Err = model.NewLocAppError("SqlWebhookStore.DeleteOutgoingByChannel", "store.sql_webhooks.permanent_delete_outgoing_by_channel.app_error", nil, "id="+channelId+", err="+err.Error())
+		}
+
+		ClearWebhookCaches()
 
 		storeChannel <- result
 		close(storeChannel)

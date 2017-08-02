@@ -6,24 +6,28 @@ package store
 import "github.com/mattermost/platform/model"
 import "context"
 
+type ResultHandler func(*StoreResult)
+
 type LayeredStoreSupplierResult struct {
-	Result StoreResult
-	Err    *model.AppError
+	StoreResult
 }
 
-func NewSupplierResult() LayeredStoreSupplierResult {
-	return LayeredStoreSupplierResult{
-		Result: StoreResult{},
-		Err:    nil,
-	}
+func NewSupplierResult() *LayeredStoreSupplierResult {
+	return &LayeredStoreSupplierResult{}
 }
 
 type LayeredStoreSupplier interface {
 	//
+	// Control
+	//
+	SetChainNext(LayeredStoreSupplier)
+	Next() LayeredStoreSupplier
+
+	//
 	// Reactions
 	//), hints ...LayeredStoreHint)
-	ReactionSave(ctx context.Context, reaction *model.Reaction, hints ...LayeredStoreHint) LayeredStoreSupplierResult
-	ReactionDelete(ctx context.Context, reaction *model.Reaction, hints ...LayeredStoreHint) LayeredStoreSupplierResult
-	ReactionGetForPost(ctx context.Context, postId string, hints ...LayeredStoreHint) LayeredStoreSupplierResult
-	ReactionDeleteAllWithEmojiName(ctx context.Context, emojiName string, hints ...LayeredStoreHint) LayeredStoreSupplierResult
+	ReactionSave(ctx context.Context, reaction *model.Reaction, hints ...LayeredStoreHint) *LayeredStoreSupplierResult
+	ReactionDelete(ctx context.Context, reaction *model.Reaction, hints ...LayeredStoreHint) *LayeredStoreSupplierResult
+	ReactionGetForPost(ctx context.Context, postId string, hints ...LayeredStoreHint) *LayeredStoreSupplierResult
+	ReactionDeleteAllWithEmojiName(ctx context.Context, emojiName string, hints ...LayeredStoreHint) *LayeredStoreSupplierResult
 }

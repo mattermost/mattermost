@@ -284,7 +284,7 @@ export default class SearchResults extends React.Component {
 
                 let isFlagged = false;
                 if (this.state.flaggedPosts) {
-                    isFlagged = this.state.flaggedPosts.get(post.id) === 'true';
+                    isFlagged = this.state.flaggedPosts.get(post.id) != null;
                 }
 
                 const reverseCount = arr.length - idx - 1;

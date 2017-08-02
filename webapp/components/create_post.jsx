@@ -243,6 +243,12 @@ export default class CreatePost extends React.Component {
             return;
         }
 
+        if (!isDirectOrGroup && this.state.message.trimRight() === '/rename') {
+            GlobalActions.showChannelNameUpdateModal(updateChannel);
+            this.setState({message: ''});
+            return;
+        }
+
         this.doSubmit(e);
     }
 
@@ -774,6 +780,7 @@ export default class CreatePost extends React.Component {
                                 emojiEnabled={window.mm_config.EnableEmojiPicker === 'true'}
                                 createMessage={Utils.localizeMessage('create_post.write', 'Write a message...')}
                                 channelId={this.state.channelId}
+                                popoverMentionKeyClick={true}
                                 id='post_textbox'
                                 ref='textbox'
                             />

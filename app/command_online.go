@@ -33,11 +33,7 @@ func (me *OnlineProvider) GetCommand(T goi18n.TranslateFunc) *model.Command {
 }
 
 func (me *OnlineProvider) DoCommand(args *model.CommandArgs, message string) *model.CommandResponse {
-	rmsg := args.T("api.command_online.success")
-	if len(message) > 0 {
-		rmsg = message + " " + rmsg
-	}
 	SetStatusOnline(args.UserId, args.Session.Id, true)
 
-	return &model.CommandResponse{ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL, Text: rmsg}
+	return &model.CommandResponse{ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL, Text: args.T("api.command_online.success")}
 }

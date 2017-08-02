@@ -80,7 +80,7 @@ export default {
                 {
                     path: 'edit',
                     getComponents: (location, callback) => {
-                        System.import('components/integrations/components/edit_command.jsx').then(RouteUtils.importComponentSuccess(callback));
+                        System.import('components/integrations/components/edit_command').then(RouteUtils.importComponentSuccess(callback));
                     }
                 },
                 {

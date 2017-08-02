@@ -28,13 +28,20 @@ export default class EmailNotificationSetting extends React.Component {
         super(props);
 
         this.submit = this.submit.bind(this);
-
         this.expand = this.expand.bind(this);
         this.collapse = this.collapse.bind(this);
 
-        this.state = {
-            emailInterval: PreferenceStore.getInt(Preferences.CATEGORY_NOTIFICATIONS, Preferences.EMAIL_INTERVAL, Preferences.INTERVAL_IMMEDIATE)
-        };
+        if (global.mm_config.EnableEmailBatching === 'true') {
+            // when email batching is enabled, the default interval is 15 minutes
+            this.state = {
+                emailInterval: PreferenceStore.getInt(Preferences.CATEGORY_NOTIFICATIONS, Preferences.EMAIL_INTERVAL, Preferences.INTERVAL_FIFTEEN_MINUTES)
+            };
+        } else {
+            // otherwise, the default interval is immediately
+            this.state = {
+                emailInterval: PreferenceStore.getInt(Preferences.CATEGORY_NOTIFICATIONS, Preferences.EMAIL_INTERVAL, Preferences.INTERVAL_IMMEDIATE)
+            };
+        }
     }
 
     handleChange(enableEmail, emailInterval) {

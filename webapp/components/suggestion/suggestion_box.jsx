@@ -70,21 +70,40 @@ export default class SuggestionBox extends React.Component {
         /**
          * Function called when an item is selected
          */
-        onItemSelected: PropTypes.func
+        onItemSelected: PropTypes.func,
+
+        /**
+         * Flags if the suggestion_box is for the RHS (Reply).
+         */
+        isRHS: PropTypes.bool,
+
+        /**
+         * Function called when @mention is clicked
+         */
+        popoverMentionKeyClick: PropTypes.bool,
+
+        /**
+         * The number of characters required to show the suggestion list, defaults to 1
+         */
+        requiredCharacters: PropTypes.number
     }
 
     static defaultProps = {
         type: 'input',
         listStyle: 'top',
         renderDividers: false,
-        completeOnTab: true
+        completeOnTab: true,
+        isRHS: false,
+        requiredCharacters: 1
     }
 
     constructor(props) {
         super(props);
 
         this.handleBlur = this.handleBlur.bind(this);
+        this.handleFocus = this.handleFocus.bind(this);
 
+        this.handlePopoverMentionKeyClick = this.handlePopoverMentionKeyClick.bind(this);
         this.handleCompleteWord = this.handleCompleteWord.bind(this);
         this.handleChange = this.handleChange.bind(this);
         this.handleCompositionStart = this.handleCompositionStart.bind(this);
@@ -102,10 +121,16 @@ export default class SuggestionBox extends React.Component {
     }
 
     componentDidMount() {
+        if (this.props.popoverMentionKeyClick) {
+            SuggestionStore.addPopoverMentionKeyClickListener(this.props.isRHS, this.handlePopoverMentionKeyClick);
+        }
         SuggestionStore.addPretextChangedListener(this.suggestionId, this.handlePretextChanged);
     }
 
     componentWillUnmount() {
+        if (this.props.popoverMentionKeyClick) {
+            SuggestionStore.removePopoverMentionKeyClickListener(this.props.isRHS, this.handlePopoverMentionKeyClick);
+        }
         SuggestionStore.removePretextChangedListener(this.suggestionId, this.handlePretextChanged);
 
         SuggestionStore.unregisterSuggestionBox(this.suggestionId);
@@ -121,7 +146,8 @@ export default class SuggestionBox extends React.Component {
 
     getTextbox() {
         if (this.props.type === 'textarea') {
-            return this.refs.textbox.getDOMNode();
+            const node = this.refs.textbox.getDOMNode();
+            return node;
         }
 
         return this.refs.textbox;
@@ -144,11 +170,22 @@ export default class SuggestionBox extends React.Component {
         }
     }
 
+    handleFocus() {
+        setTimeout(() => {
+            const textbox = this.getTextbox();
+            const pretext = textbox.value.substring(0, textbox.selectionEnd);
+
+            if (pretext.length >= this.props.requiredCharacters) {
+                GlobalActions.emitSuggestionPretextChanged(this.suggestionId, pretext);
+            }
+        });
+    }
+
     handleChange(e) {
         const textbox = this.getTextbox();
         const pretext = textbox.value.substring(0, textbox.selectionEnd);
 
-        if (!this.composing && SuggestionStore.getPretext(this.suggestionId) !== pretext) {
+        if (!this.composing && SuggestionStore.getPretext(this.suggestionId) !== pretext && pretext.length >= this.props.requiredCharacters) {
             GlobalActions.emitSuggestionPretextChanged(this.suggestionId, pretext);
         }
 
@@ -179,7 +216,18 @@ export default class SuggestionBox extends React.Component {
         this.composing = false;
     }
 
-    handleCompleteWord(term, matchedPretext) {
+    handlePopoverMentionKeyClick(mentionKey) {
+        let insertText = '@' + mentionKey;
+
+        // if the current text does not end with a whitespace, then insert a space
+        if (this.refs.textbox.value && (/[^\s]$/).test(this.refs.textbox.value)) {
+            insertText = ' ' + insertText;
+        }
+
+        this.handleCompleteWord(insertText, '', false);
+    }
+
+    handleCompleteWord(term, matchedPretext, shouldEmitWordSuggestion = true) {
         const textbox = this.getTextbox();
         const caret = textbox.selectionEnd;
         const text = this.props.value;
@@ -198,7 +246,8 @@ export default class SuggestionBox extends React.Component {
 
         const suffix = text.substring(caret);
 
-        this.refs.textbox.value = prefix + term + ' ' + suffix;
+        const newValue = prefix + term + ' ' + suffix;
+        this.refs.textbox.value = newValue;
 
         if (this.props.onChange) {
             // fake an input event to send back to parent components
@@ -212,9 +261,10 @@ export default class SuggestionBox extends React.Component {
 
         if (this.props.onItemSelected) {
             const items = SuggestionStore.getItems(this.suggestionId);
-            for (const i of items) {
-                if (i.name === term) {
-                    this.props.onItemSelected(i);
+            const terms = SuggestionStore.getTerms(this.suggestionId);
+            for (let i = 0; i < terms.length; i++) {
+                if (terms[i] === term) {
+                    this.props.onItemSelected(items[i]);
                     break;
                 }
             }
@@ -224,7 +274,9 @@ export default class SuggestionBox extends React.Component {
 
         // set the caret position after the next rendering
         window.requestAnimationFrame(() => {
-            Utils.setCaretPosition(textbox, prefix.length + term.length + 1);
+            if (textbox.value === newValue) {
+                Utils.setCaretPosition(textbox, newValue.length);
+            }
         });
 
         for (const provider of this.props.providers) {
@@ -232,8 +284,9 @@ export default class SuggestionBox extends React.Component {
                 provider.handleCompleteWord(term, matchedPretext);
             }
         }
-
-        GlobalActions.emitCompleteWordSuggestion(this.suggestionId);
+        if (shouldEmitWordSuggestion) {
+            GlobalActions.emitCompleteWordSuggestion(this.suggestionId);
+        }
     }
 
     handleKeyDown(e) {
@@ -246,7 +299,9 @@ export default class SuggestionBox extends React.Component {
                 e.preventDefault();
             } else if (e.which === KeyCodes.ENTER || (this.props.completeOnTab && e.which === KeyCodes.TAB)) {
                 this.handleCompleteWord(SuggestionStore.getSelection(this.suggestionId), SuggestionStore.getSelectedMatchedPretext(this.suggestionId));
-                this.props.onKeyDown(e);
+                if (this.props.onKeyDown) {
+                    this.props.onKeyDown(e);
+                }
                 e.preventDefault();
             } else if (e.which === KeyCodes.ESCAPE) {
                 GlobalActions.emitClearSuggestions(this.suggestionId);
@@ -288,11 +343,16 @@ export default class SuggestionBox extends React.Component {
         Reflect.deleteProperty(props, 'onChange'); // We use onInput instead of onChange on the actual input
         Reflect.deleteProperty(props, 'onItemSelected');
         Reflect.deleteProperty(props, 'completeOnTab');
+        Reflect.deleteProperty(props, 'isRHS');
+        Reflect.deleteProperty(props, 'popoverMentionKeyClick');
+        Reflect.deleteProperty(props, 'requiredCharacters');
 
         const childProps = {
             ref: 'textbox',
             onBlur: this.handleBlur,
+            onFocus: this.handleFocus,
             onInput: this.handleChange,
+            onChange() { /* this is only here to suppress warnings about onChange not being implemented for read-write inputs */ },
             onCompositionStart: this.handleCompositionStart,
             onCompositionUpdate: this.handleCompositionUpdate,
             onCompositionEnd: this.handleCompositionEnd,
@@ -304,6 +364,7 @@ export default class SuggestionBox extends React.Component {
             textbox = (
                 <input
                     type='text'
+                    autoComplete='off'
                     {...props}
                     {...childProps}
                 />
@@ -312,6 +373,7 @@ export default class SuggestionBox extends React.Component {
             textbox = (
                 <input
                     type='search'
+                    autoComplete='off'
                     {...props}
                     {...childProps}
                 />
@@ -331,7 +393,7 @@ export default class SuggestionBox extends React.Component {
         return (
             <div ref='container'>
                 {textbox}
-                {this.props.value &&
+                {this.props.value.length >= this.props.requiredCharacters &&
                     <SuggestionListComponent
                         suggestionId={this.suggestionId}
                         location={listStyle}
