@@ -483,7 +483,10 @@ func getClientConfig(c *model.Config) map[string]string {
 	props["DiagnosticId"] = CfgDiagnosticId
 	props["DiagnosticsEnabled"] = strconv.FormatBool(*c.LogSettings.EnableDiagnostics)
 
-	if IsLicensed {
+	if IsLicensed() {
+
+		License := License()
+
 		if *License.Features.CustomBrand {
 			props["EnableCustomBrand"] = strconv.FormatBool(*c.TeamSettings.EnableCustomBrand)
 			props["CustomBrandText"] = *c.TeamSettings.CustomBrandText
