@@ -411,6 +411,8 @@ func trackConfig() {
 		"enable_indexing":          *utils.Cfg.ElasticsearchSettings.EnableIndexing,
 		"enable_searching":         *utils.Cfg.ElasticsearchSettings.EnableSearching,
 		"sniff":                    *utils.Cfg.ElasticsearchSettings.Sniff,
+		"post_index_replicas":      *utils.Cfg.ElasticsearchSettings.PostIndexReplicas,
+		"post_index_shards":        *utils.Cfg.ElasticsearchSettings.PostIndexShards,
 	})
 
 	SendDiagnostic(TRACK_CONFIG_PLUGIN, map[string]interface{}{
