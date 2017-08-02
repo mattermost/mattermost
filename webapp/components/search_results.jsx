@@ -14,8 +14,6 @@ import * as Utils from 'utils/utils.jsx';
 import Constants from 'utils/constants.jsx';
 const Preferences = Constants.Preferences;
 
-import loadingGif from 'images/load.gif';
-
 import $ from 'jquery';
 import PropTypes from 'prop-types';
 import React from 'react';
@@ -191,11 +189,14 @@ export default class SearchResults extends React.Component {
         if (this.state.loading) {
             ctls =
             (
-                <div className='sidebar--right__subheader loading'>
-                    <img
-                        className='spinner'
-                        src={loadingGif}
-                    />
+                <div className='sidebar--right__subheader'>
+                    <div className='sidebar--right__loading'>
+                        <i className='fa fa-spinner fa-spin'/>
+                        <FormattedMessage
+                            id='search_header.loading'
+                            defaultMessage='Searching...'
+                        />
+                    </div>
                 </div>
             );
         } else if (this.props.isFlaggedPosts && noResults) {

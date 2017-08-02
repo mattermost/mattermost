@@ -67,14 +67,7 @@ export default class SearchResultsHeader extends React.Component {
             </Tooltip>
         );
 
-        if (this.props.isLoading) {
-            title = (
-                <FormattedMessage
-                    id='search_header.loading'
-                    defaultMessage='Loading...'
-                />
-            );
-        } else if (this.props.isMentionSearch) {
+        if (this.props.isMentionSearch) {
             title = (
                 <FormattedMessage
                     id='search_header.title2'

@@ -230,7 +230,7 @@ export default class SearchBar extends React.Component {
 
         var isSearching = null;
         if (this.state.isSearching) {
-            isSearching = <span className={'fa fa-refresh fa-refresh-animate icon--refresh icon--rotate'}/>;
+            isSearching = <span className={'fa fa-spin fa-spinner'}/>;
         }
 
         let helpClass = 'search-help-popover';

@@ -67,15 +67,16 @@
         width: 100%;
     }
 
-    .icon--refresh {
+    .fa-spin {
         @include opacity(0.5);
+        font-size: 1.2em;
         position: absolute;
         right: 27px;
         top: 27px;
 
         .search-bar__container & {
             right: 12px;
-            top: 11px;
+            top: 10px;
         }
     }
 }
