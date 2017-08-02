@@ -300,5 +300,8 @@
     "JobSettings": {
         "RunJobs": true,
         "RunScheduler": true
+    },
+    "PluginSettings": {
+        "Plugins": {}
     }
 }

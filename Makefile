@@ -539,6 +539,8 @@ govet:
 	$(GO) vet $(GOFLAGS) ./api || exit 1
 	$(GO) vet $(GOFLAGS) ./api4 || exit 1
 	$(GO) vet $(GOFLAGS) ./app || exit 1
+	$(GO) vet $(GOFLAGS) ./app/plugin || exit 1
+	$(GO) vet $(GOFLAGS) ./app/plugin/jira || exit 1
 	$(GO) vet $(GOFLAGS) ./cmd/platform || exit 1
 	$(GO) vet $(GOFLAGS) ./einterfaces || exit 1
 	$(GO) vet $(GOFLAGS) ./jobs || exit 1

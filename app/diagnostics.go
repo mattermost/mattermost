@@ -4,6 +4,7 @@
 package app
 
 import (
+	"encoding/json"
 	"log"
 	"os"
 	"runtime"
@@ -38,6 +39,7 @@ const (
 	TRACK_CONFIG_ANALYTICS     = "config_analytics"
 	TRACK_CONFIG_ANNOUNCEMENT  = "config_announcement"
 	TRACK_CONFIG_ELASTICSEARCH = "config_elasticsearch"
+	TRACK_CONFIG_PLUGIN        = "config_plugin"
 
 	TRACK_ACTIVITY = "activity"
 	TRACK_LICENSE  = "license"
@@ -85,6 +87,23 @@ func isDefault(setting interface{}, defaultValue interface{}) bool {
 		return true
 	}
 	return false
+}
+
+func pluginSetting(plugin, key string, defaultValue interface{}) interface{} {
+	settings, ok := utils.Cfg.PluginSettings.Plugins[plugin]
+	if !ok {
+		return defaultValue
+	}
+	var m map[string]interface{}
+	if b, err := json.Marshal(settings); err != nil {
+		return defaultValue
+	} else {
+		json.Unmarshal(b, &m)
+	}
+	if value, ok := m[key]; ok {
+		return value
+	}
+	return defaultValue
 }
 
 func trackActivity() {
@@ -392,6 +411,10 @@ func trackConfig() {
 		"enable_indexing":          *utils.Cfg.ElasticsearchSettings.EnableIndexing,
 		"enable_searching":         *utils.Cfg.ElasticsearchSettings.EnableSearching,
 		"sniff":                    *utils.Cfg.ElasticsearchSettings.Sniff,
+	})
+
+	SendDiagnostic(TRACK_CONFIG_PLUGIN, map[string]interface{}{
+		"enable_jira": pluginSetting("jira", "enabled", false),
 	})
 }
 

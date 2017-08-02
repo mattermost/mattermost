@@ -73,6 +73,7 @@ func runServer(configFileLocation string) {
 	wsapi.InitRouter()
 	api4.InitApi(false)
 	api.InitApi()
+	app.InitPlugins()
 	wsapi.InitApi()
 	web.InitWeb()
 
