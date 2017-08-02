@@ -2413,15 +2413,15 @@
   },
   {
     "id": "api.templates.user_access_token_body.info",
-    "translation": "A user access token was added to your account on {{ .SiteURL }}. User access tokens can be used to access {{.SiteName}} as you.<br>If this change wasn't initiated by you, please contact your system administrator."
+    "translation": "A user access token was added to your account on {{ .SiteURL }}. They can be used by integrations to access {{.SiteName}} with your account.<br>If this change wasn't initiated by you, please contact your system administrator."
   },
   {
     "id": "api.templates.user_access_token_body.title",
-    "translation": "A user access token was added to your account"
+    "translation": "User access token added to your account"
   },
   {
     "id": "api.templates.user_access_token_subject",
-    "translation": "[{{ .SiteName }}] A user access token was added to your account"
+    "translation": "[{{ .SiteName }}] User access token added to your account"
   },
   {
     "id": "api.templates.post_body.button",
