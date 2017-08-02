@@ -544,7 +544,6 @@ govet:
 	$(GO) vet $(GOFLAGS) ./cmd/platform || exit 1
 	$(GO) vet $(GOFLAGS) ./einterfaces || exit 1
 	$(GO) vet $(GOFLAGS) ./jobs || exit 1
-	$(GO) vet $(GOFLAGS) ./jobs/jobserver || exit 1
 	$(GO) vet $(GOFLAGS) ./manualtesting || exit 1
 	$(GO) vet $(GOFLAGS) ./model || exit 1
 	$(GO) vet $(GOFLAGS) ./model/gitlab || exit 1
