@@ -46,7 +46,7 @@ const (
 var client *analytics.Client
 
 func SendDailyDiagnostics() {
-	if *utils.Cfg.LogSettings.EnableDiagnostics {
+	if *utils.Cfg.LogSettings.EnableDiagnostics && utils.IsLeader() {
 		initDiagnostics("")
 		trackActivity()
 		trackConfig()
