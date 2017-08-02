@@ -41,7 +41,7 @@ export default class SecurityTab extends React.Component {
         setEnforceFocus: PropTypes.func.isRequired,
 
         /*
-         * The user access tokens for the user
+         * The personal access tokens for the user
          */
         userAccessTokens: PropTypes.object,
 
@@ -54,22 +54,22 @@ export default class SecurityTab extends React.Component {
             getMe: PropTypes.func.isRequired,
 
             /*
-             * Function to get user access tokens for a user
+             * Function to get personal access tokens for a user
              */
             getUserAccessTokensForUser: PropTypes.func.isRequired,
 
             /*
-             * Function to create a user access token
+             * Function to create a personal access token
              */
             createUserAccessToken: PropTypes.func.isRequired,
 
             /*
-             * Function to revoke a user access token
+             * Function to revoke a personal access token
              */
             revokeUserAccessToken: PropTypes.func.isRequired,
 
             /*
-             * Function to clear user access tokens locally
+             * Function to clear personal access tokens locally
              */
             clearUserAccessTokens: PropTypes.func.isRequired
         }).isRequired
@@ -1013,14 +1013,14 @@ export default class SecurityTab extends React.Component {
                 confirmTitle: (
                     <FormattedMessage
                         id='user.settings.tokens.confirmCreateTitle'
-                        defaultMessage='Create System Admin User Access Token'
+                        defaultMessage='Create System Admin Personal Access Token'
                     />
                 ),
                 confirmMessage: (
                     <div className='alert alert-danger'>
                         <FormattedHTMLMessage
                             id='user.settings.tokens.confirmCreateMessage'
-                            defaultMessage='You are generating a user access token with System Admin permissions. Are you sure want to create this token?'
+                            defaultMessage='You are generating a personal access token with System Admin permissions. Are you sure want to create this token?'
                         />
                     </div>
                 ),
@@ -1056,17 +1056,17 @@ export default class SecurityTab extends React.Component {
             confirmTitle: (
                 <FormattedMessage
                     id='user.settings.tokens.confirmDeleteTitle'
-                    defaultMessage='Delete {name} Token?'
-                    values={{
-                        name: token.description
-                    }}
+                    defaultMessage='Delete Token?'
                 />
             ),
             confirmMessage: (
                 <div className='alert alert-danger'>
                     <FormattedHTMLMessage
                         id='user.settings.tokens.confirmDeleteMessage'
-                        defaultMessage='Any integrations using this token will no longer be able to access the Mattermost API. You cannot undo this action. Are you sure want to delete this token?'
+                        defaultMessage='Any integrations using this token will no longer be able to access the Mattermost API. You cannot undo this action. <br /><br />Are you sure want to delete the {description} token?'
+                        values={{
+                            description: token.description
+                        }}
                     />
                 </div>
             ),
@@ -1093,6 +1093,7 @@ export default class SecurityTab extends React.Component {
 
     createTokensSection = () => {
         let updateSectionStatus;
+        let tokenListClass = '';
 
         if (this.props.activeSection === 'tokens') {
             const tokenList = [];
@@ -1107,7 +1108,11 @@ export default class SecurityTab extends React.Component {
                         className='setting-box__item'
                     >
                         <div className='whitespace--nowrap overflow--ellipsis'>
-                            <strong>{token.description}</strong>
+                            <FormattedMessage
+                                id='user.settings.tokens.tokenDesc'
+                                defaultMessage='Token Description: '
+                            />
+                            {token.description}
                         </div>
                         <div className='setting-box__token-id whitespace--nowrap overflow--ellipsis'>
                             <FormattedMessage
@@ -1141,7 +1146,7 @@ export default class SecurityTab extends React.Component {
                     <FormattedMessage
                         key='notokens'
                         id='user.settings.tokens.userAccessTokensNone'
-                        defaultMessage='No user access tokens.'
+                        defaultMessage='No personal access tokens.'
                     />
                 );
             }
@@ -1152,7 +1157,7 @@ export default class SecurityTab extends React.Component {
                     <span>
                         <FormattedHTMLMessage
                             id='user.settings.tokens.description_mobile'
-                            defaultMessage='<a href="https://about.mattermost.com/default-user-access-tokens" target="_blank">User access tokens</a> function similar to session tokens and can be used by integrations to <a href="https://about.mattermost.com/default-api-authentication" target="_blank">authenticate against the REST API</a>. Create new tokens on your desktop.'
+                            defaultMessage='<a href="https://about.mattermost.com/default-user-access-tokens" target="_blank">Personal access tokens</a> function similar to session tokens and can be used by integrations to <a href="https://about.mattermost.com/default-api-authentication" target="_blank">authenticate against the REST API</a>. Create new tokens on your desktop.'
                         />
                     </span>
                 );
@@ -1161,7 +1166,7 @@ export default class SecurityTab extends React.Component {
                     <span>
                         <FormattedHTMLMessage
                             id='user.settings.tokens.description'
-                            defaultMessage='<a href="https://about.mattermost.com/default-user-access-tokens" target="_blank">User access tokens</a> function similar to session tokens and can be used by integrations to <a href="https://about.mattermost.com/default-api-authentication" target="_blank">authenticate against the REST API</a>.'
+                            defaultMessage='<a href="https://about.mattermost.com/default-user-access-tokens" target="_blank">Personal access tokens</a> function similar to session tokens and can be used by integrations to <a href="https://about.mattermost.com/default-api-authentication" target="_blank">authenticate against the REST API</a>.'
                         />
                     </span>
                 );
@@ -1175,7 +1180,7 @@ export default class SecurityTab extends React.Component {
                             <label className='col-sm-auto control-label padding-right x2'>
                                 <FormattedMessage
                                     id='user.settings.tokens.name'
-                                    defaultMessage='Name: '
+                                    defaultMessage='Token Description: '
                                 />
                             </label>
                             <div className='col-sm-5'>
@@ -1191,8 +1196,8 @@ export default class SecurityTab extends React.Component {
                         <div>
                             <div className='padding-top x2'>
                                 <FormattedMessage
-                                    id='user.settings.tokens.nameDescription'
-                                    defaultMessage='Give a name for your token, so you remember what it’s used for. A token is generated after you hit "Save".'
+                                    id='user.settings.tokens.nameHelp'
+                                    defaultMessage='Enter a description for your token to remember what it does.'
                                 />
                             </div>
                             <div>
@@ -1225,6 +1230,9 @@ export default class SecurityTab extends React.Component {
                     </div>
                 );
             } else if (this.state.tokenCreationState === TOKEN_CREATED) {
+                if (tokenList.length === 1) {
+                    tokenListClass = ' hidden';
+                }
                 newTokenSection = (
                     <div
                         className='alert alert-warning'
@@ -1236,19 +1244,21 @@ export default class SecurityTab extends React.Component {
                         />
                         <br/>
                         <br/>
-                        <FormattedMessage
-                            id='user.settings.tokens.name'
-                            defaultMessage='Name: '
-                        />
-                        {this.state.newToken.description}
-                        <br/>
-                        <FormattedMessage
-                            id='user.settings.tokens.id'
-                            defaultMessage='ID: '
-                        />
-                        {this.state.newToken.id}
-                        <br/>
-                        <strong>
+                        <div className='whitespace--nowrap overflow--ellipsis'>
+                            <FormattedMessage
+                                id='user.settings.tokens.name'
+                                defaultMessage='Name: '
+                            />
+                            {this.state.newToken.description}
+                        </div>
+                        <div className='whitespace--nowrap overflow--ellipsis'>
+                            <FormattedMessage
+                                id='user.settings.tokens.id'
+                                defaultMessage='ID: '
+                            />
+                            {this.state.newToken.id}
+                        </div>
+                        <strong className='word-break--all'>
                             <FormattedMessage
                                 id='user.settings.tokens.token'
                                 defaultMessage='Token: '
@@ -1279,10 +1289,9 @@ export default class SecurityTab extends React.Component {
                     className='padding-top'
                 >
                     <div key='tokenList'>
-                        <div className='alert alert-transparent'>
+                        <div className={'alert alert-transparent' + tokenListClass}>
                             {tokenList}
                         </div>
-                        <br/>
                         {newTokenSection}
                     </div>
                 </div>
@@ -1296,7 +1305,7 @@ export default class SecurityTab extends React.Component {
 
             return (
                 <SettingItemMax
-                    title={Utils.localizeMessage('user.settings.tokens.title', 'User Access Tokens')}
+                    title={Utils.localizeMessage('user.settings.tokens.title', 'Personal Access Tokens')}
                     inputs={inputs}
                     extraInfo={extraInfo}
                     infoPosition='top'
@@ -1313,7 +1322,7 @@ export default class SecurityTab extends React.Component {
             );
         }
 
-        const describe = Utils.localizeMessage('user.settings.tokens.clickToEdit', "Click 'Edit' to manage your user access tokens");
+        const describe = Utils.localizeMessage('user.settings.tokens.clickToEdit', "Click 'Edit' to manage your personal access tokens");
 
         updateSectionStatus = function updateSection() {
             this.props.updateSection('tokens');
@@ -1321,7 +1330,7 @@ export default class SecurityTab extends React.Component {
 
         return (
             <SettingItemMin
-                title={Utils.localizeMessage('user.settings.tokens.title', 'User Access Tokens')}
+                title={Utils.localizeMessage('user.settings.tokens.title', 'Personal Access Tokens')}
                 describe={describe}
                 updateSection={updateSectionStatus}
             />

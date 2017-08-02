@@ -3093,7 +3093,7 @@
   },
   {
     "id": "app.user_access_token.disabled",
-    "translation": "User access tokens are disabled on this server. Please contact your system administrator for details."
+    "translation": "Personal access tokens are disabled on this server. Please contact your system administrator for details."
   },
   {
     "id": "app.user_access_token.invalid_or_missing",
@@ -3537,11 +3537,11 @@
   },
   {
     "id": "authentication.roles.system_user_access_token.name",
-    "translation": "User Access Token"
+    "translation": "Prviate Access Token"
   },
   {
     "id": "authentication.roles.system_user_access_token.description",
-    "translation": "A role with the permissions to create, read and revoke user access tokens"
+    "translation": "A role with the permissions to create, read and revoke prviate access tokens"
   },
   {
     "id": "authentication.permissions.create_post_public.name",
@@ -3553,27 +3553,27 @@
   },
   {
     "id": "authentication.permissions.create_user_access_token.name",
-    "translation": "Create User Access Token"
+    "translation": "Create Prviate Access Token"
   },
   {
     "id": "authentication.permissions.create_user_access_token.description",
-    "translation": "Ability to create user access tokens"
+    "translation": "Ability to create prviate access tokens"
   },
   {
     "id": "authentication.permissions.read_user_access_token.name",
-    "translation": "Read User Access Tokens"
+    "translation": "Read Prviate Access Tokens"
   },
   {
     "id": "authentication.permissions.read_user_access_token.description",
-    "translation": "Ability to read user access tokens' id, description and user_id fields"
+    "translation": "Ability to read personal access tokens' id, description and user_id fields"
   },
   {
     "id": "authentication.permissions.revoke_user_access_token.name",
-    "translation": "Revoke User Access Token"
+    "translation": "Revoke Prviate Access Token"
   },
   {
     "id": "authentication.permissions.revoke_user_access_token.description",
-    "translation": "Ability to revoke user access tokens"
+    "translation": "Ability to revoke personal access tokens"
   },
   {
     "id": "authentication.permissions.create_group_channel.description",
@@ -6149,23 +6149,23 @@
   },
   {
     "id": "store.sql_user_access_token.get_by_user.app_error",
-    "translation": "We couldn't get the user access tokens by user"
+    "translation": "We couldn't get the personal access tokens by user"
   },
   {
     "id": "store.sql_user_access_token.get_by_token.app_error",
-    "translation": "We couldn't get the user access token by token"
+    "translation": "We couldn't get the personal access token by token"
   },
   {
     "id": "store.sql_user_access_token.get.app_error",
-    "translation": "We couldn't get the user access token"
+    "translation": "We couldn't get the personal access token"
   },
   {
     "id": "store.sql_user_access_token.delete.app_error",
-    "translation": "We couldn't delete the user access token"
+    "translation": "We couldn't delete the personal access token"
   },
   {
     "id": "store.sql_user_access_token.save.app_error",
-    "translation": "We couldn't save the user access token"
+    "translation": "We couldn't save the personal access token"
   },
   {
     "id": "store.sql_user.analytics_get_inactive_users_count.app_error",

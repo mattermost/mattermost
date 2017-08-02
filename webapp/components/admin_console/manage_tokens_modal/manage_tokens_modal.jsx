@@ -26,7 +26,7 @@ export default class ManageTokensModal extends React.PureComponent {
         user: PropTypes.object,
 
         /**
-         * The user access tokens for a user, object with token ids as keys
+         * The personal access tokens for a user, object with token ids as keys
          */
         userAccessTokens: PropTypes.object,
 
@@ -86,7 +86,7 @@ export default class ManageTokensModal extends React.PureComponent {
                     <div className='manage-row__empty'>
                         <FormattedMessage
                             id='admin.manage_tokens.userAccessTokensNone'
-                            defaultMessage='No user access tokens.'
+                            defaultMessage='No personal access tokens.'
                         />
                     </div>
                 );
@@ -98,14 +98,14 @@ export default class ManageTokensModal extends React.PureComponent {
                             className='manage-teams__team'
                         >
                             <div className='manage-teams__team-name'>
-                                <div>
+                                <div className='whitespace--nowrap overflow--ellipsis'>
                                     <FormattedMessage
                                         id='admin.manage_tokens.userAccessTokensNameLabel'
-                                        defaultMessage='Name: '
+                                        defaultMessage='Token Description: '
                                     />
                                     {token.description}
                                 </div>
-                                <div>
+                                <div className='whitespace--nowrap overflow--ellipsis'>
                                     <FormattedMessage
                                         id='admin.manage_tokens.userAccessTokensIdLabel'
                                         defaultMessage='Token ID: '
@@ -146,7 +146,7 @@ export default class ManageTokensModal extends React.PureComponent {
                 <div className='padding-top x2'>
                     <FormattedHTMLMessage
                         id='admin.manage_tokens.userAccessTokensDescription'
-                        defaultMessage='User access tokens function similar to session tokens and can be used by integrations to <a href="https://about.mattermost.com/default-api-authentication" target="_blank">authenticate against the REST API</a>. Learn more about <a href="https://about.mattermost.com/default-user-access-tokens" target="_blank">user access tokens</a>.'
+                        defaultMessage='Personal access tokens function similar to session tokens and can be used by integrations to <a href="https://about.mattermost.com/default-api-authentication" target="_blank">authenticate against the REST API</a>. Learn more about <a href="https://about.mattermost.com/default-user-access-tokens" target="_blank">user access tokens</a>.'
                     />
                 </div>
                 <div className='manage-teams__teams'>
@@ -167,7 +167,7 @@ export default class ManageTokensModal extends React.PureComponent {
                     <Modal.Title>
                         <FormattedMessage
                             id='admin.manage_tokens.manageTokensTitle'
-                            defaultMessage='Manage User Access Tokens'
+                            defaultMessage='Manage Personal Access Tokens'
                         />
                     </Modal.Title>
                 </Modal.Header>
