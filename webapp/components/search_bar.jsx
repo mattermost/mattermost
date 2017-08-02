@@ -171,7 +171,16 @@ export default class SearchBar extends React.Component {
 
     handleSubmit(e) {
         e.preventDefault();
-        this.handleSearch(this.state.searchTerm.trim());
+        const terms = this.state.searchTerm.trim();
+
+        AppDispatcher.handleServerAction({
+            type: ActionTypes.RECEIVED_SEARCH_TERM,
+            term: terms,
+            do_search: true,
+            is_mention_search: false
+        });
+
+        this.handleSearch(terms);
         this.search.blur();
     }
 
@@ -221,7 +230,7 @@ export default class SearchBar extends React.Component {
 
         var isSearching = null;
         if (this.state.isSearching) {
-            isSearching = <span className={'fa fa-refresh fa-refresh-animate icon--refresh icon--rotate'}/>;
+            isSearching = <span className={'fa fa-spin fa-spinner'}/>;
         }
 
         let helpClass = 'search-help-popover';
