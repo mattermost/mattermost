@@ -2061,6 +2061,7 @@
   "search_item.jump": "Jump",
   "search_results.because": "<ul><li>If you're searching a partial phrase (ex. searching \"rea\", looking for \"reach\" or \"reaction\"), append a * to your search term.</li><li>Two letter searches and common words like \"this\", \"a\" and \"is\" won't appear in search results due to excessive results returned.</li></ul>",
   "search_results.noResults": "No results found. Try again?",
+  "search_results.searching": "Searching...",
   "search_results.usage": "<ul><li>Use <b>\"quotation marks\"</b> to search for phrases</li><li>Use <b>from:</b> to find posts from specific users and <b>in:</b> to find posts in specific channels</li></ul>",
   "search_results.usageFlag1": "You haven't flagged any messages yet.",
   "search_results.usageFlag2": "You can add a flag to messages and comments by clicking the ",

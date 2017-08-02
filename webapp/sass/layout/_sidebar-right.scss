@@ -224,6 +224,15 @@
         text-transform: uppercase;
     }
 
+    .sidebar--right__loading {
+        @include opacity(.7);
+        text-align: center;
+
+        .fa {
+            margin-right: 5px;
+        }
+    }
+
     .sidebar--right__subheader {
         font-size: 1em;
         padding: .5em 1em 0;
