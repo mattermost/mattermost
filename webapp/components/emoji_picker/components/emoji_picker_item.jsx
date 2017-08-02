@@ -7,7 +7,7 @@ import React from 'react';
 
 import EmojiStore from 'stores/emoji_store.jsx';
 
-export default class EmojiPickerItem extends React.Component {
+export default class EmojiPickerItem extends React.PureComponent {
     static propTypes = {
         emoji: PropTypes.object.isRequired,
         onItemOver: PropTypes.func.isRequired,
@@ -46,29 +46,41 @@ export default class EmojiPickerItem extends React.Component {
         let item = null;
 
         if (this.props.category === 'recent' || this.props.category === 'custom') {
-            item =
-                (<span
+            item = (
+                <span
                     onMouseOver={this.handleMouseOver}
                     onMouseOut={this.handleMouseOut}
                     onClick={this.handleClick}
                     className='emoji-picker__item-wrapper'
-                 >
+                >
                     <img
                         className='emoji-picker__item emoticon'
                         src={EmojiStore.getEmojiImageUrl(this.props.emoji)}
                     />
-                </span>);
+                </span>
+            );
         } else {
-            item =
-                (<div >
+            let className;
+            if (this.props.isLoaded) {
+                className = 'emojisprite';
+            } else {
+                className = 'emojisprite-loading';
+            }
+
+            className += ' emoji-category-' + this.props.category;
+            className += ' emoji-' + this.props.emoji.filename;
+
+            item = (
+                <div>
                     <img
                         src='/static/images/img_trans.gif'
-                        className={'  emojisprite' + (this.props.isLoaded ? '' : '-loading') + ' emoji-' + this.props.emoji.filename + ' '}
+                        className={className}
                         onMouseOver={this.handleMouseOver}
                         onMouseOut={this.handleMouseOut}
                         onClick={this.handleClick}
                     />
-                </div>);
+                </div>
+            );
         }
         return item;
     }

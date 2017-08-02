@@ -29,6 +29,7 @@
         "EnableInsecureOutgoingConnections": false,
         "EnableMultifactorAuthentication": false,
         "EnforceMultifactorAuthentication": false,
+        "EnableUserAccessTokens": false,
         "AllowCorsFrom": "",
         "SessionLengthWebInDays": 30,
         "SessionLengthMobileInDays": 30,
@@ -129,6 +130,7 @@
         "FeedbackName": "",
         "FeedbackEmail": "test@example.com",
         "FeedbackOrganization": "",
+        "EnableSMTPAuth": false,
         "SMTPUsername": "",
         "SMTPPassword": "",
         "SMTPServer": "dockerhost",
@@ -290,7 +292,9 @@
         "Password": "changeme",
         "EnableIndexing": false,
         "EnableSearching": false,
-        "Sniff": true
+        "Sniff": true,
+        "PostIndexReplicas": 2,
+        "PostIndexShards": 1
     },
     "DataRetentionSettings": {
         "Enable": false
@@ -298,5 +302,8 @@
     "JobSettings": {
         "RunJobs": true,
         "RunScheduler": true
+    },
+    "PluginSettings": {
+        "Plugins": {}
     }
 }

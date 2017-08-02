@@ -80,4 +80,5 @@ type SqlStore interface {
 	FileInfo() FileInfoStore
 	Reaction() ReactionStore
 	Job() JobStore
+	UserAccessToken() UserAccessTokenStore
 }

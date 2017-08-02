@@ -36,6 +36,13 @@ export default class RequestButton extends React.Component {
         buttonText: PropTypes.element.isRequired,
 
         /**
+         * The element to display as the field label.
+         *
+         * Typically, this will be a <FormattedMessage/>
+         */
+        label: PropTypes.element,
+
+        /**
          * True if the button form control should be disabled, otherwise false.
          */
         disabled: PropTypes.bool,
@@ -100,7 +107,12 @@ export default class RequestButton extends React.Component {
          * the `message` and `detailed_error` properties of the error returned from the server,
          * otherwise false to include only the `message` property.
          */
-        includeDetailedError: PropTypes.bool
+        includeDetailedError: PropTypes.bool,
+
+        /**
+         * An element to display adjacent to the request button.
+         */
+        alternativeActionElement: PropTypes.element
     }
 
     static defaultProps = {
@@ -211,9 +223,24 @@ export default class RequestButton extends React.Component {
             contents = this.props.buttonText;
         }
 
+        let widgetClassNames = 'col-sm-8';
+        let label = null;
+        if (this.props.label) {
+            label = (
+                <label
+                    className='control-label col-sm-4'
+                >
+                    {this.props.label}
+                </label>
+            );
+        } else {
+            widgetClassNames = 'col-sm-offset-4 ' + widgetClassNames;
+        }
+
         return (
-            <div className='form-group reload-config'>
-                <div className='col-sm-offset-4 col-sm-8'>
+            <div className='form-group'>
+                {label}
+                <div className={widgetClassNames}>
                     <div>
                         <button
                             className='btn btn-default'
@@ -222,6 +249,7 @@ export default class RequestButton extends React.Component {
                         >
                             {contents}
                         </button>
+                        {this.props.alternativeActionElement}
                         {message}
                     </div>
                     <div className='help-text'>

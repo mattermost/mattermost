@@ -118,6 +118,12 @@ const (
 
 	ANNOUNCEMENT_SETTINGS_DEFAULT_BANNER_COLOR      = "#f2a93b"
 	ANNOUNCEMENT_SETTINGS_DEFAULT_BANNER_TEXT_COLOR = "#333333"
+
+	ELASTICSEARCH_SETTINGS_DEFAULT_CONNECTION_URL      = ""
+	ELASTICSEARCH_SETTINGS_DEFAULT_USERNAME            = ""
+	ELASTICSEARCH_SETTINGS_DEFAULT_PASSWORD            = ""
+	ELASTICSEARCH_SETTINGS_DEFAULT_POST_INDEX_REPLICAS = 2
+	ELASTICSEARCH_SETTINGS_DEFAULT_POST_INDEX_SHARDS   = 1
 )
 
 type ServiceSettings struct {
@@ -150,6 +156,7 @@ type ServiceSettings struct {
 	EnableInsecureOutgoingConnections        *bool
 	EnableMultifactorAuthentication          *bool
 	EnforceMultifactorAuthentication         *bool
+	EnableUserAccessTokens                   *bool
 	AllowCorsFrom                            *string
 	SessionLengthWebInDays                   *int
 	SessionLengthMobileInDays                *int
@@ -262,6 +269,7 @@ type EmailSettings struct {
 	FeedbackName                      string
 	FeedbackEmail                     string
 	FeedbackOrganization              *string
+	EnableSMTPAuth                    *bool
 	SMTPUsername                      string
 	SMTPPassword                      string
 	SMTPServer                        string
@@ -426,12 +434,14 @@ type WebrtcSettings struct {
 }
 
 type ElasticsearchSettings struct {
-	ConnectionUrl   *string
-	Username        *string
-	Password        *string
-	EnableIndexing  *bool
-	EnableSearching *bool
-	Sniff           *bool
+	ConnectionUrl     *string
+	Username          *string
+	Password          *string
+	EnableIndexing    *bool
+	EnableSearching   *bool
+	Sniff             *bool
+	PostIndexReplicas *int
+	PostIndexShards   *int
 }
 
 type DataRetentionSettings struct {
@@ -441,6 +451,10 @@ type DataRetentionSettings struct {
 type JobSettings struct {
 	RunJobs      *bool
 	RunScheduler *bool
+}
+
+type PluginSettings struct {
+	Plugins map[string]interface{}
 }
 
 type Config struct {
@@ -470,6 +484,7 @@ type Config struct {
 	ElasticsearchSettings ElasticsearchSettings
 	DataRetentionSettings DataRetentionSettings
 	JobSettings           JobSettings
+	PluginSettings        PluginSettings
 }
 
 func (o *Config) ToJson() string {
@@ -519,11 +534,6 @@ func (o *Config) SetDefaults() {
 	if o.FileSettings.AmazonS3Endpoint == "" {
 		// Defaults to "s3.amazonaws.com"
 		o.FileSettings.AmazonS3Endpoint = "s3.amazonaws.com"
-	}
-
-	if o.FileSettings.AmazonS3Region == "" {
-		// Defaults to "us-east-1" region.
-		o.FileSettings.AmazonS3Region = "us-east-1"
 	}
 
 	if o.FileSettings.AmazonS3SSL == nil {
@@ -616,6 +626,11 @@ func (o *Config) SetDefaults() {
 	if o.ServiceSettings.EnforceMultifactorAuthentication == nil {
 		o.ServiceSettings.EnforceMultifactorAuthentication = new(bool)
 		*o.ServiceSettings.EnforceMultifactorAuthentication = false
+	}
+
+	if o.ServiceSettings.EnableUserAccessTokens == nil {
+		o.ServiceSettings.EnableUserAccessTokens = new(bool)
+		*o.ServiceSettings.EnableUserAccessTokens = false
 	}
 
 	if o.PasswordSettings.MinimumLength == nil {
@@ -783,6 +798,19 @@ func (o *Config) SetDefaults() {
 	if o.EmailSettings.EmailBatchingInterval == nil {
 		o.EmailSettings.EmailBatchingInterval = new(int)
 		*o.EmailSettings.EmailBatchingInterval = EMAIL_BATCHING_INTERVAL
+	}
+
+	if o.EmailSettings.EnableSMTPAuth == nil {
+		o.EmailSettings.EnableSMTPAuth = new(bool)
+		if o.EmailSettings.ConnectionSecurity == CONN_SECURITY_NONE {
+			*o.EmailSettings.EnableSMTPAuth = false
+		} else {
+			*o.EmailSettings.EnableSMTPAuth = true
+		}
+	}
+
+	if o.EmailSettings.ConnectionSecurity == CONN_SECURITY_PLAIN {
+		o.EmailSettings.ConnectionSecurity = CONN_SECURITY_NONE
 	}
 
 	if o.EmailSettings.SkipServerCertificateVerification == nil {
@@ -1365,17 +1393,17 @@ func (o *Config) SetDefaults() {
 
 	if o.ElasticsearchSettings.ConnectionUrl == nil {
 		o.ElasticsearchSettings.ConnectionUrl = new(string)
-		*o.ElasticsearchSettings.ConnectionUrl = ""
+		*o.ElasticsearchSettings.ConnectionUrl = ELASTICSEARCH_SETTINGS_DEFAULT_CONNECTION_URL
 	}
 
 	if o.ElasticsearchSettings.Username == nil {
 		o.ElasticsearchSettings.Username = new(string)
-		*o.ElasticsearchSettings.Username = ""
+		*o.ElasticsearchSettings.Username = ELASTICSEARCH_SETTINGS_DEFAULT_USERNAME
 	}
 
 	if o.ElasticsearchSettings.Password == nil {
 		o.ElasticsearchSettings.Password = new(string)
-		*o.ElasticsearchSettings.Password = ""
+		*o.ElasticsearchSettings.Password = ELASTICSEARCH_SETTINGS_DEFAULT_PASSWORD
 	}
 
 	if o.ElasticsearchSettings.EnableIndexing == nil {
@@ -1393,6 +1421,16 @@ func (o *Config) SetDefaults() {
 		*o.ElasticsearchSettings.Sniff = true
 	}
 
+	if o.ElasticsearchSettings.PostIndexReplicas == nil {
+		o.ElasticsearchSettings.PostIndexReplicas = new(int)
+		*o.ElasticsearchSettings.PostIndexReplicas = ELASTICSEARCH_SETTINGS_DEFAULT_POST_INDEX_REPLICAS
+	}
+
+	if o.ElasticsearchSettings.PostIndexShards == nil {
+		o.ElasticsearchSettings.PostIndexShards = new(int)
+		*o.ElasticsearchSettings.PostIndexShards = ELASTICSEARCH_SETTINGS_DEFAULT_POST_INDEX_SHARDS
+	}
+
 	if o.DataRetentionSettings.Enable == nil {
 		o.DataRetentionSettings.Enable = new(bool)
 		*o.DataRetentionSettings.Enable = false
@@ -1406,6 +1444,10 @@ func (o *Config) SetDefaults() {
 	if o.JobSettings.RunScheduler == nil {
 		o.JobSettings.RunScheduler = new(bool)
 		*o.JobSettings.RunScheduler = true
+	}
+
+	if o.PluginSettings.Plugins == nil {
+		o.PluginSettings.Plugins = make(map[string]interface{})
 	}
 
 	o.defaultWebrtcSettings()

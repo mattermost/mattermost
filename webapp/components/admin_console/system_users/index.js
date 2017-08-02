@@ -4,7 +4,7 @@
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import {getTeams, getTeamStats} from 'mattermost-redux/actions/teams';
-import {getUser} from 'mattermost-redux/actions/users';
+import {getUser, getUserAccessToken} from 'mattermost-redux/actions/users';
 
 import {getTeamsList} from 'mattermost-redux/selectors/entities/teams';
 
@@ -22,7 +22,8 @@ function mapDispatchToProps(dispatch) {
         actions: bindActionCreators({
             getTeams,
             getTeamStats,
-            getUser
+            getUser,
+            getUserAccessToken
         }, dispatch)
     };
 }

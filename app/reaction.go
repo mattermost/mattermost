@@ -20,8 +20,6 @@ func SaveReactionForPost(reaction *model.Reaction) (*model.Reaction, *model.AppE
 
 		go sendReactionEvent(model.WEBSOCKET_EVENT_REACTION_ADDED, reaction, post)
 
-		InvalidateCacheForReactions(reaction.PostId)
-
 		return reaction, nil
 	}
 }
@@ -44,8 +42,6 @@ func DeleteReactionForPost(reaction *model.Reaction) *model.AppError {
 		return result.Err
 	} else {
 		go sendReactionEvent(model.WEBSOCKET_EVENT_REACTION_REMOVED, reaction, post)
-
-		InvalidateCacheForReactions(reaction.PostId)
 	}
 
 	return nil

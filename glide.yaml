@@ -84,3 +84,5 @@ import:
   version: v5.0.43
 - package: github.com/mattermost/gorp
   version: 995ddf2264c4ad45fbaf342f7500e4787ebae84a
+- package: github.com/go-redis/redis
+  version: v6.5.2

@@ -50,16 +50,6 @@ export default class Textbox extends React.Component {
     constructor(props) {
         super(props);
 
-        this.focus = this.focus.bind(this);
-        this.recalculateSize = this.recalculateSize.bind(this);
-        this.onReceivedError = this.onReceivedError.bind(this);
-        this.handleKeyPress = this.handleKeyPress.bind(this);
-        this.handleKeyDown = this.handleKeyDown.bind(this);
-        this.handleBlur = this.handleBlur.bind(this);
-        this.handleHeightChange = this.handleHeightChange.bind(this);
-        this.showPreview = this.showPreview.bind(this);
-        this.handleChange = this.handleChange.bind(this);
-
         this.state = {
             connection: ''
         };
@@ -86,7 +76,7 @@ export default class Textbox extends React.Component {
         ErrorStore.removeChangeListener(this.onReceivedError);
     }
 
-    onReceivedError() {
+    onReceivedError = () => {
         const errorCount = ErrorStore.getConnectionErrorCount();
 
         if (errorCount > 1) {
@@ -96,12 +86,12 @@ export default class Textbox extends React.Component {
         }
     }
 
-    handleChange(e) {
+    handleChange = (e) => {
         this.checkMessageLength(e.target.value);
         this.props.onChange(e);
     }
 
-    checkMessageLength(message) {
+    checkMessageLength = (message) => {
         if (this.props.handlePostError) {
             if (message.length > Constants.CHARACTER_LIMIT) {
                 const errorMessage = (
@@ -120,23 +110,19 @@ export default class Textbox extends React.Component {
         }
     }
 
-    handleKeyPress(e) {
-        this.props.onKeyPress(e);
-    }
-
-    handleKeyDown(e) {
+    handleKeyDown = (e) => {
         if (this.props.onKeyDown) {
             this.props.onKeyDown(e);
         }
     }
 
-    handleBlur(e) {
+    handleBlur = (e) => {
         if (this.props.onBlur) {
             this.props.onBlur(e);
         }
     }
 
-    handleHeightChange(height, maxHeight) {
+    handleHeightChange = (height, maxHeight) => {
         const wrapper = $(this.refs.wrapper);
 
         // Move over attachment icon to compensate for the scrollbar
@@ -147,26 +133,26 @@ export default class Textbox extends React.Component {
         }
     }
 
-    focus() {
+    focus = () => {
         const textbox = this.refs.message.getTextbox();
 
         textbox.focus();
         Utils.placeCaretAtEnd(textbox);
     }
 
-    recalculateSize() {
+    recalculateSize = () => {
         this.refs.message.recalculateSize();
     }
 
-    showPreview(e) {
+    togglePreview = (e) => {
         e.preventDefault();
         e.target.blur();
         this.setState((prevState) => {
-            return {preview: prevState.preview};
+            return {preview: !prevState.preview};
         });
     }
 
-    hidePreview() {
+    hidePreview = () => {
         this.setState({preview: false});
     }
 
@@ -205,11 +191,11 @@ export default class Textbox extends React.Component {
         if (Utils.isFeatureEnabled(PreReleaseFeatures.MARKDOWN_PREVIEW)) {
             previewLink = (
                 <a
-                    onClick={this.showPreview}
+                    onClick={this.togglePreview}
                     className='textbox-preview-link'
                 >
                     {this.state.preview ? (
-                       editHeader
+                        editHeader
                     ) : (
                         <FormattedMessage
                             id='textbox.preview'
@@ -289,7 +275,7 @@ export default class Textbox extends React.Component {
                     spellCheck='true'
                     placeholder={this.props.createMessage}
                     onChange={this.handleChange}
-                    onKeyPress={this.handleKeyPress}
+                    onKeyPress={this.props.onKeyPress}
                     onKeyDown={this.handleKeyDown}
                     onBlur={this.handleBlur}
                     onHeightChange={this.handleHeightChange}

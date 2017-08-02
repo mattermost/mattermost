@@ -1,6 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+/* eslint-disable no-magic-numbers */
+
 import keyMirror from 'key-mirror';
 
 import audioIcon from 'images/icons/audio.png';
@@ -68,6 +70,7 @@ export const ActionTypes = keyMirror({
     CREATE_POST: null,
     CREATE_COMMENT: null,
     POST_DELETED: null,
+    POST_UPDATED: null,
     REMOVE_POST: null,
 
     RECEIVED_CHANNELS: null,
@@ -176,6 +179,7 @@ export const ActionTypes = keyMirror({
     TOGGLE_QUICK_SWITCH_MODAL: null,
     TOGGLE_CHANNEL_HEADER_UPDATE_MODAL: null,
     TOGGLE_CHANNEL_PURPOSE_UPDATE_MODAL: null,
+    TOGGLE_CHANNEL_NAME_UPDATE_MODAL: null,
 
     SUGGESTION_PRETEXT_CHANGED: null,
     SUGGESTION_RECEIVED_SUGGESTIONS: null,
@@ -221,6 +225,7 @@ export const SocketEvents = {
     POSTED: 'posted',
     POST_EDITED: 'post_edited',
     POST_DELETED: 'post_deleted',
+    POST_UPDATED: 'post_updated',
     CHANNEL_CREATED: 'channel_created',
     CHANNEL_DELETED: 'channel_deleted',
     CHANNEL_UPDATED: 'channel_updated',
@@ -293,6 +298,20 @@ export const StatTypes = keyMirror({
 
 export const ErrorPageTypes = {
     LOCAL_STORAGE: 'local_storage'
+};
+
+export const JobTypes = {
+    DATA_RETENTION: 'data_retention',
+    ELASTICSEARCH_POST_INDEXING: 'elasticsearch_post_indexing'
+};
+
+export const JobStatuses = {
+    PENDING: 'pending',
+    IN_PROGRESS: 'in_progress',
+    SUCCESS: 'success',
+    ERROR: 'error',
+    CANCEL_REQUESTED: 'cancel_requested',
+    CANCELED: 'canceled'
 };
 
 export const ErrorBarTypes = {
@@ -415,6 +434,7 @@ export const Constants = {
     POST_LOADING: 'loading',
     POST_FAILED: 'failed',
     POST_DELETED: 'deleted',
+    POST_UPDATED: 'updated',
     SYSTEM_MESSAGE_PREFIX: 'system_',
     SYSTEM_MESSAGE_PROFILE_IMAGE: logoImage,
     RESERVED_TEAM_NAMES: [

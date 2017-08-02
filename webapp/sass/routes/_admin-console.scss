@@ -78,7 +78,7 @@
 
     .log__panel {
         background-color: white;
-        border: 1px solid #ddd;
+        border: $border-gray;
         height: calc(100vh - 200px);
         margin-top: 10px;
         overflow: scroll;
@@ -180,7 +180,7 @@
 
     .banner {
         background: $white;
-        border: 1px solid #ddd;
+        border: $border-gray;
         font-size: .95em;
         margin: 2em 0;
         padding: .8em 1.5rem;
@@ -288,6 +288,26 @@
 
     .admin-console-header {
         border-bottom: 1px solid alpha-color($black, .1);
+    }
+
+    .status-icon-unknown {
+        color: gray;
+    }
+
+    .status-icon-success {
+        color: #69c169;
+    }
+
+    .status-icon-warning {
+        color: #eac262;
+    }
+
+    .status-icon-error {
+        color: #ea6262;
+    }
+    
+    .suggestion--selected {
+        background-color: #e2e2e2;
     }
 }
 
@@ -476,10 +496,6 @@
     margin-top: -15px;
 }
 
-.reload-config {
-    margin-bottom: 50px !important;
-}
-
 .recycle-db {
     margin-top: 50px !important;
 }
@@ -523,11 +539,34 @@
 .manage-teams {
     .manage-teams__user {
         align-items: center;
-        border-bottom-color: lightgray;
-        border-bottom-style: solid;
-        border-bottom-width: 1px;
         display: flex;
-        padding-bottom: 15px;
+    }
+
+    .manage-teams__teams {
+        border-top: $border-gray;
+        margin: 1em 0 .3em;
+
+        .btn-link {
+            &.danger {
+                color: #c55151;
+            }
+        }
+    }
+
+    .member-row--padded {
+        padding-left: 20px;
+
+        strong {
+            margin-right: 10px;
+        }
+    }
+
+    .manage-row--inner {
+        padding: 15px 0 4px;
+
+        & + div {
+            border-top: $border-gray;
+        }
     }
 
     .manage-teams__profile-picture {
@@ -561,21 +600,31 @@
         padding-right: 10px;
     }
 
-    .manage-teams__team {
-        align-items: center;
-        display: flex;
-        padding: 10px;
+    .manage-teams__teams {
+        margin-top: 1em;
+
+        .manage-row__empty {
+            padding: 9px 0;
+        }
     }
 
-    .manage-teams__team + .manage-teams__team {
-        border-top-color: lightgray;
-        border-top-style: solid;
-        border-top-width: 1px;
+    .manage-teams__team {
+        align-items: center;
+        border-bottom: $border-gray;
+        display: flex;
+        padding: 7px 10px;
+
+        .btn {
+            font-size: .9em;
+        }
+
+        .dropdown {
+            padding: 6px 0;
+        }
     }
 
     .manage-teams__team-name {
         flex: 1;
-        font-weight: bold;
         overflow: hidden;
         text-overflow: ellipsis;
     }

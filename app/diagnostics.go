@@ -4,6 +4,7 @@
 package app
 
 import (
+	"encoding/json"
 	"log"
 	"os"
 	"runtime"
@@ -16,27 +17,29 @@ import (
 const (
 	SEGMENT_KEY = "fwb7VPbFeQ7SKp3wHm1RzFUuXZudqVok"
 
-	TRACK_CONFIG_SERVICE      = "config_service"
-	TRACK_CONFIG_TEAM         = "config_team"
-	TRACK_CONFIG_SQL          = "config_sql"
-	TRACK_CONFIG_LOG          = "config_log"
-	TRACK_CONFIG_FILE         = "config_file"
-	TRACK_CONFIG_RATE         = "config_rate"
-	TRACK_CONFIG_EMAIL        = "config_email"
-	TRACK_CONFIG_PRIVACY      = "config_privacy"
-	TRACK_CONFIG_OAUTH        = "config_oauth"
-	TRACK_CONFIG_LDAP         = "config_ldap"
-	TRACK_CONFIG_COMPLIANCE   = "config_compliance"
-	TRACK_CONFIG_LOCALIZATION = "config_localization"
-	TRACK_CONFIG_SAML         = "config_saml"
-	TRACK_CONFIG_PASSWORD     = "config_password"
-	TRACK_CONFIG_CLUSTER      = "config_cluster"
-	TRACK_CONFIG_METRICS      = "config_metrics"
-	TRACK_CONFIG_WEBRTC       = "config_webrtc"
-	TRACK_CONFIG_SUPPORT      = "config_support"
-	TRACK_CONFIG_NATIVEAPP    = "config_nativeapp"
-	TRACK_CONFIG_ANALYTICS    = "config_analytics"
-	TRACK_CONFIG_ANNOUNCEMENT = "config_announcement"
+	TRACK_CONFIG_SERVICE       = "config_service"
+	TRACK_CONFIG_TEAM          = "config_team"
+	TRACK_CONFIG_SQL           = "config_sql"
+	TRACK_CONFIG_LOG           = "config_log"
+	TRACK_CONFIG_FILE          = "config_file"
+	TRACK_CONFIG_RATE          = "config_rate"
+	TRACK_CONFIG_EMAIL         = "config_email"
+	TRACK_CONFIG_PRIVACY       = "config_privacy"
+	TRACK_CONFIG_OAUTH         = "config_oauth"
+	TRACK_CONFIG_LDAP          = "config_ldap"
+	TRACK_CONFIG_COMPLIANCE    = "config_compliance"
+	TRACK_CONFIG_LOCALIZATION  = "config_localization"
+	TRACK_CONFIG_SAML          = "config_saml"
+	TRACK_CONFIG_PASSWORD      = "config_password"
+	TRACK_CONFIG_CLUSTER       = "config_cluster"
+	TRACK_CONFIG_METRICS       = "config_metrics"
+	TRACK_CONFIG_WEBRTC        = "config_webrtc"
+	TRACK_CONFIG_SUPPORT       = "config_support"
+	TRACK_CONFIG_NATIVEAPP     = "config_nativeapp"
+	TRACK_CONFIG_ANALYTICS     = "config_analytics"
+	TRACK_CONFIG_ANNOUNCEMENT  = "config_announcement"
+	TRACK_CONFIG_ELASTICSEARCH = "config_elasticsearch"
+	TRACK_CONFIG_PLUGIN        = "config_plugin"
 
 	TRACK_ACTIVITY = "activity"
 	TRACK_LICENSE  = "license"
@@ -84,6 +87,23 @@ func isDefault(setting interface{}, defaultValue interface{}) bool {
 		return true
 	}
 	return false
+}
+
+func pluginSetting(plugin, key string, defaultValue interface{}) interface{} {
+	settings, ok := utils.Cfg.PluginSettings.Plugins[plugin]
+	if !ok {
+		return defaultValue
+	}
+	var m map[string]interface{}
+	if b, err := json.Marshal(settings); err != nil {
+		return defaultValue
+	} else {
+		json.Unmarshal(b, &m)
+	}
+	if value, ok := m[key]; ok {
+		return value
+	}
+	return defaultValue
 }
 
 func trackActivity() {
@@ -164,6 +184,7 @@ func trackConfig() {
 		"enable_post_username_override":                 utils.Cfg.ServiceSettings.EnablePostUsernameOverride,
 		"enable_post_icon_override":                     utils.Cfg.ServiceSettings.EnablePostIconOverride,
 		"enable_apiv3":                                  *utils.Cfg.ServiceSettings.EnableAPIv3,
+		"enable_user_access_tokens":                     *utils.Cfg.ServiceSettings.EnableUserAccessTokens,
 		"enable_custom_emoji":                           *utils.Cfg.ServiceSettings.EnableCustomEmoji,
 		"enable_emoji_picker":                           *utils.Cfg.ServiceSettings.EnableEmojiPicker,
 		"restrict_custom_emoji_creation":                *utils.Cfg.ServiceSettings.RestrictCustomEmojiCreation,
@@ -381,6 +402,21 @@ func trackConfig() {
 		"isdefault_banner_color":      isDefault(*utils.Cfg.AnnouncementSettings.BannerColor, model.ANNOUNCEMENT_SETTINGS_DEFAULT_BANNER_COLOR),
 		"isdefault_banner_text_color": isDefault(*utils.Cfg.AnnouncementSettings.BannerTextColor, model.ANNOUNCEMENT_SETTINGS_DEFAULT_BANNER_TEXT_COLOR),
 		"allow_banner_dismissal":      *utils.Cfg.AnnouncementSettings.AllowBannerDismissal,
+	})
+
+	SendDiagnostic(TRACK_CONFIG_ELASTICSEARCH, map[string]interface{}{
+		"isdefault_connection_url": isDefault(*utils.Cfg.ElasticsearchSettings.ConnectionUrl, model.ELASTICSEARCH_SETTINGS_DEFAULT_CONNECTION_URL),
+		"isdefault_username":       isDefault(*utils.Cfg.ElasticsearchSettings.Username, model.ELASTICSEARCH_SETTINGS_DEFAULT_USERNAME),
+		"isdefault_password":       isDefault(*utils.Cfg.ElasticsearchSettings.Password, model.ELASTICSEARCH_SETTINGS_DEFAULT_PASSWORD),
+		"enable_indexing":          *utils.Cfg.ElasticsearchSettings.EnableIndexing,
+		"enable_searching":         *utils.Cfg.ElasticsearchSettings.EnableSearching,
+		"sniff":                    *utils.Cfg.ElasticsearchSettings.Sniff,
+		"post_index_replicas":      *utils.Cfg.ElasticsearchSettings.PostIndexReplicas,
+		"post_index_shards":        *utils.Cfg.ElasticsearchSettings.PostIndexShards,
+	})
+
+	SendDiagnostic(TRACK_CONFIG_PLUGIN, map[string]interface{}{
+		"enable_jira": pluginSetting("jira", "enabled", false),
 	})
 }
 

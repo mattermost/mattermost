@@ -85,7 +85,7 @@ export default class MoreChannels extends React.Component {
     }
 
     nextPage(page) {
-        this.props.actions.getChannels(TeamStore.getCurrentId(), (page + 1) * CHANNELS_PER_PAGE, CHANNELS_PER_PAGE);
+        this.props.actions.getChannels(TeamStore.getCurrentId(), page + 1, CHANNELS_PER_PAGE);
     }
 
     handleJoin(channel, done) {

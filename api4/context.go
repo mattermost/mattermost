@@ -239,6 +239,11 @@ func (c *Context) IsSystemAdmin() bool {
 }
 
 func (c *Context) SessionRequired() {
+	if !*utils.Cfg.ServiceSettings.EnableUserAccessTokens && c.Session.Props[model.SESSION_PROP_TYPE] == model.SESSION_TYPE_USER_ACCESS_TOKEN {
+		c.Err = model.NewAppError("", "api.context.session_expired.app_error", nil, "UserAccessToken", http.StatusUnauthorized)
+		return
+	}
+
 	if len(c.Session.UserId) == 0 {
 		c.Err = model.NewAppError("", "api.context.session_expired.app_error", nil, "UserRequired", http.StatusUnauthorized)
 		return
@@ -357,6 +362,17 @@ func (c *Context) RequireInviteId() *Context {
 
 	if len(c.Params.InviteId) == 0 {
 		c.SetInvalidUrlParam("invite_id")
+	}
+	return c
+}
+
+func (c *Context) RequireTokenId() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if len(c.Params.TokenId) != 26 {
+		c.SetInvalidUrlParam("token_id")
 	}
 	return c
 }

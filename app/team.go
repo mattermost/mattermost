@@ -638,7 +638,7 @@ func InviteNewUsersToTeam(emailList []string, teamId, senderId string) *model.Ap
 	var invalidEmailList []string
 
 	for _, email := range emailList {
-		if ! isTeamEmailAddressAllowed(email) {
+		if !isTeamEmailAddressAllowed(email) {
 			invalidEmailList = append(invalidEmailList, email)
 		}
 	}
@@ -744,6 +744,10 @@ func PermanentDeleteTeam(team *model.Team) *model.AppError {
 	}
 
 	if result := <-Srv.Store.Team().RemoveAllMembersByTeam(team.Id); result.Err != nil {
+		return result.Err
+	}
+
+	if result := <-Srv.Store.Command().PermanentDeleteByTeam(team.Id); result.Err != nil {
 		return result.Err
 	}
 

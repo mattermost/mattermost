@@ -191,3 +191,83 @@ func TestCheckPendingNotifications(t *testing.T) {
 		t.Fatal("timed out waiting for second post notification")
 	}
 }
+
+/**
+ * Ensures that email batch interval defaults to 15 minutes for users that haven't explicitly set this preference
+ */
+func TestCheckPendingNotificationsDefaultInterval(t *testing.T) {
+	Setup()
+	id1 := model.NewId()
+	job := MakeEmailBatchingJob(128)
+
+	// bypasses recent user activity check
+	store.Must(Srv.Store.Status().SaveOrUpdate(&model.Status{
+		UserId:         id1,
+		LastActivityAt: 9999000,
+	}))
+
+	job.pendingNotifications[id1] = []*batchedNotification{
+		{
+			post: &model.Post{
+				UserId:   id1,
+				CreateAt: 10000000,
+			},
+		},
+	}
+
+	// notifications should not be sent 1s after post was created, because default batch interval is 15mins
+	job.checkPendingNotifications(time.Unix(10001, 0), func(string, []*batchedNotification) {})
+	if job.pendingNotifications[id1] == nil || len(job.pendingNotifications[id1]) != 1 {
+		t.Fatal("shouldn't have sent queued post")
+	}
+
+	// notifications should be sent 901s after post was created, because default batch interval is 15mins
+	job.checkPendingNotifications(time.Unix(10901, 0), func(string, []*batchedNotification) {})
+	if job.pendingNotifications[id1] != nil || len(job.pendingNotifications[id1]) != 0 {
+		t.Fatal("should have sent queued post")
+	}
+}
+
+/**
+ * Ensures that email batch interval defaults to 15 minutes if user preference is invalid
+ */
+func TestCheckPendingNotificationsCantParseInterval(t *testing.T) {
+	Setup()
+	id1 := model.NewId()
+	job := MakeEmailBatchingJob(128)
+
+	// bypasses recent user activity check
+	store.Must(Srv.Store.Status().SaveOrUpdate(&model.Status{
+		UserId:         id1,
+		LastActivityAt: 9999000,
+	}))
+
+	// preference value is not an integer, so we'll fall back to the default 15min value
+	store.Must(Srv.Store.Preference().Save(&model.Preferences{{
+		UserId:   id1,
+		Category: model.PREFERENCE_CATEGORY_NOTIFICATIONS,
+		Name:     model.PREFERENCE_NAME_EMAIL_INTERVAL,
+		Value:    "notAnIntegerValue",
+	}}))
+
+	job.pendingNotifications[id1] = []*batchedNotification{
+		{
+			post: &model.Post{
+				UserId:   id1,
+				CreateAt: 10000000,
+			},
+		},
+	}
+
+	// notifications should not be sent 1s after post was created, because default batch interval is 15mins
+	job.checkPendingNotifications(time.Unix(10001, 0), func(string, []*batchedNotification) {})
+	if job.pendingNotifications[id1] == nil || len(job.pendingNotifications[id1]) != 1 {
+		t.Fatal("shouldn't have sent queued post")
+	}
+
+	// notifications should be sent 901s after post was created, because default batch interval is 15mins
+	job.checkPendingNotifications(time.Unix(10901, 0), func(string, []*batchedNotification) {})
+	if job.pendingNotifications[id1] != nil || len(job.pendingNotifications[id1]) != 0 {
+		t.Fatal("should have sent queued post")
+	}
+}
