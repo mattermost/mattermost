@@ -292,7 +292,9 @@
         "Password": "changeme",
         "EnableIndexing": false,
         "EnableSearching": false,
-        "Sniff": true
+        "Sniff": true,
+        "PostIndexReplicas": 2,
+        "PostIndexShards": 1
     },
     "DataRetentionSettings": {
         "Enable": false
