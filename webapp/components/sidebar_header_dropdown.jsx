@@ -6,9 +6,11 @@ import ReactDOM from 'react-dom';
 import * as UserAgent from 'utils/user_agent.jsx';
 import * as Utils from 'utils/utils.jsx';
 import * as GlobalActions from 'actions/global_actions.jsx';
+import * as ChannelActions from 'actions/channel_actions.jsx';
 
 import TeamStore from 'stores/team_store.jsx';
 import UserStore from 'stores/user_store.jsx';
+import ChannelStore from 'stores/channel_store.jsx';
 import WebrtcStore from 'stores/webrtc_store.jsx';
 import AboutBuildModal from './about_build_modal.jsx';
 import SidebarHeaderDropdownButton from './sidebar_header_dropdown_button.jsx';
@@ -51,6 +53,7 @@ export default class SidebarHeaderDropdown extends React.Component {
         this.showGetTeamInviteLinkModal = this.showGetTeamInviteLinkModal.bind(this);
         this.showTeamMembersModal = this.showTeamMembersModal.bind(this);
         this.hideTeamMembersModal = this.hideTeamMembersModal.bind(this);
+        this.showShortcutsModal = this.showShortcutsModal.bind(this);
 
         this.onTeamChange = this.onTeamChange.bind(this);
 
@@ -107,6 +110,21 @@ export default class SidebarHeaderDropdown extends React.Component {
         this.setState({showDropdown: false});
 
         GlobalActions.showAccountSettingsModal();
+    }
+
+    showShortcutsModal(e) {
+        e.preventDefault();
+        this.setState({showDropdown: false});
+
+        ChannelActions.showShortcutsModal(
+            ChannelStore.getCurrentId(),
+            (err) => {
+                this.setState({
+                    serverError: err.message,
+                    submitting: false
+                });
+            }
+        );
     }
 
     showAddUsersToTeamModal(e) {
@@ -495,18 +513,18 @@ export default class SidebarHeaderDropdown extends React.Component {
             );
         }
 
-        const keyboardShortcutsLink = (
+        const keyboardShortcuts = (
             <li>
-                <Link
-                    target='_blank'
-                    rel='noopener noreferrer'
-                    to='https://about.mattermost.com/default-keyboard_shortcut_link/'
+                <a
+                    id='keyboardShortcuts'
+                    href='#'
+                    onClick={this.showShortcutsModal}
                 >
                     <FormattedMessage
                         id='navbar_dropdown.keyboardShortcuts'
                         defaultMessage='Keyboard Shortcuts'
                     />
-                </Link>
+                </a>
             </li>
         );
 
@@ -616,7 +634,7 @@ export default class SidebarHeaderDropdown extends React.Component {
                     {sysAdminLink}
                     {helpDivider}
                     {helpLink}
-                    {keyboardShortcutsLink}
+                    {keyboardShortcuts}
                     {reportLink}
                     {nativeAppLink}
                     {about}

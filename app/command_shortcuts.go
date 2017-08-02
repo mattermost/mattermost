@@ -54,11 +54,11 @@ func (me *ShortcutsProvider) DoCommand(args *model.CommandArgs, message string) 
 		// Message shortcuts
 		"api.command_shortcuts.msgs.header",
 		"api.command_shortcuts.msgs.mark_as_read",
-		"api.command_shortcuts.msgs.reply",
 		"api.command_shortcuts.msgs.input.header",
+		"api.command_shortcuts.msgs.edit",
+		"api.command_shortcuts.msgs.reply",
 		"api.command_shortcuts.msgs.reprint_prev",
 		"api.command_shortcuts.msgs.reprint_next",
-		"api.command_shortcuts.msgs.edit",
 		"api.command_shortcuts.msgs.comp.header",
 		"api.command_shortcuts.msgs.comp_username",
 		"api.command_shortcuts.msgs.comp_channel",

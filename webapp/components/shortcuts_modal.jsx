@@ -77,10 +77,10 @@ export default class ShortcutsModal extends React.PureComponent {
                                 <div className='section'>
                                     <div>
                                         <h4 className='section-title'><strong>{shortcuts[11]}</strong></h4>
-                                        {renderShortcuts(shortcuts.slice(12, 14))}
-                                        <span><strong>{shortcuts[14]}</strong></span>
+                                        {renderShortcuts([shortcuts[12]])}
+                                        <span><strong>{shortcuts[13]}</strong></span>
                                         <div className='subsection'>
-                                            {renderShortcuts(shortcuts.slice(15, 18))}
+                                            {renderShortcuts(shortcuts.slice(14, 18))}
                                         </div>
                                         <span><strong>{shortcuts[18]}</strong></span>
                                         <div className='subsection'>

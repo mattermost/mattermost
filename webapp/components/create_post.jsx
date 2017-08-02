@@ -466,13 +466,9 @@ export default class CreatePost extends React.Component {
     showShortcuts(e) {
         if ((e.ctrlKey || e.metaKey) && e.keyCode === Constants.KeyCodes.FORWARD_SLASH) {
             e.preventDefault();
-            const args = {};
-            args.channel_id = this.state.channelId;
-            args.team_id = TeamStore.getCurrentId();
-            ChannelActions.executeCommand(
-                '/shortcuts',
-                args,
-                null,
+
+            ChannelActions.showShortcutsModal(
+                this.state.channelId,
                 (err) => {
                     this.setState({
                         serverError: err.message,

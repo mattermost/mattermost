@@ -865,19 +865,19 @@
   },
   {
     "id": "api.command_shortcuts.nav.prev",
-    "translation": "Previous in list:\tAlt|Up\n"
+    "translation": "Previous channel:\tAlt|Up\n"
   },
   {
     "id": "api.command_shortcuts.nav.next",
-    "translation": "Next in list:\tAlt|Down\n"
+    "translation": "Next channel:\tAlt|Down\n"
   },
   {
     "id": "api.command_shortcuts.nav.unread_next",
-    "translation": "Next unread in list:\tAlt|Shift|Up\n"
+    "translation": "Next unread channel:\tAlt|Shift|Up\n"
   },
   {
     "id": "api.command_shortcuts.nav.unread_prev",
-    "translation": "Previous unread in list:\tAlt|Shift|Down\n"
+    "translation": "Previous unread channel:\tAlt|Shift|Down\n"
   },
   {
     "id": "api.command_shortcuts.nav.switcher",
