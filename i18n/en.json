@@ -4440,6 +4440,10 @@
     "translation": "Invalid email batching interval for email settings.  Must be 30 seconds or more."
   },
   {
+    "id": "model.config.is_valid.email_notification_contents_type.app_error",
+    "translation": "Invalid email notification contents type for email settings. Must be one of either 'full' or 'generic'."
+  },
+  {
     "id": "model.config.is_valid.email_reset_salt.app_error",
     "translation": "Invalid password reset salt for email settings.  Must be 32 chars or more."
   },

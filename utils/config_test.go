@@ -277,3 +277,13 @@ func TestValidateLocales(t *testing.T) {
 		t.Fatal("Should have returned an error validating AvailableLocales")
 	}
 }
+
+func TestGetClientConfig(t *testing.T) {
+	TranslationsPreInit()
+	LoadConfig("config.json")
+
+	configMap := getClientConfig(Cfg)
+	if configMap["EmailNotificationContentsType"] != *Cfg.EmailSettings.EmailNotificationContentsType {
+		t.Fatal("EmailSettings.EmailNotificationContentsType not exposed to client config")
+	}
+}
