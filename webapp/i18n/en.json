@@ -273,7 +273,7 @@
   "admin.email.enableEmailBatchingTitle": "Enable Email Batching:",
   "admin.email.fullPushNotification": "Send full message snippet",
   "admin.email.genericNoChannelPushNotification": "Send generic description with only sender name",
-  "admin.email.genericPushNotification": "Send generic description with user and channel names",
+  "admin.email.genericPushNotification": "Send generic description with sender and channel names",
   "admin.email.inviteSaltDescription": "32-character salt added to signing of email invites. Randomly generated on install. Click \"Regenerate\" to create new salt.",
   "admin.email.inviteSaltExample": "E.g.: \"bjlSR4QqkXFBr7TP4oDzlfZmcNuH9Yo\"",
   "admin.email.inviteSaltTitle": "Email Invite Salt:",

@@ -208,7 +208,7 @@ export default class PushSettings extends AdminSettings {
                     id='pushNotificationContents'
                     values={[
                         {value: 'generic_no_channel', text: Utils.localizeMessage('admin.email.genericNoChannelPushNotification', '"Send generic description with only sender name')},
-                        {value: 'generic', text: Utils.localizeMessage('admin.email.genericPushNotification', 'Send generic description with user and channel names')},
+                        {value: 'generic', text: Utils.localizeMessage('admin.email.genericPushNotification', 'Send generic description with sender and channel names')},
                         {value: 'full', text: Utils.localizeMessage('admin.email.fullPushNotification', 'Send full message snippet')}
                     ]}
                     label={
