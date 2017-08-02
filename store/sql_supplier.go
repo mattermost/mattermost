@@ -566,10 +566,7 @@ func (ss *SqlSupplier) createIndexIfNotExists(indexName string, tableName string
 
 		_, err := ss.GetMaster().ExecNoTimeout(query)
 		if err != nil {
-			if errExists != nil {
-				l4g.Critical(utils.T("store.sql.create_index.critical"), errExists)
-			}
-
+			l4g.Critical(utils.T("store.sql.create_index.critical"), errExists)
 			l4g.Critical(utils.T("store.sql.create_index.critical"), err)
 			time.Sleep(time.Second)
 			os.Exit(EXIT_CREATE_INDEX_POSTGRES)
