@@ -123,57 +123,54 @@ class EmojiStore extends EventEmitter {
         return this.map.get(name);
     }
 
-    removeRecentEmoji(id) {
-        const recentEmojis = this.getRecentEmojis();
-        for (let i = recentEmojis.length - 1; i >= 0; i--) {
-            if (recentEmojis[i].id === id) {
-                recentEmojis.splice(i, 1);
-                break;
-            }
-        }
-        localStorage.setItem(Constants.RECENT_EMOJI_KEY, JSON.stringify(recentEmojis));
-    }
-
-    addRecentEmoji(rawAlias) {
+    addRecentEmoji(alias) {
         const recentEmojis = this.getRecentEmojis();
 
-        const alias = rawAlias.split(':').join('');
-
-        let emoji = this.getCustomEmojiMap().get(alias);
-
+        let name;
+        const emoji = this.get(alias);
         if (!emoji) {
-            const emojiIndex = Emoji.EmojiIndicesByAlias.get(alias);
-            emoji = Emoji.Emojis[emojiIndex];
-        }
-
-        if (!emoji) {
-            // something is wrong, so we return
             return;
+        } else if (emoji.name) {
+            name = emoji.name;
+        } else {
+            name = emoji.aliases[0];
         }
 
-        // odd workaround to the lack of array.findLastIndex - reverse looping & splice
-        for (let i = recentEmojis.length - 1; i >= 0; i--) {
-            if ((emoji.name && recentEmojis[i].name === emoji.name) ||
-                (emoji.filename && recentEmojis[i].filename === emoji.filename)) {
-                recentEmojis.splice(i, 1);
-                break;
-            }
+        const index = recentEmojis.indexOf(name);
+        if (index !== -1) {
+            recentEmojis.splice(index, 1);
         }
-        recentEmojis.push(emoji);
 
-        // cut off the _top_ if it's over length (since new are added to end)
+        recentEmojis.push(name);
+
         if (recentEmojis.length > MAXIMUM_RECENT_EMOJI) {
             recentEmojis.splice(0, recentEmojis.length - MAXIMUM_RECENT_EMOJI);
         }
+
         localStorage.setItem(Constants.RECENT_EMOJI_KEY, JSON.stringify(recentEmojis));
     }
 
     getRecentEmojis() {
-        const result = JSON.parse(localStorage.getItem(Constants.RECENT_EMOJI_KEY));
-        if (!result) {
+        let recentEmojis;
+        try {
+            recentEmojis = JSON.parse(localStorage.getItem(Constants.RECENT_EMOJI_KEY));
+        } catch (e) {
+            // Errors are handled below
+        }
+
+        if (!recentEmojis) {
             return [];
         }
-        return result;
+
+        if (recentEmojis.length > 0 && typeof recentEmojis[0] === 'object') {
+            // Prior to PLT-7267, recent emojis were stored with the entire object for the emoji, but this
+            // has been changed to store only the names of the emojis, so we need to change that
+            recentEmojis = recentEmojis.map((emoji) => {
+                return emoji.name || emoji.aliases[0];
+            });
+        }
+
+        return recentEmojis;
     }
 
     hasUnicode(codepoint) {
