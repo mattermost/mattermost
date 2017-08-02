@@ -5213,7 +5213,7 @@
   },
   {
     "id": "store.sql.schema_version.critical",
-    "translation": "The database schema version of %v is not supported. This Mattermost server supports schema versions 3.0.0 through %v."
+    "translation": "Database schema version %v is no longer supported. This Mattermost server supports automatic upgrades from schema version %v through schema version %v. Downgrades are not supported. Please manually upgrade to at least version %v before continuing"
   },
   {
     "id": "store.sql.short_ciphertext",
