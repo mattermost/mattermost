@@ -112,7 +112,7 @@ export default class PopoverListMembers extends React.Component {
 
                 let name = '';
                 if (teamMembers[m.username]) {
-                    name = Utils.displayEntireNameForUser(teamMembers[m.username]);
+                    name = Utils.displayUsernameForUser(teamMembers[m.username]);
                 }
 
                 if (name) {
