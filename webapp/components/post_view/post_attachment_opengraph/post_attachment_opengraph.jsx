@@ -78,10 +78,7 @@ export default class PostAttachmentOpenGraph extends React.PureComponent {
     }
 
     componentWillMount() {
-        let removePreview = false;
-        if (this.props.post && this.props.post.props && this.props.currentUser.id === this.props.post.user_id) {
-            removePreview = this.props.post.props[PostTypes.REMOVE_LINK_PREVIEW] && this.props.post.props[PostTypes.REMOVE_LINK_PREVIEW] === 'true';
-        }
+        const removePreview = this.isRemovePreview(this.props.post, this.props.currentUser);
 
         this.setState({
             imageLoaded: this.IMAGE_LOADED.LOADING,
@@ -93,6 +90,12 @@ export default class PostAttachmentOpenGraph extends React.PureComponent {
     }
 
     componentWillReceiveProps(nextProps) {
+        if (!Utils.areObjectsEqual(nextProps.post, this.props.post)) {
+            const removePreview = this.isRemovePreview(nextProps.post, nextProps.currentUser);
+            this.setState({
+                removePreview
+            });
+        }
         if (nextProps.link !== this.props.link) {
             this.fetchData(nextProps.link);
         }
@@ -239,6 +242,14 @@ export default class PostAttachmentOpenGraph extends React.PureComponent {
         updatePost(patchedPost, () => {
             this.setState({removePreview: true});
         });
+    }
+
+    isRemovePreview(post, currentUser) {
+        if (post && post.props && currentUser.id === post.user_id) {
+            return post.props[PostTypes.REMOVE_LINK_PREVIEW] && post.props[PostTypes.REMOVE_LINK_PREVIEW] === 'true';
+        }
+
+        return false;
     }
 
     render() {
