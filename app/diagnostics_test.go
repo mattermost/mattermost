@@ -28,6 +28,24 @@ func newTestServer() (chan string, *httptest.Server) {
 	return result, server
 }
 
+func TestPluginSetting(t *testing.T) {
+	before := utils.Cfg.PluginSettings.Plugins
+	utils.Cfg.PluginSettings.Plugins = map[string]interface{}{
+		"test": map[string]string{
+			"foo": "bar",
+		},
+	}
+	defer func() {
+		utils.Cfg.PluginSettings.Plugins = before
+	}()
+	if pluginSetting("test", "foo", "asd") != "bar" {
+		t.Fatal()
+	}
+	if pluginSetting("test", "qwe", "asd") != "asd" {
+		t.Fatal()
+	}
+}
+
 func TestDiagnostics(t *testing.T) {
 	Setup().InitBasic()
 
@@ -116,6 +134,7 @@ func TestDiagnostics(t *testing.T) {
 			TRACK_CONFIG_SUPPORT,
 			TRACK_CONFIG_NATIVEAPP,
 			TRACK_CONFIG_ANALYTICS,
+			TRACK_CONFIG_PLUGIN,
 			TRACK_ACTIVITY,
 			TRACK_SERVER,
 		} {
