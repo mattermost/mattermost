@@ -31,7 +31,7 @@ describe('Channel Utils', () => {
                 toEqual(true);
         });
 
-        test('system admins cannot delete private channels, user is not system admin test', () => {
+        test('system admins can delete private channels, user is not system admin test', () => {
             global.window.mm_license = {IsLicensed: 'true'};
             global.window.mm_config = {RestrictPrivateChannelDeletion: Constants.PERMISSIONS_SYSTEM_ADMIN};
 
@@ -55,7 +55,7 @@ describe('Channel Utils', () => {
                 toEqual(true);
         });
 
-        test('system admins cannot delete public channels, user is not system admin test', () => {
+        test('system admins can delete public channels, user is not system admin test', () => {
             global.window.mm_license = {IsLicensed: 'true'};
             global.window.mm_config = {RestrictPublicChannelDeletion: Constants.PERMISSIONS_SYSTEM_ADMIN};
 
@@ -79,7 +79,7 @@ describe('Channel Utils', () => {
                 toEqual(true);
         });
 
-        test('system admins or team admins cannot delete private channels, user is not system admin or team admin test', () => {
+        test('system admins or team admins can delete private channels, user is not system admin or team admin test', () => {
             global.window.mm_license = {IsLicensed: 'true'};
             global.window.mm_config = {RestrictPrivateChannelDeletion: Constants.PERMISSIONS_TEAM_ADMIN};
 
@@ -103,7 +103,7 @@ describe('Channel Utils', () => {
                 toEqual(true);
         });
 
-        test('system admins or team admins cannot delete public channels, user is not system admin or team admin test', () => {
+        test('system admins or team admins can delete public channels, user is not system admin or team admin test', () => {
             global.window.mm_license = {IsLicensed: 'true'};
             global.window.mm_config = {RestrictPublicChannelDeletion: Constants.PERMISSIONS_TEAM_ADMIN};
 
@@ -279,7 +279,7 @@ describe('Channel Utils', () => {
                 toEqual(true);
         });
 
-        test('system admins cannot manage channel options in private channels, user is not system admin test', () => {
+        test('system admins can manage channel options in private channels, user is not system admin test', () => {
             global.window.mm_license = {IsLicensed: 'true'};
             global.window.mm_config = {RestrictPrivateChannelManagement: Constants.PERMISSIONS_SYSTEM_ADMIN};
 
@@ -303,7 +303,7 @@ describe('Channel Utils', () => {
                 toEqual(true);
         });
 
-        test('system admins cannot manage channel options in public channels, user is not system admin test', () => {
+        test('system admins can manage channel options in public channels, user is not system admin test', () => {
             global.window.mm_license = {IsLicensed: 'true'};
             global.window.mm_config = {RestrictPublicChannelManagement: Constants.PERMISSIONS_SYSTEM_ADMIN};
 
@@ -327,7 +327,7 @@ describe('Channel Utils', () => {
                 toEqual(true);
         });
 
-        test('system admins or team admins cannot manage channel options in private channels, user is not system admin or team admin test', () => {
+        test('system admins or team admins can manage channel options in private channels, user is not system admin or team admin test', () => {
             global.window.mm_license = {IsLicensed: 'true'};
             global.window.mm_config = {RestrictPrivateChannelManagement: Constants.PERMISSIONS_TEAM_ADMIN};
 
@@ -351,7 +351,7 @@ describe('Channel Utils', () => {
                 toEqual(true);
         });
 
-        test('system admins or team admins cannot manage channel options in public channels, user is not system admin or team admin test', () => {
+        test('system admins or team admins can manage channel options in public channels, user is not system admin or team admin test', () => {
             global.window.mm_license = {IsLicensed: 'true'};
             global.window.mm_config = {RestrictPublicChannelManagement: Constants.PERMISSIONS_TEAM_ADMIN};
 
@@ -523,7 +523,7 @@ describe('Channel Utils', () => {
                 toEqual(true);
         });
 
-        test('system admins cannot create new private channels, user is not system admin test', () => {
+        test('system admins can create new private channels, user is not system admin test', () => {
             global.window.mm_license = {IsLicensed: 'true'};
             global.window.mm_config = {RestrictPrivateChannelCreation: Constants.PERMISSIONS_SYSTEM_ADMIN};
 
@@ -539,7 +539,7 @@ describe('Channel Utils', () => {
                 toEqual(true);
         });
 
-        test('system admins cannot create new public channels, user is not system admin test', () => {
+        test('system admins can create new public channels, user is not system admin test', () => {
             global.window.mm_license = {IsLicensed: 'true'};
             global.window.mm_config = {RestrictPublicChannelCreation: Constants.PERMISSIONS_SYSTEM_ADMIN};
 
@@ -555,7 +555,7 @@ describe('Channel Utils', () => {
                 toEqual(true);
         });
 
-        test('system admins or team admins cannot create new private channels, user is not system admin or team admin test', () => {
+        test('system admins or team admins can create new private channels, user is not system admin or team admin test', () => {
             global.window.mm_license = {IsLicensed: 'true'};
             global.window.mm_config = {RestrictPrivateChannelCreation: Constants.PERMISSIONS_TEAM_ADMIN};
 
@@ -571,7 +571,7 @@ describe('Channel Utils', () => {
                 toEqual(true);
         });
 
-        test('system admins or team admins cannot create new public channels, user is not system admin or team admin test', () => {
+        test('system admins or team admins can create new public channels, user is not system admin or team admin test', () => {
             global.window.mm_license = {IsLicensed: 'true'};
             global.window.mm_config = {RestrictPublicChannelCreation: Constants.PERMISSIONS_TEAM_ADMIN};
 
@@ -652,11 +652,6 @@ describe('Channel Utils', () => {
         });
     });
 
-
-
-
-
-
     describe('canManageMembers', () => {
         test('all users can manage channel members on unlicensed instances', () => {
             global.window.mm_license = {IsLicensed: 'false'};
@@ -676,7 +671,7 @@ describe('Channel Utils', () => {
                 toEqual(true);
         });
 
-        test('system admins cannot manage channel members in private channels, user is not system admin test', () => {
+        test('system admins can manage channel members in private channels, user is not system admin test', () => {
             global.window.mm_license = {IsLicensed: 'true'};
             global.window.mm_config = {RestrictPrivateChannelManageMembers: Constants.PERMISSIONS_SYSTEM_ADMIN};
 
@@ -700,7 +695,7 @@ describe('Channel Utils', () => {
                 toEqual(true);
         });
 
-        test('system admins or team admins cannot manage channel members in private channels, user is not system admin or team admin test', () => {
+        test('system admins or team admins can manage channel members in private channels, user is not system admin or team admin test', () => {
             global.window.mm_license = {IsLicensed: 'true'};
             global.window.mm_config = {RestrictPrivateChannelManageMembers: Constants.PERMISSIONS_TEAM_ADMIN};
 
