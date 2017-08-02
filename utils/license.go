@@ -52,6 +52,14 @@ func IsLicensed() bool {
 	return atomic.LoadInt32(&isLicensedInt32) == 1
 }
 
+func SetLicensed(v bool) {
+	if v {
+		atomic.StoreInt32(&isLicensedInt32, 1)
+	} else {
+		atomic.StoreInt32(&isLicensedInt32, 0)
+	}
+}
+
 func License() *model.License {
 	return licenseValue.Load().(*model.License)
 }
@@ -75,7 +83,7 @@ func SetLicense(license *model.License) bool {
 
 	if !license.IsExpired() {
 		licenseValue.Store(license)
-		atomic.StoreInt32(&isLicensedInt32, 1)
+		SetLicensed(true)
 		clientLicenseValue.Store(getClientLicense(license))
 		ClientCfg = getClientConfig(Cfg)
 		return true
@@ -86,7 +94,7 @@ func SetLicense(license *model.License) bool {
 
 func RemoveLicense() {
 	licenseValue.Store(&model.License{})
-	atomic.StoreInt32(&isLicensedInt32, 0)
+	SetLicensed(false)
 	clientLicenseValue.Store(getClientLicense(License()))
 	ClientCfg = getClientConfig(Cfg)
 }

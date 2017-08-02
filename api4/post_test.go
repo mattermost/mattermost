@@ -367,14 +367,14 @@ func TestUpdatePost(t *testing.T) {
 	license := utils.License
 	allowEditPost := *utils.Cfg.ServiceSettings.AllowEditPost
 	defer func() {
-		utils.IsLicensed = isLicensed
+		utils.IsLicensed() = isLicensed
 		utils.License = license
 		*utils.Cfg.ServiceSettings.AllowEditPost = allowEditPost
 		utils.SetDefaultRolesBasedOnConfig()
 	}()
-	utils.IsLicensed = true
+	utils.IsLicensed() = true
 	utils.License = &model.License{Features: &model.Features{}}
-	utils.License.Features.SetDefaults()
+	utils.License().Features.SetDefaults()
 
 	*utils.Cfg.ServiceSettings.AllowEditPost = model.ALLOW_EDIT_POST_ALWAYS
 	utils.SetDefaultRolesBasedOnConfig()
@@ -446,14 +446,14 @@ func TestPatchPost(t *testing.T) {
 	license := utils.License
 	allowEditPost := *utils.Cfg.ServiceSettings.AllowEditPost
 	defer func() {
-		utils.IsLicensed = isLicensed
+		utils.IsLicensed() = isLicensed
 		utils.License = license
 		*utils.Cfg.ServiceSettings.AllowEditPost = allowEditPost
 		utils.SetDefaultRolesBasedOnConfig()
 	}()
-	utils.IsLicensed = true
+	utils.IsLicensed() = true
 	utils.License = &model.License{Features: &model.Features{}}
-	utils.License.Features.SetDefaults()
+	utils.License().Features.SetDefaults()
 
 	*utils.Cfg.ServiceSettings.AllowEditPost = model.ALLOW_EDIT_POST_ALWAYS
 	utils.SetDefaultRolesBasedOnConfig()

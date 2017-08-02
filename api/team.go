@@ -118,7 +118,7 @@ func getAll(c *Context, w http.ResponseWriter, r *http.Request) {
 func inviteMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 	invites := model.InvitesFromJson(r.Body)
 
-	if utils.IsLicensed && !app.SessionHasPermissionToTeam(c.Session, c.TeamId, model.PERMISSION_INVITE_USER) {
+	if utils.IsLicensed() && !app.SessionHasPermissionToTeam(c.Session, c.TeamId, model.PERMISSION_INVITE_USER) {
 		errorId := ""
 		if *utils.Cfg.TeamSettings.RestrictTeamInvite == model.PERMISSIONS_SYSTEM_ADMIN {
 			errorId = "api.team.invite_members.restricted_system_admin.app_error"

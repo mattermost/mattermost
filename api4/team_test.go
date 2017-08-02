@@ -830,7 +830,7 @@ func TestAddTeamMember(t *testing.T) {
 	license := utils.License
 	defer func() {
 		*utils.Cfg.TeamSettings.RestrictTeamInvite = restrictTeamInvite
-		utils.IsLicensed = isLicensed
+		utils.IsLicensed() = isLicensed
 		utils.License = license
 		utils.SetDefaultRolesBasedOnConfig()
 	}()
@@ -845,9 +845,9 @@ func TestAddTeamMember(t *testing.T) {
 	CheckNoError(t, resp)
 
 	// Add an EE license.
-	utils.IsLicensed = true
+	utils.IsLicensed() = true
 	utils.License = &model.License{Features: &model.Features{}}
-	utils.License.Features.SetDefaults()
+	utils.License().Features.SetDefaults()
 	utils.SetDefaultRolesBasedOnConfig()
 	th.LoginBasic()
 
@@ -859,9 +859,9 @@ func TestAddTeamMember(t *testing.T) {
 	UpdateUserToTeamAdmin(th.BasicUser, th.BasicTeam)
 	app.InvalidateAllCaches()
 	*utils.Cfg.TeamSettings.RestrictTeamInvite = model.PERMISSIONS_TEAM_ADMIN
-	utils.IsLicensed = true
+	utils.IsLicensed() = true
 	utils.License = &model.License{Features: &model.Features{}}
-	utils.License.Features.SetDefaults()
+	utils.License().Features.SetDefaults()
 	utils.SetDefaultRolesBasedOnConfig()
 	th.LoginBasic()
 
@@ -885,9 +885,9 @@ func TestAddTeamMember(t *testing.T) {
 	UpdateUserToNonTeamAdmin(th.BasicUser, th.BasicTeam)
 	app.InvalidateAllCaches()
 	*utils.Cfg.TeamSettings.RestrictTeamInvite = model.PERMISSIONS_ALL
-	utils.IsLicensed = true
+	utils.IsLicensed() = true
 	utils.License = &model.License{Features: &model.Features{}}
-	utils.License.Features.SetDefaults()
+	utils.License().Features.SetDefaults()
 	utils.SetDefaultRolesBasedOnConfig()
 	th.LoginBasic()
 
@@ -897,7 +897,7 @@ func TestAddTeamMember(t *testing.T) {
 
 	// Reset config and license.
 	*utils.Cfg.TeamSettings.RestrictTeamInvite = restrictTeamInvite
-	utils.IsLicensed = isLicensed
+	utils.IsLicensed() = isLicensed
 	utils.License = license
 	utils.SetDefaultRolesBasedOnConfig()
 	th.LoginBasic()
@@ -1044,7 +1044,7 @@ func TestAddTeamMembers(t *testing.T) {
 	license := utils.License
 	defer func() {
 		*utils.Cfg.TeamSettings.RestrictTeamInvite = restrictTeamInvite
-		utils.IsLicensed = isLicensed
+		utils.IsLicensed() = isLicensed
 		utils.License = license
 		utils.SetDefaultRolesBasedOnConfig()
 	}()
@@ -1059,9 +1059,9 @@ func TestAddTeamMembers(t *testing.T) {
 	CheckNoError(t, resp)
 
 	// Add an EE license.
-	utils.IsLicensed = true
+	utils.IsLicensed() = true
 	utils.License = &model.License{Features: &model.Features{}}
-	utils.License.Features.SetDefaults()
+	utils.License().Features.SetDefaults()
 	utils.SetDefaultRolesBasedOnConfig()
 	th.LoginBasic()
 
@@ -1073,9 +1073,9 @@ func TestAddTeamMembers(t *testing.T) {
 	UpdateUserToTeamAdmin(th.BasicUser, th.BasicTeam)
 	app.InvalidateAllCaches()
 	*utils.Cfg.TeamSettings.RestrictTeamInvite = model.PERMISSIONS_TEAM_ADMIN
-	utils.IsLicensed = true
+	utils.IsLicensed() = true
 	utils.License = &model.License{Features: &model.Features{}}
-	utils.License.Features.SetDefaults()
+	utils.License().Features.SetDefaults()
 	utils.SetDefaultRolesBasedOnConfig()
 	th.LoginBasic()
 
@@ -1099,9 +1099,9 @@ func TestAddTeamMembers(t *testing.T) {
 	UpdateUserToNonTeamAdmin(th.BasicUser, th.BasicTeam)
 	app.InvalidateAllCaches()
 	*utils.Cfg.TeamSettings.RestrictTeamInvite = model.PERMISSIONS_ALL
-	utils.IsLicensed = true
+	utils.IsLicensed() = true
 	utils.License = &model.License{Features: &model.Features{}}
-	utils.License.Features.SetDefaults()
+	utils.License().Features.SetDefaults()
 	utils.SetDefaultRolesBasedOnConfig()
 	th.LoginBasic()
 

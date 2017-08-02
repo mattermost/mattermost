@@ -409,12 +409,12 @@ func TestUpdatePost(t *testing.T) {
 	isLicensed := utils.IsLicensed
 	license := utils.License
 	defer func() {
-		utils.IsLicensed = isLicensed
+		utils.IsLicensed() = isLicensed
 		utils.License = license
 	}()
-	utils.IsLicensed = true
+	utils.IsLicensed() = true
 	utils.License = &model.License{Features: &model.Features{}}
-	utils.License.Features.SetDefaults()
+	utils.License().Features.SetDefaults()
 
 	*utils.Cfg.ServiceSettings.AllowEditPost = model.ALLOW_EDIT_POST_NEVER
 
@@ -951,12 +951,12 @@ func TestDeletePosts(t *testing.T) {
 	isLicensed := utils.IsLicensed
 	license := utils.License
 	defer func() {
-		utils.IsLicensed = isLicensed
+		utils.IsLicensed() = isLicensed
 		utils.License = license
 	}()
-	utils.IsLicensed = true
+	utils.IsLicensed() = true
 	utils.License = &model.License{Features: &model.Features{}}
-	utils.License.Features.SetDefaults()
+	utils.License().Features.SetDefaults()
 
 	UpdateUserToTeamAdmin(th.BasicUser2, th.BasicTeam)
 
@@ -1011,7 +1011,7 @@ func TestDeletePosts(t *testing.T) {
 	}
 
 	// Check that if unlicensed the policy restriction is not enforced.
-	utils.IsLicensed = false
+	utils.IsLicensed() = false
 	utils.License = nil
 	utils.SetDefaultRolesBasedOnConfig()
 
