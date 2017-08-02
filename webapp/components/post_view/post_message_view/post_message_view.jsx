@@ -91,7 +91,7 @@ export default class PostMessageView extends React.PureComponent {
             <p>
                 <FormattedMessage
                     id='post_body.deleted'
-                    defaultMessage='(message deleted)'
+                    defaultMessage='Message deleted'
                 />
             </p>
         );
