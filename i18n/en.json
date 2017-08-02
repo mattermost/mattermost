@@ -3537,11 +3537,11 @@
   },
   {
     "id": "authentication.roles.system_user_access_token.name",
-    "translation": "Prviate Access Token"
+    "translation": "Personal Access Token"
   },
   {
     "id": "authentication.roles.system_user_access_token.description",
-    "translation": "A role with the permissions to create, read and revoke prviate access tokens"
+    "translation": "A role with the permissions to create, read and revoke personal access tokens"
   },
   {
     "id": "authentication.permissions.create_post_public.name",
@@ -3553,15 +3553,15 @@
   },
   {
     "id": "authentication.permissions.create_user_access_token.name",
-    "translation": "Create Prviate Access Token"
+    "translation": "Create Personal Access Token"
   },
   {
     "id": "authentication.permissions.create_user_access_token.description",
-    "translation": "Ability to create prviate access tokens"
+    "translation": "Ability to create personal access tokens"
   },
   {
     "id": "authentication.permissions.read_user_access_token.name",
-    "translation": "Read Prviate Access Tokens"
+    "translation": "Read Personal Access Tokens"
   },
   {
     "id": "authentication.permissions.read_user_access_token.description",
@@ -3569,7 +3569,7 @@
   },
   {
     "id": "authentication.permissions.revoke_user_access_token.name",
-    "translation": "Revoke Prviate Access Token"
+    "translation": "Revoke Personal Access Token"
   },
   {
     "id": "authentication.permissions.revoke_user_access_token.description",
