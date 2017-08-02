@@ -16,6 +16,7 @@ import AnalyticsStore from 'stores/analytics_store.jsx';
 import TeamStore from 'stores/team_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 
+import {reloadIfServerVersionChanged} from 'actions/global_actions.jsx';
 import {getStandardAnalytics} from 'actions/admin_actions.jsx';
 import {Constants, StatTypes, UserSearchOptions} from 'utils/constants.jsx';
 import * as Utils from 'utils/utils.jsx';
@@ -102,7 +103,7 @@ export default class SystemUsers extends React.Component {
         UserStore.addWithoutTeamChangeListener(this.updateUsersFromStore);
 
         this.loadDataForTeam(this.state.teamId);
-        this.props.actions.getTeams(0, 1000);
+        this.props.actions.getTeams(0, 1000).then(reloadIfServerVersionChanged);
     }
 
     componentWillUpdate(nextProps, nextState) {

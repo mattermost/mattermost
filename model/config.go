@@ -119,9 +119,11 @@ const (
 	ANNOUNCEMENT_SETTINGS_DEFAULT_BANNER_COLOR      = "#f2a93b"
 	ANNOUNCEMENT_SETTINGS_DEFAULT_BANNER_TEXT_COLOR = "#333333"
 
-	ELASTICSEARCH_SETTINGS_DEFAULT_CONNECTION_URL = ""
-	ELASTICSEARCH_SETTINGS_DEFAULT_USERNAME       = ""
-	ELASTICSEARCH_SETTINGS_DEFAULT_PASSWORD       = ""
+	ELASTICSEARCH_SETTINGS_DEFAULT_CONNECTION_URL      = ""
+	ELASTICSEARCH_SETTINGS_DEFAULT_USERNAME            = ""
+	ELASTICSEARCH_SETTINGS_DEFAULT_PASSWORD            = ""
+	ELASTICSEARCH_SETTINGS_DEFAULT_POST_INDEX_REPLICAS = 2
+	ELASTICSEARCH_SETTINGS_DEFAULT_POST_INDEX_SHARDS   = 1
 )
 
 type ServiceSettings struct {
@@ -432,12 +434,14 @@ type WebrtcSettings struct {
 }
 
 type ElasticsearchSettings struct {
-	ConnectionUrl   *string
-	Username        *string
-	Password        *string
-	EnableIndexing  *bool
-	EnableSearching *bool
-	Sniff           *bool
+	ConnectionUrl     *string
+	Username          *string
+	Password          *string
+	EnableIndexing    *bool
+	EnableSearching   *bool
+	Sniff             *bool
+	PostIndexReplicas *int
+	PostIndexShards   *int
 }
 
 type DataRetentionSettings struct {
@@ -447,6 +451,10 @@ type DataRetentionSettings struct {
 type JobSettings struct {
 	RunJobs      *bool
 	RunScheduler *bool
+}
+
+type PluginSettings struct {
+	Plugins map[string]interface{}
 }
 
 type Config struct {
@@ -476,6 +484,7 @@ type Config struct {
 	ElasticsearchSettings ElasticsearchSettings
 	DataRetentionSettings DataRetentionSettings
 	JobSettings           JobSettings
+	PluginSettings        PluginSettings
 }
 
 func (o *Config) ToJson() string {
@@ -1412,6 +1421,16 @@ func (o *Config) SetDefaults() {
 		*o.ElasticsearchSettings.Sniff = true
 	}
 
+	if o.ElasticsearchSettings.PostIndexReplicas == nil {
+		o.ElasticsearchSettings.PostIndexReplicas = new(int)
+		*o.ElasticsearchSettings.PostIndexReplicas = ELASTICSEARCH_SETTINGS_DEFAULT_POST_INDEX_REPLICAS
+	}
+
+	if o.ElasticsearchSettings.PostIndexShards == nil {
+		o.ElasticsearchSettings.PostIndexShards = new(int)
+		*o.ElasticsearchSettings.PostIndexShards = ELASTICSEARCH_SETTINGS_DEFAULT_POST_INDEX_SHARDS
+	}
+
 	if o.DataRetentionSettings.Enable == nil {
 		o.DataRetentionSettings.Enable = new(bool)
 		*o.DataRetentionSettings.Enable = false
@@ -1425,6 +1444,10 @@ func (o *Config) SetDefaults() {
 	if o.JobSettings.RunScheduler == nil {
 		o.JobSettings.RunScheduler = new(bool)
 		*o.JobSettings.RunScheduler = true
+	}
+
+	if o.PluginSettings.Plugins == nil {
+		o.PluginSettings.Plugins = make(map[string]interface{})
 	}
 
 	o.defaultWebrtcSettings()

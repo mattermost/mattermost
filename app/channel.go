@@ -1206,3 +1206,19 @@ func GetPinnedPosts(channelId string) (*model.PostList, *model.AppError) {
 		return result.Data.(*model.PostList), nil
 	}
 }
+
+func GetDirectChannel(userId1, userId2 string) (*model.Channel, *model.AppError) {
+	result := <-Srv.Store.Channel().GetByName("", model.GetDMNameFromIds(userId1, userId2), true)
+	if result.Err != nil && result.Err.Id == store.MISSING_CHANNEL_ERROR {
+		result := <-Srv.Store.Channel().CreateDirectChannel(userId1, userId2)
+		if result.Err != nil {
+			return nil, model.NewAppError("GetOrCreateDMChannel", "web.incoming_webhook.channel.app_error", nil, "err="+result.Err.Message, http.StatusBadRequest)
+		}
+		InvalidateCacheForUser(userId1)
+		InvalidateCacheForUser(userId2)
+		return result.Data.(*model.Channel), nil
+	} else if result.Err != nil {
+		return nil, model.NewAppError("GetOrCreateDMChannel", "web.incoming_webhook.channel.app_error", nil, "err="+result.Err.Message, result.Err.StatusCode)
+	}
+	return result.Data.(*model.Channel), nil
+}
