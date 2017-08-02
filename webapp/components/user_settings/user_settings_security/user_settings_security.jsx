@@ -1056,17 +1056,17 @@ export default class SecurityTab extends React.Component {
             confirmTitle: (
                 <FormattedMessage
                     id='user.settings.tokens.confirmDeleteTitle'
-                    defaultMessage='Delete {name} Token?'
-                    values={{
-                        name: token.description
-                    }}
+                    defaultMessage='Delete Token?'
                 />
             ),
             confirmMessage: (
                 <div className='alert alert-danger'>
                     <FormattedHTMLMessage
                         id='user.settings.tokens.confirmDeleteMessage'
-                        defaultMessage='Any integrations using this token will no longer be able to access the Mattermost API. You cannot undo this action. Are you sure want to delete this token?'
+                        defaultMessage='Any integrations using this token will no longer be able to access the Mattermost API. You cannot undo this action. <br /><br />Are you sure want to delete the {description} token?'
+                        values={{
+                            description: token.description
+                        }}
                     />
                 </div>
             ),
@@ -1093,6 +1093,7 @@ export default class SecurityTab extends React.Component {
 
     createTokensSection = () => {
         let updateSectionStatus;
+        let tokenListClass = '';
 
         if (this.props.activeSection === 'tokens') {
             const tokenList = [];
@@ -1225,6 +1226,10 @@ export default class SecurityTab extends React.Component {
                     </div>
                 );
             } else if (this.state.tokenCreationState === TOKEN_CREATED) {
+                if (tokenList.length === 1) {
+                    tokenListClass = ' hidden';
+                }
+
                 newTokenSection = (
                     <div
                         className='alert alert-warning'
@@ -1279,10 +1284,9 @@ export default class SecurityTab extends React.Component {
                     className='padding-top'
                 >
                     <div key='tokenList'>
-                        <div className='alert alert-transparent'>
+                        <div className={'alert alert-transparent margin-bottom x2' + tokenListClass}>
                             {tokenList}
                         </div>
-                        <br/>
                         {newTokenSection}
                     </div>
                 </div>
