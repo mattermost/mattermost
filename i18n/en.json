@@ -873,11 +873,11 @@
   },
   {
     "id": "api.command_shortcuts.nav.unread_next",
-    "translation": "Next unread channel:\tAlt|Shift|Up\n"
+    "translation": "Next unread channel:\tAlt|Shift|Down\n"
   },
   {
     "id": "api.command_shortcuts.nav.unread_prev",
-    "translation": "Previous unread channel:\tAlt|Shift|Down\n"
+    "translation": "Previous unread channel:\tAlt|Shift|Up\n"
   },
   {
     "id": "api.command_shortcuts.nav.switcher",
