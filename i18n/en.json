@@ -1812,12 +1812,20 @@
     "translation": " mentioned you in "
   },
   {
+    "id": "api.post.send_notifications_and_forget.push_mention_no_channel",
+    "translation": " mentioned you"
+  },
+  {
     "id": "api.post.send_notifications_and_forget.push_message",
     "translation": " sent you a direct message"
   },
   {
     "id": "api.post.send_notifications_and_forget.push_non_mention",
     "translation": " posted in "
+  },
+  {
+    "id": "api.post.send_notifications_and_forget.push_non_mention_no_channel",
+    "translation": " posted a message"
   },
   {
     "id": "api.post.send_notifications_and_forget.push_notification.error",

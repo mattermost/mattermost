@@ -33,8 +33,9 @@ const (
 	WEBSERVER_MODE_GZIP     = "gzip"
 	WEBSERVER_MODE_DISABLED = "disabled"
 
-	GENERIC_NOTIFICATION = "generic"
-	FULL_NOTIFICATION    = "full"
+	GENERIC_NO_CHANNEL_NOTIFICATION = "generic_no_channel"
+	GENERIC_NOTIFICATION            = "generic"
+	FULL_NOTIFICATION               = "full"
 
 	DIRECT_MESSAGE_ANY  = "any"
 	DIRECT_MESSAGE_TEAM = "team"
