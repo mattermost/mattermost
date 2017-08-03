@@ -5,6 +5,7 @@ package utils
 
 import (
 	"os"
+	"strings"
 	"testing"
 	"time"
 
@@ -155,5 +156,125 @@ func TestConfigListener(t *testing.T) {
 		t.Fatal("listener should've been called")
 	} else if !listener2Called {
 		t.Fatal("listener 2 should've been called")
+	}
+}
+
+func TestValidateLocales(t *testing.T) {
+	TranslationsPreInit()
+	LoadConfig("config.json")
+
+	defaultServerLocale := *Cfg.LocalizationSettings.DefaultServerLocale
+	defaultClientLocale := *Cfg.LocalizationSettings.DefaultClientLocale
+	availableLocales := *Cfg.LocalizationSettings.AvailableLocales
+
+	defer func() {
+		*Cfg.LocalizationSettings.DefaultClientLocale = defaultClientLocale
+		*Cfg.LocalizationSettings.DefaultServerLocale = defaultServerLocale
+		*Cfg.LocalizationSettings.AvailableLocales = availableLocales
+	}()
+
+	*Cfg.LocalizationSettings.DefaultServerLocale = "en"
+	*Cfg.LocalizationSettings.DefaultClientLocale = "en"
+	*Cfg.LocalizationSettings.AvailableLocales = ""
+
+	// t.Logf("*Cfg.LocalizationSettings.DefaultClientLocale: %+v", *Cfg.LocalizationSettings.DefaultClientLocale)
+	if err := ValidateLocales(Cfg); err != nil {
+		t.Fatal("Should have not returned an error")
+	}
+
+	// validate DefaultServerLocale
+	*Cfg.LocalizationSettings.DefaultServerLocale = "junk"
+	if err := ValidateLocales(Cfg); err != nil {
+		if *Cfg.LocalizationSettings.DefaultServerLocale != "en" {
+			t.Fatal("DefaultServerLocale should have assigned to en as a default value")
+		}
+	} else {
+
+		t.Fatal("Should have returned an error validating DefaultServerLocale")
+	}
+
+	*Cfg.LocalizationSettings.DefaultServerLocale = ""
+	if err := ValidateLocales(Cfg); err != nil {
+		if *Cfg.LocalizationSettings.DefaultServerLocale != "en" {
+			t.Fatal("DefaultServerLocale should have assigned to en as a default value")
+		}
+	} else {
+		t.Fatal("Should have returned an error validating DefaultServerLocale")
+	}
+
+	*Cfg.LocalizationSettings.AvailableLocales = "en"
+	*Cfg.LocalizationSettings.DefaultServerLocale = "de"
+	if err := ValidateLocales(Cfg); err != nil {
+		if !strings.Contains(*Cfg.LocalizationSettings.AvailableLocales, *Cfg.LocalizationSettings.DefaultServerLocale) {
+			t.Fatal("DefaultServerLocale should have added to AvailableLocales")
+		}
+	} else {
+		t.Fatal("Should have returned an error validating DefaultServerLocale")
+	}
+
+	// validate DefaultClientLocale
+	*Cfg.LocalizationSettings.AvailableLocales = ""
+	*Cfg.LocalizationSettings.DefaultClientLocale = "junk"
+	if err := ValidateLocales(Cfg); err != nil {
+		if *Cfg.LocalizationSettings.DefaultClientLocale != "en" {
+			t.Fatal("DefaultClientLocale should have assigned to en as a default value")
+		}
+	} else {
+
+		t.Fatal("Should have returned an error validating DefaultClientLocale")
+	}
+
+	*Cfg.LocalizationSettings.DefaultClientLocale = ""
+	if err := ValidateLocales(Cfg); err != nil {
+		if *Cfg.LocalizationSettings.DefaultClientLocale != "en" {
+			t.Fatal("DefaultClientLocale should have assigned to en as a default value")
+		}
+	} else {
+		t.Fatal("Should have returned an error validating DefaultClientLocale")
+	}
+
+	*Cfg.LocalizationSettings.AvailableLocales = "en"
+	*Cfg.LocalizationSettings.DefaultClientLocale = "de"
+	if err := ValidateLocales(Cfg); err != nil {
+		if !strings.Contains(*Cfg.LocalizationSettings.AvailableLocales, *Cfg.LocalizationSettings.DefaultClientLocale) {
+			t.Fatal("DefaultClientLocale should have added to AvailableLocales")
+		}
+	} else {
+		t.Fatal("Should have returned an error validating DefaultClientLocale")
+	}
+
+	// validate AvailableLocales
+	*Cfg.LocalizationSettings.DefaultServerLocale = "en"
+	*Cfg.LocalizationSettings.DefaultClientLocale = "en"
+	*Cfg.LocalizationSettings.AvailableLocales = "junk"
+	if err := ValidateLocales(Cfg); err != nil {
+		if *Cfg.LocalizationSettings.AvailableLocales != "" {
+			t.Fatal("AvailableLocales should have assigned to empty string as a default value")
+		}
+	} else {
+		t.Fatal("Should have returned an error validating AvailableLocales")
+	}
+
+	*Cfg.LocalizationSettings.AvailableLocales = "en,de,junk"
+	if err := ValidateLocales(Cfg); err != nil {
+		if *Cfg.LocalizationSettings.AvailableLocales != "" {
+			t.Fatal("AvailableLocales should have assigned to empty string as a default value")
+		}
+	} else {
+		t.Fatal("Should have returned an error validating AvailableLocales")
+	}
+
+	*Cfg.LocalizationSettings.DefaultServerLocale = "fr"
+	*Cfg.LocalizationSettings.DefaultClientLocale = "de"
+	*Cfg.LocalizationSettings.AvailableLocales = "en"
+	if err := ValidateLocales(Cfg); err != nil {
+		if !strings.Contains(*Cfg.LocalizationSettings.AvailableLocales, *Cfg.LocalizationSettings.DefaultServerLocale) {
+			t.Fatal("AvailableLocales should have assigned to empty string as a default value")
+		}
+		if !strings.Contains(*Cfg.LocalizationSettings.AvailableLocales, *Cfg.LocalizationSettings.DefaultClientLocale) {
+			t.Fatal("AvailableLocales should have assigned to empty string as a default value")
+		}
+	} else {
+		t.Fatal("Should have returned an error validating AvailableLocales")
 	}
 }

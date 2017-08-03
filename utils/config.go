@@ -343,7 +343,12 @@ func LoadConfig(fileName string) {
 	}
 
 	if err := ValidateLocales(&config); err != nil {
-		panic(T(err.Id))
+		cfgMutex.Unlock()
+		if err := SaveConfig(CfgFileName, &config); err != nil {
+			err.Translate(T)
+			l4g.Warn(err.Error())
+		}
+		cfgMutex.Lock()
 	}
 
 	if err := ValidateLdapFilter(&config); err != nil {
@@ -563,27 +568,53 @@ func ValidateLdapFilter(cfg *model.Config) *model.AppError {
 	return nil
 }
 
-func ValidateLocales(cfg *model.Config) *model.AppError {
+func ValidateLocales(cfg *model.Config) (err *model.AppError) {
 	locales := GetSupportedLocales()
 	if _, ok := locales[*cfg.LocalizationSettings.DefaultServerLocale]; !ok {
-		return model.NewLocAppError("ValidateLocales", "utils.config.supported_server_locale.app_error", nil, "")
+		*cfg.LocalizationSettings.DefaultServerLocale = model.DEFAULT_LOCALE
+		err = model.NewLocAppError("ValidateLocales", "utils.config.supported_server_locale.app_error", nil, "")
 	}
 
 	if _, ok := locales[*cfg.LocalizationSettings.DefaultClientLocale]; !ok {
-		return model.NewLocAppError("ValidateLocales", "utils.config.supported_client_locale.app_error", nil, "")
+		*cfg.LocalizationSettings.DefaultClientLocale = model.DEFAULT_LOCALE
+		err = model.NewLocAppError("ValidateLocales", "utils.config.supported_client_locale.app_error", nil, "")
 	}
 
 	if len(*cfg.LocalizationSettings.AvailableLocales) > 0 {
+		isDefaultServerLocaleInAvailableLocales := false
+		isDefaultClientLocaleInAvailableLocales := false
 		for _, word := range strings.Split(*cfg.LocalizationSettings.AvailableLocales, ",") {
+			if _, ok := locales[word]; !ok {
+				*cfg.LocalizationSettings.AvailableLocales = ""
+				isDefaultServerLocaleInAvailableLocales = true
+				isDefaultClientLocaleInAvailableLocales = true
+				err = model.NewLocAppError("ValidateLocales", "utils.config.supported_available_locales.app_error", nil, "")
+				break
+			}
+			if word == *cfg.LocalizationSettings.DefaultServerLocale {
+				isDefaultServerLocaleInAvailableLocales = true
+			}
 			if word == *cfg.LocalizationSettings.DefaultClientLocale {
-				return nil
+				isDefaultClientLocaleInAvailableLocales = true
 			}
 		}
 
-		return model.NewLocAppError("ValidateLocales", "utils.config.validate_locale.app_error", nil, "")
+		availableLocales := *cfg.LocalizationSettings.AvailableLocales
+
+		if !isDefaultServerLocaleInAvailableLocales {
+			availableLocales += "," + *cfg.LocalizationSettings.DefaultServerLocale
+			err = model.NewLocAppError("ValidateLocales", "utils.config.validate_locale.app_error", nil, "")
+		}
+
+		if !isDefaultClientLocaleInAvailableLocales && *cfg.LocalizationSettings.DefaultServerLocale != *cfg.LocalizationSettings.DefaultClientLocale {
+			availableLocales += "," + *cfg.LocalizationSettings.DefaultClientLocale
+			err = model.NewLocAppError("ValidateLocales", "utils.config.validate_locale.app_error", nil, "")
+		}
+
+		*cfg.LocalizationSettings.AvailableLocales = strings.Join(RemoveDuplicatesFromStringArray(strings.Split(availableLocales, ",")), ",")
 	}
 
-	return nil
+	return err
 }
 
 func Desanitize(cfg *model.Config) {
