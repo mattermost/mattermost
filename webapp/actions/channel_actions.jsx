@@ -72,6 +72,39 @@ export function executeCommand(message, args, success, error) {
             msg = '/shortcuts';
         }
         break;
+    case '/leave': {
+        // /leave command not supported in reply threads.
+        if (args.channel_id && (args.root_id || args.parent_id)) {
+            GlobalActions.sendEphemeralPost('/leave is not supported in reply threads. Use it in the center channel instead.', args.channel_id, args.parent_id);
+            return;
+        }
+        const channel = ChannelStore.getCurrent();
+        if (channel.type === Constants.PRIVATE_CHANNEL) {
+            GlobalActions.showLeavePrivateChannelModal(channel);
+            return;
+        } else if (
+            channel.type === Constants.DM_CHANNEL ||
+            channel.type === Constants.GM_CHANNEL
+        ) {
+            let name;
+            let category;
+            if (channel.type === Constants.DM_CHANNEL) {
+                name = Utils.getUserIdFromChannelName(channel);
+                category = Constants.Preferences.CATEGORY_DIRECT_CHANNEL_SHOW;
+            } else {
+                name = channel.id;
+                category = Constants.Preferences.CATEGORY_GROUP_CHANNEL_SHOW;
+            }
+            const currentUserId = UserStore.getCurrentId();
+            savePreferences(currentUserId, [{category, name, user_id: currentUserId, value: 'false'}])(dispatch, getState);
+            if (ChannelUtils.isFavoriteChannel(channel)) {
+                unmarkFavorite(channel.id);
+            }
+            browserHistory.push(`${TeamStore.getCurrentTeamRelativeUrl()}/channels/town-square`);
+            return;
+        }
+        break;
+    }
     case '/settings':
         GlobalActions.showAccountSettingsModal();
         return;

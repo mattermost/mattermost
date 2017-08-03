@@ -14,7 +14,6 @@ import ChannelMembersModal from './channel_members_modal.jsx';
 import ChannelNotificationsModal from './channel_notifications_modal.jsx';
 import DeleteChannelModal from './delete_channel_modal.jsx';
 import RenameChannelModal from './rename_channel_modal.jsx';
-import ConfirmModal from './confirm_modal.jsx';
 import ToggleModalButton from './toggle_modal_button.jsx';
 
 import ChannelStore from 'stores/channel_store.jsx';
@@ -60,8 +59,6 @@ export default class ChannelHeader extends React.Component {
         this.initWebrtc = this.initWebrtc.bind(this);
         this.onBusy = this.onBusy.bind(this);
         this.openDirectMessageModal = this.openDirectMessageModal.bind(this);
-        this.createLeaveChannelModal = this.createLeaveChannelModal.bind(this);
-        this.hideLeaveChannelModal = this.hideLeaveChannelModal.bind(this);
 
         const state = this.getStateFromStores();
         state.showEditChannelHeaderModal = false;
@@ -91,7 +88,6 @@ export default class ChannelHeader extends React.Component {
             enableFormatting: PreferenceStore.getBool(Preferences.CATEGORY_ADVANCED_SETTINGS, 'formatting', true),
             isBusy: WebrtcStore.isBusy(),
             isFavorite: channel && ChannelUtils.isFavoriteChannel(channel),
-            showLeaveChannelModal: false,
             pinsOpen: SearchStore.getIsPinnedPosts()
         };
     }
@@ -144,9 +140,7 @@ export default class ChannelHeader extends React.Component {
 
     handleLeave() {
         if (this.state.channel.type === Constants.PRIVATE_CHANNEL) {
-            this.setState({
-                showLeaveChannelModal: true
-            });
+            GlobalActions.showLeavePrivateChannelModal(this.state.channel);
         } else {
             ChannelActions.leaveChannel(this.state.channel.id);
         }
@@ -231,54 +225,6 @@ export default class ChannelHeader extends React.Component {
             value: true,
             startingUsers: UserStore.getProfileListInChannel(this.props.channelId, true, false)
         });
-    }
-
-    hideLeaveChannelModal() {
-        this.setState({
-            showLeaveChannelModal: false
-        });
-    }
-
-    createLeaveChannelModal() {
-        const title = (
-            <FormattedMessage
-                id='leave_private_channel_modal.title'
-                defaultMessage='Leave Private Channel {channel}'
-                values={{
-                    channel: <b>{this.state.channel.display_name}</b>
-                }}
-            />
-        );
-
-        const message = (
-            <FormattedMessage
-                id='leave_private_channel_modal.message'
-                defaultMessage='Are you sure you wish to leave the private channel {channel}? You must be re-invited in order to re-join this channel in the future.'
-                values={{
-                    channel: <b>{this.state.channel.display_name}</b>
-                }}
-            />
-        );
-
-        const buttonClass = 'btn btn-danger';
-        const button = (
-            <FormattedMessage
-                id='leave_private_channel_modal.leave'
-                defaultMessage='Yes, leave channel'
-            />
-        );
-
-        return (
-            <ConfirmModal
-                show={this.state.showLeaveChannelModal}
-                title={title}
-                message={message}
-                confirmButtonClass={buttonClass}
-                confirmButtonText={button}
-                onConfirm={() => ChannelActions.leaveChannel(this.state.channel.id)}
-                onCancel={this.hideLeaveChannelModal}
-            />
-        );
     }
 
     render() {
@@ -885,8 +831,6 @@ export default class ChannelHeader extends React.Component {
             );
         }
 
-        const leaveChannelModal = this.createLeaveChannelModal();
-
         let pinnedIconClass = 'channel-header__icon';
         if (this.state.pinsOpen) {
             pinnedIconClass += ' active';
@@ -1001,7 +945,6 @@ export default class ChannelHeader extends React.Component {
                 {editHeaderModal}
                 {editPurposeModal}
                 {channelMembersModal}
-                {leaveChannelModal}
                 <RenameChannelModal
                     show={this.state.showRenameChannelModal}
                     onHide={this.hideRenameChannelModal}
