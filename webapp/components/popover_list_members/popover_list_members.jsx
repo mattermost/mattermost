@@ -86,6 +86,7 @@ export default class PopoverListMembers extends React.Component {
     }
 
     render() {
+        let popoverButton;
         const popoverHtml = [];
         const members = this.props.members;
         const teamMembers = UserStore.getProfilesUsernameMap();
@@ -168,9 +169,9 @@ export default class PopoverListMembers extends React.Component {
                     );
                 }
 
-                popoverHtml.push(
+                popoverButton = (
                     <div
-                        className='more-modal__row more-modal__row--button'
+                        className='more-modal__button'
                         key={'popover-member-more'}
                     >
                         <button
@@ -282,7 +283,10 @@ export default class PopoverListMembers extends React.Component {
                             />
                             {title}
                         </div>
-                        <div className='more-modal__list'>{popoverHtml}</div>
+                        <div className='more-modal__body'>
+                            <div className='more-modal__list'>{popoverHtml}</div>
+                        </div>
+                        {popoverButton}
                     </Popover>
                 </Overlay>
                 {channelMembersModal}
