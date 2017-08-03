@@ -37,6 +37,25 @@ func CreatePostAsUser(post *model.Post) (*model.Post, *model.AppError) {
 		return nil, err
 	}
 
+	if *utils.Cfg.TeamSettings.TownSquareIsReadOnly &&
+		channel.Name == model.DEFAULT_CHANNEL &&
+		!UserHasPermissionToExecute(post.UserId, model.PERMISSION_MANAGE_SYSTEM) {
+		err := model.NewLocAppError("createPost", "api.post.create_post.town_square_read_only", nil, "")
+		SendEphemeralPost(
+			channel.TeamId,
+			post.UserId,
+			&model.Post{
+				ChannelId: channel.Id,
+				ParentId:  post.ParentId,
+				RootId:    post.RootId,
+				UserId:    post.UserId,
+				Message:   utils.T("api.post.read_only_town_square"),
+				CreateAt:  model.GetMillis() + 1,
+			},
+		)
+		return nil, err
+	}
+
 	if rp, err := CreatePost(post, channel, true); err != nil {
 		if err.Id == "api.post.create_post.root_id.app_error" ||
 			err.Id == "api.post.create_post.channel_root_id.app_error" ||
@@ -80,6 +99,13 @@ func CreatePost(post *model.Post, channel *model.Channel, triggerWebhooks bool) 
 	var pchan store.StoreChannel
 	if len(post.RootId) > 0 {
 		pchan = Srv.Store.Post().Get(post.RootId)
+	}
+
+	if *utils.Cfg.TeamSettings.TownSquareIsReadOnly &&
+		!post.IsSystemMessage() &&
+		!UserHasPermissionToExecute(post.UserId, model.PERMISSION_MANAGE_SYSTEM) &&
+		Srv.Store.Channel().IsDefaultChannel(post.ChannelId) {
+		return nil, model.NewLocAppError("createPost", "api.post.read_only_town_square", nil, "")
 	}
 
 	// Verify the parent/child relationships are correct
@@ -702,4 +728,15 @@ func DoPostAction(postId string, actionId string, userId string) *model.AppError
 	}
 
 	return nil
+}
+
+func UserHasPermissionToExecute(userId string, permission *model.Permission) bool {
+	uchan := Srv.Store.User().Get(userId)
+	var user *model.User
+	result := <-uchan
+	if result.Err != nil {
+		return false
+	}
+	user = result.Data.(*model.User)
+	return CheckIfRolesGrantPermission(user.GetRoles(), permission.Id)
 }

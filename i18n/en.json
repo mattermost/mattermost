@@ -1538,6 +1538,10 @@
     "translation": "Initializing open graph protocol api routes"
   },
   {
+    "id": "api.post.read_only_town_square",
+    "translation": "Town Square is a read-only channel."
+  },
+  {
     "id": "api.post.check_for_out_of_channel_mentions.message.multiple",
     "translation": "{{.Usernames}} and {{.LastUsername}} were mentioned, but they did not receive notifications because they do not belong to this channel."
   },
@@ -5370,6 +5374,10 @@
   {
     "id": "store.sql_channel.get_members.app_error",
     "translation": "We couldn't get the channel members"
+  },
+  {
+    "id": "store.sql_channel.get_default_channels.app_error",
+    "translation": "We couldn't get the default channels"
   },
   {
     "id": "store.sql_channel.get_members_by_ids.app_error",

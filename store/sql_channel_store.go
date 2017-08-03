@@ -43,6 +43,7 @@ var allChannelMembersForUserCache = utils.NewLru(ALL_CHANNEL_MEMBERS_FOR_USER_CA
 var allChannelMembersNotifyPropsForChannelCache = utils.NewLru(ALL_CHANNEL_MEMBERS_NOTIFY_PROPS_FOR_CHANNEL_CACHE_SIZE)
 var channelCache = utils.NewLru(model.CHANNEL_CACHE_SIZE)
 var channelByNameCache = utils.NewLru(model.CHANNEL_CACHE_SIZE)
+var defaultChannelCache = utils.NewLru(model.CHANNEL_CACHE_SIZE)
 
 func ClearChannelCaches() {
 	channelMemberCountsCache.Purge()
@@ -73,6 +74,8 @@ func NewSqlChannelStore(sqlStore SqlStore) ChannelStore {
 		tablem.ColMap("Roles").SetMaxSize(64)
 		tablem.ColMap("NotifyProps").SetMaxSize(2000)
 	}
+
+	s.FillDefaultChannelCache()
 
 	return s
 }
@@ -1634,6 +1637,43 @@ func (s SqlChannelStore) performSearch(searchQuery string, term string, paramete
 	}
 
 	return result
+}
+
+func (s SqlChannelStore) GetAllDefaultChannels() StoreChannel {
+	storeChannel := make(StoreChannel, 1)
+
+	go func() {
+		result := StoreResult{}
+
+		var channels []*model.Channel
+		_, err := s.GetReplica().Select(&channels, "SELECT * FROM Channels WHERE Name = :Name", map[string]interface{}{"Name": model.DEFAULT_CHANNEL})
+		if err != nil {
+			result.Err = model.NewLocAppError("SqlChannelStore.GetAllDefaultChannels", "store.sql_channel.get_default_channels.app_error", nil, "")
+		} else {
+			result.Data = channels
+		}
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
+func (s SqlChannelStore) IsDefaultChannel(channelId string) bool {
+	_, ok := defaultChannelCache.Get(channelId)
+	return ok
+}
+
+func (s SqlChannelStore) FillDefaultChannelCache() error {
+	cchan := s.GetAllDefaultChannels()
+	result := <-cchan
+	if result.Err != nil {
+		return model.NewLocAppError("createPost", "web.incoming_webhook.channel.app_error", nil, "err="+result.Err.Message)
+	}
+	for _, channel := range result.Data.([]*model.Channel) {
+		defaultChannelCache.Add(channel.Id, channel.Name)
+	}
+	return nil
 }
 
 func (s SqlChannelStore) GetMembersByIds(channelId string, userIds []string) StoreChannel {

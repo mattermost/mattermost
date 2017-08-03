@@ -282,7 +282,7 @@ func (c *Context) LogError(err *model.AppError) {
 	// filter out endless reconnects
 	if c.Path == "/api/v3/users/websocket" && err.StatusCode == 401 || err.Id == "web.check_browser_compatibility.app_error" {
 		c.LogDebug(err)
-	} else {
+	} else if err.Id != "api.post.create_post.town_square_read_only" {
 		l4g.Error(utils.TDefault("api.context.log.error"), c.Path, err.Where, err.StatusCode,
 			c.RequestId, c.Session.UserId, c.IpAddress, err.SystemMessage(utils.TDefault), err.DetailedError)
 	}

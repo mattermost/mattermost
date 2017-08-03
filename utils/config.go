@@ -436,6 +436,7 @@ func getClientConfig(c *model.Config) map[string]string {
 	props["RestrictPrivateChannelDeletion"] = *c.TeamSettings.RestrictPrivateChannelDeletion
 	props["RestrictPrivateChannelManageMembers"] = *c.TeamSettings.RestrictPrivateChannelManageMembers
 	props["TeammateNameDisplay"] = *c.TeamSettings.TeammateNameDisplay
+	props["TownSquareIsReadOnly"] = strconv.FormatBool(*c.TeamSettings.TownSquareIsReadOnly)
 
 	props["AndroidLatestVersion"] = c.ClientRequirements.AndroidLatestVersion
 	props["AndroidMinVersion"] = c.ClientRequirements.AndroidMinVersion

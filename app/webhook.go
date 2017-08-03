@@ -520,6 +520,10 @@ func HandleIncomingWebhook(hookId string, req *model.IncomingWebhookRequest) *mo
 		}
 	}
 
+	if *utils.Cfg.TeamSettings.TownSquareIsReadOnly && channel.Name == model.DEFAULT_CHANNEL {
+		return model.NewLocAppError("HandleIncomingWebhook", "api.post.read_only_town_square", nil, "")
+	}
+
 	if channel.Type != model.CHANNEL_OPEN && !HasPermissionToChannel(hook.UserId, channel.Id, model.PERMISSION_READ_CHANNEL) {
 		return model.NewAppError("HandleIncomingWebhook", "web.incoming_webhook.permissions.app_error", nil, "", http.StatusForbidden)
 	}
