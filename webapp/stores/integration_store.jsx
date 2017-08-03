@@ -91,36 +91,6 @@ class IntegrationStore extends EventEmitter {
         return store.getState().entities.integrations.outgoingHooks[id];
     }
 
-    hasReceivedCommands(teamId) {
-        const commands = store.getState().entities.integrations.commands;
-
-        let hasTeam = false;
-        Object.values(commands).forEach((command) => {
-            if (command.team_id === teamId) {
-                hasTeam = true;
-            }
-        });
-
-        return hasTeam;
-    }
-
-    getCommands(teamId) {
-        const commands = store.getState().entities.integrations.commands;
-
-        const teamCommands = [];
-        Object.values(commands).forEach((command) => {
-            if (command.team_id === teamId) {
-                teamCommands.push(command);
-            }
-        });
-
-        return teamCommands;
-    }
-
-    getCommand(teamId, id) {
-        return store.getState().entities.integrations.commands[id];
-    }
-
     hasReceivedOAuthApps() {
         return Object.keys(store.getState().entities.integrations.oauthApps).length > 0;
     }
