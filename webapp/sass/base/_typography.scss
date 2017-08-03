@@ -22,6 +22,10 @@ body {
     font-family: 'Open Sans', sans-serif;
 }
 
+.light {
+    @include opacity(.6);
+}
+
 .word-break--all {
     word-break: break-all;
 }
