@@ -275,7 +275,7 @@ export default class SuggestionBox extends React.Component {
         // set the caret position after the next rendering
         window.requestAnimationFrame(() => {
             if (textbox.value === newValue) {
-                Utils.setCaretPosition(textbox, newValue.length);
+                Utils.setCaretPosition(textbox, prefix.length + term.length + 1);
             }
         });
 
