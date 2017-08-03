@@ -14,12 +14,12 @@ const (
 )
 
 type CommandResponse struct {
-	ResponseType string           `json:"response_type"`
-	Text         string           `json:"text"`
-	Username     string           `json:"username"`
-	IconURL      string           `json:"icon_url"`
-	GotoLocation string           `json:"goto_location"`
-	Attachments  SlackAttachments `json:"attachments"`
+	ResponseType string             `json:"response_type"`
+	Text         string             `json:"text"`
+	Username     string             `json:"username"`
+	IconURL      string             `json:"icon_url"`
+	GotoLocation string             `json:"goto_location"`
+	Attachments  []*SlackAttachment `json:"attachments"`
 }
 
 func (o *CommandResponse) ToJson() string {
@@ -40,7 +40,7 @@ func CommandResponseFromJson(data io.Reader) *CommandResponse {
 	}
 
 	o.Text = ExpandAnnouncement(o.Text)
-	o.Attachments.Process()
+	o.Attachments = ProcessSlackAttachments(o.Attachments)
 
 	return &o
 }
