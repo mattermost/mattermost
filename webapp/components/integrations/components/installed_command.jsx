@@ -1,43 +1,59 @@
-import PropTypes from 'prop-types';
-
 // Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 import React from 'react';
+import PropTypes from 'prop-types';
 import {Link} from 'react-router';
 import {FormattedMessage} from 'react-intl';
 
 import DeleteIntegration from './delete_integration.jsx';
 
-export default class InstalledCommand extends React.Component {
-    static get propTypes() {
-        return {
-            team: PropTypes.object.isRequired,
-            command: PropTypes.object.isRequired,
-            onRegenToken: PropTypes.func.isRequired,
-            onDelete: PropTypes.func.isRequired,
-            filter: PropTypes.string,
-            creator: PropTypes.object.isRequired,
-            canChange: PropTypes.bool.isRequired
-        };
+export default class InstalledCommand extends React.PureComponent {
+    static propTypes = {
+
+        /**
+        * The team data
+        */
+        team: PropTypes.object.isRequired,
+
+        /**
+        * Installed slash command to display
+        */
+        command: PropTypes.object.isRequired,
+
+        /**
+        * The function to call when Regenerate Token link is clicked
+        */
+        onRegenToken: PropTypes.func.isRequired,
+
+        /**
+        * The function to call when Delete link is clicked
+        */
+        onDelete: PropTypes.func.isRequired,
+
+        /**
+        * Set to filter command, comes from BackstageList
+        */
+        filter: PropTypes.string,
+
+        /**
+        * The creator user data
+        */
+        creator: PropTypes.object.isRequired,
+
+        /**
+        * Set to show edit link
+        */
+        canChange: PropTypes.bool.isRequired
     }
 
-    constructor(props) {
-        super(props);
-
-        this.handleRegenToken = this.handleRegenToken.bind(this);
-        this.handleDelete = this.handleDelete.bind(this);
-
-        this.matchesFilter = this.matchesFilter.bind(this);
-    }
-
-    handleRegenToken(e) {
+    handleRegenToken = (e) => {
         e.preventDefault();
 
         this.props.onRegenToken(this.props.command);
     }
 
-    handleDelete() {
+    handleDelete = () => {
         this.props.onDelete(this.props.command);
     }
 
@@ -60,6 +76,7 @@ export default class InstalledCommand extends React.Component {
         }
 
         let name;
+
         if (command.display_name) {
             name = command.display_name;
         } else {
