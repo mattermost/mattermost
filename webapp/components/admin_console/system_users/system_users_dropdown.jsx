@@ -224,10 +224,12 @@ export default class SystemUsersDropdown extends React.Component {
         }
 
         return (
-            <FormattedMessage
-                key='admin.user_item.userAccessToken'
-                id={messageId}
-            />
+            <div className='light margin-top half'>
+                <FormattedMessage
+                    key='admin.user_item.userAccessToken'
+                    id={messageId}
+                />
+            </div>
         );
     }
 
@@ -481,7 +483,7 @@ export default class SystemUsersDropdown extends React.Component {
         }
 
         return (
-            <div className='dropdown member-drop'>
+            <div className='dropdown member-drop text-right'>
                 <a
                     id='memberDropdown'
                     href='#'
