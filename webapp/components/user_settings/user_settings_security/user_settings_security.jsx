@@ -1141,8 +1141,9 @@ export default class SecurityTab extends React.Component {
                 );
             });
 
+            let noTokenText;
             if (tokenList.length === 0) {
-                tokenList.push(
+                noTokenText = (
                     <FormattedMessage
                         key='notokens'
                         id='user.settings.tokens.userAccessTokensNone'
@@ -1150,8 +1151,8 @@ export default class SecurityTab extends React.Component {
                     />
                 );
             }
-            let extraInfo;
 
+            let extraInfo;
             if (isMobile()) {
                 extraInfo = (
                     <span>
@@ -1230,9 +1231,10 @@ export default class SecurityTab extends React.Component {
                     </div>
                 );
             } else if (this.state.tokenCreationState === TOKEN_CREATED) {
-                if (tokenList.length === 1) {
+                if (tokenList.length === 0) {
                     tokenListClass = ' hidden';
                 }
+
                 newTokenSection = (
                     <div
                         className='alert alert-warning'
@@ -1291,6 +1293,7 @@ export default class SecurityTab extends React.Component {
                     <div key='tokenList'>
                         <div className={'alert alert-transparent' + tokenListClass}>
                             {tokenList}
+                            {noTokenText}
                         </div>
                         {newTokenSection}
                     </div>
