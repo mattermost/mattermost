@@ -270,7 +270,8 @@ export const PostTypes = {
     DISPLAYNAME_CHANGE: 'system_displayname_change',
     PURPOSE_CHANGE: 'system_purpose_change',
     CHANNEL_DELETED: 'system_channel_deleted',
-    EPHEMERAL: 'system_ephemeral'
+    EPHEMERAL: 'system_ephemeral',
+    REMOVE_LINK_PREVIEW: 'remove_link_preview'
 };
 
 export const StatTypes = keyMirror({
