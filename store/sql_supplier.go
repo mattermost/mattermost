@@ -557,9 +557,9 @@ func (ss *SqlSupplier) createIndexIfNotExists(indexName string, tableName string
 	}
 
 	if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_POSTGRES {
-		_, err := ss.GetMaster().SelectStr("SELECT $1::regclass", indexName)
+		_, errExists := ss.GetMaster().SelectStr("SELECT $1::regclass", indexName)
 		// It should fail if the index does not exist
-		if err == nil {
+		if errExists == nil {
 			return false
 		}
 
@@ -571,8 +571,9 @@ func (ss *SqlSupplier) createIndexIfNotExists(indexName string, tableName string
 			query = "CREATE " + uniqueStr + "INDEX " + indexName + " ON " + tableName + " (" + columnName + ")"
 		}
 
-		_, err = ss.GetMaster().ExecNoTimeout(query)
+		_, err := ss.GetMaster().ExecNoTimeout(query)
 		if err != nil {
+			l4g.Critical(utils.T("store.sql.create_index.critical"), errExists)
 			l4g.Critical(utils.T("store.sql.create_index.critical"), err)
 			time.Sleep(time.Second)
 			os.Exit(EXIT_CREATE_INDEX_POSTGRES)
