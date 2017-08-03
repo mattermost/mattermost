@@ -219,11 +219,25 @@ func CreateUserAccessToken(token *model.UserAccessToken) (*model.UserAccessToken
 
 	token.Token = model.NewId()
 
+	uchan := Srv.Store.User().Get(token.UserId)
+
 	if result := <-Srv.Store.UserAccessToken().Save(token); result.Err != nil {
 		return nil, result.Err
 	} else {
-		return result.Data.(*model.UserAccessToken), nil
+		token = result.Data.(*model.UserAccessToken)
 	}
+
+	if result := <-uchan; result.Err != nil {
+		l4g.Error(result.Err.Error())
+	} else {
+		user := result.Data.(*model.User)
+		if err := SendUserAccessTokenAddedEmail(user.Email, user.Locale); err != nil {
+			l4g.Error(err.Error())
+		}
+	}
+
+	return token, nil
+
 }
 
 func createSessionForUserAccessToken(tokenString string) (*model.Session, *model.AppError) {
