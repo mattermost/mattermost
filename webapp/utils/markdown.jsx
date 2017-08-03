@@ -175,7 +175,7 @@ class MattermostMarkdownRenderer extends marked.Renderer {
 
         if (this.formattingOptions.searchPatterns) {
             for (const pattern of this.formattingOptions.searchPatterns) {
-                if (pattern.test(href)) {
+                if (pattern.pattern.test(href)) {
                     output += ' search-highlight';
                     break;
                 }
@@ -189,7 +189,7 @@ class MattermostMarkdownRenderer extends marked.Renderer {
         if (this.formattingOptions.siteURL) {
             const pattern = new RegExp('^' + TextFormatting.escapeRegex(this.formattingOptions.siteURL) + '\\/(?:signup_user_complete|[^\\/]+\\/(?:pl|channels))\\/');
 
-            internalLink = pattern.test(outHref);
+            internalLink = pattern.pattern.test(outHref);
         }
 
         if (internalLink) {
