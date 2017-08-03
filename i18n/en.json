@@ -905,7 +905,7 @@
   },
   {
     "id": "api.command_shortcuts.msgs.mark_as_read",
-    "translation": "Mark current channel read:\tEsc\n"
+    "translation": "Mark current channel as read:\tEsc\n"
   },
   {
     "id": "api.command_shortcuts.msgs.reply",
@@ -925,7 +925,7 @@
   },
   {
     "id": "api.command_shortcuts.msgs.edit",
-    "translation": "Edit last message in current channel:\tUp\n"
+    "translation": "Edit last message in channel:\tUp\n"
   },
   {
     "id": "api.command_shortcuts.msgs.comp.header",
