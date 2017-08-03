@@ -692,6 +692,30 @@
     "translation": "Joined channel."
   },
   {
+    "id": "api.command_leave.desc",
+    "translation": "Leave the current channel"
+  },
+  {
+    "id": "api.command_leave.fail.app_error",
+    "translation": "An error occurred while leaving the channel."
+  },
+  {
+    "id": "api.command_leave.list.app_error",
+    "translation": "An error occurred while listing channels."
+  },
+  {
+    "id": "api.command_leave.missing.app_error",
+    "translation": "We couldn't find the channel."
+  },
+  {
+    "id": "api.command_leave.name",
+    "translation": "leave"
+  },
+  {
+    "id": "api.command_leave.success",
+    "translation": "Left the channel."
+  },
+  {
     "id": "api.command_logout.desc",
     "translation": "Logout of Mattermost"
   },

@@ -45,6 +45,7 @@ import ImportThemeModal from 'components/user_settings/import_theme_modal.jsx';
 import InviteMemberModal from 'components/invite_member_modal.jsx';
 import LeaveTeamModal from 'components/leave_team_modal.jsx';
 import ResetStatusModal from 'components/reset_status_modal';
+import LeavePrivateChannelModal from 'components/modals/leave_private_channel_modal.jsx';
 
 import iNoBounce from 'inobounce';
 import * as UserAgent from 'utils/user_agent.jsx';
@@ -231,6 +232,7 @@ export default class NeedsTeam extends React.Component {
                     <DeletePostModal/>
                     <RemovedFromChannelModal/>
                     <ResetStatusModal/>
+                    <LeavePrivateChannelModal/>
                 </div>
             </div>
         );
