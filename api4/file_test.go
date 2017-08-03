@@ -186,16 +186,16 @@ func TestGetFileHeaders(t *testing.T) {
 			_, resp = Client.GetFile(fileId)
 			CheckNoError(t, resp)
 
-			if contentType := resp.Response.Header.Get("Content-Type"); !strings.HasPrefix(contentType, expectedContentType) {
+			if contentType := resp.Header.Get("Content-Type"); !strings.HasPrefix(contentType, expectedContentType) {
 				t.Fatal("returned incorrect Content-Type", contentType)
 			}
 
 			if getInline {
-				if contentDisposition := resp.Response.Header.Get("Content-Disposition"); !strings.HasPrefix(contentDisposition, "inline") {
+				if contentDisposition := resp.Header.Get("Content-Disposition"); !strings.HasPrefix(contentDisposition, "inline") {
 					t.Fatal("returned incorrect Content-Disposition", contentDisposition)
 				}
 			} else {
-				if contentDisposition := resp.Response.Header.Get("Content-Disposition"); !strings.HasPrefix(contentDisposition, "attachment") {
+				if contentDisposition := resp.Header.Get("Content-Disposition"); !strings.HasPrefix(contentDisposition, "attachment") {
 					t.Fatal("returned incorrect Content-Disposition", contentDisposition)
 				}
 			}
@@ -203,11 +203,11 @@ func TestGetFileHeaders(t *testing.T) {
 			_, resp = Client.DownloadFile(fileId, true)
 			CheckNoError(t, resp)
 
-			if contentType := resp.Response.Header.Get("Content-Type"); !strings.HasPrefix(contentType, expectedContentType) {
+			if contentType := resp.Header.Get("Content-Type"); !strings.HasPrefix(contentType, expectedContentType) {
 				t.Fatal("returned incorrect Content-Type", contentType)
 			}
 
-			if contentDisposition := resp.Response.Header.Get("Content-Disposition"); !strings.HasPrefix(contentDisposition, "attachment") {
+			if contentDisposition := resp.Header.Get("Content-Disposition"); !strings.HasPrefix(contentDisposition, "attachment") {
 				t.Fatal("returned incorrect Content-Disposition", contentDisposition)
 			}
 		}

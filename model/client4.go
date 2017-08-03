@@ -21,7 +21,7 @@ type Response struct {
 	RequestId     string
 	Etag          string
 	ServerVersion string
-	Response      *http.Response
+	Header        http.Header
 }
 
 type Client4 struct {
@@ -37,15 +37,20 @@ func NewAPIv4Client(url string) *Client4 {
 }
 
 func BuildErrorResponse(r *http.Response, err *AppError) *Response {
-	statusCode := 0
+	var statusCode int
+	var header http.Header
 	if r != nil {
 		statusCode = r.StatusCode
+		header = r.Header
+	} else {
+		statusCode = 0
+		header = make(map[string][]string, 0)
 	}
 
 	return &Response{
 		StatusCode: statusCode,
 		Error:      err,
-		Response:   r,
+		Header:     header,
 	}
 }
 
@@ -55,7 +60,7 @@ func BuildResponse(r *http.Response) *Response {
 		RequestId:     r.Header.Get(HEADER_REQUEST_ID),
 		Etag:          r.Header.Get(HEADER_ETAG_SERVER),
 		ServerVersion: r.Header.Get(HEADER_VERSION_ID),
-		Response:      r,
+		Header:        r.Header,
 	}
 }
 
