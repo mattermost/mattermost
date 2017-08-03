@@ -6137,7 +6137,7 @@
   },
   {
     "id": "utils.config.supported_available_locales.app_error",
-    "translation": "Unable to load mattermost configuration file:  AvailableLocales must include all of the supported locales. Set AvailableLocales to empty string as default value."
+    "translation": "Unable to load mattermost configuration file:  AvailableLocales must include DefaultClientLocale. Set AvailableLocales to empty string as default value."
   },
   {
     "id": "utils.config.supported_client_locale.app_error",
