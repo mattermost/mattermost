@@ -410,7 +410,7 @@ func getNotificationEmailSubject(post *model.Post, translateFunc i18n.TranslateF
 func getNotificationEmailBody(recipient *model.User, post *model.Post, channel *model.Channel, senderName string, teamName string, teamURL string, emailNotificationContentsType string, translateFunc i18n.TranslateFunc) string {
 	// only include message contents in notification email if email notification contents type is set to full
 	var bodyPage *utils.HTMLTemplate
-	if *utils.Cfg.EmailSettings.EmailNotificationContentsType == model.EMAIL_NOTIFICATION_CONTENTS_FULL {
+	if emailNotificationContentsType == model.EMAIL_NOTIFICATION_CONTENTS_FULL {
 		bodyPage = utils.NewHTMLTemplate("post_body_full", recipient.Locale)
 		bodyPage.Props["PostMessage"] = GetMessageForNotification(post, translateFunc)
 	} else {
