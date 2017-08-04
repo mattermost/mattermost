@@ -15,19 +15,20 @@ import (
 )
 
 const (
-	VERSION_4_1_0  = "4.1.0"
-	VERSION_4_0_0  = "4.0.0"
-	VERSION_3_10_0 = "3.10.0"
-	VERSION_3_9_0  = "3.9.0"
-	VERSION_3_8_0  = "3.8.0"
-	VERSION_3_7_0  = "3.7.0"
-	VERSION_3_6_0  = "3.6.0"
-	VERSION_3_5_0  = "3.5.0"
-	VERSION_3_4_0  = "3.4.0"
-	VERSION_3_3_0  = "3.3.0"
-	VERSION_3_2_0  = "3.2.0"
-	VERSION_3_1_0  = "3.1.0"
-	VERSION_3_0_0  = "3.0.0"
+	VERSION_4_1_0            = "4.1.0"
+	VERSION_4_0_0            = "4.0.0"
+	VERSION_3_10_0           = "3.10.0"
+	VERSION_3_9_0            = "3.9.0"
+	VERSION_3_8_0            = "3.8.0"
+	VERSION_3_7_0            = "3.7.0"
+	VERSION_3_6_0            = "3.6.0"
+	VERSION_3_5_0            = "3.5.0"
+	VERSION_3_4_0            = "3.4.0"
+	VERSION_3_3_0            = "3.3.0"
+	VERSION_3_2_0            = "3.2.0"
+	VERSION_3_1_0            = "3.1.0"
+	VERSION_3_0_0            = "3.0.0"
+	OLDEST_SUPPORTED_VERSION = VERSION_3_0_0
 )
 
 const (
@@ -66,7 +67,7 @@ func UpgradeDatabase(sqlStore SqlStore) {
 
 	// If we're not on the current version then it's too old to be upgraded
 	if sqlStore.GetCurrentSchemaVersion() != model.CurrentVersion {
-		l4g.Critical(utils.T("store.sql.schema_version.critical"), sqlStore.GetCurrentSchemaVersion())
+		l4g.Critical(utils.T("store.sql.schema_version.critical"), sqlStore.GetCurrentSchemaVersion(), OLDEST_SUPPORTED_VERSION, model.CurrentVersion, OLDEST_SUPPORTED_VERSION)
 		time.Sleep(time.Second)
 		os.Exit(EXIT_TOO_OLD)
 	}
