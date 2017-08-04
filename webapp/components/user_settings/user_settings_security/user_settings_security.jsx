@@ -980,7 +980,7 @@ export default class SecurityTab extends React.Component {
         const description = this.refs.newtokendescription ? this.refs.newtokendescription.value : '';
 
         if (description === '') {
-            this.setState({tokenError: Utils.localizeMessage('user.settings.tokens.nameRequired', 'Please enter a name.')});
+            this.setState({tokenError: Utils.localizeMessage('user.settings.tokens.nameRequired', 'Please enter a description.')});
             return;
         }
 
@@ -1242,28 +1242,28 @@ export default class SecurityTab extends React.Component {
                         <i className='fa fa-warning margin-right'/>
                         <FormattedMessage
                             id='user.settings.tokens.copy'
-                            defaultMessage="Please copy the token below. You won't be able to see it again!"
+                            defaultMessage="Please copy the access token below. You won't be able to see it again!"
                         />
                         <br/>
                         <br/>
                         <div className='whitespace--nowrap overflow--ellipsis'>
                             <FormattedMessage
                                 id='user.settings.tokens.name'
-                                defaultMessage='Name: '
+                                defaultMessage='Token Description: '
                             />
                             {this.state.newToken.description}
                         </div>
                         <div className='whitespace--nowrap overflow--ellipsis'>
                             <FormattedMessage
                                 id='user.settings.tokens.id'
-                                defaultMessage='ID: '
+                                defaultMessage='Token ID: '
                             />
                             {this.state.newToken.id}
                         </div>
                         <strong className='word-break--all'>
                             <FormattedMessage
                                 id='user.settings.tokens.token'
-                                defaultMessage='Token: '
+                                defaultMessage='Access Token: '
                             />
                             {this.state.newToken.token}
                         </strong>
