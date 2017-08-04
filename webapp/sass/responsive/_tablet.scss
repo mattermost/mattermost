@@ -1,54 +1,10 @@
 @charset 'UTF-8';
 
 @media screen and (max-width: 960px) {
-    .inner-wrap {
-        &.move--left {
-            .channel-header {
-                .heading {
-                    max-width: calc(100vw - 620px);
-
-                    .multi-teams & {
-                        max-width: calc(100vw - 670px);
-                    }
-                }
-            }
-
-            .channel-header__info {
-                .channel-header__description {
-                    max-width: calc(100vw - 620px);
-
-                    .multi-teams & {
-                        max-width: calc(100vw - 670px);
-                    }
-                }
-            }
-        }
-    }
-
     .textarea-wrapper {
         .textbox-preview-link,
         .textbox-help-link {
             display: none;
-        }
-    }
-
-    .channel-header__info {
-        .channel-header__description {
-            max-width: calc(100vw - 680px);
-
-            .multi-teams & {
-                max-width: calc(100vw - 730px);
-            }
-        }
-    }
-
-    .channel-header {
-        .heading {
-            max-width: calc(100vw - 720px);
-
-            .multi-teams & {
-                max-width: calc(100vw - 770px);
-            }
         }
     }
 
