@@ -206,6 +206,7 @@ export default class JIRASettings extends AdminSettings {
                             disabled={!this.state.enabled}
                             type='input'
                             requiredCharacters={0}
+                            openOnFocus={true}
                         />
                     </div>
                 </Setting>
