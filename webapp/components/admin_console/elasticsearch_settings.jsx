@@ -120,7 +120,7 @@ export default class ElasticsearchSettings extends AdminSettings {
         return (
             <FormattedMessage
                 id='admin.elasticsearch.title'
-                defaultMessage='Elasticsearch Settings'
+                defaultMessage='Elasticsearch (Beta)'
             />
         );
     }
