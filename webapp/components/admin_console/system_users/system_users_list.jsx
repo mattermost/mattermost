@@ -16,7 +16,6 @@ const dispatch = store.dispatch;
 const getState = store.getState;
 
 import {getUser} from 'mattermost-redux/actions/users';
-import * as UserUtils from 'mattermost-redux/utils/user_utils';
 import {Constants} from 'utils/constants.jsx';
 import * as Utils from 'utils/utils.jsx';
 
@@ -194,35 +193,6 @@ export default class SystemUsersList extends React.Component {
                     />
                 );
             }
-        }
-
-        const userAccessTokensEnabled = global.window.mm_config.EnableUserAccessTokens === 'true';
-        if (userAccessTokensEnabled) {
-            const hasPostAllRole = UserUtils.hasPostAllRole(user.roles);
-            const hasPostAllPublicRole = UserUtils.hasPostAllPublicRole(user.roles);
-            const hasUserAccessTokenRole = UserUtils.hasUserAccessTokenRole(user.roles);
-            const isSystemAdmin = UserUtils.isSystemAdmin(user.roles);
-
-            let messageId = 'admin.user_item.userAccessTokenNo';
-            if (hasUserAccessTokenRole || isSystemAdmin) {
-                if (isSystemAdmin) {
-                    messageId = 'admin.user_item.userAccessTokenAdmin';
-                } else if (hasPostAllRole) {
-                    messageId = 'admin.user_item.userAccessTokenPostAll';
-                } else if (hasPostAllPublicRole) {
-                    messageId = 'admin.user_item.userAccessTokenPostAllPublic';
-                } else {
-                    messageId = 'admin.user_item.userAccessTokenYes';
-                }
-            }
-
-            info.push(', ');
-            info.push(
-                <FormattedHTMLMessage
-                    key='admin.user_item.userAccessToken'
-                    id={messageId}
-                />
-            );
         }
 
         return info;
