@@ -4,7 +4,6 @@
 .popover {
     @include border-radius($border-rad);
     color: lighten($black, 25%);
-    font-family: inherit;
     padding: 0;
 
     &.bottom,
@@ -222,11 +221,6 @@
 .member-list__popover {
     max-width: initial;
 
-    .more-modal__body {
-        max-height: 270px;
-        overflow: auto;
-    }
-
     .more-modal__header {
         padding: 14px 0;
 
@@ -238,7 +232,7 @@
         }
 
         span {
-            font-weight: 600;
+            font-weight: 500;
         }
     }
 
@@ -277,7 +271,7 @@
         }
 
         .more-modal__name {
-            line-height: 35px;
+            line-height: 33px;
         }
 
         .more-modal__image {
@@ -297,7 +291,7 @@
     }
 
     .popover-content {
-        max-height: 360px;
+        max-height: 350px;
         padding: 0;
         position: relative;
         width: 260px;
