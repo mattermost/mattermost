@@ -467,15 +467,7 @@ export default class CreatePost extends React.Component {
         if ((e.ctrlKey || e.metaKey) && e.keyCode === Constants.KeyCodes.FORWARD_SLASH) {
             e.preventDefault();
 
-            ChannelActions.showShortcutsModal(
-                this.state.channelId,
-                (err) => {
-                    this.setState({
-                        serverError: err.message,
-                        submitting: false
-                    });
-                }
-            );
+            GlobalActions.showShortcutsModal();
         }
     }
 

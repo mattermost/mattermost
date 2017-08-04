@@ -6,11 +6,9 @@ import ReactDOM from 'react-dom';
 import * as UserAgent from 'utils/user_agent.jsx';
 import * as Utils from 'utils/utils.jsx';
 import * as GlobalActions from 'actions/global_actions.jsx';
-import * as ChannelActions from 'actions/channel_actions.jsx';
 
 import TeamStore from 'stores/team_store.jsx';
 import UserStore from 'stores/user_store.jsx';
-import ChannelStore from 'stores/channel_store.jsx';
 import WebrtcStore from 'stores/webrtc_store.jsx';
 import AboutBuildModal from './about_build_modal.jsx';
 import SidebarHeaderDropdownButton from './sidebar_header_dropdown_button.jsx';
@@ -116,15 +114,7 @@ export default class SidebarHeaderDropdown extends React.Component {
         e.preventDefault();
         this.setState({showDropdown: false});
 
-        ChannelActions.showShortcutsModal(
-            ChannelStore.getCurrentId(),
-            (err) => {
-                this.setState({
-                    serverError: err.message,
-                    submitting: false
-                });
-            }
-        );
+        GlobalActions.showShortcutsModal();
     }
 
     showAddUsersToTeamModal(e) {

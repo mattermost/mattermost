@@ -211,11 +211,10 @@ export function showAccountSettingsModal() {
     });
 }
 
-export function showShortcutsModal(data) {
+export function showShortcutsModal() {
     AppDispatcher.handleViewAction({
         type: ActionTypes.TOGGLE_SHORTCUTS_MODAL,
-        value: true,
-        data
+        value: true
     });
 }
 

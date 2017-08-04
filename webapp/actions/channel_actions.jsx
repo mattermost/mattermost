@@ -57,16 +57,6 @@ export function executeCommand(message, args, success, error) {
     const cmd = msg.substring(0, cmdLength).toLowerCase();
     msg = cmd + msg.substring(cmdLength, msg.length);
 
-    function successFn(data) {
-        GlobalActions.showShortcutsModal(data.text);
-    }
-
-    function errorFn(err) {
-        if (error) {
-            error(err);
-        }
-    }
-
     switch (cmd) {
     case '/search':
         PostActions.searchForTerm(msg.substring(cmdLength + 1, msg.length));
@@ -76,13 +66,9 @@ export function executeCommand(message, args, success, error) {
             const err = {message: Utils.localizeMessage('create_post.shortcutsNotSupported', 'Keyboard shortcuts are not supported on your device')};
             error(err);
             return;
-        } else if (Utils.isMac()) {
-            msg += ' mac';
-        } else if (message.indexOf('mac') !== -1) {
-            msg = '/shortcuts';
         }
 
-        Client4.executeCommand(msg, args).then(successFn).catch(errorFn);
+        GlobalActions.showShortcutsModal();
         return;
     case '/leave': {
         // /leave command not supported in reply threads.
