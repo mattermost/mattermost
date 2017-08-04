@@ -11,8 +11,8 @@ import TeamStore from 'stores/team_store.jsx';
 import {loadNewDMIfNeeded, loadNewGMIfNeeded} from 'actions/user_actions.jsx';
 import {sendDesktopNotification} from 'actions/notification_actions.jsx';
 
-import Constants from 'utils/constants.jsx';
-const ActionTypes = Constants.ActionTypes;
+import {ActionTypes, Constants} from 'utils/constants.jsx';
+import {EMOJI_PATTERN} from 'utils/emoticons.jsx';
 
 import {browserHistory} from 'react-router/es6';
 
@@ -164,6 +164,15 @@ export function removeReaction(channelId, postId, emojiName) {
 }
 
 export function createPost(post, files, success) {
+    // parse message and emit emoji event
+    const emojis = post.message.match(EMOJI_PATTERN);
+    if (emojis) {
+        for (const emoji of emojis) {
+            const trimmed = emoji.substring(1, emoji.length - 1);
+            emitEmojiPosted(trimmed);
+        }
+    }
+
     PostActions.createPost(post, files)(dispatch, getState).then(() => {
         if (post.root_id) {
             PostStore.storeCommentDraft(post.root_id, null);
