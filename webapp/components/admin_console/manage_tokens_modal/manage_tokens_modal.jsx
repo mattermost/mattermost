@@ -146,7 +146,7 @@ export default class ManageTokensModal extends React.PureComponent {
                 <div className='padding-top x2'>
                     <FormattedHTMLMessage
                         id='admin.manage_tokens.userAccessTokensDescription'
-                        defaultMessage='Personal access tokens function similar to session tokens and can be used by integrations to <a href="https://about.mattermost.com/default-api-authentication" target="_blank">authenticate against the REST API</a>. Learn more about <a href="https://about.mattermost.com/default-user-access-tokens" target="_blank">user access tokens</a>.'
+                        defaultMessage='Personal access tokens function similar to session tokens and can be used by integrations to <a href="https://about.mattermost.com/default-api-authentication" target="_blank">interact with this Mattermost server</a>. Learn more about <a href="https://about.mattermost.com/default-user-access-tokens" target="_blank">personal access tokens</a>.'
                     />
                 </div>
                 <div className='manage-teams__teams'>
