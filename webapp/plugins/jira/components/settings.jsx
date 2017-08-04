@@ -29,7 +29,7 @@ class UserSuggestion extends Suggestion {
     render() {
         const {item, isSelection} = this.props;
 
-        let className = 'jirabots__name';
+        let className = 'suggestion-list__item mentions__name';
         if (isSelection) {
             className += ' suggestion--selected';
         }
@@ -218,7 +218,7 @@ export default class JIRASettings extends AdminSettings {
                     onChange={this.handleSecretChange}
                     disabled={!this.state.enabled}
                 />
-                <div className='banner'>
+                <div className='banner banner--url'>
                     <div className='banner__content'>
                         <p>
                             <FormattedMessage
@@ -229,8 +229,8 @@ export default class JIRASettings extends AdminSettings {
                                 }}
                             />
                         </p>
-                        <p>
-                            <code
+                        <div className='banner__url'>
+                            <span
                                 dangerouslySetInnerHTML={{
                                     __html: encodeURI(this.state.siteURL) +
                                         '/plugins/jira/webhook?secret=' +
@@ -242,7 +242,7 @@ export default class JIRASettings extends AdminSettings {
                                         '</b>'
                                 }}
                             />
-                        </p>
+                        </div>
                     </div>
                 </div>
             </SettingsGroup>
