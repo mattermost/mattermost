@@ -293,7 +293,7 @@
         "EnableIndexing": false,
         "EnableSearching": false,
         "Sniff": true,
-        "PostIndexReplicas": 2,
+        "PostIndexReplicas": 1,
         "PostIndexShards": 1
     },
     "DataRetentionSettings": {
