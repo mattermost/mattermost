@@ -205,11 +205,10 @@ func TestValidateLocales(t *testing.T) {
 	*Cfg.LocalizationSettings.AvailableLocales = "en"
 	*Cfg.LocalizationSettings.DefaultServerLocale = "de"
 	if err := ValidateLocales(Cfg); err != nil {
-		if !strings.Contains(*Cfg.LocalizationSettings.AvailableLocales, *Cfg.LocalizationSettings.DefaultServerLocale) {
-			t.Fatal("DefaultServerLocale should have added to AvailableLocales")
+		if strings.Contains(*Cfg.LocalizationSettings.AvailableLocales, *Cfg.LocalizationSettings.DefaultServerLocale) {
+			t.Fatal("DefaultServerLocale should not be added to AvailableLocales")
 		}
-	} else {
-		t.Fatal("Should have returned an error validating DefaultServerLocale")
+		t.Fatal("Should have not returned an error validating DefaultServerLocale")
 	}
 
 	// validate DefaultClientLocale
@@ -268,11 +267,11 @@ func TestValidateLocales(t *testing.T) {
 	*Cfg.LocalizationSettings.DefaultClientLocale = "de"
 	*Cfg.LocalizationSettings.AvailableLocales = "en"
 	if err := ValidateLocales(Cfg); err != nil {
-		if !strings.Contains(*Cfg.LocalizationSettings.AvailableLocales, *Cfg.LocalizationSettings.DefaultServerLocale) {
-			t.Fatal("AvailableLocales should have assigned to empty string as a default value")
+		if strings.Contains(*Cfg.LocalizationSettings.AvailableLocales, *Cfg.LocalizationSettings.DefaultServerLocale) {
+			t.Fatal("DefaultServerLocale should not be added to AvailableLocales")
 		}
 		if !strings.Contains(*Cfg.LocalizationSettings.AvailableLocales, *Cfg.LocalizationSettings.DefaultClientLocale) {
-			t.Fatal("AvailableLocales should have assigned to empty string as a default value")
+			t.Fatal("DefaultClientLocale should have added to AvailableLocales")
 		}
 	} else {
 		t.Fatal("Should have returned an error validating AvailableLocales")
