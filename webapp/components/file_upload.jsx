@@ -8,6 +8,7 @@ import Constants from 'utils/constants.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
 import DelayedAction from 'utils/delayed_action.jsx';
 import * as UserAgent from 'utils/user_agent.jsx';
+import * as FileUtils from 'utils/file_utils';
 import * as Utils from 'utils/utils.jsx';
 
 import {intlShape, injectIntl, defineMessages} from 'react-intl';
@@ -135,7 +136,7 @@ class FileUpload extends React.Component {
     }
 
     handleDrop(e) {
-        if (global.window.mm_config.EnableFileAttachments === 'false') {
+        if (!FileUtils.canUploadFiles()) {
             this.props.onUploadError(Utils.localizeMessage('file_upload.disabled', 'File attachments are disabled.'));
             return;
         }
@@ -172,7 +173,7 @@ class FileUpload extends React.Component {
         });
 
         let dragsterActions = {};
-        if (global.window.mm_config.EnableFileAttachments === 'true') {
+        if (FileUtils.canUploadFiles()) {
             dragsterActions = {
                 enter(dragsterEvent, e) {
                     var files = e.originalEvent.dataTransfer;
@@ -263,7 +264,7 @@ class FileUpload extends React.Component {
         // This looks redundant, but must be done this way due to
         // setState being an asynchronous call
         if (items && items.length > 0) {
-            if (global.window.mm_config.EnableFileAttachments === 'false') {
+            if (!FileUtils.canUploadFiles()) {
                 this.props.onUploadError(Utils.localizeMessage('file_upload.disabled', 'File attachments are disabled.'));
                 return;
             }
@@ -326,7 +327,7 @@ class FileUpload extends React.Component {
         if (Utils.cmdOrCtrlPressed(e) && e.keyCode === Constants.KeyCodes.U) {
             e.preventDefault();
 
-            if (global.window.mm_config.EnableFileAttachments === 'false') {
+            if (!FileUtils.canUploadFiles()) {
                 this.props.onUploadError(Utils.localizeMessage('file_upload.disabled', 'File attachments are disabled.'));
                 return;
             }
@@ -377,7 +378,7 @@ class FileUpload extends React.Component {
         const uploadsRemaining = Constants.MAX_UPLOAD_FILES - this.props.getFileCount(channelId);
 
         let fileDiv;
-        if (global.window.mm_config.EnableFileAttachments === 'true') {
+        if (FileUtils.canUploadFiles()) {
             fileDiv = (
                 <div className='icon--attachment'>
                     <span

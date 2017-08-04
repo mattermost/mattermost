@@ -1,15 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import Constants from 'utils/constants.jsx';
-import {getFileUrl, getFileThumbnailUrl} from 'mattermost-redux/utils/file_utils';
-import * as Utils from 'utils/utils.jsx';
-
+import PropTypes from 'prop-types';
+import React from 'react';
 import {Tooltip, OverlayTrigger} from 'react-bootstrap';
 
-import PropTypes from 'prop-types';
+import Constants from 'utils/constants.jsx';
+import * as FileUtils from 'utils/file_utils';
+import * as Utils from 'utils/utils.jsx';
 
-import React from 'react';
+import {getFileUrl, getFileThumbnailUrl} from 'mattermost-redux/utils/file_utils';
 
 export default class FileAttachment extends React.Component {
     constructor(props) {
@@ -101,6 +101,8 @@ export default class FileAttachment extends React.Component {
             trimmedFilename = fileName;
         }
 
+        const canDownloadFiles = FileUtils.canDownloadFiles();
+
         let filenameOverlay;
         if (this.props.compactDisplay) {
             filenameOverlay = (
@@ -124,7 +126,7 @@ export default class FileAttachment extends React.Component {
                     </a>
                 </OverlayTrigger>
             );
-        } else {
+        } else if (canDownloadFiles) {
             filenameOverlay = (
                 <OverlayTrigger
                     trigger={['hover', 'focus']}
@@ -143,6 +145,27 @@ export default class FileAttachment extends React.Component {
                     </a>
                 </OverlayTrigger>
             );
+        } else {
+            filenameOverlay = (
+                <span className='post-image__name'>
+                    {trimmedFilename}
+                </span>
+            );
+        }
+
+        let downloadButton = null;
+        if (canDownloadFiles) {
+            downloadButton = (
+                <a
+                    href={fileUrl}
+                    download={fileName}
+                    className='post-image__download'
+                    target='_blank'
+                    rel='noopener noreferrer'
+                >
+                    <span className='fa fa-download'/>
+                </a>
+            );
         }
 
         return (
@@ -157,15 +180,7 @@ export default class FileAttachment extends React.Component {
                 <div className='post-image__details'>
                     {filenameOverlay}
                     <div>
-                        <a
-                            href={fileUrl}
-                            download={fileName}
-                            className='post-image__download'
-                            target='_blank'
-                            rel='noopener noreferrer'
-                        >
-                            <span className='fa fa-download'/>
-                        </a>
+                        {downloadButton}
                         <span className='post-image__type'>{fileInfo.extension.toUpperCase()}</span>
                         <span className='post-image__size'>{Utils.fileSizeToString(fileInfo.size)}</span>
                     </div>
