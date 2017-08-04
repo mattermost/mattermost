@@ -28,6 +28,7 @@ import TeamStore from 'stores/team_store.jsx';
 import ConfirmModal from './confirm_modal.jsx';
 
 import Constants from 'utils/constants.jsx';
+import * as FileUtils from 'utils/file_utils';
 
 import {FormattedHTMLMessage, FormattedMessage} from 'react-intl';
 import {browserHistory} from 'react-router/es6';
@@ -710,7 +711,7 @@ export default class CreatePost extends React.Component {
         }
 
         let attachmentsDisabled = '';
-        if (global.window.mm_config.EnableFileAttachments === 'false') {
+        if (!FileUtils.canUploadFiles()) {
             attachmentsDisabled = ' post-create--attachment-disabled';
         }
 
