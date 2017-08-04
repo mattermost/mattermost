@@ -169,45 +169,57 @@ export default class EmojiPicker extends React.Component {
     }
 
     renderCategory(category, isLoaded, filter) {
-        const items = [];
-        let indices = [];
-        let recentEmojis = [];
-
+        let emojis;
         if (category === 'recent') {
-            recentEmojis = EmojiStore.getRecentEmojis();
-            indices = [...Array(recentEmojis.length).keys()];
+            const recentEmojis = [...EmojiStore.getRecentEmojis()];
 
-            // reverse indices so most recently added is first
-            indices.reverse();
+            // Reverse so most recently added is first
+            recentEmojis.reverse();
+
+            emojis = recentEmojis.filter((name) => {
+                return EmojiStore.has(name);
+            }).map((name) => {
+                return EmojiStore.get(name);
+            });
         } else {
-            indices = Emoji.EmojiIndicesByCategory.get(category) || [];
+            const indices = Emoji.EmojiIndicesByCategory.get(category) || [];
+
+            emojis = indices.map((index) => Emoji.Emojis[index]);
+
+            if (category === 'custom') {
+                emojis = emojis.concat([...EmojiStore.getCustomEmojiMap().values()]);
+            }
         }
 
-        for (const index of indices) {
-            let emoji = {};
+        // Apply filter
+        emojis = emojis.filter((emoji) => {
+            if (emoji.name) {
+                return emoji.name.indexOf(filter) !== -1;
+            }
+
+            for (const alias of emoji.aliases) {
+                if (alias.indexOf(filter) !== -1) {
+                    return true;
+                }
+            }
+
+            return false;
+        });
+
+        const items = emojis.map((emoji) => {
+            const name = emoji.name || emoji.aliases[0];
+            let key;
             if (category === 'recent') {
-                emoji = recentEmojis[index];
+                key = 'system_recent_' + name;
+            } else if (category === 'custom' && emoji.name) {
+                key = 'custom_' + name;
             } else {
-                emoji = Emoji.Emojis[index];
-            }
-            if (filter) {
-                let matches = false;
-
-                for (const alias of emoji.aliases || [...emoji.name]) {
-                    if (alias.indexOf(filter) !== -1) {
-                        matches = true;
-                        break;
-                    }
-                }
-
-                if (!matches) {
-                    continue;
-                }
+                key = 'system_' + name;
             }
 
-            items.push(
+            return (
                 <EmojiPickerItem
-                    key={'system_' + (category === 'recent' ? 'recent_' : '') + (emoji.name || emoji.aliases[0])}
+                    key={key}
                     emoji={emoji}
                     category={category}
                     isLoaded={isLoaded}
@@ -217,30 +229,7 @@ export default class EmojiPicker extends React.Component {
                     onItemUnmount={this.handleItemUnmount}
                 />
             );
-        }
-
-        if (category === 'custom') {
-            const customEmojis = EmojiStore.getCustomEmojiMap().values();
-
-            for (const emoji of customEmojis) {
-                if (filter && emoji.name.indexOf(filter) === -1) {
-                    continue;
-                }
-
-                items.push(
-                    <EmojiPickerItem
-                        key={'custom_' + emoji.name}
-                        emoji={emoji}
-                        category={category}
-                        onItemOver={this.handleItemOver}
-                        onItemOut={this.handleItemOut}
-                        onItemClick={this.handleItemClick}
-                        onItemUnmount={this.handleItemUnmount}
-
-                    />
-                );
-            }
-        }
+        });
 
         // Only render the header if there's any visible items
         let header = null;

@@ -31,7 +31,7 @@ import {browserHistory} from 'react-router/es6';
 const ActionTypes = Constants.ActionTypes;
 const KeyCodes = Constants.KeyCodes;
 
-import {REACTION_PATTERN, EMOJI_PATTERN} from 'components/create_post.jsx';
+import {REACTION_PATTERN} from 'components/create_post.jsx';
 import PropTypes from 'prop-types';
 import React from 'react';
 
@@ -87,9 +87,13 @@ export default class CreateComment extends React.Component {
         if (this.state.message === '') {
             this.setState({message: ':' + emojiAlias + ': '});
         } else {
-            //check whether there is already a blank at the end of the current message
-            const newMessage = (/\s+$/.test(this.state.message)) ?
-            this.state.message + ':' + emojiAlias + ': ' : this.state.message + ' :' + emojiAlias + ': ';
+            // Check whether there is already a blank at the end of the current message
+            let newMessage;
+            if ((/\s+$/).test(this.state.message)) {
+                newMessage = this.state.message + ':' + emojiAlias + ': ';
+            } else {
+                newMessage = this.state.message + ' :' + emojiAlias + ': ';
+            }
 
             this.setState({message: newMessage});
         }
@@ -229,14 +233,6 @@ export default class CreateComment extends React.Component {
         post.create_at = time;
 
         GlobalActions.emitUserCommentedEvent(post);
-
-        const emojiResult = post.message.match(EMOJI_PATTERN);
-        if (emojiResult) {
-            // parse message and emit emoji event
-            emojiResult.forEach((emoji) => {
-                PostActions.emitEmojiPosted(emoji);
-            });
-        }
 
         PostActions.createPost(post, this.state.fileInfos);
 

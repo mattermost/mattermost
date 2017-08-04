@@ -41,7 +41,6 @@ import React from 'react';
 import PropTypes from 'prop-types';
 
 export const REACTION_PATTERN = /^(\+|-):([^:\s]+):\s*$/;
-export const EMOJI_PATTERN = /:[A-Za-z-_0-9]*:/g;
 
 export default class CreatePost extends React.Component {
     constructor(props) {
@@ -267,14 +266,6 @@ export default class CreatePost extends React.Component {
         post.parent_id = this.state.parentId;
 
         GlobalActions.emitUserPostedEvent(post);
-
-        // parse message and emit emoji event
-        const emojiResult = post.message.match(EMOJI_PATTERN);
-        if (emojiResult) {
-            emojiResult.forEach((emoji) => {
-                PostActions.emitEmojiPosted(emoji);
-            });
-        }
 
         PostActions.createPost(post, this.state.fileInfos,
             () => GlobalActions.postListScrollChange(true),
