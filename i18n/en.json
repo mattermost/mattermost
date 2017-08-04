@@ -2029,7 +2029,7 @@
   },
   {
     "id": "api.slackimport.slack_import.log",
-    "translation": "Slack Import: Beginning the Slack Import Log."
+    "translation": "Mattermost Slack Import Log\r\n"
   },
   {
     "id": "api.slackimport.slack_import.note1",
