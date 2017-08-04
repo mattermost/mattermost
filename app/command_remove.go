@@ -14,16 +14,25 @@ import (
 type removeProvider struct {
 }
 
+type kickProvider struct {
+}
+
 const (
 	CMD_REMOVE = "remove"
+	CMD_KICK   = "kick"
 )
 
 func init() {
 	RegisterCommandProvider(&removeProvider{})
+	RegisterCommandProvider(&kickProvider{})
 }
 
 func (me *removeProvider) GetTrigger() string {
 	return CMD_REMOVE
+}
+
+func (me *kickProvider) GetTrigger() string {
+	return CMD_KICK
 }
 
 func (me *removeProvider) GetCommand(T goi18n.TranslateFunc) *model.Command {
@@ -36,7 +45,25 @@ func (me *removeProvider) GetCommand(T goi18n.TranslateFunc) *model.Command {
 	}
 }
 
+func (me *kickProvider) GetCommand(T goi18n.TranslateFunc) *model.Command {
+	return &model.Command{
+		Trigger:          CMD_KICK,
+		AutoComplete:     true,
+		AutoCompleteDesc: T("api.command_remove.desc"),
+		AutoCompleteHint: T("api.command_remove.hint"),
+		DisplayName:      T("api.command_kick.name"),
+	}
+}
+
 func (me *removeProvider) DoCommand(args *model.CommandArgs, message string) *model.CommandResponse {
+	return doCommand(args, message)
+}
+
+func (me *kickProvider) DoCommand(args *model.CommandArgs, message string) *model.CommandResponse {
+	return doCommand(args, message)
+}
+
+func doCommand(args *model.CommandArgs, message string) *model.CommandResponse {
 	channel, err := GetChannel(args.ChannelId)
 	if err != nil {
 		return &model.CommandResponse{Text: args.T("api.command_channel_rename.channel.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}

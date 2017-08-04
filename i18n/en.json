@@ -660,6 +660,10 @@
     "translation": "Remove a member from the channel"
   },
   {
+    "id": "api.command_kick.name",
+    "translation": "kick"
+  },
+  {
     "id": "api.command_expand.desc",
     "translation": "Turn off auto-collapsing of image previews"
   },
