@@ -212,7 +212,7 @@ export default class SearchResultsItem extends React.Component {
                 <p>
                     <FormattedMessage
                         id='post_body.deleted'
-                        defaultMessage='(message deleted)'
+                        defaultMessage='(Message deleted)'
                     />
                 </p>
             );
