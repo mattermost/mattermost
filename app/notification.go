@@ -358,8 +358,13 @@ func sendNotificationEmail(post *model.Post, user *model.User, channel *model.Ch
 		subjectText = getNotificationEmailSubject(post, translateFunc, utils.Cfg.TeamSettings.SiteName, team.DisplayName)
 	}
 
+	emailNotificationContentsType := model.EMAIL_NOTIFICATION_CONTENTS_FULL
+	if utils.IsLicensed && *utils.License.Features.EmailNotificationContents {
+		emailNotificationContentsType = *utils.Cfg.EmailSettings.EmailNotificationContentsType
+	}
+
 	teamURL := utils.GetSiteURL() + "/" + team.Name
-	var bodyText = getNotificationEmailBody(user, post, channel, senderName, team.Name, teamURL, *utils.Cfg.EmailSettings.EmailNotificationContentsType, translateFunc)
+	var bodyText = getNotificationEmailBody(user, post, channel, senderName, team.Name, teamURL, emailNotificationContentsType, translateFunc)
 
 	go func() {
 		if err := utils.SendMail(user.Email, html.UnescapeString(subjectText), bodyText); err != nil {

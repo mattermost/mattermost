@@ -195,7 +195,12 @@ func sendBatchedEmailNotification(userId string, notifications []*batchedNotific
 			channel = result.Data.(*model.Channel)
 		}
 
-		contents += renderBatchedPost(notification, channel, sender, *utils.Cfg.ServiceSettings.SiteURL, displayNameFormat, translateFunc, user.Locale, *utils.Cfg.EmailSettings.EmailNotificationContentsType)
+		emailNotificationContentsType := model.EMAIL_NOTIFICATION_CONTENTS_FULL
+		if utils.IsLicensed && *utils.License.Features.EmailNotificationContents {
+			emailNotificationContentsType = *utils.Cfg.EmailSettings.EmailNotificationContentsType
+		}
+
+		contents += renderBatchedPost(notification, channel, sender, *utils.Cfg.ServiceSettings.SiteURL, displayNameFormat, translateFunc, user.Locale, emailNotificationContentsType)
 	}
 
 	tm := time.Unix(notifications[0].post.CreateAt/1000, 0)
