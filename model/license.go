@@ -37,39 +37,42 @@ type Customer struct {
 }
 
 type Features struct {
-	Users                *int  `json:"users"`
-	LDAP                 *bool `json:"ldap"`
-	MFA                  *bool `json:"mfa"`
-	GoogleOAuth          *bool `json:"google_oauth"`
-	Office365OAuth       *bool `json:"office365_oauth"`
-	Compliance           *bool `json:"compliance"`
-	Cluster              *bool `json:"cluster"`
-	Metrics              *bool `json:"metrics"`
-	CustomBrand          *bool `json:"custom_brand"`
-	MHPNS                *bool `json:"mhpns"`
-	SAML                 *bool `json:"saml"`
-	PasswordRequirements *bool `json:"password_requirements"`
-	Elasticsearch        *bool `json:"elastic_search"`
-	Announcement         *bool `json:"announcement"`
+	Users                     *int  `json:"users"`
+	LDAP                      *bool `json:"ldap"`
+	MFA                       *bool `json:"mfa"`
+	GoogleOAuth               *bool `json:"google_oauth"`
+	Office365OAuth            *bool `json:"office365_oauth"`
+	Compliance                *bool `json:"compliance"`
+	Cluster                   *bool `json:"cluster"`
+	Metrics                   *bool `json:"metrics"`
+	CustomBrand               *bool `json:"custom_brand"`
+	MHPNS                     *bool `json:"mhpns"`
+	SAML                      *bool `json:"saml"`
+	PasswordRequirements      *bool `json:"password_requirements"`
+	Elasticsearch             *bool `json:"elastic_search"`
+	Announcement              *bool `json:"announcement"`
+	EmailNotificationContents *bool `json:"email_notification_contents"`
+
 	// after we enabled more features for webrtc we'll need to control them with this
 	FutureFeatures *bool `json:"future_features"`
 }
 
 func (f *Features) ToMap() map[string]interface{} {
 	return map[string]interface{}{
-		"ldap":           *f.LDAP,
-		"mfa":            *f.MFA,
-		"google":         *f.GoogleOAuth,
-		"office365":      *f.Office365OAuth,
-		"compliance":     *f.Compliance,
-		"cluster":        *f.Cluster,
-		"metrics":        *f.Metrics,
-		"custom_brand":   *f.CustomBrand,
-		"mhpns":          *f.MHPNS,
-		"saml":           *f.SAML,
-		"password":       *f.PasswordRequirements,
-		"elastic_search": *f.Elasticsearch,
-		"future":         *f.FutureFeatures,
+		"ldap":                        *f.LDAP,
+		"mfa":                         *f.MFA,
+		"google":                      *f.GoogleOAuth,
+		"office365":                   *f.Office365OAuth,
+		"compliance":                  *f.Compliance,
+		"cluster":                     *f.Cluster,
+		"metrics":                     *f.Metrics,
+		"custom_brand":                *f.CustomBrand,
+		"mhpns":                       *f.MHPNS,
+		"saml":                        *f.SAML,
+		"password":                    *f.PasswordRequirements,
+		"elastic_search":              *f.Elasticsearch,
+		"email_notification_contents": *f.EmailNotificationContents,
+		"future":                      *f.FutureFeatures,
 	}
 }
 
@@ -147,6 +150,11 @@ func (f *Features) SetDefaults() {
 	if f.Announcement == nil {
 		f.Announcement = new(bool)
 		*f.Announcement = true
+	}
+
+	if f.EmailNotificationContents == nil {
+		f.EmailNotificationContents = new(bool)
+		*f.EmailNotificationContents = *f.FutureFeatures
 	}
 }
 

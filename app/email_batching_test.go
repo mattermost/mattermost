@@ -4,6 +4,7 @@
 package app
 
 import (
+	"strings"
 	"testing"
 	"time"
 
@@ -269,5 +270,55 @@ func TestCheckPendingNotificationsCantParseInterval(t *testing.T) {
 	job.checkPendingNotifications(time.Unix(10901, 0), func(string, []*batchedNotification) {})
 	if job.pendingNotifications[id1] != nil || len(job.pendingNotifications[id1]) != 0 {
 		t.Fatal("should have sent queued post")
+	}
+}
+
+/*
+ * Ensures that post contents are not included in notification email when email notification content type is set to generic
+ */
+func TestRenderBatchedPostGeneric(t *testing.T) {
+	Setup()
+	var post = &model.Post{}
+	post.Message = "This is the message"
+	var notification = &batchedNotification{}
+	notification.post = post
+	var channel = &model.Channel{}
+	channel.DisplayName = "Some Test Channel"
+	var sender = &model.User{}
+	sender.Email = "sender@test.com"
+
+	translateFunc := func(translationID string, args ...interface{}) string {
+		// mock translateFunc just returns the translation id - this is good enough for our purposes
+		return translationID
+	}
+
+	var rendered = renderBatchedPost(notification, channel, sender, "http://localhost:8065", "", translateFunc, "en", model.EMAIL_NOTIFICATION_CONTENTS_GENERIC)
+	if strings.Contains(rendered, post.Message) {
+		t.Fatal("Rendered email should not contain post contents when email notification contents type is set to Generic.")
+	}
+}
+
+/*
+ * Ensures that post contents included in notification email when email notification content type is set to full
+ */
+func TestRenderBatchedPostFull(t *testing.T) {
+	Setup()
+	var post = &model.Post{}
+	post.Message = "This is the message"
+	var notification = &batchedNotification{}
+	notification.post = post
+	var channel = &model.Channel{}
+	channel.DisplayName = "Some Test Channel"
+	var sender = &model.User{}
+	sender.Email = "sender@test.com"
+
+	translateFunc := func(translationID string, args ...interface{}) string {
+		// mock translateFunc just returns the translation id - this is good enough for our purposes
+		return translationID
+	}
+
+	var rendered = renderBatchedPost(notification, channel, sender, "http://localhost:8065", "", translateFunc, "en", model.EMAIL_NOTIFICATION_CONTENTS_FULL)
+	if !strings.Contains(rendered, post.Message) {
+		t.Fatal("Rendered email should contain post contents when email notification contents type is set to Full.")
 	}
 }

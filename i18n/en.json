@@ -1117,7 +1117,7 @@
   },
   {
     "id": "api.email_batching.render_batched_post.direct_message",
-    "translation": "Direct Message"
+    "translation": "Direct Message from "
   },
   {
     "id": "api.email_batching.render_batched_post.go_to_post",
@@ -1125,7 +1125,11 @@
   },
   {
     "id": "api.email_batching.render_batched_post.group_message",
-    "translation": "Group Message"
+    "translation": "Group Message from "
+  },
+  {
+    "id": "api.email_batching.render_batched_post.notification",
+    "translation": "Notification from "
   },
   {
     "id": "api.email_batching.render_batched_post.sender.app_error",
@@ -1134,8 +1138,8 @@
   {
     "id": "api.email_batching.send_batched_email_notification.body_text",
     "translation": {
-      "one": "You have a new message.",
-      "other": "You have {{.Count}} new messages."
+      "one": "You have a new notification.",
+      "other": "You have {{.Count}} new notifications."
     }
   },
   {
@@ -1804,20 +1808,8 @@
     "translation": "Failed to get teams when sending cross-team DM user_id=%v, err=%v"
   },
   {
-    "id": "api.post.send_notifications_and_forget.mention_body",
-    "translation": "You have one new mention."
-  },
-  {
     "id": "api.post.send_notifications_and_forget.mention_subject",
     "translation": "New Mention"
-  },
-  {
-    "id": "api.post.send_notifications_and_forget.message_body",
-    "translation": "You have one new message."
-  },
-  {
-    "id": "api.post.send_notifications_and_forget.message_subject",
-    "translation": "New Direct Message"
   },
   {
     "id": "api.post.send_notifications_and_forget.push_image_only",
@@ -2458,22 +2450,6 @@
   {
     "id": "api.templates.post_body.button",
     "translation": "Go To Post"
-  },
-  {
-    "id": "api.templates.post_body.info",
-    "translation": "CHANNEL: {{.ChannelName}}<br>{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
-  },
-  {
-    "id": "api.templates.post_subject_in_channel",
-    "translation": "{{.SubjectText}} in {{.TeamDisplayName}} ({{.ChannelName}}) on {{.Month}} {{.Day}}, {{.Year}}"
-  },
-  {
-    "id": "api.templates.post_subject_in_direct_message",
-    "translation": "{{.SubjectText}} from {{.SenderDisplayName}} on {{.Month}} {{.Day}}, {{.Year}}"
-  },
-  {
-    "id": "api.templates.post_subject_in_group_message",
-    "translation": "New Group Message from {{ .SenderDisplayName}} on {{.Month}} {{.Day}}, {{.Year}}"
   },
   {
     "id": "api.templates.reset_body.button",
@@ -3138,6 +3114,46 @@
   {
     "id": "api.websocket_handler.invalid_param.app_error",
     "translation": "Invalid {{.Name}} parameter"
+  },
+  {
+    "id": "app.notification.subject.direct.full",
+    "translation": "[{{.SiteName}}] New Direct Message from {{.SenderDisplayName}} on {{.Month}} {{.Day}}, {{.Year}}"
+  },
+  {
+    "id": "app.notification.subject.notification.full",
+    "translation": "[{{ .SiteName }}] Notification in {{ .TeamName}} on {{.Month}} {{.Day}}, {{.Year}}"
+  },
+  {
+    "id": "app.notification.body.intro.direct.full",
+    "translation": "You have a new direct message."
+  },
+  {
+    "id": "app.notification.body.intro.direct.generic",
+    "translation": "You have a new direct message from {{.SenderName}}"
+  },
+  {
+    "id": "app.notification.body.intro.notification.full",
+    "translation": "You have a new notification."
+  },
+  {
+    "id": "app.notification.body.intro.notification.generic",
+    "translation": "You have a new notification from {{.SenderName}}"
+  },
+  {
+    "id": "app.notification.body.text.direct.full",
+    "translation": "{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
+  },
+  {
+    "id": "app.notification.body.text.direct.generic",
+    "translation": "{{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
+  },
+  {
+    "id": "app.notification.body.text.notification.full",
+    "translation": "CHANNEL: {{.ChannelName}}<br>{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
+  },
+  {
+    "id": "app.notification.body.text.notification.generic",
+    "translation": "{{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
   },
   {
     "id": "app.user_access_token.disabled",
@@ -4438,6 +4454,10 @@
   {
     "id": "model.config.is_valid.email_batching_interval.app_error",
     "translation": "Invalid email batching interval for email settings.  Must be 30 seconds or more."
+  },
+  {
+    "id": "model.config.is_valid.email_notification_contents_type.app_error",
+    "translation": "Invalid email notification contents type for email settings. Must be one of either 'full' or 'generic'."
   },
   {
     "id": "model.config.is_valid.email_reset_salt.app_error",
