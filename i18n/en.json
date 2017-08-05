@@ -6508,8 +6508,16 @@
     "translation": "An error occurred while saving the file to {{.Filename}}"
   },
   {
+    "id": "utils.config.add_client_locale.app_error",
+    "translation": "Unable to load mattermost configuration file:  Adding DefaultClientLocale to AvailableLocales."
+  },
+  {
+    "id": "utils.config.supported_available_locales.app_error",
+    "translation": "Unable to load mattermost configuration file:  AvailableLocales must include DefaultClientLocale. Setting AvailableLocales to all locales as default value."
+  },
+  {
     "id": "utils.config.supported_client_locale.app_error",
-    "translation": "Unable to load mattermost configuration file:  DefaultClientLocale must be one of the supported locales"
+    "translation": "Unable to load mattermost configuration file:  DefaultClientLocale must be one of the supported locales. Setting DefaultClientLocale to en as default value."
   },
   {
     "id": "utils.config.supported_server_locale.app_error",
