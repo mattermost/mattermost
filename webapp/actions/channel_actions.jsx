@@ -411,15 +411,3 @@ export async function deleteChannel(channelId, success, error) {
         error({id: serverError.server_error_id, ...serverError});
     }
 }
-
-export function showShortcutsModal(channelId, errFn) {
-    const args = {};
-    args.channel_id = channelId;
-    args.team_id = TeamStore.getCurrentId();
-    executeCommand(
-        '/shortcuts',
-        args,
-        null,
-        errFn
-    );
-}

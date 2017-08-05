@@ -10,7 +10,7 @@ import {intlShape, injectIntl, defineMessages} from 'react-intl';
 import {Modal} from 'react-bootstrap';
 import React from 'react';
 
-const shortcuts = defineMessages({
+const allShortcuts = defineMessages({
     mainHeader: {
         id: 'shortcuts.header',
         defaultMessage: 'Keyboard Shortcuts'
@@ -20,76 +20,94 @@ const shortcuts = defineMessages({
         defaultMessage: 'Navigation'
     },
     navPrev: {
-        id: 'shortcuts.nav.prev',
-        defaultMessage: 'Previous channel:\tAlt|Up'
-    },
-    navPrevMac: {
-        id: 'shortcuts.nav.prev.mac',
-        defaultMessage: 'Previous channel:\t⌥|Up'
+        default: {
+            id: 'shortcuts.nav.prev',
+            defaultMessage: 'Previous channel:\tAlt|Up'
+        },
+        mac: {
+            id: 'shortcuts.nav.prev.mac',
+            defaultMessage: 'Previous channel:\t⌥|Up'
+        }
     },
     navNext: {
-        id: 'shortcuts.nav.next',
-        defaultMessage: 'Next channel:\tAlt|Down'
-    },
-    navNextMac: {
-        id: 'shortcuts.nav.next.mac',
-        defaultMessage: 'Next channel:\t⌥|Down'
+        default: {
+            id: 'shortcuts.nav.next',
+            defaultMessage: 'Next channel:\tAlt|Down'
+        },
+        mac: {
+            id: 'shortcuts.nav.next.mac',
+            defaultMessage: 'Next channel:\t⌥|Down'
+        }
     },
     navUnreadPrev: {
-        id: 'shortcuts.nav.unread_prev',
-        defaultMessage: 'Previous unread channel:\tAlt|Shift|Up'
-    },
-    navUnreadPrevMac: {
-        id: 'shortcuts.nav.unread_prev.mac',
-        defaultMessage: 'Previous unread channel:\t⌥|Shift|Up'
+        default: {
+            id: 'shortcuts.nav.unread_prev',
+            defaultMessage: 'Previous unread channel:\tAlt|Shift|Up'
+        },
+        mac: {
+            id: 'shortcuts.nav.unread_prev.mac',
+            defaultMessage: 'Previous unread channel:\t⌥|Shift|Up'
+        }
     },
     navUnreadNext: {
-        id: 'shortcuts.nav.unread_next',
-        defaultMessage: 'Next unread channel:\tAlt|Shift|Down'
-    },
-    navUnreadNextMac: {
-        id: 'shortcuts.nav.unread_next.mac',
-        defaultMessage: 'Next unread channel:\t⌥|Shift|Down'
+        default: {
+            id: 'shortcuts.nav.unread_next',
+            defaultMessage: 'Next unread channel:\tAlt|Shift|Down'
+        },
+        mac: {
+            id: 'shortcuts.nav.unread_next.mac',
+            defaultMessage: 'Next unread channel:\t⌥|Shift|Down'
+        }
     },
     navSwitcher: {
-        id: 'shortcuts.nav.switcher',
-        defaultMessage: 'Quick channel switcher:\tCtrl|K'
-    },
-    navSwitcherMac: {
-        id: 'shortcuts.nav.switcher.mac',
-        defaultMessage: 'Quick channel switcher:\t⌘|K'
+        default: {
+            id: 'shortcuts.nav.switcher',
+            defaultMessage: 'Quick channel switcher:\tCtrl|K'
+        },
+        mac: {
+            id: 'shortcuts.nav.switcher.mac',
+            defaultMessage: 'Quick channel switcher:\t⌘|K'
+        }
     },
     navSwitcherTeam: {
-        id: 'shortcuts.nav.switcher_team',
-        defaultMessage: 'Quick team switcher:\tCtrl|Alt|K'
-    },
-    navSwitcherTeamMac: {
-        id: 'shortcuts.nav.switcher_team.mac',
-        defaultMessage: 'Quick team switcher:\t⌘|⌥|K'
+        default: {
+            id: 'shortcuts.nav.switcher_team',
+            defaultMessage: 'Quick team switcher:\tCtrl|Alt|K'
+        },
+        mac: {
+            id: 'shortcuts.nav.switcher_team.mac',
+            defaultMessage: 'Quick team switcher:\t⌘|⌥|K'
+        }
     },
     navDMMenu: {
-        id: 'shortcuts.nav.direct_messages_menu',
-        defaultMessage: 'Direct messages menu:\tCtrl|Shift|K'
-    },
-    navDMMenuMac: {
-        id: 'shortcuts.nav.direct_messages_menu.mac',
-        defaultMessage: 'Direct messages menu:\t⌘|Shift|K'
+        default: {
+            id: 'shortcuts.nav.direct_messages_menu',
+            defaultMessage: 'Direct messages menu:\tCtrl|Shift|K'
+        },
+        mac: {
+            id: 'shortcuts.nav.direct_messages_menu.mac',
+            defaultMessage: 'Direct messages menu:\t⌘|Shift|K'
+        }
     },
     navSettings: {
-        id: 'shortcuts.nav.settings',
-        defaultMessage: 'Account settings:\tCtrl|Shift|A'
-    },
-    navSettingsMac: {
-        id: 'shortcuts.nav.settings.mac',
-        defaultMessage: 'Account settings:\t⌘|Shift|A'
+        default: {
+            id: 'shortcuts.nav.settings',
+            defaultMessage: 'Account settings:\tCtrl|Shift|A'
+        },
+        mac: {
+            id: 'shortcuts.nav.settings.mac',
+            defaultMessage: 'Account settings:\t⌘|Shift|A'
+        }
     },
     navMentions: {
-        id: 'shortcuts.nav.mentions',
-        defaultMessage: 'Recent mentions:\tCtrl|Shift|M'
-    },
-    navMentionsMac: {
-        id: 'shortcuts.nav.mentions.mac',
-        defaultMessage: 'Recent mentions:\t⌘|Shift|M'
+        default: {
+            id: 'shortcuts.nav.mentions',
+            defaultMessage: 'Recent mentions:\tCtrl|Shift|M'
+        },
+        mac: {
+            id: 'shortcuts.nav.mentions.mac',
+            defaultMessage: 'Recent mentions:\t⌘|Shift|M'
+        }
     },
     msgHeader: {
         id: 'shortcuts.msgs.header',
@@ -112,20 +130,24 @@ const shortcuts = defineMessages({
         defaultMessage: 'Reply to last message in channel:\tShift|Up'
     },
     msgReprintPrev: {
-        id: 'shortcuts.msgs.reprint_prev',
-        defaultMessage: 'Reprint previous message:\tCtrl|Up'
-    },
-    msgReprintPrevMac: {
-        id: 'shortcuts.msgs.reprint_prev.mac',
-        defaultMessage: 'Reprint previous message:\t⌘|Up'
+        default: {
+            id: 'shortcuts.msgs.reprint_prev',
+            defaultMessage: 'Reprint previous message:\tCtrl|Up'
+        },
+        mac: {
+            id: 'shortcuts.msgs.reprint_prev.mac',
+            defaultMessage: 'Reprint previous message:\t⌘|Up'
+        }
     },
     msgReprintNext: {
-        id: 'shortcuts.msgs.reprint_next',
-        defaultMessage: 'Reprint next message:\tCtrl|Down'
-    },
-    msgReprintNextMac: {
-        id: 'shortcuts.msgs.reprint_next.mac',
-        defaultMessage: 'Reprint next message:\t⌘|Down'
+        default: {
+            id: 'shortcuts.msgs.reprint_next',
+            defaultMessage: 'Reprint next message:\tCtrl|Down'
+        },
+        mac: {
+            id: 'shortcuts.msgs.reprint_next.mac',
+            defaultMessage: 'Reprint next message:\t⌘|Down'
+        }
     },
     msgCompHeader: {
         id: 'shortcuts.msgs.comp.header',
@@ -148,49 +170,58 @@ const shortcuts = defineMessages({
         defaultMessage: 'Files'
     },
     filesUpload: {
-        id: 'shortcuts.files.upload',
-        defaultMessage: 'Upload files:\tCtrl|U'
-    },
-    filesUploadMac: {
-        id: 'shortcuts.files.upload.mac',
-        defaultMessage: 'Upload files:\t⌘|U'
+        default: {
+            id: 'shortcuts.files.upload',
+            defaultMessage: 'Upload files:\tCtrl|U'
+        },
+        mac: {
+            id: 'shortcuts.files.upload.mac',
+            defaultMessage: 'Upload files:\t⌘|U'
+        }
     },
     browserHeader: {
         id: 'shortcuts.browser.header',
         defaultMessage: 'Built-in Browser Commands'
     },
     browserChannelPrev: {
-        id: 'shortcuts.browser.channel_prev',
-        defaultMessage: 'Back in history:\tAlt|Left'
-    },
-    browserChannelPrevMac: {
-        id: 'shortcuts.browser.channel_prev.mac',
-        defaultMessage: 'Back in history:\t⌘|['
+        default: {
+            id: 'shortcuts.browser.channel_prev',
+            defaultMessage: 'Back in history:\tAlt|Left'
+        },
+        mac: {
+            id: 'shortcuts.browser.channel_prev.mac',
+            defaultMessage: 'Back in history:\t⌘|['
+        }
     },
     browserChannelNext: {
-        id: 'shortcuts.browser.channel_next',
-        defaultMessage: 'Forward in history:\tAlt|Right'
-    },
-    browserChannelNextMac: {
-        id: 'shortcuts.browser.channel_next.mac',
-        defaultMessage: 'Forward in history:\t⌘|]'
+        default: {
+            id: 'shortcuts.browser.channel_next',
+            defaultMessage: 'Forward in history:\tAlt|Right'
+        },
+        mac: {
+            id: 'shortcuts.browser.channel_next.mac',
+            defaultMessage: 'Forward in history:\t⌘|]'
+        }
     },
     browserFontIncrease: {
-        id: 'shortcuts.browser.font_increase',
-        defaultMessage: 'Zoom in:\tCtrl|+'
+        default: {
+            id: 'shortcuts.browser.font_increase',
+            defaultMessage: 'Zoom in:\tCtrl|+'
+        },
+        mac: {
+            id: 'shortcuts.browser.font_increase.mac',
+            defaultMessage: 'Zoom in:\t⌘|+'
+        }
     },
-    browserFontIncreaseMac: {
-        id: 'shortcuts.browser.font_increase.mac',
-        defaultMessage: 'Zoom in:\t⌘|+'
-    },
-
     browserFontDecrease: {
-        id: 'shortcuts.browser.font_decrease',
-        defaultMessage: 'Zoom out:\tCtrl|-'
-    },
-    browserFontDecreaseMac: {
-        id: 'shortcuts.browser.font_decrease.mac',
-        defaultMessage: 'Zoom out:\t⌘|-'
+        default: {
+            id: 'shortcuts.browser.font_decrease',
+            defaultMessage: 'Zoom out:\tCtrl|-'
+        },
+        mac: {
+            id: 'shortcuts.browser.font_decrease.mac',
+            defaultMessage: 'Zoom out:\t⌘|-'
+        }
     },
     browserInputHeader: {
         id: 'shortcuts.browser.input.header',
@@ -245,41 +276,23 @@ class ShortcutsModal extends React.PureComponent {
         this.setState({show: false});
     }
 
+    getShortcuts(isMac) {
+        const shortcuts = {};
+        Object.keys(allShortcuts).forEach((s) => {
+            if (isMac && allShortcuts[s].mac) {
+                shortcuts[s] = allShortcuts[s].mac;
+            } else if (!isMac && allShortcuts[s].default) {
+                shortcuts[s] = allShortcuts[s].default;
+            } else {
+                shortcuts[s] = allShortcuts[s];
+            }
+        });
+
+        return shortcuts;
+    }
+
     render() {
-        let navPrev = shortcuts.navPrev;
-        let navNext = shortcuts.navNext;
-        let navUnreadPrev = shortcuts.navUnreadPrev;
-        let navUnreadNext = shortcuts.navUnreadNext;
-        let navSwitcher = shortcuts.navSwitcher;
-        let navSwitcherTeam = shortcuts.navSwitcherTeam;
-        let navDMMenu = shortcuts.navDMMenu;
-        let navSettings = shortcuts.navSettings;
-        let navMentions = shortcuts.navMentions;
-        let msgReprintPrev = shortcuts.msgReprintPrev;
-        let msgReprintNext = shortcuts.msgReprintNext;
-        let filesUpload = shortcuts.filesUpload;
-        let browserChannelPrev = shortcuts.browserChannelPrev;
-        let browserChannelNext = shortcuts.browserChannelNext;
-        let browserFontIncrease = shortcuts.browserFontIncrease;
-        let browserFontDecrease = shortcuts.browserFontDecrease;
-        if (Utils.isMac()) {
-            navPrev = shortcuts.navPrevMac;
-            navNext = shortcuts.navNextMac;
-            navUnreadPrev = shortcuts.navUnreadPrevMac;
-            navUnreadNext = shortcuts.navUnreadNextMac;
-            navSwitcher = shortcuts.navSwitcherMac;
-            navSwitcherTeam = shortcuts.navSwitcherTeamMac;
-            navDMMenu = shortcuts.navDMMenuMac;
-            navSettings = shortcuts.navSettingsMac;
-            navMentions = shortcuts.navMentionsMac;
-            msgReprintPrev = shortcuts.msgReprintPrevMac;
-            msgReprintNext = shortcuts.msgReprintNextMac;
-            filesUpload = shortcuts.filesUploadMac;
-            browserChannelPrev = shortcuts.browserChannelPrevMac;
-            browserChannelNext = shortcuts.browserChannelNextMac;
-            browserFontIncrease = shortcuts.browserFontIncreaseMac;
-            browserFontDecrease = shortcuts.browserFontDecreaseMac;
-        }
+        const shortcuts = this.getShortcuts(Utils.isMac());
 
         const {formatMessage} = this.props.intl;
 
@@ -302,15 +315,15 @@ class ShortcutsModal extends React.PureComponent {
                                 <div className='section'>
                                     <div>
                                         <h4 className='section-title'><strong>{formatMessage(shortcuts.navHeader)}</strong></h4>
-                                        {renderShortcut(formatMessage(navPrev))}
-                                        {renderShortcut(formatMessage(navNext))}
-                                        {renderShortcut(formatMessage(navUnreadPrev))}
-                                        {renderShortcut(formatMessage(navUnreadNext))}
-                                        {renderShortcut(formatMessage(navSwitcher))}
-                                        {renderShortcut(formatMessage(navSwitcherTeam))}
-                                        {renderShortcut(formatMessage(navDMMenu))}
-                                        {renderShortcut(formatMessage(navSettings))}
-                                        {renderShortcut(formatMessage(navMentions))}
+                                        {renderShortcut(formatMessage(shortcuts.navPrev))}
+                                        {renderShortcut(formatMessage(shortcuts.navNext))}
+                                        {renderShortcut(formatMessage(shortcuts.navUnreadPrev))}
+                                        {renderShortcut(formatMessage(shortcuts.navUnreadNext))}
+                                        {renderShortcut(formatMessage(shortcuts.navSwitcher))}
+                                        {renderShortcut(formatMessage(shortcuts.navSwitcherTeam))}
+                                        {renderShortcut(formatMessage(shortcuts.navDMMenu))}
+                                        {renderShortcut(formatMessage(shortcuts.navSettings))}
+                                        {renderShortcut(formatMessage(shortcuts.navMentions))}
                                     </div>
                                 </div>
                             </div>
@@ -323,8 +336,8 @@ class ShortcutsModal extends React.PureComponent {
                                         <div className='subsection'>
                                             {renderShortcut(formatMessage(shortcuts.msgEdit))}
                                             {renderShortcut(formatMessage(shortcuts.msgReply))}
-                                            {renderShortcut(formatMessage(msgReprintPrev))}
-                                            {renderShortcut(formatMessage(msgReprintNext))}
+                                            {renderShortcut(formatMessage(shortcuts.msgReprintPrev))}
+                                            {renderShortcut(formatMessage(shortcuts.msgReprintNext))}
                                         </div>
                                         <span><strong>{formatMessage(shortcuts.msgCompHeader)}</strong></span>
                                         <div className='subsection'>
@@ -339,14 +352,14 @@ class ShortcutsModal extends React.PureComponent {
                                 <div className='section'>
                                     <div>
                                         <h4 className='section-title'><strong>{formatMessage(shortcuts.filesHeader)}</strong></h4>
-                                        {renderShortcut(formatMessage(filesUpload))}
+                                        {renderShortcut(formatMessage(shortcuts.filesUpload))}
                                     </div>
-                                    <div className='seciton--lower'>
+                                    <div className='section--lower'>
                                         <h4 className='section-title'><strong>{formatMessage(shortcuts.browserHeader)}</strong></h4>
-                                        {renderShortcut(formatMessage(browserChannelPrev))}
-                                        {renderShortcut(formatMessage(browserChannelNext))}
-                                        {renderShortcut(formatMessage(browserFontIncrease))}
-                                        {renderShortcut(formatMessage(browserFontDecrease))}
+                                        {renderShortcut(formatMessage(shortcuts.browserChannelPrev))}
+                                        {renderShortcut(formatMessage(shortcuts.browserChannelNext))}
+                                        {renderShortcut(formatMessage(shortcuts.browserFontIncrease))}
+                                        {renderShortcut(formatMessage(shortcuts.browserFontDecrease))}
                                         <span><strong>{formatMessage(shortcuts.browserInputHeader)}</strong></span>
                                         <div className='subsection'>
                                             {renderShortcut(formatMessage(shortcuts.browserHighlightPrev))}

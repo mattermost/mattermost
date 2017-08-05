@@ -852,6 +852,10 @@
     "translation": "shortcuts"
   },
   {
+    "id": "api.command_shortcuts.unsupported.app_error",
+    "translation": "The shortcuts command is not supported on your device"
+  },
+  {
     "id": "api.command_shrug.desc",
     "translation": "Adds ¯\\_(ツ)_/¯ to your message"
   },
