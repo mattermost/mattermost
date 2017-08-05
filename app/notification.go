@@ -383,13 +383,13 @@ func sendNotificationEmail(post *model.Post, user *model.User, channel *model.Ch
  * Computes the subject line for direct notification email messages
  */
 func getDirectMessageNotificationEmailSubject(post *model.Post, translateFunc i18n.TranslateFunc, siteName string, senderName string) string {
-	_, month, day, year, _ := getFormattedPostTime(post, translateFunc)
+	t := getFormattedPostTime(post, translateFunc)
 	var subjectParameters = map[string]interface{}{
 		"SiteName":          siteName,
 		"SenderDisplayName": senderName,
-		"Month":             month,
-		"Day":               day,
-		"Year":              year,
+		"Month":             t.Month,
+		"Day":               t.Day,
+		"Year":              t.Year,
 	}
 	return translateFunc("app.notification.subject.direct.full", subjectParameters)
 }
@@ -398,13 +398,13 @@ func getDirectMessageNotificationEmailSubject(post *model.Post, translateFunc i1
  * Computes the subject line for group, public, and private email messages
  */
 func getNotificationEmailSubject(post *model.Post, translateFunc i18n.TranslateFunc, siteName string, teamName string) string {
-	_, month, day, year, _ := getFormattedPostTime(post, translateFunc)
+	t := getFormattedPostTime(post, translateFunc)
 	var subjectParameters = map[string]interface{}{
 		"SiteName": siteName,
 		"TeamName": teamName,
-		"Month":    month,
-		"Day":      day,
-		"Year":     year,
+		"Month":    t.Month,
+		"Day":      t.Day,
+		"Year":     t.Year,
 	}
 	return translateFunc("app.notification.subject.notification.full", subjectParameters)
 }
@@ -433,7 +433,7 @@ func getNotificationEmailBody(recipient *model.User, post *model.Post, channel *
 	if channel.Type == model.CHANNEL_GROUP {
 		channelName = translateFunc("api.templates.channel_name.group")
 	}
-	tm, month, day, _, zone := getFormattedPostTime(post, translateFunc)
+	t := getFormattedPostTime(post, translateFunc)
 
 	var bodyText string
 	var info string
@@ -443,11 +443,11 @@ func getNotificationEmailBody(recipient *model.User, post *model.Post, channel *
 			info = translateFunc("app.notification.body.text.direct.full",
 				map[string]interface{}{
 					"SenderName": senderName,
-					"Hour":       fmt.Sprintf("%02d", tm.Hour()),
-					"Minute":     fmt.Sprintf("%02d", tm.Minute()),
-					"TimeZone":   zone,
-					"Month":      month,
-					"Day":        day,
+					"Hour":       t.Hour,
+					"Minute":     t.Minute,
+					"TimeZone":   t.TimeZone,
+					"Month":      t.Month,
+					"Day":        t.Day,
 				})
 		} else {
 			bodyText = translateFunc("app.notification.body.intro.direct.generic", map[string]interface{}{
@@ -455,11 +455,11 @@ func getNotificationEmailBody(recipient *model.User, post *model.Post, channel *
 			})
 			info = translateFunc("app.notification.body.text.direct.generic",
 				map[string]interface{}{
-					"Hour":     fmt.Sprintf("%02d", tm.Hour()),
-					"Minute":   fmt.Sprintf("%02d", tm.Minute()),
-					"TimeZone": zone,
-					"Month":    month,
-					"Day":      day,
+					"Hour":     t.Hour,
+					"Minute":   t.Minute,
+					"TimeZone": t.TimeZone,
+					"Month":    t.Month,
+					"Day":      t.Day,
 				})
 		}
 	} else {
@@ -469,11 +469,11 @@ func getNotificationEmailBody(recipient *model.User, post *model.Post, channel *
 				map[string]interface{}{
 					"ChannelName": channelName,
 					"SenderName":  senderName,
-					"Hour":        fmt.Sprintf("%02d", tm.Hour()),
-					"Minute":      fmt.Sprintf("%02d", tm.Minute()),
-					"TimeZone":    zone,
-					"Month":       month,
-					"Day":         day,
+					"Hour":        t.Hour,
+					"Minute":      t.Minute,
+					"TimeZone":    t.TimeZone,
+					"Month":       t.Month,
+					"Day":         t.Day,
 				})
 		} else {
 			bodyText = translateFunc("app.notification.body.intro.notification.generic", map[string]interface{}{
@@ -481,11 +481,11 @@ func getNotificationEmailBody(recipient *model.User, post *model.Post, channel *
 			})
 			info = translateFunc("app.notification.body.text.notification.generic",
 				map[string]interface{}{
-					"Hour":     fmt.Sprintf("%02d", tm.Hour()),
-					"Minute":   fmt.Sprintf("%02d", tm.Minute()),
-					"TimeZone": zone,
-					"Month":    month,
-					"Day":      day,
+					"Hour":     t.Hour,
+					"Minute":   t.Minute,
+					"TimeZone": t.TimeZone,
+					"Month":    t.Month,
+					"Day":      t.Day,
 				})
 		}
 	}
@@ -497,13 +497,29 @@ func getNotificationEmailBody(recipient *model.User, post *model.Post, channel *
 	return bodyPage.Render()
 }
 
-func getFormattedPostTime(post *model.Post, translateFunc i18n.TranslateFunc) (time.Time, string, string, string, string) {
+type formattedPostTime struct {
+	Time     time.Time
+	Year     string
+	Month    string
+	Day      string
+	Hour     string
+	Minute   string
+	TimeZone string
+}
+
+func getFormattedPostTime(post *model.Post, translateFunc i18n.TranslateFunc) formattedPostTime {
 	tm := time.Unix(post.CreateAt/1000, 0)
-	month := translateFunc(tm.Month().String())
-	day := fmt.Sprintf("%d", tm.Day())
-	year := fmt.Sprintf("%d", tm.Year())
 	zone, _ := tm.Zone()
-	return tm, month, day, year, zone
+
+	return formattedPostTime{
+		Time:     tm,
+		Year:     fmt.Sprintf("%d", tm.Year()),
+		Month:    translateFunc(tm.Month().String()),
+		Day:      fmt.Sprintf("%d", tm.Day()),
+		Hour:     fmt.Sprintf("%02d", tm.Hour()),
+		Minute:   fmt.Sprintf("%02d", tm.Minute()),
+		TimeZone: zone,
+	}
 }
 
 func GetMessageForNotification(post *model.Post, translateFunc i18n.TranslateFunc) string {
