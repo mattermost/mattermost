@@ -11,10 +11,14 @@ import * as Utils from 'utils/utils.jsx';
 import AdminSettings from './admin_settings.jsx';
 import BooleanSetting from './boolean_setting.jsx';
 import {ConnectionSecurityDropdownSettingEmail} from './connection_security_dropdown_setting.jsx';
+import DropdownSetting from './dropdown_setting.jsx';
 import EmailConnectionTest from './email_connection_test.jsx';
 import {FormattedHTMLMessage, FormattedMessage} from 'react-intl';
 import SettingsGroup from './settings_group.jsx';
 import TextSetting from './text_setting.jsx';
+
+const EMAIL_NOTIFICATION_CONTENTS_FULL = 'full';
+const EMAIL_NOTIFICATION_CONTENTS_GENERIC = 'generic';
 
 export default class EmailSettings extends AdminSettings {
     constructor(props) {
@@ -39,6 +43,7 @@ export default class EmailSettings extends AdminSettings {
         config.EmailSettings.EnableEmailBatching = this.state.enableEmailBatching;
         config.ServiceSettings.EnableSecurityFixAlert = this.state.enableSecurityFixAlert;
         config.EmailSettings.SkipServerCertificateVerification = this.state.skipServerCertificateVerification;
+        config.EmailSettings.EmailNotificationContentsType = this.state.emailNotificationContentsType;
 
         return config;
     }
@@ -63,7 +68,8 @@ export default class EmailSettings extends AdminSettings {
             connectionSecurity: config.EmailSettings.ConnectionSecurity,
             enableEmailBatching: config.EmailSettings.EnableEmailBatching,
             skipServerCertificateVerification: config.EmailSettings.SkipServerCertificateVerification,
-            enableSecurityFixAlert: config.ServiceSettings.EnableSecurityFixAlert
+            enableSecurityFixAlert: config.ServiceSettings.EnableSecurityFixAlert,
+            emailNotificationContentsType: config.EmailSettings.EmailNotificationContentsType
         };
     }
 
@@ -102,6 +108,48 @@ export default class EmailSettings extends AdminSettings {
                         defaultMessage='Email batching cannot be enabled unless the SiteURL is configured in <b>Configuration > SiteURL</b>.'
                     />
                 </span>
+            );
+        }
+
+        let emailNotificationContentsTypeDropdown = null;
+        let emailNotificationContentsHelpText = null;
+        if (window.mm_license.EmailNotificationContents === 'true') {
+            const emailNotificationContentsTypes = [];
+            emailNotificationContentsTypes.push({value: EMAIL_NOTIFICATION_CONTENTS_FULL, text: Utils.localizeMessage('admin.email.notification.contents.full', 'Send full message contents')});
+            emailNotificationContentsTypes.push({value: EMAIL_NOTIFICATION_CONTENTS_GENERIC, text: Utils.localizeMessage('admin.email.notification.contents.generic', 'Send generic description with only sender name')});
+
+            if (this.state.emailNotificationContentsType === EMAIL_NOTIFICATION_CONTENTS_FULL) {
+                emailNotificationContentsHelpText = (
+                    <FormattedHTMLMessage
+                        key='admin.email.notification.contents.full.description'
+                        id='admin.email.notification.contents.full.description'
+                        defaultMessage='Sender name and channel are included in email notifications.</br>Typically used for compliance reasons if Mattermost contains confidential information and policy dictates it cannot be stored in email.'
+                    />
+                );
+            } else if (this.state.emailNotificationContentsType === EMAIL_NOTIFICATION_CONTENTS_GENERIC) {
+                emailNotificationContentsHelpText = (
+                    <FormattedHTMLMessage
+                        key='admin.email.notification.contents.generic.description'
+                        id='admin.email.notification.contents.generic.description'
+                        defaultMessage='Only the name of the person who sent the message, with no information about channel name or message contents are included in email notifications.</br>Typically used for compliance reasons if Mattermost contains confidential information and policy dictates it cannot be stored in email.'
+                    />
+                );
+            }
+
+            emailNotificationContentsTypeDropdown = (
+                <DropdownSetting
+                    id='emailNotificationContentsType'
+                    values={emailNotificationContentsTypes}
+                    label={
+                        <FormattedMessage
+                            id='admin.email.notification.contents.title'
+                            defaultMessage='Email Notification Contents: '
+                        />
+                    }
+                    value={this.state.emailNotificationContentsType}
+                    onChange={this.handleChange}
+                    helpText={emailNotificationContentsHelpText}
+                />
             );
         }
 
@@ -144,6 +192,7 @@ export default class EmailSettings extends AdminSettings {
                     onChange={this.handleChange}
                     disabled={!this.state.sendEmailNotifications || this.props.config.ClusterSettings.Enable || !this.props.config.ServiceSettings.SiteURL}
                 />
+                {emailNotificationContentsTypeDropdown}
                 <TextSetting
                     id='feedbackName'
                     label={

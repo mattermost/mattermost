@@ -143,7 +143,8 @@
         "EnableEmailBatching": false,
         "EmailBatchingBufferSize": 256,
         "EmailBatchingInterval": 30,
-        "SkipServerCertificateVerification": false
+        "SkipServerCertificateVerification": false,
+        "EmailNotificationContentsType": "full"
     },
     "RateLimitSettings": {
         "Enable": false,
