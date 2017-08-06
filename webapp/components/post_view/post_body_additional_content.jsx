@@ -162,6 +162,7 @@ export default class PostBodyAdditionalContent extends React.PureComponent {
                 <PostAttachmentOpenGraph
                     link={link}
                     previewCollapsed={this.props.previewCollapsed}
+                    post={this.props.post}
                 />
             );
         }

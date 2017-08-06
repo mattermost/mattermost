@@ -1,13 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import PropTypes from 'prop-types';
+import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import PropTypes from 'prop-types';
+import * as FileUtils from 'utils/file_utils';
 
-import React from 'react';
-
-export default class ViewImagePopoverBar extends React.Component {
+export default class ViewImagePopoverBar extends React.PureComponent {
     render() {
         var publicLink = '';
         if (global.window.mm_config.EnablePublicLink === 'true') {
@@ -34,21 +34,9 @@ export default class ViewImagePopoverBar extends React.Component {
             footerClass += ' footer--show';
         }
 
-        return (
-            <div
-                ref='imageFooter'
-                className={footerClass}
-            >
-                <span className='pull-left text'>
-                    <FormattedMessage
-                        id='view_image_popover.file'
-                        defaultMessage='File {count, number} of {total, number}'
-                        values={{
-                            count: (this.props.fileId + 1),
-                            total: this.props.totalFiles
-                        }}
-                    />
-                </span>
+        let downloadLinks = null;
+        if (FileUtils.canDownloadFiles()) {
+            downloadLinks = (
                 <div className='image-links'>
                     {publicLink}
                     <a
@@ -64,6 +52,25 @@ export default class ViewImagePopoverBar extends React.Component {
                         />
                     </a>
                 </div>
+            );
+        }
+
+        return (
+            <div
+                ref='imageFooter'
+                className={footerClass}
+            >
+                <span className='pull-left text'>
+                    <FormattedMessage
+                        id='view_image_popover.file'
+                        defaultMessage='File {count, number} of {total, number}'
+                        values={{
+                            count: (this.props.fileId + 1),
+                            total: this.props.totalFiles
+                        }}
+                    />
+                </span>
+                {downloadLinks}
             </div>
         );
     }

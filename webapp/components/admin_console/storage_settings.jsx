@@ -66,6 +66,53 @@ export default class StorageSettings extends AdminSettings {
     }
 
     renderSettings() {
+        const mobileUploadDownloadSettings = [];
+        if (window.mm_license.IsLicensed === 'true' && window.mm_license.Compliance === 'true') {
+            mobileUploadDownloadSettings.push(
+                <BooleanSetting
+                    key='enableMobileUpload'
+                    id='enableMobileUpload'
+                    label={
+                        <FormattedMessage
+                            id='admin.file.enableMobileUploadTitle'
+                            defaultMessage='Allow File Uploads on Mobile:'
+                        />
+                    }
+                    helpText={
+                        <FormattedMessage
+                            id='admin.file.enableMobileUploadDesc'
+                            defaultMessage='When false, disables file uploads on mobile apps. If Allow File Sharing is set to true, users can still upload files from a mobile web browser.'
+                        />
+                    }
+                    value={this.state.enableMobileUpload}
+                    onChange={this.handleChange}
+                    disabled={!this.state.enableFileAttachments}
+                />
+            );
+
+            mobileUploadDownloadSettings.push(
+                <BooleanSetting
+                    key='enableMobileDownload'
+                    id='enableMobileDownload'
+                    label={
+                        <FormattedMessage
+                            id='admin.file.enableMobileDownloadTitle'
+                            defaultMessage='Allow File Downloads on Mobile:'
+                        />
+                    }
+                    helpText={
+                        <FormattedMessage
+                            id='admin.file.enableMobileDownloadDesc'
+                            defaultMessage='When false, disables file downloads on mobile apps. Users can still download files from a mobile web browser.'
+                        />
+                    }
+                    value={this.state.enableMobileDownload}
+                    onChange={this.handleChange}
+                    disabled={!this.state.enableFileAttachments}
+                />
+            );
+        }
+
         return (
             <SettingsGroup>
                 <DropdownSetting
@@ -222,42 +269,7 @@ export default class StorageSettings extends AdminSettings {
                     value={this.state.enableFileAttachments}
                     onChange={this.handleChange}
                 />
-                <BooleanSetting
-                    id='enableMobileUpload'
-                    label={
-                        <FormattedMessage
-                            id='admin.file.enableMobileUploadTitle'
-                            defaultMessage='Allow File Uploads on Mobile:'
-                        />
-                    }
-                    helpText={
-                        <FormattedMessage
-                            id='admin.file.enableMobileUploadDesc'
-                            defaultMessage='When false, disables file uploads on mobile apps. If Allow File Sharing is set to true, users can still upload files from a mobile web browser.'
-                        />
-                    }
-                    value={this.state.enableMobileUpload}
-                    onChange={this.handleChange}
-                    disabled={!this.state.enableFileAttachments}
-                />
-                <BooleanSetting
-                    id='enableMobileDownload'
-                    label={
-                        <FormattedMessage
-                            id='admin.file.enableMobileDownloadTitle'
-                            defaultMessage='Allow File Downloads on Mobile:'
-                        />
-                    }
-                    helpText={
-                        <FormattedMessage
-                            id='admin.file.enableMobileDownloadDesc'
-                            defaultMessage='When false, disables file downloads on mobile apps. Users can still download files from a mobile web browser.'
-                        />
-                    }
-                    value={this.state.enableMobileDownload}
-                    onChange={this.handleChange}
-                    disabled={!this.state.enableFileAttachments}
-                />
+                {mobileUploadDownloadSettings}
                 <TextSetting
                     id='maxFileSize'
                     label={

@@ -281,6 +281,13 @@ export function showLeaveTeamModal() {
     });
 }
 
+export function showLeavePrivateChannelModal(channel) {
+    AppDispatcher.handleViewAction({
+        type: ActionTypes.TOGGLE_LEAVE_PRIVATE_CHANNEL_MODAL,
+        value: channel
+    });
+}
+
 export function emitSuggestionPretextChanged(suggestionId, pretext) {
     AppDispatcher.handleViewAction({
         type: ActionTypes.SUGGESTION_PRETEXT_CHANGED,
@@ -351,7 +358,7 @@ export function emitPreferencesDeletedEvent(preferences) {
     });
 }
 
-export function sendEphemeralPost(message, channelId) {
+export function sendEphemeralPost(message, channelId, parentId) {
     const timestamp = Utils.getTimestamp();
     const post = {
         id: Utils.generateId(),
@@ -361,6 +368,8 @@ export function sendEphemeralPost(message, channelId) {
         type: Constants.PostTypes.EPHEMERAL,
         create_at: timestamp,
         update_at: timestamp,
+        root_id: parentId,
+        parent_id: parentId,
         props: {}
     };
 
