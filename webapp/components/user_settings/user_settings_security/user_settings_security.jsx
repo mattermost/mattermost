@@ -944,6 +944,12 @@ export default class SecurityTab extends React.Component {
                     server_error={this.state.serverError}
                     updateSection={updateSectionStatus}
                     width='full'
+                    cancelButtonText={
+                        <FormattedMessage
+                            id='user.settings.security.close'
+                            defaultMessage='Close'
+                        />
+                    }
                 />
             );
         }
