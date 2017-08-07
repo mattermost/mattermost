@@ -71,7 +71,8 @@ export default class EmojiPicker extends React.Component {
         this.state = {
             category: 'recent',
             filter: '',
-            selected: null,
+            selectedEmoji: null,
+            selectedCategory: null,
             preloaded: []
         };
     }
@@ -117,19 +118,28 @@ export default class EmojiPicker extends React.Component {
         this.setState({filter: e.target.value});
     }
 
-    handleItemOver(emoji) {
+    handleItemOver(emoji, category) {
         clearTimeout(this.timeouthandler);
-        this.setState({selected: emoji});
+        this.setState({
+            selectedEmoji: emoji,
+            selectedCategory: category
+        });
     }
 
     handleItemOut() {
-        this.timeouthandler = setTimeout(() => this.setState({selected: null}), 500);
+        this.timeouthandler = setTimeout(() => this.setState({
+            selectedEmoji: null,
+            selectedCategory: null
+        }), 500);
     }
 
     handleItemUnmount(emoji) {
         // Prevent emoji preview from showing emoji which is not present anymore (due to filter)
-        if (this.state.selected === emoji) {
-            this.setState({selected: null});
+        if (this.state.selectedEmoji === emoji) {
+            this.setState({
+                selectedEmoji: null,
+                selectedCategory: null
+            });
         }
     }
 
@@ -254,56 +264,6 @@ export default class EmojiPicker extends React.Component {
                     {items}
                 </div>
             </div>
-        );
-    }
-
-    renderPreview(selected) {
-        if (selected) {
-            let name;
-            let aliases;
-            let previewImage;
-            if (selected.name) {
-                // This is a custom emoji that matches the model on the server
-                name = selected.name;
-                aliases = [selected.name];
-                previewImage = (
-                    <img
-                        className='emoji-picker__preview-image'
-                        align='absmiddle'
-                        src={EmojiStore.getEmojiImageUrl(selected)}
-                    />
-                );
-            } else {
-                // This is a system emoji which only has a list of aliases
-                name = selected.aliases[0];
-                aliases = selected.aliases;
-                previewImage = (
-                    <span>
-                        <img
-                            src='/static/images/img_trans.gif'
-                            className={'  emojisprite-preview emoji-' + selected.filename + ' '}
-                            align='absmiddle'
-                        />
-                    </span>
-                );
-            }
-
-            return (
-                <div className='emoji-picker__preview'>
-                    {previewImage}
-                    <span className='emoji-picker__preview-name'>{name}</span>
-                    <span className='emoji-picker__preview-aliases'>{aliases.map((alias) => ':' + alias + ':').join(' ')}</span>
-                </div>
-            );
-        }
-
-        return (
-            <span className='emoji-picker__preview-placeholder'>
-                <FormattedMessage
-                    id='emoji_picker.emojiPicker'
-                    defaultMessage='Emoji Picker'
-                />
-            </span>
         );
     }
 
@@ -473,7 +433,10 @@ export default class EmojiPicker extends React.Component {
                 >
                     {items}
                 </div>
-                <EmojiPickerPreview emoji={this.state.selected}/>
+                <EmojiPickerPreview
+                    emoji={this.state.selectedEmoji}
+                    category={this.state.selectedCategory}
+                />
             </div>
         );
     }

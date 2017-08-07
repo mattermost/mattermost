@@ -31,11 +31,11 @@ export default class EmojiPickerItem extends React.PureComponent {
     }
 
     handleMouseOver() {
-        this.props.onItemOver(this.props.emoji);
+        this.props.onItemOver(this.props.emoji, this.props.category);
     }
 
     handleMouseOut() {
-        this.props.onItemOut(this.props.emoji);
+        this.props.onItemOut();
     }
 
     handleClick() {
