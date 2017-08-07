@@ -9,7 +9,7 @@ import IntegrationStore from 'stores/integration_store.jsx';
 import TeamStore from 'stores/team_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 
-import {loadIncomingHooks, deleteIncomingHook} from 'actions/integration_actions.jsx';
+import {loadIncomingHooksForTeam, deleteIncomingHook} from 'actions/integration_actions.jsx';
 
 import * as Utils from 'utils/utils.jsx';
 
@@ -48,7 +48,7 @@ export default class InstalledIncomingWebhooks extends React.Component {
         UserStore.addChangeListener(this.handleUserChange);
 
         if (window.mm_config.EnableIncomingWebhooks === 'true') {
-            loadIncomingHooks(() => this.setState({loading: false}));
+            loadIncomingHooksForTeam(TeamStore.getCurrentId(), () => this.setState({loading: false}));
         }
     }
 
