@@ -213,8 +213,12 @@ export function regenCommandToken(id) {
 export function getSuggestedCommands(command, suggestionId, component) {
     Client4.getCommandsList(TeamStore.getCurrentId()).then(
         (data) => {
-            var matches = [];
+            let matches = [];
             data.forEach((cmd) => {
+                if (!cmd.auto_complete) {
+                    return;
+                }
+
                 if (cmd.trigger !== 'shortcuts' || !UserAgent.isMobile()) {
                     if (('/' + cmd.trigger).indexOf(command) === 0) {
                         const s = '/' + cmd.trigger;

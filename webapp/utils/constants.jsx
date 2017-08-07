@@ -180,6 +180,7 @@ export const ActionTypes = keyMirror({
     TOGGLE_CHANNEL_HEADER_UPDATE_MODAL: null,
     TOGGLE_CHANNEL_PURPOSE_UPDATE_MODAL: null,
     TOGGLE_CHANNEL_NAME_UPDATE_MODAL: null,
+    TOGGLE_LEAVE_PRIVATE_CHANNEL_MODAL: null,
 
     SUGGESTION_PRETEXT_CHANGED: null,
     SUGGESTION_RECEIVED_SUGGESTIONS: null,
@@ -270,7 +271,8 @@ export const PostTypes = {
     DISPLAYNAME_CHANGE: 'system_displayname_change',
     PURPOSE_CHANGE: 'system_purpose_change',
     CHANNEL_DELETED: 'system_channel_deleted',
-    EPHEMERAL: 'system_ephemeral'
+    EPHEMERAL: 'system_ephemeral',
+    REMOVE_LINK_PREVIEW: 'remove_link_preview'
 };
 
 export const StatTypes = keyMirror({

@@ -83,6 +83,10 @@
 .margin-top {
     margin-top: 7px;
 
+    &.half {
+        margin-top: 4px;
+    }
+
     &.x2 {
         margin-top: 14px;
     }

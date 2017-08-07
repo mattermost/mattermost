@@ -33,8 +33,9 @@ const (
 	WEBSERVER_MODE_GZIP     = "gzip"
 	WEBSERVER_MODE_DISABLED = "disabled"
 
-	GENERIC_NOTIFICATION = "generic"
-	FULL_NOTIFICATION    = "full"
+	GENERIC_NO_CHANNEL_NOTIFICATION = "generic_no_channel"
+	GENERIC_NOTIFICATION            = "generic"
+	FULL_NOTIFICATION               = "full"
 
 	DIRECT_MESSAGE_ANY  = "any"
 	DIRECT_MESSAGE_TEAM = "team"
@@ -64,6 +65,9 @@ const (
 
 	EMAIL_BATCHING_BUFFER_SIZE = 256
 	EMAIL_BATCHING_INTERVAL    = 30
+
+	EMAIL_NOTIFICATION_CONTENTS_FULL    = "full"
+	EMAIL_NOTIFICATION_CONTENTS_GENERIC = "generic"
 
 	SITENAME_MAX_LENGTH = 30
 
@@ -122,7 +126,7 @@ const (
 	ELASTICSEARCH_SETTINGS_DEFAULT_CONNECTION_URL      = ""
 	ELASTICSEARCH_SETTINGS_DEFAULT_USERNAME            = ""
 	ELASTICSEARCH_SETTINGS_DEFAULT_PASSWORD            = ""
-	ELASTICSEARCH_SETTINGS_DEFAULT_POST_INDEX_REPLICAS = 2
+	ELASTICSEARCH_SETTINGS_DEFAULT_POST_INDEX_REPLICAS = 1
 	ELASTICSEARCH_SETTINGS_DEFAULT_POST_INDEX_SHARDS   = 1
 )
 
@@ -283,6 +287,7 @@ type EmailSettings struct {
 	EmailBatchingBufferSize           *int
 	EmailBatchingInterval             *int
 	SkipServerCertificateVerification *bool
+	EmailNotificationContentsType     *string
 }
 
 type RateLimitSettings struct {
@@ -816,6 +821,11 @@ func (o *Config) SetDefaults() {
 	if o.EmailSettings.SkipServerCertificateVerification == nil {
 		o.EmailSettings.SkipServerCertificateVerification = new(bool)
 		*o.EmailSettings.SkipServerCertificateVerification = false
+	}
+
+	if o.EmailSettings.EmailNotificationContentsType == nil {
+		o.EmailSettings.EmailNotificationContentsType = new(string)
+		*o.EmailSettings.EmailNotificationContentsType = EMAIL_NOTIFICATION_CONTENTS_FULL
 	}
 
 	if !IsSafeLink(o.SupportSettings.TermsOfServiceLink) {
@@ -1547,6 +1557,10 @@ func (o *Config) IsValid() *AppError {
 
 	if *o.EmailSettings.EmailBatchingInterval < 30 {
 		return NewLocAppError("Config.IsValid", "model.config.is_valid.email_batching_interval.app_error", nil, "")
+	}
+
+	if !(*o.EmailSettings.EmailNotificationContentsType == EMAIL_NOTIFICATION_CONTENTS_FULL || *o.EmailSettings.EmailNotificationContentsType == EMAIL_NOTIFICATION_CONTENTS_GENERIC) {
+		return NewLocAppError("Config.IsValid", "model.config.is_valid.email_notification_contents_type.app_error", nil, "")
 	}
 
 	if o.RateLimitSettings.MemoryStoreSize <= 0 {

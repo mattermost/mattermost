@@ -85,7 +85,12 @@ export default class SuggestionBox extends React.Component {
         /**
          * The number of characters required to show the suggestion list, defaults to 1
          */
-        requiredCharacters: PropTypes.number
+        requiredCharacters: PropTypes.number,
+
+        /**
+         * If true, the suggestion box is opened on focus, default to false
+         */
+        openOnFocus: PropTypes.bool
     }
 
     static defaultProps = {
@@ -94,7 +99,8 @@ export default class SuggestionBox extends React.Component {
         renderDividers: false,
         completeOnTab: true,
         isRHS: false,
-        requiredCharacters: 1
+        requiredCharacters: 1,
+        openOnFocus: false
     }
 
     constructor(props) {
@@ -145,7 +151,7 @@ export default class SuggestionBox extends React.Component {
     }
 
     getTextbox() {
-        if (this.props.type === 'textarea') {
+        if (this.props.type === 'textarea' && this.refs.textbox) {
             const node = this.refs.textbox.getDOMNode();
             return node;
         }
@@ -171,12 +177,16 @@ export default class SuggestionBox extends React.Component {
     }
 
     handleFocus() {
+        if (!this.props.openOnFocus) {
+            return;
+        }
         setTimeout(() => {
             const textbox = this.getTextbox();
-            const pretext = textbox.value.substring(0, textbox.selectionEnd);
-
-            if (pretext.length >= this.props.requiredCharacters) {
-                GlobalActions.emitSuggestionPretextChanged(this.suggestionId, pretext);
+            if (textbox) {
+                const pretext = textbox.value.substring(0, textbox.selectionEnd);
+                if (pretext.length >= this.props.requiredCharacters) {
+                    GlobalActions.emitSuggestionPretextChanged(this.suggestionId, pretext);
+                }
             }
         });
     }
@@ -275,7 +285,7 @@ export default class SuggestionBox extends React.Component {
         // set the caret position after the next rendering
         window.requestAnimationFrame(() => {
             if (textbox.value === newValue) {
-                Utils.setCaretPosition(textbox, newValue.length);
+                Utils.setCaretPosition(textbox, prefix.length + term.length + 1);
             }
         });
 
@@ -346,6 +356,7 @@ export default class SuggestionBox extends React.Component {
         Reflect.deleteProperty(props, 'isRHS');
         Reflect.deleteProperty(props, 'popoverMentionKeyClick');
         Reflect.deleteProperty(props, 'requiredCharacters');
+        Reflect.deleteProperty(props, 'openOnFocus');
 
         const childProps = {
             ref: 'textbox',

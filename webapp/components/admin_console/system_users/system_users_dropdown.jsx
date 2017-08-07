@@ -10,6 +10,7 @@ import Constants from 'utils/constants.jsx';
 import * as Utils from 'utils/utils.jsx';
 import {updateActive} from 'actions/user_actions.jsx';
 import {adminResetMfa} from 'actions/admin_actions.jsx';
+import * as UserUtils from 'mattermost-redux/utils/user_utils';
 
 import {FormattedMessage} from 'react-intl';
 
@@ -192,6 +193,43 @@ export default class SystemUsersDropdown extends React.Component {
                 onConfirm={this.handleDeactivateMember}
                 onCancel={this.handleDeactivateCancel}
             />
+        );
+    }
+
+    renderAccessToken = () => {
+        const userAccessTokensEnabled = global.window.mm_config.EnableUserAccessTokens === 'true';
+        if (!userAccessTokensEnabled) {
+            return null;
+        }
+
+        const user = this.props.user;
+        const hasPostAllRole = UserUtils.hasPostAllRole(user.roles);
+        const hasPostAllPublicRole = UserUtils.hasPostAllPublicRole(user.roles);
+        const hasUserAccessTokenRole = UserUtils.hasUserAccessTokenRole(user.roles);
+        const isSystemAdmin = UserUtils.isSystemAdmin(user.roles);
+
+        let messageId = '';
+        if (hasUserAccessTokenRole || isSystemAdmin) {
+            if (hasPostAllRole) {
+                messageId = 'admin.user_item.userAccessTokenPostAll';
+            } else if (hasPostAllPublicRole) {
+                messageId = 'admin.user_item.userAccessTokenPostAllPublic';
+            } else {
+                messageId = 'admin.user_item.userAccessTokenYes';
+            }
+        }
+
+        if (!messageId) {
+            return null;
+        }
+
+        return (
+            <div className='light margin-top half'>
+                <FormattedMessage
+                    key='admin.user_item.userAccessToken'
+                    id={messageId}
+                />
+            </div>
         );
     }
 
@@ -445,7 +483,7 @@ export default class SystemUsersDropdown extends React.Component {
         }
 
         return (
-            <div className='dropdown member-drop'>
+            <div className='dropdown member-drop text-right'>
                 <a
                     id='memberDropdown'
                     href='#'
@@ -457,6 +495,7 @@ export default class SystemUsersDropdown extends React.Component {
                     <span>{currentRoles} </span>
                     <span className='caret'/>
                 </a>
+                {this.renderAccessToken()}
                 <ul
                     className='dropdown-menu member-menu'
                     role='menu'

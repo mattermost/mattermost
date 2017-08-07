@@ -1,0 +1,103 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/integrations/InstalledCommand should filter out command 1`] = `null`;
+
+exports[`components/integrations/InstalledCommand should match snapshot 1`] = `
+<div
+  className="backstage-list__item"
+>
+  <div
+    className="item-details"
+  >
+    <div
+      className="item-details__row"
+    >
+      <span
+        className="item-details__name"
+      >
+        test
+      </span>
+      <span
+        className="item-details__trigger"
+      >
+        - /trigger test
+      </span>
+    </div>
+    <div
+      className="item-details__row"
+    >
+      <span
+        className="item-details__description"
+      >
+        test
+      </span>
+    </div>
+    <div
+      className="item-details__row"
+    >
+      <span
+        className="item-details__token"
+      >
+        <FormattedMessage
+          defaultMessage="Token: {token}"
+          id="installed_integrations.token"
+          values={
+            Object {
+              "token": "testToken",
+            }
+          }
+        />
+      </span>
+    </div>
+    <div
+      className="item-details__row"
+    >
+      <span
+        className="item-details__creation"
+      >
+        <FormattedMessage
+          defaultMessage="Created by {creator} on {createAt, date, full}"
+          id="installed_integrations.creation"
+          values={
+            Object {
+              "createAt": "1499722850203",
+              "creator": "test",
+            }
+          }
+        />
+      </span>
+    </div>
+  </div>
+  <div
+    className="item-actions"
+  >
+    <a
+      href="#"
+      onClick={[Function]}
+    >
+      <FormattedMessage
+        defaultMessage="Regenerate Token"
+        id="installed_integrations.regenToken"
+        values={Object {}}
+      />
+    </a>
+     - 
+    <Link
+      onlyActiveOnIndex={false}
+      style={Object {}}
+      to="/test/integrations/commands/edit?id=r5tpgt4iepf45jt768jz84djic"
+    >
+      <FormattedMessage
+        defaultMessage="Edit"
+        id="installed_integrations.edit"
+        values={Object {}}
+      />
+    </Link>
+     - 
+    <DeleteIntegration
+      messageId="installed_commands.delete.confirm"
+      onDelete={[Function]}
+    />
+  </div>
+</div>
+`;

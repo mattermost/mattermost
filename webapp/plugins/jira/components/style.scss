@@ -5,34 +5,19 @@
 
 .jirabots__dropdown {
     position: relative;
-}
 
-.jirabots__dropdown::before {
-    position: absolute;
-    top: 13px;
-    right: 8px;
-    content: " ";
-    pointer-events: none;
-
-    width: 0; 
-    height: 0; 
-
-    border-left: 8px solid transparent;
-    border-right: 8px solid transparent;
-    border-top: 8px solid #e2e2e2;
-}
-
-.jirabots__name {
-    @include clearfix;
-    cursor: pointer;
-    font-size: 13px;
-    line-height: 20px;
-    margin: 0;
-    padding: 6px 10px;
-    position: relative;
-    white-space: nowrap;
-    width: 100%;
-    z-index: 101;
+    &:before {
+        border-color: #999 transparent transparent;
+        border-style: solid;
+        border-width: 5px 5px 2.5px;
+        content: '';
+        height: 0;
+        pointer-events: none;
+        position: absolute;
+        right: 11px;
+        top: 15px;
+        width: 0;
+    }
 }
 
 .jirabot__image {
