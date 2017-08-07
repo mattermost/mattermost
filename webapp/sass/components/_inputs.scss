@@ -46,6 +46,10 @@ input {
     }
 }
 
+input::-webkit-file-upload-button {
+    display: none
+}
+
 ::-webkit-input-placeholder { /* Chrome/Opera/Safari */
     color: inherit;
     opacity: 0.5;
