@@ -4,7 +4,7 @@
 import {Modal} from 'react-bootstrap';
 import TeamStore from 'stores/team_store.jsx';
 
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, FormattedHTMLMessage} from 'react-intl';
 
 import {browserHistory} from 'react-router/es6';
 
@@ -64,9 +64,9 @@ export default class DeleteChannelModal extends React.Component {
                 </Modal.Header>
                 <Modal.Body>
                     <div className='alert alert-danger'>
-                        <FormattedMessage
+                        <FormattedHTMLMessage
                             id='delete_channel.question'
-                            defaultMessage='This will delete the channel from the team and make its contents inaccessible for all users. Are you sure you wish to delete the {display_name} channel?'
+                            defaultMessage='This will delete the channel from the team and make its contents inaccessible for all users. <br /><br />Are you sure you wish to delete the <strong>{display_name}</strong> channel?'
                             values={{
                                 display_name: this.props.channel.display_name
                             }}
