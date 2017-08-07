@@ -93,7 +93,7 @@ func (w *Webhook) SlackAttachment() (*model.SlackAttachment, error) {
 		"[{{.Issue.Fields.Summary}}]({{.JIRAURL}}/browse/{{.Issue.Key}})" +
 		"{{if eq .WebhookEvent \"jira:issue_created\"}}{{if ne .Issue.Fields.Description \"\"}}" +
 		"{{if len .Issue.Fields.Description | lt 3000}}" +
-		"\n\n{{printf \"%.3000s\" .Issue.Fields.Description}}\n\n[Read more...]({{.JIRAURL}}/browse/{{.Issue.Key}})" +
+		"\n\n{{printf \"%.3000s\" .Issue.Fields.Description}}...\n\n[{{.Issue.Fields.Summary}}]({{.JIRAURL}}/browse/{{.Issue.Key}})" +
 		"{{else}}" +
 		"\n\n{{.Issue.Fields.Description}}" +
 		"{{end}}" +
