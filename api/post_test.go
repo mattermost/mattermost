@@ -22,6 +22,12 @@ import (
 )
 
 func TestCreatePost(t *testing.T) {
+	adm := Setup().InitSystemAdmin()
+	AdminClient := adm.SystemAdminClient
+	adminTeam := adm.SystemAdminTeam
+	adminUser := adm.CreateUser(adm.SystemAdminClient)
+	LinkUserToTeam(adminUser, adminTeam)
+
 	th := Setup().InitBasic()
 	Client := th.BasicClient
 	team := th.BasicTeam
@@ -141,6 +147,33 @@ func TestCreatePost(t *testing.T) {
 		if len(infos) != 3 {
 			t.Fatal("should've attached all 3 files to post")
 		}
+	}
+
+	disableTownSquareReadOnly := utils.Cfg.TeamSettings.TownSquareIsReadOnly
+	defer func() {
+		utils.Cfg.TeamSettings.TownSquareIsReadOnly = disableTownSquareReadOnly
+		utils.SetDefaultRolesBasedOnConfig()
+	}()
+	*utils.Cfg.TeamSettings.TownSquareIsReadOnly = true
+	utils.SetDefaultRolesBasedOnConfig()
+
+	app.Srv.Store.Channel().FillDefaultChannelCache()
+	defaultChannel := store.Must(app.Srv.Store.Channel().GetByName(team.Id, model.DEFAULT_CHANNEL, true)).(*model.Channel)
+	defaultPost := &model.Post{
+		ChannelId: defaultChannel.Id,
+		Message:   "Default Channel Post",
+	}
+	if _, err = Client.CreatePost(defaultPost); err == nil {
+		t.Fatal("should have failed -- TownSquareIsReadOnly is true and it's a read only channel")
+	}
+
+	adminDefaultChannel := store.Must(app.Srv.Store.Channel().GetByName(adminTeam.Id, model.DEFAULT_CHANNEL, true)).(*model.Channel)
+	adminDefaultPost := &model.Post{
+		ChannelId: adminDefaultChannel.Id,
+		Message:   "Admin Default Channel Post",
+	}
+	if _, err = AdminClient.CreatePost(adminDefaultPost); err != nil {
+		t.Fatal("should not have failed -- TownSquareIsReadOnly is true and admin can post to channel")
 	}
 }
 

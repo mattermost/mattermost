@@ -956,7 +956,7 @@ func TestRegenOutgoingHookToken(t *testing.T) {
 }
 
 func TestIncomingWebhooks(t *testing.T) {
-	th := Setup().InitSystemAdmin()
+	th := Setup().InitBasic().InitSystemAdmin()
 	Client := th.SystemAdminClient
 	team := th.SystemAdminTeam
 	channel1 := th.CreateChannel(Client, team)
@@ -1002,6 +1002,22 @@ func TestIncomingWebhooks(t *testing.T) {
 
 	if _, err := Client.DoPost(url, "payload={\"text\":\""+text+"\"}", "application/x-www-form-urlencoded"); err != nil {
 		t.Fatal(err)
+	}
+
+	if _, err := th.BasicClient.DoPost(url, fmt.Sprintf("{\"text\":\"this is a test\", \"channel\":\"%s\"}", model.DEFAULT_CHANNEL), "application/json"); err != nil {
+		t.Fatal("should not have failed -- TownSquareIsReadOnly is false and it's not a read only channel")
+	}
+
+	disableTownSquareReadOnly := utils.Cfg.TeamSettings.TownSquareIsReadOnly
+	defer func() {
+		utils.Cfg.TeamSettings.TownSquareIsReadOnly = disableTownSquareReadOnly
+		utils.SetDefaultRolesBasedOnConfig()
+	}()
+	*utils.Cfg.TeamSettings.TownSquareIsReadOnly = true
+	utils.SetDefaultRolesBasedOnConfig()
+
+	if _, err := th.BasicClient.DoPost(url, fmt.Sprintf("{\"text\":\"this is a test\", \"channel\":\"%s\"}", model.DEFAULT_CHANNEL), "application/json"); err == nil {
+		t.Fatal("should have failed -- TownSquareIsReadOnly is true and it's a read only channel")
 	}
 
 	attachmentPayload := `{
