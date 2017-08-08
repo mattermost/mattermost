@@ -1139,7 +1139,7 @@
     "id": "api.email_batching.send_batched_email_notification.body_text",
     "translation": {
       "one": "Você tem uma nova notificação.",
-      "other": "Você tem {{.Count} novas notificações."
+      "other": "Você tem {{.Count}} novas notificações."
     }
   },
   {
