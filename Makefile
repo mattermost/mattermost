@@ -210,7 +210,6 @@ check-client-style:
 check-server-style: govet
 	@echo Running GOFMT
 
-	echo $(TE_PACKAGES)
 	@for package in $(TE_PACKAGES) $(EE_PACKAGES); do \
 		echo "Checking "$$package; \
 		files=$$(go list -f '{{range .GoFiles}}{{$$.Dir}}/{{.}} {{end}}' $$package); \
