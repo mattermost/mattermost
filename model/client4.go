@@ -44,7 +44,7 @@ func BuildErrorResponse(r *http.Response, err *AppError) *Response {
 		header = r.Header
 	} else {
 		statusCode = 0
-		header = make(map[string][]string, 0)
+		header = make(http.Header, 0)
 	}
 
 	return &Response{
