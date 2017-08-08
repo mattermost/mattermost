@@ -182,6 +182,14 @@
         text-overflow: ellipsis;
         width: calc(100% - 18px);
 
+        &:before {
+            bottom: 0;
+            content: '';
+            height: 10px;
+            position: absolute;
+            width: 100%;
+        }
+
         .markdown__heading {
             font-size: 1em;
             margin: 0;
