@@ -1199,6 +1199,34 @@ func PermanentDeleteChannel(channel *model.Channel) *model.AppError {
 	return nil
 }
 
+func MoveChannel(team *model.Team, channel *model.Channel) *model.AppError {
+	// Check that all channel members are in the destination team.
+	if channelMembers, err := GetChannelMembersPage(channel.Id, 0, 10000000); err != nil {
+		return err
+	} else {
+		channelMemberIds := []string{}
+		for _, channelMember := range *channelMembers {
+			channelMemberIds = append(channelMemberIds, channelMember.UserId)
+		}
+
+		if teamMembers, err2 := GetTeamMembersByIds(team.Id, channelMemberIds); err != nil {
+			return err2
+		} else {
+			if len(teamMembers) != len(*channelMembers) {
+				return model.NewAppError("MoveChannel", "app.channel.move_channel.members_do_not_match.error", nil, "", http.StatusInternalServerError)
+			}
+		}
+	}
+
+	// Change the Team ID of the channel.
+	channel.TeamId = team.Id
+	if result := <-Srv.Store.Channel().Update(channel); result.Err != nil {
+		return result.Err
+	}
+
+	return nil
+}
+
 func GetPinnedPosts(channelId string) (*model.PostList, *model.AppError) {
 	if result := <-Srv.Store.Channel().GetPinnedPosts(channelId); result.Err != nil {
 		return nil, result.Err

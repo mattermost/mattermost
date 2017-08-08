@@ -3168,6 +3168,10 @@
     "translation": "Must specify the team ID to create a channel"
   },
   {
+    "id": "app.channel.move_channel.members_do_not_match.error",
+    "translation": "Cannot move a channel unless all its members are already members of the destination team."
+  },
+  {
     "id": "app.channel.post_update_channel_purpose_message.post.error",
     "translation": "Failed to post channel purpose message"
   },
