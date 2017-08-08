@@ -173,6 +173,10 @@ export default class SearchBar extends React.Component {
         e.preventDefault();
         const terms = this.state.searchTerm.trim();
 
+        if (terms.length === 0) {
+            return;
+        }
+
         AppDispatcher.handleServerAction({
             type: ActionTypes.RECEIVED_SEARCH_TERM,
             term: terms,
