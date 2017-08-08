@@ -71,6 +71,7 @@
         "RestrictPublicChannelDeletion": "all",
         "RestrictPrivateChannelDeletion": "all",
         "RestrictPrivateChannelManageMembers": "all",
+        "EnableXToLeaveChannelsFromLHS": false,
         "UserStatusAwayTimeout": 300,
         "MaxChannelsPerTeam": 2000,
         "MaxNotificationsPerChannel": 1000,
