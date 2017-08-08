@@ -243,6 +243,7 @@ func trackConfig() {
 		"isdefault_custom_description_text":       isDefault(*utils.Cfg.TeamSettings.CustomDescriptionText, model.TEAM_SETTINGS_DEFAULT_CUSTOM_DESCRIPTION_TEXT),
 		"isdefault_user_status_away_timeout":      isDefault(*utils.Cfg.TeamSettings.UserStatusAwayTimeout, model.TEAM_SETTINGS_DEFAULT_USER_STATUS_AWAY_TIMEOUT),
 		"restrict_private_channel_manage_members": *utils.Cfg.TeamSettings.RestrictPrivateChannelManageMembers,
+		"town_square_is_read_only":                *utils.Cfg.TeamSettings.TownSquareIsReadOnly,
 	})
 
 	SendDiagnostic(TRACK_CONFIG_CLIENT_REQ, map[string]interface{}{
