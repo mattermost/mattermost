@@ -281,15 +281,14 @@ func UpgradeDatabaseToVersion40(sqlStore SqlStore) {
 }
 
 func UpgradeDatabaseToVersion41(sqlStore SqlStore) {
-	// TODO: Uncomment following condition when version 4.1.0 is released
-	// if shouldPerformUpgrade(sqlStore, VERSION_4_0_0, VERSION_4_1_0) {
+	if shouldPerformUpgrade(sqlStore, VERSION_4_0_0, VERSION_4_1_0) {
+		// Increase maximum length of the Users table Roles column.
+		if sqlStore.GetMaxLengthOfColumnIfExists("Users", "Roles") != "256" {
+			sqlStore.AlterColumnTypeIfExists("Users", "Roles", "varchar(256)", "varchar(256)")
+		}
 
-	// Increase maximum length of the Users table Roles column.
-	if sqlStore.GetMaxLengthOfColumnIfExists("Users", "Roles") != "256" {
-		sqlStore.AlterColumnTypeIfExists("Users", "Roles", "varchar(256)", "varchar(256)")
+		sqlStore.RemoveTableIfExists("JobStatuses")
+
+		saveSchemaVersion(sqlStore, VERSION_4_1_0)
 	}
-
-	sqlStore.RemoveTableIfExists("JobStatuses")
-	// 	saveSchemaVersion(sqlStore, VERSION_4_1_0)
-	// }
 }
