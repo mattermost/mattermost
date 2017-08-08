@@ -71,6 +71,16 @@ Archived channels are appended with ' (archived)'.`,
 	RunE:    listChannelsCmdF,
 }
 
+var moveChannelsCmd = &cobra.Command{
+	Use:   "move [team] [channels]",
+	Short: "Moves channels to the specified team",
+	Long: `Moves the provided channels to the specified team.
+Validates that all users in the channel belong to the target team. Incoming/Outgoing webhooks are moved along with the channel.
+Channels can be specified by [team]:[channel]. ie. myteam:mychannel or by channel ID.`,
+	Example: "  channel move newteam oldteam:mychannel",
+	RunE:    moveChannelsCmdF,
+}
+
 var restoreChannelsCmd = &cobra.Command{
 	Use:   "restore [channels]",
 	Short: "Restore some channels",
@@ -97,6 +107,7 @@ func init() {
 		archiveChannelsCmd,
 		deleteChannelsCmd,
 		listChannelsCmd,
+		moveChannelsCmd,
 		restoreChannelsCmd,
 	)
 }
@@ -285,6 +296,72 @@ func deleteChannelsCmdF(cmd *cobra.Command, args []string) error {
 
 func deleteChannel(channel *model.Channel) *model.AppError {
 	return app.PermanentDeleteChannel(channel)
+}
+
+func moveChannelsCmdF(cmd *cobra.Command, args []string) error {
+	if err := initDBCommandContextCobra(cmd); err != nil {
+		return err
+	}
+
+	if len(args) < 2 {
+		return errors.New("Enter the destination team and at least one channel to move.")
+	}
+
+	team := getTeamFromTeamArg(args[0])
+	if team == nil {
+		return errors.New("Unable to find destination team '" + args[0] + "'")
+	}
+
+	channels := getChannelsFromChannelArgs(args[1:])
+	for i, channel := range channels {
+		if channel == nil {
+			CommandPrintErrorln("Unable to find channel '" + args[i] + "'")
+			continue
+		}
+		if err := moveChannel(team, channel); err != nil {
+			CommandPrintErrorln("Unable to move channel '" + channel.Name + "' error: " + err.Error())
+		} else {
+			CommandPrettyPrintln("Moved channel '" + channel.Name + "'")
+		}
+	}
+
+	return nil
+}
+
+func moveChannel(team *model.Team, channel *model.Channel) *model.AppError {
+	oldTeamId := channel.TeamId
+
+	if err := app.MoveChannel(team, channel); err != nil {
+		return err
+	}
+
+	if incomingWebhooks, err := app.GetIncomingWebhooksForTeamPage(oldTeamId, 0, 10000000); err != nil {
+		return err
+	} else {
+		for _, webhook := range incomingWebhooks {
+			if webhook.ChannelId == channel.Id {
+				webhook.TeamId = team.Id
+				if result := <-app.Srv.Store.Webhook().UpdateIncoming(webhook); result.Err != nil {
+					CommandPrintErrorln("Failed to move incoming webhook '" + webhook.Id + "' to new team.")
+				}
+			}
+		}
+	}
+
+	if outgoingWebhooks, err := app.GetOutgoingWebhooksForTeamPage(oldTeamId, 0, 10000000); err != nil {
+		return err
+	} else {
+		for _, webhook := range outgoingWebhooks {
+			if webhook.ChannelId == channel.Id {
+				webhook.TeamId = team.Id
+				if result := <-app.Srv.Store.Webhook().UpdateOutgoing(webhook); result.Err != nil {
+					CommandPrintErrorln("Failed to move outgoing webhook '" + webhook.Id + "' to new team.")
+				}
+			}
+		}
+	}
+
+	return nil
 }
 
 func listChannelsCmdF(cmd *cobra.Command, args []string) error {
