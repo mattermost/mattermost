@@ -1,0 +1,98 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/integrations/InstalledOAuthApps should match snapshot 1`] = `
+<BackstageList
+  addLink="/test/integrations/oauth2-apps/add"
+  addText="Add OAuth 2.0 Application"
+  emptyText={
+    <FormattedMessage
+      defaultMessage="No OAuth 2.0 Applications found"
+      id="installed_oauth_apps.empty"
+      values={Object {}}
+    />
+  }
+  header={
+    <FormattedMessage
+      defaultMessage="OAuth 2.0 Applications"
+      id="installed_oauth_apps.header"
+      values={Object {}}
+    />
+  }
+  helpText={
+    <FormattedMessage
+      defaultMessage="Create {oauthApplications} to securely integrate bots and third-party apps with Mattermost. Visit the {appDirectory} to find available self-hosted apps."
+      id="installed_oauth_apps.help"
+      values={
+        Object {
+          "appDirectory": <a
+            href="https://about.mattermost.com/default-app-directory/"
+            rel="noopener noreferrer"
+            target="_blank"
+        >
+            <FormattedMessage
+                defaultMessage="App Directory"
+                id="installed_oauth_apps.help.appDirectory"
+                values={Object {}}
+            />
+        </a>,
+          "oauthApplications": <a
+            href="https://docs.mattermost.com/developer/oauth-2-0-applications.html"
+            rel="noopener noreferrer"
+            target="_blank"
+        >
+            <FormattedMessage
+                defaultMessage="OAuth 2.0 applications"
+                id="installed_oauth_apps.help.oauthApplications"
+                values={Object {}}
+            />
+        </a>,
+        }
+      }
+    />
+  }
+  loading={true}
+  searchPlaceholder="Search OAuth 2.0 Applications"
+>
+  <InstalledOAuthApp
+    oauthApp={
+      Object {
+        "callback_urls": Array [
+          "https://test.com/callback",
+        ],
+        "client_secret": "88cxd9wpzpbpfp8pad78xj75pr",
+        "create_at": 1501365458934,
+        "creator_id": "88oybd1dwfdoxpkpw1h5kpbyco",
+        "description": "testing",
+        "homepage": "https://test.com",
+        "icon_url": "https://test.com/icon",
+        "id": "facxd9wpzpbpfp8pad78xj75pr",
+        "is_trusted": false,
+        "name": "firstApp",
+        "update_at": 1501365458934,
+      }
+    }
+    onDelete={[Function]}
+  />
+  <InstalledOAuthApp
+    oauthApp={
+      Object {
+        "callback_urls": Array [
+          "https://test2.com/callback",
+          "https://test2.com/callback2",
+        ],
+        "client_secret": "decxd9wpzpbpfp8pad78xj75pr",
+        "create_at": 1501365459984,
+        "creator_id": "88oybd2dwfdoxpkpw1h5kpbyco",
+        "description": "testing2",
+        "homepage": "https://test2.com",
+        "icon_url": "https://test2.com/icon",
+        "id": "fzcxd9wpzpbpfp8pad78xj75pr",
+        "is_trusted": true,
+        "name": "secondApp",
+        "update_at": 1501365479988,
+      }
+    }
+    onDelete={[Function]}
+  />
+</BackstageList>
+`;

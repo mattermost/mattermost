@@ -5,9 +5,11 @@ import React from 'react';
 import PropTypes from 'prop-types';
 
 import {postListScrollChange} from 'actions/global_actions.jsx';
+import {updatePost} from 'actions/post_actions.jsx';
 
 import * as Utils from 'utils/utils.jsx';
 import * as CommonUtils from 'utils/commons.jsx';
+import {PostTypes} from 'utils/constants.jsx';
 
 export default class PostAttachmentOpenGraph extends React.PureComponent {
     static propTypes = {
@@ -16,6 +18,16 @@ export default class PostAttachmentOpenGraph extends React.PureComponent {
          * The link to display the open graph data for
          */
         link: PropTypes.string.isRequired,
+
+        /**
+         * The current user viewing the post
+         */
+        currentUser: PropTypes.object,
+
+        /**
+         * The post where this link is included
+         */
+        post: PropTypes.object,
 
         /**
          * The open graph data to render
@@ -62,18 +74,28 @@ export default class PostAttachmentOpenGraph extends React.PureComponent {
         this.toggleImageVisibility = this.toggleImageVisibility.bind(this);
         this.onImageLoad = this.onImageLoad.bind(this);
         this.onImageError = this.onImageError.bind(this);
+        this.handleRemovePreview = this.handleRemovePreview.bind(this);
     }
 
     componentWillMount() {
+        const removePreview = this.isRemovePreview(this.props.post, this.props.currentUser);
+
         this.setState({
             imageLoaded: this.IMAGE_LOADED.LOADING,
             imageVisible: this.props.previewCollapsed.startsWith('false'),
-            hasLargeImage: false
+            hasLargeImage: false,
+            removePreview
         });
         this.fetchData(this.props.link);
     }
 
     componentWillReceiveProps(nextProps) {
+        if (!Utils.areObjectsEqual(nextProps.post, this.props.post)) {
+            const removePreview = this.isRemovePreview(nextProps.post, nextProps.currentUser);
+            this.setState({
+                removePreview
+            });
+        }
         if (nextProps.link !== this.props.link) {
             this.fetchData(nextProps.link);
         }
@@ -94,12 +116,12 @@ export default class PostAttachmentOpenGraph extends React.PureComponent {
         }
     }
 
-    getBestImageUrl() {
-        if (Utils.isEmptyObject(this.props.openGraphData.images)) {
+    getBestImageUrl(data) {
+        if (Utils.isEmptyObject(data.images)) {
             return null;
         }
 
-        const bestImage = CommonUtils.getNearestPoint(this.imageDimentions, this.props.openGraphData.images, 'width', 'height');
+        const bestImage = CommonUtils.getNearestPoint(this.imageDimentions, data.images, 'width', 'height');
         return bestImage.secure_url || bestImage.url;
     }
 
@@ -208,14 +230,50 @@ export default class PostAttachmentOpenGraph extends React.PureComponent {
         return text;
     }
 
+    handleRemovePreview() {
+        const props = Object.assign({}, this.props.post.props);
+        props[PostTypes.REMOVE_LINK_PREVIEW] = 'true';
+
+        const patchedPost = ({
+            id: this.props.post.id,
+            props
+        });
+
+        updatePost(patchedPost, () => {
+            this.setState({removePreview: true});
+        });
+    }
+
+    isRemovePreview(post, currentUser) {
+        if (post && post.props && currentUser.id === post.user_id) {
+            return post.props[PostTypes.REMOVE_LINK_PREVIEW] && post.props[PostTypes.REMOVE_LINK_PREVIEW] === 'true';
+        }
+
+        return false;
+    }
+
     render() {
-        if (!this.props.openGraphData || Utils.isEmptyObject(this.props.openGraphData.description)) {
+        const data = this.props.openGraphData;
+        if (!data || Utils.isEmptyObject(data.description) || this.state.removePreview) {
             return null;
         }
 
-        const data = this.props.openGraphData;
-        const imageUrl = this.getBestImageUrl();
+        let removePreviewButton;
+        if (this.props.currentUser.id === this.props.post.user_id) {
+            removePreviewButton = (
+                <button
+                    id='removePreviewButton'
+                    type='button'
+                    className='btn-close'
+                    aria-label='Close'
+                    onClick={this.handleRemovePreview}
+                >
+                    <span aria-hidden='true'>{'×'}</span>
+                </button>
+            );
+        }
 
+        const imageUrl = this.getBestImageUrl(data);
         if (imageUrl) {
             this.loadImage(imageUrl);
         }
@@ -233,6 +291,7 @@ export default class PostAttachmentOpenGraph extends React.PureComponent {
                             className={'attachment__body__wrap attachment__body__wrap--opengraph'}
                         >
                             <span className='sitename'>{this.truncateText(data.site_name)}</span>
+                            {removePreviewButton}
                             <h1
                                 className={'attachment__title attachment__title--opengraph' + (data.title ? '' : ' is-url')}
                             >

@@ -126,7 +126,7 @@ export default class SearchResultsItem extends React.Component {
         let className = 'post post--thread';
 
         if (this.props.compactDisplay) {
-            className = ' post--compact';
+            className += ' post--compact';
         }
 
         if (this.state.dropdownOpened) {

@@ -1202,9 +1202,15 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 		relayProps = model.MapFromJson(strings.NewReader(stateStr))
 	}
 
+	action := relayProps["action"]
 	if user, err := samlInterface.DoLogin(encodedXML, relayProps); err != nil {
-		c.Err = err
-		c.Err.StatusCode = http.StatusFound
+		if action == model.OAUTH_ACTION_MOBILE {
+			err.Translate(c.T)
+			w.Write([]byte(err.ToJson()))
+		} else {
+			c.Err = err
+			c.Err.StatusCode = http.StatusFound
+		}
 		return
 	} else {
 		if err := app.CheckUserAdditionalAuthenticationCriteria(user, ""); err != nil {
@@ -1212,7 +1218,7 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Err.StatusCode = http.StatusFound
 			return
 		}
-		action := relayProps["action"]
+
 		switch action {
 		case model.OAUTH_ACTION_SIGNUP:
 			teamId := relayProps["team_id"]
@@ -1243,8 +1249,8 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		if action == "mobile" {
-			w.Write([]byte(""))
+		if action == model.OAUTH_ACTION_MOBILE {
+			ReturnStatusOK(w)
 		} else {
 			http.Redirect(w, r, app.GetProtocol(r)+"://"+r.Host, http.StatusFound)
 		}

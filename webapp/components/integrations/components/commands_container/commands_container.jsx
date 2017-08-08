@@ -33,7 +33,7 @@ export default class CommandsContainer extends React.PureComponent {
         users: PropTypes.object,
 
         /**
-        * Installed splash commands to display
+        * Installed slash commands to display
         */
         commands: PropTypes.array,
 

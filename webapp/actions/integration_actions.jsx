@@ -33,6 +33,20 @@ export function loadIncomingHooks(complete) {
     );
 }
 
+export function loadIncomingHooksForTeam(teamId, complete) {
+    IntegrationActions.getIncomingHooks(teamId, 0, 10000)(dispatch, getState).then(
+        (data) => {
+            if (data) {
+                loadProfilesForIncomingHooks(data);
+            }
+
+            if (complete) {
+                complete(data);
+            }
+        }
+    );
+}
+
 function loadProfilesForIncomingHooks(hooks) {
     const profilesToLoad = {};
     for (let i = 0; i < hooks.length; i++) {
@@ -52,6 +66,20 @@ function loadProfilesForIncomingHooks(hooks) {
 
 export function loadOutgoingHooks(complete) {
     IntegrationActions.getOutgoingHooks('', '', 0, 10000)(dispatch, getState).then(
+        (data) => {
+            if (data) {
+                loadProfilesForOutgoingHooks(data);
+            }
+
+            if (complete) {
+                complete(data);
+            }
+        }
+    );
+}
+
+export function loadOutgoingHooksForTeam(teamId, complete) {
+    IntegrationActions.getOutgoingHooks('', teamId, 0, 10000)(dispatch, getState).then(
         (data) => {
             if (data) {
                 loadProfilesForOutgoingHooks(data);
@@ -213,8 +241,12 @@ export function regenCommandToken(id) {
 export function getSuggestedCommands(command, suggestionId, component) {
     Client4.getCommandsList(TeamStore.getCurrentId()).then(
         (data) => {
-            var matches = [];
+            let matches = [];
             data.forEach((cmd) => {
+                if (!cmd.auto_complete) {
+                    return;
+                }
+
                 if (cmd.trigger !== 'shortcuts' || !UserAgent.isMobile()) {
                     if (('/' + cmd.trigger).indexOf(command) === 0) {
                         const s = '/' + cmd.trigger;

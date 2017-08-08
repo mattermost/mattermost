@@ -10,6 +10,7 @@ import Constants from 'utils/constants.jsx';
 const NotificationPrefs = Constants.NotificationPrefs;
 
 import {getSiteURL} from 'utils/url.jsx';
+import {isSystemMessage, isFromWebhook} from 'utils/post_utils.jsx';
 const ActionTypes = Constants.ActionTypes;
 
 const CHANGE_EVENT = 'change';
@@ -446,6 +447,10 @@ TeamStore.dispatchToken = AppDispatcher.register((payload) => {
         break;
     case ActionTypes.RECEIVED_POST:
         if (Constants.IGNORE_POST_TYPES.indexOf(action.post.type) !== -1) {
+            return;
+        }
+
+        if (action.post.user_id === UserStore.getCurrentId() && !isSystemMessage(action.post) && !isFromWebhook(action.post)) {
             return;
         }
 

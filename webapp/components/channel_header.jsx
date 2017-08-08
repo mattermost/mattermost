@@ -14,7 +14,6 @@ import ChannelMembersModal from './channel_members_modal.jsx';
 import ChannelNotificationsModal from './channel_notifications_modal.jsx';
 import DeleteChannelModal from './delete_channel_modal.jsx';
 import RenameChannelModal from './rename_channel_modal.jsx';
-import ConfirmModal from './confirm_modal.jsx';
 import ToggleModalButton from './toggle_modal_button.jsx';
 
 import ChannelStore from 'stores/channel_store.jsx';
@@ -60,8 +59,6 @@ export default class ChannelHeader extends React.Component {
         this.initWebrtc = this.initWebrtc.bind(this);
         this.onBusy = this.onBusy.bind(this);
         this.openDirectMessageModal = this.openDirectMessageModal.bind(this);
-        this.createLeaveChannelModal = this.createLeaveChannelModal.bind(this);
-        this.hideLeaveChannelModal = this.hideLeaveChannelModal.bind(this);
 
         const state = this.getStateFromStores();
         state.showEditChannelHeaderModal = false;
@@ -91,7 +88,6 @@ export default class ChannelHeader extends React.Component {
             enableFormatting: PreferenceStore.getBool(Preferences.CATEGORY_ADVANCED_SETTINGS, 'formatting', true),
             isBusy: WebrtcStore.isBusy(),
             isFavorite: channel && ChannelUtils.isFavoriteChannel(channel),
-            showLeaveChannelModal: false,
             pinsOpen: SearchStore.getIsPinnedPosts()
         };
     }
@@ -144,9 +140,7 @@ export default class ChannelHeader extends React.Component {
 
     handleLeave() {
         if (this.state.channel.type === Constants.PRIVATE_CHANNEL) {
-            this.setState({
-                showLeaveChannelModal: true
-            });
+            GlobalActions.showLeavePrivateChannelModal(this.state.channel);
         } else {
             ChannelActions.leaveChannel(this.state.channel.id);
         }
@@ -231,54 +225,6 @@ export default class ChannelHeader extends React.Component {
             value: true,
             startingUsers: UserStore.getProfileListInChannel(this.props.channelId, true, false)
         });
-    }
-
-    hideLeaveChannelModal() {
-        this.setState({
-            showLeaveChannelModal: false
-        });
-    }
-
-    createLeaveChannelModal() {
-        const title = (
-            <FormattedMessage
-                id='leave_private_channel_modal.title'
-                defaultMessage='Leave Private Channel {channel}'
-                values={{
-                    channel: <b>{this.state.channel.display_name}</b>
-                }}
-            />
-        );
-
-        const message = (
-            <FormattedMessage
-                id='leave_private_channel_modal.message'
-                defaultMessage='Are you sure you wish to leave the private channel {channel}? You must be re-invited in order to re-join this channel in the future.'
-                values={{
-                    channel: <b>{this.state.channel.display_name}</b>
-                }}
-            />
-        );
-
-        const buttonClass = 'btn btn-danger';
-        const button = (
-            <FormattedMessage
-                id='leave_private_channel_modal.leave'
-                defaultMessage='Yes, leave channel'
-            />
-        );
-
-        return (
-            <ConfirmModal
-                show={this.state.showLeaveChannelModal}
-                title={title}
-                message={message}
-                confirmButtonClass={buttonClass}
-                confirmButtonText={button}
-                onConfirm={() => ChannelActions.leaveChannel(this.state.channel.id)}
-                onCancel={this.hideLeaveChannelModal}
-            />
-        );
     }
 
     render() {
@@ -882,8 +828,6 @@ export default class ChannelHeader extends React.Component {
             );
         }
 
-        const leaveChannelModal = this.createLeaveChannelModal();
-
         let pinnedIconClass = 'channel-header__icon';
         if (this.state.pinsOpen) {
             pinnedIconClass += ' active';
@@ -894,111 +838,106 @@ export default class ChannelHeader extends React.Component {
                 id='channel-header'
                 className='channel-header alt'
             >
-                <table>
-                    <tbody>
-                        <tr>
-                            <th>
-                                <div className='channel-header__info'>
-                                    {toggleFavorite}
-                                    <div className='channel-header__title dropdown'>
-                                        <a
-                                            id='channelHeaderDropdown'
-                                            href='#'
-                                            className='dropdown-toggle theme'
-                                            type='button'
-                                            data-toggle='dropdown'
-                                            aria-expanded='true'
-                                        >
-                                            <strong className='heading'>{channelTitle} </strong>
-                                            <span className='fa fa-angle-down header-dropdown__icon'/>
-                                        </a>
-                                        <ul
-                                            className='dropdown-menu'
-                                            role='menu'
-                                            aria-labelledby='channel_header_dropdown'
-                                        >
-                                            {dropdownContents}
-                                        </ul>
-                                    </div>
-                                    {headerTextContainer}
-                                </div>
-                            </th>
-                            <th>
-                                {webrtc}
-                            </th>
-                            <th>
-                                {popoverListMembers}
-                            </th>
-                            <th>
-                                <OverlayTrigger
-                                    trigger={['hover', 'focus']}
-                                    delayShow={Constants.OVERLAY_TIME_DELAY}
-                                    placement='bottom'
-                                    overlay={pinnedPostTooltip}
+                <div className='flex-parent'>
+                    <div className='flex-child'>
+                        <div className='channel-header__info'>
+                            {toggleFavorite}
+                            <div className='channel-header__title dropdown'>
+                                <a
+                                    id='channelHeaderDropdown'
+                                    href='#'
+                                    className='dropdown-toggle theme'
+                                    type='button'
+                                    data-toggle='dropdown'
+                                    aria-expanded='true'
                                 >
-                                    <div
-                                        className={pinnedIconClass}
-                                        onClick={this.getPinnedPosts}
-                                    >
-                                        <span
-                                            className='icon icon__pin'
-                                            dangerouslySetInnerHTML={{__html: pinIcon}}
-                                            aria-hidden='true'
-                                        />
-                                    </div>
-                                </OverlayTrigger>
-                            </th>
-                            <th className='search-bar__container'>
-                                <NavbarSearchBox
-                                    showMentionFlagBtns={false}
-                                    isFocus={Utils.isMobile()}
+                                    <strong className='heading'>{channelTitle} </strong>
+                                    <span className='fa fa-angle-down header-dropdown__icon'/>
+                                </a>
+                                <ul
+                                    className='dropdown-menu'
+                                    role='menu'
+                                    aria-labelledby='channel_header_dropdown'
+                                >
+                                    {dropdownContents}
+                                </ul>
+                            </div>
+                            {headerTextContainer}
+                        </div>
+                    </div>
+                    <div className='flex-child'>
+                        {webrtc}
+                    </div>
+                    <div className='flex-child'>
+                        {popoverListMembers}
+                    </div>
+                    <div className='flex-child'>
+                        <OverlayTrigger
+                            trigger={['hover', 'focus']}
+                            delayShow={Constants.OVERLAY_TIME_DELAY}
+                            placement='bottom'
+                            overlay={pinnedPostTooltip}
+                        >
+                            <div
+                                className={pinnedIconClass}
+                                onClick={this.getPinnedPosts}
+                            >
+                                <span
+                                    className='icon icon__pin'
+                                    dangerouslySetInnerHTML={{__html: pinIcon}}
+                                    aria-hidden='true'
                                 />
-                            </th>
-                            <th>
-                                <OverlayTrigger
-                                    trigger={['hover', 'focus']}
-                                    delayShow={Constants.OVERLAY_TIME_DELAY}
-                                    placement='bottom'
-                                    overlay={recentMentionsTooltip}
-                                >
-                                    <div
-                                        className='channel-header__icon icon--hidden'
-                                        onClick={this.searchMentions}
-                                    >
-                                        <span
-                                            className='icon icon__mentions'
-                                            dangerouslySetInnerHTML={{__html: mentionsIcon}}
-                                            aria-hidden='true'
-                                        />
-                                    </div>
-                                </OverlayTrigger>
-                            </th>
-                            <th>
-                                <OverlayTrigger
-                                    trigger={['hover', 'focus']}
-                                    delayShow={Constants.OVERLAY_TIME_DELAY}
-                                    placement='bottom'
-                                    overlay={flaggedTooltip}
-                                >
-                                    <div
-                                        className='channel-header__icon icon--hidden'
-                                        onClick={this.getFlagged}
+                            </div>
+                        </OverlayTrigger>
+                    </div>
+                    <div className='flex-child search-bar__container'>
+                        <NavbarSearchBox
+                            showMentionFlagBtns={false}
+                            isFocus={Utils.isMobile()}
+                        />
+                    </div>
+                    <div className='flex-child'>
+                        <OverlayTrigger
+                            trigger={['hover', 'focus']}
+                            delayShow={Constants.OVERLAY_TIME_DELAY}
+                            placement='bottom'
+                            overlay={recentMentionsTooltip}
+                        >
+                            <div
+                                className='channel-header__icon icon--hidden'
+                                onClick={this.searchMentions}
+                            >
+                                <span
+                                    className='icon icon__mentions'
+                                    dangerouslySetInnerHTML={{__html: mentionsIcon}}
+                                    aria-hidden='true'
+                                />
+                            </div>
+                        </OverlayTrigger>
+                    </div>
+                    <div className='flex-child'>
+                        <OverlayTrigger
+                            trigger={['hover', 'focus']}
+                            delayShow={Constants.OVERLAY_TIME_DELAY}
+                            placement='bottom'
+                            overlay={flaggedTooltip}
+                        >
+                            <div
+                                className='channel-header__icon icon--hidden'
+                                onClick={this.getFlagged}
 
-                                    >
-                                        <span
-                                            className='icon icon__flag'
-                                            dangerouslySetInnerHTML={{__html: flagIcon}}
-                                        />
-                                    </div>
-                                </OverlayTrigger>
-                            </th>
-                        </tr>
-                    </tbody>
-                </table>
+                            >
+                                <span
+                                    className='icon icon__flag'
+                                    dangerouslySetInnerHTML={{__html: flagIcon}}
+                                />
+                            </div>
+                        </OverlayTrigger>
+                    </div>
+                </div>
                 {editHeaderModal}
                 {editPurposeModal}
                 {channelMembersModal}
-                {leaveChannelModal}
                 <RenameChannelModal
                     show={this.state.showRenameChannelModal}
                     onHide={this.hideRenameChannelModal}

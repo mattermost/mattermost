@@ -185,6 +185,17 @@
         margin: 2em 0;
         padding: .8em 1.5rem;
 
+        &.banner--url {
+            padding: 1.2em;
+        }
+
+        .banner__url {
+            background: alpha-color($black, .07);
+            border-radius: 2px;
+            padding: .7em 1em;
+            word-break: break-all;
+        }
+
         .banner__heading {
             font-size: 1.5em;
             margin-bottom: 0.5em;
@@ -305,7 +316,7 @@
     .status-icon-error {
         color: #ea6262;
     }
-    
+
     .suggestion--selected {
         background-color: #e2e2e2;
     }

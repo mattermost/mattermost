@@ -30,7 +30,7 @@ export default class InstalledCommands extends React.PureComponent {
         users: PropTypes.object,
 
         /**
-        * Installed splash commands to display
+        * Installed slash commands to display
         */
         commands: PropTypes.array,
 
@@ -40,7 +40,7 @@ export default class InstalledCommands extends React.PureComponent {
         loading: PropTypes.bool,
 
         /**
-        * Set to allow changes to installed splash commands
+        * Set to allow changes to installed slash commands
         */
         isAdmin: PropTypes.bool,
 
