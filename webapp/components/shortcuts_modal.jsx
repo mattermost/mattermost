@@ -69,16 +69,6 @@ const allShortcuts = defineMessages({
             defaultMessage: 'Quick channel switcher:\t⌘|K'
         }
     },
-    navSwitcherTeam: {
-        default: {
-            id: 'shortcuts.nav.switcher_team',
-            defaultMessage: 'Quick team switcher:\tCtrl|Alt|K'
-        },
-        mac: {
-            id: 'shortcuts.nav.switcher_team.mac',
-            defaultMessage: 'Quick team switcher:\t⌘|⌥|K'
-        }
-    },
     navDMMenu: {
         default: {
             id: 'shortcuts.nav.direct_messages_menu',
@@ -320,7 +310,6 @@ class ShortcutsModal extends React.PureComponent {
                                         {renderShortcut(formatMessage(shortcuts.navUnreadPrev))}
                                         {renderShortcut(formatMessage(shortcuts.navUnreadNext))}
                                         {renderShortcut(formatMessage(shortcuts.navSwitcher))}
-                                        {renderShortcut(formatMessage(shortcuts.navSwitcherTeam))}
                                         {renderShortcut(formatMessage(shortcuts.navDMMenu))}
                                         {renderShortcut(formatMessage(shortcuts.navSettings))}
                                         {renderShortcut(formatMessage(shortcuts.navMentions))}
