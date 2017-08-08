@@ -105,11 +105,19 @@ func TestGetTeam(t *testing.T) {
 
 	th.LoginTeamAdmin()
 
-	team2 := &model.Team{DisplayName: "Name", Name: GenerateTestTeamName(), Email: GenerateTestEmail(), Type: model.TEAM_INVITE}
+	team2 := &model.Team{DisplayName: "Name", Name: GenerateTestTeamName(), Email: GenerateTestEmail(), Type: model.TEAM_OPEN, AllowOpenInvite: false}
 	rteam2, _ := Client.CreateTeam(team2)
 
+	team3 := &model.Team{DisplayName: "Name", Name: GenerateTestTeamName(), Email: GenerateTestEmail(), Type: model.TEAM_INVITE, AllowOpenInvite: true}
+	rteam3, _ := Client.CreateTeam(team3)
+
 	th.LoginBasic()
+	// AllowInviteOpen is false and team is open, and user is not on team
 	_, resp = Client.GetTeam(rteam2.Id, "")
+	CheckForbiddenStatus(t, resp)
+
+	// AllowInviteOpen is true and team is invite, and user is not on team
+	_, resp = Client.GetTeam(rteam3.Id, "")
 	CheckForbiddenStatus(t, resp)
 
 	Client.Logout()
@@ -440,11 +448,19 @@ func TestGetTeamByName(t *testing.T) {
 
 	th.LoginTeamAdmin()
 
-	team2 := &model.Team{DisplayName: "Name", Name: GenerateTestTeamName(), Email: GenerateTestEmail(), Type: model.TEAM_INVITE}
+	team2 := &model.Team{DisplayName: "Name", Name: GenerateTestTeamName(), Email: GenerateTestEmail(), Type: model.TEAM_OPEN, AllowOpenInvite: false}
 	rteam2, _ := Client.CreateTeam(team2)
 
+	team3 := &model.Team{DisplayName: "Name", Name: GenerateTestTeamName(), Email: GenerateTestEmail(), Type: model.TEAM_INVITE, AllowOpenInvite: true}
+	rteam3, _ := Client.CreateTeam(team3)
+
 	th.LoginBasic()
+	// AllowInviteOpen is false and team is open, and user is not on team
 	_, resp = Client.GetTeamByName(rteam2.Name, "")
+	CheckForbiddenStatus(t, resp)
+
+	// AllowInviteOpen is true and team is invite only, and user is not on team
+	_, resp = Client.GetTeamByName(rteam3.Name, "")
 	CheckForbiddenStatus(t, resp)
 }
 
