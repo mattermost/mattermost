@@ -67,6 +67,7 @@ File.open(File.join(File.dirname(__FILE__), 'utils', 'emoji.jsx'), 'w') do |f|
         emojis << {
             'aliases' => emoji.aliases,
             'filename' => filename,
+            'category' => category,
         }
         emoji.image_filename = filename + '.png'
     end
