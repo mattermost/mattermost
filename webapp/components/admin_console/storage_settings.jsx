@@ -36,6 +36,7 @@ export default class StorageSettings extends AdminSettings {
         config.FileSettings.AmazonS3Bucket = this.state.amazonS3Bucket;
         config.FileSettings.AmazonS3Endpoint = this.state.amazonS3Endpoint;
         config.FileSettings.AmazonS3SSL = this.state.amazonS3SSL;
+        config.FileSettings.AmazonS3SSE = this.state.amazonS3SSE;
 
         return config;
     }
@@ -52,7 +53,8 @@ export default class StorageSettings extends AdminSettings {
             amazonS3SecretAccessKey: config.FileSettings.AmazonS3SecretAccessKey,
             amazonS3Bucket: config.FileSettings.AmazonS3Bucket,
             amazonS3Endpoint: config.FileSettings.AmazonS3Endpoint,
-            amazonS3SSL: config.FileSettings.AmazonS3SSL
+            amazonS3SSL: config.FileSettings.AmazonS3SSL,
+            amazonS3SSE: config.FileSettings.AmazonS3SSE
         };
     }
 
@@ -249,6 +251,25 @@ export default class StorageSettings extends AdminSettings {
                         />
                     }
                     value={this.state.amazonS3SSL}
+                    onChange={this.handleChange}
+                    disabled={this.state.driverName !== DRIVER_S3}
+                />
+                <BooleanSetting
+                    id='AmazonSSE'
+                    label={
+                        <FormattedMessage
+                            id='admin.image.AmazonSSETitle'
+                            defaultMessage='Enable Server-Side Encryption for Amazon S3:'
+                        />
+                    }
+                    placeholder={Utils.localizeMessage('admin.image.AmazonSSEExample', 'Ex "false"')}
+                    helpText={
+                        <FormattedMessage
+                            id='admin.image.AmazonSSEDescription'
+                            defaultMessage='When true, encrypt files in Amazon S3 using server-side encryption with Amazon S3-managed keys. See <a href="https://about.mattermost.com/default-server-side-encryption" target="_blank">documentation</a> to learn more.'
+                        />
+                    }
+                    value={this.state.AmazonSSE}
                     onChange={this.handleChange}
                     disabled={this.state.driverName !== DRIVER_S3}
                 />

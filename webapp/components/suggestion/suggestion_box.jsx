@@ -53,6 +53,11 @@ export default class SuggestionBox extends React.Component {
         completeOnTab: PropTypes.bool,
 
         /**
+         * Function called when input box gains focus
+         */
+        onFocus: PropTypes.func,
+
+        /**
          * Function called when input box loses focus
          */
         onBlur: PropTypes.func,
@@ -177,18 +182,21 @@ export default class SuggestionBox extends React.Component {
     }
 
     handleFocus() {
-        if (!this.props.openOnFocus) {
-            return;
-        }
-        setTimeout(() => {
-            const textbox = this.getTextbox();
-            if (textbox) {
-                const pretext = textbox.value.substring(0, textbox.selectionEnd);
-                if (pretext.length >= this.props.requiredCharacters) {
-                    GlobalActions.emitSuggestionPretextChanged(this.suggestionId, pretext);
+        if (this.props.openOnFocus) {
+            setTimeout(() => {
+                const textbox = this.getTextbox();
+                if (textbox) {
+                    const pretext = textbox.value.substring(0, textbox.selectionEnd);
+                    if (pretext.length >= this.props.requiredCharacters) {
+                        GlobalActions.emitSuggestionPretextChanged(this.suggestionId, pretext);
+                    }
                 }
-            }
-        });
+            });
+        }
+
+        if (this.props.onFocus) {
+            this.props.onFocus();
+        }
     }
 
     handleChange(e) {
