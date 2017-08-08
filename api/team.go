@@ -235,7 +235,7 @@ func getTeamByName(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	} else {
-		if team.Type != model.TEAM_OPEN && c.Session.GetTeamByTeamId(team.Id) == nil {
+		if (!team.AllowOpenInvite || team.Type != model.TEAM_OPEN) && c.Session.GetTeamByTeamId(team.Id) == nil {
 			if !app.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
 				c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 				return

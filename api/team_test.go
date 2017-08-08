@@ -787,11 +787,14 @@ func TestGetTeamByName(t *testing.T) {
 	th := Setup().InitSystemAdmin().InitBasic()
 	Client := th.BasicClient
 
-	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "success+" + model.NewId() + "@simulator.amazonses.com", Type: model.TEAM_INVITE}
+	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "success+" + model.NewId() + "@simulator.amazonses.com", Type: model.TEAM_OPEN, AllowOpenInvite: false}
 	team = Client.Must(Client.CreateTeam(team)).Data.(*model.Team)
 
-	team2 := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "success+" + model.NewId() + "@simulator.amazonses.com", Type: model.TEAM_OPEN}
+	team2 := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "success+" + model.NewId() + "@simulator.amazonses.com", Type: model.TEAM_OPEN, AllowOpenInvite: true}
 	team2 = Client.Must(Client.CreateTeam(team2)).Data.(*model.Team)
+
+	team3 := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "success+" + model.NewId() + "@simulator.amazonses.com", Type: model.TEAM_INVITE, AllowOpenInvite: true}
+	team3 = Client.Must(Client.CreateTeam(team3)).Data.(*model.Team)
 
 	if _, err := Client.GetTeamByName(team.Name); err != nil {
 		t.Fatal("Failed to get team")
@@ -813,7 +816,7 @@ func TestGetTeamByName(t *testing.T) {
 
 	Client.Login(user2.Email, "passwd1")
 
-	// TEAM_INVITE and user is not part of the team
+	// AllowInviteOpen is false and team is open and user is not part of the team
 	if _, err := Client.GetTeamByName(team.Name); err == nil {
 		t.Fatal("Should fail dont have permissions to get the team")
 	}
@@ -822,9 +825,14 @@ func TestGetTeamByName(t *testing.T) {
 		t.Fatal("Should not exist this team")
 	}
 
-	// TEAM_OPEN and user is not part of the team
+	// AllowInviteOpen is true and is open and user is not part of the team
 	if _, err := Client.GetTeamByName(team2.Name); err != nil {
 		t.Fatal("Should not fail team is open")
+	}
+
+	// AllowInviteOpen is true and is invite only and user is not part of the team
+	if _, err := Client.GetTeamByName(team3.Name); err == nil {
+		t.Fatal("Should fail team is invite only")
 	}
 
 	Client.Must(Client.Logout())
@@ -832,11 +840,15 @@ func TestGetTeamByName(t *testing.T) {
 	th.LoginSystemAdmin()
 
 	if _, err := th.SystemAdminClient.GetTeamByName(team.Name); err != nil {
-		t.Fatal("Should not failed to get team the user is admin")
+		t.Fatal("Should not fail to get team the user is admin")
 	}
 
 	if _, err := th.SystemAdminClient.GetTeamByName(team2.Name); err != nil {
-		t.Fatal("Should not failed to get team the user is admin and team is open")
+		t.Fatal("Should not fail to get team the user is admin and team is open")
+	}
+
+	if _, err := th.SystemAdminClient.GetTeamByName(team3.Name); err != nil {
+		t.Fatal("Should not fail to get team the user is admin and team is invite")
 	}
 
 	if _, err := Client.GetTeamByName("InvalidTeamName"); err == nil {
