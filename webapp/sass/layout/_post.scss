@@ -385,7 +385,7 @@
 .post-create__container {
     @include flex(0 0 auto);
     width: 100%;
-    z-index: 9;
+    z-index: 5;
 
     label {
         font-weight: normal;
@@ -404,41 +404,128 @@
     .custom-textarea {
         bottom: 0;
         max-height: 162px;
-        padding-top: 8px;
         overflow: hidden;
+        padding: 14px 0 14px 20px;
         resize: none;
 
         &:not(.custom-textarea--emoji-picker) {
-            padding-right: 35px;
+            padding-right: 40px;
         }
 
         &.custom-textarea--emoji-picker {
-            padding-right: 60px;
+            padding-right: 80px;
         }
     }
 
     .emoji-picker {
         position: absolute;
+        right: 0;
         top: -361px;
-        right: 0px;
     }
 
-    .post-create.scroll {
-        .btn-file {
+    .scroll {
+        .post-body__actions {
             right: 10px;
         }
 
         .custom-textarea {
             -ms-overflow-style: auto;
-            overflow: auto;
             -webkit-overflow-scrolling: touch;
+            overflow: auto;
 
             &:not(.custom-textarea--emoji-picker) {
-                padding-right: 43px;
+                padding-right: 50px;
             }
 
             &.custom-textarea--emoji-picker {
-                padding-right: 60px;
+                padding-right: 90px;
+            }
+        }
+    }
+
+    .post-body__actions {
+        display: flex;
+        height: 100%;
+        position: absolute;
+        right: 0;
+        top: 0;
+
+        > span {
+            border-left: 1px solid transparent;
+            width: 41px;
+
+            &:first-child {
+                border: none;
+            }
+
+            > span,
+            div {
+                display: block;
+                height: 49px;
+                line-height: 49px;
+                text-align: center;
+                width: 100%;
+            }
+        }
+
+        &:hover,
+        &:active {
+            box-shadow: none;
+        }
+
+        &.btn-file__disabled {
+            @include opacity(.1);
+
+            &:hover,
+            &:active {
+                @include opacity(.1);
+            }
+        }
+
+        .icon--emoji {
+            @include opacity(.5);
+            @include single-transition(all, .15s);
+            cursor: pointer;
+
+            &:hover {
+                @include opacity(.7);
+            }
+
+            svg {
+                position: relative;
+                top: 2px;
+            }
+        }
+
+        .icon--attachment {
+            @include opacity(.4);
+            @include single-transition(all, .15s);
+            cursor: pointer;
+            overflow: hidden;
+            position: relative;
+            vertical-align: top;
+
+            &:hover {
+                @include opacity(.6);
+            }
+
+            input {
+                cursor: pointer;
+                direction: ltr;
+                filter: alpha(opacity=0);
+                font-size: 23px;
+                height: 100%;
+                margin: 0;
+                opacity: 0;
+                position: absolute;
+                right: 0;
+                top: 0;
+                width: 100%;
+            }
+
+            svg {
+                position: relative;
+                top: 3px;
             }
         }
     }
@@ -473,69 +560,11 @@
             }
         }
 
-        .btn-file {
-            @include single-transition(all, .15s);
-            font-size: 16px;
-            padding: 8px 9px 4px;
-            position: absolute;
-            right: 0;
-            top: 0;
-            z-index: 5;
-
-            svg {
-                height: 18px;
-                width: 18px;
-            }
-
-            &:hover,
-            &:active {
-                box-shadow: none;
-            }
-
-            &.btn-file__disabled {
-                @include opacity(.1);
-
-                &:hover,
-                &:active {
-                    @include opacity(.1);
-                }
-            }
-
-            .icon--attachment {
-                @include opacity(.5);
-                display: inline-block;
-                position: relative;
-                vertical-align: top;
-
-                input {
-                    cursor: pointer;
-                    direction: ltr;
-                    filter: alpha(opacity=0);
-                    font-size: 23px;
-                    height: 100%;
-                    margin: 0;
-                    opacity: 0;
-                    position: absolute;
-                    right: 0;
-                    top: 0;
-                    width: 100%;
-                }
-
-                &:hover {
-                    @include opacity(.9);
-                }
-            }
-        }
-
 
         .icon--emoji-picker {
             @include opacity(.5);
             @include single-transition(all, .15s);
             cursor: pointer;
-            font-size: 19px;
-            margin-left: 7px;
-            position: relative;
-            vertical-align: top;
 
             &:hover,
             &:active {
@@ -566,23 +595,6 @@
                 &:hover {
                     @include opacity(.9);
                 }
-            }
-        }
-
-
-        .icon--emoji-picker {
-            @include opacity(.5);
-            @include single-transition(all, .15s);
-            cursor: pointer;
-            font-size: 19px;
-            margin-left: 7px;
-            position: relative;
-            vertical-align: top;
-
-            &:hover,
-            &:active {
-                @include opacity(.9);
-                box-shadow: none;
             }
         }
 
