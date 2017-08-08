@@ -297,16 +297,18 @@
         }
 
         .more-modal__name {
-            font-size: 12px;
+            font-size: 13.5px;
             font-weight: normal;
         }
 
         .more-modal__image {
             margin: 0;
+            position: relative;
+            top: -1px;
         }
 
         .more-modal__details {
-            line-height: 42px;
+            line-height: 39px;
             padding-left: 30px;
         }
 
