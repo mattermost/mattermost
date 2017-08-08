@@ -400,10 +400,7 @@ function convertSearchTermToRegex(term) {
         pattern = '\\b()(' + escapeRegex(term) + ')\\b';
     }
 
-    return {
-        pattern: new RegExp(pattern, 'gi'),
-        term
-    };
+    return new RegExp(pattern, 'gi');
 }
 
 export function highlightSearchTerms(text, tokens, searchPatterns) {
@@ -429,21 +426,7 @@ export function highlightSearchTerms(text, tokens, searchPatterns) {
         // highlight existing tokens matching search terms
         var newTokens = new Map();
         for (const [alias, token] of tokens) {
-            if (pattern.pattern.test(token.originalText)) {
-                // If it's a Hashtag, skip it unless the search term is an exact match.
-                let originalText = token.originalText;
-                if (originalText.startsWith('#')) {
-                    originalText = originalText.substr(1);
-                }
-                let term = pattern.term;
-                if (term.startsWith('#')) {
-                    term = term.substr(1);
-                }
-
-                if (alias.startsWith('$MM_HASHTAG') && originalText !== term) {
-                    continue;
-                }
-
+            if (pattern.test(token.originalText)) {
                 const index = tokens.size + newTokens.size;
                 const newAlias = `$MM_SEARCHTERM${index}`;
 
@@ -455,10 +438,10 @@ export function highlightSearchTerms(text, tokens, searchPatterns) {
                 output = output.replace(alias, newAlias);
             }
 
-            // The pattern regexes are global, so calling pattern.pattern.test() above alters their
+            // The pattern regexes are global, so calling pattern.test() above alters their
             // state. Reset lastIndex to 0 between calls to test() to ensure it returns the
             // same result every time it is called with the same value of token.originalText.
-            pattern.pattern.lastIndex = 0;
+            pattern.lastIndex = 0;
         }
 
         // the new tokens are stashed in a separate map since we can't add objects to a map during iteration
@@ -466,7 +449,7 @@ export function highlightSearchTerms(text, tokens, searchPatterns) {
             tokens.set(newToken[0], newToken[1]);
         }
 
-        output = output.replace(pattern.pattern, replaceSearchTermWithToken);
+        output = output.replace(pattern, replaceSearchTermWithToken);
     }
 
     return output;
