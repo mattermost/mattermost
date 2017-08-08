@@ -31,7 +31,7 @@ export default class EmojiPickerItem extends React.PureComponent {
     }
 
     handleMouseOver() {
-        this.props.onItemOver(this.props.emoji, this.props.category);
+        this.props.onItemOver(this.props.emoji);
     }
 
     handleMouseOut() {
@@ -45,21 +45,7 @@ export default class EmojiPickerItem extends React.PureComponent {
     render() {
         let item = null;
 
-        if (this.props.category === 'recent' || this.props.category === 'custom') {
-            item = (
-                <span
-                    onMouseOver={this.handleMouseOver}
-                    onMouseOut={this.handleMouseOut}
-                    onClick={this.handleClick}
-                    className='emoji-picker__item-wrapper'
-                >
-                    <img
-                        className='emoji-picker__item emoticon'
-                        src={EmojiStore.getEmojiImageUrl(this.props.emoji)}
-                    />
-                </span>
-            );
-        } else {
+        if (this.props.emoji.category) {
             let className;
             if (this.props.isLoaded) {
                 className = 'emojisprite';
@@ -67,7 +53,7 @@ export default class EmojiPickerItem extends React.PureComponent {
                 className = 'emojisprite-loading';
             }
 
-            className += ' emoji-category-' + this.props.category;
+            className += ' emoji-category-' + this.props.emoji.category;
             className += ' emoji-' + this.props.emoji.filename;
 
             item = (
@@ -81,7 +67,22 @@ export default class EmojiPickerItem extends React.PureComponent {
                     />
                 </div>
             );
+        } else {
+            item = (
+                <span
+                    onMouseOver={this.handleMouseOver}
+                    onMouseOut={this.handleMouseOut}
+                    onClick={this.handleClick}
+                    className='emoji-picker__item-wrapper'
+                >
+                    <img
+                        className='emoji-picker__item emoticon'
+                        src={EmojiStore.getEmojiImageUrl(this.props.emoji)}
+                    />
+                </span>
+            );
         }
+
         return item;
     }
 }

@@ -11,8 +11,7 @@ import {FormattedMessage} from 'react-intl';
 
 export default class EmojiPickerPreview extends React.Component {
     static propTypes = {
-        emoji: PropTypes.object,
-        category: PropTypes.string
+        emoji: PropTypes.object
     }
 
     render() {
@@ -23,30 +22,19 @@ export default class EmojiPickerPreview extends React.Component {
             let aliases;
             let previewImage;
 
-            if (emoji.aliases) {
+            if (emoji.aliases && emoji.category) {
                 // This is a system emoji which only has a list of aliases
                 name = emoji.aliases[0];
                 aliases = emoji.aliases;
 
-                if (this.props.category === 'recent') {
-                    previewImage = (
-                        <span className='sprite-preview'>
-                            <img
-                                className={'emoji-picker__preview-image'}
-                                src={EmojiStore.getEmojiImageUrl(this.props.emoji)}
-                            />
-                        </span>
-                    );
-                } else {
-                    previewImage = (
-                        <span className='sprite-preview'>
-                            <img
-                                src='/static/images/img_trans.gif'
-                                className={'emojisprite-preview emoji-category-' + this.props.category + ' emoji-' + emoji.filename}
-                            />
-                        </span>
-                    );
-                }
+                previewImage = (
+                    <span className='sprite-preview'>
+                        <img
+                            src='/static/images/img_trans.gif'
+                            className={'emojisprite-preview emoji-category-' + emoji.category + ' emoji-' + emoji.filename}
+                        />
+                    </span>
+                );
             } else {
                 // This is a custom emoji that matches the model on the server
                 name = emoji.name;

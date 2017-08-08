@@ -71,8 +71,7 @@ export default class EmojiPicker extends React.Component {
         this.state = {
             category: 'recent',
             filter: '',
-            selectedEmoji: null,
-            selectedCategory: null,
+            selected: null,
             preloaded: []
         };
     }
@@ -118,27 +117,24 @@ export default class EmojiPicker extends React.Component {
         this.setState({filter: e.target.value});
     }
 
-    handleItemOver(emoji, category) {
+    handleItemOver(emoji) {
         clearTimeout(this.timeouthandler);
         this.setState({
-            selectedEmoji: emoji,
-            selectedCategory: category
+            selected: emoji
         });
     }
 
     handleItemOut() {
         this.timeouthandler = setTimeout(() => this.setState({
-            selectedEmoji: null,
-            selectedCategory: null
+            selected: null
         }), 500);
     }
 
     handleItemUnmount(emoji) {
         // Prevent emoji preview from showing emoji which is not present anymore (due to filter)
-        if (this.state.selectedEmoji === emoji) {
+        if (this.state.selected === emoji) {
             this.setState({
-                selectedEmoji: null,
-                selectedCategory: null
+                selected: null
             });
         }
     }
@@ -245,9 +241,7 @@ export default class EmojiPicker extends React.Component {
         let header = null;
         if (items.length > 0) {
             header = (
-                <div
-                    className='emoji-picker__category-header'
-                >
+                <div className='emoji-picker__category-header'>
                     <FormattedMessage id={'emoji_picker.' + category}/>
                 </div>
             );
@@ -434,8 +428,7 @@ export default class EmojiPicker extends React.Component {
                     {items}
                 </div>
                 <EmojiPickerPreview
-                    emoji={this.state.selectedEmoji}
-                    category={this.state.selectedCategory}
+                    emoji={this.state.selected}
                 />
             </div>
         );
