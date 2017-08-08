@@ -224,7 +224,6 @@ export function showDeleteOptionForCurrentUser(channel, isChannelAdmin, isTeamAd
         }
     }
 
-    // all channel members can delete this channel
     return true;
 }
 

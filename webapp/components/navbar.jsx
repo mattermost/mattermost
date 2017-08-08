@@ -287,7 +287,6 @@ export default class Navbar extends React.Component {
     };
 
     createDropdown(channel, channelTitle, isSystemAdmin, isTeamAdmin, isChannelAdmin, isDirect, isGroup, popoverContent) {
-        const isAdmin = isSystemAdmin || isTeamAdmin;
         const infoIcon = Constants.INFO_ICON_SVG;
 
         if (channel) {
