@@ -469,6 +469,10 @@ func TestSearchAllTeams(t *testing.T) {
 	defer TearDown()
 	Client := th.Client
 	oTeam := th.BasicTeam
+	oTeam.AllowOpenInvite = true
+
+	updatedTeam, _ := app.UpdateTeam(oTeam)
+	oTeam.UpdateAt = updatedTeam.UpdateAt
 
 	pTeam := &model.Team{DisplayName: "PName", Name: GenerateTestTeamName(), Email: GenerateTestEmail(), Type: model.TEAM_INVITE}
 	Client.CreateTeam(pTeam)
