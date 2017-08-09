@@ -134,6 +134,24 @@ func (s SqlCommandStore) Delete(commandId string, time int64) StoreChannel {
 	return storeChannel
 }
 
+func (s SqlCommandStore) PermanentDeleteByTeam(teamId string) StoreChannel {
+	storeChannel := make(StoreChannel, 1)
+
+	go func() {
+		result := StoreResult{}
+
+		_, err := s.GetMaster().Exec("DELETE FROM Commands WHERE TeamId = :TeamId", map[string]interface{}{"TeamId": teamId})
+		if err != nil {
+			result.Err = model.NewLocAppError("SqlCommandStore.DeleteByTeam", "store.sql_command.save.delete_perm.app_error", nil, "id="+teamId+", err="+err.Error())
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
 func (s SqlCommandStore) PermanentDeleteByUser(userId string) StoreChannel {
 	storeChannel := make(StoreChannel, 1)
 

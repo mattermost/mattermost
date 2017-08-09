@@ -532,6 +532,90 @@
     "translation": "채널 머릿말이 성공적으로 업데이트되었습니다."
   },
   {
+    "id": "api.command_channel_purpose.channel.app_error",
+    "translation": "현재 채널을 찾는 중 오류가 발생하였습니다."
+  },
+  {
+    "id": "api.command_channel_purpose.desc",
+    "translation": "Edit the channel purpose"
+  },
+  {
+    "id": "api.command_channel_purpose.direct_group.app_error",
+    "translation": "Cannot set purpose for direct message channels. Use /header to set the header instead."
+  },
+  {
+    "id": "api.command_channel_purpose.hint",
+    "translation": "[text]"
+  },
+  {
+    "id": "api.command_channel_purpose.message.app_error",
+    "translation": "메시지는 /echo 명령어와 함께 제공되어야 합니다."
+  },
+  {
+    "id": "api.command_channel_purpose.name",
+    "translation": "purpose"
+  },
+  {
+    "id": "api.command_channel_purpose.permission.app_error",
+    "translation": "당신은 채널 머릿말을 수정할 권한을 가지고 있지 않습니다."
+  },
+  {
+    "id": "api.command_channel_purpose.update_channel.app_error",
+    "translation": "현재 채널의 업데이트에 실패하였습니다."
+  },
+  {
+    "id": "api.command_channel_rename.channel.app_error",
+    "translation": "현재 채널을 찾는 중 오류가 발생하였습니다."
+  },
+  {
+    "id": "api.command_channel_rename.desc",
+    "translation": "Rename the channel"
+  },
+  {
+    "id": "api.command_channel_rename.direct_group.app_error",
+    "translation": "개인 메시지 채널은 나갈 수 없습니다"
+  },
+  {
+    "id": "api.command_channel_rename.hint",
+    "translation": "[text]"
+  },
+  {
+    "id": "api.command_channel_rename.message.app_error",
+    "translation": "메시지는 /echo 명령어와 함께 제공되어야 합니다."
+  },
+  {
+    "id": "api.command_channel_rename.name",
+    "translation": "rename"
+  },
+  {
+    "id": "api.command_channel_rename.permission.app_error",
+    "translation": "당신은 채널 머릿말을 수정할 권한을 가지고 있지 않습니다."
+  },
+  {
+    "id": "api.command_channel_rename.update_channel.app_error",
+    "translation": "현재 채널의 업데이트에 실패하였습니다."
+  },
+  {
+    "id": "api.command_channel_rename.update_channel.success",
+    "translation": "채널 머릿말이 성공적으로 업데이트되었습니다."
+  },
+  {
+    "id": "api.command_code.desc",
+    "translation": "Display text as a code block"
+  },
+  {
+    "id": "api.command_code.hint",
+    "translation": "[text]"
+  },
+  {
+    "id": "api.command_code.message.app_error",
+    "translation": "메시지는 /echo 명령어와 함께 제공되어야 합니다."
+  },
+  {
+    "id": "api.command_code.name",
+    "translation": "code"
+  },
+  {
     "id": "api.command_collapse.desc",
     "translation": "이미지 미리보기를 자동으로 접습니다"
   },
@@ -622,6 +706,30 @@
   {
     "id": "api.command_join.success",
     "translation": "참가한 채널"
+  },
+  {
+    "id": "api.command_leave.desc",
+    "translation": "Leave the current channel"
+  },
+  {
+    "id": "api.command_leave.fail.app_error",
+    "translation": "채널에 참가하는 중 오류가 발생했습니다."
+  },
+  {
+    "id": "api.command_leave.list.app_error",
+    "translation": "채널 목록을 나열하는 중 오류가 발생하였습니다."
+  },
+  {
+    "id": "api.command_leave.missing.app_error",
+    "translation": "채널을 찾을 수 없습니다"
+  },
+  {
+    "id": "api.command_leave.name",
+    "translation": "leave"
+  },
+  {
+    "id": "api.command_leave.success",
+    "translation": "Left the channel."
   },
   {
     "id": "api.command_logout.desc",
@@ -1009,7 +1117,7 @@
   },
   {
     "id": "api.email_batching.render_batched_post.direct_message",
-    "translation": "개인 메시지"
+    "translation": "Direct Message from "
   },
   {
     "id": "api.email_batching.render_batched_post.go_to_post",
@@ -1017,7 +1125,11 @@
   },
   {
     "id": "api.email_batching.render_batched_post.group_message",
-    "translation": "그룹 메세지"
+    "translation": "Group Message from "
+  },
+  {
+    "id": "api.email_batching.render_batched_post.notification",
+    "translation": "Notification from "
   },
   {
     "id": "api.email_batching.render_batched_post.sender.app_error",
@@ -1026,8 +1138,8 @@
   {
     "id": "api.email_batching.send_batched_email_notification.body_text",
     "translation": {
-      "one": "한개의 신규 메시지가 있습니다.",
-      "other": ""
+      "one": "You have a new notification.",
+      "other": "You have {{.Count}} new notifications."
     }
   },
   {
@@ -1696,19 +1808,7 @@
     "translation": "Failed to get teams when sending cross-team DM user_id=%v, err=%v"
   },
   {
-    "id": "api.post.send_notifications_and_forget.mention_body",
-    "translation": "신규 메시지가 있습니다."
-  },
-  {
     "id": "api.post.send_notifications_and_forget.mention_subject",
-    "translation": "신규 메시지"
-  },
-  {
-    "id": "api.post.send_notifications_and_forget.message_body",
-    "translation": "한개의 신규 메시지가 있습니다."
-  },
-  {
-    "id": "api.post.send_notifications_and_forget.message_subject",
     "translation": "신규 메시지"
   },
   {
@@ -1728,12 +1828,20 @@
     "translation": " mentioned you in "
   },
   {
+    "id": "api.post.send_notifications_and_forget.push_mention_no_channel",
+    "translation": " mentioned you in "
+  },
+  {
     "id": "api.post.send_notifications_and_forget.push_message",
     "translation": " 에게 받은 개인 메시지 "
   },
   {
     "id": "api.post.send_notifications_and_forget.push_non_mention",
     "translation": " posted in "
+  },
+  {
+    "id": "api.post.send_notifications_and_forget.push_non_mention_no_channel",
+    "translation": " posted a message"
   },
   {
     "id": "api.post.send_notifications_and_forget.push_notification.error",
@@ -1873,11 +1981,11 @@
   },
   {
     "id": "api.slackimport.slack_add_bot_user.email_pwd",
-    "translation": "Slack Bot/Integration Posts Import User: Email, Password: {{.Email}}, {{.Password}}\r\n"
+    "translation": "The Integration/Slack Bot user with email {{.Email}} and password {{.Password}} has been imported.\r\n"
   },
   {
     "id": "api.slackimport.slack_add_bot_user.unable_import",
-    "translation": "Unable to import Slack Bot/Integration Posts Import User: {{.Username}}\r\n"
+    "translation": "Unable to import the Integration/Slack Bot user {{.Username}}.\r\n"
   },
   {
     "id": "api.slackimport.slack_add_channels.added",
@@ -1885,71 +1993,71 @@
   },
   {
     "id": "api.slackimport.slack_add_channels.failed_to_add_user",
-    "translation": "채널에 유저 추가시 오류 발생: {{.Username}}\r\n"
+    "translation": "Unable to add Slack user {{.Username}} to channel.\r\n"
   },
   {
     "id": "api.slackimport.slack_add_channels.import_failed",
-    "translation": "추가 시 오류가 발생함: {{.DisplayName}}\r\n"
+    "translation": "Unable to import Slack channel {{.DisplayName}}.\r\n"
   },
   {
     "id": "api.slackimport.slack_add_channels.import_failed.warn",
-    "translation": "Slack Importer: Failed to import channel: %s"
+    "translation": "Slack Import: Unable to import Slack channel: %s."
   },
   {
     "id": "api.slackimport.slack_add_channels.merge",
-    "translation": "기존 채널과 합쳐짐. {{.DisplayName}}\r\n"
+    "translation": "The Slack channel {{.DisplayName}} already exists as an active Mattermost channel. Both channels have been merged.\r\n"
   },
   {
     "id": "api.slackimport.slack_add_posts.attach_files.error",
-    "translation": "게시글에 파일을 첨부하는 동안 에러가 발생되었습니다, post_id=%s, file_ids=%v, err=%v"
+    "translation": "Slack Import: An error occurred when attaching files to a message, post_id=%s, file_ids=%v, err=%v."
   },
   {
     "id": "api.slackimport.slack_add_posts.bot.warn",
-    "translation": "Slack bot posts are not imported yet"
+    "translation": "Slack Import: Slack bot messages cannot be imported yet."
   },
   {
     "id": "api.slackimport.slack_add_posts.bot_user_no_exists.warn",
-    "translation": "Slack Importer: Not importing bot message as the bot-importing user does not exist."
+    "translation": "Slack Import: Unable to import the bot message as the bot user does not exist."
   },
   {
     "id": "api.slackimport.slack_add_posts.msg_no_comment.debug",
-    "translation": "파일 코멘트가 정의되지 않았습니다."
+    "translation": "Slack Import: Unable to import the message as it has no comments."
   },
   {
     "id": "api.slackimport.slack_add_posts.msg_no_usr.debug",
-    "translation": "작성자 없는 메시지"
+    "translation": "Slack Import: Unable to import the message as the user field is missing."
   },
   {
     "id": "api.slackimport.slack_add_posts.no_bot_id.warn",
-    "translation": "Slack Importer: Not importing bot message due to lack of BotId field."
+    "translation": "Slack Import: Unable to import bot message as the BotId field is missing."
   },
   {
     "id": "api.slackimport.slack_add_posts.unsupported.warn",
-    "translation": "지원되지 않는 글 형식: %v, %v"
+    "translation": "Slack Import: Unable to import the message as its type is not supported: post_type=%v, post_subtype=%v."
   },
   {
     "id": "api.slackimport.slack_add_posts.upload_file_not_found.warn",
-    "translation": "Slack export의 파일 업로드 메시지를 위한 파일(file id : {{.FileId}})가 없습니다."
+    "translation": "Slack Import: Unable to import file {{.FileId}} as the file is missing from the Slack export zip file."
   },
   {
     "id": "api.slackimport.slack_add_posts.upload_file_not_in_json.warn",
-    "translation": "Cannot import file for upload post with no \"file\" section present in export."
+    "translation": "Slack Import: Unable to attach the file to the post as the latter has no \"file\" section present in Slack export."
   },
   {
     "id": "api.slackimport.slack_add_posts.upload_file_open_failed.warn",
-    "translation": "export archive의 업로드 파일(file id : {{.FileId}})을 열 수 없습니다, error: {{.Error}}"
+    "translation": "Slack Import: Unable to open the file {{.FileId}} from the Slack export: {{.Error}}."
   },
   {
     "id": "api.slackimport.slack_add_posts.upload_file_upload_failed.warn",
-    "translation": "메세지를 업로드하기 위한 파일(ID : {{.FileId}} )을 업로드하는 것을 실패했습니다, error: {{.Error}}"
+    "translation": "Slack Import: An error occurred when uploading file {{.FileId}}: {{.Error}}."
   },
   {
     "id": "api.slackimport.slack_add_posts.user_no_exists.debug",
-    "translation": "사용자 %v 가 존재하지 않습니다!"
+    "translation": "Slack Import: Unable to add the message as the Slack user %v does not exist in Mattermost."
   },
   {
     "id": "api.slackimport.slack_add_posts.without_user.debug",
-    "translation": "작성자 없는 메시지"
+    "translation": "Slack Import: Unable to import the message as the user field is missing."
   },
   {
     "id": "api.slackimport.slack_add_users.created",
@@ -1957,23 +2065,23 @@
   },
   {
     "id": "api.slackimport.slack_add_users.email_pwd",
-    "translation": "이메일, 비밀번호: {{.Email}}, {{.Password}}\r\n"
+    "translation": "Slack user with email {{.Email}} and password {{.Password}} has been imported.\r\n"
   },
   {
     "id": "api.slackimport.slack_add_users.merge_existing",
-    "translation": "기존 사용자 정보와 병합됩니다: {{.Email}}, {{.Username}}\r\n"
+    "translation": "Slack user merged with an existing Mattermost user with matching email {{.Email}} and username {{.Username}}.\r\n"
   },
   {
     "id": "api.slackimport.slack_add_users.merge_existing_failed",
-    "translation": "Tried to merge user with existing account: {{.Email}}, {{.Username}}, but failed to add the user to this team.\r\n"
+    "translation": "Slack user merged with an existing Mattermost user with matching email {{.Email}} and username {{.Username}}, but was unable to add the user to their team.\r\n"
   },
   {
     "id": "api.slackimport.slack_add_users.missing_email_address",
-    "translation": "User {{.Username}} does not have an email address in the Slack export. Using {{.Email}} as a placeholder. The user should update their email address once logged in to the system.\r\n"
+    "translation": "User {{.Username}} does not have an email address in the Slack export. Used {{.Email}} as a placeholder. The user should update their email address once logged in to the system.\r\n"
   },
   {
     "id": "api.slackimport.slack_add_users.missing_email_address.warn",
-    "translation": "User {{.Username}} does not have an email address in the Slack export. Using {{.Email}} as a placeholder. The user should update their email address once logged in to the system."
+    "translation": "Slack Import: User {{.Username}} does not have an email address in the Slack export. Used {{.Email}} as a placeholder. The user should update their email address once logged in to the system."
   },
   {
     "id": "api.slackimport.slack_add_users.unable_import",
@@ -1981,19 +2089,19 @@
   },
   {
     "id": "api.slackimport.slack_convert_channel_mentions.compile_regexp_failed.warn",
-    "translation": "Failed to compile the @mention matching regular expression for Slack user {{.UserID}} {{.Username}}"
+    "translation": "Slack Import: Unable to compile the !channel, matching regular expression for the Slack channel {{.ChannelName}} (id={{.ChannelID}})."
   },
   {
     "id": "api.slackimport.slack_convert_timestamp.bad.warn",
-    "translation": "잘못된 시간 서식이 있습니다."
+    "translation": "Slack Import: Bad timestamp detected."
   },
   {
     "id": "api.slackimport.slack_convert_user_mentions.compile_regexp_failed.warn",
-    "translation": "Failed to compile the @mention matching regular expression for Slack user {{.UserID}} {{.Username}}"
+    "translation": "Slack Import: Unable to compile the @mention, matching regular expression for the Slack user {{.Username}} (id={{.UserID}})."
   },
   {
     "id": "api.slackimport.slack_deactivate_bot_user.failed_to_deactivate",
-    "translation": "Slack Importer: Failed to deactivate the bot-importing user."
+    "translation": "Slack Import: Unable to deactivate the user account used for the bot."
   },
   {
     "id": "api.slackimport.slack_import.log",
@@ -2017,7 +2125,7 @@
   },
   {
     "id": "api.slackimport.slack_import.open.app_error",
-    "translation": "파일을 열 수 없습니다. {{.Filename}}"
+    "translation": "Unable to open the file: {{.Filename}}.\r\n"
   },
   {
     "id": "api.slackimport.slack_import.team_fail",
@@ -2025,31 +2133,31 @@
   },
   {
     "id": "api.slackimport.slack_import.zip.app_error",
-    "translation": "Zip 파일을 열 수 없습니다."
+    "translation": "Unable to open the Slack export zip file.\r\n"
   },
   {
     "id": "api.slackimport.slack_parse_channels.error",
-    "translation": "슬랙 채널 파싱 중 오류가 발생했습니다. 가져오기는 계속 진행됩니다."
+    "translation": "Slack Import: Error occurred when parsing some Slack channels. Import may work anyway."
   },
   {
     "id": "api.slackimport.slack_parse_posts.error",
-    "translation": "슬랙 글 파싱 중 오류가 발생했습니다. 가져오기는 계속 진행됩니다."
+    "translation": "Slack Import: Error occurred when parsing some Slack posts. Import may work anyway."
   },
   {
     "id": "api.slackimport.slack_sanitise_channel_properties.display_name_too_long.warn",
-    "translation": "Slack Importer: Channel {{.ChannelName}} has a display name which is too long. It will be truncated when imported."
+    "translation": "Slack Import: Channel {{.ChannelName}} display name exceeds the maximum length. It will be truncated when imported."
   },
   {
     "id": "api.slackimport.slack_sanitise_channel_properties.header_too_long.warn",
-    "translation": "Slack Importer: Channel {{.ChannelName}} has a header which is too long. It will be truncated when imported."
+    "translation": "Slack Import: Channel {{.ChannelName}} header exceeds the maximum length. It will be truncated when imported."
   },
   {
     "id": "api.slackimport.slack_sanitise_channel_properties.name_too_long.warn",
-    "translation": "Slack Importer: Channel {{.ChannelName}} has a name which is too long. It will be truncated when imported."
+    "translation": "Slack Import: Channel {{.ChannelName}} handle exceeds the maximum length. It will be truncated when imported."
   },
   {
     "id": "api.slackimport.slack_sanitise_channel_properties.purpose_too_long.warn",
-    "translation": "Slack Importer: Channel {{.ChannelName}} has a purpose which is too long. It will be truncated when imported."
+    "translation": "Slack Import: Channel {{.ChannelName}} purpose exceeds the maximum length. It will be truncated when imported."
   },
   {
     "id": "api.status.init.debug",
@@ -2332,22 +2440,6 @@
     "translation": "글로 이동하기"
   },
   {
-    "id": "api.templates.post_body.info",
-    "translation": "채널: {{.ChannelName}}<br>{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
-  },
-  {
-    "id": "api.templates.post_subject_in_channel",
-    "translation": "{{.SubjectText}} on {{.TeamDisplayName}} at {{.Month}} {{.Day}}, {{.Year}}"
-  },
-  {
-    "id": "api.templates.post_subject_in_direct_message",
-    "translation": "{{.SubjectText}} on {{.SenderDisplayName}} at {{.Month}} {{.Day}}, {{.Year}}"
-  },
-  {
-    "id": "api.templates.post_subject_in_group_message",
-    "translation": "{{.SubjectText}} on {{.TeamDisplayName}} at {{.Month}} {{.Day}}, {{.Year}}"
-  },
-  {
     "id": "api.templates.reset_body.button",
     "translation": "비밀번호 재설정"
   },
@@ -2402,6 +2494,18 @@
   {
     "id": "api.templates.upgrade_30_subject.info",
     "translation": "[MATTERMOST] Mattermost 3.0 업그레이드를 위해 계정을 변경하세요."
+  },
+  {
+    "id": "api.templates.user_access_token_body.info",
+    "translation": "A user access token was added to your account on {{ .SiteURL }}. They can be used to access {{.SiteName}} with your account.<br>If this change wasn't initiated by you, please contact your system administrator."
+  },
+  {
+    "id": "api.templates.user_access_token_body.title",
+    "translation": "User access token added to your account"
+  },
+  {
+    "id": "api.templates.user_access_token_subject",
+    "translation": "[{{ .SiteName }}] User access token added to your account"
   },
   {
     "id": "api.templates.username_change_body.info",
@@ -2760,6 +2864,10 @@
     "translation": "비밀번호 변경 알림 메일을 발송하지 못하였습니다."
   },
   {
+    "id": "api.user.send_user_access_token.error",
+    "translation": "Failed to send user access token added email successfully"
+  },
+  {
     "id": "api.user.send_verify_email_and_forget.failed.error",
     "translation": "이메일 확인 메일을 발송하지 못하였습니다."
   },
@@ -3072,6 +3180,10 @@
     "translation": "Failed to get group channel"
   },
   {
+    "id": "app.import.import_direct_post.save_preferences.error",
+    "translation": "Error importing direct post. Failed to save preferences."
+  },
+  {
     "id": "app.import.import_direct_post.user_not_found.error",
     "translation": "Post user does not exist"
   },
@@ -3108,12 +3220,20 @@
     "translation": "Error importing post. Channel with name \"{{.ChannelName}}\" could not be found."
   },
   {
+    "id": "app.import.import_post.save_preferences.error",
+    "translation": "Error importing post. Failed to save preferences."
+  },
+  {
     "id": "app.import.import_post.team_not_found.error",
     "translation": "Error importing post. Team with name \"{{.TeamName}}\" could not be found."
   },
   {
     "id": "app.import.import_post.user_not_found.error",
     "translation": "Error importing post. User with username \"{{.Username}}\" could not be found."
+  },
+  {
+    "id": "app.import.import_user_channels.save_preferences.error",
+    "translation": "Error importing user channel memberships. Failed to save preferences."
   },
   {
     "id": "app.import.validate_channel_import_data.create_at_zero.error",
@@ -3176,6 +3296,10 @@
     "translation": "Direct channel members list contains too many items"
   },
   {
+    "id": "app.import.validate_direct_channel_import_data.unknown_favoriter.error",
+    "translation": "Direct channel can only be favorited by members. \"{{.Username}}\" is not a member."
+  },
+  {
     "id": "app.import.validate_direct_post_import_data.channel_members_required.error",
     "translation": "Missing required direct post property: channel_members"
   },
@@ -3202,6 +3326,10 @@
   {
     "id": "app.import.validate_direct_post_import_data.message_missing.error",
     "translation": "Missing required direct post property: message"
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.unknown_flagger.error",
+    "translation": "Direct post can only be flagged by members of the channel it is in. \"{{.Username}}\" is not a member."
   },
   {
     "id": "app.import.validate_direct_post_import_data.user_missing.error",
@@ -3292,6 +3420,10 @@
     "translation": "Invalid MarkUnread NotifyProps for User's Channel Membership."
   },
   {
+    "id": "app.import.validate_user_channels_import_data.invalid_notify_props_mobile.error",
+    "translation": "Invalid Mobile NotifyProps for User's Channel Membership."
+  },
+  {
     "id": "app.import.validate_user_channels_import_data.invalid_roles.error",
     "translation": "Invalid roles for User's Channel Membership."
   },
@@ -3328,6 +3460,38 @@
     "translation": "User nickname is too long."
   },
   {
+    "id": "app.import.validate_user_import_data.notify_props_channel_trigger_invalid.error",
+    "translation": "Invalid Channel Trigger Notify Prop for user."
+  },
+  {
+    "id": "app.import.validate_user_import_data.notify_props_comment_trigger_invalid.error",
+    "translation": "Invalid Comment Trigger Notify Prop for user."
+  },
+  {
+    "id": "app.import.validate_user_import_data.notify_props_desktop_duration_invalid.error",
+    "translation": "Invalid Desktop Duration Notify Prop value for user."
+  },
+  {
+    "id": "app.import.validate_user_import_data.notify_props_desktop_invalid.error",
+    "translation": "Invalid Desktop Notify Prop value for user."
+  },
+  {
+    "id": "app.import.validate_user_import_data.notify_props_desktop_sound_invalid.error",
+    "translation": "Invalid Desktop Sound Notify Prop value for user."
+  },
+  {
+    "id": "app.import.validate_user_import_data.notify_props_email_invalid.error",
+    "translation": "Invalid Email Notify Prop value for user."
+  },
+  {
+    "id": "app.import.validate_user_import_data.notify_props_mobile_invalid.error",
+    "translation": "Invalid Mobile Notify Prop value for user."
+  },
+  {
+    "id": "app.import.validate_user_import_data.notify_props_mobile_push_status_invalid.error",
+    "translation": "Invalid Mobile Push Status Notify Prop for user."
+  },
+  {
     "id": "app.import.validate_user_import_data.pasword_length.error",
     "translation": "User Password has invalid length."
   },
@@ -3356,6 +3520,54 @@
     "translation": "Team name missing from User's Team Membership."
   },
   {
+    "id": "app.notification.body.intro.direct.full",
+    "translation": "한개의 신규 메시지가 있습니다."
+  },
+  {
+    "id": "app.notification.body.intro.direct.generic",
+    "translation": "You have a new direct message from {{.SenderName}}"
+  },
+  {
+    "id": "app.notification.body.intro.notification.full",
+    "translation": "You have a new notification."
+  },
+  {
+    "id": "app.notification.body.intro.notification.generic",
+    "translation": "You have a new notification from {{.SenderName}}"
+  },
+  {
+    "id": "app.notification.body.text.direct.full",
+    "translation": "{{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Month}} {{.Day}}"
+  },
+  {
+    "id": "app.notification.body.text.direct.generic",
+    "translation": "{{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Month}} {{.Day}}"
+  },
+  {
+    "id": "app.notification.body.text.notification.full",
+    "translation": "채널: {{.ChannelName}}<br>{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
+  },
+  {
+    "id": "app.notification.body.text.notification.generic",
+    "translation": "{{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Month}} {{.Day}}"
+  },
+  {
+    "id": "app.notification.subject.direct.full",
+    "translation": "{{.SubjectText}} on {{.TeamDisplayName}} at {{.Month}} {{.Day}}, {{.Year}}"
+  },
+  {
+    "id": "app.notification.subject.notification.full",
+    "translation": "[{{ .SiteName }}] Notification in {{ .TeamName}} on {{.Month}} {{.Day}}, {{.Year}}"
+  },
+  {
+    "id": "app.user_access_token.disabled",
+    "translation": "Personal access tokens are disabled on this server. Please contact your system administrator for details."
+  },
+  {
+    "id": "app.user_access_token.invalid_or_missing",
+    "translation": "Invalid or missing token"
+  },
+  {
     "id": "authentication.permissions.create_group_channel.description",
     "translation": "Ability to create new group message channels"
   },
@@ -3364,12 +3576,36 @@
     "translation": "Create Group Message"
   },
   {
+    "id": "authentication.permissions.create_post_public.description",
+    "translation": "Ability to create posts in public channels"
+  },
+  {
+    "id": "authentication.permissions.create_post_public.name",
+    "translation": "Create Posts in Public Channels"
+  },
+  {
     "id": "authentication.permissions.create_team_roles.description",
     "translation": "Ability to create new teams"
   },
   {
     "id": "authentication.permissions.create_team_roles.name",
     "translation": "Create Teams"
+  },
+  {
+    "id": "authentication.permissions.create_user_access_token.description",
+    "translation": "Ability to create personal access tokens"
+  },
+  {
+    "id": "authentication.permissions.create_user_access_token.name",
+    "translation": "Create Personal Access Token"
+  },
+  {
+    "id": "authentication.permissions.manage_jobs.description",
+    "translation": "Ability to manage jobs"
+  },
+  {
+    "id": "authentication.permissions.manage_jobs.name",
+    "translation": "Manage Jobs"
   },
   {
     "id": "authentication.permissions.manage_team_roles.description",
@@ -3388,6 +3624,22 @@
     "translation": "Read Public Channels"
   },
   {
+    "id": "authentication.permissions.read_user_access_token.description",
+    "translation": "Ability to read personal access tokens' id, description and user_id fields"
+  },
+  {
+    "id": "authentication.permissions.read_user_access_token.name",
+    "translation": "Read Personal Access Tokens"
+  },
+  {
+    "id": "authentication.permissions.revoke_user_access_token.description",
+    "translation": "Ability to revoke personal access tokens"
+  },
+  {
+    "id": "authentication.permissions.revoke_user_access_token.name",
+    "translation": "Revoke Personal Access Token"
+  },
+  {
     "id": "authentication.permissions.team_invite_user.description",
     "translation": "팀 사용자 초대 권한"
   },
@@ -3402,6 +3654,46 @@
   {
     "id": "authentication.permissions.team_use_slash_commands.name",
     "translation": "슬래시 명령어 사용"
+  },
+  {
+    "id": "authentication.roles.system_post_all.description",
+    "translation": "A role with the permission to post in any public, private or direct channel on the system"
+  },
+  {
+    "id": "authentication.roles.system_post_all.name",
+    "translation": "Post in Public, Private and Direct Channels"
+  },
+  {
+    "id": "authentication.roles.system_post_all_public.description",
+    "translation": "A role with the permission to post in any public channel on the system"
+  },
+  {
+    "id": "authentication.roles.system_post_all_public.name",
+    "translation": "Post in Public Channels"
+  },
+  {
+    "id": "authentication.roles.system_user_access_token.description",
+    "translation": "A role with the permissions to create, read and revoke personal access tokens"
+  },
+  {
+    "id": "authentication.roles.system_user_access_token.name",
+    "translation": "Personal Access Token"
+  },
+  {
+    "id": "authentication.roles.team_post_all.description",
+    "translation": "A role with the permission to post in any public or private channel on the team"
+  },
+  {
+    "id": "authentication.roles.team_post_all.name",
+    "translation": "Post in Public and Private Channels"
+  },
+  {
+    "id": "authentication.roles.team_post_all_public.description",
+    "translation": "A role with the permission to post in any public channel on the team"
+  },
+  {
+    "id": "authentication.roles.team_post_all_public.name",
+    "translation": "Post in Public Channels"
   },
   {
     "id": "cli.license.critical",
@@ -3496,8 +3788,44 @@
     "translation": "Compliance export started for job '{{.JobName}}' at '{{.FilePath}}'"
   },
   {
+    "id": "ent.elasticsearch.create_client.connect_failed",
+    "translation": "Setting up Elasticsearch Client Failed"
+  },
+  {
+    "id": "ent.elasticsearch.create_index_if_not_exists.index_create_failed",
+    "translation": "Failed to create Elasticsearch index"
+  },
+  {
+    "id": "ent.elasticsearch.create_index_if_not_exists.index_exists_failed",
+    "translation": "Failed to establish whether Elasticsearch index exists"
+  },
+  {
+    "id": "ent.elasticsearch.create_index_if_not_exists.index_mapping_failed",
+    "translation": "Failed to setup Elasticsearch index mapping"
+  },
+  {
+    "id": "ent.elasticsearch.delete_post.error",
+    "translation": "Failed to delete the post"
+  },
+  {
+    "id": "ent.elasticsearch.generic.disabled",
+    "translation": "Elasticsearch search is not enabled on this server"
+  },
+  {
+    "id": "ent.elasticsearch.index_post.error",
+    "translation": "Failed to index the post"
+  },
+  {
+    "id": "ent.elasticsearch.not_started.error",
+    "translation": "Elasticsearch is not started"
+  },
+  {
+    "id": "ent.elasticsearch.purge_indexes.delete_failed",
+    "translation": "Failed to delete Elasticsearch index"
+  },
+  {
     "id": "ent.elasticsearch.search_posts.disabled",
-    "translation": "ElasticSearch searching is disabled on this server"
+    "translation": "Elasticsearch searching is disabled on this server"
   },
   {
     "id": "ent.elasticsearch.search_posts.search_failed",
@@ -3508,24 +3836,12 @@
     "translation": "Failed to decode search results"
   },
   {
-    "id": "ent.elasticsearch.start.connect_failed",
-    "translation": "Setting up ElasticSearch Client Failed"
-  },
-  {
-    "id": "ent.elasticsearch.start.index_create_failed",
-    "translation": "Failed to create ElasticSearch index"
-  },
-  {
-    "id": "ent.elasticsearch.start.index_exists_failed",
-    "translation": "Failed to establish whether ElasticSearch index exists"
-  },
-  {
-    "id": "ent.elasticsearch.start.index_mapping_failed",
-    "translation": "Failed to setup ElasticSearch index mapping"
-  },
-  {
     "id": "ent.elasticsearch.start.index_settings_failed",
-    "translation": "Failed to set ElasticSearch index settings"
+    "translation": "Failed to set Elasticsearch index settings"
+  },
+  {
+    "id": "ent.elasticsearch.test_config.connect_failed",
+    "translation": "Connecting to Elasticsearch server failed."
   },
   {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
@@ -3534,6 +3850,10 @@
   {
     "id": "ent.elasticsearch.test_config.license.error",
     "translation": "License does not support Elasticsearch."
+  },
+  {
+    "id": "ent.elasticsearch.test_config.reenter_password",
+    "translation": "The Elasticsearch Server URL or Username has changed. Please re-enter the Elasticsearch password to test connection."
   },
   {
     "id": "ent.emoji.licence_disable.app_error",
@@ -3746,6 +4066,14 @@
   {
     "id": "error.not_found.title",
     "translation": "페이지가 없습니다."
+  },
+  {
+    "id": "jobs.request_cancellation.status.error",
+    "translation": "Could not request cancellation for job that is not in a cancelable state."
+  },
+  {
+    "id": "jobs.set_job_error.update.error",
+    "translation": "Failed to set job status to error"
   },
   {
     "id": "manaultesting.get_channel_id.no_found.debug",
@@ -4116,6 +4444,10 @@
     "translation": "Invalid email batching interval for email settings.  Must be 30 seconds or more."
   },
   {
+    "id": "model.config.is_valid.email_notification_contents_type.app_error",
+    "translation": "Invalid email notification contents type for email settings. Must be one of either 'full' or 'generic'."
+  },
+  {
     "id": "model.config.is_valid.email_reset_salt.app_error",
     "translation": "Invalid password reset salt for email settings.  Must be 32 chars or more."
   },
@@ -4434,6 +4766,22 @@
   {
     "id": "model.incoming_hook.user_id.app_error",
     "translation": "잘못된 사용자 ID"
+  },
+  {
+    "id": "model.job.is_valid.create_at.app_error",
+    "translation": "Create at must be a valid time"
+  },
+  {
+    "id": "model.job.is_valid.id.app_error",
+    "translation": "잘못된 형식"
+  },
+  {
+    "id": "model.job.is_valid.status.app_error",
+    "translation": "Invalid job status"
+  },
+  {
+    "id": "model.job.is_valid.type.app_error",
+    "translation": "잘못된 형식"
   },
   {
     "id": "model.oauth.is_valid.app_id.app_error",
@@ -4812,6 +5160,18 @@
     "translation": "잘못된 유저이름입니다."
   },
   {
+    "id": "model.user_access_token.is_valid.description.app_error",
+    "translation": "Invalid description, must be 255 or less characters"
+  },
+  {
+    "id": "model.user_access_token.is_valid.token.app_error",
+    "translation": "잘못된 접근 토큰입니다."
+  },
+  {
+    "id": "model.user_access_token.is_valid.user_id.app_error",
+    "translation": "잘못된 사용자 ID"
+  },
+  {
     "id": "model.utils.decode_json.app_error",
     "translation": "could not decode"
   },
@@ -4921,7 +5281,7 @@
   },
   {
     "id": "store.sql.schema_version.critical",
-    "translation": "The database schema version of %v cannot be upgraded.  You must not skip a version."
+    "translation": "Database schema version %v is no longer supported. This Mattermost server supports automatic upgrades from schema version %v through schema version %v. Downgrades are not supported. Please manually upgrade to at least version %v before continuing"
   },
   {
     "id": "store.sql.short_ciphertext",
@@ -5296,23 +5656,23 @@
     "translation": "We couldn't save or update the file info"
   },
   {
-    "id": "store.sql_job_status.delete_by_type.app_error",
+    "id": "store.sql_job.delete.app_error",
     "translation": "채널을 찾을 수 없습니다"
   },
   {
-    "id": "store.sql_job_status.get.app_error",
+    "id": "store.sql_job.get.app_error",
     "translation": "채널을 찾을 수 없습니다"
   },
   {
-    "id": "store.sql_job_status.get_all.app_error",
+    "id": "store.sql_job.get_all.app_error",
     "translation": "채널을 찾을 수 없습니다"
   },
   {
-    "id": "store.sql_job_status.save.app_error",
+    "id": "store.sql_job.save.app_error",
     "translation": "채널을 찾을 수 없습니다"
   },
   {
-    "id": "store.sql_job_status.update.app_error",
+    "id": "store.sql_job.update.app_error",
     "translation": "채널을 찾을 수 없습니다"
   },
   {
@@ -5462,6 +5822,10 @@
   {
     "id": "store.sql_post.get_posts_around.get_parent.app_error",
     "translation": "We couldn't get the parent posts for the channel"
+  },
+  {
+    "id": "store.sql_post.get_posts_batch_for_indexing.get.app_error",
+    "translation": "We couldn't get the posts batch for indexing"
   },
   {
     "id": "store.sql_post.get_posts_by_ids.app_error",
@@ -6040,6 +6404,26 @@
     "translation": "Unable to update verify email field"
   },
   {
+    "id": "store.sql_user_access_token.delete.app_error",
+    "translation": "채널을 찾을 수 없습니다"
+  },
+  {
+    "id": "store.sql_user_access_token.get.app_error",
+    "translation": "채널을 찾을 수 없습니다"
+  },
+  {
+    "id": "store.sql_user_access_token.get_by_token.app_error",
+    "translation": "채널을 찾을 수 없습니다"
+  },
+  {
+    "id": "store.sql_user_access_token.get_by_user.app_error",
+    "translation": "채널을 찾을 수 없습니다"
+  },
+  {
+    "id": "store.sql_user_access_token.save.app_error",
+    "translation": "채널을 찾을 수 없습니다"
+  },
+  {
     "id": "store.sql_webhooks.analytics_incoming_count.app_error",
     "translation": "Incoming webhook 갯수를 셀 수 없었습니다"
   },
@@ -6080,7 +6464,15 @@
     "translation": "Webhook들을 찾는 데 실패했습니다"
   },
   {
+    "id": "store.sql_webhooks.permanent_delete_incoming_by_channel.app_error",
+    "translation": "Webhook을 삭제하는 데 실패했습니다"
+  },
+  {
     "id": "store.sql_webhooks.permanent_delete_incoming_by_user.app_error",
+    "translation": "Webhook을 삭제하는 데 실패했습니다"
+  },
+  {
+    "id": "store.sql_webhooks.permanent_delete_outgoing_by_channel.app_error",
     "translation": "Webhook을 삭제하는 데 실패했습니다"
   },
   {
@@ -6116,6 +6508,10 @@
     "translation": "시스템"
   },
   {
+    "id": "utils.config.add_client_locale.app_error",
+    "translation": "Unable to load mattermost configuration file:  Adding DefaultClientLocale to AvailableLocales."
+  },
+  {
     "id": "utils.config.load_config.decoding.panic",
     "translation": "Error decoding config file={{.Filename}}, err={{.Error}}"
   },
@@ -6136,8 +6532,12 @@
     "translation": "An error occurred while saving the file to {{.Filename}}"
   },
   {
+    "id": "utils.config.supported_available_locales.app_error",
+    "translation": "Unable to load mattermost configuration file:  AvailableLocales must include DefaultClientLocale. Setting AvailableLocales to all locales as default value."
+  },
+  {
     "id": "utils.config.supported_client_locale.app_error",
-    "translation": "Unable to load mattermost configuration file:  DefaultClientLocale must be one of the supported locales"
+    "translation": "Unable to load mattermost configuration file:  DefaultClientLocale must be one of the supported locales. Setting DefaultClientLocale to en as default value."
   },
   {
     "id": "utils.config.supported_server_locale.app_error",

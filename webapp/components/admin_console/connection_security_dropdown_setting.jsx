@@ -26,23 +26,6 @@ const SECTION_NONE = (
     </tr>
 );
 
-const SECTION_PLAIN = (
-    <tr>
-        <td>
-            <FormattedMessage
-                id='admin.connectionSecurityPlain'
-                defaultMessage='PLAIN'
-            />
-        </td>
-        <td>
-            <FormattedMessage
-                id='admin.connectionSecurityPlainDescription'
-                defaultMessage='Mattermost will connect and authenticate over an insecure connection.'
-            />
-        </td>
-    </tr>
-);
-
 const SECTION_TLS = (
     <tr>
         <td>
@@ -84,7 +67,6 @@ const CONNECTION_SECURITY_HELP_TEXT_EMAIL = (
     >
         <tbody>
             {SECTION_NONE}
-            {SECTION_PLAIN}
             {SECTION_TLS}
             {SECTION_STARTTLS}
         </tbody>
@@ -122,7 +104,6 @@ export function ConnectionSecurityDropdownSettingEmail(props) {
             id='connectionSecurity'
             values={[
                 {value: '', text: Utils.localizeMessage('admin.connectionSecurityNone', 'None')},
-                {value: 'PLAIN', text: Utils.localizeMessage('admin.connectionSecurityPlain')},
                 {value: 'TLS', text: Utils.localizeMessage('admin.connectionSecurityTls', 'TLS (Recommended)')},
                 {value: 'STARTTLS', text: Utils.localizeMessage('admin.connectionSecurityStart')}
             ]}

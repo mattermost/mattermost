@@ -80,7 +80,7 @@ export default {
                 {
                     path: 'edit',
                     getComponents: (location, callback) => {
-                        System.import('components/integrations/components/edit_command.jsx').then(RouteUtils.importComponentSuccess(callback));
+                        System.import('components/integrations/components/edit_command').then(RouteUtils.importComponentSuccess(callback));
                     }
                 },
                 {
@@ -95,7 +95,7 @@ export default {
             path: 'oauth2-apps',
             indexRoute: {
                 getComponents: (location, callback) => {
-                    System.import('components/integrations/components/installed_oauth_apps.jsx').then(RouteUtils.importComponentSuccess(callback));
+                    System.import('components/integrations/components/installed_oauth_apps').then(RouteUtils.importComponentSuccess(callback));
                 }
             },
             childRoutes: [

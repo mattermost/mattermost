@@ -16,6 +16,11 @@ import (
 	"github.com/mattermost/platform/utils"
 )
 
+const (
+	PREVIEW_IMAGE_TYPE   = "image/jpeg"
+	THUMBNAIL_IMAGE_TYPE = "image/jpeg"
+)
+
 var UNSAFE_CONTENT_TYPES = [...]string{
 	"application/javascript",
 	"application/ecmascript",
@@ -116,7 +121,7 @@ func getFileThumbnail(c *Context, w http.ResponseWriter, r *http.Request) {
 	if data, err := app.ReadFile(info.ThumbnailPath); err != nil {
 		c.Err = err
 		c.Err.StatusCode = http.StatusNotFound
-	} else if err := writeFileResponse(info.Name, "", data, w, r); err != nil {
+	} else if err := writeFileResponse(info.Name, THUMBNAIL_IMAGE_TYPE, data, w, r); err != nil {
 		c.Err = err
 		return
 	}
@@ -138,7 +143,7 @@ func getFilePreview(c *Context, w http.ResponseWriter, r *http.Request) {
 	if data, err := app.ReadFile(info.PreviewPath); err != nil {
 		c.Err = err
 		c.Err.StatusCode = http.StatusNotFound
-	} else if err := writeFileResponse(info.Name, "", data, w, r); err != nil {
+	} else if err := writeFileResponse(info.Name, PREVIEW_IMAGE_TYPE, data, w, r); err != nil {
 		c.Err = err
 		return
 	}

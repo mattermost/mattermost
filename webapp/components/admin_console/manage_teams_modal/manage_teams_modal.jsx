@@ -1,11 +1,10 @@
-import PropTypes from 'prop-types';
-
 // Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 import React from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
+import PropTypes from 'prop-types';
 
 import * as TeamActions from 'actions/team_actions.jsx';
 
@@ -28,14 +27,6 @@ export default class ManageTeamsModal extends React.Component {
 
     constructor(props) {
         super(props);
-
-        this.loadTeamsAndTeamMembers = this.loadTeamsAndTeamMembers.bind(this);
-
-        this.handleError = this.handleError.bind(this);
-        this.handleMemberChange = this.handleMemberChange.bind(this);
-        this.handleMemberRemove = this.handleMemberRemove.bind(this);
-
-        this.renderContents = this.renderContents.bind(this);
 
         this.state = {
             error: null,
@@ -66,7 +57,7 @@ export default class ManageTeamsModal extends React.Component {
         }
     }
 
-    loadTeamsAndTeamMembers(user = this.props.user) {
+    loadTeamsAndTeamMembers = (user = this.props.user) => {
         TeamActions.getTeamsForUser(user.id, (teams) => {
             this.setState({
                 teams: teams.sort(sortTeamsByDisplayName)
@@ -80,13 +71,13 @@ export default class ManageTeamsModal extends React.Component {
         });
     }
 
-    handleError(error) {
+    handleError = (error) => {
         this.setState({
             error
         });
     }
 
-    handleMemberChange() {
+    handleMemberChange = () => {
         TeamActions.getTeamMembersForUser(this.props.user.id, (teamMembers) => {
             this.setState({
                 teamMembers
@@ -94,14 +85,14 @@ export default class ManageTeamsModal extends React.Component {
         });
     }
 
-    handleMemberRemove(teamId) {
+    handleMemberRemove = (teamId) => {
         this.setState({
             teams: this.state.teams.filter((team) => team.id !== teamId),
             teamMembers: this.state.teamMembers.filter((teamMember) => teamMember.team_id !== teamId)
         });
     }
 
-    renderContents() {
+    renderContents = () => {
         const {user} = this.props;
         const {teams, teamMembers} = this.state;
 

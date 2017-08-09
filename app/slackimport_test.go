@@ -4,28 +4,25 @@
 package app
 
 import (
-	"github.com/mattermost/platform/model"
 	"os"
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
+	"github.com/mattermost/platform/model"
 )
 
 func TestSlackConvertTimeStamp(t *testing.T) {
-
-	testTimeStamp := "1469785419.000033"
-
-	result := SlackConvertTimeStamp(testTimeStamp)
-
-	if result != 1469785419000 {
-		t.Fatalf("Unexpected timestamp value %v returned.", result)
-	}
+	assert.EqualValues(t, SlackConvertTimeStamp("1469785419.000033"), 1469785419000)
 }
 
 func TestSlackConvertChannelName(t *testing.T) {
-	var testData = []struct {
+	for _, tc := range []struct {
 		nameInput string
-		idInput string
-		output string
+		idInput   string
+		output    string
 	}{
 		{"test-channel", "C0G08DLQH", "test-channel"},
 		{"_test_channel_", "C0G04DLQH", "test_channel"},
@@ -33,12 +30,8 @@ func TestSlackConvertChannelName(t *testing.T) {
 		{"-t", "C0G06DLQH", "slack-channel-t"},
 		{"a", "C0G05DLQH", "slack-channel-a"},
 		{"случайный", "C0G05DLQD", "c0g05dlqd"},
-	}
-
-	for _, td := range testData {
-		if td.output != SlackConvertChannelName(td.nameInput, td.idInput) {
-			t.Fatalf("Did not convert channel name correctly: %v", td.nameInput)
-		}
+	} {
+		assert.Equal(t, SlackConvertChannelName(tc.nameInput, tc.idInput), tc.output, "nameInput = %v", tc.nameInput)
 	}
 }
 
@@ -82,15 +75,7 @@ func TestSlackConvertUserMentions(t *testing.T) {
 		},
 	}
 
-	convertedPosts := SlackConvertUserMentions(users, posts)
-
-	for channelName, channelPosts := range convertedPosts {
-		for postIdx, post := range channelPosts {
-			if post.Text != expectedPosts[channelName][postIdx].Text {
-				t.Fatalf("Converted post text not as expected: %v", post.Text)
-			}
-		}
-	}
+	assert.Equal(t, expectedPosts, SlackConvertUserMentions(users, posts))
 }
 
 func TestSlackConvertChannelMentions(t *testing.T) {
@@ -117,69 +102,43 @@ func TestSlackConvertChannelMentions(t *testing.T) {
 				Text: "Go to ~one.",
 			},
 			{
+				User: "U00000A0A",
 				Text: "Try ~two for this.",
 			},
 		},
 	}
 
-	convertedPosts := SlackConvertChannelMentions(channels, posts)
-
-	for channelName, channelPosts := range convertedPosts {
-		for postIdx, post := range channelPosts {
-			if post.Text != expectedPosts[channelName][postIdx].Text {
-				t.Fatalf("Converted post text not as expected: %v", post.Text)
-			}
-		}
-	}
-
+	assert.Equal(t, expectedPosts, SlackConvertChannelMentions(channels, posts))
 }
 
 func TestSlackParseChannels(t *testing.T) {
 	file, err := os.Open("../tests/slack-import-test-channels.json")
-	if err != nil {
-		t.Fatalf("Failed to open data file: %v", err)
-	}
+	require.NoError(t, err)
+	defer file.Close()
 
 	channels, err := SlackParseChannels(file)
-	if err != nil {
-		t.Fatalf("Error occurred parsing channels: %v", err)
-	}
-
-	if len(channels) != 6 {
-		t.Fatalf("Unexpected number of channels: %v", len(channels))
-	}
+	require.NoError(t, err)
+	assert.Equal(t, 6, len(channels))
 }
 
 func TestSlackParseUsers(t *testing.T) {
 	file, err := os.Open("../tests/slack-import-test-users.json")
-	if err != nil {
-		t.Fatalf("Failed to open data file: %v", err)
-	}
+	require.NoError(t, err)
+	defer file.Close()
 
 	users, err := SlackParseUsers(file)
-	if err != nil {
-		t.Fatalf("Error occurred parsing users: %v", err)
-	}
-
-	if len(users) != 11 {
-		t.Fatalf("Unexpected number of users: %v", len(users))
-	}
+	require.NoError(t, err)
+	assert.Equal(t, 11, len(users))
 }
 
 func TestSlackParsePosts(t *testing.T) {
 	file, err := os.Open("../tests/slack-import-test-posts.json")
-	if err != nil {
-		t.Fatalf("Failed to open data file: %v", err)
-	}
+	require.NoError(t, err)
+	defer file.Close()
 
 	posts, err := SlackParsePosts(file)
-	if err != nil {
-		t.Fatalf("Error occurred parsing posts: %v", err)
-	}
-
-	if len(posts) != 8 {
-		t.Fatalf("Unexpected number of posts: %v", len(posts))
-	}
+	require.NoError(t, err)
+	assert.Equal(t, 8, len(posts))
 }
 
 func TestSlackSanitiseChannelProperties(t *testing.T) {
@@ -191,9 +150,7 @@ func TestSlackSanitiseChannelProperties(t *testing.T) {
 	}
 
 	c1s := SlackSanitiseChannelProperties(c1)
-	if c1.DisplayName != c1s.DisplayName || c1.Name != c1s.Name || c1.Purpose != c1s.Purpose || c1.Header != c1s.Header {
-		t.Fatal("Unexpected alterations to the channel properties.")
-	}
+	assert.Equal(t, c1, c1s)
 
 	c2 := model.Channel{
 		DisplayName: strings.Repeat("abcdefghij", 7),
@@ -203,21 +160,12 @@ func TestSlackSanitiseChannelProperties(t *testing.T) {
 	}
 
 	c2s := SlackSanitiseChannelProperties(c2)
-	if c2s.DisplayName != strings.Repeat("abcdefghij", 6)+"abcd" {
-		t.Fatalf("Unexpected alterations to the channel properties: %v", c2s.DisplayName)
-	}
-
-	if c2s.Name != strings.Repeat("abcdefghij", 6)+"abcd" {
-		t.Fatalf("Unexpected alterations to the channel properties: %v", c2s.Name)
-	}
-
-	if c2s.Purpose != strings.Repeat("0123456789", 25) {
-		t.Fatalf("Unexpected alterations to the channel properties: %v", c2s.Purpose)
-	}
-
-	if c2s.Header != strings.Repeat("0123456789", 102)+"0123" {
-		t.Fatalf("Unexpected alterations to the channel properties: %v", c2s.Header)
-	}
+	assert.Equal(t, model.Channel{
+		DisplayName: strings.Repeat("abcdefghij", 6) + "abcd",
+		Name:        strings.Repeat("abcdefghij", 6) + "abcd",
+		Purpose:     strings.Repeat("0123456789", 25),
+		Header:      strings.Repeat("0123456789", 102) + "0123",
+	}, c2s)
 }
 
 func TestSlackConvertPostsMarkup(t *testing.T) {
@@ -321,11 +269,5 @@ in this~.`,
 		},
 	}
 
-	actualOutput := SlackConvertPostsMarkup(input)
-
-	for i := range actualOutput["test"] {
-		if actualOutput["test"][i].Text != expectedOutput["test"][i].Text {
-			t.Errorf("Unexpected message after markup translation: %v", actualOutput["test"][i].Text)
-		}
-	}
+	assert.Equal(t, expectedOutput, SlackConvertPostsMarkup(input))
 }

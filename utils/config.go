@@ -343,7 +343,12 @@ func LoadConfig(fileName string) {
 	}
 
 	if err := ValidateLocales(&config); err != nil {
-		panic(T(err.Id))
+		cfgMutex.Unlock()
+		if err := SaveConfig(CfgFileName, &config); err != nil {
+			err.Translate(T)
+			l4g.Warn(err.Error())
+		}
+		cfgMutex.Lock()
 	}
 
 	if err := ValidateLdapFilter(&config); err != nil {
@@ -421,6 +426,7 @@ func getClientConfig(c *model.Config) map[string]string {
 	props["EnableOnlyAdminIntegrations"] = strconv.FormatBool(*c.ServiceSettings.EnableOnlyAdminIntegrations)
 	props["EnablePostUsernameOverride"] = strconv.FormatBool(c.ServiceSettings.EnablePostUsernameOverride)
 	props["EnablePostIconOverride"] = strconv.FormatBool(c.ServiceSettings.EnablePostIconOverride)
+	props["EnableUserAccessTokens"] = strconv.FormatBool(*c.ServiceSettings.EnableUserAccessTokens)
 	props["EnableLinkPreviews"] = strconv.FormatBool(*c.ServiceSettings.EnableLinkPreviews)
 	props["EnableTesting"] = strconv.FormatBool(c.ServiceSettings.EnableTesting)
 	props["EnableDeveloper"] = strconv.FormatBool(*c.ServiceSettings.EnableDeveloper)
@@ -436,6 +442,7 @@ func getClientConfig(c *model.Config) map[string]string {
 	props["EnableSignInWithUsername"] = strconv.FormatBool(*c.EmailSettings.EnableSignInWithUsername)
 	props["RequireEmailVerification"] = strconv.FormatBool(c.EmailSettings.RequireEmailVerification)
 	props["EnableEmailBatching"] = strconv.FormatBool(*c.EmailSettings.EnableEmailBatching)
+	props["EmailNotificationContentsType"] = *c.EmailSettings.EmailNotificationContentsType
 
 	props["EnableSignUpWithGitLab"] = strconv.FormatBool(c.GitLabSettings.Enable)
 
@@ -561,26 +568,44 @@ func ValidateLdapFilter(cfg *model.Config) *model.AppError {
 }
 
 func ValidateLocales(cfg *model.Config) *model.AppError {
+	var err *model.AppError
 	locales := GetSupportedLocales()
 	if _, ok := locales[*cfg.LocalizationSettings.DefaultServerLocale]; !ok {
-		return model.NewLocAppError("ValidateLocales", "utils.config.supported_server_locale.app_error", nil, "")
+		*cfg.LocalizationSettings.DefaultServerLocale = model.DEFAULT_LOCALE
+		err = model.NewLocAppError("ValidateLocales", "utils.config.supported_server_locale.app_error", nil, "")
 	}
 
 	if _, ok := locales[*cfg.LocalizationSettings.DefaultClientLocale]; !ok {
-		return model.NewLocAppError("ValidateLocales", "utils.config.supported_client_locale.app_error", nil, "")
+		*cfg.LocalizationSettings.DefaultClientLocale = model.DEFAULT_LOCALE
+		err = model.NewLocAppError("ValidateLocales", "utils.config.supported_client_locale.app_error", nil, "")
 	}
 
 	if len(*cfg.LocalizationSettings.AvailableLocales) > 0 {
+		isDefaultClientLocaleInAvailableLocales := false
 		for _, word := range strings.Split(*cfg.LocalizationSettings.AvailableLocales, ",") {
+			if _, ok := locales[word]; !ok {
+				*cfg.LocalizationSettings.AvailableLocales = ""
+				isDefaultClientLocaleInAvailableLocales = true
+				err = model.NewLocAppError("ValidateLocales", "utils.config.supported_available_locales.app_error", nil, "")
+				break
+			}
+
 			if word == *cfg.LocalizationSettings.DefaultClientLocale {
-				return nil
+				isDefaultClientLocaleInAvailableLocales = true
 			}
 		}
 
-		return model.NewLocAppError("ValidateLocales", "utils.config.validate_locale.app_error", nil, "")
+		availableLocales := *cfg.LocalizationSettings.AvailableLocales
+
+		if !isDefaultClientLocaleInAvailableLocales {
+			availableLocales += "," + *cfg.LocalizationSettings.DefaultClientLocale
+			err = model.NewLocAppError("ValidateLocales", "utils.config.add_client_locale.app_error", nil, "")
+		}
+
+		*cfg.LocalizationSettings.AvailableLocales = strings.Join(RemoveDuplicatesFromStringArray(strings.Split(availableLocales, ",")), ",")
 	}
 
-	return nil
+	return err
 }
 
 func Desanitize(cfg *model.Config) {

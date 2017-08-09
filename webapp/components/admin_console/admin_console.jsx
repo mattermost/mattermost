@@ -8,6 +8,8 @@ import 'bootstrap';
 import AnnouncementBar from 'components/announcement_bar';
 import AdminSidebar from './admin_sidebar.jsx';
 
+import {reloadIfServerVersionChanged} from 'actions/global_actions.jsx';
+
 export default class AdminConsole extends React.Component {
     static propTypes = {
 
@@ -32,6 +34,7 @@ export default class AdminConsole extends React.Component {
 
     componentWillMount() {
         this.props.actions.getConfig();
+        reloadIfServerVersionChanged();
     }
 
     render() {

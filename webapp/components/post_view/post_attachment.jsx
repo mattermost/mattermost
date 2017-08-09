@@ -72,8 +72,9 @@ export default class PostAttachment extends React.PureComponent {
         let text = this.props.attachment.text || '';
         if ((text.match(/\n/g) || []).length >= 5) {
             text = text.split('\n').splice(0, 5).join('\n');
-        } else if (text.length > 700) {
-            text = text.substr(0, 700);
+        }
+        if (text.length > 300) {
+            text = text.substr(0, 300);
         }
 
         return TextFormatting.formatText(text) + `<div><a class="attachment-link-more" href="#">${localizeMessage('post_attachment.more', 'Show more...')}</a></div>`;

@@ -28,6 +28,7 @@ import TeamStore from 'stores/team_store.jsx';
 import ConfirmModal from './confirm_modal.jsx';
 
 import Constants from 'utils/constants.jsx';
+import * as FileUtils from 'utils/file_utils';
 
 import {FormattedHTMLMessage, FormattedMessage} from 'react-intl';
 import {browserHistory} from 'react-router/es6';
@@ -41,7 +42,6 @@ import React from 'react';
 import PropTypes from 'prop-types';
 
 export const REACTION_PATTERN = /^(\+|-):([^:\s]+):\s*$/;
-export const EMOJI_PATTERN = /:[A-Za-z-_0-9]*:/g;
 
 export default class CreatePost extends React.Component {
     constructor(props) {
@@ -243,6 +243,12 @@ export default class CreatePost extends React.Component {
             return;
         }
 
+        if (!isDirectOrGroup && this.state.message.trimRight() === '/rename') {
+            GlobalActions.showChannelNameUpdateModal(updateChannel);
+            this.setState({message: ''});
+            return;
+        }
+
         this.doSubmit(e);
     }
 
@@ -261,14 +267,6 @@ export default class CreatePost extends React.Component {
         post.parent_id = this.state.parentId;
 
         GlobalActions.emitUserPostedEvent(post);
-
-        // parse message and emit emoji event
-        const emojiResult = post.message.match(EMOJI_PATTERN);
-        if (emojiResult) {
-            emojiResult.forEach((emoji) => {
-                PostActions.emitEmojiPosted(emoji);
-            });
-        }
 
         PostActions.createPost(post, this.state.fileInfos,
             () => GlobalActions.postListScrollChange(true),
@@ -713,7 +711,7 @@ export default class CreatePost extends React.Component {
         }
 
         let attachmentsDisabled = '';
-        if (global.window.mm_config.EnableFileAttachments === 'false') {
+        if (!FileUtils.canUploadFiles()) {
             attachmentsDisabled = ' post-create--attachment-disabled';
         }
 
@@ -774,6 +772,7 @@ export default class CreatePost extends React.Component {
                                 emojiEnabled={window.mm_config.EnableEmojiPicker === 'true'}
                                 createMessage={Utils.localizeMessage('create_post.write', 'Write a message...')}
                                 channelId={this.state.channelId}
+                                popoverMentionKeyClick={true}
                                 id='post_textbox'
                                 ref='textbox'
                             />

@@ -67,6 +67,7 @@ export function emitChannelClickEvent(channel) {
 
             // Mark previous and next channel as read
             ChannelStore.resetCounts([chan.id, oldChannelId]);
+            reloadIfServerVersionChanged();
         });
 
         // Subtract mentions for the team
@@ -235,6 +236,14 @@ export function showChannelPurposeUpdateModal(channel) {
     });
 }
 
+export function showChannelNameUpdateModal(channel) {
+    AppDispatcher.handleViewAction({
+        type: ActionTypes.TOGGLE_CHANNEL_NAME_UPDATE_MODAL,
+        value: true,
+        channel
+    });
+}
+
 export function showGetPostLinkModal(post) {
     AppDispatcher.handleViewAction({
         type: ActionTypes.TOGGLE_GET_POST_LINK_MODAL,
@@ -269,6 +278,13 @@ export function showLeaveTeamModal() {
     AppDispatcher.handleViewAction({
         type: ActionTypes.TOGGLE_LEAVE_TEAM_MODAL,
         value: true
+    });
+}
+
+export function showLeavePrivateChannelModal(channel) {
+    AppDispatcher.handleViewAction({
+        type: ActionTypes.TOGGLE_LEAVE_PRIVATE_CHANNEL_MODAL,
+        value: channel
     });
 }
 
@@ -342,7 +358,7 @@ export function emitPreferencesDeletedEvent(preferences) {
     });
 }
 
-export function sendEphemeralPost(message, channelId) {
+export function sendEphemeralPost(message, channelId, parentId) {
     const timestamp = Utils.getTimestamp();
     const post = {
         id: Utils.generateId(),
@@ -352,6 +368,8 @@ export function sendEphemeralPost(message, channelId) {
         type: Constants.PostTypes.EPHEMERAL,
         create_at: timestamp,
         update_at: timestamp,
+        root_id: parentId,
+        parent_id: parentId,
         props: {}
     };
 
@@ -576,4 +594,24 @@ export function postListScrollChange(forceScrollToBottom = false) {
         type: EventTypes.POST_LIST_SCROLL_CHANGE,
         value: forceScrollToBottom
     });
+}
+
+export function emitPopoverMentionKeyClick(isRHS, mentionKey) {
+    AppDispatcher.handleViewAction({
+        type: ActionTypes.POPOVER_MENTION_KEY_CLICK,
+        isRHS,
+        mentionKey
+    });
+}
+
+let serverVersion = '';
+
+export function reloadIfServerVersionChanged() {
+    const newServerVersion = Client4.getServerVersion();
+    if (serverVersion && serverVersion !== newServerVersion) {
+        console.log('Detected version update refreshing the page'); //eslint-disable-line no-console
+        window.location.reload(true);
+    }
+
+    serverVersion = newServerVersion;
 }

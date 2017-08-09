@@ -10,6 +10,7 @@ const ActionTypes = Constants.ActionTypes;
 const COMPLETE_WORD_EVENT = 'complete_word';
 const PRETEXT_CHANGED_EVENT = 'pretext_changed';
 const SUGGESTIONS_CHANGED_EVENT = 'suggestions_changed';
+const POPOVER_MENTION_KEY_CLICK_EVENT = 'popover_mention_key_click';
 
 class SuggestionStore extends EventEmitter {
     constructor() {
@@ -26,6 +27,10 @@ class SuggestionStore extends EventEmitter {
         this.addCompleteWordListener = this.addCompleteWordListener.bind(this);
         this.removeCompleteWordListener = this.removeCompleteWordListener.bind(this);
         this.emitCompleteWord = this.emitCompleteWord.bind(this);
+
+        this.addPopoverMentionKeyClickListener = this.addPopoverMentionKeyClickListener.bind(this);
+        this.removePopoverMentionKeyClickListener = this.removePopoverMentionKeyClickListener.bind(this);
+        this.emitPopoverMentionKeyClick = this.emitPopoverMentionKeyClick.bind(this);
 
         this.handleEventPayload = this.handleEventPayload.bind(this);
         this.dispatchToken = AppDispatcher.register(this.handleEventPayload);
@@ -69,6 +74,16 @@ class SuggestionStore extends EventEmitter {
     }
     emitCompleteWord(id, term, matchedPretext) {
         this.emit(COMPLETE_WORD_EVENT + id, term, matchedPretext);
+    }
+
+    addPopoverMentionKeyClickListener(id, callback) {
+        this.on(POPOVER_MENTION_KEY_CLICK_EVENT + id, callback);
+    }
+    removePopoverMentionKeyClickListener(id, callback) {
+        this.removeListener(POPOVER_MENTION_KEY_CLICK_EVENT + id, callback);
+    }
+    emitPopoverMentionKeyClick(isRHS, mentionKey) {
+        this.emit(POPOVER_MENTION_KEY_CLICK_EVENT + isRHS, mentionKey);
     }
 
     registerSuggestionBox(id) {
@@ -303,6 +318,9 @@ class SuggestionStore extends EventEmitter {
             } else {
                 this.completeWord(id, other.term, other.matchedPretext);
             }
+            break;
+        case ActionTypes.POPOVER_MENTION_KEY_CLICK:
+            this.emitPopoverMentionKeyClick(other.isRHS, other.mentionKey);
             break;
         }
     }

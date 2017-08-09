@@ -4,6 +4,7 @@
 package app
 
 import (
+	"strings"
 	"testing"
 	"time"
 
@@ -189,5 +190,135 @@ func TestCheckPendingNotifications(t *testing.T) {
 		}
 	case _ = <-timeout:
 		t.Fatal("timed out waiting for second post notification")
+	}
+}
+
+/**
+ * Ensures that email batch interval defaults to 15 minutes for users that haven't explicitly set this preference
+ */
+func TestCheckPendingNotificationsDefaultInterval(t *testing.T) {
+	Setup()
+	id1 := model.NewId()
+	job := MakeEmailBatchingJob(128)
+
+	// bypasses recent user activity check
+	store.Must(Srv.Store.Status().SaveOrUpdate(&model.Status{
+		UserId:         id1,
+		LastActivityAt: 9999000,
+	}))
+
+	job.pendingNotifications[id1] = []*batchedNotification{
+		{
+			post: &model.Post{
+				UserId:   id1,
+				CreateAt: 10000000,
+			},
+		},
+	}
+
+	// notifications should not be sent 1s after post was created, because default batch interval is 15mins
+	job.checkPendingNotifications(time.Unix(10001, 0), func(string, []*batchedNotification) {})
+	if job.pendingNotifications[id1] == nil || len(job.pendingNotifications[id1]) != 1 {
+		t.Fatal("shouldn't have sent queued post")
+	}
+
+	// notifications should be sent 901s after post was created, because default batch interval is 15mins
+	job.checkPendingNotifications(time.Unix(10901, 0), func(string, []*batchedNotification) {})
+	if job.pendingNotifications[id1] != nil || len(job.pendingNotifications[id1]) != 0 {
+		t.Fatal("should have sent queued post")
+	}
+}
+
+/**
+ * Ensures that email batch interval defaults to 15 minutes if user preference is invalid
+ */
+func TestCheckPendingNotificationsCantParseInterval(t *testing.T) {
+	Setup()
+	id1 := model.NewId()
+	job := MakeEmailBatchingJob(128)
+
+	// bypasses recent user activity check
+	store.Must(Srv.Store.Status().SaveOrUpdate(&model.Status{
+		UserId:         id1,
+		LastActivityAt: 9999000,
+	}))
+
+	// preference value is not an integer, so we'll fall back to the default 15min value
+	store.Must(Srv.Store.Preference().Save(&model.Preferences{{
+		UserId:   id1,
+		Category: model.PREFERENCE_CATEGORY_NOTIFICATIONS,
+		Name:     model.PREFERENCE_NAME_EMAIL_INTERVAL,
+		Value:    "notAnIntegerValue",
+	}}))
+
+	job.pendingNotifications[id1] = []*batchedNotification{
+		{
+			post: &model.Post{
+				UserId:   id1,
+				CreateAt: 10000000,
+			},
+		},
+	}
+
+	// notifications should not be sent 1s after post was created, because default batch interval is 15mins
+	job.checkPendingNotifications(time.Unix(10001, 0), func(string, []*batchedNotification) {})
+	if job.pendingNotifications[id1] == nil || len(job.pendingNotifications[id1]) != 1 {
+		t.Fatal("shouldn't have sent queued post")
+	}
+
+	// notifications should be sent 901s after post was created, because default batch interval is 15mins
+	job.checkPendingNotifications(time.Unix(10901, 0), func(string, []*batchedNotification) {})
+	if job.pendingNotifications[id1] != nil || len(job.pendingNotifications[id1]) != 0 {
+		t.Fatal("should have sent queued post")
+	}
+}
+
+/*
+ * Ensures that post contents are not included in notification email when email notification content type is set to generic
+ */
+func TestRenderBatchedPostGeneric(t *testing.T) {
+	Setup()
+	var post = &model.Post{}
+	post.Message = "This is the message"
+	var notification = &batchedNotification{}
+	notification.post = post
+	var channel = &model.Channel{}
+	channel.DisplayName = "Some Test Channel"
+	var sender = &model.User{}
+	sender.Email = "sender@test.com"
+
+	translateFunc := func(translationID string, args ...interface{}) string {
+		// mock translateFunc just returns the translation id - this is good enough for our purposes
+		return translationID
+	}
+
+	var rendered = renderBatchedPost(notification, channel, sender, "http://localhost:8065", "", translateFunc, "en", model.EMAIL_NOTIFICATION_CONTENTS_GENERIC)
+	if strings.Contains(rendered, post.Message) {
+		t.Fatal("Rendered email should not contain post contents when email notification contents type is set to Generic.")
+	}
+}
+
+/*
+ * Ensures that post contents included in notification email when email notification content type is set to full
+ */
+func TestRenderBatchedPostFull(t *testing.T) {
+	Setup()
+	var post = &model.Post{}
+	post.Message = "This is the message"
+	var notification = &batchedNotification{}
+	notification.post = post
+	var channel = &model.Channel{}
+	channel.DisplayName = "Some Test Channel"
+	var sender = &model.User{}
+	sender.Email = "sender@test.com"
+
+	translateFunc := func(translationID string, args ...interface{}) string {
+		// mock translateFunc just returns the translation id - this is good enough for our purposes
+		return translationID
+	}
+
+	var rendered = renderBatchedPost(notification, channel, sender, "http://localhost:8065", "", translateFunc, "en", model.EMAIL_NOTIFICATION_CONTENTS_FULL)
+	if !strings.Contains(rendered, post.Message) {
+		t.Fatal("Rendered email should contain post contents when email notification contents type is set to Full.")
 	}
 }

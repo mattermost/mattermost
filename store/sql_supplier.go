@@ -57,35 +57,32 @@ const (
 	EXIT_REMOVE_TABLE                = 134
 )
 
-type SqlSupplierResult struct {
-	Err    model.AppError
-	Result interface{}
-}
-
 type SqlSupplierOldStores struct {
-	team       TeamStore
-	channel    ChannelStore
-	post       PostStore
-	user       UserStore
-	audit      AuditStore
-	cluster    ClusterDiscoveryStore
-	compliance ComplianceStore
-	session    SessionStore
-	oauth      OAuthStore
-	system     SystemStore
-	webhook    WebhookStore
-	command    CommandStore
-	preference PreferenceStore
-	license    LicenseStore
-	token      TokenStore
-	emoji      EmojiStore
-	status     StatusStore
-	fileInfo   FileInfoStore
-	reaction   ReactionStore
-	job        JobStore
+	team            TeamStore
+	channel         ChannelStore
+	post            PostStore
+	user            UserStore
+	audit           AuditStore
+	cluster         ClusterDiscoveryStore
+	compliance      ComplianceStore
+	session         SessionStore
+	oauth           OAuthStore
+	system          SystemStore
+	webhook         WebhookStore
+	command         CommandStore
+	preference      PreferenceStore
+	license         LicenseStore
+	token           TokenStore
+	emoji           EmojiStore
+	status          StatusStore
+	fileInfo        FileInfoStore
+	reaction        ReactionStore
+	job             JobStore
+	userAccessToken UserAccessTokenStore
 }
 
 type SqlSupplier struct {
+	next           LayeredStoreSupplier
 	master         *gorp.DbMap
 	replicas       []*gorp.DbMap
 	searchReplicas []*gorp.DbMap
@@ -120,8 +117,10 @@ func NewSqlSupplier() *SqlSupplier {
 	supplier.oldStores.emoji = NewSqlEmojiStore(supplier)
 	supplier.oldStores.status = NewSqlStatusStore(supplier)
 	supplier.oldStores.fileInfo = NewSqlFileInfoStore(supplier)
-	supplier.oldStores.reaction = NewSqlReactionStore(supplier)
 	supplier.oldStores.job = NewSqlJobStore(supplier)
+	supplier.oldStores.userAccessToken = NewSqlUserAccessTokenStore(supplier)
+
+	initSqlSupplierReactions(supplier)
 
 	err := supplier.GetMaster().CreateTablesIfNotExists()
 	if err != nil {
@@ -149,12 +148,20 @@ func NewSqlSupplier() *SqlSupplier {
 	supplier.oldStores.emoji.(*SqlEmojiStore).CreateIndexesIfNotExists()
 	supplier.oldStores.status.(*SqlStatusStore).CreateIndexesIfNotExists()
 	supplier.oldStores.fileInfo.(*SqlFileInfoStore).CreateIndexesIfNotExists()
-	supplier.oldStores.reaction.(*SqlReactionStore).CreateIndexesIfNotExists()
 	supplier.oldStores.job.(*SqlJobStore).CreateIndexesIfNotExists()
+	supplier.oldStores.userAccessToken.(*SqlUserAccessTokenStore).CreateIndexesIfNotExists()
 
 	supplier.oldStores.preference.(*SqlPreferenceStore).DeleteUnusedFeatures()
 
 	return supplier
+}
+
+func (s *SqlSupplier) SetChainNext(next LayeredStoreSupplier) {
+	s.next = next
+}
+
+func (s *SqlSupplier) Next() LayeredStoreSupplier {
+	return s.next
 }
 
 func setupConnection(con_type string, driver string, dataSource string, maxIdle int, maxOpen int, trace bool) *gorp.DbMap {
@@ -550,9 +557,9 @@ func (ss *SqlSupplier) createIndexIfNotExists(indexName string, tableName string
 	}
 
 	if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_POSTGRES {
-		_, err := ss.GetMaster().SelectStr("SELECT $1::regclass", indexName)
+		_, errExists := ss.GetMaster().SelectStr("SELECT $1::regclass", indexName)
 		// It should fail if the index does not exist
-		if err == nil {
+		if errExists == nil {
 			return false
 		}
 
@@ -564,8 +571,9 @@ func (ss *SqlSupplier) createIndexIfNotExists(indexName string, tableName string
 			query = "CREATE " + uniqueStr + "INDEX " + indexName + " ON " + tableName + " (" + columnName + ")"
 		}
 
-		_, err = ss.GetMaster().ExecNoTimeout(query)
+		_, err := ss.GetMaster().ExecNoTimeout(query)
 		if err != nil {
+			l4g.Critical(utils.T("store.sql.create_index.critical"), errExists)
 			l4g.Critical(utils.T("store.sql.create_index.critical"), err)
 			time.Sleep(time.Second)
 			os.Exit(EXIT_CREATE_INDEX_POSTGRES)
@@ -754,6 +762,10 @@ func (ss *SqlSupplier) Reaction() ReactionStore {
 
 func (ss *SqlSupplier) Job() JobStore {
 	return ss.oldStores.job
+}
+
+func (ss *SqlSupplier) UserAccessToken() UserAccessTokenStore {
+	return ss.oldStores.userAccessToken
 }
 
 func (ss *SqlSupplier) DropAllTables() {

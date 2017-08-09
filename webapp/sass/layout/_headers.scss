@@ -8,6 +8,24 @@
     width: 100%;
     z-index: 9;
 
+    .flex-parent {
+        display: flex;
+    }
+
+    .flex-child {
+        &:first-child {
+            flex: 1;
+            min-width: 0;
+            padding-left: 20px;
+        }
+
+        .markdown__paragraph-inline {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            width: calc(100% - 50px);
+        }
+    }
+
     .channel-header__icon {
         @include border-radius(50%);
         border: 1px solid;
@@ -89,55 +107,16 @@
         }
     }
 
-    th {
-        text-align: center;
-
-        &:first-child {
-            border-left: none;
-            padding: 0 0 0 20px;
-            text-align: left !important;
-            width: 100%;
-        }
-
-        &:last-child {
-            .channel-header__icon {
-                margin-right: 17px;
-            }
-        }
-    }
-
-    td {
-        font-size: 13px;
-        padding: 5px 25px 5px !important;
-        text-align: center !important;
-
-        &:first-child {
-            text-align: left !important;
-        }
-    }
-
     .heading {
         display: inline-block;
         font-size: 17px;
         font-weight: 400;
         margin: 0 4px 0 0;
-        max-width: calc(100vw - 780px);
+        max-width: 100%;
         overflow: hidden;
         text-overflow: ellipsis;
         vertical-align: top;
         white-space: nowrap;
-
-        .move--left & {
-            max-width: calc(100vw - 850px);
-
-            .multi-teams & {
-                max-width: calc(100vw - 905px);
-            }
-        }
-
-        .multi-teams & {
-            max-width: calc(100vw - 850px);
-        }
     }
 
     .caret {
@@ -177,6 +156,7 @@
 
 .channel-header__info {
     margin-top: 12px;
+    white-space: nowrap;
 
     .channel-header__title {
         .header-dropdown__icon {
@@ -186,6 +166,7 @@
         > a {
             display: inline-block;
             text-decoration: none;
+            width: calc(100% - 65px);
         }
 
         .modal {
@@ -194,25 +175,16 @@
     }
 
     .channel-header__description {
-        display: inline-block;
         height: 35px;
-        margin-top: -10px;
-        max-width: calc(100vw - 740px);
         overflow: hidden;
         padding: 3px 0 0;
         position: relative;
         text-overflow: ellipsis;
-        top: 10px;
-        white-space: pre;
-        word-break: break-word;
+        width: calc(100% - 18px);
 
         .markdown__heading {
             font-size: 1em;
             margin: 0;
-        }
-
-        .multi-teams & {
-            max-width: calc(100vw - 810px);
         }
 
         &.light {
@@ -222,14 +194,6 @@
             &:hover,
             &:focus {
                 color: inherit;
-            }
-        }
-
-        .move--left & {
-            max-width: calc(100vw - 810px);
-
-            .multi-teams & {
-                max-width: calc(100vw - 860px);
             }
         }
 
@@ -249,8 +213,7 @@
 }
 
 .channel-intro {
-    border-bottom: 1px solid $light-gray;
-    margin: 0 auto 15px;
+    margin: 0 auto 10px;
     padding: 0 15px;
 
     &.channel-intro--centered {

@@ -112,7 +112,7 @@ export default class PopoverListMembers extends React.Component {
 
                 let name = '';
                 if (teamMembers[m.username]) {
-                    name = Utils.displayEntireNameForUser(teamMembers[m.username]);
+                    name = Utils.displayUsernameForUser(teamMembers[m.username]);
                 }
 
                 if (name) {
@@ -156,7 +156,7 @@ export default class PopoverListMembers extends React.Component {
                     />
                 );
 
-                const manageMembers = canManageMembers(this.props.channel, isSystemAdmin, isTeamAdmin, isChannelAdmin);
+                const manageMembers = canManageMembers(this.props.channel, isChannelAdmin, isTeamAdmin, isSystemAdmin);
                 const isDefaultChannel = ChannelStore.isDefault(this.props.channel);
 
                 if ((manageMembers === false && isDefaultChannel === false) || isDefaultChannel) {

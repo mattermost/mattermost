@@ -403,10 +403,20 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	uri := c.GetSiteURLHeader() + "/signup/" + service + "/complete"
 
 	body, teamId, props, err := app.AuthorizeOAuthUser(w, r, service, code, state, uri)
+
+	action := ""
+	if props != nil {
+		action = props["action"]
+	}
+
 	if err != nil {
 		err.Translate(c.T)
 		l4g.Error(err.Error())
-		http.Redirect(w, r, c.GetSiteURLHeader()+"/error?message="+err.Message, http.StatusTemporaryRedirect)
+		if action == model.OAUTH_ACTION_MOBILE {
+			w.Write([]byte(err.ToJson()))
+		} else {
+			http.Redirect(w, r, c.GetSiteURLHeader()+"/error?message="+err.Message, http.StatusTemporaryRedirect)
+		}
 		return
 	}
 
@@ -414,11 +424,13 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		err.Translate(c.T)
 		l4g.Error(err.Error())
-		http.Redirect(w, r, c.GetSiteURLHeader()+"/error?message="+err.Message, http.StatusTemporaryRedirect)
+		if action == model.OAUTH_ACTION_MOBILE {
+			w.Write([]byte(err.ToJson()))
+		} else {
+			http.Redirect(w, r, c.GetSiteURLHeader()+"/error?message="+err.Message, http.StatusTemporaryRedirect)
+		}
 		return
 	}
-
-	action := props["action"]
 
 	var redirectUrl string
 	if action == model.OAUTH_ACTION_EMAIL_TO_SSO {
@@ -429,7 +441,11 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	} else {
 		session, err := app.DoLogin(w, r, user, "")
 		if err != nil {
+			err.Translate(c.T)
 			c.Err = err
+			if action == model.OAUTH_ACTION_MOBILE {
+				w.Write([]byte(err.ToJson()))
+			}
 			return
 		}
 

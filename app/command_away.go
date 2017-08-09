@@ -33,11 +33,7 @@ func (me *AwayProvider) GetCommand(T goi18n.TranslateFunc) *model.Command {
 }
 
 func (me *AwayProvider) DoCommand(args *model.CommandArgs, message string) *model.CommandResponse {
-	rmsg := args.T("api.command_away.success")
-	if len(message) > 0 {
-		rmsg = message + " " + rmsg
-	}
 	SetStatusAwayIfNeeded(args.UserId, true)
 
-	return &model.CommandResponse{ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL, Text: rmsg}
+	return &model.CommandResponse{ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL, Text: args.T("api.command_away.success")}
 }

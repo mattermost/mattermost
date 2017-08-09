@@ -20,6 +20,7 @@ import (
 	"github.com/mattermost/platform/utils"
 
 	s3 "github.com/minio/minio-go"
+	"github.com/minio/minio-go/pkg/credentials"
 )
 
 func TestUploadFile(t *testing.T) {
@@ -820,11 +821,19 @@ func readTestFile(name string) ([]byte, error) {
 	}
 }
 
-func s3New(endpoint, accessKey, secretKey string, secure bool, signV2 bool) (*s3.Client, error) {
+// Similar to s3.New() but allows initialization of signature v2 or signature v4 client.
+// If signV2 input is false, function always returns signature v4.
+//
+// Additionally this function also takes a user defined region, if set
+// disables automatic region lookup.
+func s3New(endpoint, accessKey, secretKey string, secure bool, signV2 bool, region string) (*s3.Client, error) {
+	var creds *credentials.Credentials
 	if signV2 {
-		return s3.NewV2(endpoint, accessKey, secretKey, secure)
+		creds = credentials.NewStatic(accessKey, secretKey, "", credentials.SignatureV2)
+	} else {
+		creds = credentials.NewStatic(accessKey, secretKey, "", credentials.SignatureV4)
 	}
-	return s3.NewV4(endpoint, accessKey, secretKey, secure)
+	return s3.NewWithCredentials(endpoint, creds, secure, region)
 }
 
 func cleanupTestFile(info *model.FileInfo) error {
@@ -834,7 +843,8 @@ func cleanupTestFile(info *model.FileInfo) error {
 		secretKey := utils.Cfg.FileSettings.AmazonS3SecretAccessKey
 		secure := *utils.Cfg.FileSettings.AmazonS3SSL
 		signV2 := *utils.Cfg.FileSettings.AmazonS3SignV2
-		s3Clnt, err := s3New(endpoint, accessKey, secretKey, secure, signV2)
+		region := utils.Cfg.FileSettings.AmazonS3Region
+		s3Clnt, err := s3New(endpoint, accessKey, secretKey, secure, signV2, region)
 		if err != nil {
 			return err
 		}

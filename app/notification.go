@@ -332,13 +332,12 @@ func sendNotificationEmail(post *model.Post, user *model.User, channel *model.Ch
 	}
 	if *utils.Cfg.EmailSettings.EnableEmailBatching {
 		var sendBatched bool
-
 		if result := <-Srv.Store.Preference().Get(user.Id, model.PREFERENCE_CATEGORY_NOTIFICATIONS, model.PREFERENCE_NAME_EMAIL_INTERVAL); result.Err != nil {
-			// if the call fails, assume it hasn't been set and use the default
+			// if the call fails, assume it hasn't been set and don't batch notifications for this user
 			sendBatched = false
 		} else {
-			// default to not using batching if the setting is set to immediate
-			sendBatched = result.Data.(model.Preference).Value != model.PREFERENCE_DEFAULT_EMAIL_INTERVAL
+			// if the user has chosen to receive notifications immediately, don't batch them
+			sendBatched = result.Data.(model.Preference).Value != model.PREFERENCE_EMAIL_INTERVAL_NO_BATCHING_SECONDS
 		}
 
 		if sendBatched {
@@ -350,67 +349,25 @@ func sendNotificationEmail(post *model.Post, user *model.User, channel *model.Ch
 		// fall back to sending a single email if we can't batch it for some reason
 	}
 
-	var channelName string
-	var bodyText string
+	translateFunc := utils.GetUserTranslations(user.Locale)
+
 	var subjectText string
-	var mailTemplate string
-	var mailParameters map[string]interface{}
+	if channel.Type == model.CHANNEL_DIRECT {
+		subjectText = getDirectMessageNotificationEmailSubject(post, translateFunc, utils.Cfg.TeamSettings.SiteName, senderName)
+	} else {
+		subjectText = getNotificationEmailSubject(post, translateFunc, utils.Cfg.TeamSettings.SiteName, team.DisplayName)
+	}
+
+	emailNotificationContentsType := model.EMAIL_NOTIFICATION_CONTENTS_FULL
+	if utils.IsLicensed && *utils.License.Features.EmailNotificationContents {
+		emailNotificationContentsType = *utils.Cfg.EmailSettings.EmailNotificationContentsType
+	}
 
 	teamURL := utils.GetSiteURL() + "/" + team.Name
-	tm := time.Unix(post.CreateAt/1000, 0)
-
-	userLocale := utils.GetUserTranslations(user.Locale)
-	month := userLocale(tm.Month().String())
-	day := fmt.Sprintf("%d", tm.Day())
-	year := fmt.Sprintf("%d", tm.Year())
-	zone, _ := tm.Zone()
-
-	if channel.Type == model.CHANNEL_DIRECT {
-		bodyText = userLocale("api.post.send_notifications_and_forget.message_body")
-		subjectText = userLocale("api.post.send_notifications_and_forget.message_subject")
-
-		senderDisplayName := senderName
-
-		mailTemplate = "api.templates.post_subject_in_direct_message"
-		mailParameters = map[string]interface{}{"SubjectText": subjectText,
-			"SenderDisplayName": senderDisplayName, "Month": month, "Day": day, "Year": year}
-	} else if channel.Type == model.CHANNEL_GROUP {
-		bodyText = userLocale("api.post.send_notifications_and_forget.mention_body")
-
-		senderDisplayName := senderName
-
-		mailTemplate = "api.templates.post_subject_in_group_message"
-		mailParameters = map[string]interface{}{"SenderDisplayName": senderDisplayName, "Month": month, "Day": day, "Year": year}
-		channelName = userLocale("api.templates.channel_name.group")
-	} else {
-		bodyText = userLocale("api.post.send_notifications_and_forget.mention_body")
-		subjectText = userLocale("api.post.send_notifications_and_forget.mention_subject")
-		channelName = channel.DisplayName
-		mailTemplate = "api.templates.post_subject_in_channel"
-		mailParameters = map[string]interface{}{"SubjectText": subjectText, "TeamDisplayName": team.DisplayName,
-			"ChannelName": channelName, "Month": month, "Day": day, "Year": year}
-	}
-
-	subject := fmt.Sprintf("[%v] %v", utils.Cfg.TeamSettings.SiteName, userLocale(mailTemplate, mailParameters))
-
-	bodyPage := utils.NewHTMLTemplate("post_body", user.Locale)
-	bodyPage.Props["SiteURL"] = utils.GetSiteURL()
-	bodyPage.Props["PostMessage"] = GetMessageForNotification(post, userLocale)
-	if team.Name != "select_team" {
-		bodyPage.Props["TeamLink"] = teamURL + "/pl/" + post.Id
-	} else {
-		bodyPage.Props["TeamLink"] = teamURL
-	}
-
-	bodyPage.Props["BodyText"] = bodyText
-	bodyPage.Props["Button"] = userLocale("api.templates.post_body.button")
-	bodyPage.Html["Info"] = template.HTML(userLocale("api.templates.post_body.info",
-		map[string]interface{}{"ChannelName": channelName, "SenderName": senderName,
-			"Hour": fmt.Sprintf("%02d", tm.Hour()), "Minute": fmt.Sprintf("%02d", tm.Minute()),
-			"TimeZone": zone, "Month": month, "Day": day}))
+	var bodyText = getNotificationEmailBody(user, post, channel, senderName, team.Name, teamURL, emailNotificationContentsType, translateFunc)
 
 	go func() {
-		if err := utils.SendMail(user.Email, html.UnescapeString(subject), bodyPage.Render()); err != nil {
+		if err := utils.SendMail(user.Email, html.UnescapeString(subjectText), bodyText); err != nil {
 			l4g.Error(utils.T("api.post.send_notifications_and_forget.send.error"), user.Email, err)
 		}
 	}()
@@ -420,6 +377,149 @@ func sendNotificationEmail(post *model.Post, user *model.User, channel *model.Ch
 	}
 
 	return nil
+}
+
+/**
+ * Computes the subject line for direct notification email messages
+ */
+func getDirectMessageNotificationEmailSubject(post *model.Post, translateFunc i18n.TranslateFunc, siteName string, senderName string) string {
+	t := getFormattedPostTime(post, translateFunc)
+	var subjectParameters = map[string]interface{}{
+		"SiteName":          siteName,
+		"SenderDisplayName": senderName,
+		"Month":             t.Month,
+		"Day":               t.Day,
+		"Year":              t.Year,
+	}
+	return translateFunc("app.notification.subject.direct.full", subjectParameters)
+}
+
+/**
+ * Computes the subject line for group, public, and private email messages
+ */
+func getNotificationEmailSubject(post *model.Post, translateFunc i18n.TranslateFunc, siteName string, teamName string) string {
+	t := getFormattedPostTime(post, translateFunc)
+	var subjectParameters = map[string]interface{}{
+		"SiteName": siteName,
+		"TeamName": teamName,
+		"Month":    t.Month,
+		"Day":      t.Day,
+		"Year":     t.Year,
+	}
+	return translateFunc("app.notification.subject.notification.full", subjectParameters)
+}
+
+/**
+ * Computes the email body for notification messages
+ */
+func getNotificationEmailBody(recipient *model.User, post *model.Post, channel *model.Channel, senderName string, teamName string, teamURL string, emailNotificationContentsType string, translateFunc i18n.TranslateFunc) string {
+	// only include message contents in notification email if email notification contents type is set to full
+	var bodyPage *utils.HTMLTemplate
+	if emailNotificationContentsType == model.EMAIL_NOTIFICATION_CONTENTS_FULL {
+		bodyPage = utils.NewHTMLTemplate("post_body_full", recipient.Locale)
+		bodyPage.Props["PostMessage"] = GetMessageForNotification(post, translateFunc)
+	} else {
+		bodyPage = utils.NewHTMLTemplate("post_body_generic", recipient.Locale)
+	}
+
+	bodyPage.Props["SiteURL"] = utils.GetSiteURL()
+	if teamName != "select_team" {
+		bodyPage.Props["TeamLink"] = teamURL + "/pl/" + post.Id
+	} else {
+		bodyPage.Props["TeamLink"] = teamURL
+	}
+
+	var channelName = channel.DisplayName
+	if channel.Type == model.CHANNEL_GROUP {
+		channelName = translateFunc("api.templates.channel_name.group")
+	}
+	t := getFormattedPostTime(post, translateFunc)
+
+	var bodyText string
+	var info string
+	if channel.Type == model.CHANNEL_DIRECT {
+		if emailNotificationContentsType == model.EMAIL_NOTIFICATION_CONTENTS_FULL {
+			bodyText = translateFunc("app.notification.body.intro.direct.full")
+			info = translateFunc("app.notification.body.text.direct.full",
+				map[string]interface{}{
+					"SenderName": senderName,
+					"Hour":       t.Hour,
+					"Minute":     t.Minute,
+					"TimeZone":   t.TimeZone,
+					"Month":      t.Month,
+					"Day":        t.Day,
+				})
+		} else {
+			bodyText = translateFunc("app.notification.body.intro.direct.generic", map[string]interface{}{
+				"SenderName": senderName,
+			})
+			info = translateFunc("app.notification.body.text.direct.generic",
+				map[string]interface{}{
+					"Hour":     t.Hour,
+					"Minute":   t.Minute,
+					"TimeZone": t.TimeZone,
+					"Month":    t.Month,
+					"Day":      t.Day,
+				})
+		}
+	} else {
+		if emailNotificationContentsType == model.EMAIL_NOTIFICATION_CONTENTS_FULL {
+			bodyText = translateFunc("app.notification.body.intro.notification.full")
+			info = translateFunc("app.notification.body.text.notification.full",
+				map[string]interface{}{
+					"ChannelName": channelName,
+					"SenderName":  senderName,
+					"Hour":        t.Hour,
+					"Minute":      t.Minute,
+					"TimeZone":    t.TimeZone,
+					"Month":       t.Month,
+					"Day":         t.Day,
+				})
+		} else {
+			bodyText = translateFunc("app.notification.body.intro.notification.generic", map[string]interface{}{
+				"SenderName": senderName,
+			})
+			info = translateFunc("app.notification.body.text.notification.generic",
+				map[string]interface{}{
+					"Hour":     t.Hour,
+					"Minute":   t.Minute,
+					"TimeZone": t.TimeZone,
+					"Month":    t.Month,
+					"Day":      t.Day,
+				})
+		}
+	}
+
+	bodyPage.Props["BodyText"] = bodyText
+	bodyPage.Html["Info"] = template.HTML(info)
+	bodyPage.Props["Button"] = translateFunc("api.templates.post_body.button")
+
+	return bodyPage.Render()
+}
+
+type formattedPostTime struct {
+	Time     time.Time
+	Year     string
+	Month    string
+	Day      string
+	Hour     string
+	Minute   string
+	TimeZone string
+}
+
+func getFormattedPostTime(post *model.Post, translateFunc i18n.TranslateFunc) formattedPostTime {
+	tm := time.Unix(post.CreateAt/1000, 0)
+	zone, _ := tm.Zone()
+
+	return formattedPostTime{
+		Time:     tm,
+		Year:     fmt.Sprintf("%d", tm.Year()),
+		Month:    translateFunc(tm.Month().String()),
+		Day:      fmt.Sprintf("%d", tm.Day()),
+		Hour:     fmt.Sprintf("%02d", tm.Hour()),
+		Minute:   fmt.Sprintf("%02d", tm.Minute()),
+		TimeZone: zone,
+	}
 }
 
 func GetMessageForNotification(post *model.Post, translateFunc i18n.TranslateFunc) string {
@@ -501,6 +601,15 @@ func sendPushNotification(post *model.Post, user *model.User, channel *model.Cha
 			msg.Message = senderName + ": " + model.ClearMentionTags(post.Message)
 		} else {
 			msg.Message = senderName + userLocale("api.post.send_notifications_and_forget.push_in") + channelName + ": " + model.ClearMentionTags(post.Message)
+		}
+	} else if *utils.Cfg.EmailSettings.PushNotificationContents == model.GENERIC_NO_CHANNEL_NOTIFICATION {
+		if channel.Type == model.CHANNEL_DIRECT {
+			msg.Category = model.CATEGORY_DM
+			msg.Message = senderName + userLocale("api.post.send_notifications_and_forget.push_message")
+		} else if wasMentioned || channel.Type == model.CHANNEL_GROUP {
+			msg.Message = senderName + userLocale("api.post.send_notifications_and_forget.push_mention_no_channel")
+		} else {
+			msg.Message = senderName + userLocale("api.post.send_notifications_and_forget.push_non_mention_no_channel")
 		}
 	} else {
 		if channel.Type == model.CHANNEL_DIRECT {

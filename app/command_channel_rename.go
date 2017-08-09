@@ -1,0 +1,69 @@
+// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
+// See License.txt for license information.
+
+package app
+
+import (
+	"github.com/mattermost/platform/model"
+	goi18n "github.com/nicksnyder/go-i18n/i18n"
+)
+
+type RenameProvider struct {
+}
+
+const (
+	CMD_RENAME = "rename"
+)
+
+func init() {
+	RegisterCommandProvider(&RenameProvider{})
+}
+
+func (me *RenameProvider) GetTrigger() string {
+	return CMD_RENAME
+}
+
+func (me *RenameProvider) GetCommand(T goi18n.TranslateFunc) *model.Command {
+	return &model.Command{
+		Trigger:          CMD_RENAME,
+		AutoComplete:     true,
+		AutoCompleteDesc: T("api.command_channel_rename.desc"),
+		AutoCompleteHint: T("api.command_channel_rename.hint"),
+		DisplayName:      T("api.command_channel_rename.name"),
+	}
+}
+
+func (me *RenameProvider) DoCommand(args *model.CommandArgs, message string) *model.CommandResponse {
+	channel, err := GetChannel(args.ChannelId)
+	if err != nil {
+		return &model.CommandResponse{Text: args.T("api.command_channel_rename.channel.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+	}
+
+	if channel.Type == model.CHANNEL_OPEN && !SessionHasPermissionToChannel(args.Session, args.ChannelId, model.PERMISSION_MANAGE_PUBLIC_CHANNEL_PROPERTIES) {
+		return &model.CommandResponse{Text: args.T("api.command_channel_rename.permission.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+	}
+
+	if channel.Type == model.CHANNEL_PRIVATE && !SessionHasPermissionToChannel(args.Session, args.ChannelId, model.PERMISSION_MANAGE_PRIVATE_CHANNEL_PROPERTIES) {
+		return &model.CommandResponse{Text: args.T("api.command_channel_rename.permission.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+	}
+
+	if channel.Type == model.CHANNEL_GROUP || channel.Type == model.CHANNEL_DIRECT {
+		return &model.CommandResponse{Text: args.T("api.command_channel_rename.direct_group.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+	}
+
+	if len(message) == 0 {
+		return &model.CommandResponse{Text: args.T("api.command_channel_rename.message.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+	}
+
+	patch := &model.ChannelPatch{
+		DisplayName: new(string),
+	}
+	*patch.DisplayName = message
+
+	_, err = PatchChannel(channel, patch, args.UserId)
+	if err != nil {
+		return &model.CommandResponse{Text: args.T("api.command_channel_rename.update_channel.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+	}
+
+	return &model.CommandResponse{}
+}

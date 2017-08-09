@@ -120,28 +120,28 @@ export default class PushSettings extends AdminSettings {
             sendHelpText = (
                 <FormattedHTMLMessage
                     id='admin.email.pushOffHelp'
-                    defaultMessage='Please see <a href="http://docs.mattermost.com/deployment/push.html#push-notifications-and-mobile-devices" target="_blank">documentation on push notifications</a> to learn more about setup options.'
+                    defaultMessage='Please see <a href="https://about.mattermost.com/default-mobile-push-notifications/" target="_blank">documentation on push notifications</a> to learn more about setup options.'
                 />
             );
         } else if (this.state.pushNotificationServerType === PUSH_NOTIFICATIONS_MHPNS) {
             pushServerHelpText = (
                 <FormattedHTMLMessage
                     id='admin.email.mhpnsHelp'
-                    defaultMessage='Download <a href="https://about.mattermost.com/mattermost-ios-app/" target="_blank">Mattermost iOS app</a> from iTunes. Download <a href="https://about.mattermost.com/mattermost-android-app/" target="_blank">Mattermost Android app</a> from Google Play. Learn more about the <a href="http://docs.mattermost.com/deployment/push.html#hosted-push-notifications-service-hpns" target="_blank">Mattermost Hosted Push Notification Service</a>.'
+                    defaultMessage='Download <a href="https://about.mattermost.com/mattermost-ios-app/" target="_blank">Mattermost iOS app</a> from iTunes. Download <a href="https://about.mattermost.com/mattermost-android-app/" target="_blank">Mattermost Android app</a> from Google Play. Learn more about the <a href="https://about.mattermost.com/default-hpns/" target="_blank">Mattermost Hosted Push Notification Service</a>.'
                 />
             );
         } else if (this.state.pushNotificationServerType === PUSH_NOTIFICATIONS_MTPNS) {
             pushServerHelpText = (
                 <FormattedHTMLMessage
                     id='admin.email.mtpnsHelp'
-                    defaultMessage='Download <a href="https://about.mattermost.com/mattermost-ios-app/" target="_blank">Mattermost iOS app</a> from iTunes. Download <a href="https://about.mattermost.com/mattermost-android-app/" target="_blank">Mattermost Android app</a> from Google Play. Learn more about the <a href="http://docs.mattermost.com/deployment/push.html#test-push-notifications-service-tpns" target="_blank">Mattermost Test Push Notification Service</a>.'
+                    defaultMessage='Download <a href="https://about.mattermost.com/mattermost-ios-app/" target="_blank">Mattermost iOS app</a> from iTunes. Download <a href="https://about.mattermost.com/mattermost-android-app/" target="_blank">Mattermost Android app</a> from Google Play. Learn more about the <a href="https://about.mattermost.com/default-tpns/" target="_blank">Mattermost Test Push Notification Service</a>.'
                 />
             );
         } else {
             pushServerHelpText = (
                 <FormattedHTMLMessage
                     id='admin.email.easHelp'
-                    defaultMessage='Learn more about compiling and deploying your own mobile apps from an <a href="http://docs.mattermost.com/deployment/push.html#enterprise-app-store-eas" target="_blank">Enterprise App Store</a>.'
+                    defaultMessage='Learn more about compiling and deploying your own mobile apps from an <a href="https://about.mattermost.com/default-enterprise-app-store" target="_blank">Enterprise App Store</a>.'
                 />
             );
         }
@@ -207,7 +207,8 @@ export default class PushSettings extends AdminSettings {
                 <DropdownSetting
                     id='pushNotificationContents'
                     values={[
-                        {value: 'generic', text: Utils.localizeMessage('admin.email.genericPushNotification', 'Send generic description with user and channel names')},
+                        {value: 'generic_no_channel', text: Utils.localizeMessage('admin.email.genericNoChannelPushNotification', '"Send generic description with only sender name')},
+                        {value: 'generic', text: Utils.localizeMessage('admin.email.genericPushNotification', 'Send generic description with sender and channel names')},
                         {value: 'full', text: Utils.localizeMessage('admin.email.fullPushNotification', 'Send full message snippet')}
                     ]}
                     label={
@@ -222,8 +223,7 @@ export default class PushSettings extends AdminSettings {
                     helpText={
                         <FormattedHTMLMessage
                             id='admin.email.pushContentDesc'
-                            defaultMessage='Selecting "Send generic description with user and channel names" provides push notifications with generic messages, including names of users and channels but no specific details from the message text.<br /><br />
-                            Selecting "Send full message snippet" sends excerpts from messages triggering notifications with specifics and may include confidential information sent in messages. If your Push Notification Service is outside your firewall, it is HIGHLY RECOMMENDED this option only be used with an "https" protocol to encrypt the connection.'
+                            defaultMessage='"Send generic description with only sender name" includes only the name of the person who sent the message in push notifications, with no information about channel name or message contents.<br /><br />"Send generic description with sender and channel names" includes the name of the person who sent the message and the channel it was sent in, but not the message text.<br /><br />"Send full message snippet" includes a message excerpt in push notifications, which may contain confidential information sent in messages. If your Push Notification Service is outside your firewall, it is *highly recommended* this option only be used with an "https" protocol to encrypt the connection.'
                         />
                     }
                 />

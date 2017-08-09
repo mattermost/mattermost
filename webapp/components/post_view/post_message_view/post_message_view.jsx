@@ -66,12 +66,24 @@ export default class PostMessageView extends React.PureComponent {
         /**
          * Set to render post body compactly
          */
-        compactDisplay: PropTypes.bool
+        compactDisplay: PropTypes.bool,
+
+        /**
+         * Flags if the post_message_view is for the RHS (Reply).
+         */
+        isRHS: PropTypes.bool,
+
+        /**
+         * Flags if the post_message_view is for the RHS (Reply).
+         */
+        hasMention: PropTypes.bool
     };
 
     static defaultProps = {
         options: {},
-        mentionKeys: []
+        mentionKeys: [],
+        isRHS: false,
+        hasMention: false
     };
 
     renderDeletedPost() {
@@ -116,7 +128,13 @@ export default class PostMessageView extends React.PureComponent {
                 processNode: (node) => {
                     const mentionName = node.attribs[attrib];
 
-                    return <AtMention mentionName={mentionName}/>;
+                    return (
+                        <AtMention
+                            mentionName={mentionName}
+                            isRHS={this.props.isRHS}
+                            hasMention={this.props.hasMention}
+                        />
+                    );
                 }
             },
             {

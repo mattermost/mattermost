@@ -1,0 +1,45 @@
+@charset 'UTF-8';
+
+@import 'compass/utilities';
+@import 'compass/css3';
+
+.jirabots__dropdown {
+    position: relative;
+
+    &:before {
+        border-color: #999 transparent transparent;
+        border-style: solid;
+        border-width: 5px 5px 2.5px;
+        content: '';
+        height: 0;
+        pointer-events: none;
+        position: absolute;
+        right: 11px;
+        top: 15px;
+        width: 0;
+    }
+}
+
+.jirabot__image {
+    @include border-radius(20px);
+    display: block;
+    font-size: 15px;
+    height: 16px;
+    line-height: 16px;
+    margin-right: 7px;
+    margin-top: 3px;
+    text-align: center;
+    width: 16px;
+
+    .jirabot--align {
+        display: inline-block;
+        max-width: 80%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+}
+
+.jirabot__fullname {
+    @include opacity(.5);
+}

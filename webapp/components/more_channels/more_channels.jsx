@@ -85,7 +85,7 @@ export default class MoreChannels extends React.Component {
     }
 
     nextPage(page) {
-        this.props.actions.getChannels(TeamStore.getCurrentId(), (page + 1) * CHANNELS_PER_PAGE, CHANNELS_PER_PAGE);
+        this.props.actions.getChannels(TeamStore.getCurrentId(), page + 1, CHANNELS_PER_PAGE);
     }
 
     handleJoin(channel, done) {
@@ -165,10 +165,10 @@ export default class MoreChannels extends React.Component {
             </p>
         );
 
-        const isAdmin = TeamStore.isTeamAdminForCurrentTeam() || UserStore.isSystemAdminForCurrentUser();
+        const isTeamAdmin = TeamStore.isTeamAdminForCurrentTeam();
         const isSystemAdmin = UserStore.isSystemAdminForCurrentUser();
 
-        if (!showCreateOption(Constants.OPEN_CHANNEL, isAdmin, isSystemAdmin)) {
+        if (!showCreateOption(Constants.OPEN_CHANNEL, isTeamAdmin, isSystemAdmin)) {
             createNewChannelButton = null;
             createChannelHelpText = null;
         }
