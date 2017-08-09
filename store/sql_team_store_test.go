@@ -219,8 +219,20 @@ func TestTeamStoreSearchOpen(t *testing.T) {
 	o1.Name = "zz" + model.NewId() + "a"
 	o1.Email = model.NewId() + "@nowhere.com"
 	o1.Type = model.TEAM_OPEN
+	o1.AllowOpenInvite = true
 
 	if err := (<-store.Team().Save(&o1)).Err; err != nil {
+		t.Fatal(err)
+	}
+
+	o2 := model.Team{}
+	o2.DisplayName = "ADisplayName" + model.NewId()
+	o2.Name = "zz" + model.NewId() + "a"
+	o2.Email = model.NewId() + "@nowhere.com"
+	o2.Type = model.TEAM_OPEN
+	o2.AllowOpenInvite = false
+
+	if err := (<-store.Team().Save(&o2)).Err; err != nil {
 		t.Fatal(err)
 	}
 
@@ -229,6 +241,7 @@ func TestTeamStoreSearchOpen(t *testing.T) {
 	p2.Name = "b" + model.NewId() + "b"
 	p2.Email = model.NewId() + "@nowhere.com"
 	p2.Type = model.TEAM_INVITE
+	p2.AllowOpenInvite = true
 
 	if err := (<-store.Team().Save(&p2)).Err; err != nil {
 		t.Fatal(err)
@@ -273,6 +286,14 @@ func TestTeamStoreSearchOpen(t *testing.T) {
 	}
 
 	r1 = <-store.Team().SearchOpen("junk")
+	if r1.Err != nil {
+		t.Fatal(r1.Err)
+	}
+	if len(r1.Data.([]*model.Team)) != 0 {
+		t.Fatal("should have not returned a team")
+	}
+
+	r1 = <-store.Team().SearchOpen(o2.DisplayName)
 	if r1.Err != nil {
 		t.Fatal(r1.Err)
 	}
