@@ -118,7 +118,7 @@ export default class StorageSettings extends AdminSettings {
             amazonSSEComp =
                 (
                     <BooleanSetting
-                        id='AmazonSSE'
+                        id='amazonS3SSE'
                         label={
                             <FormattedMessage
                                 id='admin.image.AmazonSSETitle'
