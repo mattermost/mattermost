@@ -1978,6 +1978,7 @@
   "search_results.usagePin4": "Pour épingler un message : Allez dans le message que vous souhaitez épingler et cliquez sur [...] > \"Épingler au canal\".",
   "setting_item_max.cancel": "Annuler",
   "setting_item_max.save": "Enregistrer",
+  "setting_item_max.saving": "Enregistrement ...",
   "setting_item_min.edit": "Modifier",
   "setting_picture.cancel": "Annuler",
   "setting_picture.help": "Envoyez une photo de profil au format BMP, JPG, JPEG ou PNG, d'au moins {width} pixels de large et {height} pixels de haut.",

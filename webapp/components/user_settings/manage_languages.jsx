@@ -21,6 +21,7 @@ export default class ManageLanguage extends React.Component {
         this.changeLanguage = this.changeLanguage.bind(this);
         this.submitUser = this.submitUser.bind(this);
         this.state = this.setupInitialState(props);
+        this.isSaving = false;
     }
     setupInitialState(props) {
         var user = props.user;
@@ -40,9 +41,12 @@ export default class ManageLanguage extends React.Component {
         });
     }
     submitUser(user) {
+        this.setState({isSaving: true});
+
         updateUser(user, Constants.UserUpdateEvents.LANGUAGE,
             () => {
                 GlobalActions.newLocalizationSelected(user.locale);
+                this.setState({isSaving: false});
             },
             (err) => {
                 let serverError;
@@ -51,7 +55,7 @@ export default class ManageLanguage extends React.Component {
                 } else {
                     serverError = err;
                 }
-                this.setState({serverError});
+                this.setState({serverError, isSaving: false});
             }
         );
     }
@@ -125,6 +129,7 @@ export default class ManageLanguage extends React.Component {
                 }
                 width='medium'
                 submit={this.changeLanguage}
+                loading={this.state.isSaving}
                 inputs={[input]}
                 updateSection={this.props.updateSection}
             />

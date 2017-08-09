@@ -295,6 +295,7 @@ export default class DesktopNotificationSettings extends React.Component {
                 extraInfo={extraInfo}
                 inputs={inputs}
                 submit={this.props.submit}
+                loading={this.props.loading}
                 server_error={this.props.error}
                 updateSection={this.props.cancel}
             />
@@ -461,5 +462,6 @@ DesktopNotificationSettings.propTypes = {
     submit: PropTypes.func,
     cancel: PropTypes.func,
     error: PropTypes.string,
-    active: PropTypes.bool
+    active: PropTypes.bool,
+    loading: PropTypes.bool
 };

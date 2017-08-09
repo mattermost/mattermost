@@ -50,6 +50,7 @@ export default class SecurityTab extends React.Component {
         this.createSignInSection = this.createSignInSection.bind(this);
         this.createOAuthAppsSection = this.createOAuthAppsSection.bind(this);
         this.deauthorizeApp = this.deauthorizeApp.bind(this);
+        this.savingPassword = false;
 
         this.state = this.getDefaultState();
     }
@@ -105,6 +106,8 @@ export default class SecurityTab extends React.Component {
             return;
         }
 
+        this.setState({savingPassword: true});
+
         updatePassword(
             user.id,
             currentPassword,
@@ -113,6 +116,7 @@ export default class SecurityTab extends React.Component {
                 this.props.updateSection('');
                 this.props.actions.getMe();
                 this.setState(this.getDefaultState());
+                this.setState({savingPassword: false});
             },
             (err) => {
                 var state = this.getDefaultState();
@@ -123,6 +127,7 @@ export default class SecurityTab extends React.Component {
                 }
                 state.passwordError = '';
                 this.setState(state);
+                this.setState({savingPassword: false});
             }
         );
     }
@@ -486,6 +491,7 @@ export default class SecurityTab extends React.Component {
                     }
                     inputs={inputs}
                     submit={submit}
+                    loading={this.state.savingPassword}
                     server_error={this.state.serverError}
                     client_error={this.state.passwordError}
                     updateSection={updateSectionStatus}

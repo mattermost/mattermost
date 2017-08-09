@@ -21,7 +21,8 @@ export default class EmailNotificationSetting extends React.Component {
         enableEmail: PropTypes.bool.isRequired,
         onChange: PropTypes.func.isRequired,
         onSubmit: PropTypes.func.isRequired,
-        serverError: PropTypes.string
+        serverError: PropTypes.string,
+        loading: PropTypes.bool
     };
 
     constructor(props) {
@@ -242,6 +243,7 @@ export default class EmailNotificationSetting extends React.Component {
                     </div>
                 ]}
                 submit={this.submit}
+                loading={this.props.loading}
                 server_error={this.props.serverError}
                 updateSection={this.collapse}
             />
