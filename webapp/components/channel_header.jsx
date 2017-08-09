@@ -286,10 +286,9 @@ export default class ChannelHeader extends React.Component {
             </Popover>
         );
         let channelTitle = channel.display_name;
-        const isAdmin = TeamStore.isTeamAdminForCurrentTeam() || UserStore.isSystemAdminForCurrentUser();
+        const isChannelAdmin = ChannelStore.isChannelAdminForCurrentChannel();
         const isTeamAdmin = TeamStore.isTeamAdminForCurrentTeam();
         const isSystemAdmin = UserStore.isSystemAdminForCurrentUser();
-        const isChannelAdmin = ChannelStore.isChannelAdminForCurrentChannel();
         const isDirect = (this.state.channel.type === Constants.DM_CHANNEL);
         const isGroup = (this.state.channel.type === Constants.GM_CHANNEL);
         let webrtc;
@@ -533,7 +532,7 @@ export default class ChannelHeader extends React.Component {
                     />
                 );
 
-                if (ChannelUtils.canManageMembers(channel, isSystemAdmin, isTeamAdmin, isChannelAdmin)) {
+                if (ChannelUtils.canManageMembers(channel, isChannelAdmin, isTeamAdmin, isSystemAdmin)) {
                     dropdownContents.push(
                         <li
                             key='add_members'
@@ -594,26 +593,7 @@ export default class ChannelHeader extends React.Component {
                 }
             }
 
-            const deleteOption = (
-                <li
-                    key='delete_channel'
-                    role='presentation'
-                >
-                    <ToggleModalButton
-                        id='channelDelete'
-                        role='menuitem'
-                        dialogType={DeleteChannelModal}
-                        dialogProps={{channel}}
-                    >
-                        <FormattedMessage
-                            id='channel_header.delete'
-                            defaultMessage='Delete Channel'
-                        />
-                    </ToggleModalButton>
-                </li>
-            );
-
-            if (ChannelUtils.showManagementOptions(channel, isAdmin, isSystemAdmin, isChannelAdmin)) {
+            if (ChannelUtils.showManagementOptions(channel, isChannelAdmin, isTeamAdmin, isSystemAdmin)) {
                 dropdownContents.push(
                     <li
                         key='divider-2'
@@ -679,8 +659,25 @@ export default class ChannelHeader extends React.Component {
                 );
             }
 
-            if (ChannelUtils.showDeleteOption(channel, isAdmin, isSystemAdmin, isChannelAdmin, this.state.userCount)) {
-                dropdownContents.push(deleteOption);
+            if (ChannelUtils.showDeleteOptionForCurrentUser(channel, isChannelAdmin, isTeamAdmin, isSystemAdmin)) {
+                dropdownContents.push(
+                    <li
+                        key='delete_channel'
+                        role='presentation'
+                    >
+                        <ToggleModalButton
+                            id='channelDelete'
+                            role='menuitem'
+                            dialogType={DeleteChannelModal}
+                            dialogProps={{channel}}
+                        >
+                            <FormattedMessage
+                                id='channel_header.delete'
+                                defaultMessage='Delete Channel'
+                            />
+                        </ToggleModalButton>
+                    </li>
+                );
             }
 
             const canLeave = channel.type === Constants.PRIVATE_CHANNEL ? this.state.userCount > 1 : true;
