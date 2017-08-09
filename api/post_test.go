@@ -149,13 +149,20 @@ func TestCreatePost(t *testing.T) {
 		}
 	}
 
+	isLicensed := utils.IsLicensed
+	license := utils.License
 	disableTownSquareReadOnly := utils.Cfg.TeamSettings.TownSquareIsReadOnly
 	defer func() {
 		utils.Cfg.TeamSettings.TownSquareIsReadOnly = disableTownSquareReadOnly
+		utils.IsLicensed = isLicensed
+		utils.License = license
 		utils.SetDefaultRolesBasedOnConfig()
 	}()
 	*utils.Cfg.TeamSettings.TownSquareIsReadOnly = true
 	utils.SetDefaultRolesBasedOnConfig()
+	utils.IsLicensed = true
+	utils.License = &model.License{Features: &model.Features{}}
+	utils.License.Features.SetDefaults()
 
 	app.Srv.Store.Channel().FillDefaultChannelCache()
 	defaultChannel := store.Must(app.Srv.Store.Channel().GetByName(team.Id, model.DEFAULT_CHANNEL, true)).(*model.Channel)

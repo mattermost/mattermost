@@ -37,7 +37,7 @@ func CreatePostAsUser(post *model.Post) (*model.Post, *model.AppError) {
 		return nil, err
 	}
 
-	if *utils.Cfg.TeamSettings.TownSquareIsReadOnly &&
+	if utils.IsLicensed && *utils.Cfg.TeamSettings.TownSquareIsReadOnly &&
 		channel.Name == model.DEFAULT_CHANNEL &&
 		!UserHasPermissionToExecute(post.UserId, model.PERMISSION_MANAGE_SYSTEM) {
 		err := model.NewLocAppError("createPost", "api.post.create_post.town_square_read_only", nil, "")
@@ -101,7 +101,7 @@ func CreatePost(post *model.Post, channel *model.Channel, triggerWebhooks bool) 
 		pchan = Srv.Store.Post().Get(post.RootId)
 	}
 
-	if *utils.Cfg.TeamSettings.TownSquareIsReadOnly &&
+	if utils.IsLicensed && *utils.Cfg.TeamSettings.TownSquareIsReadOnly &&
 		!post.IsSystemMessage() &&
 		!UserHasPermissionToExecute(post.UserId, model.PERMISSION_MANAGE_SYSTEM) &&
 		Srv.Store.Channel().IsDefaultChannel(post.ChannelId) {

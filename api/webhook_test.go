@@ -1008,13 +1008,20 @@ func TestIncomingWebhooks(t *testing.T) {
 		t.Fatal("should not have failed -- TownSquareIsReadOnly is false and it's not a read only channel")
 	}
 
+	isLicensed := utils.IsLicensed
+	license := utils.License
 	disableTownSquareReadOnly := utils.Cfg.TeamSettings.TownSquareIsReadOnly
 	defer func() {
 		utils.Cfg.TeamSettings.TownSquareIsReadOnly = disableTownSquareReadOnly
+		utils.IsLicensed = isLicensed
+		utils.License = license
 		utils.SetDefaultRolesBasedOnConfig()
 	}()
 	*utils.Cfg.TeamSettings.TownSquareIsReadOnly = true
 	utils.SetDefaultRolesBasedOnConfig()
+	utils.IsLicensed = true
+	utils.License = &model.License{Features: &model.Features{}}
+	utils.License.Features.SetDefaults()
 
 	if _, err := th.BasicClient.DoPost(url, fmt.Sprintf("{\"text\":\"this is a test\", \"channel\":\"%s\"}", model.DEFAULT_CHANNEL), "application/json"); err == nil {
 		t.Fatal("should have failed -- TownSquareIsReadOnly is true and it's a read only channel")
