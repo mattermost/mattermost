@@ -38,7 +38,7 @@ func (watcher *Watcher) Start() {
 	rand.Seed(time.Now().UTC().UnixNano())
 	_ = <-time.After(time.Duration(rand.Intn(WATCHER_POLLING_INTERVAL)) * time.Millisecond)
 
-	defer func(){
+	defer func() {
 		l4g.Debug("Watcher Finished")
 		watcher.stopped <- true
 	}()
@@ -69,7 +69,7 @@ func (watcher *Watcher) PollAndNotify() {
 		for _, js := range jobStatuses {
 			j := model.Job{
 				Type: js.Type,
-				Id: js.Id,
+				Id:   js.Id,
 			}
 
 			if js.Type == model.JOB_TYPE_DATA_RETENTION {

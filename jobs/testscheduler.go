@@ -28,7 +28,7 @@ func MakeTestScheduler(name string, jobType string) *TestScheduler {
 func (scheduler *TestScheduler) Run() {
 	l4g.Debug("Scheduler %v: Started", scheduler.name)
 
-	defer func(){
+	defer func() {
 		l4g.Debug("Scheduler %v: Finished", scheduler.name)
 		scheduler.stopped <- true
 	}()
