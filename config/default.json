@@ -186,6 +186,9 @@
         "BannerTextColor": "#333333",
         "AllowBannerDismissal": true
     },
+    "ThemeSettings": {
+        "EnableThemeSelection": true
+    },
     "GitLabSettings": {
         "Enable": false,
         "Secret": "",

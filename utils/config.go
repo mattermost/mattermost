@@ -583,6 +583,10 @@ func getClientConfig(c *model.Config) map[string]string {
 			props["BannerTextColor"] = *c.AnnouncementSettings.BannerTextColor
 			props["AllowBannerDismissal"] = strconv.FormatBool(*c.AnnouncementSettings.AllowBannerDismissal)
 		}
+
+		if *License.Features.ThemeManagement {
+			props["EnableThemeSelection"] = strconv.FormatBool(*c.ThemeSettings.EnableThemeSelection)
+		}
 	}
 
 	return props

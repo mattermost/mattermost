@@ -332,6 +332,10 @@ type AnnouncementSettings struct {
 	AllowBannerDismissal *bool
 }
 
+type ThemeSettings struct {
+	EnableThemeSelection *bool
+}
+
 type TeamSettings struct {
 	SiteName                            string
 	MaxUsersPerTeam                     *int
@@ -497,6 +501,7 @@ type Config struct {
 	PrivacySettings       PrivacySettings
 	SupportSettings       SupportSettings
 	AnnouncementSettings  AnnouncementSettings
+	ThemeSettings         ThemeSettings
 	GitLabSettings        SSOSettings
 	GoogleSettings        SSOSettings
 	Office365Settings     SSOSettings
@@ -988,6 +993,11 @@ func (o *Config) SetDefaults() {
 	if o.AnnouncementSettings.AllowBannerDismissal == nil {
 		o.AnnouncementSettings.AllowBannerDismissal = new(bool)
 		*o.AnnouncementSettings.AllowBannerDismissal = true
+	}
+
+	if o.ThemeSettings.EnableThemeSelection == nil {
+		o.ThemeSettings.EnableThemeSelection = new(bool)
+		*o.ThemeSettings.EnableThemeSelection = true
 	}
 
 	if o.LdapSettings.Enable == nil {
