@@ -67,6 +67,7 @@ export function emitChannelClickEvent(channel) {
 
             // Mark previous and next channel as read
             ChannelStore.resetCounts([chan.id, oldChannelId]);
+            reloadIfServerVersionChanged();
         });
 
         // Subtract mentions for the team
@@ -280,6 +281,13 @@ export function showLeaveTeamModal() {
     });
 }
 
+export function showLeavePrivateChannelModal(channel) {
+    AppDispatcher.handleViewAction({
+        type: ActionTypes.TOGGLE_LEAVE_PRIVATE_CHANNEL_MODAL,
+        value: channel
+    });
+}
+
 export function emitSuggestionPretextChanged(suggestionId, pretext) {
     AppDispatcher.handleViewAction({
         type: ActionTypes.SUGGESTION_PRETEXT_CHANGED,
@@ -350,7 +358,7 @@ export function emitPreferencesDeletedEvent(preferences) {
     });
 }
 
-export function sendEphemeralPost(message, channelId) {
+export function sendEphemeralPost(message, channelId, parentId) {
     const timestamp = Utils.getTimestamp();
     const post = {
         id: Utils.generateId(),
@@ -360,6 +368,8 @@ export function sendEphemeralPost(message, channelId) {
         type: Constants.PostTypes.EPHEMERAL,
         create_at: timestamp,
         update_at: timestamp,
+        root_id: parentId,
+        parent_id: parentId,
         props: {}
     };
 
@@ -592,4 +602,16 @@ export function emitPopoverMentionKeyClick(isRHS, mentionKey) {
         isRHS,
         mentionKey
     });
+}
+
+let serverVersion = '';
+
+export function reloadIfServerVersionChanged() {
+    const newServerVersion = Client4.getServerVersion();
+    if (serverVersion && serverVersion !== newServerVersion) {
+        console.log('Detected version update refreshing the page'); //eslint-disable-line no-console
+        window.location.reload(true);
+    }
+
+    serverVersion = newServerVersion;
 }

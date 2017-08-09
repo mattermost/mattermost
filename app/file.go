@@ -115,6 +115,7 @@ func MoveFile(oldPath, newPath string) *model.AppError {
 		secretKey := utils.Cfg.FileSettings.AmazonS3SecretAccessKey
 		secure := *utils.Cfg.FileSettings.AmazonS3SSL
 		signV2 := *utils.Cfg.FileSettings.AmazonS3SignV2
+		encrypt := *utils.Cfg.FileSettings.AmazonS3SSE
 		region := utils.Cfg.FileSettings.AmazonS3Region
 		s3Clnt, err := s3New(endpoint, accessKey, secretKey, secure, signV2, region)
 		if err != nil {
@@ -123,7 +124,7 @@ func MoveFile(oldPath, newPath string) *model.AppError {
 		bucket := utils.Cfg.FileSettings.AmazonS3Bucket
 
 		source := s3.NewSourceInfo(bucket, oldPath, nil)
-		destination, err := s3.NewDestinationInfo(bucket, newPath, nil, nil)
+		destination, err := s3.NewDestinationInfo(bucket, newPath, nil, CopyMetadata(encrypt))
 		if err != nil {
 			return model.NewLocAppError("moveFile", "api.file.write_file.s3.app_error", nil, err.Error())
 		}
@@ -155,6 +156,7 @@ func WriteFile(f []byte, path string) *model.AppError {
 		secretKey := utils.Cfg.FileSettings.AmazonS3SecretAccessKey
 		secure := *utils.Cfg.FileSettings.AmazonS3SSL
 		signV2 := *utils.Cfg.FileSettings.AmazonS3SignV2
+		encrypt := *utils.Cfg.FileSettings.AmazonS3SSE
 		region := utils.Cfg.FileSettings.AmazonS3Region
 		s3Clnt, err := s3New(endpoint, accessKey, secretKey, secure, signV2, region)
 		if err != nil {
@@ -163,12 +165,12 @@ func WriteFile(f []byte, path string) *model.AppError {
 
 		bucket := utils.Cfg.FileSettings.AmazonS3Bucket
 		ext := filepath.Ext(path)
-
+		metaData := S3Metadata(encrypt, "binary/octet-stream")
 		if model.IsFileExtImage(ext) {
-			_, err = s3Clnt.PutObject(bucket, path, bytes.NewReader(f), model.GetImageMimeType(ext))
-		} else {
-			_, err = s3Clnt.PutObject(bucket, path, bytes.NewReader(f), "binary/octet-stream")
+			metaData = S3Metadata(encrypt, model.GetImageMimeType(ext))
 		}
+
+		_, err = s3Clnt.PutObjectWithMetadata(bucket, path, bytes.NewReader(f), metaData, nil)
 		if err != nil {
 			return model.NewLocAppError("WriteFile", "api.file.write_file.s3.app_error", nil, err.Error())
 		}
@@ -632,4 +634,21 @@ func GetFileInfo(fileId string) (*model.FileInfo, *model.AppError) {
 	} else {
 		return result.Data.(*model.FileInfo), nil
 	}
+}
+
+func S3Metadata(encrypt bool, contentType string) map[string][]string {
+	metaData := make(map[string][]string)
+	if contentType != "" {
+		metaData["Content-Type"] = []string{"contentType"}
+	}
+	if encrypt {
+		metaData["x-amz-server-side-encryption"] = []string{"AES256"}
+	}
+	return metaData
+}
+
+func CopyMetadata(encrypt bool) map[string]string {
+	metaData := make(map[string]string)
+	metaData["x-amz-server-side-encryption"] = "AES256"
+	return metaData
 }

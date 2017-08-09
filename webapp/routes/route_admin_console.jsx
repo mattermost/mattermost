@@ -46,6 +46,7 @@ import LicenseSettings from 'components/admin_console/license_settings.jsx';
 import Audits from 'components/admin_console/audits';
 import Logs from 'components/admin_console/server_logs';
 import ElasticsearchSettings from 'components/admin_console/elasticsearch_settings.jsx';
+import JIRASettings from 'plugins/jira/components/settings.jsx';
 
 export default (
     <Route>
@@ -158,6 +159,10 @@ export default (
             <Route
                 path='webrtc'
                 component={WebrtcSettings}
+            />
+            <Route
+                path='jira'
+                component={JIRASettings}
             />
         </Route>
         <Route path='files'>

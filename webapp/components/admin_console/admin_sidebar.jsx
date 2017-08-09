@@ -266,7 +266,7 @@ export default class AdminSidebar extends React.Component {
                     title={
                         <FormattedMessage
                             id='admin.sidebar.elasticsearch'
-                            defaultMessage='Elasticsearch'
+                            defaultMessage='Elasticsearch (Beta)'
                         />
                     }
                 />
@@ -519,6 +519,15 @@ export default class AdminSidebar extends React.Component {
                                         <FormattedMessage
                                             id='admin.sidebar.customIntegrations'
                                             defaultMessage='Custom Integrations'
+                                        />
+                                    }
+                                />
+                                <AdminSidebarSection
+                                    name='jira'
+                                    title={
+                                        <FormattedMessage
+                                            id='admin.sidebar.jira'
+                                            defaultMessage='JIRA (Beta)'
                                         />
                                     }
                                 />

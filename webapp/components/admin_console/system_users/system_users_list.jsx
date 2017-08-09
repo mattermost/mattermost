@@ -6,6 +6,8 @@ import PropTypes from 'prop-types';
 import {FormattedMessage, FormattedHTMLMessage} from 'react-intl';
 
 import ManageTeamsModal from 'components/admin_console/manage_teams_modal/manage_teams_modal.jsx';
+import ManageRolesModal from 'components/admin_console/manage_roles_modal';
+import ManageTokensModal from 'components/admin_console/manage_tokens_modal';
 import ResetPasswordModal from 'components/admin_console/reset_password_modal.jsx';
 import SearchableUserList from 'components/searchable_user_list/searchable_user_list.jsx';
 
@@ -37,21 +39,12 @@ export default class SystemUsersList extends React.Component {
     constructor(props) {
         super(props);
 
-        this.nextPage = this.nextPage.bind(this);
-        this.previousPage = this.previousPage.bind(this);
-        this.search = this.search.bind(this);
-
-        this.doManageTeams = this.doManageTeams.bind(this);
-        this.doManageTeamsDismiss = this.doManageTeamsDismiss.bind(this);
-
-        this.doPasswordReset = this.doPasswordReset.bind(this);
-        this.doPasswordResetDismiss = this.doPasswordResetDismiss.bind(this);
-        this.doPasswordResetSubmit = this.doPasswordResetSubmit.bind(this);
-
         this.state = {
             page: 0,
 
             showManageTeamsModal: false,
+            showManageRolesModal: false,
+            showManageTokensModal: false,
             showPasswordModal: false,
             user: null
         };
@@ -63,17 +56,17 @@ export default class SystemUsersList extends React.Component {
         }
     }
 
-    nextPage() {
+    nextPage = () => {
         this.setState({page: this.state.page + 1});
 
         this.props.nextPage(this.state.page + 1);
     }
 
-    previousPage() {
+    previousPage = () => {
         this.setState({page: this.state.page - 1});
     }
 
-    search(term) {
+    search = (term) => {
         this.props.search(term);
 
         if (term !== '') {
@@ -81,35 +74,63 @@ export default class SystemUsersList extends React.Component {
         }
     }
 
-    doManageTeams(user) {
+    doManageTeams = (user) => {
         this.setState({
             showManageTeamsModal: true,
             user
         });
     }
 
-    doManageTeamsDismiss() {
+    doManageRoles = (user) => {
+        this.setState({
+            showManageRolesModal: true,
+            user
+        });
+    }
+
+    doManageTokens = (user) => {
+        this.setState({
+            showManageTokensModal: true,
+            user
+        });
+    }
+
+    doManageTeamsDismiss = () => {
         this.setState({
             showManageTeamsModal: false,
             user: null
         });
     }
 
-    doPasswordReset(user) {
+    doManageRolesDismiss = () => {
+        this.setState({
+            showManageRolesModal: false,
+            user: null
+        });
+    }
+
+    doManageTokensDismiss = () => {
+        this.setState({
+            showManageTokensModal: false,
+            user: null
+        });
+    }
+
+    doPasswordReset = (user) => {
         this.setState({
             showPasswordModal: true,
             user
         });
     }
 
-    doPasswordResetDismiss() {
+    doPasswordResetDismiss = () => {
         this.setState({
             showPasswordModal: false,
             user: null
         });
     }
 
-    doPasswordResetSubmit(user) {
+    doPasswordResetSubmit = (user) => {
         getUser(user.id)(dispatch, getState);
 
         this.setState({
@@ -236,7 +257,9 @@ export default class SystemUsersList extends React.Component {
                     actions={[SystemUsersDropdown]}
                     actionProps={{
                         doPasswordReset: this.doPasswordReset,
-                        doManageTeams: this.doManageTeams
+                        doManageTeams: this.doManageTeams,
+                        doManageRoles: this.doManageRoles,
+                        doManageTokens: this.doManageTokens
                     }}
                     nextPage={this.nextPage}
                     previousPage={this.previousPage}
@@ -249,6 +272,16 @@ export default class SystemUsersList extends React.Component {
                     user={this.state.user}
                     show={this.state.showManageTeamsModal}
                     onModalDismissed={this.doManageTeamsDismiss}
+                />
+                <ManageRolesModal
+                    user={this.state.user}
+                    show={this.state.showManageRolesModal}
+                    onModalDismissed={this.doManageRolesDismiss}
+                />
+                <ManageTokensModal
+                    user={this.state.user}
+                    show={this.state.showManageTokensModal}
+                    onModalDismissed={this.doManageTokensDismiss}
                 />
                 <ResetPasswordModal
                     user={this.state.user}

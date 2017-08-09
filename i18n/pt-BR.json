@@ -532,6 +532,90 @@
     "translation": "Cabeçalho do canal atualizado com sucesso."
   },
   {
+    "id": "api.command_channel_purpose.channel.app_error",
+    "translation": "Error ao obter o canal atual."
+  },
+  {
+    "id": "api.command_channel_purpose.desc",
+    "translation": "Editar o propósito do canal"
+  },
+  {
+    "id": "api.command_channel_purpose.direct_group.app_error",
+    "translation": "Não é possível definir o propósito para canal de mensagens diretas. Utilize /header para definir o cabeçalho."
+  },
+  {
+    "id": "api.command_channel_purpose.hint",
+    "translation": "[texto]"
+  },
+  {
+    "id": "api.command_channel_purpose.message.app_error",
+    "translation": "Uma mensagem precisa ser fornecida com o comando /purpose."
+  },
+  {
+    "id": "api.command_channel_purpose.name",
+    "translation": "propósito"
+  },
+  {
+    "id": "api.command_channel_purpose.permission.app_error",
+    "translation": "Você não tem a permissão apropriada para editar o propósito do canal."
+  },
+  {
+    "id": "api.command_channel_purpose.update_channel.app_error",
+    "translation": "Erro ao atualizar o canal atual."
+  },
+  {
+    "id": "api.command_channel_rename.channel.app_error",
+    "translation": "Error ao obter o canal atual."
+  },
+  {
+    "id": "api.command_channel_rename.desc",
+    "translation": "Renomear o canal"
+  },
+  {
+    "id": "api.command_channel_rename.direct_group.app_error",
+    "translation": "Não é possível renomear um canal de mensagens diretas."
+  },
+  {
+    "id": "api.command_channel_rename.hint",
+    "translation": "[texto]"
+  },
+  {
+    "id": "api.command_channel_rename.message.app_error",
+    "translation": "Uma mensagem deve ser fornecida com o comando /rename."
+  },
+  {
+    "id": "api.command_channel_rename.name",
+    "translation": "renomear"
+  },
+  {
+    "id": "api.command_channel_rename.permission.app_error",
+    "translation": "Você não tem a permissão apropriada para renomear o canal."
+  },
+  {
+    "id": "api.command_channel_rename.update_channel.app_error",
+    "translation": "Erro ao atualizar o canal atual."
+  },
+  {
+    "id": "api.command_channel_rename.update_channel.success",
+    "translation": "Nome do canal atualizado com sucesso."
+  },
+  {
+    "id": "api.command_code.desc",
+    "translation": "Mostrar o texto como bloco de código"
+  },
+  {
+    "id": "api.command_code.hint",
+    "translation": "[texto]"
+  },
+  {
+    "id": "api.command_code.message.app_error",
+    "translation": "Uma mensagem precisa ser fornecida com o comando /code."
+  },
+  {
+    "id": "api.command_code.name",
+    "translation": "código"
+  },
+  {
     "id": "api.command_collapse.desc",
     "translation": "Ativar auto-recolher preview de imagens"
   },
@@ -565,7 +649,7 @@
   },
   {
     "id": "api.command_echo.message.app_error",
-    "translation": "A mensagem precisa ser fornecida com o comando /echo."
+    "translation": "Uma mensagem precisa ser fornecida com o comando /echo."
   },
   {
     "id": "api.command_echo.name",
@@ -622,6 +706,30 @@
   {
     "id": "api.command_join.success",
     "translation": "Juntou ao canal."
+  },
+  {
+    "id": "api.command_leave.desc",
+    "translation": "Deixar o canal atual"
+  },
+  {
+    "id": "api.command_leave.fail.app_error",
+    "translation": "Ocorreu um erro enquanto deixava o canal."
+  },
+  {
+    "id": "api.command_leave.list.app_error",
+    "translation": "Ocorreu um erro enquanto listava os canais."
+  },
+  {
+    "id": "api.command_leave.missing.app_error",
+    "translation": "Não foi possível encontrar o canal"
+  },
+  {
+    "id": "api.command_leave.name",
+    "translation": "deixar"
+  },
+  {
+    "id": "api.command_leave.success",
+    "translation": "Deixar o canal."
   },
   {
     "id": "api.command_logout.desc",
@@ -1009,7 +1117,7 @@
   },
   {
     "id": "api.email_batching.render_batched_post.direct_message",
-    "translation": "Mensagem Direta"
+    "translation": "Mensagem Direta de "
   },
   {
     "id": "api.email_batching.render_batched_post.go_to_post",
@@ -1017,7 +1125,11 @@
   },
   {
     "id": "api.email_batching.render_batched_post.group_message",
-    "translation": "Grupo de Mensagem"
+    "translation": "Mensagem em Grupo de "
+  },
+  {
+    "id": "api.email_batching.render_batched_post.notification",
+    "translation": "Notificação de "
   },
   {
     "id": "api.email_batching.render_batched_post.sender.app_error",
@@ -1026,8 +1138,8 @@
   {
     "id": "api.email_batching.send_batched_email_notification.body_text",
     "translation": {
-      "one": "Você tem uma nova mensagem.",
-      "other": "Você tem {{.Count}} novas mensagens."
+      "one": "Você tem uma nova notificação.",
+      "other": "Você tem {{.Count}} novas notificações."
     }
   },
   {
@@ -1696,20 +1808,8 @@
     "translation": "Falha ao obter equipes quando enviado mensagem direta entre equipes user_id=%v, err=%v"
   },
   {
-    "id": "api.post.send_notifications_and_forget.mention_body",
-    "translation": "Você tem uma nova menção."
-  },
-  {
     "id": "api.post.send_notifications_and_forget.mention_subject",
     "translation": "Nova Menção"
-  },
-  {
-    "id": "api.post.send_notifications_and_forget.message_body",
-    "translation": "Você tem um nova mensagem."
-  },
-  {
-    "id": "api.post.send_notifications_and_forget.message_subject",
-    "translation": "Nova Mensagem Direta"
   },
   {
     "id": "api.post.send_notifications_and_forget.push_image_only",
@@ -1728,12 +1828,20 @@
     "translation": " você foi mencionado no "
   },
   {
+    "id": "api.post.send_notifications_and_forget.push_mention_no_channel",
+    "translation": " mencionou você"
+  },
+  {
     "id": "api.post.send_notifications_and_forget.push_message",
     "translation": " enviado a você uma mensagem direta"
   },
   {
     "id": "api.post.send_notifications_and_forget.push_non_mention",
     "translation": " postado em "
+  },
+  {
+    "id": "api.post.send_notifications_and_forget.push_non_mention_no_channel",
+    "translation": " postou uma mensagem"
   },
   {
     "id": "api.post.send_notifications_and_forget.push_notification.error",
@@ -1873,127 +1981,127 @@
   },
   {
     "id": "api.slackimport.slack_add_bot_user.email_pwd",
-    "translation": "Slack Bot/Integração Importar Posts Usuário: Email, Senha: {{.Email}}, {{.Password}}\r\n"
+    "translation": "O usuário com email {{.Email}} e senha {{.Password}} da Integração/Slack Bot foi importado.\r\n"
   },
   {
     "id": "api.slackimport.slack_add_bot_user.unable_import",
-    "translation": "Não foi possível importar Slack Bot/Integração Importar Posts Usuário: {{.Username}}\r\n"
+    "translation": "Não é possível importar o usuário {{.Username}} da Integração/Slack Bot.\r\n"
   },
   {
     "id": "api.slackimport.slack_add_channels.added",
-    "translation": "\r\n Canal Adicionado \r\n"
+    "translation": "\r\nCanal Adicionado:\r\n"
   },
   {
     "id": "api.slackimport.slack_add_channels.failed_to_add_user",
-    "translation": "Falha ao adicionar o usuário ao canal: {{.Username}}\r\n"
+    "translation": "Não foi possível adicionar o usuário Slack {{.Username}} ao canal.\r\n"
   },
   {
     "id": "api.slackimport.slack_add_channels.import_failed",
-    "translation": "Falha ao importar: {{.DisplayName}}\r\n"
+    "translation": "Não foi possível importar o canal Slack {{.DisplayName}}.\r\n"
   },
   {
     "id": "api.slackimport.slack_add_channels.import_failed.warn",
-    "translation": "Slack Importer: Falha ao importar o canal: %s"
+    "translation": "Slack Import: Não foi possível importar o canal Slack: %s."
   },
   {
     "id": "api.slackimport.slack_add_channels.merge",
-    "translation": "Mesclado com o canal existente: {{.DisplayName}}\r\n"
+    "translation": "O canal Slack {{.DisplayName}} já existe como um canal ativo no Mattermost. Ambos os canais foram mesclados.\r\n"
   },
   {
     "id": "api.slackimport.slack_add_posts.attach_files.error",
-    "translation": "Erro encontrado ao anexar arquivos para postar, post_id=%s, file_ids=%v, err=%v"
+    "translation": "Slack Import: Ocorreu um erro ao anexar arquivos a uma mensagem, post_id=%s, file_ids=%v, err=%v."
   },
   {
     "id": "api.slackimport.slack_add_posts.bot.warn",
-    "translation": "Slack bot posts não foram importados ainda"
+    "translation": "Slack Import: Mensagens do Slack bot não podem ser importadas ainda."
   },
   {
     "id": "api.slackimport.slack_add_posts.bot_user_no_exists.warn",
-    "translation": "Slack Importer: Não importado mensagens do bot usuário bot-importing não existe."
+    "translation": "Slack Import: Não é possível importar a mensagem do bot à medida que o usuário do bot não existe."
   },
   {
     "id": "api.slackimport.slack_add_posts.msg_no_comment.debug",
-    "translation": "Comentário do arquivo indefinido"
+    "translation": "Slack Import: Não é possível importar a mensagem à medida que não tem comentários."
   },
   {
     "id": "api.slackimport.slack_add_posts.msg_no_usr.debug",
-    "translation": "Mensagem sem usuário"
+    "translation": "Slack Import: Não é possível importar a mensagem à medida que o campo o user está faltando."
   },
   {
     "id": "api.slackimport.slack_add_posts.no_bot_id.warn",
-    "translation": "Slack Importer: Não importado mensagens do bot devido a falta do campo Botid."
+    "translation": "Slack Import: Não é possível importar a mensagem do bot à medida que o campo BotId está faltando."
   },
   {
     "id": "api.slackimport.slack_add_posts.unsupported.warn",
-    "translation": "Tipo de post não suportado: %v, %v"
+    "translation": "Slack Import: Não é possível importar a mensagem à medida que o tipo não é suportado: post_type=%v, post_subtype=%v."
   },
   {
     "id": "api.slackimport.slack_add_posts.upload_file_not_found.warn",
-    "translation": "Nenhum arquivo encontrado na exportação Slack para o arquivo enviado com ID {{.FileId}}"
+    "translation": "Slack Import: Não é possível importar o arquivo {{.FileId}} à medida que o arquivo está ausente do arquivo zip de exportação do Slack."
   },
   {
     "id": "api.slackimport.slack_add_posts.upload_file_not_in_json.warn",
-    "translation": "Não é possível importar arquivos para  envio de post sem a seção \"file\" presente na exportação."
+    "translation": "Slack Import: Não é possível anexar o arquivo à publicação, pois este não possui nenhuma seção \"file\" presente na exportação Slack."
   },
   {
     "id": "api.slackimport.slack_add_posts.upload_file_open_failed.warn",
-    "translation": "Não foi possível abrir o arquivo enviado com ID {{.FileId}} no arquivo de exportação com erro: {{.Error}}"
+    "translation": "Slack Import: Não é possível abrir o arquivo {{.FileId}} da exportação Slack: {{.Error}}."
   },
   {
     "id": "api.slackimport.slack_add_posts.upload_file_upload_failed.warn",
-    "translation": "Envio do arquivo para envio de mensagem com ID do arquivo {{.FileId}} falhou com erro: {{.Error}}"
+    "translation": "Slack Import: Um erro ocorreu enquanto enviava o arquivo {{.FileId}}: {{.Error}}."
   },
   {
     "id": "api.slackimport.slack_add_posts.user_no_exists.debug",
-    "translation": "Usuário %v não existe!"
+    "translation": "Slack Import: Não é possível adicionar a mensagem como o usuário Slack %v não existe no Mattermost."
   },
   {
     "id": "api.slackimport.slack_add_posts.without_user.debug",
-    "translation": "Mensagem sem usuário"
+    "translation": "Slack Import: Não é possível importar a mensagem à medida que o campo do user está faltando."
   },
   {
     "id": "api.slackimport.slack_add_users.created",
-    "translation": "\r\n Usuários Criados\r\n"
+    "translation": "\r\nUsuários criados:\r\n"
   },
   {
     "id": "api.slackimport.slack_add_users.email_pwd",
-    "translation": "Email, Senha: {{.Email}}, {{.Password}}\r\n"
+    "translation": "O usuário Slack com e-mail {{.Email}} e a senha {{.Password}} foi importado.\r\n"
   },
   {
     "id": "api.slackimport.slack_add_users.merge_existing",
-    "translation": "Mesclado usuário com conta existente: {{.Email}}, {{.Username}}\r\n"
+    "translation": "Usuário Slack mesclado com um usuário Mattermost existente com e-mail correspondente {{.Email}} e nome de usuário {{.Username}}.\r\n"
   },
   {
     "id": "api.slackimport.slack_add_users.merge_existing_failed",
-    "translation": "Tentado mesclar o usuário com a conta existente: {{.Email}}, {{.Username}}, mas houve uma falha ao adicionar o usuário a essa equipe.\r\n"
+    "translation": "Usuário Slack mesclado com um usuário Mattermost existente com e-mail correspondente {{.Email}} e nome de usuário {{.Username}}, mas não foi possível adicionar o usuário a sua equipe.\r\n"
   },
   {
     "id": "api.slackimport.slack_add_users.missing_email_address",
-    "translation": "O usuário {{.Username}} não possui um endereço de email na exportação do Slack. Utilizando o {{.Email}} no lugar. O usuário deveria atualizar o seu endereço de email assim que se logar no sistema.\r\n"
+    "translation": "Usuário {{.Username}} não possui um endereço de email na exportação do Slack. Utilizado o {{.Email}} no lugar. O usuário deve atualizar o seu endereço de email assim que se logar no sistema.\r\n"
   },
   {
     "id": "api.slackimport.slack_add_users.missing_email_address.warn",
-    "translation": "O usuário {{.Username}} não possui um endereço de email na exportação do Slack. Utilizando o {{.Email}} no lugar. O usuário deveria atualizar o seu endereço de email assim que se logar no sistema."
+    "translation": "Slack Import: Usuário {{.Username}} não possui um endereço de email na exportação do Slack. Utilizado o {{.Email}} no lugar. O usuário deve atualizar o seu endereço de email assim que se logar no sistema."
   },
   {
     "id": "api.slackimport.slack_add_users.unable_import",
-    "translation": "Não foi possível importar o usuário: {{.Username}}\r\n"
+    "translation": "Não foi possível importar o usuário Slack:{{.Username}}.\r\n"
   },
   {
     "id": "api.slackimport.slack_convert_channel_mentions.compile_regexp_failed.warn",
-    "translation": "Falha ao compilar o !canal correspondendo a expressão regular para o canal Slack {{.ChannelID}} {{.ChannelName}}"
+    "translation": "Slack Import: Não foi possível compilar !channel, correspondendo a expressão regular para o canal Slack {{.ChannelName}} (id={{.ChannelID}})."
   },
   {
     "id": "api.slackimport.slack_convert_timestamp.bad.warn",
-    "translation": "Data e hora ruim detectada"
+    "translation": "Slack Import: Timestamp inválido."
   },
   {
     "id": "api.slackimport.slack_convert_user_mentions.compile_regexp_failed.warn",
-    "translation": "Falha ao compilar a @menção correspondendo a expressão regular para o usuário Slack {{.UserID}} {{.Username}}"
+    "translation": "Slack Import: Não é possível compilar @menção, correspondente a expressão regular para o usuário Slack {{.Username}} (id={{.UserID}})."
   },
   {
     "id": "api.slackimport.slack_deactivate_bot_user.failed_to_deactivate",
-    "translation": "Slack Importer: Falha ao desativar o usuário bot-importing."
+    "translation": "Slack Import: Não é possível desativar a conta do usuário usada para o bot."
   },
   {
     "id": "api.slackimport.slack_import.log",
@@ -2013,11 +2121,11 @@
   },
   {
     "id": "api.slackimport.slack_import.notes",
-    "translation": "\r\n Notas \r\n"
+    "translation": "\r\nNotas:\r\n"
   },
   {
     "id": "api.slackimport.slack_import.open.app_error",
-    "translation": "Não foi possível abrir: {{.Filename}}"
+    "translation": "Não é possível abrir o arquivo: {{.Filename}}.\r\n"
   },
   {
     "id": "api.slackimport.slack_import.team_fail",
@@ -2025,31 +2133,31 @@
   },
   {
     "id": "api.slackimport.slack_import.zip.app_error",
-    "translation": "Não foi possível abrir o arquivo zip"
+    "translation": "Não é possível abrir o arquivo zip de exportação Slack.\r\n"
   },
   {
     "id": "api.slackimport.slack_parse_channels.error",
-    "translation": "Erro ao analisar canais do slack. Importação deve funcionar de qualquer maneira."
+    "translation": "Slack Import: Ocorreu um erro ao analisar alguns canais Slack. A importação pode funcionar de qualquer maneira."
   },
   {
     "id": "api.slackimport.slack_parse_posts.error",
-    "translation": "Erro ao analisar algumas postagens do slack. Importação deve funcionar de qualquer maneira."
+    "translation": "Slack Import: Ocorreu um erro ao analisar algumas postagens do Slack. A importação pode funcionar de qualquer maneira."
   },
   {
     "id": "api.slackimport.slack_sanitise_channel_properties.display_name_too_long.warn",
-    "translation": "Slack Importer: Canal {{.ChannelName}} tem um nome de exibição muito grande. Será truncado quando importado."
+    "translation": "Slack Import: Canal {{.ChannelName}} nome de exibição excede o tamanho máximo. Será truncado quando importado."
   },
   {
     "id": "api.slackimport.slack_sanitise_channel_properties.header_too_long.warn",
-    "translation": "Slack Importer: Canal {{.ChannelName}} tem um cabeçalho que é muito grande. Será truncado quando importado."
+    "translation": "Slack Import: Canal {{.ChannelName}} cabeçalho que excede o tamanho máximo. Será truncado quando importado."
   },
   {
     "id": "api.slackimport.slack_sanitise_channel_properties.name_too_long.warn",
-    "translation": "Slack Importer: Canal {{.ChannelName}} tem um nome muito grande. Será truncado quando importado."
+    "translation": "Slack Import: Canal {{.ChannelName}} handle excede o tamanho máximo. Será truncado quando importado."
   },
   {
     "id": "api.slackimport.slack_sanitise_channel_properties.purpose_too_long.warn",
-    "translation": "Slack Importer: Canal {{.ChannelName}} tem um propósito muito grande. Será truncado quando importado."
+    "translation": "Slack Import: Canal {{.ChannelName}} propósito excede o tamanho máximo. Será truncado quando importado."
   },
   {
     "id": "api.status.init.debug",
@@ -2332,22 +2440,6 @@
     "translation": "Ir Para o Post"
   },
   {
-    "id": "api.templates.post_body.info",
-    "translation": "CANAL: {{.ChannelName}}<br>{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
-  },
-  {
-    "id": "api.templates.post_subject_in_channel",
-    "translation": "{{.SubjectText}} em {{.TeamDisplayName}} ({{.ChannelName}}) de {{.Day}} {{.Month}}, {{.Year}}"
-  },
-  {
-    "id": "api.templates.post_subject_in_direct_message",
-    "translation": "{{.SubjectText}} de {{.SenderDisplayName}} em {{.Day}} {{.Month}}, {{.Year}}"
-  },
-  {
-    "id": "api.templates.post_subject_in_group_message",
-    "translation": "Novo grupo de mensagem de {{.SenderDisplayName}} em {{.Day}} {{.Month}}, {{.Year}}"
-  },
-  {
     "id": "api.templates.reset_body.button",
     "translation": "Redefinir senha"
   },
@@ -2402,6 +2494,18 @@
   {
     "id": "api.templates.upgrade_30_subject.info",
     "translation": "[MATTERMOST] Alterações da sua conta na atualização Mattermost 3.0"
+  },
+  {
+    "id": "api.templates.user_access_token_body.info",
+    "translation": "Um token de acesso de usuário foi adicionado à sua conta em {{ .SiteURL }}. Eles podem ser usados ​​para acessar {{ .SiteName }} com sua conta.<br>Se essa mudança não foi iniciada por você, entre em contato com o administrador do sistema."
+  },
+  {
+    "id": "api.templates.user_access_token_body.title",
+    "translation": "Token de acesso de usuário adicionado a sua conta"
+  },
+  {
+    "id": "api.templates.user_access_token_subject",
+    "translation": "[{{ .SiteName }}] Token de acesso de usuário foi adicionado a sua conta"
   },
   {
     "id": "api.templates.username_change_body.info",
@@ -2760,6 +2864,10 @@
     "translation": "Erro ao enviar atualização de senha por email"
   },
   {
+    "id": "api.user.send_user_access_token.error",
+    "translation": "Falha ao enviar o token de acesso do usuário adicionado e-mail com sucesso"
+  },
+  {
     "id": "api.user.send_verify_email_and_forget.failed.error",
     "translation": "Erro ao enviar verificação de email"
   },
@@ -3072,6 +3180,10 @@
     "translation": "Falha ao obter o canal de grupo"
   },
   {
+    "id": "app.import.import_direct_post.save_preferences.error",
+    "translation": "Erro ao importar a postagem direta. Falha ao salvar as preferências."
+  },
+  {
     "id": "app.import.import_direct_post.user_not_found.error",
     "translation": "Usuário do post não existe"
   },
@@ -3108,12 +3220,20 @@
     "translation": "Erro ao importar post. O canal com o nome \"{{.ChannelName}}\" não foi encontrado."
   },
   {
+    "id": "app.import.import_post.save_preferences.error",
+    "translation": "Erro ao importar a postagem. Falha ao salvar as preferências."
+  },
+  {
     "id": "app.import.import_post.team_not_found.error",
     "translation": "Erro ao importar post. A equipe com o nome \"{{.TeamName}}\" não foi encontrada."
   },
   {
     "id": "app.import.import_post.user_not_found.error",
     "translation": "Erro ao importar post. O usuário com o nome \"{{.Username}}\" não foi encontrado."
+  },
+  {
+    "id": "app.import.import_user_channels.save_preferences.error",
+    "translation": "Erro ao importar os membros do canal do usuário. Falha ao salvar as preferências."
   },
   {
     "id": "app.import.validate_channel_import_data.create_at_zero.error",
@@ -3176,6 +3296,10 @@
     "translation": "A lista de membros do canal direto tem muitos itens"
   },
   {
+    "id": "app.import.validate_direct_channel_import_data.unknown_favoriter.error",
+    "translation": "Canal direto só pode ser favoritado por membros. \"{{.Username}}\" não é membro."
+  },
+  {
     "id": "app.import.validate_direct_post_import_data.channel_members_required.error",
     "translation": "Propriedade obrigatória do post direto não foi informada: channel_members"
   },
@@ -3202,6 +3326,10 @@
   {
     "id": "app.import.validate_direct_post_import_data.message_missing.error",
     "translation": "Propriedade obrigatória do Post não foi informada: message"
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.unknown_flagger.error",
+    "translation": "Postagem só pode ser marcada por membros que estão no canal. \"{{.Username}}\" não é membro."
   },
   {
     "id": "app.import.validate_direct_post_import_data.user_missing.error",
@@ -3292,6 +3420,10 @@
     "translation": "MarkUnread NotifyProps inválido para Usuário Membro do Canal."
   },
   {
+    "id": "app.import.validate_user_channels_import_data.invalid_notify_props_mobile.error",
+    "translation": "Desktop NotifyProps inválido para Usuário Membro do Canal."
+  },
+  {
     "id": "app.import.validate_user_channels_import_data.invalid_roles.error",
     "translation": "Função inválida em Usuário Membro do Canal."
   },
@@ -3328,6 +3460,38 @@
     "translation": "O apelido do usuário é muito longo."
   },
   {
+    "id": "app.import.validate_user_import_data.notify_props_channel_trigger_invalid.error",
+    "translation": "Inválido Channel Trigger Notify Prop para o usuário."
+  },
+  {
+    "id": "app.import.validate_user_import_data.notify_props_comment_trigger_invalid.error",
+    "translation": "Inválido Comment Trigger Notify Prop para o usuário."
+  },
+  {
+    "id": "app.import.validate_user_import_data.notify_props_desktop_duration_invalid.error",
+    "translation": "Valor inválido Duration Notify Prop para o usuário."
+  },
+  {
+    "id": "app.import.validate_user_import_data.notify_props_desktop_invalid.error",
+    "translation": "Valor inválido Desktop Notify Prop para o usuário."
+  },
+  {
+    "id": "app.import.validate_user_import_data.notify_props_desktop_sound_invalid.error",
+    "translation": "Valor inválido Sound Notify Prop para o usuário."
+  },
+  {
+    "id": "app.import.validate_user_import_data.notify_props_email_invalid.error",
+    "translation": "Valor inválido Email Notify Prop para o usuário."
+  },
+  {
+    "id": "app.import.validate_user_import_data.notify_props_mobile_invalid.error",
+    "translation": "Valor inválido Mobile Notify Prop para o usuário."
+  },
+  {
+    "id": "app.import.validate_user_import_data.notify_props_mobile_push_status_invalid.error",
+    "translation": "Inválido Mobile Push Status Notify Prop para o usuário."
+  },
+  {
     "id": "app.import.validate_user_import_data.pasword_length.error",
     "translation": "Senha do Usuário tem comprimento inválido."
   },
@@ -3356,6 +3520,54 @@
     "translation": "Falta nome da equipe em Usuário Membro da Equipe."
   },
   {
+    "id": "app.notification.body.intro.direct.full",
+    "translation": "Você tem uma nova mensagem direta."
+  },
+  {
+    "id": "app.notification.body.intro.direct.generic",
+    "translation": "Você tem uma nova mensagem direta de {{.SenderName}}"
+  },
+  {
+    "id": "app.notification.body.intro.notification.full",
+    "translation": "Você tem uma nova notificação."
+  },
+  {
+    "id": "app.notification.body.intro.notification.generic",
+    "translation": "Você tem uma nova notificação de {{.SenderName}}"
+  },
+  {
+    "id": "app.notification.body.text.direct.full",
+    "translation": "{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Day}} {{.Month}}"
+  },
+  {
+    "id": "app.notification.body.text.direct.generic",
+    "translation": "{{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Day}} {{.Month}}"
+  },
+  {
+    "id": "app.notification.body.text.notification.full",
+    "translation": "CANAL: {{.ChannelName}}<br>{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Day}} {{.Month}}"
+  },
+  {
+    "id": "app.notification.body.text.notification.generic",
+    "translation": "{{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Day}} {{.Month}}"
+  },
+  {
+    "id": "app.notification.subject.direct.full",
+    "translation": "[{{.SiteName}}] Nova Mensagem Direta de {{.SenderDisplayName}} em {{.Day}} {{.Month}}, {{.Year}}"
+  },
+  {
+    "id": "app.notification.subject.notification.full",
+    "translation": "[{{ .SiteName }}] Notificação em {{ .TeamName}} em {{.Day}} {{.Month}}, {{.Year}}"
+  },
+  {
+    "id": "app.user_access_token.disabled",
+    "translation": "Os tokens de acesso do usuário estão desativados neste servidor. Entre em contato com o administrador do sistema para obter detalhes."
+  },
+  {
+    "id": "app.user_access_token.invalid_or_missing",
+    "translation": "Token inválido ou faltando "
+  },
+  {
     "id": "authentication.permissions.create_group_channel.description",
     "translation": "Capacidade de criar novo canal de grupo de mensagem"
   },
@@ -3364,12 +3576,36 @@
     "translation": "Criar grupo de mensagem"
   },
   {
+    "id": "authentication.permissions.create_post_public.description",
+    "translation": "Capacidade de criar postagens em canais públicos"
+  },
+  {
+    "id": "authentication.permissions.create_post_public.name",
+    "translation": "Criar Postagens em Canais Públicos"
+  },
+  {
     "id": "authentication.permissions.create_team_roles.description",
     "translation": "Capacidade de criar novas equipes"
   },
   {
     "id": "authentication.permissions.create_team_roles.name",
     "translation": "Criar Equipes"
+  },
+  {
+    "id": "authentication.permissions.create_user_access_token.description",
+    "translation": "Capacidade de criar tokens de acesso de usuário"
+  },
+  {
+    "id": "authentication.permissions.create_user_access_token.name",
+    "translation": "Criar Token de Acesso de Usuário"
+  },
+  {
+    "id": "authentication.permissions.manage_jobs.description",
+    "translation": "Capacidade de gerenciar os jobs"
+  },
+  {
+    "id": "authentication.permissions.manage_jobs.name",
+    "translation": "Gerenciar Jobs"
   },
   {
     "id": "authentication.permissions.manage_team_roles.description",
@@ -3388,6 +3624,22 @@
     "translation": "Ler Canais Públicos"
   },
   {
+    "id": "authentication.permissions.read_user_access_token.description",
+    "translation": "Capacidade de ler os campos id, description e user_id dos tokens de acesso do usuário"
+  },
+  {
+    "id": "authentication.permissions.read_user_access_token.name",
+    "translation": "Ler Tokens de Acesso de Usuário"
+  },
+  {
+    "id": "authentication.permissions.revoke_user_access_token.description",
+    "translation": "Capacidade de revogar tokens de acesso de usuário"
+  },
+  {
+    "id": "authentication.permissions.revoke_user_access_token.name",
+    "translation": "Revogar Token de Acesso de Usuário"
+  },
+  {
     "id": "authentication.permissions.team_invite_user.description",
     "translation": "Permissão para convidar usuários para uma equipe"
   },
@@ -3402,6 +3654,46 @@
   {
     "id": "authentication.permissions.team_use_slash_commands.name",
     "translation": "Usar Comandos Slash"
+  },
+  {
+    "id": "authentication.roles.system_post_all.description",
+    "translation": "Um papel com a permissão para postar em qualquer canal público, privado ou direto do sistema"
+  },
+  {
+    "id": "authentication.roles.system_post_all.name",
+    "translation": "Postar em Canais Públicos, Privados e Diretos"
+  },
+  {
+    "id": "authentication.roles.system_post_all_public.description",
+    "translation": "Um papel com a permissão para postar em qualquer canal do sistema"
+  },
+  {
+    "id": "authentication.roles.system_post_all_public.name",
+    "translation": "Postar em Canais Publicos"
+  },
+  {
+    "id": "authentication.roles.system_user_access_token.description",
+    "translation": "Um papel com a permissão para criar, ler e revogar tokens de acesso de usuário"
+  },
+  {
+    "id": "authentication.roles.system_user_access_token.name",
+    "translation": "Token de Acesso de Usuário"
+  },
+  {
+    "id": "authentication.roles.team_post_all.description",
+    "translation": "Um papel com a permissão para postar em qualquer canal público ou privado da equipe"
+  },
+  {
+    "id": "authentication.roles.team_post_all.name",
+    "translation": "Postar em Canais Públicos e Privados"
+  },
+  {
+    "id": "authentication.roles.team_post_all_public.description",
+    "translation": "Um papel com a permissão para postar em qualquer canal público da equipe"
+  },
+  {
+    "id": "authentication.roles.team_post_all_public.name",
+    "translation": "Postar em Canais Publicos"
   },
   {
     "id": "cli.license.critical",
@@ -3496,6 +3788,42 @@
     "translation": "Exportação da conformidade para tarefa '{{.JobName}}' iniciada no '{{.FilePath}}'"
   },
   {
+    "id": "ent.elasticsearch.create_client.connect_failed",
+    "translation": "Configuração do Cliente de ElasticSearch Falhou"
+  },
+  {
+    "id": "ent.elasticsearch.create_index_if_not_exists.index_create_failed",
+    "translation": "Não foi possível criar o ElasticSearch index"
+  },
+  {
+    "id": "ent.elasticsearch.create_index_if_not_exists.index_exists_failed",
+    "translation": "Não foi possível verificar se o ElasticSearch index existe"
+  },
+  {
+    "id": "ent.elasticsearch.create_index_if_not_exists.index_mapping_failed",
+    "translation": "Não foi possível configurar o ElasticSearch index mapping"
+  },
+  {
+    "id": "ent.elasticsearch.delete_post.error",
+    "translation": "Não foi possível apagar o post"
+  },
+  {
+    "id": "ent.elasticsearch.generic.disabled",
+    "translation": "A busca usando o ElasticSearch não está ativa neste servidor"
+  },
+  {
+    "id": "ent.elasticsearch.index_post.error",
+    "translation": "Não foi possível indexar o post"
+  },
+  {
+    "id": "ent.elasticsearch.not_started.error",
+    "translation": "Elasticsearch não foi iniciado"
+  },
+  {
+    "id": "ent.elasticsearch.purge_indexes.delete_failed",
+    "translation": "Não foi possível deletar o ElasticSearch index"
+  },
+  {
     "id": "ent.elasticsearch.search_posts.disabled",
     "translation": "A busca usando o ElasticSearch foi desativada neste servidor"
   },
@@ -3508,24 +3836,12 @@
     "translation": "Falha ao decodificar os resultados da pesquisa"
   },
   {
-    "id": "ent.elasticsearch.start.connect_failed",
-    "translation": "Configuração do Cliente de ElasticSearch falhou"
-  },
-  {
-    "id": "ent.elasticsearch.start.index_create_failed",
-    "translation": "Não foi possível criar o ElasticSearch index"
-  },
-  {
-    "id": "ent.elasticsearch.start.index_exists_failed",
-    "translation": "Não foi possível verificar se o ElasticSearch index existe"
-  },
-  {
-    "id": "ent.elasticsearch.start.index_mapping_failed",
-    "translation": "Não foi possível configurar o ElasticSearch index mapping"
-  },
-  {
     "id": "ent.elasticsearch.start.index_settings_failed",
     "translation": "Não foi possível configurar as opções do ElasticSearch index"
+  },
+  {
+    "id": "ent.elasticsearch.test_config.connect_failed",
+    "translation": "Falha na conexão com o Elasticsearch."
   },
   {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
@@ -3534,6 +3850,10 @@
   {
     "id": "ent.elasticsearch.test_config.license.error",
     "translation": "Licença não suporta Elasticsearch."
+  },
+  {
+    "id": "ent.elasticsearch.test_config.reenter_password",
+    "translation": "URL do servidor Elasticsearch ou o nome do usuário mudou. Por favor atualize a senha do Elasticsearch para testar a conexão."
   },
   {
     "id": "ent.emoji.licence_disable.app_error",
@@ -3746,6 +4066,14 @@
   {
     "id": "error.not_found.title",
     "translation": "Página não encontrada"
+  },
+  {
+    "id": "jobs.request_cancellation.status.error",
+    "translation": "Não foi possível requisitar o cancelamento para o job que não está em um estado cancelável."
+  },
+  {
+    "id": "jobs.set_job_error.update.error",
+    "translation": "Falha ao configurar o job status para erro"
   },
   {
     "id": "manaultesting.get_channel_id.no_found.debug",
@@ -4116,6 +4444,10 @@
     "translation": "Intervalo de email em lote inválido nas configurações de e-mail. Deve ser 30 segundos ou mais."
   },
   {
+    "id": "model.config.is_valid.email_notification_contents_type.app_error",
+    "translation": "Tipo de conteúdo de notificação de email inválido para configurações de email. Deve ser 'full' ou 'generic'."
+  },
+  {
     "id": "model.config.is_valid.email_reset_salt.app_error",
     "translation": "Senha inválida redefinir salt nas configurações de email.  Deve ser de 32 caracteres ou mais."
   },
@@ -4434,6 +4766,22 @@
   {
     "id": "model.incoming_hook.user_id.app_error",
     "translation": "Id de usuário inválido"
+  },
+  {
+    "id": "model.job.is_valid.create_at.app_error",
+    "translation": "Create at deve ser uma data válida"
+  },
+  {
+    "id": "model.job.is_valid.id.app_error",
+    "translation": "Job Id inválido"
+  },
+  {
+    "id": "model.job.is_valid.status.app_error",
+    "translation": "Job status inválido"
+  },
+  {
+    "id": "model.job.is_valid.type.app_error",
+    "translation": "Job type inválido"
   },
   {
     "id": "model.oauth.is_valid.app_id.app_error",
@@ -4812,6 +5160,18 @@
     "translation": "Usuário inválido"
   },
   {
+    "id": "model.user_access_token.is_valid.description.app_error",
+    "translation": "Descrição inválida, deve ter 255 caracteres ou menos"
+  },
+  {
+    "id": "model.user_access_token.is_valid.token.app_error",
+    "translation": "Token de acesso inválido"
+  },
+  {
+    "id": "model.user_access_token.is_valid.user_id.app_error",
+    "translation": "Id do usuário inválido"
+  },
+  {
     "id": "model.utils.decode_json.app_error",
     "translation": "não foi possível decodificar"
   },
@@ -4921,7 +5281,7 @@
   },
   {
     "id": "store.sql.schema_version.critical",
-    "translation": "O esquema do bando de dados da versão %v não pode ser atualizado.  Você precisa pular uma versão."
+    "translation": "A versão do esquema de banco de dados %v não é mais suportada. Este servidor Mattermost suporta atualizações automáticas da versão de esquema %v através da versão de esquema %v. Downgrades não são suportados. Atualize manualmente até pelo menos a versão %v antes de continuar"
   },
   {
     "id": "store.sql.short_ciphertext",
@@ -5296,24 +5656,24 @@
     "translation": "Não foi possível salvar ou atualizar as informações do arquivo"
   },
   {
-    "id": "store.sql_job_status.delete_by_type.app_error",
-    "translation": "Não foi possível deletar o status do job"
+    "id": "store.sql_job.delete.app_error",
+    "translation": "Não foi possível deletar o job"
   },
   {
-    "id": "store.sql_job_status.get.app_error",
-    "translation": "Não foi possível obter o status do job"
+    "id": "store.sql_job.get.app_error",
+    "translation": "Não foi obter o job"
   },
   {
-    "id": "store.sql_job_status.get_all.app_error",
-    "translation": "Não conseguimos pegar todos os status dos jobs"
+    "id": "store.sql_job.get_all.app_error",
+    "translation": "Não foi possível obter os jobs"
   },
   {
-    "id": "store.sql_job_status.save.app_error",
-    "translation": "Não foi possível salvar o status do job"
+    "id": "store.sql_job.save.app_error",
+    "translation": "Não foi possível salvar o job"
   },
   {
-    "id": "store.sql_job_status.update.app_error",
-    "translation": "Não foi possível atualizar o status do job"
+    "id": "store.sql_job.update.app_error",
+    "translation": "Não foi possível atualizar o job"
   },
   {
     "id": "store.sql_license.get.app_error",
@@ -5462,6 +5822,10 @@
   {
     "id": "store.sql_post.get_posts_around.get_parent.app_error",
     "translation": "Não foi possível obter o post pai para o canal"
+  },
+  {
+    "id": "store.sql_post.get_posts_batch_for_indexing.get.app_error",
+    "translation": "Não foi possível obter o lote de posts para indexação"
   },
   {
     "id": "store.sql_post.get_posts_by_ids.app_error",
@@ -6040,6 +6404,26 @@
     "translation": "Não foi possível verificar o campo email"
   },
   {
+    "id": "store.sql_user_access_token.delete.app_error",
+    "translation": "Não foi possível remover o token de acesso do usuário"
+  },
+  {
+    "id": "store.sql_user_access_token.get.app_error",
+    "translation": "Não foi possível obter o token de acesso do usuário"
+  },
+  {
+    "id": "store.sql_user_access_token.get_by_token.app_error",
+    "translation": "Não foi possível obter o token de acesso do usuário pelo token"
+  },
+  {
+    "id": "store.sql_user_access_token.get_by_user.app_error",
+    "translation": "Não foi possível obter o token de acesso do usuário"
+  },
+  {
+    "id": "store.sql_user_access_token.save.app_error",
+    "translation": "Não foi possível salvar o token de acesso do usuário"
+  },
+  {
     "id": "store.sql_webhooks.analytics_incoming_count.app_error",
     "translation": "Não foi possível contar os webhooks entrada"
   },
@@ -6080,8 +6464,16 @@
     "translation": "Não foi possível obter os webhooks"
   },
   {
+    "id": "store.sql_webhooks.permanent_delete_incoming_by_channel.app_error",
+    "translation": "Não foi possível remover o webhook"
+  },
+  {
     "id": "store.sql_webhooks.permanent_delete_incoming_by_user.app_error",
     "translation": "Nós não podemos deletar o webhook"
+  },
+  {
+    "id": "store.sql_webhooks.permanent_delete_outgoing_by_channel.app_error",
+    "translation": "Não foi possível remover o webhook"
   },
   {
     "id": "store.sql_webhooks.permanent_delete_outgoing_by_user.app_error",
@@ -6116,6 +6508,10 @@
     "translation": "Sistema"
   },
   {
+    "id": "utils.config.add_client_locale.app_error",
+    "translation": "Não é possível carregar o arquivo de configuração do mattermost:  Adicionando DefaultClientLocale ao AvailableLocales."
+  },
+  {
     "id": "utils.config.load_config.decoding.panic",
     "translation": "Erro ao decodificar o arquivo de configuração={{.Filename}}, err={{.Error}}"
   },
@@ -6136,8 +6532,12 @@
     "translation": "Um erro ocorreu durante o salvamento do arquivo {{.Filename}}"
   },
   {
+    "id": "utils.config.supported_available_locales.app_error",
+    "translation": "Unable to load mattermost configuration file:  AvailableLocales must include DefaultClientLocale. Setting AvailableLocales to all locales as default value."
+  },
+  {
     "id": "utils.config.supported_client_locale.app_error",
-    "translation": "Não foi possível carregar o arquivo de configuração do mattermost:  O DefaultClientLocale deve ser um dos idiomas suportados"
+    "translation": "Unable to load mattermost configuration file:  DefaultClientLocale must be one of the supported locales. Setting DefaultClientLocale to en as default value."
   },
   {
     "id": "utils.config.supported_server_locale.app_error",

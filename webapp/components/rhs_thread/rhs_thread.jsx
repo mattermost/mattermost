@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import CreateComment from 'components/create_comment.jsx';
+import CreateComment from 'components/create_comment';
 import RhsHeaderPost from 'components/rhs_header_post.jsx';
 import RootPost from 'components/rhs_root_post.jsx';
 import Comment from 'components/rhs_comment.jsx';
@@ -343,7 +343,7 @@ export default class RhsThread extends React.Component {
 
         let isRootFlagged = false;
         if (this.state.flaggedPosts) {
-            isRootFlagged = this.state.flaggedPosts.get(selected.id) === 'true';
+            isRootFlagged = this.state.flaggedPosts.get(selected.id) != null;
         }
 
         let rootStatus = 'offline';
@@ -367,7 +367,7 @@ export default class RhsThread extends React.Component {
 
             let isFlagged = false;
             if (this.state.flaggedPosts) {
-                isFlagged = this.state.flaggedPosts.get(comPost.id) === 'true';
+                isFlagged = this.state.flaggedPosts.get(comPost.id) != null;
             }
 
             let status = 'offline';

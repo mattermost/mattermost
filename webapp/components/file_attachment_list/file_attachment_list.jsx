@@ -61,14 +61,16 @@ export default class FileAttachmentList extends React.Component {
 
     render() {
         const postFiles = [];
+        let fileInfos = [];
         if (this.props.fileInfos && this.props.fileInfos.length > 0) {
-            for (let i = 0; i < Math.min(this.props.fileInfos.length, Constants.MAX_DISPLAY_FILES); i++) {
-                const fileInfo = this.props.fileInfos[i];
+            fileInfos = this.props.fileInfos.sort((a, b) => a.create_at - b.create_at);
+            for (let i = 0; i < Math.min(fileInfos.length, Constants.MAX_DISPLAY_FILES); i++) {
+                const fileInfo = fileInfos[i];
 
                 postFiles.push(
                     <FileAttachment
                         key={fileInfo.id}
-                        fileInfo={this.props.fileInfos[i]}
+                        fileInfo={fileInfos[i]}
                         index={i}
                         handleImageClick={this.handleImageClick}
                         compactDisplay={this.props.compactDisplay}
@@ -96,7 +98,7 @@ export default class FileAttachmentList extends React.Component {
                     show={this.state.showPreviewModal}
                     onModalDismissed={() => this.setState({showPreviewModal: false})}
                     startId={this.state.startImgIndex}
-                    fileInfos={this.props.fileInfos}
+                    fileInfos={fileInfos}
                 />
             </div>
         );

@@ -8,6 +8,7 @@ import Constants from 'utils/constants.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
 import DelayedAction from 'utils/delayed_action.jsx';
 import * as UserAgent from 'utils/user_agent.jsx';
+import * as FileUtils from 'utils/file_utils';
 import * as Utils from 'utils/utils.jsx';
 
 import {intlShape, injectIntl, defineMessages} from 'react-intl';
@@ -72,6 +73,8 @@ class FileUpload extends React.Component {
     }
 
     uploadFiles(files) {
+        const sortedFiles = Utils.sortFilesByName(files);
+
         // clear any existing errors
         this.props.onUploadError(null);
 
@@ -83,9 +86,9 @@ class FileUpload extends React.Component {
         // keep track of how many files have been too large
         const tooLargeFiles = [];
 
-        for (let i = 0; i < files.length && numUploads < uploadsRemaining; i++) {
-            if (files[i].size > global.mm_config.MaxFileSize) {
-                tooLargeFiles.push(files[i]);
+        for (let i = 0; i < sortedFiles.length && numUploads < uploadsRemaining; i++) {
+            if (sortedFiles[i].size > global.mm_config.MaxFileSize) {
+                tooLargeFiles.push(sortedFiles[i]);
                 continue;
             }
 
@@ -93,8 +96,8 @@ class FileUpload extends React.Component {
             const clientId = Utils.generateId();
 
             const request = uploadFile(
-                files[i],
-                files[i].name,
+                sortedFiles[i],
+                sortedFiles[i].name,
                 channelId,
                 clientId,
                 this.fileUploadSuccess.bind(this, channelId),
@@ -111,7 +114,7 @@ class FileUpload extends React.Component {
         }
 
         const {formatMessage} = this.props.intl;
-        if (files.length > uploadsRemaining) {
+        if (sortedFiles.length > uploadsRemaining) {
             this.props.onUploadError(formatMessage(holders.limited, {count: Constants.MAX_UPLOAD_FILES}));
         } else if (tooLargeFiles.length > 1) {
             var tooLargeFilenames = tooLargeFiles.map((file) => file.name).join(', ');
@@ -133,7 +136,7 @@ class FileUpload extends React.Component {
     }
 
     handleDrop(e) {
-        if (global.window.mm_config.EnableFileAttachments === 'false') {
+        if (!FileUtils.canUploadFiles()) {
             this.props.onUploadError(Utils.localizeMessage('file_upload.disabled', 'File attachments are disabled.'));
             return;
         }
@@ -170,7 +173,7 @@ class FileUpload extends React.Component {
         });
 
         let dragsterActions = {};
-        if (global.window.mm_config.EnableFileAttachments === 'true') {
+        if (FileUtils.canUploadFiles()) {
             dragsterActions = {
                 enter(dragsterEvent, e) {
                     var files = e.originalEvent.dataTransfer;
@@ -261,7 +264,7 @@ class FileUpload extends React.Component {
         // This looks redundant, but must be done this way due to
         // setState being an asynchronous call
         if (items && items.length > 0) {
-            if (global.window.mm_config.EnableFileAttachments === 'false') {
+            if (!FileUtils.canUploadFiles()) {
                 this.props.onUploadError(Utils.localizeMessage('file_upload.disabled', 'File attachments are disabled.'));
                 return;
             }
@@ -324,7 +327,7 @@ class FileUpload extends React.Component {
         if (Utils.cmdOrCtrlPressed(e) && e.keyCode === Constants.KeyCodes.U) {
             e.preventDefault();
 
-            if (global.window.mm_config.EnableFileAttachments === 'false') {
+            if (!FileUtils.canUploadFiles()) {
                 this.props.onUploadError(Utils.localizeMessage('file_upload.disabled', 'File attachments are disabled.'));
                 return;
             }
@@ -375,7 +378,7 @@ class FileUpload extends React.Component {
         const uploadsRemaining = Constants.MAX_UPLOAD_FILES - this.props.getFileCount(channelId);
 
         let fileDiv;
-        if (global.window.mm_config.EnableFileAttachments === 'true') {
+        if (FileUtils.canUploadFiles()) {
             fileDiv = (
                 <div className='icon--attachment'>
                     <span
