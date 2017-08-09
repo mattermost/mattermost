@@ -119,14 +119,17 @@ func testCreatePostWithOutgoingHook(
 
 	enableOutgoingHooks := utils.Cfg.ServiceSettings.EnableOutgoingWebhooks
 	enableAdminOnlyHooks := utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations
+	allowedInternalConnections := *utils.Cfg.ServiceSettings.AllowedUntrustedInternalConnections
 	defer func() {
 		utils.Cfg.ServiceSettings.EnableOutgoingWebhooks = enableOutgoingHooks
 		utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations = enableAdminOnlyHooks
 		utils.SetDefaultRolesBasedOnConfig()
+		utils.Cfg.ServiceSettings.AllowedUntrustedInternalConnections = &allowedInternalConnections
 	}()
 	utils.Cfg.ServiceSettings.EnableOutgoingWebhooks = true
 	*utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations = true
 	utils.SetDefaultRolesBasedOnConfig()
+	*utils.Cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost 127.0.0.1"
 
 	var hook *model.OutgoingWebhook
 	var post *model.Post
