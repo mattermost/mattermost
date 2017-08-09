@@ -586,6 +586,7 @@ func getClientConfig(c *model.Config) map[string]string {
 
 		if *License.Features.ThemeManagement {
 			props["EnableThemeSelection"] = strconv.FormatBool(*c.ThemeSettings.EnableThemeSelection)
+			props["AllowCustomThemes"] = strconv.FormatBool(*c.ThemeSettings.AllowCustomThemes)
 		}
 	}
 

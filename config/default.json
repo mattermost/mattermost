@@ -187,7 +187,8 @@
         "AllowBannerDismissal": true
     },
     "ThemeSettings": {
-        "EnableThemeSelection": true
+        "EnableThemeSelection": true,
+        "AllowCustomThemes": true
     },
     "GitLabSettings": {
         "Enable": false,
