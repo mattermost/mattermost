@@ -165,10 +165,10 @@ export default class MoreChannels extends React.Component {
             </p>
         );
 
-        const isAdmin = TeamStore.isTeamAdminForCurrentTeam() || UserStore.isSystemAdminForCurrentUser();
+        const isTeamAdmin = TeamStore.isTeamAdminForCurrentTeam();
         const isSystemAdmin = UserStore.isSystemAdminForCurrentUser();
 
-        if (!showCreateOption(Constants.OPEN_CHANNEL, isAdmin, isSystemAdmin)) {
+        if (!showCreateOption(Constants.OPEN_CHANNEL, isTeamAdmin, isSystemAdmin)) {
             createNewChannelButton = null;
             createChannelHelpText = null;
         }

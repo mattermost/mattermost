@@ -1064,15 +1064,13 @@ func TestDeleteChannel(t *testing.T) {
 
 	// last member of a public channel should have required permission to delete
 	publicChannel6 = th.CreateChannelWithClient(th.Client, model.CHANNEL_OPEN)
-
 	_, resp = Client.DeleteChannel(publicChannel6.Id)
 	CheckForbiddenStatus(t, resp)
 
-	// last member of a private channel should be able to delete it regardless of required permissions
+	// last member of a private channel should not be able to delete it if they don't have required permissions
 	privateChannel7 = th.CreateChannelWithClient(th.Client, model.CHANNEL_PRIVATE)
-
 	_, resp = Client.DeleteChannel(privateChannel7.Id)
-	CheckNoError(t, resp)
+	CheckForbiddenStatus(t, resp)
 }
 
 func TestRestoreChannel(t *testing.T) {

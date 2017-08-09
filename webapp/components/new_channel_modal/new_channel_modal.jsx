@@ -192,13 +192,11 @@ export default class NewChannelModal extends React.PureComponent {
             </a>
         );
 
-        const isAdmin = this.props.isTeamAdmin || this.props.isSystemAdmin;
-
-        if (!ChannelUtils.showCreateOption(Constants.OPEN_CHANNEL, isAdmin, this.props.isSystemAdmin)) {
+        if (!ChannelUtils.showCreateOption(Constants.OPEN_CHANNEL, this.props.isTeamAdmin, this.props.isSystemAdmin)) {
             createPublicChannelLink = null;
         }
 
-        if (!ChannelUtils.showCreateOption(Constants.PRIVATE_CHANNEL, isAdmin, this.props.isSystemAdmin)) {
+        if (!ChannelUtils.showCreateOption(Constants.PRIVATE_CHANNEL, this.props.isTeamAdmin, this.props.isSystemAdmin)) {
             createPrivateChannelLink = null;
         }
 
