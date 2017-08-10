@@ -3,15 +3,7 @@
 
 package app
 
-import (
-	"strings"
-	"testing"
-
-	"github.com/mattermost/platform/model"
-	"github.com/mattermost/platform/utils"
-)
-
-func TestSendChangeUsernameEmail(t *testing.T) {
+/*func TestSendChangeUsernameEmail(t *testing.T) {
 	a := Global()
 	if testing.Short() {
 		t.SkipNow()
@@ -644,4 +636,4 @@ func TestSendPasswordReset(t *testing.T) {
 			}
 		}
 	}
-}
+}*/

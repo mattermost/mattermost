@@ -1,8 +1,5 @@
 .PHONY: build package run stop run-client run-server stop-client stop-server restart restart-server restart-client start-docker clean-dist clean nuke check-style check-client-style check-server-style check-unit-tests test dist setup-mac prepare-enteprise run-client-tests setup-run-client-tests cleanup-run-client-tests test-client build-linux build-osx build-windows internal-test-web-client vet run-server-for-web-client-tests
 
-# For golang 1.5.x compatibility (remove when we don't want to support it anymore)
-export GO15VENDOREXPERIMENT=1
-
 # Build Flags
 BUILD_NUMBER ?= $(BUILD_NUMBER:)
 BUILD_DATE = $(shell date -u)
@@ -29,7 +26,19 @@ else
 	BUILD_ENTERPRISE_READY = false
 	BUILD_TYPE_NAME = team
 endif
-BUILD_WEBAPP_DIR = ./webapp
+BUILD_WEBAPP_DIR ?= ./webapp
+BUILD_CLIENT = false
+BUILD_HASH_CLIENT = independant
+ifneq ($(wildcard $(BUILD_WEBAPP_DIR)/.),)
+	ifeq ($(BUILD_CLIENT),true)
+		BUILD_CLIENT = true
+		BUILD_HASH_CLIENT = $(shell cd $(BUILD_WEBAPP_DIR) && git rev-parse HEAD)
+	else
+		BUILD_CLIENT = false
+	endif
+else
+	BUILD_CLIENT = false
+endif
 
 # Golang Flags
 GOPATH ?= $(GOPATH:):./vendor
@@ -68,9 +77,19 @@ else
 ALL_PACKAGES_COMMA=$(TE_PACKAGES_COMMA)
 endif
 
+# Prepares the enterprise build if exists. The IGNORE stuff is a hack to get the Makefile to execute the commands outside a target
+ifeq ($(BUILD_ENTERPRISE_READY),true)
+	IGNORE:=$(shell echo Enterprise build selected, preparing)
+	IGNORE:=$(shell mkdir -p imports/)
+	IGNORE:=$(shell cp $(BUILD_ENTERPRISE_DIR)/imports/imports.go imports/)
+	IGNORE:=$(shell rm -f enterprise)
+	IGNORE:=$(shell ln -s $(BUILD_ENTERPRISE_DIR) enterprise)
+endif
+
+
 all: run
 
-dist: | check-style test package
+include build/*.mk
 
 start-docker:
 	@echo Starting docker containers
@@ -202,12 +221,15 @@ clean-docker:
 		docker rm -v mattermost-elasticsearch > /dev/null; \
 	fi
 
-check-client-style:
-	@echo Checking client style
+govet:
+	@echo Running GOVET
+	$(GO) vet $(GOFLAGS) $(TE_PACKAGES) || exit 1
 
-	cd $(BUILD_WEBAPP_DIR) && $(MAKE) check-style
+ifeq ($(BUILD_ENTERPRISE_READY),true)
+	$(GO) vet $(GOFLAGS) $(EE_PACKAGES) || exit 1
+endif
 
-check-server-style: govet
+gofmt: 
 	@echo Running GOFMT
 
 	@for package in $(TE_PACKAGES) $(EE_PACKAGES); do \
@@ -224,9 +246,9 @@ check-server-style: govet
 	done
 	@echo "gofmt success"; \
 
-check-style: check-client-style check-server-style
+check-style: govet gofmt
 
-test-te-race: start-docker prepare-enterprise
+test-te-race:
 	@echo Testing TE race conditions
 
 	@echo "Packages to test: "$(TE_PACKAGES)
@@ -236,7 +258,7 @@ test-te-race: start-docker prepare-enterprise
 		$(GO) test $(GOFLAGS) -race -run=$(TESTS) -test.timeout=4000s $$package || exit 1; \
 	done
 
-test-ee-race: start-docker prepare-enterprise
+test-ee-race:
 	@echo Testing EE race conditions
 
 ifeq ($(BUILD_ENTERPRISE_READY),true)
@@ -261,7 +283,7 @@ test-server-race: test-te-race test-ee-race
 do-cover-file:
 	@echo "mode: count" > cover.out
 
-test-te: start-docker prepare-enterprise do-cover-file
+test-te: do-cover-file
 	@echo Testing TE
 
 
@@ -276,27 +298,7 @@ test-te: start-docker prepare-enterprise do-cover-file
 		fi; \
 	done
 
-test-postgres: start-docker prepare-enterprise
-	@echo Testing Postgres
-
-	if [ ! -f config/config.json ]; then \
-		cp config/default.json config/config.json; \
-	fi; \
-
-	@sed -i'' -e 's|"DriverName": "mysql"|"DriverName": "postgres"|g' config/config.json
-	@sed -i'' -e 's|"DataSource": "mmuser:mostest@tcp(dockerhost:3306)/mattermost_test?charset=utf8mb4,utf8"|"DataSource": "postgres://mmuser:mostest@dockerhost:5432?sslmode=disable"|g' config/config.json
-
-	$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=2000s -covermode=count -coverprofile=cprofile.out -coverpkg=$(ALL_PACKAGES_COMMA) github.com/mattermost/platform/store || exit 1; \
-	if [ -f cprofile.out ]; then \
-		tail -n +2 cprofile.out >> cover.out; \
-		rm cprofile.out; \
-	fi; \
-
-	@sed -i'' -e 's|"DataSource": "postgres://mmuser:mostest@dockerhost:5432?sslmode=disable"|"DataSource": "mmuser:mostest@tcp(dockerhost:3306)/mattermost_test?charset=utf8mb4,utf8"|g' config/config.json
-	@sed -i'' -e 's|"DriverName": "postgres"|"DriverName": "mysql"|g' config/config.json
-	@rm config/config.json-e
-
-test-ee: start-docker prepare-enterprise do-cover-file
+test-ee: do-cover-file
 	@echo Testing EE
 
 ifeq ($(BUILD_ENTERPRISE_READY),true)
@@ -320,15 +322,31 @@ ifeq ($(BUILD_ENTERPRISE_READY),true)
 	rm -f config/*.key
 endif
 
+test-postgres:
+	@echo Testing Postgres
+
+	@sed -i'' -e 's|"DriverName": "mysql"|"DriverName": "postgres"|g' config/config.json
+	@sed -i'' -e 's|"DataSource": "mmuser:mostest@tcp(dockerhost:3306)/mattermost_test?charset=utf8mb4,utf8"|"DataSource": "postgres://mmuser:mostest@dockerhost:5432?sslmode=disable"|g' config/config.json
+
+	$(GO) test $(GOFLAGS) -run=$(TESTS) -test.v -test.timeout=2000s -covermode=count -coverprofile=cprofile.out -coverpkg=$(ALL_PACKAGES_COMMA) github.com/mattermost/platform/store || exit 1; \
+	if [ -f cprofile.out ]; then \
+		tail -n +2 cprofile.out >> cover.out; \
+		rm cprofile.out; \
+	fi; \
+
+	@sed -i'' -e 's|"DataSource": "postgres://mmuser:mostest@dockerhost:5432?sslmode=disable"|"DataSource": "mmuser:mostest@tcp(dockerhost:3306)/mattermost_test?charset=utf8mb4,utf8"|g' config/config.json
+	@sed -i'' -e 's|"DriverName": "postgres"|"DriverName": "mysql"|g' config/config.json
+	@rm config/config.json-e
+
 test-server: test-te test-ee
 
-internal-test-web-client: start-docker prepare-enterprise
+internal-test-web-client:
 	$(GO) run $(GOFLAGS) ./cmd/platform/*go test web_client_tests
 
 run-server-for-web-client-tests:
 	$(GO) run $(GOFLAGS) ./cmd/platform/*go test web_client_tests_server
 
-test-client: start-docker prepare-enterprise
+test-client:
 	@echo Running client tests
 
 	cd $(BUILD_WEBAPP_DIR) && $(MAKE) test
@@ -341,127 +359,13 @@ cover:
 	$(GO) tool cover -html=cover.out
 	$(GO) tool cover -html=ecover.out
 
-.prebuild:
-	@echo Preparation for running go code
-	go get $(GOFLAGS) github.com/Masterminds/glide
-
-	touch $@
-
-prepare-enterprise:
-ifeq ($(BUILD_ENTERPRISE_READY),true)
-	@echo Enterprise build selected, preparing
-	mkdir -p imports/
-	cp $(BUILD_ENTERPRISE_DIR)/imports/imports.go imports/
-	rm -f enterprise
-	ln -s $(BUILD_ENTERPRISE_DIR) enterprise
-endif
-
-build-linux: .prebuild prepare-enterprise
-	@echo Build Linux amd64
-	env GOOS=linux GOARCH=amd64 $(GO) install $(GOFLAGS) $(GO_LINKER_FLAGS) ./cmd/platform
-
-build-osx: .prebuild prepare-enterprise
-	@echo Build OSX amd64
-	env GOOS=darwin GOARCH=amd64 $(GO) install $(GOFLAGS) $(GO_LINKER_FLAGS) ./cmd/platform
-
-build-windows: .prebuild prepare-enterprise
-	@echo Build Windows amd64
-	env GOOS=windows GOARCH=amd64 $(GO) install $(GOFLAGS) $(GO_LINKER_FLAGS) ./cmd/platform
-
-build: build-linux build-windows build-osx
-
-build-client:
-	@echo Building mattermost web app
-
-	cd $(BUILD_WEBAPP_DIR) && $(MAKE) build
-
-package: build build-client
-	@ echo Packaging mattermost
-
-	@# Remove any old files
-	rm -Rf $(DIST_ROOT)
-
-	@# Create needed directories
-	mkdir -p $(DIST_PATH)/bin
-	mkdir -p $(DIST_PATH)/logs
-
-	@# Resource directories
-	cp -RL config $(DIST_PATH)
-	cp -RL fonts $(DIST_PATH)
-	cp -RL templates $(DIST_PATH)
-	cp -RL i18n $(DIST_PATH)
-
-	mv $(DIST_PATH)/config/default.json $(DIST_PATH)/config/config.json
-
-	@# Disable developer settings
-	sed -i'' -e 's|"ConsoleLevel": "DEBUG"|"ConsoleLevel": "INFO"|g' $(DIST_PATH)/config/config.json
-	sed -i'' -e 's|"SiteURL": "http://localhost:8065"|"SiteURL": ""|g' $(DIST_PATH)/config/config.json
-
-	@# Reset email sending to original configuration
-	sed -i'' -e 's|"SendEmailNotifications": true,|"SendEmailNotifications": false,|g' $(DIST_PATH)/config/config.json
-	sed -i'' -e 's|"FeedbackEmail": "test@example.com",|"FeedbackEmail": "",|g' $(DIST_PATH)/config/config.json
-	sed -i'' -e 's|"SMTPServer": "dockerhost",|"SMTPServer": "",|g' $(DIST_PATH)/config/config.json
-	sed -i'' -e 's|"SMTPPort": "2500",|"SMTPPort": "",|g' $(DIST_PATH)/config/config.json
-
-	@# Package webapp
-	mkdir -p $(DIST_PATH)/webapp/dist
-	cp -RL $(BUILD_WEBAPP_DIR)/dist $(DIST_PATH)/webapp
-
-	@# Help files
-ifeq ($(BUILD_ENTERPRISE_READY),true)
-	cp $(BUILD_ENTERPRISE_DIR)/ENTERPRISE-EDITION-LICENSE.txt $(DIST_PATH)
-else
-	cp build/MIT-COMPILED-LICENSE.md $(DIST_PATH)
-endif
-	cp NOTICE.txt $(DIST_PATH)
-	cp README.md $(DIST_PATH)
-
-	@# ----- PLATFORM SPECIFIC -----
-
-	@# Make osx package
-	@# Copy binary
-ifeq ($(BUILDER_GOOS_GOARCH),"darwin_amd64")
-	cp $(GOPATH)/bin/platform $(DIST_PATH)/bin # from native bin dir, not cross-compiled
-else
-	cp $(GOPATH)/bin/darwin_amd64/platform $(DIST_PATH)/bin # from cross-compiled bin dir
-endif
-	@# Package
-	tar -C dist -czf $(DIST_PATH)-$(BUILD_TYPE_NAME)-osx-amd64.tar.gz mattermost
-	@# Cleanup
-	rm -f $(DIST_PATH)/bin/platform
-
-	@# Make windows package
-	@# Copy binary
-ifeq ($(BUILDER_GOOS_GOARCH),"windows_amd64")
-	cp $(GOPATH)/bin/platform.exe $(DIST_PATH)/bin # from native bin dir, not cross-compiled
-else
-	cp $(GOPATH)/bin/windows_amd64/platform.exe $(DIST_PATH)/bin # from cross-compiled bin dir
-endif
-	@# Package
-	cd $(DIST_ROOT) && zip -9 -r -q -l mattermost-$(BUILD_TYPE_NAME)-windows-amd64.zip mattermost && cd ..
-	@# Cleanup
-	rm -f $(DIST_PATH)/bin/platform.exe
-
-	@# Make linux package
-	@# Copy binary
-ifeq ($(BUILDER_GOOS_GOARCH),"linux_amd64")
-	cp $(GOPATH)/bin/platform $(DIST_PATH)/bin # from native bin dir, not cross-compiled
-else
-	cp $(GOPATH)/bin/linux_amd64/platform $(DIST_PATH)/bin # from cross-compiled bin dir
-endif
-	@# Package
-	tar -C dist -czf $(DIST_PATH)-$(BUILD_TYPE_NAME)-linux-amd64.tar.gz mattermost
-	@# Don't clean up native package so dev machines will have an unzipped package available
-	@#rm -f $(DIST_PATH)/bin/platform
-
-
-run-server: prepare-enterprise start-docker
+run-server: start-docker
 	@echo Running mattermost for development
 
 	mkdir -p $(BUILD_WEBAPP_DIR)/dist/files
 	$(GO) run $(GOFLAGS) $(GO_LINKER_FLAGS) ./cmd/platform/*.go --disableconfigwatch &
 
-run-cli: prepare-enterprise start-docker
+run-cli: start-docker
 	@echo Running mattermost for development
 	@echo Example should be like 'make ARGS="-version" run-cli'
 
@@ -545,13 +449,6 @@ nuke: clean clean-docker
 setup-mac:
 	echo $$(boot2docker ip 2> /dev/null) dockerhost | sudo tee -a /etc/hosts
 
-govet:
-	@echo Running GOVET
-	$(GO) vet $(GOFLAGS) $(TE_PACKAGES) || exit 1
-
-ifeq ($(BUILD_ENTERPRISE_READY),true)
-	$(GO) vet $(GOFLAGS) $(EE_PACKAGES) || exit 1
-endif
 
 todo:
 	@! ag --ignore Makefile --ignore-dir vendor --ignore-dir runtime --ignore-dir webapp/non_npm_dependencies/ TODO
