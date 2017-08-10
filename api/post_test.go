@@ -188,10 +188,13 @@ func testCreatePostWithOutgoingHook(
 	channel := th.CreateChannel(Client, team)
 
 	enableOutgoingHooks := utils.Cfg.ServiceSettings.EnableOutgoingWebhooks
+	allowedInternalConnections := *utils.Cfg.ServiceSettings.AllowedUntrustedInternalConnections
 	defer func() {
 		utils.Cfg.ServiceSettings.EnableOutgoingWebhooks = enableOutgoingHooks
+		utils.Cfg.ServiceSettings.AllowedUntrustedInternalConnections = &allowedInternalConnections
 	}()
 	utils.Cfg.ServiceSettings.EnableOutgoingWebhooks = true
+	*utils.Cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost 127.0.0.1"
 
 	var hook *model.OutgoingWebhook
 	var post *model.Post
@@ -1359,10 +1362,13 @@ func TestGetOpenGraphMetadata(t *testing.T) {
 	Client := th.BasicClient
 
 	enableLinkPreviews := *utils.Cfg.ServiceSettings.EnableLinkPreviews
+	allowedInternalConnections := *utils.Cfg.ServiceSettings.AllowedUntrustedInternalConnections
 	defer func() {
 		*utils.Cfg.ServiceSettings.EnableLinkPreviews = enableLinkPreviews
+		utils.Cfg.ServiceSettings.AllowedUntrustedInternalConnections = &allowedInternalConnections
 	}()
 	*utils.Cfg.ServiceSettings.EnableLinkPreviews = true
+	*utils.Cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost 127.0.0.1"
 
 	ogDataCacheMissCount := 0
 

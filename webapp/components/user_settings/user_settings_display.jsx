@@ -564,14 +564,15 @@ export default class UserSettingsDisplay extends React.Component {
             );
         }
 
-        const userLocale = this.props.user.locale;
+        let userLocale = this.props.user.locale;
         if (this.props.activeSection === 'languages') {
             if (!I18n.isLanguageAvailable(userLocale)) {
-                this.props.user.locale = global.window.mm_config.DefaultClientLocale;
+                userLocale = global.window.mm_config.DefaultClientLocale;
             }
             languagesSection = (
                 <ManageLanguages
                     user={this.props.user}
+                    locale={userLocale}
                     updateSection={(e) => {
                         this.updateSection('');
                         e.preventDefault();
