@@ -516,8 +516,11 @@ func getClientConfig(c *model.Config) map[string]string {
 	props["DiagnosticId"] = CfgDiagnosticId
 	props["DiagnosticsEnabled"] = strconv.FormatBool(*c.LogSettings.EnableDiagnostics)
 
-	if IsLicensed() {
+	props["EnableThemeSelection"] = strconv.FormatBool(*c.ThemeSettings.EnableThemeSelection)
+	props["AllowCustomThemes"] = strconv.FormatBool(*c.ThemeSettings.AllowCustomThemes)
+	props["AllowedThemes"] = strings.Join(c.ThemeSettings.AllowedThemes, ",")
 
+	if IsLicensed() {
 		License := License()
 		props["ExperimentalTownSquareIsReadOnly"] = strconv.FormatBool(*c.TeamSettings.ExperimentalTownSquareIsReadOnly)
 

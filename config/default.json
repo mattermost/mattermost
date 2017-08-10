@@ -188,7 +188,8 @@
     },
     "ThemeSettings": {
         "EnableThemeSelection": true,
-        "AllowCustomThemes": true
+        "AllowCustomThemes": true,
+        "AllowedThemes": []
     },
     "GitLabSettings": {
         "Enable": false,

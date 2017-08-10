@@ -335,6 +335,7 @@ type AnnouncementSettings struct {
 type ThemeSettings struct {
 	EnableThemeSelection *bool
 	AllowCustomThemes    *bool
+	AllowedThemes        []string
 }
 
 type TeamSettings struct {
@@ -1004,6 +1005,10 @@ func (o *Config) SetDefaults() {
 	if o.ThemeSettings.AllowCustomThemes == nil {
 		o.ThemeSettings.AllowCustomThemes = new(bool)
 		*o.ThemeSettings.AllowCustomThemes = true
+	}
+
+	if o.ThemeSettings.AllowedThemes == nil {
+		o.ThemeSettings.AllowedThemes = []string{}
 	}
 
 	if o.LdapSettings.Enable == nil {
