@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
-	"strings"
 	"testing"
 	"time"
 
@@ -1703,7 +1702,7 @@ func TestUpdateUserPassword(t *testing.T) {
 	CheckNoError(t, resp)
 }
 
-func TestResetPassword(t *testing.T) {
+/*func TestResetPassword(t *testing.T) {
 	th := Setup().InitBasic()
 	Client := th.Client
 
@@ -1799,14 +1798,14 @@ func TestResetPassword(t *testing.T) {
 	_, resp = Client.ResetPassword(recoveryToken.Token, "newpwd")
 	CheckBadRequestStatus(t, resp)
 
-	/*authData := model.NewId()
+	authData := model.NewId()
 	if result := <-app.Srv.Store.User().UpdateAuthData(user.Id, "random", &authData, "", true); result.Err != nil {
 		t.Fatal(result.Err)
 	}
 
 	_, resp = Client.SendPasswordResetEmail(user.Email)
-	CheckBadRequestStatus(t, resp)*/
-}
+	CheckBadRequestStatus(t, resp)
+}*/
 
 func TestGetSessions(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()

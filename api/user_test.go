@@ -1303,7 +1303,7 @@ func TestSendPasswordReset(t *testing.T) {
 	}
 }
 
-func TestResetPassword(t *testing.T) {
+/*func TestResetPassword(t *testing.T) {
 	th := Setup().InitSystemAdmin()
 	Client := th.SystemAdminClient
 	team := th.SystemAdminTeam
@@ -1390,15 +1390,7 @@ func TestResetPassword(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	/*authData := model.NewId()
-	if result := <-app.Srv.Store.User().UpdateAuthData(user.Id, "random", &authData, "", true); result.Err != nil {
-		t.Fatal(result.Err)
-	}
-
-	if _, err := Client.ResetPassword(recovery.Code, "newpwd1"); err == nil {
-		t.Fatal("Should have errored - sso user")
-	}*/
-}
+}*/
 
 func TestUserUpdateNotify(t *testing.T) {
 	th := Setup().InitBasic()

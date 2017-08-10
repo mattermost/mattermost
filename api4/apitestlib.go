@@ -53,9 +53,6 @@ func SetupEnterprise() *TestHelper {
 		*utils.Cfg.TeamSettings.MaxUsersPerTeam = 50
 		*utils.Cfg.RateLimitSettings.Enable = false
 		utils.Cfg.EmailSettings.SendEmailNotifications = true
-		utils.Cfg.EmailSettings.SMTPServer = "dockerhost"
-		utils.Cfg.EmailSettings.SMTPPort = "2500"
-		utils.Cfg.EmailSettings.FeedbackEmail = "test@example.com"
 		utils.DisableDebugLogForTest()
 		utils.License().Features.SetDefaults()
 		app.Global().NewServer()
@@ -91,9 +88,6 @@ func Setup() *TestHelper {
 		*utils.Cfg.TeamSettings.MaxUsersPerTeam = 50
 		*utils.Cfg.RateLimitSettings.Enable = false
 		utils.Cfg.EmailSettings.SendEmailNotifications = true
-		utils.Cfg.EmailSettings.SMTPServer = "dockerhost"
-		utils.Cfg.EmailSettings.SMTPPort = "2500"
-		utils.Cfg.EmailSettings.FeedbackEmail = "test@example.com"
 		utils.DisableDebugLogForTest()
 		app.Global().NewServer()
 		app.Global().InitStores()
