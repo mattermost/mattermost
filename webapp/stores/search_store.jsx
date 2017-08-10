@@ -174,11 +174,14 @@ SearchStore.dispatchToken = AppDispatcher.register((payload) => {
     var action = payload.action;
 
     switch (action.type) {
-    case ActionTypes.RECEIVED_SEARCH:
+    case ActionTypes.RECEIVED_SEARCH: {
+        const results = SearchStore.getSearchResults() || {};
+        const posts = Object.values(results.posts || {});
+        const channelId = posts.length > 0 ? posts[0].channel_id : '';
         if (SearchStore.getIsPinnedPosts() === action.is_pinned_posts &&
             action.is_pinned_posts === true &&
-            SearchStore.getSearchResults().posts &&
-            ChannelStore.getCurrentId() !== Object.values(SearchStore.getSearchResults().posts)[0].channel_id) {
+            channelId !== '' &&
+            ChannelStore.getCurrentId() !== channelId) {
             // ignore pin posts update after switch to a new channel
             return;
         }
@@ -186,6 +189,7 @@ SearchStore.dispatchToken = AppDispatcher.register((payload) => {
         SearchStore.storeSearchResults(action.results, action.is_mention_search, action.is_flagged_posts, action.is_pinned_posts);
         SearchStore.emitSearchChange();
         break;
+    }
     case ActionTypes.RECEIVED_SEARCH_TERM:
         if (action.do_search) {
             // while a search is in progress, hide results from previous search
