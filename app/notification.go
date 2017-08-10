@@ -828,12 +828,14 @@ func GetExplicitMentions(message string, keywords map[string][]string) (map[stri
 				// Case-sensitive check for first name
 				if ids, match := keywords[splitWord]; match {
 					addMentionedUsers(ids)
-				} else if _, ok := systemMentions[word]; !ok && strings.HasPrefix(word, "@") {
-					username := word[1:len(splitWord)]
+				} else if _, ok := systemMentions[splitWord]; !ok && strings.HasPrefix(splitWord, "@") {
+					username := splitWord[1:]
 					potentialOthersMentioned = append(potentialOthersMentioned, username)
 				}
 			}
-		} else if _, ok := systemMentions[word]; !ok && strings.HasPrefix(word, "@") {
+		}
+
+		if _, ok := systemMentions[word]; !ok && strings.HasPrefix(word, "@") {
 			username := word[1:]
 			potentialOthersMentioned = append(potentialOthersMentioned, username)
 		}
