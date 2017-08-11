@@ -193,7 +193,7 @@ func decodeIncomingWebhookRequest(by []byte) (*IncomingWebhookRequest, error) {
 	}
 }
 
-func IncomingWebhookRequestFromJson(data io.Reader) *IncomingWebhookRequest {
+func IncomingWebhookRequestFromJson(data io.Reader) (*IncomingWebhookRequest, error) {
 	buf := new(bytes.Buffer)
 	buf.ReadFrom(data)
 	by := buf.Bytes()
@@ -204,12 +204,12 @@ func IncomingWebhookRequestFromJson(data io.Reader) *IncomingWebhookRequest {
 	if err != nil {
 		o, err = decodeIncomingWebhookRequest(escapeControlCharsFromPayload(by))
 		if err != nil {
-			return nil
+			return nil, err
 		}
 	}
 
 	o.Text = ExpandAnnouncement(o.Text)
 	o.Attachments = ProcessSlackAttachments(o.Attachments)
 
-	return o
+	return o, nil
 }
