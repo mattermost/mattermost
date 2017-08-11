@@ -2106,6 +2106,7 @@
   "setting_upload.noFile": "No file selected.",
   "setting_upload.select": "Select file",
   "sidebar.channels": "PUBLIC CHANNELS",
+  "sidebar.mainMenu": "Main Menu",
   "sidebar.createChannel": "Create new public channel",
   "sidebar.createGroup": "Create new private channel",
   "sidebar.direct": "DIRECT MESSAGES",

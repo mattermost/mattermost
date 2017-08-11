@@ -238,7 +238,7 @@ export default class PopoverListMembers extends React.Component {
         );
 
         return (
-            <div className='channel-header__icon wide'>
+            <div className={'channel-header__icon wide ' + (this.state.showPopover ? 'active' : '')}>
                 <OverlayTrigger
                     trigger={['hover', 'focus']}
                     delayShow={Constants.OVERLAY_TIME_DELAY}

@@ -225,6 +225,9 @@
 
                         img {
                             border: 3px solid transparent;
+                            &:hover {
+                              cursor: pointer;
+                            }
                         }
 
                         .active {
