@@ -22,11 +22,11 @@ func InitTeam() {
 	l4g.Debug(utils.T("api.team.init.debug"))
 
 	BaseRoutes.Teams.Handle("/create", ApiUserRequired(createTeam)).Methods("POST")
-	BaseRoutes.Teams.Handle("/all", ApiAppHandler(getAll)).Methods("GET")
+	BaseRoutes.Teams.Handle("/all", ApiUserRequired(getAll)).Methods("GET")
 	BaseRoutes.Teams.Handle("/all_team_listings", ApiUserRequired(GetAllTeamListings)).Methods("GET")
 	BaseRoutes.Teams.Handle("/get_invite_info", ApiAppHandler(getInviteInfo)).Methods("POST")
-	BaseRoutes.Teams.Handle("/find_team_by_name", ApiAppHandler(findTeamByName)).Methods("POST")
-	BaseRoutes.Teams.Handle("/name/{team_name:[A-Za-z0-9\\-]+}", ApiAppHandler(getTeamByName)).Methods("GET")
+	BaseRoutes.Teams.Handle("/find_team_by_name", ApiUserRequired(findTeamByName)).Methods("POST")
+	BaseRoutes.Teams.Handle("/name/{team_name:[A-Za-z0-9\\-]+}", ApiUserRequired(getTeamByName)).Methods("GET")
 	BaseRoutes.Teams.Handle("/members", ApiUserRequired(getMyTeamMembers)).Methods("GET")
 	BaseRoutes.Teams.Handle("/unread", ApiUserRequired(getMyTeamsUnread)).Methods("GET")
 
