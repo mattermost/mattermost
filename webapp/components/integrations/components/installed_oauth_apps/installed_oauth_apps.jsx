@@ -35,6 +35,11 @@ export default class InstalledOAuthApps extends React.PureComponent {
             getOAuthApps: PropTypes.func.isRequired,
 
             /**
+            * The function to call when Regenerate Secret link is clicked
+            */
+            regenOAuthAppSecret: PropTypes.func.isRequired,
+
+            /**
             * The function to call when Delete link is clicked
             */
             deleteOAuthApp: PropTypes.func.isRequired
@@ -80,6 +85,7 @@ export default class InstalledOAuthApps extends React.PureComponent {
                 <InstalledOAuthApp
                     key={app.id}
                     oauthApp={app}
+                    onRegenerateSecret={this.props.actions.regenOAuthAppSecret}
                     onDelete={this.deleteOAuthApp}
                 />
             );

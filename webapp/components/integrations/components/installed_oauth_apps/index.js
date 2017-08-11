@@ -21,6 +21,7 @@ function mapDispatchToProps(dispatch) {
     return {
         actions: bindActionCreators({
             getOAuthApps: Actions.getOAuthApps,
+            regenOAuthAppSecret: Actions.regenOAuthAppSecret,
             deleteOAuthApp: Actions.deleteOAuthApp
         }, dispatch)
     };
