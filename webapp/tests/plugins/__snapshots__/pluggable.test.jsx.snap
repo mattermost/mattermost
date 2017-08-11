@@ -1,0 +1,27 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`plugins/Pluggable should match snapshot with no overridden component 1`] = `
+<Pluggable>
+  <child
+    hasMention={false}
+    isRHS={false}
+    src="src"
+    user={Object {}}
+  />
+</Pluggable>
+`;
+
+exports[`plugins/Pluggable should match snapshot with overridden component 1`] = `
+<Pluggable>
+  <ProfilePopoverPlugin
+    hasMention={false}
+    isRHS={false}
+    src="src"
+    user={Object {}}
+  >
+    <span>
+      ProfilePopoverPlugin
+    </span>
+  </ProfilePopoverPlugin>
+</Pluggable>
+`;

@@ -2,6 +2,7 @@
 // See License.txt for license information.
 
 import ProfilePopover from './profile_popover.jsx';
+import Pluggable from 'plugins/pluggable.jsx';
 import * as Utils from 'utils/utils.jsx';
 
 import {OverlayTrigger} from 'react-bootstrap';
@@ -76,15 +77,17 @@ export default class UserProfile extends React.Component {
                 placement='right'
                 rootClose={true}
                 overlay={
-                    <ProfilePopover
-                        user={this.props.user}
-                        src={profileImg}
-                        status={this.props.status}
-                        isBusy={this.props.isBusy}
-                        hide={this.hideProfilePopover}
-                        isRHS={this.props.isRHS}
-                        hasMention={this.props.hasMention}
-                    />
+                    <Pluggable>
+                        <ProfilePopover
+                            user={this.props.user}
+                            src={profileImg}
+                            status={this.props.status}
+                            isBusy={this.props.isBusy}
+                            hide={this.hideProfilePopover}
+                            isRHS={this.props.isRHS}
+                            hasMention={this.props.hasMention}
+                        />
+                    </Pluggable>
                 }
             >
                 <div

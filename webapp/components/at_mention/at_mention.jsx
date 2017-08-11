@@ -2,6 +2,7 @@
 // See License.txt for license information.
 
 import ProfilePopover from 'components/profile_popover.jsx';
+import Pluggable from 'plugins/pluggable.jsx';
 import {Client4} from 'mattermost-redux/client';
 
 import React from 'react';
@@ -79,13 +80,15 @@ export default class AtMention extends React.PureComponent {
                     placement='right'
                     rootClose={true}
                     overlay={
-                        <ProfilePopover
-                            user={user}
-                            src={Client4.getProfilePictureUrl(user.id, user.last_picture_update)}
-                            hide={this.hideProfilePopover}
-                            isRHS={this.props.isRHS}
-                            hasMention={this.props.hasMention}
-                        />
+                        <Pluggable>
+                            <ProfilePopover
+                                user={user}
+                                src={Client4.getProfilePictureUrl(user.id, user.last_picture_update)}
+                                hide={this.hideProfilePopover}
+                                isRHS={this.props.isRHS}
+                                hasMention={this.props.hasMention}
+                            />
+                        </Pluggable>
                     }
                 >
                     <a className='mention-link'>{'@' + user.username}</a>
