@@ -239,6 +239,11 @@ func TestGetAllTeams(t *testing.T) {
 	} else if receivedTeam, ok := teams[team.Id]; !ok || receivedTeam.Id != team.Id {
 		t.Fatal("admin should've received team that they aren't a member of")
 	}
+
+	Client.Logout()
+	if _, err := Client.GetAllTeams(); err == nil {
+		t.Fatal("Should have failed due to not being logged in.")
+	}
 }
 
 func TestGetAllTeamListings(t *testing.T) {
@@ -855,4 +860,18 @@ func TestGetTeamByName(t *testing.T) {
 		t.Fatal("Should not exist this team")
 	}
 
+	Client.Logout()
+	if _, err := Client.GetTeamByName(th.BasicTeam.Name); err == nil {
+		t.Fatal("Should have failed when not logged in.")
+	}
+}
+
+func TestFindTeamByName(t *testing.T) {
+	th := Setup().InitBasic()
+	Client := th.BasicClient
+	Client.Logout()
+
+	if _, err := Client.FindTeamByName(th.BasicTeam.Name); err == nil {
+		t.Fatal("Should have failed when not logged in.")
+	}
 }
