@@ -133,26 +133,37 @@ export default class ViewImageModal extends React.Component {
                 previewUrl = getFileUrl(fileInfo.id);
             }
 
-            const img = new Image();
-            img.load(
+            Utils.loadImage(
                 previewUrl,
-                () => {
-                    const progress = this.state.progress;
-                    progress[index] = img.completedPercentage;
-                    this.setState({progress});
-                }
+                () => this.handleImageLoaded(index),
+                (completedPercentage) => this.handleImageProgress(index, completedPercentage)
             );
-            img.onload = () => {
-                const loaded = this.state.loaded;
-                loaded[index] = true;
-                this.setState({loaded});
-            };
         } else {
             // there's nothing to load for non-image files
-            var loaded = this.state.loaded;
-            loaded[index] = true;
-            this.setState({loaded});
+            this.handleImageLoaded(index);
         }
+    }
+
+    handleImageLoaded = (index) => {
+        this.setState((prevState) => {
+            return {
+                loaded: {
+                    ...prevState.loaded,
+                    [index]: true
+                }
+            };
+        });
+    }
+
+    handleImageProgress = (index, completedPercentage) => {
+        this.setState((prevState) => {
+            return {
+                progress: {
+                    ...prevState.progress,
+                    [index]: completedPercentage
+                }
+            };
+        });
     }
 
     handleGetPublicLink() {

@@ -917,32 +917,22 @@ export function getDirectTeammate(channelId) {
     return teammate;
 }
 
-Image.prototype.load = function imageLoad(url, progressCallback) {
-    var self = this;
-    var xmlHTTP = new XMLHttpRequest();
-    xmlHTTP.open('GET', url, true);
-    xmlHTTP.responseType = 'arraybuffer';
-    xmlHTTP.onload = function onLoad() {
-        var h = xmlHTTP.getAllResponseHeaders();
-        var m = h.match(/^Content-Type:\s*(.*?)$/mi);
-        var mimeType = m[1] || 'image/png';
+export function loadImage(url, onLoad, onProgress) {
+    const request = new XMLHttpRequest();
 
-        var blob = new Blob([this.response], {type: mimeType});
-        self.src = window.URL.createObjectURL(blob);
-    };
-    xmlHTTP.onprogress = function onprogress(e) {
-        parseInt(self.completedPercentage = (e.loaded / e.total) * 100, 10);
-        if (progressCallback) {
-            progressCallback();
+    request.open('GET', url, true);
+    request.responseType = 'arraybuffer';
+    request.onload = onLoad;
+    request.onprogress = (e) => {
+        if (onProgress) {
+            const completedPercentage = Math.round((e.loaded / e.total) * 100);
+
+            onProgress(completedPercentage);
         }
     };
-    xmlHTTP.onloadstart = function onloadstart() {
-        self.completedPercentage = 0;
-    };
-    xmlHTTP.send();
-};
 
-Image.prototype.completedPercentage = 0;
+    request.send();
+}
 
 export function changeColor(colourIn, amt) {
     var hex = colourIn;
