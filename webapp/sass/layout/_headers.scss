@@ -175,9 +175,10 @@
     }
 
     .channel-header__description {
-        height: 35px;
+        height: 19px;
+        margin-top: 3px;
+        margin-bottom: 13px;
         overflow: hidden;
-        padding: 3px 0 0;
         position: relative;
         text-overflow: ellipsis;
         width: calc(100% - 18px);
