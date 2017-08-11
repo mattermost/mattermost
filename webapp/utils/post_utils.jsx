@@ -108,19 +108,11 @@ export function shouldShowDotMenu(post) {
     return false;
 }
 
-export function contains(text, key) {
+export function containsAtMention(text, key) {
     if (!text || !key) {
         return false;
     }
 
-    const pattern = /`${key}[^\w-]`/;
-    function mapFn(t) {
-        return t === key || (t.startsWith(key) && pattern.test(t));
-    }
-
-    function reduceFn(a, b) {
-        return a || b;
-    }
-
-    return text.includes(key) && text.split(/[\s,.!:]/).map(mapFn).reduce(reduceFn, false);
+    // This doesn't work for at mentions containing periods or hyphens
+    return new RegExp(`\\B${key}\\b`, 'i').test(text);
 }

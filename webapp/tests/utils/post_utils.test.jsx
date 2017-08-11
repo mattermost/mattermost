@@ -1,6 +1,6 @@
 import * as PostUtils from 'utils/post_utils.jsx';
 
-describe('PostUtils.contains', function() {
+describe('PostUtils.containsAtMention', function() {
     test('should return correct @all (same for @channel)', function() {
         for (const data of [
             {
@@ -20,6 +20,11 @@ describe('PostUtils.contains', function() {
             },
             {
                 text: '@allison',
+                key: '@all',
+                result: false
+            },
+            {
+                text: '@ALLISON',
                 key: '@all',
                 result: false
             },
@@ -49,12 +54,22 @@ describe('PostUtils.contains', function() {
                 result: true
             },
             {
+                text: '@ALL',
+                key: '@all',
+                result: true
+            },
+            {
                 text: '@all hey',
                 key: '@all',
                 result: true
             },
             {
                 text: 'hey @all',
+                key: '@all',
+                result: true
+            },
+            {
+                text: 'HEY @ALL',
                 key: '@all',
                 result: true
             },
@@ -67,11 +82,16 @@ describe('PostUtils.contains', function() {
                 text: 'hey @all:+1:',
                 key: '@all',
                 result: true
+            },
+            {
+                text: 'hey @ALL:+1:',
+                key: '@all',
+                result: true
             }
         ]) {
-            const containsAtAll = PostUtils.contains(data.text, data.key);
+            const containsAtMention = PostUtils.containsAtMention(data.text, data.key);
 
-            expect(containsAtAll).toEqual(data.result);
+            expect(containsAtMention).toEqual(data.result);
         }
     });
 });
