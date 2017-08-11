@@ -189,7 +189,7 @@ class MattermostMarkdownRenderer extends marked.Renderer {
         if (this.formattingOptions.siteURL) {
             const pattern = new RegExp('^' + TextFormatting.escapeRegex(this.formattingOptions.siteURL) + '\\/(?:signup_user_complete|[^\\/]+\\/(?:pl|channels))\\/');
 
-            internalLink = pattern.pattern.test(outHref);
+            internalLink = pattern.test(outHref);
         }
 
         if (internalLink) {
