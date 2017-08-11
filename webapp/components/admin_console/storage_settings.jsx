@@ -121,14 +121,14 @@ export default class StorageSettings extends AdminSettings {
                         id='amazonS3SSE'
                         label={
                             <FormattedMessage
-                                id='admin.image.AmazonSSETitle'
+                                id='admin.image.amazonS3SSETitle'
                                 defaultMessage='Enable Server-Side Encryption for Amazon S3:'
                             />
                         }
-                        placeholder={Utils.localizeMessage('admin.image.AmazonSSEExample', 'Ex "false"')}
+                        placeholder={Utils.localizeMessage('admin.image.amazonS3SSEExample', 'Ex "false"')}
                         helpText={
                             <FormattedHTMLMessage
-                                id='admin.image.AmazonSSEDescription'
+                                id='admin.image.amazonS3SSEDescription'
                                 defaultMessage='When true, encrypt files in Amazon S3 using server-side encryption with Amazon S3-managed keys. See <a href="https://about.mattermost.com/default-server-side-encryption" target="_blank">documentation</a> to learn more.'
                             />
                         }
