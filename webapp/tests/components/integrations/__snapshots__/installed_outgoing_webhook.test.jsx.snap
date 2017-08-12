@@ -1,0 +1,168 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/integrations/InstalledOutgoingWebhook should match snapshot 1`] = `
+<div
+  className="backstage-list__item"
+>
+  <div
+    className="item-details"
+  >
+    <div
+      className="item-details__row"
+    >
+      <span
+        className="item-details__name"
+      >
+        issue
+      </span>
+    </div>
+    <div
+      className="item-details__row"
+    >
+      <span
+        className="item-details__description"
+      >
+        new issues created
+      </span>
+    </div>
+    <div
+      className="item-details__row"
+    >
+      <span
+        className="item-details__content_type"
+      >
+        <FormattedMessage
+          defaultMessage="Content-Type: {contentType}"
+          id="installed_integrations.content_type"
+          values={
+            Object {
+              "contentType": "application/json",
+            }
+          }
+        />
+      </span>
+    </div>
+    <div
+      className="item-details__row"
+    >
+      <span
+        className="item-details__trigger-words"
+      >
+        <FormattedMessage
+          defaultMessage="Trigger Words: {triggerWords}"
+          id="installed_integrations.triggerWords"
+          values={
+            Object {
+              "triggerWords": "issue",
+            }
+          }
+        />
+      </span>
+    </div>
+    <div
+      className="item-details__row"
+    >
+      <span
+        className="item-details__trigger-when"
+      >
+        <FormattedMessage
+          defaultMessage="Trigger When: {triggerWhen}"
+          id="installed_integrations.triggerWhen"
+          values={
+            Object {
+              "triggerWhen": <FormattedMessage
+                defaultMessage="First word matches a trigger word exactly"
+                id="add_outgoing_webhook.triggerWordsTriggerWhenFullWord"
+                values={Object {}}
+            />,
+            }
+          }
+        />
+      </span>
+    </div>
+    <div
+      className="item-details__row"
+    >
+      <span
+        className="item-details__token"
+      >
+        <FormattedMessage
+          defaultMessage="Token: {token}"
+          id="installed_integrations.token"
+          values={
+            Object {
+              "token": "nepymfk8sid9pddzbp6ixw8orh",
+            }
+          }
+        />
+      </span>
+    </div>
+    <div
+      className="item-details__row"
+    >
+      <span
+        className="item-details__creation"
+      >
+        <FormattedMessage
+          defaultMessage="Created by {creator} on {createAt, date, full}"
+          id="installed_integrations.creation"
+          values={
+            Object {
+              "createAt": 1502533927728,
+              "creator": undefined,
+            }
+          }
+        />
+      </span>
+    </div>
+    <div
+      className="item-details__row"
+    >
+      <span
+        className="item-details__url"
+      >
+        <FormattedMessage
+          defaultMessage="Callback URLs: {urls}"
+          id="installed_integrations.callback_urls"
+          values={
+            Object {
+              "urls": "https://someurliamnotsureof.com",
+            }
+          }
+        />
+      </span>
+    </div>
+  </div>
+  <div
+    className="item-actions"
+  >
+    <a
+      href="#"
+      onClick={[Function]}
+    >
+      <FormattedMessage
+        defaultMessage="Regen Token"
+        id="installed_integrations.regenToken"
+        values={Object {}}
+      />
+    </a>
+     - 
+    <Link
+      onlyActiveOnIndex={false}
+      style={Object {}}
+      to="/test/integrations/outgoing_webhooks/edit?id=p9as8ynnzpfzjryk5ihnu4s9sr"
+    >
+      <FormattedMessage
+        defaultMessage="Edit"
+        id="installed_integrations.edit"
+        values={Object {}}
+      />
+    </Link>
+     - 
+    <DeleteIntegration
+      messageId="installed_outgoing_webhooks.delete.confirm"
+      onDelete={[Function]}
+    />
+  </div>
+</div>
+`;
