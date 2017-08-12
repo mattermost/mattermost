@@ -105,7 +105,7 @@ export default class InstalledOutgoingWebhooks extends React.Component {
     render() {
         const outgoingWebhooks = this.state.outgoingWebhooks.sort(this.outgoingWebhookCompare).map((outgoingWebhook) => {
             const canChange = this.props.isAdmin || this.props.user.id === outgoingWebhook.creator_id;
-
+            const channel = ChannelStore.get(outgoingWebhook.channel_id);
             return (
                 <InstalledOutgoingWebhook
                     key={outgoingWebhook.id}
@@ -115,6 +115,7 @@ export default class InstalledOutgoingWebhooks extends React.Component {
                     creator={this.state.users[outgoingWebhook.creator_id] || {}}
                     canChange={canChange}
                     team={this.props.team}
+                    channel={channel}
                 />
             );
         });

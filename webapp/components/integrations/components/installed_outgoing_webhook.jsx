@@ -1,28 +1,56 @@
-import PropTypes from 'prop-types';
-
 // Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 import React from 'react';
-
-import ChannelStore from 'stores/channel_store.jsx';
+import PropTypes from 'prop-types';
 
 import {FormattedMessage} from 'react-intl';
 import {Link} from 'react-router';
 
 import DeleteIntegration from './delete_integration.jsx';
 
-export default class InstalledOutgoingWebhook extends React.Component {
-    static get propTypes() {
-        return {
-            outgoingWebhook: PropTypes.object.isRequired,
-            onRegenToken: PropTypes.func.isRequired,
-            onDelete: PropTypes.func.isRequired,
-            filter: PropTypes.string,
-            creator: PropTypes.object.isRequired,
-            canChange: PropTypes.bool.isRequired,
-            team: PropTypes.object.isRequired
-        };
+export default class InstalledOutgoingWebhook extends React.PureComponent {
+    static propTypes = {
+
+        /**
+        * Data used for showing webhook details
+        */
+        outgoingWebhook: PropTypes.object.isRequired,
+
+        /**
+        * Function used for webhook token regeneration
+        */
+        onRegenToken: PropTypes.func.isRequired,
+
+        /**
+        * Function to call when webhook delete button is pressed
+        */
+        onDelete: PropTypes.func.isRequired,
+
+        /**
+        * String used for filtering webhook item
+        */
+        filter: PropTypes.string,
+
+        /**
+        * Data used for showing created by details
+        */
+        creator: PropTypes.object.isRequired,
+
+        /**
+        *  Set to show available actions on webhook
+        */
+        canChange: PropTypes.bool.isRequired,
+
+        /**
+        *  Data used in routing of webhook for modifications
+        */
+        team: PropTypes.object.isRequired,
+
+        /**
+        *  Data used for filtering of webhooks based in filter prop
+        */
+        channel: PropTypes.object.isRequired
     }
 
     constructor(props) {
@@ -42,7 +70,21 @@ export default class InstalledOutgoingWebhook extends React.Component {
         this.props.onDelete(this.props.outgoingWebhook);
     }
 
-    matchesFilter(outgoingWebhook, channel, filter) {
+    static makeDisplayName(outgoingWebhook, channel) {
+        if (outgoingWebhook.display_name) {
+            return outgoingWebhook.display_name;
+        } else if (channel) {
+            return channel.display_name;
+        }
+        return (
+            <FormattedMessage
+                id='installed_outgoing_webhooks.unknown_channel'
+                defaultMessage='A Private Webhook'
+            />
+        );
+    }
+
+    static matchesFilter(outgoingWebhook, channel, filter) {
         if (!filter) {
             return true;
         }
@@ -69,28 +111,16 @@ export default class InstalledOutgoingWebhook extends React.Component {
 
     render() {
         const outgoingWebhook = this.props.outgoingWebhook;
-        const channel = ChannelStore.get(outgoingWebhook.channel_id);
+        const channel = this.props.channel;
         const filter = this.props.filter ? this.props.filter.toLowerCase() : '';
         const triggerWordsFull = 0;
         const triggerWordsStartsWith = 1;
 
-        if (!this.matchesFilter(outgoingWebhook, channel, filter)) {
+        if (!InstalledOutgoingWebhook.matchesFilter(outgoingWebhook, channel, filter)) {
             return null;
         }
 
-        let displayName;
-        if (outgoingWebhook.display_name) {
-            displayName = outgoingWebhook.display_name;
-        } else if (channel) {
-            displayName = channel.display_name;
-        } else {
-            displayName = (
-                <FormattedMessage
-                    id='installed_outgoing_webhooks.unknown_channel'
-                    defaultMessage='A Private Webhook'
-                />
-            );
-        }
+        const displayName = InstalledOutgoingWebhook.makeDisplayName(outgoingWebhook, channel);
 
         let description = null;
         if (outgoingWebhook.description) {
