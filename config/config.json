@@ -141,7 +141,7 @@
         "SendPushNotifications": false,
         "PushNotificationServer": "",
         "PushNotificationContents": "generic",
-        "EnableEmailBatching": false,
+        "EnableEmailBatching": true,
         "EmailBatchingBufferSize": 256,
         "EmailBatchingInterval": 30,
         "SkipServerCertificateVerification": false,
