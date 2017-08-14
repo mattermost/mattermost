@@ -3561,7 +3561,7 @@
   },
   {
     "id": "app.user_access_token.disabled",
-    "translation": "Bu sunucu üzerinde kullanıcı erişim izinleri devre dışı bırakılmış. Lütfen ayrıntılı bilgi almak için sistem yöneticiniz ile görüşün."
+    "translation": "Bu sunucu üzerinde kişisel erişim kodları devre dışı bırakılmış. Lütfen ayrıntılı bilgi almak için sistem yöneticiniz ile görüşün."
   },
   {
     "id": "app.user_access_token.invalid_or_missing",
@@ -3593,11 +3593,11 @@
   },
   {
     "id": "authentication.permissions.create_user_access_token.description",
-    "translation": "Kullanıcı erişim kodları oluşturabilir"
+    "translation": "Kişisel erişim kodları oluşturabilir"
   },
   {
     "id": "authentication.permissions.create_user_access_token.name",
-    "translation": "Kullanıcı Erişim Kodu Oluşturma"
+    "translation": "Kişisel Erişim Kodu Oluşturma"
   },
   {
     "id": "authentication.permissions.manage_jobs.description",
@@ -3625,19 +3625,19 @@
   },
   {
     "id": "authentication.permissions.read_user_access_token.description",
-    "translation": "Kullanıcı erişim kodu, açıklaması ve kullanıcı kodu alanları okuyabilir"
+    "translation": "Kişisel erişim kodu, açıklaması ve kullanıcı kodu alanlarını okuyabilir"
   },
   {
     "id": "authentication.permissions.read_user_access_token.name",
-    "translation": "Kullanıcı Erişim Kodlarını Okuma"
+    "translation": "Kişisel Erişim Kodlarını Okuma"
   },
   {
     "id": "authentication.permissions.revoke_user_access_token.description",
-    "translation": "Kullanıcı erişim kodlarını geçersiz kılabilir"
+    "translation": "Kişisel erişim kodlarını geçersiz kılabilir"
   },
   {
     "id": "authentication.permissions.revoke_user_access_token.name",
-    "translation": "Kullanıcı Erişim Kodlarını Geçersiz Kılma"
+    "translation": "Kişisel Erişim Kodlarını Geçersiz Kılma"
   },
   {
     "id": "authentication.permissions.team_invite_user.description",
@@ -3673,11 +3673,11 @@
   },
   {
     "id": "authentication.roles.system_user_access_token.description",
-    "translation": "Kullanıcı erişim kodları ekleme, okuma ve geçersiz kılma izinleri olan bir rol"
+    "translation": "Kişisel erişim kodları ekleme, okuma ve geçersiz kılma izinleri olan bir rol"
   },
   {
     "id": "authentication.roles.system_user_access_token.name",
-    "translation": "Kullanıcı Erişim Kodu"
+    "translation": "Kişisel Erişim Kodu"
   },
   {
     "id": "authentication.roles.team_post_all.description",
@@ -6405,23 +6405,23 @@
   },
   {
     "id": "store.sql_user_access_token.delete.app_error",
-    "translation": "Kullanıcı erişim kodu silinemedi"
+    "translation": "Kişisel erişim kodu silinemedi"
   },
   {
     "id": "store.sql_user_access_token.get.app_error",
-    "translation": "Kullanıcı erişim kodu alınamadı"
+    "translation": "Kişisel erişim kodu alınamadı"
   },
   {
     "id": "store.sql_user_access_token.get_by_token.app_error",
-    "translation": "Koda göre kullanıcı erişim kodu alınamadı"
+    "translation": "Koda göre kişisel erişim kodu alınamadı"
   },
   {
     "id": "store.sql_user_access_token.get_by_user.app_error",
-    "translation": "Kullanıcıya göre kullanıcı erişim kodları alınamadı"
+    "translation": "Kullanıcıya göre kişisel erişim kodları alınamadı"
   },
   {
     "id": "store.sql_user_access_token.save.app_error",
-    "translation": "Kullanıcı erişim kodu kaydedilemedi"
+    "translation": "Kişisel erişim kodu kaydedilemedi"
   },
   {
     "id": "store.sql_webhooks.analytics_incoming_count.app_error",
@@ -6541,7 +6541,7 @@
   },
   {
     "id": "utils.config.supported_server_locale.app_error",
-    "translation": "Mattermost yapılandırma dosyası yüklenemedi: DefaultServerLocale seçeneği desteklenen dillerden biri olmalıdır"
+    "translation": "Mattermost yapılandırma dosyası yüklenemedi:  DefaultServerLocale desteklenen yerel seçeneklerinden birine ayarlanmalıdır. DefaultServerLocale varsayılan olarak en değerine ayarlanıyor."
   },
   {
     "id": "utils.config.validate_locale.app_error",

@@ -521,11 +521,11 @@
   },
   {
     "id": "api.command_channel_header.permission.app_error",
-    "translation": "У вас нет соответствующих прав для редактирования цели канала."
+    "translation": "У вас нет прав для редактирования заголовка канала."
   },
   {
     "id": "api.command_channel_header.update_channel.app_error",
-    "translation": "Ошибка получения текущего канала."
+    "translation": "Ошибка обновления текущего канала."
   },
   {
     "id": "api.command_channel_header.update_channel.success",
@@ -537,7 +537,7 @@
   },
   {
     "id": "api.command_channel_purpose.desc",
-    "translation": "Edit the channel purpose"
+    "translation": "Редактировать цель канала"
   },
   {
     "id": "api.command_channel_purpose.direct_group.app_error",
@@ -561,7 +561,7 @@
   },
   {
     "id": "api.command_channel_purpose.update_channel.app_error",
-    "translation": "Ошибка получения текущего канала."
+    "translation": "Ошибка обновления текущего канала."
   },
   {
     "id": "api.command_channel_rename.channel.app_error",
@@ -569,51 +569,51 @@
   },
   {
     "id": "api.command_channel_rename.desc",
-    "translation": "Rename the channel"
+    "translation": "Переименовать канал"
   },
   {
     "id": "api.command_channel_rename.direct_group.app_error",
-    "translation": "Невозможно покинуть канал личных сообщений"
+    "translation": "Невозможно переименовать канал личных сообщений."
   },
   {
     "id": "api.command_channel_rename.hint",
-    "translation": "текст"
+    "translation": "[текст]"
   },
   {
     "id": "api.command_channel_rename.message.app_error",
-    "translation": "Перед сообщение должна быть команда /echo."
+    "translation": "Перед сообщение должна быть команда /rename."
   },
   {
     "id": "api.command_channel_rename.name",
-    "translation": "rename"
+    "translation": "переименовать"
   },
   {
     "id": "api.command_channel_rename.permission.app_error",
-    "translation": "У вас нет соответствующих прав для редактирования цели канала."
+    "translation": "У вас нет прав для переименовании канала."
   },
   {
     "id": "api.command_channel_rename.update_channel.app_error",
-    "translation": "Ошибка получения текущего канала."
+    "translation": "Ошибка обновления текущего канала."
   },
   {
     "id": "api.command_channel_rename.update_channel.success",
-    "translation": "Заголовок канала успешно обновлен."
+    "translation": "Имя канала успешно обновлено."
   },
   {
     "id": "api.command_code.desc",
-    "translation": "Display text as a code block"
+    "translation": "Отобразить текст как блок кода"
   },
   {
     "id": "api.command_code.hint",
-    "translation": "текст"
+    "translation": "[текст]"
   },
   {
     "id": "api.command_code.message.app_error",
-    "translation": "Перед сообщение должна быть команда /echo."
+    "translation": "Перед сообщение должна быть команда /code."
   },
   {
     "id": "api.command_code.name",
-    "translation": "code"
+    "translation": "код"
   },
   {
     "id": "api.command_collapse.desc",
@@ -673,7 +673,7 @@
   },
   {
     "id": "api.command_help.desc",
-    "translation": "Open the Mattermost help page"
+    "translation": "Открыть страницу помощи Mattermost"
   },
   {
     "id": "api.command_help.name",
@@ -709,11 +709,11 @@
   },
   {
     "id": "api.command_leave.desc",
-    "translation": "Leave the current channel"
+    "translation": "Покинуть текущий канал"
   },
   {
     "id": "api.command_leave.fail.app_error",
-    "translation": "Во время присоединения к каналу произошла ошибка."
+    "translation": "Во время отключения от канала произошла ошибка."
   },
   {
     "id": "api.command_leave.list.app_error",
@@ -721,15 +721,15 @@
   },
   {
     "id": "api.command_leave.missing.app_error",
-    "translation": "Мы не смогли найти канал"
+    "translation": "Канал не найден"
   },
   {
     "id": "api.command_leave.name",
-    "translation": "leave"
+    "translation": "покинуть"
   },
   {
     "id": "api.command_leave.success",
-    "translation": "Left the channel."
+    "translation": "Покинул канал."
   },
   {
     "id": "api.command_logout.desc",
@@ -821,7 +821,7 @@
   },
   {
     "id": "api.command_search.hint",
-    "translation": "текст"
+    "translation": "[текст]"
   },
   {
     "id": "api.command_search.name",
@@ -829,7 +829,7 @@
   },
   {
     "id": "api.command_search.unsupported.app_error",
-    "translation": "The search command is not supported on your device"
+    "translation": "Поиск недоступен на вашем устройстве"
   },
   {
     "id": "api.command_settings.desc",
@@ -841,7 +841,7 @@
   },
   {
     "id": "api.command_settings.unsupported.app_error",
-    "translation": "The settings command is not supported on your device"
+    "translation": "Настройки недоступны на вашем устройстве"
   },
   {
     "id": "api.command_shortcuts.browser.channel_next",
@@ -1085,7 +1085,7 @@
   },
   {
     "id": "api.context.v3_disabled.app_error",
-    "translation": "API version 3 has been disabled on this server. Please use API version 4. See https://api.mattermost.com for details."
+    "translation": "API версии 3 отключен на этом сервере. Пожалуйста, используйте API версии 4. Посетите https://api.mattermost.com для более подробного ознакомления."
   },
   {
     "id": "api.deprecated.init.debug",
@@ -1117,7 +1117,7 @@
   },
   {
     "id": "api.email_batching.render_batched_post.direct_message",
-    "translation": "Direct Message from "
+    "translation": "Личное сообщение от "
   },
   {
     "id": "api.email_batching.render_batched_post.go_to_post",
@@ -1125,11 +1125,11 @@
   },
   {
     "id": "api.email_batching.render_batched_post.group_message",
-    "translation": "Group Message from "
+    "translation": "Групповое сообщение от "
   },
   {
     "id": "api.email_batching.render_batched_post.notification",
-    "translation": "Notification from "
+    "translation": "Уведомление от "
   },
   {
     "id": "api.email_batching.render_batched_post.sender.app_error",
@@ -1138,8 +1138,8 @@
   {
     "id": "api.email_batching.send_batched_email_notification.body_text",
     "translation": {
-      "one": "You have a new notification.",
-      "other": "You have {{.Count}} new notifications."
+      "one": "У вас есть новое уведомление.",
+      "other": "У вас есть {{.Count}} уведомление."
     }
   },
   {
@@ -1829,7 +1829,7 @@
   },
   {
     "id": "api.post.send_notifications_and_forget.push_mention_no_channel",
-    "translation": " упомянул вас в "
+    "translation": " упомянул вас"
   },
   {
     "id": "api.post.send_notifications_and_forget.push_message",
@@ -1841,7 +1841,7 @@
   },
   {
     "id": "api.post.send_notifications_and_forget.push_non_mention_no_channel",
-    "translation": " posted a message"
+    "translation": " отправил сообщение"
   },
   {
     "id": "api.post.send_notifications_and_forget.push_notification.error",
@@ -1917,7 +1917,7 @@
   },
   {
     "id": "api.reaction.save_reaction.invalid.app_error",
-    "translation": "Reaction is not valid."
+    "translation": "Реакция невалидна."
   },
   {
     "id": "api.reaction.save_reaction.mismatched_channel_id.app_error",
@@ -1989,15 +1989,15 @@
   },
   {
     "id": "api.slackimport.slack_add_channels.added",
-    "translation": "\r\n Каналы добавлены \r\n"
+    "translation": "\r\nКаналы добавлены:\r\n"
   },
   {
     "id": "api.slackimport.slack_add_channels.failed_to_add_user",
-    "translation": "Unable to add Slack user {{.Username}} to channel.\r\n"
+    "translation": "Не удалось добавить пользователя Slack {{.Username}} в канал.\r\n"
   },
   {
     "id": "api.slackimport.slack_add_channels.import_failed",
-    "translation": "Unable to import Slack channel {{.DisplayName}}.\r\n"
+    "translation": "Не удалось импортировать Slack канал {{.DisplayName}}.\r\n"
   },
   {
     "id": "api.slackimport.slack_add_channels.import_failed.warn",
@@ -2005,39 +2005,39 @@
   },
   {
     "id": "api.slackimport.slack_add_channels.merge",
-    "translation": "The Slack channel {{.DisplayName}} already exists as an active Mattermost channel. Both channels have been merged.\r\n"
+    "translation": "Slack канал {{.DisplayName}} уже существует в виде канала Mattermost. Произведено слияние.\r\n"
   },
   {
     "id": "api.slackimport.slack_add_posts.attach_files.error",
-    "translation": "Slack Import: An error occurred when attaching files to a message, post_id=%s, file_ids=%v, err=%v."
+    "translation": "Импорт Slack: Произошла ошибка при добавлении файлов к сообщению, post_id=%s, file_ids=%v, err=%v."
   },
   {
     "id": "api.slackimport.slack_add_posts.bot.warn",
-    "translation": "Slack Import: Slack bot messages cannot be imported yet."
+    "translation": "Импорт Slack: Сообщения Slack ботов пока не могут быть импортированы."
   },
   {
     "id": "api.slackimport.slack_add_posts.bot_user_no_exists.warn",
-    "translation": "Slack Import: Unable to import the bot message as the bot user does not exist."
+    "translation": "Импорт Slack: Невозможно импортировать сообщение бота, так как учётная запись бота не существует."
   },
   {
     "id": "api.slackimport.slack_add_posts.msg_no_comment.debug",
-    "translation": "Slack Import: Unable to import the message as it has no comments."
+    "translation": "Импорт Slack: Невозможно импортировать сообщение, так как оно не имеет комментариев."
   },
   {
     "id": "api.slackimport.slack_add_posts.msg_no_usr.debug",
-    "translation": "Slack Import: Unable to import the message as the user field is missing."
+    "translation": "Импорт Slack: Невозможно импортировать сообщение, так как не обнаружено поле user."
   },
   {
     "id": "api.slackimport.slack_add_posts.no_bot_id.warn",
-    "translation": "Slack Import: Unable to import bot message as the BotId field is missing."
+    "translation": "Импорт Slack: Невозможно добавить сообщение бота, так как не обнаружено поле BotId."
   },
   {
     "id": "api.slackimport.slack_add_posts.unsupported.warn",
-    "translation": "Slack Import: Unable to import the message as its type is not supported: post_type=%v, post_subtype=%v."
+    "translation": "Импорт Slack: Невозможно импортировать сообщение, так как оно не поддерживаемого формата: post_type=%v, post_subtype=%v."
   },
   {
     "id": "api.slackimport.slack_add_posts.upload_file_not_found.warn",
-    "translation": "Slack Import: Unable to import file {{.FileId}} as the file is missing from the Slack export zip file."
+    "translation": "Импорт Slack: Невозможно импортировать файл {{.Field}}, так как файл не найден в zip-архиве экспорта Slack."
   },
   {
     "id": "api.slackimport.slack_add_posts.upload_file_not_in_json.warn",
@@ -2045,27 +2045,27 @@
   },
   {
     "id": "api.slackimport.slack_add_posts.upload_file_open_failed.warn",
-    "translation": "Slack Import: Unable to open the file {{.FileId}} from the Slack export: {{.Error}}."
+    "translation": "Импорт Slack: Невозможно открыть файл {{.Field}} из экспорта Slack. {{.Error}}."
   },
   {
     "id": "api.slackimport.slack_add_posts.upload_file_upload_failed.warn",
-    "translation": "Slack Import: An error occurred when uploading file {{.FileId}}: {{.Error}}."
+    "translation": "Импорт Slack: Произошла ошибка при загрузке файла {{.FileId}}: {{.Error}}."
   },
   {
     "id": "api.slackimport.slack_add_posts.user_no_exists.debug",
-    "translation": "Slack Import: Unable to add the message as the Slack user %v does not exist in Mattermost."
+    "translation": "Импорт Slack: Невозможно добавить сообщение, так как Slack пользователь %v не существует в Mattermost."
   },
   {
     "id": "api.slackimport.slack_add_posts.without_user.debug",
-    "translation": "Slack Import: Unable to import the message as the user field is missing."
+    "translation": "Импорт Slack: Невозможно импортировать сообщение, так как не обнаружен поле user."
   },
   {
     "id": "api.slackimport.slack_add_users.created",
-    "translation": "\r\n Пользователи созданы\r\n"
+    "translation": "\r\nПользователи созданы:\r\n"
   },
   {
     "id": "api.slackimport.slack_add_users.email_pwd",
-    "translation": "Slack user with email {{.Email}} and password {{.Password}} has been imported.\r\n"
+    "translation": "Slack пользователь с email {{.Email}} и паролем {{.Password}} импортирован.\r\n"
   },
   {
     "id": "api.slackimport.slack_add_users.merge_existing",
@@ -6541,7 +6541,7 @@
   },
   {
     "id": "utils.config.supported_server_locale.app_error",
-    "translation": "Unable to load mattermost configuration file:  DefaultServerLocale must be one of the supported locales"
+    "translation": "Unable to load mattermost configuration file:  DefaultServerLocale must be one of the supported locales. Setting DefaultServerLocale to en as default value."
   },
   {
     "id": "utils.config.validate_locale.app_error",

@@ -709,11 +709,11 @@
   },
   {
     "id": "api.command_leave.desc",
-    "translation": "Leave the current channel"
+    "translation": "Den aktuellen Kanal verlassen"
   },
   {
     "id": "api.command_leave.fail.app_error",
-    "translation": "Es trat ein Fehler beim Betreten des Kanals auf."
+    "translation": "Es trat ein Fehler beim Verlassen des Kanals auf."
   },
   {
     "id": "api.command_leave.list.app_error",
@@ -721,15 +721,15 @@
   },
   {
     "id": "api.command_leave.missing.app_error",
-    "translation": "Der Kanal konnte nicht gefunden werden"
+    "translation": "Der Kanal konnte nicht gefunden werden."
   },
   {
     "id": "api.command_leave.name",
-    "translation": "leave"
+    "translation": "verlassen"
   },
   {
     "id": "api.command_leave.success",
-    "translation": "Left the channel."
+    "translation": "Kanal wurde verlassen."
   },
   {
     "id": "api.command_logout.desc",
@@ -1117,7 +1117,7 @@
   },
   {
     "id": "api.email_batching.render_batched_post.direct_message",
-    "translation": "Direct Message from "
+    "translation": "Direktnachricht von "
   },
   {
     "id": "api.email_batching.render_batched_post.go_to_post",
@@ -1125,11 +1125,11 @@
   },
   {
     "id": "api.email_batching.render_batched_post.group_message",
-    "translation": "Group Message from "
+    "translation": "Gruppennachricht von "
   },
   {
     "id": "api.email_batching.render_batched_post.notification",
-    "translation": "Notification from "
+    "translation": "Benachrichtigung von "
   },
   {
     "id": "api.email_batching.render_batched_post.sender.app_error",
@@ -1138,8 +1138,8 @@
   {
     "id": "api.email_batching.send_batched_email_notification.body_text",
     "translation": {
-      "one": "You have a new notification.",
-      "other": "You have {{.Count}} new notifications."
+      "one": "Sie haben eine neue Benachrichtigung.",
+      "other": "Sie haben {{.Count}} neue Benachrichtigungen."
     }
   },
   {
@@ -1829,7 +1829,7 @@
   },
   {
     "id": "api.post.send_notifications_and_forget.push_mention_no_channel",
-    "translation": " hat Sie erwähnt in "
+    "translation": " hat Sie erwähnt"
   },
   {
     "id": "api.post.send_notifications_and_forget.push_message",
@@ -1841,7 +1841,7 @@
   },
   {
     "id": "api.post.send_notifications_and_forget.push_non_mention_no_channel",
-    "translation": " posted a message"
+    "translation": " hat einen Beitrag geschrieben"
   },
   {
     "id": "api.post.send_notifications_and_forget.push_notification.error",
@@ -1981,127 +1981,127 @@
   },
   {
     "id": "api.slackimport.slack_add_bot_user.email_pwd",
-    "translation": "The Integration/Slack Bot user with email {{.Email}} and password {{.Password}} has been imported.\r\n"
+    "translation": "Die Integrations-/Slack-Bot-Benutzer mit der E-Mail {{.Email}} und Passwort {{.Password}} wurde importiert.\r\n"
   },
   {
     "id": "api.slackimport.slack_add_bot_user.unable_import",
-    "translation": "Unable to import the Integration/Slack Bot user {{.Username}}.\r\n"
+    "translation": "Konnte den Integrations-/Slack-Bot-Benutzer {{.Username}} nicht importieren.\r\n"
   },
   {
     "id": "api.slackimport.slack_add_channels.added",
-    "translation": "\r\n Kanäle hinzugefügt \r\n"
+    "translation": "\r\nKanäle hinzugefügt:\r\n"
   },
   {
     "id": "api.slackimport.slack_add_channels.failed_to_add_user",
-    "translation": "Unable to add Slack user {{.Username}} to channel.\r\n"
+    "translation": "Konnte Slack-Benutzer {{.Username}} nicht zum Kanal hinzufügen.\r\n"
   },
   {
     "id": "api.slackimport.slack_add_channels.import_failed",
-    "translation": "Unable to import Slack channel {{.DisplayName}}.\r\n"
+    "translation": "Konnte Slack-Kanal {{.DisplayName}} nicht importieren.\r\n"
   },
   {
     "id": "api.slackimport.slack_add_channels.import_failed.warn",
-    "translation": "Slack Import: Unable to import Slack channel: %s."
+    "translation": "Slack-Import: Konnte Slack-Kanal nicht importieren: %s."
   },
   {
     "id": "api.slackimport.slack_add_channels.merge",
-    "translation": "The Slack channel {{.DisplayName}} already exists as an active Mattermost channel. Both channels have been merged.\r\n"
+    "translation": "Der Slack-Kanal {{.DisplayName}} existiert bereits als aktiver Mattermost-Kanal. Beide Kanäle wurden zusammengeführt.\r\n"
   },
   {
     "id": "api.slackimport.slack_add_posts.attach_files.error",
-    "translation": "Slack Import: An error occurred when attaching files to a message, post_id=%s, file_ids=%v, err=%v."
+    "translation": "Slack-Import: Es ist ein Fehler beim Anhängen von Dateien an eine Nachricht aufgetreten, post_id=%s, file_ids=%v, err=%v."
   },
   {
     "id": "api.slackimport.slack_add_posts.bot.warn",
-    "translation": "Slack Import: Slack bot messages cannot be imported yet."
+    "translation": "Slack-Import: Slack-Bot-Nachrichten können noch nicht importiert werden."
   },
   {
     "id": "api.slackimport.slack_add_posts.bot_user_no_exists.warn",
-    "translation": "Slack Import: Unable to import the bot message as the bot user does not exist."
+    "translation": "Slack-Import: Konnte die Bot-Nachrichten nicht importieren, da der Bot-Benutzer nicht existiert."
   },
   {
     "id": "api.slackimport.slack_add_posts.msg_no_comment.debug",
-    "translation": "Slack Import: Unable to import the message as it has no comments."
+    "translation": "Slack-Import: Konnte die Nachricht nicht importieren, da sie keine Kommentare hat."
   },
   {
     "id": "api.slackimport.slack_add_posts.msg_no_usr.debug",
-    "translation": "Slack Import: Unable to import the message as the user field is missing."
+    "translation": "Slack-Import: Konnte die Nachricht nicht importieren, da das Benutzerfeld fehlt."
   },
   {
     "id": "api.slackimport.slack_add_posts.no_bot_id.warn",
-    "translation": "Slack Import: Unable to import bot message as the BotId field is missing."
+    "translation": "Slack-Import: Konnte Bot-Nachricht nicht importieren, da das BotId-Feld fehlt."
   },
   {
     "id": "api.slackimport.slack_add_posts.unsupported.warn",
-    "translation": "Slack Import: Unable to import the message as its type is not supported: post_type=%v, post_subtype=%v."
+    "translation": "Slack-Import: Konnte Nachricht nicht importieren, da ihr Typ nicht unterstützt wird: post_type=%v, post_subtype=%v."
   },
   {
     "id": "api.slackimport.slack_add_posts.upload_file_not_found.warn",
-    "translation": "Slack Import: Unable to import file {{.FileId}} as the file is missing from the Slack export zip file."
+    "translation": "Slack-Import: Konnte Datei {{.FileId}} nicht importieren, da die Datei in der ZIP-Datei des Slack-Exports fehlt."
   },
   {
     "id": "api.slackimport.slack_add_posts.upload_file_not_in_json.warn",
-    "translation": "Slack Import: Unable to attach the file to the post as the latter has no \"file\" section present in Slack export."
+    "translation": "Slack-Import: Konnte Datei nicht an Beitrag anhängen, da letzteres keinen \"file\"-Abschnitt im Slack-Export hat."
   },
   {
     "id": "api.slackimport.slack_add_posts.upload_file_open_failed.warn",
-    "translation": "Slack Import: Unable to open the file {{.FileId}} from the Slack export: {{.Error}}."
+    "translation": "Slack-Import: Konnte die Datei {{.FileId}} aus dem Slack-Export nicht öffnen: {{.Error}}."
   },
   {
     "id": "api.slackimport.slack_add_posts.upload_file_upload_failed.warn",
-    "translation": "Slack Import: An error occurred when uploading file {{.FileId}}: {{.Error}}."
+    "translation": "Slack-Import: Es trat ein Fehler beim Hochladen der Datei {{.FileId}} auf: {{.Error}}."
   },
   {
     "id": "api.slackimport.slack_add_posts.user_no_exists.debug",
-    "translation": "Slack Import: Unable to add the message as the Slack user %v does not exist in Mattermost."
+    "translation": "Slack-Import: Konnte Nachricht nicht hinzufügen, da der Slack-Benutzer %v nicht in Mattermost existiert."
   },
   {
     "id": "api.slackimport.slack_add_posts.without_user.debug",
-    "translation": "Slack Import: Unable to import the message as the user field is missing."
+    "translation": "Slack-Import: Konnte Nachricht nicht importieren, da das Benutzerfeld fehlt."
   },
   {
     "id": "api.slackimport.slack_add_users.created",
-    "translation": "\r\n Benutzer erstellt\r\n"
+    "translation": "\r\nBenutzer erstellt:\r\n"
   },
   {
     "id": "api.slackimport.slack_add_users.email_pwd",
-    "translation": "Slack user with email {{.Email}} and password {{.Password}} has been imported.\r\n"
+    "translation": "Slack-Benutzer mit der E-Mail-Adresse {{.Email}} und dem Passwort {{.Password}} wurde importiert.\r\n"
   },
   {
     "id": "api.slackimport.slack_add_users.merge_existing",
-    "translation": "Slack user merged with an existing Mattermost user with matching email {{.Email}} and username {{.Username}}.\r\n"
+    "translation": "Slack-Benutzer mit existierendem Mattermost-Benutzer mit identischer E-Mail-Adresse {{.Email}} und Benutzername {{.Username}} zusammengeführt.\r\n"
   },
   {
     "id": "api.slackimport.slack_add_users.merge_existing_failed",
-    "translation": "Slack user merged with an existing Mattermost user with matching email {{.Email}} and username {{.Username}}, but was unable to add the user to their team.\r\n"
+    "translation": "Slack-Benutzer mit existierendem Mattermost-Benutzer mit identischer E-Mail-Adresse {{.Email}} und Benutzername {{.Username}} zusammengeführt, konnte aber den Benutzer nicht zu seinem Team hinzufügen.\r\n"
   },
   {
     "id": "api.slackimport.slack_add_users.missing_email_address",
-    "translation": "Der Benutzer {{.Username}} hat keine E-Mail-Adresse im Slack Export. Verwende {{.Email}} als Platzhalter. Der Benutzer sollte seine E-Mail-Adresse aktualisieren sobald er sich angemeldet hat.\r\n"
+    "translation": "Der Benutzer {{.Username}} hat keine E-Mail-Adresse im Slack-Export. Verwende {{.Email}} als Platzhalter. Der Benutzer sollte seine E-Mail-Adresse aktualisieren, sobald er sich angemeldet hat.\r\n"
   },
   {
     "id": "api.slackimport.slack_add_users.missing_email_address.warn",
-    "translation": "Der Benutzer {{.Username}} hat keine E-Mail-Adresse im Slack Export. Verwende {{.Email}} als Platzhalter. Der Benutzer sollte seine E-Mail-Adresse aktualisieren sobald er sich angemeldet hat."
+    "translation": "Slack-Import: Der Benutzer {{.Username}} hat keine E-Mail-Adresse im Slack-Export. Verwende {{.Email}} als Platzhalter. Der Benutzer sollte seine E-Mail-Adresse aktualisieren, sobald er sich angemeldet hat."
   },
   {
     "id": "api.slackimport.slack_add_users.unable_import",
-    "translation": "Kann Benutzer nicht importieren: {{.Username}}\r\n"
+    "translation": "Konnte Slack-Benutzer nicht importieren: {{.Username}}\r\n"
   },
   {
     "id": "api.slackimport.slack_convert_channel_mentions.compile_regexp_failed.warn",
-    "translation": "Slack Import: Unable to compile the !channel, matching regular expression for the Slack channel {{.ChannelName}} (id={{.ChannelID}})."
+    "translation": "Slack-Import: Konnte den !channel nicht erstellen, passender regulärer Ausdruck für den Slack-Kanal {{.ChannelName}} (id={{.ChannelID}})."
   },
   {
     "id": "api.slackimport.slack_convert_timestamp.bad.warn",
-    "translation": "Slack Import: Bad timestamp detected."
+    "translation": "Slack-Import: Ungültiger Zeitstempel entdeckt."
   },
   {
     "id": "api.slackimport.slack_convert_user_mentions.compile_regexp_failed.warn",
-    "translation": "Slack Import: Unable to compile the @mention, matching regular expression for the Slack user {{.Username}} (id={{.UserID}})."
+    "translation": "Slack-Import: Konnte @Erwähnung nicht erstellen, passender regulärer Ausdruck für Slack-Benutzer {{.Username}} (id={{.UserID}})."
   },
   {
     "id": "api.slackimport.slack_deactivate_bot_user.failed_to_deactivate",
-    "translation": "Slack Import: Unable to deactivate the user account used for the bot."
+    "translation": "Slack-Import: Konnte den Benutzerzugang für den Bot nicht deaktivieren."
   },
   {
     "id": "api.slackimport.slack_import.log",
@@ -2121,11 +2121,11 @@
   },
   {
     "id": "api.slackimport.slack_import.notes",
-    "translation": "\r\n Notizen \r\n"
+    "translation": "\r\nNotizen:\r\n"
   },
   {
     "id": "api.slackimport.slack_import.open.app_error",
-    "translation": "Unable to open the file: {{.Filename}}.\r\n"
+    "translation": "Konnte folgende Datei nicht öffnen: {{.Filename}}.\r\n"
   },
   {
     "id": "api.slackimport.slack_import.team_fail",
@@ -2133,31 +2133,31 @@
   },
   {
     "id": "api.slackimport.slack_import.zip.app_error",
-    "translation": "Unable to open the Slack export zip file.\r\n"
+    "translation": "Konnte Slack-Export ZIP-Datei nicht öffnen.\r\n"
   },
   {
     "id": "api.slackimport.slack_parse_channels.error",
-    "translation": "Slack Import: Error occurred when parsing some Slack channels. Import may work anyway."
+    "translation": "Slack-Import: Es trat ein Fehler beim Parsen einiger Slack-Kanäle auf. Import kann eventuell trotzdem funktionieren."
   },
   {
     "id": "api.slackimport.slack_parse_posts.error",
-    "translation": "Slack Import: Error occurred when parsing some Slack posts. Import may work anyway."
+    "translation": "Slack-Import: Es trat ein Fehler beim Parsen einiger Slack-Beiträge auf. Import kann eventuell trotzdem funktionieren."
   },
   {
     "id": "api.slackimport.slack_sanitise_channel_properties.display_name_too_long.warn",
-    "translation": "Slack-Importer: Kanal {{.ChannelName}} hat einen zu langen Namen. Er wird beim Import gekürzt."
+    "translation": "Slack-Import: Kanal {{.ChannelName}} hat einen zu langen Namen. Er wird beim Import gekürzt."
   },
   {
     "id": "api.slackimport.slack_sanitise_channel_properties.header_too_long.warn",
-    "translation": "Slack-Importer: Kanal {{.ChannelName}} hat einen zu langen Namen. Er wird beim Import gekürzt."
+    "translation": "Slack-Import: Kanal {{.ChannelName}} hat einen zu langen Namen. Er wird beim Import gekürzt."
   },
   {
     "id": "api.slackimport.slack_sanitise_channel_properties.name_too_long.warn",
-    "translation": "Slack-Importer: Kanal {{.ChannelName}} hat einen zu langen Namen. Er wird beim Import gekürzt."
+    "translation": "Slack-Import: Kanal {{.ChannelName}} hat einen zu langen Namen. Er wird beim Import gekürzt."
   },
   {
     "id": "api.slackimport.slack_sanitise_channel_properties.purpose_too_long.warn",
-    "translation": "Slack-Importer: Kanal {{.ChannelName}} hat einen zu langen Zweck. Er wird beim Import gekürzt."
+    "translation": "Slack-Import: Kanal {{.ChannelName}} hat einen zu langen Zweck. Er wird beim Import gekürzt."
   },
   {
     "id": "api.status.init.debug",
@@ -2497,15 +2497,15 @@
   },
   {
     "id": "api.templates.user_access_token_body.info",
-    "translation": "A user access token was added to your account on {{ .SiteURL }}. They can be used to access {{.SiteName}} with your account.<br>If this change wasn't initiated by you, please contact your system administrator."
+    "translation": "Ein Benutzer-Zugriffs-Token wurde Ihrem Konto auf {{ .SiteURL }} hinzugefügt. Es kann für den Zugang zu {{.SiteName}} mit Ihrem Konto verwendet werden.<br>Wenn diese Änderung nicht durch Sie ausgeführt wurde, wenden Sie sich bitte bei Ihrem Systemadministrator."
   },
   {
     "id": "api.templates.user_access_token_body.title",
-    "translation": "User access token added to your account"
+    "translation": "Benutzer-Zugriffs-Token zu Ihrem Konto hinzugefügt"
   },
   {
     "id": "api.templates.user_access_token_subject",
-    "translation": "[{{ .SiteName }}] User access token added to your account"
+    "translation": "[{{ .SiteName }}] Benutzer-Zugriffs-Token zu Ihrem Konto hinzugefügt"
   },
   {
     "id": "api.templates.username_change_body.info",
@@ -2865,7 +2865,7 @@
   },
   {
     "id": "api.user.send_user_access_token.error",
-    "translation": "Failed to send user access token added email successfully"
+    "translation": "Konnte \"Benutzer-Zugriffs-Token hinzugefügt\"-E-Mail nicht erfolgreich versenden"
   },
   {
     "id": "api.user.send_verify_email_and_forget.failed.error",
@@ -3413,15 +3413,15 @@
   },
   {
     "id": "app.import.validate_user_channels_import_data.invalid_notify_props_desktop.error",
-    "translation": "Ungültige Desktop NotifyProps für Kanalmitgliedschaft des Benutzers."
+    "translation": "Ungültige Desktop-Benachrichtigungs-Eigenschaft für Kanalmitgliedschaft des Benutzers."
   },
   {
     "id": "app.import.validate_user_channels_import_data.invalid_notify_props_mark_unread.error",
-    "translation": "Ungültige MarkUnread NotifyProps für Kanalmitgliedschaft des Benutzers."
+    "translation": "Ungültige Ungelesen-Markierung-Benachrichtigungs-Eigenschaft für Kanalmitgliedschaft des Benutzers."
   },
   {
     "id": "app.import.validate_user_channels_import_data.invalid_notify_props_mobile.error",
-    "translation": "Ungültige Desktop NotifyProps für Kanalmitgliedschaft des Benutzers."
+    "translation": "Ungültige Mobil-Benachrichtigungs-Eigenschaft für Kanalmitgliedschaft des Benutzers."
   },
   {
     "id": "app.import.validate_user_channels_import_data.invalid_roles.error",
@@ -3461,35 +3461,35 @@
   },
   {
     "id": "app.import.validate_user_import_data.notify_props_channel_trigger_invalid.error",
-    "translation": "Invalid Channel Trigger Notify Prop for user."
+    "translation": "Ungültiger Wert für Kanalauslöser-Benachrichtigungs-Eigenschaft des Benutzers."
   },
   {
     "id": "app.import.validate_user_import_data.notify_props_comment_trigger_invalid.error",
-    "translation": "Invalid Comment Trigger Notify Prop for user."
+    "translation": "Ungültige Kommentar-Auslöser-Benachrichtigungs-Eigenschaft des Benutzers."
   },
   {
     "id": "app.import.validate_user_import_data.notify_props_desktop_duration_invalid.error",
-    "translation": "Invalid Desktop Duration Notify Prop value for user."
+    "translation": "Ungültiger Wert für Desktop-Benachrichtigungdauer-Eigenschaft des Benutzers."
   },
   {
     "id": "app.import.validate_user_import_data.notify_props_desktop_invalid.error",
-    "translation": "Invalid Desktop Notify Prop value for user."
+    "translation": "Ungültiger Wert für Desktop-Benachrichtigungs-Eigenschaft des Benutzers."
   },
   {
     "id": "app.import.validate_user_import_data.notify_props_desktop_sound_invalid.error",
-    "translation": "Invalid Desktop Sound Notify Prop value for user."
+    "translation": "Ungültiger Wert für Desktop-Benachrichtigungston-Eigenschaft des Benutzers."
   },
   {
     "id": "app.import.validate_user_import_data.notify_props_email_invalid.error",
-    "translation": "Invalid Email Notify Prop value for user."
+    "translation": "Ungültiger Wert für E-Mail-Benachrichtigungs-Eigenschaft des Benutzers."
   },
   {
     "id": "app.import.validate_user_import_data.notify_props_mobile_invalid.error",
-    "translation": "Invalid Mobile Notify Prop value for user."
+    "translation": "Ungültiger Wert für Mobil-Benachrichtigungs-Eigenschaft des Benutzers."
   },
   {
     "id": "app.import.validate_user_import_data.notify_props_mobile_push_status_invalid.error",
-    "translation": "Invalid Mobile Push Status Notify Prop for user."
+    "translation": "Ungültiger Wert für Mobil-Push-Eigenschaft des Benutzers."
   },
   {
     "id": "app.import.validate_user_import_data.pasword_length.error",
@@ -3521,27 +3521,27 @@
   },
   {
     "id": "app.notification.body.intro.direct.full",
-    "translation": "Sie haben eine neue Nachricht."
+    "translation": "Sie haben eine neue Direktnachricht."
   },
   {
     "id": "app.notification.body.intro.direct.generic",
-    "translation": "You have a new direct message from {{.SenderName}}"
+    "translation": "Sie haben eine neue Direktnachricht von {{.SenderName}}"
   },
   {
     "id": "app.notification.body.intro.notification.full",
-    "translation": "You have a new notification."
+    "translation": "Sie haben eine neue Benachrichtigung."
   },
   {
     "id": "app.notification.body.intro.notification.generic",
-    "translation": "You have a new notification from {{.SenderName}}"
+    "translation": "Sie haben eine neue Benachrichtigung von {{.SenderName}}"
   },
   {
     "id": "app.notification.body.text.direct.full",
-    "translation": "{{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Day}} {{.Month}}"
+    "translation": "{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Day}}. {{.Month}}"
   },
   {
     "id": "app.notification.body.text.direct.generic",
-    "translation": "{{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Day}} {{.Month}}"
+    "translation": "{{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Day}}. {{.Month}}"
   },
   {
     "id": "app.notification.body.text.notification.full",
@@ -3549,15 +3549,15 @@
   },
   {
     "id": "app.notification.body.text.notification.generic",
-    "translation": "{{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Day}} {{.Month}}"
+    "translation": "{{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Day}}. {{.Month}}"
   },
   {
     "id": "app.notification.subject.direct.full",
-    "translation": "Neue Gruppennachricht von {{.SenderDisplayName}} am {{.Day}}.{{.Month}}.{{.Year}}"
+    "translation": "[{{.SiteName}}] Neue Direktnachricht von {{.SenderDisplayName}} am {{.Day}}.{{.Month}}.{{.Year}}"
   },
   {
     "id": "app.notification.subject.notification.full",
-    "translation": "[{{ .SiteName }}] Notification in {{ .TeamName}} on {{.Month}} {{.Day}}, {{.Year}}"
+    "translation": "[{{ .SiteName }}] Benachrichtigung in {{ .TeamName}} am {{.Day}}.{{.Month}}.{{.Year}}"
   },
   {
     "id": "app.user_access_token.disabled",
@@ -4445,7 +4445,7 @@
   },
   {
     "id": "model.config.is_valid.email_notification_contents_type.app_error",
-    "translation": "Invalid email notification contents type for email settings. Must be one of either 'full' or 'generic'."
+    "translation": "Ungültiger Inhaltstyp für E-Mail-Benachrichtigungen in E-Mail-Einstellungen. Muss entweder 'full' oder 'generic' sein."
   },
   {
     "id": "model.config.is_valid.email_reset_salt.app_error",
@@ -5281,7 +5281,7 @@
   },
   {
     "id": "store.sql.schema_version.critical",
-    "translation": "Database schema version %v is no longer supported. This Mattermost server supports automatic upgrades from schema version %v through schema version %v. Downgrades are not supported. Please manually upgrade to at least version %v before continuing"
+    "translation": "Datenbankschema-Version %v wird nicht länger unterstützt. Dieser Mattermost-Server unterstützt automatische Upgrades von Schema-Version %v bis %v. Downgrades werden nicht unterstützt. Bitte aktualisieren Sie manuell auf mindestens Version %v bevor Sie fortfahren."
   },
   {
     "id": "store.sql.short_ciphertext",
@@ -6509,7 +6509,7 @@
   },
   {
     "id": "utils.config.add_client_locale.app_error",
-    "translation": "Unable to load mattermost configuration file:  Adding DefaultClientLocale to AvailableLocales."
+    "translation": "Konnte Mattermost-Konfigurationsdatei nicht laden:  Fügre DefaultClientLocale zu AvailableLocales hinzu."
   },
   {
     "id": "utils.config.load_config.decoding.panic",
@@ -6533,15 +6533,15 @@
   },
   {
     "id": "utils.config.supported_available_locales.app_error",
-    "translation": "Unable to load mattermost configuration file:  AvailableLocales must include DefaultClientLocale. Setting AvailableLocales to all locales as default value."
+    "translation": "Konnte Mattermost-Konfigurationsdatei nicht laden:  AvailableLocales muss DefaultClientLocale enthalten. Setze AvailableLocales auf alle Übersetzungen als Standardwert."
   },
   {
     "id": "utils.config.supported_client_locale.app_error",
-    "translation": "Unable to load mattermost configuration file:  DefaultClientLocale must be one of the supported locales. Setting DefaultClientLocale to en as default value."
+    "translation": "Konnte Mattermost-Konfigurationsdatei nicht laden;  DefaultClientLocale muss eine der unterstützten Übersetzungen entsprechen. Setze DefaultClientLocale auf en als Standardwert."
   },
   {
     "id": "utils.config.supported_server_locale.app_error",
-    "translation": "Konnte Mattermost Konfigurationsdatei nicht laden:  DefaultServerLocale muss eine der unterstützen Locale entsprechen"
+    "translation": "Konnte Mattermost-Konfigurationsdatei nicht laden;  DefaultServerLocale muss einer der unterstützten Übersetzungen entsprechen. Setze DefaultServerLocale auf en als Standardwert."
   },
   {
     "id": "utils.config.validate_locale.app_error",

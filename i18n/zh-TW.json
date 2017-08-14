@@ -3561,7 +3561,7 @@
   },
   {
     "id": "app.user_access_token.disabled",
-    "translation": "使用者存取 Token 在此伺服器被停用。詳情請洽管理員。"
+    "translation": "個人存取 Token 在此伺服器被停用。詳情請洽管理員。"
   },
   {
     "id": "app.user_access_token.invalid_or_missing",
@@ -3593,11 +3593,11 @@
   },
   {
     "id": "authentication.permissions.create_user_access_token.description",
-    "translation": "允許建立使用者存取 Token"
+    "translation": "允許建立個人存取 Token"
   },
   {
     "id": "authentication.permissions.create_user_access_token.name",
-    "translation": "建立使用者存取 Token"
+    "translation": "建立個人存取 Token"
   },
   {
     "id": "authentication.permissions.manage_jobs.description",
@@ -3625,19 +3625,19 @@
   },
   {
     "id": "authentication.permissions.read_user_access_token.description",
-    "translation": "允許讀取使用者存取 Token 的 ID、描述與 user_id 欄位"
+    "translation": "允許讀取個人存取 Token 的 ID、描述與 user_id 欄位"
   },
   {
     "id": "authentication.permissions.read_user_access_token.name",
-    "translation": "讀取使用者存取 Token"
+    "translation": "讀取個人存取 Token"
   },
   {
     "id": "authentication.permissions.revoke_user_access_token.description",
-    "translation": "允許撤銷使用者 Token"
+    "translation": "允許撤銷個人 Token"
   },
   {
     "id": "authentication.permissions.revoke_user_access_token.name",
-    "translation": "撤銷使用者存取 Token"
+    "translation": "撤銷個人存取 Token"
   },
   {
     "id": "authentication.permissions.team_invite_user.description",
@@ -3673,11 +3673,11 @@
   },
   {
     "id": "authentication.roles.system_user_access_token.description",
-    "translation": "擁有建立、讀取與撤銷使用者存取 Token 權限的角色"
+    "translation": "擁有建立、讀取與撤銷個人存取 Token 權限的角色"
   },
   {
     "id": "authentication.roles.system_user_access_token.name",
-    "translation": "使用者存取 Token"
+    "translation": "個人存取 Token"
   },
   {
     "id": "authentication.roles.team_post_all.description",
@@ -6405,23 +6405,23 @@
   },
   {
     "id": "store.sql_user_access_token.delete.app_error",
-    "translation": "無法刪除使用者存取 Token"
+    "translation": "無法刪除個人存取 Token"
   },
   {
     "id": "store.sql_user_access_token.get.app_error",
-    "translation": "無法取得使用者存取 Token"
+    "translation": "無法取得個人存取 Token"
   },
   {
     "id": "store.sql_user_access_token.get_by_token.app_error",
-    "translation": "無法根據 Token 取得使用者存取 Token"
+    "translation": "無法根據 Token 取得個人存取 Token"
   },
   {
     "id": "store.sql_user_access_token.get_by_user.app_error",
-    "translation": "無法根據使用者取得使用者存取 Token"
+    "translation": "無法根據使用者取得個人存取 Token"
   },
   {
     "id": "store.sql_user_access_token.save.app_error",
-    "translation": "無法刪除儲存使用者存取 Token"
+    "translation": "無法刪除儲存個人存取 Token"
   },
   {
     "id": "store.sql_webhooks.analytics_incoming_count.app_error",
@@ -6541,7 +6541,7 @@
   },
   {
     "id": "utils.config.supported_server_locale.app_error",
-    "translation": "無法讀入 Mattermost 設定檔： DefaultServerLocale 必須為支援的地域"
+    "translation": "無法讀取 Mattermost 設定檔：  DefaultServerLocale 必須為支援的語系。設定 DefaultServerLocale 為 en 當作預設值。"
   },
   {
     "id": "utils.config.validate_locale.app_error",
