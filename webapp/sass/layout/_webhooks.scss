@@ -37,6 +37,16 @@
 }
 
 .post {
+    &.post--comment {
+        .attachment {
+            .attachment__body__wrap {
+                .btn-close {
+                    left: -11px;
+                }
+            }
+        }
+    }
+
     .attachment {
         margin-left: -20px;
         position: relative;
@@ -64,7 +74,7 @@
         .attachment__thumb-pretext {
             background: transparent;
             border: none;
-            margin-left: 5px;
+            margin-left: 25px;
         }
 
         .attachment__container {

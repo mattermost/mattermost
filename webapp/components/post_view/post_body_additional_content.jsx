@@ -78,6 +78,7 @@ export default class PostBodyAdditionalContent extends React.PureComponent {
         return (
             <PostAttachmentList
                 attachments={attachments}
+                key={this.props.post.id}
             />
         );
     }
