@@ -95,12 +95,12 @@ func TestAddUserToTeam(t *testing.T) {
 
 	// Restore config/license at end of test case.
 	restrictTeamInvite := *utils.Cfg.TeamSettings.RestrictTeamInvite
-	isLicensed := utils.IsLicensed
-	license := utils.License
+	isLicensed := utils.IsLicensed()
+	license := utils.License()
 	defer func() {
 		*utils.Cfg.TeamSettings.RestrictTeamInvite = restrictTeamInvite
-		utils.IsLicensed = isLicensed
-		utils.License = license
+		utils.SetIsLicensed(isLicensed)
+		utils.SetLicense(license)
 		utils.SetDefaultRolesBasedOnConfig()
 	}()
 
@@ -115,9 +115,9 @@ func TestAddUserToTeam(t *testing.T) {
 	}
 
 	// Add an EE license.
-	utils.IsLicensed = true
-	utils.License = &model.License{Features: &model.Features{}}
-	utils.License.Features.SetDefaults()
+	utils.SetIsLicensed(true)
+	utils.SetLicense(&model.License{Features: &model.Features{}})
+	utils.License().Features.SetDefaults()
 	utils.SetDefaultRolesBasedOnConfig()
 
 	// Check that a regular user can't add someone to the team.
@@ -130,9 +130,9 @@ func TestAddUserToTeam(t *testing.T) {
 	UpdateUserToTeamAdmin(th.BasicUser, th.BasicTeam)
 	app.InvalidateAllCaches()
 	*utils.Cfg.TeamSettings.RestrictTeamInvite = model.PERMISSIONS_TEAM_ADMIN
-	utils.IsLicensed = true
-	utils.License = &model.License{Features: &model.Features{}}
-	utils.License.Features.SetDefaults()
+	utils.SetIsLicensed(true)
+	utils.SetLicense(&model.License{Features: &model.Features{}})
+	utils.License().Features.SetDefaults()
 	utils.SetDefaultRolesBasedOnConfig()
 
 	user5 := th.CreateUser(th.BasicClient)
@@ -381,16 +381,16 @@ func TestInviteMembers(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	isLicensed := utils.IsLicensed
-	license := utils.License
+	isLicensed := utils.IsLicensed()
+	license := utils.License()
 	defer func() {
-		utils.IsLicensed = isLicensed
-		utils.License = license
+		utils.SetIsLicensed(isLicensed)
+		utils.SetLicense(license)
 		utils.SetDefaultRolesBasedOnConfig()
 	}()
-	utils.IsLicensed = true
-	utils.License = &model.License{Features: &model.Features{}}
-	utils.License.Features.SetDefaults()
+	utils.SetIsLicensed(true)
+	utils.SetLicense(&model.License{Features: &model.Features{}})
+	utils.License().Features.SetDefaults()
 	utils.SetDefaultRolesBasedOnConfig()
 
 	if _, err := Client.InviteMembers(invites); err == nil {
