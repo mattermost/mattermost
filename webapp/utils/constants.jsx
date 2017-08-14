@@ -59,7 +59,8 @@ export const Preferences = {
     EMAIL_INTERVAL: 'email_interval',
     INTERVAL_IMMEDIATE: 30, // "immediate" is a 30 second interval
     INTERVAL_FIFTEEN_MINUTES: 15 * 60,
-    INTERVAL_HOUR: 60 * 60
+    INTERVAL_HOUR: 60 * 60,
+    INTERVAL_NEVER: 0
 };
 
 export const ActionTypes = keyMirror({
