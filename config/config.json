@@ -77,13 +77,13 @@
     },
     "SqlSettings": {
         "DriverName": "mysql",
-        "DataSource": "mmuser:mostest@tcp(dockerhost:3306)/mattermost_test?charset=utf8mb4,utf8\u0026readTimeout=30s\u0026writeTimeout=30s",
+        "DataSource": "mmuser:mostest@tcp(dockerhost:3306)/mattermost_test?charset=utf8mb4,utf8&readTimeout=30s&writeTimeout=30s",
         "DataSourceReplicas": [],
         "DataSourceSearchReplicas": [],
         "MaxIdleConns": 20,
         "MaxOpenConns": 300,
         "Trace": false,
-        "AtRestEncryptKey": "mp7na5x1miithou7kzxxffw75757n8i6",
+        "AtRestEncryptKey": "",
         "QueryTimeout": 30
     },
     "LogSettings": {
@@ -111,7 +111,7 @@
         "DriverName": "local",
         "Directory": "./data/",
         "EnablePublicLink": false,
-        "PublicLinkSalt": "kresho3jxyunrtphn8ioh1cspq7x9xdo",
+        "PublicLinkSalt": "",
         "InitialFont": "luximbi.ttf",
         "AmazonS3AccessKeyId": "",
         "AmazonS3SecretAccessKey": "",
@@ -119,8 +119,7 @@
         "AmazonS3Region": "us-east-1",
         "AmazonS3Endpoint": "s3.amazonaws.com",
         "AmazonS3SSL": true,
-        "AmazonS3SignV2": false,
-        "AmazonS3SSE": false
+        "AmazonS3SignV2": false
     },
     "EmailSettings": {
         "EnableSignUpWithEmail": true,
@@ -137,11 +136,11 @@
         "SMTPServer": "dockerhost",
         "SMTPPort": "2500",
         "ConnectionSecurity": "",
-        "InviteSalt": "qey337qy64yhbshqy8p9ed9wk6ohs39t",
+        "InviteSalt": "",
         "SendPushNotifications": false,
         "PushNotificationServer": "",
         "PushNotificationContents": "generic",
-        "EnableEmailBatching": true,
+        "EnableEmailBatching": false,
         "EmailBatchingBufferSize": 256,
         "EmailBatchingInterval": 30,
         "SkipServerCertificateVerification": false,
