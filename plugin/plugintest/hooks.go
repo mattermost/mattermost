@@ -12,10 +12,10 @@ type Hooks struct {
 
 var _ plugin.Hooks = (*Hooks)(nil)
 
-func (m *Hooks) OnActivate(api plugin.API) {
-	m.Called(api)
+func (m *Hooks) OnActivate(api plugin.API) error {
+	return m.Called(api).Error(0)
 }
 
-func (m *Hooks) OnDeactivate() {
-	m.Called()
+func (m *Hooks) OnDeactivate() error {
+	return m.Called().Error(0)
 }

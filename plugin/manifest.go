@@ -1,4 +1,4 @@
-package pluginenv
+package plugin
 
 import (
 	"encoding/json"
@@ -18,7 +18,7 @@ type ManifestBackend struct {
 	Executable string `json:"executable" yaml:"executable"`
 }
 
-// Find manifest will find and parse the manifest in a given directory.
+// FindManifest will find and parse the manifest in a given directory.
 //
 // In all cases other than a does-not-exist error, path is set to the path of the manifest file that was
 // found.

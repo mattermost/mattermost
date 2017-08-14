@@ -1,0 +1,22 @@
+package rpcplugin
+
+import (
+	"io"
+)
+
+type Process interface {
+	// Waits for the process to exit and returns an error if a problem occurred or the process exited
+	// with a non-zero status.
+	Wait() error
+}
+
+// NewProcess launches an RPC executable in a new process and returns an IPC that can be used to
+// communicate with it.
+func NewProcess(path string) (Process, io.ReadWriteCloser, error) {
+	return newProcess(path)
+}
+
+// When called on a process launched with NewProcess, returns the inherited IPC.
+func InheritedProcessIPC() (io.ReadWriteCloser, error) {
+	return inheritedProcessIPC()
+}

@@ -2,15 +2,14 @@ package rpcplugin
 
 import (
 	"github.com/mattermost/platform/plugin"
-	"github.com/mattermost/platform/plugin/pluginenv"
 )
 
 // Supervisor implements a plugin.Supervisor that launches the plugin in a separate process and
-// communicates via RPCs.
+// communicates via RPC.
 type Supervisor struct {
 }
 
-var _ pluginenv.Supervisor = (*Supervisor)(nil)
+var _ plugin.Supervisor = (*Supervisor)(nil)
 
 func (s *Supervisor) Start() error {
 	// TODO
@@ -22,7 +21,11 @@ func (s *Supervisor) Stop() error {
 	return nil
 }
 
-func (s *Supervisor) Dispatcher() plugin.Hooks {
+func (s *Supervisor) Hooks() plugin.Hooks {
 	// TODO
 	return nil
+}
+
+func SupervisorProvider(bundle *plugin.BundleInfo) (plugin.Supervisor, error) {
+	return &Supervisor{}, nil
 }

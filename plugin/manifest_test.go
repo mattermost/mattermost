@@ -1,4 +1,4 @@
-package pluginenv
+package plugin
 
 import (
 	"encoding/json"
@@ -77,4 +77,21 @@ backend:
 	}
 	}`), &jsonResult))
 	assert.Equal(t, expected, jsonResult)
+}
+
+func TestFindManifest_FileErrors(t *testing.T) {
+	for _, tc := range []string{"plugin.yaml", "plugin.json"} {
+		dir, err := ioutil.TempDir("", "mm-plugin-test")
+		require.NoError(t, err)
+		defer os.RemoveAll(dir)
+
+		path := filepath.Join(dir, tc)
+		require.NoError(t, os.Mkdir(path, 0700))
+
+		m, mpath, err := FindManifest(dir)
+		assert.Nil(t, m)
+		assert.Equal(t, path, mpath)
+		assert.Error(t, err, tc)
+		assert.False(t, os.IsNotExist(err), tc)
+	}
 }

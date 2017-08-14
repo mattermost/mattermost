@@ -1,6 +1,6 @@
 package plugin
 
 type Hooks interface {
-	OnActivate(API)
-	OnDeactivate()
+	OnActivate(API) error
+	OnDeactivate() error
 }

@@ -1,3 +1,4 @@
+// Package pluginenv provides high level functionality for discovering and launching plugins.
 package pluginenv
 
 import (
@@ -8,40 +9,51 @@ import (
 	"github.com/mattermost/platform/plugin"
 )
 
-type APIProviderFunc func(*Manifest) (plugin.API, error)
-type SupervisorProviderFunc func(*BundleInfo) (Supervisor, error)
+type APIProviderFunc func(*plugin.Manifest) (plugin.API, error)
+type SupervisorProviderFunc func(*plugin.BundleInfo) (plugin.Supervisor, error)
 
 // Environment represents an environment that plugins are discovered and launched in.
 type Environment struct {
 	searchPath         string
 	apiProvider        APIProviderFunc
 	supervisorProvider SupervisorProviderFunc
-	activePlugins      map[string]Supervisor
+	activePlugins      map[string]plugin.Supervisor
 }
 
-// Creates a new environment.
+type Option func(*Environment) error
+
+// Creates a new environment. At a minimum, the APIProvider and SearchPath options are required.
 func New(options ...Option) (*Environment, error) {
 	env := &Environment{
-		activePlugins: make(map[string]Supervisor),
+		activePlugins: make(map[string]plugin.Supervisor),
 	}
 	for _, opt := range options {
 		if err := opt(env); err != nil {
 			return nil, err
 		}
 	}
+	if env.supervisorProvider == nil {
+		env.supervisorProvider = DefaultSupervisorProvider
+	}
 	if env.searchPath == "" {
 		return nil, fmt.Errorf("a search path must be provided")
 	} else if env.apiProvider == nil {
 		return nil, fmt.Errorf("an api provider must be provided")
-	} else if env.supervisorProvider == nil {
-		return nil, fmt.Errorf("a supervisor provider must be provided")
 	}
 	return env, nil
 }
 
 // Returns a list of all plugins found within the environment.
-func (env *Environment) Plugins() ([]*BundleInfo, error) {
+func (env *Environment) Plugins() ([]*plugin.BundleInfo, error) {
 	return ScanSearchPath(env.searchPath)
+}
+
+// Returns the ids of the currently active plugins.
+func (env *Environment) ActivePluginIds() (ids []string) {
+	for id := range env.activePlugins {
+		ids = append(ids, id)
+	}
+	return
 }
 
 // Activates the plugin with the given id.
@@ -53,7 +65,7 @@ func (env *Environment) ActivatePlugin(id string) error {
 	if err != nil {
 		return err
 	}
-	var plugin *BundleInfo
+	var plugin *plugin.BundleInfo
 	for _, p := range plugins {
 		if p.Manifest != nil && p.Manifest.Id == id {
 			if plugin != nil {
@@ -76,7 +88,9 @@ func (env *Environment) ActivatePlugin(id string) error {
 	if err := supervisor.Start(); err != nil {
 		return errors.Wrapf(err, "unable to start plugin: %v", id)
 	}
-	supervisor.Dispatcher().OnActivate(api)
+	if err := supervisor.Hooks().OnActivate(api); err != nil {
+		return errors.Wrapf(err, "unable to activate plugin: %v", id)
+	}
 	env.activePlugins[id] = supervisor
 	return nil
 }
@@ -87,18 +101,24 @@ func (env *Environment) DeactivatePlugin(id string) error {
 		return fmt.Errorf("plugin not active: %v", id)
 	} else {
 		delete(env.activePlugins, id)
-		supervisor.Dispatcher().OnDeactivate()
-		return supervisor.Stop()
+		err := supervisor.Hooks().OnDeactivate()
+		if serr := supervisor.Stop(); err == nil {
+			err = serr
+		}
+		return err
 	}
 }
 
 // Deactivates all plugins and gracefully shuts down the environment.
 func (env *Environment) Shutdown() (errs []error) {
 	for _, supervisor := range env.activePlugins {
+		if err := supervisor.Hooks().OnDeactivate(); err != nil {
+			errs = append(errs, err)
+		}
 		if err := supervisor.Stop(); err != nil {
 			errs = append(errs, err)
 		}
 	}
-	env.activePlugins = make(map[string]Supervisor)
+	env.activePlugins = make(map[string]plugin.Supervisor)
 	return
 }

@@ -8,6 +8,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/mattermost/platform/plugin"
 )
 
 func TestScanSearchPath(t *testing.T) {
@@ -25,17 +27,17 @@ func TestScanSearchPath(t *testing.T) {
 	plugins, err := ScanSearchPath(dir)
 	require.NoError(t, err)
 	assert.Len(t, plugins, 3)
-	assert.Contains(t, plugins, &BundleInfo{
+	assert.Contains(t, plugins, &plugin.BundleInfo{
 		Path:         filepath.Join(dir, "foo"),
 		ManifestPath: filepath.Join(dir, "foo", "plugin.json"),
-		Manifest: &Manifest{
+		Manifest: &plugin.Manifest{
 			Id: "foo",
 		},
 	})
-	assert.Contains(t, plugins, &BundleInfo{
+	assert.Contains(t, plugins, &plugin.BundleInfo{
 		Path:         filepath.Join(dir, "baz"),
 		ManifestPath: filepath.Join(dir, "baz", "plugin.yaml"),
-		Manifest: &Manifest{
+		Manifest: &plugin.Manifest{
 			Id: "baz",
 		},
 	})
@@ -51,4 +53,10 @@ func TestScanSearchPath(t *testing.T) {
 		}
 	}
 	assert.True(t, foundError)
+}
+
+func TestScanSearchPath_Error(t *testing.T) {
+	plugins, err := ScanSearchPath("not a valid path!")
+	assert.Nil(t, plugins)
+	assert.Error(t, err)
 }

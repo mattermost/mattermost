@@ -18,14 +18,14 @@ type MockProvider struct {
 	mock.Mock
 }
 
-func (m *MockProvider) API(manifest *Manifest) (plugin.API, error) {
+func (m *MockProvider) API(manifest *plugin.Manifest) (plugin.API, error) {
 	ret := m.Called()
 	return ret.Get(0).(plugin.API), ret.Error(1)
 }
 
-func (m *MockProvider) Supervisor(bundle *BundleInfo) (Supervisor, error) {
+func (m *MockProvider) Supervisor(bundle *plugin.BundleInfo) (plugin.Supervisor, error) {
 	ret := m.Called()
-	return ret.Get(0).(Supervisor), ret.Error(1)
+	return ret.Get(0).(plugin.Supervisor), ret.Error(1)
 }
 
 type MockSupervisor struct {
@@ -40,7 +40,7 @@ func (m *MockSupervisor) Stop() error {
 	return m.Called().Error(0)
 }
 
-func (m *MockSupervisor) Dispatcher() plugin.Hooks {
+func (m *MockSupervisor) Hooks() plugin.Hooks {
 	return m.Called().Get(0).(plugin.Hooks)
 }
 
@@ -54,15 +54,7 @@ func initTmpDir(t *testing.T, files map[string]string) string {
 		}
 	}()
 
-	for name, contents := range map[string]string{
-		".foo/plugin.json": `{"id": "foo"}`,
-		"foo/bar":          "asdf",
-		"foo/plugin.json":  `{"id": "foo"}`,
-		"bar/zxc":          "qwer",
-		"baz/plugin.yaml":  "id: baz",
-		"bad/plugin.json":  "asd",
-		"qwe":              "asd",
-	} {
+	for name, contents := range files {
 		path := filepath.Join(dir, name)
 		parent := filepath.Dir(path)
 		require.NoError(t, os.MkdirAll(parent, 0700))
@@ -109,21 +101,22 @@ func TestEnvironment(t *testing.T) {
 	var api struct{ plugin.API }
 	var supervisor MockSupervisor
 	defer supervisor.AssertExpectations(t)
-	var dispatcher plugintest.Hooks
-	defer dispatcher.AssertExpectations(t)
+	var hooks plugintest.Hooks
+	defer hooks.AssertExpectations(t)
 
 	provider.On("API").Return(&api, nil)
 	provider.On("Supervisor").Return(&supervisor, nil)
 
 	supervisor.On("Start").Return(nil)
 	supervisor.On("Stop").Return(nil)
-	supervisor.On("Dispatcher").Return(&dispatcher)
+	supervisor.On("Hooks").Return(&hooks)
 
-	dispatcher.On("OnActivate", &api).Once()
+	hooks.On("OnActivate", &api).Return(nil)
 
 	assert.NoError(t, env.ActivatePlugin("foo"))
+	assert.Equal(t, env.ActivePluginIds(), []string{"foo"})
 	assert.Error(t, env.ActivatePlugin("foo"))
 
-	dispatcher.On("OnDeactivate").Once()
+	hooks.On("OnDeactivate").Return(nil)
 	assert.NoError(t, env.DeactivatePlugin("foo"))
 }
