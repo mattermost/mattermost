@@ -321,7 +321,7 @@ func (us SqlUserStore) UpdateAuthData(userId string, service string, authData *s
 		query += " WHERE Id = :UserId"
 
 		if _, err := us.GetMaster().Exec(query, map[string]interface{}{"LastPasswordUpdate": updateAt, "UpdateAt": updateAt, "UserId": userId, "AuthService": service, "AuthData": authData, "Email": email}); err != nil {
-			if IsUniqueConstraintError(err.Error(), []string{"Email", "users_email_key", "idx_users_email_unique"}) {
+			if IsUniqueConstraintError(err.Error(), []string{"Email", "users_email_key", "idx_users_email_unique", "AuthData"}) {
 				result.Err = model.NewLocAppError("SqlUserStore.UpdateAuthData", "store.sql_user.update_auth_data.email_exists.app_error", map[string]interface{}{"Service": service, "Email": email}, "user_id="+userId+", "+err.Error())
 			} else {
 				result.Err = model.NewLocAppError("SqlUserStore.UpdateAuthData", "store.sql_user.update_auth_data.app_error", nil, "id="+userId+", "+err.Error())
