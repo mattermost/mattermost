@@ -1,6 +1,7 @@
 package rpcplugin
 
 import (
+	"context"
 	"io"
 )
 
@@ -12,8 +13,8 @@ type Process interface {
 
 // NewProcess launches an RPC executable in a new process and returns an IPC that can be used to
 // communicate with it.
-func NewProcess(path string) (Process, io.ReadWriteCloser, error) {
-	return newProcess(path)
+func NewProcess(ctx context.Context, path string) (Process, io.ReadWriteCloser, error) {
+	return newProcess(ctx, path)
 }
 
 // When called on a process launched with NewProcess, returns the inherited IPC.

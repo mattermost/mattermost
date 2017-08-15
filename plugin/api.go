@@ -1,6 +1,7 @@
 package plugin
 
 type API interface {
-	// Loads the plugin's configuration
+	// LoadPluginConfiguration loads the plugin's configuration. dest should be a pointer to a
+	// struct that the configuration JSON can be unmarshalled to.
 	LoadPluginConfiguration(dest interface{}) error
 }

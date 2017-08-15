@@ -1,11 +1,12 @@
 package rpcplugin
 
 import (
+	"context"
 	"fmt"
 	"io"
 )
 
-func newProcess(path string) (Process, io.ReadWriteCloser, error) {
+func newProcess(ctx context.Context, path string) (Process, io.ReadWriteCloser, error) {
 	// TODO
 	return nil, nil, fmt.Errorf("not yet supported")
 }

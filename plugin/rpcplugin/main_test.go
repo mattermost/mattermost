@@ -1,11 +1,13 @@
 package rpcplugin
 
 import (
+	"context"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/platform/plugin/plugintest"
@@ -40,7 +42,7 @@ func TestMain(t *testing.T) {
 		}
 	`, plugin)
 
-	p, ipc, err := NewProcess(plugin)
+	p, ipc, err := NewProcess(context.Background(), plugin)
 	require.NoError(t, err)
 	defer p.Wait()
 
@@ -51,6 +53,6 @@ func TestMain(t *testing.T) {
 
 	hooks, err := ConnectMain(muxer)
 	require.NoError(t, err)
-	hooks.OnActivate(&api)
-	hooks.OnDeactivate()
+	assert.NoError(t, hooks.OnActivate(&api))
+	assert.NoError(t, hooks.OnDeactivate())
 }

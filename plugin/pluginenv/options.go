@@ -9,26 +9,23 @@ import (
 
 // APIProvider specifies a function that provides an API implementation to each plugin.
 func APIProvider(provider APIProviderFunc) Option {
-	return func(env *Environment) error {
+	return func(env *Environment) {
 		env.apiProvider = provider
-		return nil
 	}
 }
 
 // SupervisorProvider specifies a function that provides a Supervisor implementation to each plugin.
 // If unspecified, DefaultSupervisorProvider is used.
 func SupervisorProvider(provider SupervisorProviderFunc) Option {
-	return func(env *Environment) error {
+	return func(env *Environment) {
 		env.supervisorProvider = provider
-		return nil
 	}
 }
 
 // SearchPath specifies a directory that contains the plugins to launch.
 func SearchPath(path string) Option {
-	return func(env *Environment) error {
+	return func(env *Environment) {
 		env.searchPath = path
-		return nil
 	}
 }
 

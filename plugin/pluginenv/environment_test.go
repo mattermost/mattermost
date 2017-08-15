@@ -1,6 +1,7 @@
 package pluginenv
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -20,11 +21,17 @@ type MockProvider struct {
 
 func (m *MockProvider) API(manifest *plugin.Manifest) (plugin.API, error) {
 	ret := m.Called()
+	if ret.Get(0) == nil {
+		return nil, ret.Error(1)
+	}
 	return ret.Get(0).(plugin.API), ret.Error(1)
 }
 
 func (m *MockProvider) Supervisor(bundle *plugin.BundleInfo) (plugin.Supervisor, error) {
 	ret := m.Called()
+	if ret.Get(0) == nil {
+		return nil, ret.Error(1)
+	}
 	return ret.Get(0).(plugin.Supervisor), ret.Error(1)
 }
 
@@ -67,6 +74,28 @@ func initTmpDir(t *testing.T, files map[string]string) string {
 
 	success = true
 	return dir
+}
+
+func TestNew_MissingOptions(t *testing.T) {
+	dir := initTmpDir(t, map[string]string{
+		"foo/plugin.json": `{"id": "foo"}`,
+	})
+	defer os.RemoveAll(dir)
+
+	var provider MockProvider
+	defer provider.AssertExpectations(t)
+
+	env, err := New(
+		APIProvider(provider.API),
+	)
+	assert.Nil(t, env)
+	assert.Error(t, err)
+
+	env, err = New(
+		SearchPath(dir),
+	)
+	assert.Nil(t, env)
+	assert.Error(t, err)
 }
 
 func TestEnvironment(t *testing.T) {
@@ -119,4 +148,201 @@ func TestEnvironment(t *testing.T) {
 
 	hooks.On("OnDeactivate").Return(nil)
 	assert.NoError(t, env.DeactivatePlugin("foo"))
+	assert.Error(t, env.DeactivatePlugin("foo"))
+
+	assert.NoError(t, env.ActivatePlugin("foo"))
+	assert.Equal(t, env.ActivePluginIds(), []string{"foo"})
+	assert.Empty(t, env.Shutdown())
+}
+
+func TestEnvironment_DuplicatePluginError(t *testing.T) {
+	dir := initTmpDir(t, map[string]string{
+		"foo/plugin.json":  `{"id": "foo"}`,
+		"foo2/plugin.json": `{"id": "foo"}`,
+	})
+	defer os.RemoveAll(dir)
+
+	var provider MockProvider
+	defer provider.AssertExpectations(t)
+
+	env, err := New(
+		SearchPath(dir),
+		APIProvider(provider.API),
+		SupervisorProvider(provider.Supervisor),
+	)
+	require.NoError(t, err)
+	defer env.Shutdown()
+
+	assert.Error(t, env.ActivatePlugin("foo"))
+	assert.Empty(t, env.ActivePluginIds())
+}
+
+func TestEnvironment_BadSearchPathError(t *testing.T) {
+	var provider MockProvider
+	defer provider.AssertExpectations(t)
+
+	env, err := New(
+		SearchPath("thissearchpathshouldnotexist!"),
+		APIProvider(provider.API),
+		SupervisorProvider(provider.Supervisor),
+	)
+	require.NoError(t, err)
+	defer env.Shutdown()
+
+	assert.Error(t, env.ActivatePlugin("foo"))
+	assert.Empty(t, env.ActivePluginIds())
+}
+
+func TestEnvironment_SupervisorProviderError(t *testing.T) {
+	dir := initTmpDir(t, map[string]string{
+		"foo/plugin.json": `{"id": "foo"}`,
+	})
+	defer os.RemoveAll(dir)
+
+	var provider MockProvider
+	defer provider.AssertExpectations(t)
+
+	env, err := New(
+		SearchPath(dir),
+		APIProvider(provider.API),
+		SupervisorProvider(provider.Supervisor),
+	)
+	require.NoError(t, err)
+	defer env.Shutdown()
+
+	provider.On("Supervisor").Return(nil, fmt.Errorf("test error"))
+
+	assert.Error(t, env.ActivatePlugin("foo"))
+	assert.Empty(t, env.ActivePluginIds())
+}
+
+func TestEnvironment_APIProviderError(t *testing.T) {
+	dir := initTmpDir(t, map[string]string{
+		"foo/plugin.json": `{"id": "foo"}`,
+	})
+	defer os.RemoveAll(dir)
+
+	var provider MockProvider
+	defer provider.AssertExpectations(t)
+
+	env, err := New(
+		SearchPath(dir),
+		APIProvider(provider.API),
+		SupervisorProvider(provider.Supervisor),
+	)
+	require.NoError(t, err)
+	defer env.Shutdown()
+
+	var supervisor MockSupervisor
+	defer supervisor.AssertExpectations(t)
+
+	provider.On("API").Return(plugin.API(nil), fmt.Errorf("test error"))
+	provider.On("Supervisor").Return(&supervisor, nil)
+
+	assert.Error(t, env.ActivatePlugin("foo"))
+	assert.Empty(t, env.ActivePluginIds())
+}
+
+func TestEnvironment_SupervisorError(t *testing.T) {
+	dir := initTmpDir(t, map[string]string{
+		"foo/plugin.json": `{"id": "foo"}`,
+	})
+	defer os.RemoveAll(dir)
+
+	var provider MockProvider
+	defer provider.AssertExpectations(t)
+
+	env, err := New(
+		SearchPath(dir),
+		APIProvider(provider.API),
+		SupervisorProvider(provider.Supervisor),
+	)
+	require.NoError(t, err)
+	defer env.Shutdown()
+
+	var api struct{ plugin.API }
+	var supervisor MockSupervisor
+	defer supervisor.AssertExpectations(t)
+
+	provider.On("API").Return(&api, nil)
+	provider.On("Supervisor").Return(&supervisor, nil)
+
+	supervisor.On("Start").Return(fmt.Errorf("test error"))
+
+	assert.Error(t, env.ActivatePlugin("foo"))
+	assert.Empty(t, env.ActivePluginIds())
+}
+
+func TestEnvironment_HooksError(t *testing.T) {
+	dir := initTmpDir(t, map[string]string{
+		"foo/plugin.json": `{"id": "foo"}`,
+	})
+	defer os.RemoveAll(dir)
+
+	var provider MockProvider
+	defer provider.AssertExpectations(t)
+
+	env, err := New(
+		SearchPath(dir),
+		APIProvider(provider.API),
+		SupervisorProvider(provider.Supervisor),
+	)
+	require.NoError(t, err)
+	defer env.Shutdown()
+
+	var api struct{ plugin.API }
+	var supervisor MockSupervisor
+	defer supervisor.AssertExpectations(t)
+	var hooks plugintest.Hooks
+	defer hooks.AssertExpectations(t)
+
+	provider.On("API").Return(&api, nil)
+	provider.On("Supervisor").Return(&supervisor, nil)
+
+	supervisor.On("Start").Return(nil)
+	supervisor.On("Stop").Return(nil)
+	supervisor.On("Hooks").Return(&hooks)
+
+	hooks.On("OnActivate", &api).Return(fmt.Errorf("test error"))
+
+	assert.Error(t, env.ActivatePlugin("foo"))
+	assert.Empty(t, env.ActivePluginIds())
+}
+
+func TestEnvironment_ShutdownError(t *testing.T) {
+	dir := initTmpDir(t, map[string]string{
+		"foo/plugin.json": `{"id": "foo"}`,
+	})
+	defer os.RemoveAll(dir)
+
+	var provider MockProvider
+	defer provider.AssertExpectations(t)
+
+	env, err := New(
+		SearchPath(dir),
+		APIProvider(provider.API),
+		SupervisorProvider(provider.Supervisor),
+	)
+	require.NoError(t, err)
+	defer env.Shutdown()
+
+	var api struct{ plugin.API }
+	var supervisor MockSupervisor
+	defer supervisor.AssertExpectations(t)
+	var hooks plugintest.Hooks
+	defer hooks.AssertExpectations(t)
+
+	provider.On("API").Return(&api, nil)
+	provider.On("Supervisor").Return(&supervisor, nil)
+
+	supervisor.On("Start").Return(nil)
+	supervisor.On("Stop").Return(fmt.Errorf("test error"))
+	supervisor.On("Hooks").Return(&hooks)
+
+	hooks.On("OnActivate", &api).Return(nil)
+	hooks.On("OnDeactivate").Return(fmt.Errorf("test error"))
+
+	assert.NoError(t, env.ActivatePlugin("foo"))
+	assert.Equal(t, env.ActivePluginIds(), []string{"foo"})
+	assert.Len(t, env.Shutdown(), 2)
 }

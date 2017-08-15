@@ -1,6 +1,7 @@
 package rpcplugin
 
 import (
+	"context"
 	"io/ioutil"
 	"os"
 	"os/exec"
@@ -51,7 +52,7 @@ func TestProcess(t *testing.T) {
 		}
 	`, ping)
 
-	p, ipc, err := NewProcess(ping)
+	p, ipc, err := NewProcess(context.Background(), ping)
 	require.NoError(t, err)
 	defer ipc.Close()
 	b := make([]byte, 10)

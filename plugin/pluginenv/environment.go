@@ -20,7 +20,7 @@ type Environment struct {
 	activePlugins      map[string]plugin.Supervisor
 }
 
-type Option func(*Environment) error
+type Option func(*Environment)
 
 // Creates a new environment. At a minimum, the APIProvider and SearchPath options are required.
 func New(options ...Option) (*Environment, error) {
@@ -28,9 +28,7 @@ func New(options ...Option) (*Environment, error) {
 		activePlugins: make(map[string]plugin.Supervisor),
 	}
 	for _, opt := range options {
-		if err := opt(env); err != nil {
-			return nil, err
-		}
+		opt(env)
 	}
 	if env.supervisorProvider == nil {
 		env.supervisorProvider = DefaultSupervisorProvider
@@ -89,6 +87,7 @@ func (env *Environment) ActivatePlugin(id string) error {
 		return errors.Wrapf(err, "unable to start plugin: %v", id)
 	}
 	if err := supervisor.Hooks().OnActivate(api); err != nil {
+		supervisor.Stop()
 		return errors.Wrapf(err, "unable to activate plugin: %v", id)
 	}
 	env.activePlugins[id] = supervisor
