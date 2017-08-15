@@ -233,7 +233,7 @@ func UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model.AppError
 	} else {
 		oldPost = result.Data.(*model.PostList).Posts[post.Id]
 
-		if utils.IsLicensed {
+		if utils.IsLicensed() {
 			if *utils.Cfg.ServiceSettings.AllowEditPost == model.ALLOW_EDIT_POST_NEVER && post.Message != oldPost.Message {
 				err := model.NewAppError("UpdatePost", "api.post.update_post.permissions_denied.app_error", nil, "", http.StatusForbidden)
 				return nil, err
@@ -255,7 +255,7 @@ func UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model.AppError
 			return nil, err
 		}
 
-		if utils.IsLicensed {
+		if utils.IsLicensed() {
 			if *utils.Cfg.ServiceSettings.AllowEditPost == model.ALLOW_EDIT_POST_TIME_LIMIT && model.GetMillis() > oldPost.CreateAt+int64(*utils.Cfg.ServiceSettings.PostEditTimeLimit*1000) && post.Message != oldPost.Message {
 				err := model.NewAppError("UpdatePost", "api.post.update_post.permissions_time_limit.app_error", map[string]interface{}{"timeLimit": *utils.Cfg.ServiceSettings.PostEditTimeLimit}, "", http.StatusBadRequest)
 				return nil, err
@@ -503,7 +503,7 @@ func SearchPostsInTeam(terms string, userId string, teamId string, isOrSearch bo
 	paramsList := model.ParseSearchParams(terms)
 
 	esInterface := einterfaces.GetElasticsearchInterface()
-	if esInterface != nil && *utils.Cfg.ElasticsearchSettings.EnableSearching && utils.IsLicensed && *utils.License.Features.Elasticsearch {
+	if esInterface != nil && *utils.Cfg.ElasticsearchSettings.EnableSearching && utils.IsLicensed() && *utils.License().Features.Elasticsearch {
 		finalParamsList := []*model.SearchParams{}
 
 		for _, params := range paramsList {

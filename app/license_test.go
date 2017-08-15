@@ -13,7 +13,7 @@ func TestLoadLicense(t *testing.T) {
 	Setup()
 
 	LoadLicense()
-	if utils.IsLicensed {
+	if utils.IsLicensed() {
 		t.Fatal("shouldn't have a valid license")
 	}
 }

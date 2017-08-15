@@ -1513,17 +1513,17 @@ func TestGetUsersNotInChannel(t *testing.T) {
 	defer TearDown()
 	Client := th.Client
 
-	isLicensed := utils.IsLicensed
-	license := utils.License
+	isLicensed := utils.IsLicensed()
+	license := utils.License()
 	enableMfa := *utils.Cfg.ServiceSettings.EnableMultifactorAuthentication
 	defer func() {
-		utils.IsLicensed = isLicensed
-		utils.License = license
+		utils.SetIsLicensed(isLicensed)
+		utils.SetLicense(license)
 		*utils.Cfg.ServiceSettings.EnableMultifactorAuthentication = enableMfa
 	}()
-	utils.IsLicensed = true
-	utils.License = &model.License{Features: &model.Features{}}
-	utils.License.Features.SetDefaults()
+	utils.IsLicensed()= true
+	utils.SetLicense(&model.License{Features: &model.Features{}})
+	utils.License().Features.SetDefaults()
 
 	team := model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
 	rteam, _ := Client.CreateTeam(&team)
@@ -1574,18 +1574,18 @@ func TestCheckUserMfa(t *testing.T) {
 		t.Fatal("should be false - mfa not active")
 	}
 
-	isLicensed := utils.IsLicensed
-	license := utils.License
+	isLicensed := utils.IsLicensed()
+	license := utils.License()
 	enableMfa := *utils.Cfg.ServiceSettings.EnableMultifactorAuthentication
 	defer func() {
-		utils.IsLicensed = isLicensed
-		utils.License = license
+		utils.SetIsLicensed(isLicensed)
+		utils.SetLicense(license)
 		*utils.Cfg.ServiceSettings.EnableMultifactorAuthentication = enableMfa
 	}()
-	utils.IsLicensed = true
-	utils.License = &model.License{Features: &model.Features{}}
-	utils.License.Features.SetDefaults()
-	*utils.License.Features.MFA = true
+	utils.SetIsLicensed(true)
+	utils.SetLicense(&model.License{Features: &model.Features{}})
+	utils.License().Features.SetDefaults()
+	*utils.License().Features.MFA = true
 	*utils.Cfg.ServiceSettings.EnableMultifactorAuthentication = true
 
 	th.LoginBasic()

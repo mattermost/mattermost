@@ -302,7 +302,7 @@ func getInitialLoad(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	il.ClientCfg = utils.ClientCfg
 	if app.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
-		il.LicenseCfg = utils.ClientLicense
+		il.LicenseCfg = utils.ClientLicense()
 	} else {
 		il.LicenseCfg = utils.GetSanitizedClientLicense()
 	}
@@ -1108,7 +1108,7 @@ func updateMfa(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func checkMfa(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !utils.IsLicensed || !*utils.License.Features.MFA || !*utils.Cfg.ServiceSettings.EnableMultifactorAuthentication {
+	if !utils.IsLicensed() || !*utils.License().Features.MFA || !*utils.Cfg.ServiceSettings.EnableMultifactorAuthentication {
 		rdata := map[string]string{}
 		rdata["mfa_required"] = "false"
 		w.Write([]byte(model.MapToJson(rdata)))
