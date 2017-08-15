@@ -532,6 +532,90 @@
     "translation": "Kanal başlığı güncellendi."
   },
   {
+    "id": "api.command_channel_purpose.channel.app_error",
+    "translation": "Geçerli kanal alınırken sorun çıktı."
+  },
+  {
+    "id": "api.command_channel_purpose.desc",
+    "translation": "Kanal amacını düzenle"
+  },
+  {
+    "id": "api.command_channel_purpose.direct_group.app_error",
+    "translation": "Doğrudan ileti kanalları için bir amaç ayarlanamaz. Amaç yerine başlığı ayarlamak için /header komutunu kullanın."
+  },
+  {
+    "id": "api.command_channel_purpose.hint",
+    "translation": "[text]"
+  },
+  {
+    "id": "api.command_channel_purpose.message.app_error",
+    "translation": "/purpose komutu ile bir ileti yazılmalıdır."
+  },
+  {
+    "id": "api.command_channel_purpose.name",
+    "translation": "amaç"
+  },
+  {
+    "id": "api.command_channel_purpose.permission.app_error",
+    "translation": "Kanal amacını düzenleme izniniz yok."
+  },
+  {
+    "id": "api.command_channel_purpose.update_channel.app_error",
+    "translation": "Geçerli kanal güncellenirken sorun çıktı."
+  },
+  {
+    "id": "api.command_channel_rename.channel.app_error",
+    "translation": "Geçerli kanal alınırken sorun çıktı."
+  },
+  {
+    "id": "api.command_channel_rename.desc",
+    "translation": "Kanalı yeniden adlandır"
+  },
+  {
+    "id": "api.command_channel_rename.direct_group.app_error",
+    "translation": "Doğrudan ileti kanalları yeniden adlandırılamaz."
+  },
+  {
+    "id": "api.command_channel_rename.hint",
+    "translation": "[text]"
+  },
+  {
+    "id": "api.command_channel_rename.message.app_error",
+    "translation": "/rename komutu ile bir ileti yazılmalıdır."
+  },
+  {
+    "id": "api.command_channel_rename.name",
+    "translation": "yeniden adlandır"
+  },
+  {
+    "id": "api.command_channel_rename.permission.app_error",
+    "translation": "Kanalı yeniden adlandırma izniniz yok."
+  },
+  {
+    "id": "api.command_channel_rename.update_channel.app_error",
+    "translation": "Geçerli kanal güncellenirken sorun çıktı."
+  },
+  {
+    "id": "api.command_channel_rename.update_channel.success",
+    "translation": "Kanal adı güncellendi."
+  },
+  {
+    "id": "api.command_code.desc",
+    "translation": "Metin kod bloğu olarak görüntülensin"
+  },
+  {
+    "id": "api.command_code.hint",
+    "translation": "[text]"
+  },
+  {
+    "id": "api.command_code.message.app_error",
+    "translation": "/code komutu ile bir ileti yazılmalıdır."
+  },
+  {
+    "id": "api.command_code.name",
+    "translation": "kod"
+  },
+  {
     "id": "api.command_collapse.desc",
     "translation": "Görsel önizlemeleri otomatik daraltılsın"
   },
@@ -622,6 +706,30 @@
   {
     "id": "api.command_join.success",
     "translation": "Kanala katıldı."
+  },
+  {
+    "id": "api.command_leave.desc",
+    "translation": "Geçerli kanaldan ayrıl"
+  },
+  {
+    "id": "api.command_leave.fail.app_error",
+    "translation": "Kanaldan ayrılırken bir sorun çıktı."
+  },
+  {
+    "id": "api.command_leave.list.app_error",
+    "translation": "Kanallar listelenirken bir sorun çıktı."
+  },
+  {
+    "id": "api.command_leave.missing.app_error",
+    "translation": "Kanal bulunamadı."
+  },
+  {
+    "id": "api.command_leave.name",
+    "translation": "ayrıl"
+  },
+  {
+    "id": "api.command_leave.success",
+    "translation": "Kanaldan ayrıldı."
   },
   {
     "id": "api.command_logout.desc",
@@ -1009,7 +1117,7 @@
   },
   {
     "id": "api.email_batching.render_batched_post.direct_message",
-    "translation": "Doğrudan İleti"
+    "translation": "Şu kullanıcıdan doğrudan ileti: "
   },
   {
     "id": "api.email_batching.render_batched_post.go_to_post",
@@ -1017,7 +1125,11 @@
   },
   {
     "id": "api.email_batching.render_batched_post.group_message",
-    "translation": "Grup İletisi"
+    "translation": "Şu gruptan ileti: "
+  },
+  {
+    "id": "api.email_batching.render_batched_post.notification",
+    "translation": "Şuradan bildirim: "
   },
   {
     "id": "api.email_batching.render_batched_post.sender.app_error",
@@ -1026,8 +1138,8 @@
   {
     "id": "api.email_batching.send_batched_email_notification.body_text",
     "translation": {
-      "one": "1 yeni iletiniz var.",
-      "other": "{{.Count}} yeni iletiniz var."
+      "one": "{{.Count}} yeni bildiriminiz var.",
+      "other": ""
     }
   },
   {
@@ -1696,20 +1808,8 @@
     "translation": "Takımlar arası doğrudan ileti gönderilirken takımlar alınamadı. Kullanıcı Kodu: %v, Hata: %v"
   },
   {
-    "id": "api.post.send_notifications_and_forget.mention_body",
-    "translation": "Yeni bir anmanız var."
-  },
-  {
     "id": "api.post.send_notifications_and_forget.mention_subject",
     "translation": "Yeni Anma"
-  },
-  {
-    "id": "api.post.send_notifications_and_forget.message_body",
-    "translation": "1 yeni iletiniz var."
-  },
-  {
-    "id": "api.post.send_notifications_and_forget.message_subject",
-    "translation": "Yeni Doğrudan İleti"
   },
   {
     "id": "api.post.send_notifications_and_forget.push_image_only",
@@ -1728,12 +1828,20 @@
     "translation": " sizi şurada andı "
   },
   {
+    "id": "api.post.send_notifications_and_forget.push_mention_no_channel",
+    "translation": " sizi andı "
+  },
+  {
     "id": "api.post.send_notifications_and_forget.push_message",
     "translation": " size doğrudan ileti gönderdi"
   },
   {
     "id": "api.post.send_notifications_and_forget.push_non_mention",
     "translation": " şuraya gönderildi "
+  },
+  {
+    "id": "api.post.send_notifications_and_forget.push_non_mention_no_channel",
+    "translation": " bir ileti gönderdi"
   },
   {
     "id": "api.post.send_notifications_and_forget.push_notification.error",
@@ -1873,127 +1981,127 @@
   },
   {
     "id": "api.slackimport.slack_add_bot_user.email_pwd",
-    "translation": "Slack Bot/Bütünleştirme İleti İçe Aktarma Kullanıcısı: E-posta, Parola: {{.Email}}, {{.Password}}\r\n"
+    "translation": "E-posta adresi {{.Email}} parolası {{.Password}} olan Bütünleştirme/Slack Bot kullanıcısı içe aktarıldı.\r\n"
   },
   {
     "id": "api.slackimport.slack_add_bot_user.unable_import",
-    "translation": "Slack Bot/Bütünleştirme İleti İçe Aktarma Kullanıcısı alınamadı: {{.Username}}\r\n"
+    "translation": "{{.Username}} Bütünleştirme/Slack Bot kullanıcısı içe aktarılamadı.\r\n"
   },
   {
     "id": "api.slackimport.slack_add_channels.added",
-    "translation": "\r\n Kanal Eklendi \r\n"
+    "translation": "\r\n Kanallar eklendi:\r\n"
   },
   {
     "id": "api.slackimport.slack_add_channels.failed_to_add_user",
-    "translation": "Kullanıcı kanala eklenemedi: {{.Username}}\r\n"
+    "translation": "{{.Username}} Slack kullanıcısı kanala eklenemedi.\r\n"
   },
   {
     "id": "api.slackimport.slack_add_channels.import_failed",
-    "translation": "İçe Aktarılamadı: {{.DisplayName}}\r\n"
+    "translation": "{{.DisplayName}} Slack kanalı içe aktarılamadı.\r\n"
   },
   {
     "id": "api.slackimport.slack_add_channels.import_failed.warn",
-    "translation": "Slack Alıcı: Kanal içe aktarılamadı: %s"
+    "translation": "Slack İçe Aktarma: Slack kanalı içe aktarılamadı: %s."
   },
   {
     "id": "api.slackimport.slack_add_channels.merge",
-    "translation": "Var olan kanal ile birleştirildi: {{.DisplayName}}\r\n"
+    "translation": "{{.DisplayName}} Slack kanalı zaten etkin bir Mattermost kanalı olarak var. İki kanal birleştirilecek.\r\n"
   },
   {
     "id": "api.slackimport.slack_add_posts.attach_files.error",
-    "translation": "Dosyalar iletiye eklenirken sorun çıktı. İleti Kodu: %s, Dosya Kodları: %v, Hata: %v"
+    "translation": "Slack İçe Aktarma: Bir iletiye dosya eklenirken sorun çıktı, ileti kodu: %s, dosya kodları: %v, hata: %v."
   },
   {
     "id": "api.slackimport.slack_add_posts.bot.warn",
-    "translation": "Slack bot iletileri henüz içe aktarılmamış"
+    "translation": "Slack İçe Aktarma: Slack bot iletileri henüz içe aktarılamadı."
   },
   {
     "id": "api.slackimport.slack_add_posts.bot_user_no_exists.warn",
-    "translation": "Slack İçe Aktarıcı: Bot içe aktarma kullanıcısı bulunamadığından bot iletileri içe aktarılamıyor."
+    "translation": "Slack İçe Aktarma: Bot kullanıcısı var olmadığından bot iletisi içe aktarılamadı."
   },
   {
     "id": "api.slackimport.slack_add_posts.msg_no_comment.debug",
-    "translation": "Dosya açıklamadı belirtilmemiş"
+    "translation": "Slack İçe Aktarma: Herhangi bir yorum bulunmadığı için ileti içe aktarılamadı."
   },
   {
     "id": "api.slackimport.slack_add_posts.msg_no_usr.debug",
-    "translation": "İletinin bir kullanıcısı yok"
+    "translation": "Slack İçe Aktarma: Kullanıcı alanı eksik olduğundan ileti içe aktarılamadı."
   },
   {
     "id": "api.slackimport.slack_add_posts.no_bot_id.warn",
-    "translation": "Slack İçe Aktarıcı: BotId alanı eksik olduğundan bot iletisi içe aktarılamadı."
+    "translation": "Slack İçe Aktarma: BotId alanı eksik olduğundan bot iletisi içe aktarılamadı."
   },
   {
     "id": "api.slackimport.slack_add_posts.unsupported.warn",
-    "translation": "İleti türü desteklenmiyor: %v, %v"
+    "translation": "Slack İçe Aktarma: İletiler türü desteklenmediğinden içe aktarılamadı: ileti türü: %v ileti alt türü: %v."
   },
   {
     "id": "api.slackimport.slack_add_posts.upload_file_not_found.warn",
-    "translation": "Slack dışa aktarması için dosya yükleme iletisinde {{.FileId}} kodlu dosya bulunamadı"
+    "translation": "Slack İçe Aktarma: {{.FileId}} dosyası dışa aktarılmış Slack zip dosyası içinde bulunamadığından içe aktarılamadı."
   },
   {
     "id": "api.slackimport.slack_add_posts.upload_file_not_in_json.warn",
-    "translation": "Dışa aktarılmış verilerde bir \"file\" bölümü bulunmadığından yüklenen iletideki dosya içe aktarılamaz."
+    "translation": "Slack İçe Aktarma: Dışa aktarılmış Slack dosyasında bir \"file\" bölümü bulunamadığından ek dosya iletiye eklenemedi."
   },
   {
     "id": "api.slackimport.slack_add_posts.upload_file_open_failed.warn",
-    "translation": "Dışa aktarılmış veri arşivinden {{.FileId}} koduyla yüklenen dosya açılamadı. Hata: {{.Error}}"
+    "translation": "Slack İçe Aktarma: Dışa aktarılmış Slack dosyasındaki {{.FileId}} dosyası açılamadı: {{.Error}}."
   },
   {
     "id": "api.slackimport.slack_add_posts.upload_file_upload_failed.warn",
-    "translation": "Yüklenen iletideki {{.FileId}} kodlu dosya yüklenemedi. Hata: {{.Error}}"
+    "translation": "Slack İçe Aktarma: {{.FileId}} dosyası yüklenirken bir sorun çıktı: {{.Error}}."
   },
   {
     "id": "api.slackimport.slack_add_posts.user_no_exists.debug",
-    "translation": "%v kullanıcısı bulunamadı!"
+    "translation": "Slack İçe Aktarma: %v Slack kullanıcısı Mattermost üzerinde var olmadığından ileti eklenemedi."
   },
   {
     "id": "api.slackimport.slack_add_posts.without_user.debug",
-    "translation": "İletinin bir kullanıcısı yok"
+    "translation": "Slack İçe Aktarma: Kullanıcı alanı eksik olduğundan ileti içe aktarılamadı."
   },
   {
     "id": "api.slackimport.slack_add_users.created",
-    "translation": "\r\n Kullanıcı Eklendi\r\n"
+    "translation": "\r\n Kullanıcılar eklendi:\r\n"
   },
   {
     "id": "api.slackimport.slack_add_users.email_pwd",
-    "translation": "E-posta, Parola: {{.Email}}, {{.Password}}\r\n"
+    "translation": "E-postası {{.Email}} parolası {{.Password}} olan Slack kullanıcısı içe aktarıldı.\r\n"
   },
   {
     "id": "api.slackimport.slack_add_users.merge_existing",
-    "translation": "Kullanıcı var olan bir hesap ile birleştirildi: {{.Email}}, {{.Username}}\r\n"
+    "translation": "E-posta adresi {{.Email}} olan Slack kullanıcısı aynı e-posta adresini kullanan {{.Username}} Mattermost kullanıcısı ile birleştirildi.\r\n"
   },
   {
     "id": "api.slackimport.slack_add_users.merge_existing_failed",
-    "translation": "Kullanıcı var olan bir hesap ile birleştirilmeye çalışıldı: {{.Email}}, {{.Username}}, ancak kullanıcı bu takıma eklenemedi.\r\n"
+    "translation": "E-posta adresi {{.Email}} olan Slack kullanıcısı aynı e-posta adresini kullanan {{.Username}} Mattermost kullanıcısı birleştirildi ancak kullanıcı ilgili takıma eklenemedi.\r\n"
   },
   {
     "id": "api.slackimport.slack_add_users.missing_email_address",
-    "translation": "Dışa aktarılan Slack verileri içinde {{.Username}} kullanıcısının e-posta adresi yok. Yerine {{.Email}} kullanılıyor. Kullanıcının sistemde oturum açtıktan sonra e-posta adresini güncellemesi gerekir.\r\n"
+    "translation": "Dışa aktarılmış Slack verileri içinde {{.Username}} kullanıcısının e-posta adresi yok. Yerine {{.Email}} kullanılıyor. Kullanıcının sistemde oturum açtıktan sonra e-posta adresini güncellemesi gerekir.\r\n"
   },
   {
     "id": "api.slackimport.slack_add_users.missing_email_address.warn",
-    "translation": "Dışa aktarılan Slack verileri içinde {{.Username}} kullanıcısının e-posta adresi yok. Yerine {{.Email}} kullanılıyor. Kullanıcının sistemde oturum açtıktan sonra e-posta adresini güncellemesi gerekir."
+    "translation": "Slack İçe Aktarma: Dışa aktarılmış Slack verileri içinde {{.Username}} kullanıcısının e-posta adresi yok. Yerine {{.Email}} kullanılıyor. Kullanıcının sistemde oturum açtıktan sonra e-posta adresini güncellemesi gerekir."
   },
   {
     "id": "api.slackimport.slack_add_users.unable_import",
-    "translation": "{{.Username}} kullanıcısı içe aktarılamadı\r\n"
+    "translation": "{{.Username}} Slacks kullanıcısı içe aktarılamadı.\r\n"
   },
   {
     "id": "api.slackimport.slack_convert_channel_mentions.compile_regexp_failed.warn",
-    "translation": "{{.ChannelID}} {{.ChannelName}} Slack kanalı için !channel ile eşleşen kurallı bir ifade derlenemedi."
+    "translation": "Slack İçe Aktarma: !channel, {{.ChannelName}} Slack kanalı için kurallı ifadeye uygun olarak derlenemedi (Kod:{{.ChannelID}})."
   },
   {
     "id": "api.slackimport.slack_convert_timestamp.bad.warn",
-    "translation": "Kötü bir zaman damgası algılandı"
+    "translation": "Slack İçe Aktarma: Hatalı zaman damgası algılandı."
   },
   {
     "id": "api.slackimport.slack_convert_user_mentions.compile_regexp_failed.warn",
-    "translation": "{{.ChannelID}} {{.ChannelName}} Slack kullanıcısı için !mention ile eşleşen kurallı bir ifade derlenemedi."
+    "translation": "Slack İçe Aktarma: @mention, {{.Username}} Slack kullanıcısı için kurallı ifadeye uygun olarak derlenemedi (Kod:{{.UserID}})."
   },
   {
     "id": "api.slackimport.slack_deactivate_bot_user.failed_to_deactivate",
-    "translation": "Slack İçe Aktarıcı: Bot içe aktarma kullanıcısı devre dışı bırakılamadı."
+    "translation": "Slack İçe Aktarma: Bot tarafından kullanılan kullanıcı hesabı devre dışı bırakılamadı."
   },
   {
     "id": "api.slackimport.slack_import.log",
@@ -2001,7 +2109,7 @@
   },
   {
     "id": "api.slackimport.slack_import.note1",
-    "translation": "- Alıcı tarafından desteklenmediğinden bazı iletiler içe aktarılmayabilir.\r\n"
+    "translation": "- Bu içe aktarıcı tarafından desteklenmediğinden bazı iletiler içe aktarılamayabilir.\r\n"
   },
   {
     "id": "api.slackimport.slack_import.note2",
@@ -2013,43 +2121,43 @@
   },
   {
     "id": "api.slackimport.slack_import.notes",
-    "translation": "\r\n Notlar \r\n"
+    "translation": "\r\n Notlar:\r\n"
   },
   {
     "id": "api.slackimport.slack_import.open.app_error",
-    "translation": "{{.Filename}} dosyası açılamadı"
+    "translation": "Dosya açılamadı: {{.Filename}}.\r\n"
   },
   {
     "id": "api.slackimport.slack_import.team_fail",
-    "translation": "Takım içe aktarma bilgileri alınamadı.\r\n"
+    "translation": "İçe aktarılacak takımın bilgileri alınamadı.\r\n"
   },
   {
     "id": "api.slackimport.slack_import.zip.app_error",
-    "translation": "ZIP dosyası açılamadı"
+    "translation": "Slack dışa aktarma zip dosyası açılamadı.\r\n"
   },
   {
     "id": "api.slackimport.slack_parse_channels.error",
-    "translation": "Slack kanalları işlenirken sorun çıktı. Gene de içe aktarma işlemi tamamlanabilir."
+    "translation": "Slack İçe Aktarma: Bazı Slack kanalları işlenirken sorun çıktı. Buna rağmen belki içe aktarım yapılabilir."
   },
   {
     "id": "api.slackimport.slack_parse_posts.error",
-    "translation": "Bazı slack iletileri işlenirken sorun çıktı. Gene de içe aktarma işlemi tamamlanabilir."
+    "translation": "Slack İçe Aktarma: Bazı Slack iletileri işlenirken sorun çıktı. Buna rağmen belki içe aktarım yapılabilir."
   },
   {
     "id": "api.slackimport.slack_sanitise_channel_properties.display_name_too_long.warn",
-    "translation": "Slack İçe Aktarıcı: {{.ChannelName}} kanalının görüntülenecek adı çok uzun. İçe aktarılırken budanarak kısaltılacak."
+    "translation": "Slack İçe Aktarma: {{.ChannelName}} kanalının adı çok uzun. İçe aktarılırken budanarak kısaltılacak."
   },
   {
     "id": "api.slackimport.slack_sanitise_channel_properties.header_too_long.warn",
-    "translation": "Slack İçe Aktarıcı: {{.ChannelName}} kanalının başlığı çok uzun. İçe aktarılırken budanarak kısaltılacak."
+    "translation": "Slack İçe Aktarma: {{.ChannelName}} kanalının adı çok uzun. İçe aktarılırken budanarak kısaltılacak."
   },
   {
     "id": "api.slackimport.slack_sanitise_channel_properties.name_too_long.warn",
-    "translation": "Slack İçe Aktarıcı: {{.ChannelName}} kanalının adı çok uzun. İçe aktarılırken budanarak kısaltılacak."
+    "translation": "Slack İçe Aktarma: {{.ChannelName}} kanalının adı çok uzun. İçe aktarılırken budanarak kısaltılacak."
   },
   {
     "id": "api.slackimport.slack_sanitise_channel_properties.purpose_too_long.warn",
-    "translation": "Slack İçe Aktarıcı: {{.ChannelName}} kanalının amacı çok uzun. İçe aktarılırken budanarak kısaltılacak."
+    "translation": "Slack İçe Aktarma: {{.ChannelName}} kanalının amacı çok uzun. İçe aktarılırken budanarak kısaltılacak."
   },
   {
     "id": "api.status.init.debug",
@@ -2332,22 +2440,6 @@
     "translation": "İletiye Git"
   },
   {
-    "id": "api.templates.post_body.info",
-    "translation": "KANAL: {{.ChannelName}}<br>{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
-  },
-  {
-    "id": "api.templates.post_subject_in_channel",
-    "translation": "{{.TeamDisplayName}} takımı ({{.ChannelName}}) kanalındaki {{.SubjectText}} konusu {{.Month}} {{.Day}}, {{.Year}} tarihinde"
-  },
-  {
-    "id": "api.templates.post_subject_in_direct_message",
-    "translation": "{{.SenderDisplayName}} kullanıcısından {{.Day}} {{.Month}} {{.Year}} tarihinde {{.SubjectText}}"
-  },
-  {
-    "id": "api.templates.post_subject_in_group_message",
-    "translation": "{{ .SenderDisplayName}} tarafından {{.Month}} {{.Day}}, {{.Year}} tarihinde yeni grup iletisi"
-  },
-  {
     "id": "api.templates.reset_body.button",
     "translation": "Parolayı Sıfırla"
   },
@@ -2402,6 +2494,18 @@
   {
     "id": "api.templates.upgrade_30_subject.info",
     "translation": "[MATTERMOST] Mattermost 3.0 Yükseltmesi için hesabınızdaki değişiklikler"
+  },
+  {
+    "id": "api.templates.user_access_token_body.info",
+    "translation": "{{ .SiteURL }} sitesindeki hesabınıza bir kullanıcı erişimi kodu eklendi. Bu kod {{.SiteName}} sitesindeki hesabınıza erişmek için kullanılacak.<br>Bu değişikliği siz yapmadıysanız lütfen sistem yöneticiniz ile görüşün."
+  },
+  {
+    "id": "api.templates.user_access_token_body.title",
+    "translation": "Kullanıcı erişimi kodu hesabınıza eklendi"
+  },
+  {
+    "id": "api.templates.user_access_token_subject",
+    "translation": "[{{ .SiteName }}] kullanıcı erişimi kodu hesabınıza eklendi"
   },
   {
     "id": "api.templates.username_change_body.info",
@@ -2760,6 +2864,10 @@
     "translation": "Parola güncelleme bildirim e-postası gönderilemedi"
   },
   {
+    "id": "api.user.send_user_access_token.error",
+    "translation": "E-postaya eklenen kullanıcı erişim kodu gönderilemedi"
+  },
+  {
     "id": "api.user.send_verify_email_and_forget.failed.error",
     "translation": "Doğrulama e-postası gönderilemedi"
   },
@@ -3072,6 +3180,10 @@
     "translation": "Grup kanalı alınamadı"
   },
   {
+    "id": "app.import.import_direct_post.save_preferences.error",
+    "translation": "Doğrudan ileti içe aktarılırken sorun çıktı. Ayarlar kaydedilemedi."
+  },
+  {
     "id": "app.import.import_direct_post.user_not_found.error",
     "translation": "İleti kullanıcısı bulunamadı"
   },
@@ -3108,12 +3220,20 @@
     "translation": "İleti içe aktarılırken sorun çıktı. \"{{.ChannelName}}\" kanalı bulunamadı."
   },
   {
+    "id": "app.import.import_post.save_preferences.error",
+    "translation": "İleti içe aktarılırken sorun çıktı. Ayarlar kaydedilemedi."
+  },
+  {
     "id": "app.import.import_post.team_not_found.error",
     "translation": "İleti içe aktarılırken sorun çıktı. \"{{.TeamName}}\" takımı bulunamadı."
   },
   {
     "id": "app.import.import_post.user_not_found.error",
     "translation": "İleti içe aktarılırken sorun çıktı. \"{{.Username}}\" kullanıcı adına sahip kullanıcı bulunamadı."
+  },
+  {
+    "id": "app.import.import_user_channels.save_preferences.error",
+    "translation": "Kullanıcı kanal üyelikleri içe aktarılırken sorun çıktı. Ayarlar kaydedilemedi."
   },
   {
     "id": "app.import.validate_channel_import_data.create_at_zero.error",
@@ -3176,6 +3296,10 @@
     "translation": "Doğrudan kanal üye listesinde çok fazla sayıda öge var"
   },
   {
+    "id": "app.import.validate_direct_channel_import_data.unknown_favoriter.error",
+    "translation": "Doğrudan kanal yalnız üyeleri tarafından sık kullanılanlara eklenebilir. \"{{.Username}}\" bir üye değil."
+  },
+  {
     "id": "app.import.validate_direct_post_import_data.channel_members_required.error",
     "translation": "Zorunlu doğrudan kanal özelliği eksik: kanal_uyeleri"
   },
@@ -3202,6 +3326,10 @@
   {
     "id": "app.import.validate_direct_post_import_data.message_missing.error",
     "translation": "Zorunlu doğrudan ileti özelliği eksik: ileti"
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.unknown_flagger.error",
+    "translation": "Doğrudan ileti yalnız kanal üyeleri tarafından işaretlenebilir. \"{{.Username}}\" bir üye değil."
   },
   {
     "id": "app.import.validate_direct_post_import_data.user_missing.error",
@@ -3292,6 +3420,10 @@
     "translation": "Kullanıcının Kanal Üyeliğinde aksesuar bildirimi okunmamış olarak işaretle geçersiz."
   },
   {
+    "id": "app.import.validate_user_channels_import_data.invalid_notify_props_mobile.error",
+    "translation": "Kullanıcının Kanal Üyeliğinde cep telefonu bildirimi geçersiz."
+  },
+  {
     "id": "app.import.validate_user_channels_import_data.invalid_roles.error",
     "translation": "Kullanıcının Kanal Üyeliğindeki roller geçersiz."
   },
@@ -3328,6 +3460,38 @@
     "translation": "Kullanıcının Takma Adı çok uzun."
   },
   {
+    "id": "app.import.validate_user_import_data.notify_props_channel_trigger_invalid.error",
+    "translation": "Kullanıcının kanal tetikleyici bildirimi değeri geçersiz."
+  },
+  {
+    "id": "app.import.validate_user_import_data.notify_props_comment_trigger_invalid.error",
+    "translation": "Kullanıcının komut tetikleyici bildirimi değeri geçersiz."
+  },
+  {
+    "id": "app.import.validate_user_import_data.notify_props_desktop_duration_invalid.error",
+    "translation": "Kullanıcının masaüstü süresi bildirimi değeri geçersiz."
+  },
+  {
+    "id": "app.import.validate_user_import_data.notify_props_desktop_invalid.error",
+    "translation": "Kullanıcının masaüstü bildirimi değeri geçersiz."
+  },
+  {
+    "id": "app.import.validate_user_import_data.notify_props_desktop_sound_invalid.error",
+    "translation": "Kullanıcının masaüstü sesi bildirimi değeri geçersiz."
+  },
+  {
+    "id": "app.import.validate_user_import_data.notify_props_email_invalid.error",
+    "translation": "Kullanıcının e-posta bildirimi değeri geçersiz."
+  },
+  {
+    "id": "app.import.validate_user_import_data.notify_props_mobile_invalid.error",
+    "translation": "Kullanıcının mobil bildirimi değeri geçersiz."
+  },
+  {
+    "id": "app.import.validate_user_import_data.notify_props_mobile_push_status_invalid.error",
+    "translation": "Kullanıcının mobil anında durum bildirimi değeri geçersiz."
+  },
+  {
     "id": "app.import.validate_user_import_data.pasword_length.error",
     "translation": "Kullanıcının Parolasının uzunluğu geçersiz."
   },
@@ -3356,6 +3520,54 @@
     "translation": "Kullanıcının Takım Üyeliğinde takım adı eksik."
   },
   {
+    "id": "app.notification.body.intro.direct.full",
+    "translation": "Yeni bir doğrudan iletiniz var."
+  },
+  {
+    "id": "app.notification.body.intro.direct.generic",
+    "translation": "{{.SenderName}} tarafından gönderilen yeni bir doğrudan iletiniz var."
+  },
+  {
+    "id": "app.notification.body.intro.notification.full",
+    "translation": "Yeni bir bildiriminiz var."
+  },
+  {
+    "id": "app.notification.body.intro.notification.generic",
+    "translation": "{{.SenderName}} tarafından gönderilen yeni bir bildiriminiz var."
+  },
+  {
+    "id": "app.notification.body.text.direct.full",
+    "translation": "{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
+  },
+  {
+    "id": "app.notification.body.text.direct.generic",
+    "translation": "{{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
+  },
+  {
+    "id": "app.notification.body.text.notification.full",
+    "translation": "KANAL: {{.ChannelName}}<br>{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
+  },
+  {
+    "id": "app.notification.body.text.notification.generic",
+    "translation": "{{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
+  },
+  {
+    "id": "app.notification.subject.direct.full",
+    "translation": "[{{.SiteName}}] {{ .SenderDisplayName}} tarafından {{.Month}} {{.Day}}, {{.Year}} tarihinde yeni doğrudan ileti"
+  },
+  {
+    "id": "app.notification.subject.notification.full",
+    "translation": "[{{ .SiteName }}] {{ .TeamName}} takımında {{.Month}} {{.Day}}, {{.Year}} tarihinde yeni bildirim"
+  },
+  {
+    "id": "app.user_access_token.disabled",
+    "translation": "Bu sunucu üzerinde kullanıcı erişim izinleri devre dışı bırakılmış. Lütfen ayrıntılı bilgi almak için sistem yöneticiniz ile görüşün."
+  },
+  {
+    "id": "app.user_access_token.invalid_or_missing",
+    "translation": "Kod geçersiz ya da eksik"
+  },
+  {
     "id": "authentication.permissions.create_group_channel.description",
     "translation": "Yeni grup iletisi kanalları ekleme izni"
   },
@@ -3364,12 +3576,36 @@
     "translation": "Grup İletisi Oluşturma"
   },
   {
+    "id": "authentication.permissions.create_post_public.description",
+    "translation": "Herkese açık kanallarda ileti oluşturabilir"
+  },
+  {
+    "id": "authentication.permissions.create_post_public.name",
+    "translation": "Herkese Açık Kanallarda İleti Oluşturma"
+  },
+  {
     "id": "authentication.permissions.create_team_roles.description",
     "translation": "Yeni takımlar ekleme izni"
   },
   {
     "id": "authentication.permissions.create_team_roles.name",
     "translation": "Takım Ekleme"
+  },
+  {
+    "id": "authentication.permissions.create_user_access_token.description",
+    "translation": "Kullanıcı erişim kodları oluşturabilir"
+  },
+  {
+    "id": "authentication.permissions.create_user_access_token.name",
+    "translation": "Kullanıcı Erişim Kodu Oluşturma"
+  },
+  {
+    "id": "authentication.permissions.manage_jobs.description",
+    "translation": "Görevleri yönetebilme"
+  },
+  {
+    "id": "authentication.permissions.manage_jobs.name",
+    "translation": "Görev Yönetimi"
   },
   {
     "id": "authentication.permissions.manage_team_roles.description",
@@ -3388,6 +3624,22 @@
     "translation": "Herkese Açık Kanalları Okuma"
   },
   {
+    "id": "authentication.permissions.read_user_access_token.description",
+    "translation": "Kullanıcı erişim kodu, açıklaması ve kullanıcı kodu alanları okuyabilir"
+  },
+  {
+    "id": "authentication.permissions.read_user_access_token.name",
+    "translation": "Kullanıcı Erişim Kodlarını Okuma"
+  },
+  {
+    "id": "authentication.permissions.revoke_user_access_token.description",
+    "translation": "Kullanıcı erişim kodlarını geçersiz kılabilir"
+  },
+  {
+    "id": "authentication.permissions.revoke_user_access_token.name",
+    "translation": "Kullanıcı Erişim Kodlarını Geçersiz Kılma"
+  },
+  {
     "id": "authentication.permissions.team_invite_user.description",
     "translation": "Kullanıcıları bir takıma davet edebilir"
   },
@@ -3402,6 +3654,46 @@
   {
     "id": "authentication.permissions.team_use_slash_commands.name",
     "translation": "Bölü Komutları Kullanılsın"
+  },
+  {
+    "id": "authentication.roles.system_post_all.description",
+    "translation": "Sistemdeki herhangi bir herkese açık, özel ya da doğrudan kanala ileti gönderebilen bir rol"
+  },
+  {
+    "id": "authentication.roles.system_post_all.name",
+    "translation": "Herkese Açık, Özel ve Doğrudan Kanallara İleti Gönderme"
+  },
+  {
+    "id": "authentication.roles.system_post_all_public.description",
+    "translation": "Sistemdeki herhangi bir herkese açık kanala ileti gönderebilen bir rol"
+  },
+  {
+    "id": "authentication.roles.system_post_all_public.name",
+    "translation": "Herkese Açık Kanallara İleti Gönderme"
+  },
+  {
+    "id": "authentication.roles.system_user_access_token.description",
+    "translation": "Kullanıcı erişim kodları ekleme, okuma ve geçersiz kılma izinleri olan bir rol"
+  },
+  {
+    "id": "authentication.roles.system_user_access_token.name",
+    "translation": "Kullanıcı Erişim Kodu"
+  },
+  {
+    "id": "authentication.roles.team_post_all.description",
+    "translation": "Takımdaki herhangi bir herkese açık ve özel kanala ileti gönderebilen bir rol"
+  },
+  {
+    "id": "authentication.roles.team_post_all.name",
+    "translation": "Herkese Açık ve Özel Kanallara İleti Gönderme"
+  },
+  {
+    "id": "authentication.roles.team_post_all_public.description",
+    "translation": "Takımdaki herhangi bir herkese açık kanala ileti gönderebilen bir rol"
+  },
+  {
+    "id": "authentication.roles.team_post_all_public.name",
+    "translation": "Herkese Açık Kanallara İleti Gönderme"
   },
   {
     "id": "cli.license.critical",
@@ -3496,8 +3788,44 @@
     "translation": "'{{.JobName}}' görevi için '{{.FilePath}}' konumuna uygunluk dışa aktarma işlemi başlatıldı"
   },
   {
+    "id": "ent.elasticsearch.create_client.connect_failed",
+    "translation": "Elasticsearch İstemcisi Kurulamadı"
+  },
+  {
+    "id": "ent.elasticsearch.create_index_if_not_exists.index_create_failed",
+    "translation": "Elasticsearch dizini oluşturulamadı"
+  },
+  {
+    "id": "ent.elasticsearch.create_index_if_not_exists.index_exists_failed",
+    "translation": "Elasticsearch dizininin var olup olmadığı anlaşılamadı"
+  },
+  {
+    "id": "ent.elasticsearch.create_index_if_not_exists.index_mapping_failed",
+    "translation": "Elasticsearch dizin eşleştirmesi kurulamadı"
+  },
+  {
+    "id": "ent.elasticsearch.delete_post.error",
+    "translation": "İleti silinemedi"
+  },
+  {
+    "id": "ent.elasticsearch.generic.disabled",
+    "translation": "Elasticsearch araması bu sunucu üzerinde etkinleştirilmemiş"
+  },
+  {
+    "id": "ent.elasticsearch.index_post.error",
+    "translation": "İleti dizine eklenemedi"
+  },
+  {
+    "id": "ent.elasticsearch.not_started.error",
+    "translation": "Elasticsearch başlatılmamış"
+  },
+  {
+    "id": "ent.elasticsearch.purge_indexes.delete_failed",
+    "translation": "ElasticSearch dizini silinemedi"
+  },
+  {
     "id": "ent.elasticsearch.search_posts.disabled",
-    "translation": "ElasticSearch searching is disabled on this server"
+    "translation": "Elasticsearch araması bu sunucu üzerinde devre dışı bırakılmış"
   },
   {
     "id": "ent.elasticsearch.search_posts.search_failed",
@@ -3508,24 +3836,12 @@
     "translation": "Failed to decode search results"
   },
   {
-    "id": "ent.elasticsearch.start.connect_failed",
-    "translation": "Setting up ElasticSearch Client Failed"
-  },
-  {
-    "id": "ent.elasticsearch.start.index_create_failed",
-    "translation": "Failed to create ElasticSearch index"
-  },
-  {
-    "id": "ent.elasticsearch.start.index_exists_failed",
-    "translation": "Failed to establish whether ElasticSearch index exists"
-  },
-  {
-    "id": "ent.elasticsearch.start.index_mapping_failed",
-    "translation": "Failed to setup ElasticSearch index mapping"
-  },
-  {
     "id": "ent.elasticsearch.start.index_settings_failed",
-    "translation": "Failed to set ElasticSearch index settings"
+    "translation": "Elasticsearch dizin ayarları yapılamadı"
+  },
+  {
+    "id": "ent.elasticsearch.test_config.connect_failed",
+    "translation": "Elasticsearch sunucusuna bağlanılamadı."
   },
   {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
@@ -3534,6 +3850,10 @@
   {
     "id": "ent.elasticsearch.test_config.license.error",
     "translation": "Lisansta Elasticsearch desteklenmiyor."
+  },
+  {
+    "id": "ent.elasticsearch.test_config.reenter_password",
+    "translation": "Elasticsearch sunucusunun adresi ya da Kullanıcı Adı değişmiş. Bağlantıyı sınamak için lütfen Elasticsearch parolasını yeniden yazın."
   },
   {
     "id": "ent.emoji.licence_disable.app_error",
@@ -3746,6 +4066,14 @@
   {
     "id": "error.not_found.title",
     "translation": "Sayfa bulunamadı"
+  },
+  {
+    "id": "jobs.request_cancellation.status.error",
+    "translation": "İş durumu iptal edilebilir olmadığından iptal isteğinde bulunulamadı."
+  },
+  {
+    "id": "jobs.set_job_error.update.error",
+    "translation": "İş durumu hata olarak ayarlanamadı"
   },
   {
     "id": "manaultesting.get_channel_id.no_found.debug",
@@ -4116,6 +4444,10 @@
     "translation": "Toplu e-posta aralığı e-posta ayarı geçersiz. 30 saniye ya da üzerinde olmalıdır."
   },
   {
+    "id": "model.config.is_valid.email_notification_contents_type.app_error",
+    "translation": "E-posta ayarları için e-posta bildirim içerikleri türü geçersiz. 'tam' ya da 'genel' olmalıdır."
+  },
+  {
     "id": "model.config.is_valid.email_reset_salt.app_error",
     "translation": "Parola sıfırlama çeşnisi e-posta ayarı geçersiz. 32 ya da daha fazla karakter olmalıdır."
   },
@@ -4434,6 +4766,22 @@
   {
     "id": "model.incoming_hook.user_id.app_error",
     "translation": "Kullanıcı kodu geçersiz"
+  },
+  {
+    "id": "model.job.is_valid.create_at.app_error",
+    "translation": "Oluşturulma zamanı geçerli bir zaman olmalıdır"
+  },
+  {
+    "id": "model.job.is_valid.id.app_error",
+    "translation": "Görev kodu geçersiz"
+  },
+  {
+    "id": "model.job.is_valid.status.app_error",
+    "translation": "Görev durumu geçersiz"
+  },
+  {
+    "id": "model.job.is_valid.type.app_error",
+    "translation": "Görev türü geçersiz"
   },
   {
     "id": "model.oauth.is_valid.app_id.app_error",
@@ -4812,6 +5160,18 @@
     "translation": "Kullanıcı adı geçersiz"
   },
   {
+    "id": "model.user_access_token.is_valid.description.app_error",
+    "translation": "Açıklama geçersiz, 255 karakterden kısa olmalıdır"
+  },
+  {
+    "id": "model.user_access_token.is_valid.token.app_error",
+    "translation": "Erişim kodu geçersiz"
+  },
+  {
+    "id": "model.user_access_token.is_valid.user_id.app_error",
+    "translation": "Kullanıcı kodu geçersiz"
+  },
+  {
     "id": "model.utils.decode_json.app_error",
     "translation": "kod çözülemedi"
   },
@@ -4921,7 +5281,7 @@
   },
   {
     "id": "store.sql.schema_version.critical",
-    "translation": "Veritabanı şeması %v sürümüne güncellenemez. Aradaki sürümleri atlayamazsınız."
+    "translation": "%v veritabanı şeması sürümü artık desteklenmiyor. Bu Mattermost sunucusu %v şema sürümünden %v şema sürümüne kadar olan otomatik güncellemeleri destekliyor. Sürüm düşürme işlemi desteklenmez. Lütfen devam etmeden önce veritabanı şemasını el ile son %v sürümüne yükseltin."
   },
   {
     "id": "store.sql.short_ciphertext",
@@ -5296,24 +5656,24 @@
     "translation": "We couldn't save or update the file info"
   },
   {
-    "id": "store.sql_job_status.delete_by_type.app_error",
-    "translation": "We couldn't delete the job status"
+    "id": "store.sql_job.delete.app_error",
+    "translation": "İş silinemedi"
   },
   {
-    "id": "store.sql_job_status.get.app_error",
-    "translation": "We couldn't get the job status"
+    "id": "store.sql_job.get.app_error",
+    "translation": "İş alınamadı"
   },
   {
-    "id": "store.sql_job_status.get_all.app_error",
-    "translation": "We couldn't get all job statuses"
+    "id": "store.sql_job.get_all.app_error",
+    "translation": "İşler alınamadı"
   },
   {
-    "id": "store.sql_job_status.save.app_error",
-    "translation": "We couldn't save the job status"
+    "id": "store.sql_job.save.app_error",
+    "translation": "İş kaydedilemedi"
   },
   {
-    "id": "store.sql_job_status.update.app_error",
-    "translation": "We couldn't update the job status"
+    "id": "store.sql_job.update.app_error",
+    "translation": "İş güncellenemedi"
   },
   {
     "id": "store.sql_license.get.app_error",
@@ -5462,6 +5822,10 @@
   {
     "id": "store.sql_post.get_posts_around.get_parent.app_error",
     "translation": "Kanalın üst iletileri alınamadı"
+  },
+  {
+    "id": "store.sql_post.get_posts_batch_for_indexing.get.app_error",
+    "translation": "Dizine eklenecek ileti yığını alınamadı"
   },
   {
     "id": "store.sql_post.get_posts_by_ids.app_error",
@@ -6040,6 +6404,26 @@
     "translation": "E-posta doğrulama alanı güncellenemedi"
   },
   {
+    "id": "store.sql_user_access_token.delete.app_error",
+    "translation": "Kullanıcı erişim kodu silinemedi"
+  },
+  {
+    "id": "store.sql_user_access_token.get.app_error",
+    "translation": "Kullanıcı erişim kodu alınamadı"
+  },
+  {
+    "id": "store.sql_user_access_token.get_by_token.app_error",
+    "translation": "Koda göre kullanıcı erişim kodu alınamadı"
+  },
+  {
+    "id": "store.sql_user_access_token.get_by_user.app_error",
+    "translation": "Kullanıcıya göre kullanıcı erişim kodları alınamadı"
+  },
+  {
+    "id": "store.sql_user_access_token.save.app_error",
+    "translation": "Kullanıcı erişim kodu kaydedilemedi"
+  },
+  {
     "id": "store.sql_webhooks.analytics_incoming_count.app_error",
     "translation": "Gelen web bağlantıları sayılamadı"
   },
@@ -6080,7 +6464,15 @@
     "translation": "Web bağlantıları alınamadı"
   },
   {
+    "id": "store.sql_webhooks.permanent_delete_incoming_by_channel.app_error",
+    "translation": "Web bağlantısı silinemedi"
+  },
+  {
     "id": "store.sql_webhooks.permanent_delete_incoming_by_user.app_error",
+    "translation": "Web bağlantısı silinemedi"
+  },
+  {
+    "id": "store.sql_webhooks.permanent_delete_outgoing_by_channel.app_error",
     "translation": "Web bağlantısı silinemedi"
   },
   {
@@ -6116,6 +6508,10 @@
     "translation": "Sistem"
   },
   {
+    "id": "utils.config.add_client_locale.app_error",
+    "translation": "Mattermost yapılandırma dosyası yüklenemedi:  Kullanılabilecek Yerel ayarlara VarsayılanİstemciYereli ekleniyor."
+  },
+  {
     "id": "utils.config.load_config.decoding.panic",
     "translation": "Yapılandırma dosyasının kodu çözülürken sorun çıktı. Dosya: {{.Filename}}, Hata: {{.Error}}"
   },
@@ -6136,8 +6532,12 @@
     "translation": "{{.Filename}} dosyası kaydedilirken bir sorun çıktı"
   },
   {
+    "id": "utils.config.supported_available_locales.app_error",
+    "translation": "Mattermost yapılandırma dosyası yüklenemedi:  Kullanılabilecek Yerel ayarlarda VarsayılanİstemciYereli bulunmalıdır. Tüm yerel ayarlar için varsayılan değer olarak Kullanılabilecek Yerel Ayarlar ayarlanıyor."
+  },
+  {
     "id": "utils.config.supported_client_locale.app_error",
-    "translation": "Mattermost yapılandırma dosyası yüklenemedi: DefaultClientLocale seçeneği desteklenen dillerden biri olmalıdır"
+    "translation": "Mattermost yapılandırma dosyası yüklenemedi:  VarsayılanİstemciYereli desteklenen yerel ayarlardan biri olmalıdır. VarsayılanİstemciYereli varsayılan değer olarak en değerine ayarlanıyor."
   },
   {
     "id": "utils.config.supported_server_locale.app_error",

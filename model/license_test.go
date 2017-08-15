@@ -27,6 +27,7 @@ func TestLicenseFeaturesToMap(t *testing.T) {
 	CheckTrue(t, m["password"].(bool))
 	CheckTrue(t, m["elastic_search"].(bool))
 	CheckTrue(t, m["future"].(bool))
+	CheckTrue(t, m["email_notification_contents"].(bool))
 }
 
 func TestLicenseFeaturesSetDefaults(t *testing.T) {
@@ -46,6 +47,7 @@ func TestLicenseFeaturesSetDefaults(t *testing.T) {
 	CheckTrue(t, *f.SAML)
 	CheckTrue(t, *f.PasswordRequirements)
 	CheckTrue(t, *f.Elasticsearch)
+	CheckTrue(t, *f.EmailNotificationContents)
 	CheckTrue(t, *f.FutureFeatures)
 
 	f = Features{}
@@ -65,6 +67,7 @@ func TestLicenseFeaturesSetDefaults(t *testing.T) {
 	*f.SAML = true
 	*f.PasswordRequirements = true
 	*f.Elasticsearch = true
+	*f.EmailNotificationContents = true
 
 	f.SetDefaults()
 
@@ -81,6 +84,7 @@ func TestLicenseFeaturesSetDefaults(t *testing.T) {
 	CheckTrue(t, *f.SAML)
 	CheckTrue(t, *f.PasswordRequirements)
 	CheckTrue(t, *f.Elasticsearch)
+	CheckTrue(t, *f.EmailNotificationContents)
 	CheckFalse(t, *f.FutureFeatures)
 }
 

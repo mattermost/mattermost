@@ -209,14 +209,20 @@ check-client-style:
 
 check-server-style: govet
 	@echo Running GOFMT
-	$(eval GOFMT_OUTPUT := $(shell gofmt -d -s api/ model/ store/ utils/ manualtesting/ einterfaces/ cmd/platform/ 2>&1))
-	@echo "$(GOFMT_OUTPUT)"
-	@if [ ! "$(GOFMT_OUTPUT)" ]; then \
-		echo "gofmt success"; \
-	else \
-		echo "gofmt failure"; \
-		exit 1; \
-	fi
+
+	@for package in $(TE_PACKAGES) $(EE_PACKAGES); do \
+		echo "Checking "$$package; \
+		files=$$(go list -f '{{range .GoFiles}}{{$$.Dir}}/{{.}} {{end}}' $$package); \
+		if [ "$$files" ]; then \
+			gofmt_output=$$(gofmt -d -s $$files 2>&1); \
+			if [ "$$gofmt_output" ]; then \
+				echo "$$gofmt_output"; \
+				echo "gofmt failure"; \
+				exit 1; \
+			fi; \
+		fi; \
+	done
+	@echo "gofmt success"; \
 
 check-style: check-client-style check-server-style
 
@@ -365,20 +371,6 @@ build-client:
 
 	cd $(BUILD_WEBAPP_DIR) && $(MAKE) build
 
-build-job-server: build-job-server-linux build-job-server-mac build-job-server-windows
-
-build-job-server-linux: .prebuild prepare-enterprise
-	@echo Build mattermost job server for Linux amd64
-	env GOOS=linux GOARCH=amd64 $(GO) build $(GOFLAGS) $(GO_LINKER_FLAGS) ./jobs/jobserver
-
-build-job-server-osx: .prebuild prepare-enterprise
-	@echo Build mattermost job server for OSX amd64
-	env GOOS=darwin GOARCH=amd64 $(GO) build $(GOFLAGS) $(GO_LINKER_FLAGS) ./jobs/jobserver
-
-build-job-server-windows: .prebuild prepare-enterprise
-	@echo Build mattermost job server for Windows amd64
-	env GOOS=windows GOARCH=amd64 $(GO) build $(GOFLAGS) $(GO_LINKER_FLAGS) ./jobs/jobserver
-
 package: build build-client
 	@ echo Packaging mattermost
 
@@ -515,7 +507,7 @@ restart-client: | stop-client run-client
 
 run-job-server:
 	@echo Running job server for development
-	$(GO) run $(GOFLAGS) $(GO_LINKER_FLAGS) ./jobs/jobserver/jobserver.go
+	$(GO) run $(GOFLAGS) $(GO_LINKER_FLAGS) ./cmd/platform/*.go jobserver --disableconfigwatch &
 
 clean: stop-docker
 	@echo Cleaning
@@ -549,36 +541,10 @@ setup-mac:
 
 govet:
 	@echo Running GOVET
-
-	$(GO) vet $(GOFLAGS) ./api || exit 1
-	$(GO) vet $(GOFLAGS) ./api4 || exit 1
-	$(GO) vet $(GOFLAGS) ./app || exit 1
-	$(GO) vet $(GOFLAGS) ./cmd/platform || exit 1
-	$(GO) vet $(GOFLAGS) ./einterfaces || exit 1
-	$(GO) vet $(GOFLAGS) ./jobs || exit 1
-	$(GO) vet $(GOFLAGS) ./jobs/jobserver || exit 1
-	$(GO) vet $(GOFLAGS) ./manualtesting || exit 1
-	$(GO) vet $(GOFLAGS) ./model || exit 1
-	$(GO) vet $(GOFLAGS) ./model/gitlab || exit 1
-	$(GO) vet $(GOFLAGS) ./store || exit 1
-	$(GO) vet $(GOFLAGS) ./utils || exit 1
-	$(GO) vet $(GOFLAGS) ./web || exit 1
+	$(GO) vet $(GOFLAGS) $(TE_PACKAGES) || exit 1
 
 ifeq ($(BUILD_ENTERPRISE_READY),true)
-	$(GO) vet $(GOFLAGS) ./enterprise/account_migration || exit 1
-	$(GO) vet $(GOFLAGS) ./enterprise/brand || exit 1
-	$(GO) vet $(GOFLAGS) ./enterprise/cluster || exit 1
-	$(GO) vet $(GOFLAGS) ./enterprise/compliance || exit 1
-	$(GO) vet $(GOFLAGS) ./enterprise/data_retention || exit 1
-	$(GO) vet $(GOFLAGS) ./enterprise/elasticsearch || exit 1
-	$(GO) vet $(GOFLAGS) ./enterprise/emoji || exit 1
-	$(GO) vet $(GOFLAGS) ./enterprise/imports || exit 1
-	$(GO) vet $(GOFLAGS) ./enterprise/ldap || exit 1
-	$(GO) vet $(GOFLAGS) ./enterprise/metrics || exit 1
-	$(GO) vet $(GOFLAGS) ./enterprise/mfa || exit 1
-	$(GO) vet $(GOFLAGS) ./enterprise/oauth/google || exit 1
-	$(GO) vet $(GOFLAGS) ./enterprise/oauth/office365 || exit 1
-	$(GO) vet $(GOFLAGS) ./enterprise/saml || exit 1
+	$(GO) vet $(GOFLAGS) $(EE_PACKAGES) || exit 1
 endif
 
 todo:

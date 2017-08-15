@@ -33,8 +33,9 @@ const (
 	WEBSERVER_MODE_GZIP     = "gzip"
 	WEBSERVER_MODE_DISABLED = "disabled"
 
-	GENERIC_NOTIFICATION = "generic"
-	FULL_NOTIFICATION    = "full"
+	GENERIC_NO_CHANNEL_NOTIFICATION = "generic_no_channel"
+	GENERIC_NOTIFICATION            = "generic"
+	FULL_NOTIFICATION               = "full"
 
 	DIRECT_MESSAGE_ANY  = "any"
 	DIRECT_MESSAGE_TEAM = "team"
@@ -64,6 +65,9 @@ const (
 
 	EMAIL_BATCHING_BUFFER_SIZE = 256
 	EMAIL_BATCHING_INTERVAL    = 30
+
+	EMAIL_NOTIFICATION_CONTENTS_FULL    = "full"
+	EMAIL_NOTIFICATION_CONTENTS_GENERIC = "generic"
 
 	SITENAME_MAX_LENGTH = 30
 
@@ -119,9 +123,11 @@ const (
 	ANNOUNCEMENT_SETTINGS_DEFAULT_BANNER_COLOR      = "#f2a93b"
 	ANNOUNCEMENT_SETTINGS_DEFAULT_BANNER_TEXT_COLOR = "#333333"
 
-	ELASTICSEARCH_SETTINGS_DEFAULT_CONNECTION_URL = ""
-	ELASTICSEARCH_SETTINGS_DEFAULT_USERNAME       = ""
-	ELASTICSEARCH_SETTINGS_DEFAULT_PASSWORD       = ""
+	ELASTICSEARCH_SETTINGS_DEFAULT_CONNECTION_URL      = ""
+	ELASTICSEARCH_SETTINGS_DEFAULT_USERNAME            = ""
+	ELASTICSEARCH_SETTINGS_DEFAULT_PASSWORD            = ""
+	ELASTICSEARCH_SETTINGS_DEFAULT_POST_INDEX_REPLICAS = 1
+	ELASTICSEARCH_SETTINGS_DEFAULT_POST_INDEX_SHARDS   = 1
 )
 
 type ServiceSettings struct {
@@ -152,6 +158,7 @@ type ServiceSettings struct {
 	EnableDeveloper                          *bool
 	EnableSecurityFixAlert                   *bool
 	EnableInsecureOutgoingConnections        *bool
+	AllowedUntrustedInternalConnections      *string
 	EnableMultifactorAuthentication          *bool
 	EnforceMultifactorAuthentication         *bool
 	EnableUserAccessTokens                   *bool
@@ -256,6 +263,7 @@ type FileSettings struct {
 	AmazonS3Endpoint        string
 	AmazonS3SSL             *bool
 	AmazonS3SignV2          *bool
+	AmazonS3SSE             *bool
 }
 
 type EmailSettings struct {
@@ -281,6 +289,7 @@ type EmailSettings struct {
 	EmailBatchingBufferSize           *int
 	EmailBatchingInterval             *int
 	SkipServerCertificateVerification *bool
+	EmailNotificationContentsType     *string
 }
 
 type RateLimitSettings struct {
@@ -432,12 +441,14 @@ type WebrtcSettings struct {
 }
 
 type ElasticsearchSettings struct {
-	ConnectionUrl   *string
-	Username        *string
-	Password        *string
-	EnableIndexing  *bool
-	EnableSearching *bool
-	Sniff           *bool
+	ConnectionUrl     *string
+	Username          *string
+	Password          *string
+	EnableIndexing    *bool
+	EnableSearching   *bool
+	Sniff             *bool
+	PostIndexReplicas *int
+	PostIndexShards   *int
 }
 
 type DataRetentionSettings struct {
@@ -447,6 +458,10 @@ type DataRetentionSettings struct {
 type JobSettings struct {
 	RunJobs      *bool
 	RunScheduler *bool
+}
+
+type PluginSettings struct {
+	Plugins map[string]interface{}
 }
 
 type Config struct {
@@ -476,6 +491,7 @@ type Config struct {
 	ElasticsearchSettings ElasticsearchSettings
 	DataRetentionSettings DataRetentionSettings
 	JobSettings           JobSettings
+	PluginSettings        PluginSettings
 }
 
 func (o *Config) ToJson() string {
@@ -535,6 +551,11 @@ func (o *Config) SetDefaults() {
 	if o.FileSettings.AmazonS3SignV2 == nil {
 		o.FileSettings.AmazonS3SignV2 = new(bool)
 		// Signature v2 is not enabled by default.
+	}
+
+	if o.FileSettings.AmazonS3SSE == nil {
+		o.FileSettings.AmazonS3SSE = new(bool)
+		*o.FileSettings.AmazonS3SSE = false // Not Encrypted by default.
 	}
 
 	if o.FileSettings.EnableFileAttachments == nil {
@@ -607,6 +628,10 @@ func (o *Config) SetDefaults() {
 	if o.ServiceSettings.EnableInsecureOutgoingConnections == nil {
 		o.ServiceSettings.EnableInsecureOutgoingConnections = new(bool)
 		*o.ServiceSettings.EnableInsecureOutgoingConnections = false
+	}
+
+	if o.ServiceSettings.AllowedUntrustedInternalConnections == nil {
+		o.ServiceSettings.AllowedUntrustedInternalConnections = new(string)
 	}
 
 	if o.ServiceSettings.EnableMultifactorAuthentication == nil {
@@ -807,6 +832,11 @@ func (o *Config) SetDefaults() {
 	if o.EmailSettings.SkipServerCertificateVerification == nil {
 		o.EmailSettings.SkipServerCertificateVerification = new(bool)
 		*o.EmailSettings.SkipServerCertificateVerification = false
+	}
+
+	if o.EmailSettings.EmailNotificationContentsType == nil {
+		o.EmailSettings.EmailNotificationContentsType = new(string)
+		*o.EmailSettings.EmailNotificationContentsType = EMAIL_NOTIFICATION_CONTENTS_FULL
 	}
 
 	if !IsSafeLink(o.SupportSettings.TermsOfServiceLink) {
@@ -1412,6 +1442,16 @@ func (o *Config) SetDefaults() {
 		*o.ElasticsearchSettings.Sniff = true
 	}
 
+	if o.ElasticsearchSettings.PostIndexReplicas == nil {
+		o.ElasticsearchSettings.PostIndexReplicas = new(int)
+		*o.ElasticsearchSettings.PostIndexReplicas = ELASTICSEARCH_SETTINGS_DEFAULT_POST_INDEX_REPLICAS
+	}
+
+	if o.ElasticsearchSettings.PostIndexShards == nil {
+		o.ElasticsearchSettings.PostIndexShards = new(int)
+		*o.ElasticsearchSettings.PostIndexShards = ELASTICSEARCH_SETTINGS_DEFAULT_POST_INDEX_SHARDS
+	}
+
 	if o.DataRetentionSettings.Enable == nil {
 		o.DataRetentionSettings.Enable = new(bool)
 		*o.DataRetentionSettings.Enable = false
@@ -1425,6 +1465,10 @@ func (o *Config) SetDefaults() {
 	if o.JobSettings.RunScheduler == nil {
 		o.JobSettings.RunScheduler = new(bool)
 		*o.JobSettings.RunScheduler = true
+	}
+
+	if o.PluginSettings.Plugins == nil {
+		o.PluginSettings.Plugins = make(map[string]interface{})
 	}
 
 	o.defaultWebrtcSettings()
@@ -1524,6 +1568,10 @@ func (o *Config) IsValid() *AppError {
 
 	if *o.EmailSettings.EmailBatchingInterval < 30 {
 		return NewLocAppError("Config.IsValid", "model.config.is_valid.email_batching_interval.app_error", nil, "")
+	}
+
+	if !(*o.EmailSettings.EmailNotificationContentsType == EMAIL_NOTIFICATION_CONTENTS_FULL || *o.EmailSettings.EmailNotificationContentsType == EMAIL_NOTIFICATION_CONTENTS_GENERIC) {
+		return NewLocAppError("Config.IsValid", "model.config.is_valid.email_notification_contents_type.app_error", nil, "")
 	}
 
 	if o.RateLimitSettings.MemoryStoreSize <= 0 {

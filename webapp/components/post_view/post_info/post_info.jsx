@@ -125,6 +125,7 @@ export default class PostInfo extends React.PureComponent {
         const emojiName = emoji.name || emoji.aliases[0];
         this.props.actions.addReaction(this.props.post.id, emojiName);
         emitEmojiPosted(emojiName);
+        this.props.handleDropdownOpened(false);
     }
 
     getDotMenu = () => {

@@ -47,7 +47,7 @@
 
             &:last-child {
                 .channel-header__icon {
-                    margin-right: 17px;
+                    margin-right: 10px;
                 }
             }
         }
@@ -222,6 +222,15 @@
         overflow: hidden;
         padding: 0 5px 0 0;
         text-transform: uppercase;
+    }
+
+    .sidebar--right__loading {
+        @include opacity(.7);
+        text-align: center;
+
+        .fa {
+            margin-right: 5px;
+        }
     }
 
     .sidebar--right__subheader {

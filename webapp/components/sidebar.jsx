@@ -18,7 +18,6 @@ import PreferenceStore from 'stores/preference_store.jsx';
 import ModalStore from 'stores/modal_store.jsx';
 
 import AppDispatcher from 'dispatcher/app_dispatcher.jsx';
-import {sortTeamsByDisplayName} from 'utils/team_utils.jsx';
 import * as Utils from 'utils/utils.jsx';
 import * as ChannelUtils from 'utils/channel_utils.jsx';
 import * as ChannelActions from 'actions/channel_actions.jsx';
@@ -44,8 +43,7 @@ import store from 'stores/redux_store.jsx';
 const dispatch = store.dispatch;
 const getState = store.getState;
 
-import {getMyPreferences} from 'mattermost-redux/selectors/entities/preferences';
-import {getUsers, getUserStatuses} from 'mattermost-redux/selectors/entities/users';
+import {getChannelsByCategory} from 'mattermost-redux/selectors/entities/channels';
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 
 export default class Sidebar extends React.Component {
@@ -55,31 +53,6 @@ export default class Sidebar extends React.Component {
         this.badgesActive = false;
         this.firstUnreadChannel = null;
         this.lastUnreadChannel = null;
-
-        this.getStateFromStores = this.getStateFromStores.bind(this);
-
-        this.onChange = this.onChange.bind(this);
-        this.onModalChange = this.onModalChange.bind(this);
-        this.onInChannelChange = this.onInChannelChange.bind(this);
-        this.onScroll = this.onScroll.bind(this);
-        this.updateUnreadIndicators = this.updateUnreadIndicators.bind(this);
-        this.handleLeaveDirectChannel = this.handleLeaveDirectChannel.bind(this);
-
-        this.showMoreChannelsModal = this.showMoreChannelsModal.bind(this);
-        this.hideMoreChannelsModal = this.hideMoreChannelsModal.bind(this);
-        this.showNewChannelModal = this.showNewChannelModal.bind(this);
-        this.hideNewChannelModal = this.hideNewChannelModal.bind(this);
-        this.showMoreDirectChannelsModal = this.showMoreDirectChannelsModal.bind(this);
-        this.hideMoreDirectChannelsModal = this.hideMoreDirectChannelsModal.bind(this);
-        this.handleOpenMoreDirectChannelsModal = this.handleOpenMoreDirectChannelsModal.bind(this);
-
-        this.createChannelElement = this.createChannelElement.bind(this);
-        this.updateTitle = this.updateTitle.bind(this);
-
-        this.navigateChannelShortcut = this.navigateChannelShortcut.bind(this);
-        this.navigateUnreadChannelShortcut = this.navigateUnreadChannelShortcut.bind(this);
-        this.getDisplayedChannels = this.getDisplayedChannels.bind(this);
-        this.updateScrollbarOnChannelChange = this.updateScrollbarOnChannelChange.bind(this);
 
         this.isLeaving = new Map();
         this.isSwitchingChannel = false;
@@ -94,34 +67,18 @@ export default class Sidebar extends React.Component {
         this.state = state;
     }
 
-    getTotalUnreadCount() {
+    getTotalUnreadCount = () => {
         const unreads = ChannelUtils.getCountsStateFromStores(this.state.currentTeam, this.state.teamMembers, this.state.unreadCounts);
         return {msgs: unreads.messageCount, mentions: unreads.mentionCount};
     }
 
-    getStateFromStores() {
+    getStateFromStores = () => {
         const members = ChannelStore.getMyMembers();
         const teamMembers = TeamStore.getMyTeamMembers();
         const currentChannelId = ChannelStore.getCurrentId();
         const tutorialStep = PreferenceStore.getInt(Preferences.TUTORIAL_STEP, UserStore.getCurrentId(), 999);
 
-        const channels = ChannelStore.getAll();
-        const preferences = getMyPreferences(store.getState());
-        const profiles = getUsers(store.getState());
-        const statuses = getUserStatuses(store.getState());
-        let displayableChannels = {};
-        if (!Utils.areObjectsEqual(channels, this.oldChannels) ||
-                !Utils.areObjectsEqual(preferences, this.oldPreferences) ||
-                !Utils.areObjectsEqual(profiles, this.oldProfiles) ||
-                !Utils.areObjectsEqual(statuses, this.oldStatuses)) {
-            const channelsArray = channels.map((channel) => Object.assign({}, channel));
-            displayableChannels = ChannelUtils.buildDisplayableChannelList(channelsArray);
-            displayableChannels.favoriteChannels.sort(sortTeamsByDisplayName);
-        }
-        this.oldChannels = channels;
-        this.oldPreferences = preferences;
-        this.oldProfiles = profiles;
-        this.oldStatuses = statuses;
+        const displayableChannels = getChannelsByCategory(store.getState());
 
         return {
             activeId: currentChannelId,
@@ -137,7 +94,7 @@ export default class Sidebar extends React.Component {
         };
     }
 
-    onInChannelChange() {
+    onInChannelChange = () => {
         this.setState({inChannelChange: !this.state.inChannelChange});
     }
 
@@ -203,11 +160,11 @@ export default class Sidebar extends React.Component {
         document.removeEventListener('keydown', this.navigateUnreadChannelShortcut);
     }
 
-    onModalChange(value, args) {
+    onModalChange = (value, args) => {
         this.showMoreDirectChannelsModal(args.startingUsers);
     }
 
-    handleOpenMoreDirectChannelsModal(e) {
+    handleOpenMoreDirectChannelsModal = (e) => {
         e.preventDefault();
         if (this.state.showDirectChannelsModal) {
             this.hideMoreDirectChannelsModal();
@@ -216,7 +173,7 @@ export default class Sidebar extends React.Component {
         }
     }
 
-    onChange() {
+    onChange = () => {
         if (this.state.currentTeam.id !== TeamStore.getCurrentId()) {
             ChannelStore.clear();
         }
@@ -224,7 +181,7 @@ export default class Sidebar extends React.Component {
         this.updateTitle();
     }
 
-    updateTitle() {
+    updateTitle = () => {
         const channel = ChannelStore.getCurrent();
         if (channel && this.state.currentTeam) {
             let currentSiteName = '';
@@ -249,11 +206,11 @@ export default class Sidebar extends React.Component {
         }
     }
 
-    onScroll() {
+    onScroll = () => {
         this.updateUnreadIndicators();
     }
 
-    updateUnreadIndicators() {
+    updateUnreadIndicators = () => {
         const container = $(ReactDOM.findDOMNode(this.refs.container));
 
         var showTopUnread = false;
@@ -284,7 +241,7 @@ export default class Sidebar extends React.Component {
         });
     }
 
-    updateScrollbarOnChannelChange(channel) {
+    updateScrollbarOnChannelChange = (channel) => {
         const curChannel = this.refs[channel.name].getBoundingClientRect();
         if ((curChannel.top - Constants.CHANNEL_SCROLL_ADJUSTMENT < 0) || (curChannel.top + curChannel.height > this.refs.container.getBoundingClientRect().height)) {
             this.refs.container.scrollTop = this.refs.container.scrollTop + (curChannel.top - Constants.CHANNEL_SCROLL_ADJUSTMENT);
@@ -292,7 +249,7 @@ export default class Sidebar extends React.Component {
         }
     }
 
-    navigateChannelShortcut(e) {
+    navigateChannelShortcut = (e) => {
         if (e.altKey && !e.shiftKey && (e.keyCode === Constants.KeyCodes.UP || e.keyCode === Constants.KeyCodes.DOWN)) {
             e.preventDefault();
 
@@ -324,7 +281,7 @@ export default class Sidebar extends React.Component {
         }
     }
 
-    navigateUnreadChannelShortcut(e) {
+    navigateUnreadChannelShortcut = (e) => {
         if (e.altKey && e.shiftKey && (e.keyCode === Constants.KeyCodes.UP || e.keyCode === Constants.KeyCodes.DOWN)) {
             e.preventDefault();
 
@@ -365,11 +322,11 @@ export default class Sidebar extends React.Component {
         }
     }
 
-    getDisplayedChannels() {
+    getDisplayedChannels = () => {
         return this.state.favoriteChannels.concat(this.state.publicChannels).concat(this.state.privateChannels).concat(this.state.directAndGroupChannels);
     }
 
-    handleLeaveDirectChannel(e, channel) {
+    handleLeaveDirectChannel = (e, channel) => {
         e.preventDefault();
 
         if (!this.isLeaving.get(channel.id)) {
@@ -405,33 +362,33 @@ export default class Sidebar extends React.Component {
         }
     }
 
-    showMoreChannelsModal() {
+    showMoreChannelsModal = () => {
         this.setState({showMoreChannelsModal: true});
         trackEvent('ui', 'ui_channels_more_public');
     }
 
-    hideMoreChannelsModal() {
+    hideMoreChannelsModal = () => {
         this.setState({showMoreChannelsModal: false});
     }
 
-    showNewChannelModal(type) {
+    showNewChannelModal = (type) => {
         this.setState({newChannelModalType: type});
     }
 
-    hideNewChannelModal() {
+    hideNewChannelModal = () => {
         this.setState({newChannelModalType: ''});
     }
 
-    showMoreDirectChannelsModal(startingUsers) {
+    showMoreDirectChannelsModal = (startingUsers) => {
         trackEvent('ui', 'ui_channels_more_direct');
         this.setState({showDirectChannelsModal: true, startingUsers});
     }
 
-    hideMoreDirectChannelsModal() {
+    hideMoreDirectChannelsModal = () => {
         this.setState({showDirectChannelsModal: false, startingUsers: null});
     }
 
-    openLeftSidebar() {
+    openLeftSidebar = () => {
         if (Utils.isMobile()) {
             setTimeout(() => {
                 document.querySelector('.app__body .inner-wrap').classList.add('move--right');
@@ -440,14 +397,14 @@ export default class Sidebar extends React.Component {
         }
     }
 
-    openQuickSwitcher(e) {
+    openQuickSwitcher = (e) => {
         e.preventDefault();
         AppDispatcher.handleViewAction({
             type: ActionTypes.TOGGLE_QUICK_SWITCH_MODAL
         });
     }
 
-    createTutorialTip() {
+    createTutorialTip = () => {
         const screens = [];
 
         let townSquareDisplayName = Constants.DEFAULT_CHANNEL_UI_NAME;
@@ -506,7 +463,7 @@ export default class Sidebar extends React.Component {
         );
     }
 
-    createChannelElement(channel, index, arr, handleClose) {
+    createChannelElement = (channel, index, arr, handleClose) => {
         const members = this.state.members;
         const activeId = this.state.activeId;
         const channelMember = members[channel.id];
@@ -650,7 +607,7 @@ export default class Sidebar extends React.Component {
         );
     }
 
-    trackChannelSelectedEvent() {
+    trackChannelSelectedEvent = () => {
         trackEvent('ui', 'ui_channel_selected');
     }
 
@@ -757,7 +714,7 @@ export default class Sidebar extends React.Component {
             />
         );
 
-        const isAdmin = TeamStore.isTeamAdminForCurrentTeam() || UserStore.isSystemAdminForCurrentUser();
+        const isTeamAdmin = TeamStore.isTeamAdminForCurrentTeam();
         const isSystemAdmin = UserStore.isSystemAdminForCurrentUser();
 
         let createPublicChannelIcon = (
@@ -796,11 +753,11 @@ export default class Sidebar extends React.Component {
             </OverlayTrigger>
         );
 
-        if (!ChannelUtils.showCreateOption(Constants.OPEN_CHANNEL, isAdmin, isSystemAdmin)) {
+        if (!ChannelUtils.showCreateOption(Constants.OPEN_CHANNEL, isTeamAdmin, isSystemAdmin)) {
             createPublicChannelIcon = null;
         }
 
-        if (!ChannelUtils.showCreateOption(Constants.PRIVATE_CHANNEL, isAdmin, isSystemAdmin)) {
+        if (!ChannelUtils.showCreateOption(Constants.PRIVATE_CHANNEL, isTeamAdmin, isSystemAdmin)) {
             createPrivateChannelIcon = null;
         }
 

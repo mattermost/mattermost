@@ -26,6 +26,8 @@ export const emoticonPatterns = {
     thumbsdown: /(^|\s)(:-1:)(?=$|\s)/g // :-1:
 };
 
+export const EMOJI_PATTERN = /(:([a-zA-Z0-9_-]+):)/g;
+
 export function handleEmoticons(text, tokens, emojis) {
     let output = text;
 
@@ -49,7 +51,7 @@ export function handleEmoticons(text, tokens, emojis) {
     }
 
     // match named emoticons like :goat:
-    output = output.replace(/(:([a-zA-Z0-9_-]+):)/g, (fullMatch, matchText, name) => replaceEmoticonWithToken(fullMatch, '', matchText, name));
+    output = output.replace(EMOJI_PATTERN, (fullMatch, matchText, name) => replaceEmoticonWithToken(fullMatch, '', matchText, name));
 
     // match text smilies like :D
     for (const name of Object.keys(emoticonPatterns)) {

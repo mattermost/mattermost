@@ -25,6 +25,7 @@ export default class WebhookSettings extends AdminSettings {
         config.ServiceSettings.EnablePostUsernameOverride = this.state.enablePostUsernameOverride;
         config.ServiceSettings.EnablePostIconOverride = this.state.enablePostIconOverride;
         config.ServiceSettings.EnableOAuthServiceProvider = this.state.enableOAuthServiceProvider;
+        config.ServiceSettings.EnableUserAccessTokens = this.state.enableUserAccessTokens;
 
         return config;
     }
@@ -37,7 +38,8 @@ export default class WebhookSettings extends AdminSettings {
             enableOnlyAdminIntegrations: config.ServiceSettings.EnableOnlyAdminIntegrations,
             enablePostUsernameOverride: config.ServiceSettings.EnablePostUsernameOverride,
             enablePostIconOverride: config.ServiceSettings.EnablePostIconOverride,
-            enableOAuthServiceProvider: config.ServiceSettings.EnableOAuthServiceProvider
+            enableOAuthServiceProvider: config.ServiceSettings.EnableOAuthServiceProvider,
+            enableUserAccessTokens: config.ServiceSettings.EnableUserAccessTokens
         };
     }
 
@@ -170,6 +172,23 @@ export default class WebhookSettings extends AdminSettings {
                         />
                     }
                     value={this.state.enablePostIconOverride}
+                    onChange={this.handleChange}
+                />
+                <BooleanSetting
+                    id='enableUserAccessTokens'
+                    label={
+                        <FormattedMessage
+                            id='admin.service.userAccessTokensTitle'
+                            defaultMessage='Enable User Access Tokens: '
+                        />
+                    }
+                    helpText={
+                        <FormattedHTMLMessage
+                            id='admin.service.userAccessTokensDescription'
+                            defaultMessage='When true, users can create <a href="https://about.mattermost.com/default-user-access-tokens" target="_blank">user access tokens</a> for integrations in <strong>Account Settings > Security</strong>. They can be used to authenticate against the API and give full access to the account.<br/><br/>To manage who can create user access tokens, go to the <strong>System Console > Users</strong> page.'
+                        />
+                    }
+                    value={this.state.enableUserAccessTokens}
                     onChange={this.handleChange}
                 />
             </SettingsGroup>

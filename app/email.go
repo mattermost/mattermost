@@ -179,6 +179,24 @@ func SendPasswordChangeEmail(email, method, locale, siteURL string) *model.AppEr
 	return nil
 }
 
+func SendUserAccessTokenAddedEmail(email, locale string) *model.AppError {
+	T := utils.GetUserTranslations(locale)
+
+	subject := T("api.templates.user_access_token_subject",
+		map[string]interface{}{"SiteName": utils.ClientCfg["SiteName"]})
+
+	bodyPage := utils.NewHTMLTemplate("password_change_body", locale)
+	bodyPage.Props["Title"] = T("api.templates.user_access_token_body.title")
+	bodyPage.Html["Info"] = template.HTML(T("api.templates.user_access_token_body.info",
+		map[string]interface{}{"SiteName": utils.ClientCfg["SiteName"], "SiteURL": utils.GetSiteURL()}))
+
+	if err := utils.SendMail(email, subject, bodyPage.Render()); err != nil {
+		return model.NewLocAppError("SendUserAccessTokenAddedEmail", "api.user.send_user_access_token.error", nil, err.Error())
+	}
+
+	return nil
+}
+
 func SendPasswordResetEmail(email string, token *model.Token, locale, siteURL string) (bool, *model.AppError) {
 
 	T := utils.GetUserTranslations(locale)

@@ -20,7 +20,8 @@ export default class GeneratedSetting extends React.Component {
             disabled: PropTypes.bool.isRequired,
             disabledText: PropTypes.node,
             helpText: PropTypes.node.isRequired,
-            regenerateText: PropTypes.node
+            regenerateText: PropTypes.node,
+            regenerateHelpText: PropTypes.node
         };
     }
 
@@ -58,6 +59,15 @@ export default class GeneratedSetting extends React.Component {
             );
         }
 
+        let regenerateHelpText = null;
+        if (this.props.regenerateHelpText) {
+            regenerateHelpText = (
+                <div className='help-text'>
+                    {this.props.regenerateHelpText}
+                </div>
+            );
+        }
+
         return (
             <div className='form-group'>
                 <label
@@ -88,6 +98,7 @@ export default class GeneratedSetting extends React.Component {
                             {this.props.regenerateText}
                         </button>
                     </div>
+                    {regenerateHelpText}
                 </div>
             </div>
         );

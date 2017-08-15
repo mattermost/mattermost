@@ -4,6 +4,7 @@
 package app
 
 import (
+	"encoding/json"
 	"log"
 	"os"
 	"runtime"
@@ -38,6 +39,7 @@ const (
 	TRACK_CONFIG_ANALYTICS     = "config_analytics"
 	TRACK_CONFIG_ANNOUNCEMENT  = "config_announcement"
 	TRACK_CONFIG_ELASTICSEARCH = "config_elasticsearch"
+	TRACK_CONFIG_PLUGIN        = "config_plugin"
 
 	TRACK_ACTIVITY = "activity"
 	TRACK_LICENSE  = "license"
@@ -85,6 +87,23 @@ func isDefault(setting interface{}, defaultValue interface{}) bool {
 		return true
 	}
 	return false
+}
+
+func pluginSetting(plugin, key string, defaultValue interface{}) interface{} {
+	settings, ok := utils.Cfg.PluginSettings.Plugins[plugin]
+	if !ok {
+		return defaultValue
+	}
+	var m map[string]interface{}
+	if b, err := json.Marshal(settings); err != nil {
+		return defaultValue
+	} else {
+		json.Unmarshal(b, &m)
+	}
+	if value, ok := m[key]; ok {
+		return value
+	}
+	return defaultValue
 }
 
 func trackActivity() {
@@ -155,48 +174,50 @@ func trackActivity() {
 
 func trackConfig() {
 	SendDiagnostic(TRACK_CONFIG_SERVICE, map[string]interface{}{
-		"web_server_mode":                               *utils.Cfg.ServiceSettings.WebserverMode,
-		"enable_security_fix_alert":                     *utils.Cfg.ServiceSettings.EnableSecurityFixAlert,
-		"enable_insecure_outgoing_connections":          *utils.Cfg.ServiceSettings.EnableInsecureOutgoingConnections,
-		"enable_incoming_webhooks":                      utils.Cfg.ServiceSettings.EnableIncomingWebhooks,
-		"enable_outgoing_webhooks":                      utils.Cfg.ServiceSettings.EnableOutgoingWebhooks,
-		"enable_commands":                               *utils.Cfg.ServiceSettings.EnableCommands,
-		"enable_only_admin_integrations":                *utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations,
-		"enable_post_username_override":                 utils.Cfg.ServiceSettings.EnablePostUsernameOverride,
-		"enable_post_icon_override":                     utils.Cfg.ServiceSettings.EnablePostIconOverride,
-		"enable_apiv3":                                  *utils.Cfg.ServiceSettings.EnableAPIv3,
-		"enable_custom_emoji":                           *utils.Cfg.ServiceSettings.EnableCustomEmoji,
-		"enable_emoji_picker":                           *utils.Cfg.ServiceSettings.EnableEmojiPicker,
-		"restrict_custom_emoji_creation":                *utils.Cfg.ServiceSettings.RestrictCustomEmojiCreation,
-		"enable_testing":                                utils.Cfg.ServiceSettings.EnableTesting,
-		"enable_developer":                              *utils.Cfg.ServiceSettings.EnableDeveloper,
-		"enable_multifactor_authentication":             *utils.Cfg.ServiceSettings.EnableMultifactorAuthentication,
-		"enforce_multifactor_authentication":            *utils.Cfg.ServiceSettings.EnforceMultifactorAuthentication,
-		"enable_oauth_service_provider":                 utils.Cfg.ServiceSettings.EnableOAuthServiceProvider,
-		"connection_security":                           *utils.Cfg.ServiceSettings.ConnectionSecurity,
-		"uses_letsencrypt":                              *utils.Cfg.ServiceSettings.UseLetsEncrypt,
-		"forward_80_to_443":                             *utils.Cfg.ServiceSettings.Forward80To443,
-		"maximum_login_attempts":                        utils.Cfg.ServiceSettings.MaximumLoginAttempts,
-		"session_length_web_in_days":                    *utils.Cfg.ServiceSettings.SessionLengthWebInDays,
-		"session_length_mobile_in_days":                 *utils.Cfg.ServiceSettings.SessionLengthMobileInDays,
-		"session_length_sso_in_days":                    *utils.Cfg.ServiceSettings.SessionLengthSSOInDays,
-		"session_cache_in_minutes":                      *utils.Cfg.ServiceSettings.SessionCacheInMinutes,
-		"isdefault_site_url":                            isDefault(*utils.Cfg.ServiceSettings.SiteURL, model.SERVICE_SETTINGS_DEFAULT_SITE_URL),
-		"isdefault_tls_cert_file":                       isDefault(*utils.Cfg.ServiceSettings.TLSCertFile, model.SERVICE_SETTINGS_DEFAULT_TLS_CERT_FILE),
-		"isdefault_tls_key_file":                        isDefault(*utils.Cfg.ServiceSettings.TLSKeyFile, model.SERVICE_SETTINGS_DEFAULT_TLS_KEY_FILE),
-		"isdefault_read_timeout":                        isDefault(*utils.Cfg.ServiceSettings.ReadTimeout, model.SERVICE_SETTINGS_DEFAULT_READ_TIMEOUT),
-		"isdefault_write_timeout":                       isDefault(*utils.Cfg.ServiceSettings.WriteTimeout, model.SERVICE_SETTINGS_DEFAULT_WRITE_TIMEOUT),
-		"isdefault_google_developer_key":                isDefault(utils.Cfg.ServiceSettings.GoogleDeveloperKey, ""),
-		"isdefault_allow_cors_from":                     isDefault(*utils.Cfg.ServiceSettings.AllowCorsFrom, model.SERVICE_SETTINGS_DEFAULT_ALLOW_CORS_FROM),
-		"restrict_post_delete":                          *utils.Cfg.ServiceSettings.RestrictPostDelete,
-		"allow_edit_post":                               *utils.Cfg.ServiceSettings.AllowEditPost,
-		"post_edit_time_limit":                          *utils.Cfg.ServiceSettings.PostEditTimeLimit,
-		"enable_user_typing_messages":                   *utils.Cfg.ServiceSettings.EnableUserTypingMessages,
-		"enable_channel_viewed_messages":                *utils.Cfg.ServiceSettings.EnableChannelViewedMessages,
-		"time_between_user_typing_updates_milliseconds": *utils.Cfg.ServiceSettings.TimeBetweenUserTypingUpdatesMilliseconds,
-		"cluster_log_timeout_milliseconds":              *utils.Cfg.ServiceSettings.ClusterLogTimeoutMilliseconds,
-		"enable_post_search":                            *utils.Cfg.ServiceSettings.EnablePostSearch,
-		"enable_user_statuses":                          *utils.Cfg.ServiceSettings.EnableUserStatuses,
+		"web_server_mode":                                  *utils.Cfg.ServiceSettings.WebserverMode,
+		"enable_security_fix_alert":                        *utils.Cfg.ServiceSettings.EnableSecurityFixAlert,
+		"enable_insecure_outgoing_connections":             *utils.Cfg.ServiceSettings.EnableInsecureOutgoingConnections,
+		"enable_incoming_webhooks":                         utils.Cfg.ServiceSettings.EnableIncomingWebhooks,
+		"enable_outgoing_webhooks":                         utils.Cfg.ServiceSettings.EnableOutgoingWebhooks,
+		"enable_commands":                                  *utils.Cfg.ServiceSettings.EnableCommands,
+		"enable_only_admin_integrations":                   *utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations,
+		"enable_post_username_override":                    utils.Cfg.ServiceSettings.EnablePostUsernameOverride,
+		"enable_post_icon_override":                        utils.Cfg.ServiceSettings.EnablePostIconOverride,
+		"enable_apiv3":                                     *utils.Cfg.ServiceSettings.EnableAPIv3,
+		"enable_user_access_tokens":                        *utils.Cfg.ServiceSettings.EnableUserAccessTokens,
+		"enable_custom_emoji":                              *utils.Cfg.ServiceSettings.EnableCustomEmoji,
+		"enable_emoji_picker":                              *utils.Cfg.ServiceSettings.EnableEmojiPicker,
+		"restrict_custom_emoji_creation":                   *utils.Cfg.ServiceSettings.RestrictCustomEmojiCreation,
+		"enable_testing":                                   utils.Cfg.ServiceSettings.EnableTesting,
+		"enable_developer":                                 *utils.Cfg.ServiceSettings.EnableDeveloper,
+		"enable_multifactor_authentication":                *utils.Cfg.ServiceSettings.EnableMultifactorAuthentication,
+		"enforce_multifactor_authentication":               *utils.Cfg.ServiceSettings.EnforceMultifactorAuthentication,
+		"enable_oauth_service_provider":                    utils.Cfg.ServiceSettings.EnableOAuthServiceProvider,
+		"connection_security":                              *utils.Cfg.ServiceSettings.ConnectionSecurity,
+		"uses_letsencrypt":                                 *utils.Cfg.ServiceSettings.UseLetsEncrypt,
+		"forward_80_to_443":                                *utils.Cfg.ServiceSettings.Forward80To443,
+		"maximum_login_attempts":                           utils.Cfg.ServiceSettings.MaximumLoginAttempts,
+		"session_length_web_in_days":                       *utils.Cfg.ServiceSettings.SessionLengthWebInDays,
+		"session_length_mobile_in_days":                    *utils.Cfg.ServiceSettings.SessionLengthMobileInDays,
+		"session_length_sso_in_days":                       *utils.Cfg.ServiceSettings.SessionLengthSSOInDays,
+		"session_cache_in_minutes":                         *utils.Cfg.ServiceSettings.SessionCacheInMinutes,
+		"isdefault_site_url":                               isDefault(*utils.Cfg.ServiceSettings.SiteURL, model.SERVICE_SETTINGS_DEFAULT_SITE_URL),
+		"isdefault_tls_cert_file":                          isDefault(*utils.Cfg.ServiceSettings.TLSCertFile, model.SERVICE_SETTINGS_DEFAULT_TLS_CERT_FILE),
+		"isdefault_tls_key_file":                           isDefault(*utils.Cfg.ServiceSettings.TLSKeyFile, model.SERVICE_SETTINGS_DEFAULT_TLS_KEY_FILE),
+		"isdefault_read_timeout":                           isDefault(*utils.Cfg.ServiceSettings.ReadTimeout, model.SERVICE_SETTINGS_DEFAULT_READ_TIMEOUT),
+		"isdefault_write_timeout":                          isDefault(*utils.Cfg.ServiceSettings.WriteTimeout, model.SERVICE_SETTINGS_DEFAULT_WRITE_TIMEOUT),
+		"isdefault_google_developer_key":                   isDefault(utils.Cfg.ServiceSettings.GoogleDeveloperKey, ""),
+		"isdefault_allow_cors_from":                        isDefault(*utils.Cfg.ServiceSettings.AllowCorsFrom, model.SERVICE_SETTINGS_DEFAULT_ALLOW_CORS_FROM),
+		"isdefault_allowed_untrusted_internal_connections": isDefault(*utils.Cfg.ServiceSettings.AllowedUntrustedInternalConnections, ""),
+		"restrict_post_delete":                             *utils.Cfg.ServiceSettings.RestrictPostDelete,
+		"allow_edit_post":                                  *utils.Cfg.ServiceSettings.AllowEditPost,
+		"post_edit_time_limit":                             *utils.Cfg.ServiceSettings.PostEditTimeLimit,
+		"enable_user_typing_messages":                      *utils.Cfg.ServiceSettings.EnableUserTypingMessages,
+		"enable_channel_viewed_messages":                   *utils.Cfg.ServiceSettings.EnableChannelViewedMessages,
+		"time_between_user_typing_updates_milliseconds":    *utils.Cfg.ServiceSettings.TimeBetweenUserTypingUpdatesMilliseconds,
+		"cluster_log_timeout_milliseconds":                 *utils.Cfg.ServiceSettings.ClusterLogTimeoutMilliseconds,
+		"enable_post_search":                               *utils.Cfg.ServiceSettings.EnablePostSearch,
+		"enable_user_statuses":                             *utils.Cfg.ServiceSettings.EnableUserStatuses,
 	})
 
 	SendDiagnostic(TRACK_CONFIG_TEAM, map[string]interface{}{
@@ -255,6 +276,7 @@ func trackConfig() {
 		"enable_public_links":     utils.Cfg.FileSettings.EnablePublicLink,
 		"driver_name":             utils.Cfg.FileSettings.DriverName,
 		"amazon_s3_ssl":           *utils.Cfg.FileSettings.AmazonS3SSL,
+		"amazon_s3_sse":           *utils.Cfg.FileSettings.AmazonS3SSE,
 		"amazon_s3_signv2":        *utils.Cfg.FileSettings.AmazonS3SignV2,
 		"max_file_size":           *utils.Cfg.FileSettings.MaxFileSize,
 		"enable_file_attachments": *utils.Cfg.FileSettings.EnableFileAttachments,
@@ -391,6 +413,12 @@ func trackConfig() {
 		"enable_indexing":          *utils.Cfg.ElasticsearchSettings.EnableIndexing,
 		"enable_searching":         *utils.Cfg.ElasticsearchSettings.EnableSearching,
 		"sniff":                    *utils.Cfg.ElasticsearchSettings.Sniff,
+		"post_index_replicas":      *utils.Cfg.ElasticsearchSettings.PostIndexReplicas,
+		"post_index_shards":        *utils.Cfg.ElasticsearchSettings.PostIndexShards,
+	})
+
+	SendDiagnostic(TRACK_CONFIG_PLUGIN, map[string]interface{}{
+		"enable_jira": pluginSetting("jira", "enabled", false),
 	})
 }
 

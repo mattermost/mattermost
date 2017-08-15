@@ -95,7 +95,7 @@ export default class ChannelMembersDropdown extends React.Component {
 
     // Checks if the current user has the power to remove this member from the channel.
     canRemoveMember() {
-        return canManageMembers(this.props.channel, UserStore.isSystemAdminForCurrentUser(), TeamStore.isTeamAdminForCurrentTeam(), ChannelStore.isChannelAdminForCurrentChannel());
+        return canManageMembers(this.props.channel, ChannelStore.isChannelAdminForCurrentChannel(), TeamStore.isTeamAdminForCurrentTeam(), UserStore.isSystemAdminForCurrentUser());
     }
 
     render() {

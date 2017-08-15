@@ -160,12 +160,12 @@ export function createOffTopicIntroMessage(channel, centeredIntro) {
         />
     );
 
-    const isAdmin = TeamStore.isTeamAdminForCurrentTeam() || UserStore.isSystemAdminForCurrentUser();
-    const isSystemAdmin = UserStore.isSystemAdminForCurrentUser();
     const isChannelAdmin = ChannelStore.isChannelAdminForCurrentChannel();
+    const isTeamAdmin = TeamStore.isTeamAdminForCurrentTeam();
+    const isSystemAdmin = UserStore.isSystemAdminForCurrentUser();
 
     let setHeaderButton = createSetHeaderButton(channel);
-    if (!showManagementOptions(channel, isAdmin, isSystemAdmin, isChannelAdmin)) {
+    if (!showManagementOptions(channel, isChannelAdmin, isTeamAdmin, isSystemAdmin)) {
         setHeaderButton = null;
     }
 
@@ -199,20 +199,20 @@ export function createDefaultIntroMessage(channel, centeredIntro) {
         </a>
     );
 
-    const isAdmin = TeamStore.isTeamAdminForCurrentTeam() || UserStore.isSystemAdminForCurrentUser();
-    const isSystemAdmin = UserStore.isSystemAdminForCurrentUser();
     const isChannelAdmin = ChannelStore.isChannelAdminForCurrentChannel();
+    const isTeamAdmin = TeamStore.isTeamAdminForCurrentTeam();
+    const isSystemAdmin = UserStore.isSystemAdminForCurrentUser();
 
     if (global.window.mm_license.IsLicensed === 'true') {
         if (global.window.mm_config.RestrictTeamInvite === Constants.PERMISSIONS_SYSTEM_ADMIN && !isSystemAdmin) {
             inviteModalLink = null;
-        } else if (global.window.mm_config.RestrictTeamInvite === Constants.PERMISSIONS_TEAM_ADMIN && !isAdmin) {
+        } else if (global.window.mm_config.RestrictTeamInvite === Constants.PERMISSIONS_TEAM_ADMIN && !(isTeamAdmin || isSystemAdmin)) {
             inviteModalLink = null;
         }
     }
 
     let setHeaderButton = createSetHeaderButton(channel);
-    if (!showManagementOptions(channel, isAdmin, isSystemAdmin, isChannelAdmin)) {
+    if (!showManagementOptions(channel, isChannelAdmin, isTeamAdmin, isSystemAdmin)) {
         setHeaderButton = null;
     }
 
@@ -321,12 +321,12 @@ export function createStandardIntroMessage(channel, centeredIntro) {
         );
     }
 
-    const isAdmin = TeamStore.isTeamAdminForCurrentTeam() || UserStore.isSystemAdminForCurrentUser();
-    const isSystemAdmin = UserStore.isSystemAdminForCurrentUser();
     const isChannelAdmin = ChannelStore.isChannelAdminForCurrentChannel();
+    const isTeamAdmin = TeamStore.isTeamAdminForCurrentTeam();
+    const isSystemAdmin = UserStore.isSystemAdminForCurrentUser();
 
     let setHeaderButton = createSetHeaderButton(channel);
-    if (!showManagementOptions(channel, isAdmin, isSystemAdmin, isChannelAdmin)) {
+    if (!showManagementOptions(channel, isChannelAdmin, isTeamAdmin, isSystemAdmin)) {
         setHeaderButton = null;
     }
 

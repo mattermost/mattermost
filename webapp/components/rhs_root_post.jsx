@@ -159,6 +159,7 @@ export default class RhsRootPost extends React.Component {
         this.setState({showEmojiPicker: false});
         const emojiName = emoji.name || emoji.aliases[0];
         addReaction(this.props.post.channel_id, this.props.post.id, emojiName);
+        this.handleDropdownOpened(false);
     }
 
     getClassName = (post, isSystemMessage) => {

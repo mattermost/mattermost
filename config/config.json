@@ -27,6 +27,7 @@
         "EnableDeveloper": false,
         "EnableSecurityFixAlert": true,
         "EnableInsecureOutgoingConnections": false,
+        "AllowedUntrustedInternalConnections": "",
         "EnableMultifactorAuthentication": false,
         "EnforceMultifactorAuthentication": false,
         "EnableUserAccessTokens": false,
@@ -143,7 +144,8 @@
         "EnableEmailBatching": false,
         "EmailBatchingBufferSize": 256,
         "EmailBatchingInterval": 30,
-        "SkipServerCertificateVerification": false
+        "SkipServerCertificateVerification": false,
+        "EmailNotificationContentsType": "full"
     },
     "RateLimitSettings": {
         "Enable": false,
@@ -292,7 +294,9 @@
         "Password": "changeme",
         "EnableIndexing": false,
         "EnableSearching": false,
-        "Sniff": true
+        "Sniff": true,
+        "PostIndexReplicas": 1,
+        "PostIndexShards": 1
     },
     "DataRetentionSettings": {
         "Enable": false
@@ -300,5 +304,8 @@
     "JobSettings": {
         "RunJobs": true,
         "RunScheduler": true
+    },
+    "PluginSettings": {
+        "Plugins": {}
     }
 }
