@@ -15,7 +15,9 @@ import {getFlaggedPosts, performSearch} from 'actions/post_actions.jsx';
 
 import {FormattedMessage, FormattedHTMLMessage} from 'react-intl';
 
-var ActionTypes = Constants.ActionTypes;
+const ActionTypes = Constants.ActionTypes;
+const KeyCodes = Constants.KeyCodes;
+
 import {Tooltip, OverlayTrigger, Popover} from 'react-bootstrap';
 
 import PropTypes from 'prop-types';
@@ -110,8 +112,11 @@ export default class SearchBar extends React.Component {
         });
     }
 
-    handleKeyDown() {
-        // This is just to prevent a JS error
+    handleKeyDown(e) {
+        if (e.which === KeyCodes.ESCAPE) {
+            e.stopPropagation();
+            e.preventDefault();
+        }
     }
 
     handleChange(e) {
