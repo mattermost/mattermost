@@ -196,7 +196,7 @@ func sendBatchedEmailNotification(userId string, notifications []*batchedNotific
 		}
 
 		emailNotificationContentsType := model.EMAIL_NOTIFICATION_CONTENTS_FULL
-		if utils.IsLicensed && *utils.License.Features.EmailNotificationContents {
+		if utils.IsLicensed() && *utils.License().Features.EmailNotificationContents {
 			emailNotificationContentsType = *utils.Cfg.EmailSettings.EmailNotificationContentsType
 		}
 

@@ -359,7 +359,7 @@ func sendNotificationEmail(post *model.Post, user *model.User, channel *model.Ch
 	}
 
 	emailNotificationContentsType := model.EMAIL_NOTIFICATION_CONTENTS_FULL
-	if utils.IsLicensed && *utils.License.Features.EmailNotificationContents {
+	if utils.IsLicensed() && *utils.License().Features.EmailNotificationContents {
 		emailNotificationContentsType = *utils.Cfg.EmailSettings.EmailNotificationContentsType
 	}
 
