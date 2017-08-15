@@ -423,12 +423,20 @@ func TestGetAllTeams(t *testing.T) {
 		t.Fatal("wrong number of teams - should be 1")
 	}
 
-	// temporarily disable this test
-	/*for _, rt := range rrteams {
-		if rt.Type != model.TEAM_OPEN {
+	for _, rt := range rrteams {
+		if !rt.AllowOpenInvite {
 			t.Fatal("not all teams are open")
 		}
-	}*/
+	}
+
+	rrteams, resp = Client.GetAllTeams("", 0, 10)
+	CheckNoError(t, resp)
+
+	for _, rt := range rrteams {
+		if !rt.AllowOpenInvite {
+			t.Fatal("not all teams are open")
+		}
+	}
 
 	rrteams1, resp := Client.GetAllTeams("", 1, 0)
 	CheckNoError(t, resp)

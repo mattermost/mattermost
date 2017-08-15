@@ -378,7 +378,7 @@ func GetAllTeamsPage(offset int, limit int) ([]*model.Team, *model.AppError) {
 }
 
 func GetAllOpenTeams() ([]*model.Team, *model.AppError) {
-	if result := <-Srv.Store.Team().GetAllOpenTeamListing(); result.Err != nil {
+	if result := <-Srv.Store.Team().GetAllTeamListing(); result.Err != nil {
 		return nil, result.Err
 	} else {
 		return result.Data.([]*model.Team), nil
@@ -402,7 +402,7 @@ func SearchOpenTeams(term string) ([]*model.Team, *model.AppError) {
 }
 
 func GetAllOpenTeamsPage(offset int, limit int) ([]*model.Team, *model.AppError) {
-	if result := <-Srv.Store.Team().GetAllOpenTeamPageListing(offset, limit); result.Err != nil {
+	if result := <-Srv.Store.Team().GetAllTeamPageListing(offset, limit); result.Err != nil {
 		return nil, result.Err
 	} else {
 		return result.Data.([]*model.Team), nil
