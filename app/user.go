@@ -376,7 +376,7 @@ func GetUserByAuth(authData *string, authService string) (*model.User, *model.Ap
 }
 
 func GetUserForLogin(loginId string, onlyLdap bool) (*model.User, *model.AppError) {
-	ldapAvailable := *utils.Cfg.LdapSettings.Enable && einterfaces.GetLdapInterface() != nil && utils.IsLicensed && *utils.License.Features.LDAP
+	ldapAvailable := *utils.Cfg.LdapSettings.Enable && einterfaces.GetLdapInterface() != nil && utils.IsLicensed() && *utils.License().Features.LDAP
 
 	if result := <-Srv.Store.User().GetForLogin(
 		loginId,

@@ -409,15 +409,15 @@ func TestUpdatePost(t *testing.T) {
 	}
 
 	// Test licensed policy controls for edit post
-	isLicensed := utils.IsLicensed
-	license := utils.License
+	isLicensed := utils.IsLicensed()
+	license := utils.License()
 	defer func() {
-		utils.IsLicensed = isLicensed
-		utils.License = license
+		utils.SetIsLicensed(isLicensed)
+		utils.SetLicense(license)
 	}()
-	utils.IsLicensed = true
-	utils.License = &model.License{Features: &model.Features{}}
-	utils.License.Features.SetDefaults()
+	utils.SetIsLicensed(true)
+	utils.SetLicense(&model.License{Features: &model.Features{}})
+	utils.License().Features.SetDefaults()
 
 	*utils.Cfg.ServiceSettings.AllowEditPost = model.ALLOW_EDIT_POST_NEVER
 
@@ -951,15 +951,15 @@ func TestDeletePosts(t *testing.T) {
 	}
 
 	// Test licensed policy controls for delete post
-	isLicensed := utils.IsLicensed
-	license := utils.License
+	isLicensed := utils.IsLicensed()
+	license := utils.License()
 	defer func() {
-		utils.IsLicensed = isLicensed
-		utils.License = license
+		utils.SetIsLicensed(isLicensed)
+		utils.SetLicense(license)
 	}()
-	utils.IsLicensed = true
-	utils.License = &model.License{Features: &model.Features{}}
-	utils.License.Features.SetDefaults()
+	utils.SetIsLicensed(true)
+	utils.SetLicense(&model.License{Features: &model.Features{}})
+	utils.License().Features.SetDefaults()
 
 	UpdateUserToTeamAdmin(th.BasicUser2, th.BasicTeam)
 
@@ -1014,8 +1014,8 @@ func TestDeletePosts(t *testing.T) {
 	}
 
 	// Check that if unlicensed the policy restriction is not enforced.
-	utils.IsLicensed = false
-	utils.License = nil
+	utils.SetIsLicensed(false)
+	utils.SetLicense(nil)
 	utils.SetDefaultRolesBasedOnConfig()
 
 	time.Sleep(10 * time.Millisecond)
