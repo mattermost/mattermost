@@ -429,7 +429,7 @@
   },
   {
     "id": "api.command.execute_command.not_found.app_error",
-    "translation": "Command with a trigger of '{{.Trigger}}' not found. To send a message beginning with \"/\", try adding an empty space at the beginning of the message."
+    "translation": "Polecenie z przełącznikiem '{{.Trigger}}' nie zostało znalezione. Aby wysłać wiadomość z \"/\" naciśnij spację na początku wiadomości."
   },
   {
     "id": "api.command.execute_command.save.app_error",
@@ -461,7 +461,7 @@
   },
   {
     "id": "api.command.invite_people.invite_off",
-    "translation": "User creation has been disabled on this server, no invite(s) sent"
+    "translation": "Tworzenie użytkowników na tym serwerze jest wyłączone, żadne zaproszenie nie zostało wysłane."
   },
   {
     "id": "api.command.invite_people.name",
@@ -537,11 +537,11 @@
   },
   {
     "id": "api.command_channel_purpose.desc",
-    "translation": "Edit the channel purpose"
+    "translation": "Edytuj cel kanału."
   },
   {
     "id": "api.command_channel_purpose.direct_group.app_error",
-    "translation": "Cannot set purpose for direct message channels. Use /header to set the header instead."
+    "translation": "Nie można ustawiać celu prywatnych rozmów. Zamiast tego, użyj polecenia /header, aby ustawić nagłówek rozmowy."
   },
   {
     "id": "api.command_channel_purpose.hint",
@@ -553,7 +553,7 @@
   },
   {
     "id": "api.command_channel_purpose.name",
-    "translation": "purpose"
+    "translation": "cel"
   },
   {
     "id": "api.command_channel_purpose.permission.app_error",
@@ -573,7 +573,7 @@
   },
   {
     "id": "api.command_channel_rename.direct_group.app_error",
-    "translation": "Nie można opuścić kanału wiadomości bezpośrednich"
+    "translation": "Nie można zmienić nazwy kanału wiadomości bezpośrednich"
   },
   {
     "id": "api.command_channel_rename.hint",
@@ -601,7 +601,7 @@
   },
   {
     "id": "api.command_code.desc",
-    "translation": "Display text as a code block"
+    "translation": "Wyświetl tekst jako blok kodu."
   },
   {
     "id": "api.command_code.hint",
@@ -677,7 +677,7 @@
   },
   {
     "id": "api.command_help.name",
-    "translation": "help"
+    "translation": "pomoc"
   },
   {
     "id": "api.command_join.desc",
@@ -3305,11 +3305,11 @@
   },
   {
     "id": "app.import.validate_direct_post_import_data.channel_members_too_few.error",
-    "translation": "Lista bezpośrednich uczestników kanału zawiera zbyt mało szczegółów"
+    "translation": "Lista bezpośrednich uczestników kanału zawiera zbyt mało elementów"
   },
   {
     "id": "app.import.validate_direct_post_import_data.channel_members_too_many.error",
-    "translation": "Lista bezpośrednich uczestników kanału zawiera zbyt wiele elementów"
+    "translation": "Lista bezpośrednich uczestników kanału zawiera zbyt wiele pozycji"
   },
   {
     "id": "app.import.validate_direct_post_import_data.create_at_missing.error",
@@ -6541,7 +6541,7 @@
   },
   {
     "id": "utils.config.supported_server_locale.app_error",
-    "translation": "Nie można odczytać pliku konfiguracyjnego mattermost. Domyślne ustawiania lokalizacyjne serwera muszą być wspierane przez ustawienia lokalizacyjne."
+    "translation": "Unable to load mattermost configuration file:  DefaultServerLocale must be one of the supported locales. Setting DefaultServerLocale to en as default value."
   },
   {
     "id": "utils.config.validate_locale.app_error",
