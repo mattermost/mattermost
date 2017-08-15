@@ -33,6 +33,20 @@ export function loadIncomingHooks(complete) {
     );
 }
 
+export function loadIncomingHooksForTeam(teamId, complete) {
+    IntegrationActions.getIncomingHooks(teamId, 0, 10000)(dispatch, getState).then(
+        (data) => {
+            if (data) {
+                loadProfilesForIncomingHooks(data);
+            }
+
+            if (complete) {
+                complete(data);
+            }
+        }
+    );
+}
+
 function loadProfilesForIncomingHooks(hooks) {
     const profilesToLoad = {};
     for (let i = 0; i < hooks.length; i++) {
@@ -52,6 +66,20 @@ function loadProfilesForIncomingHooks(hooks) {
 
 export function loadOutgoingHooks(complete) {
     IntegrationActions.getOutgoingHooks('', '', 0, 10000)(dispatch, getState).then(
+        (data) => {
+            if (data) {
+                loadProfilesForOutgoingHooks(data);
+            }
+
+            if (complete) {
+                complete(data);
+            }
+        }
+    );
+}
+
+export function loadOutgoingHooksForTeam(teamId, complete) {
+    IntegrationActions.getOutgoingHooks('', teamId, 0, 10000)(dispatch, getState).then(
         (data) => {
             if (data) {
                 loadProfilesForOutgoingHooks(data);

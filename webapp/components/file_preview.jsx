@@ -41,7 +41,8 @@ export default class FilePreview extends React.Component {
 
     render() {
         var previews = [];
-        this.props.fileInfos.forEach((info) => {
+        const fileInfos = this.props.fileInfos.sort((a, b) => a.create_at - b.create_at);
+        fileInfos.forEach((info) => {
             const type = Utils.getFileType(info.extension);
 
             let className = 'file-preview';

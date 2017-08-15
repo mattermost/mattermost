@@ -27,6 +27,7 @@
         "EnableDeveloper": false,
         "EnableSecurityFixAlert": true,
         "EnableInsecureOutgoingConnections": false,
+        "AllowedUntrustedInternalConnections": "",
         "EnableMultifactorAuthentication": false,
         "EnforceMultifactorAuthentication": false,
         "EnableUserAccessTokens": false,
@@ -143,7 +144,8 @@
         "EnableEmailBatching": false,
         "EmailBatchingBufferSize": 256,
         "EmailBatchingInterval": 30,
-        "SkipServerCertificateVerification": false
+        "SkipServerCertificateVerification": false,
+        "EmailNotificationContentsType": "full"
     },
     "RateLimitSettings": {
         "Enable": false,
@@ -293,7 +295,7 @@
         "EnableIndexing": false,
         "EnableSearching": false,
         "Sniff": true,
-        "PostIndexReplicas": 2,
+        "PostIndexReplicas": 1,
         "PostIndexShards": 1
     },
     "DataRetentionSettings": {

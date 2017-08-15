@@ -926,6 +926,7 @@ func revokeSession(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if sessionId == "" {
 		c.SetInvalidParam("session_id")
+		return
 	}
 
 	if err := app.RevokeSessionById(sessionId); err != nil {

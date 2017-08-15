@@ -12,7 +12,6 @@ import ChannelMembersModal from './channel_members_modal.jsx';
 import ChannelNotificationsModal from './channel_notifications_modal.jsx';
 import DeleteChannelModal from './delete_channel_modal.jsx';
 import RenameChannelModal from './rename_channel_modal.jsx';
-import ConfirmModal from './confirm_modal.jsx';
 import ToggleModalButton from './toggle_modal_button.jsx';
 import StatusIcon from './status_icon.jsx';
 
@@ -75,9 +74,6 @@ export default class Navbar extends React.Component {
         this.openDirectMessageModal = this.openDirectMessageModal.bind(this);
         this.getPinnedPosts = this.getPinnedPosts.bind(this);
 
-        this.createLeaveChannelModal = this.createLeaveChannelModal.bind(this);
-        this.hideLeaveChannelModal = this.hideLeaveChannelModal.bind(this);
-
         const state = this.getStateFromStores();
         state.showEditChannelPurposeModal = false;
         state.showEditChannelHeaderModal = false;
@@ -97,8 +93,7 @@ export default class Navbar extends React.Component {
             users: [],
             userCount: ChannelStore.getCurrentStats().member_count,
             currentUser: UserStore.getCurrentUser(),
-            isFavorite: channel && ChannelUtils.isFavoriteChannel(channel),
-            showLeaveChannelModal: false
+            isFavorite: channel && ChannelUtils.isFavoriteChannel(channel)
         };
     }
 
@@ -139,9 +134,7 @@ export default class Navbar extends React.Component {
 
     handleLeave() {
         if (this.state.channel.type === Constants.PRIVATE_CHANNEL) {
-            this.setState({
-                showLeaveChannelModal: true
-            });
+            GlobalActions.showLeavePrivateChannelModal(this.state.channel);
         } else {
             ChannelActions.leaveChannel(this.state.channel.id);
         }
@@ -294,7 +287,6 @@ export default class Navbar extends React.Component {
     };
 
     createDropdown(channel, channelTitle, isSystemAdmin, isTeamAdmin, isChannelAdmin, isDirect, isGroup, popoverContent) {
-        const isAdmin = isSystemAdmin || isTeamAdmin;
         const infoIcon = Constants.INFO_ICON_SVG;
 
         if (channel) {
@@ -441,7 +433,7 @@ export default class Navbar extends React.Component {
                         </li>
                     );
 
-                    if (ChannelUtils.canManageMembers(channel, isSystemAdmin, isTeamAdmin, isChannelAdmin)) {
+                    if (ChannelUtils.canManageMembers(channel, isChannelAdmin, isTeamAdmin, isSystemAdmin)) {
                         manageMembersOption = (
                             <li
                                 key='manage_members'
@@ -499,7 +491,7 @@ export default class Navbar extends React.Component {
                     </li>
                 );
 
-                if (ChannelUtils.showManagementOptions(channel, isAdmin, isSystemAdmin, isChannelAdmin)) {
+                if (ChannelUtils.showManagementOptions(channel, isChannelAdmin, isTeamAdmin, isSystemAdmin)) {
                     setChannelHeaderOption = (
                         <li role='presentation'>
                             <a
@@ -546,7 +538,7 @@ export default class Navbar extends React.Component {
                     );
                 }
 
-                if (ChannelUtils.showDeleteOption(channel, isAdmin, isSystemAdmin, isChannelAdmin, this.state.userCount)) {
+                if (ChannelUtils.showDeleteOptionForCurrentUser(channel, isChannelAdmin, isTeamAdmin, isSystemAdmin)) {
                     deleteChannelOption = (
                         <li role='presentation'>
                             <ToggleModalButton
@@ -739,54 +731,6 @@ export default class Navbar extends React.Component {
         return buttons;
     }
 
-    hideLeaveChannelModal() {
-        this.setState({
-            showLeaveChannelModal: false
-        });
-    }
-
-    createLeaveChannelModal() {
-        const title = (
-            <FormattedMessage
-                id='leave_private_channel_modal.title'
-                defaultMessage='Leave Private Channel {channel}'
-                values={{
-                    channel: <b>{this.state.channel.display_name}</b>
-                }}
-            />
-        );
-
-        const message = (
-            <FormattedMessage
-                id='leave_private_channel_modal.message'
-                defaultMessage='Are you sure you wish to leave the private channel {channel}? You must be re-invited in order to re-join this channel in the future.'
-                values={{
-                    channel: <b>{this.state.channel.display_name}</b>
-                }}
-            />
-        );
-
-        const buttonClass = 'btn btn-danger';
-        const button = (
-            <FormattedMessage
-                id='leave_private_channel_modal.leave'
-                defaultMessage='Yes, leave channel'
-            />
-        );
-
-        return (
-            <ConfirmModal
-                show={this.state.showLeaveChannelModal}
-                title={title}
-                message={message}
-                confirmButtonClass={buttonClass}
-                confirmButtonText={button}
-                onConfirm={() => ChannelActions.leaveChannel(this.state.channel.id)}
-                onCancel={this.hideLeaveChannelModal}
-            />
-        );
-    }
-
     getTeammateStatus() {
         const channel = this.state.channel;
 
@@ -961,8 +905,6 @@ export default class Navbar extends React.Component {
 
         var channelMenuDropdown = this.createDropdown(channel, channelTitle, isSystemAdmin, isTeamAdmin, isChannelAdmin, isDirect, isGroup, popoverContent);
 
-        const leaveChannelModal = this.createLeaveChannelModal();
-
         return (
             <div>
                 <nav
@@ -979,7 +921,6 @@ export default class Navbar extends React.Component {
                 </nav>
                 {editChannelHeaderModal}
                 {editChannelPurposeModal}
-                {leaveChannelModal}
                 {renameChannelModal}
                 {channelMembersModal}
                 {quickSwitchModal}

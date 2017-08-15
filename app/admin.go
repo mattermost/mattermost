@@ -13,10 +13,10 @@ import (
 
 	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/platform/einterfaces"
+	"github.com/mattermost/platform/jobs"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/store"
 	"github.com/mattermost/platform/utils"
-	"github.com/mattermost/platform/jobs"
 )
 
 func GetLogs(page, perPage int) ([]string, *model.AppError) {

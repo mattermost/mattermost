@@ -4,9 +4,11 @@
 package app
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/mattermost/platform/model"
+	"github.com/mattermost/platform/utils"
 )
 
 func TestSendNotifications(t *testing.T) {
@@ -815,5 +817,289 @@ func TestDoesStatusAllowPushNotification(t *testing.T) {
 
 	if DoesStatusAllowPushNotification(userNotifyProps, online, "") {
 		t.Fatal("Should have been false")
+	}
+}
+
+func TestGetDirectMessageNotificationEmailSubject(t *testing.T) {
+	Setup()
+	expectedPrefix := "[http://localhost:8065] New Direct Message from sender on"
+	post := &model.Post{
+		CreateAt: 1501804801000,
+	}
+	translateFunc := utils.GetUserTranslations("en")
+	subject := getDirectMessageNotificationEmailSubject(post, translateFunc, "http://localhost:8065", "sender")
+	if !strings.HasPrefix(subject, expectedPrefix) {
+		t.Fatal("Expected subject line prefix '" + expectedPrefix + "', got " + subject)
+	}
+}
+
+func TestGetNotificationEmailSubject(t *testing.T) {
+	Setup()
+	expectedPrefix := "[http://localhost:8065] Notification in team on"
+	post := &model.Post{
+		CreateAt: 1501804801000,
+	}
+	translateFunc := utils.GetUserTranslations("en")
+	subject := getNotificationEmailSubject(post, translateFunc, "http://localhost:8065", "team")
+	if !strings.HasPrefix(subject, expectedPrefix) {
+		t.Fatal("Expected subject line prefix '" + expectedPrefix + "', got " + subject)
+	}
+}
+
+func TestGetNotificationEmailBodyFullNotificationPublicChannel(t *testing.T) {
+	Setup()
+	recipient := &model.User{}
+	post := &model.Post{
+		Message: "This is the message",
+	}
+	channel := &model.Channel{
+		DisplayName: "ChannelName",
+		Type:        model.CHANNEL_OPEN,
+	}
+	senderName := "sender"
+	teamName := "team"
+	teamURL := "http://localhost:8065/" + teamName
+	emailNotificationContentsType := model.EMAIL_NOTIFICATION_CONTENTS_FULL
+	translateFunc := utils.GetUserTranslations("en")
+
+	body := getNotificationEmailBody(recipient, post, channel, senderName, teamName, teamURL, emailNotificationContentsType, translateFunc)
+	if !strings.Contains(body, "You have a new notification.") {
+		t.Fatal("Expected email text 'You have a new notification. Got " + body)
+	}
+	if !strings.Contains(body, "CHANNEL: "+channel.DisplayName) {
+		t.Fatal("Expected email text 'CHANNEL: " + channel.DisplayName + "'. Got " + body)
+	}
+	if !strings.Contains(body, senderName+" - ") {
+		t.Fatal("Expected email text '" + senderName + " - '. Got " + body)
+	}
+	if !strings.Contains(body, post.Message) {
+		t.Fatal("Expected email text '" + post.Message + "'. Got " + body)
+	}
+	if !strings.Contains(body, teamURL) {
+		t.Fatal("Expected email text '" + teamURL + "'. Got " + body)
+	}
+}
+
+func TestGetNotificationEmailBodyFullNotificationGroupChannel(t *testing.T) {
+	Setup()
+	recipient := &model.User{}
+	post := &model.Post{
+		Message: "This is the message",
+	}
+	channel := &model.Channel{
+		DisplayName: "ChannelName",
+		Type:        model.CHANNEL_GROUP,
+	}
+	senderName := "sender"
+	teamName := "team"
+	teamURL := "http://localhost:8065/" + teamName
+	emailNotificationContentsType := model.EMAIL_NOTIFICATION_CONTENTS_FULL
+	translateFunc := utils.GetUserTranslations("en")
+
+	body := getNotificationEmailBody(recipient, post, channel, senderName, teamName, teamURL, emailNotificationContentsType, translateFunc)
+	if !strings.Contains(body, "You have a new notification.") {
+		t.Fatal("Expected email text 'You have a new notification. Got " + body)
+	}
+	if !strings.Contains(body, "CHANNEL: Group Message") {
+		t.Fatal("Expected email text 'CHANNEL: Group Message'. Got " + body)
+	}
+	if !strings.Contains(body, senderName+" - ") {
+		t.Fatal("Expected email text '" + senderName + " - '. Got " + body)
+	}
+	if !strings.Contains(body, post.Message) {
+		t.Fatal("Expected email text '" + post.Message + "'. Got " + body)
+	}
+	if !strings.Contains(body, teamURL) {
+		t.Fatal("Expected email text '" + teamURL + "'. Got " + body)
+	}
+}
+
+func TestGetNotificationEmailBodyFullNotificationPrivateChannel(t *testing.T) {
+	Setup()
+	recipient := &model.User{}
+	post := &model.Post{
+		Message: "This is the message",
+	}
+	channel := &model.Channel{
+		DisplayName: "ChannelName",
+		Type:        model.CHANNEL_PRIVATE,
+	}
+	senderName := "sender"
+	teamName := "team"
+	teamURL := "http://localhost:8065/" + teamName
+	emailNotificationContentsType := model.EMAIL_NOTIFICATION_CONTENTS_FULL
+	translateFunc := utils.GetUserTranslations("en")
+
+	body := getNotificationEmailBody(recipient, post, channel, senderName, teamName, teamURL, emailNotificationContentsType, translateFunc)
+	if !strings.Contains(body, "You have a new notification.") {
+		t.Fatal("Expected email text 'You have a new notification. Got " + body)
+	}
+	if !strings.Contains(body, "CHANNEL: "+channel.DisplayName) {
+		t.Fatal("Expected email text 'CHANNEL: " + channel.DisplayName + "'. Got " + body)
+	}
+	if !strings.Contains(body, senderName+" - ") {
+		t.Fatal("Expected email text '" + senderName + " - '. Got " + body)
+	}
+	if !strings.Contains(body, post.Message) {
+		t.Fatal("Expected email text '" + post.Message + "'. Got " + body)
+	}
+	if !strings.Contains(body, teamURL) {
+		t.Fatal("Expected email text '" + teamURL + "'. Got " + body)
+	}
+}
+
+func TestGetNotificationEmailBodyFullNotificationDirectChannel(t *testing.T) {
+	Setup()
+	recipient := &model.User{}
+	post := &model.Post{
+		Message: "This is the message",
+	}
+	channel := &model.Channel{
+		DisplayName: "ChannelName",
+		Type:        model.CHANNEL_DIRECT,
+	}
+	senderName := "sender"
+	teamName := "team"
+	teamURL := "http://localhost:8065/" + teamName
+	emailNotificationContentsType := model.EMAIL_NOTIFICATION_CONTENTS_FULL
+	translateFunc := utils.GetUserTranslations("en")
+
+	body := getNotificationEmailBody(recipient, post, channel, senderName, teamName, teamURL, emailNotificationContentsType, translateFunc)
+	if !strings.Contains(body, "You have a new direct message.") {
+		t.Fatal("Expected email text 'You have a new direct message. Got " + body)
+	}
+	if !strings.Contains(body, senderName+" - ") {
+		t.Fatal("Expected email text '" + senderName + " - '. Got " + body)
+	}
+	if !strings.Contains(body, post.Message) {
+		t.Fatal("Expected email text '" + post.Message + "'. Got " + body)
+	}
+	if !strings.Contains(body, teamURL) {
+		t.Fatal("Expected email text '" + teamURL + "'. Got " + body)
+	}
+}
+
+// from here
+func TestGetNotificationEmailBodyGenericNotificationPublicChannel(t *testing.T) {
+	Setup()
+	recipient := &model.User{}
+	post := &model.Post{
+		Message: "This is the message",
+	}
+	channel := &model.Channel{
+		DisplayName: "ChannelName",
+		Type:        model.CHANNEL_OPEN,
+	}
+	senderName := "sender"
+	teamName := "team"
+	teamURL := "http://localhost:8065/" + teamName
+	emailNotificationContentsType := model.EMAIL_NOTIFICATION_CONTENTS_GENERIC
+	translateFunc := utils.GetUserTranslations("en")
+
+	body := getNotificationEmailBody(recipient, post, channel, senderName, teamName, teamURL, emailNotificationContentsType, translateFunc)
+	if !strings.Contains(body, "You have a new notification from "+senderName) {
+		t.Fatal("Expected email text 'You have a new notification from " + senderName + "'. Got " + body)
+	}
+	if strings.Contains(body, "CHANNEL: "+channel.DisplayName) {
+		t.Fatal("Did not expect email text 'CHANNEL: " + channel.DisplayName + "'. Got " + body)
+	}
+	if strings.Contains(body, post.Message) {
+		t.Fatal("Did not expect email text '" + post.Message + "'. Got " + body)
+	}
+	if !strings.Contains(body, teamURL) {
+		t.Fatal("Expected email text '" + teamURL + "'. Got " + body)
+	}
+}
+
+func TestGetNotificationEmailBodyGenericNotificationGroupChannel(t *testing.T) {
+	Setup()
+	recipient := &model.User{}
+	post := &model.Post{
+		Message: "This is the message",
+	}
+	channel := &model.Channel{
+		DisplayName: "ChannelName",
+		Type:        model.CHANNEL_GROUP,
+	}
+	senderName := "sender"
+	teamName := "team"
+	teamURL := "http://localhost:8065/" + teamName
+	emailNotificationContentsType := model.EMAIL_NOTIFICATION_CONTENTS_GENERIC
+	translateFunc := utils.GetUserTranslations("en")
+
+	body := getNotificationEmailBody(recipient, post, channel, senderName, teamName, teamURL, emailNotificationContentsType, translateFunc)
+	if !strings.Contains(body, "You have a new notification from "+senderName) {
+		t.Fatal("Expected email text 'You have a new notification from " + senderName + "'. Got " + body)
+	}
+	if strings.Contains(body, "CHANNEL: "+channel.DisplayName) {
+		t.Fatal("Did not expect email text 'CHANNEL: " + channel.DisplayName + "'. Got " + body)
+	}
+	if strings.Contains(body, post.Message) {
+		t.Fatal("Did not expect email text '" + post.Message + "'. Got " + body)
+	}
+	if !strings.Contains(body, teamURL) {
+		t.Fatal("Expected email text '" + teamURL + "'. Got " + body)
+	}
+}
+
+func TestGetNotificationEmailBodyGenericNotificationPrivateChannel(t *testing.T) {
+	Setup()
+	recipient := &model.User{}
+	post := &model.Post{
+		Message: "This is the message",
+	}
+	channel := &model.Channel{
+		DisplayName: "ChannelName",
+		Type:        model.CHANNEL_PRIVATE,
+	}
+	senderName := "sender"
+	teamName := "team"
+	teamURL := "http://localhost:8065/" + teamName
+	emailNotificationContentsType := model.EMAIL_NOTIFICATION_CONTENTS_GENERIC
+	translateFunc := utils.GetUserTranslations("en")
+
+	body := getNotificationEmailBody(recipient, post, channel, senderName, teamName, teamURL, emailNotificationContentsType, translateFunc)
+	if !strings.Contains(body, "You have a new notification from "+senderName) {
+		t.Fatal("Expected email text 'You have a new notification from " + senderName + "'. Got " + body)
+	}
+	if strings.Contains(body, "CHANNEL: "+channel.DisplayName) {
+		t.Fatal("Did not expect email text 'CHANNEL: " + channel.DisplayName + "'. Got " + body)
+	}
+	if strings.Contains(body, post.Message) {
+		t.Fatal("Did not expect email text '" + post.Message + "'. Got " + body)
+	}
+	if !strings.Contains(body, teamURL) {
+		t.Fatal("Expected email text '" + teamURL + "'. Got " + body)
+	}
+}
+
+func TestGetNotificationEmailBodyGenericNotificationDirectChannel(t *testing.T) {
+	Setup()
+	recipient := &model.User{}
+	post := &model.Post{
+		Message: "This is the message",
+	}
+	channel := &model.Channel{
+		DisplayName: "ChannelName",
+		Type:        model.CHANNEL_DIRECT,
+	}
+	senderName := "sender"
+	teamName := "team"
+	teamURL := "http://localhost:8065/" + teamName
+	emailNotificationContentsType := model.EMAIL_NOTIFICATION_CONTENTS_GENERIC
+	translateFunc := utils.GetUserTranslations("en")
+
+	body := getNotificationEmailBody(recipient, post, channel, senderName, teamName, teamURL, emailNotificationContentsType, translateFunc)
+	if !strings.Contains(body, "You have a new direct message from "+senderName) {
+		t.Fatal("Expected email text 'You have a new direct message from " + senderName + "'. Got " + body)
+	}
+	if strings.Contains(body, "CHANNEL: "+channel.DisplayName) {
+		t.Fatal("Did not expect email text 'CHANNEL: " + channel.DisplayName + "'. Got " + body)
+	}
+	if strings.Contains(body, post.Message) {
+		t.Fatal("Did not expect email text '" + post.Message + "'. Got " + body)
+	}
+	if !strings.Contains(body, teamURL) {
+		t.Fatal("Expected email text '" + teamURL + "'. Got " + body)
 	}
 }

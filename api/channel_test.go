@@ -1476,9 +1476,8 @@ func TestDeleteChannel(t *testing.T) {
 		t.Fatal("should have errored not system admin")
 	}
 
-	// Only one left in channel, should be able to delete
-	if _, err := Client.DeleteChannel(channel4.Id); err != nil {
-		t.Fatal(err)
+	if _, err := Client.DeleteChannel(channel4.Id); err == nil {
+		t.Fatal("Should not be able to delete channel, even though only one user is left")
 	}
 
 	th.LoginSystemAdmin()

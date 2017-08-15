@@ -6,8 +6,8 @@ package app
 import (
 	"net/http"
 
-	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/einterfaces"
+	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
 )
 
