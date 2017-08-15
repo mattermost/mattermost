@@ -682,7 +682,7 @@ func sendToPushProxy(msg model.PushNotification, session *model.Session) {
 
 	request, _ := http.NewRequest("POST", *utils.Cfg.EmailSettings.PushNotificationServer+model.API_URL_SUFFIX_V1+"/send_push", strings.NewReader(msg.ToJson()))
 
-	if resp, err := utils.HttpClient().Do(request); err != nil {
+	if resp, err := utils.HttpClient(true).Do(request); err != nil {
 		l4g.Error("Device push reported as error for UserId=%v SessionId=%v message=%v", session.UserId, session.Id, err.Error())
 	} else {
 		pushResponse := model.PushResponseFromJson(resp.Body)
@@ -828,12 +828,14 @@ func GetExplicitMentions(message string, keywords map[string][]string) (map[stri
 				// Case-sensitive check for first name
 				if ids, match := keywords[splitWord]; match {
 					addMentionedUsers(ids)
-				} else if _, ok := systemMentions[word]; !ok && strings.HasPrefix(word, "@") {
-					username := word[1:len(splitWord)]
+				} else if _, ok := systemMentions[splitWord]; !ok && strings.HasPrefix(splitWord, "@") {
+					username := splitWord[1:]
 					potentialOthersMentioned = append(potentialOthersMentioned, username)
 				}
 			}
-		} else if _, ok := systemMentions[word]; !ok && strings.HasPrefix(word, "@") {
+		}
+
+		if _, ok := systemMentions[word]; !ok && strings.HasPrefix(word, "@") {
 			username := word[1:]
 			potentialOthersMentioned = append(potentialOthersMentioned, username)
 		}

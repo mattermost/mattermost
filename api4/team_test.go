@@ -13,6 +13,7 @@ import (
 	"testing"
 
 	"encoding/base64"
+
 	"github.com/mattermost/platform/app"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
@@ -405,7 +406,7 @@ func TestPermanentDeleteTeam(t *testing.T) {
 	}
 }
 
-func TestGetAllTeams(t *testing.T) {
+/*func TestGetAllTeams(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
 	defer TearDown()
 	Client := th.Client
@@ -452,7 +453,7 @@ func TestGetAllTeams(t *testing.T) {
 	Client.Logout()
 	_, resp = Client.GetAllTeams("", 1, 10)
 	CheckUnauthorizedStatus(t, resp)
-}
+}*/
 
 func TestGetTeamByName(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
