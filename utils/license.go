@@ -38,14 +38,7 @@ hwIDAQAB
 -----END PUBLIC KEY-----`)
 
 func init() {
-
-	SetIsLicensed(false)
-
-	licenseValue.Store(&model.License{
-		Features: new(model.Features),
-	})
-
-	SetClientLicense(map[string]string{"IsLicensed": "false"})
+	SetLicense(nil)
 }
 
 func IsLicensed() bool {
@@ -83,23 +76,36 @@ func LoadLicense(licenseBytes []byte) {
 }
 
 func SetLicense(license *model.License) bool {
-	license.Features.SetDefaults()
 
-	if !license.IsExpired() {
+	if license == nil {
+		SetIsLicensed(false)
+		license = &model.License{
+			Features: new(model.Features),
+		}
+		license.Features.SetDefaults()
 		licenseValue.Store(license)
-		SetIsLicensed(true)
-		clientLicenseValue.Store(getClientLicense(license))
-		ClientCfg = getClientConfig(Cfg)
-		return true
-	}
 
-	return false
+		SetClientLicense(map[string]string{"IsLicensed": "false"})
+		//clientLicenseValue.Store(getClientLicense(License()))
+
+		return false
+	} else {
+		license.Features.SetDefaults()
+
+		if !license.IsExpired() {
+			licenseValue.Store(license)
+			SetIsLicensed(true)
+			clientLicenseValue.Store(getClientLicense(license))
+			ClientCfg = getClientConfig(Cfg)
+			return true
+		}
+
+		return false
+	}
 }
 
 func RemoveLicense() {
-	licenseValue.Store(&model.License{})
-	SetIsLicensed(false)
-	clientLicenseValue.Store(getClientLicense(License()))
+	SetLicense(nil)
 	ClientCfg = getClientConfig(Cfg)
 }
 
