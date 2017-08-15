@@ -375,7 +375,7 @@ func incomingWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 	parsedRequest, decodeError := model.IncomingWebhookRequestFromJson(payload)
 
 	if decodeError != nil {
-		c.Err = model.NewAppError("HandleIncomingWebhook", "web.incoming_webhook.parse.app_error", nil, decodeError.Error(), http.StatusBadRequest)
+		c.Err = decodeError
 		return
 	}
 

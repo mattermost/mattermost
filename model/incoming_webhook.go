@@ -193,7 +193,7 @@ func decodeIncomingWebhookRequest(by []byte) (*IncomingWebhookRequest, error) {
 	}
 }
 
-func IncomingWebhookRequestFromJson(data io.Reader) (*IncomingWebhookRequest, error) {
+func IncomingWebhookRequestFromJson(data io.Reader) (*IncomingWebhookRequest, *AppError) {
 	buf := new(bytes.Buffer)
 	buf.ReadFrom(data)
 	by := buf.Bytes()
@@ -204,7 +204,7 @@ func IncomingWebhookRequestFromJson(data io.Reader) (*IncomingWebhookRequest, er
 	if err != nil {
 		o, err = decodeIncomingWebhookRequest(escapeControlCharsFromPayload(by))
 		if err != nil {
-			return nil, err
+			return nil, NewAppError("IncomingWebhookRequestFromJson", "Unable to parse incoming data", nil, err.Error(), http.StatusBadRequest)
 		}
 	}
 
