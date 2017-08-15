@@ -13,7 +13,8 @@ function mapStateToProps(state, ownProps) {
     return {
         ...ownProps,
         oauthApps: getOAuthApps(state),
-        isSystemAdmin: isCurrentUserSystemAdmin(state)
+        isSystemAdmin: isCurrentUserSystemAdmin(state),
+        regenOAuthAppSecretRequest: state.requests.integrations.updateOAuthApp
     };
 }
 
