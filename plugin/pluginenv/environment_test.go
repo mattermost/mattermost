@@ -211,9 +211,7 @@ func TestEnvironment_ActivatePluginErrors(t *testing.T) {
 
 	var api struct{ plugin.API }
 	var supervisor MockSupervisor
-	defer supervisor.AssertExpectations(t)
 	var hooks plugintest.Hooks
-	defer hooks.AssertExpectations(t)
 
 	for name, setup := range map[string]func(){
 		"SupervisorProviderError": func() {
