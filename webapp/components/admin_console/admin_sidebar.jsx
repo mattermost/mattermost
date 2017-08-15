@@ -477,6 +477,15 @@ export default class AdminSidebar extends React.Component {
                                         />
                                     }
                                 />
+                                <AdminSidebarSection
+                                    name='client_versions'
+                                    title={
+                                        <FormattedMessage
+                                            id='admin.sidebar.client_versions'
+                                            defaultMessage='Client Versions'
+                                        />
+                                    }
+                                />
                             </AdminSidebarSection>
                             <AdminSidebarSection
                                 name='notifications'
