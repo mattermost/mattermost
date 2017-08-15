@@ -71,6 +71,31 @@ export default class DotMenu extends Component {
         $('#' + this.props.idPrefix + '_dropdown' + this.props.post.id).on('hidden.bs.dropdown', () => this.props.handleDropdownOpened(false));
     }
 
+    shouldComponentUpdate(nextProps, nextState) {
+        if (!Utils.areObjectsEqual(nextProps.post, this.props.post)) {
+            return true;
+        }
+
+        if (!Utils.areObjectsEqual(nextState, this.state)) {
+            return true;
+        }
+
+        if (nextProps.isFlagged !== this.props.isFlagged) {
+            return true;
+        }
+
+        return false;
+    }
+
+    componentWillReceiveProps(nextProps) {
+        if (nextProps.post !== this.props.post) {
+            this.state = {
+                canDelete: PostUtils.canDeletePost(nextProps.post),
+                canEdit: PostUtils.canEditPost(nextProps.post, this.editDisableAction)
+            };
+        }
+    }
+
     componentWillUnmount() {
         this.editDisableAction.cancel();
     }
