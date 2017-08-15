@@ -379,7 +379,7 @@ func TestTeamStoreByUserId(t *testing.T) {
 	}
 }
 
-func TestAllTeamListing(t *testing.T) {
+func TestGetAllOpenTeamListing(t *testing.T) {
 	Setup()
 
 	o1 := model.Team{}
@@ -397,13 +397,100 @@ func TestAllTeamListing(t *testing.T) {
 	o2.Type = model.TEAM_OPEN
 	Must(store.Team().Save(&o2))
 
-	if r1 := <-store.Team().GetAllTeamListing(); r1.Err != nil {
+	o3 := model.Team{}
+	o3.DisplayName = "DisplayName"
+	o3.Name = "z-z-z" + model.NewId() + "b"
+	o3.Email = model.NewId() + "@nowhere.com"
+	o3.Type = model.TEAM_INVITE
+	o3.AllowOpenInvite = true
+	Must(store.Team().Save(&o3))
+
+	o4 := model.Team{}
+	o4.DisplayName = "DisplayName"
+	o4.Name = "zz" + model.NewId() + "b"
+	o4.Email = model.NewId() + "@nowhere.com"
+	o4.Type = model.TEAM_INVITE
+	Must(store.Team().Save(&o4))
+
+	if r1 := <-store.Team().GetAllOpenTeamListing(); r1.Err != nil {
 		t.Fatal(r1.Err)
 	} else {
 		teams := r1.Data.([]*model.Team)
 
 		if len(teams) == 0 {
 			t.Fatal("failed team listing")
+		}
+	}
+}
+
+func TestGetAllOpenTeamPageListing(t *testing.T) {
+	Setup()
+
+	o1 := model.Team{}
+	o1.DisplayName = "DisplayName"
+	o1.Name = "z-z-z" + model.NewId() + "b"
+	o1.Email = model.NewId() + "@nowhere.com"
+	o1.Type = model.TEAM_OPEN
+	o1.AllowOpenInvite = true
+	Must(store.Team().Save(&o1))
+
+	o2 := model.Team{}
+	o2.DisplayName = "DisplayName"
+	o2.Name = "zz" + model.NewId() + "b"
+	o2.Email = model.NewId() + "@nowhere.com"
+	o2.Type = model.TEAM_OPEN
+	Must(store.Team().Save(&o2))
+
+	o3 := model.Team{}
+	o3.DisplayName = "DisplayName"
+	o3.Name = "z-z-z" + model.NewId() + "b"
+	o3.Email = model.NewId() + "@nowhere.com"
+	o3.Type = model.TEAM_INVITE
+	o3.AllowOpenInvite = true
+	Must(store.Team().Save(&o3))
+
+	o4 := model.Team{}
+	o4.DisplayName = "DisplayName"
+	o4.Name = "zz" + model.NewId() + "b"
+	o4.Email = model.NewId() + "@nowhere.com"
+	o4.Type = model.TEAM_INVITE
+	Must(store.Team().Save(&o4))
+
+	if r1 := <-store.Team().GetAllOpenTeamPageListing(0, 4); r1.Err != nil {
+		t.Fatal(r1.Err)
+	} else {
+		teams := r1.Data.([]*model.Team)
+
+		if len(teams) == 0 {
+			t.Fatal("failed open team listing")
+		}
+	}
+
+	o5 := model.Team{}
+	o5.DisplayName = "DisplayName"
+	o5.Name = "z-z-z" + model.NewId() + "b"
+	o5.Email = model.NewId() + "@nowhere.com"
+	o5.Type = model.TEAM_OPEN
+	o5.AllowOpenInvite = true
+	Must(store.Team().Save(&o5))
+
+	if r1 := <-store.Team().GetAllOpenTeamPageListing(0, 4); r1.Err != nil {
+		t.Fatal(r1.Err)
+	} else {
+		teams := r1.Data.([]*model.Team)
+
+		if len(teams) == 2 {
+			t.Fatal("failed open team listing")
+		}
+	}
+
+	if r1 := <-store.Team().GetAllOpenTeamPageListing(1, 1); r1.Err != nil {
+		t.Fatal(r1.Err)
+	} else {
+		teams := r1.Data.([]*model.Team)
+
+		if len(teams) == 0 {
+			t.Fatal("failed open team listing")
 		}
 	}
 }

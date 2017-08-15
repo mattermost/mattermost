@@ -377,21 +377,21 @@ func (s SqlTeamStore) GetTeamsByUserId(userId string) StoreChannel {
 	return storeChannel
 }
 
-func (s SqlTeamStore) GetAllTeamListing() StoreChannel {
+func (s SqlTeamStore) GetAllOpenTeamListing() StoreChannel {
 	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
 
-		query := "SELECT * FROM Teams WHERE AllowOpenInvite = 1"
+		query := "SELECT * FROM Teams WHERE Type = 'O' AND AllowOpenInvite = 1"
 
 		if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_POSTGRES {
-			query = "SELECT * FROM Teams WHERE AllowOpenInvite = true"
+			query = "SELECT * FROM Teams WHERE Type = 'O' AND AllowOpenInvite = true"
 		}
 
 		var data []*model.Team
 		if _, err := s.GetReplica().Select(&data, query); err != nil {
-			result.Err = model.NewLocAppError("SqlTeamStore.GetAllTeamListing", "store.sql_team.get_all_team_listing.app_error", nil, err.Error())
+			result.Err = model.NewLocAppError("SqlTeamStore.GetAllOpenTeamListing", "store.sql_team.get_all_team_listing.app_error", nil, err.Error())
 		}
 
 		for _, team := range data {
@@ -409,21 +409,21 @@ func (s SqlTeamStore) GetAllTeamListing() StoreChannel {
 	return storeChannel
 }
 
-func (s SqlTeamStore) GetAllTeamPageListing(offset int, limit int) StoreChannel {
+func (s SqlTeamStore) GetAllOpenTeamPageListing(offset int, limit int) StoreChannel {
 	storeChannel := make(StoreChannel, 1)
 
 	go func() {
 		result := StoreResult{}
 
-		query := "SELECT * FROM Teams WHERE AllowOpenInvite = 1 LIMIT :Limit OFFSET :Offset"
+		query := "SELECT * FROM Teams WHERE Type = 'O' AND AllowOpenInvite = 1 LIMIT :Limit OFFSET :Offset"
 
 		if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_POSTGRES {
-			query = "SELECT * FROM Teams WHERE AllowOpenInvite = true LIMIT :Limit OFFSET :Offset"
+			query = "SELECT * FROM Teams WHERE Type = 'O' AND AllowOpenInvite = true LIMIT :Limit OFFSET :Offset"
 		}
 
 		var data []*model.Team
 		if _, err := s.GetReplica().Select(&data, query, map[string]interface{}{"Offset": offset, "Limit": limit}); err != nil {
-			result.Err = model.NewLocAppError("SqlTeamStore.GetAllTeamListing", "store.sql_team.get_all_team_listing.app_error", nil, err.Error())
+			result.Err = model.NewLocAppError("SqlTeamStore.GetAllOpenTeamListing", "store.sql_team.get_all_team_listing.app_error", nil, err.Error())
 		}
 
 		for _, team := range data {
