@@ -86,7 +86,6 @@ func SetLicense(license *model.License) bool {
 		licenseValue.Store(license)
 
 		SetClientLicense(map[string]string{"IsLicensed": "false"})
-		//clientLicenseValue.Store(getClientLicense(License()))
 
 		return false
 	} else {
