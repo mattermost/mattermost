@@ -4,12 +4,9 @@
 package api
 
 import (
-	"io"
 	"net/http"
-	"strings"
 
 	l4g "github.com/alecthomas/log4go"
-	"github.com/gorilla/mux"
 	"github.com/mattermost/platform/app"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
@@ -28,12 +25,6 @@ func InitWebhook() {
 	BaseRoutes.Hooks.Handle("/outgoing/regen_token", ApiUserRequired(regenOutgoingHookToken)).Methods("POST")
 	BaseRoutes.Hooks.Handle("/outgoing/delete", ApiUserRequired(deleteOutgoingHook)).Methods("POST")
 	BaseRoutes.Hooks.Handle("/outgoing/list", ApiUserRequired(getOutgoingHooks)).Methods("GET")
-
-	BaseRoutes.Hooks.Handle("/{id:[A-Za-z0-9]+}", ApiAppHandler(incomingWebhook)).Methods("POST")
-
-	// Old route. Remove eventually.
-	mr := app.Srv.Router
-	mr.Handle("/hooks/{id:[A-Za-z0-9]+}", ApiAppHandler(incomingWebhook)).Methods("POST")
 }
 
 func createIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -339,47 +330,4 @@ func regenOutgoingHookToken(c *Context, w http.ResponseWriter, r *http.Request) 
 	} else {
 		w.Write([]byte(rhook.ToJson()))
 	}
-}
-
-func incomingWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
-	params := mux.Vars(r)
-	id := params["id"]
-
-	r.ParseForm()
-
-	var payload io.Reader
-	contentType := r.Header.Get("Content-Type")
-	if strings.Split(contentType, "; ")[0] == "application/x-www-form-urlencoded" {
-		payload = strings.NewReader(r.FormValue("payload"))
-	} else {
-		payload = r.Body
-	}
-
-	if utils.Cfg.LogSettings.EnableWebhookDebugging {
-		var err error
-		payload, err = utils.DebugReader(
-			payload,
-			utils.T("api.webhook.incoming.debug"),
-		)
-		if err != nil {
-			c.Err = model.NewLocAppError(
-				"incomingWebhook",
-				"api.webhook.incoming.debug.error",
-				nil,
-				err.Error(),
-			)
-			return
-		}
-	}
-
-	parsedRequest := model.IncomingWebhookRequestFromJson(payload)
-
-	err := app.HandleIncomingWebhook(id, parsedRequest)
-	if err != nil {
-		c.Err = err
-		return
-	}
-
-	w.Header().Set("Content-Type", "text/plain")
-	w.Write([]byte("ok"))
 }
