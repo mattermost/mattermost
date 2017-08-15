@@ -54,11 +54,19 @@ export default class PostBodyAdditionalContent extends React.PureComponent {
         };
     }
 
+    componentDidMount() {
+        // check the availability of the image rendered(if any) in the first render.
+        this.preCheckImageLink();
+    }
+
     componentWillReceiveProps(nextProps) {
         if (nextProps.previewCollapsed !== this.props.previewCollapsed || nextProps.post.message !== this.props.post.message) {
             this.setState({
                 embedVisible: nextProps.previewCollapsed.startsWith('false'),
                 link: Utils.extractFirstLink(nextProps.post.message)
+            }, () => {
+                // check the availability of the image link
+                this.preCheckImageLink();
             });
         }
     }
@@ -80,6 +88,24 @@ export default class PostBodyAdditionalContent extends React.PureComponent {
                 attachments={attachments}
             />
         );
+    }
+
+    // when image links are collapsed, check if the link is a valid image url and it is available
+    preCheckImageLink() {
+        // check only if embedVisible is false i.e the image are by default hidden/collapsed
+        // if embedVisible is true, the image is rendered, during which image load error is captured
+        if (!this.state.embedVisible && this.isLinkImage(this.state.link)) {
+            const image = new Image();
+            image.src = this.state.link;
+
+            image.onload = () => {
+                this.handleLinkLoaded();
+            };
+
+            image.onerror = () => {
+                this.handleLinkLoadError();
+            };
+        }
     }
 
     isLinkImage(link) {
@@ -192,7 +218,8 @@ export default class PostBodyAdditionalContent extends React.PureComponent {
             );
 
             const contents = [message];
-            if (this.state.linkLoaded || this.props.previewCollapsed.startsWith('true')) {
+
+            if (this.state.linkLoaded || YoutubeVideo.isYoutubeLink(this.state.link)) {
                 if (prependToggle) {
                     contents.unshift(toggle);
                 } else {
