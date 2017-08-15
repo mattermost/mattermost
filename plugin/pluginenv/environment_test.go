@@ -193,94 +193,13 @@ func TestEnvironment_BadSearchPathError(t *testing.T) {
 	assert.Empty(t, env.ActivePluginIds())
 }
 
-func TestEnvironment_SupervisorProviderError(t *testing.T) {
+func TestEnvironment_ActivatePluginErrors(t *testing.T) {
 	dir := initTmpDir(t, map[string]string{
 		"foo/plugin.json": `{"id": "foo"}`,
 	})
 	defer os.RemoveAll(dir)
 
 	var provider MockProvider
-	defer provider.AssertExpectations(t)
-
-	env, err := New(
-		SearchPath(dir),
-		APIProvider(provider.API),
-		SupervisorProvider(provider.Supervisor),
-	)
-	require.NoError(t, err)
-	defer env.Shutdown()
-
-	provider.On("Supervisor").Return(nil, fmt.Errorf("test error"))
-
-	assert.Error(t, env.ActivatePlugin("foo"))
-	assert.Empty(t, env.ActivePluginIds())
-}
-
-func TestEnvironment_APIProviderError(t *testing.T) {
-	dir := initTmpDir(t, map[string]string{
-		"foo/plugin.json": `{"id": "foo"}`,
-	})
-	defer os.RemoveAll(dir)
-
-	var provider MockProvider
-	defer provider.AssertExpectations(t)
-
-	env, err := New(
-		SearchPath(dir),
-		APIProvider(provider.API),
-		SupervisorProvider(provider.Supervisor),
-	)
-	require.NoError(t, err)
-	defer env.Shutdown()
-
-	var supervisor MockSupervisor
-	defer supervisor.AssertExpectations(t)
-
-	provider.On("API").Return(plugin.API(nil), fmt.Errorf("test error"))
-	provider.On("Supervisor").Return(&supervisor, nil)
-
-	assert.Error(t, env.ActivatePlugin("foo"))
-	assert.Empty(t, env.ActivePluginIds())
-}
-
-func TestEnvironment_SupervisorError(t *testing.T) {
-	dir := initTmpDir(t, map[string]string{
-		"foo/plugin.json": `{"id": "foo"}`,
-	})
-	defer os.RemoveAll(dir)
-
-	var provider MockProvider
-	defer provider.AssertExpectations(t)
-
-	env, err := New(
-		SearchPath(dir),
-		APIProvider(provider.API),
-		SupervisorProvider(provider.Supervisor),
-	)
-	require.NoError(t, err)
-	defer env.Shutdown()
-
-	var api struct{ plugin.API }
-	var supervisor MockSupervisor
-	defer supervisor.AssertExpectations(t)
-
-	provider.On("API").Return(&api, nil)
-	provider.On("Supervisor").Return(&supervisor, nil)
-
-	supervisor.On("Start").Return(fmt.Errorf("test error"))
-
-	assert.Error(t, env.ActivatePlugin("foo"))
-	assert.Empty(t, env.ActivePluginIds())
-}
-
-func TestEnvironment_HooksError(t *testing.T) {
-	dir := initTmpDir(t, map[string]string{
-		"foo/plugin.json": `{"id": "foo"}`,
-	})
-	defer os.RemoveAll(dir)
-
-	var provider MockProvider
-	defer provider.AssertExpectations(t)
 
 	env, err := New(
 		SearchPath(dir),
@@ -296,17 +215,43 @@ func TestEnvironment_HooksError(t *testing.T) {
 	var hooks plugintest.Hooks
 	defer hooks.AssertExpectations(t)
 
-	provider.On("API").Return(&api, nil)
-	provider.On("Supervisor").Return(&supervisor, nil)
+	for name, setup := range map[string]func(){
+		"SupervisorProviderError": func() {
+			provider.On("Supervisor").Return(nil, fmt.Errorf("test error"))
+		},
+		"APIProviderError": func() {
+			provider.On("API").Return(plugin.API(nil), fmt.Errorf("test error"))
+			provider.On("Supervisor").Return(&supervisor, nil)
+		},
+		"SupervisorError": func() {
+			provider.On("API").Return(&api, nil)
+			provider.On("Supervisor").Return(&supervisor, nil)
 
-	supervisor.On("Start").Return(nil)
-	supervisor.On("Stop").Return(nil)
-	supervisor.On("Hooks").Return(&hooks)
+			supervisor.On("Start").Return(fmt.Errorf("test error"))
+		},
+		"HooksError": func() {
+			provider.On("API").Return(&api, nil)
+			provider.On("Supervisor").Return(&supervisor, nil)
 
-	hooks.On("OnActivate", &api).Return(fmt.Errorf("test error"))
+			supervisor.On("Start").Return(nil)
+			supervisor.On("Stop").Return(nil)
+			supervisor.On("Hooks").Return(&hooks)
 
-	assert.Error(t, env.ActivatePlugin("foo"))
-	assert.Empty(t, env.ActivePluginIds())
+			hooks.On("OnActivate", &api).Return(fmt.Errorf("test error"))
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			supervisor.Mock = mock.Mock{}
+			hooks.Mock = mock.Mock{}
+			provider.Mock = mock.Mock{}
+			setup()
+			assert.Error(t, env.ActivatePlugin("foo"))
+			assert.Empty(t, env.ActivePluginIds())
+			supervisor.AssertExpectations(t)
+			hooks.AssertExpectations(t)
+			provider.AssertExpectations(t)
+		})
+	}
 }
 
 func TestEnvironment_ShutdownError(t *testing.T) {
