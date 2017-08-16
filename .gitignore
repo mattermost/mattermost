@@ -16,6 +16,7 @@ web/static/js/libs*.js
 
 config/active.dat
 config/config.json
+/plugins
 
 # Enteprise imports file
 imports/imports.go
