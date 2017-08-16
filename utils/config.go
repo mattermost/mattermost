@@ -655,7 +655,7 @@ func Desanitize(cfg *model.Config) {
 }
 
 func IsLeader() bool {
-	if IsLicensed && *Cfg.ClusterSettings.Enable && einterfaces.GetClusterInterface() != nil {
+	if IsLicensed() && *Cfg.ClusterSettings.Enable && einterfaces.GetClusterInterface() != nil {
 		return einterfaces.GetClusterInterface().IsLeader()
 	} else {
 		return true
