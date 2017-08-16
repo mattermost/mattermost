@@ -653,3 +653,11 @@ func Desanitize(cfg *model.Config) {
 		cfg.SqlSettings.DataSourceSearchReplicas[i] = Cfg.SqlSettings.DataSourceSearchReplicas[i]
 	}
 }
+
+func IsLeader() bool {
+	if IsLicensed && *Cfg.ClusterSettings.Enable && einterfaces.GetClusterInterface() != nil {
+		return einterfaces.GetClusterInterface().IsLeader()
+	} else {
+		return true
+	}
+}
