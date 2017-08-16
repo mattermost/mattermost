@@ -55,9 +55,8 @@ type Routes struct {
 
 	PublicFile *mux.Router // 'files/{file_id:[A-Za-z0-9]+}/public'
 
-	Commands        *mux.Router // 'api/v4/commands'
-	Command         *mux.Router // 'api/v4/commands/{command_id:[A-Za-z0-9]+}'
-	CommandsForTeam *mux.Router // 'api/v4/teams/{team_id:[A-Za-z0-9]+}/commands'
+	Commands *mux.Router // 'api/v4/commands'
+	Command  *mux.Router // 'api/v4/commands/{command_id:[A-Za-z0-9]+}'
 
 	Hooks         *mux.Router // 'api/v4/hooks'
 	IncomingHooks *mux.Router // 'api/v4/hooks/incoming'
@@ -149,7 +148,6 @@ func InitApi(full bool) {
 
 	BaseRoutes.Commands = BaseRoutes.ApiRoot.PathPrefix("/commands").Subrouter()
 	BaseRoutes.Command = BaseRoutes.Commands.PathPrefix("/{command_id:[A-Za-z0-9]+}").Subrouter()
-	BaseRoutes.CommandsForTeam = BaseRoutes.Team.PathPrefix("/commands").Subrouter()
 
 	BaseRoutes.Hooks = BaseRoutes.ApiRoot.PathPrefix("/hooks").Subrouter()
 	BaseRoutes.IncomingHooks = BaseRoutes.Hooks.PathPrefix("/incoming").Subrouter()

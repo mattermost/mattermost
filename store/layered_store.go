@@ -107,6 +107,10 @@ func (s *LayeredStore) Command() CommandStore {
 	return s.DatabaseLayer.Command()
 }
 
+func (s *LayeredStore) CommandWebhook() CommandWebhookStore {
+	return s.DatabaseLayer.CommandWebhook()
+}
+
 func (s *LayeredStore) Preference() PreferenceStore {
 	return s.DatabaseLayer.Preference()
 }
