@@ -423,17 +423,17 @@ func trackConfig() {
 }
 
 func trackLicense() {
-	if utils.IsLicensed {
+	if utils.IsLicensed() {
 		data := map[string]interface{}{
-			"customer_id": utils.License.Customer.Id,
-			"license_id":  utils.License.Id,
-			"issued":      utils.License.IssuedAt,
-			"start":       utils.License.StartsAt,
-			"expire":      utils.License.ExpiresAt,
-			"users":       *utils.License.Features.Users,
+			"customer_id": utils.License().Customer.Id,
+			"license_id":  utils.License().Id,
+			"issued":      utils.License().IssuedAt,
+			"start":       utils.License().StartsAt,
+			"expire":      utils.License().ExpiresAt,
+			"users":       *utils.License().Features.Users,
 		}
 
-		features := utils.License.Features.ToMap()
+		features := utils.License().Features.ToMap()
 		for featureName, featureValue := range features {
 			data["feature_"+featureName] = featureValue
 		}

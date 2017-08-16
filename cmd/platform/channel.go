@@ -106,7 +106,7 @@ func createChannelCmdF(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	if !utils.IsLicensed {
+	if !utils.IsLicensed() {
 		return errors.New(utils.T("cli.license.critical"))
 	}
 
@@ -158,7 +158,7 @@ func removeChannelUsersCmdF(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	if !utils.IsLicensed {
+	if !utils.IsLicensed() {
 		return errors.New(utils.T("cli.license.critical"))
 	}
 
@@ -194,7 +194,7 @@ func addChannelUsersCmdF(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	if !utils.IsLicensed {
+	if !utils.IsLicensed() {
 		return errors.New(utils.T("cli.license.critical"))
 	}
 
@@ -292,7 +292,7 @@ func listChannelsCmdF(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	if !utils.IsLicensed {
+	if !utils.IsLicensed() {
 		return errors.New(utils.T("cli.license.critical"))
 	}
 
@@ -329,7 +329,7 @@ func restoreChannelsCmdF(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	if !utils.IsLicensed {
+	if !utils.IsLicensed() {
 		return errors.New(utils.T("cli.license.critical"))
 	}
 
