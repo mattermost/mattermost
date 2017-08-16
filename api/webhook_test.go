@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/mattermost/platform/app"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
 )
