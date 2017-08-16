@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	l4g "github.com/alecthomas/log4go"
+	"github.com/gorilla/mux"
 	"github.com/mattermost/platform/app"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
@@ -27,6 +28,8 @@ func InitWebhook() {
 	BaseRoutes.OutgoingHook.Handle("", ApiSessionRequired(updateOutgoingHook)).Methods("PUT")
 	BaseRoutes.OutgoingHook.Handle("", ApiSessionRequired(deleteOutgoingHook)).Methods("DELETE")
 	BaseRoutes.OutgoingHook.Handle("/regen_token", ApiSessionRequired(regenOutgoingHookToken)).Methods("POST")
+
+	BaseRoutes.Root.Handle("/hooks/commands/{id:[A-Za-z0-9]+}", ApiHandler(commandWebhook)).Methods("POST")
 }
 
 func createIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -434,4 +437,20 @@ func deleteOutgoingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	c.LogAudit("success")
 	ReturnStatusOK(w)
+}
+
+func commandWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	id := params["id"]
+
+	response := model.CommandResponseFromHTTPBody(r.Header.Get("Content-Type"), r.Body)
+
+	err := app.HandleCommandWebhook(id, response)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	w.Header().Set("Content-Type", "text/plain")
+	w.Write([]byte("ok"))
 }

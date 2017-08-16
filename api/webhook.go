@@ -33,7 +33,6 @@ func InitWebhook() {
 
 	// Old route. Remove eventually.
 	BaseRoutes.Root.Handle("/hooks/{id:[A-Za-z0-9]+}", ApiAppHandler(incomingWebhook)).Methods("POST")
-	BaseRoutes.Root.Handle("/hooks/commands/{id:[A-Za-z0-9]+}", ApiAppHandler(commandWebhook)).Methods("POST")
 }
 
 func createIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -375,22 +374,6 @@ func incomingWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 	parsedRequest := model.IncomingWebhookRequestFromJson(payload)
 
 	err := app.HandleIncomingWebhook(id, parsedRequest)
-	if err != nil {
-		c.Err = err
-		return
-	}
-
-	w.Header().Set("Content-Type", "text/plain")
-	w.Write([]byte("ok"))
-}
-
-func commandWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
-	params := mux.Vars(r)
-	id := params["id"]
-
-	response := model.CommandResponseFromHTTPBody(r.Header.Get("Content-Type"), r.Body)
-
-	err := app.HandleCommandWebhook(id, response)
 	if err != nil {
 		c.Err = err
 		return
