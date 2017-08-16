@@ -70,6 +70,7 @@ type SqlSupplierOldStores struct {
 	system          SystemStore
 	webhook         WebhookStore
 	command         CommandStore
+	commandWebhook  CommandWebhookStore
 	preference      PreferenceStore
 	license         LicenseStore
 	token           TokenStore
@@ -111,6 +112,7 @@ func NewSqlSupplier() *SqlSupplier {
 	supplier.oldStores.system = NewSqlSystemStore(supplier)
 	supplier.oldStores.webhook = NewSqlWebhookStore(supplier)
 	supplier.oldStores.command = NewSqlCommandStore(supplier)
+	supplier.oldStores.commandWebhook = NewSqlCommandWebhookStore(supplier)
 	supplier.oldStores.preference = NewSqlPreferenceStore(supplier)
 	supplier.oldStores.license = NewSqlLicenseStore(supplier)
 	supplier.oldStores.token = NewSqlTokenStore(supplier)
@@ -142,6 +144,7 @@ func NewSqlSupplier() *SqlSupplier {
 	supplier.oldStores.system.(*SqlSystemStore).CreateIndexesIfNotExists()
 	supplier.oldStores.webhook.(*SqlWebhookStore).CreateIndexesIfNotExists()
 	supplier.oldStores.command.(*SqlCommandStore).CreateIndexesIfNotExists()
+	supplier.oldStores.commandWebhook.(*SqlCommandWebhookStore).CreateIndexesIfNotExists()
 	supplier.oldStores.preference.(*SqlPreferenceStore).CreateIndexesIfNotExists()
 	supplier.oldStores.license.(*SqlLicenseStore).CreateIndexesIfNotExists()
 	supplier.oldStores.token.(*SqlTokenStore).CreateIndexesIfNotExists()
@@ -730,6 +733,10 @@ func (ss *SqlSupplier) Webhook() WebhookStore {
 
 func (ss *SqlSupplier) Command() CommandStore {
 	return ss.oldStores.command
+}
+
+func (ss *SqlSupplier) CommandWebhook() CommandWebhookStore {
+	return ss.oldStores.commandWebhook
 }
 
 func (ss *SqlSupplier) Preference() PreferenceStore {

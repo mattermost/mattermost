@@ -107,6 +107,7 @@ func runServer(configFileLocation string) {
 	go runDiagnosticsJob()
 
 	go runTokenCleanupJob()
+	go runCommandWebhookCleanupJob()
 
 	if complianceI := einterfaces.GetComplianceInterface(); complianceI != nil {
 		complianceI.StartComplianceDailyJob()
@@ -170,6 +171,11 @@ func runTokenCleanupJob() {
 	model.CreateRecurringTask("Token Cleanup", doTokenCleanup, time.Hour*1)
 }
 
+func runCommandWebhookCleanupJob() {
+	doCommandWebhookCleanup()
+	model.CreateRecurringTask("Command Hook Cleanup", doCommandWebhookCleanup, time.Hour*1)
+}
+
 func resetStatuses() {
 	if result := <-app.Srv.Store.Status().ResetAll(); result.Err != nil {
 		l4g.Error(utils.T("mattermost.reset_status.error"), result.Err.Error())
@@ -203,4 +209,8 @@ func doDiagnostics() {
 
 func doTokenCleanup() {
 	app.Srv.Store.Token().Cleanup()
+}
+
+func doCommandWebhookCleanup() {
+	app.Srv.Store.CommandWebhook().Cleanup()
 }

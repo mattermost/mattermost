@@ -72,6 +72,7 @@ type SqlStore interface {
 	System() SystemStore
 	Webhook() WebhookStore
 	Command() CommandStore
+	CommandWebhook() CommandWebhookStore
 	Preference() PreferenceStore
 	License() LicenseStore
 	Token() TokenStore
