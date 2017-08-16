@@ -185,7 +185,7 @@ export default class WebhookSettings extends AdminSettings {
                     helpText={
                         <FormattedHTMLMessage
                             id='admin.service.userAccessTokensDescription'
-                            defaultMessage='When true, users can create <a href="https://about.mattermost.com/default-user-access-tokens" target="_blank">user access tokens</a> for integrations in <strong>Account Settings > Security</strong>. They can be used to authenticate against the API and give full access to the account.<br/><br/>To manage who can create user access tokens, go to the <strong>System Console > Users</strong> page.'
+                            defaultMessage='When true, users can create <a href="https://about.mattermost.com/default-user-access-tokens" target="_blank">user access tokens</a> for integrations in <strong>Account Settings > Security</strong>. They can be used to authenticate against the API and give full access to the account.<br/><br/>To manage who can create personal access tokens or to search users by token ID, go to the <strong>System Console > Users</strong> page.'
                         />
                     }
                     value={this.state.enableUserAccessTokens}
