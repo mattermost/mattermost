@@ -149,7 +149,7 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	c.SetSiteURLHeader(app.GetProtocol(r) + "://" + r.Host)
 
 	w.Header().Set(model.HEADER_REQUEST_ID, c.RequestId)
-	w.Header().Set(model.HEADER_VERSION_ID, fmt.Sprintf("%v.%v.%v.%v", model.CurrentVersion, model.BuildNumber, utils.ClientCfgHash, utils.IsLicensed))
+	w.Header().Set(model.HEADER_VERSION_ID, fmt.Sprintf("%v.%v.%v.%v", model.CurrentVersion, model.BuildNumber, utils.ClientCfgHash, utils.IsLicensed()))
 
 	// Instruct the browser not to display us in an iframe unless is the same origin for anti-clickjacking
 	if !h.isApi {
@@ -321,7 +321,7 @@ func (c *Context) UserRequired() {
 
 func (c *Context) MfaRequired() {
 	// Must be licensed for MFA and have it configured for enforcement
-	if !utils.IsLicensed || !*utils.License.Features.MFA || !*utils.Cfg.ServiceSettings.EnableMultifactorAuthentication || !*utils.Cfg.ServiceSettings.EnforceMultifactorAuthentication {
+	if !utils.IsLicensed() || !*utils.License().Features.MFA || !*utils.Cfg.ServiceSettings.EnableMultifactorAuthentication || !*utils.Cfg.ServiceSettings.EnforceMultifactorAuthentication {
 		return
 	}
 

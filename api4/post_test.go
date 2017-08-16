@@ -366,18 +366,18 @@ func TestUpdatePost(t *testing.T) {
 	Client := th.Client
 	channel := th.BasicChannel
 
-	isLicensed := utils.IsLicensed
-	license := utils.License
+	isLicensed := utils.IsLicensed()
+	license := utils.License()
 	allowEditPost := *utils.Cfg.ServiceSettings.AllowEditPost
 	defer func() {
-		utils.IsLicensed = isLicensed
-		utils.License = license
+		utils.SetIsLicensed(isLicensed)
+		utils.SetLicense(license)
 		*utils.Cfg.ServiceSettings.AllowEditPost = allowEditPost
 		utils.SetDefaultRolesBasedOnConfig()
 	}()
-	utils.IsLicensed = true
-	utils.License = &model.License{Features: &model.Features{}}
-	utils.License.Features.SetDefaults()
+	utils.SetIsLicensed(true)
+	utils.SetLicense(&model.License{Features: &model.Features{}})
+	utils.License().Features.SetDefaults()
 
 	*utils.Cfg.ServiceSettings.AllowEditPost = model.ALLOW_EDIT_POST_ALWAYS
 	utils.SetDefaultRolesBasedOnConfig()
@@ -445,18 +445,18 @@ func TestPatchPost(t *testing.T) {
 	Client := th.Client
 	channel := th.BasicChannel
 
-	isLicensed := utils.IsLicensed
-	license := utils.License
+	isLicensed := utils.IsLicensed()
+	license := utils.License()
 	allowEditPost := *utils.Cfg.ServiceSettings.AllowEditPost
 	defer func() {
-		utils.IsLicensed = isLicensed
-		utils.License = license
+		utils.SetIsLicensed(isLicensed)
+		utils.SetLicense(license)
 		*utils.Cfg.ServiceSettings.AllowEditPost = allowEditPost
 		utils.SetDefaultRolesBasedOnConfig()
 	}()
-	utils.IsLicensed = true
-	utils.License = &model.License{Features: &model.Features{}}
-	utils.License.Features.SetDefaults()
+	utils.SetIsLicensed(true)
+	utils.SetLicense(&model.License{Features: &model.Features{}})
+	utils.License().Features.SetDefaults()
 
 	*utils.Cfg.ServiceSettings.AllowEditPost = model.ALLOW_EDIT_POST_ALWAYS
 	utils.SetDefaultRolesBasedOnConfig()

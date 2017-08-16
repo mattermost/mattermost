@@ -15,7 +15,7 @@ func IsPasswordValid(password string) *model.AppError {
 	isError := false
 	min := model.PASSWORD_MINIMUM_LENGTH
 
-	if IsLicensed && *License.Features.PasswordRequirements {
+	if IsLicensed() && *License().Features.PasswordRequirements {
 		if len(password) < *Cfg.PasswordSettings.MinimumLength || len(password) > model.PASSWORD_MAXIMUM_LENGTH {
 			isError = true
 		}

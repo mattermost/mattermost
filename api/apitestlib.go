@@ -39,7 +39,7 @@ func SetupEnterprise() *TestHelper {
 		utils.Cfg.TeamSettings.MaxUsersPerTeam = 50
 		*utils.Cfg.RateLimitSettings.Enable = false
 		utils.DisableDebugLogForTest()
-		utils.License.Features.SetDefaults()
+		utils.License().Features.SetDefaults()
 		app.NewServer()
 		app.InitStores()
 		InitRouter()
