@@ -786,6 +786,8 @@ func (me mattermConverter) ToDb(val interface{}) (interface{}, error) {
 	switch t := val.(type) {
 	case model.StringMap:
 		return model.MapToJson(t), nil
+	case map[string]string:
+		return model.MapToJson(model.StringMap(t)), nil
 	case model.StringArray:
 		return model.ArrayToJson(t), nil
 	case model.StringInterface:
@@ -800,6 +802,16 @@ func (me mattermConverter) ToDb(val interface{}) (interface{}, error) {
 func (me mattermConverter) FromDb(target interface{}) (gorp.CustomScanner, bool) {
 	switch target.(type) {
 	case *model.StringMap:
+		binder := func(holder, target interface{}) error {
+			s, ok := holder.(*string)
+			if !ok {
+				return errors.New(utils.T("store.sql.convert_string_map"))
+			}
+			b := []byte(*s)
+			return json.Unmarshal(b, target)
+		}
+		return gorp.CustomScanner{Holder: new(string), Target: target, Binder: binder}, true
+	case *map[string]string:
 		binder := func(holder, target interface{}) error {
 			s, ok := holder.(*string)
 			if !ok {
