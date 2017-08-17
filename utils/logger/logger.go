@@ -34,13 +34,7 @@ func initL4g(config *model.Config) {
 	// TODO: add support for newConfig.LogSettings.EnableConsole. Right now, ../config.go sets it up in its configureLog
 	// method. If we also set it up here, messages will be written to the console twice. Eventually, when all instances
 	// of l4g have been replaced by this logger, we can move that code to here
-
 	if config.LogSettings.EnableFile {
-		var fileFormat = config.LogSettings.FileFormat
-		if fileFormat == "" {
-			fileFormat = "[%D %T] [%L] %M"
-		}
-
 		level := l4g.DEBUG
 		if config.LogSettings.FileLevel == "INFO" {
 			level = l4g.INFO
@@ -50,12 +44,11 @@ func initL4g(config *model.Config) {
 			level = l4g.ERROR
 		}
 
-		// TODO: use a different writer that formats the entire log message as a JSON object
-		flw := l4g.NewFileLogWriter(utils.GetLogFileLocation(config.LogSettings.FileLocation)+".json", false)
-		flw.SetFormat(fileFormat)
-		flw.SetRotate(true)
-		flw.SetRotateLines(utils.LOG_ROTATE_SIZE)
-		l4g.AddFilter("file", level, flw)
+		// create a logger that writes JSON objects to a file, and override our log methods to use it
+		flw := NewJSONFileLogger(level, utils.GetLogFileLocation(config.LogSettings.FileLocation)+".jsonl")
+		debug = flw.Debug
+		info = flw.Info
+		err = flw.Error
 	}
 }
 
