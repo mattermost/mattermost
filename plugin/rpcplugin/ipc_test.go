@@ -16,7 +16,7 @@ func TestIPC(t *testing.T) {
 	require.NoError(t, err)
 	defer os.RemoveAll(dir)
 
-	pingpong := filepath.Join(dir, "pingpong")
+	pingpong := filepath.Join(dir, "pingpong.exe")
 	compileGo(t, `
 		package main
 
