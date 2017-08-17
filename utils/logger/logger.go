@@ -5,6 +5,7 @@ package logger
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"runtime"
 
 	l4g "github.com/alecthomas/log4go"
@@ -125,12 +126,37 @@ func serializeLogMessage(ctx context.Context, message string) string {
 	return string(bytes)
 }
 
-// Debug logs a debug level message
-func Debug(ctx context.Context, message string) {
-	// we need to serialize the message into a JSON object before logging it, but we only want to serialize it if we're
-	// sure that it's going to be written, to avoid the overhead of needless serialization, so do the work in a closure
+func formatMessage(args ...interface{}) string {
+	msg, ok := args[0].(string)
+	if !ok {
+		panic("Second argument is not of type string")
+	}
+	if len(args) > 1 {
+		variables := args[1:]
+		msg = fmt.Sprintf(msg, variables...)
+	}
+	return msg
+}
+
+// Debugc logs a debug level message, including context information that is stored in the first parameter.
+// If two parameters are supplied, the second must be a message string, and will be logged directly.
+// If more than two parameters are supplied, the second parameter must be a format string, and the remaining parameters
+// must be the variables to substitute into the format string, following the convention of the fmt.Sprintf(...) function.
+func Debugc(ctx context.Context, args ...interface{}) {
 	debug(func() string {
-		return serializeLogMessage(ctx, message)
+		msg := formatMessage(args...)
+		return serializeLogMessage(ctx, msg)
+	})
+}
+
+// Debugf logs a debug level message.
+// If one parameter is supplied, it must be a message string, and will be logged directly.
+// If two or more parameters are specified, the first parameter must be a format string, and the remaining parameters
+// must be the variables to substitute into the format string, following the convention of the fmt.Sprintf(...) function.
+func Debugf(args ...interface{}) {
+	debug(func() string {
+		msg := formatMessage(args...)
+		return serializeLogMessage(context.Background(), msg)
 	})
 }
 

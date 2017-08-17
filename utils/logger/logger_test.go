@@ -6,6 +6,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"strings"
 	"testing"
 )
@@ -105,8 +106,8 @@ func TestSerializeLogMessagePopulatedContext(t *testing.T) {
 }
 
 // ensures that a debug message is passed through to the underlying logger as expected
-func TestDebug(t *testing.T) {
-	t.Run("Debug test", func(t *testing.T) {
+func TestDebugc(t *testing.T) {
+	t.Run("Debugc test", func(t *testing.T) {
 		// inject a "mocked" debug method that captures the first argument that is passed to it
 		var capture string
 		oldDebug := debug
@@ -124,7 +125,7 @@ func TestDebug(t *testing.T) {
 		// log something
 		emptyContext := context.Background()
 		var logMessage = "Some log message"
-		Debug(emptyContext, logMessage)
+		Debugc(emptyContext, logMessage)
 
 		// check to see that the message is logged to the underlying log system, in this case our mock method
 		type LogMessage struct {
@@ -144,6 +145,52 @@ func TestDebug(t *testing.T) {
 		}
 		if deserialized.Message != logMessage {
 			t.Errorf("Invalid log message %v. Expected %v", deserialized.Message, logMessage)
+		}
+	})
+}
+
+// ensures that a debug message is passed through to the underlying logger as expected
+func TestDebugf(t *testing.T) {
+	t.Run("Debugf test", func(t *testing.T) {
+		// inject a "mocked" debug method that captures the first argument that is passed to it
+		var capture string
+		oldDebug := debug
+		defer func() { debug = oldDebug }()
+		type WrapperType func() string
+		debug = func(format interface{}, args ...interface{}) {
+			// the code that we're testing passes a closure to the debug method, so we have to execute it to get the actual message back
+			if f, ok := format.(func() string); ok {
+				capture = WrapperType(f)()
+			} else {
+				t.Error("First parameter passed to Debug is not a closure")
+			}
+		}
+
+		// log something
+		formatString := "Some %v message"
+		param := "log"
+		Debugf(formatString, param)
+
+		// check to see that the message is logged to the underlying log system, in this case our mock method
+		type LogMessage struct {
+			Context map[string]string
+			Logger  string
+			Message string
+		}
+		var deserialized LogMessage
+		json.Unmarshal([]byte(capture), &deserialized)
+
+		if len(deserialized.Context) != 0 {
+			t.Error("Context is non-empty")
+		}
+		var expectedLoggerSuffix = "/platform/utils/logger/logger_test.go"
+		if !strings.HasSuffix(deserialized.Logger, expectedLoggerSuffix) {
+			t.Errorf("Invalid logger %v. Expected logger to have suffix %v", deserialized.Logger, expectedLoggerSuffix)
+		}
+
+		expected := fmt.Sprintf(formatString, param)
+		if deserialized.Message != expected {
+			t.Errorf("Invalid log message %v. Expected %v", deserialized.Message, expected)
 		}
 	})
 }
