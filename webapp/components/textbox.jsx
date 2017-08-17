@@ -38,13 +38,15 @@ export default class Textbox extends React.Component {
         suggestionListStyle: PropTypes.string,
         emojiEnabled: PropTypes.bool,
         isRHS: PropTypes.bool,
-        popoverMentionKeyClick: React.PropTypes.bool
+        popoverMentionKeyClick: React.PropTypes.bool,
+        characterLimit: React.PropTypes.number
     };
 
     static defaultProps = {
         supportsCommands: true,
         isRHS: false,
-        popoverMentionKeyClick: false
+        popoverMentionKeyClick: false,
+        characterLimit: Constants.CHARACTER_LIMIT
     };
 
     constructor(props) {
@@ -93,14 +95,14 @@ export default class Textbox extends React.Component {
 
     checkMessageLength = (message) => {
         if (this.props.handlePostError) {
-            if (message.length > Constants.CHARACTER_LIMIT) {
+            if (message.length > this.props.characterLimit) {
                 const errorMessage = (
                     <FormattedMessage
                         id='create_post.error_message'
                         defaultMessage='Your message is too long. Character count: {length}/{limit}'
                         values={{
                             length: message.length,
-                            limit: Constants.CHARACTER_LIMIT
+                            limit: this.props.characterLimit
                         }}
                     />);
                 this.props.handlePostError(errorMessage);

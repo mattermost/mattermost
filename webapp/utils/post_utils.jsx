@@ -107,3 +107,12 @@ export function shouldShowDotMenu(post) {
 
     return false;
 }
+
+export function containsAtMention(text, key) {
+    if (!text || !key) {
+        return false;
+    }
+
+    // This doesn't work for at mentions containing periods or hyphens
+    return new RegExp(`\\B${key}\\b`, 'i').test(text);
+}

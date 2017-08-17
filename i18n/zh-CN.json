@@ -2009,7 +2009,7 @@
   },
   {
     "id": "api.slackimport.slack_add_posts.attach_files.error",
-    "translation": "Slack Import: An error occurred when attaching files to a message, post_id=%s, file_ids=%v, err=%v."
+    "translation": "Slack 导入：附加文件到消息时发生错误，post_id=%s, file_ids=%v, err=%v。"
   },
   {
     "id": "api.slackimport.slack_add_posts.bot.warn",
@@ -2065,15 +2065,15 @@
   },
   {
     "id": "api.slackimport.slack_add_users.email_pwd",
-    "translation": "Slack user with email {{.Email}} and password {{.Password}} has been imported.\r\n"
+    "translation": "已导入拥有电子邮箱 {{.Email}} 以及密码 {{.Password}} 的 Slack 用户。\r\n"
   },
   {
     "id": "api.slackimport.slack_add_users.merge_existing",
-    "translation": "Slack user merged with an existing Mattermost user with matching email {{.Email}} and username {{.Username}}.\r\n"
+    "translation": "Slack 用户已和拥有邮箱地址 {{.Email}} 和用户名 {{.Username}} 的 Mattermost 用户合并。\r\n"
   },
   {
     "id": "api.slackimport.slack_add_users.merge_existing_failed",
-    "translation": "Slack user merged with an existing Mattermost user with matching email {{.Email}} and username {{.Username}}, but was unable to add the user to their team.\r\n"
+    "translation": "Slack 用户已和现有邮箱地址 {{.Email}} 和用户名 {{.Username}} 的 Mattermost 用户合并，但没法添加用户到他们的团队。\r\n"
   },
   {
     "id": "api.slackimport.slack_add_users.missing_email_address",
@@ -2089,7 +2089,7 @@
   },
   {
     "id": "api.slackimport.slack_convert_channel_mentions.compile_regexp_failed.warn",
-    "translation": "Slack Import: Unable to compile the !channel, matching regular expression for the Slack channel {{.ChannelName}} (id={{.ChannelID}})."
+    "translation": "Slack 导入：无法编译 !channel，匹配 Slack 频道 {{.ChannelName}} (id={{.ChannelID}}) 的正规表达式。"
   },
   {
     "id": "api.slackimport.slack_convert_timestamp.bad.warn",
@@ -2097,7 +2097,7 @@
   },
   {
     "id": "api.slackimport.slack_convert_user_mentions.compile_regexp_failed.warn",
-    "translation": "Slack Import: Unable to compile the @mention, matching regular expression for the Slack user {{.Username}} (id={{.UserID}})."
+    "translation": "Slack 导入：无法编译 @mention，匹配 Slack 用户 {{.Username}} (id={{.UserID}}) 的正规表达式。"
   },
   {
     "id": "api.slackimport.slack_deactivate_bot_user.failed_to_deactivate",
@@ -2497,7 +2497,7 @@
   },
   {
     "id": "api.templates.user_access_token_body.info",
-    "translation": "A user access token was added to your account on {{ .SiteURL }}. They can be used to access {{.SiteName}} with your account.<br>If this change wasn't initiated by you, please contact your system administrator."
+    "translation": "一个用户访问令牌在 {{ .SiteURL }} 创建到了您的帐号。他们可以以您的帐号访问 {{.SiteName}}。<br>如果此操作非来自您，请联系您的系统管理员。"
   },
   {
     "id": "api.templates.user_access_token_body.title",
@@ -2865,7 +2865,7 @@
   },
   {
     "id": "api.user.send_user_access_token.error",
-    "translation": "Failed to send user access token added email successfully"
+    "translation": "发送成功添加用户访问令牌邮件失败"
   },
   {
     "id": "api.user.send_verify_email_and_forget.failed.error",
@@ -3561,7 +3561,7 @@
   },
   {
     "id": "app.user_access_token.disabled",
-    "translation": "用户访问令牌在本服务器禁用。请联系您的系统管理员了解详情。"
+    "translation": "个人访问令牌在本服务器禁用。请联系您的系统管理员了解详情。"
   },
   {
     "id": "app.user_access_token.invalid_or_missing",
@@ -3593,11 +3593,11 @@
   },
   {
     "id": "authentication.permissions.create_user_access_token.description",
-    "translation": "允许创建用户访问令牌"
+    "translation": "允许创建个人访问令牌"
   },
   {
     "id": "authentication.permissions.create_user_access_token.name",
-    "translation": "创建用户访问令牌"
+    "translation": "创建个人访问令牌"
   },
   {
     "id": "authentication.permissions.manage_jobs.description",
@@ -3625,19 +3625,19 @@
   },
   {
     "id": "authentication.permissions.read_user_access_token.description",
-    "translation": "允许读取用户访问令牌的 id，描述以及 user_id 字段"
+    "translation": "允许读取个人访问令牌的 id，描述以及 user_id 字段"
   },
   {
     "id": "authentication.permissions.read_user_access_token.name",
-    "translation": "读取用户访问令牌"
+    "translation": "读取个人访问令牌"
   },
   {
     "id": "authentication.permissions.revoke_user_access_token.description",
-    "translation": "允许撤销用户访问令牌"
+    "translation": "允许撤销个人访问令牌"
   },
   {
     "id": "authentication.permissions.revoke_user_access_token.name",
-    "translation": "撤销用户访问令牌"
+    "translation": "撤销个人访问令牌"
   },
   {
     "id": "authentication.permissions.team_invite_user.description",
@@ -3673,11 +3673,11 @@
   },
   {
     "id": "authentication.roles.system_user_access_token.description",
-    "translation": "一个允许创建、查看、撤销用户访问令牌的角色"
+    "translation": "一个允许创建、查看、撤销个人访问令牌的角色"
   },
   {
     "id": "authentication.roles.system_user_access_token.name",
-    "translation": "用户访问令牌"
+    "translation": "个人访问令牌"
   },
   {
     "id": "authentication.roles.team_post_all.description",
@@ -4445,7 +4445,7 @@
   },
   {
     "id": "model.config.is_valid.email_notification_contents_type.app_error",
-    "translation": "Invalid email notification contents type for email settings. Must be one of either 'full' or 'generic'."
+    "translation": "无效邮件通知内容类型。必须为 'full' 或 'generic'。"
   },
   {
     "id": "model.config.is_valid.email_reset_salt.app_error",
@@ -5281,7 +5281,7 @@
   },
   {
     "id": "store.sql.schema_version.critical",
-    "translation": "Database schema version %v is no longer supported. This Mattermost server supports automatic upgrades from schema version %v through schema version %v. Downgrades are not supported. Please manually upgrade to at least version %v before continuing"
+    "translation": "数据结构版本 %v 不再支持。此 Mattermost 服务器支持自动从结构版本 %v 升级到 %v。版本降级不支持。请手动升级升级到最新版本 %v 再继续"
   },
   {
     "id": "store.sql.short_ciphertext",
@@ -6405,23 +6405,23 @@
   },
   {
     "id": "store.sql_user_access_token.delete.app_error",
-    "translation": "我们无法删除用户访问令牌"
+    "translation": "我们无法删除个人访问令牌"
   },
   {
     "id": "store.sql_user_access_token.get.app_error",
-    "translation": "我们无法获取用户访问令牌"
+    "translation": "我们无法获取个人访问令牌"
   },
   {
     "id": "store.sql_user_access_token.get_by_token.app_error",
-    "translation": "我们无法从令牌获取用户访问令牌"
+    "translation": "我们无法从令牌获取个人访问令牌"
   },
   {
     "id": "store.sql_user_access_token.get_by_user.app_error",
-    "translation": "我们无法从用户获取用户访问令牌"
+    "translation": "我们无法从用户获取个人访问令牌"
   },
   {
     "id": "store.sql_user_access_token.save.app_error",
-    "translation": "我们无法保存用户访问令牌"
+    "translation": "我们无法保存个人访问令牌"
   },
   {
     "id": "store.sql_webhooks.analytics_incoming_count.app_error",
@@ -6509,7 +6509,7 @@
   },
   {
     "id": "utils.config.add_client_locale.app_error",
-    "translation": "Unable to load mattermost configuration file:  Adding DefaultClientLocale to AvailableLocales."
+    "translation": "无法加载 mattermost 配置文件：添加 DefaultClientLocale 至 AvailableLocales。"
   },
   {
     "id": "utils.config.load_config.decoding.panic",
@@ -6533,15 +6533,15 @@
   },
   {
     "id": "utils.config.supported_available_locales.app_error",
-    "translation": "Unable to load mattermost configuration file:  AvailableLocales must include DefaultClientLocale. Setting AvailableLocales to all locales as default value."
+    "translation": "无法加载 mattermost 配置文件：AvailableLocales 必须包含 DefaultClientLocale。设置 AvailableLocales 为所有预先做为默认值。"
   },
   {
     "id": "utils.config.supported_client_locale.app_error",
-    "translation": "Unable to load mattermost configuration file:  DefaultClientLocale must be one of the supported locales. Setting DefaultClientLocale to en as default value."
+    "translation": "无法加载 mattermost 配置文件：DefaultClientLocale 必须为支持的语系。设置 DefaultClientLocale 为 en 做为默认值。"
   },
   {
     "id": "utils.config.supported_server_locale.app_error",
-    "translation": "无法加载 Mattermost 配置文件：DefaultServerLocale 必须为支持的区域"
+    "translation": "无法加载 mattermost 配置文件：DefaultClientLocale 必须为支持的语系。设置 DefaultClientLocale 为 en 做为默认值。"
   },
   {
     "id": "utils.config.validate_locale.app_error",
