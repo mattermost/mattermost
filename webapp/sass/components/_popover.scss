@@ -2,8 +2,9 @@
 @import 'compass/css3/transition';
 
 .popover {
-    @include border-radius($border-rad);
+    @include border-radius($border-rad * 2);
     color: lighten($black, 25%);
+    font-family: inherit;
     padding: 0;
 
     &.bottom,
@@ -11,10 +12,16 @@
     &.top,
     &.left {
         > .arrow {
+            display: none;
+
             &:after {
                 border-color: transparent;
             }
         }
+    }
+
+    &.bottom {
+        margin-top: 10px;
     }
 
     .popover-title {
@@ -219,10 +226,19 @@
 }
 
 .member-list__popover {
+    margin-left: -95px;
     max-width: initial;
 
+    .more-modal__body {
+        border-bottom: 1px solid transparent;
+        border-top: 1px solid transparent;
+        max-height: 275px;
+        overflow: auto;
+        position: relative;
+    }
+
     .more-modal__header {
-        padding: 14px 0;
+        padding: 14px 20px;
 
         .icon {
             @include opacity(.8);
@@ -232,25 +248,35 @@
         }
 
         span {
-            font-weight: 500;
+            font-weight: 600;
+        }
+    }
+
+    .more-modal__button {
+        .btn {
+            height: 42px;
         }
     }
 
     .more-modal__list {
         .more-modal__row {
-            border-bottom: none;
-            border-top: 1px solid;
+            border: none;
             cursor: pointer;
-            height: 45px;
+            height: 50px;
+            margin: 1px 0;
             overflow: hidden;
-            padding: 5px 19px 5px 17px;
+            padding: 6px 19px 0 20px;
 
             &:hover {
                 border-left: 3px solid transparent;
-                padding-left: 14px;
+                padding-left: 17px;
 
                 .more-modal__actions {
                     @include opacity(1);
+                }
+
+                .more-modal__name {
+                    font-weight: 600;
                 }
             }
 
@@ -271,15 +297,18 @@
         }
 
         .more-modal__name {
-            line-height: 33px;
+            font-size: 13.5px;
+            font-weight: normal;
         }
 
         .more-modal__image {
             margin: 0;
+            position: relative;
+            top: -1px;
         }
 
         .more-modal__details {
-            line-height: 32px;
+            line-height: 39px;
             padding-left: 30px;
         }
 
@@ -287,11 +316,16 @@
             @include opacity(0);
             line-height: 42px;
             margin: 0;
+
+            .icon {
+                position: relative;
+                top: 2px;
+            }
         }
     }
 
     .popover-content {
-        max-height: 350px;
+        max-height: 380px;
         padding: 0;
         position: relative;
         width: 260px;
