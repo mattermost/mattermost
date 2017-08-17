@@ -133,6 +133,7 @@ export default class PostBodyAdditionalContent extends React.PureComponent {
                     channelId={this.props.post.channel_id}
                     link={link}
                     show={this.state.embedVisible}
+                    onLinkLoaded={this.handleLinkLoaded}
                 />
             );
         }
