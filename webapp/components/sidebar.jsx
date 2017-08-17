@@ -556,7 +556,7 @@ export default class Sidebar extends React.Component {
         }
 
         let closeButton = null;
-        const removeTooltip = (
+        let removeTooltip = (
             <Tooltip id='remove-dm-tooltip'>
                 <FormattedMessage
                     id='sidebar.removeList'
@@ -564,6 +564,16 @@ export default class Sidebar extends React.Component {
                 />
             </Tooltip>
         );
+        if (channel.type === Constants.OPEN_CHANNEL || channel.type === Constants.PRIVATE_CHANNEL) {
+            removeTooltip = (
+                <Tooltip id='remove-dm-tooltip'>
+                    <FormattedMessage
+                        id='sidebar.leave'
+                        defaultMessage='Leave channel'
+                    />
+                </Tooltip>
+            );
+        }
         if (handleClose && !badge) {
             closeButton = (
                 <OverlayTrigger

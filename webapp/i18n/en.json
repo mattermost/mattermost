@@ -2160,6 +2160,7 @@
   "sidebar.createGroup": "Create new private channel",
   "sidebar.direct": "DIRECT MESSAGES",
   "sidebar.favorite": "FAVORITE CHANNELS",
+  "sidebar.leave": "Leave channel",
   "sidebar.more": "More",
   "sidebar.moreElips": "More...",
   "sidebar.otherMembers": "Outside this team",
