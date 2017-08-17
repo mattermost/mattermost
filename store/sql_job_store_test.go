@@ -17,9 +17,9 @@ func TestJobSaveGet(t *testing.T) {
 		Id:     model.NewId(),
 		Type:   model.NewId(),
 		Status: model.NewId(),
-		Data: map[string]interface{}{
-			"Processed":     0,
-			"Total":         12345,
+		Data:   map[string]string{
+			"Processed":     "0",
+			"Total":         "12345",
 			"LastProcessed": "abcd",
 		},
 	}
@@ -36,6 +36,8 @@ func TestJobSaveGet(t *testing.T) {
 		t.Fatal(result.Err)
 	} else if received := result.Data.(*model.Job); received.Id != job.Id {
 		t.Fatal("received incorrect job after save")
+	} else if received.Data["Total"] != "12345" {
+		t.Fatal("data field was not retrieved successfully:", received.Data)
 	}
 }
 
@@ -184,6 +186,9 @@ func TestJobGetAllByStatus(t *testing.T) {
 			Type:     jobType,
 			CreateAt: 1000,
 			Status:   status,
+			Data:     map[string]string{
+				"test": "data",
+			},
 		},
 		{
 			Id:       model.NewId(),
@@ -214,10 +219,10 @@ func TestJobGetAllByStatus(t *testing.T) {
 		t.Fatal(result.Err)
 	} else if received := result.Data.([]*model.Job); len(received) != 3 {
 		t.Fatal("received wrong number of jobs")
-	} else if received[0].Id != jobs[0].Id && received[1].Id != jobs[0].Id {
-		t.Fatal("should've received first jobs")
-	} else if received[0].Id != jobs[1].Id && received[1].Id != jobs[1].Id {
-		t.Fatal("should've received second jobs")
+	} else if received[0].Id != jobs[1].Id || received[1].Id != jobs[0].Id || received[2].Id != jobs[2].Id {
+		t.Fatal("should've received jobs ordered by CreateAt time")
+	} else if received[1].Data["test"] != "data" {
+		t.Fatal("should've received job data field back as saved")
 	}
 }
 
@@ -237,7 +242,7 @@ func TestJobUpdateOptimistically(t *testing.T) {
 	job.LastActivityAt = model.GetMillis()
 	job.Status = model.JOB_STATUS_IN_PROGRESS
 	job.Progress = 50
-	job.Data = map[string]interface{}{
+	job.Data = map[string]string{
 		"Foo": "Bar",
 	}
 
