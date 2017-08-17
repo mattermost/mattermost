@@ -102,7 +102,7 @@ Some corner cases:
     vals, err := client.ZInterStore("out", redis.ZStore{Weights: []int64{2, 3}}, "zset1", "zset2").Result()
 
     EVAL "return {KEYS[1],ARGV[1]}" 1 "key" "hello"
-    vals, err := client.Eval("return {KEYS[1],ARGV[1]}", []string{"key"}, []string{"hello"}).Result()
+    vals, err := client.Eval("return {KEYS[1],ARGV[1]}", []string{"key"}, "hello").Result()
 
 ## Benchmark
 

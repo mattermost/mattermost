@@ -66,7 +66,7 @@ func TestStatsd_Conn(t *testing.T) {
 		if err != nil {
 			t.Fatalf("unexpected err %s", err)
 		}
-		if line != "key.other:2.000000|kv\n" {
+		if line != "gauge_labels.val.label:2.000000|g\n" {
 			t.Fatalf("bad line %s", line)
 		}
 
@@ -74,7 +74,7 @@ func TestStatsd_Conn(t *testing.T) {
 		if err != nil {
 			t.Fatalf("unexpected err %s", err)
 		}
-		if line != "counter.me:3.000000|c\n" {
+		if line != "key.other:3.000000|kv\n" {
 			t.Fatalf("bad line %s", line)
 		}
 
@@ -82,7 +82,31 @@ func TestStatsd_Conn(t *testing.T) {
 		if err != nil {
 			t.Fatalf("unexpected err %s", err)
 		}
-		if line != "sample.slow_thingy:4.000000|ms\n" {
+		if line != "counter.me:4.000000|c\n" {
+			t.Fatalf("bad line %s", line)
+		}
+
+		line, err = reader.ReadString('\n')
+		if err != nil {
+			t.Fatalf("unexpected err %s", err)
+		}
+		if line != "counter_labels.me.label:5.000000|c\n" {
+			t.Fatalf("bad line %s", line)
+		}
+
+		line, err = reader.ReadString('\n')
+		if err != nil {
+			t.Fatalf("unexpected err %s", err)
+		}
+		if line != "sample.slow_thingy:6.000000|ms\n" {
+			t.Fatalf("bad line %s", line)
+		}
+
+		line, err = reader.ReadString('\n')
+		if err != nil {
+			t.Fatalf("unexpected err %s", err)
+		}
+		if line != "sample_labels.slow_thingy.label:7.000000|ms\n" {
 			t.Fatalf("bad line %s", line)
 		}
 
@@ -94,9 +118,12 @@ func TestStatsd_Conn(t *testing.T) {
 	}
 
 	s.SetGauge([]string{"gauge", "val"}, float32(1))
-	s.EmitKey([]string{"key", "other"}, float32(2))
-	s.IncrCounter([]string{"counter", "me"}, float32(3))
-	s.AddSample([]string{"sample", "slow thingy"}, float32(4))
+	s.SetGaugeWithLabels([]string{"gauge_labels", "val"}, float32(2), []Label{{"a", "label"}})
+	s.EmitKey([]string{"key", "other"}, float32(3))
+	s.IncrCounter([]string{"counter", "me"}, float32(4))
+	s.IncrCounterWithLabels([]string{"counter_labels", "me"}, float32(5), []Label{{"a", "label"}})
+	s.AddSample([]string{"sample", "slow thingy"}, float32(6))
+	s.AddSampleWithLabels([]string{"sample_labels", "slow thingy"}, float32(7), []Label{{"a", "label"}})
 
 	select {
 	case <-done:

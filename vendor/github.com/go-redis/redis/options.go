@@ -37,9 +37,11 @@ type Options struct {
 	// Maximum number of retries before giving up.
 	// Default is to not retry failed commands.
 	MaxRetries int
-
+	// Minimum backoff between each retry.
+	// Default is 8 milliseconds; -1 disables backoff.
+	MinRetryBackoff time.Duration
 	// Maximum backoff between each retry.
-	// Default is 512 seconds; -1 disables backoff.
+	// Default is 512 milliseconds; -1 disables backoff.
 	MaxRetryBackoff time.Duration
 
 	// Dial timeout for establishing new connections.
@@ -71,7 +73,7 @@ type Options struct {
 	IdleCheckFrequency time.Duration
 
 	// Enables read only queries on slave nodes.
-	ReadOnly bool
+	readOnly bool
 
 	// TLS Config to use. When set TLS will be negotiated.
 	TLSConfig *tls.Config
@@ -117,6 +119,13 @@ func (opt *Options) init() {
 	}
 	if opt.IdleCheckFrequency == 0 {
 		opt.IdleCheckFrequency = time.Minute
+	}
+
+	switch opt.MinRetryBackoff {
+	case -1:
+		opt.MinRetryBackoff = 0
+	case 0:
+		opt.MinRetryBackoff = 8 * time.Millisecond
 	}
 	switch opt.MaxRetryBackoff {
 	case -1:

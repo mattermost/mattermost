@@ -8,7 +8,6 @@ import (
 	"net/smtp"
 	"reflect"
 	"testing"
-	"time"
 )
 
 const (
@@ -17,14 +16,12 @@ const (
 )
 
 var (
-	testConn    = &net.TCPConn{}
 	testTLSConn = &tls.Conn{}
 	testConfig  = &tls.Config{InsecureSkipVerify: true}
-	testAuth    = smtp.PlainAuth("", testUser, testPwd, testHost)
 )
 
 func TestDialer(t *testing.T) {
-	d := NewDialer(testHost, testPort, "user", "pwd")
+	d := NewPlainDialer(testHost, testPort, "user", "pwd")
 	testSendMail(t, d, []string{
 		"Extension STARTTLS",
 		"StartTLS",
@@ -42,7 +39,7 @@ func TestDialer(t *testing.T) {
 }
 
 func TestDialerSSL(t *testing.T) {
-	d := NewDialer(testHost, testSSLPort, "user", "pwd")
+	d := NewPlainDialer(testHost, testSSLPort, "user", "pwd")
 	testSendMail(t, d, []string{
 		"Extension AUTH",
 		"Auth",
@@ -58,11 +55,9 @@ func TestDialerSSL(t *testing.T) {
 }
 
 func TestDialerConfig(t *testing.T) {
-	d := NewDialer(testHost, testPort, "user", "pwd")
-	d.LocalName = "test"
+	d := NewPlainDialer(testHost, testPort, "user", "pwd")
 	d.TLSConfig = testConfig
 	testSendMail(t, d, []string{
-		"Hello test",
 		"Extension STARTTLS",
 		"StartTLS",
 		"Extension AUTH",
@@ -79,11 +74,9 @@ func TestDialerConfig(t *testing.T) {
 }
 
 func TestDialerSSLConfig(t *testing.T) {
-	d := NewDialer(testHost, testSSLPort, "user", "pwd")
-	d.LocalName = "test"
+	d := NewPlainDialer(testHost, testSSLPort, "user", "pwd")
 	d.TLSConfig = testConfig
 	testSendMail(t, d, []string{
-		"Hello test",
 		"Extension AUTH",
 		"Auth",
 		"Mail " + testFrom,
@@ -116,40 +109,13 @@ func TestDialerNoAuth(t *testing.T) {
 	})
 }
 
-func TestDialerTimeout(t *testing.T) {
-	d := &Dialer{
-		Host: testHost,
-		Port: testPort,
-	}
-	testSendMailTimeout(t, d, []string{
-		"Extension STARTTLS",
-		"StartTLS",
-		"Mail " + testFrom,
-		"Extension STARTTLS",
-		"StartTLS",
-		"Mail " + testFrom,
-		"Rcpt " + testTo1,
-		"Rcpt " + testTo2,
-		"Data",
-		"Write message",
-		"Close writer",
-		"Quit",
-		"Close",
-	})
-}
-
 type mockClient struct {
-	t       *testing.T
-	i       int
-	want    []string
-	addr    string
-	config  *tls.Config
-	timeout bool
-}
-
-func (c *mockClient) Hello(localName string) error {
-	c.do("Hello " + localName)
-	return nil
+	t      *testing.T
+	i      int
+	want   []string
+	addr   string
+	auth   smtp.Auth
+	config *tls.Config
 }
 
 func (c *mockClient) Extension(ext string) (bool, string) {
@@ -164,19 +130,13 @@ func (c *mockClient) StartTLS(config *tls.Config) error {
 }
 
 func (c *mockClient) Auth(a smtp.Auth) error {
-	if !reflect.DeepEqual(a, testAuth) {
-		c.t.Errorf("Invalid auth, got %#v, want %#v", a, testAuth)
-	}
+	assertAuth(c.t, a, c.auth)
 	c.do("Auth")
 	return nil
 }
 
 func (c *mockClient) Mail(from string) error {
 	c.do("Mail " + from)
-	if c.timeout {
-		c.timeout = false
-		return io.EOF
-	}
 	return nil
 }
 
@@ -232,42 +192,32 @@ func (w *mockWriter) Close() error {
 }
 
 func testSendMail(t *testing.T, d *Dialer, want []string) {
-	doTestSendMail(t, d, want, false)
-}
-
-func testSendMailTimeout(t *testing.T, d *Dialer, want []string) {
-	doTestSendMail(t, d, want, true)
-}
-
-func doTestSendMail(t *testing.T, d *Dialer, want []string, timeout bool) {
 	testClient := &mockClient{
-		t:       t,
-		want:    want,
-		addr:    addr(d.Host, d.Port),
-		config:  d.TLSConfig,
-		timeout: timeout,
+		t:      t,
+		want:   want,
+		addr:   addr(d.Host, d.Port),
+		auth:   testAuth,
+		config: d.TLSConfig,
 	}
 
-	netDialTimeout = func(network, address string, d time.Duration) (net.Conn, error) {
+	smtpDial = func(addr string) (smtpClient, error) {
+		assertAddr(t, addr, testClient.addr)
+		return testClient, nil
+	}
+
+	tlsDial = func(network, addr string, config *tls.Config) (*tls.Conn, error) {
 		if network != "tcp" {
 			t.Errorf("Invalid network, got %q, want tcp", network)
 		}
-		if address != testClient.addr {
-			t.Errorf("Invalid address, got %q, want %q",
-				address, testClient.addr)
-		}
-		return testConn, nil
-	}
-
-	tlsClient = func(conn net.Conn, config *tls.Config) *tls.Conn {
-		if conn != testConn {
-			t.Errorf("Invalid conn, got %#v, want %#v", conn, testConn)
-		}
+		assertAddr(t, addr, testClient.addr)
 		assertConfig(t, config, testClient.config)
-		return testTLSConn
+		return testTLSConn, nil
 	}
 
-	smtpNewClient = func(conn net.Conn, host string) (smtpClient, error) {
+	newClient = func(conn net.Conn, host string) (smtpClient, error) {
+		if conn != testTLSConn {
+			t.Error("Invalid TLS connection used")
+		}
 		if host != testHost {
 			t.Errorf("Invalid host, got %q, want %q", host, testHost)
 		}
@@ -276,6 +226,18 @@ func doTestSendMail(t *testing.T, d *Dialer, want []string, timeout bool) {
 
 	if err := d.DialAndSend(getTestMessage()); err != nil {
 		t.Error(err)
+	}
+}
+
+func assertAuth(t *testing.T, got, want smtp.Auth) {
+	if !reflect.DeepEqual(got, want) {
+		t.Errorf("Invalid auth, got %#v, want %#v", got, want)
+	}
+}
+
+func assertAddr(t *testing.T, got, want string) {
+	if got != want {
+		t.Errorf("Invalid addr, got %q, want %q", got, want)
 	}
 }
 

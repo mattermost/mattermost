@@ -30,6 +30,7 @@ func TestDefaultConfig(t *testing.T) {
 		t.Fatalf("bad interval")
 	}
 }
+
 func Test_GlobalMetrics(t *testing.T) {
 	var tests = []struct {
 		desc string
@@ -46,7 +47,7 @@ func Test_GlobalMetrics(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.desc, func(t *testing.T) {
 			s := &MockSink{}
-			globalMetrics.Store(&Metrics{sink: s})
+			globalMetrics.Store(&Metrics{Config: Config{FilterDefault: true}, sink: s})
 			tt.fn(tt.key, tt.val)
 			if got, want := s.keys[0], tt.key; !reflect.DeepEqual(got, want) {
 				t.Fatalf("got key %s want %s", got, want)
@@ -58,9 +59,83 @@ func Test_GlobalMetrics(t *testing.T) {
 	}
 }
 
+func Test_GlobalMetrics_Labels(t *testing.T) {
+	labels := []Label{{"a", "b"}}
+	var tests = []struct {
+		desc   string
+		key    []string
+		val    float32
+		fn     func([]string, float32, []Label)
+		labels []Label
+	}{
+		{"SetGaugeWithLabels", []string{"test"}, 42, SetGaugeWithLabels, labels},
+		{"IncrCounterWithLabels", []string{"test"}, 42, IncrCounterWithLabels, labels},
+		{"AddSampleWithLabels", []string{"test"}, 42, AddSampleWithLabels, labels},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.desc, func(t *testing.T) {
+			s := &MockSink{}
+			globalMetrics.Store(&Metrics{Config: Config{FilterDefault: true}, sink: s})
+			tt.fn(tt.key, tt.val, tt.labels)
+			if got, want := s.keys[0], tt.key; !reflect.DeepEqual(got, want) {
+				t.Fatalf("got key %s want %s", got, want)
+			}
+			if got, want := s.vals[0], tt.val; !reflect.DeepEqual(got, want) {
+				t.Fatalf("got val %s want %s", got, want)
+			}
+			if got, want := s.labels[0], tt.labels; !reflect.DeepEqual(got, want) {
+				t.Fatalf("got val %s want %s", got, want)
+			}
+		})
+	}
+}
+
+func Test_GlobalMetrics_DefaultLabels(t *testing.T) {
+	config := Config{
+		HostName:            "host1",
+		ServiceName:         "redis",
+		EnableHostnameLabel: true,
+		EnableServiceLabel:  true,
+		FilterDefault:       true,
+	}
+	labels := []Label{
+		{"host", config.HostName},
+		{"service", config.ServiceName},
+	}
+	var tests = []struct {
+		desc   string
+		key    []string
+		val    float32
+		fn     func([]string, float32, []Label)
+		labels []Label
+	}{
+		{"SetGaugeWithLabels", []string{"test"}, 42, SetGaugeWithLabels, labels},
+		{"IncrCounterWithLabels", []string{"test"}, 42, IncrCounterWithLabels, labels},
+		{"AddSampleWithLabels", []string{"test"}, 42, AddSampleWithLabels, labels},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.desc, func(t *testing.T) {
+			s := &MockSink{}
+			globalMetrics.Store(&Metrics{Config: config, sink: s})
+			tt.fn(tt.key, tt.val, nil)
+			if got, want := s.keys[0], tt.key; !reflect.DeepEqual(got, want) {
+				t.Fatalf("got key %s want %s", got, want)
+			}
+			if got, want := s.vals[0], tt.val; !reflect.DeepEqual(got, want) {
+				t.Fatalf("got val %s want %s", got, want)
+			}
+			if got, want := s.labels[0], tt.labels; !reflect.DeepEqual(got, want) {
+				t.Fatalf("got val %s want %s", got, want)
+			}
+		})
+	}
+}
+
 func Test_GlobalMetrics_MeasureSince(t *testing.T) {
 	s := &MockSink{}
-	m := &Metrics{sink: s, Config: Config{TimerGranularity: time.Millisecond}}
+	m := &Metrics{sink: s, Config: Config{TimerGranularity: time.Millisecond, FilterDefault: true}}
 	globalMetrics.Store(m)
 
 	k := []string{"test"}
@@ -72,6 +147,34 @@ func Test_GlobalMetrics_MeasureSince(t *testing.T) {
 	}
 	if s.vals[0] > 0.1 {
 		t.Fatalf("val too large %v", s.vals[0])
+	}
+
+	labels := []Label{{"a", "b"}}
+	MeasureSinceWithLabels(k, now, labels)
+	if got, want := s.keys[1], k; !reflect.DeepEqual(got, want) {
+		t.Fatalf("got key %s want %s", got, want)
+	}
+	if s.vals[1] > 0.1 {
+		t.Fatalf("val too large %v", s.vals[0])
+	}
+	if got, want := s.labels[1], labels; !reflect.DeepEqual(got, want) {
+		t.Fatalf("got val %s want %s", got, want)
+	}
+}
+
+func Test_GlobalMetrics_UpdateFilter(t *testing.T) {
+	globalMetrics.Store(&Metrics{Config: Config{
+		AllowedPrefixes: []string{"a"},
+		BlockedPrefixes: []string{"b"},
+	}})
+	UpdateFilter([]string{"c"}, []string{"d"})
+
+	m := globalMetrics.Load().(*Metrics)
+	if m.AllowedPrefixes[0] != "c" {
+		t.Fatalf("bad: %v", m.AllowedPrefixes)
+	}
+	if m.BlockedPrefixes[0] != "d" {
+		t.Fatalf("bad: %v", m.BlockedPrefixes)
 	}
 }
 

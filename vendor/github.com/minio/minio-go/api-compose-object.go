@@ -309,7 +309,7 @@ func (c Client) uploadPartCopy(bucket, object, uploadID string, partNumber int,
 // server-side copying operations.
 func (c Client) ComposeObject(dst DestinationInfo, srcs []SourceInfo) error {
 	if len(srcs) < 1 || len(srcs) > maxPartsCount {
-		return ErrInvalidArgument("There must be as least one and upto 10000 source objects.")
+		return ErrInvalidArgument("There must be as least one and up to 10000 source objects.")
 	}
 
 	srcSizes := make([]int64, len(srcs))

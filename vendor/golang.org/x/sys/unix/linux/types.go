@@ -316,6 +316,8 @@ type IPMreqn C.struct_ip_mreqn
 
 type IPv6Mreq C.struct_ipv6_mreq
 
+type PacketMreq C.struct_packet_mreq
+
 type Msghdr C.struct_msghdr
 
 type Cmsghdr C.struct_cmsghdr
@@ -344,9 +346,11 @@ const (
 	SizeofSockaddrALG       = C.sizeof_struct_sockaddr_alg
 	SizeofSockaddrVM        = C.sizeof_struct_sockaddr_vm
 	SizeofLinger            = C.sizeof_struct_linger
+	SizeofIovec             = C.sizeof_struct_iovec
 	SizeofIPMreq            = C.sizeof_struct_ip_mreq
 	SizeofIPMreqn           = C.sizeof_struct_ip_mreqn
 	SizeofIPv6Mreq          = C.sizeof_struct_ipv6_mreq
+	SizeofPacketMreq        = C.sizeof_struct_packet_mreq
 	SizeofMsghdr            = C.sizeof_struct_msghdr
 	SizeofCmsghdr           = C.sizeof_struct_cmsghdr
 	SizeofInet4Pktinfo      = C.sizeof_struct_in_pktinfo
