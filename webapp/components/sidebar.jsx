@@ -779,7 +779,7 @@ export default class Sidebar extends React.Component {
                 <a
                     className='add-channel-btn'
                     href='#'
-                    onClick={this.showMoreDirectChannelsModal}
+                    onClick={this.handleOpenMoreDirectChannelsModal}
                 >
                     {'+'}
                 </a>
