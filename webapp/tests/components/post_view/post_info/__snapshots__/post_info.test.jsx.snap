@@ -1,0 +1,488 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/post_view/PostInfo should match snapshot 1`] = `
+<div
+  className="post__header--info"
+>
+  <div
+    className="col"
+  >
+    <PostTime
+      eventTime={1502715365009}
+      postId="e584uzbwwpny9kengqayx5ayzw"
+      useMilitaryTime={false}
+    />
+    <PostFlagIcon
+      idCount={-1}
+      idPrefix="centerPostFlag"
+      isEphemeral={false}
+      isFlagged={false}
+      postId="e584uzbwwpny9kengqayx5ayzw"
+    />
+  </div>
+  <div
+    className="col col__reply"
+  >
+    <Connect(DotMenu)
+      commentCount={0}
+      handleCommentClick={[Function]}
+      handleDropdownOpened={[Function]}
+      idCount={-1}
+      idPrefix="center"
+      isFlagged={false}
+      post={
+        Object {
+          "channel_id": "g6139tbospd18cmxroesdk3kkc",
+          "create_at": 1502715365009,
+          "delete_at": 0,
+          "edit_at": 1502715372443,
+          "hashtags": "",
+          "id": "e584uzbwwpny9kengqayx5ayzw",
+          "is_pinned": false,
+          "message": "post message",
+          "original_id": "",
+          "parent_id": "",
+          "pending_post_id": "",
+          "props": Object {},
+          "root_id": "",
+          "type": "",
+          "update_at": 1502715372443,
+          "user_id": "b4pfxi8sn78y8yq7phzxxfor7h",
+        }
+      }
+    />
+    <span>
+      <EmojiPickerOverlay
+        container={[Function]}
+        onEmojiClick={[Function]}
+        onHide={[Function]}
+        rightOffset={7}
+        show={false}
+        spaceRequiredAbove={422}
+        spaceRequiredBelow={436}
+        target={[Function]}
+      />
+      <a
+        className="reacticon__container"
+        href="#"
+        onClick={[Function]}
+      >
+        <i
+          className="fa fa-smile-o"
+        />
+      </a>
+    </span>
+    <CommentIcon
+      commentCount={0}
+      handleCommentClick={[Function]}
+      id="g6139tbospd18cmxroesdk3kkc_e584uzbwwpny9kengqayx5ayzw"
+      idCount={-1}
+      idPrefix="commentIcon"
+      searchStyle=""
+    />
+  </div>
+</div>
+`;
+
+exports[`components/post_view/PostInfo should match snapshot, compact display 1`] = `
+<div
+  className="post__header--info"
+>
+  <div
+    className="col"
+  >
+    <PostTime
+      eventTime={1502715365009}
+      postId="e584uzbwwpny9kengqayx5ayzw"
+      useMilitaryTime={false}
+    />
+    <PostFlagIcon
+      idCount={-1}
+      idPrefix="centerPostFlag"
+      isEphemeral={false}
+      isFlagged={false}
+      postId="e584uzbwwpny9kengqayx5ayzw"
+    />
+  </div>
+  <div
+    className="col col__reply"
+  >
+    <Connect(DotMenu)
+      commentCount={0}
+      handleCommentClick={[Function]}
+      handleDropdownOpened={[Function]}
+      idCount={-1}
+      idPrefix="center"
+      isFlagged={false}
+      post={
+        Object {
+          "channel_id": "g6139tbospd18cmxroesdk3kkc",
+          "create_at": 1502715365009,
+          "delete_at": 0,
+          "edit_at": 1502715372443,
+          "hashtags": "",
+          "id": "e584uzbwwpny9kengqayx5ayzw",
+          "is_pinned": false,
+          "message": "post message",
+          "original_id": "",
+          "parent_id": "",
+          "pending_post_id": "",
+          "props": Object {},
+          "root_id": "",
+          "type": "",
+          "update_at": 1502715372443,
+          "user_id": "b4pfxi8sn78y8yq7phzxxfor7h",
+        }
+      }
+    />
+    <span>
+      <EmojiPickerOverlay
+        container={[Function]}
+        onEmojiClick={[Function]}
+        onHide={[Function]}
+        rightOffset={7}
+        show={false}
+        spaceRequiredAbove={422}
+        spaceRequiredBelow={436}
+        target={[Function]}
+      />
+      <a
+        className="reacticon__container"
+        href="#"
+        onClick={[Function]}
+      >
+        <i
+          className="fa fa-smile-o"
+        />
+      </a>
+    </span>
+    <CommentIcon
+      commentCount={0}
+      handleCommentClick={[Function]}
+      id="g6139tbospd18cmxroesdk3kkc_e584uzbwwpny9kengqayx5ayzw"
+      idCount={-1}
+      idPrefix="commentIcon"
+      searchStyle=""
+    />
+  </div>
+</div>
+`;
+
+exports[`components/post_view/PostInfo should match snapshot, ephemeral deleted post 1`] = `
+<div
+  className="post__header--info"
+>
+  <div
+    className="col"
+  >
+    <PostTime
+      eventTime={1502715365009}
+      postId="e584uzbwwpny9kengqayx5ayzw"
+      useMilitaryTime={false}
+    />
+    <PostFlagIcon
+      idCount={-1}
+      idPrefix="centerPostFlag"
+      isEphemeral={true}
+      isFlagged={true}
+      postId="e584uzbwwpny9kengqayx5ayzw"
+    />
+  </div>
+  <div
+    className="col col__remove"
+  >
+    <a
+      className="post__remove theme"
+      href="#"
+      onClick={[Function]}
+      type="button"
+    >
+      ×
+    </a>
+  </div>
+</div>
+`;
+
+exports[`components/post_view/PostInfo should match snapshot, ephemeral post 1`] = `
+<div
+  className="post__header--info"
+>
+  <div
+    className="col"
+  >
+    <PostTime
+      eventTime={1502715365009}
+      postId="e584uzbwwpny9kengqayx5ayzw"
+      useMilitaryTime={false}
+    />
+    <PostFlagIcon
+      idCount={-1}
+      idPrefix="centerPostFlag"
+      isEphemeral={true}
+      isFlagged={true}
+      postId="e584uzbwwpny9kengqayx5ayzw"
+    />
+    <span
+      className="post__visibility"
+    >
+      <FormattedMessage
+        defaultMessage="(Only visible to you)"
+        id="post_info.message.visible"
+        values={Object {}}
+      />
+    </span>
+  </div>
+  <div
+    className="col col__remove"
+  >
+    <a
+      className="post__remove theme"
+      href="#"
+      onClick={[Function]}
+      type="button"
+    >
+      ×
+    </a>
+  </div>
+</div>
+`;
+
+exports[`components/post_view/PostInfo should match snapshot, flagged post 1`] = `
+<div
+  className="post__header--info"
+>
+  <div
+    className="col"
+  >
+    <PostTime
+      eventTime={1502715365009}
+      postId="e584uzbwwpny9kengqayx5ayzw"
+      useMilitaryTime={false}
+    />
+    <PostFlagIcon
+      idCount={-1}
+      idPrefix="centerPostFlag"
+      isEphemeral={false}
+      isFlagged={true}
+      postId="e584uzbwwpny9kengqayx5ayzw"
+    />
+  </div>
+  <div
+    className="col col__reply"
+  >
+    <Connect(DotMenu)
+      commentCount={0}
+      handleCommentClick={[Function]}
+      handleDropdownOpened={[Function]}
+      idCount={-1}
+      idPrefix="center"
+      isFlagged={true}
+      post={
+        Object {
+          "channel_id": "g6139tbospd18cmxroesdk3kkc",
+          "create_at": 1502715365009,
+          "delete_at": 0,
+          "edit_at": 1502715372443,
+          "hashtags": "",
+          "id": "e584uzbwwpny9kengqayx5ayzw",
+          "is_pinned": false,
+          "message": "post message",
+          "original_id": "",
+          "parent_id": "",
+          "pending_post_id": "",
+          "props": Object {},
+          "root_id": "",
+          "type": "",
+          "update_at": 1502715372443,
+          "user_id": "b4pfxi8sn78y8yq7phzxxfor7h",
+        }
+      }
+    />
+    <span>
+      <EmojiPickerOverlay
+        container={[Function]}
+        onEmojiClick={[Function]}
+        onHide={[Function]}
+        rightOffset={7}
+        show={false}
+        spaceRequiredAbove={422}
+        spaceRequiredBelow={436}
+        target={[Function]}
+      />
+      <a
+        className="reacticon__container"
+        href="#"
+        onClick={[Function]}
+      >
+        <i
+          className="fa fa-smile-o"
+        />
+      </a>
+    </span>
+    <CommentIcon
+      commentCount={0}
+      handleCommentClick={[Function]}
+      id="g6139tbospd18cmxroesdk3kkc_e584uzbwwpny9kengqayx5ayzw"
+      idCount={-1}
+      idPrefix="commentIcon"
+      searchStyle=""
+    />
+  </div>
+</div>
+`;
+
+exports[`components/post_view/PostInfo should match snapshot, military time 1`] = `
+<div
+  className="post__header--info"
+>
+  <div
+    className="col"
+  >
+    <PostTime
+      eventTime={1502715365009}
+      postId="e584uzbwwpny9kengqayx5ayzw"
+      useMilitaryTime={true}
+    />
+    <PostFlagIcon
+      idCount={-1}
+      idPrefix="centerPostFlag"
+      isEphemeral={false}
+      isFlagged={false}
+      postId="e584uzbwwpny9kengqayx5ayzw"
+    />
+  </div>
+  <div
+    className="col col__reply"
+  >
+    <Connect(DotMenu)
+      commentCount={0}
+      handleCommentClick={[Function]}
+      handleDropdownOpened={[Function]}
+      idCount={-1}
+      idPrefix="center"
+      isFlagged={false}
+      post={
+        Object {
+          "channel_id": "g6139tbospd18cmxroesdk3kkc",
+          "create_at": 1502715365009,
+          "delete_at": 0,
+          "edit_at": 1502715372443,
+          "hashtags": "",
+          "id": "e584uzbwwpny9kengqayx5ayzw",
+          "is_pinned": false,
+          "message": "post message",
+          "original_id": "",
+          "parent_id": "",
+          "pending_post_id": "",
+          "props": Object {},
+          "root_id": "",
+          "type": "",
+          "update_at": 1502715372443,
+          "user_id": "b4pfxi8sn78y8yq7phzxxfor7h",
+        }
+      }
+    />
+    <CommentIcon
+      commentCount={0}
+      handleCommentClick={[Function]}
+      id="g6139tbospd18cmxroesdk3kkc_e584uzbwwpny9kengqayx5ayzw"
+      idCount={-1}
+      idPrefix="commentIcon"
+      searchStyle=""
+    />
+  </div>
+</div>
+`;
+
+exports[`components/post_view/PostInfo should match snapshot, pinned post 1`] = `
+<div
+  className="post__header--info"
+>
+  <div
+    className="col"
+  >
+    <PostTime
+      eventTime={1502715365009}
+      postId="e584uzbwwpny9kengqayx5ayzw"
+      useMilitaryTime={false}
+    />
+    <span
+      className="post__pinned-badge"
+    >
+      <FormattedMessage
+        defaultMessage="Pinned"
+        id="post_info.pinned"
+        values={Object {}}
+      />
+    </span>
+    <PostFlagIcon
+      idCount={-1}
+      idPrefix="centerPostFlag"
+      isEphemeral={false}
+      isFlagged={true}
+      postId="e584uzbwwpny9kengqayx5ayzw"
+    />
+  </div>
+  <div
+    className="col col__reply"
+  >
+    <Connect(DotMenu)
+      commentCount={0}
+      handleCommentClick={[Function]}
+      handleDropdownOpened={[Function]}
+      idCount={-1}
+      idPrefix="center"
+      isFlagged={true}
+      post={
+        Object {
+          "channel_id": "g6139tbospd18cmxroesdk3kkc",
+          "create_at": 1502715365009,
+          "delete_at": 0,
+          "edit_at": 1502715372443,
+          "hashtags": "",
+          "id": "e584uzbwwpny9kengqayx5ayzw",
+          "is_pinned": true,
+          "message": "post message",
+          "original_id": "",
+          "parent_id": "",
+          "pending_post_id": "",
+          "props": Object {},
+          "root_id": "",
+          "type": "",
+          "update_at": 1502715372443,
+          "user_id": "b4pfxi8sn78y8yq7phzxxfor7h",
+        }
+      }
+    />
+    <span>
+      <EmojiPickerOverlay
+        container={[Function]}
+        onEmojiClick={[Function]}
+        onHide={[Function]}
+        rightOffset={7}
+        show={false}
+        spaceRequiredAbove={422}
+        spaceRequiredBelow={436}
+        target={[Function]}
+      />
+      <a
+        className="reacticon__container"
+        href="#"
+        onClick={[Function]}
+      >
+        <i
+          className="fa fa-smile-o"
+        />
+      </a>
+    </span>
+    <CommentIcon
+      commentCount={0}
+      handleCommentClick={[Function]}
+      id="g6139tbospd18cmxroesdk3kkc_e584uzbwwpny9kengqayx5ayzw"
+      idCount={-1}
+      idPrefix="commentIcon"
+      searchStyle=""
+    />
+  </div>
+</div>
+`;
