@@ -123,8 +123,10 @@
 
             input {
                 @include opacity(0);
+                cursor: pointer;
                 height: 100%;
                 left: 0;
+                padding-left: 100%;
                 position: absolute;
                 top: 0;
                 width: 100%;
