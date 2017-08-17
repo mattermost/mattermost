@@ -733,6 +733,14 @@
             padding-top: 0;
         }
 
+        .attachment {
+            .attachment__body__wrap {
+                .btn-close {
+                    left: -2px;
+                }
+            }
+        }
+
         .status-wrapper {
             cursor: auto;
             height: 14px;
