@@ -1505,6 +1505,13 @@
         margin-left: 5px;
         vertical-align: top;
         visibility: hidden;
+
+        svg {
+            height: 14px;
+            position: relative;
+            top: 1px;
+            width: 14px;
+        }
     }
 
     .flag-icon__container {
