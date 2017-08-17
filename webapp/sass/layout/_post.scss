@@ -942,6 +942,14 @@
                 border-color: $yellow;
             }
         }
+
+        .attachment {
+            .attachment__body__wrap {
+                .btn-close {
+                    left: -11px;
+                }
+            }
+        }
     }
 
     &.same--root {
