@@ -66,8 +66,8 @@ export default class ClientVersionsSettings extends AdminSettings {
                     placeholder={Utils.localizeMessage('admin.client_versions.androidLatestVersion', 'X.X.X')}
                     helpText={
                         <FormattedMessage
-                            id='admin.client_versions.androidLatestVersion'
-                            defaultMessage='Currnet android version'
+                            id='admin.client_versions.androidLatestVersionHelp'
+                            defaultMessage='The latest released Android version'
                         />
                     }
                     value={this.state.androidLatestVersion}
@@ -84,8 +84,8 @@ export default class ClientVersionsSettings extends AdminSettings {
                     placeholder={Utils.localizeMessage('admin.client_versions.androidMinVersion', 'X.X.X')}
                     helpText={
                         <FormattedMessage
-                            id='admin.client_versions.androidMinVersion'
-                            defaultMessage='The minimum compliant andriod version'
+                            id='admin.client_versions.androidMinVersionHelp'
+                            defaultMessage='The minimum compliant Android version'
                         />
                     }
                     value={this.state.androidMinVersion}
@@ -102,8 +102,8 @@ export default class ClientVersionsSettings extends AdminSettings {
                     placeholder={Utils.localizeMessage('admin.client_versions.desktopLatestVersion', 'X.X.X')}
                     helpText={
                         <FormattedMessage
-                            id='admin.client_versions.desktopLatestVersion'
-                            defaultMessage='Currnet desktop version'
+                            id='admin.client_versions.desktopLatestVersionHelp'
+                            defaultMessage='The latest released Desktop version'
                         />
                     }
                     value={this.state.desktopLatestVersion}
@@ -120,8 +120,8 @@ export default class ClientVersionsSettings extends AdminSettings {
                     placeholder={Utils.localizeMessage('admin.client_versions.desktopMinVersion', 'X.X.X')}
                     helpText={
                         <FormattedMessage
-                            id='admin.client_versions.desktopMinVersion'
-                            defaultMessage='The minimum compliant desktop version'
+                            id='admin.client_versions.desktopMinVersionHelp'
+                            defaultMessage='The minimum compliant Desktop version'
                         />
                     }
                     value={this.state.desktopMinVersion}
@@ -138,8 +138,8 @@ export default class ClientVersionsSettings extends AdminSettings {
                     placeholder={Utils.localizeMessage('admin.client_versions.iosLatestVersion', 'X.X.X')}
                     helpText={
                         <FormattedMessage
-                            id='admin.client_versions.iosLatestVersion'
-                            defaultMessage='Latest IOS version'
+                            id='admin.client_versions.iosLatestVersionHelp'
+                            defaultMessage='The latest released IOS version'
                         />
                     }
                     value={this.state.iosLatestVersion}
@@ -156,7 +156,7 @@ export default class ClientVersionsSettings extends AdminSettings {
                     placeholder={Utils.localizeMessage('admin.client_versions.iosMinVersion', 'X.X.X')}
                     helpText={
                         <FormattedMessage
-                            id='admin.client_versions.iosMinVersion'
+                            id='admin.client_versions.iosMinVersionHelp'
                             defaultMessage='The minimum compliant IOS version'
                         />
                     }
