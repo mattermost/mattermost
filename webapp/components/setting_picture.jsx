@@ -138,6 +138,8 @@ export default class SettingPicture extends Component {
         }
 
         let confirmButton;
+        let selectButtonSpinner;
+        let fileInputDisabled = false;
         if (this.props.loadingPicture) {
             confirmButton = (
                 <img
@@ -145,6 +147,10 @@ export default class SettingPicture extends Component {
                     src={loadingGif}
                 />
             );
+            selectButtonSpinner = (
+                <span className='icon fa fa-refresh icon--rotate'/>
+            );
+            fileInputDisabled = true;
         } else {
             let confirmButtonClass = 'btn btn-sm';
             if (this.props.submitActive) {
@@ -190,7 +196,11 @@ export default class SettingPicture extends Component {
                                 errors={[this.props.clientError, this.props.serverError]}
                                 type={'modal'}
                             />
-                            <span className='btn btn-sm btn-primary btn-file sel-btn'>
+                            <button
+                                className='btn btn-sm btn-primary btn-file sel-btn'
+                                disabled={fileInputDisabled}
+                            >
+                                {selectButtonSpinner}&nbsp;
                                 <FormattedMessage
                                     id='setting_picture.select'
                                     defaultMessage='Select'
@@ -200,8 +210,9 @@ export default class SettingPicture extends Component {
                                     accept='.jpg,.png,.bmp'
                                     type='file'
                                     onChange={this.props.onFileChange}
+                                    disabled={fileInputDisabled}
                                 />
-                            </span>
+                            </button>
                             {confirmButton}
                             <a
                                 className='btn btn-sm theme'
