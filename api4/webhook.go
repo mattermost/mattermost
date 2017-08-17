@@ -31,6 +31,7 @@ func InitWebhook() {
 	BaseRoutes.OutgoingHook.Handle("", ApiSessionRequired(deleteOutgoingHook)).Methods("DELETE")
 	BaseRoutes.OutgoingHook.Handle("/regen_token", ApiSessionRequired(regenOutgoingHookToken)).Methods("POST")
 
+	BaseRoutes.Root.Handle("/hooks/commands/{id:[A-Za-z0-9]+}", ApiHandler(commandWebhook)).Methods("POST")
 	BaseRoutes.Root.Handle("/hooks/{id:[A-Za-z0-9]+}", ApiHandler(incomingWebhook)).Methods("POST")
 
 	// Old endpoint for backwards compatibility
@@ -478,6 +479,22 @@ func incomingWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 	parsedRequest := model.IncomingWebhookRequestFromJson(payload)
 
 	err := app.HandleIncomingWebhook(id, parsedRequest)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	w.Header().Set("Content-Type", "text/plain")
+	w.Write([]byte("ok"))
+}
+
+func commandWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	id := params["id"]
+
+	response := model.CommandResponseFromHTTPBody(r.Header.Get("Content-Type"), r.Body)
+
+	err := app.HandleCommandWebhook(id, response)
 	if err != nil {
 		c.Err = err
 		return
