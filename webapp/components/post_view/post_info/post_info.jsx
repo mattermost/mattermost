@@ -11,6 +11,7 @@ import * as Utils from 'utils/utils.jsx';
 import * as PostUtils from 'utils/post_utils.jsx';
 import {emitEmojiPosted} from 'actions/post_actions.jsx';
 import Constants from 'utils/constants.jsx';
+import {Posts} from 'mattermost-redux/constants';
 
 import React from 'react';
 import PropTypes from 'prop-types';
@@ -215,7 +216,7 @@ export default class PostInfo extends React.PureComponent {
         }
 
         let visibleMessage;
-        if (isEphemeral && !this.props.compactDisplay) {
+        if (isEphemeral && !this.props.compactDisplay && post.state !== Posts.POST_DELETED) {
             visibleMessage = (
                 <span className='post__visibility'>
                     <FormattedMessage
