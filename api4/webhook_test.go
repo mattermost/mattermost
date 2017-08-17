@@ -924,7 +924,7 @@ func TestCommandWebhooks(t *testing.T) {
 	}
 
 	for i := 0; i < 5; i++ {
-		if _, err := http.Post(Client.Url+"/hooks/commands/"+hook.Id, "application/json", bytes.NewBufferString("{\"text\":\"this is a test\"}")); err != nil {
+		if resp, err := http.Post(Client.Url+"/hooks/commands/"+hook.Id, "application/json", bytes.NewBufferString("{\"text\":\"this is a test\"}")); err != nil || resp.StatusCode != http.StatusOK {
 			t.Fatal(err)
 		}
 	}
