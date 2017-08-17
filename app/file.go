@@ -117,7 +117,7 @@ func MoveFile(oldPath, newPath string) *model.AppError {
 		signV2 := *utils.Cfg.FileSettings.AmazonS3SignV2
 		region := utils.Cfg.FileSettings.AmazonS3Region
 		encrypt := false
-		if *utils.Cfg.FileSettings.AmazonS3SSE && utils.IsLicensed && *utils.License.Features.Compliance {
+		if *utils.Cfg.FileSettings.AmazonS3SSE && utils.IsLicensed() && *utils.License().Features.Compliance {
 			encrypt = true
 		}
 		s3Clnt, err := s3New(endpoint, accessKey, secretKey, secure, signV2, region)
@@ -161,7 +161,7 @@ func WriteFile(f []byte, path string) *model.AppError {
 		signV2 := *utils.Cfg.FileSettings.AmazonS3SignV2
 		region := utils.Cfg.FileSettings.AmazonS3Region
 		encrypt := false
-		if *utils.Cfg.FileSettings.AmazonS3SSE && utils.IsLicensed && *utils.License.Features.Compliance {
+		if *utils.Cfg.FileSettings.AmazonS3SSE && utils.IsLicensed() && *utils.License().Features.Compliance {
 			encrypt = true
 		}
 
