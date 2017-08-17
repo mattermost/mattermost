@@ -741,6 +741,16 @@
             }
         }
 
+        &.post--comment {
+            .attachment {
+                .attachment__body__wrap {
+                    .btn-close {
+                        left: -13px;
+                    }
+                }
+            }
+        }
+
         .status-wrapper {
             cursor: auto;
             height: 14px;
