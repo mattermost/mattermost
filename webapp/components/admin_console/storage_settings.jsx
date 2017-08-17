@@ -7,7 +7,7 @@ import * as Utils from 'utils/utils.jsx';
 
 import AdminSettings from './admin_settings.jsx';
 import DropdownSetting from './dropdown_setting.jsx';
-import {FormattedMessage, FormattedHTMLMessage} from 'react-intl';
+import { FormattedMessage, FormattedHTMLMessage } from 'react-intl';
 import SettingsGroup from './settings_group.jsx';
 import TextSetting from './text_setting.jsx';
 import BooleanSetting from './boolean_setting.jsx';
@@ -35,6 +35,7 @@ export default class StorageSettings extends AdminSettings {
         config.FileSettings.AmazonS3SecretAccessKey = this.state.amazonS3SecretAccessKey;
         config.FileSettings.AmazonS3Bucket = this.state.amazonS3Bucket;
         config.FileSettings.AmazonS3Endpoint = this.state.amazonS3Endpoint;
+        config.FileSettings.AmazonS3IamProfile = this.state.AmazonS3IamProfile;
         config.FileSettings.AmazonS3SSL = this.state.amazonS3SSL;
         config.FileSettings.AmazonS3SSE = this.state.amazonS3SSE;
 
@@ -49,6 +50,7 @@ export default class StorageSettings extends AdminSettings {
             maxFileSize: config.FileSettings.MaxFileSize / 1024 / 1024,
             driverName: config.FileSettings.DriverName,
             directory: config.FileSettings.Directory,
+            AmazonS3IamProfile: config.FileSettings.AmazonS3IamProfile,
             amazonS3AccessKeyId: config.FileSettings.AmazonS3AccessKeyId,
             amazonS3SecretAccessKey: config.FileSettings.AmazonS3SecretAccessKey,
             amazonS3Bucket: config.FileSettings.AmazonS3Bucket,
@@ -120,8 +122,8 @@ export default class StorageSettings extends AdminSettings {
                 <DropdownSetting
                     id='driverName'
                     values={[
-                        {value: DRIVER_LOCAL, text: Utils.localizeMessage('admin.image.storeLocal', 'Local File System')},
-                        {value: DRIVER_S3, text: Utils.localizeMessage('admin.image.storeAmazonS3', 'Amazon S3')}
+                        { value: DRIVER_LOCAL, text: Utils.localizeMessage('admin.image.storeLocal', 'Local File System') },
+                        { value: DRIVER_S3, text: Utils.localizeMessage('admin.image.storeAmazonS3', 'Amazon S3') }
                     ]}
                     label={
                         <FormattedMessage
@@ -134,11 +136,11 @@ export default class StorageSettings extends AdminSettings {
                             id='admin.image.storeDescription'
                             defaultMessage='Storage system where files and image attachments are saved.<br /><br />
                             Selecting "Amazon S3" enables fields to enter your Amazon credentials and bucket details.<br /><br />
-                            Selecting "Local File System" enables the field to specify a local file directory.'
+                Selecting "Local File System" enables the field to specify a local file directory.'
                         />
                     }
                     value={this.state.driverName}
-                    onChange={this.handleChange}
+                onChange={this.handleChange}
                 />
                 <TextSetting
                     id='directory'
@@ -159,6 +161,26 @@ export default class StorageSettings extends AdminSettings {
                     onChange={this.handleChange}
                     disabled={this.state.driverName !== DRIVER_LOCAL}
                 />
+                <BooleanSetting
+                    id='AmazonS3IamProfile'
+                    label={
+                        <FormattedMessage
+                            id='admin.file.AmazonS3IamProfileTitle'
+                            defaultMessage='Use an EC2 instance profile to authenticate:'
+                        />
+                    }
+                    placeholder={Utils.localizeMessage('admin.file.AmazonS3IamProfileExample', 'Ex "false"')}
+                    helpText={
+                        <FormattedMessage
+                            id='admin.file.AmazonS3IamProfileDescription'
+                            defaultMessage='When false, Access Key and Secret Key Must be provided.  When true, use the EC2 instance profile (IAM) to authenticate'
+                        />
+                    }
+                    value={this.state.AmazonS3IamProfile}
+                    onChange={this.handleChange}
+                    disabled={this.state.driverName !== DRIVER_S3}
+                />
+
                 <TextSetting
                     id='amazonS3AccessKeyId'
                     label={
@@ -176,7 +198,7 @@ export default class StorageSettings extends AdminSettings {
                     }
                     value={this.state.amazonS3AccessKeyId}
                     onChange={this.handleChange}
-                    disabled={this.state.driverName !== DRIVER_S3}
+                    disabled={this.state.driverName !== DRIVER_S3 || this.state.AmazonS3IamProfile}
                 />
                 <TextSetting
                     id='amazonS3SecretAccessKey'
@@ -195,7 +217,7 @@ export default class StorageSettings extends AdminSettings {
                     }
                     value={this.state.amazonS3SecretAccessKey}
                     onChange={this.handleChange}
-                    disabled={this.state.driverName !== DRIVER_S3}
+                    disabled={this.state.driverName !== DRIVER_S3 || this.state.AmazonS3IamProfile}
                 />
                 <TextSetting
                     id='amazonS3Bucket'

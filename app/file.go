@@ -66,7 +66,9 @@ const (
 // disables automatic region lookup.
 func s3New(endpoint, accessKey, secretKey string, secure bool, signV2 bool, region string) (*s3.Client, error) {
 	var creds *credentials.Credentials
-	if signV2 {
+	if *utils.Cfg.FileSettings.AmazonS3IamProfile {
+		creds = credentials.NewIAM("")
+	} else if signV2 {
 		creds = credentials.NewStatic(accessKey, secretKey, "", credentials.SignatureV2)
 	} else {
 		creds = credentials.NewStatic(accessKey, secretKey, "", credentials.SignatureV4)

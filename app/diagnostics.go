@@ -275,6 +275,7 @@ func trackConfig() {
 	SendDiagnostic(TRACK_CONFIG_FILE, map[string]interface{}{
 		"enable_public_links":     utils.Cfg.FileSettings.EnablePublicLink,
 		"driver_name":             utils.Cfg.FileSettings.DriverName,
+		"amazon_s3_iam_profile":	 *utils.Cfg.FileSettings.AmazonS3IamProfile,
 		"amazon_s3_ssl":           *utils.Cfg.FileSettings.AmazonS3SSL,
 		"amazon_s3_sse":           *utils.Cfg.FileSettings.AmazonS3SSE,
 		"amazon_s3_signv2":        *utils.Cfg.FileSettings.AmazonS3SignV2,
