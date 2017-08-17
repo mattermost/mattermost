@@ -258,10 +258,9 @@
 
     .post-list-holder-by-time {
         -webkit-overflow-scrolling: touch;
-        background: #ffffff;
         height: 100%;
         overflow-y: scroll;
-        padding: 1em 0 0;
+        padding: 1em 0 .5em;
         position: absolute;
         width: 100%;
 
@@ -393,7 +392,7 @@
 
     form {
         margin: 0 auto;
-        padding: .5em 15px 0;
+        padding: 0 15px 0;
         width: 100%;
     }
 
