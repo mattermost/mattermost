@@ -16,16 +16,15 @@ type Workers struct {
 	startOnce sync.Once
 	watcher   *Watcher
 
-	DataRetention         model.Worker
-	ElasticsearchIndexing model.Worker
+	DataRetention            model.Worker
+	ElasticsearchIndexing    model.Worker
+	ElasticsearchAggregation model.Worker
 
 	listenerId string
 }
 
 func InitWorkers() *Workers {
-	workers := &Workers{
-	// 	SearchIndexing: MakeTestJob(s, "SearchIndexing"),
-	}
+	workers := &Workers{}
 	workers.watcher = MakeWatcher(workers)
 
 	if dataRetentionInterface := ejobs.GetDataRetentionInterface(); dataRetentionInterface != nil {
@@ -34,6 +33,10 @@ func InitWorkers() *Workers {
 
 	if elasticsearchIndexerInterface := ejobs.GetElasticsearchIndexerInterface(); elasticsearchIndexerInterface != nil {
 		workers.ElasticsearchIndexing = elasticsearchIndexerInterface.MakeWorker()
+	}
+
+	if elasticsearchAggregatorInterface := ejobs.GetElasticsearchAggregatorInterface(); elasticsearchAggregatorInterface != nil {
+		workers.ElasticsearchAggregation = elasticsearchAggregatorInterface.MakeWorker()
 	}
 
 	return workers
@@ -49,6 +52,10 @@ func (workers *Workers) Start() *Workers {
 
 		if workers.ElasticsearchIndexing != nil && *utils.Cfg.ElasticsearchSettings.EnableIndexing {
 			go workers.ElasticsearchIndexing.Run()
+		}
+
+		if workers.ElasticsearchAggregation != nil && *utils.Cfg.ElasticsearchSettings.EnableIndexing {
+			go workers.ElasticsearchAggregation.Run()
 		}
 
 		go workers.watcher.Start()
@@ -75,6 +82,14 @@ func (workers *Workers) handleConfigChange(oldConfig *model.Config, newConfig *m
 			workers.ElasticsearchIndexing.Stop()
 		}
 	}
+
+	if workers.ElasticsearchAggregation != nil {
+		if !*oldConfig.ElasticsearchSettings.EnableIndexing && *newConfig.ElasticsearchSettings.EnableIndexing {
+			go workers.ElasticsearchAggregation.Run()
+		} else if *oldConfig.ElasticsearchSettings.EnableIndexing && !*newConfig.ElasticsearchSettings.EnableIndexing {
+			workers.ElasticsearchAggregation.Stop()
+		}
+	}
 }
 
 func (workers *Workers) Stop() *Workers {
@@ -88,6 +103,10 @@ func (workers *Workers) Stop() *Workers {
 
 	if workers.ElasticsearchIndexing != nil && *utils.Cfg.ElasticsearchSettings.EnableIndexing {
 		workers.ElasticsearchIndexing.Stop()
+	}
+
+	if workers.ElasticsearchAggregation != nil && *utils.Cfg.ElasticsearchSettings.EnableIndexing {
+		workers.ElasticsearchAggregation.Stop()
 	}
 
 	l4g.Info("Stopped workers")
