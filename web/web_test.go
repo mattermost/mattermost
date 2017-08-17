@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/mattermost/platform/api"
+	"github.com/mattermost/platform/api4"
 	"github.com/mattermost/platform/app"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/store"
@@ -26,6 +27,7 @@ func Setup() {
 		app.InitStores()
 		api.InitRouter()
 		app.StartServer()
+		api4.InitApi(false)
 		api.InitApi()
 		InitWeb()
 		URL = "http://localhost" + utils.Cfg.ServiceSettings.ListenAddress

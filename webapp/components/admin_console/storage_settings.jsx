@@ -68,6 +68,7 @@ export default class StorageSettings extends AdminSettings {
     }
 
     renderSettings() {
+        let amazonSSEComp;
         const mobileUploadDownloadSettings = [];
         if (window.mm_license.IsLicensed === 'true' && window.mm_license.Compliance === 'true') {
             mobileUploadDownloadSettings.push(
@@ -113,6 +114,29 @@ export default class StorageSettings extends AdminSettings {
                     disabled={!this.state.enableFileAttachments}
                 />
             );
+
+            amazonSSEComp =
+                (
+                    <BooleanSetting
+                        id='amazonS3SSE'
+                        label={
+                            <FormattedMessage
+                                id='admin.image.amazonS3SSETitle'
+                                defaultMessage='Enable Server-Side Encryption for Amazon S3:'
+                            />
+                        }
+                        placeholder={Utils.localizeMessage('admin.image.amazonS3SSEExample', 'Ex "false"')}
+                        helpText={
+                            <FormattedHTMLMessage
+                                id='admin.image.amazonS3SSEDescription'
+                                defaultMessage='When true, encrypt files in Amazon S3 using server-side encryption with Amazon S3-managed keys. See <a href="https://about.mattermost.com/default-server-side-encryption" target="_blank">documentation</a> to learn more.'
+                            />
+                        }
+                        value={this.state.amazonS3SSE}
+                        onChange={this.handleChange}
+                        disabled={this.state.driverName !== DRIVER_S3}
+                    />
+                );
         }
 
         return (
@@ -254,25 +278,7 @@ export default class StorageSettings extends AdminSettings {
                     onChange={this.handleChange}
                     disabled={this.state.driverName !== DRIVER_S3}
                 />
-                <BooleanSetting
-                    id='AmazonSSE'
-                    label={
-                        <FormattedMessage
-                            id='admin.image.AmazonSSETitle'
-                            defaultMessage='Enable Server-Side Encryption for Amazon S3:'
-                        />
-                    }
-                    placeholder={Utils.localizeMessage('admin.image.AmazonSSEExample', 'Ex "false"')}
-                    helpText={
-                        <FormattedMessage
-                            id='admin.image.AmazonSSEDescription'
-                            defaultMessage='When true, encrypt files in Amazon S3 using server-side encryption with Amazon S3-managed keys. See <a href="https://about.mattermost.com/default-server-side-encryption" target="_blank">documentation</a> to learn more.'
-                        />
-                    }
-                    value={this.state.AmazonSSE}
-                    onChange={this.handleChange}
-                    disabled={this.state.driverName !== DRIVER_S3}
-                />
+                {amazonSSEComp}
                 <BooleanSetting
                     id='enableFileAttachments'
                     label={

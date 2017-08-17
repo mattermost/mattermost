@@ -4,7 +4,9 @@
 package api4
 
 import (
+	"io"
 	"net/http"
+	"strings"
 
 	l4g "github.com/alecthomas/log4go"
 	"github.com/gorilla/mux"
@@ -29,7 +31,10 @@ func InitWebhook() {
 	BaseRoutes.OutgoingHook.Handle("", ApiSessionRequired(deleteOutgoingHook)).Methods("DELETE")
 	BaseRoutes.OutgoingHook.Handle("/regen_token", ApiSessionRequired(regenOutgoingHookToken)).Methods("POST")
 
-	BaseRoutes.Root.Handle("/hooks/commands/{id:[A-Za-z0-9]+}", ApiHandler(commandWebhook)).Methods("POST")
+	BaseRoutes.Root.Handle("/hooks/{id:[A-Za-z0-9]+}", ApiHandler(incomingWebhook)).Methods("POST")
+
+	// Old endpoint for backwards compatibility
+	BaseRoutes.Root.Handle("/api/v3/teams/{team_id:[A-Za-z0-9]+}/hooks/{id:[A-Za-z0-9]+}", ApiHandler(incomingWebhook)).Methods("POST")
 }
 
 func createIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -439,13 +444,40 @@ func deleteOutgoingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 	ReturnStatusOK(w)
 }
 
-func commandWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
+func incomingWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	id := params["id"]
 
-	response := model.CommandResponseFromHTTPBody(r.Header.Get("Content-Type"), r.Body)
+	r.ParseForm()
 
-	err := app.HandleCommandWebhook(id, response)
+	var payload io.Reader
+	contentType := r.Header.Get("Content-Type")
+	if strings.Split(contentType, "; ")[0] == "application/x-www-form-urlencoded" {
+		payload = strings.NewReader(r.FormValue("payload"))
+	} else {
+		payload = r.Body
+	}
+
+	if utils.Cfg.LogSettings.EnableWebhookDebugging {
+		var err error
+		payload, err = utils.DebugReader(
+			payload,
+			utils.T("api.webhook.incoming.debug"),
+		)
+		if err != nil {
+			c.Err = model.NewLocAppError(
+				"incomingWebhook",
+				"api.webhook.incoming.debug.error",
+				nil,
+				err.Error(),
+			)
+			return
+		}
+	}
+
+	parsedRequest := model.IncomingWebhookRequestFromJson(payload)
+
+	err := app.HandleIncomingWebhook(id, parsedRequest)
 	if err != nil {
 		c.Err = err
 		return
