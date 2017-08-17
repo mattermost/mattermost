@@ -29,13 +29,17 @@ export default class AdminSidebar extends React.Component {
         this.updateTitle();
 
         if (!Utils.isMobile()) {
-            $('.admin-sidebar .nav-pills__container').perfectScrollbar();
+            $('.admin-sidebar .nav-pills__container').perfectScrollbar({
+                suppressScrollX: true
+            });
         }
     }
 
     componentDidUpdate() {
         if (!Utils.isMobile()) {
-            $('.admin-sidebar .nav-pills__container').perfectScrollbar();
+            $('.admin-sidebar .nav-pills__container').perfectScrollbar({
+                suppressScrollX: true
+            });
         }
     }
 
