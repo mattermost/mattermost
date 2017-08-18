@@ -844,156 +844,16 @@
     "translation": "The settings command is not supported on your device"
   },
   {
-    "id": "api.command_shortcuts.browser.channel_next",
-    "translation": "{{.ChannelNextCmd}}: Next channel in your history\n"
-  },
-  {
-    "id": "api.command_shortcuts.browser.channel_next.cmd",
-    "translation": "ALT+RIGHT"
-  },
-  {
-    "id": "api.command_shortcuts.browser.channel_next.cmd_mac",
-    "translation": "CMD+]"
-  },
-  {
-    "id": "api.command_shortcuts.browser.channel_prev",
-    "translation": "{{.ChannelPrevCmd}}: Previous channel in your history\n"
-  },
-  {
-    "id": "api.command_shortcuts.browser.channel_prev.cmd",
-    "translation": "ALT+LEFT"
-  },
-  {
-    "id": "api.command_shortcuts.browser.channel_prev.cmd_mac",
-    "translation": "CMD+["
-  },
-  {
-    "id": "api.command_shortcuts.browser.font_decrease",
-    "translation": "{{.CmdOrCtrl}}+MINUS: Decrease font size (zoom out)\n"
-  },
-  {
-    "id": "api.command_shortcuts.browser.font_increase",
-    "translation": "{{.CmdOrCtrl}}+PLUS: Increase font size (zoom in)\n"
-  },
-  {
-    "id": "api.command_shortcuts.browser.header",
-    "translation": "#### Built-in Browser Commands\n\n"
-  },
-  {
-    "id": "api.command_shortcuts.browser.highlight_next",
-    "translation": "SHIFT+DOWN (in input field): Highlight text to the next line\n"
-  },
-  {
-    "id": "api.command_shortcuts.browser.highlight_prev",
-    "translation": "SHIFT+UP (in input field): Highlight text to the previous line\n"
-  },
-  {
-    "id": "api.command_shortcuts.browser.newline",
-    "translation": "SHIFT+ENTER (in input field): Create a new line\n"
-  },
-  {
-    "id": "api.command_shortcuts.cmd",
-    "translation": "CMD"
-  },
-  {
-    "id": "api.command_shortcuts.ctrl",
-    "translation": "CTRL"
-  },
-  {
     "id": "api.command_shortcuts.desc",
     "translation": "Displays a list of keyboard shortcuts"
-  },
-  {
-    "id": "api.command_shortcuts.files.header",
-    "translation": "#### Files\n\n"
-  },
-  {
-    "id": "api.command_shortcuts.files.upload",
-    "translation": "{{.CmdOrCtrl}}+U: Upload file(s)\n\n"
-  },
-  {
-    "id": "api.command_shortcuts.header",
-    "translation": "### Keyboard Shortcuts\n\n"
-  },
-  {
-    "id": "api.command_shortcuts.msgs.comp_channel",
-    "translation": "~[character]+TAB: Autocomplete channel beginning with [character]\n"
-  },
-  {
-    "id": "api.command_shortcuts.msgs.comp_emoji",
-    "translation": ":[character]+TAB: Autocomplete emoji beginning with [character]\n\n"
-  },
-  {
-    "id": "api.command_shortcuts.msgs.comp_username",
-    "translation": "@[character]+TAB: Autocomplete @username beginning with [character]\n"
-  },
-  {
-    "id": "api.command_shortcuts.msgs.edit",
-    "translation": "UP (in empty input field): Edit your last message in the current channel\n"
-  },
-  {
-    "id": "api.command_shortcuts.msgs.header",
-    "translation": "#### Messages\n\n"
-  },
-  {
-    "id": "api.command_shortcuts.msgs.mark_as_read",
-    "translation": "ESC: Mark all messages in the current channel as read\n"
-  },
-  {
-    "id": "api.command_shortcuts.msgs.reply",
-    "translation": "SHIFT+UP (in empty input field): Reply to the most recent message in the current channel\n"
-  },
-  {
-    "id": "api.command_shortcuts.msgs.reprint_next",
-    "translation": "{{.CmdOrCtrl}}+DOWN (in empty input field): Reprint the next message or slash command you entered\n"
-  },
-  {
-    "id": "api.command_shortcuts.msgs.reprint_prev",
-    "translation": "{{.CmdOrCtrl}}+UP (in empty input field): Reprint the previous message or slash command you entered\n"
   },
   {
     "id": "api.command_shortcuts.name",
     "translation": "shortcuts"
   },
   {
-    "id": "api.command_shortcuts.nav.direct_messages_menu",
-    "translation": "{{.CmdOrCtrl}}+SHIFT+K: Open direct messages menu\n"
-  },
-  {
-    "id": "api.command_shortcuts.nav.header",
-    "translation": "#### Navigation\n\n"
-  },
-  {
-    "id": "api.command_shortcuts.nav.next",
-    "translation": "ALT+DOWN: Next channel or direct message in left hand sidebar\n"
-  },
-  {
-    "id": "api.command_shortcuts.nav.prev",
-    "translation": "ALT+UP: Previous channel or direct message in left hand sidebar\n"
-  },
-  {
-    "id": "api.command_shortcuts.nav.recent_mentions",
-    "translation": "{{.CmdOrCtrl}}+SHIFT+M: Open recent mentions\n\n"
-  },
-  {
-    "id": "api.command_shortcuts.nav.settings",
-    "translation": "{{.CmdOrCtrl}}+SHIFT+A: Open account settings\n"
-  },
-  {
-    "id": "api.command_shortcuts.nav.switcher",
-    "translation": "{{.CmdOrCtrl}}+K: Open a quick channel switcher dialog\n"
-  },
-  {
-    "id": "api.command_shortcuts.nav.switcher_team",
-    "translation": "{{.CmdOrCtrl}}+ALT+K: Open a quick team switcher dialog\n"
-  },
-  {
-    "id": "api.command_shortcuts.nav.unread_next",
-    "translation": "ALT+SHIFT+DOWN: Next channel or direct message in left hand sidebar with unread messages\n"
-  },
-  {
-    "id": "api.command_shortcuts.nav.unread_prev",
-    "translation": "ALT+SHIFT+UP: Previous channel or direct message in left hand sidebar with unread messages\n"
+    "id": "api.command_shortcuts.unsupported.app_error",
+    "translation": "The shortcuts command is not supported on your device"
   },
   {
     "id": "api.command_shrug.desc",
