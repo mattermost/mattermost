@@ -136,11 +136,11 @@ func PasteCenter(background, img image.Image) *image.NRGBA {
 //
 // Usage examples:
 //
-//		// draw the sprite over the background at position (50, 50)
-//		dstImage := imaging.Overlay(backgroundImage, spriteImage, image.Pt(50, 50), 1.0)
+//	// draw the sprite over the background at position (50, 50)
+//	dstImage := imaging.Overlay(backgroundImage, spriteImage, image.Pt(50, 50), 1.0)
 //
-//		// blend two opaque images of the same size
-//		dstImage := imaging.Overlay(imageOne, imageTwo, image.Pt(0, 0), 0.5)
+//	// blend two opaque images of the same size
+//	dstImage := imaging.Overlay(imageOne, imageTwo, image.Pt(0, 0), 0.5)
 //
 func Overlay(background, img image.Image, pos image.Point, opacity float64) *image.NRGBA {
 	opacity = math.Min(math.Max(opacity, 0.0), 1.0) // check: 0.0 <= opacity <= 1.0

@@ -55,7 +55,9 @@ func main() {
 	progress := pb.New64(objectInfo.Size)
 	progress.Start()
 
-	n, err := s3Client.PutObjectWithProgress("my-bucketname", "my-objectname-progress", reader, "application/octet-stream", progress)
+	n, err := s3Client.PutObjectWithProgress("my-bucketname", "my-objectname-progress", reader, map[string][]string{
+		"Content-Type": []string{"application/octet-stream"},
+	}, progress)
 	if err != nil {
 		log.Fatalln(err)
 	}

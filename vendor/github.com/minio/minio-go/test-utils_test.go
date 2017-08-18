@@ -64,11 +64,11 @@ func encodeResponse(response interface{}) []byte {
 	return bytesBuffer.Bytes()
 }
 
-// Convert string to bool and always return true if any error
+// Convert string to bool and always return false if any error
 func mustParseBool(str string) bool {
 	b, err := strconv.ParseBool(str)
 	if err != nil {
-		return true
+		return false
 	}
 	return b
 }

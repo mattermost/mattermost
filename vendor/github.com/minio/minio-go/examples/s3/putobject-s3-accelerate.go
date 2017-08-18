@@ -40,7 +40,7 @@ func main() {
 	}
 
 	// Enable S3 transfer accelerate endpoint.
-	s3Client.S3TransferAccelerate("s3-accelerate.amazonaws.com")
+	s3Client.SetS3TransferAccelerate("s3-accelerate.amazonaws.com")
 
 	object, err := os.Open("my-testfile")
 	if err != nil {

@@ -32,7 +32,7 @@ func TestFileLineLogging(t *testing.T) {
 	Debug("This debug-level line should not show up in the output.")
 	Infof("This %s-level line should show up in the output.", "info")
 
-	re := `^time=".*" level=info msg="This info-level line should show up in the output." source="log_test.go:33" \n$`
+	re := `^time=".*" level=info msg="This info-level line should show up in the output." source="log_test.go:33"\n$`
 	if !regexp.MustCompile(re).Match(buf.Bytes()) {
 		t.Fatalf("%q did not match expected regex %q", buf.String(), re)
 	}

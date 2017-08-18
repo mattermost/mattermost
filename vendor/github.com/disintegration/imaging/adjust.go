@@ -10,17 +10,17 @@ import (
 //
 // Example:
 //
-// 	dstImage = imaging.AdjustFunc(
-// 		srcImage,
-// 		func(c color.NRGBA) color.NRGBA {
-// 			// shift the red channel by 16
+//	dstImage = imaging.AdjustFunc(
+//		srcImage,
+//		func(c color.NRGBA) color.NRGBA {
+//			// shift the red channel by 16
 //			r := int(c.R) + 16
 //			if r > 255 {
-// 				r = 255
-// 			}
-// 			return color.NRGBA{uint8(r), c.G, c.B, c.A}
-// 		}
-// 	)
+//				r = 255
+//			}
+//			return color.NRGBA{uint8(r), c.G, c.B, c.A}
+//		}
+//	)
 //
 func AdjustFunc(img image.Image, fn func(c color.NRGBA) color.NRGBA) *image.NRGBA {
 	src := toNRGBA(img)

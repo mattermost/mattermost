@@ -21,14 +21,14 @@ func TestRetry(t *testing.T) {
 	// This function is successfull on "successOn" calls.
 	f := func() error {
 		i++
-		t.Logf("function is called %d. time\n", i)
+		// t.Logf("function is called %d. time\n", i)
 
 		if i == successOn {
-			t.Log("OK")
+			// t.Log("OK")
 			return nil
 		}
 
-		t.Log("error")
+		// t.Log("error")
 		return errors.New("error")
 	}
 
