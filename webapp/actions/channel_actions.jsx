@@ -66,12 +66,10 @@ export function executeCommand(message, args, success, error) {
             const err = {message: Utils.localizeMessage('create_post.shortcutsNotSupported', 'Keyboard shortcuts are not supported on your device')};
             error(err);
             return;
-        } else if (Utils.isMac()) {
-            msg += ' mac';
-        } else if (message.indexOf('mac') !== -1) {
-            msg = '/shortcuts';
         }
-        break;
+
+        GlobalActions.showShortcutsModal();
+        return;
     case '/leave': {
         // /leave command not supported in reply threads.
         if (args.channel_id && (args.root_id || args.parent_id)) {

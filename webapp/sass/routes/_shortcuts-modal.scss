@@ -1,0 +1,77 @@
+@charset 'UTF-8';
+
+.app__body {
+    .modal {
+        .shortcuts-modal {
+            margin-top: 50px;
+            width: 1100px;
+
+            .shortcuts-content {
+                .modal-header {
+                    background: transparent;
+                    border: none;
+                    color: inherit;
+                    padding: 40px 40px 20px;
+
+                    .close {
+                        color: inherit;
+                        font-size: 28px;
+                        font-weight: normal;
+                        right: 35px;
+                    }
+
+                    .modal-title {
+                        color: inherit;
+                        font-size: 20px;
+                    }
+                }
+            }
+
+            .modal-body {
+                max-height: calc(100vh - 67px);
+                padding: 0 40px 20px;
+            }
+
+            .section {
+                > div {
+                    &:first-child {
+                        margin-bottom: 2.5em;
+                    }
+                }
+
+                .shortcut-line {
+                    margin: 17px 0;
+
+                    span {
+                        &:first-child {
+                            margin-right: 5px;
+                        }
+                    }
+
+                    .shortcut-key {
+                        border-radius: 3px;
+                        font-size: 12px;
+                        font-weight: 500;
+                        margin: 5px 0 5px 5px;
+                        padding: 1px 5px;
+                    }
+                }
+            }
+
+            .section-title {
+                font-size: 18px;
+                margin: 1.5em 0;
+            }
+
+            .subsection {
+                border-left: 2px solid;
+                padding-left: 15px;
+            }
+
+            .info__label {
+                margin: 35px 0 10px;
+                text-align: center;
+            }
+        }
+    }
+}

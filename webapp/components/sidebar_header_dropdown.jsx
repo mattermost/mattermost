@@ -51,6 +51,7 @@ export default class SidebarHeaderDropdown extends React.Component {
         this.showGetTeamInviteLinkModal = this.showGetTeamInviteLinkModal.bind(this);
         this.showTeamMembersModal = this.showTeamMembersModal.bind(this);
         this.hideTeamMembersModal = this.hideTeamMembersModal.bind(this);
+        this.showShortcutsModal = this.showShortcutsModal.bind(this);
 
         this.onTeamChange = this.onTeamChange.bind(this);
 
@@ -107,6 +108,13 @@ export default class SidebarHeaderDropdown extends React.Component {
         this.setState({showDropdown: false});
 
         GlobalActions.showAccountSettingsModal();
+    }
+
+    showShortcutsModal(e) {
+        e.preventDefault();
+        this.setState({showDropdown: false});
+
+        GlobalActions.showShortcutsModal();
     }
 
     showAddUsersToTeamModal(e) {
@@ -495,18 +503,18 @@ export default class SidebarHeaderDropdown extends React.Component {
             );
         }
 
-        const keyboardShortcutsLink = (
+        const keyboardShortcuts = (
             <li>
-                <Link
-                    target='_blank'
-                    rel='noopener noreferrer'
-                    to='https://about.mattermost.com/default-keyboard_shortcut_link/'
+                <a
+                    id='keyboardShortcuts'
+                    href='#'
+                    onClick={this.showShortcutsModal}
                 >
                     <FormattedMessage
                         id='navbar_dropdown.keyboardShortcuts'
                         defaultMessage='Keyboard Shortcuts'
                     />
-                </Link>
+                </a>
             </li>
         );
 
@@ -616,7 +624,7 @@ export default class SidebarHeaderDropdown extends React.Component {
                     {sysAdminLink}
                     {helpDivider}
                     {helpLink}
-                    {keyboardShortcutsLink}
+                    {keyboardShortcuts}
                     {reportLink}
                     {nativeAppLink}
                     {about}
