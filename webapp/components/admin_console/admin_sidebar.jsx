@@ -125,7 +125,7 @@ export default class AdminSidebar extends React.Component {
                         title={
                             <FormattedMessage
                                 id='admin.sidebar.saml'
-                                defaultMessage='SAML'
+                                defaultMessage='SAML 2.0'
                             />
                         }
                     />
