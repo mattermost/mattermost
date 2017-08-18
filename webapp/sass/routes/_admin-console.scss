@@ -123,8 +123,10 @@
 
             input {
                 @include opacity(0);
+                cursor: pointer;
                 height: 100%;
                 left: 0;
+                padding-left: 100%;
                 position: absolute;
                 top: 0;
                 width: 100%;
@@ -355,7 +357,7 @@
     .nav-pills__container {
         @include font-smoothing(initial);
         background: #111;
-        height: calc(100% - 50px);
+        height: calc(100% - 68px);
         margin-top: 1px;
         padding-bottom: 20px;
         position: relative;
