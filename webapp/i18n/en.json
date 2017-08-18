@@ -1927,6 +1927,7 @@
   "msg_typing.someone": "Someone",
   "multiselect.add": "Add",
   "multiselect.go": "Go",
+  "multiselect.list.notFound": "No items found",
   "multiselect.numPeopleRemaining": "Use ↑↓ to browse, ↵ to select. You can add {num, number} more {num, plural, one {person} other {people}}. ",
   "multiselect.numRemaining": "You can add {num, number} more",
   "multiselect.placeholder": "Search and add members",
