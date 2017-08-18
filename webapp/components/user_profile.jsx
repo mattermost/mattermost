@@ -2,7 +2,7 @@
 // See License.txt for license information.
 
 import ProfilePopover from './profile_popover.jsx';
-import Pluggable from 'plugins/pluggable.jsx';
+import Pluggable from 'plugins/pluggable';
 import * as Utils from 'utils/utils.jsx';
 
 import {OverlayTrigger} from 'react-bootstrap';

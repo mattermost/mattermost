@@ -192,7 +192,9 @@ export const ActionTypes = keyMirror({
 
     BROWSER_CHANGE_FOCUS: null,
 
-    EMOJI_POSTED: null
+    EMOJI_POSTED: null,
+
+    RECEIVED_PLUGIN_COMPONENTS: null
 });
 
 export const WebrtcActionTypes = keyMirror({

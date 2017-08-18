@@ -4987,7 +4987,7 @@ map-obj@^1.0.0, map-obj@^1.0.1:
   resolved "https://registry.yarnpkg.com/map-obj/-/map-obj-1.0.1.tgz#d933ceb9205d82bdcf4886f6742bdc2b4dea146d"
 
 marked@mattermost/marked#5194fc037b35036910c6542b04bb471fe56b27a9:
-  version "0.3.5"
+  version "0.3.6"
   resolved "https://codeload.github.com/mattermost/marked/tar.gz/5194fc037b35036910c6542b04bb471fe56b27a9"
 
 match-at@0.1.0:
@@ -5002,9 +5002,9 @@ math-expression-evaluator@^1.2.14:
   version "1.2.16"
   resolved "https://registry.yarnpkg.com/math-expression-evaluator/-/math-expression-evaluator-1.2.16.tgz#b357fa1ca9faefb8e48d10c14ef2bcb2d9f0a7c9"
 
-mattermost-redux@mattermost/mattermost-redux#webapp-4.1:
+mattermost-redux@mattermost/mattermost-redux#master:
   version "0.0.1"
-  resolved "https://codeload.github.com/mattermost/mattermost-redux/tar.gz/31bb5c2f21b504c4b7cab6624e4884bd3fc9f294"
+  resolved "https://codeload.github.com/mattermost/mattermost-redux/tar.gz/c5a9c96468cb8099230c447c87f2ca630bbfb531"
   dependencies:
     deep-equal "1.0.1"
     harmony-reflect "1.5.1"

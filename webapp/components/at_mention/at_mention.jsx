@@ -2,7 +2,7 @@
 // See License.txt for license information.
 
 import ProfilePopover from 'components/profile_popover.jsx';
-import Pluggable from 'plugins/pluggable.jsx';
+import Pluggable from 'plugins/pluggable';
 import {Client4} from 'mattermost-redux/client';
 
 import React from 'react';
