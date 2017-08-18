@@ -108,7 +108,7 @@ func TestIncomingWebhookRequestFromJson_Announcements(t *testing.T) {
 	// simple payload
 	payload := `{"text": "` + text + `"}`
 	data := strings.NewReader(payload)
-	iwr := IncomingWebhookRequestFromJson(data)
+	iwr, _ := IncomingWebhookRequestFromJson(data)
 
 	if iwr == nil {
 		t.Fatal("IncomingWebhookRequest should not be nil")
@@ -136,7 +136,7 @@ func TestIncomingWebhookRequestFromJson_Announcements(t *testing.T) {
 		}`
 
 	data = strings.NewReader(payload)
-	iwr = IncomingWebhookRequestFromJson(data)
+	iwr, _ = IncomingWebhookRequestFromJson(data)
 
 	if iwr == nil {
 		t.Fatal("IncomingWebhookRequest should not be nil")
@@ -213,7 +213,7 @@ func TestIncomingWebhookRequestFromJson(t *testing.T) {
 
 		// try to create an IncomingWebhookRequest from the payload
 		data := strings.NewReader(payload)
-		iwr := IncomingWebhookRequestFromJson(data)
+		iwr, _ := IncomingWebhookRequestFromJson(data)
 
 		// After it has been decoded, the JSON string won't contain the escape char anymore
 		expected := strings.Replace(text, `\"`, `"`, -1)
@@ -233,7 +233,7 @@ func TestIncomingWebhookRequestFromJson(t *testing.T) {
 
 func TestIncomingWebhookNullArrayItems(t *testing.T) {
 	payload := `{"attachments":[{"fields":[{"title":"foo","value":"bar","short":true}, null]}, null]}`
-	iwr := IncomingWebhookRequestFromJson(strings.NewReader(payload))
+	iwr, _ := IncomingWebhookRequestFromJson(strings.NewReader(payload))
 	if iwr == nil {
 		t.Fatal("IncomingWebhookRequest should not be nil")
 	}
