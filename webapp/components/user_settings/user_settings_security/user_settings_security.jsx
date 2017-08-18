@@ -1066,7 +1066,7 @@ export default class SecurityTab extends React.Component {
                 />
             ),
             confirmMessage: (
-                <div className='alert alert-danger'>
+                <div className='alert alert-danger word-break--all'>
                     <FormattedHTMLMessage
                         id='user.settings.tokens.confirmDeleteMessage'
                         defaultMessage='Any integrations using this token will no longer be able to access the Mattermost API. You cannot undo this action. <br /><br />Are you sure want to delete the {description} token?'
