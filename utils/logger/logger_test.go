@@ -196,8 +196,8 @@ func TestDebugf(t *testing.T) {
 }
 
 // ensures that an info message is passed through to the underlying logger as expected
-func TestInfo(t *testing.T) {
-	t.Run("Info test", func(t *testing.T) {
+func TestInfoc(t *testing.T) {
+	t.Run("Infoc test", func(t *testing.T) {
 		// inject a "mocked" info method that captures the first argument that is passed to it
 		var capture string
 		oldInfo := info
@@ -215,7 +215,100 @@ func TestInfo(t *testing.T) {
 		// log something
 		emptyContext := context.Background()
 		var logMessage = "Some log message"
-		Info(emptyContext, logMessage)
+		Infoc(emptyContext, logMessage)
+
+		// check to see that the message is logged to the underlying log system, in this case our mock method
+		type LogMessage struct {
+			Context map[string]string
+			Logger  string
+			Message string
+		}
+		var deserialized LogMessage
+		json.Unmarshal([]byte(capture), &deserialized)
+
+		if len(deserialized.Context) != 0 {
+			t.Error("Context is non-empty")
+		}
+		var expectedLoggerSuffix = "/platform/utils/logger/logger_test.go"
+		if !strings.HasSuffix(deserialized.Logger, expectedLoggerSuffix) {
+			t.Errorf("Invalid logger %v. Expected logger to have suffix %v", deserialized.Logger, expectedLoggerSuffix)
+		}
+		if deserialized.Message != logMessage {
+			t.Errorf("Invalid log message %v. Expected %v", deserialized.Message, logMessage)
+		}
+	})
+}
+
+// ensures that an info message is passed through to the underlying logger as expected
+func TestInfof(t *testing.T) {
+	t.Run("Infof test", func(t *testing.T) {
+		// inject a "mocked" info method that captures the first argument that is passed to it
+		var capture string
+		oldInfo := info
+		defer func() { info = oldInfo }()
+		type WrapperType func() string
+		info = func(format interface{}, args ...interface{}) {
+			// the code that we're testing passes a closure to the info method, so we have to execute it to get the actual message back
+			if f, ok := format.(func() string); ok {
+				capture = WrapperType(f)()
+			} else {
+				t.Error("First parameter passed to Info is not a closure")
+			}
+		}
+
+		// log something
+		format := "Some %v message"
+		param := "log"
+		Infof(format, param)
+
+		// check to see that the message is logged to the underlying log system, in this case our mock method
+		type LogMessage struct {
+			Context map[string]string
+			Logger  string
+			Message string
+		}
+		var deserialized LogMessage
+		json.Unmarshal([]byte(capture), &deserialized)
+
+		if len(deserialized.Context) != 0 {
+			t.Error("Context is non-empty")
+		}
+		var expectedLoggerSuffix = "/platform/utils/logger/logger_test.go"
+		if !strings.HasSuffix(deserialized.Logger, expectedLoggerSuffix) {
+			t.Errorf("Invalid logger %v. Expected logger to have suffix %v", deserialized.Logger, expectedLoggerSuffix)
+		}
+
+		expected := fmt.Sprintf(format, param)
+		if deserialized.Message != expected {
+			t.Errorf("Invalid log message %v. Expected %v", deserialized.Message, expected)
+		}
+	})
+}
+
+// ensures that an error message is passed through to the underlying logger as expected
+func TestErrorc(t *testing.T) {
+	t.Run("Errorc test", func(t *testing.T) {
+		// inject a "mocked" error method that captures the first argument that is passed to it
+		var capture string
+		oldError := err
+		defer func() { err = oldError }()
+		type WrapperType func() string
+		err = func(format interface{}, args ...interface{}) error {
+			// the code that we're testing passes a closure to the error method, so we have to execute it to get the actual message back
+			if f, ok := format.(func() string); ok {
+				capture = WrapperType(f)()
+			} else {
+				t.Error("First parameter passed to Error is not a closure")
+			}
+
+			// the code under test doesn't care about this return value
+			return errors.New(capture)
+		}
+
+		// log something
+		emptyContext := context.Background()
+		var logMessage = "Some log message"
+		Errorc(emptyContext, logMessage)
 
 		// check to see that the message is logged to the underlying log system, in this case our mock method
 		type LogMessage struct {
@@ -240,8 +333,8 @@ func TestInfo(t *testing.T) {
 }
 
 // ensures that an error message is passed through to the underlying logger as expected
-func TestError(t *testing.T) {
-	t.Run("Error test", func(t *testing.T) {
+func TestErrorf(t *testing.T) {
+	t.Run("Errorf test", func(t *testing.T) {
 		// inject a "mocked" error method that captures the first argument that is passed to it
 		var capture string
 		oldError := err
@@ -260,9 +353,9 @@ func TestError(t *testing.T) {
 		}
 
 		// log something
-		emptyContext := context.Background()
-		var logMessage = "Some log message"
-		Error(emptyContext, logMessage)
+		format := "Some %v message"
+		param := "log"
+		Errorf(format, param)
 
 		// check to see that the message is logged to the underlying log system, in this case our mock method
 		type LogMessage struct {
@@ -280,8 +373,10 @@ func TestError(t *testing.T) {
 		if !strings.HasSuffix(deserialized.Logger, expectedLoggerSuffix) {
 			t.Errorf("Invalid logger %v. Expected logger to have suffix %v", deserialized.Logger, expectedLoggerSuffix)
 		}
-		if deserialized.Message != logMessage {
-			t.Errorf("Invalid log message %v. Expected %v", deserialized.Message, logMessage)
+
+		expected := fmt.Sprintf(format, param)
+		if deserialized.Message != expected {
+			t.Errorf("Invalid log message %v. Expected %v", deserialized.Message, expected)
 		}
 	})
 }

@@ -160,20 +160,46 @@ func Debugf(args ...interface{}) {
 	})
 }
 
-// Info logs an info level message
-func Info(ctx context.Context, message string) {
-	// we need to serialize the message into a JSON object before logging it, but we only want to serialize it if we're
-	// sure that it's going to be written, to avoid the overhead of needless serialization, so do the work in a closure
+// Infoc logs an info level message, including context information that is stored in the first parameter.
+// If two parameters are supplied, the second must be a message string, and will be logged directly.
+// If more than two parameters are supplied, the second parameter must be a format string, and the remaining parameters
+// must be the variables to substitute into the format string, following the convention of the fmt.Sprintf(...) function.
+func Infoc(ctx context.Context, args ...interface{}) {
 	info(func() string {
-		return serializeLogMessage(ctx, message)
+		msg := formatMessage(args...)
+		return serializeLogMessage(ctx, msg)
 	})
 }
 
-// Error logs an error level message
-func Error(ctx context.Context, message string) {
-	// we need to serialize the message into a JSON object before logging it, but we only want to serialize it if we're
-	// sure that it's going to be written, to avoid the overhead of needless serialization, so do the work in a closure
+// Infof logs an info level message.
+// If one parameter is supplied, it must be a message string, and will be logged directly.
+// If two or more parameters are specified, the first parameter must be a format string, and the remaining parameters
+// must be the variables to substitute into the format string, following the convention of the fmt.Sprintf(...) function.
+func Infof(args ...interface{}) {
+	info(func() string {
+		msg := formatMessage(args...)
+		return serializeLogMessage(context.Background(), msg)
+	})
+}
+
+// Errorc logs an error level message, including context information that is stored in the first parameter.
+// If two parameters are supplied, the second must be a message string, and will be logged directly.
+// If more than two parameters are supplied, the second parameter must be a format string, and the remaining parameters
+// must be the variables to substitute into the format string, following the convention of the fmt.Sprintf(...) function.
+func Errorc(ctx context.Context, args ...interface{}) {
 	err(func() string {
-		return serializeLogMessage(ctx, message)
+		msg := formatMessage(args...)
+		return serializeLogMessage(ctx, msg)
+	})
+}
+
+// Errorf logs an error level message.
+// If one parameter is supplied, it must be a message string, and will be logged directly.
+// If two or more parameters are specified, the first parameter must be a format string, and the remaining parameters
+// must be the variables to substitute into the format string, following the convention of the fmt.Sprintf(...) function.
+func Errorf(args ...interface{}) {
+	err(func() string {
+		msg := formatMessage(args...)
+		return serializeLogMessage(context.Background(), msg)
 	})
 }
