@@ -68,7 +68,7 @@ func TestSupervisor_StartTimeout(t *testing.T) {
 		}
 	`, backend)
 
-	ioutil.WriteFile(filepath.Join(dir, "plugin.json"), []byte(`{"id": "foo", "backend": {"executable": "backend"}}`), 0600)
+	ioutil.WriteFile(filepath.Join(dir, "plugin.json"), []byte(`{"id": "foo", "backend": {"executable": "backend.exe"}}`), 0600)
 
 	bundle := plugin.BundleInfoForPath(dir)
 	supervisor, err := SupervisorProvider(bundle)
@@ -109,7 +109,7 @@ func TestSupervisor_PluginCrash(t *testing.T) {
 		}
 	`, backend)
 
-	ioutil.WriteFile(filepath.Join(dir, "plugin.json"), []byte(`{"id": "foo", "backend": {"executable": "backend"}}`), 0600)
+	ioutil.WriteFile(filepath.Join(dir, "plugin.json"), []byte(`{"id": "foo", "backend": {"executable": "backend.exe"}}`), 0600)
 
 	bundle := plugin.BundleInfoForPath(dir)
 	supervisor, err := SupervisorProvider(bundle)
