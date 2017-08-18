@@ -29,7 +29,7 @@ func TestProcess(t *testing.T) {
 	require.NoError(t, err)
 	defer os.RemoveAll(dir)
 
-	ping := filepath.Join(dir, "ping")
+	ping := filepath.Join(dir, "ping.exe")
 	compileGo(t, `
 		package main
 
