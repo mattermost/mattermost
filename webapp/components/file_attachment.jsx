@@ -48,12 +48,14 @@ export default class FileAttachment extends React.Component {
         if (fileType === 'image') {
             const thumbnailUrl = getFileThumbnailUrl(fileInfo.id);
 
-            const img = new Image();
-            img.onload = () => {
-                this.setState({loaded: true});
-            };
-            img.load(thumbnailUrl);
+            Utils.loadImage(thumbnailUrl, this.handleImageLoaded);
         }
+    }
+
+    handleImageLoaded = () => {
+        this.setState({
+            loaded: true
+        });
     }
 
     onAttachmentClick(e) {
