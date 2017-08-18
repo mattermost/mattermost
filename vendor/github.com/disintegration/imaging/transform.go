@@ -206,6 +206,19 @@ func Rotate270(img image.Image) *image.NRGBA {
 // The angle parameter is the rotation angle in degrees.
 // The bgColor parameter specifies the color of the uncovered zone after the rotation.
 func Rotate(img image.Image, angle float64, bgColor color.Color) *image.NRGBA {
+	angle = angle - math.Floor(angle/360)*360
+
+	switch angle {
+	case 0:
+		return Clone(img)
+	case 90:
+		return Rotate90(img)
+	case 180:
+		return Rotate180(img)
+	case 270:
+		return Rotate270(img)
+	}
+
 	src := toNRGBA(img)
 	srcW := src.Bounds().Max.X
 	srcH := src.Bounds().Max.Y

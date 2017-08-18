@@ -67,9 +67,9 @@ func IsMovedError(err error) (moved bool, ask bool, addr string) {
 }
 
 func IsLoadingError(err error) bool {
-	return strings.HasPrefix(err.Error(), "LOADING")
+	return strings.HasPrefix(err.Error(), "LOADING ")
 }
 
-func IsExecAbortError(err error) bool {
-	return strings.HasPrefix(err.Error(), "EXECABORT")
+func IsClusterDownError(err error) bool {
+	return strings.HasPrefix(err.Error(), "CLUSTERDOWN ")
 }

@@ -99,7 +99,7 @@ func prepareStreamingRequest(req *http.Request, sessionToken string, dataLen int
 	if sessionToken != "" {
 		req.Header.Set("X-Amz-Security-Token", sessionToken)
 	}
-	req.Header.Set("Content-Encoding", streamingEncoding)
+	req.Header.Add("Content-Encoding", streamingEncoding)
 	req.Header.Set("X-Amz-Date", timestamp.Format(iso8601DateFormat))
 
 	// Set content length with streaming signature for each chunk included.

@@ -19,6 +19,9 @@ func TestInmemSignal(t *testing.T) {
 	inm.EmitKey([]string{"bar"}, 42)
 	inm.IncrCounter([]string{"baz"}, 42)
 	inm.AddSample([]string{"wow"}, 42)
+	inm.SetGaugeWithLabels([]string{"asdf"}, 42, []Label{{"a", "b"}})
+	inm.IncrCounterWithLabels([]string{"qwer"}, 42, []Label{{"a", "b"}})
+	inm.AddSampleWithLabels([]string{"zxcv"}, 42, []Label{{"a", "b"}})
 
 	// Wait for period to end
 	time.Sleep(15 * time.Millisecond)
@@ -41,6 +44,15 @@ func TestInmemSignal(t *testing.T) {
 		t.Fatalf("bad: %v", out)
 	}
 	if !strings.Contains(out, "[S] 'wow': Count: 1 Sum: 42") {
+		t.Fatalf("bad: %v", out)
+	}
+	if !strings.Contains(out, "[G] 'asdf.b': 42") {
+		t.Fatalf("bad: %v", out)
+	}
+	if !strings.Contains(out, "[C] 'qwer.b': Count: 1 Sum: 42") {
+		t.Fatalf("bad: %v", out)
+	}
+	if !strings.Contains(out, "[S] 'zxcv.b': Count: 1 Sum: 42") {
 		t.Fatalf("bad: %v", out)
 	}
 }

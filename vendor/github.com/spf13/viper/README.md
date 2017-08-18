@@ -6,18 +6,19 @@ Many Go projects are built using Viper including:
 
 * [Hugo](http://gohugo.io)
 * [EMC RexRay](http://rexray.readthedocs.org/en/stable/)
-* [Imgur's Incus](https://github.com/Imgur/incus)
+* [Imgur’s Incus](https://github.com/Imgur/incus)
 * [Nanobox](https://github.com/nanobox-io/nanobox)/[Nanopack](https://github.com/nanopack)
 * [Docker Notary](https://github.com/docker/Notary)
 * [BloomApi](https://www.bloomapi.com/)
 * [doctl](https://github.com/digitalocean/doctl)
+* [Clairctl](https://github.com/jgsqware/clairctl)
 
 [![Build Status](https://travis-ci.org/spf13/viper.svg)](https://travis-ci.org/spf13/viper) [![Join the chat at https://gitter.im/spf13/viper](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/spf13/viper?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge) [![GoDoc](https://godoc.org/github.com/spf13/viper?status.svg)](https://godoc.org/github.com/spf13/viper)
 
 
 ## What is Viper?
 
-Viper is a complete configuration solution for go applications including 12 factor apps. It is designed
+Viper is a complete configuration solution for Go applications including 12-Factor apps. It is designed
 to work within an application, and can handle all types of configuration needs
 and formats. It supports:
 
@@ -68,7 +69,7 @@ Viper configuration keys are case insensitive.
 ### Establishing Defaults
 
 A good configuration system will support default values. A default value is not
-required for a key, but it's useful in the event that a key hasn’t been set via
+required for a key, but it’s useful in the event that a key hasn’t been set via
 config file, environment variable, remote configuration or flag.
 
 Examples:
@@ -116,10 +117,10 @@ Optionally you can provide a function for Viper to run each time a change occurs
 **Make sure you add all of the configPaths prior to calling `WatchConfig()`**
 
 ```go
-		viper.WatchConfig()
-		viper.OnConfigChange(func(e fsnotify.Event) {
-			fmt.Println("Config file changed:", e.Name)
-		})
+viper.WatchConfig()
+viper.OnConfigChange(func(e fsnotify.Event) {
+	fmt.Println("Config file changed:", e.Name)
+})
 ```
 
 ### Reading Config from io.Reader
@@ -236,13 +237,26 @@ Like `BindEnv`, the value is not set when the binding method is called, but when
 it is accessed. This means you can bind as early as you want, even in an
 `init()` function.
 
-The `BindPFlag()` method provides this functionality.
+For individual flags, the `BindPFlag()` method provides this functionality.
 
 Example:
 
 ```go
 serverCmd.Flags().Int("port", 1138, "Port to run Application server on")
 viper.BindPFlag("port", serverCmd.Flags().Lookup("port"))
+```
+
+You can also bind an existing set of pflags (pflag.FlagSet):
+
+Example:
+
+```go
+pflag.Int("flagname", 1234, "help message for flagname")
+
+pflag.Parse()
+viper.BindPFlags(pflag.CommandLine)
+
+i := viper.GetInt("flagname") // retrieve values from viper instead of pflag
 ```
 
 The use of [pflag](https://github.com/spf13/pflag/) in Viper does not preclude
@@ -263,15 +277,23 @@ import (
 )
 
 func main() {
+
+	// using standard library "flag" package
+	flag.Int("flagname", 1234, "help message for flagname")
+
 	pflag.CommandLine.AddGoFlagSet(flag.CommandLine)
 	pflag.Parse()
-    ...
+	viper.BindPFlags(pflag.CommandLine)
+
+	i := viper.GetInt("flagname") // retrieve value from viper
+
+	...
 }
 ```
 
 #### Flag interfaces
 
-Viper provides two Go interfaces to bind other flag systems if you don't use `Pflags`.
+Viper provides two Go interfaces to bind other flag systems if you don’t use `Pflags`.
 
 `FlagValue` represents a single flag. This is a very simple example on how to implement this interface:
 
@@ -401,7 +423,7 @@ go func(){
 
 ## Getting Values From Viper
 
-In Viper, there are a few ways to get a value depending on the value's type.
+In Viper, there are a few ways to get a value depending on the value’s type.
 The following functions and methods exist:
 
  * `Get(key string) : interface{}`
@@ -531,7 +553,7 @@ func NewCache(cfg *Viper) *Cache {...}
 ```
 
 which creates a cache based on config information formatted as `subv`.
-Now it's easy to create these 2 caches separately as:
+Now it’s easy to create these 2 caches separately as:
 
 ```go
 cfg1 := viper.Sub("app.cache1")

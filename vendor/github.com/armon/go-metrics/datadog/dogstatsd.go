@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/DataDog/datadog-go/statsd"
+	"github.com/armon/go-metrics"
 )
 
 // DogStatsdSink provides a MetricSink that can be used
@@ -45,46 +46,49 @@ func (s *DogStatsdSink) EnableHostNamePropagation() {
 
 func (s *DogStatsdSink) flattenKey(parts []string) string {
 	joined := strings.Join(parts, ".")
-	return strings.Map(func(r rune) rune {
-		switch r {
-		case ':':
-			fallthrough
-		case ' ':
-			return '_'
-		default:
-			return r
-		}
-	}, joined)
+	return strings.Map(sanitize, joined)
 }
 
-func (s *DogStatsdSink) parseKey(key []string) ([]string, []string) {
+func sanitize(r rune) rune {
+	switch r {
+	case ':':
+		fallthrough
+	case ' ':
+		return '_'
+	default:
+		return r
+	}
+}
+
+func (s *DogStatsdSink) parseKey(key []string) ([]string, []metrics.Label) {
 	// Since DogStatsd supports dimensionality via tags on metric keys, this sink's approach is to splice the hostname out of the key in favor of a `host` tag
 	// The `host` tag is either forced here, or set downstream by the DogStatsd server
 
-	var tags []string
+	var labels []metrics.Label
 	hostName := s.hostName
 
-	//Splice the hostname out of the key
+	// Splice the hostname out of the key
 	for i, el := range key {
 		if el == hostName {
 			key = append(key[:i], key[i+1:]...)
+			break
 		}
 	}
 
 	if s.propagateHostname {
-		tags = append(tags, fmt.Sprintf("host:%s", hostName))
+		labels = append(labels, metrics.Label{"host", hostName})
 	}
-	return key, tags
+	return key, labels
 }
 
 // Implementation of methods in the MetricSink interface
 
 func (s *DogStatsdSink) SetGauge(key []string, val float32) {
-	s.SetGaugeWithTags(key, val, []string{})
+	s.SetGaugeWithLabels(key, val, nil)
 }
 
 func (s *DogStatsdSink) IncrCounter(key []string, val float32) {
-	s.IncrCounterWithTags(key, val, []string{})
+	s.IncrCounterWithLabels(key, val, nil)
 }
 
 // EmitKey is not implemented since DogStatsd does not provide a metric type that holds an
@@ -93,33 +97,44 @@ func (s *DogStatsdSink) EmitKey(key []string, val float32) {
 }
 
 func (s *DogStatsdSink) AddSample(key []string, val float32) {
-	s.AddSampleWithTags(key, val, []string{})
+	s.AddSampleWithLabels(key, val, nil)
 }
 
-// The following ...WithTags methods correspond to Datadog's Tag extension to Statsd.
+// The following ...WithLabels methods correspond to Datadog's Tag extension to Statsd.
 // http://docs.datadoghq.com/guides/dogstatsd/#tags
-
-func (s *DogStatsdSink) SetGaugeWithTags(key []string, val float32, tags []string) {
-	flatKey, tags := s.getFlatkeyAndCombinedTags(key, tags)
+func (s *DogStatsdSink) SetGaugeWithLabels(key []string, val float32, labels []metrics.Label) {
+	flatKey, tags := s.getFlatkeyAndCombinedLabels(key, labels)
 	rate := 1.0
 	s.client.Gauge(flatKey, float64(val), tags, rate)
 }
 
-func (s *DogStatsdSink) IncrCounterWithTags(key []string, val float32, tags []string) {
-	flatKey, tags := s.getFlatkeyAndCombinedTags(key, tags)
+func (s *DogStatsdSink) IncrCounterWithLabels(key []string, val float32, labels []metrics.Label) {
+	flatKey, tags := s.getFlatkeyAndCombinedLabels(key, labels)
 	rate := 1.0
 	s.client.Count(flatKey, int64(val), tags, rate)
 }
 
-func (s *DogStatsdSink) AddSampleWithTags(key []string, val float32, tags []string) {
-	flatKey, tags := s.getFlatkeyAndCombinedTags(key, tags)
+func (s *DogStatsdSink) AddSampleWithLabels(key []string, val float32, labels []metrics.Label) {
+	flatKey, tags := s.getFlatkeyAndCombinedLabels(key, labels)
 	rate := 1.0
 	s.client.TimeInMilliseconds(flatKey, float64(val), tags, rate)
 }
 
-func (s *DogStatsdSink) getFlatkeyAndCombinedTags(key []string, tags []string) (flattenedKey string, combinedTags []string) {
-	key, hostTags := s.parseKey(key)
+func (s *DogStatsdSink) getFlatkeyAndCombinedLabels(key []string, labels []metrics.Label) (string, []string) {
+	key, parsedLabels := s.parseKey(key)
 	flatKey := s.flattenKey(key)
-	tags = append(tags, hostTags...)
+	labels = append(labels, parsedLabels...)
+
+	var tags []string
+	for _, label := range labels {
+		label.Name = strings.Map(sanitize, label.Name)
+		label.Value = strings.Map(sanitize, label.Value)
+		if label.Value != "" {
+			tags = append(tags, fmt.Sprintf("%s:%s", label.Name, label.Value))
+		} else {
+			tags = append(tags, label.Name)
+		}
+	}
+
 	return flatKey, tags
 }

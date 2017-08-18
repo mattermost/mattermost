@@ -17,7 +17,6 @@
 package minio
 
 import (
-	"hash"
 	"io"
 	"math"
 	"os"
@@ -74,28 +73,6 @@ func optimalPartInfo(objectSize int64) (totalPartsCount int, partSize int64, las
 	// Last part size.
 	lastPartSize = objectSize - int64(totalPartsCount-1)*partSize
 	return totalPartsCount, partSize, lastPartSize, nil
-}
-
-// hashCopyN - Calculates chosen hashes up to partSize amount of bytes.
-func hashCopyN(hashAlgorithms map[string]hash.Hash, hashSums map[string][]byte, writer io.Writer, reader io.Reader, partSize int64) (size int64, err error) {
-	hashWriter := writer
-	for _, v := range hashAlgorithms {
-		hashWriter = io.MultiWriter(hashWriter, v)
-	}
-
-	// Copies to input at writer.
-	size, err = io.CopyN(hashWriter, reader, partSize)
-	if err != nil {
-		// If not EOF return error right here.
-		if err != io.EOF {
-			return 0, err
-		}
-	}
-
-	for k, v := range hashAlgorithms {
-		hashSums[k] = v.Sum(nil)
-	}
-	return size, err
 }
 
 // getUploadID - fetch upload id if already present for an object name

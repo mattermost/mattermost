@@ -159,9 +159,9 @@ var _ = Describe("PubSub", func() {
 		{
 			msgi, err := pubsub.ReceiveTimeout(time.Second)
 			Expect(err).NotTo(HaveOccurred())
-			subscr := msgi.(*redis.Message)
-			Expect(subscr.Channel).To(Equal("mychannel"))
-			Expect(subscr.Payload).To(Equal("hello"))
+			msg := msgi.(*redis.Message)
+			Expect(msg.Channel).To(Equal("mychannel"))
+			Expect(msg.Payload).To(Equal("hello"))
 		}
 
 		{
@@ -294,6 +294,22 @@ var _ = Describe("PubSub", func() {
 		Expect(stats.Hits).To(Equal(uint32(1)))
 	})
 
+	It("returns an error when subscribe fails", func() {
+		pubsub := client.Subscribe()
+		defer pubsub.Close()
+
+		pubsub.SetNetConn(&badConn{
+			readErr:  io.EOF,
+			writeErr: io.EOF,
+		})
+
+		err := pubsub.Subscribe("mychannel")
+		Expect(err).To(MatchError("EOF"))
+
+		err = pubsub.Subscribe("mychannel")
+		Expect(err).NotTo(HaveOccurred())
+	})
+
 	expectReceiveMessageOnError := func(pubsub *redis.PubSub) {
 		pubsub.SetNetConn(&badConn{
 			readErr:  io.EOF,
@@ -384,8 +400,11 @@ var _ = Describe("PubSub", func() {
 		pubsub := client.Subscribe()
 		defer pubsub.Close()
 
+		var wg sync.WaitGroup
+		wg.Add(1)
 		go func() {
 			defer GinkgoRecover()
+			defer wg.Done()
 
 			time.Sleep(2 * timeout)
 
@@ -402,5 +421,7 @@ var _ = Describe("PubSub", func() {
 		Expect(err).NotTo(HaveOccurred())
 		Expect(msg.Channel).To(Equal("mychannel"))
 		Expect(msg.Payload).To(Equal("hello"))
+
+		wg.Wait()
 	})
 })

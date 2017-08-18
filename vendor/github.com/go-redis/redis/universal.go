@@ -17,11 +17,10 @@ type UniversalOptions struct {
 	// Only single-node and failover clients.
 	DB int
 
-	// Enables read only queries on slave nodes.
-	// Only cluster and single-node clients.
-	ReadOnly bool
-
 	// Only cluster clients.
+
+	// Enables read only queries on slave nodes.
+	ReadOnly bool
 
 	MaxRedirects   int
 	RouteByLatency bool
@@ -93,7 +92,6 @@ func (o *UniversalOptions) simple() *Options {
 	return &Options{
 		Addr:     addr,
 		DB:       o.DB,
-		ReadOnly: o.ReadOnly,
 
 		MaxRetries:         o.MaxRetries,
 		Password:           o.Password,

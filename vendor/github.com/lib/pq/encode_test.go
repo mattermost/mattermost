@@ -370,17 +370,17 @@ func TestInfinityTimestamp(t *testing.T) {
 		t.Errorf("Scanning -infinity, expected time %q, got %q", y1500, resultT.String())
 	}
 
-	y_1500 := time.Date(-1500, time.January, 1, 0, 0, 0, 0, time.UTC)
+	ym1500 := time.Date(-1500, time.January, 1, 0, 0, 0, 0, time.UTC)
 	y11500 := time.Date(11500, time.January, 1, 0, 0, 0, 0, time.UTC)
 	var s string
-	err = db.QueryRow("SELECT $1::timestamp::text", y_1500).Scan(&s)
+	err = db.QueryRow("SELECT $1::timestamp::text", ym1500).Scan(&s)
 	if err != nil {
 		t.Errorf("Encoding -infinity, expected no error, got %q", err)
 	}
 	if s != "-infinity" {
 		t.Errorf("Encoding -infinity, expected %q, got %q", "-infinity", s)
 	}
-	err = db.QueryRow("SELECT $1::timestamptz::text", y_1500).Scan(&s)
+	err = db.QueryRow("SELECT $1::timestamptz::text", ym1500).Scan(&s)
 	if err != nil {
 		t.Errorf("Encoding -infinity, expected no error, got %q", err)
 	}
