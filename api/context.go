@@ -149,7 +149,7 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	c.SetSiteURLHeader(app.GetProtocol(r) + "://" + r.Host)
 
 	w.Header().Set(model.HEADER_REQUEST_ID, c.RequestId)
-	w.Header().Set(model.HEADER_VERSION_ID, fmt.Sprintf("%v.%v.%v.%v", model.CurrentVersion, model.BuildNumber, utils.ClientCfgHash, utils.IsLicensed))
+	w.Header().Set(model.HEADER_VERSION_ID, fmt.Sprintf("%v.%v.%v.%v", model.CurrentVersion, model.BuildNumber, utils.ClientCfgHash, utils.IsLicensed()))
 
 	// Instruct the browser not to display us in an iframe unless is the same origin for anti-clickjacking
 	if !h.isApi {
@@ -179,20 +179,6 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			c.Err.StatusCode = http.StatusUnauthorized
 		} else {
 			c.Session = *session
-		}
-	}
-
-	// TEMPORARY CODE FOR 3.9, REMOVE FOR 3.10
-	if cookie, err := r.Cookie(model.SESSION_COOKIE_TOKEN); err == nil && c.Session.UserId != "" {
-		if _, err = r.Cookie(model.SESSION_COOKIE_USER); err != nil {
-			http.SetCookie(w, &http.Cookie{
-				Name:    model.SESSION_COOKIE_USER,
-				Value:   c.Session.UserId,
-				Path:    "/",
-				MaxAge:  cookie.MaxAge,
-				Expires: cookie.Expires,
-				Secure:  cookie.Secure,
-			})
 		}
 	}
 
@@ -321,7 +307,7 @@ func (c *Context) UserRequired() {
 
 func (c *Context) MfaRequired() {
 	// Must be licensed for MFA and have it configured for enforcement
-	if !utils.IsLicensed || !*utils.License.Features.MFA || !*utils.Cfg.ServiceSettings.EnableMultifactorAuthentication || !*utils.Cfg.ServiceSettings.EnforceMultifactorAuthentication {
+	if !utils.IsLicensed() || !*utils.License().Features.MFA || !*utils.Cfg.ServiceSettings.EnableMultifactorAuthentication || !*utils.Cfg.ServiceSettings.EnforceMultifactorAuthentication {
 		return
 	}
 

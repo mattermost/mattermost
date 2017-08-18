@@ -136,7 +136,7 @@ func TestOpenURL(t *testing.T) {
 	testURL("postgresql://")
 }
 
-const pgpass_file = "/tmp/pqgotest_pgpass"
+const pgpassFile = "/tmp/pqgotest_pgpass"
 
 func TestPgpass(t *testing.T) {
 	if os.Getenv("TRAVIS") != "true" {
@@ -172,10 +172,10 @@ func TestPgpass(t *testing.T) {
 		txn.Rollback()
 	}
 	testAssert("", "ok", "missing .pgpass, unexpected error %#v")
-	os.Setenv("PGPASSFILE", pgpass_file)
+	os.Setenv("PGPASSFILE", pgpassFile)
 	testAssert("host=/tmp", "fail", ", unexpected error %#v")
-	os.Remove(pgpass_file)
-	pgpass, err := os.OpenFile(pgpass_file, os.O_RDWR|os.O_CREATE, 0644)
+	os.Remove(pgpassFile)
+	pgpass, err := os.OpenFile(pgpassFile, os.O_RDWR|os.O_CREATE, 0644)
 	if err != nil {
 		t.Fatalf("Unexpected error writing pgpass file %#v", err)
 	}
@@ -213,7 +213,7 @@ localhost:*:*:*:pass_C
 	// wrong permissions for the pgpass file means it should be ignored
 	assertPassword(values{"host": "example.com", "user": "foo"}, "")
 	// fix the permissions and check if it has taken effect
-	os.Chmod(pgpass_file, 0600)
+	os.Chmod(pgpassFile, 0600)
 	assertPassword(values{"host": "server", "dbname": "some_db", "user": "some_user"}, "pass_A")
 	assertPassword(values{"host": "example.com", "user": "foo"}, "pass_fallback")
 	assertPassword(values{"host": "example.com", "dbname": "some_db", "user": "some_user"}, "pass_B")
@@ -221,7 +221,7 @@ localhost:*:*:*:pass_C
 	assertPassword(values{"host": "", "user": "some_user"}, "pass_C")
 	assertPassword(values{"host": "/tmp", "user": "some_user"}, "pass_C")
 	// cleanup
-	os.Remove(pgpass_file)
+	os.Remove(pgpassFile)
 	os.Setenv("PGPASSFILE", "")
 }
 
@@ -393,8 +393,8 @@ func TestEmptyQuery(t *testing.T) {
 	if _, err := res.RowsAffected(); err != errNoRowsAffected {
 		t.Fatalf("expected %s, got %v", errNoRowsAffected, err)
 	}
-	if _, err := res.LastInsertId(); err != errNoLastInsertId {
-		t.Fatalf("expected %s, got %v", errNoLastInsertId, err)
+	if _, err := res.LastInsertId(); err != errNoLastInsertID {
+		t.Fatalf("expected %s, got %v", errNoLastInsertID, err)
 	}
 	rows, err := db.Query("")
 	if err != nil {
@@ -425,8 +425,8 @@ func TestEmptyQuery(t *testing.T) {
 	if _, err := res.RowsAffected(); err != errNoRowsAffected {
 		t.Fatalf("expected %s, got %v", errNoRowsAffected, err)
 	}
-	if _, err := res.LastInsertId(); err != errNoLastInsertId {
-		t.Fatalf("expected %s, got %v", errNoLastInsertId, err)
+	if _, err := res.LastInsertId(); err != errNoLastInsertID {
+		t.Fatalf("expected %s, got %v", errNoLastInsertID, err)
 	}
 	rows, err = stmt.Query()
 	if err != nil {
@@ -1053,16 +1053,16 @@ func TestIssue282(t *testing.T) {
 	db := openTestConn(t)
 	defer db.Close()
 
-	var search_path string
+	var searchPath string
 	err := db.QueryRow(`
 		SET LOCAL search_path TO pg_catalog;
 		SET LOCAL search_path TO pg_catalog;
-		SHOW search_path`).Scan(&search_path)
+		SHOW search_path`).Scan(&searchPath)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if search_path != "pg_catalog" {
-		t.Fatalf("unexpected search_path %s", search_path)
+	if searchPath != "pg_catalog" {
+		t.Fatalf("unexpected search_path %s", searchPath)
 	}
 }
 

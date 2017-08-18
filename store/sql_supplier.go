@@ -70,6 +70,7 @@ type SqlSupplierOldStores struct {
 	system          SystemStore
 	webhook         WebhookStore
 	command         CommandStore
+	commandWebhook  CommandWebhookStore
 	preference      PreferenceStore
 	license         LicenseStore
 	token           TokenStore
@@ -111,6 +112,7 @@ func NewSqlSupplier() *SqlSupplier {
 	supplier.oldStores.system = NewSqlSystemStore(supplier)
 	supplier.oldStores.webhook = NewSqlWebhookStore(supplier)
 	supplier.oldStores.command = NewSqlCommandStore(supplier)
+	supplier.oldStores.commandWebhook = NewSqlCommandWebhookStore(supplier)
 	supplier.oldStores.preference = NewSqlPreferenceStore(supplier)
 	supplier.oldStores.license = NewSqlLicenseStore(supplier)
 	supplier.oldStores.token = NewSqlTokenStore(supplier)
@@ -142,6 +144,7 @@ func NewSqlSupplier() *SqlSupplier {
 	supplier.oldStores.system.(*SqlSystemStore).CreateIndexesIfNotExists()
 	supplier.oldStores.webhook.(*SqlWebhookStore).CreateIndexesIfNotExists()
 	supplier.oldStores.command.(*SqlCommandStore).CreateIndexesIfNotExists()
+	supplier.oldStores.commandWebhook.(*SqlCommandWebhookStore).CreateIndexesIfNotExists()
 	supplier.oldStores.preference.(*SqlPreferenceStore).CreateIndexesIfNotExists()
 	supplier.oldStores.license.(*SqlLicenseStore).CreateIndexesIfNotExists()
 	supplier.oldStores.token.(*SqlTokenStore).CreateIndexesIfNotExists()
@@ -732,6 +735,10 @@ func (ss *SqlSupplier) Command() CommandStore {
 	return ss.oldStores.command
 }
 
+func (ss *SqlSupplier) CommandWebhook() CommandWebhookStore {
+	return ss.oldStores.commandWebhook
+}
+
 func (ss *SqlSupplier) Preference() PreferenceStore {
 	return ss.oldStores.preference
 }
@@ -779,6 +786,8 @@ func (me mattermConverter) ToDb(val interface{}) (interface{}, error) {
 	switch t := val.(type) {
 	case model.StringMap:
 		return model.MapToJson(t), nil
+	case map[string]string:
+		return model.MapToJson(model.StringMap(t)), nil
 	case model.StringArray:
 		return model.ArrayToJson(t), nil
 	case model.StringInterface:
@@ -793,6 +802,16 @@ func (me mattermConverter) ToDb(val interface{}) (interface{}, error) {
 func (me mattermConverter) FromDb(target interface{}) (gorp.CustomScanner, bool) {
 	switch target.(type) {
 	case *model.StringMap:
+		binder := func(holder, target interface{}) error {
+			s, ok := holder.(*string)
+			if !ok {
+				return errors.New(utils.T("store.sql.convert_string_map"))
+			}
+			b := []byte(*s)
+			return json.Unmarshal(b, target)
+		}
+		return gorp.CustomScanner{Holder: new(string), Target: target, Binder: binder}, true
+	case *map[string]string:
 		binder := func(holder, target interface{}) error {
 			s, ok := holder.(*string)
 			if !ok {

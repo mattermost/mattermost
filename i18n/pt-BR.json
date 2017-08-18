@@ -3561,7 +3561,7 @@
   },
   {
     "id": "app.user_access_token.disabled",
-    "translation": "Os tokens de acesso do usuário estão desativados neste servidor. Entre em contato com o administrador do sistema para obter detalhes."
+    "translation": "Os tokens de acesso individual estão desativados neste servidor. Entre em contato com o administrador do sistema para obter detalhes."
   },
   {
     "id": "app.user_access_token.invalid_or_missing",
@@ -3593,11 +3593,11 @@
   },
   {
     "id": "authentication.permissions.create_user_access_token.description",
-    "translation": "Capacidade de criar tokens de acesso de usuário"
+    "translation": "Capacidade de criar tokens de acesso individual"
   },
   {
     "id": "authentication.permissions.create_user_access_token.name",
-    "translation": "Criar Token de Acesso de Usuário"
+    "translation": "Criar Token de Acesso Individual"
   },
   {
     "id": "authentication.permissions.manage_jobs.description",
@@ -3625,19 +3625,19 @@
   },
   {
     "id": "authentication.permissions.read_user_access_token.description",
-    "translation": "Capacidade de ler os campos id, description e user_id dos tokens de acesso do usuário"
+    "translation": "Capacidade de ler os campos id, description e user_id dos tokens de acesso individual"
   },
   {
     "id": "authentication.permissions.read_user_access_token.name",
-    "translation": "Ler Tokens de Acesso de Usuário"
+    "translation": "Ler Tokens de Acesso Individual"
   },
   {
     "id": "authentication.permissions.revoke_user_access_token.description",
-    "translation": "Capacidade de revogar tokens de acesso de usuário"
+    "translation": "Capacidade de revogar tokens de acesso individual"
   },
   {
     "id": "authentication.permissions.revoke_user_access_token.name",
-    "translation": "Revogar Token de Acesso de Usuário"
+    "translation": "Revogar Token de Acesso Individual"
   },
   {
     "id": "authentication.permissions.team_invite_user.description",
@@ -3673,11 +3673,11 @@
   },
   {
     "id": "authentication.roles.system_user_access_token.description",
-    "translation": "Um papel com a permissão para criar, ler e revogar tokens de acesso de usuário"
+    "translation": "Um papel com a permissão para criar, ler e revogar tokens de acesso individual"
   },
   {
     "id": "authentication.roles.system_user_access_token.name",
-    "translation": "Token de Acesso de Usuário"
+    "translation": "Token de Acesso Individual"
   },
   {
     "id": "authentication.roles.team_post_all.description",
@@ -4097,7 +4097,7 @@
   },
   {
     "id": "manaultesting.manual_test.uid.debug",
-    "translation": "Sem uid na URL"
+    "translation": "Não há uid na URL"
   },
   {
     "id": "manaultesting.test_autolink.info",
@@ -6405,23 +6405,23 @@
   },
   {
     "id": "store.sql_user_access_token.delete.app_error",
-    "translation": "Não foi possível remover o token de acesso do usuário"
+    "translation": "Não foi possível remover o token de acesso individual"
   },
   {
     "id": "store.sql_user_access_token.get.app_error",
-    "translation": "Não foi possível obter o token de acesso do usuário"
+    "translation": "Não foi possível obter o token de acesso individual"
   },
   {
     "id": "store.sql_user_access_token.get_by_token.app_error",
-    "translation": "Não foi possível obter o token de acesso do usuário pelo token"
+    "translation": "Não foi possível obter o token de acesso inidividual pelo token"
   },
   {
     "id": "store.sql_user_access_token.get_by_user.app_error",
-    "translation": "Não foi possível obter o token de acesso do usuário"
+    "translation": "Não foi possível obter o token de acesso individual pelo usuário"
   },
   {
     "id": "store.sql_user_access_token.save.app_error",
-    "translation": "Não foi possível salvar o token de acesso do usuário"
+    "translation": "Não foi possível salvar o token de acesso individual"
   },
   {
     "id": "store.sql_webhooks.analytics_incoming_count.app_error",
@@ -6533,15 +6533,15 @@
   },
   {
     "id": "utils.config.supported_available_locales.app_error",
-    "translation": "Unable to load mattermost configuration file:  AvailableLocales must include DefaultClientLocale. Setting AvailableLocales to all locales as default value."
+    "translation": "Não é possível carregar o arquivo de configuração mattermost:  AvailableLocales deve incluir o DefaultClientLocale. Configurando AvailableLocales para todas as localidades como valor padrão."
   },
   {
     "id": "utils.config.supported_client_locale.app_error",
-    "translation": "Unable to load mattermost configuration file:  DefaultClientLocale must be one of the supported locales. Setting DefaultClientLocale to en as default value."
+    "translation": "Não é possível carregar o arquivo de configuração mattermost:  DefaultClientLocale deve ser uma das localidades suportadas. Configurando DefaultClientLocale para en como valor padrão."
   },
   {
     "id": "utils.config.supported_server_locale.app_error",
-    "translation": "Não foi possível carregar o arquivo de configuração do mattermost:  O DefaultServerLocale deve ser um idioma suportado"
+    "translation": "Não é possível carregar o arquivo de configuração mattermost:  DefaultServerLocale deve ser uma das localidades suportadas. Configurando DefaultServerLocale para en como valor padrão."
   },
   {
     "id": "utils.config.validate_locale.app_error",

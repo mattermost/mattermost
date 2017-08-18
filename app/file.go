@@ -57,6 +57,8 @@ const (
 	IMAGE_THUMBNAIL_PIXEL_WIDTH  = 120
 	IMAGE_THUMBNAIL_PIXEL_HEIGHT = 100
 	IMAGE_PREVIEW_PIXEL_WIDTH    = 1024
+
+	TEST_FILE_PATH = "/testfile"
 )
 
 // Similar to s3.New() but allows initialization of signature v2 or signature v4 client.
@@ -72,6 +74,49 @@ func s3New(endpoint, accessKey, secretKey string, secure bool, signV2 bool, regi
 		creds = credentials.NewStatic(accessKey, secretKey, "", credentials.SignatureV4)
 	}
 	return s3.NewWithCredentials(endpoint, creds, secure, region)
+}
+
+func TestFileConnection() *model.AppError {
+	if utils.Cfg.FileSettings.DriverName == model.IMAGE_DRIVER_S3 {
+		endpoint := utils.Cfg.FileSettings.AmazonS3Endpoint
+		accessKey := utils.Cfg.FileSettings.AmazonS3AccessKeyId
+		secretKey := utils.Cfg.FileSettings.AmazonS3SecretAccessKey
+		secure := *utils.Cfg.FileSettings.AmazonS3SSL
+		signV2 := *utils.Cfg.FileSettings.AmazonS3SignV2
+		region := utils.Cfg.FileSettings.AmazonS3Region
+		bucket := utils.Cfg.FileSettings.AmazonS3Bucket
+
+		s3Clnt, err := s3New(endpoint, accessKey, secretKey, secure, signV2, region)
+		if err != nil {
+			return model.NewLocAppError("TestFileConnection", "Bad connection to S3 or minio.", nil, err.Error())
+		}
+
+		exists, err := s3Clnt.BucketExists(bucket)
+		if err != nil {
+			return model.NewLocAppError("TestFileConnection", "Error checking if bucket exists.", nil, err.Error())
+		}
+
+		if !exists {
+			l4g.Warn("Bucket specified does not exist. Attempting to create...")
+			err := s3Clnt.MakeBucket(bucket, region)
+			if err != nil {
+				l4g.Error("Unable to create bucket.")
+				return model.NewAppError("TestFileConnection", "Unable to create bucket", nil, err.Error(), http.StatusInternalServerError)
+			}
+		}
+		l4g.Info("Connection to S3 or minio is good. Bucket exists.")
+	} else if utils.Cfg.FileSettings.DriverName == model.IMAGE_DRIVER_LOCAL {
+		f := []byte("testingwrite")
+		if err := writeFileLocally(f, utils.Cfg.FileSettings.Directory+TEST_FILE_PATH); err != nil {
+			return model.NewAppError("TestFileConnection", "Don't have permissions to write to local path specified or other error.", nil, err.Error(), http.StatusInternalServerError)
+		}
+		os.Remove(utils.Cfg.FileSettings.Directory + TEST_FILE_PATH)
+		l4g.Info("Able to write files to local storage.")
+	} else {
+		return model.NewLocAppError("TestFileConnection", "No file driver selected.", nil, "")
+	}
+
+	return nil
 }
 
 func ReadFile(path string) ([]byte, *model.AppError) {
@@ -115,8 +160,11 @@ func MoveFile(oldPath, newPath string) *model.AppError {
 		secretKey := utils.Cfg.FileSettings.AmazonS3SecretAccessKey
 		secure := *utils.Cfg.FileSettings.AmazonS3SSL
 		signV2 := *utils.Cfg.FileSettings.AmazonS3SignV2
-		encrypt := *utils.Cfg.FileSettings.AmazonS3SSE
 		region := utils.Cfg.FileSettings.AmazonS3Region
+		encrypt := false
+		if *utils.Cfg.FileSettings.AmazonS3SSE && utils.IsLicensed() && *utils.License().Features.Compliance {
+			encrypt = true
+		}
 		s3Clnt, err := s3New(endpoint, accessKey, secretKey, secure, signV2, region)
 		if err != nil {
 			return model.NewLocAppError("moveFile", "api.file.write_file.s3.app_error", nil, err.Error())
@@ -156,8 +204,12 @@ func WriteFile(f []byte, path string) *model.AppError {
 		secretKey := utils.Cfg.FileSettings.AmazonS3SecretAccessKey
 		secure := *utils.Cfg.FileSettings.AmazonS3SSL
 		signV2 := *utils.Cfg.FileSettings.AmazonS3SignV2
-		encrypt := *utils.Cfg.FileSettings.AmazonS3SSE
 		region := utils.Cfg.FileSettings.AmazonS3Region
+		encrypt := false
+		if *utils.Cfg.FileSettings.AmazonS3SSE && utils.IsLicensed() && *utils.License().Features.Compliance {
+			encrypt = true
+		}
+
 		s3Clnt, err := s3New(endpoint, accessKey, secretKey, secure, signV2, region)
 		if err != nil {
 			return model.NewLocAppError("WriteFile", "api.file.write_file.s3.app_error", nil, err.Error())

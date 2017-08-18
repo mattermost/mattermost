@@ -203,7 +203,7 @@ func TestCompareWeights(t *testing.T) {
 		test := func(tt weightsTest, a, b [][]int) {
 			res, level := compareWeights(mkRawCES(a), mkRawCES(b))
 			if res != tt.result {
-				t.Errorf("%d: expected comparisson result %d; found %d", i, tt.result, res)
+				t.Errorf("%d: expected comparison result %d; found %d", i, tt.result, res)
 			}
 			if level != tt.level {
 				t.Errorf("%d: expected level %d; found %d", i, tt.level, level)

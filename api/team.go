@@ -22,11 +22,11 @@ func InitTeam() {
 	l4g.Debug(utils.T("api.team.init.debug"))
 
 	BaseRoutes.Teams.Handle("/create", ApiUserRequired(createTeam)).Methods("POST")
-	BaseRoutes.Teams.Handle("/all", ApiAppHandler(getAll)).Methods("GET")
+	BaseRoutes.Teams.Handle("/all", ApiUserRequired(getAll)).Methods("GET")
 	BaseRoutes.Teams.Handle("/all_team_listings", ApiUserRequired(GetAllTeamListings)).Methods("GET")
 	BaseRoutes.Teams.Handle("/get_invite_info", ApiAppHandler(getInviteInfo)).Methods("POST")
-	BaseRoutes.Teams.Handle("/find_team_by_name", ApiAppHandler(findTeamByName)).Methods("POST")
-	BaseRoutes.Teams.Handle("/name/{team_name:[A-Za-z0-9\\-]+}", ApiAppHandler(getTeamByName)).Methods("GET")
+	BaseRoutes.Teams.Handle("/find_team_by_name", ApiUserRequired(findTeamByName)).Methods("POST")
+	BaseRoutes.Teams.Handle("/name/{team_name:[A-Za-z0-9\\-]+}", ApiUserRequired(getTeamByName)).Methods("GET")
 	BaseRoutes.Teams.Handle("/members", ApiUserRequired(getMyTeamMembers)).Methods("GET")
 	BaseRoutes.Teams.Handle("/unread", ApiUserRequired(getMyTeamsUnread)).Methods("GET")
 
@@ -118,7 +118,7 @@ func getAll(c *Context, w http.ResponseWriter, r *http.Request) {
 func inviteMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 	invites := model.InvitesFromJson(r.Body)
 
-	if utils.IsLicensed && !app.SessionHasPermissionToTeam(c.Session, c.TeamId, model.PERMISSION_INVITE_USER) {
+	if utils.IsLicensed() && !app.SessionHasPermissionToTeam(c.Session, c.TeamId, model.PERMISSION_INVITE_USER) {
 		errorId := ""
 		if *utils.Cfg.TeamSettings.RestrictTeamInvite == model.PERMISSIONS_SYSTEM_ADMIN {
 			errorId = "api.team.invite_members.restricted_system_admin.app_error"
@@ -235,7 +235,7 @@ func getTeamByName(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	} else {
-		if team.Type != model.TEAM_OPEN && c.Session.GetTeamByTeamId(team.Id) == nil {
+		if (!team.AllowOpenInvite || team.Type != model.TEAM_OPEN) && c.Session.GetTeamByTeamId(team.Id) == nil {
 			if !app.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
 				c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 				return

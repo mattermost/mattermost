@@ -1279,6 +1279,7 @@ func Setgid(uid int) (err error) {
 //sys	Setpriority(which int, who int, prio int) (err error)
 //sys	Setxattr(path string, attr string, data []byte, flags int) (err error)
 //sys	Sync()
+//sys	Syncfs(fd int) (err error)
 //sysnb	Sysinfo(info *Sysinfo_t) (err error)
 //sys	Tee(rfd int, wfd int, len int, flags int) (n int64, err error)
 //sysnb	Tgkill(tgid int, tid int, sig syscall.Signal) (err error)
@@ -1315,6 +1316,7 @@ func Munmap(b []byte) (err error) {
 //sys	Mlock(b []byte) (err error)
 //sys	Munlock(b []byte) (err error)
 //sys	Mlockall(flags int) (err error)
+//sys	Msync(b []byte, flags int) (err error)
 //sys	Munlockall() (err error)
 
 // Vmsplice splices user pages from a slice of Iovecs into a pipe specified by fd,
@@ -1394,7 +1396,6 @@ func Vmsplice(fd int, iovs []Iovec, flags int) (int, error) {
 // Msgget
 // Msgrcv
 // Msgsnd
-// Msync
 // Newfstatat
 // Nfsservctl
 // Personality

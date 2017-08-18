@@ -258,7 +258,7 @@ func getClientLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 	var clientLicense map[string]string
 
 	if app.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
-		clientLicense = utils.ClientLicense
+		clientLicense = utils.ClientLicense()
 	} else {
 		clientLicense = utils.GetSanitizedClientLicense()
 	}

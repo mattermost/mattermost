@@ -11,7 +11,8 @@ import * as GlobalActions from 'actions/global_actions.jsx';
 import * as FileUtils from 'utils/file_utils';
 import * as Utils from 'utils/utils.jsx';
 
-import {KeyCodes} from 'utils/constants.jsx';
+import Constants from 'utils/constants.jsx';
+const KeyCodes = Constants.KeyCodes;
 
 import {getFileUrl, getFilePreviewUrl} from 'mattermost-redux/utils/file_utils';
 
@@ -133,26 +134,37 @@ export default class ViewImageModal extends React.Component {
                 previewUrl = getFileUrl(fileInfo.id);
             }
 
-            const img = new Image();
-            img.load(
+            Utils.loadImage(
                 previewUrl,
-                () => {
-                    const progress = this.state.progress;
-                    progress[index] = img.completedPercentage;
-                    this.setState({progress});
-                }
+                () => this.handleImageLoaded(index),
+                (completedPercentage) => this.handleImageProgress(index, completedPercentage)
             );
-            img.onload = () => {
-                const loaded = this.state.loaded;
-                loaded[index] = true;
-                this.setState({loaded});
-            };
         } else {
             // there's nothing to load for non-image files
-            var loaded = this.state.loaded;
-            loaded[index] = true;
-            this.setState({loaded});
+            this.handleImageLoaded(index);
         }
+    }
+
+    handleImageLoaded = (index) => {
+        this.setState((prevState) => {
+            return {
+                loaded: {
+                    ...prevState.loaded,
+                    [index]: true
+                }
+            };
+        });
+    }
+
+    handleImageProgress = (index, completedPercentage) => {
+        this.setState((prevState) => {
+            return {
+                progress: {
+                    ...prevState.progress,
+                    [index]: completedPercentage
+                }
+            };
+        });
     }
 
     handleGetPublicLink() {

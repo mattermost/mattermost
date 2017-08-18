@@ -406,6 +406,170 @@ func TestRotate(t *testing.T) {
 				},
 			},
 		},
+		{
+			"Rotate -360*10",
+			&image.NRGBA{
+				Rect:   image.Rect(-1, -1, 0, 1),
+				Stride: 1 * 4,
+				Pix: []uint8{
+					0x00, 0xff, 0x00, 0xff,
+					0xff, 0x00, 0x00, 0xff,
+				},
+			},
+			-360 * 10,
+			color.Black,
+			&image.NRGBA{
+				Rect:   image.Rect(0, 0, 1, 2),
+				Stride: 1 * 4,
+				Pix: []uint8{
+					0x00, 0xff, 0x00, 0xff,
+					0xff, 0x00, 0x00, 0xff,
+				},
+			},
+		},
+		{
+			"Rotate -360*10 + 90",
+			&image.NRGBA{
+				Rect:   image.Rect(-1, -1, 0, 1),
+				Stride: 1 * 4,
+				Pix: []uint8{
+					0xff, 0x00, 0x00, 0xff,
+					0x00, 0xff, 0x00, 0xff,
+				},
+			},
+			-360*10 + 90,
+			color.Black,
+			&image.NRGBA{
+				Rect:   image.Rect(0, 0, 2, 1),
+				Stride: 2 * 4,
+				Pix: []uint8{
+					0xff, 0x00, 0x00, 0xff, 0x00, 0xff, 0x00, 0xff,
+				},
+			},
+		},
+		{
+			"Rotate -360*10 + 180",
+			&image.NRGBA{
+				Rect:   image.Rect(-1, -1, 0, 1),
+				Stride: 1 * 4,
+				Pix: []uint8{
+					0xff, 0x00, 0x00, 0xff,
+					0x00, 0xff, 0x00, 0xff,
+				},
+			},
+			-360*10 + 180,
+			color.Black,
+			&image.NRGBA{
+				Rect:   image.Rect(0, 0, 1, 2),
+				Stride: 1 * 4,
+				Pix: []uint8{
+					0x00, 0xff, 0x00, 0xff,
+					0xff, 0x00, 0x00, 0xff,
+				},
+			},
+		},
+		{
+			"Rotate -360*10 + 270",
+			&image.NRGBA{
+				Rect:   image.Rect(-1, -1, 0, 1),
+				Stride: 1 * 4,
+				Pix: []uint8{
+					0xff, 0x00, 0x00, 0xff,
+					0x00, 0xff, 0x00, 0xff,
+				},
+			},
+			-360*10 + 270,
+			color.Black,
+			&image.NRGBA{
+				Rect:   image.Rect(0, 0, 2, 1),
+				Stride: 2 * 4,
+				Pix: []uint8{
+					0x00, 0xff, 0x00, 0xff, 0xff, 0x00, 0x00, 0xff,
+				},
+			},
+		},
+		{
+			"Rotate 360*10",
+			&image.NRGBA{
+				Rect:   image.Rect(-1, -1, 0, 1),
+				Stride: 1 * 4,
+				Pix: []uint8{
+					0x00, 0xff, 0x00, 0xff,
+					0xff, 0x00, 0x00, 0xff,
+				},
+			},
+			360 * 10,
+			color.Black,
+			&image.NRGBA{
+				Rect:   image.Rect(0, 0, 1, 2),
+				Stride: 1 * 4,
+				Pix: []uint8{
+					0x00, 0xff, 0x00, 0xff,
+					0xff, 0x00, 0x00, 0xff,
+				},
+			},
+		},
+		{
+			"Rotate 360*10 + 90",
+			&image.NRGBA{
+				Rect:   image.Rect(-1, -1, 0, 1),
+				Stride: 1 * 4,
+				Pix: []uint8{
+					0xff, 0x00, 0x00, 0xff,
+					0x00, 0xff, 0x00, 0xff,
+				},
+			},
+			360*10 + 90,
+			color.Black,
+			&image.NRGBA{
+				Rect:   image.Rect(0, 0, 2, 1),
+				Stride: 2 * 4,
+				Pix: []uint8{
+					0xff, 0x00, 0x00, 0xff, 0x00, 0xff, 0x00, 0xff,
+				},
+			},
+		},
+		{
+			"Rotate 360*10 + 180",
+			&image.NRGBA{
+				Rect:   image.Rect(-1, -1, 0, 1),
+				Stride: 1 * 4,
+				Pix: []uint8{
+					0xff, 0x00, 0x00, 0xff,
+					0x00, 0xff, 0x00, 0xff,
+				},
+			},
+			360*10 + 180,
+			color.Black,
+			&image.NRGBA{
+				Rect:   image.Rect(0, 0, 1, 2),
+				Stride: 1 * 4,
+				Pix: []uint8{
+					0x00, 0xff, 0x00, 0xff,
+					0xff, 0x00, 0x00, 0xff,
+				},
+			},
+		},
+		{
+			"Rotate 360*10 + 270",
+			&image.NRGBA{
+				Rect:   image.Rect(-1, -1, 0, 1),
+				Stride: 1 * 4,
+				Pix: []uint8{
+					0xff, 0x00, 0x00, 0xff,
+					0x00, 0xff, 0x00, 0xff,
+				},
+			},
+			360*10 + 270,
+			color.Black,
+			&image.NRGBA{
+				Rect:   image.Rect(0, 0, 2, 1),
+				Stride: 2 * 4,
+				Pix: []uint8{
+					0x00, 0xff, 0x00, 0xff, 0xff, 0x00, 0x00, 0xff,
+				},
+			},
+		},
 	}
 	for _, test := range testCases {
 		got := Rotate(test.src, test.angle, test.bg)

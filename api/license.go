@@ -97,7 +97,7 @@ func getClientLicenceConfig(c *Context, w http.ResponseWriter, r *http.Request) 
 	var clientLicense map[string]string
 
 	if useSanitizedLicense {
-		clientLicense = utils.ClientLicense
+		clientLicense = utils.ClientLicense()
 	} else {
 		clientLicense = utils.GetSanitizedClientLicense()
 	}

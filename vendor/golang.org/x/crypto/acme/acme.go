@@ -51,38 +51,6 @@ const (
 	maxNonces = 100
 )
 
-// CertOption is an optional argument type for Client methods which manipulate
-// certificate data.
-type CertOption interface {
-	privateCertOpt()
-}
-
-// WithKey creates an option holding a private/public key pair.
-// The private part signs a certificate, and the public part represents the signee.
-func WithKey(key crypto.Signer) CertOption {
-	return &certOptKey{key}
-}
-
-type certOptKey struct {
-	key crypto.Signer
-}
-
-func (*certOptKey) privateCertOpt() {}
-
-// WithTemplate creates an option for specifying a certificate template.
-// See x509.CreateCertificate for template usage details.
-//
-// In TLSSNIxChallengeCert methods, the template is also used as parent,
-// resulting in a self-signed certificate.
-// The DNSNames field of t is always overwritten for tls-sni challenge certs.
-func WithTemplate(t *x509.Certificate) CertOption {
-	return (*certOptTemplate)(t)
-}
-
-type certOptTemplate x509.Certificate
-
-func (*certOptTemplate) privateCertOpt() {}
-
 // Client is an ACME client.
 // The only required field is Key. An example of creating a client with a new key
 // is as follows:

@@ -278,8 +278,7 @@ func parseZone(r io.Reader, origin, f string, t chan *Token, include int) {
 				return
 			}
 			neworigin := origin // There may be optionally a new origin set after the filename, if not use current one
-			l := <-c
-			switch l.value {
+			switch l := <-c; l.value {
 			case zBlank:
 				l := <-c
 				if l.value == zString {

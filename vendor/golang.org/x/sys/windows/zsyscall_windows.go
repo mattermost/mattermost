@@ -161,6 +161,8 @@ var (
 	procRegQueryValueExW                   = modadvapi32.NewProc("RegQueryValueExW")
 	procGetCurrentProcessId                = modkernel32.NewProc("GetCurrentProcessId")
 	procGetConsoleMode                     = modkernel32.NewProc("GetConsoleMode")
+	procSetConsoleMode                     = modkernel32.NewProc("SetConsoleMode")
+	procGetConsoleScreenBufferInfo         = modkernel32.NewProc("GetConsoleScreenBufferInfo")
 	procWriteConsoleW                      = modkernel32.NewProc("WriteConsoleW")
 	procReadConsoleW                       = modkernel32.NewProc("ReadConsoleW")
 	procCreateToolhelp32Snapshot           = modkernel32.NewProc("CreateToolhelp32Snapshot")
@@ -1619,6 +1621,30 @@ func getCurrentProcessId() (pid uint32) {
 
 func GetConsoleMode(console Handle, mode *uint32) (err error) {
 	r1, _, e1 := syscall.Syscall(procGetConsoleMode.Addr(), 2, uintptr(console), uintptr(unsafe.Pointer(mode)), 0)
+	if r1 == 0 {
+		if e1 != 0 {
+			err = errnoErr(e1)
+		} else {
+			err = syscall.EINVAL
+		}
+	}
+	return
+}
+
+func SetConsoleMode(console Handle, mode uint32) (err error) {
+	r1, _, e1 := syscall.Syscall(procSetConsoleMode.Addr(), 2, uintptr(console), uintptr(mode), 0)
+	if r1 == 0 {
+		if e1 != 0 {
+			err = errnoErr(e1)
+		} else {
+			err = syscall.EINVAL
+		}
+	}
+	return
+}
+
+func GetConsoleScreenBufferInfo(console Handle, info *ConsoleScreenBufferInfo) (err error) {
+	r1, _, e1 := syscall.Syscall(procGetConsoleScreenBufferInfo.Addr(), 2, uintptr(console), uintptr(unsafe.Pointer(&info)), 0)
 	if r1 == 0 {
 		if e1 != 0 {
 			err = errnoErr(e1)

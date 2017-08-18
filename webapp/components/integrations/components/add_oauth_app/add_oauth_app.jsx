@@ -1,11 +1,8 @@
-import PropTypes from 'prop-types';
-
 // Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 import React from 'react';
-
-import * as OAuthActions from 'actions/oauth_actions.jsx';
+import PropTypes from 'prop-types';
 
 import BackstageHeader from 'components/backstage/components/backstage_header.jsx';
 import {FormattedMessage} from 'react-intl';
@@ -13,26 +10,31 @@ import FormError from 'components/form_error.jsx';
 import {browserHistory, Link} from 'react-router/es6';
 import SpinnerButton from 'components/spinner_button.jsx';
 
-export default class AddOAuthApp extends React.Component {
-    static get propTypes() {
-        return {
-            team: PropTypes.object
-        };
+export default class AddOAuthApp extends React.PureComponent {
+    static propTypes = {
+
+        /**
+        * The team data
+        */
+        team: PropTypes.object,
+
+        /**
+        * The request state for addOAuthApp action. Contains status and error
+        */
+        addOAuthAppRequest: PropTypes.object.isRequired,
+
+        actions: PropTypes.shape({
+
+            /**
+            * The function to call to add new OAuthApp
+            */
+            addOAuthApp: PropTypes.func.isRequired
+        }).isRequired
     }
 
     constructor(props) {
         super(props);
 
-        this.handleSubmit = this.handleSubmit.bind(this);
-
-        this.updateName = this.updateName.bind(this);
-        this.updateTrusted = this.updateTrusted.bind(this);
-        this.updateDescription = this.updateDescription.bind(this);
-        this.updateHomepage = this.updateHomepage.bind(this);
-        this.updateIconUrl = this.updateIconUrl.bind(this);
-        this.updateCallbackUrls = this.updateCallbackUrls.bind(this);
-
-        this.imageLoaded = this.imageLoaded.bind(this);
         this.image = new Image();
         this.image.onload = this.imageLoaded;
 
@@ -50,14 +52,14 @@ export default class AddOAuthApp extends React.Component {
         };
     }
 
-    imageLoaded() {
+    imageLoaded = () => {
         this.setState({
             has_icon: true,
             icon_url: this.refs.icon_url.value
         });
     }
 
-    handleSubmit(e) {
+    handleSubmit = (e) => {
         e.preventDefault();
 
         if (this.state.saving) {
@@ -144,45 +146,47 @@ export default class AddOAuthApp extends React.Component {
             icon_url: this.state.icon_url
         };
 
-        OAuthActions.registerOAuthApp(
-            app,
+        this.props.actions.addOAuthApp(app).then(
             (data) => {
-                browserHistory.push('/' + this.props.team.name + '/integrations/confirm?type=oauth2-apps&id=' + data.id);
-            },
-            (err) => {
-                this.setState({
-                    saving: false,
-                    serverError: err.message
-                });
+                const {error} = this.props.addOAuthAppRequest;
+                if (error) {
+                    this.setState({
+                        saving: false,
+                        serverError: error.message
+                    });
+                } else {
+                    browserHistory.
+                        push(`/${this.props.team.name}/integrations/confirm?type=oauth2-apps&id=${data.id}`);
+                }
             }
         );
     }
 
-    updateName(e) {
+    updateName = (e) => {
         this.setState({
             name: e.target.value
         });
     }
 
-    updateTrusted(e) {
+    updateTrusted = (e) => {
         this.setState({
             is_trusted: e.target.value === 'true'
         });
     }
 
-    updateDescription(e) {
+    updateDescription = (e) => {
         this.setState({
             description: e.target.value
         });
     }
 
-    updateHomepage(e) {
+    updateHomepage = (e) => {
         this.setState({
             homepage: e.target.value
         });
     }
 
-    updateIconUrl(e) {
+    updateIconUrl = (e) => {
         this.setState({
             has_icon: false,
             icon_url: ''
@@ -190,7 +194,7 @@ export default class AddOAuthApp extends React.Component {
         this.image.src = e.target.value;
     }
 
-    updateCallbackUrls(e) {
+    updateCallbackUrls = (e) => {
         this.setState({
             callbackUrls: e.target.value
         });
@@ -209,7 +213,7 @@ export default class AddOAuthApp extends React.Component {
         return (
             <div className='backstage-content'>
                 <BackstageHeader>
-                    <Link to={'/' + this.props.team.name + '/integrations/oauth2-apps'}>
+                    <Link to={`/${this.props.team.name}/integrations/oauth2-apps`}>
                         <FormattedMessage
                             id='installed_oauth_apps.header'
                             defaultMessage='Installed OAuth2 Apps'
@@ -410,7 +414,7 @@ export default class AddOAuthApp extends React.Component {
                             />
                             <Link
                                 className='btn btn-sm'
-                                to={'/' + this.props.team.name + '/integrations/oauth2-apps'}
+                                to={`/${this.props.team.name}/integrations/oauth2-apps`}
                             >
                                 <FormattedMessage
                                     id='installed_oauth_apps.cancel'

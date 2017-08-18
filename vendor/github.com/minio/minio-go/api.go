@@ -211,7 +211,7 @@ func privateNew(endpoint string, creds *credentials.Credentials, secure bool, re
 
 	// Instantiate http client and bucket location cache.
 	clnt.httpClient = &http.Client{
-		Transport:     http.DefaultTransport,
+		Transport:     defaultMinioTransport,
 		CheckRedirect: redirectHeaders,
 	}
 
@@ -700,7 +700,10 @@ func (c Client) newRequest(method string, metadata requestMetadata) (req *http.R
 	case signerType.IsV2():
 		// Add signature version '2' authorization header.
 		req = s3signer.SignV2(*req, accessKeyID, secretAccessKey)
-	case signerType.IsStreamingV4() && method == "PUT":
+	case metadata.objectName != "" && method == "PUT" && metadata.customHeader.Get("X-Amz-Copy-Source") == "" && !c.secure:
+		// Streaming signature is used by default for a PUT object request. Additionally we also
+		// look if the initialized client is secure, if yes then we don't need to perform
+		// streaming signature.
 		req = s3signer.StreamingSignV4(req, accessKeyID,
 			secretAccessKey, sessionToken, location, metadata.contentLength, time.Now().UTC())
 	default:

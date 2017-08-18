@@ -5,7 +5,7 @@ import:
   repo: https://github.com/mattermost/log4go.git
 - package: github.com/dgryski/dgoogauth
 - package: github.com/disintegration/imaging
-  version: v1.2.0
+  version: v1.2.1
 - package: github.com/dyatlov/go-opengraph
   subpackages:
   - opengraph
@@ -27,7 +27,7 @@ import:
   subpackages:
   - qr
 - package: github.com/minio/minio-go
-  version: v3.0.0
+  version: v3.0.1
 - package: github.com/mssola/user_agent
   version: v0.4.1
 - package: github.com/nicksnyder/go-i18n
@@ -45,6 +45,7 @@ import:
   version: 2.1.1
 - package: github.com/spf13/cobra
 - package: github.com/spf13/pflag
+  version: v1.0.0
 - package: github.com/spf13/viper
 - package: github.com/tylerb/graceful
   version: v1.2.15
@@ -81,13 +82,16 @@ import:
 - package: github.com/prometheus/procfs
 - package: github.com/cpanato/html2text
 - package: gopkg.in/olivere/elastic.v5
-  version: v5.0.43
+  version: v5.0.45
 - package: github.com/mattermost/gorp
   version: 995ddf2264c4ad45fbaf342f7500e4787ebae84a
 - package: github.com/go-redis/redis
-  version: v6.5.2
+  version: v6.5.7
 - package: github.com/stretchr/testify
-  version: ~1.1.4
+  version: v1.1.4
   subpackages:
   - assert
   - require
+- package: gopkg.in/gomail.v2
+  version: 2.0.0
+- package: github.com/mattermost/html2text

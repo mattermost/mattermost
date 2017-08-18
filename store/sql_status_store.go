@@ -6,6 +6,7 @@ package store
 import (
 	"database/sql"
 	"strconv"
+	"strings"
 
 	"github.com/mattermost/platform/model"
 )
@@ -48,7 +49,9 @@ func (s SqlStatusStore) SaveOrUpdate(status *model.Status) StoreChannel {
 			}
 		} else {
 			if err := s.GetMaster().Insert(status); err != nil {
-				result.Err = model.NewLocAppError("SqlStatusStore.SaveOrUpdate", "store.sql_status.save.app_error", nil, err.Error())
+				if !(strings.Contains(err.Error(), "for key 'PRIMARY'") && strings.Contains(err.Error(), "Duplicate entry")) {
+					result.Err = model.NewLocAppError("SqlStatusStore.SaveOrUpdate", "store.sql_status.save.app_error", nil, err.Error())
+				}
 			}
 		}
 

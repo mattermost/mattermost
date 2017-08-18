@@ -5,7 +5,6 @@ package gomail
 import (
 	"mime"
 	"mime/quotedprintable"
-	"strings"
 )
 
 var newQPWriter = quotedprintable.NewWriter
@@ -15,7 +14,6 @@ type mimeEncoder struct {
 }
 
 var (
-	bEncoding     = mimeEncoder{mime.BEncoding}
-	qEncoding     = mimeEncoder{mime.QEncoding}
-	lastIndexByte = strings.LastIndexByte
+	bEncoding = mimeEncoder{mime.BEncoding}
+	qEncoding = mimeEncoder{mime.QEncoding}
 )

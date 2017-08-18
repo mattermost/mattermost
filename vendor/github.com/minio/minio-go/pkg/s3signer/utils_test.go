@@ -25,6 +25,7 @@ import (
 // Tests url encoding.
 func TestEncodeURL2Path(t *testing.T) {
 	type urlStrings struct {
+		bucketName     string
 		objName        string
 		encodedObjName string
 	}
@@ -32,22 +33,27 @@ func TestEncodeURL2Path(t *testing.T) {
 	bucketName := "bucketName"
 	want := []urlStrings{
 		{
+			bucketName:     "bucketName",
 			objName:        "本語",
 			encodedObjName: "%E6%9C%AC%E8%AA%9E",
 		},
 		{
+			bucketName:     "bucketName",
 			objName:        "本語.1",
 			encodedObjName: "%E6%9C%AC%E8%AA%9E.1",
 		},
 		{
 			objName:        ">123>3123123",
+			bucketName:     "bucketName",
 			encodedObjName: "%3E123%3E3123123",
 		},
 		{
+			bucketName:     "bucketName",
 			objName:        "test 1 2.txt",
 			encodedObjName: "test%201%202.txt",
 		},
 		{
+			bucketName:     "test.bucketName",
 			objName:        "test++ 1.txt",
 			encodedObjName: "test%2B%2B%201.txt",
 		},
@@ -63,4 +69,5 @@ func TestEncodeURL2Path(t *testing.T) {
 			t.Fatal("Error")
 		}
 	}
+
 }

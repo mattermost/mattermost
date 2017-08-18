@@ -122,13 +122,13 @@ func ExampleClient_Set() {
 }
 
 func ExampleClient_Incr() {
-	if err := client.Incr("counter").Err(); err != nil {
+	result, err := client.Incr("counter").Result()
+	if err != nil {
 		panic(err)
 	}
 
-	n, err := client.Get("counter").Int64()
-	fmt.Println(n, err)
-	// Output: 1 <nil>
+	fmt.Println(result)
+	// Output: 1
 }
 
 func ExampleClient_BLPop() {

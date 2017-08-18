@@ -5,6 +5,7 @@ package circonus
 import (
 	"strings"
 
+	"github.com/armon/go-metrics"
 	cgm "github.com/circonus-labs/circonus-gometrics"
 )
 
@@ -61,6 +62,12 @@ func (s *CirconusSink) SetGauge(key []string, val float32) {
 	s.metrics.SetGauge(flatKey, int64(val))
 }
 
+// SetGaugeWithLabels sets value for a gauge metric with the given labels
+func (s *CirconusSink) SetGaugeWithLabels(key []string, val float32, labels []metrics.Label) {
+	flatKey := s.flattenKeyLabels(key, labels)
+	s.metrics.SetGauge(flatKey, int64(val))
+}
+
 // EmitKey is not implemented in circonus
 func (s *CirconusSink) EmitKey(key []string, val float32) {
 	// NOP
@@ -72,9 +79,21 @@ func (s *CirconusSink) IncrCounter(key []string, val float32) {
 	s.metrics.IncrementByValue(flatKey, uint64(val))
 }
 
+// IncrCounterWithLabels increments a counter metric with the given labels
+func (s *CirconusSink) IncrCounterWithLabels(key []string, val float32, labels []metrics.Label) {
+	flatKey := s.flattenKeyLabels(key, labels)
+	s.metrics.IncrementByValue(flatKey, uint64(val))
+}
+
 // AddSample adds a sample to a histogram metric
 func (s *CirconusSink) AddSample(key []string, val float32) {
 	flatKey := s.flattenKey(key)
+	s.metrics.RecordValue(flatKey, float64(val))
+}
+
+// AddSampleWithLabels adds a sample to a histogram metric with the given labels
+func (s *CirconusSink) AddSampleWithLabels(key []string, val float32, labels []metrics.Label) {
+	flatKey := s.flattenKeyLabels(key, labels)
 	s.metrics.RecordValue(flatKey, float64(val))
 }
 
@@ -89,4 +108,12 @@ func (s *CirconusSink) flattenKey(parts []string) string {
 			return r
 		}
 	}, joined)
+}
+
+// Flattens the key along with labels for formatting, removes spaces
+func (s *CirconusSink) flattenKeyLabels(parts []string, labels []metrics.Label) string {
+	for _, label := range labels {
+		parts = append(parts, label.Value)
+	}
+	return s.flattenKey(parts)
 }
