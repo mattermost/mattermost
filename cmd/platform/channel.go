@@ -369,7 +369,7 @@ func modifyChannelCmdF(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	if !utils.IsLicensed {
+	if !utils.IsLicensed() {
 		return errors.New(utils.T("cli.license.critical"))
 	}
 
