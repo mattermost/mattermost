@@ -44,7 +44,11 @@ describe('components/integrations/InstalledOAuthApps', () => {
                 team={{name: 'test'}}
                 oauthApps={oauthApps}
                 isSystemAdmin={true}
-                actions={{getOAuthApps: emptyFunction, deleteOAuthApp: emptyFunction}}
+                actions={{
+                    getOAuthApps: emptyFunction,
+                    regenOAuthAppSecret: emptyFunction,
+                    deleteOAuthApp: emptyFunction
+                }}
             />
         );
         expect(wrapper.find('InstalledOAuthApp').length).toBe(2);
