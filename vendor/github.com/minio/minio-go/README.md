@@ -54,7 +54,7 @@ func main() {
 		log.Fatalln(err)
 	}
 
-	log.Println("%v", minioClient) // minioClient is now setup
+	log.Printf("%#v\n", minioClient) // minioClient is now setup
 ```
 
 ## Quick Start Example - File Uploader

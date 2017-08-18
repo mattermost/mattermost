@@ -55,7 +55,7 @@ func SetupEnterprise() *TestHelper {
 		utils.Cfg.EmailSettings.SMTPPort = "2500"
 		utils.Cfg.EmailSettings.FeedbackEmail = "test@example.com"
 		utils.DisableDebugLogForTest()
-		utils.License.Features.SetDefaults()
+		utils.License().Features.SetDefaults()
 		app.NewServer()
 		app.InitStores()
 		InitRouter()

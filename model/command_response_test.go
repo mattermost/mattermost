@@ -18,6 +18,30 @@ func TestCommandResponseJson(t *testing.T) {
 	}
 }
 
+func TestCommandResponseFromHTTPBody(t *testing.T) {
+	for _, test := range []struct {
+		ContentType  string
+		Body         string
+		ExpectedText string
+	}{
+		{"", "foo", "foo"},
+		{"text/plain", "foo", "foo"},
+		{"application/json", `{"text": "foo"}`, "foo"},
+	} {
+		response := CommandResponseFromHTTPBody(test.ContentType, strings.NewReader(test.Body))
+		if response.Text != test.ExpectedText {
+			t.Fatal()
+		}
+	}
+}
+
+func TestCommandResponseFromPlainText(t *testing.T) {
+	response := CommandResponseFromPlainText("foo")
+	if response.Text != "foo" {
+		t.Fatal("text should be foo")
+	}
+}
+
 func TestCommandResponseFromJson(t *testing.T) {
 	json := `{
 		"response_type": "ephemeral",

@@ -18,14 +18,15 @@ package minio
 
 import (
 	"bytes"
-	"crypto/md5"
-
 	"io"
-	"math/rand"
+	"log"
 	"os"
 	"reflect"
 	"testing"
 	"time"
+
+	"crypto/md5"
+	"math/rand"
 )
 
 const (
@@ -34,6 +35,33 @@ const (
 	secretKey      = "SECRET_KEY"
 	enableSecurity = "ENABLE_HTTPS"
 )
+
+// Minimum part size
+const MinPartSize = 1024 * 1024 * 64
+const letterBytes = "abcdefghijklmnopqrstuvwxyz01234569"
+const (
+	letterIdxBits = 6                    // 6 bits to represent a letter index
+	letterIdxMask = 1<<letterIdxBits - 1 // All 1-bits, as many as letterIdxBits
+	letterIdxMax  = 63 / letterIdxBits   // # of letter indices fitting in 63 bits
+)
+
+// randString generates random names and prepends them with a known prefix.
+func randString(n int, src rand.Source, prefix string) string {
+	b := make([]byte, n)
+	// A rand.Int63() generates 63 random bits, enough for letterIdxMax letters!
+	for i, cache, remain := n-1, src.Int63(), letterIdxMax; i >= 0; {
+		if remain == 0 {
+			cache, remain = src.Int63(), letterIdxMax
+		}
+		if idx := int(cache & letterIdxMask); idx < len(letterBytes) {
+			b[i] = letterBytes[idx]
+			i--
+		}
+		cache >>= letterIdxBits
+		remain--
+	}
+	return prefix + string(b[0:30-len(prefix)])
+}
 
 // Tests for Core GetObject() function.
 func TestGetObjectCore(t *testing.T) {
@@ -209,6 +237,76 @@ func TestGetObjectCore(t *testing.T) {
 	}
 }
 
+// Tests GetObject to return Content-Encoding properly set
+// and overrides any auto decoding.
+func TestGetObjectContentEncoding(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping functional tests for the short runs")
+	}
+
+	// Seed random based on current time.
+	rand.Seed(time.Now().Unix())
+
+	// Instantiate new minio core client object.
+	c, err := NewCore(
+		os.Getenv(serverEndpoint),
+		os.Getenv(accessKey),
+		os.Getenv(secretKey),
+		mustParseBool(os.Getenv(enableSecurity)),
+	)
+	if err != nil {
+		t.Fatal("Error:", err)
+	}
+
+	// Enable tracing, write to stderr.
+	// c.TraceOn(os.Stderr)
+
+	// Set user agent.
+	c.SetAppInfo("Minio-go-FunctionalTest", "0.1.0")
+
+	// Generate a new random bucket name.
+	bucketName := randString(60, rand.NewSource(time.Now().UnixNano()), "minio-go-test")
+
+	// Make a new bucket.
+	err = c.MakeBucket(bucketName, "us-east-1")
+	if err != nil {
+		t.Fatal("Error:", err, bucketName)
+	}
+
+	// Generate data more than 32K
+	buf := bytes.Repeat([]byte("3"), rand.Intn(1<<20)+32*1024)
+	m := make(map[string][]string)
+	m["Content-Encoding"] = []string{"gzip"}
+
+	// Save the data
+	objectName := randString(60, rand.NewSource(time.Now().UnixNano()), "")
+	n, err := c.Client.PutObjectWithMetadata(bucketName, objectName, bytes.NewReader(buf), m, nil)
+	if err != nil {
+		t.Fatal("Error:", err, bucketName, objectName)
+	}
+
+	if n != int64(len(buf)) {
+		t.Fatalf("Error: number of bytes does not match, want %v, got %v\n", len(buf), n)
+	}
+
+	reqHeaders := NewGetReqHeaders()
+	rwc, objInfo, err := c.GetObject(bucketName, objectName, reqHeaders)
+	if err != nil {
+		t.Fatalf("Error: %v", err)
+	}
+	rwc.Close()
+	if objInfo.Size <= 0 {
+		t.Fatalf("Unexpected size of the object %v, expected %v", objInfo.Size, n)
+	}
+	value, ok := objInfo.Metadata["Content-Encoding"]
+	if !ok {
+		t.Fatalf("Expected Content-Encoding metadata to be set.")
+	}
+	if value[0] != "gzip" {
+		t.Fatalf("Unexpected content-encoding found, want gzip, got %v", value)
+	}
+}
+
 // Tests get bucket policy core API.
 func TestGetBucketPolicy(t *testing.T) {
 	if testing.Short() {
@@ -321,11 +419,6 @@ func TestCorePutObject(t *testing.T) {
 		t.Fatal("Error expected: nil, got: ", err)
 	}
 
-	objInfo, err = c.PutObject(bucketName, objectName, int64(len(buf)), bytes.NewReader(buf), nil, sum256(nil), metadata)
-	if err == nil {
-		t.Fatal("Error expected: nil, got: ", err)
-	}
-
 	objInfo, err = c.PutObject(bucketName, objectName, int64(len(buf)), bytes.NewReader(buf), nil, nil, metadata)
 	if err != nil {
 		t.Fatal("Error:", err, bucketName, objectName)
@@ -371,5 +464,50 @@ func TestCorePutObject(t *testing.T) {
 	err = c.RemoveBucket(bucketName)
 	if err != nil {
 		t.Fatal("Error:", err)
+	}
+}
+
+func TestCoreGetObjectMetadata(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping functional tests for the short runs")
+	}
+
+	core, err := NewCore(
+		os.Getenv(serverEndpoint),
+		os.Getenv(accessKey),
+		os.Getenv(secretKey),
+		mustParseBool(os.Getenv(enableSecurity)))
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	// Generate a new random bucket name.
+	bucketName := randString(60, rand.NewSource(time.Now().UnixNano()), "minio-go-test")
+
+	// Make a new bucket.
+	err = core.MakeBucket(bucketName, "us-east-1")
+	if err != nil {
+		t.Fatal("Error:", err, bucketName)
+	}
+
+	metadata := map[string][]string{
+		"X-Amz-Meta-Key-1": {"Val-1"},
+	}
+
+	_, err = core.PutObject(bucketName, "my-objectname", 5,
+		bytes.NewReader([]byte("hello")), nil, nil, metadata)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	reader, objInfo, err := core.GetObject(bucketName, "my-objectname",
+		RequestHeaders{})
+	if err != nil {
+		log.Fatalln(err)
+	}
+	defer reader.Close()
+
+	if objInfo.Metadata.Get("X-Amz-Meta-Key-1") != "Val-1" {
+		log.Fatalln("Expected metadata to be available but wasn't")
 	}
 }

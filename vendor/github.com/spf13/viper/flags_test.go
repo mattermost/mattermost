@@ -62,5 +62,4 @@ func TestBindFlagValue(t *testing.T) {
 	flag.Changed = true //hack for pflag usage
 
 	assert.Equal(t, "testing_mutate", Get("testvalue"))
-
 }

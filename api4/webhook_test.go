@@ -4,8 +4,11 @@
 package api4
 
 import (
+	"bytes"
+	"net/http"
 	"testing"
 
+	"github.com/mattermost/platform/app"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
 )
@@ -892,4 +895,41 @@ func TestDeleteOutgoingHook(t *testing.T) {
 		_, resp = Client.DeleteOutgoingWebhook(rhook.Id)
 		CheckForbiddenStatus(t, resp)
 	})
+}
+
+func TestCommandWebhooks(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	Client := th.SystemAdminClient
+
+	cmd := &model.Command{
+		CreatorId: th.BasicUser.Id,
+		TeamId:    th.BasicTeam.Id,
+		URL:       "http://nowhere.com",
+		Method:    model.COMMAND_METHOD_POST,
+		Trigger:   "delayed"}
+
+	cmd, _ = Client.CreateCommand(cmd)
+	args := &model.CommandArgs{
+		TeamId:    th.BasicTeam.Id,
+		UserId:    th.BasicUser.Id,
+		ChannelId: th.BasicChannel.Id,
+	}
+	hook, err := app.CreateCommandWebhook(cmd.Id, args)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if resp, _ := http.Post(Client.Url+"/hooks/commands/123123123123", "application/json", bytes.NewBufferString("{\"text\":\"this is a test\"}")); resp.StatusCode != http.StatusNotFound {
+		t.Fatal("expected not-found for non-existent hook")
+	}
+
+	for i := 0; i < 5; i++ {
+		if resp, err := http.Post(Client.Url+"/hooks/commands/"+hook.Id, "application/json", bytes.NewBufferString("{\"text\":\"this is a test\"}")); err != nil || resp.StatusCode != http.StatusOK {
+			t.Fatal(err)
+		}
+	}
+
+	if resp, _ := http.Post(Client.Url+"/hooks/commands/"+hook.Id, "application/json", bytes.NewBufferString("{\"text\":\"this is a test\"}")); resp.StatusCode != http.StatusBadRequest {
+		t.Fatal("expected error for sixth usage")
+	}
 }

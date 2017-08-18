@@ -52,7 +52,7 @@ export default class PopoverListMembers extends React.Component {
     }
 
     componentDidUpdate() {
-        $('.member-list__popover .popover-content').perfectScrollbar();
+        $('.member-list__popover .popover-content .more-modal__body').perfectScrollbar();
     }
 
     handleShowDirectChannel(teammate, e) {
@@ -86,6 +86,7 @@ export default class PopoverListMembers extends React.Component {
     }
 
     render() {
+        let popoverButton;
         const popoverHtml = [];
         const members = this.props.members;
         const teamMembers = UserStore.getProfilesUsernameMap();
@@ -124,8 +125,8 @@ export default class PopoverListMembers extends React.Component {
                         >
                             <ProfilePicture
                                 src={Client4.getProfilePictureUrl(m.id, m.last_picture_update)}
-                                width='32'
-                                height='32'
+                                width='40'
+                                height='40'
                             />
                             <div className='more-modal__details'>
                                 <div
@@ -168,13 +169,13 @@ export default class PopoverListMembers extends React.Component {
                     );
                 }
 
-                popoverHtml.push(
+                popoverButton = (
                     <div
-                        className='more-modal__row more-modal__row--button'
+                        className='more-modal__button'
                         key={'popover-member-more'}
                     >
                         <button
-                            className='btn btn-primary'
+                            className='btn btn-link'
                             onClick={this.showMembersModal}
                         >
                             {membersName}
@@ -193,7 +194,7 @@ export default class PopoverListMembers extends React.Component {
         const title = (
             <FormattedMessage
                 id='members_popover.title'
-                defaultMessage='Members'
+                defaultMessage='Channel Members'
             />
         );
 
@@ -275,14 +276,12 @@ export default class PopoverListMembers extends React.Component {
                         id='member-list-popover'
                     >
                         <div className='more-modal__header'>
-                            <span
-                                className='icon icon__members'
-                                dangerouslySetInnerHTML={{__html: membersIcon}}
-                                aria-hidden='true'
-                            />
                             {title}
                         </div>
-                        <div className='more-modal__list'>{popoverHtml}</div>
+                        <div className='more-modal__body'>
+                            <div className='more-modal__list'>{popoverHtml}</div>
+                        </div>
+                        {popoverButton}
                     </Popover>
                 </Overlay>
                 {channelMembersModal}

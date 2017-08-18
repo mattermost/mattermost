@@ -296,7 +296,9 @@
         "EnableSearching": false,
         "Sniff": true,
         "PostIndexReplicas": 1,
-        "PostIndexShards": 1
+        "PostIndexShards": 1,
+        "AggregatePostsAfterDays": 365,
+        "PostsAggregatorJobStartTime": "03:00"
     },
     "DataRetentionSettings": {
         "Enable": false

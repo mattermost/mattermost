@@ -424,11 +424,11 @@ func TestMemberList_ResolveAddr_TCP_First(t *testing.T) {
 		}
 		port := uint16(m.config.BindPort)
 		expected := []ipPort{
-			ipPort{net.ParseIP("127.0.0.1"), port},
+			ipPort{net.ParseIP("127.0.0.1").To4(), port},
 			ipPort{net.ParseIP("2001:db8:a0b:12f0::1"), port},
 		}
 		if !reflect.DeepEqual(ips, expected) {
-			t.Fatalf("bad: %#v", ips)
+			t.Fatalf("bad: %#v expected: %#v", ips, expected)
 		}
 	}
 }

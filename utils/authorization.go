@@ -11,7 +11,7 @@ func SetDefaultRolesBasedOnConfig() {
 	// Reset the roles to default to make this logic easier
 	model.InitalizeRoles()
 
-	if IsLicensed {
+	if IsLicensed() {
 		switch *Cfg.TeamSettings.RestrictPublicChannelCreation {
 		case model.PERMISSIONS_ALL:
 			model.ROLE_TEAM_USER.Permissions = append(
@@ -33,7 +33,7 @@ func SetDefaultRolesBasedOnConfig() {
 		)
 	}
 
-	if IsLicensed {
+	if IsLicensed() {
 		switch *Cfg.TeamSettings.RestrictPublicChannelManagement {
 		case model.PERMISSIONS_ALL:
 			model.ROLE_TEAM_USER.Permissions = append(
@@ -65,7 +65,7 @@ func SetDefaultRolesBasedOnConfig() {
 		)
 	}
 
-	if IsLicensed {
+	if IsLicensed() {
 		switch *Cfg.TeamSettings.RestrictPublicChannelDeletion {
 		case model.PERMISSIONS_ALL:
 			model.ROLE_TEAM_USER.Permissions = append(
@@ -97,7 +97,7 @@ func SetDefaultRolesBasedOnConfig() {
 		)
 	}
 
-	if IsLicensed {
+	if IsLicensed() {
 		switch *Cfg.TeamSettings.RestrictPrivateChannelCreation {
 		case model.PERMISSIONS_ALL:
 			model.ROLE_TEAM_USER.Permissions = append(
@@ -119,7 +119,7 @@ func SetDefaultRolesBasedOnConfig() {
 		)
 	}
 
-	if IsLicensed {
+	if IsLicensed() {
 		switch *Cfg.TeamSettings.RestrictPrivateChannelManagement {
 		case model.PERMISSIONS_ALL:
 			model.ROLE_TEAM_USER.Permissions = append(
@@ -151,7 +151,7 @@ func SetDefaultRolesBasedOnConfig() {
 		)
 	}
 
-	if IsLicensed {
+	if IsLicensed() {
 		switch *Cfg.TeamSettings.RestrictPrivateChannelDeletion {
 		case model.PERMISSIONS_ALL:
 			model.ROLE_TEAM_USER.Permissions = append(
@@ -184,7 +184,7 @@ func SetDefaultRolesBasedOnConfig() {
 	}
 
 	// Restrict permissions for Private Channel Manage Members
-	if IsLicensed {
+	if IsLicensed() {
 		switch *Cfg.TeamSettings.RestrictPrivateChannelManageMembers {
 		case model.PERMISSIONS_ALL:
 			model.ROLE_CHANNEL_USER.Permissions = append(
@@ -229,7 +229,7 @@ func SetDefaultRolesBasedOnConfig() {
 	}
 
 	// Grant permissions for inviting and adding users to a team.
-	if IsLicensed {
+	if IsLicensed() {
 		if *Cfg.TeamSettings.RestrictTeamInvite == model.PERMISSIONS_TEAM_ADMIN {
 			model.ROLE_TEAM_ADMIN.Permissions = append(
 				model.ROLE_TEAM_ADMIN.Permissions,
@@ -251,7 +251,7 @@ func SetDefaultRolesBasedOnConfig() {
 		)
 	}
 
-	if IsLicensed {
+	if IsLicensed() {
 		switch *Cfg.ServiceSettings.RestrictPostDelete {
 		case model.PERMISSIONS_DELETE_POST_ALL:
 			model.ROLE_CHANNEL_USER.Permissions = append(

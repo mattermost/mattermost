@@ -112,10 +112,12 @@ func newSentinel(opt *Options) *sentinelClient {
 
 func (c *sentinelClient) PubSub() *PubSub {
 	return &PubSub{
-		base: baseClient{
-			opt:      c.opt,
-			connPool: c.connPool,
+		opt: c.opt,
+
+		newConn: func(channels []string) (*pool.Conn, error) {
+			return c.newConn()
 		},
+		closeConn: c.connPool.CloseConn,
 	}
 }
 
@@ -149,20 +151,20 @@ func (d *sentinelFailover) Close() error {
 	return d.resetSentinel()
 }
 
-func (d *sentinelFailover) dial() (net.Conn, error) {
-	addr, err := d.MasterAddr()
-	if err != nil {
-		return nil, err
-	}
-	return net.DialTimeout("tcp", addr, d.opt.DialTimeout)
-}
-
 func (d *sentinelFailover) Pool() *pool.ConnPool {
 	d.poolOnce.Do(func() {
 		d.opt.Dialer = d.dial
 		d.pool = newConnPool(d.opt)
 	})
 	return d.pool
+}
+
+func (d *sentinelFailover) dial() (net.Conn, error) {
+	addr, err := d.MasterAddr()
+	if err != nil {
+		return nil, err
+	}
+	return net.DialTimeout("tcp", addr, d.opt.DialTimeout)
 }
 
 func (d *sentinelFailover) MasterAddr() (string, error) {

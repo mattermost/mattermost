@@ -11,7 +11,8 @@ import * as GlobalActions from 'actions/global_actions.jsx';
 import * as FileUtils from 'utils/file_utils';
 import * as Utils from 'utils/utils.jsx';
 
-import {KeyCodes} from 'utils/constants.jsx';
+import Constants from 'utils/constants.jsx';
+const KeyCodes = Constants.KeyCodes;
 
 import {getFileUrl, getFilePreviewUrl} from 'mattermost-redux/utils/file_utils';
 

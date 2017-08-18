@@ -1981,11 +1981,11 @@
   },
   {
     "id": "api.slackimport.slack_add_bot_user.email_pwd",
-    "translation": "電子メールアドレス {{.Email}} と パスワード {{.Password}} を持つ統合機能/SlackBotユーザーがインポートされました。\r\n"
+    "translation": "電子メールアドレス {{.Email}} と パスワード {{.Password}} を持つ 統合機能/SlackBot のユーザーがインポートされました。\r\n"
   },
   {
     "id": "api.slackimport.slack_add_bot_user.unable_import",
-    "translation": "統合機能/SlackBotユーザー {{.Username}} がインポートできませんでした。\r\n"
+    "translation": "統合機能/SlackBot のユーザー {{.Username}} がインポートできませんでした。\r\n"
   },
   {
     "id": "api.slackimport.slack_add_channels.added",
@@ -2013,11 +2013,11 @@
   },
   {
     "id": "api.slackimport.slack_add_posts.bot.warn",
-    "translation": "Slackインポート: SlackBotメッセージは、まだインポートできません。"
+    "translation": "Slackインポート: SlackBotメッセージは、まだインポートされていません。"
   },
   {
     "id": "api.slackimport.slack_add_posts.bot_user_no_exists.warn",
-    "translation": "Slackインポート: Botユーザーが存在しないため、ボットメッセージをインポートできませんでした。"
+    "translation": "Slackインポート: Botユーザーが存在しないため、Botメッセージをインポートできませんでした。"
   },
   {
     "id": "api.slackimport.slack_add_posts.msg_no_comment.debug",
@@ -2089,7 +2089,7 @@
   },
   {
     "id": "api.slackimport.slack_convert_channel_mentions.compile_regexp_failed.warn",
-    "translation": "Slackインポート: Slackチャンネル {{.ChannelName}}(id={{.ChannelID}}) の正規表現にマッチする!channelをコンパイルできませんでした。"
+    "translation": "Slackインポート: Slackチャンネル {{.ChannelName}} (id={{.ChannelID}}) の正規表現にマッチする!channelをコンパイルできませんでした。"
   },
   {
     "id": "api.slackimport.slack_convert_timestamp.bad.warn",
@@ -3561,7 +3561,7 @@
   },
   {
     "id": "app.user_access_token.disabled",
-    "translation": "このサーバーではユーザーアクセストークンが無効になっています。詳しくはシステム管理者に問い合わせてください。"
+    "translation": "このサーバーではパーソナルアクセストークンが無効になっています。詳しくはシステム管理者に問い合わせてください。"
   },
   {
     "id": "app.user_access_token.invalid_or_missing",
@@ -3593,11 +3593,11 @@
   },
   {
     "id": "authentication.permissions.create_user_access_token.description",
-    "translation": "ユーザーアクセストークンを作成できるようにする"
+    "translation": "パーソナルアクセストークンを作成できるようにする"
   },
   {
     "id": "authentication.permissions.create_user_access_token.name",
-    "translation": "ユーザーアクセストークンを作成する"
+    "translation": "パーソナルアクセストークンを作成する"
   },
   {
     "id": "authentication.permissions.manage_jobs.description",
@@ -3625,19 +3625,19 @@
   },
   {
     "id": "authentication.permissions.read_user_access_token.description",
-    "translation": "ユーザーアクセストークンのトークンID、説明、ユーザーIDを読み取ることができるようにする"
+    "translation": "パーソナルアクセストークンのID、説明、ユーザーIDを読み取ることができるようにする"
   },
   {
     "id": "authentication.permissions.read_user_access_token.name",
-    "translation": "ユーザーアクセストークンを読み取る"
+    "translation": "パーソナルアクセストークンを読み取る"
   },
   {
     "id": "authentication.permissions.revoke_user_access_token.description",
-    "translation": "ユーザーアクセストークンを破棄できるようにする"
+    "translation": "パーソナルアクセストークンを破棄できるようにする"
   },
   {
     "id": "authentication.permissions.revoke_user_access_token.name",
-    "translation": "ユーザーアクセストークンを破棄する"
+    "translation": "パーソナルアクセストークンを破棄する"
   },
   {
     "id": "authentication.permissions.team_invite_user.description",
@@ -3673,11 +3673,11 @@
   },
   {
     "id": "authentication.roles.system_user_access_token.description",
-    "translation": "ユーザーアクセストークンを作成・読み取り・破棄する権限を持つ役割です"
+    "translation": "パーソナルアクセストークンを作成・読み取り・破棄する権限を持つ役割です"
   },
   {
     "id": "authentication.roles.system_user_access_token.name",
-    "translation": "ユーザーアクセストークン"
+    "translation": "パーソナルアクセストークン"
   },
   {
     "id": "authentication.roles.team_post_all.description",
@@ -6405,23 +6405,23 @@
   },
   {
     "id": "store.sql_user_access_token.delete.app_error",
-    "translation": "ユーザーアクセストークンを削除できませんでした"
+    "translation": "パーソナルアクセストークンを削除できませんでした"
   },
   {
     "id": "store.sql_user_access_token.get.app_error",
-    "translation": "ユーザーアクセストークンを取得できませんでした"
+    "translation": "パーソナルアクセストークンを取得できませんでした"
   },
   {
     "id": "store.sql_user_access_token.get_by_token.app_error",
-    "translation": "トークンによってユーザーアクセストークンを取得することができませんでした"
+    "translation": "トークンによってパーソナルアクセストークンを取得することができませんでした"
   },
   {
     "id": "store.sql_user_access_token.get_by_user.app_error",
-    "translation": "ユーザーによってユーザーアクセストークンを取得することができませんでした"
+    "translation": "ユーザーによってパーソナルアクセストークンを取得することができませんでした"
   },
   {
     "id": "store.sql_user_access_token.save.app_error",
-    "translation": "ユーザーアクセストークンを保存できませんでした。"
+    "translation": "パーソナルアクセストークンを保存できませんでした。"
   },
   {
     "id": "store.sql_webhooks.analytics_incoming_count.app_error",
@@ -6541,7 +6541,7 @@
   },
   {
     "id": "utils.config.supported_server_locale.app_error",
-    "translation": "mattermostの設定ファイルをロードできませんでした:  DefaultServerLocale はサポートされているロケールでなければなりません"
+    "translation": "Mattermost設定ファイルを読み込めませんでした:  DefaultServerLocaleはサポートされている言語の一つでなければなりません。デフォルト値としてDefaultClientLocaleに en を設定しました。"
   },
   {
     "id": "utils.config.validate_locale.app_error",

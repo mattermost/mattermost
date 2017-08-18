@@ -28,8 +28,9 @@ func (c *ClusterClient) SlotAddrs(slot int) []string {
 }
 
 // SwapSlot swaps a slot's master/slave address for testing MOVED redirects.
-func (c *ClusterClient) SwapSlotNodes(slot int) []string {
+func (c *ClusterClient) SwapSlotNodes(slot int) {
 	nodes := c.state().slots[slot]
-	nodes[0], nodes[1] = nodes[1], nodes[0]
-	return c.SlotAddrs(slot)
+	if len(nodes) == 2 {
+		nodes[0], nodes[1] = nodes[1], nodes[0]
+	}
 }

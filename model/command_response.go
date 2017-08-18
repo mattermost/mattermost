@@ -6,6 +6,7 @@ package model
 import (
 	"encoding/json"
 	"io"
+	"io/ioutil"
 )
 
 const (
@@ -28,6 +29,22 @@ func (o *CommandResponse) ToJson() string {
 		return ""
 	} else {
 		return string(b)
+	}
+}
+
+func CommandResponseFromHTTPBody(contentType string, body io.Reader) *CommandResponse {
+	if contentType == "application/json" {
+		return CommandResponseFromJson(body)
+	}
+	if b, err := ioutil.ReadAll(body); err == nil {
+		return CommandResponseFromPlainText(string(b))
+	}
+	return nil
+}
+
+func CommandResponseFromPlainText(text string) *CommandResponse {
+	return &CommandResponse{
+		Text: text,
 	}
 }
 

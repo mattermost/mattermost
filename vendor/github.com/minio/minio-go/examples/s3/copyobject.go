@@ -60,7 +60,10 @@ func main() {
 	// src.SetMatchETagExceptCond("31624deb84149d2f8ef9c385918b653a")
 
 	// Destination object
-	dst := minio.NewDestinationInfo("my-bucketname", "my-objectname", nil)
+	dst, err := minio.NewDestinationInfo("my-bucketname", "my-objectname", nil, nil)
+	if err != nil {
+		log.Fatalln(err)
+	}
 
 	// Initiate copy object.
 	err = s3Client.CopyObject(dst, src)

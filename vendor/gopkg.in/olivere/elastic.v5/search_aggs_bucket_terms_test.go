@@ -102,3 +102,54 @@ func TestTermsAggregationWithMissing(t *testing.T) {
 		t.Errorf("expected\n%s\n,got:\n%s", expected, got)
 	}
 }
+
+func TestTermsAggregationWithIncludeExclude(t *testing.T) {
+	agg := NewTermsAggregation().Field("tags").Include(".*sport.*").Exclude("water_.*")
+	src, err := agg.Source()
+	if err != nil {
+		t.Fatal(err)
+	}
+	data, err := json.Marshal(src)
+	if err != nil {
+		t.Fatalf("marshaling to JSON failed: %v", err)
+	}
+	got := string(data)
+	expected := `{"terms":{"exclude":"water_.*","field":"tags","include":".*sport.*"}}`
+	if got != expected {
+		t.Errorf("expected\n%s\n,got:\n%s", expected, got)
+	}
+}
+
+func TestTermsAggregationWithIncludeExcludeValues(t *testing.T) {
+	agg := NewTermsAggregation().Field("make").IncludeValues("mazda", "honda").ExcludeValues("rover", "jensen")
+	src, err := agg.Source()
+	if err != nil {
+		t.Fatal(err)
+	}
+	data, err := json.Marshal(src)
+	if err != nil {
+		t.Fatalf("marshaling to JSON failed: %v", err)
+	}
+	got := string(data)
+	expected := `{"terms":{"exclude":["rover","jensen"],"field":"make","include":["mazda","honda"]}}`
+	if got != expected {
+		t.Errorf("expected\n%s\n,got:\n%s", expected, got)
+	}
+}
+
+func TestTermsAggregationWithPartitions(t *testing.T) {
+	agg := NewTermsAggregation().Field("account_id").Partition(0).NumPartitions(20)
+	src, err := agg.Source()
+	if err != nil {
+		t.Fatal(err)
+	}
+	data, err := json.Marshal(src)
+	if err != nil {
+		t.Fatalf("marshaling to JSON failed: %v", err)
+	}
+	got := string(data)
+	expected := `{"terms":{"field":"account_id","include":{"num_partitions":20,"partition":0}}}`
+	if got != expected {
+		t.Errorf("expected\n%s\n,got:\n%s", expected, got)
+	}
+}

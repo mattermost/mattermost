@@ -115,8 +115,11 @@ func MoveFile(oldPath, newPath string) *model.AppError {
 		secretKey := utils.Cfg.FileSettings.AmazonS3SecretAccessKey
 		secure := *utils.Cfg.FileSettings.AmazonS3SSL
 		signV2 := *utils.Cfg.FileSettings.AmazonS3SignV2
-		encrypt := *utils.Cfg.FileSettings.AmazonS3SSE
 		region := utils.Cfg.FileSettings.AmazonS3Region
+		encrypt := false
+		if *utils.Cfg.FileSettings.AmazonS3SSE && utils.IsLicensed() && *utils.License().Features.Compliance {
+			encrypt = true
+		}
 		s3Clnt, err := s3New(endpoint, accessKey, secretKey, secure, signV2, region)
 		if err != nil {
 			return model.NewLocAppError("moveFile", "api.file.write_file.s3.app_error", nil, err.Error())
@@ -156,8 +159,12 @@ func WriteFile(f []byte, path string) *model.AppError {
 		secretKey := utils.Cfg.FileSettings.AmazonS3SecretAccessKey
 		secure := *utils.Cfg.FileSettings.AmazonS3SSL
 		signV2 := *utils.Cfg.FileSettings.AmazonS3SignV2
-		encrypt := *utils.Cfg.FileSettings.AmazonS3SSE
 		region := utils.Cfg.FileSettings.AmazonS3Region
+		encrypt := false
+		if *utils.Cfg.FileSettings.AmazonS3SSE && utils.IsLicensed() && *utils.License().Features.Compliance {
+			encrypt = true
+		}
+
 		s3Clnt, err := s3New(endpoint, accessKey, secretKey, secure, signV2, region)
 		if err != nil {
 			return model.NewLocAppError("WriteFile", "api.file.write_file.s3.app_error", nil, err.Error())

@@ -20,15 +20,10 @@ type TermsAggregation struct {
 	minDocCount           *int
 	shardMinDocCount      *int
 	valueType             string
-	includePattern        string
-	includeFlags          *int
-	excludePattern        string
-	excludeFlags          *int
+	includeExclude        *TermsAggregationIncludeExclude
 	executionHint         string
 	collectionMode        string
 	showTermDocCountError *bool
-	includeTerms          []string
-	excludeTerms          []string
 	order                 []TermsOrder
 }
 
@@ -91,24 +86,50 @@ func (a *TermsAggregation) ShardMinDocCount(shardMinDocCount int) *TermsAggregat
 }
 
 func (a *TermsAggregation) Include(regexp string) *TermsAggregation {
-	a.includePattern = regexp
+	if a.includeExclude == nil {
+		a.includeExclude = &TermsAggregationIncludeExclude{}
+	}
+	a.includeExclude.Include = regexp
 	return a
 }
 
-func (a *TermsAggregation) IncludeWithFlags(regexp string, flags int) *TermsAggregation {
-	a.includePattern = regexp
-	a.includeFlags = &flags
+func (a *TermsAggregation) IncludeValues(values ...interface{}) *TermsAggregation {
+	if a.includeExclude == nil {
+		a.includeExclude = &TermsAggregationIncludeExclude{}
+	}
+	a.includeExclude.IncludeValues = append(a.includeExclude.IncludeValues, values...)
 	return a
 }
 
 func (a *TermsAggregation) Exclude(regexp string) *TermsAggregation {
-	a.excludePattern = regexp
+	if a.includeExclude == nil {
+		a.includeExclude = &TermsAggregationIncludeExclude{}
+	}
+	a.includeExclude.Exclude = regexp
 	return a
 }
 
-func (a *TermsAggregation) ExcludeWithFlags(regexp string, flags int) *TermsAggregation {
-	a.excludePattern = regexp
-	a.excludeFlags = &flags
+func (a *TermsAggregation) ExcludeValues(values ...interface{}) *TermsAggregation {
+	if a.includeExclude == nil {
+		a.includeExclude = &TermsAggregationIncludeExclude{}
+	}
+	a.includeExclude.ExcludeValues = append(a.includeExclude.ExcludeValues, values...)
+	return a
+}
+
+func (a *TermsAggregation) Partition(p int) *TermsAggregation {
+	if a.includeExclude == nil {
+		a.includeExclude = &TermsAggregationIncludeExclude{}
+	}
+	a.includeExclude.Partition = p
+	return a
+}
+
+func (a *TermsAggregation) NumPartitions(n int) *TermsAggregation {
+	if a.includeExclude == nil {
+		a.includeExclude = &TermsAggregationIncludeExclude{}
+	}
+	a.includeExclude.NumPartitions = n
 	return a
 }
 
@@ -207,16 +228,6 @@ func (a *TermsAggregation) ShowTermDocCountError(showTermDocCountError bool) *Te
 	return a
 }
 
-func (a *TermsAggregation) IncludeTerms(terms ...string) *TermsAggregation {
-	a.includeTerms = append(a.includeTerms, terms...)
-	return a
-}
-
-func (a *TermsAggregation) ExcludeTerms(terms ...string) *TermsAggregation {
-	a.excludeTerms = append(a.excludeTerms, terms...)
-	return a
-}
-
 func (a *TermsAggregation) Source() (interface{}, error) {
 	// Example:
 	//	{
@@ -283,32 +294,27 @@ func (a *TermsAggregation) Source() (interface{}, error) {
 		}
 		opts["order"] = orderSlice
 	}
-	if len(a.includeTerms) > 0 {
-		opts["include"] = a.includeTerms
-	}
-	if a.includePattern != "" {
-		if a.includeFlags == nil || *a.includeFlags == 0 {
-			opts["include"] = a.includePattern
-		} else {
-			p := make(map[string]interface{})
-			p["pattern"] = a.includePattern
-			p["flags"] = *a.includeFlags
-			opts["include"] = p
+	// Include/Exclude
+	if ie := a.includeExclude; ie != nil {
+		// Include
+		if ie.Include != "" {
+			opts["include"] = ie.Include
+		} else if len(ie.IncludeValues) > 0 {
+			opts["include"] = ie.IncludeValues
+		} else if ie.NumPartitions > 0 {
+			inc := make(map[string]interface{})
+			inc["partition"] = ie.Partition
+			inc["num_partitions"] = ie.NumPartitions
+			opts["include"] = inc
+		}
+		// Exclude
+		if ie.Exclude != "" {
+			opts["exclude"] = ie.Exclude
+		} else if len(ie.ExcludeValues) > 0 {
+			opts["exclude"] = ie.ExcludeValues
 		}
 	}
-	if len(a.excludeTerms) > 0 {
-		opts["exclude"] = a.excludeTerms
-	}
-	if a.excludePattern != "" {
-		if a.excludeFlags == nil || *a.excludeFlags == 0 {
-			opts["exclude"] = a.excludePattern
-		} else {
-			p := make(map[string]interface{})
-			p["pattern"] = a.excludePattern
-			p["flags"] = *a.excludeFlags
-			opts["exclude"] = p
-		}
-	}
+
 	if a.executionHint != "" {
 		opts["execution_hint"] = a.executionHint
 	}
@@ -332,6 +338,16 @@ func (a *TermsAggregation) Source() (interface{}, error) {
 	}
 
 	return source, nil
+}
+
+// TermsAggregationIncludeExclude allows for include/exclude in a TermsAggregation.
+type TermsAggregationIncludeExclude struct {
+	Include       string
+	Exclude       string
+	IncludeValues []interface{}
+	ExcludeValues []interface{}
+	Partition     int
+	NumPartitions int
 }
 
 // TermsOrder specifies a single order field for a terms aggregation.

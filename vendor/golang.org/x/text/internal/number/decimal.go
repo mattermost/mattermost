@@ -44,21 +44,35 @@ const maxIntDigits = 20
 //
 // Examples:
 //      Number     Decimal
-//      12345      Digits: [1, 2, 3, 4, 5], Exp: 5
-//      12.345     Digits: [1, 2, 3, 4, 5], Exp: 2
-//      12000      Digits: [1, 2],          Exp: 5
-//      0.00123    Digits: [1, 2, 3],       Exp: -2
+//    decimal
+//      12345      Digits: [1, 2, 3, 4, 5], Exp: 5  End: 5
+//      12.345     Digits: [1, 2, 3, 4, 5], Exp: 2  End: 5
+//      12000      Digits: [1, 2],          Exp: 5  End: 5
+//      12000.00   Digits: [1, 2],          Exp: 5  End: 7
+//      0.00123    Digits: [1, 2, 3],       Exp: -2 End: 3
+//      0          Digits: [],              Exp: 0  End: 1
+//    scientific:
+//      0          Digits: [],              Exp: 0, End: 1, Comma: 0
+//      1.23e4     Digits: [1, 2, 3],       Exp: 5, End: 3, Comma: 1
+//    engineering
+//      12.3e3     Digits: [1, 2, 3],       Exp: 5, End: 3, Comma: 2
 type Decimal struct {
 	Digits []byte // mantissa digits, big-endian
 	Exp    int32  // exponent
-	Neg    bool
-	Inf    bool // Takes precedence over Digits and Exp.
-	NaN    bool // Takes precedence over Inf.
+	// End indicates the end position of the number.
+	End int32 // For decimals Exp <= End. For scientific len(Digits) <= End.
+	// Comma is used for the comma position for scientific (always 0 or 1) and
+	// engineering notation (always 0, 1, 2, or 3).
+	Comma uint8
+
+	Neg bool
+	Inf bool // Takes precedence over Digits and Exp.
+	NaN bool // Takes precedence over Inf.
 
 	buf [maxIntDigits]byte
 }
 
-// normalize retuns a new Decimal with leading and trailing zeros removed.
+// normalize returns a new Decimal with leading and trailing zeros removed.
 func (d *Decimal) normalize() (n Decimal) {
 	n = *d
 	b := n.Digits

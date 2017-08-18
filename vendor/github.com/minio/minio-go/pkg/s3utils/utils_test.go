@@ -301,10 +301,14 @@ func TestIsValidBucketName(t *testing.T) {
 		{"", errors.New("Bucket name cannot be empty"), false},
 		{"my..bucket", errors.New("Bucket name contains invalid characters"), false},
 		{"192.168.1.168", errors.New("Bucket name cannot be an ip address"), false},
+		{":bucketname", errors.New("Bucket name contains invalid characters"), false},
+		{"_bucketName", errors.New("Bucket name contains invalid characters"), false},
 		{"my.bucket.com", nil, true},
 		{"my-bucket", nil, true},
 		{"123my-bucket", nil, true},
 		{"Mybucket", nil, true},
+		{"My_bucket", nil, true},
+		{"My:bucket", nil, true},
 	}
 
 	for i, testCase := range testCases {

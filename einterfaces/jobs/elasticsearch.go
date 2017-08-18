@@ -20,3 +20,18 @@ func RegisterElasticsearchIndexerInterface(newInterface ElasticsearchIndexerInte
 func GetElasticsearchIndexerInterface() ElasticsearchIndexerInterface {
 	return theElasticsearchIndexerInterface
 }
+
+type ElasticsearchAggregatorInterface interface {
+	MakeWorker() model.Worker
+	MakeScheduler() model.Scheduler
+}
+
+var theElasticsearchAggregatorInterface ElasticsearchAggregatorInterface
+
+func RegisterElasticsearchAggregatorInterface(newInterface ElasticsearchAggregatorInterface) {
+	theElasticsearchAggregatorInterface = newInterface
+}
+
+func GetElasticsearchAggregatorInterface() ElasticsearchAggregatorInterface {
+	return theElasticsearchAggregatorInterface
+}

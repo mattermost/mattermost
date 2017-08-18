@@ -11,7 +11,7 @@ import (
 // Message represents an email.
 type Message struct {
 	header      header
-	parts       []*part
+	parts       []part
 	attachments []*file
 	embedded    []*file
 	charset     string
@@ -23,9 +23,8 @@ type Message struct {
 type header map[string][]string
 
 type part struct {
-	contentType string
-	copier      func(io.Writer) error
-	encoding    Encoding
+	header header
+	copier func(io.Writer) error
 }
 
 // NewMessage creates a new message. It uses UTF-8 and quoted-printable encoding
@@ -127,10 +126,6 @@ func (m *Message) SetAddressHeader(field, address, name string) {
 
 // FormatAddress formats an address and a name as a valid RFC 5322 address.
 func (m *Message) FormatAddress(address, name string) string {
-	if name == "" {
-		return address
-	}
-
 	enc := m.encodeString(name)
 	if enc == name {
 		m.buf.WriteByte('"')
@@ -182,60 +177,53 @@ func (m *Message) GetHeader(field string) []string {
 	return m.header[field]
 }
 
-// SetBody sets the body of the message. It replaces any content previously set
-// by SetBody, AddAlternative or AddAlternativeWriter.
-func (m *Message) SetBody(contentType, body string, settings ...PartSetting) {
-	m.parts = []*part{m.newPart(contentType, newCopier(body), settings)}
+// SetBody sets the body of the message.
+func (m *Message) SetBody(contentType, body string) {
+	m.parts = []part{
+		{
+			header: m.getPartHeader(contentType),
+			copier: func(w io.Writer) error {
+				_, err := io.WriteString(w, body)
+				return err
+			},
+		},
+	}
 }
 
 // AddAlternative adds an alternative part to the message.
 //
 // It is commonly used to send HTML emails that default to the plain text
-// version for backward compatibility. AddAlternative appends the new part to
-// the end of the message. So the plain text part should be added before the
-// HTML part. See http://en.wikipedia.org/wiki/MIME#Alternative
-func (m *Message) AddAlternative(contentType, body string, settings ...PartSetting) {
-	m.AddAlternativeWriter(contentType, newCopier(body), settings...)
-}
-
-func newCopier(s string) func(io.Writer) error {
-	return func(w io.Writer) error {
-		_, err := io.WriteString(w, s)
-		return err
-	}
+// version for backward compatibility.
+//
+// More info: http://en.wikipedia.org/wiki/MIME#Alternative
+func (m *Message) AddAlternative(contentType, body string) {
+	m.parts = append(m.parts,
+		part{
+			header: m.getPartHeader(contentType),
+			copier: func(w io.Writer) error {
+				_, err := io.WriteString(w, body)
+				return err
+			},
+		},
+	)
 }
 
 // AddAlternativeWriter adds an alternative part to the message. It can be
 // useful with the text/template or html/template packages.
-func (m *Message) AddAlternativeWriter(contentType string, f func(io.Writer) error, settings ...PartSetting) {
-	m.parts = append(m.parts, m.newPart(contentType, f, settings))
+func (m *Message) AddAlternativeWriter(contentType string, f func(io.Writer) error) {
+	m.parts = []part{
+		{
+			header: m.getPartHeader(contentType),
+			copier: f,
+		},
+	}
 }
 
-func (m *Message) newPart(contentType string, f func(io.Writer) error, settings []PartSetting) *part {
-	p := &part{
-		contentType: contentType,
-		copier:      f,
-		encoding:    m.encoding,
+func (m *Message) getPartHeader(contentType string) header {
+	return map[string][]string{
+		"Content-Type":              {contentType + "; charset=" + m.charset},
+		"Content-Transfer-Encoding": {string(m.encoding)},
 	}
-
-	for _, s := range settings {
-		s(p)
-	}
-
-	return p
-}
-
-// A PartSetting can be used as an argument in Message.SetBody,
-// Message.AddAlternative or Message.AddAlternativeWriter to configure the part
-// added to a message.
-type PartSetting func(*part)
-
-// SetPartEncoding sets the encoding of the part added to the message. By
-// default, parts use the same encoding than the message.
-func SetPartEncoding(e Encoding) PartSetting {
-	return PartSetting(func(p *part) {
-		p.encoding = e
-	})
 }
 
 type file struct {
@@ -261,14 +249,6 @@ func SetHeader(h map[string][]string) FileSetting {
 		for k, v := range h {
 			f.Header[k] = v
 		}
-	}
-}
-
-// Rename is a file setting to set the name of the attachment if the name is
-// different than the filename on disk.
-func Rename(name string) FileSetting {
-	return func(f *file) {
-		f.Name = name
 	}
 }
 

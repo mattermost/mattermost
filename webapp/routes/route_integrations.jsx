@@ -102,7 +102,7 @@ export default {
                 {
                     path: 'add',
                     getComponents: (location, callback) => {
-                        System.import('components/integrations/components/add_oauth_app.jsx').then(RouteUtils.importComponentSuccess(callback));
+                        System.import('components/integrations/components/add_oauth_app').then(RouteUtils.importComponentSuccess(callback));
                     }
                 }
             ]

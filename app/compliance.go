@@ -12,7 +12,7 @@ import (
 )
 
 func GetComplianceReports(page, perPage int) (model.Compliances, *model.AppError) {
-	if !*utils.Cfg.ComplianceSettings.Enable || !utils.IsLicensed || !*utils.License.Features.Compliance {
+	if !*utils.Cfg.ComplianceSettings.Enable || !utils.IsLicensed() || !*utils.License().Features.Compliance {
 		return nil, model.NewLocAppError("GetComplianceReports", "ent.compliance.licence_disable.app_error", nil, "")
 	}
 
@@ -24,7 +24,7 @@ func GetComplianceReports(page, perPage int) (model.Compliances, *model.AppError
 }
 
 func SaveComplianceReport(job *model.Compliance) (*model.Compliance, *model.AppError) {
-	if !*utils.Cfg.ComplianceSettings.Enable || !utils.IsLicensed || !*utils.License.Features.Compliance || einterfaces.GetComplianceInterface() == nil {
+	if !*utils.Cfg.ComplianceSettings.Enable || !utils.IsLicensed() || !*utils.License().Features.Compliance || einterfaces.GetComplianceInterface() == nil {
 		return nil, model.NewLocAppError("saveComplianceReport", "ent.compliance.licence_disable.app_error", nil, "")
 	}
 
@@ -41,7 +41,7 @@ func SaveComplianceReport(job *model.Compliance) (*model.Compliance, *model.AppE
 }
 
 func GetComplianceReport(reportId string) (*model.Compliance, *model.AppError) {
-	if !*utils.Cfg.ComplianceSettings.Enable || !utils.IsLicensed || !*utils.License.Features.Compliance || einterfaces.GetComplianceInterface() == nil {
+	if !*utils.Cfg.ComplianceSettings.Enable || !utils.IsLicensed() || !*utils.License().Features.Compliance || einterfaces.GetComplianceInterface() == nil {
 		return nil, model.NewLocAppError("downloadComplianceReport", "ent.compliance.licence_disable.app_error", nil, "")
 	}
 

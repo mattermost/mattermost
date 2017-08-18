@@ -2021,23 +2021,23 @@
   },
   {
     "id": "api.slackimport.slack_add_posts.msg_no_comment.debug",
-    "translation": "Slack Import: Unable to import the message as it has no comments."
+    "translation": "Slack Import: Impossibile importare il messaggio, nessun commento trovato."
   },
   {
     "id": "api.slackimport.slack_add_posts.msg_no_usr.debug",
-    "translation": "Slack Import: Unable to import the message as the user field is missing."
+    "translation": "Slack Import: Impossibile importare il messaggio, campo utente mancante."
   },
   {
     "id": "api.slackimport.slack_add_posts.no_bot_id.warn",
-    "translation": "Slack Import: Unable to import bot message as the BotId field is missing."
+    "translation": "Slack Import: Impossibile importare il messaggio del Bot, campo BotId mancante."
   },
   {
     "id": "api.slackimport.slack_add_posts.unsupported.warn",
-    "translation": "Slack Import: Unable to import the message as its type is not supported: post_type=%v, post_subtype=%v."
+    "translation": "Slack Import: Impossibile importare il messaggio, tipo non supportato: post_type=%v, post_subtype=%v."
   },
   {
     "id": "api.slackimport.slack_add_posts.upload_file_not_found.warn",
-    "translation": "Slack Import: Unable to import file {{.FileId}} as the file is missing from the Slack export zip file."
+    "translation": "Slack Import: impossibile importare il file {{.FIleId}}, file mancante dall'archivio di esportazione Slack."
   },
   {
     "id": "api.slackimport.slack_add_posts.upload_file_not_in_json.warn",
@@ -2045,47 +2045,47 @@
   },
   {
     "id": "api.slackimport.slack_add_posts.upload_file_open_failed.warn",
-    "translation": "Slack Import: Unable to open the file {{.FileId}} from the Slack export: {{.Error}}."
+    "translation": "Slack Import: Impossibile aprire il file {{.FileId}} dall'archivio di esportazione Slack: {{.Error}}."
   },
   {
     "id": "api.slackimport.slack_add_posts.upload_file_upload_failed.warn",
-    "translation": "Slack Import: An error occurred when uploading file {{.FileId}}: {{.Error}}."
+    "translation": "Slack Import: Un errore si è verificato durante l'upload del file {{.FileId}}: {{.Error}}."
   },
   {
     "id": "api.slackimport.slack_add_posts.user_no_exists.debug",
-    "translation": "Slack Import: Unable to add the message as the Slack user %v does not exist in Mattermost."
+    "translation": "Slack Import: Impossibile aggiungere il messaggio come utente Slack %v: l'utente non esiste in Mattermost."
   },
   {
     "id": "api.slackimport.slack_add_posts.without_user.debug",
-    "translation": "Slack Import: Unable to import the message as the user field is missing."
+    "translation": "Slack Import: Impossibile importare il messaggio, il campo utente è mancante."
   },
   {
     "id": "api.slackimport.slack_add_users.created",
-    "translation": "\r\n Utente Creato\r\n"
+    "translation": "\r\n Utente creato:\r\n"
   },
   {
     "id": "api.slackimport.slack_add_users.email_pwd",
-    "translation": "Slack user with email {{.Email}} and password {{.Password}} has been imported.\r\n"
+    "translation": "L'utente Slack con email {{.Email}} e password {{.Password}} è stato importato.\r\n"
   },
   {
     "id": "api.slackimport.slack_add_users.merge_existing",
-    "translation": "Slack user merged with an existing Mattermost user with matching email {{.Email}} and username {{.Username}}.\r\n"
+    "translation": "L'utente Slack è stato unito ad un utente Mattermost con email {{.Email}} e nome-utente {{.Username}}.\r\n"
   },
   {
     "id": "api.slackimport.slack_add_users.merge_existing_failed",
-    "translation": "Slack user merged with an existing Mattermost user with matching email {{.Email}} and username {{.Username}}, but was unable to add the user to their team.\r\n"
+    "translation": "L'utente Slack è stato unito ad un utente Mattermost con email {{.Email}} e nome-utente {{.Username}}, ma non è stato possibile aggiungere l'utente al team.\r\n"
   },
   {
     "id": "api.slackimport.slack_add_users.missing_email_address",
-    "translation": "L'utente {{.Username}} non ha un indirizzo email impostato nell'esportazione Slack. {{.Email}} verrà usato come segnaposto. L'utente dovrebbe aggiornare il proprio indirizzo email una volta eseguito l'accesso al sistema.\r\n"
+    "translation": "L'utente {{.Username}} non ha un indirizzo email impostato nell'esportazione Slack. L'eMail {{.Email}} verrà usata come segnaposto. L'utente dovrebbe aggiornare il proprio indirizzo email una volta eseguito l'accesso al sistema.\r\n"
   },
   {
     "id": "api.slackimport.slack_add_users.missing_email_address.warn",
-    "translation": "L'utente {{.Username}} non ha un indirizzo email impostato nell'esportazione Slack. {{.Email}} verrà usato come segnaposto. L'utente dovrebbe aggiornare il proprio indirizzo email una volta eseguito l'accesso al sistema."
+    "translation": "L'utente {{.Username}} non ha un indirizzo email impostato nell'esportazione Slack. L'eMail {{.Email}} verrà usata come segnaposto. L'utente dovrebbe aggiornare il proprio indirizzo email una volta eseguito l'accesso al sistema."
   },
   {
     "id": "api.slackimport.slack_add_users.unable_import",
-    "translation": "Impossibile importare utente: {{.Username}}\r\n"
+    "translation": "Impossibile importare l'utente: {{.Username}}.\r\n"
   },
   {
     "id": "api.slackimport.slack_convert_channel_mentions.compile_regexp_failed.warn",
@@ -2093,7 +2093,7 @@
   },
   {
     "id": "api.slackimport.slack_convert_timestamp.bad.warn",
-    "translation": "Slack Import: Bad timestamp detected."
+    "translation": "Slack Import: Errore nel timestamp."
   },
   {
     "id": "api.slackimport.slack_convert_user_mentions.compile_regexp_failed.warn",
@@ -2109,11 +2109,11 @@
   },
   {
     "id": "api.slackimport.slack_import.note1",
-    "translation": "- Alcune pubblicazioni potrebbero non essere state importate perché non supportate da questo programma.\r\n"
+    "translation": "- Alcuni messaggi potrebbero non essere stati importate perché non supportati da questo import.\r\n"
   },
   {
     "id": "api.slackimport.slack_import.note2",
-    "translation": "- Le pubblicazioni dei bot di slack non sono al momento supportate.\r\n"
+    "translation": "- I messaggi Bot non sono al momento supportati.\r\n"
   },
   {
     "id": "api.slackimport.slack_import.note3",
@@ -2121,27 +2121,27 @@
   },
   {
     "id": "api.slackimport.slack_import.notes",
-    "translation": "\r\n Note \r\n"
+    "translation": "\r\nNote:\r\n"
   },
   {
     "id": "api.slackimport.slack_import.open.app_error",
-    "translation": "Unable to open the file: {{.Filename}}.\r\n"
+    "translation": "Impossibile aprire il file: {{.Filename}}.\r\n"
   },
   {
     "id": "api.slackimport.slack_import.team_fail",
-    "translation": "Importazione del gruppo non riuscito.\r\n"
+    "translation": "Impossibile identificare il team in cui eseguire l'import.\r\n"
   },
   {
     "id": "api.slackimport.slack_import.zip.app_error",
-    "translation": "Unable to open the Slack export zip file.\r\n"
+    "translation": "Impossibile aprire l'archivio ZIP di esportazione Slack.\r\n"
   },
   {
     "id": "api.slackimport.slack_parse_channels.error",
-    "translation": "Slack Import: Error occurred when parsing some Slack channels. Import may work anyway."
+    "translation": "Slack Import: Errore durante l'analisi di alcuni canali Slack. L'importazione potrebbe continuare senza problemi."
   },
   {
     "id": "api.slackimport.slack_parse_posts.error",
-    "translation": "Slack Import: Error occurred when parsing some Slack posts. Import may work anyway."
+    "translation": "Slack Import: Errore durante l'analisi di alcuni canali Slack. L'importazione potrebbe continuare senza problemi."
   },
   {
     "id": "api.slackimport.slack_sanitise_channel_properties.display_name_too_long.warn",
@@ -2149,7 +2149,7 @@
   },
   {
     "id": "api.slackimport.slack_sanitise_channel_properties.header_too_long.warn",
-    "translation": "Importazione Slack: il canale {{.ChannelName}} ha un nome troppo lungo. Verrà troncato durante l'importazione."
+    "translation": "Importazione Slack: il canale {{.ChannelName}} ha un header troppo lungo. Verrà troncato durante l'importazione."
   },
   {
     "id": "api.slackimport.slack_sanitise_channel_properties.name_too_long.warn",
@@ -2157,7 +2157,7 @@
   },
   {
     "id": "api.slackimport.slack_sanitise_channel_properties.purpose_too_long.warn",
-    "translation": "Importazione Slack: il canale {{.ChannelName}} ha uno scopo troppo lungo. Verrà troncato durante l'importazione."
+    "translation": "Importazione Slack: il canale {{.ChannelName}} ha il testo \"scopo\" troppo lungo. Verrà troncato durante l'importazione."
   },
   {
     "id": "api.status.init.debug",
@@ -3521,47 +3521,47 @@
   },
   {
     "id": "app.notification.body.intro.direct.full",
-    "translation": "Hai un nuovo messaggio.Tu hai {{.Count}} nuovi messaggi."
+    "translation": "Hai un nuovo messaggio diretto."
   },
   {
     "id": "app.notification.body.intro.direct.generic",
-    "translation": "You have a new direct message from {{.SenderName}}"
+    "translation": "Hai un nuovo messaggio diretto da {{.SenderName}}"
   },
   {
     "id": "app.notification.body.intro.notification.full",
-    "translation": "You have a new notification."
+    "translation": "Hai una nuova notifica."
   },
   {
     "id": "app.notification.body.intro.notification.generic",
-    "translation": "You have a new notification from {{.SenderName}}"
+    "translation": "Hai una nuova notifica da {{.SenderName}}"
   },
   {
     "id": "app.notification.body.text.direct.full",
-    "translation": "{{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Month}} {{.Day}}"
+    "translation": "{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Day}}/{{.Month}}"
   },
   {
     "id": "app.notification.body.text.direct.generic",
-    "translation": "{{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Month}} {{.Day}}"
+    "translation": "{{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Day}}/{{.Month}}"
   },
   {
     "id": "app.notification.body.text.notification.full",
-    "translation": "CANALE: {{.ChannelName}}<br>{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Month}} {{.Day}}"
+    "translation": "CANALE: {{.ChannelName}}<br>{{.SenderName}} - {{.Hour}}:{{.Minute}} {{.TimeZone}}, {{.Day}} {{.Month}}"
   },
   {
     "id": "app.notification.body.text.notification.generic",
-    "translation": "{{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Month}} {{.Day}}"
+    "translation": "{{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Day}} {{.Month}}"
   },
   {
     "id": "app.notification.subject.direct.full",
-    "translation": "{{.SubjectText}} su {{.TeamDisplayName}} da {{.SenderDisplayName}} il {{.Day}} {{.Month}} {{.Year}}"
+    "translation": "[{{.SubjectText}}] Nuovo messaggio diretto da {{.SenderDisplayName}} il {{.Day}}/{{.Month}}/{{.Year}}"
   },
   {
     "id": "app.notification.subject.notification.full",
-    "translation": "[{{ .SiteName }}] Notification in {{ .TeamName}} on {{.Month}} {{.Day}}, {{.Year}}"
+    "translation": "[{{ .SiteName }}] Notifca in {{ .TeamName}} del {{.Day}}/{{.Month}}/{{.Year}}"
   },
   {
     "id": "app.user_access_token.disabled",
-    "translation": "I token di accesso sono disattivati su questo server. Per favore contatta l'Amministratore di Sistema per ulteriori dettagli."
+    "translation": "I Token di accesso personale sono disattivati su questo server. Per favore contatta l'Amministratore di Sistema per ulteriori dettagli."
   },
   {
     "id": "app.user_access_token.invalid_or_missing",
@@ -3593,11 +3593,11 @@
   },
   {
     "id": "authentication.permissions.create_user_access_token.description",
-    "translation": "Capacità di creare token di accesso"
+    "translation": "Possibilità di creare Token di accesso personali"
   },
   {
     "id": "authentication.permissions.create_user_access_token.name",
-    "translation": "Generare Token di Accesso"
+    "translation": "Crea un Token di Accesso personale"
   },
   {
     "id": "authentication.permissions.manage_jobs.description",
@@ -3625,19 +3625,19 @@
   },
   {
     "id": "authentication.permissions.read_user_access_token.description",
-    "translation": "Capacità di visualizzare l'id dei token di accesso, la descrizione e l'id utente"
+    "translation": "Possibilità di visualizzare l'id dei Token di accesso personale, descrizione e l'ID utente"
   },
   {
     "id": "authentication.permissions.read_user_access_token.name",
-    "translation": "Visualizzare Token di Accesso"
+    "translation": "Genera un Token di Accesso personale"
   },
   {
     "id": "authentication.permissions.revoke_user_access_token.description",
-    "translation": "Capacità di revocare i token di accesso"
+    "translation": "Possibilità di revocare i Token di accesso personale"
   },
   {
     "id": "authentication.permissions.revoke_user_access_token.name",
-    "translation": "Revoca Token di Accesso"
+    "translation": "Revoca Token di Accesso personale"
   },
   {
     "id": "authentication.permissions.team_invite_user.description",
@@ -3673,11 +3673,11 @@
   },
   {
     "id": "authentication.roles.system_user_access_token.description",
-    "translation": "Un ruolo con il permesso di creare, visualizzare e revocare i token di accesso"
+    "translation": "Un ruolo con i permessi di: creare, visualizzare e revocare i token di accesso personale"
   },
   {
     "id": "authentication.roles.system_user_access_token.name",
-    "translation": "Token di Accesso"
+    "translation": "Token di Accesso personale"
   },
   {
     "id": "authentication.roles.team_post_all.description",
@@ -6405,23 +6405,23 @@
   },
   {
     "id": "store.sql_user_access_token.delete.app_error",
-    "translation": "Impossibile eliminare il token di accesso"
+    "translation": "Impossibile eliminare il Token di accesso personale"
   },
   {
     "id": "store.sql_user_access_token.get.app_error",
-    "translation": "Impossibile trovare il token di accesso"
+    "translation": "Impossibile trovare il Token di accesso personale"
   },
   {
     "id": "store.sql_user_access_token.get_by_token.app_error",
-    "translation": "Impossibile trovare il token di accesso per token"
+    "translation": "Impossibile trovare il Token di accesso personale per \"token\""
   },
   {
     "id": "store.sql_user_access_token.get_by_user.app_error",
-    "translation": "Impossibile trovare i token di accesso per utente"
+    "translation": "Impossibile trovare i Token di accesso personale per utente"
   },
   {
     "id": "store.sql_user_access_token.save.app_error",
-    "translation": "Impossibile salvare il token di accesso"
+    "translation": "Impossibile salvare il Token di accesso personale"
   },
   {
     "id": "store.sql_webhooks.analytics_incoming_count.app_error",
@@ -6541,7 +6541,7 @@
   },
   {
     "id": "utils.config.supported_server_locale.app_error",
-    "translation": "Impossibile caricare il file di configurazione:  DefaultServerLocale deve essere uno dei linguaggi supportati"
+    "translation": "Unable to load mattermost configuration file:  DefaultServerLocale must be one of the supported locales. Setting DefaultServerLocale to en as default value."
   },
   {
     "id": "utils.config.validate_locale.app_error",

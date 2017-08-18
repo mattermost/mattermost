@@ -11,51 +11,103 @@ const (
 	testHost = "smtp.example.com"
 )
 
-type authTest struct {
+var testAuth = &plainAuth{
+	username: testUser,
+	password: testPwd,
+	host:     testHost,
+}
+
+type plainAuthTest struct {
 	auths      []string
 	challenges []string
 	tls        bool
+	wantProto  string
 	wantData   []string
 	wantError  bool
 }
 
 func TestNoAdvertisement(t *testing.T) {
-	testLoginAuth(t, &authTest{
-		auths:     []string{},
-		tls:       false,
-		wantError: true,
+	testPlainAuth(t, &plainAuthTest{
+		auths:      []string{},
+		challenges: []string{"Username:", "Password:"},
+		tls:        false,
+		wantProto:  "PLAIN",
+		wantError:  true,
 	})
 }
 
 func TestNoAdvertisementTLS(t *testing.T) {
-	testLoginAuth(t, &authTest{
+	testPlainAuth(t, &plainAuthTest{
 		auths:      []string{},
 		challenges: []string{"Username:", "Password:"},
 		tls:        true,
-		wantData:   []string{"", testUser, testPwd},
+		wantProto:  "PLAIN",
+		wantData:   []string{"\x00" + testUser + "\x00" + testPwd},
+	})
+}
+
+func TestPlain(t *testing.T) {
+	testPlainAuth(t, &plainAuthTest{
+		auths:      []string{"PLAIN"},
+		challenges: []string{"Username:", "Password:"},
+		tls:        false,
+		wantProto:  "PLAIN",
+		wantData:   []string{"\x00" + testUser + "\x00" + testPwd},
+	})
+}
+
+func TestPlainTLS(t *testing.T) {
+	testPlainAuth(t, &plainAuthTest{
+		auths:      []string{"PLAIN"},
+		challenges: []string{"Username:", "Password:"},
+		tls:        true,
+		wantProto:  "PLAIN",
+		wantData:   []string{"\x00" + testUser + "\x00" + testPwd},
+	})
+}
+
+func TestPlainAndLogin(t *testing.T) {
+	testPlainAuth(t, &plainAuthTest{
+		auths:      []string{"PLAIN", "LOGIN"},
+		challenges: []string{"Username:", "Password:"},
+		tls:        false,
+		wantProto:  "PLAIN",
+		wantData:   []string{"\x00" + testUser + "\x00" + testPwd},
+	})
+}
+
+func TestPlainAndLoginTLS(t *testing.T) {
+	testPlainAuth(t, &plainAuthTest{
+		auths:      []string{"PLAIN", "LOGIN"},
+		challenges: []string{"Username:", "Password:"},
+		tls:        true,
+		wantProto:  "PLAIN",
+		wantData:   []string{"\x00" + testUser + "\x00" + testPwd},
 	})
 }
 
 func TestLogin(t *testing.T) {
-	testLoginAuth(t, &authTest{
-		auths:      []string{"PLAIN", "LOGIN"},
+	testPlainAuth(t, &plainAuthTest{
+		auths:      []string{"LOGIN"},
 		challenges: []string{"Username:", "Password:"},
 		tls:        false,
+		wantProto:  "LOGIN",
 		wantData:   []string{"", testUser, testPwd},
 	})
 }
 
 func TestLoginTLS(t *testing.T) {
-	testLoginAuth(t, &authTest{
+	testPlainAuth(t, &plainAuthTest{
 		auths:      []string{"LOGIN"},
 		challenges: []string{"Username:", "Password:"},
 		tls:        true,
+		wantProto:  "LOGIN",
 		wantData:   []string{"", testUser, testPwd},
 	})
 }
 
-func testLoginAuth(t *testing.T, test *authTest) {
-	auth := &loginAuth{
+func testPlainAuth(t *testing.T, test *plainAuthTest) {
+	auth := &plainAuth{
 		username: testUser,
 		password: testPwd,
 		host:     testHost,
@@ -67,19 +119,23 @@ func testLoginAuth(t *testing.T, test *authTest) {
 	}
 	proto, toServer, err := auth.Start(server)
 	if err != nil && !test.wantError {
-		t.Fatalf("loginAuth.Start(): %v", err)
+		t.Fatalf("plainAuth.Start(): %v", err)
 	}
 	if err != nil && test.wantError {
 		return
 	}
-	if proto != "LOGIN" {
-		t.Errorf("invalid protocol, got %q, want LOGIN", proto)
+	if proto != test.wantProto {
+		t.Errorf("invalid protocol, got %q, want %q", proto, test.wantProto)
 	}
 
 	i := 0
 	got := string(toServer)
 	if got != test.wantData[i] {
 		t.Errorf("Invalid response, got %q, want %q", got, test.wantData[i])
+	}
+
+	if proto == "PLAIN" {
+		return
 	}
 
 	for _, challenge := range test.challenges {
@@ -90,7 +146,7 @@ func testLoginAuth(t *testing.T, test *authTest) {
 
 		toServer, err = auth.Next([]byte(challenge), true)
 		if err != nil {
-			t.Fatalf("loginAuth.Auth(): %v", err)
+			t.Fatalf("plainAuth.Auth(): %v", err)
 		}
 		got = string(toServer)
 		if got != test.wantData[i] {

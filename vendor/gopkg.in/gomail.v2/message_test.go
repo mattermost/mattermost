@@ -63,6 +63,29 @@ func TestMessage(t *testing.T) {
 	testMessage(t, m, 0, want)
 }
 
+func TestBodyWriter(t *testing.T) {
+	m := NewMessage()
+	m.SetHeader("From", "from@example.com")
+	m.SetHeader("To", "to@example.com")
+	m.AddAlternativeWriter("text/plain", func(w io.Writer) error {
+		_, err := w.Write([]byte("Test message"))
+		return err
+	})
+
+	want := &message{
+		from: "from@example.com",
+		to:   []string{"to@example.com"},
+		content: "From: from@example.com\r\n" +
+			"To: to@example.com\r\n" +
+			"Content-Type: text/plain; charset=UTF-8\r\n" +
+			"Content-Transfer-Encoding: quoted-printable\r\n" +
+			"\r\n" +
+			"Test message",
+	}
+
+	testMessage(t, m, 0, want)
+}
+
 func TestCustomMessage(t *testing.T) {
 	m := NewMessage(SetCharset("ISO-8859-1"), SetEncoding(Base64))
 	m.SetHeaders(map[string][]string{
@@ -150,8 +173,7 @@ func TestAlternative(t *testing.T) {
 		to:   []string{"to@example.com"},
 		content: "From: from@example.com\r\n" +
 			"To: to@example.com\r\n" +
-			"Content-Type: multipart/alternative;\r\n" +
-			" boundary=_BOUNDARY_1_\r\n" +
+			"Content-Type: multipart/alternative; boundary=_BOUNDARY_1_\r\n" +
 			"\r\n" +
 			"--_BOUNDARY_1_\r\n" +
 			"Content-Type: text/plain; charset=UTF-8\r\n" +
@@ -163,74 +185,6 @@ func TestAlternative(t *testing.T) {
 			"Content-Transfer-Encoding: quoted-printable\r\n" +
 			"\r\n" +
 			"=C2=A1<b>Hola</b>, <i>se=C3=B1or</i>!</h1>\r\n" +
-			"--_BOUNDARY_1_--\r\n",
-	}
-
-	testMessage(t, m, 1, want)
-}
-
-func TestPartSetting(t *testing.T) {
-	m := NewMessage()
-	m.SetHeader("From", "from@example.com")
-	m.SetHeader("To", "to@example.com")
-	m.SetBody("text/plain; format=flowed", "¡Hola, señor!", SetPartEncoding(Unencoded))
-	m.AddAlternative("text/html", "¡<b>Hola</b>, <i>señor</i>!</h1>")
-
-	want := &message{
-		from: "from@example.com",
-		to:   []string{"to@example.com"},
-		content: "From: from@example.com\r\n" +
-			"To: to@example.com\r\n" +
-			"Content-Type: multipart/alternative;\r\n" +
-			" boundary=_BOUNDARY_1_\r\n" +
-			"\r\n" +
-			"--_BOUNDARY_1_\r\n" +
-			"Content-Type: text/plain; format=flowed; charset=UTF-8\r\n" +
-			"Content-Transfer-Encoding: 8bit\r\n" +
-			"\r\n" +
-			"¡Hola, señor!\r\n" +
-			"--_BOUNDARY_1_\r\n" +
-			"Content-Type: text/html; charset=UTF-8\r\n" +
-			"Content-Transfer-Encoding: quoted-printable\r\n" +
-			"\r\n" +
-			"=C2=A1<b>Hola</b>, <i>se=C3=B1or</i>!</h1>\r\n" +
-			"--_BOUNDARY_1_--\r\n",
-	}
-
-	testMessage(t, m, 1, want)
-}
-
-func TestBodyWriter(t *testing.T) {
-	m := NewMessage()
-	m.SetHeader("From", "from@example.com")
-	m.SetHeader("To", "to@example.com")
-	m.AddAlternativeWriter("text/plain", func(w io.Writer) error {
-		_, err := w.Write([]byte("Test message"))
-		return err
-	})
-	m.AddAlternativeWriter("text/html", func(w io.Writer) error {
-		_, err := w.Write([]byte("Test HTML"))
-		return err
-	})
-
-	want := &message{
-		from: "from@example.com",
-		to:   []string{"to@example.com"},
-		content: "From: from@example.com\r\n" +
-			"To: to@example.com\r\n" +
-			"Content-Type: multipart/alternative;\r\n" +
-			" boundary=_BOUNDARY_1_\r\n" +
-			"\r\n" +
-			"--_BOUNDARY_1_\r\n" +
-			"Content-Type: text/plain; charset=UTF-8\r\n" +
-			"Content-Transfer-Encoding: quoted-printable\r\n" +
-			"\r\n" +
-			"Test message\r\n" +
-			"--_BOUNDARY_1_\r\n" +
-			"Content-Type: text/html; charset=UTF-8\r\n" +
-			"Content-Transfer-Encoding: quoted-printable\r\n" +
-			"\r\n" +
-			"Test HTML\r\n" +
 			"--_BOUNDARY_1_--\r\n",
 	}
 
@@ -270,8 +224,7 @@ func TestAttachment(t *testing.T) {
 		to:   []string{"to@example.com"},
 		content: "From: from@example.com\r\n" +
 			"To: to@example.com\r\n" +
-			"Content-Type: multipart/mixed;\r\n" +
-			" boundary=_BOUNDARY_1_\r\n" +
+			"Content-Type: multipart/mixed; boundary=_BOUNDARY_1_\r\n" +
 			"\r\n" +
 			"--_BOUNDARY_1_\r\n" +
 			"Content-Type: text/plain; charset=UTF-8\r\n" +
@@ -281,40 +234,6 @@ func TestAttachment(t *testing.T) {
 			"--_BOUNDARY_1_\r\n" +
 			"Content-Type: application/pdf; name=\"test.pdf\"\r\n" +
 			"Content-Disposition: attachment; filename=\"test.pdf\"\r\n" +
-			"Content-Transfer-Encoding: base64\r\n" +
-			"\r\n" +
-			base64.StdEncoding.EncodeToString([]byte("Content of test.pdf")) + "\r\n" +
-			"--_BOUNDARY_1_--\r\n",
-	}
-
-	testMessage(t, m, 1, want)
-}
-
-func TestRename(t *testing.T) {
-	m := NewMessage()
-	m.SetHeader("From", "from@example.com")
-	m.SetHeader("To", "to@example.com")
-	m.SetBody("text/plain", "Test")
-	name, copy := mockCopyFile("/tmp/test.pdf")
-	rename := Rename("another.pdf")
-	m.Attach(name, copy, rename)
-
-	want := &message{
-		from: "from@example.com",
-		to:   []string{"to@example.com"},
-		content: "From: from@example.com\r\n" +
-			"To: to@example.com\r\n" +
-			"Content-Type: multipart/mixed;\r\n" +
-			" boundary=_BOUNDARY_1_\r\n" +
-			"\r\n" +
-			"--_BOUNDARY_1_\r\n" +
-			"Content-Type: text/plain; charset=UTF-8\r\n" +
-			"Content-Transfer-Encoding: quoted-printable\r\n" +
-			"\r\n" +
-			"Test\r\n" +
-			"--_BOUNDARY_1_\r\n" +
-			"Content-Type: application/pdf; name=\"another.pdf\"\r\n" +
-			"Content-Disposition: attachment; filename=\"another.pdf\"\r\n" +
 			"Content-Transfer-Encoding: base64\r\n" +
 			"\r\n" +
 			base64.StdEncoding.EncodeToString([]byte("Content of test.pdf")) + "\r\n" +
@@ -336,8 +255,7 @@ func TestAttachmentsOnly(t *testing.T) {
 		to:   []string{"to@example.com"},
 		content: "From: from@example.com\r\n" +
 			"To: to@example.com\r\n" +
-			"Content-Type: multipart/mixed;\r\n" +
-			" boundary=_BOUNDARY_1_\r\n" +
+			"Content-Type: multipart/mixed; boundary=_BOUNDARY_1_\r\n" +
 			"\r\n" +
 			"--_BOUNDARY_1_\r\n" +
 			"Content-Type: application/pdf; name=\"test.pdf\"\r\n" +
@@ -370,8 +288,7 @@ func TestAttachments(t *testing.T) {
 		to:   []string{"to@example.com"},
 		content: "From: from@example.com\r\n" +
 			"To: to@example.com\r\n" +
-			"Content-Type: multipart/mixed;\r\n" +
-			" boundary=_BOUNDARY_1_\r\n" +
+			"Content-Type: multipart/mixed; boundary=_BOUNDARY_1_\r\n" +
 			"\r\n" +
 			"--_BOUNDARY_1_\r\n" +
 			"Content-Type: text/plain; charset=UTF-8\r\n" +
@@ -409,8 +326,7 @@ func TestEmbedded(t *testing.T) {
 		to:   []string{"to@example.com"},
 		content: "From: from@example.com\r\n" +
 			"To: to@example.com\r\n" +
-			"Content-Type: multipart/related;\r\n" +
-			" boundary=_BOUNDARY_1_\r\n" +
+			"Content-Type: multipart/related; boundary=_BOUNDARY_1_\r\n" +
 			"\r\n" +
 			"--_BOUNDARY_1_\r\n" +
 			"Content-Type: text/plain; charset=UTF-8\r\n" +
@@ -451,16 +367,13 @@ func TestFullMessage(t *testing.T) {
 		to:   []string{"to@example.com"},
 		content: "From: from@example.com\r\n" +
 			"To: to@example.com\r\n" +
-			"Content-Type: multipart/mixed;\r\n" +
-			" boundary=_BOUNDARY_1_\r\n" +
+			"Content-Type: multipart/mixed; boundary=_BOUNDARY_1_\r\n" +
 			"\r\n" +
 			"--_BOUNDARY_1_\r\n" +
-			"Content-Type: multipart/related;\r\n" +
-			" boundary=_BOUNDARY_2_\r\n" +
+			"Content-Type: multipart/related; boundary=_BOUNDARY_2_\r\n" +
 			"\r\n" +
 			"--_BOUNDARY_2_\r\n" +
-			"Content-Type: multipart/alternative;\r\n" +
-			" boundary=_BOUNDARY_3_\r\n" +
+			"Content-Type: multipart/alternative; boundary=_BOUNDARY_3_\r\n" +
 			"\r\n" +
 			"--_BOUNDARY_3_\r\n" +
 			"Content-Type: text/plain; charset=UTF-8\r\n" +
@@ -559,34 +472,6 @@ func TestBase64LineLength(t *testing.T) {
 			"Content-Transfer-Encoding: base64\r\n" +
 			"\r\n" +
 			strings.Repeat("MDAw", 19) + "\r\nMA==",
-	}
-
-	testMessage(t, m, 0, want)
-}
-
-func TestEmptyName(t *testing.T) {
-	m := NewMessage()
-	m.SetAddressHeader("From", "from@example.com", "")
-
-	want := &message{
-		from:    "from@example.com",
-		content: "From: from@example.com\r\n",
-	}
-
-	testMessage(t, m, 0, want)
-}
-
-func TestEmptyHeader(t *testing.T) {
-	m := NewMessage()
-	m.SetHeaders(map[string][]string{
-		"From":    {"from@example.com"},
-		"X-Empty": nil,
-	})
-
-	want := &message{
-		from: "from@example.com",
-		content: "From: from@example.com\r\n" +
-			"X-Empty:\r\n",
 	}
 
 	testMessage(t, m, 0, want)

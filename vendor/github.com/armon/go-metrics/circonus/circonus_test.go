@@ -12,7 +12,7 @@ import (
 func TestNewCirconusSink(t *testing.T) {
 
 	// test with invalid config (nil)
-	expectedError := errors.New("Invalid check manager configuration (no API token AND no submission url).")
+	expectedError := errors.New("invalid check manager configuration (no API token AND no submission url)")
 	_, err := NewCirconusSink(nil)
 	if err == nil || err.Error() != expectedError.Error() {
 		t.Errorf("Expected an '%#v' error, got '%#v'", expectedError, err)
@@ -87,7 +87,7 @@ func TestSetGauge(t *testing.T) {
 		cs.Flush()
 	}()
 
-	expect := "{\"foo`bar\":{\"_type\":\"n\",\"_value\":1}}"
+	expect := "{\"foo`bar\":{\"_type\":\"n\",\"_value\":\"1\"}}"
 	actual := <-q
 
 	if actual != expect {
