@@ -9,7 +9,6 @@ const getState = store.getState;
 
 import * as AdminActions from 'mattermost-redux/actions/admin';
 import * as UserActions from 'mattermost-redux/actions/users';
-import * as IntegrationActions from 'mattermost-redux/actions/integrations';
 import {Client4} from 'mattermost-redux/client';
 
 export function saveConfig(config, success, error) {
@@ -232,19 +231,6 @@ export function oauthToEmail(currentService, email, password, success, error) {
                 }
             } else if (data == null && error) {
                 const serverError = getState().requests.users.switchLogin.error;
-                error({id: serverError.server_error_id, ...serverError});
-            }
-        }
-    );
-}
-
-export function regenerateOAuthAppSecret(oauthAppId, success, error) {
-    IntegrationActions.regenOAuthAppSecret(oauthAppId)(dispatch, getState).then(
-        (data) => {
-            if (data && success) {
-                success(data);
-            } else if (data == null && error) {
-                const serverError = getState().requests.admin.updateOAuthApp.error;
                 error({id: serverError.server_error_id, ...serverError});
             }
         }

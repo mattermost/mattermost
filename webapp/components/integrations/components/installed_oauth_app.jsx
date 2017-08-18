@@ -4,70 +4,83 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
-import FormError from 'components/form_error.jsx';
-
 import * as Utils from 'utils/utils.jsx';
 
 import {FormattedMessage, FormattedHTMLMessage} from 'react-intl';
-import {regenerateOAuthAppSecret} from 'actions/admin_actions.jsx';
-
+import FormError from 'components/form_error.jsx';
 import DeleteIntegration from './delete_integration.jsx';
 
 const FAKE_SECRET = '***************';
 
-export default class InstalledOAuthApp extends React.Component {
-    static get propTypes() {
-        return {
-            oauthApp: PropTypes.object.isRequired,
-            onDelete: PropTypes.func.isRequired,
-            filter: PropTypes.string
-        };
+export default class InstalledOAuthApp extends React.PureComponent {
+    static propTypes = {
+
+        /**
+        * The oauthApp data
+        */
+        oauthApp: PropTypes.object.isRequired,
+
+        /**
+        * The request state for regenOAuthAppSecret action. Contains status and error
+        */
+        regenOAuthAppSecretRequest: PropTypes.object.isRequired,
+
+        /**
+        * The function to call when Regenerate Secret link is clicked
+        */
+        onRegenerateSecret: PropTypes.func.isRequired,
+
+        /**
+        * The function to call when Delete link is clicked
+        */
+        onDelete: PropTypes.func.isRequired,
+
+        /**
+        * Set to filter OAuthApp
+        */
+        filter: PropTypes.string
     }
 
     constructor(props) {
         super(props);
-
-        this.handleShowClientSecret = this.handleShowClientSecret.bind(this);
-        this.handleHideClientScret = this.handleHideClientScret.bind(this);
-        this.handleRegenerate = this.handleRegenerate.bind(this);
-        this.handleDelete = this.handleDelete.bind(this);
-
-        this.matchesFilter = this.matchesFilter.bind(this);
 
         this.state = {
             clientSecret: FAKE_SECRET
         };
     }
 
-    handleShowClientSecret(e) {
-        e.preventDefault();
+    handleShowClientSecret = (e) => {
+        if (e && e.preventDefault) {
+            e.preventDefault();
+        }
         this.setState({clientSecret: this.props.oauthApp.client_secret});
     }
 
-    handleHideClientScret(e) {
+    handleHideClientSecret = (e) => {
         e.preventDefault();
         this.setState({clientSecret: FAKE_SECRET});
     }
 
-    handleRegenerate(e) {
+    handleRegenerate = (e) => {
         e.preventDefault();
-
-        regenerateOAuthAppSecret(
-            this.props.oauthApp.id,
+        this.props.onRegenerateSecret(this.props.oauthApp.id).then(
             () => {
-                this.handleShowClientSecret(e);
-            },
-            (err) => {
-                this.setState({error: err.message});
+                const {error} = this.props.regenOAuthAppSecretRequest;
+                if (error) {
+                    this.setState({error: error.message});
+                } else {
+                    this.setState({error: null});
+                    this.handleShowClientSecret();
+                }
             }
         );
     }
 
-    handleDelete() {
+    handleDelete = () => {
         this.props.onDelete(this.props.oauthApp);
     }
 
-    matchesFilter(oauthApp, filter) {
+    matchesFilter = (oauthApp, filter) => {
         if (!filter) {
             return true;
         }
@@ -152,7 +165,7 @@ export default class InstalledOAuthApp extends React.Component {
             showHide = (
                 <a
                     href='#'
-                    onClick={this.handleHideClientScret}
+                    onClick={this.handleHideClientSecret}
                 >
                     <FormattedMessage
                         id='installed_integrations.hideSecret'
