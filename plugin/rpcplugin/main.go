@@ -6,12 +6,10 @@ import (
 	"fmt"
 	"log"
 	"os"
-
-	"github.com/mattermost/platform/plugin"
 )
 
 // Makes a set of hooks available via RPC. This function never returns.
-func Main(hooks plugin.Hooks) {
+func Main(hooks interface{}) {
 	ipc, err := InheritedProcessIPC()
 	if err != nil {
 		log.Fatal(err.Error())
@@ -42,5 +40,5 @@ func ConnectMain(muxer *Muxer) (*RemoteHooks, error) {
 		return nil, err
 	}
 
-	return ConnectHooks(muxer.Connect(id), muxer), nil
+	return ConnectHooks(muxer.Connect(id), muxer)
 }

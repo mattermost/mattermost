@@ -23,19 +23,10 @@ func TestMain(t *testing.T) {
 		package main
 
 		import (
-			"github.com/mattermost/platform/plugin"
 			"github.com/mattermost/platform/plugin/rpcplugin"
 		)
 
 		type MyPlugin struct {}
-
-		func (p *MyPlugin) OnActivate(api plugin.API) error {
-			return nil
-		}
-
-		func (p *MyPlugin) OnDeactivate() error {
-			return nil
-		}
 
 		func main() {
 			rpcplugin.Main(&MyPlugin{})
