@@ -25,6 +25,9 @@
                     display: block;
                     margin-left: 11px;
                     text-decoration: none;
+                    &:hover .team-btn {
+                      border-color: white;
+                    }
                 }
 
                 .team-btn {
