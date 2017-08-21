@@ -14,7 +14,8 @@ export default class YoutubeVideo extends React.PureComponent {
         channelId: PropTypes.string.isRequired,
         currentChannelId: PropTypes.string.isRequired,
         link: PropTypes.string.isRequired,
-        show: PropTypes.bool.isRequired
+        show: PropTypes.bool.isRequired,
+        onLinkLoaded: PropTypes.func
     }
 
     constructor(props) {
@@ -103,6 +104,7 @@ export default class YoutubeVideo extends React.PureComponent {
         } else {
             this.loadWithoutKey();
         }
+        this.props.onLinkLoaded();
     }
 
     loadWithoutKey() {
