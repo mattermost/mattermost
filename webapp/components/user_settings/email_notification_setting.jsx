@@ -31,17 +31,9 @@ export default class EmailNotificationSetting extends React.Component {
         this.expand = this.expand.bind(this);
         this.collapse = this.collapse.bind(this);
 
-        if (global.mm_config.EnableEmailBatching === 'true') {
-            // when email batching is enabled, the default interval is 15 minutes
-            this.state = {
-                emailInterval: PreferenceStore.getInt(Preferences.CATEGORY_NOTIFICATIONS, Preferences.EMAIL_INTERVAL, Preferences.INTERVAL_FIFTEEN_MINUTES)
-            };
-        } else {
-            // otherwise, the default interval is immediately
-            this.state = {
-                emailInterval: PreferenceStore.getInt(Preferences.CATEGORY_NOTIFICATIONS, Preferences.EMAIL_INTERVAL, Preferences.INTERVAL_IMMEDIATE)
-            };
-        }
+        this.state = {
+            emailInterval: EmailNotificationSetting.getEmailInterval(props)
+        };
     }
 
     handleChange(enableEmail, emailInterval) {
@@ -156,7 +148,7 @@ export default class EmailNotificationSetting extends React.Component {
                                 id='emailNotificationMinutes'
                                 type='radio'
                                 name='emailNotifications'
-                                checked={this.props.enableEmail && this.state.emailInterval === Preferences.INTERVAL_FIFTEEN_MINUTES}
+                                checked={this.state.emailInterval === Preferences.INTERVAL_FIFTEEN_MINUTES}
                                 onChange={this.handleChange.bind(this, 'true', Preferences.INTERVAL_FIFTEEN_MINUTES)}
                             />
                             <FormattedMessage
@@ -172,7 +164,7 @@ export default class EmailNotificationSetting extends React.Component {
                                 id='emailNotificationHour'
                                 type='radio'
                                 name='emailNotifications'
-                                checked={this.props.enableEmail && this.state.emailInterval === Preferences.INTERVAL_HOUR}
+                                checked={this.state.emailInterval === Preferences.INTERVAL_HOUR}
                                 onChange={this.handleChange.bind(this, 'true', Preferences.INTERVAL_HOUR)}
                             />
                             <FormattedMessage
@@ -209,7 +201,7 @@ export default class EmailNotificationSetting extends React.Component {
                                     id='emailNotificationImmediately'
                                     type='radio'
                                     name='emailNotifications'
-                                    checked={this.props.enableEmail && this.state.emailInterval === Preferences.INTERVAL_IMMEDIATE}
+                                    checked={this.state.emailInterval === Preferences.INTERVAL_IMMEDIATE}
                                     onChange={this.handleChange.bind(this, 'true', Preferences.INTERVAL_IMMEDIATE)}
                                 />
                                 <FormattedMessage
@@ -225,8 +217,8 @@ export default class EmailNotificationSetting extends React.Component {
                                     id='emailNotificationNever'
                                     type='radio'
                                     name='emailNotifications'
-                                    checked={!this.props.enableEmail}
-                                    onChange={this.handleChange.bind(this, 'false', Preferences.INTERVAL_IMMEDIATE)}
+                                    checked={this.state.emailInterval === Preferences.INTERVAL_NEVER}
+                                    onChange={this.handleChange.bind(this, 'false', Preferences.INTERVAL_NEVER)}
                                 />
                                 <FormattedMessage
                                     id='user.settings.notifications.email.never'
@@ -253,5 +245,34 @@ export default class EmailNotificationSetting extends React.Component {
                 updateSection={this.collapse}
             />
         );
+    }
+
+    static getEmailInterval(props) {
+        const validValuesWithEmailBatching = [Preferences.INTERVAL_IMMEDIATE, Preferences.INTERVAL_FIFTEEN_MINUTES, Preferences.INTERVAL_HOUR];
+        const validValuesWithoutEmailBatching = [Preferences.INTERVAL_IMMEDIATE];
+
+        let emailInterval;
+
+        if (global.mm_config.EnableEmailBatching === 'true') {
+            // when email batching is enabled, the default interval is 15 minutes
+            emailInterval = PreferenceStore.getInt(Preferences.CATEGORY_NOTIFICATIONS, Preferences.EMAIL_INTERVAL, Preferences.INTERVAL_FIFTEEN_MINUTES);
+
+            if (validValuesWithEmailBatching.indexOf(emailInterval) === -1) {
+                emailInterval = Preferences.INTERVAL_FIFTEEN_MINUTES;
+            }
+        } else {
+            // otherwise, the default interval is immediately
+            emailInterval = PreferenceStore.getInt(Preferences.CATEGORY_NOTIFICATIONS, Preferences.EMAIL_INTERVAL, Preferences.INTERVAL_IMMEDIATE);
+
+            if (validValuesWithoutEmailBatching.indexOf(emailInterval) === -1) {
+                emailInterval = Preferences.INTERVAL_IMMEDIATE;
+            }
+        }
+
+        if (!props.enableEmail) {
+            emailInterval = Preferences.INTERVAL_NEVER;
+        }
+
+        return emailInterval;
     }
 }
