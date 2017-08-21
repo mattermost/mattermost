@@ -212,7 +212,6 @@ func TestEmail(userId string, cfg *model.Config) *model.AppError {
 			return model.NewLocAppError("testEmail", "api.admin.test_email.reenter_password", nil, "")
 		}
 	}
-
 	if user, err := GetUser(userId); err != nil {
 		return err
 	} else {
