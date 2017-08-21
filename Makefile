@@ -279,6 +279,10 @@ test-te: start-docker prepare-enterprise do-cover-file
 test-postgres: start-docker prepare-enterprise
 	@echo Testing Postgres
 
+	if [ ! -f config/config.json ]; then \
+		cp config/default.json config/config.json; \
+	fi; \
+
 	@sed -i'' -e 's|"DriverName": "mysql"|"DriverName": "postgres"|g' config/config.json
 	@sed -i'' -e 's|"DataSource": "mmuser:mostest@tcp(dockerhost:3306)/mattermost_test?charset=utf8mb4,utf8"|"DataSource": "postgres://mmuser:mostest@dockerhost:5432?sslmode=disable"|g' config/config.json
 
@@ -386,6 +390,8 @@ package: build build-client
 	cp -RL fonts $(DIST_PATH)
 	cp -RL templates $(DIST_PATH)
 	cp -RL i18n $(DIST_PATH)
+
+	mv $(DIST_PATH)/config/default.json $(DIST_PATH)/config/config.json
 
 	@# Disable developer settings
 	sed -i'' -e 's|"ConsoleLevel": "DEBUG"|"ConsoleLevel": "INFO"|g' $(DIST_PATH)/config/config.json
