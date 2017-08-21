@@ -81,20 +81,22 @@ func TestUploadFile(t *testing.T) {
 		t.Fatal("file preview path should be set in database")
 	}
 
+	date := time.Now().Format("20060102")
+
 	// This also makes sure that the relative path provided above is sanitized out
-	expectedPath := fmt.Sprintf("teams/%v/channels/%v/users/%v/%v/test.png", team.Id, channel.Id, user.Id, info.Id)
+	expectedPath := fmt.Sprintf("%v/teams/%v/channels/%v/users/%v/%v/test.png", date, team.Id, channel.Id, user.Id, info.Id)
 	if info.Path != expectedPath {
 		t.Logf("file is saved in %v", info.Path)
 		t.Fatalf("file should've been saved in %v", expectedPath)
 	}
 
-	expectedThumbnailPath := fmt.Sprintf("teams/%v/channels/%v/users/%v/%v/test_thumb.jpg", team.Id, channel.Id, user.Id, info.Id)
+	expectedThumbnailPath := fmt.Sprintf("%v/teams/%v/channels/%v/users/%v/%v/test_thumb.jpg", date, team.Id, channel.Id, user.Id, info.Id)
 	if info.ThumbnailPath != expectedThumbnailPath {
 		t.Logf("file thumbnail is saved in %v", info.ThumbnailPath)
 		t.Fatalf("file thumbnail should've been saved in %v", expectedThumbnailPath)
 	}
 
-	expectedPreviewPath := fmt.Sprintf("teams/%v/channels/%v/users/%v/%v/test_preview.jpg", team.Id, channel.Id, user.Id, info.Id)
+	expectedPreviewPath := fmt.Sprintf("%v/teams/%v/channels/%v/users/%v/%v/test_preview.jpg", date, team.Id, channel.Id, user.Id, info.Id)
 	if info.PreviewPath != expectedPreviewPath {
 		t.Logf("file preview is saved in %v", info.PreviewPath)
 		t.Fatalf("file preview should've been saved in %v", expectedPreviewPath)
@@ -466,7 +468,6 @@ func TestGetPublicFileOld(t *testing.T) {
 	utils.Cfg.FileSettings.EnablePublicLink = true
 	*utils.Cfg.FileSettings.PublicLinkSalt = model.NewId()
 
-	Client := th.BasicClient
 	channel := th.BasicChannel
 
 	var fileId string
@@ -474,7 +475,16 @@ func TestGetPublicFileOld(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	} else {
-		fileId = Client.MustGeneric(Client.UploadPostAttachment(data, channel.Id, "test.png")).(*model.FileUploadResponse).FileInfos[0].Id
+		//fileId = Client.MustGeneric(Client.UploadPostAttachment(data, channel.Id, "test.png")).(*model.FileUploadResponse).FileInfos[0].Id
+		fileId = model.NewId()
+		fileInfo := model.FileInfo{
+			Id:        fileId,
+			CreateAt:  model.GetMillis(),
+			CreatorId: th.BasicUser.Id,
+			Path:      fmt.Sprintf("teams/%s/channels/%s/users/%s/%s/%s", th.BasicTeam.Id, channel.Id, th.BasicUser.Id, fileId, "test.png"),
+		}
+		store.Must(app.Srv.Store.FileInfo().Save(&fileInfo))
+		uploadFileOld(t, data, fmt.Sprintf("data/teams/%s/channels/%s/users/%s/%s", th.BasicTeam.Id, channel.Id, th.BasicUser.Id, fileId), "test.png")
 	}
 
 	// Hacky way to assign file to a post (usually would be done by CreatePost call)
@@ -619,7 +629,9 @@ func TestMigrateFilenamesToFileInfos(t *testing.T) {
 		t.Fatal(err)
 	} else {
 		fileId1 = Client.MustGeneric(Client.UploadPostAttachment(data, channel1.Id, "test.png")).(*model.FileUploadResponse).FileInfos[0].Id
+		uploadFileOld(t, data, fmt.Sprintf("data/teams/%s/channels/%s/users/%s/%s", th.BasicTeam.Id, channel1.Id, user1.Id, fileId1), "test.png")
 		fileId2 = Client.MustGeneric(Client.UploadPostAttachment(data, channel1.Id, "test.png")).(*model.FileUploadResponse).FileInfos[0].Id
+		uploadFileOld(t, data, fmt.Sprintf("data/teams/%s/channels/%s/users/%s/%s", th.BasicTeam.Id, channel1.Id, user1.Id, fileId2), "test.png")
 	}
 
 	// Bypass the Client whenever possible since we're trying to simulate a pre-3.5 post
@@ -686,6 +698,25 @@ func TestMigrateFilenamesToFileInfos(t *testing.T) {
 	}
 }
 
+func uploadFileOld(t *testing.T, data []byte, dest string, filename string) {
+	os.MkdirAll(dest, os.ModePerm)
+	eFile, err := os.Create(dest + "/" + filename)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer eFile.Close()
+
+	_, err = io.Copy(eFile, bytes.NewReader(data)) // first var shows number of bytes
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	err = eFile.Sync()
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
 func TestFindTeamIdForFilename(t *testing.T) {
 	th := Setup().InitBasic()
 
@@ -717,9 +748,11 @@ func TestFindTeamIdForFilename(t *testing.T) {
 		t.Fatal(err)
 	} else {
 		fileId1 = Client.MustGeneric(Client.UploadPostAttachment(data, channel1.Id, "test.png")).(*model.FileUploadResponse).FileInfos[0].Id
+		uploadFileOld(t, data, fmt.Sprintf("data/teams/%s/channels/%s/users/%s/%s", team1.Id, channel1.Id, user1.Id, fileId1), "test.png")
 
 		Client.SetTeamId(team2.Id)
 		fileId2 = Client.MustGeneric(Client.UploadPostAttachment(data, channel2.Id, "test.png")).(*model.FileUploadResponse).FileInfos[0].Id
+		uploadFileOld(t, data, fmt.Sprintf("data/teams/%s/channels/%s/users/%s/%s", team2.Id, channel2.Id, user1.Id, fileId2), "test.png")
 		Client.SetTeamId(team1.Id)
 	}
 
@@ -732,6 +765,7 @@ func TestFindTeamIdForFilename(t *testing.T) {
 	})).(*model.Post)
 
 	if teamId := app.FindTeamIdForFilename(post1, post1.Filenames[0]); teamId != team1.Id {
+		t.Log(teamId)
 		t.Fatal("file should've been found under team1")
 	}
 
@@ -773,6 +807,7 @@ func TestGetInfoForFilename(t *testing.T) {
 		t.Fatal(err)
 	} else {
 		fileId1 = Client.MustGeneric(Client.UploadPostAttachment(data, channel1.Id, "test.png")).(*model.FileUploadResponse).FileInfos[0].Id
+		uploadFileOld(t, data, fmt.Sprintf("data/teams/%s/channels/%s/users/%s/%s", team1.Id, channel1.Id, user1.Id, fileId1), "test.png")
 		path = store.Must(app.Srv.Store.FileInfo().Get(fileId1)).(*model.FileInfo).Path
 		thumbnailPath = store.Must(app.Srv.Store.FileInfo().Get(fileId1)).(*model.FileInfo).ThumbnailPath
 		previewPath = store.Must(app.Srv.Store.FileInfo().Get(fileId1)).(*model.FileInfo).PreviewPath
@@ -786,6 +821,8 @@ func TestGetInfoForFilename(t *testing.T) {
 		Filenames: []string{fmt.Sprintf("/%s/%s/%s/%s", channel1.Id, user1.Id, fileId1, "test.png")},
 	})).(*model.Post)
 
+	date := time.Now().Format("20060102")
+
 	if info := app.GetInfoForFilename(post1, team1.Id, post1.Filenames[0]); info == nil {
 		t.Fatal("info shouldn't be nil")
 	} else if info.Id == "" {
@@ -794,11 +831,11 @@ func TestGetInfoForFilename(t *testing.T) {
 		t.Fatal("incorrect user id")
 	} else if info.PostId != post1.Id {
 		t.Fatal("incorrect user id")
-	} else if info.Path != path {
+	} else if fmt.Sprintf("%s/%s", date, info.Path) != path {
 		t.Fatal("incorrect path")
-	} else if info.ThumbnailPath != thumbnailPath {
+	} else if fmt.Sprintf("%s/%s", date, info.ThumbnailPath) != thumbnailPath {
 		t.Fatal("incorrect thumbnail path")
-	} else if info.PreviewPath != previewPath {
+	} else if fmt.Sprintf("%s/%s", date, info.PreviewPath) != previewPath {
 		t.Fatal("incorrect preview path")
 	} else if info.Name != "test.png" {
 		t.Fatal("incorrect name")

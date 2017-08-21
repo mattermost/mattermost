@@ -67,7 +67,7 @@ func runServer(configFileLocation string) {
 		*utils.Cfg.ServiceSettings.EnableDeveloper = true
 	}
 
-	if err := app.TestFileConnection(); err != nil {
+	if err := utils.TestFileConnection(); err != nil {
 		l4g.Error("Problem with file storage settings: " + err.Error())
 	}
 

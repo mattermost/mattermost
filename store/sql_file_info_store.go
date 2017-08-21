@@ -139,7 +139,7 @@ func (fs SqlFileInfoStore) GetByPath(path string) StoreChannel {
 	return storeChannel
 }
 
-func (s SqlFileInfoStore) InvalidateFileInfosForPostCache(postId string) {
+func (fs SqlFileInfoStore) InvalidateFileInfosForPostCache(postId string) {
 	fileInfoCache.Remove(postId)
 }
 
@@ -249,6 +249,28 @@ func (fs SqlFileInfoStore) DeleteForPost(postId string) StoreChannel {
 				"store.sql_file_info.delete_for_post.app_error", nil, "post_id="+postId+", err="+err.Error())
 		} else {
 			result.Data = postId
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
+func (fs SqlFileInfoStore) PermanentDelete(fileId string) StoreChannel {
+	storeChannel := make(StoreChannel, 1)
+
+	go func() {
+		result := StoreResult{}
+
+		if _, err := fs.GetMaster().Exec(
+			`DELETE FROM
+				FileInfo
+			WHERE
+				Id = :FileId`, map[string]interface{}{"FileId": fileId}); err != nil {
+			result.Err = model.NewLocAppError("SqlFileInfoStore.PermanentDelete",
+				"store.sql_file_info.permanent_delete.app_error", nil, "file_id="+fileId+", err="+err.Error())
 		}
 
 		storeChannel <- result
