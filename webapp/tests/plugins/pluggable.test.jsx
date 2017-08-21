@@ -3,9 +3,9 @@
 
 import React from 'react';
 import {mount} from 'enzyme';
-import {registerComponents} from 'plugins';
+import {IntlProvider} from 'react-intl';
 
-import Pluggable from 'plugins/pluggable.jsx';
+import Pluggable from 'plugins/pluggable/pluggable.jsx';
 import ProfilePopover from 'components/profile_popover.jsx';
 
 class ProfilePopoverPlugin extends React.PureComponent {
@@ -16,10 +16,11 @@ class ProfilePopoverPlugin extends React.PureComponent {
 
 describe('plugins/Pluggable', () => {
     test('should match snapshot with overridden component', () => {
-        registerComponents({ProfilePopover: ProfilePopoverPlugin});
-
         const wrapper = mount(
-            <Pluggable>
+            <Pluggable
+                components={{ProfilePopover: ProfilePopoverPlugin}}
+                theme={{}}
+            >
                 <ProfilePopover
                     user={{}}
                     src='src'
@@ -27,18 +28,22 @@ describe('plugins/Pluggable', () => {
             </Pluggable>
         );
         expect(wrapper).toMatchSnapshot();
-
-        global.window.plugins.components = {};
     });
 
     test('should match snapshot with no overridden component', () => {
+        window.mm_config = {};
         const wrapper = mount(
-            <Pluggable>
-                <ProfilePopover
-                    user={{}}
-                    src='src'
-                />
-            </Pluggable>
+            <IntlProvider>
+                <Pluggable
+                    components={{}}
+                    theme={{}}
+                >
+                    <ProfilePopover
+                        user={{}}
+                        src='src'
+                    />
+                </Pluggable>
+            </IntlProvider>
         );
         expect(wrapper).toMatchSnapshot();
     });
