@@ -7,9 +7,9 @@ import (
 	"github.com/mattermost/platform/utils"
 )
 
-// NewJSONLogWriter is a utility method for creating a FileLogWriter set up to
+// newJSONLogWriter is a utility method for creating a FileLogWriter set up to
 // output JSON record log messages instead of line-based ones.
-func NewJSONLogWriter(fname string, rotate bool) *l4g.FileLogWriter {
+func newJSONLogWriter(fname string, rotate bool) *l4g.FileLogWriter {
 	return l4g.NewFileLogWriter(fname, rotate).SetFormat(
 		`{"level": "%L", 
 		  "timestamp": "%D %T", 
@@ -22,6 +22,6 @@ func NewJSONLogWriter(fname string, rotate bool) *l4g.FileLogWriter {
 // or above lvl to a file with the specified filename.
 func NewJSONFileLogger(lvl l4g.Level, filename string) l4g.Logger {
 	return l4g.Logger{
-		"file": &l4g.Filter{Level: lvl, LogWriter: NewJSONLogWriter(filename, true)},
+		"file": &l4g.Filter{Level: lvl, LogWriter: newJSONLogWriter(filename, true)},
 	}
 }

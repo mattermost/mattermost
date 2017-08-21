@@ -11,6 +11,12 @@ import (
 	"testing"
 )
 
+type LogMessage struct {
+	Context map[string]string
+	File    string
+	Message string
+}
+
 // ensures that values can be recorded on a Context object, and that the data in question is serialized as a part of the log message
 func TestSerializeContext(t *testing.T) {
 	t.Run("Context values test", func(t *testing.T) {
@@ -24,7 +30,7 @@ func TestSerializeContext(t *testing.T) {
 
 		serialized := serializeContext(ctx)
 
-		userID, ok := serialized["user-id"]
+		userID, ok := serialized["user_id"]
 		if !ok {
 			t.Error("UserID was not serialized")
 		}
@@ -32,7 +38,7 @@ func TestSerializeContext(t *testing.T) {
 			t.Errorf("UserID = %v, want %v", userID, expectedUserID)
 		}
 
-		requestID, ok := serialized["request-id"]
+		requestID, ok := serialized["request_id"]
 		if !ok {
 			t.Error("RequestID was not serialized")
 		}
@@ -49,20 +55,15 @@ func TestSerializeLogMessageEmptyContext(t *testing.T) {
 	var logMessage = "This is a log message"
 	var serialized = serializeLogMessage(emptyContext, logMessage)
 
-	type LogMessage struct {
-		Context map[string]string
-		Logger  string
-		Message string
-	}
 	var deserialized LogMessage
 	json.Unmarshal([]byte(serialized), &deserialized)
 
 	if len(deserialized.Context) != 0 {
 		t.Error("Context is non-empty")
 	}
-	var expectedLoggerSuffix = "/platform/utils/logger/logger_test.go"
-	if !strings.HasSuffix(deserialized.Logger, expectedLoggerSuffix) {
-		t.Errorf("Invalid logger %v. Expected logger to have suffix %v", deserialized.Logger, expectedLoggerSuffix)
+	var expectedFileSuffix = "/platform/utils/logger/logger_test.go"
+	if !strings.HasSuffix(deserialized.File, expectedFileSuffix) {
+		t.Errorf("Invalid file %v. Expected file to have suffix %v", deserialized.File, expectedFileSuffix)
 	}
 	if deserialized.Message != logMessage {
 		t.Errorf("Invalid log message %v. Expected %v", deserialized.Message, logMessage)
@@ -79,26 +80,21 @@ func TestSerializeLogMessagePopulatedContext(t *testing.T) {
 	var logMessage = "This is a log message"
 	var serialized = serializeLogMessage(populatedContext, logMessage)
 
-	type LogMessage struct {
-		Context map[string]string
-		Logger  string
-		Message string
-	}
 	var deserialized LogMessage
 	json.Unmarshal([]byte(serialized), &deserialized)
 
 	if len(deserialized.Context) != 2 {
 		t.Error("Context is non-empty")
 	}
-	if deserialized.Context["request-id"] != "foo" {
-		t.Errorf("Invalid request-id %v. Expected %v", deserialized.Context["request-id"], "foo")
+	if deserialized.Context["request_id"] != "foo" {
+		t.Errorf("Invalid request-id %v. Expected %v", deserialized.Context["request_id"], "foo")
 	}
-	if deserialized.Context["user-id"] != "bar" {
-		t.Errorf("Invalid user-id %v. Expected %v", deserialized.Context["user-id"], "bar")
+	if deserialized.Context["user_id"] != "bar" {
+		t.Errorf("Invalid user-id %v. Expected %v", deserialized.Context["user_id"], "bar")
 	}
-	var expectedLoggerSuffix = "/platform/utils/logger/logger_test.go"
-	if !strings.HasSuffix(deserialized.Logger, expectedLoggerSuffix) {
-		t.Errorf("Invalid logger %v. Expected logger to have suffix %v", deserialized.Logger, expectedLoggerSuffix)
+	var expectedFileSuffix = "/platform/utils/logger/logger_test.go"
+	if !strings.HasSuffix(deserialized.File, expectedFileSuffix) {
+		t.Errorf("Invalid file %v. Expected file to have suffix %v", deserialized.File, expectedFileSuffix)
 	}
 	if deserialized.Message != logMessage {
 		t.Errorf("Invalid log message %v. Expected %v", deserialized.Message, logMessage)
@@ -128,20 +124,15 @@ func TestDebugc(t *testing.T) {
 		Debugc(emptyContext, logMessage)
 
 		// check to see that the message is logged to the underlying log system, in this case our mock method
-		type LogMessage struct {
-			Context map[string]string
-			Logger  string
-			Message string
-		}
 		var deserialized LogMessage
 		json.Unmarshal([]byte(capture), &deserialized)
 
 		if len(deserialized.Context) != 0 {
 			t.Error("Context is non-empty")
 		}
-		var expectedLoggerSuffix = "/platform/utils/logger/logger_test.go"
-		if !strings.HasSuffix(deserialized.Logger, expectedLoggerSuffix) {
-			t.Errorf("Invalid logger %v. Expected logger to have suffix %v", deserialized.Logger, expectedLoggerSuffix)
+		var expectedFileSuffix = "/platform/utils/logger/logger_test.go"
+		if !strings.HasSuffix(deserialized.File, expectedFileSuffix) {
+			t.Errorf("Invalid file %v. Expected file to have suffix %v", deserialized.File, expectedFileSuffix)
 		}
 		if deserialized.Message != logMessage {
 			t.Errorf("Invalid log message %v. Expected %v", deserialized.Message, logMessage)
@@ -172,20 +163,15 @@ func TestDebugf(t *testing.T) {
 		Debugf(formatString, param)
 
 		// check to see that the message is logged to the underlying log system, in this case our mock method
-		type LogMessage struct {
-			Context map[string]string
-			Logger  string
-			Message string
-		}
 		var deserialized LogMessage
 		json.Unmarshal([]byte(capture), &deserialized)
 
 		if len(deserialized.Context) != 0 {
 			t.Error("Context is non-empty")
 		}
-		var expectedLoggerSuffix = "/platform/utils/logger/logger_test.go"
-		if !strings.HasSuffix(deserialized.Logger, expectedLoggerSuffix) {
-			t.Errorf("Invalid logger %v. Expected logger to have suffix %v", deserialized.Logger, expectedLoggerSuffix)
+		var expectedFileSuffix = "/platform/utils/logger/logger_test.go"
+		if !strings.HasSuffix(deserialized.File, expectedFileSuffix) {
+			t.Errorf("Invalid file %v. Expected file to have suffix %v", deserialized.File, expectedFileSuffix)
 		}
 
 		expected := fmt.Sprintf(formatString, param)
@@ -218,20 +204,15 @@ func TestInfoc(t *testing.T) {
 		Infoc(emptyContext, logMessage)
 
 		// check to see that the message is logged to the underlying log system, in this case our mock method
-		type LogMessage struct {
-			Context map[string]string
-			Logger  string
-			Message string
-		}
 		var deserialized LogMessage
 		json.Unmarshal([]byte(capture), &deserialized)
 
 		if len(deserialized.Context) != 0 {
 			t.Error("Context is non-empty")
 		}
-		var expectedLoggerSuffix = "/platform/utils/logger/logger_test.go"
-		if !strings.HasSuffix(deserialized.Logger, expectedLoggerSuffix) {
-			t.Errorf("Invalid logger %v. Expected logger to have suffix %v", deserialized.Logger, expectedLoggerSuffix)
+		var expectedFileSuffix = "/platform/utils/logger/logger_test.go"
+		if !strings.HasSuffix(deserialized.File, expectedFileSuffix) {
+			t.Errorf("Invalid file %v. Expected file to have suffix %v", deserialized.File, expectedFileSuffix)
 		}
 		if deserialized.Message != logMessage {
 			t.Errorf("Invalid log message %v. Expected %v", deserialized.Message, logMessage)
@@ -262,20 +243,15 @@ func TestInfof(t *testing.T) {
 		Infof(format, param)
 
 		// check to see that the message is logged to the underlying log system, in this case our mock method
-		type LogMessage struct {
-			Context map[string]string
-			Logger  string
-			Message string
-		}
 		var deserialized LogMessage
 		json.Unmarshal([]byte(capture), &deserialized)
 
 		if len(deserialized.Context) != 0 {
 			t.Error("Context is non-empty")
 		}
-		var expectedLoggerSuffix = "/platform/utils/logger/logger_test.go"
-		if !strings.HasSuffix(deserialized.Logger, expectedLoggerSuffix) {
-			t.Errorf("Invalid logger %v. Expected logger to have suffix %v", deserialized.Logger, expectedLoggerSuffix)
+		var expectedFileSuffix = "/platform/utils/logger/logger_test.go"
+		if !strings.HasSuffix(deserialized.File, expectedFileSuffix) {
+			t.Errorf("Invalid file %v. Expected file to have suffix %v", deserialized.File, expectedFileSuffix)
 		}
 
 		expected := fmt.Sprintf(format, param)
@@ -311,20 +287,15 @@ func TestErrorc(t *testing.T) {
 		Errorc(emptyContext, logMessage)
 
 		// check to see that the message is logged to the underlying log system, in this case our mock method
-		type LogMessage struct {
-			Context map[string]string
-			Logger  string
-			Message string
-		}
 		var deserialized LogMessage
 		json.Unmarshal([]byte(capture), &deserialized)
 
 		if len(deserialized.Context) != 0 {
 			t.Error("Context is non-empty")
 		}
-		var expectedLoggerSuffix = "/platform/utils/logger/logger_test.go"
-		if !strings.HasSuffix(deserialized.Logger, expectedLoggerSuffix) {
-			t.Errorf("Invalid logger %v. Expected logger to have suffix %v", deserialized.Logger, expectedLoggerSuffix)
+		var expectedFileSuffix = "/platform/utils/logger/logger_test.go"
+		if !strings.HasSuffix(deserialized.File, expectedFileSuffix) {
+			t.Errorf("Invalid file %v. Expected file to have suffix %v", deserialized.File, expectedFileSuffix)
 		}
 		if deserialized.Message != logMessage {
 			t.Errorf("Invalid log message %v. Expected %v", deserialized.Message, logMessage)
@@ -358,20 +329,15 @@ func TestErrorf(t *testing.T) {
 		Errorf(format, param)
 
 		// check to see that the message is logged to the underlying log system, in this case our mock method
-		type LogMessage struct {
-			Context map[string]string
-			Logger  string
-			Message string
-		}
 		var deserialized LogMessage
 		json.Unmarshal([]byte(capture), &deserialized)
 
 		if len(deserialized.Context) != 0 {
 			t.Error("Context is non-empty")
 		}
-		var expectedLoggerSuffix = "/platform/utils/logger/logger_test.go"
-		if !strings.HasSuffix(deserialized.Logger, expectedLoggerSuffix) {
-			t.Errorf("Invalid logger %v. Expected logger to have suffix %v", deserialized.Logger, expectedLoggerSuffix)
+		var expectedFileSuffix = "/platform/utils/logger/logger_test.go"
+		if !strings.HasSuffix(deserialized.File, expectedFileSuffix) {
+			t.Errorf("Invalid file %v. Expected file to have suffix %v", deserialized.File, expectedFileSuffix)
 		}
 
 		expected := fmt.Sprintf(format, param)

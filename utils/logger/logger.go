@@ -20,33 +20,33 @@ var info = l4g.Info
 var err = l4g.Error
 
 func init() {
-	initL4g(utils.Cfg)
+	initL4g(utils.Cfg.LogSettings)
 }
 
 // listens for configuration changes that we might need to respond to
 var configListenerID = utils.AddConfigListener(func(oldConfig *model.Config, newConfig *model.Config) {
 	info("Configuration change detected, reloading log settings")
-	initL4g(newConfig)
+	initL4g(newConfig.LogSettings)
 })
 
 // assumes that ../config.go::configureLog has already been called, and has in turn called l4g.close() to clean up
 // any old filters that we might have previously created
-func initL4g(config *model.Config) {
+func initL4g(logSettings model.LogSettings) {
 	// TODO: add support for newConfig.LogSettings.EnableConsole. Right now, ../config.go sets it up in its configureLog
 	// method. If we also set it up here, messages will be written to the console twice. Eventually, when all instances
 	// of l4g have been replaced by this logger, we can move that code to here
-	if config.LogSettings.EnableFile {
+	if logSettings.EnableFile {
 		level := l4g.DEBUG
-		if config.LogSettings.FileLevel == "INFO" {
+		if logSettings.FileLevel == "INFO" {
 			level = l4g.INFO
-		} else if config.LogSettings.FileLevel == "WARN" {
+		} else if logSettings.FileLevel == "WARN" {
 			level = l4g.WARNING
-		} else if config.LogSettings.FileLevel == "ERROR" {
+		} else if logSettings.FileLevel == "ERROR" {
 			level = l4g.ERROR
 		}
 
 		// create a logger that writes JSON objects to a file, and override our log methods to use it
-		flw := NewJSONFileLogger(level, utils.GetLogFileLocation(config.LogSettings.FileLocation)+".jsonl")
+		flw := NewJSONFileLogger(level, utils.GetLogFileLocation(logSettings.FileLocation)+".jsonl")
 		debug = flw.Debug
 		info = flw.Info
 		err = flw.Error
@@ -60,8 +60,8 @@ func (c contextKey) String() string {
 	return string(c)
 }
 
-const contextKeyUserID contextKey = contextKey("user-id")
-const contextKeyRequestID contextKey = contextKey("request-id")
+const contextKeyUserID contextKey = contextKey("user_id")
+const contextKeyRequestID contextKey = contextKey("request_id")
 
 // any contextKeys added to this array will be serialized in every log message
 var contextKeys = [2]contextKey{contextKeyUserID, contextKeyRequestID}
@@ -93,7 +93,7 @@ func serializeContext(ctx context.Context) map[string]string {
 // returns the path to the next file up the callstack that has a different name than this file
 // in other words, finds the path to the file that is doing the logging
 // looks a maximum of 10 frames up the call stack to find a file that has a different name than this one
-func getParentFilename() string {
+func getCallerFilename() string {
 	_, currentFilename, _, ok := runtime.Caller(0)
 	if !ok {
 		return "Unknown"
@@ -101,7 +101,7 @@ func getParentFilename() string {
 	for i := 1; i < 10; i++ {
 		_, parentFilename, _, ok := runtime.Caller(i)
 		if !ok {
-			return "Unkown"
+			return "Unknown"
 		} else if parentFilename != currentFilename {
 			return parentFilename
 		}
@@ -111,17 +111,17 @@ func getParentFilename() string {
 
 // creates a JSON representation of a log message
 func serializeLogMessage(ctx context.Context, message string) string {
-	bytes, err := json.Marshal(&struct {
+	bytes, error := json.Marshal(&struct {
 		Context map[string]string `json:"context"`
-		Logger  string            `json:"logger"`
+		File    string            `json:"file"`
 		Message string            `json:"message"`
 	}{
 		serializeContext(ctx),
-		getParentFilename(),
+		getCallerFilename(),
 		message,
 	})
-	if err != nil {
-		// what to do?
+	if error != nil {
+		err("Failed to serialize log message %v", message)
 	}
 	return string(bytes)
 }
