@@ -27,7 +27,7 @@ func GetLogs(page, perPage int) ([]string, *model.AppError) {
 	if einterfaces.GetClusterInterface() != nil && *utils.Cfg.ClusterSettings.Enable {
 		lines = append(lines, "-----------------------------------------------------------------------------------------------------------")
 		lines = append(lines, "-----------------------------------------------------------------------------------------------------------")
-		lines = append(lines, einterfaces.GetClusterInterface().GetClusterId())
+		lines = append(lines, einterfaces.GetClusterInterface().GetMyClusterInfo().Hostname)
 		lines = append(lines, "-----------------------------------------------------------------------------------------------------------")
 		lines = append(lines, "-----------------------------------------------------------------------------------------------------------")
 	}
