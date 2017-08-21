@@ -17,7 +17,6 @@ export function registerComponents(components) {
 }
 
 export function initializePlugins() {
-    window.mm_config.Plugins = JSON.stringify([{id: 'blergh', bundle_path: '/static/blergh_bundle.js'}]);
     const pluginJson = window.mm_config.Plugins || '[]';
 
     let pluginManifests;
