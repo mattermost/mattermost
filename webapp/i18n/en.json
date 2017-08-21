@@ -2155,6 +2155,7 @@
   "shortcuts.browser.highlight_next": "Highlight text to the next line:\tShift|Down",
   "shortcuts.browser.newline": "Create a new line:\tShift|Enter",
   "sidebar.channels": "PUBLIC CHANNELS",
+  "sidebar.mainMenu": "Main Menu",
   "sidebar.createChannel": "Create new public channel",
   "sidebar.createGroup": "Create new private channel",
   "sidebar.direct": "DIRECT MESSAGES",
