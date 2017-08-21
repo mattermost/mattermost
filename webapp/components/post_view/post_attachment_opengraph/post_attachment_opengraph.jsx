@@ -107,7 +107,7 @@ export default class PostAttachmentOpenGraph extends React.PureComponent {
     }
 
     componentDidUpdate() {
-        postListScrollChange();
+        setTimeout(postListScrollChange, 0);
     }
 
     fetchData(url) {
