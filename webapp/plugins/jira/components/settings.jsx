@@ -180,7 +180,7 @@ export default class JIRASettings extends AdminSettings {
             <SettingsGroup>
                 <BooleanSetting
                     id='enabled'
-                    label={Utils.localizeMessage('admin.plugins.jira.enabledLabel', 'Enabled:')}
+                    label={Utils.localizeMessage('admin.plugins.jira.enabledLabel', 'Enable JIRA:')}
                     helpText={Utils.localizeMessage('admin.plugins.jira.enabledDescription', 'When true, you can configure JIRA webhooks to post message in Mattermost. To help combat phishing attacks, all posts are labelled by a BOT tag.')}
                     value={this.state.enabled}
                     onChange={(id, value) => this.handleEnabledChange(value)}
@@ -237,9 +237,9 @@ export default class JIRASettings extends AdminSettings {
                                         '/plugins/jira/webhook?secret=' +
                                         (this.state.secret ? encodeURIComponent(this.state.secret) : ('<b>' + Utils.localizeMessage('admin.plugins.jira.secretParamPlaceholder', 'secret') + '</b>')) +
                                         '&team=<b>' +
-                                        Utils.localizeMessage('admin.plugins.jira.teamParamPlaceholder', 'teamname') +
+                                        Utils.localizeMessage('admin.plugins.jira.teamParamPlaceholder', 'teamurl') +
                                         '</b>&channel=<b>' +
-                                        Utils.localizeMessage('admin.plugins.jira.channelParamNamePlaceholder', 'channelname') +
+                                        Utils.localizeMessage('admin.plugins.jira.channelParamNamePlaceholder', 'channelurl') +
                                         '</b>'
                                 }}
                             />
