@@ -6,6 +6,8 @@ import PropTypes from 'prop-types';
 import React from 'react';
 
 import Constants from 'utils/constants.jsx';
+import {Tooltip, OverlayTrigger} from 'react-bootstrap';
+import {FormattedMessage} from 'react-intl';
 
 export default class SidebarHeaderDropdownButton extends React.PureComponent {
     static propTypes = {
@@ -14,19 +16,34 @@ export default class SidebarHeaderDropdownButton extends React.PureComponent {
     };
 
     render() {
-        return (
-            <a
-                href='#'
-                id='sidebarHeaderDropdownButton'
-                className='sidebar-header-dropdown__toggle'
-                onClick={this.props.onClick}
-            >
-                <span
-                    className='sidebar-header-dropdown__icon'
-                    dangerouslySetInnerHTML={{__html: Constants.MENU_ICON}}
+        const mainMenuToolTip = (
+            <Tooltip id='main-menu__tooltip'>
+                <FormattedMessage
+                    id='sidebar.mainMenu'
+                    defaultMessage='Main menu'
                 />
-            </a>
+            </Tooltip>
+        );
+
+        return (
+            <OverlayTrigger
+                trigger={['hover', 'focus']}
+                delayShow={Constants.OVERLAY_TIME_DELAY}
+                placement='right'
+                overlay={mainMenuToolTip}
+            >
+                <a
+                    href='#'
+                    id='sidebarHeaderDropdownButton'
+                    className='sidebar-header-dropdown__toggle'
+                    onClick={this.props.onClick}
+                >
+                    <span
+                        className='sidebar-header-dropdown__icon'
+                        dangerouslySetInnerHTML={{__html: Constants.MENU_ICON}}
+                    />
+                </a>
+            </OverlayTrigger>
         );
     }
 }
-

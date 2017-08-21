@@ -18,31 +18,22 @@ func TestSupervisor(t *testing.T) {
 	require.NoError(t, err)
 	defer os.RemoveAll(dir)
 
-	backend := filepath.Join(dir, "backend")
+	backend := filepath.Join(dir, "backend.exe")
 	compileGo(t, `
 		package main
 
 		import (
-			"github.com/mattermost/platform/plugin"
 			"github.com/mattermost/platform/plugin/rpcplugin"
 		)
 
 		type MyPlugin struct {}
-
-		func (p *MyPlugin) OnActivate(api plugin.API) error {
-			return nil
-		}
-
-		func (p *MyPlugin) OnDeactivate() error {
-			return nil
-		}
 
 		func main() {
 			rpcplugin.Main(&MyPlugin{})
 		}
 	`, backend)
 
-	ioutil.WriteFile(filepath.Join(dir, "plugin.json"), []byte(`{"id": "foo", "backend": {"executable": "backend"}}`), 0600)
+	ioutil.WriteFile(filepath.Join(dir, "plugin.json"), []byte(`{"id": "foo", "backend": {"executable": "backend.exe"}}`), 0600)
 
 	bundle := plugin.BundleInfoForPath(dir)
 	supervisor, err := SupervisorProvider(bundle)
@@ -58,7 +49,7 @@ func TestSupervisor_StartTimeout(t *testing.T) {
 	require.NoError(t, err)
 	defer os.RemoveAll(dir)
 
-	backend := filepath.Join(dir, "backend")
+	backend := filepath.Join(dir, "backend.exe")
 	compileGo(t, `
 		package main
 
@@ -68,7 +59,7 @@ func TestSupervisor_StartTimeout(t *testing.T) {
 		}
 	`, backend)
 
-	ioutil.WriteFile(filepath.Join(dir, "plugin.json"), []byte(`{"id": "foo", "backend": {"executable": "backend"}}`), 0600)
+	ioutil.WriteFile(filepath.Join(dir, "plugin.json"), []byte(`{"id": "foo", "backend": {"executable": "backend.exe"}}`), 0600)
 
 	bundle := plugin.BundleInfoForPath(dir)
 	supervisor, err := SupervisorProvider(bundle)
@@ -82,7 +73,7 @@ func TestSupervisor_PluginCrash(t *testing.T) {
 	require.NoError(t, err)
 	defer os.RemoveAll(dir)
 
-	backend := filepath.Join(dir, "backend")
+	backend := filepath.Join(dir, "backend.exe")
 	compileGo(t, `
 		package main
 
@@ -100,16 +91,12 @@ func TestSupervisor_PluginCrash(t *testing.T) {
 			return nil
 		}
 
-		func (p *MyPlugin) OnDeactivate() error {
-			return nil
-		}
-
 		func main() {
 			rpcplugin.Main(&MyPlugin{})
 		}
 	`, backend)
 
-	ioutil.WriteFile(filepath.Join(dir, "plugin.json"), []byte(`{"id": "foo", "backend": {"executable": "backend"}}`), 0600)
+	ioutil.WriteFile(filepath.Join(dir, "plugin.json"), []byte(`{"id": "foo", "backend": {"executable": "backend.exe"}}`), 0600)
 
 	bundle := plugin.BundleInfoForPath(dir)
 	supervisor, err := SupervisorProvider(bundle)

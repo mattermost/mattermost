@@ -13,7 +13,8 @@ function mapStateToProps(state, ownProps) {
     return {
         ...ownProps,
         oauthApps: getOAuthApps(state),
-        isSystemAdmin: isCurrentUserSystemAdmin(state)
+        isSystemAdmin: isCurrentUserSystemAdmin(state),
+        regenOAuthAppSecretRequest: state.requests.integrations.updateOAuthApp
     };
 }
 
@@ -21,6 +22,7 @@ function mapDispatchToProps(dispatch) {
     return {
         actions: bindActionCreators({
             getOAuthApps: Actions.getOAuthApps,
+            regenOAuthAppSecret: Actions.regenOAuthAppSecret,
             deleteOAuthApp: Actions.deleteOAuthApp
         }, dispatch)
     };

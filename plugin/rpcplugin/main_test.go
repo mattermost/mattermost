@@ -18,36 +18,30 @@ func TestMain(t *testing.T) {
 	require.NoError(t, err)
 	defer os.RemoveAll(dir)
 
-	plugin := filepath.Join(dir, "plugin")
+	plugin := filepath.Join(dir, "plugin.exe")
 	compileGo(t, `
 		package main
 
 		import (
-			"github.com/mattermost/platform/plugin"
 			"github.com/mattermost/platform/plugin/rpcplugin"
 		)
 
 		type MyPlugin struct {}
-
-		func (p *MyPlugin) OnActivate(api plugin.API) error {
-			return nil
-		}
-
-		func (p *MyPlugin) OnDeactivate() error {
-			return nil
-		}
 
 		func main() {
 			rpcplugin.Main(&MyPlugin{})
 		}
 	`, plugin)
 
-	p, ipc, err := NewProcess(context.Background(), plugin)
+	ctx, cancel := context.WithCancel(context.Background())
+	p, ipc, err := NewProcess(ctx, plugin)
 	require.NoError(t, err)
 	defer p.Wait()
 
 	muxer := NewMuxer(ipc, false)
 	defer muxer.Close()
+
+	defer cancel()
 
 	var api plugintest.API
 

@@ -733,6 +733,24 @@
             padding-top: 0;
         }
 
+        .attachment {
+            .attachment__body__wrap {
+                .btn-close {
+                    left: -2px;
+                }
+            }
+        }
+
+        &.post--comment {
+            .attachment {
+                .attachment__body__wrap {
+                    .btn-close {
+                        left: -13px;
+                    }
+                }
+            }
+        }
+
         .status-wrapper {
             cursor: auto;
             height: 14px;
@@ -940,6 +958,14 @@
             &.mention-comment {
                 border-left: 4px solid $yellow;
                 border-color: $yellow;
+            }
+        }
+
+        .attachment {
+            .attachment__body__wrap {
+                .btn-close {
+                    left: -11px;
+                }
             }
         }
     }

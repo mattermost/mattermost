@@ -80,6 +80,15 @@ Channels can be specified by [team]:[channel]. ie. myteam:mychannel or by channe
 	RunE:    restoreChannelsCmdF,
 }
 
+var modifyChannelCmd = &cobra.Command{
+	Use:   "modify [channel]",
+	Short: "Modify a channel's public/private type",
+	Long: `Change the public/private type of a channel.
+Channel can be specified by [team]:[channel]. ie. myteam:mychannel or by channel ID.`,
+	Example: "  channel modify myteam:mychannel --private",
+	RunE:    modifyChannelCmdF,
+}
+
 func init() {
 	channelCreateCmd.Flags().String("name", "", "Channel Name")
 	channelCreateCmd.Flags().String("display_name", "", "Channel Display Name")
@@ -90,6 +99,9 @@ func init() {
 
 	deleteChannelsCmd.Flags().Bool("confirm", false, "Confirm you really want to delete the channels.")
 
+	modifyChannelCmd.Flags().Bool("private", false, "Convert the channel to a private channel")
+	modifyChannelCmd.Flags().Bool("public", false, "Convert the channel to a public channel")
+
 	channelCmd.AddCommand(
 		channelCreateCmd,
 		removeChannelUsersCmd,
@@ -98,6 +110,7 @@ func init() {
 		deleteChannelsCmd,
 		listChannelsCmd,
 		restoreChannelsCmd,
+		modifyChannelCmd,
 	)
 }
 
@@ -346,6 +359,47 @@ func restoreChannelsCmdF(cmd *cobra.Command, args []string) error {
 		if result := <-app.Srv.Store.Channel().SetDeleteAt(channel.Id, 0, model.GetMillis()); result.Err != nil {
 			CommandPrintErrorln("Unable to restore channel '" + args[i] + "'")
 		}
+	}
+
+	return nil
+}
+
+func modifyChannelCmdF(cmd *cobra.Command, args []string) error {
+	if err := initDBCommandContextCobra(cmd); err != nil {
+		return err
+	}
+
+	if !utils.IsLicensed() {
+		return errors.New(utils.T("cli.license.critical"))
+	}
+
+	if len(args) != 1 {
+		return errors.New("Enter at one channel to modify.")
+	}
+
+	public, _ := cmd.Flags().GetBool("public")
+	private, _ := cmd.Flags().GetBool("private")
+
+	if public == private {
+		return errors.New("You must specify only one of --public or --private")
+	}
+
+	channel := getChannelFromChannelArg(args[0])
+	if channel == nil {
+		return errors.New("Unable to find channel '" + args[0] + "'")
+	}
+
+	if !(channel.Type == model.CHANNEL_OPEN || channel.Type == model.CHANNEL_PRIVATE) {
+		return errors.New("You can only change the type of public/private channels.")
+	}
+
+	channel.Type = model.CHANNEL_OPEN
+	if private {
+		channel.Type = model.CHANNEL_PRIVATE
+	}
+
+	if _, err := app.UpdateChannel(channel); err != nil {
+		return errors.New("Failed to update channel '" + args[0] + "' - " + err.Error())
 	}
 
 	return nil

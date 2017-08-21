@@ -7,6 +7,7 @@ import (
 	"crypto/md5"
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -310,6 +311,22 @@ func LoadConfig(fileName string) {
 	viper.AddConfigPath(".")
 
 	configReadErr := viper.ReadInConfig()
+	if configReadErr != nil {
+		if _, ok := configReadErr.(viper.ConfigFileNotFoundError); ok {
+			// In case of a file-not-found error, try to copy default.json if it's present.
+			defaultPath := FindConfigFile("default.json")
+			if src, err := os.Open(defaultPath); err == nil {
+				if dest, err := os.OpenFile(filepath.Join(filepath.Dir(defaultPath), "config.json"), os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0600); err == nil {
+					if _, err := io.Copy(dest, src); err == nil {
+						configReadErr = viper.ReadInConfig()
+					}
+					dest.Close()
+				}
+				src.Close()
+			}
+		}
+	}
+
 	if configReadErr != nil {
 		errMsg := T("utils.config.load_config.opening.panic", map[string]interface{}{"Filename": fileName, "Error": configReadErr.Error()})
 		fmt.Fprintln(os.Stderr, errMsg)
