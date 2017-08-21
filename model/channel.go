@@ -53,6 +53,27 @@ type ChannelPatch struct {
 	Purpose     *string `json:"purpose"`
 }
 
+func (o *Channel) DeepCopy() *Channel {
+	copy := &Channel{
+		Id:            o.Id,
+		CreateAt:      o.CreateAt,
+		UpdateAt:      o.UpdateAt,
+		DeleteAt:      o.DeleteAt,
+		TeamId:        o.TeamId,
+		Type:          o.Type,
+		DisplayName:   o.DisplayName,
+		Name:          o.Name,
+		Header:        o.Header,
+		Purpose:       o.Purpose,
+		LastPostAt:    o.LastPostAt,
+		TotalMsgCount: o.TotalMsgCount,
+		ExtraUpdateAt: o.ExtraUpdateAt,
+		CreatorId:     o.CreatorId,
+	}
+
+	return copy
+}
+
 func (o *Channel) ToJson() string {
 	b, err := json.Marshal(o)
 	if err != nil {
