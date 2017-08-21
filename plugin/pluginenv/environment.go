@@ -3,6 +3,7 @@ package pluginenv
 
 import (
 	"fmt"
+	"io/ioutil"
 
 	"github.com/pkg/errors"
 
@@ -12,12 +13,18 @@ import (
 type APIProviderFunc func(*plugin.Manifest) (plugin.API, error)
 type SupervisorProviderFunc func(*plugin.BundleInfo) (plugin.Supervisor, error)
 
+type ActivePlugin struct {
+	BundleInfo *plugin.BundleInfo
+	Supervisor plugin.Supervisor
+}
+
 // Environment represents an environment that plugins are discovered and launched in.
 type Environment struct {
 	searchPath         string
+	webappPath         string
 	apiProvider        APIProviderFunc
 	supervisorProvider SupervisorProviderFunc
-	activePlugins      map[string]plugin.Supervisor
+	activePlugins      map[string]ActivePlugin
 }
 
 type Option func(*Environment)
@@ -25,7 +32,7 @@ type Option func(*Environment)
 // Creates a new environment. At a minimum, the APIProvider and SearchPath options are required.
 func New(options ...Option) (*Environment, error) {
 	env := &Environment{
-		activePlugins: make(map[string]plugin.Supervisor),
+		activePlugins: make(map[string]ActivePlugin),
 	}
 	for _, opt := range options {
 		opt(env)
@@ -35,10 +42,18 @@ func New(options ...Option) (*Environment, error) {
 	}
 	if env.searchPath == "" {
 		return nil, fmt.Errorf("a search path must be provided")
-	} else if env.apiProvider == nil {
-		return nil, fmt.Errorf("an api provider must be provided")
 	}
 	return env, nil
+}
+
+// Returns the configured webapp path.
+func (env *Environment) WebappPath() string {
+	return env.webappPath
+}
+
+// Returns the configured search path.
+func (env *Environment) SearchPath() string {
+	return env.searchPath
 }
 
 // Returns a list of all plugins found within the environment.
@@ -63,46 +78,88 @@ func (env *Environment) ActivatePlugin(id string) error {
 	if err != nil {
 		return err
 	}
-	var plugin *plugin.BundleInfo
+	var bundle *plugin.BundleInfo
 	for _, p := range plugins {
 		if p.Manifest != nil && p.Manifest.Id == id {
-			if plugin != nil {
+			if bundle != nil {
 				return fmt.Errorf("multiple plugins found: %v", id)
 			}
-			plugin = p
+			bundle = p
 		}
 	}
-	if plugin == nil {
+	if bundle == nil {
 		return fmt.Errorf("plugin not found: %v", id)
 	}
-	supervisor, err := env.supervisorProvider(plugin)
-	if err != nil {
-		return errors.Wrapf(err, "unable to create supervisor for plugin: %v", id)
+
+	activePlugin := ActivePlugin{BundleInfo: bundle}
+
+	var supervisor plugin.Supervisor
+
+	if bundle.Manifest.Backend != nil {
+		if env.apiProvider == nil {
+			return fmt.Errorf("env missing api provider, cannot activate plugin: %v", id)
+		}
+
+		supervisor, err = env.supervisorProvider(bundle)
+		if err != nil {
+			return errors.Wrapf(err, "unable to create supervisor for plugin: %v", id)
+		}
+		api, err := env.apiProvider(bundle.Manifest)
+		if err != nil {
+			return errors.Wrapf(err, "unable to get api for plugin: %v", id)
+		}
+		if err := supervisor.Start(); err != nil {
+			return errors.Wrapf(err, "unable to start plugin: %v", id)
+		}
+		if err := supervisor.Hooks().OnActivate(api); err != nil {
+			supervisor.Stop()
+			return errors.Wrapf(err, "unable to activate plugin: %v", id)
+		}
+
+		activePlugin.Supervisor = supervisor
 	}
-	api, err := env.apiProvider(plugin.Manifest)
-	if err != nil {
-		return errors.Wrapf(err, "unable to get api for plugin: %v", id)
+
+	if bundle.Manifest.Webapp != nil {
+		if env.webappPath == "" {
+			if supervisor != nil {
+				supervisor.Stop()
+			}
+			return fmt.Errorf("env missing webapp path, cannot activate plugin: %v", id)
+		}
+
+		webappBundle, err := ioutil.ReadFile(fmt.Sprintf("%s/%s/webapp/%s_bundle.js", env.searchPath, id, id))
+		if err != nil {
+			if supervisor != nil {
+				supervisor.Stop()
+			}
+			return errors.Wrapf(err, "unable to read webapp bundle: %v", id)
+		}
+
+		err = ioutil.WriteFile(fmt.Sprintf("%s/%s_bundle.js", env.webappPath, id), webappBundle, 0644)
+		if err != nil {
+			if supervisor != nil {
+				supervisor.Stop()
+			}
+			return errors.Wrapf(err, "unable to write webapp bundle: %v", id)
+		}
 	}
-	if err := supervisor.Start(); err != nil {
-		return errors.Wrapf(err, "unable to start plugin: %v", id)
-	}
-	if err := supervisor.Hooks().OnActivate(api); err != nil {
-		supervisor.Stop()
-		return errors.Wrapf(err, "unable to activate plugin: %v", id)
-	}
-	env.activePlugins[id] = supervisor
+
+	env.activePlugins[id] = activePlugin
 	return nil
 }
 
 // Deactivates the plugin with the given id.
 func (env *Environment) DeactivatePlugin(id string) error {
-	if supervisor, ok := env.activePlugins[id]; !ok {
+	if activePlugin, ok := env.activePlugins[id]; !ok {
 		return fmt.Errorf("plugin not active: %v", id)
 	} else {
 		delete(env.activePlugins, id)
-		err := supervisor.Hooks().OnDeactivate()
-		if serr := supervisor.Stop(); err == nil {
-			err = serr
+		var err error
+		if activePlugin.Supervisor != nil {
+			err = activePlugin.Supervisor.Hooks().OnDeactivate()
+			if serr := activePlugin.Supervisor.Stop(); err == nil {
+				err = serr
+			}
 		}
 		return err
 	}
@@ -110,14 +167,16 @@ func (env *Environment) DeactivatePlugin(id string) error {
 
 // Deactivates all plugins and gracefully shuts down the environment.
 func (env *Environment) Shutdown() (errs []error) {
-	for _, supervisor := range env.activePlugins {
-		if err := supervisor.Hooks().OnDeactivate(); err != nil {
-			errs = append(errs, err)
-		}
-		if err := supervisor.Stop(); err != nil {
-			errs = append(errs, err)
+	for _, activePlugin := range env.activePlugins {
+		if activePlugin.Supervisor != nil {
+			if err := activePlugin.Supervisor.Hooks().OnDeactivate(); err != nil {
+				errs = append(errs, err)
+			}
+			if err := activePlugin.Supervisor.Stop(); err != nil {
+				errs = append(errs, err)
+			}
 		}
 	}
-	env.activePlugins = make(map[string]plugin.Supervisor)
+	env.activePlugins = make(map[string]ActivePlugin)
 	return
 }

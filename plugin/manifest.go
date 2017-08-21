@@ -2,6 +2,7 @@ package plugin
 
 import (
 	"encoding/json"
+	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -10,12 +11,59 @@ import (
 )
 
 type Manifest struct {
-	Id      string           `json:"id" yaml:"id"`
-	Backend *ManifestBackend `json:"backend,omitempty" yaml:"backend,omitempty"`
+	Id          string           `json:"id" yaml:"id"`
+	Name        string           `json:"name" yaml:"name"`
+	Description string           `json:"description" yaml:"description"`
+	Backend     *ManifestBackend `json:"backend,omitempty" yaml:"backend,omitempty"`
+	Webapp      *ManifestWebapp  `json:"webapp,omitempty" yaml:"webapp,omitempty"`
 }
 
 type ManifestBackend struct {
 	Executable string `json:"executable" yaml:"executable"`
+}
+
+type ManifestWebapp struct {
+	BundlePath string `json:"bundle_path" yaml:"bundle_path"`
+}
+
+func (m *Manifest) ToJson() string {
+	b, err := json.Marshal(m)
+	if err != nil {
+		return ""
+	} else {
+		return string(b)
+	}
+}
+
+func ManifestListToJson(m []*Manifest) string {
+	b, err := json.Marshal(m)
+	if err != nil {
+		return ""
+	} else {
+		return string(b)
+	}
+}
+
+func ManifestFromJson(data io.Reader) *Manifest {
+	decoder := json.NewDecoder(data)
+	var m Manifest
+	err := decoder.Decode(&m)
+	if err == nil {
+		return &m
+	} else {
+		return nil
+	}
+}
+
+func ManifestListFromJson(data io.Reader) []*Manifest {
+	decoder := json.NewDecoder(data)
+	var manifests []*Manifest
+	err := decoder.Decode(&manifests)
+	if err == nil {
+		return manifests
+	} else {
+		return nil
+	}
 }
 
 // FindManifest will find and parse the manifest in a given directory.

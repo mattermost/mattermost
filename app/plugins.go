@@ -5,7 +5,12 @@ package app
 
 import (
 	"encoding/json"
+	"fmt"
+	"io"
 	"net/http"
+	"os"
+	"path/filepath"
+	"strings"
 
 	l4g "github.com/alecthomas/log4go"
 
@@ -15,6 +20,7 @@ import (
 
 	"github.com/mattermost/platform/app/plugin"
 	"github.com/mattermost/platform/app/plugin/jira"
+	mmplugin "github.com/mattermost/platform/plugin"
 )
 
 type PluginAPI struct {
@@ -83,4 +89,130 @@ func InitPlugins() {
 	for _, p := range plugins {
 		p.OnConfigurationChange()
 	}
+}
+
+func ActivatePlugins() {
+	if Srv.PluginEnv == nil {
+		l4g.Error("plugin env not initialized")
+		return
+	}
+
+	plugins, err := Srv.PluginEnv.Plugins()
+	if err != nil {
+		l4g.Error("failed to start up plugins: " + err.Error())
+		return
+	}
+
+	for _, plugin := range plugins {
+		err := Srv.PluginEnv.ActivatePlugin(plugin.Manifest.Id)
+		if err != nil {
+			l4g.Error(err.Error())
+		}
+		l4g.Info(fmt.Sprintf("Activated %v plugin", plugin.Manifest.Id))
+	}
+}
+
+func UnpackAndActivatePlugin(pluginFile io.Reader) (*mmplugin.Manifest, *model.AppError) {
+	if Srv.PluginEnv == nil || !*utils.Cfg.PluginSettings.Enable {
+		return nil, model.NewAppError("UnpackAndActivatePlugin", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
+	}
+
+	filenames, err := utils.ExtractTarGz(pluginFile, Srv.PluginEnv.SearchPath())
+	if err != nil {
+		return nil, model.NewAppError("UnpackAndActivatePlugin", "app.plugin.extract.app_error", nil, err.Error(), http.StatusBadRequest)
+	}
+
+	if len(filenames) == 0 {
+		return nil, model.NewAppError("UnpackAndActivatePlugin", "app.plugin.no_files.app_error", nil, err.Error(), http.StatusBadRequest)
+	}
+
+	splitPath := strings.Split(filenames[0], string(os.PathSeparator))
+
+	if len(splitPath) == 0 {
+		return nil, model.NewAppError("UnpackAndActivatePlugin", "app.plugin.bad_path.app_error", nil, err.Error(), http.StatusBadRequest)
+	}
+
+	manifestDir := filepath.Join(Srv.PluginEnv.SearchPath(), splitPath[0])
+
+	manifest, _, err := mmplugin.FindManifest(manifestDir)
+	if err != nil {
+		return nil, model.NewAppError("UnpackAndActivatePlugin", "app.plugin.manifest.app_error", nil, err.Error(), http.StatusBadRequest)
+	}
+
+	// Should add manifest validation and error handling here
+
+	err = Srv.PluginEnv.ActivatePlugin(manifest.Id)
+	if err != nil {
+		return nil, model.NewAppError("UnpackAndActivatePlugin", "app.plugin.activate.app_error", nil, err.Error(), http.StatusBadRequest)
+	}
+
+	return manifest, nil
+}
+
+func GetActivePluginManifests() ([]*mmplugin.Manifest, *model.AppError) {
+	if Srv.PluginEnv == nil || !*utils.Cfg.PluginSettings.Enable {
+		return nil, model.NewAppError("GetActivePluginManifests", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
+	}
+
+	plugins, err := Srv.PluginEnv.Plugins()
+	if err != nil {
+		return nil, model.NewAppError("GetActivePluginManifests", "app.plugin.get_plugins.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	manifests := make([]*mmplugin.Manifest, len(plugins))
+	for i, plugin := range plugins {
+		manifests[i] = plugin.Manifest
+	}
+
+	return manifests, nil
+}
+
+func RemovePlugin(id string) *model.AppError {
+	if Srv.PluginEnv == nil || !*utils.Cfg.PluginSettings.Enable {
+		return model.NewAppError("RemovePlugin", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
+	}
+
+	err := Srv.PluginEnv.DeactivatePlugin(id)
+	if err != nil {
+		return model.NewAppError("RemovePlugin", "app.plugin.deactivate.app_error", nil, err.Error(), http.StatusBadRequest)
+	}
+
+	err = os.RemoveAll(filepath.Join(Srv.PluginEnv.SearchPath(), id))
+	if err != nil {
+		return model.NewAppError("RemovePlugin", "app.plugin.remove.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return nil
+}
+
+// Temporary WIP function/type for experimental webapp plugins
+type ClientConfigPlugin struct {
+	Id         string `json:"id"`
+	BundlePath string `json:"bundle_path"`
+}
+
+func GetPluginsForClientConfig() string {
+	if Srv.PluginEnv == nil || !*utils.Cfg.PluginSettings.Enable {
+		return ""
+	}
+
+	plugins, err := Srv.PluginEnv.Plugins()
+	if err != nil {
+		return ""
+	}
+
+	pluginsConfig := []ClientConfigPlugin{}
+	for _, plugin := range plugins {
+		if plugin.Manifest.Webapp == nil {
+			continue
+		}
+		pluginsConfig = append(pluginsConfig, ClientConfigPlugin{Id: plugin.Manifest.Id, BundlePath: plugin.Manifest.Webapp.BundlePath})
+	}
+
+	b, err := json.Marshal(pluginsConfig)
+	if err != nil {
+		return ""
+	}
+
+	return string(b)
 }

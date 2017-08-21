@@ -24,6 +24,7 @@ type ApiParams struct {
 	ChannelId      string
 	PostId         string
 	FileId         string
+	PluginId       string
 	CommandId      string
 	HookId         string
 	ReportId       string
@@ -75,6 +76,10 @@ func ApiParamsFromRequest(r *http.Request) *ApiParams {
 
 	if val, ok := props["file_id"]; ok {
 		params.FileId = val
+	}
+
+	if val, ok := props["plugin_id"]; ok {
+		params.PluginId = val
 	}
 
 	if val, ok := props["command_id"]; ok {

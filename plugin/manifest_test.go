@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -59,6 +60,9 @@ func TestManifestUnmarshal(t *testing.T) {
 		Backend: &ManifestBackend{
 			Executable: "theexecutable",
 		},
+		Webapp: &ManifestWebapp{
+			BundlePath: "thebundlepath",
+		},
 	}
 
 	var yamlResult Manifest
@@ -94,4 +98,28 @@ func TestFindManifest_FileErrors(t *testing.T) {
 		assert.Error(t, err, tc)
 		assert.False(t, os.IsNotExist(err), tc)
 	}
+}
+
+func TestManifestJson(t *testing.T) {
+	manifest := &Manifest{
+		Id: "theid",
+		Backend: &ManifestBackend{
+			Executable: "theexecutable",
+		},
+		Webapp: &ManifestWebapp{
+			BundlePath: "thebundlepath",
+		},
+	}
+
+	json := manifest.ToJson()
+	newManifest := ManifestFromJson(strings.NewReader(json))
+	assert.Equal(t, newManifest, manifest)
+	assert.Equal(t, newManifest.ToJson(), json)
+	assert.Equal(t, ManifestFromJson(strings.NewReader("junk")), (*Manifest)(nil))
+
+	manifestList := []*Manifest{manifest}
+	json = ManifestListToJson(manifestList)
+	newManifestList := ManifestListFromJson(strings.NewReader(json))
+	assert.Equal(t, newManifestList, manifestList)
+	assert.Equal(t, ManifestListToJson(newManifestList), json)
 }

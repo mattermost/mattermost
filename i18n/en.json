@@ -404,6 +404,58 @@
     "translation": "Invalid permissions to delete command"
   },
   {
+    "id": "app.plugin.disabled.app_error",
+    "translation": "Plugins have been disabled by the system admin or the server has not been restarted since they were enabled."
+  },
+  {
+    "id": "app.plugin.disabled.app_error",
+    "translation": ""
+  },
+  {
+    "id": "app.plugin.extract.app_error",
+    "translation": "Encountered error extracting plugin"
+  },
+  {
+    "id": "app.plugin.no_files.app_error",
+    "translation": "No files found in the compressed folder"
+  },
+  {
+    "id": "app.plugin.bad_path.app_error",
+    "translation": "Bad file path in extracted files"
+  },
+  {
+    "id": "app.plugin.manifest.app_error",
+    "translation": "Unable to find manifest for extracted plugin"
+  },
+  {
+    "id": "app.plugin.activate.app_error",
+    "translation": "Unable to activate extracted plugin"
+  },
+  {
+    "id": "app.plugin.get_plugins.app_error",
+    "translation": "Unable to get active plugins"
+  },
+  {
+    "id": "app.plugin.deactivate.app_error",
+    "translation": "Unable to deactivate plugin"
+  },
+  {
+    "id": "app.plugin.remove.app_error",
+    "translation": "Unable to delete plugin"
+  },
+  {
+    "id": "api.plugin.upload.no_file.app_error",
+    "translation": "Missing file in multipart/form request"
+  },
+  {
+    "id": "api.plugin.upload.array.app_error",
+    "translation": "File array is empty in multipart/form request"
+  },
+  {
+    "id": "api.plugin.upload.file.app_error",
+    "translation": "Unable to open file in multipart/form request"
+  },
+  {
     "id": "api.command.disabled.app_error",
     "translation": "Commands have been disabled by the system admin."
   },
@@ -4178,6 +4230,10 @@
   {
     "id": "model.channel_member.is_valid.user_id.app_error",
     "translation": "Invalid user id"
+  },
+  {
+    "id": "model.client.writer.app_error",
+    "translation": "Unable to build multipart request"
   },
   {
     "id": "model.client.connecting.app_error",
