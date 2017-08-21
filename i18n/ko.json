@@ -844,156 +844,16 @@
     "translation": "당신의 기기에서는 설정 명령을 지원하지 않습니다"
   },
   {
-    "id": "api.command_shortcuts.browser.channel_next",
-    "translation": "{{.ChannelNextCmd}}: 기록 상의 다음 채널\n"
-  },
-  {
-    "id": "api.command_shortcuts.browser.channel_next.cmd",
-    "translation": "ALT+오른쪽 방향키"
-  },
-  {
-    "id": "api.command_shortcuts.browser.channel_next.cmd_mac",
-    "translation": "CMD+]"
-  },
-  {
-    "id": "api.command_shortcuts.browser.channel_prev",
-    "translation": "{{.ChannelPrevCmd}}: 기록 상의 이전 채널\n"
-  },
-  {
-    "id": "api.command_shortcuts.browser.channel_prev.cmd",
-    "translation": "ALT+왼쪽 방향키"
-  },
-  {
-    "id": "api.command_shortcuts.browser.channel_prev.cmd_mac",
-    "translation": "CMD+["
-  },
-  {
-    "id": "api.command_shortcuts.browser.font_decrease",
-    "translation": "{{.CmdOrCtrl}}+MINUS: 글자 크기 줄이기 (배율 축소)\n"
-  },
-  {
-    "id": "api.command_shortcuts.browser.font_increase",
-    "translation": "{{.CmdOrCtrl}}+PLUS: 글자 크기 늘이기 (배율 확대)\n"
-  },
-  {
-    "id": "api.command_shortcuts.browser.header",
-    "translation": "#### 브라우저 내장 명령어\n\n"
-  },
-  {
-    "id": "api.command_shortcuts.browser.highlight_next",
-    "translation": "(입력 란에서) SHIFT+아래 방향키: 다음 줄까지의 글자를 선택\n"
-  },
-  {
-    "id": "api.command_shortcuts.browser.highlight_prev",
-    "translation": "(입력 란에서) SHIFT+위 방향키: 이전 줄까지의 글자를 선택\n"
-  },
-  {
-    "id": "api.command_shortcuts.browser.newline",
-    "translation": "(입력 란에서) SHIFT+ENTER: 줄바꾸기\n"
-  },
-  {
-    "id": "api.command_shortcuts.cmd",
-    "translation": "CMD"
-  },
-  {
-    "id": "api.command_shortcuts.ctrl",
-    "translation": "CTRL"
-  },
-  {
     "id": "api.command_shortcuts.desc",
     "translation": "단축키 목록을 표시합니다."
-  },
-  {
-    "id": "api.command_shortcuts.files.header",
-    "translation": "#### 파일\n\n"
-  },
-  {
-    "id": "api.command_shortcuts.files.upload",
-    "translation": "{{.CmdOrCtrl}}+U: 파일 업로드 (복수 파일 가능)\n\n"
-  },
-  {
-    "id": "api.command_shortcuts.header",
-    "translation": "### 키보드 단축키\n\n"
-  },
-  {
-    "id": "api.command_shortcuts.msgs.comp_channel",
-    "translation": "~[문자]+TAB: [문자]로 시작하는 채널명 자동 완성\n"
-  },
-  {
-    "id": "api.command_shortcuts.msgs.comp_emoji",
-    "translation": ":[문자]+TAB: [문자]로 시작하는 이모지 자동 완성\n\n"
-  },
-  {
-    "id": "api.command_shortcuts.msgs.comp_username",
-    "translation": "@[문자]+TAB: [문자]로 시작하는 @사용자명 자동 완성\n"
-  },
-  {
-    "id": "api.command_shortcuts.msgs.edit",
-    "translation": "위 방향키 (빈 입력란에서): 현재 채널에서 마지막으로 보낸 메시지 수정\n"
-  },
-  {
-    "id": "api.command_shortcuts.msgs.header",
-    "translation": "#### 메시지\n\n"
-  },
-  {
-    "id": "api.command_shortcuts.msgs.mark_as_read",
-    "translation": "ESC: 현재 채널의 모든 메시지를 읽음으로 표시\n"
-  },
-  {
-    "id": "api.command_shortcuts.msgs.reply",
-    "translation": "SHIFT+UP (빈 입력창에서):현재 채널의 가장 마지막 메세지에 대답\n"
-  },
-  {
-    "id": "api.command_shortcuts.msgs.reprint_next",
-    "translation": "{{.CmdOrCtrl}}+아래 방향키 (빈 입력란에서): 입력한 다음 차례의 메시지 혹은 슬래시 명령어 재입력\n"
-  },
-  {
-    "id": "api.command_shortcuts.msgs.reprint_prev",
-    "translation": "{{.CmdOrCtrl}}+아래 방향키 (빈 입력란에서): 이전에 입력한 메시지 혹은 슬래시 명령어 재입력\n"
   },
   {
     "id": "api.command_shortcuts.name",
     "translation": "단축키"
   },
   {
-    "id": "api.command_shortcuts.nav.direct_messages_menu",
-    "translation": "{{.CmdOrCtrl}}+SHIFT+K: Direct 메세지 메뉴 열기\n"
-  },
-  {
-    "id": "api.command_shortcuts.nav.header",
-    "translation": "#### 조작법\n\n"
-  },
-  {
-    "id": "api.command_shortcuts.nav.next",
-    "translation": "ALT+아래 방향키: 왼쪽 사이드바에서 다음 채널 또는 개인 대화 선택\n"
-  },
-  {
-    "id": "api.command_shortcuts.nav.prev",
-    "translation": "ALT+아래 방향키: 왼쪽 사이드바에서 이전 채널 또는 개인 대화 선택\n"
-  },
-  {
-    "id": "api.command_shortcuts.nav.recent_mentions",
-    "translation": "{{.CmdOrCtrl}}+SHIFT+M: 최근 멘션 열기\n\n"
-  },
-  {
-    "id": "api.command_shortcuts.nav.settings",
-    "translation": "{{.CmdOrCtrl}}+SHIFT+A: 계정 설정 열기\n"
-  },
-  {
-    "id": "api.command_shortcuts.nav.switcher",
-    "translation": "{{.CmdOrCtrl}}+K: 빠른 채널 스위처 창 열기\n"
-  },
-  {
-    "id": "api.command_shortcuts.nav.switcher_team",
-    "translation": "{{.CmdOrCtrl}}+K: 빠른 채널 스위처 창 열기\n"
-  },
-  {
-    "id": "api.command_shortcuts.nav.unread_next",
-    "translation": "ALT+SHIFT+아래 방향키: 왼쪽 사이드바에서 읽지 않은 메시지가 있는 다음 채널 또는 개인 대화 선택\n"
-  },
-  {
-    "id": "api.command_shortcuts.nav.unread_prev",
-    "translation": "ALT+SHIFT+위 방향키: 왼쪽 사이드바에서 읽지 않은 메시지가 있는 이전 채널 또는 개인 대화 선택\n"
+    "id": "api.command_shortcuts.unsupported.app_error",
+    "translation": "당신의 기기에서는 검색 명령을 지원하지 않습니다"
   },
   {
     "id": "api.command_shrug.desc",
@@ -2497,15 +2357,15 @@
   },
   {
     "id": "api.templates.user_access_token_body.info",
-    "translation": "A user access token was added to your account on {{ .SiteURL }}. They can be used to access {{.SiteName}} with your account.<br>If this change wasn't initiated by you, please contact your system administrator."
+    "translation": "A personal access token was added to your account on {{ .SiteURL }}. They can be used to access {{.SiteName}} with your account.<br>If this change wasn't initiated by you, please contact your system administrator."
   },
   {
     "id": "api.templates.user_access_token_body.title",
-    "translation": "User access token added to your account"
+    "translation": "Personal access token added to your account"
   },
   {
     "id": "api.templates.user_access_token_subject",
-    "translation": "[{{ .SiteName }}] User access token added to your account"
+    "translation": "[{{ .SiteName }}] Personal access token added to your account"
   },
   {
     "id": "api.templates.username_change_body.info",
@@ -2865,7 +2725,7 @@
   },
   {
     "id": "api.user.send_user_access_token.error",
-    "translation": "Failed to send user access token added email successfully"
+    "translation": "Failed to send personal access token added email successfully"
   },
   {
     "id": "api.user.send_verify_email_and_forget.failed.error",
@@ -3788,6 +3648,22 @@
     "translation": "Compliance export started for job '{{.JobName}}' at '{{.FilePath}}'"
   },
   {
+    "id": "ent.elasticsearch.aggregator_worker.create_index_job.error",
+    "translation": "Elasticsearch aggregator worker failed to create the indexing job"
+  },
+  {
+    "id": "ent.elasticsearch.aggregator_worker.delete_indexes.error",
+    "translation": "Elasticsearch aggregator worker failed to delete the indexes"
+  },
+  {
+    "id": "ent.elasticsearch.aggregator_worker.get_indexes.error",
+    "translation": "Elasticsearch aggregator worker failed to get indexes"
+  },
+  {
+    "id": "ent.elasticsearch.aggregator_worker.index_job_failed.error",
+    "translation": "Elasticsearch aggregator worker failed due to the indexing job failing"
+  },
+  {
     "id": "ent.elasticsearch.create_client.connect_failed",
     "translation": "Setting up Elasticsearch Client Failed"
   },
@@ -3814,6 +3690,14 @@
   {
     "id": "ent.elasticsearch.index_post.error",
     "translation": "Failed to index the post"
+  },
+  {
+    "id": "ent.elasticsearch.indexer.do_job.parse_end_time.error",
+    "translation": "Elasticsearch indexing worker failed to parse the end time"
+  },
+  {
+    "id": "ent.elasticsearch.indexer.do_job.parse_start_time.error",
+    "translation": "Elasticsearch indexing worker failed to parse the start time"
   },
   {
     "id": "ent.elasticsearch.not_started.error",
@@ -4392,6 +4276,34 @@
     "translation": "잘못된 사용자 ID"
   },
   {
+    "id": "model.command_hook.channel_id.app_error",
+    "translation": "Invalid channel id"
+  },
+  {
+    "id": "model.command_hook.command_id.app_error",
+    "translation": "Invalid command id"
+  },
+  {
+    "id": "model.command_hook.create_at.app_error",
+    "translation": "Create at must be a valid time"
+  },
+  {
+    "id": "model.command_hook.id.app_error",
+    "translation": "Invalid command hook id"
+  },
+  {
+    "id": "model.command_hook.parent_id.app_error",
+    "translation": "잘못된 Parent Id 입니다."
+  },
+  {
+    "id": "model.command_hook.root_id.app_error",
+    "translation": "잘못된 루트 아이디입니다."
+  },
+  {
+    "id": "model.command_hook.user_id.app_error",
+    "translation": "잘못된 사용자 ID"
+  },
+  {
     "id": "model.compliance.is_valid.create_at.app_error",
     "translation": "Create at must be a valid time"
   },
@@ -4420,6 +4332,10 @@
     "translation": "Unable to enable email batching when clustering is enabled"
   },
   {
+    "id": "model.config.is_valid.elastic_search.aggregate_posts_after_days.app_error",
+    "translation": "Elasticsearch AggregatePostsAfterDays setting must be a number greater than or equal to 1"
+  },
+  {
     "id": "model.config.is_valid.elastic_search.connection_url.app_error",
     "translation": "Elastic Search ConnectionUrl setting must be provided when Elastic Search indexing is enabled."
   },
@@ -4430,6 +4346,10 @@
   {
     "id": "model.config.is_valid.elastic_search.password.app_error",
     "translation": "Elastic Search Password setting must be provided when Elastic Search indexing is enabled."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.posts_aggregator_job_start_time.app_error",
+    "translation": "Elasticsearch PostsAggregatorJobStartTime setting must be a time in the format \"hh:mm\""
   },
   {
     "id": "model.config.is_valid.elastic_search.username.app_error",
@@ -5596,6 +5516,26 @@
     "translation": "채널을 찾을 수 없습니다"
   },
   {
+    "id": "store.sql_command_webhooks.get.app_error",
+    "translation": "Webhook을 찾는 데 실패했습니다"
+  },
+  {
+    "id": "store.sql_command_webhooks.save.app_error",
+    "translation": "IncomingWebhook을 저장하는 데 실패했습니다"
+  },
+  {
+    "id": "store.sql_command_webhooks.save.existing.app_error",
+    "translation": "You cannot update an existing CommandWebhook"
+  },
+  {
+    "id": "store.sql_command_webhooks.try_use.app_error",
+    "translation": "Unable to use the webhook"
+  },
+  {
+    "id": "store.sql_command_webhooks.try_use.invalid.app_error",
+    "translation": "잘못된 Webhook"
+  },
+  {
     "id": "store.sql_compliance.get.finding.app_error",
     "translation": "We encountered an error retrieving the compliance reports"
   },
@@ -6662,6 +6602,18 @@
   {
     "id": "web.claim_account.user.error",
     "translation": "Couldn't find user teamid=%v, email=%v, err=%v"
+  },
+  {
+    "id": "web.command_webhook.command.app_error",
+    "translation": "채널을 찾을 수 없습니다"
+  },
+  {
+    "id": "web.command_webhook.invalid.app_error",
+    "translation": "잘못된 Webhook"
+  },
+  {
+    "id": "web.command_webhook.parse.app_error",
+    "translation": "Unable to parse incoming data"
   },
   {
     "id": "web.create_dir.error",

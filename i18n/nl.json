@@ -844,156 +844,16 @@
     "translation": "The settings command is not supported on your device"
   },
   {
-    "id": "api.command_shortcuts.browser.channel_next",
-    "translation": "{{.ChannelNextCmd}}: Volgende kanaal uit je geschiedenis\n"
-  },
-  {
-    "id": "api.command_shortcuts.browser.channel_next.cmd",
-    "translation": "ALT+RECHTS"
-  },
-  {
-    "id": "api.command_shortcuts.browser.channel_next.cmd_mac",
-    "translation": "CMD+]"
-  },
-  {
-    "id": "api.command_shortcuts.browser.channel_prev",
-    "translation": "{{.ChannelPrevCmd}}: Vorige kanaal in je geschiedenis\n"
-  },
-  {
-    "id": "api.command_shortcuts.browser.channel_prev.cmd",
-    "translation": "ALT+LINKS"
-  },
-  {
-    "id": "api.command_shortcuts.browser.channel_prev.cmd_mac",
-    "translation": "CMD+["
-  },
-  {
-    "id": "api.command_shortcuts.browser.font_decrease",
-    "translation": "{{.CmdOrCtrl}}+MINUS: Decrease font size (zoom out)\n"
-  },
-  {
-    "id": "api.command_shortcuts.browser.font_increase",
-    "translation": "{{.CmdOrCtrl}}+PLUS: Increase font size (zoom in)\n"
-  },
-  {
-    "id": "api.command_shortcuts.browser.header",
-    "translation": "#### Built-in Browser Commands\n\n"
-  },
-  {
-    "id": "api.command_shortcuts.browser.highlight_next",
-    "translation": "SHIFT+DOWN (in input field): Highlight text to the next line\n"
-  },
-  {
-    "id": "api.command_shortcuts.browser.highlight_prev",
-    "translation": "SHIFT+UP (in input field): Highlight text to the previous line\n"
-  },
-  {
-    "id": "api.command_shortcuts.browser.newline",
-    "translation": "SHIFT+ENTER (in input field): Create a new line\n"
-  },
-  {
-    "id": "api.command_shortcuts.cmd",
-    "translation": "CMD"
-  },
-  {
-    "id": "api.command_shortcuts.ctrl",
-    "translation": "CTRL"
-  },
-  {
     "id": "api.command_shortcuts.desc",
     "translation": "Toon een lijst met snelkoppelingen"
-  },
-  {
-    "id": "api.command_shortcuts.files.header",
-    "translation": "#### Bestanden\n\n"
-  },
-  {
-    "id": "api.command_shortcuts.files.upload",
-    "translation": "{{.CmdOrCtrl}}+U: Upload file(s)\n\n"
-  },
-  {
-    "id": "api.command_shortcuts.header",
-    "translation": "### Keyboard Shortcuts\n\n"
-  },
-  {
-    "id": "api.command_shortcuts.msgs.comp_channel",
-    "translation": "~[character]+TAB: Autocomplete channel beginning with [character]\n"
-  },
-  {
-    "id": "api.command_shortcuts.msgs.comp_emoji",
-    "translation": ":[character]+TAB: Autocomplete emoji beginning with [character]\n\n"
-  },
-  {
-    "id": "api.command_shortcuts.msgs.comp_username",
-    "translation": "@[character]+TAB: Autocomplete @username beginning with [character]\n"
-  },
-  {
-    "id": "api.command_shortcuts.msgs.edit",
-    "translation": "UP (in empty input field): Edit your last message in the current channel\n"
-  },
-  {
-    "id": "api.command_shortcuts.msgs.header",
-    "translation": "#### Berichten\n\n"
-  },
-  {
-    "id": "api.command_shortcuts.msgs.mark_as_read",
-    "translation": "ESC: Mark all messages in the current channel as read\n"
-  },
-  {
-    "id": "api.command_shortcuts.msgs.reply",
-    "translation": "SHIFT+UP (in empty input field): Reply to the most recent message in the current channel\n"
-  },
-  {
-    "id": "api.command_shortcuts.msgs.reprint_next",
-    "translation": "{{.CmdOrCtrl}}+DOWN (in empty input field): Reprint the next message or slash command you entered\n"
-  },
-  {
-    "id": "api.command_shortcuts.msgs.reprint_prev",
-    "translation": "{{.CmdOrCtrl}}+UP (in empty input field): Reprint the previous message or slash command you entered\n"
   },
   {
     "id": "api.command_shortcuts.name",
     "translation": "Snelkoppelingen"
   },
   {
-    "id": "api.command_shortcuts.nav.direct_messages_menu",
-    "translation": "{{.CmdOrCtrl}}+SHIFT+K: Open direct messages menu\n"
-  },
-  {
-    "id": "api.command_shortcuts.nav.header",
-    "translation": "#### Navigation\n\n"
-  },
-  {
-    "id": "api.command_shortcuts.nav.next",
-    "translation": "ALT+OMLAAG: Volgende kanaal of direct bericht in linker zijbalk\n"
-  },
-  {
-    "id": "api.command_shortcuts.nav.prev",
-    "translation": "ALT+OMHOOG: Vorige kanaal of direct bericht in linker zijbalk\n"
-  },
-  {
-    "id": "api.command_shortcuts.nav.recent_mentions",
-    "translation": "{{.CmdOrCtrl}}+SHIFT+M: Open recente vermeldingen\n\n"
-  },
-  {
-    "id": "api.command_shortcuts.nav.settings",
-    "translation": "{{.CmdOrCtrl}}+SHIFT+A: Open account instellingen\n"
-  },
-  {
-    "id": "api.command_shortcuts.nav.switcher",
-    "translation": "{{.CmdOrCtrl}}+K: Open a quick channel switcher dialog\n"
-  },
-  {
-    "id": "api.command_shortcuts.nav.switcher_team",
-    "translation": "{{.CmdOrCtrl}}+ALT+K: Open a quick team switcher dialog\n"
-  },
-  {
-    "id": "api.command_shortcuts.nav.unread_next",
-    "translation": "ALT+SHIFT+DOWN: Next channel or direct message in left hand sidebar with unread messages\n"
-  },
-  {
-    "id": "api.command_shortcuts.nav.unread_prev",
-    "translation": "ALT+SHIFT+UP: Previous channel or direct message in left hand sidebar with unread messages\n"
+    "id": "api.command_shortcuts.unsupported.app_error",
+    "translation": "The shortcuts command is not supported on your device"
   },
   {
     "id": "api.command_shrug.desc",
@@ -2497,15 +2357,15 @@
   },
   {
     "id": "api.templates.user_access_token_body.info",
-    "translation": "A user access token was added to your account on {{ .SiteURL }}. They can be used to access {{.SiteName}} with your account.<br>If this change wasn't initiated by you, please contact your system administrator."
+    "translation": "A personal access token was added to your account on {{ .SiteURL }}. They can be used to access {{.SiteName}} with your account.<br>If this change wasn't initiated by you, please contact your system administrator."
   },
   {
     "id": "api.templates.user_access_token_body.title",
-    "translation": "User access token added to your account"
+    "translation": "Personal access token added to your account"
   },
   {
     "id": "api.templates.user_access_token_subject",
-    "translation": "[{{ .SiteName }}] User access token added to your account"
+    "translation": "[{{ .SiteName }}] Personal access token added to your account"
   },
   {
     "id": "api.templates.username_change_body.info",
@@ -2865,7 +2725,7 @@
   },
   {
     "id": "api.user.send_user_access_token.error",
-    "translation": "Failed to send user access token added email successfully"
+    "translation": "Failed to send personal access token added email successfully"
   },
   {
     "id": "api.user.send_verify_email_and_forget.failed.error",
@@ -3788,6 +3648,22 @@
     "translation": "Compliance export is mislukt voor taak '{{.JobName}}' naar '{{.FilePath}}'"
   },
   {
+    "id": "ent.elasticsearch.aggregator_worker.create_index_job.error",
+    "translation": "Elasticsearch aggregator worker failed to create the indexing job"
+  },
+  {
+    "id": "ent.elasticsearch.aggregator_worker.delete_indexes.error",
+    "translation": "Elasticsearch aggregator worker failed to delete the indexes"
+  },
+  {
+    "id": "ent.elasticsearch.aggregator_worker.get_indexes.error",
+    "translation": "Elasticsearch aggregator worker failed to get indexes"
+  },
+  {
+    "id": "ent.elasticsearch.aggregator_worker.index_job_failed.error",
+    "translation": "Elasticsearch aggregator worker failed due to the indexing job failing"
+  },
+  {
     "id": "ent.elasticsearch.create_client.connect_failed",
     "translation": "Setting up Elasticsearch Client Failed"
   },
@@ -3814,6 +3690,14 @@
   {
     "id": "ent.elasticsearch.index_post.error",
     "translation": "Failed to index the post"
+  },
+  {
+    "id": "ent.elasticsearch.indexer.do_job.parse_end_time.error",
+    "translation": "Elasticsearch indexing worker failed to parse the end time"
+  },
+  {
+    "id": "ent.elasticsearch.indexer.do_job.parse_start_time.error",
+    "translation": "Elasticsearch indexing worker failed to parse the start time"
   },
   {
     "id": "ent.elasticsearch.not_started.error",
@@ -4037,7 +3921,7 @@
   },
   {
     "id": "ent.saml.service_disable.app_error",
-    "translation": "SAML is niet ondersteund, of niet geconfigureerd op deze server."
+    "translation": "SAML wordt niet ondersteund, of is niet geconfigureerd op deze server."
   },
   {
     "id": "ent.saml.update_saml_user.unable_error",
@@ -4392,6 +4276,34 @@
     "translation": "Ongeldig gebruikers id"
   },
   {
+    "id": "model.command_hook.channel_id.app_error",
+    "translation": "Ongeldig kanaal id"
+  },
+  {
+    "id": "model.command_hook.command_id.app_error",
+    "translation": "Invalid command id"
+  },
+  {
+    "id": "model.command_hook.create_at.app_error",
+    "translation": "Aangemaakt op moet een geldige tijd zijn"
+  },
+  {
+    "id": "model.command_hook.id.app_error",
+    "translation": "Invalid command hook id"
+  },
+  {
+    "id": "model.command_hook.parent_id.app_error",
+    "translation": "Ongeldig ouder id"
+  },
+  {
+    "id": "model.command_hook.root_id.app_error",
+    "translation": "Ongeldig start id"
+  },
+  {
+    "id": "model.command_hook.user_id.app_error",
+    "translation": "Ongeldige gebruikers id"
+  },
+  {
     "id": "model.compliance.is_valid.create_at.app_error",
     "translation": "Aangemaakt op moet een geldige tijd zijn"
   },
@@ -4420,6 +4332,10 @@
     "translation": "Niet mogelijk om bulk email aan te zetten als clustering aan staat."
   },
   {
+    "id": "model.config.is_valid.elastic_search.aggregate_posts_after_days.app_error",
+    "translation": "Elasticsearch AggregatePostsAfterDays setting must be a number greater than or equal to 1"
+  },
+  {
     "id": "model.config.is_valid.elastic_search.connection_url.app_error",
     "translation": "Elastic Search ConnectionUrl setting must be provided when Elastic Search indexing is enabled."
   },
@@ -4430,6 +4346,10 @@
   {
     "id": "model.config.is_valid.elastic_search.password.app_error",
     "translation": "Elastic Search Password setting must be provided when Elastic Search indexing is enabled."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.posts_aggregator_job_start_time.app_error",
+    "translation": "Elasticsearch PostsAggregatorJobStartTime setting must be a time in the format \"hh:mm\""
   },
   {
     "id": "model.config.is_valid.elastic_search.username.app_error",
@@ -5596,6 +5516,26 @@
     "translation": "De opdracht kan niet bijgewerkt worden"
   },
   {
+    "id": "store.sql_command_webhooks.get.app_error",
+    "translation": "We kunnen de webhook niet ophalen"
+  },
+  {
+    "id": "store.sql_command_webhooks.save.app_error",
+    "translation": "De binnenkomende webhook kan niet opgeslagen worden"
+  },
+  {
+    "id": "store.sql_command_webhooks.save.existing.app_error",
+    "translation": "You cannot update an existing CommandWebhook"
+  },
+  {
+    "id": "store.sql_command_webhooks.try_use.app_error",
+    "translation": "Unable to use the webhook"
+  },
+  {
+    "id": "store.sql_command_webhooks.try_use.invalid.app_error",
+    "translation": "Ongeldige webhook"
+  },
+  {
     "id": "store.sql_compliance.get.finding.app_error",
     "translation": "Er is een probleem opgetreden bij het ophalen van het 'compliance' rapport"
   },
@@ -6662,6 +6602,18 @@
   {
     "id": "web.claim_account.user.error",
     "translation": "Kan de gebruiker niet vinden, teamid=%v, email=%v, fout=%v"
+  },
+  {
+    "id": "web.command_webhook.command.app_error",
+    "translation": "Het kanaal kan niet gevonden worden"
+  },
+  {
+    "id": "web.command_webhook.invalid.app_error",
+    "translation": "Ongeldige webhook"
+  },
+  {
+    "id": "web.command_webhook.parse.app_error",
+    "translation": "Kan binnenkomende data niet verwerken"
   },
   {
     "id": "web.create_dir.error",
