@@ -50,8 +50,7 @@ func staticHandler(handler http.Handler) http.Handler {
 //List should be of minimum required browser version. Do not place a ; at the end of this string.
 var browsersNotSupported string = "MSIE/11;Internet Explorer/11;Safari/9;Chrome/43;Edge/15;Firefox/52"
 
-func CheckBrowserCompatability(c *api.Context, r *http.Request) bool {
-	ua := user_agent.New(r.UserAgent())
+func CheckBrowserCompatability(ua *user_agent.UserAgent) bool {
 	bname, bversion := ua.Browser()
 	l4g.Debug("Detected Browser: %v %v", bname, bversion)
 	browsers := strings.Split(browsersNotSupported, ";")
@@ -71,7 +70,7 @@ func CheckBrowserCompatability(c *api.Context, r *http.Request) bool {
 }
 
 func root(c *api.Context, w http.ResponseWriter, r *http.Request) {
-	if !CheckBrowserCompatability(c, r) {
+	if !CheckBrowserCompatability(user_agent.New(r.UserAgent())) {
 		w.Header().Set("Cache-Control", "no-store")
 		page := utils.NewHTMLTemplate("unsupported_browser", c.Locale)
 		page.Props["Title"] = c.T("web.error.unsupported_browser.title")

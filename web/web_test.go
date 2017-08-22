@@ -12,6 +12,7 @@ import (
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/store"
 	"github.com/mattermost/platform/utils"
+	"github.com/mssola/user_agent"
 )
 
 var ApiClient *model.Client
@@ -117,4 +118,32 @@ func TestZZWebTearDown(t *testing.T) {
 	// Should be in the last file too sorted by name
 	time.Sleep(2 * time.Second)
 	TearDown()
+}
+
+func TestCheckBrowserCompatability(t *testing.T) {
+
+	//test should fail browser compatibility check with Mozilla FF 40.1
+	ua := "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:40.0) Gecko/20100101 Firefox/40.1"
+	t.Logf("Checking Mozzila 40.1 with U.A. String: \n%v", ua)
+	if result := CheckBrowserCompatability(user_agent.New(ua)); result == true {
+		t.Error("Fail: should have failed browser compatibility")
+	} else {
+		t.Log("Pass: User Agent correctly failed!")
+	}
+
+	ua = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.90 Safari/537.36"
+	t.Logf("Checking Chrome 61 with U.A. String: \n%v", ua)
+	if result := CheckBrowserCompatability(user_agent.New(ua)); result != false {
+		t.Error("Fail: should have passed browser compatibility")
+	} else {
+		t.Log("Pass: User Agent correctly passed!")
+	}
+
+	ua = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.79 Safari/537.36 Edge/14.14393"
+	t.Logf("Checking Edge 14.14393 with U.A. String: \n%v", ua)
+	if result := CheckBrowserCompatability(user_agent.New(ua)); result == true {
+		t.Log("Warning: Edge should have failed browser compatibility. It is probably still detecting as Chrome.")
+	} else {
+		t.Log("Pass: User Agent correctly failed!")
+	}
 }
