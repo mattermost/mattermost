@@ -2711,7 +2711,7 @@ func (c *Client4) TestElasticsearch() (bool, *Response) {
 
 // PurgeElasticsearchIndexes immediately deletes all Elasticsearch indexes.
 func (c *Client4) PurgeElasticsearchIndexes() (bool, *Response) {
-	if r, err := c.DoApiPost(c.GetElasticsearchRoute()+"/test", ""); err != nil {
+	if r, err := c.DoApiPost(c.GetElasticsearchRoute()+"/purge_indexes", ""); err != nil {
 		return false, BuildErrorResponse(r, err)
 	} else {
 		defer closeBody(r)
