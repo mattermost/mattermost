@@ -66,15 +66,15 @@ const contextKeyRequestID contextKey = contextKey("request_id")
 // any contextKeys added to this array will be serialized in every log message
 var contextKeys = [2]contextKey{contextKeyUserID, contextKeyRequestID}
 
-// WithUserID adds a user id to the specified context. If the returned Context is subsequently passed to a logging
+// WithUserId adds a user id to the specified context. If the returned Context is subsequently passed to a logging
 // method, the user id will automatically be included in the logged message
-func WithUserID(ctx context.Context, userID string) context.Context {
+func WithUserId(ctx context.Context, userID string) context.Context {
 	return context.WithValue(ctx, contextKeyUserID, userID)
 }
 
-// WithRequestID adds a request id to the specified context. If the returned Context is subsequently passed to a logging
+// WithRequestId adds a request id to the specified context. If the returned Context is subsequently passed to a logging
 // method, the request id will automatically be included in the logged message
-func WithRequestID(ctx context.Context, requestID string) context.Context {
+func WithRequestId(ctx context.Context, requestID string) context.Context {
 	return context.WithValue(ctx, contextKeyRequestID, requestID)
 }
 
