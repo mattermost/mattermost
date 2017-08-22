@@ -405,7 +405,7 @@ func (s SqlChannelStore) get(id string, master bool, allowFromCache bool) StoreC
 				if metrics != nil {
 					metrics.IncrementMemCacheHitCounter("Channel")
 				}
-				result.Data = cacheItem.(*model.Channel)
+				result.Data = (cacheItem.(*model.Channel)).DeepCopy()
 				storeChannel <- result
 				close(storeChannel)
 				return

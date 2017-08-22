@@ -53,6 +53,11 @@ type ChannelPatch struct {
 	Purpose     *string `json:"purpose"`
 }
 
+func (o *Channel) DeepCopy() *Channel {
+	copy := *o
+	return &copy
+}
+
 func (o *Channel) ToJson() string {
 	b, err := json.Marshal(o)
 	if err != nil {
