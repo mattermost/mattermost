@@ -4,8 +4,10 @@
 package app
 
 import (
+	"encoding/json"
 	"net/http"
 	"regexp"
+	"strings"
 
 	l4g "github.com/alecthomas/log4go"
 	"github.com/dyatlov/go-opengraph/opengraph"
@@ -637,4 +639,51 @@ func GetOpenGraphMetadata(url string) *opengraph.OpenGraph {
 	}
 
 	return og
+}
+
+func DoPostAction(postId string, actionId string, userId string) *model.AppError {
+	pchan := Srv.Store.Post().GetSingle(postId)
+
+	var post *model.Post
+	if result := <-pchan; result.Err != nil {
+		return result.Err
+	} else {
+		post = result.Data.(*model.Post)
+	}
+
+	action := post.GetAction(actionId)
+	if action == nil || action.Integration == nil {
+		// TODO: make an error, return 404
+		return nil
+	}
+
+	request := &model.PostActionIntegrationRequest{
+		UserId:  userId,
+		Context: action.Integration.Context,
+	}
+
+	req, _ := http.NewRequest("POST", action.Integration.URL, strings.NewReader(request.ToJson()))
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Accept", "application/json")
+	resp, err := utils.HttpClient(false).Do(req)
+	if err != nil {
+		// TODO: make an error, return ?
+		return nil
+	}
+	defer resp.Body.Close()
+
+	var response model.PostActionIntegrationResponse
+	if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
+		// TODO: make an error, return ?
+		return nil
+	}
+
+	if response.Update != nil {
+		response.Update.Id = postId
+		if _, err := UpdatePost(response.Update, false); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }

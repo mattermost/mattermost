@@ -68,8 +68,30 @@ type PostForIndexing struct {
 	ParentCreateAt *int64 `json:"parent_create_at"`
 }
 
+type PostAction struct {
+	Id          string                 `json:"id"`
+	Name        string                 `json:"name"`
+	Integration *PostActionIntegration `json:"integration,omitempty"`
+}
+
+type PostActionIntegration struct {
+	URL     string            `json:"url,omitempty"`
+	Context map[string]string `json:"context,omitempty"`
+}
+
+type PostActionIntegrationRequest struct {
+	UserId  string            `json:"user_id"`
+	Context map[string]string `json:"context,omitempty"`
+}
+
+type PostActionIntegrationResponse struct {
+	Update *Post `json:"update"`
+}
+
 func (o *Post) ToJson() string {
-	b, err := json.Marshal(o)
+	copy := *o
+	copy.StripActionIntegrations()
+	b, err := json.Marshal(&copy)
 	if err != nil {
 		return ""
 	} else {
@@ -179,6 +201,16 @@ func (o *Post) PreSave() {
 		o.Props = make(map[string]interface{})
 	}
 
+	if attachments, ok := o.Props["attachments"].([]*SlackAttachment); ok {
+		for _, attachment := range attachments {
+			for _, action := range attachment.Actions {
+				if action.Id == "" {
+					action.Id = NewId()
+				}
+			}
+		}
+	}
+
 	if o.Filenames == nil {
 		o.Filenames = []string{}
 	}
@@ -245,4 +277,36 @@ func PostPatchFromJson(data io.Reader) *PostPatch {
 	}
 
 	return &post
+}
+
+func (r *PostActionIntegrationRequest) ToJson() string {
+	b, err := json.Marshal(r)
+	if err != nil {
+		return ""
+	} else {
+		return string(b)
+	}
+}
+
+func (o *Post) StripActionIntegrations() {
+	if attachments, ok := o.Props["attachments"].([]*SlackAttachment); ok {
+		for _, attachment := range attachments {
+			for _, action := range attachment.Actions {
+				action.Integration = nil
+			}
+		}
+	}
+}
+
+func (o *Post) GetAction(id string) *PostAction {
+	if attachments, ok := o.Props["attachments"].([]*SlackAttachment); ok {
+		for _, attachment := range attachments {
+			for _, action := range attachment.Actions {
+				if action.Id == id {
+					return action
+				}
+			}
+		}
+	}
+	return nil
 }

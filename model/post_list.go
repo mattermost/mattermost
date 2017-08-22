@@ -20,8 +20,19 @@ func NewPostList() *PostList {
 	}
 }
 
+func (o *PostList) StripActionIntegrations() {
+	o.Posts = make(map[string]*Post)
+	for id, post := range o.Posts {
+		pcopy := *post
+		pcopy.StripActionIntegrations()
+		o.Posts[id] = &pcopy
+	}
+}
+
 func (o *PostList) ToJson() string {
-	b, err := json.Marshal(o)
+	copy := *o
+	copy.StripActionIntegrations()
+	b, err := json.Marshal(&copy)
 	if err != nil {
 		return ""
 	} else {

@@ -20,6 +20,7 @@ export default class PostAttachment extends React.PureComponent {
     constructor(props) {
         super(props);
 
+        this.getActionView = this.getActionView.bind(this);
         this.getFieldsTable = this.getFieldsTable.bind(this);
         this.getInitState = this.getInitState.bind(this);
         this.shouldCollapse = this.shouldCollapse.bind(this);
@@ -78,6 +79,36 @@ export default class PostAttachment extends React.PureComponent {
         }
 
         return TextFormatting.formatText(text) + `<div><a class="attachment-link-more" href="#">${localizeMessage('post_attachment.more', 'Show more...')}</a></div>`;
+    }
+
+    getActionView() {
+        const actions = this.props.attachment.actions;
+        if (!actions || !actions.length) {
+            return '';
+        }
+
+        const buttons = [];
+
+        actions.forEach((action, i) => {
+            if (!action.id || !action.name) {
+                return;
+            }
+            buttons.push(
+                <button
+                    key={action.id}
+                >
+                    {action.name}
+                </button>
+            );
+        });
+
+        return (
+            <div
+                className='attachment-actions'
+            >
+                {buttons}
+            </div>
+        );
     }
 
     getFieldsTable() {
@@ -275,6 +306,7 @@ export default class PostAttachment extends React.PureComponent {
         }
 
         const fields = this.getFieldsTable();
+        const actions = this.getActionView();
 
         let useBorderStyle;
         if (data.color && data.color[0] === '#') {
@@ -301,6 +333,7 @@ export default class PostAttachment extends React.PureComponent {
                                 {text}
                                 {image}
                                 {fields}
+                                {actions}
                             </div>
                             {thumb}
                             <div style={{clear: 'both'}}/>
