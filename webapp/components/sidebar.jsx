@@ -700,6 +700,18 @@ export default class Sidebar extends React.Component {
             </Tooltip>
         );
 
+        const createDirectMessageTooltip = (
+            <Tooltip
+                id='new-group-tooltip'
+                className='hidden-xs'
+            >
+                <FormattedMessage
+                    id='sidebar.createDirectMessage'
+                    defaultMessage='Create new direct message'
+                />
+            </Tooltip>
+        );
+
         const above = (
             <FormattedMessage
                 id='sidebar.unreads'
@@ -756,6 +768,23 @@ export default class Sidebar extends React.Component {
         if (!ChannelUtils.showCreateOption(Constants.OPEN_CHANNEL, isTeamAdmin, isSystemAdmin)) {
             createPublicChannelIcon = null;
         }
+
+        const createDirectMessageIcon = (
+            <OverlayTrigger
+                className='hidden-xs'
+                delayShow={500}
+                placement='top'
+                overlay={createDirectMessageTooltip}
+            >
+                <a
+                    className='add-channel-btn'
+                    href='#'
+                    onClick={this.handleOpenMoreDirectChannelsModal}
+                >
+                    {'+'}
+                </a>
+            </OverlayTrigger>
+        );
 
         if (!ChannelUtils.showCreateOption(Constants.PRIVATE_CHANNEL, isTeamAdmin, isSystemAdmin)) {
             createPrivateChannelIcon = null;
@@ -894,6 +923,7 @@ export default class Sidebar extends React.Component {
                                     id='sidebar.direct'
                                     defaultMessage='DIRECT MESSAGES'
                                 />
+                                {createDirectMessageIcon}
                             </h4>
                         </li>
                         {directMessageItems}
