@@ -415,6 +415,10 @@
         &.custom-textarea--emoji-picker {
             padding-right: 60px;
         }
+
+        &.textbox-preview-area {
+          overflow-y: auto;
+        }
     }
 
     .emoji-picker {
