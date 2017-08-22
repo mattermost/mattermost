@@ -132,8 +132,8 @@ func TestCheckBrowserCompatability(t *testing.T) {
 	}
 
 	ua = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.90 Safari/537.36"
-	t.Logf("Checking Chrome 61 with U.A. String: \n%v", ua)
-	if result := CheckBrowserCompatability(user_agent.New(ua)); result != false {
+	t.Logf("Checking Chrome 60 with U.A. String: \n%v", ua)
+	if result := CheckBrowserCompatability(user_agent.New(ua)); result == false {
 		t.Error("Fail: should have passed browser compatibility")
 	} else {
 		t.Log("Pass: User Agent correctly passed!")
