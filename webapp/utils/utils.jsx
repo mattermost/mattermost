@@ -122,33 +122,35 @@ export function notifyMe(title, body, channel, teamId, duration, silent) {
     if (Notification.permission === 'granted' || (Notification.permission === 'default' && !requestedNotificationPermission)) {
         requestedNotificationPermission = true;
 
-        Notification.requestPermission((permission) => {
-            if (permission === 'granted') {
-                try {
-                    var notification = new Notification(title, {body, tag: body, icon: icon50, requireInteraction: notificationDuration === 0, silent});
-                    notification.onclick = () => {
-                        window.focus();
-                        if (channel && (channel.type === Constants.DM_CHANNEL || channel.type === Constants.GM_CHANNEL)) {
-                            browserHistory.push(TeamStore.getCurrentTeamUrl() + '/channels/' + channel.name);
-                        } else if (channel) {
-                            browserHistory.push(TeamStore.getTeamUrl(teamId) + '/channels/' + channel.name);
-                        } else if (teamId) {
-                            browserHistory.push(TeamStore.getTeamUrl(teamId) + '/channels/town-square');
-                        } else {
-                            browserHistory.push(TeamStore.getCurrentTeamUrl() + '/channels/town-square');
-                        }
-                    };
+        if (typeof Notification.requestPermission === 'function') {
+            Notification.requestPermission((permission) => {
+                if (permission === 'granted') {
+                    try {
+                        var notification = new Notification(title, {body, tag: body, icon: icon50, requireInteraction: notificationDuration === 0, silent});
+                        notification.onclick = () => {
+                            window.focus();
+                            if (channel && (channel.type === Constants.DM_CHANNEL || channel.type === Constants.GM_CHANNEL)) {
+                                browserHistory.push(TeamStore.getCurrentTeamUrl() + '/channels/' + channel.name);
+                            } else if (channel) {
+                                browserHistory.push(TeamStore.getTeamUrl(teamId) + '/channels/' + channel.name);
+                            } else if (teamId) {
+                                browserHistory.push(TeamStore.getTeamUrl(teamId) + '/channels/town-square');
+                            } else {
+                                browserHistory.push(TeamStore.getCurrentTeamUrl() + '/channels/town-square');
+                            }
+                        };
 
-                    if (notificationDuration > 0) {
-                        setTimeout(() => {
-                            notification.close();
-                        }, notificationDuration);
+                        if (notificationDuration > 0) {
+                            setTimeout(() => {
+                                notification.close();
+                            }, notificationDuration);
+                        }
+                    } catch (e) {
+                        console.error(e); //eslint-disable-line no-console
                     }
-                } catch (e) {
-                    console.error(e); //eslint-disable-line no-console
                 }
-            }
-        });
+            });
+        }
     }
 }
 
