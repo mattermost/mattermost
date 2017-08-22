@@ -9,7 +9,6 @@ import FilePreview from './file_preview.jsx';
 import PostDeletedModal from './post_deleted_modal.jsx';
 import TutorialTip from './tutorial/tutorial_tip.jsx';
 import EmojiPickerOverlay from 'components/emoji_picker/emoji_picker_overlay.jsx';
-import * as EmojiPicker from 'components/emoji_picker/emoji_picker.jsx';
 
 import AppDispatcher from 'dispatcher/app_dispatcher.jsx';
 import * as GlobalActions from 'actions/global_actions.jsx';
@@ -734,7 +733,6 @@ export default class CreatePost extends React.Component {
                     <span
                         className={'fa fa-smile-o icon--emoji-picker emoji-main'}
                         onClick={this.toggleEmojiPicker}
-                        onMouseOver={EmojiPicker.beginPreloading}
                     />
                 </span>
             );

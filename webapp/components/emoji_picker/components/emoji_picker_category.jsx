@@ -9,7 +9,8 @@ export default class EmojiPickerCategory extends React.Component {
         category: PropTypes.string.isRequired,
         icon: PropTypes.node.isRequired,
         onCategoryClick: PropTypes.func.isRequired,
-        selected: PropTypes.bool.isRequired
+        selected: PropTypes.bool.isRequired,
+        enable: PropTypes.bool.isRequired
     }
 
     constructor(props) {
@@ -28,6 +29,10 @@ export default class EmojiPickerCategory extends React.Component {
         let className = 'emoji-picker__category';
         if (this.props.selected) {
             className += ' emoji-picker__category--selected';
+        }
+
+        if (!this.props.enable) {
+            className += ' disable';
         }
 
         return (

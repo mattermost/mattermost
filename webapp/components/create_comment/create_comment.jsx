@@ -17,7 +17,6 @@ import MsgTyping from 'components/msg_typing.jsx';
 import FileUpload from 'components/file_upload.jsx';
 import FilePreview from 'components/file_preview.jsx';
 import EmojiPickerOverlay from 'components/emoji_picker/emoji_picker_overlay.jsx';
-import * as EmojiPicker from 'components/emoji_picker/emoji_picker.jsx';
 import * as Utils from 'utils/utils.jsx';
 import * as UserAgent from 'utils/user_agent.jsx';
 import * as GlobalActions from 'actions/global_actions.jsx';
@@ -562,7 +561,6 @@ export default class CreateComment extends React.Component {
                     <span
                         className={'fa fa-smile-o icon--emoji-picker emoji-rhs'}
                         onClick={this.toggleEmojiPicker}
-                        onMouseOver={EmojiPicker.beginPreloading}
                     />
                 </span>
             );
