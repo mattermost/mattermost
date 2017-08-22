@@ -157,7 +157,7 @@ export default class SidebarRight extends React.Component {
 
     onSearchChange() {
         this.setState({
-            searchVisible: SearchStore.getSearchResults() !== null,
+            searchVisible: SearchStore.getSearchResults() !== null || SearchStore.isLoading(),
             isMentionSearch: SearchStore.getIsMentionSearch(),
             isFlaggedPosts: SearchStore.getIsFlaggedPosts(),
             isPinnedPosts: SearchStore.getIsPinnedPosts()

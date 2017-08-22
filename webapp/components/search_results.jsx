@@ -39,7 +39,8 @@ function getStateFromStores() {
         results,
         channels,
         searchTerm: SearchStore.getSearchTerm(),
-        flaggedPosts: PreferenceStore.getCategory(Constants.Preferences.CATEGORY_FLAGGED_POST)
+        flaggedPosts: PreferenceStore.getCategory(Constants.Preferences.CATEGORY_FLAGGED_POST),
+        loading: SearchStore.isLoading()
     };
 }
 
@@ -71,6 +72,7 @@ export default class SearchResults extends React.Component {
     componentDidMount() {
         this.mounted = true;
 
+        SearchStore.addSearchTermChangeListener(this.onSearchTermChange);
         SearchStore.addSearchChangeListener(this.onChange);
         ChannelStore.addChangeListener(this.onChange);
         PreferenceStore.addChangeListener(this.onPreferenceChange);
@@ -113,6 +115,7 @@ export default class SearchResults extends React.Component {
     componentWillUnmount() {
         this.mounted = false;
 
+        SearchStore.removeSearchTermChangeListener(this.onSearchTermChange);
         SearchStore.removeSearchChangeListener(this.onChange);
         ChannelStore.removeChangeListener(this.onChange);
         PreferenceStore.removeChangeListener(this.onPreferenceChange);
@@ -142,6 +145,14 @@ export default class SearchResults extends React.Component {
             compactDisplay: PreferenceStore.get(Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.MESSAGE_DISPLAY, Preferences.MESSAGE_DISPLAY_DEFAULT) === Preferences.MESSAGE_DISPLAY_COMPACT,
             flaggedPosts: PreferenceStore.getCategory(Constants.Preferences.CATEGORY_FLAGGED_POST)
         });
+    }
+
+    onSearchTermChange(doSearch) {
+        if (this.mounted && doSearch) {
+            this.setState({
+                loading: true
+            });
+        }
     }
 
     onChange() {
@@ -175,7 +186,20 @@ export default class SearchResults extends React.Component {
 
         var ctls = null;
 
-        if (this.props.isFlaggedPosts && noResults) {
+        if (this.state.loading) {
+            ctls =
+            (
+                <div className='sidebar--right__subheader'>
+                    <div className='sidebar--right__loading'>
+                        <i className='fa fa-spinner fa-spin'/>
+                        <FormattedMessage
+                            id='search_header.loading'
+                            defaultMessage='Searching...'
+                        />
+                    </div>
+                </div>
+            );
+        } else if (this.props.isFlaggedPosts && noResults) {
             ctls = (
                 <div className='sidebar--right__subheader'>
                     <ul>
@@ -284,7 +308,7 @@ export default class SearchResults extends React.Component {
 
                 let isFlagged = false;
                 if (this.state.flaggedPosts) {
-                    isFlagged = this.state.flaggedPosts.get(post.id) === 'true';
+                    isFlagged = this.state.flaggedPosts.get(post.id) != null;
                 }
 
                 const reverseCount = arr.length - idx - 1;
@@ -319,6 +343,7 @@ export default class SearchResults extends React.Component {
                     isFlaggedPosts={this.props.isFlaggedPosts}
                     isPinnedPosts={this.props.isPinnedPosts}
                     channelDisplayName={this.props.channelDisplayName}
+                    isLoading={this.state.loading}
                 />
                 <div
                     id='search-items-container'

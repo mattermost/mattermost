@@ -396,3 +396,16 @@ export function elasticsearchTest(config, success, error) {
         }
     );
 }
+
+export function elasticsearchPurgeIndexes(success, error) {
+    AdminActions.purgeElasticsearchIndexes()(dispatch, getState).then(
+        (data) => {
+            if (data && success) {
+                success(data);
+            } else if (data == null && error) {
+                const serverError = getState().requests.admin.purgeElasticsearchIndexes.error;
+                error({id: serverError.server_error_id, ...serverError});
+            }
+        }
+    );
+}

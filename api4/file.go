@@ -17,6 +17,9 @@ import (
 
 const (
 	FILE_TEAM_ID = "noteam"
+
+	PREVIEW_IMAGE_TYPE   = "image/jpeg"
+	THUMBNAIL_IMAGE_TYPE = "image/jpeg"
 )
 
 var UNSAFE_CONTENT_TYPES = [...]string{
@@ -165,7 +168,7 @@ func getFileThumbnail(c *Context, w http.ResponseWriter, r *http.Request) {
 	if data, err := app.ReadFile(info.ThumbnailPath); err != nil {
 		c.Err = err
 		c.Err.StatusCode = http.StatusNotFound
-	} else if err := writeFileResponse(info.Name, info.MimeType, data, forceDownload, w, r); err != nil {
+	} else if err := writeFileResponse(info.Name, THUMBNAIL_IMAGE_TYPE, data, forceDownload, w, r); err != nil {
 		c.Err = err
 		return
 	}
@@ -237,7 +240,7 @@ func getFilePreview(c *Context, w http.ResponseWriter, r *http.Request) {
 	if data, err := app.ReadFile(info.PreviewPath); err != nil {
 		c.Err = err
 		c.Err.StatusCode = http.StatusNotFound
-	} else if err := writeFileResponse(info.Name, info.MimeType, data, forceDownload, w, r); err != nil {
+	} else if err := writeFileResponse(info.Name, PREVIEW_IMAGE_TYPE, data, forceDownload, w, r); err != nil {
 		c.Err = err
 		return
 	}
