@@ -656,6 +656,18 @@
     "translation": "echo"
   },
   {
+    "id": "api.command_giphy.desc",
+    "translation": "Search all the GIFs"
+  },
+  {
+    "id": "api.command_giphy.hint",
+    "translation": "'search' [word or phrase to search for]"
+  },
+  {
+    "id": "api.command_giphy.name",
+    "translation": "giphy"
+  },
+  {
     "id": "api.command_expand.desc",
     "translation": "Turn off auto-collapsing of image previews"
   },
