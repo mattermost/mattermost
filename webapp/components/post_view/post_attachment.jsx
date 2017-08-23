@@ -4,12 +4,19 @@
 import * as TextFormatting from 'utils/text_formatting.jsx';
 import {localizeMessage} from 'utils/utils.jsx';
 
+import * as PostActions from 'actions/post_actions.jsx';
+
 import $ from 'jquery';
 import React from 'react';
 import PropTypes from 'prop-types';
 
 export default class PostAttachment extends React.PureComponent {
     static propTypes = {
+
+        /**
+         * The post id
+         */
+        postId: PropTypes.string.isRequired,
 
         /**
          * The attachment to render
@@ -20,6 +27,7 @@ export default class PostAttachment extends React.PureComponent {
     constructor(props) {
         super(props);
 
+        this.handleActionButtonClick = this.handleActionButtonClick.bind(this);
         this.getActionView = this.getActionView.bind(this);
         this.getFieldsTable = this.getFieldsTable.bind(this);
         this.getInitState = this.getInitState.bind(this);
@@ -89,13 +97,14 @@ export default class PostAttachment extends React.PureComponent {
 
         const buttons = [];
 
-        actions.forEach((action, i) => {
+        actions.forEach((action) => {
             if (!action.id || !action.name) {
                 return;
             }
             buttons.push(
                 <button
                     key={action.id}
+                    onClick={() => this.handleActionButtonClick(action.id)}
                 >
                     {action.name}
                 </button>
@@ -109,6 +118,10 @@ export default class PostAttachment extends React.PureComponent {
                 {buttons}
             </div>
         );
+    }
+
+    handleActionButtonClick(actionId) {
+        PostActions.doPostAction(this.props.postId, actionId);
     }
 
     getFieldsTable() {

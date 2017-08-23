@@ -4,11 +4,18 @@
 package app
 
 import (
+	"encoding/json"
+	"fmt"
+	"net/http"
+	"net/http/httptest"
 	"testing"
 	"time"
 
-	"fmt"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
 	"github.com/mattermost/platform/model"
+	"github.com/mattermost/platform/utils"
 )
 
 func TestUpdatePostEditAt(t *testing.T) {
@@ -67,4 +74,67 @@ func TestPostReplyToPostWhereRootPosterLeftChannel(t *testing.T) {
 	if _, err := CreatePostAsUser(&replyPost); err != nil {
 		t.Fatal(err)
 	}
+}
+
+func TestPostAction(t *testing.T) {
+	th := Setup().InitBasic()
+
+	allowedInternalConnections := *utils.Cfg.ServiceSettings.AllowedUntrustedInternalConnections
+	defer func() {
+		utils.Cfg.ServiceSettings.AllowedUntrustedInternalConnections = &allowedInternalConnections
+	}()
+	*utils.Cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost 127.0.0.1"
+
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var request model.PostActionIntegrationRequest
+		err := json.NewDecoder(r.Body).Decode(&request)
+		assert.NoError(t, err)
+		assert.Equal(t, request.UserId, th.BasicUser.Id)
+		assert.Equal(t, "foo", request.Context["s"])
+		assert.EqualValues(t, 3, request.Context["n"])
+		fmt.Fprintf(w, `{"update": {"message": "updated"}, "ephemeral_text": "foo"}`)
+	}))
+	defer ts.Close()
+
+	interactivePost := model.Post{
+		Message:       "Interactive post",
+		ChannelId:     th.BasicChannel.Id,
+		PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
+		UserId:        th.BasicUser.Id,
+		Props: model.StringInterface{
+			"attachments": []*model.SlackAttachment{
+				&model.SlackAttachment{
+					Text: "hello",
+					Actions: []*model.PostAction{
+						&model.PostAction{
+							Integration: &model.PostActionIntegration{
+								Context: model.StringInterface{
+									"s": "foo",
+									"n": 3,
+								},
+								URL: ts.URL,
+							},
+							Name: "action",
+						},
+					},
+				},
+			},
+		},
+	}
+
+	post, err := CreatePostAsUser(&interactivePost)
+	require.Nil(t, err)
+
+	attachments, ok := post.Props["attachments"].([]*model.SlackAttachment)
+	require.True(t, ok)
+
+	require.NotEmpty(t, attachments[0].Actions)
+	require.NotEmpty(t, attachments[0].Actions[0].Id)
+
+	err = DoPostAction(post.Id, "notavalidid", th.BasicUser.Id)
+	require.NotNil(t, err)
+	assert.Equal(t, http.StatusNotFound, err.StatusCode)
+
+	err = DoPostAction(post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id)
+	require.Nil(t, err)
 }

@@ -21,8 +21,9 @@ func NewPostList() *PostList {
 }
 
 func (o *PostList) StripActionIntegrations() {
+	posts := o.Posts
 	o.Posts = make(map[string]*Post)
-	for id, post := range o.Posts {
+	for id, post := range posts {
 		pcopy := *post
 		pcopy.StripActionIntegrations()
 		o.Posts[id] = &pcopy

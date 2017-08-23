@@ -437,6 +437,11 @@ func doPostAction(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if !app.SessionHasPermissionToChannelByPost(c.Session, c.Params.PostId, model.PERMISSION_READ_CHANNEL) {
+		c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
+		return
+	}
+
 	params := mux.Vars(r)
 	id := params["id"]
 

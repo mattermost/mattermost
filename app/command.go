@@ -53,7 +53,7 @@ func CreateCommandPost(post *model.Post, teamId string, response *model.CommandR
 		}
 
 		post.ParentId = ""
-		SendEphemeralPost(teamId, post.UserId, post)
+		SendEphemeralPost(post.UserId, post)
 	}
 
 	return post, nil

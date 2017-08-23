@@ -182,7 +182,6 @@ func SendNotifications(post *model.Post, team *model.Team, channel *model.Channe
 	if hereNotification && int64(len(profileMap)) > *utils.Cfg.TeamSettings.MaxNotificationsPerChannel {
 		hereNotification = false
 		SendEphemeralPost(
-			team.Id,
 			post.UserId,
 			&model.Post{
 				ChannelId: post.ChannelId,
@@ -195,7 +194,6 @@ func SendNotifications(post *model.Post, team *model.Team, channel *model.Channe
 	// If the channel has more than 1K users then @channel is disabled
 	if channelNotification && int64(len(profileMap)) > *utils.Cfg.TeamSettings.MaxNotificationsPerChannel {
 		SendEphemeralPost(
-			team.Id,
 			post.UserId,
 			&model.Post{
 				ChannelId: post.ChannelId,
@@ -208,7 +206,6 @@ func SendNotifications(post *model.Post, team *model.Team, channel *model.Channe
 	// If the channel has more than 1K users then @all is disabled
 	if allNotification && int64(len(profileMap)) > *utils.Cfg.TeamSettings.MaxNotificationsPerChannel {
 		SendEphemeralPost(
-			team.Id,
 			post.UserId,
 			&model.Post{
 				ChannelId: post.ChannelId,
@@ -734,7 +731,6 @@ func sendOutOfChannelMentions(sender *model.User, post *model.Post, teamId strin
 	}
 
 	SendEphemeralPost(
-		teamId,
 		post.UserId,
 		&model.Post{
 			ChannelId: post.ChannelId,

@@ -5,6 +5,7 @@ package app
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"regexp"
 	"strings"
@@ -212,7 +213,7 @@ func parseSlackLinksToMarkdown(text string) string {
 	return linkWithTextRegex.ReplaceAllString(text, "[${2}](${1})")
 }
 
-func SendEphemeralPost(teamId, userId string, post *model.Post) *model.Post {
+func SendEphemeralPost(userId string, post *model.Post) *model.Post {
 	post.Type = model.POST_EPHEMERAL
 
 	// fill in fields which haven't been specified which have sensible defaults
@@ -653,8 +654,7 @@ func DoPostAction(postId string, actionId string, userId string) *model.AppError
 
 	action := post.GetAction(actionId)
 	if action == nil || action.Integration == nil {
-		// TODO: make an error, return 404
-		return nil
+		return model.NewAppError("DoPostAction", "api.post.do_action.action_id.app_error", nil, fmt.Sprintf("action=%v", action), http.StatusNotFound)
 	}
 
 	request := &model.PostActionIntegrationRequest{
@@ -667,22 +667,38 @@ func DoPostAction(postId string, actionId string, userId string) *model.AppError
 	req.Header.Set("Accept", "application/json")
 	resp, err := utils.HttpClient(false).Do(req)
 	if err != nil {
-		// TODO: make an error, return ?
-		return nil
+		return model.NewAppError("DoPostAction", "api.post.do_action.action_integration.app_error", nil, "err="+err.Error(), http.StatusBadRequest)
 	}
 	defer resp.Body.Close()
 
+	if resp.StatusCode != http.StatusOK {
+		return model.NewAppError("DoPostAction", "api.post.do_action.action_integration.app_error", nil, fmt.Sprintf("status=%v", resp.StatusCode), http.StatusBadRequest)
+	}
+
 	var response model.PostActionIntegrationResponse
 	if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
-		// TODO: make an error, return ?
-		return nil
+		return model.NewAppError("DoPostAction", "api.post.do_action.action_integration.app_error", nil, "err="+err.Error(), http.StatusBadRequest)
 	}
 
 	if response.Update != nil {
 		response.Update.Id = postId
+		response.Update.AddProp("from_webhook", "true")
 		if _, err := UpdatePost(response.Update, false); err != nil {
 			return err
 		}
+	}
+
+	if response.EphemeralText != "" {
+		ephemeralPost := &model.Post{}
+		ephemeralPost.Message = parseSlackLinksToMarkdown(response.EphemeralText)
+		ephemeralPost.ChannelId = post.ChannelId
+		ephemeralPost.RootId = post.RootId
+		if ephemeralPost.RootId == "" {
+			ephemeralPost.RootId = post.Id
+		}
+		ephemeralPost.UserId = userId
+		ephemeralPost.AddProp("from_webhook", "true")
+		SendEphemeralPost(userId, ephemeralPost)
 	}
 
 	return nil

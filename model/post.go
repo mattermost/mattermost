@@ -75,17 +75,18 @@ type PostAction struct {
 }
 
 type PostActionIntegration struct {
-	URL     string            `json:"url,omitempty"`
-	Context map[string]string `json:"context,omitempty"`
+	URL     string          `json:"url,omitempty"`
+	Context StringInterface `json:"context,omitempty"`
 }
 
 type PostActionIntegrationRequest struct {
-	UserId  string            `json:"user_id"`
-	Context map[string]string `json:"context,omitempty"`
+	UserId  string          `json:"user_id"`
+	Context StringInterface `json:"context,omitempty"`
 }
 
 type PostActionIntegrationResponse struct {
-	Update *Post `json:"update"`
+	Update        *Post  `json:"update"`
+	EphemeralText string `json:"ephemeral_text"`
 }
 
 func (o *Post) ToJson() string {
@@ -288,23 +289,41 @@ func (r *PostActionIntegrationRequest) ToJson() string {
 	}
 }
 
-func (o *Post) StripActionIntegrations() {
+func (o *Post) Attachments() []*SlackAttachment {
 	if attachments, ok := o.Props["attachments"].([]*SlackAttachment); ok {
+		return attachments
+	}
+	var ret []*SlackAttachment
+	if attachments, ok := o.Props["attachments"].([]interface{}); ok {
 		for _, attachment := range attachments {
-			for _, action := range attachment.Actions {
-				action.Integration = nil
+			if enc, err := json.Marshal(attachment); err == nil {
+				var decoded SlackAttachment
+				if json.Unmarshal(enc, &decoded) == nil {
+					ret = append(ret, &decoded)
+				}
 			}
+		}
+	}
+	return ret
+}
+
+func (o *Post) StripActionIntegrations() {
+	attachments := o.Attachments()
+	if o.Props["attachments"] != nil {
+		o.Props["attachments"] = attachments
+	}
+	for _, attachment := range attachments {
+		for _, action := range attachment.Actions {
+			action.Integration = nil
 		}
 	}
 }
 
 func (o *Post) GetAction(id string) *PostAction {
-	if attachments, ok := o.Props["attachments"].([]*SlackAttachment); ok {
-		for _, attachment := range attachments {
-			for _, action := range attachment.Actions {
-				if action.Id == id {
-					return action
-				}
+	for _, attachment := range o.Attachments() {
+		for _, action := range attachment.Actions {
+			if action.Id == id {
+				return action
 			}
 		}
 	}

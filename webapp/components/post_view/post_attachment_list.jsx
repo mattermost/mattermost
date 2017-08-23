@@ -10,6 +10,11 @@ export default class PostAttachmentList extends React.PureComponent {
     static propTypes = {
 
         /**
+         * The post id
+         */
+        postId: PropTypes.string.isRequired,
+
+        /**
          * Array of attachments to render
          */
         attachments: PropTypes.array.isRequired
@@ -21,6 +26,7 @@ export default class PostAttachmentList extends React.PureComponent {
             content.push(
                 <PostAttachment
                     attachment={attachment}
+                    postId={this.props.postId}
                     key={'att_' + i}
                 />
             );
