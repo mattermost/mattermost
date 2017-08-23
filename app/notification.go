@@ -158,6 +158,16 @@ func SendNotifications(post *model.Post, team *model.Team, channel *model.Channe
 				}
 			}
 
+			//If email verification is required and user email is not verified don't send email.
+			emailVerified := true
+			l4g.Debug("Server requires email verification: %v", utils.Cfg.EmailSettings.RequireEmailVerification)
+			l4g.Debug("User email verification status: %v", profileMap[id].EmailVerified)
+
+			if utils.Cfg.EmailSettings.RequireEmailVerification && !profileMap[id].EmailVerified {
+				l4g.Error("Skipped sending notification email to %v, address not verified. [details: user_id=%v]", profileMap[id].Email, id)
+				emailVerified = false
+			}
+
 			var status *model.Status
 			var err *model.AppError
 			if status, err = GetStatus(id); err != nil {
@@ -170,7 +180,7 @@ func SendNotifications(post *model.Post, team *model.Team, channel *model.Channe
 				}
 			}
 
-			if userAllowsEmails && status.Status != model.STATUS_ONLINE && profileMap[id].DeleteAt == 0 {
+			if emailVerified && userAllowsEmails && status.Status != model.STATUS_ONLINE && profileMap[id].DeleteAt == 0 {
 				sendNotificationEmail(post, profileMap[id], channel, team, senderName, sender)
 			}
 		}
