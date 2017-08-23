@@ -5,6 +5,7 @@ import PostAttachmentList from './post_attachment_list.jsx';
 import PostAttachmentOpenGraph from './post_attachment_opengraph';
 import PostImage from './post_image.jsx';
 import YoutubeVideo from 'components/youtube_video';
+import GiphyGif from 'components/giphy_gif';
 
 import Constants from 'utils/constants.jsx';
 import * as Utils from 'utils/utils.jsx';
@@ -103,6 +104,10 @@ export default class PostBodyAdditionalContent extends React.PureComponent {
             return true;
         }
 
+        if (GiphyGif.isGiphyLink(link)) {
+            return true;
+        }
+
         if (this.isLinkImage(link)) {
             return true;
         }
@@ -134,6 +139,17 @@ export default class PostBodyAdditionalContent extends React.PureComponent {
                     channelId={this.props.post.channel_id}
                     link={link}
                     show={this.state.embedVisible}
+                    onLinkLoaded={this.handleLinkLoaded}
+                />
+            );
+        }
+
+        if (GiphyGif.isGiphyLink(link)) {
+            return (
+                <GiphyGif
+                    channelId={this.props.post.channel_id}
+                    link={link}
+                    onLinkLoadError={this.handleLinkLoadError}
                     onLinkLoaded={this.handleLinkLoaded}
                 />
             );
@@ -187,11 +203,23 @@ export default class PostBodyAdditionalContent extends React.PureComponent {
                     onClick={this.toggleEmbedVisibility}
                 />
             );
-            const message = (
+
+            var message = (
                 <div key='message'>
                     {this.props.message}
                 </div>
             );
+
+            // instead of showing a url to the gif, show the search phrase as a link to the gif
+            if (GiphyGif.isGiphyLink(this.state.link)) {
+                const linkTitle = this.props.post.message.replace(this.state.link, '');
+                message = (
+                    <a
+                        key='message'
+                        href={this.state.link}
+                    >{linkTitle}</a>
+                );
+            }
 
             const contents = [message];
             if (this.state.linkLoaded || this.props.previewCollapsed.startsWith('true')) {

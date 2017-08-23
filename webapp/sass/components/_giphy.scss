@@ -1,0 +1,28 @@
+@charset 'UTF-8';
+
+.post {
+
+    .gif-div {
+        -moz-force-broken-image-icon: 1;
+        border-radius: 5px;
+        margin-bottom: 8px;
+        max-height: 500px;
+        max-width: 450px;
+        position: relative;
+
+        &.placeholder {
+            height: 500px;
+        }
+
+        .sidebar--right & {
+            max-width: 100%;
+        }
+    }
+
+    .giphy-logo {
+        width: 100%;
+        max-height: 22px;
+        position: relative;
+        text-align: right;
+    }
+}
