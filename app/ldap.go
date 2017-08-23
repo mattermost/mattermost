@@ -18,7 +18,7 @@ func SyncLdap() {
 			if ldapI := einterfaces.GetLdapInterface(); ldapI != nil {
 				ldapI.SyncNow()
 			} else {
-				l4g.Error("%v", model.NewLocAppError("SyncLdap", "ent.ldap.disabled.app_error", nil, "").Error())
+				l4g.Error("%v", model.NewAppError("SyncLdap", "ent.ldap.disabled.app_error", nil, "", http.StatusNotImplemented).Error())
 			}
 		}
 	}()
@@ -31,7 +31,7 @@ func TestLdap() *model.AppError {
 			return err
 		}
 	} else {
-		err := model.NewLocAppError("TestLdap", "ent.ldap.disabled.app_error", nil, "")
+		err := model.NewAppError("TestLdap", "ent.ldap.disabled.app_error", nil, "", http.StatusNotImplemented)
 		err.StatusCode = http.StatusNotImplemented
 		return err
 	}
