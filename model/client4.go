@@ -327,7 +327,7 @@ func (c *Client4) DoApiRequest(method, url, data, etag string) (*http.Response, 
 	}
 
 	if rp, err := c.HttpClient.Do(rq); err != nil || rp == nil {
-		return nil, NewLocAppError(url, "model.client.connecting.app_error", nil, err.Error())
+		return nil, NewAppError(url, "model.client.connecting.app_error", nil, err.Error(), 0)
 	} else if rp.StatusCode == 304 {
 		return rp, nil
 	} else if rp.StatusCode >= 300 {
@@ -2867,17 +2867,17 @@ func (c *Client4) CreateEmoji(emoji *Emoji, image []byte, filename string) (*Emo
 	writer := multipart.NewWriter(body)
 
 	if part, err := writer.CreateFormFile("image", filename); err != nil {
-		return nil, &Response{StatusCode: http.StatusForbidden, Error: NewLocAppError("CreateEmoji", "model.client.create_emoji.image.app_error", nil, err.Error())}
+		return nil, &Response{StatusCode: http.StatusForbidden, Error: NewAppError("CreateEmoji", "model.client.create_emoji.image.app_error", nil, err.Error(), 0)}
 	} else if _, err = io.Copy(part, bytes.NewBuffer(image)); err != nil {
-		return nil, &Response{StatusCode: http.StatusForbidden, Error: NewLocAppError("CreateEmoji", "model.client.create_emoji.image.app_error", nil, err.Error())}
+		return nil, &Response{StatusCode: http.StatusForbidden, Error: NewAppError("CreateEmoji", "model.client.create_emoji.image.app_error", nil, err.Error(), 0)}
 	}
 
 	if err := writer.WriteField("emoji", emoji.ToJson()); err != nil {
-		return nil, &Response{StatusCode: http.StatusForbidden, Error: NewLocAppError("CreateEmoji", "model.client.create_emoji.emoji.app_error", nil, err.Error())}
+		return nil, &Response{StatusCode: http.StatusForbidden, Error: NewAppError("CreateEmoji", "model.client.create_emoji.emoji.app_error", nil, err.Error(), 0)}
 	}
 
 	if err := writer.Close(); err != nil {
-		return nil, &Response{StatusCode: http.StatusForbidden, Error: NewLocAppError("CreateEmoji", "model.client.create_emoji.writer.app_error", nil, err.Error())}
+		return nil, &Response{StatusCode: http.StatusForbidden, Error: NewAppError("CreateEmoji", "model.client.create_emoji.writer.app_error", nil, err.Error(), 0)}
 	}
 
 	return c.DoEmojiUploadFile(c.GetEmojisRoute(), body.Bytes(), writer.FormDataContentType())

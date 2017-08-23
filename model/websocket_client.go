@@ -5,6 +5,7 @@ package model
 
 import (
 	"encoding/json"
+	"net/http"
 
 	"github.com/gorilla/websocket"
 )
@@ -30,7 +31,7 @@ type WebSocketClient struct {
 func NewWebSocketClient(url, authToken string) (*WebSocketClient, *AppError) {
 	conn, _, err := websocket.DefaultDialer.Dial(url+API_URL_SUFFIX_V3+"/users/websocket", nil)
 	if err != nil {
-		return nil, NewLocAppError("NewWebSocketClient", "model.websocket_client.connect_fail.app_error", nil, err.Error())
+		return nil, NewAppError("NewWebSocketClient", "model.websocket_client.connect_fail.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	client := &WebSocketClient{
@@ -55,7 +56,7 @@ func NewWebSocketClient(url, authToken string) (*WebSocketClient, *AppError) {
 func NewWebSocketClient4(url, authToken string) (*WebSocketClient, *AppError) {
 	conn, _, err := websocket.DefaultDialer.Dial(url+API_URL_SUFFIX+"/websocket", nil)
 	if err != nil {
-		return nil, NewLocAppError("NewWebSocketClient4", "model.websocket_client.connect_fail.app_error", nil, err.Error())
+		return nil, NewAppError("NewWebSocketClient4", "model.websocket_client.connect_fail.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	client := &WebSocketClient{
@@ -79,7 +80,7 @@ func (wsc *WebSocketClient) Connect() *AppError {
 	var err error
 	wsc.Conn, _, err = websocket.DefaultDialer.Dial(wsc.ConnectUrl, nil)
 	if err != nil {
-		return NewLocAppError("Connect", "model.websocket_client.connect_fail.app_error", nil, err.Error())
+		return NewAppError("Connect", "model.websocket_client.connect_fail.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	wsc.EventChannel = make(chan *WebSocketEvent, 100)
@@ -107,7 +108,7 @@ func (wsc *WebSocketClient) Listen() {
 			var err error
 			if _, rawMsg, err = wsc.Conn.ReadMessage(); err != nil {
 				if !websocket.IsCloseError(err, websocket.CloseNormalClosure, websocket.CloseNoStatusReceived) {
-					wsc.ListenError = NewLocAppError("NewWebSocketClient", "model.websocket_client.connect_fail.app_error", nil, err.Error())
+					wsc.ListenError = NewAppError("NewWebSocketClient", "model.websocket_client.connect_fail.app_error", nil, err.Error(), http.StatusInternalServerError)
 				}
 
 				return

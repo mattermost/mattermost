@@ -144,7 +144,7 @@ func (c *Client) DoPost(url, data, contentType string) (*http.Response, *AppErro
 	rq.Close = true
 
 	if rp, err := c.HttpClient.Do(rq); err != nil {
-		return nil, NewLocAppError(url, "model.client.connecting.app_error", nil, err.Error())
+		return nil, NewAppError(url, "model.client.connecting.app_error", nil, err.Error(), 0)
 	} else if rp.StatusCode >= 300 {
 		defer closeBody(rp)
 		return nil, AppErrorFromJson(rp.Body)
@@ -162,7 +162,7 @@ func (c *Client) DoApiPost(url string, data string) (*http.Response, *AppError) 
 	}
 
 	if rp, err := c.HttpClient.Do(rq); err != nil {
-		return nil, NewLocAppError(url, "model.client.connecting.app_error", nil, err.Error())
+		return nil, NewAppError(url, "model.client.connecting.app_error", nil, err.Error(), 0)
 	} else if rp.StatusCode >= 300 {
 		defer closeBody(rp)
 		return nil, AppErrorFromJson(rp.Body)
@@ -184,7 +184,7 @@ func (c *Client) DoApiGet(url string, data string, etag string) (*http.Response,
 	}
 
 	if rp, err := c.HttpClient.Do(rq); err != nil {
-		return nil, NewLocAppError(url, "model.client.connecting.app_error", nil, err.Error())
+		return nil, NewAppError(url, "model.client.connecting.app_error", nil, err.Error(), 0)
 	} else if rp.StatusCode == 304 {
 		return rp, nil
 	} else if rp.StatusCode >= 300 {
@@ -677,7 +677,7 @@ func (c *Client) login(m map[string]string) (*Result, *AppError) {
 		sessionToken := getCookie(SESSION_COOKIE_TOKEN, r)
 
 		if c.AuthToken != sessionToken.Value {
-			NewLocAppError("/users/login", "model.client.login.app_error", nil, "")
+			NewAppError("/users/login", "model.client.login.app_error", nil, "", 0)
 		}
 
 		defer closeBody(r)
@@ -1054,7 +1054,7 @@ func (c *Client) DownloadComplianceReport(id string) (*Result, *AppError) {
 	}
 
 	if rp, err := c.HttpClient.Do(rq); err != nil {
-		return nil, NewLocAppError("/admin/download_compliance_report", "model.client.connecting.app_error", nil, err.Error())
+		return nil, NewAppError("/admin/download_compliance_report", "model.client.connecting.app_error", nil, err.Error(), 0)
 	} else if rp.StatusCode >= 300 {
 		defer rp.Body.Close()
 		return nil, AppErrorFromJson(rp.Body)
@@ -1527,19 +1527,19 @@ func (c *Client) UploadPostAttachment(data []byte, channelId string, filename st
 	writer := multipart.NewWriter(body)
 
 	if part, err := writer.CreateFormFile("files", filename); err != nil {
-		return nil, NewLocAppError("UploadPostAttachment", "model.client.upload_post_attachment.file.app_error", nil, err.Error())
+		return nil, NewAppError("UploadPostAttachment", "model.client.upload_post_attachment.file.app_error", nil, err.Error(), 0)
 	} else if _, err = io.Copy(part, bytes.NewBuffer(data)); err != nil {
-		return nil, NewLocAppError("UploadPostAttachment", "model.client.upload_post_attachment.file.app_error", nil, err.Error())
+		return nil, NewAppError("UploadPostAttachment", "model.client.upload_post_attachment.file.app_error", nil, err.Error(), 0)
 	}
 
 	if part, err := writer.CreateFormField("channel_id"); err != nil {
-		return nil, NewLocAppError("UploadPostAttachment", "model.client.upload_post_attachment.channel_id.app_error", nil, err.Error())
+		return nil, NewAppError("UploadPostAttachment", "model.client.upload_post_attachment.channel_id.app_error", nil, err.Error(), 0)
 	} else if _, err = io.Copy(part, strings.NewReader(channelId)); err != nil {
-		return nil, NewLocAppError("UploadPostAttachment", "model.client.upload_post_attachment.channel_id.app_error", nil, err.Error())
+		return nil, NewAppError("UploadPostAttachment", "model.client.upload_post_attachment.channel_id.app_error", nil, err.Error(), 0)
 	}
 
 	if err := writer.Close(); err != nil {
-		return nil, NewLocAppError("UploadPostAttachment", "model.client.upload_post_attachment.writer.app_error", nil, err.Error())
+		return nil, NewAppError("UploadPostAttachment", "model.client.upload_post_attachment.writer.app_error", nil, err.Error(), 0)
 	}
 
 	if result, err := c.uploadFile(c.ApiUrl+c.GetTeamRoute()+"/files/upload", body.Bytes(), writer.FormDataContentType()); err != nil {
@@ -1559,7 +1559,7 @@ func (c *Client) uploadFile(url string, data []byte, contentType string) (*Resul
 	}
 
 	if rp, err := c.HttpClient.Do(rq); err != nil {
-		return nil, NewLocAppError(url, "model.client.connecting.app_error", nil, err.Error())
+		return nil, NewAppError(url, "model.client.connecting.app_error", nil, err.Error(), 0)
 	} else if rp.StatusCode >= 300 {
 		return nil, AppErrorFromJson(rp.Body)
 	} else {
@@ -2175,17 +2175,17 @@ func (c *Client) CreateEmoji(emoji *Emoji, image []byte, filename string) (*Emoj
 	writer := multipart.NewWriter(body)
 
 	if part, err := writer.CreateFormFile("image", filename); err != nil {
-		return nil, NewLocAppError("CreateEmoji", "model.client.create_emoji.image.app_error", nil, err.Error())
+		return nil, NewAppError("CreateEmoji", "model.client.create_emoji.image.app_error", nil, err.Error(), 0)
 	} else if _, err = io.Copy(part, bytes.NewBuffer(image)); err != nil {
-		return nil, NewLocAppError("CreateEmoji", "model.client.create_emoji.image.app_error", nil, err.Error())
+		return nil, NewAppError("CreateEmoji", "model.client.create_emoji.image.app_error", nil, err.Error(), 0)
 	}
 
 	if err := writer.WriteField("emoji", emoji.ToJson()); err != nil {
-		return nil, NewLocAppError("CreateEmoji", "model.client.create_emoji.emoji.app_error", nil, err.Error())
+		return nil, NewAppError("CreateEmoji", "model.client.create_emoji.emoji.app_error", nil, err.Error(), 0)
 	}
 
 	if err := writer.Close(); err != nil {
-		return nil, NewLocAppError("CreateEmoji", "model.client.create_emoji.writer.app_error", nil, err.Error())
+		return nil, NewAppError("CreateEmoji", "model.client.create_emoji.writer.app_error", nil, err.Error(), 0)
 	}
 
 	rq, _ := http.NewRequest("POST", c.ApiUrl+c.GetEmojiRoute()+"/create", body)
@@ -2197,7 +2197,7 @@ func (c *Client) CreateEmoji(emoji *Emoji, image []byte, filename string) (*Emoj
 	}
 
 	if r, err := c.HttpClient.Do(rq); err != nil {
-		return nil, NewLocAppError("CreateEmoji", "model.client.connecting.app_error", nil, err.Error())
+		return nil, NewAppError("CreateEmoji", "model.client.connecting.app_error", nil, err.Error(), 0)
 	} else if r.StatusCode >= 300 {
 		return nil, AppErrorFromJson(r.Body)
 	} else {
@@ -2241,7 +2241,7 @@ func (c *Client) UploadCertificateFile(data []byte, contentType string) *AppErro
 	}
 
 	if rp, err := c.HttpClient.Do(rq); err != nil {
-		return NewLocAppError(url, "model.client.connecting.app_error", nil, err.Error())
+		return NewAppError(url, "model.client.connecting.app_error", nil, err.Error(), 0)
 	} else if rp.StatusCode >= 300 {
 		return AppErrorFromJson(rp.Body)
 	} else {

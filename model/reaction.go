@@ -6,6 +6,7 @@ package model
 import (
 	"encoding/json"
 	"io"
+	"net/http"
 	"regexp"
 )
 
@@ -54,21 +55,21 @@ func ReactionsFromJson(data io.Reader) []*Reaction {
 
 func (o *Reaction) IsValid() *AppError {
 	if len(o.UserId) != 26 {
-		return NewLocAppError("Reaction.IsValid", "model.reaction.is_valid.user_id.app_error", nil, "user_id="+o.UserId)
+		return NewAppError("Reaction.IsValid", "model.reaction.is_valid.user_id.app_error", nil, "user_id="+o.UserId, http.StatusBadRequest)
 	}
 
 	if len(o.PostId) != 26 {
-		return NewLocAppError("Reaction.IsValid", "model.reaction.is_valid.post_id.app_error", nil, "post_id="+o.PostId)
+		return NewAppError("Reaction.IsValid", "model.reaction.is_valid.post_id.app_error", nil, "post_id="+o.PostId, http.StatusBadRequest)
 	}
 
 	validName := regexp.MustCompile(`^[a-zA-Z0-9\-\+_]+$`)
 
 	if len(o.EmojiName) == 0 || len(o.EmojiName) > 64 || !validName.MatchString(o.EmojiName) {
-		return NewLocAppError("Reaction.IsValid", "model.reaction.is_valid.emoji_name.app_error", nil, "emoji_name="+o.EmojiName)
+		return NewAppError("Reaction.IsValid", "model.reaction.is_valid.emoji_name.app_error", nil, "emoji_name="+o.EmojiName, http.StatusBadRequest)
 	}
 
 	if o.CreateAt == 0 {
-		return NewLocAppError("Reaction.IsValid", "model.reaction.is_valid.create_at.app_error", nil, "")
+		return NewAppError("Reaction.IsValid", "model.reaction.is_valid.create_at.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	return nil
