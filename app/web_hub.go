@@ -27,8 +27,8 @@ const (
 )
 
 type Hub struct {
-	connections     []*WebConn
 	connectionCount int64
+	connections     []*WebConn
 	connectionIndex int
 	register        chan *WebConn
 	unregister      chan *WebConn
