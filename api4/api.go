@@ -205,6 +205,7 @@ func InitApi(full bool) {
 	InitReaction()
 	InitWebrtc()
 	InitOpenGraph()
+	InitComet()
 
 	app.Srv.Router.Handle("/api/v4/{anything:.*}", http.HandlerFunc(Handle404))
 

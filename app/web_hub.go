@@ -4,6 +4,7 @@
 package app
 
 import (
+	"context"
 	"fmt"
 	"hash/fnv"
 	"runtime"
@@ -27,6 +28,7 @@ const (
 )
 
 type Hub struct {
+	cometQueue      *CometQueue
 	connections     []*WebConn
 	connectionCount int64
 	connectionIndex int
@@ -44,6 +46,7 @@ var stopCheckingForDeadlock chan bool
 
 func NewWebHub() *Hub {
 	return &Hub{
+		cometQueue:     NewCometQueue(time.Second * 15),
 		register:       make(chan *WebConn),
 		unregister:     make(chan *WebConn),
 		connections:    make([]*WebConn, 0, model.SESSION_CACHE_SIZE),
@@ -327,9 +330,11 @@ func (h *Hub) Unregister(webConn *WebConn) {
 }
 
 func (h *Hub) Broadcast(message *model.WebSocketEvent) {
-	if message != nil {
-		h.broadcast <- message
+	if message == nil {
+		return
 	}
+	h.broadcast <- message
+	h.cometQueue.Insert(message)
 }
 
 func (h *Hub) InvalidateUser(userId string) {
@@ -408,7 +413,7 @@ func (h *Hub) Start() {
 
 			case msg := <-h.broadcast:
 				for _, webCon := range h.connections {
-					if webCon.ShouldSendEvent(msg) {
+					if webCon.IsAuthenticated() && ShouldSendWebSocketEvent(webCon.Session, msg) {
 						select {
 						case webCon.Send <- msg:
 						default:
@@ -456,4 +461,42 @@ func (h *Hub) Start() {
 	}
 
 	go doRecoverableStart()
+}
+
+func (h *Hub) NextCometEvent(ctx context.Context, resumeToken string, session *model.Session) (*CometResult, error) {
+	return h.cometQueue.Next(ctx, resumeToken, func(event *model.WebSocketEvent) bool {
+		return ShouldSendWebSocketEvent(session, event)
+	})
+}
+
+func ShouldSendWebSocketEvent(session *model.Session, msg *model.WebSocketEvent) bool {
+	if session == nil || session.UserId == "" {
+		return false
+	}
+
+	if len(msg.Broadcast.UserId) > 0 {
+		return session.UserId == msg.Broadcast.UserId
+	}
+
+	if len(msg.Broadcast.OmitUsers) > 0 {
+		if _, ok := msg.Broadcast.OmitUsers[session.UserId]; ok {
+			return false
+		}
+	}
+
+	if len(msg.Broadcast.ChannelId) > 0 {
+		if result := <-Srv.Store.Channel().GetAllChannelMembersForUser(session.UserId, true); result.Err != nil {
+			l4g.Error("comet.shouldSendEvent: " + result.Err.Error())
+			return false
+		} else {
+			_, ok := result.Data.(map[string]string)[msg.Broadcast.ChannelId]
+			return ok
+		}
+	}
+
+	if len(msg.Broadcast.TeamId) > 0 {
+		return session.GetTeamByTeamId(msg.Broadcast.TeamId) != nil
+	}
+
+	return true
 }

@@ -12,6 +12,7 @@ import BrowserStore from 'stores/browser_store.jsx';
 import ErrorStore from 'stores/error_store.jsx';
 import NotificationStore from 'stores/notification_store.jsx'; //eslint-disable-line no-unused-vars
 
+import CometClient from 'client/web_comet_client.jsx';
 import WebSocketClient from 'client/web_websocket_client.jsx';
 import * as WebrtcActions from './webrtc_actions.jsx';
 
@@ -42,41 +43,50 @@ import {ChannelTypes, TeamTypes, UserTypes, PostTypes, EmojiTypes} from 'matterm
 const MAX_WEBSOCKET_FAILS = 7;
 
 export function initialize() {
-    if (!window.WebSocket) {
-        console.log('Browser does not support websocket'); //eslint-disable-line no-console
-        return;
-    }
-
     let connUrl = getSiteURL();
 
-    // replace the protocol with a websocket one
-    if (connUrl.startsWith('https:')) {
-        connUrl = connUrl.replace(/^https:/, 'wss:');
-    } else {
-        connUrl = connUrl.replace(/^http:/, 'ws:');
-    }
-
-    // append a port number if one isn't already specified
-    if (!(/:\d+$/).test(connUrl)) {
-        if (connUrl.startsWith('wss:')) {
-            connUrl += ':' + global.window.mm_config.WebsocketSecurePort;
+    // TODO: remove the "false &&" before committing!
+    if (false && window.WebSocket) {
+        // replace the protocol with a websocket one
+        if (connUrl.startsWith('https:')) {
+            connUrl = connUrl.replace(/^https:/, 'wss:');
         } else {
-            connUrl += ':' + global.window.mm_config.WebsocketPort;
+            connUrl = connUrl.replace(/^http:/, 'ws:');
         }
+
+        // append a port number if one isn't already specified
+        if (!(/:\d+$/).test(connUrl)) {
+            if (connUrl.startsWith('wss:')) {
+                connUrl += ':' + global.window.mm_config.WebsocketSecurePort;
+            } else {
+                connUrl += ':' + global.window.mm_config.WebsocketPort;
+            }
+        }
+
+        connUrl += Client4.getUrlVersion() + '/websocket';
+
+        WebSocketClient.setEventCallback(handleEvent);
+        WebSocketClient.setFirstConnectCallback(handleFirstConnect);
+        WebSocketClient.setReconnectCallback(() => reconnect(false));
+        WebSocketClient.setMissedEventCallback(() => reconnect(false));
+        WebSocketClient.setCloseCallback(handleClose);
+        WebSocketClient.initialize(connUrl);
+    } else {
+        console.log('Browser does not support websocket'); //eslint-disable-line no-console
+
+        connUrl += Client4.getUrlVersion() + '/comet';
+        CometClient.setEventCallback(handleEvent);
+        CometClient.setFirstConnectCallback(handleFirstConnect);
+        CometClient.setReconnectCallback(() => reconnect(false));
+        CometClient.setMissedEventCallback(() => reconnect(false));
+        CometClient.setCloseCallback(handleClose);
+        CometClient.initialize(connUrl);
     }
-
-    connUrl += Client4.getUrlVersion() + '/websocket';
-
-    WebSocketClient.setEventCallback(handleEvent);
-    WebSocketClient.setFirstConnectCallback(handleFirstConnect);
-    WebSocketClient.setReconnectCallback(() => reconnect(false));
-    WebSocketClient.setMissedEventCallback(() => reconnect(false));
-    WebSocketClient.setCloseCallback(handleClose);
-    WebSocketClient.initialize(connUrl);
 }
 
 export function close() {
     WebSocketClient.close();
+    CometClient.close()
 }
 
 function reconnectWebSocket() {
