@@ -16,6 +16,7 @@ import (
 	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/html2text"
 	"github.com/mattermost/platform/model"
+	"net/http"
 )
 
 func encodeRFC2047Word(s string) string {
@@ -34,12 +35,12 @@ func connectToSMTPServer(config *model.Config) (net.Conn, *model.AppError) {
 
 		conn, err = tls.Dial("tcp", config.EmailSettings.SMTPServer+":"+config.EmailSettings.SMTPPort, tlsconfig)
 		if err != nil {
-			return nil, model.NewLocAppError("SendMail", "utils.mail.connect_smtp.open_tls.app_error", nil, err.Error())
+			return nil, model.NewAppError("SendMail", "utils.mail.connect_smtp.open_tls.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 	} else {
 		conn, err = net.Dial("tcp", config.EmailSettings.SMTPServer+":"+config.EmailSettings.SMTPPort)
 		if err != nil {
-			return nil, model.NewLocAppError("SendMail", "utils.mail.connect_smtp.open.app_error", nil, err.Error())
+			return nil, model.NewAppError("SendMail", "utils.mail.connect_smtp.open.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 	}
 
@@ -50,7 +51,7 @@ func newSMTPClient(conn net.Conn, config *model.Config) (*smtp.Client, *model.Ap
 	c, err := smtp.NewClient(conn, config.EmailSettings.SMTPServer+":"+config.EmailSettings.SMTPPort)
 	if err != nil {
 		l4g.Error(T("utils.mail.new_client.open.error"), err)
-		return nil, model.NewLocAppError("SendMail", "utils.mail.connect_smtp.open_tls.app_error", nil, err.Error())
+		return nil, model.NewAppError("SendMail", "utils.mail.connect_smtp.open_tls.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	hostname := GetHostnameFromSiteURL(*config.ServiceSettings.SiteURL)
@@ -58,7 +59,7 @@ func newSMTPClient(conn net.Conn, config *model.Config) (*smtp.Client, *model.Ap
 		err := c.Hello(hostname)
 		if err != nil {
 			l4g.Error(T("utils.mail.new_client.helo.error"), err)
-			return nil, model.NewLocAppError("SendMail", "utils.mail.connect_smtp.helo.app_error", nil, err.Error())
+			return nil, model.NewAppError("SendMail", "utils.mail.connect_smtp.helo.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 	}
 
@@ -74,7 +75,7 @@ func newSMTPClient(conn net.Conn, config *model.Config) (*smtp.Client, *model.Ap
 		auth := smtp.PlainAuth("", config.EmailSettings.SMTPUsername, config.EmailSettings.SMTPPassword, config.EmailSettings.SMTPServer+":"+config.EmailSettings.SMTPPort)
 
 		if err = c.Auth(auth); err != nil {
-			return nil, model.NewLocAppError("SendMail", "utils.mail.new_client.auth.app_error", nil, err.Error())
+			return nil, model.NewAppError("SendMail", "utils.mail.new_client.auth.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 	}
 	return c, nil
@@ -148,25 +149,25 @@ func SendMailUsingConfig(to, subject, htmlBody string, config *model.Config) *mo
 	defer c.Close()
 
 	if err := c.Mail(fromMail.Address); err != nil {
-		return model.NewLocAppError("SendMail", "utils.mail.send_mail.from_address.app_error", nil, err.Error())
+		return model.NewAppError("SendMail", "utils.mail.send_mail.from_address.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	if err := c.Rcpt(to); err != nil {
-		return model.NewLocAppError("SendMail", "utils.mail.send_mail.to_address.app_error", nil, err.Error())
+		return model.NewAppError("SendMail", "utils.mail.send_mail.to_address.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	w, err := c.Data()
 	if err != nil {
-		return model.NewLocAppError("SendMail", "utils.mail.send_mail.msg_data.app_error", nil, err.Error())
+		return model.NewAppError("SendMail", "utils.mail.send_mail.msg_data.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	_, err = m.WriteTo(w)
 	if err != nil {
-		return model.NewLocAppError("SendMail", "utils.mail.send_mail.msg.app_error", nil, err.Error())
+		return model.NewAppError("SendMail", "utils.mail.send_mail.msg.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	err = w.Close()
 	if err != nil {
-		return model.NewLocAppError("SendMail", "utils.mail.send_mail.close.app_error", nil, err.Error())
+		return model.NewAppError("SendMail", "utils.mail.send_mail.close.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	return nil

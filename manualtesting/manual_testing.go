@@ -39,7 +39,7 @@ func manualTest(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	// URL Parameters
 	params, err := url.ParseQuery(r.URL.RawQuery)
 	if err != nil {
-		c.Err = model.NewLocAppError("/manual", "manaultesting.manual_test.parse.app_error", nil, "")
+		c.Err = model.NewAppError("/manual", "manaultesting.manual_test.parse.app_error", nil, "", http.StatusBadRequest)
 		return
 	}
 
