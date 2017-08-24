@@ -149,20 +149,20 @@ func TestCreatePost(t *testing.T) {
 		}
 	}
 
-	isLicensed := utils.IsLicensed
-	license := utils.License
-	disableTownSquareReadOnly := utils.Cfg.TeamSettings.TownSquareIsReadOnly
+	isLicensed := utils.IsLicensed()
+	license := utils.License()
+	disableTownSquareReadOnly := utils.Cfg.TeamSettings.ExperimentalTownSquareIsReadOnly
 	defer func() {
-		utils.Cfg.TeamSettings.TownSquareIsReadOnly = disableTownSquareReadOnly
-		utils.IsLicensed = isLicensed
-		utils.License = license
+		utils.Cfg.TeamSettings.ExperimentalTownSquareIsReadOnly = disableTownSquareReadOnly
+		utils.SetIsLicensed(isLicensed)
+		utils.SetLicense(license)
 		utils.SetDefaultRolesBasedOnConfig()
 	}()
-	*utils.Cfg.TeamSettings.TownSquareIsReadOnly = true
+	*utils.Cfg.TeamSettings.ExperimentalTownSquareIsReadOnly = true
 	utils.SetDefaultRolesBasedOnConfig()
-	utils.IsLicensed = true
-	utils.License = &model.License{Features: &model.Features{}}
-	utils.License.Features.SetDefaults()
+	utils.SetIsLicensed(true)
+	utils.SetLicense(&model.License{Features: &model.Features{}})
+	utils.License().Features.SetDefaults()
 
 	app.Srv.Store.Channel().FillDefaultChannelCache()
 	defaultChannel := store.Must(app.Srv.Store.Channel().GetByName(team.Id, model.DEFAULT_CHANNEL, true)).(*model.Channel)
@@ -171,7 +171,7 @@ func TestCreatePost(t *testing.T) {
 		Message:   "Default Channel Post",
 	}
 	if _, err = Client.CreatePost(defaultPost); err == nil {
-		t.Fatal("should have failed -- TownSquareIsReadOnly is true and it's a read only channel")
+		t.Fatal("should have failed -- ExperimentalTownSquareIsReadOnly is true and it's a read only channel")
 	}
 
 	adminDefaultChannel := store.Must(app.Srv.Store.Channel().GetByName(adminTeam.Id, model.DEFAULT_CHANNEL, true)).(*model.Channel)
@@ -180,7 +180,7 @@ func TestCreatePost(t *testing.T) {
 		Message:   "Admin Default Channel Post",
 	}
 	if _, err = AdminClient.CreatePost(adminDefaultPost); err != nil {
-		t.Fatal("should not have failed -- TownSquareIsReadOnly is true and admin can post to channel")
+		t.Fatal("should not have failed -- ExperimentalTownSquareIsReadOnly is true and admin can post to channel")
 	}
 }
 

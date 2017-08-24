@@ -436,7 +436,7 @@ export function emitLocalUserTypingEvent(channelId, parentId) {
     const t = Date.now();
     const membersInChannel = ChannelStore.getStats(channelId).member_count;
 
-    if (global.window.mm_license.IsLicensed === 'true' && global.window.mm_config.TownSquareIsReadOnly === 'true') {
+    if (global.window.mm_license.IsLicensed === 'true' && global.window.mm_config.ExperimentalTownSquareIsReadOnly === 'true') {
         const channel = ChannelStore.getChannelById(channelId);
         if (channel && ChannelStore.isDefault(channel)) {
             return;

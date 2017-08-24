@@ -515,7 +515,7 @@ func getClientConfig(c *model.Config) map[string]string {
 	if IsLicensed() {
 
 		License := License()
-		props["TownSquareIsReadOnly"] = strconv.FormatBool(*c.TeamSettings.TownSquareIsReadOnly)
+		props["ExperimentalTownSquareIsReadOnly"] = strconv.FormatBool(*c.TeamSettings.ExperimentalTownSquareIsReadOnly)
 
 		if *License.Features.CustomBrand {
 			props["EnableCustomBrand"] = strconv.FormatBool(*c.TeamSettings.EnableCustomBrand)

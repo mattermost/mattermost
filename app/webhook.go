@@ -520,7 +520,7 @@ func HandleIncomingWebhook(hookId string, req *model.IncomingWebhookRequest) *mo
 		}
 	}
 
-	if utils.IsLicensed && *utils.Cfg.TeamSettings.TownSquareIsReadOnly &&
+	if utils.IsLicensed() && *utils.Cfg.TeamSettings.ExperimentalTownSquareIsReadOnly &&
 		channel.Name == model.DEFAULT_CHANNEL {
 		return model.NewLocAppError("HandleIncomingWebhook", "api.post.read_only_town_square", nil, "")
 	}
