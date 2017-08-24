@@ -73,6 +73,115 @@ func TestCreateOAuthApp(t *testing.T) {
 	CheckNotImplementedStatus(t, resp)
 }
 
+func TestUpdateOAuthApp(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+	AdminClient := th.SystemAdminClient
+
+	enableOAuth := utils.Cfg.ServiceSettings.EnableOAuthServiceProvider
+	adminOnly := *utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations
+	defer func() {
+		utils.Cfg.ServiceSettings.EnableOAuthServiceProvider = enableOAuth
+		*utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations = adminOnly
+	}()
+	utils.Cfg.ServiceSettings.EnableOAuthServiceProvider = true
+	utils.SetDefaultRolesBasedOnConfig()
+
+	oapp := &model.OAuthApp{
+		Name:         "oapp",
+		IsTrusted:    false,
+		IconURL:      "https://nowhere.com/img",
+		Homepage:     "https://nowhere.com",
+		Description:  "test", 
+		CallbackUrls: []string{"https://callback.com"},
+	}
+
+	oapp, _ = AdminClient.CreateOAuthApp(oapp)
+
+	oapp.Name = "oapp_update"
+	oapp.IsTrusted = true
+	oapp.IconURL = "https://nowhere.com/img_update"
+	oapp.Homepage = "https://nowhere_update.com"
+	oapp.Description = "test_update"
+	oapp.CallbackUrls = []string{"https://callback_update.com","https://another_callback.com"}
+
+	updatedApp, resp := AdminClient.UpdateOAuthApp(oapp)
+	CheckNoError(t, resp)
+
+	if updatedApp.Id != oapp.Id {
+		t.Fatal("Id should have not updated")
+	}
+
+	if updatedApp.CreatorId != oapp.CreatorId {
+		t.Fatal("CreatorId should have not updated")
+	}
+
+	if updatedApp.CreateAt != oapp.CreateAt {
+		t.Fatal("CreateAt should have not updated")
+	}
+
+	if updatedApp.UpdateAt == oapp.UpdateAt {
+		t.Fatal("UpdateAt should have updated")
+	}
+
+	if updatedApp.ClientSecret != oapp.ClientSecret {
+		t.Fatal("ClientSecret should have not updated")
+	}
+
+	if updatedApp.Name != oapp.Name {
+		t.Fatal("Name should have updated")
+	}
+
+	if updatedApp.Description != oapp.Description {
+		t.Fatal("Description should have updated")
+	}
+
+	if updatedApp.IconURL != oapp.IconURL {
+		t.Fatal("IconURL should have updated")
+	}
+
+	if len(updatedApp.CallbackUrls) == len(oapp.CallbackUrls) {
+		for i, callbackUrl := range updatedApp.CallbackUrls {
+			if callbackUrl != oapp.CallbackUrls[i] {
+				t.Fatal("Description should have updated")
+			} 
+		}
+	}
+
+	if updatedApp.Homepage != oapp.Homepage {
+		t.Fatal("Homepage should have updated")
+	}
+
+	if updatedApp.IsTrusted != oapp.IsTrusted {
+		t.Fatal("IsTrusted should have updated")
+	}
+
+	*utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations = false
+	utils.SetDefaultRolesBasedOnConfig()
+	_, resp = Client.UpdateOAuthApp(oapp)
+	CheckForbiddenStatus(t, resp)
+
+	utils.Cfg.ServiceSettings.EnableOAuthServiceProvider = false
+	_, resp = AdminClient.UpdateOAuthApp(oapp)
+	CheckNotImplementedStatus(t, resp)
+
+	_, resp = Client.UpdateOAuthApp(oapp)
+	CheckForbiddenStatus(t, resp)
+
+	Client.Logout()
+	_, resp = Client.UpdateOAuthApp(oapp)
+	CheckUnauthorizedStatus(t, resp)
+
+	oapp.Id = model.NewId()
+	_, resp = AdminClient.UpdateOAuthApp(oapp)
+	CheckNotFoundStatus(t, resp)
+
+	oapp.Id = "junk"
+	_, resp = AdminClient.UpdateOAuthApp(oapp)
+	CheckBadRequestStatus(t, resp)
+}
+
 func TestGetOAuthApps(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
 	defer TearDown()
