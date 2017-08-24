@@ -221,7 +221,7 @@ func (me *GiphyProvider) DoCommand(args *model.CommandArgs, message string) *mod
 	// TODO: this is a developer API key that cannot be used in production
 	// we have to upgrade it to a production key before releasing this feature
 	// see https://developers.giphy.com/docs/
-	giphyApiKey := "c2ee6099a4f94a82b45e6ac5f71be18d"
+	giphyApiKey := "*****"
 
 	escapedQuery := url.PathEscape(message)
 	giphyUrl := fmt.Sprintf("https://api.giphy.com/v1/gifs/translate?api_key=%s&s=%s", giphyApiKey, escapedQuery)
