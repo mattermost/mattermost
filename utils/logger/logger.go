@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"runtime"
+	"strings"
 
 	l4g "github.com/alecthomas/log4go"
 
@@ -90,20 +91,23 @@ func serializeContext(ctx context.Context) map[string]string {
 	return serialized
 }
 
-// returns the path to the next file up the callstack that has a different name than this file
-// in other words, finds the path to the file that is doing the logging
-// looks a maximum of 10 frames up the call stack to find a file that has a different name than this one
+// Returns the path to the next file up the callstack that has a different name than this file
+// in other words, finds the path to the file that is doing the logging.
+// Removes machine-specific prefix, so returned path starts with /platform.
+// Looks a maximum of 10 frames up the call stack to find a file that has a different name than this one.
 func getCallerFilename() string {
 	_, currentFilename, _, ok := runtime.Caller(0)
 	if !ok {
 		return "Unknown"
 	}
+	pathPrefix := strings.TrimSuffix(currentFilename, "/platform/utils/logger/logger.go")
+
 	for i := 1; i < 10; i++ {
 		_, parentFilename, _, ok := runtime.Caller(i)
 		if !ok {
 			return "Unknown"
 		} else if parentFilename != currentFilename {
-			return parentFilename
+			return strings.TrimPrefix(parentFilename, pathPrefix)
 		}
 	}
 	return "Unknown"

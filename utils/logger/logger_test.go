@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -48,7 +47,7 @@ func TestSerializeLogMessageEmptyContext(t *testing.T) {
 	json.Unmarshal([]byte(serialized), &deserialized)
 
 	assert.Empty(t, deserialized.Context)
-	assert.True(t, strings.HasSuffix(deserialized.File, "/platform/utils/logger/logger_test.go"))
+	assert.Equal(t, deserialized.File, "/platform/utils/logger/logger_test.go")
 	assert.Equal(t, logMessage, deserialized.Message)
 }
 
@@ -69,7 +68,7 @@ func TestSerializeLogMessagePopulatedContext(t *testing.T) {
 		"request_id": "foo",
 		"user_id":    "bar",
 	}, deserialized.Context)
-	assert.True(t, strings.HasSuffix(deserialized.File, "/platform/utils/logger/logger_test.go"))
+	assert.Equal(t, deserialized.File, "/platform/utils/logger/logger_test.go")
 	assert.Equal(t, logMessage, deserialized.Message)
 }
 
@@ -99,7 +98,7 @@ func TestDebugc(t *testing.T) {
 	json.Unmarshal([]byte(capture), &deserialized)
 
 	assert.Empty(t, deserialized.Context)
-	assert.True(t, strings.HasSuffix(deserialized.File, "/platform/utils/logger/logger_test.go"))
+	assert.Equal(t, deserialized.File, "/platform/utils/logger/logger_test.go")
 	assert.Equal(t, logMessage, deserialized.Message)
 }
 
@@ -129,7 +128,7 @@ func TestDebugf(t *testing.T) {
 	json.Unmarshal([]byte(capture), &deserialized)
 
 	assert.Empty(t, deserialized.Context)
-	assert.True(t, strings.HasSuffix(deserialized.File, "/platform/utils/logger/logger_test.go"))
+	assert.Equal(t, deserialized.File, "/platform/utils/logger/logger_test.go")
 	assert.Equal(t, fmt.Sprintf(formatString, param), deserialized.Message)
 }
 
@@ -159,7 +158,7 @@ func TestInfoc(t *testing.T) {
 	json.Unmarshal([]byte(capture), &deserialized)
 
 	assert.Empty(t, deserialized.Context)
-	assert.True(t, strings.HasSuffix(deserialized.File, "/platform/utils/logger/logger_test.go"))
+	assert.Equal(t, deserialized.File, "/platform/utils/logger/logger_test.go")
 	assert.Equal(t, logMessage, deserialized.Message)
 }
 
@@ -189,7 +188,7 @@ func TestInfof(t *testing.T) {
 	json.Unmarshal([]byte(capture), &deserialized)
 
 	assert.Empty(t, deserialized.Context)
-	assert.True(t, strings.HasSuffix(deserialized.File, "/platform/utils/logger/logger_test.go"))
+	assert.Equal(t, deserialized.File, "/platform/utils/logger/logger_test.go")
 	assert.Equal(t, fmt.Sprintf(format, param), deserialized.Message)
 }
 
@@ -222,7 +221,7 @@ func TestErrorc(t *testing.T) {
 	json.Unmarshal([]byte(capture), &deserialized)
 
 	assert.Empty(t, deserialized.Context)
-	assert.True(t, strings.HasSuffix(deserialized.File, "/platform/utils/logger/logger_test.go"))
+	assert.Equal(t, deserialized.File, "/platform/utils/logger/logger_test.go")
 	assert.Equal(t, logMessage, deserialized.Message)
 }
 
@@ -255,6 +254,6 @@ func TestErrorf(t *testing.T) {
 	json.Unmarshal([]byte(capture), &deserialized)
 
 	assert.Empty(t, deserialized.Context)
-	assert.True(t, strings.HasSuffix(deserialized.File, "/platform/utils/logger/logger_test.go"))
+	assert.Equal(t, deserialized.File, "/platform/utils/logger/logger_test.go")
 	assert.Equal(t, fmt.Sprintf(format, param), deserialized.Message)
 }
