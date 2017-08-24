@@ -455,7 +455,7 @@ export default class CreateComment extends React.Component {
     }
 
     focusTextbox = (keepFocus = false) => {
-        if (keepFocus || !Utils.isMobile()) {
+        if (keepFocus || !UserAgent.isMobile()) {
             this.refs.textbox.focus();
         }
     }
