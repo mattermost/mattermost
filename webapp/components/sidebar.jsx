@@ -330,11 +330,13 @@ export default class Sidebar extends React.Component {
     handleLeavePublicChannel = (e, channel) => {
         e.preventDefault();
         ChannelActions.leaveChannel(channel.id);
+        trackEvent('ui', 'ui_public_channel_x_button_clicked');
     }
 
     handleLeavePrivateChannel = (e, channel) => {
         e.preventDefault();
         GlobalActions.showLeavePrivateChannelModal(channel);
+        trackEvent('ui', 'ui_private_channel_x_button_clicked');
     }
 
     handleLeaveDirectChannel = (e, channel) => {
@@ -365,6 +367,7 @@ export default class Sidebar extends React.Component {
             }
 
             this.setState(this.getStateFromStores());
+            trackEvent('ui', 'ui_direct_channel_x_button_clicked');
         }
 
         if (channel.id === this.state.activeId) {
