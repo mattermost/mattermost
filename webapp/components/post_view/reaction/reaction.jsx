@@ -51,6 +51,11 @@ export default class Reaction extends React.PureComponent {
          */
         emojiImageUrl: PropTypes.string.isRequired,
 
+        /**
+         * Function called to show reactions modal
+         */
+        showReactionsModal: PropTypes.func.isRequired,
+
         actions: PropTypes.shape({
 
             /*
@@ -74,7 +79,6 @@ export default class Reaction extends React.PureComponent {
         super(props);
 
         this.addReaction = this.addReaction.bind(this);
-        this.removeReaction = this.removeReaction.bind(this);
     }
 
     addReaction(e) {
@@ -82,14 +86,13 @@ export default class Reaction extends React.PureComponent {
         this.props.actions.addReaction(this.props.post.id, this.props.emojiName);
     }
 
-    removeReaction(e) {
-        e.preventDefault();
-        this.props.actions.removeReaction(this.props.post.id, this.props.emojiName);
-    }
-
     loadMissingProfiles = () => {
         const ids = this.props.reactions.map((reaction) => reaction.user_id);
         this.props.actions.getMissingProfilesByIds(ids);
+    }
+
+    showReactionsModal = () => {
+        this.props.showReactionsModal(this.props.emojiName);
     }
 
     render() {
@@ -202,11 +205,11 @@ export default class Reaction extends React.PureComponent {
         let clickTooltip;
         let className = 'post-reaction';
         if (currentUserReacted) {
-            handleClick = this.removeReaction;
+            handleClick = this.showReactionsModal;
             clickTooltip = (
                 <FormattedMessage
-                    id='reaction.clickToRemove'
-                    defaultMessage='(click to remove)'
+                    id='reaction.view_reactions_list'
+                    defaultMessage='(click to see list)'
                 />
             );
 

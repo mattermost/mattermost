@@ -7,6 +7,7 @@ import PropTypes from 'prop-types';
 import {postListScrollChange} from 'actions/global_actions.jsx';
 
 import Reaction from 'components/post_view/reaction';
+import ReactionsModal from 'components/post_view/reactions_modal';
 
 export default class ReactionListView extends React.PureComponent {
     static propTypes = {
@@ -34,6 +35,14 @@ export default class ReactionListView extends React.PureComponent {
         })
     }
 
+    constructor(props) {
+        super(props);
+
+        this.state = {
+            showReactionsModal: false
+        };
+    }
+
     componentDidMount() {
         if (this.props.post.has_reactions) {
             this.props.actions.getReactionsForPost(this.props.post.id);
@@ -44,6 +53,14 @@ export default class ReactionListView extends React.PureComponent {
         if (this.props.reactions !== prevProps.reactions) {
             postListScrollChange();
         }
+    }
+
+    showReactionsModal = () => {
+        this.setState({showReactionsModal: true});
+    }
+
+    hideReactionsModal = () => {
+        this.setState({showReactionsModal: false});
     }
 
     render() {
@@ -75,13 +92,29 @@ export default class ReactionListView extends React.PureComponent {
                     emojiName={emojiName}
                     reactions={reactionsByName.get(emojiName) || []}
                     emojis={this.props.emojis}
+                    showReactionsModal={this.showReactionsModal}
                 />
             );
         });
 
+        let reactionsModal;
+        if (this.state.showReactionsModal) {
+            reactionsModal = (
+                <ReactionsModal
+                    post={this.props.post}
+                    reactionsByName={reactionsByName}
+                    onModalDismissed={this.hideReactionsModal}
+                    emojiNames={emojiNames}
+                    customEmojis={this.props.emojis}
+                    reactions={this.props.reactions}
+                />
+            );
+        }
+
         return (
             <div className='post-reaction-list'>
                 {children}
+                {reactionsModal}
             </div>
         );
     }
