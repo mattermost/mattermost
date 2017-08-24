@@ -22,7 +22,7 @@ type webSocketHandler struct {
 func (wh webSocketHandler) ServeWebSocket(conn *app.WebConn, r *model.WebSocketRequest) {
 	l4g.Debug("/api/v3/users/websocket:%s", r.Action)
 
-	session, sessionErr := app.GetSession(conn.SessionToken)
+	session, sessionErr := app.GetSession(conn.GetSessionToken())
 	if sessionErr != nil {
 		l4g.Error(utils.T("api.web_socket_handler.log.error"), "/api/v3/users/websocket", r.Action, r.Seq, conn.UserId, sessionErr.SystemMessage(utils.T), sessionErr.Error())
 		sessionErr.DetailedError = ""
