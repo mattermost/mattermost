@@ -27,6 +27,15 @@ func TestChannelJson(t *testing.T) {
 	}
 }
 
+func TestChannelCopy(t *testing.T) {
+	o := Channel{Id: NewId(), Name: NewId()}
+	ro := o.DeepCopy()
+
+	if o.Id != ro.Id {
+		t.Fatal("Ids do not match")
+	}
+}
+
 func TestChannelPatch(t *testing.T) {
 	p := &ChannelPatch{Name: new(string), DisplayName: new(string), Header: new(string), Purpose: new(string)}
 	*p.Name = NewId()

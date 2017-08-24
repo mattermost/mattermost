@@ -461,7 +461,7 @@ func incomingWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if utils.Cfg.LogSettings.EnableWebhookDebugging {
 		var err error
-		payload, err = utils.DebugReader(
+		payload, err = utils.InfoReader(
 			payload,
 			utils.T("api.webhook.incoming.debug"),
 		)

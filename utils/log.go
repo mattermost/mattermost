@@ -11,14 +11,14 @@ import (
 	l4g "github.com/alecthomas/log4go"
 )
 
-// DebugReader logs the content of the io.Reader and returns a new io.Reader
+// InfoReader logs the content of the io.Reader and returns a new io.Reader
 // with the same content as the received io.Reader.
 // If you pass reader by reference, it won't be re-created unless the loglevel
 // includes Debug.
 // If an error is returned, the reader is consumed an cannot be read again.
-func DebugReader(reader io.Reader, message string) (io.Reader, error) {
+func InfoReader(reader io.Reader, message string) (io.Reader, error) {
 	var err error
-	l4g.Debug(func() string {
+	l4g.Info(func() string {
 		content, err := ioutil.ReadAll(reader)
 		if err != nil {
 			return ""
