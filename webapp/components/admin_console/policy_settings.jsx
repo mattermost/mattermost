@@ -38,7 +38,6 @@ export default class PolicySettings extends AdminSettings {
         config.TeamSettings.RestrictPublicChannelDeletion = this.state.restrictPublicChannelDeletion;
         config.TeamSettings.RestrictPrivateChannelDeletion = this.state.restrictPrivateChannelDeletion;
         config.TeamSettings.RestrictPrivateChannelManageMembers = this.state.restrictPrivateChannelManageMembers;
-        config.TeamSettings.TownSquareIsReadOnly = this.state.townSquareIsReadOnly;
         config.AnnouncementSettings.EnableBanner = this.state.enableBanner;
         config.AnnouncementSettings.BannerText = this.state.bannerText;
         config.AnnouncementSettings.BannerColor = this.state.bannerColor;
@@ -61,7 +60,6 @@ export default class PolicySettings extends AdminSettings {
             restrictPublicChannelDeletion: config.TeamSettings.RestrictPublicChannelDeletion,
             restrictPrivateChannelDeletion: config.TeamSettings.RestrictPrivateChannelDeletion,
             restrictPrivateChannelManageMembers: config.TeamSettings.RestrictPrivateChannelManageMembers,
-            townSquareIsReadOnly: config.TeamSettings.TownSquareIsReadOnly,
             enableBanner: config.AnnouncementSettings.EnableBanner,
             bannerText: config.AnnouncementSettings.BannerText,
             bannerColor: config.AnnouncementSettings.BannerColor,
@@ -331,23 +329,6 @@ export default class PolicySettings extends AdminSettings {
                             defaultMessage='Set policy on the length of time authors have to edit their messages after posting.'
                         />
                     }
-                />
-                <BooleanSetting
-                    id='townSquareIsReadOnly'
-                    label={
-                        <FormattedMessage
-                            id='admin.general.policy.townSquareIsReadOnlyTitle'
-                            defaultMessage='Restrict messages in Town Square to Admins: [true/false]'
-                        />
-                    }
-                    helpText={
-                        <FormattedMessage
-                            id='admin.general.policy.townSquareIsReadOnlyDescription'
-                            defaultMessage='When true, only Team and System Admins can post messages to Town Square. This also applies to webhooks and slash commands.'
-                        />
-                    }
-                    value={this.state.townSquareIsReadOnly}
-                    onChange={this.handleChange}
                 />
                 <BooleanSetting
                     id='enableBanner'
