@@ -432,8 +432,6 @@
   "admin.general.policy.restrictPublicChannelDeletionTitle": "Enable public channel deletion for:",
   "admin.general.policy.restrictPublicChannelManagementDescription": "Set policy on who can rename and set the header or purpose for public channels.",
   "admin.general.policy.restrictPublicChannelManagementTitle": "Enable public channel renaming for:",
-  "admin.general.policy.townSquareIsReadOnlyDescription": "When true, only Team and System Admins can post messages to Town Square. This also applies to webhooks and slash commands.",
-  "admin.general.policy.townSquareIsReadOnlyTitle": "Restrict messages in Town Square to Admins: [true/false]",
   "admin.general.policy.teamInviteDescription": "Set policy on who can invite others to a team using <b>Send Email Invite</b> to invite new users by email, or the <b>Get Team Invite Link</b> and <b>Add Members to Team</b> options from the Main Menu. If <b>Get Team Invite Link</b> is used to share a link, you can expire the invite code from <b>Team Settings</b> > <b>Invite Code</b> after the desired users join the team.",
   "admin.general.policy.teamInviteTitle": "Enable sending team invites from:",
   "admin.general.privacy": "Privacy",
