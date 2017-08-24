@@ -277,6 +277,22 @@ export default class AdminSidebar extends React.Component {
             );
         }
 
+        const SHOW_CLIENT_VERSIONS = false;
+        let clientVersions = null;
+        if (SHOW_CLIENT_VERSIONS) {
+            clientVersions = (
+                <AdminSidebarSection
+                    name='client_versions'
+                    title={
+                        <FormattedMessage
+                            id='admin.sidebar.client_versions'
+                            defaultMessage='Client Versions'
+                        />
+                    }
+                />
+            );
+        }
+
         return (
             <div className='admin-sidebar'>
                 <AdminSidebarHeader/>
@@ -477,15 +493,7 @@ export default class AdminSidebar extends React.Component {
                                         />
                                     }
                                 />
-                                <AdminSidebarSection
-                                    name='client_versions'
-                                    title={
-                                        <FormattedMessage
-                                            id='admin.sidebar.client_versions'
-                                            defaultMessage='Client Versions'
-                                        />
-                                    }
-                                />
+                                {clientVersions}
                             </AdminSidebarSection>
                             <AdminSidebarSection
                                 name='notifications'
