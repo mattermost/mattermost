@@ -580,6 +580,8 @@ func sendPushNotification(post *model.Post, user *model.User, channel *model.Cha
 	msg.Type = model.PUSH_TYPE_MESSAGE
 	msg.TeamId = channel.TeamId
 	msg.ChannelId = channel.Id
+	msg.PostId = post.Id
+	msg.RootId = post.RootId
 	msg.ChannelName = channel.Name
 	msg.SenderId = post.UserId
 
@@ -596,15 +598,15 @@ func sendPushNotification(post *model.Post, user *model.User, channel *model.Cha
 	}
 
 	if *utils.Cfg.EmailSettings.PushNotificationContents == model.FULL_NOTIFICATION {
+		msg.Category = model.CATEGORY_CAN_REPLY
 		if channel.Type == model.CHANNEL_DIRECT {
-			msg.Category = model.CATEGORY_DM
 			msg.Message = senderName + ": " + model.ClearMentionTags(post.Message)
 		} else {
 			msg.Message = senderName + userLocale("api.post.send_notifications_and_forget.push_in") + channelName + ": " + model.ClearMentionTags(post.Message)
 		}
 	} else if *utils.Cfg.EmailSettings.PushNotificationContents == model.GENERIC_NO_CHANNEL_NOTIFICATION {
 		if channel.Type == model.CHANNEL_DIRECT {
-			msg.Category = model.CATEGORY_DM
+			msg.Category = model.CATEGORY_CAN_REPLY
 			msg.Message = senderName + userLocale("api.post.send_notifications_and_forget.push_message")
 		} else if wasMentioned || channel.Type == model.CHANNEL_GROUP {
 			msg.Message = senderName + userLocale("api.post.send_notifications_and_forget.push_mention_no_channel")
@@ -613,9 +615,10 @@ func sendPushNotification(post *model.Post, user *model.User, channel *model.Cha
 		}
 	} else {
 		if channel.Type == model.CHANNEL_DIRECT {
-			msg.Category = model.CATEGORY_DM
+			msg.Category = model.CATEGORY_CAN_REPLY
 			msg.Message = senderName + userLocale("api.post.send_notifications_and_forget.push_message")
 		} else if wasMentioned || channel.Type == model.CHANNEL_GROUP {
+			msg.Category = model.CATEGORY_CAN_REPLY
 			msg.Message = senderName + userLocale("api.post.send_notifications_and_forget.push_mention") + channelName
 		} else {
 			msg.Message = senderName + userLocale("api.post.send_notifications_and_forget.push_non_mention") + channelName
@@ -631,7 +634,7 @@ func sendPushNotification(post *model.Post, user *model.User, channel *model.Cha
 		}
 	}
 
-	l4g.Debug("Sending push notification for user %v with msg of '%v'", user.Id, msg.Message)
+	//l4g.Debug("Sending push notification for user %v with msg of '%v'", user.Id, msg.Message)
 
 	for _, session := range sessions {
 		tmpMessage := *model.PushNotificationFromJson(strings.NewReader(msg.ToJson()))
