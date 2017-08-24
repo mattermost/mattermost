@@ -1539,7 +1539,7 @@
   },
   {
     "id": "api.post.read_only_town_square",
-    "translation": "Town Square is a read-only channel."
+    "translation": "This channel is read-only. Only members with permission can post here."
   },
   {
     "id": "api.post.check_for_out_of_channel_mentions.message.multiple",
