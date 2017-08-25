@@ -9,6 +9,7 @@ import DotMenu from 'components/dot_menu';
 
 import * as Utils from 'utils/utils.jsx';
 import * as PostUtils from 'utils/post_utils.jsx';
+import * as ReduxPostUtils from 'mattermost-redux/utils/post_utils';
 import {emitEmojiPosted} from 'actions/post_actions.jsx';
 import Constants from 'utils/constants.jsx';
 import {Posts} from 'mattermost-redux/constants';
@@ -239,8 +240,10 @@ export default class PostInfo extends React.PureComponent {
             );
         }
 
-        // timestamp should not be a permalink if the post has been deleted, or if it's an ephemeral message
-        const isPermalink = !(PostUtils.isSystemMessage(this.props.post) || Posts.POST_DELETED === this.props.post.state);
+        // timestamp should not be a permalink if the post has been deleted, is ephemeral message, or is pending
+        const isPermalink = !(PostUtils.isSystemMessage(this.props.post)
+            || Posts.POST_DELETED === this.props.post.state
+            || ReduxPostUtils.isPostPendingOrFailed(this.props.post));
 
         return (
             <div className='post__header--info'>
