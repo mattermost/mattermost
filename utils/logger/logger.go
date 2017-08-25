@@ -102,11 +102,14 @@ func getCallerFilename() string {
 	}
 	pathPrefix := strings.TrimSuffix(currentFilename, "/platform/utils/logger/logger.go")
 
+	fmt.Printf("\ncurrentFilename: %s\npathPrefix: %s\n", currentFilename, pathPrefix)
+
 	for i := 1; i < 10; i++ {
 		_, parentFilename, _, ok := runtime.Caller(i)
 		if !ok {
 			return "Unknown"
 		} else if parentFilename != currentFilename {
+			fmt.Printf("\nparentFilename: %s\n", parentFilename)
 			return strings.TrimPrefix(parentFilename, pathPrefix)
 		}
 	}
