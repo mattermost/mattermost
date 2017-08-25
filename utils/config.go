@@ -10,6 +10,7 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+	"path"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -170,7 +171,7 @@ func GetLogFileLocation(fileLocation string) string {
 		logDir, _ := FindDir("logs")
 		return logDir + LOG_FILENAME
 	} else {
-		return fileLocation + LOG_FILENAME
+		return path.Join(fileLocation, LOG_FILENAME)
 	}
 }
 
