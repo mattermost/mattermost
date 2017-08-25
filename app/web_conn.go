@@ -31,9 +31,9 @@ const (
 type WebConn struct {
 	WebSocket                 *websocket.Conn
 	Send                      chan model.WebSocketMessage
-	sessionTokenChanged       atomic.Value
-	sessionExpiresAtChanged   int64
-	sessionChanged            atomic.Value
+	sessionToken              atomic.Value
+	sessionExpiresAt          int64
+	session                   atomic.Value
 	UserId                    string
 	T                         goi18n.TranslateFunc
 	Locale                    string
@@ -58,35 +58,35 @@ func NewWebConn(ws *websocket.Conn, session model.Session, t goi18n.TranslateFun
 		Locale:    locale,
 	}
 
-	wc.SetSessionToken("")
-	wc.SetSessionExpiresAt(session.ExpiresAt)
 	wc.SetSession(session)
+	wc.SetSessionToken(session.Token)
+	wc.SetSessionExpiresAt(session.ExpiresAt)
 
 	return wc
 }
 
 func (c *WebConn) GetSessionExpiresAt() int64 {
-	return atomic.LoadInt64(&c.sessionExpiresAtChanged)
+	return atomic.LoadInt64(&c.sessionExpiresAt)
 }
 
 func (c *WebConn) SetSessionExpiresAt(v int64) {
-	atomic.StoreInt64(&c.sessionExpiresAtChanged, v)
+	atomic.StoreInt64(&c.sessionExpiresAt, v)
 }
 
 func (c *WebConn) GetSessionToken() string {
-	return c.sessionTokenChanged.Load().(string)
+	return c.sessionToken.Load().(string)
 }
 
 func (c *WebConn) SetSessionToken(v string) {
-	c.sessionTokenChanged.Store(v)
+	c.sessionToken.Store(v)
 }
 
 func (c *WebConn) GetSession() *model.Session {
-	return c.sessionChanged.Load().(*model.Session)
+	return c.session.Load().(*model.Session)
 }
 
 func (c *WebConn) SetSession(v model.Session) {
-	c.sessionChanged.Store(&v) // we intentionally make a copy
+	c.session.Store(&v) // we intentionally make a copy
 }
 
 func (c *WebConn) ReadPump() {
@@ -236,9 +236,8 @@ func (webCon *WebConn) IsAuthenticated() bool {
 			return false
 		}
 
-		webCon.SetSessionToken(session.Token)
-		webCon.SetSessionExpiresAt(session.ExpiresAt)
 		webCon.SetSession(*session)
+		webCon.SetSessionExpiresAt(session.ExpiresAt)
 	}
 
 	return true
@@ -318,7 +317,6 @@ func (webCon *WebConn) IsMemberOfTeam(teamId string) bool {
 			webCon.SetSession(*session)
 			currentSession = session
 		}
-
 	}
 
 	member := currentSession.GetTeamByTeamId(teamId)
