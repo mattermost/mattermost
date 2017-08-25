@@ -101,7 +101,7 @@ func UploadEmojiImage(id string, imageData *multipart.FileHeader) *model.AppErro
 				if err := gif.EncodeAll(newbuf, resized_gif); err != nil {
 					return model.NewAppError("uploadEmojiImage", "api.emoji.upload.large_image.gif_encode_error", nil, "", http.StatusBadRequest)
 				}
-				if err := WriteFile(newbuf.Bytes(), getEmojiImagePath(id)); err != nil {
+				if err := utils.WriteFile(newbuf.Bytes(), getEmojiImagePath(id)); err != nil {
 					return err
 				}
 			}
@@ -113,13 +113,13 @@ func UploadEmojiImage(id string, imageData *multipart.FileHeader) *model.AppErro
 				if err := png.Encode(newbuf, resized_image); err != nil {
 					return model.NewAppError("uploadEmojiImage", "api.emoji.upload.large_image.encode_error", nil, "", http.StatusBadRequest)
 				}
-				if err := WriteFile(newbuf.Bytes(), getEmojiImagePath(id)); err != nil {
+				if err := utils.WriteFile(newbuf.Bytes(), getEmojiImagePath(id)); err != nil {
 					return err
 				}
 			}
 		}
 	} else {
-		if err := WriteFile(buf.Bytes(), getEmojiImagePath(id)); err != nil {
+		if err := utils.WriteFile(buf.Bytes(), getEmojiImagePath(id)); err != nil {
 			return err
 		}
 	}
@@ -159,7 +159,7 @@ func GetEmojiImage(emojiId string) (imageByte []byte, imageType string, err *mod
 	} else {
 		var img []byte
 
-		if data, err := ReadFile(getEmojiImagePath(emojiId)); err != nil {
+		if data, err := utils.ReadFile(getEmojiImagePath(emojiId)); err != nil {
 			return nil, "", model.NewAppError("getEmojiImage", "api.emoji.get_image.read.app_error", nil, err.Error(), http.StatusNotFound)
 		} else {
 			img = data
@@ -219,7 +219,7 @@ func imageToPaletted(img image.Image) *image.Paletted {
 }
 
 func deleteEmojiImage(id string) {
-	if err := MoveFile(getEmojiImagePath(id), "emoji/"+id+"/image_deleted"); err != nil {
+	if err := utils.MoveFile(getEmojiImagePath(id), "emoji/"+id+"/image_deleted"); err != nil {
 		l4g.Error("Failed to rename image when deleting emoji %v", id)
 	}
 }

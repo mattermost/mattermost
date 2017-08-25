@@ -14,23 +14,21 @@ import (
 	_ "image/gif"
 	"image/jpeg"
 	"io"
-	"io/ioutil"
 	"mime/multipart"
 	"net/http"
 	"net/url"
-	"os"
 	"path/filepath"
 	"strings"
 	"sync"
+	"time"
 
 	l4g "github.com/alecthomas/log4go"
 	"github.com/disintegration/imaging"
-	"github.com/mattermost/platform/model"
-	"github.com/mattermost/platform/utils"
-	s3 "github.com/minio/minio-go"
-	"github.com/minio/minio-go/pkg/credentials"
 	"github.com/rwcarlsen/goexif/exif"
 	_ "golang.org/x/image/bmp"
+
+	"github.com/mattermost/platform/model"
+	"github.com/mattermost/platform/utils"
 )
 
 const (
@@ -57,221 +55,7 @@ const (
 	IMAGE_THUMBNAIL_PIXEL_WIDTH  = 120
 	IMAGE_THUMBNAIL_PIXEL_HEIGHT = 100
 	IMAGE_PREVIEW_PIXEL_WIDTH    = 1024
-
-	TEST_FILE_PATH = "/testfile"
 )
-
-// Similar to s3.New() but allows initialization of signature v2 or signature v4 client.
-// If signV2 input is false, function always returns signature v4.
-//
-// Additionally this function also takes a user defined region, if set
-// disables automatic region lookup.
-func s3New(endpoint, accessKey, secretKey string, secure bool, signV2 bool, region string) (*s3.Client, error) {
-	var creds *credentials.Credentials
-	if signV2 {
-		creds = credentials.NewStatic(accessKey, secretKey, "", credentials.SignatureV2)
-	} else {
-		creds = credentials.NewStatic(accessKey, secretKey, "", credentials.SignatureV4)
-	}
-	return s3.NewWithCredentials(endpoint, creds, secure, region)
-}
-
-func TestFileConnection() *model.AppError {
-	if utils.Cfg.FileSettings.DriverName == model.IMAGE_DRIVER_S3 {
-		endpoint := utils.Cfg.FileSettings.AmazonS3Endpoint
-		accessKey := utils.Cfg.FileSettings.AmazonS3AccessKeyId
-		secretKey := utils.Cfg.FileSettings.AmazonS3SecretAccessKey
-		secure := *utils.Cfg.FileSettings.AmazonS3SSL
-		signV2 := *utils.Cfg.FileSettings.AmazonS3SignV2
-		region := utils.Cfg.FileSettings.AmazonS3Region
-		bucket := utils.Cfg.FileSettings.AmazonS3Bucket
-
-		s3Clnt, err := s3New(endpoint, accessKey, secretKey, secure, signV2, region)
-		if err != nil {
-			return model.NewLocAppError("TestFileConnection", "Bad connection to S3 or minio.", nil, err.Error())
-		}
-
-		exists, err := s3Clnt.BucketExists(bucket)
-		if err != nil {
-			return model.NewLocAppError("TestFileConnection", "Error checking if bucket exists.", nil, err.Error())
-		}
-
-		if !exists {
-			l4g.Warn("Bucket specified does not exist. Attempting to create...")
-			err := s3Clnt.MakeBucket(bucket, region)
-			if err != nil {
-				l4g.Error("Unable to create bucket.")
-				return model.NewAppError("TestFileConnection", "Unable to create bucket", nil, err.Error(), http.StatusInternalServerError)
-			}
-		}
-		l4g.Info("Connection to S3 or minio is good. Bucket exists.")
-	} else if utils.Cfg.FileSettings.DriverName == model.IMAGE_DRIVER_LOCAL {
-		f := []byte("testingwrite")
-		if err := writeFileLocally(f, utils.Cfg.FileSettings.Directory+TEST_FILE_PATH); err != nil {
-			return model.NewAppError("TestFileConnection", "Don't have permissions to write to local path specified or other error.", nil, err.Error(), http.StatusInternalServerError)
-		}
-		os.Remove(utils.Cfg.FileSettings.Directory + TEST_FILE_PATH)
-		l4g.Info("Able to write files to local storage.")
-	} else {
-		return model.NewLocAppError("TestFileConnection", "No file driver selected.", nil, "")
-	}
-
-	return nil
-}
-
-func ReadFile(path string) ([]byte, *model.AppError) {
-	if utils.Cfg.FileSettings.DriverName == model.IMAGE_DRIVER_S3 {
-		endpoint := utils.Cfg.FileSettings.AmazonS3Endpoint
-		accessKey := utils.Cfg.FileSettings.AmazonS3AccessKeyId
-		secretKey := utils.Cfg.FileSettings.AmazonS3SecretAccessKey
-		secure := *utils.Cfg.FileSettings.AmazonS3SSL
-		signV2 := *utils.Cfg.FileSettings.AmazonS3SignV2
-		region := utils.Cfg.FileSettings.AmazonS3Region
-		s3Clnt, err := s3New(endpoint, accessKey, secretKey, secure, signV2, region)
-		if err != nil {
-			return nil, model.NewLocAppError("ReadFile", "api.file.read_file.s3.app_error", nil, err.Error())
-		}
-		bucket := utils.Cfg.FileSettings.AmazonS3Bucket
-		minioObject, err := s3Clnt.GetObject(bucket, path)
-		defer minioObject.Close()
-		if err != nil {
-			return nil, model.NewLocAppError("ReadFile", "api.file.read_file.s3.app_error", nil, err.Error())
-		}
-		if f, err := ioutil.ReadAll(minioObject); err != nil {
-			return nil, model.NewLocAppError("ReadFile", "api.file.read_file.s3.app_error", nil, err.Error())
-		} else {
-			return f, nil
-		}
-	} else if utils.Cfg.FileSettings.DriverName == model.IMAGE_DRIVER_LOCAL {
-		if f, err := ioutil.ReadFile(utils.Cfg.FileSettings.Directory + path); err != nil {
-			return nil, model.NewLocAppError("ReadFile", "api.file.read_file.reading_local.app_error", nil, err.Error())
-		} else {
-			return f, nil
-		}
-	} else {
-		return nil, model.NewAppError("ReadFile", "api.file.read_file.configured.app_error", nil, "", http.StatusNotImplemented)
-	}
-}
-
-func MoveFile(oldPath, newPath string) *model.AppError {
-	if utils.Cfg.FileSettings.DriverName == model.IMAGE_DRIVER_S3 {
-		endpoint := utils.Cfg.FileSettings.AmazonS3Endpoint
-		accessKey := utils.Cfg.FileSettings.AmazonS3AccessKeyId
-		secretKey := utils.Cfg.FileSettings.AmazonS3SecretAccessKey
-		secure := *utils.Cfg.FileSettings.AmazonS3SSL
-		signV2 := *utils.Cfg.FileSettings.AmazonS3SignV2
-		region := utils.Cfg.FileSettings.AmazonS3Region
-		encrypt := false
-		if *utils.Cfg.FileSettings.AmazonS3SSE && utils.IsLicensed() && *utils.License().Features.Compliance {
-			encrypt = true
-		}
-		s3Clnt, err := s3New(endpoint, accessKey, secretKey, secure, signV2, region)
-		if err != nil {
-			return model.NewLocAppError("moveFile", "api.file.write_file.s3.app_error", nil, err.Error())
-		}
-		bucket := utils.Cfg.FileSettings.AmazonS3Bucket
-
-		source := s3.NewSourceInfo(bucket, oldPath, nil)
-		destination, err := s3.NewDestinationInfo(bucket, newPath, nil, CopyMetadata(encrypt))
-		if err != nil {
-			return model.NewLocAppError("moveFile", "api.file.write_file.s3.app_error", nil, err.Error())
-		}
-		if err = s3Clnt.CopyObject(destination, source); err != nil {
-			return model.NewLocAppError("moveFile", "api.file.move_file.delete_from_s3.app_error", nil, err.Error())
-		}
-		if err = s3Clnt.RemoveObject(bucket, oldPath); err != nil {
-			return model.NewLocAppError("moveFile", "api.file.move_file.delete_from_s3.app_error", nil, err.Error())
-		}
-	} else if utils.Cfg.FileSettings.DriverName == model.IMAGE_DRIVER_LOCAL {
-		if err := os.MkdirAll(filepath.Dir(utils.Cfg.FileSettings.Directory+newPath), 0774); err != nil {
-			return model.NewLocAppError("moveFile", "api.file.move_file.rename.app_error", nil, err.Error())
-		}
-
-		if err := os.Rename(utils.Cfg.FileSettings.Directory+oldPath, utils.Cfg.FileSettings.Directory+newPath); err != nil {
-			return model.NewLocAppError("moveFile", "api.file.move_file.rename.app_error", nil, err.Error())
-		}
-	} else {
-		return model.NewLocAppError("moveFile", "api.file.move_file.configured.app_error", nil, "")
-	}
-
-	return nil
-}
-
-func WriteFile(f []byte, path string) *model.AppError {
-	if utils.Cfg.FileSettings.DriverName == model.IMAGE_DRIVER_S3 {
-		endpoint := utils.Cfg.FileSettings.AmazonS3Endpoint
-		accessKey := utils.Cfg.FileSettings.AmazonS3AccessKeyId
-		secretKey := utils.Cfg.FileSettings.AmazonS3SecretAccessKey
-		secure := *utils.Cfg.FileSettings.AmazonS3SSL
-		signV2 := *utils.Cfg.FileSettings.AmazonS3SignV2
-		region := utils.Cfg.FileSettings.AmazonS3Region
-		encrypt := false
-		if *utils.Cfg.FileSettings.AmazonS3SSE && utils.IsLicensed() && *utils.License().Features.Compliance {
-			encrypt = true
-		}
-
-		s3Clnt, err := s3New(endpoint, accessKey, secretKey, secure, signV2, region)
-		if err != nil {
-			return model.NewLocAppError("WriteFile", "api.file.write_file.s3.app_error", nil, err.Error())
-		}
-
-		bucket := utils.Cfg.FileSettings.AmazonS3Bucket
-		ext := filepath.Ext(path)
-		metaData := S3Metadata(encrypt, "binary/octet-stream")
-		if model.IsFileExtImage(ext) {
-			metaData = S3Metadata(encrypt, model.GetImageMimeType(ext))
-		}
-
-		_, err = s3Clnt.PutObjectWithMetadata(bucket, path, bytes.NewReader(f), metaData, nil)
-		if err != nil {
-			return model.NewLocAppError("WriteFile", "api.file.write_file.s3.app_error", nil, err.Error())
-		}
-	} else if utils.Cfg.FileSettings.DriverName == model.IMAGE_DRIVER_LOCAL {
-		if err := writeFileLocally(f, utils.Cfg.FileSettings.Directory+path); err != nil {
-			return err
-		}
-	} else {
-		return model.NewLocAppError("WriteFile", "api.file.write_file.configured.app_error", nil, "")
-	}
-
-	return nil
-}
-
-func writeFileLocally(f []byte, path string) *model.AppError {
-	if err := os.MkdirAll(filepath.Dir(path), 0774); err != nil {
-		directory, _ := filepath.Abs(filepath.Dir(path))
-		return model.NewLocAppError("WriteFile", "api.file.write_file_locally.create_dir.app_error", nil, "directory="+directory+", err="+err.Error())
-	}
-
-	if err := ioutil.WriteFile(path, f, 0644); err != nil {
-		return model.NewLocAppError("WriteFile", "api.file.write_file_locally.writing.app_error", nil, err.Error())
-	}
-
-	return nil
-}
-
-func openFileWriteStream(path string) (io.Writer, *model.AppError) {
-	if utils.Cfg.FileSettings.DriverName == model.IMAGE_DRIVER_S3 {
-		return nil, model.NewLocAppError("openFileWriteStream", "api.file.open_file_write_stream.s3.app_error", nil, "")
-	} else if utils.Cfg.FileSettings.DriverName == model.IMAGE_DRIVER_LOCAL {
-		if err := os.MkdirAll(filepath.Dir(utils.Cfg.FileSettings.Directory+path), 0774); err != nil {
-			return nil, model.NewLocAppError("openFileWriteStream", "api.file.open_file_write_stream.creating_dir.app_error", nil, err.Error())
-		}
-
-		if fileHandle, err := os.Create(utils.Cfg.FileSettings.Directory + path); err != nil {
-			return nil, model.NewLocAppError("openFileWriteStream", "api.file.open_file_write_stream.local_server.app_error", nil, err.Error())
-		} else {
-			fileHandle.Chmod(0644)
-			return fileHandle, nil
-		}
-	}
-
-	return nil, model.NewLocAppError("openFileWriteStream", "api.file.open_file_write_stream.configured.app_error", nil, "")
-}
-
-func closeFileWriteStream(file io.Writer) {
-	file.(*os.File).Close()
-}
 
 func GetInfoForFilename(post *model.Post, teamId string, filename string) *model.FileInfo {
 	// Find the path from the Filename of the form /{channelId}/{userId}/{uid}/{nameWithExtension}
@@ -295,7 +79,7 @@ func GetInfoForFilename(post *model.Post, teamId string, filename string) *model
 
 	// Open the file and populate the fields of the FileInfo
 	var info *model.FileInfo
-	if data, err := ReadFile(path); err != nil {
+	if data, err := utils.ReadFile(path); err != nil {
 		l4g.Error(utils.T("api.file.migrate_filenames_to_file_infos.file_not_found.error"), post.Id, filename, path, err)
 		return nil
 	} else {
@@ -337,7 +121,7 @@ func FindTeamIdForFilename(post *model.Post, filename string) string {
 	} else {
 		for _, team := range teams {
 			path := fmt.Sprintf("teams/%s/channels/%s/users/%s/%s/%s", team.Id, post.ChannelId, post.UserId, id, name)
-			if _, err := ReadFile(path); err == nil {
+			if _, err := utils.ReadFile(path); err == nil {
 				// Found the team that this file was posted from
 				return team.Id
 			}
@@ -484,7 +268,7 @@ func UploadFiles(teamId string, channelId string, userId string, fileHeaders []*
 		io.Copy(buf, file)
 		data := buf.Bytes()
 
-		info, err := DoUploadFile(teamId, channelId, userId, fileHeader.Filename, data)
+		info, err := DoUploadFile(time.Now(), teamId, channelId, userId, fileHeader.Filename, data)
 		if err != nil {
 			return nil, err
 		}
@@ -507,7 +291,7 @@ func UploadFiles(teamId string, channelId string, userId string, fileHeaders []*
 	return resStruct, nil
 }
 
-func DoUploadFile(teamId string, channelId string, userId string, rawFilename string, data []byte) (*model.FileInfo, *model.AppError) {
+func DoUploadFile(now time.Time, teamId string, channelId string, userId string, rawFilename string, data []byte) (*model.FileInfo, *model.AppError) {
 	filename := filepath.Base(rawFilename)
 
 	info, err := model.GetInfoForBytes(filename, data)
@@ -519,7 +303,7 @@ func DoUploadFile(teamId string, channelId string, userId string, rawFilename st
 	info.Id = model.NewId()
 	info.CreatorId = userId
 
-	pathPrefix := "teams/" + teamId + "/channels/" + channelId + "/users/" + userId + "/" + info.Id + "/"
+	pathPrefix := now.Format("20060102") + "/teams/" + teamId + "/channels/" + channelId + "/users/" + userId + "/" + info.Id + "/"
 	info.Path = pathPrefix + filename
 
 	if info.IsImage() {
@@ -535,7 +319,7 @@ func DoUploadFile(teamId string, channelId string, userId string, rawFilename st
 		info.ThumbnailPath = pathPrefix + nameWithoutExtension + "_thumb.jpg"
 	}
 
-	if err := WriteFile(data, info.Path); err != nil {
+	if err := utils.WriteFile(data, info.Path); err != nil {
 		return nil, err
 	}
 
@@ -652,7 +436,7 @@ func generateThumbnailImage(img image.Image, thumbnailPath string, width int, he
 		return
 	}
 
-	if err := WriteFile(buf.Bytes(), thumbnailPath); err != nil {
+	if err := utils.WriteFile(buf.Bytes(), thumbnailPath); err != nil {
 		l4g.Error(utils.T("api.file.handle_images_forget.upload_thumb.error"), thumbnailPath, err)
 		return
 	}
@@ -674,7 +458,7 @@ func generatePreviewImage(img image.Image, previewPath string, width int) {
 		return
 	}
 
-	if err := WriteFile(buf.Bytes(), previewPath); err != nil {
+	if err := utils.WriteFile(buf.Bytes(), previewPath); err != nil {
 		l4g.Error(utils.T("api.file.handle_images_forget.upload_preview.error"), previewPath, err)
 		return
 	}
@@ -686,21 +470,4 @@ func GetFileInfo(fileId string) (*model.FileInfo, *model.AppError) {
 	} else {
 		return result.Data.(*model.FileInfo), nil
 	}
-}
-
-func S3Metadata(encrypt bool, contentType string) map[string][]string {
-	metaData := make(map[string][]string)
-	if contentType != "" {
-		metaData["Content-Type"] = []string{"contentType"}
-	}
-	if encrypt {
-		metaData["x-amz-server-side-encryption"] = []string{"AES256"}
-	}
-	return metaData
-}
-
-func CopyMetadata(encrypt bool) map[string]string {
-	metaData := make(map[string]string)
-	metaData["x-amz-server-side-encryption"] = "AES256"
-	return metaData
 }

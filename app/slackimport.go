@@ -401,7 +401,8 @@ func SlackUploadFile(sPost SlackPost, uploads map[string]*zip.File, teamId strin
 			}
 			defer openFile.Close()
 
-			uploadedFile, err := OldImportFile(openFile, teamId, channelId, userId, filepath.Base(file.Name))
+			timestamp := utils.TimeFromMillis(SlackConvertTimeStamp(sPost.TimeStamp))
+			uploadedFile, err := OldImportFile(timestamp, openFile, teamId, channelId, userId, filepath.Base(file.Name))
 			if err != nil {
 				l4g.Warn(utils.T("api.slackimport.slack_add_posts.upload_file_upload_failed.warn", map[string]interface{}{"FileId": sPost.File.Id, "Error": err.Error()}))
 				return nil, false
