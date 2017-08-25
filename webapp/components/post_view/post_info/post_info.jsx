@@ -239,11 +239,14 @@ export default class PostInfo extends React.PureComponent {
             );
         }
 
+        // timestamp should not be a permalink if the post has been deleted, or if it's an ephemeral message
+        const isPermalink = !(PostUtils.isSystemMessage(this.props.post) || Posts.POST_DELETED === this.props.post.state);
+
         return (
             <div className='post__header--info'>
                 <div className='col'>
                     <PostTime
-                        isPermalink={!PostUtils.isSystemMessage(this.props.post)}
+                        isPermalink={isPermalink}
                         eventTime={post.create_at}
                         useMilitaryTime={this.props.useMilitaryTime}
                         postId={post.id}
