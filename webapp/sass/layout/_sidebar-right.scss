@@ -95,17 +95,17 @@
 
         .post-create-footer {
             @include clearfix;
+            clear: both;
             font-size: 13px;
             overflow: visible;
             position: relative;
-            clear: both;
 
             .post-error {
-                font-weight: normal;
-                margin-bottom: 0;
+                @include opacity(.55);
                 display: inline-block;
                 font-size: .85em;
-                @include opacity(.55);
+                font-weight: normal;
+                margin-bottom: 0;
                 position: absolute;
                 top: -25px;
             }
