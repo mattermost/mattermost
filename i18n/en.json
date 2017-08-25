@@ -1234,22 +1234,6 @@
     "translation": "Unable to move file locally."
   },
   {
-    "id": "api.file.open_file_write_stream.configured.app_error",
-    "translation": "File storage not configured properly. Please configure for either S3 or local server file storage."
-  },
-  {
-    "id": "api.file.open_file_write_stream.creating_dir.app_error",
-    "translation": "Encountered an error creating the directory for the new file"
-  },
-  {
-    "id": "api.file.open_file_write_stream.local_server.app_error",
-    "translation": "Encountered an error writing to local server storage"
-  },
-  {
-    "id": "api.file.open_file_write_stream.s3.app_error",
-    "translation": "S3 is not supported."
-  },
-  {
     "id": "api.file.read_file.configured.app_error",
     "translation": "File storage not configured properly. Please configure for either S3 or local server file storage."
   },
@@ -1260,6 +1244,30 @@
   {
     "id": "api.file.read_file.reading_local.app_error",
     "translation": "Encountered an error reading from local server storage"
+  },
+  {
+    "id": "utils.file.remove_file.local.app_error",
+    "translation": "Encountered an error removing file from local server file storage."
+  },
+  {
+    "id": "utils.file.remove_file.s3.app_error",
+    "translation": "Encountered an error removing file from S3."
+  },
+  {
+    "id": "utils.file.remove_file.configured.app_error",
+    "translation": "File storage not configured properly. Please configure for either S3 or local server file storage."
+  },
+  {
+    "id": "utils.file.remove_directory.local.app_error",
+    "translation": "Encountered an error removing directory from local server file storage."
+  },
+  {
+    "id": "utils.file.remove_directory.s3.app_error",
+    "translation": "Encountered an error removing directory from S3."
+  },
+  {
+    "id": "utils.file.remove_directory.configured.app_error",
+    "translation": "File storage not configured properly. Please configure for either S3 or local server file storage."
   },
   {
     "id": "api.file.upload_file.bad_parse.app_error",
@@ -5574,6 +5582,10 @@
   {
     "id": "store.sql_file_info.save_or_update.app_error",
     "translation": "We couldn't save or update the file info"
+  },
+  {
+    "id": "store.sql_file_info.permanent_delete.app_error",
+    "translation": "We couldn't permanently delete the file info"
   },
   {
     "id": "store.sql_job.delete.app_error",
