@@ -40,13 +40,30 @@
     }
 
     .post-create__container {
-        padding-bottom: 10px;
+        .post-create-footer {
+            padding: 0 10px;
+        }
+
+        form {
+            padding: 0;
+        }
+
+        .post-create-body {
+            padding: 0;
+
+            textarea {
+                .app-content & {
+                    border-left: none;
+                    border-right: none;
+                }
+            }
+        }
 
         .msg-typing {
             display: none;
         }
 
-        .icon--emoji-picker {
+        .emoji-picker__container {
             display: none;
         }
     }
@@ -821,7 +838,7 @@
     }
 
     .file-preview__container {
-        margin: 5px 0 0;
+        margin: 10px 0 5px;
     }
 
     .file-preview {
@@ -1189,6 +1206,8 @@
             }
 
             .post-create-footer {
+                padding-top: 10px;
+
                 .control-label {
                     margin: .5em 0;
                     top: 0;

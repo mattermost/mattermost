@@ -455,7 +455,7 @@ export default class CreateComment extends React.Component {
     }
 
     focusTextbox = (keepFocus = false) => {
-        if (keepFocus || !Utils.isMobile()) {
+        if (keepFocus || !UserAgent.isMobile()) {
             this.refs.textbox.focus();
         }
     }
@@ -549,7 +549,7 @@ export default class CreateComment extends React.Component {
         let emojiPicker = null;
         if (window.mm_config.EnableEmojiPicker === 'true') {
             emojiPicker = (
-                <span>
+                <span className='emoji-picker__container'>
                     <EmojiPickerOverlay
                         show={this.state.showEmojiPicker}
                         container={this.props.getSidebarBody}
@@ -560,7 +560,8 @@ export default class CreateComment extends React.Component {
                         topOffset={55}
                     />
                     <span
-                        className={'fa fa-smile-o icon--emoji-picker emoji-rhs'}
+                        className='icon icon--emoji emoji-rhs'
+                        dangerouslySetInnerHTML={{__html: Constants.EMOJI_ICON_SVG}}
                         onClick={this.toggleEmojiPicker}
                         onMouseOver={EmojiPicker.beginPreloading}
                     />
@@ -594,7 +595,7 @@ export default class CreateComment extends React.Component {
                             />
                             <span
                                 ref='createCommentControls'
-                                className='btn btn-file'
+                                className='post-body__actions'
                             >
                                 {fileUpload}
                                 {emojiPicker}

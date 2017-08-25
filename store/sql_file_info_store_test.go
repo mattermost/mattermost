@@ -25,6 +25,9 @@ func TestFileInfoSaveGet(t *testing.T) {
 	} else {
 		info = returned
 	}
+	defer func() {
+		<-store.FileInfo().PermanentDelete(info.Id)
+	}()
 
 	if result := <-store.FileInfo().Get(info.Id); result.Err != nil {
 		t.Fatal(result.Err)
@@ -43,6 +46,9 @@ func TestFileInfoSaveGet(t *testing.T) {
 	if result := <-store.FileInfo().Get(info2.Id); result.Err == nil {
 		t.Fatal("shouldn't have gotten deleted file")
 	}
+	defer func() {
+		<-store.FileInfo().PermanentDelete(info2.Id)
+	}()
 }
 
 func TestFileInfoSaveGetByPath(t *testing.T) {
@@ -60,6 +66,9 @@ func TestFileInfoSaveGetByPath(t *testing.T) {
 	} else {
 		info = returned
 	}
+	defer func() {
+		<-store.FileInfo().PermanentDelete(info.Id)
+	}()
 
 	if result := <-store.FileInfo().GetByPath(info.Path); result.Err != nil {
 		t.Fatal(result.Err)
@@ -78,6 +87,9 @@ func TestFileInfoSaveGetByPath(t *testing.T) {
 	if result := <-store.FileInfo().GetByPath(info2.Id); result.Err == nil {
 		t.Fatal("shouldn't have gotten deleted file")
 	}
+	defer func() {
+		<-store.FileInfo().PermanentDelete(info2.Id)
+	}()
 }
 
 func TestFileInfoGetForPost(t *testing.T) {
@@ -112,6 +124,9 @@ func TestFileInfoGetForPost(t *testing.T) {
 
 	for i, info := range infos {
 		infos[i] = Must(store.FileInfo().Save(info)).(*model.FileInfo)
+		defer func(id string) {
+			<-store.FileInfo().PermanentDelete(id)
+		}(infos[i].Id)
 	}
 
 	if result := <-store.FileInfo().GetForPost(postId, true, false); result.Err != nil {
@@ -143,6 +158,9 @@ func TestFileInfoAttachToPost(t *testing.T) {
 		CreatorId: userId,
 		Path:      "file.txt",
 	})).(*model.FileInfo)
+	defer func() {
+		<-store.FileInfo().PermanentDelete(info1.Id)
+	}()
 
 	if len(info1.PostId) != 0 {
 		t.Fatal("file shouldn't have a PostId")
@@ -162,6 +180,9 @@ func TestFileInfoAttachToPost(t *testing.T) {
 		CreatorId: userId,
 		Path:      "file.txt",
 	})).(*model.FileInfo)
+	defer func() {
+		<-store.FileInfo().PermanentDelete(info2.Id)
+	}()
 
 	if result := <-store.FileInfo().AttachToPost(info2.Id, postId); result.Err != nil {
 		t.Fatal(result.Err)
@@ -208,6 +229,9 @@ func TestFileInfoDeleteForPost(t *testing.T) {
 
 	for i, info := range infos {
 		infos[i] = Must(store.FileInfo().Save(info)).(*model.FileInfo)
+		defer func(id string) {
+			<-store.FileInfo().PermanentDelete(id)
+		}(infos[i].Id)
 	}
 
 	if result := <-store.FileInfo().DeleteForPost(postId); result.Err != nil {
@@ -216,5 +240,19 @@ func TestFileInfoDeleteForPost(t *testing.T) {
 
 	if infos := Must(store.FileInfo().GetForPost(postId, true, false)).([]*model.FileInfo); len(infos) != 0 {
 		t.Fatal("shouldn't have returned any file infos")
+	}
+}
+
+func TestFileInfoPermanentDelete(t *testing.T) {
+	Setup()
+
+	info := Must(store.FileInfo().Save(&model.FileInfo{
+		PostId:    model.NewId(),
+		CreatorId: model.NewId(),
+		Path:      "file.txt",
+	})).(*model.FileInfo)
+
+	if result := <-store.FileInfo().PermanentDelete(info.Id); result.Err != nil {
+		t.Fatal(result.Err)
 	}
 }

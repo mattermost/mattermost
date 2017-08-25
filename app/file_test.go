@@ -4,9 +4,12 @@
 package app
 
 import (
+	"fmt"
 	"testing"
+	"time"
 
 	"github.com/mattermost/platform/model"
+	"github.com/mattermost/platform/utils"
 )
 
 func TestGeneratePublicLinkHash(t *testing.T) {
@@ -29,5 +32,57 @@ func TestGeneratePublicLinkHash(t *testing.T) {
 
 	if hash1 == hash3 {
 		t.Fatal("hashes for the same file with different salts should not be equal")
+	}
+}
+
+func TestDoUploadFile(t *testing.T) {
+	Setup()
+
+	teamId := model.NewId()
+	channelId := model.NewId()
+	userId := model.NewId()
+	filename := "test"
+	data := []byte("abcd")
+
+	info1, err := DoUploadFile(time.Date(2007, 2, 4, 1, 2, 3, 4, time.Local), teamId, channelId, userId, filename, data)
+	if err != nil {
+		t.Fatal(err)
+	} else {
+		defer func() {
+			<-Srv.Store.FileInfo().PermanentDelete(info1.Id)
+			utils.RemoveFile(info1.Path)
+		}()
+	}
+
+	if info1.Path != fmt.Sprintf("20070204/teams/%v/channels/%v/users/%v/%v/%v", teamId, channelId, userId, info1.Id, filename) {
+		t.Fatal("stored file at incorrect path", info1.Path)
+	}
+
+	info2, err := DoUploadFile(time.Date(2007, 2, 4, 1, 2, 3, 4, time.Local), teamId, channelId, userId, filename, data)
+	if err != nil {
+		t.Fatal(err)
+	} else {
+		defer func() {
+			<-Srv.Store.FileInfo().PermanentDelete(info2.Id)
+			utils.RemoveFile(info2.Path)
+		}()
+	}
+
+	if info2.Path != fmt.Sprintf("20070204/teams/%v/channels/%v/users/%v/%v/%v", teamId, channelId, userId, info2.Id, filename) {
+		t.Fatal("stored file at incorrect path", info2.Path)
+	}
+
+	info3, err := DoUploadFile(time.Date(2008, 3, 5, 1, 2, 3, 4, time.Local), teamId, channelId, userId, filename, data)
+	if err != nil {
+		t.Fatal(err)
+	} else {
+		defer func() {
+			<-Srv.Store.FileInfo().PermanentDelete(info3.Id)
+			utils.RemoveFile(info3.Path)
+		}()
+	}
+
+	if info3.Path != fmt.Sprintf("20080305/teams/%v/channels/%v/users/%v/%v/%v", teamId, channelId, userId, info3.Id, filename) {
+		t.Fatal("stored file at incorrect path", info3.Path)
 	}
 }

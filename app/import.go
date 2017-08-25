@@ -12,9 +12,11 @@ import (
 	"regexp"
 	"strings"
 	"sync"
+	"time"
 	"unicode/utf8"
 
 	l4g "github.com/alecthomas/log4go"
+
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/store"
 	"github.com/mattermost/platform/utils"
@@ -1486,12 +1488,12 @@ func OldImportChannel(channel *model.Channel) *model.Channel {
 	}
 }
 
-func OldImportFile(file io.Reader, teamId string, channelId string, userId string, fileName string) (*model.FileInfo, error) {
+func OldImportFile(timestamp time.Time, file io.Reader, teamId string, channelId string, userId string, fileName string) (*model.FileInfo, error) {
 	buf := bytes.NewBuffer(nil)
 	io.Copy(buf, file)
 	data := buf.Bytes()
 
-	fileInfo, err := DoUploadFile(teamId, channelId, userId, fileName, data)
+	fileInfo, err := DoUploadFile(timestamp, teamId, channelId, userId, fileName, data)
 	if err != nil {
 		return nil, err
 	}

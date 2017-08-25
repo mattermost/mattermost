@@ -71,20 +71,22 @@ func TestUploadFile(t *testing.T) {
 		t.Fatal("file preview path should be set in database")
 	}
 
+	date := time.Now().Format("20060102")
+
 	// This also makes sure that the relative path provided above is sanitized out
-	expectedPath := fmt.Sprintf("teams/%v/channels/%v/users/%v/%v/test.png", FILE_TEAM_ID, channel.Id, user.Id, info.Id)
+	expectedPath := fmt.Sprintf("%v/teams/%v/channels/%v/users/%v/%v/test.png", date, FILE_TEAM_ID, channel.Id, user.Id, info.Id)
 	if info.Path != expectedPath {
 		t.Logf("file is saved in %v", info.Path)
 		t.Fatalf("file should've been saved in %v", expectedPath)
 	}
 
-	expectedThumbnailPath := fmt.Sprintf("teams/%v/channels/%v/users/%v/%v/test_thumb.jpg", FILE_TEAM_ID, channel.Id, user.Id, info.Id)
+	expectedThumbnailPath := fmt.Sprintf("%v/teams/%v/channels/%v/users/%v/%v/test_thumb.jpg", date, FILE_TEAM_ID, channel.Id, user.Id, info.Id)
 	if info.ThumbnailPath != expectedThumbnailPath {
 		t.Logf("file thumbnail is saved in %v", info.ThumbnailPath)
 		t.Fatalf("file thumbnail should've been saved in %v", expectedThumbnailPath)
 	}
 
-	expectedPreviewPath := fmt.Sprintf("teams/%v/channels/%v/users/%v/%v/test_preview.jpg", FILE_TEAM_ID, channel.Id, user.Id, info.Id)
+	expectedPreviewPath := fmt.Sprintf("%v/teams/%v/channels/%v/users/%v/%v/test_preview.jpg", date, FILE_TEAM_ID, channel.Id, user.Id, info.Id)
 	if info.PreviewPath != expectedPreviewPath {
 		t.Logf("file preview is saved in %v", info.PreviewPath)
 		t.Fatalf("file preview should've been saved in %v", expectedPreviewPath)
