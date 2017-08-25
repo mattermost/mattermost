@@ -80,13 +80,13 @@ func handleWebhookEvents(post *model.Post, team *model.Team, channel *model.Chan
 			TriggerWord: triggerWord,
 			FileIds:     strings.Join(post.FileIds, ","),
 		}
-		go TriggerWebhook(payload, hook, post)
+		go TriggerWebhook(payload, hook, post, channel)
 	}
 
 	return nil
 }
 
-func TriggerWebhook(payload *model.OutgoingWebhookPayload, hook *model.OutgoingWebhook, post *model.Post) {
+func TriggerWebhook(payload *model.OutgoingWebhookPayload, hook *model.OutgoingWebhook, post *model.Post, channel *model.Channel) {
 	var body io.Reader
 	var contentType string
 	if hook.ContentType == "application/json" {
@@ -109,7 +109,7 @@ func TriggerWebhook(payload *model.OutgoingWebhookPayload, hook *model.OutgoingW
 				respProps := model.MapFromJson(resp.Body)
 
 				if text, ok := respProps["text"]; ok {
-					if _, err := CreateWebhookPost(hook.CreatorId, hook.TeamId, post.ChannelId, text, respProps["username"], respProps["icon_url"], post.Props, post.Type); err != nil {
+					if _, err := CreateWebhookPost(hook.CreatorId, channel, text, respProps["username"], respProps["icon_url"], post.Props, post.Type); err != nil {
 						l4g.Error(utils.T("api.post.handle_webhook_events_and_forget.create_post.error"), err)
 					}
 				}
@@ -118,12 +118,12 @@ func TriggerWebhook(payload *model.OutgoingWebhookPayload, hook *model.OutgoingW
 	}
 }
 
-func CreateWebhookPost(userId, teamId, channelId, text, overrideUsername, overrideIconUrl string, props model.StringInterface, postType string) (*model.Post, *model.AppError) {
+func CreateWebhookPost(userId string, channel *model.Channel, text, overrideUsername, overrideIconUrl string, props model.StringInterface, postType string) (*model.Post, *model.AppError) {
 	// parse links into Markdown format
 	linkWithTextRegex := regexp.MustCompile(`<([^<\|]+)\|([^>]+)>`)
 	text = linkWithTextRegex.ReplaceAllString(text, "[${2}](${1})")
 
-	post := &model.Post{UserId: userId, ChannelId: channelId, Message: text, Type: postType}
+	post := &model.Post{UserId: userId, ChannelId: channel.Id, Message: text, Type: postType}
 	post.AddProp("from_webhook", "true")
 
 	if metrics := einterfaces.GetMetricsInterface(); metrics != nil {
@@ -173,7 +173,7 @@ func CreateWebhookPost(userId, teamId, channelId, text, overrideUsername, overri
 		post.UpdateAt = 0
 		post.CreateAt = 0
 		post.Message = txt
-		if _, err := CreatePost(post, teamId, false); err != nil {
+		if _, err := CreatePostMissingChannel(post, false); err != nil {
 			return nil, model.NewLocAppError("CreateWebhookPost", "api.post.create_webhook_post.creating.app_error", nil, "err="+err.Message)
 		}
 
@@ -527,7 +527,7 @@ func HandleIncomingWebhook(hookId string, req *model.IncomingWebhookRequest) *mo
 	overrideUsername := req.Username
 	overrideIconUrl := req.IconURL
 
-	if _, err := CreateWebhookPost(hook.UserId, hook.TeamId, channel.Id, text, overrideUsername, overrideIconUrl, req.Props, webhookType); err != nil {
+	if _, err := CreateWebhookPost(hook.UserId, channel, text, overrideUsername, overrideIconUrl, req.Props, webhookType); err != nil {
 		return err
 	}
 

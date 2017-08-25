@@ -88,7 +88,7 @@ func (me *EchoProvider) DoCommand(args *model.CommandArgs, message string) *mode
 
 		time.Sleep(time.Duration(delay) * time.Second)
 
-		if _, err := CreatePost(post, args.TeamId, true); err != nil {
+		if _, err := CreatePostMissingChannel(post, true); err != nil {
 			l4g.Error(args.T("api.command_echo.create.app_error"), err)
 		}
 	}()

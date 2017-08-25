@@ -25,7 +25,7 @@ import (
 	"github.com/nicksnyder/go-i18n/i18n"
 )
 
-func SendNotifications(post *model.Post, team *model.Team, channel *model.Channel, sender *model.User) ([]string, *model.AppError) {
+func SendNotifications(post *model.Post, team *model.Team, channel *model.Channel, sender *model.User, parentPostList *model.PostList) ([]string, *model.AppError) {
 	pchan := Srv.Store.User().GetAllProfilesInChannel(channel.Id, true)
 	cmnchan := Srv.Store.Channel().GetAllChannelMembersNotifyPropsForChannel(channel.Id, true)
 	var fchan store.StoreChannel
@@ -77,17 +77,11 @@ func SendNotifications(post *model.Post, team *model.Team, channel *model.Channe
 		mentionedUserIds, potentialOtherMentions, hereNotification, channelNotification, allNotification = GetExplicitMentions(post.Message, keywords)
 
 		// get users that have comment thread mentions enabled
-		if len(post.RootId) > 0 {
-			if result := <-Srv.Store.Post().Get(post.RootId); result.Err != nil {
-				return nil, result.Err
-			} else {
-				list := result.Data.(*model.PostList)
-
-				for _, threadPost := range list.Posts {
-					profile := profileMap[threadPost.UserId]
-					if profile != nil && (profile.NotifyProps["comments"] == "any" || (profile.NotifyProps["comments"] == "root" && threadPost.Id == list.Order[0])) {
-						mentionedUserIds[threadPost.UserId] = true
-					}
+		if len(post.RootId) > 0 && parentPostList != nil {
+			for _, threadPost := range parentPostList.Posts {
+				profile := profileMap[threadPost.UserId]
+				if profile != nil && (profile.NotifyProps["comments"] == "any" || (profile.NotifyProps["comments"] == "root" && threadPost.Id == parentPostList.Order[0])) {
+					mentionedUserIds[threadPost.UserId] = true
 				}
 			}
 		}

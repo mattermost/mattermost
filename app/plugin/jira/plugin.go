@@ -72,7 +72,7 @@ func (p *Plugin) handleWebhook(w http.ResponseWriter, r *http.Request) {
 			"from_webhook": "true",
 			"attachments":  []*model.SlackAttachment{attachment},
 		},
-	}, channel.TeamId); err != nil {
+	}); err != nil {
 		http.Error(w, p.api.I18n(err.Message, r), err.StatusCode)
 	}
 }

@@ -34,7 +34,7 @@ func CreatePostAsUser(post *model.Post) (*model.Post, *model.AppError) {
 		return nil, err
 	}
 
-	if rp, err := CreatePost(post, channel.TeamId, true); err != nil {
+	if rp, err := CreatePost(post, channel, true); err != nil {
 		if err.Id == "api.post.create_post.root_id.app_error" ||
 			err.Id == "api.post.create_post.channel_root_id.app_error" ||
 			err.Id == "api.post.create_post.parent_id.app_error" {
@@ -61,19 +61,32 @@ func CreatePostAsUser(post *model.Post) (*model.Post, *model.AppError) {
 
 }
 
-func CreatePost(post *model.Post, teamId string, triggerWebhooks bool) (*model.Post, *model.AppError) {
+func CreatePostMissingChannel(post *model.Post, triggerWebhooks bool) (*model.Post, *model.AppError) {
+	var channel *model.Channel
+	cchan := Srv.Store.Channel().Get(post.ChannelId, true)
+	if result := <-cchan; result.Err != nil {
+		return nil, result.Err
+	} else {
+		channel = result.Data.(*model.Channel)
+	}
+
+	return CreatePost(post, channel, triggerWebhooks)
+}
+
+func CreatePost(post *model.Post, channel *model.Channel, triggerWebhooks bool) (*model.Post, *model.AppError) {
 	var pchan store.StoreChannel
 	if len(post.RootId) > 0 {
 		pchan = Srv.Store.Post().Get(post.RootId)
 	}
 
 	// Verify the parent/child relationships are correct
+	var parentPostList *model.PostList
 	if pchan != nil {
 		if presult := <-pchan; presult.Err != nil {
 			return nil, model.NewLocAppError("createPost", "api.post.create_post.root_id.app_error", nil, "")
 		} else {
-			list := presult.Data.(*model.PostList)
-			if len(list.Posts) == 0 || !list.IsChannelId(post.ChannelId) {
+			parentPostList = presult.Data.(*model.PostList)
+			if len(parentPostList.Posts) == 0 || !parentPostList.IsChannelId(post.ChannelId) {
 				return nil, model.NewLocAppError("createPost", "api.post.create_post.channel_root_id.app_error", nil, "")
 			}
 
@@ -82,7 +95,7 @@ func CreatePost(post *model.Post, teamId string, triggerWebhooks bool) (*model.P
 			}
 
 			if post.RootId != post.ParentId {
-				parent := list.Posts[post.ParentId]
+				parent := parentPostList.Posts[post.ParentId]
 				if parent == nil {
 					return nil, model.NewLocAppError("createPost", "api.post.create_post.parent_id.app_error", nil, "")
 				}
@@ -101,7 +114,7 @@ func CreatePost(post *model.Post, teamId string, triggerWebhooks bool) (*model.P
 
 	esInterface := einterfaces.GetElasticsearchInterface()
 	if esInterface != nil && *utils.Cfg.ElasticsearchSettings.EnableIndexing {
-		go esInterface.IndexPost(rpost, teamId)
+		go esInterface.IndexPost(rpost, channel.TeamId)
 	}
 
 	if einterfaces.GetMetricsInterface() != nil {
@@ -123,19 +136,19 @@ func CreatePost(post *model.Post, teamId string, triggerWebhooks bool) (*model.P
 		}
 	}
 
-	if err := handlePostEvents(rpost, teamId, triggerWebhooks); err != nil {
+	if err := handlePostEvents(rpost, channel, triggerWebhooks, parentPostList); err != nil {
 		return nil, err
 	}
 
 	return rpost, nil
 }
 
-func handlePostEvents(post *model.Post, teamId string, triggerWebhooks bool) *model.AppError {
+func handlePostEvents(post *model.Post, channel *model.Channel, triggerWebhooks bool, parentPostList *model.PostList) *model.AppError {
 	var tchan store.StoreChannel
-	if len(teamId) > 0 {
-		tchan = Srv.Store.Team().Get(teamId)
+	if len(channel.TeamId) > 0 {
+		tchan = Srv.Store.Team().Get(channel.TeamId)
 	}
-	cchan := Srv.Store.Channel().Get(post.ChannelId, true)
+
 	uchan := Srv.Store.User().Get(post.UserId)
 
 	var team *model.Team
@@ -150,13 +163,6 @@ func handlePostEvents(post *model.Post, teamId string, triggerWebhooks bool) *mo
 		team = &model.Team{}
 	}
 
-	var channel *model.Channel
-	if result := <-cchan; result.Err != nil {
-		return result.Err
-	} else {
-		channel = result.Data.(*model.Channel)
-	}
-
 	InvalidateCacheForChannel(channel)
 	InvalidateCacheForChannelPosts(channel.Id)
 
@@ -167,7 +173,7 @@ func handlePostEvents(post *model.Post, teamId string, triggerWebhooks bool) *mo
 		user = result.Data.(*model.User)
 	}
 
-	if _, err := SendNotifications(post, team, channel, user); err != nil {
+	if _, err := SendNotifications(post, team, channel, user, parentPostList); err != nil {
 		return err
 	}
 
