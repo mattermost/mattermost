@@ -9,6 +9,7 @@ exports[`components/post_view/PostInfo should match snapshot 1`] = `
   >
     <PostTime
       eventTime={1502715365009}
+      isPermalink={true}
       postId="e584uzbwwpny9kengqayx5ayzw"
       useMilitaryTime={false}
     />
@@ -93,6 +94,7 @@ exports[`components/post_view/PostInfo should match snapshot, compact display 1`
   >
     <PostTime
       eventTime={1502715365009}
+      isPermalink={true}
       postId="e584uzbwwpny9kengqayx5ayzw"
       useMilitaryTime={false}
     />
@@ -177,6 +179,7 @@ exports[`components/post_view/PostInfo should match snapshot, ephemeral deleted 
   >
     <PostTime
       eventTime={1502715365009}
+      isPermalink={false}
       postId="e584uzbwwpny9kengqayx5ayzw"
       useMilitaryTime={false}
     />
@@ -212,6 +215,7 @@ exports[`components/post_view/PostInfo should match snapshot, ephemeral post 1`]
   >
     <PostTime
       eventTime={1502715365009}
+      isPermalink={false}
       postId="e584uzbwwpny9kengqayx5ayzw"
       useMilitaryTime={false}
     />
@@ -256,6 +260,7 @@ exports[`components/post_view/PostInfo should match snapshot, flagged post 1`] =
   >
     <PostTime
       eventTime={1502715365009}
+      isPermalink={true}
       postId="e584uzbwwpny9kengqayx5ayzw"
       useMilitaryTime={false}
     />
@@ -340,6 +345,7 @@ exports[`components/post_view/PostInfo should match snapshot, military time 1`] 
   >
     <PostTime
       eventTime={1502715365009}
+      isPermalink={true}
       postId="e584uzbwwpny9kengqayx5ayzw"
       useMilitaryTime={true}
     />
@@ -403,6 +409,7 @@ exports[`components/post_view/PostInfo should match snapshot, pinned post 1`] = 
   >
     <PostTime
       eventTime={1502715365009}
+      isPermalink={true}
       postId="e584uzbwwpny9kengqayx5ayzw"
       useMilitaryTime={false}
     />
