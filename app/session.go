@@ -205,7 +205,7 @@ func UpdateLastActivityAtIfNeeded(session model.Session) {
 	}
 
 	if result := <-Srv.Store.Session().UpdateLastActivityAt(session.Id, now); result.Err != nil {
-		l4g.Error(utils.T("api.status.last_activity.error", session.UserId, session.Id))
+		l4g.Error(utils.T("api.status.last_activity.error"), session.UserId, session.Id)
 	}
 
 	session.LastActivityAt = now
