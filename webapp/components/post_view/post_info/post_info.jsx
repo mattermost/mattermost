@@ -77,7 +77,7 @@ export default class PostInfo extends React.PureComponent {
              */
             addReaction: PropTypes.func.isRequired
         }).isRequired
-    }
+    };
 
     constructor(props) {
         super(props);
@@ -96,12 +96,12 @@ export default class PostInfo extends React.PureComponent {
 
         this.setState({showEmojiPicker});
         this.props.handleDropdownOpened(showEmojiPicker);
-    }
+    };
 
     hideEmojiPicker = () => {
         this.setState({showEmojiPicker: false});
         this.props.handleDropdownOpened(false);
-    }
+    };
 
     removePost() {
         this.props.actions.removePost(this.props.post);
@@ -131,7 +131,7 @@ export default class PostInfo extends React.PureComponent {
 
     getDotMenu = () => {
         return this.refs.dotMenu;
-    }
+    };
 
     render() {
         const post = this.props.post;
@@ -243,6 +243,7 @@ export default class PostInfo extends React.PureComponent {
             <div className='post__header--info'>
                 <div className='col'>
                     <PostTime
+                        isPermalink={!PostUtils.isSystemMessage(this.props.post)}
                         eventTime={post.create_at}
                         useMilitaryTime={this.props.useMilitaryTime}
                         postId={post.id}
