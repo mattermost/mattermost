@@ -1,6 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+// Note: On both ARM and x86-32, it is the caller's responsibility to 
+// arrange for 64-bit alignment of 64-bit words accessed atomically. 
+// The first word in a global variable or in an allocated struct or 
+// slice can be relied upon to be 64-bit aligned.
+// 
+// TL;DR Add "int64" var 1st before anything else in a struct
+// Affected: Hub
+
 package app
 
 import (
@@ -26,9 +34,11 @@ const (
 	DEADLOCK_WARN        = (BROADCAST_QUEUE_SIZE * 99) / 100 // number of buffered messages before printing stack trace
 )
 
-type Hub struct {
+type Hub struct { 
+        // connectionCount should be kept first.
+        // See https://github.com/mattermost/platform/pull/7281
+    	connectionCount int64
 	connections     []*WebConn
-	connectionCount int64
 	connectionIndex int
 	register        chan *WebConn
 	unregister      chan *WebConn

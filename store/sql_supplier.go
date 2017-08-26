@@ -1,6 +1,14 @@
 // Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+// Note: On both ARM and x86-32, it is the caller's responsibility to 
+// arrange for 64-bit alignment of 64-bit words accessed atomically.  
+// The first word in a global variable or in an allocated struct or
+// slice can be relied upon to be 64-bit aligned.
+// 
+// TL;DR Add "int64" var 1st before anything else in a type struct
+// Affected: SqlSupplier
+
 package store
 
 import (
@@ -82,13 +90,15 @@ type SqlSupplierOldStores struct {
 	userAccessToken UserAccessTokenStore
 }
 
-type SqlSupplier struct {
+type SqlSupplier struct { 
+        // rrCounter and srCounter should be kept first.
+        // See https://github.com/mattermost/platform/pull/7281
+	rrCounter      int64
+	srCounter      int64
 	next           LayeredStoreSupplier
 	master         *gorp.DbMap
 	replicas       []*gorp.DbMap
 	searchReplicas []*gorp.DbMap
-	rrCounter      int64
-	srCounter      int64
 	oldStores      SqlSupplierOldStores
 }
 
