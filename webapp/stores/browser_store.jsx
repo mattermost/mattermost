@@ -6,8 +6,8 @@ import * as Utils from 'utils/utils.jsx';
 import {Constants, ErrorPageTypes} from 'utils/constants.jsx';
 
 function getPrefix() {
-    if (global.window.mm_current_user_id) {
-        return global.window.mm_current_user_id + '_';
+    if (global.mm_user) {
+        return global.mm_user.id + '_';
     }
 
     console.warn('BrowserStore tried to operate without user present'); //eslint-disable-line no-console
@@ -50,6 +50,7 @@ class BrowserStoreClass {
 
     getGlobalItem(name, defaultValue = null) {
         var result = null;
+
         try {
             if (this.isLocalStorageSupported()) {
                 result = JSON.parse(localStorage.getItem(name));
@@ -60,7 +61,7 @@ class BrowserStoreClass {
             result = null;
         }
 
-        if (!result) {
+        if (typeof result === 'undefined' || result === null) {
             result = defaultValue;
         }
 
