@@ -90,7 +90,9 @@ type SqlSupplierOldStores struct {
 	userAccessToken UserAccessTokenStore
 }
 
-type SqlSupplier struct {
+type SqlSupplier struct { 
+        // rrCounter and srCounter should be kept first.
+        // See https://github.com/mattermost/platform/pull/7281
 	rrCounter      int64
 	srCounter      int64
 	next           LayeredStoreSupplier

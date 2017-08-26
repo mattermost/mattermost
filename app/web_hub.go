@@ -34,8 +34,10 @@ const (
 	DEADLOCK_WARN        = (BROADCAST_QUEUE_SIZE * 99) / 100 // number of buffered messages before printing stack trace
 )
 
-type Hub struct {
-	connectionCount int64
+type Hub struct { 
+        // connectionCount should be kept first.
+        // See https://github.com/mattermost/platform/pull/7281
+    	connectionCount int64
 	connections     []*WebConn
 	connectionIndex int
 	register        chan *WebConn
