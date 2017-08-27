@@ -39,7 +39,6 @@ export default class UserSettingsDisplay extends React.Component {
         this.updateSection = this.updateSection.bind(this);
         this.updateState = this.updateState.bind(this);
         this.createCollapseSection = this.createCollapseSection.bind(this);
-        this.isSaving = false;
 
         this.state = getDisplayStateFromStores();
     }

@@ -34,7 +34,6 @@ export default class ThemeSetting extends React.Component {
         this.updateTheme = this.updateTheme.bind(this);
         this.resetFields = this.resetFields.bind(this);
         this.handleImportModal = this.handleImportModal.bind(this);
-        this.isSaving = false;
 
         this.state = this.getStateFromStores();
 

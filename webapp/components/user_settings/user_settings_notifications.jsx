@@ -118,7 +118,6 @@ export default class NotificationsTab extends React.Component {
         this.updateState = this.updateState.bind(this);
         this.onCustomChange = this.onCustomChange.bind(this);
         this.createPushNotificationSection = this.createPushNotificationSection.bind(this);
-        this.isSaving = false;
 
         this.state = getNotificationsStateFromStores();
     }

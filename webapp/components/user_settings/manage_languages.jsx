@@ -19,7 +19,6 @@ export default class ManageLanguage extends React.Component {
         this.setLanguage = this.setLanguage.bind(this);
         this.changeLanguage = this.changeLanguage.bind(this);
         this.submitUser = this.submitUser.bind(this);
-        this.isSaving = false;
         this.state = {
             locale: props.locale
         };

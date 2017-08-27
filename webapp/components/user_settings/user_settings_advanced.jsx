@@ -27,7 +27,6 @@ export default class AdvancedSettingsDisplay extends React.Component {
         this.updateSetting = this.updateSetting.bind(this);
         this.toggleFeature = this.toggleFeature.bind(this);
         this.saveEnabledFeatures = this.saveEnabledFeatures.bind(this);
-        this.isSaving = false;
 
         this.renderFormattingSection = this.renderFormattingSection.bind(this);
         this.renderJoinLeaveSection = this.renderJoinLeaveSection.bind(this);
