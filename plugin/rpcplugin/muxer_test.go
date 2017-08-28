@@ -129,6 +129,34 @@ func TestMuxer_StreamCloseDuringRead(t *testing.T) {
 	assert.Equal(t, io.EOF, err)
 }
 
+// Closing a stream during a read should unblock and return io.EOF since this is the way for the
+// remote to gracefully close a connection.
+func TestMuxer_RemoteStreamCloseDuringRead(t *testing.T) {
+	r1, w1 := io.Pipe()
+	r2, w2 := io.Pipe()
+
+	alice := NewMuxer(NewReadWriteCloser(r1, w2), false)
+	defer func() { assert.NoError(t, alice.Close()) }()
+
+	bob := NewMuxer(NewReadWriteCloser(r2, w1), true)
+	defer func() { assert.NoError(t, bob.Close()) }()
+
+	id, as := alice.Serve()
+	bs := bob.Connect(id)
+
+	go func() {
+		as.Write([]byte("foo"))
+		as.Close()
+	}()
+	buf := make([]byte, 20)
+	n, err := bs.Read(buf)
+	assert.Equal(t, 3, n)
+	assert.Equal(t, "foo", string(buf[:n]))
+	n, err = bs.Read(buf)
+	assert.Equal(t, 0, n)
+	assert.Equal(t, io.EOF, err)
+}
+
 // Closing a muxer during a write should unblock, but return an error.
 func TestMuxer_CloseDuringWrite(t *testing.T) {
 	r1, w1 := io.Pipe()
