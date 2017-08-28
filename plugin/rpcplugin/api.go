@@ -26,11 +26,6 @@ func (h *LocalAPI) LoadPluginConfiguration(args struct{}, reply *[]byte) error {
 	return nil
 }
 
-type RemoteAPI struct {
-	client *rpc.Client
-	muxer  *Muxer
-}
-
 func ServeAPI(api plugin.API, conn io.ReadWriteCloser, muxer *Muxer) {
 	server := rpc.NewServer()
 	server.Register(&LocalAPI{
@@ -38,6 +33,11 @@ func ServeAPI(api plugin.API, conn io.ReadWriteCloser, muxer *Muxer) {
 		muxer: muxer,
 	})
 	server.ServeConn(conn)
+}
+
+type RemoteAPI struct {
+	client *rpc.Client
+	muxer  *Muxer
 }
 
 var _ plugin.API = (*RemoteAPI)(nil)
