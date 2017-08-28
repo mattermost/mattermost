@@ -28,7 +28,7 @@ func TestCreateWebhookPost(t *testing.T) {
 	}
 	defer DeleteIncomingWebhook(hook.Id)
 
-	post, err := CreateWebhookPost(hook.UserId, hook.TeamId, th.BasicChannel.Id, "foo", "user", "http://iconurl", model.StringInterface{
+	post, err := CreateWebhookPost(hook.UserId, th.BasicChannel, "foo", "user", "http://iconurl", model.StringInterface{
 		"attachments": []*model.SlackAttachment{
 			&model.SlackAttachment{
 				Text: "text",

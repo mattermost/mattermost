@@ -207,7 +207,7 @@ func updateChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	} else {
 		if oldChannelDisplayName != channel.DisplayName {
-			if err := app.PostUpdateChannelDisplayNameMessage(c.Session.UserId, channel.Id, c.TeamId, oldChannelDisplayName, channel.DisplayName); err != nil {
+			if err := app.PostUpdateChannelDisplayNameMessage(c.Session.UserId, channel, oldChannelDisplayName, channel.DisplayName); err != nil {
 				l4g.Error(err.Error())
 			}
 		}
@@ -255,7 +255,7 @@ func updateChannelHeader(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	} else {
-		if err := app.PostUpdateChannelHeaderMessage(c.Session.UserId, channel.Id, c.TeamId, oldChannelHeader, channelHeader); err != nil {
+		if err := app.PostUpdateChannelHeaderMessage(c.Session.UserId, channel, oldChannelHeader, channelHeader); err != nil {
 			l4g.Error(err.Error())
 		}
 		c.LogAudit("name=" + channel.Name)
@@ -301,7 +301,7 @@ func updateChannelPurpose(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	} else {
-		if err := app.PostUpdateChannelPurposeMessage(c.Session.UserId, channel.Id, c.TeamId, oldChannelPurpose, channelPurpose); err != nil {
+		if err := app.PostUpdateChannelPurposeMessage(c.Session.UserId, channel, oldChannelPurpose, channelPurpose); err != nil {
 			l4g.Error(err.Error())
 		}
 		c.LogAudit("name=" + channel.Name)
