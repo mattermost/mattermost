@@ -1011,10 +1011,10 @@
     .search-bar__container {
         @include flex(0 0 50px);
         background: $primary-color;
-        color: $white;
         padding: 0;
 
         .search-form__container {
+            color: $black;
             padding: 0;
         }
 
@@ -1041,6 +1041,8 @@
                 top: 7px;
 
                 svg {
+                    stroke: $black;
+                    stroke-opacity: .4;
                     width: 17px;
                 }
             }
@@ -1226,7 +1228,6 @@
         }
 
         .sidebar__search-clear {
-            @include opacity(1);
             color: inherit;
             display: block;
             height: 32px;
