@@ -844,156 +844,16 @@
     "translation": "Настройки недоступны на вашем устройстве"
   },
   {
-    "id": "api.command_shortcuts.browser.channel_next",
-    "translation": "{{.ChannelNextCmd}}: Следующий канал в вашей истории\n"
-  },
-  {
-    "id": "api.command_shortcuts.browser.channel_next.cmd",
-    "translation": "ALT+ВПРАВО"
-  },
-  {
-    "id": "api.command_shortcuts.browser.channel_next.cmd_mac",
-    "translation": "CMD+]"
-  },
-  {
-    "id": "api.command_shortcuts.browser.channel_prev",
-    "translation": "{{.ChannelPrevCmd}}: Предыдущий канал в вашей истории\n"
-  },
-  {
-    "id": "api.command_shortcuts.browser.channel_prev.cmd",
-    "translation": "ALT+ВЛЕВО"
-  },
-  {
-    "id": "api.command_shortcuts.browser.channel_prev.cmd_mac",
-    "translation": "CMD+["
-  },
-  {
-    "id": "api.command_shortcuts.browser.font_decrease",
-    "translation": "{{.CmdOrCtrl}}+МИНУС: Уменьшить размер шрифта (отдалить)\n"
-  },
-  {
-    "id": "api.command_shortcuts.browser.font_increase",
-    "translation": "{{.CmdOrCtrl}}+ПЛЮС: Увеличить размер шрифта (приблизить)\n"
-  },
-  {
-    "id": "api.command_shortcuts.browser.header",
-    "translation": "#### Встроенные команды\n\n"
-  },
-  {
-    "id": "api.command_shortcuts.browser.highlight_next",
-    "translation": "SHIFT+ВНИЗ (в поле ввода): Выделить текст до следующей строки\n"
-  },
-  {
-    "id": "api.command_shortcuts.browser.highlight_prev",
-    "translation": "SHIFT+ВВЕРХ (в поле ввода): Выделить текст до предыдущей строки\n"
-  },
-  {
-    "id": "api.command_shortcuts.browser.newline",
-    "translation": "SHIFT+ВВОД (в поле ввода): Создать новую строку\n"
-  },
-  {
-    "id": "api.command_shortcuts.cmd",
-    "translation": "CMD"
-  },
-  {
-    "id": "api.command_shortcuts.ctrl",
-    "translation": "CTRL"
-  },
-  {
     "id": "api.command_shortcuts.desc",
     "translation": "Отображает список сочетаний клавиш"
-  },
-  {
-    "id": "api.command_shortcuts.files.header",
-    "translation": "#### Файлы\n\n"
-  },
-  {
-    "id": "api.command_shortcuts.files.upload",
-    "translation": "{{.CmdOrCtrl}}+U: Загрузить файл(ы)\n\n"
-  },
-  {
-    "id": "api.command_shortcuts.header",
-    "translation": "### Горячие клавиши\n\n"
-  },
-  {
-    "id": "api.command_shortcuts.msgs.comp_channel",
-    "translation": "~[character]+TAB: Автодополнение названия канала, начинающегося с символа [character]\n"
-  },
-  {
-    "id": "api.command_shortcuts.msgs.comp_emoji",
-    "translation": ":[character]+TAB: Автодополнение эмодзи, начинающегося с символа [character]\n\n"
-  },
-  {
-    "id": "api.command_shortcuts.msgs.comp_username",
-    "translation": "@[character]+TAB: Автодополнение @имени пользователя, начинающегося с символа [character]\n"
-  },
-  {
-    "id": "api.command_shortcuts.msgs.edit",
-    "translation": "ВВЕРХ (в пустом поле ввода): Редактировать ваше последнее сообщение в этом канале\n"
-  },
-  {
-    "id": "api.command_shortcuts.msgs.header",
-    "translation": "#### Сообщения\n\n"
-  },
-  {
-    "id": "api.command_shortcuts.msgs.mark_as_read",
-    "translation": "ESC: Пометить все сообщения в текущем канале как прочитанные\n"
-  },
-  {
-    "id": "api.command_shortcuts.msgs.reply",
-    "translation": "SHIFT+ВВЕРХ (в пустом поле ввода): Ответить на последнее сообщение в канале\n"
-  },
-  {
-    "id": "api.command_shortcuts.msgs.reprint_next",
-    "translation": "{{.CmdOrCtrl}}+ВНИЗ (в пустом поле ввода): Ввести следующее сообщение или команду\n"
-  },
-  {
-    "id": "api.command_shortcuts.msgs.reprint_prev",
-    "translation": "{{.CmdOrCtrl}}+ВВЕРХ (в пустом поле ввода): Ввести предыдущее сообщение или команду\n"
   },
   {
     "id": "api.command_shortcuts.name",
     "translation": "комбинации клавиш"
   },
   {
-    "id": "api.command_shortcuts.nav.direct_messages_menu",
-    "translation": "{{.CmdOrCtrl}}+SHIFT+K: Открыть меню личных сообщений\n"
-  },
-  {
-    "id": "api.command_shortcuts.nav.header",
-    "translation": "#### Навигация\n\n"
-  },
-  {
-    "id": "api.command_shortcuts.nav.next",
-    "translation": "ALT+ВНИЗ: Следующий канал или диалог в левом боковом меню\n"
-  },
-  {
-    "id": "api.command_shortcuts.nav.prev",
-    "translation": "ALT+ВВЕРХ: Предыдущий канал или диалог в левом боковом меню\n"
-  },
-  {
-    "id": "api.command_shortcuts.nav.recent_mentions",
-    "translation": "{{.CmdOrCtrl}}+SHIFT+M: Открыть недавние упоминания\n\n"
-  },
-  {
-    "id": "api.command_shortcuts.nav.settings",
-    "translation": "{{.CmdOrCtrl}}+SHIFT+A: Открыть настройки аккаунта\n"
-  },
-  {
-    "id": "api.command_shortcuts.nav.switcher",
-    "translation": "{{.CmdOrCtrl}}+K: Открыть диалог переключения между каналами\n"
-  },
-  {
-    "id": "api.command_shortcuts.nav.switcher_team",
-    "translation": "{{.CmdOrCtrl}}+ALT+K: Открыть диалог быстрого переключения между каналами\n"
-  },
-  {
-    "id": "api.command_shortcuts.nav.unread_next",
-    "translation": "ALT+SHIFT+ВНИЗ: Следующий канал или диалог в левом боковом меню с непрочитанными сообщениями\n"
-  },
-  {
-    "id": "api.command_shortcuts.nav.unread_prev",
-    "translation": "ALT+SHIFT+ВВЕРХ: Предыдущий канал или диалог в левом боковом меню с непрочитанными сообщениями\n"
+    "id": "api.command_shortcuts.unsupported.app_error",
+    "translation": "Поиск недоступен на вашем устройстве"
   },
   {
     "id": "api.command_shrug.desc",
@@ -1981,7 +1841,7 @@
   },
   {
     "id": "api.slackimport.slack_add_bot_user.email_pwd",
-    "translation": "The Integration/Slack Bot user with email {{.Email}} and password {{.Password}} has been imported.\r\n"
+    "translation": "Slack пользователь с email {{.Email}} и паролем {{.Password}} импортирован.\r\n"
   },
   {
     "id": "api.slackimport.slack_add_bot_user.unable_import",
@@ -2497,15 +2357,15 @@
   },
   {
     "id": "api.templates.user_access_token_body.info",
-    "translation": "A user access token was added to your account on {{ .SiteURL }}. They can be used to access {{.SiteName}} with your account.<br>If this change wasn't initiated by you, please contact your system administrator."
+    "translation": "A personal access token was added to your account on {{ .SiteURL }}. They can be used to access {{.SiteName}} with your account.<br>If this change wasn't initiated by you, please contact your system administrator."
   },
   {
     "id": "api.templates.user_access_token_body.title",
-    "translation": "User access token added to your account"
+    "translation": "Personal access token added to your account"
   },
   {
     "id": "api.templates.user_access_token_subject",
-    "translation": "[{{ .SiteName }}] User access token added to your account"
+    "translation": "[{{ .SiteName }}] Personal access token added to your account"
   },
   {
     "id": "api.templates.username_change_body.info",
@@ -2865,7 +2725,7 @@
   },
   {
     "id": "api.user.send_user_access_token.error",
-    "translation": "Failed to send user access token added email successfully"
+    "translation": "Failed to send personal access token added email successfully"
   },
   {
     "id": "api.user.send_verify_email_and_forget.failed.error",
@@ -3529,7 +3389,7 @@
   },
   {
     "id": "app.notification.body.intro.notification.full",
-    "translation": "You have a new notification."
+    "translation": "У вас есть новое уведомление."
   },
   {
     "id": "app.notification.body.intro.notification.generic",
@@ -3788,6 +3648,22 @@
     "translation": "Экспорт комплаенс-листа начат для задачи '{{.JobName}}' в '{{.FilePath}}'"
   },
   {
+    "id": "ent.elasticsearch.aggregator_worker.create_index_job.error",
+    "translation": "Elasticsearch aggregator worker failed to create the indexing job"
+  },
+  {
+    "id": "ent.elasticsearch.aggregator_worker.delete_indexes.error",
+    "translation": "Elasticsearch aggregator worker failed to delete the indexes"
+  },
+  {
+    "id": "ent.elasticsearch.aggregator_worker.get_indexes.error",
+    "translation": "Elasticsearch aggregator worker failed to get indexes"
+  },
+  {
+    "id": "ent.elasticsearch.aggregator_worker.index_job_failed.error",
+    "translation": "Elasticsearch aggregator worker failed due to the indexing job failing"
+  },
+  {
     "id": "ent.elasticsearch.create_client.connect_failed",
     "translation": "Setting up Elasticsearch Client Failed"
   },
@@ -3814,6 +3690,14 @@
   {
     "id": "ent.elasticsearch.index_post.error",
     "translation": "Failed to index the post"
+  },
+  {
+    "id": "ent.elasticsearch.indexer.do_job.parse_end_time.error",
+    "translation": "Elasticsearch indexing worker failed to parse the end time"
+  },
+  {
+    "id": "ent.elasticsearch.indexer.do_job.parse_start_time.error",
+    "translation": "Elasticsearch indexing worker failed to parse the start time"
   },
   {
     "id": "ent.elasticsearch.not_started.error",
@@ -4392,6 +4276,34 @@
     "translation": "Недопустимы идентификатор пользователя"
   },
   {
+    "id": "model.command_hook.channel_id.app_error",
+    "translation": "Недопустимый идентификатор канала"
+  },
+  {
+    "id": "model.command_hook.command_id.app_error",
+    "translation": "Invalid command id"
+  },
+  {
+    "id": "model.command_hook.create_at.app_error",
+    "translation": "\"Создать в\" должно быть корректным временем"
+  },
+  {
+    "id": "model.command_hook.id.app_error",
+    "translation": "Invalid command hook id"
+  },
+  {
+    "id": "model.command_hook.parent_id.app_error",
+    "translation": "Некорректный родительский идентификатор"
+  },
+  {
+    "id": "model.command_hook.root_id.app_error",
+    "translation": "Некорректный идентификатор root"
+  },
+  {
+    "id": "model.command_hook.user_id.app_error",
+    "translation": "Недопустимый идентификатор пользователя"
+  },
+  {
     "id": "model.compliance.is_valid.create_at.app_error",
     "translation": "\"Создать в\" должно быть корректным временем"
   },
@@ -4420,6 +4332,10 @@
     "translation": "Невозможно включить пакетную обработку почты при включенной кластеризации."
   },
   {
+    "id": "model.config.is_valid.elastic_search.aggregate_posts_after_days.app_error",
+    "translation": "Elasticsearch AggregatePostsAfterDays setting must be a number greater than or equal to 1"
+  },
+  {
     "id": "model.config.is_valid.elastic_search.connection_url.app_error",
     "translation": "Elastic Search ConnectionUrl setting must be provided when Elastic Search indexing is enabled."
   },
@@ -4430,6 +4346,10 @@
   {
     "id": "model.config.is_valid.elastic_search.password.app_error",
     "translation": "Elastic Search Password setting must be provided when Elastic Search indexing is enabled."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.posts_aggregator_job_start_time.app_error",
+    "translation": "Elasticsearch PostsAggregatorJobStartTime setting must be a time in the format \"hh:mm\""
   },
   {
     "id": "model.config.is_valid.elastic_search.username.app_error",
@@ -5596,6 +5516,26 @@
     "translation": "Не удалось обновить команду"
   },
   {
+    "id": "store.sql_command_webhooks.get.app_error",
+    "translation": "Не удалось получить вебхук"
+  },
+  {
+    "id": "store.sql_command_webhooks.save.app_error",
+    "translation": "Не удалось сохранить IncomingWebhook"
+  },
+  {
+    "id": "store.sql_command_webhooks.save.existing.app_error",
+    "translation": "You cannot update an existing CommandWebhook"
+  },
+  {
+    "id": "store.sql_command_webhooks.try_use.app_error",
+    "translation": "Unable to use the webhook"
+  },
+  {
+    "id": "store.sql_command_webhooks.try_use.invalid.app_error",
+    "translation": "Неверный вебхук"
+  },
+  {
     "id": "store.sql_compliance.get.finding.app_error",
     "translation": "Возникла ошибка с получением комплаенс-отчетов"
   },
@@ -6662,6 +6602,18 @@
   {
     "id": "web.claim_account.user.error",
     "translation": "Не удалось найти пользователя teamid=%v, email=%v, err=%v"
+  },
+  {
+    "id": "web.command_webhook.command.app_error",
+    "translation": "Не удалось найти канал"
+  },
+  {
+    "id": "web.command_webhook.invalid.app_error",
+    "translation": "Неверный вебхук"
+  },
+  {
+    "id": "web.command_webhook.parse.app_error",
+    "translation": "Невозможно разобрать входящие данные"
   },
   {
     "id": "web.create_dir.error",

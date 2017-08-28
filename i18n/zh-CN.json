@@ -844,156 +844,16 @@
     "translation": "您的设备不支持设定命令"
   },
   {
-    "id": "api.command_shortcuts.browser.channel_next",
-    "translation": "{{.ChannelNextCmd}}：您的历史记录里的下一个频道\n"
-  },
-  {
-    "id": "api.command_shortcuts.browser.channel_next.cmd",
-    "translation": "ALT+RIGHT"
-  },
-  {
-    "id": "api.command_shortcuts.browser.channel_next.cmd_mac",
-    "translation": "CMD+]"
-  },
-  {
-    "id": "api.command_shortcuts.browser.channel_prev",
-    "translation": "{{.ChannelPrevCmd}}：您的历史记录里的上一个频道\n"
-  },
-  {
-    "id": "api.command_shortcuts.browser.channel_prev.cmd",
-    "translation": "ALT+LEFT"
-  },
-  {
-    "id": "api.command_shortcuts.browser.channel_prev.cmd_mac",
-    "translation": "CMD+["
-  },
-  {
-    "id": "api.command_shortcuts.browser.font_decrease",
-    "translation": "{{.CmdOrCtrl}}+减号：减少字体大小 (缩小)\n"
-  },
-  {
-    "id": "api.command_shortcuts.browser.font_increase",
-    "translation": "{{.CmdOrCtrl}}+加号：增加字体大小 (放大)\n"
-  },
-  {
-    "id": "api.command_shortcuts.browser.header",
-    "translation": "#### 内置浏览器命令\n\n"
-  },
-  {
-    "id": "api.command_shortcuts.browser.highlight_next",
-    "translation": "SHIFT+DOWN (在输入栏)：高亮到下一行之间的文字\n"
-  },
-  {
-    "id": "api.command_shortcuts.browser.highlight_prev",
-    "translation": "SHIFT+UP (在输入栏)：高亮到上一行之间的文字\n"
-  },
-  {
-    "id": "api.command_shortcuts.browser.newline",
-    "translation": "SHIFT+ENTER (在输入栏)：新增行\n"
-  },
-  {
-    "id": "api.command_shortcuts.cmd",
-    "translation": "CMD"
-  },
-  {
-    "id": "api.command_shortcuts.ctrl",
-    "translation": "CTRL"
-  },
-  {
     "id": "api.command_shortcuts.desc",
     "translation": "显示快捷键列表"
-  },
-  {
-    "id": "api.command_shortcuts.files.header",
-    "translation": "#### 文件\n\n"
-  },
-  {
-    "id": "api.command_shortcuts.files.upload",
-    "translation": "{{.CmdOrCtrl}}+U：上传文件\n\n"
-  },
-  {
-    "id": "api.command_shortcuts.header",
-    "translation": "### 键盘快捷键\n\n"
-  },
-  {
-    "id": "api.command_shortcuts.msgs.comp_channel",
-    "translation": "~[字符]+TAB：自动完成以[字符]开头的频道\n"
-  },
-  {
-    "id": "api.command_shortcuts.msgs.comp_emoji",
-    "translation": ":[字符]+TAB：自动完成以[字符]开头的表情符\n\n"
-  },
-  {
-    "id": "api.command_shortcuts.msgs.comp_username",
-    "translation": "@[字符]+TAB：自动完成以[字符]开头的 @用户名\n"
-  },
-  {
-    "id": "api.command_shortcuts.msgs.edit",
-    "translation": "向上键 (在空白输入栏)：修改您在本频道的上一条消息\n"
-  },
-  {
-    "id": "api.command_shortcuts.msgs.header",
-    "translation": "#### 消息\n\n"
-  },
-  {
-    "id": "api.command_shortcuts.msgs.mark_as_read",
-    "translation": "ESC：将当前频道所有消息标为已读\n"
-  },
-  {
-    "id": "api.command_shortcuts.msgs.reply",
-    "translation": "SHIFT+UP (在空输入栏)：回复当前频道最新的消息\n"
-  },
-  {
-    "id": "api.command_shortcuts.msgs.reprint_next",
-    "translation": "{{.CmdOrCtrl}}+向下键 (在空白输入栏)：重显示您输入的下一条消息或斜杠命令\n"
-  },
-  {
-    "id": "api.command_shortcuts.msgs.reprint_prev",
-    "translation": "{{.CmdOrCtrl}}+向上键 (在空白输入栏)：重显示您输入的上一条消息或斜杠命令\n"
   },
   {
     "id": "api.command_shortcuts.name",
     "translation": "快捷键"
   },
   {
-    "id": "api.command_shortcuts.nav.direct_messages_menu",
-    "translation": "{{.CmdOrCtrl}}+SHIFT+K：打开私信菜单\n"
-  },
-  {
-    "id": "api.command_shortcuts.nav.header",
-    "translation": "#### 导航\n\n"
-  },
-  {
-    "id": "api.command_shortcuts.nav.next",
-    "translation": "ALT+向下键：左侧栏中的下一个频道或私信\n"
-  },
-  {
-    "id": "api.command_shortcuts.nav.prev",
-    "translation": "ALT+向上键：左侧栏中的上一个频道或私信\n"
-  },
-  {
-    "id": "api.command_shortcuts.nav.recent_mentions",
-    "translation": "{{.CmdOrCtrl}}+SHIFT+M：打开最近提及\n\n"
-  },
-  {
-    "id": "api.command_shortcuts.nav.settings",
-    "translation": "{{.CmdOrCtrl}}+SHIFT+A：打开帐号设置\n"
-  },
-  {
-    "id": "api.command_shortcuts.nav.switcher",
-    "translation": "{{.CmdOrCtrl}}+K：打开频道快速切换对话框\n"
-  },
-  {
-    "id": "api.command_shortcuts.nav.switcher_team",
-    "translation": "{{.CmdOrCtrl}}+ALT+K：打开团队快速切换对话框\n"
-  },
-  {
-    "id": "api.command_shortcuts.nav.unread_next",
-    "translation": "ALT+SHIFT+向下键：左侧栏中的下一个有未读消息的频道或私信\n"
-  },
-  {
-    "id": "api.command_shortcuts.nav.unread_prev",
-    "translation": "ALT+SHIFT+向上键：左侧栏中的上一个有未读消息的频道或私信\n"
+    "id": "api.command_shortcuts.unsupported.app_error",
+    "translation": "您的设备不支持搜索命令"
   },
   {
     "id": "api.command_shrug.desc",
@@ -3788,6 +3648,22 @@
     "translation": "导出审核自'{{.FilePath}}'的'{{.JobName}}'任务开始"
   },
   {
+    "id": "ent.elasticsearch.aggregator_worker.create_index_job.error",
+    "translation": "Elasticsearch aggregator worker failed to create the indexing job"
+  },
+  {
+    "id": "ent.elasticsearch.aggregator_worker.delete_indexes.error",
+    "translation": "Elasticsearch aggregator worker failed to delete the indexes"
+  },
+  {
+    "id": "ent.elasticsearch.aggregator_worker.get_indexes.error",
+    "translation": "Elasticsearch aggregator worker failed to get indexes"
+  },
+  {
+    "id": "ent.elasticsearch.aggregator_worker.index_job_failed.error",
+    "translation": "Elasticsearch aggregator worker failed due to the indexing job failing"
+  },
+  {
     "id": "ent.elasticsearch.create_client.connect_failed",
     "translation": "设置 ElasticSearch 客户端失败"
   },
@@ -3814,6 +3690,14 @@
   {
     "id": "ent.elasticsearch.index_post.error",
     "translation": "索引消息失败"
+  },
+  {
+    "id": "ent.elasticsearch.indexer.do_job.parse_end_time.error",
+    "translation": "Elasticsearch indexing worker failed to parse the end time"
+  },
+  {
+    "id": "ent.elasticsearch.indexer.do_job.parse_start_time.error",
+    "translation": "Elasticsearch indexing worker failed to parse the start time"
   },
   {
     "id": "ent.elasticsearch.not_started.error",
@@ -4037,7 +3921,7 @@
   },
   {
     "id": "ent.saml.service_disable.app_error",
-    "translation": "本服务器未设定或支持 SAML。"
+    "translation": "此服务器没有正确配置或者不支持 SAML。"
   },
   {
     "id": "ent.saml.update_saml_user.unable_error",
@@ -4392,6 +4276,34 @@
     "translation": "无效用户id"
   },
   {
+    "id": "model.command_hook.channel_id.app_error",
+    "translation": "无效的频道id"
+  },
+  {
+    "id": "model.command_hook.command_id.app_error",
+    "translation": "Invalid command id"
+  },
+  {
+    "id": "model.command_hook.create_at.app_error",
+    "translation": "创建时必须有效时间"
+  },
+  {
+    "id": "model.command_hook.id.app_error",
+    "translation": "Invalid command hook id"
+  },
+  {
+    "id": "model.command_hook.parent_id.app_error",
+    "translation": "无效父id"
+  },
+  {
+    "id": "model.command_hook.root_id.app_error",
+    "translation": "无效根id"
+  },
+  {
+    "id": "model.command_hook.user_id.app_error",
+    "translation": "无效用户id"
+  },
+  {
     "id": "model.compliance.is_valid.create_at.app_error",
     "translation": "创建时间必须为有效时间"
   },
@@ -4420,6 +4332,10 @@
     "translation": "当机群启用时没法启动批量电子邮件。"
   },
   {
+    "id": "model.config.is_valid.elastic_search.aggregate_posts_after_days.app_error",
+    "translation": "Elasticsearch AggregatePostsAfterDays setting must be a number greater than or equal to 1"
+  },
+  {
     "id": "model.config.is_valid.elastic_search.connection_url.app_error",
     "translation": "当 Elastic Search 索引开启时必须提供 Elastic Search ConnectionUrl 设定。"
   },
@@ -4430,6 +4346,10 @@
   {
     "id": "model.config.is_valid.elastic_search.password.app_error",
     "translation": "当 Elastic Search 索引开启时必须提供 Elastic Search 密码设定。"
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.posts_aggregator_job_start_time.app_error",
+    "translation": "Elasticsearch PostsAggregatorJobStartTime setting must be a time in the format \"hh:mm\""
   },
   {
     "id": "model.config.is_valid.elastic_search.username.app_error",
@@ -5596,6 +5516,26 @@
     "translation": "我们无法更新这个命令"
   },
   {
+    "id": "store.sql_command_webhooks.get.app_error",
+    "translation": "我们不能获取 webhook"
+  },
+  {
+    "id": "store.sql_command_webhooks.save.app_error",
+    "translation": "我们不能保存传入的 webhook"
+  },
+  {
+    "id": "store.sql_command_webhooks.save.existing.app_error",
+    "translation": "You cannot update an existing CommandWebhook"
+  },
+  {
+    "id": "store.sql_command_webhooks.try_use.app_error",
+    "translation": "Unable to use the webhook"
+  },
+  {
+    "id": "store.sql_command_webhooks.try_use.invalid.app_error",
+    "translation": "无效webhook"
+  },
+  {
     "id": "store.sql_compliance.get.finding.app_error",
     "translation": "我们获取合规报告时遇到错误"
   },
@@ -6662,6 +6602,18 @@
   {
     "id": "web.claim_account.user.error",
     "translation": "不能找到用户 teamid=%v, email=%v, err=%v"
+  },
+  {
+    "id": "web.command_webhook.command.app_error",
+    "translation": "找不到该频道"
+  },
+  {
+    "id": "web.command_webhook.invalid.app_error",
+    "translation": "无效webhook"
+  },
+  {
+    "id": "web.command_webhook.parse.app_error",
+    "translation": "无法解析传入数据"
   },
   {
     "id": "web.create_dir.error",

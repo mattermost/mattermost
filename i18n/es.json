@@ -844,156 +844,16 @@
     "translation": "El comando de configuración no es compatible con tu dispositivo"
   },
   {
-    "id": "api.command_shortcuts.browser.channel_next",
-    "translation": "{{.ChannelNextCmd}}: canal Siguiente en el historial\n"
-  },
-  {
-    "id": "api.command_shortcuts.browser.channel_next.cmd",
-    "translation": "ALT+DER"
-  },
-  {
-    "id": "api.command_shortcuts.browser.channel_next.cmd_mac",
-    "translation": "CMD+]"
-  },
-  {
-    "id": "api.command_shortcuts.browser.channel_prev",
-    "translation": "{{.ChannelPrevCmd}}: canal Anterior en el historial\n"
-  },
-  {
-    "id": "api.command_shortcuts.browser.channel_prev.cmd",
-    "translation": "ALT+IZQ"
-  },
-  {
-    "id": "api.command_shortcuts.browser.channel_prev.cmd_mac",
-    "translation": "CMD+["
-  },
-  {
-    "id": "api.command_shortcuts.browser.font_decrease",
-    "translation": "{{.CmdOrCtrl}}+MENOS: Disminuir tamaño de la fuente (alejar)\n"
-  },
-  {
-    "id": "api.command_shortcuts.browser.font_increase",
-    "translation": "{{.CmdOrCtrl}}+MAS: Aumentar tamaño de la fuente (acercar)\n"
-  },
-  {
-    "id": "api.command_shortcuts.browser.header",
-    "translation": "#### Comandos incluidos en el Navegador\n\n"
-  },
-  {
-    "id": "api.command_shortcuts.browser.highlight_next",
-    "translation": "MAYUS+ABAJO (en el cuadro de texto): Selecciona el texto de las linea siguiente\n"
-  },
-  {
-    "id": "api.command_shortcuts.browser.highlight_prev",
-    "translation": "MAYUS+ARRIBA (en el cuadro de texto): Selecciona el texto de las línea anterior\n"
-  },
-  {
-    "id": "api.command_shortcuts.browser.newline",
-    "translation": "MAYUS+RETORNO (en el cuadro de texto): Crea una nueva línea\n"
-  },
-  {
-    "id": "api.command_shortcuts.cmd",
-    "translation": "CMD"
-  },
-  {
-    "id": "api.command_shortcuts.ctrl",
-    "translation": "CTRL"
-  },
-  {
     "id": "api.command_shortcuts.desc",
     "translation": "Muestra una lista de los accesos rápidos de teclado"
-  },
-  {
-    "id": "api.command_shortcuts.files.header",
-    "translation": "#### Archivos\n\n"
-  },
-  {
-    "id": "api.command_shortcuts.files.upload",
-    "translation": "{{.CmdOrCtrl}}+U: Subir archivo(s)\n\n"
-  },
-  {
-    "id": "api.command_shortcuts.header",
-    "translation": "### Atajos de Teclado\n\n"
-  },
-  {
-    "id": "api.command_shortcuts.msgs.comp_channel",
-    "translation": "~[carácter]+TAB: Auto completa el canal que comience por [carácter]\n"
-  },
-  {
-    "id": "api.command_shortcuts.msgs.comp_emoji",
-    "translation": ":[carácter]+TAB: Auto completa el emoticon que comience por [carácter]\n\n"
-  },
-  {
-    "id": "api.command_shortcuts.msgs.comp_username",
-    "translation": "@[carácter]+TAB: Auto completa @nombre que comience por [carácter]\n"
-  },
-  {
-    "id": "api.command_shortcuts.msgs.edit",
-    "translation": "ARRIBA (con el cuadro de texto vacío): Edita el último mensaje en el canal actual\n"
-  },
-  {
-    "id": "api.command_shortcuts.msgs.header",
-    "translation": "#### Mensajes\n\n"
-  },
-  {
-    "id": "api.command_shortcuts.msgs.mark_as_read",
-    "translation": "ESC: Marca todos los mensajes como leídos en el canal actual\n"
-  },
-  {
-    "id": "api.command_shortcuts.msgs.reply",
-    "translation": "MAYÚS+ARRIBA (en el campo de entrada vacío): Responder al mensaje más reciente en el canal actual\n"
-  },
-  {
-    "id": "api.command_shortcuts.msgs.reprint_next",
-    "translation": "{{.CmdOrCtrl}}+ABAJO (con el cuadro de texto vacío): Reimprime el siguiente mensaje o comando de barra que ingresaste\n"
-  },
-  {
-    "id": "api.command_shortcuts.msgs.reprint_prev",
-    "translation": "{{.CmdOrCtrl}}+ARRIBA (con el cuadro de texto vacío): Reimprime el último mensaje o comando de barra que ingresaste\n"
   },
   {
     "id": "api.command_shortcuts.name",
     "translation": "accesos rápidos de teclado"
   },
   {
-    "id": "api.command_shortcuts.nav.direct_messages_menu",
-    "translation": "{{.CmdOrCtrl}}+MAYÚS+K: Abre el menú de mensajes directos\n"
-  },
-  {
-    "id": "api.command_shortcuts.nav.header",
-    "translation": "#### Navegación\n\n"
-  },
-  {
-    "id": "api.command_shortcuts.nav.next",
-    "translation": "ALT+ABAJO: Canal o mensaje directo siguiente en la barra lateral izquierda\n"
-  },
-  {
-    "id": "api.command_shortcuts.nav.prev",
-    "translation": "ALT+ARRIBA: Canal o mensaje directo previo en la barra lateral izquierda\n"
-  },
-  {
-    "id": "api.command_shortcuts.nav.recent_mentions",
-    "translation": "{{.CmdOrCtrl}}+MAYUS+M: Abre las menciones recientes\n\n"
-  },
-  {
-    "id": "api.command_shortcuts.nav.settings",
-    "translation": "{{.CmdOrCtrl}}+MAYUS+A: Abre la configuración de la cuenta\n"
-  },
-  {
-    "id": "api.command_shortcuts.nav.switcher",
-    "translation": "{{.CmdOrCtrl}}+K: Abre un cuadro de dialogo para cambiar rápidamente de canal\n"
-  },
-  {
-    "id": "api.command_shortcuts.nav.switcher_team",
-    "translation": "{{.CmdOrCtrl}}+K: Abre un dialogo para cambiar rápidamente de canal\n"
-  },
-  {
-    "id": "api.command_shortcuts.nav.unread_next",
-    "translation": "ALT+MAYUS+ABAJO: Canal o mensaje directo siguiente en la barra lateral izquierda con mensajes no leídos\n"
-  },
-  {
-    "id": "api.command_shortcuts.nav.unread_prev",
-    "translation": "ALT+MAYUS+ARRIBA: Canal o mensaje directo previo en la barra lateral izquierda con mensajes no leídos\n"
+    "id": "api.command_shortcuts.unsupported.app_error",
+    "translation": "El comando de búsqueda no es compatible con tu dispositivo"
   },
   {
     "id": "api.command_shrug.desc",
@@ -3788,6 +3648,22 @@
     "translation": "Iniciado el trabajo '{{.JobName}}' para exportar el Cumplimiento en '{{.FilePath}}'"
   },
   {
+    "id": "ent.elasticsearch.aggregator_worker.create_index_job.error",
+    "translation": "El agregador trabajos de Elasticsearch no pudo crear el trabajo de indexación"
+  },
+  {
+    "id": "ent.elasticsearch.aggregator_worker.delete_indexes.error",
+    "translation": "El agregador trabajos de Elasticsearch no pudo eliminar los índices"
+  },
+  {
+    "id": "ent.elasticsearch.aggregator_worker.get_indexes.error",
+    "translation": "El agregador trabajos de Elasticsearch no pudo obtener los índices"
+  },
+  {
+    "id": "ent.elasticsearch.aggregator_worker.index_job_failed.error",
+    "translation": "El agregador trabajos de Elasticsearch falló debido a que hay un trabajo indexación fallando"
+  },
+  {
     "id": "ent.elasticsearch.create_client.connect_failed",
     "translation": "La configuración del cliente de Elasticsearch falló"
   },
@@ -3814,6 +3690,14 @@
   {
     "id": "ent.elasticsearch.index_post.error",
     "translation": "Error al indexar el mensaje"
+  },
+  {
+    "id": "ent.elasticsearch.indexer.do_job.parse_end_time.error",
+    "translation": "El trabajo de Elasticsearch falló al analizar la hora de finalización"
+  },
+  {
+    "id": "ent.elasticsearch.indexer.do_job.parse_start_time.error",
+    "translation": "El trabajo de Elasticsearch falló al analizar la hora de inicio"
   },
   {
     "id": "ent.elasticsearch.not_started.error",
@@ -4392,6 +4276,34 @@
     "translation": "Id de usuario inválido"
   },
   {
+    "id": "model.command_hook.channel_id.app_error",
+    "translation": "Id de canal no válido"
+  },
+  {
+    "id": "model.command_hook.command_id.app_error",
+    "translation": "ID de commando no válido"
+  },
+  {
+    "id": "model.command_hook.create_at.app_error",
+    "translation": "Create debe ser un tiempo válido"
+  },
+  {
+    "id": "model.command_hook.id.app_error",
+    "translation": "Comando con hook id no válido"
+  },
+  {
+    "id": "model.command_hook.parent_id.app_error",
+    "translation": "Id del padre no es válido"
+  },
+  {
+    "id": "model.command_hook.root_id.app_error",
+    "translation": "Id de la raíz no es válido"
+  },
+  {
+    "id": "model.command_hook.user_id.app_error",
+    "translation": "Id de usuario no válido"
+  },
+  {
     "id": "model.compliance.is_valid.create_at.app_error",
     "translation": "Create debe ser una fecha válida"
   },
@@ -4420,6 +4332,10 @@
     "translation": "No se puede habilitar el correo electrónico por lotes cuando la agrupación de servidores está habilitada"
   },
   {
+    "id": "model.config.is_valid.elastic_search.aggregate_posts_after_days.app_error",
+    "translation": "El valor AggregatePostsAfterDays de Elasticsearch debe ser un número mayor que o igual a 1"
+  },
+  {
     "id": "model.config.is_valid.elastic_search.connection_url.app_error",
     "translation": "El valor de Elastic Search ConnectionUrl debe ser proporcionado cuando está habilitado la indización de Elastic Search."
   },
@@ -4430,6 +4346,10 @@
   {
     "id": "model.config.is_valid.elastic_search.password.app_error",
     "translation": "El valor de Elastic Search Password debe ser proporcionado cuando está habilitado la indización de Elastic Search."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.posts_aggregator_job_start_time.app_error",
+    "translation": "El ajuste PostsAggregatorJobStartTime de Elasticsearch debe ser un tiempo en el formato \"hh:mm\""
   },
   {
     "id": "model.config.is_valid.elastic_search.username.app_error",
@@ -5596,6 +5516,26 @@
     "translation": "No pudimos actualizar el comando"
   },
   {
+    "id": "store.sql_command_webhooks.get.app_error",
+    "translation": "No pudimos obtener el webhook"
+  },
+  {
+    "id": "store.sql_command_webhooks.save.app_error",
+    "translation": "No pudimos guardar el Comando o Webhook"
+  },
+  {
+    "id": "store.sql_command_webhooks.save.existing.app_error",
+    "translation": "No puedes actualizar un Comando o Webhook existente"
+  },
+  {
+    "id": "store.sql_command_webhooks.try_use.app_error",
+    "translation": "No se puede utilizar el webhook"
+  },
+  {
+    "id": "store.sql_command_webhooks.try_use.invalid.app_error",
+    "translation": "Webhook no válido"
+  },
+  {
     "id": "store.sql_compliance.get.finding.app_error",
     "translation": "Se ha detectado un error al recuperar los informes de cumplimiento"
   },
@@ -6662,6 +6602,18 @@
   {
     "id": "web.claim_account.user.error",
     "translation": "No se encotró el usuario teamid=%v, email=%v, err=%v"
+  },
+  {
+    "id": "web.command_webhook.command.app_error",
+    "translation": "No se encontró el comando"
+  },
+  {
+    "id": "web.command_webhook.invalid.app_error",
+    "translation": "Webhook no válido"
+  },
+  {
+    "id": "web.command_webhook.parse.app_error",
+    "translation": "No se puede analizar la data entrante"
   },
   {
     "id": "web.create_dir.error",
