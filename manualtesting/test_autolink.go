@@ -7,6 +7,7 @@ import (
 	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
+	"net/http"
 )
 
 const LINK_POST_TEXT = `
@@ -24,7 +25,7 @@ func testAutoLink(env TestEnvironment) *model.AppError {
 	l4g.Info(utils.T("manaultesting.test_autolink.info"))
 	channelID, err := getChannelID(model.DEFAULT_CHANNEL, env.CreatedTeamId, env.CreatedUserId)
 	if err != true {
-		return model.NewLocAppError("/manualtest", "manaultesting.test_autolink.unable.app_error", nil, "")
+		return model.NewAppError("/manualtest", "manaultesting.test_autolink.unable.app_error", nil, "", http.StatusInternalServerError)
 	}
 
 	post := &model.Post{

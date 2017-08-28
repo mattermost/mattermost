@@ -120,7 +120,8 @@
         "AmazonS3Region": "us-east-1",
         "AmazonS3Endpoint": "s3.amazonaws.com",
         "AmazonS3SSL": true,
-        "AmazonS3SignV2": false
+        "AmazonS3SignV2": false,
+        "AmazonS3SSE": false
     },
     "EmailSettings": {
         "EnableSignUpWithEmail": true,
@@ -165,9 +166,6 @@
         "AboutLink": "https://about.mattermost.com/default-about/",
         "HelpLink": "https://about.mattermost.com/default-help/",
         "ReportAProblemLink": "https://about.mattermost.com/default-report-a-problem/",
-        "AdministratorsGuideLink": "https://about.mattermost.com/administrators-guide/",
-        "TroubleshootingForumLink": "https://about.mattermost.com/troubleshooting-forum/",
-        "CommercialSupportLink": "https://about.mattermost.com/commercial-support/",
         "SupportEmail": "feedback@mattermost.com"
     },
     "AnnouncementSettings": {

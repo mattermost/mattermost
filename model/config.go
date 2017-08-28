@@ -310,15 +310,12 @@ type PrivacySettings struct {
 }
 
 type SupportSettings struct {
-	TermsOfServiceLink       *string
-	PrivacyPolicyLink        *string
-	AboutLink                *string
-	HelpLink                 *string
-	ReportAProblemLink       *string
-	AdministratorsGuideLink  *string
-	TroubleshootingForumLink *string
-	CommercialSupportLink    *string
-	SupportEmail             *string
+	TermsOfServiceLink *string
+	PrivacyPolicyLink  *string
+	AboutLink          *string
+	HelpLink           *string
+	ReportAProblemLink *string
+	SupportEmail       *string
 }
 
 type AnnouncementSettings struct {
@@ -887,33 +884,6 @@ func (o *Config) SetDefaults() {
 	if o.SupportSettings.ReportAProblemLink == nil {
 		o.SupportSettings.ReportAProblemLink = new(string)
 		*o.SupportSettings.ReportAProblemLink = SUPPORT_SETTINGS_DEFAULT_REPORT_A_PROBLEM_LINK
-	}
-
-	if !IsSafeLink(o.SupportSettings.AdministratorsGuideLink) {
-		*o.SupportSettings.AdministratorsGuideLink = ""
-	}
-
-	if o.SupportSettings.AdministratorsGuideLink == nil {
-		o.SupportSettings.AdministratorsGuideLink = new(string)
-		*o.SupportSettings.AdministratorsGuideLink = SUPPORT_SETTINGS_DEFAULT_ADMINISTRATORS_GUIDE_LINK
-	}
-
-	if !IsSafeLink(o.SupportSettings.TroubleshootingForumLink) {
-		*o.SupportSettings.TroubleshootingForumLink = ""
-	}
-
-	if o.SupportSettings.TroubleshootingForumLink == nil {
-		o.SupportSettings.TroubleshootingForumLink = new(string)
-		*o.SupportSettings.TroubleshootingForumLink = SUPPORT_SETTINGS_DEFAULT_TROUBLESHOOTING_FORUM_LINK
-	}
-
-	if !IsSafeLink(o.SupportSettings.CommercialSupportLink) {
-		*o.SupportSettings.CommercialSupportLink = ""
-	}
-
-	if o.SupportSettings.CommercialSupportLink == nil {
-		o.SupportSettings.CommercialSupportLink = new(string)
-		*o.SupportSettings.CommercialSupportLink = SUPPORT_SETTINGS_DEFAULT_COMMERCIAL_SUPPORT_LINK
 	}
 
 	if o.SupportSettings.SupportEmail == nil {

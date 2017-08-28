@@ -236,7 +236,11 @@ export default class RhsRootPost extends React.Component {
                         className='reacticon__container reaction'
                         onClick={this.toggleEmojiPicker}
                         ref='rhs_root_reacticon'
-                    ><i className='fa fa-smile-o'/>
+                    >
+                        <span
+                            className='icon icon--emoji'
+                            dangerouslySetInnerHTML={{__html: Constants.EMOJI_ICON_SVG}}
+                        />
                     </a>
                 </span>
 

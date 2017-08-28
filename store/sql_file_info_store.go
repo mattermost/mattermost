@@ -97,7 +97,7 @@ func (fs SqlFileInfoStore) Get(id string) StoreChannel {
 			if err == sql.ErrNoRows {
 				result.Err = model.NewAppError("SqlFileInfoStore.Get", "store.sql_file_info.get.app_error", nil, "id="+id+", "+err.Error(), http.StatusNotFound)
 			} else {
-				result.Err = model.NewLocAppError("SqlFileInfoStore.Get", "store.sql_file_info.get.app_error", nil, "id="+id+", "+err.Error())
+				result.Err = model.NewAppError("SqlFileInfoStore.Get", "store.sql_file_info.get.app_error", nil, "id="+id+", "+err.Error(), http.StatusInternalServerError)
 			}
 		} else {
 			result.Data = info
@@ -127,7 +127,7 @@ func (fs SqlFileInfoStore) GetByPath(path string) StoreChannel {
 				Path = :Path
 				AND DeleteAt = 0
 			LIMIT 1`, map[string]interface{}{"Path": path}); err != nil {
-			result.Err = model.NewLocAppError("SqlFileInfoStore.GetByPath", "store.sql_file_info.get_by_path.app_error", nil, "path="+path+", "+err.Error())
+			result.Err = model.NewAppError("SqlFileInfoStore.GetByPath", "store.sql_file_info.get_by_path.app_error", nil, "path="+path+", "+err.Error(), http.StatusInternalServerError)
 		} else {
 			result.Data = info
 		}
@@ -139,7 +139,7 @@ func (fs SqlFileInfoStore) GetByPath(path string) StoreChannel {
 	return storeChannel
 }
 
-func (s SqlFileInfoStore) InvalidateFileInfosForPostCache(postId string) {
+func (fs SqlFileInfoStore) InvalidateFileInfosForPostCache(postId string) {
 	fileInfoCache.Remove(postId)
 }
 
@@ -190,8 +190,8 @@ func (fs SqlFileInfoStore) GetForPost(postId string, readFromMaster bool, allowF
 				AND DeleteAt = 0
 			ORDER BY
 				CreateAt`, map[string]interface{}{"PostId": postId}); err != nil {
-			result.Err = model.NewLocAppError("SqlFileInfoStore.GetForPost",
-				"store.sql_file_info.get_for_post.app_error", nil, "post_id="+postId+", "+err.Error())
+			result.Err = model.NewAppError("SqlFileInfoStore.GetForPost",
+				"store.sql_file_info.get_for_post.app_error", nil, "post_id="+postId+", "+err.Error(), http.StatusInternalServerError)
 		} else {
 			if len(infos) > 0 {
 				fileInfoCache.AddWithExpiresInSecs(postId, infos, FILE_INFO_CACHE_SEC)
@@ -221,8 +221,8 @@ func (fs SqlFileInfoStore) AttachToPost(fileId, postId string) StoreChannel {
 				WHERE
 					Id = :Id
 					AND PostId = ''`, map[string]interface{}{"PostId": postId, "Id": fileId}); err != nil {
-			result.Err = model.NewLocAppError("SqlFileInfoStore.AttachToPost",
-				"store.sql_file_info.attach_to_post.app_error", nil, "post_id="+postId+", file_id="+fileId+", err="+err.Error())
+			result.Err = model.NewAppError("SqlFileInfoStore.AttachToPost",
+				"store.sql_file_info.attach_to_post.app_error", nil, "post_id="+postId+", file_id="+fileId+", err="+err.Error(), http.StatusInternalServerError)
 		}
 
 		storeChannel <- result
@@ -245,10 +245,32 @@ func (fs SqlFileInfoStore) DeleteForPost(postId string) StoreChannel {
 				DeleteAt = :DeleteAt
 			WHERE
 				PostId = :PostId`, map[string]interface{}{"DeleteAt": model.GetMillis(), "PostId": postId}); err != nil {
-			result.Err = model.NewLocAppError("SqlFileInfoStore.DeleteForPost",
-				"store.sql_file_info.delete_for_post.app_error", nil, "post_id="+postId+", err="+err.Error())
+			result.Err = model.NewAppError("SqlFileInfoStore.DeleteForPost",
+				"store.sql_file_info.delete_for_post.app_error", nil, "post_id="+postId+", err="+err.Error(), http.StatusInternalServerError)
 		} else {
 			result.Data = postId
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
+func (fs SqlFileInfoStore) PermanentDelete(fileId string) StoreChannel {
+	storeChannel := make(StoreChannel, 1)
+
+	go func() {
+		result := StoreResult{}
+
+		if _, err := fs.GetMaster().Exec(
+			`DELETE FROM
+				FileInfo
+			WHERE
+				Id = :FileId`, map[string]interface{}{"FileId": fileId}); err != nil {
+			result.Err = model.NewAppError("SqlFileInfoStore.PermanentDelete",
+				"store.sql_file_info.permanent_delete.app_error", nil, "file_id="+fileId+", err="+err.Error(), http.StatusInternalServerError)
 		}
 
 		storeChannel <- result
