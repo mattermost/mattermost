@@ -169,7 +169,7 @@ func (me *TestHelper) CreatePost(channel *model.Channel) *model.Post {
 
 	utils.DisableDebugLogForTest()
 	var err *model.AppError
-	if post, err = CreatePost(post, channel.TeamId, false); err != nil {
+	if post, err = CreatePost(post, channel, false); err != nil {
 		l4g.Error(err.Error())
 		l4g.Close()
 		time.Sleep(time.Second)

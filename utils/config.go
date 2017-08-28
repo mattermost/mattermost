@@ -10,6 +10,7 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+	"path"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -170,7 +171,7 @@ func GetLogFileLocation(fileLocation string) string {
 		logDir, _ := FindDir("logs")
 		return logDir + LOG_FILENAME
 	} else {
-		return fileLocation + LOG_FILENAME
+		return path.Join(fileLocation, LOG_FILENAME)
 	}
 }
 
@@ -471,9 +472,6 @@ func getClientConfig(c *model.Config) map[string]string {
 	props["AboutLink"] = *c.SupportSettings.AboutLink
 	props["HelpLink"] = *c.SupportSettings.HelpLink
 	props["ReportAProblemLink"] = *c.SupportSettings.ReportAProblemLink
-	props["AdministratorsGuideLink"] = *c.SupportSettings.AdministratorsGuideLink
-	props["TroubleshootingForumLink"] = *c.SupportSettings.TroubleshootingForumLink
-	props["CommercialSupportLink"] = *c.SupportSettings.CommercialSupportLink
 	props["SupportEmail"] = *c.SupportSettings.SupportEmail
 
 	props["EnableFileAttachments"] = strconv.FormatBool(*c.FileSettings.EnableFileAttachments)

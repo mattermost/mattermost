@@ -30,7 +30,7 @@ type API interface {
 	GetDirectChannel(userId1, userId2 string) (*model.Channel, *model.AppError)
 
 	// Creates a post
-	CreatePost(post *model.Post, teamId string) (*model.Post, *model.AppError)
+	CreatePost(post *model.Post) (*model.Post, *model.AppError)
 
 	// Returns a localized string. If a request is given, its headers will be used to pick a locale.
 	I18n(id string, r *http.Request) string
