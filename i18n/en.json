@@ -584,6 +584,14 @@
     "translation": "A message must be provided with the /rename command."
   },
   {
+    "id": "api.command_channel_rename.too_long.app_error",
+    "translation": "Channel name must be {{.Length}} or fewer characters"
+  },
+  {
+    "id": "api.command_channel_rename.too_short.app_error",
+    "translation": "Channel name must be {{.Length}} or more characters"
+  },
+  {
     "id": "api.command_channel_rename.name",
     "translation": "rename"
   },
