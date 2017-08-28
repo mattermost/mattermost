@@ -267,7 +267,7 @@ func setProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	imageData := imageArray[0]
 
-	if err := app.SetProfileImage(c.Session.UserId, imageData); err != nil {
+	if err := app.SetProfileImage(c.Params.UserId, imageData); err != nil {
 		c.Err = err
 		return
 	}
