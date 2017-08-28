@@ -7,18 +7,19 @@ import (
 	"encoding/json"
 	"fmt"
 	"runtime"
-	"strings"
 
 	l4g "github.com/alecthomas/log4go"
 
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
+	"path/filepath"
+	"github.com/pkg/errors"
 )
 
 // this pattern allows us to "mock" the underlying l4g code when unit testing
-var debug = l4g.Debug
-var info = l4g.Info
-var err = l4g.Error
+var debugLog = l4g.Debug
+var infoLog = l4g.Info
+var errorLog = l4g.Error
 
 func init() {
 	initL4g(utils.Cfg.LogSettings)
@@ -26,7 +27,7 @@ func init() {
 
 // listens for configuration changes that we might need to respond to
 var configListenerID = utils.AddConfigListener(func(oldConfig *model.Config, newConfig *model.Config) {
-	info("Configuration change detected, reloading log settings")
+	infoLog("Configuration change detected, reloading log settings")
 	initL4g(newConfig.LogSettings)
 })
 
@@ -48,9 +49,9 @@ func initL4g(logSettings model.LogSettings) {
 
 		// create a logger that writes JSON objects to a file, and override our log methods to use it
 		flw := NewJSONFileLogger(level, utils.GetLogFileLocation(logSettings.FileLocation)+".jsonl")
-		debug = flw.Debug
-		info = flw.Info
-		err = flw.Error
+		debugLog = flw.Debug
+		infoLog = flw.Info
+		errorLog = flw.Error
 	}
 }
 
@@ -95,37 +96,49 @@ func serializeContext(ctx context.Context) map[string]string {
 // in other words, finds the path to the file that is doing the logging.
 // Removes machine-specific prefix, so returned path starts with /platform.
 // Looks a maximum of 10 frames up the call stack to find a file that has a different name than this one.
-func getCallerFilename() string {
+func getCallerFilename() (string, error) {
 	_, currentFilename, _, ok := runtime.Caller(0)
 	if !ok {
-		return "Unknown"
+		return "", errors.New("Failed to traverse stack frame")
 	}
-	pathPrefix := strings.TrimSuffix(currentFilename, "/platform/utils/logger/logger.go")
+
+	platformDirectory := currentFilename
+	for filepath.Base(platformDirectory) != "platform" {
+		platformDirectory = filepath.Dir(platformDirectory)
+		if platformDirectory == "." || platformDirectory == string(filepath.Separator) {
+			break
+		}
+	}
 
 	for i := 1; i < 10; i++ {
 		_, parentFilename, _, ok := runtime.Caller(i)
 		if !ok {
-			return "Unknown"
+			return "", errors.New("Failed to traverse stack frame")
 		} else if parentFilename != currentFilename {
-			return strings.TrimPrefix(parentFilename, pathPrefix)
+			return filepath.Rel(platformDirectory, parentFilename)
 		}
 	}
-	return "Unknown"
+	return "", errors.New("Failed to traverse stack frame")
 }
 
 // creates a JSON representation of a log message
 func serializeLogMessage(ctx context.Context, message string) string {
-	bytes, error := json.Marshal(&struct {
+	callerFilename, err := getCallerFilename()
+	if err != nil {
+		callerFilename = "Unknown"
+	}
+
+	bytes, err := json.Marshal(&struct {
 		Context map[string]string `json:"context"`
 		File    string            `json:"file"`
 		Message string            `json:"message"`
 	}{
 		serializeContext(ctx),
-		getCallerFilename(),
+		callerFilename,
 		message,
 	})
-	if error != nil {
-		err("Failed to serialize log message %v", message)
+	if err != nil {
+		errorLog("Failed to serialize log message %v", message)
 	}
 	return string(bytes)
 }
@@ -142,45 +155,45 @@ func formatMessage(args ...interface{}) string {
 	return msg
 }
 
-// Debugc logs a debug level message, including context information that is stored in the first parameter.
+// Debugc logs a debugLog level message, including context information that is stored in the first parameter.
 // If two parameters are supplied, the second must be a message string, and will be logged directly.
 // If more than two parameters are supplied, the second parameter must be a format string, and the remaining parameters
 // must be the variables to substitute into the format string, following the convention of the fmt.Sprintf(...) function.
 func Debugc(ctx context.Context, args ...interface{}) {
-	debug(func() string {
+	debugLog(func() string {
 		msg := formatMessage(args...)
 		return serializeLogMessage(ctx, msg)
 	})
 }
 
-// Debugf logs a debug level message.
+// Debugf logs a debugLog level message.
 // If one parameter is supplied, it must be a message string, and will be logged directly.
 // If two or more parameters are specified, the first parameter must be a format string, and the remaining parameters
 // must be the variables to substitute into the format string, following the convention of the fmt.Sprintf(...) function.
 func Debugf(args ...interface{}) {
-	debug(func() string {
+	debugLog(func() string {
 		msg := formatMessage(args...)
 		return serializeLogMessage(context.Background(), msg)
 	})
 }
 
-// Infoc logs an info level message, including context information that is stored in the first parameter.
+// Infoc logs an infoLog level message, including context information that is stored in the first parameter.
 // If two parameters are supplied, the second must be a message string, and will be logged directly.
 // If more than two parameters are supplied, the second parameter must be a format string, and the remaining parameters
 // must be the variables to substitute into the format string, following the convention of the fmt.Sprintf(...) function.
 func Infoc(ctx context.Context, args ...interface{}) {
-	info(func() string {
+	infoLog(func() string {
 		msg := formatMessage(args...)
 		return serializeLogMessage(ctx, msg)
 	})
 }
 
-// Infof logs an info level message.
+// Infof logs an infoLog level message.
 // If one parameter is supplied, it must be a message string, and will be logged directly.
 // If two or more parameters are specified, the first parameter must be a format string, and the remaining parameters
 // must be the variables to substitute into the format string, following the convention of the fmt.Sprintf(...) function.
 func Infof(args ...interface{}) {
-	info(func() string {
+	infoLog(func() string {
 		msg := formatMessage(args...)
 		return serializeLogMessage(context.Background(), msg)
 	})
@@ -191,7 +204,7 @@ func Infof(args ...interface{}) {
 // If more than two parameters are supplied, the second parameter must be a format string, and the remaining parameters
 // must be the variables to substitute into the format string, following the convention of the fmt.Sprintf(...) function.
 func Errorc(ctx context.Context, args ...interface{}) {
-	err(func() string {
+	errorLog(func() string {
 		msg := formatMessage(args...)
 		return serializeLogMessage(ctx, msg)
 	})
@@ -202,7 +215,7 @@ func Errorc(ctx context.Context, args ...interface{}) {
 // If two or more parameters are specified, the first parameter must be a format string, and the remaining parameters
 // must be the variables to substitute into the format string, following the convention of the fmt.Sprintf(...) function.
 func Errorf(args ...interface{}) {
-	err(func() string {
+	errorLog(func() string {
 		msg := formatMessage(args...)
 		return serializeLogMessage(context.Background(), msg)
 	})

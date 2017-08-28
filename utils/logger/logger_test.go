@@ -7,10 +7,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"strings"
+	"github.com/stretchr/testify/require"
 )
 
 type LogMessage struct {
@@ -19,10 +20,14 @@ type LogMessage struct {
 	Message string
 }
 
+const validPath = `^utils/([a-z_]+/)*logger_test.go$`
+
 // ensures that the relative path of the file that called into the logger is returned
 func TestGetCallerFilename(t *testing.T) {
-	filename := getCallerFilename()
-	assert.True(t, strings.HasSuffix(filename, "logger_test.go"))
+	filename, _ := getCallerFilename()
+	matched, err := regexp.MatchString(validPath, filename)
+	require.NoError(t, err)
+	assert.True(t, matched)
 }
 
 // ensures that values can be recorded on a Context object, and that the data in question is serialized as a part of the log message
@@ -54,8 +59,10 @@ func TestSerializeLogMessageEmptyContext(t *testing.T) {
 	json.Unmarshal([]byte(serialized), &deserialized)
 
 	assert.Empty(t, deserialized.Context)
-	assert.True(t, strings.HasSuffix(deserialized.File, "logger_test.go"))
 	assert.Equal(t, logMessage, deserialized.Message)
+	matched, err := regexp.MatchString(validPath, deserialized.File)
+	require.NoError(t, err)
+	assert.True(t, matched)
 }
 
 // ensures that an entire log message with a populated context can be properly serialized into a JSON object
@@ -75,19 +82,21 @@ func TestSerializeLogMessagePopulatedContext(t *testing.T) {
 		"request_id": "foo",
 		"user_id":    "bar",
 	}, deserialized.Context)
-	assert.True(t, strings.HasSuffix(deserialized.File, "logger_test.go"))
 	assert.Equal(t, logMessage, deserialized.Message)
+	matched, err := regexp.MatchString(validPath, deserialized.File)
+	require.NoError(t, err)
+	assert.True(t, matched)
 }
 
-// ensures that a debug message is passed through to the underlying logger as expected
+// ensures that a debugLog message is passed through to the underlying logger as expected
 func TestDebugc(t *testing.T) {
-	// inject a "mocked" debug method that captures the first argument that is passed to it
+	// inject a "mocked" debugLog method that captures the first argument that is passed to it
 	var capture string
-	oldDebug := debug
-	defer func() { debug = oldDebug }()
+	oldDebug := debugLog
+	defer func() { debugLog = oldDebug }()
 	type WrapperType func() string
-	debug = func(format interface{}, args ...interface{}) {
-		// the code that we're testing passes a closure to the debug method, so we have to execute it to get the actual message back
+	debugLog = func(format interface{}, args ...interface{}) {
+		// the code that we're testing passes a closure to the debugLog method, so we have to execute it to get the actual message back
 		if f, ok := format.(func() string); ok {
 			capture = WrapperType(f)()
 		} else {
@@ -105,19 +114,21 @@ func TestDebugc(t *testing.T) {
 	json.Unmarshal([]byte(capture), &deserialized)
 
 	assert.Empty(t, deserialized.Context)
-	assert.True(t, strings.HasSuffix(deserialized.File, "logger_test.go"))
 	assert.Equal(t, logMessage, deserialized.Message)
+	matched, err := regexp.MatchString(validPath, deserialized.File)
+	require.NoError(t, err)
+	assert.True(t, matched)
 }
 
-// ensures that a debug message is passed through to the underlying logger as expected
+// ensures that a debugLog message is passed through to the underlying logger as expected
 func TestDebugf(t *testing.T) {
-	// inject a "mocked" debug method that captures the first argument that is passed to it
+	// inject a "mocked" debugLog method that captures the first argument that is passed to it
 	var capture string
-	oldDebug := debug
-	defer func() { debug = oldDebug }()
+	oldDebug := debugLog
+	defer func() { debugLog = oldDebug }()
 	type WrapperType func() string
-	debug = func(format interface{}, args ...interface{}) {
-		// the code that we're testing passes a closure to the debug method, so we have to execute it to get the actual message back
+	debugLog = func(format interface{}, args ...interface{}) {
+		// the code that we're testing passes a closure to the debugLog method, so we have to execute it to get the actual message back
 		if f, ok := format.(func() string); ok {
 			capture = WrapperType(f)()
 		} else {
@@ -135,19 +146,21 @@ func TestDebugf(t *testing.T) {
 	json.Unmarshal([]byte(capture), &deserialized)
 
 	assert.Empty(t, deserialized.Context)
-	assert.True(t, strings.HasSuffix(deserialized.File, "logger_test.go"))
 	assert.Equal(t, fmt.Sprintf(formatString, param), deserialized.Message)
+	matched, err := regexp.MatchString(validPath, deserialized.File)
+	require.NoError(t, err)
+	assert.True(t, matched)
 }
 
-// ensures that an info message is passed through to the underlying logger as expected
+// ensures that an infoLog message is passed through to the underlying logger as expected
 func TestInfoc(t *testing.T) {
-	// inject a "mocked" info method that captures the first argument that is passed to it
+	// inject a "mocked" infoLog method that captures the first argument that is passed to it
 	var capture string
-	oldInfo := info
-	defer func() { info = oldInfo }()
+	oldInfo := infoLog
+	defer func() { infoLog = oldInfo }()
 	type WrapperType func() string
-	info = func(format interface{}, args ...interface{}) {
-		// the code that we're testing passes a closure to the info method, so we have to execute it to get the actual message back
+	infoLog = func(format interface{}, args ...interface{}) {
+		// the code that we're testing passes a closure to the infoLog method, so we have to execute it to get the actual message back
 		if f, ok := format.(func() string); ok {
 			capture = WrapperType(f)()
 		} else {
@@ -165,19 +178,21 @@ func TestInfoc(t *testing.T) {
 	json.Unmarshal([]byte(capture), &deserialized)
 
 	assert.Empty(t, deserialized.Context)
-	assert.True(t, strings.HasSuffix(deserialized.File, "logger_test.go"))
 	assert.Equal(t, logMessage, deserialized.Message)
+	matched, err := regexp.MatchString(validPath, deserialized.File)
+	require.NoError(t, err)
+	assert.True(t, matched)
 }
 
-// ensures that an info message is passed through to the underlying logger as expected
+// ensures that an infoLog message is passed through to the underlying logger as expected
 func TestInfof(t *testing.T) {
-	// inject a "mocked" info method that captures the first argument that is passed to it
+	// inject a "mocked" infoLog method that captures the first argument that is passed to it
 	var capture string
-	oldInfo := info
-	defer func() { info = oldInfo }()
+	oldInfo := infoLog
+	defer func() { infoLog = oldInfo }()
 	type WrapperType func() string
-	info = func(format interface{}, args ...interface{}) {
-		// the code that we're testing passes a closure to the info method, so we have to execute it to get the actual message back
+	infoLog = func(format interface{}, args ...interface{}) {
+		// the code that we're testing passes a closure to the infoLog method, so we have to execute it to get the actual message back
 		if f, ok := format.(func() string); ok {
 			capture = WrapperType(f)()
 		} else {
@@ -195,19 +210,21 @@ func TestInfof(t *testing.T) {
 	json.Unmarshal([]byte(capture), &deserialized)
 
 	assert.Empty(t, deserialized.Context)
-	assert.True(t, strings.HasSuffix(deserialized.File, "logger_test.go"))
 	assert.Equal(t, fmt.Sprintf(format, param), deserialized.Message)
+	matched, err := regexp.MatchString(validPath, deserialized.File)
+	require.NoError(t, err)
+	assert.True(t, matched)
 }
 
 // ensures that an error message is passed through to the underlying logger as expected
 func TestErrorc(t *testing.T) {
-	// inject a "mocked" error method that captures the first argument that is passed to it
+	// inject a "mocked" err method that captures the first argument that is passed to it
 	var capture string
-	oldError := err
-	defer func() { err = oldError }()
+	oldError := errorLog
+	defer func() { errorLog = oldError }()
 	type WrapperType func() string
-	err = func(format interface{}, args ...interface{}) error {
-		// the code that we're testing passes a closure to the error method, so we have to execute it to get the actual message back
+	errorLog = func(format interface{}, args ...interface{}) error {
+		// the code that we're testing passes a closure to the err method, so we have to execute it to get the actual message back
 		if f, ok := format.(func() string); ok {
 			capture = WrapperType(f)()
 		} else {
@@ -228,19 +245,21 @@ func TestErrorc(t *testing.T) {
 	json.Unmarshal([]byte(capture), &deserialized)
 
 	assert.Empty(t, deserialized.Context)
-	assert.True(t, strings.HasSuffix(deserialized.File, "logger_test.go"))
 	assert.Equal(t, logMessage, deserialized.Message)
+	matched, err := regexp.MatchString(validPath, deserialized.File)
+	require.NoError(t, err)
+	assert.True(t, matched)
 }
 
 // ensures that an error message is passed through to the underlying logger as expected
 func TestErrorf(t *testing.T) {
-	// inject a "mocked" error method that captures the first argument that is passed to it
+	// inject a "mocked" err method that captures the first argument that is passed to it
 	var capture string
-	oldError := err
-	defer func() { err = oldError }()
+	oldError := errorLog
+	defer func() { errorLog = oldError }()
 	type WrapperType func() string
-	err = func(format interface{}, args ...interface{}) error {
-		// the code that we're testing passes a closure to the error method, so we have to execute it to get the actual message back
+	errorLog = func(format interface{}, args ...interface{}) error {
+		// the code that we're testing passes a closure to the err method, so we have to execute it to get the actual message back
 		if f, ok := format.(func() string); ok {
 			capture = WrapperType(f)()
 		} else {
@@ -261,6 +280,8 @@ func TestErrorf(t *testing.T) {
 	json.Unmarshal([]byte(capture), &deserialized)
 
 	assert.Empty(t, deserialized.Context)
-	assert.True(t, strings.HasSuffix(deserialized.File, "logger_test.go"))
 	assert.Equal(t, fmt.Sprintf(format, param), deserialized.Message)
+	matched, err := regexp.MatchString(validPath, deserialized.File)
+	require.NoError(t, err)
+	assert.True(t, matched)
 }
