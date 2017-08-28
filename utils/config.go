@@ -437,6 +437,13 @@ func getClientConfig(c *model.Config) map[string]string {
 	props["RestrictPrivateChannelManageMembers"] = *c.TeamSettings.RestrictPrivateChannelManageMembers
 	props["TeammateNameDisplay"] = *c.TeamSettings.TeammateNameDisplay
 
+	props["AndroidLatestVersion"] = c.ClientRequirements.AndroidLatestVersion
+	props["AndroidMinVersion"] = c.ClientRequirements.AndroidMinVersion
+	props["DesktopLatestVersion"] = c.ClientRequirements.DesktopLatestVersion
+	props["DesktopMinVersion"] = c.ClientRequirements.DesktopMinVersion
+	props["IosLatestVersion"] = c.ClientRequirements.IosLatestVersion
+	props["IosMinVersion"] = c.ClientRequirements.IosMinVersion
+
 	props["EnableOAuthServiceProvider"] = strconv.FormatBool(c.ServiceSettings.EnableOAuthServiceProvider)
 	props["GoogleDeveloperKey"] = c.ServiceSettings.GoogleDeveloperKey
 	props["EnableIncomingWebhooks"] = strconv.FormatBool(c.ServiceSettings.EnableIncomingWebhooks)
