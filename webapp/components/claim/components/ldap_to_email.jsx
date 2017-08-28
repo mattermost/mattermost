@@ -149,14 +149,8 @@ export default class LDAPToEmail extends React.Component {
                 >
                     <p>
                         <FormattedMessage
-                            id='claim.ldap_to_email.ssoType'
-                            defaultMessage='Upon claiming your account, you will only be able to login with your email and password'
-                        />
-                    </p>
-                    <p>
-                        <FormattedMessage
                             id='claim.ldap_to_email.email'
-                            defaultMessage='You will use the email {email} to login'
+                            defaultMessage='After switching your authentication method, you will use {email} to login. Your AD/LDAP credentials will no longer allow access to Mattermost.'
                             values={{
                                 email: this.props.email
                             }}
@@ -165,10 +159,9 @@ export default class LDAPToEmail extends React.Component {
                     <p>
                         <FormattedMessage
                             id='claim.ldap_to_email.enterLdapPwd'
-                            defaultMessage='Enter your {ldapPassword} for your {site} email account'
+                            defaultMessage='{ldapPassword}:'
                             values={{
-                                ldapPassword: passwordPlaceholder,
-                                site: global.window.mm_config.SiteName
+                                ldapPassword: passwordPlaceholder
                             }}
                         />
                     </p>
@@ -186,7 +179,7 @@ export default class LDAPToEmail extends React.Component {
                     <p>
                         <FormattedMessage
                             id='claim.ldap_to_email.enterPwd'
-                            defaultMessage='Enter a new password for your email account'
+                            defaultMessage='New email login password'
                         />
                     </p>
                     <div className={passwordClass}>
