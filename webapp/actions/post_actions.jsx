@@ -353,7 +353,5 @@ export function unpinPost(postId) {
 }
 
 export function doPostAction(postId, actionId) {
-    Client4.doPostAction(postId, actionId).catch(
-        () => {} //eslint-disable-line no-empty-function
-    );
+    PostActions.doPostAction(postId, actionId)(dispatch, getState);
 }

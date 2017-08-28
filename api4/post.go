@@ -8,7 +8,6 @@ import (
 	"strconv"
 
 	l4g "github.com/alecthomas/log4go"
-	"github.com/gorilla/mux"
 	"github.com/mattermost/platform/app"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
@@ -28,7 +27,7 @@ func InitPost() {
 	BaseRoutes.Team.Handle("/posts/search", ApiSessionRequired(searchPosts)).Methods("POST")
 	BaseRoutes.Post.Handle("", ApiSessionRequired(updatePost)).Methods("PUT")
 	BaseRoutes.Post.Handle("/patch", ApiSessionRequired(patchPost)).Methods("PUT")
-	BaseRoutes.Post.Handle("/actions/{id:[A-Za-z0-9]+}", ApiSessionRequired(doPostAction)).Methods("POST")
+	BaseRoutes.Post.Handle("/actions/{action_id:[A-Za-z0-9]+}", ApiSessionRequired(doPostAction)).Methods("POST")
 	BaseRoutes.Post.Handle("/pin", ApiSessionRequired(pinPost)).Methods("POST")
 	BaseRoutes.Post.Handle("/unpin", ApiSessionRequired(unpinPost)).Methods("POST")
 }
@@ -432,7 +431,7 @@ func getFileInfosForPost(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func doPostAction(c *Context, w http.ResponseWriter, r *http.Request) {
-	c.RequirePostId()
+	c.RequirePostId().RequireActionId()
 	if c.Err != nil {
 		return
 	}
@@ -442,10 +441,7 @@ func doPostAction(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	params := mux.Vars(r)
-	id := params["id"]
-
-	if err := app.DoPostAction(c.Params.PostId, id, c.Session.UserId); err != nil {
+	if err := app.DoPostAction(c.Params.PostId, c.Params.ActionId, c.Session.UserId); err != nil {
 		c.Err = err
 		return
 	}
