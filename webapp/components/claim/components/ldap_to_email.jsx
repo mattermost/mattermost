@@ -179,7 +179,7 @@ export default class LDAPToEmail extends React.Component {
                     <p>
                         <FormattedMessage
                             id='claim.ldap_to_email.enterPwd'
-                            defaultMessage='New email login password'
+                            defaultMessage='New email login password:'
                         />
                     </p>
                     <div className={passwordClass}>
