@@ -268,6 +268,7 @@ export const PostTypes = {
     LEAVE_CHANNEL: 'system_leave_channel',
     ADD_TO_CHANNEL: 'system_add_to_channel',
     REMOVE_FROM_CHANNEL: 'system_remove_from_channel',
+    CONVERT_TO_CHANNEL: 'system_convert_to_channel',
     ADD_REMOVE: 'system_add_remove',
     HEADER_CHANGE: 'system_header_change',
     DISPLAYNAME_CHANGE: 'system_displayname_change',

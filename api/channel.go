@@ -185,34 +185,33 @@ func updateChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	oldChannel.Header = channel.Header
-	oldChannel.Purpose = channel.Purpose
-
-	oldChannelDisplayName := oldChannel.DisplayName
+	modifiedChannel := *oldChannel
+	modifiedChannel.Header = channel.Header
+	modifiedChannel.Purpose = channel.Purpose
 
 	if len(channel.DisplayName) > 0 {
-		oldChannel.DisplayName = channel.DisplayName
+		modifiedChannel.DisplayName = channel.DisplayName
 	}
 
 	if len(channel.Name) > 0 {
-		oldChannel.Name = channel.Name
+		modifiedChannel.Name = channel.Name
 	}
 
 	if len(channel.Type) > 0 {
-		oldChannel.Type = channel.Type
+		modifiedChannel.Type = channel.Type
 	}
 
-	if _, err := app.UpdateChannel(oldChannel); err != nil {
+	if _, err := app.UpdateChannel(&modifiedChannel); err != nil {
 		c.Err = err
 		return
 	} else {
-		if oldChannelDisplayName != channel.DisplayName {
-			if err := app.PostUpdateChannelDisplayNameMessage(c.Session.UserId, channel.Id, c.TeamId, oldChannelDisplayName, channel.DisplayName); err != nil {
-				l4g.Error(err.Error())
-			}
+		if msg, err := app.PostUpdateChannelMessages(c.Session.UserId, channel.Id, c.TeamId, oldChannel, &modifiedChannel); err != nil {
+			c.Err = err
+		} else {
+			c.LogAudit(msg)
 		}
-		c.LogAudit("name=" + channel.Name)
-		w.Write([]byte(oldChannel.ToJson()))
+
+		w.Write([]byte(modifiedChannel.ToJson()))
 	}
 
 }

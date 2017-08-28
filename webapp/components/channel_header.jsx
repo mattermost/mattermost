@@ -8,6 +8,7 @@ import MessageWrapper from './message_wrapper.jsx';
 import PopoverListMembers from 'components/popover_list_members';
 import EditChannelHeaderModal from './edit_channel_header_modal.jsx';
 import EditChannelPurposeModal from './edit_channel_purpose_modal.jsx';
+import ConvertChannelModal from './channel_convert_modal.jsx';
 import ChannelInfoModal from './channel_info_modal.jsx';
 import ChannelInviteModal from 'components/channel_invite_modal';
 import ChannelMembersModal from './channel_members_modal.jsx';
@@ -53,6 +54,8 @@ export default class ChannelHeader extends React.Component {
         this.searchMentions = this.searchMentions.bind(this);
         this.showRenameChannelModal = this.showRenameChannelModal.bind(this);
         this.hideRenameChannelModal = this.hideRenameChannelModal.bind(this);
+        this.showConvertChannelModal = this.showConvertChannelModal.bind(this);
+        this.hideConvertChannelModal = this.hideConvertChannelModal.bind(this);
         this.handleShortcut = this.handleShortcut.bind(this);
         this.getFlagged = this.getFlagged.bind(this);
         this.getPinnedPosts = this.getPinnedPosts.bind(this);
@@ -65,6 +68,7 @@ export default class ChannelHeader extends React.Component {
         state.showEditChannelPurposeModal = false;
         state.showMembersModal = false;
         state.showRenameChannelModal = false;
+        state.showConvertChannelModal = false;
         this.state = state;
     }
 
@@ -205,6 +209,20 @@ export default class ChannelHeader extends React.Component {
     hideRenameChannelModal() {
         this.setState({
             showRenameChannelModal: false
+        });
+    }
+
+    showConvertChannelModal(e) {
+        e.preventDefault();
+
+        this.setState({
+            showConvertChannelModal: true
+        });
+    }
+
+    hideConvertChannelModal() {
+        this.setState({
+            showConvertChannelModal: false
         });
     }
 
@@ -657,6 +675,28 @@ export default class ChannelHeader extends React.Component {
                         </a>
                     </li>
                 );
+
+                if (!ChannelStore.isDefault(channel) && channel.type === Constants.OPEN_CHANNEL) {
+                    dropdownContents.push(
+                        <li
+                            id='channelConvert'
+                            key='convert_channel'
+                            role='presentation'
+
+                        >
+                            <a
+                                role='menuitem'
+                                href='#'
+                                onClick={this.showConvertChannelModal}
+                            >
+                                <FormattedMessage
+                                    id='channel_header.convert'
+                                    defaultMessage='Convert Channel to Private'
+                                />
+                            </a>
+                        </li>
+                    );
+                }
             }
 
             if (ChannelUtils.showDeleteOptionForCurrentUser(channel, isChannelAdmin, isTeamAdmin, isSystemAdmin)) {
@@ -943,6 +983,12 @@ export default class ChannelHeader extends React.Component {
                     onHide={this.hideRenameChannelModal}
                     channel={channel}
                 />
+                <ConvertChannelModal
+                    show={this.state.showConvertChannelModal}
+                    onHide={this.hideConvertChannelModal}
+                    channel={channel}
+                />
+
             </div>
         );
     }

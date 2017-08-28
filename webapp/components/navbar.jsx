@@ -6,6 +6,7 @@ import EditChannelHeaderModal from './edit_channel_header_modal.jsx';
 import EditChannelPurposeModal from './edit_channel_purpose_modal.jsx';
 import MessageWrapper from './message_wrapper.jsx';
 import NotifyCounts from './notify_counts.jsx';
+import ConvertChannelModal from './channel_convert_modal.jsx';
 import ChannelInfoModal from './channel_info_modal.jsx';
 import ChannelInviteModal from 'components/channel_invite_modal';
 import ChannelMembersModal from './channel_members_modal.jsx';
@@ -59,6 +60,8 @@ export default class Navbar extends React.Component {
         this.hideChannelPurposeModal = this.hideChannelPurposeModal.bind(this);
         this.showRenameChannelModal = this.showRenameChannelModal.bind(this);
         this.hideRenameChannelModal = this.hideRenameChannelModal.bind(this);
+        this.showConvertChannelModal = this.showConvertChannelModal.bind(this);
+        this.hideConvertChannelModal = this.hideConvertChannelModal.bind(this);
         this.isStateValid = this.isStateValid.bind(this);
 
         this.createCollapseButtons = this.createCollapseButtons.bind(this);
@@ -81,6 +84,8 @@ export default class Navbar extends React.Component {
         state.showRenameChannelModal = false;
         state.showQuickSwitchModal = false;
         state.quickSwitchMode = 'channel';
+        state.showConvertChannelModal = false;
+        state.showChannelSwitchModal = false;
         this.state = state;
     }
 
@@ -225,6 +230,20 @@ export default class Navbar extends React.Component {
         });
     }
 
+    showConvertChannelModal(e) {
+        e.preventDefault();
+
+        this.setState({
+            showConvertChannelModal: true
+        });
+    }
+
+    hideConvertChannelModal() {
+        this.setState({
+            showConvertChannelModal: false
+        });
+    }
+
     showMembersModal(e) {
         e.preventDefault();
 
@@ -298,6 +317,7 @@ export default class Navbar extends React.Component {
             let setChannelPurposeOption;
             let notificationPreferenceOption;
             let renameChannelOption;
+            let convertChannelOption;
             let deleteChannelOption;
             let leaveChannelOption;
 
@@ -536,6 +556,22 @@ export default class Navbar extends React.Component {
                             </a>
                         </li>
                     );
+                    if (!ChannelStore.isDefault(channel) && channel.type === Constants.OPEN_CHANNEL && isAdmin) {
+                        convertChannelOption = (
+                            <li role='presentation'>
+                                <a
+                                    role='menuitem'
+                                    href='#'
+                                    onClick={this.showConvertChannelModal}
+                                >
+                                    <FormattedMessage
+                                        id='channel_header.convert'
+                                        defaultMessage='Convert Channel to Private'
+                                    />
+                                </a>
+                            </li>
+                        );
+                    }
                 }
 
                 if (ChannelUtils.showDeleteOptionForCurrentUser(channel, isChannelAdmin, isTeamAdmin, isSystemAdmin)) {
@@ -638,6 +674,7 @@ export default class Navbar extends React.Component {
                             {setChannelHeaderOption}
                             {setChannelPurposeOption}
                             {renameChannelOption}
+                            {convertChannelOption}
                             {deleteChannelOption}
                             {leaveChannelOption}
                             {toggleFavoriteOption}
@@ -763,6 +800,7 @@ export default class Navbar extends React.Component {
         var editChannelHeaderModal = null;
         var editChannelPurposeModal = null;
         let renameChannelModal = null;
+        let convertChannelModal = null;
         let channelMembersModal = null;
         let quickSwitchModal = null;
 
@@ -865,6 +903,14 @@ export default class Navbar extends React.Component {
                 />
             );
 
+            convertChannelModal = (
+                <ConvertChannelModal
+                    show={this.state.showConvertChannelModal}
+                    onHide={this.hideConvertChannelModal}
+                    channel={channel}
+                />
+            );
+
             if (this.state.showMembersModal) {
                 channelMembersModal = (
                     <ChannelMembersModal
@@ -922,6 +968,7 @@ export default class Navbar extends React.Component {
                 {editChannelHeaderModal}
                 {editChannelPurposeModal}
                 {renameChannelModal}
+                {convertChannelModal}
                 {channelMembersModal}
                 {quickSwitchModal}
             </div>
