@@ -97,7 +97,7 @@
         @include single-transition(all, .35s, ease);
         @include translate3d(0, 100%, 0);
         @include box-shadow(none);
-        background: alpha-color($black, .8);
+        background: alpha-color($black, .9);
         border: none;
         height: calc(100% - 50px);
         max-width: 100%;
@@ -107,6 +107,10 @@
 
         &.in {
             @include translate3d(0, 0, 0);
+        }
+
+        a {
+            color: #0091ff;
         }
 
         .arrow {
