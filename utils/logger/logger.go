@@ -6,13 +6,13 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"path/filepath"
 	"runtime"
 
 	l4g "github.com/alecthomas/log4go"
 
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
-	"path/filepath"
 	"github.com/pkg/errors"
 )
 
