@@ -4,17 +4,19 @@ package pluginenv
 import (
 	"fmt"
 	"io/ioutil"
+	"sync"
 
 	"github.com/pkg/errors"
 
+	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/plugin"
 )
 
-type APIProviderFunc func(*plugin.Manifest) (plugin.API, error)
-type SupervisorProviderFunc func(*plugin.BundleInfo) (plugin.Supervisor, error)
+type APIProviderFunc func(*model.Manifest) (plugin.API, error)
+type SupervisorProviderFunc func(*model.BundleInfo) (plugin.Supervisor, error)
 
 type ActivePlugin struct {
-	BundleInfo *plugin.BundleInfo
+	BundleInfo *model.BundleInfo
 	Supervisor plugin.Supervisor
 }
 
@@ -25,6 +27,7 @@ type Environment struct {
 	apiProvider        APIProviderFunc
 	supervisorProvider SupervisorProviderFunc
 	activePlugins      map[string]ActivePlugin
+	mux                sync.Mutex
 }
 
 type Option func(*Environment)
@@ -57,12 +60,40 @@ func (env *Environment) SearchPath() string {
 }
 
 // Returns a list of all plugins found within the environment.
-func (env *Environment) Plugins() ([]*plugin.BundleInfo, error) {
+func (env *Environment) Plugins() ([]*model.BundleInfo, error) {
+	env.mux.Lock()
+	defer env.mux.Unlock()
 	return ScanSearchPath(env.searchPath)
+}
+
+// Returns a list of all currently active plugins within the environment.
+func (env *Environment) ActivePlugins() ([]*model.BundleInfo, error) {
+	env.mux.Lock()
+	defer env.mux.Unlock()
+
+	plugins, err := ScanSearchPath(env.searchPath)
+	if err != nil {
+		return nil, err
+	}
+
+	activePlugins := []*model.BundleInfo{}
+	for id := range env.activePlugins {
+		for _, p := range plugins {
+			if p.Manifest != nil && p.Manifest.Id == id {
+				activePlugins = append(activePlugins, p)
+				break
+			}
+		}
+	}
+
+	return activePlugins, nil
 }
 
 // Returns the ids of the currently active plugins.
 func (env *Environment) ActivePluginIds() (ids []string) {
+	env.mux.Lock()
+	defer env.mux.Unlock()
+
 	for id := range env.activePlugins {
 		ids = append(ids, id)
 	}
@@ -71,6 +102,9 @@ func (env *Environment) ActivePluginIds() (ids []string) {
 
 // Activates the plugin with the given id.
 func (env *Environment) ActivatePlugin(id string) error {
+	env.mux.Lock()
+	defer env.mux.Unlock()
+
 	if _, ok := env.activePlugins[id]; ok {
 		return fmt.Errorf("plugin already active: %v", id)
 	}
@@ -78,7 +112,7 @@ func (env *Environment) ActivatePlugin(id string) error {
 	if err != nil {
 		return err
 	}
-	var bundle *plugin.BundleInfo
+	var bundle *model.BundleInfo
 	for _, p := range plugins {
 		if p.Manifest != nil && p.Manifest.Id == id {
 			if bundle != nil {
@@ -150,6 +184,9 @@ func (env *Environment) ActivatePlugin(id string) error {
 
 // Deactivates the plugin with the given id.
 func (env *Environment) DeactivatePlugin(id string) error {
+	env.mux.Lock()
+	defer env.mux.Unlock()
+
 	if activePlugin, ok := env.activePlugins[id]; !ok {
 		return fmt.Errorf("plugin not active: %v", id)
 	} else {
@@ -167,6 +204,9 @@ func (env *Environment) DeactivatePlugin(id string) error {
 
 // Deactivates all plugins and gracefully shuts down the environment.
 func (env *Environment) Shutdown() (errs []error) {
+	env.mux.Lock()
+	defer env.mux.Unlock()
+
 	for _, activePlugin := range env.activePlugins {
 		if activePlugin.Supervisor != nil {
 			if err := activePlugin.Supervisor.Hooks().OnDeactivate(); err != nil {

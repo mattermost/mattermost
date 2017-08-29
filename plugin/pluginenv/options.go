@@ -3,6 +3,7 @@ package pluginenv
 import (
 	"fmt"
 
+	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/plugin"
 	"github.com/mattermost/platform/plugin/rpcplugin"
 )
@@ -38,7 +39,7 @@ func WebappPath(path string) Option {
 
 // DefaultSupervisorProvider chooses a supervisor based on the plugin's manifest contents. E.g. if
 // the manifest specifies a backend executable, it will be given an rpcplugin.Supervisor.
-func DefaultSupervisorProvider(bundle *plugin.BundleInfo) (plugin.Supervisor, error) {
+func DefaultSupervisorProvider(bundle *model.BundleInfo) (plugin.Supervisor, error) {
 	if bundle.Manifest == nil {
 		return nil, fmt.Errorf("a manifest is required")
 	}

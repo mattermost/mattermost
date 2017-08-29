@@ -19,7 +19,7 @@ type MockProvider struct {
 	mock.Mock
 }
 
-func (m *MockProvider) API(manifest *plugin.Manifest) (plugin.API, error) {
+func (m *MockProvider) API(manifest *model.Manifest) (plugin.API, error) {
 	ret := m.Called()
 	if ret.Get(0) == nil {
 		return nil, ret.Error(1)
@@ -27,7 +27,7 @@ func (m *MockProvider) API(manifest *plugin.Manifest) (plugin.API, error) {
 	return ret.Get(0).(plugin.API), ret.Error(1)
 }
 
-func (m *MockProvider) Supervisor(bundle *plugin.BundleInfo) (plugin.Supervisor, error) {
+func (m *MockProvider) Supervisor(bundle *model.BundleInfo) (plugin.Supervisor, error) {
 	ret := m.Called()
 	if ret.Get(0) == nil {
 		return nil, ret.Error(1)

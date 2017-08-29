@@ -64,7 +64,7 @@ func ExtractTarGz(gzipStream io.Reader, dst string) ([]string, error) {
 			filenames = append(filenames, header.Name)
 		default:
 			return nil, fmt.Errorf(
-				"ExtractTarGz: unknown type: %s in %s",
+				"ExtractTarGz: unknown type: %v in %v",
 				header.Typeflag,
 				header.Name)
 		}

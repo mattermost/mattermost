@@ -11,17 +11,17 @@ import (
 )
 
 func TestDefaultSupervisorProvider(t *testing.T) {
-	_, err := DefaultSupervisorProvider(&plugin.BundleInfo{})
+	_, err := DefaultSupervisorProvider(&model.BundleInfo{})
 	assert.Error(t, err)
 
-	_, err = DefaultSupervisorProvider(&plugin.BundleInfo{
-		Manifest: &plugin.Manifest{},
+	_, err = DefaultSupervisorProvider(&model.BundleInfo{
+		Manifest: &model.Manifest{},
 	})
 	assert.Error(t, err)
 
-	supervisor, err := DefaultSupervisorProvider(&plugin.BundleInfo{
-		Manifest: &plugin.Manifest{
-			Backend: &plugin.ManifestBackend{
+	supervisor, err := DefaultSupervisorProvider(&model.BundleInfo{
+		Manifest: &model.Manifest{
+			Backend: &model.ManifestBackend{
 				Executable: "foo",
 			},
 		},

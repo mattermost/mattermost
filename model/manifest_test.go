@@ -1,4 +1,4 @@
-package plugin
+package model
 
 import (
 	"encoding/json"
@@ -70,6 +70,8 @@ func TestManifestUnmarshal(t *testing.T) {
 id: theid
 backend:
     executable: theexecutable
+webapp:
+    bundle_path: thebundlepath
 `), &yamlResult))
 	assert.Equal(t, expected, yamlResult)
 
@@ -78,7 +80,10 @@ backend:
 	"id": "theid",
 	"backend": {
 		"executable": "theexecutable"
-	}
+	},
+    "webapp": {
+        "bundle_path": "thebundlepath"
+    }
 	}`), &jsonResult))
 	assert.Equal(t, expected, jsonResult)
 }

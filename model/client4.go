@@ -13,8 +13,6 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
-
-	"github.com/mattermost/platform/plugin"
 )
 
 type Response struct {
@@ -3024,7 +3022,7 @@ func (c *Client4) CancelJob(jobId string) (bool, *Response) {
 
 // UploadPlugin takes an io.Reader stream pointing to the contents of a .tar.gz plugin.
 // WARNING: PLUGINS ARE STILL EXPERIMENTAL. THIS FUNCTION IS SUBJECT TO CHANGE.
-func (c *Client4) UploadPlugin(file io.Reader) (*plugin.Manifest, *Response) {
+func (c *Client4) UploadPlugin(file io.Reader) (*Manifest, *Response) {
 	body := new(bytes.Buffer)
 	writer := multipart.NewWriter(body)
 
@@ -3054,19 +3052,19 @@ func (c *Client4) UploadPlugin(file io.Reader) (*plugin.Manifest, *Response) {
 		if rp.StatusCode >= 300 {
 			return nil, BuildErrorResponse(rp, AppErrorFromJson(rp.Body))
 		} else {
-			return plugin.ManifestFromJson(rp.Body), BuildResponse(rp)
+			return ManifestFromJson(rp.Body), BuildResponse(rp)
 		}
 	}
 }
 
 // GetPlugins will return a list of plugin manifests for currently active plugins.
 // WARNING: PLUGINS ARE STILL EXPERIMENTAL. THIS FUNCTION IS SUBJECT TO CHANGE.
-func (c *Client4) GetPlugins() ([]*plugin.Manifest, *Response) {
+func (c *Client4) GetPlugins() ([]*Manifest, *Response) {
 	if r, err := c.DoApiGet(c.GetPluginsRoute(), ""); err != nil {
 		return nil, BuildErrorResponse(r, err)
 	} else {
 		defer closeBody(r)
-		return plugin.ManifestListFromJson(r.Body), BuildResponse(r)
+		return ManifestListFromJson(r.Body), BuildResponse(r)
 	}
 }
 

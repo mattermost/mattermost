@@ -20,7 +20,6 @@ import (
 
 	"github.com/mattermost/platform/app/plugin"
 	"github.com/mattermost/platform/app/plugin/jira"
-	mmplugin "github.com/mattermost/platform/plugin"
 )
 
 type PluginAPI struct {
@@ -112,7 +111,7 @@ func ActivatePlugins() {
 	}
 }
 
-func UnpackAndActivatePlugin(pluginFile io.Reader) (*mmplugin.Manifest, *model.AppError) {
+func UnpackAndActivatePlugin(pluginFile io.Reader) (*model.Manifest, *model.AppError) {
 	if Srv.PluginEnv == nil || !*utils.Cfg.PluginSettings.Enable {
 		return nil, model.NewAppError("UnpackAndActivatePlugin", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
@@ -134,7 +133,7 @@ func UnpackAndActivatePlugin(pluginFile io.Reader) (*mmplugin.Manifest, *model.A
 
 	manifestDir := filepath.Join(Srv.PluginEnv.SearchPath(), splitPath[0])
 
-	manifest, _, err := mmplugin.FindManifest(manifestDir)
+	manifest, _, err := model.FindManifest(manifestDir)
 	if err != nil {
 		return nil, model.NewAppError("UnpackAndActivatePlugin", "app.plugin.manifest.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
@@ -149,17 +148,17 @@ func UnpackAndActivatePlugin(pluginFile io.Reader) (*mmplugin.Manifest, *model.A
 	return manifest, nil
 }
 
-func GetActivePluginManifests() ([]*mmplugin.Manifest, *model.AppError) {
+func GetActivePluginManifests() ([]*model.Manifest, *model.AppError) {
 	if Srv.PluginEnv == nil || !*utils.Cfg.PluginSettings.Enable {
 		return nil, model.NewAppError("GetActivePluginManifests", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	plugins, err := Srv.PluginEnv.Plugins()
+	plugins, err := Srv.PluginEnv.ActivePlugins()
 	if err != nil {
 		return nil, model.NewAppError("GetActivePluginManifests", "app.plugin.get_plugins.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	manifests := make([]*mmplugin.Manifest, len(plugins))
+	manifests := make([]*model.Manifest, len(plugins))
 	for i, plugin := range plugins {
 		manifests[i] = plugin.Manifest
 	}
@@ -196,7 +195,7 @@ func GetPluginsForClientConfig() string {
 		return ""
 	}
 
-	plugins, err := Srv.PluginEnv.Plugins()
+	plugins, err := Srv.PluginEnv.ActivePlugins()
 	if err != nil {
 		return ""
 	}

@@ -35,7 +35,7 @@ func TestSupervisor(t *testing.T) {
 
 	ioutil.WriteFile(filepath.Join(dir, "plugin.json"), []byte(`{"id": "foo", "backend": {"executable": "backend.exe"}}`), 0600)
 
-	bundle := plugin.BundleInfoForPath(dir)
+	bundle := model.BundleInfoForPath(dir)
 	supervisor, err := SupervisorProvider(bundle)
 	require.NoError(t, err)
 	require.NoError(t, supervisor.Start())
@@ -61,7 +61,7 @@ func TestSupervisor_StartTimeout(t *testing.T) {
 
 	ioutil.WriteFile(filepath.Join(dir, "plugin.json"), []byte(`{"id": "foo", "backend": {"executable": "backend.exe"}}`), 0600)
 
-	bundle := plugin.BundleInfoForPath(dir)
+	bundle := model.BundleInfoForPath(dir)
 	supervisor, err := SupervisorProvider(bundle)
 	require.NoError(t, err)
 	require.Error(t, supervisor.Start())
@@ -98,7 +98,7 @@ func TestSupervisor_PluginCrash(t *testing.T) {
 
 	ioutil.WriteFile(filepath.Join(dir, "plugin.json"), []byte(`{"id": "foo", "backend": {"executable": "backend.exe"}}`), 0600)
 
-	bundle := plugin.BundleInfoForPath(dir)
+	bundle := model.BundleInfoForPath(dir)
 	supervisor, err := SupervisorProvider(bundle)
 	require.NoError(t, err)
 	require.NoError(t, supervisor.Start())

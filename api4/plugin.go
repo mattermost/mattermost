@@ -11,7 +11,6 @@ import (
 	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/platform/app"
 	"github.com/mattermost/platform/model"
-	"github.com/mattermost/platform/plugin"
 	"github.com/mattermost/platform/utils"
 )
 
@@ -92,7 +91,7 @@ func getPlugins(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write([]byte(plugin.ManifestListToJson(manifests)))
+	w.Write([]byte(model.ManifestListToJson(manifests)))
 }
 
 func removePlugin(c *Context, w http.ResponseWriter, r *http.Request) {

@@ -27,17 +27,17 @@ func TestScanSearchPath(t *testing.T) {
 	plugins, err := ScanSearchPath(dir)
 	require.NoError(t, err)
 	assert.Len(t, plugins, 3)
-	assert.Contains(t, plugins, &plugin.BundleInfo{
+	assert.Contains(t, plugins, &model.BundleInfo{
 		Path:         filepath.Join(dir, "foo"),
 		ManifestPath: filepath.Join(dir, "foo", "plugin.json"),
-		Manifest: &plugin.Manifest{
+		Manifest: &model.Manifest{
 			Id: "foo",
 		},
 	})
-	assert.Contains(t, plugins, &plugin.BundleInfo{
+	assert.Contains(t, plugins, &model.BundleInfo{
 		Path:         filepath.Join(dir, "baz"),
 		ManifestPath: filepath.Join(dir, "baz", "plugin.yaml"),
-		Manifest: &plugin.Manifest{
+		Manifest: &model.Manifest{
 			Id: "baz",
 		},
 	})
