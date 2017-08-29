@@ -3,11 +3,13 @@ package rpcplugin
 import (
 	"encoding/json"
 	"io"
+	"net/http"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 
+	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/plugin"
 	"github.com/mattermost/platform/plugin/plugintest"
 )
@@ -47,11 +49,57 @@ func TestAPI(t *testing.T) {
 		json.Unmarshal([]byte(`{"Foo": "foo", "Bar": {"Baz": "baz"}}`), dest)
 	}).Return(nil)
 
+	testChannel := &model.Channel{
+		Id: "thechannelid",
+	}
+
+	testTeam := &model.Team{
+		Id: "theteamid",
+	}
+	teamNotFoundError := model.NewAppError("SqlTeamStore.GetByName", "store.sql_team.get_by_name.app_error", nil, "name=notateam", http.StatusNotFound)
+
+	testUser := &model.User{
+		Id: "theuserid",
+	}
+
+	testPost := &model.Post{
+		Message: "hello",
+	}
+
+	api.On("GetChannelByName", "foo", "theteamid").Return(testChannel, nil)
+	api.On("GetTeamByName", "foo").Return(testTeam, nil)
+	api.On("GetTeamByName", "notateam").Return(nil, teamNotFoundError)
+	api.On("GetUserByUsername", "foo").Return(testUser, nil)
+	api.On("CreatePost", mock.AnythingOfType("*model.Post")).Return(func(p *model.Post) (*model.Post, *model.AppError) {
+		p.Id = "thepostid"
+		return p, nil
+	})
+
 	testAPIRPC(&api, func(remote plugin.API) {
 		var config Config
 		assert.NoError(t, remote.LoadPluginConfiguration(&config))
-
 		assert.Equal(t, "foo", config.Foo)
 		assert.Equal(t, "baz", config.Bar.Baz)
+
+		channel, err := remote.GetChannelByName("foo", "theteamid")
+		assert.Equal(t, testChannel, channel)
+		assert.Nil(t, err)
+
+		user, err := remote.GetUserByUsername("foo")
+		assert.Equal(t, testUser, user)
+		assert.Nil(t, err)
+
+		team, err := remote.GetTeamByName("foo")
+		assert.Equal(t, testTeam, team)
+		assert.Nil(t, err)
+
+		team, err = remote.GetTeamByName("notateam")
+		assert.Nil(t, team)
+		assert.Equal(t, teamNotFoundError, err)
+
+		post, err := remote.CreatePost(testPost)
+		assert.NotEmpty(t, post.Id)
+		assert.Equal(t, testPost.Message, post.Message)
+		assert.Nil(t, err)
 	})
 }

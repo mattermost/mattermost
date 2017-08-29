@@ -584,6 +584,14 @@
     "translation": "A message must be provided with the /rename command."
   },
   {
+    "id": "api.command_channel_rename.too_long.app_error",
+    "translation": "Channel name must be {{.Length}} or fewer characters"
+  },
+  {
+    "id": "api.command_channel_rename.too_short.app_error",
+    "translation": "Channel name must be {{.Length}} or more characters"
+  },
+  {
     "id": "api.command_channel_rename.name",
     "translation": "rename"
   },
@@ -5102,6 +5110,10 @@
   {
     "id": "model.utils.decode_json.app_error",
     "translation": "could not decode"
+  },
+  {
+    "id": "plugin.rpcplugin.invocation.error",
+    "translation": "Error invoking plugin RPC"
   },
   {
     "id": "store.sql.alter_column_type.critical",
