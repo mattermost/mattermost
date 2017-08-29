@@ -19,6 +19,7 @@ const (
 
 	TRACK_CONFIG_SERVICE       = "config_service"
 	TRACK_CONFIG_TEAM          = "config_team"
+	TRACK_CONFIG_CLIENT_REQ    = "config_client_requirements"
 	TRACK_CONFIG_SQL           = "config_sql"
 	TRACK_CONFIG_LOG           = "config_log"
 	TRACK_CONFIG_FILE          = "config_file"
@@ -242,6 +243,15 @@ func trackConfig() {
 		"isdefault_custom_description_text":       isDefault(*utils.Cfg.TeamSettings.CustomDescriptionText, model.TEAM_SETTINGS_DEFAULT_CUSTOM_DESCRIPTION_TEXT),
 		"isdefault_user_status_away_timeout":      isDefault(*utils.Cfg.TeamSettings.UserStatusAwayTimeout, model.TEAM_SETTINGS_DEFAULT_USER_STATUS_AWAY_TIMEOUT),
 		"restrict_private_channel_manage_members": *utils.Cfg.TeamSettings.RestrictPrivateChannelManageMembers,
+	})
+
+	SendDiagnostic(TRACK_CONFIG_CLIENT_REQ, map[string]interface{}{
+		"android_latest_version": utils.Cfg.ClientRequirements.AndroidLatestVersion,
+		"android_min_version":    utils.Cfg.ClientRequirements.AndroidMinVersion,
+		"desktop_latest_version": utils.Cfg.ClientRequirements.DesktopLatestVersion,
+		"desktop_min_version":    utils.Cfg.ClientRequirements.DesktopMinVersion,
+		"ios_latest_version":     utils.Cfg.ClientRequirements.IosLatestVersion,
+		"ios_min_version":        utils.Cfg.ClientRequirements.IosMinVersion,
 	})
 
 	SendDiagnostic(TRACK_CONFIG_SQL, map[string]interface{}{
