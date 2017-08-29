@@ -11,6 +11,7 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
+	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/plugin"
 	"github.com/mattermost/platform/plugin/plugintest"
 )
@@ -122,6 +123,10 @@ func TestEnvironment(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Len(t, plugins, 3)
 
+	activePlugins, err := env.ActivePlugins()
+	assert.NoError(t, err)
+	assert.Len(t, activePlugins, 0)
+
 	assert.Error(t, env.ActivatePlugin("x"))
 
 	var api struct{ plugin.API }
@@ -141,6 +146,9 @@ func TestEnvironment(t *testing.T) {
 
 	assert.NoError(t, env.ActivatePlugin("foo"))
 	assert.Equal(t, env.ActivePluginIds(), []string{"foo"})
+	activePlugins, err = env.ActivePlugins()
+	assert.NoError(t, err)
+	assert.Len(t, activePlugins, 1)
 	assert.Error(t, env.ActivatePlugin("foo"))
 
 	hooks.On("OnDeactivate").Return(nil)
