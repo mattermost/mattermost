@@ -1760,6 +1760,14 @@
     "translation": "Unable to get post"
   },
   {
+    "id": "api.post.do_action.action_id.app_error",
+    "translation": "Invalid action id"
+  },
+  {
+    "id": "api.post.do_action.action_integration.app_error",
+    "translation": "Action integration error"
+  },
+  {
     "id": "api.preference.delete_preferences.decode.app_error",
     "translation": "Unable to decode preferences from request"
   },
