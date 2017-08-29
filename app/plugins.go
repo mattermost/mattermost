@@ -5,7 +5,6 @@ package app
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
 	"os"
@@ -107,7 +106,7 @@ func ActivatePlugins() {
 		if err != nil {
 			l4g.Error(err.Error())
 		}
-		l4g.Info(fmt.Sprintf("Activated %v plugin", plugin.Manifest.Id))
+		l4g.Info("Activated %v plugin", plugin.Manifest.Id)
 	}
 }
 

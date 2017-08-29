@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	MAXIMUM_PLUGIN_FILE_SIZE = 52428800 // 50 MB
+	MAXIMUM_PLUGIN_FILE_SIZE = 50 * 1024 * 1024
 )
 
 func InitPlugin() {

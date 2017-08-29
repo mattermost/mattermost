@@ -166,8 +166,8 @@ func TestEnvironment(t *testing.T) {
 
 func TestEnvironment_DuplicatePluginError(t *testing.T) {
 	dir := initTmpDir(t, map[string]string{
-		"foo/plugin.json":  `{"id": "foo", "backend": {}}`,
-		"foo2/plugin.json": `{"id": "foo", "backend": {}}`,
+		"foo/plugin.json":  `{"id": "foo"}`,
+		"foo2/plugin.json": `{"id": "foo"}`,
 	})
 	defer os.RemoveAll(dir)
 

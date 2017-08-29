@@ -27,7 +27,7 @@ type Environment struct {
 	apiProvider        APIProviderFunc
 	supervisorProvider SupervisorProviderFunc
 	activePlugins      map[string]ActivePlugin
-	mux                sync.Mutex
+	mutex              sync.Mutex
 }
 
 type Option func(*Environment)
@@ -61,15 +61,15 @@ func (env *Environment) SearchPath() string {
 
 // Returns a list of all plugins found within the environment.
 func (env *Environment) Plugins() ([]*model.BundleInfo, error) {
-	env.mux.Lock()
-	defer env.mux.Unlock()
+	env.mutex.Lock()
+	defer env.mutex.Unlock()
 	return ScanSearchPath(env.searchPath)
 }
 
 // Returns a list of all currently active plugins within the environment.
 func (env *Environment) ActivePlugins() ([]*model.BundleInfo, error) {
-	env.mux.Lock()
-	defer env.mux.Unlock()
+	env.mutex.Lock()
+	defer env.mutex.Unlock()
 
 	plugins, err := ScanSearchPath(env.searchPath)
 	if err != nil {
@@ -91,8 +91,8 @@ func (env *Environment) ActivePlugins() ([]*model.BundleInfo, error) {
 
 // Returns the ids of the currently active plugins.
 func (env *Environment) ActivePluginIds() (ids []string) {
-	env.mux.Lock()
-	defer env.mux.Unlock()
+	env.mutex.Lock()
+	defer env.mutex.Unlock()
 
 	for id := range env.activePlugins {
 		ids = append(ids, id)
@@ -102,8 +102,8 @@ func (env *Environment) ActivePluginIds() (ids []string) {
 
 // Activates the plugin with the given id.
 func (env *Environment) ActivatePlugin(id string) error {
-	env.mux.Lock()
-	defer env.mux.Unlock()
+	env.mutex.Lock()
+	defer env.mutex.Unlock()
 
 	if _, ok := env.activePlugins[id]; ok {
 		return fmt.Errorf("plugin already active: %v", id)
@@ -184,8 +184,8 @@ func (env *Environment) ActivatePlugin(id string) error {
 
 // Deactivates the plugin with the given id.
 func (env *Environment) DeactivatePlugin(id string) error {
-	env.mux.Lock()
-	defer env.mux.Unlock()
+	env.mutex.Lock()
+	defer env.mutex.Unlock()
 
 	if activePlugin, ok := env.activePlugins[id]; !ok {
 		return fmt.Errorf("plugin not active: %v", id)
@@ -204,8 +204,8 @@ func (env *Environment) DeactivatePlugin(id string) error {
 
 // Deactivates all plugins and gracefully shuts down the environment.
 func (env *Environment) Shutdown() (errs []error) {
-	env.mux.Lock()
-	defer env.mux.Unlock()
+	env.mutex.Lock()
+	defer env.mutex.Unlock()
 
 	for _, activePlugin := range env.activePlugins {
 		if activePlugin.Supervisor != nil {

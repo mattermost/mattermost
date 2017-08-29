@@ -81,9 +81,9 @@ webapp:
 	"backend": {
 		"executable": "theexecutable"
 	},
-    "webapp": {
-        "bundle_path": "thebundlepath"
-    }
+	"webapp": {
+		"bundle_path": "thebundlepath"
+	}
 	}`), &jsonResult))
 	assert.Equal(t, expected, jsonResult)
 }
