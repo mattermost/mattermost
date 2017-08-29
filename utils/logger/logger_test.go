@@ -27,7 +27,7 @@ func TestGetCallerFilename(t *testing.T) {
 	filename, _ := getCallerFilename()
 	matched, err := regexp.MatchString(validPath, filename)
 	require.NoError(t, err)
-	assert.True(t, matched, "Got %s", filename)
+	assert.True(t, matched)
 }
 
 // ensures that values can be recorded on a Context object, and that the data in question is serialized as a part of the log message
@@ -62,7 +62,7 @@ func TestSerializeLogMessageEmptyContext(t *testing.T) {
 	assert.Equal(t, logMessage, deserialized.Message)
 	matched, err := regexp.MatchString(validPath, deserialized.File)
 	require.NoError(t, err)
-	assert.True(t, matched, "Got %s", deserialized.File)
+	assert.True(t, matched)
 }
 
 // ensures that an entire log message with a populated context can be properly serialized into a JSON object
@@ -85,7 +85,7 @@ func TestSerializeLogMessagePopulatedContext(t *testing.T) {
 	assert.Equal(t, logMessage, deserialized.Message)
 	matched, err := regexp.MatchString(validPath, deserialized.File)
 	require.NoError(t, err)
-	assert.True(t, matched, "Got %s", deserialized.File)
+	assert.True(t, matched)
 }
 
 // ensures that a debugLog message is passed through to the underlying logger as expected
@@ -117,7 +117,7 @@ func TestDebugc(t *testing.T) {
 	assert.Equal(t, logMessage, deserialized.Message)
 	matched, err := regexp.MatchString(validPath, deserialized.File)
 	require.NoError(t, err)
-	assert.True(t, matched, "Got %s", deserialized.File)
+	assert.True(t, matched)
 }
 
 // ensures that a debugLog message is passed through to the underlying logger as expected
@@ -149,7 +149,7 @@ func TestDebugf(t *testing.T) {
 	assert.Equal(t, fmt.Sprintf(formatString, param), deserialized.Message)
 	matched, err := regexp.MatchString(validPath, deserialized.File)
 	require.NoError(t, err)
-	assert.True(t, matched, "Got %s", deserialized.File)
+	assert.True(t, matched)
 }
 
 // ensures that an infoLog message is passed through to the underlying logger as expected
@@ -181,7 +181,7 @@ func TestInfoc(t *testing.T) {
 	assert.Equal(t, logMessage, deserialized.Message)
 	matched, err := regexp.MatchString(validPath, deserialized.File)
 	require.NoError(t, err)
-	assert.True(t, matched, "Got %s", deserialized.File)
+	assert.True(t, matched)
 }
 
 // ensures that an infoLog message is passed through to the underlying logger as expected
@@ -213,7 +213,7 @@ func TestInfof(t *testing.T) {
 	assert.Equal(t, fmt.Sprintf(format, param), deserialized.Message)
 	matched, err := regexp.MatchString(validPath, deserialized.File)
 	require.NoError(t, err)
-	assert.True(t, matched, "Got %s", deserialized.File)
+	assert.True(t, matched)
 }
 
 // ensures that an error message is passed through to the underlying logger as expected
@@ -248,7 +248,7 @@ func TestErrorc(t *testing.T) {
 	assert.Equal(t, logMessage, deserialized.Message)
 	matched, err := regexp.MatchString(validPath, deserialized.File)
 	require.NoError(t, err)
-	assert.True(t, matched, "Got %s", deserialized.File)
+	assert.True(t, matched)
 }
 
 // ensures that an error message is passed through to the underlying logger as expected
@@ -283,5 +283,5 @@ func TestErrorf(t *testing.T) {
 	assert.Equal(t, fmt.Sprintf(format, param), deserialized.Message)
 	matched, err := regexp.MatchString(validPath, deserialized.File)
 	require.NoError(t, err)
-	assert.True(t, matched, "Got %s", deserialized.File)
+	assert.True(t, matched)
 }

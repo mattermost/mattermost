@@ -109,12 +109,14 @@ func getCallerFilename() (string, error) {
 			break
 		}
 	}
+	fmt.Printf("\ncurrentFilename: %s\nplatformDirectory: %s\n", currentFilename, platformDirectory)
 
 	for i := 1; i < 10; i++ {
 		_, parentFilename, _, ok := runtime.Caller(i)
 		if !ok {
 			return "", errors.New("Failed to traverse stack frame")
 		} else if parentFilename != currentFilename {
+			fmt.Printf("\nparentFilename: %s", parentFilename)
 			return filepath.Rel(platformDirectory, parentFilename)
 		}
 	}
