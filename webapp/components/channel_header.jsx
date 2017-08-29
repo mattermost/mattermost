@@ -680,8 +680,7 @@ export default class ChannelHeader extends React.Component {
                 );
             }
 
-            const canLeave = channel.type === Constants.PRIVATE_CHANNEL ? this.state.userCount > 1 : true;
-            if (!ChannelStore.isDefault(channel) && canLeave) {
+            if (!ChannelStore.isDefault(channel)) {
                 dropdownContents.push(
                     <li
                         key='divider-3'
