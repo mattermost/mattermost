@@ -104,7 +104,7 @@ export default function configureStore(initialState) {
             autoRehydrate: {
                 log: false
             },
-            blacklist: ['errors', 'offline', 'requests', 'entities', 'views'],
+            blacklist: ['errors', 'offline', 'requests', 'entities', 'views', 'plugins'],
             debounce: 500,
             transforms: [
                 setTransformer

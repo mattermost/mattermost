@@ -2,7 +2,9 @@
 // See License.txt for license information.
 
 import views from './views';
+import plugins from './plugins';
 
 export default {
-    views
+    views,
+    plugins
 };
