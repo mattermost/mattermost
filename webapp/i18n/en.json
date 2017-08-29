@@ -9,6 +9,7 @@
   "about.hash": "Build Hash:",
   "about.hashee": "EE Build Hash:",
   "about.licensed": "Licensed to:",
+  "about.notice": "Mattermost is made possible by the open source software used in our <a href=\"https://about.mattermost.com/platform-notice-txt/\" target='_blank'>platform</a>, <a href=\"https://about.mattermost.com/desktop-notice-txt/\" target='_blank'>desktop</a> and <a href=\"https://about.mattermost.com/mobile-notice-txt/\" target='_blank'>mobile apps</a>.",
   "about.number": "Build Number:",
   "about.teamEditionLearn": "Join the Mattermost community at ",
   "about.teamEditionSt": "All your team communication in one place, instantly searchable and accessible anywhere.",
