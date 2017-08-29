@@ -84,7 +84,7 @@ export default class SearchResultsItem extends React.Component {
         }
 
         this.shrinkSidebar();
-        browserHistory.push(TeamStore.getCurrentTeamRelativeUrl() + '/pl/' + this.props.post.id);
+        browserHistory.push(TeamStore.getCurrentTeamRelativeUrl() + '/channel/' + this.props.channel.id + '/pl/' + this.props.post.id);
     }
 
     handleDropdownOpened = (isOpened) => {
