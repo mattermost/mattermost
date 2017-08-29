@@ -1,6 +1,8 @@
 // Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
+
 import ProfilePopover from './profile_popover.jsx';
+import Pluggable from 'plugins/pluggable';
 import * as Utils from 'utils/utils.jsx';
 
 import PropTypes from 'prop-types';
@@ -56,16 +58,18 @@ export default class ProfilePicture extends React.Component {
                     placement='right'
                     rootClose={true}
                     overlay={
-                        <ProfilePopover
-                            user={this.props.user}
-                            src={this.props.src}
-                            status={this.props.status}
-                            isBusy={this.props.isBusy}
-                            hide={this.hideProfilePopover}
-                            isRHS={this.props.isRHS}
-                            hasMention={this.props.hasMention}
-                        />
-                }
+                        <Pluggable>
+                            <ProfilePopover
+                                user={this.props.user}
+                                src={this.props.src}
+                                status={this.props.status}
+                                isBusy={this.props.isBusy}
+                                hide={this.hideProfilePopover}
+                                isRHS={this.props.isRHS}
+                                hasMention={this.props.hasMention}
+                            />
+                        </Pluggable>
+                    }
                 >
                     <span className='status-wrapper'>
                         <img
