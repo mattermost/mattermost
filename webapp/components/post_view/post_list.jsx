@@ -301,7 +301,7 @@ export default class PostList extends React.PureComponent {
     loadPosts = async (channelId, focusedPostId) => {
         let posts;
         if (focusedPostId) {
-            const getPostThreadAsync = this.props.actions.getPostThread(focusedPostId);
+            const getPostThreadAsync = this.props.actions.getPostThread(focusedPostId, false);
             const getPostsBeforeAsync = this.props.actions.getPostsBefore(channelId, focusedPostId, 0, POSTS_PER_PAGE);
             const getPostsAfterAsync = this.props.actions.getPostsAfter(channelId, focusedPostId, 0, POSTS_PER_PAGE);
 
