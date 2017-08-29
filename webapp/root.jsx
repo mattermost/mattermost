@@ -14,6 +14,7 @@ import * as Websockets from 'actions/websocket_actions.jsx';
 import {loadMeAndConfig} from 'actions/user_actions.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
 import * as I18n from 'i18n/i18n.jsx';
+import {initializePlugins} from 'plugins';
 
 // Import our styles
 import 'bootstrap-colorpicker/dist/css/bootstrap-colorpicker.css';
@@ -90,6 +91,7 @@ function preRenderSetup(callwhendone) {
 
     function afterIntl() {
         $.when(d1).done(() => {
+            initializePlugins();
             I18n.doAddLocaleData();
             callwhendone();
         });
