@@ -13,6 +13,11 @@ export default class PostTime extends React.PureComponent {
     static propTypes = {
 
         /*
+         * If true, time will be rendered as a permalink to the post
+         */
+        isPermalink: PropTypes.bool.isRequired,
+
+        /*
          * The time to display
          */
         eventTime: PropTypes.number.isRequired,
@@ -26,12 +31,12 @@ export default class PostTime extends React.PureComponent {
          * The post id of posting being rendered
          */
         postId: PropTypes.string
-    }
+    };
 
     static defaultProps = {
         eventTime: 0,
         useMilitaryTime: false
-    }
+    };
 
     constructor(props) {
         super(props);
@@ -74,7 +79,7 @@ export default class PostTime extends React.PureComponent {
     }
 
     render() {
-        if (isMobile()) {
+        if (isMobile() || !this.props.isPermalink) {
             return this.renderTimeTag();
         }
 
