@@ -51,6 +51,10 @@
         .post-create-body {
             padding: 0;
 
+            .send-button {
+                display: block;
+            }
+
             textarea {
                 .app-content & {
                     border-left: none;
@@ -97,7 +101,7 @@
         @include single-transition(all, .35s, ease);
         @include translate3d(0, 100%, 0);
         @include box-shadow(none);
-        background: alpha-color($black, .8);
+        background: alpha-color($black, .9);
         border: none;
         height: calc(100% - 50px);
         max-width: 100%;
@@ -107,6 +111,10 @@
 
         &.in {
             @include translate3d(0, 0, 0);
+        }
+
+        a {
+            color: #0091ff;
         }
 
         .arrow {
@@ -1011,10 +1019,10 @@
     .search-bar__container {
         @include flex(0 0 50px);
         background: $primary-color;
-        color: $white;
         padding: 0;
 
         .search-form__container {
+            color: $black;
             padding: 0;
         }
 
@@ -1041,6 +1049,8 @@
                 top: 7px;
 
                 svg {
+                    stroke: $black;
+                    stroke-opacity: .4;
                     width: 17px;
                 }
             }
@@ -1226,7 +1236,6 @@
         }
 
         .sidebar__search-clear {
-            @include opacity(1);
             color: inherit;
             display: block;
             height: 32px;

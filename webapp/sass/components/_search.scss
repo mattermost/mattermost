@@ -134,12 +134,7 @@
     top: 0;
 
     a {
-        @include opacity(.8);
         vertical-align: top;
-
-        &:hover {
-            @include opacity(1);
-        }
     }
 
 
