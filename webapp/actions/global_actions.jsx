@@ -39,6 +39,7 @@ import {Client4} from 'mattermost-redux/client';
 import {removeUserFromTeam} from 'mattermost-redux/actions/teams';
 import {viewChannel, getChannelStats, getMyChannelMember, getChannelAndMyMember, createDirectChannel, joinChannel} from 'mattermost-redux/actions/channels';
 import {getPostThread} from 'mattermost-redux/actions/posts';
+import {loadNewDMIfNeeded, loadNewGMIfNeeded} from 'actions/user_actions.jsx';
 
 export function emitChannelClickEvent(channel) {
     function userVisitedFakeChannel(chan, success, fail) {
@@ -133,6 +134,13 @@ export function emitPostFocusEvent(postId, onSuccess) {
         (data) => {
             if (data) {
                 const channelId = data.posts[data.order[0]].channel_id;
+                const channel = ChannelStore.getChannelById(channelId);
+                if (channel && channel.type === Constants.DM_CHANNEL) {
+                    loadNewDMIfNeeded(channel.id);
+                } else if (channel && channel.type === Constants.GM_CHANNEL) {
+                    loadNewGMIfNeeded(channel.id);
+                }
+
                 doFocusPost(channelId, postId, data).then(() => {
                     if (onSuccess) {
                         onSuccess();

@@ -7,7 +7,6 @@ import {browserHistory} from 'react-router/es6';
 
 import TeamStore from 'stores/team_store.jsx';
 import UserStore from 'stores/user_store.jsx';
-import PostStore from 'stores/post_store.jsx';
 import * as GlobalActions from 'actions/global_actions.jsx';
 import {loadStatusesForChannelAndSidebar} from 'actions/status_actions.jsx';
 import {openDirectChannelToUser} from 'actions/channel_actions.jsx';
@@ -146,14 +145,6 @@ function selectLastChannel(nextState, replace, callback) {
 }
 
 function onPermalinkEnter(nextState, replace, callback) {
-    // if there's a channelid in the params, add the channel to the LHS
-    const channel = ChannelStore.getChannelById(nextState.params.channelId);
-    if (channel && channel.type === Constants.DM_CHANNEL) {
-        loadNewDMIfNeeded(channel.id);
-    } else if (channel && channel.type === Constants.GM_CHANNEL) {
-        loadNewGMIfNeeded(channel.id);
-    }
-
     const postId = nextState.params.postid;
     GlobalActions.emitPostFocusEvent(
         postId,
@@ -314,19 +305,6 @@ export default {
                 },
                 {
                     path: 'pl/:postid',
-                    onEnter: onPermalinkEnter,
-                    getComponents: (location, callback) => {
-                        Promise.all([
-                            System.import('components/team_sidebar'),
-                            System.import('components/sidebar.jsx'),
-                            System.import('components/permalink_view.jsx')
-                        ]).then(
-                            (comarr) => callback(null, {team_sidebar: comarr[0].default, sidebar: comarr[1].default, center: comarr[2].default})
-                        );
-                    }
-                },
-                {
-                    path: 'channel/:channelId/pl/:postid',
                     onEnter: onPermalinkEnter,
                     getComponents: (location, callback) => {
                         Promise.all([
