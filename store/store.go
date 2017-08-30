@@ -126,8 +126,6 @@ type ChannelStore interface {
 	IsUserInChannelUseCache(userId string, channelId string) bool
 	GetAllChannelMembersNotifyPropsForChannel(channelId string, allowFromCache bool) StoreChannel
 	InvalidateCacheForChannelMembersNotifyProps(channelId string)
-	IsDefaultChannel(channelId string) bool
-	FillDefaultChannelCache() error
 	GetMemberForPost(postId string, userId string) StoreChannel
 	InvalidateMemberCount(channelId string)
 	GetMemberCountFromCache(channelId string) int64

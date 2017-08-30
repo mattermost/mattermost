@@ -1538,10 +1538,6 @@
     "translation": "Initializing open graph protocol api routes"
   },
   {
-    "id": "api.post.read_only_town_square",
-    "translation": "This channel is read-only. Only members with permission can post here."
-  },
-  {
     "id": "api.post.check_for_out_of_channel_mentions.message.multiple",
     "translation": "{{.Usernames}} and {{.LastUsername}} were mentioned, but they did not receive notifications because they do not belong to this channel."
   },
@@ -1576,6 +1572,10 @@
   {
     "id": "api.post.create_post.root_id.app_error",
     "translation": "Invalid RootId parameter"
+  },
+  {
+    "id": "api.post.create_post.town_square_read_only",
+    "translation": "This channel is read-only. Only members with permission can post here."
   },
   {
     "id": "api.post.create_webhook_post.creating.app_error",
@@ -5374,10 +5374,6 @@
   {
     "id": "store.sql_channel.get_members.app_error",
     "translation": "We couldn't get the channel members"
-  },
-  {
-    "id": "store.sql_channel.get_default_channels.app_error",
-    "translation": "We couldn't get the default channels"
   },
   {
     "id": "store.sql_channel.get_members_by_ids.app_error",

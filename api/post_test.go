@@ -164,7 +164,6 @@ func TestCreatePost(t *testing.T) {
 	utils.SetLicense(&model.License{Features: &model.Features{}})
 	utils.License().Features.SetDefaults()
 
-	app.Srv.Store.Channel().FillDefaultChannelCache()
 	defaultChannel := store.Must(app.Srv.Store.Channel().GetByName(team.Id, model.DEFAULT_CHANNEL, true)).(*model.Channel)
 	defaultPost := &model.Post{
 		ChannelId: defaultChannel.Id,
