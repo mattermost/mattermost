@@ -385,7 +385,7 @@ func (s SqlTeamStore) GetAllTeamListing() StoreChannel {
 
 		query := "SELECT * FROM Teams WHERE AllowOpenInvite = 1"
 
-		if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_POSTGRES {
+		if *utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_POSTGRES {
 			query = "SELECT * FROM Teams WHERE AllowOpenInvite = true"
 		}
 
@@ -417,7 +417,7 @@ func (s SqlTeamStore) GetAllTeamPageListing(offset int, limit int) StoreChannel 
 
 		query := "SELECT * FROM Teams WHERE AllowOpenInvite = 1 LIMIT :Limit OFFSET :Offset"
 
-		if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_POSTGRES {
+		if *utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_POSTGRES {
 			query = "SELECT * FROM Teams WHERE AllowOpenInvite = true LIMIT :Limit OFFSET :Offset"
 		}
 
@@ -506,7 +506,7 @@ func (s SqlTeamStore) SaveMember(member *model.TeamMember) StoreChannel {
 			storeChannel <- result
 			close(storeChannel)
 			return
-		} else if int(count) >= utils.Cfg.TeamSettings.MaxUsersPerTeam {
+		} else if int(count) >= *utils.Cfg.TeamSettings.MaxUsersPerTeam {
 			result.Err = model.NewLocAppError("SqlUserStore.Save", "store.sql_user.save.max_accounts.app_error", nil, "teamId="+member.TeamId)
 			storeChannel <- result
 			close(storeChannel)

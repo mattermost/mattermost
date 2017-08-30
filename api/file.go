@@ -200,7 +200,7 @@ func getPublicFile(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getFileInfoForRequest(c *Context, r *http.Request, requireFileVisible bool) (*model.FileInfo, *model.AppError) {
-	if len(utils.Cfg.FileSettings.DriverName) == 0 {
+	if len(*utils.Cfg.FileSettings.DriverName) == 0 {
 		return nil, model.NewAppError("getFileInfoForRequest", "api.file.get_info_for_request.storage.app_error", nil, "", http.StatusNotImplemented)
 	}
 
@@ -236,7 +236,7 @@ func getFileInfoForRequest(c *Context, r *http.Request, requireFileVisible bool)
 }
 
 func getPublicFileOld(c *Context, w http.ResponseWriter, r *http.Request) {
-	if len(utils.Cfg.FileSettings.DriverName) == 0 {
+	if len(*utils.Cfg.FileSettings.DriverName) == 0 {
 		c.Err = model.NewLocAppError("getPublicFile", "api.file.get_public_file_old.storage.app_error", nil, "")
 		c.Err.StatusCode = http.StatusNotImplemented
 		return

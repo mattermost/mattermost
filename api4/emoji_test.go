@@ -313,10 +313,10 @@ func TestGetEmojiImage(t *testing.T) {
 	Client := th.Client
 
 	EnableCustomEmoji := *utils.Cfg.ServiceSettings.EnableCustomEmoji
-	DriverName := utils.Cfg.FileSettings.DriverName
+	DriverName := *utils.Cfg.FileSettings.DriverName
 	defer func() {
 		*utils.Cfg.ServiceSettings.EnableCustomEmoji = EnableCustomEmoji
-		utils.Cfg.FileSettings.DriverName = DriverName
+		*utils.Cfg.FileSettings.DriverName = DriverName
 	}()
 	*utils.Cfg.ServiceSettings.EnableCustomEmoji = true
 
@@ -334,14 +334,14 @@ func TestGetEmojiImage(t *testing.T) {
 	CheckNotImplementedStatus(t, resp)
 	CheckErrorMessage(t, resp, "api.emoji.disabled.app_error")
 
-	utils.Cfg.FileSettings.DriverName = ""
+	*utils.Cfg.FileSettings.DriverName = ""
 	*utils.Cfg.ServiceSettings.EnableCustomEmoji = true
 
 	_, resp = Client.GetEmojiImage(emoji1.Id)
 	CheckNotImplementedStatus(t, resp)
 	CheckErrorMessage(t, resp, "api.emoji.storage.app_error")
 
-	utils.Cfg.FileSettings.DriverName = DriverName
+	*utils.Cfg.FileSettings.DriverName = DriverName
 
 	emojiImage, resp := Client.GetEmojiImage(emoji1.Id)
 	CheckNoError(t, resp)

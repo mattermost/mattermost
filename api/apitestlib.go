@@ -36,7 +36,7 @@ func SetupEnterprise() *TestHelper {
 		utils.TranslationsPreInit()
 		utils.LoadConfig("config.json")
 		utils.InitTranslations(utils.Cfg.LocalizationSettings)
-		utils.Cfg.TeamSettings.MaxUsersPerTeam = 50
+		*utils.Cfg.TeamSettings.MaxUsersPerTeam = 50
 		*utils.Cfg.RateLimitSettings.Enable = false
 		utils.DisableDebugLogForTest()
 		utils.License().Features.SetDefaults()
@@ -63,7 +63,7 @@ func Setup() *TestHelper {
 		utils.TranslationsPreInit()
 		utils.LoadConfig("config.json")
 		utils.InitTranslations(utils.Cfg.LocalizationSettings)
-		utils.Cfg.TeamSettings.MaxUsersPerTeam = 50
+		*utils.Cfg.TeamSettings.MaxUsersPerTeam = 50
 		*utils.Cfg.RateLimitSettings.Enable = false
 		utils.Cfg.EmailSettings.SendEmailNotifications = true
 		utils.Cfg.EmailSettings.SMTPServer = "dockerhost"
@@ -90,7 +90,7 @@ func Setup() *TestHelper {
 func ReloadConfigForSetup() {
 	utils.LoadConfig("config.json")
 	utils.InitTranslations(utils.Cfg.LocalizationSettings)
-	utils.Cfg.TeamSettings.MaxUsersPerTeam = 50
+	*utils.Cfg.TeamSettings.MaxUsersPerTeam = 50
 	*utils.Cfg.RateLimitSettings.Enable = false
 	utils.Cfg.EmailSettings.SendEmailNotifications = true
 	utils.Cfg.EmailSettings.SMTPServer = "dockerhost"
@@ -133,11 +133,11 @@ func (me *TestHelper) InitSystemAdmin() *TestHelper {
 }
 
 func (me *TestHelper) CreateClient() *model.Client {
-	return model.NewClient("http://localhost" + utils.Cfg.ServiceSettings.ListenAddress)
+	return model.NewClient("http://localhost" + *utils.Cfg.ServiceSettings.ListenAddress)
 }
 
 func (me *TestHelper) CreateWebSocketClient() (*model.WebSocketClient, *model.AppError) {
-	return model.NewWebSocketClient("ws://localhost"+utils.Cfg.ServiceSettings.ListenAddress, me.BasicClient.AuthToken)
+	return model.NewWebSocketClient("ws://localhost"+*utils.Cfg.ServiceSettings.ListenAddress, me.BasicClient.AuthToken)
 }
 
 func (me *TestHelper) CreateTeam(client *model.Client) *model.Team {
