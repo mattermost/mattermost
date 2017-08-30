@@ -47,22 +47,28 @@ func staticHandler(handler http.Handler) http.Handler {
 	})
 }
 
-//List should be of minimum required browser version. Do not place a ; at the end of this string.
-var browsersNotSupported string = "MSIE/11;Internet Explorer/11;Safari/9;Chrome/43;Edge/15;Firefox/52"
+//map should be of minimum required browser version.
+//var browsersNotSupported string = "MSIE/11;Internet Explorer/11;Safari/9;Chrome/43;Edge/15;Firefox/52"
+//var browserMinimumSupported = [6]string{"MSIE/11", "Internet Explorer/11", "Safari/9", "Chrome/43", "Edge/15", "Firefox/52"}
+var browserMinimumSupported = map[string]int{
+	"MSIE":              11,
+	"Internet Explorer": 11,
+	"Safari":            9,
+	"Chrome":            43,
+	"Edge":              15,
+	"Firefox":           52,
+}
 
 func CheckBrowserCompatability(ua *user_agent.UserAgent) bool {
 	bname, bversion := ua.Browser()
-	l4g.Debug("Detected Browser: %v %v", bname, bversion)
-	browsers := strings.Split(browsersNotSupported, ";")
-	for _, browser := range browsers {
-		version := strings.Split(browser, "/")
-		curVersion := strings.Split(bversion, ".")
-		intCurVersion, _ := strconv.Atoi(curVersion[0])
-		intVersion, _ := strconv.Atoi(version[1])
 
-		if strings.HasPrefix(bname, version[0]) && (intCurVersion < intVersion) {
-			return false
-		}
+	l4g.Debug("Detected Browser: %v %v", bname, bversion)
+
+	curVersion := strings.Split(bversion, ".")
+	intCurVersion, _ := strconv.Atoi(curVersion[0])
+
+	if version, exist := browserMinimumSupported[bname]; exist && intCurVersion < version {
+		return false
 	}
 
 	return true
