@@ -586,3 +586,14 @@ func (c *Context) RequireJobType() *Context {
 	}
 	return c
 }
+
+func (c *Context) RequireActionId() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if len(c.Params.ActionId) != 26 {
+		c.SetInvalidUrlParam("action_id")
+	}
+	return c
+}
