@@ -197,7 +197,7 @@ func trackConfig() {
 		"connection_security":                              *utils.Cfg.ServiceSettings.ConnectionSecurity,
 		"uses_letsencrypt":                                 *utils.Cfg.ServiceSettings.UseLetsEncrypt,
 		"forward_80_to_443":                                *utils.Cfg.ServiceSettings.Forward80To443,
-		"maximum_login_attempts":                           utils.Cfg.ServiceSettings.MaximumLoginAttempts,
+		"maximum_login_attempts":                           *utils.Cfg.ServiceSettings.MaximumLoginAttempts,
 		"session_length_web_in_days":                       *utils.Cfg.ServiceSettings.SessionLengthWebInDays,
 		"session_length_mobile_in_days":                    *utils.Cfg.ServiceSettings.SessionLengthMobileInDays,
 		"session_length_sso_in_days":                       *utils.Cfg.ServiceSettings.SessionLengthSSOInDays,
@@ -235,7 +235,7 @@ func trackConfig() {
 		"enable_custom_brand":                     *utils.Cfg.TeamSettings.EnableCustomBrand,
 		"restrict_direct_message":                 *utils.Cfg.TeamSettings.RestrictDirectMessage,
 		"max_notifications_per_channel":           *utils.Cfg.TeamSettings.MaxNotificationsPerChannel,
-		"max_users_per_team":                      utils.Cfg.TeamSettings.MaxUsersPerTeam,
+		"max_users_per_team":                      *utils.Cfg.TeamSettings.MaxUsersPerTeam,
 		"max_channels_per_team":                   *utils.Cfg.TeamSettings.MaxChannelsPerTeam,
 		"teammate_name_display":                   *utils.Cfg.TeamSettings.TeammateNameDisplay,
 		"isdefault_site_name":                     isDefault(utils.Cfg.TeamSettings.SiteName, "Mattermost"),
@@ -255,10 +255,10 @@ func trackConfig() {
 	})
 
 	SendDiagnostic(TRACK_CONFIG_SQL, map[string]interface{}{
-		"driver_name":                 utils.Cfg.SqlSettings.DriverName,
+		"driver_name":                 *utils.Cfg.SqlSettings.DriverName,
 		"trace":                       utils.Cfg.SqlSettings.Trace,
-		"max_idle_conns":              utils.Cfg.SqlSettings.MaxIdleConns,
-		"max_open_conns":              utils.Cfg.SqlSettings.MaxOpenConns,
+		"max_idle_conns":              *utils.Cfg.SqlSettings.MaxIdleConns,
+		"max_open_conns":              *utils.Cfg.SqlSettings.MaxOpenConns,
 		"data_source_replicas":        len(utils.Cfg.SqlSettings.DataSourceReplicas),
 		"data_source_search_replicas": len(utils.Cfg.SqlSettings.DataSourceSearchReplicas),
 		"query_timeout":               *utils.Cfg.SqlSettings.QueryTimeout,
@@ -284,7 +284,7 @@ func trackConfig() {
 
 	SendDiagnostic(TRACK_CONFIG_FILE, map[string]interface{}{
 		"enable_public_links":     utils.Cfg.FileSettings.EnablePublicLink,
-		"driver_name":             utils.Cfg.FileSettings.DriverName,
+		"driver_name":             *utils.Cfg.FileSettings.DriverName,
 		"amazon_s3_ssl":           *utils.Cfg.FileSettings.AmazonS3SSL,
 		"amazon_s3_sse":           *utils.Cfg.FileSettings.AmazonS3SSE,
 		"amazon_s3_signv2":        *utils.Cfg.FileSettings.AmazonS3SignV2,
@@ -313,9 +313,9 @@ func trackConfig() {
 	SendDiagnostic(TRACK_CONFIG_RATE, map[string]interface{}{
 		"enable_rate_limiter":      *utils.Cfg.RateLimitSettings.Enable,
 		"vary_by_remote_address":   utils.Cfg.RateLimitSettings.VaryByRemoteAddr,
-		"per_sec":                  utils.Cfg.RateLimitSettings.PerSec,
+		"per_sec":                  *utils.Cfg.RateLimitSettings.PerSec,
 		"max_burst":                *utils.Cfg.RateLimitSettings.MaxBurst,
-		"memory_store_size":        utils.Cfg.RateLimitSettings.MemoryStoreSize,
+		"memory_store_size":        *utils.Cfg.RateLimitSettings.MemoryStoreSize,
 		"isdefault_vary_by_header": isDefault(utils.Cfg.RateLimitSettings.VaryByHeader, ""),
 	})
 
@@ -456,7 +456,7 @@ func trackServer() {
 	data := map[string]interface{}{
 		"edition":          model.BuildEnterpriseReady,
 		"version":          model.CurrentVersion,
-		"database_type":    utils.Cfg.SqlSettings.DriverName,
+		"database_type":    *utils.Cfg.SqlSettings.DriverName,
 		"operating_system": runtime.GOOS,
 	}
 

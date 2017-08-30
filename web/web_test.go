@@ -30,7 +30,7 @@ func Setup() {
 		api4.InitApi(false)
 		api.InitApi()
 		InitWeb()
-		URL = "http://localhost" + utils.Cfg.ServiceSettings.ListenAddress
+		URL = "http://localhost" + *utils.Cfg.ServiceSettings.ListenAddress
 		ApiClient = model.NewClient(URL)
 
 		app.Srv.Store.MarkSystemRanUnitTests()

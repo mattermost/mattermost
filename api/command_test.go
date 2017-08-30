@@ -242,7 +242,7 @@ func TestTestCommand(t *testing.T) {
 	*utils.Cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost"
 
 	cmd1 := &model.Command{
-		URL:     "http://localhost" + utils.Cfg.ServiceSettings.ListenAddress + model.API_URL_SUFFIX_V3 + "/teams/command_test",
+		URL:     "http://localhost" + *utils.Cfg.ServiceSettings.ListenAddress + model.API_URL_SUFFIX_V3 + "/teams/command_test",
 		Method:  model.COMMAND_METHOD_POST,
 		Trigger: "testcommand",
 	}
@@ -262,7 +262,7 @@ func TestTestCommand(t *testing.T) {
 	}
 
 	cmd2 := &model.Command{
-		URL:     "http://localhost" + utils.Cfg.ServiceSettings.ListenAddress + model.API_URL_SUFFIX_V3 + "/teams/command_test",
+		URL:     "http://localhost" + *utils.Cfg.ServiceSettings.ListenAddress + model.API_URL_SUFFIX_V3 + "/teams/command_test",
 		Method:  model.COMMAND_METHOD_GET,
 		Trigger: "test2",
 	}
