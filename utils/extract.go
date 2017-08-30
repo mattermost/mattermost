@@ -20,6 +20,7 @@ func ExtractTarGz(gzipStream io.Reader, dst string) ([]string, error) {
 	if err != nil {
 		return nil, fmt.Errorf("ExtractTarGz: NewReader failed: %s", err.Error())
 	}
+	defer uncompressedStream.Close()
 
 	tarReader := tar.NewReader(uncompressedStream)
 
@@ -38,14 +39,14 @@ func ExtractTarGz(gzipStream io.Reader, dst string) ([]string, error) {
 
 		switch header.Typeflag {
 		case tar.TypeDir:
-			path := filepath.Join(dst, header.Name)
+			path := filepath.Join(dst, SanitizePath(header.Name))
 			if err := os.Mkdir(path, 0744); err != nil && !os.IsExist(err) {
 				return nil, fmt.Errorf("ExtractTarGz: Mkdir() failed: %s", err.Error())
 			}
 
 			filenames = append(filenames, header.Name)
 		case tar.TypeReg:
-			path := filepath.Join(dst, header.Name)
+			path := filepath.Join(dst, SanitizePath(header.Name))
 			dir := filepath.Dir(path)
 
 			if err := os.MkdirAll(dir, 0744); err != nil {

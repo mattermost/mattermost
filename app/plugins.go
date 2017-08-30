@@ -6,6 +6,7 @@ package app
 import (
 	"encoding/json"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -115,7 +116,15 @@ func UnpackAndActivatePlugin(pluginFile io.Reader) (*model.Manifest, *model.AppE
 		return nil, model.NewAppError("UnpackAndActivatePlugin", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	filenames, err := utils.ExtractTarGz(pluginFile, Srv.PluginEnv.SearchPath())
+	tmpDir, err := ioutil.TempDir(Srv.PluginEnv.SearchPath(), "tmp")
+	if err != nil {
+		return nil, model.NewAppError("UnpackAndActivatePlugin", "app.plugin.temp_dir.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	defer func() {
+		os.RemoveAll(tmpDir)
+	}()
+
+	filenames, err := utils.ExtractTarGz(pluginFile, tmpDir)
 	if err != nil {
 		return nil, model.NewAppError("UnpackAndActivatePlugin", "app.plugin.extract.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
@@ -130,11 +139,16 @@ func UnpackAndActivatePlugin(pluginFile io.Reader) (*model.Manifest, *model.AppE
 		return nil, model.NewAppError("UnpackAndActivatePlugin", "app.plugin.bad_path.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
 
-	manifestDir := filepath.Join(Srv.PluginEnv.SearchPath(), splitPath[0])
+	manifestDir := filepath.Join(tmpDir, splitPath[0])
 
 	manifest, _, err := model.FindManifest(manifestDir)
 	if err != nil {
 		return nil, model.NewAppError("UnpackAndActivatePlugin", "app.plugin.manifest.app_error", nil, err.Error(), http.StatusBadRequest)
+	}
+
+	os.Rename(manifestDir, filepath.Join(Srv.PluginEnv.SearchPath(), manifest.Id))
+	if err != nil {
+		return nil, model.NewAppError("UnpackAndActivatePlugin", "app.plugin.mvdir.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	// Should add manifest validation and error handling here

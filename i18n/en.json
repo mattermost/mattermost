@@ -428,8 +428,12 @@
     "translation": "Unable to find manifest for extracted plugin"
   },
   {
+    "id": "app.plugin.mvdir.app_error",
+    "translation": "Unable to move plugin from temporary directory to final destination"
+  },
+  {
     "id": "app.plugin.activate.app_error",
-    "translation": "Unable to activate extracted plugin"
+    "translation": "Unable to activate extracted plugin. Plugin may already exist and be activated."
   },
   {
     "id": "app.plugin.get_plugins.app_error",
