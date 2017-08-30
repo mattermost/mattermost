@@ -11,7 +11,7 @@ import TeamStore from 'stores/team_store.jsx';
 import SearchStore from 'stores/search_store.jsx';
 
 import {handleNewPost} from 'actions/post_actions.jsx';
-import {loadProfilesForSidebar} from 'actions/user_actions.jsx';
+import {loadProfilesForSidebar, loadNewDMIfNeeded, loadNewGMIfNeeded} from 'actions/user_actions.jsx';
 import {loadChannelsForCurrentUser} from 'actions/channel_actions.jsx';
 import {stopPeriodicStatusUpdates} from 'actions/status_actions.jsx';
 import * as WebsocketActions from 'actions/websocket_actions.jsx';
@@ -39,7 +39,6 @@ import {Client4} from 'mattermost-redux/client';
 import {removeUserFromTeam} from 'mattermost-redux/actions/teams';
 import {viewChannel, getChannelStats, getMyChannelMember, getChannelAndMyMember, createDirectChannel, joinChannel} from 'mattermost-redux/actions/channels';
 import {getPostThread} from 'mattermost-redux/actions/posts';
-import {loadNewDMIfNeeded, loadNewGMIfNeeded} from 'actions/user_actions.jsx';
 
 export function emitChannelClickEvent(channel) {
     function userVisitedFakeChannel(chan, success, fail) {
