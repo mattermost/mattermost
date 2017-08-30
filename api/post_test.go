@@ -613,8 +613,8 @@ func TestGetPostsBeforeAfter(t *testing.T) {
 		t.Fatal("wrong order")
 	}
 
-	if len(r1.Posts) != 3 {
-		t.Log(r1.Posts)
+	// including created post from test helper and system 'joined' message
+	if len(r1.Posts) != 4 {
 		t.Fatal("wrong size")
 	}
 
@@ -927,8 +927,8 @@ func TestDeletePosts(t *testing.T) {
 
 	r2 := Client.Must(Client.GetPosts(channel1.Id, 0, 10, "")).Data.(*model.PostList)
 
-	if len(r2.Posts) != 5 {
-		t.Fatal("should have returned 5 items")
+	if post := r2.Posts[post3.Id]; post != nil {
+		t.Fatal("should have not returned deleted post")
 	}
 
 	time.Sleep(10 * time.Millisecond)
