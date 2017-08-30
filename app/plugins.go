@@ -116,7 +116,7 @@ func UnpackAndActivatePlugin(pluginFile io.Reader) (*model.Manifest, *model.AppE
 		return nil, model.NewAppError("UnpackAndActivatePlugin", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	tmpDir, err := ioutil.TempDir(Srv.PluginEnv.SearchPath(), "tmp")
+	tmpDir, err := ioutil.TempDir("", "plugintmp")
 	if err != nil {
 		return nil, model.NewAppError("UnpackAndActivatePlugin", "app.plugin.temp_dir.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
