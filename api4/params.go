@@ -39,6 +39,7 @@ type ApiParams struct {
 	Service        string
 	JobId          string
 	JobType        string
+	ActionId       string
 	Page           int
 	PerPage        int
 	Permanent      bool
@@ -135,6 +136,10 @@ func ApiParamsFromRequest(r *http.Request) *ApiParams {
 
 	if val, ok := props["job_type"]; ok {
 		params.JobType = val
+	}
+
+	if val, ok := props["action_id"]; ok {
+		params.ActionId = val
 	}
 
 	if val, err := strconv.Atoi(r.URL.Query().Get("page")); err != nil || val < 0 {

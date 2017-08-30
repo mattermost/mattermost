@@ -351,3 +351,7 @@ export function unpinPost(postId) {
         });
     };
 }
+
+export function doPostAction(postId, actionId) {
+    PostActions.doPostAction(postId, actionId)(dispatch, getState);
+}

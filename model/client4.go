@@ -1803,6 +1803,16 @@ func (c *Client4) SearchPosts(teamId string, terms string, isOrSearch bool) (*Po
 	}
 }
 
+// DoPostAction performs a post action.
+func (c *Client4) DoPostAction(postId, actionId string) (bool, *Response) {
+	if r, err := c.DoApiPost(c.GetPostRoute(postId)+"/actions/"+actionId, ""); err != nil {
+		return false, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return CheckStatusOK(r), BuildResponse(r)
+	}
+}
+
 // File Section
 
 // UploadFile will upload a file to a channel, to be later attached to a post.
