@@ -68,7 +68,7 @@ func TestGetConfig(t *testing.T) {
 	if cfg.GitLabSettings.Secret != model.FAKE_SETTING && len(cfg.GitLabSettings.Secret) != 0 {
 		t.Fatal("did not sanitize properly")
 	}
-	if cfg.SqlSettings.DataSource != model.FAKE_SETTING {
+	if *cfg.SqlSettings.DataSource != model.FAKE_SETTING {
 		t.Fatal("did not sanitize properly")
 	}
 	if cfg.SqlSettings.AtRestEncryptKey != model.FAKE_SETTING {
@@ -99,7 +99,7 @@ func TestReloadConfig(t *testing.T) {
 		t.Fatal("should Reload the config")
 	}
 
-	utils.Cfg.TeamSettings.MaxUsersPerTeam = 50
+	*utils.Cfg.TeamSettings.MaxUsersPerTeam = 50
 	*utils.Cfg.TeamSettings.EnableOpenServer = true
 }
 

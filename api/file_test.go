@@ -26,7 +26,7 @@ import (
 func TestUploadFile(t *testing.T) {
 	th := Setup().InitBasic()
 
-	if utils.Cfg.FileSettings.DriverName == "" {
+	if *utils.Cfg.FileSettings.DriverName == "" {
 		t.Logf("skipping because no file driver is enabled")
 		return
 	}
@@ -125,7 +125,7 @@ func TestUploadFile(t *testing.T) {
 func TestGetFileInfo(t *testing.T) {
 	th := Setup().InitBasic()
 
-	if utils.Cfg.FileSettings.DriverName == "" {
+	if *utils.Cfg.FileSettings.DriverName == "" {
 		t.Skip("skipping because no file driver is enabled")
 	}
 
@@ -194,7 +194,7 @@ func TestGetFileInfo(t *testing.T) {
 func TestGetFile(t *testing.T) {
 	th := Setup().InitBasic()
 
-	if utils.Cfg.FileSettings.DriverName == "" {
+	if *utils.Cfg.FileSettings.DriverName == "" {
 		t.Skip("skipping because no file driver is enabled")
 	}
 
@@ -276,7 +276,7 @@ func TestGetFile(t *testing.T) {
 func TestGetFileThumbnail(t *testing.T) {
 	th := Setup().InitBasic()
 
-	if utils.Cfg.FileSettings.DriverName == "" {
+	if *utils.Cfg.FileSettings.DriverName == "" {
 		t.Skip("skipping because no file driver is enabled")
 	}
 
@@ -332,7 +332,7 @@ func TestGetFileThumbnail(t *testing.T) {
 func TestGetFilePreview(t *testing.T) {
 	th := Setup().InitBasic()
 
-	if utils.Cfg.FileSettings.DriverName == "" {
+	if *utils.Cfg.FileSettings.DriverName == "" {
 		t.Skip("skipping because no file driver is enabled")
 	}
 
@@ -388,7 +388,7 @@ func TestGetFilePreview(t *testing.T) {
 func TestGetPublicFile(t *testing.T) {
 	th := Setup().InitBasic()
 
-	if utils.Cfg.FileSettings.DriverName == "" {
+	if *utils.Cfg.FileSettings.DriverName == "" {
 		t.Skip("skipping because no file driver is enabled")
 	}
 
@@ -455,7 +455,7 @@ func TestGetPublicFile(t *testing.T) {
 func TestGetPublicFileOld(t *testing.T) {
 	th := Setup().InitBasic()
 
-	if utils.Cfg.FileSettings.DriverName == "" {
+	if *utils.Cfg.FileSettings.DriverName == "" {
 		t.Skip("skipping because no file driver is enabled")
 	}
 
@@ -493,7 +493,7 @@ func TestGetPublicFileOld(t *testing.T) {
 	// reconstruct old style of link
 	siteURL := *utils.Cfg.ServiceSettings.SiteURL
 	if siteURL == "" {
-		siteURL = "http://localhost" + utils.Cfg.ServiceSettings.ListenAddress
+		siteURL = "http://localhost" + *utils.Cfg.ServiceSettings.ListenAddress
 	}
 	link := generatePublicLinkOld(siteURL, th.BasicTeam.Id, channel.Id, th.BasicUser.Id, fileId+"/test.png")
 
@@ -539,7 +539,7 @@ func generatePublicLinkOld(siteURL, teamId, channelId, userId, filename string) 
 func TestGetPublicLink(t *testing.T) {
 	th := Setup().InitBasic()
 
-	if utils.Cfg.FileSettings.DriverName == "" {
+	if *utils.Cfg.FileSettings.DriverName == "" {
 		t.Skip("skipping because no file driver is enabled")
 	}
 
@@ -608,7 +608,7 @@ func TestGetPublicLink(t *testing.T) {
 func TestMigrateFilenamesToFileInfos(t *testing.T) {
 	th := Setup().InitBasic()
 
-	if utils.Cfg.FileSettings.DriverName == "" {
+	if *utils.Cfg.FileSettings.DriverName == "" {
 		t.Skip("skipping because no file driver is enabled")
 	}
 
@@ -720,7 +720,7 @@ func uploadFileOld(t *testing.T, data []byte, dest string, filename string) {
 func TestFindTeamIdForFilename(t *testing.T) {
 	th := Setup().InitBasic()
 
-	if utils.Cfg.FileSettings.DriverName == "" {
+	if *utils.Cfg.FileSettings.DriverName == "" {
 		t.Skip("skipping because no file driver is enabled")
 	}
 
@@ -786,7 +786,7 @@ func TestFindTeamIdForFilename(t *testing.T) {
 func TestGetInfoForFilename(t *testing.T) {
 	th := Setup().InitBasic()
 
-	if utils.Cfg.FileSettings.DriverName == "" {
+	if *utils.Cfg.FileSettings.DriverName == "" {
 		t.Skip("skipping because no file driver is enabled")
 	}
 
@@ -874,7 +874,7 @@ func s3New(endpoint, accessKey, secretKey string, secure bool, signV2 bool, regi
 }
 
 func cleanupTestFile(info *model.FileInfo) error {
-	if utils.Cfg.FileSettings.DriverName == model.IMAGE_DRIVER_S3 {
+	if *utils.Cfg.FileSettings.DriverName == model.IMAGE_DRIVER_S3 {
 		endpoint := utils.Cfg.FileSettings.AmazonS3Endpoint
 		accessKey := utils.Cfg.FileSettings.AmazonS3AccessKeyId
 		secretKey := utils.Cfg.FileSettings.AmazonS3SecretAccessKey
@@ -901,7 +901,7 @@ func cleanupTestFile(info *model.FileInfo) error {
 				return err
 			}
 		}
-	} else if utils.Cfg.FileSettings.DriverName == model.IMAGE_DRIVER_LOCAL {
+	} else if *utils.Cfg.FileSettings.DriverName == model.IMAGE_DRIVER_LOCAL {
 		if err := os.Remove(utils.Cfg.FileSettings.Directory + info.Path); err != nil {
 			return err
 		}

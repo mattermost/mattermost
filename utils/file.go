@@ -37,7 +37,7 @@ func s3New(endpoint, accessKey, secretKey string, secure bool, signV2 bool, regi
 }
 
 func TestFileConnection() *model.AppError {
-	if Cfg.FileSettings.DriverName == model.IMAGE_DRIVER_S3 {
+	if *Cfg.FileSettings.DriverName == model.IMAGE_DRIVER_S3 {
 		endpoint := Cfg.FileSettings.AmazonS3Endpoint
 		accessKey := Cfg.FileSettings.AmazonS3AccessKeyId
 		secretKey := Cfg.FileSettings.AmazonS3SecretAccessKey
@@ -65,7 +65,7 @@ func TestFileConnection() *model.AppError {
 			}
 		}
 		l4g.Info("Connection to S3 or minio is good. Bucket exists.")
-	} else if Cfg.FileSettings.DriverName == model.IMAGE_DRIVER_LOCAL {
+	} else if *Cfg.FileSettings.DriverName == model.IMAGE_DRIVER_LOCAL {
 		f := []byte("testingwrite")
 		if err := writeFileLocally(f, Cfg.FileSettings.Directory+TEST_FILE_PATH); err != nil {
 			return model.NewAppError("TestFileConnection", "Don't have permissions to write to local path specified or other error.", nil, err.Error(), http.StatusInternalServerError)
@@ -80,7 +80,7 @@ func TestFileConnection() *model.AppError {
 }
 
 func ReadFile(path string) ([]byte, *model.AppError) {
-	if Cfg.FileSettings.DriverName == model.IMAGE_DRIVER_S3 {
+	if *Cfg.FileSettings.DriverName == model.IMAGE_DRIVER_S3 {
 		endpoint := Cfg.FileSettings.AmazonS3Endpoint
 		accessKey := Cfg.FileSettings.AmazonS3AccessKeyId
 		secretKey := Cfg.FileSettings.AmazonS3SecretAccessKey
@@ -102,7 +102,7 @@ func ReadFile(path string) ([]byte, *model.AppError) {
 		} else {
 			return f, nil
 		}
-	} else if Cfg.FileSettings.DriverName == model.IMAGE_DRIVER_LOCAL {
+	} else if *Cfg.FileSettings.DriverName == model.IMAGE_DRIVER_LOCAL {
 		if f, err := ioutil.ReadFile(Cfg.FileSettings.Directory + path); err != nil {
 			return nil, model.NewLocAppError("ReadFile", "api.file.read_file.reading_local.app_error", nil, err.Error())
 		} else {
@@ -114,7 +114,7 @@ func ReadFile(path string) ([]byte, *model.AppError) {
 }
 
 func MoveFile(oldPath, newPath string) *model.AppError {
-	if Cfg.FileSettings.DriverName == model.IMAGE_DRIVER_S3 {
+	if *Cfg.FileSettings.DriverName == model.IMAGE_DRIVER_S3 {
 		endpoint := Cfg.FileSettings.AmazonS3Endpoint
 		accessKey := Cfg.FileSettings.AmazonS3AccessKeyId
 		secretKey := Cfg.FileSettings.AmazonS3SecretAccessKey
@@ -142,7 +142,7 @@ func MoveFile(oldPath, newPath string) *model.AppError {
 		if err = s3Clnt.RemoveObject(bucket, oldPath); err != nil {
 			return model.NewLocAppError("moveFile", "api.file.move_file.delete_from_s3.app_error", nil, err.Error())
 		}
-	} else if Cfg.FileSettings.DriverName == model.IMAGE_DRIVER_LOCAL {
+	} else if *Cfg.FileSettings.DriverName == model.IMAGE_DRIVER_LOCAL {
 		if err := os.MkdirAll(filepath.Dir(Cfg.FileSettings.Directory+newPath), 0774); err != nil {
 			return model.NewLocAppError("moveFile", "api.file.move_file.rename.app_error", nil, err.Error())
 		}
@@ -158,7 +158,7 @@ func MoveFile(oldPath, newPath string) *model.AppError {
 }
 
 func WriteFile(f []byte, path string) *model.AppError {
-	if Cfg.FileSettings.DriverName == model.IMAGE_DRIVER_S3 {
+	if *Cfg.FileSettings.DriverName == model.IMAGE_DRIVER_S3 {
 		endpoint := Cfg.FileSettings.AmazonS3Endpoint
 		accessKey := Cfg.FileSettings.AmazonS3AccessKeyId
 		secretKey := Cfg.FileSettings.AmazonS3SecretAccessKey
@@ -186,7 +186,7 @@ func WriteFile(f []byte, path string) *model.AppError {
 		if err != nil {
 			return model.NewLocAppError("WriteFile", "api.file.write_file.s3.app_error", nil, err.Error())
 		}
-	} else if Cfg.FileSettings.DriverName == model.IMAGE_DRIVER_LOCAL {
+	} else if *Cfg.FileSettings.DriverName == model.IMAGE_DRIVER_LOCAL {
 		if err := writeFileLocally(f, Cfg.FileSettings.Directory+path); err != nil {
 			return err
 		}
@@ -211,7 +211,7 @@ func writeFileLocally(f []byte, path string) *model.AppError {
 }
 
 func RemoveFile(path string) *model.AppError {
-	if Cfg.FileSettings.DriverName == model.IMAGE_DRIVER_S3 {
+	if *Cfg.FileSettings.DriverName == model.IMAGE_DRIVER_S3 {
 		endpoint := Cfg.FileSettings.AmazonS3Endpoint
 		accessKey := Cfg.FileSettings.AmazonS3AccessKeyId
 		secretKey := Cfg.FileSettings.AmazonS3SecretAccessKey
@@ -228,7 +228,7 @@ func RemoveFile(path string) *model.AppError {
 		if err := s3Clnt.RemoveObject(bucket, path); err != nil {
 			return model.NewLocAppError("RemoveFile", "utils.file.remove_file.s3.app_error", nil, err.Error())
 		}
-	} else if Cfg.FileSettings.DriverName == model.IMAGE_DRIVER_LOCAL {
+	} else if *Cfg.FileSettings.DriverName == model.IMAGE_DRIVER_LOCAL {
 		if err := os.Remove(Cfg.FileSettings.Directory + path); err != nil {
 			return model.NewLocAppError("RemoveFile", "utils.file.remove_file.local.app_error", nil, err.Error())
 		}
@@ -260,7 +260,7 @@ func getPathsFromObjectInfos(in <-chan s3.ObjectInfo) <-chan string {
 }
 
 func RemoveDirectory(path string) *model.AppError {
-	if Cfg.FileSettings.DriverName == model.IMAGE_DRIVER_S3 {
+	if *Cfg.FileSettings.DriverName == model.IMAGE_DRIVER_S3 {
 		endpoint := Cfg.FileSettings.AmazonS3Endpoint
 		accessKey := Cfg.FileSettings.AmazonS3AccessKeyId
 		secretKey := Cfg.FileSettings.AmazonS3SecretAccessKey
@@ -284,7 +284,7 @@ func RemoveDirectory(path string) *model.AppError {
 		}
 
 		close(doneCh)
-	} else if Cfg.FileSettings.DriverName == model.IMAGE_DRIVER_LOCAL {
+	} else if *Cfg.FileSettings.DriverName == model.IMAGE_DRIVER_LOCAL {
 		if err := os.RemoveAll(Cfg.FileSettings.Directory + path); err != nil {
 			return model.NewLocAppError("RemoveDirectory", "utils.file.remove_directory.local.app_error", nil, err.Error())
 		}

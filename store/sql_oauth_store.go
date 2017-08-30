@@ -529,9 +529,9 @@ func (as SqlOAuthStore) deleteOAuthAppSessions(transaction *gorp.Transaction, cl
 	result := StoreResult{}
 
 	query := ""
-	if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_POSTGRES {
+	if *utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_POSTGRES {
 		query = "DELETE FROM Sessions s USING OAuthAccessData o WHERE o.Token = s.Token AND o.ClientId = :Id"
-	} else if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_MYSQL {
+	} else if *utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_MYSQL {
 		query = "DELETE s.* FROM Sessions s INNER JOIN OAuthAccessData o ON o.Token = s.Token WHERE o.ClientId = :Id"
 	}
 

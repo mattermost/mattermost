@@ -1672,11 +1672,11 @@ func TestUpdateUserPassword(t *testing.T) {
 	th.LoginBasic()
 
 	// Test lockout
-	passwordAttempts := utils.Cfg.ServiceSettings.MaximumLoginAttempts
+	passwordAttempts := *utils.Cfg.ServiceSettings.MaximumLoginAttempts
 	defer func() {
-		utils.Cfg.ServiceSettings.MaximumLoginAttempts = passwordAttempts
+		*utils.Cfg.ServiceSettings.MaximumLoginAttempts = passwordAttempts
 	}()
-	utils.Cfg.ServiceSettings.MaximumLoginAttempts = 2
+	*utils.Cfg.ServiceSettings.MaximumLoginAttempts = 2
 
 	// Fail twice
 	_, resp = Client.UpdateUserPassword(th.BasicUser.Id, "badpwd", "newpwd")

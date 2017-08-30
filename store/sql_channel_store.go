@@ -1305,7 +1305,7 @@ func (s SqlChannelStore) UpdateLastViewedAt(channelIds []string, userId string) 
 			idQuery += "ChannelId = :channelId" + strconv.Itoa(index)
 		}
 
-		if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_POSTGRES {
+		if *utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_POSTGRES {
 			query = `UPDATE
 				ChannelMembers
 			SET
@@ -1319,7 +1319,7 @@ func (s SqlChannelStore) UpdateLastViewedAt(channelIds []string, userId string) 
 			    Channels.Id = ChannelMembers.ChannelId
 			        AND UserId = :UserId
 			        AND (` + idQuery + `)`
-		} else if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_MYSQL {
+		} else if *utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_MYSQL {
 			query = `UPDATE
 				ChannelMembers, Channels
 			SET
@@ -1597,7 +1597,7 @@ func (s SqlChannelStore) performSearch(searchQuery string, term string, paramete
 
 	if term == "" {
 		searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", "", 1)
-	} else if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_POSTGRES {
+	} else if *utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_POSTGRES {
 		splitTerm := strings.Fields(term)
 		for i, t := range strings.Fields(term) {
 			if i == len(splitTerm)-1 {
@@ -1611,7 +1611,7 @@ func (s SqlChannelStore) performSearch(searchQuery string, term string, paramete
 
 		searchClause := fmt.Sprintf("AND (%s) @@  to_tsquery('simple', :Term)", "Name || ' ' || DisplayName")
 		searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", searchClause, 1)
-	} else if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_MYSQL {
+	} else if *utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_MYSQL {
 		splitTerm := strings.Fields(term)
 		for i, t := range strings.Fields(term) {
 			splitTerm[i] = "+" + t + "*"

@@ -142,7 +142,7 @@ func GetEmoji(emojiId string) (*model.Emoji, *model.AppError) {
 		return nil, model.NewAppError("deleteEmoji", "api.emoji.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	if len(utils.Cfg.FileSettings.DriverName) == 0 {
+	if len(*utils.Cfg.FileSettings.DriverName) == 0 {
 		return nil, model.NewAppError("deleteImage", "api.emoji.storage.app_error", nil, "", http.StatusNotImplemented)
 	}
 

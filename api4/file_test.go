@@ -124,7 +124,7 @@ func TestGetFile(t *testing.T) {
 	Client := th.Client
 	channel := th.BasicChannel
 
-	if utils.Cfg.FileSettings.DriverName == "" {
+	if *utils.Cfg.FileSettings.DriverName == "" {
 		t.Skip("skipping because no file driver is enabled")
 	}
 
@@ -174,7 +174,7 @@ func TestGetFileHeaders(t *testing.T) {
 	Client := th.Client
 	channel := th.BasicChannel
 
-	if utils.Cfg.FileSettings.DriverName == "" {
+	if *utils.Cfg.FileSettings.DriverName == "" {
 		t.Skip("skipping because no file driver is enabled")
 	}
 
@@ -238,7 +238,7 @@ func TestGetFileThumbnail(t *testing.T) {
 	Client := th.Client
 	channel := th.BasicChannel
 
-	if utils.Cfg.FileSettings.DriverName == "" {
+	if *utils.Cfg.FileSettings.DriverName == "" {
 		t.Skip("skipping because no file driver is enabled")
 	}
 
@@ -290,7 +290,7 @@ func TestGetFileLink(t *testing.T) {
 	Client := th.Client
 	channel := th.BasicChannel
 
-	if utils.Cfg.FileSettings.DriverName == "" {
+	if *utils.Cfg.FileSettings.DriverName == "" {
 		t.Skip("skipping because no file driver is enabled")
 	}
 
@@ -365,7 +365,7 @@ func TestGetFilePreview(t *testing.T) {
 	Client := th.Client
 	channel := th.BasicChannel
 
-	if utils.Cfg.FileSettings.DriverName == "" {
+	if *utils.Cfg.FileSettings.DriverName == "" {
 		t.Skip("skipping because no file driver is enabled")
 	}
 
@@ -418,7 +418,7 @@ func TestGetFileInfo(t *testing.T) {
 	user := th.BasicUser
 	channel := th.BasicChannel
 
-	if utils.Cfg.FileSettings.DriverName == "" {
+	if *utils.Cfg.FileSettings.DriverName == "" {
 		t.Skip("skipping because no file driver is enabled")
 	}
 
@@ -484,7 +484,7 @@ func TestGetPublicFile(t *testing.T) {
 	Client := th.Client
 	channel := th.BasicChannel
 
-	if utils.Cfg.FileSettings.DriverName == "" {
+	if *utils.Cfg.FileSettings.DriverName == "" {
 		t.Skip("skipping because no file driver is enabled")
 	}
 

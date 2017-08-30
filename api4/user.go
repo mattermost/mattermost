@@ -233,7 +233,7 @@ func setProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if len(utils.Cfg.FileSettings.DriverName) == 0 {
+	if len(*utils.Cfg.FileSettings.DriverName) == 0 {
 		c.Err = model.NewLocAppError("uploadProfileImage", "api.user.upload_profile_user.storage.app_error", nil, "")
 		c.Err.StatusCode = http.StatusNotImplemented
 		return
