@@ -32,7 +32,6 @@ func TestLdap() *model.AppError {
 		}
 	} else {
 		err := model.NewAppError("TestLdap", "ent.ldap.disabled.app_error", nil, "", http.StatusNotImplemented)
-		err.StatusCode = http.StatusNotImplemented
 		return err
 	}
 
