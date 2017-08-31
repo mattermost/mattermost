@@ -14,6 +14,8 @@ import (
 	"github.com/mattermost/platform/app"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestCreateUser(t *testing.T) {
@@ -2040,8 +2042,15 @@ func TestSetProfileImage(t *testing.T) {
 		t.Fatal("Should have failed either forbidden or unauthorized")
 	}
 
+	buser, err := app.GetUser(user.Id)
+	require.Nil(t, err)
+
 	_, resp = th.SystemAdminClient.SetProfileImage(user.Id, data)
 	CheckNoError(t, resp)
+
+	ruser, err := app.GetUser(user.Id)
+	require.Nil(t, err)
+	assert.True(t, buser.LastPictureUpdate < ruser.LastPictureUpdate, "Picture should have updated for user")
 
 	info := &model.FileInfo{Path: "users/" + user.Id + "/profile.png"}
 	if err := cleanupTestFile(info); err != nil {
