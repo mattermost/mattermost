@@ -2,6 +2,7 @@
 // See License.txt for license information.
 
 import LoadingScreen from 'components/loading_screen.jsx';
+import Banner from 'components/admin_console/banner.jsx';
 
 import * as Utils from 'utils/utils.jsx';
 
@@ -202,6 +203,14 @@ export default class PluginSettings extends React.Component {
                         defaultMessage='Plugins (experimental)'
                     />
                 </h3>
+                <Banner
+                    description={
+                        <FormattedHTMLMessage
+                            id='admin.plugin.banner'
+                            defaultMessage='Plugins are experimental stage and are not yet recommended for use in production environments. <br/><br/> Webapp plugins will require users to refresh their browsers or desktop apps before the plugin will take effect. Similarly when a plugin is removed, users will continue to see the plugin until they refresh their browser or app.'
+                        />
+                    }
+                />
                 <form
                     className='form-horizontal'
                     role='form'

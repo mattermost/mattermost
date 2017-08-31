@@ -565,6 +565,7 @@
   "admin.ldap.userFilterTitle": "User Filter:",
   "admin.ldap.usernameAttrEx": "E.g.: \"sAMAccountName\"",
   "admin.ldap.usernameAttrTitle": "Username Attribute:",
+  "admin.plugin.banner": "Plugins are experimental and are not yet recommended for use in production environments. <br/><br/> Webapp plugins will require users to refresh their browsers or desktop apps before the plugin will take effect. Similarly when a plugin is removed, users will continue to see the plugin until they refresh their browser or app.",
   "admin.plugin.uploading": "Uploading...",
   "admin.plugin.upload": "Upload",
   "admin.plugin.no_plugins": "No active plugins.",
