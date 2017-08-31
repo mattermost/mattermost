@@ -14,6 +14,7 @@ import (
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
 	"github.com/pkg/errors"
+	"strings"
 )
 
 // this pattern allows us to "mock" the underlying l4g code when unit testing
@@ -109,15 +110,14 @@ func getCallerFilename() (string, error) {
 			break
 		}
 	}
-	fmt.Printf("\ncurrentFilename: %s\nplatformDirectory: %s\n", currentFilename, platformDirectory)
 
 	for i := 1; i < 10; i++ {
 		_, parentFilename, _, ok := runtime.Caller(i)
 		if !ok {
 			return "", errors.New("Failed to traverse stack frame")
-		} else if parentFilename != currentFilename {
-			fmt.Printf("\nparentFilename: %s", parentFilename)
-			return filepath.Rel(platformDirectory, parentFilename)
+		} else if parentFilename != currentFilename && strings.Contains(parentFilename, platformDirectory) {
+			// trim parentFilename such that we return the path to parentFilename, relative to platformDirectory
+			return parentFilename[strings.LastIndex(parentFilename, platformDirectory) + len(platformDirectory) + 1:], nil
 		}
 	}
 	return "", errors.New("Failed to traverse stack frame")
