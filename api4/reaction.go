@@ -28,14 +28,12 @@ func saveReaction(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if len(reaction.UserId) != 26 || len(reaction.PostId) != 26 || len(reaction.EmojiName) == 0 || len(reaction.EmojiName) > 64 {
-		c.Err = model.NewLocAppError("saveReaction", "api.reaction.save_reaction.invalid.app_error", nil, "")
-		c.Err.StatusCode = http.StatusBadRequest
+		c.Err = model.NewAppError("saveReaction", "api.reaction.save_reaction.invalid.app_error", nil, "", http.StatusBadRequest)
 		return
 	}
 
 	if reaction.UserId != c.Session.UserId {
-		c.Err = model.NewLocAppError("saveReaction", "api.reaction.save_reaction.user_id.app_error", nil, "")
-		c.Err.StatusCode = http.StatusForbidden
+		c.Err = model.NewAppError("saveReaction", "api.reaction.save_reaction.user_id.app_error", nil, "", http.StatusForbidden)
 		return
 	}
 
