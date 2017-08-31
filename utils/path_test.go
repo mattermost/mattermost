@@ -9,25 +9,23 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestSanitizePath(t *testing.T) {
+func TestPathTraversesUpward(t *testing.T) {
 	cases := []struct {
 		input    string
-		expected string
+		expected bool
 	}{
-		{"../test/path", "test/path"},
-		{"../../test/path", "test/path"},
-		{"../../test/../path", "test/path"},
-		{"test/../../path", "test/path"},
-		{"test/path/../../", "test/path"},
-		{"/test/path", "test/path"},
-		{"~/test/path", "test/path"},
-		{"test", "test"},
-		{"test/path", "test/path"},
-		{"test/path/", "test/path"},
-		{"test/path/file.ext", "test/path/file.ext"},
+		{"../test/path", true},
+		{"../../test/path", true},
+		{"../../test/../path", true},
+		{"test/../../path", true},
+		{"test/path/../../", false},
+		{"test", false},
+		{"test/path", false},
+		{"test/path/", false},
+		{"test/path/file.ext", false},
 	}
 
 	for _, c := range cases {
-		assert.Equal(t, c.expected, SanitizePath(c.input))
+		assert.Equal(t, c.expected, PathTraversesUpward(c.input), c.input)
 	}
 }
