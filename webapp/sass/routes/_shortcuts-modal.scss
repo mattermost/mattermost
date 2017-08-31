@@ -23,6 +23,29 @@
                     .modal-title {
                         color: inherit;
                         font-size: 20px;
+
+                        > div {
+                            &:first-child {
+                                margin-bottom: 2.5em;
+                            }
+                        }
+        
+                        .shortcut-line {
+                            margin: 17px 0;
+        
+                            span {
+                                &:first-child {
+                                    margin-right: 5px;
+                                }
+                            }
+        
+                            .shortcut-key {
+                                border-radius: 3px;
+                                font-weight: 500;
+                                margin: 5px 0 5px 5px;
+                                padding: 1px 5px;
+                            }
+                        }
                     }
                 }
             }
