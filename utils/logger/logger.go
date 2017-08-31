@@ -117,7 +117,7 @@ func getCallerFilename() (string, error) {
 			return "", errors.New("Failed to traverse stack frame")
 		} else if parentFilename != currentFilename && strings.Contains(parentFilename, platformDirectory) {
 			// trim parentFilename such that we return the path to parentFilename, relative to platformDirectory
-			return parentFilename[strings.LastIndex(parentFilename, platformDirectory) + len(platformDirectory) + 1:], nil
+			return parentFilename[strings.LastIndex(parentFilename, platformDirectory)+len(platformDirectory)+1:], nil
 		}
 	}
 	return "", errors.New("Failed to traverse stack frame")
