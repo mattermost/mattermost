@@ -544,11 +544,12 @@
 
         .send-button {
             @include single-transition(all, .15s);
+            border-left: 1px solid transparent;
             cursor: pointer;
             display: none;
-            font-size: 18px;
-            height: 37px;
-            line-height: 37px;
+            font-size: 17px;
+            height: 100%;
+            line-height: 49px;
             padding-right: 4px;
             text-align: center;
             vertical-align: bottom;
@@ -559,7 +560,9 @@
             }
 
             &.disabled {
-                color: grey;
+                i {
+                    color: inherit;
+                }
             }
         }
 

@@ -284,5 +284,20 @@
                 }
             }
         }
+
+        .attachment-actions {
+            margin-top: 9px;
+
+            button {
+                @include border-radius(3px);
+                outline: 0;
+                margin: 8px 8px 0 0;
+                border-width: 1px;
+                border-style: solid;
+                height: 30px;
+                font-size: 13px;
+                font-weight: 700;
+            }
+        }
     }
 }

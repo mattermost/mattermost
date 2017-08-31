@@ -690,11 +690,11 @@ func TestTeamMembers(t *testing.T) {
 func TestSaveTeamMemberMaxMembers(t *testing.T) {
 	Setup()
 
-	MaxUsersPerTeam := utils.Cfg.TeamSettings.MaxUsersPerTeam
+	MaxUsersPerTeam := *utils.Cfg.TeamSettings.MaxUsersPerTeam
 	defer func() {
-		utils.Cfg.TeamSettings.MaxUsersPerTeam = MaxUsersPerTeam
+		*utils.Cfg.TeamSettings.MaxUsersPerTeam = MaxUsersPerTeam
 	}()
-	utils.Cfg.TeamSettings.MaxUsersPerTeam = 5
+	*utils.Cfg.TeamSettings.MaxUsersPerTeam = 5
 
 	team := Must(store.Team().Save(&model.Team{
 		DisplayName: "DisplayName",
@@ -705,9 +705,9 @@ func TestSaveTeamMemberMaxMembers(t *testing.T) {
 		<-store.Team().PermanentDelete(team.Id)
 	}()
 
-	userIds := make([]string, utils.Cfg.TeamSettings.MaxUsersPerTeam)
+	userIds := make([]string, *utils.Cfg.TeamSettings.MaxUsersPerTeam)
 
-	for i := 0; i < utils.Cfg.TeamSettings.MaxUsersPerTeam; i++ {
+	for i := 0; i < *utils.Cfg.TeamSettings.MaxUsersPerTeam; i++ {
 		userIds[i] = Must(store.User().Save(&model.User{
 			Username: model.NewId(),
 			Email:    model.NewId(),
@@ -729,7 +729,7 @@ func TestSaveTeamMemberMaxMembers(t *testing.T) {
 
 	if result := <-store.Team().GetTotalMemberCount(team.Id); result.Err != nil {
 		t.Fatal(result.Err)
-	} else if count := result.Data.(int64); int(count) != utils.Cfg.TeamSettings.MaxUsersPerTeam {
+	} else if count := result.Data.(int64); int(count) != *utils.Cfg.TeamSettings.MaxUsersPerTeam {
 		t.Fatalf("should start with 5 team members, had %v instead", count)
 	}
 
@@ -750,7 +750,7 @@ func TestSaveTeamMemberMaxMembers(t *testing.T) {
 
 	if result := <-store.Team().GetTotalMemberCount(team.Id); result.Err != nil {
 		t.Fatal(result.Err)
-	} else if count := result.Data.(int64); int(count) != utils.Cfg.TeamSettings.MaxUsersPerTeam {
+	} else if count := result.Data.(int64); int(count) != *utils.Cfg.TeamSettings.MaxUsersPerTeam {
 		t.Fatalf("should still have 5 team members, had %v instead", count)
 	}
 
@@ -763,7 +763,7 @@ func TestSaveTeamMemberMaxMembers(t *testing.T) {
 
 	if result := <-store.Team().GetTotalMemberCount(team.Id); result.Err != nil {
 		t.Fatal(result.Err)
-	} else if count := result.Data.(int64); int(count) != utils.Cfg.TeamSettings.MaxUsersPerTeam-1 {
+	} else if count := result.Data.(int64); int(count) != *utils.Cfg.TeamSettings.MaxUsersPerTeam-1 {
 		t.Fatalf("should now only have 4 team members, had %v instead", count)
 	}
 
@@ -777,7 +777,7 @@ func TestSaveTeamMemberMaxMembers(t *testing.T) {
 
 	if result := <-store.Team().GetTotalMemberCount(team.Id); result.Err != nil {
 		t.Fatal(result.Err)
-	} else if count := result.Data.(int64); int(count) != utils.Cfg.TeamSettings.MaxUsersPerTeam {
+	} else if count := result.Data.(int64); int(count) != *utils.Cfg.TeamSettings.MaxUsersPerTeam {
 		t.Fatalf("should have 5 team members again, had %v instead", count)
 	}
 

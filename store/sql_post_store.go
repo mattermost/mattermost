@@ -1033,7 +1033,7 @@ func (s SqlPostStore) Search(teamId string, userId string, params *model.SearchP
 		if terms == "" {
 			// we've already confirmed that we have a channel or user to search for
 			searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", "", 1)
-		} else if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_POSTGRES {
+		} else if *utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_POSTGRES {
 			// Parse text for wildcards
 			if wildcard, err := regexp.Compile("\\*($| )"); err == nil {
 				terms = wildcard.ReplaceAllLiteralString(terms, ":* ")
@@ -1047,7 +1047,7 @@ func (s SqlPostStore) Search(teamId string, userId string, params *model.SearchP
 
 			searchClause := fmt.Sprintf("AND %s @@  to_tsquery(:Terms)", searchType)
 			searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", searchClause, 1)
-		} else if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_MYSQL {
+		} else if *utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_MYSQL {
 			searchClause := fmt.Sprintf("AND MATCH (%s) AGAINST (:Terms IN BOOLEAN MODE)", searchType)
 			searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", searchClause, 1)
 
@@ -1121,7 +1121,7 @@ func (s SqlPostStore) AnalyticsUserCountsWithPostsByDay(teamId string) StoreChan
 			ORDER BY Name DESC
 			LIMIT 30`
 
-		if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_POSTGRES {
+		if *utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_POSTGRES {
 			query =
 				`SELECT
 					TO_CHAR(DATE(TO_TIMESTAMP(Posts.CreateAt / 1000)), 'YYYY-MM-DD') AS Name, COUNT(DISTINCT Posts.UserId) AS Value
@@ -1184,7 +1184,7 @@ func (s SqlPostStore) AnalyticsPostCountsByDay(teamId string) StoreChannel {
 			ORDER BY Name DESC
 			LIMIT 30`
 
-		if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_POSTGRES {
+		if *utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_POSTGRES {
 			query =
 				`SELECT
 					TO_CHAR(DATE(TO_TIMESTAMP(Posts.CreateAt / 1000)), 'YYYY-MM-DD') AS Name, Count(Posts.Id) AS Value

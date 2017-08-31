@@ -8,6 +8,7 @@ import YoutubeVideo from 'components/youtube_video';
 
 import Constants from 'utils/constants.jsx';
 import * as Utils from 'utils/utils.jsx';
+import BrowserStore from 'stores/browser_store.jsx';
 
 import React from 'react';
 import PropTypes from 'prop-types';
@@ -47,7 +48,7 @@ export default class PostBodyAdditionalContent extends React.PureComponent {
         this.handleLinkLoaded = this.handleLinkLoaded.bind(this);
 
         this.state = {
-            embedVisible: props.previewCollapsed.startsWith('false'),
+            embedVisible: PostBodyAdditionalContent.isEmbedVisible(props),
             link: Utils.extractFirstLink(props.post.message),
             linkLoadError: false,
             linkLoaded: false
@@ -62,7 +63,7 @@ export default class PostBodyAdditionalContent extends React.PureComponent {
     componentWillReceiveProps(nextProps) {
         if (nextProps.previewCollapsed !== this.props.previewCollapsed || nextProps.post.message !== this.props.post.message) {
             this.setState({
-                embedVisible: nextProps.previewCollapsed.startsWith('false'),
+                embedVisible: PostBodyAdditionalContent.isEmbedVisible(nextProps),
                 link: Utils.extractFirstLink(nextProps.post.message)
             }, () => {
                 // check the availability of the image link
@@ -72,6 +73,9 @@ export default class PostBodyAdditionalContent extends React.PureComponent {
     }
 
     toggleEmbedVisibility() {
+        // save the taggle info in the localstorage
+        BrowserStore.setItem(`isVisible-${this.props.post.id}`, !this.state.embedVisible);
+
         this.setState((prevState) => {
             return {embedVisible: !prevState.embedVisible};
         });
@@ -86,6 +90,7 @@ export default class PostBodyAdditionalContent extends React.PureComponent {
         return (
             <PostAttachmentList
                 attachments={attachments}
+                postId={this.props.post.id}
                 key={this.props.post.id}
             />
         );
@@ -259,5 +264,10 @@ export default class PostBodyAdditionalContent extends React.PureComponent {
         }
 
         return this.props.message;
+    }
+
+    static isEmbedVisible(props) {
+        // check first in localstorage, if not present, consider previewCollapsed from the parent component
+        return BrowserStore.getItem(`isVisible-${props.post.id}`, props.previewCollapsed.startsWith('false'));
     }
 }

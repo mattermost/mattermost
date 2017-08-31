@@ -4,6 +4,7 @@
 package api4
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/mattermost/platform/app"
@@ -399,7 +400,7 @@ func TestExecuteCommand(t *testing.T) {
 	postCmd := &model.Command{
 		CreatorId: th.BasicUser.Id,
 		TeamId:    th.BasicTeam.Id,
-		URL:       "http://localhost" + utils.Cfg.ServiceSettings.ListenAddress + model.API_URL_SUFFIX_V4 + "/teams/command_test",
+		URL:       "http://localhost" + *utils.Cfg.ServiceSettings.ListenAddress + model.API_URL_SUFFIX_V4 + "/teams/command_test",
 		Method:    model.COMMAND_METHOD_POST,
 		Trigger:   "postcommand",
 	}
@@ -416,14 +417,26 @@ func TestExecuteCommand(t *testing.T) {
 	}
 
 	posts, err := app.GetPostsPage(channel.Id, 0, 10)
-	if err != nil || posts == nil || len(posts.Order) != 2 {
+	if err != nil || posts == nil || len(posts.Order) != 3 {
 		t.Fatal("Test command failed to send")
+	}
+
+	cmdPosted := false
+	for _, post := range posts.Posts {
+		if strings.Contains(post.Message, "test command response") {
+			cmdPosted = true
+			break
+		}
+	}
+
+	if !cmdPosted {
+		t.Fatal("Test command response failed to post")
 	}
 
 	getCmd := &model.Command{
 		CreatorId: th.BasicUser.Id,
 		TeamId:    th.BasicTeam.Id,
-		URL:       "http://localhost" + utils.Cfg.ServiceSettings.ListenAddress + model.API_URL_SUFFIX_V4 + "/teams/command_test",
+		URL:       "http://localhost" + *utils.Cfg.ServiceSettings.ListenAddress + model.API_URL_SUFFIX_V4 + "/teams/command_test",
 		Method:    model.COMMAND_METHOD_GET,
 		Trigger:   "getcommand",
 	}
@@ -440,7 +453,7 @@ func TestExecuteCommand(t *testing.T) {
 	}
 
 	posts, err = app.GetPostsPage(channel.Id, 0, 10)
-	if err != nil || posts == nil || len(posts.Order) != 3 {
+	if err != nil || posts == nil || len(posts.Order) != 4 {
 		t.Fatal("Test command failed to send")
 	}
 

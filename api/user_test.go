@@ -263,13 +263,13 @@ func TestPasswordGuessLockout(t *testing.T) {
 	Client.Must(Client.Logout())
 
 	enableSignInWithEmail := *utils.Cfg.EmailSettings.EnableSignInWithEmail
-	passwordAttempts := utils.Cfg.ServiceSettings.MaximumLoginAttempts
+	passwordAttempts := *utils.Cfg.ServiceSettings.MaximumLoginAttempts
 	defer func() {
 		*utils.Cfg.EmailSettings.EnableSignInWithEmail = enableSignInWithEmail
-		utils.Cfg.ServiceSettings.MaximumLoginAttempts = passwordAttempts
+		*utils.Cfg.ServiceSettings.MaximumLoginAttempts = passwordAttempts
 	}()
 	*utils.Cfg.EmailSettings.EnableSignInWithEmail = true
-	utils.Cfg.ServiceSettings.MaximumLoginAttempts = 2
+	*utils.Cfg.ServiceSettings.MaximumLoginAttempts = 2
 
 	// OK to log in
 	if _, err := Client.Login(user.Username, user.Password); err != nil {
@@ -689,7 +689,7 @@ func TestUserCreateImage(t *testing.T) {
 		}
 	}
 
-	if utils.Cfg.FileSettings.DriverName == model.IMAGE_DRIVER_S3 {
+	if *utils.Cfg.FileSettings.DriverName == model.IMAGE_DRIVER_S3 {
 		endpoint := utils.Cfg.FileSettings.AmazonS3Endpoint
 		accessKey := utils.Cfg.FileSettings.AmazonS3AccessKeyId
 		secretKey := utils.Cfg.FileSettings.AmazonS3SecretAccessKey
@@ -726,7 +726,7 @@ func TestUserUploadProfileImage(t *testing.T) {
 	LinkUserToTeam(user, team)
 	store.Must(app.Srv.Store.User().VerifyEmail(user.Id))
 
-	if utils.Cfg.FileSettings.DriverName != "" {
+	if *utils.Cfg.FileSettings.DriverName != "" {
 
 		body := &bytes.Buffer{}
 		writer := multipart.NewWriter(body)
@@ -795,7 +795,7 @@ func TestUserUploadProfileImage(t *testing.T) {
 
 		Client.DoApiGet("/users/"+user.Id+"/image", "", "")
 
-		if utils.Cfg.FileSettings.DriverName == model.IMAGE_DRIVER_S3 {
+		if *utils.Cfg.FileSettings.DriverName == model.IMAGE_DRIVER_S3 {
 			endpoint := utils.Cfg.FileSettings.AmazonS3Endpoint
 			accessKey := utils.Cfg.FileSettings.AmazonS3AccessKeyId
 			secretKey := utils.Cfg.FileSettings.AmazonS3SecretAccessKey
@@ -934,11 +934,11 @@ func TestUserUpdatePassword(t *testing.T) {
 	}
 
 	// Test lockout
-	passwordAttempts := utils.Cfg.ServiceSettings.MaximumLoginAttempts
+	passwordAttempts := *utils.Cfg.ServiceSettings.MaximumLoginAttempts
 	defer func() {
-		utils.Cfg.ServiceSettings.MaximumLoginAttempts = passwordAttempts
+		*utils.Cfg.ServiceSettings.MaximumLoginAttempts = passwordAttempts
 	}()
-	utils.Cfg.ServiceSettings.MaximumLoginAttempts = 2
+	*utils.Cfg.ServiceSettings.MaximumLoginAttempts = 2
 
 	// Fail twice
 	if _, err := Client.UpdateUserPassword(user.Id, "badpwd", "newpwd"); err == nil {

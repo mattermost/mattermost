@@ -1431,9 +1431,9 @@ func (us SqlUserStore) performSearch(searchQuery string, term string, options ma
 	originalTerm := term
 	postgresUseOriginalTerm := false
 	if strings.Contains(term, "@") && strings.Contains(term, ".") {
-		if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_POSTGRES {
+		if *utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_POSTGRES {
 			postgresUseOriginalTerm = true
-		} else if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_MYSQL {
+		} else if *utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_MYSQL {
 			lastIndex := strings.LastIndex(term, ".")
 			term = term[0:lastIndex]
 		}
@@ -1461,7 +1461,7 @@ func (us SqlUserStore) performSearch(searchQuery string, term string, options ma
 
 	if term == "" {
 		searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", "", 1)
-	} else if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_POSTGRES {
+	} else if *utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_POSTGRES {
 		if postgresUseOriginalTerm {
 			term = originalTerm
 			// these chars will break the query and must be removed
@@ -1484,7 +1484,7 @@ func (us SqlUserStore) performSearch(searchQuery string, term string, options ma
 		searchType = convertMySQLFullTextColumnsToPostgres(searchType)
 		searchClause := fmt.Sprintf("AND (%s) @@  to_tsquery('simple', :Term)", searchType)
 		searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", searchClause, 1)
-	} else if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_MYSQL {
+	} else if *utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_MYSQL {
 		splitTerm := strings.Fields(term)
 		for i, t := range strings.Fields(term) {
 			splitTerm[i] = "+" + t + "*"

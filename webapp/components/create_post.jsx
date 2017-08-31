@@ -772,14 +772,14 @@ export default class CreatePost extends React.Component {
                             >
                                 {fileUpload}
                                 {emojiPicker}
+                                <a
+                                    className={sendButtonClass}
+                                    onClick={this.handleSubmit}
+                                >
+                                    <i className='fa fa-paper-plane'/>
+                                </a>
                             </span>
                         </div>
-                        <a
-                            className={sendButtonClass}
-                            onClick={this.handleSubmit}
-                        >
-                            <i className='fa fa-paper-plane'/>
-                        </a>
                         {tutorialTip}
                     </div>
                     <div className={postFooterClassName}>

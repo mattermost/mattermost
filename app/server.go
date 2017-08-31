@@ -133,14 +133,14 @@ func StartServer() {
 	if *utils.Cfg.RateLimitSettings.Enable {
 		l4g.Info(utils.T("api.server.start_server.rate.info"))
 
-		store, err := memstore.New(utils.Cfg.RateLimitSettings.MemoryStoreSize)
+		store, err := memstore.New(*utils.Cfg.RateLimitSettings.MemoryStoreSize)
 		if err != nil {
 			l4g.Critical(utils.T("api.server.start_server.rate_limiting_memory_store"))
 			return
 		}
 
 		quota := throttled.RateQuota{
-			MaxRate:  throttled.PerSec(utils.Cfg.RateLimitSettings.PerSec),
+			MaxRate:  throttled.PerSec(*utils.Cfg.RateLimitSettings.PerSec),
 			MaxBurst: *utils.Cfg.RateLimitSettings.MaxBurst,
 		}
 
@@ -165,13 +165,13 @@ func StartServer() {
 	Srv.GracefulServer = &graceful.Server{
 		Timeout: TIME_TO_WAIT_FOR_CONNECTIONS_TO_CLOSE_ON_SERVER_SHUTDOWN,
 		Server: &http.Server{
-			Addr:         utils.Cfg.ServiceSettings.ListenAddress,
+			Addr:         *utils.Cfg.ServiceSettings.ListenAddress,
 			Handler:      handlers.RecoveryHandler(handlers.RecoveryLogger(&RecoveryLogger{}), handlers.PrintRecoveryStack(true))(handler),
 			ReadTimeout:  time.Duration(*utils.Cfg.ServiceSettings.ReadTimeout) * time.Second,
 			WriteTimeout: time.Duration(*utils.Cfg.ServiceSettings.WriteTimeout) * time.Second,
 		},
 	}
-	l4g.Info(utils.T("api.server.start_server.listening.info"), utils.Cfg.ServiceSettings.ListenAddress)
+	l4g.Info(utils.T("api.server.start_server.listening.info"), *utils.Cfg.ServiceSettings.ListenAddress)
 
 	if *utils.Cfg.ServiceSettings.Forward80To443 {
 		go func() {

@@ -244,7 +244,7 @@ func GeneratePublicLinkHash(fileId, salt string) string {
 }
 
 func UploadFiles(teamId string, channelId string, userId string, fileHeaders []*multipart.FileHeader, clientIds []string) (*model.FileUploadResponse, *model.AppError) {
-	if len(utils.Cfg.FileSettings.DriverName) == 0 {
+	if len(*utils.Cfg.FileSettings.DriverName) == 0 {
 		return nil, model.NewAppError("uploadFile", "api.file.upload_file.storage.app_error", nil, "", http.StatusNotImplemented)
 	}
 

@@ -4,6 +4,7 @@
 package api
 
 import (
+	"strings"
 	"testing"
 	"time"
 
@@ -242,7 +243,7 @@ func TestTestCommand(t *testing.T) {
 	*utils.Cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost"
 
 	cmd1 := &model.Command{
-		URL:     "http://localhost" + utils.Cfg.ServiceSettings.ListenAddress + model.API_URL_SUFFIX_V3 + "/teams/command_test",
+		URL:     "http://localhost" + *utils.Cfg.ServiceSettings.ListenAddress + model.API_URL_SUFFIX_V3 + "/teams/command_test",
 		Method:  model.COMMAND_METHOD_POST,
 		Trigger: "testcommand",
 	}
@@ -256,13 +257,26 @@ func TestTestCommand(t *testing.T) {
 
 	time.Sleep(100 * time.Millisecond)
 
-	p1 := Client.Must(Client.GetPosts(channel1.Id, 0, 2, "")).Data.(*model.PostList)
-	if len(p1.Order) != 1 {
-		t.Fatal("Test command failed to send")
+	p1 := Client.Must(Client.GetPosts(channel1.Id, 0, 10, "")).Data.(*model.PostList)
+	// including system 'joined' message
+	if len(p1.Order) != 2 {
+		t.Fatal("Test command response failed to send")
+	}
+
+	cmdPosted := false
+	for _, post := range p1.Posts {
+		if strings.Contains(post.Message, "test command response") {
+			cmdPosted = true
+			break
+		}
+	}
+
+	if !cmdPosted {
+		t.Fatal("Test command response failed to post")
 	}
 
 	cmd2 := &model.Command{
-		URL:     "http://localhost" + utils.Cfg.ServiceSettings.ListenAddress + model.API_URL_SUFFIX_V3 + "/teams/command_test",
+		URL:     "http://localhost" + *utils.Cfg.ServiceSettings.ListenAddress + model.API_URL_SUFFIX_V3 + "/teams/command_test",
 		Method:  model.COMMAND_METHOD_GET,
 		Trigger: "test2",
 	}
@@ -276,8 +290,8 @@ func TestTestCommand(t *testing.T) {
 
 	time.Sleep(100 * time.Millisecond)
 
-	p2 := Client.Must(Client.GetPosts(channel1.Id, 0, 2, "")).Data.(*model.PostList)
-	if len(p2.Order) != 2 {
+	p2 := Client.Must(Client.GetPosts(channel1.Id, 0, 10, "")).Data.(*model.PostList)
+	if len(p2.Order) != 3 {
 		t.Fatal("Test command failed to send")
 	}
 }

@@ -25,7 +25,7 @@ func SetupEnterprise() *TestHelper {
 		utils.TranslationsPreInit()
 		utils.LoadConfig("config.json")
 		utils.InitTranslations(utils.Cfg.LocalizationSettings)
-		utils.Cfg.TeamSettings.MaxUsersPerTeam = 50
+		*utils.Cfg.TeamSettings.MaxUsersPerTeam = 50
 		*utils.Cfg.RateLimitSettings.Enable = false
 		utils.DisableDebugLogForTest()
 		utils.License().Features.SetDefaults()
@@ -47,7 +47,7 @@ func Setup() *TestHelper {
 		utils.TranslationsPreInit()
 		utils.LoadConfig("config.json")
 		utils.InitTranslations(utils.Cfg.LocalizationSettings)
-		utils.Cfg.TeamSettings.MaxUsersPerTeam = 50
+		*utils.Cfg.TeamSettings.MaxUsersPerTeam = 50
 		*utils.Cfg.RateLimitSettings.Enable = false
 		utils.DisableDebugLogForTest()
 		NewServer()

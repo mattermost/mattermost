@@ -20,9 +20,10 @@ import (
 	"github.com/fsnotify/fsnotify"
 	"github.com/spf13/viper"
 
+	"net/http"
+
 	"github.com/mattermost/platform/einterfaces"
 	"github.com/mattermost/platform/model"
-	"net/http"
 )
 
 const (
@@ -378,7 +379,7 @@ func LoadConfig(fileName string) {
 
 	configureLog(&config.LogSettings)
 
-	if config.FileSettings.DriverName == model.IMAGE_DRIVER_LOCAL {
+	if *config.FileSettings.DriverName == model.IMAGE_DRIVER_LOCAL {
 		dir := config.FileSettings.Directory
 		if len(dir) > 0 && dir[len(dir)-1:] != "/" {
 			config.FileSettings.Directory += "/"
@@ -493,7 +494,7 @@ func getClientConfig(c *model.Config) map[string]string {
 
 	props["DefaultClientLocale"] = *c.LocalizationSettings.DefaultClientLocale
 	props["AvailableLocales"] = *c.LocalizationSettings.AvailableLocales
-	props["SQLDriverName"] = c.SqlSettings.DriverName
+	props["SQLDriverName"] = *c.SqlSettings.DriverName
 
 	props["EnableCustomEmoji"] = strconv.FormatBool(*c.ServiceSettings.EnableCustomEmoji)
 	props["EnableEmojiPicker"] = strconv.FormatBool(*c.ServiceSettings.EnableEmojiPicker)
@@ -659,8 +660,8 @@ func Desanitize(cfg *model.Config) {
 		cfg.GitLabSettings.Secret = Cfg.GitLabSettings.Secret
 	}
 
-	if cfg.SqlSettings.DataSource == model.FAKE_SETTING {
-		cfg.SqlSettings.DataSource = Cfg.SqlSettings.DataSource
+	if *cfg.SqlSettings.DataSource == model.FAKE_SETTING {
+		*cfg.SqlSettings.DataSource = *Cfg.SqlSettings.DataSource
 	}
 	if cfg.SqlSettings.AtRestEncryptKey == model.FAKE_SETTING {
 		cfg.SqlSettings.AtRestEncryptKey = Cfg.SqlSettings.AtRestEncryptKey
