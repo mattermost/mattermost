@@ -30,6 +30,7 @@ import EmailSettings from 'components/admin_console/email_settings.jsx';
 import PushSettings from 'components/admin_console/push_settings.jsx';
 import CustomIntegrationsSettings from 'components/admin_console/custom_integrations_settings.jsx';
 import ExternalServiceSettings from 'components/admin_console/external_service_settings.jsx';
+import PluginSettings from 'components/admin_console/plugin_settings';
 import WebrtcSettings from 'components/admin_console/webrtc_settings.jsx';
 import DatabaseSettings from 'components/admin_console/database_settings.jsx';
 import StorageSettings from 'components/admin_console/storage_settings.jsx';
@@ -168,6 +169,10 @@ export default (
             <Route
                 path='jira'
                 component={JIRASettings}
+            />
+            <Route
+                path='plugins'
+                component={PluginSettings}
             />
         </Route>
         <Route path='files'>
