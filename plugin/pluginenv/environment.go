@@ -71,19 +71,9 @@ func (env *Environment) ActivePlugins() ([]*model.BundleInfo, error) {
 	env.mutex.Lock()
 	defer env.mutex.Unlock()
 
-	plugins, err := ScanSearchPath(env.searchPath)
-	if err != nil {
-		return nil, err
-	}
-
 	activePlugins := []*model.BundleInfo{}
-	for id := range env.activePlugins {
-		for _, p := range plugins {
-			if p.Manifest != nil && p.Manifest.Id == id {
-				activePlugins = append(activePlugins, p)
-				break
-			}
-		}
+	for _, p := range env.activePlugins {
+		activePlugins = append(activePlugins, p.BundleInfo)
 	}
 
 	return activePlugins, nil
