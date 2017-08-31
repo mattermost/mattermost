@@ -174,7 +174,7 @@ export default class PluginSettings extends React.Component {
                             <span style={{marginLeft: '5px'}}>
                                 <strong>
                                     <FormattedMessage
-                                        id='admin.plugin.id'
+                                        id='admin.plugin.desc'
                                         defaultMessage='Description:'
                                     />
                                 </strong>
