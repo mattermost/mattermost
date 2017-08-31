@@ -515,6 +515,8 @@ func getClientConfig(c *model.Config) map[string]string {
 	props["DiagnosticId"] = CfgDiagnosticId
 	props["DiagnosticsEnabled"] = strconv.FormatBool(*c.LogSettings.EnableDiagnostics)
 
+	props["PluginsEnabled"] = strconv.FormatBool(*c.PluginSettings.Enable)
+
 	if IsLicensed() {
 
 		License := License()
