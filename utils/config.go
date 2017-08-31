@@ -123,6 +123,8 @@ func ConfigureCmdLineLog() {
 	configureLog(&ls)
 }
 
+// TODO: this code initializes console and file logging. It will eventually be replaced by JSON logging in logger/logger.go
+// See PLT-3893 for more information
 func configureLog(s *model.LogSettings) {
 
 	l4g.Close()
