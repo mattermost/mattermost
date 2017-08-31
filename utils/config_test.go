@@ -83,29 +83,27 @@ func TestRedirectStdLog(t *testing.T) {
 }
 
 func TestAddRemoveConfigListener(t *testing.T) {
-	if len(cfgListeners) != 0 {
-		t.Fatal("should've started with 0 listeners")
-	}
+	numIntitialCfgListeners := len(cfgListeners)
 
 	id1 := AddConfigListener(func(*model.Config, *model.Config) {
 	})
-	if len(cfgListeners) != 1 {
+	if len(cfgListeners) != numIntitialCfgListeners+1 {
 		t.Fatal("should now have 1 listener")
 	}
 
 	id2 := AddConfigListener(func(*model.Config, *model.Config) {
 	})
-	if len(cfgListeners) != 2 {
+	if len(cfgListeners) != numIntitialCfgListeners+2 {
 		t.Fatal("should now have 2 listeners")
 	}
 
 	RemoveConfigListener(id1)
-	if len(cfgListeners) != 1 {
+	if len(cfgListeners) != numIntitialCfgListeners+1 {
 		t.Fatal("should've removed first listener")
 	}
 
 	RemoveConfigListener(id2)
-	if len(cfgListeners) != 0 {
+	if len(cfgListeners) != numIntitialCfgListeners {
 		t.Fatal("should've removed both listeners")
 	}
 }
