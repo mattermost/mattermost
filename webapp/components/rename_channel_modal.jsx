@@ -139,6 +139,17 @@ export class RenameChannelModal extends React.Component {
         } else if (channel.display_name.length > Constants.MAX_CHANNELNAME_LENGTH) {
             state.displayNameError = formatMessage(holders.maxLength, {maxLength: Constants.MAX_CHANNELNAME_LENGTH});
             state.invalid = true;
+        } else if (channel.display_name.length < Constants.MIN_CHANNELNAME_LENGTH) {
+            state.displayNameError = (
+                <FormattedMessage
+                    id='rename_channel.minLength'
+                    defaultMessage='Channel name must be {minLength, number} or more characters'
+                    values={{
+                        minLength: Constants.MIN_CHANNELNAME_LENGTH
+                    }}
+                />
+            );
+            state.invalid = true;
         } else {
             state.displayNameError = '';
         }
