@@ -22,10 +22,14 @@ function mapStateToProps(state, ownProps) {
         serverError = error.message;
     }
 
+    const reports = Object.values(selectComplianceReports(state)).sort((a, b) => {
+        return b.create_at - a.create_at;
+    });
+
     return {
         ...ownProps,
         enabled,
-        reports: Object.values(selectComplianceReports(state)),
+        reports,
         serverError
     };
 }
