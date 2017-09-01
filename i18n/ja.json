@@ -844,156 +844,16 @@
     "translation": "このデバイスでは設定コマンドはサポートされていません"
   },
   {
-    "id": "api.command_shortcuts.browser.channel_next",
-    "translation": "{{.ChannelNextCmd}}: 履歴の次のチャンネル\n"
-  },
-  {
-    "id": "api.command_shortcuts.browser.channel_next.cmd",
-    "translation": "ALT+右"
-  },
-  {
-    "id": "api.command_shortcuts.browser.channel_next.cmd_mac",
-    "translation": "CMD+]"
-  },
-  {
-    "id": "api.command_shortcuts.browser.channel_prev",
-    "translation": "{{.ChannelPrevCmd}}: 履歴の前のチャンネル\n"
-  },
-  {
-    "id": "api.command_shortcuts.browser.channel_prev.cmd",
-    "translation": "ALT+左"
-  },
-  {
-    "id": "api.command_shortcuts.browser.channel_prev.cmd_mac",
-    "translation": "CMD+["
-  },
-  {
-    "id": "api.command_shortcuts.browser.font_decrease",
-    "translation": "{{.CmdOrCtrl}}+マイナス: フォントを小さくする(ズームアウト)\n"
-  },
-  {
-    "id": "api.command_shortcuts.browser.font_increase",
-    "translation": "{{.CmdOrCtrl}}+プラス: フォントを大きくする(ズームイン)\n"
-  },
-  {
-    "id": "api.command_shortcuts.browser.header",
-    "translation": "#### 内蔵ブラウザーコマンド\n\n"
-  },
-  {
-    "id": "api.command_shortcuts.browser.highlight_next",
-    "translation": "SHIFT+DOWN (入力欄で): 一つ下の行のテキストをハイライトする\n"
-  },
-  {
-    "id": "api.command_shortcuts.browser.highlight_prev",
-    "translation": "SHIFT+UP (入力欄で): 一つ上の行のテキストをハイライトする\n"
-  },
-  {
-    "id": "api.command_shortcuts.browser.newline",
-    "translation": "SHIFT+ENTER (入力欄で): 改行する\n"
-  },
-  {
-    "id": "api.command_shortcuts.cmd",
-    "translation": "CMD"
-  },
-  {
-    "id": "api.command_shortcuts.ctrl",
-    "translation": "CTRL"
-  },
-  {
     "id": "api.command_shortcuts.desc",
     "translation": "キーボードショートカットのリストを表示する"
-  },
-  {
-    "id": "api.command_shortcuts.files.header",
-    "translation": "#### ファイル\n\n"
-  },
-  {
-    "id": "api.command_shortcuts.files.upload",
-    "translation": "{{.CmdOrCtrl}}+U: ファイルをアップロードする\n\n"
-  },
-  {
-    "id": "api.command_shortcuts.header",
-    "translation": "### キーボードショートカット\n\n"
-  },
-  {
-    "id": "api.command_shortcuts.msgs.comp_channel",
-    "translation": "~[文字]+TAB: [文字]で始まるチャンネルを自動補完する\n"
-  },
-  {
-    "id": "api.command_shortcuts.msgs.comp_emoji",
-    "translation": ":[文字]+TAB: [文字]で始まる絵文字を自動補完する\n\n"
-  },
-  {
-    "id": "api.command_shortcuts.msgs.comp_username",
-    "translation": "@[文字]+TAB: [文字]で始まる @ユーザー名 を自動補完する\n"
-  },
-  {
-    "id": "api.command_shortcuts.msgs.edit",
-    "translation": "UP (空白の入力欄で): 現在のチャンネルの最新のメッセージを修正する\n"
-  },
-  {
-    "id": "api.command_shortcuts.msgs.header",
-    "translation": "#### メッセージ\n\n"
-  },
-  {
-    "id": "api.command_shortcuts.msgs.mark_as_read",
-    "translation": "ESC: 現在のチャンネルの全てのメッセージを既読にする\n"
-  },
-  {
-    "id": "api.command_shortcuts.msgs.reply",
-    "translation": "SHIFT+UP (空白の入力欄で): 現在のチャンネルの最新のメッセージに返信する\n"
-  },
-  {
-    "id": "api.command_shortcuts.msgs.reprint_next",
-    "translation": "{{.CmdOrCtrl}}+DOWN (空白の入力欄で): 一つ次に入力したメッセージやスラッシュコマンドを呼び出す\n"
-  },
-  {
-    "id": "api.command_shortcuts.msgs.reprint_prev",
-    "translation": "{{.CmdOrCtrl}}+UP (空白の入力欄で): 一つ前に入力したメッセージやスラッシュコマンドを呼び出す\n"
   },
   {
     "id": "api.command_shortcuts.name",
     "translation": "ショートカット"
   },
   {
-    "id": "api.command_shortcuts.nav.direct_messages_menu",
-    "translation": "{{.CmdOrCtrl}}+SHIFT+K: ダイレクトメッセージメニューを開く\n"
-  },
-  {
-    "id": "api.command_shortcuts.nav.header",
-    "translation": "#### 移動\n\n"
-  },
-  {
-    "id": "api.command_shortcuts.nav.next",
-    "translation": "ALT+DOWN: 左側のサイドバーの次のチャンネルまたはダイレクトメッセージに移動する\n"
-  },
-  {
-    "id": "api.command_shortcuts.nav.prev",
-    "translation": "ALT+UP: 左側のサイドバーの前のチャンネルまたはダイレクトメッセージに移動する\n"
-  },
-  {
-    "id": "api.command_shortcuts.nav.recent_mentions",
-    "translation": "{{.CmdOrCtrl}}+SHIFT+M: 最近の自分についての投稿を開く\n\n"
-  },
-  {
-    "id": "api.command_shortcuts.nav.settings",
-    "translation": "{{.CmdOrCtrl}}+SHIFT+A: アカウント設定を開く\n"
-  },
-  {
-    "id": "api.command_shortcuts.nav.switcher",
-    "translation": "{{.CmdOrCtrl}}+K: 高速チャンネル切り替えダイアログボックスを開く\n"
-  },
-  {
-    "id": "api.command_shortcuts.nav.switcher_team",
-    "translation": "{{.CmdOrCtrl}}+ALT+K: 高速チーム切り替えダイアログを開く\n"
-  },
-  {
-    "id": "api.command_shortcuts.nav.unread_next",
-    "translation": "ALT+SHIFT+DOWN: 左側のサイドバーの未読のメッセージのある次のチャンネルまたはダイレクトメッセージに移動する\n"
-  },
-  {
-    "id": "api.command_shortcuts.nav.unread_prev",
-    "translation": "ALT+SHIFT+UP: 左側のサイドバーの未読のメッセージのある前のチャンネルまたはダイレクトメッセージに移動する\n"
+    "id": "api.command_shortcuts.unsupported.app_error",
+    "translation": "このデバイスではショートカットコマンドはサポートされていません"
   },
   {
     "id": "api.command_shrug.desc",
@@ -1372,22 +1232,6 @@
   {
     "id": "api.file.move_file.rename.app_error",
     "translation": "ローカルでファイルを移動できません。"
-  },
-  {
-    "id": "api.file.open_file_write_stream.configured.app_error",
-    "translation": "ファイルストレージが正しく設定されていません。S3またはローカルサーバーファイルストレージを設定してください。"
-  },
-  {
-    "id": "api.file.open_file_write_stream.creating_dir.app_error",
-    "translation": "新しいファイルのためにディレクトリーを作成しようとして失敗しました"
-  },
-  {
-    "id": "api.file.open_file_write_stream.local_server.app_error",
-    "translation": "ローカルサーバーストレージへの書き込みに失敗しました"
-  },
-  {
-    "id": "api.file.open_file_write_stream.s3.app_error",
-    "translation": "S3はサポートされません。"
   },
   {
     "id": "api.file.read_file.configured.app_error",
@@ -2497,15 +2341,15 @@
   },
   {
     "id": "api.templates.user_access_token_body.info",
-    "translation": "ユーザーアクセストークンが {{ .SiteURL }} のあなたのアカウントに追加されました。あなたのアカウントで{{.SiteName}}へアクセスするために利用することができます。<br>この変更があなたによって行われたものでない場合、システム管理者に連絡してください。"
+    "translation": "パーソナルアクセストークンが {{ .SiteURL }} のあなたのアカウントに追加されました。あなたのアカウントで {{.SiteName}} へアクセスするために利用することができます。<br>この変更があなたによって行われたものでない場合、システム管理者に連絡してください。"
   },
   {
     "id": "api.templates.user_access_token_body.title",
-    "translation": "ユーザーアクセストークンがあなたのアカウントに追加されました"
+    "translation": "パーソナルアクセストークンがあなたのアカウントに追加されました"
   },
   {
     "id": "api.templates.user_access_token_subject",
-    "translation": "[{{ .SiteName }}] ユーザーアクセストークンがあなたのアカウントに追加されました"
+    "translation": "[{{ .SiteName }}] パーソナルアクセストークンがあなたのアカウントに追加されました"
   },
   {
     "id": "api.templates.username_change_body.info",
@@ -2829,7 +2673,7 @@
   },
   {
     "id": "api.user.saml.not_available.app_error",
-    "translation": "SAMLは設定されていないか、このサーバーではサポートされていません"
+    "translation": "SAML 2.0 は、このサーバーでは設定されていないかサポートされていません。"
   },
   {
     "id": "api.user.send_email_change_email_and_forget.error",
@@ -2865,7 +2709,7 @@
   },
   {
     "id": "api.user.send_user_access_token.error",
-    "translation": "ユーザーアクセストークン追加の電子メールを送信できませんでした"
+    "translation": "パーソナルアクセストークン追加の電子メールを送信できませんでした"
   },
   {
     "id": "api.user.send_verify_email_and_forget.failed.error",
@@ -3788,6 +3632,22 @@
     "translation": "コンプライアンスエクスポートが開始されました ジョブ='{{.JobName}}'、ファイル='{{.FilePath}}'"
   },
   {
+    "id": "ent.elasticsearch.aggregator_worker.create_index_job.error",
+    "translation": "Elasticsearchアグリゲーターのワーカーがインデックス付与処理を作成できませんでした"
+  },
+  {
+    "id": "ent.elasticsearch.aggregator_worker.delete_indexes.error",
+    "translation": "Elasticsearchアグリゲーターのワーカーがインデックスを削除できませんでした"
+  },
+  {
+    "id": "ent.elasticsearch.aggregator_worker.get_indexes.error",
+    "translation": "Elasticsearchアグリゲーターのワーカーがインデックスを取得できませんでした"
+  },
+  {
+    "id": "ent.elasticsearch.aggregator_worker.index_job_failed.error",
+    "translation": "Elasticsearchアグリゲーターのワーカーがインデックス付与処理失敗ために失敗しました"
+  },
+  {
     "id": "ent.elasticsearch.create_client.connect_failed",
     "translation": "Elasticsearchクライアントを設定できませんでした"
   },
@@ -3814,6 +3674,14 @@
   {
     "id": "ent.elasticsearch.index_post.error",
     "translation": "投稿にインデックスを付与できませんでした"
+  },
+  {
+    "id": "ent.elasticsearch.indexer.do_job.parse_end_time.error",
+    "translation": "Elasticsearchインデックス付与ワーカーが終了時刻を解析できませんでした"
+  },
+  {
+    "id": "ent.elasticsearch.indexer.do_job.parse_start_time.error",
+    "translation": "Elasticsearchインデックス付与ワーカーが開始時刻を解析できませんでした"
   },
   {
     "id": "ent.elasticsearch.not_started.error",
@@ -4037,7 +3905,7 @@
   },
   {
     "id": "ent.saml.service_disable.app_error",
-    "translation": "SAMLは設定されていないか、このサーバーではサポートされていません"
+    "translation": "SAML 2.0 は、このサーバーでは設定されていないかサポートされていません。"
   },
   {
     "id": "ent.saml.update_saml_user.unable_error",
@@ -4392,6 +4260,34 @@
     "translation": "不正なユーザーIDです"
   },
   {
+    "id": "model.command_hook.channel_id.app_error",
+    "translation": "不正なチャンネルIDです"
+  },
+  {
+    "id": "model.command_hook.command_id.app_error",
+    "translation": "不正なコマンドIDです"
+  },
+  {
+    "id": "model.command_hook.create_at.app_error",
+    "translation": "作成日時は有効な時刻にしてください"
+  },
+  {
+    "id": "model.command_hook.id.app_error",
+    "translation": "不正なコマンドフックIDです"
+  },
+  {
+    "id": "model.command_hook.parent_id.app_error",
+    "translation": "不正な親IDです"
+  },
+  {
+    "id": "model.command_hook.root_id.app_error",
+    "translation": "不正なルートIDです"
+  },
+  {
+    "id": "model.command_hook.user_id.app_error",
+    "translation": "不正なユーザーIDです"
+  },
+  {
     "id": "model.compliance.is_valid.create_at.app_error",
     "translation": "作成日時は有効な時刻にしてください"
   },
@@ -4420,6 +4316,10 @@
     "translation": "クラスタリングが有効化されている場合、電子メールバッチ処理は有効化できません。"
   },
   {
+    "id": "model.config.is_valid.elastic_search.aggregate_posts_after_days.app_error",
+    "translation": "ElasticsearchのAggregatePostsAfterDays設定は1以上でなくてはなりません"
+  },
+  {
     "id": "model.config.is_valid.elastic_search.connection_url.app_error",
     "translation": "Elastic Searchインデックスが有効な場合、Elastic SearchのConnectionUrl設定は必須です。"
   },
@@ -4430,6 +4330,10 @@
   {
     "id": "model.config.is_valid.elastic_search.password.app_error",
     "translation": "Elastic Searchインデックスが有効な場合、Elastic Searchパスワード設定は必須です。"
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.posts_aggregator_job_start_time.app_error",
+    "translation": "ElasticsearchのPostsAggregatorJobStartTime設定は \"hh:mm\" の形式でなくてはなりません"
   },
   {
     "id": "model.config.is_valid.elastic_search.username.app_error",
@@ -5176,6 +5080,10 @@
     "translation": "デコードできませんでした"
   },
   {
+    "id": "plugin.rpcplugin.invocation.error",
+    "translation": "Error invoking plugin RPC"
+  },
+  {
     "id": "store.sql.alter_column_type.critical",
     "translation": "列形式%vを変更できませんでした"
   },
@@ -5596,6 +5504,26 @@
     "translation": "コマンドが更新できませんでした"
   },
   {
+    "id": "store.sql_command_webhooks.get.app_error",
+    "translation": "ウェブフックを取得できませんでした"
+  },
+  {
+    "id": "store.sql_command_webhooks.save.app_error",
+    "translation": "CommandWebhookを保存できませんでした"
+  },
+  {
+    "id": "store.sql_command_webhooks.save.existing.app_error",
+    "translation": "既存のCommandWebhookは更新できません"
+  },
+  {
+    "id": "store.sql_command_webhooks.try_use.app_error",
+    "translation": "ウェブフックを使用できません"
+  },
+  {
+    "id": "store.sql_command_webhooks.try_use.invalid.app_error",
+    "translation": "不正なウェブフックです"
+  },
+  {
     "id": "store.sql_compliance.get.finding.app_error",
     "translation": "コンプライアンスリポートを取得する際にエラーが発生しました"
   },
@@ -5646,6 +5574,10 @@
   {
     "id": "store.sql_file_info.get_for_post.app_error",
     "translation": "投稿のファイル情報を取得できませんでした"
+  },
+  {
+    "id": "store.sql_file_info.permanent_delete.app_error",
+    "translation": "ファイル情報を完全に削除できませんでした"
   },
   {
     "id": "store.sql_file_info.save.app_error",
@@ -6541,7 +6473,7 @@
   },
   {
     "id": "utils.config.supported_server_locale.app_error",
-    "translation": "Mattermost設定ファイルを読み込めませんでした:  DefaultServerLocaleはサポートされている言語の一つでなければなりません。デフォルト値としてDefaultClientLocaleに en を設定しました。"
+    "translation": "Mattermost設定ファイルを読み込めませんでした:  DefaultServerLocaleはサポートされている言語の一つでなければなりません。デフォルト値としてDefaultServerLocaleに en を設定しました。"
   },
   {
     "id": "utils.config.validate_locale.app_error",
@@ -6550,6 +6482,30 @@
   {
     "id": "utils.diagnostic.analytics_not_found.app_error",
     "translation": "解析は初期化されていません"
+  },
+  {
+    "id": "utils.file.remove_directory.configured.app_error",
+    "translation": "ファイルストレージが正しく設定されていません。S3またはローカルサーバーファイルストレージを設定してください。"
+  },
+  {
+    "id": "utils.file.remove_directory.local.app_error",
+    "translation": "ローカルサーバーストレージからのディレクトリ削除に失敗しました。"
+  },
+  {
+    "id": "utils.file.remove_directory.s3.app_error",
+    "translation": "S3からのディレクトリ削除に失敗しました。"
+  },
+  {
+    "id": "utils.file.remove_file.configured.app_error",
+    "translation": "ファイルストレージが正しく設定されていません。S3またはローカルサーバーファイルストレージを設定してください。"
+  },
+  {
+    "id": "utils.file.remove_file.local.app_error",
+    "translation": "ローカルサーバーファイルストレージからのファイル削除に失敗しました。"
+  },
+  {
+    "id": "utils.file.remove_file.s3.app_error",
+    "translation": "S3からのファイル削除に失敗しました。"
   },
   {
     "id": "utils.i18n.loaded",
@@ -6662,6 +6618,18 @@
   {
     "id": "web.claim_account.user.error",
     "translation": "ユーザーが見付かりません teamid=%v、email=%v、err=%v"
+  },
+  {
+    "id": "web.command_webhook.command.app_error",
+    "translation": "コマンドが見付かりません"
+  },
+  {
+    "id": "web.command_webhook.invalid.app_error",
+    "translation": "不正なウェブフックです"
+  },
+  {
+    "id": "web.command_webhook.parse.app_error",
+    "translation": "外部からのデータを解析できません"
   },
   {
     "id": "web.create_dir.error",

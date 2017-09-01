@@ -1310,30 +1310,6 @@
     "translation": "Encountered an error reading from local server storage"
   },
   {
-    "id": "utils.file.remove_file.local.app_error",
-    "translation": "Encountered an error removing file from local server file storage."
-  },
-  {
-    "id": "utils.file.remove_file.s3.app_error",
-    "translation": "Encountered an error removing file from S3."
-  },
-  {
-    "id": "utils.file.remove_file.configured.app_error",
-    "translation": "File storage not configured properly. Please configure for either S3 or local server file storage."
-  },
-  {
-    "id": "utils.file.remove_directory.local.app_error",
-    "translation": "Encountered an error removing directory from local server file storage."
-  },
-  {
-    "id": "utils.file.remove_directory.s3.app_error",
-    "translation": "Encountered an error removing directory from S3."
-  },
-  {
-    "id": "utils.file.remove_directory.configured.app_error",
-    "translation": "File storage not configured properly. Please configure for either S3 or local server file storage."
-  },
-  {
     "id": "api.file.upload_file.bad_parse.app_error",
     "translation": "Unable to upload file. Header cannot be parsed."
   },
@@ -3732,10 +3708,6 @@
     "translation": "Compliance export started for job '{{.JobName}}' at '{{.FilePath}}'"
   },
   {
-    "id": "ent.elasticsearch.aggregator_worker.get_indexes.error",
-    "translation": "Elasticsearch aggregator worker failed to get indexes"
-  },
-  {
     "id": "ent.elasticsearch.aggregator_worker.create_index_job.error",
     "translation": "Elasticsearch aggregator worker failed to create the indexing job"
   },
@@ -3744,16 +3716,12 @@
     "translation": "Elasticsearch aggregator worker failed to delete the indexes"
   },
   {
+    "id": "ent.elasticsearch.aggregator_worker.get_indexes.error",
+    "translation": "Elasticsearch aggregator worker failed to get indexes"
+  },
+  {
     "id": "ent.elasticsearch.aggregator_worker.index_job_failed.error",
     "translation": "Elasticsearch aggregator worker failed due to the indexing job failing"
-  },
-  {
-    "id": "ent.elasticsearch.indexer.do_job.parse_start_time.error",
-    "translation": "Elasticsearch indexing worker failed to parse the start time"
-  },
-  {
-    "id": "ent.elasticsearch.indexer.do_job.parse_end_time.error",
-    "translation": "Elasticsearch indexing worker failed to parse the end time"
   },
   {
     "id": "ent.elasticsearch.create_client.connect_failed",
@@ -3782,6 +3750,14 @@
   {
     "id": "ent.elasticsearch.index_post.error",
     "translation": "Failed to index the post"
+  },
+  {
+    "id": "ent.elasticsearch.indexer.do_job.parse_end_time.error",
+    "translation": "Elasticsearch indexing worker failed to parse the end time"
+  },
+  {
+    "id": "ent.elasticsearch.indexer.do_job.parse_start_time.error",
+    "translation": "Elasticsearch indexing worker failed to parse the start time"
   },
   {
     "id": "ent.elasticsearch.not_started.error",
@@ -4364,6 +4340,34 @@
     "translation": "Invalid user id"
   },
   {
+    "id": "model.command_hook.channel_id.app_error",
+    "translation": "Invalid channel id"
+  },
+  {
+    "id": "model.command_hook.command_id.app_error",
+    "translation": "Invalid command id"
+  },
+  {
+    "id": "model.command_hook.create_at.app_error",
+    "translation": "Create at must be a valid time"
+  },
+  {
+    "id": "model.command_hook.id.app_error",
+    "translation": "Invalid command hook id"
+  },
+  {
+    "id": "model.command_hook.parent_id.app_error",
+    "translation": "Invalid parent id"
+  },
+  {
+    "id": "model.command_hook.root_id.app_error",
+    "translation": "Invalid root id"
+  },
+  {
+    "id": "model.command_hook.user_id.app_error",
+    "translation": "Invalid user id"
+  },
+  {
     "id": "model.compliance.is_valid.create_at.app_error",
     "translation": "Create at must be a valid time"
   },
@@ -4392,6 +4396,10 @@
     "translation": "Unable to enable email batching when clustering is enabled."
   },
   {
+    "id": "model.config.is_valid.elastic_search.aggregate_posts_after_days.app_error",
+    "translation": "Elasticsearch AggregatePostsAfterDays setting must be a number greater than or equal to 1"
+  },
+  {
     "id": "model.config.is_valid.elastic_search.connection_url.app_error",
     "translation": "Elastic Search ConnectionUrl setting must be provided when Elastic Search indexing is enabled."
   },
@@ -4404,16 +4412,12 @@
     "translation": "Elastic Search Password setting must be provided when Elastic Search indexing is enabled."
   },
   {
-    "id": "model.config.is_valid.elastic_search.username.app_error",
-    "translation": "Elastic Search Username setting must be provided when Elastic Search indexing is enabled."
-  },
-  {
-    "id": "model.config.is_valid.elastic_search.aggregate_posts_after_days.app_error",
-    "translation": "Elasticsearch AggregatePostsAfterDays setting must be a number greater than or equal to 1"
-  },
-  {
     "id": "model.config.is_valid.elastic_search.posts_aggregator_job_start_time.app_error",
     "translation": "Elasticsearch PostsAggregatorJobStartTime setting must be a time in the format \"hh:mm\""
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.username.app_error",
+    "translation": "Elastic Search Username setting must be provided when Elastic Search indexing is enabled."
   },
   {
     "id": "model.config.is_valid.email_batching_buffer_size.app_error",
@@ -4762,34 +4766,6 @@
   {
     "id": "model.job.is_valid.type.app_error",
     "translation": "Invalid job type"
-  },
-  {
-    "id": "model.command_hook.id.app_error",
-    "translation": "Invalid command hook id"
-  },
-  {
-    "id": "model.command_hook.create_at.app_error",
-    "translation": "Create at must be a valid time"
-  },
-  {
-    "id": "model.command_hook.command_id.app_error",
-    "translation": "Invalid command id"
-  },
-  {
-    "id": "model.command_hook.user_id.app_error",
-    "translation": "Invalid user id"
-  },
-  {
-    "id": "model.command_hook.channel_id.app_error",
-    "translation": "Invalid channel id"
-  },
-  {
-    "id": "model.command_hook.root_id.app_error",
-    "translation": "Invalid root id"
-  },
-  {
-    "id": "model.command_hook.parent_id.app_error",
-    "translation": "Invalid parent id"
   },
   {
     "id": "model.oauth.is_valid.app_id.app_error",
@@ -5608,6 +5584,26 @@
     "translation": "We couldn't update the command"
   },
   {
+    "id": "store.sql_command_webhooks.get.app_error",
+    "translation": "We couldn't get the webhook"
+  },
+  {
+    "id": "store.sql_command_webhooks.save.app_error",
+    "translation": "We couldn't save the CommandWebhook"
+  },
+  {
+    "id": "store.sql_command_webhooks.save.existing.app_error",
+    "translation": "You cannot update an existing CommandWebhook"
+  },
+  {
+    "id": "store.sql_command_webhooks.try_use.app_error",
+    "translation": "Unable to use the webhook"
+  },
+  {
+    "id": "store.sql_command_webhooks.try_use.invalid.app_error",
+    "translation": "Invalid webhook"
+  },
+  {
     "id": "store.sql_compliance.get.finding.app_error",
     "translation": "We encountered an error retrieving the compliance reports"
   },
@@ -5660,16 +5656,16 @@
     "translation": "We couldn't get the file info for the post"
   },
   {
+    "id": "store.sql_file_info.permanent_delete.app_error",
+    "translation": "We couldn't permanently delete the file info"
+  },
+  {
     "id": "store.sql_file_info.save.app_error",
     "translation": "We couldn't save the file info"
   },
   {
     "id": "store.sql_file_info.save_or_update.app_error",
     "translation": "We couldn't save or update the file info"
-  },
-  {
-    "id": "store.sql_file_info.permanent_delete.app_error",
-    "translation": "We couldn't permanently delete the file info"
   },
   {
     "id": "store.sql_job.delete.app_error",
@@ -6520,26 +6516,6 @@
     "translation": "We couldn't update the webhook"
   },
   {
-    "id": "store.sql_command_webhooks.save.existing.app_error",
-    "translation": "You cannot update an existing CommandWebhook"
-  },
-  {
-    "id": "store.sql_command_webhooks.save.app_error",
-    "translation": "We couldn't save the CommandWebhook"
-  },
-  {
-    "id": "store.sql_command_webhooks.get.app_error",
-    "translation": "We couldn't get the webhook"
-  },
-  {
-    "id": "store.sql_command_webhooks.try_use.app_error",
-    "translation": "Unable to use the webhook"
-  },
-  {
-    "id": "store.sql_command_webhooks.try_use.invalid.app_error",
-    "translation": "Invalid webhook"
-  },
-  {
     "id": "system.message.name",
     "translation": "System"
   },
@@ -6586,6 +6562,30 @@
   {
     "id": "utils.diagnostic.analytics_not_found.app_error",
     "translation": "Analytics not initialized"
+  },
+  {
+    "id": "utils.file.remove_directory.configured.app_error",
+    "translation": "File storage not configured properly. Please configure for either S3 or local server file storage."
+  },
+  {
+    "id": "utils.file.remove_directory.local.app_error",
+    "translation": "Encountered an error removing directory from local server file storage."
+  },
+  {
+    "id": "utils.file.remove_directory.s3.app_error",
+    "translation": "Encountered an error removing directory from S3."
+  },
+  {
+    "id": "utils.file.remove_file.configured.app_error",
+    "translation": "File storage not configured properly. Please configure for either S3 or local server file storage."
+  },
+  {
+    "id": "utils.file.remove_file.local.app_error",
+    "translation": "Encountered an error removing file from local server file storage."
+  },
+  {
+    "id": "utils.file.remove_file.s3.app_error",
+    "translation": "Encountered an error removing file from S3."
   },
   {
     "id": "utils.i18n.loaded",
@@ -6700,6 +6700,18 @@
     "translation": "Couldn't find user teamid=%v, email=%v, err=%v"
   },
   {
+    "id": "web.command_webhook.command.app_error",
+    "translation": "Couldn't find the command"
+  },
+  {
+    "id": "web.command_webhook.invalid.app_error",
+    "translation": "Invalid webhook"
+  },
+  {
+    "id": "web.command_webhook.parse.app_error",
+    "translation": "Unable to parse incoming data"
+  },
+  {
     "id": "web.create_dir.error",
     "translation": "Failed to create directory watcher %v"
   },
@@ -6762,18 +6774,6 @@
   {
     "id": "web.incoming_webhook.user.app_error",
     "translation": "Couldn't find the user"
-  },
-  {
-    "id": "web.command_webhook.parse.app_error",
-    "translation": "Unable to parse incoming data"
-  },
-  {
-    "id": "web.command_webhook.invalid.app_error",
-    "translation": "Invalid webhook"
-  },
-  {
-    "id": "web.command_webhook.command.app_error",
-    "translation": "Couldn't find the command"
   },
   {
     "id": "web.init.debug",

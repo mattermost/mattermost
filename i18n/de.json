@@ -844,156 +844,16 @@
     "translation": "Der Einstellungen-Befehl wird auf Ihrem Gerät nicht unterstützt"
   },
   {
-    "id": "api.command_shortcuts.browser.channel_next",
-    "translation": "{{.ChannelNextCmd}}: Nächster Kanal in Ihrem Verlauf\n"
-  },
-  {
-    "id": "api.command_shortcuts.browser.channel_next.cmd",
-    "translation": "ALT+RECHTS"
-  },
-  {
-    "id": "api.command_shortcuts.browser.channel_next.cmd_mac",
-    "translation": "CMD+RECHTS"
-  },
-  {
-    "id": "api.command_shortcuts.browser.channel_prev",
-    "translation": "{{.ChannelPrevCmd}}: Vorheriger Kanal in Ihrem Verlauf\n"
-  },
-  {
-    "id": "api.command_shortcuts.browser.channel_prev.cmd",
-    "translation": "ALT+LINKS"
-  },
-  {
-    "id": "api.command_shortcuts.browser.channel_prev.cmd_mac",
-    "translation": "CMD+LINKS"
-  },
-  {
-    "id": "api.command_shortcuts.browser.font_decrease",
-    "translation": "{{.CmdOrCtrl}}+MINUS: Schriftgröße verkleinern (herauszoomen)\n"
-  },
-  {
-    "id": "api.command_shortcuts.browser.font_increase",
-    "translation": "{{.CmdOrCtrl}}+PLUS: Schriftgröße erhöhen (hineinzoomen)\n"
-  },
-  {
-    "id": "api.command_shortcuts.browser.header",
-    "translation": "#### Eingebaute Browser-Befehle\n\n"
-  },
-  {
-    "id": "api.command_shortcuts.browser.highlight_next",
-    "translation": "SHIFT+RUNTER (im Eingabefeld): Text bis zur nächsten Zeile auswählen\n"
-  },
-  {
-    "id": "api.command_shortcuts.browser.highlight_prev",
-    "translation": "SHIFT+HOCH (im Eingabefeld): Text bis zur vorherigen Zeile auswählen\n"
-  },
-  {
-    "id": "api.command_shortcuts.browser.newline",
-    "translation": "SHIFT+ENTER (im Eingabefeld): Einen Zeilenumbruch einfügen\n"
-  },
-  {
-    "id": "api.command_shortcuts.cmd",
-    "translation": "CMD"
-  },
-  {
-    "id": "api.command_shortcuts.ctrl",
-    "translation": "STRG"
-  },
-  {
     "id": "api.command_shortcuts.desc",
     "translation": "Eine Liste der Tastaturkürzel anzeigen"
-  },
-  {
-    "id": "api.command_shortcuts.files.header",
-    "translation": "#### Dateien\n\n"
-  },
-  {
-    "id": "api.command_shortcuts.files.upload",
-    "translation": "{{.CmdOrCtrl}}+U: Datei(en) hochladen\n\n"
-  },
-  {
-    "id": "api.command_shortcuts.header",
-    "translation": "### Tastaturkürzel\n\n"
-  },
-  {
-    "id": "api.command_shortcuts.msgs.comp_channel",
-    "translation": "~[Zeichen]+TAB: Den Kanal beginnend mit [Zeichen] autovervollständigen\n"
-  },
-  {
-    "id": "api.command_shortcuts.msgs.comp_emoji",
-    "translation": ":[Zeichen]+TAB: Emoji beginnend mit [Zeichen] autovervollständigen\n\n"
-  },
-  {
-    "id": "api.command_shortcuts.msgs.comp_username",
-    "translation": "@[Zeichen]+TAB: @Benutzername beginnend mit [Zeichen] autovervollständigen\n"
-  },
-  {
-    "id": "api.command_shortcuts.msgs.edit",
-    "translation": "HOCH (im leeren Eingabefeld): Editieren Sie Ihre letzte Nachricht im aktuellen Kanal\n"
-  },
-  {
-    "id": "api.command_shortcuts.msgs.header",
-    "translation": "#### Mitteilungen\n\n"
-  },
-  {
-    "id": "api.command_shortcuts.msgs.mark_as_read",
-    "translation": "ESC: Alle Nachrichten im aktuellen Kanal als gelesen markieren\n"
-  },
-  {
-    "id": "api.command_shortcuts.msgs.reply",
-    "translation": "SHIFT+HOCH (in einem leeren Eingabefeld): Auf die neueste Nachricht im aktuellen Kanal antworten\n"
-  },
-  {
-    "id": "api.command_shortcuts.msgs.reprint_next",
-    "translation": "{{.CmdOrCtrl}}+RUNTER (im leeren Eingabefeld): Die nächste Nachricht oder den nächsten Slash-Befehl anzeigen\n"
-  },
-  {
-    "id": "api.command_shortcuts.msgs.reprint_prev",
-    "translation": "{{.CmdOrCtrl}}+HOCH (im leeren Eingabefeld): Die vorherige Nachricht oder den vorherigen Slash-Befehl anzeigen\n"
   },
   {
     "id": "api.command_shortcuts.name",
     "translation": "tastaturkürzel"
   },
   {
-    "id": "api.command_shortcuts.nav.direct_messages_menu",
-    "translation": "{{.CmdOrCtrl}}+SHIFT+K: Direktnachrichten-Menü öffnen\n"
-  },
-  {
-    "id": "api.command_shortcuts.nav.header",
-    "translation": "#### Navigation\n\n"
-  },
-  {
-    "id": "api.command_shortcuts.nav.next",
-    "translation": "ALT+RUNTER: Nächsten Kanal oder Direktnachricht in der linken Seitenleiste\n"
-  },
-  {
-    "id": "api.command_shortcuts.nav.prev",
-    "translation": "ALT+HOCH: Vorheriger Kanal oder Direktnachricht in der linken Seitenleiste\n"
-  },
-  {
-    "id": "api.command_shortcuts.nav.recent_mentions",
-    "translation": "{{.CmdOrCtrl}}+SHIFT+M: Letzten Erwähnungen öffnen\n\n"
-  },
-  {
-    "id": "api.command_shortcuts.nav.settings",
-    "translation": "{{.CmdOrCtrl}}+SHIFT+A: Kontoeinstellungen öffnen\n"
-  },
-  {
-    "id": "api.command_shortcuts.nav.switcher",
-    "translation": "{{.CmdOrCtrl}}+K: Den Kanalschnellwechsler öffnen\n"
-  },
-  {
-    "id": "api.command_shortcuts.nav.switcher_team",
-    "translation": "{{.CmdOrCtrl}}+ALT+K: Den Teamschnellwechsler-Dialog öffnen\n"
-  },
-  {
-    "id": "api.command_shortcuts.nav.unread_next",
-    "translation": "ALT+SHIFT+RUNTER: Nächster Kanal oder Direktnachricht mit ungelesenen Nachrichten in der linken Seitenleiste\n"
-  },
-  {
-    "id": "api.command_shortcuts.nav.unread_prev",
-    "translation": "ALT+SHIFT+HOCH: Vorheriger Kanal oder Direktnachricht mit ungelesenen Nachrichten in der linken Seitenleiste\n"
+    "id": "api.command_shortcuts.unsupported.app_error",
+    "translation": "Der Kurzbefehl wird auf Ihrem Gerät nicht unterstützt"
   },
   {
     "id": "api.command_shrug.desc",
@@ -1372,22 +1232,6 @@
   {
     "id": "api.file.move_file.rename.app_error",
     "translation": "Die Datei kann lokal nicht verschoben werden."
-  },
-  {
-    "id": "api.file.open_file_write_stream.configured.app_error",
-    "translation": "Dateispeicher wurde nicht vollständig konfiguriert. Bitte konfigurieren Sie diesen entweder für S3 oder einen lokalen Server mit Dateispeicher."
-  },
-  {
-    "id": "api.file.open_file_write_stream.creating_dir.app_error",
-    "translation": "Ein Fehler bei der Erstellung des Verzeichnisses für die neue Datei ist aufgetreten"
-  },
-  {
-    "id": "api.file.open_file_write_stream.local_server.app_error",
-    "translation": "Fehler beim Schreiben in den lokalen Serverspeicher"
-  },
-  {
-    "id": "api.file.open_file_write_stream.s3.app_error",
-    "translation": "S3 wird nicht unterstützt."
   },
   {
     "id": "api.file.read_file.configured.app_error",
@@ -2501,11 +2345,11 @@
   },
   {
     "id": "api.templates.user_access_token_body.title",
-    "translation": "Benutzer-Zugriffs-Token zu Ihrem Konto hinzugefügt"
+    "translation": "Persönliches Zugriffs-Token zu Ihrem Konto hinzugefügt"
   },
   {
     "id": "api.templates.user_access_token_subject",
-    "translation": "[{{ .SiteName }}] Benutzer-Zugriffs-Token zu Ihrem Konto hinzugefügt"
+    "translation": "[{{ .SiteName }}] Persönliches Zugriffs-Token zu Ihrem Konto hinzugefügt"
   },
   {
     "id": "api.templates.username_change_body.info",
@@ -2829,7 +2673,7 @@
   },
   {
     "id": "api.user.saml.not_available.app_error",
-    "translation": "SAML ist auf diesem Server nicht konfiguriert oder wird nicht unterstützt."
+    "translation": "SAML 2.0 ist auf diesem Server nicht konfiguriert oder wird nicht unterstützt."
   },
   {
     "id": "api.user.send_email_change_email_and_forget.error",
@@ -2865,7 +2709,7 @@
   },
   {
     "id": "api.user.send_user_access_token.error",
-    "translation": "Konnte \"Benutzer-Zugriffs-Token hinzugefügt\"-E-Mail nicht erfolgreich versenden"
+    "translation": "Konnte \"Persönliches Zugriffs-Token hinzugefügt\"-E-Mail nicht erfolgreich versenden"
   },
   {
     "id": "api.user.send_verify_email_and_forget.failed.error",
@@ -3561,7 +3405,7 @@
   },
   {
     "id": "app.user_access_token.disabled",
-    "translation": "Benutzer-Zugriffs-Token sind auf diesem Server deaktiviert. Bitte kontaktieren Sie ihren Systemadministrator für Details."
+    "translation": "Persönliche Zugriffs-Token sind auf diesem Server deaktiviert. Bitte kontaktieren Sie ihren Systemadministrator für Details."
   },
   {
     "id": "app.user_access_token.invalid_or_missing",
@@ -3593,11 +3437,11 @@
   },
   {
     "id": "authentication.permissions.create_user_access_token.description",
-    "translation": "Fähigkeit zum Erstellen von Benutzer-Zugriffs-Token"
+    "translation": "Fähigkeit zum Erstellen von persönlichen Zugriffs-Token"
   },
   {
     "id": "authentication.permissions.create_user_access_token.name",
-    "translation": "Benutzer-Zugriffs-Token erstellen"
+    "translation": "Persönlichen Zugriffs-Token erstellen"
   },
   {
     "id": "authentication.permissions.manage_jobs.description",
@@ -3625,19 +3469,19 @@
   },
   {
     "id": "authentication.permissions.read_user_access_token.description",
-    "translation": "Fähigkeit zum Lesen der Felder id, description and user_id von Benutzer-Zugriffs-Token"
+    "translation": "Fähigkeit zum Lesen der Felder id, description and user_id von persönlichen Zugriffs-Token"
   },
   {
     "id": "authentication.permissions.read_user_access_token.name",
-    "translation": "Benutzer-Zugriffs-Token lesen"
+    "translation": "Persönliche Zugriffs-Token lesen"
   },
   {
     "id": "authentication.permissions.revoke_user_access_token.description",
-    "translation": "Fähigkeit zum Widerrufen von Benutzer-Zugriffs-Token"
+    "translation": "Fähigkeit zum Widerrufen von persönlichen Zugriffs-Token"
   },
   {
     "id": "authentication.permissions.revoke_user_access_token.name",
-    "translation": "Benutzer-Zugriffs-Token widerrufen"
+    "translation": "Persönlichen Zugriffs-Token widerrufen"
   },
   {
     "id": "authentication.permissions.team_invite_user.description",
@@ -3673,11 +3517,11 @@
   },
   {
     "id": "authentication.roles.system_user_access_token.description",
-    "translation": "Eine Rolle mit den Berechtigungen zum Erstellen, Lesen und Widerrufen von Benutzer-Zugriffs-Token"
+    "translation": "Eine Rolle mit den Berechtigungen zum Erstellen, Lesen und Widerrufen von persönlichen Zugriffs-Token"
   },
   {
     "id": "authentication.roles.system_user_access_token.name",
-    "translation": "Benutzer-Zugriffs-Token"
+    "translation": "Persönlicher Zugriffs-Token"
   },
   {
     "id": "authentication.roles.team_post_all.description",
@@ -3788,6 +3632,22 @@
     "translation": "Compliance Export gestartet für Job '{{.JobName}}' in '{{.FilePath}}'"
   },
   {
+    "id": "ent.elasticsearch.aggregator_worker.create_index_job.error",
+    "translation": "Elasticsearch-Aggregator-Worker konnte den Indizierungs-Job nicht erstellen"
+  },
+  {
+    "id": "ent.elasticsearch.aggregator_worker.delete_indexes.error",
+    "translation": "Elasticsearch-Aggregator-Worker konnte die Indexe nicht löschen"
+  },
+  {
+    "id": "ent.elasticsearch.aggregator_worker.get_indexes.error",
+    "translation": "Elasticsearch-Aggregator-Worker konnte Indexe nicht abrufen"
+  },
+  {
+    "id": "ent.elasticsearch.aggregator_worker.index_job_failed.error",
+    "translation": "Elasticsearch-Aggregator-Worker ist fehlgeschlagen, da der Indizierungs-Job fehlgeschlagen ist"
+  },
+  {
     "id": "ent.elasticsearch.create_client.connect_failed",
     "translation": "Fehler beim Einrichten des ElasticSearch-Client"
   },
@@ -3814,6 +3674,14 @@
   {
     "id": "ent.elasticsearch.index_post.error",
     "translation": "Indizierung der Nachricht fehlgeschlagen"
+  },
+  {
+    "id": "ent.elasticsearch.indexer.do_job.parse_end_time.error",
+    "translation": "Elasticsearch-Aggregator-Worker konnte die Endzeit nicht verarbeiten"
+  },
+  {
+    "id": "ent.elasticsearch.indexer.do_job.parse_start_time.error",
+    "translation": "Elasticsearch-Aggregator-Worker konnte die Startzeit nicht verarbeiten"
   },
   {
     "id": "ent.elasticsearch.not_started.error",
@@ -4037,7 +3905,7 @@
   },
   {
     "id": "ent.saml.service_disable.app_error",
-    "translation": "SAML ist auf diesem Server nicht konfiguriert oder wird nicht unterstützt."
+    "translation": "SAML 2.0 ist auf diesem Server nicht konfiguriert oder wird nicht unterstützt."
   },
   {
     "id": "ent.saml.update_saml_user.unable_error",
@@ -4392,6 +4260,34 @@
     "translation": "Ungültige Benutzer-ID"
   },
   {
+    "id": "model.command_hook.channel_id.app_error",
+    "translation": "Ungültige Kanal-ID"
+  },
+  {
+    "id": "model.command_hook.command_id.app_error",
+    "translation": "Ungültige Befehls-ID"
+  },
+  {
+    "id": "model.command_hook.create_at.app_error",
+    "translation": "\"Erstellt am\" muss eine gültige Zeit sein"
+  },
+  {
+    "id": "model.command_hook.id.app_error",
+    "translation": "Ungültige Befehls-Hook-ID"
+  },
+  {
+    "id": "model.command_hook.parent_id.app_error",
+    "translation": "Ungültige Vorgänger-ID"
+  },
+  {
+    "id": "model.command_hook.root_id.app_error",
+    "translation": "Ungültige Root-ID"
+  },
+  {
+    "id": "model.command_hook.user_id.app_error",
+    "translation": "Ungültige Benutzer-ID"
+  },
+  {
     "id": "model.compliance.is_valid.create_at.app_error",
     "translation": "Erstellt am muss eine gültige Zeit sein"
   },
@@ -4420,6 +4316,10 @@
     "translation": "E-Mail-Stapelverarbeitung lässt sich bei aktiviertem Clustering nicht aktivieren."
   },
   {
+    "id": "model.config.is_valid.elastic_search.aggregate_posts_after_days.app_error",
+    "translation": "Elasticsearch AggregatePostsAfterDays-Einstellung muss eine Zahl sein, die größer als oder gleich 1 ist"
+  },
+  {
     "id": "model.config.is_valid.elastic_search.connection_url.app_error",
     "translation": "ElasticSearch-Einstellung ConnectionUrl muss angegeben sein, wenn Elastic-Search-Indizierung aktiviert ist."
   },
@@ -4430,6 +4330,10 @@
   {
     "id": "model.config.is_valid.elastic_search.password.app_error",
     "translation": "ElasticSearch-Einstellung Passwort muss angegeben sein, wenn Elastic-Search-Indizierung aktiviert ist."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.posts_aggregator_job_start_time.app_error",
+    "translation": "Elasticsearch PostsAggregatorJobStartTime-Einstellung muss eine Uhrzeit im Format \"hh:mm\" sein"
   },
   {
     "id": "model.config.is_valid.elastic_search.username.app_error",
@@ -5176,6 +5080,10 @@
     "translation": "Konnte nicht dekodieren"
   },
   {
+    "id": "plugin.rpcplugin.invocation.error",
+    "translation": "Error invoking plugin RPC"
+  },
+  {
     "id": "store.sql.alter_column_type.critical",
     "translation": "Fehler beim Anpassen des Spaltentyps %v"
   },
@@ -5281,7 +5189,7 @@
   },
   {
     "id": "store.sql.schema_version.critical",
-    "translation": "Datenbankschema-Version %v wird nicht länger unterstützt. Dieser Mattermost-Server unterstützt automatische Upgrades von Schema-Version %v bis %v. Downgrades werden nicht unterstützt. Bitte aktualisieren Sie manuell auf mindestens Version %v bevor Sie fortfahren."
+    "translation": "Datenbankschema-Version %v wird nicht länger unterstützt. Dieser Mattermost-Server unterstützt automatische Upgrades von Schema-Version %v bis %v. Downgrades werden nicht unterstützt. Bitte aktualisieren Sie manuell auf mindestens Version %v, bevor Sie fortfahren."
   },
   {
     "id": "store.sql.short_ciphertext",
@@ -5596,6 +5504,26 @@
     "translation": "Der Befehl konnte nicht aktualisiert werden"
   },
   {
+    "id": "store.sql_command_webhooks.get.app_error",
+    "translation": "Der Webhook konnte nicht gefunden werden"
+  },
+  {
+    "id": "store.sql_command_webhooks.save.app_error",
+    "translation": "Der CommandWebhook konnte nicht gespeichert werden"
+  },
+  {
+    "id": "store.sql_command_webhooks.save.existing.app_error",
+    "translation": "Sie können einen existierenden CommandWebhook nicht aktualisieren"
+  },
+  {
+    "id": "store.sql_command_webhooks.try_use.app_error",
+    "translation": "Kann den Webhook nicht verwenden"
+  },
+  {
+    "id": "store.sql_command_webhooks.try_use.invalid.app_error",
+    "translation": "Ungültiger Webhook"
+  },
+  {
     "id": "store.sql_compliance.get.finding.app_error",
     "translation": "Beim Empfang des Compliance-Berichtes wurde ein Fehler festgestellt"
   },
@@ -5646,6 +5574,10 @@
   {
     "id": "store.sql_file_info.get_for_post.app_error",
     "translation": "Die Dateiinformationen konnten nicht für den Beitrag abgerufen werden"
+  },
+  {
+    "id": "store.sql_file_info.permanent_delete.app_error",
+    "translation": "We couldn't permanently delete the file info"
   },
   {
     "id": "store.sql_file_info.save.app_error",
@@ -6405,23 +6337,23 @@
   },
   {
     "id": "store.sql_user_access_token.delete.app_error",
-    "translation": "Das Benutzer-Zugriffs-Token konnte nicht entfernt werden"
+    "translation": "Das persönliche Zugriffs-Token konnte nicht entfernt werden"
   },
   {
     "id": "store.sql_user_access_token.get.app_error",
-    "translation": "Das Benutzer-Zugriffs-Token konnte nicht abgerufen werden"
+    "translation": "Das persönliche Zugriffs-Token konnte nicht abgerufen werden"
   },
   {
     "id": "store.sql_user_access_token.get_by_token.app_error",
-    "translation": "Das Benutzer-Zugriffs-Token konnte nicht über Token abgerufen werden"
+    "translation": "Das persönliche Zugriffs-Token konnte nicht über Token abgerufen werden"
   },
   {
     "id": "store.sql_user_access_token.get_by_user.app_error",
-    "translation": "Die Benutzer-Zugriffs-Token konnten nicht über den Benutzer abgerufen werden"
+    "translation": "Die persönliche Zugriffs-Token konnten nicht über den Benutzer abgerufen werden"
   },
   {
     "id": "store.sql_user_access_token.save.app_error",
-    "translation": "Das Benutzer-Zugriffs-Token konnte nicht gespeichert werden"
+    "translation": "Das persönliche Zugriffs-Token konnte nicht gespeichert werden"
   },
   {
     "id": "store.sql_webhooks.analytics_incoming_count.app_error",
@@ -6509,7 +6441,7 @@
   },
   {
     "id": "utils.config.add_client_locale.app_error",
-    "translation": "Konnte Mattermost-Konfigurationsdatei nicht laden:  Fügre DefaultClientLocale zu AvailableLocales hinzu."
+    "translation": "Konnte Mattermost-Konfigurationsdatei nicht laden:  Füge DefaultClientLocale zu AvailableLocales hinzu."
   },
   {
     "id": "utils.config.load_config.decoding.panic",
@@ -6533,7 +6465,7 @@
   },
   {
     "id": "utils.config.supported_available_locales.app_error",
-    "translation": "Konnte Mattermost-Konfigurationsdatei nicht laden:  AvailableLocales muss DefaultClientLocale enthalten. Setze AvailableLocales auf alle Übersetzungen als Standardwert."
+    "translation": "Konnte Mattermost-Konfigurationsdatei nicht laden:  AvailableLocales muss DefaultClientLocale enthalten. Setze AvailableLocales für alle Übersetzungen als Standardwert."
   },
   {
     "id": "utils.config.supported_client_locale.app_error",
@@ -6550,6 +6482,30 @@
   {
     "id": "utils.diagnostic.analytics_not_found.app_error",
     "translation": "Analytics nicht initialisiert"
+  },
+  {
+    "id": "utils.file.remove_directory.configured.app_error",
+    "translation": "Der Dateispeicher ist nicht korrekt konfiguriert. Bitte konfigurieren Sie diesen entweder für S3 oder den Dateispeicher des lokalen Servers."
+  },
+  {
+    "id": "utils.file.remove_directory.local.app_error",
+    "translation": "Ein Fehler während des Lesens vom lokalen Server ist aufgetreten"
+  },
+  {
+    "id": "utils.file.remove_directory.s3.app_error",
+    "translation": "Encountered an error removing directory from S3."
+  },
+  {
+    "id": "utils.file.remove_file.configured.app_error",
+    "translation": "Der Dateispeicher ist nicht korrekt konfiguriert. Bitte konfigurieren Sie diesen entweder für S3 oder den Dateispeicher des lokalen Servers."
+  },
+  {
+    "id": "utils.file.remove_file.local.app_error",
+    "translation": "Ein Fehler während des Lesens vom lokalen Server ist aufgetreten"
+  },
+  {
+    "id": "utils.file.remove_file.s3.app_error",
+    "translation": "Encountered an error removing file from S3."
   },
   {
     "id": "utils.i18n.loaded",
@@ -6662,6 +6618,18 @@
   {
     "id": "web.claim_account.user.error",
     "translation": "Benutzer konnte nicht gefunden werden teamid=%v, email=%v, err=%v"
+  },
+  {
+    "id": "web.command_webhook.command.app_error",
+    "translation": "Der Befehl konnte nicht gefunden werden"
+  },
+  {
+    "id": "web.command_webhook.invalid.app_error",
+    "translation": "Ungültiger Webhook"
+  },
+  {
+    "id": "web.command_webhook.parse.app_error",
+    "translation": "Konnte eingehende Daten nicht verarbeiten"
   },
   {
     "id": "web.create_dir.error",
