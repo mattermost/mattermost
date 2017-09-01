@@ -486,6 +486,8 @@
   "admin.image.amazonS3SecretDescription": "Obtain this credential from your Amazon EC2 administrator.",
   "admin.image.amazonS3SecretExample": "E.g.: \"jcuS8PuvcpGhpgHhlcpT1Mx42pnqMxQY\"",
   "admin.image.amazonS3SecretTitle": "Amazon S3 Secret Access Key:",
+  "admin.image.amazonS3TraceDescription": "(Development Mode) When true, log additional debugging information to the system logs.",
+  "admin.image.amazonS3TraceTitle": "Enable additional logging for Amazon S3:",
   "admin.image.localDescription": "Directory to which files and images are written. If blank, defaults to ./data/.",
   "admin.image.localExample": "E.g.: \"./data/\"",
   "admin.image.localTitle": "Local Storage Directory:",

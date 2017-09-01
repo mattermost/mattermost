@@ -33,7 +33,17 @@ func s3New(endpoint, accessKey, secretKey string, secure bool, signV2 bool, regi
 	} else {
 		creds = credentials.NewStatic(accessKey, secretKey, "", credentials.SignatureV4)
 	}
-	return s3.NewWithCredentials(endpoint, creds, secure, region)
+
+	s3Clnt, err := s3.NewWithCredentials(endpoint, creds, secure, region)
+	if err != nil {
+		return nil, err
+	}
+
+	if *Cfg.FileSettings.AmazonS3Trace {
+		s3Clnt.TraceOn(os.Stdout)
+	}
+
+	return s3Clnt, nil
 }
 
 func TestFileConnection() *model.AppError {

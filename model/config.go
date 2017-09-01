@@ -267,6 +267,7 @@ type FileSettings struct {
 	AmazonS3SSL             *bool
 	AmazonS3SignV2          *bool
 	AmazonS3SSE             *bool
+	AmazonS3Trace           *bool
 }
 
 type EmailSettings struct {
@@ -572,6 +573,11 @@ func (o *Config) SetDefaults() {
 	if o.FileSettings.AmazonS3SSE == nil {
 		o.FileSettings.AmazonS3SSE = new(bool)
 		*o.FileSettings.AmazonS3SSE = false // Not Encrypted by default.
+	}
+
+	if o.FileSettings.AmazonS3Trace == nil {
+		o.FileSettings.AmazonS3Trace = new(bool)
+		*o.FileSettings.AmazonS3Trace = false
 	}
 
 	if o.FileSettings.EnableFileAttachments == nil {
