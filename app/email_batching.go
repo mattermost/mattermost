@@ -132,8 +132,8 @@ func (job *EmailBatchingJob) checkPendingNotifications(now time.Time, handler fu
 			// time of each channel exactly once
 			if !inspectedChannelIds[notification.post.ChannelId] {
 				cchan := Srv.Store.Channel().GetMember(notification.post.ChannelId, userId)
-				if result := <- cchan; result.Err != nil {
-					l4g.Error("Unable to find ChannelMember record for channel and user", result.Err)
+				if result := <-cchan; result.Err != nil {
+					l4g.Error("Unable to find ChannelMember record", result.Err)
 					delete(job.pendingNotifications, userId)
 					break
 				} else if channelMember := result.Data.(*model.ChannelMember); channelMember.LastViewedAt >= batchStartTime {
