@@ -121,24 +121,34 @@ func (job *EmailBatchingJob) handleNewNotifications() {
 }
 
 func (job *EmailBatchingJob) checkPendingNotifications(now time.Time, handler func(string, []*batchedNotification)) {
-	// look for users who've acted since pending posts were received
 	for userId, notifications := range job.pendingNotifications {
-		schan := Srv.Store.Status().Get(userId)
-		pchan := Srv.Store.Preference().Get(userId, model.PREFERENCE_CATEGORY_NOTIFICATIONS, model.PREFERENCE_NAME_EMAIL_INTERVAL)
-		batchStartTime := notifications[0].post.CreateAt
 
-		// check if the user has been active and would've seen any new posts
-		if result := <-schan; result.Err != nil {
-			l4g.Error(utils.T("api.email_batching.check_pending_emails.status.app_error"), result.Err)
-			delete(job.pendingNotifications, userId)
-			continue
-		} else if status := result.Data.(*model.Status); status.LastActivityAt >= batchStartTime {
-			delete(job.pendingNotifications, userId)
-			continue
+		// if the user has viewed any of the channels that we've queued notifications for since the time at which the
+		// first notification was posted, delete all queued notifications so that the email is never sent
+		batchStartTime := notifications[0].post.CreateAt
+		inspectedChannelIds := make(map[string]bool)
+		for _, notification := range notifications {
+			// because multiple messages may have been queued for the same channel, we take care to only check the last viewed at
+			// time of each channel exactly once
+			if !inspectedChannelIds[notification.post.ChannelId] {
+				cchan := Srv.Store.Channel().GetMember(notification.post.ChannelId, userId)
+				if result := <- cchan; result.Err != nil {
+					l4g.Error("Unable to find ChannelMember record for channel and user", result.Err)
+					delete(job.pendingNotifications, userId)
+					break
+				} else if channelMember := result.Data.(*model.ChannelMember); channelMember.LastViewedAt >= batchStartTime {
+					l4g.Info("Deleted notifications for user %s", userId)
+					delete(job.pendingNotifications, userId)
+					break
+				}
+
+				inspectedChannelIds[notification.post.ChannelId] = true
+			}
 		}
 
 		// get how long we need to wait to send notifications to the user
 		var interval int64
+		pchan := Srv.Store.Preference().Get(userId, model.PREFERENCE_CATEGORY_NOTIFICATIONS, model.PREFERENCE_NAME_EMAIL_INTERVAL)
 		if result := <-pchan; result.Err != nil {
 			// use the default batching interval if an error ocurrs while fetching user preferences
 			interval, _ = strconv.ParseInt(model.PREFERENCE_EMAIL_INTERVAL_BATCHING_SECONDS, 10, 64)
