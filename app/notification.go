@@ -842,7 +842,7 @@ func GetExplicitMentions(message string, keywords map[string][]string) (map[stri
 var codeBlockPattern = regexp.MustCompile("(?m)^[^\\S\n]*\\`\\`\\`.*$[\\s\\S]+?(^[^\\S\n]*\\`\\`\\`$|\\z)")
 
 // Matches a backquote, either some text or any number of non-empty lines, and then a final backquote
-var inlineCodePattern = regexp.MustCompile("(?m)\\`(?:.+?|.*?\n(.*?\\S.*?\n)*.*?)\\`")
+var inlineCodePattern = regexp.MustCompile("(?m)\\`+(?:.+?|.*?\n(.*?\\S.*?\n)*.*?)\\`+")
 
 // Strips pre-formatted text and code blocks from a Markdown string by replacing them with whitespace
 func removeCodeFromMessage(message string) string {
