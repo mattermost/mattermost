@@ -188,6 +188,7 @@
     },
     "ThemeSettings": {
         "EnableThemeSelection": true,
+        "DefaultTheme": "default",
         "AllowCustomThemes": true,
         "AllowedThemes": []
     },

@@ -141,6 +141,12 @@ class PreferenceStore extends EventEmitter {
             return this.getObject(Constants.Preferences.CATEGORY_THEME, '');
         }
 
+        for (const k in Constants.THEMES) {
+            if (Constants.THEMES.hasOwnProperty(k) && k === global.mm_config.DefaultTheme) {
+                return Constants.THEMES[k];
+            }
+        }
+
         return Constants.THEMES.default;
     }
 

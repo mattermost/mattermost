@@ -129,6 +129,8 @@ const (
 	ANNOUNCEMENT_SETTINGS_DEFAULT_BANNER_COLOR      = "#f2a93b"
 	ANNOUNCEMENT_SETTINGS_DEFAULT_BANNER_TEXT_COLOR = "#333333"
 
+	TEAM_SETTINGS_DEFAULT_TEAM_TEXT = "default"
+
 	ELASTICSEARCH_SETTINGS_DEFAULT_CONNECTION_URL                  = ""
 	ELASTICSEARCH_SETTINGS_DEFAULT_USERNAME                        = ""
 	ELASTICSEARCH_SETTINGS_DEFAULT_PASSWORD                        = ""
@@ -334,6 +336,7 @@ type AnnouncementSettings struct {
 
 type ThemeSettings struct {
 	EnableThemeSelection *bool
+	DefaultTheme         *string
 	AllowCustomThemes    *bool
 	AllowedThemes        []string
 }
@@ -1000,6 +1003,11 @@ func (o *Config) SetDefaults() {
 	if o.ThemeSettings.EnableThemeSelection == nil {
 		o.ThemeSettings.EnableThemeSelection = new(bool)
 		*o.ThemeSettings.EnableThemeSelection = true
+	}
+
+	if o.ThemeSettings.DefaultTheme == nil {
+		o.ThemeSettings.DefaultTheme = new(string)
+		*o.ThemeSettings.DefaultTheme = TEAM_SETTINGS_DEFAULT_TEAM_TEXT
 	}
 
 	if o.ThemeSettings.AllowCustomThemes == nil {

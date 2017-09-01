@@ -26,6 +26,7 @@ const (
 	TRACK_CONFIG_RATE          = "config_rate"
 	TRACK_CONFIG_EMAIL         = "config_email"
 	TRACK_CONFIG_PRIVACY       = "config_privacy"
+	TRACK_CONFIG_THEME         = "config_theme"
 	TRACK_CONFIG_OAUTH         = "config_oauth"
 	TRACK_CONFIG_LDAP          = "config_ldap"
 	TRACK_CONFIG_COMPLIANCE    = "config_compliance"
@@ -329,6 +330,13 @@ func trackConfig() {
 	SendDiagnostic(TRACK_CONFIG_PRIVACY, map[string]interface{}{
 		"show_email_address": utils.Cfg.PrivacySettings.ShowEmailAddress,
 		"show_full_name":     utils.Cfg.PrivacySettings.ShowFullName,
+	})
+
+	SendDiagnostic(TRACK_CONFIG_THEME, map[string]interface{}{
+		"enable_theme_selection":  *utils.Cfg.ThemeSettings.EnableThemeSelection,
+		"isdefault_default_theme": isDefault(*utils.Cfg.ThemeSettings.DefaultTheme, model.TEAM_SETTINGS_DEFAULT_TEAM_TEXT),
+		"allow_custom_themes":     *utils.Cfg.ThemeSettings.AllowCustomThemes,
+		"allowed_themes":          len(utils.Cfg.ThemeSettings.AllowedThemes),
 	})
 
 	SendDiagnostic(TRACK_CONFIG_OAUTH, map[string]interface{}{
