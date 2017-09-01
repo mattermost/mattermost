@@ -127,7 +127,6 @@ export default class StorageSettings extends AdminSettings {
                                 defaultMessage='Enable Server-Side Encryption for Amazon S3:'
                             />
                         }
-                        placeholder={Utils.localizeMessage('admin.image.amazonS3SSEExample', 'Ex "false"')}
                         helpText={
                             <FormattedHTMLMessage
                                 id='admin.image.amazonS3SSEDescription'
@@ -269,7 +268,6 @@ export default class StorageSettings extends AdminSettings {
                             defaultMessage='Enable Secure Amazon S3 Connections:'
                         />
                     }
-                    placeholder={Utils.localizeMessage('admin.image.amazonS3SSLExample', 'Ex "true"')}
                     helpText={
                         <FormattedMessage
                             id='admin.image.amazonS3SSLDescription'
