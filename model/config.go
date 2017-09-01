@@ -354,6 +354,7 @@ type TeamSettings struct {
 	MaxChannelsPerTeam                  *int64
 	MaxNotificationsPerChannel          *int64
 	TeammateNameDisplay                 *string
+	ExperimentalTownSquareIsReadOnly    *bool
 }
 
 type ClientRequirements struct {
@@ -822,6 +823,11 @@ func (o *Config) SetDefaults() {
 	if o.TeamSettings.MaxNotificationsPerChannel == nil {
 		o.TeamSettings.MaxNotificationsPerChannel = new(int64)
 		*o.TeamSettings.MaxNotificationsPerChannel = 1000
+	}
+
+	if o.TeamSettings.ExperimentalTownSquareIsReadOnly == nil {
+		o.TeamSettings.ExperimentalTownSquareIsReadOnly = new(bool)
+		*o.TeamSettings.ExperimentalTownSquareIsReadOnly = false
 	}
 
 	if o.EmailSettings.EnableSignInWithEmail == nil {
