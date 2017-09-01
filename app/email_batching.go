@@ -14,6 +14,7 @@ import (
 
 	l4g "github.com/alecthomas/log4go"
 	"github.com/nicksnyder/go-i18n/i18n"
+	"net/http"
 )
 
 const (
@@ -36,12 +37,12 @@ func InitEmailBatching() {
 
 func AddNotificationEmailToBatch(user *model.User, post *model.Post, team *model.Team) *model.AppError {
 	if !*utils.Cfg.EmailSettings.EnableEmailBatching {
-		return model.NewLocAppError("AddNotificationEmailToBatch", "api.email_batching.add_notification_email_to_batch.disabled.app_error", nil, "")
+		return model.NewAppError("AddNotificationEmailToBatch", "api.email_batching.add_notification_email_to_batch.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
 	if !emailBatchingJob.Add(user, post, team) {
 		l4g.Error(utils.T("api.email_batching.add_notification_email_to_batch.channel_full.app_error"))
-		return model.NewLocAppError("AddNotificationEmailToBatch", "api.email_batching.add_notification_email_to_batch.channel_full.app_error", nil, "")
+		return model.NewAppError("AddNotificationEmailToBatch", "api.email_batching.add_notification_email_to_batch.channel_full.app_error", nil, "", http.StatusInternalServerError)
 	}
 
 	return nil
