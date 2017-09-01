@@ -53,6 +53,9 @@ type Routes struct {
 	Files *mux.Router // 'api/v4/files'
 	File  *mux.Router // 'api/v4/files/{file_id:[A-Za-z0-9]+}'
 
+	Plugins *mux.Router // 'api/v4/plugins'
+	Plugin  *mux.Router // 'api/v4/plugins/{plugin_id:[A-Za-z0-9_-]+}'
+
 	PublicFile *mux.Router // 'files/{file_id:[A-Za-z0-9]+}/public'
 
 	Commands *mux.Router // 'api/v4/commands'
@@ -146,6 +149,9 @@ func InitApi(full bool) {
 	BaseRoutes.File = BaseRoutes.Files.PathPrefix("/{file_id:[A-Za-z0-9]+}").Subrouter()
 	BaseRoutes.PublicFile = BaseRoutes.Root.PathPrefix("/files/{file_id:[A-Za-z0-9]+}/public").Subrouter()
 
+	BaseRoutes.Plugins = BaseRoutes.ApiRoot.PathPrefix("/plugins").Subrouter()
+	BaseRoutes.Plugin = BaseRoutes.Plugins.PathPrefix("/{plugin_id:[A-Za-z0-9\\_\\-]+}").Subrouter()
+
 	BaseRoutes.Commands = BaseRoutes.ApiRoot.PathPrefix("/commands").Subrouter()
 	BaseRoutes.Command = BaseRoutes.Commands.PathPrefix("/{command_id:[A-Za-z0-9]+}").Subrouter()
 
@@ -205,6 +211,7 @@ func InitApi(full bool) {
 	InitReaction()
 	InitWebrtc()
 	InitOpenGraph()
+	InitPlugin()
 
 	app.Srv.Router.Handle("/api/v4/{anything:.*}", http.HandlerFunc(Handle404))
 

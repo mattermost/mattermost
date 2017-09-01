@@ -314,6 +314,7 @@
         "RunScheduler": true
     },
     "PluginSettings": {
+        "Enable": false,
         "Plugins": {}
     }
 }

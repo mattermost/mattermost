@@ -477,6 +477,7 @@ type JobSettings struct {
 }
 
 type PluginSettings struct {
+	Enable  *bool
 	Plugins map[string]interface{}
 }
 
@@ -1520,6 +1521,11 @@ func (o *Config) SetDefaults() {
 	if o.JobSettings.RunScheduler == nil {
 		o.JobSettings.RunScheduler = new(bool)
 		*o.JobSettings.RunScheduler = true
+	}
+
+	if o.PluginSettings.Enable == nil {
+		o.PluginSettings.Enable = new(bool)
+		*o.PluginSettings.Enable = false
 	}
 
 	if o.PluginSettings.Plugins == nil {
