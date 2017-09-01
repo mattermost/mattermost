@@ -1333,10 +1333,19 @@ func TestUserStoreSearch(t *testing.T) {
 	u3.DeleteAt = 1
 	Must(store.User().Save(u3))
 
+	u5 := &model.User{}
+	u5.Username = "yu" + model.NewId()
+	u5.FirstName = "En"
+	u5.LastName = "Yu"
+	u5.Nickname = "enyu"
+	u5.Email = model.NewId() + "@simulator.amazonses.com"
+	Must(store.User().Save(u5))
+
 	tid := model.NewId()
 	Must(store.Team().SaveMember(&model.TeamMember{TeamId: tid, UserId: u1.Id}))
 	Must(store.Team().SaveMember(&model.TeamMember{TeamId: tid, UserId: u2.Id}))
 	Must(store.Team().SaveMember(&model.TeamMember{TeamId: tid, UserId: u3.Id}))
+	Must(store.Team().SaveMember(&model.TeamMember{TeamId: tid, UserId: u5.Id}))
 
 	searchOptions := map[string]bool{}
 	searchOptions[USER_SEARCH_OPTION_NAMES_ONLY] = true
@@ -1363,6 +1372,22 @@ func TestUserStoreSearch(t *testing.T) {
 
 		if found2 {
 			t.Fatal("should not have found inactive user")
+		}
+	}
+
+	if r1 := <-store.User().Search(tid, "en", searchOptions); r1.Err != nil {
+		t.Fatal(r1.Err)
+	} else {
+		profiles := r1.Data.([]*model.User)
+		found1 := false
+		for _, profile := range profiles {
+			if profile.Id == u5.Id {
+				found1 = true
+			}
+		}
+
+		if !found1 {
+			t.Fatal("should have found user")
 		}
 	}
 
