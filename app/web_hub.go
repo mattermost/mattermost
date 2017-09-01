@@ -27,8 +27,10 @@ const (
 )
 
 type Hub struct {
-	connections     []*WebConn
+	// connectionCount should be kept first.
+	// See https://github.com/mattermost/platform/pull/7281
 	connectionCount int64
+	connections     []*WebConn
 	connectionIndex int
 	register        chan *WebConn
 	unregister      chan *WebConn
