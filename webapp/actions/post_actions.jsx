@@ -13,7 +13,6 @@ import {sendDesktopNotification} from 'actions/notification_actions.jsx';
 
 import {ActionTypes, Constants} from 'utils/constants.jsx';
 import {EMOJI_PATTERN} from 'utils/emoticons.jsx';
-import {CHANNEL_MENTION_PATTERN} from 'utils/text_formatting.jsx';
 
 import {browserHistory} from 'react-router/es6';
 
@@ -24,7 +23,6 @@ const getState = store.getState;
 
 import * as PostActions from 'mattermost-redux/actions/posts';
 import {getMyChannelMember} from 'mattermost-redux/actions/channels';
-import {getChannelsNameMapInCurrentTeam} from 'mattermost-redux/selectors/entities/channels';
 
 import {Client4} from 'mattermost-redux/client';
 
@@ -173,29 +171,6 @@ export function createPost(post, files, success) {
             const trimmed = emoji.substring(1, emoji.length - 1);
             emitEmojiPosted(trimmed);
         }
-    }
-
-    var channelMentionsProp = {};
-    const nameMap = getChannelsNameMapInCurrentTeam(store.getState());
-    var hasMentions = false;
-    while (true) { //eslint-disable-line no-constant-condition
-        const match = CHANNEL_MENTION_PATTERN.exec(post.message);
-        if (!match) {
-            break;
-        }
-        const name = match[3];
-        if (nameMap[name]) {
-            channelMentionsProp[name] = {
-                display_name: nameMap[name].display_name
-            };
-            hasMentions = true;
-        }
-    }
-    if (hasMentions) {
-        if (!post.props) {
-            post.props = {};
-        }
-        post.props.channel_mentions = channelMentionsProp;
     }
 
     PostActions.createPost(post, files)(dispatch, getState).then(() => {

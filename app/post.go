@@ -105,6 +105,10 @@ func CreatePost(post *model.Post, channel *model.Channel, triggerWebhooks bool) 
 
 	post.Hashtags, _ = model.ParseHashtags(post.Message)
 
+	if err := FillInPostProps(post, channel); err != nil {
+		return nil, err
+	}
+
 	var rpost *model.Post
 	if result := <-Srv.Store.Post().Save(post); result.Err != nil {
 		return nil, result.Err
@@ -141,6 +145,41 @@ func CreatePost(post *model.Post, channel *model.Channel, triggerWebhooks bool) 
 	}
 
 	return rpost, nil
+}
+
+// FillInPostProps should be invoked before saving posts to fill in properties such as
+// channel_mentions.
+//
+// If channel is nil, FillInPostProps will look up the channel corresponding to the post.
+func FillInPostProps(post *model.Post, channel *model.Channel) *model.AppError {
+	channelMentions := make(map[string]interface{})
+	for _, channelName := range post.ChannelMentions() {
+		if _, ok := channelMentions[channelName]; ok {
+			continue
+		}
+		if channel == nil {
+			result := <-Srv.Store.Channel().GetForPost(post.Id)
+			if result.Err == nil {
+				return model.NewAppError("FillInPostProps", "api.context.invalid_param.app_error", map[string]interface{}{"Name": "post.channel_id"}, result.Err.Error(), http.StatusBadRequest)
+			}
+			channel = result.Data.(*model.Channel)
+		}
+		if mentioned, _ := GetChannelByName(channelName, channel.TeamId); mentioned != nil {
+			if mentioned.Type == model.CHANNEL_OPEN {
+				channelMentions[channelName] = map[string]interface{}{
+					"display_name": mentioned.DisplayName,
+				}
+			}
+		}
+	}
+
+	if len(channelMentions) > 0 {
+		post.AddProp("channel_mentions", channelMentions)
+	} else if post.Props != nil {
+		delete(post.Props, "channel_mentions")
+	}
+
+	return nil
 }
 
 func handlePostEvents(post *model.Post, channel *model.Channel, triggerWebhooks bool, parentPostList *model.PostList) *model.AppError {
@@ -283,6 +322,10 @@ func UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model.AppError
 		newPost.HasReactions = post.HasReactions
 		newPost.FileIds = post.FileIds
 		newPost.Props = post.Props
+	}
+
+	if err := FillInPostProps(newPost, nil); err != nil {
+		return nil, err
 	}
 
 	if result := <-Srv.Store.Post().Update(newPost, oldPost); result.Err != nil {

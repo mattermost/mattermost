@@ -4,10 +4,13 @@
 package app
 
 import (
+	"fmt"
 	"testing"
 	"time"
 
-	"fmt"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
 	"github.com/mattermost/platform/model"
 )
 
@@ -67,4 +70,43 @@ func TestPostReplyToPostWhereRootPosterLeftChannel(t *testing.T) {
 	if _, err := CreatePostAsUser(&replyPost); err != nil {
 		t.Fatal(err)
 	}
+}
+
+func TestPostChannelMentions(t *testing.T) {
+	th := Setup().InitBasic()
+
+	channel := th.BasicChannel
+	user := th.BasicUser
+
+	channelToMention, err := CreateChannel(&model.Channel{
+		DisplayName: "Mention Test",
+		Name:        "mention-test",
+		Type:        model.CHANNEL_OPEN,
+		TeamId:      th.BasicTeam.Id,
+	}, false)
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+	defer func() {
+		PermanentDeleteChannel(channelToMention)
+	}()
+
+	_, err = AddUserToChannel(user, channel)
+	require.Nil(t, err)
+
+	post := &model.Post{
+		Message:       fmt.Sprintf("hello, ~%v!", channelToMention.Name),
+		ChannelId:     channel.Id,
+		PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
+		UserId:        user.Id,
+		CreateAt:      0,
+	}
+
+	result, err := CreatePostAsUser(post)
+	require.Nil(t, err)
+	assert.Equal(t, map[string]interface{}{
+		"mention-test": map[string]interface{}{
+			"display_name": "Mention Test",
+		},
+	}, result.Props["channel_mentions"])
 }

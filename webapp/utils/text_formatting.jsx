@@ -9,8 +9,6 @@ import * as Markdown from './markdown.jsx';
 import twemoji from 'twemoji';
 import XRegExp from 'xregexp';
 
-export const CHANNEL_MENTION_PATTERN = /(^|\s)(~([a-z0-9.\-_]*))/gi;
-
 const punctuation = XRegExp.cache('[^\\pL\\d]');
 
 // pattern to detect the existance of a Chinese, Japanese, or Korean character in a string
@@ -224,7 +222,7 @@ function autolinkChannelMentions(text, tokens, channelNamesMap, team) {
     }
 
     let output = text;
-    output = output.replace(CHANNEL_MENTION_PATTERN, replaceChannelMentionWithToken);
+    output = output.replace(/(^|\s)(~([a-z0-9.\-_]*))/gi, replaceChannelMentionWithToken);
 
     return output;
 }
