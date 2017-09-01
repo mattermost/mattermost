@@ -92,7 +92,19 @@ export default class LDAPToEmail extends React.Component {
             token,
             ldapPassword || this.state.ldapPassword,
             null,
-            (err) => this.setState({serverError: err.message, showMfa: false})
+            (err) => {
+                if (err.id.startsWith('model.user.is_valid.pwd')) {
+                    this.setState({passwordError: err.message, showMfa: false});
+                } else {
+                    switch (err.id) {
+                    case 'ent.ldap.do_login.invalid_password.app_error':
+                        this.setState({ldapPasswordError: err.message, showMfa: false});
+                        break;
+                    default:
+                        this.setState({serverError: err.message, showMfa: false});
+                    }
+                }
+            }
         );
     }
 

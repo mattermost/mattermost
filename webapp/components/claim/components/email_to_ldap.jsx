@@ -93,7 +93,21 @@ export default class EmailToLDAP extends React.Component {
                 }
             },
             (err) => {
-                this.setState({serverError: err.message, showMfa: false});
+                switch (err.id) {
+                case 'ent.ldap.do_login.user_not_registered.app_error':
+                case 'ent.ldap.do_login.user_filtered.app_error':
+                case 'ent.ldap.do_login.matched_to_many_users.app_error':
+                    this.setState({ldapError: err.message, showMfa: false});
+                    break;
+                case 'ent.ldap.do_login.invalid_password.app_error':
+                    this.setState({ldapPasswordError: err.message, showMfa: false});
+                    break;
+                case 'api.user.check_user_password.invalid.app_error':
+                    this.setState({passwordError: err.message, showMfa: false});
+                    break;
+                default:
+                    this.setState({serverError: err.message, showMfa: false});
+                }
             }
         );
     }
