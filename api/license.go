@@ -34,14 +34,12 @@ func addLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	fileArray, ok := m.File["license"]
 	if !ok {
-		c.Err = model.NewLocAppError("addLicense", "api.license.add_license.no_file.app_error", nil, "")
-		c.Err.StatusCode = http.StatusBadRequest
+		c.Err = model.NewAppError("addLicense", "api.license.add_license.no_file.app_error", nil, "", http.StatusBadRequest)
 		return
 	}
 
 	if len(fileArray) <= 0 {
-		c.Err = model.NewLocAppError("addLicense", "api.license.add_license.array.app_error", nil, "")
-		c.Err.StatusCode = http.StatusBadRequest
+		c.Err = model.NewAppError("addLicense", "api.license.add_license.array.app_error", nil, "", http.StatusBadRequest)
 		return
 	}
 
@@ -50,7 +48,7 @@ func addLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 	file, err := fileData.Open()
 	defer file.Close()
 	if err != nil {
-		c.Err = model.NewLocAppError("addLicense", "api.license.add_license.open.app_error", nil, err.Error())
+		c.Err = model.NewAppError("addLicense", "api.license.add_license.open.app_error", nil, err.Error(), http.StatusInternalServerError)
 		return
 	}
 

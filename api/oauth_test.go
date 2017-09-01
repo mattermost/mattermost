@@ -835,7 +835,7 @@ func HttpGet(url string, httpClient *http.Client, authToken string, followRedire
 	}
 
 	if rp, err := httpClient.Do(rq); err != nil {
-		return nil, model.NewLocAppError(url, "model.client.connecting.app_error", nil, err.Error())
+		return nil, model.NewAppError(url, "model.client.connecting.app_error", nil, err.Error(), 0)
 	} else if rp.StatusCode == 304 {
 		return rp, nil
 	} else if rp.StatusCode == 307 {
