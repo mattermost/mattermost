@@ -185,7 +185,7 @@ function autolinkChannelMentions(text, tokens, channelNamesMap, team) {
         }
 
         tokens.set(alias, {
-            value: `<a class='mention-link' href="${href}" data-channel-mention="${channelName}">${displayName}</a>`,
+            value: `<a class="mention-link" href="${href}" data-channel-mention="${channelName}">~${displayName}</a>`,
             originalText: mention
         });
         return alias;
@@ -196,7 +196,7 @@ function autolinkChannelMentions(text, tokens, channelNamesMap, team) {
 
         if (channelMentionExists(channelNameLower)) {
             // Exact match
-            const alias = addToken(channelNameLower, mention, '~' + channelNamesMap[channelNameLower].display_name);
+            const alias = addToken(channelNameLower, mention, escapeHtml(channelNamesMap[channelNameLower].display_name));
             return spacer + alias;
         }
 
@@ -209,7 +209,8 @@ function autolinkChannelMentions(text, tokens, channelNamesMap, team) {
 
                 if (channelMentionExists(channelNameLower)) {
                     const suffix = originalChannelName.substr(c - 1);
-                    const alias = addToken(channelNameLower, '~' + channelNameLower, '~' + channelNamesMap[channelNameLower].display_name);
+                    const alias = addToken(channelNameLower, '~' + channelNameLower,
+                        escapeHtml(channelNamesMap[channelNameLower].display_name));
                     return spacer + alias + suffix;
                 }
             } else {
@@ -229,6 +230,18 @@ function autolinkChannelMentions(text, tokens, channelNamesMap, team) {
 
 export function escapeRegex(text) {
     return text.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&');
+}
+
+const htmlEntities = {
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#039;'
+};
+
+export function escapeHtml(text) {
+    return text.replace(/[&<>"']/g, (match) => htmlEntities[match]);
 }
 
 function highlightCurrentMentions(text, tokens, mentionKeys = []) {
