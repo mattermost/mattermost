@@ -21,6 +21,7 @@ import AppDispatcher from 'dispatcher/app_dispatcher.jsx';
 import * as Utils from 'utils/utils.jsx';
 import * as ChannelUtils from 'utils/channel_utils.jsx';
 import * as ChannelActions from 'actions/channel_actions.jsx';
+import * as GlobalActions from 'actions/global_actions.jsx';
 
 import {trackEvent} from 'actions/diagnostics_actions.jsx';
 import {ActionTypes, Constants} from 'utils/constants.jsx';
@@ -326,6 +327,18 @@ export default class Sidebar extends React.Component {
         return this.state.favoriteChannels.concat(this.state.publicChannels).concat(this.state.privateChannels).concat(this.state.directAndGroupChannels);
     }
 
+    handleLeavePublicChannel = (e, channel) => {
+        e.preventDefault();
+        ChannelActions.leaveChannel(channel.id);
+        trackEvent('ui', 'ui_public_channel_x_button_clicked');
+    }
+
+    handleLeavePrivateChannel = (e, channel) => {
+        e.preventDefault();
+        GlobalActions.showLeavePrivateChannelModal(channel);
+        trackEvent('ui', 'ui_private_channel_x_button_clicked');
+    }
+
     handleLeaveDirectChannel = (e, channel) => {
         e.preventDefault();
 
@@ -354,6 +367,7 @@ export default class Sidebar extends React.Component {
             }
 
             this.setState(this.getStateFromStores());
+            trackEvent('ui', 'ui_direct_channel_x_button_clicked');
         }
 
         if (channel.id === this.state.activeId) {
@@ -545,7 +559,7 @@ export default class Sidebar extends React.Component {
         }
 
         let closeButton = null;
-        const removeTooltip = (
+        let removeTooltip = (
             <Tooltip id='remove-dm-tooltip'>
                 <FormattedMessage
                     id='sidebar.removeList'
@@ -553,6 +567,16 @@ export default class Sidebar extends React.Component {
                 />
             </Tooltip>
         );
+        if (channel.type === Constants.OPEN_CHANNEL || channel.type === Constants.PRIVATE_CHANNEL) {
+            removeTooltip = (
+                <Tooltip id='remove-dm-tooltip'>
+                    <FormattedMessage
+                        id='sidebar.leave'
+                        defaultMessage='Leave channel'
+                    />
+                </Tooltip>
+            );
+        }
         if (handleClose && !badge) {
             closeButton = (
                 <OverlayTrigger
@@ -631,14 +655,32 @@ export default class Sidebar extends React.Component {
             map((channel, index, arr) => {
                 if (channel.type === Constants.DM_CHANNEL || channel.type === Constants.GM_CHANNEL) {
                     return this.createChannelElement(channel, index, arr, this.handleLeaveDirectChannel);
+                } else if (global.window.mm_config.EnableXToLeaveChannelsFromLHS === 'true') {
+                    if (channel.type === Constants.OPEN_CHANNEL && channel.name !== Constants.DEFAULT_CHANNEL) {
+                        return this.createChannelElement(channel, index, arr, this.handleLeavePublicChannel);
+                    } else if (channel.type === Constants.PRIVATE_CHANNEL) {
+                        return this.createChannelElement(channel, index, arr, this.handleLeavePrivateChannel);
+                    }
                 }
 
                 return this.createChannelElement(channel);
             });
 
-        const publicChannelItems = this.state.publicChannels.map(this.createChannelElement);
+        const publicChannelItems = this.state.publicChannels.map((channel, index, arr) => {
+            if (global.window.mm_config.EnableXToLeaveChannelsFromLHS !== 'true' ||
+                channel.name === Constants.DEFAULT_CHANNEL
+            ) {
+                return this.createChannelElement(channel);
+            }
+            return this.createChannelElement(channel, index, arr, this.handleLeavePublicChannel);
+        });
 
-        const privateChannelItems = this.state.privateChannels.map(this.createChannelElement);
+        const privateChannelItems = this.state.privateChannels.map((channel, index, arr) => {
+            if (global.window.mm_config.EnableXToLeaveChannelsFromLHS !== 'true') {
+                return this.createChannelElement(channel);
+            }
+            return this.createChannelElement(channel, index, arr, this.handleLeavePrivateChannel);
+        });
 
         const directMessageItems = this.state.directAndGroupChannels.map((channel, index, arr) => {
             return this.createChannelElement(channel, index, arr, this.handleLeaveDirectChannel);

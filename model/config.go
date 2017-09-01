@@ -350,6 +350,7 @@ type TeamSettings struct {
 	RestrictPublicChannelDeletion       *string
 	RestrictPrivateChannelDeletion      *string
 	RestrictPrivateChannelManageMembers *string
+	EnableXToLeaveChannelsFromLHS       *bool
 	UserStatusAwayTimeout               *int64
 	MaxChannelsPerTeam                  *int64
 	MaxNotificationsPerChannel          *int64
@@ -808,6 +809,11 @@ func (o *Config) SetDefaults() {
 	if o.TeamSettings.RestrictPrivateChannelManageMembers == nil {
 		o.TeamSettings.RestrictPrivateChannelManageMembers = new(string)
 		*o.TeamSettings.RestrictPrivateChannelManageMembers = PERMISSIONS_ALL
+	}
+
+	if o.TeamSettings.EnableXToLeaveChannelsFromLHS == nil {
+		o.TeamSettings.EnableXToLeaveChannelsFromLHS = new(bool)
+		*o.TeamSettings.EnableXToLeaveChannelsFromLHS = false
 	}
 
 	if o.TeamSettings.UserStatusAwayTimeout == nil {
