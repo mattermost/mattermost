@@ -62,7 +62,7 @@ func (wr *WebSocketRouter) ServeWebSocket(conn *WebConn, r *model.WebSocketReque
 				UpdateLastActivityAtIfNeeded(*session)
 			}()
 
-			conn.SetSession(*session)
+			conn.SetSession(session)
 			conn.SetSessionToken(session.Token)
 			conn.UserId = session.UserId
 

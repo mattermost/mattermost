@@ -29,7 +29,7 @@ const (
 )
 
 type WebConn struct {
-	sessionExpiresAt          int64
+	sessionExpiresAt          int64 // This should stay at the top for 64-bit alignment of 64-bit words accessed atomically
 	WebSocket                 *websocket.Conn
 	Send                      chan model.WebSocketMessage
 	sessionToken              atomic.Value
@@ -58,7 +58,7 @@ func NewWebConn(ws *websocket.Conn, session model.Session, t goi18n.TranslateFun
 		Locale:    locale,
 	}
 
-	wc.SetSession(session)
+	wc.SetSession(&session)
 	wc.SetSessionToken(session.Token)
 	wc.SetSessionExpiresAt(session.ExpiresAt)
 
@@ -85,8 +85,12 @@ func (c *WebConn) GetSession() *model.Session {
 	return c.session.Load().(*model.Session)
 }
 
-func (c *WebConn) SetSession(v model.Session) {
-	c.session.Store(&v) // we intentionally make a copy
+func (c *WebConn) SetSession(v *model.Session) {
+	if v != nil {
+		v = v.DeepCopy()
+	}
+
+	c.session.Store(v)
 }
 
 func (c *WebConn) ReadPump() {
@@ -216,7 +220,7 @@ func (c *WebConn) WritePump() {
 func (webCon *WebConn) InvalidateCache() {
 	webCon.AllChannelMembers = nil
 	webCon.LastAllChannelMembersTime = 0
-	webCon.SetSession(model.Session{})
+	webCon.SetSession(nil)
 	webCon.SetSessionExpiresAt(0)
 }
 
@@ -231,12 +235,12 @@ func (webCon *WebConn) IsAuthenticated() bool {
 		if err != nil {
 			l4g.Error(utils.T("api.websocket.invalid_session.error"), err.Error())
 			webCon.SetSessionToken("")
-			webCon.SetSession(model.Session{})
+			webCon.SetSession(nil)
 			webCon.SetSessionExpiresAt(0)
 			return false
 		}
 
-		webCon.SetSession(*session)
+		webCon.SetSession(session)
 		webCon.SetSessionExpiresAt(session.ExpiresAt)
 	}
 
@@ -314,7 +318,7 @@ func (webCon *WebConn) IsMemberOfTeam(teamId string) bool {
 			l4g.Error(utils.T("api.websocket.invalid_session.error"), err.Error())
 			return false
 		} else {
-			webCon.SetSession(*session)
+			webCon.SetSession(session)
 			currentSession = session
 		}
 	}
