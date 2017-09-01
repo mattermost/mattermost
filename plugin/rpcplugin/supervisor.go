@@ -7,6 +7,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/plugin"
 )
 
@@ -116,7 +117,7 @@ func (s *Supervisor) runPlugin(ctx context.Context, start chan<- error) error {
 	return nil
 }
 
-func SupervisorProvider(bundle *plugin.BundleInfo) (plugin.Supervisor, error) {
+func SupervisorProvider(bundle *model.BundleInfo) (plugin.Supervisor, error) {
 	if bundle.Manifest == nil {
 		return nil, fmt.Errorf("no manifest available")
 	} else if bundle.Manifest.Backend == nil || bundle.Manifest.Backend.Executable == "" {

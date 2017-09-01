@@ -6,22 +6,22 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/platform/plugin"
+	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/plugin/rpcplugin"
 )
 
 func TestDefaultSupervisorProvider(t *testing.T) {
-	_, err := DefaultSupervisorProvider(&plugin.BundleInfo{})
+	_, err := DefaultSupervisorProvider(&model.BundleInfo{})
 	assert.Error(t, err)
 
-	_, err = DefaultSupervisorProvider(&plugin.BundleInfo{
-		Manifest: &plugin.Manifest{},
+	_, err = DefaultSupervisorProvider(&model.BundleInfo{
+		Manifest: &model.Manifest{},
 	})
 	assert.Error(t, err)
 
-	supervisor, err := DefaultSupervisorProvider(&plugin.BundleInfo{
-		Manifest: &plugin.Manifest{
-			Backend: &plugin.ManifestBackend{
+	supervisor, err := DefaultSupervisorProvider(&model.BundleInfo{
+		Manifest: &model.Manifest{
+			Backend: &model.ManifestBackend{
 				Executable: "foo",
 			},
 		},

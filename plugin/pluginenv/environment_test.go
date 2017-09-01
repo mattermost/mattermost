@@ -11,6 +11,7 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
+	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/plugin"
 	"github.com/mattermost/platform/plugin/plugintest"
 )
@@ -19,7 +20,7 @@ type MockProvider struct {
 	mock.Mock
 }
 
-func (m *MockProvider) API(manifest *plugin.Manifest) (plugin.API, error) {
+func (m *MockProvider) API(manifest *model.Manifest) (plugin.API, error) {
 	ret := m.Called()
 	if ret.Get(0) == nil {
 		return nil, ret.Error(1)
@@ -27,7 +28,7 @@ func (m *MockProvider) API(manifest *plugin.Manifest) (plugin.API, error) {
 	return ret.Get(0).(plugin.API), ret.Error(1)
 }
 
-func (m *MockProvider) Supervisor(bundle *plugin.BundleInfo) (plugin.Supervisor, error) {
+func (m *MockProvider) Supervisor(bundle *model.BundleInfo) (plugin.Supervisor, error) {
 	ret := m.Called()
 	if ret.Get(0) == nil {
 		return nil, ret.Error(1)
@@ -90,19 +91,13 @@ func TestNew_MissingOptions(t *testing.T) {
 	)
 	assert.Nil(t, env)
 	assert.Error(t, err)
-
-	env, err = New(
-		SearchPath(dir),
-	)
-	assert.Nil(t, env)
-	assert.Error(t, err)
 }
 
 func TestEnvironment(t *testing.T) {
 	dir := initTmpDir(t, map[string]string{
 		".foo/plugin.json": `{"id": "foo"}`,
 		"foo/bar":          "asdf",
-		"foo/plugin.json":  `{"id": "foo"}`,
+		"foo/plugin.json":  `{"id": "foo", "backend": {}}`,
 		"bar/zxc":          "qwer",
 		"baz/plugin.yaml":  "id: baz",
 		"bad/plugin.json":  "asd",
@@ -110,11 +105,14 @@ func TestEnvironment(t *testing.T) {
 	})
 	defer os.RemoveAll(dir)
 
+	webappDir := "notarealdirectory"
+
 	var provider MockProvider
 	defer provider.AssertExpectations(t)
 
 	env, err := New(
 		SearchPath(dir),
+		WebappPath(webappDir),
 		APIProvider(provider.API),
 		SupervisorProvider(provider.Supervisor),
 	)
@@ -124,6 +122,10 @@ func TestEnvironment(t *testing.T) {
 	plugins, err := env.Plugins()
 	assert.NoError(t, err)
 	assert.Len(t, plugins, 3)
+
+	activePlugins, err := env.ActivePlugins()
+	assert.NoError(t, err)
+	assert.Len(t, activePlugins, 0)
 
 	assert.Error(t, env.ActivatePlugin("x"))
 
@@ -144,6 +146,9 @@ func TestEnvironment(t *testing.T) {
 
 	assert.NoError(t, env.ActivatePlugin("foo"))
 	assert.Equal(t, env.ActivePluginIds(), []string{"foo"})
+	activePlugins, err = env.ActivePlugins()
+	assert.NoError(t, err)
+	assert.Len(t, activePlugins, 1)
 	assert.Error(t, env.ActivatePlugin("foo"))
 
 	hooks.On("OnDeactivate").Return(nil)
@@ -152,6 +157,10 @@ func TestEnvironment(t *testing.T) {
 
 	assert.NoError(t, env.ActivatePlugin("foo"))
 	assert.Equal(t, env.ActivePluginIds(), []string{"foo"})
+
+	assert.Equal(t, env.SearchPath(), dir)
+	assert.Equal(t, env.WebappPath(), webappDir)
+
 	assert.Empty(t, env.Shutdown())
 }
 
@@ -195,7 +204,7 @@ func TestEnvironment_BadSearchPathError(t *testing.T) {
 
 func TestEnvironment_ActivatePluginErrors(t *testing.T) {
 	dir := initTmpDir(t, map[string]string{
-		"foo/plugin.json": `{"id": "foo"}`,
+		"foo/plugin.json": `{"id": "foo", "backend": {}}`,
 	})
 	defer os.RemoveAll(dir)
 
@@ -254,7 +263,7 @@ func TestEnvironment_ActivatePluginErrors(t *testing.T) {
 
 func TestEnvironment_ShutdownError(t *testing.T) {
 	dir := initTmpDir(t, map[string]string{
-		"foo/plugin.json": `{"id": "foo"}`,
+		"foo/plugin.json": `{"id": "foo", "backend": {}}`,
 	})
 	defer os.RemoveAll(dir)
 

@@ -428,6 +428,18 @@ func (c *Context) RequireFileId() *Context {
 	return c
 }
 
+func (c *Context) RequirePluginId() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if len(c.Params.PluginId) == 0 {
+		c.SetInvalidUrlParam("plugin_id")
+	}
+
+	return c
+}
+
 func (c *Context) RequireReportId() *Context {
 	if c.Err != nil {
 		return c
