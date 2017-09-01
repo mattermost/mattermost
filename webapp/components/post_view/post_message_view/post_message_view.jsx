@@ -176,7 +176,7 @@ export default class PostMessageView extends React.PureComponent {
             siteURL: this.props.siteUrl,
             mentionKeys: this.props.mentionKeys,
             atMentions: true,
-            channelNamesMap: getChannelsNameMapInCurrentTeam(store.getState()),
+            channelNamesMap: Object.assign({}, (this.props.post.props || {}).channel_mentions || {}, getChannelsNameMapInCurrentTeam(store.getState())),
             team: this.props.team
         });
 
