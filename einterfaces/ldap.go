@@ -10,6 +10,7 @@ import (
 type LdapInterface interface {
 	DoLogin(id string, password string) (*model.User, *model.AppError)
 	GetUser(id string) (*model.User, *model.AppError)
+	GetUserAttributes(id string, attributes []string) (map[string]string, *model.AppError)
 	CheckPassword(id string, password string) *model.AppError
 	SwitchToLdap(userId, ldapId, ldapPassword string) *model.AppError
 	ValidateFilter(filter string) *model.AppError
