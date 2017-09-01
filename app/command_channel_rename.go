@@ -54,9 +54,9 @@ func (me *RenameProvider) DoCommand(args *model.CommandArgs, message string) *mo
 	if len(message) == 0 {
 		return &model.CommandResponse{Text: args.T("api.command_channel_rename.message.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 	} else if len(message) > model.CHANNEL_NAME_UI_MAX_LENGTH {
-		return &model.CommandResponse{Text: args.T("api.command_channel_rename.too_long.app_error", map[string]interface{}{"Length": len(message)}), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+		return &model.CommandResponse{Text: args.T("api.command_channel_rename.too_long.app_error", map[string]interface{}{"Length": model.CHANNEL_NAME_UI_MAX_LENGTH}), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 	} else if len(message) < model.CHANNEL_NAME_MIN_LENGTH {
-		return &model.CommandResponse{Text: args.T("api.command_channel_rename.too_short.app_error", map[string]interface{}{"Length": len(message)}), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+		return &model.CommandResponse{Text: args.T("api.command_channel_rename.too_short.app_error", map[string]interface{}{"Length": model.CHANNEL_NAME_MIN_LENGTH}), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 	}
 
 	patch := &model.ChannelPatch{
