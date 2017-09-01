@@ -956,7 +956,7 @@ func TestRegenOutgoingHookToken(t *testing.T) {
 }
 
 func TestIncomingWebhooks(t *testing.T) {
-	th := Setup().InitSystemAdmin()
+	th := Setup().InitBasic().InitSystemAdmin()
 	Client := th.SystemAdminClient
 	team := th.SystemAdminTeam
 	channel1 := th.CreateChannel(Client, team)
@@ -1002,6 +1002,29 @@ func TestIncomingWebhooks(t *testing.T) {
 
 	if _, err := Client.DoPost(url, "payload={\"text\":\""+text+"\"}", "application/x-www-form-urlencoded"); err != nil {
 		t.Fatal(err)
+	}
+
+	if _, err := th.BasicClient.DoPost(url, fmt.Sprintf("{\"text\":\"this is a test\", \"channel\":\"%s\"}", model.DEFAULT_CHANNEL), "application/json"); err != nil {
+		t.Fatal("should not have failed -- ExperimentalTownSquareIsReadOnly is false and it's not a read only channel")
+	}
+
+	isLicensed := utils.IsLicensed()
+	license := utils.License()
+	disableTownSquareReadOnly := utils.Cfg.TeamSettings.ExperimentalTownSquareIsReadOnly
+	defer func() {
+		utils.Cfg.TeamSettings.ExperimentalTownSquareIsReadOnly = disableTownSquareReadOnly
+		utils.SetIsLicensed(isLicensed)
+		utils.SetLicense(license)
+		utils.SetDefaultRolesBasedOnConfig()
+	}()
+	*utils.Cfg.TeamSettings.ExperimentalTownSquareIsReadOnly = true
+	utils.SetDefaultRolesBasedOnConfig()
+	utils.SetIsLicensed(true)
+	utils.SetLicense(&model.License{Features: &model.Features{}})
+	utils.License().Features.SetDefaults()
+
+	if _, err := th.BasicClient.DoPost(url, fmt.Sprintf("{\"text\":\"this is a test\", \"channel\":\"%s\"}", model.DEFAULT_CHANNEL), "application/json"); err == nil {
+		t.Fatal("should have failed -- ExperimentalTownSquareIsReadOnly is true and it's a read only channel")
 	}
 
 	attachmentPayload := `{
