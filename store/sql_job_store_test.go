@@ -133,22 +133,23 @@ func TestJobGetAllPage(t *testing.T) {
 	Setup()
 
 	jobType := model.NewId()
+	createAtTime := model.GetMillis()
 
 	jobs := []*model.Job{
 		{
 			Id:       model.NewId(),
 			Type:     jobType,
-			CreateAt: model.GetMillis() + 1,
+			CreateAt: createAtTime + 1,
 		},
 		{
 			Id:       model.NewId(),
 			Type:     jobType,
-			CreateAt: model.GetMillis(),
+			CreateAt: createAtTime,
 		},
 		{
 			Id:       model.NewId(),
 			Type:     jobType,
-			CreateAt: model.GetMillis() + 2,
+			CreateAt: createAtTime + 2,
 		},
 	}
 
