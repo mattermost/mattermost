@@ -49,8 +49,7 @@ func CreateEmoji(sessionUserId string, emoji *model.Emoji, multiPartImageData *m
 	}
 
 	if imageData := multiPartImageData.File["image"]; len(imageData) == 0 {
-		err := model.NewLocAppError("Context", "api.context.invalid_body_param.app_error", map[string]interface{}{"Name": "createEmoji"}, "")
-		err.StatusCode = http.StatusBadRequest
+		err := model.NewAppError("Context", "api.context.invalid_body_param.app_error", map[string]interface{}{"Name": "createEmoji"}, "", http.StatusBadRequest)
 		return nil, err
 	} else if err := UploadEmojiImage(emoji.Id, imageData[0]); err != nil {
 		return nil, err

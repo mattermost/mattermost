@@ -33,19 +33,19 @@ func WriteSamlFile(fileData *multipart.FileHeader) *model.AppError {
 	filename := filepath.Base(fileData.Filename)
 
 	if filename == "." || filename == string(filepath.Separator) {
-		return model.NewLocAppError("AddSamlCertificate", "api.admin.add_certificate.saving.app_error", nil, "")
+		return model.NewAppError("AddSamlCertificate", "api.admin.add_certificate.saving.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	file, err := fileData.Open()
 	defer file.Close()
 	if err != nil {
-		return model.NewLocAppError("AddSamlCertificate", "api.admin.add_certificate.open.app_error", nil, err.Error())
+		return model.NewAppError("AddSamlCertificate", "api.admin.add_certificate.open.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	configDir, _ := utils.FindDir("config")
 	out, err := os.Create(configDir + filename)
 	if err != nil {
-		return model.NewLocAppError("AddSamlCertificate", "api.admin.add_certificate.saving.app_error", nil, err.Error())
+		return model.NewAppError("AddSamlCertificate", "api.admin.add_certificate.saving.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	defer out.Close()
 
@@ -114,12 +114,11 @@ func RemoveSamlFile(filename string) *model.AppError {
 	filename = filepath.Base(filename)
 
 	if filename == "." || filename == string(filepath.Separator) {
-		return model.NewLocAppError("AddSamlCertificate", "api.admin.remove_certificate.delete.app_error", nil, "")
+		return model.NewAppError("AddSamlCertificate", "api.admin.remove_certificate.delete.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if err := os.Remove(utils.FindConfigFile(filename)); err != nil {
-		return model.NewLocAppError("removeCertificate", "api.admin.remove_certificate.delete.app_error",
-			map[string]interface{}{"Filename": filename}, err.Error())
+		return model.NewAppError("removeCertificate", "api.admin.remove_certificate.delete.app_error", map[string]interface{}{"Filename": filename}, err.Error(), http.StatusInternalServerError)
 	}
 
 	return nil

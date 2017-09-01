@@ -265,7 +265,7 @@ func TestEmailTest(t *testing.T) {
 
 	_, resp = th.SystemAdminClient.TestEmail()
 	CheckErrorMessage(t, resp, "api.admin.test_email.missing_server")
-	CheckInternalErrorStatus(t, resp)
+	CheckBadRequestStatus(t, resp)
 }
 
 func TestDatabaseRecycle(t *testing.T) {
