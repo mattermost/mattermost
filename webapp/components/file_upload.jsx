@@ -250,11 +250,7 @@ class FileUpload extends React.Component {
         for (let i = 0; i < e.clipboardData.items.length; i++) {
             const item = e.clipboardData.items[i];
 
-            if (item.type.indexOf('image') === -1) {
-                continue;
-            }
-
-            if (Constants.IMAGE_TYPES.indexOf(item.type.split('/')[1].toLowerCase()) === -1) {
+            if (item.kind !== 'file') {
                 continue;
             }
 
@@ -279,8 +275,9 @@ class FileUpload extends React.Component {
 
             for (var i = 0; i < items.length && i < numToUpload; i++) {
                 var file = items[i].getAsFile();
-
-                var ext = items[i].type.split('/')[1].toLowerCase();
+                if (!file) {
+                    continue;
+                }
 
                 // generate a unique id that can be used by other components to refer back to this file upload
                 var clientId = Utils.generateId();
@@ -299,7 +296,8 @@ class FileUpload extends React.Component {
                     min = String(d.getMinutes());
                 }
 
-                const name = formatMessage(holders.pasted) + d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate() + ' ' + hour + '-' + min + '.' + ext;
+                const ext = file.name.lastIndexOf('.');
+                const name = formatMessage(holders.pasted) + d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate() + ' ' + hour + '-' + min + (ext >= 0 ? file.name.substr(ext) : '');
 
                 const request = uploadFile(
                     file,
