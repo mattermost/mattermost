@@ -29,10 +29,10 @@ const (
 )
 
 type WebConn struct {
+	sessionExpiresAt          int64
 	WebSocket                 *websocket.Conn
 	Send                      chan model.WebSocketMessage
 	sessionToken              atomic.Value
-	sessionExpiresAt          int64
 	session                   atomic.Value
 	UserId                    string
 	T                         goi18n.TranslateFunc
