@@ -596,7 +596,7 @@ export default class UserSettingsDisplay extends React.Component {
         }
 
         let themeSection;
-        if (global.window.mm_config.EnableThemeSelection !== 'false') {
+        if (global.mm_config.EnableThemeSelection !== 'false') {
             themeSection = (
                 <ThemeSetting
                     selected={this.props.activeSection === 'theme'}
