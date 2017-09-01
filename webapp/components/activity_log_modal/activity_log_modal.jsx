@@ -141,6 +141,10 @@ export default class ActivityLogModal extends React.Component {
             let devicePlatform = currentSession.props.platform;
             let devicePicture = '';
 
+            if (currentSession.props.type === 'UserAccessToken') {
+                continue;
+            }
+
             if (currentSession.props.platform === 'Windows') {
                 devicePicture = 'fa fa-windows';
             } else if (this.isMobileSession(currentSession)) {
