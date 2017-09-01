@@ -25,7 +25,7 @@ import (
 	"github.com/nicksnyder/go-i18n/i18n"
 )
 
-func SendNotifications(post *model.Post, team *model.Team, channel *model.Channel, sender *model.User) ([]string, *model.AppError) {
+func SendNotifications(post *model.Post, team *model.Team, channel *model.Channel, sender *model.User, parentPostList *model.PostList) ([]string, *model.AppError) {
 	pchan := Srv.Store.User().GetAllProfilesInChannel(channel.Id, true)
 	cmnchan := Srv.Store.Channel().GetAllChannelMembersNotifyPropsForChannel(channel.Id, true)
 	var fchan store.StoreChannel
@@ -77,17 +77,11 @@ func SendNotifications(post *model.Post, team *model.Team, channel *model.Channe
 		mentionedUserIds, potentialOtherMentions, hereNotification, channelNotification, allNotification = GetExplicitMentions(post.Message, keywords)
 
 		// get users that have comment thread mentions enabled
-		if len(post.RootId) > 0 {
-			if result := <-Srv.Store.Post().Get(post.RootId); result.Err != nil {
-				return nil, result.Err
-			} else {
-				list := result.Data.(*model.PostList)
-
-				for _, threadPost := range list.Posts {
-					profile := profileMap[threadPost.UserId]
-					if profile != nil && (profile.NotifyProps["comments"] == "any" || (profile.NotifyProps["comments"] == "root" && threadPost.Id == list.Order[0])) {
-						mentionedUserIds[threadPost.UserId] = true
-					}
+		if len(post.RootId) > 0 && parentPostList != nil {
+			for _, threadPost := range parentPostList.Posts {
+				profile := profileMap[threadPost.UserId]
+				if profile != nil && (profile.NotifyProps["comments"] == "any" || (profile.NotifyProps["comments"] == "root" && threadPost.Id == parentPostList.Order[0])) {
+					mentionedUserIds[threadPost.UserId] = true
 				}
 			}
 		}
@@ -188,7 +182,6 @@ func SendNotifications(post *model.Post, team *model.Team, channel *model.Channe
 	if hereNotification && int64(len(profileMap)) > *utils.Cfg.TeamSettings.MaxNotificationsPerChannel {
 		hereNotification = false
 		SendEphemeralPost(
-			team.Id,
 			post.UserId,
 			&model.Post{
 				ChannelId: post.ChannelId,
@@ -201,7 +194,6 @@ func SendNotifications(post *model.Post, team *model.Team, channel *model.Channe
 	// If the channel has more than 1K users then @channel is disabled
 	if channelNotification && int64(len(profileMap)) > *utils.Cfg.TeamSettings.MaxNotificationsPerChannel {
 		SendEphemeralPost(
-			team.Id,
 			post.UserId,
 			&model.Post{
 				ChannelId: post.ChannelId,
@@ -214,7 +206,6 @@ func SendNotifications(post *model.Post, team *model.Team, channel *model.Channe
 	// If the channel has more than 1K users then @all is disabled
 	if allNotification && int64(len(profileMap)) > *utils.Cfg.TeamSettings.MaxNotificationsPerChannel {
 		SendEphemeralPost(
-			team.Id,
 			post.UserId,
 			&model.Post{
 				ChannelId: post.ChannelId,
@@ -580,6 +571,8 @@ func sendPushNotification(post *model.Post, user *model.User, channel *model.Cha
 	msg.Type = model.PUSH_TYPE_MESSAGE
 	msg.TeamId = channel.TeamId
 	msg.ChannelId = channel.Id
+	msg.PostId = post.Id
+	msg.RootId = post.RootId
 	msg.ChannelName = channel.Name
 	msg.SenderId = post.UserId
 
@@ -596,15 +589,15 @@ func sendPushNotification(post *model.Post, user *model.User, channel *model.Cha
 	}
 
 	if *utils.Cfg.EmailSettings.PushNotificationContents == model.FULL_NOTIFICATION {
+		msg.Category = model.CATEGORY_CAN_REPLY
 		if channel.Type == model.CHANNEL_DIRECT {
-			msg.Category = model.CATEGORY_DM
 			msg.Message = senderName + ": " + model.ClearMentionTags(post.Message)
 		} else {
 			msg.Message = senderName + userLocale("api.post.send_notifications_and_forget.push_in") + channelName + ": " + model.ClearMentionTags(post.Message)
 		}
 	} else if *utils.Cfg.EmailSettings.PushNotificationContents == model.GENERIC_NO_CHANNEL_NOTIFICATION {
 		if channel.Type == model.CHANNEL_DIRECT {
-			msg.Category = model.CATEGORY_DM
+			msg.Category = model.CATEGORY_CAN_REPLY
 			msg.Message = senderName + userLocale("api.post.send_notifications_and_forget.push_message")
 		} else if wasMentioned || channel.Type == model.CHANNEL_GROUP {
 			msg.Message = senderName + userLocale("api.post.send_notifications_and_forget.push_mention_no_channel")
@@ -613,9 +606,10 @@ func sendPushNotification(post *model.Post, user *model.User, channel *model.Cha
 		}
 	} else {
 		if channel.Type == model.CHANNEL_DIRECT {
-			msg.Category = model.CATEGORY_DM
+			msg.Category = model.CATEGORY_CAN_REPLY
 			msg.Message = senderName + userLocale("api.post.send_notifications_and_forget.push_message")
 		} else if wasMentioned || channel.Type == model.CHANNEL_GROUP {
+			msg.Category = model.CATEGORY_CAN_REPLY
 			msg.Message = senderName + userLocale("api.post.send_notifications_and_forget.push_mention") + channelName
 		} else {
 			msg.Message = senderName + userLocale("api.post.send_notifications_and_forget.push_non_mention") + channelName
@@ -631,7 +625,7 @@ func sendPushNotification(post *model.Post, user *model.User, channel *model.Cha
 		}
 	}
 
-	l4g.Debug("Sending push notification for user %v with msg of '%v'", user.Id, msg.Message)
+	//l4g.Debug("Sending push notification for user %v with msg of '%v'", user.Id, msg.Message)
 
 	for _, session := range sessions {
 		tmpMessage := *model.PushNotificationFromJson(strings.NewReader(msg.ToJson()))
@@ -737,7 +731,6 @@ func sendOutOfChannelMentions(sender *model.User, post *model.Post, teamId strin
 	}
 
 	SendEphemeralPost(
-		teamId,
 		post.UserId,
 		&model.Post{
 			ChannelId: post.ChannelId,

@@ -64,7 +64,7 @@ export function isIosWeb() {
 }
 
 export function isIos() {
-    return userAgent.indexOf('iPhone') !== -1;
+    return userAgent.indexOf('iPhone') !== -1 || userAgent.indexOf('iPad') !== -1;
 }
 
 export function isAndroid() {

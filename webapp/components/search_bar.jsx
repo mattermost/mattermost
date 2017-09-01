@@ -122,7 +122,7 @@ export default class SearchBar extends React.Component {
     handleChange(e) {
         var term = e.target.value;
         SearchStore.storeSearchTerm(term);
-        SearchStore.emitSearchTermChange(false);
+        SearchStore.emitSearchTermChange(false, false);
         this.setState({searchTerm: term});
     }
 
@@ -189,7 +189,6 @@ export default class SearchBar extends React.Component {
             is_mention_search: false
         });
 
-        this.handleSearch(terms);
         this.search.blur();
     }
 

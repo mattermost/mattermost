@@ -1186,7 +1186,7 @@ export default class WebrtcController extends React.Component {
 
         return (
             <div className='post-right__container'>
-                <div className='search-bar__container sidebar--right__search-header'>{searchForm}</div>
+                <div className='search-bar__container channel-header alt'>{searchForm}</div>
                 <div className='sidebar-right__body'>
                     <WebrtcHeader
                         username={Utils.displayUsername(this.props.userId)}

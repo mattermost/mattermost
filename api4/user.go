@@ -233,20 +233,18 @@ func setProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if len(utils.Cfg.FileSettings.DriverName) == 0 {
-		c.Err = model.NewLocAppError("uploadProfileImage", "api.user.upload_profile_user.storage.app_error", nil, "")
-		c.Err.StatusCode = http.StatusNotImplemented
+	if len(*utils.Cfg.FileSettings.DriverName) == 0 {
+		c.Err = model.NewAppError("uploadProfileImage", "api.user.upload_profile_user.storage.app_error", nil, "", http.StatusNotImplemented)
 		return
 	}
 
 	if r.ContentLength > *utils.Cfg.FileSettings.MaxFileSize {
-		c.Err = model.NewLocAppError("uploadProfileImage", "api.user.upload_profile_user.too_large.app_error", nil, "")
-		c.Err.StatusCode = http.StatusRequestEntityTooLarge
+		c.Err = model.NewAppError("uploadProfileImage", "api.user.upload_profile_user.too_large.app_error", nil, "", http.StatusRequestEntityTooLarge)
 		return
 	}
 
 	if err := r.ParseMultipartForm(*utils.Cfg.FileSettings.MaxFileSize); err != nil {
-		c.Err = model.NewLocAppError("uploadProfileImage", "api.user.upload_profile_user.parse.app_error", nil, "")
+		c.Err = model.NewAppError("uploadProfileImage", "api.user.upload_profile_user.parse.app_error", nil, "", http.StatusInternalServerError)
 		return
 	}
 
@@ -254,20 +252,18 @@ func setProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	imageArray, ok := m.File["image"]
 	if !ok {
-		c.Err = model.NewLocAppError("uploadProfileImage", "api.user.upload_profile_user.no_file.app_error", nil, "")
-		c.Err.StatusCode = http.StatusBadRequest
+		c.Err = model.NewAppError("uploadProfileImage", "api.user.upload_profile_user.no_file.app_error", nil, "", http.StatusBadRequest)
 		return
 	}
 
 	if len(imageArray) <= 0 {
-		c.Err = model.NewLocAppError("uploadProfileImage", "api.user.upload_profile_user.array.app_error", nil, "")
-		c.Err.StatusCode = http.StatusBadRequest
+		c.Err = model.NewAppError("uploadProfileImage", "api.user.upload_profile_user.array.app_error", nil, "", http.StatusBadRequest)
 		return
 	}
 
 	imageData := imageArray[0]
 
-	if err := app.SetProfileImage(c.Session.UserId, imageData); err != nil {
+	if err := app.SetProfileImage(c.Params.UserId, imageData); err != nil {
 		c.Err = err
 		return
 	}
@@ -650,8 +646,7 @@ func updateUserActive(c *Context, w http.ResponseWriter, r *http.Request) {
 	isSelfDeactive := !active && c.Params.UserId == c.Session.UserId
 
 	if !isSelfDeactive && !app.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
-		c.Err = model.NewLocAppError("updateUserActive", "api.user.update_active.permissions.app_error", nil, "userId="+c.Params.UserId)
-		c.Err.StatusCode = http.StatusForbidden
+		c.Err = model.NewAppError("updateUserActive", "api.user.update_active.permissions.app_error", nil, "userId="+c.Params.UserId, http.StatusForbidden)
 		return
 	}
 
@@ -1014,8 +1009,7 @@ func verifyUserEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := app.VerifyEmailFromToken(token); err != nil {
-		c.Err = model.NewLocAppError("verifyUserEmail", "api.user.verify_email.bad_link.app_error", nil, err.Error())
-		c.Err.StatusCode = http.StatusBadRequest
+		c.Err = model.NewAppError("verifyUserEmail", "api.user.verify_email.bad_link.app_error", nil, err.Error(), http.StatusBadRequest)
 		return
 	} else {
 		c.LogAudit("Email Verified")

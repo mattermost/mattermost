@@ -1,4 +1,4 @@
-package plugin
+package model
 
 import (
 	"io/ioutil"

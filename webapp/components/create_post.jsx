@@ -302,7 +302,7 @@ export default class CreatePost extends React.Component {
     }
 
     focusTextbox(keepFocus = false) {
-        if (keepFocus || !Utils.isMobile()) {
+        if (keepFocus || !UserAgent.isMobile()) {
             this.refs.textbox.focus();
         }
     }
@@ -721,7 +721,7 @@ export default class CreatePost extends React.Component {
         let emojiPicker = null;
         if (window.mm_config.EnableEmojiPicker === 'true') {
             emojiPicker = (
-                <span>
+                <span className='emoji-picker__container'>
                     <EmojiPickerOverlay
                         show={this.state.showEmojiPicker}
                         container={this.props.getChannelView}
@@ -732,7 +732,8 @@ export default class CreatePost extends React.Component {
                         topOffset={-7}
                     />
                     <span
-                        className={'fa fa-smile-o icon--emoji-picker emoji-main'}
+                        className='icon icon--emoji'
+                        dangerouslySetInnerHTML={{__html: Constants.EMOJI_ICON_SVG}}
                         onClick={this.toggleEmojiPicker}
                         onMouseOver={EmojiPicker.beginPreloading}
                     />
@@ -767,18 +768,18 @@ export default class CreatePost extends React.Component {
                             />
                             <span
                                 ref='createPostControls'
-                                className='btn btn-file'
+                                className='post-body__actions'
                             >
                                 {fileUpload}
                                 {emojiPicker}
+                                <a
+                                    className={sendButtonClass}
+                                    onClick={this.handleSubmit}
+                                >
+                                    <i className='fa fa-paper-plane'/>
+                                </a>
                             </span>
                         </div>
-                        <a
-                            className={sendButtonClass}
-                            onClick={this.handleSubmit}
-                        >
-                            <i className='fa fa-paper-plane'/>
-                        </a>
                         {tutorialTip}
                     </div>
                     <div className={postFooterClassName}>

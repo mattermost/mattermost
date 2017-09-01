@@ -9,6 +9,7 @@ import DotMenu from 'components/dot_menu';
 
 import * as Utils from 'utils/utils.jsx';
 import * as PostUtils from 'utils/post_utils.jsx';
+import * as ReduxPostUtils from 'mattermost-redux/utils/post_utils';
 import {emitEmojiPosted} from 'actions/post_actions.jsx';
 import Constants from 'utils/constants.jsx';
 import {Posts} from 'mattermost-redux/constants';
@@ -77,7 +78,7 @@ export default class PostInfo extends React.PureComponent {
              */
             addReaction: PropTypes.func.isRequired
         }).isRequired
-    }
+    };
 
     constructor(props) {
         super(props);
@@ -96,12 +97,12 @@ export default class PostInfo extends React.PureComponent {
 
         this.setState({showEmojiPicker});
         this.props.handleDropdownOpened(showEmojiPicker);
-    }
+    };
 
     hideEmojiPicker = () => {
         this.setState({showEmojiPicker: false});
         this.props.handleDropdownOpened(false);
-    }
+    };
 
     removePost() {
         this.props.actions.removePost(this.props.post);
@@ -131,7 +132,7 @@ export default class PostInfo extends React.PureComponent {
 
     getDotMenu = () => {
         return this.refs.dotMenu;
-    }
+    };
 
     render() {
         const post = this.props.post;
@@ -173,7 +174,10 @@ export default class PostInfo extends React.PureComponent {
                             className='reacticon__container'
                             onClick={this.toggleEmojiPicker}
                         >
-                            <i className='fa fa-smile-o'/>
+                            <span
+                                className='icon icon--emoji'
+                                dangerouslySetInnerHTML={{__html: Constants.EMOJI_ICON_SVG}}
+                            />
                         </a>
                     </span>
 
@@ -239,10 +243,16 @@ export default class PostInfo extends React.PureComponent {
             );
         }
 
+        // timestamp should not be a permalink if the post has been deleted, is ephemeral message, or is pending
+        const isPermalink = !(isEphemeral ||
+            Posts.POST_DELETED === this.props.post.state ||
+            ReduxPostUtils.isPostPendingOrFailed(this.props.post));
+
         return (
             <div className='post__header--info'>
                 <div className='col'>
                     <PostTime
+                        isPermalink={isPermalink}
                         eventTime={post.create_at}
                         useMilitaryTime={this.props.useMilitaryTime}
                         postId={post.id}

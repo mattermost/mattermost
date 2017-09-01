@@ -2,6 +2,10 @@ package rpcplugin
 
 import (
 	"io"
+	"io/ioutil"
+	"net/http"
+	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -45,6 +49,31 @@ func TestHooks(t *testing.T) {
 
 		hooks.On("OnDeactivate").Return(nil)
 		assert.NoError(t, remote.OnDeactivate())
+
+		hooks.On("ServeHTTP", mock.AnythingOfType("*rpcplugin.RemoteHTTPResponseWriter"), mock.AnythingOfType("*http.Request")).Run(func(args mock.Arguments) {
+			w := args.Get(0).(http.ResponseWriter)
+			r := args.Get(1).(*http.Request)
+			assert.Equal(t, "/foo", r.URL.Path)
+			assert.Equal(t, "POST", r.Method)
+			body, err := ioutil.ReadAll(r.Body)
+			assert.NoError(t, err)
+			assert.Equal(t, "asdf", string(body))
+			assert.Equal(t, "header", r.Header.Get("Test-Header"))
+			w.Write([]byte("bar"))
+		})
+
+		w := httptest.NewRecorder()
+		r, err := http.NewRequest("POST", "/foo", strings.NewReader("asdf"))
+		r.Header.Set("Test-Header", "header")
+		assert.NoError(t, err)
+		remote.ServeHTTP(w, r)
+
+		resp := w.Result()
+		defer resp.Body.Close()
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
+		body, err := ioutil.ReadAll(resp.Body)
+		assert.NoError(t, err)
+		assert.Equal(t, "bar", string(body))
 	}))
 }
 
@@ -73,9 +102,18 @@ func TestHooks_PartiallyImplemented(t *testing.T) {
 	}))
 }
 
-func BenchmarkOnDeactivate(b *testing.B) {
-	var hooks plugintest.Hooks
-	hooks.On("OnDeactivate").Return(nil)
+type benchmarkHooks struct{}
+
+func (*benchmarkHooks) OnDeactivate() error { return nil }
+
+func (*benchmarkHooks) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	ioutil.ReadAll(r.Body)
+	w.Header().Set("Foo-Header", "foo")
+	http.Error(w, "foo", http.StatusBadRequest)
+}
+
+func BenchmarkHooks_OnDeactivate(b *testing.B) {
+	var hooks benchmarkHooks
 
 	if err := testHooksRPC(&hooks, func(remote *RemoteHooks) {
 		b.ResetTimer()
@@ -88,7 +126,23 @@ func BenchmarkOnDeactivate(b *testing.B) {
 	}
 }
 
-func BenchmarkOnDeactivate_Unimplemented(b *testing.B) {
+func BenchmarkHooks_ServeHTTP(b *testing.B) {
+	var hooks benchmarkHooks
+
+	if err := testHooksRPC(&hooks, func(remote *RemoteHooks) {
+		b.ResetTimer()
+		for n := 0; n < b.N; n++ {
+			w := httptest.NewRecorder()
+			r, _ := http.NewRequest("POST", "/foo", strings.NewReader("12345678901234567890"))
+			remote.ServeHTTP(w, r)
+		}
+		b.StopTimer()
+	}); err != nil {
+		b.Fatal(err.Error())
+	}
+}
+
+func BenchmarkHooks_Unimplemented(b *testing.B) {
 	var hooks testHooks
 
 	if err := testHooksRPC(&hooks, func(remote *RemoteHooks) {

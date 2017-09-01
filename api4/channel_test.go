@@ -502,9 +502,7 @@ func TestGetDeletedChannelsForTeam(t *testing.T) {
 
 	channels, resp = Client.GetDeletedChannelsForTeam(team.Id, 0, 100, "")
 	CheckNoError(t, resp)
-	if len(channels) != 0 {
-		t.Fatal("should be no deleted channels")
-	}
+	numInitialChannelsForTeam := len(channels)
 
 	// create and delete public channel
 	publicChannel1 := th.CreatePublicChannel()
@@ -512,7 +510,7 @@ func TestGetDeletedChannelsForTeam(t *testing.T) {
 
 	channels, resp = Client.GetDeletedChannelsForTeam(team.Id, 0, 100, "")
 	CheckNoError(t, resp)
-	if len(channels) != 1 {
+	if len(channels) != numInitialChannelsForTeam+1 {
 		t.Fatal("should be 1 deleted channel")
 	}
 
@@ -521,7 +519,7 @@ func TestGetDeletedChannelsForTeam(t *testing.T) {
 
 	channels, resp = Client.GetDeletedChannelsForTeam(team.Id, 0, 100, "")
 	CheckNoError(t, resp)
-	if len(channels) != 2 {
+	if len(channels) != numInitialChannelsForTeam+2 {
 		t.Fatal("should be 2 deleted channels")
 	}
 

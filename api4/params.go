@@ -24,6 +24,7 @@ type ApiParams struct {
 	ChannelId      string
 	PostId         string
 	FileId         string
+	PluginId       string
 	CommandId      string
 	HookId         string
 	ReportId       string
@@ -39,6 +40,7 @@ type ApiParams struct {
 	Service        string
 	JobId          string
 	JobType        string
+	ActionId       string
 	Page           int
 	PerPage        int
 	Permanent      bool
@@ -75,6 +77,10 @@ func ApiParamsFromRequest(r *http.Request) *ApiParams {
 
 	if val, ok := props["file_id"]; ok {
 		params.FileId = val
+	}
+
+	if val, ok := props["plugin_id"]; ok {
+		params.PluginId = val
 	}
 
 	if val, ok := props["command_id"]; ok {
@@ -135,6 +141,10 @@ func ApiParamsFromRequest(r *http.Request) *ApiParams {
 
 	if val, ok := props["job_type"]; ok {
 		params.JobType = val
+	}
+
+	if val, ok := props["action_id"]; ok {
+		params.ActionId = val
 	}
 
 	if val, err := strconv.Atoi(r.URL.Query().Get("page")); err != nil || val < 0 {

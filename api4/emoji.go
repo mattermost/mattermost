@@ -37,7 +37,7 @@ func createEmoji(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if len(utils.Cfg.FileSettings.DriverName) == 0 {
+	if len(*utils.Cfg.FileSettings.DriverName) == 0 {
 		c.Err = model.NewAppError("createEmoji", "api.emoji.storage.app_error", nil, "", http.StatusNotImplemented)
 		return
 	}
@@ -147,7 +147,7 @@ func getEmojiImage(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if len(utils.Cfg.FileSettings.DriverName) == 0 {
+	if len(*utils.Cfg.FileSettings.DriverName) == 0 {
 		c.Err = model.NewAppError("getEmojiImage", "api.emoji.storage.app_error", nil, "", http.StatusNotImplemented)
 		return
 	}

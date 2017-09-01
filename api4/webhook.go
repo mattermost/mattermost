@@ -466,12 +466,7 @@ func incomingWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 			utils.T("api.webhook.incoming.debug"),
 		)
 		if err != nil {
-			c.Err = model.NewLocAppError(
-				"incomingWebhook",
-				"api.webhook.incoming.debug.error",
-				nil,
-				err.Error(),
-			)
+			c.Err = model.NewAppError("incomingWebhook", "api.webhook.incoming.debug.error", nil, err.Error(), http.StatusInternalServerError)
 			return
 		}
 	}

@@ -404,6 +404,62 @@
     "translation": "Invalid permissions to delete command"
   },
   {
+    "id": "app.plugin.disabled.app_error",
+    "translation": "Plugins have been disabled by the system admin or the server has not been restarted since they were enabled."
+  },
+  {
+    "id": "app.plugin.disabled.app_error",
+    "translation": ""
+  },
+  {
+    "id": "app.plugin.extract.app_error",
+    "translation": "Encountered error extracting plugin"
+  },
+  {
+    "id": "app.plugin.no_files.app_error",
+    "translation": "No files found in the compressed folder"
+  },
+  {
+    "id": "app.plugin.bad_path.app_error",
+    "translation": "Bad file path in extracted files"
+  },
+  {
+    "id": "app.plugin.manifest.app_error",
+    "translation": "Unable to find manifest for extracted plugin"
+  },
+  {
+    "id": "app.plugin.mvdir.app_error",
+    "translation": "Unable to move plugin from temporary directory to final destination"
+  },
+  {
+    "id": "app.plugin.activate.app_error",
+    "translation": "Unable to activate extracted plugin. Plugin may already exist and be activated."
+  },
+  {
+    "id": "app.plugin.get_plugins.app_error",
+    "translation": "Unable to get active plugins"
+  },
+  {
+    "id": "app.plugin.deactivate.app_error",
+    "translation": "Unable to deactivate plugin"
+  },
+  {
+    "id": "app.plugin.remove.app_error",
+    "translation": "Unable to delete plugin"
+  },
+  {
+    "id": "api.plugin.upload.no_file.app_error",
+    "translation": "Missing file in multipart/form request"
+  },
+  {
+    "id": "api.plugin.upload.array.app_error",
+    "translation": "File array is empty in multipart/form request"
+  },
+  {
+    "id": "api.plugin.upload.file.app_error",
+    "translation": "Unable to open file in multipart/form request"
+  },
+  {
     "id": "api.command.disabled.app_error",
     "translation": "Commands have been disabled by the system admin."
   },
@@ -582,6 +638,14 @@
   {
     "id": "api.command_channel_rename.message.app_error",
     "translation": "A message must be provided with the /rename command."
+  },
+  {
+    "id": "api.command_channel_rename.too_long.app_error",
+    "translation": "Channel name must be {{.Length}} or fewer characters"
+  },
+  {
+    "id": "api.command_channel_rename.too_short.app_error",
+    "translation": "Channel name must be {{.Length}} or more characters"
   },
   {
     "id": "api.command_channel_rename.name",
@@ -1234,22 +1298,6 @@
     "translation": "Unable to move file locally."
   },
   {
-    "id": "api.file.open_file_write_stream.configured.app_error",
-    "translation": "File storage not configured properly. Please configure for either S3 or local server file storage."
-  },
-  {
-    "id": "api.file.open_file_write_stream.creating_dir.app_error",
-    "translation": "Encountered an error creating the directory for the new file"
-  },
-  {
-    "id": "api.file.open_file_write_stream.local_server.app_error",
-    "translation": "Encountered an error writing to local server storage"
-  },
-  {
-    "id": "api.file.open_file_write_stream.s3.app_error",
-    "translation": "S3 is not supported."
-  },
-  {
     "id": "api.file.read_file.configured.app_error",
     "translation": "File storage not configured properly. Please configure for either S3 or local server file storage."
   },
@@ -1260,6 +1308,30 @@
   {
     "id": "api.file.read_file.reading_local.app_error",
     "translation": "Encountered an error reading from local server storage"
+  },
+  {
+    "id": "utils.file.remove_file.local.app_error",
+    "translation": "Encountered an error removing file from local server file storage."
+  },
+  {
+    "id": "utils.file.remove_file.s3.app_error",
+    "translation": "Encountered an error removing file from S3."
+  },
+  {
+    "id": "utils.file.remove_file.configured.app_error",
+    "translation": "File storage not configured properly. Please configure for either S3 or local server file storage."
+  },
+  {
+    "id": "utils.file.remove_directory.local.app_error",
+    "translation": "Encountered an error removing directory from local server file storage."
+  },
+  {
+    "id": "utils.file.remove_directory.s3.app_error",
+    "translation": "Encountered an error removing directory from S3."
+  },
+  {
+    "id": "utils.file.remove_directory.configured.app_error",
+    "translation": "File storage not configured properly. Please configure for either S3 or local server file storage."
   },
   {
     "id": "api.file.upload_file.bad_parse.app_error",
@@ -1558,6 +1630,10 @@
     "translation": "Invalid RootId parameter"
   },
   {
+    "id": "api.post.create_post.town_square_read_only",
+    "translation": "This channel is read-only. Only members with permission can post here."
+  },
+  {
     "id": "api.post.create_webhook_post.creating.app_error",
     "translation": "Error creating post"
   },
@@ -1742,6 +1818,14 @@
   {
     "id": "api.post_get_post_by_id.get.app_error",
     "translation": "Unable to get post"
+  },
+  {
+    "id": "api.post.do_action.action_id.app_error",
+    "translation": "Invalid action id"
+  },
+  {
+    "id": "api.post.do_action.action_integration.app_error",
+    "translation": "Action integration error"
   },
   {
     "id": "api.preference.delete_preferences.decode.app_error",
@@ -4164,6 +4248,10 @@
     "translation": "Invalid user id"
   },
   {
+    "id": "model.client.writer.app_error",
+    "translation": "Unable to build multipart request"
+  },
+  {
     "id": "model.client.connecting.app_error",
     "translation": "We encountered an error while connecting to the server"
   },
@@ -5096,6 +5184,10 @@
     "translation": "could not decode"
   },
   {
+    "id": "plugin.rpcplugin.invocation.error",
+    "translation": "Error invoking plugin RPC"
+  },
+  {
     "id": "store.sql.alter_column_type.critical",
     "translation": "Failed to alter column type %v"
   },
@@ -5574,6 +5666,10 @@
   {
     "id": "store.sql_file_info.save_or_update.app_error",
     "translation": "We couldn't save or update the file info"
+  },
+  {
+    "id": "store.sql_file_info.permanent_delete.app_error",
+    "translation": "We couldn't permanently delete the file info"
   },
   {
     "id": "store.sql_job.delete.app_error",

@@ -46,11 +46,11 @@ func CreateUserWithHash(user *model.User, hash string, data string) (*model.User
 	props := model.MapFromJson(strings.NewReader(data))
 
 	if hash != utils.HashSha256(fmt.Sprintf("%v:%v", data, utils.Cfg.EmailSettings.InviteSalt)) {
-		return nil, model.NewLocAppError("CreateUserWithHash", "api.user.create_user.signup_link_invalid.app_error", nil, "")
+		return nil, model.NewAppError("CreateUserWithHash", "api.user.create_user.signup_link_invalid.app_error", nil, "", http.StatusInternalServerError)
 	}
 
 	if t, err := strconv.ParseInt(props["time"], 10, 64); err != nil || model.GetMillis()-t > 1000*60*60*48 { // 48 hours
-		return nil, model.NewLocAppError("CreateUserWithHash", "api.user.create_user.signup_link_expired.app_error", nil, "")
+		return nil, model.NewAppError("CreateUserWithHash", "api.user.create_user.signup_link_expired.app_error", nil, "", http.StatusInternalServerError)
 	}
 
 	teamId := props["id"]
@@ -132,8 +132,7 @@ func CreateUserFromSignup(user *model.User) (*model.User, *model.AppError) {
 	}
 
 	if !IsFirstUserAccount() && !*utils.Cfg.TeamSettings.EnableOpenServer {
-		err := model.NewLocAppError("CreateUserFromSignup", "api.user.create_user.no_open_server", nil, "email="+user.Email)
-		err.StatusCode = http.StatusForbidden
+		err := model.NewAppError("CreateUserFromSignup", "api.user.create_user.no_open_server", nil, "email="+user.Email, http.StatusForbidden)
 		return nil, err
 	}
 
@@ -153,8 +152,7 @@ func CreateUserFromSignup(user *model.User) (*model.User, *model.AppError) {
 
 func IsUserSignUpAllowed() *model.AppError {
 	if !utils.Cfg.EmailSettings.EnableSignUpWithEmail || !utils.Cfg.TeamSettings.EnableUserCreation {
-		err := model.NewLocAppError("IsUserSignUpAllowed", "api.user.create_user.signup_email_disabled.app_error", nil, "")
-		err.StatusCode = http.StatusNotImplemented
+		err := model.NewAppError("IsUserSignUpAllowed", "api.user.create_user.signup_email_disabled.app_error", nil, "", http.StatusNotImplemented)
 		return err
 	}
 	return nil
@@ -178,7 +176,7 @@ func IsFirstUserAccount() bool {
 
 func CreateUser(user *model.User) (*model.User, *model.AppError) {
 	if !user.IsLDAPUser() && !user.IsSAMLUser() && !CheckUserDomain(user, utils.Cfg.TeamSettings.RestrictCreationToDomains) {
-		return nil, model.NewLocAppError("CreateUser", "api.user.create_user.accepted_domain.app_error", nil, "")
+		return nil, model.NewAppError("CreateUser", "api.user.create_user.accepted_domain.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	user.Roles = model.ROLE_SYSTEM_USER.Id
@@ -248,13 +246,13 @@ func CreateOAuthUser(service string, userData io.Reader, teamId string) (*model.
 	var user *model.User
 	provider := einterfaces.GetOauthProvider(service)
 	if provider == nil {
-		return nil, model.NewLocAppError("CreateOAuthUser", "api.user.create_oauth_user.not_available.app_error", map[string]interface{}{"Service": strings.Title(service)}, "")
+		return nil, model.NewAppError("CreateOAuthUser", "api.user.create_oauth_user.not_available.app_error", map[string]interface{}{"Service": strings.Title(service)}, "", http.StatusNotImplemented)
 	} else {
 		user = provider.GetUserFromJson(userData)
 	}
 
 	if user == nil {
-		return nil, model.NewLocAppError("CreateOAuthUser", "api.user.create_oauth_user.create.app_error", map[string]interface{}{"Service": service}, "")
+		return nil, model.NewAppError("CreateOAuthUser", "api.user.create_oauth_user.create.app_error", map[string]interface{}{"Service": service}, "", http.StatusInternalServerError)
 	}
 
 	suchan := Srv.Store.User().GetByAuth(user.AuthData, service)
@@ -276,11 +274,9 @@ func CreateOAuthUser(service string, userData io.Reader, teamId string) (*model.
 	if result := <-euchan; result.Err == nil {
 		authService := result.Data.(*model.User).AuthService
 		if authService == "" {
-			return nil, model.NewLocAppError("CreateOAuthUser", "api.user.create_oauth_user.already_attached.app_error",
-				map[string]interface{}{"Service": service, "Auth": model.USER_AUTH_SERVICE_EMAIL}, "email="+user.Email)
+			return nil, model.NewAppError("CreateOAuthUser", "api.user.create_oauth_user.already_attached.app_error", map[string]interface{}{"Service": service, "Auth": model.USER_AUTH_SERVICE_EMAIL}, "email="+user.Email, http.StatusBadRequest)
 		} else {
-			return nil, model.NewLocAppError("CreateOAuthUser", "api.user.create_oauth_user.already_attached.app_error",
-				map[string]interface{}{"Service": service, "Auth": authService}, "email="+user.Email)
+			return nil, model.NewAppError("CreateOAuthUser", "api.user.create_oauth_user.already_attached.app_error", map[string]interface{}{"Service": service, "Auth": authService}, "email="+user.Email, http.StatusBadRequest)
 		}
 	}
 
@@ -634,8 +630,7 @@ func GenerateMfaSecret(userId string) (*model.MfaSecret, *model.AppError) {
 func ActivateMfa(userId, token string) *model.AppError {
 	mfaInterface := einterfaces.GetMfaInterface()
 	if mfaInterface == nil {
-		err := model.NewLocAppError("ActivateMfa", "api.user.update_mfa.not_available.app_error", nil, "")
-		err.StatusCode = http.StatusNotImplemented
+		err := model.NewAppError("ActivateMfa", "api.user.update_mfa.not_available.app_error", nil, "", http.StatusNotImplemented)
 		return err
 	}
 
@@ -647,7 +642,7 @@ func ActivateMfa(userId, token string) *model.AppError {
 	}
 
 	if len(user.AuthService) > 0 && user.AuthService != model.USER_AUTH_SERVICE_LDAP {
-		return model.NewLocAppError("ActivateMfa", "api.user.activate_mfa.email_and_ldap_only.app_error", nil, "")
+		return model.NewAppError("ActivateMfa", "api.user.activate_mfa.email_and_ldap_only.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if err := mfaInterface.Activate(user, token); err != nil {
@@ -660,8 +655,7 @@ func ActivateMfa(userId, token string) *model.AppError {
 func DeactivateMfa(userId string) *model.AppError {
 	mfaInterface := einterfaces.GetMfaInterface()
 	if mfaInterface == nil {
-		err := model.NewLocAppError("DeactivateMfa", "api.user.update_mfa.not_available.app_error", nil, "")
-		err.StatusCode = http.StatusNotImplemented
+		err := model.NewAppError("DeactivateMfa", "api.user.update_mfa.not_available.app_error", nil, "", http.StatusNotImplemented)
 		return err
 	}
 
@@ -711,11 +705,11 @@ func CreateProfileImage(username string, userId string) ([]byte, *model.AppError
 	fontDir, _ := utils.FindDir("fonts")
 	fontBytes, err := ioutil.ReadFile(fontDir + utils.Cfg.FileSettings.InitialFont)
 	if err != nil {
-		return nil, model.NewLocAppError("CreateProfileImage", "api.user.create_profile_image.default_font.app_error", nil, err.Error())
+		return nil, model.NewAppError("CreateProfileImage", "api.user.create_profile_image.default_font.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	font, err := freetype.ParseFont(fontBytes)
 	if err != nil {
-		return nil, model.NewLocAppError("CreateProfileImage", "api.user.create_profile_image.default_font.app_error", nil, err.Error())
+		return nil, model.NewAppError("CreateProfileImage", "api.user.create_profile_image.default_font.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	color := colors[int64(seed)%int64(len(colors))]
@@ -734,13 +728,13 @@ func CreateProfileImage(username string, userId string) ([]byte, *model.AppError
 	pt := freetype.Pt(IMAGE_PROFILE_PIXEL_DIMENSION/6, IMAGE_PROFILE_PIXEL_DIMENSION*2/3)
 	_, err = c.DrawString(initial, pt)
 	if err != nil {
-		return nil, model.NewLocAppError("CreateProfileImage", "api.user.create_profile_image.initial.app_error", nil, err.Error())
+		return nil, model.NewAppError("CreateProfileImage", "api.user.create_profile_image.initial.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	buf := new(bytes.Buffer)
 
 	if imgErr := png.Encode(buf, dstImg); imgErr != nil {
-		return nil, model.NewLocAppError("CreateProfileImage", "api.user.create_profile_image.encode.app_error", nil, imgErr.Error())
+		return nil, model.NewAppError("CreateProfileImage", "api.user.create_profile_image.encode.app_error", nil, imgErr.Error(), http.StatusInternalServerError)
 	} else {
 		return buf.Bytes(), nil
 	}
@@ -750,7 +744,7 @@ func GetProfileImage(user *model.User) ([]byte, bool, *model.AppError) {
 	var img []byte
 	readFailed := false
 
-	if len(utils.Cfg.FileSettings.DriverName) == 0 {
+	if len(*utils.Cfg.FileSettings.DriverName) == 0 {
 		var err *model.AppError
 		if img, err = CreateProfileImage(user.Username, user.Id); err != nil {
 			return nil, false, err
@@ -758,7 +752,7 @@ func GetProfileImage(user *model.User) ([]byte, bool, *model.AppError) {
 	} else {
 		path := "users/" + user.Id + "/profile.png"
 
-		if data, err := ReadFile(path); err != nil {
+		if data, err := utils.ReadFile(path); err != nil {
 			readFailed = true
 
 			if img, err = CreateProfileImage(user.Username, user.Id); err != nil {
@@ -766,7 +760,7 @@ func GetProfileImage(user *model.User) ([]byte, bool, *model.AppError) {
 			}
 
 			if user.LastPictureUpdate == 0 {
-				if err := WriteFile(img, path); err != nil {
+				if err := utils.WriteFile(img, path); err != nil {
 					return nil, false, err
 				}
 			}
@@ -783,15 +777,15 @@ func SetProfileImage(userId string, imageData *multipart.FileHeader) *model.AppE
 	file, err := imageData.Open()
 	defer file.Close()
 	if err != nil {
-		return model.NewLocAppError("SetProfileImage", "api.user.upload_profile_user.open.app_error", nil, err.Error())
+		return model.NewAppError("SetProfileImage", "api.user.upload_profile_user.open.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
 
 	// Decode image config first to check dimensions before loading the whole thing into memory later on
 	config, _, err := image.DecodeConfig(file)
 	if err != nil {
-		return model.NewLocAppError("SetProfileImage", "api.user.upload_profile_user.decode_config.app_error", nil, err.Error())
+		return model.NewAppError("SetProfileImage", "api.user.upload_profile_user.decode_config.app_error", nil, err.Error(), http.StatusBadRequest)
 	} else if config.Width*config.Height > model.MaxImageSize {
-		return model.NewLocAppError("SetProfileImage", "api.user.upload_profile_user.too_large.app_error", nil, err.Error())
+		return model.NewAppError("SetProfileImage", "api.user.upload_profile_user.too_large.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
 
 	file.Seek(0, 0)
@@ -799,7 +793,7 @@ func SetProfileImage(userId string, imageData *multipart.FileHeader) *model.AppE
 	// Decode image into Image object
 	img, _, err := image.Decode(file)
 	if err != nil {
-		return model.NewLocAppError("SetProfileImage", "api.user.upload_profile_user.decode.app_error", nil, err.Error())
+		return model.NewAppError("SetProfileImage", "api.user.upload_profile_user.decode.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
 
 	file.Seek(0, 0)
@@ -814,13 +808,13 @@ func SetProfileImage(userId string, imageData *multipart.FileHeader) *model.AppE
 	buf := new(bytes.Buffer)
 	err = png.Encode(buf, img)
 	if err != nil {
-		return model.NewLocAppError("SetProfileImage", "api.user.upload_profile_user.encode.app_error", nil, err.Error())
+		return model.NewAppError("SetProfileImage", "api.user.upload_profile_user.encode.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	path := "users/" + userId + "/profile.png"
 
-	if err := WriteFile(buf.Bytes(), path); err != nil {
-		return model.NewLocAppError("SetProfileImage", "api.user.upload_profile_user.upload_profile.app_error", nil, "")
+	if err := utils.WriteFile(buf.Bytes(), path); err != nil {
+		return model.NewAppError("SetProfileImage", "api.user.upload_profile_user.upload_profile.app_error", nil, "", http.StatusInternalServerError)
 	}
 
 	<-Srv.Store.User().UpdateLastPictureUpdate(userId)
@@ -886,7 +880,7 @@ func UpdateActiveNoLdap(userId string, active bool) (*model.User, *model.AppErro
 	}
 
 	if user.IsLDAPUser() {
-		err := model.NewLocAppError("UpdateActive", "api.user.update_active.no_deactivate_ldap.app_error", nil, "userId="+user.Id)
+		err := model.NewAppError("UpdateActive", "api.user.update_active.no_deactivate_ldap.app_error", nil, "userId="+user.Id, http.StatusBadRequest)
 		err.StatusCode = http.StatusBadRequest
 		return nil, err
 	}
@@ -1075,7 +1069,7 @@ func UpdatePassword(user *model.User, newPassword string) *model.AppError {
 	hashedPassword := model.HashPassword(newPassword)
 
 	if result := <-Srv.Store.User().UpdatePassword(user.Id, hashedPassword); result.Err != nil {
-		return model.NewLocAppError("UpdatePassword", "api.user.update_password.failed.app_error", nil, result.Err.Error())
+		return model.NewAppError("UpdatePassword", "api.user.update_password.failed.app_error", nil, result.Err.Error(), http.StatusInternalServerError)
 	}
 
 	return nil
@@ -1145,7 +1139,7 @@ func SendPasswordReset(email string, siteURL string) (bool, *model.AppError) {
 	}
 
 	if _, err := SendPasswordResetEmail(user.Email, token, user.Locale, siteURL); err != nil {
-		return false, model.NewLocAppError("SendPasswordReset", "api.user.send_password_reset.send.app_error", nil, "err="+err.Message)
+		return false, model.NewAppError("SendPasswordReset", "api.user.send_password_reset.send.app_error", nil, "err="+err.Message, http.StatusInternalServerError)
 	}
 
 	return true, nil
@@ -1488,7 +1482,7 @@ func UpdateOAuthUserAttrs(userData io.Reader, user *model.User, provider einterf
 	oauthUser := provider.GetUserFromJson(userData)
 
 	if oauthUser == nil {
-		return model.NewLocAppError("UpdateOAuthUserAttrs", "api.user.update_oauth_user_attrs.get_user.app_error", map[string]interface{}{"Service": service}, "")
+		return model.NewAppError("UpdateOAuthUserAttrs", "api.user.update_oauth_user_attrs.get_user.app_error", map[string]interface{}{"Service": service}, "", http.StatusBadRequest)
 	}
 
 	userAttrsChanged := false

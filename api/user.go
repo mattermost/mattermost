@@ -550,7 +550,7 @@ func getProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	} else {
 		if len(users) == 0 {
-			c.Err = model.NewLocAppError("getProfileImage", "store.sql_user.get_profiles.app_error", nil, "")
+			c.Err = model.NewAppError("getProfileImage", "store.sql_user.get_profiles.app_error", nil, "", http.StatusInternalServerError)
 			return
 		}
 
@@ -580,20 +580,18 @@ func getProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func uploadProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
-	if len(utils.Cfg.FileSettings.DriverName) == 0 {
-		c.Err = model.NewLocAppError("uploadProfileImage", "api.user.upload_profile_user.storage.app_error", nil, "")
-		c.Err.StatusCode = http.StatusNotImplemented
+	if len(*utils.Cfg.FileSettings.DriverName) == 0 {
+		c.Err = model.NewAppError("uploadProfileImage", "api.user.upload_profile_user.storage.app_error", nil, "", http.StatusNotImplemented)
 		return
 	}
 
 	if r.ContentLength > *utils.Cfg.FileSettings.MaxFileSize {
-		c.Err = model.NewLocAppError("uploadProfileImage", "api.user.upload_profile_user.too_large.app_error", nil, "")
-		c.Err.StatusCode = http.StatusRequestEntityTooLarge
+		c.Err = model.NewAppError("uploadProfileImage", "api.user.upload_profile_user.too_large.app_error", nil, "", http.StatusRequestEntityTooLarge)
 		return
 	}
 
 	if err := r.ParseMultipartForm(*utils.Cfg.FileSettings.MaxFileSize); err != nil {
-		c.Err = model.NewLocAppError("uploadProfileImage", "api.user.upload_profile_user.parse.app_error", nil, "")
+		c.Err = model.NewAppError("uploadProfileImage", "api.user.upload_profile_user.parse.app_error", nil, "", http.StatusBadRequest)
 		return
 	}
 
@@ -601,14 +599,12 @@ func uploadProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	imageArray, ok := m.File["image"]
 	if !ok {
-		c.Err = model.NewLocAppError("uploadProfileImage", "api.user.upload_profile_user.no_file.app_error", nil, "")
-		c.Err.StatusCode = http.StatusBadRequest
+		c.Err = model.NewAppError("uploadProfileImage", "api.user.upload_profile_user.no_file.app_error", nil, "", http.StatusBadRequest)
 		return
 	}
 
 	if len(imageArray) <= 0 {
-		c.Err = model.NewLocAppError("uploadProfileImage", "api.user.upload_profile_user.array.app_error", nil, "")
-		c.Err.StatusCode = http.StatusBadRequest
+		c.Err = model.NewAppError("uploadProfileImage", "api.user.upload_profile_user.array.app_error", nil, "", http.StatusBadRequest)
 		return
 	}
 
@@ -666,8 +662,7 @@ func updatePassword(c *Context, w http.ResponseWriter, r *http.Request) {
 	newPassword := props["new_password"]
 
 	if userId != c.Session.UserId {
-		c.Err = model.NewLocAppError("updatePassword", "api.user.update_password.context.app_error", nil, "")
-		c.Err.StatusCode = http.StatusForbidden
+		c.Err = model.NewAppError("updatePassword", "api.user.update_password.context.app_error", nil, "", http.StatusForbidden)
 		return
 	}
 
@@ -731,8 +726,7 @@ func updateActive(c *Context, w http.ResponseWriter, r *http.Request) {
 	isSelfDeactive := !active && userId == c.Session.UserId
 
 	if !isSelfDeactive && !app.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
-		c.Err = model.NewLocAppError("updateActive", "api.user.update_active.permissions.app_error", nil, "userId="+userId)
-		c.Err.StatusCode = http.StatusForbidden
+		c.Err = model.NewAppError("updateActive", "api.user.update_active.permissions.app_error", nil, "userId="+userId, http.StatusForbidden)
 		return
 	}
 
@@ -1017,8 +1011,7 @@ func verifyEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	c.Err = model.NewLocAppError("verifyEmail", "api.user.verify_email.bad_link.app_error", nil, "")
-	c.Err.StatusCode = http.StatusBadRequest
+	c.Err = model.NewAppError("verifyEmail", "api.user.verify_email.bad_link.app_error", nil, "", http.StatusBadRequest)
 }
 
 func resendVerification(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -1136,8 +1129,7 @@ func loginWithSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 	samlInterface := einterfaces.GetSamlInterface()
 
 	if samlInterface == nil {
-		c.Err = model.NewLocAppError("loginWithSaml", "api.user.saml.not_available.app_error", nil, "")
-		c.Err.StatusCode = http.StatusFound
+		c.Err = model.NewAppError("loginWithSaml", "api.user.saml.not_available.app_error", nil, "", http.StatusFound)
 		return
 	}
 
@@ -1180,8 +1172,7 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 	samlInterface := einterfaces.GetSamlInterface()
 
 	if samlInterface == nil {
-		c.Err = model.NewLocAppError("completeSaml", "api.user.saml.not_available.app_error", nil, "")
-		c.Err.StatusCode = http.StatusFound
+		c.Err = model.NewAppError("completeSaml", "api.user.saml.not_available.app_error", nil, "", http.StatusFound)
 		return
 	}
 
@@ -1193,8 +1184,7 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 	if len(relayState) > 0 {
 		stateStr := ""
 		if b, err := b64.StdEncoding.DecodeString(relayState); err != nil {
-			c.Err = model.NewLocAppError("completeSaml", "api.user.authorize_oauth_user.invalid_state.app_error", nil, err.Error())
-			c.Err.StatusCode = http.StatusFound
+			c.Err = model.NewAppError("completeSaml", "api.user.authorize_oauth_user.invalid_state.app_error", nil, err.Error(), http.StatusFound)
 			return
 		} else {
 			stateStr = string(b)

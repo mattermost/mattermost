@@ -121,7 +121,7 @@ func CheckUserMfa(user *model.User, token string) *model.AppError {
 }
 
 func checkUserLoginAttempts(user *model.User) *model.AppError {
-	if user.FailedAttempts >= utils.Cfg.ServiceSettings.MaximumLoginAttempts {
+	if user.FailedAttempts >= *utils.Cfg.ServiceSettings.MaximumLoginAttempts {
 		return model.NewAppError("checkUserLoginAttempts", "api.user.check_user_login_attempts.too_many.app_error", nil, "user_id="+user.Id, http.StatusUnauthorized)
 	}
 

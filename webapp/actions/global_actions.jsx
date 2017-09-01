@@ -11,7 +11,7 @@ import TeamStore from 'stores/team_store.jsx';
 import SearchStore from 'stores/search_store.jsx';
 
 import {handleNewPost} from 'actions/post_actions.jsx';
-import {loadProfilesForSidebar} from 'actions/user_actions.jsx';
+import {loadProfilesForSidebar, loadNewDMIfNeeded, loadNewGMIfNeeded} from 'actions/user_actions.jsx';
 import {loadChannelsForCurrentUser} from 'actions/channel_actions.jsx';
 import {stopPeriodicStatusUpdates} from 'actions/status_actions.jsx';
 import * as WebsocketActions from 'actions/websocket_actions.jsx';
@@ -133,6 +133,13 @@ export function emitPostFocusEvent(postId, onSuccess) {
         (data) => {
             if (data) {
                 const channelId = data.posts[data.order[0]].channel_id;
+                const channel = ChannelStore.getChannelById(channelId);
+                if (channel && channel.type === Constants.DM_CHANNEL) {
+                    loadNewDMIfNeeded(channel.id);
+                } else if (channel && channel.type === Constants.GM_CHANNEL) {
+                    loadNewGMIfNeeded(channel.id);
+                }
+
                 doFocusPost(channelId, postId, data).then(() => {
                     if (onSuccess) {
                         onSuccess();
@@ -435,6 +442,13 @@ let lastTimeTypingSent = 0;
 export function emitLocalUserTypingEvent(channelId, parentId) {
     const t = Date.now();
     const membersInChannel = ChannelStore.getStats(channelId).member_count;
+
+    if (global.mm_license.IsLicensed === 'true' && global.mm_config.ExperimentalTownSquareIsReadOnly === 'true') {
+        const channel = ChannelStore.getChannelById(channelId);
+        if (channel && ChannelStore.isDefault(channel)) {
+            return;
+        }
+    }
 
     if (((t - lastTimeTypingSent) > global.window.mm_config.TimeBetweenUserTypingUpdatesMilliseconds) && membersInChannel < global.window.mm_config.MaxNotificationsPerChannel && global.window.mm_config.EnableUserTypingMessages === 'true') {
         WebSocketClient.userTyping(channelId, parentId);

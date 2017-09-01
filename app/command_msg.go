@@ -89,7 +89,7 @@ func (me *msgProvider) DoCommand(args *model.CommandArgs, message string) *model
 		post.Message = parsedMessage
 		post.ChannelId = targetChannelId
 		post.UserId = args.UserId
-		if _, err := CreatePost(post, args.TeamId, true); err != nil {
+		if _, err := CreatePostMissingChannel(post, true); err != nil {
 			return &model.CommandResponse{Text: args.T("api.command_msg.fail.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 		}
 	}
