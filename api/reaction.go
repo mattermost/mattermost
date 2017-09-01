@@ -29,8 +29,7 @@ func saveReaction(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if reaction.UserId != c.Session.UserId {
-		c.Err = model.NewLocAppError("saveReaction", "api.reaction.save_reaction.user_id.app_error", nil, "")
-		c.Err.StatusCode = http.StatusForbidden
+		c.Err = model.NewAppError("saveReaction", "api.reaction.save_reaction.user_id.app_error", nil, "", http.StatusForbidden)
 		return
 	}
 
@@ -59,9 +58,8 @@ func saveReaction(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = result.Err
 		return
 	} else if post = result.Data.(*model.PostList).Posts[postId]; post.ChannelId != channelId {
-		c.Err = model.NewLocAppError("saveReaction", "api.reaction.save_reaction.mismatched_channel_id.app_error",
-			nil, "channelId="+channelId+", post.ChannelId="+post.ChannelId+", postId="+postId)
-		c.Err.StatusCode = http.StatusBadRequest
+		c.Err = model.NewAppError("saveReaction", "api.reaction.save_reaction.mismatched_channel_id.app_error",
+			nil, "channelId="+channelId+", post.ChannelId="+post.ChannelId+", postId="+postId, http.StatusBadRequest)
 		return
 	}
 
@@ -82,8 +80,7 @@ func deleteReaction(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if reaction.UserId != c.Session.UserId {
-		c.Err = model.NewLocAppError("deleteReaction", "api.reaction.delete_reaction.user_id.app_error", nil, "")
-		c.Err.StatusCode = http.StatusForbidden
+		c.Err = model.NewAppError("deleteReaction", "api.reaction.delete_reaction.user_id.app_error", nil, "", http.StatusForbidden)
 		return
 	}
 
@@ -158,9 +155,8 @@ func listReactions(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = result.Err
 		return
 	} else if post := result.Data.(*model.PostList).Posts[postId]; post.ChannelId != channelId {
-		c.Err = model.NewLocAppError("listReactions", "api.reaction.list_reactions.mismatched_channel_id.app_error",
-			nil, "channelId="+channelId+", post.ChannelId="+post.ChannelId+", postId="+postId)
-		c.Err.StatusCode = http.StatusBadRequest
+		c.Err = model.NewAppError("listReactions", "api.reaction.list_reactions.mismatched_channel_id.app_error",
+			nil, "channelId="+channelId+", post.ChannelId="+post.ChannelId+", postId="+postId, http.StatusBadRequest)
 		return
 	}
 

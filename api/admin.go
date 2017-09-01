@@ -237,13 +237,12 @@ func getAnalytics(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func uploadBrandImage(c *Context, w http.ResponseWriter, r *http.Request) {
 	if r.ContentLength > *utils.Cfg.FileSettings.MaxFileSize {
-		c.Err = model.NewLocAppError("uploadBrandImage", "api.admin.upload_brand_image.too_large.app_error", nil, "")
-		c.Err.StatusCode = http.StatusRequestEntityTooLarge
+		c.Err = model.NewAppError("uploadBrandImage", "api.admin.upload_brand_image.too_large.app_error", nil, "", http.StatusRequestEntityTooLarge)
 		return
 	}
 
 	if err := r.ParseMultipartForm(*utils.Cfg.FileSettings.MaxFileSize); err != nil {
-		c.Err = model.NewLocAppError("uploadBrandImage", "api.admin.upload_brand_image.parse.app_error", nil, "")
+		c.Err = model.NewAppError("uploadBrandImage", "api.admin.upload_brand_image.parse.app_error", nil, "", http.StatusBadRequest)
 		return
 	}
 
@@ -251,13 +250,13 @@ func uploadBrandImage(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	imageArray, ok := m.File["image"]
 	if !ok {
-		c.Err = model.NewLocAppError("uploadBrandImage", "api.admin.upload_brand_image.no_file.app_error", nil, "")
+		c.Err = model.NewAppError("uploadBrandImage", "api.admin.upload_brand_image.no_file.app_error", nil, "", http.StatusBadRequest)
 		c.Err.StatusCode = http.StatusBadRequest
 		return
 	}
 
 	if len(imageArray) <= 0 {
-		c.Err = model.NewLocAppError("uploadBrandImage", "api.admin.upload_brand_image.array.app_error", nil, "")
+		c.Err = model.NewAppError("uploadBrandImage", "api.admin.upload_brand_image.array.app_error", nil, "", http.StatusBadRequest)
 		c.Err.StatusCode = http.StatusBadRequest
 		return
 	}
@@ -350,7 +349,7 @@ func ldapTest(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func samlMetadata(c *Context, w http.ResponseWriter, r *http.Request) {
 	if result, err := app.GetSamlMetadata(); err != nil {
-		c.Err = model.NewLocAppError("loginWithSaml", "api.admin.saml.metadata.app_error", nil, "err="+err.Message)
+		c.Err = model.NewAppError("loginWithSaml", "api.admin.saml.metadata.app_error", nil, "err="+err.Message, http.StatusInternalServerError)
 		return
 	} else {
 		w.Header().Set("Content-Type", "application/xml")
@@ -370,13 +369,13 @@ func addCertificate(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	fileArray, ok := m.File["certificate"]
 	if !ok {
-		c.Err = model.NewLocAppError("addCertificate", "api.admin.add_certificate.no_file.app_error", nil, "")
+		c.Err = model.NewAppError("addCertificate", "api.admin.add_certificate.no_file.app_error", nil, "", http.StatusBadRequest)
 		c.Err.StatusCode = http.StatusBadRequest
 		return
 	}
 
 	if len(fileArray) <= 0 {
-		c.Err = model.NewLocAppError("addCertificate", "api.admin.add_certificate.array.app_error", nil, "")
+		c.Err = model.NewAppError("addCertificate", "api.admin.add_certificate.array.app_error", nil, "", http.StatusBadRequest)
 		c.Err.StatusCode = http.StatusBadRequest
 		return
 	}

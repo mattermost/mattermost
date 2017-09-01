@@ -133,7 +133,7 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 			if (h.requireSystemAdmin || h.requireUser) && !h.trustRequester {
 				if r.Header.Get(model.HEADER_REQUESTED_WITH) != model.HEADER_REQUESTED_WITH_XML {
-					c.Err = model.NewLocAppError("ServeHTTP", "api.context.session_expired.app_error", nil, "token="+token+" Appears to be a CSRF attempt")
+					c.Err = model.NewAppError("ServeHTTP", "api.context.session_expired.app_error", nil, "token="+token+" Appears to be a CSRF attempt", http.StatusUnauthorized)
 					token = ""
 				}
 			}
@@ -171,12 +171,10 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			l4g.Error(utils.T("api.context.invalid_session.error"), err.Error())
 			c.RemoveSessionCookie(w, r)
 			if h.requireUser || h.requireSystemAdmin {
-				c.Err = model.NewLocAppError("ServeHTTP", "api.context.session_expired.app_error", nil, "token="+token)
-				c.Err.StatusCode = http.StatusUnauthorized
+				c.Err = model.NewAppError("ServeHTTP", "api.context.session_expired.app_error", nil, "token="+token, http.StatusUnauthorized)
 			}
 		} else if !session.IsOAuth && isTokenFromQueryString {
-			c.Err = model.NewLocAppError("ServeHTTP", "api.context.token_provided.app_error", nil, "token="+token)
-			c.Err.StatusCode = http.StatusUnauthorized
+			c.Err = model.NewAppError("ServeHTTP", "api.context.token_provided.app_error", nil, "token="+token, http.StatusUnauthorized)
 		} else {
 			c.Session = *session
 		}
@@ -317,8 +315,7 @@ func (c *Context) MfaRequired() {
 	}
 
 	if result := <-app.Srv.Store.User().Get(c.Session.UserId); result.Err != nil {
-		c.Err = model.NewLocAppError("", "api.context.session_expired.app_error", nil, "MfaRequired")
-		c.Err.StatusCode = http.StatusUnauthorized
+		c.Err = model.NewAppError("", "api.context.session_expired.app_error", nil, "MfaRequired", http.StatusUnauthorized)
 		return
 	} else {
 		user := result.Data.(*model.User)
@@ -331,8 +328,7 @@ func (c *Context) MfaRequired() {
 		}
 
 		if !user.MfaActive {
-			c.Err = model.NewLocAppError("", "api.context.mfa_required.app_error", nil, "MfaRequired")
-			c.Err.StatusCode = http.StatusUnauthorized
+			c.Err = model.NewAppError("", "api.context.mfa_required.app_error", nil, "MfaRequired", http.StatusUnauthorized)
 			return
 		}
 	}
@@ -340,12 +336,10 @@ func (c *Context) MfaRequired() {
 
 func (c *Context) SystemAdminRequired() {
 	if len(c.Session.UserId) == 0 {
-		c.Err = model.NewLocAppError("", "api.context.session_expired.app_error", nil, "SystemAdminRequired")
-		c.Err.StatusCode = http.StatusUnauthorized
+		c.Err = model.NewAppError("", "api.context.session_expired.app_error", nil, "SystemAdminRequired", http.StatusUnauthorized)
 		return
 	} else if !c.IsSystemAdmin() {
-		c.Err = model.NewLocAppError("", "api.context.permissions.app_error", nil, "AdminRequired")
-		c.Err.StatusCode = http.StatusForbidden
+		c.Err = model.NewAppError("", "api.context.permissions.app_error", nil, "AdminRequired", http.StatusForbidden)
 		return
 	}
 }
@@ -379,18 +373,16 @@ func (c *Context) SetInvalidParam(where string, name string) {
 }
 
 func NewInvalidParamError(where string, name string) *model.AppError {
-	err := model.NewLocAppError(where, "api.context.invalid_param.app_error", map[string]interface{}{"Name": name}, "")
-	err.StatusCode = http.StatusBadRequest
+	err := model.NewAppError(where, "api.context.invalid_param.app_error", map[string]interface{}{"Name": name}, "", http.StatusBadRequest)
 	return err
 }
 
 func (c *Context) SetUnknownError(where string, details string) {
-	c.Err = model.NewLocAppError(where, "api.context.unknown.app_error", nil, details)
+	c.Err = model.NewAppError(where, "api.context.unknown.app_error", nil, details, http.StatusInternalServerError)
 }
 
 func (c *Context) SetPermissionError(permission *model.Permission) {
-	c.Err = model.NewLocAppError("Permissions", "api.context.permissions.app_error", nil, "userId="+c.Session.UserId+", "+"permission="+permission.Id)
-	c.Err.StatusCode = http.StatusForbidden
+	c.Err = model.NewAppError("Permissions", "api.context.permissions.app_error", nil, "userId="+c.Session.UserId+", "+"permission="+permission.Id, http.StatusForbidden)
 }
 
 func (c *Context) setTeamURL(url string, valid bool) {
@@ -436,9 +428,8 @@ func IsApiCall(r *http.Request) bool {
 }
 
 func Handle404(w http.ResponseWriter, r *http.Request) {
-	err := model.NewLocAppError("Handle404", "api.context.404.app_error", nil, "")
+	err := model.NewAppError("Handle404", "api.context.404.app_error", nil, "", http.StatusNotFound)
 	err.Translate(utils.T)
-	err.StatusCode = http.StatusNotFound
 
 	l4g.Debug("%v: code=404 ip=%v", r.URL.Path, utils.GetIpAddress(r))
 
