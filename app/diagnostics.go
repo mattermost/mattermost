@@ -243,6 +243,7 @@ func trackConfig() {
 		"isdefault_custom_description_text":       isDefault(*utils.Cfg.TeamSettings.CustomDescriptionText, model.TEAM_SETTINGS_DEFAULT_CUSTOM_DESCRIPTION_TEXT),
 		"isdefault_user_status_away_timeout":      isDefault(*utils.Cfg.TeamSettings.UserStatusAwayTimeout, model.TEAM_SETTINGS_DEFAULT_USER_STATUS_AWAY_TIMEOUT),
 		"restrict_private_channel_manage_members": *utils.Cfg.TeamSettings.RestrictPrivateChannelManageMembers,
+		"experimental_town_square_is_read_only":   *utils.Cfg.TeamSettings.ExperimentalTownSquareIsReadOnly,
 	})
 
 	SendDiagnostic(TRACK_CONFIG_CLIENT_REQ, map[string]interface{}{
@@ -290,6 +291,8 @@ func trackConfig() {
 		"amazon_s3_signv2":        *utils.Cfg.FileSettings.AmazonS3SignV2,
 		"max_file_size":           *utils.Cfg.FileSettings.MaxFileSize,
 		"enable_file_attachments": *utils.Cfg.FileSettings.EnableFileAttachments,
+		"enable_mobile_upload":    *utils.Cfg.FileSettings.EnableMobileUpload,
+		"enable_mobile_download":  *utils.Cfg.FileSettings.EnableMobileDownload,
 	})
 
 	SendDiagnostic(TRACK_CONFIG_EMAIL, map[string]interface{}{
@@ -298,6 +301,8 @@ func trackConfig() {
 		"enable_sign_in_with_username":         *utils.Cfg.EmailSettings.EnableSignInWithUsername,
 		"require_email_verification":           utils.Cfg.EmailSettings.RequireEmailVerification,
 		"send_email_notifications":             utils.Cfg.EmailSettings.SendEmailNotifications,
+		"email_notification_contents_type":     *utils.Cfg.EmailSettings.EmailNotificationContentsType,
+		"enable_smtp_auth":                     *utils.Cfg.EmailSettings.EnableSMTPAuth,
 		"connection_security":                  utils.Cfg.EmailSettings.ConnectionSecurity,
 		"send_push_notifications":              *utils.Cfg.EmailSettings.SendPushNotifications,
 		"push_notification_contents":           *utils.Cfg.EmailSettings.PushNotificationContents,

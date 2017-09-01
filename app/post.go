@@ -44,6 +44,29 @@ func CreatePostAsUser(post *model.Post) (*model.Post, *model.AppError) {
 			err.StatusCode = http.StatusBadRequest
 		}
 
+		if err.Id == "api.post.create_post.town_square_read_only" {
+			uchan := Srv.Store.User().Get(post.UserId)
+			var user *model.User
+			if result := <-uchan; result.Err != nil {
+				return nil, result.Err
+			} else {
+				user = result.Data.(*model.User)
+			}
+
+			T := utils.GetUserTranslations(user.Locale)
+			SendEphemeralPost(
+				post.UserId,
+				&model.Post{
+					ChannelId: channel.Id,
+					ParentId:  post.ParentId,
+					RootId:    post.RootId,
+					UserId:    post.UserId,
+					Message:   T("api.post.create_post.town_square_read_only"),
+					CreateAt:  model.GetMillis() + 1,
+				},
+			)
+		}
+
 		return nil, err
 	} else {
 		// Update the LastViewAt only if the post does not have from_webhook prop set (eg. Zapier app)
@@ -80,6 +103,21 @@ func CreatePost(post *model.Post, channel *model.Channel, triggerWebhooks bool) 
 	var pchan store.StoreChannel
 	if len(post.RootId) > 0 {
 		pchan = Srv.Store.Post().Get(post.RootId)
+	}
+
+	uchan := Srv.Store.User().Get(post.UserId)
+	var user *model.User
+	if result := <-uchan; result.Err != nil {
+		return nil, result.Err
+	} else {
+		user = result.Data.(*model.User)
+	}
+
+	if utils.IsLicensed() && *utils.Cfg.TeamSettings.ExperimentalTownSquareIsReadOnly &&
+		!post.IsSystemMessage() &&
+		channel.Name == model.DEFAULT_CHANNEL &&
+		!CheckIfRolesGrantPermission(user.GetRoles(), model.PERMISSION_MANAGE_SYSTEM.Id) {
+		return nil, model.NewLocAppError("createPost", "api.post.create_post.town_square_read_only", nil, "")
 	}
 
 	// Verify the parent/child relationships are correct
@@ -139,20 +177,18 @@ func CreatePost(post *model.Post, channel *model.Channel, triggerWebhooks bool) 
 		}
 	}
 
-	if err := handlePostEvents(rpost, channel, triggerWebhooks, parentPostList); err != nil {
+	if err := handlePostEvents(rpost, user, channel, triggerWebhooks, parentPostList); err != nil {
 		return nil, err
 	}
 
 	return rpost, nil
 }
 
-func handlePostEvents(post *model.Post, channel *model.Channel, triggerWebhooks bool, parentPostList *model.PostList) *model.AppError {
+func handlePostEvents(post *model.Post, user *model.User, channel *model.Channel, triggerWebhooks bool, parentPostList *model.PostList) *model.AppError {
 	var tchan store.StoreChannel
 	if len(channel.TeamId) > 0 {
 		tchan = Srv.Store.Team().Get(channel.TeamId)
 	}
-
-	uchan := Srv.Store.User().Get(post.UserId)
 
 	var team *model.Team
 	if tchan != nil {
@@ -168,13 +204,6 @@ func handlePostEvents(post *model.Post, channel *model.Channel, triggerWebhooks 
 
 	InvalidateCacheForChannel(channel)
 	InvalidateCacheForChannelPosts(channel.Id)
-
-	var user *model.User
-	if result := <-uchan; result.Err != nil {
-		return result.Err
-	} else {
-		user = result.Data.(*model.User)
-	}
 
 	if _, err := SendNotifications(post, team, channel, user, parentPostList); err != nil {
 		return err

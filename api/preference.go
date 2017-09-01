@@ -35,8 +35,7 @@ func getAllPreferences(c *Context, w http.ResponseWriter, r *http.Request) {
 func savePreferences(c *Context, w http.ResponseWriter, r *http.Request) {
 	preferences, err := model.PreferencesFromJson(r.Body)
 	if err != nil {
-		c.Err = model.NewLocAppError("savePreferences", "api.preference.save_preferences.decode.app_error", nil, err.Error())
-		c.Err.StatusCode = http.StatusBadRequest
+		c.Err = model.NewAppError("savePreferences", "api.preference.save_preferences.decode.app_error", nil, err.Error(), http.StatusBadRequest)
 		return
 	}
 
@@ -77,8 +76,7 @@ func getPreference(c *Context, w http.ResponseWriter, r *http.Request) {
 func deletePreferences(c *Context, w http.ResponseWriter, r *http.Request) {
 	preferences, err := model.PreferencesFromJson(r.Body)
 	if err != nil {
-		c.Err = model.NewLocAppError("savePreferences", "api.preference.delete_preferences.decode.app_error", nil, err.Error())
-		c.Err.StatusCode = http.StatusBadRequest
+		c.Err = model.NewAppError("savePreferences", "api.preference.delete_preferences.decode.app_error", nil, err.Error(), http.StatusBadRequest)
 		return
 	}
 

@@ -74,7 +74,8 @@
         "UserStatusAwayTimeout": 300,
         "MaxChannelsPerTeam": 2000,
         "MaxNotificationsPerChannel": 1000,
-        "TeammateNameDisplay": "username"
+        "TeammateNameDisplay": "username",
+        "ExperimentalTownSquareIsReadOnly": false
     },
     "ClientRequirements": {
         "AndroidLatestVersion": "",
@@ -314,6 +315,7 @@
         "RunScheduler": true
     },
     "PluginSettings": {
+        "Enable": false,
         "Plugins": {}
     }
 }

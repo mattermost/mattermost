@@ -7,6 +7,7 @@ import (
 	"crypto/tls"
 	"net"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 
@@ -19,6 +20,7 @@ import (
 	"gopkg.in/throttled/throttled.v2/store/memstore"
 
 	"github.com/mattermost/platform/model"
+	"github.com/mattermost/platform/plugin/pluginenv"
 	"github.com/mattermost/platform/store"
 	"github.com/mattermost/platform/utils"
 )
@@ -28,6 +30,7 @@ type Server struct {
 	WebSocketRouter *WebSocketRouter
 	Router          *mux.Router
 	GracefulServer  *graceful.Server
+	PluginEnv       *pluginenv.Environment
 }
 
 var allowedMethods []string = []string{
@@ -186,6 +189,10 @@ func StartServer() {
 		}()
 	}
 
+	if *utils.Cfg.PluginSettings.Enable {
+		StartupPlugins("plugins", "webapp/dist")
+	}
+
 	go func() {
 		var err error
 		if *utils.Cfg.ServiceSettings.ConnectionSecurity == model.CONN_SECURITY_TLS {
@@ -222,4 +229,29 @@ func StopServer() {
 	HubStop()
 
 	l4g.Info(utils.T("api.server.stop_server.stopped.info"))
+}
+
+func StartupPlugins(pluginPath, webappPath string) {
+	l4g.Info("Starting up plugins")
+
+	err := os.Mkdir(pluginPath, 0744)
+	if err != nil {
+		if os.IsExist(err) {
+			err = nil
+		} else {
+			l4g.Error("failed to start up plugins: " + err.Error())
+			return
+		}
+	}
+
+	Srv.PluginEnv, err = pluginenv.New(
+		pluginenv.SearchPath(pluginPath),
+		pluginenv.WebappPath(webappPath),
+	)
+
+	if err != nil {
+		l4g.Error("failed to start up plugins: " + err.Error())
+	}
+
+	ActivatePlugins()
 }

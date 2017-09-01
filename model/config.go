@@ -354,6 +354,7 @@ type TeamSettings struct {
 	MaxChannelsPerTeam                  *int64
 	MaxNotificationsPerChannel          *int64
 	TeammateNameDisplay                 *string
+	ExperimentalTownSquareIsReadOnly    *bool
 }
 
 type ClientRequirements struct {
@@ -477,6 +478,7 @@ type JobSettings struct {
 }
 
 type PluginSettings struct {
+	Enable  *bool
 	Plugins map[string]interface{}
 }
 
@@ -821,6 +823,11 @@ func (o *Config) SetDefaults() {
 	if o.TeamSettings.MaxNotificationsPerChannel == nil {
 		o.TeamSettings.MaxNotificationsPerChannel = new(int64)
 		*o.TeamSettings.MaxNotificationsPerChannel = 1000
+	}
+
+	if o.TeamSettings.ExperimentalTownSquareIsReadOnly == nil {
+		o.TeamSettings.ExperimentalTownSquareIsReadOnly = new(bool)
+		*o.TeamSettings.ExperimentalTownSquareIsReadOnly = false
 	}
 
 	if o.EmailSettings.EnableSignInWithEmail == nil {
@@ -1520,6 +1527,11 @@ func (o *Config) SetDefaults() {
 	if o.JobSettings.RunScheduler == nil {
 		o.JobSettings.RunScheduler = new(bool)
 		*o.JobSettings.RunScheduler = true
+	}
+
+	if o.PluginSettings.Enable == nil {
+		o.PluginSettings.Enable = new(bool)
+		*o.PluginSettings.Enable = false
 	}
 
 	if o.PluginSettings.Plugins == nil {

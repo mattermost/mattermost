@@ -282,8 +282,7 @@ func getPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	} else {
 		if !list.IsChannelId(channelId) {
-			c.Err = model.NewLocAppError("getPost", "api.post.get_post.permissions.app_error", nil, "")
-			c.Err.StatusCode = http.StatusForbidden
+			c.Err = model.NewAppError("getPost", "api.post.get_post.permissions.app_error", nil, "", http.StatusForbidden)
 			return
 		}
 
@@ -306,7 +305,7 @@ func getPostById(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	} else {
 		if len(list.Order) != 1 {
-			c.Err = model.NewLocAppError("getPostById", "api.post_get_post_by_id.get.app_error", nil, "")
+			c.Err = model.NewAppError("getPostById", "api.post_get_post_by_id.get.app_error", nil, "", http.StatusInternalServerError)
 			return
 		}
 		post := list.Posts[list.Order[0]]
@@ -395,8 +394,7 @@ func deletePost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	} else {
 		if post.ChannelId != channelId {
-			c.Err = model.NewLocAppError("deletePost", "api.post.delete_post.permissions.app_error", nil, "")
-			c.Err.StatusCode = http.StatusForbidden
+			c.Err = model.NewAppError("deletePost", "api.post.delete_post.permissions.app_error", nil, "", http.StatusForbidden)
 			return
 		}
 

@@ -1,4 +1,4 @@
-package plugin
+package model
 
 type BundleInfo struct {
 	Path string

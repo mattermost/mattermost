@@ -178,6 +178,14 @@ func (c *Client4) GetFileRoute(fileId string) string {
 	return fmt.Sprintf(c.GetFilesRoute()+"/%v", fileId)
 }
 
+func (c *Client4) GetPluginsRoute() string {
+	return fmt.Sprintf("/plugins")
+}
+
+func (c *Client4) GetPluginRoute(pluginId string) string {
+	return fmt.Sprintf(c.GetPluginsRoute()+"/%v", pluginId)
+}
+
 func (c *Client4) GetSystemRoute() string {
 	return fmt.Sprintf("/system")
 }
@@ -3013,6 +3021,67 @@ func (c *Client4) CreateJob(job *Job) (*Job, *Response) {
 // CancelJob requests the cancellation of the job with the provided Id.
 func (c *Client4) CancelJob(jobId string) (bool, *Response) {
 	if r, err := c.DoApiPost(c.GetJobsRoute()+fmt.Sprintf("/%v/cancel", jobId), ""); err != nil {
+		return false, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return CheckStatusOK(r), BuildResponse(r)
+	}
+}
+
+// Plugin Section
+
+// UploadPlugin takes an io.Reader stream pointing to the contents of a .tar.gz plugin.
+// WARNING: PLUGINS ARE STILL EXPERIMENTAL. THIS FUNCTION IS SUBJECT TO CHANGE.
+func (c *Client4) UploadPlugin(file io.Reader) (*Manifest, *Response) {
+	body := new(bytes.Buffer)
+	writer := multipart.NewWriter(body)
+
+	if part, err := writer.CreateFormFile("plugin", "plugin.tar.gz"); err != nil {
+		return nil, &Response{Error: NewAppError("UploadPlugin", "model.client.writer.app_error", nil, err.Error(), 0)}
+	} else if _, err = io.Copy(part, file); err != nil {
+		return nil, &Response{Error: NewAppError("UploadPlugin", "model.client.writer.app_error", nil, err.Error(), 0)}
+	}
+
+	if err := writer.Close(); err != nil {
+		return nil, &Response{Error: NewAppError("UploadPlugin", "model.client.writer.app_error", nil, err.Error(), 0)}
+	}
+
+	rq, _ := http.NewRequest("POST", c.ApiUrl+c.GetPluginsRoute(), body)
+	rq.Header.Set("Content-Type", writer.FormDataContentType())
+	rq.Close = true
+
+	if len(c.AuthToken) > 0 {
+		rq.Header.Set(HEADER_AUTH, c.AuthType+" "+c.AuthToken)
+	}
+
+	if rp, err := c.HttpClient.Do(rq); err != nil || rp == nil {
+		return nil, BuildErrorResponse(rp, NewAppError("UploadPlugin", "model.client.connecting.app_error", nil, err.Error(), 0))
+	} else {
+		defer closeBody(rp)
+
+		if rp.StatusCode >= 300 {
+			return nil, BuildErrorResponse(rp, AppErrorFromJson(rp.Body))
+		} else {
+			return ManifestFromJson(rp.Body), BuildResponse(rp)
+		}
+	}
+}
+
+// GetPlugins will return a list of plugin manifests for currently active plugins.
+// WARNING: PLUGINS ARE STILL EXPERIMENTAL. THIS FUNCTION IS SUBJECT TO CHANGE.
+func (c *Client4) GetPlugins() ([]*Manifest, *Response) {
+	if r, err := c.DoApiGet(c.GetPluginsRoute(), ""); err != nil {
+		return nil, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return ManifestListFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// RemovePlugin will deactivate and delete a plugin.
+// WARNING: PLUGINS ARE STILL EXPERIMENTAL. THIS FUNCTION IS SUBJECT TO CHANGE.
+func (c *Client4) RemovePlugin(id string) (bool, *Response) {
+	if r, err := c.DoApiDelete(c.GetPluginRoute(id)); err != nil {
 		return false, BuildErrorResponse(r, err)
 	} else {
 		defer closeBody(r)
