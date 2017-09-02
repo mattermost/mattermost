@@ -211,6 +211,27 @@ export default class Sidebar extends React.Component {
         this.updateUnreadIndicators();
     }
 
+    scrollToFirstUnreadChannel = () => {
+        if (this.firstUnreadChannel) {
+            const unreadMargin = 15;
+            const container = $(ReactDOM.findDOMNode(this.refs.container));
+            const firstUnreadElement = $(ReactDOM.findDOMNode(this.refs[this.firstUnreadChannel]));
+            const scrollTop = (container.scrollTop() + firstUnreadElement.position().top) - unreadMargin;
+            container.stop().animate({scrollTop}, 500, 'swing');
+        }
+    }
+
+    scrollToLastUnreadChannel = () => {
+        if (this.lastUnreadChannel) {
+            const unreadMargin = 15;
+            const container = $(ReactDOM.findDOMNode(this.refs.container));
+            const lastUnreadElement = $(ReactDOM.findDOMNode(this.refs[this.lastUnreadChannel]));
+            const elementBottom = lastUnreadElement.position().top + lastUnreadElement.height();
+            const scrollTop = (container.scrollTop() + (elementBottom - container.height())) + unreadMargin;
+            container.stop().animate({scrollTop}, 500, 'swing');
+        }
+    }
+
     updateUnreadIndicators = () => {
         const container = $(ReactDOM.findDOMNode(this.refs.container));
 
@@ -895,11 +916,13 @@ export default class Sidebar extends React.Component {
 
                 <UnreadChannelIndicator
                     show={this.state.showTopUnread}
+                    onClick={this.scrollToFirstUnreadChannel.bind(this)}
                     extraClass='nav-pills__unread-indicator-top'
                     text={above}
                 />
                 <UnreadChannelIndicator
                     show={this.state.showBottomUnread}
+                    onClick={this.scrollToLastUnreadChannel.bind(this)}
                     extraClass='nav-pills__unread-indicator-bottom'
                     text={below}
                 />

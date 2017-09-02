@@ -152,6 +152,7 @@
     .nav-pills__unread-indicator {
         @include border-radius(50px);
         font-size: 13.5px;
+        cursor: pointer;
         left: 15px;
         margin: 0 auto;
         padding: 4px 0 3px;
