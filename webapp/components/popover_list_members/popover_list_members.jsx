@@ -125,6 +125,7 @@ export default class PopoverListMembers extends React.Component {
                         >
                             <ProfilePicture
                                 src={Client4.getProfilePictureUrl(m.id, m.last_picture_update)}
+                                status={UserStore.getStatus(m.id)}
                                 width='40'
                                 height='40'
                             />
