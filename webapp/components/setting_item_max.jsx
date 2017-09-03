@@ -72,12 +72,10 @@ export default class SettingItemMax extends React.Component {
 
         var submit = '';
         if (this.props.submit) {
-            const loading = this.props.loading || false;
-
             submit = (
                 <SaveButton
-                    saving={loading}
-                    disabled={loading}
+                    saving={this.props.saving}
+                    disabled={this.props.saving}
                     onClick={this.props.submit}
                     messageId='setting_item_max.saving'
                 />
@@ -165,7 +163,7 @@ SettingItemMax.propTypes = {
     infoPosition: PropTypes.string,
     updateSection: PropTypes.func,
     submit: PropTypes.func,
-    loading: PropTypes.bool,
+    saving: PropTypes.bool,
     title: PropTypes.node,
     width: PropTypes.string,
     submitExtra: PropTypes.node,
@@ -173,5 +171,6 @@ SettingItemMax.propTypes = {
 };
 
 SettingItemMax.defaultProps = {
-    infoPosition: 'bottom'
+    infoPosition: 'bottom',
+    saving: false
 };

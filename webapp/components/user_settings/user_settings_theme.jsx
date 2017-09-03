@@ -36,6 +36,7 @@ export default class ThemeSetting extends React.Component {
         this.handleImportModal = this.handleImportModal.bind(this);
 
         this.state = this.getStateFromStores();
+        this.setState({isSaving: false});
 
         this.originalTheme = Object.assign({}, this.state.theme);
     }
@@ -318,7 +319,7 @@ export default class ThemeSetting extends React.Component {
                     inputs={inputs}
                     submitExtra={allTeamsCheckbox}
                     submit={this.submitTheme}
-                    loading={this.state.isSaving}
+                    saving={this.state.isSaving}
                     server_error={serverError}
                     width='full'
                     updateSection={(e) => {

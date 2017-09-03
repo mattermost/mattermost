@@ -78,7 +78,6 @@ export default class SecurityTab extends React.Component {
     constructor(props) {
         super(props);
 
-        this.savingPassword = false;
         this.state = this.getDefaultState();
     }
 
@@ -91,7 +90,8 @@ export default class SecurityTab extends React.Component {
             serverError: '',
             tokenError: '',
             showConfirmModal: false,
-            authService: this.props.user.auth_service
+            authService: this.props.user.auth_service,
+            savingPassword: false
         };
     }
 
@@ -152,7 +152,6 @@ export default class SecurityTab extends React.Component {
                 this.props.updateSection('');
                 this.props.actions.getMe();
                 this.setState(this.getDefaultState());
-                this.setState({savingPassword: false});
             },
             (err) => {
                 var state = this.getDefaultState();
@@ -163,7 +162,6 @@ export default class SecurityTab extends React.Component {
                 }
                 state.passwordError = '';
                 this.setState(state);
-                this.setState({savingPassword: false});
             }
         );
     }
@@ -528,7 +526,7 @@ export default class SecurityTab extends React.Component {
                     }
                     inputs={inputs}
                     submit={submit}
-                    loading={this.state.savingPassword}
+                    saving={this.state.savingPassword}
                     server_error={this.state.serverError}
                     client_error={this.state.passwordError}
                     updateSection={updateSectionStatus}

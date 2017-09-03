@@ -93,7 +93,8 @@ function getNotificationsStateFromStores() {
         customKeysChecked: customKeys.length > 0,
         firstNameKey,
         channelKey,
-        notifyCommentsLevel: comments
+        notifyCommentsLevel: comments,
+        isSaving: false
     };
 }
 
@@ -645,7 +646,7 @@ export default class NotificationsTab extends React.Component {
                     title={Utils.localizeMessage('user.settings.notifications.wordsTrigger', 'Words that trigger mentions')}
                     inputs={inputs}
                     submit={this.handleSubmit}
-                    loading={this.state.isSaving}
+                    saving={this.state.isSaving}
                     server_error={serverError}
                     updateSection={this.handleCancel}
                     extraInfo={extraInfo}
@@ -781,7 +782,7 @@ export default class NotificationsTab extends React.Component {
                     extraInfo={extraInfo}
                     inputs={inputs}
                     submit={this.handleSubmit}
-                    loading={this.state.isSaving}
+                    saving={this.state.isSaving}
                     server_error={serverError}
                     updateSection={this.handleCancel}
                 />
@@ -872,7 +873,7 @@ export default class NotificationsTab extends React.Component {
                         updateSection={this.updateSection}
                         setParentState={this.setStateValue}
                         submit={this.handleSubmit}
-                        loading={this.state.isSaving}
+                        saving={this.state.isSaving}
                         cancel={this.handleCancel}
                         error={this.state.serverError}
                         active={this.props.activeSection === 'desktop'}
@@ -884,7 +885,7 @@ export default class NotificationsTab extends React.Component {
                         enableEmail={this.state.enableEmail === 'true'}
                         onChange={this.handleEmailRadio}
                         onSubmit={this.handleSubmit}
-                        loading={this.state.isSaving}
+                        saving={this.state.isSaving}
                         serverError={this.state.serverError}
                     />
                     <div className='divider-light'/>

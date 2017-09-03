@@ -81,10 +81,13 @@ export default class AdvancedSettingsDisplay extends React.Component {
             }
         }
 
+        const isSaving = false;
+
         return {preReleaseFeatures: PreReleaseFeatures,
             settings,
             preReleaseFeaturesKeys,
-            enabledFeatures
+            enabledFeatures,
+            isSaving
         };
     }
 
@@ -226,7 +229,7 @@ export default class AdvancedSettingsDisplay extends React.Component {
                         </div>
                     ]}
                     submit={() => this.handleSubmit('formatting')}
-                    loading={this.state.isSaving}
+                    saving={this.state.isSaving}
                     server_error={this.state.serverError}
                     updateSection={(e) => {
                         this.updateSection('');
@@ -305,7 +308,7 @@ export default class AdvancedSettingsDisplay extends React.Component {
                             </div>
                         ]}
                         submit={() => this.handleSubmit('join_leave')}
-                        loading={this.state.isSaving}
+                        saving={this.state.isSaving}
                         server_error={this.state.serverError}
                         updateSection={(e) => {
                             this.updateSection('');
@@ -423,7 +426,7 @@ export default class AdvancedSettingsDisplay extends React.Component {
                     }
                     inputs={inputs}
                     submit={() => this.handleSubmit('send_on_ctrl_enter')}
-                    loading={this.state.isSaving}
+                    saving={this.state.isSaving}
                     server_error={serverError}
                     updateSection={(e) => {
                         this.updateSection('');
@@ -508,7 +511,7 @@ export default class AdvancedSettingsDisplay extends React.Component {
                         }
                         inputs={inputs}
                         submit={this.saveEnabledFeatures}
-                        loading={this.state.isSaving}
+                        saving={this.state.isSaving}
                         server_error={serverError}
                         updateSection={(e) => {
                             this.updateSection('');

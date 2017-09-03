@@ -200,7 +200,7 @@ export default class SettingPicture extends Component {
                                 className='btn btn-sm btn-primary btn-file sel-btn'
                                 disabled={fileInputDisabled}
                             >
-                                {selectButtonSpinner}&nbsp;
+                                {selectButtonSpinner}
                                 <FormattedMessage
                                     id='setting_picture.select'
                                     defaultMessage='Select'

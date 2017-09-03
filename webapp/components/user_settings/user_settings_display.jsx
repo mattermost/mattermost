@@ -41,6 +41,7 @@ export default class UserSettingsDisplay extends React.Component {
         this.createCollapseSection = this.createCollapseSection.bind(this);
 
         this.state = getDisplayStateFromStores();
+        this.setState({isSaving: false});
     }
 
     handleSubmit() {
@@ -182,7 +183,7 @@ export default class UserSettingsDisplay extends React.Component {
                     }
                     inputs={inputs}
                     submit={this.handleSubmit}
-                    loading={this.state.isSaving}
+                    saving={this.state.isSaving}
                     server_error={this.state.serverError}
                     updateSection={handleUpdateCollapseSection}
                 />
@@ -300,7 +301,7 @@ export default class UserSettingsDisplay extends React.Component {
                     }
                     inputs={inputs}
                     submit={this.handleSubmit}
-                    loading={this.state.isSaving}
+                    saving={this.state.isSaving}
                     server_error={serverError}
                     updateSection={handleUpdateClockSection}
                 />
@@ -417,7 +418,7 @@ export default class UserSettingsDisplay extends React.Component {
                     }
                     inputs={inputs}
                     submit={this.handleSubmit}
-                    loading={this.state.isSaving}
+                    saving={this.state.isSaving}
                     server_error={serverError}
                     updateSection={(e) => {
                         this.updateSection('');
@@ -521,7 +522,7 @@ export default class UserSettingsDisplay extends React.Component {
                     }
                     inputs={inputs}
                     submit={this.handleSubmit}
-                    loading={this.state.isSaving}
+                    saving={this.state.isSaving}
                     server_error={serverError}
                     updateSection={(e) => {
                         this.updateSection('');
