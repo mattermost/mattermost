@@ -87,6 +87,18 @@
             }
         }
 
+        .about-modal__notice {
+            @include opacity(.8);
+            font-size: .79em;
+            text-align: right;
+
+            p {
+                &:first-child {
+                    text-align: left;
+                }
+            }
+        }
+
         .about-modal__logo {
             @include opacity(.9);
             padding: 0 40px 0 20px;
