@@ -153,7 +153,7 @@
   },
   {
     "id": "api.channel.add_member.added",
-    "translation": "%v dodany do kanału przez %v"
+    "translation": "%v został dodany do kanału przez %v"
   },
   {
     "id": "api.channel.add_member.find_channel.app_error",
@@ -501,7 +501,7 @@
   },
   {
     "id": "api.command_channel_header.channel.app_error",
-    "translation": "Błąd aktualizacji bieżącego kanału."
+    "translation": "Błąd pobierania aktualnego kanału."
   },
   {
     "id": "api.command_channel_header.desc",
@@ -533,7 +533,7 @@
   },
   {
     "id": "api.command_channel_purpose.channel.app_error",
-    "translation": "Błąd aktualizacji bieżącego kanału."
+    "translation": "Błąd pobierania aktualnego kanału."
   },
   {
     "id": "api.command_channel_purpose.desc",
@@ -549,7 +549,7 @@
   },
   {
     "id": "api.command_channel_purpose.message.app_error",
-    "translation": "Dla polecenia /echo musi zostać podana wiadomość."
+    "translation": "Wiadomość musi zawierać komendę /purpose."
   },
   {
     "id": "api.command_channel_purpose.name",
@@ -590,6 +590,14 @@
   {
     "id": "api.command_channel_rename.permission.app_error",
     "translation": "Nie posiadasz odpowiednich uprawnień do edycji nagłówka kanału."
+  },
+  {
+    "id": "api.command_channel_rename.too_long.app_error",
+    "translation": "Channel name must be {{.Length}} or fewer characters"
+  },
+  {
+    "id": "api.command_channel_rename.too_short.app_error",
+    "translation": "Channel name must be {{.Length}} or more characters"
   },
   {
     "id": "api.command_channel_rename.update_channel.app_error",
@@ -844,156 +852,16 @@
     "translation": "Komenda ustawień nie jest wspierana na Twoim urządzeniu"
   },
   {
-    "id": "api.command_shortcuts.browser.channel_next",
-    "translation": "{{.ChannelNextCmd}}: Następny kanał w Twojej historii\n"
-  },
-  {
-    "id": "api.command_shortcuts.browser.channel_next.cmd",
-    "translation": "ALT+STRZAŁKA W PRAWO"
-  },
-  {
-    "id": "api.command_shortcuts.browser.channel_next.cmd_mac",
-    "translation": "CMD+]"
-  },
-  {
-    "id": "api.command_shortcuts.browser.channel_prev",
-    "translation": "{{.ChannelPrevCmd}}: Poprzedni kanał w Twojej historii\n"
-  },
-  {
-    "id": "api.command_shortcuts.browser.channel_prev.cmd",
-    "translation": "ALT+STRZAŁKA W LEWO"
-  },
-  {
-    "id": "api.command_shortcuts.browser.channel_prev.cmd_mac",
-    "translation": "CMD+["
-  },
-  {
-    "id": "api.command_shortcuts.browser.font_decrease",
-    "translation": "{{.CmdOrCtrl}}+MINUS: Zmniejsz rozmiar czcionki (pomniejsz)\n"
-  },
-  {
-    "id": "api.command_shortcuts.browser.font_increase",
-    "translation": "{{.CmdOrCtrl}}+PLUS: Zwiększ rozmiar czcionki (powiększ)\n"
-  },
-  {
-    "id": "api.command_shortcuts.browser.header",
-    "translation": "#### Wbudowane komendy przeglądarki\n\n"
-  },
-  {
-    "id": "api.command_shortcuts.browser.highlight_next",
-    "translation": "SHIFT+STRZAŁKA W DÓŁ (w polu wprowadzania): Zaznacz tekst do następnej linii\n"
-  },
-  {
-    "id": "api.command_shortcuts.browser.highlight_prev",
-    "translation": "SHIFT+STRZAŁKA W GÓRĘ (w polu wprowadzania): Zaznacz tekst do poprzedniej linii\n"
-  },
-  {
-    "id": "api.command_shortcuts.browser.newline",
-    "translation": "SHIFT+ENTER (w polu wprowadzania): Utwórz nową linię\n"
-  },
-  {
-    "id": "api.command_shortcuts.cmd",
-    "translation": "CMD"
-  },
-  {
-    "id": "api.command_shortcuts.ctrl",
-    "translation": "CTRL"
-  },
-  {
     "id": "api.command_shortcuts.desc",
     "translation": "Wyświetl listę skrótów klawiaturowych"
-  },
-  {
-    "id": "api.command_shortcuts.files.header",
-    "translation": "#### Pliki\n\n"
-  },
-  {
-    "id": "api.command_shortcuts.files.upload",
-    "translation": "{{.CmdOrCtrl}}+U: Wyślij plik(i)\n\n"
-  },
-  {
-    "id": "api.command_shortcuts.header",
-    "translation": "### Skróty klawiszowe\n\n"
-  },
-  {
-    "id": "api.command_shortcuts.msgs.comp_channel",
-    "translation": "~[znak]+TAB: Autouzupełnij nazwę kanału rozpoczynającą się od [znaku]\n"
-  },
-  {
-    "id": "api.command_shortcuts.msgs.comp_emoji",
-    "translation": ":[znak]+TAB: Autouzupełnij emoji rozpoczynające się od [znaku]\n\n"
-  },
-  {
-    "id": "api.command_shortcuts.msgs.comp_username",
-    "translation": "@[znak]+TAB: Autouzupełnij nazwę użytkownika rozpoczynającą się od [znaku]\n"
-  },
-  {
-    "id": "api.command_shortcuts.msgs.edit",
-    "translation": "STZRAŁKA W GÓRĘ (w pustym polu wprowadzania): Edytuj swoją ostatnią wiadomość w aktualnym kanale\n"
-  },
-  {
-    "id": "api.command_shortcuts.msgs.header",
-    "translation": "#### Wiadomości\n\n"
-  },
-  {
-    "id": "api.command_shortcuts.msgs.mark_as_read",
-    "translation": "ESC: Oznacz wszystkie wiadomości w aktualnym kanale jako przeczytane\n"
-  },
-  {
-    "id": "api.command_shortcuts.msgs.reply",
-    "translation": "SHIFT+STRZAŁKA W GÓRĘ (w pustym polu) : Odpowiedź na ostatnią wiadomość w aktualnym kanale\n"
-  },
-  {
-    "id": "api.command_shortcuts.msgs.reprint_next",
-    "translation": "{{.CmdOrCtrl}}+STRZAŁKA W DÓŁ (w pustym polu wprowadzania): Ponownie wyświetl następną wprowadzoną przez Ciebie wiadomość lub komendę w polu wprowadzania\n"
-  },
-  {
-    "id": "api.command_shortcuts.msgs.reprint_prev",
-    "translation": "{{.CmdOrCtrl}}+STRZAŁKA W GÓRĘ (w pustym polu wprowadzania): Ponownie wyświetl ostatnią wiadomość lub komendę w polu wprowadzania\n"
   },
   {
     "id": "api.command_shortcuts.name",
     "translation": "skróty"
   },
   {
-    "id": "api.command_shortcuts.nav.direct_messages_menu",
-    "translation": "{{.CmdOrCtrl}}+SHIFT+K: Otwórz menu wiadomości bezpośrednich\n"
-  },
-  {
-    "id": "api.command_shortcuts.nav.header",
-    "translation": "#### Nawigacja\n\n"
-  },
-  {
-    "id": "api.command_shortcuts.nav.next",
-    "translation": "ALT+STRZAŁKA W DÓŁ: Następny kanał lub wiadomość bezpośrednia z paska po lewej stronie\n"
-  },
-  {
-    "id": "api.command_shortcuts.nav.prev",
-    "translation": "ALT+STRZAŁKA W GÓRĘ: Poprzedni kanał lub wiadomość bezpośrednia z paska po lewej stronie\n"
-  },
-  {
-    "id": "api.command_shortcuts.nav.recent_mentions",
-    "translation": "{{.CmdOrCtrl}}+SHIFT+M: Otwórz ostatnie wspomnienia\n"
-  },
-  {
-    "id": "api.command_shortcuts.nav.settings",
-    "translation": "{{.CmdOrCtrl}}+SHIFT+A: Otwórz ustawienia konta\n"
-  },
-  {
-    "id": "api.command_shortcuts.nav.switcher",
-    "translation": "{{.CmdOrCtrl}}+K: Otwórz okienko szybkiej zmiany kanału\n"
-  },
-  {
-    "id": "api.command_shortcuts.nav.switcher_team",
-    "translation": "{{.CmdOrCtrl}}+K: Otwórz okienko szybkiej zmiany zespołu\n"
-  },
-  {
-    "id": "api.command_shortcuts.nav.unread_next",
-    "translation": "ALT+SHIFT+DOWN: Następny kanał lub wiadomość bezpośrednia z paska po lewej stronie z nieprzeczytanymi wiadomościami\n"
-  },
-  {
-    "id": "api.command_shortcuts.nav.unread_prev",
-    "translation": "ALT+SHIFT+STRZAŁKA W GÓRĘ: Poprzedni kanał lub wiadomość bezpośrednia z paska po lewej stronie z nieprzeczytanymi wiadomościami\n"
+    "id": "api.command_shortcuts.unsupported.app_error",
+    "translation": "Polecenie wyszukiwania nie jest wspierana na Twoim urządzeniu"
   },
   {
     "id": "api.command_shrug.desc",
@@ -1374,22 +1242,6 @@
     "translation": "Nie można przenieść pliku lokalnie."
   },
   {
-    "id": "api.file.open_file_write_stream.configured.app_error",
-    "translation": "Magazyn plików nie jest poprawnie skonfigurowany. Proszę skonfigurować usługę S3 lub lokalny magazyn plików."
-  },
-  {
-    "id": "api.file.open_file_write_stream.creating_dir.app_error",
-    "translation": "Napotkano błąd podczas tworzenia katalogu dla nowych plików"
-  },
-  {
-    "id": "api.file.open_file_write_stream.local_server.app_error",
-    "translation": "Napotkano błąd podczas zapisu do lokalnego magazynu"
-  },
-  {
-    "id": "api.file.open_file_write_stream.s3.app_error",
-    "translation": "Usługa S3 nie jest wspierana."
-  },
-  {
     "id": "api.file.read_file.configured.app_error",
     "translation": "Magazyn plików nie jest poprawnie skonfigurowany. Proszę skonfigurować usługę S3 lub lokalny magazyn plików."
   },
@@ -1662,6 +1514,18 @@
     "translation": "Inicjalizacja tras protokołów otwartego grafu API"
   },
   {
+    "id": "api.plugin.upload.array.app_error",
+    "translation": "File array is empty in multipart/form request"
+  },
+  {
+    "id": "api.plugin.upload.file.app_error",
+    "translation": "Unable to open file in multipart/form request"
+  },
+  {
+    "id": "api.plugin.upload.no_file.app_error",
+    "translation": "Missing file in multipart/form request"
+  },
+  {
     "id": "api.post.check_for_out_of_channel_mentions.message.multiple",
     "translation": "Wymieniono użytkowników {{.Usernames}} oraz {{.LastUsername}} ale nie otrzymali powiadomień ponieważ nie należą do tego kanału."
   },
@@ -1698,6 +1562,10 @@
     "translation": "Nieprawidłowy parametr RootId"
   },
   {
+    "id": "api.post.create_post.town_square_read_only",
+    "translation": "This channel is read-only. Only members with permission can post here."
+  },
+  {
     "id": "api.post.create_webhook_post.creating.app_error",
     "translation": "Błąd podczas tworzenia postu"
   },
@@ -1724,6 +1592,14 @@
   {
     "id": "api.post.disabled_here",
     "translation": "@here zostało zablokowane ponieważ kanał ma więcej niż {{.Users}} użytkowników."
+  },
+  {
+    "id": "api.post.do_action.action_id.app_error",
+    "translation": "Nieprawidłowy identyfikator klienta"
+  },
+  {
+    "id": "api.post.do_action.action_integration.app_error",
+    "translation": "Action integration error"
   },
   {
     "id": "api.post.get_message_for_notification.files_sent",
@@ -2497,15 +2373,15 @@
   },
   {
     "id": "api.templates.user_access_token_body.info",
-    "translation": "A user access token was added to your account on {{ .SiteURL }}. They can be used to access {{.SiteName}} with your account.<br>If this change wasn't initiated by you, please contact your system administrator."
+    "translation": "A personal access token was added to your account on {{ .SiteURL }}. They can be used to access {{.SiteName}} with your account.<br>If this change wasn't initiated by you, please contact your system administrator."
   },
   {
     "id": "api.templates.user_access_token_body.title",
-    "translation": "User access token added to your account"
+    "translation": "Personal access token added to your account"
   },
   {
     "id": "api.templates.user_access_token_subject",
-    "translation": "[{{ .SiteName }}] User access token added to your account"
+    "translation": "[{{ .SiteName }}] Personal access token added to your account"
   },
   {
     "id": "api.templates.username_change_body.info",
@@ -2865,7 +2741,7 @@
   },
   {
     "id": "api.user.send_user_access_token.error",
-    "translation": "Failed to send user access token added email successfully"
+    "translation": "Failed to send personal access token added email successfully"
   },
   {
     "id": "api.user.send_verify_email_and_forget.failed.error",
@@ -3118,6 +2994,10 @@
   {
     "id": "app.channel.create_channel.no_team_id.app_error",
     "translation": "ID zespołu musi być określone aby można było stworzyć kanał"
+  },
+  {
+    "id": "app.channel.move_channel.members_do_not_match.error",
+    "translation": "Cannot move a channel unless all its members are already members of the destination team."
   },
   {
     "id": "app.channel.post_update_channel_purpose_message.post.error",
@@ -3560,6 +3440,46 @@
     "translation": "[{{ .SiteName }}] Notification in {{ .TeamName}} on {{.Month}} {{.Day}}, {{.Year}}"
   },
   {
+    "id": "app.plugin.activate.app_error",
+    "translation": "Unable to activate extracted plugin. Plugin may already exist and be activated."
+  },
+  {
+    "id": "app.plugin.bad_path.app_error",
+    "translation": "Bad file path in extracted files"
+  },
+  {
+    "id": "app.plugin.deactivate.app_error",
+    "translation": "Nie udało się skasować reakcji"
+  },
+  {
+    "id": "app.plugin.disabled.app_error",
+    "translation": "Plugins have been disabled by the system admin or the server has not been restarted since they were enabled."
+  },
+  {
+    "id": "app.plugin.extract.app_error",
+    "translation": "Encountered error extracting plugin"
+  },
+  {
+    "id": "app.plugin.get_plugins.app_error",
+    "translation": "Nie udało się skasować reakcji"
+  },
+  {
+    "id": "app.plugin.manifest.app_error",
+    "translation": "Unable to find manifest for extracted plugin"
+  },
+  {
+    "id": "app.plugin.mvdir.app_error",
+    "translation": "Unable to move plugin from temporary directory to final destination"
+  },
+  {
+    "id": "app.plugin.no_files.app_error",
+    "translation": "No files found in the compressed folder"
+  },
+  {
+    "id": "app.plugin.remove.app_error",
+    "translation": "Nie udało się skasować reakcji"
+  },
+  {
     "id": "app.user_access_token.disabled",
     "translation": "Personal access tokens are disabled on this server. Please contact your system administrator for details."
   },
@@ -3788,6 +3708,22 @@
     "translation": "Rozpoczęto eksport zgodności dla zadania '{{.JobName}}' do '{{.FilePath}}'"
   },
   {
+    "id": "ent.elasticsearch.aggregator_worker.create_index_job.error",
+    "translation": "Elasticsearch aggregator worker failed to create the indexing job"
+  },
+  {
+    "id": "ent.elasticsearch.aggregator_worker.delete_indexes.error",
+    "translation": "Elasticsearch aggregator worker failed to delete the indexes"
+  },
+  {
+    "id": "ent.elasticsearch.aggregator_worker.get_indexes.error",
+    "translation": "Elasticsearch aggregator worker failed to get indexes"
+  },
+  {
+    "id": "ent.elasticsearch.aggregator_worker.index_job_failed.error",
+    "translation": "Elasticsearch aggregator worker failed due to the indexing job failing"
+  },
+  {
     "id": "ent.elasticsearch.create_client.connect_failed",
     "translation": "Nie udało się ustawić parametrów klienta ElasticSearch."
   },
@@ -3814,6 +3750,14 @@
   {
     "id": "ent.elasticsearch.index_post.error",
     "translation": "Failed to index the post"
+  },
+  {
+    "id": "ent.elasticsearch.indexer.do_job.parse_end_time.error",
+    "translation": "Elasticsearch indexing worker failed to parse the end time"
+  },
+  {
+    "id": "ent.elasticsearch.indexer.do_job.parse_start_time.error",
+    "translation": "Elasticsearch indexing worker failed to parse the start time"
   },
   {
     "id": "ent.elasticsearch.not_started.error",
@@ -4037,7 +3981,7 @@
   },
   {
     "id": "ent.saml.service_disable.app_error",
-    "translation": "SAML nie jest skonfigurowany lub nie jest wspierany na tym serwerze."
+    "translation": "Użycie SAML nie zostało skonfigurowane lub nie jest wspierane na tym serwerze."
   },
   {
     "id": "ent.saml.update_saml_user.unable_error",
@@ -4344,6 +4288,10 @@
     "translation": "Błąd podczas tworzenia wieloczęściowych żądań formularza certyfikatu SAML"
   },
   {
+    "id": "model.client.writer.app_error",
+    "translation": "Unable to build multipart request"
+  },
+  {
     "id": "model.command.is_valid.create_at.app_error",
     "translation": "Utworzono dnia musi być poprawnym czasem"
   },
@@ -4392,6 +4340,34 @@
     "translation": "Nieprawidłowy identyfikator użytkownika"
   },
   {
+    "id": "model.command_hook.channel_id.app_error",
+    "translation": "Nieprawidłowy identyfikator kanału"
+  },
+  {
+    "id": "model.command_hook.command_id.app_error",
+    "translation": "Invalid command id"
+  },
+  {
+    "id": "model.command_hook.create_at.app_error",
+    "translation": "Utworzono dnia musi zawierać prawidłowy czas"
+  },
+  {
+    "id": "model.command_hook.id.app_error",
+    "translation": "Invalid command hook id"
+  },
+  {
+    "id": "model.command_hook.parent_id.app_error",
+    "translation": "Nieprawidłowe id rodzica"
+  },
+  {
+    "id": "model.command_hook.root_id.app_error",
+    "translation": "Nieprawidłowy root id"
+  },
+  {
+    "id": "model.command_hook.user_id.app_error",
+    "translation": "Nieprawidłowy identyfikator użytkownika"
+  },
+  {
     "id": "model.compliance.is_valid.create_at.app_error",
     "translation": "Utworzono dnia musi być prawidłowym czasem"
   },
@@ -4420,6 +4396,10 @@
     "translation": "Nie można odblokować masowych emaili gdy klastrowanie jest odblokowane."
   },
   {
+    "id": "model.config.is_valid.elastic_search.aggregate_posts_after_days.app_error",
+    "translation": "Elasticsearch AggregatePostsAfterDays setting must be a number greater than or equal to 1"
+  },
+  {
     "id": "model.config.is_valid.elastic_search.connection_url.app_error",
     "translation": "Aby włączyć indeksowanie Elastic Search, należy ustawić hasło dla Elastic Search"
   },
@@ -4430,6 +4410,10 @@
   {
     "id": "model.config.is_valid.elastic_search.password.app_error",
     "translation": "Aby włączyć indeksowanie Elastic Search, należy ustawić hasło dla Elastic Search"
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.posts_aggregator_job_start_time.app_error",
+    "translation": "Elasticsearch PostsAggregatorJobStartTime setting must be a time in the format \"hh:mm\""
   },
   {
     "id": "model.config.is_valid.elastic_search.username.app_error",
@@ -5176,6 +5160,10 @@
     "translation": "nie można zdekodować"
   },
   {
+    "id": "plugin.rpcplugin.invocation.error",
+    "translation": "Error invoking plugin RPC"
+  },
+  {
     "id": "store.sql.alter_column_type.critical",
     "translation": "Nie udało się zmienić typu kolumny %v"
   },
@@ -5596,6 +5584,26 @@
     "translation": "Nie można zaktualizować polecenia"
   },
   {
+    "id": "store.sql_command_webhooks.get.app_error",
+    "translation": "Nie udało się pobrać przychodzącego webhooka"
+  },
+  {
+    "id": "store.sql_command_webhooks.save.app_error",
+    "translation": "Nie udało się zapisać przychodzącego webhooka"
+  },
+  {
+    "id": "store.sql_command_webhooks.save.existing.app_error",
+    "translation": "You cannot update an existing CommandWebhook"
+  },
+  {
+    "id": "store.sql_command_webhooks.try_use.app_error",
+    "translation": "Unable to use the webhook"
+  },
+  {
+    "id": "store.sql_command_webhooks.try_use.invalid.app_error",
+    "translation": "Nieprawidłowy webhook"
+  },
+  {
     "id": "store.sql_compliance.get.finding.app_error",
     "translation": "Wystąpił błąd podczas pobierania raportów zgodności"
   },
@@ -5646,6 +5654,10 @@
   {
     "id": "store.sql_file_info.get_for_post.app_error",
     "translation": "Nie mogliśmy uzyskać informacji o pliku dla wiadomości"
+  },
+  {
+    "id": "store.sql_file_info.permanent_delete.app_error",
+    "translation": "We couldn't permanently delete the file info"
   },
   {
     "id": "store.sql_file_info.save.app_error",
@@ -6552,6 +6564,30 @@
     "translation": "Analytics nie zainicjowany"
   },
   {
+    "id": "utils.file.remove_directory.configured.app_error",
+    "translation": "Magazyn plików nie został poprawnie skonfigurowany. Proszę skonfigurować usługę S3 lub lokalny magazyn plików."
+  },
+  {
+    "id": "utils.file.remove_directory.local.app_error",
+    "translation": "Napotkano błąd podczas odczytu z lokalnego magazynu"
+  },
+  {
+    "id": "utils.file.remove_directory.s3.app_error",
+    "translation": "Encountered an error removing directory from S3."
+  },
+  {
+    "id": "utils.file.remove_file.configured.app_error",
+    "translation": "Magazyn plików nie został poprawnie skonfigurowany. Proszę skonfigurować usługę S3 lub lokalny magazyn plików."
+  },
+  {
+    "id": "utils.file.remove_file.local.app_error",
+    "translation": "Napotkano błąd podczas odczytu z lokalnego magazynu"
+  },
+  {
+    "id": "utils.file.remove_file.s3.app_error",
+    "translation": "Encountered an error removing file from S3."
+  },
+  {
     "id": "utils.i18n.loaded",
     "translation": "Wczytano tłumaczenia systemowe dla '%v' z '%v'"
   },
@@ -6662,6 +6698,18 @@
   {
     "id": "web.claim_account.user.error",
     "translation": "Nie można znaleźć użytkownika teamid=%vv e-mail=%v, err=%v"
+  },
+  {
+    "id": "web.command_webhook.command.app_error",
+    "translation": "Nie odnaleziono kanału"
+  },
+  {
+    "id": "web.command_webhook.invalid.app_error",
+    "translation": "Nieprawidłowy webhook"
+  },
+  {
+    "id": "web.command_webhook.parse.app_error",
+    "translation": "Unable to parse incoming data"
   },
   {
     "id": "web.create_dir.error",
