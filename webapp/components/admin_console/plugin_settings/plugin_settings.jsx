@@ -181,14 +181,16 @@ export default class PluginSettings extends React.Component {
                                 </strong>
                                 {' ' + p.description}
                             </span>
-                            <button
-                                style={{marginLeft: '10px'}}
-                                className='btn btn-danger'
-                                disabled={this.state.removing === p.id}
-                                onClick={() => this.handleRemove(p.id)}
-                            >
-                                {removeButtonText}
-                            </button>
+                            <div className='padding-top x2'>
+                                <button
+                                    style={{marginLeft: '10px'}}
+                                    className='btn btn-danger'
+                                    disabled={this.state.removing === p.id}
+                                    onClick={() => this.handleRemove(p.id)}
+                                >
+                                    {removeButtonText}
+                                </button>
+                            </div>
                         </div>
                     );
                 }
@@ -249,7 +251,6 @@ export default class PluginSettings extends React.Component {
                             <div className='help-text no-margin'>
                                 {fileName}
                             </div>
-                            <br/>
                             {serverError}
                             <p className='help-text no-margin'>
                                 <FormattedHTMLMessage
@@ -268,7 +269,7 @@ export default class PluginSettings extends React.Component {
                                 defaultMessage='Active plugins: '
                             />
                         </label>
-                        <div className='col-sm-8'>
+                        <div className='col-sm-8 padding-top'>
                             {activePluginsList}
                         </div>
                     </div>
