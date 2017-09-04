@@ -408,10 +408,6 @@
     "translation": "Plugins have been disabled by the system admin or the server has not been restarted since they were enabled."
   },
   {
-    "id": "app.plugin.disabled.app_error",
-    "translation": ""
-  },
-  {
     "id": "app.plugin.extract.app_error",
     "translation": "Encountered error extracting plugin"
   },
