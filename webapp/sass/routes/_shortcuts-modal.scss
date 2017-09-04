@@ -11,18 +11,43 @@
                     background: transparent;
                     border: none;
                     color: inherit;
-                    padding: 40px 40px 20px;
+                    padding: 20px 40px 20px;
 
                     .close {
                         color: inherit;
                         font-size: 28px;
                         font-weight: normal;
                         right: 35px;
+                        top: 35px;
                     }
 
                     .modal-title {
                         color: inherit;
                         font-size: 20px;
+
+                        > div {
+                            &:first-child {
+                                margin-bottom: 2.5em;
+                            }
+                        }
+
+                        .shortcut-line {
+                            margin: 17px 0;
+
+                            span {
+                                &:first-child {
+                                    margin-right: 5px;
+                                }
+                            }
+
+                            .shortcut-key {
+                                border-radius: 3px;
+                                font-size: .9em;
+                                font-weight: 500;
+                                margin: 5px 0 5px 5px;
+                                padding: 1px 5px;
+                            }
+                        }
                     }
                 }
             }
