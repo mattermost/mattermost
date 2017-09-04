@@ -82,7 +82,13 @@ export default class PluginSettings extends React.Component {
         Utils.clearFileInput(element[0]);
 
         if (error) {
-            this.setState({serverError: error.message});
+            if (error.server_error_id === 'app.plugin.activate.app_error') {
+                this.setState({serverError: Utils.localizeMessage('admin.plugin.error.activate', 'Unable to upload the plugin. It may conflict with another plugin on your server.')});
+            } else if (error.server_error_id === 'app.plugin.extract.app_error') {
+                this.setState({serverError: Utils.localizeMessage('admin.plugin.error.extract', 'Encountered an error when extracting the plugin. Review your plugin file content and try again.')});
+            } else {
+                this.setState({serverError: error.message});
+            }
         }
     }
 
@@ -206,6 +212,7 @@ export default class PluginSettings extends React.Component {
                     />
                 </h3>
                 <Banner
+                    title={<div/>}
                     description={
                         <FormattedHTMLMessage
                             id='admin.plugin.banner'
@@ -223,7 +230,7 @@ export default class PluginSettings extends React.Component {
                         >
                             <FormattedMessage
                                 id='admin.plugin.uploadTitle'
-                                defaultMessage='Upload a plugin: '
+                                defaultMessage='Upload Plugin: '
                             />
                         </label>
                         <div className='col-sm-8'>
@@ -255,7 +262,7 @@ export default class PluginSettings extends React.Component {
                             <p className='help-text no-margin'>
                                 <FormattedHTMLMessage
                                     id='admin.plugin.uploadDesc'
-                                    defaultMessage='Upload a plugin.'
+                                    defaultMessage='Upload a plugin for your Mattermost server. Adding or removing a webapp plugin requires users to refresh their browser or Desktop App before taking effect. See <a href="https://about.mattermost.com/default-plugins">documentation</a> to learn more.'
                                 />
                             </p>
                         </div>
@@ -266,7 +273,7 @@ export default class PluginSettings extends React.Component {
                         >
                             <FormattedMessage
                                 id='admin.plugin.activeTitle'
-                                defaultMessage='Active plugins: '
+                                defaultMessage='Active Plugins: '
                             />
                         </label>
                         <div className='col-sm-8 padding-top'>
