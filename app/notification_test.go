@@ -382,7 +382,7 @@ func TestRemoveCodeFromMessage(t *testing.T) {
 		t.Fatalf("received incorrect output\n\nGot:\n%v\n\nExpected:\n%v\n", actual, expected)
 	}
 
-	input = "this is `not\n    \ncode` because it has line with only whitespace"
+	input = "this is `not\n    \ncode` because it has a line with only whitespace"
 	expected = input
 	if actual := removeCodeFromMessage(input); actual != expected {
 		t.Fatalf("received incorrect output\n\nGot:\n%v\n\nExpected:\n%v\n", actual, expected)
@@ -390,6 +390,12 @@ func TestRemoveCodeFromMessage(t *testing.T) {
 
 	input = "this is just `` two backquotes"
 	expected = input
+	if actual := removeCodeFromMessage(input); actual != expected {
+		t.Fatalf("received incorrect output\n\nGot:\n%v\n\nExpected:\n%v\n", actual, expected)
+	}
+
+	input = "these are ``multiple backquotes`` around code"
+	expected = "these are   around code"
 	if actual := removeCodeFromMessage(input); actual != expected {
 		t.Fatalf("received incorrect output\n\nGot:\n%v\n\nExpected:\n%v\n", actual, expected)
 	}
