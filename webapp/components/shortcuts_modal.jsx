@@ -12,14 +12,8 @@ import React from 'react';
 
 const allShortcuts = defineMessages({
     mainHeader: {
-        default: {
-            id: 'shortcuts.header',
-            defaultMessage: 'Keyboard Shortcuts\tCtrl|/'
-        },
-        mac: {
-            id: 'shortcuts.header.mac',
-            defaultMessage: 'Keyboard Shortcuts\t⌘|/'
-        }
+        id: 'shortcuts.header',
+        defaultMessage: 'Keyboard Shortcuts'
     },
     navHeader: {
         id: 'shortcuts.nav.header',
@@ -108,6 +102,10 @@ const allShortcuts = defineMessages({
     msgHeader: {
         id: 'shortcuts.msgs.header',
         defaultMessage: 'Messages'
+    },
+    msgMarkAsRead: {
+        id: 'shortcuts.msgs.mark_as_read',
+        defaultMessage: 'Mark current channel as read:\tEsc'
     },
     msgInputHeader: {
         id: 'shortcuts.msgs.input.header',
@@ -298,7 +296,7 @@ class ShortcutsModal extends React.PureComponent {
                 <div className='shortcuts-content'>
                     <Modal.Header closeButton={true}>
                         <Modal.Title>
-                            <strong>{renderShortcut(formatMessage(shortcuts.mainHeader))}</strong>
+                            <strong>{formatMessage(shortcuts.mainHeader)}</strong>
                         </Modal.Title>
                     </Modal.Header>
                     <Modal.Body ref='modalBody'>
@@ -322,6 +320,7 @@ class ShortcutsModal extends React.PureComponent {
                                 <div className='section'>
                                     <div>
                                         <h4 className='section-title'><strong>{formatMessage(shortcuts.msgHeader)}</strong></h4>
+                                        {renderShortcut(formatMessage(shortcuts.msgMarkAsRead))}
                                         <span><strong>{formatMessage(shortcuts.msgInputHeader)}</strong></span>
                                         <div className='subsection'>
                                             {renderShortcut(formatMessage(shortcuts.msgEdit))}
