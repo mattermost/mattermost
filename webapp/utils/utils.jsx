@@ -236,10 +236,6 @@ export function extractFirstLink(text) {
     return '';
 }
 
-export function escapeRegExp(string) {
-    return string.replace(/([.*+?^=!:${}()|[\]/\\])/g, '\\$1');
-}
-
 // Taken from http://stackoverflow.com/questions/1068834/object-comparison-in-javascript and modified slightly
 export function areObjectsEqual(x, y) {
     let p;
