@@ -326,7 +326,7 @@ export default class Navbar extends React.Component {
         return (
             <li
                 role='presentation'
-                className='visible-xs'
+                className='webrtc__option'
             >
                 <a
                     role='menuitem'
@@ -348,7 +348,7 @@ export default class Navbar extends React.Component {
         }
 
         return (
-            <div className='pull-right description navbar-right__icon webrtc__button hidden-xs'>
+            <div className='pull-right description navbar-right__icon webrtc__button'>
                 <a
                     dangerouslySetInnerHTML={{__html: Constants.VIDEO_ICON}}
                     onClick={this.initWebrtc}
