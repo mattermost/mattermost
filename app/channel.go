@@ -1201,6 +1201,8 @@ func PermanentDeleteChannel(channel *model.Channel) *model.AppError {
 	return nil
 }
 
+// This function is intended for use from the CLI. It is not robust against people joining the channel while the move
+// is in progress, and therefore should not be used from the API without first fixing this potential race condition.
 func MoveChannel(team *model.Team, channel *model.Channel) *model.AppError {
 	// Check that all channel members are in the destination team.
 	if channelMembers, err := GetChannelMembersPage(channel.Id, 0, 10000000); err != nil {
