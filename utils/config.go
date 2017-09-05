@@ -18,6 +18,7 @@ import (
 
 	l4g "github.com/alecthomas/log4go"
 	"github.com/fsnotify/fsnotify"
+	s3 "github.com/minio/minio-go"
 	"github.com/spf13/viper"
 
 	"net/http"
@@ -45,6 +46,25 @@ var CfgDisableConfigWatch = false
 var ClientCfg map[string]string = map[string]string{}
 var originalDisableDebugLvl l4g.Level = l4g.DEBUG
 var siteURL = ""
+
+var AWS_S3_ENDPOINT_MAP = map[string]string{
+	"s3.amazonaws.com":                "us-east-1",
+	"s3-us-east-2.amazonaws.com":      "us-east-2",
+	"s3-us-west-2.amazonaws.com":      "us-west-2",
+	"s3-us-west-1.amazonaws.com":      "us-west-1",
+	"s3.ca-central-1.amazonaws.com":   "ca-central-1",
+	"s3-eu-west-1.amazonaws.com":      "eu-west-1",
+	"s3-eu-west-2.amazonaws.com":      "eu-west-2",
+	"s3-eu-central-1.amazonaws.com":   "eu-central-1",
+	"s3-ap-south-1.amazonaws.com":     "ap-south-1",
+	"s3-ap-southeast-1.amazonaws.com": "ap-southeast-1",
+	"s3-ap-southeast-2.amazonaws.com": "ap-southeast-2",
+	"s3-ap-northeast-1.amazonaws.com": "ap-northeast-1",
+	"s3-ap-northeast-2.amazonaws.com": "ap-northeast-2",
+	"s3-sa-east-1.amazonaws.com":      "sa-east-1",
+	"s3-us-gov-west-1.amazonaws.com":  "us-gov-west-1",
+	"s3.cn-north-1.amazonaws.com.cn":  "cn-north-1",
+}
 
 func GetSiteURL() string {
 	return siteURL
@@ -688,4 +708,58 @@ func IsLeader() bool {
 	} else {
 		return true
 	}
+}
+
+func ValidateAmazonS3Endpoint(endpoint string) bool {
+	_, valid := AWS_S3_ENDPOINT_MAP[endpoint]
+
+	return valid
+}
+
+func ValidateAmazonS3Region(region string) bool {
+	for _, awsRegion := range AWS_S3_ENDPOINT_MAP {
+		if awsRegion == region {
+			return true
+		}
+	}
+
+	return false
+}
+
+func ValidateAmazonS3Bucket(cfg *model.Config) (bool, string, *model.AppError) {
+	if *cfg.FileSettings.AmazonS3Bucket == "" {
+		return false, "", model.NewAppError("ValidateAmazonS3Bucket", "utils.config.bucket_empty.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	endpoint := *cfg.FileSettings.AmazonS3Endpoint
+	bucket := *cfg.FileSettings.AmazonS3Bucket
+	accessKey := cfg.FileSettings.AmazonS3AccessKeyId
+	secretKey := cfg.FileSettings.AmazonS3SecretAccessKey
+	secure := *cfg.FileSettings.AmazonS3SSL
+
+	s3Clnt, err := s3.New(endpoint, accessKey, secretKey, secure)
+	if err != nil {
+		return false, "", model.NewAppError("ValidateAmazonS3Bucket", "utils.config.bad_connection_to_s3_or_minio.app_error", nil, err.Error(), http.StatusBadRequest)
+	}
+
+	bucketLocation, err := s3Clnt.GetBucketLocation(bucket)
+	if err != nil {
+		bucketLocation = *cfg.FileSettings.AmazonS3Region
+
+		exists, err := s3Clnt.BucketExists(bucket)
+		if err != nil {
+			return false, "", model.NewAppError("ValidateAmazonS3Bucket", "utils.config.error_checking_bucket_exist.app_error", nil, err.Error(), http.StatusBadRequest)
+		}
+
+		if !exists {
+			err := s3Clnt.MakeBucket(bucket, bucketLocation)
+			if err != nil {
+				l4g.Error(T("utils.config.create_amazon_bucket_error"), bucket)
+				return false, "", model.NewAppError("ValidateAmazonS3Bucket", "utils.config.error_creating_bucket.app_error", nil, err.Error(), http.StatusBadRequest)
+			}
+			l4g.Warn(T("utils.config.create_amazon_bucket"), bucket)
+		}
+	}
+
+	return true, bucketLocation, nil
 }

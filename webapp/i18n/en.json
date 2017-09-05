@@ -475,7 +475,7 @@
   "admin.image.amazonS3IdDescription": "Obtain this credential from your Amazon EC2 administrator.",
   "admin.image.amazonS3IdExample": "E.g.: \"AKIADTOVBGERKLCBV\"",
   "admin.image.amazonS3IdTitle": "Amazon S3 Access Key ID:",
-  "admin.image.amazonS3RegionDescription": "AWS region you selected for creating your S3 bucket.",
+  "admin.image.amazonS3RegionDescription": "(Optional) AWS region you selected when creating your S3 bucket. If no region is set, Mattermost attempts to get the appropriate region from AWS, or sets it to 'us-east-1' if none found.",
   "admin.image.amazonS3RegionExample": "E.g.: \"us-east-1\"",
   "admin.image.amazonS3RegionTitle": "Amazon S3 Region:",
   "admin.image.amazonS3SSEDescription": "When true, encrypt files in Amazon S3 using server-side encryption with Amazon S3-managed keys. See <a href=\"https://about.mattermost.com/default-server-side-encryption\">documentation</a> to learn more.",
