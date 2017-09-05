@@ -404,58 +404,6 @@
     "translation": "Invalid permissions to delete command"
   },
   {
-    "id": "app.plugin.disabled.app_error",
-    "translation": "Plugins have been disabled by the system admin or the server has not been restarted since they were enabled."
-  },
-  {
-    "id": "app.plugin.extract.app_error",
-    "translation": "Encountered error extracting plugin"
-  },
-  {
-    "id": "app.plugin.no_files.app_error",
-    "translation": "No files found in the compressed folder"
-  },
-  {
-    "id": "app.plugin.bad_path.app_error",
-    "translation": "Bad file path in extracted files"
-  },
-  {
-    "id": "app.plugin.manifest.app_error",
-    "translation": "Unable to find manifest for extracted plugin"
-  },
-  {
-    "id": "app.plugin.mvdir.app_error",
-    "translation": "Unable to move plugin from temporary directory to final destination"
-  },
-  {
-    "id": "app.plugin.activate.app_error",
-    "translation": "Unable to activate extracted plugin. Plugin may already exist and be activated."
-  },
-  {
-    "id": "app.plugin.get_plugins.app_error",
-    "translation": "Unable to get active plugins"
-  },
-  {
-    "id": "app.plugin.deactivate.app_error",
-    "translation": "Unable to deactivate plugin"
-  },
-  {
-    "id": "app.plugin.remove.app_error",
-    "translation": "Unable to delete plugin"
-  },
-  {
-    "id": "api.plugin.upload.no_file.app_error",
-    "translation": "Missing file in multipart/form request"
-  },
-  {
-    "id": "api.plugin.upload.array.app_error",
-    "translation": "File array is empty in multipart/form request"
-  },
-  {
-    "id": "api.plugin.upload.file.app_error",
-    "translation": "Unable to open file in multipart/form request"
-  },
-  {
     "id": "api.command.disabled.app_error",
     "translation": "Commands have been disabled by the system admin."
   },
@@ -636,20 +584,20 @@
     "translation": "A message must be provided with the /rename command."
   },
   {
-    "id": "api.command_channel_rename.too_long.app_error",
-    "translation": "Channel name must be {{.Length}} or fewer characters"
-  },
-  {
-    "id": "api.command_channel_rename.too_short.app_error",
-    "translation": "Channel name must be {{.Length}} or more characters"
-  },
-  {
     "id": "api.command_channel_rename.name",
     "translation": "rename"
   },
   {
     "id": "api.command_channel_rename.permission.app_error",
     "translation": "You do not have the appropriate permissions to rename the channel."
+  },
+  {
+    "id": "api.command_channel_rename.too_long.app_error",
+    "translation": "Channel name must be {{.Length}} or fewer characters"
+  },
+  {
+    "id": "api.command_channel_rename.too_short.app_error",
+    "translation": "Channel name must be {{.Length}} or more characters"
   },
   {
     "id": "api.command_channel_rename.update_channel.app_error",
@@ -1306,30 +1254,6 @@
     "translation": "Encountered an error reading from local server storage"
   },
   {
-    "id": "utils.file.remove_file.local.app_error",
-    "translation": "Encountered an error removing file from local server file storage."
-  },
-  {
-    "id": "utils.file.remove_file.s3.app_error",
-    "translation": "Encountered an error removing file from S3."
-  },
-  {
-    "id": "utils.file.remove_file.configured.app_error",
-    "translation": "File storage not configured properly. Please configure for either S3 or local server file storage."
-  },
-  {
-    "id": "utils.file.remove_directory.local.app_error",
-    "translation": "Encountered an error removing directory from local server file storage."
-  },
-  {
-    "id": "utils.file.remove_directory.s3.app_error",
-    "translation": "Encountered an error removing directory from S3."
-  },
-  {
-    "id": "utils.file.remove_directory.configured.app_error",
-    "translation": "File storage not configured properly. Please configure for either S3 or local server file storage."
-  },
-  {
     "id": "api.file.upload_file.bad_parse.app_error",
     "translation": "Unable to upload file. Header cannot be parsed."
   },
@@ -1590,6 +1514,18 @@
     "translation": "Initializing open graph protocol api routes"
   },
   {
+    "id": "api.plugin.upload.array.app_error",
+    "translation": "File array is empty in multipart/form request"
+  },
+  {
+    "id": "api.plugin.upload.file.app_error",
+    "translation": "Unable to open file in multipart/form request"
+  },
+  {
+    "id": "api.plugin.upload.no_file.app_error",
+    "translation": "Missing file in multipart/form request"
+  },
+  {
     "id": "api.post.check_for_out_of_channel_mentions.message.multiple",
     "translation": "{{.Usernames}} and {{.LastUsername}} were mentioned, but they did not receive notifications because they do not belong to this channel."
   },
@@ -1656,6 +1592,14 @@
   {
     "id": "api.post.disabled_here",
     "translation": "@here has been disabled because the channel has more than {{.Users}} users."
+  },
+  {
+    "id": "api.post.do_action.action_id.app_error",
+    "translation": "Invalid action id"
+  },
+  {
+    "id": "api.post.do_action.action_integration.app_error",
+    "translation": "Action integration error"
   },
   {
     "id": "api.post.get_message_for_notification.files_sent",
@@ -1814,14 +1758,6 @@
   {
     "id": "api.post_get_post_by_id.get.app_error",
     "translation": "Unable to get post"
-  },
-  {
-    "id": "api.post.do_action.action_id.app_error",
-    "translation": "Invalid action id"
-  },
-  {
-    "id": "api.post.do_action.action_integration.app_error",
-    "translation": "Action integration error"
   },
   {
     "id": "api.preference.delete_preferences.decode.app_error",
@@ -3504,6 +3440,46 @@
     "translation": "[{{ .SiteName }}] Notification in {{ .TeamName}} on {{.Month}} {{.Day}}, {{.Year}}"
   },
   {
+    "id": "app.plugin.activate.app_error",
+    "translation": "Unable to activate extracted plugin. Plugin may already exist and be activated."
+  },
+  {
+    "id": "app.plugin.bad_path.app_error",
+    "translation": "Bad file path in extracted files"
+  },
+  {
+    "id": "app.plugin.deactivate.app_error",
+    "translation": "Unable to deactivate plugin"
+  },
+  {
+    "id": "app.plugin.disabled.app_error",
+    "translation": "Plugins have been disabled by the system admin or the server has not been restarted since they were enabled."
+  },
+  {
+    "id": "app.plugin.extract.app_error",
+    "translation": "Encountered error extracting plugin"
+  },
+  {
+    "id": "app.plugin.get_plugins.app_error",
+    "translation": "Unable to get active plugins"
+  },
+  {
+    "id": "app.plugin.manifest.app_error",
+    "translation": "Unable to find manifest for extracted plugin"
+  },
+  {
+    "id": "app.plugin.mvdir.app_error",
+    "translation": "Unable to move plugin from temporary directory to final destination"
+  },
+  {
+    "id": "app.plugin.no_files.app_error",
+    "translation": "No files found in the compressed folder"
+  },
+  {
+    "id": "app.plugin.remove.app_error",
+    "translation": "Unable to delete plugin"
+  },
+  {
     "id": "app.user_access_token.disabled",
     "translation": "Personal access tokens are disabled on this server. Please contact your system administrator for details."
   },
@@ -3732,10 +3708,6 @@
     "translation": "Compliance export started for job '{{.JobName}}' at '{{.FilePath}}'"
   },
   {
-    "id": "ent.elasticsearch.aggregator_worker.get_indexes.error",
-    "translation": "Elasticsearch aggregator worker failed to get indexes"
-  },
-  {
     "id": "ent.elasticsearch.aggregator_worker.create_index_job.error",
     "translation": "Elasticsearch aggregator worker failed to create the indexing job"
   },
@@ -3744,16 +3716,12 @@
     "translation": "Elasticsearch aggregator worker failed to delete the indexes"
   },
   {
+    "id": "ent.elasticsearch.aggregator_worker.get_indexes.error",
+    "translation": "Elasticsearch aggregator worker failed to get indexes"
+  },
+  {
     "id": "ent.elasticsearch.aggregator_worker.index_job_failed.error",
     "translation": "Elasticsearch aggregator worker failed due to the indexing job failing"
-  },
-  {
-    "id": "ent.elasticsearch.indexer.do_job.parse_start_time.error",
-    "translation": "Elasticsearch indexing worker failed to parse the start time"
-  },
-  {
-    "id": "ent.elasticsearch.indexer.do_job.parse_end_time.error",
-    "translation": "Elasticsearch indexing worker failed to parse the end time"
   },
   {
     "id": "ent.elasticsearch.create_client.connect_failed",
@@ -3782,6 +3750,14 @@
   {
     "id": "ent.elasticsearch.index_post.error",
     "translation": "Failed to index the post"
+  },
+  {
+    "id": "ent.elasticsearch.indexer.do_job.parse_end_time.error",
+    "translation": "Elasticsearch indexing worker failed to parse the end time"
+  },
+  {
+    "id": "ent.elasticsearch.indexer.do_job.parse_start_time.error",
+    "translation": "Elasticsearch indexing worker failed to parse the start time"
   },
   {
     "id": "ent.elasticsearch.not_started.error",
@@ -4248,10 +4224,6 @@
     "translation": "Invalid user id"
   },
   {
-    "id": "model.client.writer.app_error",
-    "translation": "Unable to build multipart request"
-  },
-  {
     "id": "model.client.connecting.app_error",
     "translation": "We encountered an error while connecting to the server"
   },
@@ -4316,6 +4288,10 @@
     "translation": "Error creating SAML certificate multipart form request"
   },
   {
+    "id": "model.client.writer.app_error",
+    "translation": "Unable to build multipart request"
+  },
+  {
     "id": "model.command.is_valid.create_at.app_error",
     "translation": "Create at must be a valid time"
   },
@@ -4364,6 +4340,34 @@
     "translation": "Invalid user id"
   },
   {
+    "id": "model.command_hook.channel_id.app_error",
+    "translation": "Invalid channel id"
+  },
+  {
+    "id": "model.command_hook.command_id.app_error",
+    "translation": "Invalid command id"
+  },
+  {
+    "id": "model.command_hook.create_at.app_error",
+    "translation": "Create at must be a valid time"
+  },
+  {
+    "id": "model.command_hook.id.app_error",
+    "translation": "Invalid command hook id"
+  },
+  {
+    "id": "model.command_hook.parent_id.app_error",
+    "translation": "Invalid parent id"
+  },
+  {
+    "id": "model.command_hook.root_id.app_error",
+    "translation": "Invalid root id"
+  },
+  {
+    "id": "model.command_hook.user_id.app_error",
+    "translation": "Invalid user id"
+  },
+  {
     "id": "model.compliance.is_valid.create_at.app_error",
     "translation": "Create at must be a valid time"
   },
@@ -4392,6 +4396,10 @@
     "translation": "Unable to enable email batching when clustering is enabled."
   },
   {
+    "id": "model.config.is_valid.elastic_search.aggregate_posts_after_days.app_error",
+    "translation": "Elasticsearch AggregatePostsAfterDays setting must be a number greater than or equal to 1"
+  },
+  {
     "id": "model.config.is_valid.elastic_search.connection_url.app_error",
     "translation": "Elastic Search ConnectionUrl setting must be provided when Elastic Search indexing is enabled."
   },
@@ -4404,16 +4412,12 @@
     "translation": "Elastic Search Password setting must be provided when Elastic Search indexing is enabled."
   },
   {
-    "id": "model.config.is_valid.elastic_search.username.app_error",
-    "translation": "Elastic Search Username setting must be provided when Elastic Search indexing is enabled."
-  },
-  {
-    "id": "model.config.is_valid.elastic_search.aggregate_posts_after_days.app_error",
-    "translation": "Elasticsearch AggregatePostsAfterDays setting must be a number greater than or equal to 1"
-  },
-  {
     "id": "model.config.is_valid.elastic_search.posts_aggregator_job_start_time.app_error",
     "translation": "Elasticsearch PostsAggregatorJobStartTime setting must be a time in the format \"hh:mm\""
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.username.app_error",
+    "translation": "Elastic Search Username setting must be provided when Elastic Search indexing is enabled."
   },
   {
     "id": "model.config.is_valid.email_batching_buffer_size.app_error",
@@ -4762,34 +4766,6 @@
   {
     "id": "model.job.is_valid.type.app_error",
     "translation": "Invalid job type"
-  },
-  {
-    "id": "model.command_hook.id.app_error",
-    "translation": "Invalid command hook id"
-  },
-  {
-    "id": "model.command_hook.create_at.app_error",
-    "translation": "Create at must be a valid time"
-  },
-  {
-    "id": "model.command_hook.command_id.app_error",
-    "translation": "Invalid command id"
-  },
-  {
-    "id": "model.command_hook.user_id.app_error",
-    "translation": "Invalid user id"
-  },
-  {
-    "id": "model.command_hook.channel_id.app_error",
-    "translation": "Invalid channel id"
-  },
-  {
-    "id": "model.command_hook.root_id.app_error",
-    "translation": "Invalid root id"
-  },
-  {
-    "id": "model.command_hook.parent_id.app_error",
-    "translation": "Invalid parent id"
   },
   {
     "id": "model.oauth.is_valid.app_id.app_error",
@@ -5608,6 +5584,26 @@
     "translation": "We couldn't update the command"
   },
   {
+    "id": "store.sql_command_webhooks.get.app_error",
+    "translation": "We couldn't get the webhook"
+  },
+  {
+    "id": "store.sql_command_webhooks.save.app_error",
+    "translation": "We couldn't save the CommandWebhook"
+  },
+  {
+    "id": "store.sql_command_webhooks.save.existing.app_error",
+    "translation": "You cannot update an existing CommandWebhook"
+  },
+  {
+    "id": "store.sql_command_webhooks.try_use.app_error",
+    "translation": "Unable to use the webhook"
+  },
+  {
+    "id": "store.sql_command_webhooks.try_use.invalid.app_error",
+    "translation": "Invalid webhook"
+  },
+  {
     "id": "store.sql_compliance.get.finding.app_error",
     "translation": "We encountered an error retrieving the compliance reports"
   },
@@ -5660,16 +5656,16 @@
     "translation": "We couldn't get the file info for the post"
   },
   {
+    "id": "store.sql_file_info.permanent_delete.app_error",
+    "translation": "We couldn't permanently delete the file info"
+  },
+  {
     "id": "store.sql_file_info.save.app_error",
     "translation": "We couldn't save the file info"
   },
   {
     "id": "store.sql_file_info.save_or_update.app_error",
     "translation": "We couldn't save or update the file info"
-  },
-  {
-    "id": "store.sql_file_info.permanent_delete.app_error",
-    "translation": "We couldn't permanently delete the file info"
   },
   {
     "id": "store.sql_job.delete.app_error",
@@ -6520,26 +6516,6 @@
     "translation": "We couldn't update the webhook"
   },
   {
-    "id": "store.sql_command_webhooks.save.existing.app_error",
-    "translation": "You cannot update an existing CommandWebhook"
-  },
-  {
-    "id": "store.sql_command_webhooks.save.app_error",
-    "translation": "We couldn't save the CommandWebhook"
-  },
-  {
-    "id": "store.sql_command_webhooks.get.app_error",
-    "translation": "We couldn't get the webhook"
-  },
-  {
-    "id": "store.sql_command_webhooks.try_use.app_error",
-    "translation": "Unable to use the webhook"
-  },
-  {
-    "id": "store.sql_command_webhooks.try_use.invalid.app_error",
-    "translation": "Invalid webhook"
-  },
-  {
     "id": "system.message.name",
     "translation": "System"
   },
@@ -6586,6 +6562,30 @@
   {
     "id": "utils.diagnostic.analytics_not_found.app_error",
     "translation": "Analytics not initialized"
+  },
+  {
+    "id": "utils.file.remove_directory.configured.app_error",
+    "translation": "File storage not configured properly. Please configure for either S3 or local server file storage."
+  },
+  {
+    "id": "utils.file.remove_directory.local.app_error",
+    "translation": "Encountered an error removing directory from local server file storage."
+  },
+  {
+    "id": "utils.file.remove_directory.s3.app_error",
+    "translation": "Encountered an error removing directory from S3."
+  },
+  {
+    "id": "utils.file.remove_file.configured.app_error",
+    "translation": "File storage not configured properly. Please configure for either S3 or local server file storage."
+  },
+  {
+    "id": "utils.file.remove_file.local.app_error",
+    "translation": "Encountered an error removing file from local server file storage."
+  },
+  {
+    "id": "utils.file.remove_file.s3.app_error",
+    "translation": "Encountered an error removing file from S3."
   },
   {
     "id": "utils.i18n.loaded",
@@ -6700,6 +6700,18 @@
     "translation": "Couldn't find user teamid=%v, email=%v, err=%v"
   },
   {
+    "id": "web.command_webhook.command.app_error",
+    "translation": "Couldn't find the command"
+  },
+  {
+    "id": "web.command_webhook.invalid.app_error",
+    "translation": "Invalid webhook"
+  },
+  {
+    "id": "web.command_webhook.parse.app_error",
+    "translation": "Unable to parse incoming data"
+  },
+  {
     "id": "web.create_dir.error",
     "translation": "Failed to create directory watcher %v"
   },
@@ -6762,18 +6774,6 @@
   {
     "id": "web.incoming_webhook.user.app_error",
     "translation": "Couldn't find the user"
-  },
-  {
-    "id": "web.command_webhook.parse.app_error",
-    "translation": "Unable to parse incoming data"
-  },
-  {
-    "id": "web.command_webhook.invalid.app_error",
-    "translation": "Invalid webhook"
-  },
-  {
-    "id": "web.command_webhook.command.app_error",
-    "translation": "Couldn't find the command"
   },
   {
     "id": "web.init.debug",
