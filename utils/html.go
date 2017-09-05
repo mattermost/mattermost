@@ -93,8 +93,8 @@ func (t *HTMLTemplate) addDefaultProps() {
 		t.Props["Organization"] = ""
 	}
 
-	t.Html["EmailInfo"] = template.HTML(localT("api.templates.email_info",
-		map[string]interface{}{"SupportEmail": Cfg.SupportSettings.SupportEmail, "SiteName": Cfg.TeamSettings.SiteName}))
+	t.Html["EmailInfo"] = TranslateAsHtml(localT, "api.templates.email_info",
+		map[string]interface{}{"SupportEmail": Cfg.SupportSettings.SupportEmail, "SiteName": Cfg.TeamSettings.SiteName})
 }
 
 func (t *HTMLTemplate) Render() string {
@@ -116,5 +116,26 @@ func (t *HTMLTemplate) RenderToWriter(w http.ResponseWriter) error {
 		l4g.Error(T("api.api.render.error"), t.TemplateName, err)
 		return err
 	}
+
 	return nil
+}
+
+func TranslateAsHtml(t i18n.TranslateFunc, translationID string, args map[string]interface{}) template.HTML {
+	return template.HTML(t(translationID, escapeForHtml(args)))
+}
+
+func escapeForHtml(arg interface{}) interface{} {
+	switch typedArg := arg.(type) {
+	case string:
+		return template.HTMLEscapeString(typedArg)
+	case map[string]interface{}:
+		safeArg := make(map[string]interface{}, len(typedArg))
+		for key, value := range typedArg {
+			safeArg[key] = escapeForHtml(value)
+		}
+		return safeArg
+	default:
+		l4g.Warn("Unable to escape value for HTML template %v", arg)
+		return ""
+	}
 }

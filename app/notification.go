@@ -404,10 +404,10 @@ func sendNotificationEmail(post *model.Post, user *model.User, channel *model.Ch
 
 	bodyPage.Props["BodyText"] = bodyText
 	bodyPage.Props["Button"] = userLocale("api.templates.post_body.button")
-	bodyPage.Html["Info"] = template.HTML(userLocale("api.templates.post_body.info",
+	bodyPage.Html["Info"] = utils.TranslateAsHtml(userLocale, "api.templates.post_body.info",
 		map[string]interface{}{"ChannelName": channelName, "SenderName": senderName,
 			"Hour": fmt.Sprintf("%02d", tm.Hour()), "Minute": fmt.Sprintf("%02d", tm.Minute()),
-			"TimeZone": zone, "Month": month, "Day": day}))
+			"TimeZone": zone, "Month": month, "Day": day})
 
 	go func() {
 		if err := utils.SendMail(user.Email, html.UnescapeString(subject), bodyPage.Render()); err != nil {
