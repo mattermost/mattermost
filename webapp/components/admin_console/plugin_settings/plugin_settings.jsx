@@ -79,7 +79,7 @@ export default class PluginSettings extends React.Component {
 
         const {error} = await this.props.actions.uploadPlugin(file);
         this.setState({fileSelected: false, fileName: null, uploading: false});
-        Utils.clearFileInput(element[0]);
+        Utils.clearFileInput(element);
 
         if (error) {
             if (error.server_error_id === 'app.plugin.activate.app_error') {
