@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"strings"
 
 	"github.com/mattermost/platform/model"
 )
@@ -55,7 +56,15 @@ func RemoveDuplicatesFromStringArray(arr []string) []string {
 }
 
 func GetIpAddress(r *http.Request) string {
-	address := r.Header.Get(model.HEADER_FORWARDED)
+	address := ""
+
+	header := r.Header.Get(model.HEADER_FORWARDED)
+	if len(header) > 0 {
+		addresses := strings.Fields(header)
+		if len(addresses) > 0 {
+			address = strings.TrimRight(addresses[0], ",")
+		}
+	}
 
 	if len(address) == 0 {
 		address = r.Header.Get(model.HEADER_REAL_IP)
