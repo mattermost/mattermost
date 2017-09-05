@@ -39,7 +39,7 @@ export function getProfilePicSrcForPost(post, user) {
         src = Utils.imageURLForUser(post.user_id);
     }
 
-    if (post.props && post.props.from_webhook && global.window.mm_config.EnablePostIconOverride === 'true') {
+    if (post.props && post.props.from_webhook && !post.props.use_user_icon && global.window.mm_config.EnablePostIconOverride === 'true') {
         if (post.props.override_icon_url) {
             src = post.props.override_icon_url;
         } else {

@@ -69,8 +69,9 @@ func (p *Plugin) handleWebhook(w http.ResponseWriter, r *http.Request) {
 		Type:      model.POST_SLACK_ATTACHMENT,
 		UserId:    user.Id,
 		Props: map[string]interface{}{
-			"from_webhook": "true",
-			"attachments":  []*model.SlackAttachment{attachment},
+			"from_bot":      "true",
+			"use_user_icon": "true",
+			"attachments":   []*model.SlackAttachment{attachment},
 		},
 	}); err != nil {
 		http.Error(w, p.api.I18n(err.Message, r), err.StatusCode)
