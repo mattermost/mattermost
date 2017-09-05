@@ -131,19 +131,20 @@ func (job *EmailBatchingJob) checkPendingNotifications(now time.Time, handler fu
 		for _, notification := range notifications {
 			// because multiple messages may have been queued for the same channel, we take care to only check the last viewed at
 			// time of each channel exactly once
-			if !inspectedChannelIds[notification.post.ChannelId] {
-				cchan := Srv.Store.Channel().GetMember(notification.post.ChannelId, userId)
-				if result := <-cchan; result.Err != nil {
-					l4g.Error("Unable to find ChannelMember record", result.Err)
-					delete(job.pendingNotifications, userId)
-					break
-				} else if channelMember := result.Data.(*model.ChannelMember); channelMember.LastViewedAt >= batchStartTime {
-					l4g.Info("Deleted notifications for user %s", userId)
-					delete(job.pendingNotifications, userId)
-					break
-				}
+			if inspectedChannelIds[notification.post.ChannelId] {
+				continue
+			}
+			inspectedChannelIds[notification.post.ChannelId] = true
 
-				inspectedChannelIds[notification.post.ChannelId] = true
+			cchan := Srv.Store.Channel().GetMember(notification.post.ChannelId, userId)
+			if result := <-cchan; result.Err != nil {
+				l4g.Error("Unable to find ChannelMember record", result.Err)
+				delete(job.pendingNotifications, userId)
+				break
+			} else if channelMember := result.Data.(*model.ChannelMember); channelMember.LastViewedAt >= batchStartTime {
+				l4g.Info("Deleted notifications for user %s", userId)
+				delete(job.pendingNotifications, userId)
+				break
 			}
 		}
 
