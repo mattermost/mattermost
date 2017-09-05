@@ -408,10 +408,6 @@
     "translation": "Plugins have been disabled by the system admin or the server has not been restarted since they were enabled."
   },
   {
-    "id": "app.plugin.disabled.app_error",
-    "translation": ""
-  },
-  {
     "id": "app.plugin.extract.app_error",
     "translation": "Encountered error extracting plugin"
   },
@@ -3058,6 +3054,10 @@
   {
     "id": "app.channel.create_channel.no_team_id.app_error",
     "translation": "Must specify the team ID to create a channel"
+  },
+  {
+    "id": "app.channel.move_channel.members_do_not_match.error",
+    "translation": "Cannot move a channel unless all its members are already members of the destination team."
   },
   {
     "id": "app.channel.post_update_channel_purpose_message.post.error",

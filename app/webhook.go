@@ -174,7 +174,7 @@ func CreateWebhookPost(userId string, channel *model.Channel, text, overrideUser
 		post.CreateAt = 0
 		post.Message = txt
 		if _, err := CreatePostMissingChannel(post, false); err != nil {
-			return nil, model.NewLocAppError("CreateWebhookPost", "api.post.create_webhook_post.creating.app_error", nil, "err="+err.Message)
+			return nil, model.NewAppError("CreateWebhookPost", "api.post.create_webhook_post.creating.app_error", nil, "err="+err.Message, http.StatusInternalServerError)
 		}
 
 		if firstPost == nil {
@@ -309,7 +309,7 @@ func CreateOutgoingWebhook(hook *model.OutgoingWebhook) (*model.OutgoingWebhook,
 			triggerIntersect := utils.StringArrayIntersection(existingOutHook.TriggerWords, hook.TriggerWords)
 
 			if existingOutHook.ChannelId == hook.ChannelId && len(urlIntersect) != 0 && len(triggerIntersect) != 0 {
-				return nil, model.NewLocAppError("CreateOutgoingWebhook", "api.webhook.create_outgoing.intersect.app_error", nil, "")
+				return nil, model.NewAppError("CreateOutgoingWebhook", "api.webhook.create_outgoing.intersect.app_error", nil, "", http.StatusInternalServerError)
 			}
 		}
 	}
@@ -340,7 +340,7 @@ func UpdateOutgoingWebhook(oldHook, updatedHook *model.OutgoingWebhook) (*model.
 			return nil, model.NewAppError("UpdateOutgoingWebhook", "api.webhook.create_outgoing.permissions.app_error", nil, "", http.StatusForbidden)
 		}
 	} else if len(updatedHook.TriggerWords) == 0 {
-		return nil, model.NewLocAppError("UpdateOutgoingWebhook", "api.webhook.create_outgoing.triggers.app_error", nil, "")
+		return nil, model.NewAppError("UpdateOutgoingWebhook", "api.webhook.create_outgoing.triggers.app_error", nil, "", http.StatusInternalServerError)
 	}
 
 	var result store.StoreResult

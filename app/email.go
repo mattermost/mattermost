@@ -11,6 +11,7 @@ import (
 	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
+	"net/http"
 )
 
 func SendChangeUsernameEmail(oldUsername, newUsername, email, locale, siteURL string) *model.AppError {
@@ -27,7 +28,7 @@ func SendChangeUsernameEmail(oldUsername, newUsername, email, locale, siteURL st
 		map[string]interface{}{"TeamDisplayName": utils.Cfg.TeamSettings.SiteName, "NewUsername": newUsername}))
 
 	if err := utils.SendMail(email, subject, bodyPage.Render()); err != nil {
-		return model.NewLocAppError("SendChangeUsernameEmail", "api.user.send_email_change_username_and_forget.error", nil, err.Error())
+		return model.NewAppError("SendChangeUsernameEmail", "api.user.send_email_change_username_and_forget.error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	return nil
@@ -51,7 +52,7 @@ func SendEmailChangeVerifyEmail(newUserEmail, locale, siteURL, token string) *mo
 	bodyPage.Props["VerifyButton"] = T("api.templates.email_change_verify_body.button")
 
 	if err := utils.SendMail(newUserEmail, subject, bodyPage.Render()); err != nil {
-		return model.NewLocAppError("SendEmailChangeVerifyEmail", "api.user.send_email_change_verify_email_and_forget.error", nil, err.Error())
+		return model.NewAppError("SendEmailChangeVerifyEmail", "api.user.send_email_change_verify_email_and_forget.error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	return nil
@@ -71,7 +72,7 @@ func SendEmailChangeEmail(oldEmail, newEmail, locale, siteURL string) *model.App
 		map[string]interface{}{"TeamDisplayName": utils.Cfg.TeamSettings.SiteName, "NewEmail": newEmail}))
 
 	if err := utils.SendMail(oldEmail, subject, bodyPage.Render()); err != nil {
-		return model.NewLocAppError("SendEmailChangeEmail", "api.user.send_email_change_email_and_forget.error", nil, err.Error())
+		return model.NewAppError("SendEmailChangeEmail", "api.user.send_email_change_email_and_forget.error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	return nil
@@ -95,7 +96,7 @@ func SendVerifyEmail(userEmail, locale, siteURL, token string) *model.AppError {
 	bodyPage.Props["Button"] = T("api.templates.verify_body.button")
 
 	if err := utils.SendMail(userEmail, subject, bodyPage.Render()); err != nil {
-		return model.NewLocAppError("SendVerifyEmail", "api.user.send_verify_email_and_forget.failed.error", nil, err.Error())
+		return model.NewAppError("SendVerifyEmail", "api.user.send_verify_email_and_forget.failed.error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	return nil
@@ -114,7 +115,7 @@ func SendSignInChangeEmail(email, method, locale, siteURL string) *model.AppErro
 		map[string]interface{}{"SiteName": utils.ClientCfg["SiteName"], "Method": method}))
 
 	if err := utils.SendMail(email, subject, bodyPage.Render()); err != nil {
-		return model.NewLocAppError("SendSignInChangeEmail", "api.user.send_sign_in_change_email_and_forget.error", nil, err.Error())
+		return model.NewAppError("SendSignInChangeEmail", "api.user.send_sign_in_change_email_and_forget.error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	return nil
@@ -153,7 +154,7 @@ func SendWelcomeEmail(userId string, email string, verified bool, locale, siteUR
 	}
 
 	if err := utils.SendMail(email, subject, bodyPage.Render()); err != nil {
-		return model.NewLocAppError("SendWelcomeEmail", "api.user.send_welcome_email_and_forget.failed.error", nil, err.Error())
+		return model.NewAppError("SendWelcomeEmail", "api.user.send_welcome_email_and_forget.failed.error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	return nil
@@ -173,7 +174,7 @@ func SendPasswordChangeEmail(email, method, locale, siteURL string) *model.AppEr
 		map[string]interface{}{"TeamDisplayName": utils.Cfg.TeamSettings.SiteName, "TeamURL": siteURL, "Method": method}))
 
 	if err := utils.SendMail(email, subject, bodyPage.Render()); err != nil {
-		return model.NewLocAppError("SendPasswordChangeEmail", "api.user.send_password_change_email_and_forget.error", nil, err.Error())
+		return model.NewAppError("SendPasswordChangeEmail", "api.user.send_password_change_email_and_forget.error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	return nil
@@ -191,7 +192,7 @@ func SendUserAccessTokenAddedEmail(email, locale string) *model.AppError {
 		map[string]interface{}{"SiteName": utils.ClientCfg["SiteName"], "SiteURL": utils.GetSiteURL()}))
 
 	if err := utils.SendMail(email, subject, bodyPage.Render()); err != nil {
-		return model.NewLocAppError("SendUserAccessTokenAddedEmail", "api.user.send_user_access_token.error", nil, err.Error())
+		return model.NewAppError("SendUserAccessTokenAddedEmail", "api.user.send_user_access_token.error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	return nil
@@ -214,7 +215,7 @@ func SendPasswordResetEmail(email string, token *model.Token, locale, siteURL st
 	bodyPage.Props["Button"] = T("api.templates.reset_body.button")
 
 	if err := utils.SendMail(email, subject, bodyPage.Render()); err != nil {
-		return false, model.NewLocAppError("SendPasswordReset", "api.user.send_password_reset.send.app_error", nil, "err="+err.Message)
+		return false, model.NewAppError("SendPasswordReset", "api.user.send_password_reset.send.app_error", nil, "err="+err.Message, http.StatusInternalServerError)
 	}
 
 	return true, nil
@@ -242,7 +243,7 @@ func SendMfaChangeEmail(email string, activated bool, locale, siteURL string) *m
 		map[string]interface{}{"SiteURL": siteURL}))
 
 	if err := utils.SendMail(email, subject, bodyPage.Render()); err != nil {
-		return model.NewLocAppError("SendMfaChangeEmail", "api.user.send_mfa_change_email.error", nil, err.Error())
+		return model.NewAppError("SendMfaChangeEmail", "api.user.send_mfa_change_email.error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	return nil

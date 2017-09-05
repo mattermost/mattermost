@@ -92,7 +92,19 @@ export default class LDAPToEmail extends React.Component {
             token,
             ldapPassword || this.state.ldapPassword,
             null,
-            (err) => this.setState({serverError: err.message, showMfa: false})
+            (err) => {
+                if (err.id.startsWith('model.user.is_valid.pwd')) {
+                    this.setState({passwordError: err.message, showMfa: false});
+                } else {
+                    switch (err.id) {
+                    case 'ent.ldap.do_login.invalid_password.app_error':
+                        this.setState({ldapPasswordError: err.message, showMfa: false});
+                        break;
+                    default:
+                        this.setState({serverError: err.message, showMfa: false});
+                    }
+                }
+            }
         );
     }
 
@@ -149,14 +161,8 @@ export default class LDAPToEmail extends React.Component {
                 >
                     <p>
                         <FormattedMessage
-                            id='claim.ldap_to_email.ssoType'
-                            defaultMessage='Upon claiming your account, you will only be able to login with your email and password'
-                        />
-                    </p>
-                    <p>
-                        <FormattedMessage
                             id='claim.ldap_to_email.email'
-                            defaultMessage='You will use the email {email} to login'
+                            defaultMessage='After switching your authentication method, you will use {email} to login. Your AD/LDAP credentials will no longer allow access to Mattermost.'
                             values={{
                                 email: this.props.email
                             }}
@@ -165,10 +171,9 @@ export default class LDAPToEmail extends React.Component {
                     <p>
                         <FormattedMessage
                             id='claim.ldap_to_email.enterLdapPwd'
-                            defaultMessage='Enter your {ldapPassword} for your {site} email account'
+                            defaultMessage='{ldapPassword}:'
                             values={{
-                                ldapPassword: passwordPlaceholder,
-                                site: global.window.mm_config.SiteName
+                                ldapPassword: passwordPlaceholder
                             }}
                         />
                     </p>
@@ -186,7 +191,7 @@ export default class LDAPToEmail extends React.Component {
                     <p>
                         <FormattedMessage
                             id='claim.ldap_to_email.enterPwd'
-                            defaultMessage='Enter a new password for your email account'
+                            defaultMessage='New email login password:'
                         />
                     </p>
                     <div className={passwordClass}>

@@ -3,7 +3,7 @@
 
 import {Modal} from 'react-bootstrap';
 
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, FormattedHTMLMessage} from 'react-intl';
 
 import PropTypes from 'prop-types';
 
@@ -167,7 +167,15 @@ export default class AboutBuildModal extends React.Component {
                             />
                         </div>
                     </div>
-                    <div className='about-modal__hash form-group padding-top x2'>
+                    <div className='about-modal__notice form-group padding-top x2'>
+                        <p>
+                            <FormattedHTMLMessage
+                                id='about.notice'
+                                defaultMessage='Mattermost is made possible by the open source software used in our <a href="https://about.mattermost.com/platform-notice-txt/" target="_blank">platform</a>, <a href="https://about.mattermost.com/desktop-notice-txt/" target="_blank">desktop</a> and <a href="https://about.mattermost.com/mobile-notice-txt/" target="_blank">mobile</a> apps.'
+                            />
+                        </p>
+                    </div>
+                    <div className='about-modal__hash'>
                         <p>
                             <FormattedMessage
                                 id='about.hash'

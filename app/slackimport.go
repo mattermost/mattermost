@@ -18,6 +18,7 @@ import (
 	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
+	"net/http"
 )
 
 type SlackChannel struct {
@@ -631,7 +632,7 @@ func SlackImport(fileData multipart.File, fileSize int64, teamID string) (*model
 	zipreader, err := zip.NewReader(fileData, fileSize)
 	if err != nil || zipreader.File == nil {
 		log.WriteString(utils.T("api.slackimport.slack_import.zip.app_error"))
-		return model.NewLocAppError("SlackImport", "api.slackimport.slack_import.zip.app_error", nil, err.Error()), log
+		return model.NewAppError("SlackImport", "api.slackimport.slack_import.zip.app_error", nil, err.Error(), http.StatusBadRequest), log
 	}
 
 	var channels []SlackChannel
@@ -642,7 +643,7 @@ func SlackImport(fileData multipart.File, fileSize int64, teamID string) (*model
 		reader, err := file.Open()
 		if err != nil {
 			log.WriteString(utils.T("api.slackimport.slack_import.open.app_error", map[string]interface{}{"Filename": file.Name}))
-			return model.NewLocAppError("SlackImport", "api.slackimport.slack_import.open.app_error", map[string]interface{}{"Filename": file.Name}, err.Error()), log
+			return model.NewAppError("SlackImport", "api.slackimport.slack_import.open.app_error", map[string]interface{}{"Filename": file.Name}, err.Error(), http.StatusInternalServerError), log
 		}
 		if file.Name == "channels.json" {
 			channels, _ = SlackParseChannels(reader)

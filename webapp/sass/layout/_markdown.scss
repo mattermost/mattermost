@@ -67,8 +67,10 @@ h6 {
     code {
         border: 1px solid rgba(221,221,221,1);
         border-radius: .25em;
+        display: block;
         font-size: 13px;
         margin: 5px 0;
+        overflow-x: auto;
         padding: 6.5px;
         text-align: left;
         white-space: pre;

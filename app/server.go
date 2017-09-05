@@ -189,7 +189,7 @@ func StartServer() {
 		}()
 	}
 
-	if *utils.Cfg.PluginSettings.Enable {
+	if utils.IsLicensed() && *utils.License().Features.FutureFeatures && *utils.Cfg.PluginSettings.Enable {
 		StartupPlugins("plugins", "webapp/dist")
 	}
 

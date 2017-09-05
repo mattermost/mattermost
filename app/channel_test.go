@@ -64,3 +64,46 @@ func TestPermanentDeleteChannel(t *testing.T) {
 		t.Error("outgoing webhook wasn't deleted")
 	}
 }
+
+func TestMoveChannel(t *testing.T) {
+	th := Setup().InitBasic()
+
+	sourceTeam := th.CreateTeam()
+	targetTeam := th.CreateTeam()
+	channel1 := th.CreateChannel(sourceTeam)
+	defer func() {
+		PermanentDeleteChannel(channel1)
+		PermanentDeleteTeam(sourceTeam)
+		PermanentDeleteTeam(targetTeam)
+	}()
+
+	if _, err := AddUserToTeam(sourceTeam.Id, th.BasicUser.Id, ""); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := AddUserToTeam(sourceTeam.Id, th.BasicUser2.Id, ""); err != nil {
+		t.Fatal(err)
+	}
+
+	if _, err := AddUserToTeam(targetTeam.Id, th.BasicUser.Id, ""); err != nil {
+		t.Fatal(err)
+	}
+
+	if _, err := AddUserToChannel(th.BasicUser, channel1); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := AddUserToChannel(th.BasicUser2, channel1); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := MoveChannel(targetTeam, channel1); err == nil {
+		t.Fatal("Should have failed due to mismatched members.")
+	}
+
+	if _, err := AddUserToTeam(targetTeam.Id, th.BasicUser2.Id, ""); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := MoveChannel(targetTeam, channel1); err != nil {
+		t.Fatal(err)
+	}
+}
