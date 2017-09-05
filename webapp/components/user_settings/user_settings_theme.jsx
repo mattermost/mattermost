@@ -36,6 +36,7 @@ export default class ThemeSetting extends React.Component {
         this.handleImportModal = this.handleImportModal.bind(this);
 
         this.state = this.getStateFromStores();
+        this.setState({isSaving: false});
 
         this.originalTheme = Object.assign({}, this.state.theme);
     }
@@ -117,6 +118,8 @@ export default class ThemeSetting extends React.Component {
 
         const teamId = this.state.applyToAllTeams ? '' : this.state.teamId;
 
+        this.setState({isSaving: true});
+
         UserActions.saveTheme(
             teamId,
             this.state.theme,
@@ -125,6 +128,7 @@ export default class ThemeSetting extends React.Component {
                 this.originalTheme = Object.assign({}, this.state.theme);
                 this.scrollToTop();
                 this.props.updateSection('');
+                this.setState({isSaving: false});
             }
         );
     }
@@ -315,6 +319,7 @@ export default class ThemeSetting extends React.Component {
                     inputs={inputs}
                     submitExtra={allTeamsCheckbox}
                     submit={this.submitTheme}
+                    saving={this.state.isSaving}
                     server_error={serverError}
                     width='full'
                     updateSection={(e) => {

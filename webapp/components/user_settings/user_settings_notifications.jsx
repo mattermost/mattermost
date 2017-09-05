@@ -93,7 +93,8 @@ function getNotificationsStateFromStores() {
         customKeysChecked: customKeys.length > 0,
         firstNameKey,
         channelKey,
-        notifyCommentsLevel: comments
+        notifyCommentsLevel: comments,
+        isSaving: false
     };
 }
 
@@ -147,6 +148,8 @@ export default class NotificationsTab extends React.Component {
         data.first_name = this.state.firstNameKey.toString();
         data.channel = this.state.channelKey.toString();
 
+        this.setState({isSaving: true});
+
         updateUserNotifyProps(
             data,
             () => {
@@ -154,7 +157,7 @@ export default class NotificationsTab extends React.Component {
                 $('.settings-modal .modal-body').scrollTop(0).perfectScrollbar('update');
             },
             (err) => {
-                this.setState({serverError: err.message});
+                this.setState({serverError: err.message, isSaving: false});
             }
         );
     }
@@ -182,6 +185,8 @@ export default class NotificationsTab extends React.Component {
         if (!Utils.areObjectsEqual(newState, this.state)) {
             this.setState(newState);
         }
+
+        this.setState({isSaving: false});
     }
 
     componentDidMount() {
@@ -641,6 +646,7 @@ export default class NotificationsTab extends React.Component {
                     title={Utils.localizeMessage('user.settings.notifications.wordsTrigger', 'Words that trigger mentions')}
                     inputs={inputs}
                     submit={this.handleSubmit}
+                    saving={this.state.isSaving}
                     server_error={serverError}
                     updateSection={this.handleCancel}
                     extraInfo={extraInfo}
@@ -776,6 +782,7 @@ export default class NotificationsTab extends React.Component {
                     extraInfo={extraInfo}
                     inputs={inputs}
                     submit={this.handleSubmit}
+                    saving={this.state.isSaving}
                     server_error={serverError}
                     updateSection={this.handleCancel}
                 />
@@ -866,6 +873,7 @@ export default class NotificationsTab extends React.Component {
                         updateSection={this.updateSection}
                         setParentState={this.setStateValue}
                         submit={this.handleSubmit}
+                        saving={this.state.isSaving}
                         cancel={this.handleCancel}
                         error={this.state.serverError}
                         active={this.props.activeSection === 'desktop'}
@@ -877,6 +885,7 @@ export default class NotificationsTab extends React.Component {
                         enableEmail={this.state.enableEmail === 'true'}
                         onChange={this.handleEmailRadio}
                         onSubmit={this.handleSubmit}
+                        saving={this.state.isSaving}
                         serverError={this.state.serverError}
                     />
                     <div className='divider-light'/>

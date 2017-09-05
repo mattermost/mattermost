@@ -81,10 +81,13 @@ export default class AdvancedSettingsDisplay extends React.Component {
             }
         }
 
+        const isSaving = false;
+
         return {preReleaseFeatures: PreReleaseFeatures,
             settings,
             preReleaseFeaturesKeys,
-            enabledFeatures
+            enabledFeatures,
+            isSaving
         };
     }
 
@@ -133,6 +136,8 @@ export default class AdvancedSettingsDisplay extends React.Component {
             });
         });
 
+        this.setState({isSaving: true});
+
         savePreferences(
             preferences,
             () => {
@@ -148,6 +153,7 @@ export default class AdvancedSettingsDisplay extends React.Component {
         if (!section) {
             this.setState(this.getStateFromStores());
         }
+        this.setState({isSaving: false});
         this.props.updateSection(section);
     }
 
@@ -223,6 +229,7 @@ export default class AdvancedSettingsDisplay extends React.Component {
                         </div>
                     ]}
                     submit={() => this.handleSubmit('formatting')}
+                    saving={this.state.isSaving}
                     server_error={this.state.serverError}
                     updateSection={(e) => {
                         this.updateSection('');
@@ -301,6 +308,7 @@ export default class AdvancedSettingsDisplay extends React.Component {
                             </div>
                         ]}
                         submit={() => this.handleSubmit('join_leave')}
+                        saving={this.state.isSaving}
                         server_error={this.state.serverError}
                         updateSection={(e) => {
                             this.updateSection('');
@@ -418,6 +426,7 @@ export default class AdvancedSettingsDisplay extends React.Component {
                     }
                     inputs={inputs}
                     submit={() => this.handleSubmit('send_on_ctrl_enter')}
+                    saving={this.state.isSaving}
                     server_error={serverError}
                     updateSection={(e) => {
                         this.updateSection('');
@@ -502,6 +511,7 @@ export default class AdvancedSettingsDisplay extends React.Component {
                         }
                         inputs={inputs}
                         submit={this.saveEnabledFeatures}
+                        saving={this.state.isSaving}
                         server_error={serverError}
                         updateSection={(e) => {
                             this.updateSection('');

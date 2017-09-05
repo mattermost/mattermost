@@ -2132,6 +2132,7 @@
   "search_results.usagePin4": "To pin a message: Go to the message that you want to pin and click [...] > \"Pin to channel\".",
   "setting_item_max.cancel": "Cancel",
   "setting_item_max.save": "Save",
+  "setting_item_max.saving": "Saving...",
   "setting_item_min.edit": "Edit",
   "setting_picture.cancel": "Cancel",
   "setting_picture.help": "Upload a profile picture in BMP, JPG, JPEG or PNG format, at least {width}px in width and {height}px height.",
