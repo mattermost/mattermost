@@ -106,7 +106,7 @@ export default class PluginSettings extends React.Component {
     render() {
         let serverError = '';
         if (this.state.serverError) {
-            serverError = <div className='col-sm-12'><div className='form-group has-error'><label className='control-label'>{this.state.serverError}</label></div></div>;
+            serverError = <div className='col-sm-12'><div className='form-group has-error half'><label className='control-label'>{this.state.serverError}</label></div></div>;
         }
 
         let btnClass = 'btn';
@@ -137,11 +137,12 @@ export default class PluginSettings extends React.Component {
         }
 
         let activePluginsList;
+        let activePluginsContainer;
         const plugins = Object.values(this.props.plugins);
         if (this.state.loading) {
             activePluginsList = <LoadingScreen/>;
         } else if (plugins.length === 0) {
-            activePluginsList = (
+            activePluginsContainer = (
                 <FormattedMessage
                     id='admin.plugin.no_plugins'
                     defaultMessage='No active plugins.'
@@ -169,7 +170,7 @@ export default class PluginSettings extends React.Component {
 
                     return (
                         <div key={p.id}>
-                            <span>
+                            <div>
                                 <strong>
                                     <FormattedMessage
                                         id='admin.plugin.id'
@@ -177,8 +178,8 @@ export default class PluginSettings extends React.Component {
                                     />
                                 </strong>
                                 {' ' + p.id}
-                            </span>
-                            <span style={{marginLeft: '5px'}}>
+                            </div>
+                            <div className='padding-top'>
                                 <strong>
                                     <FormattedMessage
                                         id='admin.plugin.desc'
@@ -186,20 +187,25 @@ export default class PluginSettings extends React.Component {
                                     />
                                 </strong>
                                 {' ' + p.description}
-                            </span>
-                            <div className='padding-top x2'>
-                                <button
-                                    style={{marginLeft: '10px'}}
-                                    className='btn btn-danger'
+                            </div>
+                            <div className='padding-top'>
+                                <a
                                     disabled={this.state.removing === p.id}
                                     onClick={() => this.handleRemove(p.id)}
                                 >
                                     {removeButtonText}
-                                </button>
+                                </a>
                             </div>
+                            <hr/>
                         </div>
                     );
                 }
+            );
+
+            activePluginsContainer = (
+                <div className='alert alert-transparent'>
+                    {activePluginsList}
+                </div>
             );
         }
 
@@ -259,7 +265,7 @@ export default class PluginSettings extends React.Component {
                                 {fileName}
                             </div>
                             {serverError}
-                            <p className='help-text no-margin'>
+                            <p className='help-text'>
                                 <FormattedHTMLMessage
                                     id='admin.plugin.uploadDesc'
                                     defaultMessage='Upload a plugin for your Mattermost server. Adding or removing a webapp plugin requires users to refresh their browser or Desktop App before taking effect. See <a href="https://about.mattermost.com/default-plugins">documentation</a> to learn more.'
@@ -277,7 +283,7 @@ export default class PluginSettings extends React.Component {
                             />
                         </label>
                         <div className='col-sm-8 padding-top'>
-                            {activePluginsList}
+                            {activePluginsContainer}
                         </div>
                     </div>
                 </form>
