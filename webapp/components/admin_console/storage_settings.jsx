@@ -34,6 +34,7 @@ export default class StorageSettings extends AdminSettings {
         config.FileSettings.AmazonS3AccessKeyId = this.state.amazonS3AccessKeyId;
         config.FileSettings.AmazonS3SecretAccessKey = this.state.amazonS3SecretAccessKey;
         config.FileSettings.AmazonS3Bucket = this.state.amazonS3Bucket;
+        config.FileSettings.AmazonS3Region = this.state.amazonS3Region;
         config.FileSettings.AmazonS3Endpoint = this.state.amazonS3Endpoint;
         config.FileSettings.AmazonS3SSL = this.state.amazonS3SSL;
         config.FileSettings.AmazonS3SSE = this.state.amazonS3SSE;
@@ -53,6 +54,7 @@ export default class StorageSettings extends AdminSettings {
             amazonS3AccessKeyId: config.FileSettings.AmazonS3AccessKeyId,
             amazonS3SecretAccessKey: config.FileSettings.AmazonS3SecretAccessKey,
             amazonS3Bucket: config.FileSettings.AmazonS3Bucket,
+            amazonS3Region: config.FileSettings.AmazonS3Region,
             amazonS3Endpoint: config.FileSettings.AmazonS3Endpoint,
             amazonS3SSL: config.FileSettings.AmazonS3SSL,
             amazonS3SSE: config.FileSettings.AmazonS3SSE,
@@ -238,6 +240,25 @@ export default class StorageSettings extends AdminSettings {
                         />
                     }
                     value={this.state.amazonS3Bucket}
+                    onChange={this.handleChange}
+                    disabled={this.state.driverName !== DRIVER_S3}
+                />
+                <TextSetting
+                    id='amazonS3Region'
+                    label={
+                        <FormattedMessage
+                            id='admin.image.amazonS3RegionTitle'
+                            defaultMessage='Amazon S3 Region:'
+                        />
+                    }
+                    placeholder={Utils.localizeMessage('admin.image.amazonS3RegionExample', 'Ex "us-east-1"')}
+                    helpText={
+                        <FormattedMessage
+                            id='admin.image.amazonS3RegionDescription'
+                            defaultMessage='(Optional) AWS region you selected when creating your S3 bucket. If no region is set, Mattermost attempts to get the appropriate region from AWS, or sets it to "us-east-1" if none found.'
+                        />
+                    }
+                    value={this.state.amazonS3Region}
                     onChange={this.handleChange}
                     disabled={this.state.driverName !== DRIVER_S3}
                 />
