@@ -37,6 +37,7 @@ export default class StorageSettings extends AdminSettings {
         config.FileSettings.AmazonS3Endpoint = this.state.amazonS3Endpoint;
         config.FileSettings.AmazonS3SSL = this.state.amazonS3SSL;
         config.FileSettings.AmazonS3SSE = this.state.amazonS3SSE;
+        config.FileSettings.AmazonS3Trace = this.state.amazonS3Trace;
 
         return config;
     }
@@ -54,7 +55,8 @@ export default class StorageSettings extends AdminSettings {
             amazonS3Bucket: config.FileSettings.AmazonS3Bucket,
             amazonS3Endpoint: config.FileSettings.AmazonS3Endpoint,
             amazonS3SSL: config.FileSettings.AmazonS3SSL,
-            amazonS3SSE: config.FileSettings.AmazonS3SSE
+            amazonS3SSE: config.FileSettings.AmazonS3SSE,
+            amazonS3Trace: config.FileSettings.AmazonS3Trace
         };
     }
 
@@ -125,7 +127,6 @@ export default class StorageSettings extends AdminSettings {
                                 defaultMessage='Enable Server-Side Encryption for Amazon S3:'
                             />
                         }
-                        placeholder={Utils.localizeMessage('admin.image.amazonS3SSEExample', 'Ex "false"')}
                         helpText={
                             <FormattedHTMLMessage
                                 id='admin.image.amazonS3SSEDescription'
@@ -267,7 +268,6 @@ export default class StorageSettings extends AdminSettings {
                             defaultMessage='Enable Secure Amazon S3 Connections:'
                         />
                     }
-                    placeholder={Utils.localizeMessage('admin.image.amazonS3SSLExample', 'Ex "true"')}
                     helpText={
                         <FormattedMessage
                             id='admin.image.amazonS3SSLDescription'
@@ -279,6 +279,24 @@ export default class StorageSettings extends AdminSettings {
                     disabled={this.state.driverName !== DRIVER_S3}
                 />
                 {amazonSSEComp}
+                <BooleanSetting
+                    id='amazonS3Trace'
+                    label={
+                        <FormattedMessage
+                            id='admin.image.amazonS3TraceTitle'
+                            defaultMessage='Enable Amazon S3 Debugging:'
+                        />
+                    }
+                    helpText={
+                        <FormattedMessage
+                            id='admin.image.amazonS3TraceDescription'
+                            defaultMessage='(Development Mode) When true, log additional debugging information to the system logs.'
+                        />
+                    }
+                    value={this.state.amazonS3Trace}
+                    onChange={this.handleChange}
+                    disabled={this.state.driverName !== DRIVER_S3}
+                />
                 <BooleanSetting
                     id='enableFileAttachments'
                     label={
