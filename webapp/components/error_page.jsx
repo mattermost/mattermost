@@ -8,21 +8,12 @@ import {FormattedMessage} from 'react-intl';
 import {Link} from 'react-router/es6';
 
 import {ErrorPageTypes} from 'utils/constants.jsx';
-import * as TextFormatting from 'utils/text_formatting.jsx';
 import * as Utils from 'utils/utils.jsx';
 
 export default class ErrorPage extends React.Component {
     static propTypes = {
         location: PropTypes.object.isRequired
     };
-
-    constructor(props) {
-        super(props);
-
-        this.renderTitle = this.renderTitle.bind(this);
-        this.renderMessage = this.renderMessage.bind(this);
-        this.renderLink = this.renderLink.bind(this);
-    }
 
     componentDidMount() {
         $('body').attr('class', 'sticky error');
@@ -32,16 +23,20 @@ export default class ErrorPage extends React.Component {
         $('body').attr('class', '');
     }
 
-    linkFilter(link) {
-        return link.startsWith('https://docs.mattermost.com') || link.startsWith('https://forum.mattermost.org');
-    }
-
-    renderTitle() {
-        if (this.props.location.query.type === ErrorPageTypes.LOCAL_STORAGE) {
+    renderTitle = () => {
+        switch (this.props.location.query.type) {
+        case ErrorPageTypes.LOCAL_STORAGE:
             return (
                 <FormattedMessage
                     id='error.local_storage.title'
                     defaultMessage='Cannot Load Mattermost'
+                />
+            );
+        case ErrorPageTypes.PERMALINK_NOT_FOUND:
+            return (
+                <FormattedMessage
+                    id='permalink.error.title'
+                    defaultMessage='Message Not Found'
                 />
             );
         }
@@ -53,8 +48,9 @@ export default class ErrorPage extends React.Component {
         return Utils.localizeMessage('error.generic.title', 'Error');
     }
 
-    renderMessage() {
-        if (this.props.location.query.type === ErrorPageTypes.LOCAL_STORAGE) {
+    renderMessage = () => {
+        switch (this.props.location.query.type) {
+        case ErrorPageTypes.LOCAL_STORAGE:
             return (
                 <div>
                     <FormattedMessage
@@ -83,45 +79,128 @@ export default class ErrorPage extends React.Component {
                     </ul>
                 </div>
             );
+        case ErrorPageTypes.PERMALINK_NOT_FOUND:
+            return (
+                <p>
+                    <FormattedMessage
+                        id='permalink.error.access'
+                        defaultMessage='Permalink belongs to a deleted message or to a channel to which you do not have access.'
+                    />
+                </p>
+            );
+        case ErrorPageTypes.OAUTH_MISSING_CODE:
+            return (
+                <div>
+                    <p>
+                        <FormattedMessage
+                            id='error.oauth_missing_code'
+                            defaultMessage='The service provider {service} did not provide an authorization code in the redirect URL.'
+                            values={{
+                                service: this.props.location.query.service
+                            }}
+                        />
+                    </p>
+                    <p>
+                        <FormattedMessage
+                            id='error.oauth_missing_code.google'
+                            defaultMessage='For {link} make sure your administrator enabled the Google+ API.'
+                            values={{
+                                link: (
+                                    <a
+                                        href='https://docs.mattermost.com/deployment/sso-google.html'
+                                        rel='noopener noreferrer'
+                                        target='_blank'
+                                    >
+                                        <FormattedMessage
+                                            id='error.oauth_missing_code.google.link'
+                                            defaultMessage='Google Apps'
+                                        />
+                                    </a>
+                                )
+                            }}
+                        />
+                    </p>
+                    <p>
+                        <FormattedMessage
+                            id='error.oauth_missing_code.office365'
+                            defaultMessage='For {link} make sure the administrator of your Microsoft organization has enabled the Mattermost app.'
+                            values={{
+                                link: (
+                                    <a
+                                        href='https://docs.mattermost.com/deployment/sso-office.html'
+                                        rel='noopener noreferrer'
+                                        target='_blank'
+                                    >
+                                        <FormattedMessage
+                                            id='error.oauth_missing_code.office365.link'
+                                            defaultMessage='Office 365'
+                                        />
+                                    </a>
+                                )
+                            }}
+                        />
+                    </p>
+                    <p>
+                        <FormattedMessage
+                            id='error.oauth_missing_code.gitlab'
+                            defaultMessage='For {link} please make sure you followed the setup instructions.'
+                            values={{
+                                link: (
+                                    <a
+                                        href='https://docs.mattermost.com/deployment/sso-gitlab.html'
+                                        rel='noopener noreferrer'
+                                        target='_blank'
+                                    >
+                                        <FormattedMessage
+                                            id='error.oauth_missing_code.gitlab.link'
+                                            defaultMessage='GitLab'
+                                        />
+                                    </a>
+                                )
+                            }}
+                        />
+                    </p>
+                    <p>
+                        <FormattedMessage
+                            id='error.oauth_missing_code.forum'
+                            defaultMessage="If you reviewed the above and are still having trouble with configuration, you may post in our {link} where we'll be happy to help with issues during setup."
+                            values={{
+                                link: (
+                                    <a
+                                        href='https://forum.mattermost.org/c/trouble-shoot'
+                                        rel='noopener noreferrer'
+                                        target='_blank'
+                                    >
+                                        <FormattedMessage
+                                            id='error.oauth_missing_code.forum.link'
+                                            defaultMessage='Troubleshooting forum'
+                                        />
+                                    </a>
+                                )
+                            }}
+                        />
+                    </p>
+                </div>
+            );
         }
 
-        let message = this.props.location.query.message;
-        if (!message) {
-            message = Utils.localizeMessage('error.generic.message', 'An error has occoured.');
-        }
-
-        return <div dangerouslySetInnerHTML={{__html: TextFormatting.formatText(message, {linkFilter: this.linkFilter})}}/>;
-    }
-
-    renderLink() {
-        let link = this.props.location.query.link;
-        if (link) {
-            link = link.trim();
-        } else {
-            link = '/';
-        }
-
-        if (!link.startsWith('/')) {
-            // Only allow relative links
-            link = '/';
-        }
-
-        let linkMessage = this.props.location.query.linkmessage;
-        if (!linkMessage) {
-            linkMessage = Utils.localizeMessage('error.generic.link_message', 'Back to Mattermost');
+        if (this.props.location.query.message) {
+            return <p>{this.props.location.query.message}</p>;
         }
 
         return (
-            <Link to={link}>
-                {linkMessage}
-            </Link>
+            <p>
+                <FormattedMessage
+                    id='error.generic.message'
+                    defaultMessage='An error has occurred.'
+                />
+            </p>
         );
     }
 
     render() {
         const title = this.renderTitle();
         const message = this.renderMessage();
-        const link = this.renderLink();
 
         return (
             <div className='container-fluid'>
@@ -129,9 +208,16 @@ export default class ErrorPage extends React.Component {
                     <div className='error__icon'>
                         <i className='fa fa-exclamation-triangle'/>
                     </div>
-                    <h2>{title}</h2>
+                    <h2>
+                        {title}
+                    </h2>
                     {message}
-                    {link}
+                    <Link to='/'>
+                        <FormattedMessage
+                            id='error.generic.link'
+                            defaultMessage='Back to Mattermost'
+                        />
+                    </Link>
                 </div>
             </div>
         );

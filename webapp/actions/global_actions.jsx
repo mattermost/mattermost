@@ -17,8 +17,7 @@ import {stopPeriodicStatusUpdates} from 'actions/status_actions.jsx';
 import * as WebsocketActions from 'actions/websocket_actions.jsx';
 import {trackEvent} from 'actions/diagnostics_actions.jsx';
 
-import Constants from 'utils/constants.jsx';
-const ActionTypes = Constants.ActionTypes;
+import {ActionTypes, Constants, ErrorPageTypes} from 'utils/constants.jsx';
 import EventTypes from 'utils/event_types.jsx';
 
 import WebSocketClient from 'client/web_websocket_client.jsx';
@@ -146,18 +145,7 @@ export function emitPostFocusEvent(postId, onSuccess) {
                     }
                 });
             } else {
-                let link = `${TeamStore.getCurrentTeamRelativeUrl()}/channels/`;
-                const channel = ChannelStore.getCurrent();
-                if (channel) {
-                    link += channel.name;
-                } else {
-                    link += 'town-square';
-                }
-
-                const message = encodeURIComponent(Utils.localizeMessage('permalink.error.access', 'Permalink belongs to a deleted message or to a channel to which you do not have access.'));
-                const title = encodeURIComponent(Utils.localizeMessage('permalink.error.title', 'Message Not Found'));
-
-                browserHistory.push('/error?message=' + message + '&title=' + title + '&link=' + encodeURIComponent(link));
+                browserHistory.push('/error?type=' + ErrorPageTypes.PERMALINK_NOT_FOUND);
             }
         }
     );

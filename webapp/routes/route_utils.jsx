@@ -14,9 +14,7 @@ export function createGetChildComponentsFunction(arrayOfComponents) {
 
 export const notFoundParams = {
     title: Utils.localizeMessage('error.not_found.title', 'Page not found'),
-    message: Utils.localizeMessage('error.not_found.message', 'The page you were trying to reach does not exist'),
-    link: '/',
-    linkmessage: Utils.localizeMessage('error.not_found.link_message', 'Back to Mattermost')
+    message: Utils.localizeMessage('error.not_found.message', 'The page you were trying to reach does not exist')
 };
 
 const mfaPaths = [

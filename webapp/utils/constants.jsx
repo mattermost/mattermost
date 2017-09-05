@@ -303,7 +303,9 @@ export const StatTypes = keyMirror({
 });
 
 export const ErrorPageTypes = {
-    LOCAL_STORAGE: 'local_storage'
+    LOCAL_STORAGE: 'local_storage',
+    PERMALINK_NOT_FOUND: 'permalink_not_found',
+    OAUTH_MISSING_CODE: 'oauth_missing_code'
 };
 
 export const JobTypes = {
