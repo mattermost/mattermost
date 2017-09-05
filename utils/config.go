@@ -710,15 +710,17 @@ func IsLeader() bool {
 	}
 }
 
-func ValidateAmazonS3Endpoint(cfg *model.Config) {
-	_, ok := awsS3EndpointMap[*cfg.FileSettings.AmazonS3Endpoint]
-	if !ok {
+func ValidateAmazonS3Endpoint(cfg *model.Config) bool {
+	_, valid := awsS3EndpointMap[*cfg.FileSettings.AmazonS3Endpoint]
+	if !valid {
 		*cfg.FileSettings.AmazonS3Endpoint = model.FILE_SETTINGS_DEFAULT_AMAZON_S3_ENDPOINT
 		l4g.Warn(T("utils.config.set_amazon_endpoint"), model.FILE_SETTINGS_DEFAULT_AMAZON_S3_ENDPOINT)
 	}
+
+	return valid
 }
 
-func ValidateAmazonS3Region(cfg *model.Config) {
+func ValidateAmazonS3Region(cfg *model.Config) bool {
 	valid := false
 	for _, region := range awsS3EndpointMap {
 		if region == *cfg.FileSettings.AmazonS3Region {
@@ -731,11 +733,13 @@ func ValidateAmazonS3Region(cfg *model.Config) {
 		*cfg.FileSettings.AmazonS3Region = model.FILE_SETTINGS_DEFAULT_AMAZON_S3_REGION
 		l4g.Warn(T("utils.config.set_amazon_region"), model.FILE_SETTINGS_DEFAULT_AMAZON_S3_REGION)
 	}
+
+	return valid
 }
 
-func ValidateAmazonS3Bucket(cfg *model.Config) *model.AppError {
+func ValidateAmazonS3Bucket(cfg *model.Config) (bool, *model.AppError) {
 	if *cfg.FileSettings.AmazonS3Bucket == "" {
-		return model.NewAppError("ValidateAmazonS3Bucket", "utils.config.bucket_empty.app_error", nil, "", http.StatusBadRequest)
+		return false, model.NewAppError("ValidateAmazonS3Bucket", "utils.config.bucket_empty.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	endpoint := *cfg.FileSettings.AmazonS3Endpoint
@@ -746,7 +750,7 @@ func ValidateAmazonS3Bucket(cfg *model.Config) *model.AppError {
 
 	s3Clnt, err := s3.New(endpoint, accessKey, secretKey, secure)
 	if err != nil {
-		return model.NewAppError("ValidateAmazonS3Bucket", "utils.config.bad_connection_to_s3_or_minio.app_error", nil, err.Error(), http.StatusBadRequest)
+		return false, model.NewAppError("ValidateAmazonS3Bucket", "utils.config.bad_connection_to_s3_or_minio.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
 
 	bucketLocation, err := s3Clnt.GetBucketLocation(bucket)
@@ -755,14 +759,14 @@ func ValidateAmazonS3Bucket(cfg *model.Config) *model.AppError {
 
 		exists, err := s3Clnt.BucketExists(bucket)
 		if err != nil {
-			return model.NewAppError("ValidateAmazonS3Bucket", "utils.config.error_checking_bucket_exist.app_error", nil, err.Error(), http.StatusBadRequest)
+			return false, model.NewAppError("ValidateAmazonS3Bucket", "utils.config.error_checking_bucket_exist.app_error", nil, err.Error(), http.StatusBadRequest)
 		}
 
 		if !exists {
 			err := s3Clnt.MakeBucket(bucket, bucketLocation)
 			if err != nil {
 				l4g.Error(T("utils.config.set_amazon_bucket_error"), bucket)
-				return model.NewAppError("ValidateAmazonS3Bucket", "utils.config.error_creating_bucket.app_error", nil, err.Error(), http.StatusBadRequest)
+				return false, model.NewAppError("ValidateAmazonS3Bucket", "utils.config.error_creating_bucket.app_error", nil, err.Error(), http.StatusBadRequest)
 			}
 			l4g.Warn(T("utils.config.set_amazon_bucket"), bucket)
 		}
@@ -779,5 +783,5 @@ func ValidateAmazonS3Bucket(cfg *model.Config) *model.AppError {
 		}
 	}
 
-	return nil
+	return true, nil
 }

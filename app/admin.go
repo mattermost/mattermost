@@ -157,7 +157,7 @@ func SaveConfig(cfg *model.Config, sendConfigChangeClusterMessage bool) *model.A
 	if *cfg.FileSettings.DriverName == model.IMAGE_DRIVER_S3 {
 		utils.ValidateAmazonS3Endpoint(cfg)
 		utils.ValidateAmazonS3Region(cfg)
-		if err := utils.ValidateAmazonS3Bucket(cfg); err != nil {
+		if _, err := utils.ValidateAmazonS3Bucket(cfg); err != nil {
 			return err
 		}
 	}
