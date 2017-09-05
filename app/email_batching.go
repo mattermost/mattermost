@@ -123,28 +123,35 @@ func (job *EmailBatchingJob) handleNewNotifications() {
 
 func (job *EmailBatchingJob) checkPendingNotifications(now time.Time, handler func(string, []*batchedNotification)) {
 	for userId, notifications := range job.pendingNotifications {
-
-		// if the user has viewed any of the channels that we've queued notifications for since the time at which the
-		// first notification was posted, delete all queued notifications so that the email is never sent
 		batchStartTime := notifications[0].post.CreateAt
-		inspectedChannelIds := make(map[string]bool)
+		inspectedTeamNames := make(map[string]string)
 		for _, notification := range notifications {
-			// because multiple messages may have been queued for the same channel, we take care to only check the last viewed at
-			// time of each channel exactly once
-			if inspectedChannelIds[notification.post.ChannelId] {
+			// at most, we'll do one check for each team that notifications were sent for
+			if inspectedTeamNames[notification.teamName] != "" {
 				continue
 			}
-			inspectedChannelIds[notification.post.ChannelId] = true
+			tchan := Srv.Store.Team().GetByName(notifications[0].teamName)
+			if result := <-tchan; result.Err != nil {
+				l4g.Error("Unable to find Team id for notification", result.Err)
+				continue
+			} else if team, ok := result.Data.(*model.Team); ok {
+				inspectedTeamNames[notification.teamName] = team.Id
+			}
 
-			cchan := Srv.Store.Channel().GetMember(notification.post.ChannelId, userId)
-			if result := <-cchan; result.Err != nil {
-				l4g.Error("Unable to find ChannelMember record", result.Err)
-				delete(job.pendingNotifications, userId)
-				break
-			} else if channelMember := result.Data.(*model.ChannelMember); channelMember.LastViewedAt >= batchStartTime {
-				l4g.Info("Deleted notifications for user %s", userId)
-				delete(job.pendingNotifications, userId)
-				break
+			// if the user has viewed any channels in this team since the notification was queued, delete
+			// all queued notifications
+			mchan := Srv.Store.Channel().GetMembersForUser(inspectedTeamNames[notification.teamName], userId)
+			if result := <-mchan; result.Err != nil {
+				l4g.Error("Unable to find ChannelMembers for user", result.Err)
+				continue
+			} else if channelMembers, ok := result.Data.(*model.ChannelMembers); ok {
+				for _, channelMember := range *channelMembers {
+					if channelMember.LastViewedAt >= batchStartTime {
+						l4g.Info("Deleted notifications for user %s", userId)
+						delete(job.pendingNotifications, userId)
+						break
+					}
+				}
 			}
 		}
 

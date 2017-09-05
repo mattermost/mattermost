@@ -103,6 +103,7 @@ func TestCheckPendingNotifications(t *testing.T) {
 				ChannelId: th.BasicChannel.Id,
 				CreateAt: 10000000,
 			},
+			teamName: th.BasicTeam.Name,
 		},
 	}
 
@@ -144,6 +145,7 @@ func TestCheckPendingNotifications(t *testing.T) {
 				CreateAt: 10060000,
 				Message:  "post1",
 			},
+			teamName: th.BasicTeam.Name,
 		},
 		{
 			post: &model.Post{
@@ -152,6 +154,7 @@ func TestCheckPendingNotifications(t *testing.T) {
 				CreateAt: 10090000,
 				Message:  "post2",
 			},
+			teamName: th.BasicTeam.Name,
 		},
 	}
 
@@ -212,6 +215,7 @@ func TestCheckPendingNotificationsDefaultInterval(t *testing.T) {
 				ChannelId: th.BasicChannel.Id,
 				CreateAt: 10000000,
 			},
+			teamName: th.BasicTeam.Name,
 		},
 	}
 
@@ -255,6 +259,7 @@ func TestCheckPendingNotificationsCantParseInterval(t *testing.T) {
 				ChannelId: th.BasicChannel.Id,
 				CreateAt: 10000000,
 			},
+			teamName: th.BasicTeam.Name,
 		},
 	}
 
