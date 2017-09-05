@@ -4,8 +4,8 @@ describe('PostUtils.containsAtMention', function() {
     test('should return correct @all (same for @channel)', function() {
         for (const data of [
             {
-                text: undefined,    //eslint-disable-line no-undefined
-                key: undefined,     //eslint-disable-line no-undefined
+                text: undefined, // eslint-disable-line no-undefined
+                key: undefined, // eslint-disable-line no-undefined
                 result: false
             },
             {
@@ -87,6 +87,56 @@ describe('PostUtils.containsAtMention', function() {
                 text: 'hey @ALL:+1:',
                 key: '@all',
                 result: true
+            },
+            {
+                text: '`@all`',
+                key: '@all',
+                result: false
+            },
+            {
+                text: '@someone `@all`',
+                key: '@all',
+                result: false
+            },
+            {
+                text: '@someone `@all`',
+                key: '@someone',
+                result: true
+            },
+            {
+                text: '``@all``',
+                key: '@all',
+                result: false
+            },
+            {
+                text: '```@all```',
+                key: '@all',
+                result: false
+            },
+            {
+                text: '```\n@all\n```',
+                key: '@all',
+                result: false
+            },
+            {
+                text: '```````\n@all\n```````',
+                key: '@all',
+                result: false
+            },
+            {
+                text: '```code\n@all\n```',
+                key: '@all',
+                result: false
+            },
+            {
+                text: '~~~@all~~~',
+                key: '@all',
+                result: true
+            },
+            {
+                text: '~~~\n@all\n~~~',
+                key: '@all',
+                result: false
             }
         ]) {
             const containsAtMention = PostUtils.containsAtMention(data.text, data.key);
