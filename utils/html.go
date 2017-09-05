@@ -120,14 +120,8 @@ func (t *HTMLTemplate) RenderToWriter(w http.ResponseWriter) error {
 	return nil
 }
 
-func TranslateAsHtml(t i18n.TranslateFunc, translationID string, args ...interface{}) template.HTML {
-	safeArgs := make([]interface{}, len(args))
-
-	for i, arg := range args {
-		safeArgs[i] = escapeForHtml(arg)
-	}
-
-	return template.HTML(t(translationID, safeArgs...))
+func TranslateAsHtml(t i18n.TranslateFunc, translationID string, args map[string]interface{}) template.HTML {
+	return template.HTML(t(translationID, escapeForHtml(args)))
 }
 
 func escapeForHtml(arg interface{}) interface{} {
@@ -142,6 +136,6 @@ func escapeForHtml(arg interface{}) interface{} {
 		return safeArg
 	default:
 		l4g.Warn("Unable to escape value for HTML template %v", arg)
-		return arg
+		return ""
 	}
 }
