@@ -290,6 +290,7 @@ func trackConfig() {
 		"amazon_s3_ssl":           *utils.Cfg.FileSettings.AmazonS3SSL,
 		"amazon_s3_sse":           *utils.Cfg.FileSettings.AmazonS3SSE,
 		"amazon_s3_signv2":        *utils.Cfg.FileSettings.AmazonS3SignV2,
+		"amazon_s3_trace":         *utils.Cfg.FileSettings.AmazonS3Trace,
 		"max_file_size":           *utils.Cfg.FileSettings.MaxFileSize,
 		"enable_file_attachments": *utils.Cfg.FileSettings.EnableFileAttachments,
 		"enable_mobile_upload":    *utils.Cfg.FileSettings.EnableMobileUpload,

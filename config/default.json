@@ -131,7 +131,8 @@
         "AmazonS3Endpoint": "s3.amazonaws.com",
         "AmazonS3SSL": true,
         "AmazonS3SignV2": false,
-        "AmazonS3SSE": false
+        "AmazonS3SSE": false,
+        "AmazonS3Trace": false
     },
     "EmailSettings": {
         "EnableSignUpWithEmail": true,
