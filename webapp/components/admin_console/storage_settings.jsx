@@ -284,7 +284,7 @@ export default class StorageSettings extends AdminSettings {
                     label={
                         <FormattedMessage
                             id='admin.image.amazonS3TraceTitle'
-                            defaultMessage='Enable Amazon S3 Debugging::'
+                            defaultMessage='Enable Amazon S3 Debugging:'
                         />
                     }
                     helpText={
