@@ -399,6 +399,12 @@ func TestRemoveCodeFromMessage(t *testing.T) {
 	if actual := removeCodeFromMessage(input); actual != expected {
 		t.Fatalf("received incorrect output\n\nGot:\n%v\n\nExpected:\n%v\n", actual, expected)
 	}
+
+	input = "this is text with\n~~~\na code block\n~~~\nin it"
+	expected = "this is text with\n\nin it"
+	if actual := removeCodeFromMessage(input); actual != expected {
+		t.Fatalf("received incorrect output\n\nGot:\n%v\n\nExpected:\n%v\n", actual, expected)
+	}
 }
 
 func TestGetMentionKeywords(t *testing.T) {
