@@ -436,11 +436,11 @@ func getNotificationEmailBody(recipient *model.User, post *model.Post, channel *
 	t := getFormattedPostTime(post, translateFunc)
 
 	var bodyText string
-	var info string
+	var info template.HTML
 	if channel.Type == model.CHANNEL_DIRECT {
 		if emailNotificationContentsType == model.EMAIL_NOTIFICATION_CONTENTS_FULL {
 			bodyText = translateFunc("app.notification.body.intro.direct.full")
-			info = translateFunc("app.notification.body.text.direct.full",
+			info = utils.TranslateAsHtml(translateFunc, "app.notification.body.text.direct.full",
 				map[string]interface{}{
 					"SenderName": senderName,
 					"Hour":       t.Hour,
@@ -453,7 +453,7 @@ func getNotificationEmailBody(recipient *model.User, post *model.Post, channel *
 			bodyText = translateFunc("app.notification.body.intro.direct.generic", map[string]interface{}{
 				"SenderName": senderName,
 			})
-			info = translateFunc("app.notification.body.text.direct.generic",
+			info = utils.TranslateAsHtml(translateFunc, "app.notification.body.text.direct.generic",
 				map[string]interface{}{
 					"Hour":     t.Hour,
 					"Minute":   t.Minute,
@@ -465,7 +465,7 @@ func getNotificationEmailBody(recipient *model.User, post *model.Post, channel *
 	} else {
 		if emailNotificationContentsType == model.EMAIL_NOTIFICATION_CONTENTS_FULL {
 			bodyText = translateFunc("app.notification.body.intro.notification.full")
-			info = translateFunc("app.notification.body.text.notification.full",
+			info = utils.TranslateAsHtml(translateFunc, "app.notification.body.text.notification.full",
 				map[string]interface{}{
 					"ChannelName": channelName,
 					"SenderName":  senderName,
@@ -479,7 +479,7 @@ func getNotificationEmailBody(recipient *model.User, post *model.Post, channel *
 			bodyText = translateFunc("app.notification.body.intro.notification.generic", map[string]interface{}{
 				"SenderName": senderName,
 			})
-			info = translateFunc("app.notification.body.text.notification.generic",
+			info = utils.TranslateAsHtml(translateFunc, "app.notification.body.text.notification.generic",
 				map[string]interface{}{
 					"Hour":     t.Hour,
 					"Minute":   t.Minute,
@@ -491,7 +491,7 @@ func getNotificationEmailBody(recipient *model.User, post *model.Post, channel *
 	}
 
 	bodyPage.Props["BodyText"] = bodyText
-	bodyPage.Html["Info"] = template.HTML(info)
+	bodyPage.Html["Info"] = info
 	bodyPage.Props["Button"] = translateFunc("api.templates.post_body.button")
 
 	return bodyPage.Render()
