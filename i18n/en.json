@@ -972,10 +972,6 @@
     "translation": "Email batching job ran. %v user(s) still have notifications pending."
   },
   {
-    "id": "api.email_batching.check_pending_emails.status.app_error",
-    "translation": "Unable to find status of recipient for batched email notification"
-  },
-  {
     "id": "api.email_batching.render_batched_post.channel.app_error",
     "translation": "Unable to find channel of post for batched email notification"
   },
