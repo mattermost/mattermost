@@ -6540,12 +6540,12 @@
     "translation": "Bad connection to S3 or Minio cloud storage. Please try again."
   },
   {
-    "id": "utils.config.set_amazon_bucket",
-    "translation": "Set Amazon S3 Bucket to '%v'."
+    "id": "utils.config.create_amazon_bucket",
+    "translation": "Create Amazon S3 Bucket: '%v'."
   },
   {
-    "id": "utils.config.set_amazon_bucket_error",
-    "translation": "Error in setting Amazon S3 Bucket to '%v'."
+    "id": "utils.config.create_amazon_bucket_error",
+    "translation": "Error in creating Amazon S3 Bucket: '%v'."
   },
   {
     "id": "utils.config.set_amazon_endpoint",

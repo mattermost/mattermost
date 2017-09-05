@@ -155,10 +155,30 @@ func SaveConfig(cfg *model.Config, sendConfigChangeClusterMessage bool) *model.A
 	}
 
 	if *cfg.FileSettings.DriverName == model.IMAGE_DRIVER_S3 {
-		utils.ValidateAmazonS3Endpoint(cfg)
-		utils.ValidateAmazonS3Region(cfg)
-		if _, err := utils.ValidateAmazonS3Bucket(cfg); err != nil {
+		if !utils.ValidateAmazonS3Endpoint(*cfg.FileSettings.AmazonS3Endpoint) {
+			*cfg.FileSettings.AmazonS3Endpoint = model.FILE_SETTINGS_DEFAULT_AMAZON_S3_ENDPOINT
+			l4g.Warn(utils.T("utils.config.set_amazon_endpoint"), model.FILE_SETTINGS_DEFAULT_AMAZON_S3_ENDPOINT)
+		}
+
+		if !utils.ValidateAmazonS3Region(*cfg.FileSettings.AmazonS3Region) {
+			*cfg.FileSettings.AmazonS3Region = model.FILE_SETTINGS_DEFAULT_AMAZON_S3_REGION
+			l4g.Warn(utils.T("utils.config.set_amazon_region"), model.FILE_SETTINGS_DEFAULT_AMAZON_S3_REGION)
+		}
+
+		_, bucketLocation, err := utils.ValidateAmazonS3Bucket(cfg)
+		if err != nil {
 			return err
+		}
+
+		for endpoint, region := range utils.AWS_S3_ENDPOINT_MAP {
+			if bucketLocation == *cfg.FileSettings.AmazonS3Region {
+				*cfg.FileSettings.AmazonS3Endpoint = endpoint
+				l4g.Warn(utils.T("utils.config.set_amazon_endpoint"), endpoint)
+
+				*cfg.FileSettings.AmazonS3Region = region
+				l4g.Warn(utils.T("utils.config.set_amazon_region"), region)
+				break
+			}
 		}
 	}
 
