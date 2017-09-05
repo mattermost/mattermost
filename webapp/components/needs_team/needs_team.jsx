@@ -234,7 +234,7 @@ export default class NeedsTeam extends React.Component {
                     <RemovedFromChannelModal/>
                     <ResetStatusModal/>
                     <LeavePrivateChannelModal/>
-                    <ShortcutsModal/>
+                    <ShortcutsModal isMac={Utils.isMac()}/>
                 </div>
             </div>
         );
