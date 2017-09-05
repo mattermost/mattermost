@@ -60,6 +60,7 @@ export default class AdminSidebar extends React.Component {
         let metricsSettings = null;
         let complianceSettings = null;
         let mfaSettings = null;
+        let pluginSettings = null;
 
         let license = null;
         let audits = null;
@@ -271,6 +272,20 @@ export default class AdminSidebar extends React.Component {
                         <FormattedMessage
                             id='admin.sidebar.elasticsearch'
                             defaultMessage='Elasticsearch (Beta)'
+                        />
+                    }
+                />
+            );
+        }
+
+        if (window.mm_config.PluginsEnabled === 'true' && window.mm_license.IsLicensed === 'true') {
+            pluginSettings = (
+                <AdminSidebarSection
+                    name='plugins'
+                    title={
+                        <FormattedMessage
+                            id='admin.sidebar.plugins'
+                            defaultMessage='Plugins (experimental)'
                         />
                     }
                 />
@@ -562,6 +577,7 @@ export default class AdminSidebar extends React.Component {
                                         />
                                     }
                                 />
+                                {pluginSettings}
                             </AdminSidebarSection>
                             <AdminSidebarSection
                                 name='files'
