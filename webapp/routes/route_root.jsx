@@ -120,7 +120,7 @@ export default {
             {
                 path: 'error',
                 getComponents: (location, callback) => {
-                    System.import('components/error_page.jsx').then(RouteUtils.importComponentSuccess(callback));
+                    System.import('components/error_page').then(RouteUtils.importComponentSuccess(callback));
                 }
             },
             {
