@@ -1401,3 +1401,41 @@ export function removePrefixFromLocalStorage(prefix) {
         localStorage.removeItem(keys[i]);
     }
 }
+
+export function getEmailInterval(isEmailEnabled) {
+    const {
+        INTERVAL_NEVER,
+        INTERVAL_IMMEDIATE,
+        INTERVAL_FIFTEEN_MINUTES,
+        INTERVAL_HOUR,
+        CATEGORY_NOTIFICATIONS,
+        EMAIL_INTERVAL
+    } = Constants.Preferences;
+
+    if (!isEmailEnabled) {
+        return INTERVAL_NEVER;
+    }
+
+    const validValuesWithEmailBatching = [INTERVAL_IMMEDIATE, INTERVAL_FIFTEEN_MINUTES, INTERVAL_HOUR];
+    const validValuesWithoutEmailBatching = [INTERVAL_IMMEDIATE];
+
+    let emailInterval;
+
+    if (global.mm_config.EnableEmailBatching === 'true') {
+        // when email batching is enabled, the default interval is 15 minutes
+        emailInterval = PreferenceStore.getInt(CATEGORY_NOTIFICATIONS, EMAIL_INTERVAL, INTERVAL_FIFTEEN_MINUTES);
+
+        if (validValuesWithEmailBatching.indexOf(emailInterval) === -1) {
+            emailInterval = INTERVAL_FIFTEEN_MINUTES;
+        }
+    } else {
+        // otherwise, the default interval is immediately
+        emailInterval = PreferenceStore.getInt(CATEGORY_NOTIFICATIONS, EMAIL_INTERVAL, INTERVAL_IMMEDIATE);
+
+        if (validValuesWithoutEmailBatching.indexOf(emailInterval) === -1) {
+            emailInterval = INTERVAL_IMMEDIATE;
+        }
+    }
+
+    return emailInterval;
+}

@@ -5,7 +5,6 @@ import React from 'react';
 import PropTypes from 'prop-types';
 
 import {savePreference} from 'actions/user_actions.jsx';
-import PreferenceStore from 'stores/preference_store.jsx';
 import {localizeMessage} from 'utils/utils.jsx';
 
 import {FormattedMessage} from 'react-intl';
@@ -19,41 +18,55 @@ export default class EmailNotificationSetting extends React.Component {
         activeSection: PropTypes.string.isRequired,
         updateSection: PropTypes.func.isRequired,
         enableEmail: PropTypes.bool.isRequired,
-        onChange: PropTypes.func.isRequired,
+        emailInterval: PropTypes.number.isRequired,
         onSubmit: PropTypes.func.isRequired,
+        onCancel: PropTypes.func.isRequired,
         serverError: PropTypes.string
     };
 
     constructor(props) {
         super(props);
 
-        this.submit = this.submit.bind(this);
-        this.expand = this.expand.bind(this);
-        this.collapse = this.collapse.bind(this);
-
         this.state = {
-            emailInterval: EmailNotificationSetting.getEmailInterval(props)
+            enableEmail: props.enableEmail,
+            emailInterval: props.emailInterval
         };
     }
 
-    handleChange(enableEmail, emailInterval) {
-        this.props.onChange(enableEmail);
-        this.setState({emailInterval});
+    componentWillReceiveProps(nextProps) {
+        if (nextProps.enableEmail !== this.props.enableEmail || nextProps.emailInterval !== this.props.emailInterval) {
+            this.setState({
+                enableEmail: nextProps.enableEmail,
+                emailInterval: nextProps.emailInterval
+            });
+        }
     }
 
-    submit() {
+    handleChange = (enableEmail, emailInterval) => {
+        this.setState({
+            enableEmail,
+            emailInterval
+        });
+    }
+
+    handleSubmit = () => {
         // until the rest of the notification settings are moved to preferences, we have to do this separately
         savePreference(Preferences.CATEGORY_NOTIFICATIONS, Preferences.EMAIL_INTERVAL, this.state.emailInterval.toString());
 
-        this.props.onSubmit();
+        const {enableEmail} = this.state;
+        this.props.onSubmit({enableEmail});
     }
 
-    expand() {
+    handleExpand = () => {
         this.props.updateSection('email');
     }
 
-    collapse() {
-        this.props.updateSection('');
+    handleCancel = (e) => {
+        this.setState({
+            enableEmail: this.props.enableEmail,
+            emailInterval: this.props.emailInterval
+        });
+        this.props.onCancel(e);
     }
 
     render() {
@@ -77,7 +90,7 @@ export default class EmailNotificationSetting extends React.Component {
                     title={localizeMessage('user.settings.notifications.emailNotifications', 'Email notifications')}
                     inputs={inputs}
                     server_error={this.state.serverError}
-                    updateSection={this.collapse}
+                    updateSection={this.handleCancel}
                 />
             );
         }
@@ -132,14 +145,14 @@ export default class EmailNotificationSetting extends React.Component {
                 <SettingItemMin
                     title={localizeMessage('user.settings.notifications.emailNotifications', 'Email notifications')}
                     describe={description}
-                    updateSection={this.expand}
+                    updateSection={this.handleExpand}
                 />
             );
         }
 
         let batchingOptions = null;
         let batchingInfo = null;
-        if (window.mm_config.EnableEmailBatching === 'true') {
+        if (global.window.mm_config.EnableEmailBatching === 'true') {
             batchingOptions = (
                 <div>
                     <div className='radio'>
@@ -149,7 +162,7 @@ export default class EmailNotificationSetting extends React.Component {
                                 type='radio'
                                 name='emailNotifications'
                                 checked={this.state.emailInterval === Preferences.INTERVAL_FIFTEEN_MINUTES}
-                                onChange={this.handleChange.bind(this, 'true', Preferences.INTERVAL_FIFTEEN_MINUTES)}
+                                onChange={() => this.handleChange('true', Preferences.INTERVAL_FIFTEEN_MINUTES)}
                             />
                             <FormattedMessage
                                 id='user.settings.notifications.email.everyXMinutes'
@@ -165,7 +178,7 @@ export default class EmailNotificationSetting extends React.Component {
                                 type='radio'
                                 name='emailNotifications'
                                 checked={this.state.emailInterval === Preferences.INTERVAL_HOUR}
-                                onChange={this.handleChange.bind(this, 'true', Preferences.INTERVAL_HOUR)}
+                                onChange={() => this.handleChange('true', Preferences.INTERVAL_HOUR)}
                             />
                             <FormattedMessage
                                 id='user.settings.notifications.email.everyHour'
@@ -202,7 +215,7 @@ export default class EmailNotificationSetting extends React.Component {
                                     type='radio'
                                     name='emailNotifications'
                                     checked={this.state.emailInterval === Preferences.INTERVAL_IMMEDIATE}
-                                    onChange={this.handleChange.bind(this, 'true', Preferences.INTERVAL_IMMEDIATE)}
+                                    onChange={() => this.handleChange('true', Preferences.INTERVAL_IMMEDIATE)}
                                 />
                                 <FormattedMessage
                                     id='user.settings.notifications.email.immediately'
@@ -218,7 +231,7 @@ export default class EmailNotificationSetting extends React.Component {
                                     type='radio'
                                     name='emailNotifications'
                                     checked={this.state.emailInterval === Preferences.INTERVAL_NEVER}
-                                    onChange={this.handleChange.bind(this, 'false', Preferences.INTERVAL_NEVER)}
+                                    onChange={() => this.handleChange('false', Preferences.INTERVAL_NEVER)}
                                 />
                                 <FormattedMessage
                                     id='user.settings.notifications.email.never'
@@ -240,39 +253,10 @@ export default class EmailNotificationSetting extends React.Component {
                         </div>
                     </div>
                 ]}
-                submit={this.submit}
+                submit={this.handleSubmit}
                 server_error={this.props.serverError}
-                updateSection={this.collapse}
+                updateSection={this.handleCancel}
             />
         );
-    }
-
-    static getEmailInterval(props) {
-        const validValuesWithEmailBatching = [Preferences.INTERVAL_IMMEDIATE, Preferences.INTERVAL_FIFTEEN_MINUTES, Preferences.INTERVAL_HOUR];
-        const validValuesWithoutEmailBatching = [Preferences.INTERVAL_IMMEDIATE];
-
-        let emailInterval;
-
-        if (global.mm_config.EnableEmailBatching === 'true') {
-            // when email batching is enabled, the default interval is 15 minutes
-            emailInterval = PreferenceStore.getInt(Preferences.CATEGORY_NOTIFICATIONS, Preferences.EMAIL_INTERVAL, Preferences.INTERVAL_FIFTEEN_MINUTES);
-
-            if (validValuesWithEmailBatching.indexOf(emailInterval) === -1) {
-                emailInterval = Preferences.INTERVAL_FIFTEEN_MINUTES;
-            }
-        } else {
-            // otherwise, the default interval is immediately
-            emailInterval = PreferenceStore.getInt(Preferences.CATEGORY_NOTIFICATIONS, Preferences.EMAIL_INTERVAL, Preferences.INTERVAL_IMMEDIATE);
-
-            if (validValuesWithoutEmailBatching.indexOf(emailInterval) === -1) {
-                emailInterval = Preferences.INTERVAL_IMMEDIATE;
-            }
-        }
-
-        if (!props.enableEmail) {
-            emailInterval = Preferences.INTERVAL_NEVER;
-        }
-
-        return emailInterval;
     }
 }
