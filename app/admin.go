@@ -11,13 +11,14 @@ import (
 
 	"runtime/debug"
 
+	"net/http"
+
 	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/platform/einterfaces"
 	"github.com/mattermost/platform/jobs"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/store"
 	"github.com/mattermost/platform/utils"
-	"net/http"
 )
 
 func GetLogs(page, perPage int) ([]string, *model.AppError) {
@@ -151,6 +152,14 @@ func SaveConfig(cfg *model.Config, sendConfigChangeClusterMessage bool) *model.A
 
 	if err := utils.ValidateLdapFilter(cfg); err != nil {
 		return err
+	}
+
+	if *cfg.FileSettings.DriverName == model.IMAGE_DRIVER_S3 {
+		utils.ValidateAmazonS3Endpoint(cfg)
+		utils.ValidateAmazonS3Region(cfg)
+		if err := utils.ValidateAmazonS3Bucket(cfg); err != nil {
+			return err
+		}
 	}
 
 	if *utils.Cfg.ClusterSettings.Enable && *utils.Cfg.ClusterSettings.ReadOnlyConfig {
