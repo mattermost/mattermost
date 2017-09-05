@@ -39,6 +39,13 @@ export default class ErrorPage extends React.Component {
                     defaultMessage='Message Not Found'
                 />
             );
+        case ErrorPageTypes.PAGE_NOT_FOUND:
+            return (
+                <FormattedMessage
+                    id='error.not_found.title'
+                    defaultMessage='Message Not Found'
+                />
+            );
         }
 
         if (this.props.location.query.title) {
@@ -181,6 +188,15 @@ export default class ErrorPage extends React.Component {
                         />
                     </p>
                 </div>
+            );
+        case ErrorPageTypes.PAGE_NOT_FOUND:
+            return (
+                <p>
+                    <FormattedMessage
+                        id='error.not_found.message'
+                        defaultMessage='The page you were trying to reach does not exist'
+                    />
+                </p>
             );
         }
 
