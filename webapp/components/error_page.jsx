@@ -112,18 +112,7 @@ export default class ErrorPage extends React.Component {
                             id='error.oauth_missing_code.google'
                             defaultMessage='For {link} make sure your administrator enabled the Google+ API.'
                             values={{
-                                link: (
-                                    <a
-                                        href='https://docs.mattermost.com/deployment/sso-google.html'
-                                        rel='noopener noreferrer'
-                                        target='_blank'
-                                    >
-                                        <FormattedMessage
-                                            id='error.oauth_missing_code.google.link'
-                                            defaultMessage='Google Apps'
-                                        />
-                                    </a>
-                                )
+                                link: this.renderLink('https://docs.mattermost.com/deployment/sso-google.html', 'error.oauth_missing_code.google.link', 'Google Apps')
                             }}
                         />
                     </p>
@@ -132,18 +121,7 @@ export default class ErrorPage extends React.Component {
                             id='error.oauth_missing_code.office365'
                             defaultMessage='For {link} make sure the administrator of your Microsoft organization has enabled the Mattermost app.'
                             values={{
-                                link: (
-                                    <a
-                                        href='https://docs.mattermost.com/deployment/sso-office.html'
-                                        rel='noopener noreferrer'
-                                        target='_blank'
-                                    >
-                                        <FormattedMessage
-                                            id='error.oauth_missing_code.office365.link'
-                                            defaultMessage='Office 365'
-                                        />
-                                    </a>
-                                )
+                                link: this.renderLink('https://docs.mattermost.com/deployment/sso-office.html', 'error.oauth_missing_code.office365.link', 'Office 365')
                             }}
                         />
                     </p>
@@ -152,18 +130,7 @@ export default class ErrorPage extends React.Component {
                             id='error.oauth_missing_code.gitlab'
                             defaultMessage='For {link} please make sure you followed the setup instructions.'
                             values={{
-                                link: (
-                                    <a
-                                        href='https://docs.mattermost.com/deployment/sso-gitlab.html'
-                                        rel='noopener noreferrer'
-                                        target='_blank'
-                                    >
-                                        <FormattedMessage
-                                            id='error.oauth_missing_code.gitlab.link'
-                                            defaultMessage='GitLab'
-                                        />
-                                    </a>
-                                )
+                                link: this.renderLink('https://docs.mattermost.com/deployment/sso-gitlab.html', 'error.oauth_missing_code.gitlab.link', 'GitLab')
                             }}
                         />
                     </p>
@@ -172,18 +139,7 @@ export default class ErrorPage extends React.Component {
                             id='error.oauth_missing_code.forum'
                             defaultMessage="If you reviewed the above and are still having trouble with configuration, you may post in our {link} where we'll be happy to help with issues during setup."
                             values={{
-                                link: (
-                                    <a
-                                        href='https://forum.mattermost.org/c/trouble-shoot'
-                                        rel='noopener noreferrer'
-                                        target='_blank'
-                                    >
-                                        <FormattedMessage
-                                            id='error.oauth_missing_code.forum.link'
-                                            defaultMessage='Troubleshooting forum'
-                                        />
-                                    </a>
-                                )
+                                link: this.renderLink('https://forum.mattermost.org/c/trouble-shoot', 'error.oauth_missing_code.forum.link', 'Troubleshooting forum')
                             }}
                         />
                     </p>
@@ -211,6 +167,21 @@ export default class ErrorPage extends React.Component {
                     defaultMessage='An error has occurred.'
                 />
             </p>
+        );
+    }
+
+    renderLink = (url, id, defaultMessage) => {
+        return (
+            <a
+                href={url}
+                rel='noopener noreferrer'
+                target='_blank'
+            >
+                <FormattedMessage
+                    id={id}
+                    defaultMessage={defaultMessage}
+                />
+            </a>
         );
     }
 
