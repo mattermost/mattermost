@@ -37,6 +37,11 @@ type Session struct {
 	TeamMembers    []*TeamMember `json:"team_members" db:"-"`
 }
 
+func (me *Session) DeepCopy() *Session {
+	copy := *me
+	return &copy
+}
+
 func (me *Session) ToJson() string {
 	b, err := json.Marshal(me)
 	if err != nil {
