@@ -2,14 +2,7 @@
 // See License.txt for license information.
 
 import BackstageList from 'components/backstage/components/backstage_list.jsx';
-import InstalledIncomingWebhook from './installed_incoming_webhook.jsx';
-
-import ChannelStore from 'stores/channel_store.jsx';
-import IntegrationStore from 'stores/integration_store.jsx';
-import TeamStore from 'stores/team_store.jsx';
-import UserStore from 'stores/user_store.jsx';
-
-import {loadIncomingHooksForTeam, deleteIncomingHook} from 'actions/integration_actions.jsx';
+import InstalledIncomingWebhook from 'components/integrations/components/installed_incoming_webhook.jsx';
 
 import * as Utils from 'utils/utils.jsx';
 
@@ -18,67 +11,79 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-export default class InstalledIncomingWebhooks extends React.Component {
-    static get propTypes() {
-        return {
-            team: PropTypes.object,
-            user: PropTypes.object,
-            isAdmin: PropTypes.bool
-        };
+export default class InstalledIncomingWebhooks extends React.PureComponent {
+    static propTypes = {
+
+        /**
+        *  Data used in passing down as props for webhook modifications
+        */
+        team: PropTypes.object,
+
+        /**
+        * Data used for checking if webhook is created by current user
+        */
+        user: PropTypes.object,
+
+        /**
+        *  Data used for checking modification privileges
+        */
+        isAdmin: PropTypes.bool,
+
+        /**
+        * Data used in passing down as props for showing webhook details
+        */
+        incomingWebhooks: PropTypes.object,
+
+        /**
+        * Data used in sorting for displaying list and as props channel details
+        */
+        channels: PropTypes.object,
+
+        /**
+        *  Data used in passing down as props for webhook -created by label
+        */
+        users: PropTypes.object,
+
+        actions: PropTypes.shape({
+
+            /**
+            * The function to call for removing incomingWebhook
+            */
+            removeIncomingHook: PropTypes.func,
+
+            /**
+            * The function to call for incomingWebhook List and for the status of api
+            */
+            getIncomingHooks: PropTypes.func
+        })
     }
 
     constructor(props) {
         super(props);
 
-        this.handleIntegrationChange = this.handleIntegrationChange.bind(this);
-        this.handleUserChange = this.handleUserChange.bind(this);
         this.deleteIncomingWebhook = this.deleteIncomingWebhook.bind(this);
-
-        const teamId = TeamStore.getCurrentId();
-
+        this.incomingWebhookCompare = this.incomingWebhookCompare.bind(this);
         this.state = {
-            incomingWebhooks: IntegrationStore.getIncomingWebhooks(teamId),
-            loading: !IntegrationStore.hasReceivedIncomingWebhooks(teamId),
-            users: UserStore.getProfiles()
+            loading: true
         };
     }
 
     componentDidMount() {
-        IntegrationStore.addChangeListener(this.handleIntegrationChange);
-        UserStore.addChangeListener(this.handleUserChange);
-
         if (window.mm_config.EnableIncomingWebhooks === 'true') {
-            loadIncomingHooksForTeam(TeamStore.getCurrentId(), () => this.setState({loading: false}));
+            this.props.actions.getIncomingHooks().then(
+              () => this.setState({loading: false})
+            );
         }
     }
 
-    componentWillUnmount() {
-        IntegrationStore.removeChangeListener(this.handleIntegrationChange);
-        UserStore.removeChangeListener(this.handleUserChange);
-    }
-
-    handleIntegrationChange() {
-        const teamId = TeamStore.getCurrentId();
-
-        this.setState({
-            incomingWebhooks: IntegrationStore.getIncomingWebhooks(teamId)
-        });
-    }
-
-    handleUserChange() {
-        this.setState({
-            users: UserStore.getProfiles()
-        });
-    }
-
-    deleteIncomingWebhook(incomingWebhook) {
-        deleteIncomingHook(incomingWebhook.id);
+    deleteIncomingWebhook = (incomingWebhook) => {
+        this.props.actions.removeIncomingHook(incomingWebhook.id);
     }
 
     incomingWebhookCompare(a, b) {
         let displayNameA = a.display_name;
         if (!displayNameA) {
-            const channelA = ChannelStore.get(a.channel_id);
+            const channelA = this.props.channels[a.channel_id];
             if (channelA) {
                 displayNameA = channelA.display_name;
             } else {
@@ -88,7 +93,7 @@ export default class InstalledIncomingWebhooks extends React.Component {
 
         let displayNameB = b.display_name;
         if (!displayNameB) {
-            const channelB = ChannelStore.get(b.channel_id);
+            const channelB = this.props.channels[b.channel_id];
             if (channelB) {
                 displayNameB = channelB.display_name;
             } else {
@@ -100,15 +105,16 @@ export default class InstalledIncomingWebhooks extends React.Component {
     }
 
     render() {
-        const incomingWebhooks = this.state.incomingWebhooks.sort(this.incomingWebhookCompare).map((incomingWebhook) => {
+        const incomingWebhooksArray = Object.keys(this.props.incomingWebhooks).map((key) => this.props.incomingWebhooks[key]);
+        const incomingWebhooks = incomingWebhooksArray.sort(this.incomingWebhookCompare).map((incomingWebhook) => {
             const canChange = this.props.isAdmin || this.props.user.id === incomingWebhook.user_id;
-            const channel = ChannelStore.get(incomingWebhook.channel_id);
+            const channel = this.props.channels[incomingWebhook.channel_id];
             return (
                 <InstalledIncomingWebhook
                     key={incomingWebhook.id}
                     incomingWebhook={incomingWebhook}
                     onDelete={this.deleteIncomingWebhook}
-                    creator={this.state.users[incomingWebhook.user_id] || {}}
+                    creator={this.props.users[incomingWebhook.user_id] || {}}
                     canChange={canChange}
                     team={this.props.team}
                     channel={channel}

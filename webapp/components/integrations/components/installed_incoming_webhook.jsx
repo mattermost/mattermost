@@ -47,7 +47,7 @@ export default class InstalledIncomingWebhook extends React.PureComponent {
         /**
         *  Data used for filtering of webhook based on filter prop
         */
-        channel: PropTypes.object.isRequired
+        channel: PropTypes.object
     }
 
     constructor(props) {
