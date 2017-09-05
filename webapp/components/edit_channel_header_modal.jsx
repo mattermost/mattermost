@@ -168,8 +168,8 @@ class EditChannelHeaderModal extends React.Component {
                         {headerTitle}
                     </Modal.Title>
                 </Modal.Header>
-                <Modal.Body>
-                    <div className='edit-modal-body'>
+                <Modal.Body bsClass='modal-body edit-modal-body'>
+                    <div>
                         <p>
                             <FormattedMessage
                                 id='edit_channel_header_modal.description'
