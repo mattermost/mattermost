@@ -2,18 +2,24 @@
 // See License.txt for license information.
 
 import Constants from 'utils/constants.jsx';
-import * as Utils from 'utils/utils.jsx';
 
 import ModalStore from 'stores/modal_store.jsx';
 
 import {intlShape, injectIntl, defineMessages} from 'react-intl';
 import {Modal} from 'react-bootstrap';
 import React from 'react';
+import PropTypes from 'prop-types';
 
 const allShortcuts = defineMessages({
     mainHeader: {
-        id: 'shortcuts.header',
-        defaultMessage: 'Keyboard Shortcuts'
+        default: {
+            id: 'shortcuts.header',
+            defaultMessage: 'Keyboard Shortcuts\tCtrl|/'
+        },
+        mac: {
+            id: 'shortcuts.header.mac',
+            defaultMessage: 'Keyboard Shortcuts\t⌘|/'
+        }
     },
     navHeader: {
         id: 'shortcuts.nav.header',
@@ -102,10 +108,6 @@ const allShortcuts = defineMessages({
     msgHeader: {
         id: 'shortcuts.msgs.header',
         defaultMessage: 'Messages'
-    },
-    msgMarkAsRead: {
-        id: 'shortcuts.msgs.mark_as_read',
-        defaultMessage: 'Mark current channel as read:\tEsc'
     },
     msgInputHeader: {
         id: 'shortcuts.msgs.input.header',
@@ -237,7 +239,8 @@ const allShortcuts = defineMessages({
 
 class ShortcutsModal extends React.PureComponent {
     static propTypes = {
-        intl: intlShape.isRequired
+        intl: intlShape.isRequired,
+        isMac: PropTypes.bool.isRequired
     }
 
     constructor(props) {
@@ -266,7 +269,8 @@ class ShortcutsModal extends React.PureComponent {
         this.setState({show: false});
     }
 
-    getShortcuts(isMac) {
+    getShortcuts() {
+        const {isMac} = this.props;
         const shortcuts = {};
         Object.keys(allShortcuts).forEach((s) => {
             if (isMac && allShortcuts[s].mac) {
@@ -282,8 +286,7 @@ class ShortcutsModal extends React.PureComponent {
     }
 
     render() {
-        const shortcuts = this.getShortcuts(Utils.isMac());
-
+        const shortcuts = this.getShortcuts();
         const {formatMessage} = this.props.intl;
 
         return (
@@ -296,7 +299,7 @@ class ShortcutsModal extends React.PureComponent {
                 <div className='shortcuts-content'>
                     <Modal.Header closeButton={true}>
                         <Modal.Title>
-                            <strong>{formatMessage(shortcuts.mainHeader)}</strong>
+                            <strong>{renderShortcut(formatMessage(shortcuts.mainHeader))}</strong>
                         </Modal.Title>
                     </Modal.Header>
                     <Modal.Body ref='modalBody'>
@@ -320,7 +323,6 @@ class ShortcutsModal extends React.PureComponent {
                                 <div className='section'>
                                     <div>
                                         <h4 className='section-title'><strong>{formatMessage(shortcuts.msgHeader)}</strong></h4>
-                                        {renderShortcut(formatMessage(shortcuts.msgMarkAsRead))}
                                         <span><strong>{formatMessage(shortcuts.msgInputHeader)}</strong></span>
                                         <div className='subsection'>
                                             {renderShortcut(formatMessage(shortcuts.msgEdit))}
