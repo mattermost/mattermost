@@ -51,6 +51,7 @@ type Features struct {
 	PasswordRequirements      *bool `json:"password_requirements"`
 	Elasticsearch             *bool `json:"elastic_search"`
 	Announcement              *bool `json:"announcement"`
+	ThemeManagement           *bool `json:"theme_management"`
 	EmailNotificationContents *bool `json:"email_notification_contents"`
 
 	// after we enabled more features for webrtc we'll need to control them with this
@@ -150,6 +151,11 @@ func (f *Features) SetDefaults() {
 	if f.Announcement == nil {
 		f.Announcement = new(bool)
 		*f.Announcement = true
+	}
+
+	if f.ThemeManagement == nil {
+		f.ThemeManagement = new(bool)
+		*f.ThemeManagement = true
 	}
 
 	if f.EmailNotificationContents == nil {

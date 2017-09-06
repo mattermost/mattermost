@@ -132,6 +132,8 @@ const (
 	ANNOUNCEMENT_SETTINGS_DEFAULT_BANNER_COLOR      = "#f2a93b"
 	ANNOUNCEMENT_SETTINGS_DEFAULT_BANNER_TEXT_COLOR = "#333333"
 
+	TEAM_SETTINGS_DEFAULT_TEAM_TEXT = "default"
+
 	ELASTICSEARCH_SETTINGS_DEFAULT_CONNECTION_URL                  = ""
 	ELASTICSEARCH_SETTINGS_DEFAULT_USERNAME                        = ""
 	ELASTICSEARCH_SETTINGS_DEFAULT_PASSWORD                        = ""
@@ -335,6 +337,13 @@ type AnnouncementSettings struct {
 	AllowBannerDismissal *bool
 }
 
+type ThemeSettings struct {
+	EnableThemeSelection *bool
+	DefaultTheme         *string
+	AllowCustomThemes    *bool
+	AllowedThemes        []string
+}
+
 type TeamSettings struct {
 	SiteName                            string
 	MaxUsersPerTeam                     *int
@@ -500,6 +509,7 @@ type Config struct {
 	PrivacySettings       PrivacySettings
 	SupportSettings       SupportSettings
 	AnnouncementSettings  AnnouncementSettings
+	ThemeSettings         ThemeSettings
 	GitLabSettings        SSOSettings
 	GoogleSettings        SSOSettings
 	Office365Settings     SSOSettings
@@ -1001,6 +1011,25 @@ func (o *Config) SetDefaults() {
 	if o.AnnouncementSettings.AllowBannerDismissal == nil {
 		o.AnnouncementSettings.AllowBannerDismissal = new(bool)
 		*o.AnnouncementSettings.AllowBannerDismissal = true
+	}
+
+	if o.ThemeSettings.EnableThemeSelection == nil {
+		o.ThemeSettings.EnableThemeSelection = new(bool)
+		*o.ThemeSettings.EnableThemeSelection = true
+	}
+
+	if o.ThemeSettings.DefaultTheme == nil {
+		o.ThemeSettings.DefaultTheme = new(string)
+		*o.ThemeSettings.DefaultTheme = TEAM_SETTINGS_DEFAULT_TEAM_TEXT
+	}
+
+	if o.ThemeSettings.AllowCustomThemes == nil {
+		o.ThemeSettings.AllowCustomThemes = new(bool)
+		*o.ThemeSettings.AllowCustomThemes = true
+	}
+
+	if o.ThemeSettings.AllowedThemes == nil {
+		o.ThemeSettings.AllowedThemes = []string{}
 	}
 
 	if o.LdapSettings.Enable == nil {

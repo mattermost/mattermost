@@ -539,7 +539,6 @@ func getClientConfig(c *model.Config) map[string]string {
 	props["PluginsEnabled"] = strconv.FormatBool(*c.PluginSettings.Enable)
 
 	if IsLicensed() {
-
 		License := License()
 		props["ExperimentalTownSquareIsReadOnly"] = strconv.FormatBool(*c.TeamSettings.ExperimentalTownSquareIsReadOnly)
 
@@ -604,6 +603,13 @@ func getClientConfig(c *model.Config) map[string]string {
 			props["BannerColor"] = *c.AnnouncementSettings.BannerColor
 			props["BannerTextColor"] = *c.AnnouncementSettings.BannerTextColor
 			props["AllowBannerDismissal"] = strconv.FormatBool(*c.AnnouncementSettings.AllowBannerDismissal)
+		}
+
+		if *License.Features.ThemeManagement {
+			props["EnableThemeSelection"] = strconv.FormatBool(*c.ThemeSettings.EnableThemeSelection)
+			props["DefaultTheme"] = *c.ThemeSettings.DefaultTheme
+			props["AllowCustomThemes"] = strconv.FormatBool(*c.ThemeSettings.AllowCustomThemes)
+			props["AllowedThemes"] = strings.Join(c.ThemeSettings.AllowedThemes, ",")
 		}
 	}
 
