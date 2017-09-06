@@ -16,6 +16,8 @@ import (
 	"time"
 
 	l4g "github.com/alecthomas/log4go"
+	"github.com/go-sql-driver/mysql"
+	"github.com/lib/pq"
 	"github.com/mattermost/gorp"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
@@ -661,11 +663,19 @@ func (ss *SqlSupplier) RemoveIndexIfExists(indexName string, tableName string) b
 	return true
 }
 
-func IsUniqueConstraintError(err string, indexName []string) bool {
-	unique := strings.Contains(err, "unique constraint") || strings.Contains(err, "Duplicate entry")
+func IsUniqueConstraintError(err error, indexName []string) bool {
+	unique := false
+	if pqErr, ok := err.(*pq.Error); ok && pqErr.Code == "23505" {
+		unique = true
+	}
+
+	if mysqlErr, ok := err.(*mysql.MySQLError); ok && mysqlErr.Number == 1062 {
+		unique = true
+	}
+
 	field := false
 	for _, contain := range indexName {
-		if strings.Contains(err, contain) {
+		if strings.Contains(err.Error(), contain) {
 			field = true
 			break
 		}

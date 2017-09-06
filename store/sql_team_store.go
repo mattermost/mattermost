@@ -79,7 +79,7 @@ func (s SqlTeamStore) Save(team *model.Team) StoreChannel {
 		}
 
 		if err := s.GetMaster().Insert(team); err != nil {
-			if IsUniqueConstraintError(err.Error(), []string{"Name", "teams_name_key"}) {
+			if IsUniqueConstraintError(err, []string{"Name", "teams_name_key"}) {
 				result.Err = model.NewAppError("SqlTeamStore.Save", "store.sql_team.save.domain_exists.app_error", nil, "id="+team.Id+", "+err.Error(), http.StatusBadRequest)
 			} else {
 				result.Err = model.NewLocAppError("SqlTeamStore.Save", "store.sql_team.save.app_error", nil, "id="+team.Id+", "+err.Error())
@@ -514,7 +514,7 @@ func (s SqlTeamStore) SaveMember(member *model.TeamMember) StoreChannel {
 		}
 
 		if err := s.GetMaster().Insert(member); err != nil {
-			if IsUniqueConstraintError(err.Error(), []string{"TeamId", "teammembers_pkey", "PRIMARY"}) {
+			if IsUniqueConstraintError(err, []string{"TeamId", "teammembers_pkey", "PRIMARY"}) {
 				result.Err = model.NewLocAppError("SqlTeamStore.SaveMember", TEAM_MEMBER_EXISTS_ERROR, nil, "team_id="+member.TeamId+", user_id="+member.UserId+", "+err.Error())
 			} else {
 				result.Err = model.NewLocAppError("SqlTeamStore.SaveMember", "store.sql_team.save_member.save.app_error", nil, "team_id="+member.TeamId+", user_id="+member.UserId+", "+err.Error())
