@@ -168,16 +168,16 @@ func SaveConfig(cfg *model.Config, sendConfigChangeClusterMessage bool) *model.A
 		_, bucketLocation, err := utils.ValidateAmazonS3Bucket(cfg)
 		if err != nil {
 			return err
-		}
+		} else if bucketLocation != *cfg.FileSettings.AmazonS3Region {
+			for endpoint, region := range utils.AWS_S3_ENDPOINT_MAP {
+				if region == bucketLocation {
+					*cfg.FileSettings.AmazonS3Endpoint = endpoint
+					l4g.Warn(utils.T("utils.config.set_amazon_endpoint"), endpoint)
 
-		for endpoint, region := range utils.AWS_S3_ENDPOINT_MAP {
-			if bucketLocation == *cfg.FileSettings.AmazonS3Region {
-				*cfg.FileSettings.AmazonS3Endpoint = endpoint
-				l4g.Warn(utils.T("utils.config.set_amazon_endpoint"), endpoint)
-
-				*cfg.FileSettings.AmazonS3Region = region
-				l4g.Warn(utils.T("utils.config.set_amazon_region"), region)
-				break
+					*cfg.FileSettings.AmazonS3Region = region
+					l4g.Warn(utils.T("utils.config.set_amazon_region"), region)
+					break
+				}
 			}
 		}
 	}
