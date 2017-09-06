@@ -57,7 +57,7 @@ func GetAllStatuses() map[string]*model.Status {
 	return statusMap
 }
 
-func GetStatusesByIds(userIds []string) (map[string]interface{}, *model.AppError) {
+func (a *App) GetStatusesByIds(userIds []string) (map[string]interface{}, *model.AppError) {
 	if !*utils.Cfg.ServiceSettings.EnableUserStatuses {
 		return map[string]interface{}{}, nil
 	}
@@ -81,7 +81,7 @@ func GetStatusesByIds(userIds []string) (map[string]interface{}, *model.AppError
 	}
 
 	if len(missingUserIds) > 0 {
-		if result := <-Srv.Store.Status().GetByIds(missingUserIds); result.Err != nil {
+		if result := <-a.Srv.Store.Status().GetByIds(missingUserIds); result.Err != nil {
 			return nil, result.Err
 		} else {
 			statuses := result.Data.([]*model.Status)
@@ -104,7 +104,7 @@ func GetStatusesByIds(userIds []string) (map[string]interface{}, *model.AppError
 }
 
 //GetUserStatusesByIds used by apiV4
-func GetUserStatusesByIds(userIds []string) ([]*model.Status, *model.AppError) {
+func (a *App) GetUserStatusesByIds(userIds []string) ([]*model.Status, *model.AppError) {
 	if !*utils.Cfg.ServiceSettings.EnableUserStatuses {
 		return []*model.Status{}, nil
 	}
@@ -128,7 +128,7 @@ func GetUserStatusesByIds(userIds []string) ([]*model.Status, *model.AppError) {
 	}
 
 	if len(missingUserIds) > 0 {
-		if result := <-Srv.Store.Status().GetByIds(missingUserIds); result.Err != nil {
+		if result := <-a.Srv.Store.Status().GetByIds(missingUserIds); result.Err != nil {
 			return nil, result.Err
 		} else {
 			statuses := result.Data.([]*model.Status)
@@ -161,7 +161,7 @@ func GetUserStatusesByIds(userIds []string) ([]*model.Status, *model.AppError) {
 	return statusMap, nil
 }
 
-func SetStatusOnline(userId string, sessionId string, manual bool) {
+func (a *App) SetStatusOnline(userId string, sessionId string, manual bool) {
 	if !*utils.Cfg.ServiceSettings.EnableUserStatuses {
 		return
 	}
@@ -174,7 +174,7 @@ func SetStatusOnline(userId string, sessionId string, manual bool) {
 	var status *model.Status
 	var err *model.AppError
 
-	if status, err = GetStatus(userId); err != nil {
+	if status, err = a.GetStatus(userId); err != nil {
 		status = &model.Status{UserId: userId, Status: model.STATUS_ONLINE, Manual: false, LastActivityAt: model.GetMillis(), ActiveChannel: ""}
 		broadcast = true
 	} else {
@@ -203,9 +203,9 @@ func SetStatusOnline(userId string, sessionId string, manual bool) {
 
 		var schan store.StoreChannel
 		if broadcast {
-			schan = Srv.Store.Status().SaveOrUpdate(status)
+			schan = a.Srv.Store.Status().SaveOrUpdate(status)
 		} else {
-			schan = Srv.Store.Status().UpdateLastActivityAt(status.UserId, status.LastActivityAt)
+			schan = a.Srv.Store.Status().UpdateLastActivityAt(status.UserId, status.LastActivityAt)
 		}
 
 		if result := <-schan; result.Err != nil {
@@ -225,12 +225,12 @@ func BroadcastStatus(status *model.Status) {
 	go Publish(event)
 }
 
-func SetStatusOffline(userId string, manual bool) {
+func (a *App) SetStatusOffline(userId string, manual bool) {
 	if !*utils.Cfg.ServiceSettings.EnableUserStatuses {
 		return
 	}
 
-	status, err := GetStatus(userId)
+	status, err := a.GetStatus(userId)
 	if err == nil && status.Manual && !manual {
 		return // manually set status always overrides non-manual one
 	}
@@ -239,7 +239,7 @@ func SetStatusOffline(userId string, manual bool) {
 
 	AddStatusCache(status)
 
-	if result := <-Srv.Store.Status().SaveOrUpdate(status); result.Err != nil {
+	if result := <-a.Srv.Store.Status().SaveOrUpdate(status); result.Err != nil {
 		l4g.Error(utils.T("api.status.save_status.error"), userId, result.Err)
 	}
 
@@ -249,12 +249,12 @@ func SetStatusOffline(userId string, manual bool) {
 	go Publish(event)
 }
 
-func SetStatusAwayIfNeeded(userId string, manual bool) {
+func (a *App) SetStatusAwayIfNeeded(userId string, manual bool) {
 	if !*utils.Cfg.ServiceSettings.EnableUserStatuses {
 		return
 	}
 
-	status, err := GetStatus(userId)
+	status, err := a.GetStatus(userId)
 
 	if err != nil {
 		status = &model.Status{UserId: userId, Status: model.STATUS_OFFLINE, Manual: manual, LastActivityAt: 0, ActiveChannel: ""}
@@ -280,7 +280,7 @@ func SetStatusAwayIfNeeded(userId string, manual bool) {
 
 	AddStatusCache(status)
 
-	if result := <-Srv.Store.Status().SaveOrUpdate(status); result.Err != nil {
+	if result := <-a.Srv.Store.Status().SaveOrUpdate(status); result.Err != nil {
 		l4g.Error(utils.T("api.status.save_status.error"), userId, result.Err)
 	}
 
@@ -301,7 +301,7 @@ func GetStatusFromCache(userId string) *model.Status {
 	return nil
 }
 
-func GetStatus(userId string) (*model.Status, *model.AppError) {
+func (a *App) GetStatus(userId string) (*model.Status, *model.AppError) {
 	if !*utils.Cfg.ServiceSettings.EnableUserStatuses {
 		return &model.Status{}, nil
 	}
@@ -311,7 +311,7 @@ func GetStatus(userId string) (*model.Status, *model.AppError) {
 		return status, nil
 	}
 
-	if result := <-Srv.Store.Status().Get(userId); result.Err != nil {
+	if result := <-a.Srv.Store.Status().Get(userId); result.Err != nil {
 		return nil, result.Err
 	} else {
 		return result.Data.(*model.Status), nil

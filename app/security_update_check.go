@@ -30,9 +30,9 @@ const (
 	PROP_SECURITY_UNIT_TESTS        = "ut"
 )
 
-func DoSecurityUpdateCheck() {
+func (a *App) DoSecurityUpdateCheck() {
 	if *utils.Cfg.ServiceSettings.EnableSecurityFixAlert {
-		if result := <-Srv.Store.System().Get(); result.Err == nil {
+		if result := <-a.Srv.Store.System().Get(); result.Err == nil {
 			props := result.Data.(model.StringMap)
 			lastSecurityTime, _ := strconv.ParseInt(props[model.SYSTEM_LAST_SECURITY_TIME], 10, 0)
 			currentTime := model.GetMillis()
@@ -56,20 +56,20 @@ func DoSecurityUpdateCheck() {
 
 				systemSecurityLastTime := &model.System{Name: model.SYSTEM_LAST_SECURITY_TIME, Value: strconv.FormatInt(currentTime, 10)}
 				if lastSecurityTime == 0 {
-					<-Srv.Store.System().Save(systemSecurityLastTime)
+					<-a.Srv.Store.System().Save(systemSecurityLastTime)
 				} else {
-					<-Srv.Store.System().Update(systemSecurityLastTime)
+					<-a.Srv.Store.System().Update(systemSecurityLastTime)
 				}
 
-				if ucr := <-Srv.Store.User().GetTotalUsersCount(); ucr.Err == nil {
+				if ucr := <-a.Srv.Store.User().GetTotalUsersCount(); ucr.Err == nil {
 					v.Set(PROP_SECURITY_USER_COUNT, strconv.FormatInt(ucr.Data.(int64), 10))
 				}
 
-				if ucr := <-Srv.Store.Status().GetTotalActiveUsersCount(); ucr.Err == nil {
+				if ucr := <-a.Srv.Store.Status().GetTotalActiveUsersCount(); ucr.Err == nil {
 					v.Set(PROP_SECURITY_ACTIVE_USER_COUNT, strconv.FormatInt(ucr.Data.(int64), 10))
 				}
 
-				if tcr := <-Srv.Store.Team().AnalyticsTeamCount(); tcr.Err == nil {
+				if tcr := <-a.Srv.Store.Team().AnalyticsTeamCount(); tcr.Err == nil {
 					v.Set(PROP_SECURITY_TEAM_COUNT, strconv.FormatInt(tcr.Data.(int64), 10))
 				}
 
@@ -86,7 +86,7 @@ func DoSecurityUpdateCheck() {
 				for _, bulletin := range bulletins {
 					if bulletin.AppliesToVersion == model.CurrentVersion {
 						if props["SecurityBulletin_"+bulletin.Id] == "" {
-							if results := <-Srv.Store.User().GetSystemAdminProfiles(); results.Err != nil {
+							if results := <-a.Srv.Store.User().GetSystemAdminProfiles(); results.Err != nil {
 								l4g.Error(utils.T("mattermost.system_admins.error"))
 								return
 							} else {
@@ -112,7 +112,7 @@ func DoSecurityUpdateCheck() {
 							}
 
 							bulletinSeen := &model.System{Name: "SecurityBulletin_" + bulletin.Id, Value: bulletin.Id}
-							<-Srv.Store.System().Save(bulletinSeen)
+							<-a.Srv.Store.System().Save(bulletinSeen)
 						}
 					}
 				}

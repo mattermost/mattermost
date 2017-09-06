@@ -6,8 +6,9 @@ package store
 import (
 	"testing"
 
-	"github.com/mattermost/platform/model"
 	"time"
+
+	"github.com/mattermost/platform/model"
 )
 
 func TestJobSaveGet(t *testing.T) {
@@ -17,7 +18,7 @@ func TestJobSaveGet(t *testing.T) {
 		Id:     model.NewId(),
 		Type:   model.NewId(),
 		Status: model.NewId(),
-		Data:   map[string]string{
+		Data: map[string]string{
 			"Processed":     "0",
 			"Total":         "12345",
 			"LastProcessed": "abcd",
@@ -187,7 +188,7 @@ func TestJobGetAllByStatus(t *testing.T) {
 			Type:     jobType,
 			CreateAt: 1000,
 			Status:   status,
-			Data:     map[string]string{
+			Data: map[string]string{
 				"test": "data",
 			},
 		},

@@ -5,33 +5,37 @@ package app
 
 import (
 	//"github.com/mattermost/platform/model"
-	"github.com/mattermost/platform/utils"
 	"testing"
+
+	"github.com/mattermost/platform/utils"
 )
 
 func TestLoadLicense(t *testing.T) {
-	Setup()
+	a := Global()
+	a.Setup()
 
-	LoadLicense()
+	a.LoadLicense()
 	if utils.IsLicensed() {
 		t.Fatal("shouldn't have a valid license")
 	}
 }
 
 func TestSaveLicense(t *testing.T) {
-	Setup()
+	a := Global()
+	a.Setup()
 
 	b1 := []byte("junk")
 
-	if _, err := SaveLicense(b1); err == nil {
+	if _, err := a.SaveLicense(b1); err == nil {
 		t.Fatal("shouldn't have saved license")
 	}
 }
 
 func TestRemoveLicense(t *testing.T) {
-	Setup()
+	a := Global()
+	a.Setup()
 
-	if err := RemoveLicense(); err != nil {
+	if err := a.RemoveLicense(); err != nil {
 		t.Fatal("should have removed license")
 	}
 }

@@ -12,7 +12,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/mattermost/platform/app"
 	"github.com/mattermost/platform/einterfaces"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
@@ -77,7 +76,7 @@ func TestOAuthRegisterApp(t *testing.T) {
 	user := &model.User{Email: strings.ToLower("test+"+model.NewId()) + "@simulator.amazonses.com", Password: "hello1", Username: "n" + model.NewId(), EmailVerified: true}
 
 	ruser := Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
-	app.UpdateUserRoles(ruser.Id, "")
+	th.App.UpdateUserRoles(ruser.Id, "")
 
 	Client.Logout()
 	Client.Login(user.Email, user.Password)
@@ -233,7 +232,7 @@ func TestOAuthGetAppsByUser(t *testing.T) {
 
 	user := &model.User{Email: strings.ToLower("test+"+model.NewId()) + "@simulator.amazonses.com", Password: "hello1", Username: "n" + model.NewId(), EmailVerified: true}
 	ruser := Client.Must(AdminClient.CreateUser(user, "")).Data.(*model.User)
-	app.UpdateUserRoles(ruser.Id, "")
+	th.App.UpdateUserRoles(ruser.Id, "")
 
 	Client.Logout()
 	Client.Login(user.Email, user.Password)
@@ -338,7 +337,7 @@ func TestOAuthDeauthorizeApp(t *testing.T) {
 	a1.RefreshToken = model.NewId()
 	a1.ExpiresAt = model.GetMillis()
 	a1.RedirectUri = "http://example.com"
-	<-app.Srv.Store.OAuth().SaveAccessData(&a1)
+	<-th.App.Srv.Store.OAuth().SaveAccessData(&a1)
 
 	if err := Client.OAuthDeauthorizeApp(oauthApp.Id); err != nil {
 		t.Fatal(err)
@@ -446,7 +445,7 @@ func TestOAuthDeleteApp(t *testing.T) {
 
 	user := &model.User{Email: strings.ToLower("test+"+model.NewId()) + "@simulator.amazonses.com", Password: "hello1", Username: "n" + model.NewId(), EmailVerified: true}
 	ruser := Client.Must(AdminClient.CreateUser(user, "")).Data.(*model.User)
-	app.UpdateUserRoles(ruser.Id, "")
+	th.App.UpdateUserRoles(ruser.Id, "")
 
 	Client.Logout()
 	Client.Login(user.Email, user.Password)
@@ -675,7 +674,7 @@ func TestOAuthAccessToken(t *testing.T) {
 	}
 
 	authData := &model.AuthData{ClientId: oauthApp.Id, RedirectUri: oauthApp.CallbackUrls[0], UserId: th.BasicUser.Id, Code: model.NewId(), ExpiresIn: -1}
-	<-app.Srv.Store.OAuth().SaveAuthData(authData)
+	<-th.App.Srv.Store.OAuth().SaveAuthData(authData)
 
 	data.Set("grant_type", model.ACCESS_TOKEN_GRANT_TYPE)
 	data.Set("client_id", oauthApp.Id)
@@ -688,7 +687,7 @@ func TestOAuthAccessToken(t *testing.T) {
 	}
 
 	authData = &model.AuthData{ClientId: oauthApp.Id, RedirectUri: oauthApp.CallbackUrls[0], UserId: th.BasicUser.Id, Code: model.NewId(), ExpiresIn: model.AUTHCODE_EXPIRE_TIME}
-	<-app.Srv.Store.OAuth().SaveAuthData(authData)
+	<-th.App.Srv.Store.OAuth().SaveAuthData(authData)
 
 	data.Set("code", authData.Code)
 	if _, err := Client.GetAccessToken(data); err == nil {
@@ -787,7 +786,7 @@ func TestOAuthComplete(t *testing.T) {
 		closeBody(r)
 	}
 
-	if result := <-app.Srv.Store.User().UpdateAuthData(
+	if result := <-th.App.Srv.Store.User().UpdateAuthData(
 		th.BasicUser.Id, model.SERVICE_GITLAB, &th.BasicUser.Email, th.BasicUser.Email, true); result.Err != nil {
 		t.Fatal(result.Err)
 	}

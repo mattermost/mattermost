@@ -79,7 +79,7 @@ func testEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := app.TestEmail(c.Session.UserId, cfg)
+	err := c.App.TestEmail(c.Session.UserId, cfg)
 	if err != nil {
 		c.Err = err
 		return
@@ -144,7 +144,7 @@ func getAudits(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	audits, err := app.GetAuditsPage("", c.Params.Page, c.Params.PerPage)
+	audits, err := c.App.GetAuditsPage("", c.Params.Page, c.Params.PerPage)
 
 	if err != nil {
 		c.Err = err
@@ -161,7 +161,7 @@ func databaseRecycle(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	app.RecycleDatabaseConnection()
+	c.App.RecycleDatabaseConnection()
 
 	ReturnStatusOK(w)
 }
@@ -172,7 +172,7 @@ func invalidateCaches(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := app.InvalidateAllCaches()
+	err := c.App.InvalidateAllCaches()
 	if err != nil {
 		c.Err = err
 		return
@@ -243,8 +243,8 @@ func getClientConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		respCfg[k] = v
 	}
 
-	respCfg["NoAccounts"] = strconv.FormatBool(app.IsFirstUserAccount())
-	respCfg["Plugins"] = app.GetPluginsForClientConfig()
+	respCfg["NoAccounts"] = strconv.FormatBool(c.App.IsFirstUserAccount())
+	respCfg["Plugins"] = c.App.GetPluginsForClientConfig()
 
 	w.Write([]byte(model.MapToJson(respCfg)))
 }
@@ -318,7 +318,7 @@ func addLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 	buf := bytes.NewBuffer(nil)
 	io.Copy(buf, file)
 
-	if license, err := app.SaveLicense(buf.Bytes()); err != nil {
+	if license, err := c.App.SaveLicense(buf.Bytes()); err != nil {
 		if err.Id == model.EXPIRED_LICENSE_ERROR {
 			c.LogAudit("failed - expired or non-started license")
 		} else if err.Id == model.INVALID_LICENSE_ERROR {
@@ -342,7 +342,7 @@ func removeLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := app.RemoveLicense(); err != nil {
+	if err := c.App.RemoveLicense(); err != nil {
 		c.Err = err
 		return
 	}
@@ -364,7 +364,7 @@ func getAnalytics(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rows, err := app.GetAnalytics(name, teamId)
+	rows, err := c.App.GetAnalytics(name, teamId)
 	if err != nil {
 		c.Err = err
 		return

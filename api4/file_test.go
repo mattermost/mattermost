@@ -51,7 +51,7 @@ func TestUploadFile(t *testing.T) {
 	}
 
 	var info *model.FileInfo
-	if result := <-app.Srv.Store.FileInfo().Get(uploadInfo.Id); result.Err != nil {
+	if result := <-th.App.Srv.Store.FileInfo().Get(uploadInfo.Id); result.Err != nil {
 		t.Fatal(result.Err)
 	} else {
 		info = result.Data.(*model.FileInfo)
@@ -317,7 +317,7 @@ func TestGetFileLink(t *testing.T) {
 	CheckBadRequestStatus(t, resp)
 
 	// Hacky way to assign file to a post (usually would be done by CreatePost call)
-	store.Must(app.Srv.Store.FileInfo().AttachToPost(fileId, th.BasicPost.Id))
+	store.Must(th.App.Srv.Store.FileInfo().AttachToPost(fileId, th.BasicPost.Id))
 
 	utils.Cfg.FileSettings.EnablePublicLink = false
 	_, resp = Client.GetFileLink(fileId)
@@ -352,7 +352,7 @@ func TestGetFileLink(t *testing.T) {
 	_, resp = th.SystemAdminClient.GetFileLink(fileId)
 	CheckNoError(t, resp)
 
-	if result := <-app.Srv.Store.FileInfo().Get(fileId); result.Err != nil {
+	if result := <-th.App.Srv.Store.FileInfo().Get(fileId); result.Err != nil {
 		t.Fatal(result.Err)
 	} else {
 		cleanupTestFile(result.Data.(*model.FileInfo))
@@ -508,9 +508,9 @@ func TestGetPublicFile(t *testing.T) {
 	}
 
 	// Hacky way to assign file to a post (usually would be done by CreatePost call)
-	store.Must(app.Srv.Store.FileInfo().AttachToPost(fileId, th.BasicPost.Id))
+	store.Must(th.App.Srv.Store.FileInfo().AttachToPost(fileId, th.BasicPost.Id))
 
-	result := <-app.Srv.Store.FileInfo().Get(fileId)
+	result := <-th.App.Srv.Store.FileInfo().Get(fileId)
 	info := result.Data.(*model.FileInfo)
 	link := app.GeneratePublicLink(Client.Url, info)
 
@@ -543,7 +543,7 @@ func TestGetPublicFile(t *testing.T) {
 		t.Fatal("should've failed to get image with public link after salt changed")
 	}
 
-	if err := cleanupTestFile(store.Must(app.Srv.Store.FileInfo().Get(fileId)).(*model.FileInfo)); err != nil {
+	if err := cleanupTestFile(store.Must(th.App.Srv.Store.FileInfo().Get(fileId)).(*model.FileInfo)); err != nil {
 		t.Fatal(err)
 	}
 

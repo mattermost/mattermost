@@ -33,7 +33,7 @@ func (me *OfflineProvider) GetCommand(T goi18n.TranslateFunc) *model.Command {
 }
 
 func (me *OfflineProvider) DoCommand(args *model.CommandArgs, message string) *model.CommandResponse {
-	SetStatusOffline(args.UserId, true)
+	Global().SetStatusOffline(args.UserId, true)
 
 	return &model.CommandResponse{ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL, Text: args.T("api.command_offline.success")}
 }

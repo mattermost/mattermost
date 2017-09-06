@@ -8,7 +8,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/mattermost/platform/app"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/store"
 	"github.com/mattermost/platform/utils"
@@ -35,12 +34,12 @@ func TestStatuses(t *testing.T) {
 	user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1"}
 	ruser := Client.Must(Client.CreateUser(&user, "")).Data.(*model.User)
 	LinkUserToTeam(ruser, rteam.Data.(*model.Team))
-	store.Must(app.Srv.Store.User().VerifyEmail(ruser.Id))
+	store.Must(th.App.Srv.Store.User().VerifyEmail(ruser.Id))
 
 	user2 := model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1"}
 	ruser2 := Client.Must(Client.CreateUser(&user2, "")).Data.(*model.User)
 	LinkUserToTeam(ruser2, rteam.Data.(*model.Team))
-	store.Must(app.Srv.Store.User().VerifyEmail(ruser2.Id))
+	store.Must(th.App.Srv.Store.User().VerifyEmail(ruser2.Id))
 
 	Client.Login(user.Email, user.Password)
 	Client.SetTeamId(team.Id)
@@ -138,7 +137,7 @@ func TestStatuses(t *testing.T) {
 
 	WebSocketClient2.Close()
 
-	app.SetStatusAwayIfNeeded(th.BasicUser.Id, false)
+	th.App.SetStatusAwayIfNeeded(th.BasicUser.Id, false)
 
 	awayTimeout := *utils.Cfg.TeamSettings.UserStatusAwayTimeout
 	defer func() {
@@ -148,8 +147,8 @@ func TestStatuses(t *testing.T) {
 
 	time.Sleep(1500 * time.Millisecond)
 
-	app.SetStatusAwayIfNeeded(th.BasicUser.Id, false)
-	app.SetStatusOnline(th.BasicUser.Id, "junk", false)
+	th.App.SetStatusAwayIfNeeded(th.BasicUser.Id, false)
+	th.App.SetStatusOnline(th.BasicUser.Id, "junk", false)
 
 	time.Sleep(1500 * time.Millisecond)
 

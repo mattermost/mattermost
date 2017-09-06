@@ -77,13 +77,13 @@ func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	var ruser *model.User
 	var err *model.AppError
 	if len(hash) > 0 {
-		ruser, err = app.CreateUserWithHash(user, hash, r.URL.Query().Get("d"))
+		ruser, err = c.App.CreateUserWithHash(user, hash, r.URL.Query().Get("d"))
 	} else if len(inviteId) > 0 {
-		ruser, err = app.CreateUserWithInviteId(user, inviteId)
+		ruser, err = c.App.CreateUserWithInviteId(user, inviteId)
 	} else if c.IsSystemAdmin() {
-		ruser, err = app.CreateUserAsAdmin(user)
+		ruser, err = c.App.CreateUserAsAdmin(user)
 	} else {
-		ruser, err = app.CreateUserFromSignup(user)
+		ruser, err = c.App.CreateUserFromSignup(user)
 	}
 
 	if err != nil {
@@ -106,7 +106,7 @@ func getUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	var user *model.User
 	var err *model.AppError
 
-	if user, err = app.GetUser(c.Params.UserId); err != nil {
+	if user, err = c.App.GetUser(c.Params.UserId); err != nil {
 		c.Err = err
 		return
 	}
@@ -138,7 +138,7 @@ func getUserByUsername(c *Context, w http.ResponseWriter, r *http.Request) {
 	var user *model.User
 	var err *model.AppError
 
-	if user, err = app.GetUserByUsername(c.Params.Username); err != nil {
+	if user, err = c.App.GetUserByUsername(c.Params.Username); err != nil {
 		c.Err = err
 		return
 	}
@@ -166,7 +166,7 @@ func getUserByEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 	var user *model.User
 	var err *model.AppError
 
-	if user, err = app.GetUserByEmail(c.Params.Email); err != nil {
+	if user, err = c.App.GetUserByEmail(c.Params.Email); err != nil {
 		c.Err = err
 		return
 	}
@@ -189,7 +189,7 @@ func getProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if users, err := app.GetUsersByIds([]string{c.Params.UserId}, c.IsSystemAdmin()); err != nil {
+	if users, err := c.App.GetUsersByIds([]string{c.Params.UserId}, c.IsSystemAdmin()); err != nil {
 		c.Err = err
 		return
 	} else {
@@ -263,7 +263,7 @@ func setProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	imageData := imageArray[0]
 
-	if err := app.SetProfileImage(c.Params.UserId, imageData); err != nil {
+	if err := c.App.SetProfileImage(c.Params.UserId, imageData); err != nil {
 		c.Err = err
 		return
 	}
@@ -307,26 +307,26 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		profiles, err = app.GetUsersWithoutTeamPage(c.Params.Page, c.Params.PerPage, c.IsSystemAdmin())
+		profiles, err = c.App.GetUsersWithoutTeamPage(c.Params.Page, c.Params.PerPage, c.IsSystemAdmin())
 	} else if len(notInChannelId) > 0 {
-		if !app.SessionHasPermissionToChannel(c.Session, notInChannelId, model.PERMISSION_READ_CHANNEL) {
+		if !c.App.SessionHasPermissionToChannel(c.Session, notInChannelId, model.PERMISSION_READ_CHANNEL) {
 			c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
 			return
 		}
 
-		profiles, err = app.GetUsersNotInChannelPage(inTeamId, notInChannelId, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin())
+		profiles, err = c.App.GetUsersNotInChannelPage(inTeamId, notInChannelId, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin())
 	} else if len(notInTeamId) > 0 {
 		if !app.SessionHasPermissionToTeam(c.Session, notInTeamId, model.PERMISSION_VIEW_TEAM) {
 			c.SetPermissionError(model.PERMISSION_VIEW_TEAM)
 			return
 		}
 
-		etag = app.GetUsersNotInTeamEtag(inTeamId)
+		etag = c.App.GetUsersNotInTeamEtag(inTeamId)
 		if HandleEtag(etag, "Get Users Not in Team", w, r) {
 			return
 		}
 
-		profiles, err = app.GetUsersNotInTeamPage(notInTeamId, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin())
+		profiles, err = c.App.GetUsersNotInTeamPage(notInTeamId, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin())
 	} else if len(inTeamId) > 0 {
 		if !app.SessionHasPermissionToTeam(c.Session, inTeamId, model.PERMISSION_VIEW_TEAM) {
 			c.SetPermissionError(model.PERMISSION_VIEW_TEAM)
@@ -334,32 +334,32 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 
 		if sort == "last_activity_at" {
-			profiles, err = app.GetRecentlyActiveUsersForTeamPage(inTeamId, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin())
+			profiles, err = c.App.GetRecentlyActiveUsersForTeamPage(inTeamId, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin())
 		} else if sort == "create_at" {
-			profiles, err = app.GetNewUsersForTeamPage(inTeamId, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin())
+			profiles, err = c.App.GetNewUsersForTeamPage(inTeamId, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin())
 		} else {
-			etag = app.GetUsersInTeamEtag(inTeamId)
+			etag = c.App.GetUsersInTeamEtag(inTeamId)
 			if HandleEtag(etag, "Get Users in Team", w, r) {
 				return
 			}
 
-			profiles, err = app.GetUsersInTeamPage(inTeamId, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin())
+			profiles, err = c.App.GetUsersInTeamPage(inTeamId, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin())
 		}
 	} else if len(inChannelId) > 0 {
-		if !app.SessionHasPermissionToChannel(c.Session, inChannelId, model.PERMISSION_READ_CHANNEL) {
+		if !c.App.SessionHasPermissionToChannel(c.Session, inChannelId, model.PERMISSION_READ_CHANNEL) {
 			c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
 			return
 		}
 
-		profiles, err = app.GetUsersInChannelPage(inChannelId, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin())
+		profiles, err = c.App.GetUsersInChannelPage(inChannelId, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin())
 	} else {
 		// No permission check required
 
-		etag = app.GetUsersEtag()
+		etag = c.App.GetUsersEtag()
 		if HandleEtag(etag, "Get Users", w, r) {
 			return
 		}
-		profiles, err = app.GetUsersPage(c.Params.Page, c.Params.PerPage, c.IsSystemAdmin())
+		profiles, err = c.App.GetUsersPage(c.Params.Page, c.Params.PerPage, c.IsSystemAdmin())
 	}
 
 	if err != nil {
@@ -383,7 +383,7 @@ func getUsersByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// No permission check required
 
-	if users, err := app.GetUsersByIds(userIds, c.IsSystemAdmin()); err != nil {
+	if users, err := c.App.GetUsersByIds(userIds, c.IsSystemAdmin()); err != nil {
 		c.Err = err
 		return
 	} else {
@@ -401,7 +401,7 @@ func getUsersByNames(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// No permission check required
 
-	if users, err := app.GetUsersByUsernames(usernames, c.IsSystemAdmin()); err != nil {
+	if users, err := c.App.GetUsersByUsernames(usernames, c.IsSystemAdmin()); err != nil {
 		c.Err = err
 		return
 	} else {
@@ -426,12 +426,12 @@ func searchUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if props.InChannelId != "" && !app.SessionHasPermissionToChannel(c.Session, props.InChannelId, model.PERMISSION_READ_CHANNEL) {
+	if props.InChannelId != "" && !c.App.SessionHasPermissionToChannel(c.Session, props.InChannelId, model.PERMISSION_READ_CHANNEL) {
 		c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
 		return
 	}
 
-	if props.NotInChannelId != "" && !app.SessionHasPermissionToChannel(c.Session, props.NotInChannelId, model.PERMISSION_READ_CHANNEL) {
+	if props.NotInChannelId != "" && !c.App.SessionHasPermissionToChannel(c.Session, props.NotInChannelId, model.PERMISSION_READ_CHANNEL) {
 		c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
 		return
 	}
@@ -462,7 +462,7 @@ func searchUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if profiles, err := app.SearchUsers(props, searchOptions, c.IsSystemAdmin()); err != nil {
+	if profiles, err := c.App.SearchUsers(props, searchOptions, c.IsSystemAdmin()); err != nil {
 		c.Err = err
 		return
 	} else {
@@ -488,12 +488,12 @@ func autocompleteUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if len(channelId) > 0 {
-		if !app.SessionHasPermissionToChannel(c.Session, channelId, model.PERMISSION_READ_CHANNEL) {
+		if !c.App.SessionHasPermissionToChannel(c.Session, channelId, model.PERMISSION_READ_CHANNEL) {
 			c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
 			return
 		}
 
-		result, _ := app.AutocompleteUsersInChannel(teamId, channelId, name, searchOptions, c.IsSystemAdmin())
+		result, _ := c.App.AutocompleteUsersInChannel(teamId, channelId, name, searchOptions, c.IsSystemAdmin())
 		autocomplete.Users = result.InChannel
 		autocomplete.OutOfChannel = result.OutOfChannel
 	} else if len(teamId) > 0 {
@@ -502,11 +502,11 @@ func autocompleteUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		result, _ := app.AutocompleteUsersInTeam(teamId, name, searchOptions, c.IsSystemAdmin())
+		result, _ := c.App.AutocompleteUsersInTeam(teamId, name, searchOptions, c.IsSystemAdmin())
 		autocomplete.Users = result.InTeam
 	} else {
 		// No permission check required
-		result, _ := app.SearchUsersInTeam("", name, searchOptions, c.IsSystemAdmin())
+		result, _ := c.App.SearchUsersInTeam("", name, searchOptions, c.IsSystemAdmin())
 		autocomplete.Users = result
 	}
 
@@ -535,7 +535,7 @@ func updateUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if ruser, err := app.UpdateUserAsUser(user, c.IsSystemAdmin()); err != nil {
+	if ruser, err := c.App.UpdateUserAsUser(user, c.IsSystemAdmin()); err != nil {
 		c.Err = err
 		return
 	} else {
@@ -561,7 +561,7 @@ func patchUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if ruser, err := app.PatchUser(c.Params.UserId, patch, c.IsSystemAdmin()); err != nil {
+	if ruser, err := c.App.PatchUser(c.Params.UserId, patch, c.IsSystemAdmin()); err != nil {
 		c.Err = err
 		return
 	} else {
@@ -586,12 +586,12 @@ func deleteUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	var user *model.User
 	var err *model.AppError
 
-	if user, err = app.GetUser(userId); err != nil {
+	if user, err = c.App.GetUser(userId); err != nil {
 		c.Err = err
 		return
 	}
 
-	if _, err := app.UpdateActive(user, false); err != nil {
+	if _, err := c.App.UpdateActive(user, false); err != nil {
 		c.Err = err
 		return
 	}
@@ -618,7 +618,7 @@ func updateUserRoles(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if _, err := app.UpdateUserRoles(c.Params.UserId, newRoles); err != nil {
+	if _, err := c.App.UpdateUserRoles(c.Params.UserId, newRoles); err != nil {
 		c.Err = err
 		return
 	} else {
@@ -650,7 +650,7 @@ func updateUserActive(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if ruser, err := app.UpdateActiveNoLdap(c.Params.UserId, active); err != nil {
+	if ruser, err := c.App.UpdateActiveNoLdap(c.Params.UserId, active); err != nil {
 		c.Err = err
 	} else {
 		c.LogAuditWithUserId(ruser.Id, fmt.Sprintf("active=%v", active))
@@ -675,7 +675,7 @@ func checkUserMfa(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if user, err := app.GetUserForLogin(loginId, false); err == nil {
+	if user, err := c.App.GetUserForLogin(loginId, false); err == nil {
 		resp["mfa_required"] = user.MfaActive
 	}
 
@@ -712,7 +712,7 @@ func updateUserMfa(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	c.LogAudit("attempt")
 
-	if err := app.UpdateMfa(activate, c.Params.UserId, code); err != nil {
+	if err := c.App.UpdateMfa(activate, c.Params.UserId, code); err != nil {
 		c.Err = err
 		return
 	}
@@ -732,7 +732,7 @@ func generateMfaSecret(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	secret, err := app.GenerateMfaSecret(c.Params.UserId)
+	secret, err := c.App.GenerateMfaSecret(c.Params.UserId)
 	if err != nil {
 		c.Err = err
 		return
@@ -764,9 +764,9 @@ func updatePassword(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		err = app.UpdatePasswordAsUser(c.Params.UserId, currentPassword, newPassword)
+		err = c.App.UpdatePasswordAsUser(c.Params.UserId, currentPassword, newPassword)
 	} else if app.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
-		err = app.UpdatePasswordByUserIdSendEmail(c.Params.UserId, newPassword, c.T("api.user.reset_password.method"))
+		err = c.App.UpdatePasswordByUserIdSendEmail(c.Params.UserId, newPassword, c.T("api.user.reset_password.method"))
 	} else {
 		err = model.NewAppError("updatePassword", "api.user.update_password.context.app_error", nil, "", http.StatusForbidden)
 	}
@@ -794,7 +794,7 @@ func resetPassword(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	c.LogAudit("attempt - token=" + token)
 
-	if err := app.ResetPasswordFromToken(token, newPassword); err != nil {
+	if err := c.App.ResetPasswordFromToken(token, newPassword); err != nil {
 		c.LogAudit("fail - token=" + token)
 		c.Err = err
 		return
@@ -814,7 +814,7 @@ func sendPasswordReset(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if sent, err := app.SendPasswordReset(email, utils.GetSiteURL()); err != nil {
+	if sent, err := c.App.SendPasswordReset(email, utils.GetSiteURL()); err != nil {
 		c.Err = err
 		return
 	} else if sent {
@@ -835,7 +835,7 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 	ldapOnly := props["ldap_only"] == "true"
 
 	c.LogAuditWithUserId(id, "attempt - login_id="+loginId)
-	user, err := app.AuthenticateUserForLogin(id, loginId, password, mfaToken, deviceId, ldapOnly)
+	user, err := c.App.AuthenticateUserForLogin(id, loginId, password, mfaToken, deviceId, ldapOnly)
 	if err != nil {
 		c.LogAuditWithUserId(id, "failure - login_id="+loginId)
 		c.Err = err
@@ -845,7 +845,7 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.LogAuditWithUserId(user.Id, "authenticated")
 
 	var session *model.Session
-	session, err = app.DoLogin(w, r, user, deviceId)
+	session, err = c.App.DoLogin(w, r, user, deviceId)
 	if err != nil {
 		c.Err = err
 		return
@@ -872,7 +872,7 @@ func Logout(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.LogAudit("")
 	c.RemoveSessionCookie(w, r)
 	if c.Session.Id != "" {
-		if err := app.RevokeSessionById(c.Session.Id); err != nil {
+		if err := c.App.RevokeSessionById(c.Session.Id); err != nil {
 			c.Err = err
 			return
 		}
@@ -892,7 +892,7 @@ func getSessions(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if sessions, err := app.GetSessions(c.Params.UserId); err != nil {
+	if sessions, err := c.App.GetSessions(c.Params.UserId); err != nil {
 		c.Err = err
 		return
 	} else {
@@ -924,7 +924,7 @@ func revokeSession(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := app.RevokeSessionById(sessionId); err != nil {
+	if err := c.App.RevokeSessionById(sessionId); err != nil {
 		c.Err = err
 		return
 	}
@@ -942,7 +942,7 @@ func attachDeviceId(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// A special case where we logout of all other sessions with the same device id
-	if err := app.RevokeSessionsForDeviceId(c.Session.UserId, deviceId, c.Session.Id); err != nil {
+	if err := c.App.RevokeSessionsForDeviceId(c.Session.UserId, deviceId, c.Session.Id); err != nil {
 		c.Err = err
 		return
 	}
@@ -970,7 +970,7 @@ func attachDeviceId(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	http.SetCookie(w, sessionCookie)
 
-	if err := app.AttachDeviceId(c.Session.Id, deviceId, c.Session.ExpiresAt); err != nil {
+	if err := c.App.AttachDeviceId(c.Session.Id, deviceId, c.Session.ExpiresAt); err != nil {
 		c.Err = err
 		return
 	}
@@ -990,7 +990,7 @@ func getUserAudits(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if audits, err := app.GetAuditsPage(c.Params.UserId, c.Params.Page, c.Params.PerPage); err != nil {
+	if audits, err := c.App.GetAuditsPage(c.Params.UserId, c.Params.Page, c.Params.PerPage); err != nil {
 		c.Err = err
 		return
 	} else {
@@ -1008,7 +1008,7 @@ func verifyUserEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := app.VerifyEmailFromToken(token); err != nil {
+	if err := c.App.VerifyEmailFromToken(token); err != nil {
 		c.Err = model.NewAppError("verifyUserEmail", "api.user.verify_email.bad_link.app_error", nil, err.Error(), http.StatusBadRequest)
 		return
 	} else {
@@ -1027,14 +1027,14 @@ func sendVerificationEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := app.GetUserForLogin(email, false)
+	user, err := c.App.GetUserForLogin(email, false)
 	if err != nil {
 		// Don't want to leak whether the email is valid or not
 		ReturnStatusOK(w)
 		return
 	}
 
-	err = app.SendEmailVerification(user)
+	err = c.App.SendEmailVerification(user)
 	if err != nil {
 		// Don't want to leak whether the email is valid or not
 		l4g.Error(err.Error())
@@ -1056,18 +1056,18 @@ func switchAccountType(c *Context, w http.ResponseWriter, r *http.Request) {
 	var err *model.AppError
 
 	if switchRequest.EmailToOAuth() {
-		link, err = app.SwitchEmailToOAuth(w, r, switchRequest.Email, switchRequest.Password, switchRequest.MfaCode, switchRequest.NewService)
+		link, err = c.App.SwitchEmailToOAuth(w, r, switchRequest.Email, switchRequest.Password, switchRequest.MfaCode, switchRequest.NewService)
 	} else if switchRequest.OAuthToEmail() {
 		c.SessionRequired()
 		if c.Err != nil {
 			return
 		}
 
-		link, err = app.SwitchOAuthToEmail(switchRequest.Email, switchRequest.NewPassword, c.Session.UserId)
+		link, err = c.App.SwitchOAuthToEmail(switchRequest.Email, switchRequest.NewPassword, c.Session.UserId)
 	} else if switchRequest.EmailToLdap() {
-		link, err = app.SwitchEmailToLdap(switchRequest.Email, switchRequest.Password, switchRequest.MfaCode, switchRequest.LdapId, switchRequest.NewPassword)
+		link, err = c.App.SwitchEmailToLdap(switchRequest.Email, switchRequest.Password, switchRequest.MfaCode, switchRequest.LdapId, switchRequest.NewPassword)
 	} else if switchRequest.LdapToEmail() {
-		link, err = app.SwitchLdapToEmail(switchRequest.Password, switchRequest.MfaCode, switchRequest.Email, switchRequest.NewPassword)
+		link, err = c.App.SwitchLdapToEmail(switchRequest.Password, switchRequest.MfaCode, switchRequest.Email, switchRequest.NewPassword)
 	} else {
 		c.SetInvalidParam("switch_request")
 		return
@@ -1115,7 +1115,7 @@ func createUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 	accessToken.Token = ""
 
 	var err *model.AppError
-	accessToken, err = app.CreateUserAccessToken(accessToken)
+	accessToken, err = c.App.CreateUserAccessToken(accessToken)
 	if err != nil {
 		c.Err = err
 		return
@@ -1141,7 +1141,7 @@ func getUserAccessTokens(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	accessTokens, err := app.GetUserAccessTokensForUser(c.Params.UserId, c.Params.Page, c.Params.PerPage)
+	accessTokens, err := c.App.GetUserAccessTokensForUser(c.Params.UserId, c.Params.Page, c.Params.PerPage)
 	if err != nil {
 		c.Err = err
 		return
@@ -1161,7 +1161,7 @@ func getUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	accessToken, err := app.GetUserAccessToken(c.Params.TokenId, true)
+	accessToken, err := c.App.GetUserAccessToken(c.Params.TokenId, true)
 	if err != nil {
 		c.Err = err
 		return
@@ -1190,7 +1190,7 @@ func revokeUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	accessToken, err := app.GetUserAccessToken(tokenId, false)
+	accessToken, err := c.App.GetUserAccessToken(tokenId, false)
 	if err != nil {
 		c.Err = err
 		return
@@ -1201,7 +1201,7 @@ func revokeUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = app.RevokeUserAccessToken(accessToken)
+	err = c.App.RevokeUserAccessToken(accessToken)
 	if err != nil {
 		c.Err = err
 		return

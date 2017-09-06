@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/mattermost/platform/app"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
 )
@@ -914,7 +913,7 @@ func TestCommandWebhooks(t *testing.T) {
 		UserId:    th.BasicUser.Id,
 		ChannelId: th.BasicChannel.Id,
 	}
-	hook, err := app.CreateCommandWebhook(cmd.Id, args)
+	hook, err := th.App.CreateCommandWebhook(cmd.Id, args)
 	if err != nil {
 		t.Fatal(err)
 	}

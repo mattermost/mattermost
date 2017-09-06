@@ -34,7 +34,7 @@ func createIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	channel, err := app.GetChannel(hook.ChannelId)
+	channel, err := c.App.GetChannel(hook.ChannelId)
 	if err != nil {
 		c.Err = err
 		return
@@ -47,13 +47,13 @@ func createIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if channel.Type != model.CHANNEL_OPEN && !app.SessionHasPermissionToChannel(c.Session, channel.Id, model.PERMISSION_READ_CHANNEL) {
+	if channel.Type != model.CHANNEL_OPEN && !c.App.SessionHasPermissionToChannel(c.Session, channel.Id, model.PERMISSION_READ_CHANNEL) {
 		c.LogAudit("fail - bad channel permissions")
 		c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
 		return
 	}
 
-	if incomingHook, err := app.CreateIncomingWebhookForChannel(c.Session.UserId, channel, hook); err != nil {
+	if incomingHook, err := c.App.CreateIncomingWebhookForChannel(c.Session.UserId, channel, hook); err != nil {
 		c.Err = err
 		return
 	} else {
@@ -73,7 +73,7 @@ func updateIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	c.LogAudit("attempt")
 
-	oldHook, err := app.GetIncomingWebhook(hook.Id)
+	oldHook, err := c.App.GetIncomingWebhook(hook.Id)
 	if err != nil {
 		c.Err = err
 		return
@@ -95,19 +95,19 @@ func updateIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	channel, err := app.GetChannel(hook.ChannelId)
+	channel, err := c.App.GetChannel(hook.ChannelId)
 	if err != nil {
 		c.Err = err
 		return
 	}
 
-	if channel.Type != model.CHANNEL_OPEN && !app.SessionHasPermissionToChannel(c.Session, channel.Id, model.PERMISSION_READ_CHANNEL) {
+	if channel.Type != model.CHANNEL_OPEN && !c.App.SessionHasPermissionToChannel(c.Session, channel.Id, model.PERMISSION_READ_CHANNEL) {
 		c.LogAudit("fail - bad channel permissions")
 		c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
 		return
 	}
 
-	rhook, err := app.UpdateIncomingWebhook(oldHook, hook)
+	rhook, err := c.App.UpdateIncomingWebhook(oldHook, hook)
 	if err != nil {
 		c.Err = err
 		return
@@ -126,7 +126,7 @@ func deleteIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	hook, err := app.GetIncomingWebhook(id)
+	hook, err := c.App.GetIncomingWebhook(id)
 	if err != nil {
 		c.Err = err
 		return
@@ -145,7 +145,7 @@ func deleteIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := app.DeleteIncomingWebhook(id); err != nil {
+	if err := c.App.DeleteIncomingWebhook(id); err != nil {
 		c.LogAudit("fail")
 		c.Err = err
 		return
@@ -161,7 +161,7 @@ func getIncomingHooks(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if hooks, err := app.GetIncomingWebhooksForTeamPage(c.TeamId, 0, 100); err != nil {
+	if hooks, err := c.App.GetIncomingWebhooksForTeamPage(c.TeamId, 0, 100); err != nil {
 		c.Err = err
 		return
 	} else {
@@ -186,7 +186,7 @@ func createOutgoingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if rhook, err := app.CreateOutgoingWebhook(hook); err != nil {
+	if rhook, err := c.App.CreateOutgoingWebhook(hook); err != nil {
 		c.LogAudit("fail")
 		c.Err = err
 		return
@@ -202,7 +202,7 @@ func getOutgoingHooks(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if hooks, err := app.GetOutgoingWebhooksForTeamPage(c.TeamId, 0, 100); err != nil {
+	if hooks, err := c.App.GetOutgoingWebhooksForTeamPage(c.TeamId, 0, 100); err != nil {
 		c.Err = err
 		return
 	} else {
@@ -220,7 +220,7 @@ func updateOutgoingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	oldHook, err := app.GetOutgoingWebhook(hook.Id)
+	oldHook, err := c.App.GetOutgoingWebhook(hook.Id)
 	if err != nil {
 		c.Err = err
 		return
@@ -243,7 +243,7 @@ func updateOutgoingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rhook, err := app.UpdateOutgoingWebhook(oldHook, hook)
+	rhook, err := c.App.UpdateOutgoingWebhook(oldHook, hook)
 	if err != nil {
 		c.Err = err
 		return
@@ -269,7 +269,7 @@ func deleteOutgoingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	hook, err := app.GetOutgoingWebhook(id)
+	hook, err := c.App.GetOutgoingWebhook(id)
 	if err != nil {
 		c.Err = err
 		return
@@ -281,7 +281,7 @@ func deleteOutgoingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := app.DeleteOutgoingWebhook(id); err != nil {
+	if err := c.App.DeleteOutgoingWebhook(id); err != nil {
 		c.LogAudit("fail")
 		c.Err = err
 		return
@@ -300,7 +300,7 @@ func regenOutgoingHookToken(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	hook, err := app.GetOutgoingWebhook(id)
+	hook, err := c.App.GetOutgoingWebhook(id)
 	if err != nil {
 		c.Err = err
 		return
@@ -324,7 +324,7 @@ func regenOutgoingHookToken(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	if rhook, err := app.RegenOutgoingWebhookToken(hook); err != nil {
+	if rhook, err := c.App.RegenOutgoingWebhookToken(hook); err != nil {
 		c.Err = err
 		return
 	} else {

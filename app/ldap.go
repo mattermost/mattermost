@@ -38,17 +38,17 @@ func TestLdap() *model.AppError {
 	return nil
 }
 
-func SwitchEmailToLdap(email, password, code, ldapId, ldapPassword string) (string, *model.AppError) {
-	user, err := GetUserByEmail(email)
+func (a *App) SwitchEmailToLdap(email, password, code, ldapId, ldapPassword string) (string, *model.AppError) {
+	user, err := a.GetUserByEmail(email)
 	if err != nil {
 		return "", err
 	}
 
-	if err := CheckPasswordAndAllCriteria(user, password, code); err != nil {
+	if err := a.CheckPasswordAndAllCriteria(user, password, code); err != nil {
 		return "", err
 	}
 
-	if err := RevokeAllSessions(user.Id); err != nil {
+	if err := a.RevokeAllSessions(user.Id); err != nil {
 		return "", err
 	}
 
@@ -70,8 +70,8 @@ func SwitchEmailToLdap(email, password, code, ldapId, ldapPassword string) (stri
 	return "/login?extra=signin_change", nil
 }
 
-func SwitchLdapToEmail(ldapPassword, code, email, newPassword string) (string, *model.AppError) {
-	user, err := GetUserByEmail(email)
+func (a *App) SwitchLdapToEmail(ldapPassword, code, email, newPassword string) (string, *model.AppError) {
+	user, err := a.GetUserByEmail(email)
 	if err != nil {
 		return "", err
 	}
@@ -93,11 +93,11 @@ func SwitchLdapToEmail(ldapPassword, code, email, newPassword string) (string, *
 		return "", err
 	}
 
-	if err := UpdatePassword(user, newPassword); err != nil {
+	if err := a.UpdatePassword(user, newPassword); err != nil {
 		return "", err
 	}
 
-	if err := RevokeAllSessions(user.Id); err != nil {
+	if err := a.RevokeAllSessions(user.Id); err != nil {
 		return "", err
 	}
 

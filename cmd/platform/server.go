@@ -71,18 +71,18 @@ func runServer(configFileLocation string) {
 		l4g.Error("Problem with file storage settings: " + err.Error())
 	}
 
-	app.NewServer()
-	app.InitStores()
+	app.Global().NewServer()
+	app.Global().InitStores()
 	api.InitRouter()
 	wsapi.InitRouter()
 	api4.InitApi(false)
 	api.InitApi()
-	app.InitPlugins()
+	app.Global().InitPlugins()
 	wsapi.InitApi()
 	web.InitWeb()
 
 	if model.BuildEnterpriseReady == "true" {
-		app.LoadLicense()
+		app.Global().LoadLicense()
 	}
 
 	if !utils.IsLicensed() && len(utils.Cfg.SqlSettings.DataSourceReplicas) > 1 {
@@ -98,7 +98,7 @@ func runServer(configFileLocation string) {
 
 	resetStatuses()
 
-	app.StartServer()
+	app.Global().StartServer()
 
 	// If we allow testing then listen for manual testing URL hits
 	if utils.Cfg.ServiceSettings.EnableTesting {
@@ -118,7 +118,7 @@ func runServer(configFileLocation string) {
 	}
 
 	if einterfaces.GetClusterInterface() != nil {
-		app.RegisterAllClusterMessageHandlers()
+		app.Global().RegisterAllClusterMessageHandlers()
 		einterfaces.GetClusterInterface().StartInterNodeCommunication()
 	}
 
@@ -132,7 +132,7 @@ func runServer(configFileLocation string) {
 		}
 	}
 
-	jobs.Srv.Store = app.Srv.Store
+	jobs.Srv.Store = app.Global().Srv.Store
 	if *utils.Cfg.JobSettings.RunJobs {
 		jobs.Srv.StartWorkers()
 	}
@@ -157,7 +157,7 @@ func runServer(configFileLocation string) {
 	jobs.Srv.StopSchedulers()
 	jobs.Srv.StopWorkers()
 
-	app.StopServer()
+	app.Global().StopServer()
 }
 
 func runSecurityJob() {
@@ -181,20 +181,20 @@ func runCommandWebhookCleanupJob() {
 }
 
 func resetStatuses() {
-	if result := <-app.Srv.Store.Status().ResetAll(); result.Err != nil {
+	if result := <-app.Global().Srv.Store.Status().ResetAll(); result.Err != nil {
 		l4g.Error(utils.T("mattermost.reset_status.error"), result.Err.Error())
 	}
 }
 
 func setDiagnosticId() {
-	if result := <-app.Srv.Store.System().Get(); result.Err == nil {
+	if result := <-app.Global().Srv.Store.System().Get(); result.Err == nil {
 		props := result.Data.(model.StringMap)
 
 		id := props[model.SYSTEM_DIAGNOSTIC_ID]
 		if len(id) == 0 {
 			id = model.NewId()
 			systemId := &model.System{Name: model.SYSTEM_DIAGNOSTIC_ID, Value: id}
-			<-app.Srv.Store.System().Save(systemId)
+			<-app.Global().Srv.Store.System().Save(systemId)
 		}
 
 		utils.CfgDiagnosticId = id
@@ -202,19 +202,19 @@ func setDiagnosticId() {
 }
 
 func doSecurity() {
-	app.DoSecurityUpdateCheck()
+	app.Global().DoSecurityUpdateCheck()
 }
 
 func doDiagnostics() {
 	if *utils.Cfg.LogSettings.EnableDiagnostics {
-		app.SendDailyDiagnostics()
+		app.Global().SendDailyDiagnostics()
 	}
 }
 
 func doTokenCleanup() {
-	app.Srv.Store.Token().Cleanup()
+	app.Global().Srv.Store.Token().Cleanup()
 }
 
 func doCommandWebhookCleanup() {
-	app.Srv.Store.CommandWebhook().Cleanup()
+	app.Global().Srv.Store.CommandWebhook().Cleanup()
 }

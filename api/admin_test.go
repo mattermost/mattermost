@@ -8,7 +8,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/mattermost/platform/app"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/store"
 	"github.com/mattermost/platform/utils"
@@ -597,7 +596,7 @@ func TestAdminResetPassword(t *testing.T) {
 	user := &model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1"}
 	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
 	LinkUserToTeam(user, team)
-	store.Must(app.Srv.Store.User().VerifyEmail(user.Id))
+	store.Must(th.App.Srv.Store.User().VerifyEmail(user.Id))
 
 	if _, err := Client.AdminResetPassword("", "newpwd1"); err == nil {
 		t.Fatal("Should have errored - empty user id")
@@ -619,7 +618,7 @@ func TestAdminResetPassword(t *testing.T) {
 	user2 := &model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", AuthData: &authData, AuthService: "random"}
 	user2 = Client.Must(Client.CreateUser(user2, "")).Data.(*model.User)
 	LinkUserToTeam(user2, team)
-	store.Must(app.Srv.Store.User().VerifyEmail(user2.Id))
+	store.Must(th.App.Srv.Store.User().VerifyEmail(user2.Id))
 
 	if _, err := Client.AdminResetPassword(user.Id, "newpwd1"); err != nil {
 		t.Fatal(err)

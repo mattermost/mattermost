@@ -80,16 +80,14 @@ func (cw *CorsWrapper) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 const TIME_TO_WAIT_FOR_CONNECTIONS_TO_CLOSE_ON_SERVER_SHUTDOWN = time.Second
 
-var Srv *Server
-
-func NewServer() {
+func (a *App) NewServer() {
 	l4g.Info(utils.T("api.server.new_server.init.info"))
 
-	Srv = &Server{}
+	a.Srv = &Server{}
 }
 
-func InitStores() {
-	Srv.Store = store.NewLayeredStore()
+func (a *App) InitStores() {
+	a.Srv.Store = store.NewLayeredStore()
 }
 
 type VaryBy struct{}
@@ -128,10 +126,10 @@ func redirectHTTPToHTTPS(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, url.String(), http.StatusFound)
 }
 
-func StartServer() {
+func (a *App) StartServer() {
 	l4g.Info(utils.T("api.server.start_server.starting.info"))
 
-	var handler http.Handler = &CorsWrapper{Srv.Router}
+	var handler http.Handler = &CorsWrapper{a.Srv.Router}
 
 	if *utils.Cfg.RateLimitSettings.Enable {
 		l4g.Info(utils.T("api.server.start_server.rate.info"))
@@ -165,7 +163,7 @@ func StartServer() {
 		handler = httpRateLimiter.RateLimit(handler)
 	}
 
-	Srv.GracefulServer = &graceful.Server{
+	a.Srv.GracefulServer = &graceful.Server{
 		Timeout: TIME_TO_WAIT_FOR_CONNECTIONS_TO_CLOSE_ON_SERVER_SHUTDOWN,
 		Server: &http.Server{
 			Addr:         *utils.Cfg.ServiceSettings.ListenAddress,
@@ -190,7 +188,7 @@ func StartServer() {
 	}
 
 	if utils.IsLicensed() && *utils.License().Features.FutureFeatures && *utils.Cfg.PluginSettings.Enable {
-		StartupPlugins("plugins", "webapp/dist")
+		a.StartupPlugins("plugins", "webapp/dist")
 	}
 
 	go func() {
@@ -206,12 +204,12 @@ func StartServer() {
 
 				tlsConfig.NextProtos = append(tlsConfig.NextProtos, "h2")
 
-				err = Srv.GracefulServer.ListenAndServeTLSConfig(tlsConfig)
+				err = a.Srv.GracefulServer.ListenAndServeTLSConfig(tlsConfig)
 			} else {
-				err = Srv.GracefulServer.ListenAndServeTLS(*utils.Cfg.ServiceSettings.TLSCertFile, *utils.Cfg.ServiceSettings.TLSKeyFile)
+				err = a.Srv.GracefulServer.ListenAndServeTLS(*utils.Cfg.ServiceSettings.TLSCertFile, *utils.Cfg.ServiceSettings.TLSKeyFile)
 			}
 		} else {
-			err = Srv.GracefulServer.ListenAndServe()
+			err = a.Srv.GracefulServer.ListenAndServe()
 		}
 		if err != nil {
 			l4g.Critical(utils.T("api.server.start_server.starting.critical"), err)
@@ -220,18 +218,18 @@ func StartServer() {
 	}()
 }
 
-func StopServer() {
+func (a *App) StopServer() {
 
 	l4g.Info(utils.T("api.server.stop_server.stopping.info"))
 
-	Srv.GracefulServer.Stop(TIME_TO_WAIT_FOR_CONNECTIONS_TO_CLOSE_ON_SERVER_SHUTDOWN)
-	Srv.Store.Close()
+	a.Srv.GracefulServer.Stop(TIME_TO_WAIT_FOR_CONNECTIONS_TO_CLOSE_ON_SERVER_SHUTDOWN)
+	a.Srv.Store.Close()
 	HubStop()
 
 	l4g.Info(utils.T("api.server.stop_server.stopped.info"))
 }
 
-func StartupPlugins(pluginPath, webappPath string) {
+func (a *App) StartupPlugins(pluginPath, webappPath string) {
 	l4g.Info("Starting up plugins")
 
 	err := os.Mkdir(pluginPath, 0744)
@@ -244,7 +242,7 @@ func StartupPlugins(pluginPath, webappPath string) {
 		}
 	}
 
-	Srv.PluginEnv, err = pluginenv.New(
+	a.Srv.PluginEnv, err = pluginenv.New(
 		pluginenv.SearchPath(pluginPath),
 		pluginenv.WebappPath(webappPath),
 	)
@@ -253,5 +251,5 @@ func StartupPlugins(pluginPath, webappPath string) {
 		l4g.Error("failed to start up plugins: " + err.Error())
 	}
 
-	ActivatePlugins()
+	a.ActivatePlugins()
 }

@@ -65,7 +65,7 @@ func createTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rteam, err := app.CreateTeamWithUser(team, c.Session.UserId)
+	rteam, err := c.App.CreateTeamWithUser(team, c.Session.UserId)
 	if err != nil {
 		c.Err = err
 		return
@@ -81,7 +81,7 @@ func getTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if team, err := app.GetTeam(c.Params.TeamId); err != nil {
+	if team, err := c.App.GetTeam(c.Params.TeamId); err != nil {
 		c.Err = err
 		return
 	} else {
@@ -101,7 +101,7 @@ func getTeamByName(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if team, err := app.GetTeamByName(c.Params.TeamName); err != nil {
+	if team, err := c.App.GetTeamByName(c.Params.TeamName); err != nil {
 		c.Err = err
 		return
 	} else {
@@ -135,7 +135,7 @@ func updateTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	updatedTeam, err := app.UpdateTeam(team)
+	updatedTeam, err := c.App.UpdateTeam(team)
 
 	if err != nil {
 		c.Err = err
@@ -163,7 +163,7 @@ func patchTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	patchedTeam, err := app.PatchTeam(c.Params.TeamId, team)
+	patchedTeam, err := c.App.PatchTeam(c.Params.TeamId, team)
 
 	if err != nil {
 		c.Err = err
@@ -187,9 +187,9 @@ func deleteTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var err *model.AppError
 	if c.Params.Permanent {
-		err = app.PermanentDeleteTeamId(c.Params.TeamId)
+		err = c.App.PermanentDeleteTeamId(c.Params.TeamId)
 	} else {
-		err = app.SoftDeleteTeam(c.Params.TeamId)
+		err = c.App.SoftDeleteTeam(c.Params.TeamId)
 	}
 
 	if err != nil {
@@ -211,7 +211,7 @@ func getTeamsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if teams, err := app.GetTeamsForUser(c.Params.UserId); err != nil {
+	if teams, err := c.App.GetTeamsForUser(c.Params.UserId); err != nil {
 		c.Err = err
 		return
 	} else {
@@ -233,7 +233,7 @@ func getTeamsUnreadForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	// optional team id to be excluded from the result
 	teamId := r.URL.Query().Get("exclude_team")
 
-	unreadTeamsList, err := app.GetTeamsUnreadForUser(teamId, c.Params.UserId)
+	unreadTeamsList, err := c.App.GetTeamsUnreadForUser(teamId, c.Params.UserId)
 	if err != nil {
 		c.Err = err
 		return
@@ -253,7 +253,7 @@ func getTeamMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if team, err := app.GetTeamMember(c.Params.TeamId, c.Params.UserId); err != nil {
+	if team, err := c.App.GetTeamMember(c.Params.TeamId, c.Params.UserId); err != nil {
 		c.Err = err
 		return
 	} else {
@@ -273,7 +273,7 @@ func getTeamMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if members, err := app.GetTeamMembers(c.Params.TeamId, c.Params.Page, c.Params.PerPage); err != nil {
+	if members, err := c.App.GetTeamMembers(c.Params.TeamId, c.Params.Page, c.Params.PerPage); err != nil {
 		c.Err = err
 		return
 	} else {
@@ -293,7 +293,7 @@ func getTeamMembersForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	members, err := app.GetTeamMembersForUser(c.Params.UserId)
+	members, err := c.App.GetTeamMembersForUser(c.Params.UserId)
 	if err != nil {
 		c.Err = err
 		return
@@ -320,7 +320,7 @@ func getTeamMembersByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	members, err := app.GetTeamMembersByIds(c.Params.TeamId, userIds)
+	members, err := c.App.GetTeamMembersByIds(c.Params.TeamId, userIds)
 	if err != nil {
 		c.Err = err
 		return
@@ -352,7 +352,7 @@ func addTeamMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	member, err = app.AddTeamMember(member.TeamId, member.UserId)
+	member, err = c.App.AddTeamMember(member.TeamId, member.UserId)
 
 	if err != nil {
 		c.Err = err
@@ -372,9 +372,9 @@ func addUserToTeamFromInvite(c *Context, w http.ResponseWriter, r *http.Request)
 	var err *model.AppError
 
 	if len(hash) > 0 && len(data) > 0 {
-		member, err = app.AddTeamMemberByHash(c.Session.UserId, hash, data)
+		member, err = c.App.AddTeamMemberByHash(c.Session.UserId, hash, data)
 	} else if len(inviteId) > 0 {
-		member, err = app.AddTeamMemberByInviteId(inviteId, c.Session.UserId)
+		member, err = c.App.AddTeamMemberByInviteId(inviteId, c.Session.UserId)
 	} else {
 		err = model.NewAppError("addTeamMember", "api.team.add_user_to_team.missing_parameter.app_error", nil, "", http.StatusBadRequest)
 	}
@@ -422,7 +422,7 @@ func addTeamMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	members, err = app.AddTeamMembers(c.Params.TeamId, userIds, c.Session.UserId)
+	members, err = c.App.AddTeamMembers(c.Params.TeamId, userIds, c.Session.UserId)
 
 	if err != nil {
 		c.Err = err
@@ -446,7 +446,7 @@ func removeTeamMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if err := app.RemoveUserFromTeam(c.Params.TeamId, c.Params.UserId); err != nil {
+	if err := c.App.RemoveUserFromTeam(c.Params.TeamId, c.Params.UserId); err != nil {
 		c.Err = err
 		return
 	}
@@ -470,7 +470,7 @@ func getTeamUnread(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	unreadTeam, err := app.GetTeamUnread(c.Params.TeamId, c.Params.UserId)
+	unreadTeam, err := c.App.GetTeamUnread(c.Params.TeamId, c.Params.UserId)
 	if err != nil {
 		c.Err = err
 		return
@@ -490,7 +490,7 @@ func getTeamStats(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if stats, err := app.GetTeamStats(c.Params.TeamId); err != nil {
+	if stats, err := c.App.GetTeamStats(c.Params.TeamId); err != nil {
 		c.Err = err
 		return
 	} else {
@@ -518,7 +518,7 @@ func updateTeamMemberRoles(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if _, err := app.UpdateTeamMemberRoles(c.Params.TeamId, c.Params.UserId, newRoles); err != nil {
+	if _, err := c.App.UpdateTeamMemberRoles(c.Params.TeamId, c.Params.UserId, newRoles); err != nil {
 		c.Err = err
 		return
 	}
@@ -531,9 +531,9 @@ func getAllTeams(c *Context, w http.ResponseWriter, r *http.Request) {
 	var err *model.AppError
 
 	if app.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
-		teams, err = app.GetAllTeamsPage(c.Params.Page, c.Params.PerPage)
+		teams, err = c.App.GetAllTeamsPage(c.Params.Page, c.Params.PerPage)
 	} else {
-		teams, err = app.GetAllOpenTeamsPage(c.Params.Page, c.Params.PerPage)
+		teams, err = c.App.GetAllOpenTeamsPage(c.Params.Page, c.Params.PerPage)
 	}
 
 	if err != nil {
@@ -560,9 +560,9 @@ func searchTeams(c *Context, w http.ResponseWriter, r *http.Request) {
 	var err *model.AppError
 
 	if app.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
-		teams, err = app.SearchAllTeams(props.Term)
+		teams, err = c.App.SearchAllTeams(props.Term)
 	} else {
-		teams, err = app.SearchOpenTeams(props.Term)
+		teams, err = c.App.SearchOpenTeams(props.Term)
 	}
 
 	if err != nil {
@@ -581,7 +581,7 @@ func teamExists(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	resp := make(map[string]bool)
 
-	if _, err := app.GetTeamByName(c.Params.TeamName); err != nil {
+	if _, err := c.App.GetTeamByName(c.Params.TeamName); err != nil {
 		resp["exists"] = false
 	} else {
 		resp["exists"] = true
@@ -646,7 +646,7 @@ func importTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	switch importFrom {
 	case "slack":
 		var err *model.AppError
-		if err, log = app.SlackImport(fileData, fileSize, c.Params.TeamId); err != nil {
+		if err, log = c.App.SlackImport(fileData, fileSize, c.Params.TeamId); err != nil {
 			c.Err = err
 			c.Err.StatusCode = http.StatusBadRequest
 		}
@@ -683,7 +683,7 @@ func inviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := app.InviteNewUsersToTeam(emailList, c.Params.TeamId, c.Session.UserId)
+	err := c.App.InviteNewUsersToTeam(emailList, c.Params.TeamId, c.Session.UserId)
 	if err != nil {
 		c.Err = err
 		return
@@ -698,7 +698,7 @@ func getInviteInfo(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if team, err := app.GetTeamByInviteId(c.Params.InviteId); err != nil {
+	if team, err := c.App.GetTeamByInviteId(c.Params.InviteId); err != nil {
 		c.Err = err
 		return
 	} else {

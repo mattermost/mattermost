@@ -10,6 +10,8 @@ import (
 	"net/http"
 	"strings"
 
+	"image/color/palette"
+
 	l4g "github.com/alecthomas/log4go"
 	"github.com/disintegration/imaging"
 	"github.com/gorilla/mux"
@@ -17,7 +19,6 @@ import (
 	"github.com/mattermost/platform/einterfaces"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
-	"image/color/palette"
 )
 
 func InitEmoji() {
@@ -35,7 +36,7 @@ func getEmoji(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	listEmoji, err := app.GetEmojiList(0, 100000)
+	listEmoji, err := c.App.GetEmojiList(0, 100000)
 	if err != nil {
 		c.Err = err
 		return
@@ -97,7 +98,7 @@ func createEmoji(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if result := <-app.Srv.Store.Emoji().GetByName(emoji.Name); result.Err == nil && result.Data != nil {
+	if result := <-c.App.Srv.Store.Emoji().GetByName(emoji.Name); result.Err == nil && result.Data != nil {
 		c.Err = model.NewAppError("createEmoji", "api.emoji.create.duplicate.app_error", nil, "", http.StatusBadRequest)
 		return
 	}
@@ -110,7 +111,7 @@ func createEmoji(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if result := <-app.Srv.Store.Emoji().Save(emoji); result.Err != nil {
+	if result := <-c.App.Srv.Store.Emoji().Save(emoji); result.Err != nil {
 		c.Err = result.Err
 		return
 	} else {
@@ -141,7 +142,7 @@ func deleteEmoji(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	emoji, err := app.GetEmoji(id)
+	emoji, err := c.App.GetEmoji(id)
 	if err != nil {
 		c.Err = err
 		return
@@ -152,7 +153,7 @@ func deleteEmoji(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = app.DeleteEmoji(emoji)
+	err = c.App.DeleteEmoji(emoji)
 	if err != nil {
 		c.Err = err
 		return
@@ -180,7 +181,7 @@ func getEmojiImage(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	image, imageType, err := app.GetEmojiImage(id)
+	image, imageType, err := c.App.GetEmojiImage(id)
 	if err != nil {
 		c.Err = err
 		return

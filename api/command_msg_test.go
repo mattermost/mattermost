@@ -4,9 +4,10 @@
 package api
 
 import (
-	"github.com/mattermost/platform/model"
 	"strings"
 	"testing"
+
+	"github.com/mattermost/platform/model"
 )
 
 func TestMsgCommands(t *testing.T) {

@@ -13,7 +13,7 @@ import (
 func InitSystem() {
 	l4g.Debug(utils.T("wsapi.system.init.debug"))
 
-	app.Srv.WebSocketRouter.Handle("ping", ApiWebSocketHandler(ping))
+	app.Global().Srv.WebSocketRouter.Handle("ping", ApiWebSocketHandler(ping))
 }
 
 func ping(req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {

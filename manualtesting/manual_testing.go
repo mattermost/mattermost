@@ -29,7 +29,7 @@ type TestEnvironment struct {
 }
 
 func InitManualTesting() {
-	app.Srv.Router.Handle("/manualtest", api.AppHandler(manualTest)).Methods("GET")
+	app.Global().Srv.Router.Handle("/manualtest", api.AppHandler(manualTest)).Methods("GET")
 }
 
 func manualTest(c *api.Context, w http.ResponseWriter, r *http.Request) {
@@ -72,7 +72,7 @@ func manualTest(c *api.Context, w http.ResponseWriter, r *http.Request) {
 			Type:        model.TEAM_OPEN,
 		}
 
-		if result := <-app.Srv.Store.Team().Save(team); result.Err != nil {
+		if result := <-c.App.Srv.Store.Team().Save(team); result.Err != nil {
 			c.Err = result.Err
 			return
 		} else {
@@ -80,7 +80,7 @@ func manualTest(c *api.Context, w http.ResponseWriter, r *http.Request) {
 			createdTeam := result.Data.(*model.Team)
 
 			channel := &model.Channel{DisplayName: "Town Square", Name: "town-square", Type: model.CHANNEL_OPEN, TeamId: createdTeam.Id}
-			if _, err := app.CreateChannel(channel, false); err != nil {
+			if _, err := c.App.CreateChannel(channel, false); err != nil {
 				c.Err = err
 				return
 			}
@@ -100,8 +100,8 @@ func manualTest(c *api.Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		<-app.Srv.Store.User().VerifyEmail(result.Data.(*model.User).Id)
-		<-app.Srv.Store.Team().SaveMember(&model.TeamMember{TeamId: teamID, UserId: result.Data.(*model.User).Id})
+		<-c.App.Srv.Store.User().VerifyEmail(result.Data.(*model.User).Id)
+		<-c.App.Srv.Store.Team().SaveMember(&model.TeamMember{TeamId: teamID, UserId: result.Data.(*model.User).Id})
 
 		newuser := result.Data.(*model.User)
 		userID = newuser.Id
@@ -155,7 +155,7 @@ func manualTest(c *api.Context, w http.ResponseWriter, r *http.Request) {
 
 func getChannelID(channelname string, teamid string, userid string) (id string, err bool) {
 	// Grab all the channels
-	result := <-app.Srv.Store.Channel().GetChannels(teamid, userid)
+	result := <-app.Global().Srv.Store.Channel().GetChannels(teamid, userid)
 	if result.Err != nil {
 		l4g.Debug(utils.T("manaultesting.get_channel_id.unable.debug"))
 		return "", false

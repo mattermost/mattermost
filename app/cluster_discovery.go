@@ -31,19 +31,19 @@ func NewClusterDiscoveryService() *ClusterDiscoveryService {
 
 func (me *ClusterDiscoveryService) Start() {
 
-	<-Srv.Store.ClusterDiscovery().Cleanup()
+	<-Global().Srv.Store.ClusterDiscovery().Cleanup()
 
-	if cresult := <-Srv.Store.ClusterDiscovery().Exists(&me.ClusterDiscovery); cresult.Err != nil {
+	if cresult := <-Global().Srv.Store.ClusterDiscovery().Exists(&me.ClusterDiscovery); cresult.Err != nil {
 		l4g.Error(fmt.Sprintf("ClusterDiscoveryService failed to check if row exists for %v with err=%v", me.ClusterDiscovery.ToJson(), cresult.Err))
 	} else {
 		if cresult.Data.(bool) {
-			if u := <-Srv.Store.ClusterDiscovery().Delete(&me.ClusterDiscovery); u.Err != nil {
+			if u := <-Global().Srv.Store.ClusterDiscovery().Delete(&me.ClusterDiscovery); u.Err != nil {
 				l4g.Error(fmt.Sprintf("ClusterDiscoveryService failed to start clean for %v with err=%v", me.ClusterDiscovery.ToJson(), u.Err))
 			}
 		}
 	}
 
-	if result := <-Srv.Store.ClusterDiscovery().Save(&me.ClusterDiscovery); result.Err != nil {
+	if result := <-Global().Srv.Store.ClusterDiscovery().Save(&me.ClusterDiscovery); result.Err != nil {
 		l4g.Error(fmt.Sprintf("ClusterDiscoveryService failed to save for %v with err=%v", me.ClusterDiscovery.ToJson(), result.Err))
 		return
 	}
@@ -53,7 +53,7 @@ func (me *ClusterDiscoveryService) Start() {
 		ticker := time.NewTicker(DISCOVERY_SERVICE_WRITE_PING)
 		defer func() {
 			ticker.Stop()
-			if u := <-Srv.Store.ClusterDiscovery().Delete(&me.ClusterDiscovery); u.Err != nil {
+			if u := <-Global().Srv.Store.ClusterDiscovery().Delete(&me.ClusterDiscovery); u.Err != nil {
 				l4g.Error(fmt.Sprintf("ClusterDiscoveryService failed to cleanup for %v with err=%v", me.ClusterDiscovery.ToJson(), u.Err))
 			}
 			l4g.Debug(fmt.Sprintf("ClusterDiscoveryService ping writer stopped for %v", me.ClusterDiscovery.ToJson()))
@@ -62,7 +62,7 @@ func (me *ClusterDiscoveryService) Start() {
 		for {
 			select {
 			case <-ticker.C:
-				if u := <-Srv.Store.ClusterDiscovery().SetLastPingAt(&me.ClusterDiscovery); u.Err != nil {
+				if u := <-Global().Srv.Store.ClusterDiscovery().SetLastPingAt(&me.ClusterDiscovery); u.Err != nil {
 					l4g.Error(fmt.Sprintf("ClusterDiscoveryService failed to write ping for %v with err=%v", me.ClusterDiscovery.ToJson(), u.Err))
 				}
 			case <-me.stop:

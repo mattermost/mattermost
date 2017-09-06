@@ -188,7 +188,7 @@ func changeUserActiveStatus(user *model.User, userArg string, activate bool) err
 	if user.IsLDAPUser() {
 		return errors.New("You can not modify the activation status of AD/LDAP accounts. Please modify through the AD/LDAP server.")
 	}
-	if _, err := app.UpdateActive(user, activate); err != nil {
+	if _, err := app.Global().UpdateActive(user, activate); err != nil {
 		return fmt.Errorf("Unable to change activation status of user: %v", userArg)
 	}
 
@@ -241,13 +241,13 @@ func userCreateCmdF(cmd *cobra.Command, args []string) error {
 		Locale:    locale,
 	}
 
-	ruser, err := app.CreateUser(user)
+	ruser, err := app.Global().CreateUser(user)
 	if err != nil {
 		return errors.New("Unable to create user. Error: " + err.Error())
 	}
 
 	if systemAdmin {
-		app.UpdateUserRoles(ruser.Id, "system_user system_admin")
+		app.Global().UpdateUserRoles(ruser.Id, "system_user system_admin")
 	}
 
 	CommandPrettyPrintln("Created User")
@@ -310,7 +310,7 @@ func resetUserPasswordCmdF(cmd *cobra.Command, args []string) error {
 	}
 	password := args[1]
 
-	if result := <-app.Srv.Store.User().UpdatePassword(user.Id, model.HashPassword(password)); result.Err != nil {
+	if result := <-app.Global().Srv.Store.User().UpdatePassword(user.Id, model.HashPassword(password)); result.Err != nil {
 		return result.Err
 	}
 
@@ -373,7 +373,7 @@ func deleteUserCmdF(cmd *cobra.Command, args []string) error {
 			return errors.New("Unable to find user '" + args[i] + "'")
 		}
 
-		if err := app.PermanentDeleteUser(user); err != nil {
+		if err := app.Global().PermanentDeleteUser(user); err != nil {
 			return err
 		}
 	}
@@ -406,7 +406,7 @@ func deleteAllUsersCommandF(cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	if err := app.PermanentDeleteAllUsers(); err != nil {
+	if err := app.Global().PermanentDeleteAllUsers(); err != nil {
 		return err
 	}
 
@@ -473,7 +473,7 @@ func verifyUserCmdF(cmd *cobra.Command, args []string) error {
 			CommandPrintErrorln("Unable to find user '" + args[i] + "'")
 			continue
 		}
-		if cresult := <-app.Srv.Store.User().VerifyEmail(user.Id); cresult.Err != nil {
+		if cresult := <-app.Global().Srv.Store.User().VerifyEmail(user.Id); cresult.Err != nil {
 			CommandPrintErrorln("Unable to verify '" + args[i] + "' email. Error: " + cresult.Err.Error())
 		}
 	}

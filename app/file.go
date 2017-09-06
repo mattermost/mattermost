@@ -107,13 +107,13 @@ func GetInfoForFilename(post *model.Post, teamId string, filename string) *model
 	return info
 }
 
-func FindTeamIdForFilename(post *model.Post, filename string) string {
+func (a *App) FindTeamIdForFilename(post *model.Post, filename string) string {
 	split := strings.SplitN(filename, "/", 5)
 	id := split[3]
 	name, _ := url.QueryUnescape(split[4])
 
 	// This post is in a direct channel so we need to figure out what team the files are stored under.
-	if result := <-Srv.Store.Team().GetTeamsByUserId(post.UserId); result.Err != nil {
+	if result := <-a.Srv.Store.Team().GetTeamsByUserId(post.UserId); result.Err != nil {
 		l4g.Error(utils.T("api.file.migrate_filenames_to_file_infos.teams.app_error"), post.Id, result.Err)
 	} else if teams := result.Data.([]*model.Team); len(teams) == 1 {
 		// The user has only one team so the post must've been sent from it
@@ -134,13 +134,13 @@ func FindTeamIdForFilename(post *model.Post, filename string) string {
 var fileMigrationLock sync.Mutex
 
 // Creates and stores FileInfos for a post created before the FileInfos table existed.
-func MigrateFilenamesToFileInfos(post *model.Post) []*model.FileInfo {
+func (a *App) MigrateFilenamesToFileInfos(post *model.Post) []*model.FileInfo {
 	if len(post.Filenames) == 0 {
 		l4g.Warn(utils.T("api.file.migrate_filenames_to_file_infos.no_filenames.warn"), post.Id)
 		return []*model.FileInfo{}
 	}
 
-	cchan := Srv.Store.Channel().Get(post.ChannelId, true)
+	cchan := a.Srv.Store.Channel().Get(post.ChannelId, true)
 
 	// There's a weird bug that rarely happens where a post ends up with duplicate Filenames so remove those
 	filenames := utils.RemoveDuplicatesFromStringArray(post.Filenames)
@@ -157,7 +157,7 @@ func MigrateFilenamesToFileInfos(post *model.Post) []*model.FileInfo {
 	var teamId string
 	if channel.TeamId == "" {
 		// This post was made in a cross-team DM channel so we need to find where its files were saved
-		teamId = FindTeamIdForFilename(post, filenames[0])
+		teamId = a.FindTeamIdForFilename(post, filenames[0])
 	} else {
 		teamId = channel.TeamId
 	}
@@ -181,12 +181,12 @@ func MigrateFilenamesToFileInfos(post *model.Post) []*model.FileInfo {
 	fileMigrationLock.Lock()
 	defer fileMigrationLock.Unlock()
 
-	if result := <-Srv.Store.Post().Get(post.Id); result.Err != nil {
+	if result := <-a.Srv.Store.Post().Get(post.Id); result.Err != nil {
 		l4g.Error(utils.T("api.file.migrate_filenames_to_file_infos.get_post_again.app_error"), post.Id, result.Err)
 		return []*model.FileInfo{}
 	} else if newPost := result.Data.(*model.PostList).Posts[post.Id]; len(newPost.Filenames) != len(post.Filenames) {
 		// Another thread has already created FileInfos for this post, so just return those
-		if result := <-Srv.Store.FileInfo().GetForPost(post.Id, true, false); result.Err != nil {
+		if result := <-a.Srv.Store.FileInfo().GetForPost(post.Id, true, false); result.Err != nil {
 			l4g.Error(utils.T("api.file.migrate_filenames_to_file_infos.get_post_file_infos_again.app_error"), post.Id, result.Err)
 			return []*model.FileInfo{}
 		} else {
@@ -200,7 +200,7 @@ func MigrateFilenamesToFileInfos(post *model.Post) []*model.FileInfo {
 	savedInfos := make([]*model.FileInfo, 0, len(infos))
 	fileIds := make([]string, 0, len(filenames))
 	for _, info := range infos {
-		if result := <-Srv.Store.FileInfo().Save(info); result.Err != nil {
+		if result := <-a.Srv.Store.FileInfo().Save(info); result.Err != nil {
 			l4g.Error(utils.T("api.file.migrate_filenames_to_file_infos.save_file_info.app_error"), post.Id, info.Id, info.Path, result.Err)
 			continue
 		}
@@ -217,7 +217,7 @@ func MigrateFilenamesToFileInfos(post *model.Post) []*model.FileInfo {
 	newPost.FileIds = fileIds
 
 	// Update Posts to clear Filenames and set FileIds
-	if result := <-Srv.Store.Post().Update(newPost, post); result.Err != nil {
+	if result := <-a.Srv.Store.Post().Update(newPost, post); result.Err != nil {
 		l4g.Error(utils.T("api.file.migrate_filenames_to_file_infos.save_post.app_error"), post.Id, newPost.FileIds, post.Filenames, result.Err)
 		return []*model.FileInfo{}
 	} else {
@@ -243,7 +243,7 @@ func GeneratePublicLinkHash(fileId, salt string) string {
 	return base64.RawURLEncoding.EncodeToString(hash.Sum(nil))
 }
 
-func UploadFiles(teamId string, channelId string, userId string, fileHeaders []*multipart.FileHeader, clientIds []string) (*model.FileUploadResponse, *model.AppError) {
+func (a *App) UploadFiles(teamId string, channelId string, userId string, fileHeaders []*multipart.FileHeader, clientIds []string) (*model.FileUploadResponse, *model.AppError) {
 	if len(*utils.Cfg.FileSettings.DriverName) == 0 {
 		return nil, model.NewAppError("uploadFile", "api.file.upload_file.storage.app_error", nil, "", http.StatusNotImplemented)
 	}
@@ -268,7 +268,7 @@ func UploadFiles(teamId string, channelId string, userId string, fileHeaders []*
 		io.Copy(buf, file)
 		data := buf.Bytes()
 
-		info, err := DoUploadFile(time.Now(), teamId, channelId, userId, fileHeader.Filename, data)
+		info, err := a.DoUploadFile(time.Now(), teamId, channelId, userId, fileHeader.Filename, data)
 		if err != nil {
 			return nil, err
 		}
@@ -291,7 +291,7 @@ func UploadFiles(teamId string, channelId string, userId string, fileHeaders []*
 	return resStruct, nil
 }
 
-func DoUploadFile(now time.Time, teamId string, channelId string, userId string, rawFilename string, data []byte) (*model.FileInfo, *model.AppError) {
+func (a *App) DoUploadFile(now time.Time, teamId string, channelId string, userId string, rawFilename string, data []byte) (*model.FileInfo, *model.AppError) {
 	filename := filepath.Base(rawFilename)
 
 	info, err := model.GetInfoForBytes(filename, data)
@@ -323,7 +323,7 @@ func DoUploadFile(now time.Time, teamId string, channelId string, userId string,
 		return nil, err
 	}
 
-	if result := <-Srv.Store.FileInfo().Save(info); result.Err != nil {
+	if result := <-a.Srv.Store.FileInfo().Save(info); result.Err != nil {
 		return nil, result.Err
 	}
 
@@ -464,8 +464,8 @@ func generatePreviewImage(img image.Image, previewPath string, width int) {
 	}
 }
 
-func GetFileInfo(fileId string) (*model.FileInfo, *model.AppError) {
-	if result := <-Srv.Store.FileInfo().Get(fileId); result.Err != nil {
+func (a *App) GetFileInfo(fileId string) (*model.FileInfo, *model.AppError) {
+	if result := <-a.Srv.Store.FileInfo().Get(fileId); result.Err != nil {
 		return nil, result.Err
 	} else {
 		return result.Data.(*model.FileInfo), nil

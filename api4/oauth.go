@@ -59,7 +59,7 @@ func createOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	oauthApp.CreatorId = c.Session.UserId
 
-	rapp, err := app.CreateOAuthApp(oauthApp)
+	rapp, err := c.App.CreateOAuthApp(oauthApp)
 	if err != nil {
 		c.Err = err
 		return
@@ -79,9 +79,9 @@ func getOAuthApps(c *Context, w http.ResponseWriter, r *http.Request) {
 	var apps []*model.OAuthApp
 	var err *model.AppError
 	if app.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM_WIDE_OAUTH) {
-		apps, err = app.GetOAuthApps(c.Params.Page, c.Params.PerPage)
+		apps, err = c.App.GetOAuthApps(c.Params.Page, c.Params.PerPage)
 	} else if app.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_OAUTH) {
-		apps, err = app.GetOAuthAppsByCreator(c.Session.UserId, c.Params.Page, c.Params.PerPage)
+		apps, err = c.App.GetOAuthAppsByCreator(c.Session.UserId, c.Params.Page, c.Params.PerPage)
 	} else {
 		c.SetPermissionError(model.PERMISSION_MANAGE_OAUTH)
 		return
@@ -106,7 +106,7 @@ func getOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	oauthApp, err := app.GetOAuthApp(c.Params.AppId)
+	oauthApp, err := c.App.GetOAuthApp(c.Params.AppId)
 	if err != nil {
 		c.Err = err
 		return
@@ -126,7 +126,7 @@ func getOAuthAppInfo(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	oauthApp, err := app.GetOAuthApp(c.Params.AppId)
+	oauthApp, err := c.App.GetOAuthApp(c.Params.AppId)
 	if err != nil {
 		c.Err = err
 		return
@@ -149,7 +149,7 @@ func deleteOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	oauthApp, err := app.GetOAuthApp(c.Params.AppId)
+	oauthApp, err := c.App.GetOAuthApp(c.Params.AppId)
 	if err != nil {
 		c.Err = err
 		return
@@ -160,7 +160,7 @@ func deleteOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = app.DeleteOAuthApp(oauthApp.Id)
+	err = c.App.DeleteOAuthApp(oauthApp.Id)
 	if err != nil {
 		c.Err = err
 		return
@@ -181,7 +181,7 @@ func regenerateOAuthAppSecret(c *Context, w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	oauthApp, err := app.GetOAuthApp(c.Params.AppId)
+	oauthApp, err := c.App.GetOAuthApp(c.Params.AppId)
 	if err != nil {
 		c.Err = err
 		return
@@ -192,7 +192,7 @@ func regenerateOAuthAppSecret(c *Context, w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	oauthApp, err = app.RegenerateOAuthAppSecret(oauthApp)
+	oauthApp, err = c.App.RegenerateOAuthAppSecret(oauthApp)
 	if err != nil {
 		c.Err = err
 		return
@@ -213,7 +213,7 @@ func getAuthorizedOAuthApps(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	apps, err := app.GetAuthorizedAppsForUser(c.Params.UserId, c.Params.Page, c.Params.PerPage)
+	apps, err := c.App.GetAuthorizedAppsForUser(c.Params.UserId, c.Params.Page, c.Params.PerPage)
 	if err != nil {
 		c.Err = err
 		return
@@ -235,7 +235,7 @@ func authorizeOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	c.LogAudit("attempt")
 
-	redirectUrl, err := app.AllowOAuthAppAccessToUser(c.Session.UserId, authRequest)
+	redirectUrl, err := c.App.AllowOAuthAppAccessToUser(c.Session.UserId, authRequest)
 
 	if err != nil {
 		c.Err = err
@@ -256,7 +256,7 @@ func deauthorizeOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := app.DeauthorizeOAuthAppForUser(c.Session.UserId, clientId)
+	err := c.App.DeauthorizeOAuthAppForUser(c.Session.UserId, clientId)
 	if err != nil {
 		c.Err = err
 		return
@@ -286,7 +286,7 @@ func authorizeOAuthPage(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	oauthApp, err := app.GetOAuthApp(authRequest.ClientId)
+	oauthApp, err := c.App.GetOAuthApp(authRequest.ClientId)
 	if err != nil {
 		utils.RenderWebError(err, w, r)
 		return
@@ -300,7 +300,7 @@ func authorizeOAuthPage(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	isAuthorized := false
 
-	if _, err := app.GetPreferenceByCategoryAndNameForUser(c.Session.UserId, model.PREFERENCE_CATEGORY_AUTHORIZED_OAUTH_APP, authRequest.ClientId); err == nil {
+	if _, err := c.App.GetPreferenceByCategoryAndNameForUser(c.Session.UserId, model.PREFERENCE_CATEGORY_AUTHORIZED_OAUTH_APP, authRequest.ClientId); err == nil {
 		// when we support scopes we should check if the scopes match
 		isAuthorized = true
 	}
@@ -308,7 +308,7 @@ func authorizeOAuthPage(c *Context, w http.ResponseWriter, r *http.Request) {
 	// Automatically allow if the app is trusted
 	if oauthApp.IsTrusted || isAuthorized {
 		authRequest.ResponseType = model.AUTHCODE_RESPONSE_TYPE
-		redirectUrl, err := app.AllowOAuthAppAccessToUser(c.Session.UserId, authRequest)
+		redirectUrl, err := c.App.AllowOAuthAppAccessToUser(c.Session.UserId, authRequest)
 
 		if err != nil {
 			utils.RenderWebError(err, w, r)
@@ -367,7 +367,7 @@ func getAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	c.LogAudit("attempt")
 
-	accessRsp, err := app.GetOAuthAccessToken(clientId, grantType, redirectUri, code, secret, refreshToken)
+	accessRsp, err := c.App.GetOAuthAccessToken(clientId, grantType, redirectUri, code, secret, refreshToken)
 	if err != nil {
 		c.Err = err
 		return
@@ -400,7 +400,7 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	uri := c.GetSiteURLHeader() + "/signup/" + service + "/complete"
 
-	body, teamId, props, err := app.AuthorizeOAuthUser(w, r, service, code, state, uri)
+	body, teamId, props, err := c.App.AuthorizeOAuthUser(w, r, service, code, state, uri)
 
 	action := ""
 	if props != nil {
@@ -418,7 +418,7 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := app.CompleteOAuth(service, body, teamId, props)
+	user, err := c.App.CompleteOAuth(service, body, teamId, props)
 	if err != nil {
 		err.Translate(c.T)
 		l4g.Error(err.Error())
@@ -437,7 +437,7 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		redirectUrl = app.GetProtocol(r) + "://" + r.Host + "/claim?email=" + url.QueryEscape(props["email"])
 	} else {
-		session, err := app.DoLogin(w, r, user, "")
+		session, err := c.App.DoLogin(w, r, user, "")
 		if err != nil {
 			err.Translate(c.T)
 			c.Err = err
@@ -469,13 +469,13 @@ func loginWithOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	loginHint := r.URL.Query().Get("login_hint")
 	redirectTo := r.URL.Query().Get("redirect_to")
 
-	teamId, err := app.GetTeamIdFromQuery(r.URL.Query())
+	teamId, err := c.App.GetTeamIdFromQuery(r.URL.Query())
 	if err != nil {
 		c.Err = err
 		return
 	}
 
-	if authUrl, err := app.GetOAuthLoginEndpoint(w, r, c.Params.Service, teamId, model.OAUTH_ACTION_LOGIN, redirectTo, loginHint); err != nil {
+	if authUrl, err := c.App.GetOAuthLoginEndpoint(w, r, c.Params.Service, teamId, model.OAUTH_ACTION_LOGIN, redirectTo, loginHint); err != nil {
 		c.Err = err
 		return
 	} else {
@@ -489,13 +489,13 @@ func mobileLoginWithOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	teamId, err := app.GetTeamIdFromQuery(r.URL.Query())
+	teamId, err := c.App.GetTeamIdFromQuery(r.URL.Query())
 	if err != nil {
 		c.Err = err
 		return
 	}
 
-	if authUrl, err := app.GetOAuthLoginEndpoint(w, r, c.Params.Service, teamId, model.OAUTH_ACTION_MOBILE, "", ""); err != nil {
+	if authUrl, err := c.App.GetOAuthLoginEndpoint(w, r, c.Params.Service, teamId, model.OAUTH_ACTION_MOBILE, "", ""); err != nil {
 		c.Err = err
 		return
 	} else {
@@ -514,13 +514,13 @@ func signupWithOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	teamId, err := app.GetTeamIdFromQuery(r.URL.Query())
+	teamId, err := c.App.GetTeamIdFromQuery(r.URL.Query())
 	if err != nil {
 		c.Err = err
 		return
 	}
 
-	if authUrl, err := app.GetOAuthSignupEndpoint(w, r, c.Params.Service, teamId); err != nil {
+	if authUrl, err := c.App.GetOAuthSignupEndpoint(w, r, c.Params.Service, teamId); err != nil {
 		c.Err = err
 		return
 	} else {

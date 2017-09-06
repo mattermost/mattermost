@@ -32,7 +32,7 @@ func getJob(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if job, err := app.GetJob(c.Params.JobId); err != nil {
+	if job, err := c.App.GetJob(c.Params.JobId); err != nil {
 		c.Err = err
 		return
 	} else {
@@ -71,7 +71,7 @@ func getJobs(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if jobs, err := app.GetJobsPage(c.Params.Page, c.Params.PerPage); err != nil {
+	if jobs, err := c.App.GetJobsPage(c.Params.Page, c.Params.PerPage); err != nil {
 		c.Err = err
 		return
 	} else {
@@ -90,7 +90,7 @@ func getJobsByType(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if jobs, err := app.GetJobsByTypePage(c.Params.JobType, c.Params.Page, c.Params.PerPage); err != nil {
+	if jobs, err := c.App.GetJobsByTypePage(c.Params.JobType, c.Params.Page, c.Params.PerPage); err != nil {
 		c.Err = err
 		return
 	} else {

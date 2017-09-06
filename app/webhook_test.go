@@ -11,8 +11,9 @@ import (
 )
 
 func TestCreateWebhookPost(t *testing.T) {
-	th := Setup().InitBasic()
-	defer TearDown()
+	a := Global()
+	th := a.Setup().InitBasic()
+	defer a.TearDown()
 
 	enableIncomingHooks := utils.Cfg.ServiceSettings.EnableIncomingWebhooks
 	defer func() {
@@ -22,13 +23,13 @@ func TestCreateWebhookPost(t *testing.T) {
 	utils.Cfg.ServiceSettings.EnableIncomingWebhooks = true
 	utils.SetDefaultRolesBasedOnConfig()
 
-	hook, err := CreateIncomingWebhookForChannel(th.BasicUser.Id, th.BasicChannel, &model.IncomingWebhook{ChannelId: th.BasicChannel.Id})
+	hook, err := a.CreateIncomingWebhookForChannel(th.BasicUser.Id, th.BasicChannel, &model.IncomingWebhook{ChannelId: th.BasicChannel.Id})
 	if err != nil {
 		t.Fatal(err.Error())
 	}
-	defer DeleteIncomingWebhook(hook.Id)
+	defer a.DeleteIncomingWebhook(hook.Id)
 
-	post, err := CreateWebhookPost(hook.UserId, th.BasicChannel, "foo", "user", "http://iconurl", model.StringInterface{
+	post, err := a.CreateWebhookPost(hook.UserId, th.BasicChannel, "foo", "user", "http://iconurl", model.StringInterface{
 		"attachments": []*model.SlackAttachment{
 			&model.SlackAttachment{
 				Text: "text",

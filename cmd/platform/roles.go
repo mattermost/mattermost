@@ -52,7 +52,7 @@ func makeSystemAdminCmdF(cmd *cobra.Command, args []string) error {
 			return errors.New("Unable to find user '" + args[i] + "'")
 		}
 
-		if _, err := app.UpdateUserRoles(user.Id, "system_admin system_user"); err != nil {
+		if _, err := app.Global().UpdateUserRoles(user.Id, "system_admin system_user"); err != nil {
 			return err
 		}
 	}
@@ -75,7 +75,7 @@ func makeMemberCmdF(cmd *cobra.Command, args []string) error {
 			return errors.New("Unable to find user '" + args[i] + "'")
 		}
 
-		if _, err := app.UpdateUserRoles(user.Id, "system_user"); err != nil {
+		if _, err := app.Global().UpdateUserRoles(user.Id, "system_user"); err != nil {
 			return err
 		}
 	}

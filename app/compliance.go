@@ -6,32 +6,33 @@ package app
 import (
 	"io/ioutil"
 
+	"net/http"
+
 	"github.com/mattermost/platform/einterfaces"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
-	"net/http"
 )
 
-func GetComplianceReports(page, perPage int) (model.Compliances, *model.AppError) {
+func (a *App) GetComplianceReports(page, perPage int) (model.Compliances, *model.AppError) {
 	if !*utils.Cfg.ComplianceSettings.Enable || !utils.IsLicensed() || !*utils.License().Features.Compliance {
 		return nil, model.NewAppError("GetComplianceReports", "ent.compliance.licence_disable.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	if result := <-Srv.Store.Compliance().GetAll(page*perPage, perPage); result.Err != nil {
+	if result := <-a.Srv.Store.Compliance().GetAll(page*perPage, perPage); result.Err != nil {
 		return nil, result.Err
 	} else {
 		return result.Data.(model.Compliances), nil
 	}
 }
 
-func SaveComplianceReport(job *model.Compliance) (*model.Compliance, *model.AppError) {
+func (a *App) SaveComplianceReport(job *model.Compliance) (*model.Compliance, *model.AppError) {
 	if !*utils.Cfg.ComplianceSettings.Enable || !utils.IsLicensed() || !*utils.License().Features.Compliance || einterfaces.GetComplianceInterface() == nil {
 		return nil, model.NewAppError("saveComplianceReport", "ent.compliance.licence_disable.app_error", nil, "", http.StatusNotImplemented)
 	}
 
 	job.Type = model.COMPLIANCE_TYPE_ADHOC
 
-	if result := <-Srv.Store.Compliance().Save(job); result.Err != nil {
+	if result := <-a.Srv.Store.Compliance().Save(job); result.Err != nil {
 		return nil, result.Err
 	} else {
 		job = result.Data.(*model.Compliance)
@@ -41,12 +42,12 @@ func SaveComplianceReport(job *model.Compliance) (*model.Compliance, *model.AppE
 	return job, nil
 }
 
-func GetComplianceReport(reportId string) (*model.Compliance, *model.AppError) {
+func (a *App) GetComplianceReport(reportId string) (*model.Compliance, *model.AppError) {
 	if !*utils.Cfg.ComplianceSettings.Enable || !utils.IsLicensed() || !*utils.License().Features.Compliance || einterfaces.GetComplianceInterface() == nil {
 		return nil, model.NewAppError("downloadComplianceReport", "ent.compliance.licence_disable.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	if result := <-Srv.Store.Compliance().Get(reportId); result.Err != nil {
+	if result := <-a.Srv.Store.Compliance().Get(reportId); result.Err != nil {
 		return nil, result.Err
 	} else {
 		return result.Data.(*model.Compliance), nil

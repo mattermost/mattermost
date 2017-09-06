@@ -42,7 +42,7 @@ func uploadLicenseCmdF(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	if _, err := app.SaveLicense(fileBytes); err != nil {
+	if _, err := app.Global().SaveLicense(fileBytes); err != nil {
 		return err
 	}
 

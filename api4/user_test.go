@@ -11,7 +11,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/mattermost/platform/app"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
 	"github.com/stretchr/testify/assert"
@@ -553,7 +552,7 @@ func TestSearchUsers(t *testing.T) {
 		t.Fatal("should have found user")
 	}
 
-	_, err := app.UpdateActiveNoLdap(th.BasicUser2.Id, false)
+	_, err := th.App.UpdateActiveNoLdap(th.BasicUser2.Id, false)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -676,7 +675,7 @@ func TestSearchUsers(t *testing.T) {
 	utils.Cfg.PrivacySettings.ShowEmailAddress = false
 	utils.Cfg.PrivacySettings.ShowFullName = false
 
-	_, err = app.UpdateActiveNoLdap(th.BasicUser2.Id, true)
+	_, err = th.App.UpdateActiveNoLdap(th.BasicUser2.Id, true)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -1261,7 +1260,7 @@ func TestGetRecentlyActiveUsersInTeam(t *testing.T) {
 	Client := th.Client
 	teamId := th.BasicTeam.Id
 
-	app.SetStatusOnline(th.BasicUser.Id, "", true)
+	th.App.SetStatusOnline(th.BasicUser.Id, "", true)
 
 	rusers, resp := Client.GetRecentlyActiveUsersInTeam(teamId, 0, 60, "")
 	CheckNoError(t, resp)
@@ -1303,7 +1302,7 @@ func TestGetUsersWithoutTeam(t *testing.T) {
 	})
 	CheckNoError(t, resp)
 	LinkUserToTeam(user, th.BasicTeam)
-	defer app.Srv.Store.User().PermanentDelete(user.Id)
+	defer th.App.Srv.Store.User().PermanentDelete(user.Id)
 
 	user2, resp := Client.CreateUser(&model.User{
 		Username: "a000000001" + model.NewId(),
@@ -1311,7 +1310,7 @@ func TestGetUsersWithoutTeam(t *testing.T) {
 		Password: "Password1",
 	})
 	CheckNoError(t, resp)
-	defer app.Srv.Store.User().PermanentDelete(user2.Id)
+	defer th.App.Srv.Store.User().PermanentDelete(user2.Id)
 
 	rusers, resp := SystemAdminClient.GetUsersWithoutTeam(0, 100, "")
 	CheckNoError(t, resp)
@@ -1761,7 +1760,7 @@ func TestResetPassword(t *testing.T) {
 	}
 
 	var recoveryToken *model.Token
-	if result := <-app.Srv.Store.Token().GetByToken(recoveryTokenString); result.Err != nil {
+	if result := <-th.App.Srv.Store.Token().GetByToken(recoveryTokenString); result.Err != nil {
 		t.Log(recoveryTokenString)
 		t.Fatal(result.Err)
 	} else {
@@ -1917,7 +1916,7 @@ func TestAttachDeviceId(t *testing.T) {
 		t.Fatal("should have passed")
 	}
 
-	if sessions, err := app.GetSessions(th.BasicUser.Id); err != nil {
+	if sessions, err := th.App.GetSessions(th.BasicUser.Id); err != nil {
 		t.Fatal(err)
 	} else {
 		if sessions[0].DeviceId != deviceId {
@@ -1968,7 +1967,7 @@ func TestVerifyUserEmail(t *testing.T) {
 
 	ruser, resp := Client.CreateUser(&user)
 
-	token, err := app.CreateVerifyEmailToken(ruser.Id)
+	token, err := th.App.CreateVerifyEmailToken(ruser.Id)
 	if err != nil {
 		t.Fatal("Unable to create email verify token")
 	}
@@ -2042,13 +2041,13 @@ func TestSetProfileImage(t *testing.T) {
 		t.Fatal("Should have failed either forbidden or unauthorized")
 	}
 
-	buser, err := app.GetUser(user.Id)
+	buser, err := th.App.GetUser(user.Id)
 	require.Nil(t, err)
 
 	_, resp = th.SystemAdminClient.SetProfileImage(user.Id, data)
 	CheckNoError(t, resp)
 
-	ruser, err := app.GetUser(user.Id)
+	ruser, err := th.App.GetUser(user.Id)
 	require.Nil(t, err)
 	assert.True(t, buser.LastPictureUpdate < ruser.LastPictureUpdate, "Picture should have updated for user")
 
@@ -2088,7 +2087,7 @@ func TestSwitchAccount(t *testing.T) {
 	th.LoginBasic()
 
 	fakeAuthData := model.NewId()
-	if result := <-app.Srv.Store.User().UpdateAuthData(th.BasicUser.Id, model.USER_AUTH_SERVICE_GITLAB, &fakeAuthData, th.BasicUser.Email, true); result.Err != nil {
+	if result := <-th.App.Srv.Store.User().UpdateAuthData(th.BasicUser.Id, model.USER_AUTH_SERVICE_GITLAB, &fakeAuthData, th.BasicUser.Email, true); result.Err != nil {
 		t.Fatal(result.Err)
 	}
 
@@ -2172,7 +2171,7 @@ func TestCreateUserAccessToken(t *testing.T) {
 	_, resp = Client.CreateUserAccessToken(th.BasicUser.Id, "")
 	CheckBadRequestStatus(t, resp)
 
-	app.UpdateUserRoles(th.BasicUser.Id, model.ROLE_SYSTEM_USER.Id+" "+model.ROLE_SYSTEM_USER_ACCESS_TOKEN.Id)
+	th.App.UpdateUserRoles(th.BasicUser.Id, model.ROLE_SYSTEM_USER.Id+" "+model.ROLE_SYSTEM_USER_ACCESS_TOKEN.Id)
 
 	*utils.Cfg.ServiceSettings.EnableUserAccessTokens = false
 	_, resp = Client.CreateUserAccessToken(th.BasicUser.Id, testDescription)
@@ -2243,7 +2242,7 @@ func TestGetUserAccessToken(t *testing.T) {
 	_, resp = Client.GetUserAccessToken(model.NewId())
 	CheckForbiddenStatus(t, resp)
 
-	app.UpdateUserRoles(th.BasicUser.Id, model.ROLE_SYSTEM_USER.Id+" "+model.ROLE_SYSTEM_USER_ACCESS_TOKEN.Id)
+	th.App.UpdateUserRoles(th.BasicUser.Id, model.ROLE_SYSTEM_USER.Id+" "+model.ROLE_SYSTEM_USER_ACCESS_TOKEN.Id)
 	token, resp := Client.CreateUserAccessToken(th.BasicUser.Id, testDescription)
 	CheckNoError(t, resp)
 
@@ -2308,7 +2307,7 @@ func TestRevokeUserAccessToken(t *testing.T) {
 	}()
 	*utils.Cfg.ServiceSettings.EnableUserAccessTokens = true
 
-	app.UpdateUserRoles(th.BasicUser.Id, model.ROLE_SYSTEM_USER.Id+" "+model.ROLE_SYSTEM_USER_ACCESS_TOKEN.Id)
+	th.App.UpdateUserRoles(th.BasicUser.Id, model.ROLE_SYSTEM_USER.Id+" "+model.ROLE_SYSTEM_USER_ACCESS_TOKEN.Id)
 	token, resp := Client.CreateUserAccessToken(th.BasicUser.Id, testDescription)
 	CheckNoError(t, resp)
 
@@ -2355,7 +2354,7 @@ func TestUserAccessTokenInactiveUser(t *testing.T) {
 	}()
 	*utils.Cfg.ServiceSettings.EnableUserAccessTokens = true
 
-	app.UpdateUserRoles(th.BasicUser.Id, model.ROLE_SYSTEM_USER.Id+" "+model.ROLE_SYSTEM_USER_ACCESS_TOKEN.Id)
+	th.App.UpdateUserRoles(th.BasicUser.Id, model.ROLE_SYSTEM_USER.Id+" "+model.ROLE_SYSTEM_USER_ACCESS_TOKEN.Id)
 	token, resp := Client.CreateUserAccessToken(th.BasicUser.Id, testDescription)
 	CheckNoError(t, resp)
 
@@ -2363,7 +2362,7 @@ func TestUserAccessTokenInactiveUser(t *testing.T) {
 	_, resp = Client.GetMe("")
 	CheckNoError(t, resp)
 
-	app.UpdateActive(th.BasicUser, false)
+	th.App.UpdateActive(th.BasicUser, false)
 
 	_, resp = Client.GetMe("")
 	CheckUnauthorizedStatus(t, resp)
@@ -2382,7 +2381,7 @@ func TestUserAccessTokenDisableConfig(t *testing.T) {
 	}()
 	*utils.Cfg.ServiceSettings.EnableUserAccessTokens = true
 
-	app.UpdateUserRoles(th.BasicUser.Id, model.ROLE_SYSTEM_USER.Id+" "+model.ROLE_SYSTEM_USER_ACCESS_TOKEN.Id)
+	th.App.UpdateUserRoles(th.BasicUser.Id, model.ROLE_SYSTEM_USER.Id+" "+model.ROLE_SYSTEM_USER_ACCESS_TOKEN.Id)
 	token, resp := Client.CreateUserAccessToken(th.BasicUser.Id, testDescription)
 	CheckNoError(t, resp)
 

@@ -6,9 +6,10 @@ package app
 import (
 	l4g "github.com/alecthomas/log4go"
 
+	"net/http"
+
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
-	"net/http"
 )
 
 type webSocketHandler interface {
@@ -53,14 +54,14 @@ func (wr *WebSocketRouter) ServeWebSocket(conn *WebConn, r *model.WebSocketReque
 			return
 		}
 
-		session, err := GetSession(token)
+		session, err := Global().GetSession(token)
 
 		if err != nil {
 			conn.WebSocket.Close()
 		} else {
 			go func() {
-				SetStatusOnline(session.UserId, session.Id, false)
-				UpdateLastActivityAtIfNeeded(*session)
+				Global().SetStatusOnline(session.UserId, session.Id, false)
+				Global().UpdateLastActivityAtIfNeeded(*session)
 			}()
 
 			conn.SetSession(session)

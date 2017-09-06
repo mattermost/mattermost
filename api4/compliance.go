@@ -37,7 +37,7 @@ func createComplianceReport(c *Context, w http.ResponseWriter, r *http.Request) 
 
 	job.UserId = c.Session.UserId
 
-	rjob, err := app.SaveComplianceReport(job)
+	rjob, err := c.App.SaveComplianceReport(job)
 	if err != nil {
 		c.Err = err
 		return
@@ -54,7 +54,7 @@ func getComplianceReports(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	crs, err := app.GetComplianceReports(c.Params.Page, c.Params.PerPage)
+	crs, err := c.App.GetComplianceReports(c.Params.Page, c.Params.PerPage)
 	if err != nil {
 		c.Err = err
 		return
@@ -74,7 +74,7 @@ func getComplianceReport(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	job, err := app.GetComplianceReport(c.Params.ReportId)
+	job, err := c.App.GetComplianceReport(c.Params.ReportId)
 	if err != nil {
 		c.Err = err
 		return
@@ -94,7 +94,7 @@ func downloadComplianceReport(c *Context, w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	job, err := app.GetComplianceReport(c.Params.ReportId)
+	job, err := c.App.GetComplianceReport(c.Params.ReportId)
 	if err != nil {
 		c.Err = err
 		return
