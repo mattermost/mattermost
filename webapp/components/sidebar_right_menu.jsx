@@ -193,7 +193,7 @@ export default class SidebarRightMenu extends React.Component {
                 </li>
             );
 
-            if (this.props.teamType === 'O') {
+            if (this.props.teamType === Constants.OPEN_TEAM && global.mm_config.EnableUserCreation === 'true') {
                 teamLink = (
                     <li>
                         <a
