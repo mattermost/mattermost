@@ -16,9 +16,9 @@ import (
 func InitStatus() {
 	l4g.Debug(utils.T("api.status.init.debug"))
 
-	BaseRoutes.User.Handle("/status", ApiHandler(getUserStatus)).Methods("GET")
-	BaseRoutes.Users.Handle("/status/ids", ApiHandler(getUserStatusesByIds)).Methods("POST")
-	BaseRoutes.User.Handle("/status", ApiHandler(updateUserStatus)).Methods("PUT")
+	BaseRoutes.User.Handle("/status", ApiSessionRequired(getUserStatus)).Methods("GET")
+	BaseRoutes.Users.Handle("/status/ids", ApiSessionRequired(getUserStatusesByIds)).Methods("POST")
+	BaseRoutes.User.Handle("/status", ApiSessionRequired(updateUserStatus)).Methods("PUT")
 }
 
 func getUserStatus(c *Context, w http.ResponseWriter, r *http.Request) {

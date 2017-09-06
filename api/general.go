@@ -10,6 +10,7 @@ import (
 
 	l4g "github.com/alecthomas/log4go"
 
+	"github.com/mattermost/platform/app"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
 )
@@ -30,7 +31,14 @@ func logClient(c *Context, w http.ResponseWriter, r *http.Request) {
 	forceToDebug := false
 
 	if !*utils.Cfg.ServiceSettings.EnableDeveloper {
-		forceToDebug = true
+		if c.Session.UserId == "" {
+			c.Err = model.NewAppError("Permissions", "api.context.permissions.app_error", nil, "", http.StatusForbidden)
+			return
+		}
+
+		if !app.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
+			forceToDebug = true
+		}
 	}
 
 	m := model.MapFromJson(r.Body)
