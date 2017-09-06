@@ -124,10 +124,9 @@ export default class PopoverListMembers extends React.Component {
                             key={'popover-member-' + i}
                         >
                             <ProfilePicture
+                                className='user__picture'
                                 src={Client4.getProfilePictureUrl(m.id, m.last_picture_update)}
                                 status={UserStore.getStatus(m.id)}
-                                width='40'
-                                height='40'
                             />
                             <div className='more-modal__details'>
                                 <div
