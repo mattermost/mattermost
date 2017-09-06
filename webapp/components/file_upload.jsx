@@ -296,8 +296,16 @@ class FileUpload extends React.Component {
                     min = String(d.getMinutes());
                 }
 
-                const ext = file.name.lastIndexOf('.');
-                const name = formatMessage(holders.pasted) + d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate() + ' ' + hour + '-' + min + (ext >= 0 ? file.name.substr(ext) : '');
+                var ext = '';
+                if (file.name) {
+                    if (file.name.includes('.')) {
+                        ext = file.name.substr(file.name.lastIndexOf('.'));
+                    }
+                } else if (items[i].type.includes('/')) {
+                    ext = '.' + items[i].type.split('/')[1].toLowerCase();
+                }
+
+                const name = formatMessage(holders.pasted) + d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate() + ' ' + hour + '-' + min + ext;
 
                 const request = uploadFile(
                     file,
