@@ -6,7 +6,6 @@ package app
 import (
 	"fmt"
 	"html"
-	"html/template"
 	"io/ioutil"
 	"net/http"
 	"net/url"
