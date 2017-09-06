@@ -659,17 +659,17 @@ func s3New(endpoint, accessKey, secretKey string, secure bool, signV2 bool, regi
 
 func cleanupTestFile(info *model.FileInfo) error {
 	if *utils.Cfg.FileSettings.DriverName == model.IMAGE_DRIVER_S3 {
-		endpoint := *utils.Cfg.FileSettings.AmazonS3Endpoint
+		endpoint := utils.Cfg.FileSettings.AmazonS3Endpoint
 		accessKey := utils.Cfg.FileSettings.AmazonS3AccessKeyId
 		secretKey := utils.Cfg.FileSettings.AmazonS3SecretAccessKey
 		secure := *utils.Cfg.FileSettings.AmazonS3SSL
 		signV2 := *utils.Cfg.FileSettings.AmazonS3SignV2
-		region := *utils.Cfg.FileSettings.AmazonS3Region
+		region := utils.Cfg.FileSettings.AmazonS3Region
 		s3Clnt, err := s3New(endpoint, accessKey, secretKey, secure, signV2, region)
 		if err != nil {
 			return err
 		}
-		bucket := *utils.Cfg.FileSettings.AmazonS3Bucket
+		bucket := utils.Cfg.FileSettings.AmazonS3Bucket
 		if err := s3Clnt.RemoveObject(bucket, info.Path); err != nil {
 			return err
 		}
