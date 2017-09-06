@@ -162,17 +162,20 @@ func TestUpdateOAuthApp(t *testing.T) {
 	_, resp = Client.UpdateOAuthApp(oapp)
 	CheckForbiddenStatus(t, resp)
 
-	oapp.Id = "zhk9d1ggatrqz236c7h87im7bc"
-	_, resp = AdminClient.UpdateOAuthApp(oapp)
-	CheckNotFoundStatus(t, resp)
-
 	utils.Cfg.ServiceSettings.EnableOAuthServiceProvider = false
 	_, resp = AdminClient.UpdateOAuthApp(oapp)
 	CheckNotImplementedStatus(t, resp)
 
+	_, resp = Client.UpdateOAuthApp(oapp)
+	CheckForbiddenStatus(t, resp)
+
 	Client.Logout()
 	_, resp = Client.UpdateOAuthApp(oapp)
 	CheckUnauthorizedStatus(t, resp)
+
+	oapp.Id = model.NewId()
+	_, resp = AdminClient.UpdateOAuthApp(oapp)
+	CheckNotFoundStatus(t, resp)
 
 	oapp.Id = "junk"
 	_, resp = AdminClient.UpdateOAuthApp(oapp)
