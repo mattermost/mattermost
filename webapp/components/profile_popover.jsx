@@ -19,6 +19,10 @@ import PropTypes from 'prop-types';
 import React from 'react';
 
 export default class ProfilePopover extends React.Component {
+    static getComponentName() {
+        return 'ProfilePopover';
+    }
+
     constructor(props) {
         super(props);
 

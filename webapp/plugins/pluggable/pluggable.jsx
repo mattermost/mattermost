@@ -33,6 +33,8 @@ export default class Pluggable extends React.PureComponent {
             return null;
         }
 
+        const childName = child.getComponentName();
+
         // Include any props passed to this component or to the child component
         let props = {...this.props};
         Reflect.deleteProperty(props, 'children');
@@ -40,8 +42,8 @@ export default class Pluggable extends React.PureComponent {
         props = {...props, ...this.props.children.props};
 
         // Override the default component with any registered plugin's component
-        if (components.hasOwnProperty(child.name)) {
-            const PluginComponent = components[child.name];
+        if (components.hasOwnProperty(childName)) {
+            const PluginComponent = components[childName];
             return (
                 <PluginComponent
                     {...props}
