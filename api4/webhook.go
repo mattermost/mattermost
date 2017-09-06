@@ -4,9 +4,12 @@
 package api4
 
 import (
+	"io"
 	"net/http"
+	"strings"
 
 	l4g "github.com/alecthomas/log4go"
+	"github.com/gorilla/mux"
 	"github.com/mattermost/platform/app"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
@@ -27,6 +30,12 @@ func InitWebhook() {
 	BaseRoutes.OutgoingHook.Handle("", ApiSessionRequired(updateOutgoingHook)).Methods("PUT")
 	BaseRoutes.OutgoingHook.Handle("", ApiSessionRequired(deleteOutgoingHook)).Methods("DELETE")
 	BaseRoutes.OutgoingHook.Handle("/regen_token", ApiSessionRequired(regenOutgoingHookToken)).Methods("POST")
+
+	BaseRoutes.Root.Handle("/hooks/commands/{id:[A-Za-z0-9]+}", ApiHandler(commandWebhook)).Methods("POST")
+	BaseRoutes.Root.Handle("/hooks/{id:[A-Za-z0-9]+}", ApiHandler(incomingWebhook)).Methods("POST")
+
+	// Old endpoint for backwards compatibility
+	BaseRoutes.Root.Handle("/api/v3/teams/{team_id:[A-Za-z0-9]+}/hooks/{id:[A-Za-z0-9]+}", ApiHandler(incomingWebhook)).Methods("POST")
 }
 
 func createIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -434,4 +443,63 @@ func deleteOutgoingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	c.LogAudit("success")
 	ReturnStatusOK(w)
+}
+
+func incomingWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	id := params["id"]
+
+	r.ParseForm()
+
+	var payload io.Reader
+	contentType := r.Header.Get("Content-Type")
+	if strings.Split(contentType, "; ")[0] == "application/x-www-form-urlencoded" {
+		payload = strings.NewReader(r.FormValue("payload"))
+	} else {
+		payload = r.Body
+	}
+
+	if utils.Cfg.LogSettings.EnableWebhookDebugging {
+		var err error
+		payload, err = utils.InfoReader(
+			payload,
+			utils.T("api.webhook.incoming.debug"),
+		)
+		if err != nil {
+			c.Err = model.NewAppError("incomingWebhook", "api.webhook.incoming.debug.error", nil, err.Error(), http.StatusInternalServerError)
+			return
+		}
+	}
+
+	parsedRequest, decodeError := model.IncomingWebhookRequestFromJson(payload)
+
+	if decodeError != nil {
+		c.Err = decodeError
+		return
+	}
+
+	err := app.HandleIncomingWebhook(id, parsedRequest)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	w.Header().Set("Content-Type", "text/plain")
+	w.Write([]byte("ok"))
+}
+
+func commandWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	id := params["id"]
+
+	response := model.CommandResponseFromHTTPBody(r.Header.Get("Content-Type"), r.Body)
+
+	err := app.HandleCommandWebhook(id, response)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	w.Header().Set("Content-Type", "text/plain")
+	w.Write([]byte("ok"))
 }

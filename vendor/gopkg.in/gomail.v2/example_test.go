@@ -19,7 +19,7 @@ func Example() {
 	m.SetBody("text/html", "Hello <b>Bob</b> and <i>Cora</i>!")
 	m.Attach("/home/Alex/lolcat.jpg")
 
-	d := gomail.NewDialer("smtp.example.com", 587, "user", "123456")
+	d := gomail.NewPlainDialer("smtp.example.com", 587, "user", "123456")
 
 	// Send the email to Bob, Cora and Dan.
 	if err := d.DialAndSend(m); err != nil {
@@ -32,7 +32,7 @@ func Example_daemon() {
 	ch := make(chan *gomail.Message)
 
 	go func() {
-		d := gomail.NewDialer("smtp.example.com", 587, "user", "123456")
+		d := gomail.NewPlainDialer("smtp.example.com", 587, "user", "123456")
 
 		var s gomail.SendCloser
 		var err error
@@ -79,7 +79,7 @@ func Example_newsletter() {
 		Address string
 	}
 
-	d := gomail.NewDialer("smtp.example.com", 587, "user", "123456")
+	d := gomail.NewPlainDialer("smtp.example.com", 587, "user", "123456")
 	s, err := d.Dial()
 	if err != nil {
 		panic(err)
@@ -151,10 +151,6 @@ func ExampleSetHeader() {
 	m.Attach("foo.jpg", gomail.SetHeader(h))
 }
 
-func ExampleRename() {
-	m.Attach("/tmp/0000146.jpg", gomail.Rename("picture.jpg"))
-}
-
 func ExampleMessage_AddAlternative() {
 	m.SetBody("text/plain", "Hello!")
 	m.AddAlternative("text/html", "<p>Hello!</p>")
@@ -216,8 +212,4 @@ func ExampleSetCharset() {
 
 func ExampleSetEncoding() {
 	m = gomail.NewMessage(gomail.SetEncoding(gomail.Base64))
-}
-
-func ExampleSetPartEncoding() {
-	m.SetBody("text/plain", "Hello!", gomail.SetPartEncoding(gomail.Unencoded))
 }

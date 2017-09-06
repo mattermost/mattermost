@@ -592,6 +592,14 @@
     "translation": "Kanalı yeniden adlandırma izniniz yok."
   },
   {
+    "id": "api.command_channel_rename.too_long.app_error",
+    "translation": "Kanal adında en fazla {{.Length}} karakter bulunmalıdır."
+  },
+  {
+    "id": "api.command_channel_rename.too_short.app_error",
+    "translation": "Kanal adında en az {{.Length}} karakter bulunmalıdır."
+  },
+  {
     "id": "api.command_channel_rename.update_channel.app_error",
     "translation": "Geçerli kanal güncellenirken sorun çıktı."
   },
@@ -844,156 +852,16 @@
     "translation": "Ayarlar komutu aygıtınız için desteklenmiyor"
   },
   {
-    "id": "api.command_shortcuts.browser.channel_next",
-    "translation": "{{.ChannelNextCmd}}: Geçmişinizdeki sonraki kanal\n"
-  },
-  {
-    "id": "api.command_shortcuts.browser.channel_next.cmd",
-    "translation": "ALT+SAĞ"
-  },
-  {
-    "id": "api.command_shortcuts.browser.channel_next.cmd_mac",
-    "translation": "CMD+]"
-  },
-  {
-    "id": "api.command_shortcuts.browser.channel_prev",
-    "translation": "{{.ChannelPrevCmd}}: Geçmişinizdeki önceki kanal\n"
-  },
-  {
-    "id": "api.command_shortcuts.browser.channel_prev.cmd",
-    "translation": "ALT+SOL"
-  },
-  {
-    "id": "api.command_shortcuts.browser.channel_prev.cmd_mac",
-    "translation": "CMD+["
-  },
-  {
-    "id": "api.command_shortcuts.browser.font_decrease",
-    "translation": "{{.CmdOrCtrl}}+MINUS: Yazı boyutunu küçült (uzaklaştır)\n"
-  },
-  {
-    "id": "api.command_shortcuts.browser.font_increase",
-    "translation": "{{.CmdOrCtrl}}+PLUS: Yazı boyutunu büyüt (yakınlaştır)\n"
-  },
-  {
-    "id": "api.command_shortcuts.browser.header",
-    "translation": "#### İç Tarayıcı Komutları\n\n"
-  },
-  {
-    "id": "api.command_shortcuts.browser.highlight_next",
-    "translation": "SHIFT+AŞAĞI (giriş alanında): Sonraki satırdaki metni vurgula\n"
-  },
-  {
-    "id": "api.command_shortcuts.browser.highlight_prev",
-    "translation": "SHIFT+YUKARI (giriş alanında): Önceki satırdaki metni vurgula\n"
-  },
-  {
-    "id": "api.command_shortcuts.browser.newline",
-    "translation": "SHIFT+ENTER (giriş alanında): Yeni bir satır ekle\n"
-  },
-  {
-    "id": "api.command_shortcuts.cmd",
-    "translation": "CMD"
-  },
-  {
-    "id": "api.command_shortcuts.ctrl",
-    "translation": "CTRL"
-  },
-  {
     "id": "api.command_shortcuts.desc",
     "translation": "Tuş takımı kısayollarının listesini görüntüler"
-  },
-  {
-    "id": "api.command_shortcuts.files.header",
-    "translation": "#### Dosyalar\n\n"
-  },
-  {
-    "id": "api.command_shortcuts.files.upload",
-    "translation": "{{.CmdOrCtrl}}+U: Dosyaları yükle\n\n"
-  },
-  {
-    "id": "api.command_shortcuts.header",
-    "translation": "### Tuş Takımı Kısayolları\n\n"
-  },
-  {
-    "id": "api.command_shortcuts.msgs.comp_channel",
-    "translation": "~[character]+TAB: Kanalı [character] karakteriyle başlayarak otomatik tamamla\n"
-  },
-  {
-    "id": "api.command_shortcuts.msgs.comp_emoji",
-    "translation": ":[character]+TAB: Emojiyi [character] karakteriyle başlayarak otomatik tamamla\n\n"
-  },
-  {
-    "id": "api.command_shortcuts.msgs.comp_username",
-    "translation": "@[character]+TAB: @kullanıcıadını [character] karakteriyle başlayarak otomatik tamamla\n"
-  },
-  {
-    "id": "api.command_shortcuts.msgs.edit",
-    "translation": "YUKARI (boş giriş alanında): Geçerli kanaldaki son iletimi düzenle\n"
-  },
-  {
-    "id": "api.command_shortcuts.msgs.header",
-    "translation": "#### İletiler\n\n"
-  },
-  {
-    "id": "api.command_shortcuts.msgs.mark_as_read",
-    "translation": "ESC: Geçerli kanaldaki tüm iletileri okunmuş olarak işaretle\n"
-  },
-  {
-    "id": "api.command_shortcuts.msgs.reply",
-    "translation": "SHIFT+UP (boş giriş alanında): Geçerli kanalda son gönderilen iletiyi yanıtla\n"
-  },
-  {
-    "id": "api.command_shortcuts.msgs.reprint_next",
-    "translation": "{{.CmdOrCtrl}}+AŞAĞI (boş giriş alanında): Sonraki iletiyi ya da yazdığım bölü komutunu yeniden yaz\n"
-  },
-  {
-    "id": "api.command_shortcuts.msgs.reprint_prev",
-    "translation": "{{.CmdOrCtrl}}+YUKARI (boş giriş alanında): Önceki iletiyi ya da yazdığım bölü komutunu yeniden yaz\n"
   },
   {
     "id": "api.command_shortcuts.name",
     "translation": "kısayollar"
   },
   {
-    "id": "api.command_shortcuts.nav.direct_messages_menu",
-    "translation": "{{.CmdOrCtrl}}+SHIFT+K: Doğrudan iletiler menüsünü açar\n"
-  },
-  {
-    "id": "api.command_shortcuts.nav.header",
-    "translation": "#### Gezinme\n\n"
-  },
-  {
-    "id": "api.command_shortcuts.nav.next",
-    "translation": "ALT+AŞAĞI: Sol yan çubukta sonraki kanal ya da doğrudan ileti\n"
-  },
-  {
-    "id": "api.command_shortcuts.nav.prev",
-    "translation": "ALT+YUKARI: Sol yan çubukta önceki kanal ya da doğrudan ileti\n"
-  },
-  {
-    "id": "api.command_shortcuts.nav.recent_mentions",
-    "translation": "{{.CmdOrCtrl}}+SHIFT+M: Son anmaları aç\n\n"
-  },
-  {
-    "id": "api.command_shortcuts.nav.settings",
-    "translation": "{{.CmdOrCtrl}}+SHIFT+A: Hesap ayarlarını aç\n"
-  },
-  {
-    "id": "api.command_shortcuts.nav.switcher",
-    "translation": "{{.CmdOrCtrl}}+K: Hızlı kanal değiştirme penceresini aç\n"
-  },
-  {
-    "id": "api.command_shortcuts.nav.switcher_team",
-    "translation": "{{.CmdOrCtrl}}+ALT+K: Hızlı takım değiştirme penceresini aç\n"
-  },
-  {
-    "id": "api.command_shortcuts.nav.unread_next",
-    "translation": "ALT+SHIFT+AŞAĞI: Okunmamış iletilerle sol yan çubukta sonraki kanal ya da doğrudan ileti\n"
-  },
-  {
-    "id": "api.command_shortcuts.nav.unread_prev",
-    "translation": "ALT+SHIFT+YUKARI: Okunmamış iletilerle sol yan çubukta önceki kanal ya da doğrudan ileti\n"
+    "id": "api.command_shortcuts.unsupported.app_error",
+    "translation": "Kısayollar komutu aygıtınız için desteklenmiyor"
   },
   {
     "id": "api.command_shrug.desc",
@@ -1374,22 +1242,6 @@
     "translation": "Dosya yerel olarak taşınamadı."
   },
   {
-    "id": "api.file.open_file_write_stream.configured.app_error",
-    "translation": "Dosya depolaması doğru şekilde ayarlanmamış. Lütfen dosya depolaması için bir S3 ya da yerel sunucusu ayarlayın."
-  },
-  {
-    "id": "api.file.open_file_write_stream.creating_dir.app_error",
-    "translation": "Yeni dosya için klasör eklenirken bir sorun çıktı"
-  },
-  {
-    "id": "api.file.open_file_write_stream.local_server.app_error",
-    "translation": "Yerel sunucu depolamasına yazılırken bir sorun çıktı"
-  },
-  {
-    "id": "api.file.open_file_write_stream.s3.app_error",
-    "translation": "S3 desteklenmiyor."
-  },
-  {
     "id": "api.file.read_file.configured.app_error",
     "translation": "Dosya depolaması doğru şekilde ayarlanmamış. Lütfen dosya depolaması için bir S3 ya da yerel sunucusu ayarlayın."
   },
@@ -1662,6 +1514,18 @@
     "translation": "Initializing open graph protocol api routes"
   },
   {
+    "id": "api.plugin.upload.array.app_error",
+    "translation": "Multipart/form isteğindeki dosya dizisi boş"
+  },
+  {
+    "id": "api.plugin.upload.file.app_error",
+    "translation": "Multipart/form isteğindeki dosya açılamadı"
+  },
+  {
+    "id": "api.plugin.upload.no_file.app_error",
+    "translation": "Multipart/form isteğindeki dosya eksik"
+  },
+  {
     "id": "api.post.check_for_out_of_channel_mentions.message.multiple",
     "translation": "{{.Usernames}} ve {{.LastUsername}} anıldı, ancak bu kanalın üyesi olmadıklarından bildirimleri almayacaklar."
   },
@@ -1698,6 +1562,10 @@
     "translation": "RootID parametresi geçersiz"
   },
   {
+    "id": "api.post.create_post.town_square_read_only",
+    "translation": "Kanal salt okunur. Yalnız izni olan üyeler buraya ileti gönderebilir."
+  },
+  {
     "id": "api.post.create_webhook_post.creating.app_error",
     "translation": "İleti oluşturulurken sorun çıktı"
   },
@@ -1724,6 +1592,14 @@
   {
     "id": "api.post.disabled_here",
     "translation": "Kanalda {{.Users}} taneden fazla kullanıcı bulunduğundan @here seçeneği devre dışı bırakıldı."
+  },
+  {
+    "id": "api.post.do_action.action_id.app_error",
+    "translation": "İşlem kodu geçersiz"
+  },
+  {
+    "id": "api.post.do_action.action_integration.app_error",
+    "translation": "İşlem bütünleştirme sorunu"
   },
   {
     "id": "api.post.get_message_for_notification.files_sent",
@@ -2497,15 +2373,15 @@
   },
   {
     "id": "api.templates.user_access_token_body.info",
-    "translation": "{{ .SiteURL }} sitesindeki hesabınıza bir kullanıcı erişimi kodu eklendi. Bu kod {{.SiteName}} sitesindeki hesabınıza erişmek için kullanılacak.<br>Bu değişikliği siz yapmadıysanız lütfen sistem yöneticiniz ile görüşün."
+    "translation": "{{ .SiteURL }} sitesindeki hesabınıza bir kişisel erişim kodu eklendi. Bu kod hesabınızı kullanarak {{.SiteName}} sitesine erişmek için kullanılabilir.<br>Bu değişikliği siz yapmadıysanız lütfen sistem yöneticiniz ile görüşün."
   },
   {
     "id": "api.templates.user_access_token_body.title",
-    "translation": "Kullanıcı erişimi kodu hesabınıza eklendi"
+    "translation": "Hesabınıza kişisel erişim kodu eklendi"
   },
   {
     "id": "api.templates.user_access_token_subject",
-    "translation": "[{{ .SiteName }}] kullanıcı erişimi kodu hesabınıza eklendi"
+    "translation": "[{{ .SiteName }}] kişisel erişim kodu hesabınıza eklendi"
   },
   {
     "id": "api.templates.username_change_body.info",
@@ -2829,7 +2705,7 @@
   },
   {
     "id": "api.user.saml.not_available.app_error",
-    "translation": "SAML ayarları yapılmamış ya da bu sunucu tarafından desteklenmiyor."
+    "translation": "SAML 2.0 ayarları yapılmamış ya da bu sunucu tarafından desteklenmiyor."
   },
   {
     "id": "api.user.send_email_change_email_and_forget.error",
@@ -2865,7 +2741,7 @@
   },
   {
     "id": "api.user.send_user_access_token.error",
-    "translation": "E-postaya eklenen kullanıcı erişim kodu gönderilemedi"
+    "translation": "Kişisel erişim kodu eklendi e-postası gönderilemedi"
   },
   {
     "id": "api.user.send_verify_email_and_forget.failed.error",
@@ -3118,6 +2994,10 @@
   {
     "id": "app.channel.create_channel.no_team_id.app_error",
     "translation": "Bir kanal eklemek için takım kodu belirtilmelidir"
+  },
+  {
+    "id": "app.channel.move_channel.members_do_not_match.error",
+    "translation": "Cannot move a channel unless all its members are already members of the destination team."
   },
   {
     "id": "app.channel.post_update_channel_purpose_message.post.error",
@@ -3560,8 +3440,48 @@
     "translation": "[{{ .SiteName }}] {{ .TeamName}} takımında {{.Month}} {{.Day}}, {{.Year}} tarihinde yeni bildirim"
   },
   {
+    "id": "app.plugin.activate.app_error",
+    "translation": "Ayıklanan uygulama eki etkinleştirilemedi. Uygulama eki zaten var ve etkinleştirilmiş olabilir."
+  },
+  {
+    "id": "app.plugin.bad_path.app_error",
+    "translation": "Ayıklanan dosyalarda bozuk bir dosya yolu var"
+  },
+  {
+    "id": "app.plugin.deactivate.app_error",
+    "translation": "Uygulama eki devre dışı bırakılamadı"
+  },
+  {
+    "id": "app.plugin.disabled.app_error",
+    "translation": "Plugins have been disabled by the system admin or the server has not been restarted since they were enabled."
+  },
+  {
+    "id": "app.plugin.extract.app_error",
+    "translation": "Uygulama eki ayıklanırken sorun çıktı"
+  },
+  {
+    "id": "app.plugin.get_plugins.app_error",
+    "translation": "Etkin uygulama ekleri alınamadı"
+  },
+  {
+    "id": "app.plugin.manifest.app_error",
+    "translation": "Ayıklanan uygulama eki bilgi dosyası bulunamadı"
+  },
+  {
+    "id": "app.plugin.mvdir.app_error",
+    "translation": "Uygulama eki geçici klasörden son hedefine taşınamadı"
+  },
+  {
+    "id": "app.plugin.no_files.app_error",
+    "translation": "Sıkıştırılmış klasör içinde herhangi bir dosya bulunamadı"
+  },
+  {
+    "id": "app.plugin.remove.app_error",
+    "translation": "Uygulama eki silinemedi"
+  },
+  {
     "id": "app.user_access_token.disabled",
-    "translation": "Bu sunucu üzerinde kullanıcı erişim izinleri devre dışı bırakılmış. Lütfen ayrıntılı bilgi almak için sistem yöneticiniz ile görüşün."
+    "translation": "Bu sunucu üzerinde kişisel erişim kodları devre dışı bırakılmış. Lütfen ayrıntılı bilgi almak için sistem yöneticiniz ile görüşün."
   },
   {
     "id": "app.user_access_token.invalid_or_missing",
@@ -3593,11 +3513,11 @@
   },
   {
     "id": "authentication.permissions.create_user_access_token.description",
-    "translation": "Kullanıcı erişim kodları oluşturabilir"
+    "translation": "Kişisel erişim kodları oluşturabilir"
   },
   {
     "id": "authentication.permissions.create_user_access_token.name",
-    "translation": "Kullanıcı Erişim Kodu Oluşturma"
+    "translation": "Kişisel Erişim Kodu Oluşturma"
   },
   {
     "id": "authentication.permissions.manage_jobs.description",
@@ -3625,19 +3545,19 @@
   },
   {
     "id": "authentication.permissions.read_user_access_token.description",
-    "translation": "Kullanıcı erişim kodu, açıklaması ve kullanıcı kodu alanları okuyabilir"
+    "translation": "Kişisel erişim kodu, açıklaması ve kullanıcı kodu alanlarını okuyabilir"
   },
   {
     "id": "authentication.permissions.read_user_access_token.name",
-    "translation": "Kullanıcı Erişim Kodlarını Okuma"
+    "translation": "Kişisel Erişim Kodlarını Okuma"
   },
   {
     "id": "authentication.permissions.revoke_user_access_token.description",
-    "translation": "Kullanıcı erişim kodlarını geçersiz kılabilir"
+    "translation": "Kişisel erişim kodlarını geçersiz kılabilir"
   },
   {
     "id": "authentication.permissions.revoke_user_access_token.name",
-    "translation": "Kullanıcı Erişim Kodlarını Geçersiz Kılma"
+    "translation": "Kişisel Erişim Kodlarını Geçersiz Kılma"
   },
   {
     "id": "authentication.permissions.team_invite_user.description",
@@ -3673,11 +3593,11 @@
   },
   {
     "id": "authentication.roles.system_user_access_token.description",
-    "translation": "Kullanıcı erişim kodları ekleme, okuma ve geçersiz kılma izinleri olan bir rol"
+    "translation": "Kişisel erişim kodları ekleme, okuma ve geçersiz kılma izinleri olan bir rol"
   },
   {
     "id": "authentication.roles.system_user_access_token.name",
-    "translation": "Kullanıcı Erişim Kodu"
+    "translation": "Kişisel Erişim Kodu"
   },
   {
     "id": "authentication.roles.team_post_all.description",
@@ -3788,6 +3708,22 @@
     "translation": "'{{.JobName}}' görevi için '{{.FilePath}}' konumuna uygunluk dışa aktarma işlemi başlatıldı"
   },
   {
+    "id": "ent.elasticsearch.aggregator_worker.create_index_job.error",
+    "translation": "Elasticsearch toplayıcı işlemi dizin işlemini oluşturamadı"
+  },
+  {
+    "id": "ent.elasticsearch.aggregator_worker.delete_indexes.error",
+    "translation": "Elasticsearch toplayıcı işlemi dizinleri silemedi"
+  },
+  {
+    "id": "ent.elasticsearch.aggregator_worker.get_indexes.error",
+    "translation": "Elasticsearch toplayıcı işlemi dizinleri alamadı"
+  },
+  {
+    "id": "ent.elasticsearch.aggregator_worker.index_job_failed.error",
+    "translation": "Elasticsearch toplayıcı işlemi dizin işlemi tamamlanamadığından yarım kaldı"
+  },
+  {
     "id": "ent.elasticsearch.create_client.connect_failed",
     "translation": "Elasticsearch İstemcisi Kurulamadı"
   },
@@ -3814,6 +3750,14 @@
   {
     "id": "ent.elasticsearch.index_post.error",
     "translation": "İleti dizine eklenemedi"
+  },
+  {
+    "id": "ent.elasticsearch.indexer.do_job.parse_end_time.error",
+    "translation": "Elasticsearch toplayıcı işlemi bitiş zamanını işleyemedi"
+  },
+  {
+    "id": "ent.elasticsearch.indexer.do_job.parse_start_time.error",
+    "translation": "Elasticsearch toplayıcı işlemi başlangıç zamanını işleyemedi"
   },
   {
     "id": "ent.elasticsearch.not_started.error",
@@ -4037,7 +3981,7 @@
   },
   {
     "id": "ent.saml.service_disable.app_error",
-    "translation": "SAML ayarları yapılmamış ya da bu sunucu tarafından desteklenmiyor."
+    "translation": "SAML 2.0 ayarları yapılmamış ya da bu sunucu tarafından desteklenmiyor."
   },
   {
     "id": "ent.saml.update_saml_user.unable_error",
@@ -4344,6 +4288,10 @@
     "translation": "SAML setifikası çoklu form isteği oluşturulurken sorun çıktı"
   },
   {
+    "id": "model.client.writer.app_error",
+    "translation": "Multipart isteği oluşturulamadı"
+  },
+  {
     "id": "model.command.is_valid.create_at.app_error",
     "translation": "Oluşturulma zamanı geçerli bir zaman olmalıdır"
   },
@@ -4392,6 +4340,34 @@
     "translation": "Kullanıcı kodu geçersiz"
   },
   {
+    "id": "model.command_hook.channel_id.app_error",
+    "translation": "Kanal kodu geçersiz"
+  },
+  {
+    "id": "model.command_hook.command_id.app_error",
+    "translation": "Komut kodu geçersiz"
+  },
+  {
+    "id": "model.command_hook.create_at.app_error",
+    "translation": "Oluşturulma zamanı geçerli bir zaman olmalıdır"
+  },
+  {
+    "id": "model.command_hook.id.app_error",
+    "translation": "Komut bağlantı kodu geçersiz"
+  },
+  {
+    "id": "model.command_hook.parent_id.app_error",
+    "translation": "Üst öge kodu geçersiz"
+  },
+  {
+    "id": "model.command_hook.root_id.app_error",
+    "translation": "Kök kodu geçersiz"
+  },
+  {
+    "id": "model.command_hook.user_id.app_error",
+    "translation": "Kullanıcı kodu geçersiz"
+  },
+  {
     "id": "model.compliance.is_valid.create_at.app_error",
     "translation": "Oluşturulma zamanı geçerli bir zaman olmalıdır"
   },
@@ -4420,6 +4396,10 @@
     "translation": "Küme özelliği etkinleştirilmişken toplu e-posta etkinleştirilemez."
   },
   {
+    "id": "model.config.is_valid.elastic_search.aggregate_posts_after_days.app_error",
+    "translation": "Elasticsearch toplayıcı AggregatePostsAfterDays ayarının değeri 1 ya da daha büyük bir sayı olmalıdır"
+  },
+  {
     "id": "model.config.is_valid.elastic_search.connection_url.app_error",
     "translation": "Elastic Search ConnectionUrl setting must be provided when Elastic Search indexing is enabled."
   },
@@ -4430,6 +4410,10 @@
   {
     "id": "model.config.is_valid.elastic_search.password.app_error",
     "translation": "Elastic Search Password setting must be provided when Elastic Search indexing is enabled."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.posts_aggregator_job_start_time.app_error",
+    "translation": "Elasticsearch toplayıcı JobStartTime ayarının değeri \"ss:dd\" biçiminde bir zaman olmalıdır"
   },
   {
     "id": "model.config.is_valid.elastic_search.username.app_error",
@@ -5176,6 +5160,10 @@
     "translation": "kod çözülemedi"
   },
   {
+    "id": "plugin.rpcplugin.invocation.error",
+    "translation": "Uygulama eki RPC eklenirken sorun çıktı"
+  },
+  {
     "id": "store.sql.alter_column_type.critical",
     "translation": "%v sütun türü değiştirilemedi"
   },
@@ -5596,6 +5584,26 @@
     "translation": "Komut güncellenemedi"
   },
   {
+    "id": "store.sql_command_webhooks.get.app_error",
+    "translation": "Web bağlantısı alınamadı"
+  },
+  {
+    "id": "store.sql_command_webhooks.save.app_error",
+    "translation": "KomutWebBağlantısı kaydedilemedi"
+  },
+  {
+    "id": "store.sql_command_webhooks.save.existing.app_error",
+    "translation": "Var olan bir KomutWebBağlantısını güncelleyemezsiniz"
+  },
+  {
+    "id": "store.sql_command_webhooks.try_use.app_error",
+    "translation": "Web bağlantısı kullanılamaz"
+  },
+  {
+    "id": "store.sql_command_webhooks.try_use.invalid.app_error",
+    "translation": "Web bağlantısı geçersiz"
+  },
+  {
     "id": "store.sql_compliance.get.finding.app_error",
     "translation": "Uygunluk raporları alınırken bir sorun çıktı"
   },
@@ -5646,6 +5654,10 @@
   {
     "id": "store.sql_file_info.get_for_post.app_error",
     "translation": "İletinin dosya bilgileri alınamadı"
+  },
+  {
+    "id": "store.sql_file_info.permanent_delete.app_error",
+    "translation": "Dosya bilgileri kalıcı olarak silinemedi"
   },
   {
     "id": "store.sql_file_info.save.app_error",
@@ -6405,23 +6417,23 @@
   },
   {
     "id": "store.sql_user_access_token.delete.app_error",
-    "translation": "Kullanıcı erişim kodu silinemedi"
+    "translation": "Kişisel erişim kodu silinemedi"
   },
   {
     "id": "store.sql_user_access_token.get.app_error",
-    "translation": "Kullanıcı erişim kodu alınamadı"
+    "translation": "Kişisel erişim kodu alınamadı"
   },
   {
     "id": "store.sql_user_access_token.get_by_token.app_error",
-    "translation": "Koda göre kullanıcı erişim kodu alınamadı"
+    "translation": "Koda göre kişisel erişim kodu alınamadı"
   },
   {
     "id": "store.sql_user_access_token.get_by_user.app_error",
-    "translation": "Kullanıcıya göre kullanıcı erişim kodları alınamadı"
+    "translation": "Kullanıcıya göre kişisel erişim kodları alınamadı"
   },
   {
     "id": "store.sql_user_access_token.save.app_error",
-    "translation": "Kullanıcı erişim kodu kaydedilemedi"
+    "translation": "Kişisel erişim kodu kaydedilemedi"
   },
   {
     "id": "store.sql_webhooks.analytics_incoming_count.app_error",
@@ -6541,7 +6553,7 @@
   },
   {
     "id": "utils.config.supported_server_locale.app_error",
-    "translation": "Mattermost yapılandırma dosyası yüklenemedi: DefaultServerLocale seçeneği desteklenen dillerden biri olmalıdır"
+    "translation": "Mattermost yapılandırma dosyası yüklenemedi:  DefaultServerLocale desteklenen yerel seçeneklerinden birine ayarlanmalıdır. DefaultServerLocale varsayılan olarak en değerine ayarlanıyor."
   },
   {
     "id": "utils.config.validate_locale.app_error",
@@ -6550,6 +6562,30 @@
   {
     "id": "utils.diagnostic.analytics_not_found.app_error",
     "translation": "Analytics başlatılmadı"
+  },
+  {
+    "id": "utils.file.remove_directory.configured.app_error",
+    "translation": "Dosya depolaması doğru şekilde yapılandırılmamış. Lütfen S3 ya da yerel sunucusu depolamasını yapılandırın."
+  },
+  {
+    "id": "utils.file.remove_directory.local.app_error",
+    "translation": "Klasör yerel sunucu depolaması üzerinden silinirken bir sorun çıktı."
+  },
+  {
+    "id": "utils.file.remove_directory.s3.app_error",
+    "translation": "Klasör S3 üzerinden silinirken bir sorun çıktı."
+  },
+  {
+    "id": "utils.file.remove_file.configured.app_error",
+    "translation": "Dosya depolaması doğru şekilde yapılandırılmamış. Lütfen S3 ya da yerel sunucu depolamasını yapılandırın."
+  },
+  {
+    "id": "utils.file.remove_file.local.app_error",
+    "translation": "Dosya yerel sunucu depolaması üzerinden silinirken bir sorun çıktı"
+  },
+  {
+    "id": "utils.file.remove_file.s3.app_error",
+    "translation": "Dosya S3 üzerinden silinirken bir sorun çıktı."
   },
   {
     "id": "utils.i18n.loaded",
@@ -6662,6 +6698,18 @@
   {
     "id": "web.claim_account.user.error",
     "translation": "Kullanıcı bulunamadı. Takım Kodu: %v, E-posta: %v, Hata: %v"
+  },
+  {
+    "id": "web.command_webhook.command.app_error",
+    "translation": "Komut bulunamadı"
+  },
+  {
+    "id": "web.command_webhook.invalid.app_error",
+    "translation": "Web bağlantısı geçersiz"
+  },
+  {
+    "id": "web.command_webhook.parse.app_error",
+    "translation": "Gelen veriler işlenemedi"
   },
   {
     "id": "web.create_dir.error",

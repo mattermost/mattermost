@@ -9,7 +9,7 @@ import UserStore from 'stores/user_store.jsx';
 import ChannelStore from 'stores/channel_store.jsx';
 
 export function isSystemMessage(post) {
-    return post.type && (post.type.lastIndexOf(Constants.SYSTEM_MESSAGE_PREFIX) === 0);
+    return Boolean(post.type && (post.type.lastIndexOf(Constants.SYSTEM_MESSAGE_PREFIX) === 0));
 }
 
 export function isFromWebhook(post) {
@@ -39,7 +39,7 @@ export function getProfilePicSrcForPost(post, user) {
         src = Utils.imageURLForUser(post.user_id);
     }
 
-    if (post.props && post.props.from_webhook && global.window.mm_config.EnablePostIconOverride === 'true') {
+    if (post.props && post.props.from_webhook && !post.props.use_user_icon && global.window.mm_config.EnablePostIconOverride === 'true') {
         if (post.props.override_icon_url) {
             src = post.props.override_icon_url;
         } else {
@@ -53,11 +53,11 @@ export function getProfilePicSrcForPost(post, user) {
 }
 
 export function canDeletePost(post) {
-    var isOwner = isPostOwner(post);
-    var isSystemAdmin = UserStore.isSystemAdminForCurrentUser();
-    var isTeamAdmin = TeamStore.isTeamAdminForCurrentTeam() || isSystemAdmin;
-    var isChannelAdmin = ChannelStore.isChannelAdminForCurrentChannel() || isTeamAdmin;
-    var isAdmin = isChannelAdmin || isTeamAdmin || isSystemAdmin;
+    const isOwner = isPostOwner(post);
+    const isSystemAdmin = UserStore.isSystemAdminForCurrentUser();
+    const isTeamAdmin = TeamStore.isTeamAdminForCurrentTeam() || isSystemAdmin;
+    const isChannelAdmin = ChannelStore.isChannelAdminForCurrentChannel() || isTeamAdmin;
+    const isAdmin = isChannelAdmin || isTeamAdmin || isSystemAdmin;
 
     if (global.window.mm_license.IsLicensed === 'true') {
         return (global.window.mm_config.RestrictPostDelete === Constants.PERMISSIONS_DELETE_POST_ALL && (isOwner || isChannelAdmin)) ||
@@ -69,15 +69,14 @@ export function canDeletePost(post) {
 }
 
 export function canEditPost(post, editDisableAction) {
-    var isOwner = isPostOwner(post);
-
-    var canEdit = isOwner && !isSystemMessage(post);
+    const isOwner = isPostOwner(post);
+    let canEdit = isOwner && !isSystemMessage(post);
 
     if (canEdit && global.window.mm_license.IsLicensed === 'true') {
         if (global.window.mm_config.AllowEditPost === Constants.ALLOW_EDIT_POST_NEVER) {
             canEdit = false;
         } else if (global.window.mm_config.AllowEditPost === Constants.ALLOW_EDIT_POST_TIME_LIMIT) {
-            var timeLeft = (post.create_at + (global.window.mm_config.PostEditTimeLimit * 1000)) - Utils.getTimestamp();
+            const timeLeft = (post.create_at + (global.window.mm_config.PostEditTimeLimit * 1000)) - Utils.getTimestamp();
             if (timeLeft > 0) {
                 editDisableAction.fireAfter(timeLeft + 1000);
             } else {
@@ -106,4 +105,23 @@ export function shouldShowDotMenu(post) {
     }
 
     return false;
+}
+
+export function containsAtMention(text, key) {
+    if (!text || !key) {
+        return false;
+    }
+
+    // This doesn't work for at mentions containing periods or hyphens
+    return new RegExp(`\\B${key}\\b`, 'i').test(removeCode(text));
+}
+
+// Returns a given text string with all Markdown code replaced with whitespace.
+export function removeCode(text) {
+    // These patterns should match the ones in app/notification.go, except JavaScript doesn't
+    // support \z for the end of the text in multiline mode, so we use $(?![\r\n])
+    const codeBlockPattern = /^[^\S\n]*[`~]{3}.*$[\s\S]+?(^[^\S\n]*[`~]{3}$|$(?![\r\n]))/m;
+    const inlineCodePattern = /`+(?:.+?|.*?\n(.*?\S.*?\n)*.*?)`+/m;
+
+    return text.replace(codeBlockPattern, '').replace(inlineCodePattern, ' ');
 }

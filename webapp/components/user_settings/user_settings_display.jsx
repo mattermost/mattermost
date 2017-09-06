@@ -555,14 +555,15 @@ export default class UserSettingsDisplay extends React.Component {
             );
         }
 
-        const userLocale = this.props.user.locale;
+        let userLocale = this.props.user.locale;
         if (this.props.activeSection === 'languages') {
             if (!I18n.isLanguageAvailable(userLocale)) {
-                this.props.user.locale = global.window.mm_config.DefaultClientLocale;
+                userLocale = global.window.mm_config.DefaultClientLocale;
             }
             languagesSection = (
                 <ManageLanguages
                     user={this.props.user}
+                    locale={userLocale}
                     updateSection={(e) => {
                         this.updateSection('');
                         e.preventDefault();
@@ -590,6 +591,18 @@ export default class UserSettingsDisplay extends React.Component {
                     updateSection={() => {
                         this.updateSection('languages');
                     }}
+                />
+            );
+        }
+
+        let themeSection;
+        if (global.mm_config.EnableThemeSelection !== 'false') {
+            themeSection = (
+                <ThemeSetting
+                    selected={this.props.activeSection === 'theme'}
+                    updateSection={this.updateSection}
+                    setRequireConfirm={this.props.setRequireConfirm}
+                    setEnforceFocus={this.props.setEnforceFocus}
                 />
             );
         }
@@ -631,12 +644,7 @@ export default class UserSettingsDisplay extends React.Component {
                         />
                     </h3>
                     <div className='divider-dark first'/>
-                    <ThemeSetting
-                        selected={this.props.activeSection === 'theme'}
-                        updateSection={this.updateSection}
-                        setRequireConfirm={this.props.setRequireConfirm}
-                        setEnforceFocus={this.props.setEnforceFocus}
-                    />
+                    {themeSection}
                     <div className='divider-dark'/>
                     {clockSection}
                     <div className='divider-dark'/>

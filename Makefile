@@ -209,14 +209,20 @@ check-client-style:
 
 check-server-style: govet
 	@echo Running GOFMT
-	$(eval GOFMT_OUTPUT := $(shell gofmt -d -s api/ model/ store/ utils/ manualtesting/ einterfaces/ cmd/platform/ 2>&1))
-	@echo "$(GOFMT_OUTPUT)"
-	@if [ ! "$(GOFMT_OUTPUT)" ]; then \
-		echo "gofmt success"; \
-	else \
-		echo "gofmt failure"; \
-		exit 1; \
-	fi
+
+	@for package in $(TE_PACKAGES) $(EE_PACKAGES); do \
+		echo "Checking "$$package; \
+		files=$$(go list -f '{{range .GoFiles}}{{$$.Dir}}/{{.}} {{end}}' $$package); \
+		if [ "$$files" ]; then \
+			gofmt_output=$$(gofmt -d -s $$files 2>&1); \
+			if [ "$$gofmt_output" ]; then \
+				echo "$$gofmt_output"; \
+				echo "gofmt failure"; \
+				exit 1; \
+			fi; \
+		fi; \
+	done
+	@echo "gofmt success"; \
 
 check-style: check-client-style check-server-style
 
@@ -272,6 +278,10 @@ test-te: start-docker prepare-enterprise do-cover-file
 
 test-postgres: start-docker prepare-enterprise
 	@echo Testing Postgres
+
+	if [ ! -f config/config.json ]; then \
+		cp config/default.json config/config.json; \
+	fi; \
 
 	@sed -i'' -e 's|"DriverName": "mysql"|"DriverName": "postgres"|g' config/config.json
 	@sed -i'' -e 's|"DataSource": "mmuser:mostest@tcp(dockerhost:3306)/mattermost_test?charset=utf8mb4,utf8"|"DataSource": "postgres://mmuser:mostest@dockerhost:5432?sslmode=disable"|g' config/config.json
@@ -380,6 +390,8 @@ package: build build-client
 	cp -RL fonts $(DIST_PATH)
 	cp -RL templates $(DIST_PATH)
 	cp -RL i18n $(DIST_PATH)
+
+	mv $(DIST_PATH)/config/default.json $(DIST_PATH)/config/config.json
 
 	@# Disable developer settings
 	sed -i'' -e 's|"ConsoleLevel": "DEBUG"|"ConsoleLevel": "INFO"|g' $(DIST_PATH)/config/config.json
@@ -535,37 +547,10 @@ setup-mac:
 
 govet:
 	@echo Running GOVET
-
-	$(GO) vet $(GOFLAGS) ./api || exit 1
-	$(GO) vet $(GOFLAGS) ./api4 || exit 1
-	$(GO) vet $(GOFLAGS) ./app || exit 1
-	$(GO) vet $(GOFLAGS) ./app/plugin || exit 1
-	$(GO) vet $(GOFLAGS) ./app/plugin/jira || exit 1
-	$(GO) vet $(GOFLAGS) ./cmd/platform || exit 1
-	$(GO) vet $(GOFLAGS) ./einterfaces || exit 1
-	$(GO) vet $(GOFLAGS) ./jobs || exit 1
-	$(GO) vet $(GOFLAGS) ./manualtesting || exit 1
-	$(GO) vet $(GOFLAGS) ./model || exit 1
-	$(GO) vet $(GOFLAGS) ./model/gitlab || exit 1
-	$(GO) vet $(GOFLAGS) ./store || exit 1
-	$(GO) vet $(GOFLAGS) ./utils || exit 1
-	$(GO) vet $(GOFLAGS) ./web || exit 1
+	$(GO) vet $(GOFLAGS) $(TE_PACKAGES) || exit 1
 
 ifeq ($(BUILD_ENTERPRISE_READY),true)
-	$(GO) vet $(GOFLAGS) ./enterprise/account_migration || exit 1
-	$(GO) vet $(GOFLAGS) ./enterprise/brand || exit 1
-	$(GO) vet $(GOFLAGS) ./enterprise/cluster || exit 1
-	$(GO) vet $(GOFLAGS) ./enterprise/compliance || exit 1
-	$(GO) vet $(GOFLAGS) ./enterprise/data_retention || exit 1
-	$(GO) vet $(GOFLAGS) ./enterprise/elasticsearch || exit 1
-	$(GO) vet $(GOFLAGS) ./enterprise/emoji || exit 1
-	$(GO) vet $(GOFLAGS) ./enterprise/imports || exit 1
-	$(GO) vet $(GOFLAGS) ./enterprise/ldap || exit 1
-	$(GO) vet $(GOFLAGS) ./enterprise/metrics || exit 1
-	$(GO) vet $(GOFLAGS) ./enterprise/mfa || exit 1
-	$(GO) vet $(GOFLAGS) ./enterprise/oauth/google || exit 1
-	$(GO) vet $(GOFLAGS) ./enterprise/oauth/office365 || exit 1
-	$(GO) vet $(GOFLAGS) ./enterprise/saml || exit 1
+	$(GO) vet $(GOFLAGS) $(EE_PACKAGES) || exit 1
 endif
 
 todo:

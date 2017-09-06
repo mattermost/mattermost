@@ -18,8 +18,15 @@ export default class PremadeThemeChooser extends React.Component {
         const theme = this.props.theme;
 
         const premadeThemes = [];
+        const allowedThemes = global.mm_config.AllowedThemes ? global.mm_config.AllowedThemes.split(',') : [];
+        const hasAllowedThemes = allowedThemes.length > 1 || (allowedThemes[0] && allowedThemes[0].trim().length > 0);
+
         for (const k in Constants.THEMES) {
             if (Constants.THEMES.hasOwnProperty(k)) {
+                if (hasAllowedThemes && allowedThemes.indexOf(k) < 0) {
+                    continue;
+                }
+
                 const premadeTheme = $.extend(true, {}, Constants.THEMES[k]);
 
                 let activeClass = '';

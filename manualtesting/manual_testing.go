@@ -39,7 +39,7 @@ func manualTest(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	// URL Parameters
 	params, err := url.ParseQuery(r.URL.RawQuery)
 	if err != nil {
-		c.Err = model.NewLocAppError("/manual", "manaultesting.manual_test.parse.app_error", nil, "")
+		c.Err = model.NewAppError("/manual", "manaultesting.manual_test.parse.app_error", nil, "", http.StatusBadRequest)
 		return
 	}
 
@@ -55,7 +55,7 @@ func manualTest(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Create a client for tests to use
-	client := model.NewClient("http://localhost" + utils.Cfg.ServiceSettings.ListenAddress)
+	client := model.NewClient("http://localhost" + *utils.Cfg.ServiceSettings.ListenAddress)
 
 	// Check for username parameter and create a user if present
 	username, ok1 := params["username"]

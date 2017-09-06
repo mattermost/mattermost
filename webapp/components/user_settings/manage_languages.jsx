@@ -16,18 +16,14 @@ export default class ManageLanguage extends React.Component {
     constructor(props) {
         super(props);
 
-        this.setupInitialState = this.setupInitialState.bind(this);
         this.setLanguage = this.setLanguage.bind(this);
         this.changeLanguage = this.changeLanguage.bind(this);
         this.submitUser = this.submitUser.bind(this);
-        this.state = this.setupInitialState(props);
-    }
-    setupInitialState(props) {
-        var user = props.user;
-        return {
-            locale: user.locale
+        this.state = {
+            locale: props.locale
         };
     }
+
     setLanguage(e) {
         this.setState({locale: e.target.value});
     }
@@ -134,5 +130,6 @@ export default class ManageLanguage extends React.Component {
 
 ManageLanguage.propTypes = {
     user: PropTypes.object.isRequired,
+    locale: PropTypes.string.isRequired,
     updateSection: PropTypes.func.isRequired
 };

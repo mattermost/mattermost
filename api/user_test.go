@@ -263,13 +263,13 @@ func TestPasswordGuessLockout(t *testing.T) {
 	Client.Must(Client.Logout())
 
 	enableSignInWithEmail := *utils.Cfg.EmailSettings.EnableSignInWithEmail
-	passwordAttempts := utils.Cfg.ServiceSettings.MaximumLoginAttempts
+	passwordAttempts := *utils.Cfg.ServiceSettings.MaximumLoginAttempts
 	defer func() {
 		*utils.Cfg.EmailSettings.EnableSignInWithEmail = enableSignInWithEmail
-		utils.Cfg.ServiceSettings.MaximumLoginAttempts = passwordAttempts
+		*utils.Cfg.ServiceSettings.MaximumLoginAttempts = passwordAttempts
 	}()
 	*utils.Cfg.EmailSettings.EnableSignInWithEmail = true
-	utils.Cfg.ServiceSettings.MaximumLoginAttempts = 2
+	*utils.Cfg.ServiceSettings.MaximumLoginAttempts = 2
 
 	// OK to log in
 	if _, err := Client.Login(user.Username, user.Password); err != nil {
@@ -689,7 +689,7 @@ func TestUserCreateImage(t *testing.T) {
 		}
 	}
 
-	if utils.Cfg.FileSettings.DriverName == model.IMAGE_DRIVER_S3 {
+	if *utils.Cfg.FileSettings.DriverName == model.IMAGE_DRIVER_S3 {
 		endpoint := utils.Cfg.FileSettings.AmazonS3Endpoint
 		accessKey := utils.Cfg.FileSettings.AmazonS3AccessKeyId
 		secretKey := utils.Cfg.FileSettings.AmazonS3SecretAccessKey
@@ -726,7 +726,7 @@ func TestUserUploadProfileImage(t *testing.T) {
 	LinkUserToTeam(user, team)
 	store.Must(app.Srv.Store.User().VerifyEmail(user.Id))
 
-	if utils.Cfg.FileSettings.DriverName != "" {
+	if *utils.Cfg.FileSettings.DriverName != "" {
 
 		body := &bytes.Buffer{}
 		writer := multipart.NewWriter(body)
@@ -795,7 +795,7 @@ func TestUserUploadProfileImage(t *testing.T) {
 
 		Client.DoApiGet("/users/"+user.Id+"/image", "", "")
 
-		if utils.Cfg.FileSettings.DriverName == model.IMAGE_DRIVER_S3 {
+		if *utils.Cfg.FileSettings.DriverName == model.IMAGE_DRIVER_S3 {
 			endpoint := utils.Cfg.FileSettings.AmazonS3Endpoint
 			accessKey := utils.Cfg.FileSettings.AmazonS3AccessKeyId
 			secretKey := utils.Cfg.FileSettings.AmazonS3SecretAccessKey
@@ -934,11 +934,11 @@ func TestUserUpdatePassword(t *testing.T) {
 	}
 
 	// Test lockout
-	passwordAttempts := utils.Cfg.ServiceSettings.MaximumLoginAttempts
+	passwordAttempts := *utils.Cfg.ServiceSettings.MaximumLoginAttempts
 	defer func() {
-		utils.Cfg.ServiceSettings.MaximumLoginAttempts = passwordAttempts
+		*utils.Cfg.ServiceSettings.MaximumLoginAttempts = passwordAttempts
 	}()
-	utils.Cfg.ServiceSettings.MaximumLoginAttempts = 2
+	*utils.Cfg.ServiceSettings.MaximumLoginAttempts = 2
 
 	// Fail twice
 	if _, err := Client.UpdateUserPassword(user.Id, "badpwd", "newpwd"); err == nil {
@@ -1836,18 +1836,18 @@ func TestUpdateMfa(t *testing.T) {
 	th := Setup().InitBasic()
 	Client := th.BasicClient
 
-	isLicensed := utils.IsLicensed
-	license := utils.License
+	isLicensed := utils.IsLicensed()
+	license := utils.License()
 	enableMfa := *utils.Cfg.ServiceSettings.EnableMultifactorAuthentication
 	defer func() {
-		utils.IsLicensed = isLicensed
-		utils.License = license
+		utils.SetIsLicensed(isLicensed)
+		utils.SetLicense(license)
 		*utils.Cfg.ServiceSettings.EnableMultifactorAuthentication = enableMfa
 	}()
-	utils.IsLicensed = false
-	utils.License = &model.License{Features: &model.Features{}}
-	if utils.License.Features.MFA == nil {
-		utils.License.Features.MFA = new(bool)
+	utils.SetIsLicensed(false)
+	utils.SetLicense(&model.License{Features: &model.Features{}})
+	if utils.License().Features.MFA == nil {
+		utils.License().Features.MFA = new(bool)
 	}
 
 	team := model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
@@ -1874,8 +1874,8 @@ func TestUpdateMfa(t *testing.T) {
 		t.Fatal("should have failed - not licensed")
 	}
 
-	utils.IsLicensed = true
-	*utils.License.Features.MFA = true
+	utils.SetIsLicensed(true)
+	*utils.License().Features.MFA = true
 	*utils.Cfg.ServiceSettings.EnableMultifactorAuthentication = true
 
 	if _, err := Client.UpdateMfa(true, "123456"); err == nil {

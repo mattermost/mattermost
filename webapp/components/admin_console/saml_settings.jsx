@@ -144,7 +144,7 @@ export default class SamlSettings extends AdminSettings {
         return (
             <FormattedMessage
                 id='admin.authentication.saml'
-                defaultMessage='SAML'
+                defaultMessage='SAML 2.0'
             />
         );
     }
@@ -318,13 +318,13 @@ export default class SamlSettings extends AdminSettings {
                     label={
                         <FormattedMessage
                             id='admin.saml.enableTitle'
-                            defaultMessage='Enable Login With SAML:'
+                            defaultMessage='Enable Login With SAML 2.0:'
                         />
                     }
                     helpText={
                         <FormattedHTMLMessage
                             id='admin.saml.enableDescription'
-                            defaultMessage='When true, Mattermost allows login using SAML. Please see <a href="http://docs.mattermost.com/deployment/sso-saml.html" target="_blank">documentation</a> to learn more about configuring SAML for Mattermost.'
+                            defaultMessage='When true, Mattermost allows login using SAML 2.0. Please see <a href="http://docs.mattermost.com/deployment/sso-saml.html" target="_blank">documentation</a> to learn more about configuring SAML for Mattermost.'
                         />
                     }
                     value={this.state.enable}

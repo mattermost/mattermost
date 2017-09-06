@@ -40,7 +40,7 @@ func CreateTeamWithUser(team *model.Team, userId string) (*model.Team, *model.Ap
 	}
 
 	if !isTeamEmailAllowed(user) {
-		return nil, model.NewLocAppError("isTeamEmailAllowed", "api.team.is_team_creation_allowed.domain.app_error", nil, "")
+		return nil, model.NewAppError("isTeamEmailAllowed", "api.team.is_team_creation_allowed.domain.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	var rteam *model.Team
@@ -151,8 +151,7 @@ func UpdateTeamMemberRoles(teamId string, userId string, newRoles string) (*mode
 	}
 
 	if member == nil {
-		err := model.NewLocAppError("UpdateTeamMemberRoles", "api.team.update_member_roles.not_a_member", nil, "userId="+userId+" teamId="+teamId)
-		err.StatusCode = http.StatusBadRequest
+		err := model.NewAppError("UpdateTeamMemberRoles", "api.team.update_member_roles.not_a_member", nil, "userId="+userId+" teamId="+teamId, http.StatusBadRequest)
 		return nil, err
 	}
 
@@ -575,7 +574,7 @@ func LeaveTeam(team *model.Team, user *model.User) *model.AppError {
 	var err *model.AppError
 
 	if teamMember, err = GetTeamMember(team.Id, user.Id); err != nil {
-		return model.NewLocAppError("LeaveTeam", "api.team.remove_user_from_team.missing.app_error", nil, err.Error())
+		return model.NewAppError("LeaveTeam", "api.team.remove_user_from_team.missing.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
 
 	var channelList *model.ChannelList
@@ -630,8 +629,7 @@ func LeaveTeam(team *model.Team, user *model.User) *model.AppError {
 
 func InviteNewUsersToTeam(emailList []string, teamId, senderId string) *model.AppError {
 	if len(emailList) == 0 {
-		err := model.NewLocAppError("InviteNewUsersToTeam", "api.team.invite_members.no_one.app_error", nil, "")
-		err.StatusCode = http.StatusBadRequest
+		err := model.NewAppError("InviteNewUsersToTeam", "api.team.invite_members.no_one.app_error", nil, "", http.StatusBadRequest)
 		return err
 	}
 
@@ -735,7 +733,9 @@ func PermanentDeleteTeam(team *model.Team) *model.AppError {
 	}
 
 	if result := <-Srv.Store.Channel().GetTeamChannels(team.Id); result.Err != nil {
-		return result.Err
+		if result.Err.Id != "store.sql_channel.get_channels.not_found.app_error" {
+			return result.Err
+		}
 	} else {
 		channels := result.Data.(*model.ChannelList)
 		for _, c := range *channels {

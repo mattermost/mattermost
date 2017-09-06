@@ -7,8 +7,10 @@ import (
 	"crypto/md5"
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"os"
+	"path"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -17,6 +19,8 @@ import (
 	l4g "github.com/alecthomas/log4go"
 	"github.com/fsnotify/fsnotify"
 	"github.com/spf13/viper"
+
+	"net/http"
 
 	"github.com/mattermost/platform/einterfaces"
 	"github.com/mattermost/platform/model"
@@ -119,6 +123,8 @@ func ConfigureCmdLineLog() {
 	configureLog(&ls)
 }
 
+// TODO: this code initializes console and file logging. It will eventually be replaced by JSON logging in logger/logger.go
+// See PLT-3893 for more information
 func configureLog(s *model.LogSettings) {
 
 	l4g.Close()
@@ -168,7 +174,7 @@ func GetLogFileLocation(fileLocation string) string {
 		logDir, _ := FindDir("logs")
 		return logDir + LOG_FILENAME
 	} else {
-		return fileLocation + LOG_FILENAME
+		return path.Join(fileLocation, LOG_FILENAME)
 	}
 }
 
@@ -178,14 +184,14 @@ func SaveConfig(fileName string, config *model.Config) *model.AppError {
 
 	b, err := json.MarshalIndent(config, "", "    ")
 	if err != nil {
-		return model.NewLocAppError("SaveConfig", "utils.config.save_config.saving.app_error",
-			map[string]interface{}{"Filename": fileName}, err.Error())
+		return model.NewAppError("SaveConfig", "utils.config.save_config.saving.app_error",
+			map[string]interface{}{"Filename": fileName}, err.Error(), http.StatusBadRequest)
 	}
 
 	err = ioutil.WriteFile(fileName, b, 0644)
 	if err != nil {
-		return model.NewLocAppError("SaveConfig", "utils.config.save_config.saving.app_error",
-			map[string]interface{}{"Filename": fileName}, err.Error())
+		return model.NewAppError("SaveConfig", "utils.config.save_config.saving.app_error",
+			map[string]interface{}{"Filename": fileName}, err.Error(), http.StatusInternalServerError)
 	}
 
 	return nil
@@ -309,6 +315,22 @@ func LoadConfig(fileName string) {
 
 	configReadErr := viper.ReadInConfig()
 	if configReadErr != nil {
+		if _, ok := configReadErr.(viper.ConfigFileNotFoundError); ok {
+			// In case of a file-not-found error, try to copy default.json if it's present.
+			defaultPath := FindConfigFile("default.json")
+			if src, err := os.Open(defaultPath); err == nil {
+				if dest, err := os.OpenFile(filepath.Join(filepath.Dir(defaultPath), "config.json"), os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0600); err == nil {
+					if _, err := io.Copy(dest, src); err == nil {
+						configReadErr = viper.ReadInConfig()
+					}
+					dest.Close()
+				}
+				src.Close()
+			}
+		}
+	}
+
+	if configReadErr != nil {
 		errMsg := T("utils.config.load_config.opening.panic", map[string]interface{}{"Filename": fileName, "Error": configReadErr.Error()})
 		fmt.Fprintln(os.Stderr, errMsg)
 		os.Exit(1)
@@ -357,7 +379,7 @@ func LoadConfig(fileName string) {
 
 	configureLog(&config.LogSettings)
 
-	if config.FileSettings.DriverName == model.IMAGE_DRIVER_LOCAL {
+	if *config.FileSettings.DriverName == model.IMAGE_DRIVER_LOCAL {
 		dir := config.FileSettings.Directory
 		if len(dir) > 0 && dir[len(dir)-1:] != "/" {
 			config.FileSettings.Directory += "/"
@@ -416,7 +438,15 @@ func getClientConfig(c *model.Config) map[string]string {
 	props["RestrictPublicChannelDeletion"] = *c.TeamSettings.RestrictPublicChannelDeletion
 	props["RestrictPrivateChannelDeletion"] = *c.TeamSettings.RestrictPrivateChannelDeletion
 	props["RestrictPrivateChannelManageMembers"] = *c.TeamSettings.RestrictPrivateChannelManageMembers
+	props["EnableXToLeaveChannelsFromLHS"] = strconv.FormatBool(*c.TeamSettings.EnableXToLeaveChannelsFromLHS)
 	props["TeammateNameDisplay"] = *c.TeamSettings.TeammateNameDisplay
+
+	props["AndroidLatestVersion"] = c.ClientRequirements.AndroidLatestVersion
+	props["AndroidMinVersion"] = c.ClientRequirements.AndroidMinVersion
+	props["DesktopLatestVersion"] = c.ClientRequirements.DesktopLatestVersion
+	props["DesktopMinVersion"] = c.ClientRequirements.DesktopMinVersion
+	props["IosLatestVersion"] = c.ClientRequirements.IosLatestVersion
+	props["IosMinVersion"] = c.ClientRequirements.IosMinVersion
 
 	props["EnableOAuthServiceProvider"] = strconv.FormatBool(c.ServiceSettings.EnableOAuthServiceProvider)
 	props["GoogleDeveloperKey"] = c.ServiceSettings.GoogleDeveloperKey
@@ -453,9 +483,6 @@ func getClientConfig(c *model.Config) map[string]string {
 	props["AboutLink"] = *c.SupportSettings.AboutLink
 	props["HelpLink"] = *c.SupportSettings.HelpLink
 	props["ReportAProblemLink"] = *c.SupportSettings.ReportAProblemLink
-	props["AdministratorsGuideLink"] = *c.SupportSettings.AdministratorsGuideLink
-	props["TroubleshootingForumLink"] = *c.SupportSettings.TroubleshootingForumLink
-	props["CommercialSupportLink"] = *c.SupportSettings.CommercialSupportLink
 	props["SupportEmail"] = *c.SupportSettings.SupportEmail
 
 	props["EnableFileAttachments"] = strconv.FormatBool(*c.FileSettings.EnableFileAttachments)
@@ -468,7 +495,7 @@ func getClientConfig(c *model.Config) map[string]string {
 
 	props["DefaultClientLocale"] = *c.LocalizationSettings.DefaultClientLocale
 	props["AvailableLocales"] = *c.LocalizationSettings.AvailableLocales
-	props["SQLDriverName"] = c.SqlSettings.DriverName
+	props["SQLDriverName"] = *c.SqlSettings.DriverName
 
 	props["EnableCustomEmoji"] = strconv.FormatBool(*c.ServiceSettings.EnableCustomEmoji)
 	props["EnableEmojiPicker"] = strconv.FormatBool(*c.ServiceSettings.EnableEmojiPicker)
@@ -489,7 +516,12 @@ func getClientConfig(c *model.Config) map[string]string {
 	props["DiagnosticId"] = CfgDiagnosticId
 	props["DiagnosticsEnabled"] = strconv.FormatBool(*c.LogSettings.EnableDiagnostics)
 
-	if IsLicensed {
+	props["PluginsEnabled"] = strconv.FormatBool(*c.PluginSettings.Enable)
+
+	if IsLicensed() {
+		License := License()
+		props["ExperimentalTownSquareIsReadOnly"] = strconv.FormatBool(*c.TeamSettings.ExperimentalTownSquareIsReadOnly)
+
 		if *License.Features.CustomBrand {
 			props["EnableCustomBrand"] = strconv.FormatBool(*c.TeamSettings.EnableCustomBrand)
 			props["CustomBrandText"] = *c.TeamSettings.CustomBrandText
@@ -552,6 +584,13 @@ func getClientConfig(c *model.Config) map[string]string {
 			props["BannerTextColor"] = *c.AnnouncementSettings.BannerTextColor
 			props["AllowBannerDismissal"] = strconv.FormatBool(*c.AnnouncementSettings.AllowBannerDismissal)
 		}
+
+		if *License.Features.ThemeManagement {
+			props["EnableThemeSelection"] = strconv.FormatBool(*c.ThemeSettings.EnableThemeSelection)
+			props["DefaultTheme"] = *c.ThemeSettings.DefaultTheme
+			props["AllowCustomThemes"] = strconv.FormatBool(*c.ThemeSettings.AllowCustomThemes)
+			props["AllowedThemes"] = strings.Join(c.ThemeSettings.AllowedThemes, ",")
+		}
 	}
 
 	return props
@@ -572,12 +611,12 @@ func ValidateLocales(cfg *model.Config) *model.AppError {
 	locales := GetSupportedLocales()
 	if _, ok := locales[*cfg.LocalizationSettings.DefaultServerLocale]; !ok {
 		*cfg.LocalizationSettings.DefaultServerLocale = model.DEFAULT_LOCALE
-		err = model.NewLocAppError("ValidateLocales", "utils.config.supported_server_locale.app_error", nil, "")
+		err = model.NewAppError("ValidateLocales", "utils.config.supported_server_locale.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if _, ok := locales[*cfg.LocalizationSettings.DefaultClientLocale]; !ok {
 		*cfg.LocalizationSettings.DefaultClientLocale = model.DEFAULT_LOCALE
-		err = model.NewLocAppError("ValidateLocales", "utils.config.supported_client_locale.app_error", nil, "")
+		err = model.NewAppError("ValidateLocales", "utils.config.supported_client_locale.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if len(*cfg.LocalizationSettings.AvailableLocales) > 0 {
@@ -586,7 +625,7 @@ func ValidateLocales(cfg *model.Config) *model.AppError {
 			if _, ok := locales[word]; !ok {
 				*cfg.LocalizationSettings.AvailableLocales = ""
 				isDefaultClientLocaleInAvailableLocales = true
-				err = model.NewLocAppError("ValidateLocales", "utils.config.supported_available_locales.app_error", nil, "")
+				err = model.NewAppError("ValidateLocales", "utils.config.supported_available_locales.app_error", nil, "", http.StatusBadRequest)
 				break
 			}
 
@@ -599,7 +638,7 @@ func ValidateLocales(cfg *model.Config) *model.AppError {
 
 		if !isDefaultClientLocaleInAvailableLocales {
 			availableLocales += "," + *cfg.LocalizationSettings.DefaultClientLocale
-			err = model.NewLocAppError("ValidateLocales", "utils.config.add_client_locale.app_error", nil, "")
+			err = model.NewAppError("ValidateLocales", "utils.config.add_client_locale.app_error", nil, "", http.StatusBadRequest)
 		}
 
 		*cfg.LocalizationSettings.AvailableLocales = strings.Join(RemoveDuplicatesFromStringArray(strings.Split(availableLocales, ",")), ",")
@@ -631,8 +670,8 @@ func Desanitize(cfg *model.Config) {
 		cfg.GitLabSettings.Secret = Cfg.GitLabSettings.Secret
 	}
 
-	if cfg.SqlSettings.DataSource == model.FAKE_SETTING {
-		cfg.SqlSettings.DataSource = Cfg.SqlSettings.DataSource
+	if *cfg.SqlSettings.DataSource == model.FAKE_SETTING {
+		*cfg.SqlSettings.DataSource = *Cfg.SqlSettings.DataSource
 	}
 	if cfg.SqlSettings.AtRestEncryptKey == model.FAKE_SETTING {
 		cfg.SqlSettings.AtRestEncryptKey = Cfg.SqlSettings.AtRestEncryptKey
@@ -648,5 +687,13 @@ func Desanitize(cfg *model.Config) {
 
 	for i := range cfg.SqlSettings.DataSourceSearchReplicas {
 		cfg.SqlSettings.DataSourceSearchReplicas[i] = Cfg.SqlSettings.DataSourceSearchReplicas[i]
+	}
+}
+
+func IsLeader() bool {
+	if IsLicensed() && *Cfg.ClusterSettings.Enable && einterfaces.GetClusterInterface() != nil {
+		return einterfaces.GetClusterInterface().IsLeader()
+	} else {
+		return true
 	}
 }

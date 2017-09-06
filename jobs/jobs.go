@@ -16,7 +16,7 @@ const (
 	CANCEL_WATCHER_POLLING_INTERVAL = 5000
 )
 
-func CreateJob(jobType string, jobData map[string]interface{}) (*model.Job, *model.AppError) {
+func CreateJob(jobType string, jobData map[string]string) (*model.Job, *model.AppError) {
 	job := model.Job{
 		Id:       model.NewId(),
 		Type:     jobType,
@@ -70,9 +70,9 @@ func SetJobError(job *model.Job, jobError *model.AppError) *model.AppError {
 	job.Status = model.JOB_STATUS_ERROR
 	job.Progress = -1
 	if job.Data == nil {
-		job.Data = make(map[string]interface{})
+		job.Data = make(map[string]string)
 	}
-	job.Data["error"] = jobError
+	job.Data["error"] = jobError.Error()
 
 	if result := <-Srv.Store.Job().UpdateOptimistically(job, model.JOB_STATUS_IN_PROGRESS); result.Err != nil {
 		return result.Err

@@ -102,7 +102,7 @@ func CheckUserAdditionalAuthenticationCriteria(user *model.User, mfaToken string
 }
 
 func CheckUserMfa(user *model.User, token string) *model.AppError {
-	if !user.MfaActive || !utils.IsLicensed || !*utils.License.Features.MFA || !*utils.Cfg.ServiceSettings.EnableMultifactorAuthentication {
+	if !user.MfaActive || !utils.IsLicensed() || !*utils.License().Features.MFA || !*utils.Cfg.ServiceSettings.EnableMultifactorAuthentication {
 		return nil
 	}
 
@@ -121,7 +121,7 @@ func CheckUserMfa(user *model.User, token string) *model.AppError {
 }
 
 func checkUserLoginAttempts(user *model.User) *model.AppError {
-	if user.FailedAttempts >= utils.Cfg.ServiceSettings.MaximumLoginAttempts {
+	if user.FailedAttempts >= *utils.Cfg.ServiceSettings.MaximumLoginAttempts {
 		return model.NewAppError("checkUserLoginAttempts", "api.user.check_user_login_attempts.too_many.app_error", nil, "user_id="+user.Id, http.StatusUnauthorized)
 	}
 
@@ -143,7 +143,7 @@ func checkUserNotDisabled(user *model.User) *model.AppError {
 }
 
 func authenticateUser(user *model.User, password, mfaToken string) (*model.User, *model.AppError) {
-	ldapAvailable := *utils.Cfg.LdapSettings.Enable && einterfaces.GetLdapInterface() != nil && utils.IsLicensed && *utils.License.Features.LDAP
+	ldapAvailable := *utils.Cfg.LdapSettings.Enable && einterfaces.GetLdapInterface() != nil && utils.IsLicensed() && *utils.License().Features.LDAP
 
 	if user.AuthService == model.USER_AUTH_SERVICE_LDAP {
 		if !ldapAvailable {

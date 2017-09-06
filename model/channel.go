@@ -24,6 +24,7 @@ const (
 	CHANNEL_DISPLAY_NAME_MAX_RUNES = 64
 	CHANNEL_NAME_MIN_LENGTH        = 2
 	CHANNEL_NAME_MAX_LENGTH        = 64
+	CHANNEL_NAME_UI_MAX_LENGTH     = 22
 	CHANNEL_HEADER_MAX_RUNES       = 1024
 	CHANNEL_PURPOSE_MAX_RUNES      = 250
 	CHANNEL_CACHE_SIZE             = 25000
@@ -51,6 +52,11 @@ type ChannelPatch struct {
 	Name        *string `json:"name"`
 	Header      *string `json:"header"`
 	Purpose     *string `json:"purpose"`
+}
+
+func (o *Channel) DeepCopy() *Channel {
+	copy := *o
+	return &copy
 }
 
 func (o *Channel) ToJson() string {

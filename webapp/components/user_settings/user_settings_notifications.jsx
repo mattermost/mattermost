@@ -122,10 +122,10 @@ export default class NotificationsTab extends React.Component {
         this.state = getNotificationsStateFromStores();
     }
 
-    handleSubmit() {
+    handleSubmit({enableEmail = this.state.enableEmail}) {
         const data = {};
         data.user_id = this.props.user.id;
-        data.email = this.state.enableEmail;
+        data.email = enableEmail;
         data.desktop_sound = this.state.desktopSound;
         data.desktop = this.state.desktopActivity;
         data.desktop_duration = this.state.desktopDuration;
@@ -819,6 +819,7 @@ export default class NotificationsTab extends React.Component {
         }
 
         const pushNotificationSection = this.createPushNotificationSection();
+        const enableEmail = this.state.enableEmail === 'true';
 
         return (
             <div>
@@ -874,9 +875,10 @@ export default class NotificationsTab extends React.Component {
                     <EmailNotificationSetting
                         activeSection={this.props.activeSection}
                         updateSection={this.props.updateSection}
-                        enableEmail={this.state.enableEmail === 'true'}
-                        onChange={this.handleEmailRadio}
+                        enableEmail={enableEmail}
+                        emailInterval={Utils.getEmailInterval(enableEmail)}
                         onSubmit={this.handleSubmit}
+                        onCancel={this.handleCancel}
                         serverError={this.state.serverError}
                     />
                     <div className='divider-light'/>

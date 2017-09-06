@@ -27,6 +27,7 @@ func InitPost() {
 	BaseRoutes.Team.Handle("/posts/search", ApiSessionRequired(searchPosts)).Methods("POST")
 	BaseRoutes.Post.Handle("", ApiSessionRequired(updatePost)).Methods("PUT")
 	BaseRoutes.Post.Handle("/patch", ApiSessionRequired(patchPost)).Methods("PUT")
+	BaseRoutes.Post.Handle("/actions/{action_id:[A-Za-z0-9]+}", ApiSessionRequired(doPostAction)).Methods("POST")
 	BaseRoutes.Post.Handle("/pin", ApiSessionRequired(pinPost)).Methods("POST")
 	BaseRoutes.Post.Handle("/unpin", ApiSessionRequired(unpinPost)).Methods("POST")
 }
@@ -427,4 +428,23 @@ func getFileInfosForPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		w.Header().Set(model.HEADER_ETAG_SERVER, model.GetEtagForFileInfos(infos))
 		w.Write([]byte(model.FileInfosToJson(infos)))
 	}
+}
+
+func doPostAction(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequirePostId().RequireActionId()
+	if c.Err != nil {
+		return
+	}
+
+	if !app.SessionHasPermissionToChannelByPost(c.Session, c.Params.PostId, model.PERMISSION_READ_CHANNEL) {
+		c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
+		return
+	}
+
+	if err := app.DoPostAction(c.Params.PostId, c.Params.ActionId, c.Session.UserId); err != nil {
+		c.Err = err
+		return
+	}
+
+	ReturnStatusOK(w)
 }

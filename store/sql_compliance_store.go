@@ -180,7 +180,7 @@ func (s SqlComplianceStore) ComplianceExport(job *model.Compliance) StoreChannel
 		}
 
 		query :=
-			`SELECT
+			`(SELECT
 			    Teams.Name AS TeamName,
 			    Teams.DisplayName AS TeamDisplayName,
 			    Channels.Name AS ChannelName,
@@ -212,8 +212,41 @@ func (s SqlComplianceStore) ComplianceExport(job *model.Compliance) StoreChannel
 			        AND Posts.CreateAt > :StartTime
 			        AND Posts.CreateAt <= :EndTime
 			        ` + emailQuery + `
-			        ` + keywordQuery + `
-			ORDER BY Posts.CreateAt
+			        ` + keywordQuery + `)
+			UNION ALL
+			(SELECT
+			    "direct-message" AS TeamName,
+			    "Direct Message" AS TeamDisplayName,
+			    Channels.Name AS ChannelName,
+			    Channels.DisplayName AS ChannelDisplayName,
+			    Users.Username AS UserUsername,
+			    Users.Email AS UserEmail,
+			    Users.Nickname AS UserNickname,
+			    Posts.Id AS PostId,
+			    Posts.CreateAt AS PostCreateAt,
+			    Posts.UpdateAt AS PostUpdateAt,
+			    Posts.DeleteAt AS PostDeleteAt,
+			    Posts.RootId AS PostRootId,
+			    Posts.ParentId AS PostParentId,
+			    Posts.OriginalId AS PostOriginalId,
+			    Posts.Message AS PostMessage,
+			    Posts.Type AS PostType,
+			    Posts.Props AS PostProps,
+			    Posts.Hashtags AS PostHashtags,
+			    Posts.FileIds AS PostFileIds
+			FROM
+			    Channels,
+			    Users,
+			    Posts
+			WHERE
+			    Channels.TeamId = ''
+			        AND Posts.ChannelId = Channels.Id
+			        AND Posts.UserId = Users.Id
+			        AND Posts.CreateAt > :StartTime
+			        AND Posts.CreateAt <= :EndTime
+			        ` + emailQuery + `
+			        ` + keywordQuery + `)
+			ORDER BY PostCreateAt
 			LIMIT 30000`
 
 		var cposts []*model.CompliancePost

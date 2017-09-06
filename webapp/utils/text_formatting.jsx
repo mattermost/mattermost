@@ -185,7 +185,7 @@ function autolinkChannelMentions(text, tokens, channelNamesMap, team) {
         }
 
         tokens.set(alias, {
-            value: `<a class='mention-link' href="${href}" data-channel-mention="${channelName}">${displayName}</a>`,
+            value: `<a class="mention-link" href="${href}" data-channel-mention="${channelName}">~${displayName}</a>`,
             originalText: mention
         });
         return alias;
@@ -196,7 +196,7 @@ function autolinkChannelMentions(text, tokens, channelNamesMap, team) {
 
         if (channelMentionExists(channelNameLower)) {
             // Exact match
-            const alias = addToken(channelNameLower, mention, '~' + channelNamesMap[channelNameLower].display_name);
+            const alias = addToken(channelNameLower, mention, escapeHtml(channelNamesMap[channelNameLower].display_name));
             return spacer + alias;
         }
 
@@ -209,7 +209,8 @@ function autolinkChannelMentions(text, tokens, channelNamesMap, team) {
 
                 if (channelMentionExists(channelNameLower)) {
                     const suffix = originalChannelName.substr(c - 1);
-                    const alias = addToken(channelNameLower, '~' + channelNameLower, '~' + channelNamesMap[channelNameLower].display_name);
+                    const alias = addToken(channelNameLower, '~' + channelNameLower,
+                        escapeHtml(channelNamesMap[channelNameLower].display_name));
                     return spacer + alias + suffix;
                 }
             } else {
@@ -229,6 +230,18 @@ function autolinkChannelMentions(text, tokens, channelNamesMap, team) {
 
 export function escapeRegex(text) {
     return text.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&');
+}
+
+const htmlEntities = {
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#039;'
+};
+
+export function escapeHtml(text) {
+    return text.replace(/[&<>"']/g, (match) => htmlEntities[match]);
 }
 
 function highlightCurrentMentions(text, tokens, mentionKeys = []) {
@@ -400,7 +413,10 @@ function convertSearchTermToRegex(term) {
         pattern = '\\b()(' + escapeRegex(term) + ')\\b';
     }
 
-    return new RegExp(pattern, 'gi');
+    return {
+        pattern: new RegExp(pattern, 'gi'),
+        term
+    };
 }
 
 export function highlightSearchTerms(text, tokens, searchPatterns) {
@@ -426,7 +442,21 @@ export function highlightSearchTerms(text, tokens, searchPatterns) {
         // highlight existing tokens matching search terms
         var newTokens = new Map();
         for (const [alias, token] of tokens) {
-            if (pattern.test(token.originalText)) {
+            if (pattern.pattern.test(token.originalText)) {
+                // If it's a Hashtag, skip it unless the search term is an exact match.
+                let originalText = token.originalText;
+                if (originalText.startsWith('#')) {
+                    originalText = originalText.substr(1);
+                }
+                let term = pattern.term;
+                if (term.startsWith('#')) {
+                    term = term.substr(1);
+                }
+
+                if (alias.startsWith('$MM_HASHTAG') && originalText !== term) {
+                    continue;
+                }
+
                 const index = tokens.size + newTokens.size;
                 const newAlias = `$MM_SEARCHTERM${index}`;
 
@@ -438,10 +468,10 @@ export function highlightSearchTerms(text, tokens, searchPatterns) {
                 output = output.replace(alias, newAlias);
             }
 
-            // The pattern regexes are global, so calling pattern.test() above alters their
+            // The pattern regexes are global, so calling pattern.pattern.test() above alters their
             // state. Reset lastIndex to 0 between calls to test() to ensure it returns the
             // same result every time it is called with the same value of token.originalText.
-            pattern.lastIndex = 0;
+            pattern.pattern.lastIndex = 0;
         }
 
         // the new tokens are stashed in a separate map since we can't add objects to a map during iteration
@@ -449,7 +479,7 @@ export function highlightSearchTerms(text, tokens, searchPatterns) {
             tokens.set(newToken[0], newToken[1]);
         }
 
-        output = output.replace(pattern, replaceSearchTermWithToken);
+        output = output.replace(pattern.pattern, replaceSearchTermWithToken);
     }
 
     return output;

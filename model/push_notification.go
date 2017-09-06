@@ -18,7 +18,9 @@ const (
 	PUSH_TYPE_MESSAGE = "message"
 	PUSH_TYPE_CLEAR   = "clear"
 
-	CATEGORY_DM = "DIRECT_MESSAGE"
+	// The category is set to handle a set of interactive Actions
+	// with the push notifications
+	CATEGORY_CAN_REPLY = "CAN_REPLY"
 
 	MHPNS = "https://push.mattermost.com"
 )
@@ -34,6 +36,8 @@ type PushNotification struct {
 	ContentAvailable int    `json:"cont_ava"`
 	TeamId           string `json:"team_id"`
 	ChannelId        string `json:"channel_id"`
+	PostId           string `json:"post_id"`
+	RootId           string `json:"root_id"`
 	ChannelName      string `json:"channel_name"`
 	Type             string `json:"type"`
 	SenderId         string `json:"sender_id"`

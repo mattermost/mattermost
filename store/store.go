@@ -41,6 +41,7 @@ type Store interface {
 	System() SystemStore
 	Webhook() WebhookStore
 	Command() CommandStore
+	CommandWebhook() CommandWebhookStore
 	Preference() PreferenceStore
 	License() LicenseStore
 	Token() TokenStore
@@ -326,6 +327,13 @@ type CommandStore interface {
 	AnalyticsCommandCount(teamId string) StoreChannel
 }
 
+type CommandWebhookStore interface {
+	Save(webhook *model.CommandWebhook) StoreChannel
+	Get(id string) StoreChannel
+	TryUse(id string, limit int) StoreChannel
+	Cleanup()
+}
+
 type PreferenceStore interface {
 	Save(preferences *model.Preferences) StoreChannel
 	Get(userId string, category string, name string) StoreChannel
@@ -378,6 +386,7 @@ type FileInfoStore interface {
 	InvalidateFileInfosForPostCache(postId string)
 	AttachToPost(fileId string, postId string) StoreChannel
 	DeleteForPost(postId string) StoreChannel
+	PermanentDelete(fileId string) StoreChannel
 }
 
 type ReactionStore interface {

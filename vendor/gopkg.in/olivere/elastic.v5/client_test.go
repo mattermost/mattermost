@@ -16,6 +16,7 @@ import (
 	"reflect"
 	"regexp"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -294,6 +295,7 @@ func TestClientHealthcheckTimeoutLeak(t *testing.T) {
 	// leaks via leaktest.
 	mux := http.NewServeMux()
 
+	var reqDoneMu sync.Mutex
 	var reqDone bool
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		cn, ok := w.(http.CloseNotifier)
@@ -301,7 +303,9 @@ func TestClientHealthcheckTimeoutLeak(t *testing.T) {
 			t.Fatalf("Writer is not CloseNotifier, but %v", reflect.TypeOf(w).Name())
 		}
 		<-cn.CloseNotify()
+		reqDoneMu.Lock()
 		reqDone = true
+		reqDoneMu.Unlock()
 	})
 
 	lis, err := net.Listen("tcp", "127.0.0.1:0")
@@ -346,9 +350,12 @@ func TestClientHealthcheckTimeoutLeak(t *testing.T) {
 	}
 
 	<-time.After(time.Second)
+	reqDoneMu.Lock()
 	if !reqDone {
+		reqDoneMu.Unlock()
 		t.Fatal("Request wasn't canceled or stopped")
 	}
+	reqDoneMu.Unlock()
 }
 
 // -- NewSimpleClient --
@@ -552,6 +559,7 @@ func TestClientSniffTimeoutLeak(t *testing.T) {
 	// leaks via leaktest.
 	mux := http.NewServeMux()
 
+	var reqDoneMu sync.Mutex
 	var reqDone bool
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		cn, ok := w.(http.CloseNotifier)
@@ -559,7 +567,9 @@ func TestClientSniffTimeoutLeak(t *testing.T) {
 			t.Fatalf("Writer is not CloseNotifier, but %v", reflect.TypeOf(w).Name())
 		}
 		<-cn.CloseNotify()
+		reqDoneMu.Lock()
 		reqDone = true
+		reqDoneMu.Unlock()
 	})
 
 	lis, err := net.Listen("tcp", "127.0.0.1:0")
@@ -605,9 +615,12 @@ func TestClientSniffTimeoutLeak(t *testing.T) {
 	}
 
 	<-time.After(time.Second)
+	reqDoneMu.Lock()
 	if !reqDone {
+		reqDoneMu.Unlock()
 		t.Fatal("Request wasn't canceled or stopped")
 	}
+	reqDoneMu.Unlock()
 }
 
 func TestClientExtractHostname(t *testing.T) {
@@ -1195,7 +1208,8 @@ func TestPerformRequestWithTimeout(t *testing.T) {
 		res *Response
 		err error
 	}
-	ctx, _ := context.WithTimeout(context.Background(), 1*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
+	defer cancel()
 
 	resc := make(chan result, 1)
 	go func() {

@@ -13,10 +13,11 @@ import (
 
 	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/platform/einterfaces"
+	"github.com/mattermost/platform/jobs"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/store"
 	"github.com/mattermost/platform/utils"
-	"github.com/mattermost/platform/jobs"
+	"net/http"
 )
 
 func GetLogs(page, perPage int) ([]string, *model.AppError) {
@@ -27,7 +28,7 @@ func GetLogs(page, perPage int) ([]string, *model.AppError) {
 	if einterfaces.GetClusterInterface() != nil && *utils.Cfg.ClusterSettings.Enable {
 		lines = append(lines, "-----------------------------------------------------------------------------------------------------------")
 		lines = append(lines, "-----------------------------------------------------------------------------------------------------------")
-		lines = append(lines, einterfaces.GetClusterInterface().GetClusterId())
+		lines = append(lines, einterfaces.GetClusterInterface().GetMyClusterInfo().Hostname)
 		lines = append(lines, "-----------------------------------------------------------------------------------------------------------")
 		lines = append(lines, "-----------------------------------------------------------------------------------------------------------")
 	}
@@ -57,7 +58,7 @@ func GetLogsSkipSend(page, perPage int) ([]string, *model.AppError) {
 	if utils.Cfg.LogSettings.EnableFile {
 		file, err := os.Open(utils.GetLogFileLocation(utils.Cfg.LogSettings.FileLocation))
 		if err != nil {
-			return nil, model.NewLocAppError("getLogs", "api.admin.file_read_error", nil, err.Error())
+			return nil, model.NewAppError("getLogs", "api.admin.file_read_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 
 		defer file.Close()
@@ -153,7 +154,7 @@ func SaveConfig(cfg *model.Config, sendConfigChangeClusterMessage bool) *model.A
 	}
 
 	if *utils.Cfg.ClusterSettings.Enable && *utils.Cfg.ClusterSettings.ReadOnlyConfig {
-		return model.NewLocAppError("saveConfig", "ent.cluster.save_config.error", nil, "")
+		return model.NewAppError("saveConfig", "ent.cluster.save_config.error", nil, "", http.StatusForbidden)
 	}
 
 	utils.DisableConfigWatch()
@@ -198,7 +199,7 @@ func RecycleDatabaseConnection() {
 
 func TestEmail(userId string, cfg *model.Config) *model.AppError {
 	if len(cfg.EmailSettings.SMTPServer) == 0 {
-		return model.NewLocAppError("testEmail", "api.admin.test_email.missing_server", nil, utils.T("api.context.invalid_param.app_error", map[string]interface{}{"Name": "SMTPServer"}))
+		return model.NewAppError("testEmail", "api.admin.test_email.missing_server", nil, utils.T("api.context.invalid_param.app_error", map[string]interface{}{"Name": "SMTPServer"}), http.StatusBadRequest)
 	}
 
 	// if the user hasn't changed their email settings, fill in the actual SMTP password so that
@@ -209,10 +210,9 @@ func TestEmail(userId string, cfg *model.Config) *model.AppError {
 			cfg.EmailSettings.SMTPUsername == utils.Cfg.EmailSettings.SMTPUsername {
 			cfg.EmailSettings.SMTPPassword = utils.Cfg.EmailSettings.SMTPPassword
 		} else {
-			return model.NewLocAppError("testEmail", "api.admin.test_email.reenter_password", nil, "")
+			return model.NewAppError("testEmail", "api.admin.test_email.reenter_password", nil, "", http.StatusBadRequest)
 		}
 	}
-
 	if user, err := GetUser(userId); err != nil {
 		return err
 	} else {

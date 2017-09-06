@@ -67,6 +67,10 @@ func runServer(configFileLocation string) {
 		*utils.Cfg.ServiceSettings.EnableDeveloper = true
 	}
 
+	if err := utils.TestFileConnection(); err != nil {
+		l4g.Error("Problem with file storage settings: " + err.Error())
+	}
+
 	app.NewServer()
 	app.InitStores()
 	api.InitRouter()
@@ -81,12 +85,12 @@ func runServer(configFileLocation string) {
 		app.LoadLicense()
 	}
 
-	if !utils.IsLicensed && len(utils.Cfg.SqlSettings.DataSourceReplicas) > 1 {
+	if !utils.IsLicensed() && len(utils.Cfg.SqlSettings.DataSourceReplicas) > 1 {
 		l4g.Warn(utils.T("store.sql.read_replicas_not_licensed.critical"))
 		utils.Cfg.SqlSettings.DataSourceReplicas = utils.Cfg.SqlSettings.DataSourceReplicas[:1]
 	}
 
-	if !utils.IsLicensed {
+	if !utils.IsLicensed() {
 		utils.Cfg.TeamSettings.MaxNotificationsPerChannel = &MaxNotificationsPerChannelDefault
 	}
 
@@ -107,6 +111,7 @@ func runServer(configFileLocation string) {
 	go runDiagnosticsJob()
 
 	go runTokenCleanupJob()
+	go runCommandWebhookCleanupJob()
 
 	if complianceI := einterfaces.GetComplianceInterface(); complianceI != nil {
 		complianceI.StartComplianceDailyJob()
@@ -170,6 +175,11 @@ func runTokenCleanupJob() {
 	model.CreateRecurringTask("Token Cleanup", doTokenCleanup, time.Hour*1)
 }
 
+func runCommandWebhookCleanupJob() {
+	doCommandWebhookCleanup()
+	model.CreateRecurringTask("Command Hook Cleanup", doCommandWebhookCleanup, time.Hour*1)
+}
+
 func resetStatuses() {
 	if result := <-app.Srv.Store.Status().ResetAll(); result.Err != nil {
 		l4g.Error(utils.T("mattermost.reset_status.error"), result.Err.Error())
@@ -203,4 +213,8 @@ func doDiagnostics() {
 
 func doTokenCleanup() {
 	app.Srv.Store.Token().Cleanup()
+}
+
+func doCommandWebhookCleanup() {
+	app.Srv.Store.CommandWebhook().Cleanup()
 }

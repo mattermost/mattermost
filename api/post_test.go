@@ -22,6 +22,12 @@ import (
 )
 
 func TestCreatePost(t *testing.T) {
+	adm := Setup().InitSystemAdmin()
+	AdminClient := adm.SystemAdminClient
+	adminTeam := adm.SystemAdminTeam
+	adminUser := adm.CreateUser(adm.SystemAdminClient)
+	LinkUserToTeam(adminUser, adminTeam)
+
 	th := Setup().InitBasic()
 	Client := th.BasicClient
 	team := th.BasicTeam
@@ -142,6 +148,39 @@ func TestCreatePost(t *testing.T) {
 			t.Fatal("should've attached all 3 files to post")
 		}
 	}
+
+	isLicensed := utils.IsLicensed()
+	license := utils.License()
+	disableTownSquareReadOnly := utils.Cfg.TeamSettings.ExperimentalTownSquareIsReadOnly
+	defer func() {
+		utils.Cfg.TeamSettings.ExperimentalTownSquareIsReadOnly = disableTownSquareReadOnly
+		utils.SetIsLicensed(isLicensed)
+		utils.SetLicense(license)
+		utils.SetDefaultRolesBasedOnConfig()
+	}()
+	*utils.Cfg.TeamSettings.ExperimentalTownSquareIsReadOnly = true
+	utils.SetDefaultRolesBasedOnConfig()
+	utils.SetIsLicensed(true)
+	utils.SetLicense(&model.License{Features: &model.Features{}})
+	utils.License().Features.SetDefaults()
+
+	defaultChannel := store.Must(app.Srv.Store.Channel().GetByName(team.Id, model.DEFAULT_CHANNEL, true)).(*model.Channel)
+	defaultPost := &model.Post{
+		ChannelId: defaultChannel.Id,
+		Message:   "Default Channel Post",
+	}
+	if _, err = Client.CreatePost(defaultPost); err == nil {
+		t.Fatal("should have failed -- ExperimentalTownSquareIsReadOnly is true and it's a read only channel")
+	}
+
+	adminDefaultChannel := store.Must(app.Srv.Store.Channel().GetByName(adminTeam.Id, model.DEFAULT_CHANNEL, true)).(*model.Channel)
+	adminDefaultPost := &model.Post{
+		ChannelId: adminDefaultChannel.Id,
+		Message:   "Admin Default Channel Post",
+	}
+	if _, err = AdminClient.CreatePost(adminDefaultPost); err != nil {
+		t.Fatal("should not have failed -- ExperimentalTownSquareIsReadOnly is true and admin can post to channel")
+	}
 }
 
 func TestCreatePostWithCreateAt(t *testing.T) {
@@ -188,10 +227,13 @@ func testCreatePostWithOutgoingHook(
 	channel := th.CreateChannel(Client, team)
 
 	enableOutgoingHooks := utils.Cfg.ServiceSettings.EnableOutgoingWebhooks
+	allowedInternalConnections := *utils.Cfg.ServiceSettings.AllowedUntrustedInternalConnections
 	defer func() {
 		utils.Cfg.ServiceSettings.EnableOutgoingWebhooks = enableOutgoingHooks
+		utils.Cfg.ServiceSettings.AllowedUntrustedInternalConnections = &allowedInternalConnections
 	}()
 	utils.Cfg.ServiceSettings.EnableOutgoingWebhooks = true
+	*utils.Cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost 127.0.0.1"
 
 	var hook *model.OutgoingWebhook
 	var post *model.Post
@@ -406,15 +448,15 @@ func TestUpdatePost(t *testing.T) {
 	}
 
 	// Test licensed policy controls for edit post
-	isLicensed := utils.IsLicensed
-	license := utils.License
+	isLicensed := utils.IsLicensed()
+	license := utils.License()
 	defer func() {
-		utils.IsLicensed = isLicensed
-		utils.License = license
+		utils.SetIsLicensed(isLicensed)
+		utils.SetLicense(license)
 	}()
-	utils.IsLicensed = true
-	utils.License = &model.License{Features: &model.Features{}}
-	utils.License.Features.SetDefaults()
+	utils.SetIsLicensed(true)
+	utils.SetLicense(&model.License{Features: &model.Features{}})
+	utils.License().Features.SetDefaults()
 
 	*utils.Cfg.ServiceSettings.AllowEditPost = model.ALLOW_EDIT_POST_NEVER
 
@@ -610,8 +652,8 @@ func TestGetPostsBeforeAfter(t *testing.T) {
 		t.Fatal("wrong order")
 	}
 
-	if len(r1.Posts) != 3 {
-		t.Log(r1.Posts)
+	// including created post from test helper and system 'joined' message
+	if len(r1.Posts) != 4 {
 		t.Fatal("wrong size")
 	}
 
@@ -924,8 +966,8 @@ func TestDeletePosts(t *testing.T) {
 
 	r2 := Client.Must(Client.GetPosts(channel1.Id, 0, 10, "")).Data.(*model.PostList)
 
-	if len(r2.Posts) != 5 {
-		t.Fatal("should have returned 5 items")
+	if post := r2.Posts[post3.Id]; post != nil {
+		t.Fatal("should have not returned deleted post")
 	}
 
 	time.Sleep(10 * time.Millisecond)
@@ -948,15 +990,15 @@ func TestDeletePosts(t *testing.T) {
 	}
 
 	// Test licensed policy controls for delete post
-	isLicensed := utils.IsLicensed
-	license := utils.License
+	isLicensed := utils.IsLicensed()
+	license := utils.License()
 	defer func() {
-		utils.IsLicensed = isLicensed
-		utils.License = license
+		utils.SetIsLicensed(isLicensed)
+		utils.SetLicense(license)
 	}()
-	utils.IsLicensed = true
-	utils.License = &model.License{Features: &model.Features{}}
-	utils.License.Features.SetDefaults()
+	utils.SetIsLicensed(true)
+	utils.SetLicense(&model.License{Features: &model.Features{}})
+	utils.License().Features.SetDefaults()
 
 	UpdateUserToTeamAdmin(th.BasicUser2, th.BasicTeam)
 
@@ -1011,8 +1053,8 @@ func TestDeletePosts(t *testing.T) {
 	}
 
 	// Check that if unlicensed the policy restriction is not enforced.
-	utils.IsLicensed = false
-	utils.License = nil
+	utils.SetIsLicensed(false)
+	utils.SetLicense(nil)
 	utils.SetDefaultRolesBasedOnConfig()
 
 	time.Sleep(10 * time.Millisecond)
@@ -1359,10 +1401,13 @@ func TestGetOpenGraphMetadata(t *testing.T) {
 	Client := th.BasicClient
 
 	enableLinkPreviews := *utils.Cfg.ServiceSettings.EnableLinkPreviews
+	allowedInternalConnections := *utils.Cfg.ServiceSettings.AllowedUntrustedInternalConnections
 	defer func() {
 		*utils.Cfg.ServiceSettings.EnableLinkPreviews = enableLinkPreviews
+		utils.Cfg.ServiceSettings.AllowedUntrustedInternalConnections = &allowedInternalConnections
 	}()
 	*utils.Cfg.ServiceSettings.EnableLinkPreviews = true
+	*utils.Cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost 127.0.0.1"
 
 	ogDataCacheMissCount := 0
 

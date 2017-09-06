@@ -1,6 +1,7 @@
 package metrics
 
 import (
+	"bytes"
 	"fmt"
 	"math"
 	"net/url"
@@ -39,7 +40,7 @@ type IntervalMetrics struct {
 	Interval time.Time
 
 	// Gauges maps the key to the last set value
-	Gauges map[string]float32
+	Gauges map[string]GaugeValue
 
 	// Points maps the string to the list of emitted values
 	// from EmitKey
@@ -47,21 +48,21 @@ type IntervalMetrics struct {
 
 	// Counters maps the string key to a sum of the counter
 	// values
-	Counters map[string]*AggregateSample
+	Counters map[string]SampledValue
 
 	// Samples maps the key to an AggregateSample,
 	// which has the rolled up view of a sample
-	Samples map[string]*AggregateSample
+	Samples map[string]SampledValue
 }
 
 // NewIntervalMetrics creates a new IntervalMetrics for a given interval
 func NewIntervalMetrics(intv time.Time) *IntervalMetrics {
 	return &IntervalMetrics{
 		Interval: intv,
-		Gauges:   make(map[string]float32),
+		Gauges:   make(map[string]GaugeValue),
 		Points:   make(map[string][]float32),
-		Counters: make(map[string]*AggregateSample),
-		Samples:  make(map[string]*AggregateSample),
+		Counters: make(map[string]SampledValue),
+		Samples:  make(map[string]SampledValue),
 	}
 }
 
@@ -69,12 +70,12 @@ func NewIntervalMetrics(intv time.Time) *IntervalMetrics {
 // about a sample
 type AggregateSample struct {
 	Count       int       // The count of emitted pairs
-	Rate        float64   // The count of emitted pairs per time unit (usually 1 second)
+	Rate        float64   `json:"-"` // The count of emitted pairs per time unit (usually 1 second)
 	Sum         float64   // The sum of values
-	SumSq       float64   // The sum of squared values
+	SumSq       float64   `json:"-"` // The sum of squared values
 	Min         float64   // Minimum value
 	Max         float64   // Maximum value
-	LastUpdated time.Time // When value was last updated
+	LastUpdated time.Time `json:"-"` // When value was last updated
 }
 
 // Computes a Stddev of the values
@@ -154,12 +155,16 @@ func NewInmemSink(interval, retain time.Duration) *InmemSink {
 }
 
 func (i *InmemSink) SetGauge(key []string, val float32) {
-	k := i.flattenKey(key)
+	i.SetGaugeWithLabels(key, val, nil)
+}
+
+func (i *InmemSink) SetGaugeWithLabels(key []string, val float32, labels []Label) {
+	k, name := i.flattenKeyLabels(key, labels)
 	intv := i.getInterval()
 
 	intv.Lock()
 	defer intv.Unlock()
-	intv.Gauges[k] = val
+	intv.Gauges[k] = GaugeValue{Name: name, Value: val, Labels: labels}
 }
 
 func (i *InmemSink) EmitKey(key []string, val float32) {
@@ -173,30 +178,46 @@ func (i *InmemSink) EmitKey(key []string, val float32) {
 }
 
 func (i *InmemSink) IncrCounter(key []string, val float32) {
-	k := i.flattenKey(key)
+	i.IncrCounterWithLabels(key, val, nil)
+}
+
+func (i *InmemSink) IncrCounterWithLabels(key []string, val float32, labels []Label) {
+	k, name := i.flattenKeyLabels(key, labels)
 	intv := i.getInterval()
 
 	intv.Lock()
 	defer intv.Unlock()
 
-	agg := intv.Counters[k]
-	if agg == nil {
-		agg = &AggregateSample{}
+	agg, ok := intv.Counters[k]
+	if !ok {
+		agg = SampledValue{
+			Name:            name,
+			AggregateSample: &AggregateSample{},
+			Labels:          labels,
+		}
 		intv.Counters[k] = agg
 	}
 	agg.Ingest(float64(val), i.rateDenom)
 }
 
 func (i *InmemSink) AddSample(key []string, val float32) {
-	k := i.flattenKey(key)
+	i.AddSampleWithLabels(key, val, nil)
+}
+
+func (i *InmemSink) AddSampleWithLabels(key []string, val float32, labels []Label) {
+	k, name := i.flattenKeyLabels(key, labels)
 	intv := i.getInterval()
 
 	intv.Lock()
 	defer intv.Unlock()
 
-	agg := intv.Samples[k]
-	if agg == nil {
-		agg = &AggregateSample{}
+	agg, ok := intv.Samples[k]
+	if !ok {
+		agg = SampledValue{
+			Name:            name,
+			AggregateSample: &AggregateSample{},
+			Labels:          labels,
+		}
 		intv.Samples[k] = agg
 	}
 	agg.Ingest(float64(val), i.rateDenom)
@@ -261,6 +282,38 @@ func (i *InmemSink) getInterval() *IntervalMetrics {
 
 // Flattens the key for formatting, removes spaces
 func (i *InmemSink) flattenKey(parts []string) string {
-	joined := strings.Join(parts, ".")
-	return strings.Replace(joined, " ", "_", -1)
+	buf := &bytes.Buffer{}
+	replacer := strings.NewReplacer(" ", "_")
+
+	if len(parts) > 0 {
+		replacer.WriteString(buf, parts[0])
+	}
+	for _, part := range parts[1:] {
+		replacer.WriteString(buf, ".")
+		replacer.WriteString(buf, part)
+	}
+
+	return buf.String()
+}
+
+// Flattens the key for formatting along with its labels, removes spaces
+func (i *InmemSink) flattenKeyLabels(parts []string, labels []Label) (string, string) {
+	buf := &bytes.Buffer{}
+	replacer := strings.NewReplacer(" ", "_")
+
+	if len(parts) > 0 {
+		replacer.WriteString(buf, parts[0])
+	}
+	for _, part := range parts[1:] {
+		replacer.WriteString(buf, ".")
+		replacer.WriteString(buf, part)
+	}
+
+	key := buf.String()
+
+	for _, label := range labels {
+		replacer.WriteString(buf, fmt.Sprintf(";%s=%s", label.Name, label.Value))
+	}
+
+	return buf.String(), key
 }

@@ -29,13 +29,17 @@ export default class AdminSidebar extends React.Component {
         this.updateTitle();
 
         if (!Utils.isMobile()) {
-            $('.admin-sidebar .nav-pills__container').perfectScrollbar();
+            $('.admin-sidebar .nav-pills__container').perfectScrollbar({
+                suppressScrollX: true
+            });
         }
     }
 
     componentDidUpdate() {
         if (!Utils.isMobile()) {
-            $('.admin-sidebar .nav-pills__container').perfectScrollbar();
+            $('.admin-sidebar .nav-pills__container').perfectScrollbar({
+                suppressScrollX: true
+            });
         }
     }
 
@@ -56,6 +60,7 @@ export default class AdminSidebar extends React.Component {
         let metricsSettings = null;
         let complianceSettings = null;
         let mfaSettings = null;
+        let pluginSettings = null;
 
         let license = null;
         let audits = null;
@@ -125,7 +130,7 @@ export default class AdminSidebar extends React.Component {
                         title={
                             <FormattedMessage
                                 id='admin.sidebar.saml'
-                                defaultMessage='SAML'
+                                defaultMessage='SAML 2.0'
                             />
                         }
                     />
@@ -267,6 +272,36 @@ export default class AdminSidebar extends React.Component {
                         <FormattedMessage
                             id='admin.sidebar.elasticsearch'
                             defaultMessage='Elasticsearch (Beta)'
+                        />
+                    }
+                />
+            );
+        }
+
+        if (window.mm_config.PluginsEnabled === 'true' && window.mm_license.IsLicensed === 'true') {
+            pluginSettings = (
+                <AdminSidebarSection
+                    name='plugins'
+                    title={
+                        <FormattedMessage
+                            id='admin.sidebar.plugins'
+                            defaultMessage='Plugins (experimental)'
+                        />
+                    }
+                />
+            );
+        }
+
+        const SHOW_CLIENT_VERSIONS = false;
+        let clientVersions = null;
+        if (SHOW_CLIENT_VERSIONS) {
+            clientVersions = (
+                <AdminSidebarSection
+                    name='client_versions'
+                    title={
+                        <FormattedMessage
+                            id='admin.sidebar.client_versions'
+                            defaultMessage='Client Versions'
                         />
                     }
                 />
@@ -473,6 +508,7 @@ export default class AdminSidebar extends React.Component {
                                         />
                                     }
                                 />
+                                {clientVersions}
                             </AdminSidebarSection>
                             <AdminSidebarSection
                                 name='notifications'
@@ -541,6 +577,7 @@ export default class AdminSidebar extends React.Component {
                                         />
                                     }
                                 />
+                                {pluginSettings}
                             </AdminSidebarSection>
                             <AdminSidebarSection
                                 name='files'

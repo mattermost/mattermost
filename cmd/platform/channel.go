@@ -71,6 +71,16 @@ Archived channels are appended with ' (archived)'.`,
 	RunE:    listChannelsCmdF,
 }
 
+var moveChannelsCmd = &cobra.Command{
+	Use:   "move [team] [channels]",
+	Short: "Moves channels to the specified team",
+	Long: `Moves the provided channels to the specified team.
+Validates that all users in the channel belong to the target team. Incoming/Outgoing webhooks are moved along with the channel.
+Channels can be specified by [team]:[channel]. ie. myteam:mychannel or by channel ID.`,
+	Example: "  channel move newteam oldteam:mychannel",
+	RunE:    moveChannelsCmdF,
+}
+
 var restoreChannelsCmd = &cobra.Command{
 	Use:   "restore [channels]",
 	Short: "Restore some channels",
@@ -78,6 +88,15 @@ var restoreChannelsCmd = &cobra.Command{
 Channels can be specified by [team]:[channel]. ie. myteam:mychannel or by channel ID.`,
 	Example: "  channel restore myteam:mychannel",
 	RunE:    restoreChannelsCmdF,
+}
+
+var modifyChannelCmd = &cobra.Command{
+	Use:   "modify [channel]",
+	Short: "Modify a channel's public/private type",
+	Long: `Change the public/private type of a channel.
+Channel can be specified by [team]:[channel]. ie. myteam:mychannel or by channel ID.`,
+	Example: "  channel modify myteam:mychannel --private",
+	RunE:    modifyChannelCmdF,
 }
 
 func init() {
@@ -90,6 +109,9 @@ func init() {
 
 	deleteChannelsCmd.Flags().Bool("confirm", false, "Confirm you really want to delete the channels.")
 
+	modifyChannelCmd.Flags().Bool("private", false, "Convert the channel to a private channel")
+	modifyChannelCmd.Flags().Bool("public", false, "Convert the channel to a public channel")
+
 	channelCmd.AddCommand(
 		channelCreateCmd,
 		removeChannelUsersCmd,
@@ -97,7 +119,9 @@ func init() {
 		archiveChannelsCmd,
 		deleteChannelsCmd,
 		listChannelsCmd,
+		moveChannelsCmd,
 		restoreChannelsCmd,
+		modifyChannelCmd,
 	)
 }
 
@@ -106,7 +130,7 @@ func createChannelCmdF(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	if !utils.IsLicensed {
+	if !utils.IsLicensed() {
 		return errors.New(utils.T("cli.license.critical"))
 	}
 
@@ -158,7 +182,7 @@ func removeChannelUsersCmdF(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	if !utils.IsLicensed {
+	if !utils.IsLicensed() {
 		return errors.New(utils.T("cli.license.critical"))
 	}
 
@@ -194,7 +218,7 @@ func addChannelUsersCmdF(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	if !utils.IsLicensed {
+	if !utils.IsLicensed() {
 		return errors.New(utils.T("cli.license.critical"))
 	}
 
@@ -287,12 +311,78 @@ func deleteChannel(channel *model.Channel) *model.AppError {
 	return app.PermanentDeleteChannel(channel)
 }
 
+func moveChannelsCmdF(cmd *cobra.Command, args []string) error {
+	if err := initDBCommandContextCobra(cmd); err != nil {
+		return err
+	}
+
+	if len(args) < 2 {
+		return errors.New("Enter the destination team and at least one channel to move.")
+	}
+
+	team := getTeamFromTeamArg(args[0])
+	if team == nil {
+		return errors.New("Unable to find destination team '" + args[0] + "'")
+	}
+
+	channels := getChannelsFromChannelArgs(args[1:])
+	for i, channel := range channels {
+		if channel == nil {
+			CommandPrintErrorln("Unable to find channel '" + args[i] + "'")
+			continue
+		}
+		if err := moveChannel(team, channel); err != nil {
+			CommandPrintErrorln("Unable to move channel '" + channel.Name + "' error: " + err.Error())
+		} else {
+			CommandPrettyPrintln("Moved channel '" + channel.Name + "'")
+		}
+	}
+
+	return nil
+}
+
+func moveChannel(team *model.Team, channel *model.Channel) *model.AppError {
+	oldTeamId := channel.TeamId
+
+	if err := app.MoveChannel(team, channel); err != nil {
+		return err
+	}
+
+	if incomingWebhooks, err := app.GetIncomingWebhooksForTeamPage(oldTeamId, 0, 10000000); err != nil {
+		return err
+	} else {
+		for _, webhook := range incomingWebhooks {
+			if webhook.ChannelId == channel.Id {
+				webhook.TeamId = team.Id
+				if result := <-app.Srv.Store.Webhook().UpdateIncoming(webhook); result.Err != nil {
+					CommandPrintErrorln("Failed to move incoming webhook '" + webhook.Id + "' to new team.")
+				}
+			}
+		}
+	}
+
+	if outgoingWebhooks, err := app.GetOutgoingWebhooksForTeamPage(oldTeamId, 0, 10000000); err != nil {
+		return err
+	} else {
+		for _, webhook := range outgoingWebhooks {
+			if webhook.ChannelId == channel.Id {
+				webhook.TeamId = team.Id
+				if result := <-app.Srv.Store.Webhook().UpdateOutgoing(webhook); result.Err != nil {
+					CommandPrintErrorln("Failed to move outgoing webhook '" + webhook.Id + "' to new team.")
+				}
+			}
+		}
+	}
+
+	return nil
+}
+
 func listChannelsCmdF(cmd *cobra.Command, args []string) error {
 	if err := initDBCommandContextCobra(cmd); err != nil {
 		return err
 	}
 
-	if !utils.IsLicensed {
+	if !utils.IsLicensed() {
 		return errors.New(utils.T("cli.license.critical"))
 	}
 
@@ -329,7 +419,7 @@ func restoreChannelsCmdF(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	if !utils.IsLicensed {
+	if !utils.IsLicensed() {
 		return errors.New(utils.T("cli.license.critical"))
 	}
 
@@ -346,6 +436,47 @@ func restoreChannelsCmdF(cmd *cobra.Command, args []string) error {
 		if result := <-app.Srv.Store.Channel().SetDeleteAt(channel.Id, 0, model.GetMillis()); result.Err != nil {
 			CommandPrintErrorln("Unable to restore channel '" + args[i] + "'")
 		}
+	}
+
+	return nil
+}
+
+func modifyChannelCmdF(cmd *cobra.Command, args []string) error {
+	if err := initDBCommandContextCobra(cmd); err != nil {
+		return err
+	}
+
+	if !utils.IsLicensed() {
+		return errors.New(utils.T("cli.license.critical"))
+	}
+
+	if len(args) != 1 {
+		return errors.New("Enter at one channel to modify.")
+	}
+
+	public, _ := cmd.Flags().GetBool("public")
+	private, _ := cmd.Flags().GetBool("private")
+
+	if public == private {
+		return errors.New("You must specify only one of --public or --private")
+	}
+
+	channel := getChannelFromChannelArg(args[0])
+	if channel == nil {
+		return errors.New("Unable to find channel '" + args[0] + "'")
+	}
+
+	if !(channel.Type == model.CHANNEL_OPEN || channel.Type == model.CHANNEL_PRIVATE) {
+		return errors.New("You can only change the type of public/private channels.")
+	}
+
+	channel.Type = model.CHANNEL_OPEN
+	if private {
+		channel.Type = model.CHANNEL_PRIVATE
+	}
+
+	if _, err := app.UpdateChannel(channel); err != nil {
+		return errors.New("Failed to update channel '" + args[0] + "' - " + err.Error())
 	}
 
 	return nil

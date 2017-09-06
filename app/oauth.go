@@ -395,17 +395,17 @@ func RevokeAccessToken(token string) *model.AppError {
 	schan := Srv.Store.Session().Remove(token)
 
 	if result := <-Srv.Store.OAuth().GetAccessData(token); result.Err != nil {
-		return model.NewLocAppError("RevokeAccessToken", "api.oauth.revoke_access_token.get.app_error", nil, "")
+		return model.NewAppError("RevokeAccessToken", "api.oauth.revoke_access_token.get.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	tchan := Srv.Store.OAuth().RemoveAccessData(token)
 
 	if result := <-tchan; result.Err != nil {
-		return model.NewLocAppError("RevokeAccessToken", "api.oauth.revoke_access_token.del_token.app_error", nil, "")
+		return model.NewAppError("RevokeAccessToken", "api.oauth.revoke_access_token.del_token.app_error", nil, "", http.StatusInternalServerError)
 	}
 
 	if result := <-schan; result.Err != nil {
-		return model.NewLocAppError("RevokeAccessToken", "api.oauth.revoke_access_token.del_session.app_error", nil, "")
+		return model.NewAppError("RevokeAccessToken", "api.oauth.revoke_access_token.del_session.app_error", nil, "", http.StatusInternalServerError)
 	}
 
 	if session != nil {
@@ -610,12 +610,12 @@ func GetAuthorizationCode(w http.ResponseWriter, r *http.Request, service string
 func AuthorizeOAuthUser(w http.ResponseWriter, r *http.Request, service, code, state, redirectUri string) (io.ReadCloser, string, map[string]string, *model.AppError) {
 	sso := utils.Cfg.GetSSOService(service)
 	if sso == nil || !sso.Enable {
-		return nil, "", nil, model.NewLocAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.unsupported.app_error", nil, "service="+service)
+		return nil, "", nil, model.NewAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.unsupported.app_error", nil, "service="+service, http.StatusNotImplemented)
 	}
 
 	stateStr := ""
 	if b, err := b64.StdEncoding.DecodeString(state); err != nil {
-		return nil, "", nil, model.NewLocAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.invalid_state.app_error", nil, err.Error())
+		return nil, "", nil, model.NewAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.invalid_state.app_error", nil, err.Error(), http.StatusBadRequest)
 	} else {
 		stateStr = string(b)
 	}
@@ -673,8 +673,8 @@ func AuthorizeOAuthUser(w http.ResponseWriter, r *http.Request, service, code, s
 
 	var ar *model.AccessResponse
 	var bodyBytes []byte
-	if resp, err := utils.HttpClient().Do(req); err != nil {
-		return nil, "", stateProps, model.NewLocAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.token_failed.app_error", nil, err.Error())
+	if resp, err := utils.HttpClient(true).Do(req); err != nil {
+		return nil, "", stateProps, model.NewAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.token_failed.app_error", nil, err.Error(), http.StatusInternalServerError)
 	} else {
 		bodyBytes, _ = ioutil.ReadAll(resp.Body)
 		resp.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
@@ -682,16 +682,16 @@ func AuthorizeOAuthUser(w http.ResponseWriter, r *http.Request, service, code, s
 		ar = model.AccessResponseFromJson(resp.Body)
 		defer CloseBody(resp)
 		if ar == nil {
-			return nil, "", nil, model.NewLocAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.bad_response.app_error", nil, "response_body="+string(bodyBytes))
+			return nil, "", stateProps, model.NewAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.bad_response.app_error", nil, "response_body="+string(bodyBytes), http.StatusInternalServerError)
 		}
 	}
 
 	if strings.ToLower(ar.TokenType) != model.ACCESS_TOKEN_TYPE {
-		return nil, "", nil, model.NewLocAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.bad_token.app_error", nil, "token_type="+ar.TokenType+", response_body="+string(bodyBytes))
+		return nil, "", stateProps, model.NewAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.bad_token.app_error", nil, "token_type="+ar.TokenType+", response_body="+string(bodyBytes), http.StatusInternalServerError)
 	}
 
 	if len(ar.AccessToken) == 0 {
-		return nil, "", nil, model.NewLocAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.missing.app_error", nil, "response_body="+string(bodyBytes))
+		return nil, "", stateProps, model.NewAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.missing.app_error", nil, "response_body="+string(bodyBytes), http.StatusInternalServerError)
 	}
 
 	p = url.Values{}
@@ -702,9 +702,8 @@ func AuthorizeOAuthUser(w http.ResponseWriter, r *http.Request, service, code, s
 	req.Header.Set("Accept", "application/json")
 	req.Header.Set("Authorization", "Bearer "+ar.AccessToken)
 
-	if resp, err := utils.HttpClient().Do(req); err != nil {
-		return nil, "", stateProps, model.NewLocAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.service.app_error",
-			map[string]interface{}{"Service": service}, err.Error())
+	if resp, err := utils.HttpClient(true).Do(req); err != nil {
+		return nil, "", stateProps, model.NewAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.service.app_error", map[string]interface{}{"Service": service}, err.Error(), http.StatusInternalServerError)
 	} else {
 		return resp.Body, teamId, stateProps, nil
 	}

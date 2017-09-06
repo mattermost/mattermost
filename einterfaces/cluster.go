@@ -14,6 +14,8 @@ type ClusterInterface interface {
 	StopInterNodeCommunication()
 	RegisterClusterMessageHandler(event string, crm ClusterMessageHandler)
 	GetClusterId() string
+	IsLeader() bool
+	GetMyClusterInfo() *model.ClusterInfo
 	GetClusterInfos() []*model.ClusterInfo
 	SendClusterMessage(cluster *model.ClusterMessage)
 	NotifyMsg(buf []byte)

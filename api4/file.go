@@ -123,7 +123,7 @@ func getFile(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	data, err := app.ReadFile(info.Path)
+	data, err := utils.ReadFile(info.Path)
 	if err != nil {
 		c.Err = err
 		c.Err.StatusCode = http.StatusNotFound
@@ -160,12 +160,11 @@ func getFileThumbnail(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if info.ThumbnailPath == "" {
-		c.Err = model.NewLocAppError("getFileThumbnail", "api.file.get_file_thumbnail.no_thumbnail.app_error", nil, "file_id="+info.Id)
-		c.Err.StatusCode = http.StatusBadRequest
+		c.Err = model.NewAppError("getFileThumbnail", "api.file.get_file_thumbnail.no_thumbnail.app_error", nil, "file_id="+info.Id, http.StatusBadRequest)
 		return
 	}
 
-	if data, err := app.ReadFile(info.ThumbnailPath); err != nil {
+	if data, err := utils.ReadFile(info.ThumbnailPath); err != nil {
 		c.Err = err
 		c.Err.StatusCode = http.StatusNotFound
 	} else if err := writeFileResponse(info.Name, THUMBNAIL_IMAGE_TYPE, data, forceDownload, w, r); err != nil {
@@ -181,8 +180,7 @@ func getFileLink(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !utils.Cfg.FileSettings.EnablePublicLink {
-		c.Err = model.NewLocAppError("getPublicLink", "api.file.get_public_link.disabled.app_error", nil, "")
-		c.Err.StatusCode = http.StatusNotImplemented
+		c.Err = model.NewAppError("getPublicLink", "api.file.get_public_link.disabled.app_error", nil, "", http.StatusNotImplemented)
 		return
 	}
 
@@ -198,8 +196,7 @@ func getFileLink(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if len(info.PostId) == 0 {
-		c.Err = model.NewLocAppError("getPublicLink", "api.file.get_public_link.no_post.app_error", nil, "file_id="+info.Id)
-		c.Err.StatusCode = http.StatusBadRequest
+		c.Err = model.NewAppError("getPublicLink", "api.file.get_public_link.no_post.app_error", nil, "file_id="+info.Id, http.StatusBadRequest)
 		return
 	}
 
@@ -232,12 +229,11 @@ func getFilePreview(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if info.PreviewPath == "" {
-		c.Err = model.NewLocAppError("getFilePreview", "api.file.get_file_preview.no_preview.app_error", nil, "file_id="+info.Id)
-		c.Err.StatusCode = http.StatusBadRequest
+		c.Err = model.NewAppError("getFilePreview", "api.file.get_file_preview.no_preview.app_error", nil, "file_id="+info.Id, http.StatusBadRequest)
 		return
 	}
 
-	if data, err := app.ReadFile(info.PreviewPath); err != nil {
+	if data, err := utils.ReadFile(info.PreviewPath); err != nil {
 		c.Err = err
 		c.Err.StatusCode = http.StatusNotFound
 	} else if err := writeFileResponse(info.Name, PREVIEW_IMAGE_TYPE, data, forceDownload, w, r); err != nil {
@@ -274,8 +270,7 @@ func getPublicFile(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !utils.Cfg.FileSettings.EnablePublicLink {
-		c.Err = model.NewLocAppError("getPublicFile", "api.file.get_public_link.disabled.app_error", nil, "")
-		c.Err.StatusCode = http.StatusNotImplemented
+		c.Err = model.NewAppError("getPublicFile", "api.file.get_public_link.disabled.app_error", nil, "", http.StatusNotImplemented)
 		return
 	}
 
@@ -288,18 +283,16 @@ func getPublicFile(c *Context, w http.ResponseWriter, r *http.Request) {
 	hash := r.URL.Query().Get("h")
 
 	if len(hash) == 0 {
-		c.Err = model.NewLocAppError("getPublicFile", "api.file.get_file.public_invalid.app_error", nil, "")
-		c.Err.StatusCode = http.StatusBadRequest
+		c.Err = model.NewAppError("getPublicFile", "api.file.get_file.public_invalid.app_error", nil, "", http.StatusBadRequest)
 		return
 	}
 
 	if hash != app.GeneratePublicLinkHash(info.Id, *utils.Cfg.FileSettings.PublicLinkSalt) {
-		c.Err = model.NewLocAppError("getPublicFile", "api.file.get_file.public_invalid.app_error", nil, "")
-		c.Err.StatusCode = http.StatusBadRequest
+		c.Err = model.NewAppError("getPublicFile", "api.file.get_file.public_invalid.app_error", nil, "", http.StatusBadRequest)
 		return
 	}
 
-	if data, err := app.ReadFile(info.Path); err != nil {
+	if data, err := utils.ReadFile(info.Path); err != nil {
 		c.Err = err
 		c.Err.StatusCode = http.StatusNotFound
 	} else if err := writeFileResponse(info.Name, info.MimeType, data, true, w, r); err != nil {

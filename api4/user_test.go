@@ -14,6 +14,8 @@ import (
 	"github.com/mattermost/platform/app"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestCreateUser(t *testing.T) {
@@ -1513,17 +1515,17 @@ func TestGetUsersNotInChannel(t *testing.T) {
 	defer TearDown()
 	Client := th.Client
 
-	isLicensed := utils.IsLicensed
-	license := utils.License
+	isLicensed := utils.IsLicensed()
+	license := utils.License()
 	enableMfa := *utils.Cfg.ServiceSettings.EnableMultifactorAuthentication
 	defer func() {
-		utils.IsLicensed = isLicensed
-		utils.License = license
+		utils.SetIsLicensed(isLicensed)
+		utils.SetLicense(license)
 		*utils.Cfg.ServiceSettings.EnableMultifactorAuthentication = enableMfa
 	}()
-	utils.IsLicensed = true
-	utils.License = &model.License{Features: &model.Features{}}
-	utils.License.Features.SetDefaults()
+	utils.IsLicensed()= true
+	utils.SetLicense(&model.License{Features: &model.Features{}})
+	utils.License().Features.SetDefaults()
 
 	team := model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
 	rteam, _ := Client.CreateTeam(&team)
@@ -1574,18 +1576,18 @@ func TestCheckUserMfa(t *testing.T) {
 		t.Fatal("should be false - mfa not active")
 	}
 
-	isLicensed := utils.IsLicensed
-	license := utils.License
+	isLicensed := utils.IsLicensed()
+	license := utils.License()
 	enableMfa := *utils.Cfg.ServiceSettings.EnableMultifactorAuthentication
 	defer func() {
-		utils.IsLicensed = isLicensed
-		utils.License = license
+		utils.SetIsLicensed(isLicensed)
+		utils.SetLicense(license)
 		*utils.Cfg.ServiceSettings.EnableMultifactorAuthentication = enableMfa
 	}()
-	utils.IsLicensed = true
-	utils.License = &model.License{Features: &model.Features{}}
-	utils.License.Features.SetDefaults()
-	*utils.License.Features.MFA = true
+	utils.SetIsLicensed(true)
+	utils.SetLicense(&model.License{Features: &model.Features{}})
+	utils.License().Features.SetDefaults()
+	*utils.License().Features.MFA = true
 	*utils.Cfg.ServiceSettings.EnableMultifactorAuthentication = true
 
 	th.LoginBasic()
@@ -1672,11 +1674,11 @@ func TestUpdateUserPassword(t *testing.T) {
 	th.LoginBasic()
 
 	// Test lockout
-	passwordAttempts := utils.Cfg.ServiceSettings.MaximumLoginAttempts
+	passwordAttempts := *utils.Cfg.ServiceSettings.MaximumLoginAttempts
 	defer func() {
-		utils.Cfg.ServiceSettings.MaximumLoginAttempts = passwordAttempts
+		*utils.Cfg.ServiceSettings.MaximumLoginAttempts = passwordAttempts
 	}()
-	utils.Cfg.ServiceSettings.MaximumLoginAttempts = 2
+	*utils.Cfg.ServiceSettings.MaximumLoginAttempts = 2
 
 	// Fail twice
 	_, resp = Client.UpdateUserPassword(th.BasicUser.Id, "badpwd", "newpwd")
@@ -2040,8 +2042,15 @@ func TestSetProfileImage(t *testing.T) {
 		t.Fatal("Should have failed either forbidden or unauthorized")
 	}
 
+	buser, err := app.GetUser(user.Id)
+	require.Nil(t, err)
+
 	_, resp = th.SystemAdminClient.SetProfileImage(user.Id, data)
 	CheckNoError(t, resp)
+
+	ruser, err := app.GetUser(user.Id)
+	require.Nil(t, err)
+	assert.True(t, buser.LastPictureUpdate < ruser.LastPictureUpdate, "Picture should have updated for user")
 
 	info := &model.FileInfo{Path: "users/" + user.Id + "/profile.png"}
 	if err := cleanupTestFile(info); err != nil {

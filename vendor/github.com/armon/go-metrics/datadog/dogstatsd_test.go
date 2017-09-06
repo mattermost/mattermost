@@ -1,13 +1,14 @@
 package datadog
 
 import (
-	"fmt"
 	"net"
 	"reflect"
 	"testing"
+
+	"github.com/armon/go-metrics"
 )
 
-var EmptyTags []string
+var EmptyTags []metrics.Label
 
 const (
 	DogStatsdAddr    = "127.0.0.1:7254"
@@ -22,14 +23,14 @@ func MockGetHostname() string {
 
 var ParseKeyTests = []struct {
 	KeyToParse        []string
-	Tags              []string
+	Tags              []metrics.Label
 	PropagateHostname bool
 	ExpectedKey       []string
-	ExpectedTags      []string
+	ExpectedTags      []metrics.Label
 }{
 	{[]string{"a", MockGetHostname(), "b", "c"}, EmptyTags, HostnameDisabled, []string{"a", "b", "c"}, EmptyTags},
 	{[]string{"a", "b", "c"}, EmptyTags, HostnameDisabled, []string{"a", "b", "c"}, EmptyTags},
-	{[]string{"a", "b", "c"}, EmptyTags, HostnameEnabled, []string{"a", "b", "c"}, []string{fmt.Sprintf("host:%s", MockGetHostname())}},
+	{[]string{"a", "b", "c"}, EmptyTags, HostnameEnabled, []string{"a", "b", "c"}, []metrics.Label{{"host", MockGetHostname()}}},
 }
 
 var FlattenKeyTests = []struct {
@@ -44,7 +45,7 @@ var MetricSinkTests = []struct {
 	Method            string
 	Metric            []string
 	Value             interface{}
-	Tags              []string
+	Tags              []metrics.Label
 	PropagateHostname bool
 	Expected          string
 }{
@@ -53,13 +54,15 @@ var MetricSinkTests = []struct {
 	{"AddSample", []string{"sample", "thing"}, float32(4), EmptyTags, HostnameDisabled, "sample.thing:4.000000|ms"},
 	{"IncrCounter", []string{"count", "me"}, float32(3), EmptyTags, HostnameDisabled, "count.me:3|c"},
 
-	{"SetGauge", []string{"foo", "baz"}, float32(42), []string{"my_tag:my_value"}, HostnameDisabled, "foo.baz:42.000000|g|#my_tag:my_value"},
-	{"SetGauge", []string{"foo", "bar"}, float32(42), []string{"my_tag:my_value", "other_tag:other_value"}, HostnameDisabled, "foo.bar:42.000000|g|#my_tag:my_value,other_tag:other_value"},
-	{"SetGauge", []string{"foo", "bar"}, float32(42), []string{"my_tag:my_value", "other_tag:other_value"}, HostnameEnabled, "foo.bar:42.000000|g|#my_tag:my_value,other_tag:other_value,host:test_hostname"},
+	{"SetGauge", []string{"foo", "baz"}, float32(42), []metrics.Label{{"my_tag", ""}}, HostnameDisabled, "foo.baz:42.000000|g|#my_tag"},
+	{"SetGauge", []string{"foo", "baz"}, float32(42), []metrics.Label{{"my tag", "my_value"}}, HostnameDisabled, "foo.baz:42.000000|g|#my_tag:my_value"},
+	{"SetGauge", []string{"foo", "bar"}, float32(42), []metrics.Label{{"my_tag", "my_value"}, {"other_tag", "other_value"}}, HostnameDisabled, "foo.bar:42.000000|g|#my_tag:my_value,other_tag:other_value"},
+	{"SetGauge", []string{"foo", "bar"}, float32(42), []metrics.Label{{"my_tag", "my_value"}, {"other_tag", "other_value"}}, HostnameEnabled, "foo.bar:42.000000|g|#my_tag:my_value,other_tag:other_value,host:test_hostname"},
 }
 
-func mockNewDogStatsdSink(addr string, tags []string, tagWithHostname bool) *DogStatsdSink {
+func mockNewDogStatsdSink(addr string, labels []metrics.Label, tagWithHostname bool) *DogStatsdSink {
 	dog, _ := NewDogStatsdSink(addr, MockGetHostname())
+	_, tags := dog.getFlatkeyAndCombinedLabels(nil, labels)
 	dog.SetTags(tags)
 	if tagWithHostname {
 		dog.EnableHostNamePropagation()
@@ -90,7 +93,7 @@ func TestParseKey(t *testing.T) {
 		}
 
 		if !reflect.DeepEqual(tags, tt.ExpectedTags) {
-			t.Fatalf("Tag Parsing Failed for %v", tt.KeyToParse)
+			t.Fatalf("Tag Parsing Failed for %v, %v != %v", tt.KeyToParse, tags, tt.ExpectedTags)
 		}
 	}
 }
@@ -124,17 +127,17 @@ func TestTaggableMetrics(t *testing.T) {
 
 	dog := mockNewDogStatsdSink(DogStatsdAddr, EmptyTags, HostnameDisabled)
 
-	dog.AddSampleWithTags([]string{"sample", "thing"}, float32(4), []string{"tagkey:tagvalue"})
+	dog.AddSampleWithLabels([]string{"sample", "thing"}, float32(4), []metrics.Label{{"tagkey", "tagvalue"}})
 	assertServerMatchesExpected(t, server, buf, "sample.thing:4.000000|ms|#tagkey:tagvalue")
 
-	dog.SetGaugeWithTags([]string{"sample", "thing"}, float32(4), []string{"tagkey:tagvalue"})
+	dog.SetGaugeWithLabels([]string{"sample", "thing"}, float32(4), []metrics.Label{{"tagkey", "tagvalue"}})
 	assertServerMatchesExpected(t, server, buf, "sample.thing:4.000000|g|#tagkey:tagvalue")
 
-	dog.IncrCounterWithTags([]string{"sample", "thing"}, float32(4), []string{"tagkey:tagvalue"})
+	dog.IncrCounterWithLabels([]string{"sample", "thing"}, float32(4), []metrics.Label{{"tagkey", "tagvalue"}})
 	assertServerMatchesExpected(t, server, buf, "sample.thing:4|c|#tagkey:tagvalue")
 
-	dog = mockNewDogStatsdSink(DogStatsdAddr, []string{"global"}, HostnameEnabled) // with hostname, global tags
-	dog.IncrCounterWithTags([]string{"sample", "thing"}, float32(4), []string{"tagkey:tagvalue"})
+	dog = mockNewDogStatsdSink(DogStatsdAddr, []metrics.Label{{Name: "global"}}, HostnameEnabled) // with hostname, global tags
+	dog.IncrCounterWithLabels([]string{"sample", "thing"}, float32(4), []metrics.Label{{"tagkey", "tagvalue"}})
 	assertServerMatchesExpected(t, server, buf, "sample.thing:4|c|#global,tagkey:tagvalue,host:test_hostname")
 }
 

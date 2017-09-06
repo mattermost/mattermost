@@ -42,5 +42,5 @@ func (c Client) PutEncryptedObject(bucketName, objectName string, reader io.Read
 	metadata[amzHeaderKey] = []string{encryptMaterials.GetKey()}
 	metadata[amzHeaderMatDesc] = []string{encryptMaterials.GetDesc()}
 
-	return c.putObjectMultipart(bucketName, objectName, encryptMaterials, -1, metadata, progress)
+	return c.putObjectMultipartStreamNoLength(bucketName, objectName, encryptMaterials, metadata, progress)
 }

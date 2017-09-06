@@ -10,8 +10,9 @@ import (
 )
 
 const (
-	JOB_TYPE_DATA_RETENTION              = "data_retention"
-	JOB_TYPE_ELASTICSEARCH_POST_INDEXING = "elasticsearch_post_indexing"
+	JOB_TYPE_DATA_RETENTION                 = "data_retention"
+	JOB_TYPE_ELASTICSEARCH_POST_INDEXING    = "elasticsearch_post_indexing"
+	JOB_TYPE_ELASTICSEARCH_POST_AGGREGATION = "elasticsearch_post_aggregation"
 
 	JOB_STATUS_PENDING          = "pending"
 	JOB_STATUS_IN_PROGRESS      = "in_progress"
@@ -22,15 +23,15 @@ const (
 )
 
 type Job struct {
-	Id             string                 `json:"id"`
-	Type           string                 `json:"type"`
-	Priority       int64                  `json:"priority"`
-	CreateAt       int64                  `json:"create_at"`
-	StartAt        int64                  `json:"start_at"`
-	LastActivityAt int64                  `json:"last_activity_at"`
-	Status         string                 `json:"status"`
-	Progress       int64                  `json:"progress"`
-	Data           map[string]interface{} `json:"data"`
+	Id             string            `json:"id"`
+	Type           string            `json:"type"`
+	Priority       int64             `json:"priority"`
+	CreateAt       int64             `json:"create_at"`
+	StartAt        int64             `json:"start_at"`
+	LastActivityAt int64             `json:"last_activity_at"`
+	Status         string            `json:"status"`
+	Progress       int64             `json:"progress"`
+	Data           map[string]string `json:"data"`
 }
 
 func (j *Job) IsValid() *AppError {
@@ -45,6 +46,7 @@ func (j *Job) IsValid() *AppError {
 	switch j.Type {
 	case JOB_TYPE_DATA_RETENTION:
 	case JOB_TYPE_ELASTICSEARCH_POST_INDEXING:
+	case JOB_TYPE_ELASTICSEARCH_POST_AGGREGATION:
 	default:
 		return NewAppError("Job.IsValid", "model.job.is_valid.type.app_error", nil, "id="+j.Id, http.StatusBadRequest)
 	}

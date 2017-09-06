@@ -25,7 +25,7 @@ import (
 	"github.com/nicksnyder/go-i18n/i18n"
 )
 
-func SendNotifications(post *model.Post, team *model.Team, channel *model.Channel, sender *model.User) ([]string, *model.AppError) {
+func SendNotifications(post *model.Post, team *model.Team, channel *model.Channel, sender *model.User, parentPostList *model.PostList) ([]string, *model.AppError) {
 	pchan := Srv.Store.User().GetAllProfilesInChannel(channel.Id, true)
 	cmnchan := Srv.Store.Channel().GetAllChannelMembersNotifyPropsForChannel(channel.Id, true)
 	var fchan store.StoreChannel
@@ -77,17 +77,11 @@ func SendNotifications(post *model.Post, team *model.Team, channel *model.Channe
 		mentionedUserIds, potentialOtherMentions, hereNotification, channelNotification, allNotification = GetExplicitMentions(post.Message, keywords)
 
 		// get users that have comment thread mentions enabled
-		if len(post.RootId) > 0 {
-			if result := <-Srv.Store.Post().Get(post.RootId); result.Err != nil {
-				return nil, result.Err
-			} else {
-				list := result.Data.(*model.PostList)
-
-				for _, threadPost := range list.Posts {
-					profile := profileMap[threadPost.UserId]
-					if profile != nil && (profile.NotifyProps["comments"] == "any" || (profile.NotifyProps["comments"] == "root" && threadPost.Id == list.Order[0])) {
-						mentionedUserIds[threadPost.UserId] = true
-					}
+		if len(post.RootId) > 0 && parentPostList != nil {
+			for _, threadPost := range parentPostList.Posts {
+				profile := profileMap[threadPost.UserId]
+				if profile != nil && (profile.NotifyProps["comments"] == "any" || (profile.NotifyProps["comments"] == "root" && threadPost.Id == parentPostList.Order[0])) {
+					mentionedUserIds[threadPost.UserId] = true
 				}
 			}
 		}
@@ -188,7 +182,6 @@ func SendNotifications(post *model.Post, team *model.Team, channel *model.Channe
 	if hereNotification && int64(len(profileMap)) > *utils.Cfg.TeamSettings.MaxNotificationsPerChannel {
 		hereNotification = false
 		SendEphemeralPost(
-			team.Id,
 			post.UserId,
 			&model.Post{
 				ChannelId: post.ChannelId,
@@ -201,7 +194,6 @@ func SendNotifications(post *model.Post, team *model.Team, channel *model.Channe
 	// If the channel has more than 1K users then @channel is disabled
 	if channelNotification && int64(len(profileMap)) > *utils.Cfg.TeamSettings.MaxNotificationsPerChannel {
 		SendEphemeralPost(
-			team.Id,
 			post.UserId,
 			&model.Post{
 				ChannelId: post.ChannelId,
@@ -214,7 +206,6 @@ func SendNotifications(post *model.Post, team *model.Team, channel *model.Channe
 	// If the channel has more than 1K users then @all is disabled
 	if allNotification && int64(len(profileMap)) > *utils.Cfg.TeamSettings.MaxNotificationsPerChannel {
 		SendEphemeralPost(
-			team.Id,
 			post.UserId,
 			&model.Post{
 				ChannelId: post.ChannelId,
@@ -236,7 +227,7 @@ func SendNotifications(post *model.Post, team *model.Team, channel *model.Channe
 	sendPushNotifications := false
 	if *utils.Cfg.EmailSettings.SendPushNotifications {
 		pushServer := *utils.Cfg.EmailSettings.PushNotificationServer
-		if pushServer == model.MHPNS && (!utils.IsLicensed || !*utils.License.Features.MHPNS) {
+		if pushServer == model.MHPNS && (!utils.IsLicensed() || !*utils.License().Features.MHPNS) {
 			l4g.Warn(utils.T("api.post.send_notifications_and_forget.push_notification.mhpnsWarn"))
 			sendPushNotifications = false
 		} else {
@@ -333,8 +324,8 @@ func sendNotificationEmail(post *model.Post, user *model.User, channel *model.Ch
 	if *utils.Cfg.EmailSettings.EnableEmailBatching {
 		var sendBatched bool
 		if result := <-Srv.Store.Preference().Get(user.Id, model.PREFERENCE_CATEGORY_NOTIFICATIONS, model.PREFERENCE_NAME_EMAIL_INTERVAL); result.Err != nil {
-			// if the call fails, assume it hasn't been set and don't batch notifications for this user
-			sendBatched = false
+			// if the call fails, assume that the interval has not been explicitly set and batch the notifications
+			sendBatched = true
 		} else {
 			// if the user has chosen to receive notifications immediately, don't batch them
 			sendBatched = result.Data.(model.Preference).Value != model.PREFERENCE_EMAIL_INTERVAL_NO_BATCHING_SECONDS
@@ -359,7 +350,7 @@ func sendNotificationEmail(post *model.Post, user *model.User, channel *model.Ch
 	}
 
 	emailNotificationContentsType := model.EMAIL_NOTIFICATION_CONTENTS_FULL
-	if utils.IsLicensed && *utils.License.Features.EmailNotificationContents {
+	if utils.IsLicensed() && *utils.License().Features.EmailNotificationContents {
 		emailNotificationContentsType = *utils.Cfg.EmailSettings.EmailNotificationContentsType
 	}
 
@@ -436,11 +427,11 @@ func getNotificationEmailBody(recipient *model.User, post *model.Post, channel *
 	t := getFormattedPostTime(post, translateFunc)
 
 	var bodyText string
-	var info string
+	var info template.HTML
 	if channel.Type == model.CHANNEL_DIRECT {
 		if emailNotificationContentsType == model.EMAIL_NOTIFICATION_CONTENTS_FULL {
 			bodyText = translateFunc("app.notification.body.intro.direct.full")
-			info = translateFunc("app.notification.body.text.direct.full",
+			info = utils.TranslateAsHtml(translateFunc, "app.notification.body.text.direct.full",
 				map[string]interface{}{
 					"SenderName": senderName,
 					"Hour":       t.Hour,
@@ -453,7 +444,7 @@ func getNotificationEmailBody(recipient *model.User, post *model.Post, channel *
 			bodyText = translateFunc("app.notification.body.intro.direct.generic", map[string]interface{}{
 				"SenderName": senderName,
 			})
-			info = translateFunc("app.notification.body.text.direct.generic",
+			info = utils.TranslateAsHtml(translateFunc, "app.notification.body.text.direct.generic",
 				map[string]interface{}{
 					"Hour":     t.Hour,
 					"Minute":   t.Minute,
@@ -465,7 +456,7 @@ func getNotificationEmailBody(recipient *model.User, post *model.Post, channel *
 	} else {
 		if emailNotificationContentsType == model.EMAIL_NOTIFICATION_CONTENTS_FULL {
 			bodyText = translateFunc("app.notification.body.intro.notification.full")
-			info = translateFunc("app.notification.body.text.notification.full",
+			info = utils.TranslateAsHtml(translateFunc, "app.notification.body.text.notification.full",
 				map[string]interface{}{
 					"ChannelName": channelName,
 					"SenderName":  senderName,
@@ -479,7 +470,7 @@ func getNotificationEmailBody(recipient *model.User, post *model.Post, channel *
 			bodyText = translateFunc("app.notification.body.intro.notification.generic", map[string]interface{}{
 				"SenderName": senderName,
 			})
-			info = translateFunc("app.notification.body.text.notification.generic",
+			info = utils.TranslateAsHtml(translateFunc, "app.notification.body.text.notification.generic",
 				map[string]interface{}{
 					"Hour":     t.Hour,
 					"Minute":   t.Minute,
@@ -491,7 +482,7 @@ func getNotificationEmailBody(recipient *model.User, post *model.Post, channel *
 	}
 
 	bodyPage.Props["BodyText"] = bodyText
-	bodyPage.Html["Info"] = template.HTML(info)
+	bodyPage.Html["Info"] = info
 	bodyPage.Props["Button"] = translateFunc("api.templates.post_body.button")
 
 	return bodyPage.Render()
@@ -580,6 +571,8 @@ func sendPushNotification(post *model.Post, user *model.User, channel *model.Cha
 	msg.Type = model.PUSH_TYPE_MESSAGE
 	msg.TeamId = channel.TeamId
 	msg.ChannelId = channel.Id
+	msg.PostId = post.Id
+	msg.RootId = post.RootId
 	msg.ChannelName = channel.Name
 	msg.SenderId = post.UserId
 
@@ -596,15 +589,15 @@ func sendPushNotification(post *model.Post, user *model.User, channel *model.Cha
 	}
 
 	if *utils.Cfg.EmailSettings.PushNotificationContents == model.FULL_NOTIFICATION {
+		msg.Category = model.CATEGORY_CAN_REPLY
 		if channel.Type == model.CHANNEL_DIRECT {
-			msg.Category = model.CATEGORY_DM
 			msg.Message = senderName + ": " + model.ClearMentionTags(post.Message)
 		} else {
 			msg.Message = senderName + userLocale("api.post.send_notifications_and_forget.push_in") + channelName + ": " + model.ClearMentionTags(post.Message)
 		}
 	} else if *utils.Cfg.EmailSettings.PushNotificationContents == model.GENERIC_NO_CHANNEL_NOTIFICATION {
 		if channel.Type == model.CHANNEL_DIRECT {
-			msg.Category = model.CATEGORY_DM
+			msg.Category = model.CATEGORY_CAN_REPLY
 			msg.Message = senderName + userLocale("api.post.send_notifications_and_forget.push_message")
 		} else if wasMentioned || channel.Type == model.CHANNEL_GROUP {
 			msg.Message = senderName + userLocale("api.post.send_notifications_and_forget.push_mention_no_channel")
@@ -613,9 +606,10 @@ func sendPushNotification(post *model.Post, user *model.User, channel *model.Cha
 		}
 	} else {
 		if channel.Type == model.CHANNEL_DIRECT {
-			msg.Category = model.CATEGORY_DM
+			msg.Category = model.CATEGORY_CAN_REPLY
 			msg.Message = senderName + userLocale("api.post.send_notifications_and_forget.push_message")
 		} else if wasMentioned || channel.Type == model.CHANNEL_GROUP {
+			msg.Category = model.CATEGORY_CAN_REPLY
 			msg.Message = senderName + userLocale("api.post.send_notifications_and_forget.push_mention") + channelName
 		} else {
 			msg.Message = senderName + userLocale("api.post.send_notifications_and_forget.push_non_mention") + channelName
@@ -631,7 +625,7 @@ func sendPushNotification(post *model.Post, user *model.User, channel *model.Cha
 		}
 	}
 
-	l4g.Debug("Sending push notification for user %v with msg of '%v'", user.Id, msg.Message)
+	//l4g.Debug("Sending push notification for user %v with msg of '%v'", user.Id, msg.Message)
 
 	for _, session := range sessions {
 		tmpMessage := *model.PushNotificationFromJson(strings.NewReader(msg.ToJson()))
@@ -682,7 +676,7 @@ func sendToPushProxy(msg model.PushNotification, session *model.Session) {
 
 	request, _ := http.NewRequest("POST", *utils.Cfg.EmailSettings.PushNotificationServer+model.API_URL_SUFFIX_V1+"/send_push", strings.NewReader(msg.ToJson()))
 
-	if resp, err := utils.HttpClient().Do(request); err != nil {
+	if resp, err := utils.HttpClient(true).Do(request); err != nil {
 		l4g.Error("Device push reported as error for UserId=%v SessionId=%v message=%v", session.UserId, session.Id, err.Error())
 	} else {
 		pushResponse := model.PushResponseFromJson(resp.Body)
@@ -737,7 +731,6 @@ func sendOutOfChannelMentions(sender *model.User, post *model.Post, teamId strin
 	}
 
 	SendEphemeralPost(
-		teamId,
 		post.UserId,
 		&model.Post{
 			ChannelId: post.ChannelId,
@@ -828,12 +821,14 @@ func GetExplicitMentions(message string, keywords map[string][]string) (map[stri
 				// Case-sensitive check for first name
 				if ids, match := keywords[splitWord]; match {
 					addMentionedUsers(ids)
-				} else if _, ok := systemMentions[word]; !ok && strings.HasPrefix(word, "@") {
-					username := word[1:len(splitWord)]
+				} else if _, ok := systemMentions[splitWord]; !ok && strings.HasPrefix(splitWord, "@") {
+					username := splitWord[1:]
 					potentialOthersMentioned = append(potentialOthersMentioned, username)
 				}
 			}
-		} else if _, ok := systemMentions[word]; !ok && strings.HasPrefix(word, "@") {
+		}
+
+		if _, ok := systemMentions[word]; !ok && strings.HasPrefix(word, "@") {
 			username := word[1:]
 			potentialOthersMentioned = append(potentialOthersMentioned, username)
 		}
@@ -844,14 +839,14 @@ func GetExplicitMentions(message string, keywords map[string][]string) (map[stri
 
 // Matches a line containing only ``` and a potential language definition, any number of lines not containing ```,
 // and then either a line containing only ``` or the end of the text
-var codeBlockPattern = regexp.MustCompile("(?m)^[^\\S\n]*\\`\\`\\`.*$[\\s\\S]+?(^[^\\S\n]*\\`\\`\\`$|\\z)")
+var codeBlockPattern = regexp.MustCompile("(?m)^[^\\S\n]*[\\`~]{3}.*$[\\s\\S]+?(^[^\\S\n]*[`~]{3}$|\\z)")
 
 // Matches a backquote, either some text or any number of non-empty lines, and then a final backquote
-var inlineCodePattern = regexp.MustCompile("(?m)\\`(?:.+?|.*?\n(.*?\\S.*?\n)*.*?)\\`")
+var inlineCodePattern = regexp.MustCompile("(?m)\\`+(?:.+?|.*?\n(.*?\\S.*?\n)*.*?)\\`+")
 
 // Strips pre-formatted text and code blocks from a Markdown string by replacing them with whitespace
 func removeCodeFromMessage(message string) string {
-	if strings.Contains(message, "```") {
+	if strings.Contains(message, "```") || strings.Contains(message, "~~~") {
 		message = codeBlockPattern.ReplaceAllString(message, "")
 	}
 

@@ -8,6 +8,7 @@ import ProfilePicture from './profile_picture.jsx';
 import CommentIcon from 'components/common/comment_icon.jsx';
 import DotMenu from 'components/dot_menu';
 import PostFlagIcon from 'components/post_view/post_flag_icon.jsx';
+import PostBodyAdditionalContent from 'components/post_view/post_body_additional_content.jsx';
 
 import TeamStore from 'stores/team_store.jsx';
 
@@ -253,13 +254,20 @@ export default class SearchResultsItem extends React.Component {
                 </div>
             );
 
-            message = (
+            const messageWrapper = (
                 <PostMessageContainer
                     post={post}
                     options={{
                         searchTerm: this.props.term,
                         mentionHighlight: this.props.isMentionSearch
                     }}
+                />
+            );
+
+            message = (
+                <PostBodyAdditionalContent
+                    post={post}
+                    message={messageWrapper}
                 />
             );
         }

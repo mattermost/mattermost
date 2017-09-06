@@ -7,6 +7,7 @@ import (
 	"crypto/tls"
 	"net"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 
@@ -19,6 +20,7 @@ import (
 	"gopkg.in/throttled/throttled.v2/store/memstore"
 
 	"github.com/mattermost/platform/model"
+	"github.com/mattermost/platform/plugin/pluginenv"
 	"github.com/mattermost/platform/store"
 	"github.com/mattermost/platform/utils"
 )
@@ -28,6 +30,7 @@ type Server struct {
 	WebSocketRouter *WebSocketRouter
 	Router          *mux.Router
 	GracefulServer  *graceful.Server
+	PluginEnv       *pluginenv.Environment
 }
 
 var allowedMethods []string = []string{
@@ -133,14 +136,14 @@ func StartServer() {
 	if *utils.Cfg.RateLimitSettings.Enable {
 		l4g.Info(utils.T("api.server.start_server.rate.info"))
 
-		store, err := memstore.New(utils.Cfg.RateLimitSettings.MemoryStoreSize)
+		store, err := memstore.New(*utils.Cfg.RateLimitSettings.MemoryStoreSize)
 		if err != nil {
 			l4g.Critical(utils.T("api.server.start_server.rate_limiting_memory_store"))
 			return
 		}
 
 		quota := throttled.RateQuota{
-			MaxRate:  throttled.PerSec(utils.Cfg.RateLimitSettings.PerSec),
+			MaxRate:  throttled.PerSec(*utils.Cfg.RateLimitSettings.PerSec),
 			MaxBurst: *utils.Cfg.RateLimitSettings.MaxBurst,
 		}
 
@@ -165,13 +168,13 @@ func StartServer() {
 	Srv.GracefulServer = &graceful.Server{
 		Timeout: TIME_TO_WAIT_FOR_CONNECTIONS_TO_CLOSE_ON_SERVER_SHUTDOWN,
 		Server: &http.Server{
-			Addr:         utils.Cfg.ServiceSettings.ListenAddress,
+			Addr:         *utils.Cfg.ServiceSettings.ListenAddress,
 			Handler:      handlers.RecoveryHandler(handlers.RecoveryLogger(&RecoveryLogger{}), handlers.PrintRecoveryStack(true))(handler),
 			ReadTimeout:  time.Duration(*utils.Cfg.ServiceSettings.ReadTimeout) * time.Second,
 			WriteTimeout: time.Duration(*utils.Cfg.ServiceSettings.WriteTimeout) * time.Second,
 		},
 	}
-	l4g.Info(utils.T("api.server.start_server.listening.info"), utils.Cfg.ServiceSettings.ListenAddress)
+	l4g.Info(utils.T("api.server.start_server.listening.info"), *utils.Cfg.ServiceSettings.ListenAddress)
 
 	if *utils.Cfg.ServiceSettings.Forward80To443 {
 		go func() {
@@ -184,6 +187,10 @@ func StartServer() {
 
 			http.Serve(listener, http.HandlerFunc(redirectHTTPToHTTPS))
 		}()
+	}
+
+	if utils.IsLicensed() && *utils.License().Features.FutureFeatures && *utils.Cfg.PluginSettings.Enable {
+		StartupPlugins("plugins", "webapp/dist")
 	}
 
 	go func() {
@@ -222,4 +229,29 @@ func StopServer() {
 	HubStop()
 
 	l4g.Info(utils.T("api.server.stop_server.stopped.info"))
+}
+
+func StartupPlugins(pluginPath, webappPath string) {
+	l4g.Info("Starting up plugins")
+
+	err := os.Mkdir(pluginPath, 0744)
+	if err != nil {
+		if os.IsExist(err) {
+			err = nil
+		} else {
+			l4g.Error("failed to start up plugins: " + err.Error())
+			return
+		}
+	}
+
+	Srv.PluginEnv, err = pluginenv.New(
+		pluginenv.SearchPath(pluginPath),
+		pluginenv.WebappPath(webappPath),
+	)
+
+	if err != nil {
+		l4g.Error("failed to start up plugins: " + err.Error())
+	}
+
+	ActivatePlugins()
 }

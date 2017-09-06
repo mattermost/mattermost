@@ -175,7 +175,7 @@ class MattermostMarkdownRenderer extends marked.Renderer {
 
         if (this.formattingOptions.searchPatterns) {
             for (const pattern of this.formattingOptions.searchPatterns) {
-                if (pattern.test(href)) {
+                if (pattern.pattern.test(href)) {
                     output += ' search-highlight';
                     break;
                 }

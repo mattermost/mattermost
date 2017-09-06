@@ -11,7 +11,7 @@ import FailedPostOptions from 'components/post_view/failed_post_options';
 import DotMenu from 'components/dot_menu';
 import EmojiPickerOverlay from 'components/emoji_picker/emoji_picker_overlay.jsx';
 
-import {addReaction} from 'actions/post_actions.jsx';
+import {addReaction, emitEmojiPosted} from 'actions/post_actions.jsx';
 
 import TeamStore from 'stores/team_store.jsx';
 
@@ -166,6 +166,7 @@ export default class RhsComment extends React.Component {
         this.setState({showEmojiPicker: false});
         const emojiName = emoji.name || emoji.aliases[0];
         addReaction(this.props.post.channel_id, this.props.post.id, emojiName);
+        emitEmojiPosted(emojiName);
         this.handleDropdownOpened(false);
     }
 
@@ -370,7 +371,11 @@ export default class RhsComment extends React.Component {
                         className='reacticon__container reaction'
                         onClick={this.toggleEmojiPicker}
                         ref={'rhs_reacticon_' + post.id}
-                    ><i className='fa fa-smile-o'/>
+                    >
+                        <span
+                            className='icon icon--emoji'
+                            dangerouslySetInnerHTML={{__html: Constants.EMOJI_ICON_SVG}}
+                        />
                     </a>
                 </span>
 

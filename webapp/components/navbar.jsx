@@ -287,7 +287,6 @@ export default class Navbar extends React.Component {
     };
 
     createDropdown(channel, channelTitle, isSystemAdmin, isTeamAdmin, isChannelAdmin, isDirect, isGroup, popoverContent) {
-        const isAdmin = isSystemAdmin || isTeamAdmin;
         const infoIcon = Constants.INFO_ICON_SVG;
 
         if (channel) {
@@ -434,7 +433,7 @@ export default class Navbar extends React.Component {
                         </li>
                     );
 
-                    if (ChannelUtils.canManageMembers(channel, isSystemAdmin, isTeamAdmin, isChannelAdmin)) {
+                    if (ChannelUtils.canManageMembers(channel, isChannelAdmin, isTeamAdmin, isSystemAdmin)) {
                         manageMembersOption = (
                             <li
                                 key='manage_members'
@@ -492,7 +491,7 @@ export default class Navbar extends React.Component {
                     </li>
                 );
 
-                if (ChannelUtils.showManagementOptions(channel, isAdmin, isSystemAdmin, isChannelAdmin)) {
+                if (ChannelUtils.showManagementOptions(channel, isChannelAdmin, isTeamAdmin, isSystemAdmin)) {
                     setChannelHeaderOption = (
                         <li role='presentation'>
                             <a
@@ -539,7 +538,7 @@ export default class Navbar extends React.Component {
                     );
                 }
 
-                if (ChannelUtils.showDeleteOption(channel, isAdmin, isSystemAdmin, isChannelAdmin, this.state.userCount)) {
+                if (ChannelUtils.showDeleteOptionForCurrentUser(channel, isChannelAdmin, isTeamAdmin, isSystemAdmin)) {
                     deleteChannelOption = (
                         <li role='presentation'>
                             <ToggleModalButton
@@ -556,8 +555,7 @@ export default class Navbar extends React.Component {
                     );
                 }
 
-                const canLeave = channel.type === Constants.PRIVATE_CHANNEL ? this.state.userCount > 1 : true;
-                if (!ChannelStore.isDefault(channel) && canLeave) {
+                if (!ChannelStore.isDefault(channel)) {
                     leaveChannelOption = (
                         <li role='presentation'>
                             <a

@@ -14,6 +14,7 @@ import * as EmojiPicker from 'components/emoji_picker/emoji_picker.jsx';
 import AppDispatcher from 'dispatcher/app_dispatcher.jsx';
 import * as GlobalActions from 'actions/global_actions.jsx';
 import * as Utils from 'utils/utils.jsx';
+import * as PostUtils from 'utils/post_utils.jsx';
 import * as UserAgent from 'utils/user_agent.jsx';
 import * as ChannelActions from 'actions/channel_actions.jsx';
 import * as PostActions from 'actions/post_actions.jsx';
@@ -224,7 +225,7 @@ export default class CreatePost extends React.Component {
         const members = stats.member_count - 1;
         const updateChannel = ChannelStore.getCurrent();
 
-        if ((this.state.message.includes('@all') || this.state.message.includes('@channel')) && members >= Constants.NOTIFY_ALL_MEMBERS) {
+        if ((PostUtils.containsAtMention(this.state.message, '@all') || PostUtils.containsAtMention(this.state.message, '@channel')) && members >= Constants.NOTIFY_ALL_MEMBERS) {
             this.setState({totalMembers: members});
             this.showNotifyAllModal();
             return;
@@ -301,7 +302,7 @@ export default class CreatePost extends React.Component {
     }
 
     focusTextbox(keepFocus = false) {
-        if (keepFocus || !Utils.isMobile()) {
+        if (keepFocus || !UserAgent.isMobile()) {
             this.refs.textbox.focus();
         }
     }
@@ -465,20 +466,8 @@ export default class CreatePost extends React.Component {
     showShortcuts(e) {
         if ((e.ctrlKey || e.metaKey) && e.keyCode === Constants.KeyCodes.FORWARD_SLASH) {
             e.preventDefault();
-            const args = {};
-            args.channel_id = this.state.channelId;
-            args.team_id = TeamStore.getCurrentId();
-            ChannelActions.executeCommand(
-                '/shortcuts',
-                args,
-                null,
-                (err) => {
-                    this.setState({
-                        serverError: err.message,
-                        submitting: false
-                    });
-                }
-            );
+
+            GlobalActions.showShortcutsModal();
         }
     }
 
@@ -732,7 +721,7 @@ export default class CreatePost extends React.Component {
         let emojiPicker = null;
         if (window.mm_config.EnableEmojiPicker === 'true') {
             emojiPicker = (
-                <span>
+                <span className='emoji-picker__container'>
                     <EmojiPickerOverlay
                         show={this.state.showEmojiPicker}
                         container={this.props.getChannelView}
@@ -743,7 +732,8 @@ export default class CreatePost extends React.Component {
                         topOffset={-7}
                     />
                     <span
-                        className={'fa fa-smile-o icon--emoji-picker emoji-main'}
+                        className='icon icon--emoji'
+                        dangerouslySetInnerHTML={{__html: Constants.EMOJI_ICON_SVG}}
                         onClick={this.toggleEmojiPicker}
                         onMouseOver={EmojiPicker.beginPreloading}
                     />
@@ -778,18 +768,18 @@ export default class CreatePost extends React.Component {
                             />
                             <span
                                 ref='createPostControls'
-                                className='btn btn-file'
+                                className='post-body__actions'
                             >
                                 {fileUpload}
                                 {emojiPicker}
+                                <a
+                                    className={sendButtonClass}
+                                    onClick={this.handleSubmit}
+                                >
+                                    <i className='fa fa-paper-plane'/>
+                                </a>
                             </span>
                         </div>
-                        <a
-                            className={sendButtonClass}
-                            onClick={this.handleSubmit}
-                        >
-                            <i className='fa fa-paper-plane'/>
-                        </a>
                         {tutorialTip}
                     </div>
                     <div className={postFooterClassName}>

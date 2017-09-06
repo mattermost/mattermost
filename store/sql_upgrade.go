@@ -131,11 +131,11 @@ func UpgradeDatabaseToVersion33(sqlStore SqlStore) {
 			}
 
 			// increase size of Value column of Preferences table to match the size of the ThemeProps column
-			if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_POSTGRES {
+			if *utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_POSTGRES {
 				if _, err := transaction.Exec("ALTER TABLE Preferences ALTER COLUMN Value TYPE varchar(2000)"); err != nil {
 					themeMigrationFailed(err)
 				}
-			} else if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_MYSQL {
+			} else if *utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_MYSQL {
 				if _, err := transaction.Exec("ALTER TABLE Preferences MODIFY Value text"); err != nil {
 					themeMigrationFailed(err)
 				}
@@ -296,8 +296,7 @@ func UpgradeDatabaseToVersion41(sqlStore SqlStore) {
 }
 
 func UpgradeDatabaseToVersion42(sqlStore SqlStore) {
-	// TODO: Uncomment following condition when version 4.1.0 is released
-	// if shouldPerformUpgrade(sqlStore, VERSION_4_1_0, VERSION_4_2_0) {
-	// 	saveSchemaVersion(sqlStore, VERSION_4_2_0)
-	// }
+	if shouldPerformUpgrade(sqlStore, VERSION_4_1_0, VERSION_4_2_0) {
+		saveSchemaVersion(sqlStore, VERSION_4_2_0)
+	}
 }

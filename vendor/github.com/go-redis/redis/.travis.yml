@@ -5,14 +5,14 @@ services:
   - redis-server
 
 go:
-  - 1.4
-  - 1.7
-  - 1.8
+  - 1.4.x
+  - 1.7.x
+  - 1.8.x
   - tip
 
 matrix:
   allow_failures:
-    - go: 1.4
+    - go: 1.4.x
     - go: tip
 
 install:

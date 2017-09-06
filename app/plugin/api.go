@@ -30,7 +30,15 @@ type API interface {
 	GetDirectChannel(userId1, userId2 string) (*model.Channel, *model.AppError)
 
 	// Creates a post
-	CreatePost(post *model.Post, teamId string) (*model.Post, *model.AppError)
+	CreatePost(post *model.Post) (*model.Post, *model.AppError)
+
+	// Get LDAP attributes for a user
+	GetLdapUserAttributes(userId string, attributes []string) (map[string]string, *model.AppError)
+
+	// Temporary for built-in plugins, copied from api4/context.go ServeHTTP function.
+	// If a request has a valid token for an active session, the session is returned otherwise
+	// it errors.
+	GetSessionFromRequest(r *http.Request) (*model.Session, *model.AppError)
 
 	// Returns a localized string. If a request is given, its headers will be used to pick a locale.
 	I18n(id string, r *http.Request) string

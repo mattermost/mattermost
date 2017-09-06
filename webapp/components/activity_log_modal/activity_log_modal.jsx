@@ -12,6 +12,7 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage, FormattedTime, FormattedDate} from 'react-intl';
+import {General} from 'mattermost-redux/constants';
 
 export default class ActivityLogModal extends React.Component {
     static propTypes = {
@@ -90,6 +91,46 @@ export default class ActivityLogModal extends React.Component {
         this.setState({moreInfo: newMoreInfo});
     }
 
+    isMobileSession = (session) => {
+        return session.device_id && (session.device_id.includes('apple') || session.device_id.includes('android'));
+    };
+
+    mobileSessionInfo = (session) => {
+        let deviceTypeId;
+        let deviceTypeMessage;
+        let devicePicture;
+
+        if (session.device_id.includes('apple')) {
+            devicePicture = 'fa fa-apple';
+            deviceTypeId = 'activity_log_modal.iphoneNativeClassicApp';
+            deviceTypeMessage = 'iPhone Native Classic App';
+
+            if (session.device_id.includes(General.PUSH_NOTIFY_APPLE_REACT_NATIVE)) {
+                deviceTypeId = 'activity_log_modal.iphoneNativeApp';
+                deviceTypeMessage = 'iPhone Native App';
+            }
+        } else if (session.device_id.includes('android')) {
+            devicePicture = 'fa fa-android';
+            deviceTypeId = 'activity_log_modal.androidNativeClassicApp';
+            deviceTypeMessage = 'Android Native Classic App';
+
+            if (session.device_id.includes(General.PUSH_NOTIFY_ANDROID_REACT_NATIVE)) {
+                deviceTypeId = 'activity_log_modal.androidNativeApp';
+                deviceTypeMessage = 'Android Native App';
+            }
+        }
+
+        return {
+            devicePicture,
+            devicePlatform: (
+                <FormattedMessage
+                    id={deviceTypeId}
+                    defaultMessage={deviceTypeMessage}
+                />
+            )
+        };
+    };
+
     render() {
         const activityList = [];
 
@@ -100,24 +141,17 @@ export default class ActivityLogModal extends React.Component {
             let devicePlatform = currentSession.props.platform;
             let devicePicture = '';
 
+            if (currentSession.props.type === 'UserAccessToken') {
+                continue;
+            }
+
             if (currentSession.props.platform === 'Windows') {
                 devicePicture = 'fa fa-windows';
-            } else if (currentSession.device_id && currentSession.device_id.indexOf('apple') === 0) {
-                devicePicture = 'fa fa-apple';
-                devicePlatform = (
-                    <FormattedMessage
-                        id='activity_log_modal.iphoneNativeApp'
-                        defaultMessage='iPhone Native App'
-                    />
-                );
-            } else if (currentSession.device_id && currentSession.device_id.indexOf('android') === 0) {
-                devicePlatform = (
-                    <FormattedMessage
-                        id='activity_log_modal.androidNativeApp'
-                        defaultMessage='Android Native App'
-                    />
-                );
-                devicePicture = 'fa fa-android';
+            } else if (this.isMobileSession(currentSession)) {
+                const sessionInfo = this.mobileSessionInfo(currentSession);
+
+                devicePicture = sessionInfo.devicePicture;
+                devicePlatform = sessionInfo.devicePlatform;
             } else if (currentSession.props.platform === 'Macintosh' ||
                 currentSession.props.platform === 'iPhone') {
                 devicePicture = 'fa fa-apple';

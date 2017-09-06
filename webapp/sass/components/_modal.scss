@@ -546,6 +546,15 @@
 
 }
 
+.more-modal__button {
+    .btn {
+        font-size: .9em;
+        font-weight: 600;
+        height: 39px;
+        width: 100%;
+    }
+}
+
 .more-modal__list {
     display: flex;
     flex-direction: column;
@@ -564,10 +573,6 @@
 
         .more-modal__row {
             padding: 5px 10px;
-        }
-
-        .more-modal__name {
-            font-weight: normal;
         }
     }
 
@@ -686,4 +691,10 @@
         margin-left: 0;
         padding-left: 0;
     }
+}
+
+.modal-invite-member {
+  .btn:hover {
+    text-decoration: underline;
+  }
 }

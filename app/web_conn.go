@@ -5,6 +5,7 @@ package app
 
 import (
 	"fmt"
+	"sync/atomic"
 	"time"
 
 	"github.com/mattermost/platform/einterfaces"
@@ -28,11 +29,11 @@ const (
 )
 
 type WebConn struct {
+	sessionExpiresAt          int64 // This should stay at the top for 64-bit alignment of 64-bit words accessed atomically
 	WebSocket                 *websocket.Conn
 	Send                      chan model.WebSocketMessage
-	SessionToken              string
-	SessionExpiresAt          int64
-	Session                   *model.Session
+	sessionToken              atomic.Value
+	session                   atomic.Value
 	UserId                    string
 	T                         goi18n.TranslateFunc
 	Locale                    string
@@ -49,15 +50,47 @@ func NewWebConn(ws *websocket.Conn, session model.Session, t goi18n.TranslateFun
 		}()
 	}
 
-	return &WebConn{
-		Send:             make(chan model.WebSocketMessage, SEND_QUEUE_SIZE),
-		WebSocket:        ws,
-		UserId:           session.UserId,
-		SessionToken:     session.Token,
-		SessionExpiresAt: session.ExpiresAt,
-		T:                t,
-		Locale:           locale,
+	wc := &WebConn{
+		Send:      make(chan model.WebSocketMessage, SEND_QUEUE_SIZE),
+		WebSocket: ws,
+		UserId:    session.UserId,
+		T:         t,
+		Locale:    locale,
 	}
+
+	wc.SetSession(&session)
+	wc.SetSessionToken(session.Token)
+	wc.SetSessionExpiresAt(session.ExpiresAt)
+
+	return wc
+}
+
+func (c *WebConn) GetSessionExpiresAt() int64 {
+	return atomic.LoadInt64(&c.sessionExpiresAt)
+}
+
+func (c *WebConn) SetSessionExpiresAt(v int64) {
+	atomic.StoreInt64(&c.sessionExpiresAt, v)
+}
+
+func (c *WebConn) GetSessionToken() string {
+	return c.sessionToken.Load().(string)
+}
+
+func (c *WebConn) SetSessionToken(v string) {
+	c.sessionToken.Store(v)
+}
+
+func (c *WebConn) GetSession() *model.Session {
+	return c.session.Load().(*model.Session)
+}
+
+func (c *WebConn) SetSession(v *model.Session) {
+	if v != nil {
+		v = v.DeepCopy()
+	}
+
+	c.session.Store(v)
 }
 
 func (c *WebConn) ReadPump() {
@@ -175,7 +208,7 @@ func (c *WebConn) WritePump() {
 			}
 
 		case <-authTicker.C:
-			if c.SessionToken == "" {
+			if c.GetSessionToken() == "" {
 				l4g.Debug(fmt.Sprintf("websocket.authTicker: did not authenticate ip=%v", c.WebSocket.RemoteAddr()))
 				return
 			}
@@ -187,29 +220,28 @@ func (c *WebConn) WritePump() {
 func (webCon *WebConn) InvalidateCache() {
 	webCon.AllChannelMembers = nil
 	webCon.LastAllChannelMembersTime = 0
-	webCon.SessionExpiresAt = 0
-	webCon.Session = nil
+	webCon.SetSession(nil)
+	webCon.SetSessionExpiresAt(0)
 }
 
 func (webCon *WebConn) IsAuthenticated() bool {
 	// Check the expiry to see if we need to check for a new session
-	if webCon.SessionExpiresAt < model.GetMillis() {
-		if webCon.SessionToken == "" {
+	if webCon.GetSessionExpiresAt() < model.GetMillis() {
+		if webCon.GetSessionToken() == "" {
 			return false
 		}
 
-		session, err := GetSession(webCon.SessionToken)
+		session, err := GetSession(webCon.GetSessionToken())
 		if err != nil {
 			l4g.Error(utils.T("api.websocket.invalid_session.error"), err.Error())
-			webCon.SessionToken = ""
-			webCon.SessionExpiresAt = 0
-			webCon.Session = nil
+			webCon.SetSessionToken("")
+			webCon.SetSession(nil)
+			webCon.SetSessionExpiresAt(0)
 			return false
 		}
 
-		webCon.SessionToken = session.Token
-		webCon.SessionExpiresAt = session.ExpiresAt
-		webCon.Session = session
+		webCon.SetSession(session)
+		webCon.SetSessionExpiresAt(session.ExpiresAt)
 	}
 
 	return true
@@ -217,7 +249,7 @@ func (webCon *WebConn) IsAuthenticated() bool {
 
 func (webCon *WebConn) SendHello() {
 	msg := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_HELLO, "", "", webCon.UserId, nil)
-	msg.Add("server_version", fmt.Sprintf("%v.%v.%v.%v", model.CurrentVersion, model.BuildNumber, utils.ClientCfgHash, utils.IsLicensed))
+	msg.Add("server_version", fmt.Sprintf("%v.%v.%v.%v", model.CurrentVersion, model.BuildNumber, utils.ClientCfgHash, utils.IsLicensed()))
 	webCon.Send <- msg
 }
 
@@ -278,18 +310,20 @@ func (webCon *WebConn) ShouldSendEvent(msg *model.WebSocketEvent) bool {
 
 func (webCon *WebConn) IsMemberOfTeam(teamId string) bool {
 
-	if webCon.Session == nil {
-		session, err := GetSession(webCon.SessionToken)
+	currentSession := webCon.GetSession()
+
+	if currentSession == nil || len(currentSession.Token) == 0 {
+		session, err := GetSession(webCon.GetSessionToken())
 		if err != nil {
 			l4g.Error(utils.T("api.websocket.invalid_session.error"), err.Error())
 			return false
 		} else {
-			webCon.Session = session
+			webCon.SetSession(session)
+			currentSession = session
 		}
-
 	}
 
-	member := webCon.Session.GetTeamByTeamId(teamId)
+	member := currentSession.GetTeamByTeamId(teamId)
 
 	if member != nil {
 		return true

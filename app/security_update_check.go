@@ -45,7 +45,7 @@ func DoSecurityUpdateCheck() {
 				v.Set(PROP_SECURITY_ID, utils.CfgDiagnosticId)
 				v.Set(PROP_SECURITY_BUILD, model.CurrentVersion+"."+model.BuildNumber)
 				v.Set(PROP_SECURITY_ENTERPRISE_READY, model.BuildEnterpriseReady)
-				v.Set(PROP_SECURITY_DATABASE, utils.Cfg.SqlSettings.DriverName)
+				v.Set(PROP_SECURITY_DATABASE, *utils.Cfg.SqlSettings.DriverName)
 				v.Set(PROP_SECURITY_OS, runtime.GOOS)
 
 				if len(props[model.SYSTEM_RAN_UNIT_TESTS]) > 0 {

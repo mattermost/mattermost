@@ -80,6 +80,9 @@ func (o *FileInfo) PreSave() {
 
 	if o.CreateAt == 0 {
 		o.CreateAt = GetMillis()
+	}
+
+	if o.UpdateAt < o.CreateAt {
 		o.UpdateAt = o.CreateAt
 	}
 }

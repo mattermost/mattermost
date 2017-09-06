@@ -67,9 +67,8 @@ export default class AdminNavbarDropdown extends React.Component {
     }
 
     render() {
-        const config = global.window.mm_config;
-        var teamsArray = [];  // Array of team objects
-        var teams = [];  // Array of team components
+        var teamsArray = []; // Array of team objects
+        var teams = []; // Array of team components
         let switchTeams;
 
         if (this.state.teamMembers && this.state.teamMembers.length > 0) {
@@ -154,7 +153,7 @@ export default class AdminNavbarDropdown extends React.Component {
                         />
                         <li>
                             <Link
-                                to={config.AdministratorsGuideLink}
+                                to='https://about.mattermost.com/administrators-guide/'
                                 rel='noopener noreferrer'
                                 target='_blank'
                             >
@@ -166,7 +165,7 @@ export default class AdminNavbarDropdown extends React.Component {
                         </li>
                         <li>
                             <Link
-                                to={config.TroubleshootingForumLink}
+                                to='https://about.mattermost.com/troubleshooting-forum/'
                                 rel='noopener noreferrer'
                                 target='_blank'
                             >
@@ -178,7 +177,7 @@ export default class AdminNavbarDropdown extends React.Component {
                         </li>
                         <li>
                             <Link
-                                to={config.CommercialSupportLink}
+                                to='https://about.mattermost.com/commercial-support/'
                                 rel='noopener noreferrer'
                                 target='_blank'
                             >

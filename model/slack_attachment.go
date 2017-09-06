@@ -25,6 +25,7 @@ type SlackAttachment struct {
 	Footer     string                  `json:"footer"`
 	FooterIcon string                  `json:"footer_icon"`
 	Timestamp  interface{}             `json:"ts"` // This is either a string or an int64
+	Actions    []*PostAction           `json:"actions,omitempty"`
 }
 
 type SlackAttachmentField struct {

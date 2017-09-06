@@ -13,7 +13,7 @@ import (
 )
 
 func SaveBrandImage(imageData *multipart.FileHeader) *model.AppError {
-	if len(utils.Cfg.FileSettings.DriverName) == 0 {
+	if len(*utils.Cfg.FileSettings.DriverName) == 0 {
 		return model.NewAppError("SaveBrandImage", "api.admin.upload_brand_image.storage.app_error", nil, "", http.StatusNotImplemented)
 	}
 
@@ -30,7 +30,7 @@ func SaveBrandImage(imageData *multipart.FileHeader) *model.AppError {
 }
 
 func GetBrandImage() ([]byte, *model.AppError) {
-	if len(utils.Cfg.FileSettings.DriverName) == 0 {
+	if len(*utils.Cfg.FileSettings.DriverName) == 0 {
 		return nil, model.NewAppError("GetBrandImage", "api.admin.get_brand_image.storage.app_error", nil, "", http.StatusNotImplemented)
 	}
 

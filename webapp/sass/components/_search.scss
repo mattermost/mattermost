@@ -1,8 +1,6 @@
 @charset 'UTF-8';
 
 .search-bar__container {
-    @include flex(0 0 79px);
-
     .channel-header__links {
         .sidebar--right & {
             line-height: 25px;
@@ -136,12 +134,7 @@
     top: 0;
 
     a {
-        @include opacity(.8);
         vertical-align: top;
-
-        &:hover {
-            @include opacity(1);
-        }
     }
 
 

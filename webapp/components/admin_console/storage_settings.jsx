@@ -37,6 +37,7 @@ export default class StorageSettings extends AdminSettings {
         config.FileSettings.AmazonS3Endpoint = this.state.amazonS3Endpoint;
         config.FileSettings.AmazonS3SSL = this.state.amazonS3SSL;
         config.FileSettings.AmazonS3SSE = this.state.amazonS3SSE;
+        config.FileSettings.AmazonS3Trace = this.state.amazonS3Trace;
 
         return config;
     }
@@ -54,7 +55,8 @@ export default class StorageSettings extends AdminSettings {
             amazonS3Bucket: config.FileSettings.AmazonS3Bucket,
             amazonS3Endpoint: config.FileSettings.AmazonS3Endpoint,
             amazonS3SSL: config.FileSettings.AmazonS3SSL,
-            amazonS3SSE: config.FileSettings.AmazonS3SSE
+            amazonS3SSE: config.FileSettings.AmazonS3SSE,
+            amazonS3Trace: config.FileSettings.AmazonS3Trace
         };
     }
 
@@ -68,6 +70,7 @@ export default class StorageSettings extends AdminSettings {
     }
 
     renderSettings() {
+        let amazonSSEComp;
         const mobileUploadDownloadSettings = [];
         if (window.mm_license.IsLicensed === 'true' && window.mm_license.Compliance === 'true') {
             mobileUploadDownloadSettings.push(
@@ -113,6 +116,28 @@ export default class StorageSettings extends AdminSettings {
                     disabled={!this.state.enableFileAttachments}
                 />
             );
+
+            amazonSSEComp =
+                (
+                    <BooleanSetting
+                        id='amazonS3SSE'
+                        label={
+                            <FormattedMessage
+                                id='admin.image.amazonS3SSETitle'
+                                defaultMessage='Enable Server-Side Encryption for Amazon S3:'
+                            />
+                        }
+                        helpText={
+                            <FormattedHTMLMessage
+                                id='admin.image.amazonS3SSEDescription'
+                                defaultMessage='When true, encrypt files in Amazon S3 using server-side encryption with Amazon S3-managed keys. See <a href="https://about.mattermost.com/default-server-side-encryption" target="_blank">documentation</a> to learn more.'
+                            />
+                        }
+                        value={this.state.amazonS3SSE}
+                        onChange={this.handleChange}
+                        disabled={this.state.driverName !== DRIVER_S3}
+                    />
+                );
         }
 
         return (
@@ -243,7 +268,6 @@ export default class StorageSettings extends AdminSettings {
                             defaultMessage='Enable Secure Amazon S3 Connections:'
                         />
                     }
-                    placeholder={Utils.localizeMessage('admin.image.amazonS3SSLExample', 'Ex "true"')}
                     helpText={
                         <FormattedMessage
                             id='admin.image.amazonS3SSLDescription'
@@ -254,22 +278,22 @@ export default class StorageSettings extends AdminSettings {
                     onChange={this.handleChange}
                     disabled={this.state.driverName !== DRIVER_S3}
                 />
+                {amazonSSEComp}
                 <BooleanSetting
-                    id='AmazonSSE'
+                    id='amazonS3Trace'
                     label={
                         <FormattedMessage
-                            id='admin.image.AmazonSSETitle'
-                            defaultMessage='Enable Server-Side Encryption for Amazon S3:'
+                            id='admin.image.amazonS3TraceTitle'
+                            defaultMessage='Enable Amazon S3 Debugging:'
                         />
                     }
-                    placeholder={Utils.localizeMessage('admin.image.AmazonSSEExample', 'Ex "false"')}
                     helpText={
                         <FormattedMessage
-                            id='admin.image.AmazonSSEDescription'
-                            defaultMessage='When true, encrypt files in Amazon S3 using server-side encryption with Amazon S3-managed keys. See <a href="https://about.mattermost.com/default-server-side-encryption" target="_blank">documentation</a> to learn more.'
+                            id='admin.image.amazonS3TraceDescription'
+                            defaultMessage='(Development Mode) When true, log additional debugging information to the system logs.'
                         />
                     }
-                    value={this.state.AmazonSSE}
+                    value={this.state.amazonS3Trace}
                     onChange={this.handleChange}
                     disabled={this.state.driverName !== DRIVER_S3}
                 />

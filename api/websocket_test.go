@@ -317,7 +317,7 @@ func TestCreateDirectChannelWithSocket(t *testing.T) {
 func TestWebsocketOriginSecurity(t *testing.T) {
 	Setup().InitBasic()
 
-	url := "ws://localhost" + utils.Cfg.ServiceSettings.ListenAddress
+	url := "ws://localhost" + *utils.Cfg.ServiceSettings.ListenAddress
 
 	// Should fail because origin doesn't match
 	_, _, err := websocket.DefaultDialer.Dial(url+model.API_URL_SUFFIX_V3+"/users/websocket", http.Header{
@@ -329,7 +329,7 @@ func TestWebsocketOriginSecurity(t *testing.T) {
 
 	// We are not a browser so we can spoof this just fine
 	_, _, err = websocket.DefaultDialer.Dial(url+model.API_URL_SUFFIX_V3+"/users/websocket", http.Header{
-		"Origin": []string{"http://localhost" + utils.Cfg.ServiceSettings.ListenAddress},
+		"Origin": []string{"http://localhost" + *utils.Cfg.ServiceSettings.ListenAddress},
 	})
 	if err != nil {
 		t.Fatal(err)

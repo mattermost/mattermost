@@ -110,7 +110,7 @@ func (s SqlPreferenceStore) save(transaction *gorp.Transaction, preference *mode
 		"Value":    preference.Value,
 	}
 
-	if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_MYSQL {
+	if *utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_MYSQL {
 		if _, err := transaction.Exec(
 			`INSERT INTO
 				Preferences
@@ -121,7 +121,7 @@ func (s SqlPreferenceStore) save(transaction *gorp.Transaction, preference *mode
 				Value = :Value`, params); err != nil {
 			result.Err = model.NewLocAppError("SqlPreferenceStore.save", "store.sql_preference.save.updating.app_error", nil, err.Error())
 		}
-	} else if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_POSTGRES {
+	} else if *utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_POSTGRES {
 		// postgres has no way to upsert values until version 9.5 and trying inserting and then updating causes transactions to abort
 		count, err := transaction.SelectInt(
 			`SELECT
@@ -154,7 +154,7 @@ func (s SqlPreferenceStore) insert(transaction *gorp.Transaction, preference *mo
 	result := StoreResult{}
 
 	if err := transaction.Insert(preference); err != nil {
-		if IsUniqueConstraintError(err.Error(), []string{"UserId", "preferences_pkey"}) {
+		if IsUniqueConstraintError(err, []string{"UserId", "preferences_pkey"}) {
 			result.Err = model.NewLocAppError("SqlPreferenceStore.insert", "store.sql_preference.insert.exists.app_error", nil,
 				"user_id="+preference.UserId+", category="+preference.Category+", name="+preference.Name+", "+err.Error())
 		} else {

@@ -79,7 +79,7 @@ func (s SqlTeamStore) Save(team *model.Team) StoreChannel {
 		}
 
 		if err := s.GetMaster().Insert(team); err != nil {
-			if IsUniqueConstraintError(err.Error(), []string{"Name", "teams_name_key"}) {
+			if IsUniqueConstraintError(err, []string{"Name", "teams_name_key"}) {
 				result.Err = model.NewAppError("SqlTeamStore.Save", "store.sql_team.save.domain_exists.app_error", nil, "id="+team.Id+", "+err.Error(), http.StatusBadRequest)
 			} else {
 				result.Err = model.NewLocAppError("SqlTeamStore.Save", "store.sql_team.save.app_error", nil, "id="+team.Id+", "+err.Error())
@@ -286,7 +286,7 @@ func (s SqlTeamStore) SearchOpen(term string) StoreChannel {
 
 		var teams []*model.Team
 
-		if _, err := s.GetReplica().Select(&teams, "SELECT * FROM Teams WHERE Type = 'O' AND (Name LIKE :Term OR DisplayName LIKE :Term)", map[string]interface{}{"Term": term + "%"}); err != nil {
+		if _, err := s.GetReplica().Select(&teams, "SELECT * FROM Teams WHERE Type = 'O' AND AllowOpenInvite = true AND (Name LIKE :Term OR DisplayName LIKE :Term)", map[string]interface{}{"Term": term + "%"}); err != nil {
 			result.Err = model.NewLocAppError("SqlTeamStore.SearchOpen", "store.sql_team.search_open_team.app_error", nil, "term="+term+", "+err.Error())
 		}
 
@@ -385,7 +385,7 @@ func (s SqlTeamStore) GetAllTeamListing() StoreChannel {
 
 		query := "SELECT * FROM Teams WHERE AllowOpenInvite = 1"
 
-		if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_POSTGRES {
+		if *utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_POSTGRES {
 			query = "SELECT * FROM Teams WHERE AllowOpenInvite = true"
 		}
 
@@ -417,7 +417,7 @@ func (s SqlTeamStore) GetAllTeamPageListing(offset int, limit int) StoreChannel 
 
 		query := "SELECT * FROM Teams WHERE AllowOpenInvite = 1 LIMIT :Limit OFFSET :Offset"
 
-		if utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_POSTGRES {
+		if *utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_POSTGRES {
 			query = "SELECT * FROM Teams WHERE AllowOpenInvite = true LIMIT :Limit OFFSET :Offset"
 		}
 
@@ -506,7 +506,7 @@ func (s SqlTeamStore) SaveMember(member *model.TeamMember) StoreChannel {
 			storeChannel <- result
 			close(storeChannel)
 			return
-		} else if int(count) >= utils.Cfg.TeamSettings.MaxUsersPerTeam {
+		} else if int(count) >= *utils.Cfg.TeamSettings.MaxUsersPerTeam {
 			result.Err = model.NewLocAppError("SqlUserStore.Save", "store.sql_user.save.max_accounts.app_error", nil, "teamId="+member.TeamId)
 			storeChannel <- result
 			close(storeChannel)
@@ -514,7 +514,7 @@ func (s SqlTeamStore) SaveMember(member *model.TeamMember) StoreChannel {
 		}
 
 		if err := s.GetMaster().Insert(member); err != nil {
-			if IsUniqueConstraintError(err.Error(), []string{"TeamId", "teammembers_pkey", "PRIMARY"}) {
+			if IsUniqueConstraintError(err, []string{"TeamId", "teammembers_pkey", "PRIMARY"}) {
 				result.Err = model.NewLocAppError("SqlTeamStore.SaveMember", TEAM_MEMBER_EXISTS_ERROR, nil, "team_id="+member.TeamId+", user_id="+member.UserId+", "+err.Error())
 			} else {
 				result.Err = model.NewLocAppError("SqlTeamStore.SaveMember", "store.sql_team.save_member.save.app_error", nil, "team_id="+member.TeamId+", user_id="+member.UserId+", "+err.Error())

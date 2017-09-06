@@ -119,14 +119,17 @@ func testCreatePostWithOutgoingHook(
 
 	enableOutgoingHooks := utils.Cfg.ServiceSettings.EnableOutgoingWebhooks
 	enableAdminOnlyHooks := utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations
+	allowedInternalConnections := *utils.Cfg.ServiceSettings.AllowedUntrustedInternalConnections
 	defer func() {
 		utils.Cfg.ServiceSettings.EnableOutgoingWebhooks = enableOutgoingHooks
 		utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations = enableAdminOnlyHooks
 		utils.SetDefaultRolesBasedOnConfig()
+		utils.Cfg.ServiceSettings.AllowedUntrustedInternalConnections = &allowedInternalConnections
 	}()
 	utils.Cfg.ServiceSettings.EnableOutgoingWebhooks = true
 	*utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations = true
 	utils.SetDefaultRolesBasedOnConfig()
+	*utils.Cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost 127.0.0.1"
 
 	var hook *model.OutgoingWebhook
 	var post *model.Post
@@ -363,18 +366,18 @@ func TestUpdatePost(t *testing.T) {
 	Client := th.Client
 	channel := th.BasicChannel
 
-	isLicensed := utils.IsLicensed
-	license := utils.License
+	isLicensed := utils.IsLicensed()
+	license := utils.License()
 	allowEditPost := *utils.Cfg.ServiceSettings.AllowEditPost
 	defer func() {
-		utils.IsLicensed = isLicensed
-		utils.License = license
+		utils.SetIsLicensed(isLicensed)
+		utils.SetLicense(license)
 		*utils.Cfg.ServiceSettings.AllowEditPost = allowEditPost
 		utils.SetDefaultRolesBasedOnConfig()
 	}()
-	utils.IsLicensed = true
-	utils.License = &model.License{Features: &model.Features{}}
-	utils.License.Features.SetDefaults()
+	utils.SetIsLicensed(true)
+	utils.SetLicense(&model.License{Features: &model.Features{}})
+	utils.License().Features.SetDefaults()
 
 	*utils.Cfg.ServiceSettings.AllowEditPost = model.ALLOW_EDIT_POST_ALWAYS
 	utils.SetDefaultRolesBasedOnConfig()
@@ -442,18 +445,18 @@ func TestPatchPost(t *testing.T) {
 	Client := th.Client
 	channel := th.BasicChannel
 
-	isLicensed := utils.IsLicensed
-	license := utils.License
+	isLicensed := utils.IsLicensed()
+	license := utils.License()
 	allowEditPost := *utils.Cfg.ServiceSettings.AllowEditPost
 	defer func() {
-		utils.IsLicensed = isLicensed
-		utils.License = license
+		utils.SetIsLicensed(isLicensed)
+		utils.SetLicense(license)
 		*utils.Cfg.ServiceSettings.AllowEditPost = allowEditPost
 		utils.SetDefaultRolesBasedOnConfig()
 	}()
-	utils.IsLicensed = true
-	utils.License = &model.License{Features: &model.Features{}}
-	utils.License.Features.SetDefaults()
+	utils.SetIsLicensed(true)
+	utils.SetLicense(&model.License{Features: &model.Features{}})
+	utils.License().Features.SetDefaults()
 
 	*utils.Cfg.ServiceSettings.AllowEditPost = model.ALLOW_EDIT_POST_ALWAYS
 	utils.SetDefaultRolesBasedOnConfig()

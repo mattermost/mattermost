@@ -157,12 +157,10 @@
 .channel-header__info {
     margin-top: 12px;
     white-space: nowrap;
-
+    .header-dropdown__icon {
+        color: $dark-gray;
+    }
     .channel-header__title {
-        .header-dropdown__icon {
-            color: $dark-gray;
-        }
-
         > a {
             display: inline-block;
             text-decoration: none;
@@ -175,9 +173,10 @@
     }
 
     .channel-header__description {
-        height: 35px;
+        height: 19px;
+        margin-top: 3px;
+        margin-bottom: 13px;
         overflow: hidden;
-        padding: 3px 0 0;
         position: relative;
         text-overflow: ellipsis;
         width: calc(100% - 18px);
@@ -457,7 +456,6 @@
     &.inactive {
         color: inherit;
 
-        &:hover,
         &:active {
             color: inherit;
         }

@@ -8,6 +8,7 @@ import (
 
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
+	"net/http"
 )
 
 type webSocketHandler interface {
@@ -30,19 +31,19 @@ func (wr *WebSocketRouter) Handle(action string, handler webSocketHandler) {
 
 func (wr *WebSocketRouter) ServeWebSocket(conn *WebConn, r *model.WebSocketRequest) {
 	if r.Action == "" {
-		err := model.NewLocAppError("ServeWebSocket", "api.web_socket_router.no_action.app_error", nil, "")
+		err := model.NewAppError("ServeWebSocket", "api.web_socket_router.no_action.app_error", nil, "", http.StatusBadRequest)
 		ReturnWebSocketError(conn, r, err)
 		return
 	}
 
 	if r.Seq <= 0 {
-		err := model.NewLocAppError("ServeWebSocket", "api.web_socket_router.bad_seq.app_error", nil, "")
+		err := model.NewAppError("ServeWebSocket", "api.web_socket_router.bad_seq.app_error", nil, "", http.StatusBadRequest)
 		ReturnWebSocketError(conn, r, err)
 		return
 	}
 
 	if r.Action == model.WEBSOCKET_AUTHENTICATION_CHALLENGE {
-		if conn.SessionToken != "" {
+		if conn.GetSessionToken() != "" {
 			return
 		}
 
@@ -62,7 +63,8 @@ func (wr *WebSocketRouter) ServeWebSocket(conn *WebConn, r *model.WebSocketReque
 				UpdateLastActivityAtIfNeeded(*session)
 			}()
 
-			conn.SessionToken = session.Token
+			conn.SetSession(session)
+			conn.SetSessionToken(session.Token)
 			conn.UserId = session.UserId
 
 			HubRegister(conn)
@@ -75,14 +77,14 @@ func (wr *WebSocketRouter) ServeWebSocket(conn *WebConn, r *model.WebSocketReque
 	}
 
 	if !conn.IsAuthenticated() {
-		err := model.NewLocAppError("ServeWebSocket", "api.web_socket_router.not_authenticated.app_error", nil, "")
+		err := model.NewAppError("ServeWebSocket", "api.web_socket_router.not_authenticated.app_error", nil, "", http.StatusUnauthorized)
 		ReturnWebSocketError(conn, r, err)
 		return
 	}
 
 	var handler webSocketHandler
 	if h, ok := wr.handlers[r.Action]; !ok {
-		err := model.NewLocAppError("ServeWebSocket", "api.web_socket_router.bad_action.app_error", nil, "")
+		err := model.NewAppError("ServeWebSocket", "api.web_socket_router.bad_action.app_error", nil, "", http.StatusInternalServerError)
 		ReturnWebSocketError(conn, r, err)
 		return
 	} else {

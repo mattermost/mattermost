@@ -72,6 +72,7 @@ exports[`components/integrations/InstalledOAuthApps should match snapshot 1`] = 
       }
     }
     onDelete={[Function]}
+    onRegenerateSecret={[Function]}
   />
   <InstalledOAuthApp
     oauthApp={
@@ -93,6 +94,7 @@ exports[`components/integrations/InstalledOAuthApps should match snapshot 1`] = 
       }
     }
     onDelete={[Function]}
+    onRegenerateSecret={[Function]}
   />
 </BackstageList>
 `;

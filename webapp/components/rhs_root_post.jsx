@@ -15,7 +15,7 @@ import ChannelStore from 'stores/channel_store.jsx';
 import UserStore from 'stores/user_store.jsx';
 import TeamStore from 'stores/team_store.jsx';
 
-import {addReaction} from 'actions/post_actions.jsx';
+import {addReaction, emitEmojiPosted} from 'actions/post_actions.jsx';
 
 import * as Utils from 'utils/utils.jsx';
 import * as PostUtils from 'utils/post_utils.jsx';
@@ -159,6 +159,7 @@ export default class RhsRootPost extends React.Component {
         this.setState({showEmojiPicker: false});
         const emojiName = emoji.name || emoji.aliases[0];
         addReaction(this.props.post.channel_id, this.props.post.id, emojiName);
+        emitEmojiPosted(emojiName);
         this.handleDropdownOpened(false);
     }
 
@@ -235,7 +236,11 @@ export default class RhsRootPost extends React.Component {
                         className='reacticon__container reaction'
                         onClick={this.toggleEmojiPicker}
                         ref='rhs_root_reacticon'
-                    ><i className='fa fa-smile-o'/>
+                    >
+                        <span
+                            className='icon icon--emoji'
+                            dangerouslySetInnerHTML={{__html: Constants.EMOJI_ICON_SVG}}
+                        />
                     </a>
                 </span>
 

@@ -113,7 +113,7 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 			if h.requireSession && !h.trustRequester {
 				if r.Header.Get(model.HEADER_REQUESTED_WITH) != model.HEADER_REQUESTED_WITH_XML {
-					c.Err = model.NewLocAppError("ServeHTTP", "api.context.session_expired.app_error", nil, "token="+token+" Appears to be a CSRF attempt")
+					c.Err = model.NewAppError("ServeHTTP", "api.context.session_expired.app_error", nil, "token="+token+" Appears to be a CSRF attempt", http.StatusUnauthorized)
 					token = ""
 				}
 			}
@@ -129,7 +129,7 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	c.SetSiteURLHeader(app.GetProtocol(r) + "://" + r.Host)
 
 	w.Header().Set(model.HEADER_REQUEST_ID, c.RequestId)
-	w.Header().Set(model.HEADER_VERSION_ID, fmt.Sprintf("%v.%v.%v.%v", model.CurrentVersion, model.BuildNumber, utils.ClientCfgHash, utils.IsLicensed))
+	w.Header().Set(model.HEADER_VERSION_ID, fmt.Sprintf("%v.%v.%v.%v", model.CurrentVersion, model.BuildNumber, utils.ClientCfgHash, utils.IsLicensed()))
 
 	w.Header().Set("Content-Type", "application/json")
 
@@ -144,12 +144,10 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			l4g.Error(utils.T("api.context.invalid_session.error"), err.Error())
 			c.RemoveSessionCookie(w, r)
 			if h.requireSession {
-				c.Err = model.NewLocAppError("ServeHTTP", "api.context.session_expired.app_error", nil, "token="+token)
-				c.Err.StatusCode = http.StatusUnauthorized
+				c.Err = model.NewAppError("ServeHTTP", "api.context.session_expired.app_error", nil, "token="+token, http.StatusUnauthorized)
 			}
 		} else if !session.IsOAuth && isTokenFromQueryString {
-			c.Err = model.NewLocAppError("ServeHTTP", "api.context.token_provided.app_error", nil, "token="+token)
-			c.Err.StatusCode = http.StatusUnauthorized
+			c.Err = model.NewAppError("ServeHTTP", "api.context.token_provided.app_error", nil, "token="+token, http.StatusUnauthorized)
 		} else {
 			c.Session = *session
 		}
@@ -252,7 +250,7 @@ func (c *Context) SessionRequired() {
 
 func (c *Context) MfaRequired() {
 	// Must be licensed for MFA and have it configured for enforcement
-	if !utils.IsLicensed || !*utils.License.Features.MFA || !*utils.Cfg.ServiceSettings.EnableMultifactorAuthentication || !*utils.Cfg.ServiceSettings.EnforceMultifactorAuthentication {
+	if !utils.IsLicensed() || !*utils.License().Features.MFA || !*utils.Cfg.ServiceSettings.EnableMultifactorAuthentication || !*utils.Cfg.ServiceSettings.EnforceMultifactorAuthentication {
 		return
 	}
 
@@ -262,8 +260,7 @@ func (c *Context) MfaRequired() {
 	}
 
 	if user, err := app.GetUser(c.Session.UserId); err != nil {
-		c.Err = model.NewLocAppError("", "api.context.session_expired.app_error", nil, "MfaRequired")
-		c.Err.StatusCode = http.StatusUnauthorized
+		c.Err = model.NewAppError("", "api.context.session_expired.app_error", nil, "MfaRequired", http.StatusUnauthorized)
 		return
 	} else {
 		// Only required for email and ldap accounts
@@ -306,19 +303,16 @@ func (c *Context) SetInvalidUrlParam(parameter string) {
 }
 
 func NewInvalidParamError(parameter string) *model.AppError {
-	err := model.NewLocAppError("Context", "api.context.invalid_body_param.app_error", map[string]interface{}{"Name": parameter}, "")
-	err.StatusCode = http.StatusBadRequest
+	err := model.NewAppError("Context", "api.context.invalid_body_param.app_error", map[string]interface{}{"Name": parameter}, "", http.StatusBadRequest)
 	return err
 }
 func NewInvalidUrlParamError(parameter string) *model.AppError {
-	err := model.NewLocAppError("Context", "api.context.invalid_url_param.app_error", map[string]interface{}{"Name": parameter}, "")
-	err.StatusCode = http.StatusBadRequest
+	err := model.NewAppError("Context", "api.context.invalid_url_param.app_error", map[string]interface{}{"Name": parameter}, "", http.StatusBadRequest)
 	return err
 }
 
 func (c *Context) SetPermissionError(permission *model.Permission) {
-	c.Err = model.NewLocAppError("Permissions", "api.context.permissions.app_error", nil, "userId="+c.Session.UserId+", "+"permission="+permission.Id)
-	c.Err.StatusCode = http.StatusForbidden
+	c.Err = model.NewAppError("Permissions", "api.context.permissions.app_error", nil, "userId="+c.Session.UserId+", "+"permission="+permission.Id, http.StatusForbidden)
 }
 
 func (c *Context) SetSiteURLHeader(url string) {
@@ -429,6 +423,18 @@ func (c *Context) RequireFileId() *Context {
 
 	if len(c.Params.FileId) != 26 {
 		c.SetInvalidUrlParam("file_id")
+	}
+
+	return c
+}
+
+func (c *Context) RequirePluginId() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if len(c.Params.PluginId) == 0 {
+		c.SetInvalidUrlParam("plugin_id")
 	}
 
 	return c
@@ -583,6 +589,17 @@ func (c *Context) RequireJobType() *Context {
 
 	if len(c.Params.JobType) == 0 || len(c.Params.JobType) > 32 {
 		c.SetInvalidUrlParam("job_type")
+	}
+	return c
+}
+
+func (c *Context) RequireActionId() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if len(c.Params.ActionId) != 26 {
+		c.SetInvalidUrlParam("action_id")
 	}
 	return c
 }

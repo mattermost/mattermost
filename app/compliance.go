@@ -9,11 +9,12 @@ import (
 	"github.com/mattermost/platform/einterfaces"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
+	"net/http"
 )
 
 func GetComplianceReports(page, perPage int) (model.Compliances, *model.AppError) {
-	if !*utils.Cfg.ComplianceSettings.Enable || !utils.IsLicensed || !*utils.License.Features.Compliance {
-		return nil, model.NewLocAppError("GetComplianceReports", "ent.compliance.licence_disable.app_error", nil, "")
+	if !*utils.Cfg.ComplianceSettings.Enable || !utils.IsLicensed() || !*utils.License().Features.Compliance {
+		return nil, model.NewAppError("GetComplianceReports", "ent.compliance.licence_disable.app_error", nil, "", http.StatusNotImplemented)
 	}
 
 	if result := <-Srv.Store.Compliance().GetAll(page*perPage, perPage); result.Err != nil {
@@ -24,8 +25,8 @@ func GetComplianceReports(page, perPage int) (model.Compliances, *model.AppError
 }
 
 func SaveComplianceReport(job *model.Compliance) (*model.Compliance, *model.AppError) {
-	if !*utils.Cfg.ComplianceSettings.Enable || !utils.IsLicensed || !*utils.License.Features.Compliance || einterfaces.GetComplianceInterface() == nil {
-		return nil, model.NewLocAppError("saveComplianceReport", "ent.compliance.licence_disable.app_error", nil, "")
+	if !*utils.Cfg.ComplianceSettings.Enable || !utils.IsLicensed() || !*utils.License().Features.Compliance || einterfaces.GetComplianceInterface() == nil {
+		return nil, model.NewAppError("saveComplianceReport", "ent.compliance.licence_disable.app_error", nil, "", http.StatusNotImplemented)
 	}
 
 	job.Type = model.COMPLIANCE_TYPE_ADHOC
@@ -41,8 +42,8 @@ func SaveComplianceReport(job *model.Compliance) (*model.Compliance, *model.AppE
 }
 
 func GetComplianceReport(reportId string) (*model.Compliance, *model.AppError) {
-	if !*utils.Cfg.ComplianceSettings.Enable || !utils.IsLicensed || !*utils.License.Features.Compliance || einterfaces.GetComplianceInterface() == nil {
-		return nil, model.NewLocAppError("downloadComplianceReport", "ent.compliance.licence_disable.app_error", nil, "")
+	if !*utils.Cfg.ComplianceSettings.Enable || !utils.IsLicensed() || !*utils.License().Features.Compliance || einterfaces.GetComplianceInterface() == nil {
+		return nil, model.NewAppError("downloadComplianceReport", "ent.compliance.licence_disable.app_error", nil, "", http.StatusNotImplemented)
 	}
 
 	if result := <-Srv.Store.Compliance().Get(reportId); result.Err != nil {
@@ -54,7 +55,7 @@ func GetComplianceReport(reportId string) (*model.Compliance, *model.AppError) {
 
 func GetComplianceFile(job *model.Compliance) ([]byte, *model.AppError) {
 	if f, err := ioutil.ReadFile(*utils.Cfg.ComplianceSettings.Directory + "compliance/" + job.JobName() + ".zip"); err != nil {
-		return nil, model.NewLocAppError("readFile", "api.file.read_file.reading_local.app_error", nil, err.Error())
+		return nil, model.NewAppError("readFile", "api.file.read_file.reading_local.app_error", nil, err.Error(), http.StatusNotImplemented)
 
 	} else {
 		return f, nil

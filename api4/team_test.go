@@ -13,6 +13,7 @@ import (
 	"testing"
 
 	"encoding/base64"
+
 	"github.com/mattermost/platform/app"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
@@ -106,11 +107,19 @@ func TestGetTeam(t *testing.T) {
 
 	th.LoginTeamAdmin()
 
-	team2 := &model.Team{DisplayName: "Name", Name: GenerateTestTeamName(), Email: GenerateTestEmail(), Type: model.TEAM_INVITE}
+	team2 := &model.Team{DisplayName: "Name", Name: GenerateTestTeamName(), Email: GenerateTestEmail(), Type: model.TEAM_OPEN, AllowOpenInvite: false}
 	rteam2, _ := Client.CreateTeam(team2)
 
+	team3 := &model.Team{DisplayName: "Name", Name: GenerateTestTeamName(), Email: GenerateTestEmail(), Type: model.TEAM_INVITE, AllowOpenInvite: true}
+	rteam3, _ := Client.CreateTeam(team3)
+
 	th.LoginBasic()
+	// AllowInviteOpen is false and team is open, and user is not on team
 	_, resp = Client.GetTeam(rteam2.Id, "")
+	CheckForbiddenStatus(t, resp)
+
+	// AllowInviteOpen is true and team is invite, and user is not on team
+	_, resp = Client.GetTeam(rteam3.Id, "")
 	CheckForbiddenStatus(t, resp)
 
 	Client.Logout()
@@ -415,7 +424,16 @@ func TestGetAllTeams(t *testing.T) {
 	}
 
 	for _, rt := range rrteams {
-		if rt.Type != model.TEAM_OPEN {
+		if !rt.AllowOpenInvite {
+			t.Fatal("not all teams are open")
+		}
+	}
+
+	rrteams, resp = Client.GetAllTeams("", 0, 10)
+	CheckNoError(t, resp)
+
+	for _, rt := range rrteams {
+		if !rt.AllowOpenInvite {
 			t.Fatal("not all teams are open")
 		}
 	}
@@ -474,11 +492,19 @@ func TestGetTeamByName(t *testing.T) {
 
 	th.LoginTeamAdmin()
 
-	team2 := &model.Team{DisplayName: "Name", Name: GenerateTestTeamName(), Email: GenerateTestEmail(), Type: model.TEAM_INVITE}
+	team2 := &model.Team{DisplayName: "Name", Name: GenerateTestTeamName(), Email: GenerateTestEmail(), Type: model.TEAM_OPEN, AllowOpenInvite: false}
 	rteam2, _ := Client.CreateTeam(team2)
 
+	team3 := &model.Team{DisplayName: "Name", Name: GenerateTestTeamName(), Email: GenerateTestEmail(), Type: model.TEAM_INVITE, AllowOpenInvite: true}
+	rteam3, _ := Client.CreateTeam(team3)
+
 	th.LoginBasic()
+	// AllowInviteOpen is false and team is open, and user is not on team
 	_, resp = Client.GetTeamByName(rteam2.Name, "")
+	CheckForbiddenStatus(t, resp)
+
+	// AllowInviteOpen is true and team is invite only, and user is not on team
+	_, resp = Client.GetTeamByName(rteam3.Name, "")
 	CheckForbiddenStatus(t, resp)
 }
 
@@ -487,6 +513,10 @@ func TestSearchAllTeams(t *testing.T) {
 	defer TearDown()
 	Client := th.Client
 	oTeam := th.BasicTeam
+	oTeam.AllowOpenInvite = true
+
+	updatedTeam, _ := app.UpdateTeam(oTeam)
+	oTeam.UpdateAt = updatedTeam.UpdateAt
 
 	pTeam := &model.Team{DisplayName: "PName", Name: GenerateTestTeamName(), Email: GenerateTestEmail(), Type: model.TEAM_INVITE}
 	Client.CreateTeam(pTeam)
@@ -826,12 +856,12 @@ func TestAddTeamMember(t *testing.T) {
 
 	// Check effects of config and license changes.
 	restrictTeamInvite := *utils.Cfg.TeamSettings.RestrictTeamInvite
-	isLicensed := utils.IsLicensed
-	license := utils.License
+	isLicensed := utils.IsLicensed()
+	license := utils.License()
 	defer func() {
 		*utils.Cfg.TeamSettings.RestrictTeamInvite = restrictTeamInvite
-		utils.IsLicensed = isLicensed
-		utils.License = license
+		utils.SetIsLicensed(isLicensed)
+		utils.SetLicense(license)
 		utils.SetDefaultRolesBasedOnConfig()
 	}()
 
@@ -845,9 +875,9 @@ func TestAddTeamMember(t *testing.T) {
 	CheckNoError(t, resp)
 
 	// Add an EE license.
-	utils.IsLicensed = true
-	utils.License = &model.License{Features: &model.Features{}}
-	utils.License.Features.SetDefaults()
+	utils.SetIsLicensed(true)
+	utils.SetLicense(&model.License{Features: &model.Features{}})
+	utils.License().Features.SetDefaults()
 	utils.SetDefaultRolesBasedOnConfig()
 	th.LoginBasic()
 
@@ -859,9 +889,9 @@ func TestAddTeamMember(t *testing.T) {
 	UpdateUserToTeamAdmin(th.BasicUser, th.BasicTeam)
 	app.InvalidateAllCaches()
 	*utils.Cfg.TeamSettings.RestrictTeamInvite = model.PERMISSIONS_TEAM_ADMIN
-	utils.IsLicensed = true
-	utils.License = &model.License{Features: &model.Features{}}
-	utils.License.Features.SetDefaults()
+	utils.SetIsLicensed(true)
+	utils.SetLicense(&model.License{Features: &model.Features{}})
+	utils.License().Features.SetDefaults()
 	utils.SetDefaultRolesBasedOnConfig()
 	th.LoginBasic()
 
@@ -885,9 +915,9 @@ func TestAddTeamMember(t *testing.T) {
 	UpdateUserToNonTeamAdmin(th.BasicUser, th.BasicTeam)
 	app.InvalidateAllCaches()
 	*utils.Cfg.TeamSettings.RestrictTeamInvite = model.PERMISSIONS_ALL
-	utils.IsLicensed = true
-	utils.License = &model.License{Features: &model.Features{}}
-	utils.License.Features.SetDefaults()
+	utils.SetIsLicensed(true)
+	utils.SetLicense(&model.License{Features: &model.Features{}})
+	utils.License().Features.SetDefaults()
 	utils.SetDefaultRolesBasedOnConfig()
 	th.LoginBasic()
 
@@ -897,8 +927,8 @@ func TestAddTeamMember(t *testing.T) {
 
 	// Reset config and license.
 	*utils.Cfg.TeamSettings.RestrictTeamInvite = restrictTeamInvite
-	utils.IsLicensed = isLicensed
-	utils.License = license
+	utils.SetIsLicensed(isLicensed)
+	utils.SetLicense(license)
 	utils.SetDefaultRolesBasedOnConfig()
 	th.LoginBasic()
 
@@ -1040,12 +1070,12 @@ func TestAddTeamMembers(t *testing.T) {
 
 	// Check effects of config and license changes.
 	restrictTeamInvite := *utils.Cfg.TeamSettings.RestrictTeamInvite
-	isLicensed := utils.IsLicensed
-	license := utils.License
+	isLicensed := utils.IsLicensed()
+	license := utils.License()
 	defer func() {
 		*utils.Cfg.TeamSettings.RestrictTeamInvite = restrictTeamInvite
-		utils.IsLicensed = isLicensed
-		utils.License = license
+		utils.SetIsLicensed(isLicensed)
+		utils.SetLicense(license)
 		utils.SetDefaultRolesBasedOnConfig()
 	}()
 
@@ -1059,9 +1089,9 @@ func TestAddTeamMembers(t *testing.T) {
 	CheckNoError(t, resp)
 
 	// Add an EE license.
-	utils.IsLicensed = true
-	utils.License = &model.License{Features: &model.Features{}}
-	utils.License.Features.SetDefaults()
+	utils.SetIsLicensed(true)
+	utils.SetLicense(&model.License{Features: &model.Features{}})
+	utils.License().Features.SetDefaults()
 	utils.SetDefaultRolesBasedOnConfig()
 	th.LoginBasic()
 
@@ -1073,9 +1103,9 @@ func TestAddTeamMembers(t *testing.T) {
 	UpdateUserToTeamAdmin(th.BasicUser, th.BasicTeam)
 	app.InvalidateAllCaches()
 	*utils.Cfg.TeamSettings.RestrictTeamInvite = model.PERMISSIONS_TEAM_ADMIN
-	utils.IsLicensed = true
-	utils.License = &model.License{Features: &model.Features{}}
-	utils.License.Features.SetDefaults()
+	utils.SetIsLicensed(true)
+	utils.SetLicense(&model.License{Features: &model.Features{}})
+	utils.License().Features.SetDefaults()
 	utils.SetDefaultRolesBasedOnConfig()
 	th.LoginBasic()
 
@@ -1099,9 +1129,9 @@ func TestAddTeamMembers(t *testing.T) {
 	UpdateUserToNonTeamAdmin(th.BasicUser, th.BasicTeam)
 	app.InvalidateAllCaches()
 	*utils.Cfg.TeamSettings.RestrictTeamInvite = model.PERMISSIONS_ALL
-	utils.IsLicensed = true
-	utils.License = &model.License{Features: &model.Features{}}
-	utils.License.Features.SetDefaults()
+	utils.SetIsLicensed(true)
+	utils.SetLicense(&model.License{Features: &model.Features{}})
+	utils.License().Features.SetDefaults()
 	utils.SetDefaultRolesBasedOnConfig()
 	th.LoginBasic()
 

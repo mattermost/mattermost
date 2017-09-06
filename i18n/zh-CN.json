@@ -592,6 +592,14 @@
     "translation": "您没有权限重命名频道。"
   },
   {
+    "id": "api.command_channel_rename.too_long.app_error",
+    "translation": "Channel name must be {{.Length}} or fewer characters"
+  },
+  {
+    "id": "api.command_channel_rename.too_short.app_error",
+    "translation": "Channel name must be {{.Length}} or more characters"
+  },
+  {
     "id": "api.command_channel_rename.update_channel.app_error",
     "translation": "更新当前频道错误。"
   },
@@ -844,156 +852,16 @@
     "translation": "您的设备不支持设定命令"
   },
   {
-    "id": "api.command_shortcuts.browser.channel_next",
-    "translation": "{{.ChannelNextCmd}}：您的历史记录里的下一个频道\n"
-  },
-  {
-    "id": "api.command_shortcuts.browser.channel_next.cmd",
-    "translation": "ALT+RIGHT"
-  },
-  {
-    "id": "api.command_shortcuts.browser.channel_next.cmd_mac",
-    "translation": "CMD+]"
-  },
-  {
-    "id": "api.command_shortcuts.browser.channel_prev",
-    "translation": "{{.ChannelPrevCmd}}：您的历史记录里的上一个频道\n"
-  },
-  {
-    "id": "api.command_shortcuts.browser.channel_prev.cmd",
-    "translation": "ALT+LEFT"
-  },
-  {
-    "id": "api.command_shortcuts.browser.channel_prev.cmd_mac",
-    "translation": "CMD+["
-  },
-  {
-    "id": "api.command_shortcuts.browser.font_decrease",
-    "translation": "{{.CmdOrCtrl}}+减号：减少字体大小 (缩小)\n"
-  },
-  {
-    "id": "api.command_shortcuts.browser.font_increase",
-    "translation": "{{.CmdOrCtrl}}+加号：增加字体大小 (放大)\n"
-  },
-  {
-    "id": "api.command_shortcuts.browser.header",
-    "translation": "#### 内置浏览器命令\n\n"
-  },
-  {
-    "id": "api.command_shortcuts.browser.highlight_next",
-    "translation": "SHIFT+DOWN (在输入栏)：高亮到下一行之间的文字\n"
-  },
-  {
-    "id": "api.command_shortcuts.browser.highlight_prev",
-    "translation": "SHIFT+UP (在输入栏)：高亮到上一行之间的文字\n"
-  },
-  {
-    "id": "api.command_shortcuts.browser.newline",
-    "translation": "SHIFT+ENTER (在输入栏)：新增行\n"
-  },
-  {
-    "id": "api.command_shortcuts.cmd",
-    "translation": "CMD"
-  },
-  {
-    "id": "api.command_shortcuts.ctrl",
-    "translation": "CTRL"
-  },
-  {
     "id": "api.command_shortcuts.desc",
     "translation": "显示快捷键列表"
-  },
-  {
-    "id": "api.command_shortcuts.files.header",
-    "translation": "#### 文件\n\n"
-  },
-  {
-    "id": "api.command_shortcuts.files.upload",
-    "translation": "{{.CmdOrCtrl}}+U：上传文件\n\n"
-  },
-  {
-    "id": "api.command_shortcuts.header",
-    "translation": "### 键盘快捷键\n\n"
-  },
-  {
-    "id": "api.command_shortcuts.msgs.comp_channel",
-    "translation": "~[字符]+TAB：自动完成以[字符]开头的频道\n"
-  },
-  {
-    "id": "api.command_shortcuts.msgs.comp_emoji",
-    "translation": ":[字符]+TAB：自动完成以[字符]开头的表情符\n\n"
-  },
-  {
-    "id": "api.command_shortcuts.msgs.comp_username",
-    "translation": "@[字符]+TAB：自动完成以[字符]开头的 @用户名\n"
-  },
-  {
-    "id": "api.command_shortcuts.msgs.edit",
-    "translation": "向上键 (在空白输入栏)：修改您在本频道的上一条消息\n"
-  },
-  {
-    "id": "api.command_shortcuts.msgs.header",
-    "translation": "#### 消息\n\n"
-  },
-  {
-    "id": "api.command_shortcuts.msgs.mark_as_read",
-    "translation": "ESC：将当前频道所有消息标为已读\n"
-  },
-  {
-    "id": "api.command_shortcuts.msgs.reply",
-    "translation": "SHIFT+UP (在空输入栏)：回复当前频道最新的消息\n"
-  },
-  {
-    "id": "api.command_shortcuts.msgs.reprint_next",
-    "translation": "{{.CmdOrCtrl}}+向下键 (在空白输入栏)：重显示您输入的下一条消息或斜杠命令\n"
-  },
-  {
-    "id": "api.command_shortcuts.msgs.reprint_prev",
-    "translation": "{{.CmdOrCtrl}}+向上键 (在空白输入栏)：重显示您输入的上一条消息或斜杠命令\n"
   },
   {
     "id": "api.command_shortcuts.name",
     "translation": "快捷键"
   },
   {
-    "id": "api.command_shortcuts.nav.direct_messages_menu",
-    "translation": "{{.CmdOrCtrl}}+SHIFT+K：打开私信菜单\n"
-  },
-  {
-    "id": "api.command_shortcuts.nav.header",
-    "translation": "#### 导航\n\n"
-  },
-  {
-    "id": "api.command_shortcuts.nav.next",
-    "translation": "ALT+向下键：左侧栏中的下一个频道或私信\n"
-  },
-  {
-    "id": "api.command_shortcuts.nav.prev",
-    "translation": "ALT+向上键：左侧栏中的上一个频道或私信\n"
-  },
-  {
-    "id": "api.command_shortcuts.nav.recent_mentions",
-    "translation": "{{.CmdOrCtrl}}+SHIFT+M：打开最近提及\n\n"
-  },
-  {
-    "id": "api.command_shortcuts.nav.settings",
-    "translation": "{{.CmdOrCtrl}}+SHIFT+A：打开帐号设置\n"
-  },
-  {
-    "id": "api.command_shortcuts.nav.switcher",
-    "translation": "{{.CmdOrCtrl}}+K：打开频道快速切换对话框\n"
-  },
-  {
-    "id": "api.command_shortcuts.nav.switcher_team",
-    "translation": "{{.CmdOrCtrl}}+ALT+K：打开团队快速切换对话框\n"
-  },
-  {
-    "id": "api.command_shortcuts.nav.unread_next",
-    "translation": "ALT+SHIFT+向下键：左侧栏中的下一个有未读消息的频道或私信\n"
-  },
-  {
-    "id": "api.command_shortcuts.nav.unread_prev",
-    "translation": "ALT+SHIFT+向上键：左侧栏中的上一个有未读消息的频道或私信\n"
+    "id": "api.command_shortcuts.unsupported.app_error",
+    "translation": "您的设备不支持快捷命令"
   },
   {
     "id": "api.command_shrug.desc",
@@ -1374,22 +1242,6 @@
     "translation": "无法移动本地文件。"
   },
   {
-    "id": "api.file.open_file_write_stream.configured.app_error",
-    "translation": "没有配置文件存储。请配置S3或本地服务器的文件存储。"
-  },
-  {
-    "id": "api.file.open_file_write_stream.creating_dir.app_error",
-    "translation": "创建新文件的目录时遇到错误"
-  },
-  {
-    "id": "api.file.open_file_write_stream.local_server.app_error",
-    "translation": "写入本地存储时遇到错误"
-  },
-  {
-    "id": "api.file.open_file_write_stream.s3.app_error",
-    "translation": "不支持 S3。"
-  },
-  {
     "id": "api.file.read_file.configured.app_error",
     "translation": "没有配置文件存储。请配置S3或本地服务器的文件存储。"
   },
@@ -1662,6 +1514,18 @@
     "translation": "正在初始化 open graph 协议 api 路由"
   },
   {
+    "id": "api.plugin.upload.array.app_error",
+    "translation": "File array is empty in multipart/form request"
+  },
+  {
+    "id": "api.plugin.upload.file.app_error",
+    "translation": "Unable to open file in multipart/form request"
+  },
+  {
+    "id": "api.plugin.upload.no_file.app_error",
+    "translation": "Missing file in multipart/form request"
+  },
+  {
     "id": "api.post.check_for_out_of_channel_mentions.message.multiple",
     "translation": "{{.Usernames}}和{{.LastUsername}}被提到了，但是他们不会收到通知，因为他们不在这个频道。"
   },
@@ -1698,6 +1562,10 @@
     "translation": "无效的RootId参数"
   },
   {
+    "id": "api.post.create_post.town_square_read_only",
+    "translation": "This channel is read-only. Only members with permission can post here."
+  },
+  {
     "id": "api.post.create_webhook_post.creating.app_error",
     "translation": "创建信息时出错"
   },
@@ -1724,6 +1592,14 @@
   {
     "id": "api.post.disabled_here",
     "translation": "@here 已禁用因为频道超过 {{.Users}} 位用户。"
+  },
+  {
+    "id": "api.post.do_action.action_id.app_error",
+    "translation": "无效客户端id"
+  },
+  {
+    "id": "api.post.do_action.action_integration.app_error",
+    "translation": "Action integration error"
   },
   {
     "id": "api.post.get_message_for_notification.files_sent",
@@ -2009,7 +1885,7 @@
   },
   {
     "id": "api.slackimport.slack_add_posts.attach_files.error",
-    "translation": "Slack Import: An error occurred when attaching files to a message, post_id=%s, file_ids=%v, err=%v."
+    "translation": "Slack 导入：附加文件到消息时发生错误，post_id=%s, file_ids=%v, err=%v。"
   },
   {
     "id": "api.slackimport.slack_add_posts.bot.warn",
@@ -2065,15 +1941,15 @@
   },
   {
     "id": "api.slackimport.slack_add_users.email_pwd",
-    "translation": "Slack user with email {{.Email}} and password {{.Password}} has been imported.\r\n"
+    "translation": "已导入拥有电子邮箱 {{.Email}} 以及密码 {{.Password}} 的 Slack 用户。\r\n"
   },
   {
     "id": "api.slackimport.slack_add_users.merge_existing",
-    "translation": "Slack user merged with an existing Mattermost user with matching email {{.Email}} and username {{.Username}}.\r\n"
+    "translation": "Slack 用户已和拥有邮箱地址 {{.Email}} 和用户名 {{.Username}} 的 Mattermost 用户合并。\r\n"
   },
   {
     "id": "api.slackimport.slack_add_users.merge_existing_failed",
-    "translation": "Slack user merged with an existing Mattermost user with matching email {{.Email}} and username {{.Username}}, but was unable to add the user to their team.\r\n"
+    "translation": "Slack 用户已和现有邮箱地址 {{.Email}} 和用户名 {{.Username}} 的 Mattermost 用户合并，但没法添加用户到他们的团队。\r\n"
   },
   {
     "id": "api.slackimport.slack_add_users.missing_email_address",
@@ -2089,7 +1965,7 @@
   },
   {
     "id": "api.slackimport.slack_convert_channel_mentions.compile_regexp_failed.warn",
-    "translation": "Slack Import: Unable to compile the !channel, matching regular expression for the Slack channel {{.ChannelName}} (id={{.ChannelID}})."
+    "translation": "Slack 导入：无法编译 !channel，匹配 Slack 频道 {{.ChannelName}} (id={{.ChannelID}}) 的正规表达式。"
   },
   {
     "id": "api.slackimport.slack_convert_timestamp.bad.warn",
@@ -2097,7 +1973,7 @@
   },
   {
     "id": "api.slackimport.slack_convert_user_mentions.compile_regexp_failed.warn",
-    "translation": "Slack Import: Unable to compile the @mention, matching regular expression for the Slack user {{.Username}} (id={{.UserID}})."
+    "translation": "Slack 导入：无法编译 @mention，匹配 Slack 用户 {{.Username}} (id={{.UserID}}) 的正规表达式。"
   },
   {
     "id": "api.slackimport.slack_deactivate_bot_user.failed_to_deactivate",
@@ -2497,15 +2373,15 @@
   },
   {
     "id": "api.templates.user_access_token_body.info",
-    "translation": "A user access token was added to your account on {{ .SiteURL }}. They can be used to access {{.SiteName}} with your account.<br>If this change wasn't initiated by you, please contact your system administrator."
+    "translation": "一个个人访问令牌在 {{ .SiteURL }} 创建到了您的帐号。他们可以以您的帐号访问 {{.SiteName}}。<br>如果此操作非来自您，请联系您的系统管理员。"
   },
   {
     "id": "api.templates.user_access_token_body.title",
-    "translation": "已添加用户访问令牌到您的帐号"
+    "translation": "已添加用个人访问令牌到您的帐号"
   },
   {
     "id": "api.templates.user_access_token_subject",
-    "translation": "[{{ .SiteName }}] 已添加用户访问令牌到您的帐号"
+    "translation": "[{{ .SiteName }}] 已添加个人访问令牌到您的帐号"
   },
   {
     "id": "api.templates.username_change_body.info",
@@ -2829,7 +2705,7 @@
   },
   {
     "id": "api.user.saml.not_available.app_error",
-    "translation": "此服务器没有正确配置或者不支持 SAML。"
+    "translation": "此服务器没有正确配置或者不支持 SAML 2.0。"
   },
   {
     "id": "api.user.send_email_change_email_and_forget.error",
@@ -2865,7 +2741,7 @@
   },
   {
     "id": "api.user.send_user_access_token.error",
-    "translation": "Failed to send user access token added email successfully"
+    "translation": "发送成功添加个人访问令牌邮件失败"
   },
   {
     "id": "api.user.send_verify_email_and_forget.failed.error",
@@ -3118,6 +2994,10 @@
   {
     "id": "app.channel.create_channel.no_team_id.app_error",
     "translation": "必须指定团队ID才能创建频道"
+  },
+  {
+    "id": "app.channel.move_channel.members_do_not_match.error",
+    "translation": "Cannot move a channel unless all its members are already members of the destination team."
   },
   {
     "id": "app.channel.post_update_channel_purpose_message.post.error",
@@ -3560,8 +3440,48 @@
     "translation": "[{{ .SiteName }}] 在 [{{ .SiteName }}] 的通知于 {{.Month}} {{.Day}}, {{.Year}}"
   },
   {
+    "id": "app.plugin.activate.app_error",
+    "translation": "Unable to activate extracted plugin. Plugin may already exist and be activated."
+  },
+  {
+    "id": "app.plugin.bad_path.app_error",
+    "translation": "Bad file path in extracted files"
+  },
+  {
+    "id": "app.plugin.deactivate.app_error",
+    "translation": "无法删除反应"
+  },
+  {
+    "id": "app.plugin.disabled.app_error",
+    "translation": "Plugins have been disabled by the system admin or the server has not been restarted since they were enabled."
+  },
+  {
+    "id": "app.plugin.extract.app_error",
+    "translation": "Encountered error extracting plugin"
+  },
+  {
+    "id": "app.plugin.get_plugins.app_error",
+    "translation": "无法删除反应"
+  },
+  {
+    "id": "app.plugin.manifest.app_error",
+    "translation": "Unable to find manifest for extracted plugin"
+  },
+  {
+    "id": "app.plugin.mvdir.app_error",
+    "translation": "Unable to move plugin from temporary directory to final destination"
+  },
+  {
+    "id": "app.plugin.no_files.app_error",
+    "translation": "No files found in the compressed folder"
+  },
+  {
+    "id": "app.plugin.remove.app_error",
+    "translation": "无法删除反应"
+  },
+  {
     "id": "app.user_access_token.disabled",
-    "translation": "用户访问令牌在本服务器禁用。请联系您的系统管理员了解详情。"
+    "translation": "个人访问令牌在本服务器禁用。请联系您的系统管理员了解详情。"
   },
   {
     "id": "app.user_access_token.invalid_or_missing",
@@ -3593,11 +3513,11 @@
   },
   {
     "id": "authentication.permissions.create_user_access_token.description",
-    "translation": "允许创建用户访问令牌"
+    "translation": "允许创建个人访问令牌"
   },
   {
     "id": "authentication.permissions.create_user_access_token.name",
-    "translation": "创建用户访问令牌"
+    "translation": "创建个人访问令牌"
   },
   {
     "id": "authentication.permissions.manage_jobs.description",
@@ -3625,19 +3545,19 @@
   },
   {
     "id": "authentication.permissions.read_user_access_token.description",
-    "translation": "允许读取用户访问令牌的 id，描述以及 user_id 字段"
+    "translation": "允许读取个人访问令牌的 id，描述以及 user_id 字段"
   },
   {
     "id": "authentication.permissions.read_user_access_token.name",
-    "translation": "读取用户访问令牌"
+    "translation": "读取个人访问令牌"
   },
   {
     "id": "authentication.permissions.revoke_user_access_token.description",
-    "translation": "允许撤销用户访问令牌"
+    "translation": "允许撤销个人访问令牌"
   },
   {
     "id": "authentication.permissions.revoke_user_access_token.name",
-    "translation": "撤销用户访问令牌"
+    "translation": "撤销个人访问令牌"
   },
   {
     "id": "authentication.permissions.team_invite_user.description",
@@ -3673,11 +3593,11 @@
   },
   {
     "id": "authentication.roles.system_user_access_token.description",
-    "translation": "一个允许创建、查看、撤销用户访问令牌的角色"
+    "translation": "一个允许创建、查看、撤销个人访问令牌的角色"
   },
   {
     "id": "authentication.roles.system_user_access_token.name",
-    "translation": "用户访问令牌"
+    "translation": "个人访问令牌"
   },
   {
     "id": "authentication.roles.team_post_all.description",
@@ -3788,6 +3708,22 @@
     "translation": "导出审核自'{{.FilePath}}'的'{{.JobName}}'任务开始"
   },
   {
+    "id": "ent.elasticsearch.aggregator_worker.create_index_job.error",
+    "translation": "Elasticsearch aggregator worker failed to create the indexing job"
+  },
+  {
+    "id": "ent.elasticsearch.aggregator_worker.delete_indexes.error",
+    "translation": "Elasticsearch aggregator worker failed to delete the indexes"
+  },
+  {
+    "id": "ent.elasticsearch.aggregator_worker.get_indexes.error",
+    "translation": "Elasticsearch aggregator worker failed to get indexes"
+  },
+  {
+    "id": "ent.elasticsearch.aggregator_worker.index_job_failed.error",
+    "translation": "Elasticsearch aggregator worker failed due to the indexing job failing"
+  },
+  {
     "id": "ent.elasticsearch.create_client.connect_failed",
     "translation": "设置 ElasticSearch 客户端失败"
   },
@@ -3814,6 +3750,14 @@
   {
     "id": "ent.elasticsearch.index_post.error",
     "translation": "索引消息失败"
+  },
+  {
+    "id": "ent.elasticsearch.indexer.do_job.parse_end_time.error",
+    "translation": "Elasticsearch indexing worker failed to parse the end time"
+  },
+  {
+    "id": "ent.elasticsearch.indexer.do_job.parse_start_time.error",
+    "translation": "Elasticsearch indexing worker failed to parse the start time"
   },
   {
     "id": "ent.elasticsearch.not_started.error",
@@ -4037,7 +3981,7 @@
   },
   {
     "id": "ent.saml.service_disable.app_error",
-    "translation": "本服务器未设定或支持 SAML。"
+    "translation": "此服务器没有正确配置或者不支持 SAML 2.0。"
   },
   {
     "id": "ent.saml.update_saml_user.unable_error",
@@ -4344,6 +4288,10 @@
     "translation": "创建 SAML 证书多部分表格请求失败"
   },
   {
+    "id": "model.client.writer.app_error",
+    "translation": "Unable to build multipart request"
+  },
+  {
     "id": "model.command.is_valid.create_at.app_error",
     "translation": "创建时必须是有效时间"
   },
@@ -4392,6 +4340,34 @@
     "translation": "无效用户id"
   },
   {
+    "id": "model.command_hook.channel_id.app_error",
+    "translation": "无效的频道 id"
+  },
+  {
+    "id": "model.command_hook.command_id.app_error",
+    "translation": "无效命令 id"
+  },
+  {
+    "id": "model.command_hook.create_at.app_error",
+    "translation": "创建时必须有效时间"
+  },
+  {
+    "id": "model.command_hook.id.app_error",
+    "translation": "无效的命令钩子 id"
+  },
+  {
+    "id": "model.command_hook.parent_id.app_error",
+    "translation": "无效父 id"
+  },
+  {
+    "id": "model.command_hook.root_id.app_error",
+    "translation": "无效根 id"
+  },
+  {
+    "id": "model.command_hook.user_id.app_error",
+    "translation": "无效用户 id"
+  },
+  {
     "id": "model.compliance.is_valid.create_at.app_error",
     "translation": "创建时间必须为有效时间"
   },
@@ -4420,6 +4396,10 @@
     "translation": "当机群启用时没法启动批量电子邮件。"
   },
   {
+    "id": "model.config.is_valid.elastic_search.aggregate_posts_after_days.app_error",
+    "translation": "Elasticsearch AggregatePostsAfterDays setting must be a number greater than or equal to 1"
+  },
+  {
     "id": "model.config.is_valid.elastic_search.connection_url.app_error",
     "translation": "当 Elastic Search 索引开启时必须提供 Elastic Search ConnectionUrl 设定。"
   },
@@ -4430,6 +4410,10 @@
   {
     "id": "model.config.is_valid.elastic_search.password.app_error",
     "translation": "当 Elastic Search 索引开启时必须提供 Elastic Search 密码设定。"
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.posts_aggregator_job_start_time.app_error",
+    "translation": "Elasticsearch PostsAggregatorJobStartTime setting must be a time in the format \"hh:mm\""
   },
   {
     "id": "model.config.is_valid.elastic_search.username.app_error",
@@ -4445,7 +4429,7 @@
   },
   {
     "id": "model.config.is_valid.email_notification_contents_type.app_error",
-    "translation": "Invalid email notification contents type for email settings. Must be one of either 'full' or 'generic'."
+    "translation": "无效邮件通知内容类型。必须为 'full' 或 'generic'。"
   },
   {
     "id": "model.config.is_valid.email_reset_salt.app_error",
@@ -5176,6 +5160,10 @@
     "translation": "无法解码"
   },
   {
+    "id": "plugin.rpcplugin.invocation.error",
+    "translation": "调用插件 RPC 错误"
+  },
+  {
     "id": "store.sql.alter_column_type.critical",
     "translation": "栏目类型%v修改失败"
   },
@@ -5281,7 +5269,7 @@
   },
   {
     "id": "store.sql.schema_version.critical",
-    "translation": "Database schema version %v is no longer supported. This Mattermost server supports automatic upgrades from schema version %v through schema version %v. Downgrades are not supported. Please manually upgrade to at least version %v before continuing"
+    "translation": "数据结构版本 %v 不再支持。此 Mattermost 服务器支持自动从结构版本 %v 升级到 %v。版本降级不支持。请手动升级升级到最新版本 %v 再继续"
   },
   {
     "id": "store.sql.short_ciphertext",
@@ -5596,6 +5584,26 @@
     "translation": "我们无法更新这个命令"
   },
   {
+    "id": "store.sql_command_webhooks.get.app_error",
+    "translation": "我们不能获取 webhook"
+  },
+  {
+    "id": "store.sql_command_webhooks.save.app_error",
+    "translation": "我们不能保存 CommandWebhook"
+  },
+  {
+    "id": "store.sql_command_webhooks.save.existing.app_error",
+    "translation": "您不能更新现有的 CommandWebhook"
+  },
+  {
+    "id": "store.sql_command_webhooks.try_use.app_error",
+    "translation": "无法使用 webhook"
+  },
+  {
+    "id": "store.sql_command_webhooks.try_use.invalid.app_error",
+    "translation": "无效的 webhook"
+  },
+  {
     "id": "store.sql_compliance.get.finding.app_error",
     "translation": "我们获取合规报告时遇到错误"
   },
@@ -5646,6 +5654,10 @@
   {
     "id": "store.sql_file_info.get_for_post.app_error",
     "translation": "我们没法从信息获取文件信息"
+  },
+  {
+    "id": "store.sql_file_info.permanent_delete.app_error",
+    "translation": "我们无法永久删除文件信息"
   },
   {
     "id": "store.sql_file_info.save.app_error",
@@ -6405,23 +6417,23 @@
   },
   {
     "id": "store.sql_user_access_token.delete.app_error",
-    "translation": "我们无法删除用户访问令牌"
+    "translation": "我们无法删除个人访问令牌"
   },
   {
     "id": "store.sql_user_access_token.get.app_error",
-    "translation": "我们无法获取用户访问令牌"
+    "translation": "我们无法获取个人访问令牌"
   },
   {
     "id": "store.sql_user_access_token.get_by_token.app_error",
-    "translation": "我们无法从令牌获取用户访问令牌"
+    "translation": "我们无法从令牌获取个人访问令牌"
   },
   {
     "id": "store.sql_user_access_token.get_by_user.app_error",
-    "translation": "我们无法从用户获取用户访问令牌"
+    "translation": "我们无法从用户获取个人访问令牌"
   },
   {
     "id": "store.sql_user_access_token.save.app_error",
-    "translation": "我们无法保存用户访问令牌"
+    "translation": "我们无法保存个人访问令牌"
   },
   {
     "id": "store.sql_webhooks.analytics_incoming_count.app_error",
@@ -6509,7 +6521,7 @@
   },
   {
     "id": "utils.config.add_client_locale.app_error",
-    "translation": "Unable to load mattermost configuration file:  Adding DefaultClientLocale to AvailableLocales."
+    "translation": "无法加载 mattermost 配置文件：添加 DefaultClientLocale 至 AvailableLocales。"
   },
   {
     "id": "utils.config.load_config.decoding.panic",
@@ -6533,15 +6545,15 @@
   },
   {
     "id": "utils.config.supported_available_locales.app_error",
-    "translation": "Unable to load mattermost configuration file:  AvailableLocales must include DefaultClientLocale. Setting AvailableLocales to all locales as default value."
+    "translation": "无法加载 mattermost 配置文件：AvailableLocales 必须包含 DefaultClientLocale。设置 AvailableLocales 为所有预先做为默认值。"
   },
   {
     "id": "utils.config.supported_client_locale.app_error",
-    "translation": "Unable to load mattermost configuration file:  DefaultClientLocale must be one of the supported locales. Setting DefaultClientLocale to en as default value."
+    "translation": "无法加载 mattermost 配置文件：DefaultClientLocale 必须为支持的语系。设置 DefaultClientLocale 为 en 做为默认值。"
   },
   {
     "id": "utils.config.supported_server_locale.app_error",
-    "translation": "无法加载 Mattermost 配置文件：DefaultServerLocale 必须为支持的区域"
+    "translation": "无法加载 mattermost 配置文件：DefaultClientLocale 必须为支持的语系。设置 DefaultClientLocale 为 en 做为默认值。"
   },
   {
     "id": "utils.config.validate_locale.app_error",
@@ -6550,6 +6562,30 @@
   {
     "id": "utils.diagnostic.analytics_not_found.app_error",
     "translation": "解析未初始化"
+  },
+  {
+    "id": "utils.file.remove_directory.configured.app_error",
+    "translation": "文件存储没有正确配置。请配置 S3 或本地文件存储服务。"
+  },
+  {
+    "id": "utils.file.remove_directory.local.app_error",
+    "translation": "从本地存储移除目录时遇到错误。"
+  },
+  {
+    "id": "utils.file.remove_directory.s3.app_error",
+    "translation": "从 S3 移除目录时遇到错误。"
+  },
+  {
+    "id": "utils.file.remove_file.configured.app_error",
+    "translation": "文件存储没有正确配置。请配置 S3 或本地文件存储服务。"
+  },
+  {
+    "id": "utils.file.remove_file.local.app_error",
+    "translation": "从本地存储移除文件时遇到错误。"
+  },
+  {
+    "id": "utils.file.remove_file.s3.app_error",
+    "translation": "从 S3 移除文件时遇到错误。"
   },
   {
     "id": "utils.i18n.loaded",
@@ -6662,6 +6698,18 @@
   {
     "id": "web.claim_account.user.error",
     "translation": "不能找到用户 teamid=%v, email=%v, err=%v"
+  },
+  {
+    "id": "web.command_webhook.command.app_error",
+    "translation": "找不到该命令"
+  },
+  {
+    "id": "web.command_webhook.invalid.app_error",
+    "translation": "无效的 webhook"
+  },
+  {
+    "id": "web.command_webhook.parse.app_error",
+    "translation": "无法解析传入数据"
   },
   {
     "id": "web.create_dir.error",

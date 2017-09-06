@@ -16,17 +16,17 @@ func TestSendNotifications(t *testing.T) {
 
 	AddUserToChannel(th.BasicUser2, th.BasicChannel)
 
-	post1, err := CreatePost(&model.Post{
+	post1, err := CreatePostMissingChannel(&model.Post{
 		UserId:    th.BasicUser.Id,
 		ChannelId: th.BasicChannel.Id,
 		Message:   "@" + th.BasicUser2.Username,
-	}, th.BasicTeam.Id, true)
+	}, true)
 
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	mentions, err := SendNotifications(post1, th.BasicTeam, th.BasicChannel, th.BasicUser)
+	mentions, err := SendNotifications(post1, th.BasicTeam, th.BasicChannel, th.BasicUser, nil)
 	if err != nil {
 		t.Fatal(err)
 	} else if mentions == nil {
@@ -42,17 +42,17 @@ func TestSendNotifications(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	post2, err := CreatePost(&model.Post{
+	post2, err := CreatePostMissingChannel(&model.Post{
 		UserId:    th.BasicUser.Id,
 		ChannelId: dm.Id,
 		Message:   "dm message",
-	}, th.BasicTeam.Id, true)
+	}, true)
 
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	_, err = SendNotifications(post2, th.BasicTeam, dm, th.BasicUser)
+	_, err = SendNotifications(post2, th.BasicTeam, dm, th.BasicUser, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -60,17 +60,17 @@ func TestSendNotifications(t *testing.T) {
 	UpdateActive(th.BasicUser2, false)
 	InvalidateAllCaches()
 
-	post3, err := CreatePost(&model.Post{
+	post3, err := CreatePostMissingChannel(&model.Post{
 		UserId:    th.BasicUser.Id,
 		ChannelId: dm.Id,
 		Message:   "dm message",
-	}, th.BasicTeam.Id, true)
+	}, true)
 
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	_, err = SendNotifications(post3, th.BasicTeam, dm, th.BasicUser)
+	_, err = SendNotifications(post3, th.BasicTeam, dm, th.BasicUser, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -382,7 +382,7 @@ func TestRemoveCodeFromMessage(t *testing.T) {
 		t.Fatalf("received incorrect output\n\nGot:\n%v\n\nExpected:\n%v\n", actual, expected)
 	}
 
-	input = "this is `not\n    \ncode` because it has line with only whitespace"
+	input = "this is `not\n    \ncode` because it has a line with only whitespace"
 	expected = input
 	if actual := removeCodeFromMessage(input); actual != expected {
 		t.Fatalf("received incorrect output\n\nGot:\n%v\n\nExpected:\n%v\n", actual, expected)
@@ -390,6 +390,18 @@ func TestRemoveCodeFromMessage(t *testing.T) {
 
 	input = "this is just `` two backquotes"
 	expected = input
+	if actual := removeCodeFromMessage(input); actual != expected {
+		t.Fatalf("received incorrect output\n\nGot:\n%v\n\nExpected:\n%v\n", actual, expected)
+	}
+
+	input = "these are ``multiple backquotes`` around code"
+	expected = "these are   around code"
+	if actual := removeCodeFromMessage(input); actual != expected {
+		t.Fatalf("received incorrect output\n\nGot:\n%v\n\nExpected:\n%v\n", actual, expected)
+	}
+
+	input = "this is text with\n~~~\na code block\n~~~\nin it"
+	expected = "this is text with\n\nin it"
 	if actual := removeCodeFromMessage(input); actual != expected {
 		t.Fatalf("received incorrect output\n\nGot:\n%v\n\nExpected:\n%v\n", actual, expected)
 	}

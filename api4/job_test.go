@@ -18,7 +18,7 @@ func TestCreateJob(t *testing.T) {
 
 	job := &model.Job{
 		Type: model.JOB_TYPE_DATA_RETENTION,
-		Data: map[string]interface{}{
+		Data: map[string]string{
 			"thing": "stuff",
 		},
 	}

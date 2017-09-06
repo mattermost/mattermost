@@ -4,8 +4,11 @@
 package app
 
 import (
+	"encoding/json"
+	"fmt"
 	"net/http"
 	"regexp"
+	"strings"
 
 	l4g "github.com/alecthomas/log4go"
 	"github.com/dyatlov/go-opengraph/opengraph"
@@ -21,24 +24,45 @@ func CreatePostAsUser(post *model.Post) (*model.Post, *model.AppError) {
 	// Check that channel has not been deleted
 	var channel *model.Channel
 	if result := <-Srv.Store.Channel().Get(post.ChannelId, true); result.Err != nil {
-		err := model.NewLocAppError("CreatePostAsUser", "api.context.invalid_param.app_error", map[string]interface{}{"Name": "post.channel_id"}, result.Err.Error())
-		err.StatusCode = http.StatusBadRequest
+		err := model.NewAppError("CreatePostAsUser", "api.context.invalid_param.app_error", map[string]interface{}{"Name": "post.channel_id"}, result.Err.Error(), http.StatusBadRequest)
 		return nil, err
 	} else {
 		channel = result.Data.(*model.Channel)
 	}
 
 	if channel.DeleteAt != 0 {
-		err := model.NewLocAppError("createPost", "api.post.create_post.can_not_post_to_deleted.error", nil, "")
-		err.StatusCode = http.StatusBadRequest
+		err := model.NewAppError("createPost", "api.post.create_post.can_not_post_to_deleted.error", nil, "", http.StatusBadRequest)
 		return nil, err
 	}
 
-	if rp, err := CreatePost(post, channel.TeamId, true); err != nil {
+	if rp, err := CreatePost(post, channel, true); err != nil {
 		if err.Id == "api.post.create_post.root_id.app_error" ||
 			err.Id == "api.post.create_post.channel_root_id.app_error" ||
 			err.Id == "api.post.create_post.parent_id.app_error" {
 			err.StatusCode = http.StatusBadRequest
+		}
+
+		if err.Id == "api.post.create_post.town_square_read_only" {
+			uchan := Srv.Store.User().Get(post.UserId)
+			var user *model.User
+			if result := <-uchan; result.Err != nil {
+				return nil, result.Err
+			} else {
+				user = result.Data.(*model.User)
+			}
+
+			T := utils.GetUserTranslations(user.Locale)
+			SendEphemeralPost(
+				post.UserId,
+				&model.Post{
+					ChannelId: channel.Id,
+					ParentId:  post.ParentId,
+					RootId:    post.RootId,
+					UserId:    post.UserId,
+					Message:   T("api.post.create_post.town_square_read_only"),
+					CreateAt:  model.GetMillis() + 1,
+				},
+			)
 		}
 
 		return nil, err
@@ -61,20 +85,48 @@ func CreatePostAsUser(post *model.Post) (*model.Post, *model.AppError) {
 
 }
 
-func CreatePost(post *model.Post, teamId string, triggerWebhooks bool) (*model.Post, *model.AppError) {
+func CreatePostMissingChannel(post *model.Post, triggerWebhooks bool) (*model.Post, *model.AppError) {
+	var channel *model.Channel
+	cchan := Srv.Store.Channel().Get(post.ChannelId, true)
+	if result := <-cchan; result.Err != nil {
+		return nil, result.Err
+	} else {
+		channel = result.Data.(*model.Channel)
+	}
+
+	return CreatePost(post, channel, triggerWebhooks)
+}
+
+func CreatePost(post *model.Post, channel *model.Channel, triggerWebhooks bool) (*model.Post, *model.AppError) {
 	var pchan store.StoreChannel
 	if len(post.RootId) > 0 {
 		pchan = Srv.Store.Post().Get(post.RootId)
 	}
 
+	uchan := Srv.Store.User().Get(post.UserId)
+	var user *model.User
+	if result := <-uchan; result.Err != nil {
+		return nil, result.Err
+	} else {
+		user = result.Data.(*model.User)
+	}
+
+	if utils.IsLicensed() && *utils.Cfg.TeamSettings.ExperimentalTownSquareIsReadOnly &&
+		!post.IsSystemMessage() &&
+		channel.Name == model.DEFAULT_CHANNEL &&
+		!CheckIfRolesGrantPermission(user.GetRoles(), model.PERMISSION_MANAGE_SYSTEM.Id) {
+		return nil, model.NewLocAppError("createPost", "api.post.create_post.town_square_read_only", nil, "")
+	}
+
 	// Verify the parent/child relationships are correct
+	var parentPostList *model.PostList
 	if pchan != nil {
 		if presult := <-pchan; presult.Err != nil {
-			return nil, model.NewLocAppError("createPost", "api.post.create_post.root_id.app_error", nil, "")
+			return nil, model.NewAppError("createPost", "api.post.create_post.root_id.app_error", nil, "", http.StatusBadRequest)
 		} else {
-			list := presult.Data.(*model.PostList)
-			if len(list.Posts) == 0 || !list.IsChannelId(post.ChannelId) {
-				return nil, model.NewLocAppError("createPost", "api.post.create_post.channel_root_id.app_error", nil, "")
+			parentPostList = presult.Data.(*model.PostList)
+			if len(parentPostList.Posts) == 0 || !parentPostList.IsChannelId(post.ChannelId) {
+				return nil, model.NewAppError("createPost", "api.post.create_post.channel_root_id.app_error", nil, "", http.StatusInternalServerError)
 			}
 
 			if post.ParentId == "" {
@@ -82,9 +134,9 @@ func CreatePost(post *model.Post, teamId string, triggerWebhooks bool) (*model.P
 			}
 
 			if post.RootId != post.ParentId {
-				parent := list.Posts[post.ParentId]
+				parent := parentPostList.Posts[post.ParentId]
 				if parent == nil {
-					return nil, model.NewLocAppError("createPost", "api.post.create_post.parent_id.app_error", nil, "")
+					return nil, model.NewAppError("createPost", "api.post.create_post.parent_id.app_error", nil, "", http.StatusInternalServerError)
 				}
 			}
 		}
@@ -101,7 +153,7 @@ func CreatePost(post *model.Post, teamId string, triggerWebhooks bool) (*model.P
 
 	esInterface := einterfaces.GetElasticsearchInterface()
 	if esInterface != nil && *utils.Cfg.ElasticsearchSettings.EnableIndexing {
-		go esInterface.IndexPost(rpost, teamId)
+		go esInterface.IndexPost(rpost, channel.TeamId)
 	}
 
 	if einterfaces.GetMetricsInterface() != nil {
@@ -123,20 +175,18 @@ func CreatePost(post *model.Post, teamId string, triggerWebhooks bool) (*model.P
 		}
 	}
 
-	if err := handlePostEvents(rpost, teamId, triggerWebhooks); err != nil {
+	if err := handlePostEvents(rpost, user, channel, triggerWebhooks, parentPostList); err != nil {
 		return nil, err
 	}
 
 	return rpost, nil
 }
 
-func handlePostEvents(post *model.Post, teamId string, triggerWebhooks bool) *model.AppError {
+func handlePostEvents(post *model.Post, user *model.User, channel *model.Channel, triggerWebhooks bool, parentPostList *model.PostList) *model.AppError {
 	var tchan store.StoreChannel
-	if len(teamId) > 0 {
-		tchan = Srv.Store.Team().Get(teamId)
+	if len(channel.TeamId) > 0 {
+		tchan = Srv.Store.Team().Get(channel.TeamId)
 	}
-	cchan := Srv.Store.Channel().Get(post.ChannelId, true)
-	uchan := Srv.Store.User().Get(post.UserId)
 
 	var team *model.Team
 	if tchan != nil {
@@ -150,24 +200,10 @@ func handlePostEvents(post *model.Post, teamId string, triggerWebhooks bool) *mo
 		team = &model.Team{}
 	}
 
-	var channel *model.Channel
-	if result := <-cchan; result.Err != nil {
-		return result.Err
-	} else {
-		channel = result.Data.(*model.Channel)
-	}
-
 	InvalidateCacheForChannel(channel)
 	InvalidateCacheForChannelPosts(channel.Id)
 
-	var user *model.User
-	if result := <-uchan; result.Err != nil {
-		return result.Err
-	} else {
-		user = result.Data.(*model.User)
-	}
-
-	if _, err := SendNotifications(post, team, channel, user); err != nil {
+	if _, err := SendNotifications(post, team, channel, user, parentPostList); err != nil {
 		return err
 	}
 
@@ -204,7 +240,7 @@ func parseSlackLinksToMarkdown(text string) string {
 	return linkWithTextRegex.ReplaceAllString(text, "[${2}](${1})")
 }
 
-func SendEphemeralPost(teamId, userId string, post *model.Post) *model.Post {
+func SendEphemeralPost(userId string, post *model.Post) *model.Post {
 	post.Type = model.POST_EPHEMERAL
 
 	// fill in fields which haven't been specified which have sensible defaults
@@ -233,7 +269,7 @@ func UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model.AppError
 	} else {
 		oldPost = result.Data.(*model.PostList).Posts[post.Id]
 
-		if utils.IsLicensed {
+		if utils.IsLicensed() {
 			if *utils.Cfg.ServiceSettings.AllowEditPost == model.ALLOW_EDIT_POST_NEVER && post.Message != oldPost.Message {
 				err := model.NewAppError("UpdatePost", "api.post.update_post.permissions_denied.app_error", nil, "", http.StatusForbidden)
 				return nil, err
@@ -255,7 +291,7 @@ func UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model.AppError
 			return nil, err
 		}
 
-		if utils.IsLicensed {
+		if utils.IsLicensed() {
 			if *utils.Cfg.ServiceSettings.AllowEditPost == model.ALLOW_EDIT_POST_TIME_LIMIT && model.GetMillis() > oldPost.CreateAt+int64(*utils.Cfg.ServiceSettings.PostEditTimeLimit*1000) && post.Message != oldPost.Message {
 				err := model.NewAppError("UpdatePost", "api.post.update_post.permissions_time_limit.app_error", map[string]interface{}{"timeLimit": *utils.Cfg.ServiceSettings.PostEditTimeLimit}, "", http.StatusBadRequest)
 				return nil, err
@@ -404,7 +440,7 @@ func GetPermalinkPost(postId string, userId string) (*model.PostList, *model.App
 		list := result.Data.(*model.PostList)
 
 		if len(list.Order) != 1 {
-			return nil, model.NewLocAppError("getPermalinkTmp", "api.post_get_post_by_id.get.app_error", nil, "")
+			return nil, model.NewAppError("getPermalinkTmp", "api.post_get_post_by_id.get.app_error", nil, "", http.StatusNotFound)
 		}
 		post := list.Posts[list.Order[0]]
 
@@ -503,7 +539,7 @@ func SearchPostsInTeam(terms string, userId string, teamId string, isOrSearch bo
 	paramsList := model.ParseSearchParams(terms)
 
 	esInterface := einterfaces.GetElasticsearchInterface()
-	if esInterface != nil && *utils.Cfg.ElasticsearchSettings.EnableSearching && utils.IsLicensed && *utils.License.Features.Elasticsearch {
+	if esInterface != nil && *utils.Cfg.ElasticsearchSettings.EnableSearching && utils.IsLicensed() && *utils.License().Features.Elasticsearch {
 		finalParamsList := []*model.SearchParams{}
 
 		for _, params := range paramsList {
@@ -619,7 +655,7 @@ func GetFileInfosForPost(postId string, readFromMaster bool) ([]*model.FileInfo,
 func GetOpenGraphMetadata(url string) *opengraph.OpenGraph {
 	og := opengraph.NewOpenGraph()
 
-	res, err := utils.HttpClient().Get(url)
+	res, err := utils.HttpClient(false).Get(url)
 	if err != nil {
 		l4g.Error("GetOpenGraphMetadata request failed for url=%v with err=%v", url, err.Error())
 		return og
@@ -631,4 +667,66 @@ func GetOpenGraphMetadata(url string) *opengraph.OpenGraph {
 	}
 
 	return og
+}
+
+func DoPostAction(postId string, actionId string, userId string) *model.AppError {
+	pchan := Srv.Store.Post().GetSingle(postId)
+
+	var post *model.Post
+	if result := <-pchan; result.Err != nil {
+		return result.Err
+	} else {
+		post = result.Data.(*model.Post)
+	}
+
+	action := post.GetAction(actionId)
+	if action == nil || action.Integration == nil {
+		return model.NewAppError("DoPostAction", "api.post.do_action.action_id.app_error", nil, fmt.Sprintf("action=%v", action), http.StatusNotFound)
+	}
+
+	request := &model.PostActionIntegrationRequest{
+		UserId:  userId,
+		Context: action.Integration.Context,
+	}
+
+	req, _ := http.NewRequest("POST", action.Integration.URL, strings.NewReader(request.ToJson()))
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Accept", "application/json")
+	resp, err := utils.HttpClient(false).Do(req)
+	if err != nil {
+		return model.NewAppError("DoPostAction", "api.post.do_action.action_integration.app_error", nil, "err="+err.Error(), http.StatusBadRequest)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return model.NewAppError("DoPostAction", "api.post.do_action.action_integration.app_error", nil, fmt.Sprintf("status=%v", resp.StatusCode), http.StatusBadRequest)
+	}
+
+	var response model.PostActionIntegrationResponse
+	if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
+		return model.NewAppError("DoPostAction", "api.post.do_action.action_integration.app_error", nil, "err="+err.Error(), http.StatusBadRequest)
+	}
+
+	if response.Update != nil {
+		response.Update.Id = postId
+		response.Update.AddProp("from_webhook", "true")
+		if _, err := UpdatePost(response.Update, false); err != nil {
+			return err
+		}
+	}
+
+	if response.EphemeralText != "" {
+		ephemeralPost := &model.Post{}
+		ephemeralPost.Message = parseSlackLinksToMarkdown(response.EphemeralText)
+		ephemeralPost.ChannelId = post.ChannelId
+		ephemeralPost.RootId = post.RootId
+		if ephemeralPost.RootId == "" {
+			ephemeralPost.RootId = post.Id
+		}
+		ephemeralPost.UserId = userId
+		ephemeralPost.AddProp("from_webhook", "true")
+		SendEphemeralPost(userId, ephemeralPost)
+	}
+
+	return nil
 }

@@ -139,6 +139,10 @@
                     vertical-align: top;
                     width: 32px;
 
+                    &:hover {
+                        background: transparent;
+                    }
+
                     svg {
                         position: relative;
                         top: 5px;

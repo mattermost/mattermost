@@ -9,7 +9,7 @@ import loadingGif from 'images/load.gif';
 import Constants from 'utils/constants.jsx';
 import * as Utils from 'utils/utils.jsx';
 
-import {getFileThumbnailUrl} from 'mattermost-redux/utils/file_utils';
+import {getFileUrl, getFileThumbnailUrl} from 'mattermost-redux/utils/file_utils';
 
 export default class FilePreview extends React.Component {
     static propTypes = {
@@ -47,7 +47,14 @@ export default class FilePreview extends React.Component {
 
             let className = 'file-preview';
             let previewImage;
-            if (type === 'image' || type === 'svg') {
+            if (type === 'svg') {
+                previewImage = (
+                    <img
+                        className='post-image normal'
+                        src={getFileUrl(info.id)}
+                    />
+                );
+            } else if (type === 'image') {
                 let imageClassName = 'post-image';
 
                 if (info.width < Constants.THUMBNAIL_WIDTH && info.height < Constants.THUMBNAIL_HEIGHT) {

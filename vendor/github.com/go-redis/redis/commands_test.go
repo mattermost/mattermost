@@ -139,10 +139,10 @@ var _ = Describe("Commands", func() {
 			Expect(configSet.Val()).To(Equal("OK"))
 		})
 
-		It("should DbSize", func() {
-			dbSize := client.DbSize()
-			Expect(dbSize.Err()).NotTo(HaveOccurred())
-			Expect(dbSize.Val()).To(Equal(int64(0)))
+		It("should DBSize", func() {
+			size, err := client.DBSize().Result()
+			Expect(err).NotTo(HaveOccurred())
+			Expect(size).To(Equal(int64(0)))
 		})
 
 		It("should Info", func() {
@@ -2176,20 +2176,24 @@ var _ = Describe("Commands", func() {
 		})
 
 		It("should ZCount", func() {
-			zAdd := client.ZAdd("zset", redis.Z{1, "one"})
-			Expect(zAdd.Err()).NotTo(HaveOccurred())
-			zAdd = client.ZAdd("zset", redis.Z{2, "two"})
-			Expect(zAdd.Err()).NotTo(HaveOccurred())
-			zAdd = client.ZAdd("zset", redis.Z{3, "three"})
-			Expect(zAdd.Err()).NotTo(HaveOccurred())
+			err := client.ZAdd("zset", redis.Z{1, "one"}).Err()
+			Expect(err).NotTo(HaveOccurred())
+			err = client.ZAdd("zset", redis.Z{2, "two"}).Err()
+			Expect(err).NotTo(HaveOccurred())
+			err = client.ZAdd("zset", redis.Z{3, "three"}).Err()
+			Expect(err).NotTo(HaveOccurred())
 
-			zCount := client.ZCount("zset", "-inf", "+inf")
-			Expect(zCount.Err()).NotTo(HaveOccurred())
-			Expect(zCount.Val()).To(Equal(int64(3)))
+			count, err := client.ZCount("zset", "-inf", "+inf").Result()
+			Expect(err).NotTo(HaveOccurred())
+			Expect(count).To(Equal(int64(3)))
 
-			zCount = client.ZCount("zset", "(1", "3")
-			Expect(zCount.Err()).NotTo(HaveOccurred())
-			Expect(zCount.Val()).To(Equal(int64(2)))
+			count, err = client.ZCount("zset", "(1", "3").Result()
+			Expect(err).NotTo(HaveOccurred())
+			Expect(count).To(Equal(int64(2)))
+
+			count, err = client.ZLexCount("zset", "-", "+").Result()
+			Expect(err).NotTo(HaveOccurred())
+			Expect(count).To(Equal(int64(3)))
 		})
 
 		It("should ZIncrBy", func() {

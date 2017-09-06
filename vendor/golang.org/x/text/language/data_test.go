@@ -40,7 +40,9 @@ var matchTests = []matchTest{
 			{"en", "sh"},
 			{"en", "hr"},
 			{"en", "bs"},
-			{"en", "nl-Cyrl"},
+			// TODO: consider if the following match is a good one.
+			// Due to new script first rule, which maybe should be an option.
+			{"sr", "nl-Cyrl"},
 		},
 	},
 	{
@@ -229,6 +231,14 @@ var matchTests = []matchTest{
 		},
 	},
 	{
+		"region may replace matched if matched is enclosing",
+		"es-419,es",
+		[]struct{ match, desired string }{
+			{"es-MX", "es-MX"},
+			{"es", "es-SG"},
+		},
+	},
+	{
 		"more specific region wins over more specific script",
 		"nl, nl-Latn, nl-NL, nl-BE",
 		[]struct{ match, desired string }{
@@ -265,7 +275,7 @@ var matchTests = []matchTest{
 		"en, en-GB, es-ES, es-419",
 		[]struct{ match, desired string }{
 			{"en-GB", "en-AU"},
-			{"es-419", "es-MX"},
+			{"es-MX", "es-MX"},
 			{"es-ES", "es-PT"},
 		},
 	},
@@ -355,6 +365,7 @@ var matchTests = []matchTest{
 		"en, en-US, en-GB, es, es-419, pt, pt-BR, pt-PT, zh,  zh-Hant, zh-Hant-HK",
 		[]struct{ match, desired string }{
 			{"en-GB", "en-150"},
+			// {"en-GB", "en-001"}, // TODO: currently en, should probably be en-GB
 			{"en-GB", "en-AU"},
 			{"en-GB", "en-BE"},
 			{"en-GB", "en-GG"},
@@ -370,26 +381,27 @@ var matchTests = []matchTest{
 			{"en-GB", "en-SG"},
 			{"en-GB", "en-DE"},
 			{"en-GB", "en-MT"},
-			{"es-419", "es-AR"},
-			{"es-419", "es-BO"},
-			{"es-419", "es-CL"},
-			{"es-419", "es-CO"},
-			{"es-419", "es-CR"},
-			{"es-419", "es-CU"},
-			{"es-419", "es-DO"},
-			{"es-419", "es-EC"},
-			{"es-419", "es-GT"},
-			{"es-419", "es-HN"},
-			{"es-419", "es-MX"},
-			{"es-419", "es-NI"},
-			{"es-419", "es-PA"},
-			{"es-419", "es-PE"},
-			{"es-419", "es-PR"},
-			{"es-419", "es-PY"},
-			{"es-419", "es-SV"},
-			{"es-419", "es-US"},
-			{"es-419", "es-UY"},
-			{"es-419", "es-VE"},
+			{"es-AR", "es-AR"},
+			{"es-BO", "es-BO"},
+			{"es-CL", "es-CL"},
+			{"es-CO", "es-CO"},
+			{"es-CR", "es-CR"},
+			{"es-CU", "es-CU"},
+			{"es-DO", "es-DO"},
+			{"es-EC", "es-EC"},
+			{"es-GT", "es-GT"},
+			{"es-HN", "es-HN"},
+			{"es-MX", "es-MX"},
+			{"es-NI", "es-NI"},
+			{"es-PA", "es-PA"},
+			{"es-PE", "es-PE"},
+			{"es-PR", "es-PR"},
+			{"es", "es-PT"},
+			{"es-PY", "es-PY"},
+			{"es-SV", "es-SV"},
+			{"es-419", "es-US"}, // US is not in Latin America, so don't make more specific.
+			{"es-UY", "es-UY"},
+			{"es-VE", "es-VE"},
 			{"pt-PT", "pt-AO"},
 			{"pt-PT", "pt-CV"},
 			{"pt-PT", "pt-GW"},
@@ -397,9 +409,6 @@ var matchTests = []matchTest{
 			{"pt-PT", "pt-MZ"},
 			{"pt-PT", "pt-ST"},
 			{"pt-PT", "pt-TL"},
-			// TODO for CLDR 24+
-			// - en-001
-			// - {"zh-Hant-HK", "zh-Hant-MO"},
 		},
 	},
 	// Options and variants are inherited from user-defined settings.

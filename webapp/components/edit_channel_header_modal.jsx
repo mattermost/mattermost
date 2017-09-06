@@ -85,15 +85,14 @@ class EditChannelHeaderModal extends React.Component {
             this.props.channel.id,
             this.state.header,
             () => {
-                this.setState({serverError: ''});
+                this.setState({serverError: '', submitted: false});
                 this.onHide();
             },
             (err) => {
                 if (err.id === 'api.context.invalid_param.app_error') {
                     this.setState({serverError: this.props.intl.formatMessage(holders.error)});
-                } else {
-                    this.setState({serverError: err.message});
                 }
+                this.setState({submitted: false});
             }
         );
     }
@@ -169,8 +168,8 @@ class EditChannelHeaderModal extends React.Component {
                         {headerTitle}
                     </Modal.Title>
                 </Modal.Header>
-                <Modal.Body>
-                    <div className='edit-modal-body'>
+                <Modal.Body bsClass='modal-body edit-modal-body'>
+                    <div>
                         <p>
                             <FormattedMessage
                                 id='edit_channel_header_modal.description'
@@ -189,6 +188,7 @@ class EditChannelHeaderModal extends React.Component {
                             handlePostError={this.handlePostError}
                             id='edit_textbox'
                             ref='editChannelHeaderTextbox'
+                            characterLimit={1024}
                         />
                         <br/>
                         {serverError}

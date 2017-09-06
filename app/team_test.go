@@ -152,4 +152,24 @@ func TestPermanentDeleteTeam(t *testing.T) {
 	if command, err = GetCommand(command.Id); command != nil || err == nil {
 		t.Fatal("command wasn't deleted")
 	}
+
+	// Test deleting a team with no channels.
+	team = th.CreateTeam()
+	defer func() {
+		PermanentDeleteTeam(team)
+	}()
+
+	if channels, err := GetPublicChannelsForTeam(team.Id, 0, 1000); err != nil {
+		t.Fatal(err)
+	} else {
+		for _, channel := range *channels {
+			if err2 := PermanentDeleteChannel(channel); err2 != nil {
+				t.Fatal(err)
+			}
+		}
+	}
+
+	if err := PermanentDeleteTeam(team); err != nil {
+		t.Fatal(err)
+	}
 }

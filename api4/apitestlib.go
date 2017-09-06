@@ -48,14 +48,14 @@ func SetupEnterprise() *TestHelper {
 		utils.TranslationsPreInit()
 		utils.LoadConfig("config.json")
 		utils.InitTranslations(utils.Cfg.LocalizationSettings)
-		utils.Cfg.TeamSettings.MaxUsersPerTeam = 50
+		*utils.Cfg.TeamSettings.MaxUsersPerTeam = 50
 		*utils.Cfg.RateLimitSettings.Enable = false
 		utils.Cfg.EmailSettings.SendEmailNotifications = true
 		utils.Cfg.EmailSettings.SMTPServer = "dockerhost"
 		utils.Cfg.EmailSettings.SMTPPort = "2500"
 		utils.Cfg.EmailSettings.FeedbackEmail = "test@example.com"
 		utils.DisableDebugLogForTest()
-		utils.License.Features.SetDefaults()
+		utils.License().Features.SetDefaults()
 		app.NewServer()
 		app.InitStores()
 		InitRouter()
@@ -85,7 +85,7 @@ func Setup() *TestHelper {
 		utils.TranslationsPreInit()
 		utils.LoadConfig("config.json")
 		utils.InitTranslations(utils.Cfg.LocalizationSettings)
-		utils.Cfg.TeamSettings.MaxUsersPerTeam = 50
+		*utils.Cfg.TeamSettings.MaxUsersPerTeam = 50
 		*utils.Cfg.RateLimitSettings.Enable = false
 		utils.Cfg.EmailSettings.SendEmailNotifications = true
 		utils.Cfg.EmailSettings.SMTPServer = "dockerhost"
@@ -212,11 +212,11 @@ func (me *TestHelper) InitSystemAdmin() *TestHelper {
 }
 
 func (me *TestHelper) CreateClient() *model.Client4 {
-	return model.NewAPIv4Client("http://localhost" + utils.Cfg.ServiceSettings.ListenAddress)
+	return model.NewAPIv4Client("http://localhost" + *utils.Cfg.ServiceSettings.ListenAddress)
 }
 
 func (me *TestHelper) CreateWebSocketClient() (*model.WebSocketClient, *model.AppError) {
-	return model.NewWebSocketClient4("ws://localhost"+utils.Cfg.ServiceSettings.ListenAddress, me.Client.AuthToken)
+	return model.NewWebSocketClient4("ws://localhost"+*utils.Cfg.ServiceSettings.ListenAddress, me.Client.AuthToken)
 }
 
 func (me *TestHelper) CreateUser() *model.User {
@@ -658,7 +658,7 @@ func s3New(endpoint, accessKey, secretKey string, secure bool, signV2 bool, regi
 }
 
 func cleanupTestFile(info *model.FileInfo) error {
-	if utils.Cfg.FileSettings.DriverName == model.IMAGE_DRIVER_S3 {
+	if *utils.Cfg.FileSettings.DriverName == model.IMAGE_DRIVER_S3 {
 		endpoint := utils.Cfg.FileSettings.AmazonS3Endpoint
 		accessKey := utils.Cfg.FileSettings.AmazonS3AccessKeyId
 		secretKey := utils.Cfg.FileSettings.AmazonS3SecretAccessKey
@@ -685,7 +685,7 @@ func cleanupTestFile(info *model.FileInfo) error {
 				return err
 			}
 		}
-	} else if utils.Cfg.FileSettings.DriverName == model.IMAGE_DRIVER_LOCAL {
+	} else if *utils.Cfg.FileSettings.DriverName == model.IMAGE_DRIVER_LOCAL {
 		if err := os.Remove(utils.Cfg.FileSettings.Directory + info.Path); err != nil {
 			return err
 		}

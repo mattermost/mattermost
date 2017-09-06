@@ -133,7 +133,7 @@ export default class SelectTeam extends React.Component {
             </div>
         );
 
-        if (!this.state.loaded) {
+        if (!this.state.loaded || this.state.loadingTeamId !== '') {
             openContent = <LoadingScreen/>;
         }
 

@@ -38,7 +38,7 @@ func (s *SqlSupplier) ReactionSave(ctx context.Context, reaction *model.Reaction
 			transaction.Rollback()
 
 			// We don't consider duplicated save calls as an error
-			if !IsUniqueConstraintError(err.Error(), []string{"reactions_pkey", "PRIMARY"}) {
+			if !IsUniqueConstraintError(err, []string{"reactions_pkey", "PRIMARY"}) {
 				result.Err = model.NewLocAppError("SqlPreferenceStore.Save", "store.sql_reaction.save.save.app_error", nil, err.Error())
 			}
 		} else {

@@ -95,12 +95,12 @@ func TestAddUserToTeam(t *testing.T) {
 
 	// Restore config/license at end of test case.
 	restrictTeamInvite := *utils.Cfg.TeamSettings.RestrictTeamInvite
-	isLicensed := utils.IsLicensed
-	license := utils.License
+	isLicensed := utils.IsLicensed()
+	license := utils.License()
 	defer func() {
 		*utils.Cfg.TeamSettings.RestrictTeamInvite = restrictTeamInvite
-		utils.IsLicensed = isLicensed
-		utils.License = license
+		utils.SetIsLicensed(isLicensed)
+		utils.SetLicense(license)
 		utils.SetDefaultRolesBasedOnConfig()
 	}()
 
@@ -115,9 +115,9 @@ func TestAddUserToTeam(t *testing.T) {
 	}
 
 	// Add an EE license.
-	utils.IsLicensed = true
-	utils.License = &model.License{Features: &model.Features{}}
-	utils.License.Features.SetDefaults()
+	utils.SetIsLicensed(true)
+	utils.SetLicense(&model.License{Features: &model.Features{}})
+	utils.License().Features.SetDefaults()
 	utils.SetDefaultRolesBasedOnConfig()
 
 	// Check that a regular user can't add someone to the team.
@@ -130,9 +130,9 @@ func TestAddUserToTeam(t *testing.T) {
 	UpdateUserToTeamAdmin(th.BasicUser, th.BasicTeam)
 	app.InvalidateAllCaches()
 	*utils.Cfg.TeamSettings.RestrictTeamInvite = model.PERMISSIONS_TEAM_ADMIN
-	utils.IsLicensed = true
-	utils.License = &model.License{Features: &model.Features{}}
-	utils.License.Features.SetDefaults()
+	utils.SetIsLicensed(true)
+	utils.SetLicense(&model.License{Features: &model.Features{}})
+	utils.License().Features.SetDefaults()
 	utils.SetDefaultRolesBasedOnConfig()
 
 	user5 := th.CreateUser(th.BasicClient)
@@ -238,6 +238,11 @@ func TestGetAllTeams(t *testing.T) {
 		t.Fatal("admin users should receive all teams")
 	} else if receivedTeam, ok := teams[team.Id]; !ok || receivedTeam.Id != team.Id {
 		t.Fatal("admin should've received team that they aren't a member of")
+	}
+
+	Client.Logout()
+	if _, err := Client.GetAllTeams(); err == nil {
+		t.Fatal("Should have failed due to not being logged in.")
 	}
 }
 
@@ -381,16 +386,16 @@ func TestInviteMembers(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	isLicensed := utils.IsLicensed
-	license := utils.License
+	isLicensed := utils.IsLicensed()
+	license := utils.License()
 	defer func() {
-		utils.IsLicensed = isLicensed
-		utils.License = license
+		utils.SetIsLicensed(isLicensed)
+		utils.SetLicense(license)
 		utils.SetDefaultRolesBasedOnConfig()
 	}()
-	utils.IsLicensed = true
-	utils.License = &model.License{Features: &model.Features{}}
-	utils.License.Features.SetDefaults()
+	utils.SetIsLicensed(true)
+	utils.SetLicense(&model.License{Features: &model.Features{}})
+	utils.License().Features.SetDefaults()
 	utils.SetDefaultRolesBasedOnConfig()
 
 	if _, err := Client.InviteMembers(invites); err == nil {
@@ -787,11 +792,14 @@ func TestGetTeamByName(t *testing.T) {
 	th := Setup().InitSystemAdmin().InitBasic()
 	Client := th.BasicClient
 
-	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "success+" + model.NewId() + "@simulator.amazonses.com", Type: model.TEAM_INVITE}
+	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "success+" + model.NewId() + "@simulator.amazonses.com", Type: model.TEAM_OPEN, AllowOpenInvite: false}
 	team = Client.Must(Client.CreateTeam(team)).Data.(*model.Team)
 
-	team2 := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "success+" + model.NewId() + "@simulator.amazonses.com", Type: model.TEAM_OPEN}
+	team2 := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "success+" + model.NewId() + "@simulator.amazonses.com", Type: model.TEAM_OPEN, AllowOpenInvite: true}
 	team2 = Client.Must(Client.CreateTeam(team2)).Data.(*model.Team)
+
+	team3 := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "success+" + model.NewId() + "@simulator.amazonses.com", Type: model.TEAM_INVITE, AllowOpenInvite: true}
+	team3 = Client.Must(Client.CreateTeam(team3)).Data.(*model.Team)
 
 	if _, err := Client.GetTeamByName(team.Name); err != nil {
 		t.Fatal("Failed to get team")
@@ -813,7 +821,7 @@ func TestGetTeamByName(t *testing.T) {
 
 	Client.Login(user2.Email, "passwd1")
 
-	// TEAM_INVITE and user is not part of the team
+	// AllowInviteOpen is false and team is open and user is not part of the team
 	if _, err := Client.GetTeamByName(team.Name); err == nil {
 		t.Fatal("Should fail dont have permissions to get the team")
 	}
@@ -822,9 +830,14 @@ func TestGetTeamByName(t *testing.T) {
 		t.Fatal("Should not exist this team")
 	}
 
-	// TEAM_OPEN and user is not part of the team
+	// AllowInviteOpen is true and is open and user is not part of the team
 	if _, err := Client.GetTeamByName(team2.Name); err != nil {
 		t.Fatal("Should not fail team is open")
+	}
+
+	// AllowInviteOpen is true and is invite only and user is not part of the team
+	if _, err := Client.GetTeamByName(team3.Name); err == nil {
+		t.Fatal("Should fail team is invite only")
 	}
 
 	Client.Must(Client.Logout())
@@ -832,15 +845,33 @@ func TestGetTeamByName(t *testing.T) {
 	th.LoginSystemAdmin()
 
 	if _, err := th.SystemAdminClient.GetTeamByName(team.Name); err != nil {
-		t.Fatal("Should not failed to get team the user is admin")
+		t.Fatal("Should not fail to get team the user is admin")
 	}
 
 	if _, err := th.SystemAdminClient.GetTeamByName(team2.Name); err != nil {
-		t.Fatal("Should not failed to get team the user is admin and team is open")
+		t.Fatal("Should not fail to get team the user is admin and team is open")
+	}
+
+	if _, err := th.SystemAdminClient.GetTeamByName(team3.Name); err != nil {
+		t.Fatal("Should not fail to get team the user is admin and team is invite")
 	}
 
 	if _, err := Client.GetTeamByName("InvalidTeamName"); err == nil {
 		t.Fatal("Should not exist this team")
 	}
 
+	Client.Logout()
+	if _, err := Client.GetTeamByName(th.BasicTeam.Name); err == nil {
+		t.Fatal("Should have failed when not logged in.")
+	}
+}
+
+func TestFindTeamByName(t *testing.T) {
+	th := Setup().InitBasic()
+	Client := th.BasicClient
+	Client.Logout()
+
+	if _, err := Client.FindTeamByName(th.BasicTeam.Name); err == nil {
+		t.Fatal("Should have failed when not logged in.")
+	}
 }

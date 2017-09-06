@@ -592,6 +592,14 @@
     "translation": "權限不足以更改頻道名稱。"
   },
   {
+    "id": "api.command_channel_rename.too_long.app_error",
+    "translation": "Channel name must be {{.Length}} or fewer characters"
+  },
+  {
+    "id": "api.command_channel_rename.too_short.app_error",
+    "translation": "Channel name must be {{.Length}} or more characters"
+  },
+  {
     "id": "api.command_channel_rename.update_channel.app_error",
     "translation": "更新當前頻道時錯誤。"
   },
@@ -844,156 +852,16 @@
     "translation": "當前裝置不支援設定命令"
   },
   {
-    "id": "api.command_shortcuts.browser.channel_next",
-    "translation": "{{.ChannelNextCmd}}：紀錄的下一個頻道\n"
-  },
-  {
-    "id": "api.command_shortcuts.browser.channel_next.cmd",
-    "translation": "ALT+RIGHT"
-  },
-  {
-    "id": "api.command_shortcuts.browser.channel_next.cmd_mac",
-    "translation": "CMD+]"
-  },
-  {
-    "id": "api.command_shortcuts.browser.channel_prev",
-    "translation": "{{.ChannelPrevCmd}}：紀錄的前一個頻道\n"
-  },
-  {
-    "id": "api.command_shortcuts.browser.channel_prev.cmd",
-    "translation": "ALT+LEFT"
-  },
-  {
-    "id": "api.command_shortcuts.browser.channel_prev.cmd_mac",
-    "translation": "CMD+["
-  },
-  {
-    "id": "api.command_shortcuts.browser.font_decrease",
-    "translation": "{{.CmdOrCtrl}}+MINUS：減少字體尺寸(縮小)\n"
-  },
-  {
-    "id": "api.command_shortcuts.browser.font_increase",
-    "translation": "{{.CmdOrCtrl}}+PLUS：增加字體尺寸(放大)\n"
-  },
-  {
-    "id": "api.command_shortcuts.browser.header",
-    "translation": "#### 瀏覽器內建命令\n\n"
-  },
-  {
-    "id": "api.command_shortcuts.browser.highlight_next",
-    "translation": "SHIFT+DOWN (在輸入欄)：標記現在到下一行同位置之間的文字\n"
-  },
-  {
-    "id": "api.command_shortcuts.browser.highlight_prev",
-    "translation": "SHIFT+UP (在輸入欄)：標記現在到上一行同位置之間的文字\n"
-  },
-  {
-    "id": "api.command_shortcuts.browser.newline",
-    "translation": "SHIFT+ENTER (在輸入欄)：新增一行\n"
-  },
-  {
-    "id": "api.command_shortcuts.cmd",
-    "translation": "CMD"
-  },
-  {
-    "id": "api.command_shortcuts.ctrl",
-    "translation": "CTRL"
-  },
-  {
     "id": "api.command_shortcuts.desc",
     "translation": "顯示鍵盤快捷鍵列表"
-  },
-  {
-    "id": "api.command_shortcuts.files.header",
-    "translation": "#### 檔案\n\n"
-  },
-  {
-    "id": "api.command_shortcuts.files.upload",
-    "translation": "{{.CmdOrCtrl}}+U：上傳檔案\n\n"
-  },
-  {
-    "id": "api.command_shortcuts.header",
-    "translation": "### 鍵盤快捷鍵\n\n"
-  },
-  {
-    "id": "api.command_shortcuts.msgs.comp_channel",
-    "translation": "~[文字]+TAB：自動完成以[文字]起始的頻道\n"
-  },
-  {
-    "id": "api.command_shortcuts.msgs.comp_emoji",
-    "translation": ":[文字]+TAB：自動完成以[文字]起始的繪文字\n\n"
-  },
-  {
-    "id": "api.command_shortcuts.msgs.comp_username",
-    "translation": "@[文字]+TAB：自動完成以[文字]起始的@使用者帳號\n"
-  },
-  {
-    "id": "api.command_shortcuts.msgs.edit",
-    "translation": "UP (在空的輸入欄)：編輯當前頻道您的上一個訊息\n"
-  },
-  {
-    "id": "api.command_shortcuts.msgs.header",
-    "translation": "#### 訊息\n\n"
-  },
-  {
-    "id": "api.command_shortcuts.msgs.mark_as_read",
-    "translation": "ESC：將當前頻道所有訊息設為已讀\n"
-  },
-  {
-    "id": "api.command_shortcuts.msgs.reply",
-    "translation": "SHIFT+UP (在空的輸入欄)：回覆當前頻道最新的訊息\n"
-  },
-  {
-    "id": "api.command_shortcuts.msgs.reprint_next",
-    "translation": "{{.CmdOrCtrl}}+DOWN (在空的輸入欄)：顯示下一個您輸入的訊息或是斜線命令\n"
-  },
-  {
-    "id": "api.command_shortcuts.msgs.reprint_prev",
-    "translation": "{{.CmdOrCtrl}}+UP (在空的輸入欄)：顯示上一個您輸入的訊息或是斜線命令\n"
   },
   {
     "id": "api.command_shortcuts.name",
     "translation": "快捷鍵"
   },
   {
-    "id": "api.command_shortcuts.nav.direct_messages_menu",
-    "translation": "{{.CmdOrCtrl}}+SHIFT+K: 開啟直接傳訊選單\n"
-  },
-  {
-    "id": "api.command_shortcuts.nav.header",
-    "translation": "#### 瀏覽\n\n"
-  },
-  {
-    "id": "api.command_shortcuts.nav.next",
-    "translation": "ALT+DOWN：側邊欄裡面下一個頻道或直接訊息\n"
-  },
-  {
-    "id": "api.command_shortcuts.nav.prev",
-    "translation": "ALT+UP：側邊欄裡面上一個頻道或直接訊息\n"
-  },
-  {
-    "id": "api.command_shortcuts.nav.recent_mentions",
-    "translation": "{{.CmdOrCtrl}}+SHIFT+M：開啟最近提及您的訊息\n\n"
-  },
-  {
-    "id": "api.command_shortcuts.nav.settings",
-    "translation": "{{.CmdOrCtrl}}+SHIFT+A：開啟帳號設定\n"
-  },
-  {
-    "id": "api.command_shortcuts.nav.switcher",
-    "translation": "{{.CmdOrCtrl}}+K：開啟快速切換頻道對話框\n"
-  },
-  {
-    "id": "api.command_shortcuts.nav.switcher_team",
-    "translation": "{{.CmdOrCtrl}}+ALT+K：開啟快速切換團隊對話框\n"
-  },
-  {
-    "id": "api.command_shortcuts.nav.unread_next",
-    "translation": "ALT+SHIFT+DOWN：側邊欄裡面下一個有未讀訊息的頻道或直接訊息\n"
-  },
-  {
-    "id": "api.command_shortcuts.nav.unread_prev",
-    "translation": "ALT+SHIFT+UP：側邊欄裡面上一個有未讀訊息的頻道或直接訊息\n"
+    "id": "api.command_shortcuts.unsupported.app_error",
+    "translation": "當前裝置不支援搜尋命令"
   },
   {
     "id": "api.command_shrug.desc",
@@ -1374,22 +1242,6 @@
     "translation": "無法移動本地端的檔案。"
   },
   {
-    "id": "api.file.open_file_write_stream.configured.app_error",
-    "translation": "檔案儲存位置設定不正確。請設定為 S3 或是本地儲存。"
-  },
-  {
-    "id": "api.file.open_file_write_stream.creating_dir.app_error",
-    "translation": "建立新檔案的目錄時遇到錯誤"
-  },
-  {
-    "id": "api.file.open_file_write_stream.local_server.app_error",
-    "translation": "寫入本地儲存時遇到錯誤"
-  },
-  {
-    "id": "api.file.open_file_write_stream.s3.app_error",
-    "translation": "不支援 S3。"
-  },
-  {
     "id": "api.file.read_file.configured.app_error",
     "translation": "檔案儲存位置設定不正確。請設定為 S3 或是本地儲存。"
   },
@@ -1662,6 +1514,18 @@
     "translation": "初始化 Open Graph 協定 API 路徑"
   },
   {
+    "id": "api.plugin.upload.array.app_error",
+    "translation": "File array is empty in multipart/form request"
+  },
+  {
+    "id": "api.plugin.upload.file.app_error",
+    "translation": "Unable to open file in multipart/form request"
+  },
+  {
+    "id": "api.plugin.upload.no_file.app_error",
+    "translation": "Missing file in multipart/form request"
+  },
+  {
     "id": "api.post.check_for_out_of_channel_mentions.message.multiple",
     "translation": "無法傳送通知給{{.Usernames}} 與 {{.LastUsername}}，因為他們並未加入此頻道。"
   },
@@ -1698,6 +1562,10 @@
     "translation": "無效的 RootId 參數"
   },
   {
+    "id": "api.post.create_post.town_square_read_only",
+    "translation": "This channel is read-only. Only members with permission can post here."
+  },
+  {
     "id": "api.post.create_webhook_post.creating.app_error",
     "translation": "建立訊息時遇到錯誤"
   },
@@ -1724,6 +1592,14 @@
   {
     "id": "api.post.disabled_here",
     "translation": "由於頻道使用者超過 {{.Users}} 人，已停用@here。"
+  },
+  {
+    "id": "api.post.do_action.action_id.app_error",
+    "translation": "無效的用戶 ID"
+  },
+  {
+    "id": "api.post.do_action.action_integration.app_error",
+    "translation": "Action integration error"
   },
   {
     "id": "api.post.get_message_for_notification.files_sent",
@@ -3120,6 +2996,10 @@
     "translation": "建立頻道時必須指定團隊 ID"
   },
   {
+    "id": "app.channel.move_channel.members_do_not_match.error",
+    "translation": "Cannot move a channel unless all its members are already members of the destination team."
+  },
+  {
     "id": "app.channel.post_update_channel_purpose_message.post.error",
     "translation": "發送頻道用途訊息失敗"
   },
@@ -3560,8 +3440,48 @@
     "translation": "[{{.SiteName}}] 來自 {{.TeamName}} 的通知，發於 {{.Year}} {{.Month}} {{.Day}}"
   },
   {
+    "id": "app.plugin.activate.app_error",
+    "translation": "Unable to activate extracted plugin. Plugin may already exist and be activated."
+  },
+  {
+    "id": "app.plugin.bad_path.app_error",
+    "translation": "Bad file path in extracted files"
+  },
+  {
+    "id": "app.plugin.deactivate.app_error",
+    "translation": "無法刪除互動"
+  },
+  {
+    "id": "app.plugin.disabled.app_error",
+    "translation": "Plugins have been disabled by the system admin or the server has not been restarted since they were enabled."
+  },
+  {
+    "id": "app.plugin.extract.app_error",
+    "translation": "Encountered error extracting plugin"
+  },
+  {
+    "id": "app.plugin.get_plugins.app_error",
+    "translation": "無法刪除互動"
+  },
+  {
+    "id": "app.plugin.manifest.app_error",
+    "translation": "Unable to find manifest for extracted plugin"
+  },
+  {
+    "id": "app.plugin.mvdir.app_error",
+    "translation": "Unable to move plugin from temporary directory to final destination"
+  },
+  {
+    "id": "app.plugin.no_files.app_error",
+    "translation": "No files found in the compressed folder"
+  },
+  {
+    "id": "app.plugin.remove.app_error",
+    "translation": "無法刪除互動"
+  },
+  {
     "id": "app.user_access_token.disabled",
-    "translation": "使用者存取 Token 在此伺服器被停用。詳情請洽管理員。"
+    "translation": "個人存取 Token 在此伺服器被停用。詳情請洽管理員。"
   },
   {
     "id": "app.user_access_token.invalid_or_missing",
@@ -3593,11 +3513,11 @@
   },
   {
     "id": "authentication.permissions.create_user_access_token.description",
-    "translation": "允許建立使用者存取 Token"
+    "translation": "允許建立個人存取 Token"
   },
   {
     "id": "authentication.permissions.create_user_access_token.name",
-    "translation": "建立使用者存取 Token"
+    "translation": "建立個人存取 Token"
   },
   {
     "id": "authentication.permissions.manage_jobs.description",
@@ -3625,19 +3545,19 @@
   },
   {
     "id": "authentication.permissions.read_user_access_token.description",
-    "translation": "允許讀取使用者存取 Token 的 ID、描述與 user_id 欄位"
+    "translation": "允許讀取個人存取 Token 的 ID、描述與 user_id 欄位"
   },
   {
     "id": "authentication.permissions.read_user_access_token.name",
-    "translation": "讀取使用者存取 Token"
+    "translation": "讀取個人存取 Token"
   },
   {
     "id": "authentication.permissions.revoke_user_access_token.description",
-    "translation": "允許撤銷使用者 Token"
+    "translation": "允許撤銷個人 Token"
   },
   {
     "id": "authentication.permissions.revoke_user_access_token.name",
-    "translation": "撤銷使用者存取 Token"
+    "translation": "撤銷個人存取 Token"
   },
   {
     "id": "authentication.permissions.team_invite_user.description",
@@ -3673,11 +3593,11 @@
   },
   {
     "id": "authentication.roles.system_user_access_token.description",
-    "translation": "擁有建立、讀取與撤銷使用者存取 Token 權限的角色"
+    "translation": "擁有建立、讀取與撤銷個人存取 Token 權限的角色"
   },
   {
     "id": "authentication.roles.system_user_access_token.name",
-    "translation": "使用者存取 Token"
+    "translation": "個人存取 Token"
   },
   {
     "id": "authentication.roles.team_post_all.description",
@@ -3788,6 +3708,22 @@
     "translation": "規範匯出作業 '{{.JobName}}' 開始，匯出到 '{{.FilePath}}'"
   },
   {
+    "id": "ent.elasticsearch.aggregator_worker.create_index_job.error",
+    "translation": "Elasticsearch aggregator worker failed to create the indexing job"
+  },
+  {
+    "id": "ent.elasticsearch.aggregator_worker.delete_indexes.error",
+    "translation": "Elasticsearch aggregator worker failed to delete the indexes"
+  },
+  {
+    "id": "ent.elasticsearch.aggregator_worker.get_indexes.error",
+    "translation": "Elasticsearch aggregator worker failed to get indexes"
+  },
+  {
+    "id": "ent.elasticsearch.aggregator_worker.index_job_failed.error",
+    "translation": "Elasticsearch aggregator worker failed due to the indexing job failing"
+  },
+  {
     "id": "ent.elasticsearch.create_client.connect_failed",
     "translation": "設定 Elasticsearch 用戶端時失敗"
   },
@@ -3814,6 +3750,14 @@
   {
     "id": "ent.elasticsearch.index_post.error",
     "translation": "索引訊息時失敗"
+  },
+  {
+    "id": "ent.elasticsearch.indexer.do_job.parse_end_time.error",
+    "translation": "Elasticsearch indexing worker failed to parse the end time"
+  },
+  {
+    "id": "ent.elasticsearch.indexer.do_job.parse_start_time.error",
+    "translation": "Elasticsearch indexing worker failed to parse the start time"
   },
   {
     "id": "ent.elasticsearch.not_started.error",
@@ -4037,7 +3981,7 @@
   },
   {
     "id": "ent.saml.service_disable.app_error",
-    "translation": "本機不支援或未設定SAML"
+    "translation": "本機不支援或未設定 SAML"
   },
   {
     "id": "ent.saml.update_saml_user.unable_error",
@@ -4344,6 +4288,10 @@
     "translation": "建立 SAML 憑證 multipart 表單要求時遇到錯誤"
   },
   {
+    "id": "model.client.writer.app_error",
+    "translation": "Unable to build multipart request"
+  },
+  {
     "id": "model.command.is_valid.create_at.app_error",
     "translation": "\"新增時間\"必須是一個有效時間"
   },
@@ -4392,6 +4340,34 @@
     "translation": "無效的使用者 ID"
   },
   {
+    "id": "model.command_hook.channel_id.app_error",
+    "translation": "無效的頻道 ID"
+  },
+  {
+    "id": "model.command_hook.command_id.app_error",
+    "translation": "Invalid command id"
+  },
+  {
+    "id": "model.command_hook.create_at.app_error",
+    "translation": "\"新增時間\"必須是一個有效時間"
+  },
+  {
+    "id": "model.command_hook.id.app_error",
+    "translation": "Invalid command hook id"
+  },
+  {
+    "id": "model.command_hook.parent_id.app_error",
+    "translation": "無效的上層 ID"
+  },
+  {
+    "id": "model.command_hook.root_id.app_error",
+    "translation": "無效的根 ID"
+  },
+  {
+    "id": "model.command_hook.user_id.app_error",
+    "translation": "無效的使用者 ID"
+  },
+  {
     "id": "model.compliance.is_valid.create_at.app_error",
     "translation": "\"新增時間\"必須是一個有效時間"
   },
@@ -4420,6 +4396,10 @@
     "translation": "啟用叢集時無法啟用批次郵件"
   },
   {
+    "id": "model.config.is_valid.elastic_search.aggregate_posts_after_days.app_error",
+    "translation": "Elasticsearch AggregatePostsAfterDays setting must be a number greater than or equal to 1"
+  },
+  {
     "id": "model.config.is_valid.elastic_search.connection_url.app_error",
     "translation": "當啟用 ElasticSearch 搜尋時必須設定 ElasticSearch ConnectionUrl。"
   },
@@ -4430,6 +4410,10 @@
   {
     "id": "model.config.is_valid.elastic_search.password.app_error",
     "translation": "當啟用 ElasticSearch 搜尋時必須設定 ElasticSearch 密碼。"
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.posts_aggregator_job_start_time.app_error",
+    "translation": "Elasticsearch PostsAggregatorJobStartTime setting must be a time in the format \"hh:mm\""
   },
   {
     "id": "model.config.is_valid.elastic_search.username.app_error",
@@ -5176,6 +5160,10 @@
     "translation": "無法解碼"
   },
   {
+    "id": "plugin.rpcplugin.invocation.error",
+    "translation": "Error invoking plugin RPC"
+  },
+  {
     "id": "store.sql.alter_column_type.critical",
     "translation": "更動欄位類型 %v 失敗"
   },
@@ -5596,6 +5584,26 @@
     "translation": "無法更新命令"
   },
   {
+    "id": "store.sql_command_webhooks.get.app_error",
+    "translation": "無法取得 Webhook"
+  },
+  {
+    "id": "store.sql_command_webhooks.save.app_error",
+    "translation": "無法儲存傳入的 Webhook"
+  },
+  {
+    "id": "store.sql_command_webhooks.save.existing.app_error",
+    "translation": "You cannot update an existing CommandWebhook"
+  },
+  {
+    "id": "store.sql_command_webhooks.try_use.app_error",
+    "translation": "Unable to use the webhook"
+  },
+  {
+    "id": "store.sql_command_webhooks.try_use.invalid.app_error",
+    "translation": "無效的 Webhook"
+  },
+  {
     "id": "store.sql_compliance.get.finding.app_error",
     "translation": "取得規範報告時遇到錯誤"
   },
@@ -5646,6 +5654,10 @@
   {
     "id": "store.sql_file_info.get_for_post.app_error",
     "translation": "無法取得發文的檔案訊息"
+  },
+  {
+    "id": "store.sql_file_info.permanent_delete.app_error",
+    "translation": "We couldn't permanently delete the file info"
   },
   {
     "id": "store.sql_file_info.save.app_error",
@@ -6405,23 +6417,23 @@
   },
   {
     "id": "store.sql_user_access_token.delete.app_error",
-    "translation": "無法刪除使用者存取 Token"
+    "translation": "無法刪除個人存取 Token"
   },
   {
     "id": "store.sql_user_access_token.get.app_error",
-    "translation": "無法取得使用者存取 Token"
+    "translation": "無法取得個人存取 Token"
   },
   {
     "id": "store.sql_user_access_token.get_by_token.app_error",
-    "translation": "無法根據 Token 取得使用者存取 Token"
+    "translation": "無法根據 Token 取得個人存取 Token"
   },
   {
     "id": "store.sql_user_access_token.get_by_user.app_error",
-    "translation": "無法根據使用者取得使用者存取 Token"
+    "translation": "無法根據使用者取得個人存取 Token"
   },
   {
     "id": "store.sql_user_access_token.save.app_error",
-    "translation": "無法刪除儲存使用者存取 Token"
+    "translation": "無法刪除儲存個人存取 Token"
   },
   {
     "id": "store.sql_webhooks.analytics_incoming_count.app_error",
@@ -6541,7 +6553,7 @@
   },
   {
     "id": "utils.config.supported_server_locale.app_error",
-    "translation": "無法讀入 Mattermost 設定檔： DefaultServerLocale 必須為支援的地域"
+    "translation": "無法讀取 Mattermost 設定檔：  DefaultServerLocale 必須為支援的語系。設定 DefaultServerLocale 為 en 當作預設值。"
   },
   {
     "id": "utils.config.validate_locale.app_error",
@@ -6550,6 +6562,30 @@
   {
     "id": "utils.diagnostic.analytics_not_found.app_error",
     "translation": "分析尚未初始化"
+  },
+  {
+    "id": "utils.file.remove_directory.configured.app_error",
+    "translation": "檔案儲存位置設定不正確。請設定為 S3 或是本地儲存。"
+  },
+  {
+    "id": "utils.file.remove_directory.local.app_error",
+    "translation": "從本地儲存讀取時遇到錯誤"
+  },
+  {
+    "id": "utils.file.remove_directory.s3.app_error",
+    "translation": "Encountered an error removing directory from S3."
+  },
+  {
+    "id": "utils.file.remove_file.configured.app_error",
+    "translation": "檔案儲存位置設定不正確。請設定為 S3 或是本地儲存。"
+  },
+  {
+    "id": "utils.file.remove_file.local.app_error",
+    "translation": "從本地儲存讀取時遇到錯誤"
+  },
+  {
+    "id": "utils.file.remove_file.s3.app_error",
+    "translation": "Encountered an error removing file from S3."
   },
   {
     "id": "utils.i18n.loaded",
@@ -6662,6 +6698,18 @@
   {
     "id": "web.claim_account.user.error",
     "translation": "找不到使用者 teamid=%v, email=%v, err=%v"
+  },
+  {
+    "id": "web.command_webhook.command.app_error",
+    "translation": "找不到頻道"
+  },
+  {
+    "id": "web.command_webhook.invalid.app_error",
+    "translation": "無效的 Webhook"
+  },
+  {
+    "id": "web.command_webhook.parse.app_error",
+    "translation": "無法解析流入的資料"
   },
   {
     "id": "web.create_dir.error",

@@ -32,6 +32,7 @@ class ModalStoreClass extends EventEmitter {
 
         switch (type) {
         case ActionTypes.TOGGLE_ACCOUNT_SETTINGS_MODAL:
+        case ActionTypes.TOGGLE_SHORTCUTS_MODAL:
         case ActionTypes.TOGGLE_IMPORT_THEME_MODAL:
         case ActionTypes.TOGGLE_INVITE_MEMBER_MODAL:
         case ActionTypes.TOGGLE_LEAVE_TEAM_MODAL:

@@ -11,14 +11,13 @@ import TeamStore from 'stores/team_store.jsx';
 import SearchStore from 'stores/search_store.jsx';
 
 import {handleNewPost} from 'actions/post_actions.jsx';
-import {loadProfilesForSidebar} from 'actions/user_actions.jsx';
+import {loadProfilesForSidebar, loadNewDMIfNeeded, loadNewGMIfNeeded} from 'actions/user_actions.jsx';
 import {loadChannelsForCurrentUser} from 'actions/channel_actions.jsx';
 import {stopPeriodicStatusUpdates} from 'actions/status_actions.jsx';
 import * as WebsocketActions from 'actions/websocket_actions.jsx';
 import {trackEvent} from 'actions/diagnostics_actions.jsx';
 
-import Constants from 'utils/constants.jsx';
-const ActionTypes = Constants.ActionTypes;
+import {ActionTypes, Constants, ErrorPageTypes} from 'utils/constants.jsx';
 import EventTypes from 'utils/event_types.jsx';
 
 import WebSocketClient from 'client/web_websocket_client.jsx';
@@ -133,24 +132,20 @@ export function emitPostFocusEvent(postId, onSuccess) {
         (data) => {
             if (data) {
                 const channelId = data.posts[data.order[0]].channel_id;
+                const channel = ChannelStore.getChannelById(channelId);
+                if (channel && channel.type === Constants.DM_CHANNEL) {
+                    loadNewDMIfNeeded(channel.id);
+                } else if (channel && channel.type === Constants.GM_CHANNEL) {
+                    loadNewGMIfNeeded(channel.id);
+                }
+
                 doFocusPost(channelId, postId, data).then(() => {
                     if (onSuccess) {
                         onSuccess();
                     }
                 });
             } else {
-                let link = `${TeamStore.getCurrentTeamRelativeUrl()}/channels/`;
-                const channel = ChannelStore.getCurrent();
-                if (channel) {
-                    link += channel.name;
-                } else {
-                    link += 'town-square';
-                }
-
-                const message = encodeURIComponent(Utils.localizeMessage('permalink.error.access', 'Permalink belongs to a deleted message or to a channel to which you do not have access.'));
-                const title = encodeURIComponent(Utils.localizeMessage('permalink.error.title', 'Message Not Found'));
-
-                browserHistory.push('/error?message=' + message + '&title=' + title + '&link=' + encodeURIComponent(link));
+                browserHistory.push('/error?type=' + ErrorPageTypes.PERMALINK_NOT_FOUND);
             }
         }
     );
@@ -207,6 +202,13 @@ export function emitUserCommentedEvent(post) {
 export function showAccountSettingsModal() {
     AppDispatcher.handleViewAction({
         type: ActionTypes.TOGGLE_ACCOUNT_SETTINGS_MODAL,
+        value: true
+    });
+}
+
+export function showShortcutsModal() {
+    AppDispatcher.handleViewAction({
+        type: ActionTypes.TOGGLE_SHORTCUTS_MODAL,
         value: true
     });
 }
@@ -428,6 +430,13 @@ let lastTimeTypingSent = 0;
 export function emitLocalUserTypingEvent(channelId, parentId) {
     const t = Date.now();
     const membersInChannel = ChannelStore.getStats(channelId).member_count;
+
+    if (global.mm_license.IsLicensed === 'true' && global.mm_config.ExperimentalTownSquareIsReadOnly === 'true') {
+        const channel = ChannelStore.getChannelById(channelId);
+        if (channel && ChannelStore.isDefault(channel)) {
+            return;
+        }
+    }
 
     if (((t - lastTimeTypingSent) > global.window.mm_config.TimeBetweenUserTypingUpdatesMilliseconds) && membersInChannel < global.window.mm_config.MaxNotificationsPerChannel && global.window.mm_config.EnableUserTypingMessages === 'true') {
         WebSocketClient.userTyping(channelId, parentId);

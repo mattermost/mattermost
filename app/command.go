@@ -45,16 +45,15 @@ func CreateCommandPost(post *model.Post, teamId string, response *model.CommandR
 		parseSlackAttachment(post, response.Attachments)
 	}
 
-	switch response.ResponseType {
-	case model.COMMAND_RESPONSE_TYPE_IN_CHANNEL:
-		return CreatePost(post, teamId, true)
-	case model.COMMAND_RESPONSE_TYPE_EPHEMERAL:
+	if response.ResponseType == model.COMMAND_RESPONSE_TYPE_IN_CHANNEL {
+		return CreatePostMissingChannel(post, true)
+	} else if response.ResponseType == "" || response.ResponseType == model.COMMAND_RESPONSE_TYPE_EPHEMERAL {
 		if response.Text == "" {
 			return post, nil
 		}
 
 		post.ParentId = ""
-		SendEphemeralPost(teamId, post.UserId, post)
+		SendEphemeralPost(post.UserId, post)
 	}
 
 	return post, nil
@@ -196,7 +195,12 @@ func ExecuteCommand(args *model.CommandArgs) (*model.CommandResponse, *model.App
 
 					p.Set("command", "/"+trigger)
 					p.Set("text", message)
-					p.Set("response_url", "not supported yet")
+
+					if hook, err := CreateCommandWebhook(cmd.Id, args); err != nil {
+						return nil, model.NewAppError("command", "api.command.execute_command.failed.app_error", map[string]interface{}{"Trigger": trigger}, err.Error(), http.StatusInternalServerError)
+					} else {
+						p.Set("response_url", args.SiteURL+"/hooks/commands/"+hook.Id)
+					}
 
 					method := "POST"
 					if cmd.Method == model.COMMAND_METHOD_GET {
@@ -209,11 +213,11 @@ func ExecuteCommand(args *model.CommandArgs) (*model.CommandResponse, *model.App
 						req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 					}
 
-					if resp, err := utils.HttpClient().Do(req); err != nil {
+					if resp, err := utils.HttpClient(false).Do(req); err != nil {
 						return nil, model.NewAppError("command", "api.command.execute_command.failed.app_error", map[string]interface{}{"Trigger": trigger}, err.Error(), http.StatusInternalServerError)
 					} else {
 						if resp.StatusCode == http.StatusOK {
-							response := model.CommandResponseFromJson(resp.Body)
+							response := model.CommandResponseFromHTTPBody(resp.Header.Get("Content-Type"), resp.Body)
 							if response == nil {
 								return nil, model.NewAppError("command", "api.command.execute_command.failed_empty.app_error", map[string]interface{}{"Trigger": trigger}, "", http.StatusInternalServerError)
 							} else {

@@ -17,6 +17,7 @@ matrix:
 
 script:
   - go install ./...
+  - diff -u <(echo -n) <(gofmt -d .)
   - go test -v ./...
 
 after_success:

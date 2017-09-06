@@ -38,7 +38,7 @@ export default class ChannelMembersModal extends React.Component {
         const isChannelAdmin = ChannelStore.isChannelAdminForCurrentChannel();
 
         let addMembersButton = null;
-        if (canManageMembers(this.state.channel, isSystemAdmin, isTeamAdmin, isChannelAdmin) && this.state.channel.name !== Constants.DEFAULT_CHANNEL) {
+        if (canManageMembers(this.state.channel, isChannelAdmin, isTeamAdmin, isSystemAdmin) && this.state.channel.name !== Constants.DEFAULT_CHANNEL) {
             addMembersButton = (
                 <a
                     id='showInviteModal'

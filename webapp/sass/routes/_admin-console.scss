@@ -114,6 +114,10 @@
 
         .form-group {
             margin-bottom: 25px;
+
+            &.half {
+                margin-bottom: 14px;
+            }
         }
 
         .file__upload {
@@ -123,8 +127,10 @@
 
             input {
                 @include opacity(0);
+                cursor: pointer;
                 height: 100%;
                 left: 0;
+                padding-left: 100%;
                 position: absolute;
                 top: 0;
                 width: 100%;
@@ -160,8 +166,8 @@
 
             &.remove-filename {
                 margin-bottom: 5px;
-                top: -2px;
                 position: relative;
+                top: -2px;
             }
         }
 
@@ -174,6 +180,22 @@
 
             .fa {
                 margin-right: 5px;
+            }
+
+            &.alert-transparent {
+                background: $white;
+                border: $border-gray;
+                margin: 0;
+                padding: 8px 12px;
+                width: 100%;
+            }
+
+            hr {
+                margin: .8em 0;
+
+                &:last-child {
+                    display: none;
+                }
             }
         }
     }
@@ -355,7 +377,7 @@
     .nav-pills__container {
         @include font-smoothing(initial);
         background: #111;
-        height: calc(100% - 50px);
+        height: calc(100% - 68px);
         margin-top: 1px;
         padding-bottom: 20px;
         position: relative;
