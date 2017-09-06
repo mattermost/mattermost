@@ -294,6 +294,51 @@
                     width: 100%;
                 }
             }
+
+            .status-wrapper {
+                height: 36px;
+                width: 36px;
+
+                .status {
+                    bottom: -3px;
+                    height: 18px;
+                    right: -5px;
+                    width: 18px;
+
+                    &.status-edit {
+                        .fa {
+                            top: 4px;
+                        }
+                    }
+
+                    .fa {
+                        position: relative;
+                        top: 2px;
+                    }
+
+                    .icon__container {
+                        &:after {
+                            border-radius: 20px;
+                            content: '';
+                            height: 10px;
+                            left: 4px;
+                            position: absolute;
+                            top: 4px;
+                            width: 10px;
+                        }
+                    }
+
+                    svg {
+                        height: 13px;
+                        left: 3px;
+                        max-height: initial;
+                        position: relative;
+                        top: 3px;
+                        width: 13px;
+                        z-index: 1;
+                    }
+                }
+            }
         }
 
         .more-modal__name {
