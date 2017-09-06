@@ -180,10 +180,11 @@ export default class ThemeSetting extends React.Component {
         }
 
         const displayCustom = this.state.type === 'custom';
+        const allowCustomThemes = global.mm_config.AllowCustomThemes !== 'false';
 
         let custom;
         let premade;
-        if (displayCustom) {
+        if (displayCustom && allowCustomThemes) {
             custom = (
                 <div key='customThemeChooser'>
                     <CustomThemeChooser
@@ -208,87 +209,91 @@ export default class ThemeSetting extends React.Component {
         if (this.props.selected) {
             const inputs = [];
 
-            inputs.push(
-                <div
-                    className='radio'
-                    key='premadeThemeColorLabel'
-                >
-                    <label>
-                        <input
-                            id='standardThemes'
-                            type='radio'
-                            name='theme'
-                            checked={!displayCustom}
-                            onChange={this.updateType.bind(this, 'premade')}
-                        />
-                        <FormattedMessage
-                            id='user.settings.display.theme.themeColors'
-                            defaultMessage='Theme Colors'
-                        />
-                    </label>
-                    <br/>
-                </div>
-            );
+            if (allowCustomThemes) {
+                inputs.push(
+                    <div
+                        className='radio'
+                        key='premadeThemeColorLabel'
+                    >
+                        <label>
+                            <input
+                                id='standardThemes'
+                                type='radio'
+                                name='theme'
+                                checked={!displayCustom}
+                                onChange={this.updateType.bind(this, 'premade')}
+                            />
+                            <FormattedMessage
+                                id='user.settings.display.theme.themeColors'
+                                defaultMessage='Theme Colors'
+                            />
+                        </label>
+                        <br/>
+                    </div>
+                );
+            }
 
             inputs.push(premade);
 
-            inputs.push(
-                <div
-                    className='radio'
-                    key='customThemeColorLabel'
-                >
-                    <label>
-                        <input
-                            id='customThemes'
-                            type='radio'
-                            name='theme'
-                            checked={displayCustom}
-                            onChange={this.updateType.bind(this, 'custom')}
-                        />
-                        <FormattedMessage
-                            id='user.settings.display.theme.customTheme'
-                            defaultMessage='Custom Theme'
-                        />
-                    </label>
-                </div>
-            );
-
-            inputs.push(custom);
-
-            inputs.push(
-                <div key='otherThemes'>
-                    <br/>
-                    <a
-                        id='otherThemes'
-                        href='http://docs.mattermost.com/help/settings/theme-colors.html#custom-theme-examples'
-                        target='_blank'
-                        rel='noopener noreferrer'
+            if (allowCustomThemes) {
+                inputs.push(
+                    <div
+                        className='radio'
+                        key='customThemeColorLabel'
                     >
-                        <FormattedMessage
-                            id='user.settings.display.theme.otherThemes'
-                            defaultMessage='See other themes'
-                        />
-                    </a>
-                </div>
-            );
+                        <label>
+                            <input
+                                id='customThemes'
+                                type='radio'
+                                name='theme'
+                                checked={displayCustom}
+                                onChange={this.updateType.bind(this, 'custom')}
+                            />
+                            <FormattedMessage
+                                id='user.settings.display.theme.customTheme'
+                                defaultMessage='Custom Theme'
+                            />
+                        </label>
+                    </div>
+                );
 
-            inputs.push(
-                <div
-                    key='importSlackThemeButton'
-                    className='padding-top'
-                >
-                    <a
-                        id='slackImportTheme'
-                        className='theme'
-                        onClick={this.handleImportModal}
+                inputs.push(custom);
+
+                inputs.push(
+                    <div key='otherThemes'>
+                        <br/>
+                        <a
+                            id='otherThemes'
+                            href='http://docs.mattermost.com/help/settings/theme-colors.html#custom-theme-examples'
+                            target='_blank'
+                            rel='noopener noreferrer'
+                        >
+                            <FormattedMessage
+                                id='user.settings.display.theme.otherThemes'
+                                defaultMessage='See other themes'
+                            />
+                        </a>
+                    </div>
+                );
+
+                inputs.push(
+                    <div
+                        key='importSlackThemeButton'
+                        className='padding-top'
                     >
-                        <FormattedMessage
-                            id='user.settings.display.theme.import'
-                            defaultMessage='Import theme colors from Slack'
-                        />
-                    </a>
-                </div>
-            );
+                        <a
+                            id='slackImportTheme'
+                            className='theme'
+                            onClick={this.handleImportModal}
+                        >
+                            <FormattedMessage
+                                id='user.settings.display.theme.import'
+                                defaultMessage='Import theme colors from Slack'
+                            />
+                        </a>
+                    </div>
+                );
+            }
 
             let allTeamsCheckbox = null;
             if (this.state.showAllTeamsCheckbox) {

@@ -595,6 +595,18 @@ export default class UserSettingsDisplay extends React.Component {
             );
         }
 
+        let themeSection;
+        if (global.mm_config.EnableThemeSelection !== 'false') {
+            themeSection = (
+                <ThemeSetting
+                    selected={this.props.activeSection === 'theme'}
+                    updateSection={this.updateSection}
+                    setRequireConfirm={this.props.setRequireConfirm}
+                    setEnforceFocus={this.props.setEnforceFocus}
+                />
+            );
+        }
+
         return (
             <div>
                 <div className='modal-header'>
@@ -632,12 +644,7 @@ export default class UserSettingsDisplay extends React.Component {
                         />
                     </h3>
                     <div className='divider-dark first'/>
-                    <ThemeSetting
-                        selected={this.props.activeSection === 'theme'}
-                        updateSection={this.updateSection}
-                        setRequireConfirm={this.props.setRequireConfirm}
-                        setEnforceFocus={this.props.setEnforceFocus}
-                    />
+                    {themeSection}
                     <div className='divider-dark'/>
                     {clockSection}
                     <div className='divider-dark'/>
