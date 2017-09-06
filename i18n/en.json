@@ -6524,38 +6524,6 @@
     "translation": "Unable to load mattermost configuration file:  Adding DefaultClientLocale to AvailableLocales."
   },
   {
-    "id": "utils.config.bucket_empty.app_error",
-    "translation": "Amazon S3 Bucket field is required."
-  },
-  {
-    "id": "utils.config.error_checking_bucket_exist.app_error",
-    "translation": "Encountered an error when checking if Amazon S3 Bucket exists. The bucket may not be created yet or cannot be found on the predefined endpoint."
-  },
-  {
-    "id": "utils.config.error_creating_bucket.app_error",
-    "translation": "Encountered an error when creating the Amazon S3 Bucket. Confirm you have the proper permissions and try again."
-  },
-  {
-    "id": "utils.config.bad_connection_to_s3_or_minio.app_error",
-    "translation": "Bad connection to S3 or Minio cloud storage. Please try again."
-  },
-  {
-    "id": "utils.config.create_amazon_bucket",
-    "translation": "Create Amazon S3 Bucket: '%v'."
-  },
-  {
-    "id": "utils.config.create_amazon_bucket_error",
-    "translation": "Error in creating Amazon S3 Bucket: '%v'."
-  },
-  {
-    "id": "utils.config.set_amazon_endpoint",
-    "translation": "Set Amazon S3 Endpoint to '%v'."
-  },
-  {
-    "id": "utils.config.set_amazon_region",
-    "translation": "Set Amazon S3 Region to '%v'."
-  },
-  {
     "id": "utils.config.load_config.decoding.panic",
     "translation": "Error decoding config file={{.Filename}}, err={{.Error}}"
   },
