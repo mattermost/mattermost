@@ -1,11 +1,10 @@
-import PropTypes from 'prop-types';
-
 // Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+import PropTypes from 'prop-types';
 import React from 'react';
 
-import BlockableLink from 'components/blockable_link';
+import BlockableLink from 'components/admin_console/blockable_link';
 import * as Utils from 'utils/utils.jsx';
 
 export default class AdminSidebarSection extends React.Component {

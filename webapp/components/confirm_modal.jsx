@@ -69,7 +69,8 @@ export default class ConfirmModal extends React.Component {
         title: '',
         message: '',
         confirmButtonClass: 'btn btn-primary',
-        confirmButtonText: ''
+        confirmButtonText: '',
+        modalClass: ''
     }
 
     componentDidMount() {

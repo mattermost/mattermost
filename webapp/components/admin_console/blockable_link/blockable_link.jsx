@@ -1,4 +1,4 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 import React from 'react';
@@ -38,8 +38,8 @@ export default class BlockableLink extends React.Component {
         if (this.props.blocked) {
             e.preventDefault();
 
-            if (this.link) {
-                ReactDOM.findDOMNode(this.link).blur();
+            if (this.refs.link) {
+                ReactDOM.findDOMNode(this.refs.link).blur();
             }
 
             this.props.actions.deferNavigation(() => {
@@ -49,15 +49,15 @@ export default class BlockableLink extends React.Component {
     }
 
     render() {
-        // filter props we don't want to pass using spread rest syntax
-        const {blocked, actions, ...rest} = this.props;
+        const props = {...this.props};
+        Reflect.deleteProperty(props, 'blocked');
+        Reflect.deleteProperty(props, 'actions');
+
         return (
             <Link
-                {...rest}
+                {...props}
                 onClick={this.handleClick}
-                ref={(elem) => {
-                    this.link = elem;
-                }}
+                ref='link'
             />
         );
     }

@@ -14,7 +14,7 @@ import * as GlobalActions from 'actions/global_actions.jsx';
 import {FormattedMessage} from 'react-intl';
 
 import {Link} from 'react-router/es6';
-import BlockableLink from 'components/blockable_link';
+import BlockableLink from 'components/admin_console/blockable_link';
 
 import React from 'react';
 
@@ -78,9 +78,7 @@ export default class AdminNavbarDropdown extends React.Component {
     handleLogout(e) {
         if (this.props.navigationBlocked) {
             e.preventDefault();
-            this.props.actions.deferNavigation(() => {
-                GlobalActions.emitUserLoggedOutEvent();
-            });
+            this.props.actions.deferNavigation(GlobalActions.emitUserLoggedOutEvent);
         } else {
             GlobalActions.emitUserLoggedOutEvent();
         }
