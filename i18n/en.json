@@ -3972,30 +3972,6 @@
     "translation": "Unable to update existing SAML user. Allowing login anyway. err=%v"
   },
   {
-    "id": "error.generic.link_message",
-    "translation": "Back to Mattermost"
-  },
-  {
-    "id": "error.generic.message",
-    "translation": "An error has occurred."
-  },
-  {
-    "id": "error.generic.title",
-    "translation": "Error"
-  },
-  {
-    "id": "error.not_found.link_message",
-    "translation": "Back to Mattermost"
-  },
-  {
-    "id": "error.not_found.message",
-    "translation": "The page you were trying to reach does not exist."
-  },
-  {
-    "id": "error.not_found.title",
-    "translation": "Page not found"
-  },
-  {
     "id": "jobs.request_cancellation.status.error",
     "translation": "Could not request cancellation for job that is not in a cancelable state."
   },
@@ -6668,10 +6644,6 @@
     "translation": "Authorize Application"
   },
   {
-    "id": "web.check_browser_compatibility.app_error",
-    "translation": "Your current browser is not supported, please upgrade to one of the following browsers: Google Chrome 21 or higher, Internet Explorer 11 or higher, Firefox 14 or higher, Safari 9 or higher"
-  },
-  {
     "id": "web.claim_account.team.error",
     "translation": "Couldn't find team name=%v, err=%v"
   },
@@ -6714,6 +6686,34 @@
   {
     "id": "web.email_verified.title",
     "translation": "Email Verified"
+  },
+  {
+    "id": "web.error.unsupported_browser.title",
+    "translation": "Unsupported Browser"
+  },
+  {
+    "id": "web.error.unsupported_browser.message",
+    "translation": "Your current browser is not supported. Please upgrade to one of the following browsers:"
+  },
+  {
+    "id": "web.error.unsupported_browser.help1",
+    "translation": "Google Chrome 43+"
+  },
+  {
+    "id": "web.error.unsupported_browser.help2",
+    "translation": "Mozzilla Firefox 52+"
+  },
+  {
+    "id": "web.error.unsupported_browser.help3",
+    "translation": "Microsoft Internet Explorer 11+"
+  },
+  {
+    "id": "web.error.unsupported_browser.help4",
+    "translation": "Microsoft Edge 40+"
+  },
+  {
+    "id": "web.error.unsupported_browser.help5",
+    "translation": "Apple Safari 9+"
   },
   {
     "id": "web.find_team.title",
