@@ -31,5 +31,5 @@ func printVersion() {
 	CommandPrintln("Build Date: " + model.BuildDate)
 	CommandPrintln("Build Hash: " + model.BuildHash)
 	CommandPrintln("Build Enterprise Ready: " + model.BuildEnterpriseReady)
-	CommandPrintln("DB Version: " + app.Srv.Store.(*store.LayeredStore).DatabaseLayer.GetCurrentSchemaVersion())
+	CommandPrintln("DB Version: " + app.Global().Srv.Store.(*store.LayeredStore).DatabaseLayer.GetCurrentSchemaVersion())
 }

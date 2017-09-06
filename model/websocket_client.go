@@ -5,6 +5,7 @@ package model
 
 import (
 	"encoding/json"
+
 	"github.com/gorilla/websocket"
 )
 

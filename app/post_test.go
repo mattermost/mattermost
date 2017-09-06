@@ -19,13 +19,14 @@ import (
 )
 
 func TestUpdatePostEditAt(t *testing.T) {
-	th := Setup().InitBasic()
+	a := Global()
+	th := a.Setup().InitBasic()
 
 	post := &model.Post{}
 	*post = *th.BasicPost
 
 	post.IsPinned = true
-	if saved, err := UpdatePost(post, true); err != nil {
+	if saved, err := a.UpdatePost(post, true); err != nil {
 		t.Fatal(err)
 	} else if saved.EditAt != post.EditAt {
 		t.Fatal("shouldn't have updated post.EditAt when pinning post")
@@ -36,7 +37,7 @@ func TestUpdatePostEditAt(t *testing.T) {
 	time.Sleep(time.Millisecond * 100)
 
 	post.Message = model.NewId()
-	if saved, err := UpdatePost(post, true); err != nil {
+	if saved, err := a.UpdatePost(post, true); err != nil {
 		t.Fatal(err)
 	} else if saved.EditAt == post.EditAt {
 		t.Fatal("should have updated post.EditAt when updating post message")
@@ -44,20 +45,21 @@ func TestUpdatePostEditAt(t *testing.T) {
 }
 
 func TestPostReplyToPostWhereRootPosterLeftChannel(t *testing.T) {
+	a := Global()
 	// This test ensures that when replying to a root post made by a user who has since left the channel, the reply
 	// post completes successfully. This is a regression test for PLT-6523.
-	th := Setup().InitBasic()
+	th := a.Setup().InitBasic()
 
 	channel := th.BasicChannel
 	userInChannel := th.BasicUser2
 	userNotInChannel := th.BasicUser
 	rootPost := th.BasicPost
 
-	if _, err := AddUserToChannel(userInChannel, channel); err != nil {
+	if _, err := a.AddUserToChannel(userInChannel, channel); err != nil {
 		t.Fatal(err)
 	}
 
-	if err := RemoveUserFromChannel(userNotInChannel.Id, "", channel); err != nil {
+	if err := a.RemoveUserFromChannel(userNotInChannel.Id, "", channel); err != nil {
 		t.Fatal(err)
 	}
 
@@ -71,13 +73,14 @@ func TestPostReplyToPostWhereRootPosterLeftChannel(t *testing.T) {
 		CreateAt:      0,
 	}
 
-	if _, err := CreatePostAsUser(&replyPost); err != nil {
+	if _, err := a.CreatePostAsUser(&replyPost); err != nil {
 		t.Fatal(err)
 	}
 }
 
 func TestPostAction(t *testing.T) {
-	th := Setup().InitBasic()
+	a := Global()
+	th := a.Setup().InitBasic()
 
 	allowedInternalConnections := *utils.Cfg.ServiceSettings.AllowedUntrustedInternalConnections
 	defer func() {
@@ -122,7 +125,7 @@ func TestPostAction(t *testing.T) {
 		},
 	}
 
-	post, err := CreatePostAsUser(&interactivePost)
+	post, err := a.CreatePostAsUser(&interactivePost)
 	require.Nil(t, err)
 
 	attachments, ok := post.Props["attachments"].([]*model.SlackAttachment)
@@ -131,10 +134,10 @@ func TestPostAction(t *testing.T) {
 	require.NotEmpty(t, attachments[0].Actions)
 	require.NotEmpty(t, attachments[0].Actions[0].Id)
 
-	err = DoPostAction(post.Id, "notavalidid", th.BasicUser.Id)
+	err = a.DoPostAction(post.Id, "notavalidid", th.BasicUser.Id)
 	require.NotNil(t, err)
 	assert.Equal(t, http.StatusNotFound, err.StatusCode)
 
-	err = DoPostAction(post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id)
+	err = a.DoPostAction(post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id)
 	require.Nil(t, err)
 }

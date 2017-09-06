@@ -94,7 +94,7 @@ func createTeamCmdF(cmd *cobra.Command, args []string) error {
 		Type:        teamType,
 	}
 
-	if _, err := app.CreateTeam(team); err != nil {
+	if _, err := app.Global().CreateTeam(team); err != nil {
 		return errors.New("Team creation failed: " + err.Error())
 	}
 
@@ -128,7 +128,7 @@ func removeUserFromTeam(team *model.Team, user *model.User, userArg string) {
 		CommandPrintErrorln("Can't find user '" + userArg + "'")
 		return
 	}
-	if err := app.LeaveTeam(team, user); err != nil {
+	if err := app.Global().LeaveTeam(team, user); err != nil {
 		CommandPrintErrorln("Unable to remove '" + userArg + "' from " + team.Name + ". Error: " + err.Error())
 	}
 }
@@ -160,7 +160,7 @@ func addUserToTeam(team *model.Team, user *model.User, userArg string) {
 		CommandPrintErrorln("Can't find user '" + userArg + "'")
 		return
 	}
-	if err := app.JoinUserToTeam(team, user, ""); err != nil {
+	if err := app.Global().JoinUserToTeam(team, user, ""); err != nil {
 		CommandPrintErrorln("Unable to add '" + userArg + "' to " + team.Name)
 	}
 }
@@ -207,5 +207,5 @@ func deleteTeamsCmdF(cmd *cobra.Command, args []string) error {
 }
 
 func deleteTeam(team *model.Team) *model.AppError {
-	return app.PermanentDeleteTeam(team)
+	return app.Global().PermanentDeleteTeam(team)
 }

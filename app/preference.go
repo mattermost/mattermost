@@ -4,12 +4,13 @@
 package app
 
 import (
-	"github.com/mattermost/platform/model"
 	"net/http"
+
+	"github.com/mattermost/platform/model"
 )
 
-func GetPreferencesForUser(userId string) (model.Preferences, *model.AppError) {
-	if result := <-Srv.Store.Preference().GetAll(userId); result.Err != nil {
+func (a *App) GetPreferencesForUser(userId string) (model.Preferences, *model.AppError) {
+	if result := <-a.Srv.Store.Preference().GetAll(userId); result.Err != nil {
 		result.Err.StatusCode = http.StatusBadRequest
 		return nil, result.Err
 	} else {
@@ -17,8 +18,8 @@ func GetPreferencesForUser(userId string) (model.Preferences, *model.AppError) {
 	}
 }
 
-func GetPreferenceByCategoryForUser(userId string, category string) (model.Preferences, *model.AppError) {
-	if result := <-Srv.Store.Preference().GetCategory(userId, category); result.Err != nil {
+func (a *App) GetPreferenceByCategoryForUser(userId string, category string) (model.Preferences, *model.AppError) {
+	if result := <-a.Srv.Store.Preference().GetCategory(userId, category); result.Err != nil {
 		result.Err.StatusCode = http.StatusBadRequest
 		return nil, result.Err
 	} else if len(result.Data.(model.Preferences)) == 0 {
@@ -29,8 +30,8 @@ func GetPreferenceByCategoryForUser(userId string, category string) (model.Prefe
 	}
 }
 
-func GetPreferenceByCategoryAndNameForUser(userId string, category string, preferenceName string) (*model.Preference, *model.AppError) {
-	if result := <-Srv.Store.Preference().Get(userId, category, preferenceName); result.Err != nil {
+func (a *App) GetPreferenceByCategoryAndNameForUser(userId string, category string, preferenceName string) (*model.Preference, *model.AppError) {
+	if result := <-a.Srv.Store.Preference().Get(userId, category, preferenceName); result.Err != nil {
 		result.Err.StatusCode = http.StatusBadRequest
 		return nil, result.Err
 	} else {
@@ -39,7 +40,7 @@ func GetPreferenceByCategoryAndNameForUser(userId string, category string, prefe
 	}
 }
 
-func UpdatePreferences(userId string, preferences model.Preferences) *model.AppError {
+func (a *App) UpdatePreferences(userId string, preferences model.Preferences) *model.AppError {
 	for _, preference := range preferences {
 		if userId != preference.UserId {
 			return model.NewAppError("savePreferences", "api.preference.update_preferences.set.app_error", nil,
@@ -47,7 +48,7 @@ func UpdatePreferences(userId string, preferences model.Preferences) *model.AppE
 		}
 	}
 
-	if result := <-Srv.Store.Preference().Save(&preferences); result.Err != nil {
+	if result := <-a.Srv.Store.Preference().Save(&preferences); result.Err != nil {
 		result.Err.StatusCode = http.StatusBadRequest
 		return result.Err
 	}
@@ -59,7 +60,7 @@ func UpdatePreferences(userId string, preferences model.Preferences) *model.AppE
 	return nil
 }
 
-func DeletePreferences(userId string, preferences model.Preferences) *model.AppError {
+func (a *App) DeletePreferences(userId string, preferences model.Preferences) *model.AppError {
 	for _, preference := range preferences {
 		if userId != preference.UserId {
 			err := model.NewAppError("deletePreferences", "api.preference.delete_preferences.delete.app_error", nil,
@@ -69,7 +70,7 @@ func DeletePreferences(userId string, preferences model.Preferences) *model.AppE
 	}
 
 	for _, preference := range preferences {
-		if result := <-Srv.Store.Preference().Delete(userId, preference.Category, preference.Name); result.Err != nil {
+		if result := <-a.Srv.Store.Preference().Delete(userId, preference.Category, preference.Name); result.Err != nil {
 			result.Err.StatusCode = http.StatusBadRequest
 			return result.Err
 		}

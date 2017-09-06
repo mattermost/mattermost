@@ -67,7 +67,7 @@ func getClusterStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getAllAudits(c *Context, w http.ResponseWriter, r *http.Request) {
-	if audits, err := app.GetAudits("", 200); err != nil {
+	if audits, err := c.App.GetAudits("", 200); err != nil {
 		c.Err = err
 		return
 	} else if HandleEtag(audits.Etag(), "Get All Audits", w, r) {
@@ -96,7 +96,7 @@ func reloadConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func invalidateAllCaches(c *Context, w http.ResponseWriter, r *http.Request) {
-	err := app.InvalidateAllCaches()
+	err := c.App.InvalidateAllCaches()
 	if err != nil {
 		c.Err = err
 		return
@@ -124,7 +124,7 @@ func saveConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func recycleDatabaseConnection(c *Context, w http.ResponseWriter, r *http.Request) {
-	app.RecycleDatabaseConnection()
+	c.App.RecycleDatabaseConnection()
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
 	ReturnStatusOK(w)
 }
@@ -136,7 +136,7 @@ func testEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := app.TestEmail(c.Session.UserId, cfg)
+	err := c.App.TestEmail(c.Session.UserId, cfg)
 	if err != nil {
 		c.Err = err
 		return
@@ -148,7 +148,7 @@ func testEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getComplianceReports(c *Context, w http.ResponseWriter, r *http.Request) {
-	crs, err := app.GetComplianceReports(0, 10000)
+	crs, err := c.App.GetComplianceReports(0, 10000)
 	if err != nil {
 		c.Err = err
 		return
@@ -165,7 +165,7 @@ func saveComplianceReport(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	job.UserId = c.Session.UserId
 
-	rjob, err := app.SaveComplianceReport(job)
+	rjob, err := c.App.SaveComplianceReport(job)
 	if err != nil {
 		c.Err = err
 		return
@@ -184,7 +184,7 @@ func downloadComplianceReport(c *Context, w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	job, err := app.GetComplianceReport(id)
+	job, err := c.App.GetComplianceReport(id)
 	if err != nil {
 		c.Err = err
 		return
@@ -221,7 +221,7 @@ func getAnalytics(c *Context, w http.ResponseWriter, r *http.Request) {
 	teamId := params["id"]
 	name := params["name"]
 
-	rows, err := app.GetAnalytics(name, teamId)
+	rows, err := c.App.GetAnalytics(name, teamId)
 	if err != nil {
 		c.Err = err
 		return
@@ -316,7 +316,7 @@ func adminResetPassword(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := app.UpdatePasswordByUserIdSendEmail(userId, newPassword, c.T("api.user.reset_password.method")); err != nil {
+	if err := c.App.UpdatePasswordByUserIdSendEmail(userId, newPassword, c.T("api.user.reset_password.method")); err != nil {
 		c.Err = err
 		return
 	}
@@ -412,7 +412,7 @@ func samlCertificateStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getRecentlyActiveUsers(c *Context, w http.ResponseWriter, r *http.Request) {
-	if profiles, err := app.GetRecentlyActiveUsersForTeam(c.TeamId); err != nil {
+	if profiles, err := c.App.GetRecentlyActiveUsersForTeam(c.TeamId); err != nil {
 		c.Err = err
 		return
 	} else {

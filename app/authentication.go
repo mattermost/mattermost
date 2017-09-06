@@ -12,12 +12,12 @@ import (
 	"github.com/mattermost/platform/utils"
 )
 
-func CheckPasswordAndAllCriteria(user *model.User, password string, mfaToken string) *model.AppError {
+func (a *App) CheckPasswordAndAllCriteria(user *model.User, password string, mfaToken string) *model.AppError {
 	if err := CheckUserAdditionalAuthenticationCriteria(user, mfaToken); err != nil {
 		return err
 	}
 
-	if err := checkUserPassword(user, password); err != nil {
+	if err := a.checkUserPassword(user, password); err != nil {
 		return err
 	}
 
@@ -25,27 +25,27 @@ func CheckPasswordAndAllCriteria(user *model.User, password string, mfaToken str
 }
 
 // This to be used for places we check the users password when they are already logged in
-func doubleCheckPassword(user *model.User, password string) *model.AppError {
+func (a *App) doubleCheckPassword(user *model.User, password string) *model.AppError {
 	if err := checkUserLoginAttempts(user); err != nil {
 		return err
 	}
 
-	if err := checkUserPassword(user, password); err != nil {
+	if err := a.checkUserPassword(user, password); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func checkUserPassword(user *model.User, password string) *model.AppError {
+func (a *App) checkUserPassword(user *model.User, password string) *model.AppError {
 	if !model.ComparePassword(user.Password, password) {
-		if result := <-Srv.Store.User().UpdateFailedPasswordAttempts(user.Id, user.FailedAttempts+1); result.Err != nil {
+		if result := <-a.Srv.Store.User().UpdateFailedPasswordAttempts(user.Id, user.FailedAttempts+1); result.Err != nil {
 			return result.Err
 		}
 
 		return model.NewAppError("checkUserPassword", "api.user.check_user_password.invalid.app_error", nil, "user_id="+user.Id, http.StatusUnauthorized)
 	} else {
-		if result := <-Srv.Store.User().UpdateFailedPasswordAttempts(user.Id, 0); result.Err != nil {
+		if result := <-a.Srv.Store.User().UpdateFailedPasswordAttempts(user.Id, 0); result.Err != nil {
 			return result.Err
 		}
 
@@ -142,7 +142,7 @@ func checkUserNotDisabled(user *model.User) *model.AppError {
 	return nil
 }
 
-func authenticateUser(user *model.User, password, mfaToken string) (*model.User, *model.AppError) {
+func (a *App) authenticateUser(user *model.User, password, mfaToken string) (*model.User, *model.AppError) {
 	ldapAvailable := *utils.Cfg.LdapSettings.Enable && einterfaces.GetLdapInterface() != nil && utils.IsLicensed() && *utils.License().Features.LDAP
 
 	if user.AuthService == model.USER_AUTH_SERVICE_LDAP {
@@ -164,7 +164,7 @@ func authenticateUser(user *model.User, password, mfaToken string) (*model.User,
 		err := model.NewAppError("login", "api.user.login.use_auth_service.app_error", map[string]interface{}{"AuthService": authService}, "", http.StatusBadRequest)
 		return user, err
 	} else {
-		if err := CheckPasswordAndAllCriteria(user, password, mfaToken); err != nil {
+		if err := a.CheckPasswordAndAllCriteria(user, password, mfaToken); err != nil {
 			err.StatusCode = http.StatusUnauthorized
 			return user, err
 		} else {

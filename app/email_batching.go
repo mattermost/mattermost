@@ -12,9 +12,10 @@ import (
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
 
+	"net/http"
+
 	l4g "github.com/alecthomas/log4go"
 	"github.com/nicksnyder/go-i18n/i18n"
-	"net/http"
 )
 
 const (
@@ -96,7 +97,7 @@ func (job *EmailBatchingJob) CheckPendingEmails() {
 
 	// it's a bit weird to pass the send email function through here, but it makes it so that we can test
 	// without actually sending emails
-	job.checkPendingNotifications(time.Now(), sendBatchedEmailNotification)
+	job.checkPendingNotifications(time.Now(), Global().sendBatchedEmailNotification)
 
 	l4g.Debug(utils.T("api.email_batching.check_pending_emails.finished_running"), len(job.pendingNotifications))
 }
@@ -130,7 +131,7 @@ func (job *EmailBatchingJob) checkPendingNotifications(now time.Time, handler fu
 			if inspectedTeamNames[notification.teamName] != "" {
 				continue
 			}
-			tchan := Srv.Store.Team().GetByName(notifications[0].teamName)
+			tchan := Global().Srv.Store.Team().GetByName(notifications[0].teamName)
 			if result := <-tchan; result.Err != nil {
 				l4g.Error("Unable to find Team id for notification", result.Err)
 				continue
@@ -140,7 +141,7 @@ func (job *EmailBatchingJob) checkPendingNotifications(now time.Time, handler fu
 
 			// if the user has viewed any channels in this team since the notification was queued, delete
 			// all queued notifications
-			mchan := Srv.Store.Channel().GetMembersForUser(inspectedTeamNames[notification.teamName], userId)
+			mchan := Global().Srv.Store.Channel().GetMembersForUser(inspectedTeamNames[notification.teamName], userId)
 			if result := <-mchan; result.Err != nil {
 				l4g.Error("Unable to find ChannelMembers for user", result.Err)
 				continue
@@ -157,7 +158,7 @@ func (job *EmailBatchingJob) checkPendingNotifications(now time.Time, handler fu
 
 		// get how long we need to wait to send notifications to the user
 		var interval int64
-		pchan := Srv.Store.Preference().Get(userId, model.PREFERENCE_CATEGORY_NOTIFICATIONS, model.PREFERENCE_NAME_EMAIL_INTERVAL)
+		pchan := Global().Srv.Store.Preference().Get(userId, model.PREFERENCE_CATEGORY_NOTIFICATIONS, model.PREFERENCE_NAME_EMAIL_INTERVAL)
 		if result := <-pchan; result.Err != nil {
 			// use the default batching interval if an error ocurrs while fetching user preferences
 			interval, _ = strconv.ParseInt(model.PREFERENCE_EMAIL_INTERVAL_BATCHING_SECONDS, 10, 64)
@@ -180,8 +181,8 @@ func (job *EmailBatchingJob) checkPendingNotifications(now time.Time, handler fu
 	}
 }
 
-func sendBatchedEmailNotification(userId string, notifications []*batchedNotification) {
-	uchan := Srv.Store.User().Get(userId)
+func (a *App) sendBatchedEmailNotification(userId string, notifications []*batchedNotification) {
+	uchan := a.Srv.Store.User().Get(userId)
 
 	var user *model.User
 	if result := <-uchan; result.Err != nil {
@@ -197,7 +198,7 @@ func sendBatchedEmailNotification(userId string, notifications []*batchedNotific
 	var contents string
 	for _, notification := range notifications {
 		var sender *model.User
-		schan := Srv.Store.User().Get(notification.post.UserId)
+		schan := a.Srv.Store.User().Get(notification.post.UserId)
 		if result := <-schan; result.Err != nil {
 			l4g.Warn(utils.T("api.email_batching.render_batched_post.sender.app_error"))
 			continue
@@ -206,7 +207,7 @@ func sendBatchedEmailNotification(userId string, notifications []*batchedNotific
 		}
 
 		var channel *model.Channel
-		cchan := Srv.Store.Channel().Get(notification.post.ChannelId, true)
+		cchan := a.Srv.Store.Channel().Get(notification.post.ChannelId, true)
 		if result := <-cchan; result.Err != nil {
 			l4g.Warn(utils.T("api.email_batching.render_batched_post.channel.app_error"))
 			continue
@@ -219,7 +220,7 @@ func sendBatchedEmailNotification(userId string, notifications []*batchedNotific
 			emailNotificationContentsType = *utils.Cfg.EmailSettings.EmailNotificationContentsType
 		}
 
-		contents += renderBatchedPost(notification, channel, sender, *utils.Cfg.ServiceSettings.SiteURL, displayNameFormat, translateFunc, user.Locale, emailNotificationContentsType)
+		contents += a.renderBatchedPost(notification, channel, sender, *utils.Cfg.ServiceSettings.SiteURL, displayNameFormat, translateFunc, user.Locale, emailNotificationContentsType)
 	}
 
 	tm := time.Unix(notifications[0].post.CreateAt/1000, 0)
@@ -241,7 +242,7 @@ func sendBatchedEmailNotification(userId string, notifications []*batchedNotific
 	}
 }
 
-func renderBatchedPost(notification *batchedNotification, channel *model.Channel, sender *model.User, siteURL string, displayNameFormat string, translateFunc i18n.TranslateFunc, userLocale string, emailNotificationContentsType string) string {
+func (a *App) renderBatchedPost(notification *batchedNotification, channel *model.Channel, sender *model.User, siteURL string, displayNameFormat string, translateFunc i18n.TranslateFunc, userLocale string, emailNotificationContentsType string) string {
 	// don't include message contents if email notification contents type is set to generic
 	var template *utils.HTMLTemplate
 	if emailNotificationContentsType == model.EMAIL_NOTIFICATION_CONTENTS_FULL {
@@ -251,7 +252,7 @@ func renderBatchedPost(notification *batchedNotification, channel *model.Channel
 	}
 
 	template.Props["Button"] = translateFunc("api.email_batching.render_batched_post.go_to_post")
-	template.Props["PostMessage"] = GetMessageForNotification(notification.post, translateFunc)
+	template.Props["PostMessage"] = a.GetMessageForNotification(notification.post, translateFunc)
 	template.Props["PostLink"] = siteURL + "/" + notification.teamName + "/pl/" + notification.post.Id
 	template.Props["SenderName"] = sender.GetDisplayName(displayNameFormat)
 

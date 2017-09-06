@@ -4,8 +4,9 @@
 package api
 
 import (
-	"github.com/mattermost/platform/model"
 	"testing"
+
+	"github.com/mattermost/platform/model"
 )
 
 func TestGetAllPreferences(t *testing.T) {

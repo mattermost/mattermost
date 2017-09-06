@@ -4,10 +4,11 @@
 package manualtesting
 
 import (
+	"net/http"
+
 	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
-	"net/http"
 )
 
 const LINK_POST_TEXT = `

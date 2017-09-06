@@ -63,7 +63,7 @@ func uploadPlugin(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	defer file.Close()
 
-	manifest, unpackErr := app.UnpackAndActivatePlugin(file)
+	manifest, unpackErr := c.App.UnpackAndActivatePlugin(file)
 
 	if unpackErr != nil {
 		c.Err = unpackErr
@@ -85,7 +85,7 @@ func getPlugins(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	manifests, err := app.GetActivePluginManifests()
+	manifests, err := c.App.GetActivePluginManifests()
 	if err != nil {
 		c.Err = err
 		return
@@ -110,7 +110,7 @@ func removePlugin(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := app.RemovePlugin(c.Params.PluginId)
+	err := c.App.RemovePlugin(c.Params.PluginId)
 	if err != nil {
 		c.Err = err
 		return

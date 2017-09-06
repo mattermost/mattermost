@@ -8,32 +8,32 @@ import (
 	"github.com/mattermost/platform/model"
 )
 
-func GetJob(id string) (*model.Job, *model.AppError) {
-	if result := <-Srv.Store.Job().Get(id); result.Err != nil {
+func (a *App) GetJob(id string) (*model.Job, *model.AppError) {
+	if result := <-a.Srv.Store.Job().Get(id); result.Err != nil {
 		return nil, result.Err
 	} else {
 		return result.Data.(*model.Job), nil
 	}
 }
 
-func GetJobsPage(page int, perPage int) ([]*model.Job, *model.AppError) {
-	return GetJobs(page*perPage, perPage)
+func (a *App) GetJobsPage(page int, perPage int) ([]*model.Job, *model.AppError) {
+	return a.GetJobs(page*perPage, perPage)
 }
 
-func GetJobs(offset int, limit int) ([]*model.Job, *model.AppError) {
-	if result := <-Srv.Store.Job().GetAllPage(offset, limit); result.Err != nil {
+func (a *App) GetJobs(offset int, limit int) ([]*model.Job, *model.AppError) {
+	if result := <-a.Srv.Store.Job().GetAllPage(offset, limit); result.Err != nil {
 		return nil, result.Err
 	} else {
 		return result.Data.([]*model.Job), nil
 	}
 }
 
-func GetJobsByTypePage(jobType string, page int, perPage int) ([]*model.Job, *model.AppError) {
-	return GetJobsByType(jobType, page*perPage, perPage)
+func (a *App) GetJobsByTypePage(jobType string, page int, perPage int) ([]*model.Job, *model.AppError) {
+	return a.GetJobsByType(jobType, page*perPage, perPage)
 }
 
-func GetJobsByType(jobType string, offset int, limit int) ([]*model.Job, *model.AppError) {
-	if result := <-Srv.Store.Job().GetAllByTypePage(jobType, offset, limit); result.Err != nil {
+func (a *App) GetJobsByType(jobType string, offset int, limit int) ([]*model.Job, *model.AppError) {
+	if result := <-a.Srv.Store.Job().GetAllByTypePage(jobType, offset, limit); result.Err != nil {
 		return nil, result.Err
 	} else {
 		return result.Data.([]*model.Job), nil

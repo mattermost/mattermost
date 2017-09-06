@@ -20,8 +20,8 @@ type TestHelper struct {
 	BasicPost    *model.Post
 }
 
-func SetupEnterprise() *TestHelper {
-	if Srv == nil {
+func (a *App) SetupEnterprise() *TestHelper {
+	if a.Srv == nil {
 		utils.TranslationsPreInit()
 		utils.LoadConfig("config.json")
 		utils.InitTranslations(utils.Cfg.LocalizationSettings)
@@ -29,12 +29,12 @@ func SetupEnterprise() *TestHelper {
 		*utils.Cfg.RateLimitSettings.Enable = false
 		utils.DisableDebugLogForTest()
 		utils.License().Features.SetDefaults()
-		NewServer()
-		InitStores()
-		StartServer()
+		a.NewServer()
+		a.InitStores()
+		a.StartServer()
 		utils.InitHTML()
 		utils.EnableDebugLogForTest()
-		Srv.Store.MarkSystemRanUnitTests()
+		a.Srv.Store.MarkSystemRanUnitTests()
 
 		*utils.Cfg.TeamSettings.EnableOpenServer = true
 	}
@@ -42,20 +42,20 @@ func SetupEnterprise() *TestHelper {
 	return &TestHelper{}
 }
 
-func Setup() *TestHelper {
-	if Srv == nil {
+func (a *App) Setup() *TestHelper {
+	if a.Srv == nil {
 		utils.TranslationsPreInit()
 		utils.LoadConfig("config.json")
 		utils.InitTranslations(utils.Cfg.LocalizationSettings)
 		*utils.Cfg.TeamSettings.MaxUsersPerTeam = 50
 		*utils.Cfg.RateLimitSettings.Enable = false
 		utils.DisableDebugLogForTest()
-		NewServer()
-		InitStores()
-		StartServer()
+		a.NewServer()
+		a.InitStores()
+		a.StartServer()
 		utils.InitHTML()
 		utils.EnableDebugLogForTest()
-		Srv.Store.MarkSystemRanUnitTests()
+		a.Srv.Store.MarkSystemRanUnitTests()
 
 		*utils.Cfg.TeamSettings.EnableOpenServer = true
 	}
@@ -66,9 +66,9 @@ func Setup() *TestHelper {
 func (me *TestHelper) InitBasic() *TestHelper {
 	me.BasicTeam = me.CreateTeam()
 	me.BasicUser = me.CreateUser()
-	LinkUserToTeam(me.BasicUser, me.BasicTeam)
+	Global().LinkUserToTeam(me.BasicUser, me.BasicTeam)
 	me.BasicUser2 = me.CreateUser()
-	LinkUserToTeam(me.BasicUser2, me.BasicTeam)
+	Global().LinkUserToTeam(me.BasicUser2, me.BasicTeam)
 	me.BasicChannel = me.CreateChannel(me.BasicTeam)
 	me.BasicPost = me.CreatePost(me.BasicChannel)
 
@@ -94,7 +94,7 @@ func (me *TestHelper) CreateTeam() *model.Team {
 
 	utils.DisableDebugLogForTest()
 	var err *model.AppError
-	if team, err = CreateTeam(team); err != nil {
+	if team, err = Global().CreateTeam(team); err != nil {
 		l4g.Error(err.Error())
 		l4g.Close()
 		time.Sleep(time.Second)
@@ -117,7 +117,7 @@ func (me *TestHelper) CreateUser() *model.User {
 
 	utils.DisableDebugLogForTest()
 	var err *model.AppError
-	if user, err = CreateUser(user); err != nil {
+	if user, err = Global().CreateUser(user); err != nil {
 		l4g.Error(err.Error())
 		l4g.Close()
 		time.Sleep(time.Second)
@@ -148,7 +148,7 @@ func (me *TestHelper) createChannel(team *model.Team, channelType string) *model
 
 	utils.DisableDebugLogForTest()
 	var err *model.AppError
-	if channel, err = CreateChannel(channel, true); err != nil {
+	if channel, err = Global().CreateChannel(channel, true); err != nil {
 		l4g.Error(err.Error())
 		l4g.Close()
 		time.Sleep(time.Second)
@@ -169,7 +169,7 @@ func (me *TestHelper) CreatePost(channel *model.Channel) *model.Post {
 
 	utils.DisableDebugLogForTest()
 	var err *model.AppError
-	if post, err = CreatePost(post, channel, false); err != nil {
+	if post, err = Global().CreatePost(post, channel, false); err != nil {
 		l4g.Error(err.Error())
 		l4g.Close()
 		time.Sleep(time.Second)
@@ -179,10 +179,10 @@ func (me *TestHelper) CreatePost(channel *model.Channel) *model.Post {
 	return post
 }
 
-func LinkUserToTeam(user *model.User, team *model.Team) {
+func (a *App) LinkUserToTeam(user *model.User, team *model.Team) {
 	utils.DisableDebugLogForTest()
 
-	err := JoinUserToTeam(team, user, "")
+	err := a.JoinUserToTeam(team, user, "")
 	if err != nil {
 		l4g.Error(err.Error())
 		l4g.Close()
@@ -193,8 +193,8 @@ func LinkUserToTeam(user *model.User, team *model.Team) {
 	utils.EnableDebugLogForTest()
 }
 
-func TearDown() {
-	if Srv != nil {
-		StopServer()
+func (a *App) TearDown() {
+	if a.Srv != nil {
+		a.StopServer()
 	}
 }

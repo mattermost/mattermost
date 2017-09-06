@@ -20,6 +20,7 @@ import (
 )
 
 type Context struct {
+	App           *app.App
 	Session       model.Session
 	Params        *ApiParams
 	Err           *model.AppError
@@ -87,6 +88,7 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	l4g.Debug("%v - %v", r.Method, r.URL.Path)
 
 	c := &Context{}
+	c.App = app.Global()
 	c.T, _ = utils.GetTranslationsAndLocale(w, r)
 	c.RequestId = model.NewId()
 	c.IpAddress = utils.GetIpAddress(r)
@@ -138,7 +140,7 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if len(token) != 0 {
-		session, err := app.GetSession(token)
+		session, err := app.Global().GetSession(token)
 
 		if err != nil {
 			l4g.Error(utils.T("api.context.invalid_session.error"), err.Error())
@@ -199,7 +201,7 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 func (c *Context) LogAudit(extraInfo string) {
 	audit := &model.Audit{UserId: c.Session.UserId, IpAddress: c.IpAddress, Action: c.Path, ExtraInfo: extraInfo, SessionId: c.Session.Id}
-	if r := <-app.Srv.Store.Audit().Save(audit); r.Err != nil {
+	if r := <-app.Global().Srv.Store.Audit().Save(audit); r.Err != nil {
 		c.LogError(r.Err)
 	}
 }
@@ -211,7 +213,7 @@ func (c *Context) LogAuditWithUserId(userId, extraInfo string) {
 	}
 
 	audit := &model.Audit{UserId: userId, IpAddress: c.IpAddress, Action: c.Path, ExtraInfo: extraInfo, SessionId: c.Session.Id}
-	if r := <-app.Srv.Store.Audit().Save(audit); r.Err != nil {
+	if r := <-app.Global().Srv.Store.Audit().Save(audit); r.Err != nil {
 		c.LogError(r.Err)
 	}
 }
@@ -259,7 +261,7 @@ func (c *Context) MfaRequired() {
 		return
 	}
 
-	if user, err := app.GetUser(c.Session.UserId); err != nil {
+	if user, err := app.Global().GetUser(c.Session.UserId); err != nil {
 		c.Err = model.NewAppError("", "api.context.session_expired.app_error", nil, "MfaRequired", http.StatusUnauthorized)
 		return
 	} else {

@@ -33,7 +33,7 @@ func getStatusesByIdsHttp(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	statusMap, err := app.GetStatusesByIds(userIds)
+	statusMap, err := c.App.GetStatusesByIds(userIds)
 	if err != nil {
 		c.Err = err
 		return

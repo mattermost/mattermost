@@ -10,7 +10,8 @@ import (
 )
 
 func TestCheckIfRolesGrantPermission(t *testing.T) {
-	Setup()
+	a := Global()
+	a.Setup()
 
 	cases := []struct {
 		roles        []string

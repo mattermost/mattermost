@@ -29,7 +29,7 @@ func getUserStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// No permission check required
 
-	if statusMap, err := app.GetUserStatusesByIds([]string{c.Params.UserId}); err != nil {
+	if statusMap, err := c.App.GetUserStatusesByIds([]string{c.Params.UserId}); err != nil {
 		c.Err = err
 		return
 	} else {
@@ -52,7 +52,7 @@ func getUserStatusesByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// No permission check required
 
-	if statusMap, err := app.GetUserStatusesByIds(userIds); err != nil {
+	if statusMap, err := c.App.GetUserStatusesByIds(userIds); err != nil {
 		c.Err = err
 		return
 	} else {
@@ -79,11 +79,11 @@ func updateUserStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	switch status.Status {
 	case "online":
-		app.SetStatusOnline(c.Params.UserId, "", true)
+		c.App.SetStatusOnline(c.Params.UserId, "", true)
 	case "offline":
-		app.SetStatusOffline(c.Params.UserId, true)
+		c.App.SetStatusOffline(c.Params.UserId, true)
 	case "away":
-		app.SetStatusAwayIfNeeded(c.Params.UserId, true)
+		c.App.SetStatusAwayIfNeeded(c.Params.UserId, true)
 	default:
 		c.SetInvalidParam("status")
 		return

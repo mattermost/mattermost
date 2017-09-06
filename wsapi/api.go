@@ -8,7 +8,7 @@ import (
 )
 
 func InitRouter() {
-	app.Srv.WebSocketRouter = app.NewWebSocketRouter()
+	app.Global().Srv.WebSocketRouter = app.NewWebSocketRouter()
 }
 
 func InitApi() {

@@ -4,8 +4,9 @@
 package api
 
 import (
-	"github.com/mattermost/platform/utils"
 	"testing"
+
+	"github.com/mattermost/platform/utils"
 )
 
 func TestGetLicenceConfig(t *testing.T) {

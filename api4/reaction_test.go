@@ -9,7 +9,6 @@ import (
 
 	"reflect"
 
-	"github.com/mattermost/platform/app"
 	"github.com/mattermost/platform/model"
 )
 
@@ -45,7 +44,7 @@ func TestSaveReaction(t *testing.T) {
 		t.Fatal("CreateAt should exist")
 	}
 
-	if reactions, err := app.GetReactionsForPost(postId); err != nil && len(reactions) != 1 {
+	if reactions, err := th.App.GetReactionsForPost(postId); err != nil && len(reactions) != 1 {
 		t.Fatal("didn't save reaction correctly")
 	}
 
@@ -53,7 +52,7 @@ func TestSaveReaction(t *testing.T) {
 	rr, resp = Client.SaveReaction(reaction)
 	CheckNoError(t, resp)
 
-	if reactions, err := app.GetReactionsForPost(postId); err != nil && len(reactions) != 1 {
+	if reactions, err := th.App.GetReactionsForPost(postId); err != nil && len(reactions) != 1 {
 		t.Fatal("should have not save duplicated reaction")
 	}
 
@@ -66,7 +65,7 @@ func TestSaveReaction(t *testing.T) {
 		t.Fatal("EmojiName did not match")
 	}
 
-	if reactions, err := app.GetReactionsForPost(postId); err != nil && len(reactions) != 2 {
+	if reactions, err := th.App.GetReactionsForPost(postId); err != nil && len(reactions) != 2 {
 		t.Fatal("should have save multiple reactions")
 	}
 
@@ -80,7 +79,7 @@ func TestSaveReaction(t *testing.T) {
 		t.Fatal("EmojiName did not match")
 	}
 
-	if reactions, err := app.GetReactionsForPost(postId); err != nil && len(reactions) != 3 {
+	if reactions, err := th.App.GetReactionsForPost(postId); err != nil && len(reactions) != 3 {
 		t.Fatal("should have save multiple reactions")
 	}
 
@@ -171,7 +170,7 @@ func TestGetReactions(t *testing.T) {
 	var reactions []*model.Reaction
 
 	for _, userReaction := range userReactions {
-		if result := <-app.Srv.Store.Reaction().Save(userReaction); result.Err != nil {
+		if result := <-th.App.Srv.Store.Reaction().Save(userReaction); result.Err != nil {
 			t.Fatal(result.Err)
 		} else {
 			reactions = append(reactions, result.Data.(*model.Reaction))
@@ -222,8 +221,8 @@ func TestDeleteReaction(t *testing.T) {
 		EmojiName: "smile",
 	}
 
-	app.SaveReactionForPost(r1)
-	if reactions, err := app.GetReactionsForPost(postId); err != nil || len(reactions) != 1 {
+	th.App.SaveReactionForPost(r1)
+	if reactions, err := th.App.GetReactionsForPost(postId); err != nil || len(reactions) != 1 {
 		t.Fatal("didn't save reaction correctly")
 	}
 
@@ -234,7 +233,7 @@ func TestDeleteReaction(t *testing.T) {
 		t.Fatal("should have returned true")
 	}
 
-	if reactions, err := app.GetReactionsForPost(postId); err != nil || len(reactions) != 0 {
+	if reactions, err := th.App.GetReactionsForPost(postId); err != nil || len(reactions) != 0 {
 		t.Fatal("should have deleted reaction")
 	}
 
@@ -245,16 +244,16 @@ func TestDeleteReaction(t *testing.T) {
 		EmojiName: "smile-",
 	}
 
-	app.SaveReactionForPost(r1)
-	app.SaveReactionForPost(r2)
-	if reactions, err := app.GetReactionsForPost(postId); err != nil || len(reactions) != 2 {
+	th.App.SaveReactionForPost(r1)
+	th.App.SaveReactionForPost(r2)
+	if reactions, err := th.App.GetReactionsForPost(postId); err != nil || len(reactions) != 2 {
 		t.Fatal("didn't save reactions correctly")
 	}
 
 	_, resp = Client.DeleteReaction(r2)
 	CheckNoError(t, resp)
 
-	if reactions, err := app.GetReactionsForPost(postId); err != nil || len(reactions) != 1 || *reactions[0] != *r1 {
+	if reactions, err := th.App.GetReactionsForPost(postId); err != nil || len(reactions) != 1 || *reactions[0] != *r1 {
 		t.Fatal("should have deleted 1 reaction only")
 	}
 
@@ -265,15 +264,15 @@ func TestDeleteReaction(t *testing.T) {
 		EmojiName: "+1",
 	}
 
-	app.SaveReactionForPost(r3)
-	if reactions, err := app.GetReactionsForPost(postId); err != nil || len(reactions) != 2 {
+	th.App.SaveReactionForPost(r3)
+	if reactions, err := th.App.GetReactionsForPost(postId); err != nil || len(reactions) != 2 {
 		t.Fatal("didn't save reactions correctly")
 	}
 
 	_, resp = Client.DeleteReaction(r3)
 	CheckNoError(t, resp)
 
-	if reactions, err := app.GetReactionsForPost(postId); err != nil || len(reactions) != 1 || *reactions[0] != *r1 {
+	if reactions, err := th.App.GetReactionsForPost(postId); err != nil || len(reactions) != 1 || *reactions[0] != *r1 {
 		t.Fatal("should have deleted 1 reaction only")
 	}
 
@@ -285,8 +284,8 @@ func TestDeleteReaction(t *testing.T) {
 	}
 
 	th.LoginBasic2()
-	app.SaveReactionForPost(r4)
-	if reactions, err := app.GetReactionsForPost(postId); err != nil || len(reactions) != 2 {
+	th.App.SaveReactionForPost(r4)
+	if reactions, err := th.App.GetReactionsForPost(postId); err != nil || len(reactions) != 2 {
 		t.Fatal("didn't save reaction correctly")
 	}
 
@@ -299,7 +298,7 @@ func TestDeleteReaction(t *testing.T) {
 		t.Fatal("should have returned false")
 	}
 
-	if reactions, err := app.GetReactionsForPost(postId); err != nil || len(reactions) != 2 {
+	if reactions, err := th.App.GetReactionsForPost(postId); err != nil || len(reactions) != 2 {
 		t.Fatal("should have not deleted a reaction")
 	}
 
@@ -346,7 +345,7 @@ func TestDeleteReaction(t *testing.T) {
 	_, resp = th.SystemAdminClient.DeleteReaction(r4)
 	CheckNoError(t, resp)
 
-	if reactions, err := app.GetReactionsForPost(postId); err != nil || len(reactions) != 0 {
+	if reactions, err := th.App.GetReactionsForPost(postId); err != nil || len(reactions) != 0 {
 		t.Fatal("should have deleted both reactions")
 	}
 }

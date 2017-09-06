@@ -161,7 +161,7 @@ func (me *LoadTestProvider) SetupCommand(args *model.CommandArgs, message string
 	client := model.NewClient(args.SiteURL)
 
 	if doTeams {
-		if err := CreateBasicUser(client); err != nil {
+		if err := Global().CreateBasicUser(client); err != nil {
 			return &model.CommandResponse{Text: "Failed to create testing environment", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 		}
 		client.Login(BTEST_USER_EMAIL, BTEST_USER_PASSWORD)
@@ -184,7 +184,7 @@ func (me *LoadTestProvider) SetupCommand(args *model.CommandArgs, message string
 	} else {
 
 		var team *model.Team
-		if tr := <-Srv.Store.Team().Get(args.TeamId); tr.Err != nil {
+		if tr := <-Global().Srv.Store.Team().Get(args.TeamId); tr.Err != nil {
 			return &model.CommandResponse{Text: "Failed to create testing environment", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 		} else {
 			team = tr.Data.(*model.Team)
@@ -219,7 +219,7 @@ func (me *LoadTestProvider) UsersCommand(args *model.CommandArgs, message string
 	}
 
 	var team *model.Team
-	if tr := <-Srv.Store.Team().Get(args.TeamId); tr.Err != nil {
+	if tr := <-Global().Srv.Store.Team().Get(args.TeamId); tr.Err != nil {
 		return &model.CommandResponse{Text: "Failed to create testing environment", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 	} else {
 		team = tr.Data.(*model.Team)
@@ -249,7 +249,7 @@ func (me *LoadTestProvider) ChannelsCommand(args *model.CommandArgs, message str
 	}
 
 	var team *model.Team
-	if tr := <-Srv.Store.Team().Get(args.TeamId); tr.Err != nil {
+	if tr := <-Global().Srv.Store.Team().Get(args.TeamId); tr.Err != nil {
 		return &model.CommandResponse{Text: "Failed to create testing environment", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 	} else {
 		team = tr.Data.(*model.Team)
@@ -288,7 +288,7 @@ func (me *LoadTestProvider) PostsCommand(args *model.CommandArgs, message string
 	}
 
 	var usernames []string
-	if result := <-Srv.Store.User().GetProfiles(args.TeamId, 0, 1000); result.Err == nil {
+	if result := <-Global().Srv.Store.User().GetProfiles(args.TeamId, 0, 1000); result.Err == nil {
 		profileUsers := result.Data.([]*model.User)
 		usernames = make([]string, len(profileUsers))
 		i := 0
@@ -357,7 +357,7 @@ func (me *LoadTestProvider) UrlCommand(args *model.CommandArgs, message string) 
 		post.ChannelId = args.ChannelId
 		post.UserId = args.UserId
 
-		if _, err := CreatePostMissingChannel(post, false); err != nil {
+		if _, err := Global().CreatePostMissingChannel(post, false); err != nil {
 			return &model.CommandResponse{Text: "Unable to create post", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 		}
 	}
@@ -396,7 +396,7 @@ func (me *LoadTestProvider) JsonCommand(args *model.CommandArgs, message string)
 		post.Message = message
 	}
 
-	if _, err := CreatePostMissingChannel(post, false); err != nil {
+	if _, err := Global().CreatePostMissingChannel(post, false); err != nil {
 		return &model.CommandResponse{Text: "Unable to create post", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 	}
 	return &model.CommandResponse{Text: "Loaded data", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}

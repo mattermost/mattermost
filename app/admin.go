@@ -11,13 +11,14 @@ import (
 
 	"runtime/debug"
 
+	"net/http"
+
 	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/platform/einterfaces"
 	"github.com/mattermost/platform/jobs"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/store"
 	"github.com/mattermost/platform/utils"
-	"net/http"
 )
 
 func GetLogs(page, perPage int) ([]string, *model.AppError) {
@@ -95,9 +96,9 @@ func GetClusterStatus() []*model.ClusterInfo {
 	return infos
 }
 
-func InvalidateAllCaches() *model.AppError {
+func (a *App) InvalidateAllCaches() *model.AppError {
 	debug.FreeOSMemory()
-	InvalidateAllCachesSkipSend()
+	a.InvalidateAllCachesSkipSend()
 
 	if einterfaces.GetClusterInterface() != nil {
 
@@ -113,7 +114,7 @@ func InvalidateAllCaches() *model.AppError {
 	return nil
 }
 
-func InvalidateAllCachesSkipSend() {
+func (a *App) InvalidateAllCachesSkipSend() {
 	l4g.Info(utils.T("api.context.invalidate_all_caches"))
 	sessionCache.Purge()
 	ClearStatusCache()
@@ -121,7 +122,7 @@ func InvalidateAllCachesSkipSend() {
 	store.ClearUserCaches()
 	store.ClearPostCaches()
 	store.ClearWebhookCaches()
-	LoadLicense()
+	a.LoadLicense()
 }
 
 func GetConfig() *model.Config {
@@ -183,13 +184,13 @@ func SaveConfig(cfg *model.Config, sendConfigChangeClusterMessage bool) *model.A
 	return nil
 }
 
-func RecycleDatabaseConnection() {
-	oldStore := Srv.Store
+func (a *App) RecycleDatabaseConnection() {
+	oldStore := a.Srv.Store
 
 	l4g.Warn(utils.T("api.admin.recycle_db_start.warn"))
-	Srv.Store = store.NewLayeredStore()
+	a.Srv.Store = store.NewLayeredStore()
 
-	jobs.Srv.Store = Srv.Store
+	jobs.Srv.Store = a.Srv.Store
 
 	time.Sleep(20 * time.Second)
 	oldStore.Close()
@@ -197,7 +198,7 @@ func RecycleDatabaseConnection() {
 	l4g.Warn(utils.T("api.admin.recycle_db_end.warn"))
 }
 
-func TestEmail(userId string, cfg *model.Config) *model.AppError {
+func (a *App) TestEmail(userId string, cfg *model.Config) *model.AppError {
 	if len(cfg.EmailSettings.SMTPServer) == 0 {
 		return model.NewAppError("testEmail", "api.admin.test_email.missing_server", nil, utils.T("api.context.invalid_param.app_error", map[string]interface{}{"Name": "SMTPServer"}), http.StatusBadRequest)
 	}
@@ -213,7 +214,7 @@ func TestEmail(userId string, cfg *model.Config) *model.AppError {
 			return model.NewAppError("testEmail", "api.admin.test_email.reenter_password", nil, "", http.StatusBadRequest)
 		}
 	}
-	if user, err := GetUser(userId); err != nil {
+	if user, err := a.GetUser(userId); err != nil {
 		return err
 	} else {
 		T := utils.GetUserTranslations(user.Locale)

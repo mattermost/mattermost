@@ -5,10 +5,11 @@ package main
 import (
 	"encoding/json"
 	"errors"
+	"os"
+
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
 	"github.com/spf13/cobra"
-	"os"
 )
 
 var configCmd = &cobra.Command{

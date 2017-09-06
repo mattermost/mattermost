@@ -7,7 +7,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/mattermost/platform/app"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
 )
@@ -82,7 +81,7 @@ func TestUpdateCommand(t *testing.T) {
 		Trigger:   "trigger1",
 	}
 
-	cmd1, _ = app.CreateCommand(cmd1)
+	cmd1, _ = th.App.CreateCommand(cmd1)
 
 	cmd2 := &model.Command{
 		CreatorId: GenerateTestId(),
@@ -168,7 +167,7 @@ func TestDeleteCommand(t *testing.T) {
 		Trigger:   "trigger1",
 	}
 
-	rcmd1, _ := app.CreateCommand(cmd1)
+	rcmd1, _ := th.App.CreateCommand(cmd1)
 
 	ok, resp := Client.DeleteCommand(rcmd1.Id)
 	CheckNoError(t, resp)
@@ -177,7 +176,7 @@ func TestDeleteCommand(t *testing.T) {
 		t.Fatal("should have returned true")
 	}
 
-	rcmd1, _ = app.GetCommand(rcmd1.Id)
+	rcmd1, _ = th.App.GetCommand(rcmd1.Id)
 	if rcmd1 != nil {
 		t.Fatal("should be nil")
 	}
@@ -200,7 +199,7 @@ func TestDeleteCommand(t *testing.T) {
 		Trigger:   "trigger2",
 	}
 
-	rcmd2, _ := app.CreateCommand(cmd2)
+	rcmd2, _ := th.App.CreateCommand(cmd2)
 
 	_, resp = th.Client.DeleteCommand(rcmd2.Id)
 	CheckForbiddenStatus(t, resp)
@@ -405,7 +404,7 @@ func TestExecuteCommand(t *testing.T) {
 		Trigger:   "postcommand",
 	}
 
-	if _, err := app.CreateCommand(postCmd); err != nil {
+	if _, err := th.App.CreateCommand(postCmd); err != nil {
 		t.Fatal("failed to create post command")
 	}
 
@@ -416,7 +415,7 @@ func TestExecuteCommand(t *testing.T) {
 		t.Fatal("command response should have returned")
 	}
 
-	posts, err := app.GetPostsPage(channel.Id, 0, 10)
+	posts, err := th.App.GetPostsPage(channel.Id, 0, 10)
 	if err != nil || posts == nil || len(posts.Order) != 3 {
 		t.Fatal("Test command failed to send")
 	}
@@ -441,7 +440,7 @@ func TestExecuteCommand(t *testing.T) {
 		Trigger:   "getcommand",
 	}
 
-	if _, err := app.CreateCommand(getCmd); err != nil {
+	if _, err := th.App.CreateCommand(getCmd); err != nil {
 		t.Fatal("failed to create get command")
 	}
 
@@ -452,7 +451,7 @@ func TestExecuteCommand(t *testing.T) {
 		t.Fatal("command response should have returned")
 	}
 
-	posts, err = app.GetPostsPage(channel.Id, 0, 10)
+	posts, err = th.App.GetPostsPage(channel.Id, 0, 10)
 	if err != nil || posts == nil || len(posts.Order) != 4 {
 		t.Fatal("Test command failed to send")
 	}

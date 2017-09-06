@@ -5,10 +5,11 @@ package app
 
 import (
 	"bytes"
-	"github.com/mattermost/platform/model"
-	"github.com/mattermost/platform/utils"
 	"io"
 	"os"
+
+	"github.com/mattermost/platform/model"
+	"github.com/mattermost/platform/utils"
 )
 
 type AutoPostCreator struct {

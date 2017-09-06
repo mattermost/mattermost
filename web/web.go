@@ -20,7 +20,7 @@ import (
 func InitWeb() {
 	l4g.Debug(utils.T("web.init.debug"))
 
-	mainrouter := app.Srv.Router
+	mainrouter := app.Global().Srv.Router
 
 	if *utils.Cfg.ServiceSettings.WebserverMode != "disabled" {
 		staticDir, _ := utils.FindDir(model.CLIENT_DIR)

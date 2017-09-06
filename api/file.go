@@ -74,12 +74,12 @@ func uploadFile(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !app.SessionHasPermissionToChannel(c.Session, channelId, model.PERMISSION_UPLOAD_FILE) {
+	if !c.App.SessionHasPermissionToChannel(c.Session, channelId, model.PERMISSION_UPLOAD_FILE) {
 		c.SetPermissionError(model.PERMISSION_UPLOAD_FILE)
 		return
 	}
 
-	resStruct, err := app.UploadFiles(c.TeamId, channelId, c.Session.UserId, m.File["files"], m.Value["client_ids"])
+	resStruct, err := c.App.UploadFiles(c.TeamId, channelId, c.Session.UserId, m.File["files"], m.Value["client_ids"])
 	if err != nil {
 		c.Err = err
 		return
@@ -205,7 +205,7 @@ func getFileInfoForRequest(c *Context, r *http.Request, requireFileVisible bool)
 		return nil, NewInvalidParamError("getFileInfoForRequest", "file_id")
 	}
 
-	info, err := app.GetFileInfo(fileId)
+	info, err := c.App.GetFileInfo(fileId)
 	if err != nil {
 		return nil, err
 	}
@@ -218,7 +218,7 @@ func getFileInfoForRequest(c *Context, r *http.Request, requireFileVisible bool)
 		}
 
 		if requireFileVisible {
-			if !app.SessionHasPermissionToChannelByPost(c.Session, info.PostId, model.PERMISSION_READ_CHANNEL) {
+			if !c.App.SessionHasPermissionToChannelByPost(c.Session, info.PostId, model.PERMISSION_READ_CHANNEL) {
 				c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
 				return nil, c.Err
 			}
@@ -261,7 +261,7 @@ func getPublicFileOld(c *Context, w http.ResponseWriter, r *http.Request) {
 	path := "teams/" + teamId + "/channels/" + channelId + "/users/" + userId + "/" + filename
 
 	var info *model.FileInfo
-	if result := <-app.Srv.Store.FileInfo().GetByPath(path); result.Err != nil {
+	if result := <-c.App.Srv.Store.FileInfo().GetByPath(path); result.Err != nil {
 		c.Err = result.Err
 		return
 	} else {

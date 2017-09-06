@@ -86,12 +86,12 @@ func uploadFile(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !app.SessionHasPermissionToChannel(c.Session, channelId, model.PERMISSION_UPLOAD_FILE) {
+	if !c.App.SessionHasPermissionToChannel(c.Session, channelId, model.PERMISSION_UPLOAD_FILE) {
 		c.SetPermissionError(model.PERMISSION_UPLOAD_FILE)
 		return
 	}
 
-	resStruct, err := app.UploadFiles(FILE_TEAM_ID, channelId, c.Session.UserId, m.File["files"], m.Value["client_ids"])
+	resStruct, err := c.App.UploadFiles(FILE_TEAM_ID, channelId, c.Session.UserId, m.File["files"], m.Value["client_ids"])
 	if err != nil {
 		c.Err = err
 		return
@@ -112,13 +112,13 @@ func getFile(c *Context, w http.ResponseWriter, r *http.Request) {
 		forceDownload = false
 	}
 
-	info, err := app.GetFileInfo(c.Params.FileId)
+	info, err := c.App.GetFileInfo(c.Params.FileId)
 	if err != nil {
 		c.Err = err
 		return
 	}
 
-	if info.CreatorId != c.Session.UserId && !app.SessionHasPermissionToChannelByPost(c.Session, info.PostId, model.PERMISSION_READ_CHANNEL) {
+	if info.CreatorId != c.Session.UserId && !c.App.SessionHasPermissionToChannelByPost(c.Session, info.PostId, model.PERMISSION_READ_CHANNEL) {
 		c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
 		return
 	}
@@ -148,13 +148,13 @@ func getFileThumbnail(c *Context, w http.ResponseWriter, r *http.Request) {
 		forceDownload = false
 	}
 
-	info, err := app.GetFileInfo(c.Params.FileId)
+	info, err := c.App.GetFileInfo(c.Params.FileId)
 	if err != nil {
 		c.Err = err
 		return
 	}
 
-	if info.CreatorId != c.Session.UserId && !app.SessionHasPermissionToChannelByPost(c.Session, info.PostId, model.PERMISSION_READ_CHANNEL) {
+	if info.CreatorId != c.Session.UserId && !c.App.SessionHasPermissionToChannelByPost(c.Session, info.PostId, model.PERMISSION_READ_CHANNEL) {
 		c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
 		return
 	}
@@ -184,13 +184,13 @@ func getFileLink(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	info, err := app.GetFileInfo(c.Params.FileId)
+	info, err := c.App.GetFileInfo(c.Params.FileId)
 	if err != nil {
 		c.Err = err
 		return
 	}
 
-	if info.CreatorId != c.Session.UserId && !app.SessionHasPermissionToChannelByPost(c.Session, info.PostId, model.PERMISSION_READ_CHANNEL) {
+	if info.CreatorId != c.Session.UserId && !c.App.SessionHasPermissionToChannelByPost(c.Session, info.PostId, model.PERMISSION_READ_CHANNEL) {
 		c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
 		return
 	}
@@ -217,13 +217,13 @@ func getFilePreview(c *Context, w http.ResponseWriter, r *http.Request) {
 		forceDownload = false
 	}
 
-	info, err := app.GetFileInfo(c.Params.FileId)
+	info, err := c.App.GetFileInfo(c.Params.FileId)
 	if err != nil {
 		c.Err = err
 		return
 	}
 
-	if info.CreatorId != c.Session.UserId && !app.SessionHasPermissionToChannelByPost(c.Session, info.PostId, model.PERMISSION_READ_CHANNEL) {
+	if info.CreatorId != c.Session.UserId && !c.App.SessionHasPermissionToChannelByPost(c.Session, info.PostId, model.PERMISSION_READ_CHANNEL) {
 		c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
 		return
 	}
@@ -248,13 +248,13 @@ func getFileInfo(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	info, err := app.GetFileInfo(c.Params.FileId)
+	info, err := c.App.GetFileInfo(c.Params.FileId)
 	if err != nil {
 		c.Err = err
 		return
 	}
 
-	if info.CreatorId != c.Session.UserId && !app.SessionHasPermissionToChannelByPost(c.Session, info.PostId, model.PERMISSION_READ_CHANNEL) {
+	if info.CreatorId != c.Session.UserId && !c.App.SessionHasPermissionToChannelByPost(c.Session, info.PostId, model.PERMISSION_READ_CHANNEL) {
 		c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
 		return
 	}
@@ -274,7 +274,7 @@ func getPublicFile(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	info, err := app.GetFileInfo(c.Params.FileId)
+	info, err := c.App.GetFileInfo(c.Params.FileId)
 	if err != nil {
 		c.Err = err
 		return

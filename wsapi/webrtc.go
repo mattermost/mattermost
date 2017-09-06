@@ -13,7 +13,7 @@ import (
 func InitWebrtc() {
 	l4g.Debug(utils.T("wsapi.webtrc.init.debug"))
 
-	app.Srv.WebSocketRouter.Handle("webrtc", ApiWebSocketHandler(webrtcMessage))
+	app.Global().Srv.WebSocketRouter.Handle("webrtc", ApiWebSocketHandler(webrtcMessage))
 }
 
 func webrtcMessage(req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {

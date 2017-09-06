@@ -52,9 +52,9 @@ func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	post.UserId = c.Session.UserId
 
 	hasPermission := false
-	if app.SessionHasPermissionToChannel(c.Session, post.ChannelId, model.PERMISSION_CREATE_POST) {
+	if c.App.SessionHasPermissionToChannel(c.Session, post.ChannelId, model.PERMISSION_CREATE_POST) {
 		hasPermission = true
-	} else if channel, err := app.GetChannel(post.ChannelId); err == nil {
+	} else if channel, err := c.App.GetChannel(post.ChannelId); err == nil {
 		// Temporary permission check method until advanced permissions, please do not copy
 		if channel.Type == model.CHANNEL_OPEN && app.SessionHasPermissionToTeam(c.Session, channel.TeamId, model.PERMISSION_CREATE_POST_PUBLIC) {
 			hasPermission = true
@@ -70,7 +70,7 @@ func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		post.CreateAt = 0
 	}
 
-	rp, err := app.CreatePostAsUser(post)
+	rp, err := c.App.CreatePostAsUser(post)
 	if err != nil {
 		c.Err = err
 		return
@@ -87,14 +87,14 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !app.SessionHasPermissionToChannel(c.Session, post.ChannelId, model.PERMISSION_EDIT_POST) {
+	if !c.App.SessionHasPermissionToChannel(c.Session, post.ChannelId, model.PERMISSION_EDIT_POST) {
 		c.SetPermissionError(model.PERMISSION_EDIT_POST)
 		return
 	}
 
 	post.UserId = c.Session.UserId
 
-	rpost, err := app.UpdatePost(post, true)
+	rpost, err := c.App.UpdatePost(post, true)
 	if err != nil {
 		c.Err = err
 		return
@@ -118,7 +118,7 @@ func saveIsPinnedPost(c *Context, w http.ResponseWriter, r *http.Request, isPinn
 		return
 	}
 
-	pchan := app.Srv.Store.Post().Get(postId)
+	pchan := c.App.Srv.Store.Post().Get(postId)
 
 	var oldPost *model.Post
 	if result := <-pchan; result.Err != nil {
@@ -130,7 +130,7 @@ func saveIsPinnedPost(c *Context, w http.ResponseWriter, r *http.Request, isPinn
 		*newPost = *oldPost
 		newPost.IsPinned = isPinned
 
-		if result := <-app.Srv.Store.Post().Update(newPost, oldPost); result.Err != nil {
+		if result := <-c.App.Srv.Store.Post().Update(newPost, oldPost); result.Err != nil {
 			c.Err = result.Err
 			return
 		} else {
@@ -141,7 +141,7 @@ func saveIsPinnedPost(c *Context, w http.ResponseWriter, r *http.Request, isPinn
 
 			go app.Publish(message)
 
-			app.InvalidateCacheForChannelPosts(rpost.ChannelId)
+			c.App.InvalidateCacheForChannelPosts(rpost.ChannelId)
 
 			w.Write([]byte(rpost.ToJson()))
 		}
@@ -176,7 +176,7 @@ func getFlaggedPosts(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if posts, err := app.GetFlaggedPostsForTeam(c.Session.UserId, c.TeamId, offset, limit); err != nil {
+	if posts, err := c.App.GetFlaggedPostsForTeam(c.Session.UserId, c.TeamId, offset, limit); err != nil {
 		c.Err = err
 		return
 	} else {
@@ -205,18 +205,18 @@ func getPosts(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !app.SessionHasPermissionToChannel(c.Session, id, model.PERMISSION_CREATE_POST) {
+	if !c.App.SessionHasPermissionToChannel(c.Session, id, model.PERMISSION_CREATE_POST) {
 		c.SetPermissionError(model.PERMISSION_CREATE_POST)
 		return
 	}
 
-	etag := app.GetPostsEtag(id)
+	etag := c.App.GetPostsEtag(id)
 
 	if HandleEtag(etag, "Get Posts", w, r) {
 		return
 	}
 
-	if list, err := app.GetPosts(id, offset, limit); err != nil {
+	if list, err := c.App.GetPosts(id, offset, limit); err != nil {
 		c.Err = err
 		return
 	} else {
@@ -241,12 +241,12 @@ func getPostsSince(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !app.SessionHasPermissionToChannel(c.Session, id, model.PERMISSION_READ_CHANNEL) {
+	if !c.App.SessionHasPermissionToChannel(c.Session, id, model.PERMISSION_READ_CHANNEL) {
 		c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
 		return
 	}
 
-	if list, err := app.GetPostsSince(id, time); err != nil {
+	if list, err := c.App.GetPostsSince(id, time); err != nil {
 		c.Err = err
 		return
 	} else {
@@ -270,12 +270,12 @@ func getPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !app.SessionHasPermissionToChannel(c.Session, channelId, model.PERMISSION_READ_CHANNEL) {
+	if !c.App.SessionHasPermissionToChannel(c.Session, channelId, model.PERMISSION_READ_CHANNEL) {
 		c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
 		return
 	}
 
-	if list, err := app.GetPostThread(postId); err != nil {
+	if list, err := c.App.GetPostThread(postId); err != nil {
 		c.Err = err
 		return
 	} else if HandleEtag(list.Etag(), "Get Post", w, r) {
@@ -300,7 +300,7 @@ func getPostById(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if list, err := app.GetPostThread(postId); err != nil {
+	if list, err := c.App.GetPostThread(postId); err != nil {
 		c.Err = err
 		return
 	} else {
@@ -310,7 +310,7 @@ func getPostById(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 		post := list.Posts[list.Order[0]]
 
-		if !app.SessionHasPermissionToChannel(c.Session, post.ChannelId, model.PERMISSION_READ_CHANNEL) {
+		if !c.App.SessionHasPermissionToChannel(c.Session, post.ChannelId, model.PERMISSION_READ_CHANNEL) {
 			c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
 			return
 		}
@@ -334,7 +334,7 @@ func getPermalinkTmp(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	var channel *model.Channel
-	if result := <-app.Srv.Store.Channel().GetForPost(postId); result.Err == nil {
+	if result := <-c.App.Srv.Store.Channel().GetForPost(postId); result.Err == nil {
 		channel = result.Data.(*model.Channel)
 	} else {
 		c.SetInvalidParam("getPermalinkTmp", "postId")
@@ -342,18 +342,18 @@ func getPermalinkTmp(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if channel.Type == model.CHANNEL_OPEN {
-		if !app.HasPermissionToChannelByPost(c.Session.UserId, postId, model.PERMISSION_JOIN_PUBLIC_CHANNELS) {
+		if !c.App.HasPermissionToChannelByPost(c.Session.UserId, postId, model.PERMISSION_JOIN_PUBLIC_CHANNELS) {
 			c.SetPermissionError(model.PERMISSION_JOIN_PUBLIC_CHANNELS)
 			return
 		}
 	} else {
-		if !app.HasPermissionToChannelByPost(c.Session.UserId, postId, model.PERMISSION_READ_CHANNEL) {
+		if !c.App.HasPermissionToChannelByPost(c.Session.UserId, postId, model.PERMISSION_READ_CHANNEL) {
 			c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
 			return
 		}
 	}
 
-	if list, err := app.GetPermalinkPost(postId, c.Session.UserId); err != nil {
+	if list, err := c.App.GetPermalinkPost(postId, c.Session.UserId); err != nil {
 		c.Err = err
 		return
 	} else if HandleEtag(list.Etag(), "Get Permalink TMP", w, r) {
@@ -379,17 +379,17 @@ func deletePost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !app.SessionHasPermissionToChannel(c.Session, channelId, model.PERMISSION_DELETE_POST) {
+	if !c.App.SessionHasPermissionToChannel(c.Session, channelId, model.PERMISSION_DELETE_POST) {
 		c.SetPermissionError(model.PERMISSION_DELETE_POST)
 		return
 	}
 
-	if !app.SessionHasPermissionToPost(c.Session, postId, model.PERMISSION_DELETE_OTHERS_POSTS) {
+	if !c.App.SessionHasPermissionToPost(c.Session, postId, model.PERMISSION_DELETE_OTHERS_POSTS) {
 		c.SetPermissionError(model.PERMISSION_DELETE_OTHERS_POSTS)
 		return
 	}
 
-	if post, err := app.DeletePost(postId); err != nil {
+	if post, err := c.App.DeletePost(postId); err != nil {
 		c.Err = err
 		return
 	} else {
@@ -439,19 +439,19 @@ func getPostsBeforeOrAfter(c *Context, w http.ResponseWriter, r *http.Request, b
 		return
 	}
 
-	if !app.SessionHasPermissionToChannel(c.Session, id, model.PERMISSION_READ_CHANNEL) {
+	if !c.App.SessionHasPermissionToChannel(c.Session, id, model.PERMISSION_READ_CHANNEL) {
 		c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
 		return
 	}
 
 	// We can do better than this etag in this situation
-	etag := app.GetPostsEtag(id)
+	etag := c.App.GetPostsEtag(id)
 
 	if HandleEtag(etag, "Get Posts Before or After", w, r) {
 		return
 	}
 
-	if list, err := app.GetPostsAroundPost(postId, id, offset, numPosts, before); err != nil {
+	if list, err := c.App.GetPostsAroundPost(postId, id, offset, numPosts, before); err != nil {
 		c.Err = err
 		return
 	} else {
@@ -474,7 +474,7 @@ func searchPosts(c *Context, w http.ResponseWriter, r *http.Request) {
 		isOrSearch = val.(bool)
 	}
 
-	posts, err := app.SearchPostsInTeam(terms, c.Session.UserId, c.TeamId, isOrSearch)
+	posts, err := c.App.SearchPostsInTeam(terms, c.Session.UserId, c.TeamId, isOrSearch)
 	if err != nil {
 		c.Err = err
 		return
@@ -499,12 +499,12 @@ func getFileInfosForPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !app.SessionHasPermissionToChannel(c.Session, channelId, model.PERMISSION_READ_CHANNEL) {
+	if !c.App.SessionHasPermissionToChannel(c.Session, channelId, model.PERMISSION_READ_CHANNEL) {
 		c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
 		return
 	}
 
-	if infos, err := app.GetFileInfosForPost(postId, false); err != nil {
+	if infos, err := c.App.GetFileInfosForPost(postId, false); err != nil {
 		c.Err = err
 		return
 	} else if HandleEtag(model.GetEtagForFileInfos(infos), "Get File Infos For Post", w, r) {

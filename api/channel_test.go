@@ -9,7 +9,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/mattermost/platform/app"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/store"
 	"github.com/mattermost/platform/utils"
@@ -404,7 +403,7 @@ func TestUpdateChannel(t *testing.T) {
 	}
 
 	UpdateUserToTeamAdmin(th.BasicUser, team)
-	app.InvalidateAllCaches()
+	th.App.InvalidateAllCaches()
 	if _, err := Client.UpdateChannel(channel2); err != nil {
 		t.Fatal(err)
 	}
@@ -412,7 +411,7 @@ func TestUpdateChannel(t *testing.T) {
 		t.Fatal(err)
 	}
 	UpdateUserToNonTeamAdmin(th.BasicUser, team)
-	app.InvalidateAllCaches()
+	th.App.InvalidateAllCaches()
 
 	MakeUserChannelAdmin(th.BasicUser, channel2)
 	MakeUserChannelAdmin(th.BasicUser, channel3)
@@ -1188,7 +1187,7 @@ func TestJoinChannelByNameDisabledUser(t *testing.T) {
 
 	Client.Must(th.BasicClient.RemoveUserFromTeam(th.BasicTeam.Id, th.BasicUser.Id))
 
-	if _, err := app.AddUserToChannel(th.BasicUser, channel1); err == nil {
+	if _, err := th.App.AddUserToChannel(th.BasicUser, channel1); err == nil {
 		t.Fatal("shoudn't be able to join channel")
 	} else {
 		if err.Id != "api.channel.add_user.to.channel.failed.deleted.app_error" {
@@ -1406,7 +1405,7 @@ func TestDeleteChannel(t *testing.T) {
 	UpdateUserToTeamAdmin(th.BasicUser, team)
 
 	Client.Login(th.BasicUser.Email, th.BasicUser.Password)
-	app.InvalidateAllCaches()
+	th.App.InvalidateAllCaches()
 
 	if _, err := Client.DeleteChannel(channel2.Id); err != nil {
 		t.Fatal(err)
@@ -1416,7 +1415,7 @@ func TestDeleteChannel(t *testing.T) {
 	}
 
 	UpdateUserToNonTeamAdmin(th.BasicUser, team)
-	app.InvalidateAllCaches()
+	th.App.InvalidateAllCaches()
 
 	utils.SetIsLicensed(true)
 	utils.SetLicense(&model.License{Features: &model.Features{}})
@@ -1634,7 +1633,7 @@ func TestAddChannelMember(t *testing.T) {
 	}
 
 	MakeUserChannelAdmin(user1, channel5)
-	app.InvalidateAllCaches()
+	th.App.InvalidateAllCaches()
 	utils.SetIsLicensed(true)
 	utils.SetLicense(&model.License{Features: &model.Features{}})
 	utils.License().Features.SetDefaults()
@@ -1659,7 +1658,7 @@ func TestAddChannelMember(t *testing.T) {
 	}
 
 	UpdateUserToTeamAdmin(user1, team)
-	app.InvalidateAllCaches()
+	th.App.InvalidateAllCaches()
 	utils.SetIsLicensed(true)
 	utils.SetLicense(&model.License{Features: &model.Features{}})
 	utils.License().Features.SetDefaults()
@@ -1810,7 +1809,7 @@ func TestRemoveChannelMember(t *testing.T) {
 	}
 
 	MakeUserChannelAdmin(user1, channel5)
-	app.InvalidateAllCaches()
+	th.App.InvalidateAllCaches()
 	utils.SetIsLicensed(true)
 	utils.SetLicense(&model.License{Features: &model.Features{}})
 	utils.License().Features.SetDefaults()
@@ -1835,7 +1834,7 @@ func TestRemoveChannelMember(t *testing.T) {
 	}
 
 	UpdateUserToTeamAdmin(user1, team)
-	app.InvalidateAllCaches()
+	th.App.InvalidateAllCaches()
 	utils.SetIsLicensed(true)
 	utils.SetLicense(&model.License{Features: &model.Features{}})
 	utils.License().Features.SetDefaults()
@@ -2255,7 +2254,7 @@ func TestGetChannelByName(t *testing.T) {
 
 	user2 := &model.User{Email: "success+" + model.NewId() + "@simulator.amazonses.com", Nickname: "Jabba the Hutt", Password: "passwd1"}
 	user2 = Client.Must(Client.CreateUser(user2, "")).Data.(*model.User)
-	store.Must(app.Srv.Store.User().VerifyEmail(user2.Id))
+	store.Must(th.App.Srv.Store.User().VerifyEmail(user2.Id))
 
 	Client.SetTeamId(th.BasicTeam.Id)
 
@@ -2314,7 +2313,7 @@ func TestViewChannel(t *testing.T) {
 func TestGetChannelMembersByIds(t *testing.T) {
 	th := Setup().InitBasic()
 
-	if _, err := app.AddUserToChannel(th.BasicUser2, th.BasicChannel); err != nil {
+	if _, err := th.App.AddUserToChannel(th.BasicUser2, th.BasicChannel); err != nil {
 		t.Fatal("Could not add second user to channel")
 	}
 

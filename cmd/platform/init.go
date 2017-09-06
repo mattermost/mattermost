@@ -28,10 +28,10 @@ func initDBCommandContext(configFileLocation string) error {
 
 	utils.ConfigureCmdLineLog()
 
-	app.NewServer()
-	app.InitStores()
+	app.Global().NewServer()
+	app.Global().InitStores()
 	if model.BuildEnterpriseReady == "true" {
-		app.LoadLicense()
+		app.Global().LoadLicense()
 	}
 
 	return nil

@@ -277,8 +277,8 @@ func TestCreatePostPublic(t *testing.T) {
 	_, resp = Client.CreatePost(post)
 	CheckForbiddenStatus(t, resp)
 
-	app.UpdateUserRoles(ruser.Id, model.ROLE_SYSTEM_USER.Id+" "+model.ROLE_SYSTEM_POST_ALL_PUBLIC.Id)
-	app.InvalidateAllCaches()
+	th.App.UpdateUserRoles(ruser.Id, model.ROLE_SYSTEM_USER.Id+" "+model.ROLE_SYSTEM_POST_ALL_PUBLIC.Id)
+	th.App.InvalidateAllCaches()
 
 	Client.Login(user.Email, user.Password)
 
@@ -289,10 +289,10 @@ func TestCreatePostPublic(t *testing.T) {
 	_, resp = Client.CreatePost(post)
 	CheckForbiddenStatus(t, resp)
 
-	app.UpdateUserRoles(ruser.Id, model.ROLE_SYSTEM_USER.Id)
-	app.JoinUserToTeam(th.BasicTeam, ruser, "")
-	app.UpdateTeamMemberRoles(th.BasicTeam.Id, ruser.Id, model.ROLE_TEAM_USER.Id+" "+model.ROLE_TEAM_POST_ALL_PUBLIC.Id)
-	app.InvalidateAllCaches()
+	th.App.UpdateUserRoles(ruser.Id, model.ROLE_SYSTEM_USER.Id)
+	th.App.JoinUserToTeam(th.BasicTeam, ruser, "")
+	th.App.UpdateTeamMemberRoles(th.BasicTeam.Id, ruser.Id, model.ROLE_TEAM_USER.Id+" "+model.ROLE_TEAM_POST_ALL_PUBLIC.Id)
+	th.App.InvalidateAllCaches()
 
 	Client.Login(user.Email, user.Password)
 
@@ -314,7 +314,7 @@ func TestCreatePostAll(t *testing.T) {
 
 	user := model.User{Email: GenerateTestEmail(), Nickname: "Joram Wilander", Password: "hello1", Username: GenerateTestUsername(), Roles: model.ROLE_SYSTEM_USER.Id}
 
-	directChannel, _ := app.CreateDirectChannel(th.BasicUser.Id, th.BasicUser2.Id)
+	directChannel, _ := th.App.CreateDirectChannel(th.BasicUser.Id, th.BasicUser2.Id)
 
 	ruser, resp := Client.CreateUser(&user)
 	CheckNoError(t, resp)
@@ -324,8 +324,8 @@ func TestCreatePostAll(t *testing.T) {
 	_, resp = Client.CreatePost(post)
 	CheckForbiddenStatus(t, resp)
 
-	app.UpdateUserRoles(ruser.Id, model.ROLE_SYSTEM_USER.Id+" "+model.ROLE_SYSTEM_POST_ALL.Id)
-	app.InvalidateAllCaches()
+	th.App.UpdateUserRoles(ruser.Id, model.ROLE_SYSTEM_USER.Id+" "+model.ROLE_SYSTEM_POST_ALL.Id)
+	th.App.InvalidateAllCaches()
 
 	Client.Login(user.Email, user.Password)
 
@@ -340,10 +340,10 @@ func TestCreatePostAll(t *testing.T) {
 	_, resp = Client.CreatePost(post)
 	CheckNoError(t, resp)
 
-	app.UpdateUserRoles(ruser.Id, model.ROLE_SYSTEM_USER.Id)
-	app.JoinUserToTeam(th.BasicTeam, ruser, "")
-	app.UpdateTeamMemberRoles(th.BasicTeam.Id, ruser.Id, model.ROLE_TEAM_USER.Id+" "+model.ROLE_TEAM_POST_ALL.Id)
-	app.InvalidateAllCaches()
+	th.App.UpdateUserRoles(ruser.Id, model.ROLE_SYSTEM_USER.Id)
+	th.App.JoinUserToTeam(th.BasicTeam, ruser, "")
+	th.App.UpdateTeamMemberRoles(th.BasicTeam.Id, ruser.Id, model.ROLE_TEAM_USER.Id+" "+model.ROLE_TEAM_POST_ALL.Id)
+	th.App.InvalidateAllCaches()
 
 	Client.Login(user.Email, user.Password)
 
@@ -557,7 +557,7 @@ func TestPinPost(t *testing.T) {
 		t.Fatal("should have passed")
 	}
 
-	if rpost, err := app.GetSinglePost(post.Id); err != nil && rpost.IsPinned != true {
+	if rpost, err := th.App.GetSinglePost(post.Id); err != nil && rpost.IsPinned != true {
 		t.Fatal("failed to pin post")
 	}
 
@@ -592,7 +592,7 @@ func TestUnpinPost(t *testing.T) {
 		t.Fatal("should have passed")
 	}
 
-	if rpost, err := app.GetSinglePost(pinnedPost.Id); err != nil && rpost.IsPinned != false {
+	if rpost, err := th.App.GetSinglePost(pinnedPost.Id); err != nil && rpost.IsPinned != false {
 		t.Fatal("failed to pin post")
 	}
 
@@ -1297,8 +1297,8 @@ func TestSearchPostsFromUser(t *testing.T) {
 	th.LoginTeamAdmin()
 	user := th.CreateUser()
 	LinkUserToTeam(user, th.BasicTeam)
-	app.AddUserToChannel(user, th.BasicChannel)
-	app.AddUserToChannel(user, th.BasicChannel2)
+	th.App.AddUserToChannel(user, th.BasicChannel)
+	th.App.AddUserToChannel(user, th.BasicChannel2)
 
 	message := "sgtitlereview with space"
 	_ = th.CreateMessagePost(message)

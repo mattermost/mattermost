@@ -5,11 +5,12 @@ package oauthgitlab
 
 import (
 	"encoding/json"
-	"github.com/mattermost/platform/einterfaces"
-	"github.com/mattermost/platform/model"
 	"io"
 	"strconv"
 	"strings"
+
+	"github.com/mattermost/platform/einterfaces"
+	"github.com/mattermost/platform/model"
 )
 
 type GitLabProvider struct {

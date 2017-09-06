@@ -176,9 +176,9 @@ func PublishSkipClusterSend(message *model.WebSocketEvent) {
 	}
 }
 
-func InvalidateCacheForChannel(channel *model.Channel) {
-	InvalidateCacheForChannelSkipClusterSend(channel.Id)
-	InvalidateCacheForChannelByNameSkipClusterSend(channel.TeamId, channel.Name)
+func (a *App) InvalidateCacheForChannel(channel *model.Channel) {
+	a.InvalidateCacheForChannelSkipClusterSend(channel.Id)
+	a.InvalidateCacheForChannelByNameSkipClusterSend(channel.TeamId, channel.Name)
 
 	if cluster := einterfaces.GetClusterInterface(); cluster != nil {
 		msg := &model.ClusterMessage{
@@ -206,12 +206,12 @@ func InvalidateCacheForChannel(channel *model.Channel) {
 	}
 }
 
-func InvalidateCacheForChannelSkipClusterSend(channelId string) {
-	Srv.Store.Channel().InvalidateChannel(channelId)
+func (a *App) InvalidateCacheForChannelSkipClusterSend(channelId string) {
+	a.Srv.Store.Channel().InvalidateChannel(channelId)
 }
 
-func InvalidateCacheForChannelMembers(channelId string) {
-	InvalidateCacheForChannelMembersSkipClusterSend(channelId)
+func (a *App) InvalidateCacheForChannelMembers(channelId string) {
+	a.InvalidateCacheForChannelMembersSkipClusterSend(channelId)
 
 	if einterfaces.GetClusterInterface() != nil {
 		msg := &model.ClusterMessage{
@@ -223,13 +223,13 @@ func InvalidateCacheForChannelMembers(channelId string) {
 	}
 }
 
-func InvalidateCacheForChannelMembersSkipClusterSend(channelId string) {
-	Srv.Store.User().InvalidateProfilesInChannelCache(channelId)
-	Srv.Store.Channel().InvalidateMemberCount(channelId)
+func (a *App) InvalidateCacheForChannelMembersSkipClusterSend(channelId string) {
+	a.Srv.Store.User().InvalidateProfilesInChannelCache(channelId)
+	a.Srv.Store.Channel().InvalidateMemberCount(channelId)
 }
 
-func InvalidateCacheForChannelMembersNotifyProps(channelId string) {
-	InvalidateCacheForChannelMembersNotifyPropsSkipClusterSend(channelId)
+func (a *App) InvalidateCacheForChannelMembersNotifyProps(channelId string) {
+	a.InvalidateCacheForChannelMembersNotifyPropsSkipClusterSend(channelId)
 
 	if einterfaces.GetClusterInterface() != nil {
 		msg := &model.ClusterMessage{
@@ -241,20 +241,20 @@ func InvalidateCacheForChannelMembersNotifyProps(channelId string) {
 	}
 }
 
-func InvalidateCacheForChannelMembersNotifyPropsSkipClusterSend(channelId string) {
-	Srv.Store.Channel().InvalidateCacheForChannelMembersNotifyProps(channelId)
+func (a *App) InvalidateCacheForChannelMembersNotifyPropsSkipClusterSend(channelId string) {
+	a.Srv.Store.Channel().InvalidateCacheForChannelMembersNotifyProps(channelId)
 }
 
-func InvalidateCacheForChannelByNameSkipClusterSend(teamId, name string) {
+func (a *App) InvalidateCacheForChannelByNameSkipClusterSend(teamId, name string) {
 	if teamId == "" {
 		teamId = "dm"
 	}
 
-	Srv.Store.Channel().InvalidateChannelByName(teamId, name)
+	a.Srv.Store.Channel().InvalidateChannelByName(teamId, name)
 }
 
-func InvalidateCacheForChannelPosts(channelId string) {
-	InvalidateCacheForChannelPostsSkipClusterSend(channelId)
+func (a *App) InvalidateCacheForChannelPosts(channelId string) {
+	a.InvalidateCacheForChannelPostsSkipClusterSend(channelId)
 
 	if einterfaces.GetClusterInterface() != nil {
 		msg := &model.ClusterMessage{
@@ -266,12 +266,12 @@ func InvalidateCacheForChannelPosts(channelId string) {
 	}
 }
 
-func InvalidateCacheForChannelPostsSkipClusterSend(channelId string) {
-	Srv.Store.Post().InvalidateLastPostTimeCache(channelId)
+func (a *App) InvalidateCacheForChannelPostsSkipClusterSend(channelId string) {
+	a.Srv.Store.Post().InvalidateLastPostTimeCache(channelId)
 }
 
-func InvalidateCacheForUser(userId string) {
-	InvalidateCacheForUserSkipClusterSend(userId)
+func (a *App) InvalidateCacheForUser(userId string) {
+	a.InvalidateCacheForUserSkipClusterSend(userId)
 
 	if einterfaces.GetClusterInterface() != nil {
 		msg := &model.ClusterMessage{
@@ -283,18 +283,18 @@ func InvalidateCacheForUser(userId string) {
 	}
 }
 
-func InvalidateCacheForUserSkipClusterSend(userId string) {
-	Srv.Store.Channel().InvalidateAllChannelMembersForUser(userId)
-	Srv.Store.User().InvalidateProfilesInChannelCacheByUser(userId)
-	Srv.Store.User().InvalidatProfileCacheForUser(userId)
+func (a *App) InvalidateCacheForUserSkipClusterSend(userId string) {
+	a.Srv.Store.Channel().InvalidateAllChannelMembersForUser(userId)
+	a.Srv.Store.User().InvalidateProfilesInChannelCacheByUser(userId)
+	a.Srv.Store.User().InvalidatProfileCacheForUser(userId)
 
 	if len(hubs) != 0 {
 		GetHubForUserId(userId).InvalidateUser(userId)
 	}
 }
 
-func InvalidateCacheForWebhook(webhookId string) {
-	InvalidateCacheForWebhookSkipClusterSend(webhookId)
+func (a *App) InvalidateCacheForWebhook(webhookId string) {
+	a.InvalidateCacheForWebhookSkipClusterSend(webhookId)
 
 	if einterfaces.GetClusterInterface() != nil {
 		msg := &model.ClusterMessage{
@@ -306,8 +306,8 @@ func InvalidateCacheForWebhook(webhookId string) {
 	}
 }
 
-func InvalidateCacheForWebhookSkipClusterSend(webhookId string) {
-	Srv.Store.Webhook().InvalidateWebhookCache(webhookId)
+func (a *App) InvalidateCacheForWebhookSkipClusterSend(webhookId string) {
+	a.Srv.Store.Webhook().InvalidateWebhookCache(webhookId)
 }
 
 func InvalidateWebConnSessionCacheForUser(userId string) {
@@ -398,7 +398,7 @@ func (h *Hub) Start() {
 				}
 
 				if !found {
-					go SetStatusOffline(userId, false)
+					go Global().SetStatusOffline(userId, false)
 				}
 
 			case userId := <-h.invalidateUser:

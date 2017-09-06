@@ -53,14 +53,14 @@ func (me *CollapseProvider) GetCommand(T goi18n.TranslateFunc) *model.Command {
 }
 
 func (me *ExpandProvider) DoCommand(args *model.CommandArgs, message string) *model.CommandResponse {
-	return setCollapsePreference(args, false)
+	return Global().setCollapsePreference(args, false)
 }
 
 func (me *CollapseProvider) DoCommand(args *model.CommandArgs, message string) *model.CommandResponse {
-	return setCollapsePreference(args, true)
+	return Global().setCollapsePreference(args, true)
 }
 
-func setCollapsePreference(args *model.CommandArgs, isCollapse bool) *model.CommandResponse {
+func (a *App) setCollapsePreference(args *model.CommandArgs, isCollapse bool) *model.CommandResponse {
 	pref := model.Preference{
 		UserId:   args.UserId,
 		Category: model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS,
@@ -68,7 +68,7 @@ func setCollapsePreference(args *model.CommandArgs, isCollapse bool) *model.Comm
 		Value:    strconv.FormatBool(isCollapse),
 	}
 
-	if result := <-Srv.Store.Preference().Save(&model.Preferences{pref}); result.Err != nil {
+	if result := <-a.Srv.Store.Preference().Save(&model.Preferences{pref}); result.Err != nil {
 		return &model.CommandResponse{Text: args.T("api.command_expand_collapse.fail.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 	}
 

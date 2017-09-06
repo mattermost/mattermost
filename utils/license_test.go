@@ -4,8 +4,9 @@
 package utils
 
 import (
-	"github.com/mattermost/platform/model"
 	"testing"
+
+	"github.com/mattermost/platform/model"
 )
 
 func TestSetLicense(t *testing.T) {

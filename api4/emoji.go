@@ -66,7 +66,7 @@ func createEmoji(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	newEmoji, err := app.CreateEmoji(c.Session.UserId, emoji, m)
+	newEmoji, err := c.App.CreateEmoji(c.Session.UserId, emoji, m)
 	if err != nil {
 		c.Err = err
 		return
@@ -81,7 +81,7 @@ func getEmojiList(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	listEmoji, err := app.GetEmojiList(c.Params.Page, c.Params.PerPage)
+	listEmoji, err := c.App.GetEmojiList(c.Params.Page, c.Params.PerPage)
 	if err != nil {
 		c.Err = err
 		return
@@ -96,7 +96,7 @@ func deleteEmoji(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	emoji, err := app.GetEmoji(c.Params.EmojiId)
+	emoji, err := c.App.GetEmoji(c.Params.EmojiId)
 	if err != nil {
 		c.Err = err
 		return
@@ -107,7 +107,7 @@ func deleteEmoji(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = app.DeleteEmoji(emoji)
+	err = c.App.DeleteEmoji(emoji)
 	if err != nil {
 		c.Err = err
 		return
@@ -127,7 +127,7 @@ func getEmoji(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	emoji, err := app.GetEmoji(c.Params.EmojiId)
+	emoji, err := c.App.GetEmoji(c.Params.EmojiId)
 	if err != nil {
 		c.Err = err
 		return
@@ -152,7 +152,7 @@ func getEmojiImage(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	image, imageType, err := app.GetEmojiImage(c.Params.EmojiId)
+	image, imageType, err := c.App.GetEmojiImage(c.Params.EmojiId)
 	if err != nil {
 		c.Err = err
 		return

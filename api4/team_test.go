@@ -14,7 +14,6 @@ import (
 
 	"encoding/base64"
 
-	"github.com/mattermost/platform/app"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
 )
@@ -346,7 +345,7 @@ func TestSoftDeleteTeam(t *testing.T) {
 		t.Fatal("should have returned true")
 	}
 
-	rteam, err := app.GetTeam(team.Id)
+	rteam, err := th.App.GetTeam(team.Id)
 	if err != nil {
 		t.Fatal("should have returned archived team")
 	}
@@ -390,7 +389,7 @@ func TestPermanentDeleteTeam(t *testing.T) {
 
 	// The team is deleted in the background, its only soft deleted at this
 	// time
-	rteam, err := app.GetTeam(team.Id)
+	rteam, err := th.App.GetTeam(team.Id)
 	if err != nil {
 		t.Fatal("should have returned archived team")
 	}
@@ -515,7 +514,7 @@ func TestSearchAllTeams(t *testing.T) {
 	oTeam := th.BasicTeam
 	oTeam.AllowOpenInvite = true
 
-	updatedTeam, _ := app.UpdateTeam(oTeam)
+	updatedTeam, _ := th.App.UpdateTeam(oTeam)
 	oTeam.UpdateAt = updatedTeam.UpdateAt
 
 	pTeam := &model.Team{DisplayName: "PName", Name: GenerateTestTeamName(), Email: GenerateTestEmail(), Type: model.TEAM_INVITE}
@@ -803,7 +802,7 @@ func TestAddTeamMember(t *testing.T) {
 	team := th.BasicTeam
 	otherUser := th.CreateUser()
 
-	if err := app.RemoveUserFromTeam(th.BasicTeam.Id, th.BasicUser2.Id); err != nil {
+	if err := th.App.RemoveUserFromTeam(th.BasicTeam.Id, th.BasicUser2.Id); err != nil {
 		t.Fatalf(err.Error())
 	}
 
@@ -887,7 +886,7 @@ func TestAddTeamMember(t *testing.T) {
 
 	// Update user to team admin
 	UpdateUserToTeamAdmin(th.BasicUser, th.BasicTeam)
-	app.InvalidateAllCaches()
+	th.App.InvalidateAllCaches()
 	*utils.Cfg.TeamSettings.RestrictTeamInvite = model.PERMISSIONS_TEAM_ADMIN
 	utils.SetIsLicensed(true)
 	utils.SetLicense(&model.License{Features: &model.Features{}})
@@ -913,7 +912,7 @@ func TestAddTeamMember(t *testing.T) {
 
 	// Change permission level to All
 	UpdateUserToNonTeamAdmin(th.BasicUser, th.BasicTeam)
-	app.InvalidateAllCaches()
+	th.App.InvalidateAllCaches()
 	*utils.Cfg.TeamSettings.RestrictTeamInvite = model.PERMISSIONS_ALL
 	utils.SetIsLicensed(true)
 	utils.SetLicense(&model.License{Features: &model.Features{}})
@@ -1019,7 +1018,7 @@ func TestAddTeamMembers(t *testing.T) {
 		otherUser.Id,
 	}
 
-	if err := app.RemoveUserFromTeam(th.BasicTeam.Id, th.BasicUser2.Id); err != nil {
+	if err := th.App.RemoveUserFromTeam(th.BasicTeam.Id, th.BasicUser2.Id); err != nil {
 		t.Fatalf(err.Error())
 	}
 
@@ -1101,7 +1100,7 @@ func TestAddTeamMembers(t *testing.T) {
 
 	// Update user to team admin
 	UpdateUserToTeamAdmin(th.BasicUser, th.BasicTeam)
-	app.InvalidateAllCaches()
+	th.App.InvalidateAllCaches()
 	*utils.Cfg.TeamSettings.RestrictTeamInvite = model.PERMISSIONS_TEAM_ADMIN
 	utils.SetIsLicensed(true)
 	utils.SetLicense(&model.License{Features: &model.Features{}})
@@ -1127,7 +1126,7 @@ func TestAddTeamMembers(t *testing.T) {
 
 	// Change permission level to All
 	UpdateUserToNonTeamAdmin(th.BasicUser, th.BasicTeam)
-	app.InvalidateAllCaches()
+	th.App.InvalidateAllCaches()
 	*utils.Cfg.TeamSettings.RestrictTeamInvite = model.PERMISSIONS_ALL
 	utils.SetIsLicensed(true)
 	utils.SetLicense(&model.License{Features: &model.Features{}})
@@ -1493,7 +1492,7 @@ func TestInviteUsersToTeam(t *testing.T) {
 	}()
 	utils.Cfg.TeamSettings.RestrictCreationToDomains = "@example.com"
 
-	err := app.InviteNewUsersToTeam(emailList, th.BasicTeam.Id, th.BasicUser.Id)
+	err := th.App.InviteNewUsersToTeam(emailList, th.BasicTeam.Id, th.BasicUser.Id)
 
 	if err == nil {
 		t.Fatal("Adding users with non-restricted domains was allowed")
