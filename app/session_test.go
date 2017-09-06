@@ -4,8 +4,9 @@
 package app
 
 import (
-	"github.com/mattermost/platform/model"
 	"testing"
+
+	"github.com/mattermost/platform/model"
 )
 
 func TestCache(t *testing.T) {

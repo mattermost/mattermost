@@ -13,10 +13,11 @@ import (
 
 	"gopkg.in/gomail.v2"
 
+	"net/http"
+
 	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/html2text"
 	"github.com/mattermost/platform/model"
-	"net/http"
 )
 
 func encodeRFC2047Word(s string) string {

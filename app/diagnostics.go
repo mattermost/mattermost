@@ -50,13 +50,13 @@ const (
 
 var client *analytics.Client
 
-func SendDailyDiagnostics() {
+func (a *App) SendDailyDiagnostics() {
 	if *utils.Cfg.LogSettings.EnableDiagnostics && utils.IsLeader() {
 		initDiagnostics("")
-		trackActivity()
+		a.trackActivity()
 		trackConfig()
 		trackLicense()
-		trackServer()
+		a.trackServer()
 	}
 }
 
@@ -108,7 +108,7 @@ func pluginSetting(plugin, key string, defaultValue interface{}) interface{} {
 	return defaultValue
 }
 
-func trackActivity() {
+func (a *App) trackActivity() {
 	var userCount int64
 	var activeUserCount int64
 	var inactiveUserCount int64
@@ -120,43 +120,43 @@ func trackActivity() {
 	var deletedPrivateChannelCount int64
 	var postsCount int64
 
-	if ucr := <-Srv.Store.User().GetTotalUsersCount(); ucr.Err == nil {
+	if ucr := <-a.Srv.Store.User().GetTotalUsersCount(); ucr.Err == nil {
 		userCount = ucr.Data.(int64)
 	}
 
-	if ucr := <-Srv.Store.Status().GetTotalActiveUsersCount(); ucr.Err == nil {
+	if ucr := <-a.Srv.Store.Status().GetTotalActiveUsersCount(); ucr.Err == nil {
 		activeUserCount = ucr.Data.(int64)
 	}
 
-	if iucr := <-Srv.Store.Status().GetTotalActiveUsersCount(); iucr.Err == nil {
+	if iucr := <-a.Srv.Store.Status().GetTotalActiveUsersCount(); iucr.Err == nil {
 		inactiveUserCount = iucr.Data.(int64)
 	}
 
-	if tcr := <-Srv.Store.Team().AnalyticsTeamCount(); tcr.Err == nil {
+	if tcr := <-a.Srv.Store.Team().AnalyticsTeamCount(); tcr.Err == nil {
 		teamCount = tcr.Data.(int64)
 	}
 
-	if ucc := <-Srv.Store.Channel().AnalyticsTypeCount("", "O"); ucc.Err == nil {
+	if ucc := <-a.Srv.Store.Channel().AnalyticsTypeCount("", "O"); ucc.Err == nil {
 		publicChannelCount = ucc.Data.(int64)
 	}
 
-	if pcc := <-Srv.Store.Channel().AnalyticsTypeCount("", "P"); pcc.Err == nil {
+	if pcc := <-a.Srv.Store.Channel().AnalyticsTypeCount("", "P"); pcc.Err == nil {
 		privateChannelCount = pcc.Data.(int64)
 	}
 
-	if dcc := <-Srv.Store.Channel().AnalyticsTypeCount("", "D"); dcc.Err == nil {
+	if dcc := <-a.Srv.Store.Channel().AnalyticsTypeCount("", "D"); dcc.Err == nil {
 		directChannelCount = dcc.Data.(int64)
 	}
 
-	if duccr := <-Srv.Store.Channel().AnalyticsDeletedTypeCount("", "O"); duccr.Err == nil {
+	if duccr := <-a.Srv.Store.Channel().AnalyticsDeletedTypeCount("", "O"); duccr.Err == nil {
 		deletedPublicChannelCount = duccr.Data.(int64)
 	}
 
-	if dpccr := <-Srv.Store.Channel().AnalyticsDeletedTypeCount("", "P"); dpccr.Err == nil {
+	if dpccr := <-a.Srv.Store.Channel().AnalyticsDeletedTypeCount("", "P"); dpccr.Err == nil {
 		deletedPrivateChannelCount = dpccr.Data.(int64)
 	}
 
-	if pcr := <-Srv.Store.Post().AnalyticsPostCount("", false, false); pcr.Err == nil {
+	if pcr := <-a.Srv.Store.Post().AnalyticsPostCount("", false, false); pcr.Err == nil {
 		postsCount = pcr.Data.(int64)
 	}
 
@@ -467,7 +467,7 @@ func trackLicense() {
 	}
 }
 
-func trackServer() {
+func (a *App) trackServer() {
 	data := map[string]interface{}{
 		"edition":          model.BuildEnterpriseReady,
 		"version":          model.CurrentVersion,
@@ -475,7 +475,7 @@ func trackServer() {
 		"operating_system": runtime.GOOS,
 	}
 
-	if scr := <-Srv.Store.User().AnalyticsGetSystemAdminCount(); scr.Err == nil {
+	if scr := <-a.Srv.Store.User().AnalyticsGetSystemAdminCount(); scr.Err == nil {
 		data["system_admins"] = scr.Data.(int64)
 	}
 

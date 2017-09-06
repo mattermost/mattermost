@@ -20,29 +20,29 @@ var ApiClient *model.Client
 var URL string
 
 func Setup() {
-	if app.Srv == nil {
+	if app.Global().Srv == nil {
 		utils.TranslationsPreInit()
 		utils.LoadConfig("config.json")
 		utils.InitTranslations(utils.Cfg.LocalizationSettings)
-		app.NewServer()
-		app.InitStores()
+		app.Global().NewServer()
+		app.Global().InitStores()
 		api.InitRouter()
-		app.StartServer()
+		app.Global().StartServer()
 		api4.InitApi(false)
 		api.InitApi()
 		InitWeb()
 		URL = "http://localhost" + *utils.Cfg.ServiceSettings.ListenAddress
 		ApiClient = model.NewClient(URL)
 
-		app.Srv.Store.MarkSystemRanUnitTests()
+		app.Global().Srv.Store.MarkSystemRanUnitTests()
 
 		*utils.Cfg.TeamSettings.EnableOpenServer = true
 	}
 }
 
 func TearDown() {
-	if app.Srv != nil {
-		app.StopServer()
+	if app.Global().Srv != nil {
+		app.Global().StopServer()
 	}
 }
 
@@ -68,16 +68,16 @@ func TestIncomingWebhook(t *testing.T) {
 
 	user := &model.User{Email: model.NewId() + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1"}
 	user = ApiClient.Must(ApiClient.CreateUser(user, "")).Data.(*model.User)
-	store.Must(app.Srv.Store.User().VerifyEmail(user.Id))
+	store.Must(app.Global().Srv.Store.User().VerifyEmail(user.Id))
 
 	ApiClient.Login(user.Email, "passwd1")
 
 	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
 	team = ApiClient.Must(ApiClient.CreateTeam(team)).Data.(*model.Team)
 
-	app.JoinUserToTeam(team, user, "")
+	app.Global().JoinUserToTeam(team, user, "")
 
-	app.UpdateUserRoles(user.Id, model.ROLE_SYSTEM_ADMIN.Id)
+	app.Global().UpdateUserRoles(user.Id, model.ROLE_SYSTEM_ADMIN.Id)
 	ApiClient.SetTeamId(team.Id)
 
 	channel1 := &model.Channel{DisplayName: "Test API Name", Name: "zz" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}

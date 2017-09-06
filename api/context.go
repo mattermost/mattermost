@@ -21,6 +21,7 @@ import (
 )
 
 type Context struct {
+	App           *app.App
 	Session       model.Session
 	RequestId     string
 	IpAddress     string
@@ -107,6 +108,7 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	c := &Context{}
+	c.App = app.Global()
 	c.T, c.Locale = utils.GetTranslationsAndLocale(w, r)
 	c.RequestId = model.NewId()
 	c.IpAddress = utils.GetIpAddress(r)
@@ -165,7 +167,7 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if len(token) != 0 {
-		session, err := app.GetSession(token)
+		session, err := app.Global().GetSession(token)
 
 		if err != nil {
 			l4g.Error(utils.T("api.context.invalid_session.error"), err.Error())
@@ -206,8 +208,8 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if c.Err == nil && h.isUserActivity && token != "" && len(c.Session.UserId) > 0 {
-		app.SetStatusOnline(c.Session.UserId, c.Session.Id, false)
-		app.UpdateLastActivityAtIfNeeded(c.Session)
+		app.Global().SetStatusOnline(c.Session.UserId, c.Session.Id, false)
+		app.Global().UpdateLastActivityAtIfNeeded(c.Session)
 	}
 
 	if c.Err == nil && (h.requireUser || h.requireSystemAdmin) {
@@ -258,7 +260,7 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 func (c *Context) LogAudit(extraInfo string) {
 	audit := &model.Audit{UserId: c.Session.UserId, IpAddress: c.IpAddress, Action: c.Path, ExtraInfo: extraInfo, SessionId: c.Session.Id}
-	if r := <-app.Srv.Store.Audit().Save(audit); r.Err != nil {
+	if r := <-app.Global().Srv.Store.Audit().Save(audit); r.Err != nil {
 		c.LogError(r.Err)
 	}
 }
@@ -270,7 +272,7 @@ func (c *Context) LogAuditWithUserId(userId, extraInfo string) {
 	}
 
 	audit := &model.Audit{UserId: userId, IpAddress: c.IpAddress, Action: c.Path, ExtraInfo: extraInfo, SessionId: c.Session.Id}
-	if r := <-app.Srv.Store.Audit().Save(audit); r.Err != nil {
+	if r := <-app.Global().Srv.Store.Audit().Save(audit); r.Err != nil {
 		c.LogError(r.Err)
 	}
 }
@@ -314,7 +316,7 @@ func (c *Context) MfaRequired() {
 		return
 	}
 
-	if result := <-app.Srv.Store.User().Get(c.Session.UserId); result.Err != nil {
+	if result := <-app.Global().Srv.Store.User().Get(c.Session.UserId); result.Err != nil {
 		c.Err = model.NewAppError("", "api.context.session_expired.app_error", nil, "MfaRequired", http.StatusUnauthorized)
 		return
 	} else {
@@ -391,7 +393,7 @@ func (c *Context) setTeamURL(url string, valid bool) {
 }
 
 func (c *Context) SetTeamURLFromSession() {
-	if result := <-app.Srv.Store.Team().Get(c.TeamId); result.Err == nil {
+	if result := <-app.Global().Srv.Store.Team().Get(c.TeamId); result.Err == nil {
 		c.setTeamURL(c.GetSiteURLHeader()+"/"+result.Data.(*model.Team).Name, true)
 	}
 }
@@ -445,7 +447,7 @@ func Handle404(w http.ResponseWriter, r *http.Request) {
 func (c *Context) CheckTeamId() {
 	if c.TeamId != "" && c.Session.GetTeamByTeamId(c.TeamId) == nil {
 		if app.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
-			if result := <-app.Srv.Store.Team().Get(c.TeamId); result.Err != nil {
+			if result := <-app.Global().Srv.Store.Team().Get(c.TeamId); result.Err != nil {
 				c.Err = result.Err
 				c.Err.StatusCode = http.StatusBadRequest
 				return

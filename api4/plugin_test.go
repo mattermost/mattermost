@@ -9,7 +9,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/mattermost/platform/app"
 	"github.com/mattermost/platform/utils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -30,7 +29,7 @@ func TestPlugin(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
 	defer TearDown()
 
-	app.StartupPlugins(pluginDir, webappDir)
+	th.App.StartupPlugins(pluginDir, webappDir)
 
 	enablePlugins := *utils.Cfg.PluginSettings.Enable
 	defer func() {
@@ -111,5 +110,5 @@ func TestPlugin(t *testing.T) {
 	_, resp = th.SystemAdminClient.RemovePlugin("bad.id")
 	CheckNotFoundStatus(t, resp)
 
-	app.Srv.PluginEnv = nil
+	th.App.Srv.PluginEnv = nil
 }

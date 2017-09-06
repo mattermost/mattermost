@@ -48,7 +48,7 @@ func createCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	cmd.CreatorId = c.Session.UserId
 
-	rcmd, err := app.CreateCommand(cmd)
+	rcmd, err := c.App.CreateCommand(cmd)
 	if err != nil {
 		c.Err = err
 		return
@@ -73,7 +73,7 @@ func updateCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	c.LogAudit("attempt")
 
-	oldCmd, err := app.GetCommand(c.Params.CommandId)
+	oldCmd, err := c.App.GetCommand(c.Params.CommandId)
 	if err != nil {
 		c.Err = err
 		return
@@ -96,7 +96,7 @@ func updateCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rcmd, err := app.UpdateCommand(oldCmd, cmd)
+	rcmd, err := c.App.UpdateCommand(oldCmd, cmd)
 	if err != nil {
 		c.Err = err
 		return
@@ -115,7 +115,7 @@ func deleteCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	c.LogAudit("attempt")
 
-	cmd, err := app.GetCommand(c.Params.CommandId)
+	cmd, err := c.App.GetCommand(c.Params.CommandId)
 	if err != nil {
 		c.Err = err
 		return
@@ -133,7 +133,7 @@ func deleteCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = app.DeleteCommand(cmd.Id)
+	err = c.App.DeleteCommand(cmd.Id)
 	if err != nil {
 		c.Err = err
 		return
@@ -164,7 +164,7 @@ func listCommands(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.SetPermissionError(model.PERMISSION_MANAGE_SLASH_COMMANDS)
 			return
 		}
-		commands, err = app.ListTeamCommands(teamId)
+		commands, err = c.App.ListTeamCommands(teamId)
 		if err != nil {
 			c.Err = err
 			return
@@ -172,13 +172,13 @@ func listCommands(c *Context, w http.ResponseWriter, r *http.Request) {
 	} else {
 		//User with no permission should see only system commands
 		if !app.SessionHasPermissionToTeam(c.Session, teamId, model.PERMISSION_MANAGE_SLASH_COMMANDS) {
-			commands, err = app.ListAutocompleteCommands(teamId, c.T)
+			commands, err = c.App.ListAutocompleteCommands(teamId, c.T)
 			if err != nil {
 				c.Err = err
 				return
 			}
 		} else {
-			commands, err = app.ListAllCommands(teamId, c.T)
+			commands, err = c.App.ListAllCommands(teamId, c.T)
 			if err != nil {
 				c.Err = err
 				return
@@ -201,12 +201,12 @@ func executeCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !app.SessionHasPermissionToChannel(c.Session, commandArgs.ChannelId, model.PERMISSION_USE_SLASH_COMMANDS) {
+	if !c.App.SessionHasPermissionToChannel(c.Session, commandArgs.ChannelId, model.PERMISSION_USE_SLASH_COMMANDS) {
 		c.SetPermissionError(model.PERMISSION_USE_SLASH_COMMANDS)
 		return
 	}
 
-	channel, err := app.GetChannel(commandArgs.ChannelId)
+	channel, err := c.App.GetChannel(commandArgs.ChannelId)
 	if err != nil {
 		c.Err = err
 		return
@@ -224,7 +224,7 @@ func executeCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 	commandArgs.Session = c.Session
 	commandArgs.SiteURL = c.GetSiteURLHeader()
 
-	response, err := app.ExecuteCommand(commandArgs)
+	response, err := c.App.ExecuteCommand(commandArgs)
 	if err != nil {
 		c.Err = err
 		return
@@ -244,7 +244,7 @@ func listAutocompleteCommands(c *Context, w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	commands, err := app.ListAutocompleteCommands(c.Params.TeamId, c.T)
+	commands, err := c.App.ListAutocompleteCommands(c.Params.TeamId, c.T)
 	if err != nil {
 		c.Err = err
 		return
@@ -260,7 +260,7 @@ func regenCommandToken(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	c.LogAudit("attempt")
-	cmd, err := app.GetCommand(c.Params.CommandId)
+	cmd, err := c.App.GetCommand(c.Params.CommandId)
 	if err != nil {
 		c.Err = err
 		return
@@ -278,7 +278,7 @@ func regenCommandToken(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rcmd, err := app.RegenCommandToken(cmd)
+	rcmd, err := c.App.RegenCommandToken(cmd)
 	if err != nil {
 		c.Err = err
 		return

@@ -7,9 +7,10 @@ import (
 	"context"
 	"time"
 
+	"net/http"
+
 	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/platform/model"
-	"net/http"
 )
 
 const (

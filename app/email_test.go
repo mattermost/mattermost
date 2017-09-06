@@ -12,10 +12,11 @@ import (
 )
 
 func TestSendChangeUsernameEmail(t *testing.T) {
+	a := Global()
 	if testing.Short() {
 		t.SkipNow()
 	}
-	Setup()
+	a.Setup()
 
 	var emailTo string = "test@example.com"
 	var oldUsername string = "myoldusername"
@@ -63,10 +64,11 @@ func TestSendChangeUsernameEmail(t *testing.T) {
 }
 
 func TestSendEmailChangeVerifyEmail(t *testing.T) {
+	a := Global()
 	if testing.Short() {
 		t.SkipNow()
 	}
-	Setup()
+	a.Setup()
 
 	var newUserEmail string = "newtest@example.com"
 	var locale string = "en"
@@ -117,10 +119,11 @@ func TestSendEmailChangeVerifyEmail(t *testing.T) {
 }
 
 func TestSendEmailChangeEmail(t *testing.T) {
+	a := Global()
 	if testing.Short() {
 		t.SkipNow()
 	}
-	Setup()
+	a.Setup()
 
 	var oldEmail string = "test@example.com"
 	var newUserEmail string = "newtest@example.com"
@@ -167,10 +170,11 @@ func TestSendEmailChangeEmail(t *testing.T) {
 }
 
 func TestSendVerifyEmail(t *testing.T) {
+	a := Global()
 	if testing.Short() {
 		t.SkipNow()
 	}
-	Setup()
+	a.Setup()
 
 	var userEmail string = "test@example.com"
 	var locale string = "en"
@@ -221,10 +225,11 @@ func TestSendVerifyEmail(t *testing.T) {
 }
 
 func TestSendSignInChangeEmail(t *testing.T) {
+	a := Global()
 	if testing.Short() {
 		t.SkipNow()
 	}
-	Setup()
+	a.Setup()
 
 	var email string = "test@example.com"
 	var locale string = "en"
@@ -271,10 +276,11 @@ func TestSendSignInChangeEmail(t *testing.T) {
 }
 
 func TestSendWelcomeEmail(t *testing.T) {
+	a := Global()
 	if testing.Short() {
 		t.SkipNow()
 	}
-	Setup()
+	a.Setup()
 
 	var userId string = "32432nkjnijn432uj32"
 	var email string = "test@example.com"
@@ -287,7 +293,7 @@ func TestSendWelcomeEmail(t *testing.T) {
 	//Delete all the messages before check the sample email
 	utils.DeleteMailBox(email)
 
-	if err := SendWelcomeEmail(userId, email, verified, locale, siteURL); err != nil {
+	if err := a.SendWelcomeEmail(userId, email, verified, locale, siteURL); err != nil {
 		t.Log(err)
 		t.Fatal("Should send change username email")
 	} else {
@@ -324,7 +330,7 @@ func TestSendWelcomeEmail(t *testing.T) {
 	verified = false
 	var expectedVerifyEmail string = "Please verify your email address by clicking below."
 
-	if err := SendWelcomeEmail(userId, email, verified, locale, siteURL); err != nil {
+	if err := a.SendWelcomeEmail(userId, email, verified, locale, siteURL); err != nil {
 		t.Log(err)
 		t.Fatal("Should send change username email")
 	} else {
@@ -367,10 +373,11 @@ func TestSendWelcomeEmail(t *testing.T) {
 }
 
 func TestSendPasswordChangeEmail(t *testing.T) {
+	a := Global()
 	if testing.Short() {
 		t.SkipNow()
 	}
-	Setup()
+	a.Setup()
 
 	var email string = "test@example.com"
 	var locale string = "en"
@@ -417,10 +424,11 @@ func TestSendPasswordChangeEmail(t *testing.T) {
 }
 
 func TestSendMfaChangeEmail(t *testing.T) {
+	a := Global()
 	if testing.Short() {
 		t.SkipNow()
 	}
-	Setup()
+	a.Setup()
 
 	var email string = "test@example.com"
 	var locale string = "en"
@@ -504,10 +512,11 @@ func TestSendMfaChangeEmail(t *testing.T) {
 }
 
 func TestSendInviteEmails(t *testing.T) {
+	a := Global()
 	if testing.Short() {
 		t.SkipNow()
 	}
-	th := Setup().InitBasic()
+	th := a.Setup().InitBasic()
 
 	var email1 string = "test1@example.com"
 	var email2 string = "test2@example.com"
@@ -582,10 +591,11 @@ func TestSendInviteEmails(t *testing.T) {
 }
 
 func TestSendPasswordReset(t *testing.T) {
+	a := Global()
 	if testing.Short() {
 		t.SkipNow()
 	}
-	th := Setup().InitBasic()
+	th := a.Setup().InitBasic()
 
 	var siteURL string = "http://test.mattermost.io"
 	// var locale string = "en"
@@ -595,7 +605,7 @@ func TestSendPasswordReset(t *testing.T) {
 	//Delete all the messages before check the sample email
 	utils.DeleteMailBox(th.BasicUser.Email)
 
-	if _, err := SendPasswordReset(th.BasicUser.Email, siteURL); err != nil {
+	if _, err := a.SendPasswordReset(th.BasicUser.Email, siteURL); err != nil {
 		t.Log(err)
 		t.Fatal("Should send change username email")
 	} else {
@@ -620,7 +630,7 @@ func TestSendPasswordReset(t *testing.T) {
 				loc += 6
 				recoveryTokenString := resultsEmail.Body.Text[loc : loc+model.TOKEN_SIZE]
 				var recoveryToken *model.Token
-				if result := <-Srv.Store.Token().GetByToken(recoveryTokenString); result.Err != nil {
+				if result := <-a.Srv.Store.Token().GetByToken(recoveryTokenString); result.Err != nil {
 					t.Log(recoveryTokenString)
 					t.Fatal(result.Err)
 				} else {

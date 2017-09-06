@@ -47,7 +47,8 @@ func TestPluginSetting(t *testing.T) {
 }
 
 func TestDiagnostics(t *testing.T) {
-	Setup().InitBasic()
+	a := Global()
+	a.Setup().InitBasic()
 
 	if testing.Short() {
 		t.SkipNow()
@@ -91,7 +92,7 @@ func TestDiagnostics(t *testing.T) {
 	})
 
 	t.Run("SendDailyDiagnostics", func(t *testing.T) {
-		SendDailyDiagnostics()
+		a.SendDailyDiagnostics()
 
 		info := ""
 		// Collect the info sent.
@@ -151,7 +152,7 @@ func TestDiagnostics(t *testing.T) {
 			*utils.Cfg.LogSettings.EnableDiagnostics = oldSetting
 		}()
 
-		SendDailyDiagnostics()
+		a.SendDailyDiagnostics()
 
 		select {
 		case <-data:

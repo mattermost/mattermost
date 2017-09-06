@@ -60,14 +60,14 @@ type Routes struct {
 var BaseRoutes *Routes
 
 func InitRouter() {
-	app.Srv.Router = mux.NewRouter()
-	app.Srv.Router.NotFoundHandler = http.HandlerFunc(Handle404)
+	app.Global().Srv.Router = mux.NewRouter()
+	app.Global().Srv.Router.NotFoundHandler = http.HandlerFunc(Handle404)
 }
 
 func InitApi() {
 	BaseRoutes = &Routes{}
-	BaseRoutes.Root = app.Srv.Router
-	BaseRoutes.ApiRoot = app.Srv.Router.PathPrefix(model.API_URL_SUFFIX_V3).Subrouter()
+	BaseRoutes.Root = app.Global().Srv.Router
+	BaseRoutes.ApiRoot = app.Global().Srv.Router.PathPrefix(model.API_URL_SUFFIX_V3).Subrouter()
 	BaseRoutes.Users = BaseRoutes.ApiRoot.PathPrefix("/users").Subrouter()
 	BaseRoutes.NeedUser = BaseRoutes.Users.PathPrefix("/{user_id:[A-Za-z0-9]+}").Subrouter()
 	BaseRoutes.Teams = BaseRoutes.ApiRoot.PathPrefix("/teams").Subrouter()
@@ -111,7 +111,7 @@ func InitApi() {
 	InitDeprecated()
 
 	// 404 on any api route before web.go has a chance to serve it
-	app.Srv.Router.Handle("/api/{anything:.*}", http.HandlerFunc(Handle404))
+	app.Global().Srv.Router.Handle("/api/{anything:.*}", http.HandlerFunc(Handle404))
 
 	utils.InitHTML()
 

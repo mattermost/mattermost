@@ -7,10 +7,11 @@ import (
 	"fmt"
 	"net/url"
 
+	"net/http"
+
 	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
-	"net/http"
 )
 
 func SendChangeUsernameEmail(oldUsername, newUsername, email, locale, siteURL string) *model.AppError {
@@ -120,7 +121,7 @@ func SendSignInChangeEmail(email, method, locale, siteURL string) *model.AppErro
 	return nil
 }
 
-func SendWelcomeEmail(userId string, email string, verified bool, locale, siteURL string) *model.AppError {
+func (a *App) SendWelcomeEmail(userId string, email string, verified bool, locale, siteURL string) *model.AppError {
 	T := utils.GetUserTranslations(locale)
 
 	rawUrl, _ := url.Parse(siteURL)
@@ -144,7 +145,7 @@ func SendWelcomeEmail(userId string, email string, verified bool, locale, siteUR
 	}
 
 	if !verified {
-		token, err := CreateVerifyEmailToken(userId)
+		token, err := a.CreateVerifyEmailToken(userId)
 		if err != nil {
 			return err
 		}

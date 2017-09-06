@@ -34,7 +34,7 @@ func NewAutoUserCreator(client *model.Client, team *model.Team) *AutoUserCreator
 }
 
 // Basic test team and user so you always know one
-func CreateBasicUser(client *model.Client) *model.AppError {
+func (a *App) CreateBasicUser(client *model.Client) *model.AppError {
 	result, _ := client.FindTeamByName(BTEST_TEAM_NAME)
 	if result.Data.(bool) == false {
 		newteam := &model.Team{DisplayName: BTEST_TEAM_DISPLAY_NAME, Name: BTEST_TEAM_NAME, Email: BTEST_TEAM_EMAIL, Type: BTEST_TEAM_TYPE}
@@ -49,8 +49,8 @@ func CreateBasicUser(client *model.Client) *model.AppError {
 			return err
 		}
 		ruser := result.Data.(*model.User)
-		store.Must(Srv.Store.User().VerifyEmail(ruser.Id))
-		store.Must(Srv.Store.Team().SaveMember(&model.TeamMember{TeamId: basicteam.Id, UserId: ruser.Id}))
+		store.Must(a.Srv.Store.User().VerifyEmail(ruser.Id))
+		store.Must(a.Srv.Store.Team().SaveMember(&model.TeamMember{TeamId: basicteam.Id, UserId: ruser.Id}))
 	}
 	return nil
 }
@@ -81,14 +81,14 @@ func (cfg *AutoUserCreator) createRandomUser() (*model.User, bool) {
 	ruser := result.Data.(*model.User)
 
 	status := &model.Status{UserId: ruser.Id, Status: model.STATUS_ONLINE, Manual: false, LastActivityAt: model.GetMillis(), ActiveChannel: ""}
-	if result := <-Srv.Store.Status().SaveOrUpdate(status); result.Err != nil {
+	if result := <-Global().Srv.Store.Status().SaveOrUpdate(status); result.Err != nil {
 		result.Err.Translate(utils.T)
 		l4g.Error(result.Err.Error())
 		return nil, false
 	}
 
 	// We need to cheat to verify the user's email
-	store.Must(Srv.Store.User().VerifyEmail(ruser.Id))
+	store.Must(Global().Srv.Store.User().VerifyEmail(ruser.Id))
 
 	return result.Data.(*model.User), true
 }

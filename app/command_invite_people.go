@@ -63,7 +63,7 @@ func (me *InvitePeopleProvider) DoCommand(args *model.CommandArgs, message strin
 		return &model.CommandResponse{ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL, Text: args.T("api.command.invite_people.no_email")}
 	}
 
-	if err := InviteNewUsersToTeam(emailList, args.TeamId, args.UserId); err != nil {
+	if err := Global().InviteNewUsersToTeam(emailList, args.TeamId, args.UserId); err != nil {
 		l4g.Error(err.Error())
 		return &model.CommandResponse{ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL, Text: args.T("api.command.invite_people.fail")}
 	}

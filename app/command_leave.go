@@ -35,18 +35,18 @@ func (me *LeaveProvider) GetCommand(T goi18n.TranslateFunc) *model.Command {
 func (me *LeaveProvider) DoCommand(args *model.CommandArgs, message string) *model.CommandResponse {
 	var channel *model.Channel
 	var noChannelErr *model.AppError
-	if channel, noChannelErr = GetChannel(args.ChannelId); noChannelErr != nil {
+	if channel, noChannelErr = Global().GetChannel(args.ChannelId); noChannelErr != nil {
 		return &model.CommandResponse{Text: args.T("api.command_leave.fail.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 	}
 	if channel.Name == model.DEFAULT_CHANNEL {
 		return &model.CommandResponse{Text: args.T("api.channel.leave.default.app_error", map[string]interface{}{"Channel": model.DEFAULT_CHANNEL}), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 	}
-	err := LeaveChannel(args.ChannelId, args.UserId)
+	err := Global().LeaveChannel(args.ChannelId, args.UserId)
 	if err != nil {
 		return &model.CommandResponse{Text: args.T("api.command_leave.fail.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 	}
 
-	team, err := GetTeam(args.TeamId)
+	team, err := Global().GetTeam(args.TeamId)
 	if err != nil {
 		return &model.CommandResponse{Text: args.T("api.command_leave.fail.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 	}

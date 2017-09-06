@@ -34,7 +34,7 @@ func connect(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	wc := app.NewWebConn(ws, c.Session, c.T, c.Locale)
+	wc := c.App.NewWebConn(ws, c.Session, c.T, c.Locale)
 
 	if len(c.Session.UserId) > 0 {
 		app.HubRegister(wc)

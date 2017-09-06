@@ -13,8 +13,8 @@ import (
 func InitStatus() {
 	l4g.Debug(utils.T("wsapi.status.init.debug"))
 
-	app.Srv.WebSocketRouter.Handle("get_statuses", ApiWebSocketHandler(getStatuses))
-	app.Srv.WebSocketRouter.Handle("get_statuses_by_ids", ApiWebSocketHandler(getStatusesByIds))
+	app.Global().Srv.WebSocketRouter.Handle("get_statuses", ApiWebSocketHandler(getStatuses))
+	app.Global().Srv.WebSocketRouter.Handle("get_statuses_by_ids", ApiWebSocketHandler(getStatusesByIds))
 }
 
 func getStatuses(req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {
@@ -29,7 +29,7 @@ func getStatusesByIds(req *model.WebSocketRequest) (map[string]interface{}, *mod
 		return nil, NewInvalidWebSocketParamError(req.Action, "user_ids")
 	}
 
-	statusMap, err := app.GetStatusesByIds(userIds)
+	statusMap, err := app.Global().GetStatusesByIds(userIds)
 	if err != nil {
 		return nil, err
 	}

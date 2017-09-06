@@ -9,14 +9,15 @@ import (
 	"os"
 	"os/exec"
 
+	"os/signal"
+	"syscall"
+
 	"github.com/mattermost/platform/api"
 	"github.com/mattermost/platform/api4"
 	"github.com/mattermost/platform/app"
 	"github.com/mattermost/platform/utils"
 	"github.com/mattermost/platform/wsapi"
 	"github.com/spf13/cobra"
-	"os/signal"
-	"syscall"
 )
 
 var testCmd = &cobra.Command{
@@ -56,9 +57,9 @@ func webClientTestsCmdF(cmd *cobra.Command, args []string) error {
 	api.InitApi()
 	wsapi.InitApi()
 	setupClientTests()
-	app.StartServer()
+	app.Global().StartServer()
 	runWebClientTests()
-	app.StopServer()
+	app.Global().StopServer()
 
 	return nil
 }
@@ -75,13 +76,13 @@ func serverForWebClientTestsCmdF(cmd *cobra.Command, args []string) error {
 	api.InitApi()
 	wsapi.InitApi()
 	setupClientTests()
-	app.StartServer()
+	app.Global().StartServer()
 
 	c := make(chan os.Signal)
 	signal.Notify(c, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
 	<-c
 
-	app.StopServer()
+	app.Global().StopServer()
 
 	return nil
 }

@@ -4,12 +4,12 @@
 package api
 
 import (
+	"net/http"
+
 	l4g "github.com/alecthomas/log4go"
 	"github.com/gorilla/mux"
-	"github.com/mattermost/platform/app"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
-	"net/http"
 )
 
 func InitPreference() {
@@ -23,7 +23,7 @@ func InitPreference() {
 }
 
 func getAllPreferences(c *Context, w http.ResponseWriter, r *http.Request) {
-	if result := <-app.Srv.Store.Preference().GetAll(c.Session.UserId); result.Err != nil {
+	if result := <-c.App.Srv.Store.Preference().GetAll(c.Session.UserId); result.Err != nil {
 		c.Err = result.Err
 	} else {
 		data := result.Data.(model.Preferences)
@@ -39,7 +39,7 @@ func savePreferences(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := app.UpdatePreferences(c.Session.UserId, preferences); err != nil {
+	if err := c.App.UpdatePreferences(c.Session.UserId, preferences); err != nil {
 		c.Err = err
 		return
 	}
@@ -51,7 +51,7 @@ func getPreferenceCategory(c *Context, w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	category := params["category"]
 
-	if result := <-app.Srv.Store.Preference().GetCategory(c.Session.UserId, category); result.Err != nil {
+	if result := <-c.App.Srv.Store.Preference().GetCategory(c.Session.UserId, category); result.Err != nil {
 		c.Err = result.Err
 	} else {
 		data := result.Data.(model.Preferences)
@@ -65,7 +65,7 @@ func getPreference(c *Context, w http.ResponseWriter, r *http.Request) {
 	category := params["category"]
 	name := params["name"]
 
-	if result := <-app.Srv.Store.Preference().Get(c.Session.UserId, category, name); result.Err != nil {
+	if result := <-c.App.Srv.Store.Preference().Get(c.Session.UserId, category, name); result.Err != nil {
 		c.Err = result.Err
 	} else {
 		data := result.Data.(model.Preference)
@@ -80,7 +80,7 @@ func deletePreferences(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := app.DeletePreferences(c.Session.UserId, preferences); err != nil {
+	if err := c.App.DeletePreferences(c.Session.UserId, preferences); err != nil {
 		c.Err = err
 		return
 	}

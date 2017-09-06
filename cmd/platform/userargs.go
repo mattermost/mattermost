@@ -18,18 +18,18 @@ func getUsersFromUserArgs(userArgs []string) []*model.User {
 
 func getUserFromUserArg(userArg string) *model.User {
 	var user *model.User
-	if result := <-app.Srv.Store.User().GetByEmail(userArg); result.Err == nil {
+	if result := <-app.Global().Srv.Store.User().GetByEmail(userArg); result.Err == nil {
 		user = result.Data.(*model.User)
 	}
 
 	if user == nil {
-		if result := <-app.Srv.Store.User().GetByUsername(userArg); result.Err == nil {
+		if result := <-app.Global().Srv.Store.User().GetByUsername(userArg); result.Err == nil {
 			user = result.Data.(*model.User)
 		}
 	}
 
 	if user == nil {
-		if result := <-app.Srv.Store.User().Get(userArg); result.Err == nil {
+		if result := <-app.Global().Srv.Store.User().Get(userArg); result.Err == nil {
 			user = result.Data.(*model.User)
 		}
 	}

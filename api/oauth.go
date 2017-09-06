@@ -43,7 +43,7 @@ func registerOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	oauthApp.CreatorId = c.Session.UserId
 
-	rapp, err := app.CreateOAuthApp(oauthApp)
+	rapp, err := c.App.CreateOAuthApp(oauthApp)
 
 	if err != nil {
 		c.Err = err
@@ -63,9 +63,9 @@ func getOAuthApps(c *Context, w http.ResponseWriter, r *http.Request) {
 	var apps []*model.OAuthApp
 	var err *model.AppError
 	if app.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM_WIDE_OAUTH) {
-		apps, err = app.GetOAuthApps(0, 100000)
+		apps, err = c.App.GetOAuthApps(0, 100000)
 	} else {
-		apps, err = app.GetOAuthAppsByCreator(c.Session.UserId, 0, 100000)
+		apps, err = c.App.GetOAuthAppsByCreator(c.Session.UserId, 0, 100000)
 	}
 
 	if err != nil {
@@ -80,7 +80,7 @@ func getOAuthAppInfo(c *Context, w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	clientId := params["client_id"]
 
-	oauthApp, err := app.GetOAuthApp(clientId)
+	oauthApp, err := c.App.GetOAuthApp(clientId)
 
 	if err != nil {
 		c.Err = err
@@ -123,7 +123,7 @@ func allowOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 		State:        state,
 	}
 
-	redirectUrl, err := app.AllowOAuthAppAccessToUser(c.Session.UserId, authRequest)
+	redirectUrl, err := c.App.AllowOAuthAppAccessToUser(c.Session.UserId, authRequest)
 
 	if err != nil {
 		c.Err = err
@@ -136,7 +136,7 @@ func allowOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getAuthorizedApps(c *Context, w http.ResponseWriter, r *http.Request) {
-	apps, err := app.GetAuthorizedAppsForUser(c.Session.UserId, 0, 10000)
+	apps, err := c.App.GetAuthorizedAppsForUser(c.Session.UserId, 0, 10000)
 	if err != nil {
 		c.Err = err
 		return
@@ -151,13 +151,13 @@ func loginWithOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	loginHint := r.URL.Query().Get("login_hint")
 	redirectTo := r.URL.Query().Get("redirect_to")
 
-	teamId, err := app.GetTeamIdFromQuery(r.URL.Query())
+	teamId, err := c.App.GetTeamIdFromQuery(r.URL.Query())
 	if err != nil {
 		c.Err = err
 		return
 	}
 
-	if authUrl, err := app.GetOAuthLoginEndpoint(w, r, service, teamId, model.OAUTH_ACTION_LOGIN, redirectTo, loginHint); err != nil {
+	if authUrl, err := c.App.GetOAuthLoginEndpoint(w, r, service, teamId, model.OAUTH_ACTION_LOGIN, redirectTo, loginHint); err != nil {
 		c.Err = err
 		return
 	} else {
@@ -174,13 +174,13 @@ func signupWithOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	teamId, err := app.GetTeamIdFromQuery(r.URL.Query())
+	teamId, err := c.App.GetTeamIdFromQuery(r.URL.Query())
 	if err != nil {
 		c.Err = err
 		return
 	}
 
-	if authUrl, err := app.GetOAuthSignupEndpoint(w, r, service, teamId); err != nil {
+	if authUrl, err := c.App.GetOAuthSignupEndpoint(w, r, service, teamId); err != nil {
 		c.Err = err
 		return
 	} else {
@@ -204,7 +204,7 @@ func deleteOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	oauthApp, err := app.GetOAuthApp(id)
+	oauthApp, err := c.App.GetOAuthApp(id)
 	if err != nil {
 		c.Err = err
 		return
@@ -216,7 +216,7 @@ func deleteOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = app.DeleteOAuthApp(id)
+	err = c.App.DeleteOAuthApp(id)
 	if err != nil {
 		c.Err = err
 		return
@@ -230,7 +230,7 @@ func deauthorizeOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	id := params["id"]
 
-	err := app.DeauthorizeOAuthAppForUser(c.Session.UserId, id)
+	err := c.App.DeauthorizeOAuthAppForUser(c.Session.UserId, id)
 	if err != nil {
 		c.Err = err
 		return
@@ -244,7 +244,7 @@ func regenerateOAuthSecret(c *Context, w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	id := params["id"]
 
-	oauthApp, err := app.GetOAuthApp(id)
+	oauthApp, err := c.App.GetOAuthApp(id)
 	if err != nil {
 		c.Err = err
 		return
@@ -255,7 +255,7 @@ func regenerateOAuthSecret(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	oauthApp, err = app.RegenerateOAuthAppSecret(oauthApp)
+	oauthApp, err = c.App.RegenerateOAuthAppSecret(oauthApp)
 	if err != nil {
 		c.Err = err
 		return

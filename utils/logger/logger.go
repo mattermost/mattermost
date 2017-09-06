@@ -11,10 +11,11 @@ import (
 
 	l4g "github.com/alecthomas/log4go"
 
+	"strings"
+
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
 	"github.com/pkg/errors"
-	"strings"
 )
 
 // this pattern allows us to "mock" the underlying l4g code when unit testing

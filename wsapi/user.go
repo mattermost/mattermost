@@ -13,7 +13,7 @@ import (
 func InitUser() {
 	l4g.Debug(utils.T("wsapi.user.init.debug"))
 
-	app.Srv.WebSocketRouter.Handle("user_typing", ApiWebSocketHandler(userTyping))
+	app.Global().Srv.WebSocketRouter.Handle("user_typing", ApiWebSocketHandler(userTyping))
 }
 
 func userTyping(req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {

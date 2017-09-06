@@ -25,13 +25,13 @@ import (
 	"github.com/nicksnyder/go-i18n/i18n"
 )
 
-func SendNotifications(post *model.Post, team *model.Team, channel *model.Channel, sender *model.User, parentPostList *model.PostList) ([]string, *model.AppError) {
-	pchan := Srv.Store.User().GetAllProfilesInChannel(channel.Id, true)
-	cmnchan := Srv.Store.Channel().GetAllChannelMembersNotifyPropsForChannel(channel.Id, true)
+func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *model.Channel, sender *model.User, parentPostList *model.PostList) ([]string, *model.AppError) {
+	pchan := a.Srv.Store.User().GetAllProfilesInChannel(channel.Id, true)
+	cmnchan := a.Srv.Store.Channel().GetAllChannelMembersNotifyPropsForChannel(channel.Id, true)
 	var fchan store.StoreChannel
 
 	if len(post.FileIds) != 0 {
-		fchan = Srv.Store.FileInfo().GetForPost(post.Id, true, true)
+		fchan = a.Srv.Store.FileInfo().GetForPost(post.Id, true, true)
 	}
 
 	var profileMap map[string]*model.User
@@ -92,7 +92,7 @@ func SendNotifications(post *model.Post, team *model.Team, channel *model.Channe
 		}
 
 		if len(potentialOtherMentions) > 0 {
-			if result := <-Srv.Store.User().GetProfilesByUsernames(potentialOtherMentions, team.Id); result.Err == nil {
+			if result := <-a.Srv.Store.User().GetProfilesByUsernames(potentialOtherMentions, team.Id); result.Err == nil {
 				outOfChannelMentions := result.Data.([]*model.User)
 				if channel.Type != model.CHANNEL_GROUP {
 					go sendOutOfChannelMentions(sender, post, team.Id, outOfChannelMentions)
@@ -114,7 +114,7 @@ func SendNotifications(post *model.Post, team *model.Team, channel *model.Channe
 	mentionedUsersList := make([]string, 0, len(mentionedUserIds))
 	for id := range mentionedUserIds {
 		mentionedUsersList = append(mentionedUsersList, id)
-		updateMentionChans = append(updateMentionChans, Srv.Store.Channel().IncrementMentionCount(post.ChannelId, id))
+		updateMentionChans = append(updateMentionChans, a.Srv.Store.Channel().IncrementMentionCount(post.ChannelId, id))
 	}
 
 	senderName := ""
@@ -166,7 +166,7 @@ func SendNotifications(post *model.Post, team *model.Team, channel *model.Channe
 
 			var status *model.Status
 			var err *model.AppError
-			if status, err = GetStatus(id); err != nil {
+			if status, err = a.GetStatus(id); err != nil {
 				status = &model.Status{
 					UserId:         id,
 					Status:         model.STATUS_OFFLINE,
@@ -177,7 +177,7 @@ func SendNotifications(post *model.Post, team *model.Team, channel *model.Channe
 			}
 
 			if userAllowsEmails && status.Status != model.STATUS_ONLINE && profileMap[id].DeleteAt == 0 {
-				sendNotificationEmail(post, profileMap[id], channel, team, senderName, sender)
+				a.sendNotificationEmail(post, profileMap[id], channel, team, senderName, sender)
 			}
 		}
 	}
@@ -245,12 +245,12 @@ func SendNotifications(post *model.Post, team *model.Team, channel *model.Channe
 		for _, id := range mentionedUsersList {
 			var status *model.Status
 			var err *model.AppError
-			if status, err = GetStatus(id); err != nil {
+			if status, err = a.GetStatus(id); err != nil {
 				status = &model.Status{UserId: id, Status: model.STATUS_OFFLINE, Manual: false, LastActivityAt: 0, ActiveChannel: ""}
 			}
 
 			if ShouldSendPushNotification(profileMap[id], channelMemberNotifyPropsMap[id], true, status, post) {
-				sendPushNotification(post, profileMap[id], channel, senderName, channelName, true)
+				a.sendPushNotification(post, profileMap[id], channel, senderName, channelName, true)
 			}
 		}
 
@@ -258,12 +258,12 @@ func SendNotifications(post *model.Post, team *model.Team, channel *model.Channe
 			if _, ok := mentionedUserIds[id]; !ok {
 				var status *model.Status
 				var err *model.AppError
-				if status, err = GetStatus(id); err != nil {
+				if status, err = a.GetStatus(id); err != nil {
 					status = &model.Status{UserId: id, Status: model.STATUS_OFFLINE, Manual: false, LastActivityAt: 0, ActiveChannel: ""}
 				}
 
 				if ShouldSendPushNotification(profileMap[id], channelMemberNotifyPropsMap[id], false, status, post) {
-					sendPushNotification(post, profileMap[id], channel, senderName, channelName, false)
+					a.sendPushNotification(post, profileMap[id], channel, senderName, channelName, false)
 				}
 			}
 		}
@@ -303,9 +303,9 @@ func SendNotifications(post *model.Post, team *model.Team, channel *model.Channe
 	return mentionedUsersList, nil
 }
 
-func sendNotificationEmail(post *model.Post, user *model.User, channel *model.Channel, team *model.Team, senderName string, sender *model.User) *model.AppError {
+func (a *App) sendNotificationEmail(post *model.Post, user *model.User, channel *model.Channel, team *model.Team, senderName string, sender *model.User) *model.AppError {
 	if channel.IsGroupOrDirect() {
-		if result := <-Srv.Store.Team().GetTeamsByUserId(user.Id); result.Err != nil {
+		if result := <-a.Srv.Store.Team().GetTeamsByUserId(user.Id); result.Err != nil {
 			return result.Err
 		} else {
 			// if the recipient isn't in the current user's team, just pick one
@@ -329,7 +329,7 @@ func sendNotificationEmail(post *model.Post, user *model.User, channel *model.Ch
 	}
 	if *utils.Cfg.EmailSettings.EnableEmailBatching {
 		var sendBatched bool
-		if result := <-Srv.Store.Preference().Get(user.Id, model.PREFERENCE_CATEGORY_NOTIFICATIONS, model.PREFERENCE_NAME_EMAIL_INTERVAL); result.Err != nil {
+		if result := <-a.Srv.Store.Preference().Get(user.Id, model.PREFERENCE_CATEGORY_NOTIFICATIONS, model.PREFERENCE_NAME_EMAIL_INTERVAL); result.Err != nil {
 			// if the call fails, assume that the interval has not been explicitly set and batch the notifications
 			sendBatched = true
 		} else {
@@ -361,7 +361,7 @@ func sendNotificationEmail(post *model.Post, user *model.User, channel *model.Ch
 	}
 
 	teamURL := utils.GetSiteURL() + "/" + team.Name
-	var bodyText = getNotificationEmailBody(user, post, channel, senderName, team.Name, teamURL, emailNotificationContentsType, translateFunc)
+	var bodyText = a.getNotificationEmailBody(user, post, channel, senderName, team.Name, teamURL, emailNotificationContentsType, translateFunc)
 
 	go func() {
 		if err := utils.SendMail(user.Email, html.UnescapeString(subjectText), bodyText); err != nil {
@@ -409,12 +409,12 @@ func getNotificationEmailSubject(post *model.Post, translateFunc i18n.TranslateF
 /**
  * Computes the email body for notification messages
  */
-func getNotificationEmailBody(recipient *model.User, post *model.Post, channel *model.Channel, senderName string, teamName string, teamURL string, emailNotificationContentsType string, translateFunc i18n.TranslateFunc) string {
+func (a *App) getNotificationEmailBody(recipient *model.User, post *model.Post, channel *model.Channel, senderName string, teamName string, teamURL string, emailNotificationContentsType string, translateFunc i18n.TranslateFunc) string {
 	// only include message contents in notification email if email notification contents type is set to full
 	var bodyPage *utils.HTMLTemplate
 	if emailNotificationContentsType == model.EMAIL_NOTIFICATION_CONTENTS_FULL {
 		bodyPage = utils.NewHTMLTemplate("post_body_full", recipient.Locale)
-		bodyPage.Props["PostMessage"] = GetMessageForNotification(post, translateFunc)
+		bodyPage.Props["PostMessage"] = a.GetMessageForNotification(post, translateFunc)
 	} else {
 		bodyPage = utils.NewHTMLTemplate("post_body_generic", recipient.Locale)
 	}
@@ -519,14 +519,14 @@ func getFormattedPostTime(post *model.Post, translateFunc i18n.TranslateFunc) fo
 	}
 }
 
-func GetMessageForNotification(post *model.Post, translateFunc i18n.TranslateFunc) string {
+func (a *App) GetMessageForNotification(post *model.Post, translateFunc i18n.TranslateFunc) string {
 	if len(strings.TrimSpace(post.Message)) != 0 || len(post.FileIds) == 0 {
 		return post.Message
 	}
 
 	// extract the filenames from their paths and determine what type of files are attached
 	var infos []*model.FileInfo
-	if result := <-Srv.Store.FileInfo().GetForPost(post.Id, true, true); result.Err != nil {
+	if result := <-a.Srv.Store.FileInfo().GetForPost(post.Id, true, true); result.Err != nil {
 		l4g.Warn(utils.T("api.post.get_message_for_notification.get_files.error"), post.Id, result.Err)
 	} else {
 		infos = result.Data.([]*model.FileInfo)
@@ -554,8 +554,8 @@ func GetMessageForNotification(post *model.Post, translateFunc i18n.TranslateFun
 	}
 }
 
-func sendPushNotification(post *model.Post, user *model.User, channel *model.Channel, senderName, channelName string, wasMentioned bool) *model.AppError {
-	sessions, err := getMobileAppSessions(user.Id)
+func (a *App) sendPushNotification(post *model.Post, user *model.User, channel *model.Channel, senderName, channelName string, wasMentioned bool) *model.AppError {
+	sessions, err := a.getMobileAppSessions(user.Id)
 	if err != nil {
 		return err
 	}
@@ -567,7 +567,7 @@ func sendPushNotification(post *model.Post, user *model.User, channel *model.Cha
 	userLocale := utils.GetUserTranslations(user.Locale)
 
 	msg := model.PushNotification{}
-	if badge := <-Srv.Store.User().GetUnreadCount(user.Id); badge.Err != nil {
+	if badge := <-a.Srv.Store.User().GetUnreadCount(user.Id); badge.Err != nil {
 		msg.Badge = 1
 		l4g.Error(utils.T("store.sql_user.get_unread_count.app_error"), user.Id, badge.Err)
 	} else {
@@ -639,7 +639,7 @@ func sendPushNotification(post *model.Post, user *model.User, channel *model.Cha
 
 		l4g.Debug("Sending push notification to device %v for user %v with msg of '%v'", tmpMessage.DeviceId, user.Id, msg.Message)
 
-		go sendToPushProxy(tmpMessage, session)
+		go a.sendToPushProxy(tmpMessage, session)
 
 		if einterfaces.GetMetricsInterface() != nil {
 			einterfaces.GetMetricsInterface().IncrementPostSentPush()
@@ -649,8 +649,8 @@ func sendPushNotification(post *model.Post, user *model.User, channel *model.Cha
 	return nil
 }
 
-func ClearPushNotification(userId string, channelId string) *model.AppError {
-	sessions, err := getMobileAppSessions(userId)
+func (a *App) ClearPushNotification(userId string, channelId string) *model.AppError {
+	sessions, err := a.getMobileAppSessions(userId)
 	if err != nil {
 		return err
 	}
@@ -659,7 +659,7 @@ func ClearPushNotification(userId string, channelId string) *model.AppError {
 	msg.Type = model.PUSH_TYPE_CLEAR
 	msg.ChannelId = channelId
 	msg.ContentAvailable = 0
-	if badge := <-Srv.Store.User().GetUnreadCount(userId); badge.Err != nil {
+	if badge := <-a.Srv.Store.User().GetUnreadCount(userId); badge.Err != nil {
 		msg.Badge = 0
 		l4g.Error(utils.T("store.sql_user.get_unread_count.app_error"), userId, badge.Err)
 	} else {
@@ -671,13 +671,13 @@ func ClearPushNotification(userId string, channelId string) *model.AppError {
 	for _, session := range sessions {
 		tmpMessage := *model.PushNotificationFromJson(strings.NewReader(msg.ToJson()))
 		tmpMessage.SetDeviceIdAndPlatform(session.DeviceId)
-		go sendToPushProxy(tmpMessage, session)
+		go a.sendToPushProxy(tmpMessage, session)
 	}
 
 	return nil
 }
 
-func sendToPushProxy(msg model.PushNotification, session *model.Session) {
+func (a *App) sendToPushProxy(msg model.PushNotification, session *model.Session) {
 	msg.ServerId = utils.CfgDiagnosticId
 
 	request, _ := http.NewRequest("POST", *utils.Cfg.EmailSettings.PushNotificationServer+model.API_URL_SUFFIX_V1+"/send_push", strings.NewReader(msg.ToJson()))
@@ -693,7 +693,7 @@ func sendToPushProxy(msg model.PushNotification, session *model.Session) {
 
 		if pushResponse[model.PUSH_STATUS] == model.PUSH_STATUS_REMOVE {
 			l4g.Info("Device was reported as removed for UserId=%v SessionId=%v removing push for this session", session.UserId, session.Id)
-			AttachDeviceId(session.Id, "", session.ExpiresAt)
+			a.AttachDeviceId(session.Id, "", session.ExpiresAt)
 			ClearSessionCacheForUser(session.UserId)
 		}
 
@@ -703,8 +703,8 @@ func sendToPushProxy(msg model.PushNotification, session *model.Session) {
 	}
 }
 
-func getMobileAppSessions(userId string) ([]*model.Session, *model.AppError) {
-	if result := <-Srv.Store.Session().GetSessionsWithActiveDeviceIds(userId); result.Err != nil {
+func (a *App) getMobileAppSessions(userId string) ([]*model.Session, *model.AppError) {
+	if result := <-a.Srv.Store.Session().GetSessionsWithActiveDeviceIds(userId); result.Err != nil {
 		return nil, result.Err
 	} else {
 		return result.Data.([]*model.Session), nil

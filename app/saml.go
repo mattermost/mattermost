@@ -9,10 +9,11 @@ import (
 	"net/http"
 	"os"
 
+	"path/filepath"
+
 	"github.com/mattermost/platform/einterfaces"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
-	"path/filepath"
 )
 
 func GetSamlMetadata() (string, *model.AppError) {

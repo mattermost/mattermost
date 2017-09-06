@@ -170,7 +170,7 @@ func createChannelCmdF(cmd *cobra.Command, args []string) error {
 		CreatorId:   "",
 	}
 
-	if _, err := app.CreateChannel(channel, false); err != nil {
+	if _, err := app.Global().CreateChannel(channel, false); err != nil {
 		return err
 	}
 
@@ -208,7 +208,7 @@ func removeUserFromChannel(channel *model.Channel, user *model.User, userArg str
 		CommandPrintErrorln("Can't find user '" + userArg + "'")
 		return
 	}
-	if err := app.RemoveUserFromChannel(user.Id, "", channel); err != nil {
+	if err := app.Global().RemoveUserFromChannel(user.Id, "", channel); err != nil {
 		CommandPrintErrorln("Unable to remove '" + userArg + "' from " + channel.Name + ". Error: " + err.Error())
 	}
 }
@@ -244,7 +244,7 @@ func addUserToChannel(channel *model.Channel, user *model.User, userArg string) 
 		CommandPrintErrorln("Can't find user '" + userArg + "'")
 		return
 	}
-	if _, err := app.AddUserToChannel(user, channel); err != nil {
+	if _, err := app.Global().AddUserToChannel(user, channel); err != nil {
 		CommandPrintErrorln("Unable to add '" + userArg + "' from " + channel.Name + ". Error: " + err.Error())
 	}
 }
@@ -264,7 +264,7 @@ func archiveChannelsCmdF(cmd *cobra.Command, args []string) error {
 			CommandPrintErrorln("Unable to find channel '" + args[i] + "'")
 			continue
 		}
-		if result := <-app.Srv.Store.Channel().Delete(channel.Id, model.GetMillis()); result.Err != nil {
+		if result := <-app.Global().Srv.Store.Channel().Delete(channel.Id, model.GetMillis()); result.Err != nil {
 			CommandPrintErrorln("Unable to archive channel '" + channel.Name + "' error: " + result.Err.Error())
 		}
 	}
@@ -308,7 +308,7 @@ func deleteChannelsCmdF(cmd *cobra.Command, args []string) error {
 }
 
 func deleteChannel(channel *model.Channel) *model.AppError {
-	return app.PermanentDeleteChannel(channel)
+	return app.Global().PermanentDeleteChannel(channel)
 }
 
 func moveChannelsCmdF(cmd *cobra.Command, args []string) error {
@@ -344,30 +344,30 @@ func moveChannelsCmdF(cmd *cobra.Command, args []string) error {
 func moveChannel(team *model.Team, channel *model.Channel) *model.AppError {
 	oldTeamId := channel.TeamId
 
-	if err := app.MoveChannel(team, channel); err != nil {
+	if err := app.Global().MoveChannel(team, channel); err != nil {
 		return err
 	}
 
-	if incomingWebhooks, err := app.GetIncomingWebhooksForTeamPage(oldTeamId, 0, 10000000); err != nil {
+	if incomingWebhooks, err := app.Global().GetIncomingWebhooksForTeamPage(oldTeamId, 0, 10000000); err != nil {
 		return err
 	} else {
 		for _, webhook := range incomingWebhooks {
 			if webhook.ChannelId == channel.Id {
 				webhook.TeamId = team.Id
-				if result := <-app.Srv.Store.Webhook().UpdateIncoming(webhook); result.Err != nil {
+				if result := <-app.Global().Srv.Store.Webhook().UpdateIncoming(webhook); result.Err != nil {
 					CommandPrintErrorln("Failed to move incoming webhook '" + webhook.Id + "' to new team.")
 				}
 			}
 		}
 	}
 
-	if outgoingWebhooks, err := app.GetOutgoingWebhooksForTeamPage(oldTeamId, 0, 10000000); err != nil {
+	if outgoingWebhooks, err := app.Global().GetOutgoingWebhooksForTeamPage(oldTeamId, 0, 10000000); err != nil {
 		return err
 	} else {
 		for _, webhook := range outgoingWebhooks {
 			if webhook.ChannelId == channel.Id {
 				webhook.TeamId = team.Id
-				if result := <-app.Srv.Store.Webhook().UpdateOutgoing(webhook); result.Err != nil {
+				if result := <-app.Global().Srv.Store.Webhook().UpdateOutgoing(webhook); result.Err != nil {
 					CommandPrintErrorln("Failed to move outgoing webhook '" + webhook.Id + "' to new team.")
 				}
 			}
@@ -396,7 +396,7 @@ func listChannelsCmdF(cmd *cobra.Command, args []string) error {
 			CommandPrintErrorln("Unable to find team '" + args[i] + "'")
 			continue
 		}
-		if result := <-app.Srv.Store.Channel().GetAll(team.Id); result.Err != nil {
+		if result := <-app.Global().Srv.Store.Channel().GetAll(team.Id); result.Err != nil {
 			CommandPrintErrorln("Unable to list channels for '" + args[i] + "'")
 		} else {
 			channels := result.Data.([]*model.Channel)
@@ -433,7 +433,7 @@ func restoreChannelsCmdF(cmd *cobra.Command, args []string) error {
 			CommandPrintErrorln("Unable to find channel '" + args[i] + "'")
 			continue
 		}
-		if result := <-app.Srv.Store.Channel().SetDeleteAt(channel.Id, 0, model.GetMillis()); result.Err != nil {
+		if result := <-app.Global().Srv.Store.Channel().SetDeleteAt(channel.Id, 0, model.GetMillis()); result.Err != nil {
 			CommandPrintErrorln("Unable to restore channel '" + args[i] + "'")
 		}
 	}
@@ -475,7 +475,7 @@ func modifyChannelCmdF(cmd *cobra.Command, args []string) error {
 		channel.Type = model.CHANNEL_PRIVATE
 	}
 
-	if _, err := app.UpdateChannel(channel); err != nil {
+	if _, err := app.Global().UpdateChannel(channel); err != nil {
 		return errors.New("Failed to update channel '" + args[0] + "' - " + err.Error())
 	}
 

@@ -33,7 +33,7 @@ func getPreferences(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if preferences, err := app.GetPreferencesForUser(c.Params.UserId); err != nil {
+	if preferences, err := c.App.GetPreferencesForUser(c.Params.UserId); err != nil {
 		c.Err = err
 		return
 	} else {
@@ -53,7 +53,7 @@ func getPreferencesByCategory(c *Context, w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	if preferences, err := app.GetPreferenceByCategoryForUser(c.Params.UserId, c.Params.Category); err != nil {
+	if preferences, err := c.App.GetPreferenceByCategoryForUser(c.Params.UserId, c.Params.Category); err != nil {
 		c.Err = err
 		return
 	} else {
@@ -73,7 +73,7 @@ func getPreferenceByCategoryAndName(c *Context, w http.ResponseWriter, r *http.R
 		return
 	}
 
-	if preferences, err := app.GetPreferenceByCategoryAndNameForUser(c.Params.UserId, c.Params.Category, c.Params.PreferenceName); err != nil {
+	if preferences, err := c.App.GetPreferenceByCategoryAndNameForUser(c.Params.UserId, c.Params.Category, c.Params.PreferenceName); err != nil {
 		c.Err = err
 		return
 	} else {
@@ -99,7 +99,7 @@ func updatePreferences(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := app.UpdatePreferences(c.Params.UserId, preferences); err != nil {
+	if err := c.App.UpdatePreferences(c.Params.UserId, preferences); err != nil {
 		c.Err = err
 		return
 	}
@@ -124,7 +124,7 @@ func deletePreferences(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := app.DeletePreferences(c.Params.UserId, preferences); err != nil {
+	if err := c.App.DeletePreferences(c.Params.UserId, preferences); err != nil {
 		c.Err = err
 		return
 	}

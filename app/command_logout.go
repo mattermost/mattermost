@@ -39,7 +39,7 @@ func (me *LogoutProvider) DoCommand(args *model.CommandArgs, message string) *mo
 
 	// We can't actually remove the user's cookie from here so we just dump their session and let the browser figure it out
 	if args.Session.Id != "" {
-		if err := RevokeSessionById(args.Session.Id); err != nil {
+		if err := Global().RevokeSessionById(args.Session.Id); err != nil {
 			return FAIL
 		}
 		return SUCCESS

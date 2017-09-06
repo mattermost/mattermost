@@ -3,7 +3,6 @@ package api4
 import (
 	"testing"
 
-	"github.com/mattermost/platform/app"
 	"github.com/mattermost/platform/model"
 )
 
@@ -18,21 +17,21 @@ func TestGetUserStatus(t *testing.T) {
 		t.Fatal("Should return offline status")
 	}
 
-	app.SetStatusOnline(th.BasicUser.Id, "", true)
+	th.App.SetStatusOnline(th.BasicUser.Id, "", true)
 	userStatus, resp = Client.GetUserStatus(th.BasicUser.Id, "")
 	CheckNoError(t, resp)
 	if userStatus.Status != "online" {
 		t.Fatal("Should return online status")
 	}
 
-	app.SetStatusAwayIfNeeded(th.BasicUser.Id, true)
+	th.App.SetStatusAwayIfNeeded(th.BasicUser.Id, true)
 	userStatus, resp = Client.GetUserStatus(th.BasicUser.Id, "")
 	CheckNoError(t, resp)
 	if userStatus.Status != "away" {
 		t.Fatal("Should return away status")
 	}
 
-	app.SetStatusOffline(th.BasicUser.Id, true)
+	th.App.SetStatusOffline(th.BasicUser.Id, true)
 	userStatus, resp = Client.GetUserStatus(th.BasicUser.Id, "")
 	CheckNoError(t, resp)
 	if userStatus.Status != "offline" {
@@ -70,8 +69,8 @@ func TestGetUsersStatusesByIds(t *testing.T) {
 		}
 	}
 
-	app.SetStatusOnline(th.BasicUser.Id, "", true)
-	app.SetStatusOnline(th.BasicUser2.Id, "", true)
+	th.App.SetStatusOnline(th.BasicUser.Id, "", true)
+	th.App.SetStatusOnline(th.BasicUser2.Id, "", true)
 	usersStatuses, resp = Client.GetUsersStatusesByIds(usersIds)
 	CheckNoError(t, resp)
 	for _, userStatus := range usersStatuses {
@@ -80,8 +79,8 @@ func TestGetUsersStatusesByIds(t *testing.T) {
 		}
 	}
 
-	app.SetStatusAwayIfNeeded(th.BasicUser.Id, true)
-	app.SetStatusAwayIfNeeded(th.BasicUser2.Id, true)
+	th.App.SetStatusAwayIfNeeded(th.BasicUser.Id, true)
+	th.App.SetStatusAwayIfNeeded(th.BasicUser2.Id, true)
 	usersStatuses, resp = Client.GetUsersStatusesByIds(usersIds)
 	CheckNoError(t, resp)
 	for _, userStatus := range usersStatuses {

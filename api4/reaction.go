@@ -37,12 +37,12 @@ func saveReaction(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !app.SessionHasPermissionToChannelByPost(c.Session, reaction.PostId, model.PERMISSION_READ_CHANNEL) {
+	if !c.App.SessionHasPermissionToChannelByPost(c.Session, reaction.PostId, model.PERMISSION_READ_CHANNEL) {
 		c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
 		return
 	}
 
-	if reaction, err := app.SaveReactionForPost(reaction); err != nil {
+	if reaction, err := c.App.SaveReactionForPost(reaction); err != nil {
 		c.Err = err
 		return
 	} else {
@@ -57,12 +57,12 @@ func getReactions(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !app.SessionHasPermissionToChannelByPost(c.Session, c.Params.PostId, model.PERMISSION_READ_CHANNEL) {
+	if !c.App.SessionHasPermissionToChannelByPost(c.Session, c.Params.PostId, model.PERMISSION_READ_CHANNEL) {
 		c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
 		return
 	}
 
-	if reactions, err := app.GetReactionsForPost(c.Params.PostId); err != nil {
+	if reactions, err := c.App.GetReactionsForPost(c.Params.PostId); err != nil {
 		c.Err = err
 		return
 	} else {
@@ -87,7 +87,7 @@ func deleteReaction(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !app.SessionHasPermissionToChannelByPost(c.Session, c.Params.PostId, model.PERMISSION_READ_CHANNEL) {
+	if !c.App.SessionHasPermissionToChannelByPost(c.Session, c.Params.PostId, model.PERMISSION_READ_CHANNEL) {
 		c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
 		return
 	}
@@ -103,7 +103,7 @@ func deleteReaction(c *Context, w http.ResponseWriter, r *http.Request) {
 		EmojiName: c.Params.EmojiName,
 	}
 
-	err := app.DeleteReactionForPost(reaction)
+	err := c.App.DeleteReactionForPost(reaction)
 	if err != nil {
 		c.Err = err
 		return
