@@ -11,14 +11,13 @@ import (
 
 	"runtime/debug"
 
-	"net/http"
-
 	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/platform/einterfaces"
 	"github.com/mattermost/platform/jobs"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/store"
 	"github.com/mattermost/platform/utils"
+	"net/http"
 )
 
 func GetLogs(page, perPage int) ([]string, *model.AppError) {
@@ -152,34 +151,6 @@ func SaveConfig(cfg *model.Config, sendConfigChangeClusterMessage bool) *model.A
 
 	if err := utils.ValidateLdapFilter(cfg); err != nil {
 		return err
-	}
-
-	if *cfg.FileSettings.DriverName == model.IMAGE_DRIVER_S3 {
-		if !utils.ValidateAmazonS3Endpoint(*cfg.FileSettings.AmazonS3Endpoint) {
-			*cfg.FileSettings.AmazonS3Endpoint = model.FILE_SETTINGS_DEFAULT_AMAZON_S3_ENDPOINT
-			l4g.Warn(utils.T("utils.config.set_amazon_endpoint"), model.FILE_SETTINGS_DEFAULT_AMAZON_S3_ENDPOINT)
-		}
-
-		if !utils.ValidateAmazonS3Region(*cfg.FileSettings.AmazonS3Region) {
-			*cfg.FileSettings.AmazonS3Region = model.FILE_SETTINGS_DEFAULT_AMAZON_S3_REGION
-			l4g.Warn(utils.T("utils.config.set_amazon_region"), model.FILE_SETTINGS_DEFAULT_AMAZON_S3_REGION)
-		}
-
-		_, bucketLocation, err := utils.ValidateAmazonS3Bucket(cfg)
-		if err != nil {
-			return err
-		}
-
-		for endpoint, region := range utils.AWS_S3_ENDPOINT_MAP {
-			if bucketLocation == *cfg.FileSettings.AmazonS3Region {
-				*cfg.FileSettings.AmazonS3Endpoint = endpoint
-				l4g.Warn(utils.T("utils.config.set_amazon_endpoint"), endpoint)
-
-				*cfg.FileSettings.AmazonS3Region = region
-				l4g.Warn(utils.T("utils.config.set_amazon_region"), region)
-				break
-			}
-		}
 	}
 
 	if *utils.Cfg.ClusterSettings.Enable && *utils.Cfg.ClusterSettings.ReadOnlyConfig {
