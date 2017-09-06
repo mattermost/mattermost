@@ -2,7 +2,7 @@
 // See License.txt for license information.
 
 import $ from 'jquery';
-import AdminNavbarDropdown from './admin_navbar_dropdown.jsx';
+import AdminNavbarDropdown from './admin_navbar_dropdown';
 import UserStore from 'stores/user_store.jsx';
 import {Client4} from 'mattermost-redux/client';
 

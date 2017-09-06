@@ -32,7 +32,9 @@ export default class ConfigurationSettings extends AdminSettings {
     componentWillReceiveProps(nextProps) {
         // special case for this page since we don't update AdminSettings components when the
         // stored config changes, but we want this page to update when you reload the config
-        this.setState(this.getStateFromConfig(nextProps.config));
+        if (!Utils.areObjectsEqual(this.props.config, nextProps.config)) {
+            this.setState(this.getStateFromConfig(nextProps.config));
+        }
     }
 
     getConfigFromState(config) {

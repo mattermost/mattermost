@@ -5,7 +5,7 @@ import PropTypes from 'prop-types';
 
 import React from 'react';
 
-import {Link} from 'react-router/es6';
+import BlockableLink from 'components/blockable_link';
 import * as Utils from 'utils/utils.jsx';
 
 export default class AdminSidebarSection extends React.Component {
@@ -64,7 +64,7 @@ export default class AdminSidebarSection extends React.Component {
         }
 
         let sidebarItem = (
-            <Link
+            <BlockableLink
                 id={Utils.createSafeId(this.props.name)}
                 className={`${className}-title`}
                 activeClassName={`${className}-title ${className}-title--active`}
@@ -76,7 +76,7 @@ export default class AdminSidebarSection extends React.Component {
                     {this.props.title}
                 </span>
                 {this.props.action}
-            </Link>
+            </BlockableLink>
         );
 
         if (this.props.type === 'text') {

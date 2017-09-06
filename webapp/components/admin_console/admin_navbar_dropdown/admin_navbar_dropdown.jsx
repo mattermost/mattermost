@@ -3,6 +3,7 @@
 
 import $ from 'jquery';
 import ReactDOM from 'react-dom';
+import PropTypes from 'prop-types';
 
 import TeamStore from 'stores/team_store.jsx';
 import Constants from 'utils/constants.jsx';
@@ -13,18 +14,37 @@ import * as GlobalActions from 'actions/global_actions.jsx';
 import {FormattedMessage} from 'react-intl';
 
 import {Link} from 'react-router/es6';
+import BlockableLink from 'components/blockable_link';
 
 import React from 'react';
 
 import * as Utils from 'utils/utils.jsx';
 
 export default class AdminNavbarDropdown extends React.Component {
+    static propTypes = {
+
+        /*
+         * Bool whether the navigation is blocked by unsaved changes
+         */
+        navigationBlocked: PropTypes.bool,
+
+        actions: PropTypes.shape({
+
+            /*
+             * Action to attempt a navigation and set a callback
+             * to execute after the navigation is confirmed
+             */
+            deferNavigation: PropTypes.func
+        }).isRequired
+    }
+
     constructor(props) {
         super(props);
         this.blockToggle = false;
         this.onTeamChange = this.onTeamChange.bind(this);
         this.handleAboutModal = this.handleAboutModal.bind(this);
         this.aboutModalDismissed = this.aboutModalDismissed.bind(this);
+        this.handleLogout = this.handleLogout.bind(this);
 
         this.state = {
             teams: TeamStore.getAll(),
@@ -53,6 +73,17 @@ export default class AdminNavbarDropdown extends React.Component {
         e.preventDefault();
 
         this.setState({showAboutModal: true});
+    }
+
+    handleLogout(e) {
+        if (this.props.navigationBlocked) {
+            e.preventDefault();
+            this.props.actions.deferNavigation(() => {
+                GlobalActions.emitUserLoggedOutEvent();
+            });
+        } else {
+            GlobalActions.emitUserLoggedOutEvent();
+        }
     }
 
     aboutModalDismissed() {
@@ -86,7 +117,7 @@ export default class AdminNavbarDropdown extends React.Component {
             for (const team of teamsArray) {
                 teams.push(
                     <li key={'team_' + team.name}>
-                        <Link
+                        <BlockableLink
                             id={'swithTo' + Utils.createSafeId(team.name)}
                             to={'/' + team.name + '/channels/town-square'}
                         >
@@ -95,7 +126,7 @@ export default class AdminNavbarDropdown extends React.Component {
                                 defaultMessage='Switch to '
                             />
                             {team.display_name}
-                        </Link>
+                        </BlockableLink>
                     </li>
                 );
             }
@@ -109,7 +140,7 @@ export default class AdminNavbarDropdown extends React.Component {
         } else {
             switchTeams = (
                 <li>
-                    <Link
+                    <BlockableLink
                         to={'/select_team'}
                     >
                         <i className='fa fa-exchange'/>
@@ -117,7 +148,7 @@ export default class AdminNavbarDropdown extends React.Component {
                             id='admin.nav.switch'
                             defaultMessage='Team Selection'
                         />
-                    </Link>
+                    </BlockableLink>
                 </li>
             );
         }
@@ -203,7 +234,7 @@ export default class AdminNavbarDropdown extends React.Component {
                             <a
                                 href='#'
                                 id='logout'
-                                onClick={() => GlobalActions.emitUserLoggedOutEvent()}
+                                onClick={this.handleLogout}
                             >
                                 <FormattedMessage
                                     id='admin.nav.logout'

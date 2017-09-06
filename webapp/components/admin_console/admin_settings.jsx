@@ -15,7 +15,12 @@ export default class AdminSettings extends React.Component {
         /*
          * Object representing the config file
          */
-        config: PropTypes.object
+        config: PropTypes.object,
+
+        /*
+         * Action for whether a save is needed
+         */
+        setNavigationBlocked: PropTypes.func
     }
 
     constructor(props) {
@@ -37,6 +42,8 @@ export default class AdminSettings extends React.Component {
             saveNeeded: true,
             [id]: value
         });
+
+        this.props.setNavigationBlocked(true);
     }
 
     handleSubmit(e) {
@@ -64,6 +71,8 @@ export default class AdminSettings extends React.Component {
                     saveNeeded: false,
                     saving: false
                 });
+
+                this.props.setNavigationBlocked(false);
 
                 if (callback) {
                     callback();
