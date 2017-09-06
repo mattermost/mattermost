@@ -304,7 +304,7 @@ ifeq ($(BUILD_ENTERPRISE_READY),true)
 
 	for package in $(EE_PACKAGES); do \
 		echo "Testing "$$package; \
-		$(GO) test $(GOFLAGS) -run=$(TESTS) -covermode=count -coverpkg=$(ALL_PACKAGES_COMMA) -c $$package; \
+		$(GO) test $(GOFLAGS) -run=$(TESTS) -covermode=count -coverpkg=$(ALL_PACKAGES_COMMA) -c $$package || exit 1; \
 		if [ -f $$(basename $$package).test ]; then \
 			echo "Testing "$$package; \
 			./$$(basename $$package).test -test.v $(TESTFLAGSEE) -test.timeout=2000s -test.coverprofile=cprofile.out || exit 1; \
