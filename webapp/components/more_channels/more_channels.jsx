@@ -194,6 +194,7 @@ export default class MoreChannels extends React.Component {
                         channels={this.state.channels}
                         channelsPerPage={CHANNELS_PER_PAGE}
                         nextPage={this.nextPage}
+                        isSearch={this.state.search}
                         search={this.search}
                         handleJoin={this.handleJoin}
                         noResultsText={createChannelHelpText}

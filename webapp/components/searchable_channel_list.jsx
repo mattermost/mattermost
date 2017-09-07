@@ -47,6 +47,12 @@ export default class SearchableChannelList extends React.Component {
         }
     }
 
+    componentWillReceiveProps(nextProps) {
+        if (nextProps.isSearch) {
+            this.setState({page: 0});
+        }
+    }
+
     handleJoin(channel) {
         this.setState({joiningChannel: channel.id});
         this.props.handleJoin(
@@ -144,7 +150,7 @@ export default class SearchableChannelList extends React.Component {
             const channelsToDisplay = this.props.channels.slice(pageStart, pageEnd);
             listContent = channelsToDisplay.map(this.createChannelRow);
 
-            if (channelsToDisplay.length >= this.props.channelsPerPage) {
+            if (channelsToDisplay.length >= this.props.channelsPerPage && pageEnd < this.props.channels.length) {
                 nextButton = (
                     <button
                         className='btn btn-default filter-control filter-control__next'
@@ -205,13 +211,15 @@ export default class SearchableChannelList extends React.Component {
 }
 
 SearchableChannelList.defaultProps = {
-    channels: []
+    channels: [],
+    isSearch: false
 };
 
 SearchableChannelList.propTypes = {
     channels: PropTypes.arrayOf(PropTypes.object),
     channelsPerPage: PropTypes.number,
     nextPage: PropTypes.func.isRequired,
+    isSearch: PropTypes.bool,
     search: PropTypes.func.isRequired,
     handleJoin: PropTypes.func.isRequired,
     noResultsText: PropTypes.object
