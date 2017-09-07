@@ -86,6 +86,11 @@ podTemplate(label: 'jenkins-slave',
                 git branch: env.BRANCH_NAME, credentialsId: 'a8f2d76b-8a29-4525-b57a-eb0447d7779c', url: 'https://github.com/mattermost/mattermost-server.git'
             }
 
+            dir('mattermost-webapp') {
+                git branch: 'master', credentialsId: 'a8f2d76b-8a29-4525-b57a-eb0447d7779c', url: 'https://github.com/mattermost/mattermost-webapp.git'
+                sh "git checkout ${env.BRANCH_NAME} || echo 'NO CLIENT BRANCH'"
+            }
+
             // Checkout enterprise
             dir('enterprise') {
                 git branch: 'master', credentialsId: 'a8f2d76b-8a29-4525-b57a-eb0447d7779c', url: 'https://github.com/mattermost/enterprise.git'
@@ -131,7 +136,7 @@ podTemplate(label: 'jenkins-slave',
             sh 'cd /go/src/github.com/mattermost/mattermost-server && make build BUILD_NUMBER=$BUILD_NUMBER'
         }
         container('mattermost-node') {
-            sh 'cd mattermost-webapp && make build-client BUILD_NUMBER=$BUILD_NUMBER'
+            sh 'cd mattermost-webapp && make build BUILD_NUMBER=$BUILD_NUMBER'
         }
         container('golang') {
             sh 'cd /go/src/github.com/mattermost/mattermost-server && make package BUILD_NUMBER=$BUILD_NUMBER'
