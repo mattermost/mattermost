@@ -28,7 +28,7 @@ func TestCreateOAuthApp(t *testing.T) {
 	utils.Cfg.ServiceSettings.EnableOAuthServiceProvider = true
 	utils.SetDefaultRolesBasedOnConfig()
 
-	oapp := &model.OAuthApp{Name: GenerateTestAppName(), Homepage: "https://nowhere.com", Description: "test", CallbackUrls: []string{"https://nowhere.com"}}
+	oapp := &model.OAuthApp{Name: GenerateTestAppName(), Homepage: "https://nowhere.com", Description: "test", CallbackUrls: []string{"https://nowhere.com"}, IsTrusted: true}
 
 	rapp, resp := AdminClient.CreateOAuthApp(oapp)
 	CheckNoError(t, resp)
@@ -38,6 +38,10 @@ func TestCreateOAuthApp(t *testing.T) {
 		t.Fatal("names did not match")
 	}
 
+	if rapp.IsTrusted != oapp.IsTrusted {
+		t.Fatal("trusted did no match")
+	}
+
 	*utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations = true
 	utils.SetDefaultRolesBasedOnConfig()
 	_, resp = Client.CreateOAuthApp(oapp)
@@ -45,9 +49,13 @@ func TestCreateOAuthApp(t *testing.T) {
 
 	*utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations = false
 	utils.SetDefaultRolesBasedOnConfig()
-	_, resp = Client.CreateOAuthApp(oapp)
+	rapp, resp = Client.CreateOAuthApp(oapp)
 	CheckNoError(t, resp)
 	CheckCreatedStatus(t, resp)
+
+	if rapp.IsTrusted {
+		t.Fatal("trusted should be false - created by non admin")
+	}
 
 	oapp.Name = ""
 	_, resp = AdminClient.CreateOAuthApp(oapp)
