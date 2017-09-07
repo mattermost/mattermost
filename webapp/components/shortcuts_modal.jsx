@@ -376,14 +376,18 @@ function renderShortcut(text) {
 
     const shortcut = text.split('\t');
     const description = <span>{shortcut[0]}</span>;
-    const keys = shortcut[1].split('|').map((key) =>
-        <span
-            className='shortcut-key'
-            key={key}
-        >
-            {key}
-        </span>
-    );
+
+    let keys = null;
+    if (shortcut.length > 1) {
+        keys = shortcut[1].split('|').map((key) => (
+            <span
+                className='shortcut-key'
+                key={key}
+            >
+                {key}
+            </span>
+        ));
+    }
 
     return (
         <div className='shortcut-line'>
