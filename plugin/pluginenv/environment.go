@@ -240,7 +240,7 @@ func (h *EnvironmentHooks) OnConfigurationChange() (errs []error) {
 // ServeHTTP invokes the ServeHTTP hook for the plugin identified by the request or responds with a
 // 404 not found.
 //
-// It expected the plugin_id mux parameter to be set.
+// It expects the plugin_id mux parameter to be set.
 func (h *EnvironmentHooks) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	if id, ok := params["plugin_id"]; ok {
