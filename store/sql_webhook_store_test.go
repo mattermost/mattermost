@@ -9,7 +9,7 @@ import (
 
 	"net/http"
 
-	"github.com/mattermost/platform/model"
+	"github.com/mattermost/mattermost-server/model"
 )
 
 func TestWebhookStoreSaveIncoming(t *testing.T) {

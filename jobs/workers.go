@@ -7,9 +7,9 @@ import (
 	"sync"
 
 	l4g "github.com/alecthomas/log4go"
-	ejobs "github.com/mattermost/platform/einterfaces/jobs"
-	"github.com/mattermost/platform/model"
-	"github.com/mattermost/platform/utils"
+	ejobs "github.com/mattermost/mattermost-server/einterfaces/jobs"
+	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/utils"
 )
 
 type Workers struct {

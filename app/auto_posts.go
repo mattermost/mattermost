@@ -8,8 +8,8 @@ import (
 	"io"
 	"os"
 
-	"github.com/mattermost/platform/model"
-	"github.com/mattermost/platform/utils"
+	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/utils"
 )
 
 type AutoPostCreator struct {

@@ -36,7 +36,7 @@ func TestProcess(t *testing.T) {
 		import (
 			"log"
 
-			"github.com/mattermost/platform/plugin/rpcplugin"
+			"github.com/mattermost/mattermost-server/plugin/rpcplugin"
 		)
 
 		func main() {

@@ -4,7 +4,7 @@
 package jobs
 
 import (
-	"github.com/mattermost/platform/model"
+	"github.com/mattermost/mattermost-server/model"
 )
 
 type DataRetentionInterface interface {

@@ -17,13 +17,13 @@ import (
 	"time"
 
 	l4g "github.com/alecthomas/log4go"
-	"github.com/mattermost/platform/app"
-	"github.com/mattermost/platform/model"
-	"github.com/mattermost/platform/store"
-	"github.com/mattermost/platform/utils"
-	"github.com/mattermost/platform/wsapi"
+	"github.com/mattermost/mattermost-server/app"
+	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/store"
+	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/wsapi"
 
-	"github.com/mattermost/platform/jobs"
+	"github.com/mattermost/mattermost-server/jobs"
 	s3 "github.com/minio/minio-go"
 	"github.com/minio/minio-go/pkg/credentials"
 )

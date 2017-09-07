@@ -6,7 +6,7 @@ package store
 import (
 	"testing"
 
-	"github.com/mattermost/platform/model"
+	"github.com/mattermost/mattermost-server/model"
 )
 
 func TestPreferenceSave(t *testing.T) {

@@ -6,8 +6,8 @@ package app
 import (
 	"strings"
 
-	"github.com/mattermost/platform/einterfaces"
-	"github.com/mattermost/platform/model"
+	"github.com/mattermost/mattermost-server/einterfaces"
+	"github.com/mattermost/mattermost-server/model"
 )
 
 func (a *App) RegisterAllClusterMessageHandlers() {

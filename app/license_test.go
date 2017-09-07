@@ -4,10 +4,10 @@
 package app
 
 import (
-	//"github.com/mattermost/platform/model"
+	//"github.com/mattermost/mattermost-server/model"
 	"testing"
 
-	"github.com/mattermost/platform/utils"
+	"github.com/mattermost/mattermost-server/utils"
 )
 
 func TestLoadLicense(t *testing.T) {

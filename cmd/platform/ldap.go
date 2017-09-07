@@ -3,7 +3,7 @@
 package main
 
 import (
-	"github.com/mattermost/platform/einterfaces"
+	"github.com/mattermost/mattermost-server/einterfaces"
 	"github.com/spf13/cobra"
 )
 

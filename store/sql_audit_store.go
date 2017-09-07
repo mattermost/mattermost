@@ -4,7 +4,7 @@
 package store
 
 import (
-	"github.com/mattermost/platform/model"
+	"github.com/mattermost/mattermost-server/model"
 )
 
 type SqlAuditStore struct {

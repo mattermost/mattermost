@@ -17,9 +17,9 @@ import (
 
 	l4g "github.com/alecthomas/log4go"
 
-	"github.com/mattermost/platform/model"
-	"github.com/mattermost/platform/store"
-	"github.com/mattermost/platform/utils"
+	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/store"
+	"github.com/mattermost/mattermost-server/utils"
 )
 
 // Import Data Models

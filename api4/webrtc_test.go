@@ -6,7 +6,7 @@ package api4
 import (
 	"testing"
 
-	"github.com/mattermost/platform/utils"
+	"github.com/mattermost/mattermost-server/utils"
 )
 
 func TestGetWebrtcToken(t *testing.T) {

@@ -7,8 +7,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/mattermost/platform/model"
-	"github.com/mattermost/platform/store"
+	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/store"
 )
 
 func TestCreateJob(t *testing.T) {

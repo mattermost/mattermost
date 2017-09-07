@@ -3,7 +3,7 @@
 
 package einterfaces
 
-import "github.com/mattermost/platform/model"
+import "github.com/mattermost/mattermost-server/model"
 
 type ElasticsearchInterface interface {
 	Start() *model.AppError

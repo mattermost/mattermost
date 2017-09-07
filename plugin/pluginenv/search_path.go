@@ -4,7 +4,7 @@ import (
 	"io/ioutil"
 	"path/filepath"
 
-	"github.com/mattermost/platform/model"
+	"github.com/mattermost/mattermost-server/model"
 )
 
 // Performs a full scan of the given path.

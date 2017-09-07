@@ -12,7 +12,7 @@ import (
 
 	l4g "github.com/alecthomas/log4go"
 	"github.com/go-redis/redis"
-	"github.com/mattermost/platform/model"
+	"github.com/mattermost/mattermost-server/model"
 )
 
 const REDIS_EXPIRY_TIME = 30 * time.Minute

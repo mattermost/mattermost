@@ -3,7 +3,7 @@ package api4
 import (
 	"testing"
 
-	"github.com/mattermost/platform/model"
+	"github.com/mattermost/mattermost-server/model"
 )
 
 func TestGetUserStatus(t *testing.T) {

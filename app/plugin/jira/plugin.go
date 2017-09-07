@@ -10,8 +10,8 @@ import (
 	"sync/atomic"
 
 	l4g "github.com/alecthomas/log4go"
-	"github.com/mattermost/platform/app/plugin"
-	"github.com/mattermost/platform/model"
+	"github.com/mattermost/mattermost-server/app/plugin"
+	"github.com/mattermost/mattermost-server/model"
 )
 
 type Plugin struct {

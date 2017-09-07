@@ -1,9 +1,9 @@
 package main
 
 import (
-	"github.com/mattermost/platform/app"
-	"github.com/mattermost/platform/model"
-	"github.com/mattermost/platform/utils"
+	"github.com/mattermost/mattermost-server/app"
+	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/utils"
 	"github.com/spf13/cobra"
 )
 

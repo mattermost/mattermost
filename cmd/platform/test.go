@@ -12,11 +12,11 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/mattermost/platform/api"
-	"github.com/mattermost/platform/api4"
-	"github.com/mattermost/platform/app"
-	"github.com/mattermost/platform/utils"
-	"github.com/mattermost/platform/wsapi"
+	"github.com/mattermost/mattermost-server/api"
+	"github.com/mattermost/mattermost-server/api4"
+	"github.com/mattermost/mattermost-server/app"
+	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/wsapi"
 	"github.com/spf13/cobra"
 )
 

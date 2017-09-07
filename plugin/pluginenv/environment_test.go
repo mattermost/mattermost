@@ -11,9 +11,9 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/platform/model"
-	"github.com/mattermost/platform/plugin"
-	"github.com/mattermost/platform/plugin/plugintest"
+	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/plugin"
+	"github.com/mattermost/mattermost-server/plugin/plugintest"
 )
 
 type MockProvider struct {

@@ -8,7 +8,7 @@ import (
 	"net/http"
 
 	"github.com/mattermost/gorp"
-	"github.com/mattermost/platform/model"
+	"github.com/mattermost/mattermost-server/model"
 )
 
 type SqlJobStore struct {

@@ -11,8 +11,8 @@ import (
 	"strings"
 
 	l4g "github.com/alecthomas/log4go"
-	"github.com/mattermost/platform/model"
-	"github.com/mattermost/platform/utils"
+	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/utils"
 	goi18n "github.com/nicksnyder/go-i18n/i18n"
 )
 
@@ -323,7 +323,7 @@ func (me *LoadTestProvider) UrlCommand(args *model.CommandArgs, message string) 
 
 	// provide a shortcut to easily access tests stored in doc/developer/tests
 	if !strings.HasPrefix(url, "http") {
-		url = "https://raw.githubusercontent.com/mattermost/platform/master/tests/" + url
+		url = "https://raw.githubusercontent.com/mattermost/mattermost-server/master/tests/" + url
 
 		if path.Ext(url) == "" {
 			url += ".md"
@@ -373,7 +373,7 @@ func (me *LoadTestProvider) JsonCommand(args *model.CommandArgs, message string)
 
 	// provide a shortcut to easily access tests stored in doc/developer/tests
 	if !strings.HasPrefix(url, "http") {
-		url = "https://raw.githubusercontent.com/mattermost/platform/master/tests/" + url
+		url = "https://raw.githubusercontent.com/mattermost/mattermost-server/master/tests/" + url
 
 		if path.Ext(url) == "" {
 			url += ".json"

@@ -8,7 +8,7 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/mattermost/platform/model"
+	"github.com/mattermost/mattermost-server/model"
 )
 
 type OriginCheckerProc func(*http.Request) bool

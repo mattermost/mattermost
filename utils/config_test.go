@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/mattermost/platform/model"
+	"github.com/mattermost/mattermost-server/model"
 )
 
 func TestConfig(t *testing.T) {

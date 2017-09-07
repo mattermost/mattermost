@@ -14,8 +14,8 @@ import (
 
 	"encoding/base64"
 
-	"github.com/mattermost/platform/model"
-	"github.com/mattermost/platform/utils"
+	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/utils"
 )
 
 func TestCreateTeam(t *testing.T) {

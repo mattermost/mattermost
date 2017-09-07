@@ -6,7 +6,7 @@ import (
 	"errors"
 	"io/ioutil"
 
-	"github.com/mattermost/platform/app"
+	"github.com/mattermost/mattermost-server/app"
 	"github.com/spf13/cobra"
 )
 
