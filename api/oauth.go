@@ -41,6 +41,10 @@ func registerOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if !app.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
+		oauthApp.IsTrusted = false
+	}
+
 	oauthApp.CreatorId = c.Session.UserId
 
 	rapp, err := app.CreateOAuthApp(oauthApp)

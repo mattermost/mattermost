@@ -57,6 +57,10 @@ func createOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if !app.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
+		oauthApp.IsTrusted = false
+	}
+
 	oauthApp.CreatorId = c.Session.UserId
 
 	rapp, err := app.CreateOAuthApp(oauthApp)
@@ -295,6 +299,11 @@ func authorizeOAuthPage(c *Context, w http.ResponseWriter, r *http.Request) {
 	// here we should check if the user is logged in
 	if len(c.Session.UserId) == 0 {
 		http.Redirect(w, r, c.GetSiteURLHeader()+"/login?redirect_to="+url.QueryEscape(r.RequestURI), http.StatusFound)
+		return
+	}
+
+	if !oauthApp.IsValidRedirectURL(authRequest.RedirectUri) {
+		utils.RenderWebError(model.NewAppError("authorizeOAuthPage", "api.oauth.allow_oauth.redirect_callback.app_error", nil, "", http.StatusBadRequest), w, r)
 		return
 	}
 
