@@ -46,6 +46,10 @@ func TestGetUserStatus(t *testing.T) {
 	}
 
 	Client.Logout()
+
+	_, resp = Client.GetUserStatus(th.BasicUser2.Id, "")
+	CheckUnauthorizedStatus(t, resp)
+
 	th.LoginBasic2()
 	userStatus, resp = Client.GetUserStatus(th.BasicUser2.Id, "")
 	CheckNoError(t, resp)
@@ -88,6 +92,11 @@ func TestGetUsersStatusesByIds(t *testing.T) {
 			t.Fatal("Status should be offline")
 		}
 	}
+
+	Client.Logout()
+
+	_, resp = Client.GetUsersStatusesByIds(usersIds)
+	CheckUnauthorizedStatus(t, resp)
 }
 
 func TestUpdateUserStatus(t *testing.T) {
@@ -125,4 +134,9 @@ func TestUpdateUserStatus(t *testing.T) {
 	if updateUserStatus.Status != "online" {
 		t.Fatal("Should return online status")
 	}
+
+	Client.Logout()
+
+	_, resp = Client.UpdateUserStatus(th.BasicUser2.Id, toUpdateUserStatus)
+	CheckUnauthorizedStatus(t, resp)
 }

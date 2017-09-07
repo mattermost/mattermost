@@ -21,7 +21,7 @@ func TestOAuthRegisterApp(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
 	Client := th.BasicClient
 
-	oauthApp := &model.OAuthApp{Name: "TestApp" + model.NewId(), Homepage: "https://nowhere.com", Description: "test", CallbackUrls: []string{"https://nowhere.com"}}
+	oauthApp := &model.OAuthApp{Name: "TestApp" + model.NewId(), Homepage: "https://nowhere.com", Description: "test", CallbackUrls: []string{"https://nowhere.com"}, IsTrusted: true}
 
 	utils.Cfg.ServiceSettings.EnableOAuthServiceProvider = false
 	if !utils.Cfg.ServiceSettings.EnableOAuthServiceProvider {
@@ -81,9 +81,28 @@ func TestOAuthRegisterApp(t *testing.T) {
 	Client.Logout()
 	Client.Login(user.Email, user.Password)
 
-	oauthApp = &model.OAuthApp{Name: "TestApp" + model.NewId(), Homepage: "https://nowhere.com", Description: "test", CallbackUrls: []string{"https://nowhere.com"}}
+	oauthApp = &model.OAuthApp{Name: "TestApp" + model.NewId(), Homepage: "https://nowhere.com", Description: "test", CallbackUrls: []string{"https://nowhere.com"}, IsTrusted: true}
 	if _, err := Client.RegisterApp(oauthApp); err == nil {
 		t.Fatal("should have failed. not enough permissions")
+	}
+
+	adminOnly := *utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations
+	defer func() {
+		*utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations = adminOnly
+		utils.SetDefaultRolesBasedOnConfig()
+	}()
+	*utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations = false
+	utils.SetDefaultRolesBasedOnConfig()
+
+	th.LoginBasic()
+
+	if result, err := th.BasicClient.RegisterApp(oauthApp); err != nil {
+		t.Fatal(err)
+	} else {
+		rapp := result.Data.(*model.OAuthApp)
+		if rapp.IsTrusted {
+			t.Fatal("trusted should be false - created by non admin")
+		}
 	}
 }
 
@@ -462,7 +481,17 @@ func TestOAuthAuthorize(t *testing.T) {
 	th := Setup().InitBasic()
 	Client := th.BasicClient
 
+	enableOAuth := utils.Cfg.ServiceSettings.EnableOAuthServiceProvider
+	adminOnly := *utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations
+	defer func() {
+		utils.Cfg.ServiceSettings.EnableOAuthServiceProvider = enableOAuth
+		*utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations = adminOnly
+		utils.SetDefaultRolesBasedOnConfig()
+	}()
 	utils.Cfg.ServiceSettings.EnableOAuthServiceProvider = false
+	*utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations = false
+	utils.SetDefaultRolesBasedOnConfig()
+
 	if !utils.Cfg.ServiceSettings.EnableOAuthServiceProvider {
 		if r, err := HttpGet(Client.Url+"/oauth/authorize", Client.HttpClient, "", true); err == nil {
 			t.Fatal("should have failed - oauth providing turned off")
@@ -482,7 +511,7 @@ func TestOAuthAuthorize(t *testing.T) {
 	}
 
 	// register an app to authorize it
-	oauthApp := &model.OAuthApp{Name: "TestApp" + model.NewId(), Homepage: "https://nowhere.com", Description: "test", CallbackUrls: []string{"https://nowhere.com"}}
+	oauthApp := &model.OAuthApp{Name: "TestApp" + model.NewId(), Homepage: "https://nowhere.com", Description: "test", CallbackUrls: []string{"https://example.com"}}
 	oauthApp = Client.Must(Client.RegisterApp(oauthApp)).Data.(*model.OAuthApp)
 	if r, err := HttpGet(Client.Url+"/oauth/authorize?client_id="+oauthApp.Id+"&&redirect_uri=http://example.com&response_type="+model.AUTHCODE_RESPONSE_TYPE, Client.HttpClient, "", true); err == nil {
 		t.Fatal("should have failed - user not logged")
@@ -490,9 +519,12 @@ func TestOAuthAuthorize(t *testing.T) {
 	}
 
 	authToken := Client.AuthType + " " + Client.AuthToken
-	if r, err := HttpGet(Client.Url+"/oauth/authorize?client_id="+oauthApp.Id+"&redirect_uri=http://example.com&response_type="+model.AUTHCODE_RESPONSE_TYPE, Client.HttpClient, authToken, true); err != nil {
+	if _, err := HttpGet(Client.Url+"/oauth/authorize?client_id="+oauthApp.Id+"&redirect_uri=http://bad-redirect.com&response_type="+model.AUTHCODE_RESPONSE_TYPE, Client.HttpClient, authToken, true); err == nil {
+		t.Fatal("should have failed - bad redirect uri")
+	}
+
+	if _, err := HttpGet(Client.Url+"/oauth/authorize?client_id="+oauthApp.Id+"&redirect_uri=https://example.com&response_type="+model.AUTHCODE_RESPONSE_TYPE, Client.HttpClient, authToken, true); err != nil {
 		t.Fatal(err)
-		closeBody(r)
 	}
 
 	// lets authorize the app
