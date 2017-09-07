@@ -6,10 +6,13 @@ package app
 import (
 	"io/ioutil"
 	"net/http"
+
+	"github.com/mattermost/mattermost-server/plugin/pluginenv"
 )
 
 type App struct {
-	Srv *Server
+	Srv       *Server
+	PluginEnv *pluginenv.Environment
 }
 
 var globalApp App

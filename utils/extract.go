@@ -61,7 +61,7 @@ func ExtractTarGz(gzipStream io.Reader, dst string) ([]string, error) {
 				return nil, fmt.Errorf("ExtractTarGz: MkdirAll() failed: %s", err.Error())
 			}
 
-			outFile, err := os.Create(path)
+			outFile, err := os.OpenFile(path, os.O_RDWR|os.O_CREATE|os.O_TRUNC, os.FileMode(header.Mode))
 			if err != nil {
 				return nil, fmt.Errorf("ExtractTarGz: Create() failed: %s", err.Error())
 			}

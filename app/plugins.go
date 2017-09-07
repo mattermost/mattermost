@@ -19,14 +19,17 @@ import (
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
 
-	"github.com/mattermost/mattermost-server/app/plugin"
+	builtinplugin "github.com/mattermost/mattermost-server/app/plugin"
 	"github.com/mattermost/mattermost-server/app/plugin/jira"
 	"github.com/mattermost/mattermost-server/app/plugin/ldapextras"
+
+	"github.com/mattermost/mattermost-server/plugin"
+	"github.com/mattermost/mattermost-server/plugin/pluginenv"
 )
 
 type PluginAPI struct {
-	id     string
-	router *mux.Router
+	id  string
+	app *App
 }
 
 func (api *PluginAPI) LoadPluginConfiguration(dest interface{}) error {
@@ -37,37 +40,67 @@ func (api *PluginAPI) LoadPluginConfiguration(dest interface{}) error {
 	}
 }
 
-func (api *PluginAPI) PluginRouter() *mux.Router {
-	return api.router
-}
-
 func (api *PluginAPI) GetTeamByName(name string) (*model.Team, *model.AppError) {
-	return Global().GetTeamByName(name)
+	return api.app.GetTeamByName(name)
 }
 
-func (api *PluginAPI) GetUserByName(name string) (*model.User, *model.AppError) {
-	return Global().GetUserByUsername(name)
+func (api *PluginAPI) GetUserByUsername(name string) (*model.User, *model.AppError) {
+	return api.app.GetUserByUsername(name)
 }
 
-func (api *PluginAPI) GetChannelByName(teamId, name string) (*model.Channel, *model.AppError) {
-	return Global().GetChannelByName(name, teamId)
-}
-
-func (api *PluginAPI) GetDirectChannel(userId1, userId2 string) (*model.Channel, *model.AppError) {
-	return Global().GetDirectChannel(userId1, userId2)
+func (api *PluginAPI) GetChannelByName(name, teamId string) (*model.Channel, *model.AppError) {
+	return api.app.GetChannelByName(name, teamId)
 }
 
 func (api *PluginAPI) CreatePost(post *model.Post) (*model.Post, *model.AppError) {
-	return Global().CreatePostMissingChannel(post, true)
+	return api.app.CreatePostMissingChannel(post, true)
 }
 
-func (api *PluginAPI) GetLdapUserAttributes(userId string, attributes []string) (map[string]string, *model.AppError) {
+type BuiltInPluginAPI struct {
+	id     string
+	router *mux.Router
+	app    *App
+}
+
+func (api *BuiltInPluginAPI) LoadPluginConfiguration(dest interface{}) error {
+	if b, err := json.Marshal(utils.Cfg.PluginSettings.Plugins[api.id]); err != nil {
+		return err
+	} else {
+		return json.Unmarshal(b, dest)
+	}
+}
+
+func (api *BuiltInPluginAPI) PluginRouter() *mux.Router {
+	return api.router
+}
+
+func (api *BuiltInPluginAPI) GetTeamByName(name string) (*model.Team, *model.AppError) {
+	return api.app.GetTeamByName(name)
+}
+
+func (api *BuiltInPluginAPI) GetUserByName(name string) (*model.User, *model.AppError) {
+	return api.app.GetUserByUsername(name)
+}
+
+func (api *BuiltInPluginAPI) GetChannelByName(teamId, name string) (*model.Channel, *model.AppError) {
+	return api.app.GetChannelByName(name, teamId)
+}
+
+func (api *BuiltInPluginAPI) GetDirectChannel(userId1, userId2 string) (*model.Channel, *model.AppError) {
+	return api.app.GetDirectChannel(userId1, userId2)
+}
+
+func (api *BuiltInPluginAPI) CreatePost(post *model.Post) (*model.Post, *model.AppError) {
+	return api.app.CreatePostMissingChannel(post, true)
+}
+
+func (api *BuiltInPluginAPI) GetLdapUserAttributes(userId string, attributes []string) (map[string]string, *model.AppError) {
 	ldapInterface := einterfaces.GetLdapInterface()
 	if ldapInterface == nil {
 		return nil, model.NewAppError("GetLdapUserAttributes", "ent.ldap.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	user, err := Global().GetUser(userId)
+	user, err := api.app.GetUser(userId)
 	if err != nil {
 		return nil, err
 	}
@@ -75,7 +108,7 @@ func (api *PluginAPI) GetLdapUserAttributes(userId string, attributes []string) 
 	return ldapInterface.GetUserAttributes(*user.AuthData, attributes)
 }
 
-func (api *PluginAPI) GetSessionFromRequest(r *http.Request) (*model.Session, *model.AppError) {
+func (api *BuiltInPluginAPI) GetSessionFromRequest(r *http.Request) (*model.Session, *model.AppError) {
 	token := ""
 	isTokenFromQueryString := false
 
@@ -111,7 +144,7 @@ func (api *PluginAPI) GetSessionFromRequest(r *http.Request) (*model.Session, *m
 		return nil, model.NewAppError("ServeHTTP", "api.context.session_expired.app_error", nil, "token="+token, http.StatusUnauthorized)
 	}
 
-	session, err := Global().GetSession(token)
+	session, err := api.app.GetSession(token)
 
 	if err != nil {
 		return nil, model.NewAppError("ServeHTTP", "api.context.session_expired.app_error", nil, "token="+token, http.StatusUnauthorized)
@@ -122,7 +155,7 @@ func (api *PluginAPI) GetSessionFromRequest(r *http.Request) (*model.Session, *m
 	return session, nil
 }
 
-func (api *PluginAPI) I18n(id string, r *http.Request) string {
+func (api *BuiltInPluginAPI) I18n(id string, r *http.Request) string {
 	if r != nil {
 		f, _ := utils.GetTranslationsAndLocale(nil, r)
 		return f(id)
@@ -131,16 +164,17 @@ func (api *PluginAPI) I18n(id string, r *http.Request) string {
 	return f(id)
 }
 
-func (a *App) InitPlugins() {
-	plugins := map[string]plugin.Plugin{
+func (a *App) InitBuiltInPlugins() {
+	plugins := map[string]builtinplugin.Plugin{
 		"jira":       &jira.Plugin{},
 		"ldapextras": &ldapextras.Plugin{},
 	}
 	for id, p := range plugins {
 		l4g.Info("Initializing plugin: " + id)
-		api := &PluginAPI{
+		api := &BuiltInPluginAPI{
 			id:     id,
 			router: a.Srv.Router.PathPrefix("/plugins/" + id).Subrouter(),
+			app:    a,
 		}
 		p.Initialize(api)
 	}
@@ -155,19 +189,19 @@ func (a *App) InitPlugins() {
 }
 
 func (a *App) ActivatePlugins() {
-	if a.Srv.PluginEnv == nil {
+	if a.PluginEnv == nil {
 		l4g.Error("plugin env not initialized")
 		return
 	}
 
-	plugins, err := a.Srv.PluginEnv.Plugins()
+	plugins, err := a.PluginEnv.Plugins()
 	if err != nil {
 		l4g.Error("failed to start up plugins: " + err.Error())
 		return
 	}
 
 	for _, plugin := range plugins {
-		err := a.Srv.PluginEnv.ActivatePlugin(plugin.Manifest.Id)
+		err := a.PluginEnv.ActivatePlugin(plugin.Manifest.Id)
 		if err != nil {
 			l4g.Error(err.Error())
 		}
@@ -176,7 +210,7 @@ func (a *App) ActivatePlugins() {
 }
 
 func (a *App) UnpackAndActivatePlugin(pluginFile io.Reader) (*model.Manifest, *model.AppError) {
-	if a.Srv.PluginEnv == nil || !*utils.Cfg.PluginSettings.Enable {
+	if a.PluginEnv == nil || !*utils.Cfg.PluginSettings.Enable {
 		return nil, model.NewAppError("UnpackAndActivatePlugin", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
@@ -210,14 +244,14 @@ func (a *App) UnpackAndActivatePlugin(pluginFile io.Reader) (*model.Manifest, *m
 		return nil, model.NewAppError("UnpackAndActivatePlugin", "app.plugin.manifest.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
 
-	os.Rename(manifestDir, filepath.Join(a.Srv.PluginEnv.SearchPath(), manifest.Id))
+	os.Rename(manifestDir, filepath.Join(a.PluginEnv.SearchPath(), manifest.Id))
 	if err != nil {
 		return nil, model.NewAppError("UnpackAndActivatePlugin", "app.plugin.mvdir.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	// Should add manifest validation and error handling here
 
-	err = a.Srv.PluginEnv.ActivatePlugin(manifest.Id)
+	err = a.PluginEnv.ActivatePlugin(manifest.Id)
 	if err != nil {
 		return nil, model.NewAppError("UnpackAndActivatePlugin", "app.plugin.activate.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
@@ -226,11 +260,11 @@ func (a *App) UnpackAndActivatePlugin(pluginFile io.Reader) (*model.Manifest, *m
 }
 
 func (a *App) GetActivePluginManifests() ([]*model.Manifest, *model.AppError) {
-	if a.Srv.PluginEnv == nil || !*utils.Cfg.PluginSettings.Enable {
+	if a.PluginEnv == nil || !*utils.Cfg.PluginSettings.Enable {
 		return nil, model.NewAppError("GetActivePluginManifests", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	plugins, err := a.Srv.PluginEnv.ActivePlugins()
+	plugins, err := a.PluginEnv.ActivePlugins()
 	if err != nil {
 		return nil, model.NewAppError("GetActivePluginManifests", "app.plugin.get_plugins.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -244,16 +278,16 @@ func (a *App) GetActivePluginManifests() ([]*model.Manifest, *model.AppError) {
 }
 
 func (a *App) RemovePlugin(id string) *model.AppError {
-	if a.Srv.PluginEnv == nil || !*utils.Cfg.PluginSettings.Enable {
+	if a.PluginEnv == nil || !*utils.Cfg.PluginSettings.Enable {
 		return model.NewAppError("RemovePlugin", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	err := a.Srv.PluginEnv.DeactivatePlugin(id)
+	err := a.PluginEnv.DeactivatePlugin(id)
 	if err != nil {
 		return model.NewAppError("RemovePlugin", "app.plugin.deactivate.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
 
-	err = os.RemoveAll(filepath.Join(a.Srv.PluginEnv.SearchPath(), id))
+	err = os.RemoveAll(filepath.Join(a.PluginEnv.SearchPath(), id))
 	if err != nil {
 		return model.NewAppError("RemovePlugin", "app.plugin.remove.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -268,11 +302,11 @@ type ClientConfigPlugin struct {
 }
 
 func (a *App) GetPluginsForClientConfig() string {
-	if a.Srv.PluginEnv == nil || !*utils.Cfg.PluginSettings.Enable {
+	if a.PluginEnv == nil || !*utils.Cfg.PluginSettings.Enable {
 		return ""
 	}
 
-	plugins, err := a.Srv.PluginEnv.ActivePlugins()
+	plugins, err := a.PluginEnv.ActivePlugins()
 	if err != nil {
 		return ""
 	}
@@ -291,4 +325,93 @@ func (a *App) GetPluginsForClientConfig() string {
 	}
 
 	return string(b)
+}
+
+func (a *App) InitPlugins(pluginPath, webappPath string) {
+	a.InitBuiltInPlugins()
+
+	if !utils.IsLicensed() || !*utils.License().Features.FutureFeatures || !*utils.Cfg.PluginSettings.Enable {
+		return
+	}
+
+	l4g.Info("Starting up plugins")
+
+	err := os.Mkdir(pluginPath, 0744)
+	if err != nil && !os.IsExist(err) {
+		l4g.Error("failed to start up plugins: " + err.Error())
+		return
+	}
+
+	a.PluginEnv, err = pluginenv.New(
+		pluginenv.SearchPath(pluginPath),
+		pluginenv.WebappPath(webappPath),
+		pluginenv.APIProvider(func(m *model.Manifest) (plugin.API, error) {
+			return &PluginAPI{
+				id:  m.Id,
+				app: a,
+			}, nil
+		}),
+	)
+
+	if err != nil {
+		l4g.Error("failed to start up plugins: " + err.Error())
+		return
+	}
+
+	utils.AddConfigListener(func(_, _ *model.Config) {
+		for _, err := range a.PluginEnv.Hooks().OnConfigurationChange() {
+			l4g.Error(err.Error())
+		}
+	})
+
+	a.Srv.Router.HandleFunc("/plugins/{plugin_id:[A-Za-z0-9\\_\\-\\.]+}", a.ServePluginRequest)
+	a.Srv.Router.HandleFunc("/plugins/{plugin_id:[A-Za-z0-9\\_\\-\\.]+}/{anything:.*}", a.ServePluginRequest)
+
+	a.ActivatePlugins()
+}
+
+func (a *App) ServePluginRequest(w http.ResponseWriter, r *http.Request) {
+	token := ""
+
+	authHeader := r.Header.Get(model.HEADER_AUTH)
+	if strings.HasPrefix(strings.ToUpper(authHeader), model.HEADER_BEARER+":") {
+		token = authHeader[len(model.HEADER_BEARER)+1:]
+	} else if strings.HasPrefix(strings.ToLower(authHeader), model.HEADER_TOKEN+":") {
+		token = authHeader[len(model.HEADER_TOKEN)+1:]
+	} else if cookie, _ := r.Cookie(model.SESSION_COOKIE_TOKEN); cookie != nil && r.Header.Get(model.HEADER_REQUESTED_WITH) == model.HEADER_REQUESTED_WITH_XML {
+		token = cookie.Value
+	} else {
+		token = r.URL.Query().Get("access_token")
+	}
+
+	if token != "" {
+		if session, err := a.GetSession(token); err != nil {
+			r.Header.Set("Mattermost-User-Id", session.UserId)
+		}
+	}
+
+	cookies := r.Cookies()
+	r.Header.Del("Cookie")
+	for _, c := range cookies {
+		if c.Name != model.SESSION_COOKIE_TOKEN {
+			r.AddCookie(c)
+		}
+	}
+	r.Header.Del(model.HEADER_AUTH)
+	r.Header.Del("Referer")
+
+	newQuery := r.URL.Query()
+	newQuery.Del("access_token")
+	r.URL.RawQuery = newQuery.Encode()
+
+	a.PluginEnv.Hooks().ServeHTTP(w, r)
+}
+
+func (a *App) ShutDownPlugins() {
+	if a.PluginEnv == nil {
+		return
+	}
+	for _, err := range a.PluginEnv.Shutdown() {
+		l4g.Error(err.Error())
+	}
 }

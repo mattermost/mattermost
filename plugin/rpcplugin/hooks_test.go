@@ -50,6 +50,9 @@ func TestHooks(t *testing.T) {
 		hooks.On("OnDeactivate").Return(nil)
 		assert.NoError(t, remote.OnDeactivate())
 
+		hooks.On("OnConfigurationChange").Return(nil)
+		assert.NoError(t, remote.OnConfigurationChange())
+
 		hooks.On("ServeHTTP", mock.AnythingOfType("*rpcplugin.RemoteHTTPResponseWriter"), mock.AnythingOfType("*http.Request")).Run(func(args mock.Arguments) {
 			w := args.Get(0).(http.ResponseWriter)
 			r := args.Get(1).(*http.Request)

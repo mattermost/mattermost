@@ -4,8 +4,10 @@ package pluginenv
 import (
 	"fmt"
 	"io/ioutil"
+	"net/http"
 	"sync"
 
+	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost-server/model"
@@ -200,13 +202,54 @@ func (env *Environment) Shutdown() (errs []error) {
 	for _, activePlugin := range env.activePlugins {
 		if activePlugin.Supervisor != nil {
 			if err := activePlugin.Supervisor.Hooks().OnDeactivate(); err != nil {
-				errs = append(errs, err)
+				errs = append(errs, errors.Wrapf(err, "OnDeactivate() error for %v", activePlugin.BundleInfo.Manifest.Id))
 			}
 			if err := activePlugin.Supervisor.Stop(); err != nil {
-				errs = append(errs, err)
+				errs = append(errs, errors.Wrapf(err, "error stopping supervisor for %v", activePlugin.BundleInfo.Manifest.Id))
 			}
 		}
 	}
 	env.activePlugins = make(map[string]ActivePlugin)
 	return
+}
+
+type EnvironmentHooks struct {
+	env *Environment
+}
+
+func (env *Environment) Hooks() *EnvironmentHooks {
+	return &EnvironmentHooks{env}
+}
+
+// OnConfigurationChange invokes the OnConfigurationChange hook for all plugins. Any errors
+// encountered will be returned.
+func (h *EnvironmentHooks) OnConfigurationChange() (errs []error) {
+	h.env.mutex.Lock()
+	defer h.env.mutex.Unlock()
+	for _, activePlugin := range h.env.activePlugins {
+		if activePlugin.Supervisor == nil {
+			continue
+		}
+		if err := activePlugin.Supervisor.Hooks().OnConfigurationChange(); err != nil {
+			errs = append(errs, errors.Wrapf(err, "OnConfigurationChange error for %v", activePlugin.BundleInfo.Manifest.Id))
+		}
+	}
+	return
+}
+
+// ServeHTTP invokes the ServeHTTP hook for the plugin identified by the request or responds with a
+// 404 not found.
+//
+// It expected the plugin_id mux parameter to be set.
+func (h *EnvironmentHooks) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	if id, ok := params["plugin_id"]; ok {
+		h.env.mutex.Lock()
+		defer h.env.mutex.Unlock()
+		if plugin, ok := h.env.activePlugins[id]; ok && plugin.Supervisor != nil {
+			plugin.Supervisor.Hooks().ServeHTTP(w, r)
+			return
+		}
+	}
+	http.NotFound(w, r)
 }

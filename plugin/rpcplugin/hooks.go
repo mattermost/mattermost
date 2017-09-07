@@ -86,6 +86,15 @@ func (h *LocalHooks) OnDeactivate(args, reply *struct{}) (err error) {
 	return
 }
 
+func (h *LocalHooks) OnConfigurationChange(args, reply *struct{}) error {
+	if hook, ok := h.hooks.(interface {
+		OnConfigurationChange() error
+	}); ok {
+		return hook.OnConfigurationChange()
+	}
+	return nil
+}
+
 type ServeHTTPArgs struct {
 	ResponseWriterStream int64
 	Request              *http.Request
@@ -122,11 +131,14 @@ func ServeHooks(hooks interface{}, conn io.ReadWriteCloser, muxer *Muxer) {
 	server.ServeConn(conn)
 }
 
+// These assignments are part of the wire protocol. You can add more, but should not change existing
+// assignments.
 const (
-	remoteOnActivate = iota
-	remoteOnDeactivate
-	remoteServeHTTP
-	maxRemoteHookCount
+	remoteOnActivate            = 0
+	remoteOnDeactivate          = 1
+	remoteServeHTTP             = 2
+	remoteOnConfigurationChange = 3
+	maxRemoteHookCount          = iota
 )
 
 type RemoteHooks struct {
@@ -162,6 +174,13 @@ func (h *RemoteHooks) OnDeactivate() error {
 		return nil
 	}
 	return h.client.Call("LocalHooks.OnDeactivate", struct{}{}, nil)
+}
+
+func (h *RemoteHooks) OnConfigurationChange() error {
+	if !h.implemented[remoteOnConfigurationChange] {
+		return nil
+	}
+	return h.client.Call("LocalHooks.OnConfigurationChange", struct{}{}, nil)
 }
 
 func (h *RemoteHooks) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -227,6 +246,8 @@ func ConnectHooks(conn io.ReadWriteCloser, muxer *Muxer) (*RemoteHooks, error) {
 			remote.implemented[remoteOnActivate] = true
 		case "OnDeactivate":
 			remote.implemented[remoteOnDeactivate] = true
+		case "OnConfigurationChange":
+			remote.implemented[remoteOnConfigurationChange] = true
 		case "ServeHTTP":
 			remote.implemented[remoteServeHTTP] = true
 		}

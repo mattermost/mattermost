@@ -12,6 +12,9 @@ type Hooks interface {
 	// use the API, and the plugin will be terminated shortly after this invocation.
 	OnDeactivate() error
 
+	// OnConfigurationChange is invoked when configuration changes may have been made.
+	OnConfigurationChange() error
+
 	// ServeHTTP allows the plugin to implement the http.Handler interface. Requests destined for
 	// the /plugins/{id} path will be routed to the plugin.
 	//
