@@ -671,3 +671,12 @@
         }
     }
 }
+
+.discard-changes-modal .modal-dialog {
+    .btn-default, .btn-default:hover, .btn-default:active, .btn-default:focus {
+        color: $primary-color;  
+        background-color: transparent; 
+        border: none;
+    }
+}
+

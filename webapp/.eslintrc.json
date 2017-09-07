@@ -166,7 +166,7 @@
         "no-unsafe-finally": 2,
         "no-unsafe-negation": 2,
         "no-unused-expressions": 2,
-        "no-unused-vars": [2, {"vars": "all", "args": "after-used"}],
+        "no-unused-vars": [2, {"vars": "all", "args": "after-used", "ignoreRestSiblings": true}],
         "no-use-before-define": [2, "nofunc"],
         "no-useless-computed-key": 2,
         "no-useless-concat": 2,
