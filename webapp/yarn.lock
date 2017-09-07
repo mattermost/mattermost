@@ -5063,9 +5063,9 @@ math-expression-evaluator@^1.2.14:
   version "1.2.16"
   resolved "https://registry.yarnpkg.com/math-expression-evaluator/-/math-expression-evaluator-1.2.16.tgz#b357fa1ca9faefb8e48d10c14ef2bcb2d9f0a7c9"
 
-mattermost-redux@mattermost/mattermost-redux#master:
+mattermost-redux@mattermost/mattermost-redux#webapp-4.2:
   version "0.0.1"
-  resolved "https://codeload.github.com/mattermost/mattermost-redux/tar.gz/e732a173be8c2547d7c8269020dff2f5e44baa26"
+  resolved "https://codeload.github.com/mattermost/mattermost-redux/tar.gz/f321c893879b2a5659a45fe7f3a368475d3b38ff"
   dependencies:
     deep-equal "1.0.1"
     harmony-reflect "1.5.1"
