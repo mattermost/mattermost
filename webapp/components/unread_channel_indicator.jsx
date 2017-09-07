@@ -19,6 +19,7 @@ export default function UnreadChannelIndicator(props) {
         <div
             className={'nav-pills__unread-indicator ' + props.extraClass}
             style={{display: displayValue}}
+            onClick={() => props.onClick()}
         >
             {props.text}
             <span
@@ -35,6 +36,7 @@ UnreadChannelIndicator.defaultProps = {
     text: ''
 };
 UnreadChannelIndicator.propTypes = {
+    onClick: PropTypes.func.isRequired,
     show: PropTypes.bool,
     extraClass: PropTypes.string,
     text: PropTypes.object
