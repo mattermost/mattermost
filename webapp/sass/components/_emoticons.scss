@@ -75,6 +75,10 @@
         &:hover {
             color: #666666;
         }
+
+        &.disable {
+            pointer-events: none;
+        }
     }
 }
 
