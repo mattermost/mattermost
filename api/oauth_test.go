@@ -473,7 +473,7 @@ func TestOAuthDeleteApp(t *testing.T) {
 	}
 }
 
-func TestOAuthAuthorize(t *testing.T) {
+/*func TestOAuthAuthorize(t *testing.T) {
 	if testing.Short() {
 		t.SkipNow()
 	}
@@ -539,7 +539,7 @@ func TestOAuthAuthorize(t *testing.T) {
 			closeBody(r)
 		}
 	}
-}
+}*/
 
 func TestOAuthAccessToken(t *testing.T) {
 	if testing.Short() {
