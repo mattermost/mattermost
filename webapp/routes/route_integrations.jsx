@@ -18,7 +18,7 @@ export default {
             path: 'incoming_webhooks',
             indexRoute: {
                 getComponents: (location, callback) => {
-                    System.import('components/integrations/components/installed_incoming_webhooks.jsx').then(RouteUtils.importComponentSuccess(callback));
+                    System.import('components/integrations/components/installed_incoming_webhooks').then(RouteUtils.importComponentSuccess(callback));
                 }
             },
             childRoutes: [
