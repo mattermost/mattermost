@@ -13,8 +13,8 @@ import (
 
 	"strings"
 
-	"github.com/mattermost/platform/model"
-	"github.com/mattermost/platform/utils"
+	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/utils"
 	"github.com/pkg/errors"
 )
 
@@ -96,7 +96,7 @@ func serializeContext(ctx context.Context) map[string]string {
 
 // Returns the path to the next file up the callstack that has a different name than this file
 // in other words, finds the path to the file that is doing the logging.
-// Removes machine-specific prefix, so returned path starts with /platform.
+// Removes machine-specific prefix, so returned path starts with /mattermost-server.
 // Looks a maximum of 10 frames up the call stack to find a file that has a different name than this one.
 func getCallerFilename() (string, error) {
 	_, currentFilename, _, ok := runtime.Caller(0)

@@ -4,7 +4,7 @@ package logger
 
 import (
 	l4g "github.com/alecthomas/log4go"
-	"github.com/mattermost/platform/utils"
+	"github.com/mattermost/mattermost-server/utils"
 )
 
 // newJSONLogWriter is a utility method for creating a FileLogWriter set up to

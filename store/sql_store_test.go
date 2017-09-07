@@ -3,7 +3,7 @@
 
 package store
 
-import "github.com/mattermost/platform/utils"
+import "github.com/mattermost/mattermost-server/utils"
 
 var store Store
 

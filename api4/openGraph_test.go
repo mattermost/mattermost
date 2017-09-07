@@ -11,7 +11,7 @@ import (
 
 	"testing"
 
-	"github.com/mattermost/platform/utils"
+	"github.com/mattermost/mattermost-server/utils"
 )
 
 func TestGetOpenGraphMetadata(t *testing.T) {

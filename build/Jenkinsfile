@@ -81,9 +81,9 @@ podTemplate(label: 'jenkins-slave',
   node('jenkins-slave') {
     stage('Checkout') {
         container('golang') {
-            // Checkout platform
-            dir('platform') {
-                git branch: env.BRANCH_NAME, credentialsId: 'a8f2d76b-8a29-4525-b57a-eb0447d7779c', url: 'https://github.com/mattermost/platform.git'
+            // Checkout mattermost-server
+            dir('mattermost-server') {
+                git branch: env.BRANCH_NAME, credentialsId: 'a8f2d76b-8a29-4525-b57a-eb0447d7779c', url: 'https://github.com/mattermost/mattermost-server.git'
             }
 
             // Checkout enterprise
@@ -97,16 +97,16 @@ podTemplate(label: 'jenkins-slave',
         container('golang') {
             // Link up the code to GOPATH.
             sh 'mkdir -p /go/src/github.com/mattermost'
-            sh 'ln -s `pwd`/platform /go/src/github.com/mattermost/platform'
+            sh 'ln -s `pwd`/mattermost-server /go/src/github.com/mattermost/mattermost-server'
             sh 'ln -s `pwd`/enterprise /go/src/github.com/mattermost/enterprise'
 
             // Install build deps
             sh 'apt-get update && apt-get install zip -y'
                 
             // Modify config to run on jenkins
-            sh 'mv /go/src/github.com/mattermost/platform/config/default.json /go/src/github.com/mattermost/platform/config/config.json'
-            sh 'cd /go/src/github.com/mattermost/platform && sed -i \'s/dockerhost/localhost/g\' config/config.json'
-            sh 'cd /go/src/github.com/mattermost/platform && sed -i \'s/2500/10025/g\' config/config.json'
+            sh 'mv /go/src/github.com/mattermost/mattermost-server/config/default.json /go/src/github.com/mattermost/mattermost-server/config/config.json'
+            sh 'cd /go/src/github.com/mattermost/mattermost-server && sed -i \'s/dockerhost/localhost/g\' config/config.json'
+            sh 'cd /go/src/github.com/mattermost/mattermost-server && sed -i \'s/2500/10025/g\' config/config.json'
         }
 
         // Setup openldap container
@@ -123,24 +123,27 @@ podTemplate(label: 'jenkins-slave',
     }
     stage('Style Checks') {
         container('golang') {
-            sh 'cd /go/src/github.com/mattermost/platform && make check-style BUILD_NUMBER=$BUILD_NUMBER'
+            sh 'cd /go/src/github.com/mattermost/mattermost-server && make check-style BUILD_NUMBER=$BUILD_NUMBER'
         }
     }
     stage('Build') {
         container('golang') {
-            sh 'cd /go/src/github.com/mattermost/platform && make build BUILD_NUMBER=$BUILD_NUMBER'
+            sh 'cd /go/src/github.com/mattermost/mattermost-server && make build BUILD_NUMBER=$BUILD_NUMBER'
         }
         container('mattermost-node') {
-            sh 'cd platform && make build-client BUILD_NUMBER=$BUILD_NUMBER'
+            sh 'cd mattermost-webapp && make build-client BUILD_NUMBER=$BUILD_NUMBER'
         }
         container('golang') {
-            sh 'cd /go/src/github.com/mattermost/platform && make package BUILD_NUMBER=$BUILD_NUMBER'
+            sh 'cd /go/src/github.com/mattermost/mattermost-server && make package BUILD_NUMBER=$BUILD_NUMBER'
         }
     }
     stage('Unit Tests') {
         container('golang') {
-            sh 'cd /go/src/github.com/mattermost/platform && make test BUILD_NUMBER=$BUILD_NUMBER TESTFLAGS= TESTFLAGSEE='
+            sh 'cd /go/src/github.com/mattermost/mattermost-server && make test-te BUILD_NUMBER=$BUILD_NUMBER TESTFLAGS= TESTFLAGSEE='
         }
+    }
+    stage('S3 Publish') {
+        step([$class: 'S3BucketPublisher', dontWaitForConcurrentBuildCompletion: false, entries: [[bucket: 'releases.mattermost.com/mattermost-server/${env.BRAANCH_NAME}', excludedFile: '', flatten: true, gzipFiles: false, keepForever: false, managedArtifacts: false, noUploadOnFailure: true, selectedRegion: 'us-east-1', showDirectlyInBrowser: false, sourceFile: 'src/github.com/mattermost/platform/dist/mattermost-enterprise*', storageClass: 'STANDARD', uploadFromSlave: false, useServerSideEncryption: false, userMetadata: [[key: 'Cache-Control', value: 'no-cache']]]], profileName: 'Releases', userMetadata: []])
     }
   }
 }

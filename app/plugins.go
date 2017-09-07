@@ -15,13 +15,13 @@ import (
 	l4g "github.com/alecthomas/log4go"
 
 	"github.com/gorilla/mux"
-	"github.com/mattermost/platform/einterfaces"
-	"github.com/mattermost/platform/model"
-	"github.com/mattermost/platform/utils"
+	"github.com/mattermost/mattermost-server/einterfaces"
+	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/utils"
 
-	"github.com/mattermost/platform/app/plugin"
-	"github.com/mattermost/platform/app/plugin/jira"
-	"github.com/mattermost/platform/app/plugin/ldapextras"
+	"github.com/mattermost/mattermost-server/app/plugin"
+	"github.com/mattermost/mattermost-server/app/plugin/jira"
+	"github.com/mattermost/mattermost-server/app/plugin/ldapextras"
 )
 
 type PluginAPI struct {

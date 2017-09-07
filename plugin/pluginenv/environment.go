@@ -8,8 +8,8 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/platform/model"
-	"github.com/mattermost/platform/plugin"
+	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/plugin"
 )
 
 type APIProviderFunc func(*model.Manifest) (plugin.API, error)

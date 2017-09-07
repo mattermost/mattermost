@@ -6,7 +6,7 @@ package store
 import (
 	"context"
 
-	"github.com/mattermost/platform/model"
+	"github.com/mattermost/mattermost-server/model"
 )
 
 func (s *LocalCacheSupplier) handleClusterInvalidateReaction(msg *model.ClusterMessage) {

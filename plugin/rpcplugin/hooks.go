@@ -8,7 +8,7 @@ import (
 	"net/rpc"
 	"reflect"
 
-	"github.com/mattermost/platform/plugin"
+	"github.com/mattermost/mattermost-server/plugin"
 )
 
 type LocalHooks struct {

@@ -47,8 +47,8 @@ package:
 	sed -i'' -e 's|"SMTPPort": "2500",|"SMTPPort": "",|g' $(DIST_PATH)/config/config.json
 
 	@# Package webapp
-	mkdir -p $(DIST_PATH)/webapp/dist
-	cp -RL $(BUILD_WEBAPP_DIR)/dist $(DIST_PATH)/webapp
+	mkdir -p $(DIST_PATH)/web
+	cp -RL $(BUILD_WEBAPP_DIR)/dist/ $(DIST_PATH)/web
 
 	@# Help files
 ifeq ($(BUILD_ENTERPRISE_READY),true)

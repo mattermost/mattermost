@@ -37,7 +37,7 @@ const (
 	STATUS_FAIL               = "FAIL"
 	STATUS_REMOVE             = "REMOVE"
 
-	CLIENT_DIR = "webapp/dist"
+	CLIENT_DIR = "client"
 
 	API_URL_SUFFIX_V1 = "/api/v1"
 	API_URL_SUFFIX_V3 = "/api/v3"

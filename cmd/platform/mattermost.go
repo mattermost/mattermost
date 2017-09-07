@@ -8,14 +8,14 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/mattermost/platform/app"
+	"github.com/mattermost/mattermost-server/app"
 	"github.com/spf13/cobra"
 
 	// Plugins
-	_ "github.com/mattermost/platform/model/gitlab"
+	_ "github.com/mattermost/mattermost-server/model/gitlab"
 
 	// Enterprise Imports
-	_ "github.com/mattermost/platform/imports"
+	_ "github.com/mattermost/mattermost-server/imports"
 
 	// Enterprise Deps
 	_ "github.com/dgryski/dgoogauth"

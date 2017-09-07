@@ -3,9 +3,9 @@ package pluginenv
 import (
 	"fmt"
 
-	"github.com/mattermost/platform/model"
-	"github.com/mattermost/platform/plugin"
-	"github.com/mattermost/platform/plugin/rpcplugin"
+	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/plugin"
+	"github.com/mattermost/mattermost-server/plugin/rpcplugin"
 )
 
 // APIProvider specifies a function that provides an API implementation to each plugin.

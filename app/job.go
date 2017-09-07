@@ -4,8 +4,8 @@
 package app
 
 import (
-	"github.com/mattermost/platform/jobs"
-	"github.com/mattermost/platform/model"
+	"github.com/mattermost/mattermost-server/jobs"
+	"github.com/mattermost/mattermost-server/model"
 )
 
 func (a *App) GetJob(id string) (*model.Job, *model.AppError) {

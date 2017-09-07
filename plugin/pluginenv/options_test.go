@@ -6,8 +6,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/platform/model"
-	"github.com/mattermost/platform/plugin/rpcplugin"
+	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/plugin/rpcplugin"
 )
 
 func TestDefaultSupervisorProvider(t *testing.T) {

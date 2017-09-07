@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/mattermost/platform/model"
+	"github.com/mattermost/mattermost-server/model"
 )
 
 func TestSupervisor(t *testing.T) {
@@ -23,7 +23,7 @@ func TestSupervisor(t *testing.T) {
 		package main
 
 		import (
-			"github.com/mattermost/platform/plugin/rpcplugin"
+			"github.com/mattermost/mattermost-server/plugin/rpcplugin"
 		)
 
 		type MyPlugin struct {}
@@ -80,8 +80,8 @@ func TestSupervisor_PluginCrash(t *testing.T) {
 		import (
 			"os"
 
-			"github.com/mattermost/platform/plugin"
-			"github.com/mattermost/platform/plugin/rpcplugin"
+			"github.com/mattermost/mattermost-server/plugin"
+			"github.com/mattermost/mattermost-server/plugin/rpcplugin"
 		)
 
 		type MyPlugin struct {}

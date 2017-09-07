@@ -4,7 +4,7 @@
 package einterfaces
 
 import (
-	"github.com/mattermost/platform/model"
+	"github.com/mattermost/mattermost-server/model"
 )
 
 type MfaInterface interface {

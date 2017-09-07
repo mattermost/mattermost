@@ -6,7 +6,7 @@ package store
 import (
 	"testing"
 
-	"github.com/mattermost/platform/model"
+	"github.com/mattermost/mattermost-server/model"
 )
 
 func TestOAuthStoreSaveApp(t *testing.T) {

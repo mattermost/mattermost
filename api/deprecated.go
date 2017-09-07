@@ -5,7 +5,7 @@ package api
 
 import (
 	l4g "github.com/alecthomas/log4go"
-	"github.com/mattermost/platform/utils"
+	"github.com/mattermost/mattermost-server/utils"
 )
 
 // ONLY FOR APIs SCHEDULED TO BE DEPRECATED

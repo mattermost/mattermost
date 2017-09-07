@@ -26,7 +26,7 @@ else
 	BUILD_ENTERPRISE_READY = false
 	BUILD_TYPE_NAME = team
 endif
-BUILD_WEBAPP_DIR ?= ./webapp
+BUILD_WEBAPP_DIR ?= ../mattermost-webapp
 BUILD_CLIENT = false
 BUILD_HASH_CLIENT = independant
 ifneq ($(wildcard $(BUILD_WEBAPP_DIR)/.),)
@@ -374,6 +374,7 @@ run-cli: start-docker
 run-client:
 	@echo Running mattermost client for development
 
+	ln -s $(BUILD_WEBAPP_DIR)/dist client
 	cd $(BUILD_WEBAPP_DIR) && $(MAKE) run
 
 run-client-fullmap:
@@ -451,13 +452,13 @@ setup-mac:
 
 
 todo:
-	@! ag --ignore Makefile --ignore-dir vendor --ignore-dir runtime --ignore-dir webapp/non_npm_dependencies/ TODO
-	@! ag --ignore Makefile --ignore-dir vendor --ignore-dir runtime --ignore-dir webapp/non_npm_dependencies/ XXX
-	@! ag --ignore Makefile --ignore-dir vendor --ignore-dir runtime --ignore-dir webapp/non_npm_dependencies/ FIXME
-	@! ag --ignore Makefile --ignore-dir vendor --ignore-dir runtime --ignore-dir webapp/non_npm_dependencies/ "FIX ME"
+	@! ag --ignore Makefile --ignore-dir vendor --ignore-dir runtime TODO
+	@! ag --ignore Makefile --ignore-dir vendor --ignore-dir runtime XXX
+	@! ag --ignore Makefile --ignore-dir vendor --ignore-dir runtime FIXME
+	@! ag --ignore Makefile --ignore-dir vendor --ignore-dir runtime "FIX ME"
 ifeq ($(BUILD_ENTERPRISE_READY),true)
-	@! ag --ignore Makefile --ignore-dir vendor --ignore-dir runtime --ignore-dir webapp/non_npm_dependencies/ TODO enterprise/
-	@! ag --ignore Makefile --ignore-dir vendor --ignore-dir runtime --ignore-dir webapp/non_npm_dependencies/ XXX enterprise/
-	@! ag --ignore Makefile --ignore-dir vendor --ignore-dir runtime --ignore-dir webapp/non_npm_dependencies/ FIXME enterprise/
-	@! ag --ignore Makefile --ignore-dir vendor --ignore-dir runtime --ignore-dir webapp/non_npm_dependencies/ "FIX ME" enterprise/
+	@! ag --ignore Makefile --ignore-dir vendor --ignore-dir runtime TODO enterprise/
+	@! ag --ignore Makefile --ignore-dir vendor --ignore-dir runtime XXX enterprise/
+	@! ag --ignore Makefile --ignore-dir vendor --ignore-dir runtime FIXME enterprise/
+	@! ag --ignore Makefile --ignore-dir vendor --ignore-dir runtime "FIX ME" enterprise/
 endif
