@@ -148,6 +148,26 @@
                         top: 5px;
                     }
                 }
+
+                &.webrtc__button {
+                    @include border-radius(50px);
+                    cursor: pointer;
+                    height: 32px;
+                    line-height: 32px;
+                    margin: 9px 10px 0 0;
+                    position: relative;
+                    text-align: center;
+                    vertical-align: top;
+                    width: 32px;
+
+                    &:hover {
+                        background: transparent;
+                    }
+
+                    svg {
+                        position: relative;
+                    }
+                }
             }
         }
     }

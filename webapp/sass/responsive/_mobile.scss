@@ -1,6 +1,10 @@
 @charset 'UTF-8';
 
 @media screen and (max-width: 768px) {
+    .webrtc__option {
+        display: none;
+    }
+
     .channel-header {
         .channel-header__icon {
             display: none;
@@ -1622,6 +1626,14 @@
 }
 
 @media screen and (max-width: 480px) {
+    .webrtc__button {
+        display: none !important;
+    }
+
+    .webrtc__option {
+        display: block;
+    }
+
     #user-profile-popover {
         left: 50px !important;
     }
