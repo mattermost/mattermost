@@ -215,8 +215,8 @@ func (s SqlComplianceStore) ComplianceExport(job *model.Compliance) StoreChannel
 			        ` + keywordQuery + `)
 			UNION ALL
 			(SELECT
-			    "direct-message" AS TeamName,
-			    "Direct Message" AS TeamDisplayName,
+			    'direct-messages' AS TeamName,
+			    'Direct Messages' AS TeamDisplayName,
 			    Channels.Name AS ChannelName,
 			    Channels.DisplayName AS ChannelDisplayName,
 			    Users.Username AS UserUsername,
