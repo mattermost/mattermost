@@ -11,32 +11,32 @@ import (
 	goi18n "github.com/nicksnyder/go-i18n/i18n"
 )
 
-type msgProvider struct {
+type groupmsgProvider struct {
 }
 
 const (
-	CMD_MSG = "msg"
+	CMD_GROUPMSG = "groupmsg"
 )
 
 func init() {
-	RegisterCommandProvider(&msgProvider{})
+	RegisterCommandProvider(&groupmsgProvider{})
 }
 
-func (me *msgProvider) GetTrigger() string {
-	return CMD_MSG
+func (me *groupmsgProvider) GetTrigger() string {
+	return CMD_GROUPMSG
 }
 
-func (me *msgProvider) GetCommand(T goi18n.TranslateFunc) *model.Command {
+func (me *groupmsgProvider) GetCommand(T goi18n.TranslateFunc) *model.Command {
 	return &model.Command{
-		Trigger:          CMD_MSG,
+		Trigger:          CMD_GROUPMSG,
 		AutoComplete:     true,
-		AutoCompleteDesc: T("api.command_msg.desc"),
-		AutoCompleteHint: T("api.command_msg.hint"),
-		DisplayName:      T("api.command_msg.name"),
+		AutoCompleteDesc: T("api.command_groupmsg.desc"),
+		AutoCompleteHint: T("api.command_groupmsg.hint"),
+		DisplayName:      T("api.command_groupmsg.name"),
 	}
 }
 
-func (me *msgProvider) DoCommand(args *model.CommandArgs, message string) *model.CommandResponse {
+func (me *groupmsgProvider) DoCommand(args *model.CommandArgs, message string) *model.CommandResponse {
 
 	splitMessage := strings.SplitN(message, " ", 2)
 
@@ -53,13 +53,13 @@ func (me *msgProvider) DoCommand(args *model.CommandArgs, message string) *model
 	var userProfile *model.User
 	if result := <-Global().Srv.Store.User().GetByUsername(targetUsername); result.Err != nil {
 		l4g.Error(result.Err.Error())
-		return &model.CommandResponse{Text: args.T("api.command_msg.missing.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+		return &model.CommandResponse{Text: args.T("api.command_groupmsg.missing.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 	} else {
 		userProfile = result.Data.(*model.User)
 	}
 
 	if userProfile.Id == args.UserId {
-		return &model.CommandResponse{Text: args.T("api.command_msg.missing.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+		return &model.CommandResponse{Text: args.T("api.command_groupmsg.missing.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 	}
 
 	// Find the channel based on this user
@@ -70,13 +70,13 @@ func (me *msgProvider) DoCommand(args *model.CommandArgs, message string) *model
 		if channel.Err.Id == "store.sql_channel.get_by_name.missing.app_error" {
 			if directChannel, err := Global().CreateDirectChannel(args.UserId, userProfile.Id); err != nil {
 				l4g.Error(err.Error())
-				return &model.CommandResponse{Text: args.T("api.command_msg.dm_fail.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+				return &model.CommandResponse{Text: args.T("api.command_groupmsg.group_fail.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 			} else {
 				targetChannelId = directChannel.Id
 			}
 		} else {
 			l4g.Error(channel.Err.Error())
-			return &model.CommandResponse{Text: args.T("api.command_msg.dm_fail.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+			return &model.CommandResponse{Text: args.T("api.command_groupmsg.group_fail.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 		}
 	} else {
 		channel := channel.Data.(*model.Channel)
@@ -90,20 +90,20 @@ func (me *msgProvider) DoCommand(args *model.CommandArgs, message string) *model
 		post.ChannelId = targetChannelId
 		post.UserId = args.UserId
 		if _, err := Global().CreatePostMissingChannel(post, true); err != nil {
-			return &model.CommandResponse{Text: args.T("api.command_msg.fail.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+			return &model.CommandResponse{Text: args.T("api.command_groupmsg.fail.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 		}
 	}
 
 	if teamId == "" {
 		if len(args.Session.TeamMembers) == 0 {
-			return &model.CommandResponse{Text: args.T("api.command_msg.fail.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+			return &model.CommandResponse{Text: args.T("api.command_groupmsg.fail.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 		}
 		teamId = args.Session.TeamMembers[0].TeamId
 	}
 
 	team, err := Global().GetTeam(teamId)
 	if err != nil {
-		return &model.CommandResponse{Text: args.T("api.command_msg.fail.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+		return &model.CommandResponse{Text: args.T("api.command_groupmsg.fail.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 	}
 
 	return &model.CommandResponse{GotoLocation: args.SiteURL + "/" + team.Name + "/channels/" + channelName, Text: "", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
