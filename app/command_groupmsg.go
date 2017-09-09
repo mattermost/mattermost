@@ -4,6 +4,7 @@
 package app
 
 import (
+	"fmt"
 	"strings"
 
 	l4g "github.com/alecthomas/log4go"
@@ -36,75 +37,101 @@ func (me *groupmsgProvider) GetCommand(T goi18n.TranslateFunc) *model.Command {
 	}
 }
 
-func (me *groupmsgProvider) DoCommand(args *model.CommandArgs, message string) *model.CommandResponse {
+func (me *groupmsgProvider) DoCommand(a *App, args *model.CommandArgs, message string) *model.CommandResponse {
+	targetUsers := map[string]*model.User{}
+	targetUsersSlice := []string{args.UserId}
+	invalidUsernames := []string{}
 
-	splitMessage := strings.SplitN(message, " ", 2)
+	users, parsedMessage := groupMsgUsernames(message)
 
-	parsedMessage := ""
-	targetUsername := ""
-	teamId := ""
-
-	if len(splitMessage) > 1 {
-		parsedMessage = strings.SplitN(message, " ", 2)[1]
-	}
-	targetUsername = strings.SplitN(message, " ", 2)[0]
-	targetUsername = strings.TrimPrefix(targetUsername, "@")
-
-	var userProfile *model.User
-	if result := <-Global().Srv.Store.User().GetByUsername(targetUsername); result.Err != nil {
-		l4g.Error(result.Err.Error())
-		return &model.CommandResponse{Text: args.T("api.command_groupmsg.missing.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
-	} else {
-		userProfile = result.Data.(*model.User)
-	}
-
-	if userProfile.Id == args.UserId {
-		return &model.CommandResponse{Text: args.T("api.command_groupmsg.missing.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
-	}
-
-	// Find the channel based on this user
-	channelName := model.GetDMNameFromIds(args.UserId, userProfile.Id)
-
-	targetChannelId := ""
-	if channel := <-Global().Srv.Store.Channel().GetByName(args.TeamId, channelName, true); channel.Err != nil {
-		if channel.Err.Id == "store.sql_channel.get_by_name.missing.app_error" {
-			if directChannel, err := Global().CreateDirectChannel(args.UserId, userProfile.Id); err != nil {
-				l4g.Error(err.Error())
-				return &model.CommandResponse{Text: args.T("api.command_groupmsg.group_fail.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
-			} else {
-				targetChannelId = directChannel.Id
-			}
+	for _, username := range users {
+		username = strings.TrimSpace(username)
+		username = strings.TrimPrefix(username, "@")
+		if result := <-a.Srv.Store.User().GetByUsername(username); result.Err != nil {
+			invalidUsernames = append(invalidUsernames, username)
 		} else {
-			l4g.Error(channel.Err.Error())
-			return &model.CommandResponse{Text: args.T("api.command_groupmsg.group_fail.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+			targetUser := result.Data.(*model.User)
+			_, exists := targetUsers[targetUser.Id]
+			if !exists && targetUser.Id != args.UserId {
+				targetUsers[targetUser.Id] = targetUser
+				targetUsersSlice = append(targetUsersSlice, targetUser.Id)
+			}
 		}
-	} else {
-		channel := channel.Data.(*model.Channel)
-		targetChannelId = channel.Id
-		teamId = channel.TeamId
+	}
+
+	if len(invalidUsernames) > 0 {
+		invalidUsersString := map[string]interface{}{
+			"Users": "@" + strings.Join(invalidUsernames, ", @"),
+		}
+		return &model.CommandResponse{
+			Text:         args.T("api.command_groupmsg.invalid_user.app_error", len(invalidUsernames), invalidUsersString),
+			ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL,
+		}
+	}
+
+	if len(targetUsersSlice) == 2 {
+		return GetCommandProvider("msg").DoCommand(a, args, fmt.Sprintf("%s %s", targetUsers[targetUsersSlice[1]].Username, parsedMessage))
+	}
+
+	if len(targetUsersSlice) < model.CHANNEL_GROUP_MIN_USERS {
+		minUsers := map[string]interface{}{
+			"MinUsers": model.CHANNEL_GROUP_MIN_USERS - 1,
+		}
+		return &model.CommandResponse{
+			Text:         args.T("api.command_groupmsg.min_users.app_error", minUsers),
+			ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL,
+		}
+	}
+
+	if len(targetUsersSlice) > model.CHANNEL_GROUP_MAX_USERS {
+		maxUsers := map[string]interface{}{
+			"MaxUsers": model.CHANNEL_GROUP_MAX_USERS - 1,
+		}
+		return &model.CommandResponse{
+			Text:         args.T("api.command_groupmsg.max_users.app_error", maxUsers),
+			ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL,
+		}
+	}
+
+	groupChannel, channelErr := a.CreateGroupChannel(targetUsersSlice, args.UserId)
+	if channelErr != nil {
+		l4g.Error(channelErr.Error())
+		return &model.CommandResponse{Text: args.T("api.command_groupmsg.group_fail.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 	}
 
 	if len(parsedMessage) > 0 {
 		post := &model.Post{}
 		post.Message = parsedMessage
-		post.ChannelId = targetChannelId
+		post.ChannelId = groupChannel.Id
 		post.UserId = args.UserId
-		if _, err := Global().CreatePostMissingChannel(post, true); err != nil {
+		if _, err := a.CreatePostMissingChannel(post, true); err != nil {
 			return &model.CommandResponse{Text: args.T("api.command_groupmsg.fail.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 		}
 	}
 
-	if teamId == "" {
-		if len(args.Session.TeamMembers) == 0 {
-			return &model.CommandResponse{Text: args.T("api.command_groupmsg.fail.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
-		}
-		teamId = args.Session.TeamMembers[0].TeamId
-	}
-
-	team, err := Global().GetTeam(teamId)
+	team, err := a.GetTeam(args.TeamId)
 	if err != nil {
 		return &model.CommandResponse{Text: args.T("api.command_groupmsg.fail.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 	}
 
-	return &model.CommandResponse{GotoLocation: args.SiteURL + "/" + team.Name + "/channels/" + channelName, Text: "", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+	return &model.CommandResponse{GotoLocation: args.SiteURL + "/" + team.Name + "/channels/" + groupChannel.Name, Text: "", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+}
+
+func groupMsgUsernames(message string) ([]string, string) {
+	result := []string{}
+	resultMessage := ""
+	for idx, part := range strings.Split(message, ",") {
+		clean := strings.TrimPrefix(strings.TrimSpace(part), "@")
+		split := strings.Fields(clean)
+		if len(split) > 0 {
+			result = append(result, split[0])
+		}
+		if len(split) > 1 {
+			splitted := strings.SplitN(message, ",", idx+1)
+			resultMessage = strings.TrimPrefix(strings.TrimSpace(splitted[len(splitted)-1]), "@")
+			resultMessage = strings.TrimSpace(strings.TrimPrefix(resultMessage, split[0]))
+			break
+		}
+	}
+	return result, resultMessage
 }
