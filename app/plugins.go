@@ -217,35 +217,30 @@ func (a *App) UnpackAndActivatePlugin(pluginFile io.Reader) (*model.Manifest, *m
 
 	tmpDir, err := ioutil.TempDir("", "plugintmp")
 	if err != nil {
-		return nil, model.NewAppError("UnpackAndActivatePlugin", "app.plugin.temp_dir.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("UnpackAndActivatePlugin", "app.plugin.filesystem.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
-	defer func() {
-		os.RemoveAll(tmpDir)
-	}()
+	defer os.RemoveAll(tmpDir)
 
-	filenames, err := utils.ExtractTarGz(pluginFile, tmpDir)
-	if err != nil {
+	if err := utils.ExtractTarGz(pluginFile, tmpDir); err != nil {
 		return nil, model.NewAppError("UnpackAndActivatePlugin", "app.plugin.extract.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
 
-	if len(filenames) == 0 {
-		return nil, model.NewAppError("UnpackAndActivatePlugin", "app.plugin.no_files.app_error", nil, err.Error(), http.StatusBadRequest)
+	tmpPluginDir := tmpDir
+	dir, err := ioutil.ReadDir(tmpDir)
+	if err != nil {
+		return nil, model.NewAppError("UnpackAndActivatePlugin", "app.plugin.filesystem.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	splitPath := strings.Split(filenames[0], string(os.PathSeparator))
-
-	if len(splitPath) == 0 {
-		return nil, model.NewAppError("UnpackAndActivatePlugin", "app.plugin.bad_path.app_error", nil, err.Error(), http.StatusBadRequest)
+	if len(dir) == 1 && dir[0].IsDir() {
+		tmpPluginDir = filepath.Join(tmpPluginDir, dir[0].Name())
 	}
 
-	manifestDir := filepath.Join(tmpDir, splitPath[0])
-
-	manifest, _, err := model.FindManifest(manifestDir)
+	manifest, _, err := model.FindManifest(tmpPluginDir)
 	if err != nil {
 		return nil, model.NewAppError("UnpackAndActivatePlugin", "app.plugin.manifest.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
 
-	os.Rename(manifestDir, filepath.Join(a.PluginEnv.SearchPath(), manifest.Id))
+	os.Rename(tmpPluginDir, filepath.Join(a.PluginEnv.SearchPath(), manifest.Id))
 	if err != nil {
 		return nil, model.NewAppError("UnpackAndActivatePlugin", "app.plugin.mvdir.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
