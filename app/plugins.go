@@ -4,6 +4,7 @@
 package app
 
 import (
+	"context"
 	"encoding/json"
 	"io"
 	"io/ioutil"
@@ -378,12 +379,13 @@ func (a *App) ServePluginRequest(w http.ResponseWriter, r *http.Request) {
 		token = authHeader[len(model.HEADER_BEARER)+1:]
 	} else if strings.HasPrefix(strings.ToLower(authHeader), model.HEADER_TOKEN+":") {
 		token = authHeader[len(model.HEADER_TOKEN)+1:]
-	} else if cookie, _ := r.Cookie(model.SESSION_COOKIE_TOKEN); cookie != nil && r.Header.Get(model.HEADER_REQUESTED_WITH) == model.HEADER_REQUESTED_WITH_XML {
+	} else if cookie, _ := r.Cookie(model.SESSION_COOKIE_TOKEN); cookie != nil && (r.Method == "GET" || r.Header.Get(model.HEADER_REQUESTED_WITH) == model.HEADER_REQUESTED_WITH_XML) {
 		token = cookie.Value
 	} else {
 		token = r.URL.Query().Get("access_token")
 	}
 
+	r.Header.Del("Mattermost-User-Id")
 	if token != "" {
 		if session, err := a.GetSession(token); err != nil {
 			r.Header.Set("Mattermost-User-Id", session.UserId)
@@ -404,7 +406,8 @@ func (a *App) ServePluginRequest(w http.ResponseWriter, r *http.Request) {
 	newQuery.Del("access_token")
 	r.URL.RawQuery = newQuery.Encode()
 
-	a.PluginEnv.Hooks().ServeHTTP(w, r)
+	params := mux.Vars(r)
+	a.PluginEnv.Hooks().ServeHTTP(w, r.WithContext(context.WithValue(r.Context(), "plugin_id", params["plugin_id"])))
 }
 
 func (a *App) ShutDownPlugins() {

@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"sync"
 
-	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost-server/model"
@@ -29,7 +28,7 @@ type Environment struct {
 	apiProvider        APIProviderFunc
 	supervisorProvider SupervisorProviderFunc
 	activePlugins      map[string]ActivePlugin
-	mutex              sync.Mutex
+	mutex              sync.RWMutex
 }
 
 type Option func(*Environment)
@@ -63,15 +62,13 @@ func (env *Environment) SearchPath() string {
 
 // Returns a list of all plugins found within the environment.
 func (env *Environment) Plugins() ([]*model.BundleInfo, error) {
-	env.mutex.Lock()
-	defer env.mutex.Unlock()
 	return ScanSearchPath(env.searchPath)
 }
 
 // Returns a list of all currently active plugins within the environment.
 func (env *Environment) ActivePlugins() ([]*model.BundleInfo, error) {
-	env.mutex.Lock()
-	defer env.mutex.Unlock()
+	env.mutex.RLock()
+	defer env.mutex.RUnlock()
 
 	activePlugins := []*model.BundleInfo{}
 	for _, p := range env.activePlugins {
@@ -83,8 +80,8 @@ func (env *Environment) ActivePlugins() ([]*model.BundleInfo, error) {
 
 // Returns the ids of the currently active plugins.
 func (env *Environment) ActivePluginIds() (ids []string) {
-	env.mutex.Lock()
-	defer env.mutex.Unlock()
+	env.mutex.RLock()
+	defer env.mutex.RUnlock()
 
 	for id := range env.activePlugins {
 		ids = append(ids, id)
@@ -224,8 +221,8 @@ func (env *Environment) Hooks() *EnvironmentHooks {
 // OnConfigurationChange invokes the OnConfigurationChange hook for all plugins. Any errors
 // encountered will be returned.
 func (h *EnvironmentHooks) OnConfigurationChange() (errs []error) {
-	h.env.mutex.Lock()
-	defer h.env.mutex.Unlock()
+	h.env.mutex.RLock()
+	defer h.env.mutex.RUnlock()
 	for _, activePlugin := range h.env.activePlugins {
 		if activePlugin.Supervisor == nil {
 			continue
@@ -240,15 +237,16 @@ func (h *EnvironmentHooks) OnConfigurationChange() (errs []error) {
 // ServeHTTP invokes the ServeHTTP hook for the plugin identified by the request or responds with a
 // 404 not found.
 //
-// It expects the plugin_id mux parameter to be set.
+// It expects the request's context to have a plugin_id set.
 func (h *EnvironmentHooks) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	params := mux.Vars(r)
-	if id, ok := params["plugin_id"]; ok {
-		h.env.mutex.Lock()
-		defer h.env.mutex.Unlock()
-		if plugin, ok := h.env.activePlugins[id]; ok && plugin.Supervisor != nil {
-			plugin.Supervisor.Hooks().ServeHTTP(w, r)
-			return
+	if id := r.Context().Value("plugin_id"); id != nil {
+		if idstr, ok := id.(string); ok {
+			h.env.mutex.RLock()
+			defer h.env.mutex.RUnlock()
+			if plugin, ok := h.env.activePlugins[idstr]; ok && plugin.Supervisor != nil {
+				plugin.Supervisor.Hooks().ServeHTTP(w, r)
+				return
+			}
 		}
 	}
 	http.NotFound(w, r)

@@ -8,26 +8,42 @@ import (
 )
 
 type rwc struct {
-	io.ReadCloser
-	io.WriteCloser
+	io.Reader
+	io.Writer
+	closeReader func() error
+	closeWriter func() error
 }
 
 func (rwc *rwc) Close() (err error) {
-	if f, ok := rwc.ReadCloser.(*os.File); ok {
-		// https://groups.google.com/d/topic/golang-nuts/i4w58KJ5-J8/discussion
-		err = os.NewFile(f.Fd(), "").Close()
-	} else {
-		err = rwc.ReadCloser.Close()
-	}
-	werr := rwc.WriteCloser.Close()
-	if err == nil {
+	err = rwc.closeReader()
+	if werr := rwc.closeWriter(); err == nil {
 		err = werr
 	}
 	return
 }
 
 func NewReadWriteCloser(r io.ReadCloser, w io.WriteCloser) io.ReadWriteCloser {
-	return &rwc{r, w}
+	ret := &rwc{
+		Reader:      r,
+		Writer:      w,
+		closeReader: r.Close,
+		closeWriter: w.Close,
+	}
+	// See https://groups.google.com/d/topic/golang-nuts/i4w58KJ5-J8/discussion
+	// and https://github.com/golang/go/issues/18507
+	if f, ok := r.(*os.File); ok {
+		ret.Reader = os.NewFile(f.Fd(), "")
+		ret.closeReader = func() error {
+			return os.NewFile(f.Fd(), "").Close()
+		}
+	}
+	if f, ok := w.(*os.File); ok {
+		ret.Writer = os.NewFile(f.Fd(), "")
+		ret.closeWriter = func() error {
+			return os.NewFile(f.Fd(), "").Close()
+		}
+	}
+	return ret
 }
 
 type RemoteIOReader struct {

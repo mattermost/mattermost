@@ -6,10 +6,12 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"strings"
+	"sync"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/plugin"
 	"github.com/mattermost/mattermost-server/plugin/plugintest"
@@ -77,6 +79,45 @@ func TestHooks(t *testing.T) {
 		body, err := ioutil.ReadAll(resp.Body)
 		assert.NoError(t, err)
 		assert.Equal(t, "bar", string(body))
+	}))
+}
+
+func TestHooks_Concurrency(t *testing.T) {
+	var hooks plugintest.Hooks
+	defer hooks.AssertExpectations(t)
+
+	assert.NoError(t, testHooksRPC(&hooks, func(remote *RemoteHooks) {
+		ch := make(chan bool)
+
+		hooks.On("ServeHTTP", mock.AnythingOfType("*rpcplugin.RemoteHTTPResponseWriter"), mock.AnythingOfType("*http.Request")).Run(func(args mock.Arguments) {
+			r := args.Get(1).(*http.Request)
+			if r.URL.Path == "/1" {
+				<-ch
+			} else {
+				ch <- true
+			}
+		})
+
+		rec := httptest.NewRecorder()
+
+		wg := sync.WaitGroup{}
+		wg.Add(2)
+
+		go func() {
+			req, err := http.NewRequest("GET", "/1", nil)
+			require.NoError(t, err)
+			remote.ServeHTTP(rec, req)
+			wg.Done()
+		}()
+
+		go func() {
+			req, err := http.NewRequest("GET", "/2", nil)
+			require.NoError(t, err)
+			remote.ServeHTTP(rec, req)
+			wg.Done()
+		}()
+
+		wg.Wait()
 	}))
 }
 
