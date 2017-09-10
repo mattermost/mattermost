@@ -248,16 +248,20 @@ export function canManageMembers(channel, isChannelAdmin, isTeamAdmin, isSystemA
 }
 
 export function buildGroupChannelName(channelId) {
+    const locale = LocalizationStore.getLocale();
     const profiles = UserStore.getProfileListInChannel(channelId, true);
-    let displayName = '';
-    for (let i = 0; i < profiles.length; i++) {
-        displayName += Utils.displayUsernameForUser(profiles[i]);
-        if (i !== profiles.length - 1) {
-            displayName += ', ';
-        }
+    if (!profiles) {
+        return '';
     }
 
-    return displayName;
+    const groupDisplayName = [];
+    for (let i = 0; i < profiles.length; i++) {
+        groupDisplayName.push(Utils.displayUsernameForUser(profiles[i]));
+    }
+
+    return groupDisplayName.sort((a, b) => {
+        return a.toLowerCase().localeCompare(b.toLowerCase(), locale, {numeric: true});
+    }).join(', ');
 }
 
 export function getCountsStateFromStores(team = TeamStore.getCurrent(), teamMembers = TeamStore.getMyTeamMembers(), unreadCounts = ChannelStore.getUnreadCounts()) {
