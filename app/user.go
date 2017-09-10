@@ -917,6 +917,22 @@ func UpdateActive(user *model.User, active bool) (*model.User, *model.AppError) 
 			SetStatusOffline(ruser.Id, false)
 		}
 
+		teamsForUser, err := GetTeamsForUser(user.Id)
+		if err != nil {
+			return nil, err
+		}
+
+		for _, team := range teamsForUser {
+			channelsForUser, err := GetChannelsForUser(team.Id, user.Id)
+			if err != nil {
+				return nil, err
+			}
+
+			for _, channel := range *channelsForUser {
+				InvalidateCacheForChannelMembers(channel.Id)
+			}
+		}
+
 		return ruser, nil
 	}
 }
