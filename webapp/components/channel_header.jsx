@@ -364,10 +364,6 @@ export default class ChannelHeader extends React.Component {
             }
         }
 
-        if (isGroup) {
-            channelTitle = ChannelUtils.buildGroupChannelName(channel.id);
-        }
-
         let popoverListMembers;
         if (!isDirect) {
             popoverListMembers = (
