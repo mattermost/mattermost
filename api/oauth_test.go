@@ -704,6 +704,35 @@ func TestOAuthAccessToken(t *testing.T) {
 		if rsp.TokenType != model.ACCESS_TOKEN_TYPE {
 			t.Fatal("access token type incorrect")
 		}
+		Client.SetOAuthToken(rsp.AccessToken)
+		_, err = Client.GetMe("")
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		data.Set("refresh_token", rsp.RefreshToken)
+	}
+
+	if result, err := Client.GetAccessToken(data); err != nil {
+		t.Fatal(err)
+	} else {
+		rsp := result.Data.(*model.AccessResponse)
+		if len(rsp.AccessToken) == 0 {
+			t.Fatal("access token not returned")
+		} else if len(rsp.RefreshToken) == 0 {
+			t.Fatal("refresh token not returned")
+		} else if rsp.RefreshToken == refreshToken {
+			t.Fatal("refresh token did not update")
+		}
+
+		if rsp.TokenType != model.ACCESS_TOKEN_TYPE {
+			t.Fatal("access token type incorrect")
+		}
+		Client.SetOAuthToken(rsp.AccessToken)
+		_, err = Client.GetMe("")
+		if err != nil {
+			t.Fatal(err)
+		}
 	}
 
 	authData := &model.AuthData{ClientId: oauthApp.Id, RedirectUri: oauthApp.CallbackUrls[0], UserId: th.BasicUser.Id, Code: model.NewId(), ExpiresIn: -1}
