@@ -71,19 +71,21 @@ func runServer(configFileLocation string) {
 		l4g.Error("Problem with file storage settings: " + err.Error())
 	}
 
-	app.Global().NewServer()
-	app.Global().InitStores()
+	a := app.Global()
+	a.NewServer()
+	a.InitStores()
 	api.InitRouter()
+
+	if model.BuildEnterpriseReady == "true" {
+		a.LoadLicense()
+	}
+	a.InitPlugins("plugins", "webapp/dist")
+
 	wsapi.InitRouter()
 	api4.InitApi(false)
 	api.InitApi()
-	app.Global().InitPlugins()
 	wsapi.InitApi()
 	web.InitWeb()
-
-	if model.BuildEnterpriseReady == "true" {
-		app.Global().LoadLicense()
-	}
 
 	if !utils.IsLicensed() && len(utils.Cfg.SqlSettings.DataSourceReplicas) > 1 {
 		l4g.Warn(utils.T("store.sql.read_replicas_not_licensed.critical"))
@@ -98,7 +100,7 @@ func runServer(configFileLocation string) {
 
 	resetStatuses()
 
-	app.Global().StartServer()
+	a.StartServer()
 
 	// If we allow testing then listen for manual testing URL hits
 	if utils.Cfg.ServiceSettings.EnableTesting {
@@ -118,7 +120,7 @@ func runServer(configFileLocation string) {
 	}
 
 	if einterfaces.GetClusterInterface() != nil {
-		app.Global().RegisterAllClusterMessageHandlers()
+		a.RegisterAllClusterMessageHandlers()
 		einterfaces.GetClusterInterface().StartInterNodeCommunication()
 	}
 
@@ -132,7 +134,7 @@ func runServer(configFileLocation string) {
 		}
 	}
 
-	jobs.Srv.Store = app.Global().Srv.Store
+	jobs.Srv.Store = a.Srv.Store
 	if *utils.Cfg.JobSettings.RunJobs {
 		jobs.Srv.StartWorkers()
 	}
@@ -157,7 +159,7 @@ func runServer(configFileLocation string) {
 	jobs.Srv.StopSchedulers()
 	jobs.Srv.StopWorkers()
 
-	app.Global().StopServer()
+	a.StopServer()
 }
 
 func runSecurityJob() {

@@ -1,10 +1,14 @@
 package pluginenv
 
 import (
+	"context"
 	"fmt"
 	"io/ioutil"
+	"net/http"
+	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"sync"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -297,4 +301,71 @@ func TestEnvironment_ShutdownError(t *testing.T) {
 	assert.NoError(t, env.ActivatePlugin("foo"))
 	assert.Equal(t, env.ActivePluginIds(), []string{"foo"})
 	assert.Len(t, env.Shutdown(), 2)
+}
+
+func TestEnvironment_ConcurrentHookInvocations(t *testing.T) {
+	dir := initTmpDir(t, map[string]string{
+		"foo/plugin.json": `{"id": "foo", "backend": {}}`,
+	})
+	defer os.RemoveAll(dir)
+
+	var provider MockProvider
+	defer provider.AssertExpectations(t)
+
+	var api struct{ plugin.API }
+	var supervisor MockSupervisor
+	defer supervisor.AssertExpectations(t)
+	var hooks plugintest.Hooks
+	defer hooks.AssertExpectations(t)
+
+	env, err := New(
+		SearchPath(dir),
+		APIProvider(provider.API),
+		SupervisorProvider(provider.Supervisor),
+	)
+	require.NoError(t, err)
+	defer env.Shutdown()
+
+	provider.On("API").Return(&api, nil)
+	provider.On("Supervisor").Return(&supervisor, nil)
+
+	supervisor.On("Start").Return(nil)
+	supervisor.On("Stop").Return(nil)
+	supervisor.On("Hooks").Return(&hooks)
+
+	ch := make(chan bool)
+
+	hooks.On("OnActivate", &api).Return(nil)
+	hooks.On("OnDeactivate").Return(nil)
+	hooks.On("ServeHTTP", mock.AnythingOfType("*httptest.ResponseRecorder"), mock.AnythingOfType("*http.Request")).Run(func(args mock.Arguments) {
+		r := args.Get(1).(*http.Request)
+		if r.URL.Path == "/1" {
+			<-ch
+		} else {
+			ch <- true
+		}
+	})
+
+	assert.NoError(t, env.ActivatePlugin("foo"))
+
+	rec := httptest.NewRecorder()
+
+	wg := sync.WaitGroup{}
+	wg.Add(2)
+
+	go func() {
+		req, err := http.NewRequest("GET", "/1", nil)
+		require.NoError(t, err)
+		env.Hooks().ServeHTTP(rec, req.WithContext(context.WithValue(context.Background(), "plugin_id", "foo")))
+		wg.Done()
+	}()
+
+	go func() {
+		req, err := http.NewRequest("GET", "/2", nil)
+		require.NoError(t, err)
+		env.Hooks().ServeHTTP(rec, req.WithContext(context.WithValue(context.Background(), "plugin_id", "foo")))
+		wg.Done()
+	}()
+
+	wg.Wait()
 }

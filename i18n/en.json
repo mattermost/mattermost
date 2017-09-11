@@ -3428,10 +3428,6 @@
     "translation": "Unable to activate extracted plugin. Plugin may already exist and be activated."
   },
   {
-    "id": "app.plugin.bad_path.app_error",
-    "translation": "Bad file path in extracted files"
-  },
-  {
     "id": "app.plugin.deactivate.app_error",
     "translation": "Unable to deactivate plugin"
   },
@@ -3444,6 +3440,10 @@
     "translation": "Encountered error extracting plugin"
   },
   {
+    "id": "app.plugin.filesystem.app_error",
+    "translation": "Encountered filesystem error"
+  },
+  {
     "id": "app.plugin.get_plugins.app_error",
     "translation": "Unable to get active plugins"
   },
@@ -3454,10 +3454,6 @@
   {
     "id": "app.plugin.mvdir.app_error",
     "translation": "Unable to move plugin from temporary directory to final destination"
-  },
-  {
-    "id": "app.plugin.no_files.app_error",
-    "translation": "No files found in the compressed folder"
   },
   {
     "id": "app.plugin.remove.app_error",
