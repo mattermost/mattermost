@@ -110,5 +110,5 @@ func TestPlugin(t *testing.T) {
 	_, resp = th.SystemAdminClient.RemovePlugin("bad.id")
 	CheckNotFoundStatus(t, resp)
 
-	th.App.Srv.PluginEnv = nil
+	th.App.PluginEnv = nil
 }
