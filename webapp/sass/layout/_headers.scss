@@ -1,7 +1,7 @@
 @charset 'UTF-8';
 
 .channel-header {
-    @include flex(0 0 70px);
+    @include flex(0 0 72px);
     border-bottom: 1px solid;
     font-size: 14px;
     position: relative;
@@ -32,7 +32,7 @@
         cursor: pointer;
         height: 37px;
         line-height: 36px;
-        margin: 16px 10px 0 0;
+        margin: 17px 10px 0 0;
         min-width: 30px;
         text-align: center;
         width: 37px;
