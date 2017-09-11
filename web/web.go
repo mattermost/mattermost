@@ -84,7 +84,14 @@ func CheckBrowserCompatability(c *api.Context, r *http.Request) bool {
 }
 
 func root(c *api.Context, w http.ResponseWriter, r *http.Request) {
-	if !CheckBrowserCompatability(c, r) {
+	agentString := r.UserAgent()
+	ua := user_agent.New(agentString)
+
+	if strings.Contains(agentString, "Mattermost") {
+		l4g.Debug("Detected Browser: Mattermost App")
+	} else if ua.Mobile() {
+		l4g.Debug("Detected Browser: Mobile Browser")
+	} else if !CheckBrowserCompatability(ua) {
 		w.Header().Set("Cache-Control", "no-store")
 		page := utils.NewHTMLTemplate(c.App.HTMLTemplates(), "unsupported_browser")
 		page.Props["Title"] = c.T("web.error.unsupported_browser.title")
