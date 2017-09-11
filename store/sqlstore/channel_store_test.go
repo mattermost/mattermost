@@ -1249,6 +1249,7 @@ func TestChannelStoreUpdateLastViewedAt(t *testing.T) {
 	o1.Name = "zz" + model.NewId() + "b"
 	o1.Type = model.CHANNEL_OPEN
 	o1.TotalMsgCount = 25
+	o1.LastPostAt = 12345
 	store.Must(ss.Channel().Save(&o1))
 
 	m1 := model.ChannelMember{}
@@ -1257,13 +1258,15 @@ func TestChannelStoreUpdateLastViewedAt(t *testing.T) {
 	m1.NotifyProps = model.GetDefaultChannelNotifyProps()
 	store.Must(ss.Channel().SaveMember(&m1))
 
-	err := (<-ss.Channel().UpdateLastViewedAt([]string{m1.ChannelId}, m1.UserId)).Err
-	if err != nil {
-		t.Fatal("failed to update", err)
+	result := <-ss.Channel().UpdateLastViewedAt([]string{m1.ChannelId}, m1.UserId)
+	if result.Err != nil {
+		t.Fatal("failed to update", result.Err)
+	} else if result.Data.(map[string]int64)[o1.Id] != o1.LastPostAt {
+		t.Fatal("last viewed at time incorrect")
 	}
 
-	err = (<-ss.Channel().UpdateLastViewedAt([]string{m1.ChannelId}, "missing id")).Err
-	if err != nil {
+	result = <-ss.Channel().UpdateLastViewedAt([]string{m1.ChannelId}, "missing id")
+	if result.Err != nil {
 		t.Fatal("failed to update")
 	}
 }

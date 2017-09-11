@@ -1284,21 +1284,45 @@ func (s SqlChannelStore) UpdateLastViewedAt(channelIds []string, userId string) 
 	go func() {
 		result := store.StoreResult{}
 
-		var query string
 		props := make(map[string]interface{})
 
-		idQuery := ""
+		updateIdQuery := ""
 		for index, channelId := range channelIds {
-			if len(idQuery) > 0 {
-				idQuery += " OR "
+			if len(updateIdQuery) > 0 {
+				updateIdQuery += " OR "
 			}
 
 			props["channelId"+strconv.Itoa(index)] = channelId
-			idQuery += "ChannelId = :channelId" + strconv.Itoa(index)
+			updateIdQuery += "ChannelId = :channelId" + strconv.Itoa(index)
 		}
 
+		selectIdQuery := strings.Replace(updateIdQuery, "ChannelId", "Id", -1)
+
+		var transaction *gorp.Transaction
+		var err error
+		if transaction, err = s.GetMaster().Begin(); err != nil {
+			result.Err = model.NewAppError("SqlChannelStore.UpdateLastViewedAt", "store.sql_channel.save.open_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+
+		var lastPostAtTimes []struct {
+			Id         string
+			LastPostAt int64
+		}
+
+		selectQuery := "SELECT Id, LastPostAt FROM Channels WHERE (" + selectIdQuery + ")"
+
+		if _, err := transaction.Select(&lastPostAtTimes, selectQuery, props); err != nil {
+			transaction.Rollback()
+			result.Err = model.NewAppError("SqlChannelStore.UpdateLastViewedAt", "store.sql_channel.update_last_viewed_at.app_error", nil, "channel_ids="+strings.Join(channelIds, ",")+", user_id="+userId+", "+err.Error(), http.StatusInternalServerError)
+			storeChannel <- result
+			close(storeChannel)
+			return
+		}
+
+		var updateQuery string
+
 		if *utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_POSTGRES {
-			query = `UPDATE
+			updateQuery = `UPDATE
 				ChannelMembers
 			SET
 			    MentionCount = 0,
@@ -1310,9 +1334,9 @@ func (s SqlChannelStore) UpdateLastViewedAt(channelIds []string, userId string) 
 			WHERE
 			    Channels.Id = ChannelMembers.ChannelId
 			        AND UserId = :UserId
-			        AND (` + idQuery + `)`
+			        AND (` + updateIdQuery + `)`
 		} else if *utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_MYSQL {
-			query = `UPDATE
+			updateQuery = `UPDATE
 				ChannelMembers, Channels
 			SET
 			    ChannelMembers.MentionCount = 0,
@@ -1322,14 +1346,25 @@ func (s SqlChannelStore) UpdateLastViewedAt(channelIds []string, userId string) 
 			WHERE
 			    Channels.Id = ChannelMembers.ChannelId
 			        AND UserId = :UserId
-			        AND (` + idQuery + `)`
+			        AND (` + updateIdQuery + `)`
 		}
 
 		props["UserId"] = userId
 
-		_, err := s.GetMaster().Exec(query, props)
-		if err != nil {
+		if _, err := transaction.Exec(updateQuery, props); err != nil {
+			transaction.Rollback()
 			result.Err = model.NewAppError("SqlChannelStore.UpdateLastViewedAt", "store.sql_channel.update_last_viewed_at.app_error", nil, "channel_ids="+strings.Join(channelIds, ",")+", user_id="+userId+", "+err.Error(), http.StatusInternalServerError)
+		} else {
+			if err := transaction.Commit(); err != nil {
+				result.Err = model.NewAppError("SqlChannelStore.UpdateLastViewedAt", "store.sql_channel.update_last_viewed_at.app_error", nil, err.Error(), http.StatusInternalServerError)
+			}
+
+			times := map[string]int64{}
+			for _, t := range lastPostAtTimes {
+				times[t.Id] = t.LastPostAt
+			}
+
+			result.Data = times
 		}
 
 		storeChannel <- result
