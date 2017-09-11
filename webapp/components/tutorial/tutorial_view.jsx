@@ -54,7 +54,7 @@ export default class TutorialView extends React.Component {
 }
 
 TutorialView.defaultProps = {
-    isRoot: true,
+    isRoot: true
 };
 
 TutorialView.propTypes = {
