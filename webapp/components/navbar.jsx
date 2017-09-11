@@ -786,18 +786,14 @@ export default class Navbar extends React.Component {
             );
 
             isChannelAdmin = ChannelStore.isChannelAdminForCurrentChannel();
+            channelTitle = channel.display_name;
 
-            if (channel.type === 'O') {
-                channelTitle = channel.display_name;
-            } else if (channel.type === 'P') {
-                channelTitle = channel.display_name;
-            } else if (channel.type === 'D') {
+            if (channel.type === Constants.DM_CHANNEL) {
                 isDirect = true;
                 const teammateId = Utils.getUserIdFromChannelName(channel);
                 channelTitle = Utils.displayUsername(teammateId);
             } else if (channel.type === Constants.GM_CHANNEL) {
                 isGroup = true;
-                channelTitle = ChannelUtils.buildGroupChannelName(channel.id);
             }
 
             if (channel.header.length === 0) {
