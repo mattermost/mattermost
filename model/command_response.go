@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"io"
 	"io/ioutil"
+	"strings"
 )
 
 const (
@@ -33,7 +34,7 @@ func (o *CommandResponse) ToJson() string {
 }
 
 func CommandResponseFromHTTPBody(contentType string, body io.Reader) *CommandResponse {
-	if contentType == "application/json" {
+	if strings.TrimSpace(strings.Split(contentType, ";")[0]) == "application/json" {
 		return CommandResponseFromJson(body)
 	}
 	if b, err := ioutil.ReadAll(body); err == nil {

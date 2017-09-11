@@ -27,6 +27,7 @@ func TestCommandResponseFromHTTPBody(t *testing.T) {
 		{"", "foo", "foo"},
 		{"text/plain", "foo", "foo"},
 		{"application/json", `{"text": "foo"}`, "foo"},
+		{"application/json; charset=utf-8", `{"text": "foo"}`, "foo"},
 	} {
 		response := CommandResponseFromHTTPBody(test.ContentType, strings.NewReader(test.Body))
 		if response.Text != test.ExpectedText {
