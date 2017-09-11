@@ -7,6 +7,7 @@ import ChannelStore from 'stores/channel_store.jsx';
 import Constants from 'utils/constants.jsx';
 
 import $ from 'jquery';
+import PropTypes from 'prop-types';
 import React from 'react';
 
 export default class TutorialView extends React.Component {
@@ -22,12 +23,16 @@ export default class TutorialView extends React.Component {
     componentDidMount() {
         ChannelStore.addChangeListener(this.handleChannelChange);
 
-        $('body').addClass('app__body');
+        if (this.props.isRoot) {
+            $('body').addClass('app__body');
+        }
     }
     componentWillUnmount() {
         ChannelStore.removeChangeListener(this.handleChannelChange);
 
-        $('body').removeClass('app__body');
+        if (this.props.isRoot) {
+            $('body').removeClass('app__body');
+        }
     }
     handleChannelChange() {
         this.setState({
@@ -47,3 +52,11 @@ export default class TutorialView extends React.Component {
         );
     }
 }
+
+TutorialView.defaultProps = {
+    isRoot: true,
+};
+
+TutorialView.propTypes = {
+    isRoot: PropTypes.bool
+};
