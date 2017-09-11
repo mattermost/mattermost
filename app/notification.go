@@ -652,9 +652,9 @@ func (a *App) sendPushNotification(post *model.Post, user *model.User, channel *
 func (a *App) ClearPushNotification(userId string, channelId string) {
 	go func() {
 		// Sleep is to allow the read replicas a chance to fully sync
-		// the unread count for sending an accurate unread count.
+		// the unread count for sending an accurate count.
 		// Delaying a little doesn't hurt anything and is cheaper than
-		// attempt to read from master.
+		// attempting to read from master.
 		time.Sleep(time.Second * 5)
 
 		sessions, err := a.getMobileAppSessions(userId)
