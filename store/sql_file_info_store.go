@@ -281,3 +281,36 @@ func (fs SqlFileInfoStore) PermanentDelete(fileId string) StoreChannel {
 
 	return storeChannel
 }
+
+func (s SqlFileInfoStore) PermanentDeleteBatch(endTime int64, limit int64) StoreChannel {
+	storeChannel := make(StoreChannel, 1)
+
+	go func() {
+		result := StoreResult{}
+
+		var query string
+		if *utils.Cfg.SqlSettings.DriverName == "postgres" {
+			query = "DELETE from FileInfo WHERE Id = any (array (SELECT Id FROM FileInfo WHERE CreateAt < :EndTime LIMIT :Limit))"
+		} else {
+			query = "DELETE from FileInfo WHERE CreateAt < :EndTime LIMIT :Limit"
+		}
+
+		sqlResult, err := s.GetMaster().Exec(query, map[string]interface{}{"EndTime": endTime, "Limit": limit})
+		if err != nil {
+			result.Err = model.NewAppError("SqlFileInfoStore.PermanentDeleteBatch", "store.sql_file_info.permanent_delete_batch.app_error", nil, ""+err.Error(), http.StatusInternalServerError)
+		} else {
+			rowsAffected, err1 := sqlResult.RowsAffected()
+			if err1 != nil {
+				result.Err = model.NewAppError("SqlFileInfoStore.PermanentDeleteBatch", "store.sql_file_info.permanent_delete_batch.app_error", nil, ""+err.Error(), http.StatusInternalServerError)
+				result.Data = int64(0)
+			} else {
+				result.Data = rowsAffected
+			}
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}

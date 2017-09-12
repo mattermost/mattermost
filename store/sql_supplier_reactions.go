@@ -5,8 +5,10 @@ package store
 
 import (
 	"context"
+	"net/http"
 
 	l4g "github.com/alecthomas/log4go"
+
 	"github.com/mattermost/gorp"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
@@ -134,6 +136,32 @@ func (s *SqlSupplier) ReactionDeleteAllWithEmojiName(ctx context.Context, emojiN
 		if _, err := s.GetMaster().Exec(UPDATE_POST_HAS_REACTIONS_QUERY,
 			map[string]interface{}{"PostId": reaction.PostId, "UpdateAt": model.GetMillis()}); err != nil {
 			l4g.Warn(utils.T("store.sql_reaction.delete_all_with_emoji_name.update_post.warn"), reaction.PostId, err.Error())
+		}
+	}
+
+	return result
+}
+
+func (s *SqlSupplier) ReactionPermanentDeleteBatch(ctx context.Context, endTime int64, limit int64, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
+	result := NewSupplierResult()
+
+	var query string
+	if *utils.Cfg.SqlSettings.DriverName == "postgres" {
+		query = "DELETE from Reactions WHERE Id = any (array (SELECT Id FROM Reactions WHERE CreateAt < :EndTime LIMIT :Limit))"
+	} else {
+		query = "DELETE from Reactions WHERE CreateAt < :EndTime LIMIT :Limit"
+	}
+
+	sqlResult, err := s.GetMaster().Exec(query, map[string]interface{}{"EndTime": endTime, "Limit": limit})
+	if err != nil {
+		result.Err = model.NewAppError("SqlReactionStore.PermanentDeleteBatch", "store.sql_reaction.permanent_delete_batch.app_error", nil, ""+err.Error(), http.StatusInternalServerError)
+	} else {
+		rowsAffected, err1 := sqlResult.RowsAffected()
+		if err1 != nil {
+			result.Err = model.NewAppError("SqlReactionStore.PermanentDeleteBatch", "store.sql_reaction.permanent_delete_batch.app_error", nil, ""+err.Error(), http.StatusInternalServerError)
+			result.Data = int64(0)
+		} else {
+			result.Data = rowsAffected
 		}
 	}
 

@@ -1356,3 +1356,36 @@ func (s SqlPostStore) GetPostsBatchForIndexing(startTime int64, limit int) Store
 
 	return storeChannel
 }
+
+func (s SqlPostStore) PermanentDeleteBatch(endTime int64, limit int64) StoreChannel {
+	storeChannel := make(StoreChannel, 1)
+
+	go func() {
+		result := StoreResult{}
+
+		var query string
+		if *utils.Cfg.SqlSettings.DriverName == "postgres" {
+			query = "DELETE from Posts WHERE Id = any (array (SELECT Id FROM Posts WHERE CreateAt < :EndTime LIMIT :Limit))"
+		} else {
+			query = "DELETE from Posts WHERE CreateAt < :EndTime LIMIT :Limit"
+		}
+
+		sqlResult, err := s.GetMaster().Exec(query, map[string]interface{}{"EndTime": endTime, "Limit": limit})
+		if err != nil {
+			result.Err = model.NewAppError("SqlPostStore.PermanentDeleteBatch", "store.sql_post.permanent_delete_batch.app_error", nil, ""+err.Error(), http.StatusInternalServerError)
+		} else {
+			rowsAffected, err1 := sqlResult.RowsAffected()
+			if err1 != nil {
+				result.Err = model.NewAppError("SqlPostStore.PermanentDeleteBatch", "store.sql_post.permanent_delete_batch.app_error", nil, ""+err.Error(), http.StatusInternalServerError)
+				result.Data = int64(0)
+			} else {
+				result.Data = rowsAffected
+			}
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}

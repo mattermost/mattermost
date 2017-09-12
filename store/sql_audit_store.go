@@ -4,7 +4,10 @@
 package store
 
 import (
+	"net/http"
+
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/utils"
 )
 
 type SqlAuditStore struct {
@@ -101,6 +104,39 @@ func (s SqlAuditStore) PermanentDeleteByUser(userId string) StoreChannel {
 		if _, err := s.GetMaster().Exec("DELETE FROM Audits WHERE UserId = :userId",
 			map[string]interface{}{"userId": userId}); err != nil {
 			result.Err = model.NewLocAppError("SqlAuditStore.Delete", "store.sql_audit.permanent_delete_by_user.app_error", nil, "user_id="+userId)
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
+func (s SqlAuditStore) PermanentDeleteBatch(endTime int64, limit int64) StoreChannel {
+	storeChannel := make(StoreChannel, 1)
+
+	go func() {
+		result := StoreResult{}
+
+		var query string
+		if *utils.Cfg.SqlSettings.DriverName == "postgres" {
+			query = "DELETE from Audits WHERE Id = any (array (SELECT Id FROM Audits WHERE CreateAt < :EndTime LIMIT :Limit))"
+		} else {
+			query = "DELETE from Audits WHERE CreateAt < :EndTime LIMIT :Limit"
+		}
+
+		sqlResult, err := s.GetMaster().Exec(query, map[string]interface{}{"EndTime": endTime, "Limit": limit})
+		if err != nil {
+			result.Err = model.NewAppError("SqlAuditStore.PermanentDeleteBatch", "store.sql_audit.permanent_delete_batch.app_error", nil, ""+err.Error(), http.StatusInternalServerError)
+		} else {
+			rowsAffected, err1 := sqlResult.RowsAffected()
+			if err1 != nil {
+				result.Err = model.NewAppError("SqlAuditStore.PermanentDeleteBatch", "store.sql_audit.permanent_delete_batch.app_error", nil, ""+err.Error(), http.StatusInternalServerError)
+				result.Data = int64(0)
+			} else {
+				result.Data = rowsAffected
+			}
 		}
 
 		storeChannel <- result

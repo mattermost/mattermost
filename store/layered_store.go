@@ -199,3 +199,9 @@ func (s *LayeredReactionStore) DeleteAllWithEmojiName(emojiName string) StoreCha
 		return supplier.ReactionDeleteAllWithEmojiName(s.TmpContext, emojiName)
 	})
 }
+
+func (s *LayeredReactionStore) PermanentDeleteBatch(endTime int64, limit int64) StoreChannel {
+	return s.RunQuery(func(supplier LayeredStoreSupplier) *LayeredStoreSupplierResult {
+		return supplier.ReactionPermanentDeleteBatch(s.TmpContext, endTime, limit)
+	})
+}
