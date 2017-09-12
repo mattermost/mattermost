@@ -11,31 +11,28 @@ import (
 )
 
 func TestLoadLicense(t *testing.T) {
-	a := Global()
-	a.Setup()
+	th := Setup()
 
-	a.LoadLicense()
+	th.App.LoadLicense()
 	if utils.IsLicensed() {
 		t.Fatal("shouldn't have a valid license")
 	}
 }
 
 func TestSaveLicense(t *testing.T) {
-	a := Global()
-	a.Setup()
+	th := Setup()
 
 	b1 := []byte("junk")
 
-	if _, err := a.SaveLicense(b1); err == nil {
+	if _, err := th.App.SaveLicense(b1); err == nil {
 		t.Fatal("shouldn't have saved license")
 	}
 }
 
 func TestRemoveLicense(t *testing.T) {
-	a := Global()
-	a.Setup()
+	th := Setup()
 
-	if err := a.RemoveLicense(); err != nil {
+	if err := th.App.RemoveLicense(); err != nil {
 		t.Fatal("should have removed license")
 	}
 }

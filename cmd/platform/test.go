@@ -14,7 +14,6 @@ import (
 
 	"github.com/mattermost/mattermost-server/api"
 	"github.com/mattermost/mattermost-server/api4"
-	"github.com/mattermost/mattermost-server/app"
 	"github.com/mattermost/mattermost-server/utils"
 	"github.com/mattermost/mattermost-server/wsapi"
 	"github.com/spf13/cobra"
@@ -46,43 +45,45 @@ func init() {
 }
 
 func webClientTestsCmdF(cmd *cobra.Command, args []string) error {
-	if err := initDBCommandContextCobra(cmd); err != nil {
+	a, err := initDBCommandContextCobra(cmd)
+	if err != nil {
 		return err
 	}
 
 	utils.InitTranslations(utils.Cfg.LocalizationSettings)
-	api.InitRouter()
+	a.Srv.Router = api.NewRouter()
 	wsapi.InitRouter()
-	api4.InitApi(false)
-	api.InitApi()
+	api4.InitApi(a.Srv.Router, false)
+	api.InitApi(a.Srv.Router)
 	wsapi.InitApi()
 	setupClientTests()
-	app.Global().StartServer()
+	a.StartServer()
 	runWebClientTests()
-	app.Global().StopServer()
+	a.StopServer()
 
 	return nil
 }
 
 func serverForWebClientTestsCmdF(cmd *cobra.Command, args []string) error {
-	if err := initDBCommandContextCobra(cmd); err != nil {
+	a, err := initDBCommandContextCobra(cmd)
+	if err != nil {
 		return err
 	}
 
 	utils.InitTranslations(utils.Cfg.LocalizationSettings)
-	api.InitRouter()
+	a.Srv.Router = api.NewRouter()
 	wsapi.InitRouter()
-	api4.InitApi(false)
-	api.InitApi()
+	api4.InitApi(a.Srv.Router, false)
+	api.InitApi(a.Srv.Router)
 	wsapi.InitApi()
 	setupClientTests()
-	app.Global().StartServer()
+	a.StartServer()
 
 	c := make(chan os.Signal)
 	signal.Notify(c, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
 	<-c
 
-	app.Global().StopServer()
+	a.StopServer()
 
 	return nil
 }

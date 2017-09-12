@@ -126,7 +126,8 @@ func init() {
 }
 
 func createChannelCmdF(cmd *cobra.Command, args []string) error {
-	if err := initDBCommandContextCobra(cmd); err != nil {
+	a, err := initDBCommandContextCobra(cmd)
+	if err != nil {
 		return err
 	}
 
@@ -170,7 +171,7 @@ func createChannelCmdF(cmd *cobra.Command, args []string) error {
 		CreatorId:   "",
 	}
 
-	if _, err := app.Global().CreateChannel(channel, false); err != nil {
+	if _, err := a.CreateChannel(channel, false); err != nil {
 		return err
 	}
 
@@ -178,7 +179,8 @@ func createChannelCmdF(cmd *cobra.Command, args []string) error {
 }
 
 func removeChannelUsersCmdF(cmd *cobra.Command, args []string) error {
-	if err := initDBCommandContextCobra(cmd); err != nil {
+	a, err := initDBCommandContextCobra(cmd)
+	if err != nil {
 		return err
 	}
 
@@ -197,24 +199,25 @@ func removeChannelUsersCmdF(cmd *cobra.Command, args []string) error {
 
 	users := getUsersFromUserArgs(args[1:])
 	for i, user := range users {
-		removeUserFromChannel(channel, user, args[i+1])
+		removeUserFromChannel(a, channel, user, args[i+1])
 	}
 
 	return nil
 }
 
-func removeUserFromChannel(channel *model.Channel, user *model.User, userArg string) {
+func removeUserFromChannel(a *app.App, channel *model.Channel, user *model.User, userArg string) {
 	if user == nil {
 		CommandPrintErrorln("Can't find user '" + userArg + "'")
 		return
 	}
-	if err := app.Global().RemoveUserFromChannel(user.Id, "", channel); err != nil {
+	if err := a.RemoveUserFromChannel(user.Id, "", channel); err != nil {
 		CommandPrintErrorln("Unable to remove '" + userArg + "' from " + channel.Name + ". Error: " + err.Error())
 	}
 }
 
 func addChannelUsersCmdF(cmd *cobra.Command, args []string) error {
-	if err := initDBCommandContextCobra(cmd); err != nil {
+	a, err := initDBCommandContextCobra(cmd)
+	if err != nil {
 		return err
 	}
 
@@ -233,24 +236,25 @@ func addChannelUsersCmdF(cmd *cobra.Command, args []string) error {
 
 	users := getUsersFromUserArgs(args[1:])
 	for i, user := range users {
-		addUserToChannel(channel, user, args[i+1])
+		addUserToChannel(a, channel, user, args[i+1])
 	}
 
 	return nil
 }
 
-func addUserToChannel(channel *model.Channel, user *model.User, userArg string) {
+func addUserToChannel(a *app.App, channel *model.Channel, user *model.User, userArg string) {
 	if user == nil {
 		CommandPrintErrorln("Can't find user '" + userArg + "'")
 		return
 	}
-	if _, err := app.Global().AddUserToChannel(user, channel); err != nil {
+	if _, err := a.AddUserToChannel(user, channel); err != nil {
 		CommandPrintErrorln("Unable to add '" + userArg + "' from " + channel.Name + ". Error: " + err.Error())
 	}
 }
 
 func archiveChannelsCmdF(cmd *cobra.Command, args []string) error {
-	if err := initDBCommandContextCobra(cmd); err != nil {
+	a, err := initDBCommandContextCobra(cmd)
+	if err != nil {
 		return err
 	}
 
@@ -264,7 +268,7 @@ func archiveChannelsCmdF(cmd *cobra.Command, args []string) error {
 			CommandPrintErrorln("Unable to find channel '" + args[i] + "'")
 			continue
 		}
-		if result := <-app.Global().Srv.Store.Channel().Delete(channel.Id, model.GetMillis()); result.Err != nil {
+		if result := <-a.Srv.Store.Channel().Delete(channel.Id, model.GetMillis()); result.Err != nil {
 			CommandPrintErrorln("Unable to archive channel '" + channel.Name + "' error: " + result.Err.Error())
 		}
 	}
@@ -273,7 +277,8 @@ func archiveChannelsCmdF(cmd *cobra.Command, args []string) error {
 }
 
 func deleteChannelsCmdF(cmd *cobra.Command, args []string) error {
-	if err := initDBCommandContextCobra(cmd); err != nil {
+	a, err := initDBCommandContextCobra(cmd)
+	if err != nil {
 		return err
 	}
 
@@ -297,7 +302,7 @@ func deleteChannelsCmdF(cmd *cobra.Command, args []string) error {
 			CommandPrintErrorln("Unable to find channel '" + args[i] + "'")
 			continue
 		}
-		if err := deleteChannel(channel); err != nil {
+		if err := deleteChannel(a, channel); err != nil {
 			CommandPrintErrorln("Unable to delete channel '" + channel.Name + "' error: " + err.Error())
 		} else {
 			CommandPrettyPrintln("Deleted channel '" + channel.Name + "'")
@@ -307,12 +312,13 @@ func deleteChannelsCmdF(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func deleteChannel(channel *model.Channel) *model.AppError {
-	return app.Global().PermanentDeleteChannel(channel)
+func deleteChannel(a *app.App, channel *model.Channel) *model.AppError {
+	return a.PermanentDeleteChannel(channel)
 }
 
 func moveChannelsCmdF(cmd *cobra.Command, args []string) error {
-	if err := initDBCommandContextCobra(cmd); err != nil {
+	a, err := initDBCommandContextCobra(cmd)
+	if err != nil {
 		return err
 	}
 
@@ -331,7 +337,7 @@ func moveChannelsCmdF(cmd *cobra.Command, args []string) error {
 			CommandPrintErrorln("Unable to find channel '" + args[i] + "'")
 			continue
 		}
-		if err := moveChannel(team, channel); err != nil {
+		if err := moveChannel(a, team, channel); err != nil {
 			CommandPrintErrorln("Unable to move channel '" + channel.Name + "' error: " + err.Error())
 		} else {
 			CommandPrettyPrintln("Moved channel '" + channel.Name + "'")
@@ -341,33 +347,33 @@ func moveChannelsCmdF(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func moveChannel(team *model.Team, channel *model.Channel) *model.AppError {
+func moveChannel(a *app.App, team *model.Team, channel *model.Channel) *model.AppError {
 	oldTeamId := channel.TeamId
 
-	if err := app.Global().MoveChannel(team, channel); err != nil {
+	if err := a.MoveChannel(team, channel); err != nil {
 		return err
 	}
 
-	if incomingWebhooks, err := app.Global().GetIncomingWebhooksForTeamPage(oldTeamId, 0, 10000000); err != nil {
+	if incomingWebhooks, err := a.GetIncomingWebhooksForTeamPage(oldTeamId, 0, 10000000); err != nil {
 		return err
 	} else {
 		for _, webhook := range incomingWebhooks {
 			if webhook.ChannelId == channel.Id {
 				webhook.TeamId = team.Id
-				if result := <-app.Global().Srv.Store.Webhook().UpdateIncoming(webhook); result.Err != nil {
+				if result := <-a.Srv.Store.Webhook().UpdateIncoming(webhook); result.Err != nil {
 					CommandPrintErrorln("Failed to move incoming webhook '" + webhook.Id + "' to new team.")
 				}
 			}
 		}
 	}
 
-	if outgoingWebhooks, err := app.Global().GetOutgoingWebhooksForTeamPage(oldTeamId, 0, 10000000); err != nil {
+	if outgoingWebhooks, err := a.GetOutgoingWebhooksForTeamPage(oldTeamId, 0, 10000000); err != nil {
 		return err
 	} else {
 		for _, webhook := range outgoingWebhooks {
 			if webhook.ChannelId == channel.Id {
 				webhook.TeamId = team.Id
-				if result := <-app.Global().Srv.Store.Webhook().UpdateOutgoing(webhook); result.Err != nil {
+				if result := <-a.Srv.Store.Webhook().UpdateOutgoing(webhook); result.Err != nil {
 					CommandPrintErrorln("Failed to move outgoing webhook '" + webhook.Id + "' to new team.")
 				}
 			}
@@ -378,7 +384,8 @@ func moveChannel(team *model.Team, channel *model.Channel) *model.AppError {
 }
 
 func listChannelsCmdF(cmd *cobra.Command, args []string) error {
-	if err := initDBCommandContextCobra(cmd); err != nil {
+	a, err := initDBCommandContextCobra(cmd)
+	if err != nil {
 		return err
 	}
 
@@ -396,7 +403,7 @@ func listChannelsCmdF(cmd *cobra.Command, args []string) error {
 			CommandPrintErrorln("Unable to find team '" + args[i] + "'")
 			continue
 		}
-		if result := <-app.Global().Srv.Store.Channel().GetAll(team.Id); result.Err != nil {
+		if result := <-a.Srv.Store.Channel().GetAll(team.Id); result.Err != nil {
 			CommandPrintErrorln("Unable to list channels for '" + args[i] + "'")
 		} else {
 			channels := result.Data.([]*model.Channel)
@@ -415,7 +422,8 @@ func listChannelsCmdF(cmd *cobra.Command, args []string) error {
 }
 
 func restoreChannelsCmdF(cmd *cobra.Command, args []string) error {
-	if err := initDBCommandContextCobra(cmd); err != nil {
+	a, err := initDBCommandContextCobra(cmd)
+	if err != nil {
 		return err
 	}
 
@@ -433,7 +441,7 @@ func restoreChannelsCmdF(cmd *cobra.Command, args []string) error {
 			CommandPrintErrorln("Unable to find channel '" + args[i] + "'")
 			continue
 		}
-		if result := <-app.Global().Srv.Store.Channel().SetDeleteAt(channel.Id, 0, model.GetMillis()); result.Err != nil {
+		if result := <-a.Srv.Store.Channel().SetDeleteAt(channel.Id, 0, model.GetMillis()); result.Err != nil {
 			CommandPrintErrorln("Unable to restore channel '" + args[i] + "'")
 		}
 	}
@@ -442,7 +450,8 @@ func restoreChannelsCmdF(cmd *cobra.Command, args []string) error {
 }
 
 func modifyChannelCmdF(cmd *cobra.Command, args []string) error {
-	if err := initDBCommandContextCobra(cmd); err != nil {
+	a, err := initDBCommandContextCobra(cmd)
+	if err != nil {
 		return err
 	}
 
@@ -475,7 +484,7 @@ func modifyChannelCmdF(cmd *cobra.Command, args []string) error {
 		channel.Type = model.CHANNEL_PRIVATE
 	}
 
-	if _, err := app.Global().UpdateChannel(channel); err != nil {
+	if _, err := a.UpdateChannel(channel); err != nil {
 		return errors.New("Failed to update channel '" + args[0] + "' - " + err.Error())
 	}
 

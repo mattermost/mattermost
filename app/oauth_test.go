@@ -11,9 +11,8 @@ import (
 )
 
 func TestOAuthRevokeAccessToken(t *testing.T) {
-	a := Global()
-	a.Setup()
-	if err := a.RevokeAccessToken(model.NewRandomString(16)); err == nil {
+	th := Setup()
+	if err := th.App.RevokeAccessToken(model.NewRandomString(16)); err == nil {
 		t.Fatal("Should have failed bad token")
 	}
 
@@ -24,8 +23,8 @@ func TestOAuthRevokeAccessToken(t *testing.T) {
 	session.Roles = model.ROLE_SYSTEM_USER.Id
 	session.SetExpireInDays(1)
 
-	session, _ = a.CreateSession(session)
-	if err := a.RevokeAccessToken(session.Token); err == nil {
+	session, _ = th.App.CreateSession(session)
+	if err := th.App.RevokeAccessToken(session.Token); err == nil {
 		t.Fatal("Should have failed does not have an access token")
 	}
 
@@ -36,18 +35,17 @@ func TestOAuthRevokeAccessToken(t *testing.T) {
 	accessData.ClientId = model.NewId()
 	accessData.ExpiresAt = session.ExpiresAt
 
-	if result := <-a.Srv.Store.OAuth().SaveAccessData(accessData); result.Err != nil {
+	if result := <-th.App.Srv.Store.OAuth().SaveAccessData(accessData); result.Err != nil {
 		t.Fatal(result.Err)
 	}
 
-	if err := a.RevokeAccessToken(accessData.Token); err != nil {
+	if err := th.App.RevokeAccessToken(accessData.Token); err != nil {
 		t.Fatal(err)
 	}
 }
 
 func TestOAuthDeleteApp(t *testing.T) {
-	a := Global()
-	a.Setup()
+	th := Setup()
 
 	oldSetting := utils.Cfg.ServiceSettings.EnableOAuthServiceProvider
 	defer func() {
@@ -62,7 +60,7 @@ func TestOAuthDeleteApp(t *testing.T) {
 	a1.Homepage = "https://nowhere.com"
 
 	var err *model.AppError
-	a1, err = a.CreateOAuthApp(a1)
+	a1, err = th.App.CreateOAuthApp(a1)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -75,7 +73,7 @@ func TestOAuthDeleteApp(t *testing.T) {
 	session.IsOAuth = true
 	session.SetExpireInDays(1)
 
-	session, _ = a.CreateSession(session)
+	session, _ = th.App.CreateSession(session)
 
 	accessData := &model.AccessData{}
 	accessData.Token = session.Token
@@ -84,15 +82,15 @@ func TestOAuthDeleteApp(t *testing.T) {
 	accessData.ClientId = a1.Id
 	accessData.ExpiresAt = session.ExpiresAt
 
-	if result := <-a.Srv.Store.OAuth().SaveAccessData(accessData); result.Err != nil {
+	if result := <-th.App.Srv.Store.OAuth().SaveAccessData(accessData); result.Err != nil {
 		t.Fatal(result.Err)
 	}
 
-	if err := a.DeleteOAuthApp(a1.Id); err != nil {
+	if err := th.App.DeleteOAuthApp(a1.Id); err != nil {
 		t.Fatal(err)
 	}
 
-	if _, err := a.GetSession(session.Token); err == nil {
+	if _, err := th.App.GetSession(session.Token); err == nil {
 		t.Fatal("should not get session from cache or db")
 	}
 }
