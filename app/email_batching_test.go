@@ -13,8 +13,7 @@ import (
 )
 
 func TestHandleNewNotifications(t *testing.T) {
-	a := Global()
-	a.Setup()
+	Setup()
 
 	id1 := model.NewId()
 	id2 := model.NewId()
@@ -94,8 +93,7 @@ func TestHandleNewNotifications(t *testing.T) {
 }
 
 func TestCheckPendingNotifications(t *testing.T) {
-	a := Global()
-	th := a.Setup().InitBasic()
+	th := Setup().InitBasic()
 
 	job := MakeEmailBatchingJob(128)
 	job.pendingNotifications[th.BasicUser.Id] = []*batchedNotification{
@@ -109,11 +107,11 @@ func TestCheckPendingNotifications(t *testing.T) {
 		},
 	}
 
-	channelMember := store.Must(a.Srv.Store.Channel().GetMember(th.BasicChannel.Id, th.BasicUser.Id)).(*model.ChannelMember)
+	channelMember := store.Must(th.App.Srv.Store.Channel().GetMember(th.BasicChannel.Id, th.BasicUser.Id)).(*model.ChannelMember)
 	channelMember.LastViewedAt = 9999999
-	store.Must(a.Srv.Store.Channel().UpdateMember(channelMember))
+	store.Must(th.App.Srv.Store.Channel().UpdateMember(channelMember))
 
-	store.Must(a.Srv.Store.Preference().Save(&model.Preferences{{
+	store.Must(th.App.Srv.Store.Preference().Save(&model.Preferences{{
 		UserId:   th.BasicUser.Id,
 		Category: model.PREFERENCE_CATEGORY_NOTIFICATIONS,
 		Name:     model.PREFERENCE_NAME_EMAIL_INTERVAL,
@@ -128,9 +126,9 @@ func TestCheckPendingNotifications(t *testing.T) {
 	}
 
 	// test that notifications are cleared if the user has acted
-	channelMember = store.Must(a.Srv.Store.Channel().GetMember(th.BasicChannel.Id, th.BasicUser.Id)).(*model.ChannelMember)
+	channelMember = store.Must(th.App.Srv.Store.Channel().GetMember(th.BasicChannel.Id, th.BasicUser.Id)).(*model.ChannelMember)
 	channelMember.LastViewedAt = 10001000
-	store.Must(a.Srv.Store.Channel().UpdateMember(channelMember))
+	store.Must(th.App.Srv.Store.Channel().UpdateMember(channelMember))
 
 	job.checkPendingNotifications(time.Unix(10002, 0), func(string, []*batchedNotification) {})
 
@@ -202,14 +200,13 @@ func TestCheckPendingNotifications(t *testing.T) {
  * Ensures that email batch interval defaults to 15 minutes for users that haven't explicitly set this preference
  */
 func TestCheckPendingNotificationsDefaultInterval(t *testing.T) {
-	a := Global()
-	th := a.Setup().InitBasic()
+	th := Setup().InitBasic()
 	job := MakeEmailBatchingJob(128)
 
 	// bypasses recent user activity check
-	channelMember := store.Must(a.Srv.Store.Channel().GetMember(th.BasicChannel.Id, th.BasicUser.Id)).(*model.ChannelMember)
+	channelMember := store.Must(th.App.Srv.Store.Channel().GetMember(th.BasicChannel.Id, th.BasicUser.Id)).(*model.ChannelMember)
 	channelMember.LastViewedAt = 9999000
-	store.Must(a.Srv.Store.Channel().UpdateMember(channelMember))
+	store.Must(th.App.Srv.Store.Channel().UpdateMember(channelMember))
 
 	job.pendingNotifications[th.BasicUser.Id] = []*batchedNotification{
 		{
@@ -239,17 +236,16 @@ func TestCheckPendingNotificationsDefaultInterval(t *testing.T) {
  * Ensures that email batch interval defaults to 15 minutes if user preference is invalid
  */
 func TestCheckPendingNotificationsCantParseInterval(t *testing.T) {
-	a := Global()
-	th := a.Setup().InitBasic()
+	th := Setup().InitBasic()
 	job := MakeEmailBatchingJob(128)
 
 	// bypasses recent user activity check
-	channelMember := store.Must(a.Srv.Store.Channel().GetMember(th.BasicChannel.Id, th.BasicUser.Id)).(*model.ChannelMember)
+	channelMember := store.Must(th.App.Srv.Store.Channel().GetMember(th.BasicChannel.Id, th.BasicUser.Id)).(*model.ChannelMember)
 	channelMember.LastViewedAt = 9999000
-	store.Must(a.Srv.Store.Channel().UpdateMember(channelMember))
+	store.Must(th.App.Srv.Store.Channel().UpdateMember(channelMember))
 
 	// preference value is not an integer, so we'll fall back to the default 15min value
-	store.Must(a.Srv.Store.Preference().Save(&model.Preferences{{
+	store.Must(th.App.Srv.Store.Preference().Save(&model.Preferences{{
 		UserId:   th.BasicUser.Id,
 		Category: model.PREFERENCE_CATEGORY_NOTIFICATIONS,
 		Name:     model.PREFERENCE_NAME_EMAIL_INTERVAL,
@@ -284,8 +280,7 @@ func TestCheckPendingNotificationsCantParseInterval(t *testing.T) {
  * Ensures that post contents are not included in notification email when email notification content type is set to generic
  */
 func TestRenderBatchedPostGeneric(t *testing.T) {
-	a := Global()
-	a.Setup()
+	th := Setup()
 	var post = &model.Post{}
 	post.Message = "This is the message"
 	var notification = &batchedNotification{}
@@ -300,7 +295,7 @@ func TestRenderBatchedPostGeneric(t *testing.T) {
 		return translationID
 	}
 
-	var rendered = a.renderBatchedPost(notification, channel, sender, "http://localhost:8065", "", translateFunc, "en", model.EMAIL_NOTIFICATION_CONTENTS_GENERIC)
+	var rendered = th.App.renderBatchedPost(notification, channel, sender, "http://localhost:8065", "", translateFunc, "en", model.EMAIL_NOTIFICATION_CONTENTS_GENERIC)
 	if strings.Contains(rendered, post.Message) {
 		t.Fatal("Rendered email should not contain post contents when email notification contents type is set to Generic.")
 	}
@@ -310,8 +305,7 @@ func TestRenderBatchedPostGeneric(t *testing.T) {
  * Ensures that post contents included in notification email when email notification content type is set to full
  */
 func TestRenderBatchedPostFull(t *testing.T) {
-	a := Global()
-	a.Setup()
+	th := Setup()
 	var post = &model.Post{}
 	post.Message = "This is the message"
 	var notification = &batchedNotification{}
@@ -326,7 +320,7 @@ func TestRenderBatchedPostFull(t *testing.T) {
 		return translationID
 	}
 
-	var rendered = a.renderBatchedPost(notification, channel, sender, "http://localhost:8065", "", translateFunc, "en", model.EMAIL_NOTIFICATION_CONTENTS_FULL)
+	var rendered = th.App.renderBatchedPost(notification, channel, sender, "http://localhost:8065", "", translateFunc, "en", model.EMAIL_NOTIFICATION_CONTENTS_FULL)
 	if !strings.Contains(rendered, post.Message) {
 		t.Fatal("Rendered email should contain post contents when email notification contents type is set to Full.")
 	}

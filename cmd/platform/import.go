@@ -8,7 +8,6 @@ import (
 
 	"fmt"
 
-	"github.com/mattermost/mattermost-server/app"
 	"github.com/spf13/cobra"
 )
 
@@ -45,7 +44,8 @@ func init() {
 }
 
 func slackImportCmdF(cmd *cobra.Command, args []string) error {
-	if err := initDBCommandContextCobra(cmd); err != nil {
+	a, err := initDBCommandContextCobra(cmd)
+	if err != nil {
 		return err
 	}
 
@@ -71,7 +71,7 @@ func slackImportCmdF(cmd *cobra.Command, args []string) error {
 
 	CommandPrettyPrintln("Running Slack Import. This may take a long time for large teams or teams with many messages.")
 
-	app.Global().SlackImport(fileReader, fileInfo.Size(), team.Id)
+	a.SlackImport(fileReader, fileInfo.Size(), team.Id)
 
 	CommandPrettyPrintln("Finished Slack Import.")
 
@@ -79,7 +79,8 @@ func slackImportCmdF(cmd *cobra.Command, args []string) error {
 }
 
 func bulkImportCmdF(cmd *cobra.Command, args []string) error {
-	if err := initDBCommandContextCobra(cmd); err != nil {
+	a, err := initDBCommandContextCobra(cmd)
+	if err != nil {
 		return err
 	}
 
@@ -121,7 +122,7 @@ func bulkImportCmdF(cmd *cobra.Command, args []string) error {
 
 	CommandPrettyPrintln("")
 
-	if err, lineNumber := app.Global().BulkImport(fileReader, !apply, workers); err != nil {
+	if err, lineNumber := a.BulkImport(fileReader, !apply, workers); err != nil {
 		CommandPrettyPrintln(err.Error())
 		if lineNumber != 0 {
 			CommandPrettyPrintln(fmt.Sprintf("Error occurred on data file line %v", lineNumber))

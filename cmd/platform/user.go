@@ -158,7 +158,8 @@ func init() {
 }
 
 func userActivateCmdF(cmd *cobra.Command, args []string) error {
-	if err := initDBCommandContextCobra(cmd); err != nil {
+	a, err := initDBCommandContextCobra(cmd)
+	if err != nil {
 		return err
 	}
 
@@ -166,14 +167,14 @@ func userActivateCmdF(cmd *cobra.Command, args []string) error {
 		return errors.New("Expected at least one argument. See help text for details.")
 	}
 
-	changeUsersActiveStatus(args, true)
+	changeUsersActiveStatus(a, args, true)
 	return nil
 }
 
-func changeUsersActiveStatus(userArgs []string, active bool) {
+func changeUsersActiveStatus(a *app.App, userArgs []string, active bool) {
 	users := getUsersFromUserArgs(userArgs)
 	for i, user := range users {
-		err := changeUserActiveStatus(user, userArgs[i], active)
+		err := changeUserActiveStatus(a, user, userArgs[i], active)
 
 		if err != nil {
 			CommandPrintErrorln(err.Error())
@@ -181,14 +182,14 @@ func changeUsersActiveStatus(userArgs []string, active bool) {
 	}
 }
 
-func changeUserActiveStatus(user *model.User, userArg string, activate bool) error {
+func changeUserActiveStatus(a *app.App, user *model.User, userArg string, activate bool) error {
 	if user == nil {
 		return fmt.Errorf("Can't find user '%v'", userArg)
 	}
 	if user.IsLDAPUser() {
 		return errors.New("You can not modify the activation status of AD/LDAP accounts. Please modify through the AD/LDAP server.")
 	}
-	if _, err := app.Global().UpdateActive(user, activate); err != nil {
+	if _, err := a.UpdateActive(user, activate); err != nil {
 		return fmt.Errorf("Unable to change activation status of user: %v", userArg)
 	}
 
@@ -196,7 +197,8 @@ func changeUserActiveStatus(user *model.User, userArg string, activate bool) err
 }
 
 func userDeactivateCmdF(cmd *cobra.Command, args []string) error {
-	if err := initDBCommandContextCobra(cmd); err != nil {
+	a, err := initDBCommandContextCobra(cmd)
+	if err != nil {
 		return err
 	}
 
@@ -204,12 +206,13 @@ func userDeactivateCmdF(cmd *cobra.Command, args []string) error {
 		return errors.New("Expected at least one argument. See help text for details.")
 	}
 
-	changeUsersActiveStatus(args, false)
+	changeUsersActiveStatus(a, args, false)
 	return nil
 }
 
 func userCreateCmdF(cmd *cobra.Command, args []string) error {
-	if err := initDBCommandContextCobra(cmd); err != nil {
+	a, err := initDBCommandContextCobra(cmd)
+	if err != nil {
 		return err
 	}
 
@@ -241,13 +244,10 @@ func userCreateCmdF(cmd *cobra.Command, args []string) error {
 		Locale:    locale,
 	}
 
-	ruser, err := app.Global().CreateUser(user)
-	if err != nil {
+	if ruser, err := a.CreateUser(user); err != nil {
 		return errors.New("Unable to create user. Error: " + err.Error())
-	}
-
-	if systemAdmin {
-		app.Global().UpdateUserRoles(ruser.Id, "system_user system_admin")
+	} else if systemAdmin {
+		a.UpdateUserRoles(ruser.Id, "system_user system_admin")
 	}
 
 	CommandPrettyPrintln("Created User")
@@ -256,7 +256,8 @@ func userCreateCmdF(cmd *cobra.Command, args []string) error {
 }
 
 func userInviteCmdF(cmd *cobra.Command, args []string) error {
-	if err := initDBCommandContextCobra(cmd); err != nil {
+	_, err := initDBCommandContextCobra(cmd)
+	if err != nil {
 		return err
 	}
 
@@ -296,7 +297,8 @@ func inviteUser(email string, team *model.Team, teamArg string) error {
 }
 
 func resetUserPasswordCmdF(cmd *cobra.Command, args []string) error {
-	if err := initDBCommandContextCobra(cmd); err != nil {
+	a, err := initDBCommandContextCobra(cmd)
+	if err != nil {
 		return err
 	}
 
@@ -310,7 +312,7 @@ func resetUserPasswordCmdF(cmd *cobra.Command, args []string) error {
 	}
 	password := args[1]
 
-	if result := <-app.Global().Srv.Store.User().UpdatePassword(user.Id, model.HashPassword(password)); result.Err != nil {
+	if result := <-a.Srv.Store.User().UpdatePassword(user.Id, model.HashPassword(password)); result.Err != nil {
 		return result.Err
 	}
 
@@ -318,7 +320,8 @@ func resetUserPasswordCmdF(cmd *cobra.Command, args []string) error {
 }
 
 func resetUserMfaCmdF(cmd *cobra.Command, args []string) error {
-	if err := initDBCommandContextCobra(cmd); err != nil {
+	_, err := initDBCommandContextCobra(cmd)
+	if err != nil {
 		return err
 	}
 
@@ -342,7 +345,8 @@ func resetUserMfaCmdF(cmd *cobra.Command, args []string) error {
 }
 
 func deleteUserCmdF(cmd *cobra.Command, args []string) error {
-	if err := initDBCommandContextCobra(cmd); err != nil {
+	a, err := initDBCommandContextCobra(cmd)
+	if err != nil {
 		return err
 	}
 
@@ -373,7 +377,7 @@ func deleteUserCmdF(cmd *cobra.Command, args []string) error {
 			return errors.New("Unable to find user '" + args[i] + "'")
 		}
 
-		if err := app.Global().PermanentDeleteUser(user); err != nil {
+		if err := a.PermanentDeleteUser(user); err != nil {
 			return err
 		}
 	}
@@ -382,7 +386,8 @@ func deleteUserCmdF(cmd *cobra.Command, args []string) error {
 }
 
 func deleteAllUsersCommandF(cmd *cobra.Command, args []string) error {
-	if err := initDBCommandContextCobra(cmd); err != nil {
+	a, err := initDBCommandContextCobra(cmd)
+	if err != nil {
 		return err
 	}
 
@@ -406,7 +411,7 @@ func deleteAllUsersCommandF(cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	if err := app.Global().PermanentDeleteAllUsers(); err != nil {
+	if err := a.PermanentDeleteAllUsers(); err != nil {
 		return err
 	}
 
@@ -415,7 +420,8 @@ func deleteAllUsersCommandF(cmd *cobra.Command, args []string) error {
 }
 
 func migrateAuthCmdF(cmd *cobra.Command, args []string) error {
-	if err := initDBCommandContextCobra(cmd); err != nil {
+	_, err := initDBCommandContextCobra(cmd)
+	if err != nil {
 		return err
 	}
 
@@ -458,7 +464,8 @@ func migrateAuthCmdF(cmd *cobra.Command, args []string) error {
 }
 
 func verifyUserCmdF(cmd *cobra.Command, args []string) error {
-	if err := initDBCommandContextCobra(cmd); err != nil {
+	a, err := initDBCommandContextCobra(cmd)
+	if err != nil {
 		return err
 	}
 
@@ -473,7 +480,7 @@ func verifyUserCmdF(cmd *cobra.Command, args []string) error {
 			CommandPrintErrorln("Unable to find user '" + args[i] + "'")
 			continue
 		}
-		if cresult := <-app.Global().Srv.Store.User().VerifyEmail(user.Id); cresult.Err != nil {
+		if cresult := <-a.Srv.Store.User().VerifyEmail(user.Id); cresult.Err != nil {
 			CommandPrintErrorln("Unable to verify '" + args[i] + "' email. Error: " + cresult.Err.Error())
 		}
 	}
@@ -482,7 +489,8 @@ func verifyUserCmdF(cmd *cobra.Command, args []string) error {
 }
 
 func searchUserCmdF(cmd *cobra.Command, args []string) error {
-	if err := initDBCommandContextCobra(cmd); err != nil {
+	_, err := initDBCommandContextCobra(cmd)
+	if err != nil {
 		return err
 	}
 

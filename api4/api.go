@@ -105,15 +105,16 @@ type Routes struct {
 
 var BaseRoutes *Routes
 
-func InitRouter() {
-	app.Global().Srv.Router = mux.NewRouter()
-	app.Global().Srv.Router.NotFoundHandler = http.HandlerFunc(Handle404)
+func NewRouter() *mux.Router {
+	ret := mux.NewRouter()
+	ret.NotFoundHandler = http.HandlerFunc(Handle404)
+	return ret
 }
 
-func InitApi(full bool) {
+func InitApi(root *mux.Router, full bool) {
 	BaseRoutes = &Routes{}
-	BaseRoutes.Root = app.Global().Srv.Router
-	BaseRoutes.ApiRoot = app.Global().Srv.Router.PathPrefix(model.API_URL_SUFFIX).Subrouter()
+	BaseRoutes.Root = root
+	BaseRoutes.ApiRoot = root.PathPrefix(model.API_URL_SUFFIX).Subrouter()
 
 	BaseRoutes.Users = BaseRoutes.ApiRoot.PathPrefix("/users").Subrouter()
 	BaseRoutes.User = BaseRoutes.ApiRoot.PathPrefix("/users/{user_id:[A-Za-z0-9]+}").Subrouter()
@@ -213,7 +214,7 @@ func InitApi(full bool) {
 	InitOpenGraph()
 	InitPlugin()
 
-	app.Global().Srv.Router.Handle("/api/v4/{anything:.*}", http.HandlerFunc(Handle404))
+	root.Handle("/api/v4/{anything:.*}", http.HandlerFunc(Handle404))
 
 	// REMOVE CONDITION WHEN APIv3 REMOVED
 	if full {
