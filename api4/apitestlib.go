@@ -58,10 +58,6 @@ func setupTestHelper(enterprise bool) *TestHelper {
 		*utils.Cfg.RateLimitSettings.Enable = false
 		utils.Cfg.EmailSettings.SendEmailNotifications = true
 		utils.DisableDebugLogForTest()
-		if enterprise {
-			utils.SetIsLicensed(true)
-			utils.License().Features.SetDefaults()
-		}
 		th.App.NewServer()
 		th.App.InitStores()
 		th.App.Srv.Router = NewRouter()
@@ -73,6 +69,11 @@ func setupTestHelper(enterprise bool) *TestHelper {
 		th.App.Srv.Store.MarkSystemRanUnitTests()
 
 		*utils.Cfg.TeamSettings.EnableOpenServer = true
+	}
+
+	utils.SetIsLicensed(enterprise)
+	if enterprise {
+		utils.License().Features.SetDefaults()
 	}
 
 	if jobs.Srv.Store == nil {

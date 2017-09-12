@@ -33,10 +33,6 @@ func setupTestHelper(enterprise bool) *TestHelper {
 		*utils.Cfg.TeamSettings.MaxUsersPerTeam = 50
 		*utils.Cfg.RateLimitSettings.Enable = false
 		utils.DisableDebugLogForTest()
-		if enterprise {
-			utils.SetIsLicensed(true)
-			utils.License().Features.SetDefaults()
-		}
 		th.App.NewServer()
 		th.App.InitStores()
 		th.App.StartServer()
@@ -45,6 +41,11 @@ func setupTestHelper(enterprise bool) *TestHelper {
 		th.App.Srv.Store.MarkSystemRanUnitTests()
 
 		*utils.Cfg.TeamSettings.EnableOpenServer = true
+	}
+
+	utils.SetIsLicensed(enterprise)
+	if enterprise {
+		utils.License().Features.SetDefaults()
 	}
 
 	return th
