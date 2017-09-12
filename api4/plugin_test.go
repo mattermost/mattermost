@@ -29,7 +29,7 @@ func TestPlugin(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
 	defer TearDown()
 
-	th.App.StartupPlugins(pluginDir, webappDir)
+	th.App.InitPlugins(pluginDir, webappDir)
 
 	enablePlugins := *utils.Cfg.PluginSettings.Enable
 	defer func() {
