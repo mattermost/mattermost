@@ -1298,12 +1298,6 @@ func (s SqlChannelStore) UpdateLastViewedAt(channelIds []string, userId string) 
 
 		selectIdQuery := strings.Replace(updateIdQuery, "ChannelId", "Id", -1)
 
-		var transaction *gorp.Transaction
-		var err error
-		if transaction, err = s.GetMaster().Begin(); err != nil {
-			result.Err = model.NewAppError("SqlChannelStore.UpdateLastViewedAt", "store.sql_channel.save.open_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
-		}
-
 		var lastPostAtTimes []struct {
 			Id            string
 			LastPostAt    int64
@@ -1312,8 +1306,7 @@ func (s SqlChannelStore) UpdateLastViewedAt(channelIds []string, userId string) 
 
 		selectQuery := "SELECT Id, LastPostAt, TotalMsgCount FROM Channels WHERE (" + selectIdQuery + ")"
 
-		if _, err := transaction.Select(&lastPostAtTimes, selectQuery, props); err != nil {
-			transaction.Rollback()
+		if _, err := s.GetMaster().Select(&lastPostAtTimes, selectQuery, props); err != nil {
 			result.Err = model.NewAppError("SqlChannelStore.UpdateLastViewedAt", "store.sql_channel.update_last_viewed_at.app_error", nil, "channel_ids="+strings.Join(channelIds, ",")+", user_id="+userId+", "+err.Error(), http.StatusInternalServerError)
 			storeChannel <- result
 			close(storeChannel)
@@ -1325,10 +1318,14 @@ func (s SqlChannelStore) UpdateLastViewedAt(channelIds []string, userId string) 
 		lastViewedQuery := ""
 		for index, t := range lastPostAtTimes {
 			times[t.Id] = t.LastPostAt
+
 			props["msgCount"+strconv.Itoa(index)] = t.TotalMsgCount
-			msgCountQuery += fmt.Sprintf("WHEN :channelId%d THEN :msgCount%d ", index, index)
+			msgCountQuery += fmt.Sprintf("WHEN :channelId%d THEN GREATEST(MsgCount, :msgCount%d) ", index, index)
+
 			props["lastViewed"+strconv.Itoa(index)] = t.LastPostAt
-			lastViewedQuery += fmt.Sprintf("WHEN :channelId%d THEN :lastViewed%d ", index, index)
+			lastViewedQuery += fmt.Sprintf("WHEN :channelId%d THEN GREATEST(LastViewedAt, :lastViewed%d) ", index, index)
+
+			props["channelId"+strconv.Itoa(index)] = t.Id
 		}
 
 		var updateQuery string
@@ -1359,14 +1356,9 @@ func (s SqlChannelStore) UpdateLastViewedAt(channelIds []string, userId string) 
 
 		props["UserId"] = userId
 
-		if _, err := transaction.Exec(updateQuery, props); err != nil {
-			transaction.Rollback()
+		if _, err := s.GetMaster().Exec(updateQuery, props); err != nil {
 			result.Err = model.NewAppError("SqlChannelStore.UpdateLastViewedAt", "store.sql_channel.update_last_viewed_at.app_error", nil, "channel_ids="+strings.Join(channelIds, ",")+", user_id="+userId+", "+err.Error(), http.StatusInternalServerError)
 		} else {
-			if err := transaction.Commit(); err != nil {
-				result.Err = model.NewAppError("SqlChannelStore.UpdateLastViewedAt", "store.sql_channel.update_last_viewed_at.app_error", nil, err.Error(), http.StatusInternalServerError)
-			}
-
 			result.Data = times
 		}
 
