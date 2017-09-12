@@ -876,6 +876,8 @@ func TestDeleteChannel(t *testing.T) {
 	_, resp = th.SystemAdminClient.DeleteChannel(publicChannel5.Id)
 	CheckNoError(t, resp)
 
+	th = Setup().InitBasic().InitSystemAdmin()
+
 	isLicensed := utils.IsLicensed()
 	license := utils.License()
 	restrictPublicChannel := *utils.Cfg.TeamSettings.RestrictPublicChannelManagement
@@ -894,7 +896,6 @@ func TestDeleteChannel(t *testing.T) {
 	utils.License().Features.SetDefaults()
 	utils.SetDefaultRolesBasedOnConfig()
 
-	th = Setup().InitBasic().InitSystemAdmin()
 	Client = th.Client
 	team = th.BasicTeam
 	user = th.BasicUser
