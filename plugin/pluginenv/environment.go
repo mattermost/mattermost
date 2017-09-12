@@ -4,6 +4,7 @@ package pluginenv
 import (
 	"fmt"
 	"io/ioutil"
+	"net/http"
 	"sync"
 
 	"github.com/pkg/errors"
@@ -27,7 +28,7 @@ type Environment struct {
 	apiProvider        APIProviderFunc
 	supervisorProvider SupervisorProviderFunc
 	activePlugins      map[string]ActivePlugin
-	mutex              sync.Mutex
+	mutex              sync.RWMutex
 }
 
 type Option func(*Environment)
@@ -61,15 +62,13 @@ func (env *Environment) SearchPath() string {
 
 // Returns a list of all plugins found within the environment.
 func (env *Environment) Plugins() ([]*model.BundleInfo, error) {
-	env.mutex.Lock()
-	defer env.mutex.Unlock()
 	return ScanSearchPath(env.searchPath)
 }
 
 // Returns a list of all currently active plugins within the environment.
 func (env *Environment) ActivePlugins() ([]*model.BundleInfo, error) {
-	env.mutex.Lock()
-	defer env.mutex.Unlock()
+	env.mutex.RLock()
+	defer env.mutex.RUnlock()
 
 	activePlugins := []*model.BundleInfo{}
 	for _, p := range env.activePlugins {
@@ -81,8 +80,8 @@ func (env *Environment) ActivePlugins() ([]*model.BundleInfo, error) {
 
 // Returns the ids of the currently active plugins.
 func (env *Environment) ActivePluginIds() (ids []string) {
-	env.mutex.Lock()
-	defer env.mutex.Unlock()
+	env.mutex.RLock()
+	defer env.mutex.RUnlock()
 
 	for id := range env.activePlugins {
 		ids = append(ids, id)
@@ -200,13 +199,55 @@ func (env *Environment) Shutdown() (errs []error) {
 	for _, activePlugin := range env.activePlugins {
 		if activePlugin.Supervisor != nil {
 			if err := activePlugin.Supervisor.Hooks().OnDeactivate(); err != nil {
-				errs = append(errs, err)
+				errs = append(errs, errors.Wrapf(err, "OnDeactivate() error for %v", activePlugin.BundleInfo.Manifest.Id))
 			}
 			if err := activePlugin.Supervisor.Stop(); err != nil {
-				errs = append(errs, err)
+				errs = append(errs, errors.Wrapf(err, "error stopping supervisor for %v", activePlugin.BundleInfo.Manifest.Id))
 			}
 		}
 	}
 	env.activePlugins = make(map[string]ActivePlugin)
 	return
+}
+
+type EnvironmentHooks struct {
+	env *Environment
+}
+
+func (env *Environment) Hooks() *EnvironmentHooks {
+	return &EnvironmentHooks{env}
+}
+
+// OnConfigurationChange invokes the OnConfigurationChange hook for all plugins. Any errors
+// encountered will be returned.
+func (h *EnvironmentHooks) OnConfigurationChange() (errs []error) {
+	h.env.mutex.RLock()
+	defer h.env.mutex.RUnlock()
+	for _, activePlugin := range h.env.activePlugins {
+		if activePlugin.Supervisor == nil {
+			continue
+		}
+		if err := activePlugin.Supervisor.Hooks().OnConfigurationChange(); err != nil {
+			errs = append(errs, errors.Wrapf(err, "OnConfigurationChange error for %v", activePlugin.BundleInfo.Manifest.Id))
+		}
+	}
+	return
+}
+
+// ServeHTTP invokes the ServeHTTP hook for the plugin identified by the request or responds with a
+// 404 not found.
+//
+// It expects the request's context to have a plugin_id set.
+func (h *EnvironmentHooks) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	if id := r.Context().Value("plugin_id"); id != nil {
+		if idstr, ok := id.(string); ok {
+			h.env.mutex.RLock()
+			defer h.env.mutex.RUnlock()
+			if plugin, ok := h.env.activePlugins[idstr]; ok && plugin.Supervisor != nil {
+				plugin.Supervisor.Hooks().ServeHTTP(w, r)
+				return
+			}
+		}
+	}
+	http.NotFound(w, r)
 }

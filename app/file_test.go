@@ -36,8 +36,7 @@ func TestGeneratePublicLinkHash(t *testing.T) {
 }
 
 func TestDoUploadFile(t *testing.T) {
-	a := Global()
-	a.Setup()
+	th := Setup()
 
 	teamId := model.NewId()
 	channelId := model.NewId()
@@ -45,12 +44,12 @@ func TestDoUploadFile(t *testing.T) {
 	filename := "test"
 	data := []byte("abcd")
 
-	info1, err := a.DoUploadFile(time.Date(2007, 2, 4, 1, 2, 3, 4, time.Local), teamId, channelId, userId, filename, data)
+	info1, err := th.App.DoUploadFile(time.Date(2007, 2, 4, 1, 2, 3, 4, time.Local), teamId, channelId, userId, filename, data)
 	if err != nil {
 		t.Fatal(err)
 	} else {
 		defer func() {
-			<-a.Srv.Store.FileInfo().PermanentDelete(info1.Id)
+			<-th.App.Srv.Store.FileInfo().PermanentDelete(info1.Id)
 			utils.RemoveFile(info1.Path)
 		}()
 	}
@@ -59,12 +58,12 @@ func TestDoUploadFile(t *testing.T) {
 		t.Fatal("stored file at incorrect path", info1.Path)
 	}
 
-	info2, err := a.DoUploadFile(time.Date(2007, 2, 4, 1, 2, 3, 4, time.Local), teamId, channelId, userId, filename, data)
+	info2, err := th.App.DoUploadFile(time.Date(2007, 2, 4, 1, 2, 3, 4, time.Local), teamId, channelId, userId, filename, data)
 	if err != nil {
 		t.Fatal(err)
 	} else {
 		defer func() {
-			<-a.Srv.Store.FileInfo().PermanentDelete(info2.Id)
+			<-th.App.Srv.Store.FileInfo().PermanentDelete(info2.Id)
 			utils.RemoveFile(info2.Path)
 		}()
 	}
@@ -73,12 +72,12 @@ func TestDoUploadFile(t *testing.T) {
 		t.Fatal("stored file at incorrect path", info2.Path)
 	}
 
-	info3, err := a.DoUploadFile(time.Date(2008, 3, 5, 1, 2, 3, 4, time.Local), teamId, channelId, userId, filename, data)
+	info3, err := th.App.DoUploadFile(time.Date(2008, 3, 5, 1, 2, 3, 4, time.Local), teamId, channelId, userId, filename, data)
 	if err != nil {
 		t.Fatal(err)
 	} else {
 		defer func() {
-			<-a.Srv.Store.FileInfo().PermanentDelete(info3.Id)
+			<-th.App.Srv.Store.FileInfo().PermanentDelete(info3.Id)
 			utils.RemoveFile(info3.Path)
 		}()
 	}

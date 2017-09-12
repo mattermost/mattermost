@@ -19,7 +19,7 @@ func NewIPC() (io.ReadWriteCloser, []*os.File, error) {
 		childWriter.Close()
 		return nil, nil, err
 	}
-	return NewReadWriteCloser(parentReader, parentWriter), []*os.File{childReader, childWriter}, nil
+	return NewReadWriteCloser(NewAsyncReadCloser(parentReader), NewAsyncWriteCloser(parentWriter)), []*os.File{childReader, childWriter}, nil
 }
 
 // Returns the IPC instance inherited by the process from its parent.

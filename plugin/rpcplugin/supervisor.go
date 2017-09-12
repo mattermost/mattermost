@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"path/filepath"
+	"strings"
 	"sync/atomic"
 	"time"
 
@@ -123,7 +124,11 @@ func SupervisorProvider(bundle *model.BundleInfo) (plugin.Supervisor, error) {
 	} else if bundle.Manifest.Backend == nil || bundle.Manifest.Backend.Executable == "" {
 		return nil, fmt.Errorf("no backend executable specified")
 	}
+	executable := filepath.Clean(filepath.Join(".", bundle.Manifest.Backend.Executable))
+	if strings.HasPrefix(executable, "..") {
+		return nil, fmt.Errorf("invalid backend executable")
+	}
 	return &Supervisor{
-		executable: filepath.Join(bundle.Path, bundle.Manifest.Backend.Executable),
+		executable: filepath.Join(bundle.Path, executable),
 	}, nil
 }

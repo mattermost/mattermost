@@ -33,35 +33,12 @@ type TestHelper struct {
 	SystemAdminChannel *model.Channel
 }
 
-func SetupEnterprise() *TestHelper {
-	if app.Global().Srv == nil {
-		utils.TranslationsPreInit()
-		utils.LoadConfig("config.json")
-		utils.InitTranslations(utils.Cfg.LocalizationSettings)
-		*utils.Cfg.TeamSettings.MaxUsersPerTeam = 50
-		*utils.Cfg.RateLimitSettings.Enable = false
-		utils.DisableDebugLogForTest()
-		utils.License().Features.SetDefaults()
-		app.Global().NewServer()
-		app.Global().InitStores()
-		InitRouter()
-		wsapi.InitRouter()
-		app.Global().StartServer()
-		utils.InitHTML()
-		api4.InitApi(false)
-		InitApi()
-		wsapi.InitApi()
-		utils.EnableDebugLogForTest()
-		app.Global().Srv.Store.MarkSystemRanUnitTests()
-
-		*utils.Cfg.TeamSettings.EnableOpenServer = true
+func setupTestHelper(enterprise bool) *TestHelper {
+	th := &TestHelper{
+		App: app.Global(),
 	}
 
-	return &TestHelper{}
-}
-
-func Setup() *TestHelper {
-	if app.Global().Srv == nil {
+	if th.App.Srv == nil {
 		utils.TranslationsPreInit()
 		utils.LoadConfig("config.json")
 		utils.InitTranslations(utils.Cfg.LocalizationSettings)
@@ -69,21 +46,34 @@ func Setup() *TestHelper {
 		*utils.Cfg.RateLimitSettings.Enable = false
 		utils.Cfg.EmailSettings.SendEmailNotifications = true
 		utils.DisableDebugLogForTest()
-		app.Global().NewServer()
-		app.Global().InitStores()
-		InitRouter()
+		th.App.NewServer()
+		th.App.InitStores()
+		th.App.Srv.Router = NewRouter()
 		wsapi.InitRouter()
-		app.Global().StartServer()
-		api4.InitApi(false)
-		InitApi()
+		th.App.StartServer()
+		api4.InitApi(th.App.Srv.Router, false)
+		InitApi(th.App.Srv.Router)
 		wsapi.InitApi()
 		utils.EnableDebugLogForTest()
-		app.Global().Srv.Store.MarkSystemRanUnitTests()
+		th.App.Srv.Store.MarkSystemRanUnitTests()
 
 		*utils.Cfg.TeamSettings.EnableOpenServer = true
 	}
 
-	return &TestHelper{}
+	utils.SetIsLicensed(enterprise)
+	if enterprise {
+		utils.License().Features.SetDefaults()
+	}
+
+	return th
+}
+
+func SetupEnterprise() *TestHelper {
+	return setupTestHelper(true)
+}
+
+func Setup() *TestHelper {
+	return setupTestHelper(false)
 }
 
 func ReloadConfigForSetup() {
@@ -96,7 +86,6 @@ func ReloadConfigForSetup() {
 }
 
 func (me *TestHelper) InitBasic() *TestHelper {
-	me.App = app.Global()
 	me.BasicClient = me.CreateClient()
 	me.BasicUser = me.CreateUser(me.BasicClient)
 	me.LoginBasic()
@@ -116,7 +105,6 @@ func (me *TestHelper) InitBasic() *TestHelper {
 }
 
 func (me *TestHelper) InitSystemAdmin() *TestHelper {
-	me.App = app.Global()
 	me.SystemAdminClient = me.CreateClient()
 	me.SystemAdminUser = me.CreateUser(me.SystemAdminClient)
 	me.SystemAdminUser.Password = "Password1"
@@ -166,7 +154,7 @@ func (me *TestHelper) CreateUser(client *model.Client) *model.User {
 	utils.DisableDebugLogForTest()
 	ruser := client.Must(client.CreateUser(user, "")).Data.(*model.User)
 	ruser.Password = "Password1"
-	store.Must(app.Global().Srv.Store.User().VerifyEmail(ruser.Id))
+	store.Must(me.App.Srv.Store.User().VerifyEmail(ruser.Id))
 	utils.EnableDebugLogForTest()
 	return ruser
 }

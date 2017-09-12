@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/mattermost/mattermost-server/app"
 	"github.com/spf13/cobra"
 
 	// Plugins
@@ -59,7 +58,8 @@ var resetCmd = &cobra.Command{
 }
 
 func resetCmdF(cmd *cobra.Command, args []string) error {
-	if err := initDBCommandContextCobra(cmd); err != nil {
+	a, err := initDBCommandContextCobra(cmd)
+	if err != nil {
 		return err
 	}
 
@@ -79,7 +79,7 @@ func resetCmdF(cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	app.Global().Srv.Store.DropAllTables()
+	a.Srv.Store.DropAllTables()
 	CommandPrettyPrintln("Database sucessfully reset")
 
 	return nil

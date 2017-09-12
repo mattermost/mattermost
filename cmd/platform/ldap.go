@@ -27,7 +27,7 @@ func init() {
 }
 
 func ldapSyncCmdF(cmd *cobra.Command, args []string) error {
-	if err := initDBCommandContextCobra(cmd); err != nil {
+	if _, err := initDBCommandContextCobra(cmd); err != nil {
 		return err
 	}
 

@@ -11,20 +11,19 @@ import (
 )
 
 func TestGetJob(t *testing.T) {
-	a := Global()
-	a.Setup()
+	th := Setup()
 
 	status := &model.Job{
 		Id:     model.NewId(),
 		Status: model.NewId(),
 	}
-	if result := <-a.Srv.Store.Job().Save(status); result.Err != nil {
+	if result := <-th.App.Srv.Store.Job().Save(status); result.Err != nil {
 		t.Fatal(result.Err)
 	}
 
-	defer a.Srv.Store.Job().Delete(status.Id)
+	defer th.App.Srv.Store.Job().Delete(status.Id)
 
-	if received, err := a.GetJob(status.Id); err != nil {
+	if received, err := th.App.GetJob(status.Id); err != nil {
 		t.Fatal(err)
 	} else if received.Id != status.Id || received.Status != status.Status {
 		t.Fatal("inccorrect job status received")
@@ -32,8 +31,7 @@ func TestGetJob(t *testing.T) {
 }
 
 func TestGetJobByType(t *testing.T) {
-	a := Global()
-	a.Setup()
+	th := Setup()
 
 	jobType := model.NewId()
 
@@ -56,11 +54,11 @@ func TestGetJobByType(t *testing.T) {
 	}
 
 	for _, status := range statuses {
-		store.Must(a.Srv.Store.Job().Save(status))
-		defer a.Srv.Store.Job().Delete(status.Id)
+		store.Must(th.App.Srv.Store.Job().Save(status))
+		defer th.App.Srv.Store.Job().Delete(status.Id)
 	}
 
-	if received, err := a.GetJobsByType(jobType, 0, 2); err != nil {
+	if received, err := th.App.GetJobsByType(jobType, 0, 2); err != nil {
 		t.Fatal(err)
 	} else if len(received) != 2 {
 		t.Fatal("received wrong number of statuses")
@@ -70,7 +68,7 @@ func TestGetJobByType(t *testing.T) {
 		t.Fatal("should've received second newest job second")
 	}
 
-	if received, err := a.GetJobsByType(jobType, 2, 2); err != nil {
+	if received, err := th.App.GetJobsByType(jobType, 2, 2); err != nil {
 		t.Fatal(err)
 	} else if len(received) != 1 {
 		t.Fatal("received wrong number of statuses")

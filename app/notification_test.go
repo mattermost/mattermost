@@ -12,12 +12,11 @@ import (
 )
 
 func TestSendNotifications(t *testing.T) {
-	a := Global()
-	th := a.Setup().InitBasic()
+	th := Setup().InitBasic()
 
-	a.AddUserToChannel(th.BasicUser2, th.BasicChannel)
+	th.App.AddUserToChannel(th.BasicUser2, th.BasicChannel)
 
-	post1, err := a.CreatePostMissingChannel(&model.Post{
+	post1, err := th.App.CreatePostMissingChannel(&model.Post{
 		UserId:    th.BasicUser.Id,
 		ChannelId: th.BasicChannel.Id,
 		Message:   "@" + th.BasicUser2.Username,
@@ -27,7 +26,7 @@ func TestSendNotifications(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	mentions, err := a.SendNotifications(post1, th.BasicTeam, th.BasicChannel, th.BasicUser, nil)
+	mentions, err := th.App.SendNotifications(post1, th.BasicTeam, th.BasicChannel, th.BasicUser, nil)
 	if err != nil {
 		t.Fatal(err)
 	} else if mentions == nil {
@@ -38,12 +37,12 @@ func TestSendNotifications(t *testing.T) {
 		t.Fatal("user should have been mentioned")
 	}
 
-	dm, err := a.CreateDirectChannel(th.BasicUser.Id, th.BasicUser2.Id)
+	dm, err := th.App.CreateDirectChannel(th.BasicUser.Id, th.BasicUser2.Id)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	post2, err := a.CreatePostMissingChannel(&model.Post{
+	post2, err := th.App.CreatePostMissingChannel(&model.Post{
 		UserId:    th.BasicUser.Id,
 		ChannelId: dm.Id,
 		Message:   "dm message",
@@ -53,15 +52,15 @@ func TestSendNotifications(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	_, err = a.SendNotifications(post2, th.BasicTeam, dm, th.BasicUser, nil)
+	_, err = th.App.SendNotifications(post2, th.BasicTeam, dm, th.BasicUser, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	a.UpdateActive(th.BasicUser2, false)
-	a.InvalidateAllCaches()
+	th.App.UpdateActive(th.BasicUser2, false)
+	th.App.InvalidateAllCaches()
 
-	post3, err := a.CreatePostMissingChannel(&model.Post{
+	post3, err := th.App.CreatePostMissingChannel(&model.Post{
 		UserId:    th.BasicUser.Id,
 		ChannelId: dm.Id,
 		Message:   "dm message",
@@ -71,7 +70,7 @@ func TestSendNotifications(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	_, err = a.SendNotifications(post3, th.BasicTeam, dm, th.BasicUser, nil)
+	_, err = th.App.SendNotifications(post3, th.BasicTeam, dm, th.BasicUser, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -409,8 +408,7 @@ func TestRemoveCodeFromMessage(t *testing.T) {
 }
 
 func TestGetMentionKeywords(t *testing.T) {
-	a := Global()
-	a.Setup()
+	Setup()
 	// user with username or custom mentions enabled
 	user1 := &model.User{
 		Id:        model.NewId(),
@@ -835,8 +833,7 @@ func TestDoesStatusAllowPushNotification(t *testing.T) {
 }
 
 func TestGetDirectMessageNotificationEmailSubject(t *testing.T) {
-	a := Global()
-	a.Setup()
+	Setup()
 	expectedPrefix := "[http://localhost:8065] New Direct Message from sender on"
 	post := &model.Post{
 		CreateAt: 1501804801000,
@@ -849,8 +846,7 @@ func TestGetDirectMessageNotificationEmailSubject(t *testing.T) {
 }
 
 func TestGetNotificationEmailSubject(t *testing.T) {
-	a := Global()
-	a.Setup()
+	Setup()
 	expectedPrefix := "[http://localhost:8065] Notification in team on"
 	post := &model.Post{
 		CreateAt: 1501804801000,
@@ -863,8 +859,7 @@ func TestGetNotificationEmailSubject(t *testing.T) {
 }
 
 func TestGetNotificationEmailBodyFullNotificationPublicChannel(t *testing.T) {
-	a := Global()
-	a.Setup()
+	th := Setup()
 	recipient := &model.User{}
 	post := &model.Post{
 		Message: "This is the message",
@@ -879,7 +874,7 @@ func TestGetNotificationEmailBodyFullNotificationPublicChannel(t *testing.T) {
 	emailNotificationContentsType := model.EMAIL_NOTIFICATION_CONTENTS_FULL
 	translateFunc := utils.GetUserTranslations("en")
 
-	body := a.getNotificationEmailBody(recipient, post, channel, senderName, teamName, teamURL, emailNotificationContentsType, translateFunc)
+	body := th.App.getNotificationEmailBody(recipient, post, channel, senderName, teamName, teamURL, emailNotificationContentsType, translateFunc)
 	if !strings.Contains(body, "You have a new notification.") {
 		t.Fatal("Expected email text 'You have a new notification. Got " + body)
 	}
@@ -898,8 +893,7 @@ func TestGetNotificationEmailBodyFullNotificationPublicChannel(t *testing.T) {
 }
 
 func TestGetNotificationEmailBodyFullNotificationGroupChannel(t *testing.T) {
-	a := Global()
-	a.Setup()
+	th := Setup()
 	recipient := &model.User{}
 	post := &model.Post{
 		Message: "This is the message",
@@ -914,7 +908,7 @@ func TestGetNotificationEmailBodyFullNotificationGroupChannel(t *testing.T) {
 	emailNotificationContentsType := model.EMAIL_NOTIFICATION_CONTENTS_FULL
 	translateFunc := utils.GetUserTranslations("en")
 
-	body := a.getNotificationEmailBody(recipient, post, channel, senderName, teamName, teamURL, emailNotificationContentsType, translateFunc)
+	body := th.App.getNotificationEmailBody(recipient, post, channel, senderName, teamName, teamURL, emailNotificationContentsType, translateFunc)
 	if !strings.Contains(body, "You have a new notification.") {
 		t.Fatal("Expected email text 'You have a new notification. Got " + body)
 	}
@@ -933,8 +927,7 @@ func TestGetNotificationEmailBodyFullNotificationGroupChannel(t *testing.T) {
 }
 
 func TestGetNotificationEmailBodyFullNotificationPrivateChannel(t *testing.T) {
-	a := Global()
-	a.Setup()
+	th := Setup()
 	recipient := &model.User{}
 	post := &model.Post{
 		Message: "This is the message",
@@ -949,7 +942,7 @@ func TestGetNotificationEmailBodyFullNotificationPrivateChannel(t *testing.T) {
 	emailNotificationContentsType := model.EMAIL_NOTIFICATION_CONTENTS_FULL
 	translateFunc := utils.GetUserTranslations("en")
 
-	body := a.getNotificationEmailBody(recipient, post, channel, senderName, teamName, teamURL, emailNotificationContentsType, translateFunc)
+	body := th.App.getNotificationEmailBody(recipient, post, channel, senderName, teamName, teamURL, emailNotificationContentsType, translateFunc)
 	if !strings.Contains(body, "You have a new notification.") {
 		t.Fatal("Expected email text 'You have a new notification. Got " + body)
 	}
@@ -968,8 +961,7 @@ func TestGetNotificationEmailBodyFullNotificationPrivateChannel(t *testing.T) {
 }
 
 func TestGetNotificationEmailBodyFullNotificationDirectChannel(t *testing.T) {
-	a := Global()
-	a.Setup()
+	th := Setup()
 	recipient := &model.User{}
 	post := &model.Post{
 		Message: "This is the message",
@@ -984,7 +976,7 @@ func TestGetNotificationEmailBodyFullNotificationDirectChannel(t *testing.T) {
 	emailNotificationContentsType := model.EMAIL_NOTIFICATION_CONTENTS_FULL
 	translateFunc := utils.GetUserTranslations("en")
 
-	body := a.getNotificationEmailBody(recipient, post, channel, senderName, teamName, teamURL, emailNotificationContentsType, translateFunc)
+	body := th.App.getNotificationEmailBody(recipient, post, channel, senderName, teamName, teamURL, emailNotificationContentsType, translateFunc)
 	if !strings.Contains(body, "You have a new direct message.") {
 		t.Fatal("Expected email text 'You have a new direct message. Got " + body)
 	}
@@ -1001,8 +993,7 @@ func TestGetNotificationEmailBodyFullNotificationDirectChannel(t *testing.T) {
 
 // from here
 func TestGetNotificationEmailBodyGenericNotificationPublicChannel(t *testing.T) {
-	a := Global()
-	a.Setup()
+	th := Setup()
 	recipient := &model.User{}
 	post := &model.Post{
 		Message: "This is the message",
@@ -1017,7 +1008,7 @@ func TestGetNotificationEmailBodyGenericNotificationPublicChannel(t *testing.T) 
 	emailNotificationContentsType := model.EMAIL_NOTIFICATION_CONTENTS_GENERIC
 	translateFunc := utils.GetUserTranslations("en")
 
-	body := a.getNotificationEmailBody(recipient, post, channel, senderName, teamName, teamURL, emailNotificationContentsType, translateFunc)
+	body := th.App.getNotificationEmailBody(recipient, post, channel, senderName, teamName, teamURL, emailNotificationContentsType, translateFunc)
 	if !strings.Contains(body, "You have a new notification from "+senderName) {
 		t.Fatal("Expected email text 'You have a new notification from " + senderName + "'. Got " + body)
 	}
@@ -1033,8 +1024,7 @@ func TestGetNotificationEmailBodyGenericNotificationPublicChannel(t *testing.T) 
 }
 
 func TestGetNotificationEmailBodyGenericNotificationGroupChannel(t *testing.T) {
-	a := Global()
-	a.Setup()
+	th := Setup()
 	recipient := &model.User{}
 	post := &model.Post{
 		Message: "This is the message",
@@ -1049,7 +1039,7 @@ func TestGetNotificationEmailBodyGenericNotificationGroupChannel(t *testing.T) {
 	emailNotificationContentsType := model.EMAIL_NOTIFICATION_CONTENTS_GENERIC
 	translateFunc := utils.GetUserTranslations("en")
 
-	body := a.getNotificationEmailBody(recipient, post, channel, senderName, teamName, teamURL, emailNotificationContentsType, translateFunc)
+	body := th.App.getNotificationEmailBody(recipient, post, channel, senderName, teamName, teamURL, emailNotificationContentsType, translateFunc)
 	if !strings.Contains(body, "You have a new notification from "+senderName) {
 		t.Fatal("Expected email text 'You have a new notification from " + senderName + "'. Got " + body)
 	}
@@ -1065,8 +1055,7 @@ func TestGetNotificationEmailBodyGenericNotificationGroupChannel(t *testing.T) {
 }
 
 func TestGetNotificationEmailBodyGenericNotificationPrivateChannel(t *testing.T) {
-	a := Global()
-	a.Setup()
+	th := Setup()
 	recipient := &model.User{}
 	post := &model.Post{
 		Message: "This is the message",
@@ -1081,7 +1070,7 @@ func TestGetNotificationEmailBodyGenericNotificationPrivateChannel(t *testing.T)
 	emailNotificationContentsType := model.EMAIL_NOTIFICATION_CONTENTS_GENERIC
 	translateFunc := utils.GetUserTranslations("en")
 
-	body := a.getNotificationEmailBody(recipient, post, channel, senderName, teamName, teamURL, emailNotificationContentsType, translateFunc)
+	body := th.App.getNotificationEmailBody(recipient, post, channel, senderName, teamName, teamURL, emailNotificationContentsType, translateFunc)
 	if !strings.Contains(body, "You have a new notification from "+senderName) {
 		t.Fatal("Expected email text 'You have a new notification from " + senderName + "'. Got " + body)
 	}
@@ -1097,8 +1086,7 @@ func TestGetNotificationEmailBodyGenericNotificationPrivateChannel(t *testing.T)
 }
 
 func TestGetNotificationEmailBodyGenericNotificationDirectChannel(t *testing.T) {
-	a := Global()
-	a.Setup()
+	th := Setup()
 	recipient := &model.User{}
 	post := &model.Post{
 		Message: "This is the message",
@@ -1113,7 +1101,7 @@ func TestGetNotificationEmailBodyGenericNotificationDirectChannel(t *testing.T) 
 	emailNotificationContentsType := model.EMAIL_NOTIFICATION_CONTENTS_GENERIC
 	translateFunc := utils.GetUserTranslations("en")
 
-	body := a.getNotificationEmailBody(recipient, post, channel, senderName, teamName, teamURL, emailNotificationContentsType, translateFunc)
+	body := th.App.getNotificationEmailBody(recipient, post, channel, senderName, teamName, teamURL, emailNotificationContentsType, translateFunc)
 	if !strings.Contains(body, "You have a new direct message from "+senderName) {
 		t.Fatal("Expected email text 'You have a new direct message from " + senderName + "'. Got " + body)
 	}

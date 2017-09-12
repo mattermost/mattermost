@@ -71,19 +71,21 @@ func runServer(configFileLocation string) {
 		l4g.Error("Problem with file storage settings: " + err.Error())
 	}
 
-	app.Global().NewServer()
-	app.Global().InitStores()
-	api.InitRouter()
-	wsapi.InitRouter()
-	api4.InitApi(false)
-	api.InitApi()
-	app.Global().InitPlugins()
-	wsapi.InitApi()
-	web.InitWeb()
+	a := app.Global()
+	a.NewServer()
+	a.InitStores()
+	a.Srv.Router = api.NewRouter()
 
 	if model.BuildEnterpriseReady == "true" {
-		app.Global().LoadLicense()
+		a.LoadLicense()
 	}
+	a.InitPlugins("plugins", "webapp/dist")
+
+	wsapi.InitRouter()
+	api4.InitApi(a.Srv.Router, false)
+	api.InitApi(a.Srv.Router)
+	wsapi.InitApi()
+	web.InitWeb()
 
 	if !utils.IsLicensed() && len(utils.Cfg.SqlSettings.DataSourceReplicas) > 1 {
 		l4g.Warn(utils.T("store.sql.read_replicas_not_licensed.critical"))
@@ -96,29 +98,29 @@ func runServer(configFileLocation string) {
 
 	app.ReloadConfig()
 
-	resetStatuses()
+	resetStatuses(a)
 
-	app.Global().StartServer()
+	a.StartServer()
 
 	// If we allow testing then listen for manual testing URL hits
 	if utils.Cfg.ServiceSettings.EnableTesting {
 		manualtesting.InitManualTesting()
 	}
 
-	setDiagnosticId()
+	setDiagnosticId(a)
 	utils.RegenerateClientConfig()
-	go runSecurityJob()
-	go runDiagnosticsJob()
+	go runSecurityJob(a)
+	go runDiagnosticsJob(a)
 
-	go runTokenCleanupJob()
-	go runCommandWebhookCleanupJob()
+	go runTokenCleanupJob(a)
+	go runCommandWebhookCleanupJob(a)
 
 	if complianceI := einterfaces.GetComplianceInterface(); complianceI != nil {
 		complianceI.StartComplianceDailyJob()
 	}
 
 	if einterfaces.GetClusterInterface() != nil {
-		app.Global().RegisterAllClusterMessageHandlers()
+		a.RegisterAllClusterMessageHandlers()
 		einterfaces.GetClusterInterface().StartInterNodeCommunication()
 	}
 
@@ -132,7 +134,7 @@ func runServer(configFileLocation string) {
 		}
 	}
 
-	jobs.Srv.Store = app.Global().Srv.Store
+	jobs.Srv.Store = a.Srv.Store
 	if *utils.Cfg.JobSettings.RunJobs {
 		jobs.Srv.StartWorkers()
 	}
@@ -157,64 +159,72 @@ func runServer(configFileLocation string) {
 	jobs.Srv.StopSchedulers()
 	jobs.Srv.StopWorkers()
 
-	app.Global().StopServer()
+	a.StopServer()
 }
 
-func runSecurityJob() {
-	doSecurity()
-	model.CreateRecurringTask("Security", doSecurity, time.Hour*4)
+func runSecurityJob(a *app.App) {
+	doSecurity(a)
+	model.CreateRecurringTask("Security", func() {
+		doSecurity(a)
+	}, time.Hour*4)
 }
 
-func runDiagnosticsJob() {
-	doDiagnostics()
-	model.CreateRecurringTask("Diagnostics", doDiagnostics, time.Hour*24)
+func runDiagnosticsJob(a *app.App) {
+	doDiagnostics(a)
+	model.CreateRecurringTask("Diagnostics", func() {
+		doDiagnostics(a)
+	}, time.Hour*24)
 }
 
-func runTokenCleanupJob() {
-	doTokenCleanup()
-	model.CreateRecurringTask("Token Cleanup", doTokenCleanup, time.Hour*1)
+func runTokenCleanupJob(a *app.App) {
+	doTokenCleanup(a)
+	model.CreateRecurringTask("Token Cleanup", func() {
+		doTokenCleanup(a)
+	}, time.Hour*1)
 }
 
-func runCommandWebhookCleanupJob() {
-	doCommandWebhookCleanup()
-	model.CreateRecurringTask("Command Hook Cleanup", doCommandWebhookCleanup, time.Hour*1)
+func runCommandWebhookCleanupJob(a *app.App) {
+	doCommandWebhookCleanup(a)
+	model.CreateRecurringTask("Command Hook Cleanup", func() {
+		doCommandWebhookCleanup(a)
+	}, time.Hour*1)
 }
 
-func resetStatuses() {
-	if result := <-app.Global().Srv.Store.Status().ResetAll(); result.Err != nil {
+func resetStatuses(a *app.App) {
+	if result := <-a.Srv.Store.Status().ResetAll(); result.Err != nil {
 		l4g.Error(utils.T("mattermost.reset_status.error"), result.Err.Error())
 	}
 }
 
-func setDiagnosticId() {
-	if result := <-app.Global().Srv.Store.System().Get(); result.Err == nil {
+func setDiagnosticId(a *app.App) {
+	if result := <-a.Srv.Store.System().Get(); result.Err == nil {
 		props := result.Data.(model.StringMap)
 
 		id := props[model.SYSTEM_DIAGNOSTIC_ID]
 		if len(id) == 0 {
 			id = model.NewId()
 			systemId := &model.System{Name: model.SYSTEM_DIAGNOSTIC_ID, Value: id}
-			<-app.Global().Srv.Store.System().Save(systemId)
+			<-a.Srv.Store.System().Save(systemId)
 		}
 
 		utils.CfgDiagnosticId = id
 	}
 }
 
-func doSecurity() {
-	app.Global().DoSecurityUpdateCheck()
+func doSecurity(a *app.App) {
+	a.DoSecurityUpdateCheck()
 }
 
-func doDiagnostics() {
+func doDiagnostics(a *app.App) {
 	if *utils.Cfg.LogSettings.EnableDiagnostics {
-		app.Global().SendDailyDiagnostics()
+		a.SendDailyDiagnostics()
 	}
 }
 
-func doTokenCleanup() {
-	app.Global().Srv.Store.Token().Cleanup()
+func doTokenCleanup(a *app.App) {
+	a.Srv.Store.Token().Cleanup()
 }
 
-func doCommandWebhookCleanup() {
-	app.Global().Srv.Store.CommandWebhook().Cleanup()
+func doCommandWebhookCleanup(a *app.App) {
+	a.Srv.Store.CommandWebhook().Cleanup()
 }
