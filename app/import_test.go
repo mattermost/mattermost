@@ -29,8 +29,7 @@ func ptrBool(b bool) *bool {
 	return &b
 }
 
-func checkPreference(t *testing.T, userId string, category string, name string, value string) {
-	a := Global()
+func checkPreference(t *testing.T, a *App, userId string, category string, name string, value string) {
 	if res := <-a.Srv.Store.Preference().GetCategory(userId, category); res.Err != nil {
 		debug.PrintStack()
 		t.Fatalf("Failed to get preferences for user %v with category %v", userId, category)
@@ -966,12 +965,11 @@ func TestImportValidateDirectPostImportData(t *testing.T) {
 }
 
 func TestImportImportTeam(t *testing.T) {
-	a := Global()
-	_ = a.Setup()
+	th := Setup()
 
 	// Check how many teams are in the database.
 	var teamsCount int64
-	if r := <-a.Srv.Store.Team().AnalyticsTeamCount(); r.Err == nil {
+	if r := <-th.App.Srv.Store.Team().AnalyticsTeamCount(); r.Err == nil {
 		teamsCount = r.Data.(int64)
 	} else {
 		t.Fatalf("Failed to get team count.")
@@ -986,18 +984,18 @@ func TestImportImportTeam(t *testing.T) {
 	}
 
 	// Try importing an invalid team in dryRun mode.
-	if err := a.ImportTeam(&data, true); err == nil {
+	if err := th.App.ImportTeam(&data, true); err == nil {
 		t.Fatalf("Should have received an error importing an invalid team.")
 	}
 
 	// Do a valid team in dry-run mode.
 	data.Type = ptrStr("O")
-	if err := a.ImportTeam(&data, true); err != nil {
+	if err := th.App.ImportTeam(&data, true); err != nil {
 		t.Fatalf("Received an error validating valid team.")
 	}
 
 	// Check that no more teams are in the DB.
-	if r := <-a.Srv.Store.Team().AnalyticsTeamCount(); r.Err == nil {
+	if r := <-th.App.Srv.Store.Team().AnalyticsTeamCount(); r.Err == nil {
 		if r.Data.(int64) != teamsCount {
 			t.Fatalf("Teams got persisted in dry run mode.")
 		}
@@ -1007,12 +1005,12 @@ func TestImportImportTeam(t *testing.T) {
 
 	// Do an invalid team in apply mode, check db changes.
 	data.Type = ptrStr("XYZ")
-	if err := a.ImportTeam(&data, false); err == nil {
+	if err := th.App.ImportTeam(&data, false); err == nil {
 		t.Fatalf("Import should have failed on invalid team.")
 	}
 
 	// Check that no more teams are in the DB.
-	if r := <-a.Srv.Store.Team().AnalyticsTeamCount(); r.Err == nil {
+	if r := <-th.App.Srv.Store.Team().AnalyticsTeamCount(); r.Err == nil {
 		if r.Data.(int64) != teamsCount {
 			t.Fatalf("Invalid team got persisted.")
 		}
@@ -1022,12 +1020,12 @@ func TestImportImportTeam(t *testing.T) {
 
 	// Do a valid team in apply mode, check db changes.
 	data.Type = ptrStr("O")
-	if err := a.ImportTeam(&data, false); err != nil {
+	if err := th.App.ImportTeam(&data, false); err != nil {
 		t.Fatalf("Received an error importing valid team.")
 	}
 
 	// Check that one more team is in the DB.
-	if r := <-a.Srv.Store.Team().AnalyticsTeamCount(); r.Err == nil {
+	if r := <-th.App.Srv.Store.Team().AnalyticsTeamCount(); r.Err == nil {
 		if r.Data.(int64)-1 != teamsCount {
 			t.Fatalf("Team did not get saved in apply run mode. analytics=%v teamcount=%v", r.Data.(int64), teamsCount)
 		}
@@ -1036,7 +1034,7 @@ func TestImportImportTeam(t *testing.T) {
 	}
 
 	// Get the team and check that all the fields are correct.
-	if team, err := a.GetTeamByName(*data.Name); err != nil {
+	if team, err := th.App.GetTeamByName(*data.Name); err != nil {
 		t.Fatalf("Failed to get team from database.")
 	} else {
 		if team.DisplayName != *data.DisplayName || team.Type != *data.Type || team.Description != *data.Description || team.AllowOpenInvite != *data.AllowOpenInvite {
@@ -1052,11 +1050,11 @@ func TestImportImportTeam(t *testing.T) {
 
 	// Check that the original number of teams are again in the DB (because this query doesn't include deleted).
 	data.Type = ptrStr("O")
-	if err := a.ImportTeam(&data, false); err != nil {
+	if err := th.App.ImportTeam(&data, false); err != nil {
 		t.Fatalf("Received an error importing updated valid team.")
 	}
 
-	if r := <-a.Srv.Store.Team().AnalyticsTeamCount(); r.Err == nil {
+	if r := <-th.App.Srv.Store.Team().AnalyticsTeamCount(); r.Err == nil {
 		if r.Data.(int64)-1 != teamsCount {
 			t.Fatalf("Team alterations did not get saved in apply run mode. analytics=%v teamcount=%v", r.Data.(int64), teamsCount)
 		}
@@ -1065,7 +1063,7 @@ func TestImportImportTeam(t *testing.T) {
 	}
 
 	// Get the team and check that all fields are correct.
-	if team, err := a.GetTeamByName(*data.Name); err != nil {
+	if team, err := th.App.GetTeamByName(*data.Name); err != nil {
 		t.Fatalf("Failed to get team from database.")
 	} else {
 		if team.DisplayName != *data.DisplayName || team.Type != *data.Type || team.Description != *data.Description || team.AllowOpenInvite != *data.AllowOpenInvite {
@@ -1075,24 +1073,23 @@ func TestImportImportTeam(t *testing.T) {
 }
 
 func TestImportImportChannel(t *testing.T) {
-	a := Global()
-	_ = a.Setup()
+	th := Setup()
 
 	// Import a Team.
 	teamName := model.NewId()
-	a.ImportTeam(&TeamImportData{
+	th.App.ImportTeam(&TeamImportData{
 		Name:        &teamName,
 		DisplayName: ptrStr("Display Name"),
 		Type:        ptrStr("O"),
 	}, false)
-	team, err := a.GetTeamByName(teamName)
+	team, err := th.App.GetTeamByName(teamName)
 	if err != nil {
 		t.Fatalf("Failed to get team from database.")
 	}
 
 	// Check how many channels are in the database.
 	var channelCount int64
-	if r := <-a.Srv.Store.Channel().AnalyticsTypeCount("", model.CHANNEL_OPEN); r.Err == nil {
+	if r := <-th.App.Srv.Store.Channel().AnalyticsTypeCount("", model.CHANNEL_OPEN); r.Err == nil {
 		channelCount = r.Data.(int64)
 	} else {
 		t.Fatalf("Failed to get team count.")
@@ -1106,12 +1103,12 @@ func TestImportImportChannel(t *testing.T) {
 		Header:      ptrStr("Channe Header"),
 		Purpose:     ptrStr("Channel Purpose"),
 	}
-	if err := a.ImportChannel(&data, true); err == nil {
+	if err := th.App.ImportChannel(&data, true); err == nil {
 		t.Fatalf("Expected error due to invalid name.")
 	}
 
 	// Check that no more channels are in the DB.
-	if r := <-a.Srv.Store.Channel().AnalyticsTypeCount("", model.CHANNEL_OPEN); r.Err == nil {
+	if r := <-th.App.Srv.Store.Channel().AnalyticsTypeCount("", model.CHANNEL_OPEN); r.Err == nil {
 		if r.Data.(int64) != channelCount {
 			t.Fatalf("Channels got persisted in dry run mode.")
 		}
@@ -1122,12 +1119,12 @@ func TestImportImportChannel(t *testing.T) {
 	// Do a valid channel with a nonexistent team in dry-run mode.
 	data.Name = ptrStr("channelname")
 	data.Team = ptrStr(model.NewId())
-	if err := a.ImportChannel(&data, true); err != nil {
+	if err := th.App.ImportChannel(&data, true); err != nil {
 		t.Fatalf("Expected success as cannot validate channel name in dry run mode.")
 	}
 
 	// Check that no more channels are in the DB.
-	if r := <-a.Srv.Store.Channel().AnalyticsTypeCount("", model.CHANNEL_OPEN); r.Err == nil {
+	if r := <-th.App.Srv.Store.Channel().AnalyticsTypeCount("", model.CHANNEL_OPEN); r.Err == nil {
 		if r.Data.(int64) != channelCount {
 			t.Fatalf("Channels got persisted in dry run mode.")
 		}
@@ -1137,12 +1134,12 @@ func TestImportImportChannel(t *testing.T) {
 
 	// Do a valid channel in dry-run mode.
 	data.Team = &teamName
-	if err := a.ImportChannel(&data, true); err != nil {
+	if err := th.App.ImportChannel(&data, true); err != nil {
 		t.Fatalf("Expected success as valid team.")
 	}
 
 	// Check that no more channels are in the DB.
-	if r := <-a.Srv.Store.Channel().AnalyticsTypeCount("", model.CHANNEL_OPEN); r.Err == nil {
+	if r := <-th.App.Srv.Store.Channel().AnalyticsTypeCount("", model.CHANNEL_OPEN); r.Err == nil {
 		if r.Data.(int64) != channelCount {
 			t.Fatalf("Channels got persisted in dry run mode.")
 		}
@@ -1152,12 +1149,12 @@ func TestImportImportChannel(t *testing.T) {
 
 	// Do an invalid channel in apply mode.
 	data.Name = nil
-	if err := a.ImportChannel(&data, false); err == nil {
+	if err := th.App.ImportChannel(&data, false); err == nil {
 		t.Fatalf("Expected error due to invalid name (apply mode).")
 	}
 
 	// Check that no more channels are in the DB.
-	if r := <-a.Srv.Store.Channel().AnalyticsTypeCount("", model.CHANNEL_OPEN); r.Err == nil {
+	if r := <-th.App.Srv.Store.Channel().AnalyticsTypeCount("", model.CHANNEL_OPEN); r.Err == nil {
 		if r.Data.(int64) != channelCount {
 			t.Fatalf("Invalid channel got persisted in apply mode.")
 		}
@@ -1168,12 +1165,12 @@ func TestImportImportChannel(t *testing.T) {
 	// Do a valid channel in apply mode with a nonexistant team.
 	data.Name = ptrStr("channelname")
 	data.Team = ptrStr(model.NewId())
-	if err := a.ImportChannel(&data, false); err == nil {
+	if err := th.App.ImportChannel(&data, false); err == nil {
 		t.Fatalf("Expected error due to non-existant team (apply mode).")
 	}
 
 	// Check that no more channels are in the DB.
-	if r := <-a.Srv.Store.Channel().AnalyticsTypeCount("", model.CHANNEL_OPEN); r.Err == nil {
+	if r := <-th.App.Srv.Store.Channel().AnalyticsTypeCount("", model.CHANNEL_OPEN); r.Err == nil {
 		if r.Data.(int64) != channelCount {
 			t.Fatalf("Invalid team channel got persisted in apply mode.")
 		}
@@ -1183,12 +1180,12 @@ func TestImportImportChannel(t *testing.T) {
 
 	// Do a valid channel in apply mode.
 	data.Team = &teamName
-	if err := a.ImportChannel(&data, false); err != nil {
+	if err := th.App.ImportChannel(&data, false); err != nil {
 		t.Fatalf("Expected success in apply mode: %v", err.Error())
 	}
 
 	// Check that no more channels are in the DB.
-	if r := <-a.Srv.Store.Channel().AnalyticsTypeCount("", model.CHANNEL_OPEN); r.Err == nil {
+	if r := <-th.App.Srv.Store.Channel().AnalyticsTypeCount("", model.CHANNEL_OPEN); r.Err == nil {
 		if r.Data.(int64) != channelCount+1 {
 			t.Fatalf("Channels did not get persisted in apply mode: found %v expected %v + 1", r.Data.(int64), channelCount)
 		}
@@ -1197,7 +1194,7 @@ func TestImportImportChannel(t *testing.T) {
 	}
 
 	// Get the Channel and check all the fields are correct.
-	if channel, err := a.GetChannelByName(*data.Name, team.Id); err != nil {
+	if channel, err := th.App.GetChannelByName(*data.Name, team.Id); err != nil {
 		t.Fatalf("Failed to get channel from database.")
 	} else {
 		if channel.Name != *data.Name || channel.DisplayName != *data.DisplayName || channel.Type != *data.Type || channel.Header != *data.Header || channel.Purpose != *data.Purpose {
@@ -1210,12 +1207,12 @@ func TestImportImportChannel(t *testing.T) {
 	data.Type = ptrStr(model.CHANNEL_PRIVATE)
 	data.Header = ptrStr("New Header")
 	data.Purpose = ptrStr("New Purpose")
-	if err := a.ImportChannel(&data, false); err != nil {
+	if err := th.App.ImportChannel(&data, false); err != nil {
 		t.Fatalf("Expected success in apply mode: %v", err.Error())
 	}
 
 	// Check channel count the same.
-	if r := <-a.Srv.Store.Channel().AnalyticsTypeCount("", model.CHANNEL_OPEN); r.Err == nil {
+	if r := <-th.App.Srv.Store.Channel().AnalyticsTypeCount("", model.CHANNEL_OPEN); r.Err == nil {
 		if r.Data.(int64) != channelCount {
 			t.Fatalf("Updated channel did not get correctly persisted in apply mode.")
 		}
@@ -1224,7 +1221,7 @@ func TestImportImportChannel(t *testing.T) {
 	}
 
 	// Get the Channel and check all the fields are correct.
-	if channel, err := a.GetChannelByName(*data.Name, team.Id); err != nil {
+	if channel, err := th.App.GetChannelByName(*data.Name, team.Id); err != nil {
 		t.Fatalf("Failed to get channel from database.")
 	} else {
 		if channel.Name != *data.Name || channel.DisplayName != *data.DisplayName || channel.Type != *data.Type || channel.Header != *data.Header || channel.Purpose != *data.Purpose {
@@ -1235,12 +1232,11 @@ func TestImportImportChannel(t *testing.T) {
 }
 
 func TestImportImportUser(t *testing.T) {
-	a := Global()
-	_ = a.Setup()
+	th := Setup()
 
 	// Check how many users are in the database.
 	var userCount int64
-	if r := <-a.Srv.Store.User().GetTotalUsersCount(); r.Err == nil {
+	if r := <-th.App.Srv.Store.User().GetTotalUsersCount(); r.Err == nil {
 		userCount = r.Data.(int64)
 	} else {
 		t.Fatalf("Failed to get user count.")
@@ -1250,12 +1246,12 @@ func TestImportImportUser(t *testing.T) {
 	data := UserImportData{
 		Username: ptrStr(model.NewId()),
 	}
-	if err := a.ImportUser(&data, true); err == nil {
+	if err := th.App.ImportUser(&data, true); err == nil {
 		t.Fatalf("Should have failed to import invalid user.")
 	}
 
 	// Check that no more users are in the DB.
-	if r := <-a.Srv.Store.User().GetTotalUsersCount(); r.Err == nil {
+	if r := <-th.App.Srv.Store.User().GetTotalUsersCount(); r.Err == nil {
 		if r.Data.(int64) != userCount {
 			t.Fatalf("Unexpected number of users")
 		}
@@ -1268,12 +1264,12 @@ func TestImportImportUser(t *testing.T) {
 		Username: ptrStr(model.NewId()),
 		Email:    ptrStr(model.NewId() + "@example.com"),
 	}
-	if err := a.ImportUser(&data, true); err != nil {
+	if err := th.App.ImportUser(&data, true); err != nil {
 		t.Fatalf("Should have succeeded to import valid user.")
 	}
 
 	// Check that no more users are in the DB.
-	if r := <-a.Srv.Store.User().GetTotalUsersCount(); r.Err == nil {
+	if r := <-th.App.Srv.Store.User().GetTotalUsersCount(); r.Err == nil {
 		if r.Data.(int64) != userCount {
 			t.Fatalf("Unexpected number of users")
 		}
@@ -1285,12 +1281,12 @@ func TestImportImportUser(t *testing.T) {
 	data = UserImportData{
 		Username: ptrStr(model.NewId()),
 	}
-	if err := a.ImportUser(&data, false); err == nil {
+	if err := th.App.ImportUser(&data, false); err == nil {
 		t.Fatalf("Should have failed to import invalid user.")
 	}
 
 	// Check that no more users are in the DB.
-	if r := <-a.Srv.Store.User().GetTotalUsersCount(); r.Err == nil {
+	if r := <-th.App.Srv.Store.User().GetTotalUsersCount(); r.Err == nil {
 		if r.Data.(int64) != userCount {
 			t.Fatalf("Unexpected number of users")
 		}
@@ -1308,12 +1304,12 @@ func TestImportImportUser(t *testing.T) {
 		LastName:  ptrStr(model.NewId()),
 		Position:  ptrStr(model.NewId()),
 	}
-	if err := a.ImportUser(&data, false); err != nil {
+	if err := th.App.ImportUser(&data, false); err != nil {
 		t.Fatalf("Should have succeeded to import valid user.")
 	}
 
 	// Check that one more user is in the DB.
-	if r := <-a.Srv.Store.User().GetTotalUsersCount(); r.Err == nil {
+	if r := <-th.App.Srv.Store.User().GetTotalUsersCount(); r.Err == nil {
 		if r.Data.(int64) != userCount+1 {
 			t.Fatalf("Unexpected number of users")
 		}
@@ -1322,7 +1318,7 @@ func TestImportImportUser(t *testing.T) {
 	}
 
 	// Get the user and check all the fields are correct.
-	if user, err := a.GetUserByUsername(username); err != nil {
+	if user, err := th.App.GetUserByUsername(username); err != nil {
 		t.Fatalf("Failed to get user from database.")
 	} else {
 		if user.Email != *data.Email || user.Nickname != *data.Nickname || user.FirstName != *data.FirstName || user.LastName != *data.LastName || user.Position != *data.Position {
@@ -1364,12 +1360,12 @@ func TestImportImportUser(t *testing.T) {
 	data.Position = ptrStr(model.NewId())
 	data.Roles = ptrStr("system_admin system_user")
 	data.Locale = ptrStr("zh_CN")
-	if err := a.ImportUser(&data, false); err != nil {
+	if err := th.App.ImportUser(&data, false); err != nil {
 		t.Fatalf("Should have succeeded to update valid user %v", err)
 	}
 
 	// Check user count the same.
-	if r := <-a.Srv.Store.User().GetTotalUsersCount(); r.Err == nil {
+	if r := <-th.App.Srv.Store.User().GetTotalUsersCount(); r.Err == nil {
 		if r.Data.(int64) != userCount+1 {
 			t.Fatalf("Unexpected number of users")
 		}
@@ -1378,7 +1374,7 @@ func TestImportImportUser(t *testing.T) {
 	}
 
 	// Get the user and check all the fields are correct.
-	if user, err := a.GetUserByUsername(username); err != nil {
+	if user, err := th.App.GetUserByUsername(username); err != nil {
 		t.Fatalf("Failed to get user from database.")
 	} else {
 		if user.Email != *data.Email || user.Nickname != *data.Nickname || user.FirstName != *data.FirstName || user.LastName != *data.LastName || user.Position != *data.Position {
@@ -1412,22 +1408,22 @@ func TestImportImportUser(t *testing.T) {
 
 	// Check Password and AuthData together.
 	data.Password = ptrStr("PasswordTest")
-	if err := a.ImportUser(&data, false); err == nil {
+	if err := th.App.ImportUser(&data, false); err == nil {
 		t.Fatalf("Should have failed to import invalid user.")
 	}
 
 	data.AuthData = nil
-	if err := a.ImportUser(&data, false); err != nil {
+	if err := th.App.ImportUser(&data, false); err != nil {
 		t.Fatalf("Should have succeeded to update valid user %v", err)
 	}
 
 	data.Password = ptrStr("")
-	if err := a.ImportUser(&data, false); err == nil {
+	if err := th.App.ImportUser(&data, false); err == nil {
 		t.Fatalf("Should have failed to import invalid user.")
 	}
 
 	data.Password = ptrStr(strings.Repeat("0123456789", 10))
-	if err := a.ImportUser(&data, false); err == nil {
+	if err := th.App.ImportUser(&data, false); err == nil {
 		t.Fatalf("Should have failed to import invalid user.")
 	}
 
@@ -1435,24 +1431,24 @@ func TestImportImportUser(t *testing.T) {
 
 	// Test team and channel memberships
 	teamName := model.NewId()
-	a.ImportTeam(&TeamImportData{
+	th.App.ImportTeam(&TeamImportData{
 		Name:        &teamName,
 		DisplayName: ptrStr("Display Name"),
 		Type:        ptrStr("O"),
 	}, false)
-	team, err := a.GetTeamByName(teamName)
+	team, err := th.App.GetTeamByName(teamName)
 	if err != nil {
 		t.Fatalf("Failed to get team from database.")
 	}
 
 	channelName := model.NewId()
-	a.ImportChannel(&ChannelImportData{
+	th.App.ImportChannel(&ChannelImportData{
 		Team:        &teamName,
 		Name:        &channelName,
 		DisplayName: ptrStr("Display Name"),
 		Type:        ptrStr("O"),
 	}, false)
-	channel, err := a.GetChannelByName(channelName, team.Id)
+	channel, err := th.App.GetChannelByName(channelName, team.Id)
 	if err != nil {
 		t.Fatalf("Failed to get channel from database.")
 	}
@@ -1467,13 +1463,13 @@ func TestImportImportUser(t *testing.T) {
 		Position:  ptrStr(model.NewId()),
 	}
 
-	teamMembers, err := a.GetTeamMembers(team.Id, 0, 1000)
+	teamMembers, err := th.App.GetTeamMembers(team.Id, 0, 1000)
 	if err != nil {
 		t.Fatalf("Failed to get team member count")
 	}
 	teamMemberCount := len(teamMembers)
 
-	channelMemberCount, err := a.GetChannelMemberCount(channel.Id)
+	channelMemberCount, err := th.App.GetChannelMemberCount(channel.Id)
 	if err != nil {
 		t.Fatalf("Failed to get channel member count")
 	}
@@ -1489,7 +1485,7 @@ func TestImportImportUser(t *testing.T) {
 			},
 		},
 	}
-	if err := a.ImportUser(&data, true); err == nil {
+	if err := th.App.ImportUser(&data, true); err == nil {
 		t.Fatalf("Should have failed.")
 	}
 
@@ -1504,7 +1500,7 @@ func TestImportImportUser(t *testing.T) {
 			},
 		},
 	}
-	if err := a.ImportUser(&data, true); err == nil {
+	if err := th.App.ImportUser(&data, true); err == nil {
 		t.Fatalf("Should have failed.")
 	}
 
@@ -1519,7 +1515,7 @@ func TestImportImportUser(t *testing.T) {
 			},
 		},
 	}
-	if err := a.ImportUser(&data, true); err == nil {
+	if err := th.App.ImportUser(&data, true); err == nil {
 		t.Fatalf("Should have failed.")
 	}
 
@@ -1534,7 +1530,7 @@ func TestImportImportUser(t *testing.T) {
 			},
 		},
 	}
-	if err := a.ImportUser(&data, true); err != nil {
+	if err := th.App.ImportUser(&data, true); err != nil {
 		t.Fatalf("Should have succeeded.")
 	}
 
@@ -1549,18 +1545,18 @@ func TestImportImportUser(t *testing.T) {
 			},
 		},
 	}
-	if err := a.ImportUser(&data, true); err != nil {
+	if err := th.App.ImportUser(&data, true); err != nil {
 		t.Fatalf("Should have succeeded.")
 	}
 
 	// Check no new member objects were created because dry run mode.
-	if tmc, err := a.GetTeamMembers(team.Id, 0, 1000); err != nil {
+	if tmc, err := th.App.GetTeamMembers(team.Id, 0, 1000); err != nil {
 		t.Fatalf("Failed to get Team Member Count")
 	} else if len(tmc) != teamMemberCount {
 		t.Fatalf("Number of team members not as expected")
 	}
 
-	if cmc, err := a.GetChannelMemberCount(channel.Id); err != nil {
+	if cmc, err := th.App.GetChannelMemberCount(channel.Id); err != nil {
 		t.Fatalf("Failed to get Channel Member Count")
 	} else if cmc != channelMemberCount {
 		t.Fatalf("Number of channel members not as expected")
@@ -1577,7 +1573,7 @@ func TestImportImportUser(t *testing.T) {
 			},
 		},
 	}
-	if err := a.ImportUser(&data, false); err == nil {
+	if err := th.App.ImportUser(&data, false); err == nil {
 		t.Fatalf("Should have failed.")
 	}
 
@@ -1592,7 +1588,7 @@ func TestImportImportUser(t *testing.T) {
 			},
 		},
 	}
-	if err := a.ImportUser(&data, false); err == nil {
+	if err := th.App.ImportUser(&data, false); err == nil {
 		t.Fatalf("Should have failed.")
 	}
 
@@ -1607,18 +1603,18 @@ func TestImportImportUser(t *testing.T) {
 			},
 		},
 	}
-	if err := a.ImportUser(&data, false); err == nil {
+	if err := th.App.ImportUser(&data, false); err == nil {
 		t.Fatalf("Should have failed.")
 	}
 
 	// Check no new member objects were created because all tests should have failed so far.
-	if tmc, err := a.GetTeamMembers(team.Id, 0, 1000); err != nil {
+	if tmc, err := th.App.GetTeamMembers(team.Id, 0, 1000); err != nil {
 		t.Fatalf("Failed to get Team Member Count")
 	} else if len(tmc) != teamMemberCount {
 		t.Fatalf("Number of team members not as expected")
 	}
 
-	if cmc, err := a.GetChannelMemberCount(channel.Id); err != nil {
+	if cmc, err := th.App.GetChannelMemberCount(channel.Id); err != nil {
 		t.Fatalf("Failed to get Channel Member Count")
 	} else if cmc != channelMemberCount {
 		t.Fatalf("Number of channel members not as expected")
@@ -1635,29 +1631,29 @@ func TestImportImportUser(t *testing.T) {
 			},
 		},
 	}
-	if err := a.ImportUser(&data, false); err == nil {
+	if err := th.App.ImportUser(&data, false); err == nil {
 		t.Fatalf("Should have failed.")
 	}
 
 	// Check only new team member object created because dry run mode.
-	if tmc, err := a.GetTeamMembers(team.Id, 0, 1000); err != nil {
+	if tmc, err := th.App.GetTeamMembers(team.Id, 0, 1000); err != nil {
 		t.Fatalf("Failed to get Team Member Count")
 	} else if len(tmc) != teamMemberCount+1 {
 		t.Fatalf("Number of team members not as expected")
 	}
 
-	if cmc, err := a.GetChannelMemberCount(channel.Id); err != nil {
+	if cmc, err := th.App.GetChannelMemberCount(channel.Id); err != nil {
 		t.Fatalf("Failed to get Channel Member Count")
 	} else if cmc != channelMemberCount {
 		t.Fatalf("Number of channel members not as expected")
 	}
 
 	// Check team member properties.
-	user, err := a.GetUserByUsername(username)
+	user, err := th.App.GetUserByUsername(username)
 	if err != nil {
 		t.Fatalf("Failed to get user from database.")
 	}
-	if teamMember, err := a.GetTeamMember(team.Id, user.Id); err != nil {
+	if teamMember, err := th.App.GetTeamMember(team.Id, user.Id); err != nil {
 		t.Fatalf("Failed to get team member from database.")
 	} else if teamMember.Roles != "team_user" {
 		t.Fatalf("Team member properties not as expected")
@@ -1674,25 +1670,25 @@ func TestImportImportUser(t *testing.T) {
 			},
 		},
 	}
-	if err := a.ImportUser(&data, false); err != nil {
+	if err := th.App.ImportUser(&data, false); err != nil {
 		t.Fatalf("Should have succeeded.")
 	}
 
 	// Check only new channel member object created because dry run mode.
-	if tmc, err := a.GetTeamMembers(team.Id, 0, 1000); err != nil {
+	if tmc, err := th.App.GetTeamMembers(team.Id, 0, 1000); err != nil {
 		t.Fatalf("Failed to get Team Member Count")
 	} else if len(tmc) != teamMemberCount+1 {
 		t.Fatalf("Number of team members not as expected")
 	}
 
-	if cmc, err := a.GetChannelMemberCount(channel.Id); err != nil {
+	if cmc, err := th.App.GetChannelMemberCount(channel.Id); err != nil {
 		t.Fatalf("Failed to get Channel Member Count")
 	} else if cmc != channelMemberCount+1 {
 		t.Fatalf("Number of channel members not as expected")
 	}
 
 	// Check channel member properties.
-	if channelMember, err := a.GetChannelMember(channel.Id, user.Id); err != nil {
+	if channelMember, err := th.App.GetChannelMember(channel.Id, user.Id); err != nil {
 		t.Fatalf("Failed to get channel member from database.")
 	} else if channelMember.Roles != "channel_user" || channelMember.NotifyProps[model.DESKTOP_NOTIFY_PROP] != "default" || channelMember.NotifyProps[model.PUSH_NOTIFY_PROP] != "default" || channelMember.NotifyProps[model.MARK_UNREAD_NOTIFY_PROP] != "all" {
 		t.Fatalf("Channel member properties not as expected")
@@ -1717,33 +1713,33 @@ func TestImportImportUser(t *testing.T) {
 			},
 		},
 	}
-	if err := a.ImportUser(&data, false); err != nil {
+	if err := th.App.ImportUser(&data, false); err != nil {
 		t.Fatalf("Should have succeeded.")
 	}
 
 	// Check both member properties.
-	if teamMember, err := a.GetTeamMember(team.Id, user.Id); err != nil {
+	if teamMember, err := th.App.GetTeamMember(team.Id, user.Id); err != nil {
 		t.Fatalf("Failed to get team member from database.")
 	} else if teamMember.Roles != "team_user team_admin" {
 		t.Fatalf("Team member properties not as expected: %v", teamMember.Roles)
 	}
 
-	if channelMember, err := a.GetChannelMember(channel.Id, user.Id); err != nil {
+	if channelMember, err := th.App.GetChannelMember(channel.Id, user.Id); err != nil {
 		t.Fatalf("Failed to get channel member Desktop from database.")
 	} else if channelMember.Roles != "channel_user channel_admin" || channelMember.NotifyProps[model.DESKTOP_NOTIFY_PROP] != model.USER_NOTIFY_MENTION || channelMember.NotifyProps[model.PUSH_NOTIFY_PROP] != model.USER_NOTIFY_MENTION || channelMember.NotifyProps[model.MARK_UNREAD_NOTIFY_PROP] != model.USER_NOTIFY_MENTION {
 		t.Fatalf("Channel member properties not as expected")
 	}
 
-	checkPreference(t, user.Id, model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL, channel.Id, "true")
+	checkPreference(t, th.App, user.Id, model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL, channel.Id, "true")
 
 	// No more new member objects.
-	if tmc, err := a.GetTeamMembers(team.Id, 0, 1000); err != nil {
+	if tmc, err := th.App.GetTeamMembers(team.Id, 0, 1000); err != nil {
 		t.Fatalf("Failed to get Team Member Count")
 	} else if len(tmc) != teamMemberCount+1 {
 		t.Fatalf("Number of team members not as expected")
 	}
 
-	if cmc, err := a.GetChannelMemberCount(channel.Id); err != nil {
+	if cmc, err := th.App.GetChannelMemberCount(channel.Id); err != nil {
 		t.Fatalf("Failed to get Channel Member Count")
 	} else if cmc != channelMemberCount+1 {
 		t.Fatalf("Number of channel members not as expected")
@@ -1761,22 +1757,22 @@ func TestImportImportUser(t *testing.T) {
 		ChannelDisplayMode: ptrStr("centered"),
 		TutorialStep:       ptrStr("3"),
 	}
-	if err := a.ImportUser(&data, false); err != nil {
+	if err := th.App.ImportUser(&data, false); err != nil {
 		t.Fatalf("Should have succeeded.")
 	}
 
 	// Check their values.
-	user, err = a.GetUserByUsername(username)
+	user, err = th.App.GetUserByUsername(username)
 	if err != nil {
 		t.Fatalf("Failed to get user from database.")
 	}
 
-	checkPreference(t, user.Id, model.PREFERENCE_CATEGORY_THEME, "", *data.Theme)
-	checkPreference(t, user.Id, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, "use_military_time", *data.UseMilitaryTime)
-	checkPreference(t, user.Id, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, "collapse_previews", *data.CollapsePreviews)
-	checkPreference(t, user.Id, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, "message_display", *data.MessageDisplay)
-	checkPreference(t, user.Id, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, "channel_display_mode", *data.ChannelDisplayMode)
-	checkPreference(t, user.Id, model.PREFERENCE_CATEGORY_TUTORIAL_STEPS, user.Id, *data.TutorialStep)
+	checkPreference(t, th.App, user.Id, model.PREFERENCE_CATEGORY_THEME, "", *data.Theme)
+	checkPreference(t, th.App, user.Id, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, "use_military_time", *data.UseMilitaryTime)
+	checkPreference(t, th.App, user.Id, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, "collapse_previews", *data.CollapsePreviews)
+	checkPreference(t, th.App, user.Id, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, "message_display", *data.MessageDisplay)
+	checkPreference(t, th.App, user.Id, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, "channel_display_mode", *data.ChannelDisplayMode)
+	checkPreference(t, th.App, user.Id, model.PREFERENCE_CATEGORY_TUTORIAL_STEPS, user.Id, *data.TutorialStep)
 
 	// Change those preferences.
 	data = UserImportData{
@@ -1789,17 +1785,17 @@ func TestImportImportUser(t *testing.T) {
 		ChannelDisplayMode: ptrStr("full"),
 		TutorialStep:       ptrStr("2"),
 	}
-	if err := a.ImportUser(&data, false); err != nil {
+	if err := th.App.ImportUser(&data, false); err != nil {
 		t.Fatalf("Should have succeeded.")
 	}
 
 	// Check their values again.
-	checkPreference(t, user.Id, model.PREFERENCE_CATEGORY_THEME, "", *data.Theme)
-	checkPreference(t, user.Id, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, "use_military_time", *data.UseMilitaryTime)
-	checkPreference(t, user.Id, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, "collapse_previews", *data.CollapsePreviews)
-	checkPreference(t, user.Id, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, "message_display", *data.MessageDisplay)
-	checkPreference(t, user.Id, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, "channel_display_mode", *data.ChannelDisplayMode)
-	checkPreference(t, user.Id, model.PREFERENCE_CATEGORY_TUTORIAL_STEPS, user.Id, *data.TutorialStep)
+	checkPreference(t, th.App, user.Id, model.PREFERENCE_CATEGORY_THEME, "", *data.Theme)
+	checkPreference(t, th.App, user.Id, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, "use_military_time", *data.UseMilitaryTime)
+	checkPreference(t, th.App, user.Id, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, "collapse_previews", *data.CollapsePreviews)
+	checkPreference(t, th.App, user.Id, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, "message_display", *data.MessageDisplay)
+	checkPreference(t, th.App, user.Id, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, "channel_display_mode", *data.ChannelDisplayMode)
+	checkPreference(t, th.App, user.Id, model.PREFERENCE_CATEGORY_TUTORIAL_STEPS, user.Id, *data.TutorialStep)
 
 	// Set Notify Props
 	data.NotifyProps = &UserNotifyPropsImportData{
@@ -1813,11 +1809,11 @@ func TestImportImportUser(t *testing.T) {
 		CommentsTrigger:  ptrStr(model.COMMENTS_NOTIFY_ROOT),
 		MentionKeys:      ptrStr("valid,misc"),
 	}
-	if err := a.ImportUser(&data, false); err != nil {
+	if err := th.App.ImportUser(&data, false); err != nil {
 		t.Fatalf("Should have succeeded.")
 	}
 
-	user, err = a.GetUserByUsername(username)
+	user, err = th.App.GetUserByUsername(username)
 	if err != nil {
 		t.Fatalf("Failed to get user from database.")
 	}
@@ -1844,11 +1840,11 @@ func TestImportImportUser(t *testing.T) {
 		CommentsTrigger:  ptrStr(model.COMMENTS_NOTIFY_ANY),
 		MentionKeys:      ptrStr("misc"),
 	}
-	if err := a.ImportUser(&data, false); err != nil {
+	if err := th.App.ImportUser(&data, false); err != nil {
 		t.Fatalf("Should have succeeded.")
 	}
 
-	user, err = a.GetUserByUsername(username)
+	user, err = th.App.GetUserByUsername(username)
 	if err != nil {
 		t.Fatalf("Failed to get user from database.")
 	}
@@ -1881,11 +1877,11 @@ func TestImportImportUser(t *testing.T) {
 		MentionKeys:      ptrStr("misc"),
 	}
 
-	if err := a.ImportUser(&data, false); err != nil {
+	if err := th.App.ImportUser(&data, false); err != nil {
 		t.Fatalf("Should have succeeded.")
 	}
 
-	user, err = a.GetUserByUsername(username)
+	user, err = th.App.GetUserByUsername(username)
 	if err != nil {
 		t.Fatalf("Failed to get user from database.")
 	}
@@ -1901,8 +1897,7 @@ func TestImportImportUser(t *testing.T) {
 	checkNotifyProp(t, user, model.MENTION_KEYS_NOTIFY_PROP, "misc")
 }
 
-func AssertAllPostsCount(t *testing.T, initialCount int64, change int64, teamName string) {
-	a := Global()
+func AssertAllPostsCount(t *testing.T, a *App, initialCount int64, change int64, teamName string) {
 	if result := <-a.Srv.Store.Post().AnalyticsPostCount(teamName, false, false); result.Err != nil {
 		t.Fatal(result.Err)
 	} else {
@@ -1914,48 +1909,47 @@ func AssertAllPostsCount(t *testing.T, initialCount int64, change int64, teamNam
 }
 
 func TestImportImportPost(t *testing.T) {
-	a := Global()
-	_ = a.Setup()
+	th := Setup()
 
 	// Create a Team.
 	teamName := model.NewId()
-	a.ImportTeam(&TeamImportData{
+	th.App.ImportTeam(&TeamImportData{
 		Name:        &teamName,
 		DisplayName: ptrStr("Display Name"),
 		Type:        ptrStr("O"),
 	}, false)
-	team, err := a.GetTeamByName(teamName)
+	team, err := th.App.GetTeamByName(teamName)
 	if err != nil {
 		t.Fatalf("Failed to get team from database.")
 	}
 
 	// Create a Channel.
 	channelName := model.NewId()
-	a.ImportChannel(&ChannelImportData{
+	th.App.ImportChannel(&ChannelImportData{
 		Team:        &teamName,
 		Name:        &channelName,
 		DisplayName: ptrStr("Display Name"),
 		Type:        ptrStr("O"),
 	}, false)
-	channel, err := a.GetChannelByName(channelName, team.Id)
+	channel, err := th.App.GetChannelByName(channelName, team.Id)
 	if err != nil {
 		t.Fatalf("Failed to get channel from database.")
 	}
 
 	// Create a user.
 	username := model.NewId()
-	a.ImportUser(&UserImportData{
+	th.App.ImportUser(&UserImportData{
 		Username: &username,
 		Email:    ptrStr(model.NewId() + "@example.com"),
 	}, false)
-	user, err := a.GetUserByUsername(username)
+	user, err := th.App.GetUserByUsername(username)
 	if err != nil {
 		t.Fatalf("Failed to get user from database.")
 	}
 
 	// Count the number of posts in the testing team.
 	var initialPostCount int64
-	if result := <-a.Srv.Store.Post().AnalyticsPostCount(team.Id, false, false); result.Err != nil {
+	if result := <-th.App.Srv.Store.Post().AnalyticsPostCount(team.Id, false, false); result.Err != nil {
 		t.Fatal(result.Err)
 	} else {
 		initialPostCount = result.Data.(int64)
@@ -1967,10 +1961,10 @@ func TestImportImportPost(t *testing.T) {
 		Channel: &channelName,
 		User:    &username,
 	}
-	if err := a.ImportPost(data, true); err == nil {
+	if err := th.App.ImportPost(data, true); err == nil {
 		t.Fatalf("Expected error.")
 	}
-	AssertAllPostsCount(t, initialPostCount, 0, team.Id)
+	AssertAllPostsCount(t, th.App, initialPostCount, 0, team.Id)
 
 	// Try adding a valid post in dry run mode.
 	data = &PostImportData{
@@ -1980,10 +1974,10 @@ func TestImportImportPost(t *testing.T) {
 		Message:  ptrStr("Hello"),
 		CreateAt: ptrInt64(model.GetMillis()),
 	}
-	if err := a.ImportPost(data, true); err != nil {
+	if err := th.App.ImportPost(data, true); err != nil {
 		t.Fatalf("Expected success.")
 	}
-	AssertAllPostsCount(t, initialPostCount, 0, team.Id)
+	AssertAllPostsCount(t, th.App, initialPostCount, 0, team.Id)
 
 	// Try adding an invalid post in apply mode.
 	data = &PostImportData{
@@ -1992,10 +1986,10 @@ func TestImportImportPost(t *testing.T) {
 		User:     &username,
 		CreateAt: ptrInt64(model.GetMillis()),
 	}
-	if err := a.ImportPost(data, false); err == nil {
+	if err := th.App.ImportPost(data, false); err == nil {
 		t.Fatalf("Expected error.")
 	}
-	AssertAllPostsCount(t, initialPostCount, 0, team.Id)
+	AssertAllPostsCount(t, th.App, initialPostCount, 0, team.Id)
 
 	// Try adding a valid post with invalid team in apply mode.
 	data = &PostImportData{
@@ -2005,10 +1999,10 @@ func TestImportImportPost(t *testing.T) {
 		Message:  ptrStr("Message"),
 		CreateAt: ptrInt64(model.GetMillis()),
 	}
-	if err := a.ImportPost(data, false); err == nil {
+	if err := th.App.ImportPost(data, false); err == nil {
 		t.Fatalf("Expected error.")
 	}
-	AssertAllPostsCount(t, initialPostCount, 0, team.Id)
+	AssertAllPostsCount(t, th.App, initialPostCount, 0, team.Id)
 
 	// Try adding a valid post with invalid channel in apply mode.
 	data = &PostImportData{
@@ -2018,10 +2012,10 @@ func TestImportImportPost(t *testing.T) {
 		Message:  ptrStr("Message"),
 		CreateAt: ptrInt64(model.GetMillis()),
 	}
-	if err := a.ImportPost(data, false); err == nil {
+	if err := th.App.ImportPost(data, false); err == nil {
 		t.Fatalf("Expected error.")
 	}
-	AssertAllPostsCount(t, initialPostCount, 0, team.Id)
+	AssertAllPostsCount(t, th.App, initialPostCount, 0, team.Id)
 
 	// Try adding a valid post with invalid user in apply mode.
 	data = &PostImportData{
@@ -2031,10 +2025,10 @@ func TestImportImportPost(t *testing.T) {
 		Message:  ptrStr("Message"),
 		CreateAt: ptrInt64(model.GetMillis()),
 	}
-	if err := a.ImportPost(data, false); err == nil {
+	if err := th.App.ImportPost(data, false); err == nil {
 		t.Fatalf("Expected error.")
 	}
-	AssertAllPostsCount(t, initialPostCount, 0, team.Id)
+	AssertAllPostsCount(t, th.App, initialPostCount, 0, team.Id)
 
 	// Try adding a valid post in apply mode.
 	time := model.GetMillis()
@@ -2045,13 +2039,13 @@ func TestImportImportPost(t *testing.T) {
 		Message:  ptrStr("Message"),
 		CreateAt: &time,
 	}
-	if err := a.ImportPost(data, false); err != nil {
+	if err := th.App.ImportPost(data, false); err != nil {
 		t.Fatalf("Expected success.")
 	}
-	AssertAllPostsCount(t, initialPostCount, 1, team.Id)
+	AssertAllPostsCount(t, th.App, initialPostCount, 1, team.Id)
 
 	// Check the post values.
-	if result := <-a.Srv.Store.Post().GetPostsCreatedAt(channel.Id, time); result.Err != nil {
+	if result := <-th.App.Srv.Store.Post().GetPostsCreatedAt(channel.Id, time); result.Err != nil {
 		t.Fatal(result.Err.Error())
 	} else {
 		posts := result.Data.([]*model.Post)
@@ -2072,13 +2066,13 @@ func TestImportImportPost(t *testing.T) {
 		Message:  ptrStr("Message"),
 		CreateAt: &time,
 	}
-	if err := a.ImportPost(data, false); err != nil {
+	if err := th.App.ImportPost(data, false); err != nil {
 		t.Fatalf("Expected success.")
 	}
-	AssertAllPostsCount(t, initialPostCount, 1, team.Id)
+	AssertAllPostsCount(t, th.App, initialPostCount, 1, team.Id)
 
 	// Check the post values.
-	if result := <-a.Srv.Store.Post().GetPostsCreatedAt(channel.Id, time); result.Err != nil {
+	if result := <-th.App.Srv.Store.Post().GetPostsCreatedAt(channel.Id, time); result.Err != nil {
 		t.Fatal(result.Err.Error())
 	} else {
 		posts := result.Data.([]*model.Post)
@@ -2100,10 +2094,10 @@ func TestImportImportPost(t *testing.T) {
 		Message:  ptrStr("Message"),
 		CreateAt: &newTime,
 	}
-	if err := a.ImportPost(data, false); err != nil {
+	if err := th.App.ImportPost(data, false); err != nil {
 		t.Fatalf("Expected success.")
 	}
-	AssertAllPostsCount(t, initialPostCount, 2, team.Id)
+	AssertAllPostsCount(t, th.App, initialPostCount, 2, team.Id)
 
 	// Save the post with a different message.
 	data = &PostImportData{
@@ -2113,10 +2107,10 @@ func TestImportImportPost(t *testing.T) {
 		Message:  ptrStr("Message 2"),
 		CreateAt: &time,
 	}
-	if err := a.ImportPost(data, false); err != nil {
+	if err := th.App.ImportPost(data, false); err != nil {
 		t.Fatalf("Expected success.")
 	}
-	AssertAllPostsCount(t, initialPostCount, 3, team.Id)
+	AssertAllPostsCount(t, th.App, initialPostCount, 3, team.Id)
 
 	// Test with hashtags
 	hashtagTime := time + 2
@@ -2127,12 +2121,12 @@ func TestImportImportPost(t *testing.T) {
 		Message:  ptrStr("Message 2 #hashtagmashupcity"),
 		CreateAt: &hashtagTime,
 	}
-	if err := a.ImportPost(data, false); err != nil {
+	if err := th.App.ImportPost(data, false); err != nil {
 		t.Fatalf("Expected success.")
 	}
-	AssertAllPostsCount(t, initialPostCount, 4, team.Id)
+	AssertAllPostsCount(t, th.App, initialPostCount, 4, team.Id)
 
-	if result := <-a.Srv.Store.Post().GetPostsCreatedAt(channel.Id, hashtagTime); result.Err != nil {
+	if result := <-th.App.Srv.Store.Post().GetPostsCreatedAt(channel.Id, hashtagTime); result.Err != nil {
 		t.Fatal(result.Err.Error())
 	} else {
 		posts := result.Data.([]*model.Post)
@@ -2150,11 +2144,11 @@ func TestImportImportPost(t *testing.T) {
 
 	// Post with flags.
 	username2 := model.NewId()
-	a.ImportUser(&UserImportData{
+	th.App.ImportUser(&UserImportData{
 		Username: &username2,
 		Email:    ptrStr(model.NewId() + "@example.com"),
 	}, false)
-	user2, err := a.GetUserByUsername(username2)
+	user2, err := th.App.GetUserByUsername(username2)
 	if err != nil {
 		t.Fatalf("Failed to get user from database.")
 	}
@@ -2171,13 +2165,13 @@ func TestImportImportPost(t *testing.T) {
 			username2,
 		},
 	}
-	if err := a.ImportPost(data, false); err != nil {
+	if err := th.App.ImportPost(data, false); err != nil {
 		t.Fatalf("Expected success.")
 	}
-	AssertAllPostsCount(t, initialPostCount, 5, team.Id)
+	AssertAllPostsCount(t, th.App, initialPostCount, 5, team.Id)
 
 	// Check the post values.
-	if result := <-a.Srv.Store.Post().GetPostsCreatedAt(channel.Id, flagsTime); result.Err != nil {
+	if result := <-th.App.Srv.Store.Post().GetPostsCreatedAt(channel.Id, flagsTime); result.Err != nil {
 		t.Fatal(result.Err.Error())
 	} else {
 		posts := result.Data.([]*model.Post)
@@ -2189,25 +2183,24 @@ func TestImportImportPost(t *testing.T) {
 			t.Fatal("Post properties not as expected")
 		}
 
-		checkPreference(t, user.Id, model.PREFERENCE_CATEGORY_FLAGGED_POST, post.Id, "true")
-		checkPreference(t, user2.Id, model.PREFERENCE_CATEGORY_FLAGGED_POST, post.Id, "true")
+		checkPreference(t, th.App, user.Id, model.PREFERENCE_CATEGORY_FLAGGED_POST, post.Id, "true")
+		checkPreference(t, th.App, user2.Id, model.PREFERENCE_CATEGORY_FLAGGED_POST, post.Id, "true")
 	}
 }
 
 func TestImportImportDirectChannel(t *testing.T) {
-	a := Global()
-	th := a.Setup().InitBasic()
+	th := Setup().InitBasic()
 
 	// Check how many channels are in the database.
 	var directChannelCount int64
-	if r := <-a.Srv.Store.Channel().AnalyticsTypeCount("", model.CHANNEL_DIRECT); r.Err == nil {
+	if r := <-th.App.Srv.Store.Channel().AnalyticsTypeCount("", model.CHANNEL_DIRECT); r.Err == nil {
 		directChannelCount = r.Data.(int64)
 	} else {
 		t.Fatalf("Failed to get direct channel count.")
 	}
 
 	var groupChannelCount int64
-	if r := <-a.Srv.Store.Channel().AnalyticsTypeCount("", model.CHANNEL_GROUP); r.Err == nil {
+	if r := <-th.App.Srv.Store.Channel().AnalyticsTypeCount("", model.CHANNEL_GROUP); r.Err == nil {
 		groupChannelCount = r.Data.(int64)
 	} else {
 		t.Fatalf("Failed to get group channel count.")
@@ -2220,26 +2213,26 @@ func TestImportImportDirectChannel(t *testing.T) {
 		},
 		Header: ptrStr("Channel Header"),
 	}
-	if err := a.ImportDirectChannel(&data, true); err == nil {
+	if err := th.App.ImportDirectChannel(&data, true); err == nil {
 		t.Fatalf("Expected error due to invalid name.")
 	}
 
 	// Check that no more channels are in the DB.
-	AssertChannelCount(t, model.CHANNEL_DIRECT, directChannelCount)
-	AssertChannelCount(t, model.CHANNEL_GROUP, groupChannelCount)
+	AssertChannelCount(t, th.App, model.CHANNEL_DIRECT, directChannelCount)
+	AssertChannelCount(t, th.App, model.CHANNEL_GROUP, groupChannelCount)
 
 	// Do a valid DIRECT channel with a nonexistent member in dry-run mode.
 	data.Members = &[]string{
 		model.NewId(),
 		model.NewId(),
 	}
-	if err := a.ImportDirectChannel(&data, true); err != nil {
+	if err := th.App.ImportDirectChannel(&data, true); err != nil {
 		t.Fatalf("Expected success as cannot validate existance of channel members in dry run mode.")
 	}
 
 	// Check that no more channels are in the DB.
-	AssertChannelCount(t, model.CHANNEL_DIRECT, directChannelCount)
-	AssertChannelCount(t, model.CHANNEL_GROUP, groupChannelCount)
+	AssertChannelCount(t, th.App, model.CHANNEL_DIRECT, directChannelCount)
+	AssertChannelCount(t, th.App, model.CHANNEL_GROUP, groupChannelCount)
 
 	// Do a valid GROUP channel with a nonexistent member in dry-run mode.
 	data.Members = &[]string{
@@ -2247,60 +2240,60 @@ func TestImportImportDirectChannel(t *testing.T) {
 		model.NewId(),
 		model.NewId(),
 	}
-	if err := a.ImportDirectChannel(&data, true); err != nil {
+	if err := th.App.ImportDirectChannel(&data, true); err != nil {
 		t.Fatalf("Expected success as cannot validate existance of channel members in dry run mode.")
 	}
 
 	// Check that no more channels are in the DB.
-	AssertChannelCount(t, model.CHANNEL_DIRECT, directChannelCount)
-	AssertChannelCount(t, model.CHANNEL_GROUP, groupChannelCount)
+	AssertChannelCount(t, th.App, model.CHANNEL_DIRECT, directChannelCount)
+	AssertChannelCount(t, th.App, model.CHANNEL_GROUP, groupChannelCount)
 
 	// Do an invalid channel in apply mode.
 	data.Members = &[]string{
 		model.NewId(),
 	}
-	if err := a.ImportDirectChannel(&data, false); err == nil {
+	if err := th.App.ImportDirectChannel(&data, false); err == nil {
 		t.Fatalf("Expected error due to invalid member (apply mode).")
 	}
 
 	// Check that no more channels are in the DB.
-	AssertChannelCount(t, model.CHANNEL_DIRECT, directChannelCount)
-	AssertChannelCount(t, model.CHANNEL_GROUP, groupChannelCount)
+	AssertChannelCount(t, th.App, model.CHANNEL_DIRECT, directChannelCount)
+	AssertChannelCount(t, th.App, model.CHANNEL_GROUP, groupChannelCount)
 
 	// Do a valid DIRECT channel.
 	data.Members = &[]string{
 		th.BasicUser.Username,
 		th.BasicUser2.Username,
 	}
-	if err := a.ImportDirectChannel(&data, false); err != nil {
+	if err := th.App.ImportDirectChannel(&data, false); err != nil {
 		t.Fatalf("Expected success: %v", err.Error())
 	}
 
 	// Check that one more DIRECT channel is in the DB.
-	AssertChannelCount(t, model.CHANNEL_DIRECT, directChannelCount+1)
-	AssertChannelCount(t, model.CHANNEL_GROUP, groupChannelCount)
+	AssertChannelCount(t, th.App, model.CHANNEL_DIRECT, directChannelCount+1)
+	AssertChannelCount(t, th.App, model.CHANNEL_GROUP, groupChannelCount)
 
 	// Do the same DIRECT channel again.
-	if err := a.ImportDirectChannel(&data, false); err != nil {
+	if err := th.App.ImportDirectChannel(&data, false); err != nil {
 		t.Fatalf("Expected success.")
 	}
 
 	// Check that no more channels are in the DB.
-	AssertChannelCount(t, model.CHANNEL_DIRECT, directChannelCount+1)
-	AssertChannelCount(t, model.CHANNEL_GROUP, groupChannelCount)
+	AssertChannelCount(t, th.App, model.CHANNEL_DIRECT, directChannelCount+1)
+	AssertChannelCount(t, th.App, model.CHANNEL_GROUP, groupChannelCount)
 
 	// Update the channel's HEADER
 	data.Header = ptrStr("New Channel Header 2")
-	if err := a.ImportDirectChannel(&data, false); err != nil {
+	if err := th.App.ImportDirectChannel(&data, false); err != nil {
 		t.Fatalf("Expected success.")
 	}
 
 	// Check that no more channels are in the DB.
-	AssertChannelCount(t, model.CHANNEL_DIRECT, directChannelCount+1)
-	AssertChannelCount(t, model.CHANNEL_GROUP, groupChannelCount)
+	AssertChannelCount(t, th.App, model.CHANNEL_DIRECT, directChannelCount+1)
+	AssertChannelCount(t, th.App, model.CHANNEL_GROUP, groupChannelCount)
 
 	// Get the channel to check that the header was updated.
-	if channel, err := a.createDirectChannel(th.BasicUser.Id, th.BasicUser2.Id); err == nil || err.Id != store.CHANNEL_EXISTS_ERROR {
+	if channel, err := th.App.createDirectChannel(th.BasicUser.Id, th.BasicUser2.Id); err == nil || err.Id != store.CHANNEL_EXISTS_ERROR {
 		t.Fatal("Should have got store.CHANNEL_EXISTS_ERROR")
 	} else {
 		if channel.Header != *data.Header {
@@ -2316,13 +2309,13 @@ func TestImportImportDirectChannel(t *testing.T) {
 		user3.Username,
 		model.NewId(),
 	}
-	if err := a.ImportDirectChannel(&data, false); err == nil {
+	if err := th.App.ImportDirectChannel(&data, false); err == nil {
 		t.Fatalf("Should have failed due to invalid member in list.")
 	}
 
 	// Check that no more channels are in the DB.
-	AssertChannelCount(t, model.CHANNEL_DIRECT, directChannelCount+1)
-	AssertChannelCount(t, model.CHANNEL_GROUP, groupChannelCount)
+	AssertChannelCount(t, th.App, model.CHANNEL_DIRECT, directChannelCount+1)
+	AssertChannelCount(t, th.App, model.CHANNEL_GROUP, groupChannelCount)
 
 	// Do a valid GROUP channel.
 	data.Members = &[]string{
@@ -2330,32 +2323,32 @@ func TestImportImportDirectChannel(t *testing.T) {
 		th.BasicUser2.Username,
 		user3.Username,
 	}
-	if err := a.ImportDirectChannel(&data, false); err != nil {
+	if err := th.App.ImportDirectChannel(&data, false); err != nil {
 		t.Fatalf("Expected success.")
 	}
 
 	// Check that one more GROUP channel is in the DB.
-	AssertChannelCount(t, model.CHANNEL_DIRECT, directChannelCount+1)
-	AssertChannelCount(t, model.CHANNEL_GROUP, groupChannelCount+1)
+	AssertChannelCount(t, th.App, model.CHANNEL_DIRECT, directChannelCount+1)
+	AssertChannelCount(t, th.App, model.CHANNEL_GROUP, groupChannelCount+1)
 
 	// Do the same DIRECT channel again.
-	if err := a.ImportDirectChannel(&data, false); err != nil {
+	if err := th.App.ImportDirectChannel(&data, false); err != nil {
 		t.Fatalf("Expected success.")
 	}
 
 	// Check that no more channels are in the DB.
-	AssertChannelCount(t, model.CHANNEL_DIRECT, directChannelCount+1)
-	AssertChannelCount(t, model.CHANNEL_GROUP, groupChannelCount+1)
+	AssertChannelCount(t, th.App, model.CHANNEL_DIRECT, directChannelCount+1)
+	AssertChannelCount(t, th.App, model.CHANNEL_GROUP, groupChannelCount+1)
 
 	// Update the channel's HEADER
 	data.Header = ptrStr("New Channel Header 3")
-	if err := a.ImportDirectChannel(&data, false); err != nil {
+	if err := th.App.ImportDirectChannel(&data, false); err != nil {
 		t.Fatalf("Expected success.")
 	}
 
 	// Check that no more channels are in the DB.
-	AssertChannelCount(t, model.CHANNEL_DIRECT, directChannelCount+1)
-	AssertChannelCount(t, model.CHANNEL_GROUP, groupChannelCount+1)
+	AssertChannelCount(t, th.App, model.CHANNEL_DIRECT, directChannelCount+1)
+	AssertChannelCount(t, th.App, model.CHANNEL_GROUP, groupChannelCount+1)
 
 	// Get the channel to check that the header was updated.
 	userIds := []string{
@@ -2363,7 +2356,7 @@ func TestImportImportDirectChannel(t *testing.T) {
 		th.BasicUser2.Id,
 		user3.Id,
 	}
-	if channel, err := a.createGroupChannel(userIds, th.BasicUser.Id); err.Id != store.CHANNEL_EXISTS_ERROR {
+	if channel, err := th.App.createGroupChannel(userIds, th.BasicUser.Id); err.Id != store.CHANNEL_EXISTS_ERROR {
 		t.Fatal("Should have got store.CHANNEL_EXISTS_ERROR")
 	} else {
 		if channel.Header != *data.Header {
@@ -2380,20 +2373,19 @@ func TestImportImportDirectChannel(t *testing.T) {
 		th.BasicUser.Username,
 		th.BasicUser2.Username,
 	}
-	if err := a.ImportDirectChannel(&data, false); err != nil {
+	if err := th.App.ImportDirectChannel(&data, false); err != nil {
 		t.Fatal(err)
 	}
 
-	if channel, err := a.createDirectChannel(th.BasicUser.Id, th.BasicUser2.Id); err == nil || err.Id != store.CHANNEL_EXISTS_ERROR {
+	if channel, err := th.App.createDirectChannel(th.BasicUser.Id, th.BasicUser2.Id); err == nil || err.Id != store.CHANNEL_EXISTS_ERROR {
 		t.Fatal("Should have got store.CHANNEL_EXISTS_ERROR")
 	} else {
-		checkPreference(t, th.BasicUser.Id, model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL, channel.Id, "true")
-		checkPreference(t, th.BasicUser2.Id, model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL, channel.Id, "true")
+		checkPreference(t, th.App, th.BasicUser.Id, model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL, channel.Id, "true")
+		checkPreference(t, th.App, th.BasicUser2.Id, model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL, channel.Id, "true")
 	}
 }
 
-func AssertChannelCount(t *testing.T, channelType string, expectedCount int64) {
-	a := Global()
+func AssertChannelCount(t *testing.T, a *App, channelType string, expectedCount int64) {
 	if r := <-a.Srv.Store.Channel().AnalyticsTypeCount("", channelType); r.Err == nil {
 		count := r.Data.(int64)
 		if count != expectedCount {
@@ -2407,8 +2399,7 @@ func AssertChannelCount(t *testing.T, channelType string, expectedCount int64) {
 }
 
 func TestImportImportDirectPost(t *testing.T) {
-	a := Global()
-	th := a.Setup().InitBasic()
+	th := Setup().InitBasic()
 
 	// Create the DIRECT channel.
 	channelData := DirectChannelImportData{
@@ -2417,13 +2408,13 @@ func TestImportImportDirectPost(t *testing.T) {
 			th.BasicUser2.Username,
 		},
 	}
-	if err := a.ImportDirectChannel(&channelData, false); err != nil {
+	if err := th.App.ImportDirectChannel(&channelData, false); err != nil {
 		t.Fatalf("Expected success: %v", err.Error())
 	}
 
 	// Get the channel.
 	var directChannel *model.Channel
-	if channel, err := a.createDirectChannel(th.BasicUser.Id, th.BasicUser2.Id); err.Id != store.CHANNEL_EXISTS_ERROR {
+	if channel, err := th.App.createDirectChannel(th.BasicUser.Id, th.BasicUser2.Id); err.Id != store.CHANNEL_EXISTS_ERROR {
 		t.Fatal("Should have got store.CHANNEL_EXISTS_ERROR")
 	} else {
 		directChannel = channel
@@ -2431,7 +2422,7 @@ func TestImportImportDirectPost(t *testing.T) {
 
 	// Get the number of posts in the system.
 	var initialPostCount int64
-	if result := <-a.Srv.Store.Post().AnalyticsPostCount("", false, false); result.Err != nil {
+	if result := <-th.App.Srv.Store.Post().AnalyticsPostCount("", false, false); result.Err != nil {
 		t.Fatal(result.Err)
 	} else {
 		initialPostCount = result.Data.(int64)
@@ -2446,10 +2437,10 @@ func TestImportImportDirectPost(t *testing.T) {
 		User:     ptrStr(th.BasicUser.Username),
 		CreateAt: ptrInt64(model.GetMillis()),
 	}
-	if err := a.ImportDirectPost(data, true); err == nil {
+	if err := th.App.ImportDirectPost(data, true); err == nil {
 		t.Fatalf("Expected error.")
 	}
-	AssertAllPostsCount(t, initialPostCount, 0, "")
+	AssertAllPostsCount(t, th.App, initialPostCount, 0, "")
 
 	// Try adding a valid post in dry run mode.
 	data = &DirectPostImportData{
@@ -2461,10 +2452,10 @@ func TestImportImportDirectPost(t *testing.T) {
 		Message:  ptrStr("Message"),
 		CreateAt: ptrInt64(model.GetMillis()),
 	}
-	if err := a.ImportDirectPost(data, true); err != nil {
+	if err := th.App.ImportDirectPost(data, true); err != nil {
 		t.Fatalf("Expected success.")
 	}
-	AssertAllPostsCount(t, initialPostCount, 0, "")
+	AssertAllPostsCount(t, th.App, initialPostCount, 0, "")
 
 	// Try adding an invalid post in apply mode.
 	data = &DirectPostImportData{
@@ -2476,10 +2467,10 @@ func TestImportImportDirectPost(t *testing.T) {
 		Message:  ptrStr("Message"),
 		CreateAt: ptrInt64(model.GetMillis()),
 	}
-	if err := a.ImportDirectPost(data, false); err == nil {
+	if err := th.App.ImportDirectPost(data, false); err == nil {
 		t.Fatalf("Expected error.")
 	}
-	AssertAllPostsCount(t, initialPostCount, 0, "")
+	AssertAllPostsCount(t, th.App, initialPostCount, 0, "")
 
 	// Try adding a valid post in apply mode.
 	data = &DirectPostImportData{
@@ -2491,13 +2482,13 @@ func TestImportImportDirectPost(t *testing.T) {
 		Message:  ptrStr("Message"),
 		CreateAt: ptrInt64(model.GetMillis()),
 	}
-	if err := a.ImportDirectPost(data, false); err != nil {
+	if err := th.App.ImportDirectPost(data, false); err != nil {
 		t.Fatalf("Expected success: %v", err.Error())
 	}
-	AssertAllPostsCount(t, initialPostCount, 1, "")
+	AssertAllPostsCount(t, th.App, initialPostCount, 1, "")
 
 	// Check the post values.
-	if result := <-a.Srv.Store.Post().GetPostsCreatedAt(directChannel.Id, *data.CreateAt); result.Err != nil {
+	if result := <-th.App.Srv.Store.Post().GetPostsCreatedAt(directChannel.Id, *data.CreateAt); result.Err != nil {
 		t.Fatal(result.Err.Error())
 	} else {
 		posts := result.Data.([]*model.Post)
@@ -2511,13 +2502,13 @@ func TestImportImportDirectPost(t *testing.T) {
 	}
 
 	// Import the post again.
-	if err := a.ImportDirectPost(data, false); err != nil {
+	if err := th.App.ImportDirectPost(data, false); err != nil {
 		t.Fatalf("Expected success.")
 	}
-	AssertAllPostsCount(t, initialPostCount, 1, "")
+	AssertAllPostsCount(t, th.App, initialPostCount, 1, "")
 
 	// Check the post values.
-	if result := <-a.Srv.Store.Post().GetPostsCreatedAt(directChannel.Id, *data.CreateAt); result.Err != nil {
+	if result := <-th.App.Srv.Store.Post().GetPostsCreatedAt(directChannel.Id, *data.CreateAt); result.Err != nil {
 		t.Fatal(result.Err.Error())
 	} else {
 		posts := result.Data.([]*model.Post)
@@ -2532,27 +2523,27 @@ func TestImportImportDirectPost(t *testing.T) {
 
 	// Save the post with a different time.
 	data.CreateAt = ptrInt64(*data.CreateAt + 1)
-	if err := a.ImportDirectPost(data, false); err != nil {
+	if err := th.App.ImportDirectPost(data, false); err != nil {
 		t.Fatalf("Expected success.")
 	}
-	AssertAllPostsCount(t, initialPostCount, 2, "")
+	AssertAllPostsCount(t, th.App, initialPostCount, 2, "")
 
 	// Save the post with a different message.
 	data.Message = ptrStr("Message 2")
-	if err := a.ImportDirectPost(data, false); err != nil {
+	if err := th.App.ImportDirectPost(data, false); err != nil {
 		t.Fatalf("Expected success.")
 	}
-	AssertAllPostsCount(t, initialPostCount, 3, "")
+	AssertAllPostsCount(t, th.App, initialPostCount, 3, "")
 
 	// Test with hashtags
 	data.Message = ptrStr("Message 2 #hashtagmashupcity")
 	data.CreateAt = ptrInt64(*data.CreateAt + 1)
-	if err := a.ImportDirectPost(data, false); err != nil {
+	if err := th.App.ImportDirectPost(data, false); err != nil {
 		t.Fatalf("Expected success.")
 	}
-	AssertAllPostsCount(t, initialPostCount, 4, "")
+	AssertAllPostsCount(t, th.App, initialPostCount, 4, "")
 
-	if result := <-a.Srv.Store.Post().GetPostsCreatedAt(directChannel.Id, *data.CreateAt); result.Err != nil {
+	if result := <-th.App.Srv.Store.Post().GetPostsCreatedAt(directChannel.Id, *data.CreateAt); result.Err != nil {
 		t.Fatal(result.Err.Error())
 	} else {
 		posts := result.Data.([]*model.Post)
@@ -2583,12 +2574,12 @@ func TestImportImportDirectPost(t *testing.T) {
 		CreateAt: ptrInt64(model.GetMillis()),
 	}
 
-	if err := a.ImportDirectPost(data, false); err != nil {
+	if err := th.App.ImportDirectPost(data, false); err != nil {
 		t.Fatalf("Expected success: %v", err.Error())
 	}
 
 	// Check the post values.
-	if result := <-a.Srv.Store.Post().GetPostsCreatedAt(directChannel.Id, *data.CreateAt); result.Err != nil {
+	if result := <-th.App.Srv.Store.Post().GetPostsCreatedAt(directChannel.Id, *data.CreateAt); result.Err != nil {
 		t.Fatal(result.Err.Error())
 	} else {
 		posts := result.Data.([]*model.Post)
@@ -2596,8 +2587,8 @@ func TestImportImportDirectPost(t *testing.T) {
 			t.Fatal("Unexpected number of posts found.")
 		}
 		post := posts[0]
-		checkPreference(t, th.BasicUser.Id, model.PREFERENCE_CATEGORY_FLAGGED_POST, post.Id, "true")
-		checkPreference(t, th.BasicUser2.Id, model.PREFERENCE_CATEGORY_FLAGGED_POST, post.Id, "true")
+		checkPreference(t, th.App, th.BasicUser.Id, model.PREFERENCE_CATEGORY_FLAGGED_POST, post.Id, "true")
+		checkPreference(t, th.App, th.BasicUser2.Id, model.PREFERENCE_CATEGORY_FLAGGED_POST, post.Id, "true")
 	}
 
 	// ------------------ Group Channel -------------------------
@@ -2611,7 +2602,7 @@ func TestImportImportDirectPost(t *testing.T) {
 			user3.Username,
 		},
 	}
-	if err := a.ImportDirectChannel(&channelData, false); err != nil {
+	if err := th.App.ImportDirectChannel(&channelData, false); err != nil {
 		t.Fatalf("Expected success: %v", err.Error())
 	}
 
@@ -2622,14 +2613,14 @@ func TestImportImportDirectPost(t *testing.T) {
 		th.BasicUser2.Id,
 		user3.Id,
 	}
-	if channel, err := a.createGroupChannel(userIds, th.BasicUser.Id); err.Id != store.CHANNEL_EXISTS_ERROR {
+	if channel, err := th.App.createGroupChannel(userIds, th.BasicUser.Id); err.Id != store.CHANNEL_EXISTS_ERROR {
 		t.Fatal("Should have got store.CHANNEL_EXISTS_ERROR")
 	} else {
 		groupChannel = channel
 	}
 
 	// Get the number of posts in the system.
-	if result := <-a.Srv.Store.Post().AnalyticsPostCount("", false, false); result.Err != nil {
+	if result := <-th.App.Srv.Store.Post().AnalyticsPostCount("", false, false); result.Err != nil {
 		t.Fatal(result.Err)
 	} else {
 		initialPostCount = result.Data.(int64)
@@ -2645,10 +2636,10 @@ func TestImportImportDirectPost(t *testing.T) {
 		User:     ptrStr(th.BasicUser.Username),
 		CreateAt: ptrInt64(model.GetMillis()),
 	}
-	if err := a.ImportDirectPost(data, true); err == nil {
+	if err := th.App.ImportDirectPost(data, true); err == nil {
 		t.Fatalf("Expected error.")
 	}
-	AssertAllPostsCount(t, initialPostCount, 0, "")
+	AssertAllPostsCount(t, th.App, initialPostCount, 0, "")
 
 	// Try adding a valid post in dry run mode.
 	data = &DirectPostImportData{
@@ -2661,10 +2652,10 @@ func TestImportImportDirectPost(t *testing.T) {
 		Message:  ptrStr("Message"),
 		CreateAt: ptrInt64(model.GetMillis()),
 	}
-	if err := a.ImportDirectPost(data, true); err != nil {
+	if err := th.App.ImportDirectPost(data, true); err != nil {
 		t.Fatalf("Expected success.")
 	}
-	AssertAllPostsCount(t, initialPostCount, 0, "")
+	AssertAllPostsCount(t, th.App, initialPostCount, 0, "")
 
 	// Try adding an invalid post in apply mode.
 	data = &DirectPostImportData{
@@ -2678,10 +2669,10 @@ func TestImportImportDirectPost(t *testing.T) {
 		Message:  ptrStr("Message"),
 		CreateAt: ptrInt64(model.GetMillis()),
 	}
-	if err := a.ImportDirectPost(data, false); err == nil {
+	if err := th.App.ImportDirectPost(data, false); err == nil {
 		t.Fatalf("Expected error.")
 	}
-	AssertAllPostsCount(t, initialPostCount, 0, "")
+	AssertAllPostsCount(t, th.App, initialPostCount, 0, "")
 
 	// Try adding a valid post in apply mode.
 	data = &DirectPostImportData{
@@ -2694,13 +2685,13 @@ func TestImportImportDirectPost(t *testing.T) {
 		Message:  ptrStr("Message"),
 		CreateAt: ptrInt64(model.GetMillis()),
 	}
-	if err := a.ImportDirectPost(data, false); err != nil {
+	if err := th.App.ImportDirectPost(data, false); err != nil {
 		t.Fatalf("Expected success: %v", err.Error())
 	}
-	AssertAllPostsCount(t, initialPostCount, 1, "")
+	AssertAllPostsCount(t, th.App, initialPostCount, 1, "")
 
 	// Check the post values.
-	if result := <-a.Srv.Store.Post().GetPostsCreatedAt(groupChannel.Id, *data.CreateAt); result.Err != nil {
+	if result := <-th.App.Srv.Store.Post().GetPostsCreatedAt(groupChannel.Id, *data.CreateAt); result.Err != nil {
 		t.Fatal(result.Err.Error())
 	} else {
 		posts := result.Data.([]*model.Post)
@@ -2714,13 +2705,13 @@ func TestImportImportDirectPost(t *testing.T) {
 	}
 
 	// Import the post again.
-	if err := a.ImportDirectPost(data, false); err != nil {
+	if err := th.App.ImportDirectPost(data, false); err != nil {
 		t.Fatalf("Expected success.")
 	}
-	AssertAllPostsCount(t, initialPostCount, 1, "")
+	AssertAllPostsCount(t, th.App, initialPostCount, 1, "")
 
 	// Check the post values.
-	if result := <-a.Srv.Store.Post().GetPostsCreatedAt(groupChannel.Id, *data.CreateAt); result.Err != nil {
+	if result := <-th.App.Srv.Store.Post().GetPostsCreatedAt(groupChannel.Id, *data.CreateAt); result.Err != nil {
 		t.Fatal(result.Err.Error())
 	} else {
 		posts := result.Data.([]*model.Post)
@@ -2735,27 +2726,27 @@ func TestImportImportDirectPost(t *testing.T) {
 
 	// Save the post with a different time.
 	data.CreateAt = ptrInt64(*data.CreateAt + 1)
-	if err := a.ImportDirectPost(data, false); err != nil {
+	if err := th.App.ImportDirectPost(data, false); err != nil {
 		t.Fatalf("Expected success.")
 	}
-	AssertAllPostsCount(t, initialPostCount, 2, "")
+	AssertAllPostsCount(t, th.App, initialPostCount, 2, "")
 
 	// Save the post with a different message.
 	data.Message = ptrStr("Message 2")
-	if err := a.ImportDirectPost(data, false); err != nil {
+	if err := th.App.ImportDirectPost(data, false); err != nil {
 		t.Fatalf("Expected success.")
 	}
-	AssertAllPostsCount(t, initialPostCount, 3, "")
+	AssertAllPostsCount(t, th.App, initialPostCount, 3, "")
 
 	// Test with hashtags
 	data.Message = ptrStr("Message 2 #hashtagmashupcity")
 	data.CreateAt = ptrInt64(*data.CreateAt + 1)
-	if err := a.ImportDirectPost(data, false); err != nil {
+	if err := th.App.ImportDirectPost(data, false); err != nil {
 		t.Fatalf("Expected success.")
 	}
-	AssertAllPostsCount(t, initialPostCount, 4, "")
+	AssertAllPostsCount(t, th.App, initialPostCount, 4, "")
 
-	if result := <-a.Srv.Store.Post().GetPostsCreatedAt(groupChannel.Id, *data.CreateAt); result.Err != nil {
+	if result := <-th.App.Srv.Store.Post().GetPostsCreatedAt(groupChannel.Id, *data.CreateAt); result.Err != nil {
 		t.Fatal(result.Err.Error())
 	} else {
 		posts := result.Data.([]*model.Post)
@@ -2787,12 +2778,12 @@ func TestImportImportDirectPost(t *testing.T) {
 		CreateAt: ptrInt64(model.GetMillis()),
 	}
 
-	if err := a.ImportDirectPost(data, false); err != nil {
+	if err := th.App.ImportDirectPost(data, false); err != nil {
 		t.Fatalf("Expected success: %v", err.Error())
 	}
 
 	// Check the post values.
-	if result := <-a.Srv.Store.Post().GetPostsCreatedAt(groupChannel.Id, *data.CreateAt); result.Err != nil {
+	if result := <-th.App.Srv.Store.Post().GetPostsCreatedAt(groupChannel.Id, *data.CreateAt); result.Err != nil {
 		t.Fatal(result.Err.Error())
 	} else {
 		posts := result.Data.([]*model.Post)
@@ -2800,64 +2791,62 @@ func TestImportImportDirectPost(t *testing.T) {
 			t.Fatal("Unexpected number of posts found.")
 		}
 		post := posts[0]
-		checkPreference(t, th.BasicUser.Id, model.PREFERENCE_CATEGORY_FLAGGED_POST, post.Id, "true")
-		checkPreference(t, th.BasicUser2.Id, model.PREFERENCE_CATEGORY_FLAGGED_POST, post.Id, "true")
+		checkPreference(t, th.App, th.BasicUser.Id, model.PREFERENCE_CATEGORY_FLAGGED_POST, post.Id, "true")
+		checkPreference(t, th.App, th.BasicUser2.Id, model.PREFERENCE_CATEGORY_FLAGGED_POST, post.Id, "true")
 	}
 }
 
 func TestImportImportLine(t *testing.T) {
-	a := Global()
-	_ = a.Setup()
+	th := Setup()
 
 	// Try import line with an invalid type.
 	line := LineImportData{
 		Type: "gibberish",
 	}
 
-	if err := a.ImportLine(line, false); err == nil {
+	if err := th.App.ImportLine(line, false); err == nil {
 		t.Fatalf("Expected an error when importing a line with invalid type.")
 	}
 
 	// Try import line with team type but nil team.
 	line.Type = "team"
-	if err := a.ImportLine(line, false); err == nil {
+	if err := th.App.ImportLine(line, false); err == nil {
 		t.Fatalf("Expected an error when importing a line of type team with a nil team.")
 	}
 
 	// Try import line with channel type but nil channel.
 	line.Type = "channel"
-	if err := a.ImportLine(line, false); err == nil {
+	if err := th.App.ImportLine(line, false); err == nil {
 		t.Fatalf("Expected an error when importing a line with type channel with a nil channel.")
 	}
 
 	// Try import line with user type but nil user.
 	line.Type = "user"
-	if err := a.ImportLine(line, false); err == nil {
+	if err := th.App.ImportLine(line, false); err == nil {
 		t.Fatalf("Expected an error when importing a line with type uesr with a nil user.")
 	}
 
 	// Try import line with post type but nil post.
 	line.Type = "post"
-	if err := a.ImportLine(line, false); err == nil {
+	if err := th.App.ImportLine(line, false); err == nil {
 		t.Fatalf("Expected an error when importing a line with type post with a nil post.")
 	}
 
 	// Try import line with direct_channel type but nil direct_channel.
 	line.Type = "direct_channel"
-	if err := a.ImportLine(line, false); err == nil {
+	if err := th.App.ImportLine(line, false); err == nil {
 		t.Fatalf("Expected an error when importing a line with type direct_channel with a nil direct_channel.")
 	}
 
 	// Try import line with direct_post type but nil direct_post.
 	line.Type = "direct_post"
-	if err := a.ImportLine(line, false); err == nil {
+	if err := th.App.ImportLine(line, false); err == nil {
 		t.Fatalf("Expected an error when importing a line with type direct_post with a nil direct_post.")
 	}
 }
 
 func TestImportBulkImport(t *testing.T) {
-	a := Global()
-	_ = a.Setup()
+	th := Setup()
 
 	teamName := model.NewId()
 	channelName := model.NewId()
@@ -2878,13 +2867,13 @@ func TestImportBulkImport(t *testing.T) {
 {"type": "direct_post", "direct_post": {"channel_members": ["` + username + `", "` + username2 + `"], "user": "` + username + `", "message": "Hello Direct Channel", "create_at": 123456789013}}
 {"type": "direct_post", "direct_post": {"channel_members": ["` + username + `", "` + username2 + `", "` + username3 + `"], "user": "` + username + `", "message": "Hello Group Channel", "create_at": 123456789014}}`
 
-	if err, line := a.BulkImport(strings.NewReader(data1), false, 2); err != nil || line != 0 {
+	if err, line := th.App.BulkImport(strings.NewReader(data1), false, 2); err != nil || line != 0 {
 		t.Fatalf("BulkImport should have succeeded: %v, %v", err.Error(), line)
 	}
 
 	// Run bulk import using a string that contains a line with invalid json.
 	data2 := `{"type": "version", "version": 1`
-	if err, line := a.BulkImport(strings.NewReader(data2), false, 2); err == nil || line != 1 {
+	if err, line := th.App.BulkImport(strings.NewReader(data2), false, 2); err == nil || line != 1 {
 		t.Fatalf("Should have failed due to invalid JSON on line 1.")
 	}
 
@@ -2893,14 +2882,13 @@ func TestImportBulkImport(t *testing.T) {
 {"type": "channel", "channel": {"type": "O", "display_name": "xr6m6udffngark2uekvr3hoeny", "team": "` + teamName + `", "name": "` + channelName + `"}}
 {"type": "user", "user": {"username": "kufjgnkxkrhhfgbrip6qxkfsaa", "email": "kufjgnkxkrhhfgbrip6qxkfsaa@example.com"}}
 {"type": "user", "user": {"username": "bwshaim6qnc2ne7oqkd5b2s2rq", "email": "bwshaim6qnc2ne7oqkd5b2s2rq@example.com", "teams": [{"name": "` + teamName + `", "channels": [{"name": "` + channelName + `"}]}]}}`
-	if err, line := a.BulkImport(strings.NewReader(data3), false, 2); err == nil || line != 1 {
+	if err, line := th.App.BulkImport(strings.NewReader(data3), false, 2); err == nil || line != 1 {
 		t.Fatalf("Should have failed due to missing version line on line 1.")
 	}
 }
 
 func TestImportProcessImportDataFileVersionLine(t *testing.T) {
-	a := Global()
-	_ = a.Setup()
+	Setup()
 
 	data := LineImportData{
 		Type:    "version",

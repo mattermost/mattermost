@@ -45,8 +45,12 @@ type TestHelper struct {
 	SystemAdminUser   *model.User
 }
 
-func SetupEnterprise() *TestHelper {
-	if app.Global().Srv == nil {
+func setupTestHelper(enterprise bool) *TestHelper {
+	th := &TestHelper{
+		App: app.Global(),
+	}
+
+	if th.App.Srv == nil {
 		utils.TranslationsPreInit()
 		utils.LoadConfig("config.json")
 		utils.InitTranslations(utils.Cfg.LocalizationSettings)
@@ -54,63 +58,37 @@ func SetupEnterprise() *TestHelper {
 		*utils.Cfg.RateLimitSettings.Enable = false
 		utils.Cfg.EmailSettings.SendEmailNotifications = true
 		utils.DisableDebugLogForTest()
-		utils.License().Features.SetDefaults()
-		app.Global().NewServer()
-		app.Global().InitStores()
-		InitRouter()
+		if enterprise {
+			utils.License().Features.SetDefaults()
+		}
+		th.App.NewServer()
+		th.App.InitStores()
+		th.App.Srv.Router = NewRouter()
 		wsapi.InitRouter()
-		app.Global().StartServer()
-		utils.InitHTML()
-		InitApi(true)
+		th.App.StartServer()
+		InitApi(th.App.Srv.Router, true)
 		wsapi.InitApi()
 		utils.EnableDebugLogForTest()
-		app.Global().Srv.Store.MarkSystemRanUnitTests()
+		th.App.Srv.Store.MarkSystemRanUnitTests()
 
 		*utils.Cfg.TeamSettings.EnableOpenServer = true
 	}
 
 	if jobs.Srv.Store == nil {
-		jobs.Srv.Store = app.Global().Srv.Store
+		jobs.Srv.Store = th.App.Srv.Store
 	}
 
-	th := &TestHelper{}
-	th.App = app.Global()
 	th.Client = th.CreateClient()
 	th.SystemAdminClient = th.CreateClient()
 	return th
 }
 
+func SetupEnterprise() *TestHelper {
+	return setupTestHelper(true)
+}
+
 func Setup() *TestHelper {
-	if app.Global().Srv == nil {
-		utils.TranslationsPreInit()
-		utils.LoadConfig("config.json")
-		utils.InitTranslations(utils.Cfg.LocalizationSettings)
-		*utils.Cfg.TeamSettings.MaxUsersPerTeam = 50
-		*utils.Cfg.RateLimitSettings.Enable = false
-		utils.Cfg.EmailSettings.SendEmailNotifications = true
-		utils.DisableDebugLogForTest()
-		app.Global().NewServer()
-		app.Global().InitStores()
-		InitRouter()
-		wsapi.InitRouter()
-		app.Global().StartServer()
-		InitApi(true)
-		wsapi.InitApi()
-		utils.EnableDebugLogForTest()
-		app.Global().Srv.Store.MarkSystemRanUnitTests()
-
-		*utils.Cfg.TeamSettings.EnableOpenServer = true
-	}
-
-	if jobs.Srv.Store == nil {
-		jobs.Srv.Store = app.Global().Srv.Store
-	}
-
-	th := &TestHelper{}
-	th.App = app.Global()
-	th.Client = th.CreateClient()
-	th.SystemAdminClient = th.CreateClient()
-	return th
+	return setupTestHelper(false)
 }
 
 func StopServer() {
@@ -389,7 +367,7 @@ func (me *TestHelper) LoginSystemAdminWithClient(client *model.Client4) {
 func (me *TestHelper) UpdateActiveUser(user *model.User, active bool) {
 	utils.DisableDebugLogForTest()
 
-	_, err := app.Global().UpdateActive(user, active)
+	_, err := me.App.UpdateActive(user, active)
 	if err != nil {
 		l4g.Error(err.Error())
 		l4g.Close()

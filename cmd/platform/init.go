@@ -7,32 +7,34 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func initDBCommandContextCobra(cmd *cobra.Command) error {
+func initDBCommandContextCobra(cmd *cobra.Command) (*app.App, error) {
 	config, err := cmd.Flags().GetString("config")
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	if err := initDBCommandContext(config); err != nil {
+	a, err := initDBCommandContext(config)
+	if err != nil {
 		// Returning an error just prints the usage message, so actually panic
 		panic(err)
 	}
 
-	return nil
+	return a, nil
 }
 
-func initDBCommandContext(configFileLocation string) error {
+func initDBCommandContext(configFileLocation string) (*app.App, error) {
 	if err := utils.InitAndLoadConfig(configFileLocation); err != nil {
-		return err
+		return nil, err
 	}
 
 	utils.ConfigureCmdLineLog()
 
-	app.Global().NewServer()
-	app.Global().InitStores()
+	a := app.Global()
+	a.NewServer()
+	a.InitStores()
 	if model.BuildEnterpriseReady == "true" {
-		app.Global().LoadLicense()
+		a.LoadLicense()
 	}
 
-	return nil
+	return a, nil
 }
