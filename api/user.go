@@ -571,10 +571,10 @@ func getProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("Cache-Control", "max-age=300, public") // 5 mins
 		} else {
 			w.Header().Set("Cache-Control", "max-age=86400, public") // 24 hrs
+			w.Header().Set(model.HEADER_ETAG_SERVER, etag)
 		}
 
 		w.Header().Set("Content-Type", "image/png")
-		w.Header().Set(model.HEADER_ETAG_SERVER, etag)
 		w.Write(img)
 	}
 }
