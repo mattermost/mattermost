@@ -26,7 +26,7 @@ func TestPlugin(t *testing.T) {
 		os.RemoveAll(webappDir)
 	}()
 
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := SetupEnterprise().InitBasic().InitSystemAdmin()
 	defer TearDown()
 
 	th.App.InitPlugins(pluginDir, webappDir)
@@ -108,7 +108,7 @@ func TestPlugin(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 
 	_, resp = th.SystemAdminClient.RemovePlugin("bad.id")
-	CheckNotFoundStatus(t, resp)
+	CheckBadRequestStatus(t, resp)
 
 	th.App.PluginEnv = nil
 }

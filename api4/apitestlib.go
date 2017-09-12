@@ -59,6 +59,7 @@ func setupTestHelper(enterprise bool) *TestHelper {
 		utils.Cfg.EmailSettings.SendEmailNotifications = true
 		utils.DisableDebugLogForTest()
 		if enterprise {
+			utils.SetIsLicensed(true)
 			utils.License().Features.SetDefaults()
 		}
 		th.App.NewServer()
