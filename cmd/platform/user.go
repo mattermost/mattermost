@@ -244,12 +244,9 @@ func userCreateCmdF(cmd *cobra.Command, args []string) error {
 		Locale:    locale,
 	}
 
-	ruser, err := a.CreateUser(user)
-	if err != nil {
+	if ruser, err := a.CreateUser(user); err != nil {
 		return errors.New("Unable to create user. Error: " + err.Error())
-	}
-
-	if systemAdmin {
+	} else if systemAdmin {
 		a.UpdateUserRoles(ruser.Id, "system_user system_admin")
 	}
 
