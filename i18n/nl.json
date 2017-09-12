@@ -972,10 +972,6 @@
     "translation": "Bulk emails job heeft gelopen. %v gebruiker(s) hebben notificaties in afwachting."
   },
   {
-    "id": "api.email_batching.check_pending_emails.status.app_error",
-    "translation": "Kon de status of ontvanger voor batch email notificatie niet vinden."
-  },
-  {
     "id": "api.email_batching.render_batched_post.channel.app_error",
     "translation": "Kon kanaal niet vinden voor bericht van e-mail notificatie."
   },
@@ -1400,10 +1396,6 @@
   {
     "id": "api.oauth.authorize_oauth.missing.app_error",
     "translation": "Mist een of meerdere elementen uit: response_type, client_id of redirect_uri"
-  },
-  {
-    "id": "api.oauth.complete_oauth.missing_code.app_error",
-    "translation": "De service provider {{.service}} heeft geen autorisatie code gegeven in de doorrstuur URL.\n\nVoor [Google Apps](https://docs.mattermost.com/deployment/sso-google.html) wees zeker dat Uw beheerder de Google+ API heeft aangezet.\n\nVoor [Office 365](https://docs.mattermost.com/deployment/sso-office.html) wees zeker dat Uw beheerder van Uw Microsoft domein de Mattermost app heeft aangezet.\n\nVor [GitLab](https://docs.mattermost.com/deployment/sso-gitlab.html) wees zeker dat U onderstaande instructies heeft gevolgd.\n\nIf you reviewed the above and are still having trouble with configuration, you may post in our [Troubleshooting forum](https://forum.mattermost.org/c/general/trouble-shoot) where we'll be happy to help with issues during setup."
   },
   {
     "id": "api.oauth.delete.permissions.app_error",
@@ -2234,14 +2226,6 @@
   {
     "id": "api.templates.email_organization",
     "translation": "Verzonden door "
-  },
-  {
-    "id": "api.templates.error.link",
-    "translation": "Ga terug naar Mattermost"
-  },
-  {
-    "id": "api.templates.error.title",
-    "translation": "{{ .SiteName }} heeft jou hulp nodig:"
   },
   {
     "id": "api.templates.find_teams_body.found",

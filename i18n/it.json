@@ -972,10 +972,6 @@
     "translation": "Job di spedizione email avviato. %v utente/i) ha(nno) notifiche in corso."
   },
   {
-    "id": "api.email_batching.check_pending_emails.status.app_error",
-    "translation": "Impossibile determinare lo stato del ricevente per una notifica email programmata"
-  },
-  {
     "id": "api.email_batching.render_batched_post.channel.app_error",
     "translation": "Impossibile determinare il canale della pubblicazione per una notifica email programmata"
   },
@@ -1400,10 +1396,6 @@
   {
     "id": "api.oauth.authorize_oauth.missing.app_error",
     "translation": "Manca una o più info: response_type, client_id, redirect_uri"
-  },
-  {
-    "id": "api.oauth.complete_oauth.missing_code.app_error",
-    "translation": "Il fornitore di servizi {{.service}} non ha fornito un codice di autorizzazione nell'URL di redirezione.\n\nPer [Google Apps](https://docs.mattermost.com/deployment/sso-google.html) assicurarsi che l'amministratore abbia abilitato la API Google+.\n\nPer [Office 365](https://docs.mattermost.com/deployment/sso-office.html) assicurarsi che l'amministratore dell'organizzazione Microsoft abbia abilitato l'app Mattermost.\n\nPer [GitLab](https://docs.mattermost.com/deployment/sso-gitlab.html) assicurarsi di aver seguito le istruzioni di configurazione.\n\nSe i controlli sono stati fatti e ci sono ancora problemi di configurazione, è possibile scrivere al [Troubleshooting forum](https://forum.mattermost.org/c/general/trouble-shoot) dove saremo felici di dare aiuto per problemi di configurazione."
   },
   {
     "id": "api.oauth.delete.permissions.app_error",
@@ -2236,14 +2228,6 @@
     "translation": "Spedito da "
   },
   {
-    "id": "api.templates.error.link",
-    "translation": "Ritorna a Mattermost"
-  },
-  {
-    "id": "api.templates.error.title",
-    "translation": "{{ .SiteName }} ha bisogno del tuo aiuto:"
-  },
-  {
     "id": "api.templates.find_teams_body.found",
     "translation": "La tua richiesta di ricerca di gruppo associati alla tua email ha dato il seguente risultato:"
   },
@@ -2997,7 +2981,7 @@
   },
   {
     "id": "app.channel.move_channel.members_do_not_match.error",
-    "translation": "Cannot move a channel unless all its members are already members of the destination team."
+    "translation": "Impossibile spostare il canale a meno che tutti i membri del canale non siano membri del gruppo di destinazione."
   },
   {
     "id": "app.channel.post_update_channel_purpose_message.post.error",
@@ -3453,7 +3437,7 @@
   },
   {
     "id": "app.plugin.disabled.app_error",
-    "translation": "Plugins have been disabled by the system admin or the server has not been restarted since they were enabled."
+    "translation": "I plugin sono stati disattivati dall'amministratore di sistema oppure il sistema non è stato riavviato dopo la loro attivazione."
   },
   {
     "id": "app.plugin.extract.app_error",

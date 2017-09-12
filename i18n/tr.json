@@ -972,10 +972,6 @@
     "translation": "Toplu e-posta görevi çalıştırıldı. %v kullanıcının bekleyen bildirimleri var."
   },
   {
-    "id": "api.email_batching.check_pending_emails.status.app_error",
-    "translation": "Toplu e-posta bildiriminin alıcı durumu bulunamadı"
-  },
-  {
     "id": "api.email_batching.render_batched_post.channel.app_error",
     "translation": "Toplu e-posta bildiriminin ileti kanalı bulunamadı"
   },
@@ -1400,10 +1396,6 @@
   {
     "id": "api.oauth.authorize_oauth.missing.app_error",
     "translation": "Bir ya da bir kaç yanıt türü, istemci kodu ya da yönlendirme adresi eksik"
-  },
-  {
-    "id": "api.oauth.complete_oauth.missing_code.app_error",
-    "translation": "{{.service}} hizmet sağlayıcısı yönlendirme adresinde bir kimlik doğrulama kodu belirtmedi.\n\n[Google Apps](https://docs.mattermost.com/deployment/sso-google.html) için yöneticinizin Google+ API ayarını etkinleştirdiğinden emin olun.\n\n[Office 365](https://docs.mattermost.com/deployment/sso-office.html) için Microsoft kuruluş yöneticinizin Mattermost uygulamasını etkinleştirdiğinden emin olun.\n\n[GitLab](https://docs.mattermost.com/deployment/sso-gitlab.html) için şu kurulum adımlarını gerçekleştirdiğinizden emin olun.\n\nYukarıdaki işlemleri yaptıktan sonra yapılandırma ile ilgili sorun yaşıyorsanız, [Sorun Çözme Forumuna](https://forum.mattermost.org/c/general/trouble-shoot) yazabilirsiniz. Size yardımcı olmaktan mutlu oluruz."
   },
   {
     "id": "api.oauth.delete.permissions.app_error",
@@ -2236,14 +2228,6 @@
     "translation": "Gönderen "
   },
   {
-    "id": "api.templates.error.link",
-    "translation": "Mattermost sitesine geri dön"
-  },
-  {
-    "id": "api.templates.error.title",
-    "translation": "{{ .SiteName }} yardımınıza gerek duyuyor:"
-  },
-  {
     "id": "api.templates.find_teams_body.found",
     "translation": "E-posta adresinizle ilişkili takımları bulma isteğinizin sonuçları:"
   },
@@ -2997,7 +2981,7 @@
   },
   {
     "id": "app.channel.move_channel.members_do_not_match.error",
-    "translation": "Cannot move a channel unless all its members are already members of the destination team."
+    "translation": "Bir kanalın üyeleri hedef kanalın da üyeleri değil ise bir kanal taşınamaz."
   },
   {
     "id": "app.channel.post_update_channel_purpose_message.post.error",
@@ -3453,7 +3437,7 @@
   },
   {
     "id": "app.plugin.disabled.app_error",
-    "translation": "Plugins have been disabled by the system admin or the server has not been restarted since they were enabled."
+    "translation": "Uygulama ekleri sistem yöneticisi tarafından devre dışı bırakılmış ya da sunucu uygulama ekleri etkinleştirildikten sonra yeniden başlatılmamış."
   },
   {
     "id": "app.plugin.extract.app_error",

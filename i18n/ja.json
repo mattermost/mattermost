@@ -972,10 +972,6 @@
     "translation": "電子メールのバッチジョブが稼働中です。%vユーザーはまだ通知を保留されています。"
   },
   {
-    "id": "api.email_batching.check_pending_emails.status.app_error",
-    "translation": "バッチ処理された電子メール通知の受け取り状態を確認できません"
-  },
-  {
     "id": "api.email_batching.render_batched_post.channel.app_error",
     "translation": "バッチ処理された電子メール通知について、投稿があったチャンネルが見付かりません"
   },
@@ -1400,10 +1396,6 @@
   {
     "id": "api.oauth.authorize_oauth.missing.app_error",
     "translation": "response_type、client_id、redirect_uriのうち１つ以上が不足しています"
-  },
-  {
-    "id": "api.oauth.complete_oauth.missing_code.app_error",
-    "translation": "サービスプロバイダー {{.service}} はリダイレクトURLで認証コードを提供していません。\n\n[Google Apps](https://docs.mattermost.com/deployment/sso-google.html)で、あなたの管理者がGoogle+ APIを有効にしているか確認してください。\n\n[Office 365](https://docs.mattermost.com/deployment/sso-office.html)で、あなたのMicrosoft組織の管理者がMattermostアプリを有効にしている確認してください。\n\n[GitLab](https://docs.mattermost.com/deployment/sso-gitlab.html)で、セットアップ手順に従っているか確認してください。\n\n以上を確認しても設定が上手くいかない場合は、[トラブルシューティングフォーラム](https://forum.mattermost.org/c/general/trouble-shoot)へ投稿してください。私たちはセットアップ中の問題について喜んでお手伝いします。"
   },
   {
     "id": "api.oauth.delete.permissions.app_error",
@@ -2236,14 +2228,6 @@
     "translation": "送信者: "
   },
   {
-    "id": "api.templates.error.link",
-    "translation": "Mattermostに戻る"
-  },
-  {
-    "id": "api.templates.error.title",
-    "translation": "{{ .SiteName }}はあなたの助けを求めています:"
-  },
-  {
     "id": "api.templates.find_teams_body.found",
     "translation": "あなたの電子メールアドレスに紐付くチームへのリクエストは以下の通りです:"
   },
@@ -2997,7 +2981,7 @@
   },
   {
     "id": "app.channel.move_channel.members_do_not_match.error",
-    "translation": "Cannot move a channel unless all its members are already members of the destination team."
+    "translation": "すべてのメンバーが異動先のチームのメンバーになるまでチャンネルを移動することはできません。"
   },
   {
     "id": "app.channel.post_update_channel_purpose_message.post.error",
@@ -3453,7 +3437,7 @@
   },
   {
     "id": "app.plugin.disabled.app_error",
-    "translation": "Plugins have been disabled by the system admin or the server has not been restarted since they were enabled."
+    "translation": "プラグインはシステム管理者によって無効にされているか、有効化した後にサーバーが再起動されていません。"
   },
   {
     "id": "app.plugin.extract.app_error",
