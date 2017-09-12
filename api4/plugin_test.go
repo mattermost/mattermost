@@ -29,13 +29,13 @@ func TestPlugin(t *testing.T) {
 	th := SetupEnterprise().InitBasic().InitSystemAdmin()
 	defer TearDown()
 
-	th.App.InitPlugins(pluginDir, webappDir)
-
 	enablePlugins := *utils.Cfg.PluginSettings.Enable
 	defer func() {
 		*utils.Cfg.PluginSettings.Enable = enablePlugins
 	}()
 	*utils.Cfg.PluginSettings.Enable = true
+
+	th.App.InitPlugins(pluginDir, webappDir)
 
 	path, _ := utils.FindDir("tests")
 	file, err := os.Open(path + "/testplugin.tar.gz")
