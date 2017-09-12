@@ -354,7 +354,7 @@ func (a *App) InitPlugins(pluginPath, webappPath string) {
 		return
 	}
 
-	utils.AddConfigListener(func(_, _ *model.Config) {
+	a.PluginConfigListenerId = utils.AddConfigListener(func(_, _ *model.Config) {
 		for _, err := range a.PluginEnv.Hooks().OnConfigurationChange() {
 			l4g.Error(err.Error())
 		}
@@ -412,4 +412,6 @@ func (a *App) ShutDownPlugins() {
 	for _, err := range a.PluginEnv.Shutdown() {
 		l4g.Error(err.Error())
 	}
+	utils.RemoveConfigListener(a.PluginConfigListenerId)
+	a.PluginConfigListenerId = ""
 }
