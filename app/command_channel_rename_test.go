@@ -8,8 +8,7 @@ import (
 )
 
 func TestRenameProviderDoCommand(t *testing.T) {
-	a := Global()
-	th := a.Setup().InitBasic()
+	th := Setup().InitBasic()
 
 	rp := RenameProvider{}
 	args := &model.CommandArgs{

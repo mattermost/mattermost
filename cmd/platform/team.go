@@ -67,7 +67,8 @@ func init() {
 }
 
 func createTeamCmdF(cmd *cobra.Command, args []string) error {
-	if err := initDBCommandContextCobra(cmd); err != nil {
+	a, err := initDBCommandContextCobra(cmd)
+	if err != nil {
 		return err
 	}
 
@@ -94,7 +95,7 @@ func createTeamCmdF(cmd *cobra.Command, args []string) error {
 		Type:        teamType,
 	}
 
-	if _, err := app.Global().CreateTeam(team); err != nil {
+	if _, err := a.CreateTeam(team); err != nil {
 		return errors.New("Team creation failed: " + err.Error())
 	}
 
@@ -102,7 +103,8 @@ func createTeamCmdF(cmd *cobra.Command, args []string) error {
 }
 
 func removeUsersCmdF(cmd *cobra.Command, args []string) error {
-	if err := initDBCommandContextCobra(cmd); err != nil {
+	a, err := initDBCommandContextCobra(cmd)
+	if err != nil {
 		return err
 	}
 
@@ -117,24 +119,25 @@ func removeUsersCmdF(cmd *cobra.Command, args []string) error {
 
 	users := getUsersFromUserArgs(args[1:])
 	for i, user := range users {
-		removeUserFromTeam(team, user, args[i+1])
+		removeUserFromTeam(a, team, user, args[i+1])
 	}
 
 	return nil
 }
 
-func removeUserFromTeam(team *model.Team, user *model.User, userArg string) {
+func removeUserFromTeam(a *app.App, team *model.Team, user *model.User, userArg string) {
 	if user == nil {
 		CommandPrintErrorln("Can't find user '" + userArg + "'")
 		return
 	}
-	if err := app.Global().LeaveTeam(team, user); err != nil {
+	if err := a.LeaveTeam(team, user); err != nil {
 		CommandPrintErrorln("Unable to remove '" + userArg + "' from " + team.Name + ". Error: " + err.Error())
 	}
 }
 
 func addUsersCmdF(cmd *cobra.Command, args []string) error {
-	if err := initDBCommandContextCobra(cmd); err != nil {
+	a, err := initDBCommandContextCobra(cmd)
+	if err != nil {
 		return err
 	}
 
@@ -149,24 +152,25 @@ func addUsersCmdF(cmd *cobra.Command, args []string) error {
 
 	users := getUsersFromUserArgs(args[1:])
 	for i, user := range users {
-		addUserToTeam(team, user, args[i+1])
+		addUserToTeam(a, team, user, args[i+1])
 	}
 
 	return nil
 }
 
-func addUserToTeam(team *model.Team, user *model.User, userArg string) {
+func addUserToTeam(a *app.App, team *model.Team, user *model.User, userArg string) {
 	if user == nil {
 		CommandPrintErrorln("Can't find user '" + userArg + "'")
 		return
 	}
-	if err := app.Global().JoinUserToTeam(team, user, ""); err != nil {
+	if err := a.JoinUserToTeam(team, user, ""); err != nil {
 		CommandPrintErrorln("Unable to add '" + userArg + "' to " + team.Name)
 	}
 }
 
 func deleteTeamsCmdF(cmd *cobra.Command, args []string) error {
-	if err := initDBCommandContextCobra(cmd); err != nil {
+	a, err := initDBCommandContextCobra(cmd)
+	if err != nil {
 		return err
 	}
 
@@ -196,7 +200,7 @@ func deleteTeamsCmdF(cmd *cobra.Command, args []string) error {
 			CommandPrintErrorln("Unable to find team '" + args[i] + "'")
 			continue
 		}
-		if err := deleteTeam(team); err != nil {
+		if err := deleteTeam(a, team); err != nil {
 			CommandPrintErrorln("Unable to delete team '" + team.Name + "' error: " + err.Error())
 		} else {
 			CommandPrettyPrintln("Deleted team '" + team.Name + "'")
@@ -206,6 +210,6 @@ func deleteTeamsCmdF(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func deleteTeam(team *model.Team) *model.AppError {
-	return app.Global().PermanentDeleteTeam(team)
+func deleteTeam(a *app.App, team *model.Team) *model.AppError {
+	return a.PermanentDeleteTeam(team)
 }

@@ -26,16 +26,20 @@ func TestPlugin(t *testing.T) {
 		os.RemoveAll(webappDir)
 	}()
 
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := SetupEnterprise().InitBasic().InitSystemAdmin()
 	defer TearDown()
-
-	th.App.StartupPlugins(pluginDir, webappDir)
 
 	enablePlugins := *utils.Cfg.PluginSettings.Enable
 	defer func() {
 		*utils.Cfg.PluginSettings.Enable = enablePlugins
 	}()
 	*utils.Cfg.PluginSettings.Enable = true
+
+	th.App.InitPlugins(pluginDir, webappDir)
+	defer func() {
+		th.App.ShutDownPlugins()
+		th.App.PluginEnv = nil
+	}()
 
 	path, _ := utils.FindDir("tests")
 	file, err := os.Open(path + "/testplugin.tar.gz")
@@ -108,7 +112,5 @@ func TestPlugin(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 
 	_, resp = th.SystemAdminClient.RemovePlugin("bad.id")
-	CheckNotFoundStatus(t, resp)
-
-	th.App.PluginEnv = nil
+	CheckBadRequestStatus(t, resp)
 }

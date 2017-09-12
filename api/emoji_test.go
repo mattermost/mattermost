@@ -226,7 +226,7 @@ func TestDeleteEmoji(t *testing.T) {
 	}()
 	*utils.Cfg.ServiceSettings.EnableCustomEmoji = false
 
-	emoji1 := createTestEmoji(t, &model.Emoji{
+	emoji1 := createTestEmoji(t, th.App, &model.Emoji{
 		CreatorId: th.BasicUser.Id,
 		Name:      model.NewId(),
 	}, utils.CreateTestGif(t, 10, 10))
@@ -247,7 +247,7 @@ func TestDeleteEmoji(t *testing.T) {
 		t.Fatal("shouldn't be able to delete an already-deleted emoji")
 	}
 
-	emoji2 := createTestEmoji(t, &model.Emoji{
+	emoji2 := createTestEmoji(t, th.App, &model.Emoji{
 		CreatorId: th.BasicUser2.Id,
 		Name:      model.NewId(),
 	}, utils.CreateTestGif(t, 10, 10))
@@ -263,11 +263,11 @@ func TestDeleteEmoji(t *testing.T) {
 	}
 }
 
-func createTestEmoji(t *testing.T, emoji *model.Emoji, imageData []byte) *model.Emoji {
-	emoji = store.Must(app.Global().Srv.Store.Emoji().Save(emoji)).(*model.Emoji)
+func createTestEmoji(t *testing.T, a *app.App, emoji *model.Emoji, imageData []byte) *model.Emoji {
+	emoji = store.Must(a.Srv.Store.Emoji().Save(emoji)).(*model.Emoji)
 
 	if err := utils.WriteFile(imageData, "emoji/"+emoji.Id+"/image"); err != nil {
-		store.Must(app.Global().Srv.Store.Emoji().Delete(emoji.Id, time.Now().Unix()))
+		store.Must(a.Srv.Store.Emoji().Delete(emoji.Id, time.Now().Unix()))
 		t.Fatalf("failed to write image: %v", err.Error())
 	}
 
