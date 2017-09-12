@@ -36,6 +36,10 @@ func TestPlugin(t *testing.T) {
 	*utils.Cfg.PluginSettings.Enable = true
 
 	th.App.InitPlugins(pluginDir, webappDir)
+	defer func() {
+		th.App.ShutDownPlugins()
+		th.App.PluginEnv = nil
+	}()
 
 	path, _ := utils.FindDir("tests")
 	file, err := os.Open(path + "/testplugin.tar.gz")
@@ -109,6 +113,4 @@ func TestPlugin(t *testing.T) {
 
 	_, resp = th.SystemAdminClient.RemovePlugin("bad.id")
 	CheckBadRequestStatus(t, resp)
-
-	th.App.PluginEnv = nil
 }

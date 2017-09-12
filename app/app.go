@@ -11,8 +11,9 @@ import (
 )
 
 type App struct {
-	Srv       *Server
-	PluginEnv *pluginenv.Environment
+	Srv                    *Server
+	PluginEnv              *pluginenv.Environment
+	PluginConfigListenerId string
 }
 
 var globalApp App
