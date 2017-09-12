@@ -5,7 +5,6 @@ package web
 
 import (
 	"testing"
-	"time"
 
 	"github.com/mattermost/mattermost-server/api"
 	"github.com/mattermost/mattermost-server/api4"
@@ -19,30 +18,32 @@ import (
 var ApiClient *model.Client
 var URL string
 
-func Setup() {
-	if app.Global().Srv == nil {
+func Setup() *app.App {
+	a := app.Global()
+	if a.Srv == nil {
 		utils.TranslationsPreInit()
 		utils.LoadConfig("config.json")
 		utils.InitTranslations(utils.Cfg.LocalizationSettings)
-		app.Global().NewServer()
-		app.Global().InitStores()
-		api.InitRouter()
-		app.Global().StartServer()
-		api4.InitApi(false)
-		api.InitApi()
+		a.NewServer()
+		a.InitStores()
+		a.Srv.Router = api.NewRouter()
+		a.StartServer()
+		api4.InitApi(a.Srv.Router, false)
+		api.InitApi(a.Srv.Router)
 		InitWeb()
 		URL = "http://localhost" + *utils.Cfg.ServiceSettings.ListenAddress
 		ApiClient = model.NewClient(URL)
 
-		app.Global().Srv.Store.MarkSystemRanUnitTests()
+		a.Srv.Store.MarkSystemRanUnitTests()
 
 		*utils.Cfg.TeamSettings.EnableOpenServer = true
 	}
+	return a
 }
 
-func TearDown() {
-	if app.Global().Srv != nil {
-		app.Global().StopServer()
+func TearDown(a *app.App) {
+	if a.Srv != nil {
+		a.StopServer()
 	}
 }
 
@@ -64,20 +65,21 @@ func TestStatic(t *testing.T) {
 */
 
 func TestIncomingWebhook(t *testing.T) {
-	Setup()
+	a := Setup()
+	defer TearDown(a)
 
 	user := &model.User{Email: model.NewId() + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1"}
 	user = ApiClient.Must(ApiClient.CreateUser(user, "")).Data.(*model.User)
-	store.Must(app.Global().Srv.Store.User().VerifyEmail(user.Id))
+	store.Must(a.Srv.Store.User().VerifyEmail(user.Id))
 
 	ApiClient.Login(user.Email, "passwd1")
 
 	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
 	team = ApiClient.Must(ApiClient.CreateTeam(team)).Data.(*model.Team)
 
-	app.Global().JoinUserToTeam(team, user, "")
+	a.JoinUserToTeam(team, user, "")
 
-	app.Global().UpdateUserRoles(user.Id, model.ROLE_SYSTEM_ADMIN.Id)
+	a.UpdateUserRoles(user.Id, model.ROLE_SYSTEM_ADMIN.Id)
 	ApiClient.SetTeamId(team.Id)
 
 	channel1 := &model.Channel{DisplayName: "Test API Name", Name: "zz" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
@@ -111,15 +113,6 @@ func TestIncomingWebhook(t *testing.T) {
 			t.Fatal("should have failed - webhooks turned off")
 		}
 	}
-}
-
-func TestZZWebTearDown(t *testing.T) {
-	// *IMPORTANT*
-	// This should be the last function in any test file
-	// that calls Setup()
-	// Should be in the last file too sorted by name
-	time.Sleep(2 * time.Second)
-	TearDown()
 }
 
 func TestCheckBrowserCompatability(t *testing.T) {

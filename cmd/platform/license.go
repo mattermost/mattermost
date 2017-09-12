@@ -6,7 +6,6 @@ import (
 	"errors"
 	"io/ioutil"
 
-	"github.com/mattermost/mattermost-server/app"
 	"github.com/spf13/cobra"
 )
 
@@ -28,7 +27,8 @@ func init() {
 }
 
 func uploadLicenseCmdF(cmd *cobra.Command, args []string) error {
-	if err := initDBCommandContextCobra(cmd); err != nil {
+	a, err := initDBCommandContextCobra(cmd)
+	if err != nil {
 		return err
 	}
 
@@ -37,12 +37,11 @@ func uploadLicenseCmdF(cmd *cobra.Command, args []string) error {
 	}
 
 	var fileBytes []byte
-	var err error
 	if fileBytes, err = ioutil.ReadFile(args[0]); err != nil {
 		return err
 	}
 
-	if _, err := app.Global().SaveLicense(fileBytes); err != nil {
+	if _, err := a.SaveLicense(fileBytes); err != nil {
 		return err
 	}
 

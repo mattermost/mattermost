@@ -12,8 +12,7 @@ import (
 )
 
 func TestClusterDiscoveryService(t *testing.T) {
-	a := Global()
-	a.Setup()
+	Setup()
 
 	ds := NewClusterDiscoveryService()
 	ds.Type = model.CDS_TYPE_APP
