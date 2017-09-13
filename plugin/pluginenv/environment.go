@@ -66,7 +66,7 @@ func (env *Environment) Plugins() ([]*model.BundleInfo, error) {
 }
 
 // Returns a list of all currently active plugins within the environment.
-func (env *Environment) ActivePlugins() ([]*model.BundleInfo, error) {
+func (env *Environment) ActivePlugins() []*model.BundleInfo {
 	env.mutex.RLock()
 	defer env.mutex.RUnlock()
 
@@ -75,7 +75,7 @@ func (env *Environment) ActivePlugins() ([]*model.BundleInfo, error) {
 		activePlugins = append(activePlugins, p.BundleInfo)
 	}
 
-	return activePlugins, nil
+	return activePlugins
 }
 
 // Returns the ids of the currently active plugins.

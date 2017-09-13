@@ -252,6 +252,12 @@ func (a *App) UnpackAndActivatePlugin(pluginFile io.Reader) (*model.Manifest, *m
 		return nil, model.NewAppError("UnpackAndActivatePlugin", "app.plugin.activate.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
 
+	if manifest.IsClient() {
+		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_PLUGIN_ACTIVATED, "", "", "", nil)
+		message.Add("manifest", manifest.GetSanitizedForClient())
+		Publish(message)
+	}
+
 	return manifest, nil
 }
 
@@ -260,10 +266,7 @@ func (a *App) GetActivePluginManifests() ([]*model.Manifest, *model.AppError) {
 		return nil, model.NewAppError("GetActivePluginManifests", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	plugins, err := a.PluginEnv.ActivePlugins()
-	if err != nil {
-		return nil, model.NewAppError("GetActivePluginManifests", "app.plugin.get_plugins.app_error", nil, err.Error(), http.StatusInternalServerError)
-	}
+	plugins := a.PluginEnv.ActivePlugins()
 
 	manifests := make([]*model.Manifest, len(plugins))
 	for i, plugin := range plugins {
@@ -278,6 +281,15 @@ func (a *App) RemovePlugin(id string) *model.AppError {
 		return model.NewAppError("RemovePlugin", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
+	plugins := a.PluginEnv.ActivePlugins()
+	manifest := &model.Manifest{}
+	for _, p := range plugins {
+		if p.Manifest.Id == id {
+			manifest = p.Manifest
+			break
+		}
+	}
+
 	err := a.PluginEnv.DeactivatePlugin(id)
 	if err != nil {
 		return model.NewAppError("RemovePlugin", "app.plugin.deactivate.app_error", nil, err.Error(), http.StatusBadRequest)
@@ -288,39 +300,13 @@ func (a *App) RemovePlugin(id string) *model.AppError {
 		return model.NewAppError("RemovePlugin", "app.plugin.remove.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
+	if manifest.IsClient() {
+		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_PLUGIN_DEACTIVATED, "", "", "", nil)
+		message.Add("manifest", manifest.GetSanitizedForClient())
+		Publish(message)
+	}
+
 	return nil
-}
-
-// Temporary WIP function/type for experimental webapp plugins
-type ClientConfigPlugin struct {
-	Id         string `json:"id"`
-	BundlePath string `json:"bundle_path"`
-}
-
-func (a *App) GetPluginsForClientConfig() string {
-	if a.PluginEnv == nil || !*utils.Cfg.PluginSettings.Enable {
-		return ""
-	}
-
-	plugins, err := a.PluginEnv.ActivePlugins()
-	if err != nil {
-		return ""
-	}
-
-	pluginsConfig := []ClientConfigPlugin{}
-	for _, plugin := range plugins {
-		if plugin.Manifest.Webapp == nil {
-			continue
-		}
-		pluginsConfig = append(pluginsConfig, ClientConfigPlugin{Id: plugin.Manifest.Id, BundlePath: plugin.Manifest.Webapp.BundlePath})
-	}
-
-	b, err := json.Marshal(pluginsConfig)
-	if err != nil {
-		return ""
-	}
-
-	return string(b)
 }
 
 func (a *App) InitPlugins(pluginPath, webappPath string) {
@@ -338,10 +324,15 @@ func (a *App) InitPlugins(pluginPath, webappPath string) {
 		return
 	}
 
+	err = os.Mkdir(webappPath, 0744)
+	if err != nil && !os.IsExist(err) {
+		l4g.Error("failed to start up plugins: " + err.Error())
+		return
+	}
+
 	a.PluginEnv, err = pluginenv.New(
 		pluginenv.SearchPath(pluginPath),
-		pluginenv.WebappPath(webappPath),
-		pluginenv.APIProvider(func(m *model.Manifest) (plugin.API, error) {
+		pluginenv.WebappPath(webappPath), pluginenv.APIProvider(func(m *model.Manifest) (plugin.API, error) {
 			return &PluginAPI{
 				id:  m.Id,
 				app: a,

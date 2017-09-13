@@ -129,3 +129,51 @@ func TestManifestJson(t *testing.T) {
 	assert.Equal(t, newManifestList, manifestList)
 	assert.Equal(t, ManifestListToJson(newManifestList), json)
 }
+
+func TestManifestIsClient(t *testing.T) {
+	manifest := &Manifest{
+		Id: "theid",
+		Backend: &ManifestBackend{
+			Executable: "theexecutable",
+		},
+		Webapp: &ManifestWebapp{
+			BundlePath: "thebundlepath",
+		},
+	}
+
+	assert.True(t, manifest.IsClient())
+
+	manifest.Webapp = nil
+	assert.False(t, manifest.IsClient())
+}
+
+func TestManifestGetSanitizedForClient(t *testing.T) {
+	manifest := &Manifest{
+		Id:          "theid",
+		Name:        "thename",
+		Description: "thedescription",
+		Version:     "0.0.1",
+		Backend: &ManifestBackend{
+			Executable: "theexecutable",
+		},
+		Webapp: &ManifestWebapp{
+			BundlePath: "thebundlepath",
+		},
+	}
+
+	sanitized := manifest.GetSanitizedForClient()
+
+	assert.NotEmpty(t, sanitized.Id)
+	assert.NotEmpty(t, sanitized.Version)
+	assert.NotEmpty(t, sanitized.Webapp)
+	assert.Empty(t, sanitized.Name)
+	assert.Empty(t, sanitized.Description)
+	assert.Empty(t, sanitized.Backend)
+
+	assert.NotEmpty(t, manifest.Id)
+	assert.NotEmpty(t, manifest.Version)
+	assert.NotEmpty(t, manifest.Webapp)
+	assert.NotEmpty(t, manifest.Name)
+	assert.NotEmpty(t, manifest.Description)
+	assert.NotEmpty(t, manifest.Backend)
+}

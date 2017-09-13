@@ -25,6 +25,8 @@ func InitPlugin() {
 	BaseRoutes.Plugins.Handle("", ApiSessionRequired(getPlugins)).Methods("GET")
 	BaseRoutes.Plugin.Handle("", ApiSessionRequired(removePlugin)).Methods("DELETE")
 
+	BaseRoutes.Plugins.Handle("/webapp", ApiHandler(getWebappPlugins)).Methods("GET")
+
 }
 
 func uploadPlugin(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -117,4 +119,26 @@ func removePlugin(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	ReturnStatusOK(w)
+}
+
+func getWebappPlugins(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !*utils.Cfg.PluginSettings.Enable {
+		c.Err = model.NewAppError("getWebappPlugins", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
+		return
+	}
+
+	manifests, err := c.App.GetActivePluginManifests()
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	clientManifests := []*model.Manifest{}
+	for _, m := range manifests {
+		if m.IsClient() {
+			clientManifests = append(clientManifests, m.GetSanitizedForClient())
+		}
+	}
+
+	w.Write([]byte(model.ManifestListToJson(clientManifests)))
 }
