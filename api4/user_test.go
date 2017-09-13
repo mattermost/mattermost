@@ -866,8 +866,8 @@ func TestGetProfileImage(t *testing.T) {
 	}
 
 	_, resp = Client.GetProfileImage(user.Id, resp.Etag)
-	if resp.StatusCode != http.StatusNotModified {
-		t.Fatal("Should have hit etag")
+	if resp.StatusCode == http.StatusNotModified {
+		t.Fatal("Shouldn't have hit etag")
 	}
 
 	_, resp = Client.GetProfileImage("junk", "")
