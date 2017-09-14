@@ -18,6 +18,7 @@ import (
 
 	l4g "github.com/alecthomas/log4go"
 	"github.com/fsnotify/fsnotify"
+	s3 "github.com/minio/minio-go"
 	"github.com/spf13/viper"
 
 	"net/http"
@@ -696,4 +697,28 @@ func IsLeader() bool {
 	} else {
 		return true
 	}
+}
+
+func GetAmazonS3Region(cfg *model.Config) (string, *model.AppError) {
+	if cfg.FileSettings.AmazonS3Bucket == "" {
+		return model.FILE_SETTINGS_DEFAULT_AMAZON_S3_REGION, nil
+	}
+
+	endpoint := *cfg.FileSettings.AmazonS3Endpoint
+	bucket := cfg.FileSettings.AmazonS3Bucket
+	accessKey := cfg.FileSettings.AmazonS3AccessKeyId
+	secretKey := cfg.FileSettings.AmazonS3SecretAccessKey
+	secure := *cfg.FileSettings.AmazonS3SSL
+
+	s3Clnt, err := s3.New(endpoint, accessKey, secretKey, secure)
+	if err != nil {
+		return "", model.NewAppError("GetAmazonS3Region", "utils.config.bad_connection_to_s3_or_minio.app_error", nil, err.Error(), http.StatusBadRequest)
+	}
+
+	region, err := s3Clnt.GetBucketLocation(bucket)
+	if err != nil {
+		region = model.FILE_SETTINGS_DEFAULT_AMAZON_S3_REGION
+	}
+
+	return region, nil
 }

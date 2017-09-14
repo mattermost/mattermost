@@ -88,6 +88,9 @@ const (
 
 	SQL_SETTINGS_DEFAULT_DATA_SOURCE = "mmuser:mostest@tcp(dockerhost:3306)/mattermost_test?charset=utf8mb4,utf8&readTimeout=30s&writeTimeout=30s"
 
+	FILE_SETTINGS_DEFAULT_AMAZON_S3_ENDPOINT = "s3.amazonaws.com"
+	FILE_SETTINGS_DEFAULT_AMAZON_S3_REGION   = "us-east-1"
+
 	EMAIL_SETTINGS_DEFAULT_FEEDBACK_ORGANIZATION = ""
 
 	SUPPORT_SETTINGS_DEFAULT_TERMS_OF_SERVICE_LINK      = "https://about.mattermost.com/default-terms/"
@@ -269,8 +272,8 @@ type FileSettings struct {
 	AmazonS3AccessKeyId     string
 	AmazonS3SecretAccessKey string
 	AmazonS3Bucket          string
-	AmazonS3Region          string
-	AmazonS3Endpoint        string
+	AmazonS3Region          *string
+	AmazonS3Endpoint        *string
 	AmazonS3SSL             *bool
 	AmazonS3SignV2          *bool
 	AmazonS3SSE             *bool
@@ -598,9 +601,14 @@ func (o *Config) SetDefaults() {
 		*o.FileSettings.DriverName = IMAGE_DRIVER_LOCAL
 	}
 
-	if o.FileSettings.AmazonS3Endpoint == "" {
-		// Defaults to "s3.amazonaws.com"
-		o.FileSettings.AmazonS3Endpoint = "s3.amazonaws.com"
+	if o.FileSettings.AmazonS3Region == nil {
+		o.FileSettings.AmazonS3Region = new(string)
+		*o.FileSettings.AmazonS3Region = FILE_SETTINGS_DEFAULT_AMAZON_S3_REGION
+	}
+
+	if o.FileSettings.AmazonS3Endpoint == nil {
+		o.FileSettings.AmazonS3Endpoint = new(string)
+		*o.FileSettings.AmazonS3Endpoint = FILE_SETTINGS_DEFAULT_AMAZON_S3_ENDPOINT
 	}
 
 	if o.FileSettings.AmazonS3SSL == nil {

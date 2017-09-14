@@ -48,12 +48,12 @@ func s3New(endpoint, accessKey, secretKey string, secure bool, signV2 bool, regi
 
 func TestFileConnection() *model.AppError {
 	if *Cfg.FileSettings.DriverName == model.IMAGE_DRIVER_S3 {
-		endpoint := Cfg.FileSettings.AmazonS3Endpoint
+		endpoint := *Cfg.FileSettings.AmazonS3Endpoint
 		accessKey := Cfg.FileSettings.AmazonS3AccessKeyId
 		secretKey := Cfg.FileSettings.AmazonS3SecretAccessKey
 		secure := *Cfg.FileSettings.AmazonS3SSL
 		signV2 := *Cfg.FileSettings.AmazonS3SignV2
-		region := Cfg.FileSettings.AmazonS3Region
+		region := *Cfg.FileSettings.AmazonS3Region
 		bucket := Cfg.FileSettings.AmazonS3Bucket
 
 		s3Clnt, err := s3New(endpoint, accessKey, secretKey, secure, signV2, region)
@@ -91,12 +91,12 @@ func TestFileConnection() *model.AppError {
 
 func ReadFile(path string) ([]byte, *model.AppError) {
 	if *Cfg.FileSettings.DriverName == model.IMAGE_DRIVER_S3 {
-		endpoint := Cfg.FileSettings.AmazonS3Endpoint
+		endpoint := *Cfg.FileSettings.AmazonS3Endpoint
 		accessKey := Cfg.FileSettings.AmazonS3AccessKeyId
 		secretKey := Cfg.FileSettings.AmazonS3SecretAccessKey
 		secure := *Cfg.FileSettings.AmazonS3SSL
 		signV2 := *Cfg.FileSettings.AmazonS3SignV2
-		region := Cfg.FileSettings.AmazonS3Region
+		region := *Cfg.FileSettings.AmazonS3Region
 		s3Clnt, err := s3New(endpoint, accessKey, secretKey, secure, signV2, region)
 		if err != nil {
 			return nil, model.NewLocAppError("ReadFile", "api.file.read_file.s3.app_error", nil, err.Error())
@@ -125,12 +125,12 @@ func ReadFile(path string) ([]byte, *model.AppError) {
 
 func MoveFile(oldPath, newPath string) *model.AppError {
 	if *Cfg.FileSettings.DriverName == model.IMAGE_DRIVER_S3 {
-		endpoint := Cfg.FileSettings.AmazonS3Endpoint
+		endpoint := *Cfg.FileSettings.AmazonS3Endpoint
 		accessKey := Cfg.FileSettings.AmazonS3AccessKeyId
 		secretKey := Cfg.FileSettings.AmazonS3SecretAccessKey
 		secure := *Cfg.FileSettings.AmazonS3SSL
 		signV2 := *Cfg.FileSettings.AmazonS3SignV2
-		region := Cfg.FileSettings.AmazonS3Region
+		region := *Cfg.FileSettings.AmazonS3Region
 		encrypt := false
 		if *Cfg.FileSettings.AmazonS3SSE && IsLicensed() && *License().Features.Compliance {
 			encrypt = true
@@ -169,12 +169,12 @@ func MoveFile(oldPath, newPath string) *model.AppError {
 
 func WriteFile(f []byte, path string) *model.AppError {
 	if *Cfg.FileSettings.DriverName == model.IMAGE_DRIVER_S3 {
-		endpoint := Cfg.FileSettings.AmazonS3Endpoint
+		endpoint := *Cfg.FileSettings.AmazonS3Endpoint
 		accessKey := Cfg.FileSettings.AmazonS3AccessKeyId
 		secretKey := Cfg.FileSettings.AmazonS3SecretAccessKey
 		secure := *Cfg.FileSettings.AmazonS3SSL
 		signV2 := *Cfg.FileSettings.AmazonS3SignV2
-		region := Cfg.FileSettings.AmazonS3Region
+		region := *Cfg.FileSettings.AmazonS3Region
 		encrypt := false
 		if *Cfg.FileSettings.AmazonS3SSE && IsLicensed() && *License().Features.Compliance {
 			encrypt = true
@@ -222,12 +222,12 @@ func writeFileLocally(f []byte, path string) *model.AppError {
 
 func RemoveFile(path string) *model.AppError {
 	if *Cfg.FileSettings.DriverName == model.IMAGE_DRIVER_S3 {
-		endpoint := Cfg.FileSettings.AmazonS3Endpoint
+		endpoint := *Cfg.FileSettings.AmazonS3Endpoint
 		accessKey := Cfg.FileSettings.AmazonS3AccessKeyId
 		secretKey := Cfg.FileSettings.AmazonS3SecretAccessKey
 		secure := *Cfg.FileSettings.AmazonS3SSL
 		signV2 := *Cfg.FileSettings.AmazonS3SignV2
-		region := Cfg.FileSettings.AmazonS3Region
+		region := *Cfg.FileSettings.AmazonS3Region
 
 		s3Clnt, err := s3New(endpoint, accessKey, secretKey, secure, signV2, region)
 		if err != nil {
@@ -271,12 +271,12 @@ func getPathsFromObjectInfos(in <-chan s3.ObjectInfo) <-chan string {
 
 func RemoveDirectory(path string) *model.AppError {
 	if *Cfg.FileSettings.DriverName == model.IMAGE_DRIVER_S3 {
-		endpoint := Cfg.FileSettings.AmazonS3Endpoint
+		endpoint := *Cfg.FileSettings.AmazonS3Endpoint
 		accessKey := Cfg.FileSettings.AmazonS3AccessKeyId
 		secretKey := Cfg.FileSettings.AmazonS3SecretAccessKey
 		secure := *Cfg.FileSettings.AmazonS3SSL
 		signV2 := *Cfg.FileSettings.AmazonS3SignV2
-		region := Cfg.FileSettings.AmazonS3Region
+		region := *Cfg.FileSettings.AmazonS3Region
 
 		s3Clnt, err := s3New(endpoint, accessKey, secretKey, secure, signV2, region)
 		if err != nil {
