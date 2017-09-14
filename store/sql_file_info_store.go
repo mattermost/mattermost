@@ -13,6 +13,7 @@ import (
 
 type SqlFileInfoStore struct {
 	SqlStore
+	metrics einterfaces.MetricsInterface
 }
 
 const (
@@ -26,8 +27,11 @@ func ClearFileCaches() {
 	fileInfoCache.Purge()
 }
 
-func NewSqlFileInfoStore(sqlStore SqlStore) FileInfoStore {
-	s := &SqlFileInfoStore{sqlStore}
+func NewSqlFileInfoStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface) FileInfoStore {
+	s := &SqlFileInfoStore{
+		SqlStore: sqlStore,
+		metrics:  metrics,
+	}
 
 	for _, db := range sqlStore.GetAllConns() {
 		table := db.AddTableWithName(model.FileInfo{}, "FileInfo").SetKeys(false, "Id")
@@ -149,12 +153,10 @@ func (fs SqlFileInfoStore) GetForPost(postId string, readFromMaster bool, allowF
 	go func() {
 		result := StoreResult{}
 
-		metrics := einterfaces.GetMetricsInterface()
-
 		if allowFromCache {
 			if cacheItem, ok := fileInfoCache.Get(postId); ok {
-				if metrics != nil {
-					metrics.IncrementMemCacheHitCounter("File Info Cache")
+				if fs.metrics != nil {
+					fs.metrics.IncrementMemCacheHitCounter("File Info Cache")
 				}
 
 				result.Data = cacheItem.([]*model.FileInfo)
@@ -162,13 +164,13 @@ func (fs SqlFileInfoStore) GetForPost(postId string, readFromMaster bool, allowF
 				close(storeChannel)
 				return
 			} else {
-				if metrics != nil {
-					metrics.IncrementMemCacheMissCounter("File Info Cache")
+				if fs.metrics != nil {
+					fs.metrics.IncrementMemCacheMissCounter("File Info Cache")
 				}
 			}
 		} else {
-			if metrics != nil {
-				metrics.IncrementMemCacheMissCounter("File Info Cache")
+			if fs.metrics != nil {
+				fs.metrics.IncrementMemCacheMissCounter("File Info Cache")
 			}
 		}
 

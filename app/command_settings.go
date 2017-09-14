@@ -33,7 +33,7 @@ func (settings *SettingsProvider) GetCommand(T goi18n.TranslateFunc) *model.Comm
 	}
 }
 
-func (settings *SettingsProvider) DoCommand(args *model.CommandArgs, message string) *model.CommandResponse {
+func (settings *SettingsProvider) DoCommand(a *App, args *model.CommandArgs, message string) *model.CommandResponse {
 	// This command is handled client-side and shouldn't hit the server.
 	return &model.CommandResponse{
 		Text:         args.T("api.command_settings.unsupported.app_error"),

@@ -7,6 +7,7 @@ import (
 	"context"
 
 	l4g "github.com/alecthomas/log4go"
+	"github.com/mattermost/mattermost-server/einterfaces"
 	"github.com/mattermost/mattermost-server/model"
 )
 
@@ -26,8 +27,8 @@ type LayeredStore struct {
 func NewLayeredStore() Store {
 	store := &LayeredStore{
 		TmpContext:      context.TODO(),
-		DatabaseLayer:   NewSqlSupplier(),
-		LocalCacheLayer: NewLocalCacheSupplier(),
+		DatabaseLayer:   NewSqlSupplier(einterfaces.GetMetricsInterface()),
+		LocalCacheLayer: NewLocalCacheSupplier(einterfaces.GetMetricsInterface(), einterfaces.GetClusterInterface()),
 	}
 
 	store.ReactionStore = &LayeredReactionStore{store}

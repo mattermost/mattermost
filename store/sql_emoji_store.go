@@ -20,10 +20,14 @@ var emojiCache *utils.Cache = utils.NewLru(EMOJI_CACHE_SIZE)
 
 type SqlEmojiStore struct {
 	SqlStore
+	metrics einterfaces.MetricsInterface
 }
 
-func NewSqlEmojiStore(sqlStore SqlStore) EmojiStore {
-	s := &SqlEmojiStore{sqlStore}
+func NewSqlEmojiStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface) EmojiStore {
+	s := &SqlEmojiStore{
+		SqlStore: sqlStore,
+		metrics:  metrics,
+	}
 
 	for _, db := range sqlStore.GetAllConns() {
 		table := db.AddTableWithName(model.Emoji{}, "Emoji").SetKeys(false, "Id")
@@ -74,25 +78,24 @@ func (es SqlEmojiStore) Get(id string, allowFromCache bool) StoreChannel {
 
 	go func() {
 		result := StoreResult{}
-		metrics := einterfaces.GetMetricsInterface()
 
 		if allowFromCache {
 			if cacheItem, ok := emojiCache.Get(id); ok {
-				if metrics != nil {
-					metrics.IncrementMemCacheHitCounter("Emoji")
+				if es.metrics != nil {
+					es.metrics.IncrementMemCacheHitCounter("Emoji")
 				}
 				result.Data = cacheItem.(*model.Emoji)
 				storeChannel <- result
 				close(storeChannel)
 				return
 			} else {
-				if metrics != nil {
-					metrics.IncrementMemCacheMissCounter("Emoji")
+				if es.metrics != nil {
+					es.metrics.IncrementMemCacheMissCounter("Emoji")
 				}
 			}
 		} else {
-			if metrics != nil {
-				metrics.IncrementMemCacheMissCounter("Emoji")
+			if es.metrics != nil {
+				es.metrics.IncrementMemCacheMissCounter("Emoji")
 			}
 		}
 

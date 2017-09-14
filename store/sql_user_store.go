@@ -34,6 +34,7 @@ const (
 
 type SqlUserStore struct {
 	SqlStore
+	metrics einterfaces.MetricsInterface
 }
 
 var profilesInChannelCache *utils.Cache = utils.NewLru(PROFILES_IN_CHANNEL_CACHE_SIZE)
@@ -48,8 +49,11 @@ func (us SqlUserStore) InvalidatProfileCacheForUser(userId string) {
 	profileByIdsCache.Remove(userId)
 }
 
-func NewSqlUserStore(sqlStore SqlStore) UserStore {
-	us := &SqlUserStore{sqlStore}
+func NewSqlUserStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface) UserStore {
+	us := &SqlUserStore{
+		SqlStore: sqlStore,
+		metrics:  metrics,
+	}
 
 	for _, db := range sqlStore.GetAllConns() {
 		table := db.AddTableWithName(model.User{}, "Users").SetKeys(false, "Id")
@@ -572,25 +576,24 @@ func (us SqlUserStore) GetAllProfilesInChannel(channelId string, allowFromCache 
 
 	go func() {
 		result := StoreResult{}
-		metrics := einterfaces.GetMetricsInterface()
 
 		if allowFromCache {
 			if cacheItem, ok := profilesInChannelCache.Get(channelId); ok {
-				if metrics != nil {
-					metrics.IncrementMemCacheHitCounter("Profiles in Channel")
+				if us.metrics != nil {
+					us.metrics.IncrementMemCacheHitCounter("Profiles in Channel")
 				}
 				result.Data = cacheItem.(map[string]*model.User)
 				storeChannel <- result
 				close(storeChannel)
 				return
 			} else {
-				if metrics != nil {
-					metrics.IncrementMemCacheMissCounter("Profiles in Channel")
+				if us.metrics != nil {
+					us.metrics.IncrementMemCacheMissCounter("Profiles in Channel")
 				}
 			}
 		} else {
-			if metrics != nil {
-				metrics.IncrementMemCacheMissCounter("Profiles in Channel")
+			if us.metrics != nil {
+				us.metrics.IncrementMemCacheMissCounter("Profiles in Channel")
 			}
 		}
 
@@ -838,7 +841,6 @@ func (us SqlUserStore) GetProfileByIds(userIds []string, allowFromCache bool) St
 
 	go func() {
 		result := StoreResult{}
-		metrics := einterfaces.GetMetricsInterface()
 
 		users := []*model.User{}
 		props := make(map[string]interface{})
@@ -855,14 +857,14 @@ func (us SqlUserStore) GetProfileByIds(userIds []string, allowFromCache bool) St
 					remainingUserIds = append(remainingUserIds, userId)
 				}
 			}
-			if metrics != nil {
-				metrics.AddMemCacheHitCounter("Profile By Ids", float64(len(users)))
-				metrics.AddMemCacheMissCounter("Profile By Ids", float64(len(remainingUserIds)))
+			if us.metrics != nil {
+				us.metrics.AddMemCacheHitCounter("Profile By Ids", float64(len(users)))
+				us.metrics.AddMemCacheMissCounter("Profile By Ids", float64(len(remainingUserIds)))
 			}
 		} else {
 			remainingUserIds = userIds
-			if metrics != nil {
-				metrics.AddMemCacheMissCounter("Profile By Ids", float64(len(remainingUserIds)))
+			if us.metrics != nil {
+				us.metrics.AddMemCacheMissCounter("Profile By Ids", float64(len(remainingUserIds)))
 			}
 		}
 

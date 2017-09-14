@@ -40,7 +40,7 @@ func (me *EchoProvider) GetCommand(T goi18n.TranslateFunc) *model.Command {
 	}
 }
 
-func (me *EchoProvider) DoCommand(args *model.CommandArgs, message string) *model.CommandResponse {
+func (me *EchoProvider) DoCommand(a *App, args *model.CommandArgs, message string) *model.CommandResponse {
 	if len(message) == 0 {
 		return &model.CommandResponse{Text: args.T("api.command_echo.message.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 	}
@@ -88,7 +88,7 @@ func (me *EchoProvider) DoCommand(args *model.CommandArgs, message string) *mode
 
 		time.Sleep(time.Duration(delay) * time.Second)
 
-		if _, err := Global().CreatePostMissingChannel(post, true); err != nil {
+		if _, err := a.CreatePostMissingChannel(post, true); err != nil {
 			l4g.Error(args.T("api.command_echo.create.app_error"), err)
 		}
 	}()

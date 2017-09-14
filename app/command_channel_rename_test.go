@@ -25,7 +25,7 @@ func TestRenameProviderDoCommand(t *testing.T) {
 		"1234567890123456789012":  "",
 		"12345678901234567890123": "api.command_channel_rename.too_long.app_error",
 	} {
-		actual := rp.DoCommand(args, msg).Text
+		actual := rp.DoCommand(th.App, args, msg).Text
 		assert.Equal(t, expected, actual)
 	}
 }
