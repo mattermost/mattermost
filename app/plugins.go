@@ -252,9 +252,9 @@ func (a *App) UnpackAndActivatePlugin(pluginFile io.Reader) (*model.Manifest, *m
 		return nil, model.NewAppError("UnpackAndActivatePlugin", "app.plugin.activate.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
 
-	if manifest.IsClient() {
+	if manifest.HasClient() {
 		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_PLUGIN_ACTIVATED, "", "", "", nil)
-		message.Add("manifest", manifest.GetSanitizedForClient())
+		message.Add("manifest", manifest.ClientManifest())
 		Publish(message)
 	}
 
@@ -300,9 +300,9 @@ func (a *App) RemovePlugin(id string) *model.AppError {
 		return model.NewAppError("RemovePlugin", "app.plugin.remove.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	if manifest.IsClient() {
+	if manifest.HasClient() {
 		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_PLUGIN_DEACTIVATED, "", "", "", nil)
-		message.Add("manifest", manifest.GetSanitizedForClient())
+		message.Add("manifest", manifest.ClientManifest())
 		Publish(message)
 	}
 

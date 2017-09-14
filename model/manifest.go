@@ -67,11 +67,11 @@ func ManifestListFromJson(data io.Reader) []*Manifest {
 	}
 }
 
-func (m *Manifest) IsClient() bool {
+func (m *Manifest) HasClient() bool {
 	return m.Webapp != nil
 }
 
-func (m *Manifest) GetSanitizedForClient() *Manifest {
+func (m *Manifest) ClientManifest() *Manifest {
 	cm := new(Manifest)
 	*cm = *m
 	cm.Name = ""

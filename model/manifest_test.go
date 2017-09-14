@@ -130,7 +130,7 @@ func TestManifestJson(t *testing.T) {
 	assert.Equal(t, ManifestListToJson(newManifestList), json)
 }
 
-func TestManifestIsClient(t *testing.T) {
+func TestManifestHasClient(t *testing.T) {
 	manifest := &Manifest{
 		Id: "theid",
 		Backend: &ManifestBackend{
@@ -141,13 +141,13 @@ func TestManifestIsClient(t *testing.T) {
 		},
 	}
 
-	assert.True(t, manifest.IsClient())
+	assert.True(t, manifest.HasClient())
 
 	manifest.Webapp = nil
-	assert.False(t, manifest.IsClient())
+	assert.False(t, manifest.HasClient())
 }
 
-func TestManifestGetSanitizedForClient(t *testing.T) {
+func TestManifestClientManifest(t *testing.T) {
 	manifest := &Manifest{
 		Id:          "theid",
 		Name:        "thename",
@@ -161,7 +161,7 @@ func TestManifestGetSanitizedForClient(t *testing.T) {
 		},
 	}
 
-	sanitized := manifest.GetSanitizedForClient()
+	sanitized := manifest.ClientManifest()
 
 	assert.NotEmpty(t, sanitized.Id)
 	assert.NotEmpty(t, sanitized.Version)

@@ -135,8 +135,8 @@ func getWebappPlugins(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	clientManifests := []*model.Manifest{}
 	for _, m := range manifests {
-		if m.IsClient() {
-			clientManifests = append(clientManifests, m.GetSanitizedForClient())
+		if m.HasClient() {
+			clientManifests = append(clientManifests, m.ClientManifest())
 		}
 	}
 
