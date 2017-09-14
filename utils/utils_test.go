@@ -6,8 +6,6 @@ package utils
 import (
 	"net/http"
 	"testing"
-
-	"github.com/stretchr/testify/assert"
 )
 
 func TestStringArrayIntersection(t *testing.T) {
@@ -58,7 +56,9 @@ func TestGetIpAddress(t *testing.T) {
 		RemoteAddr: "10.2.0.1:12345",
 	}
 
-	assert.Equal(t, "10.0.0.1", GetIpAddress(&httpRequest1))
+	if "10.0.0.1" != GetIpAddress(&httpRequest1) {
+		t.Fail()
+	}
 
 	// Test with multiple IPs in the X-Forwarded-For
 	httpRequest2 := http.Request{
@@ -69,7 +69,9 @@ func TestGetIpAddress(t *testing.T) {
 		RemoteAddr: "10.2.0.1:12345",
 	}
 
-	assert.Equal(t, "10.0.0.1", GetIpAddress(&httpRequest2))
+	if "10.0.0.1" != GetIpAddress(&httpRequest2) {
+		t.Fail()
+	}
 
 	// Test with an empty X-Forwarded-For
 	httpRequest3 := http.Request{
@@ -80,7 +82,9 @@ func TestGetIpAddress(t *testing.T) {
 		RemoteAddr: "10.2.0.1:12345",
 	}
 
-	assert.Equal(t, "10.1.0.1", GetIpAddress(&httpRequest3))
+	if "10.1.0.1" != GetIpAddress(&httpRequest3) {
+		t.Fail()
+	}
 
 	// Test without an X-Fowarded-For
 	httpRequest4 := http.Request{
@@ -90,12 +94,16 @@ func TestGetIpAddress(t *testing.T) {
 		RemoteAddr: "10.2.0.1:12345",
 	}
 
-	assert.Equal(t, "10.1.0.1", GetIpAddress(&httpRequest4))
+	if "10.1.0.1" != GetIpAddress(&httpRequest4) {
+		t.Fail()
+	}
 
 	// Test without any headers
 	httpRequest5 := http.Request{
 		RemoteAddr: "10.2.0.1:12345",
 	}
 
-	assert.Equal(t, "10.2.0.1", GetIpAddress(&httpRequest5))
+	if "10.2.0.1" != GetIpAddress(&httpRequest5) {
+		t.Fail()
+	}
 }
