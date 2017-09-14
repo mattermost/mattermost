@@ -332,7 +332,8 @@ func (a *App) InitPlugins(pluginPath, webappPath string) {
 
 	a.PluginEnv, err = pluginenv.New(
 		pluginenv.SearchPath(pluginPath),
-		pluginenv.WebappPath(webappPath), pluginenv.APIProvider(func(m *model.Manifest) (plugin.API, error) {
+		pluginenv.WebappPath(webappPath),
+		pluginenv.APIProvider(func(m *model.Manifest) (plugin.API, error) {
 			return &PluginAPI{
 				id:  m.Id,
 				app: a,
