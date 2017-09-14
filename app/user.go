@@ -917,19 +917,19 @@ func (a *App) UpdateActive(user *model.User, active bool) (*model.User, *model.A
 			a.SetStatusOffline(ruser.Id, false)
 		}
 
-		teamsForUser, err := GetTeamsForUser(user.Id)
+		teamsForUser, err := a.GetTeamsForUser(user.Id)
 		if err != nil {
 			return nil, err
 		}
 
 		for _, team := range teamsForUser {
-			channelsForUser, err := GetChannelsForUser(team.Id, user.Id)
+			channelsForUser, err := a.GetChannelsForUser(team.Id, user.Id)
 			if err != nil {
 				return nil, err
 			}
 
 			for _, channel := range *channelsForUser {
-				InvalidateCacheForChannelMembers(channel.Id)
+				a.InvalidateCacheForChannelMembers(channel.Id)
 			}
 		}
 
