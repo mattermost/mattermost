@@ -33,7 +33,7 @@ func (search *SearchProvider) GetCommand(T goi18n.TranslateFunc) *model.Command 
 	}
 }
 
-func (search *SearchProvider) DoCommand(args *model.CommandArgs, message string) *model.CommandResponse {
+func (search *SearchProvider) DoCommand(a *App, args *model.CommandArgs, message string) *model.CommandResponse {
 	// This command is handled client-side and shouldn't hit the server.
 	return &model.CommandResponse{
 		Text:         args.T("api.command_search.unsupported.app_error"),

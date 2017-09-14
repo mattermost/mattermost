@@ -36,7 +36,7 @@ func (me *msgProvider) GetCommand(T goi18n.TranslateFunc) *model.Command {
 	}
 }
 
-func (me *msgProvider) DoCommand(args *model.CommandArgs, message string) *model.CommandResponse {
+func (me *msgProvider) DoCommand(a *App, args *model.CommandArgs, message string) *model.CommandResponse {
 
 	splitMessage := strings.SplitN(message, " ", 2)
 
@@ -51,7 +51,7 @@ func (me *msgProvider) DoCommand(args *model.CommandArgs, message string) *model
 	targetUsername = strings.TrimPrefix(targetUsername, "@")
 
 	var userProfile *model.User
-	if result := <-Global().Srv.Store.User().GetByUsername(targetUsername); result.Err != nil {
+	if result := <-a.Srv.Store.User().GetByUsername(targetUsername); result.Err != nil {
 		l4g.Error(result.Err.Error())
 		return &model.CommandResponse{Text: args.T("api.command_msg.missing.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 	} else {
@@ -66,9 +66,9 @@ func (me *msgProvider) DoCommand(args *model.CommandArgs, message string) *model
 	channelName := model.GetDMNameFromIds(args.UserId, userProfile.Id)
 
 	targetChannelId := ""
-	if channel := <-Global().Srv.Store.Channel().GetByName(args.TeamId, channelName, true); channel.Err != nil {
+	if channel := <-a.Srv.Store.Channel().GetByName(args.TeamId, channelName, true); channel.Err != nil {
 		if channel.Err.Id == "store.sql_channel.get_by_name.missing.app_error" {
-			if directChannel, err := Global().CreateDirectChannel(args.UserId, userProfile.Id); err != nil {
+			if directChannel, err := a.CreateDirectChannel(args.UserId, userProfile.Id); err != nil {
 				l4g.Error(err.Error())
 				return &model.CommandResponse{Text: args.T("api.command_msg.dm_fail.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 			} else {
@@ -89,7 +89,7 @@ func (me *msgProvider) DoCommand(args *model.CommandArgs, message string) *model
 		post.Message = parsedMessage
 		post.ChannelId = targetChannelId
 		post.UserId = args.UserId
-		if _, err := Global().CreatePostMissingChannel(post, true); err != nil {
+		if _, err := a.CreatePostMissingChannel(post, true); err != nil {
 			return &model.CommandResponse{Text: args.T("api.command_msg.fail.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 		}
 	}
@@ -101,7 +101,7 @@ func (me *msgProvider) DoCommand(args *model.CommandArgs, message string) *model
 		teamId = args.Session.TeamMembers[0].TeamId
 	}
 
-	team, err := Global().GetTeam(teamId)
+	team, err := a.GetTeam(teamId)
 	if err != nil {
 		return &model.CommandResponse{Text: args.T("api.command_msg.fail.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 	}

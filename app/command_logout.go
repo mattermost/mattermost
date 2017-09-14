@@ -33,13 +33,13 @@ func (me *LogoutProvider) GetCommand(T goi18n.TranslateFunc) *model.Command {
 	}
 }
 
-func (me *LogoutProvider) DoCommand(args *model.CommandArgs, message string) *model.CommandResponse {
+func (me *LogoutProvider) DoCommand(a *App, args *model.CommandArgs, message string) *model.CommandResponse {
 	FAIL := &model.CommandResponse{ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL, Text: args.T("api.command_logout.fail_message")}
 	SUCCESS := &model.CommandResponse{GotoLocation: "/login"}
 
 	// We can't actually remove the user's cookie from here so we just dump their session and let the browser figure it out
 	if args.Session.Id != "" {
-		if err := Global().RevokeSessionById(args.Session.Id); err != nil {
+		if err := a.RevokeSessionById(args.Session.Id); err != nil {
 			return FAIL
 		}
 		return SUCCESS

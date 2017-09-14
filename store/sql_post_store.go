@@ -18,6 +18,7 @@ import (
 
 type SqlPostStore struct {
 	SqlStore
+	metrics einterfaces.MetricsInterface
 }
 
 const (
@@ -36,8 +37,11 @@ func ClearPostCaches() {
 	lastPostsCache.Purge()
 }
 
-func NewSqlPostStore(sqlStore SqlStore) PostStore {
-	s := &SqlPostStore{sqlStore}
+func NewSqlPostStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface) PostStore {
+	s := &SqlPostStore{
+		SqlStore: sqlStore,
+		metrics:  metrics,
+	}
 
 	for _, db := range sqlStore.GetAllConns() {
 		table := db.AddTableWithName(model.Post{}, "Posts").SetKeys(false, "Id")
@@ -398,25 +402,24 @@ func (s SqlPostStore) GetEtag(channelId string, allowFromCache bool) StoreChanne
 
 	go func() {
 		result := StoreResult{}
-		metrics := einterfaces.GetMetricsInterface()
 
 		if allowFromCache {
 			if cacheItem, ok := lastPostTimeCache.Get(channelId); ok {
-				if metrics != nil {
-					metrics.IncrementMemCacheHitCounter("Last Post Time")
+				if s.metrics != nil {
+					s.metrics.IncrementMemCacheHitCounter("Last Post Time")
 				}
 				result.Data = fmt.Sprintf("%v.%v", model.CurrentVersion, cacheItem.(int64))
 				storeChannel <- result
 				close(storeChannel)
 				return
 			} else {
-				if metrics != nil {
-					metrics.IncrementMemCacheMissCounter("Last Post Time")
+				if s.metrics != nil {
+					s.metrics.IncrementMemCacheMissCounter("Last Post Time")
 				}
 			}
 		} else {
-			if metrics != nil {
-				metrics.IncrementMemCacheMissCounter("Last Post Time")
+			if s.metrics != nil {
+				s.metrics.IncrementMemCacheMissCounter("Last Post Time")
 			}
 		}
 
@@ -570,7 +573,6 @@ func (s SqlPostStore) GetPosts(channelId string, offset int, limit int, allowFro
 
 	go func() {
 		result := StoreResult{}
-		metrics := einterfaces.GetMetricsInterface()
 
 		if limit > 1000 {
 			result.Err = model.NewLocAppError("SqlPostStore.GetLinearPosts", "store.sql_post.get_posts.app_error", nil, "channelId="+channelId)
@@ -581,8 +583,8 @@ func (s SqlPostStore) GetPosts(channelId string, offset int, limit int, allowFro
 
 		if allowFromCache && offset == 0 && limit == 60 {
 			if cacheItem, ok := lastPostsCache.Get(channelId); ok {
-				if metrics != nil {
-					metrics.IncrementMemCacheHitCounter("Last Posts Cache")
+				if s.metrics != nil {
+					s.metrics.IncrementMemCacheHitCounter("Last Posts Cache")
 				}
 
 				result.Data = cacheItem.(*model.PostList)
@@ -590,13 +592,13 @@ func (s SqlPostStore) GetPosts(channelId string, offset int, limit int, allowFro
 				close(storeChannel)
 				return
 			} else {
-				if metrics != nil {
-					metrics.IncrementMemCacheMissCounter("Last Posts Cache")
+				if s.metrics != nil {
+					s.metrics.IncrementMemCacheMissCounter("Last Posts Cache")
 				}
 			}
 		} else {
-			if metrics != nil {
-				metrics.IncrementMemCacheMissCounter("Last Posts Cache")
+			if s.metrics != nil {
+				s.metrics.IncrementMemCacheMissCounter("Last Posts Cache")
 			}
 		}
 
@@ -643,14 +645,13 @@ func (s SqlPostStore) GetPostsSince(channelId string, time int64, allowFromCache
 
 	go func() {
 		result := StoreResult{}
-		metrics := einterfaces.GetMetricsInterface()
 
 		if allowFromCache {
 			// If the last post in the channel's time is less than or equal to the time we are getting posts since,
 			// we can safely return no posts.
 			if cacheItem, ok := lastPostTimeCache.Get(channelId); ok && cacheItem.(int64) <= time {
-				if metrics != nil {
-					metrics.IncrementMemCacheHitCounter("Last Post Time")
+				if s.metrics != nil {
+					s.metrics.IncrementMemCacheHitCounter("Last Post Time")
 				}
 				list := model.NewPostList()
 				result.Data = list
@@ -658,13 +659,13 @@ func (s SqlPostStore) GetPostsSince(channelId string, time int64, allowFromCache
 				close(storeChannel)
 				return
 			} else {
-				if metrics != nil {
-					metrics.IncrementMemCacheMissCounter("Last Post Time")
+				if s.metrics != nil {
+					s.metrics.IncrementMemCacheMissCounter("Last Post Time")
 				}
 			}
 		} else {
-			if metrics != nil {
-				metrics.IncrementMemCacheMissCounter("Last Post Time")
+			if s.metrics != nil {
+				s.metrics.IncrementMemCacheMissCounter("Last Post Time")
 			}
 		}
 

@@ -36,6 +36,7 @@ const (
 
 type SqlChannelStore struct {
 	SqlStore
+	metrics einterfaces.MetricsInterface
 }
 
 var channelMemberCountsCache = utils.NewLru(CHANNEL_MEMBERS_COUNTS_CACHE_SIZE)
@@ -52,8 +53,11 @@ func ClearChannelCaches() {
 	channelByNameCache.Purge()
 }
 
-func NewSqlChannelStore(sqlStore SqlStore) ChannelStore {
-	s := &SqlChannelStore{sqlStore}
+func NewSqlChannelStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface) ChannelStore {
+	s := &SqlChannelStore{
+		SqlStore: sqlStore,
+		metrics:  metrics,
+	}
 
 	for _, db := range sqlStore.GetAllConns() {
 		table := db.AddTableWithName(model.Channel{}, "Channels").SetKeys(false, "Id")
@@ -391,7 +395,6 @@ func (s SqlChannelStore) get(id string, master bool, allowFromCache bool) StoreC
 
 	go func() {
 		result := StoreResult{}
-		metrics := einterfaces.GetMetricsInterface()
 
 		var db *gorp.DbMap
 		if master {
@@ -402,21 +405,21 @@ func (s SqlChannelStore) get(id string, master bool, allowFromCache bool) StoreC
 
 		if allowFromCache {
 			if cacheItem, ok := channelCache.Get(id); ok {
-				if metrics != nil {
-					metrics.IncrementMemCacheHitCounter("Channel")
+				if s.metrics != nil {
+					s.metrics.IncrementMemCacheHitCounter("Channel")
 				}
 				result.Data = (cacheItem.(*model.Channel)).DeepCopy()
 				storeChannel <- result
 				close(storeChannel)
 				return
 			} else {
-				if metrics != nil {
-					metrics.IncrementMemCacheMissCounter("Channel")
+				if s.metrics != nil {
+					s.metrics.IncrementMemCacheMissCounter("Channel")
 				}
 			}
 		} else {
-			if metrics != nil {
-				metrics.IncrementMemCacheMissCounter("Channel")
+			if s.metrics != nil {
+				s.metrics.IncrementMemCacheMissCounter("Channel")
 			}
 		}
 
@@ -758,18 +761,17 @@ func (s SqlChannelStore) getByName(teamId string, name string, includeDeleted bo
 		channel := model.Channel{}
 
 		if allowFromCache {
-			metrics := einterfaces.GetMetricsInterface()
 			if cacheItem, ok := channelByNameCache.Get(teamId + name); ok {
-				if metrics != nil {
-					metrics.IncrementMemCacheHitCounter("Channel By Name")
+				if s.metrics != nil {
+					s.metrics.IncrementMemCacheHitCounter("Channel By Name")
 				}
 				result.Data = cacheItem.(*model.Channel)
 				storeChannel <- result
 				close(storeChannel)
 				return
 			} else {
-				if metrics != nil {
-					metrics.IncrementMemCacheMissCounter("Channel By Name")
+				if s.metrics != nil {
+					s.metrics.IncrementMemCacheMissCounter("Channel By Name")
 				}
 			}
 		}
@@ -978,10 +980,9 @@ func (us SqlChannelStore) InvalidateAllChannelMembersForUser(userId string) {
 }
 
 func (us SqlChannelStore) IsUserInChannelUseCache(userId string, channelId string) bool {
-	metrics := einterfaces.GetMetricsInterface()
 	if cacheItem, ok := allChannelMembersForUserCache.Get(userId); ok {
-		if metrics != nil {
-			metrics.IncrementMemCacheHitCounter("All Channel Members for User")
+		if us.metrics != nil {
+			us.metrics.IncrementMemCacheHitCounter("All Channel Members for User")
 		}
 		ids := cacheItem.(map[string]string)
 		if _, ok := ids[channelId]; ok {
@@ -990,8 +991,8 @@ func (us SqlChannelStore) IsUserInChannelUseCache(userId string, channelId strin
 			return false
 		}
 	} else {
-		if metrics != nil {
-			metrics.IncrementMemCacheMissCounter("All Channel Members for User")
+		if us.metrics != nil {
+			us.metrics.IncrementMemCacheMissCounter("All Channel Members for User")
 		}
 	}
 
@@ -1048,25 +1049,24 @@ func (s SqlChannelStore) GetAllChannelMembersForUser(userId string, allowFromCac
 
 	go func() {
 		result := StoreResult{}
-		metrics := einterfaces.GetMetricsInterface()
 
 		if allowFromCache {
 			if cacheItem, ok := allChannelMembersForUserCache.Get(userId); ok {
-				if metrics != nil {
-					metrics.IncrementMemCacheHitCounter("All Channel Members for User")
+				if s.metrics != nil {
+					s.metrics.IncrementMemCacheHitCounter("All Channel Members for User")
 				}
 				result.Data = cacheItem.(map[string]string)
 				storeChannel <- result
 				close(storeChannel)
 				return
 			} else {
-				if metrics != nil {
-					metrics.IncrementMemCacheMissCounter("All Channel Members for User")
+				if s.metrics != nil {
+					s.metrics.IncrementMemCacheMissCounter("All Channel Members for User")
 				}
 			}
 		} else {
-			if metrics != nil {
-				metrics.IncrementMemCacheMissCounter("All Channel Members for User")
+			if s.metrics != nil {
+				s.metrics.IncrementMemCacheMissCounter("All Channel Members for User")
 			}
 		}
 
@@ -1110,25 +1110,24 @@ func (s SqlChannelStore) GetAllChannelMembersNotifyPropsForChannel(channelId str
 
 	go func() {
 		result := StoreResult{}
-		metrics := einterfaces.GetMetricsInterface()
 
 		if allowFromCache {
 			if cacheItem, ok := allChannelMembersNotifyPropsForChannelCache.Get(channelId); ok {
-				if metrics != nil {
-					metrics.IncrementMemCacheHitCounter("All Channel Members Notify Props for Channel")
+				if s.metrics != nil {
+					s.metrics.IncrementMemCacheHitCounter("All Channel Members Notify Props for Channel")
 				}
 				result.Data = cacheItem.(map[string]model.StringMap)
 				storeChannel <- result
 				close(storeChannel)
 				return
 			} else {
-				if metrics != nil {
-					metrics.IncrementMemCacheMissCounter("All Channel Members Notify Props for Channel")
+				if s.metrics != nil {
+					s.metrics.IncrementMemCacheMissCounter("All Channel Members Notify Props for Channel")
 				}
 			}
 		} else {
-			if metrics != nil {
-				metrics.IncrementMemCacheMissCounter("All Channel Members Notify Props for Channel")
+			if s.metrics != nil {
+				s.metrics.IncrementMemCacheMissCounter("All Channel Members Notify Props for Channel")
 			}
 		}
 
@@ -1164,16 +1163,14 @@ func (us SqlChannelStore) InvalidateMemberCount(channelId string) {
 }
 
 func (s SqlChannelStore) GetMemberCountFromCache(channelId string) int64 {
-	metrics := einterfaces.GetMetricsInterface()
-
 	if cacheItem, ok := channelMemberCountsCache.Get(channelId); ok {
-		if metrics != nil {
-			metrics.IncrementMemCacheHitCounter("Channel Member Counts")
+		if s.metrics != nil {
+			s.metrics.IncrementMemCacheHitCounter("Channel Member Counts")
 		}
 		return cacheItem.(int64)
 	} else {
-		if metrics != nil {
-			metrics.IncrementMemCacheMissCounter("Channel Member Counts")
+		if s.metrics != nil {
+			s.metrics.IncrementMemCacheMissCounter("Channel Member Counts")
 		}
 	}
 
@@ -1186,28 +1183,27 @@ func (s SqlChannelStore) GetMemberCountFromCache(channelId string) int64 {
 
 func (s SqlChannelStore) GetMemberCount(channelId string, allowFromCache bool) StoreChannel {
 	storeChannel := make(StoreChannel, 1)
-	metrics := einterfaces.GetMetricsInterface()
 
 	go func() {
 		result := StoreResult{}
 
 		if allowFromCache {
 			if cacheItem, ok := channelMemberCountsCache.Get(channelId); ok {
-				if metrics != nil {
-					metrics.IncrementMemCacheHitCounter("Channel Member Counts")
+				if s.metrics != nil {
+					s.metrics.IncrementMemCacheHitCounter("Channel Member Counts")
 				}
 				result.Data = cacheItem.(int64)
 				storeChannel <- result
 				close(storeChannel)
 				return
 			} else {
-				if metrics != nil {
-					metrics.IncrementMemCacheMissCounter("Channel Member Counts")
+				if s.metrics != nil {
+					s.metrics.IncrementMemCacheMissCounter("Channel Member Counts")
 				}
 			}
 		} else {
-			if metrics != nil {
-				metrics.IncrementMemCacheMissCounter("Channel Member Counts")
+			if s.metrics != nil {
+				s.metrics.IncrementMemCacheMissCounter("Channel Member Counts")
 			}
 		}
 

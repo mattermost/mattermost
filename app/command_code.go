@@ -35,7 +35,7 @@ func (me *CodeProvider) GetCommand(T goi18n.TranslateFunc) *model.Command {
 	}
 }
 
-func (me *CodeProvider) DoCommand(args *model.CommandArgs, message string) *model.CommandResponse {
+func (me *CodeProvider) DoCommand(a *App, args *model.CommandArgs, message string) *model.CommandResponse {
 	if len(message) == 0 {
 		return &model.CommandResponse{Text: args.T("api.command_code.message.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 	}

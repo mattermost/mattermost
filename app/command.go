@@ -19,7 +19,7 @@ import (
 type CommandProvider interface {
 	GetTrigger() string
 	GetCommand(T goi18n.TranslateFunc) *model.Command
-	DoCommand(args *model.CommandArgs, message string) *model.CommandResponse
+	DoCommand(a *App, args *model.CommandArgs, message string) *model.CommandResponse
 }
 
 var commandProviders = make(map[string]CommandProvider)
@@ -140,7 +140,7 @@ func (a *App) ExecuteCommand(args *model.CommandArgs) (*model.CommandResponse, *
 	provider := GetCommandProvider(trigger)
 
 	if provider != nil {
-		response := provider.DoCommand(args, message)
+		response := provider.DoCommand(a, args, message)
 		return a.HandleCommandResponse(provider.GetCommand(args.T), args, response, true)
 	} else {
 		if !*utils.Cfg.ServiceSettings.EnableCommands {
