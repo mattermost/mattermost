@@ -138,6 +138,10 @@ const (
 	ELASTICSEARCH_SETTINGS_DEFAULT_POST_INDEX_SHARDS               = 1
 	ELASTICSEARCH_SETTINGS_DEFAULT_AGGREGATE_POSTS_AFTER_DAYS      = 365
 	ELASTICSEARCH_SETTINGS_DEFAULT_POSTS_AGGREGATOR_JOB_START_TIME = "03:00"
+
+	DATA_RETENTION_SETTINGS_DEFAULT_MESSAGE_RETENTION_DAYS  = 365
+	DATA_RETENTION_SETTINGS_DEFAULT_FILE_RETENTION_DAYS     = 365
+	DATA_RETENTION_SETTINGS_DEFAULT_DELETION_JOB_START_TIME = "02:00"
 )
 
 type ServiceSettings struct {
@@ -480,7 +484,11 @@ type ElasticsearchSettings struct {
 }
 
 type DataRetentionSettings struct {
-	Enable *bool
+	EnableMessageDeletion *bool
+	EnableFileDeletion    *bool
+	MessageRetentionDays  *int
+	FileRetentionDays     *int
+	DeletionJobStartTime  *string
 }
 
 type JobSettings struct {
@@ -1555,9 +1563,29 @@ func (o *Config) SetDefaults() {
 		*o.ElasticsearchSettings.PostsAggregatorJobStartTime = ELASTICSEARCH_SETTINGS_DEFAULT_POSTS_AGGREGATOR_JOB_START_TIME
 	}
 
-	if o.DataRetentionSettings.Enable == nil {
-		o.DataRetentionSettings.Enable = new(bool)
-		*o.DataRetentionSettings.Enable = false
+	if o.DataRetentionSettings.EnableMessageDeletion == nil {
+		o.DataRetentionSettings.EnableMessageDeletion = new(bool)
+		*o.DataRetentionSettings.EnableMessageDeletion = false
+	}
+
+	if o.DataRetentionSettings.EnableFileDeletion == nil {
+		o.DataRetentionSettings.EnableFileDeletion = new(bool)
+		*o.DataRetentionSettings.EnableMessageDeletion = false
+	}
+
+	if o.DataRetentionSettings.MessageRetentionDays == nil {
+		o.DataRetentionSettings.MessageRetentionDays = new(int)
+		*o.DataRetentionSettings.MessageRetentionDays = DATA_RETENTION_SETTINGS_DEFAULT_MESSAGE_RETENTION_DAYS
+	}
+
+	if o.DataRetentionSettings.FileRetentionDays == nil {
+		o.DataRetentionSettings.FileRetentionDays = new(int)
+		*o.DataRetentionSettings.FileRetentionDays = DATA_RETENTION_SETTINGS_DEFAULT_FILE_RETENTION_DAYS
+	}
+
+	if o.DataRetentionSettings.DeletionJobStartTime == nil {
+		o.DataRetentionSettings.DeletionJobStartTime = new(string)
+		*o.DataRetentionSettings.DeletionJobStartTime = DATA_RETENTION_SETTINGS_DEFAULT_DELETION_JOB_START_TIME
 	}
 
 	if o.JobSettings.RunJobs == nil {
@@ -1814,6 +1842,18 @@ func (o *Config) IsValid() *AppError {
 
 	if _, err := time.Parse("03:04", *o.ElasticsearchSettings.PostsAggregatorJobStartTime); err != nil {
 		return NewAppError("Config.IsValid", "model.config.is_valid.elastic_search.posts_aggregator_job_start_time.app_error", nil, err.Error(), http.StatusBadRequest)
+	}
+
+	if *o.DataRetentionSettings.MessageRetentionDays <= 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.data_retention.message_retention_days_too_low.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if *o.DataRetentionSettings.FileRetentionDays <= 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.data_retention.file_retention_days_too_low.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if _, err := time.Parse("03:04", *o.DataRetentionSettings.DeletionJobStartTime); err != nil {
+		return NewAppError("Config.IsValid", "model.config.is_valid.data_retention.deletion_job_start_time.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
 
 	return nil
