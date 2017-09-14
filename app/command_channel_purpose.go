@@ -33,17 +33,17 @@ func (me *PurposeProvider) GetCommand(T goi18n.TranslateFunc) *model.Command {
 	}
 }
 
-func (me *PurposeProvider) DoCommand(args *model.CommandArgs, message string) *model.CommandResponse {
-	channel, err := Global().GetChannel(args.ChannelId)
+func (me *PurposeProvider) DoCommand(a *App, args *model.CommandArgs, message string) *model.CommandResponse {
+	channel, err := a.GetChannel(args.ChannelId)
 	if err != nil {
 		return &model.CommandResponse{Text: args.T("api.command_channel_purpose.channel.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 	}
 
-	if channel.Type == model.CHANNEL_OPEN && !Global().SessionHasPermissionToChannel(args.Session, args.ChannelId, model.PERMISSION_MANAGE_PUBLIC_CHANNEL_PROPERTIES) {
+	if channel.Type == model.CHANNEL_OPEN && !a.SessionHasPermissionToChannel(args.Session, args.ChannelId, model.PERMISSION_MANAGE_PUBLIC_CHANNEL_PROPERTIES) {
 		return &model.CommandResponse{Text: args.T("api.command_channel_purpose.permission.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 	}
 
-	if channel.Type == model.CHANNEL_PRIVATE && !Global().SessionHasPermissionToChannel(args.Session, args.ChannelId, model.PERMISSION_MANAGE_PRIVATE_CHANNEL_PROPERTIES) {
+	if channel.Type == model.CHANNEL_PRIVATE && !a.SessionHasPermissionToChannel(args.Session, args.ChannelId, model.PERMISSION_MANAGE_PRIVATE_CHANNEL_PROPERTIES) {
 		return &model.CommandResponse{Text: args.T("api.command_channel_purpose.permission.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 	}
 
@@ -60,7 +60,7 @@ func (me *PurposeProvider) DoCommand(args *model.CommandArgs, message string) *m
 	}
 	*patch.Purpose = message
 
-	_, err = Global().PatchChannel(channel, patch, args.UserId)
+	_, err = a.PatchChannel(channel, patch, args.UserId)
 	if err != nil {
 		return &model.CommandResponse{Text: args.T("api.command_channel_purpose.update_channel.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 	}

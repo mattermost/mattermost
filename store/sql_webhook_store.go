@@ -15,6 +15,7 @@ import (
 
 type SqlWebhookStore struct {
 	SqlStore
+	metrics einterfaces.MetricsInterface
 }
 
 const (
@@ -28,8 +29,11 @@ func ClearWebhookCaches() {
 	webhookCache.Purge()
 }
 
-func NewSqlWebhookStore(sqlStore SqlStore) WebhookStore {
-	s := &SqlWebhookStore{sqlStore}
+func NewSqlWebhookStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface) WebhookStore {
+	s := &SqlWebhookStore{
+		SqlStore: sqlStore,
+		metrics:  metrics,
+	}
 
 	for _, db := range sqlStore.GetAllConns() {
 		table := db.AddTableWithName(model.IncomingWebhook{}, "IncomingWebhooks").SetKeys(false, "Id")
@@ -137,18 +141,17 @@ func (s SqlWebhookStore) GetIncoming(id string, allowFromCache bool) StoreChanne
 		result := StoreResult{}
 
 		if allowFromCache {
-			metrics := einterfaces.GetMetricsInterface()
 			if cacheItem, ok := webhookCache.Get(id); ok {
-				if metrics != nil {
-					metrics.IncrementMemCacheHitCounter("Webhook")
+				if s.metrics != nil {
+					s.metrics.IncrementMemCacheHitCounter("Webhook")
 				}
 				result.Data = cacheItem.(*model.IncomingWebhook)
 				storeChannel <- result
 				close(storeChannel)
 				return
 			} else {
-				if metrics != nil {
-					metrics.IncrementMemCacheMissCounter("Webhook")
+				if s.metrics != nil {
+					s.metrics.IncrementMemCacheMissCounter("Webhook")
 				}
 			}
 		}

@@ -21,11 +21,15 @@ const (
 type LocalCacheSupplier struct {
 	next          LayeredStoreSupplier
 	reactionCache *utils.Cache
+	metrics       einterfaces.MetricsInterface
+	cluster       einterfaces.ClusterInterface
 }
 
-func NewLocalCacheSupplier() *LocalCacheSupplier {
+func NewLocalCacheSupplier(metrics einterfaces.MetricsInterface, cluster einterfaces.ClusterInterface) *LocalCacheSupplier {
 	supplier := &LocalCacheSupplier{
 		reactionCache: utils.NewLruWithParams(REACTION_CACHE_SIZE, "Reaction", REACTION_CACHE_SEC, model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_REACTIONS),
+		metrics:       metrics,
+		cluster:       cluster,
 	}
 
 	registerClusterHandlers(supplier)
@@ -47,58 +51,56 @@ func (s *LocalCacheSupplier) Next() LayeredStoreSupplier {
 	return s.next
 }
 
-func doStandardReadCache(ctx context.Context, cache utils.ObjectCache, key string, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
-	metrics := einterfaces.GetMetricsInterface()
-
+func (s *LocalCacheSupplier) doStandardReadCache(ctx context.Context, cache utils.ObjectCache, key string, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
 	if hintsContains(hints, LSH_NO_CACHE) {
-		if metrics != nil {
-			metrics.IncrementMemCacheMissCounter(cache.Name())
+		if s.metrics != nil {
+			s.metrics.IncrementMemCacheMissCounter(cache.Name())
 		}
 		return nil
 	}
 
 	if cacheItem, ok := cache.Get(key); ok {
-		if metrics != nil {
-			metrics.IncrementMemCacheHitCounter(cache.Name())
+		if s.metrics != nil {
+			s.metrics.IncrementMemCacheHitCounter(cache.Name())
 		}
 		result := NewSupplierResult()
 		result.Data = cacheItem
 		return result
 	}
 
-	if metrics != nil {
-		metrics.IncrementMemCacheMissCounter(cache.Name())
+	if s.metrics != nil {
+		s.metrics.IncrementMemCacheMissCounter(cache.Name())
 	}
 
 	return nil
 }
 
-func doStandardAddToCache(ctx context.Context, cache utils.ObjectCache, key string, result *LayeredStoreSupplierResult, hints ...LayeredStoreHint) {
+func (s *LocalCacheSupplier) doStandardAddToCache(ctx context.Context, cache utils.ObjectCache, key string, result *LayeredStoreSupplierResult, hints ...LayeredStoreHint) {
 	if result.Err == nil && result.Data != nil {
 		cache.AddWithDefaultExpires(key, result.Data)
 	}
 }
 
-func doInvalidateCacheCluster(cache utils.ObjectCache, key string) {
+func (s *LocalCacheSupplier) doInvalidateCacheCluster(cache utils.ObjectCache, key string) {
 	cache.Remove(key)
-	if einterfaces.GetClusterInterface() != nil {
+	if s.cluster != nil {
 		msg := &model.ClusterMessage{
 			Event:    cache.GetInvalidateClusterEvent(),
 			SendType: model.CLUSTER_SEND_BEST_EFFORT,
 			Data:     key,
 		}
-		einterfaces.GetClusterInterface().SendClusterMessage(msg)
+		s.cluster.SendClusterMessage(msg)
 	}
 }
 
-func doClearCacheCluster(cache utils.ObjectCache) {
+func (s *LocalCacheSupplier) doClearCacheCluster(cache utils.ObjectCache) {
 	cache.Purge()
-	if einterfaces.GetClusterInterface() != nil {
+	if s.cluster != nil {
 		msg := &model.ClusterMessage{
 			Event:    cache.GetInvalidateClusterEvent(),
 			SendType: model.CLUSTER_SEND_BEST_EFFORT,
 			Data:     CLEAR_CACHE_MESSAGE_DATA,
 		}
-		einterfaces.GetClusterInterface().SendClusterMessage(msg)
+		s.cluster.SendClusterMessage(msg)
 	}
 }
