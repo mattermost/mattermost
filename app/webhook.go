@@ -219,6 +219,7 @@ func (a *App) UpdateIncomingWebhook(oldHook, updatedHook *model.IncomingWebhook)
 	if result := <-a.Srv.Store.Webhook().UpdateIncoming(updatedHook); result.Err != nil {
 		return nil, result.Err
 	} else {
+		a.InvalidateCacheForWebhook(oldHook.Id)
 		return result.Data.(*model.IncomingWebhook), nil
 	}
 }
