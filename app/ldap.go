@@ -13,15 +13,11 @@ import (
 )
 
 func SyncLdap() {
-	go func() {
-		if utils.IsLicensed() && *utils.License().Features.LDAP && *utils.Cfg.LdapSettings.Enable {
-			if ldapI := einterfaces.GetLdapInterface(); ldapI != nil {
-				ldapI.SyncNow()
-			} else {
-				l4g.Error("%v", model.NewAppError("SyncLdap", "ent.ldap.disabled.app_error", nil, "", http.StatusNotImplemented).Error())
-			}
-		}
-	}()
+	if ldapI := einterfaces.GetLdapInterface(); ldapI != nil {
+		ldapI.StartSynchronizeJob(false)
+	} else {
+		l4g.Error("%v", model.NewAppError("SyncLdap", "ent.ldap.disabled.app_error", nil, "", http.StatusNotImplemented).Error())
+	}
 }
 
 func TestLdap() *model.AppError {

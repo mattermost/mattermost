@@ -4,6 +4,7 @@ package main
 
 import (
 	"github.com/mattermost/mattermost-server/einterfaces"
+	"github.com/mattermost/mattermost-server/model"
 	"github.com/spf13/cobra"
 )
 
@@ -32,10 +33,11 @@ func ldapSyncCmdF(cmd *cobra.Command, args []string) error {
 	}
 
 	if ldapI := einterfaces.GetLdapInterface(); ldapI != nil {
-		if err := ldapI.Syncronize(); err != nil {
-			CommandPrintErrorln("ERROR: AD/LDAP Synchronization Failed")
+		job, err := ldapI.StartSynchronizeJob(true)
+		if err != nil || job.Status == model.JOB_STATUS_ERROR {
+			CommandPrintErrorln("ERROR: AD/LDAP synchronization please check the server logs")
 		} else {
-			CommandPrettyPrintln("SUCCESS: AD/LDAP Synchronization Complete")
+			CommandPrettyPrintln("SUCCESS: AD/LDAP synchronization")
 		}
 	}
 

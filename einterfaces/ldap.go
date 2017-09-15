@@ -14,9 +14,7 @@ type LdapInterface interface {
 	CheckPassword(id string, password string) *model.AppError
 	SwitchToLdap(userId, ldapId, ldapPassword string) *model.AppError
 	ValidateFilter(filter string) *model.AppError
-	Syncronize() *model.AppError
-	StartLdapSyncJob()
-	SyncNow()
+	StartSynchronizeJob(waitForJobToFinish bool) (*model.Job, *model.AppError)
 	RunTest() *model.AppError
 	GetAllLdapUsers() ([]*model.User, *model.AppError)
 }

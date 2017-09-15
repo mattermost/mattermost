@@ -3688,6 +3688,14 @@
     "translation": "Compliance export started for job '{{.JobName}}' at '{{.FilePath}}'"
   },
   {
+    "id": "ent.ldap.sync_worker.create_index_job.error",
+    "translation": "LDAP sync worker failed to create the sync job"
+  },
+  {
+    "id": "ent.ldap.sync.index_job_failed.error",
+    "translation": "LDAP sync worker failed due to the sync job failing"
+  },
+  {
     "id": "ent.elasticsearch.aggregator_worker.create_index_job.error",
     "translation": "Elasticsearch aggregator worker failed to create the indexing job"
   },

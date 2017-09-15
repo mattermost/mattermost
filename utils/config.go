@@ -392,12 +392,6 @@ func LoadConfig(fileName string) {
 	clientCfgJson, _ := json.Marshal(ClientCfg)
 	ClientCfgHash = fmt.Sprintf("%x", md5.Sum(clientCfgJson))
 
-	// Actions that need to run every time the config is loaded
-	if ldapI := einterfaces.GetLdapInterface(); ldapI != nil {
-		// This restarts the job if nessisary (works for config reloads)
-		ldapI.StartLdapSyncJob()
-	}
-
 	if samlI := einterfaces.GetSamlInterface(); samlI != nil {
 		samlI.ConfigureSP()
 	}
