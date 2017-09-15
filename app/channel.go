@@ -1168,7 +1168,7 @@ func (a *App) ViewChannel(view *model.ChannelView, userId string, clearPushNotif
 		return result.Err
 	}
 
-	if *utils.Cfg.ServiceSettings.EnableChannelViewedMessages && len(view.ChannelId) > 0 {
+	if *utils.Cfg.ServiceSettings.EnableChannelViewedMessages && model.IsValidId(view.ChannelId) {
 		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CHANNEL_VIEWED, "", "", userId, nil)
 		message.Add("channel_id", view.ChannelId)
 		go Publish(message)
