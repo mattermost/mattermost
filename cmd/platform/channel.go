@@ -8,7 +8,6 @@ import (
 
 	"github.com/mattermost/mattermost-server/app"
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -131,10 +130,6 @@ func createChannelCmdF(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	if !utils.IsLicensed() {
-		return errors.New(utils.T("cli.license.critical"))
-	}
-
 	name, errn := cmd.Flags().GetString("name")
 	if errn != nil || name == "" {
 		return errors.New("Name is required")
@@ -184,10 +179,6 @@ func removeChannelUsersCmdF(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	if !utils.IsLicensed() {
-		return errors.New(utils.T("cli.license.critical"))
-	}
-
 	if len(args) < 2 {
 		return errors.New("Not enough arguments.")
 	}
@@ -219,10 +210,6 @@ func addChannelUsersCmdF(cmd *cobra.Command, args []string) error {
 	a, err := initDBCommandContextCobra(cmd)
 	if err != nil {
 		return err
-	}
-
-	if !utils.IsLicensed() {
-		return errors.New(utils.T("cli.license.critical"))
 	}
 
 	if len(args) < 2 {
@@ -389,10 +376,6 @@ func listChannelsCmdF(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	if !utils.IsLicensed() {
-		return errors.New(utils.T("cli.license.critical"))
-	}
-
 	if len(args) < 1 {
 		return errors.New("Enter at least one team.")
 	}
@@ -427,10 +410,6 @@ func restoreChannelsCmdF(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	if !utils.IsLicensed() {
-		return errors.New(utils.T("cli.license.critical"))
-	}
-
 	if len(args) < 1 {
 		return errors.New("Enter at least one channel.")
 	}
@@ -453,10 +432,6 @@ func modifyChannelCmdF(cmd *cobra.Command, args []string) error {
 	a, err := initDBCommandContextCobra(cmd)
 	if err != nil {
 		return err
-	}
-
-	if !utils.IsLicensed() {
-		return errors.New(utils.T("cli.license.critical"))
 	}
 
 	if len(args) != 1 {
