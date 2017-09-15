@@ -26,8 +26,9 @@ func TestLicenseFeaturesToMap(t *testing.T) {
 	CheckTrue(t, m["saml"].(bool))
 	CheckTrue(t, m["password"].(bool))
 	CheckTrue(t, m["elastic_search"].(bool))
-	CheckTrue(t, m["future"].(bool))
 	CheckTrue(t, m["email_notification_contents"].(bool))
+	CheckTrue(t, m["data_retention"].(bool))
+	CheckTrue(t, m["future"].(bool))
 }
 
 func TestLicenseFeaturesSetDefaults(t *testing.T) {
@@ -48,6 +49,7 @@ func TestLicenseFeaturesSetDefaults(t *testing.T) {
 	CheckTrue(t, *f.PasswordRequirements)
 	CheckTrue(t, *f.Elasticsearch)
 	CheckTrue(t, *f.EmailNotificationContents)
+	CheckTrue(t, *f.DataRetention)
 	CheckTrue(t, *f.FutureFeatures)
 
 	f = Features{}
@@ -67,6 +69,7 @@ func TestLicenseFeaturesSetDefaults(t *testing.T) {
 	*f.SAML = true
 	*f.PasswordRequirements = true
 	*f.Elasticsearch = true
+	*f.DataRetention = true
 	*f.EmailNotificationContents = true
 
 	f.SetDefaults()
@@ -85,6 +88,7 @@ func TestLicenseFeaturesSetDefaults(t *testing.T) {
 	CheckTrue(t, *f.PasswordRequirements)
 	CheckTrue(t, *f.Elasticsearch)
 	CheckTrue(t, *f.EmailNotificationContents)
+	CheckTrue(t, *f.DataRetention)
 	CheckFalse(t, *f.FutureFeatures)
 }
 
@@ -166,6 +170,7 @@ func TestLicenseToFromJson(t *testing.T) {
 	CheckBool(t, *f1.SAML, *f.SAML)
 	CheckBool(t, *f1.PasswordRequirements, *f.PasswordRequirements)
 	CheckBool(t, *f1.Elasticsearch, *f.Elasticsearch)
+	CheckBool(t, *f1.DataRetention, *f.DataRetention)
 	CheckBool(t, *f1.FutureFeatures, *f.FutureFeatures)
 
 	invalid := `{"asdf`
