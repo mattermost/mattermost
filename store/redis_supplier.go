@@ -131,3 +131,8 @@ func (s *RedisSupplier) ReactionDeleteAllWithEmojiName(ctx context.Context, emoj
 	// Ignoring this. It's probably OK to have the emoji slowly expire from Redis.
 	return s.Next().ReactionDeleteAllWithEmojiName(ctx, emojiName, hints...)
 }
+
+func (s *RedisSupplier) ReactionPermanentDeleteBatch(ctx context.Context, endTime int64, limit int64, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
+	// Ignoring this. It's probably OK to have the emoji slowly expire from Redis.
+	return s.Next().ReactionPermanentDeleteBatch(ctx, endTime, limit, hints...)
+}

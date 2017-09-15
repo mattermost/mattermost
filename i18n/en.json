@@ -5264,6 +5264,10 @@
     "translation": "We encountered an error saving the audit"
   },
   {
+    "id": "store.sql_audit.permanent_delete_batch.app_error",
+    "translation": "We encountered an error permanently deleting the batch of audits"
+  },
+  {
     "id": "store.sql_channel.analytics_deleted_type_count.app_error",
     "translation": "We couldn't get deleted channel type counts"
   },
@@ -5624,6 +5628,10 @@
     "translation": "We couldn't save or update the file info"
   },
   {
+    "id": "store.sql_file_info.permanent_delete_batch.app_error",
+    "translation": "We encountered an error permanently deleting the batch of file infos"
+  },
+  {
     "id": "store.sql_job.delete.app_error",
     "translation": "We couldn't delete the job"
   },
@@ -5856,6 +5864,10 @@
     "translation": "We couldn't update the Post"
   },
   {
+    "id": "store.sql_post.permanent_delete_batch.app_error",
+    "translation": "We encountered an error permanently deleting the batch of posts"
+  },
+  {
     "id": "store.sql_preference.delete.app_error",
     "translation": "We encountered an error while deleting preferences"
   },
@@ -5954,6 +5966,10 @@
   {
     "id": "store.sql_reaction.save.save.app_error",
     "translation": "Unable to save reaction"
+  },
+  {
+    "id": "store.sql_reaction.permanent_delete_batch.app_error",
+    "translation": "We encountered an error permanently deleting the batch of reactions"
   },
   {
     "id": "store.sql_session.analytics_session_count.app_error",

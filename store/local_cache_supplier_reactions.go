@@ -45,3 +45,9 @@ func (s *LocalCacheSupplier) ReactionDeleteAllWithEmojiName(ctx context.Context,
 	s.doClearCacheCluster(s.reactionCache)
 	return s.Next().ReactionDeleteAllWithEmojiName(ctx, emojiName, hints...)
 }
+
+func (s *LocalCacheSupplier) ReactionPermanentDeleteBatch(ctx context.Context, endTime int64, limit int64, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
+	// Don't bother to clear the cache as the posts will be gone anyway and the reactions being deleted will
+	// expire from the cache in due course.
+	return s.Next().ReactionPermanentDeleteBatch(ctx, endTime, limit)
+}

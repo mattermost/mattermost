@@ -294,3 +294,58 @@ func TestReactionDeleteAllWithEmojiName(t *testing.T) {
 		t.Fatal("post shouldn't have reactions any more")
 	}
 }
+
+func TestReactionStorePermanentDeleteBatch(t *testing.T) {
+	Setup()
+
+	post := Must(store.Post().Save(&model.Post{
+		ChannelId: model.NewId(),
+		UserId:    model.NewId(),
+	})).(*model.Post)
+
+	reactions := []*model.Reaction{
+		{
+			UserId:    model.NewId(),
+			PostId:    post.Id,
+			EmojiName: "sad",
+			CreateAt:  1000,
+		},
+		{
+			UserId:    model.NewId(),
+			PostId:    post.Id,
+			EmojiName: "sad",
+			CreateAt:  1500,
+		},
+		{
+			UserId:    model.NewId(),
+			PostId:    post.Id,
+			EmojiName: "sad",
+			CreateAt:  2000,
+		},
+		{
+			UserId:    model.NewId(),
+			PostId:    post.Id,
+			EmojiName: "sad",
+			CreateAt:  2000,
+		},
+	}
+
+	// Need to hang on to a reaction to delete later in order to clear the cache, as "allowFromCache" isn't honoured any more.
+	var lastReaction *model.Reaction
+	for _, reaction := range reactions {
+		lastReaction = Must(store.Reaction().Save(reaction)).(*model.Reaction)
+	}
+
+	if returned := Must(store.Reaction().GetForPost(post.Id, false)).([]*model.Reaction); len(returned) != 4 {
+		t.Fatal("expected 4 reactions")
+	}
+
+	Must(store.Reaction().PermanentDeleteBatch(1800, 1000))
+
+	// This is to force a clear of the cache.
+	Must(store.Reaction().Delete(lastReaction))
+
+	if returned := Must(store.Reaction().GetForPost(post.Id, false)).([]*model.Reaction); len(returned) != 1 {
+		t.Fatalf("expected 1 reaction. Got: %v", len(returned))
+	}
+}
