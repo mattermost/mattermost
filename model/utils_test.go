@@ -4,6 +4,7 @@
 package model
 
 import (
+	"net/http"
 	"strings"
 	"testing"
 )
@@ -27,7 +28,7 @@ func TestRandomString(t *testing.T) {
 }
 
 func TestAppError(t *testing.T) {
-	err := NewLocAppError("TestAppError", "message", nil, "")
+	err := NewAppError("TestAppError", "message", nil, "", http.StatusInternalServerError)
 	json := err.ToJson()
 	rerr := AppErrorFromJson(strings.NewReader(json))
 	if err.Message != rerr.Message {

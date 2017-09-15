@@ -6,6 +6,7 @@ package model
 import (
 	"encoding/json"
 	"io"
+	"net/http"
 )
 
 type Emoji struct {
@@ -19,23 +20,23 @@ type Emoji struct {
 
 func (emoji *Emoji) IsValid() *AppError {
 	if len(emoji.Id) != 26 {
-		return NewLocAppError("Emoji.IsValid", "model.emoji.id.app_error", nil, "")
+		return NewAppError("Emoji.IsValid", "model.emoji.id.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if emoji.CreateAt == 0 {
-		return NewLocAppError("Emoji.IsValid", "model.emoji.create_at.app_error", nil, "id="+emoji.Id)
+		return NewAppError("Emoji.IsValid", "model.emoji.create_at.app_error", nil, "id="+emoji.Id, http.StatusBadRequest)
 	}
 
 	if emoji.UpdateAt == 0 {
-		return NewLocAppError("Emoji.IsValid", "model.emoji.update_at.app_error", nil, "id="+emoji.Id)
+		return NewAppError("Emoji.IsValid", "model.emoji.update_at.app_error", nil, "id="+emoji.Id, http.StatusBadRequest)
 	}
 
 	if len(emoji.CreatorId) != 26 {
-		return NewLocAppError("Emoji.IsValid", "model.emoji.user_id.app_error", nil, "")
+		return NewAppError("Emoji.IsValid", "model.emoji.user_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if len(emoji.Name) == 0 || len(emoji.Name) > 64 || !IsValidAlphaNumHyphenUnderscore(emoji.Name, false) {
-		return NewLocAppError("Emoji.IsValid", "model.emoji.name.app_error", nil, "")
+		return NewAppError("Emoji.IsValid", "model.emoji.name.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	return nil

@@ -6,6 +6,7 @@ package model
 import (
 	"encoding/json"
 	"io"
+	"net/http"
 	"os"
 )
 
@@ -85,27 +86,27 @@ func FilterClusterDiscovery(vs []*ClusterDiscovery, f func(*ClusterDiscovery) bo
 
 func (o *ClusterDiscovery) IsValid() *AppError {
 	if len(o.Id) != 26 {
-		return NewLocAppError("Channel.IsValid", "model.channel.is_valid.id.app_error", nil, "")
+		return NewAppError("Channel.IsValid", "model.channel.is_valid.id.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if len(o.ClusterName) == 0 {
-		return NewLocAppError("ClusterDiscovery.IsValid", "ClusterName must be set", nil, "")
+		return NewAppError("ClusterDiscovery.IsValid", "ClusterName must be set", nil, "", http.StatusBadRequest)
 	}
 
 	if len(o.Type) == 0 {
-		return NewLocAppError("ClusterDiscovery.IsValid", "Type must be set", nil, "")
+		return NewAppError("ClusterDiscovery.IsValid", "Type must be set", nil, "", http.StatusBadRequest)
 	}
 
 	if len(o.Hostname) == 0 {
-		return NewLocAppError("ClusterDiscovery.IsValid", "Hostname must be set", nil, "")
+		return NewAppError("ClusterDiscovery.IsValid", "Hostname must be set", nil, "", http.StatusBadRequest)
 	}
 
 	if o.CreateAt == 0 {
-		return NewLocAppError("ClusterDiscovery.IsValid", "CreateAt must be set", nil, "")
+		return NewAppError("ClusterDiscovery.IsValid", "CreateAt must be set", nil, "", http.StatusBadRequest)
 	}
 
 	if o.LastPingAt == 0 {
-		return NewLocAppError("ClusterDiscovery.IsValid", "LastPingAt must be set", nil, "")
+		return NewAppError("ClusterDiscovery.IsValid", "LastPingAt must be set", nil, "", http.StatusBadRequest)
 	}
 
 	return nil
