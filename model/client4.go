@@ -3088,3 +3088,14 @@ func (c *Client4) RemovePlugin(id string) (bool, *Response) {
 		return CheckStatusOK(r), BuildResponse(r)
 	}
 }
+
+// GetWebappPlugins will return a list of plugins that the webapp should download.
+// WARNING: PLUGINS ARE STILL EXPERIMENTAL. THIS FUNCTION IS SUBJECT TO CHANGE.
+func (c *Client4) GetWebappPlugins() ([]*Manifest, *Response) {
+	if r, err := c.DoApiGet(c.GetPluginsRoute()+"/webapp", ""); err != nil {
+		return nil, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return ManifestListFromJson(r.Body), BuildResponse(r)
+	}
+}

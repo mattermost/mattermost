@@ -62,11 +62,6 @@ func runServer(configFileLocation string) {
 	l4g.Info(utils.T("mattermost.working_dir"), pwd)
 	l4g.Info(utils.T("mattermost.config_file"), utils.FindConfigFile(configFileLocation))
 
-	// Enable developer settings if this is a "dev" build
-	if model.BuildNumber == "dev" {
-		*utils.Cfg.ServiceSettings.EnableDeveloper = true
-	}
-
 	if err := utils.TestFileConnection(); err != nil {
 		l4g.Error("Problem with file storage settings: " + err.Error())
 	}
@@ -79,7 +74,12 @@ func runServer(configFileLocation string) {
 	if model.BuildEnterpriseReady == "true" {
 		a.LoadLicense()
 	}
-	a.InitPlugins("plugins", "webapp/dist")
+
+	if webappDir, ok := utils.FindDir(model.CLIENT_DIR); ok {
+		a.InitPlugins("plugins", webappDir+"/plugins")
+	} else {
+		l4g.Error("Unable to find webapp directory, could not initialize plugins")
+	}
 
 	wsapi.InitRouter()
 	api4.InitApi(a.Srv.Router, false)
@@ -97,6 +97,11 @@ func runServer(configFileLocation string) {
 	}
 
 	app.ReloadConfig()
+
+	// Enable developer settings if this is a "dev" build
+	if model.BuildNumber == "dev" {
+		*utils.Cfg.ServiceSettings.EnableDeveloper = true
+	}
 
 	resetStatuses(a)
 

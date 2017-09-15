@@ -17,14 +17,11 @@ import (
 func TestPlugin(t *testing.T) {
 	pluginDir, err := ioutil.TempDir("", "mm-plugin-test")
 	require.NoError(t, err)
-	defer func() {
-		os.RemoveAll(pluginDir)
-	}()
+	defer os.RemoveAll(pluginDir)
+
 	webappDir, err := ioutil.TempDir("", "mm-webapp-test")
 	require.NoError(t, err)
-	defer func() {
-		os.RemoveAll(webappDir)
-	}()
+	defer os.RemoveAll(webappDir)
 
 	th := SetupEnterprise().InitBasic().InitSystemAdmin()
 	defer TearDown()
@@ -50,9 +47,7 @@ func TestPlugin(t *testing.T) {
 
 	// Successful upload
 	manifest, resp := th.SystemAdminClient.UploadPlugin(file)
-	defer func() {
-		os.RemoveAll("plugins/testplugin")
-	}()
+	defer os.RemoveAll("plugins/testplugin")
 	CheckNoError(t, resp)
 
 	assert.Equal(t, "testplugin", manifest.Id)
@@ -90,6 +85,19 @@ func TestPlugin(t *testing.T) {
 	*utils.Cfg.PluginSettings.Enable = true
 	_, resp = th.Client.GetPlugins()
 	CheckForbiddenStatus(t, resp)
+
+	// Successful webapp get
+	manifests, resp = th.Client.GetWebappPlugins()
+	CheckNoError(t, resp)
+
+	found = false
+	for _, m := range manifests {
+		if m.Id == manifest.Id {
+			found = true
+		}
+	}
+
+	assert.True(t, found)
 
 	// Successful remove
 	ok, resp := th.SystemAdminClient.RemovePlugin(manifest.Id)
