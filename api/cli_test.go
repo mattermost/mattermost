@@ -5,6 +5,7 @@ package api
 
 import (
 	"os/exec"
+	"strings"
 	"testing"
 
 	"github.com/mattermost/mattermost-server/app"
@@ -149,36 +150,26 @@ func TestCliJoinChannel(t *testing.T) {
 	th := Setup().InitBasic()
 	channel := th.CreateChannel(th.BasicClient, th.BasicTeam)
 
-	// These test cannot run since this feature requires an enteprise license
+	cmd := exec.Command("bash", "-c", "go run ../cmd/platform/*.go channel add "+th.BasicTeam.Name+":"+channel.Name+" "+th.BasicUser2.Email)
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Log(string(output))
+		t.Fatal(err)
+	}
 
-	// cmd := exec.Command("bash", "-c", `go run ../*.go -join_channel -team_name="`+th.BasicTeam.Name+`" -channel_name="`+channel.Name+`" -email="`+th.BasicUser2.Email+`"`)
-	// output, err := cmd.CombinedOutput()
-	// if err != nil {
-	// 	t.Log(string(output))
-	// 	t.Fatal(err)
-	// }
-
-	// // Joining twice should succeed
-	// cmd1 := exec.Command("bash", "-c", `go run ../*.go -join_channel -team_name="`+th.BasicTeam.Name+`" -channel_name="`+channel.Name+`" -email="`+th.BasicUser2.Email+`"`)
-	// output1, err1 := cmd1.CombinedOutput()
-	// if err1 != nil {
-	// 	t.Log(string(output1))
-	// 	t.Fatal(err1)
-	// }
+	// Joining twice should succeed
+	cmd1 := exec.Command("bash", "-c", "go run ../cmd/platform/*.go channel add "+th.BasicTeam.Name+":"+channel.Name+" "+th.BasicUser2.Email)
+	output1, err1 := cmd1.CombinedOutput()
+	if err1 != nil {
+		t.Log(string(output1))
+		t.Fatal(err1)
+	}
 
 	// should fail because channel does not exist
 	cmd2 := exec.Command("bash", "-c", "go run ../cmd/platform/*.go channel add "+th.BasicTeam.Name+":"+channel.Name+"asdf "+th.BasicUser2.Email)
 	output2, err2 := cmd2.CombinedOutput()
 	if err2 == nil {
 		t.Log(string(output2))
-		t.Fatal()
-	}
-
-	// should fail because channel does not have license
-	cmd3 := exec.Command("bash", "-c", "go run ../cmd/platform/*.go channel add "+th.BasicTeam.Name+":"+channel.Name+" "+th.BasicUser2.Email)
-	output3, err3 := cmd3.CombinedOutput()
-	if err3 == nil {
-		t.Log(string(output3))
 		t.Fatal()
 	}
 }
@@ -191,36 +182,11 @@ func TestCliRemoveChannel(t *testing.T) {
 	th := Setup().InitBasic()
 	channel := th.CreateChannel(th.BasicClient, th.BasicTeam)
 
-	// These test cannot run since this feature requires an enteprise license
-
-	// cmd := exec.Command("bash", "-c", `go run ../*.go -join_channel -team_name="`+th.BasicTeam.Name+`" -channel_name="`+channel.Name+`" -email="`+th.BasicUser2.Email+`"`)
-	// output, err := cmd.CombinedOutput()
-	// if err != nil {
-	// 	t.Log(string(output))
-	// 	t.Fatal(err)
-	// }
-
-	// cmd0 := exec.Command("bash", "-c", `go run ../*.go -leave_channel -team_name="`+th.BasicTeam.Name+`" -channel_name="`+channel.Name+`" -email="`+th.BasicUser2.Email+`"`)
-	// output0, err0 := cmd0.CombinedOutput()
-	// if err0 != nil {
-	// 	t.Log(string(output0))
-	// 	t.Fatal(err0)
-	// }
-
-	// // Leaving twice should succeed
-	// cmd1 := exec.Command("bash", "-c", `go run ../*.go -leave_channel -team_name="`+th.BasicTeam.Name+`" -channel_name="`+channel.Name+`" -email="`+th.BasicUser2.Email+`"`)
-	// output1, err1 := cmd1.CombinedOutput()
-	// if err1 != nil {
-	// 	t.Log(string(output1))
-	// 	t.Fatal(err1)
-	// }
-
-	// cannot leave town-square
-	cmd1a := exec.Command("bash", "-c", "go run ../cmd/platform/*.go channel remove "+th.BasicTeam.Name+":town-square "+th.BasicUser2.Email)
-	output1a, err1a := cmd1a.CombinedOutput()
-	if err1a == nil {
-		t.Log(string(output1a))
-		t.Fatal()
+	cmd := exec.Command("bash", "-c", "go run ../cmd/platform/*.go channel add "+th.BasicTeam.Name+":"+channel.Name+" "+th.BasicUser2.Email)
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Log(string(output))
+		t.Fatal(err)
 	}
 
 	// should fail because channel does not exist
@@ -231,12 +197,19 @@ func TestCliRemoveChannel(t *testing.T) {
 		t.Fatal()
 	}
 
-	// should fail because channel does not have license
 	cmd3 := exec.Command("bash", "-c", "go run ../cmd/platform/*.go channel remove "+th.BasicTeam.Name+":"+channel.Name+" "+th.BasicUser2.Email)
 	output3, err3 := cmd3.CombinedOutput()
-	if err3 == nil {
+	if err3 != nil {
 		t.Log(string(output3))
-		t.Fatal()
+		t.Fatal(err3)
+	}
+
+	// Leaving twice should succeed
+	cmd4 := exec.Command("bash", "-c", "go run ../cmd/platform/*.go channel remove "+th.BasicTeam.Name+":"+channel.Name+" "+th.BasicUser2.Email)
+	output4, err4 := cmd4.CombinedOutput()
+	if err4 != nil {
+		t.Log(string(output4))
+		t.Fatal(err4)
 	}
 }
 
@@ -249,29 +222,19 @@ func TestCliListChannels(t *testing.T) {
 	channel := th.CreateChannel(th.BasicClient, th.BasicTeam)
 	th.BasicClient.Must(th.BasicClient.DeleteChannel(channel.Id))
 
-	// These test cannot run since this feature requires an enteprise license
+	cmd := exec.Command("bash", "-c", "go run ../cmd/platform/*.go channel list "+th.BasicTeam.Name)
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Log(string(output))
+		t.Fatal(err)
+	}
 
-	// cmd := exec.Command("bash", "-c", `go run ../*.go -list_channels -team_name="`+th.BasicTeam.Name+`"`)
-	// output, err := cmd.CombinedOutput()
-	// if err != nil {
-	// 	t.Log(string(output))
-	// 	t.Fatal(err)
-	// }
+	if !strings.Contains(string(output), "town-square") {
+		t.Fatal("should have channels")
+	}
 
-	// if !strings.Contains(string(output), "town-square") {
-	// 	t.Fatal("should have channels")
-	// }
-
-	// if !strings.Contains(string(output), channel.Name+" (archived)") {
-	// 	t.Fatal("should have archived channel")
-	// }
-
-	// should fail because channel does not have license
-	cmd3 := exec.Command("bash", "-c", "go run ../cmd/platform/*.go channel list "+th.BasicTeam.Name)
-	output3, err3 := cmd3.CombinedOutput()
-	if err3 == nil {
-		t.Log(string(output3))
-		t.Fatal()
+	if !strings.Contains(string(output), channel.Name+" (archived)") {
+		t.Fatal("should have archived channel")
 	}
 }
 
@@ -284,29 +247,19 @@ func TestCliRestoreChannel(t *testing.T) {
 	channel := th.CreateChannel(th.BasicClient, th.BasicTeam)
 	th.BasicClient.Must(th.BasicClient.DeleteChannel(channel.Id))
 
-	// These test cannot run since this feature requires an enteprise license
+	cmd := exec.Command("bash", "-c", "go run ../cmd/platform/*.go channel restore "+th.BasicTeam.Name+":"+channel.Name)
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Log(string(output))
+		t.Fatal(err)
+	}
 
-	// cmd := exec.Command("bash", "-c", `go run ../*.go -restore_channel -team_name="`+th.BasicTeam.Name+`" -channel_name="`+channel.Name+`"`)
-	// output, err := cmd.CombinedOutput()
-	// if err != nil {
-	// 	t.Log(string(output))
-	// 	t.Fatal(err)
-	// }
-
-	// // restoring twice should succeed
-	// cmd1 := exec.Command("bash", "-c", `go run ../*.go -restore_channel -team_name="`+th.BasicTeam.Name+`" -channel_name="`+channel.Name+`"`)
-	// output1, err1 := cmd1.CombinedOutput()
-	// if err1 != nil {
-	// 	t.Log(string(output1))
-	// 	t.Fatal(err1)
-	// }
-
-	// should fail because channel does not have license
-	cmd3 := exec.Command("bash", "-c", "go run ../cmd/platform/*.go channel restore "+th.BasicTeam.Name+":"+channel.Name)
-	output3, err3 := cmd3.CombinedOutput()
-	if err3 == nil {
-		t.Log(string(output3))
-		t.Fatal()
+	// restoring twice should succeed
+	cmd1 := exec.Command("bash", "-c", "go run ../cmd/platform/*.go channel restore "+th.BasicTeam.Name+":"+channel.Name)
+	output1, err1 := cmd1.CombinedOutput()
+	if err1 != nil {
+		t.Log(string(output1))
+		t.Fatal(err1)
 	}
 }
 
@@ -406,21 +359,19 @@ func TestCliCreateChannel(t *testing.T) {
 	id := model.NewId()
 	name := "name" + id
 
-	// should fail because channel does not have license
 	cmd := exec.Command("bash", "-c", "go run ../cmd/platform/*.go channel create --display_name "+name+" --team "+th.BasicTeam.Name+" --name "+name)
 	output, err := cmd.CombinedOutput()
-	if err == nil {
+	if err != nil {
 		t.Log(string(output))
-		t.Fatal()
+		t.Fatal(err)
 	}
 
-	// should fail because channel does not have license
 	name = name + "-private"
 	cmd2 := exec.Command("bash", "-c", "go run ../cmd/platform/*.go channel create --display_name="+name+" --team "+th.BasicTeam.Name+" --private --name "+name)
 	output2, err2 := cmd2.CombinedOutput()
-	if err2 == nil {
+	if err2 != nil {
 		t.Log(string(output2))
-		t.Fatal()
+		t.Fatal(err2)
 	}
 }
 
