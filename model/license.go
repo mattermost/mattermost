@@ -6,6 +6,7 @@ package model
 import (
 	"encoding/json"
 	"io"
+	"net/http"
 )
 
 const (
@@ -202,15 +203,15 @@ func LicenseFromJson(data io.Reader) *License {
 
 func (lr *LicenseRecord) IsValid() *AppError {
 	if len(lr.Id) != 26 {
-		return NewLocAppError("LicenseRecord.IsValid", "model.license_record.is_valid.id.app_error", nil, "")
+		return NewAppError("LicenseRecord.IsValid", "model.license_record.is_valid.id.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if lr.CreateAt == 0 {
-		return NewLocAppError("LicenseRecord.IsValid", "model.license_record.is_valid.create_at.app_error", nil, "")
+		return NewAppError("LicenseRecord.IsValid", "model.license_record.is_valid.create_at.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if len(lr.Bytes) == 0 || len(lr.Bytes) > 10000 {
-		return NewLocAppError("LicenseRecord.IsValid", "model.license_record.is_valid.create_at.app_error", nil, "")
+		return NewAppError("LicenseRecord.IsValid", "model.license_record.is_valid.create_at.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	return nil
