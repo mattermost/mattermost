@@ -155,7 +155,7 @@ func SaveConfig(cfg *model.Config, sendConfigChangeClusterMessage bool) *model.A
 	}
 
 	if *cfg.FileSettings.DriverName == model.IMAGE_DRIVER_S3 {
-		if len(*cfg.FileSettings.AmazonS3Region) == 0 || *cfg.FileSettings.AmazonS3Region == "" {
+		if *cfg.FileSettings.AmazonS3Region == "" {
 			region, err := utils.GetAmazonS3Region(cfg)
 			if err != nil {
 				return err
