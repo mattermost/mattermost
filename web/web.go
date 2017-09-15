@@ -26,12 +26,17 @@ func InitWeb() {
 	if *utils.Cfg.ServiceSettings.WebserverMode != "disabled" {
 		staticDir, _ := utils.FindDir(model.CLIENT_DIR)
 		l4g.Debug("Using client directory at %v", staticDir)
+
+		staticHandler := staticHandler(http.StripPrefix("/static/", http.FileServer(http.Dir(staticDir))))
+		pluginHandler := pluginHandler(http.StripPrefix("/static/plugins/", http.FileServer(http.Dir(staticDir+"plugins/"))))
+
 		if *utils.Cfg.ServiceSettings.WebserverMode == "gzip" {
-			mainrouter.PathPrefix("/static/").Handler(gziphandler.GzipHandler(staticHandler(http.StripPrefix("/static/", http.FileServer(http.Dir(staticDir))))))
-		} else {
-			mainrouter.PathPrefix("/static/").Handler(staticHandler(http.StripPrefix("/static/", http.FileServer(http.Dir(staticDir)))))
+			staticHandler = gziphandler.GzipHandler(staticHandler)
+			pluginHandler = gziphandler.GzipHandler(pluginHandler)
 		}
 
+		mainrouter.PathPrefix("/static/plugins/").Handler(pluginHandler)
+		mainrouter.PathPrefix("/static/").Handler(staticHandler)
 		mainrouter.Handle("/{anything:.*}", api.AppHandlerIndependent(root)).Methods("GET")
 	}
 }
@@ -39,6 +44,21 @@ func InitWeb() {
 func staticHandler(handler http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Cache-Control", "max-age=31556926, public")
+		if strings.HasSuffix(r.URL.Path, "/") {
+			http.NotFound(w, r)
+			return
+		}
+		handler.ServeHTTP(w, r)
+	})
+}
+
+func pluginHandler(handler http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if *utils.Cfg.ServiceSettings.EnableDeveloper {
+			w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
+		} else {
+			w.Header().Set("Cache-Control", "max-age=31556926, public")
+		}
 		if strings.HasSuffix(r.URL.Path, "/") {
 			http.NotFound(w, r)
 			return

@@ -244,7 +244,6 @@ func getClientConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	respCfg["NoAccounts"] = strconv.FormatBool(c.App.IsFirstUserAccount())
-	respCfg["Plugins"] = c.App.GetPluginsForClientConfig()
 
 	w.Write([]byte(model.MapToJson(respCfg)))
 }
