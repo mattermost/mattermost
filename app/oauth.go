@@ -409,7 +409,7 @@ func (a *App) RevokeAccessToken(token string) *model.AppError {
 	}
 
 	if session != nil {
-		ClearSessionCacheForUser(session.UserId)
+		a.ClearSessionCacheForUser(session.UserId)
 	}
 
 	return nil

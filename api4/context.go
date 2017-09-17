@@ -14,7 +14,6 @@ import (
 	goi18n "github.com/nicksnyder/go-i18n/i18n"
 
 	"github.com/mattermost/mattermost-server/app"
-	"github.com/mattermost/mattermost-server/einterfaces"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
 )
@@ -184,17 +183,17 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(c.Err.StatusCode)
 		w.Write([]byte(c.Err.ToJson()))
 
-		if einterfaces.GetMetricsInterface() != nil {
-			einterfaces.GetMetricsInterface().IncrementHttpError()
+		if c.App.Metrics != nil {
+			c.App.Metrics.IncrementHttpError()
 		}
 	}
 
-	if einterfaces.GetMetricsInterface() != nil {
-		einterfaces.GetMetricsInterface().IncrementHttpRequest()
+	if c.App.Metrics != nil {
+		c.App.Metrics.IncrementHttpRequest()
 
 		if r.URL.Path != model.API_URL_SUFFIX+"/websocket" {
 			elapsed := float64(time.Since(now)) / float64(time.Second)
-			einterfaces.GetMetricsInterface().ObserveHttpRequestDuration(elapsed)
+			c.App.Metrics.ObserveHttpRequestDuration(elapsed)
 		}
 	}
 }

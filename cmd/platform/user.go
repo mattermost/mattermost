@@ -7,7 +7,6 @@ import (
 	"fmt"
 
 	"github.com/mattermost/mattermost-server/app"
-	"github.com/mattermost/mattermost-server/einterfaces"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
 	"github.com/spf13/cobra"
@@ -320,7 +319,7 @@ func resetUserPasswordCmdF(cmd *cobra.Command, args []string) error {
 }
 
 func resetUserMfaCmdF(cmd *cobra.Command, args []string) error {
-	_, err := initDBCommandContextCobra(cmd)
+	a, err := initDBCommandContextCobra(cmd)
 	if err != nil {
 		return err
 	}
@@ -336,7 +335,7 @@ func resetUserMfaCmdF(cmd *cobra.Command, args []string) error {
 			return errors.New("Unable to find user '" + args[i] + "'")
 		}
 
-		if err := app.DeactivateMfa(user.Id); err != nil {
+		if err := a.DeactivateMfa(user.Id); err != nil {
 			return err
 		}
 	}
@@ -420,7 +419,7 @@ func deleteAllUsersCommandF(cmd *cobra.Command, args []string) error {
 }
 
 func migrateAuthCmdF(cmd *cobra.Command, args []string) error {
-	_, err := initDBCommandContextCobra(cmd)
+	a, err := initDBCommandContextCobra(cmd)
 	if err != nil {
 		return err
 	}
@@ -452,7 +451,7 @@ func migrateAuthCmdF(cmd *cobra.Command, args []string) error {
 
 	forceFlag, _ := cmd.Flags().GetBool("force")
 
-	if migrate := einterfaces.GetAccountMigrationInterface(); migrate != nil {
+	if migrate := a.AccountMigration; migrate != nil {
 		if err := migrate.MigrateToLdap(fromAuth, matchField, forceFlag); err != nil {
 			return errors.New("Error while migrating users: " + err.Error())
 		}

@@ -9,6 +9,7 @@ import (
 
 	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/utils"
 )
 
 const (
@@ -74,4 +75,12 @@ func (me *ClusterDiscoveryService) Start() {
 
 func (me *ClusterDiscoveryService) Stop() {
 	me.stop <- true
+}
+
+func (a *App) IsLeader() bool {
+	if utils.IsLicensed() && *utils.Cfg.ClusterSettings.Enable && a.Cluster != nil {
+		return a.Cluster.IsLeader()
+	} else {
+		return true
+	}
 }

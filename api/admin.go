@@ -10,7 +10,6 @@ import (
 	l4g "github.com/alecthomas/log4go"
 	"github.com/gorilla/mux"
 	"github.com/mattermost/mattermost-server/app"
-	"github.com/mattermost/mattermost-server/einterfaces"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
 	"github.com/mssola/user_agent"
@@ -47,7 +46,7 @@ func InitAdmin() {
 }
 
 func getLogs(c *Context, w http.ResponseWriter, r *http.Request) {
-	lines, err := app.GetLogs(0, 10000)
+	lines, err := c.App.GetLogs(0, 10000)
 	if err != nil {
 		c.Err = err
 		return
@@ -57,10 +56,10 @@ func getLogs(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getClusterStatus(c *Context, w http.ResponseWriter, r *http.Request) {
-	infos := app.GetClusterStatus()
+	infos := c.App.GetClusterStatus()
 
-	if einterfaces.GetClusterInterface() != nil {
-		w.Header().Set(model.HEADER_CLUSTER_ID, einterfaces.GetClusterInterface().GetClusterId())
+	if c.App.Cluster != nil {
+		w.Header().Set(model.HEADER_CLUSTER_ID, c.App.Cluster.GetClusterId())
 	}
 
 	w.Write([]byte(model.ClusterInfosToJson(infos)))
@@ -84,13 +83,13 @@ func getAllAudits(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getConfig(c *Context, w http.ResponseWriter, r *http.Request) {
-	cfg := app.GetConfig()
+	cfg := c.App.GetConfig()
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
 	w.Write([]byte(cfg.ToJson()))
 }
 
 func reloadConfig(c *Context, w http.ResponseWriter, r *http.Request) {
-	app.ReloadConfig()
+	c.App.ReloadConfig()
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
 	ReturnStatusOK(w)
 }
@@ -113,7 +112,7 @@ func saveConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := app.SaveConfig(cfg, true)
+	err := c.App.SaveConfig(cfg, true)
 	if err != nil {
 		c.Err = err
 		return
@@ -261,7 +260,7 @@ func uploadBrandImage(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := app.SaveBrandImage(imageArray[0]); err != nil {
+	if err := c.App.SaveBrandImage(imageArray[0]); err != nil {
 		c.Err = err
 		return
 	}
@@ -272,7 +271,7 @@ func uploadBrandImage(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getBrandImage(c *Context, w http.ResponseWriter, r *http.Request) {
-	if img, err := app.GetBrandImage(); err != nil {
+	if img, err := c.App.GetBrandImage(); err != nil {
 		w.Write(nil)
 	} else {
 		w.Header().Set("Content-Type", "image/png")
@@ -289,7 +288,7 @@ func adminResetMfa(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := app.DeactivateMfa(userId); err != nil {
+	if err := c.App.DeactivateMfa(userId); err != nil {
 		c.Err = err
 		return
 	}
@@ -329,7 +328,7 @@ func adminResetPassword(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func ldapSyncNow(c *Context, w http.ResponseWriter, r *http.Request) {
-	app.SyncLdap()
+	c.App.SyncLdap()
 
 	rdata := map[string]string{}
 	rdata["status"] = "ok"
@@ -337,7 +336,7 @@ func ldapSyncNow(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func ldapTest(c *Context, w http.ResponseWriter, r *http.Request) {
-	if err := app.TestLdap(); err != nil {
+	if err := c.App.TestLdap(); err != nil {
 		c.Err = err
 		return
 	}
@@ -348,7 +347,7 @@ func ldapTest(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func samlMetadata(c *Context, w http.ResponseWriter, r *http.Request) {
-	if result, err := app.GetSamlMetadata(); err != nil {
+	if result, err := c.App.GetSamlMetadata(); err != nil {
 		c.Err = model.NewAppError("loginWithSaml", "api.admin.saml.metadata.app_error", nil, "err="+err.Message, http.StatusInternalServerError)
 		return
 	} else {

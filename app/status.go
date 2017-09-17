@@ -6,7 +6,6 @@ package app
 import (
 	l4g "github.com/alecthomas/log4go"
 
-	"github.com/mattermost/mattermost-server/einterfaces"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
 	"github.com/mattermost/mattermost-server/utils"
@@ -18,20 +17,20 @@ func ClearStatusCache() {
 	statusCache.Purge()
 }
 
-func AddStatusCacheSkipClusterSend(status *model.Status) {
+func (a *App) AddStatusCacheSkipClusterSend(status *model.Status) {
 	statusCache.Add(status.UserId, status)
 }
 
-func AddStatusCache(status *model.Status) {
-	AddStatusCacheSkipClusterSend(status)
+func (a *App) AddStatusCache(status *model.Status) {
+	a.AddStatusCacheSkipClusterSend(status)
 
-	if einterfaces.GetClusterInterface() != nil {
+	if a.Cluster != nil {
 		msg := &model.ClusterMessage{
 			Event:    model.CLUSTER_EVENT_UPDATE_STATUS,
 			SendType: model.CLUSTER_SEND_BEST_EFFORT,
 			Data:     status.ToJson(),
 		}
-		einterfaces.GetClusterInterface().SendClusterMessage(msg)
+		a.Cluster.SendClusterMessage(msg)
 	}
 }
 
@@ -63,7 +62,7 @@ func (a *App) GetStatusesByIds(userIds []string) (map[string]interface{}, *model
 	}
 
 	statusMap := map[string]interface{}{}
-	metrics := einterfaces.GetMetricsInterface()
+	metrics := a.Metrics
 
 	missingUserIds := []string{}
 	for _, userId := range userIds {
@@ -87,7 +86,7 @@ func (a *App) GetStatusesByIds(userIds []string) (map[string]interface{}, *model
 			statuses := result.Data.([]*model.Status)
 
 			for _, s := range statuses {
-				AddStatusCache(s)
+				a.AddStatusCache(s)
 				statusMap[s.UserId] = s.Status
 			}
 		}
@@ -110,7 +109,7 @@ func (a *App) GetUserStatusesByIds(userIds []string) ([]*model.Status, *model.Ap
 	}
 
 	var statusMap []*model.Status
-	metrics := einterfaces.GetMetricsInterface()
+	metrics := a.Metrics
 
 	missingUserIds := []string{}
 	for _, userId := range userIds {
@@ -134,7 +133,7 @@ func (a *App) GetUserStatusesByIds(userIds []string) ([]*model.Status, *model.Ap
 			statuses := result.Data.([]*model.Status)
 
 			for _, s := range statuses {
-				AddStatusCache(s)
+				a.AddStatusCache(s)
 			}
 
 			statusMap = append(statusMap, statuses...)
@@ -195,7 +194,7 @@ func (a *App) SetStatusOnline(userId string, sessionId string, manual bool) {
 		status.LastActivityAt = model.GetMillis()
 	}
 
-	AddStatusCache(status)
+	a.AddStatusCache(status)
 
 	// Only update the database if the status has changed, the status has been manually set,
 	// or enough time has passed since the previous action
@@ -237,7 +236,7 @@ func (a *App) SetStatusOffline(userId string, manual bool) {
 
 	status = &model.Status{UserId: userId, Status: model.STATUS_OFFLINE, Manual: manual, LastActivityAt: model.GetMillis(), ActiveChannel: ""}
 
-	AddStatusCache(status)
+	a.AddStatusCache(status)
 
 	if result := <-a.Srv.Store.Status().SaveOrUpdate(status); result.Err != nil {
 		l4g.Error(utils.T("api.status.save_status.error"), userId, result.Err)
@@ -278,7 +277,7 @@ func (a *App) SetStatusAwayIfNeeded(userId string, manual bool) {
 	status.Manual = manual
 	status.ActiveChannel = ""
 
-	AddStatusCache(status)
+	a.AddStatusCache(status)
 
 	if result := <-a.Srv.Store.Status().SaveOrUpdate(status); result.Err != nil {
 		l4g.Error(utils.T("api.status.save_status.error"), userId, result.Err)

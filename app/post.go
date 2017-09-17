@@ -12,7 +12,6 @@ import (
 
 	l4g "github.com/alecthomas/log4go"
 	"github.com/dyatlov/go-opengraph/opengraph"
-	"github.com/mattermost/mattermost-server/einterfaces"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
 	"github.com/mattermost/mattermost-server/utils"
@@ -151,13 +150,13 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 		rpost = result.Data.(*model.Post)
 	}
 
-	esInterface := einterfaces.GetElasticsearchInterface()
+	esInterface := a.Elasticsearch
 	if esInterface != nil && *utils.Cfg.ElasticsearchSettings.EnableIndexing {
 		go esInterface.IndexPost(rpost, channel.TeamId)
 	}
 
-	if einterfaces.GetMetricsInterface() != nil {
-		einterfaces.GetMetricsInterface().IncrementPostCreate()
+	if a.Metrics != nil {
+		a.Metrics.IncrementPostCreate()
 	}
 
 	if len(post.FileIds) > 0 {
@@ -170,8 +169,8 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 			}
 		}
 
-		if einterfaces.GetMetricsInterface() != nil {
-			einterfaces.GetMetricsInterface().IncrementPostFileAttachment(len(post.FileIds))
+		if a.Metrics != nil {
+			a.Metrics.IncrementPostFileAttachment(len(post.FileIds))
 		}
 	}
 
@@ -320,7 +319,7 @@ func (a *App) UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model
 	} else {
 		rpost := result.Data.(*model.Post)
 
-		esInterface := einterfaces.GetElasticsearchInterface()
+		esInterface := a.Elasticsearch
 		if esInterface != nil && *utils.Cfg.ElasticsearchSettings.EnableIndexing {
 			go func() {
 				if rchannel := <-a.Srv.Store.Channel().GetForPost(rpost.Id); rchannel.Err != nil {
@@ -507,7 +506,7 @@ func (a *App) DeletePost(postId string) (*model.Post, *model.AppError) {
 		go a.DeletePostFiles(post)
 		go a.DeleteFlaggedPosts(post.Id)
 
-		esInterface := einterfaces.GetElasticsearchInterface()
+		esInterface := a.Elasticsearch
 		if esInterface != nil && *utils.Cfg.ElasticsearchSettings.EnableIndexing {
 			go esInterface.DeletePost(post)
 		}
@@ -538,7 +537,7 @@ func (a *App) DeletePostFiles(post *model.Post) {
 func (a *App) SearchPostsInTeam(terms string, userId string, teamId string, isOrSearch bool) (*model.PostList, *model.AppError) {
 	paramsList := model.ParseSearchParams(terms)
 
-	esInterface := einterfaces.GetElasticsearchInterface()
+	esInterface := a.Elasticsearch
 	if esInterface != nil && *utils.Cfg.ElasticsearchSettings.EnableSearching && utils.IsLicensed() && *utils.License().Features.Elasticsearch {
 		finalParamsList := []*model.SearchParams{}
 
@@ -580,7 +579,7 @@ func (a *App) SearchPostsInTeam(terms string, userId string, teamId string, isOr
 			return nil, err
 		}
 
-		postIds, err := einterfaces.GetElasticsearchInterface().SearchPosts(userChannels, finalParamsList)
+		postIds, err := a.Elasticsearch.SearchPosts(userChannels, finalParamsList)
 		if err != nil {
 			return nil, err
 		}

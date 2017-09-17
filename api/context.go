@@ -15,7 +15,6 @@ import (
 	goi18n "github.com/nicksnyder/go-i18n/i18n"
 
 	"github.com/mattermost/mattermost-server/app"
-	"github.com/mattermost/mattermost-server/einterfaces"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
 )
@@ -103,16 +102,16 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	now := time.Now()
 	l4g.Debug("%v", r.URL.Path)
 
-	if metrics := einterfaces.GetMetricsInterface(); metrics != nil && h.isApi {
-		metrics.IncrementHttpRequest()
-	}
-
 	c := &Context{}
 	c.App = app.Global()
 	c.T, c.Locale = utils.GetTranslationsAndLocale(w, r)
 	c.RequestId = model.NewId()
 	c.IpAddress = utils.GetIpAddress(r)
 	c.TeamId = mux.Vars(r)["team_id"]
+
+	if metrics := c.App.Metrics; metrics != nil && h.isApi {
+		metrics.IncrementHttpRequest()
+	}
 
 	token := ""
 	isTokenFromQueryString := false
@@ -237,8 +236,8 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(c.Err.StatusCode)
 			w.Write([]byte(c.Err.ToJson()))
 
-			if einterfaces.GetMetricsInterface() != nil {
-				einterfaces.GetMetricsInterface().IncrementHttpError()
+			if c.App.Metrics != nil {
+				c.App.Metrics.IncrementHttpError()
 			}
 		} else {
 			if c.Err.StatusCode == http.StatusUnauthorized {
@@ -250,10 +249,10 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	}
 
-	if h.isApi && einterfaces.GetMetricsInterface() != nil {
+	if h.isApi && c.App.Metrics != nil {
 		if r.URL.Path != model.API_URL_SUFFIX_V3+"/users/websocket" {
 			elapsed := float64(time.Since(now)) / float64(time.Second)
-			einterfaces.GetMetricsInterface().ObserveHttpRequestDuration(elapsed)
+			c.App.Metrics.ObserveHttpRequestDuration(elapsed)
 		}
 	}
 }
