@@ -213,7 +213,7 @@
   },
   {
     "id": "api.channel.create_default_channels.off_topic",
-    "translation": "闲聊频道"
+    "translation": "闲聊"
   },
   {
     "id": "api.channel.create_default_channels.town_square",
@@ -593,11 +593,11 @@
   },
   {
     "id": "api.command_channel_rename.too_long.app_error",
-    "translation": "Channel name must be {{.Length}} or fewer characters"
+    "translation": "频道名称必须小于或等于 {{.Length}} 个字符"
   },
   {
     "id": "api.command_channel_rename.too_short.app_error",
-    "translation": "Channel name must be {{.Length}} or more characters"
+    "translation": "频道名称必须大于或等于 {{.Length}} 个字符"
   },
   {
     "id": "api.command_channel_rename.update_channel.app_error",
@@ -970,10 +970,6 @@
   {
     "id": "api.email_batching.check_pending_emails.finished_running",
     "translation": "批量电子邮件已运行。%v 位用户仍有通知未定。"
-  },
-  {
-    "id": "api.email_batching.check_pending_emails.status.app_error",
-    "translation": "无法找到批量电子邮件通知收件人状态"
   },
   {
     "id": "api.email_batching.render_batched_post.channel.app_error",
@@ -1402,10 +1398,6 @@
     "translation": "response_type, client_id, 或 redirect_uri 至少却一项"
   },
   {
-    "id": "api.oauth.complete_oauth.missing_code.app_error",
-    "translation": "服务提供商 {{.service}} 没有在重指向网址中提供授权码。\n\n如使用 [Google Apps](https://docs.mattermost.com/deployment/sso-google.html)，请确定您的管理员在 Google+ API 已启用。\n\n如使用 [Office 365](https://docs.mattermost.com/deployment/sso-office.html)，请确定您微软组织管理员已启用 Mattermost 应用。\n\n如使用 [GitLab](https://docs.mattermost.com/deployment/sso-gitlab.html)，请确定您根据设置说明完成设定。\n\n如果您已确认上面说明但仍由配置问题，您可以发帖到[故障排除论坛](https://forum.mattermost.org/c/general/trouble-shoot) ，我们会很乐意帮你排除设置问题。"
-  },
-  {
     "id": "api.oauth.delete.permissions.app_error",
     "translation": "无效删除 OAuth2 应用权限"
   },
@@ -1515,15 +1507,15 @@
   },
   {
     "id": "api.plugin.upload.array.app_error",
-    "translation": "File array is empty in multipart/form request"
+    "translation": "multipart/form 请求中的文件数组为空"
   },
   {
     "id": "api.plugin.upload.file.app_error",
-    "translation": "Unable to open file in multipart/form request"
+    "translation": "无法打开 multipart/form 请求中的文件"
   },
   {
     "id": "api.plugin.upload.no_file.app_error",
-    "translation": "Missing file in multipart/form request"
+    "translation": "multipart/form 请求缺少文件"
   },
   {
     "id": "api.post.check_for_out_of_channel_mentions.message.multiple",
@@ -1563,7 +1555,7 @@
   },
   {
     "id": "api.post.create_post.town_square_read_only",
-    "translation": "This channel is read-only. Only members with permission can post here."
+    "translation": "此频道为只读。只有拥有权限的成员可以发布消息。"
   },
   {
     "id": "api.post.create_webhook_post.creating.app_error",
@@ -1595,11 +1587,11 @@
   },
   {
     "id": "api.post.do_action.action_id.app_error",
-    "translation": "无效客户端id"
+    "translation": "无效的操作 id"
   },
   {
     "id": "api.post.do_action.action_integration.app_error",
-    "translation": "Action integration error"
+    "translation": "操作整合错误"
   },
   {
     "id": "api.post.get_message_for_notification.files_sent",
@@ -2234,14 +2226,6 @@
   {
     "id": "api.templates.email_organization",
     "translation": "发送人 "
-  },
-  {
-    "id": "api.templates.error.link",
-    "translation": "返回到Mattermost"
-  },
-  {
-    "id": "api.templates.error.title",
-    "translation": "{{ .SiteName }} 需要你的帮助："
   },
   {
     "id": "api.templates.find_teams_body.found",
@@ -2997,7 +2981,7 @@
   },
   {
     "id": "app.channel.move_channel.members_do_not_match.error",
-    "translation": "Cannot move a channel unless all its members are already members of the destination team."
+    "translation": "无法移动频道除非所有成员已是目标团队的成员。"
   },
   {
     "id": "app.channel.post_update_channel_purpose_message.post.error",
@@ -3441,43 +3425,39 @@
   },
   {
     "id": "app.plugin.activate.app_error",
-    "translation": "Unable to activate extracted plugin. Plugin may already exist and be activated."
-  },
-  {
-    "id": "app.plugin.bad_path.app_error",
-    "translation": "Bad file path in extracted files"
+    "translation": "无法激活揭开的插件。插件可能已存在并已激活。"
   },
   {
     "id": "app.plugin.deactivate.app_error",
-    "translation": "无法删除反应"
+    "translation": "无法停用插件"
   },
   {
     "id": "app.plugin.disabled.app_error",
-    "translation": "Plugins have been disabled by the system admin or the server has not been restarted since they were enabled."
+    "translation": "插件已被系统管理员禁用或开启后未重启服务器。"
   },
   {
     "id": "app.plugin.extract.app_error",
-    "translation": "Encountered error extracting plugin"
+    "translation": "解压插件时遇到错误"
+  },
+  {
+    "id": "app.plugin.filesystem.app_error",
+    "translation": "Encountered filesystem error"
   },
   {
     "id": "app.plugin.get_plugins.app_error",
-    "translation": "无法删除反应"
+    "translation": "无法获取已启动的插件"
   },
   {
     "id": "app.plugin.manifest.app_error",
-    "translation": "Unable to find manifest for extracted plugin"
+    "translation": "无法在解压的插件里找到 manifest 档"
   },
   {
     "id": "app.plugin.mvdir.app_error",
-    "translation": "Unable to move plugin from temporary directory to final destination"
-  },
-  {
-    "id": "app.plugin.no_files.app_error",
-    "translation": "No files found in the compressed folder"
+    "translation": "无法移动插件从临时目录到最终目录"
   },
   {
     "id": "app.plugin.remove.app_error",
-    "translation": "无法删除反应"
+    "translation": "无法删除插件"
   },
   {
     "id": "app.user_access_token.disabled",
@@ -3709,19 +3689,19 @@
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.create_index_job.error",
-    "translation": "Elasticsearch aggregator worker failed to create the indexing job"
+    "translation": "Elasticsearch 聚合器工作者创建索引任务失败"
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.delete_indexes.error",
-    "translation": "Elasticsearch aggregator worker failed to delete the indexes"
+    "translation": "Elasticsearch 聚合器工作者创删除引失败"
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.get_indexes.error",
-    "translation": "Elasticsearch aggregator worker failed to get indexes"
+    "translation": "Elasticsearch 聚合器工作者获取索引失败"
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.index_job_failed.error",
-    "translation": "Elasticsearch aggregator worker failed due to the indexing job failing"
+    "translation": "Elasticsearch 聚合器工作者因索引任务失败而失败"
   },
   {
     "id": "ent.elasticsearch.create_client.connect_failed",
@@ -3753,11 +3733,11 @@
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.parse_end_time.error",
-    "translation": "Elasticsearch indexing worker failed to parse the end time"
+    "translation": "Elasticsearch 索引工作者解析中止时间失败"
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.parse_start_time.error",
-    "translation": "Elasticsearch indexing worker failed to parse the start time"
+    "translation": "Elasticsearch 索引工作者解析开始时间失败"
   },
   {
     "id": "ent.elasticsearch.not_started.error",
@@ -3986,30 +3966,6 @@
   {
     "id": "ent.saml.update_saml_user.unable_error",
     "translation": "无法更新现有SAML用户。仍允许登入。err=%v"
-  },
-  {
-    "id": "error.generic.link_message",
-    "translation": "返回到 Mattermost"
-  },
-  {
-    "id": "error.generic.message",
-    "translation": "发生一个错误。"
-  },
-  {
-    "id": "error.generic.title",
-    "translation": "出错"
-  },
-  {
-    "id": "error.not_found.link_message",
-    "translation": "返回到Mattermost"
-  },
-  {
-    "id": "error.not_found.message",
-    "translation": "您试图访问的页面不存在。"
-  },
-  {
-    "id": "error.not_found.title",
-    "translation": "未找到该页面"
   },
   {
     "id": "jobs.request_cancellation.status.error",
@@ -4289,7 +4245,7 @@
   },
   {
     "id": "model.client.writer.app_error",
-    "translation": "Unable to build multipart request"
+    "translation": "无法建立 multipart 请求"
   },
   {
     "id": "model.command.is_valid.create_at.app_error",
@@ -4396,8 +4352,20 @@
     "translation": "当机群启用时没法启动批量电子邮件。"
   },
   {
+    "id": "model.config.is_valid.data_retention.deletion_job_start_time.app_error",
+    "translation": "DataRetention DeletionJobStartTime setting must be set to a time in the format \"hh:mm\""
+  },
+  {
+    "id": "model.config.is_valid.data_retention.file_retention_days_too_low.app_error",
+    "translation": "DataRetention FileRetentionDays setting must be at least 1"
+  },
+  {
+    "id": "model.config.is_valid.data_retention.message_retention_days_too_low.app_error",
+    "translation": "DataRetention MessageRetentionDays setting must be at least 1"
+  },
+  {
     "id": "model.config.is_valid.elastic_search.aggregate_posts_after_days.app_error",
-    "translation": "Elasticsearch AggregatePostsAfterDays setting must be a number greater than or equal to 1"
+    "translation": "Elasticsearch AggregatePostsAfterDays 设定必须为大于或等于 1 的数字"
   },
   {
     "id": "model.config.is_valid.elastic_search.connection_url.app_error",
@@ -4413,7 +4381,7 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.posts_aggregator_job_start_time.app_error",
-    "translation": "Elasticsearch PostsAggregatorJobStartTime setting must be a time in the format \"hh:mm\""
+    "translation": "Elasticsearch PostsAggregatorJobStartTime 设定必须以 \"hh:mm\" 格式的时间"
   },
   {
     "id": "model.config.is_valid.elastic_search.username.app_error",
@@ -5300,6 +5268,10 @@
     "translation": "已达到分页限制"
   },
   {
+    "id": "store.sql_audit.permanent_delete_batch.app_error",
+    "translation": "We encountered an error permanently deleting the batch of audits"
+  },
+  {
     "id": "store.sql_audit.permanent_delete_by_user.app_error",
     "translation": "我们删除审核时遇到了一个错误"
   },
@@ -5660,6 +5632,10 @@
     "translation": "我们无法永久删除文件信息"
   },
   {
+    "id": "store.sql_file_info.permanent_delete_batch.app_error",
+    "translation": "We encountered an error permanently deleting the batch of file infos"
+  },
+  {
     "id": "store.sql_file_info.save.app_error",
     "translation": "我们无法保存文件信息"
   },
@@ -5868,6 +5844,10 @@
     "translation": "我们不能删除用户的评论"
   },
   {
+    "id": "store.sql_post.permanent_delete_batch.app_error",
+    "translation": "We encountered an error permanently deleting the batch of posts"
+  },
+  {
     "id": "store.sql_post.permanent_delete_by_channel.app_error",
     "translation": "我们无法在频道中删除这些消息"
   },
@@ -5986,6 +5966,10 @@
   {
     "id": "store.sql_reaction.get_for_post.app_error",
     "translation": "无法获取消息的反应"
+  },
+  {
+    "id": "store.sql_reaction.permanent_delete_batch.app_error",
+    "translation": "We encountered an error permanently deleting the batch of reactions"
   },
   {
     "id": "store.sql_reaction.save.begin.app_error",
@@ -6684,10 +6668,6 @@
     "translation": "授权申请"
   },
   {
-    "id": "web.check_browser_compatibility.app_error",
-    "translation": "您当前的浏览器不支持，请升级到下列浏览器之一：Chrome 21 或以上、Internet Explorer 11 或以上、火狐 14 或以上、Safari 9 或以上"
-  },
-  {
     "id": "web.claim_account.team.error",
     "translation": "不能找到团队 name=%v, err=%v"
   },
@@ -6730,6 +6710,34 @@
   {
     "id": "web.email_verified.title",
     "translation": "邮箱验证"
+  },
+  {
+    "id": "web.error.unsupported_browser.help1",
+    "translation": "Google Chrome 43+"
+  },
+  {
+    "id": "web.error.unsupported_browser.help2",
+    "translation": "Mozilla Firefox 52+"
+  },
+  {
+    "id": "web.error.unsupported_browser.help3",
+    "translation": "Microsoft Internet Explorer 11+"
+  },
+  {
+    "id": "web.error.unsupported_browser.help4",
+    "translation": "Microsoft Edge 40+"
+  },
+  {
+    "id": "web.error.unsupported_browser.help5",
+    "translation": "Apple Safari 9+"
+  },
+  {
+    "id": "web.error.unsupported_browser.message",
+    "translation": "Your current browser is not supported. Please upgrade to one of the following browsers:"
+  },
+  {
+    "id": "web.error.unsupported_browser.title",
+    "translation": "Unsupported Browser"
   },
   {
     "id": "web.find_team.title",
