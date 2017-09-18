@@ -61,7 +61,7 @@ func (es SqlEmojiStore) Save(emoji *model.Emoji) StoreChannel {
 		}
 
 		if err := es.GetMaster().Insert(emoji); err != nil {
-			result.Err = model.NewLocAppError("SqlEmojiStore.Save", "store.sql_emoji.save.app_error", nil, "id="+emoji.Id+", "+err.Error())
+			result.Err = model.NewAppError("SqlEmojiStore.Save", "store.sql_emoji.save.app_error", nil, "id="+emoji.Id+", "+err.Error(), http.StatusInternalServerError)
 		} else {
 			result.Data = emoji
 		}
@@ -141,7 +141,7 @@ func (es SqlEmojiStore) GetByName(name string) StoreChannel {
 			WHERE
 				Name = :Name
 				AND DeleteAt = 0`, map[string]interface{}{"Name": name}); err != nil {
-			result.Err = model.NewLocAppError("SqlEmojiStore.GetByName", "store.sql_emoji.get_by_name.app_error", nil, "name="+name+", "+err.Error())
+			result.Err = model.NewAppError("SqlEmojiStore.GetByName", "store.sql_emoji.get_by_name.app_error", nil, "name="+name+", "+err.Error(), http.StatusInternalServerError)
 		} else {
 			result.Data = emoji
 		}
@@ -196,9 +196,9 @@ func (es SqlEmojiStore) Delete(id string, time int64) StoreChannel {
 			WHERE
 				Id = :Id
 				AND DeleteAt = 0`, map[string]interface{}{"DeleteAt": time, "UpdateAt": time, "Id": id}); err != nil {
-			result.Err = model.NewLocAppError("SqlEmojiStore.Delete", "store.sql_emoji.delete.app_error", nil, "id="+id+", err="+err.Error())
+			result.Err = model.NewAppError("SqlEmojiStore.Delete", "store.sql_emoji.delete.app_error", nil, "id="+id+", err="+err.Error(), http.StatusInternalServerError)
 		} else if rows, _ := sqlResult.RowsAffected(); rows == 0 {
-			result.Err = model.NewLocAppError("SqlEmojiStore.Delete", "store.sql_emoji.delete.no_results", nil, "id="+id+", err="+err.Error())
+			result.Err = model.NewAppError("SqlEmojiStore.Delete", "store.sql_emoji.delete.no_results", nil, "id="+id+", err="+err.Error(), http.StatusBadRequest)
 		}
 
 		emojiCache.Remove(id)

@@ -70,7 +70,7 @@ func (fs SqlFileInfoStore) Save(info *model.FileInfo) StoreChannel {
 		}
 
 		if err := fs.GetMaster().Insert(info); err != nil {
-			result.Err = model.NewLocAppError("SqlFileInfoStore.Save", "store.sql_file_info.save.app_error", nil, err.Error())
+			result.Err = model.NewAppError("SqlFileInfoStore.Save", "store.sql_file_info.save.app_error", nil, err.Error(), http.StatusInternalServerError)
 		} else {
 			result.Data = info
 		}

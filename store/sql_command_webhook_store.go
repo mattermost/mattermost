@@ -4,9 +4,8 @@
 package store
 
 import (
-	"net/http"
-
 	"database/sql"
+	"net/http"
 
 	l4g "github.com/alecthomas/log4go"
 
@@ -44,7 +43,7 @@ func (s SqlCommandWebhookStore) Save(webhook *model.CommandWebhook) StoreChannel
 		result := StoreResult{}
 
 		if len(webhook.Id) > 0 {
-			result.Err = model.NewLocAppError("SqlCommandWebhookStore.Save", "store.sql_command_webhooks.save.existing.app_error", nil, "id="+webhook.Id)
+			result.Err = model.NewAppError("SqlCommandWebhookStore.Save", "store.sql_command_webhooks.save.existing.app_error", nil, "id="+webhook.Id, http.StatusBadRequest)
 			storeChannel <- result
 			close(storeChannel)
 			return
@@ -58,7 +57,7 @@ func (s SqlCommandWebhookStore) Save(webhook *model.CommandWebhook) StoreChannel
 		}
 
 		if err := s.GetMaster().Insert(webhook); err != nil {
-			result.Err = model.NewLocAppError("SqlCommandWebhookStore.Save", "store.sql_command_webhooks.save.app_error", nil, "id="+webhook.Id+", "+err.Error())
+			result.Err = model.NewAppError("SqlCommandWebhookStore.Save", "store.sql_command_webhooks.save.app_error", nil, "id="+webhook.Id+", "+err.Error(), http.StatusInternalServerError)
 		} else {
 			result.Data = webhook
 		}
@@ -80,7 +79,7 @@ func (s SqlCommandWebhookStore) Get(id string) StoreChannel {
 
 		exptime := model.GetMillis() - model.COMMAND_WEBHOOK_LIFETIME
 		if err := s.GetReplica().SelectOne(&webhook, "SELECT * FROM CommandWebhooks WHERE Id = :Id AND CreateAt > :ExpTime", map[string]interface{}{"Id": id, "ExpTime": exptime}); err != nil {
-			result.Err = model.NewLocAppError("SqlCommandWebhookStore.Get", "store.sql_command_webhooks.get.app_error", nil, "id="+id+", err="+err.Error())
+			result.Err = model.NewAppError("SqlCommandWebhookStore.Get", "store.sql_command_webhooks.get.app_error", nil, "id="+id+", err="+err.Error(), http.StatusInternalServerError)
 			if err == sql.ErrNoRows {
 				result.Err.StatusCode = http.StatusNotFound
 			}
@@ -102,7 +101,7 @@ func (s SqlCommandWebhookStore) TryUse(id string, limit int) StoreChannel {
 		result := StoreResult{}
 
 		if sqlResult, err := s.GetMaster().Exec("UPDATE CommandWebhooks SET UseCount = UseCount + 1 WHERE Id = :Id AND UseCount < :UseLimit", map[string]interface{}{"Id": id, "UseLimit": limit}); err != nil {
-			result.Err = model.NewLocAppError("SqlCommandWebhookStore.TryUse", "store.sql_command_webhooks.try_use.app_error", nil, "id="+id+", err="+err.Error())
+			result.Err = model.NewAppError("SqlCommandWebhookStore.TryUse", "store.sql_command_webhooks.try_use.app_error", nil, "id="+id+", err="+err.Error(), http.StatusInternalServerError)
 		} else if rows, _ := sqlResult.RowsAffected(); rows == 0 {
 			result.Err = model.NewAppError("SqlCommandWebhookStore.TryUse", "store.sql_command_webhooks.try_use.invalid.app_error", nil, "id="+id, http.StatusBadRequest)
 		}
