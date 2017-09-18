@@ -4801,7 +4801,7 @@
   },
   {
     "id": "model.outgoing_hook.is_valid.team_id.app_error",
-    "translation": "Invalid team ID" 
+    "translation": "Invalid team ID"
   },
   {
     "id": "model.outgoing_hook.is_valid.token.app_error",
