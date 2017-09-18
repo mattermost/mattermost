@@ -1406,6 +1406,7 @@ func (us SqlUserStore) SearchInChannel(channelId string, term string, options ma
 var specialUserSearchChar = []string{
 	"*",
 	"%",
+	"_",
 }
 
 func (us SqlUserStore) performSearch(searchQuery string, term string, options map[string]bool, parameters map[string]interface{}) StoreResult {
@@ -1413,7 +1414,7 @@ func (us SqlUserStore) performSearch(searchQuery string, term string, options ma
 
 	// These chars must be removed from the like query.
 	for _, c := range specialUserSearchChar {
-		term = strings.Replace(term, c, "", -1)
+		term = strings.Replace(term, c, "*"+c, -1)
 	}
 
 	searchType := USER_SEARCH_TYPE_ALL
@@ -1441,7 +1442,7 @@ func (us SqlUserStore) performSearch(searchQuery string, term string, options ma
 		for i, term := range splitTerms {
 			fields := []string{}
 			for _, field := range splitFields {
-				fields = append(fields, fmt.Sprintf("%s LIKE %s", field, fmt.Sprintf(":Term%d", i)))
+				fields = append(fields, fmt.Sprintf("%s LIKE %s escape '*' ", field, fmt.Sprintf(":Term%d", i)))
 			}
 			terms = append(terms, fmt.Sprintf("(%s)", strings.Join(fields, " OR ")))
 			parameters[fmt.Sprintf("Term%d", i)] = fmt.Sprintf("%s%%", term)
