@@ -53,6 +53,23 @@ func (a *App) GetOAuthApp(appId string) (*model.OAuthApp, *model.AppError) {
 	}
 }
 
+func (a *App) UpdateOauthApp(oldApp, updatedApp *model.OAuthApp) (*model.OAuthApp, *model.AppError) {
+	if !utils.Cfg.ServiceSettings.EnableOAuthServiceProvider {
+		return nil, model.NewAppError("UpdateOauthApp", "api.oauth.allow_oauth.turn_off.app_error", nil, "", http.StatusNotImplemented)
+	}
+
+	updatedApp.Id = oldApp.Id
+	updatedApp.CreatorId = oldApp.CreatorId
+	updatedApp.CreateAt = oldApp.CreateAt
+	updatedApp.ClientSecret = oldApp.ClientSecret
+
+	if result := <-a.Srv.Store.OAuth().UpdateApp(updatedApp); result.Err != nil {
+		return nil, result.Err
+	} else {
+		return result.Data.([2]*model.OAuthApp)[0], nil
+	}
+}
+
 func (a *App) DeleteOAuthApp(appId string) *model.AppError {
 	if !utils.Cfg.ServiceSettings.EnableOAuthServiceProvider {
 		return model.NewAppError("DeleteOAuthApp", "api.oauth.allow_oauth.turn_off.app_error", nil, "", http.StatusNotImplemented)

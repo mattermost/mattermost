@@ -18,6 +18,7 @@ func InitOAuth() {
 	l4g.Debug(utils.T("api.oauth.init.debug"))
 
 	BaseRoutes.OAuthApps.Handle("", ApiSessionRequired(createOAuthApp)).Methods("POST")
+	BaseRoutes.OAuthApp.Handle("", ApiSessionRequired(updateOAuthApp)).Methods("PUT")
 	BaseRoutes.OAuthApps.Handle("", ApiSessionRequired(getOAuthApps)).Methods("GET")
 	BaseRoutes.OAuthApp.Handle("", ApiSessionRequired(getOAuthApp)).Methods("GET")
 	BaseRoutes.OAuthApp.Handle("/info", ApiSessionRequired(getOAuthAppInfo)).Methods("GET")
@@ -72,6 +73,47 @@ func createOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.LogAudit("client_id=" + rapp.Id)
 	w.WriteHeader(http.StatusCreated)
 	w.Write([]byte(rapp.ToJson()))
+}
+
+func updateOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireAppId()
+	if c.Err != nil {
+		return
+	}
+
+	if !app.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_OAUTH) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_OAUTH)
+		return
+	}
+
+	oauthApp := model.OAuthAppFromJson(r.Body)
+	if oauthApp == nil {
+		c.SetInvalidParam("oauth_app")
+		return
+	}
+
+	c.LogAudit("attempt")
+
+	oldOauthApp, err := c.App.GetOAuthApp(c.Params.AppId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	if c.Session.UserId != oauthApp.CreatorId && !app.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM_WIDE_OAUTH) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM_WIDE_OAUTH)
+		return
+	}
+
+	updatedOauthApp, err := c.App.UpdateOauthApp(oldOauthApp, oauthApp)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	c.LogAudit("success")
+
+	w.Write([]byte(updatedOauthApp.ToJson()))
 }
 
 func getOAuthApps(c *Context, w http.ResponseWriter, r *http.Request) {
