@@ -422,7 +422,7 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 		if action == model.OAUTH_ACTION_MOBILE {
 			w.Write([]byte(err.ToJson()))
 		} else {
-			http.Redirect(w, r, c.GetSiteURLHeader()+"/error?message="+err.Message, http.StatusTemporaryRedirect)
+			http.Redirect(w, r, c.GetSiteURLHeader()+"/error?message="+url.QueryEscape(err.Message), http.StatusTemporaryRedirect)
 		}
 		return
 	}
@@ -434,7 +434,7 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 		if action == model.OAUTH_ACTION_MOBILE {
 			w.Write([]byte(err.ToJson()))
 		} else {
-			http.Redirect(w, r, c.GetSiteURLHeader()+"/error?message="+err.Message, http.StatusTemporaryRedirect)
+			http.Redirect(w, r, c.GetSiteURLHeader()+"/error?message="+url.QueryEscape(err.Message), http.StatusTemporaryRedirect)
 		}
 		return
 	}
