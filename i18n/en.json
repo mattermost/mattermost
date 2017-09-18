@@ -2725,7 +2725,7 @@
   },
   {
     "id": "api.user.send_user_access_token.error",
-    "translation": "Failed to send personal access token added email successfully"
+    "translation": "Failed to send \"Personal access token added\" email successfully"
   },
   {
     "id": "api.user.send_verify_email_and_forget.failed.error",
@@ -4802,6 +4802,7 @@
   {
     "id": "model.outgoing_hook.is_valid.team_id.app_error",
     "translation": "Invalid team ID"
+    
   },
   {
     "id": "model.outgoing_hook.is_valid.token.app_error",
