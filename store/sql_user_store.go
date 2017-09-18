@@ -1403,17 +1403,25 @@ func (us SqlUserStore) SearchInChannel(channelId string, term string, options ma
 	return storeChannel
 }
 
-var specialUserSearchChar = []string{
-	"*",
+var escapeUserSearchChar = []string{
 	"%",
 	"_",
+}
+
+var ignoreUserSearchChar = []string{
+	"*",
 }
 
 func (us SqlUserStore) performSearch(searchQuery string, term string, options map[string]bool, parameters map[string]interface{}) StoreResult {
 	result := StoreResult{}
 
 	// These chars must be removed from the like query.
-	for _, c := range specialUserSearchChar {
+	for _, c := range ignoreUserSearchChar {
+		term = strings.Replace(term, c, "", -1)
+	}
+
+	// These chars must be escaped in the like query.
+	for _, c := range escapeUserSearchChar {
 		term = strings.Replace(term, c, "*"+c, -1)
 	}
 

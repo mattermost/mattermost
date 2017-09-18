@@ -1586,7 +1586,7 @@ func (s SqlChannelStore) performSearch(searchQuery string, term string, paramete
 	result := StoreResult{}
 
 	// these chars have special meaning and can be treated as spaces
-	for _, c := range specialUserSearchChar {
+	for _, c := range ignoreUserSearchChar {
 		term = strings.Replace(term, c, " ", -1)
 	}
 

@@ -1341,11 +1341,20 @@ func TestUserStoreSearch(t *testing.T) {
 	u5.Email = model.NewId() + "@simulator.amazonses.com"
 	Must(store.User().Save(u5))
 
+	u6 := &model.User{}
+	u6.Username = "underscore" + model.NewId()
+	u6.FirstName = "Du_"
+	u6.LastName = "_DE"
+	u6.Nickname = "lodash"
+	u6.Email = model.NewId() + "@simulator.amazonses.com"
+	Must(store.User().Save(u6))
+
 	tid := model.NewId()
 	Must(store.Team().SaveMember(&model.TeamMember{TeamId: tid, UserId: u1.Id}))
 	Must(store.Team().SaveMember(&model.TeamMember{TeamId: tid, UserId: u2.Id}))
 	Must(store.Team().SaveMember(&model.TeamMember{TeamId: tid, UserId: u3.Id}))
 	Must(store.Team().SaveMember(&model.TeamMember{TeamId: tid, UserId: u5.Id}))
+	Must(store.Team().SaveMember(&model.TeamMember{TeamId: tid, UserId: u6.Id}))
 
 	searchOptions := map[string]bool{}
 	searchOptions[USER_SEARCH_OPTION_NAMES_ONLY] = true
@@ -1450,6 +1459,56 @@ func TestUserStoreSearch(t *testing.T) {
 
 		if found1 {
 			t.Fatal("should not have found user")
+		}
+	}
+
+	// % should be escaped and searched for.
+	if r1 := <-store.User().Search(tid, "h%", searchOptions); r1.Err != nil {
+		t.Fatal(r1.Err)
+	} else {
+		profiles := r1.Data.([]*model.User)
+		if len(profiles) != 0 {
+			t.Fatal("shouldn't have found anything")
+		}
+	}
+
+	// "_" should be properly escaped and searched for.
+	if r1 := <-store.User().Search(tid, "h_", searchOptions); r1.Err != nil {
+		t.Fatal(r1.Err)
+	} else {
+		profiles := r1.Data.([]*model.User)
+		if len(profiles) != 0 {
+			t.Fatal("shouldn't have found anything")
+		}
+	}
+	if r1 := <-store.User().Search(tid, "Du_", searchOptions); r1.Err != nil {
+		t.Fatal(r1.Err)
+	} else {
+		profiles := r1.Data.([]*model.User)
+		found6 := false
+		for _, profile := range profiles {
+			if profile.Id == u6.Id {
+				found6 = true
+			}
+		}
+
+		if !found6 {
+			t.Fatal("should have found user")
+		}
+	}
+	if r1 := <-store.User().Search(tid, "_dE", searchOptions); r1.Err != nil {
+		t.Fatal(r1.Err)
+	} else {
+		profiles := r1.Data.([]*model.User)
+		found6 := false
+		for _, profile := range profiles {
+			if profile.Id == u6.Id {
+				found6 = true
+			}
+		}
+
+		if !found6 {
+			t.Fatal("should have found user")
 		}
 	}
 
