@@ -46,7 +46,7 @@ func (s SqlTokenStore) Save(token *model.Token) StoreChannel {
 		}
 
 		if err := s.GetMaster().Insert(token); err != nil {
-			result.Err = model.NewLocAppError("SqlTokenStore.Save", "store.sql_recover.save.app_error", nil, "")
+			result.Err = model.NewAppError("SqlTokenStore.Save", "store.sql_recover.save.app_error", nil, "", http.StatusInternalServerError)
 		}
 
 		storeChannel <- result
@@ -64,7 +64,7 @@ func (s SqlTokenStore) Delete(token string) StoreChannel {
 		result := StoreResult{}
 
 		if _, err := s.GetMaster().Exec("DELETE FROM Tokens WHERE Token = :Token", map[string]interface{}{"Token": token}); err != nil {
-			result.Err = model.NewLocAppError("SqlTokenStore.Delete", "store.sql_recover.delete.app_error", nil, "")
+			result.Err = model.NewAppError("SqlTokenStore.Delete", "store.sql_recover.delete.app_error", nil, "", http.StatusInternalServerError)
 		}
 
 		storeChannel <- result
