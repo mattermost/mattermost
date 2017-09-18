@@ -39,8 +39,7 @@ func (jss SqlJobStore) Save(job *model.Job) StoreChannel {
 	go func() {
 		result := StoreResult{}
 		if err := jss.GetMaster().Insert(job); err != nil {
-			result.Err = model.NewLocAppError("SqlJobStore.Save",
-				"store.sql_job.save.app_error", nil, "id="+job.Id+", "+err.Error())
+			result.Err = model.NewAppError("SqlJobStore.Save", "store.sql_job.save.app_error", nil, "id="+job.Id+", "+err.Error(), http.StatusInternalServerError)
 		} else {
 			result.Data = job
 		}
@@ -78,14 +77,12 @@ func (jss SqlJobStore) UpdateOptimistically(job *model.Job, currentStatus string
 				"Data":           job.DataToJson(),
 				"Progress":       job.Progress,
 			}); err != nil {
-			result.Err = model.NewLocAppError("SqlJobStore.UpdateOptimistically",
-				"store.sql_job.update.app_error", nil, "id="+job.Id+", "+err.Error())
+			result.Err = model.NewAppError("SqlJobStore.UpdateOptimistically", "store.sql_job.update.app_error", nil, "id="+job.Id+", "+err.Error(), http.StatusInternalServerError)
 		} else {
 			rows, err := sqlResult.RowsAffected()
 
 			if err != nil {
-				result.Err = model.NewLocAppError("SqlJobStore.UpdateStatus",
-					"store.sql_job.update.app_error", nil, "id="+job.Id+", "+err.Error())
+				result.Err = model.NewAppError("SqlJobStore.UpdateStatus", "store.sql_job.update.app_error", nil, "id="+job.Id+", "+err.Error(), http.StatusInternalServerError)
 			} else {
 				if rows == 1 {
 					result.Data = true
@@ -117,8 +114,7 @@ func (jss SqlJobStore) UpdateStatus(id string, status string) StoreChannel {
 		if _, err := jss.GetMaster().UpdateColumns(func(col *gorp.ColumnMap) bool {
 			return col.ColumnName == "Status" || col.ColumnName == "LastActivityAt"
 		}, job); err != nil {
-			result.Err = model.NewLocAppError("SqlJobStore.UpdateStatus",
-				"store.sql_job.update.app_error", nil, "id="+id+", "+err.Error())
+			result.Err = model.NewAppError("SqlJobStore.UpdateStatus", "store.sql_job.update.app_error", nil, "id="+id+", "+err.Error(), http.StatusInternalServerError)
 		}
 
 		if result.Err == nil {
@@ -153,14 +149,12 @@ func (jss SqlJobStore) UpdateStatusOptimistically(id string, currentStatus strin
 				Id = :Id
 			AND
 				Status = :OldStatus`, map[string]interface{}{"Id": id, "OldStatus": currentStatus, "NewStatus": newStatus, "StartAt": model.GetMillis(), "LastActivityAt": model.GetMillis()}); err != nil {
-			result.Err = model.NewLocAppError("SqlJobStore.UpdateStatus",
-				"store.sql_job.update.app_error", nil, "id="+id+", "+err.Error())
+			result.Err = model.NewAppError("SqlJobStore.UpdateStatus", "store.sql_job.update.app_error", nil, "id="+id+", "+err.Error(), http.StatusInternalServerError)
 		} else {
 			rows, err := sqlResult.RowsAffected()
 
 			if err != nil {
-				result.Err = model.NewLocAppError("SqlJobStore.UpdateStatus",
-					"store.sql_job.update.app_error", nil, "id="+id+", "+err.Error())
+				result.Err = model.NewAppError("SqlJobStore.UpdateStatus", "store.sql_job.update.app_error", nil, "id="+id+", "+err.Error(), http.StatusInternalServerError)
 			} else {
 				if rows == 1 {
 					result.Data = true
@@ -193,11 +187,9 @@ func (jss SqlJobStore) Get(id string) StoreChannel {
 			WHERE
 				Id = :Id`, map[string]interface{}{"Id": id}); err != nil {
 			if err == sql.ErrNoRows {
-				result.Err = model.NewAppError("SqlJobStore.Get",
-					"store.sql_job.get.app_error", nil, "Id="+id+", "+err.Error(), http.StatusNotFound)
+				result.Err = model.NewAppError("SqlJobStore.Get", "store.sql_job.get.app_error", nil, "Id="+id+", "+err.Error(), http.StatusNotFound)
 			} else {
-				result.Err = model.NewAppError("SqlJobStore.Get",
-					"store.sql_job.get.app_error", nil, "Id="+id+", "+err.Error(), http.StatusInternalServerError)
+				result.Err = model.NewAppError("SqlJobStore.Get", "store.sql_job.get.app_error", nil, "Id="+id+", "+err.Error(), http.StatusInternalServerError)
 			}
 		} else {
 			result.Data = status
@@ -229,8 +221,7 @@ func (jss SqlJobStore) GetAllPage(offset int, limit int) StoreChannel {
 				:Limit
 			OFFSET
 				:Offset`, map[string]interface{}{"Limit": limit, "Offset": offset}); err != nil {
-			result.Err = model.NewLocAppError("SqlJobStore.GetAllPage",
-				"store.sql_job.get_all.app_error", nil, err.Error())
+			result.Err = model.NewAppError("SqlJobStore.GetAllPage", "store.sql_job.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
 		} else {
 			result.Data = statuses
 		}
@@ -259,8 +250,7 @@ func (jss SqlJobStore) GetAllByType(jobType string) StoreChannel {
 				Type = :Type
 			ORDER BY
 				CreateAt DESC`, map[string]interface{}{"Type": jobType}); err != nil {
-			result.Err = model.NewLocAppError("SqlJobStore.GetAllByType",
-				"store.sql_job.get_all.app_error", nil, "Type="+jobType+", "+err.Error())
+			result.Err = model.NewAppError("SqlJobStore.GetAllByType", "store.sql_job.get_all.app_error", nil, "Type="+jobType+", "+err.Error(), http.StatusInternalServerError)
 		} else {
 			result.Data = statuses
 		}
@@ -293,8 +283,7 @@ func (jss SqlJobStore) GetAllByTypePage(jobType string, offset int, limit int) S
 				:Limit
 			OFFSET
 				:Offset`, map[string]interface{}{"Type": jobType, "Limit": limit, "Offset": offset}); err != nil {
-			result.Err = model.NewLocAppError("SqlJobStore.GetAllByTypePage",
-				"store.sql_job.get_all.app_error", nil, "Type="+jobType+", "+err.Error())
+			result.Err = model.NewAppError("SqlJobStore.GetAllByTypePage", "store.sql_job.get_all.app_error", nil, "Type="+jobType+", "+err.Error(), http.StatusInternalServerError)
 		} else {
 			result.Data = statuses
 		}
@@ -323,8 +312,7 @@ func (jss SqlJobStore) GetAllByStatus(status string) StoreChannel {
 				Status = :Status
 			ORDER BY
 				CreateAt ASC`, map[string]interface{}{"Status": status}); err != nil {
-			result.Err = model.NewLocAppError("SqlJobStore.GetAllByStatus",
-				"store.sql_job.get_all.app_error", nil, "Status="+status+", "+err.Error())
+			result.Err = model.NewAppError("SqlJobStore.GetAllByStatus", "store.sql_job.get_all.app_error", nil, "Status="+status+", "+err.Error(), http.StatusInternalServerError)
 		} else {
 			result.Data = statuses
 		}
@@ -347,8 +335,7 @@ func (jss SqlJobStore) Delete(id string) StoreChannel {
 				Jobs
 			WHERE
 				Id = :Id`, map[string]interface{}{"Id": id}); err != nil {
-			result.Err = model.NewLocAppError("SqlJobStore.DeleteByType",
-				"store.sql_job.delete.app_error", nil, "id="+id+", "+err.Error())
+			result.Err = model.NewAppError("SqlJobStore.DeleteByType", "store.sql_job.delete.app_error", nil, "id="+id+", "+err.Error(), http.StatusInternalServerError)
 		} else {
 			result.Data = id
 		}
