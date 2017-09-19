@@ -51,7 +51,7 @@ func (workers *Workers) Start() *Workers {
 	l4g.Info("Starting workers")
 
 	workers.startOnce.Do(func() {
-		if workers.DataRetention != nil && *utils.Cfg.DataRetentionSettings.Enable {
+		if workers.DataRetention != nil && (*utils.Cfg.DataRetentionSettings.EnableMessageDeletion || *utils.Cfg.DataRetentionSettings.EnableFileDeletion) {
 			go workers.DataRetention.Run()
 		}
 
@@ -77,9 +77,9 @@ func (workers *Workers) Start() *Workers {
 
 func (workers *Workers) handleConfigChange(oldConfig *model.Config, newConfig *model.Config) {
 	if workers.DataRetention != nil {
-		if !*oldConfig.DataRetentionSettings.Enable && *newConfig.DataRetentionSettings.Enable {
+		if (!*oldConfig.DataRetentionSettings.EnableMessageDeletion && !*oldConfig.DataRetentionSettings.EnableFileDeletion) && (*newConfig.DataRetentionSettings.EnableMessageDeletion || *newConfig.DataRetentionSettings.EnableFileDeletion) {
 			go workers.DataRetention.Run()
-		} else if *oldConfig.DataRetentionSettings.Enable && !*newConfig.DataRetentionSettings.Enable {
+		} else if (*oldConfig.DataRetentionSettings.EnableMessageDeletion || *oldConfig.DataRetentionSettings.EnableFileDeletion) && (!*newConfig.DataRetentionSettings.EnableMessageDeletion && !*newConfig.DataRetentionSettings.EnableFileDeletion) {
 			workers.DataRetention.Stop()
 		}
 	}
@@ -114,7 +114,7 @@ func (workers *Workers) Stop() *Workers {
 
 	workers.Watcher.Stop()
 
-	if workers.DataRetention != nil && *utils.Cfg.DataRetentionSettings.Enable {
+	if workers.DataRetention != nil && (*utils.Cfg.DataRetentionSettings.EnableMessageDeletion || *utils.Cfg.DataRetentionSettings.EnableFileDeletion) {
 		workers.DataRetention.Stop()
 	}
 

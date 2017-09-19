@@ -2725,7 +2725,7 @@
   },
   {
     "id": "api.user.send_user_access_token.error",
-    "translation": "Failed to send personal access token added email successfully"
+    "translation": "Failed to send \"Personal access token added\" email successfully"
   },
   {
     "id": "api.user.send_verify_email_and_forget.failed.error",
@@ -4364,6 +4364,18 @@
     "translation": "Elasticsearch AggregatePostsAfterDays setting must be a number greater than or equal to 1"
   },
   {
+    "id": "model.config.is_valid.data_retention.message_retention_days_too_low.app_error",
+    "translation": "DataRetention MessageRetentionDays setting must be at least 1"
+  },
+  {
+    "id": "model.config.is_valid.data_retention.file_retention_days_too_low.app_error",
+    "translation": "DataRetention FileRetentionDays setting must be at least 1"
+  },
+  {
+    "id": "model.config.is_valid.data_retention.deletion_job_start_time.app_error",
+    "translation": "DataRetention DeletionJobStartTime setting must be set to a time in the format \"hh:mm\""
+  },
+  {
     "id": "model.config.is_valid.elastic_search.connection_url.app_error",
     "translation": "Elastic Search ConnectionUrl setting must be provided when Elastic Search indexing is enabled."
   },
@@ -5272,6 +5284,10 @@
     "translation": "We encountered an error saving the audit"
   },
   {
+    "id": "store.sql_audit.permanent_delete_batch.app_error",
+    "translation": "We encountered an error permanently deleting the batch of audits"
+  },
+  {
     "id": "store.sql_channel.analytics_deleted_type_count.app_error",
     "translation": "We couldn't get deleted channel type counts"
   },
@@ -5632,6 +5648,10 @@
     "translation": "We couldn't save or update the file info"
   },
   {
+    "id": "store.sql_file_info.permanent_delete_batch.app_error",
+    "translation": "We encountered an error permanently deleting the batch of file infos"
+  },
+  {
     "id": "store.sql_job.delete.app_error",
     "translation": "We couldn't delete the job"
   },
@@ -5864,6 +5884,10 @@
     "translation": "We couldn't update the Post"
   },
   {
+    "id": "store.sql_post.permanent_delete_batch.app_error",
+    "translation": "We encountered an error permanently deleting the batch of posts"
+  },
+  {
     "id": "store.sql_preference.delete.app_error",
     "translation": "We encountered an error while deleting preferences"
   },
@@ -5962,6 +5986,10 @@
   {
     "id": "store.sql_reaction.save.save.app_error",
     "translation": "Unable to save reaction"
+  },
+  {
+    "id": "store.sql_reaction.permanent_delete_batch.app_error",
+    "translation": "We encountered an error permanently deleting the batch of reactions"
   },
   {
     "id": "store.sql_session.analytics_session_count.app_error",
@@ -6705,7 +6733,7 @@
   },
   {
     "id": "web.error.unsupported_browser.help2",
-    "translation": "Mozzilla Firefox 52+"
+    "translation": "Mozilla Firefox 52+"
   },
   {
     "id": "web.error.unsupported_browser.help3",

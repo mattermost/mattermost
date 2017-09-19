@@ -6,6 +6,7 @@ package model
 import (
 	"encoding/json"
 	"io"
+	"net/http"
 )
 
 const (
@@ -53,6 +54,7 @@ type Features struct {
 	Announcement              *bool `json:"announcement"`
 	ThemeManagement           *bool `json:"theme_management"`
 	EmailNotificationContents *bool `json:"email_notification_contents"`
+	DataRetention             *bool `json:"data_retention"`
 
 	// after we enabled more features for webrtc we'll need to control them with this
 	FutureFeatures *bool `json:"future_features"`
@@ -73,6 +75,7 @@ func (f *Features) ToMap() map[string]interface{} {
 		"password":                    *f.PasswordRequirements,
 		"elastic_search":              *f.Elasticsearch,
 		"email_notification_contents": *f.EmailNotificationContents,
+		"data_retention":              *f.DataRetention,
 		"future":                      *f.FutureFeatures,
 	}
 }
@@ -162,6 +165,11 @@ func (f *Features) SetDefaults() {
 		f.EmailNotificationContents = new(bool)
 		*f.EmailNotificationContents = *f.FutureFeatures
 	}
+
+	if f.DataRetention == nil {
+		f.DataRetention = new(bool)
+		*f.DataRetention = *f.FutureFeatures
+	}
 }
 
 func (l *License) IsExpired() bool {
@@ -202,15 +210,15 @@ func LicenseFromJson(data io.Reader) *License {
 
 func (lr *LicenseRecord) IsValid() *AppError {
 	if len(lr.Id) != 26 {
-		return NewLocAppError("LicenseRecord.IsValid", "model.license_record.is_valid.id.app_error", nil, "")
+		return NewAppError("LicenseRecord.IsValid", "model.license_record.is_valid.id.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if lr.CreateAt == 0 {
-		return NewLocAppError("LicenseRecord.IsValid", "model.license_record.is_valid.create_at.app_error", nil, "")
+		return NewAppError("LicenseRecord.IsValid", "model.license_record.is_valid.create_at.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if len(lr.Bytes) == 0 || len(lr.Bytes) > 10000 {
-		return NewLocAppError("LicenseRecord.IsValid", "model.license_record.is_valid.create_at.app_error", nil, "")
+		return NewAppError("LicenseRecord.IsValid", "model.license_record.is_valid.create_at.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	return nil

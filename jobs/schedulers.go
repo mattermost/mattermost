@@ -45,7 +45,7 @@ func (schedulers *Schedulers) Start() *Schedulers {
 	l4g.Info("Starting schedulers")
 
 	schedulers.startOnce.Do(func() {
-		if schedulers.DataRetention != nil && *utils.Cfg.DataRetentionSettings.Enable {
+		if schedulers.DataRetention != nil && (*utils.Cfg.DataRetentionSettings.EnableMessageDeletion || *utils.Cfg.DataRetentionSettings.EnableFileDeletion) {
 			go schedulers.DataRetention.Run()
 		}
 
@@ -65,9 +65,9 @@ func (schedulers *Schedulers) Start() *Schedulers {
 
 func (schedulers *Schedulers) handleConfigChange(oldConfig *model.Config, newConfig *model.Config) {
 	if schedulers.DataRetention != nil {
-		if !*oldConfig.DataRetentionSettings.Enable && *newConfig.DataRetentionSettings.Enable {
+		if (!*oldConfig.DataRetentionSettings.EnableMessageDeletion && !*oldConfig.DataRetentionSettings.EnableFileDeletion) && (*newConfig.DataRetentionSettings.EnableMessageDeletion || *newConfig.DataRetentionSettings.EnableFileDeletion) {
 			go schedulers.DataRetention.Run()
-		} else if *oldConfig.DataRetentionSettings.Enable && !*newConfig.DataRetentionSettings.Enable {
+		} else if (*oldConfig.DataRetentionSettings.EnableMessageDeletion || *oldConfig.DataRetentionSettings.EnableFileDeletion) && (!*newConfig.DataRetentionSettings.EnableMessageDeletion && !*newConfig.DataRetentionSettings.EnableFileDeletion) {
 			schedulers.DataRetention.Stop()
 		}
 	}
@@ -92,7 +92,7 @@ func (schedulers *Schedulers) handleConfigChange(oldConfig *model.Config, newCon
 func (schedulers *Schedulers) Stop() *Schedulers {
 	utils.RemoveConfigListener(schedulers.listenerId)
 
-	if schedulers.DataRetention != nil && *utils.Cfg.DataRetentionSettings.Enable {
+	if schedulers.DataRetention != nil && (*utils.Cfg.DataRetentionSettings.EnableMessageDeletion || *utils.Cfg.DataRetentionSettings.EnableFileDeletion) {
 		schedulers.DataRetention.Stop()
 	}
 

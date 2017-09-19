@@ -12,8 +12,9 @@ import (
 
 type Manifest struct {
 	Id          string           `json:"id" yaml:"id"`
-	Name        string           `json:"name" yaml:"name"`
-	Description string           `json:"description" yaml:"description"`
+	Name        string           `json:"name,omitempty" yaml:"name,omitempty"`
+	Description string           `json:"description,omitempty" yaml:"description,omitempty"`
+	Version     string           `json:"version" yaml:"version"`
 	Backend     *ManifestBackend `json:"backend,omitempty" yaml:"backend,omitempty"`
 	Webapp      *ManifestWebapp  `json:"webapp,omitempty" yaml:"webapp,omitempty"`
 }
@@ -64,6 +65,19 @@ func ManifestListFromJson(data io.Reader) []*Manifest {
 	} else {
 		return nil
 	}
+}
+
+func (m *Manifest) HasClient() bool {
+	return m.Webapp != nil
+}
+
+func (m *Manifest) ClientManifest() *Manifest {
+	cm := new(Manifest)
+	*cm = *m
+	cm.Name = ""
+	cm.Description = ""
+	cm.Backend = nil
+	return cm
 }
 
 // FindManifest will find and parse the manifest in a given directory.

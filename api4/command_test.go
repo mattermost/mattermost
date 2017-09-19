@@ -49,7 +49,7 @@ func TestCreateCommand(t *testing.T) {
 	newCmd.Method = "Wrong"
 	newCmd.Trigger = "testcommand"
 	_, resp = th.SystemAdminClient.CreateCommand(newCmd)
-	CheckInternalErrorStatus(t, resp)
+	CheckBadRequestStatus(t, resp)
 	CheckErrorMessage(t, resp, "model.command.is_valid.method.app_error")
 
 	*utils.Cfg.ServiceSettings.EnableCommands = false

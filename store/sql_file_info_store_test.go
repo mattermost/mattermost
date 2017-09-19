@@ -256,3 +256,44 @@ func TestFileInfoPermanentDelete(t *testing.T) {
 		t.Fatal(result.Err)
 	}
 }
+
+func TestFileInfoPermanentDeleteBatch(t *testing.T) {
+	Setup()
+
+	postId := model.NewId()
+
+	Must(store.FileInfo().Save(&model.FileInfo{
+		PostId:    postId,
+		CreatorId: model.NewId(),
+		Path:      "file.txt",
+		CreateAt: 1000,
+	}))
+
+	Must(store.FileInfo().Save(&model.FileInfo{
+		PostId:    postId,
+		CreatorId: model.NewId(),
+		Path:      "file.txt",
+		CreateAt: 1200,
+	}))
+
+	Must(store.FileInfo().Save(&model.FileInfo{
+		PostId:    postId,
+		CreatorId: model.NewId(),
+		Path:      "file.txt",
+		CreateAt: 2000,
+	}))
+
+	if result := <-store.FileInfo().GetForPost(postId, true, false); result.Err != nil {
+		t.Fatal(result.Err)
+	} else if len(result.Data.([]*model.FileInfo)) != 3 {
+		t.Fatal("Expected 3 fileInfos")
+	}
+
+	Must(store.FileInfo().PermanentDeleteBatch(1500, 1000))
+
+	if result := <-store.FileInfo().GetForPost(postId, true, false); result.Err != nil {
+		t.Fatal(result.Err)
+	} else if len(result.Data.([]*model.FileInfo)) != 1 {
+		t.Fatal("Expected 3 fileInfos")
+	}
+}

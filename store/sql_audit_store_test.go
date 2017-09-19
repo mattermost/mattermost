@@ -58,3 +58,32 @@ func TestSqlAuditStore(t *testing.T) {
 		t.Fatal(r2.Err)
 	}
 }
+
+func TestAuditStorePermanentDeleteBatch(t *testing.T) {
+	Setup()
+
+	a1 := &model.Audit{UserId: model.NewId(), IpAddress: "ipaddress", Action: "Action"}
+	Must(store.Audit().Save(a1))
+	time.Sleep(10 * time.Millisecond)
+	a2 := &model.Audit{UserId: a1.UserId, IpAddress: "ipaddress", Action: "Action"}
+	Must(store.Audit().Save(a2))
+	time.Sleep(10 * time.Millisecond)
+	cutoff := model.GetMillis()
+	time.Sleep(10 * time.Millisecond)
+	a3 := &model.Audit{UserId: a1.UserId, IpAddress: "ipaddress", Action: "Action"}
+	Must(store.Audit().Save(a3))
+
+	if r := <-store.Audit().Get(a1.UserId, 0, 100); len(r.Data.(model.Audits)) != 3 {
+		t.Fatal("Expected 3 audits. Got ", len(r.Data.(model.Audits)))
+	}
+
+	Must(store.Audit().PermanentDeleteBatch(cutoff, 1000000))
+
+	if r := <-store.Audit().Get(a1.UserId, 0, 100); len(r.Data.(model.Audits)) != 1 {
+		t.Fatal("Expected 1 audit. Got ", len(r.Data.(model.Audits)))
+	}
+
+	if r2 := <-store.Audit().PermanentDeleteByUser(a1.UserId); r2.Err != nil {
+		t.Fatal(r2.Err)
+	}
+}

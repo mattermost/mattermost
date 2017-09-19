@@ -8,6 +8,8 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
 )
@@ -503,6 +505,9 @@ func TestUpdateIncomingHook(t *testing.T) {
 		} else {
 			t.Fatal("should not be nil")
 		}
+
+		//updatedHook, _ = th.App.GetIncomingWebhook(createdHook.Id)
+		assert.Equal(t, updatedHook.ChannelId, createdHook.ChannelId)
 	})
 
 	t.Run("RetainCreateAt", func(t *testing.T) {

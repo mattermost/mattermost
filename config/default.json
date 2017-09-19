@@ -316,7 +316,11 @@
         "PostsAggregatorJobStartTime": "03:00"
     },
     "DataRetentionSettings": {
-        "Enable": false
+        "EnableMessageDeletion": false,
+        "EnableFileDeletion": false,
+        "MessageRetentionDays": 365,
+        "FileRetentionDays": 365,
+        "DeletionJobStartTime": "02:00"
     },
     "JobSettings": {
         "RunJobs": true,

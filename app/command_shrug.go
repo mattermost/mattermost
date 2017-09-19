@@ -33,7 +33,7 @@ func (me *ShrugProvider) GetCommand(T goi18n.TranslateFunc) *model.Command {
 	}
 }
 
-func (me *ShrugProvider) DoCommand(args *model.CommandArgs, message string) *model.CommandResponse {
+func (me *ShrugProvider) DoCommand(a *App, args *model.CommandArgs, message string) *model.CommandResponse {
 	rmsg := `¯\\\_(ツ)\_/¯`
 	if len(message) > 0 {
 		rmsg = message + " " + rmsg

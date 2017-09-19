@@ -327,7 +327,7 @@ func (c *Client4) DoApiRequest(method, url, data, etag string) (*http.Response, 
 	}
 
 	if rp, err := c.HttpClient.Do(rq); err != nil || rp == nil {
-		return nil, NewLocAppError(url, "model.client.connecting.app_error", nil, err.Error())
+		return nil, NewAppError(url, "model.client.connecting.app_error", nil, err.Error(), 0)
 	} else if rp.StatusCode == 304 {
 		return rp, nil
 	} else if rp.StatusCode >= 300 {
@@ -2631,6 +2631,16 @@ func (c *Client4) CreateOAuthApp(app *OAuthApp) (*OAuthApp, *Response) {
 	}
 }
 
+// UpdateOAuthApp
+func (c *Client4) UpdateOAuthApp(app *OAuthApp) (*OAuthApp, *Response) {
+	if r, err := c.DoApiPut(c.GetOAuthAppRoute(app.Id), app.ToJson()); err != nil {
+		return nil, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return OAuthAppFromJson(r.Body), BuildResponse(r)
+	}
+}
+
 // GetOAuthApps gets a page of registered OAuth 2.0 client applications with Mattermost acting as an OAuth 2.0 service provider.
 func (c *Client4) GetOAuthApps(page, perPage int) ([]*OAuthApp, *Response) {
 	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)
@@ -2867,17 +2877,17 @@ func (c *Client4) CreateEmoji(emoji *Emoji, image []byte, filename string) (*Emo
 	writer := multipart.NewWriter(body)
 
 	if part, err := writer.CreateFormFile("image", filename); err != nil {
-		return nil, &Response{StatusCode: http.StatusForbidden, Error: NewLocAppError("CreateEmoji", "model.client.create_emoji.image.app_error", nil, err.Error())}
+		return nil, &Response{StatusCode: http.StatusForbidden, Error: NewAppError("CreateEmoji", "model.client.create_emoji.image.app_error", nil, err.Error(), 0)}
 	} else if _, err = io.Copy(part, bytes.NewBuffer(image)); err != nil {
-		return nil, &Response{StatusCode: http.StatusForbidden, Error: NewLocAppError("CreateEmoji", "model.client.create_emoji.image.app_error", nil, err.Error())}
+		return nil, &Response{StatusCode: http.StatusForbidden, Error: NewAppError("CreateEmoji", "model.client.create_emoji.image.app_error", nil, err.Error(), 0)}
 	}
 
 	if err := writer.WriteField("emoji", emoji.ToJson()); err != nil {
-		return nil, &Response{StatusCode: http.StatusForbidden, Error: NewLocAppError("CreateEmoji", "model.client.create_emoji.emoji.app_error", nil, err.Error())}
+		return nil, &Response{StatusCode: http.StatusForbidden, Error: NewAppError("CreateEmoji", "model.client.create_emoji.emoji.app_error", nil, err.Error(), 0)}
 	}
 
 	if err := writer.Close(); err != nil {
-		return nil, &Response{StatusCode: http.StatusForbidden, Error: NewLocAppError("CreateEmoji", "model.client.create_emoji.writer.app_error", nil, err.Error())}
+		return nil, &Response{StatusCode: http.StatusForbidden, Error: NewAppError("CreateEmoji", "model.client.create_emoji.writer.app_error", nil, err.Error(), 0)}
 	}
 
 	return c.DoEmojiUploadFile(c.GetEmojisRoute(), body.Bytes(), writer.FormDataContentType())
@@ -3086,5 +3096,16 @@ func (c *Client4) RemovePlugin(id string) (bool, *Response) {
 	} else {
 		defer closeBody(r)
 		return CheckStatusOK(r), BuildResponse(r)
+	}
+}
+
+// GetWebappPlugins will return a list of plugins that the webapp should download.
+// WARNING: PLUGINS ARE STILL EXPERIMENTAL. THIS FUNCTION IS SUBJECT TO CHANGE.
+func (c *Client4) GetWebappPlugins() ([]*Manifest, *Response) {
+	if r, err := c.DoApiGet(c.GetPluginsRoute()+"/webapp", ""); err != nil {
+		return nil, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return ManifestListFromJson(r.Body), BuildResponse(r)
 	}
 }

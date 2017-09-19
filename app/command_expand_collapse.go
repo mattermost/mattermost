@@ -52,12 +52,12 @@ func (me *CollapseProvider) GetCommand(T goi18n.TranslateFunc) *model.Command {
 	}
 }
 
-func (me *ExpandProvider) DoCommand(args *model.CommandArgs, message string) *model.CommandResponse {
-	return Global().setCollapsePreference(args, false)
+func (me *ExpandProvider) DoCommand(a *App, args *model.CommandArgs, message string) *model.CommandResponse {
+	return a.setCollapsePreference(args, false)
 }
 
-func (me *CollapseProvider) DoCommand(args *model.CommandArgs, message string) *model.CommandResponse {
-	return Global().setCollapsePreference(args, true)
+func (me *CollapseProvider) DoCommand(a *App, args *model.CommandArgs, message string) *model.CommandResponse {
+	return a.setCollapsePreference(args, true)
 }
 
 func (a *App) setCollapsePreference(args *model.CommandArgs, isCollapse bool) *model.CommandResponse {

@@ -171,6 +171,7 @@ type PostStore interface {
 	Overwrite(post *model.Post) StoreChannel
 	GetPostsByIds(postIds []string) StoreChannel
 	GetPostsBatchForIndexing(startTime int64, limit int) StoreChannel
+	PermanentDeleteBatch(endTime int64, limit int64) StoreChannel
 }
 
 type UserStore interface {
@@ -242,6 +243,7 @@ type AuditStore interface {
 	Save(audit *model.Audit) StoreChannel
 	Get(user_id string, offset int, limit int) StoreChannel
 	PermanentDeleteByUser(userId string) StoreChannel
+	PermanentDeleteBatch(endTime int64, limit int64) StoreChannel
 }
 
 type ClusterDiscoveryStore interface {
@@ -387,6 +389,7 @@ type FileInfoStore interface {
 	AttachToPost(fileId string, postId string) StoreChannel
 	DeleteForPost(postId string) StoreChannel
 	PermanentDelete(fileId string) StoreChannel
+	PermanentDeleteBatch(endTime int64, limit int64) StoreChannel
 }
 
 type ReactionStore interface {
@@ -394,6 +397,7 @@ type ReactionStore interface {
 	Delete(reaction *model.Reaction) StoreChannel
 	GetForPost(postId string, allowFromCache bool) StoreChannel
 	DeleteAllWithEmojiName(emojiName string) StoreChannel
+	PermanentDeleteBatch(endTime int64, limit int64) StoreChannel
 }
 
 type JobStore interface {

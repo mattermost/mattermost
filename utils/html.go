@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"html/template"
 	"net/http"
+	"reflect"
 
 	l4g "github.com/alecthomas/log4go"
 	"github.com/fsnotify/fsnotify"
@@ -94,7 +95,7 @@ func (t *HTMLTemplate) addDefaultProps() {
 	}
 
 	t.Html["EmailInfo"] = TranslateAsHtml(localT, "api.templates.email_info",
-		map[string]interface{}{"SupportEmail": Cfg.SupportSettings.SupportEmail, "SiteName": Cfg.TeamSettings.SiteName})
+		map[string]interface{}{"SupportEmail": *Cfg.SupportSettings.SupportEmail, "SiteName": Cfg.TeamSettings.SiteName})
 }
 
 func (t *HTMLTemplate) Render() string {
@@ -128,6 +129,8 @@ func escapeForHtml(arg interface{}) interface{} {
 	switch typedArg := arg.(type) {
 	case string:
 		return template.HTMLEscapeString(typedArg)
+	case *string:
+		return template.HTMLEscapeString(*typedArg)
 	case map[string]interface{}:
 		safeArg := make(map[string]interface{}, len(typedArg))
 		for key, value := range typedArg {
@@ -135,7 +138,7 @@ func escapeForHtml(arg interface{}) interface{} {
 		}
 		return safeArg
 	default:
-		l4g.Warn("Unable to escape value for HTML template %v", arg)
+		l4g.Warn("Unable to escape value for HTML template %v of type %v", arg, reflect.ValueOf(arg).Type())
 		return ""
 	}
 }
