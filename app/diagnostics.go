@@ -236,6 +236,7 @@ func trackConfig() {
 		"enable_custom_brand":                     *utils.Cfg.TeamSettings.EnableCustomBrand,
 		"restrict_direct_message":                 *utils.Cfg.TeamSettings.RestrictDirectMessage,
 		"max_notifications_per_channel":           *utils.Cfg.TeamSettings.MaxNotificationsPerChannel,
+		"enable_confirm_notifications_to_channel": *utils.Cfg.TeamSettings.EnableConfirmNotificationsToChannel,
 		"max_users_per_team":                      *utils.Cfg.TeamSettings.MaxUsersPerTeam,
 		"max_channels_per_team":                   *utils.Cfg.TeamSettings.MaxChannelsPerTeam,
 		"teammate_name_display":                   *utils.Cfg.TeamSettings.TeammateNameDisplay,
