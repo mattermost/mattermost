@@ -684,8 +684,8 @@ func TestUserCreateImage(t *testing.T) {
 	} else {
 		etag := resp.Header.Get(model.HEADER_ETAG_SERVER)
 		resp2, _ := Client.DoApiGet("/users/"+user.Id+"/image", "", etag)
-		if resp2.StatusCode != 304 {
-			t.Fatal("Should have hit etag")
+		if resp2.StatusCode == 304 {
+			t.Fatal("Shouldn't have hit etag")
 		}
 	}
 
