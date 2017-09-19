@@ -154,6 +154,18 @@ func SaveConfig(cfg *model.Config, sendConfigChangeClusterMessage bool) *model.A
 		return err
 	}
 
+	if *cfg.FileSettings.DriverName == model.IMAGE_DRIVER_S3 {
+		if *cfg.FileSettings.AmazonS3Region == "" {
+			region, err := utils.GetAmazonS3Region(cfg)
+			if err != nil {
+				return err
+			}
+
+			*cfg.FileSettings.AmazonS3Region = region
+			l4g.Warn(utils.T("utils.config.set_amazon_region"), region)
+		}
+	}
+
 	if *utils.Cfg.ClusterSettings.Enable && *utils.Cfg.ClusterSettings.ReadOnlyConfig {
 		return model.NewAppError("saveConfig", "ent.cluster.save_config.error", nil, "", http.StatusForbidden)
 	}

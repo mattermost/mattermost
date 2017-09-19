@@ -6508,6 +6508,10 @@
     "translation": "Unable to load mattermost configuration file:  Adding DefaultClientLocale to AvailableLocales."
   },
   {
+    "id": "utils.config.bad_connection_to_s3_or_minio.app_error",
+    "translation": "Bad connection to S3 or Minio cloud storage. Please try again."
+  },
+  {
     "id": "utils.config.load_config.decoding.panic",
     "translation": "Error decoding config file={{.Filename}}, err={{.Error}}"
   },
@@ -6526,6 +6530,10 @@
   {
     "id": "utils.config.save_config.saving.app_error",
     "translation": "An error occurred while saving the file to {{.Filename}}"
+  },
+  {
+    "id": "utils.config.set_amazon_region",
+    "translation": "Set Amazon S3 Region to '%v'."
   },
   {
     "id": "utils.config.supported_available_locales.app_error",
