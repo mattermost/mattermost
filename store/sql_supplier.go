@@ -19,6 +19,7 @@ import (
 	"github.com/go-sql-driver/mysql"
 	"github.com/lib/pq"
 	"github.com/mattermost/gorp"
+	"github.com/mattermost/mattermost-server/einterfaces"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
 )
@@ -96,7 +97,7 @@ type SqlSupplier struct {
 	oldStores      SqlSupplierOldStores
 }
 
-func NewSqlSupplier() *SqlSupplier {
+func NewSqlSupplier(metrics einterfaces.MetricsInterface) *SqlSupplier {
 	supplier := &SqlSupplier{
 		rrCounter: 0,
 		srCounter: 0,
@@ -105,24 +106,24 @@ func NewSqlSupplier() *SqlSupplier {
 	supplier.initConnection()
 
 	supplier.oldStores.team = NewSqlTeamStore(supplier)
-	supplier.oldStores.channel = NewSqlChannelStore(supplier)
-	supplier.oldStores.post = NewSqlPostStore(supplier)
-	supplier.oldStores.user = NewSqlUserStore(supplier)
+	supplier.oldStores.channel = NewSqlChannelStore(supplier, metrics)
+	supplier.oldStores.post = NewSqlPostStore(supplier, metrics)
+	supplier.oldStores.user = NewSqlUserStore(supplier, metrics)
 	supplier.oldStores.audit = NewSqlAuditStore(supplier)
 	supplier.oldStores.cluster = NewSqlClusterDiscoveryStore(supplier)
 	supplier.oldStores.compliance = NewSqlComplianceStore(supplier)
 	supplier.oldStores.session = NewSqlSessionStore(supplier)
 	supplier.oldStores.oauth = NewSqlOAuthStore(supplier)
 	supplier.oldStores.system = NewSqlSystemStore(supplier)
-	supplier.oldStores.webhook = NewSqlWebhookStore(supplier)
+	supplier.oldStores.webhook = NewSqlWebhookStore(supplier, metrics)
 	supplier.oldStores.command = NewSqlCommandStore(supplier)
 	supplier.oldStores.commandWebhook = NewSqlCommandWebhookStore(supplier)
 	supplier.oldStores.preference = NewSqlPreferenceStore(supplier)
 	supplier.oldStores.license = NewSqlLicenseStore(supplier)
 	supplier.oldStores.token = NewSqlTokenStore(supplier)
-	supplier.oldStores.emoji = NewSqlEmojiStore(supplier)
+	supplier.oldStores.emoji = NewSqlEmojiStore(supplier, metrics)
 	supplier.oldStores.status = NewSqlStatusStore(supplier)
-	supplier.oldStores.fileInfo = NewSqlFileInfoStore(supplier)
+	supplier.oldStores.fileInfo = NewSqlFileInfoStore(supplier, metrics)
 	supplier.oldStores.job = NewSqlJobStore(supplier)
 	supplier.oldStores.userAccessToken = NewSqlUserAccessTokenStore(supplier)
 

@@ -12,12 +12,14 @@ import (
 	"io"
 	"io/ioutil"
 	"net"
+	"net/http"
 	"net/mail"
 	"net/url"
 	"regexp"
 	"strconv"
 	"strings"
 	"time"
+	"unicode"
 
 	goi18n "github.com/nicksnyder/go-i18n/i18n"
 	"github.com/pborman/uuid"
@@ -90,7 +92,7 @@ func AppErrorFromJson(data io.Reader) *AppError {
 	if err == nil {
 		return &er
 	} else {
-		return NewLocAppError("AppErrorFromJson", "model.utils.decode_json.app_error", nil, "body: "+str)
+		return NewAppError("AppErrorFromJson", "model.utils.decode_json.app_error", nil, "body: "+str, http.StatusInternalServerError)
 	}
 }
 
@@ -488,6 +490,20 @@ func IsValidTrueOrFalseString(value string) bool {
 func IsValidNumberString(value string) bool {
 	if _, err := strconv.Atoi(value); err != nil {
 		return false
+	}
+
+	return true
+}
+
+func IsValidId(value string) bool {
+	if len(value) != 26 {
+		return false
+	}
+
+	for _, r := range value {
+		if !unicode.IsLetter(r) && !unicode.IsNumber(r) {
+			return false
+		}
 	}
 
 	return true

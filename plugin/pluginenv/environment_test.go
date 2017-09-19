@@ -127,8 +127,7 @@ func TestEnvironment(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Len(t, plugins, 3)
 
-	activePlugins, err := env.ActivePlugins()
-	assert.NoError(t, err)
+	activePlugins := env.ActivePlugins()
 	assert.Len(t, activePlugins, 0)
 
 	assert.Error(t, env.ActivatePlugin("x"))
@@ -150,8 +149,7 @@ func TestEnvironment(t *testing.T) {
 
 	assert.NoError(t, env.ActivatePlugin("foo"))
 	assert.Equal(t, env.ActivePluginIds(), []string{"foo"})
-	activePlugins, err = env.ActivePlugins()
-	assert.NoError(t, err)
+	activePlugins = env.ActivePlugins()
 	assert.Len(t, activePlugins, 1)
 	assert.Error(t, env.ActivatePlugin("foo"))
 

@@ -41,7 +41,7 @@ func (me *InvitePeopleProvider) GetCommand(T goi18n.TranslateFunc) *model.Comman
 	}
 }
 
-func (me *InvitePeopleProvider) DoCommand(args *model.CommandArgs, message string) *model.CommandResponse {
+func (me *InvitePeopleProvider) DoCommand(a *App, args *model.CommandArgs, message string) *model.CommandResponse {
 	if !utils.Cfg.EmailSettings.SendEmailNotifications {
 		return &model.CommandResponse{ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL, Text: args.T("api.command.invite_people.email_off")}
 	}
@@ -63,7 +63,7 @@ func (me *InvitePeopleProvider) DoCommand(args *model.CommandArgs, message strin
 		return &model.CommandResponse{ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL, Text: args.T("api.command.invite_people.no_email")}
 	}
 
-	if err := Global().InviteNewUsersToTeam(emailList, args.TeamId, args.UserId); err != nil {
+	if err := a.InviteNewUsersToTeam(emailList, args.TeamId, args.UserId); err != nil {
 		l4g.Error(err.Error())
 		return &model.CommandResponse{ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL, Text: args.T("api.command.invite_people.fail")}
 	}

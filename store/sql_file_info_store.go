@@ -13,6 +13,7 @@ import (
 
 type SqlFileInfoStore struct {
 	SqlStore
+	metrics einterfaces.MetricsInterface
 }
 
 const (
@@ -26,8 +27,11 @@ func ClearFileCaches() {
 	fileInfoCache.Purge()
 }
 
-func NewSqlFileInfoStore(sqlStore SqlStore) FileInfoStore {
-	s := &SqlFileInfoStore{sqlStore}
+func NewSqlFileInfoStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface) FileInfoStore {
+	s := &SqlFileInfoStore{
+		SqlStore: sqlStore,
+		metrics:  metrics,
+	}
 
 	for _, db := range sqlStore.GetAllConns() {
 		table := db.AddTableWithName(model.FileInfo{}, "FileInfo").SetKeys(false, "Id")
@@ -66,7 +70,7 @@ func (fs SqlFileInfoStore) Save(info *model.FileInfo) StoreChannel {
 		}
 
 		if err := fs.GetMaster().Insert(info); err != nil {
-			result.Err = model.NewLocAppError("SqlFileInfoStore.Save", "store.sql_file_info.save.app_error", nil, err.Error())
+			result.Err = model.NewAppError("SqlFileInfoStore.Save", "store.sql_file_info.save.app_error", nil, err.Error(), http.StatusInternalServerError)
 		} else {
 			result.Data = info
 		}
@@ -149,12 +153,10 @@ func (fs SqlFileInfoStore) GetForPost(postId string, readFromMaster bool, allowF
 	go func() {
 		result := StoreResult{}
 
-		metrics := einterfaces.GetMetricsInterface()
-
 		if allowFromCache {
 			if cacheItem, ok := fileInfoCache.Get(postId); ok {
-				if metrics != nil {
-					metrics.IncrementMemCacheHitCounter("File Info Cache")
+				if fs.metrics != nil {
+					fs.metrics.IncrementMemCacheHitCounter("File Info Cache")
 				}
 
 				result.Data = cacheItem.([]*model.FileInfo)
@@ -162,13 +164,13 @@ func (fs SqlFileInfoStore) GetForPost(postId string, readFromMaster bool, allowF
 				close(storeChannel)
 				return
 			} else {
-				if metrics != nil {
-					metrics.IncrementMemCacheMissCounter("File Info Cache")
+				if fs.metrics != nil {
+					fs.metrics.IncrementMemCacheMissCounter("File Info Cache")
 				}
 			}
 		} else {
-			if metrics != nil {
-				metrics.IncrementMemCacheMissCounter("File Info Cache")
+			if fs.metrics != nil {
+				fs.metrics.IncrementMemCacheMissCounter("File Info Cache")
 			}
 		}
 
@@ -271,6 +273,39 @@ func (fs SqlFileInfoStore) PermanentDelete(fileId string) StoreChannel {
 				Id = :FileId`, map[string]interface{}{"FileId": fileId}); err != nil {
 			result.Err = model.NewAppError("SqlFileInfoStore.PermanentDelete",
 				"store.sql_file_info.permanent_delete.app_error", nil, "file_id="+fileId+", err="+err.Error(), http.StatusInternalServerError)
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
+func (s SqlFileInfoStore) PermanentDeleteBatch(endTime int64, limit int64) StoreChannel {
+	storeChannel := make(StoreChannel, 1)
+
+	go func() {
+		result := StoreResult{}
+
+		var query string
+		if *utils.Cfg.SqlSettings.DriverName == "postgres" {
+			query = "DELETE from FileInfo WHERE Id = any (array (SELECT Id FROM FileInfo WHERE CreateAt < :EndTime LIMIT :Limit))"
+		} else {
+			query = "DELETE from FileInfo WHERE CreateAt < :EndTime LIMIT :Limit"
+		}
+
+		sqlResult, err := s.GetMaster().Exec(query, map[string]interface{}{"EndTime": endTime, "Limit": limit})
+		if err != nil {
+			result.Err = model.NewAppError("SqlFileInfoStore.PermanentDeleteBatch", "store.sql_file_info.permanent_delete_batch.app_error", nil, ""+err.Error(), http.StatusInternalServerError)
+		} else {
+			rowsAffected, err1 := sqlResult.RowsAffected()
+			if err1 != nil {
+				result.Err = model.NewAppError("SqlFileInfoStore.PermanentDeleteBatch", "store.sql_file_info.permanent_delete_batch.app_error", nil, ""+err.Error(), http.StatusInternalServerError)
+				result.Data = int64(0)
+			} else {
+				result.Data = rowsAffected
+			}
 		}
 
 		storeChannel <- result

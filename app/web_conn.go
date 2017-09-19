@@ -30,6 +30,7 @@ const (
 
 type WebConn struct {
 	sessionExpiresAt          int64 // This should stay at the top for 64-bit alignment of 64-bit words accessed atomically
+	App                       *App
 	WebSocket                 *websocket.Conn
 	Send                      chan model.WebSocketMessage
 	sessionToken              atomic.Value
@@ -51,6 +52,7 @@ func (a *App) NewWebConn(ws *websocket.Conn, session model.Session, t goi18n.Tra
 	}
 
 	wc := &WebConn{
+		App:       a,
 		Send:      make(chan model.WebSocketMessage, SEND_QUEUE_SIZE),
 		WebSocket: ws,
 		UserId:    session.UserId,
@@ -103,7 +105,7 @@ func (c *WebConn) ReadPump() {
 	c.WebSocket.SetPongHandler(func(string) error {
 		c.WebSocket.SetReadDeadline(time.Now().Add(PONG_WAIT))
 		if c.IsAuthenticated() {
-			go Global().SetStatusAwayIfNeeded(c.UserId, false)
+			go c.App.SetStatusAwayIfNeeded(c.UserId, false)
 		}
 		return nil
 	})
@@ -120,7 +122,7 @@ func (c *WebConn) ReadPump() {
 
 			return
 		} else {
-			Global().Srv.WebSocketRouter.ServeWebSocket(c, &req)
+			c.App.Srv.WebSocketRouter.ServeWebSocket(c, &req)
 		}
 	}
 }
@@ -231,7 +233,7 @@ func (webCon *WebConn) IsAuthenticated() bool {
 			return false
 		}
 
-		session, err := Global().GetSession(webCon.GetSessionToken())
+		session, err := webCon.App.GetSession(webCon.GetSessionToken())
 		if err != nil {
 			l4g.Error(utils.T("api.websocket.invalid_session.error"), err.Error())
 			webCon.SetSessionToken("")
@@ -283,7 +285,7 @@ func (webCon *WebConn) ShouldSendEvent(msg *model.WebSocketEvent) bool {
 		}
 
 		if webCon.AllChannelMembers == nil {
-			if result := <-Global().Srv.Store.Channel().GetAllChannelMembersForUser(webCon.UserId, true); result.Err != nil {
+			if result := <-webCon.App.Srv.Store.Channel().GetAllChannelMembersForUser(webCon.UserId, true); result.Err != nil {
 				l4g.Error("webhub.shouldSendEvent: " + result.Err.Error())
 				return false
 			} else {
@@ -313,7 +315,7 @@ func (webCon *WebConn) IsMemberOfTeam(teamId string) bool {
 	currentSession := webCon.GetSession()
 
 	if currentSession == nil || len(currentSession.Token) == 0 {
-		session, err := Global().GetSession(webCon.GetSessionToken())
+		session, err := webCon.App.GetSession(webCon.GetSessionToken())
 		if err != nil {
 			l4g.Error(utils.T("api.websocket.invalid_session.error"), err.Error())
 			return false

@@ -71,7 +71,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 			mentionedUserIds[post.UserId] = true
 		}
 	} else {
-		keywords := GetMentionKeywordsInChannel(profileMap)
+		keywords := GetMentionKeywordsInChannel(profileMap, post.Type != model.POST_HEADER_CHANGE && post.Type != model.POST_PURPOSE_CHANGE)
 
 		var potentialOtherMentions []string
 		mentionedUserIds, potentialOtherMentions, hereNotification, channelNotification, allNotification = GetExplicitMentions(post.Message, keywords)
@@ -649,32 +649,39 @@ func (a *App) sendPushNotification(post *model.Post, user *model.User, channel *
 	return nil
 }
 
-func (a *App) ClearPushNotification(userId string, channelId string) *model.AppError {
-	sessions, err := a.getMobileAppSessions(userId)
-	if err != nil {
-		return err
-	}
+func (a *App) ClearPushNotification(userId string, channelId string) {
+	go func() {
+		// Sleep is to allow the read replicas a chance to fully sync
+		// the unread count for sending an accurate count.
+		// Delaying a little doesn't hurt anything and is cheaper than
+		// attempting to read from master.
+		time.Sleep(time.Second * 5)
 
-	msg := model.PushNotification{}
-	msg.Type = model.PUSH_TYPE_CLEAR
-	msg.ChannelId = channelId
-	msg.ContentAvailable = 0
-	if badge := <-a.Srv.Store.User().GetUnreadCount(userId); badge.Err != nil {
-		msg.Badge = 0
-		l4g.Error(utils.T("store.sql_user.get_unread_count.app_error"), userId, badge.Err)
-	} else {
-		msg.Badge = int(badge.Data.(int64))
-	}
+		sessions, err := a.getMobileAppSessions(userId)
+		if err != nil {
+			l4g.Error(err.Error())
+			return
+		}
 
-	l4g.Debug(utils.T("api.post.send_notifications_and_forget.clear_push_notification.debug"), msg.DeviceId, msg.ChannelId)
+		msg := model.PushNotification{}
+		msg.Type = model.PUSH_TYPE_CLEAR
+		msg.ChannelId = channelId
+		msg.ContentAvailable = 0
+		if badge := <-a.Srv.Store.User().GetUnreadCount(userId); badge.Err != nil {
+			msg.Badge = 0
+			l4g.Error(utils.T("store.sql_user.get_unread_count.app_error"), userId, badge.Err)
+		} else {
+			msg.Badge = int(badge.Data.(int64))
+		}
 
-	for _, session := range sessions {
-		tmpMessage := *model.PushNotificationFromJson(strings.NewReader(msg.ToJson()))
-		tmpMessage.SetDeviceIdAndPlatform(session.DeviceId)
-		go a.sendToPushProxy(tmpMessage, session)
-	}
+		l4g.Debug(utils.T("api.post.send_notifications_and_forget.clear_push_notification.debug"), msg.DeviceId, msg.ChannelId)
 
-	return nil
+		for _, session := range sessions {
+			tmpMessage := *model.PushNotificationFromJson(strings.NewReader(msg.ToJson()))
+			tmpMessage.SetDeviceIdAndPlatform(session.DeviceId)
+			go a.sendToPushProxy(tmpMessage, session)
+		}
+	}()
 }
 
 func (a *App) sendToPushProxy(msg model.PushNotification, session *model.Session) {
@@ -866,7 +873,7 @@ func removeCodeFromMessage(message string) string {
 
 // Given a map of user IDs to profiles, returns a list of mention
 // keywords for all users in the channel.
-func GetMentionKeywordsInChannel(profiles map[string]*model.User) map[string][]string {
+func GetMentionKeywordsInChannel(profiles map[string]*model.User, lookForSpecialMentions bool) map[string][]string {
 	keywords := make(map[string][]string)
 
 	for id, profile := range profiles {
@@ -889,13 +896,15 @@ func GetMentionKeywordsInChannel(profiles map[string]*model.User) map[string][]s
 		}
 
 		// Add @channel and @all to keywords if user has them turned on
-		if int64(len(profiles)) < *utils.Cfg.TeamSettings.MaxNotificationsPerChannel && profile.NotifyProps["channel"] == "true" {
-			keywords["@channel"] = append(keywords["@channel"], profile.Id)
-			keywords["@all"] = append(keywords["@all"], profile.Id)
+		if lookForSpecialMentions {
+			if int64(len(profiles)) < *utils.Cfg.TeamSettings.MaxNotificationsPerChannel && profile.NotifyProps["channel"] == "true" {
+				keywords["@channel"] = append(keywords["@channel"], profile.Id)
+				keywords["@all"] = append(keywords["@all"], profile.Id)
 
-			status := GetStatusFromCache(profile.Id)
-			if status != nil && status.Status == model.STATUS_ONLINE {
-				keywords["@here"] = append(keywords["@here"], profile.Id)
+				status := GetStatusFromCache(profile.Id)
+				if status != nil && status.Status == model.STATUS_ONLINE {
+					keywords["@here"] = append(keywords["@here"], profile.Id)
+				}
 			}
 		}
 	}

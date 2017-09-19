@@ -1661,3 +1661,42 @@ func TestPostStoreGetPostsBatchForIndexing(t *testing.T) {
 		}
 	}
 }
+
+func TestPostStorePermanentDeleteBatch(t *testing.T) {
+	Setup()
+
+	o1 := &model.Post{}
+	o1.ChannelId = model.NewId()
+	o1.UserId = model.NewId()
+	o1.Message = "zz" + model.NewId() + "AAAAAAAAAAA"
+	o1.CreateAt = 1000
+	o1 = (<-store.Post().Save(o1)).Data.(*model.Post)
+
+	o2 := &model.Post{}
+	o2.ChannelId = model.NewId()
+	o2.UserId = model.NewId()
+	o2.Message = "zz" + model.NewId() + "AAAAAAAAAAA"
+	o2.CreateAt = 1000
+	o2 = (<-store.Post().Save(o2)).Data.(*model.Post)
+
+	o3 := &model.Post{}
+	o3.ChannelId = model.NewId()
+	o3.UserId = model.NewId()
+	o3.Message = "zz" + model.NewId() + "AAAAAAAAAAA"
+	o3.CreateAt = 100000
+	o3 = (<-store.Post().Save(o3)).Data.(*model.Post)
+
+	Must(store.Post().PermanentDeleteBatch(2000, 1000))
+
+	if p := <-store.Post().Get(o1.Id); p.Err == nil {
+		t.Fatalf("Should have not found post 1 after purge")
+	}
+
+	if p := <-store.Post().Get(o2.Id); p.Err == nil {
+		t.Fatalf("Should have not found post 2 after purge")
+	}
+
+	if p := <-store.Post().Get(o3.Id); p.Err != nil {
+		t.Fatalf("Should have found post 3 after purge")
+	}
+}

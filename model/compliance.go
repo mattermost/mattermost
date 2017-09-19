@@ -6,6 +6,7 @@ package model
 import (
 	"encoding/json"
 	"io"
+	"net/http"
 	"strings"
 )
 
@@ -75,27 +76,27 @@ func (me *Compliance) JobName() string {
 func (me *Compliance) IsValid() *AppError {
 
 	if len(me.Id) != 26 {
-		return NewLocAppError("Compliance.IsValid", "model.compliance.is_valid.id.app_error", nil, "")
+		return NewAppError("Compliance.IsValid", "model.compliance.is_valid.id.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if me.CreateAt == 0 {
-		return NewLocAppError("Compliance.IsValid", "model.compliance.is_valid.create_at.app_error", nil, "")
+		return NewAppError("Compliance.IsValid", "model.compliance.is_valid.create_at.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if len(me.Desc) > 512 || len(me.Desc) == 0 {
-		return NewLocAppError("Compliance.IsValid", "model.compliance.is_valid.desc.app_error", nil, "")
+		return NewAppError("Compliance.IsValid", "model.compliance.is_valid.desc.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if me.StartAt == 0 {
-		return NewLocAppError("Compliance.IsValid", "model.compliance.is_valid.start_at.app_error", nil, "")
+		return NewAppError("Compliance.IsValid", "model.compliance.is_valid.start_at.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if me.EndAt == 0 {
-		return NewLocAppError("Compliance.IsValid", "model.compliance.is_valid.end_at.app_error", nil, "")
+		return NewAppError("Compliance.IsValid", "model.compliance.is_valid.end_at.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if me.EndAt <= me.StartAt {
-		return NewLocAppError("Compliance.IsValid", "model.compliance.is_valid.start_end_at.app_error", nil, "")
+		return NewAppError("Compliance.IsValid", "model.compliance.is_valid.start_end_at.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	return nil
