@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	DEFAULT_POLLING_INTERVAL = 15000
+	DEFAULT_WATCHER_POLLING_INTERVAL = 15000
 )
 
 type Watcher struct {

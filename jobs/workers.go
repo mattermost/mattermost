@@ -26,7 +26,7 @@ type Workers struct {
 
 func InitWorkers() *Workers {
 	workers := &Workers{}
-	workers.Watcher = MakeWatcher(workers, DEFAULT_POLLING_INTERVAL)
+	workers.Watcher = MakeWatcher(workers, DEFAULT_WATCHER_POLLING_INTERVAL)
 
 	if dataRetentionInterface := ejobs.GetDataRetentionInterface(); dataRetentionInterface != nil {
 		workers.DataRetention = dataRetentionInterface.MakeWorker()

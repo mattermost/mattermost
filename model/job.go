@@ -13,7 +13,7 @@ const (
 	JOB_TYPE_DATA_RETENTION                 = "data_retention"
 	JOB_TYPE_ELASTICSEARCH_POST_INDEXING    = "elasticsearch_post_indexing"
 	JOB_TYPE_ELASTICSEARCH_POST_AGGREGATION = "elasticsearch_post_aggregation"
-	JOB_TYPE_LDAP_SYNC                      = "lday_sync"
+	JOB_TYPE_LDAP_SYNC                      = "ldap_sync"
 
 	JOB_STATUS_PENDING          = "pending"
 	JOB_STATUS_IN_PROGRESS      = "in_progress"
