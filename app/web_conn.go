@@ -8,7 +8,6 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/mattermost/mattermost-server/einterfaces"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
 
@@ -191,8 +190,8 @@ func (c *WebConn) WritePump() {
 					return
 				}
 
-				if einterfaces.GetMetricsInterface() != nil {
-					go einterfaces.GetMetricsInterface().IncrementWebSocketBroadcast(msg.EventType())
+				if c.App.Metrics != nil {
+					go c.App.Metrics.IncrementWebSocketBroadcast(msg.EventType())
 				}
 
 			}

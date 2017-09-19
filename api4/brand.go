@@ -22,7 +22,7 @@ func InitBrand() {
 func getBrandImage(c *Context, w http.ResponseWriter, r *http.Request) {
 	// No permission check required
 
-	if img, err := app.GetBrandImage(); err != nil {
+	if img, err := c.App.GetBrandImage(); err != nil {
 		w.WriteHeader(http.StatusNotFound)
 		w.Write(nil)
 	} else {
@@ -60,7 +60,7 @@ func uploadBrandImage(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := app.SaveBrandImage(imageArray[0]); err != nil {
+	if err := c.App.SaveBrandImage(imageArray[0]); err != nil {
 		c.Err = err
 		return
 	}

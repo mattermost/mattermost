@@ -1087,7 +1087,7 @@ func (a *App) SetActiveChannel(userId string, channelId string) *model.AppError 
 		status.LastActivityAt = model.GetMillis()
 	}
 
-	AddStatusCache(status)
+	a.AddStatusCache(status)
 
 	if status.Status != oldStatus {
 		BroadcastStatus(status)

@@ -25,7 +25,7 @@ func syncLdap(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	app.SyncLdap()
+	c.App.SyncLdap()
 
 	ReturnStatusOK(w)
 }
@@ -36,7 +36,7 @@ func testLdap(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := app.TestLdap(); err != nil {
+	if err := c.App.TestLdap(); err != nil {
 		c.Err = err
 		return
 	}

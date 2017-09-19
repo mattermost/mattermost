@@ -9,7 +9,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/mattermost/mattermost-server/einterfaces"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
 	"github.com/mssola/user_agent"
@@ -27,15 +26,15 @@ func (a *App) AuthenticateUserForLogin(id, loginId, password, mfaToken, deviceId
 	if len(id) != 0 {
 		if user, err = a.GetUser(id); err != nil {
 			err.StatusCode = http.StatusBadRequest
-			if einterfaces.GetMetricsInterface() != nil {
-				einterfaces.GetMetricsInterface().IncrementLoginFail()
+			if a.Metrics != nil {
+				a.Metrics.IncrementLoginFail()
 			}
 			return nil, err
 		}
 	} else {
 		if user, err = a.GetUserForLogin(loginId, ldapOnly); err != nil {
-			if einterfaces.GetMetricsInterface() != nil {
-				einterfaces.GetMetricsInterface().IncrementLoginFail()
+			if a.Metrics != nil {
+				a.Metrics.IncrementLoginFail()
 			}
 			return nil, err
 		}
@@ -43,14 +42,14 @@ func (a *App) AuthenticateUserForLogin(id, loginId, password, mfaToken, deviceId
 
 	// and then authenticate them
 	if user, err = a.authenticateUser(user, password, mfaToken); err != nil {
-		if einterfaces.GetMetricsInterface() != nil {
-			einterfaces.GetMetricsInterface().IncrementLoginFail()
+		if a.Metrics != nil {
+			a.Metrics.IncrementLoginFail()
 		}
 		return nil, err
 	}
 
-	if einterfaces.GetMetricsInterface() != nil {
-		einterfaces.GetMetricsInterface().IncrementLogin()
+	if a.Metrics != nil {
+		a.Metrics.IncrementLogin()
 	}
 
 	return user, nil

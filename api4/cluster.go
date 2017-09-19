@@ -24,6 +24,6 @@ func getClusterStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	infos := app.GetClusterStatus()
+	infos := c.App.GetClusterStatus()
 	w.Write([]byte(model.ClusterInfosToJson(infos)))
 }

@@ -5,7 +5,6 @@ package app
 
 import (
 	l4g "github.com/alecthomas/log4go"
-	"github.com/mattermost/mattermost-server/einterfaces"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
 	"github.com/mattermost/mattermost-server/utils"
@@ -98,8 +97,8 @@ func (a *App) GetAnalytics(name string, teamId string) (model.AnalyticsRows, *mo
 		}
 
 		// If in HA mode then aggregrate all the stats
-		if einterfaces.GetClusterInterface() != nil && *utils.Cfg.ClusterSettings.Enable {
-			stats, err := einterfaces.GetClusterInterface().GetClusterStats()
+		if a.Cluster != nil && *utils.Cfg.ClusterSettings.Enable {
+			stats, err := a.Cluster.GetClusterStats()
 			if err != nil {
 				return nil, err
 			}
