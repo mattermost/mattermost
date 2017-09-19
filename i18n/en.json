@@ -153,7 +153,7 @@
   },
   {
     "id": "api.channel.add_member.added",
-    "translation": "%v added to the channel by %v"
+    "translation": "%v added %v to the channel."
   },
   {
     "id": "api.channel.add_member.find_channel.app_error",
@@ -297,7 +297,7 @@
   },
   {
     "id": "api.channel.join_channel.post_and_forget",
-    "translation": "%v has joined the channel."
+    "translation": "%v joined the channel."
   },
   {
     "id": "api.channel.leave.default.app_error",
@@ -313,7 +313,7 @@
   },
   {
     "id": "api.channel.leave.left",
-    "translation": "%v has left the channel."
+    "translation": "%v left the channel."
   },
   {
     "id": "api.channel.post_update_channel_displayname_message_and_forget.create_post.error",
@@ -346,6 +346,14 @@
   {
     "id": "api.channel.post_update_channel_header_message_and_forget.updated_to",
     "translation": "%s updated the channel header to: %s"
+  },
+  {
+    "id": "api.channel.create_user_activity_post.error",
+    "translation": "Failed to create user activity system message like add, remove, join or leave"
+  },
+  {
+    "id": "api.channel.update_user_activity_post.error",
+    "translation": "Failed to update user activity system message like add, remove, join or leave"
   },
   {
     "id": "api.channel.post_user_add_remove_message_and_forget.error",

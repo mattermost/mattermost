@@ -11,26 +11,28 @@ import (
 )
 
 const (
-	POST_SYSTEM_MESSAGE_PREFIX = "system_"
-	POST_DEFAULT               = ""
-	POST_SLACK_ATTACHMENT      = "slack_attachment"
-	POST_SYSTEM_GENERIC        = "system_generic"
-	POST_JOIN_LEAVE            = "system_join_leave" // Deprecated, use POST_JOIN_CHANNEL or POST_LEAVE_CHANNEL instead
-	POST_JOIN_CHANNEL          = "system_join_channel"
-	POST_LEAVE_CHANNEL         = "system_leave_channel"
-	POST_ADD_REMOVE            = "system_add_remove" // Deprecated, use POST_ADD_TO_CHANNEL or POST_REMOVE_FROM_CHANNEL instead
-	POST_ADD_TO_CHANNEL        = "system_add_to_channel"
-	POST_REMOVE_FROM_CHANNEL   = "system_remove_from_channel"
-	POST_HEADER_CHANGE         = "system_header_change"
-	POST_DISPLAYNAME_CHANGE    = "system_displayname_change"
-	POST_PURPOSE_CHANGE        = "system_purpose_change"
-	POST_CHANNEL_DELETED       = "system_channel_deleted"
-	POST_EPHEMERAL             = "system_ephemeral"
-	POST_FILEIDS_MAX_RUNES     = 150
-	POST_FILENAMES_MAX_RUNES   = 4000
-	POST_HASHTAGS_MAX_RUNES    = 1000
-	POST_MESSAGE_MAX_RUNES     = 4000
-	POST_PROPS_MAX_RUNES       = 8000
+	POST_SYSTEM_MESSAGE_PREFIX     = "system_"
+	POST_DEFAULT                   = ""
+	POST_SLACK_ATTACHMENT          = "slack_attachment"
+	POST_SYSTEM_GENERIC            = "system_generic"
+	POST_JOIN_LEAVE                = "system_join_leave" // Deprecated, use POST_JOIN_CHANNEL or POST_LEAVE_CHANNEL instead
+	POST_JOIN_CHANNEL              = "system_join_channel"
+	POST_LEAVE_CHANNEL             = "system_leave_channel"
+	POST_ADD_REMOVE                = "system_add_remove" // Deprecated, use POST_ADD_TO_CHANNEL or POST_REMOVE_FROM_CHANNEL instead
+	POST_ADD_TO_CHANNEL            = "system_add_to_channel"
+	POST_REMOVE_FROM_CHANNEL       = "system_remove_from_channel"
+	POST_HEADER_CHANGE             = "system_header_change"
+	POST_DISPLAYNAME_CHANGE        = "system_displayname_change"
+	POST_PURPOSE_CHANGE            = "system_purpose_change"
+	POST_CHANNEL_DELETED           = "system_channel_deleted"
+	POST_EPHEMERAL                 = "system_ephemeral"
+	POST_PROPS_USER_ACTIVITIES     = "user_activities"
+	POST_PROPS_USER_ACTIVITIES_MAX = 50
+	POST_FILEIDS_MAX_RUNES         = 150
+	POST_FILENAMES_MAX_RUNES       = 4000
+	POST_HASHTAGS_MAX_RUNES        = 1000
+	POST_MESSAGE_MAX_RUNES         = 4000
+	POST_PROPS_MAX_RUNES           = 8000
 )
 
 type Post struct {
@@ -237,6 +239,23 @@ func (o *Post) AddProp(key string, value interface{}) {
 
 func (o *Post) IsSystemMessage() bool {
 	return len(o.Type) >= len(POST_SYSTEM_MESSAGE_PREFIX) && o.Type[:len(POST_SYSTEM_MESSAGE_PREFIX)] == POST_SYSTEM_MESSAGE_PREFIX
+}
+
+func (o *Post) IsUserActivitySystemMessage() bool {
+	for _, systemMessage := range []string{
+		POST_JOIN_LEAVE,
+		POST_JOIN_CHANNEL,
+		POST_LEAVE_CHANNEL,
+		POST_ADD_REMOVE,
+		POST_ADD_TO_CHANNEL,
+		POST_REMOVE_FROM_CHANNEL,
+	} {
+		if o.Type == systemMessage {
+			return true
+		}
+	}
+
+	return false
 }
 
 func (p *Post) Patch(patch *PostPatch) {

@@ -172,6 +172,7 @@ type PostStore interface {
 	GetPostsByIds(postIds []string) StoreChannel
 	GetPostsBatchForIndexing(startTime int64, limit int) StoreChannel
 	PermanentDeleteBatch(endTime int64, limit int64) StoreChannel
+	GetLastPostForChannel(channelId string) StoreChannel
 }
 
 type UserStore interface {
