@@ -372,7 +372,7 @@ func (a *App) GetUserByAuth(authData *string, authService string) (*model.User, 
 }
 
 func (a *App) GetUserForLogin(loginId string, onlyLdap bool) (*model.User, *model.AppError) {
-	ldapAvailable := *utils.Cfg.LdapSettings.Enable && einterfaces.GetLdapInterface() != nil && utils.IsLicensed() && *utils.License().Features.LDAP
+	ldapAvailable := *utils.Cfg.LdapSettings.Enable && a.Ldap != nil && utils.IsLicensed() && *utils.License().Features.LDAP
 
 	if result := <-a.Srv.Store.User().GetForLogin(
 		loginId,
@@ -391,7 +391,7 @@ func (a *App) GetUserForLogin(loginId string, onlyLdap bool) (*model.User, *mode
 		}
 
 		// fall back to LDAP server to see if we can find a user
-		if ldapUser, ldapErr := einterfaces.GetLdapInterface().GetUser(loginId); ldapErr != nil {
+		if ldapUser, ldapErr := a.Ldap.GetUser(loginId); ldapErr != nil {
 			ldapErr.StatusCode = http.StatusBadRequest
 			return nil, ldapErr
 		} else {
@@ -607,8 +607,7 @@ func sanitizeProfiles(users []*model.User, asAdmin bool) []*model.User {
 }
 
 func (a *App) GenerateMfaSecret(userId string) (*model.MfaSecret, *model.AppError) {
-	mfaInterface := einterfaces.GetMfaInterface()
-	if mfaInterface == nil {
+	if a.Mfa == nil {
 		return nil, model.NewAppError("generateMfaSecret", "api.user.generate_mfa_qr.not_available.app_error", nil, "", http.StatusNotImplemented)
 	}
 
@@ -618,7 +617,7 @@ func (a *App) GenerateMfaSecret(userId string) (*model.MfaSecret, *model.AppErro
 		return nil, err
 	}
 
-	secret, img, err := mfaInterface.GenerateSecret(user)
+	secret, img, err := a.Mfa.GenerateSecret(user)
 	if err != nil {
 		return nil, err
 	}
@@ -628,8 +627,7 @@ func (a *App) GenerateMfaSecret(userId string) (*model.MfaSecret, *model.AppErro
 }
 
 func (a *App) ActivateMfa(userId, token string) *model.AppError {
-	mfaInterface := einterfaces.GetMfaInterface()
-	if mfaInterface == nil {
+	if a.Mfa == nil {
 		err := model.NewAppError("ActivateMfa", "api.user.update_mfa.not_available.app_error", nil, "", http.StatusNotImplemented)
 		return err
 	}
@@ -645,21 +643,20 @@ func (a *App) ActivateMfa(userId, token string) *model.AppError {
 		return model.NewAppError("ActivateMfa", "api.user.activate_mfa.email_and_ldap_only.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if err := mfaInterface.Activate(user, token); err != nil {
+	if err := a.Mfa.Activate(user, token); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func DeactivateMfa(userId string) *model.AppError {
-	mfaInterface := einterfaces.GetMfaInterface()
-	if mfaInterface == nil {
+func (a *App) DeactivateMfa(userId string) *model.AppError {
+	if a.Mfa == nil {
 		err := model.NewAppError("DeactivateMfa", "api.user.update_mfa.not_available.app_error", nil, "", http.StatusNotImplemented)
 		return err
 	}
 
-	if err := mfaInterface.Deactivate(userId); err != nil {
+	if err := a.Mfa.Deactivate(userId); err != nil {
 		return err
 	}
 
@@ -1045,7 +1042,7 @@ func (a *App) UpdateMfa(activate bool, userId, token string) *model.AppError {
 			return err
 		}
 	} else {
-		if err := DeactivateMfa(userId); err != nil {
+		if err := a.DeactivateMfa(userId); err != nil {
 			return err
 		}
 	}
@@ -1215,7 +1212,7 @@ func (a *App) UpdateUserRoles(userId string, newRoles string) (*model.User, *mod
 		l4g.Error(result.Err)
 	}
 
-	ClearSessionCacheForUser(user.Id)
+	a.ClearSessionCacheForUser(user.Id)
 
 	return ruser, nil
 }

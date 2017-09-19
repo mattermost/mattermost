@@ -14,7 +14,6 @@ import (
 	l4g "github.com/alecthomas/log4go"
 	"github.com/gorilla/mux"
 	"github.com/mattermost/mattermost-server/app"
-	"github.com/mattermost/mattermost-server/einterfaces"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
 	"github.com/mattermost/mattermost-server/utils"
@@ -169,7 +168,7 @@ func attachDeviceId(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	app.ClearSessionCacheForUser(c.Session.UserId)
+	c.App.ClearSessionCacheForUser(c.Session.UserId)
 	c.Session.SetExpireInDays(*utils.Cfg.ServiceSettings.SessionLengthMobileInDays)
 
 	maxAge := *utils.Cfg.ServiceSettings.SessionLengthMobileInDays * 60 * 60 * 24
@@ -1075,7 +1074,7 @@ func updateMfa(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 		c.LogAudit("success - activated")
 	} else {
-		if err := app.DeactivateMfa(c.Session.UserId); err != nil {
+		if err := c.App.DeactivateMfa(c.Session.UserId); err != nil {
 			c.Err = err
 			return
 		}
@@ -1126,7 +1125,7 @@ func checkMfa(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func loginWithSaml(c *Context, w http.ResponseWriter, r *http.Request) {
-	samlInterface := einterfaces.GetSamlInterface()
+	samlInterface := c.App.Saml
 
 	if samlInterface == nil {
 		c.Err = model.NewAppError("loginWithSaml", "api.user.saml.not_available.app_error", nil, "", http.StatusFound)
@@ -1169,7 +1168,7 @@ func loginWithSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
-	samlInterface := einterfaces.GetSamlInterface()
+	samlInterface := c.App.Saml
 
 	if samlInterface == nil {
 		c.Err = model.NewAppError("completeSaml", "api.user.saml.not_available.app_error", nil, "", http.StatusFound)
@@ -1203,7 +1202,7 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	} else {
-		if err := app.CheckUserAdditionalAuthenticationCriteria(user, ""); err != nil {
+		if err := c.App.CheckUserAdditionalAuthenticationCriteria(user, ""); err != nil {
 			c.Err = err
 			c.Err.StatusCode = http.StatusFound
 			return

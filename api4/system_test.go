@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	l4g "github.com/alecthomas/log4go"
-	"github.com/mattermost/mattermost-server/app"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
 )
@@ -108,7 +107,7 @@ func TestUpdateConfig(t *testing.T) {
 	defer TearDown()
 	Client := th.Client
 
-	cfg := app.GetConfig()
+	cfg := th.App.GetConfig()
 
 	_, resp := Client.UpdateConfig(cfg)
 	CheckForbiddenStatus(t, resp)

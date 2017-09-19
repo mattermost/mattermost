@@ -11,19 +11,17 @@ import (
 
 	"path/filepath"
 
-	"github.com/mattermost/mattermost-server/einterfaces"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
 )
 
-func GetSamlMetadata() (string, *model.AppError) {
-	samlInterface := einterfaces.GetSamlInterface()
-	if samlInterface == nil {
+func (a *App) GetSamlMetadata() (string, *model.AppError) {
+	if a.Saml == nil {
 		err := model.NewAppError("GetSamlMetadata", "api.admin.saml.not_available.app_error", nil, "", http.StatusNotImplemented)
 		return "", err
 	}
 
-	if result, err := samlInterface.GetMetadata(); err != nil {
+	if result, err := a.Saml.GetMetadata(); err != nil {
 		return "", model.NewAppError("GetSamlMetadata", "api.admin.saml.metadata.app_error", nil, "err="+err.Message, err.StatusCode)
 	} else {
 		return result, nil

@@ -947,7 +947,7 @@ func attachDeviceId(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	app.ClearSessionCacheForUser(c.Session.UserId)
+	c.App.ClearSessionCacheForUser(c.Session.UserId)
 	c.Session.SetExpireInDays(*utils.Cfg.ServiceSettings.SessionLengthMobileInDays)
 
 	maxAge := *utils.Cfg.ServiceSettings.SessionLengthMobileInDays * 60 * 60 * 24

@@ -94,7 +94,7 @@ func getConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cfg := app.GetConfig()
+	cfg := c.App.GetConfig()
 
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
 	w.Write([]byte(cfg.ToJson()))
@@ -106,7 +106,7 @@ func configReload(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	app.ReloadConfig()
+	c.App.ReloadConfig()
 
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
 	ReturnStatusOK(w)
@@ -124,7 +124,7 @@ func updateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := app.SaveConfig(cfg, true)
+	err := c.App.SaveConfig(cfg, true)
 	if err != nil {
 		c.Err = err
 		return
@@ -132,7 +132,7 @@ func updateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	c.LogAudit("updateConfig")
 
-	cfg = app.GetConfig()
+	cfg = c.App.GetConfig()
 
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
 	w.Write([]byte(cfg.ToJson()))
@@ -188,7 +188,7 @@ func getLogs(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	lines, err := app.GetLogs(c.Params.Page, c.Params.PerPage)
+	lines, err := c.App.GetLogs(c.Params.Page, c.Params.PerPage)
 	if err != nil {
 		c.Err = err
 		return

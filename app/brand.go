@@ -7,39 +7,36 @@ import (
 	"mime/multipart"
 	"net/http"
 
-	"github.com/mattermost/mattermost-server/einterfaces"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
 )
 
-func SaveBrandImage(imageData *multipart.FileHeader) *model.AppError {
+func (a *App) SaveBrandImage(imageData *multipart.FileHeader) *model.AppError {
 	if len(*utils.Cfg.FileSettings.DriverName) == 0 {
 		return model.NewAppError("SaveBrandImage", "api.admin.upload_brand_image.storage.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	brandInterface := einterfaces.GetBrandInterface()
-	if brandInterface == nil {
+	if a.Brand == nil {
 		return model.NewAppError("SaveBrandImage", "api.admin.upload_brand_image.not_available.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	if err := brandInterface.SaveBrandImage(imageData); err != nil {
+	if err := a.Brand.SaveBrandImage(imageData); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func GetBrandImage() ([]byte, *model.AppError) {
+func (a *App) GetBrandImage() ([]byte, *model.AppError) {
 	if len(*utils.Cfg.FileSettings.DriverName) == 0 {
 		return nil, model.NewAppError("GetBrandImage", "api.admin.get_brand_image.storage.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	brandInterface := einterfaces.GetBrandInterface()
-	if brandInterface == nil {
+	if a.Brand == nil {
 		return nil, model.NewAppError("GetBrandImage", "api.admin.get_brand_image.not_available.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	if img, err := brandInterface.GetBrandImage(); err != nil {
+	if img, err := a.Brand.GetBrandImage(); err != nil {
 		return nil, err
 	} else {
 		return img, nil

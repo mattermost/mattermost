@@ -86,7 +86,7 @@ func (a *App) SaveLicense(licenseBytes []byte) (*model.License, *model.AppError)
 		return nil, model.NewAppError("addLicense", model.INVALID_LICENSE_ERROR, nil, "", http.StatusBadRequest)
 	}
 
-	ReloadConfig()
+	a.ReloadConfig()
 	a.InvalidateAllCaches()
 
 	return license, nil
@@ -104,7 +104,7 @@ func (a *App) RemoveLicense() *model.AppError {
 		return result.Err
 	}
 
-	ReloadConfig()
+	a.ReloadConfig()
 
 	a.InvalidateAllCaches()
 
