@@ -368,6 +368,7 @@ type TeamSettings struct {
 	UserStatusAwayTimeout               *int64
 	MaxChannelsPerTeam                  *int64
 	MaxNotificationsPerChannel          *int64
+	EnableConfirmNotificationsToChannel *bool
 	TeammateNameDisplay                 *string
 	ExperimentalTownSquareIsReadOnly    *bool
 }
@@ -853,6 +854,11 @@ func (o *Config) SetDefaults() {
 	if o.TeamSettings.MaxNotificationsPerChannel == nil {
 		o.TeamSettings.MaxNotificationsPerChannel = new(int64)
 		*o.TeamSettings.MaxNotificationsPerChannel = 1000
+	}
+
+	if o.TeamSettings.EnableConfirmNotificationsToChannel == nil {
+		o.TeamSettings.EnableConfirmNotificationsToChannel = new(bool)
+		*o.TeamSettings.EnableConfirmNotificationsToChannel = true
 	}
 
 	if o.TeamSettings.ExperimentalTownSquareIsReadOnly == nil {
