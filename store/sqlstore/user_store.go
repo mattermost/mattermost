@@ -78,6 +78,14 @@ func (us SqlUserStore) CreateIndexesIfNotExists() {
 	us.CreateIndexIfNotExists("idx_users_create_at", "Users", "CreateAt")
 	us.CreateIndexIfNotExists("idx_users_delete_at", "Users", "DeleteAt")
 
+	if *utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_POSTGRES {
+		us.CreateIndexIfNotExists("idx_users_email_lower", "Users", "lower(Email)")
+		us.CreateIndexIfNotExists("idx_users_username_lower", "Users", "lower(Username)")
+		us.CreateIndexIfNotExists("idx_users_nickname_lower", "Users", "lower(Nickname)")
+		us.CreateIndexIfNotExists("idx_users_firstname_lower", "Users", "lower(FirstName)")
+		us.CreateIndexIfNotExists("idx_users_lastname_lower", "Users", "lower(LastName)")
+	}
+
 	us.CreateFullTextIndexIfNotExists("idx_users_all_txt", "Users", USER_SEARCH_TYPE_ALL)
 	us.CreateFullTextIndexIfNotExists("idx_users_all_no_full_name_txt", "Users", USER_SEARCH_TYPE_ALL_NO_FULL_NAME)
 	us.CreateFullTextIndexIfNotExists("idx_users_names_txt", "Users", USER_SEARCH_TYPE_NAMES)
@@ -1445,7 +1453,11 @@ func (us SqlUserStore) performSearch(searchQuery string, term string, options ma
 		for i, term := range splitTerms {
 			fields := []string{}
 			for _, field := range splitFields {
-				fields = append(fields, fmt.Sprintf("%s LIKE %s escape '*' ", field, fmt.Sprintf(":Term%d", i)))
+				if *utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_POSTGRES {
+					fields = append(fields, fmt.Sprintf("lower(%s) LIKE lower(%s) escape '*' ", field, fmt.Sprintf(":Term%d", i)))
+				} else {
+					fields = append(fields, fmt.Sprintf("%s LIKE %s escape '*' ", field, fmt.Sprintf(":Term%d", i)))
+				}
 			}
 			terms = append(terms, fmt.Sprintf("(%s)", strings.Join(fields, " OR ")))
 			parameters[fmt.Sprintf("Term%d", i)] = fmt.Sprintf("%s%%", term)
