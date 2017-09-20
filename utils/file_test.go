@@ -125,6 +125,32 @@ func (s *FileTestSuite) TestRemoveFile() {
 	s.Nil(RemoveDirectory("tests2"))
 }
 
+func (s *FileTestSuite) TestListDirectory() {
+	b := []byte("test")
+	path1 := "19700101/" + model.NewId()
+	path2 := "19800101/" + model.NewId()
+
+	s.Nil(WriteFile(b, path1))
+	defer RemoveFile(path1)
+	s.Nil(WriteFile(b, path2))
+	defer RemoveFile(path2)
+
+	paths, err := ListDirectory("")
+	s.Nil(err)
+
+	found1 := false
+	found2 := false
+	for _, path := range *paths {
+		if path == "19700101" {
+			found1 = true
+		} else if path == "19800101" {
+			found2 = true
+		}
+	}
+	s.True(found1)
+	s.True(found2)
+}
+
 func (s *FileTestSuite) TestRemoveDirectory() {
 	b := []byte("test")
 
