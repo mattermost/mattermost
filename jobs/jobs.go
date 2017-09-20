@@ -11,6 +11,7 @@ import (
 
 	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/utils"
 )
 
 const (
@@ -75,6 +76,8 @@ func SetJobError(job *model.Job, jobError *model.AppError) *model.AppError {
 		result := <-Srv.Store.Job().UpdateStatus(job.Id, model.JOB_STATUS_ERROR)
 		return result.Err
 	}
+
+	jobError.Translate(utils.T)
 
 	job.Status = model.JOB_STATUS_ERROR
 	job.Progress = -1
