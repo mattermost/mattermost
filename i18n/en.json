@@ -3720,6 +3720,14 @@
     "translation": "Failed to setup Elasticsearch index mapping"
   },
   {
+    "id": "ent.elasticsearch.data_retention_delete_indexes.get_indexes.error",
+    "translation": "Failed to get Elasticsearch indexes"
+  },
+  {
+    "id": "ent.elasticsearch.data_retention_delete_indexes.delete_index.error",
+    "translation": "Failed to delete Elasticsearch index"
+  },
+  {
     "id": "ent.elasticsearch.delete_post.error",
     "translation": "Failed to delete the post"
   },
