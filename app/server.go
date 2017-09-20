@@ -84,7 +84,7 @@ func (a *App) NewServer() {
 }
 
 func (a *App) InitStores() {
-	a.Srv.Store = store.NewLayeredStore()
+	a.Srv.Store = store.NewLayeredStore(a.Metrics, a.Cluster)
 }
 
 type VaryBy struct{}

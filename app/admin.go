@@ -149,7 +149,7 @@ func (a *App) SaveConfig(cfg *model.Config, sendConfigChangeClusterMessage bool)
 		return err
 	}
 
-	if err := utils.ValidateLdapFilter(cfg); err != nil {
+	if err := utils.ValidateLdapFilter(cfg, a.Ldap); err != nil {
 		return err
 	}
 
@@ -187,7 +187,7 @@ func (a *App) RecycleDatabaseConnection() {
 	oldStore := a.Srv.Store
 
 	l4g.Warn(utils.T("api.admin.recycle_db_start.warn"))
-	a.Srv.Store = store.NewLayeredStore()
+	a.Srv.Store = store.NewLayeredStore(a.Metrics, a.Cluster)
 
 	jobs.Srv.Store = a.Srv.Store
 

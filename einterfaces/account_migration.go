@@ -8,13 +8,3 @@ import "github.com/mattermost/mattermost-server/model"
 type AccountMigrationInterface interface {
 	MigrateToLdap(fromAuthService string, forignUserFieldNameToMatch string, force bool) *model.AppError
 }
-
-var theAccountMigrationInterface AccountMigrationInterface
-
-func RegisterAccountMigrationInterface(newInterface AccountMigrationInterface) {
-	theAccountMigrationInterface = newInterface
-}
-
-func GetAccountMigrationInterface() AccountMigrationInterface {
-	return theAccountMigrationInterface
-}

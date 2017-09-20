@@ -10,7 +10,6 @@ import (
 	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/mattermost-server/jobs"
 	"github.com/mattermost/mattermost-server/store"
-	"github.com/mattermost/mattermost-server/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -31,10 +30,13 @@ func jobserverCmdF(cmd *cobra.Command, args []string) {
 	noSchedule, _ := cmd.Flags().GetBool("noschedule")
 
 	// Initialize
-	utils.InitAndLoadConfig("config.json")
+	a, err := initDBCommandContext("config.json")
+	if err != nil {
+		panic(err.Error())
+	}
 	defer l4g.Close()
 
-	jobs.Srv.Store = store.NewLayeredStore()
+	jobs.Srv.Store = store.NewLayeredStore(a.Metrics, a.Cluster)
 	defer jobs.Srv.Store.Close()
 
 	jobs.Srv.LoadLicense()

@@ -12,10 +12,10 @@ import (
 
 const CHANNEL_ARG_SEPARATOR = ":"
 
-func getChannelsFromChannelArgs(channelArgs []string) []*model.Channel {
+func getChannelsFromChannelArgs(a *app.App, channelArgs []string) []*model.Channel {
 	channels := make([]*model.Channel, 0, len(channelArgs))
 	for _, channelArg := range channelArgs {
-		channel := getChannelFromChannelArg(channelArg)
+		channel := getChannelFromChannelArg(a, channelArg)
 		channels = append(channels, channel)
 	}
 	return channels
@@ -29,7 +29,7 @@ func parseChannelArg(channelArg string) (string, string) {
 	return result[0], result[1]
 }
 
-func getChannelFromChannelArg(channelArg string) *model.Channel {
+func getChannelFromChannelArg(a *app.App, channelArg string) *model.Channel {
 	teamArg, channelPart := parseChannelArg(channelArg)
 	if teamArg == "" && channelPart == "" {
 		return nil
@@ -37,12 +37,12 @@ func getChannelFromChannelArg(channelArg string) *model.Channel {
 
 	var channel *model.Channel
 	if teamArg != "" {
-		team := getTeamFromTeamArg(teamArg)
+		team := getTeamFromTeamArg(a, teamArg)
 		if team == nil {
 			return nil
 		}
 
-		if result := <-app.Global().Srv.Store.Channel().GetByNameIncludeDeleted(team.Id, channelPart, true); result.Err == nil {
+		if result := <-a.Srv.Store.Channel().GetByNameIncludeDeleted(team.Id, channelPart, true); result.Err == nil {
 			channel = result.Data.(*model.Channel)
 		} else {
 			fmt.Println(result.Err.Error())
@@ -50,7 +50,7 @@ func getChannelFromChannelArg(channelArg string) *model.Channel {
 	}
 
 	if channel == nil {
-		if result := <-app.Global().Srv.Store.Channel().Get(channelPart, true); result.Err == nil {
+		if result := <-a.Srv.Store.Channel().Get(channelPart, true); result.Err == nil {
 			channel = result.Data.(*model.Channel)
 		}
 	}

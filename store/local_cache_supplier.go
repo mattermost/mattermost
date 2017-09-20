@@ -32,15 +32,11 @@ func NewLocalCacheSupplier(metrics einterfaces.MetricsInterface, cluster einterf
 		cluster:       cluster,
 	}
 
-	registerClusterHandlers(supplier)
-
-	return supplier
-}
-
-func registerClusterHandlers(supplier *LocalCacheSupplier) {
-	if cluster := einterfaces.GetClusterInterface(); cluster != nil {
+	if cluster != nil {
 		cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_REACTIONS, supplier.handleClusterInvalidateReaction)
 	}
+
+	return supplier
 }
 
 func (s *LocalCacheSupplier) SetChainNext(next LayeredStoreSupplier) {
