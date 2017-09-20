@@ -30,7 +30,7 @@ func InitSaml() {
 }
 
 func getSamlMetadata(c *Context, w http.ResponseWriter, r *http.Request) {
-	metadata, err := app.GetSamlMetadata()
+	metadata, err := c.App.GetSamlMetadata()
 	if err != nil {
 		c.Err = err
 		return

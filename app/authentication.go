@@ -7,13 +7,12 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/einterfaces"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
 )
 
 func (a *App) CheckPasswordAndAllCriteria(user *model.User, password string, mfaToken string) *model.AppError {
-	if err := CheckUserAdditionalAuthenticationCriteria(user, mfaToken); err != nil {
+	if err := a.CheckUserAdditionalAuthenticationCriteria(user, mfaToken); err != nil {
 		return err
 	}
 
@@ -53,23 +52,21 @@ func (a *App) checkUserPassword(user *model.User, password string) *model.AppErr
 	}
 }
 
-func checkLdapUserPasswordAndAllCriteria(ldapId *string, password string, mfaToken string) (*model.User, *model.AppError) {
-	ldapInterface := einterfaces.GetLdapInterface()
-
-	if ldapInterface == nil || ldapId == nil {
+func (a *App) checkLdapUserPasswordAndAllCriteria(ldapId *string, password string, mfaToken string) (*model.User, *model.AppError) {
+	if a.Ldap == nil || ldapId == nil {
 		err := model.NewAppError("doLdapAuthentication", "api.user.login_ldap.not_available.app_error", nil, "", http.StatusNotImplemented)
 		return nil, err
 	}
 
 	var user *model.User
-	if ldapUser, err := ldapInterface.DoLogin(*ldapId, password); err != nil {
+	if ldapUser, err := a.Ldap.DoLogin(*ldapId, password); err != nil {
 		err.StatusCode = http.StatusUnauthorized
 		return nil, err
 	} else {
 		user = ldapUser
 	}
 
-	if err := CheckUserMfa(user, mfaToken); err != nil {
+	if err := a.CheckUserMfa(user, mfaToken); err != nil {
 		return nil, err
 	}
 
@@ -81,8 +78,8 @@ func checkLdapUserPasswordAndAllCriteria(ldapId *string, password string, mfaTok
 	return user, nil
 }
 
-func CheckUserAdditionalAuthenticationCriteria(user *model.User, mfaToken string) *model.AppError {
-	if err := CheckUserMfa(user, mfaToken); err != nil {
+func (a *App) CheckUserAdditionalAuthenticationCriteria(user *model.User, mfaToken string) *model.AppError {
+	if err := a.CheckUserMfa(user, mfaToken); err != nil {
 		return err
 	}
 
@@ -101,17 +98,16 @@ func CheckUserAdditionalAuthenticationCriteria(user *model.User, mfaToken string
 	return nil
 }
 
-func CheckUserMfa(user *model.User, token string) *model.AppError {
+func (a *App) CheckUserMfa(user *model.User, token string) *model.AppError {
 	if !user.MfaActive || !utils.IsLicensed() || !*utils.License().Features.MFA || !*utils.Cfg.ServiceSettings.EnableMultifactorAuthentication {
 		return nil
 	}
 
-	mfaInterface := einterfaces.GetMfaInterface()
-	if mfaInterface == nil {
+	if a.Mfa == nil {
 		return model.NewAppError("checkUserMfa", "api.user.check_user_mfa.not_available.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	if ok, err := mfaInterface.ValidateToken(user.MfaSecret, token); err != nil {
+	if ok, err := a.Mfa.ValidateToken(user.MfaSecret, token); err != nil {
 		return err
 	} else if !ok {
 		return model.NewAppError("checkUserMfa", "api.user.check_user_mfa.bad_code.app_error", nil, "", http.StatusUnauthorized)
@@ -143,13 +139,13 @@ func checkUserNotDisabled(user *model.User) *model.AppError {
 }
 
 func (a *App) authenticateUser(user *model.User, password, mfaToken string) (*model.User, *model.AppError) {
-	ldapAvailable := *utils.Cfg.LdapSettings.Enable && einterfaces.GetLdapInterface() != nil && utils.IsLicensed() && *utils.License().Features.LDAP
+	ldapAvailable := *utils.Cfg.LdapSettings.Enable && a.Ldap != nil && utils.IsLicensed() && *utils.License().Features.LDAP
 
 	if user.AuthService == model.USER_AUTH_SERVICE_LDAP {
 		if !ldapAvailable {
 			err := model.NewAppError("login", "api.user.login_ldap.not_available.app_error", nil, "", http.StatusNotImplemented)
 			return user, err
-		} else if ldapUser, err := checkLdapUserPasswordAndAllCriteria(user.AuthData, password, mfaToken); err != nil {
+		} else if ldapUser, err := a.checkLdapUserPasswordAndAllCriteria(user.AuthData, password, mfaToken); err != nil {
 			err.StatusCode = http.StatusUnauthorized
 			return user, err
 		} else {

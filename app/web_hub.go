@@ -15,7 +15,6 @@ import (
 
 	l4g "github.com/alecthomas/log4go"
 
-	"github.com/mattermost/mattermost-server/einterfaces"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
 )
@@ -145,13 +144,17 @@ func HubUnregister(webConn *WebConn) {
 }
 
 func Publish(message *model.WebSocketEvent) {
-	if metrics := einterfaces.GetMetricsInterface(); metrics != nil {
+	Global().Publish(message)
+}
+
+func (a *App) Publish(message *model.WebSocketEvent) {
+	if metrics := a.Metrics; metrics != nil {
 		metrics.IncrementWebsocketEvent(message.Event)
 	}
 
 	PublishSkipClusterSend(message)
 
-	if einterfaces.GetClusterInterface() != nil {
+	if a.Cluster != nil {
 		cm := &model.ClusterMessage{
 			Event:    model.CLUSTER_EVENT_PUBLISH,
 			SendType: model.CLUSTER_SEND_BEST_EFFORT,
@@ -166,7 +169,7 @@ func Publish(message *model.WebSocketEvent) {
 			cm.SendType = model.CLUSTER_SEND_RELIABLE
 		}
 
-		einterfaces.GetClusterInterface().SendClusterMessage(cm)
+		a.Cluster.SendClusterMessage(cm)
 	}
 }
 
@@ -180,14 +183,14 @@ func (a *App) InvalidateCacheForChannel(channel *model.Channel) {
 	a.InvalidateCacheForChannelSkipClusterSend(channel.Id)
 	a.InvalidateCacheForChannelByNameSkipClusterSend(channel.TeamId, channel.Name)
 
-	if cluster := einterfaces.GetClusterInterface(); cluster != nil {
+	if a.Cluster != nil {
 		msg := &model.ClusterMessage{
 			Event:    model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_CHANNEL,
 			SendType: model.CLUSTER_SEND_BEST_EFFORT,
 			Data:     channel.Id,
 		}
 
-		einterfaces.GetClusterInterface().SendClusterMessage(msg)
+		a.Cluster.SendClusterMessage(msg)
 
 		nameMsg := &model.ClusterMessage{
 			Event:    model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_CHANNEL_BY_NAME,
@@ -202,7 +205,7 @@ func (a *App) InvalidateCacheForChannel(channel *model.Channel) {
 			nameMsg.Props["id"] = channel.TeamId
 		}
 
-		einterfaces.GetClusterInterface().SendClusterMessage(nameMsg)
+		a.Cluster.SendClusterMessage(nameMsg)
 	}
 }
 
@@ -213,13 +216,13 @@ func (a *App) InvalidateCacheForChannelSkipClusterSend(channelId string) {
 func (a *App) InvalidateCacheForChannelMembers(channelId string) {
 	a.InvalidateCacheForChannelMembersSkipClusterSend(channelId)
 
-	if einterfaces.GetClusterInterface() != nil {
+	if a.Cluster != nil {
 		msg := &model.ClusterMessage{
 			Event:    model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_CHANNEL_MEMBERS,
 			SendType: model.CLUSTER_SEND_BEST_EFFORT,
 			Data:     channelId,
 		}
-		einterfaces.GetClusterInterface().SendClusterMessage(msg)
+		a.Cluster.SendClusterMessage(msg)
 	}
 }
 
@@ -231,13 +234,13 @@ func (a *App) InvalidateCacheForChannelMembersSkipClusterSend(channelId string) 
 func (a *App) InvalidateCacheForChannelMembersNotifyProps(channelId string) {
 	a.InvalidateCacheForChannelMembersNotifyPropsSkipClusterSend(channelId)
 
-	if einterfaces.GetClusterInterface() != nil {
+	if a.Cluster != nil {
 		msg := &model.ClusterMessage{
 			Event:    model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_CHANNEL_MEMBERS_NOTIFY_PROPS,
 			SendType: model.CLUSTER_SEND_BEST_EFFORT,
 			Data:     channelId,
 		}
-		einterfaces.GetClusterInterface().SendClusterMessage(msg)
+		a.Cluster.SendClusterMessage(msg)
 	}
 }
 
@@ -256,13 +259,13 @@ func (a *App) InvalidateCacheForChannelByNameSkipClusterSend(teamId, name string
 func (a *App) InvalidateCacheForChannelPosts(channelId string) {
 	a.InvalidateCacheForChannelPostsSkipClusterSend(channelId)
 
-	if einterfaces.GetClusterInterface() != nil {
+	if a.Cluster != nil {
 		msg := &model.ClusterMessage{
 			Event:    model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_CHANNEL_POSTS,
 			SendType: model.CLUSTER_SEND_BEST_EFFORT,
 			Data:     channelId,
 		}
-		einterfaces.GetClusterInterface().SendClusterMessage(msg)
+		a.Cluster.SendClusterMessage(msg)
 	}
 }
 
@@ -273,13 +276,13 @@ func (a *App) InvalidateCacheForChannelPostsSkipClusterSend(channelId string) {
 func (a *App) InvalidateCacheForUser(userId string) {
 	a.InvalidateCacheForUserSkipClusterSend(userId)
 
-	if einterfaces.GetClusterInterface() != nil {
+	if a.Cluster != nil {
 		msg := &model.ClusterMessage{
 			Event:    model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_USER,
 			SendType: model.CLUSTER_SEND_BEST_EFFORT,
 			Data:     userId,
 		}
-		einterfaces.GetClusterInterface().SendClusterMessage(msg)
+		a.Cluster.SendClusterMessage(msg)
 	}
 }
 
@@ -296,13 +299,13 @@ func (a *App) InvalidateCacheForUserSkipClusterSend(userId string) {
 func (a *App) InvalidateCacheForWebhook(webhookId string) {
 	a.InvalidateCacheForWebhookSkipClusterSend(webhookId)
 
-	if einterfaces.GetClusterInterface() != nil {
+	if a.Cluster != nil {
 		msg := &model.ClusterMessage{
 			Event:    model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_WEBHOOK,
 			SendType: model.CLUSTER_SEND_BEST_EFFORT,
 			Data:     webhookId,
 		}
-		einterfaces.GetClusterInterface().SendClusterMessage(msg)
+		a.Cluster.SendClusterMessage(msg)
 	}
 }
 

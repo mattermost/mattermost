@@ -129,11 +129,13 @@ func (s SqlPostStore) Update(newPost *model.Post, oldPost *model.Post) StoreChan
 		result := StoreResult{}
 
 		newPost.UpdateAt = model.GetMillis()
+		newPost.PreCommit()
 
 		oldPost.DeleteAt = newPost.UpdateAt
 		oldPost.UpdateAt = newPost.UpdateAt
 		oldPost.OriginalId = oldPost.Id
 		oldPost.Id = model.NewId()
+		oldPost.PreCommit()
 
 		if result.Err = newPost.IsValid(); result.Err != nil {
 			storeChannel <- result

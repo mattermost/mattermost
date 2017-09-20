@@ -6,12 +6,11 @@ package app
 import (
 	"net/http"
 
-	"github.com/mattermost/mattermost-server/einterfaces"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
 )
 
-func TestElasticsearch(cfg *model.Config) *model.AppError {
+func (a *App) TestElasticsearch(cfg *model.Config) *model.AppError {
 	if *cfg.ElasticsearchSettings.Password == model.FAKE_SETTING {
 		if *cfg.ElasticsearchSettings.ConnectionUrl == *utils.Cfg.ElasticsearchSettings.ConnectionUrl && *cfg.ElasticsearchSettings.Username == *utils.Cfg.ElasticsearchSettings.Username {
 			*cfg.ElasticsearchSettings.Password = *utils.Cfg.ElasticsearchSettings.Password
@@ -20,7 +19,7 @@ func TestElasticsearch(cfg *model.Config) *model.AppError {
 		}
 	}
 
-	if esI := einterfaces.GetElasticsearchInterface(); esI != nil {
+	if esI := a.Elasticsearch; esI != nil {
 		if err := esI.TestConfig(cfg); err != nil {
 			return err
 		}
@@ -32,8 +31,8 @@ func TestElasticsearch(cfg *model.Config) *model.AppError {
 	return nil
 }
 
-func PurgeElasticsearchIndexes() *model.AppError {
-	if esI := einterfaces.GetElasticsearchInterface(); esI != nil {
+func (a *App) PurgeElasticsearchIndexes() *model.AppError {
+	if esI := a.Elasticsearch; esI != nil {
 		if err := esI.PurgeIndexes(); err != nil {
 			return err
 		}

@@ -161,7 +161,7 @@ func (a *App) UpdateTeamMemberRoles(teamId string, userId string, newRoles strin
 		return nil, result.Err
 	}
 
-	ClearSessionCacheForUser(userId)
+	a.ClearSessionCacheForUser(userId)
 
 	sendUpdatedMemberRoleEvent(userId, member)
 
@@ -324,7 +324,7 @@ func (a *App) JoinUserToTeam(team *model.Team, user *model.User, userRequestorId
 		l4g.Error(utils.T("api.user.create_user.joining.error"), user.Id, team.Id, err)
 	}
 
-	ClearSessionCacheForUser(user.Id)
+	a.ClearSessionCacheForUser(user.Id)
 	a.InvalidateCacheForUser(user.Id)
 
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_ADDED_TO_TEAM, "", "", user.Id, nil)
@@ -621,7 +621,7 @@ func (a *App) LeaveTeam(team *model.Team, user *model.User) *model.AppError {
 		return result.Err
 	}
 
-	ClearSessionCacheForUser(user.Id)
+	a.ClearSessionCacheForUser(user.Id)
 	a.InvalidateCacheForUser(user.Id)
 
 	return nil

@@ -16,7 +16,6 @@ import (
 	l4g "github.com/alecthomas/log4go"
 
 	"github.com/gorilla/mux"
-	"github.com/mattermost/mattermost-server/einterfaces"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
 
@@ -96,8 +95,7 @@ func (api *BuiltInPluginAPI) CreatePost(post *model.Post) (*model.Post, *model.A
 }
 
 func (api *BuiltInPluginAPI) GetLdapUserAttributes(userId string, attributes []string) (map[string]string, *model.AppError) {
-	ldapInterface := einterfaces.GetLdapInterface()
-	if ldapInterface == nil {
+	if api.app.Ldap == nil {
 		return nil, model.NewAppError("GetLdapUserAttributes", "ent.ldap.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
@@ -106,7 +104,7 @@ func (api *BuiltInPluginAPI) GetLdapUserAttributes(userId string, attributes []s
 		return nil, err
 	}
 
-	return ldapInterface.GetUserAttributes(*user.AuthData, attributes)
+	return api.app.Ldap.GetUserAttributes(*user.AuthData, attributes)
 }
 
 func (api *BuiltInPluginAPI) GetSessionFromRequest(r *http.Request) (*model.Session, *model.AppError) {

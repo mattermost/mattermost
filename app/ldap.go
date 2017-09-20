@@ -7,21 +7,24 @@ import (
 	"net/http"
 
 	l4g "github.com/alecthomas/log4go"
-	"github.com/mattermost/mattermost-server/einterfaces"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
 )
 
-func SyncLdap() {
-	if ldapI := einterfaces.GetLdapInterface(); ldapI != nil {
-		ldapI.StartSynchronizeJob(false)
-	} else {
-		l4g.Error("%v", model.NewAppError("SyncLdap", "ent.ldap.disabled.app_error", nil, "", http.StatusNotImplemented).Error())
-	}
+func (a *App) SyncLdap() {
+	go func() {
+		if utils.IsLicensed() && *utils.License().Features.LDAP && *utils.Cfg.LdapSettings.Enable {
+			if ldapI := a.Ldap; ldapI != nil {
+				ldapI.StartSynchronizeJob(false)
+			} else {
+				l4g.Error("%v", model.NewAppError("SyncLdap", "ent.ldap.disabled.app_error", nil, "", http.StatusNotImplemented).Error())
+			}
+		}
+	}()
 }
 
-func TestLdap() *model.AppError {
-	if ldapI := einterfaces.GetLdapInterface(); ldapI != nil && utils.IsLicensed() && *utils.License().Features.LDAP && *utils.Cfg.LdapSettings.Enable {
+func (a *App) TestLdap() *model.AppError {
+	if ldapI := a.Ldap; ldapI != nil && utils.IsLicensed() && *utils.License().Features.LDAP && *utils.Cfg.LdapSettings.Enable {
 		if err := ldapI.RunTest(); err != nil {
 			err.StatusCode = 500
 			return err
@@ -48,7 +51,7 @@ func (a *App) SwitchEmailToLdap(email, password, code, ldapId, ldapPassword stri
 		return "", err
 	}
 
-	ldapInterface := einterfaces.GetLdapInterface()
+	ldapInterface := a.Ldap
 	if ldapInterface == nil {
 		return "", model.NewAppError("SwitchEmailToLdap", "api.user.email_to_ldap.not_available.app_error", nil, "", http.StatusNotImplemented)
 	}
@@ -76,7 +79,7 @@ func (a *App) SwitchLdapToEmail(ldapPassword, code, email, newPassword string) (
 		return "", model.NewAppError("SwitchLdapToEmail", "api.user.ldap_to_email.not_ldap_account.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	ldapInterface := einterfaces.GetLdapInterface()
+	ldapInterface := a.Ldap
 	if ldapInterface == nil || user.AuthData == nil {
 		return "", model.NewAppError("SwitchLdapToEmail", "api.user.ldap_to_email.not_available.app_error", nil, "", http.StatusNotImplemented)
 	}
@@ -85,7 +88,7 @@ func (a *App) SwitchLdapToEmail(ldapPassword, code, email, newPassword string) (
 		return "", err
 	}
 
-	if err := CheckUserMfa(user, code); err != nil {
+	if err := a.CheckUserMfa(user, code); err != nil {
 		return "", err
 	}
 

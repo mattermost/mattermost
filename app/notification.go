@@ -18,7 +18,6 @@ import (
 	"unicode"
 
 	l4g "github.com/alecthomas/log4go"
-	"github.com/mattermost/mattermost-server/einterfaces"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
 	"github.com/mattermost/mattermost-server/utils"
@@ -369,8 +368,8 @@ func (a *App) sendNotificationEmail(post *model.Post, user *model.User, channel 
 		}
 	}()
 
-	if einterfaces.GetMetricsInterface() != nil {
-		einterfaces.GetMetricsInterface().IncrementPostSentEmail()
+	if a.Metrics != nil {
+		a.Metrics.IncrementPostSentEmail()
 	}
 
 	return nil
@@ -641,8 +640,8 @@ func (a *App) sendPushNotification(post *model.Post, user *model.User, channel *
 
 		go a.sendToPushProxy(tmpMessage, session)
 
-		if einterfaces.GetMetricsInterface() != nil {
-			einterfaces.GetMetricsInterface().IncrementPostSentPush()
+		if a.Metrics != nil {
+			a.Metrics.IncrementPostSentPush()
 		}
 	}
 
@@ -701,7 +700,7 @@ func (a *App) sendToPushProxy(msg model.PushNotification, session *model.Session
 		if pushResponse[model.PUSH_STATUS] == model.PUSH_STATUS_REMOVE {
 			l4g.Info("Device was reported as removed for UserId=%v SessionId=%v removing push for this session", session.UserId, session.Id)
 			a.AttachDeviceId(session.Id, "", session.ExpiresAt)
-			ClearSessionCacheForUser(session.UserId)
+			a.ClearSessionCacheForUser(session.UserId)
 		}
 
 		if pushResponse[model.PUSH_STATUS] == model.PUSH_STATUS_FAIL {
