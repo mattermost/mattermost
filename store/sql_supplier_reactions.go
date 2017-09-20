@@ -32,7 +32,7 @@ func (s *SqlSupplier) ReactionSave(ctx context.Context, reaction *model.Reaction
 	}
 
 	if transaction, err := s.GetMaster().Begin(); err != nil {
-		result.Err = model.NewLocAppError("SqlReactionStore.Save", "store.sql_reaction.save.begin.app_error", nil, err.Error())
+		result.Err = model.NewAppError("SqlReactionStore.Save", "store.sql_reaction.save.begin.app_error", nil, err.Error(), http.StatusInternalServerError)
 	} else {
 		err := saveReactionAndUpdatePost(transaction, reaction)
 
@@ -41,12 +41,12 @@ func (s *SqlSupplier) ReactionSave(ctx context.Context, reaction *model.Reaction
 
 			// We don't consider duplicated save calls as an error
 			if !IsUniqueConstraintError(err, []string{"reactions_pkey", "PRIMARY"}) {
-				result.Err = model.NewLocAppError("SqlPreferenceStore.Save", "store.sql_reaction.save.save.app_error", nil, err.Error())
+				result.Err = model.NewAppError("SqlPreferenceStore.Save", "store.sql_reaction.save.save.app_error", nil, err.Error(), http.StatusBadRequest)
 			}
 		} else {
 			if err := transaction.Commit(); err != nil {
 				// don't need to rollback here since the transaction is already closed
-				result.Err = model.NewLocAppError("SqlPreferenceStore.Save", "store.sql_reaction.save.commit.app_error", nil, err.Error())
+				result.Err = model.NewAppError("SqlPreferenceStore.Save", "store.sql_reaction.save.commit.app_error", nil, err.Error(), http.StatusInternalServerError)
 			}
 		}
 
@@ -62,17 +62,17 @@ func (s *SqlSupplier) ReactionDelete(ctx context.Context, reaction *model.Reacti
 	result := NewSupplierResult()
 
 	if transaction, err := s.GetMaster().Begin(); err != nil {
-		result.Err = model.NewLocAppError("SqlReactionStore.Delete", "store.sql_reaction.delete.begin.app_error", nil, err.Error())
+		result.Err = model.NewAppError("SqlReactionStore.Delete", "store.sql_reaction.delete.begin.app_error", nil, err.Error(), http.StatusInternalServerError)
 	} else {
 		err := deleteReactionAndUpdatePost(transaction, reaction)
 
 		if err != nil {
 			transaction.Rollback()
 
-			result.Err = model.NewLocAppError("SqlPreferenceStore.Delete", "store.sql_reaction.delete.app_error", nil, err.Error())
+			result.Err = model.NewAppError("SqlPreferenceStore.Delete", "store.sql_reaction.delete.app_error", nil, err.Error(), http.StatusInternalServerError)
 		} else if err := transaction.Commit(); err != nil {
 			// don't need to rollback here since the transaction is already closed
-			result.Err = model.NewLocAppError("SqlPreferenceStore.Delete", "store.sql_reaction.delete.commit.app_error", nil, err.Error())
+			result.Err = model.NewAppError("SqlPreferenceStore.Delete", "store.sql_reaction.delete.commit.app_error", nil, err.Error(), http.StatusInternalServerError)
 		} else {
 			result.Data = reaction
 		}
@@ -95,7 +95,7 @@ func (s *SqlSupplier) ReactionGetForPost(ctx context.Context, postId string, hin
 				PostId = :PostId
 			ORDER BY
 				CreateAt`, map[string]interface{}{"PostId": postId}); err != nil {
-		result.Err = model.NewLocAppError("SqlReactionStore.GetForPost", "store.sql_reaction.get_for_post.app_error", nil, "")
+		result.Err = model.NewAppError("SqlReactionStore.GetForPost", "store.sql_reaction.get_for_post.app_error", nil, "", http.StatusInternalServerError)
 	} else {
 		result.Data = reactions
 	}
@@ -115,9 +115,9 @@ func (s *SqlSupplier) ReactionDeleteAllWithEmojiName(ctx context.Context, emojiN
 				Reactions
 			WHERE
 				EmojiName = :EmojiName`, map[string]interface{}{"EmojiName": emojiName}); err != nil {
-		result.Err = model.NewLocAppError("SqlReactionStore.DeleteAllWithEmojiName",
+		result.Err = model.NewAppError("SqlReactionStore.DeleteAllWithEmojiName",
 			"store.sql_reaction.delete_all_with_emoji_name.get_reactions.app_error", nil,
-			"emoji_name="+emojiName+", error="+err.Error())
+			"emoji_name="+emojiName+", error="+err.Error(), http.StatusInternalServerError)
 		return result
 	}
 
@@ -126,9 +126,9 @@ func (s *SqlSupplier) ReactionDeleteAllWithEmojiName(ctx context.Context, emojiN
 				Reactions
 			WHERE
 				EmojiName = :EmojiName`, map[string]interface{}{"EmojiName": emojiName}); err != nil {
-		result.Err = model.NewLocAppError("SqlReactionStore.DeleteAllWithEmojiName",
+		result.Err = model.NewAppError("SqlReactionStore.DeleteAllWithEmojiName",
 			"store.sql_reaction.delete_all_with_emoji_name.delete_reactions.app_error", nil,
-			"emoji_name="+emojiName+", error="+err.Error())
+			"emoji_name="+emojiName+", error="+err.Error(), http.StatusInternalServerError)
 		return result
 	}
 
