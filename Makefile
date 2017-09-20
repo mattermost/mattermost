@@ -120,6 +120,16 @@ start-docker:
 		docker start mattermost-inbucket > /dev/null; \
 	fi
 
+	@if [ $(shell docker ps -a | grep -ci mattermost-minio) -eq 0 ]; then \
+		echo starting mattermost-minio; \
+		docker run --name mattermost-minio -p 9001:9000 -e "MINIO_ACCESS_KEY=minioaccesskey" \
+		-e "MINIO_SECRET_KEY=miniosecretkey" -d minio/minio:latest server /data > /dev/null; \
+		docker exec -it mattermost-minio /bin/sh -c "mkdir /data/mattermost-test" > /dev/null; \
+	elif [ $(shell docker ps | grep -ci mattermost-minio) -eq 0 ]; then \
+		echo restarting mattermost-minio; \
+		docker start mattermost-minio > /dev/null; \
+	fi
+
 ifeq ($(BUILD_ENTERPRISE_READY),true)
 	@echo Ldap test user test.one
 	@if [ $(shell docker ps -a | grep -ci mattermost-openldap) -eq 0 ]; then \
@@ -183,6 +193,11 @@ stop-docker:
 		docker stop mattermost-inbucket > /dev/null; \
 	fi
 
+		@if [ $(shell docker ps -a | grep -ci mattermost-minio) -eq 1 ]; then \
+    		echo stopping mattermost-minio; \
+    		docker stop mattermost-minio > /dev/null; \
+    	fi
+
 	@if [ $(shell docker ps -a | grep -ci mattermost-elasticsearch) -eq 1 ]; then \
 		echo stopping mattermost-elasticsearch; \
 		docker stop mattermost-elasticsearch > /dev/null; \
@@ -213,6 +228,12 @@ clean-docker:
 		echo removing mattermost-inbucket; \
 		docker stop mattermost-inbucket > /dev/null; \
 		docker rm -v mattermost-inbucket > /dev/null; \
+	fi
+
+	@if [ $(shell docker ps -a | grep -ci mattermost-minio) -eq 1 ]; then \
+		echo removing mattermost-minio; \
+		docker stop mattermost-minio > /dev/null; \
+		docker rm -v mattermost-minio > /dev/null; \
 	fi
 
 	@if [ $(shell docker ps -a | grep -ci mattermost-elasticsearch) -eq 1 ]; then \
