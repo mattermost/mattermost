@@ -77,13 +77,12 @@ func SetJobError(job *model.Job, jobError *model.AppError) *model.AppError {
 		return result.Err
 	}
 
-	jobError.Translate(utils.T)
-
 	job.Status = model.JOB_STATUS_ERROR
 	job.Progress = -1
 	if job.Data == nil {
 		job.Data = make(map[string]string)
 	}
+	jobError.Translate(utils.T)
 	job.Data["error"] = jobError.Message + " (" + jobError.DetailedError + ")"
 
 	if result := <-Srv.Store.Job().UpdateOptimistically(job, model.JOB_STATUS_IN_PROGRESS); result.Err != nil {
