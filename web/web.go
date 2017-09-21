@@ -7,13 +7,14 @@ import (
 	"net/http"
 	"strings"
 
+	"xojoc.pw/useragent"
+
 	"github.com/NYTimes/gziphandler"
 
 	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/mattermost-server/api"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
-	"github.com/mssola/user_agent"
 )
 
 func Init(api3 *api.API) {
@@ -70,36 +71,28 @@ func pluginHandler(config model.ConfigFunc, handler http.Handler) http.Handler {
 
 // Map should be of minimum required browser version.
 var browserMinimumSupported = map[string]int{
-	"MSIE":              11,
-	"Internet Explorer": 11,
-	"Safari":            9,
+	"MSIE":   11,
+	"Safari": 9,
 }
 
-func CheckBrowserCompatability(c *api.Context, r *http.Request) bool {
-	ua := user_agent.New(r.UserAgent())
-	bname, bversion := ua.Browser()
+func CheckClientCompatability(agentString string) bool {
+	ua := useragent.Parse(agentString)
 
-	browsers := strings.Split(browsersNotSupported, ";")
-	for _, browser := range browsers {
-		version := strings.Split(browser, "/")
+	l4g.Debug("User Agent: %v", agentString)
+	l4g.Debug("Detected Client: %v %v", ua.Name, ua.Version)
 
-		if strings.HasPrefix(bname, version[0]) && strings.HasPrefix(bversion, version[1]) {
-			return false
-		}
+	if version, exist := browserMinimumSupported[ua.Name]; exist && int(ua.Version.Major) < version {
+		l4g.Debug("Client not supported.")
+		return false
 	}
 
+	l4g.Debug("Client not version controlled.")
 	return true
 }
 
 func root(c *api.Context, w http.ResponseWriter, r *http.Request) {
-	agentString := r.UserAgent()
-	ua := user_agent.New(agentString)
 
-	if strings.Contains(agentString, "Mattermost") {
-		l4g.Debug("Detected Browser: Mattermost App")
-	} else if ua.Mobile() {
-		l4g.Debug("Detected Browser: Mobile Browser")
-	} else if !CheckBrowserCompatability(ua) {
+	if !CheckClientCompatability(r.UserAgent()) {
 		w.Header().Set("Cache-Control", "no-store")
 		page := utils.NewHTMLTemplate(c.App.HTMLTemplates(), "unsupported_browser")
 		page.Props["Title"] = c.T("web.error.unsupported_browser.title")
