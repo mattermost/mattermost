@@ -12,11 +12,11 @@ import (
 	"github.com/mattermost/mattermost-server/utils"
 )
 
-func InitBrand() {
+func (api *API) InitBrand() {
 	l4g.Debug(utils.T("api.brand.init.debug"))
 
-	BaseRoutes.Brand.Handle("/image", ApiHandlerTrustRequester(getBrandImage)).Methods("GET")
-	BaseRoutes.Brand.Handle("/image", ApiSessionRequired(uploadBrandImage)).Methods("POST")
+	api.BaseRoutes.Brand.Handle("/image", api.ApiHandlerTrustRequester(getBrandImage)).Methods("GET")
+	api.BaseRoutes.Brand.Handle("/image", api.ApiSessionRequired(uploadBrandImage)).Methods("POST")
 }
 
 func getBrandImage(c *Context, w http.ResponseWriter, r *http.Request) {

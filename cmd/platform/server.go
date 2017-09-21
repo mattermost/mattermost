@@ -81,10 +81,10 @@ func runServer(configFileLocation string) {
 	}
 
 	wsapi.InitRouter()
-	api4.InitApi(a.Srv.Router, false)
-	api.InitApi(a.Srv.Router)
+	api4.Init(a, a.Srv.Router, false)
+	api3 := api.Init(a, a.Srv.Router)
 	wsapi.InitApi()
-	web.InitWeb()
+	web.Init(api3)
 
 	if !utils.IsLicensed() && len(utils.Cfg.SqlSettings.DataSourceReplicas) > 1 {
 		l4g.Warn(utils.T("store.sql.read_replicas_not_licensed.critical"))
@@ -108,7 +108,7 @@ func runServer(configFileLocation string) {
 
 	// If we allow testing then listen for manual testing URL hits
 	if utils.Cfg.ServiceSettings.EnableTesting {
-		manualtesting.InitManualTesting()
+		manualtesting.Init(api3)
 	}
 
 	setDiagnosticId(a)

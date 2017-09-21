@@ -12,41 +12,41 @@ import (
 	"github.com/mattermost/mattermost-server/utils"
 )
 
-func InitChannel() {
+func (api *API) InitChannel() {
 	l4g.Debug(utils.T("api.channel.init.debug"))
 
-	BaseRoutes.Channels.Handle("", ApiSessionRequired(createChannel)).Methods("POST")
-	BaseRoutes.Channels.Handle("/direct", ApiSessionRequired(createDirectChannel)).Methods("POST")
-	BaseRoutes.Channels.Handle("/group", ApiSessionRequired(createGroupChannel)).Methods("POST")
-	BaseRoutes.Channels.Handle("/members/{user_id:[A-Za-z0-9]+}/view", ApiSessionRequired(viewChannel)).Methods("POST")
+	api.BaseRoutes.Channels.Handle("", api.ApiSessionRequired(createChannel)).Methods("POST")
+	api.BaseRoutes.Channels.Handle("/direct", api.ApiSessionRequired(createDirectChannel)).Methods("POST")
+	api.BaseRoutes.Channels.Handle("/group", api.ApiSessionRequired(createGroupChannel)).Methods("POST")
+	api.BaseRoutes.Channels.Handle("/members/{user_id:[A-Za-z0-9]+}/view", api.ApiSessionRequired(viewChannel)).Methods("POST")
 
-	BaseRoutes.ChannelsForTeam.Handle("", ApiSessionRequired(getPublicChannelsForTeam)).Methods("GET")
-	BaseRoutes.ChannelsForTeam.Handle("/deleted", ApiSessionRequired(getDeletedChannelsForTeam)).Methods("GET")
-	BaseRoutes.ChannelsForTeam.Handle("/ids", ApiSessionRequired(getPublicChannelsByIdsForTeam)).Methods("POST")
-	BaseRoutes.ChannelsForTeam.Handle("/search", ApiSessionRequired(searchChannelsForTeam)).Methods("POST")
-	BaseRoutes.User.Handle("/teams/{team_id:[A-Za-z0-9]+}/channels", ApiSessionRequired(getChannelsForTeamForUser)).Methods("GET")
+	api.BaseRoutes.ChannelsForTeam.Handle("", api.ApiSessionRequired(getPublicChannelsForTeam)).Methods("GET")
+	api.BaseRoutes.ChannelsForTeam.Handle("/deleted", api.ApiSessionRequired(getDeletedChannelsForTeam)).Methods("GET")
+	api.BaseRoutes.ChannelsForTeam.Handle("/ids", api.ApiSessionRequired(getPublicChannelsByIdsForTeam)).Methods("POST")
+	api.BaseRoutes.ChannelsForTeam.Handle("/search", api.ApiSessionRequired(searchChannelsForTeam)).Methods("POST")
+	api.BaseRoutes.User.Handle("/teams/{team_id:[A-Za-z0-9]+}/channels", api.ApiSessionRequired(getChannelsForTeamForUser)).Methods("GET")
 
-	BaseRoutes.Channel.Handle("", ApiSessionRequired(getChannel)).Methods("GET")
-	BaseRoutes.Channel.Handle("", ApiSessionRequired(updateChannel)).Methods("PUT")
-	BaseRoutes.Channel.Handle("/patch", ApiSessionRequired(patchChannel)).Methods("PUT")
-	BaseRoutes.Channel.Handle("/restore", ApiSessionRequired(restoreChannel)).Methods("POST")
-	BaseRoutes.Channel.Handle("", ApiSessionRequired(deleteChannel)).Methods("DELETE")
-	BaseRoutes.Channel.Handle("/stats", ApiSessionRequired(getChannelStats)).Methods("GET")
-	BaseRoutes.Channel.Handle("/pinned", ApiSessionRequired(getPinnedPosts)).Methods("GET")
+	api.BaseRoutes.Channel.Handle("", api.ApiSessionRequired(getChannel)).Methods("GET")
+	api.BaseRoutes.Channel.Handle("", api.ApiSessionRequired(updateChannel)).Methods("PUT")
+	api.BaseRoutes.Channel.Handle("/patch", api.ApiSessionRequired(patchChannel)).Methods("PUT")
+	api.BaseRoutes.Channel.Handle("/restore", api.ApiSessionRequired(restoreChannel)).Methods("POST")
+	api.BaseRoutes.Channel.Handle("", api.ApiSessionRequired(deleteChannel)).Methods("DELETE")
+	api.BaseRoutes.Channel.Handle("/stats", api.ApiSessionRequired(getChannelStats)).Methods("GET")
+	api.BaseRoutes.Channel.Handle("/pinned", api.ApiSessionRequired(getPinnedPosts)).Methods("GET")
 
-	BaseRoutes.ChannelForUser.Handle("/unread", ApiSessionRequired(getChannelUnread)).Methods("GET")
+	api.BaseRoutes.ChannelForUser.Handle("/unread", api.ApiSessionRequired(getChannelUnread)).Methods("GET")
 
-	BaseRoutes.ChannelByName.Handle("", ApiSessionRequired(getChannelByName)).Methods("GET")
-	BaseRoutes.ChannelByNameForTeamName.Handle("", ApiSessionRequired(getChannelByNameForTeamName)).Methods("GET")
+	api.BaseRoutes.ChannelByName.Handle("", api.ApiSessionRequired(getChannelByName)).Methods("GET")
+	api.BaseRoutes.ChannelByNameForTeamName.Handle("", api.ApiSessionRequired(getChannelByNameForTeamName)).Methods("GET")
 
-	BaseRoutes.ChannelMembers.Handle("", ApiSessionRequired(getChannelMembers)).Methods("GET")
-	BaseRoutes.ChannelMembers.Handle("/ids", ApiSessionRequired(getChannelMembersByIds)).Methods("POST")
-	BaseRoutes.ChannelMembers.Handle("", ApiSessionRequired(addChannelMember)).Methods("POST")
-	BaseRoutes.ChannelMembersForUser.Handle("", ApiSessionRequired(getChannelMembersForUser)).Methods("GET")
-	BaseRoutes.ChannelMember.Handle("", ApiSessionRequired(getChannelMember)).Methods("GET")
-	BaseRoutes.ChannelMember.Handle("", ApiSessionRequired(removeChannelMember)).Methods("DELETE")
-	BaseRoutes.ChannelMember.Handle("/roles", ApiSessionRequired(updateChannelMemberRoles)).Methods("PUT")
-	BaseRoutes.ChannelMember.Handle("/notify_props", ApiSessionRequired(updateChannelMemberNotifyProps)).Methods("PUT")
+	api.BaseRoutes.ChannelMembers.Handle("", api.ApiSessionRequired(getChannelMembers)).Methods("GET")
+	api.BaseRoutes.ChannelMembers.Handle("/ids", api.ApiSessionRequired(getChannelMembersByIds)).Methods("POST")
+	api.BaseRoutes.ChannelMembers.Handle("", api.ApiSessionRequired(addChannelMember)).Methods("POST")
+	api.BaseRoutes.ChannelMembersForUser.Handle("", api.ApiSessionRequired(getChannelMembersForUser)).Methods("GET")
+	api.BaseRoutes.ChannelMember.Handle("", api.ApiSessionRequired(getChannelMember)).Methods("GET")
+	api.BaseRoutes.ChannelMember.Handle("", api.ApiSessionRequired(removeChannelMember)).Methods("DELETE")
+	api.BaseRoutes.ChannelMember.Handle("/roles", api.ApiSessionRequired(updateChannelMemberRoles)).Methods("PUT")
+	api.BaseRoutes.ChannelMember.Handle("/notify_props", api.ApiSessionRequired(updateChannelMemberNotifyProps)).Methods("PUT")
 }
 
 func createChannel(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -387,7 +387,7 @@ func getPinnedPosts(c *Context, w http.ResponseWriter, r *http.Request) {
 	if posts, err := c.App.GetPinnedPosts(c.Params.ChannelId); err != nil {
 		c.Err = err
 		return
-	} else if HandleEtag(posts.Etag(), "Get Pinned Posts", w, r) {
+	} else if c.HandleEtag(posts.Etag(), "Get Pinned Posts", w, r) {
 		return
 	} else {
 		w.Header().Set(model.HEADER_ETAG_SERVER, posts.Etag())
@@ -486,7 +486,7 @@ func getChannelsForTeamForUser(c *Context, w http.ResponseWriter, r *http.Reques
 	if channels, err := c.App.GetChannelsForUser(c.Params.TeamId, c.Params.UserId); err != nil {
 		c.Err = err
 		return
-	} else if HandleEtag(channels.Etag(), "Get Channels", w, r) {
+	} else if c.HandleEtag(channels.Etag(), "Get Channels", w, r) {
 		return
 	} else {
 		w.Header().Set(model.HEADER_ETAG_SERVER, channels.Etag())

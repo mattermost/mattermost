@@ -21,13 +21,13 @@ import (
 	"github.com/mattermost/mattermost-server/utils"
 )
 
-func InitEmoji() {
+func (api *API) InitEmoji() {
 	l4g.Debug(utils.T("api.emoji.init.debug"))
 
-	BaseRoutes.Emoji.Handle("/list", ApiUserRequired(getEmoji)).Methods("GET")
-	BaseRoutes.Emoji.Handle("/create", ApiUserRequired(createEmoji)).Methods("POST")
-	BaseRoutes.Emoji.Handle("/delete", ApiUserRequired(deleteEmoji)).Methods("POST")
-	BaseRoutes.Emoji.Handle("/{id:[A-Za-z0-9_]+}", ApiUserRequiredTrustRequester(getEmojiImage)).Methods("GET")
+	api.BaseRoutes.Emoji.Handle("/list", api.ApiUserRequired(getEmoji)).Methods("GET")
+	api.BaseRoutes.Emoji.Handle("/create", api.ApiUserRequired(createEmoji)).Methods("POST")
+	api.BaseRoutes.Emoji.Handle("/delete", api.ApiUserRequired(deleteEmoji)).Methods("POST")
+	api.BaseRoutes.Emoji.Handle("/{id:[A-Za-z0-9_]+}", api.ApiUserRequiredTrustRequester(getEmojiImage)).Methods("GET")
 }
 
 func getEmoji(c *Context, w http.ResponseWriter, r *http.Request) {

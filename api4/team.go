@@ -19,38 +19,38 @@ const (
 	MAX_ADD_MEMBERS_BATCH = 20
 )
 
-func InitTeam() {
+func (api *API) InitTeam() {
 	l4g.Debug(utils.T("api.team.init.debug"))
 
-	BaseRoutes.Teams.Handle("", ApiSessionRequired(createTeam)).Methods("POST")
-	BaseRoutes.Teams.Handle("", ApiSessionRequired(getAllTeams)).Methods("GET")
-	BaseRoutes.Teams.Handle("/search", ApiSessionRequired(searchTeams)).Methods("POST")
-	BaseRoutes.TeamsForUser.Handle("", ApiSessionRequired(getTeamsForUser)).Methods("GET")
-	BaseRoutes.TeamsForUser.Handle("/unread", ApiSessionRequired(getTeamsUnreadForUser)).Methods("GET")
+	api.BaseRoutes.Teams.Handle("", api.ApiSessionRequired(createTeam)).Methods("POST")
+	api.BaseRoutes.Teams.Handle("", api.ApiSessionRequired(getAllTeams)).Methods("GET")
+	api.BaseRoutes.Teams.Handle("/search", api.ApiSessionRequired(searchTeams)).Methods("POST")
+	api.BaseRoutes.TeamsForUser.Handle("", api.ApiSessionRequired(getTeamsForUser)).Methods("GET")
+	api.BaseRoutes.TeamsForUser.Handle("/unread", api.ApiSessionRequired(getTeamsUnreadForUser)).Methods("GET")
 
-	BaseRoutes.Team.Handle("", ApiSessionRequired(getTeam)).Methods("GET")
-	BaseRoutes.Team.Handle("", ApiSessionRequired(updateTeam)).Methods("PUT")
-	BaseRoutes.Team.Handle("", ApiSessionRequired(deleteTeam)).Methods("DELETE")
-	BaseRoutes.Team.Handle("/patch", ApiSessionRequired(patchTeam)).Methods("PUT")
-	BaseRoutes.Team.Handle("/stats", ApiSessionRequired(getTeamStats)).Methods("GET")
-	BaseRoutes.TeamMembers.Handle("", ApiSessionRequired(getTeamMembers)).Methods("GET")
-	BaseRoutes.TeamMembers.Handle("/ids", ApiSessionRequired(getTeamMembersByIds)).Methods("POST")
-	BaseRoutes.TeamMembersForUser.Handle("", ApiSessionRequired(getTeamMembersForUser)).Methods("GET")
-	BaseRoutes.TeamMembers.Handle("", ApiSessionRequired(addTeamMember)).Methods("POST")
-	BaseRoutes.Teams.Handle("/members/invite", ApiSessionRequired(addUserToTeamFromInvite)).Methods("POST")
-	BaseRoutes.TeamMembers.Handle("/batch", ApiSessionRequired(addTeamMembers)).Methods("POST")
-	BaseRoutes.TeamMember.Handle("", ApiSessionRequired(removeTeamMember)).Methods("DELETE")
+	api.BaseRoutes.Team.Handle("", api.ApiSessionRequired(getTeam)).Methods("GET")
+	api.BaseRoutes.Team.Handle("", api.ApiSessionRequired(updateTeam)).Methods("PUT")
+	api.BaseRoutes.Team.Handle("", api.ApiSessionRequired(deleteTeam)).Methods("DELETE")
+	api.BaseRoutes.Team.Handle("/patch", api.ApiSessionRequired(patchTeam)).Methods("PUT")
+	api.BaseRoutes.Team.Handle("/stats", api.ApiSessionRequired(getTeamStats)).Methods("GET")
+	api.BaseRoutes.TeamMembers.Handle("", api.ApiSessionRequired(getTeamMembers)).Methods("GET")
+	api.BaseRoutes.TeamMembers.Handle("/ids", api.ApiSessionRequired(getTeamMembersByIds)).Methods("POST")
+	api.BaseRoutes.TeamMembersForUser.Handle("", api.ApiSessionRequired(getTeamMembersForUser)).Methods("GET")
+	api.BaseRoutes.TeamMembers.Handle("", api.ApiSessionRequired(addTeamMember)).Methods("POST")
+	api.BaseRoutes.Teams.Handle("/members/invite", api.ApiSessionRequired(addUserToTeamFromInvite)).Methods("POST")
+	api.BaseRoutes.TeamMembers.Handle("/batch", api.ApiSessionRequired(addTeamMembers)).Methods("POST")
+	api.BaseRoutes.TeamMember.Handle("", api.ApiSessionRequired(removeTeamMember)).Methods("DELETE")
 
-	BaseRoutes.TeamForUser.Handle("/unread", ApiSessionRequired(getTeamUnread)).Methods("GET")
+	api.BaseRoutes.TeamForUser.Handle("/unread", api.ApiSessionRequired(getTeamUnread)).Methods("GET")
 
-	BaseRoutes.TeamByName.Handle("", ApiSessionRequired(getTeamByName)).Methods("GET")
-	BaseRoutes.TeamMember.Handle("", ApiSessionRequired(getTeamMember)).Methods("GET")
-	BaseRoutes.TeamByName.Handle("/exists", ApiSessionRequired(teamExists)).Methods("GET")
-	BaseRoutes.TeamMember.Handle("/roles", ApiSessionRequired(updateTeamMemberRoles)).Methods("PUT")
+	api.BaseRoutes.TeamByName.Handle("", api.ApiSessionRequired(getTeamByName)).Methods("GET")
+	api.BaseRoutes.TeamMember.Handle("", api.ApiSessionRequired(getTeamMember)).Methods("GET")
+	api.BaseRoutes.TeamByName.Handle("/exists", api.ApiSessionRequired(teamExists)).Methods("GET")
+	api.BaseRoutes.TeamMember.Handle("/roles", api.ApiSessionRequired(updateTeamMemberRoles)).Methods("PUT")
 
-	BaseRoutes.Team.Handle("/import", ApiSessionRequired(importTeam)).Methods("POST")
-	BaseRoutes.Team.Handle("/invite/email", ApiSessionRequired(inviteUsersToTeam)).Methods("POST")
-	BaseRoutes.Teams.Handle("/invite/{invite_id:[A-Za-z0-9]+}", ApiHandler(getInviteInfo)).Methods("GET")
+	api.BaseRoutes.Team.Handle("/import", api.ApiSessionRequired(importTeam)).Methods("POST")
+	api.BaseRoutes.Team.Handle("/invite/email", api.ApiSessionRequired(inviteUsersToTeam)).Methods("POST")
+	api.BaseRoutes.Teams.Handle("/invite/{invite_id:[A-Za-z0-9]+}", api.ApiHandler(getInviteInfo)).Methods("GET")
 }
 
 func createTeam(c *Context, w http.ResponseWriter, r *http.Request) {

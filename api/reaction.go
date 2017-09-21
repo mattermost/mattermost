@@ -13,12 +13,12 @@ import (
 	"github.com/mattermost/mattermost-server/utils"
 )
 
-func InitReaction() {
+func (api *API) InitReaction() {
 	l4g.Debug(utils.T("api.reaction.init.debug"))
 
-	BaseRoutes.NeedPost.Handle("/reactions/save", ApiUserRequired(saveReaction)).Methods("POST")
-	BaseRoutes.NeedPost.Handle("/reactions/delete", ApiUserRequired(deleteReaction)).Methods("POST")
-	BaseRoutes.NeedPost.Handle("/reactions", ApiUserRequired(listReactions)).Methods("GET")
+	api.BaseRoutes.NeedPost.Handle("/reactions/save", api.ApiUserRequired(saveReaction)).Methods("POST")
+	api.BaseRoutes.NeedPost.Handle("/reactions/delete", api.ApiUserRequired(deleteReaction)).Methods("POST")
+	api.BaseRoutes.NeedPost.Handle("/reactions", api.ApiUserRequired(listReactions)).Methods("GET")
 }
 
 func saveReaction(c *Context, w http.ResponseWriter, r *http.Request) {

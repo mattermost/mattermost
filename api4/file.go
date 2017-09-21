@@ -43,17 +43,17 @@ var MEDIA_CONTENT_TYPES = [...]string{
 	"audio/wav",
 }
 
-func InitFile() {
+func (api *API) InitFile() {
 	l4g.Debug(utils.T("api.file.init.debug"))
 
-	BaseRoutes.Files.Handle("", ApiSessionRequired(uploadFile)).Methods("POST")
-	BaseRoutes.File.Handle("", ApiSessionRequiredTrustRequester(getFile)).Methods("GET")
-	BaseRoutes.File.Handle("/thumbnail", ApiSessionRequiredTrustRequester(getFileThumbnail)).Methods("GET")
-	BaseRoutes.File.Handle("/link", ApiSessionRequired(getFileLink)).Methods("GET")
-	BaseRoutes.File.Handle("/preview", ApiSessionRequiredTrustRequester(getFilePreview)).Methods("GET")
-	BaseRoutes.File.Handle("/info", ApiSessionRequired(getFileInfo)).Methods("GET")
+	api.BaseRoutes.Files.Handle("", api.ApiSessionRequired(uploadFile)).Methods("POST")
+	api.BaseRoutes.File.Handle("", api.ApiSessionRequiredTrustRequester(getFile)).Methods("GET")
+	api.BaseRoutes.File.Handle("/thumbnail", api.ApiSessionRequiredTrustRequester(getFileThumbnail)).Methods("GET")
+	api.BaseRoutes.File.Handle("/link", api.ApiSessionRequired(getFileLink)).Methods("GET")
+	api.BaseRoutes.File.Handle("/preview", api.ApiSessionRequiredTrustRequester(getFilePreview)).Methods("GET")
+	api.BaseRoutes.File.Handle("/info", api.ApiSessionRequired(getFileInfo)).Methods("GET")
 
-	BaseRoutes.PublicFile.Handle("", ApiHandler(getPublicFile)).Methods("GET")
+	api.BaseRoutes.PublicFile.Handle("", api.ApiHandler(getPublicFile)).Methods("GET")
 
 }
 

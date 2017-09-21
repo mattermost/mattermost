@@ -30,8 +30,9 @@ type Context struct {
 	siteURLHeader string
 }
 
-func ApiHandler(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
+func (api *API) ApiHandler(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
 	return &handler{
+		app:            api.App,
 		handleFunc:     h,
 		requireSession: false,
 		trustRequester: false,
@@ -39,8 +40,9 @@ func ApiHandler(h func(*Context, http.ResponseWriter, *http.Request)) http.Handl
 	}
 }
 
-func ApiSessionRequired(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
+func (api *API) ApiSessionRequired(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
 	return &handler{
+		app:            api.App,
 		handleFunc:     h,
 		requireSession: true,
 		trustRequester: false,
@@ -48,8 +50,9 @@ func ApiSessionRequired(h func(*Context, http.ResponseWriter, *http.Request)) ht
 	}
 }
 
-func ApiSessionRequiredMfa(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
+func (api *API) ApiSessionRequiredMfa(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
 	return &handler{
+		app:            api.App,
 		handleFunc:     h,
 		requireSession: true,
 		trustRequester: false,
@@ -57,8 +60,9 @@ func ApiSessionRequiredMfa(h func(*Context, http.ResponseWriter, *http.Request))
 	}
 }
 
-func ApiHandlerTrustRequester(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
+func (api *API) ApiHandlerTrustRequester(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
 	return &handler{
+		app:            api.App,
 		handleFunc:     h,
 		requireSession: false,
 		trustRequester: true,
@@ -66,8 +70,9 @@ func ApiHandlerTrustRequester(h func(*Context, http.ResponseWriter, *http.Reques
 	}
 }
 
-func ApiSessionRequiredTrustRequester(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
+func (api *API) ApiSessionRequiredTrustRequester(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
 	return &handler{
+		app:            api.App,
 		handleFunc:     h,
 		requireSession: true,
 		trustRequester: true,
@@ -76,6 +81,7 @@ func ApiSessionRequiredTrustRequester(h func(*Context, http.ResponseWriter, *htt
 }
 
 type handler struct {
+	app            *app.App
 	handleFunc     func(*Context, http.ResponseWriter, *http.Request)
 	requireSession bool
 	trustRequester bool
@@ -87,7 +93,7 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	l4g.Debug("%v - %v", r.Method, r.URL.Path)
 
 	c := &Context{}
-	c.App = app.Global()
+	c.App = h.app
 	c.T, _ = utils.GetTranslationsAndLocale(w, r)
 	c.RequestId = model.NewId()
 	c.IpAddress = utils.GetIpAddress(r)
@@ -139,7 +145,7 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if len(token) != 0 {
-		session, err := app.Global().GetSession(token)
+		session, err := c.App.GetSession(token)
 
 		if err != nil {
 			l4g.Error(utils.T("api.context.invalid_session.error"), err.Error())
@@ -200,7 +206,7 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 func (c *Context) LogAudit(extraInfo string) {
 	audit := &model.Audit{UserId: c.Session.UserId, IpAddress: c.IpAddress, Action: c.Path, ExtraInfo: extraInfo, SessionId: c.Session.Id}
-	if r := <-app.Global().Srv.Store.Audit().Save(audit); r.Err != nil {
+	if r := <-c.App.Srv.Store.Audit().Save(audit); r.Err != nil {
 		c.LogError(r.Err)
 	}
 }
@@ -212,7 +218,7 @@ func (c *Context) LogAuditWithUserId(userId, extraInfo string) {
 	}
 
 	audit := &model.Audit{UserId: userId, IpAddress: c.IpAddress, Action: c.Path, ExtraInfo: extraInfo, SessionId: c.Session.Id}
-	if r := <-app.Global().Srv.Store.Audit().Save(audit); r.Err != nil {
+	if r := <-c.App.Srv.Store.Audit().Save(audit); r.Err != nil {
 		c.LogError(r.Err)
 	}
 }
@@ -260,7 +266,7 @@ func (c *Context) MfaRequired() {
 		return
 	}
 
-	if user, err := app.Global().GetUser(c.Session.UserId); err != nil {
+	if user, err := c.App.GetUser(c.Session.UserId); err != nil {
 		c.Err = model.NewAppError("", "api.context.session_expired.app_error", nil, "MfaRequired", http.StatusUnauthorized)
 		return
 	} else {
@@ -301,6 +307,26 @@ func (c *Context) SetInvalidParam(parameter string) {
 
 func (c *Context) SetInvalidUrlParam(parameter string) {
 	c.Err = NewInvalidUrlParamError(parameter)
+}
+
+func (c *Context) HandleEtag(etag string, routeName string, w http.ResponseWriter, r *http.Request) bool {
+	metrics := c.App.Metrics
+	if et := r.Header.Get(model.HEADER_ETAG_CLIENT); len(etag) > 0 {
+		if et == etag {
+			w.Header().Set(model.HEADER_ETAG_SERVER, etag)
+			w.WriteHeader(http.StatusNotModified)
+			if metrics != nil {
+				metrics.IncrementEtagHitCounter(routeName)
+			}
+			return true
+		}
+	}
+
+	if metrics != nil {
+		metrics.IncrementEtagMissCounter(routeName)
+	}
+
+	return false
 }
 
 func NewInvalidParamError(parameter string) *model.AppError {

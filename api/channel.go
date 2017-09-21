@@ -14,38 +14,38 @@ import (
 	"github.com/mattermost/mattermost-server/utils"
 )
 
-func InitChannel() {
+func (api *API) InitChannel() {
 	l4g.Debug(utils.T("api.channel.init.debug"))
 
-	BaseRoutes.Channels.Handle("/", ApiUserRequired(getChannels)).Methods("GET")
-	BaseRoutes.Channels.Handle("/more/{offset:[0-9]+}/{limit:[0-9]+}", ApiUserRequired(getMoreChannelsPage)).Methods("GET")
-	BaseRoutes.Channels.Handle("/more/search", ApiUserRequired(searchMoreChannels)).Methods("POST")
-	BaseRoutes.Channels.Handle("/counts", ApiUserRequired(getChannelCounts)).Methods("GET")
-	BaseRoutes.Channels.Handle("/members", ApiUserRequired(getMyChannelMembers)).Methods("GET")
-	BaseRoutes.Channels.Handle("/create", ApiUserRequired(createChannel)).Methods("POST")
-	BaseRoutes.Channels.Handle("/view", ApiUserRequired(viewChannel)).Methods("POST")
-	BaseRoutes.Channels.Handle("/create_direct", ApiUserRequired(createDirectChannel)).Methods("POST")
-	BaseRoutes.Channels.Handle("/create_group", ApiUserRequired(createGroupChannel)).Methods("POST")
-	BaseRoutes.Channels.Handle("/update", ApiUserRequired(updateChannel)).Methods("POST")
-	BaseRoutes.Channels.Handle("/update_header", ApiUserRequired(updateChannelHeader)).Methods("POST")
-	BaseRoutes.Channels.Handle("/update_purpose", ApiUserRequired(updateChannelPurpose)).Methods("POST")
-	BaseRoutes.Channels.Handle("/update_notify_props", ApiUserRequired(updateNotifyProps)).Methods("POST")
-	BaseRoutes.Channels.Handle("/autocomplete", ApiUserRequired(autocompleteChannels)).Methods("GET")
-	BaseRoutes.Channels.Handle("/name/{channel_name:[A-Za-z0-9_-]+}", ApiUserRequired(getChannelByName)).Methods("GET")
+	api.BaseRoutes.Channels.Handle("/", api.ApiUserRequired(getChannels)).Methods("GET")
+	api.BaseRoutes.Channels.Handle("/more/{offset:[0-9]+}/{limit:[0-9]+}", api.ApiUserRequired(getMoreChannelsPage)).Methods("GET")
+	api.BaseRoutes.Channels.Handle("/more/search", api.ApiUserRequired(searchMoreChannels)).Methods("POST")
+	api.BaseRoutes.Channels.Handle("/counts", api.ApiUserRequired(getChannelCounts)).Methods("GET")
+	api.BaseRoutes.Channels.Handle("/members", api.ApiUserRequired(getMyChannelMembers)).Methods("GET")
+	api.BaseRoutes.Channels.Handle("/create", api.ApiUserRequired(createChannel)).Methods("POST")
+	api.BaseRoutes.Channels.Handle("/view", api.ApiUserRequired(viewChannel)).Methods("POST")
+	api.BaseRoutes.Channels.Handle("/create_direct", api.ApiUserRequired(createDirectChannel)).Methods("POST")
+	api.BaseRoutes.Channels.Handle("/create_group", api.ApiUserRequired(createGroupChannel)).Methods("POST")
+	api.BaseRoutes.Channels.Handle("/update", api.ApiUserRequired(updateChannel)).Methods("POST")
+	api.BaseRoutes.Channels.Handle("/update_header", api.ApiUserRequired(updateChannelHeader)).Methods("POST")
+	api.BaseRoutes.Channels.Handle("/update_purpose", api.ApiUserRequired(updateChannelPurpose)).Methods("POST")
+	api.BaseRoutes.Channels.Handle("/update_notify_props", api.ApiUserRequired(updateNotifyProps)).Methods("POST")
+	api.BaseRoutes.Channels.Handle("/autocomplete", api.ApiUserRequired(autocompleteChannels)).Methods("GET")
+	api.BaseRoutes.Channels.Handle("/name/{channel_name:[A-Za-z0-9_-]+}", api.ApiUserRequired(getChannelByName)).Methods("GET")
 
-	BaseRoutes.NeedChannelName.Handle("/join", ApiUserRequired(join)).Methods("POST")
+	api.BaseRoutes.NeedChannelName.Handle("/join", api.ApiUserRequired(join)).Methods("POST")
 
-	BaseRoutes.NeedChannel.Handle("/", ApiUserRequired(getChannel)).Methods("GET")
-	BaseRoutes.NeedChannel.Handle("/stats", ApiUserRequired(getChannelStats)).Methods("GET")
-	BaseRoutes.NeedChannel.Handle("/members/{user_id:[A-Za-z0-9]+}", ApiUserRequired(getChannelMember)).Methods("GET")
-	BaseRoutes.NeedChannel.Handle("/members/ids", ApiUserRequired(getChannelMembersByIds)).Methods("POST")
-	BaseRoutes.NeedChannel.Handle("/pinned", ApiUserRequired(getPinnedPosts)).Methods("GET")
-	BaseRoutes.NeedChannel.Handle("/join", ApiUserRequired(join)).Methods("POST")
-	BaseRoutes.NeedChannel.Handle("/leave", ApiUserRequired(leave)).Methods("POST")
-	BaseRoutes.NeedChannel.Handle("/delete", ApiUserRequired(deleteChannel)).Methods("POST")
-	BaseRoutes.NeedChannel.Handle("/add", ApiUserRequired(addMember)).Methods("POST")
-	BaseRoutes.NeedChannel.Handle("/remove", ApiUserRequired(removeMember)).Methods("POST")
-	BaseRoutes.NeedChannel.Handle("/update_member_roles", ApiUserRequired(updateChannelMemberRoles)).Methods("POST")
+	api.BaseRoutes.NeedChannel.Handle("/", api.ApiUserRequired(getChannel)).Methods("GET")
+	api.BaseRoutes.NeedChannel.Handle("/stats", api.ApiUserRequired(getChannelStats)).Methods("GET")
+	api.BaseRoutes.NeedChannel.Handle("/members/{user_id:[A-Za-z0-9]+}", api.ApiUserRequired(getChannelMember)).Methods("GET")
+	api.BaseRoutes.NeedChannel.Handle("/members/ids", api.ApiUserRequired(getChannelMembersByIds)).Methods("POST")
+	api.BaseRoutes.NeedChannel.Handle("/pinned", api.ApiUserRequired(getPinnedPosts)).Methods("GET")
+	api.BaseRoutes.NeedChannel.Handle("/join", api.ApiUserRequired(join)).Methods("POST")
+	api.BaseRoutes.NeedChannel.Handle("/leave", api.ApiUserRequired(leave)).Methods("POST")
+	api.BaseRoutes.NeedChannel.Handle("/delete", api.ApiUserRequired(deleteChannel)).Methods("POST")
+	api.BaseRoutes.NeedChannel.Handle("/add", api.ApiUserRequired(addMember)).Methods("POST")
+	api.BaseRoutes.NeedChannel.Handle("/remove", api.ApiUserRequired(removeMember)).Methods("POST")
+	api.BaseRoutes.NeedChannel.Handle("/update_member_roles", api.ApiUserRequired(updateChannelMemberRoles)).Methods("POST")
 }
 
 func createChannel(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -327,7 +327,7 @@ func getChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 		c.Err = err
 		return
-	} else if HandleEtag(channels.Etag(), "Get Channels", w, r) {
+	} else if c.HandleEtag(channels.Etag(), "Get Channels", w, r) {
 		return
 	} else {
 		w.Header().Set(model.HEADER_ETAG_SERVER, channels.Etag())
@@ -372,7 +372,7 @@ func getChannelCounts(c *Context, w http.ResponseWriter, r *http.Request) {
 	if counts, err := c.App.GetChannelCounts(c.TeamId, c.Session.UserId); err != nil {
 		c.Err = model.NewAppError("getChannelCounts", "api.channel.get_channel_counts.app_error", nil, err.Message, http.StatusInternalServerError)
 		return
-	} else if HandleEtag(counts.Etag(), "Get Channel Counts", w, r) {
+	} else if c.HandleEtag(counts.Etag(), "Get Channel Counts", w, r) {
 		return
 	} else {
 		w.Header().Set(model.HEADER_ETAG_SERVER, counts.Etag())
@@ -494,7 +494,7 @@ func getChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	data.Channel = channel
 	data.Member = member
 
-	if HandleEtag(data.Etag(), "Get Channel", w, r) {
+	if c.HandleEtag(data.Etag(), "Get Channel", w, r) {
 		return
 	} else {
 		w.Header().Set(model.HEADER_ETAG_SERVER, data.Etag())
@@ -520,7 +520,7 @@ func getChannelByName(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		if HandleEtag(channel.Etag(), "Get Channel By Name", w, r) {
+		if c.HandleEtag(channel.Etag(), "Get Channel By Name", w, r) {
 			return
 		} else {
 			w.Header().Set(model.HEADER_ETAG_SERVER, channel.Etag())

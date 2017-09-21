@@ -28,9 +28,9 @@ func Setup() *app.App {
 		a.InitStores()
 		a.Srv.Router = api.NewRouter()
 		a.StartServer()
-		api4.InitApi(a.Srv.Router, false)
-		api.InitApi(a.Srv.Router)
-		InitWeb()
+		api4.Init(a, a.Srv.Router, false)
+		api3 := api.Init(a, a.Srv.Router)
+		Init(api3)
 		URL = "http://localhost" + *utils.Cfg.ServiceSettings.ListenAddress
 		ApiClient = model.NewClient(URL)
 

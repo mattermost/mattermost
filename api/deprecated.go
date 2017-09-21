@@ -10,6 +10,6 @@ import (
 
 // ONLY FOR APIs SCHEDULED TO BE DEPRECATED
 
-func InitDeprecated() {
+func (api *API) InitDeprecated() {
 	l4g.Debug(utils.T("api.deprecated.init.debug"))
 }
