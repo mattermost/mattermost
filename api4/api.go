@@ -9,7 +9,6 @@ import (
 	l4g "github.com/alecthomas/log4go"
 	"github.com/gorilla/mux"
 	"github.com/mattermost/mattermost-server/app"
-	"github.com/mattermost/mattermost-server/einterfaces"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
 
@@ -225,7 +224,7 @@ func InitApi(root *mux.Router, full bool) {
 }
 
 func HandleEtag(etag string, routeName string, w http.ResponseWriter, r *http.Request) bool {
-	metrics := einterfaces.GetMetricsInterface()
+	metrics := app.Global().Metrics
 	if et := r.Header.Get(model.HEADER_ETAG_CLIENT); len(etag) > 0 {
 		if et == etag {
 			w.Header().Set(model.HEADER_ETAG_SERVER, etag)

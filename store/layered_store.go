@@ -24,11 +24,11 @@ type LayeredStore struct {
 	LayerChainHead  LayeredStoreSupplier
 }
 
-func NewLayeredStore() Store {
+func NewLayeredStore(metrics einterfaces.MetricsInterface, cluster einterfaces.ClusterInterface) Store {
 	store := &LayeredStore{
 		TmpContext:      context.TODO(),
-		DatabaseLayer:   NewSqlSupplier(einterfaces.GetMetricsInterface()),
-		LocalCacheLayer: NewLocalCacheSupplier(einterfaces.GetMetricsInterface(), einterfaces.GetClusterInterface()),
+		DatabaseLayer:   NewSqlSupplier(metrics),
+		LocalCacheLayer: NewLocalCacheSupplier(metrics, cluster),
 	}
 
 	store.ReactionStore = &LayeredReactionStore{store}

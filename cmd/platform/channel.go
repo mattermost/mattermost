@@ -151,7 +151,7 @@ func createChannelCmdF(cmd *cobra.Command, args []string) error {
 		channelType = model.CHANNEL_PRIVATE
 	}
 
-	team := getTeamFromTeamArg(teamArg)
+	team := getTeamFromTeamArg(a, teamArg)
 	if team == nil {
 		return errors.New("Unable to find team: " + teamArg)
 	}
@@ -183,12 +183,12 @@ func removeChannelUsersCmdF(cmd *cobra.Command, args []string) error {
 		return errors.New("Not enough arguments.")
 	}
 
-	channel := getChannelFromChannelArg(args[0])
+	channel := getChannelFromChannelArg(a, args[0])
 	if channel == nil {
 		return errors.New("Unable to find channel '" + args[0] + "'")
 	}
 
-	users := getUsersFromUserArgs(args[1:])
+	users := getUsersFromUserArgs(a, args[1:])
 	for i, user := range users {
 		removeUserFromChannel(a, channel, user, args[i+1])
 	}
@@ -216,12 +216,12 @@ func addChannelUsersCmdF(cmd *cobra.Command, args []string) error {
 		return errors.New("Not enough arguments.")
 	}
 
-	channel := getChannelFromChannelArg(args[0])
+	channel := getChannelFromChannelArg(a, args[0])
 	if channel == nil {
 		return errors.New("Unable to find channel '" + args[0] + "'")
 	}
 
-	users := getUsersFromUserArgs(args[1:])
+	users := getUsersFromUserArgs(a, args[1:])
 	for i, user := range users {
 		addUserToChannel(a, channel, user, args[i+1])
 	}
@@ -249,7 +249,7 @@ func archiveChannelsCmdF(cmd *cobra.Command, args []string) error {
 		return errors.New("Enter at least one channel to archive.")
 	}
 
-	channels := getChannelsFromChannelArgs(args)
+	channels := getChannelsFromChannelArgs(a, args)
 	for i, channel := range channels {
 		if channel == nil {
 			CommandPrintErrorln("Unable to find channel '" + args[i] + "'")
@@ -283,7 +283,7 @@ func deleteChannelsCmdF(cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	channels := getChannelsFromChannelArgs(args)
+	channels := getChannelsFromChannelArgs(a, args)
 	for i, channel := range channels {
 		if channel == nil {
 			CommandPrintErrorln("Unable to find channel '" + args[i] + "'")
@@ -313,12 +313,12 @@ func moveChannelsCmdF(cmd *cobra.Command, args []string) error {
 		return errors.New("Enter the destination team and at least one channel to move.")
 	}
 
-	team := getTeamFromTeamArg(args[0])
+	team := getTeamFromTeamArg(a, args[0])
 	if team == nil {
 		return errors.New("Unable to find destination team '" + args[0] + "'")
 	}
 
-	channels := getChannelsFromChannelArgs(args[1:])
+	channels := getChannelsFromChannelArgs(a, args[1:])
 	for i, channel := range channels {
 		if channel == nil {
 			CommandPrintErrorln("Unable to find channel '" + args[i] + "'")
@@ -380,7 +380,7 @@ func listChannelsCmdF(cmd *cobra.Command, args []string) error {
 		return errors.New("Enter at least one team.")
 	}
 
-	teams := getTeamsFromTeamArgs(args)
+	teams := getTeamsFromTeamArgs(a, args)
 	for i, team := range teams {
 		if team == nil {
 			CommandPrintErrorln("Unable to find team '" + args[i] + "'")
@@ -414,7 +414,7 @@ func restoreChannelsCmdF(cmd *cobra.Command, args []string) error {
 		return errors.New("Enter at least one channel.")
 	}
 
-	channels := getChannelsFromChannelArgs(args)
+	channels := getChannelsFromChannelArgs(a, args)
 	for i, channel := range channels {
 		if channel == nil {
 			CommandPrintErrorln("Unable to find channel '" + args[i] + "'")
@@ -445,7 +445,7 @@ func modifyChannelCmdF(cmd *cobra.Command, args []string) error {
 		return errors.New("You must specify only one of --public or --private")
 	}
 
-	channel := getChannelFromChannelArg(args[0])
+	channel := getChannelFromChannelArg(a, args[0])
 	if channel == nil {
 		return errors.New("Unable to find channel '" + args[0] + "'")
 	}

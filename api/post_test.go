@@ -1187,30 +1187,30 @@ func TestGetFlaggedPosts(t *testing.T) {
 }
 
 func TestGetMessageForNotification(t *testing.T) {
-	Setup().InitBasic()
+	th := Setup().InitBasic()
 
-	testPng := store.Must(app.Global().Srv.Store.FileInfo().Save(&model.FileInfo{
+	testPng := store.Must(th.App.Srv.Store.FileInfo().Save(&model.FileInfo{
 		CreatorId: model.NewId(),
 		Path:      "test1.png",
 		Name:      "test1.png",
 		MimeType:  "image/png",
 	})).(*model.FileInfo)
 
-	testJpg1 := store.Must(app.Global().Srv.Store.FileInfo().Save(&model.FileInfo{
+	testJpg1 := store.Must(th.App.Srv.Store.FileInfo().Save(&model.FileInfo{
 		CreatorId: model.NewId(),
 		Path:      "test2.jpg",
 		Name:      "test2.jpg",
 		MimeType:  "image/jpeg",
 	})).(*model.FileInfo)
 
-	testFile := store.Must(app.Global().Srv.Store.FileInfo().Save(&model.FileInfo{
+	testFile := store.Must(th.App.Srv.Store.FileInfo().Save(&model.FileInfo{
 		CreatorId: model.NewId(),
 		Path:      "test1.go",
 		Name:      "test1.go",
 		MimeType:  "text/plain",
 	})).(*model.FileInfo)
 
-	testJpg2 := store.Must(app.Global().Srv.Store.FileInfo().Save(&model.FileInfo{
+	testJpg2 := store.Must(th.App.Srv.Store.FileInfo().Save(&model.FileInfo{
 		CreatorId: model.NewId(),
 		Path:      "test3.jpg",
 		Name:      "test3.jpg",
@@ -1224,39 +1224,39 @@ func TestGetMessageForNotification(t *testing.T) {
 		Message: "test",
 	}
 
-	if app.Global().GetMessageForNotification(post, translateFunc) != "test" {
+	if th.App.GetMessageForNotification(post, translateFunc) != "test" {
 		t.Fatal("should've returned message text")
 	}
 
 	post.FileIds = model.StringArray{testPng.Id}
-	store.Must(app.Global().Srv.Store.FileInfo().AttachToPost(testPng.Id, post.Id))
-	if app.Global().GetMessageForNotification(post, translateFunc) != "test" {
+	store.Must(th.App.Srv.Store.FileInfo().AttachToPost(testPng.Id, post.Id))
+	if th.App.GetMessageForNotification(post, translateFunc) != "test" {
 		t.Fatal("should've returned message text, even with attachments")
 	}
 
 	post.Message = ""
-	if message := app.Global().GetMessageForNotification(post, translateFunc); message != "1 image sent: test1.png" {
+	if message := th.App.GetMessageForNotification(post, translateFunc); message != "1 image sent: test1.png" {
 		t.Fatal("should've returned number of images:", message)
 	}
 
 	post.FileIds = model.StringArray{testPng.Id, testJpg1.Id}
-	store.Must(app.Global().Srv.Store.FileInfo().AttachToPost(testJpg1.Id, post.Id))
-	app.Global().Srv.Store.FileInfo().InvalidateFileInfosForPostCache(post.Id)
-	if message := app.Global().GetMessageForNotification(post, translateFunc); message != "2 images sent: test1.png, test2.jpg" && message != "2 images sent: test2.jpg, test1.png" {
+	store.Must(th.App.Srv.Store.FileInfo().AttachToPost(testJpg1.Id, post.Id))
+	th.App.Srv.Store.FileInfo().InvalidateFileInfosForPostCache(post.Id)
+	if message := th.App.GetMessageForNotification(post, translateFunc); message != "2 images sent: test1.png, test2.jpg" && message != "2 images sent: test2.jpg, test1.png" {
 		t.Fatal("should've returned number of images:", message)
 	}
 
 	post.Id = model.NewId()
 	post.FileIds = model.StringArray{testFile.Id}
-	store.Must(app.Global().Srv.Store.FileInfo().AttachToPost(testFile.Id, post.Id))
-	if message := app.Global().GetMessageForNotification(post, translateFunc); message != "1 file sent: test1.go" {
+	store.Must(th.App.Srv.Store.FileInfo().AttachToPost(testFile.Id, post.Id))
+	if message := th.App.GetMessageForNotification(post, translateFunc); message != "1 file sent: test1.go" {
 		t.Fatal("should've returned number of files:", message)
 	}
 
-	store.Must(app.Global().Srv.Store.FileInfo().AttachToPost(testJpg2.Id, post.Id))
-	app.Global().Srv.Store.FileInfo().InvalidateFileInfosForPostCache(post.Id)
+	store.Must(th.App.Srv.Store.FileInfo().AttachToPost(testJpg2.Id, post.Id))
+	th.App.Srv.Store.FileInfo().InvalidateFileInfosForPostCache(post.Id)
 	post.FileIds = model.StringArray{testFile.Id, testJpg2.Id}
-	if message := app.Global().GetMessageForNotification(post, translateFunc); message != "2 files sent: test1.go, test3.jpg" && message != "2 files sent: test3.jpg, test1.go" {
+	if message := th.App.GetMessageForNotification(post, translateFunc); message != "2 files sent: test1.go, test3.jpg" && message != "2 files sent: test3.jpg, test1.go" {
 		t.Fatal("should've returned number of mixed files:", message)
 	}
 }

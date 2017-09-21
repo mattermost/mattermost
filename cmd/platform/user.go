@@ -171,7 +171,7 @@ func userActivateCmdF(cmd *cobra.Command, args []string) error {
 }
 
 func changeUsersActiveStatus(a *app.App, userArgs []string, active bool) {
-	users := getUsersFromUserArgs(userArgs)
+	users := getUsersFromUserArgs(a, userArgs)
 	for i, user := range users {
 		err := changeUserActiveStatus(a, user, userArgs[i], active)
 
@@ -255,7 +255,7 @@ func userCreateCmdF(cmd *cobra.Command, args []string) error {
 }
 
 func userInviteCmdF(cmd *cobra.Command, args []string) error {
-	_, err := initDBCommandContextCobra(cmd)
+	a, err := initDBCommandContextCobra(cmd)
 	if err != nil {
 		return err
 	}
@@ -271,7 +271,7 @@ func userInviteCmdF(cmd *cobra.Command, args []string) error {
 		return errors.New("Invalid email")
 	}
 
-	teams := getTeamsFromTeamArgs(args[1:])
+	teams := getTeamsFromTeamArgs(a, args[1:])
 	for i, team := range teams {
 		err := inviteUser(email, team, args[i+1])
 
@@ -305,7 +305,7 @@ func resetUserPasswordCmdF(cmd *cobra.Command, args []string) error {
 		return errors.New("Expected two arguments. See help text for details.")
 	}
 
-	user := getUserFromUserArg(args[0])
+	user := getUserFromUserArg(a, args[0])
 	if user == nil {
 		return errors.New("Unable to find user '" + args[0] + "'")
 	}
@@ -328,7 +328,7 @@ func resetUserMfaCmdF(cmd *cobra.Command, args []string) error {
 		return errors.New("Expected at least one argument. See help text for details.")
 	}
 
-	users := getUsersFromUserArgs(args)
+	users := getUsersFromUserArgs(a, args)
 
 	for i, user := range users {
 		if user == nil {
@@ -369,7 +369,7 @@ func deleteUserCmdF(cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	users := getUsersFromUserArgs(args)
+	users := getUsersFromUserArgs(a, args)
 
 	for i, user := range users {
 		if user == nil {
@@ -472,7 +472,7 @@ func verifyUserCmdF(cmd *cobra.Command, args []string) error {
 		return errors.New("Expected at least one argument. See help text for details.")
 	}
 
-	users := getUsersFromUserArgs(args)
+	users := getUsersFromUserArgs(a, args)
 
 	for i, user := range users {
 		if user == nil {
@@ -488,7 +488,7 @@ func verifyUserCmdF(cmd *cobra.Command, args []string) error {
 }
 
 func searchUserCmdF(cmd *cobra.Command, args []string) error {
-	_, err := initDBCommandContextCobra(cmd)
+	a, err := initDBCommandContextCobra(cmd)
 	if err != nil {
 		return err
 	}
@@ -497,7 +497,7 @@ func searchUserCmdF(cmd *cobra.Command, args []string) error {
 		return errors.New("Expected at least one argument. See help text for details.")
 	}
 
-	users := getUsersFromUserArgs(args)
+	users := getUsersFromUserArgs(a, args)
 
 	for i, user := range users {
 		if i > 0 {

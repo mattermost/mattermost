@@ -23,13 +23,3 @@ type ClusterInterface interface {
 	GetLogs(page, perPage int) ([]string, *model.AppError)
 	ConfigChanged(previousConfig *model.Config, newConfig *model.Config, sendToOtherServer bool) *model.AppError
 }
-
-var theClusterInterface ClusterInterface
-
-func RegisterClusterInterface(newInterface ClusterInterface) {
-	theClusterInterface = newInterface
-}
-
-func GetClusterInterface() ClusterInterface {
-	return theClusterInterface
-}

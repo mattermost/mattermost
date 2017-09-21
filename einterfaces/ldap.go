@@ -20,13 +20,3 @@ type LdapInterface interface {
 	RunTest() *model.AppError
 	GetAllLdapUsers() ([]*model.User, *model.AppError)
 }
-
-var theLdapInterface LdapInterface
-
-func RegisterLdapInterface(newInterface LdapInterface) {
-	theLdapInterface = newInterface
-}
-
-func GetLdapInterface() LdapInterface {
-	return theLdapInterface
-}
