@@ -11,13 +11,3 @@ type ComplianceInterface interface {
 	StartComplianceDailyJob()
 	RunComplianceJob(job *model.Compliance) *model.AppError
 }
-
-var theComplianceInterface ComplianceInterface
-
-func RegisterComplianceInterface(newInterface ComplianceInterface) {
-	theComplianceInterface = newInterface
-}
-
-func GetComplianceInterface() ComplianceInterface {
-	return theComplianceInterface
-}

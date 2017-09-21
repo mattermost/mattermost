@@ -12,7 +12,7 @@ func Setup() {
 		utils.TranslationsPreInit()
 		utils.LoadConfig("config.json")
 		utils.InitTranslations(utils.Cfg.LocalizationSettings)
-		store = NewLayeredStore()
+		store = NewLayeredStore(nil, nil)
 
 		store.MarkSystemRanUnitTests()
 	}
