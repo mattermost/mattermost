@@ -65,7 +65,15 @@ func pluginHandler(config model.ConfigFunc, handler http.Handler) http.Handler {
 	})
 }
 
-var browsersNotSupported string = "MSIE/8;MSIE/9;MSIE/10;Internet Explorer/8;Internet Explorer/9;Internet Explorer/10;Safari/7;Safari/8"
+// Older Versions of Chrome, FF, and Edge and other lesser known browsers may also have bugs.
+// Due to the complexities of UA detection and teh eamifications of a misdetection only these older browsers throw incopatability errors.
+
+// Map should be of minimum required browser version.
+var browserMinimumSupported = map[string]int{
+	"MSIE":              11,
+	"Internet Explorer": 11,
+	"Safari":            9,
+}
 
 func CheckBrowserCompatability(c *api.Context, r *http.Request) bool {
 	ua := user_agent.New(r.UserAgent())
