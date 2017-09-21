@@ -86,7 +86,7 @@ func CheckClientCompatability(agentString string) bool {
 		return false
 	}
 
-	l4g.Debug("Client not version controlled.")
+	l4g.Debug("Client allowed or not version controlled.")
 	return true
 }
 

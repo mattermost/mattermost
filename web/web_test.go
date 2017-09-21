@@ -201,7 +201,7 @@ func TestCheckClientCompatability(t *testing.T) {
 		t.Error("Fail: Mattermost App User Agent Test failed!")
 	}
 
-	//Franz
+	//Franz 4.0.4
 	ua = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Franz/4.0.4 Chrome/52.0.2743.82 Electron/1.3.1 Safari/537.36"
 	if result := CheckClientCompatability(ua); result == true {
 		t.Log("Pass: Franz App passed browser compatibility.")
@@ -249,7 +249,7 @@ func TestCheckClientCompatability(t *testing.T) {
 		t.Error("Fail: Safari 8 incorrectly passed browser compatibility!")
 	}
 
-	//Safari Mobile Mobile
+	//Safari Mobile
 	ua = "Mozilla/5.0 (iPhone; CPU iPhone OS 9_1 like Mac OS X) AppleWebKit/601.1.46 (KHTML, like Gecko) Version/9.0 Mobile/13B137 Safari/601.1"
 	if result := CheckClientCompatability(ua); result == true {
 		t.Log("Pass: Safari Mobile passed browser compatibility.")
