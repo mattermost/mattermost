@@ -309,8 +309,7 @@ func (a *App) DoUploadFile(now time.Time, teamId string, channelId string, userI
 	if info.IsImage() {
 		// Check dimensions before loading the whole thing into memory later on
 		if info.Width*info.Height > MaxImageSize {
-			err := model.NewLocAppError("uploadFile", "api.file.upload_file.large_image.app_error", map[string]interface{}{"Filename": filename}, "")
-			err.StatusCode = http.StatusBadRequest
+			err := model.NewAppError("uploadFile", "api.file.upload_file.large_image.app_error", map[string]interface{}{"Filename": filename}, "", http.StatusBadRequest)
 			return nil, err
 		}
 
