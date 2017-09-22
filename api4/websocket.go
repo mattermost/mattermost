@@ -13,10 +13,10 @@ import (
 	"github.com/mattermost/mattermost-server/utils"
 )
 
-func InitWebSocket() {
+func (api *API) InitWebSocket() {
 	l4g.Debug(utils.T("api.web_socket.init.debug"))
 
-	BaseRoutes.ApiRoot.Handle("/websocket", ApiHandlerTrustRequester(connectWebSocket)).Methods("GET")
+	api.BaseRoutes.ApiRoot.Handle("/websocket", api.ApiHandlerTrustRequester(connectWebSocket)).Methods("GET")
 }
 
 func connectWebSocket(c *Context, w http.ResponseWriter, r *http.Request) {

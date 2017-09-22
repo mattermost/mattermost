@@ -11,14 +11,14 @@ import (
 	"github.com/mattermost/mattermost-server/model"
 )
 
-func InitJob() {
+func (api *API) InitJob() {
 	l4g.Info("Initializing job API routes")
 
-	BaseRoutes.Jobs.Handle("", ApiSessionRequired(getJobs)).Methods("GET")
-	BaseRoutes.Jobs.Handle("", ApiSessionRequired(createJob)).Methods("POST")
-	BaseRoutes.Jobs.Handle("/{job_id:[A-Za-z0-9]+}", ApiSessionRequired(getJob)).Methods("GET")
-	BaseRoutes.Jobs.Handle("/{job_id:[A-Za-z0-9]+}/cancel", ApiSessionRequired(cancelJob)).Methods("POST")
-	BaseRoutes.Jobs.Handle("/type/{job_type:[A-Za-z0-9_-]+}", ApiSessionRequired(getJobsByType)).Methods("GET")
+	api.BaseRoutes.Jobs.Handle("", api.ApiSessionRequired(getJobs)).Methods("GET")
+	api.BaseRoutes.Jobs.Handle("", api.ApiSessionRequired(createJob)).Methods("POST")
+	api.BaseRoutes.Jobs.Handle("/{job_id:[A-Za-z0-9]+}", api.ApiSessionRequired(getJob)).Methods("GET")
+	api.BaseRoutes.Jobs.Handle("/{job_id:[A-Za-z0-9]+}/cancel", api.ApiSessionRequired(cancelJob)).Methods("POST")
+	api.BaseRoutes.Jobs.Handle("/type/{job_type:[A-Za-z0-9_-]+}", api.ApiSessionRequired(getJobsByType)).Methods("GET")
 }
 
 func getJob(c *Context, w http.ResponseWriter, r *http.Request) {

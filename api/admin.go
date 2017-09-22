@@ -15,34 +15,34 @@ import (
 	"github.com/mssola/user_agent"
 )
 
-func InitAdmin() {
+func (api *API) InitAdmin() {
 	l4g.Debug(utils.T("api.admin.init.debug"))
 
-	BaseRoutes.Admin.Handle("/logs", ApiAdminSystemRequired(getLogs)).Methods("GET")
-	BaseRoutes.Admin.Handle("/audits", ApiAdminSystemRequired(getAllAudits)).Methods("GET")
-	BaseRoutes.Admin.Handle("/config", ApiAdminSystemRequired(getConfig)).Methods("GET")
-	BaseRoutes.Admin.Handle("/save_config", ApiAdminSystemRequired(saveConfig)).Methods("POST")
-	BaseRoutes.Admin.Handle("/reload_config", ApiAdminSystemRequired(reloadConfig)).Methods("GET")
-	BaseRoutes.Admin.Handle("/invalidate_all_caches", ApiAdminSystemRequired(invalidateAllCaches)).Methods("GET")
-	BaseRoutes.Admin.Handle("/test_email", ApiAdminSystemRequired(testEmail)).Methods("POST")
-	BaseRoutes.Admin.Handle("/recycle_db_conn", ApiAdminSystemRequired(recycleDatabaseConnection)).Methods("GET")
-	BaseRoutes.Admin.Handle("/analytics/{id:[A-Za-z0-9]+}/{name:[A-Za-z0-9_]+}", ApiAdminSystemRequired(getAnalytics)).Methods("GET")
-	BaseRoutes.Admin.Handle("/analytics/{name:[A-Za-z0-9_]+}", ApiAdminSystemRequired(getAnalytics)).Methods("GET")
-	BaseRoutes.Admin.Handle("/save_compliance_report", ApiAdminSystemRequired(saveComplianceReport)).Methods("POST")
-	BaseRoutes.Admin.Handle("/compliance_reports", ApiAdminSystemRequired(getComplianceReports)).Methods("GET")
-	BaseRoutes.Admin.Handle("/download_compliance_report/{id:[A-Za-z0-9]+}", ApiAdminSystemRequiredTrustRequester(downloadComplianceReport)).Methods("GET")
-	BaseRoutes.Admin.Handle("/upload_brand_image", ApiAdminSystemRequired(uploadBrandImage)).Methods("POST")
-	BaseRoutes.Admin.Handle("/get_brand_image", ApiAppHandlerTrustRequester(getBrandImage)).Methods("GET")
-	BaseRoutes.Admin.Handle("/reset_mfa", ApiAdminSystemRequired(adminResetMfa)).Methods("POST")
-	BaseRoutes.Admin.Handle("/reset_password", ApiAdminSystemRequired(adminResetPassword)).Methods("POST")
-	BaseRoutes.Admin.Handle("/ldap_sync_now", ApiAdminSystemRequired(ldapSyncNow)).Methods("POST")
-	BaseRoutes.Admin.Handle("/ldap_test", ApiAdminSystemRequired(ldapTest)).Methods("POST")
-	BaseRoutes.Admin.Handle("/saml_metadata", ApiAppHandler(samlMetadata)).Methods("GET")
-	BaseRoutes.Admin.Handle("/add_certificate", ApiAdminSystemRequired(addCertificate)).Methods("POST")
-	BaseRoutes.Admin.Handle("/remove_certificate", ApiAdminSystemRequired(removeCertificate)).Methods("POST")
-	BaseRoutes.Admin.Handle("/saml_cert_status", ApiAdminSystemRequired(samlCertificateStatus)).Methods("GET")
-	BaseRoutes.Admin.Handle("/cluster_status", ApiAdminSystemRequired(getClusterStatus)).Methods("GET")
-	BaseRoutes.Admin.Handle("/recently_active_users/{team_id:[A-Za-z0-9]+}", ApiUserRequired(getRecentlyActiveUsers)).Methods("GET")
+	api.BaseRoutes.Admin.Handle("/logs", api.ApiAdminSystemRequired(getLogs)).Methods("GET")
+	api.BaseRoutes.Admin.Handle("/audits", api.ApiAdminSystemRequired(getAllAudits)).Methods("GET")
+	api.BaseRoutes.Admin.Handle("/config", api.ApiAdminSystemRequired(getConfig)).Methods("GET")
+	api.BaseRoutes.Admin.Handle("/save_config", api.ApiAdminSystemRequired(saveConfig)).Methods("POST")
+	api.BaseRoutes.Admin.Handle("/reload_config", api.ApiAdminSystemRequired(reloadConfig)).Methods("GET")
+	api.BaseRoutes.Admin.Handle("/invalidate_all_caches", api.ApiAdminSystemRequired(invalidateAllCaches)).Methods("GET")
+	api.BaseRoutes.Admin.Handle("/test_email", api.ApiAdminSystemRequired(testEmail)).Methods("POST")
+	api.BaseRoutes.Admin.Handle("/recycle_db_conn", api.ApiAdminSystemRequired(recycleDatabaseConnection)).Methods("GET")
+	api.BaseRoutes.Admin.Handle("/analytics/{id:[A-Za-z0-9]+}/{name:[A-Za-z0-9_]+}", api.ApiAdminSystemRequired(getAnalytics)).Methods("GET")
+	api.BaseRoutes.Admin.Handle("/analytics/{name:[A-Za-z0-9_]+}", api.ApiAdminSystemRequired(getAnalytics)).Methods("GET")
+	api.BaseRoutes.Admin.Handle("/save_compliance_report", api.ApiAdminSystemRequired(saveComplianceReport)).Methods("POST")
+	api.BaseRoutes.Admin.Handle("/compliance_reports", api.ApiAdminSystemRequired(getComplianceReports)).Methods("GET")
+	api.BaseRoutes.Admin.Handle("/download_compliance_report/{id:[A-Za-z0-9]+}", api.ApiAdminSystemRequiredTrustRequester(downloadComplianceReport)).Methods("GET")
+	api.BaseRoutes.Admin.Handle("/upload_brand_image", api.ApiAdminSystemRequired(uploadBrandImage)).Methods("POST")
+	api.BaseRoutes.Admin.Handle("/get_brand_image", api.ApiAppHandlerTrustRequester(getBrandImage)).Methods("GET")
+	api.BaseRoutes.Admin.Handle("/reset_mfa", api.ApiAdminSystemRequired(adminResetMfa)).Methods("POST")
+	api.BaseRoutes.Admin.Handle("/reset_password", api.ApiAdminSystemRequired(adminResetPassword)).Methods("POST")
+	api.BaseRoutes.Admin.Handle("/ldap_sync_now", api.ApiAdminSystemRequired(ldapSyncNow)).Methods("POST")
+	api.BaseRoutes.Admin.Handle("/ldap_test", api.ApiAdminSystemRequired(ldapTest)).Methods("POST")
+	api.BaseRoutes.Admin.Handle("/saml_metadata", api.ApiAppHandler(samlMetadata)).Methods("GET")
+	api.BaseRoutes.Admin.Handle("/add_certificate", api.ApiAdminSystemRequired(addCertificate)).Methods("POST")
+	api.BaseRoutes.Admin.Handle("/remove_certificate", api.ApiAdminSystemRequired(removeCertificate)).Methods("POST")
+	api.BaseRoutes.Admin.Handle("/saml_cert_status", api.ApiAdminSystemRequired(samlCertificateStatus)).Methods("GET")
+	api.BaseRoutes.Admin.Handle("/cluster_status", api.ApiAdminSystemRequired(getClusterStatus)).Methods("GET")
+	api.BaseRoutes.Admin.Handle("/recently_active_users/{team_id:[A-Za-z0-9]+}", api.ApiUserRequired(getRecentlyActiveUsers)).Methods("GET")
 }
 
 func getLogs(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -69,7 +69,7 @@ func getAllAudits(c *Context, w http.ResponseWriter, r *http.Request) {
 	if audits, err := c.App.GetAudits("", 200); err != nil {
 		c.Err = err
 		return
-	} else if HandleEtag(audits.Etag(), "Get All Audits", w, r) {
+	} else if c.HandleEtag(audits.Etag(), "Get All Audits", w, r) {
 		return
 	} else {
 		etag := audits.Etag()

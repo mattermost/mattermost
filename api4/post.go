@@ -13,23 +13,23 @@ import (
 	"github.com/mattermost/mattermost-server/utils"
 )
 
-func InitPost() {
+func (api *API) InitPost() {
 	l4g.Debug(utils.T("api.post.init.debug"))
 
-	BaseRoutes.Posts.Handle("", ApiSessionRequired(createPost)).Methods("POST")
-	BaseRoutes.Post.Handle("", ApiSessionRequired(getPost)).Methods("GET")
-	BaseRoutes.Post.Handle("", ApiSessionRequired(deletePost)).Methods("DELETE")
-	BaseRoutes.Post.Handle("/thread", ApiSessionRequired(getPostThread)).Methods("GET")
-	BaseRoutes.Post.Handle("/files/info", ApiSessionRequired(getFileInfosForPost)).Methods("GET")
-	BaseRoutes.PostsForChannel.Handle("", ApiSessionRequired(getPostsForChannel)).Methods("GET")
-	BaseRoutes.PostsForUser.Handle("/flagged", ApiSessionRequired(getFlaggedPostsForUser)).Methods("GET")
+	api.BaseRoutes.Posts.Handle("", api.ApiSessionRequired(createPost)).Methods("POST")
+	api.BaseRoutes.Post.Handle("", api.ApiSessionRequired(getPost)).Methods("GET")
+	api.BaseRoutes.Post.Handle("", api.ApiSessionRequired(deletePost)).Methods("DELETE")
+	api.BaseRoutes.Post.Handle("/thread", api.ApiSessionRequired(getPostThread)).Methods("GET")
+	api.BaseRoutes.Post.Handle("/files/info", api.ApiSessionRequired(getFileInfosForPost)).Methods("GET")
+	api.BaseRoutes.PostsForChannel.Handle("", api.ApiSessionRequired(getPostsForChannel)).Methods("GET")
+	api.BaseRoutes.PostsForUser.Handle("/flagged", api.ApiSessionRequired(getFlaggedPostsForUser)).Methods("GET")
 
-	BaseRoutes.Team.Handle("/posts/search", ApiSessionRequired(searchPosts)).Methods("POST")
-	BaseRoutes.Post.Handle("", ApiSessionRequired(updatePost)).Methods("PUT")
-	BaseRoutes.Post.Handle("/patch", ApiSessionRequired(patchPost)).Methods("PUT")
-	BaseRoutes.Post.Handle("/actions/{action_id:[A-Za-z0-9]+}", ApiSessionRequired(doPostAction)).Methods("POST")
-	BaseRoutes.Post.Handle("/pin", ApiSessionRequired(pinPost)).Methods("POST")
-	BaseRoutes.Post.Handle("/unpin", ApiSessionRequired(unpinPost)).Methods("POST")
+	api.BaseRoutes.Team.Handle("/posts/search", api.ApiSessionRequired(searchPosts)).Methods("POST")
+	api.BaseRoutes.Post.Handle("", api.ApiSessionRequired(updatePost)).Methods("PUT")
+	api.BaseRoutes.Post.Handle("/patch", api.ApiSessionRequired(patchPost)).Methods("PUT")
+	api.BaseRoutes.Post.Handle("/actions/{action_id:[A-Za-z0-9]+}", api.ApiSessionRequired(doPostAction)).Methods("POST")
+	api.BaseRoutes.Post.Handle("/pin", api.ApiSessionRequired(pinPost)).Methods("POST")
+	api.BaseRoutes.Post.Handle("/unpin", api.ApiSessionRequired(unpinPost)).Methods("POST")
 }
 
 func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -107,7 +107,7 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	} else if len(afterPost) > 0 {
 		etag = c.App.GetPostsEtag(c.Params.ChannelId)
 
-		if HandleEtag(etag, "Get Posts After", w, r) {
+		if c.HandleEtag(etag, "Get Posts After", w, r) {
 			return
 		}
 
@@ -115,7 +115,7 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	} else if len(beforePost) > 0 {
 		etag = c.App.GetPostsEtag(c.Params.ChannelId)
 
-		if HandleEtag(etag, "Get Posts Before", w, r) {
+		if c.HandleEtag(etag, "Get Posts Before", w, r) {
 			return
 		}
 
@@ -123,7 +123,7 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	} else {
 		etag = c.App.GetPostsEtag(c.Params.ChannelId)
 
-		if HandleEtag(etag, "Get Posts", w, r) {
+		if c.HandleEtag(etag, "Get Posts", w, r) {
 			return
 		}
 
@@ -205,7 +205,7 @@ func getPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if HandleEtag(post.Etag(), "Get Post", w, r) {
+	if c.HandleEtag(post.Etag(), "Get Post", w, r) {
 		return
 	} else {
 		w.Header().Set(model.HEADER_ETAG_SERVER, post.Etag())
@@ -271,7 +271,7 @@ func getPostThread(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if HandleEtag(list.Etag(), "Get Post Thread", w, r) {
+	if c.HandleEtag(list.Etag(), "Get Post Thread", w, r) {
 		return
 	} else {
 		w.Header().Set(model.HEADER_ETAG_SERVER, list.Etag())
@@ -421,7 +421,7 @@ func getFileInfosForPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	if infos, err := c.App.GetFileInfosForPost(c.Params.PostId, false); err != nil {
 		c.Err = err
 		return
-	} else if HandleEtag(model.GetEtagForFileInfos(infos), "Get File Infos For Post", w, r) {
+	} else if c.HandleEtag(model.GetEtagForFileInfos(infos), "Get File Infos For Post", w, r) {
 		return
 	} else {
 		w.Header().Set("Cache-Control", "max-age=2592000, public")

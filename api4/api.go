@@ -102,7 +102,10 @@ type Routes struct {
 	Webrtc *mux.Router // 'api/v4/webrtc'
 }
 
-var BaseRoutes *Routes
+type API struct {
+	App        *app.App
+	BaseRoutes *Routes
+}
 
 func NewRouter() *mux.Router {
 	ret := mux.NewRouter()
@@ -110,108 +113,112 @@ func NewRouter() *mux.Router {
 	return ret
 }
 
-func InitApi(root *mux.Router, full bool) {
-	BaseRoutes = &Routes{}
-	BaseRoutes.Root = root
-	BaseRoutes.ApiRoot = root.PathPrefix(model.API_URL_SUFFIX).Subrouter()
+func Init(a *app.App, root *mux.Router, full bool) *API {
+	api := &API{
+		App:        a,
+		BaseRoutes: &Routes{},
+	}
 
-	BaseRoutes.Users = BaseRoutes.ApiRoot.PathPrefix("/users").Subrouter()
-	BaseRoutes.User = BaseRoutes.ApiRoot.PathPrefix("/users/{user_id:[A-Za-z0-9]+}").Subrouter()
-	BaseRoutes.UserByUsername = BaseRoutes.Users.PathPrefix("/username/{username:[A-Za-z0-9\\_\\-\\.]+}").Subrouter()
-	BaseRoutes.UserByEmail = BaseRoutes.Users.PathPrefix("/email/{email}").Subrouter()
+	api.BaseRoutes.Root = root
+	api.BaseRoutes.ApiRoot = root.PathPrefix(model.API_URL_SUFFIX).Subrouter()
 
-	BaseRoutes.Teams = BaseRoutes.ApiRoot.PathPrefix("/teams").Subrouter()
-	BaseRoutes.TeamsForUser = BaseRoutes.User.PathPrefix("/teams").Subrouter()
-	BaseRoutes.Team = BaseRoutes.Teams.PathPrefix("/{team_id:[A-Za-z0-9]+}").Subrouter()
-	BaseRoutes.TeamForUser = BaseRoutes.TeamsForUser.PathPrefix("/{team_id:[A-Za-z0-9]+}").Subrouter()
-	BaseRoutes.TeamByName = BaseRoutes.Teams.PathPrefix("/name/{team_name:[A-Za-z0-9_-]+}").Subrouter()
-	BaseRoutes.TeamMembers = BaseRoutes.Team.PathPrefix("/members").Subrouter()
-	BaseRoutes.TeamMember = BaseRoutes.TeamMembers.PathPrefix("/{user_id:[A-Za-z0-9]+}").Subrouter()
-	BaseRoutes.TeamMembersForUser = BaseRoutes.User.PathPrefix("/teams/members").Subrouter()
+	api.BaseRoutes.Users = api.BaseRoutes.ApiRoot.PathPrefix("/users").Subrouter()
+	api.BaseRoutes.User = api.BaseRoutes.ApiRoot.PathPrefix("/users/{user_id:[A-Za-z0-9]+}").Subrouter()
+	api.BaseRoutes.UserByUsername = api.BaseRoutes.Users.PathPrefix("/username/{username:[A-Za-z0-9\\_\\-\\.]+}").Subrouter()
+	api.BaseRoutes.UserByEmail = api.BaseRoutes.Users.PathPrefix("/email/{email}").Subrouter()
 
-	BaseRoutes.Channels = BaseRoutes.ApiRoot.PathPrefix("/channels").Subrouter()
-	BaseRoutes.Channel = BaseRoutes.Channels.PathPrefix("/{channel_id:[A-Za-z0-9]+}").Subrouter()
-	BaseRoutes.ChannelForUser = BaseRoutes.User.PathPrefix("/channels/{channel_id:[A-Za-z0-9]+}").Subrouter()
-	BaseRoutes.ChannelByName = BaseRoutes.Team.PathPrefix("/channels/name/{channel_name:[A-Za-z0-9_-]+}").Subrouter()
-	BaseRoutes.ChannelByNameForTeamName = BaseRoutes.TeamByName.PathPrefix("/channels/name/{channel_name:[A-Za-z0-9_-]+}").Subrouter()
-	BaseRoutes.ChannelsForTeam = BaseRoutes.Team.PathPrefix("/channels").Subrouter()
-	BaseRoutes.ChannelMembers = BaseRoutes.Channel.PathPrefix("/members").Subrouter()
-	BaseRoutes.ChannelMember = BaseRoutes.ChannelMembers.PathPrefix("/{user_id:[A-Za-z0-9]+}").Subrouter()
-	BaseRoutes.ChannelMembersForUser = BaseRoutes.User.PathPrefix("/teams/{team_id:[A-Za-z0-9]+}/channels/members").Subrouter()
+	api.BaseRoutes.Teams = api.BaseRoutes.ApiRoot.PathPrefix("/teams").Subrouter()
+	api.BaseRoutes.TeamsForUser = api.BaseRoutes.User.PathPrefix("/teams").Subrouter()
+	api.BaseRoutes.Team = api.BaseRoutes.Teams.PathPrefix("/{team_id:[A-Za-z0-9]+}").Subrouter()
+	api.BaseRoutes.TeamForUser = api.BaseRoutes.TeamsForUser.PathPrefix("/{team_id:[A-Za-z0-9]+}").Subrouter()
+	api.BaseRoutes.TeamByName = api.BaseRoutes.Teams.PathPrefix("/name/{team_name:[A-Za-z0-9_-]+}").Subrouter()
+	api.BaseRoutes.TeamMembers = api.BaseRoutes.Team.PathPrefix("/members").Subrouter()
+	api.BaseRoutes.TeamMember = api.BaseRoutes.TeamMembers.PathPrefix("/{user_id:[A-Za-z0-9]+}").Subrouter()
+	api.BaseRoutes.TeamMembersForUser = api.BaseRoutes.User.PathPrefix("/teams/members").Subrouter()
 
-	BaseRoutes.Posts = BaseRoutes.ApiRoot.PathPrefix("/posts").Subrouter()
-	BaseRoutes.Post = BaseRoutes.Posts.PathPrefix("/{post_id:[A-Za-z0-9]+}").Subrouter()
-	BaseRoutes.PostsForChannel = BaseRoutes.Channel.PathPrefix("/posts").Subrouter()
-	BaseRoutes.PostsForUser = BaseRoutes.User.PathPrefix("/posts").Subrouter()
-	BaseRoutes.PostForUser = BaseRoutes.PostsForUser.PathPrefix("/{post_id:[A-Za-z0-9]+}").Subrouter()
+	api.BaseRoutes.Channels = api.BaseRoutes.ApiRoot.PathPrefix("/channels").Subrouter()
+	api.BaseRoutes.Channel = api.BaseRoutes.Channels.PathPrefix("/{channel_id:[A-Za-z0-9]+}").Subrouter()
+	api.BaseRoutes.ChannelForUser = api.BaseRoutes.User.PathPrefix("/channels/{channel_id:[A-Za-z0-9]+}").Subrouter()
+	api.BaseRoutes.ChannelByName = api.BaseRoutes.Team.PathPrefix("/channels/name/{channel_name:[A-Za-z0-9_-]+}").Subrouter()
+	api.BaseRoutes.ChannelByNameForTeamName = api.BaseRoutes.TeamByName.PathPrefix("/channels/name/{channel_name:[A-Za-z0-9_-]+}").Subrouter()
+	api.BaseRoutes.ChannelsForTeam = api.BaseRoutes.Team.PathPrefix("/channels").Subrouter()
+	api.BaseRoutes.ChannelMembers = api.BaseRoutes.Channel.PathPrefix("/members").Subrouter()
+	api.BaseRoutes.ChannelMember = api.BaseRoutes.ChannelMembers.PathPrefix("/{user_id:[A-Za-z0-9]+}").Subrouter()
+	api.BaseRoutes.ChannelMembersForUser = api.BaseRoutes.User.PathPrefix("/teams/{team_id:[A-Za-z0-9]+}/channels/members").Subrouter()
 
-	BaseRoutes.Files = BaseRoutes.ApiRoot.PathPrefix("/files").Subrouter()
-	BaseRoutes.File = BaseRoutes.Files.PathPrefix("/{file_id:[A-Za-z0-9]+}").Subrouter()
-	BaseRoutes.PublicFile = BaseRoutes.Root.PathPrefix("/files/{file_id:[A-Za-z0-9]+}/public").Subrouter()
+	api.BaseRoutes.Posts = api.BaseRoutes.ApiRoot.PathPrefix("/posts").Subrouter()
+	api.BaseRoutes.Post = api.BaseRoutes.Posts.PathPrefix("/{post_id:[A-Za-z0-9]+}").Subrouter()
+	api.BaseRoutes.PostsForChannel = api.BaseRoutes.Channel.PathPrefix("/posts").Subrouter()
+	api.BaseRoutes.PostsForUser = api.BaseRoutes.User.PathPrefix("/posts").Subrouter()
+	api.BaseRoutes.PostForUser = api.BaseRoutes.PostsForUser.PathPrefix("/{post_id:[A-Za-z0-9]+}").Subrouter()
 
-	BaseRoutes.Plugins = BaseRoutes.ApiRoot.PathPrefix("/plugins").Subrouter()
-	BaseRoutes.Plugin = BaseRoutes.Plugins.PathPrefix("/{plugin_id:[A-Za-z0-9\\_\\-\\.]+}").Subrouter()
+	api.BaseRoutes.Files = api.BaseRoutes.ApiRoot.PathPrefix("/files").Subrouter()
+	api.BaseRoutes.File = api.BaseRoutes.Files.PathPrefix("/{file_id:[A-Za-z0-9]+}").Subrouter()
+	api.BaseRoutes.PublicFile = api.BaseRoutes.Root.PathPrefix("/files/{file_id:[A-Za-z0-9]+}/public").Subrouter()
 
-	BaseRoutes.Commands = BaseRoutes.ApiRoot.PathPrefix("/commands").Subrouter()
-	BaseRoutes.Command = BaseRoutes.Commands.PathPrefix("/{command_id:[A-Za-z0-9]+}").Subrouter()
+	api.BaseRoutes.Plugins = api.BaseRoutes.ApiRoot.PathPrefix("/plugins").Subrouter()
+	api.BaseRoutes.Plugin = api.BaseRoutes.Plugins.PathPrefix("/{plugin_id:[A-Za-z0-9\\_\\-\\.]+}").Subrouter()
 
-	BaseRoutes.Hooks = BaseRoutes.ApiRoot.PathPrefix("/hooks").Subrouter()
-	BaseRoutes.IncomingHooks = BaseRoutes.Hooks.PathPrefix("/incoming").Subrouter()
-	BaseRoutes.IncomingHook = BaseRoutes.IncomingHooks.PathPrefix("/{hook_id:[A-Za-z0-9]+}").Subrouter()
-	BaseRoutes.OutgoingHooks = BaseRoutes.Hooks.PathPrefix("/outgoing").Subrouter()
-	BaseRoutes.OutgoingHook = BaseRoutes.OutgoingHooks.PathPrefix("/{hook_id:[A-Za-z0-9]+}").Subrouter()
+	api.BaseRoutes.Commands = api.BaseRoutes.ApiRoot.PathPrefix("/commands").Subrouter()
+	api.BaseRoutes.Command = api.BaseRoutes.Commands.PathPrefix("/{command_id:[A-Za-z0-9]+}").Subrouter()
 
-	BaseRoutes.SAML = BaseRoutes.ApiRoot.PathPrefix("/saml").Subrouter()
+	api.BaseRoutes.Hooks = api.BaseRoutes.ApiRoot.PathPrefix("/hooks").Subrouter()
+	api.BaseRoutes.IncomingHooks = api.BaseRoutes.Hooks.PathPrefix("/incoming").Subrouter()
+	api.BaseRoutes.IncomingHook = api.BaseRoutes.IncomingHooks.PathPrefix("/{hook_id:[A-Za-z0-9]+}").Subrouter()
+	api.BaseRoutes.OutgoingHooks = api.BaseRoutes.Hooks.PathPrefix("/outgoing").Subrouter()
+	api.BaseRoutes.OutgoingHook = api.BaseRoutes.OutgoingHooks.PathPrefix("/{hook_id:[A-Za-z0-9]+}").Subrouter()
 
-	BaseRoutes.OAuth = BaseRoutes.ApiRoot.PathPrefix("/oauth").Subrouter()
-	BaseRoutes.OAuthApps = BaseRoutes.OAuth.PathPrefix("/apps").Subrouter()
-	BaseRoutes.OAuthApp = BaseRoutes.OAuthApps.PathPrefix("/{app_id:[A-Za-z0-9]+}").Subrouter()
+	api.BaseRoutes.SAML = api.BaseRoutes.ApiRoot.PathPrefix("/saml").Subrouter()
 
-	BaseRoutes.Compliance = BaseRoutes.ApiRoot.PathPrefix("/compliance").Subrouter()
-	BaseRoutes.Cluster = BaseRoutes.ApiRoot.PathPrefix("/cluster").Subrouter()
-	BaseRoutes.LDAP = BaseRoutes.ApiRoot.PathPrefix("/ldap").Subrouter()
-	BaseRoutes.Brand = BaseRoutes.ApiRoot.PathPrefix("/brand").Subrouter()
-	BaseRoutes.System = BaseRoutes.ApiRoot.PathPrefix("/system").Subrouter()
-	BaseRoutes.Preferences = BaseRoutes.User.PathPrefix("/preferences").Subrouter()
-	BaseRoutes.License = BaseRoutes.ApiRoot.PathPrefix("/license").Subrouter()
-	BaseRoutes.Public = BaseRoutes.ApiRoot.PathPrefix("/public").Subrouter()
-	BaseRoutes.Reactions = BaseRoutes.ApiRoot.PathPrefix("/reactions").Subrouter()
-	BaseRoutes.Jobs = BaseRoutes.ApiRoot.PathPrefix("/jobs").Subrouter()
-	BaseRoutes.Elasticsearch = BaseRoutes.ApiRoot.PathPrefix("/elasticsearch").Subrouter()
+	api.BaseRoutes.OAuth = api.BaseRoutes.ApiRoot.PathPrefix("/oauth").Subrouter()
+	api.BaseRoutes.OAuthApps = api.BaseRoutes.OAuth.PathPrefix("/apps").Subrouter()
+	api.BaseRoutes.OAuthApp = api.BaseRoutes.OAuthApps.PathPrefix("/{app_id:[A-Za-z0-9]+}").Subrouter()
 
-	BaseRoutes.Emojis = BaseRoutes.ApiRoot.PathPrefix("/emoji").Subrouter()
-	BaseRoutes.Emoji = BaseRoutes.Emojis.PathPrefix("/{emoji_id:[A-Za-z0-9]+}").Subrouter()
+	api.BaseRoutes.Compliance = api.BaseRoutes.ApiRoot.PathPrefix("/compliance").Subrouter()
+	api.BaseRoutes.Cluster = api.BaseRoutes.ApiRoot.PathPrefix("/cluster").Subrouter()
+	api.BaseRoutes.LDAP = api.BaseRoutes.ApiRoot.PathPrefix("/ldap").Subrouter()
+	api.BaseRoutes.Brand = api.BaseRoutes.ApiRoot.PathPrefix("/brand").Subrouter()
+	api.BaseRoutes.System = api.BaseRoutes.ApiRoot.PathPrefix("/system").Subrouter()
+	api.BaseRoutes.Preferences = api.BaseRoutes.User.PathPrefix("/preferences").Subrouter()
+	api.BaseRoutes.License = api.BaseRoutes.ApiRoot.PathPrefix("/license").Subrouter()
+	api.BaseRoutes.Public = api.BaseRoutes.ApiRoot.PathPrefix("/public").Subrouter()
+	api.BaseRoutes.Reactions = api.BaseRoutes.ApiRoot.PathPrefix("/reactions").Subrouter()
+	api.BaseRoutes.Jobs = api.BaseRoutes.ApiRoot.PathPrefix("/jobs").Subrouter()
+	api.BaseRoutes.Elasticsearch = api.BaseRoutes.ApiRoot.PathPrefix("/elasticsearch").Subrouter()
 
-	BaseRoutes.ReactionByNameForPostForUser = BaseRoutes.PostForUser.PathPrefix("/reactions/{emoji_name:[A-Za-z0-9\\_\\-\\+]+}").Subrouter()
+	api.BaseRoutes.Emojis = api.BaseRoutes.ApiRoot.PathPrefix("/emoji").Subrouter()
+	api.BaseRoutes.Emoji = api.BaseRoutes.Emojis.PathPrefix("/{emoji_id:[A-Za-z0-9]+}").Subrouter()
 
-	BaseRoutes.Webrtc = BaseRoutes.ApiRoot.PathPrefix("/webrtc").Subrouter()
+	api.BaseRoutes.ReactionByNameForPostForUser = api.BaseRoutes.PostForUser.PathPrefix("/reactions/{emoji_name:[A-Za-z0-9\\_\\-\\+]+}").Subrouter()
 
-	BaseRoutes.OpenGraph = BaseRoutes.ApiRoot.PathPrefix("/opengraph").Subrouter()
+	api.BaseRoutes.Webrtc = api.BaseRoutes.ApiRoot.PathPrefix("/webrtc").Subrouter()
 
-	InitUser()
-	InitTeam()
-	InitChannel()
-	InitPost()
-	InitFile()
-	InitSystem()
-	InitWebhook()
-	InitPreference()
-	InitSaml()
-	InitCompliance()
-	InitCluster()
-	InitLdap()
-	InitElasticsearch()
-	InitBrand()
-	InitJob()
-	InitCommand()
-	InitStatus()
-	InitWebSocket()
-	InitEmoji()
-	InitOAuth()
-	InitReaction()
-	InitWebrtc()
-	InitOpenGraph()
-	InitPlugin()
+	api.BaseRoutes.OpenGraph = api.BaseRoutes.ApiRoot.PathPrefix("/opengraph").Subrouter()
+
+	api.InitUser()
+	api.InitTeam()
+	api.InitChannel()
+	api.InitPost()
+	api.InitFile()
+	api.InitSystem()
+	api.InitWebhook()
+	api.InitPreference()
+	api.InitSaml()
+	api.InitCompliance()
+	api.InitCluster()
+	api.InitLdap()
+	api.InitElasticsearch()
+	api.InitBrand()
+	api.InitJob()
+	api.InitCommand()
+	api.InitStatus()
+	api.InitWebSocket()
+	api.InitEmoji()
+	api.InitOAuth()
+	api.InitReaction()
+	api.InitWebrtc()
+	api.InitOpenGraph()
+	api.InitPlugin()
 
 	root.Handle("/api/v4/{anything:.*}", http.HandlerFunc(Handle404))
 
@@ -221,26 +228,8 @@ func InitApi(root *mux.Router, full bool) {
 
 		app.InitEmailBatching()
 	}
-}
 
-func HandleEtag(etag string, routeName string, w http.ResponseWriter, r *http.Request) bool {
-	metrics := app.Global().Metrics
-	if et := r.Header.Get(model.HEADER_ETAG_CLIENT); len(etag) > 0 {
-		if et == etag {
-			w.Header().Set(model.HEADER_ETAG_SERVER, etag)
-			w.WriteHeader(http.StatusNotModified)
-			if metrics != nil {
-				metrics.IncrementEtagHitCounter(routeName)
-			}
-			return true
-		}
-	}
-
-	if metrics != nil {
-		metrics.IncrementEtagMissCounter(routeName)
-	}
-
-	return false
+	return api
 }
 
 func Handle404(w http.ResponseWriter, r *http.Request) {

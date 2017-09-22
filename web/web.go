@@ -11,16 +11,15 @@ import (
 
 	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/mattermost-server/api"
-	"github.com/mattermost/mattermost-server/app"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
 	"github.com/mssola/user_agent"
 )
 
-func InitWeb() {
+func Init(api3 *api.API) {
 	l4g.Debug(utils.T("web.init.debug"))
 
-	mainrouter := app.Global().Srv.Router
+	mainrouter := api3.BaseRoutes.Root
 
 	if *utils.Cfg.ServiceSettings.WebserverMode != "disabled" {
 		staticDir, _ := utils.FindDir(model.CLIENT_DIR)
@@ -36,7 +35,7 @@ func InitWeb() {
 
 		mainrouter.PathPrefix("/static/plugins/").Handler(pluginHandler)
 		mainrouter.PathPrefix("/static/").Handler(staticHandler)
-		mainrouter.Handle("/{anything:.*}", api.AppHandlerIndependent(root)).Methods("GET")
+		mainrouter.Handle("/{anything:.*}", api3.AppHandlerIndependent(root)).Methods("GET")
 	}
 }
 
