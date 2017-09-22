@@ -5888,6 +5888,10 @@
     "translation": "We encountered an error permanently deleting the batch of posts"
   },
   {
+    "id": "store.sql_preference.cleanup_flags_batch.app_error",
+    "translation": "We encountered an error cleaning up the batch of flags"
+  },
+  {
     "id": "store.sql_preference.delete.app_error",
     "translation": "We encountered an error while deleting preferences"
   },
