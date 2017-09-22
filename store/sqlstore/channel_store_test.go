@@ -99,7 +99,7 @@ func TestChannelStoreSaveDirectChannel(t *testing.T) {
 
 	if result := <-ss.Channel().SaveDirectChannel(&o1a, &m1, &m2); result.Err == nil {
 		t.Fatal("should've failed to save a duplicate direct channel")
-	} else if result.Err.Id != CHANNEL_EXISTS_ERROR {
+	} else if result.Err.Id != store.CHANNEL_EXISTS_ERROR {
 		t.Fatal("should've returned CHANNEL_EXISTS_ERROR")
 	} else if returned := result.Data.(*model.Channel); returned.Id != o1.Id {
 		t.Fatal("should've returned original channel when saving a duplicate direct channel")
