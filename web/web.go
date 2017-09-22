@@ -5,7 +5,6 @@ package web
 
 import (
 	"net/http"
-	"strconv"
 	"strings"
 
 	"github.com/NYTimes/gziphandler"
@@ -67,28 +66,19 @@ func pluginHandler(handler http.Handler) http.Handler {
 	})
 }
 
-//map should be of minimum required browser version.
-//var browsersNotSupported string = "MSIE/11;Internet Explorer/11;Safari/9;Chrome/43;Edge/15;Firefox/52"
-//var browserMinimumSupported = [6]string{"MSIE/11", "Internet Explorer/11", "Safari/9", "Chrome/43", "Edge/15", "Firefox/52"}
-var browserMinimumSupported = map[string]int{
-	"MSIE":              11,
-	"Internet Explorer": 11,
-	"Safari":            9,
-	"Chrome":            43,
-	"Edge":              15,
-	"Firefox":           52,
-}
+var browsersNotSupported string = "MSIE/8;MSIE/9;MSIE/10;Internet Explorer/8;Internet Explorer/9;Internet Explorer/10;Safari/7;Safari/8"
 
-func CheckBrowserCompatability(ua *user_agent.UserAgent) bool {
+func CheckBrowserCompatability(c *api.Context, r *http.Request) bool {
+	ua := user_agent.New(r.UserAgent())
 	bname, bversion := ua.Browser()
 
-	l4g.Debug("Detected Browser: %v %v", bname, bversion)
+	browsers := strings.Split(browsersNotSupported, ";")
+	for _, browser := range browsers {
+		version := strings.Split(browser, "/")
 
-	curVersion := strings.Split(bversion, ".")
-	intCurVersion, _ := strconv.Atoi(curVersion[0])
-
-	if version, exist := browserMinimumSupported[bname]; exist && intCurVersion < version {
-		return false
+		if strings.HasPrefix(bname, version[0]) && strings.HasPrefix(bversion, version[1]) {
+			return false
+		}
 	}
 
 	return true
@@ -96,7 +86,7 @@ func CheckBrowserCompatability(ua *user_agent.UserAgent) bool {
 }
 
 func root(c *api.Context, w http.ResponseWriter, r *http.Request) {
-	if !CheckBrowserCompatability(user_agent.New(r.UserAgent())) {
+	if !CheckBrowserCompatability(c, r) {
 		w.Header().Set("Cache-Control", "no-store")
 		page := utils.NewHTMLTemplate("unsupported_browser", c.Locale)
 		page.Props["Title"] = c.T("web.error.unsupported_browser.title")
