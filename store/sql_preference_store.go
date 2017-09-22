@@ -372,3 +372,55 @@ func (s SqlPreferenceStore) DeleteCategoryAndName(category string, name string) 
 
 	return storeChannel
 }
+
+func (s SqlPreferenceStore) CleanupFlagsBatch(limit int64) StoreChannel {
+	storeChannel := make(StoreChannel, 1)
+
+	go func() {
+		result := StoreResult{}
+
+		query :=
+			`DELETE FROM
+				Preferences
+			WHERE
+				Category = :Category
+				AND Name IN (
+					SELECT
+						*
+					FROM (
+						SELECT
+							Preferences.Name
+						FROM
+							Preferences
+						LEFT JOIN
+							Posts
+						ON
+							Preferences.Name = Posts.Id
+						WHERE
+							Preferences.Category = :Category
+							AND Posts.Id IS null
+						LIMIT
+							:Limit
+					)
+					AS t
+				)`
+
+		sqlResult, err := s.GetMaster().Exec(query, map[string]interface{}{"Category": model.PREFERENCE_CATEGORY_FLAGGED_POST, "Limit": limit})
+		if err != nil {
+			result.Err = model.NewAppError("SqlPostStore.CleanupFlagsBatch", "store.sql_preference.cleanup_flags_batch.app_error", nil, ""+err.Error(), http.StatusInternalServerError)
+		} else {
+			rowsAffected, err1 := sqlResult.RowsAffected()
+			if err1 != nil {
+				result.Err = model.NewAppError("SqlPostStore.CleanupFlagsBatch", "store.sql_preference.cleanup_flags_batch.app_error", nil, ""+err.Error(), http.StatusInternalServerError)
+				result.Data = int64(0)
+			} else {
+				result.Data = rowsAffected
+			}
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}

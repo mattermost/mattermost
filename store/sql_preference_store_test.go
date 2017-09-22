@@ -6,6 +6,8 @@ package store
 import (
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
 	"github.com/mattermost/mattermost-server/model"
 )
 
@@ -472,4 +474,43 @@ func TestPreferenceDeleteCategoryAndName(t *testing.T) {
 	if prefs := Must(store.Preference().GetAll(userId2)).(model.Preferences); len([]model.Preference(prefs)) != 0 {
 		t.Fatal("should've returned no preferences")
 	}
+}
+
+func TestPreferenceCleanupFlagsBatch(t *testing.T) {
+	Setup()
+
+	category := model.PREFERENCE_CATEGORY_FLAGGED_POST
+	userId := model.NewId()
+
+	o1 := &model.Post{}
+	o1.ChannelId = model.NewId()
+	o1.UserId = userId
+	o1.Message = "zz" + model.NewId() + "AAAAAAAAAAA"
+	o1.CreateAt = 1000
+	o1 = (<-store.Post().Save(o1)).Data.(*model.Post)
+
+	preference1 := model.Preference{
+		UserId:   userId,
+		Category: category,
+		Name:     o1.Id,
+		Value:    "true",
+	}
+
+	preference2 := model.Preference{
+		UserId:   userId,
+		Category: category,
+		Name:     model.NewId(),
+		Value:    "true",
+	}
+
+	Must(store.Preference().Save(&model.Preferences{preference1, preference2}))
+
+	result := <-store.Preference().CleanupFlagsBatch(10000)
+	assert.Nil(t, result.Err)
+
+	result = <-store.Preference().Get(userId, category, preference1.Name)
+	assert.Nil(t, result.Err)
+
+	result = <-store.Preference().Get(userId, category, preference2.Name)
+	assert.NotNil(t, result.Err)
 }
