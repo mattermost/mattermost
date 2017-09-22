@@ -12,10 +12,10 @@ import (
 	"github.com/mattermost/mattermost-server/utils"
 )
 
-func InitCluster() {
+func (api *API) InitCluster() {
 	l4g.Debug(utils.T("api.cluster.init.debug"))
 
-	BaseRoutes.Cluster.Handle("/status", ApiSessionRequired(getClusterStatus)).Methods("GET")
+	api.BaseRoutes.Cluster.Handle("/status", api.ApiSessionRequired(getClusterStatus)).Methods("GET")
 }
 
 func getClusterStatus(c *Context, w http.ResponseWriter, r *http.Request) {

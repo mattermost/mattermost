@@ -14,12 +14,12 @@ import (
 	"github.com/mattermost/mattermost-server/utils"
 )
 
-func InitLicense() {
+func (api *API) InitLicense() {
 	l4g.Debug(utils.T("api.license.init.debug"))
 
-	BaseRoutes.License.Handle("/add", ApiAdminSystemRequired(addLicense)).Methods("POST")
-	BaseRoutes.License.Handle("/remove", ApiAdminSystemRequired(removeLicense)).Methods("POST")
-	BaseRoutes.License.Handle("/client_config", ApiAppHandler(getClientLicenceConfig)).Methods("GET")
+	api.BaseRoutes.License.Handle("/add", api.ApiAdminSystemRequired(addLicense)).Methods("POST")
+	api.BaseRoutes.License.Handle("/remove", api.ApiAdminSystemRequired(removeLicense)).Methods("POST")
+	api.BaseRoutes.License.Handle("/client_config", api.ApiAppHandler(getClientLicenceConfig)).Methods("GET")
 }
 
 func addLicense(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -88,7 +88,7 @@ func getClientLicenceConfig(c *Context, w http.ResponseWriter, r *http.Request) 
 	useSanitizedLicense := !app.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM)
 
 	etag := utils.GetClientLicenseEtag(useSanitizedLicense)
-	if HandleEtag(etag, "Get Client License Config", w, r) {
+	if c.HandleEtag(etag, "Get Client License Config", w, r) {
 		return
 	}
 

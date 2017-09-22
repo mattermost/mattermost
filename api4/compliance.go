@@ -14,13 +14,13 @@ import (
 	"github.com/mssola/user_agent"
 )
 
-func InitCompliance() {
+func (api *API) InitCompliance() {
 	l4g.Debug(utils.T("api.compliance.init.debug"))
 
-	BaseRoutes.Compliance.Handle("/reports", ApiSessionRequired(createComplianceReport)).Methods("POST")
-	BaseRoutes.Compliance.Handle("/reports", ApiSessionRequired(getComplianceReports)).Methods("GET")
-	BaseRoutes.Compliance.Handle("/reports/{report_id:[A-Za-z0-9]+}", ApiSessionRequired(getComplianceReport)).Methods("GET")
-	BaseRoutes.Compliance.Handle("/reports/{report_id:[A-Za-z0-9]+}/download", ApiSessionRequiredTrustRequester(downloadComplianceReport)).Methods("GET")
+	api.BaseRoutes.Compliance.Handle("/reports", api.ApiSessionRequired(createComplianceReport)).Methods("POST")
+	api.BaseRoutes.Compliance.Handle("/reports", api.ApiSessionRequired(getComplianceReports)).Methods("GET")
+	api.BaseRoutes.Compliance.Handle("/reports/{report_id:[A-Za-z0-9]+}", api.ApiSessionRequired(getComplianceReport)).Methods("GET")
+	api.BaseRoutes.Compliance.Handle("/reports/{report_id:[A-Za-z0-9]+}/download", api.ApiSessionRequiredTrustRequester(downloadComplianceReport)).Methods("GET")
 }
 
 func createComplianceReport(c *Context, w http.ResponseWriter, r *http.Request) {

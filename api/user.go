@@ -19,55 +19,55 @@ import (
 	"github.com/mattermost/mattermost-server/utils"
 )
 
-func InitUser() {
+func (api *API) InitUser() {
 	l4g.Debug(utils.T("api.user.init.debug"))
 
-	BaseRoutes.Users.Handle("/create", ApiAppHandler(createUser)).Methods("POST")
-	BaseRoutes.Users.Handle("/update", ApiUserRequired(updateUser)).Methods("POST")
-	BaseRoutes.Users.Handle("/update_active", ApiUserRequired(updateActive)).Methods("POST")
-	BaseRoutes.Users.Handle("/update_notify", ApiUserRequired(updateUserNotify)).Methods("POST")
-	BaseRoutes.Users.Handle("/newpassword", ApiUserRequired(updatePassword)).Methods("POST")
-	BaseRoutes.Users.Handle("/send_password_reset", ApiAppHandler(sendPasswordReset)).Methods("POST")
-	BaseRoutes.Users.Handle("/reset_password", ApiAppHandler(resetPassword)).Methods("POST")
-	BaseRoutes.Users.Handle("/login", ApiAppHandler(login)).Methods("POST")
-	BaseRoutes.Users.Handle("/logout", ApiAppHandler(logout)).Methods("POST")
-	BaseRoutes.Users.Handle("/revoke_session", ApiUserRequired(revokeSession)).Methods("POST")
-	BaseRoutes.Users.Handle("/attach_device", ApiUserRequired(attachDeviceId)).Methods("POST")
-	//DEPRICATED FOR SECURITY USE APIV4 BaseRoutes.Users.Handle("/verify_email", ApiAppHandler(verifyEmail)).Methods("POST")
-	//DEPRICATED FOR SECURITY USE APIV4 BaseRoutes.Users.Handle("/resend_verification", ApiAppHandler(resendVerification)).Methods("POST")
-	BaseRoutes.Users.Handle("/newimage", ApiUserRequired(uploadProfileImage)).Methods("POST")
-	BaseRoutes.Users.Handle("/me", ApiUserRequired(getMe)).Methods("GET")
-	BaseRoutes.Users.Handle("/initial_load", ApiAppHandler(getInitialLoad)).Methods("GET")
-	BaseRoutes.Users.Handle("/{offset:[0-9]+}/{limit:[0-9]+}", ApiUserRequired(getProfiles)).Methods("GET")
-	BaseRoutes.NeedTeam.Handle("/users/{offset:[0-9]+}/{limit:[0-9]+}", ApiUserRequired(getProfilesInTeam)).Methods("GET")
-	BaseRoutes.NeedChannel.Handle("/users/{offset:[0-9]+}/{limit:[0-9]+}", ApiUserRequired(getProfilesInChannel)).Methods("GET")
-	BaseRoutes.NeedChannel.Handle("/users/not_in_channel/{offset:[0-9]+}/{limit:[0-9]+}", ApiUserRequired(getProfilesNotInChannel)).Methods("GET")
-	BaseRoutes.Users.Handle("/search", ApiUserRequired(searchUsers)).Methods("POST")
-	BaseRoutes.Users.Handle("/ids", ApiUserRequired(getProfilesByIds)).Methods("POST")
-	BaseRoutes.Users.Handle("/autocomplete", ApiUserRequired(autocompleteUsers)).Methods("GET")
+	api.BaseRoutes.Users.Handle("/create", api.ApiAppHandler(createUser)).Methods("POST")
+	api.BaseRoutes.Users.Handle("/update", api.ApiUserRequired(updateUser)).Methods("POST")
+	api.BaseRoutes.Users.Handle("/update_active", api.ApiUserRequired(updateActive)).Methods("POST")
+	api.BaseRoutes.Users.Handle("/update_notify", api.ApiUserRequired(updateUserNotify)).Methods("POST")
+	api.BaseRoutes.Users.Handle("/newpassword", api.ApiUserRequired(updatePassword)).Methods("POST")
+	api.BaseRoutes.Users.Handle("/send_password_reset", api.ApiAppHandler(sendPasswordReset)).Methods("POST")
+	api.BaseRoutes.Users.Handle("/reset_password", api.ApiAppHandler(resetPassword)).Methods("POST")
+	api.BaseRoutes.Users.Handle("/login", api.ApiAppHandler(login)).Methods("POST")
+	api.BaseRoutes.Users.Handle("/logout", api.ApiAppHandler(logout)).Methods("POST")
+	api.BaseRoutes.Users.Handle("/revoke_session", api.ApiUserRequired(revokeSession)).Methods("POST")
+	api.BaseRoutes.Users.Handle("/attach_device", api.ApiUserRequired(attachDeviceId)).Methods("POST")
+	//DEPRICATED FOR SECURITY USE APIV4 api.BaseRoutes.Users.Handle("/verify_email", ApiAppHandler(verifyEmail)).Methods("POST")
+	//DEPRICATED FOR SECURITY USE APIV4 api.BaseRoutes.Users.Handle("/resend_verification", ApiAppHandler(resendVerification)).Methods("POST")
+	api.BaseRoutes.Users.Handle("/newimage", api.ApiUserRequired(uploadProfileImage)).Methods("POST")
+	api.BaseRoutes.Users.Handle("/me", api.ApiUserRequired(getMe)).Methods("GET")
+	api.BaseRoutes.Users.Handle("/initial_load", api.ApiAppHandler(getInitialLoad)).Methods("GET")
+	api.BaseRoutes.Users.Handle("/{offset:[0-9]+}/{limit:[0-9]+}", api.ApiUserRequired(getProfiles)).Methods("GET")
+	api.BaseRoutes.NeedTeam.Handle("/users/{offset:[0-9]+}/{limit:[0-9]+}", api.ApiUserRequired(getProfilesInTeam)).Methods("GET")
+	api.BaseRoutes.NeedChannel.Handle("/users/{offset:[0-9]+}/{limit:[0-9]+}", api.ApiUserRequired(getProfilesInChannel)).Methods("GET")
+	api.BaseRoutes.NeedChannel.Handle("/users/not_in_channel/{offset:[0-9]+}/{limit:[0-9]+}", api.ApiUserRequired(getProfilesNotInChannel)).Methods("GET")
+	api.BaseRoutes.Users.Handle("/search", api.ApiUserRequired(searchUsers)).Methods("POST")
+	api.BaseRoutes.Users.Handle("/ids", api.ApiUserRequired(getProfilesByIds)).Methods("POST")
+	api.BaseRoutes.Users.Handle("/autocomplete", api.ApiUserRequired(autocompleteUsers)).Methods("GET")
 
-	BaseRoutes.NeedTeam.Handle("/users/autocomplete", ApiUserRequired(autocompleteUsersInTeam)).Methods("GET")
-	BaseRoutes.NeedChannel.Handle("/users/autocomplete", ApiUserRequired(autocompleteUsersInChannel)).Methods("GET")
+	api.BaseRoutes.NeedTeam.Handle("/users/autocomplete", api.ApiUserRequired(autocompleteUsersInTeam)).Methods("GET")
+	api.BaseRoutes.NeedChannel.Handle("/users/autocomplete", api.ApiUserRequired(autocompleteUsersInChannel)).Methods("GET")
 
-	BaseRoutes.Users.Handle("/mfa", ApiAppHandler(checkMfa)).Methods("POST")
-	BaseRoutes.Users.Handle("/generate_mfa_secret", ApiUserRequiredMfa(generateMfaSecret)).Methods("GET")
-	BaseRoutes.Users.Handle("/update_mfa", ApiUserRequiredMfa(updateMfa)).Methods("POST")
+	api.BaseRoutes.Users.Handle("/mfa", api.ApiAppHandler(checkMfa)).Methods("POST")
+	api.BaseRoutes.Users.Handle("/generate_mfa_secret", api.ApiUserRequiredMfa(generateMfaSecret)).Methods("GET")
+	api.BaseRoutes.Users.Handle("/update_mfa", api.ApiUserRequiredMfa(updateMfa)).Methods("POST")
 
-	BaseRoutes.Users.Handle("/claim/email_to_oauth", ApiAppHandler(emailToOAuth)).Methods("POST")
-	BaseRoutes.Users.Handle("/claim/oauth_to_email", ApiUserRequired(oauthToEmail)).Methods("POST")
-	BaseRoutes.Users.Handle("/claim/email_to_ldap", ApiAppHandler(emailToLdap)).Methods("POST")
-	BaseRoutes.Users.Handle("/claim/ldap_to_email", ApiAppHandler(ldapToEmail)).Methods("POST")
+	api.BaseRoutes.Users.Handle("/claim/email_to_oauth", api.ApiAppHandler(emailToOAuth)).Methods("POST")
+	api.BaseRoutes.Users.Handle("/claim/oauth_to_email", api.ApiUserRequired(oauthToEmail)).Methods("POST")
+	api.BaseRoutes.Users.Handle("/claim/email_to_ldap", api.ApiAppHandler(emailToLdap)).Methods("POST")
+	api.BaseRoutes.Users.Handle("/claim/ldap_to_email", api.ApiAppHandler(ldapToEmail)).Methods("POST")
 
-	BaseRoutes.NeedUser.Handle("/get", ApiUserRequired(getUser)).Methods("GET")
-	BaseRoutes.Users.Handle("/name/{username:[A-Za-z0-9_\\-.]+}", ApiUserRequired(getByUsername)).Methods("GET")
-	BaseRoutes.Users.Handle("/email/{email}", ApiUserRequired(getByEmail)).Methods("GET")
-	BaseRoutes.NeedUser.Handle("/sessions", ApiUserRequired(getSessions)).Methods("GET")
-	BaseRoutes.NeedUser.Handle("/audits", ApiUserRequired(getAudits)).Methods("GET")
-	BaseRoutes.NeedUser.Handle("/image", ApiUserRequiredTrustRequester(getProfileImage)).Methods("GET")
-	BaseRoutes.NeedUser.Handle("/update_roles", ApiUserRequired(updateRoles)).Methods("POST")
+	api.BaseRoutes.NeedUser.Handle("/get", api.ApiUserRequired(getUser)).Methods("GET")
+	api.BaseRoutes.Users.Handle("/name/{username:[A-Za-z0-9_\\-.]+}", api.ApiUserRequired(getByUsername)).Methods("GET")
+	api.BaseRoutes.Users.Handle("/email/{email}", api.ApiUserRequired(getByEmail)).Methods("GET")
+	api.BaseRoutes.NeedUser.Handle("/sessions", api.ApiUserRequired(getSessions)).Methods("GET")
+	api.BaseRoutes.NeedUser.Handle("/audits", api.ApiUserRequired(getAudits)).Methods("GET")
+	api.BaseRoutes.NeedUser.Handle("/image", api.ApiUserRequiredTrustRequester(getProfileImage)).Methods("GET")
+	api.BaseRoutes.NeedUser.Handle("/update_roles", api.ApiUserRequired(updateRoles)).Methods("POST")
 
-	BaseRoutes.Root.Handle("/login/sso/saml", AppHandlerIndependent(loginWithSaml)).Methods("GET")
-	BaseRoutes.Root.Handle("/login/sso/saml", AppHandlerIndependent(completeSaml)).Methods("POST")
+	api.BaseRoutes.Root.Handle("/login/sso/saml", api.AppHandlerIndependent(loginWithSaml)).Methods("GET")
+	api.BaseRoutes.Root.Handle("/login/sso/saml", api.AppHandlerIndependent(completeSaml)).Methods("POST")
 }
 
 func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -249,7 +249,7 @@ func getMe(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.RemoveSessionCookie(w, r)
 		l4g.Error(utils.T("api.user.get_me.getting.error"), c.Session.UserId)
 		return
-	} else if HandleEtag(user.Etag(utils.Cfg.PrivacySettings.ShowFullName, utils.Cfg.PrivacySettings.ShowEmailAddress), "Get Me", w, r) {
+	} else if c.HandleEtag(user.Etag(utils.Cfg.PrivacySettings.ShowFullName, utils.Cfg.PrivacySettings.ShowEmailAddress), "Get Me", w, r) {
 		return
 	} else {
 		user.Sanitize(map[string]bool{})
@@ -323,7 +323,7 @@ func getUser(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	etag := user.Etag(utils.Cfg.PrivacySettings.ShowFullName, utils.Cfg.PrivacySettings.ShowEmailAddress)
 
-	if HandleEtag(etag, "Get User", w, r) {
+	if c.HandleEtag(etag, "Get User", w, r) {
 		return
 	} else {
 		app.SanitizeProfile(user, c.IsSystemAdmin())
@@ -343,7 +343,7 @@ func getByUsername(c *Context, w http.ResponseWriter, r *http.Request) {
 	if user, err = c.App.GetUserByUsername(username); err != nil {
 		c.Err = err
 		return
-	} else if HandleEtag(user.Etag(utils.Cfg.PrivacySettings.ShowFullName, utils.Cfg.PrivacySettings.ShowEmailAddress), "Get By Username", w, r) {
+	} else if c.HandleEtag(user.Etag(utils.Cfg.PrivacySettings.ShowFullName, utils.Cfg.PrivacySettings.ShowEmailAddress), "Get By Username", w, r) {
 		return
 	} else {
 		sanitizeProfile(c, user)
@@ -361,7 +361,7 @@ func getByEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 	if user, err := c.App.GetUserByEmail(email); err != nil {
 		c.Err = err
 		return
-	} else if HandleEtag(user.Etag(utils.Cfg.PrivacySettings.ShowFullName, utils.Cfg.PrivacySettings.ShowEmailAddress), "Get By Email", w, r) {
+	} else if c.HandleEtag(user.Etag(utils.Cfg.PrivacySettings.ShowFullName, utils.Cfg.PrivacySettings.ShowEmailAddress), "Get By Email", w, r) {
 		return
 	} else {
 		sanitizeProfile(c, user)
@@ -388,7 +388,7 @@ func getProfiles(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	etag := c.App.GetUsersEtag() + params["offset"] + "." + params["limit"]
-	if HandleEtag(etag, "Get Profiles", w, r) {
+	if c.HandleEtag(etag, "Get Profiles", w, r) {
 		return
 	}
 
@@ -424,7 +424,7 @@ func getProfilesInTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	etag := c.App.GetUsersInTeamEtag(teamId)
-	if HandleEtag(etag, "Get Profiles In Team", w, r) {
+	if c.HandleEtag(etag, "Get Profiles In Team", w, r) {
 		return
 	}
 
@@ -524,7 +524,7 @@ func getAudits(c *Context, w http.ResponseWriter, r *http.Request) {
 	} else {
 		etag := audits.Etag()
 
-		if HandleEtag(etag, "Get Audits", w, r) {
+		if c.HandleEtag(etag, "Get Audits", w, r) {
 			return
 		}
 
@@ -555,7 +555,7 @@ func getProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		user := users[0]
 		etag = strconv.FormatInt(user.LastPictureUpdate, 10)
-		if HandleEtag(etag, "Profile Image", w, r) {
+		if c.HandleEtag(etag, "Profile Image", w, r) {
 			return
 		}
 

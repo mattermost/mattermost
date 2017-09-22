@@ -11,10 +11,10 @@ import (
 	"github.com/mattermost/mattermost-server/utils"
 )
 
-func InitWebrtc() {
+func (api *API) InitWebrtc() {
 	l4g.Debug(utils.T("api.webrtc.init.debug"))
 
-	BaseRoutes.Webrtc.Handle("/token", ApiSessionRequired(webrtcToken)).Methods("GET")
+	api.BaseRoutes.Webrtc.Handle("/token", api.ApiSessionRequired(webrtcToken)).Methods("GET")
 }
 
 func webrtcToken(c *Context, w http.ResponseWriter, r *http.Request) {
