@@ -17,20 +17,14 @@ import (
 )
 
 const (
-	MISSING_ACCOUNT_ERROR                      = "store.sql_user.missing_account.const"
-	MISSING_AUTH_ACCOUNT_ERROR                 = "store.sql_user.get_by_auth.missing_account.app_error"
-	PROFILES_IN_CHANNEL_CACHE_SIZE             = model.CHANNEL_CACHE_SIZE
-	PROFILES_IN_CHANNEL_CACHE_SEC              = 900 // 15 mins
-	PROFILE_BY_IDS_CACHE_SIZE                  = model.SESSION_CACHE_SIZE
-	PROFILE_BY_IDS_CACHE_SEC                   = 900 // 15 mins
-	USER_SEARCH_OPTION_NAMES_ONLY              = "names_only"
-	USER_SEARCH_OPTION_NAMES_ONLY_NO_FULL_NAME = "names_only_no_full_name"
-	USER_SEARCH_OPTION_ALL_NO_FULL_NAME        = "all_no_full_name"
-	USER_SEARCH_OPTION_ALLOW_INACTIVE          = "allow_inactive"
-	USER_SEARCH_TYPE_NAMES_NO_FULL_NAME        = "Username, Nickname"
-	USER_SEARCH_TYPE_NAMES                     = "Username, FirstName, LastName, Nickname"
-	USER_SEARCH_TYPE_ALL_NO_FULL_NAME          = "Username, Nickname, Email"
-	USER_SEARCH_TYPE_ALL                       = "Username, FirstName, LastName, Nickname, Email"
+	PROFILES_IN_CHANNEL_CACHE_SIZE      = model.CHANNEL_CACHE_SIZE
+	PROFILES_IN_CHANNEL_CACHE_SEC       = 900 // 15 mins
+	PROFILE_BY_IDS_CACHE_SIZE           = model.SESSION_CACHE_SIZE
+	PROFILE_BY_IDS_CACHE_SEC            = 900 // 15 mins
+	USER_SEARCH_TYPE_NAMES_NO_FULL_NAME = "Username, Nickname"
+	USER_SEARCH_TYPE_NAMES              = "Username, FirstName, LastName, Nickname"
+	USER_SEARCH_TYPE_ALL_NO_FULL_NAME   = "Username, Nickname, Email"
+	USER_SEARCH_TYPE_ALL                = "Username, FirstName, LastName, Nickname, Email"
 )
 
 type SqlUserStore struct {
@@ -396,7 +390,7 @@ func (us SqlUserStore) Get(id string) store.StoreChannel {
 		if obj, err := us.GetReplica().Get(model.User{}, id); err != nil {
 			result.Err = model.NewAppError("SqlUserStore.Get", "store.sql_user.get.app_error", nil, "user_id="+id+", "+err.Error(), http.StatusInternalServerError)
 		} else if obj == nil {
-			result.Err = model.NewAppError("SqlUserStore.Get", MISSING_ACCOUNT_ERROR, nil, "user_id="+id, http.StatusNotFound)
+			result.Err = model.NewAppError("SqlUserStore.Get", store.MISSING_ACCOUNT_ERROR, nil, "user_id="+id, http.StatusNotFound)
 		} else {
 			result.Data = obj.(*model.User)
 		}
@@ -950,7 +944,7 @@ func (us SqlUserStore) GetByEmail(email string) store.StoreChannel {
 		user := model.User{}
 
 		if err := us.GetReplica().SelectOne(&user, "SELECT * FROM Users WHERE Email = :Email", map[string]interface{}{"Email": email}); err != nil {
-			result.Err = model.NewAppError("SqlUserStore.GetByEmail", MISSING_ACCOUNT_ERROR, nil, "email="+email+", "+err.Error(), http.StatusInternalServerError)
+			result.Err = model.NewAppError("SqlUserStore.GetByEmail", store.MISSING_ACCOUNT_ERROR, nil, "email="+email+", "+err.Error(), http.StatusInternalServerError)
 		}
 
 		result.Data = &user
@@ -970,7 +964,7 @@ func (us SqlUserStore) GetByAuth(authData *string, authService string) store.Sto
 		result := store.StoreResult{}
 
 		if authData == nil || *authData == "" {
-			result.Err = model.NewAppError("SqlUserStore.GetByAuth", MISSING_AUTH_ACCOUNT_ERROR, nil, "authData='', authService="+authService, http.StatusBadRequest)
+			result.Err = model.NewAppError("SqlUserStore.GetByAuth", store.MISSING_AUTH_ACCOUNT_ERROR, nil, "authData='', authService="+authService, http.StatusBadRequest)
 			storeChannel <- result
 			close(storeChannel)
 			return
@@ -980,7 +974,7 @@ func (us SqlUserStore) GetByAuth(authData *string, authService string) store.Sto
 
 		if err := us.GetReplica().SelectOne(&user, "SELECT * FROM Users WHERE AuthData = :AuthData AND AuthService = :AuthService", map[string]interface{}{"AuthData": authData, "AuthService": authService}); err != nil {
 			if err == sql.ErrNoRows {
-				result.Err = model.NewAppError("SqlUserStore.GetByAuth", MISSING_AUTH_ACCOUNT_ERROR, nil, "authData="+*authData+", authService="+authService+", "+err.Error(), http.StatusInternalServerError)
+				result.Err = model.NewAppError("SqlUserStore.GetByAuth", store.MISSING_AUTH_ACCOUNT_ERROR, nil, "authData="+*authData+", authService="+authService+", "+err.Error(), http.StatusInternalServerError)
 			} else {
 				result.Err = model.NewAppError("SqlUserStore.GetByAuth", "store.sql_user.get_by_auth.other.app_error", nil, "authData="+*authData+", authService="+authService+", "+err.Error(), http.StatusInternalServerError)
 			}
@@ -1447,15 +1441,15 @@ func (us SqlUserStore) performSearch(searchQuery string, term string, options ma
 	}
 
 	searchType := USER_SEARCH_TYPE_ALL
-	if ok := options[USER_SEARCH_OPTION_NAMES_ONLY]; ok {
+	if ok := options[store.USER_SEARCH_OPTION_NAMES_ONLY]; ok {
 		searchType = USER_SEARCH_TYPE_NAMES
-	} else if ok = options[USER_SEARCH_OPTION_NAMES_ONLY_NO_FULL_NAME]; ok {
+	} else if ok = options[store.USER_SEARCH_OPTION_NAMES_ONLY_NO_FULL_NAME]; ok {
 		searchType = USER_SEARCH_TYPE_NAMES_NO_FULL_NAME
-	} else if ok = options[USER_SEARCH_OPTION_ALL_NO_FULL_NAME]; ok {
+	} else if ok = options[store.USER_SEARCH_OPTION_ALL_NO_FULL_NAME]; ok {
 		searchType = USER_SEARCH_TYPE_ALL_NO_FULL_NAME
 	}
 
-	if ok := options[USER_SEARCH_OPTION_ALLOW_INACTIVE]; ok {
+	if ok := options[store.USER_SEARCH_OPTION_ALLOW_INACTIVE]; ok {
 		searchQuery = strings.Replace(searchQuery, "INACTIVE_CLAUSE", "", 1)
 	} else {
 		searchQuery = strings.Replace(searchQuery, "INACTIVE_CLAUSE", "AND Users.DeleteAt = 0", 1)

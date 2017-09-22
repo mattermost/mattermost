@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/mattermost/mattermost-server/model"
-"github.com/mattermost/mattermost-server/store"
+	"github.com/mattermost/mattermost-server/store"
 )
 
 func TestUserStoreSave(t *testing.T) {
@@ -1340,7 +1340,7 @@ func TestUserStoreSearch(t *testing.T) {
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: tid, UserId: u3.Id}))
 
 	searchOptions := map[string]bool{}
-	searchOptions[USER_SEARCH_OPTION_NAMES_ONLY] = true
+	searchOptions[store.USER_SEARCH_OPTION_NAMES_ONLY] = true
 
 	if r1 := <-ss.User().Search(tid, "jimb", searchOptions); r1.Err != nil {
 		t.Fatal(r1.Err)
@@ -1367,7 +1367,7 @@ func TestUserStoreSearch(t *testing.T) {
 		}
 	}
 
-	searchOptions[USER_SEARCH_OPTION_NAMES_ONLY] = false
+	searchOptions[store.USER_SEARCH_OPTION_NAMES_ONLY] = false
 
 	if r1 := <-ss.User().Search(tid, u1.Email, searchOptions); r1.Err != nil {
 		t.Fatal(r1.Err)
@@ -1385,7 +1385,7 @@ func TestUserStoreSearch(t *testing.T) {
 		}
 	}
 
-	searchOptions[USER_SEARCH_OPTION_NAMES_ONLY] = true
+	searchOptions[store.USER_SEARCH_OPTION_NAMES_ONLY] = true
 
 	// * should be treated as a space
 	if r1 := <-ss.User().Search(tid, "jimb*", searchOptions); r1.Err != nil {
@@ -1429,7 +1429,7 @@ func TestUserStoreSearch(t *testing.T) {
 		}
 	}
 
-	searchOptions[USER_SEARCH_OPTION_ALLOW_INACTIVE] = true
+	searchOptions[store.USER_SEARCH_OPTION_ALLOW_INACTIVE] = true
 
 	if r1 := <-ss.User().Search(tid, "jimb", searchOptions); r1.Err != nil {
 		t.Fatal(r1.Err)
@@ -1456,7 +1456,7 @@ func TestUserStoreSearch(t *testing.T) {
 		}
 	}
 
-	searchOptions[USER_SEARCH_OPTION_ALLOW_INACTIVE] = false
+	searchOptions[store.USER_SEARCH_OPTION_ALLOW_INACTIVE] = false
 
 	if r1 := <-ss.User().Search(tid, "jimb", searchOptions); r1.Err != nil {
 		t.Fatal(r1.Err)
@@ -1783,7 +1783,7 @@ func TestUserStoreSearchWithoutTeam(t *testing.T) {
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: tid, UserId: u3.Id}))
 
 	searchOptions := map[string]bool{}
-	searchOptions[USER_SEARCH_OPTION_NAMES_ONLY] = true
+	searchOptions[store.USER_SEARCH_OPTION_NAMES_ONLY] = true
 
 	if r1 := <-ss.User().SearchWithoutTeam("", searchOptions); r1.Err != nil {
 		t.Fatal(r1.Err)
