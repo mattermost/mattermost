@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 
 	l4g "github.com/alecthomas/log4go"
 	s3 "github.com/minio/minio-go"
@@ -267,6 +268,51 @@ func getPathsFromObjectInfos(in <-chan s3.ObjectInfo) <-chan string {
 	}()
 
 	return out
+}
+
+// Returns a list of all the directories within the path directory provided.
+func ListDirectory(path string) (*[]string, *model.AppError) {
+	var paths []string
+
+	if *Cfg.FileSettings.DriverName == model.IMAGE_DRIVER_S3 {
+		endpoint := Cfg.FileSettings.AmazonS3Endpoint
+		accessKey := Cfg.FileSettings.AmazonS3AccessKeyId
+		secretKey := Cfg.FileSettings.AmazonS3SecretAccessKey
+		secure := *Cfg.FileSettings.AmazonS3SSL
+		signV2 := *Cfg.FileSettings.AmazonS3SignV2
+		region := Cfg.FileSettings.AmazonS3Region
+
+		s3Clnt, err := s3New(endpoint, accessKey, secretKey, secure, signV2, region)
+		if err != nil {
+			return nil, model.NewAppError("ListDirectory", "utils.file.list_directory.s3.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+
+		doneCh := make(chan struct{})
+
+		defer close(doneCh)
+
+		bucket := Cfg.FileSettings.AmazonS3Bucket
+		for object := range s3Clnt.ListObjects(bucket, path, false, doneCh) {
+			if object.Err != nil {
+				return nil, model.NewAppError("ListDirectory", "utils.file.list_directory.s3.app_error", nil, object.Err.Error(), http.StatusInternalServerError)
+			}
+			paths = append(paths, strings.Trim(object.Key, "/"))
+		}
+	} else if *Cfg.FileSettings.DriverName == model.IMAGE_DRIVER_LOCAL {
+		if fileInfos, err := ioutil.ReadDir(Cfg.FileSettings.Directory + path); err != nil {
+			return nil, model.NewAppError("ListDirectory", "utils.file.list_directory.local.app_error", nil, err.Error(), http.StatusInternalServerError)
+		} else {
+			for _, fileInfo := range fileInfos {
+				if fileInfo.IsDir() {
+					paths = append(paths, filepath.Join(path, fileInfo.Name()))
+				}
+			}
+		}
+	} else {
+		return nil, model.NewAppError("ListDirectory", "utils.file.list_directory.configured.app_error", nil, "", http.StatusInternalServerError)
+	}
+
+	return &paths, nil
 }
 
 func RemoveDirectory(path string) *model.AppError {
