@@ -37,4 +37,7 @@ type MetricsInterface interface {
 
 	AddMemCacheHitCounter(cacheName string, amount float64)
 	AddMemCacheMissCounter(cacheName string, amount float64)
+
+	IncrementPostsSearchCounter()
+	ObservePostsSearchDuration(elapsed float64)
 }
