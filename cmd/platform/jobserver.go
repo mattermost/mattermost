@@ -10,6 +10,7 @@ import (
 	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/mattermost-server/jobs"
 	"github.com/mattermost/mattermost-server/store"
+	"github.com/mattermost/mattermost-server/store/sqlstore"
 	"github.com/spf13/cobra"
 )
 
@@ -36,7 +37,7 @@ func jobserverCmdF(cmd *cobra.Command, args []string) {
 	}
 	defer l4g.Close()
 
-	jobs.Srv.Store = store.NewLayeredStore(a.Metrics, a.Cluster)
+	jobs.Srv.Store = store.NewLayeredStore(sqlstore.NewSqlSupplier(a.Metrics), a.Metrics, a.Cluster)
 	defer jobs.Srv.Store.Close()
 
 	jobs.Srv.LoadLicense()
