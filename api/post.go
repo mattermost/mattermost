@@ -6,9 +6,11 @@ package api
 import (
 	"net/http"
 	"strconv"
+	"time"
 
 	l4g "github.com/alecthomas/log4go"
 	"github.com/gorilla/mux"
+
 	"github.com/mattermost/mattermost-server/app"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
@@ -474,7 +476,17 @@ func searchPosts(c *Context, w http.ResponseWriter, r *http.Request) {
 		isOrSearch = val.(bool)
 	}
 
+	startTime := time.Now()
+
 	posts, err := c.App.SearchPostsInTeam(terms, c.Session.UserId, c.TeamId, isOrSearch)
+
+	elapsedTime := float64(time.Since(startTime)) / float64(time.Second)
+	metrics := c.App.Metrics
+	if metrics != nil {
+		metrics.IncrementPostsSearchCounter()
+		metrics.ObservePostsSearchDuration(elapsedTime)
+	}
+
 	if err != nil {
 		c.Err = err
 		return
