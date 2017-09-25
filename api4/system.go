@@ -16,29 +16,29 @@ import (
 	"github.com/mattermost/mattermost-server/utils"
 )
 
-func InitSystem() {
+func (api *API) InitSystem() {
 	l4g.Debug(utils.T("api.system.init.debug"))
 
-	BaseRoutes.System.Handle("/ping", ApiHandler(getSystemPing)).Methods("GET")
+	api.BaseRoutes.System.Handle("/ping", api.ApiHandler(getSystemPing)).Methods("GET")
 
-	BaseRoutes.ApiRoot.Handle("/config", ApiSessionRequired(getConfig)).Methods("GET")
-	BaseRoutes.ApiRoot.Handle("/config", ApiSessionRequired(updateConfig)).Methods("PUT")
-	BaseRoutes.ApiRoot.Handle("/config/reload", ApiSessionRequired(configReload)).Methods("POST")
-	BaseRoutes.ApiRoot.Handle("/config/client", ApiHandler(getClientConfig)).Methods("GET")
+	api.BaseRoutes.ApiRoot.Handle("/config", api.ApiSessionRequired(getConfig)).Methods("GET")
+	api.BaseRoutes.ApiRoot.Handle("/config", api.ApiSessionRequired(updateConfig)).Methods("PUT")
+	api.BaseRoutes.ApiRoot.Handle("/config/reload", api.ApiSessionRequired(configReload)).Methods("POST")
+	api.BaseRoutes.ApiRoot.Handle("/config/client", api.ApiHandler(getClientConfig)).Methods("GET")
 
-	BaseRoutes.ApiRoot.Handle("/license", ApiSessionRequired(addLicense)).Methods("POST")
-	BaseRoutes.ApiRoot.Handle("/license", ApiSessionRequired(removeLicense)).Methods("DELETE")
-	BaseRoutes.ApiRoot.Handle("/license/client", ApiHandler(getClientLicense)).Methods("GET")
+	api.BaseRoutes.ApiRoot.Handle("/license", api.ApiSessionRequired(addLicense)).Methods("POST")
+	api.BaseRoutes.ApiRoot.Handle("/license", api.ApiSessionRequired(removeLicense)).Methods("DELETE")
+	api.BaseRoutes.ApiRoot.Handle("/license/client", api.ApiHandler(getClientLicense)).Methods("GET")
 
-	BaseRoutes.ApiRoot.Handle("/audits", ApiSessionRequired(getAudits)).Methods("GET")
-	BaseRoutes.ApiRoot.Handle("/email/test", ApiSessionRequired(testEmail)).Methods("POST")
-	BaseRoutes.ApiRoot.Handle("/database/recycle", ApiSessionRequired(databaseRecycle)).Methods("POST")
-	BaseRoutes.ApiRoot.Handle("/caches/invalidate", ApiSessionRequired(invalidateCaches)).Methods("POST")
+	api.BaseRoutes.ApiRoot.Handle("/audits", api.ApiSessionRequired(getAudits)).Methods("GET")
+	api.BaseRoutes.ApiRoot.Handle("/email/test", api.ApiSessionRequired(testEmail)).Methods("POST")
+	api.BaseRoutes.ApiRoot.Handle("/database/recycle", api.ApiSessionRequired(databaseRecycle)).Methods("POST")
+	api.BaseRoutes.ApiRoot.Handle("/caches/invalidate", api.ApiSessionRequired(invalidateCaches)).Methods("POST")
 
-	BaseRoutes.ApiRoot.Handle("/logs", ApiSessionRequired(getLogs)).Methods("GET")
-	BaseRoutes.ApiRoot.Handle("/logs", ApiSessionRequired(postLog)).Methods("POST")
+	api.BaseRoutes.ApiRoot.Handle("/logs", api.ApiSessionRequired(getLogs)).Methods("GET")
+	api.BaseRoutes.ApiRoot.Handle("/logs", api.ApiSessionRequired(postLog)).Methods("POST")
 
-	BaseRoutes.ApiRoot.Handle("/analytics/old", ApiSessionRequired(getAnalytics)).Methods("GET")
+	api.BaseRoutes.ApiRoot.Handle("/analytics/old", api.ApiSessionRequired(getAnalytics)).Methods("GET")
 }
 
 func getSystemPing(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -262,7 +262,7 @@ func getClientLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	etag := utils.GetClientLicenseEtag(true)
-	if HandleEtag(etag, "Get Client License", w, r) {
+	if c.HandleEtag(etag, "Get Client License", w, r) {
 		return
 	}
 

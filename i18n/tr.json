@@ -972,10 +972,6 @@
     "translation": "Toplu e-posta görevi çalıştırıldı. %v kullanıcının bekleyen bildirimleri var."
   },
   {
-    "id": "api.email_batching.check_pending_emails.status.app_error",
-    "translation": "Toplu e-posta bildiriminin alıcı durumu bulunamadı"
-  },
-  {
     "id": "api.email_batching.render_batched_post.channel.app_error",
     "translation": "Toplu e-posta bildiriminin ileti kanalı bulunamadı"
   },
@@ -1400,10 +1396,6 @@
   {
     "id": "api.oauth.authorize_oauth.missing.app_error",
     "translation": "Bir ya da bir kaç yanıt türü, istemci kodu ya da yönlendirme adresi eksik"
-  },
-  {
-    "id": "api.oauth.complete_oauth.missing_code.app_error",
-    "translation": "{{.service}} hizmet sağlayıcısı yönlendirme adresinde bir kimlik doğrulama kodu belirtmedi.\n\n[Google Apps](https://docs.mattermost.com/deployment/sso-google.html) için yöneticinizin Google+ API ayarını etkinleştirdiğinden emin olun.\n\n[Office 365](https://docs.mattermost.com/deployment/sso-office.html) için Microsoft kuruluş yöneticinizin Mattermost uygulamasını etkinleştirdiğinden emin olun.\n\n[GitLab](https://docs.mattermost.com/deployment/sso-gitlab.html) için şu kurulum adımlarını gerçekleştirdiğinizden emin olun.\n\nYukarıdaki işlemleri yaptıktan sonra yapılandırma ile ilgili sorun yaşıyorsanız, [Sorun Çözme Forumuna](https://forum.mattermost.org/c/general/trouble-shoot) yazabilirsiniz. Size yardımcı olmaktan mutlu oluruz."
   },
   {
     "id": "api.oauth.delete.permissions.app_error",
@@ -2236,14 +2228,6 @@
     "translation": "Gönderen "
   },
   {
-    "id": "api.templates.error.link",
-    "translation": "Mattermost sitesine geri dön"
-  },
-  {
-    "id": "api.templates.error.title",
-    "translation": "{{ .SiteName }} yardımınıza gerek duyuyor:"
-  },
-  {
     "id": "api.templates.find_teams_body.found",
     "translation": "E-posta adresinizle ilişkili takımları bulma isteğinizin sonuçları:"
   },
@@ -2997,7 +2981,7 @@
   },
   {
     "id": "app.channel.move_channel.members_do_not_match.error",
-    "translation": "Cannot move a channel unless all its members are already members of the destination team."
+    "translation": "Bir kanalın üyeleri hedef kanalın da üyeleri değil ise bir kanal taşınamaz."
   },
   {
     "id": "app.channel.post_update_channel_purpose_message.post.error",
@@ -3444,20 +3428,20 @@
     "translation": "Ayıklanan uygulama eki etkinleştirilemedi. Uygulama eki zaten var ve etkinleştirilmiş olabilir."
   },
   {
-    "id": "app.plugin.bad_path.app_error",
-    "translation": "Ayıklanan dosyalarda bozuk bir dosya yolu var"
-  },
-  {
     "id": "app.plugin.deactivate.app_error",
     "translation": "Uygulama eki devre dışı bırakılamadı"
   },
   {
     "id": "app.plugin.disabled.app_error",
-    "translation": "Plugins have been disabled by the system admin or the server has not been restarted since they were enabled."
+    "translation": "Uygulama ekleri sistem yöneticisi tarafından devre dışı bırakılmış ya da sunucu uygulama ekleri etkinleştirildikten sonra yeniden başlatılmamış."
   },
   {
     "id": "app.plugin.extract.app_error",
     "translation": "Uygulama eki ayıklanırken sorun çıktı"
+  },
+  {
+    "id": "app.plugin.filesystem.app_error",
+    "translation": "Dosya sistemi sorunu çıktı"
   },
   {
     "id": "app.plugin.get_plugins.app_error",
@@ -3470,10 +3454,6 @@
   {
     "id": "app.plugin.mvdir.app_error",
     "translation": "Uygulama eki geçici klasörden son hedefine taşınamadı"
-  },
-  {
-    "id": "app.plugin.no_files.app_error",
-    "translation": "Sıkıştırılmış klasör içinde herhangi bir dosya bulunamadı"
   },
   {
     "id": "app.plugin.remove.app_error",
@@ -3988,30 +3968,6 @@
     "translation": "Var olan SAML kullanıcı güncellenemedi. Gene de oturum açmaya izin veriliyor. Hata: %v"
   },
   {
-    "id": "error.generic.link_message",
-    "translation": "Mattermost'a Geri Dön"
-  },
-  {
-    "id": "error.generic.message",
-    "translation": "Bir sorun çıktı."
-  },
-  {
-    "id": "error.generic.title",
-    "translation": "Hata"
-  },
-  {
-    "id": "error.not_found.link_message",
-    "translation": "Mattermost'a Geri Dön"
-  },
-  {
-    "id": "error.not_found.message",
-    "translation": "Erişmek istediğiniz sayfa bulunamadı."
-  },
-  {
-    "id": "error.not_found.title",
-    "translation": "Sayfa bulunamadı"
-  },
-  {
     "id": "jobs.request_cancellation.status.error",
     "translation": "İş durumu iptal edilebilir olmadığından iptal isteğinde bulunulamadı."
   },
@@ -4394,6 +4350,18 @@
   {
     "id": "model.config.is_valid.cluster_email_batching.app_error",
     "translation": "Küme özelliği etkinleştirilmişken toplu e-posta etkinleştirilemez."
+  },
+  {
+    "id": "model.config.is_valid.data_retention.deletion_job_start_time.app_error",
+    "translation": "VeriSaklama SilmeGöreviBaşlangıçZamanı değeri \"ss:dd\" biçiminde bir saat olmalıdır"
+  },
+  {
+    "id": "model.config.is_valid.data_retention.file_retention_days_too_low.app_error",
+    "translation": "VeriSaklama DosyaSaklamaGünü değeri en az 1 olmalıdır"
+  },
+  {
+    "id": "model.config.is_valid.data_retention.message_retention_days_too_low.app_error",
+    "translation": "VeriSaklama İletiSaklamaGünü değeri en az 1 olmalıdır"
   },
   {
     "id": "model.config.is_valid.elastic_search.aggregate_posts_after_days.app_error",
@@ -5300,6 +5268,10 @@
     "translation": "Sayfalandırma sınırı aşıldı"
   },
   {
+    "id": "store.sql_audit.permanent_delete_batch.app_error",
+    "translation": "Toplu denetimler kalıcı olarak silinirken bir sorun çıktı"
+  },
+  {
     "id": "store.sql_audit.permanent_delete_by_user.app_error",
     "translation": "Denetimler silinirken bir sorun çıktı"
   },
@@ -5660,6 +5632,10 @@
     "translation": "Dosya bilgileri kalıcı olarak silinemedi"
   },
   {
+    "id": "store.sql_file_info.permanent_delete_batch.app_error",
+    "translation": "Toplu dosya bilgileri kalıcı olarak silinirken bir sorun çıktı"
+  },
+  {
     "id": "store.sql_file_info.save.app_error",
     "translation": "Dosya bilgileri kaydedilemedi"
   },
@@ -5868,6 +5844,10 @@
     "translation": "Kullanıcının yorumları silinemedi"
   },
   {
+    "id": "store.sql_post.permanent_delete_batch.app_error",
+    "translation": "Toplu iletiler kalıcı olarak silinirken bir sorun çıktı"
+  },
+  {
     "id": "store.sql_post.permanent_delete_by_channel.app_error",
     "translation": "Kanala göre ileti silinemedi"
   },
@@ -5986,6 +5966,10 @@
   {
     "id": "store.sql_reaction.get_for_post.app_error",
     "translation": "İletinin tepkileri alınamadı"
+  },
+  {
+    "id": "store.sql_reaction.permanent_delete_batch.app_error",
+    "translation": "Toplu yanıtlar kalıcı olarak silinirken bir sorun çıktı"
   },
   {
     "id": "store.sql_reaction.save.begin.app_error",
@@ -6684,10 +6668,6 @@
     "translation": "Uygulamaya İzin Ver"
   },
   {
-    "id": "web.check_browser_compatibility.app_error",
-    "translation": "Kullandığınız web tarayıcısı desteklenmiyor. Lütfen şu tarayıcılardan birini yükleyin: Google Chrome 21 ve üzeri, Internet Explorer 11 ve üzeri, Firefox 14 ve üzeri, Safari 9 ve üzeri"
-  },
-  {
     "id": "web.claim_account.team.error",
     "translation": "%v takım adı bulunamadı. Hata: %v"
   },
@@ -6730,6 +6710,34 @@
   {
     "id": "web.email_verified.title",
     "translation": "E-posta Doğrulandı"
+  },
+  {
+    "id": "web.error.unsupported_browser.help1",
+    "translation": "Google Chrome 43+"
+  },
+  {
+    "id": "web.error.unsupported_browser.help2",
+    "translation": "Mozilla Firefox 52+"
+  },
+  {
+    "id": "web.error.unsupported_browser.help3",
+    "translation": "Microsoft Internet Explorer 11+"
+  },
+  {
+    "id": "web.error.unsupported_browser.help4",
+    "translation": "Microsoft Edge 40+"
+  },
+  {
+    "id": "web.error.unsupported_browser.help5",
+    "translation": "Apple Safari 9+"
+  },
+  {
+    "id": "web.error.unsupported_browser.message",
+    "translation": "Geçerli web tarayıcınız desteklenmiyor. Lütfen şu web tarayıcılardan birini kullanın:"
+  },
+  {
+    "id": "web.error.unsupported_browser.title",
+    "translation": "Web Tarayıcısı Desteklenmiyor"
   },
   {
     "id": "web.find_team.title",

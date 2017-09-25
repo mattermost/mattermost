@@ -593,11 +593,11 @@
   },
   {
     "id": "api.command_channel_rename.too_long.app_error",
-    "translation": "Channel name must be {{.Length}} or fewer characters"
+    "translation": "Le nom du canal doit être composé d'au maximum {{.Length}} caractères"
   },
   {
     "id": "api.command_channel_rename.too_short.app_error",
-    "translation": "Channel name must be {{.Length}} or more characters"
+    "translation": "Le nom du canal doit être composé d'au minimum {{.Length}} caractères"
   },
   {
     "id": "api.command_channel_rename.update_channel.app_error",
@@ -861,7 +861,7 @@
   },
   {
     "id": "api.command_shortcuts.unsupported.app_error",
-    "translation": "La commande de recherche n'est pas supportée sur votre périphérique"
+    "translation": "La commande de raccourcis n'est pas supportée sur votre périphérique"
   },
   {
     "id": "api.command_shrug.desc",
@@ -970,10 +970,6 @@
   {
     "id": "api.email_batching.check_pending_emails.finished_running",
     "translation": "La tâche d'envoi d'e-mails par lot vient de s'exécuter. %v utilisateur(s) ont encore des notifications en attente."
-  },
-  {
-    "id": "api.email_batching.check_pending_emails.status.app_error",
-    "translation": "Impossible de trouver le statut du destinataire pour l'envoi par lot des e-mails de notification"
   },
   {
     "id": "api.email_batching.render_batched_post.channel.app_error",
@@ -1402,10 +1398,6 @@
     "translation": "Il manque une des valeurs parmi response_type, client_id ou redirect_uri"
   },
   {
-    "id": "api.oauth.complete_oauth.missing_code.app_error",
-    "translation": "Le fournisseur de services {{.service}} n'a pas envoyé un code d'autorisation dans l'URL de redirection.\n\nPour [Google Apps](https://docs.mattermost.com/deployment/sso-google.html) vérifiez que votre administrateur ait activé l'API Google+.\n\nPour [Office 365](https://docs.mattermost.com/deployment/sso-office.html) vérifiez que l'administrateur de votre organisation Microsoft ait activé l'application Mattermost.\n\nPour [GitLab](https://docs.mattermost.com/deployment/sso-gitlab.html) vérifiez que vous ayez suivi les instructions d'installation.\n\nSi, malgré cela, vous rencontrez toujours des problèmes avec votre configuration, envoyez un message sur le [forum de dépannage](https://forum.mattermost.org/c/general/trouble-shoot) où nous serons en mesure de vous aider à résoudre le problème."
-  },
-  {
     "id": "api.oauth.delete.permissions.app_error",
     "translation": "Permissions insuffisantes pour supprimer l'application OAuth2"
   },
@@ -1515,15 +1507,15 @@
   },
   {
     "id": "api.plugin.upload.array.app_error",
-    "translation": "File array is empty in multipart/form request"
+    "translation": "Le tableau de fichier est vide dans la requête multipart/form"
   },
   {
     "id": "api.plugin.upload.file.app_error",
-    "translation": "Unable to open file in multipart/form request"
+    "translation": "Impossible d'ouvrir le fichier dans la requête multipart/form"
   },
   {
     "id": "api.plugin.upload.no_file.app_error",
-    "translation": "Missing file in multipart/form request"
+    "translation": "Fichier manquant dans la requête multipart/form"
   },
   {
     "id": "api.post.check_for_out_of_channel_mentions.message.multiple",
@@ -1563,7 +1555,7 @@
   },
   {
     "id": "api.post.create_post.town_square_read_only",
-    "translation": "This channel is read-only. Only members with permission can post here."
+    "translation": "Le canal est en lecture seule. Seuls les membres disposant de la permission peuvent poster ici."
   },
   {
     "id": "api.post.create_webhook_post.creating.app_error",
@@ -1595,11 +1587,11 @@
   },
   {
     "id": "api.post.do_action.action_id.app_error",
-    "translation": "Id client invalide"
+    "translation": "Id d'action invalide"
   },
   {
     "id": "api.post.do_action.action_integration.app_error",
-    "translation": "Action integration error"
+    "translation": "Erreur d'action d'intégration"
   },
   {
     "id": "api.post.get_message_for_notification.files_sent",
@@ -2236,14 +2228,6 @@
     "translation": "Envoyée par "
   },
   {
-    "id": "api.templates.error.link",
-    "translation": "Retourner sur Mattermost"
-  },
-  {
-    "id": "api.templates.error.title",
-    "translation": "{{ .SiteName }} a besoin de vous:"
-  },
-  {
     "id": "api.templates.find_teams_body.found",
     "translation": "Votre requête de récupération des équipes associées à votre adresse e-mail donne le résultat suivant :"
   },
@@ -2373,15 +2357,15 @@
   },
   {
     "id": "api.templates.user_access_token_body.info",
-    "translation": "Un jeton d'accès utilisateur a été ajouté à votre compte sur {{.SiteURL}}. Il peut être utilisé pour accéder à {{.SiteName}} à l'aide de votre compte.<br>Si ce changement n'a pas été initié par vous, veuillez contacter votre administrateur système."
+    "translation": "Un jeton d'accès utilisateur a été ajouté à votre compte sur {{.SiteURL}}. Il peut être utilisé pour accéder à {{.SiteName}} avec votre compte.<br>Si vous n'êtes pas à l'origine de cette demande, veuillez contacter votre administrateur système."
   },
   {
     "id": "api.templates.user_access_token_body.title",
-    "translation": "Un jeton d'accès a été ajouté à votre compte."
+    "translation": "Un jeton d'accès personnel a été ajouté à votre compte"
   },
   {
     "id": "api.templates.user_access_token_subject",
-    "translation": "[{{.SiteName}}] Token d'accès utilisateur ajouté à votre compte"
+    "translation": "[{{.SiteName}}] Jeton d'accès personnel ajouté à votre compte"
   },
   {
     "id": "api.templates.username_change_body.info",
@@ -3444,10 +3428,6 @@
     "translation": "Unable to activate extracted plugin. Plugin may already exist and be activated."
   },
   {
-    "id": "app.plugin.bad_path.app_error",
-    "translation": "Bad file path in extracted files"
-  },
-  {
     "id": "app.plugin.deactivate.app_error",
     "translation": "Impossible de supprimer la réaction"
   },
@@ -3460,6 +3440,10 @@
     "translation": "Encountered error extracting plugin"
   },
   {
+    "id": "app.plugin.filesystem.app_error",
+    "translation": "Encountered filesystem error"
+  },
+  {
     "id": "app.plugin.get_plugins.app_error",
     "translation": "Impossible de supprimer la réaction"
   },
@@ -3470,10 +3454,6 @@
   {
     "id": "app.plugin.mvdir.app_error",
     "translation": "Unable to move plugin from temporary directory to final destination"
-  },
-  {
-    "id": "app.plugin.no_files.app_error",
-    "translation": "No files found in the compressed folder"
   },
   {
     "id": "app.plugin.remove.app_error",
@@ -3988,30 +3968,6 @@
     "translation": "Impossible de mettre à jour l'utilisateur SAML. Connexion autorisée malgré tout. err=%v"
   },
   {
-    "id": "error.generic.link_message",
-    "translation": "Retourner sur Mattermost"
-  },
-  {
-    "id": "error.generic.message",
-    "translation": "Une erreur s'est produite."
-  },
-  {
-    "id": "error.generic.title",
-    "translation": "Erreur"
-  },
-  {
-    "id": "error.not_found.link_message",
-    "translation": "Retourner sur Mattermost"
-  },
-  {
-    "id": "error.not_found.message",
-    "translation": "La page que vous cherchez n'existe pas."
-  },
-  {
-    "id": "error.not_found.title",
-    "translation": "Page introuvable"
-  },
-  {
     "id": "jobs.request_cancellation.status.error",
     "translation": "Impossible de demander l'annulation de la tâche, elle se trouve dans un état qui ne peut être annulé."
   },
@@ -4394,6 +4350,18 @@
   {
     "id": "model.config.is_valid.cluster_email_batching.app_error",
     "translation": "Impossible d'activer l'envoi d'e-mails par lot lorsque le clustering est activé"
+  },
+  {
+    "id": "model.config.is_valid.data_retention.deletion_job_start_time.app_error",
+    "translation": "DataRetention DeletionJobStartTime setting must be set to a time in the format \"hh:mm\""
+  },
+  {
+    "id": "model.config.is_valid.data_retention.file_retention_days_too_low.app_error",
+    "translation": "DataRetention FileRetentionDays setting must be at least 1"
+  },
+  {
+    "id": "model.config.is_valid.data_retention.message_retention_days_too_low.app_error",
+    "translation": "DataRetention MessageRetentionDays setting must be at least 1"
   },
   {
     "id": "model.config.is_valid.elastic_search.aggregate_posts_after_days.app_error",
@@ -5300,6 +5268,10 @@
     "translation": "Limite dépassée pour la pagination"
   },
   {
+    "id": "store.sql_audit.permanent_delete_batch.app_error",
+    "translation": "We encountered an error permanently deleting the batch of audits"
+  },
+  {
     "id": "store.sql_audit.permanent_delete_by_user.app_error",
     "translation": "Nous avons rencontré une erreur durant la suppression des audits"
   },
@@ -5660,6 +5632,10 @@
     "translation": "We couldn't permanently delete the file info"
   },
   {
+    "id": "store.sql_file_info.permanent_delete_batch.app_error",
+    "translation": "We encountered an error permanently deleting the batch of file infos"
+  },
+  {
     "id": "store.sql_file_info.save.app_error",
     "translation": "Impossible de sauvegarder l'information du fichier"
   },
@@ -5868,6 +5844,10 @@
     "translation": "Impossible de supprimer les commentaires de l'utilisateur"
   },
   {
+    "id": "store.sql_post.permanent_delete_batch.app_error",
+    "translation": "We encountered an error permanently deleting the batch of posts"
+  },
+  {
     "id": "store.sql_post.permanent_delete_by_channel.app_error",
     "translation": "Impossible de supprimer les messages par canal"
   },
@@ -5986,6 +5966,10 @@
   {
     "id": "store.sql_reaction.get_for_post.app_error",
     "translation": "Impossible de récupérer les réactions de le message spécifiée"
+  },
+  {
+    "id": "store.sql_reaction.permanent_delete_batch.app_error",
+    "translation": "We encountered an error permanently deleting the batch of reactions"
   },
   {
     "id": "store.sql_reaction.save.begin.app_error",
@@ -6684,10 +6668,6 @@
     "translation": "Autoriser une application"
   },
   {
-    "id": "web.check_browser_compatibility.app_error",
-    "translation": "Votre navigateur actuel n'est pas supporté, veuillez vous mettre à niveau vers l'un des navigateurs suivants : Google Chrome 21 ou supérieur, Internet Explorer 11 ou supérieur, Firefox 14 ou supérieur, Safari 9 ou supérieur"
-  },
-  {
     "id": "web.claim_account.team.error",
     "translation": "Impossible de trouver l'équipe nom=%v, err=%v"
   },
@@ -6730,6 +6710,34 @@
   {
     "id": "web.email_verified.title",
     "translation": "Email vérifié"
+  },
+  {
+    "id": "web.error.unsupported_browser.help1",
+    "translation": "Google Chrome 43+"
+  },
+  {
+    "id": "web.error.unsupported_browser.help2",
+    "translation": "Mozilla Firefox 52+"
+  },
+  {
+    "id": "web.error.unsupported_browser.help3",
+    "translation": "Microsoft Internet Explorer 11+"
+  },
+  {
+    "id": "web.error.unsupported_browser.help4",
+    "translation": "Microsoft Edge 40+"
+  },
+  {
+    "id": "web.error.unsupported_browser.help5",
+    "translation": "Apple Safari 9+"
+  },
+  {
+    "id": "web.error.unsupported_browser.message",
+    "translation": "Your current browser is not supported. Please upgrade to one of the following browsers:"
+  },
+  {
+    "id": "web.error.unsupported_browser.title",
+    "translation": "Unsupported Browser"
   },
   {
     "id": "web.find_team.title",

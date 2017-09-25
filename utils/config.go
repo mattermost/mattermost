@@ -373,10 +373,6 @@ func LoadConfig(fileName string) {
 		cfgMutex.Lock()
 	}
 
-	if err := ValidateLdapFilter(&config); err != nil {
-		panic(T(err.Id))
-	}
-
 	configureLog(&config.LogSettings)
 
 	if *config.FileSettings.DriverName == model.IMAGE_DRIVER_LOCAL {
@@ -391,10 +387,6 @@ func LoadConfig(fileName string) {
 	ClientCfg = getClientConfig(Cfg)
 	clientCfgJson, _ := json.Marshal(ClientCfg)
 	ClientCfgHash = fmt.Sprintf("%x", md5.Sum(clientCfgJson))
-
-	if samlI := einterfaces.GetSamlInterface(); samlI != nil {
-		samlI.ConfigureSP()
-	}
 
 	SetDefaultRolesBasedOnConfig()
 	SetSiteURL(*Cfg.ServiceSettings.SiteURL)
@@ -503,6 +495,7 @@ func getClientConfig(c *model.Config) map[string]string {
 	props["EnableWebrtc"] = strconv.FormatBool(*c.WebrtcSettings.Enable)
 
 	props["MaxNotificationsPerChannel"] = strconv.FormatInt(*c.TeamSettings.MaxNotificationsPerChannel, 10)
+	props["EnableConfirmNotificationsToChannel"] = strconv.FormatBool(*c.TeamSettings.EnableConfirmNotificationsToChannel)
 	props["TimeBetweenUserTypingUpdatesMilliseconds"] = strconv.FormatInt(*c.ServiceSettings.TimeBetweenUserTypingUpdatesMilliseconds, 10)
 	props["EnableUserTypingMessages"] = strconv.FormatBool(*c.ServiceSettings.EnableUserTypingMessages)
 	props["EnableChannelViewedMessages"] = strconv.FormatBool(*c.ServiceSettings.EnableChannelViewedMessages)
@@ -590,10 +583,9 @@ func getClientConfig(c *model.Config) map[string]string {
 	return props
 }
 
-func ValidateLdapFilter(cfg *model.Config) *model.AppError {
-	ldapInterface := einterfaces.GetLdapInterface()
-	if *cfg.LdapSettings.Enable && ldapInterface != nil && *cfg.LdapSettings.UserFilter != "" {
-		if err := ldapInterface.ValidateFilter(*cfg.LdapSettings.UserFilter); err != nil {
+func ValidateLdapFilter(cfg *model.Config, ldap einterfaces.LdapInterface) *model.AppError {
+	if *cfg.LdapSettings.Enable && ldap != nil && *cfg.LdapSettings.UserFilter != "" {
+		if err := ldap.ValidateFilter(*cfg.LdapSettings.UserFilter); err != nil {
 			return err
 		}
 	}

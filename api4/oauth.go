@@ -14,35 +14,35 @@ import (
 	"github.com/mattermost/mattermost-server/utils"
 )
 
-func InitOAuth() {
+func (api *API) InitOAuth() {
 	l4g.Debug(utils.T("api.oauth.init.debug"))
 
-	BaseRoutes.OAuthApps.Handle("", ApiSessionRequired(createOAuthApp)).Methods("POST")
-	BaseRoutes.OAuthApp.Handle("", ApiSessionRequired(updateOAuthApp)).Methods("PUT")
-	BaseRoutes.OAuthApps.Handle("", ApiSessionRequired(getOAuthApps)).Methods("GET")
-	BaseRoutes.OAuthApp.Handle("", ApiSessionRequired(getOAuthApp)).Methods("GET")
-	BaseRoutes.OAuthApp.Handle("/info", ApiSessionRequired(getOAuthAppInfo)).Methods("GET")
-	BaseRoutes.OAuthApp.Handle("", ApiSessionRequired(deleteOAuthApp)).Methods("DELETE")
-	BaseRoutes.OAuthApp.Handle("/regen_secret", ApiSessionRequired(regenerateOAuthAppSecret)).Methods("POST")
+	api.BaseRoutes.OAuthApps.Handle("", api.ApiSessionRequired(createOAuthApp)).Methods("POST")
+	api.BaseRoutes.OAuthApp.Handle("", api.ApiSessionRequired(updateOAuthApp)).Methods("PUT")
+	api.BaseRoutes.OAuthApps.Handle("", api.ApiSessionRequired(getOAuthApps)).Methods("GET")
+	api.BaseRoutes.OAuthApp.Handle("", api.ApiSessionRequired(getOAuthApp)).Methods("GET")
+	api.BaseRoutes.OAuthApp.Handle("/info", api.ApiSessionRequired(getOAuthAppInfo)).Methods("GET")
+	api.BaseRoutes.OAuthApp.Handle("", api.ApiSessionRequired(deleteOAuthApp)).Methods("DELETE")
+	api.BaseRoutes.OAuthApp.Handle("/regen_secret", api.ApiSessionRequired(regenerateOAuthAppSecret)).Methods("POST")
 
-	BaseRoutes.User.Handle("/oauth/apps/authorized", ApiSessionRequired(getAuthorizedOAuthApps)).Methods("GET")
+	api.BaseRoutes.User.Handle("/oauth/apps/authorized", api.ApiSessionRequired(getAuthorizedOAuthApps)).Methods("GET")
 
 	// API version independent OAuth 2.0 as a service provider endpoints
-	BaseRoutes.Root.Handle("/oauth/authorize", ApiHandlerTrustRequester(authorizeOAuthPage)).Methods("GET")
-	BaseRoutes.Root.Handle("/oauth/authorize", ApiSessionRequired(authorizeOAuthApp)).Methods("POST")
-	BaseRoutes.Root.Handle("/oauth/deauthorize", ApiSessionRequired(deauthorizeOAuthApp)).Methods("POST")
-	BaseRoutes.Root.Handle("/oauth/access_token", ApiHandlerTrustRequester(getAccessToken)).Methods("POST")
+	api.BaseRoutes.Root.Handle("/oauth/authorize", api.ApiHandlerTrustRequester(authorizeOAuthPage)).Methods("GET")
+	api.BaseRoutes.Root.Handle("/oauth/authorize", api.ApiSessionRequired(authorizeOAuthApp)).Methods("POST")
+	api.BaseRoutes.Root.Handle("/oauth/deauthorize", api.ApiSessionRequired(deauthorizeOAuthApp)).Methods("POST")
+	api.BaseRoutes.Root.Handle("/oauth/access_token", api.ApiHandlerTrustRequester(getAccessToken)).Methods("POST")
 
 	// API version independent OAuth as a client endpoints
-	BaseRoutes.Root.Handle("/oauth/{service:[A-Za-z0-9]+}/complete", ApiHandler(completeOAuth)).Methods("GET")
-	BaseRoutes.Root.Handle("/oauth/{service:[A-Za-z0-9]+}/login", ApiHandler(loginWithOAuth)).Methods("GET")
-	BaseRoutes.Root.Handle("/oauth/{service:[A-Za-z0-9]+}/mobile_login", ApiHandler(mobileLoginWithOAuth)).Methods("GET")
-	BaseRoutes.Root.Handle("/oauth/{service:[A-Za-z0-9]+}/signup", ApiHandler(signupWithOAuth)).Methods("GET")
+	api.BaseRoutes.Root.Handle("/oauth/{service:[A-Za-z0-9]+}/complete", api.ApiHandler(completeOAuth)).Methods("GET")
+	api.BaseRoutes.Root.Handle("/oauth/{service:[A-Za-z0-9]+}/login", api.ApiHandler(loginWithOAuth)).Methods("GET")
+	api.BaseRoutes.Root.Handle("/oauth/{service:[A-Za-z0-9]+}/mobile_login", api.ApiHandler(mobileLoginWithOAuth)).Methods("GET")
+	api.BaseRoutes.Root.Handle("/oauth/{service:[A-Za-z0-9]+}/signup", api.ApiHandler(signupWithOAuth)).Methods("GET")
 
 	// Old endpoints for backwards compatibility, needed to not break SSO for any old setups
-	BaseRoutes.Root.Handle("/api/v3/oauth/{service:[A-Za-z0-9]+}/complete", ApiHandler(completeOAuth)).Methods("GET")
-	BaseRoutes.Root.Handle("/signup/{service:[A-Za-z0-9]+}/complete", ApiHandler(completeOAuth)).Methods("GET")
-	BaseRoutes.Root.Handle("/login/{service:[A-Za-z0-9]+}/complete", ApiHandler(completeOAuth)).Methods("GET")
+	api.BaseRoutes.Root.Handle("/api/v3/oauth/{service:[A-Za-z0-9]+}/complete", api.ApiHandler(completeOAuth)).Methods("GET")
+	api.BaseRoutes.Root.Handle("/signup/{service:[A-Za-z0-9]+}/complete", api.ApiHandler(completeOAuth)).Methods("GET")
+	api.BaseRoutes.Root.Handle("/login/{service:[A-Za-z0-9]+}/complete", api.ApiHandler(completeOAuth)).Methods("GET")
 }
 
 func createOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {

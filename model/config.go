@@ -138,6 +138,7 @@ const (
 	ELASTICSEARCH_SETTINGS_DEFAULT_POST_INDEX_SHARDS               = 1
 	ELASTICSEARCH_SETTINGS_DEFAULT_AGGREGATE_POSTS_AFTER_DAYS      = 365
 	ELASTICSEARCH_SETTINGS_DEFAULT_POSTS_AGGREGATOR_JOB_START_TIME = "03:00"
+	ELASTICSEARCH_SETTINGS_DEFAULT_INDEX_PREFIX                    = ""
 
 	DATA_RETENTION_SETTINGS_DEFAULT_MESSAGE_RETENTION_DAYS  = 365
 	DATA_RETENTION_SETTINGS_DEFAULT_FILE_RETENTION_DAYS     = 365
@@ -368,6 +369,7 @@ type TeamSettings struct {
 	UserStatusAwayTimeout               *int64
 	MaxChannelsPerTeam                  *int64
 	MaxNotificationsPerChannel          *int64
+	EnableConfirmNotificationsToChannel *bool
 	TeammateNameDisplay                 *string
 	ExperimentalTownSquareIsReadOnly    *bool
 }
@@ -481,6 +483,7 @@ type ElasticsearchSettings struct {
 	PostIndexShards             *int
 	AggregatePostsAfterDays     *int
 	PostsAggregatorJobStartTime *string
+	IndexPrefix                 *string
 }
 
 type DataRetentionSettings struct {
@@ -853,6 +856,11 @@ func (o *Config) SetDefaults() {
 	if o.TeamSettings.MaxNotificationsPerChannel == nil {
 		o.TeamSettings.MaxNotificationsPerChannel = new(int64)
 		*o.TeamSettings.MaxNotificationsPerChannel = 1000
+	}
+
+	if o.TeamSettings.EnableConfirmNotificationsToChannel == nil {
+		o.TeamSettings.EnableConfirmNotificationsToChannel = new(bool)
+		*o.TeamSettings.EnableConfirmNotificationsToChannel = true
 	}
 
 	if o.TeamSettings.ExperimentalTownSquareIsReadOnly == nil {
@@ -1561,6 +1569,11 @@ func (o *Config) SetDefaults() {
 	if o.ElasticsearchSettings.PostsAggregatorJobStartTime == nil {
 		o.ElasticsearchSettings.PostsAggregatorJobStartTime = new(string)
 		*o.ElasticsearchSettings.PostsAggregatorJobStartTime = ELASTICSEARCH_SETTINGS_DEFAULT_POSTS_AGGREGATOR_JOB_START_TIME
+	}
+
+	if o.ElasticsearchSettings.IndexPrefix == nil {
+		o.ElasticsearchSettings.IndexPrefix = new(string)
+		*o.ElasticsearchSettings.IndexPrefix = ELASTICSEARCH_SETTINGS_DEFAULT_INDEX_PREFIX
 	}
 
 	if o.DataRetentionSettings.EnableMessageDeletion == nil {

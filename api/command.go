@@ -15,22 +15,22 @@ import (
 	"github.com/mattermost/mattermost-server/utils"
 )
 
-func InitCommand() {
+func (api *API) InitCommand() {
 	l4g.Debug(utils.T("api.command.init.debug"))
 
-	BaseRoutes.Commands.Handle("/execute", ApiUserRequired(executeCommand)).Methods("POST")
-	BaseRoutes.Commands.Handle("/list", ApiUserRequired(listCommands)).Methods("GET")
+	api.BaseRoutes.Commands.Handle("/execute", api.ApiUserRequired(executeCommand)).Methods("POST")
+	api.BaseRoutes.Commands.Handle("/list", api.ApiUserRequired(listCommands)).Methods("GET")
 
-	BaseRoutes.Commands.Handle("/create", ApiUserRequired(createCommand)).Methods("POST")
-	BaseRoutes.Commands.Handle("/update", ApiUserRequired(updateCommand)).Methods("POST")
-	BaseRoutes.Commands.Handle("/list_team_commands", ApiUserRequired(listTeamCommands)).Methods("GET")
-	BaseRoutes.Commands.Handle("/regen_token", ApiUserRequired(regenCommandToken)).Methods("POST")
-	BaseRoutes.Commands.Handle("/delete", ApiUserRequired(deleteCommand)).Methods("POST")
+	api.BaseRoutes.Commands.Handle("/create", api.ApiUserRequired(createCommand)).Methods("POST")
+	api.BaseRoutes.Commands.Handle("/update", api.ApiUserRequired(updateCommand)).Methods("POST")
+	api.BaseRoutes.Commands.Handle("/list_team_commands", api.ApiUserRequired(listTeamCommands)).Methods("GET")
+	api.BaseRoutes.Commands.Handle("/regen_token", api.ApiUserRequired(regenCommandToken)).Methods("POST")
+	api.BaseRoutes.Commands.Handle("/delete", api.ApiUserRequired(deleteCommand)).Methods("POST")
 
-	BaseRoutes.Teams.Handle("/command_test", ApiAppHandler(testCommand)).Methods("POST")
-	BaseRoutes.Teams.Handle("/command_test", ApiAppHandler(testCommand)).Methods("GET")
-	BaseRoutes.Teams.Handle("/command_test_e", ApiAppHandler(testEphemeralCommand)).Methods("POST")
-	BaseRoutes.Teams.Handle("/command_test_e", ApiAppHandler(testEphemeralCommand)).Methods("GET")
+	api.BaseRoutes.Teams.Handle("/command_test", api.ApiAppHandler(testCommand)).Methods("POST")
+	api.BaseRoutes.Teams.Handle("/command_test", api.ApiAppHandler(testCommand)).Methods("GET")
+	api.BaseRoutes.Teams.Handle("/command_test_e", api.ApiAppHandler(testEphemeralCommand)).Methods("POST")
+	api.BaseRoutes.Teams.Handle("/command_test_e", api.ApiAppHandler(testEphemeralCommand)).Methods("GET")
 }
 
 func listCommands(c *Context, w http.ResponseWriter, r *http.Request) {

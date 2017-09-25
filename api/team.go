@@ -18,34 +18,34 @@ import (
 	"github.com/mattermost/mattermost-server/utils"
 )
 
-func InitTeam() {
+func (api *API) InitTeam() {
 	l4g.Debug(utils.T("api.team.init.debug"))
 
-	BaseRoutes.Teams.Handle("/create", ApiUserRequired(createTeam)).Methods("POST")
-	BaseRoutes.Teams.Handle("/all", ApiUserRequired(getAll)).Methods("GET")
-	BaseRoutes.Teams.Handle("/all_team_listings", ApiUserRequired(GetAllTeamListings)).Methods("GET")
-	BaseRoutes.Teams.Handle("/get_invite_info", ApiAppHandler(getInviteInfo)).Methods("POST")
-	BaseRoutes.Teams.Handle("/find_team_by_name", ApiUserRequired(findTeamByName)).Methods("POST")
-	BaseRoutes.Teams.Handle("/name/{team_name:[A-Za-z0-9\\-]+}", ApiUserRequired(getTeamByName)).Methods("GET")
-	BaseRoutes.Teams.Handle("/members", ApiUserRequired(getMyTeamMembers)).Methods("GET")
-	BaseRoutes.Teams.Handle("/unread", ApiUserRequired(getMyTeamsUnread)).Methods("GET")
+	api.BaseRoutes.Teams.Handle("/create", api.ApiUserRequired(createTeam)).Methods("POST")
+	api.BaseRoutes.Teams.Handle("/all", api.ApiUserRequired(getAll)).Methods("GET")
+	api.BaseRoutes.Teams.Handle("/all_team_listings", api.ApiUserRequired(GetAllTeamListings)).Methods("GET")
+	api.BaseRoutes.Teams.Handle("/get_invite_info", api.ApiAppHandler(getInviteInfo)).Methods("POST")
+	api.BaseRoutes.Teams.Handle("/find_team_by_name", api.ApiUserRequired(findTeamByName)).Methods("POST")
+	api.BaseRoutes.Teams.Handle("/name/{team_name:[A-Za-z0-9\\-]+}", api.ApiUserRequired(getTeamByName)).Methods("GET")
+	api.BaseRoutes.Teams.Handle("/members", api.ApiUserRequired(getMyTeamMembers)).Methods("GET")
+	api.BaseRoutes.Teams.Handle("/unread", api.ApiUserRequired(getMyTeamsUnread)).Methods("GET")
 
-	BaseRoutes.NeedTeam.Handle("/me", ApiUserRequired(getMyTeam)).Methods("GET")
-	BaseRoutes.NeedTeam.Handle("/stats", ApiUserRequired(getTeamStats)).Methods("GET")
-	BaseRoutes.NeedTeam.Handle("/members/{offset:[0-9]+}/{limit:[0-9]+}", ApiUserRequired(getTeamMembers)).Methods("GET")
-	BaseRoutes.NeedTeam.Handle("/members/ids", ApiUserRequired(getTeamMembersByIds)).Methods("POST")
-	BaseRoutes.NeedTeam.Handle("/members/{user_id:[A-Za-z0-9]+}", ApiUserRequired(getTeamMember)).Methods("GET")
-	BaseRoutes.NeedTeam.Handle("/update", ApiUserRequired(updateTeam)).Methods("POST")
-	BaseRoutes.NeedTeam.Handle("/update_member_roles", ApiUserRequired(updateMemberRoles)).Methods("POST")
+	api.BaseRoutes.NeedTeam.Handle("/me", api.ApiUserRequired(getMyTeam)).Methods("GET")
+	api.BaseRoutes.NeedTeam.Handle("/stats", api.ApiUserRequired(getTeamStats)).Methods("GET")
+	api.BaseRoutes.NeedTeam.Handle("/members/{offset:[0-9]+}/{limit:[0-9]+}", api.ApiUserRequired(getTeamMembers)).Methods("GET")
+	api.BaseRoutes.NeedTeam.Handle("/members/ids", api.ApiUserRequired(getTeamMembersByIds)).Methods("POST")
+	api.BaseRoutes.NeedTeam.Handle("/members/{user_id:[A-Za-z0-9]+}", api.ApiUserRequired(getTeamMember)).Methods("GET")
+	api.BaseRoutes.NeedTeam.Handle("/update", api.ApiUserRequired(updateTeam)).Methods("POST")
+	api.BaseRoutes.NeedTeam.Handle("/update_member_roles", api.ApiUserRequired(updateMemberRoles)).Methods("POST")
 
-	BaseRoutes.NeedTeam.Handle("/invite_members", ApiUserRequired(inviteMembers)).Methods("POST")
+	api.BaseRoutes.NeedTeam.Handle("/invite_members", api.ApiUserRequired(inviteMembers)).Methods("POST")
 
-	BaseRoutes.NeedTeam.Handle("/add_user_to_team", ApiUserRequired(addUserToTeam)).Methods("POST")
-	BaseRoutes.NeedTeam.Handle("/remove_user_from_team", ApiUserRequired(removeUserFromTeam)).Methods("POST")
+	api.BaseRoutes.NeedTeam.Handle("/add_user_to_team", api.ApiUserRequired(addUserToTeam)).Methods("POST")
+	api.BaseRoutes.NeedTeam.Handle("/remove_user_from_team", api.ApiUserRequired(removeUserFromTeam)).Methods("POST")
 
 	// These should be moved to the global admin console
-	BaseRoutes.NeedTeam.Handle("/import_team", ApiUserRequired(importTeam)).Methods("POST")
-	BaseRoutes.Teams.Handle("/add_user_to_team_from_invite", ApiUserRequiredMfa(addUserToTeamFromInvite)).Methods("POST")
+	api.BaseRoutes.NeedTeam.Handle("/import_team", api.ApiUserRequired(importTeam)).Methods("POST")
+	api.BaseRoutes.Teams.Handle("/add_user_to_team_from_invite", api.ApiUserRequiredMfa(addUserToTeamFromInvite)).Methods("POST")
 }
 
 func createTeam(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -338,7 +338,7 @@ func getMyTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	if team, err := c.App.GetTeam(c.TeamId); err != nil {
 		c.Err = err
 		return
-	} else if HandleEtag(team.Etag(), "Get My Team", w, r) {
+	} else if c.HandleEtag(team.Etag(), "Get My Team", w, r) {
 		return
 	} else {
 		w.Header().Set(model.HEADER_ETAG_SERVER, team.Etag())

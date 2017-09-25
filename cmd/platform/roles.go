@@ -46,7 +46,7 @@ func makeSystemAdminCmdF(cmd *cobra.Command, args []string) error {
 		return errors.New("Enter at least one user.")
 	}
 
-	users := getUsersFromUserArgs(args)
+	users := getUsersFromUserArgs(a, args)
 	for i, user := range users {
 		if user == nil {
 			return errors.New("Unable to find user '" + args[i] + "'")
@@ -70,7 +70,7 @@ func makeMemberCmdF(cmd *cobra.Command, args []string) error {
 		return errors.New("Enter at least one user.")
 	}
 
-	users := getUsersFromUserArgs(args)
+	users := getUsersFromUserArgs(a, args)
 	for i, user := range users {
 		if user == nil {
 			return errors.New("Unable to find user '" + args[i] + "'")

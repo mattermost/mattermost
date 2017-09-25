@@ -13,19 +13,19 @@ import (
 	"github.com/mattermost/mattermost-server/utils"
 )
 
-func InitOAuth() {
+func (api *API) InitOAuth() {
 	l4g.Debug(utils.T("api.oauth.init.debug"))
 
-	BaseRoutes.OAuth.Handle("/register", ApiUserRequired(registerOAuthApp)).Methods("POST")
-	BaseRoutes.OAuth.Handle("/list", ApiUserRequired(getOAuthApps)).Methods("GET")
-	BaseRoutes.OAuth.Handle("/app/{client_id}", ApiUserRequired(getOAuthAppInfo)).Methods("GET")
-	BaseRoutes.OAuth.Handle("/allow", ApiUserRequired(allowOAuth)).Methods("GET")
-	BaseRoutes.OAuth.Handle("/authorized", ApiUserRequired(getAuthorizedApps)).Methods("GET")
-	BaseRoutes.OAuth.Handle("/delete", ApiUserRequired(deleteOAuthApp)).Methods("POST")
-	BaseRoutes.OAuth.Handle("/{id:[A-Za-z0-9]+}/deauthorize", ApiUserRequired(deauthorizeOAuthApp)).Methods("POST")
-	BaseRoutes.OAuth.Handle("/{id:[A-Za-z0-9]+}/regen_secret", ApiUserRequired(regenerateOAuthSecret)).Methods("POST")
-	BaseRoutes.OAuth.Handle("/{service:[A-Za-z0-9]+}/login", AppHandlerIndependent(loginWithOAuth)).Methods("GET")
-	BaseRoutes.OAuth.Handle("/{service:[A-Za-z0-9]+}/signup", AppHandlerIndependent(signupWithOAuth)).Methods("GET")
+	api.BaseRoutes.OAuth.Handle("/register", api.ApiUserRequired(registerOAuthApp)).Methods("POST")
+	api.BaseRoutes.OAuth.Handle("/list", api.ApiUserRequired(getOAuthApps)).Methods("GET")
+	api.BaseRoutes.OAuth.Handle("/app/{client_id}", api.ApiUserRequired(getOAuthAppInfo)).Methods("GET")
+	api.BaseRoutes.OAuth.Handle("/allow", api.ApiUserRequired(allowOAuth)).Methods("GET")
+	api.BaseRoutes.OAuth.Handle("/authorized", api.ApiUserRequired(getAuthorizedApps)).Methods("GET")
+	api.BaseRoutes.OAuth.Handle("/delete", api.ApiUserRequired(deleteOAuthApp)).Methods("POST")
+	api.BaseRoutes.OAuth.Handle("/{id:[A-Za-z0-9]+}/deauthorize", api.ApiUserRequired(deauthorizeOAuthApp)).Methods("POST")
+	api.BaseRoutes.OAuth.Handle("/{id:[A-Za-z0-9]+}/regen_secret", api.ApiUserRequired(regenerateOAuthSecret)).Methods("POST")
+	api.BaseRoutes.OAuth.Handle("/{service:[A-Za-z0-9]+}/login", api.AppHandlerIndependent(loginWithOAuth)).Methods("GET")
+	api.BaseRoutes.OAuth.Handle("/{service:[A-Za-z0-9]+}/signup", api.AppHandlerIndependent(signupWithOAuth)).Methods("GET")
 }
 
 func registerOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {

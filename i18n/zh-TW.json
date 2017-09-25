@@ -593,11 +593,11 @@
   },
   {
     "id": "api.command_channel_rename.too_long.app_error",
-    "translation": "Channel name must be {{.Length}} or fewer characters"
+    "translation": "頻道名稱至多為 {{.Length}} 個字"
   },
   {
     "id": "api.command_channel_rename.too_short.app_error",
-    "translation": "Channel name must be {{.Length}} or more characters"
+    "translation": "頻道名稱至少為 {{.Length}} 個字"
   },
   {
     "id": "api.command_channel_rename.update_channel.app_error",
@@ -861,7 +861,7 @@
   },
   {
     "id": "api.command_shortcuts.unsupported.app_error",
-    "translation": "當前裝置不支援搜尋命令"
+    "translation": "當前裝置不支援快捷鍵命令"
   },
   {
     "id": "api.command_shrug.desc",
@@ -970,10 +970,6 @@
   {
     "id": "api.email_batching.check_pending_emails.finished_running",
     "translation": "完成批次郵件處理。尚有 %v 使用者的通知等待處理。"
-  },
-  {
-    "id": "api.email_batching.check_pending_emails.status.app_error",
-    "translation": "找不到批次郵件通知收件人的狀態"
   },
   {
     "id": "api.email_batching.render_batched_post.channel.app_error",
@@ -1402,10 +1398,6 @@
     "translation": "response_type、client_id 或 redirect_uri 中缺少一個以上"
   },
   {
-    "id": "api.oauth.complete_oauth.missing_code.app_error",
-    "translation": "服務提供者 {{.service}} 在重導向網址中沒有提供授權碼。\n\n若使用 [Google Apps](https://docs.mattermost.com/deployment/sso-google.html)，請確定管理員有啟用 Google+ API。\n\n若使用 [Office 365](https://docs.mattermost.com/deployment/sso-office.html)，請確定微軟雲端服務的組織管理員有啟用 Mattermost 應用程式。\n\n若使用 [GitLab](https://docs.mattermost.com/deployment/sso-gitlab.html)，請確定有根據設定指示完成設定。\n\n如果重新確認過上面的文件且還是有設定上的問題，請至[障礙排除論壇](https://forum.mattermost.org/c/general/trouble-shoot)發文，我們很樂意在那邊為您排除設定上的問題。"
-  },
-  {
     "id": "api.oauth.delete.permissions.app_error",
     "translation": "權限不足以刪除 OAuth2 應用程式"
   },
@@ -1515,15 +1507,15 @@
   },
   {
     "id": "api.plugin.upload.array.app_error",
-    "translation": "File array is empty in multipart/form request"
+    "translation": "在 multipart/form 要求中的檔案陣列為空"
   },
   {
     "id": "api.plugin.upload.file.app_error",
-    "translation": "Unable to open file in multipart/form request"
+    "translation": "無法開啟 multipart/form 要求中的檔案"
   },
   {
     "id": "api.plugin.upload.no_file.app_error",
-    "translation": "Missing file in multipart/form request"
+    "translation": "multipart/form 要求缺少檔案"
   },
   {
     "id": "api.post.check_for_out_of_channel_mentions.message.multiple",
@@ -1563,7 +1555,7 @@
   },
   {
     "id": "api.post.create_post.town_square_read_only",
-    "translation": "This channel is read-only. Only members with permission can post here."
+    "translation": "此頻道唯讀。只有具有權限的成員能在此發布訊息。"
   },
   {
     "id": "api.post.create_webhook_post.creating.app_error",
@@ -1595,11 +1587,11 @@
   },
   {
     "id": "api.post.do_action.action_id.app_error",
-    "translation": "無效的用戶 ID"
+    "translation": "無效的操作 ID"
   },
   {
     "id": "api.post.do_action.action_integration.app_error",
-    "translation": "Action integration error"
+    "translation": "操作整合錯誤"
   },
   {
     "id": "api.post.get_message_for_notification.files_sent",
@@ -2236,14 +2228,6 @@
     "translation": "寄件者："
   },
   {
-    "id": "api.templates.error.link",
-    "translation": "回到 Mattermost"
-  },
-  {
-    "id": "api.templates.error.title",
-    "translation": "{{ .SiteName }} 需要您的協助："
-  },
-  {
     "id": "api.templates.find_teams_body.found",
     "translation": "尋找到與您的電子信箱有關聯的團隊如下列："
   },
@@ -2373,15 +2357,15 @@
   },
   {
     "id": "api.templates.user_access_token_body.info",
-    "translation": "{{ .SiteURL }} 已新增使用者存取 Token 至帳號。Token 可用於以您的帳號存取 {{.SiteName}}。<br>如果此變更並非來自您，請聯絡系統管理員。"
+    "translation": "{{ .SiteURL }} 已新增個人存取 Token 至帳號。Token 可用於以您的帳號存取 {{.SiteName}}。<br>如果此變更並非來自您，請聯絡系統管理員。"
   },
   {
     "id": "api.templates.user_access_token_body.title",
-    "translation": "已新增使用者存取 Token 至帳號"
+    "translation": "已新增個人存取 Token 至帳號"
   },
   {
     "id": "api.templates.user_access_token_subject",
-    "translation": "[{{ .SiteName }}] 已新增使用者存取 Token 至帳號"
+    "translation": "[{{ .SiteName }}] 已新增個人存取 Token 至帳號"
   },
   {
     "id": "api.templates.username_change_body.info",
@@ -2705,7 +2689,7 @@
   },
   {
     "id": "api.user.saml.not_available.app_error",
-    "translation": "本機不支援或未設定 SAML"
+    "translation": "本機不支援或未設定 SAML 2.0。"
   },
   {
     "id": "api.user.send_email_change_email_and_forget.error",
@@ -2741,7 +2725,7 @@
   },
   {
     "id": "api.user.send_user_access_token.error",
-    "translation": "寄送成功新增使用者存取 Token 至帳號的通知郵件時失敗"
+    "translation": "寄送成功新增個人存取 Token 至帳號的通知郵件時失敗"
   },
   {
     "id": "api.user.send_verify_email_and_forget.failed.error",
@@ -2997,7 +2981,7 @@
   },
   {
     "id": "app.channel.move_channel.members_do_not_match.error",
-    "translation": "Cannot move a channel unless all its members are already members of the destination team."
+    "translation": "頻道只能在全部成員皆已為目的團隊成員時被移動。"
   },
   {
     "id": "app.channel.post_update_channel_purpose_message.post.error",
@@ -3441,43 +3425,39 @@
   },
   {
     "id": "app.plugin.activate.app_error",
-    "translation": "Unable to activate extracted plugin. Plugin may already exist and be activated."
-  },
-  {
-    "id": "app.plugin.bad_path.app_error",
-    "translation": "Bad file path in extracted files"
+    "translation": "無法啟動已解開的模組。模組可能已存在並已啟動。"
   },
   {
     "id": "app.plugin.deactivate.app_error",
-    "translation": "無法刪除互動"
+    "translation": "無法停用模組"
   },
   {
     "id": "app.plugin.disabled.app_error",
-    "translation": "Plugins have been disabled by the system admin or the server has not been restarted since they were enabled."
+    "translation": "模組已被系統管理員停用或在啟用之後伺服器尚未重啟。"
   },
   {
     "id": "app.plugin.extract.app_error",
-    "translation": "Encountered error extracting plugin"
+    "translation": "解壓縮模組時遇到錯誤"
+  },
+  {
+    "id": "app.plugin.filesystem.app_error",
+    "translation": "Encountered filesystem error"
   },
   {
     "id": "app.plugin.get_plugins.app_error",
-    "translation": "無法刪除互動"
+    "translation": "無法取得啟用的模組"
   },
   {
     "id": "app.plugin.manifest.app_error",
-    "translation": "Unable to find manifest for extracted plugin"
+    "translation": "已解開的模組中找不到資訊清單"
   },
   {
     "id": "app.plugin.mvdir.app_error",
-    "translation": "Unable to move plugin from temporary directory to final destination"
-  },
-  {
-    "id": "app.plugin.no_files.app_error",
-    "translation": "No files found in the compressed folder"
+    "translation": "無法將模組由暫存目錄移動至最終目的地"
   },
   {
     "id": "app.plugin.remove.app_error",
-    "translation": "無法刪除互動"
+    "translation": "無法刪除模組"
   },
   {
     "id": "app.user_access_token.disabled",
@@ -3709,19 +3689,19 @@
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.create_index_job.error",
-    "translation": "Elasticsearch aggregator worker failed to create the indexing job"
+    "translation": "Elasticsearch 彙總工作者新增索引工作時失敗"
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.delete_indexes.error",
-    "translation": "Elasticsearch aggregator worker failed to delete the indexes"
+    "translation": "Elasticsearch 彙總工作者刪除索引時失敗"
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.get_indexes.error",
-    "translation": "Elasticsearch aggregator worker failed to get indexes"
+    "translation": "Elasticsearch 彙總工作者取得索引時失敗"
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.index_job_failed.error",
-    "translation": "Elasticsearch aggregator worker failed due to the indexing job failing"
+    "translation": "由於索引工作失敗，Elasticsearch 彙總工作者失敗"
   },
   {
     "id": "ent.elasticsearch.create_client.connect_failed",
@@ -3753,11 +3733,11 @@
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.parse_end_time.error",
-    "translation": "Elasticsearch indexing worker failed to parse the end time"
+    "translation": "Elasticsearch 彙總工作者解析中止時間時失敗"
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.parse_start_time.error",
-    "translation": "Elasticsearch indexing worker failed to parse the start time"
+    "translation": "Elasticsearch 彙總工作者解析開始時間時失敗"
   },
   {
     "id": "ent.elasticsearch.not_started.error",
@@ -3981,35 +3961,11 @@
   },
   {
     "id": "ent.saml.service_disable.app_error",
-    "translation": "本機不支援或未設定 SAML"
+    "translation": "本機不支援或未設定 SAML 2.0"
   },
   {
     "id": "ent.saml.update_saml_user.unable_error",
     "translation": "無法更新現有的 SAML 使用者。總之先允許登入。err=%v"
-  },
-  {
-    "id": "error.generic.link_message",
-    "translation": "回到 Mattermost"
-  },
-  {
-    "id": "error.generic.message",
-    "translation": "發生錯誤。"
-  },
-  {
-    "id": "error.generic.title",
-    "translation": "錯誤"
-  },
-  {
-    "id": "error.not_found.link_message",
-    "translation": "回到 Mattermost"
-  },
-  {
-    "id": "error.not_found.message",
-    "translation": "您要造訪的頁面不存在。"
-  },
-  {
-    "id": "error.not_found.title",
-    "translation": "找不到頁面"
   },
   {
     "id": "jobs.request_cancellation.status.error",
@@ -4289,7 +4245,7 @@
   },
   {
     "id": "model.client.writer.app_error",
-    "translation": "Unable to build multipart request"
+    "translation": "無法建立 multipart 要求"
   },
   {
     "id": "model.command.is_valid.create_at.app_error",
@@ -4345,15 +4301,15 @@
   },
   {
     "id": "model.command_hook.command_id.app_error",
-    "translation": "Invalid command id"
+    "translation": "無效的命令 ID"
   },
   {
     "id": "model.command_hook.create_at.app_error",
-    "translation": "\"新增時間\"必須是一個有效時間"
+    "translation": "新增時間必須是一個有效時間"
   },
   {
     "id": "model.command_hook.id.app_error",
-    "translation": "Invalid command hook id"
+    "translation": "無效的命令 Hook ID"
   },
   {
     "id": "model.command_hook.parent_id.app_error",
@@ -4396,8 +4352,20 @@
     "translation": "啟用叢集時無法啟用批次郵件"
   },
   {
+    "id": "model.config.is_valid.data_retention.deletion_job_start_time.app_error",
+    "translation": "DataRetention DeletionJobStartTime setting must be set to a time in the format \"hh:mm\""
+  },
+  {
+    "id": "model.config.is_valid.data_retention.file_retention_days_too_low.app_error",
+    "translation": "DataRetention FileRetentionDays setting must be at least 1"
+  },
+  {
+    "id": "model.config.is_valid.data_retention.message_retention_days_too_low.app_error",
+    "translation": "DataRetention MessageRetentionDays setting must be at least 1"
+  },
+  {
     "id": "model.config.is_valid.elastic_search.aggregate_posts_after_days.app_error",
-    "translation": "Elasticsearch AggregatePostsAfterDays setting must be a number greater than or equal to 1"
+    "translation": "Elasticsearch 設定 AggregatePostsAfterDays 必須為大於或等於 1 的數字"
   },
   {
     "id": "model.config.is_valid.elastic_search.connection_url.app_error",
@@ -4413,7 +4381,7 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.posts_aggregator_job_start_time.app_error",
-    "translation": "Elasticsearch PostsAggregatorJobStartTime setting must be a time in the format \"hh:mm\""
+    "translation": "Elasticsearch 設定 PostsAggregatorJobStartTime 必須為 \"hh:mm\" 格式的時間"
   },
   {
     "id": "model.config.is_valid.elastic_search.username.app_error",
@@ -5161,7 +5129,7 @@
   },
   {
     "id": "plugin.rpcplugin.invocation.error",
-    "translation": "Error invoking plugin RPC"
+    "translation": "呼叫模組 RPC 時錯誤"
   },
   {
     "id": "store.sql.alter_column_type.critical",
@@ -5298,6 +5266,10 @@
   {
     "id": "store.sql_audit.get.limit.app_error",
     "translation": "分頁已達限制"
+  },
+  {
+    "id": "store.sql_audit.permanent_delete_batch.app_error",
+    "translation": "We encountered an error permanently deleting the batch of audits"
   },
   {
     "id": "store.sql_audit.permanent_delete_by_user.app_error",
@@ -5589,15 +5561,15 @@
   },
   {
     "id": "store.sql_command_webhooks.save.app_error",
-    "translation": "無法儲存傳入的 Webhook"
+    "translation": "無法儲存命令 Webhook"
   },
   {
     "id": "store.sql_command_webhooks.save.existing.app_error",
-    "translation": "You cannot update an existing CommandWebhook"
+    "translation": "無法更新現有的命令 Webhook"
   },
   {
     "id": "store.sql_command_webhooks.try_use.app_error",
-    "translation": "Unable to use the webhook"
+    "translation": "無法使用 Webhook"
   },
   {
     "id": "store.sql_command_webhooks.try_use.invalid.app_error",
@@ -5657,7 +5629,11 @@
   },
   {
     "id": "store.sql_file_info.permanent_delete.app_error",
-    "translation": "We couldn't permanently delete the file info"
+    "translation": "無法永久刪除檔案訊息"
+  },
+  {
+    "id": "store.sql_file_info.permanent_delete_batch.app_error",
+    "translation": "We encountered an error permanently deleting the batch of file infos"
   },
   {
     "id": "store.sql_file_info.save.app_error",
@@ -5868,6 +5844,10 @@
     "translation": "無法刪除使用者的註解"
   },
   {
+    "id": "store.sql_post.permanent_delete_batch.app_error",
+    "translation": "We encountered an error permanently deleting the batch of posts"
+  },
+  {
     "id": "store.sql_post.permanent_delete_by_channel.app_error",
     "translation": "無法根據頻道刪除訊息"
   },
@@ -5986,6 +5966,10 @@
   {
     "id": "store.sql_reaction.get_for_post.app_error",
     "translation": "無法取得對於文章的互動"
+  },
+  {
+    "id": "store.sql_reaction.permanent_delete_batch.app_error",
+    "translation": "We encountered an error permanently deleting the batch of reactions"
   },
   {
     "id": "store.sql_reaction.save.begin.app_error",
@@ -6573,7 +6557,7 @@
   },
   {
     "id": "utils.file.remove_directory.s3.app_error",
-    "translation": "Encountered an error removing directory from S3."
+    "translation": "從 S3 刪除目錄時遇到錯誤"
   },
   {
     "id": "utils.file.remove_file.configured.app_error",
@@ -6581,11 +6565,11 @@
   },
   {
     "id": "utils.file.remove_file.local.app_error",
-    "translation": "從本地儲存讀取時遇到錯誤"
+    "translation": "從本地儲存刪除檔案時遇到錯誤"
   },
   {
     "id": "utils.file.remove_file.s3.app_error",
-    "translation": "Encountered an error removing file from S3."
+    "translation": "從 S3 刪除檔案時遇到錯誤"
   },
   {
     "id": "utils.i18n.loaded",
@@ -6684,10 +6668,6 @@
     "translation": "授權應用程式"
   },
   {
-    "id": "web.check_browser_compatibility.app_error",
-    "translation": "無法支援目前的瀏覽器，請升級到下列任一瀏覽器: Google Chrome 21 以上版本、Internet Explorer 11 以上版本、FireFox 14 以上版本、Safari 9 以上版本"
-  },
-  {
     "id": "web.claim_account.team.error",
     "translation": "找不到團隊 name=%v, err=%v"
   },
@@ -6701,7 +6681,7 @@
   },
   {
     "id": "web.command_webhook.command.app_error",
-    "translation": "找不到頻道"
+    "translation": "找不到命令"
   },
   {
     "id": "web.command_webhook.invalid.app_error",
@@ -6730,6 +6710,34 @@
   {
     "id": "web.email_verified.title",
     "translation": "電子郵件地址已驗證"
+  },
+  {
+    "id": "web.error.unsupported_browser.help1",
+    "translation": "Google Chrome 43+"
+  },
+  {
+    "id": "web.error.unsupported_browser.help2",
+    "translation": "Mozilla Firefox 52+"
+  },
+  {
+    "id": "web.error.unsupported_browser.help3",
+    "translation": "Microsoft Internet Explorer 11+"
+  },
+  {
+    "id": "web.error.unsupported_browser.help4",
+    "translation": "Microsoft Edge 40+"
+  },
+  {
+    "id": "web.error.unsupported_browser.help5",
+    "translation": "Apple Safari 9+"
+  },
+  {
+    "id": "web.error.unsupported_browser.message",
+    "translation": "Your current browser is not supported. Please upgrade to one of the following browsers:"
+  },
+  {
+    "id": "web.error.unsupported_browser.title",
+    "translation": "Unsupported Browser"
   },
   {
     "id": "web.find_team.title",

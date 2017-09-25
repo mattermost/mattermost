@@ -13,13 +13,3 @@ type SamlInterface interface {
 	DoLogin(encodedXML string, relayState map[string]string) (*model.User, *model.AppError)
 	GetMetadata() (string, *model.AppError)
 }
-
-var theSamlInterface SamlInterface
-
-func RegisterSamlInterface(newInterface SamlInterface) {
-	theSamlInterface = newInterface
-}
-
-func GetSamlInterface() SamlInterface {
-	return theSamlInterface
-}

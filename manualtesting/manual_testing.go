@@ -28,8 +28,8 @@ type TestEnvironment struct {
 	Request       *http.Request
 }
 
-func InitManualTesting() {
-	app.Global().Srv.Router.Handle("/manualtest", api.AppHandler(manualTest)).Methods("GET")
+func Init(api3 *api.API) {
+	api3.BaseRoutes.Root.Handle("/manualtest", api3.AppHandler(manualTest)).Methods("GET")
 }
 
 func manualTest(c *api.Context, w http.ResponseWriter, r *http.Request) {
@@ -153,9 +153,9 @@ func manualTest(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func getChannelID(channelname string, teamid string, userid string) (id string, err bool) {
+func getChannelID(a *app.App, channelname string, teamid string, userid string) (id string, err bool) {
 	// Grab all the channels
-	result := <-app.Global().Srv.Store.Channel().GetChannels(teamid, userid)
+	result := <-a.Srv.Store.Channel().GetChannels(teamid, userid)
 	if result.Err != nil {
 		l4g.Debug(utils.T("manaultesting.get_channel_id.unable.debug"))
 		return "", false

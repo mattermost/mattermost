@@ -108,18 +108,6 @@ func NewAppError(where string, id string, params map[string]interface{}, details
 	return ap
 }
 
-func NewLocAppError(where string, id string, params map[string]interface{}, details string) *AppError {
-	ap := &AppError{}
-	ap.Id = id
-	ap.params = params
-	ap.Message = id
-	ap.Where = where
-	ap.DetailedError = details
-	ap.StatusCode = 500
-	ap.IsOAuth = false
-	return ap
-}
-
 var encoding = base32.NewEncoding("ybndrfg8ejkmcpqxot1uwisza345h769")
 
 // NewId is a globally unique identifier.  It is a [A-Z0-9] string 26

@@ -972,10 +972,6 @@
     "translation": "Bulk emails job heeft gelopen. %v gebruiker(s) hebben notificaties in afwachting."
   },
   {
-    "id": "api.email_batching.check_pending_emails.status.app_error",
-    "translation": "Kon de status of ontvanger voor batch email notificatie niet vinden."
-  },
-  {
     "id": "api.email_batching.render_batched_post.channel.app_error",
     "translation": "Kon kanaal niet vinden voor bericht van e-mail notificatie."
   },
@@ -1400,10 +1396,6 @@
   {
     "id": "api.oauth.authorize_oauth.missing.app_error",
     "translation": "Mist een of meerdere elementen uit: response_type, client_id of redirect_uri"
-  },
-  {
-    "id": "api.oauth.complete_oauth.missing_code.app_error",
-    "translation": "De service provider {{.service}} heeft geen autorisatie code gegeven in de doorrstuur URL.\n\nVoor [Google Apps](https://docs.mattermost.com/deployment/sso-google.html) wees zeker dat Uw beheerder de Google+ API heeft aangezet.\n\nVoor [Office 365](https://docs.mattermost.com/deployment/sso-office.html) wees zeker dat Uw beheerder van Uw Microsoft domein de Mattermost app heeft aangezet.\n\nVor [GitLab](https://docs.mattermost.com/deployment/sso-gitlab.html) wees zeker dat U onderstaande instructies heeft gevolgd.\n\nIf you reviewed the above and are still having trouble with configuration, you may post in our [Troubleshooting forum](https://forum.mattermost.org/c/general/trouble-shoot) where we'll be happy to help with issues during setup."
   },
   {
     "id": "api.oauth.delete.permissions.app_error",
@@ -2236,14 +2228,6 @@
     "translation": "Verzonden door "
   },
   {
-    "id": "api.templates.error.link",
-    "translation": "Ga terug naar Mattermost"
-  },
-  {
-    "id": "api.templates.error.title",
-    "translation": "{{ .SiteName }} heeft jou hulp nodig:"
-  },
-  {
     "id": "api.templates.find_teams_body.found",
     "translation": "We hebben volgende teams gevonden die gekoppeld zijn met je e-mailadres:"
   },
@@ -2741,7 +2725,7 @@
   },
   {
     "id": "api.user.send_user_access_token.error",
-    "translation": "Failed to send personal access token added email successfully"
+    "translation": "Failed to send \"Personal access token added\" email successfully"
   },
   {
     "id": "api.user.send_verify_email_and_forget.failed.error",
@@ -3444,10 +3428,6 @@
     "translation": "Unable to activate extracted plugin. Plugin may already exist and be activated."
   },
   {
-    "id": "app.plugin.bad_path.app_error",
-    "translation": "Bad file path in extracted files"
-  },
-  {
     "id": "app.plugin.deactivate.app_error",
     "translation": "Unable to deactivate plugin"
   },
@@ -3460,6 +3440,10 @@
     "translation": "Encountered error extracting plugin"
   },
   {
+    "id": "app.plugin.filesystem.app_error",
+    "translation": "Encountered filesystem error"
+  },
+  {
     "id": "app.plugin.get_plugins.app_error",
     "translation": "Unable to get active plugins"
   },
@@ -3470,10 +3454,6 @@
   {
     "id": "app.plugin.mvdir.app_error",
     "translation": "Unable to move plugin from temporary directory to final destination"
-  },
-  {
-    "id": "app.plugin.no_files.app_error",
-    "translation": "No files found in the compressed folder"
   },
   {
     "id": "app.plugin.remove.app_error",
@@ -3988,30 +3968,6 @@
     "translation": "Kon bestaande SAML gebruiker niet bijwerken. Inloggen toch toestaan. err=%v"
   },
   {
-    "id": "error.generic.link_message",
-    "translation": "Ga terug naar Mattermost"
-  },
-  {
-    "id": "error.generic.message",
-    "translation": "Er is een fout opgetreden."
-  },
-  {
-    "id": "error.generic.title",
-    "translation": "Fout"
-  },
-  {
-    "id": "error.not_found.link_message",
-    "translation": "Ga terug naar Mattermost"
-  },
-  {
-    "id": "error.not_found.message",
-    "translation": "De pagina die je probeert te bereiken bestaat niet."
-  },
-  {
-    "id": "error.not_found.title",
-    "translation": "Pagina niet gevonden"
-  },
-  {
     "id": "jobs.request_cancellation.status.error",
     "translation": "Could not request cancellation for job that is not in a cancelable state."
   },
@@ -4394,6 +4350,18 @@
   {
     "id": "model.config.is_valid.cluster_email_batching.app_error",
     "translation": "Niet mogelijk om bulk email aan te zetten als clustering aan staat."
+  },
+  {
+    "id": "model.config.is_valid.data_retention.deletion_job_start_time.app_error",
+    "translation": "DataRetention DeletionJobStartTime setting must be set to a time in the format \"hh:mm\""
+  },
+  {
+    "id": "model.config.is_valid.data_retention.file_retention_days_too_low.app_error",
+    "translation": "DataRetention FileRetentionDays setting must be at least 1"
+  },
+  {
+    "id": "model.config.is_valid.data_retention.message_retention_days_too_low.app_error",
+    "translation": "DataRetention MessageRetentionDays setting must be at least 1"
   },
   {
     "id": "model.config.is_valid.elastic_search.aggregate_posts_after_days.app_error",
@@ -5300,6 +5268,10 @@
     "translation": "Grens bereikt voor opdelen in pagina's"
   },
   {
+    "id": "store.sql_audit.permanent_delete_batch.app_error",
+    "translation": "We encountered an error permanently deleting the batch of audits"
+  },
+  {
     "id": "store.sql_audit.permanent_delete_by_user.app_error",
     "translation": "Fout opgestreden bij het verwijderen van de audit data"
   },
@@ -5660,6 +5632,10 @@
     "translation": "We couldn't permanently delete the file info"
   },
   {
+    "id": "store.sql_file_info.permanent_delete_batch.app_error",
+    "translation": "We encountered an error permanently deleting the batch of file infos"
+  },
+  {
     "id": "store.sql_file_info.save.app_error",
     "translation": "We konden de bestandsinfo niet opslaan"
   },
@@ -5868,6 +5844,10 @@
     "translation": "We kunnen het bericht voor de gebruiker niet verwijderen"
   },
   {
+    "id": "store.sql_post.permanent_delete_batch.app_error",
+    "translation": "We encountered an error permanently deleting the batch of posts"
+  },
+  {
     "id": "store.sql_post.permanent_delete_by_channel.app_error",
     "translation": "Het kanaal kan niet verwijderd worden"
   },
@@ -5986,6 +5966,10 @@
   {
     "id": "store.sql_reaction.get_for_post.app_error",
     "translation": "Unable to get reactions for post"
+  },
+  {
+    "id": "store.sql_reaction.permanent_delete_batch.app_error",
+    "translation": "We encountered an error permanently deleting the batch of reactions"
   },
   {
     "id": "store.sql_reaction.save.begin.app_error",
@@ -6684,10 +6668,6 @@
     "translation": "Authoriseer Applicaties"
   },
   {
-    "id": "web.check_browser_compatibility.app_error",
-    "translation": "Uw huidige webbrowser word niet ondersteund. Kies een van de volgende: Google Chrome 21 of nieuwer, Internet Explorere 11 of nieuwe, FireFox 14 of nieuwer, Safari 9 of nieuwer"
-  },
-  {
     "id": "web.claim_account.team.error",
     "translation": "Kan heat team niet vinden, naam=%v, fout=%v"
   },
@@ -6730,6 +6710,34 @@
   {
     "id": "web.email_verified.title",
     "translation": "E-mail geverifieerd"
+  },
+  {
+    "id": "web.error.unsupported_browser.help1",
+    "translation": "Google Chrome 43+"
+  },
+  {
+    "id": "web.error.unsupported_browser.help2",
+    "translation": "Mozilla Firefox 52+"
+  },
+  {
+    "id": "web.error.unsupported_browser.help3",
+    "translation": "Microsoft Internet Explorer 11+"
+  },
+  {
+    "id": "web.error.unsupported_browser.help4",
+    "translation": "Microsoft Edge 40+"
+  },
+  {
+    "id": "web.error.unsupported_browser.help5",
+    "translation": "Apple Safari 9+"
+  },
+  {
+    "id": "web.error.unsupported_browser.message",
+    "translation": "Your current browser is not supported. Please upgrade to one of the following browsers:"
+  },
+  {
+    "id": "web.error.unsupported_browser.title",
+    "translation": "Unsupported Browser"
   },
   {
     "id": "web.find_team.title",
