@@ -124,7 +124,7 @@ start-docker:
 		echo starting mattermost-minio; \
 		docker run --name mattermost-minio -p 9001:9000 -e "MINIO_ACCESS_KEY=minioaccesskey" \
 		-e "MINIO_SECRET_KEY=miniosecretkey" -d minio/minio:latest server /data > /dev/null; \
-		docker exec -it mattermost-minio /bin/sh -c "mkdir /data/mattermost-test" > /dev/null; \
+		docker exec -it mattermost-minio /bin/sh -c "mkdir -p /data/mattermost-test" > /dev/null; \
 	elif [ $(shell docker ps | grep -ci mattermost-minio) -eq 0 ]; then \
 		echo restarting mattermost-minio; \
 		docker start mattermost-minio > /dev/null; \
