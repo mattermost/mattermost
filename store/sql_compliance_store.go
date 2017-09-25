@@ -264,3 +264,82 @@ func (s SqlComplianceStore) ComplianceExport(job *model.Compliance) StoreChannel
 
 	return storeChannel
 }
+
+func (s SqlComplianceStore) MessageExport(after int64, limit int64) StoreChannel {
+	storeChannel := make(StoreChannel, 1)
+
+	go func() {
+		props := map[string]interface{}{"StartTime": after, "Limit": limit}
+
+		query :=
+			`SELECT
+				Posts.Id AS PostId,
+				Posts.CreateAt AS PostCreateAt,
+				Posts.UpdateAt AS PostUpdateAt,
+				Posts.DeleteAt AS PostDeleteAt,
+				Posts.RootId AS PostRootId,
+				Posts.ParentId AS PostParentId,
+				Posts.OriginalId AS PostOriginalId,
+				Posts.Message AS PostMessage,
+				Posts.Type AS PostType,
+				Posts.Props AS PostProps,
+				Posts.Hashtags AS PostHashtags,
+				Posts.FileIds AS PostFileIds,
+
+				Channels.Id AS ChannelId,
+				Channels.CreateAt AS ChannelCreateAt,
+				Channels.UpdateAt AS ChannelUpdateAt,
+				Channels.DeleteAt AS ChannelDeleteAt,
+				Channels.DisplayName AS ChannelDisplayName,
+				Channels.Name AS ChannelName,
+				Channels.Header AS ChannelHeader,
+				Channels.Purpose AS ChannelPurpose,
+				Channels.LastPostAt AS ChannelLastPostAt,
+
+				ChannelMembers.LastViewedAt AS ChannelMemberLastViewedAt,
+				ChannelMembers.LastUpdateAt AS ChannelMemberLastUpdateAt,
+
+				Users.Id AS UserId,
+				Users.CreateAt AS UserCreateAt,
+				Users.UpdateAt AS UserUpdateAt,
+				Users.DeleteAt AS UserDeleteAt,
+				Users.Username AS UserUsername,
+				Users.Email AS UserEmail,
+				Users.Nickname AS UserNickname,
+				Users.FirstName AS UserFirstName,
+				Users.LastName AS UserLastName,
+
+				Teams.Id AS TeamId,
+				Teams.CreateAt AS TeamCreateAt,
+				Teams.UpdateAt AS TeamUpdateAt,
+				Teams.DeleteAt AS TeamDeleteAt,
+				Teams.DisplayName AS TeamDisplayName,
+				Teams.Name AS TeamName,
+				Teams.Description AS TeamDescription,
+				Teams.AllowOpenInvite AS TeamAllowOpenInvite
+			FROM
+				Posts
+				LEFT OUTER JOIN Channels ON Posts.ChannelId = Channels.Id
+				LEFT OUTER JOIN ChannelMembers ON Posts.ChannelId = ChannelMembers.ChannelId AND Posts.UserId = ChannelMembers.UserId
+				LEFT OUTER JOIN Users ON Posts.UserId = Users.Id
+				LEFT OUTER JOIN Teams ON Channels.TeamId = Teams.Id
+			WHERE
+				Posts.CreateAt > :StartTime
+			ORDER BY PostCreateAt
+			LIMIT :Limit`
+
+		var cposts []*model.MessageExport
+		result := StoreResult{}
+
+		if _, err := s.GetReplica().Select(&cposts, query, props); err != nil {
+			result.Err = model.NewAppError("SqlComplianceStore.MessageExport", "store.sql_compliance.message_export.app_error", nil, err.Error(), http.StatusInternalServerError)
+		} else {
+			result.Data = cposts
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
