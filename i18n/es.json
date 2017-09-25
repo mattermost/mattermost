@@ -2725,7 +2725,7 @@
   },
   {
     "id": "api.user.send_user_access_token.error",
-    "translation": "Error al enviar correo electrónico de token de acceso personal añadido correctamente"
+    "translation": "Error al enviar el correo electrónico de token de acceso personal añadido correctamente"
   },
   {
     "id": "api.user.send_verify_email_and_forget.failed.error",
@@ -3720,6 +3720,14 @@
     "translation": "Error al configurar el mapa de índices de Elasticsearch"
   },
   {
+    "id": "ent.elasticsearch.data_retention_delete_indexes.delete_index.error",
+    "translation": "No se pudo borrar el índice de ElasticSearch"
+  },
+  {
+    "id": "ent.elasticsearch.data_retention_delete_indexes.get_indexes.error",
+    "translation": "No se pudo obtener los índices de Elasticsearch"
+  },
+  {
     "id": "ent.elasticsearch.delete_post.error",
     "translation": "Error al eliminar el mensaje"
   },
@@ -3830,6 +3838,14 @@
   {
     "id": "ent.ldap.mattermost_user_update",
     "translation": "El usuario de Mattermost fue actualizado por el servidor AD/LDAP."
+  },
+  {
+    "id": "ent.ldap.sync.index_job_failed.error",
+    "translation": "LDAP sync worker failed due to the sync job failing"
+  },
+  {
+    "id": "ent.ldap.sync_worker.create_index_job.error",
+    "translation": "LDAP sync worker failed to create the sync job"
   },
   {
     "id": "ent.ldap.syncdone.info",
@@ -5848,6 +5864,10 @@
     "translation": "Hemos detectado un error al eliminar permanentemente el lote de los mensajes"
   },
   {
+    "id": "store.sql_post.permanent_delete_batch.app_error",
+    "translation": "Hemos detectado un error al eliminar permanentemente el lote de los mensajes"
+  },
+  {
     "id": "store.sql_post.permanent_delete_by_channel.app_error",
     "translation": "No pudimos eliminar los mensajes de canal"
   },
@@ -5878,6 +5898,10 @@
   {
     "id": "store.sql_post.update.app_error",
     "translation": "No pudimos actualizar el Mensaje"
+  },
+  {
+    "id": "store.sql_preference.cleanup_flags_batch.app_error",
+    "translation": "Hemos detectado un error al limpiar los lotes para los mensajes marcados"
   },
   {
     "id": "store.sql_preference.delete.app_error",
@@ -6546,6 +6570,18 @@
   {
     "id": "utils.diagnostic.analytics_not_found.app_error",
     "translation": "Analytics no se ha inicializado"
+  },
+  {
+    "id": "utils.file.list_directory.configured.app_error",
+    "translation": "File storage not configured properly. Please configure for either S3 or local server file storage."
+  },
+  {
+    "id": "utils.file.list_directory.local.app_error",
+    "translation": "Encountered an error listing directory from local server file storage."
+  },
+  {
+    "id": "utils.file.list_directory.s3.app_error",
+    "translation": "Encountered an error listing directory from S3."
   },
   {
     "id": "utils.file.remove_directory.configured.app_error",
