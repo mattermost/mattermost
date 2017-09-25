@@ -664,6 +664,30 @@
     "translation": "echo"
   },
   {
+    "id": "api.command_remove.permission.app_error",
+    "translation": "You do not have the appropriate permissions to remove the member."
+  },
+  {
+    "id": "api.command_remove.direct_group.app_error",
+    "translation": "You can't remove someone from a direct message channel."
+  },
+  {
+    "id": "api.command_remove.name",
+    "translation": "remove"
+  },
+  {
+    "id": "api.command_remove.hint",
+    "translation": "@[username]"
+  },
+  {
+    "id": "api.command_remove.desc",
+    "translation": "Remove a member from the channel"
+  },
+  {
+    "id": "api.command_kick.name",
+    "translation": "kick"
+  },
+  {
     "id": "api.command_expand.desc",
     "translation": "Turn off auto-collapsing of image previews"
   },
