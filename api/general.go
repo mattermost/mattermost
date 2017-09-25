@@ -15,12 +15,12 @@ import (
 	"github.com/mattermost/mattermost-server/utils"
 )
 
-func InitGeneral() {
+func (api *API) InitGeneral() {
 	l4g.Debug(utils.T("api.general.init.debug"))
 
-	BaseRoutes.General.Handle("/client_props", ApiAppHandler(getClientConfig)).Methods("GET")
-	BaseRoutes.General.Handle("/log_client", ApiAppHandler(logClient)).Methods("POST")
-	BaseRoutes.General.Handle("/ping", ApiAppHandler(ping)).Methods("GET")
+	api.BaseRoutes.General.Handle("/client_props", api.ApiAppHandler(getClientConfig)).Methods("GET")
+	api.BaseRoutes.General.Handle("/log_client", api.ApiAppHandler(logClient)).Methods("POST")
+	api.BaseRoutes.General.Handle("/ping", api.ApiAppHandler(ping)).Methods("GET")
 }
 
 func getClientConfig(c *Context, w http.ResponseWriter, r *http.Request) {

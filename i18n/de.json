@@ -593,11 +593,11 @@
   },
   {
     "id": "api.command_channel_rename.too_long.app_error",
-    "translation": "Channel name must be {{.Length}} or fewer characters"
+    "translation": "Kanalname muss {{.Length}} oder weniger Zeichen enthalten"
   },
   {
     "id": "api.command_channel_rename.too_short.app_error",
-    "translation": "Channel name must be {{.Length}} or more characters"
+    "translation": "Kanalname muss {{.Length}} oder mehr Zeichen enthalten"
   },
   {
     "id": "api.command_channel_rename.update_channel.app_error",
@@ -970,10 +970,6 @@
   {
     "id": "api.email_batching.check_pending_emails.finished_running",
     "translation": "E-Mail-Stapelverarbeitungs-Job lief. %v Benutzer haben noch ausstehende Benachrichtigungen."
-  },
-  {
-    "id": "api.email_batching.check_pending_emails.status.app_error",
-    "translation": "Konnte Status für Empfänger der gestapelten E-Mail-Benachrichtigung nicht finden"
   },
   {
     "id": "api.email_batching.render_batched_post.channel.app_error",
@@ -1402,10 +1398,6 @@
     "translation": "Es fehlt mindestens eins der Folgenden: response_type, client_id, redirect_uri"
   },
   {
-    "id": "api.oauth.complete_oauth.missing_code.app_error",
-    "translation": "Der Dienstprovider {{.service}} übermittelte keinen Autorisationscode in der Weiterleitungsadresse.\n\nFür [Google Apps](https://docs.mattermost.com/deployment/sso-google.html) stellen Sie sicher, dass Ihr Administrator die Google+ API aktiviert hat.\n\nFür [Office 365](https://docs.mattermost.com/deployment/sso-office.html) stellen Sie sicher, dass der Administrator der Microsoft Organisation die Mattermost App aktiviert hat.\n\nFür [GitLab](https://docs.mattermost.com/deployment/sso-gitlab.html) stellen Sie sicher, dass die Einrichtungsanleitung befolgt wurde.\n\nWenn Sie die oberen Informationen überprüft haben und immer noch Probleme mit der Konfiguration haben, können Sie in unserem [Troubleshooting forum](https://forum.mattermost.org/c/general/trouble-shoot) eine Nachricht hinterlassen und wir werden Ihnen gerne bei Ihrem Anliegen helfen."
-  },
-  {
     "id": "api.oauth.delete.permissions.app_error",
     "translation": "Ungültige Berechtigungen um die OAuth2 App zu entfernen"
   },
@@ -1515,15 +1507,15 @@
   },
   {
     "id": "api.plugin.upload.array.app_error",
-    "translation": "File array is empty in multipart/form request"
+    "translation": "Datei-Array ist leer in multipart/form-Anfrage"
   },
   {
     "id": "api.plugin.upload.file.app_error",
-    "translation": "Unable to open file in multipart/form request"
+    "translation": "Konnte Datei in multipart/form-Anfrage nicht öffnen"
   },
   {
     "id": "api.plugin.upload.no_file.app_error",
-    "translation": "Missing file in multipart/form request"
+    "translation": "Fehlende Datei in multipart/form-Anfrage"
   },
   {
     "id": "api.post.check_for_out_of_channel_mentions.message.multiple",
@@ -1563,7 +1555,7 @@
   },
   {
     "id": "api.post.create_post.town_square_read_only",
-    "translation": "This channel is read-only. Only members with permission can post here."
+    "translation": "Der Kanal ist nur lesbar. Nur Mitglieder mit Berechtigung können hier schreiben."
   },
   {
     "id": "api.post.create_webhook_post.creating.app_error",
@@ -1595,11 +1587,11 @@
   },
   {
     "id": "api.post.do_action.action_id.app_error",
-    "translation": "Ungültige Client-ID"
+    "translation": "Ungültige Action-ID"
   },
   {
     "id": "api.post.do_action.action_integration.app_error",
-    "translation": "Action integration error"
+    "translation": "Fehler bei Aktions-Integration"
   },
   {
     "id": "api.post.get_message_for_notification.files_sent",
@@ -2234,14 +2226,6 @@
   {
     "id": "api.templates.email_organization",
     "translation": "Versandt durch "
-  },
-  {
-    "id": "api.templates.error.link",
-    "translation": "Gehe zurück zu Mattermost"
-  },
-  {
-    "id": "api.templates.error.title",
-    "translation": "{{ .SiteName }} braucht Ihre Hilfe:"
   },
   {
     "id": "api.templates.find_teams_body.found",
@@ -2997,7 +2981,7 @@
   },
   {
     "id": "app.channel.move_channel.members_do_not_match.error",
-    "translation": "Cannot move a channel unless all its members are already members of the destination team."
+    "translation": "Kann einen Kanal nicht bewegen, bis alle Mitglieder auch Mitglieder im Zielteam sind."
   },
   {
     "id": "app.channel.post_update_channel_purpose_message.post.error",
@@ -3441,43 +3425,39 @@
   },
   {
     "id": "app.plugin.activate.app_error",
-    "translation": "Unable to activate extracted plugin. Plugin may already exist and be activated."
-  },
-  {
-    "id": "app.plugin.bad_path.app_error",
-    "translation": "Bad file path in extracted files"
+    "translation": "Kann extrahiertes Plugin nicht aktivieren. Plugin könnte schon existieren und aktiviert sein."
   },
   {
     "id": "app.plugin.deactivate.app_error",
-    "translation": "Konnte Reaktion nicht löschen"
+    "translation": "Konnte Plugin nicht deaktivieren"
   },
   {
     "id": "app.plugin.disabled.app_error",
-    "translation": "Plugins have been disabled by the system admin or the server has not been restarted since they were enabled."
+    "translation": "Plugins wurden durch den Systemadministrator deaktiviert oder der Server wurde nicht neugestartet, seitdem sie aktiviert wurden."
   },
   {
     "id": "app.plugin.extract.app_error",
-    "translation": "Encountered error extracting plugin"
+    "translation": "Es trat ein Fehler beim Extrahieren des Plugins auf"
+  },
+  {
+    "id": "app.plugin.filesystem.app_error",
+    "translation": "Encountered filesystem error"
   },
   {
     "id": "app.plugin.get_plugins.app_error",
-    "translation": "Konnte Reaktion nicht löschen"
+    "translation": "Konnte aktive Plugins nicht ermitteln"
   },
   {
     "id": "app.plugin.manifest.app_error",
-    "translation": "Unable to find manifest for extracted plugin"
+    "translation": "Konnte Manifest des extrahierten Plugins nicht abrufen"
   },
   {
     "id": "app.plugin.mvdir.app_error",
-    "translation": "Unable to move plugin from temporary directory to final destination"
-  },
-  {
-    "id": "app.plugin.no_files.app_error",
-    "translation": "No files found in the compressed folder"
+    "translation": "Konnte Plugin nicht vom temporären Verzeichnis in das Zielverzeichnis bewegen"
   },
   {
     "id": "app.plugin.remove.app_error",
-    "translation": "Konnte Reaktion nicht löschen"
+    "translation": "Konnte Plugin nicht löschen"
   },
   {
     "id": "app.user_access_token.disabled",
@@ -3988,30 +3968,6 @@
     "translation": "Konnte existierenden SAML-Benutzer nicht aktualisieren. Erlaube Login trotzdem. err=%v"
   },
   {
-    "id": "error.generic.link_message",
-    "translation": "Gehe zurück zu Mattermost"
-  },
-  {
-    "id": "error.generic.message",
-    "translation": "Es ist ein Fehler aufgetreten."
-  },
-  {
-    "id": "error.generic.title",
-    "translation": "Fehler"
-  },
-  {
-    "id": "error.not_found.link_message",
-    "translation": "Gehe zurück zu Mattermost"
-  },
-  {
-    "id": "error.not_found.message",
-    "translation": "Die Seite, die Sie versuchten zu erreichen, existiert nicht."
-  },
-  {
-    "id": "error.not_found.title",
-    "translation": "Seite nicht gefunden"
-  },
-  {
     "id": "jobs.request_cancellation.status.error",
     "translation": "Konnte Abbruch für Job, der sich nicht in einem abbrechbaren Status befindet, nicht anfordern."
   },
@@ -4289,7 +4245,7 @@
   },
   {
     "id": "model.client.writer.app_error",
-    "translation": "Unable to build multipart request"
+    "translation": "Konnte Multipart-Anfrage nicht erstellen"
   },
   {
     "id": "model.command.is_valid.create_at.app_error",
@@ -4394,6 +4350,18 @@
   {
     "id": "model.config.is_valid.cluster_email_batching.app_error",
     "translation": "E-Mail-Stapelverarbeitung lässt sich bei aktiviertem Clustering nicht aktivieren."
+  },
+  {
+    "id": "model.config.is_valid.data_retention.deletion_job_start_time.app_error",
+    "translation": "DataRetention DeletionJobStartTime setting must be set to a time in the format \"hh:mm\""
+  },
+  {
+    "id": "model.config.is_valid.data_retention.file_retention_days_too_low.app_error",
+    "translation": "DataRetention FileRetentionDays setting must be at least 1"
+  },
+  {
+    "id": "model.config.is_valid.data_retention.message_retention_days_too_low.app_error",
+    "translation": "DataRetention MessageRetentionDays setting must be at least 1"
   },
   {
     "id": "model.config.is_valid.elastic_search.aggregate_posts_after_days.app_error",
@@ -5161,7 +5129,7 @@
   },
   {
     "id": "plugin.rpcplugin.invocation.error",
-    "translation": "Error invoking plugin RPC"
+    "translation": "Fehler bei Widerrufen des Plugin-RPC"
   },
   {
     "id": "store.sql.alter_column_type.critical",
@@ -5298,6 +5266,10 @@
   {
     "id": "store.sql_audit.get.limit.app_error",
     "translation": "Die Grenze für Paging wurde überschritten"
+  },
+  {
+    "id": "store.sql_audit.permanent_delete_batch.app_error",
+    "translation": "We encountered an error permanently deleting the batch of audits"
   },
   {
     "id": "store.sql_audit.permanent_delete_by_user.app_error",
@@ -5657,7 +5629,11 @@
   },
   {
     "id": "store.sql_file_info.permanent_delete.app_error",
-    "translation": "We couldn't permanently delete the file info"
+    "translation": "Datei-Info konnte nicht permanent gelöscht werden"
+  },
+  {
+    "id": "store.sql_file_info.permanent_delete_batch.app_error",
+    "translation": "We encountered an error permanently deleting the batch of file infos"
   },
   {
     "id": "store.sql_file_info.save.app_error",
@@ -5868,6 +5844,10 @@
     "translation": "Die Kommentare des Benutzers konnten nicht gelöscht werden"
   },
   {
+    "id": "store.sql_post.permanent_delete_batch.app_error",
+    "translation": "We encountered an error permanently deleting the batch of posts"
+  },
+  {
     "id": "store.sql_post.permanent_delete_by_channel.app_error",
     "translation": "Die Nachrichten nach Kanal konnten nicht gelöscht werden"
   },
@@ -5986,6 +5966,10 @@
   {
     "id": "store.sql_reaction.get_for_post.app_error",
     "translation": "Konnte Reaktionen für Nachricht nicht abrufen"
+  },
+  {
+    "id": "store.sql_reaction.permanent_delete_batch.app_error",
+    "translation": "We encountered an error permanently deleting the batch of reactions"
   },
   {
     "id": "store.sql_reaction.save.begin.app_error",
@@ -6569,11 +6553,11 @@
   },
   {
     "id": "utils.file.remove_directory.local.app_error",
-    "translation": "Ein Fehler während des Lesens vom lokalen Server ist aufgetreten"
+    "translation": "Ein Fehler ist während des Löschens des Verzeichnisses vom lokalen Server ist aufgetreten."
   },
   {
     "id": "utils.file.remove_directory.s3.app_error",
-    "translation": "Encountered an error removing directory from S3."
+    "translation": "Fehler beim Entfernen des Verzeichnisses von S3."
   },
   {
     "id": "utils.file.remove_file.configured.app_error",
@@ -6581,11 +6565,11 @@
   },
   {
     "id": "utils.file.remove_file.local.app_error",
-    "translation": "Ein Fehler während des Lesens vom lokalen Server ist aufgetreten"
+    "translation": "Ein Fehler ist während des Löschens der Datei vom lokalen Server aufgetreten"
   },
   {
     "id": "utils.file.remove_file.s3.app_error",
-    "translation": "Encountered an error removing file from S3."
+    "translation": "Fehler beim Entfernen der Datei von S3."
   },
   {
     "id": "utils.i18n.loaded",
@@ -6684,10 +6668,6 @@
     "translation": "Applikation authorisieren"
   },
   {
-    "id": "web.check_browser_compatibility.app_error",
-    "translation": "Ihr aktueller Browser wird nicht unterstützt, bitte aktualisieren Sie zu einem der folgenden Browser: Google Chrome 21 oder höher, Internet Explorer 11 oder höher, Firefox 14 oder höher, Safari 9 oder höher"
-  },
-  {
     "id": "web.claim_account.team.error",
     "translation": "Team konnte nicht gefunden werden name=%v, err=%v"
   },
@@ -6730,6 +6710,34 @@
   {
     "id": "web.email_verified.title",
     "translation": "E-Mail-Adresse bestätigt"
+  },
+  {
+    "id": "web.error.unsupported_browser.help1",
+    "translation": "Google Chrome 43+"
+  },
+  {
+    "id": "web.error.unsupported_browser.help2",
+    "translation": "Mozilla Firefox 52+"
+  },
+  {
+    "id": "web.error.unsupported_browser.help3",
+    "translation": "Microsoft Internet Explorer 11+"
+  },
+  {
+    "id": "web.error.unsupported_browser.help4",
+    "translation": "Microsoft Edge 40+"
+  },
+  {
+    "id": "web.error.unsupported_browser.help5",
+    "translation": "Apple Safari 9+"
+  },
+  {
+    "id": "web.error.unsupported_browser.message",
+    "translation": "Your current browser is not supported. Please upgrade to one of the following browsers:"
+  },
+  {
+    "id": "web.error.unsupported_browser.title",
+    "translation": "Unsupported Browser"
   },
   {
     "id": "web.find_team.title",

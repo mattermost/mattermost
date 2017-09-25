@@ -8,7 +8,6 @@ import (
 
 	"net/http"
 
-	"github.com/mattermost/mattermost-server/einterfaces"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
 )
@@ -26,7 +25,7 @@ func (a *App) GetComplianceReports(page, perPage int) (model.Compliances, *model
 }
 
 func (a *App) SaveComplianceReport(job *model.Compliance) (*model.Compliance, *model.AppError) {
-	if !*utils.Cfg.ComplianceSettings.Enable || !utils.IsLicensed() || !*utils.License().Features.Compliance || einterfaces.GetComplianceInterface() == nil {
+	if !*utils.Cfg.ComplianceSettings.Enable || !utils.IsLicensed() || !*utils.License().Features.Compliance || a.Compliance == nil {
 		return nil, model.NewAppError("saveComplianceReport", "ent.compliance.licence_disable.app_error", nil, "", http.StatusNotImplemented)
 	}
 
@@ -36,14 +35,14 @@ func (a *App) SaveComplianceReport(job *model.Compliance) (*model.Compliance, *m
 		return nil, result.Err
 	} else {
 		job = result.Data.(*model.Compliance)
-		go einterfaces.GetComplianceInterface().RunComplianceJob(job)
+		go a.Compliance.RunComplianceJob(job)
 	}
 
 	return job, nil
 }
 
 func (a *App) GetComplianceReport(reportId string) (*model.Compliance, *model.AppError) {
-	if !*utils.Cfg.ComplianceSettings.Enable || !utils.IsLicensed() || !*utils.License().Features.Compliance || einterfaces.GetComplianceInterface() == nil {
+	if !*utils.Cfg.ComplianceSettings.Enable || !utils.IsLicensed() || !*utils.License().Features.Compliance || a.Compliance == nil {
 		return nil, model.NewAppError("downloadComplianceReport", "ent.compliance.licence_disable.app_error", nil, "", http.StatusNotImplemented)
 	}
 

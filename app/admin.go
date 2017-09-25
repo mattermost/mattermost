@@ -14,35 +14,35 @@ import (
 	"net/http"
 
 	l4g "github.com/alecthomas/log4go"
-	"github.com/mattermost/mattermost-server/einterfaces"
 	"github.com/mattermost/mattermost-server/jobs"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
+	"github.com/mattermost/mattermost-server/store/sqlstore"
 	"github.com/mattermost/mattermost-server/utils"
 )
 
-func GetLogs(page, perPage int) ([]string, *model.AppError) {
+func (a *App) GetLogs(page, perPage int) ([]string, *model.AppError) {
 
 	perPage = 10000
 
 	var lines []string
-	if einterfaces.GetClusterInterface() != nil && *utils.Cfg.ClusterSettings.Enable {
+	if a.Cluster != nil && *utils.Cfg.ClusterSettings.Enable {
 		lines = append(lines, "-----------------------------------------------------------------------------------------------------------")
 		lines = append(lines, "-----------------------------------------------------------------------------------------------------------")
-		lines = append(lines, einterfaces.GetClusterInterface().GetMyClusterInfo().Hostname)
+		lines = append(lines, a.Cluster.GetMyClusterInfo().Hostname)
 		lines = append(lines, "-----------------------------------------------------------------------------------------------------------")
 		lines = append(lines, "-----------------------------------------------------------------------------------------------------------")
 	}
 
-	melines, err := GetLogsSkipSend(page, perPage)
+	melines, err := a.GetLogsSkipSend(page, perPage)
 	if err != nil {
 		return nil, err
 	}
 
 	lines = append(lines, melines...)
 
-	if einterfaces.GetClusterInterface() != nil && *utils.Cfg.ClusterSettings.Enable {
-		clines, err := einterfaces.GetClusterInterface().GetLogs(page, perPage)
+	if a.Cluster != nil && *utils.Cfg.ClusterSettings.Enable {
+		clines, err := a.Cluster.GetLogs(page, perPage)
 		if err != nil {
 			return nil, err
 		}
@@ -53,7 +53,7 @@ func GetLogs(page, perPage int) ([]string, *model.AppError) {
 	return lines, nil
 }
 
-func GetLogsSkipSend(page, perPage int) ([]string, *model.AppError) {
+func (a *App) GetLogsSkipSend(page, perPage int) ([]string, *model.AppError) {
 	var lines []string
 
 	if utils.Cfg.LogSettings.EnableFile {
@@ -86,11 +86,11 @@ func GetLogsSkipSend(page, perPage int) ([]string, *model.AppError) {
 	return lines, nil
 }
 
-func GetClusterStatus() []*model.ClusterInfo {
+func (a *App) GetClusterStatus() []*model.ClusterInfo {
 	infos := make([]*model.ClusterInfo, 0)
 
-	if einterfaces.GetClusterInterface() != nil {
-		infos = einterfaces.GetClusterInterface().GetClusterInfos()
+	if a.Cluster != nil {
+		infos = a.Cluster.GetClusterInfos()
 	}
 
 	return infos
@@ -100,7 +100,7 @@ func (a *App) InvalidateAllCaches() *model.AppError {
 	debug.FreeOSMemory()
 	a.InvalidateAllCachesSkipSend()
 
-	if einterfaces.GetClusterInterface() != nil {
+	if a.Cluster != nil {
 
 		msg := &model.ClusterMessage{
 			Event:            model.CLUSTER_EVENT_INVALIDATE_ALL_CACHES,
@@ -108,7 +108,7 @@ func (a *App) InvalidateAllCaches() *model.AppError {
 			WaitForAllToSend: true,
 		}
 
-		einterfaces.GetClusterInterface().SendClusterMessage(msg)
+		a.Cluster.SendClusterMessage(msg)
 	}
 
 	return nil
@@ -118,14 +118,14 @@ func (a *App) InvalidateAllCachesSkipSend() {
 	l4g.Info(utils.T("api.context.invalidate_all_caches"))
 	sessionCache.Purge()
 	ClearStatusCache()
-	store.ClearChannelCaches()
-	store.ClearUserCaches()
-	store.ClearPostCaches()
-	store.ClearWebhookCaches()
+	sqlstore.ClearChannelCaches()
+	sqlstore.ClearUserCaches()
+	sqlstore.ClearPostCaches()
+	sqlstore.ClearWebhookCaches()
 	a.LoadLicense()
 }
 
-func GetConfig() *model.Config {
+func (a *App) GetConfig() *model.Config {
 	json := utils.Cfg.ToJson()
 	cfg := model.ConfigFromJson(strings.NewReader(json))
 	cfg.Sanitize()
@@ -133,7 +133,7 @@ func GetConfig() *model.Config {
 	return cfg
 }
 
-func ReloadConfig() {
+func (a *App) ReloadConfig() {
 	debug.FreeOSMemory()
 	utils.LoadConfig(utils.CfgFileName)
 
@@ -141,7 +141,7 @@ func ReloadConfig() {
 	InitEmailBatching()
 }
 
-func SaveConfig(cfg *model.Config, sendConfigChangeClusterMessage bool) *model.AppError {
+func (a *App) SaveConfig(cfg *model.Config, sendConfigChangeClusterMessage bool) *model.AppError {
 	oldCfg := utils.Cfg
 	cfg.SetDefaults()
 	utils.Desanitize(cfg)
@@ -150,7 +150,7 @@ func SaveConfig(cfg *model.Config, sendConfigChangeClusterMessage bool) *model.A
 		return err
 	}
 
-	if err := utils.ValidateLdapFilter(cfg); err != nil {
+	if err := utils.ValidateLdapFilter(cfg, a.Ldap); err != nil {
 		return err
 	}
 
@@ -163,16 +163,16 @@ func SaveConfig(cfg *model.Config, sendConfigChangeClusterMessage bool) *model.A
 	utils.LoadConfig(utils.CfgFileName)
 	utils.EnableConfigWatch()
 
-	if einterfaces.GetMetricsInterface() != nil {
+	if a.Metrics != nil {
 		if *utils.Cfg.MetricsSettings.Enable {
-			einterfaces.GetMetricsInterface().StartServer()
+			a.Metrics.StartServer()
 		} else {
-			einterfaces.GetMetricsInterface().StopServer()
+			a.Metrics.StopServer()
 		}
 	}
 
-	if einterfaces.GetClusterInterface() != nil {
-		err := einterfaces.GetClusterInterface().ConfigChanged(cfg, oldCfg, sendConfigChangeClusterMessage)
+	if a.Cluster != nil {
+		err := a.Cluster.ConfigChanged(cfg, oldCfg, sendConfigChangeClusterMessage)
 		if err != nil {
 			return err
 		}
@@ -188,7 +188,7 @@ func (a *App) RecycleDatabaseConnection() {
 	oldStore := a.Srv.Store
 
 	l4g.Warn(utils.T("api.admin.recycle_db_start.warn"))
-	a.Srv.Store = store.NewLayeredStore()
+	a.Srv.Store = store.NewLayeredStore(sqlstore.NewSqlSupplier(a.Metrics), a.Metrics, a.Cluster)
 
 	jobs.Srv.Store = a.Srv.Store
 

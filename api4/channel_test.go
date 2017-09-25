@@ -12,7 +12,7 @@ import (
 	"testing"
 
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/store"
+	"github.com/mattermost/mattermost-server/store/sqlstore"
 	"github.com/mattermost/mattermost-server/utils"
 )
 
@@ -936,7 +936,7 @@ func TestDeleteChannel(t *testing.T) {
 	// successful delete by channel admin
 	MakeUserChannelAdmin(user, publicChannel6)
 	MakeUserChannelAdmin(user, privateChannel7)
-	store.ClearChannelCaches()
+	sqlstore.ClearChannelCaches()
 
 	_, resp = Client.DeleteChannel(publicChannel6.Id)
 	CheckNoError(t, resp)
@@ -990,7 +990,7 @@ func TestDeleteChannel(t *testing.T) {
 	// // cannot delete by channel admin
 	MakeUserChannelAdmin(user, publicChannel6)
 	MakeUserChannelAdmin(user, privateChannel7)
-	store.ClearChannelCaches()
+	sqlstore.ClearChannelCaches()
 
 	_, resp = Client.DeleteChannel(publicChannel6.Id)
 	CheckForbiddenStatus(t, resp)
@@ -1032,7 +1032,7 @@ func TestDeleteChannel(t *testing.T) {
 	// cannot delete by channel admin
 	MakeUserChannelAdmin(user, publicChannel6)
 	MakeUserChannelAdmin(user, privateChannel7)
-	store.ClearChannelCaches()
+	sqlstore.ClearChannelCaches()
 
 	_, resp = Client.DeleteChannel(publicChannel6.Id)
 	CheckForbiddenStatus(t, resp)

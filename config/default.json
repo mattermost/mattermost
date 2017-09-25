@@ -75,6 +75,7 @@
         "UserStatusAwayTimeout": 300,
         "MaxChannelsPerTeam": 2000,
         "MaxNotificationsPerChannel": 1000,
+        "EnableConfirmNotificationsToChannel": true,
         "TeammateNameDisplay": "username",
         "ExperimentalTownSquareIsReadOnly": false
     },
@@ -313,7 +314,8 @@
         "PostIndexReplicas": 1,
         "PostIndexShards": 1,
         "AggregatePostsAfterDays": 365,
-        "PostsAggregatorJobStartTime": "03:00"
+        "PostsAggregatorJobStartTime": "03:00",
+        "IndexPrefix": ""
     },
     "DataRetentionSettings": {
         "EnableMessageDeletion": false,

@@ -12,17 +12,17 @@ import (
 	"github.com/mattermost/mattermost-server/utils"
 )
 
-func InitBrand() {
+func (api *API) InitBrand() {
 	l4g.Debug(utils.T("api.brand.init.debug"))
 
-	BaseRoutes.Brand.Handle("/image", ApiHandlerTrustRequester(getBrandImage)).Methods("GET")
-	BaseRoutes.Brand.Handle("/image", ApiSessionRequired(uploadBrandImage)).Methods("POST")
+	api.BaseRoutes.Brand.Handle("/image", api.ApiHandlerTrustRequester(getBrandImage)).Methods("GET")
+	api.BaseRoutes.Brand.Handle("/image", api.ApiSessionRequired(uploadBrandImage)).Methods("POST")
 }
 
 func getBrandImage(c *Context, w http.ResponseWriter, r *http.Request) {
 	// No permission check required
 
-	if img, err := app.GetBrandImage(); err != nil {
+	if img, err := c.App.GetBrandImage(); err != nil {
 		w.WriteHeader(http.StatusNotFound)
 		w.Write(nil)
 	} else {
@@ -60,7 +60,7 @@ func uploadBrandImage(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := app.SaveBrandImage(imageArray[0]); err != nil {
+	if err := c.App.SaveBrandImage(imageArray[0]); err != nil {
 		c.Err = err
 		return
 	}

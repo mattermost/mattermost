@@ -7,7 +7,6 @@ import (
 	"fmt"
 
 	"github.com/mattermost/mattermost-server/app"
-	"github.com/mattermost/mattermost-server/einterfaces"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
 	"github.com/spf13/cobra"
@@ -172,7 +171,7 @@ func userActivateCmdF(cmd *cobra.Command, args []string) error {
 }
 
 func changeUsersActiveStatus(a *app.App, userArgs []string, active bool) {
-	users := getUsersFromUserArgs(userArgs)
+	users := getUsersFromUserArgs(a, userArgs)
 	for i, user := range users {
 		err := changeUserActiveStatus(a, user, userArgs[i], active)
 
@@ -256,7 +255,7 @@ func userCreateCmdF(cmd *cobra.Command, args []string) error {
 }
 
 func userInviteCmdF(cmd *cobra.Command, args []string) error {
-	_, err := initDBCommandContextCobra(cmd)
+	a, err := initDBCommandContextCobra(cmd)
 	if err != nil {
 		return err
 	}
@@ -272,7 +271,7 @@ func userInviteCmdF(cmd *cobra.Command, args []string) error {
 		return errors.New("Invalid email")
 	}
 
-	teams := getTeamsFromTeamArgs(args[1:])
+	teams := getTeamsFromTeamArgs(a, args[1:])
 	for i, team := range teams {
 		err := inviteUser(email, team, args[i+1])
 
@@ -306,7 +305,7 @@ func resetUserPasswordCmdF(cmd *cobra.Command, args []string) error {
 		return errors.New("Expected two arguments. See help text for details.")
 	}
 
-	user := getUserFromUserArg(args[0])
+	user := getUserFromUserArg(a, args[0])
 	if user == nil {
 		return errors.New("Unable to find user '" + args[0] + "'")
 	}
@@ -320,7 +319,7 @@ func resetUserPasswordCmdF(cmd *cobra.Command, args []string) error {
 }
 
 func resetUserMfaCmdF(cmd *cobra.Command, args []string) error {
-	_, err := initDBCommandContextCobra(cmd)
+	a, err := initDBCommandContextCobra(cmd)
 	if err != nil {
 		return err
 	}
@@ -329,14 +328,14 @@ func resetUserMfaCmdF(cmd *cobra.Command, args []string) error {
 		return errors.New("Expected at least one argument. See help text for details.")
 	}
 
-	users := getUsersFromUserArgs(args)
+	users := getUsersFromUserArgs(a, args)
 
 	for i, user := range users {
 		if user == nil {
 			return errors.New("Unable to find user '" + args[i] + "'")
 		}
 
-		if err := app.DeactivateMfa(user.Id); err != nil {
+		if err := a.DeactivateMfa(user.Id); err != nil {
 			return err
 		}
 	}
@@ -370,7 +369,7 @@ func deleteUserCmdF(cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	users := getUsersFromUserArgs(args)
+	users := getUsersFromUserArgs(a, args)
 
 	for i, user := range users {
 		if user == nil {
@@ -420,7 +419,7 @@ func deleteAllUsersCommandF(cmd *cobra.Command, args []string) error {
 }
 
 func migrateAuthCmdF(cmd *cobra.Command, args []string) error {
-	_, err := initDBCommandContextCobra(cmd)
+	a, err := initDBCommandContextCobra(cmd)
 	if err != nil {
 		return err
 	}
@@ -452,7 +451,7 @@ func migrateAuthCmdF(cmd *cobra.Command, args []string) error {
 
 	forceFlag, _ := cmd.Flags().GetBool("force")
 
-	if migrate := einterfaces.GetAccountMigrationInterface(); migrate != nil {
+	if migrate := a.AccountMigration; migrate != nil {
 		if err := migrate.MigrateToLdap(fromAuth, matchField, forceFlag); err != nil {
 			return errors.New("Error while migrating users: " + err.Error())
 		}
@@ -473,7 +472,7 @@ func verifyUserCmdF(cmd *cobra.Command, args []string) error {
 		return errors.New("Expected at least one argument. See help text for details.")
 	}
 
-	users := getUsersFromUserArgs(args)
+	users := getUsersFromUserArgs(a, args)
 
 	for i, user := range users {
 		if user == nil {
@@ -489,7 +488,7 @@ func verifyUserCmdF(cmd *cobra.Command, args []string) error {
 }
 
 func searchUserCmdF(cmd *cobra.Command, args []string) error {
-	_, err := initDBCommandContextCobra(cmd)
+	a, err := initDBCommandContextCobra(cmd)
 	if err != nil {
 		return err
 	}
@@ -498,7 +497,7 @@ func searchUserCmdF(cmd *cobra.Command, args []string) error {
 		return errors.New("Expected at least one argument. See help text for details.")
 	}
 
-	users := getUsersFromUserArgs(args)
+	users := getUsersFromUserArgs(a, args)
 
 	for i, user := range users {
 		if i > 0 {

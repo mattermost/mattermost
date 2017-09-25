@@ -6,7 +6,6 @@ package app
 import (
 	"net/http"
 
-	"github.com/mattermost/mattermost-server/einterfaces"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
 
@@ -30,7 +29,7 @@ func (a *App) CreateSession(session *model.Session) (*model.Session, *model.AppE
 }
 
 func (a *App) GetSession(token string) (*model.Session, *model.AppError) {
-	metrics := einterfaces.GetMetricsInterface()
+	metrics := a.Metrics
 
 	var session *model.Session
 	if ts, ok := sessionCache.Get(token); ok {
@@ -102,22 +101,22 @@ func (a *App) RevokeAllSessions(userId string) *model.AppError {
 		}
 	}
 
-	ClearSessionCacheForUser(userId)
+	a.ClearSessionCacheForUser(userId)
 
 	return nil
 }
 
-func ClearSessionCacheForUser(userId string) {
+func (a *App) ClearSessionCacheForUser(userId string) {
 
 	ClearSessionCacheForUserSkipClusterSend(userId)
 
-	if einterfaces.GetClusterInterface() != nil {
+	if a.Cluster != nil {
 		msg := &model.ClusterMessage{
 			Event:    model.CLUSTER_EVENT_CLEAR_SESSION_CACHE_FOR_USER,
 			SendType: model.CLUSTER_SEND_BEST_EFFORT,
 			Data:     userId,
 		}
-		einterfaces.GetClusterInterface().SendClusterMessage(msg)
+		a.Cluster.SendClusterMessage(msg)
 	}
 }
 
@@ -185,7 +184,7 @@ func (a *App) RevokeSession(session *model.Session) *model.AppError {
 	}
 
 	RevokeWebrtcToken(session.Id)
-	ClearSessionCacheForUser(session.UserId)
+	a.ClearSessionCacheForUser(session.UserId)
 
 	return nil
 }

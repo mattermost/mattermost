@@ -198,19 +198,12 @@ func (o *Post) PreSave() {
 	}
 
 	o.UpdateAt = o.CreateAt
+	o.PreCommit()
+}
 
+func (o *Post) PreCommit() {
 	if o.Props == nil {
 		o.Props = make(map[string]interface{})
-	}
-
-	if attachments, ok := o.Props["attachments"].([]*SlackAttachment); ok {
-		for _, attachment := range attachments {
-			for _, action := range attachment.Actions {
-				if action.Id == "" {
-					action.Id = NewId()
-				}
-			}
-		}
 	}
 
 	if o.Filenames == nil {
@@ -220,6 +213,8 @@ func (o *Post) PreSave() {
 	if o.FileIds == nil {
 		o.FileIds = []string{}
 	}
+
+	o.GenerateActionIds()
 }
 
 func (o *Post) MakeNonNil() {
@@ -329,4 +324,19 @@ func (o *Post) GetAction(id string) *PostAction {
 		}
 	}
 	return nil
+}
+
+func (o *Post) GenerateActionIds() {
+	if o.Props["attachments"] != nil {
+		o.Props["attachments"] = o.Attachments()
+	}
+	if attachments, ok := o.Props["attachments"].([]*SlackAttachment); ok {
+		for _, attachment := range attachments {
+			for _, action := range attachment.Actions {
+				if action.Id == "" {
+					action.Id = NewId()
+				}
+			}
+		}
+	}
 }

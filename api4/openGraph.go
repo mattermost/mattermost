@@ -16,10 +16,10 @@ const OPEN_GRAPH_METADATA_CACHE_SIZE = 10000
 
 var openGraphDataCache = utils.NewLru(OPEN_GRAPH_METADATA_CACHE_SIZE)
 
-func InitOpenGraph() {
+func (api *API) InitOpenGraph() {
 	l4g.Debug(utils.T("api.opengraph.init.debug"))
 
-	BaseRoutes.OpenGraph.Handle("", ApiSessionRequired(getOpenGraphMetadata)).Methods("POST")
+	api.BaseRoutes.OpenGraph.Handle("", api.ApiSessionRequired(getOpenGraphMetadata)).Methods("POST")
 }
 
 func getOpenGraphMetadata(c *Context, w http.ResponseWriter, r *http.Request) {

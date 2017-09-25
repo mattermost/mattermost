@@ -13,24 +13,24 @@ import (
 	"github.com/mattermost/mattermost-server/utils"
 )
 
-func InitSaml() {
+func (api *API) InitSaml() {
 	l4g.Debug(utils.T("api.saml.init.debug"))
 
-	BaseRoutes.SAML.Handle("/metadata", ApiHandler(getSamlMetadata)).Methods("GET")
+	api.BaseRoutes.SAML.Handle("/metadata", api.ApiHandler(getSamlMetadata)).Methods("GET")
 
-	BaseRoutes.SAML.Handle("/certificate/public", ApiSessionRequired(addSamlPublicCertificate)).Methods("POST")
-	BaseRoutes.SAML.Handle("/certificate/private", ApiSessionRequired(addSamlPrivateCertificate)).Methods("POST")
-	BaseRoutes.SAML.Handle("/certificate/idp", ApiSessionRequired(addSamlIdpCertificate)).Methods("POST")
+	api.BaseRoutes.SAML.Handle("/certificate/public", api.ApiSessionRequired(addSamlPublicCertificate)).Methods("POST")
+	api.BaseRoutes.SAML.Handle("/certificate/private", api.ApiSessionRequired(addSamlPrivateCertificate)).Methods("POST")
+	api.BaseRoutes.SAML.Handle("/certificate/idp", api.ApiSessionRequired(addSamlIdpCertificate)).Methods("POST")
 
-	BaseRoutes.SAML.Handle("/certificate/public", ApiSessionRequired(removeSamlPublicCertificate)).Methods("DELETE")
-	BaseRoutes.SAML.Handle("/certificate/private", ApiSessionRequired(removeSamlPrivateCertificate)).Methods("DELETE")
-	BaseRoutes.SAML.Handle("/certificate/idp", ApiSessionRequired(removeSamlIdpCertificate)).Methods("DELETE")
+	api.BaseRoutes.SAML.Handle("/certificate/public", api.ApiSessionRequired(removeSamlPublicCertificate)).Methods("DELETE")
+	api.BaseRoutes.SAML.Handle("/certificate/private", api.ApiSessionRequired(removeSamlPrivateCertificate)).Methods("DELETE")
+	api.BaseRoutes.SAML.Handle("/certificate/idp", api.ApiSessionRequired(removeSamlIdpCertificate)).Methods("DELETE")
 
-	BaseRoutes.SAML.Handle("/certificate/status", ApiSessionRequired(getSamlCertificateStatus)).Methods("GET")
+	api.BaseRoutes.SAML.Handle("/certificate/status", api.ApiSessionRequired(getSamlCertificateStatus)).Methods("GET")
 }
 
 func getSamlMetadata(c *Context, w http.ResponseWriter, r *http.Request) {
-	metadata, err := app.GetSamlMetadata()
+	metadata, err := c.App.GetSamlMetadata()
 	if err != nil {
 		c.Err = err
 		return

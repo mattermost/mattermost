@@ -15,7 +15,6 @@ import (
 	goi18n "github.com/nicksnyder/go-i18n/i18n"
 
 	"github.com/mattermost/mattermost-server/app"
-	"github.com/mattermost/mattermost-server/einterfaces"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
 )
@@ -36,59 +35,60 @@ type Context struct {
 	isSystemAdmin bool
 }
 
-func ApiAppHandler(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
-	return &handler{h, false, false, true, false, false, false, false}
+func (api *API) ApiAppHandler(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
+	return &handler{api.App, h, false, false, true, false, false, false, false}
 }
 
-func AppHandler(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
-	return &handler{h, false, false, false, false, false, false, false}
+func (api *API) AppHandler(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
+	return &handler{api.App, h, false, false, false, false, false, false, false}
 }
 
-func AppHandlerIndependent(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
-	return &handler{h, false, false, false, false, true, false, false}
+func (api *API) AppHandlerIndependent(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
+	return &handler{api.App, h, false, false, false, false, true, false, false}
 }
 
-func ApiUserRequired(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
-	return &handler{h, true, false, true, false, false, false, true}
+func (api *API) ApiUserRequired(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
+	return &handler{api.App, h, true, false, true, false, false, false, true}
 }
 
-func ApiUserRequiredActivity(h func(*Context, http.ResponseWriter, *http.Request), isUserActivity bool) http.Handler {
-	return &handler{h, true, false, true, isUserActivity, false, false, true}
+func (api *API) ApiUserRequiredActivity(h func(*Context, http.ResponseWriter, *http.Request), isUserActivity bool) http.Handler {
+	return &handler{api.App, h, true, false, true, isUserActivity, false, false, true}
 }
 
-func ApiUserRequiredMfa(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
-	return &handler{h, true, false, true, false, false, false, false}
+func (api *API) ApiUserRequiredMfa(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
+	return &handler{api.App, h, true, false, true, false, false, false, false}
 }
 
-func UserRequired(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
-	return &handler{h, true, false, false, false, false, false, true}
+func (api *API) UserRequired(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
+	return &handler{api.App, h, true, false, false, false, false, false, true}
 }
 
-func AppHandlerTrustRequester(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
-	return &handler{h, false, false, false, false, false, true, false}
+func (api *API) AppHandlerTrustRequester(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
+	return &handler{api.App, h, false, false, false, false, false, true, false}
 }
 
-func ApiAdminSystemRequired(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
-	return &handler{h, true, true, true, false, false, false, true}
+func (api *API) ApiAdminSystemRequired(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
+	return &handler{api.App, h, true, true, true, false, false, false, true}
 }
 
-func ApiAdminSystemRequiredTrustRequester(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
-	return &handler{h, true, true, true, false, false, true, true}
+func (api *API) ApiAdminSystemRequiredTrustRequester(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
+	return &handler{api.App, h, true, true, true, false, false, true, true}
 }
 
-func ApiAppHandlerTrustRequester(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
-	return &handler{h, false, false, true, false, false, true, false}
+func (api *API) ApiAppHandlerTrustRequester(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
+	return &handler{api.App, h, false, false, true, false, false, true, false}
 }
 
-func ApiUserRequiredTrustRequester(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
-	return &handler{h, true, false, true, false, false, true, true}
+func (api *API) ApiUserRequiredTrustRequester(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
+	return &handler{api.App, h, true, false, true, false, false, true, true}
 }
 
-func ApiAppHandlerTrustRequesterIndependent(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
-	return &handler{h, false, false, true, false, true, true, false}
+func (api *API) ApiAppHandlerTrustRequesterIndependent(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
+	return &handler{api.App, h, false, false, true, false, true, true, false}
 }
 
 type handler struct {
+	app                *app.App
 	handleFunc         func(*Context, http.ResponseWriter, *http.Request)
 	requireUser        bool
 	requireSystemAdmin bool
@@ -103,16 +103,16 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	now := time.Now()
 	l4g.Debug("%v", r.URL.Path)
 
-	if metrics := einterfaces.GetMetricsInterface(); metrics != nil && h.isApi {
-		metrics.IncrementHttpRequest()
-	}
-
 	c := &Context{}
-	c.App = app.Global()
+	c.App = h.app
 	c.T, c.Locale = utils.GetTranslationsAndLocale(w, r)
 	c.RequestId = model.NewId()
 	c.IpAddress = utils.GetIpAddress(r)
 	c.TeamId = mux.Vars(r)["team_id"]
+
+	if metrics := c.App.Metrics; metrics != nil && h.isApi {
+		metrics.IncrementHttpRequest()
+	}
 
 	token := ""
 	isTokenFromQueryString := false
@@ -167,7 +167,7 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if len(token) != 0 {
-		session, err := app.Global().GetSession(token)
+		session, err := c.App.GetSession(token)
 
 		if err != nil {
 			l4g.Error(utils.T("api.context.invalid_session.error"), err.Error())
@@ -208,8 +208,8 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if c.Err == nil && h.isUserActivity && token != "" && len(c.Session.UserId) > 0 {
-		app.Global().SetStatusOnline(c.Session.UserId, c.Session.Id, false)
-		app.Global().UpdateLastActivityAtIfNeeded(c.Session)
+		c.App.SetStatusOnline(c.Session.UserId, c.Session.Id, false)
+		c.App.UpdateLastActivityAtIfNeeded(c.Session)
 	}
 
 	if c.Err == nil && (h.requireUser || h.requireSystemAdmin) {
@@ -237,8 +237,8 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(c.Err.StatusCode)
 			w.Write([]byte(c.Err.ToJson()))
 
-			if einterfaces.GetMetricsInterface() != nil {
-				einterfaces.GetMetricsInterface().IncrementHttpError()
+			if c.App.Metrics != nil {
+				c.App.Metrics.IncrementHttpError()
 			}
 		} else {
 			if c.Err.StatusCode == http.StatusUnauthorized {
@@ -250,17 +250,17 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	}
 
-	if h.isApi && einterfaces.GetMetricsInterface() != nil {
+	if h.isApi && c.App.Metrics != nil {
 		if r.URL.Path != model.API_URL_SUFFIX_V3+"/users/websocket" {
 			elapsed := float64(time.Since(now)) / float64(time.Second)
-			einterfaces.GetMetricsInterface().ObserveHttpRequestDuration(elapsed)
+			c.App.Metrics.ObserveHttpRequestDuration(elapsed)
 		}
 	}
 }
 
 func (c *Context) LogAudit(extraInfo string) {
 	audit := &model.Audit{UserId: c.Session.UserId, IpAddress: c.IpAddress, Action: c.Path, ExtraInfo: extraInfo, SessionId: c.Session.Id}
-	if r := <-app.Global().Srv.Store.Audit().Save(audit); r.Err != nil {
+	if r := <-c.App.Srv.Store.Audit().Save(audit); r.Err != nil {
 		c.LogError(r.Err)
 	}
 }
@@ -272,7 +272,7 @@ func (c *Context) LogAuditWithUserId(userId, extraInfo string) {
 	}
 
 	audit := &model.Audit{UserId: userId, IpAddress: c.IpAddress, Action: c.Path, ExtraInfo: extraInfo, SessionId: c.Session.Id}
-	if r := <-app.Global().Srv.Store.Audit().Save(audit); r.Err != nil {
+	if r := <-c.App.Srv.Store.Audit().Save(audit); r.Err != nil {
 		c.LogError(r.Err)
 	}
 }
@@ -316,7 +316,7 @@ func (c *Context) MfaRequired() {
 		return
 	}
 
-	if result := <-app.Global().Srv.Store.User().Get(c.Session.UserId); result.Err != nil {
+	if result := <-c.App.Srv.Store.User().Get(c.Session.UserId); result.Err != nil {
 		c.Err = model.NewAppError("", "api.context.session_expired.app_error", nil, "MfaRequired", http.StatusUnauthorized)
 		return
 	} else {
@@ -393,7 +393,7 @@ func (c *Context) setTeamURL(url string, valid bool) {
 }
 
 func (c *Context) SetTeamURLFromSession() {
-	if result := <-app.Global().Srv.Store.Team().Get(c.TeamId); result.Err == nil {
+	if result := <-c.App.Srv.Store.Team().Get(c.TeamId); result.Err == nil {
 		c.setTeamURL(c.GetSiteURLHeader()+"/"+result.Data.(*model.Team).Name, true)
 	}
 }
@@ -425,6 +425,26 @@ func (c *Context) GetCurrentTeamMember() *model.TeamMember {
 	return c.Session.GetTeamByTeamId(c.TeamId)
 }
 
+func (c *Context) HandleEtag(etag string, routeName string, w http.ResponseWriter, r *http.Request) bool {
+	metrics := c.App.Metrics
+	if et := r.Header.Get(model.HEADER_ETAG_CLIENT); len(etag) > 0 {
+		if et == etag {
+			w.Header().Set(model.HEADER_ETAG_SERVER, etag)
+			w.WriteHeader(http.StatusNotModified)
+			if metrics != nil {
+				metrics.IncrementEtagHitCounter(routeName)
+			}
+			return true
+		}
+	}
+
+	if metrics != nil {
+		metrics.IncrementEtagMissCounter(routeName)
+	}
+
+	return false
+}
+
 func IsApiCall(r *http.Request) bool {
 	return strings.Index(r.URL.Path, "/api/") == 0
 }
@@ -447,7 +467,7 @@ func Handle404(w http.ResponseWriter, r *http.Request) {
 func (c *Context) CheckTeamId() {
 	if c.TeamId != "" && c.Session.GetTeamByTeamId(c.TeamId) == nil {
 		if app.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
-			if result := <-app.Global().Srv.Store.Team().Get(c.TeamId); result.Err != nil {
+			if result := <-c.App.Srv.Store.Team().Get(c.TeamId); result.Err != nil {
 				c.Err = result.Err
 				c.Err.StatusCode = http.StatusBadRequest
 				return

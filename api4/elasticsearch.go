@@ -12,11 +12,11 @@ import (
 	"github.com/mattermost/mattermost-server/utils"
 )
 
-func InitElasticsearch() {
+func (api *API) InitElasticsearch() {
 	l4g.Debug(utils.T("api.elasticsearch.init.debug"))
 
-	BaseRoutes.Elasticsearch.Handle("/test", ApiSessionRequired(testElasticsearch)).Methods("POST")
-	BaseRoutes.Elasticsearch.Handle("/purge_indexes", ApiSessionRequired(purgeElasticsearchIndexes)).Methods("POST")
+	api.BaseRoutes.Elasticsearch.Handle("/test", api.ApiSessionRequired(testElasticsearch)).Methods("POST")
+	api.BaseRoutes.Elasticsearch.Handle("/purge_indexes", api.ApiSessionRequired(purgeElasticsearchIndexes)).Methods("POST")
 }
 
 func testElasticsearch(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -30,7 +30,7 @@ func testElasticsearch(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := app.TestElasticsearch(cfg); err != nil {
+	if err := c.App.TestElasticsearch(cfg); err != nil {
 		c.Err = err
 		return
 	}
@@ -44,7 +44,7 @@ func purgeElasticsearchIndexes(c *Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	if err := app.PurgeElasticsearchIndexes(); err != nil {
+	if err := c.App.PurgeElasticsearchIndexes(); err != nil {
 		c.Err = err
 		return
 	}

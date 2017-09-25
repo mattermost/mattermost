@@ -10,6 +10,8 @@ import (
 )
 
 func TestCache(t *testing.T) {
+	th := Setup().InitBasic()
+
 	session := &model.Session{
 		Id:     model.NewId(),
 		Token:  model.NewId(),
@@ -23,7 +25,7 @@ func TestCache(t *testing.T) {
 		t.Fatal("should have items")
 	}
 
-	ClearSessionCacheForUser(session.UserId)
+	th.App.ClearSessionCacheForUser(session.UserId)
 
 	rkeys := sessionCache.Keys()
 	if len(rkeys) != len(keys)-1 {

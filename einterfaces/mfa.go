@@ -13,13 +13,3 @@ type MfaInterface interface {
 	Deactivate(userId string) *model.AppError
 	ValidateToken(secret, token string) (bool, *model.AppError)
 }
-
-var theMfaInterface MfaInterface
-
-func RegisterMfaInterface(newInterface MfaInterface) {
-	theMfaInterface = newInterface
-}
-
-func GetMfaInterface() MfaInterface {
-	return theMfaInterface
-}

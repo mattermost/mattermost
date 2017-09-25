@@ -125,11 +125,11 @@
   },
   {
     "id": "api.admin.upload_brand_image.storage.app_error",
-    "translation": "No se pudo subir la imagen. El almacenamiento de imagenes no está configurado."
+    "translation": "No se pudo cargar la imagen. El almacenamiento de imagenes no está configurado."
   },
   {
     "id": "api.admin.upload_brand_image.too_large.app_error",
-    "translation": "No se pudo subir el archivo. El archivo es muy grande."
+    "translation": "No se pudo cargar el archivo. El archivo es muy grande."
   },
   {
     "id": "api.api.init.parsing_templates.debug",
@@ -972,10 +972,6 @@
     "translation": "El trabajo de correos electrónicos por lotes se ejecutó. %v / los usuario(s) todavía tienen notificaciones pendientes."
   },
   {
-    "id": "api.email_batching.check_pending_emails.status.app_error",
-    "translation": "No se puede encontrar el estado del recipiente para la notificación de correos electrónicos por lotes"
-  },
-  {
     "id": "api.email_batching.render_batched_post.channel.app_error",
     "translation": "No se puede encontrar el canal del mensaje para la notificación de correos electrónicos por lote"
   },
@@ -1159,11 +1155,11 @@
   },
   {
     "id": "api.file.handle_images_forget.upload_preview.error",
-    "translation": "Error al subir la vista previa ruta=%v err=%v"
+    "translation": "Error al cargar la vista previa ruta=%v err=%v"
   },
   {
     "id": "api.file.handle_images_forget.upload_thumb.error",
-    "translation": "Error al subir la miniatura ruta=%v err=%v"
+    "translation": "Error al cargar la miniatura ruta=%v err=%v"
   },
   {
     "id": "api.file.init.debug",
@@ -1255,19 +1251,19 @@
   },
   {
     "id": "api.file.upload_file.bad_parse.app_error",
-    "translation": "No se puedo subir el archivo. El encabezado no puede ser analizado."
+    "translation": "No se puedo cargar el archivo. El encabezado no puede ser analizado."
   },
   {
     "id": "api.file.upload_file.large_image.app_error",
-    "translation": "No se pudo subir el archivo que supera las dimensiones máximas: {{.Filename}}"
+    "translation": "No se pudo cargar el archivo que supera las dimensiones máximas: {{.Filename}}"
   },
   {
     "id": "api.file.upload_file.storage.app_error",
-    "translation": "No se puede subir el archivo. El almacenamiento de imágenes no está configurado."
+    "translation": "No se puede cargar el archivo. El almacenamiento de imágenes no está configurado."
   },
   {
     "id": "api.file.upload_file.too_large.app_error",
-    "translation": "No se pudo subir el archivo. El archivo es demasiado grande."
+    "translation": "No se pudo cargar el archivo. El archivo es demasiado grande."
   },
   {
     "id": "api.file.write_file.configured.app_error",
@@ -1400,10 +1396,6 @@
   {
     "id": "api.oauth.authorize_oauth.missing.app_error",
     "translation": "Falta uno o más parametros: response_type, client_id, o redirect_uri"
-  },
-  {
-    "id": "api.oauth.complete_oauth.missing_code.app_error",
-    "translation": "El proveedor de servicios {{.servicio}} no proporcionó un código de autorización en la URL de redirección.\n\nPara [Google Apps](https://docs.mattermost.com/deployment/sso-google.html) asegúrate de que el administrador ha habilitado Google+ API.\n\nPara [Office 365](https://docs.mattermost.com/deployment/sso-office.html) asegúrate de que el administrador de tu organización en Microsoft ha habilitado la aplicación de Mattermost.\n\nPara [GitLab](https://docs.mattermost.com/deployment/sso-gitlab.html) por favor, asegúrate de haber seguido las instrucciones de instalación.\n\nSi has revisado lo anterior, y sigue teniendo problemas con la configuración, puedes publicar en nuestro foro de [Solución de problemas](https://forum.mattermost.org/c/general/trouble-shoot), donde estaremos encantados de ayudar con problemas que ocurran durante la instalación."
   },
   {
     "id": "api.oauth.delete.permissions.app_error",
@@ -1925,7 +1917,7 @@
   },
   {
     "id": "api.slackimport.slack_add_posts.upload_file_upload_failed.warn",
-    "translation": "Slack Import: Ocurrió un error al subir el archivo {{.FileId}}: {{.Error}}."
+    "translation": "Slack Import: Ocurrió un error al cargar el archivo {{.FileId}}: {{.Error}}."
   },
   {
     "id": "api.slackimport.slack_add_posts.user_no_exists.debug",
@@ -2234,14 +2226,6 @@
   {
     "id": "api.templates.email_organization",
     "translation": "Enviado por "
-  },
-  {
-    "id": "api.templates.error.link",
-    "translation": "Volver al sitio del equipo"
-  },
-  {
-    "id": "api.templates.error.title",
-    "translation": "Necesitamos de tu ayuda en {{ .SiteName }}:"
   },
   {
     "id": "api.templates.find_teams_body.found",
@@ -2841,15 +2825,15 @@
   },
   {
     "id": "api.user.upload_profile_user.storage.app_error",
-    "translation": "No se puede subir el archivo. El almacenamiento de imágenes no está configurado."
+    "translation": "No se puede cargar el archivo. El almacenamiento de imágenes no está configurado."
   },
   {
     "id": "api.user.upload_profile_user.too_large.app_error",
-    "translation": "No se pudo actualizar la imagen del perfil. El archivo es muy grande."
+    "translation": "No se pudo cargar la imagen del perfil. El archivo es muy grande."
   },
   {
     "id": "api.user.upload_profile_user.upload_profile.app_error",
-    "translation": "No se pudo subir la imagen del perfil"
+    "translation": "No se pudo cargar la imagen del perfil"
   },
   {
     "id": "api.user.verify_email.bad_link.app_error",
@@ -2997,7 +2981,7 @@
   },
   {
     "id": "app.channel.move_channel.members_do_not_match.error",
-    "translation": "Cannot move a channel unless all its members are already members of the destination team."
+    "translation": "No se puede mover un canal a menos que todos sus miembros ya sean miembros del equipo del destino."
   },
   {
     "id": "app.channel.post_update_channel_purpose_message.post.error",
@@ -3444,20 +3428,20 @@
     "translation": "No se puede activar el plugin extraído. Puede que el plugin ya exista y esté activo."
   },
   {
-    "id": "app.plugin.bad_path.app_error",
-    "translation": "Mala ruta de archivo en archivos extraídos"
-  },
-  {
     "id": "app.plugin.deactivate.app_error",
     "translation": "No puede desactivar el plugin"
   },
   {
     "id": "app.plugin.disabled.app_error",
-    "translation": "Plugins have been disabled by the system admin or the server has not been restarted since they were enabled."
+    "translation": "Plugins han sido deshabilitados por el administrador del sistema o el servidor no se ha reiniciado desde que fueron habilitados."
   },
   {
     "id": "app.plugin.extract.app_error",
     "translation": "Se encontró un error al extraer el plugin"
+  },
+  {
+    "id": "app.plugin.filesystem.app_error",
+    "translation": "Error encontrado en el sistema de archivos"
   },
   {
     "id": "app.plugin.get_plugins.app_error",
@@ -3470,10 +3454,6 @@
   {
     "id": "app.plugin.mvdir.app_error",
     "translation": "No se puede mover el plugin desde el directorio temporal a destino final"
-  },
-  {
-    "id": "app.plugin.no_files.app_error",
-    "translation": "No se encontraron archivos en la carpeta comprimida"
   },
   {
     "id": "app.plugin.remove.app_error",
@@ -3988,30 +3968,6 @@
     "translation": "No se puede actualizar el usuario SAML existente. Se Permite el inicio de sesión de todos modos. err=%v"
   },
   {
-    "id": "error.generic.link_message",
-    "translation": "Volver a Mattermost"
-  },
-  {
-    "id": "error.generic.message",
-    "translation": "Ha ocurrido un error."
-  },
-  {
-    "id": "error.generic.title",
-    "translation": "Error"
-  },
-  {
-    "id": "error.not_found.link_message",
-    "translation": "Volver a Mattermost"
-  },
-  {
-    "id": "error.not_found.message",
-    "translation": "La página que estás intentando acceder no existe."
-  },
-  {
-    "id": "error.not_found.title",
-    "translation": "Página no encontrada"
-  },
-  {
     "id": "jobs.request_cancellation.status.error",
     "translation": "No se puede solicitar la cancelación de un trabajo que no está en un estado cancelable."
   },
@@ -4396,6 +4352,18 @@
     "translation": "No se puede habilitar el correo electrónico por lotes cuando la agrupación de servidores está habilitada"
   },
   {
+    "id": "model.config.is_valid.data_retention.deletion_job_start_time.app_error",
+    "translation": "Retención de datos el valor de DeletionJobStartTime debe establecer un tiempo en el formato \"hh:mm\""
+  },
+  {
+    "id": "model.config.is_valid.data_retention.file_retention_days_too_low.app_error",
+    "translation": "Retención de datos el ajuste de FileRetentionDays debe ser de al menos 1"
+  },
+  {
+    "id": "model.config.is_valid.data_retention.message_retention_days_too_low.app_error",
+    "translation": "Retención de datos el ajuste de MessageRetentionDays debe ser de al menos 1"
+  },
+  {
     "id": "model.config.is_valid.elastic_search.aggregate_posts_after_days.app_error",
     "translation": "El valor AggregatePostsAfterDays de Elasticsearch debe ser un número mayor que o igual a 1"
   },
@@ -4597,7 +4565,7 @@
   },
   {
     "id": "model.config.is_valid.saml_idp_cert.app_error",
-    "translation": "Falta el Certificado Público del Proveedor de Identidad. ¿Te olvideste de subirlo?"
+    "translation": "Falta el Certificado Público del Proveedor de Identidad. ¿Olvidaste cargarlo?"
   },
   {
     "id": "model.config.is_valid.saml_idp_descriptor_url.app_error",
@@ -4609,11 +4577,11 @@
   },
   {
     "id": "model.config.is_valid.saml_private_key.app_error",
-    "translation": "Falta la Llave Privada del Proveedor de Servicios. ¿Te olvideste de subirla?"
+    "translation": "Falta la Llave Privada del Proveedor de Servicios. ¿Olvidaste cargarla?"
   },
   {
     "id": "model.config.is_valid.saml_public_cert.app_error",
-    "translation": "Falta el Certificado Público del Proveedor de Servicio. ¿Te olvideste de subirlo?"
+    "translation": "Falta el Certificado Público del Proveedor de Servicio. ¿Olvidaste cargarlo?"
   },
   {
     "id": "model.config.is_valid.saml_username_attribute.app_error",
@@ -5300,6 +5268,10 @@
     "translation": "Límite de paginación excedido"
   },
   {
+    "id": "store.sql_audit.permanent_delete_batch.app_error",
+    "translation": "Hemos detectado un error al eliminar permanentemente el lote de auditorías"
+  },
+  {
     "id": "store.sql_audit.permanent_delete_by_user.app_error",
     "translation": "Encontramos un error al eliminar los audits"
   },
@@ -5660,6 +5632,10 @@
     "translation": "No pudimos eliminar permanentemente la información del archivo"
   },
   {
+    "id": "store.sql_file_info.permanent_delete_batch.app_error",
+    "translation": "Hemos detectado un error al eliminar permanentemente el lote de información archivos"
+  },
+  {
     "id": "store.sql_file_info.save.app_error",
     "translation": "No pudimos guardar la información del archivo"
   },
@@ -5868,6 +5844,10 @@
     "translation": "No pudimos eliminar los comentarios para el usuario"
   },
   {
+    "id": "store.sql_post.permanent_delete_batch.app_error",
+    "translation": "Hemos detectado un error al eliminar permanentemente el lote de los mensajes"
+  },
+  {
     "id": "store.sql_post.permanent_delete_by_channel.app_error",
     "translation": "No pudimos eliminar los mensajes de canal"
   },
@@ -5986,6 +5966,10 @@
   {
     "id": "store.sql_reaction.get_for_post.app_error",
     "translation": "No se puede obtener las reacciones del mensaje"
+  },
+  {
+    "id": "store.sql_reaction.permanent_delete_batch.app_error",
+    "translation": "Hemos detectado un error al eliminar permanentemente el lote de reacciones"
   },
   {
     "id": "store.sql_reaction.save.begin.app_error",
@@ -6684,10 +6668,6 @@
     "translation": "Autorizar Aplicación"
   },
   {
-    "id": "web.check_browser_compatibility.app_error",
-    "translation": "Tu navegador actual no está soportado, por favor actualiza a uno de los siguientes navegadores: Google Chrome 21 o superior, Internet Explorer 11 o superior, FireFox 14 o superior, Safari 9 o superior"
-  },
-  {
     "id": "web.claim_account.team.error",
     "translation": "No se encontro el equipo con nombre=%v, err=%v"
   },
@@ -6730,6 +6710,34 @@
   {
     "id": "web.email_verified.title",
     "translation": "Correo electrónico verificado"
+  },
+  {
+    "id": "web.error.unsupported_browser.help1",
+    "translation": "Google Chrome 43+"
+  },
+  {
+    "id": "web.error.unsupported_browser.help2",
+    "translation": "Mozilla Firefox 52+"
+  },
+  {
+    "id": "web.error.unsupported_browser.help3",
+    "translation": "Microsoft Internet Explorer 11+"
+  },
+  {
+    "id": "web.error.unsupported_browser.help4",
+    "translation": "Microsoft Edge 40+"
+  },
+  {
+    "id": "web.error.unsupported_browser.help5",
+    "translation": "Apple Safari 9+"
+  },
+  {
+    "id": "web.error.unsupported_browser.message",
+    "translation": "Tu navegador no es compatible. Por favor, actualiza a uno de los siguientes navegadores:"
+  },
+  {
+    "id": "web.error.unsupported_browser.title",
+    "translation": "Navegador No Compatible"
   },
   {
     "id": "web.find_team.title",

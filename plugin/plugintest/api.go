@@ -17,14 +17,43 @@ func (m *API) LoadPluginConfiguration(dest interface{}) error {
 	return m.Called(dest).Error(0)
 }
 
-func (m *API) GetTeamByName(name string) (*model.Team, *model.AppError) {
-	ret := m.Called(name)
-	if f, ok := ret.Get(0).(func(string) (*model.Team, *model.AppError)); ok {
-		return f(name)
+func (m *API) CreateUser(user *model.User) (*model.User, *model.AppError) {
+	ret := m.Called(user)
+	if f, ok := ret.Get(0).(func(*model.User) (*model.User, *model.AppError)); ok {
+		return f(user)
 	}
-	team, _ := ret.Get(0).(*model.Team)
+	userOut, _ := ret.Get(0).(*model.User)
 	err, _ := ret.Get(1).(*model.AppError)
-	return team, err
+	return userOut, err
+}
+
+func (m *API) DeleteUser(userId string) *model.AppError {
+	ret := m.Called(userId)
+	if f, ok := ret.Get(0).(func(string) *model.AppError); ok {
+		return f(userId)
+	}
+	err, _ := ret.Get(0).(*model.AppError)
+	return err
+}
+
+func (m *API) GetUser(userId string) (*model.User, *model.AppError) {
+	ret := m.Called(userId)
+	if f, ok := ret.Get(0).(func(string) (*model.User, *model.AppError)); ok {
+		return f(userId)
+	}
+	user, _ := ret.Get(0).(*model.User)
+	err, _ := ret.Get(1).(*model.AppError)
+	return user, err
+}
+
+func (m *API) GetUserByEmail(email string) (*model.User, *model.AppError) {
+	ret := m.Called(email)
+	if f, ok := ret.Get(0).(func(string) (*model.User, *model.AppError)); ok {
+		return f(email)
+	}
+	user, _ := ret.Get(0).(*model.User)
+	err, _ := ret.Get(1).(*model.AppError)
+	return user, err
 }
 
 func (m *API) GetUserByUsername(name string) (*model.User, *model.AppError) {
@@ -37,6 +66,94 @@ func (m *API) GetUserByUsername(name string) (*model.User, *model.AppError) {
 	return user, err
 }
 
+func (m *API) UpdateUser(user *model.User) (*model.User, *model.AppError) {
+	ret := m.Called(user)
+	if f, ok := ret.Get(0).(func(*model.User) (*model.User, *model.AppError)); ok {
+		return f(user)
+	}
+	userOut, _ := ret.Get(0).(*model.User)
+	err, _ := ret.Get(1).(*model.AppError)
+	return userOut, err
+}
+
+func (m *API) CreateTeam(team *model.Team) (*model.Team, *model.AppError) {
+	ret := m.Called(team)
+	if f, ok := ret.Get(0).(func(*model.Team) (*model.Team, *model.AppError)); ok {
+		return f(team)
+	}
+	teamOut, _ := ret.Get(0).(*model.Team)
+	err, _ := ret.Get(1).(*model.AppError)
+	return teamOut, err
+}
+
+func (m *API) DeleteTeam(teamId string) *model.AppError {
+	ret := m.Called(teamId)
+	if f, ok := ret.Get(0).(func(string) *model.AppError); ok {
+		return f(teamId)
+	}
+	err, _ := ret.Get(0).(*model.AppError)
+	return err
+}
+
+func (m *API) GetTeam(teamId string) (*model.Team, *model.AppError) {
+	ret := m.Called(teamId)
+	if f, ok := ret.Get(0).(func(string) (*model.Team, *model.AppError)); ok {
+		return f(teamId)
+	}
+	team, _ := ret.Get(0).(*model.Team)
+	err, _ := ret.Get(1).(*model.AppError)
+	return team, err
+}
+
+func (m *API) GetTeamByName(name string) (*model.Team, *model.AppError) {
+	ret := m.Called(name)
+	if f, ok := ret.Get(0).(func(string) (*model.Team, *model.AppError)); ok {
+		return f(name)
+	}
+	team, _ := ret.Get(0).(*model.Team)
+	err, _ := ret.Get(1).(*model.AppError)
+	return team, err
+}
+
+func (m *API) UpdateTeam(team *model.Team) (*model.Team, *model.AppError) {
+	ret := m.Called(team)
+	if f, ok := ret.Get(0).(func(*model.Team) (*model.Team, *model.AppError)); ok {
+		return f(team)
+	}
+	teamOut, _ := ret.Get(0).(*model.Team)
+	err, _ := ret.Get(1).(*model.AppError)
+	return teamOut, err
+}
+
+func (m *API) CreateChannel(channel *model.Channel) (*model.Channel, *model.AppError) {
+	ret := m.Called(channel)
+	if f, ok := ret.Get(0).(func(*model.Channel) (*model.Channel, *model.AppError)); ok {
+		return f(channel)
+	}
+	channelOut, _ := ret.Get(0).(*model.Channel)
+	err, _ := ret.Get(1).(*model.AppError)
+	return channelOut, err
+}
+
+func (m *API) DeleteChannel(channelId string) *model.AppError {
+	ret := m.Called(channelId)
+	if f, ok := ret.Get(0).(func(string) *model.AppError); ok {
+		return f(channelId)
+	}
+	err, _ := ret.Get(0).(*model.AppError)
+	return err
+}
+
+func (m *API) GetChannel(channelId string) (*model.Channel, *model.AppError) {
+	ret := m.Called(channelId)
+	if f, ok := ret.Get(0).(func(string) (*model.Channel, *model.AppError)); ok {
+		return f(channelId)
+	}
+	channel, _ := ret.Get(0).(*model.Channel)
+	err, _ := ret.Get(1).(*model.AppError)
+	return channel, err
+}
+
 func (m *API) GetChannelByName(name, teamId string) (*model.Channel, *model.AppError) {
 	ret := m.Called(name, teamId)
 	if f, ok := ret.Get(0).(func(_, _ string) (*model.Channel, *model.AppError)); ok {
@@ -47,7 +164,66 @@ func (m *API) GetChannelByName(name, teamId string) (*model.Channel, *model.AppE
 	return channel, err
 }
 
+func (m *API) GetDirectChannel(userId1, userId2 string) (*model.Channel, *model.AppError) {
+	ret := m.Called(userId1, userId2)
+	if f, ok := ret.Get(0).(func(_, _ string) (*model.Channel, *model.AppError)); ok {
+		return f(userId1, userId2)
+	}
+	channel, _ := ret.Get(0).(*model.Channel)
+	err, _ := ret.Get(1).(*model.AppError)
+	return channel, err
+}
+
+func (m *API) GetGroupChannel(userIds []string) (*model.Channel, *model.AppError) {
+	ret := m.Called(userIds)
+	if f, ok := ret.Get(0).(func([]string) (*model.Channel, *model.AppError)); ok {
+		return f(userIds)
+	}
+	channel, _ := ret.Get(0).(*model.Channel)
+	err, _ := ret.Get(1).(*model.AppError)
+	return channel, err
+}
+
+func (m *API) UpdateChannel(channel *model.Channel) (*model.Channel, *model.AppError) {
+	ret := m.Called(channel)
+	if f, ok := ret.Get(0).(func(*model.Channel) (*model.Channel, *model.AppError)); ok {
+		return f(channel)
+	}
+	channelOut, _ := ret.Get(0).(*model.Channel)
+	err, _ := ret.Get(1).(*model.AppError)
+	return channelOut, err
+}
+
 func (m *API) CreatePost(post *model.Post) (*model.Post, *model.AppError) {
+	ret := m.Called(post)
+	if f, ok := ret.Get(0).(func(*model.Post) (*model.Post, *model.AppError)); ok {
+		return f(post)
+	}
+	postOut, _ := ret.Get(0).(*model.Post)
+	err, _ := ret.Get(1).(*model.AppError)
+	return postOut, err
+}
+
+func (m *API) DeletePost(postId string) *model.AppError {
+	ret := m.Called(postId)
+	if f, ok := ret.Get(0).(func(string) *model.AppError); ok {
+		return f(postId)
+	}
+	err, _ := ret.Get(0).(*model.AppError)
+	return err
+}
+
+func (m *API) GetPost(postId string) (*model.Post, *model.AppError) {
+	ret := m.Called(postId)
+	if f, ok := ret.Get(0).(func(string) (*model.Post, *model.AppError)); ok {
+		return f(postId)
+	}
+	post, _ := ret.Get(0).(*model.Post)
+	err, _ := ret.Get(1).(*model.AppError)
+	return post, err
+}
+
+func (m *API) UpdatePost(post *model.Post) (*model.Post, *model.AppError) {
 	ret := m.Called(post)
 	if f, ok := ret.Get(0).(func(*model.Post) (*model.Post, *model.AppError)); ok {
 		return f(post)

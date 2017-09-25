@@ -53,7 +53,7 @@ func slackImportCmdF(cmd *cobra.Command, args []string) error {
 		return errors.New("Incorrect number of arguments.")
 	}
 
-	team := getTeamFromTeamArg(args[0])
+	team := getTeamFromTeamArg(a, args[0])
 	if team == nil {
 		return errors.New("Unable to find team '" + args[0] + "'")
 	}

@@ -413,18 +413,24 @@ func (a *App) UpdateChannelMemberNotifyProps(data map[string]string, channelId s
 }
 
 func (a *App) DeleteChannel(channel *model.Channel, userId string) *model.AppError {
-	uc := a.Srv.Store.User().Get(userId)
 	ihc := a.Srv.Store.Webhook().GetIncomingByChannel(channel.Id)
 	ohc := a.Srv.Store.Webhook().GetOutgoingByChannel(channel.Id, -1, -1)
 
-	if uresult := <-uc; uresult.Err != nil {
-		return uresult.Err
-	} else if ihcresult := <-ihc; ihcresult.Err != nil {
+	var user *model.User
+	if userId != "" {
+		uc := a.Srv.Store.User().Get(userId)
+		uresult := <-uc
+		if uresult.Err != nil {
+			return uresult.Err
+		}
+		user = uresult.Data.(*model.User)
+	}
+
+	if ihcresult := <-ihc; ihcresult.Err != nil {
 		return ihcresult.Err
 	} else if ohcresult := <-ohc; ohcresult.Err != nil {
 		return ohcresult.Err
 	} else {
-		user := uresult.Data.(*model.User)
 		incomingHooks := ihcresult.Data.([]*model.IncomingWebhook)
 		outgoingHooks := ohcresult.Data.([]*model.OutgoingWebhook)
 
@@ -438,20 +444,22 @@ func (a *App) DeleteChannel(channel *model.Channel, userId string) *model.AppErr
 			return err
 		}
 
-		T := utils.GetUserTranslations(user.Locale)
+		if user != nil {
+			T := utils.GetUserTranslations(user.Locale)
 
-		post := &model.Post{
-			ChannelId: channel.Id,
-			Message:   fmt.Sprintf(T("api.channel.delete_channel.archived"), user.Username),
-			Type:      model.POST_CHANNEL_DELETED,
-			UserId:    userId,
-			Props: model.StringInterface{
-				"username": user.Username,
-			},
-		}
+			post := &model.Post{
+				ChannelId: channel.Id,
+				Message:   fmt.Sprintf(T("api.channel.delete_channel.archived"), user.Username),
+				Type:      model.POST_CHANNEL_DELETED,
+				UserId:    userId,
+				Props: model.StringInterface{
+					"username": user.Username,
+				},
+			}
 
-		if _, err := a.CreatePost(post, channel, false); err != nil {
-			l4g.Error(utils.T("api.channel.delete_channel.failed_post.error"), err)
+			if _, err := a.CreatePost(post, channel, false); err != nil {
+				l4g.Error(utils.T("api.channel.delete_channel.failed_post.error"), err)
+			}
 		}
 
 		now := model.GetMillis()
@@ -1087,7 +1095,7 @@ func (a *App) SetActiveChannel(userId string, channelId string) *model.AppError 
 		status.LastActivityAt = model.GetMillis()
 	}
 
-	AddStatusCache(status)
+	a.AddStatusCache(status)
 
 	if status.Status != oldStatus {
 		BroadcastStatus(status)
