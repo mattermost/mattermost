@@ -972,10 +972,6 @@
     "translation": "電子メールのバッチジョブが稼働中です。%vユーザーはまだ通知を保留されています。"
   },
   {
-    "id": "api.email_batching.check_pending_emails.status.app_error",
-    "translation": "バッチ処理された電子メール通知の受け取り状態を確認できません"
-  },
-  {
     "id": "api.email_batching.render_batched_post.channel.app_error",
     "translation": "バッチ処理された電子メール通知について、投稿があったチャンネルが見付かりません"
   },
@@ -1400,10 +1396,6 @@
   {
     "id": "api.oauth.authorize_oauth.missing.app_error",
     "translation": "response_type、client_id、redirect_uriのうち１つ以上が不足しています"
-  },
-  {
-    "id": "api.oauth.complete_oauth.missing_code.app_error",
-    "translation": "サービスプロバイダー {{.service}} はリダイレクトURLで認証コードを提供していません。\n\n[Google Apps](https://docs.mattermost.com/deployment/sso-google.html)で、あなたの管理者がGoogle+ APIを有効にしているか確認してください。\n\n[Office 365](https://docs.mattermost.com/deployment/sso-office.html)で、あなたのMicrosoft組織の管理者がMattermostアプリを有効にしている確認してください。\n\n[GitLab](https://docs.mattermost.com/deployment/sso-gitlab.html)で、セットアップ手順に従っているか確認してください。\n\n以上を確認しても設定が上手くいかない場合は、[トラブルシューティングフォーラム](https://forum.mattermost.org/c/general/trouble-shoot)へ投稿してください。私たちはセットアップ中の問題について喜んでお手伝いします。"
   },
   {
     "id": "api.oauth.delete.permissions.app_error",
@@ -2236,14 +2228,6 @@
     "translation": "送信者: "
   },
   {
-    "id": "api.templates.error.link",
-    "translation": "Mattermostに戻る"
-  },
-  {
-    "id": "api.templates.error.title",
-    "translation": "{{ .SiteName }}はあなたの助けを求めています:"
-  },
-  {
     "id": "api.templates.find_teams_body.found",
     "translation": "あなたの電子メールアドレスに紐付くチームへのリクエストは以下の通りです:"
   },
@@ -2997,7 +2981,7 @@
   },
   {
     "id": "app.channel.move_channel.members_do_not_match.error",
-    "translation": "Cannot move a channel unless all its members are already members of the destination team."
+    "translation": "すべてのメンバーが異動先のチームのメンバーになるまでチャンネルを移動することはできません。"
   },
   {
     "id": "app.channel.post_update_channel_purpose_message.post.error",
@@ -3444,20 +3428,20 @@
     "translation": "抽出されたプラグインを有効化できませんでした。プラグインが既に存在し、有効化されている可能性があります。"
   },
   {
-    "id": "app.plugin.bad_path.app_error",
-    "translation": "抽出されたファイルに不正なファイルパスがあります"
-  },
-  {
     "id": "app.plugin.deactivate.app_error",
     "translation": "プラグインを無効化できませんでした"
   },
   {
     "id": "app.plugin.disabled.app_error",
-    "translation": "Plugins have been disabled by the system admin or the server has not been restarted since they were enabled."
+    "translation": "プラグインはシステム管理者によって無効にされているか、有効化した後にサーバーが再起動されていません。"
   },
   {
     "id": "app.plugin.extract.app_error",
     "translation": "プラグインの抽出に失敗しました"
+  },
+  {
+    "id": "app.plugin.filesystem.app_error",
+    "translation": "filesystemエラーが発生しました"
   },
   {
     "id": "app.plugin.get_plugins.app_error",
@@ -3470,10 +3454,6 @@
   {
     "id": "app.plugin.mvdir.app_error",
     "translation": "プラグインを一時ディレクトリから最終的な移動先へ移動できませんでした"
-  },
-  {
-    "id": "app.plugin.no_files.app_error",
-    "translation": "圧縮されたフォルダの中にファイルが見付かりませんでした"
   },
   {
     "id": "app.plugin.remove.app_error",
@@ -3988,30 +3968,6 @@
     "translation": "既存のSAMLユーザーをアップデートすることはできません。ログインは有効です。err=%v"
   },
   {
-    "id": "error.generic.link_message",
-    "translation": "Mattermostに戻る"
-  },
-  {
-    "id": "error.generic.message",
-    "translation": "エラーが発生しました。"
-  },
-  {
-    "id": "error.generic.title",
-    "translation": "エラー"
-  },
-  {
-    "id": "error.not_found.link_message",
-    "translation": "Mattermostに戻る"
-  },
-  {
-    "id": "error.not_found.message",
-    "translation": "探しているページは存在しません。"
-  },
-  {
-    "id": "error.not_found.title",
-    "translation": "ページが見付かりません"
-  },
-  {
     "id": "jobs.request_cancellation.status.error",
     "translation": "ジョブがキャンセル可能な状態でないため、ジョブのキャンセルをリクエストできませんでした。"
   },
@@ -4394,6 +4350,18 @@
   {
     "id": "model.config.is_valid.cluster_email_batching.app_error",
     "translation": "クラスタリングが有効化されている場合、電子メールバッチ処理は有効化できません。"
+  },
+  {
+    "id": "model.config.is_valid.data_retention.deletion_job_start_time.app_error",
+    "translation": "データ保持に関するDeletionJobStartTime設定には \"hh:mm\" の形式の時間を設定してください"
+  },
+  {
+    "id": "model.config.is_valid.data_retention.file_retention_days_too_low.app_error",
+    "translation": "データ保持に関するFileRetentionDays設定は1以上にしてください"
+  },
+  {
+    "id": "model.config.is_valid.data_retention.message_retention_days_too_low.app_error",
+    "translation": "データ保持に関するMessageRetentionDays設定は1以上にしてください"
   },
   {
     "id": "model.config.is_valid.elastic_search.aggregate_posts_after_days.app_error",
@@ -5300,6 +5268,10 @@
     "translation": "これ以上のページを生成できません"
   },
   {
+    "id": "store.sql_audit.permanent_delete_batch.app_error",
+    "translation": "監査バッチを完全に削除する際にエラーが発生しました"
+  },
+  {
     "id": "store.sql_audit.permanent_delete_by_user.app_error",
     "translation": "監査データを削除する際にエラーが発生しました"
   },
@@ -5660,6 +5632,10 @@
     "translation": "ファイル情報を完全に削除できませんでした"
   },
   {
+    "id": "store.sql_file_info.permanent_delete_batch.app_error",
+    "translation": "ファイル情報バッチを完全に削除する際にエラーが発生しました"
+  },
+  {
     "id": "store.sql_file_info.save.app_error",
     "translation": "ファイル情報を保存できませんでした"
   },
@@ -5868,6 +5844,10 @@
     "translation": "ユーザーのコメントを削除できませんでした"
   },
   {
+    "id": "store.sql_post.permanent_delete_batch.app_error",
+    "translation": "投稿バッチを完全に削除する際にエラーが発生しました"
+  },
+  {
     "id": "store.sql_post.permanent_delete_by_channel.app_error",
     "translation": "チャンネルの投稿を削除できませんでした"
   },
@@ -5986,6 +5966,10 @@
   {
     "id": "store.sql_reaction.get_for_post.app_error",
     "translation": "投稿に対するリアクションを取得できません"
+  },
+  {
+    "id": "store.sql_reaction.permanent_delete_batch.app_error",
+    "translation": "リアクションバッチを完全に削除する際にエラーが発生しました"
   },
   {
     "id": "store.sql_reaction.save.begin.app_error",
@@ -6684,10 +6668,6 @@
     "translation": "アプリケーションを認証する"
   },
   {
-    "id": "web.check_browser_compatibility.app_error",
-    "translation": "あなたの使用中のブラウザーはサポートされていません。以下のブラウザーを使用してください。Google Chrome 21以降、Internet Explorer 11以降、Firefox 14以降、Safari 9以降"
-  },
-  {
     "id": "web.claim_account.team.error",
     "translation": "チームが見付かりませんでした name=%v, err=%v"
   },
@@ -6730,6 +6710,34 @@
   {
     "id": "web.email_verified.title",
     "translation": "電子メールアドレスが確認できました"
+  },
+  {
+    "id": "web.error.unsupported_browser.help1",
+    "translation": "Google Chrome 43+"
+  },
+  {
+    "id": "web.error.unsupported_browser.help2",
+    "translation": "Mozzilla Firefox 52+"
+  },
+  {
+    "id": "web.error.unsupported_browser.help3",
+    "translation": "Microsoft Internet Explorer 11+"
+  },
+  {
+    "id": "web.error.unsupported_browser.help4",
+    "translation": "Microsoft Edge 40+"
+  },
+  {
+    "id": "web.error.unsupported_browser.help5",
+    "translation": "Apple Safari 9+"
+  },
+  {
+    "id": "web.error.unsupported_browser.message",
+    "translation": "現在使用しているブラウザはサポートされていません。以下のいずれかのブラウザにアップグレードしてください:"
+  },
+  {
+    "id": "web.error.unsupported_browser.title",
+    "translation": "サポートされないブラウザ"
   },
   {
     "id": "web.find_team.title",

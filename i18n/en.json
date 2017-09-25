@@ -4360,20 +4360,20 @@
     "translation": "Unable to enable email batching when clustering is enabled."
   },
   {
-    "id": "model.config.is_valid.elastic_search.aggregate_posts_after_days.app_error",
-    "translation": "Elasticsearch AggregatePostsAfterDays setting must be a number greater than or equal to 1"
-  },
-  {
-    "id": "model.config.is_valid.data_retention.message_retention_days_too_low.app_error",
-    "translation": "DataRetention MessageRetentionDays setting must be at least 1"
+    "id": "model.config.is_valid.data_retention.deletion_job_start_time.app_error",
+    "translation": "DataRetention DeletionJobStartTime setting must be set to a time in the format \"hh:mm\""
   },
   {
     "id": "model.config.is_valid.data_retention.file_retention_days_too_low.app_error",
     "translation": "DataRetention FileRetentionDays setting must be at least 1"
   },
   {
-    "id": "model.config.is_valid.data_retention.deletion_job_start_time.app_error",
-    "translation": "DataRetention DeletionJobStartTime setting must be set to a time in the format \"hh:mm\""
+    "id": "model.config.is_valid.data_retention.message_retention_days_too_low.app_error",
+    "translation": "DataRetention MessageRetentionDays setting must be at least 1"
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.aggregate_posts_after_days.app_error",
+    "translation": "Elasticsearch AggregatePostsAfterDays setting must be a number greater than or equal to 1"
   },
   {
     "id": "model.config.is_valid.elastic_search.connection_url.app_error",
@@ -5276,16 +5276,16 @@
     "translation": "Limit exceeded for paging"
   },
   {
+    "id": "store.sql_audit.permanent_delete_batch.app_error",
+    "translation": "We encountered an error permanently deleting the batch of audits"
+  },
+  {
     "id": "store.sql_audit.permanent_delete_by_user.app_error",
     "translation": "We encountered an error deleting the audits"
   },
   {
     "id": "store.sql_audit.save.saving.app_error",
     "translation": "We encountered an error saving the audit"
-  },
-  {
-    "id": "store.sql_audit.permanent_delete_batch.app_error",
-    "translation": "We encountered an error permanently deleting the batch of audits"
   },
   {
     "id": "store.sql_channel.analytics_deleted_type_count.app_error",
@@ -5640,16 +5640,16 @@
     "translation": "We couldn't permanently delete the file info"
   },
   {
+    "id": "store.sql_file_info.permanent_delete_batch.app_error",
+    "translation": "We encountered an error permanently deleting the batch of file infos"
+  },
+  {
     "id": "store.sql_file_info.save.app_error",
     "translation": "We couldn't save the file info"
   },
   {
     "id": "store.sql_file_info.save_or_update.app_error",
     "translation": "We couldn't save or update the file info"
-  },
-  {
-    "id": "store.sql_file_info.permanent_delete_batch.app_error",
-    "translation": "We encountered an error permanently deleting the batch of file infos"
   },
   {
     "id": "store.sql_job.delete.app_error",
@@ -5852,6 +5852,10 @@
     "translation": "We couldn't delete the comments for user"
   },
   {
+    "id": "store.sql_post.permanent_delete_batch.app_error",
+    "translation": "We encountered an error permanently deleting the batch of posts"
+  },
+  {
     "id": "store.sql_post.permanent_delete_by_channel.app_error",
     "translation": "We couldn't delete the posts by channel"
   },
@@ -5980,6 +5984,10 @@
     "translation": "Unable to get reactions for post"
   },
   {
+    "id": "store.sql_reaction.permanent_delete_batch.app_error",
+    "translation": "We encountered an error permanently deleting the batch of reactions"
+  },
+  {
     "id": "store.sql_reaction.save.begin.app_error",
     "translation": "Unable to open transaction while saving reaction"
   },
@@ -5990,10 +5998,6 @@
   {
     "id": "store.sql_reaction.save.save.app_error",
     "translation": "Unable to save reaction"
-  },
-  {
-    "id": "store.sql_reaction.permanent_delete_batch.app_error",
-    "translation": "We encountered an error permanently deleting the batch of reactions"
   },
   {
     "id": "store.sql_session.analytics_session_count.app_error",
@@ -6724,14 +6728,6 @@
     "translation": "Email Verified"
   },
   {
-    "id": "web.error.unsupported_browser.title",
-    "translation": "Unsupported Browser"
-  },
-  {
-    "id": "web.error.unsupported_browser.message",
-    "translation": "Your current browser is not supported. Please upgrade to one of the following browsers:"
-  },
-  {
     "id": "web.error.unsupported_browser.help1",
     "translation": "Google Chrome 43+"
   },
@@ -6750,6 +6746,14 @@
   {
     "id": "web.error.unsupported_browser.help5",
     "translation": "Apple Safari 9+"
+  },
+  {
+    "id": "web.error.unsupported_browser.message",
+    "translation": "Your current browser is not supported. Please upgrade to one of the following browsers:"
+  },
+  {
+    "id": "web.error.unsupported_browser.title",
+    "translation": "Unsupported Browser"
   },
   {
     "id": "web.find_team.title",
