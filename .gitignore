@@ -54,6 +54,7 @@ _testmain.go
 
 # Log files
 *mattermost.log
+*mattermost.log.jsonl
 *npm-debug.log*
 
 .tmp
@@ -84,6 +85,7 @@ enterprise
 
 cover.out
 ecover.out
+cprofile.out
 *.test
 webapp/coverage
 
