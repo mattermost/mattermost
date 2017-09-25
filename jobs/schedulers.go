@@ -18,6 +18,7 @@ type Schedulers struct {
 
 	DataRetention            model.Scheduler
 	ElasticsearchAggregation model.Scheduler
+	LdapSync                 model.Scheduler
 
 	listenerId string
 }
@@ -33,6 +34,10 @@ func InitSchedulers() *Schedulers {
 		schedulers.ElasticsearchAggregation = elasticsearchAggregatorInterface.MakeScheduler()
 	}
 
+	if ldaySyncInterface := ejobs.GetLdapSyncInterface(); ldaySyncInterface != nil {
+		schedulers.LdapSync = ldaySyncInterface.MakeScheduler()
+	}
+
 	return schedulers
 }
 
@@ -46,6 +51,10 @@ func (schedulers *Schedulers) Start() *Schedulers {
 
 		if schedulers.ElasticsearchAggregation != nil && *utils.Cfg.ElasticsearchSettings.EnableIndexing {
 			go schedulers.ElasticsearchAggregation.Run()
+		}
+
+		if schedulers.LdapSync != nil && *utils.Cfg.LdapSettings.Enable {
+			go schedulers.LdapSync.Run()
 		}
 	})
 
@@ -70,6 +79,14 @@ func (schedulers *Schedulers) handleConfigChange(oldConfig *model.Config, newCon
 			schedulers.ElasticsearchAggregation.Stop()
 		}
 	}
+
+	if schedulers.LdapSync != nil {
+		if !*oldConfig.LdapSettings.Enable && *newConfig.LdapSettings.Enable {
+			go schedulers.LdapSync.Run()
+		} else if *oldConfig.LdapSettings.Enable && !*newConfig.LdapSettings.Enable {
+			schedulers.LdapSync.Stop()
+		}
+	}
 }
 
 func (schedulers *Schedulers) Stop() *Schedulers {
@@ -81,6 +98,10 @@ func (schedulers *Schedulers) Stop() *Schedulers {
 
 	if schedulers.ElasticsearchAggregation != nil && *utils.Cfg.ElasticsearchSettings.EnableIndexing {
 		schedulers.ElasticsearchAggregation.Stop()
+	}
+
+	if schedulers.LdapSync != nil && *utils.Cfg.LdapSettings.Enable {
+		schedulers.LdapSync.Stop()
 	}
 
 	l4g.Info("Stopped schedulers")
