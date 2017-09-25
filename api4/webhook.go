@@ -15,27 +15,27 @@ import (
 	"github.com/mattermost/mattermost-server/utils"
 )
 
-func InitWebhook() {
+func (api *API) InitWebhook() {
 	l4g.Debug(utils.T("api.webhook.init.debug"))
 
-	BaseRoutes.IncomingHooks.Handle("", ApiSessionRequired(createIncomingHook)).Methods("POST")
-	BaseRoutes.IncomingHooks.Handle("", ApiSessionRequired(getIncomingHooks)).Methods("GET")
-	BaseRoutes.IncomingHook.Handle("", ApiSessionRequired(getIncomingHook)).Methods("GET")
-	BaseRoutes.IncomingHook.Handle("", ApiSessionRequired(updateIncomingHook)).Methods("PUT")
-	BaseRoutes.IncomingHook.Handle("", ApiSessionRequired(deleteIncomingHook)).Methods("DELETE")
+	api.BaseRoutes.IncomingHooks.Handle("", api.ApiSessionRequired(createIncomingHook)).Methods("POST")
+	api.BaseRoutes.IncomingHooks.Handle("", api.ApiSessionRequired(getIncomingHooks)).Methods("GET")
+	api.BaseRoutes.IncomingHook.Handle("", api.ApiSessionRequired(getIncomingHook)).Methods("GET")
+	api.BaseRoutes.IncomingHook.Handle("", api.ApiSessionRequired(updateIncomingHook)).Methods("PUT")
+	api.BaseRoutes.IncomingHook.Handle("", api.ApiSessionRequired(deleteIncomingHook)).Methods("DELETE")
 
-	BaseRoutes.OutgoingHooks.Handle("", ApiSessionRequired(createOutgoingHook)).Methods("POST")
-	BaseRoutes.OutgoingHooks.Handle("", ApiSessionRequired(getOutgoingHooks)).Methods("GET")
-	BaseRoutes.OutgoingHook.Handle("", ApiSessionRequired(getOutgoingHook)).Methods("GET")
-	BaseRoutes.OutgoingHook.Handle("", ApiSessionRequired(updateOutgoingHook)).Methods("PUT")
-	BaseRoutes.OutgoingHook.Handle("", ApiSessionRequired(deleteOutgoingHook)).Methods("DELETE")
-	BaseRoutes.OutgoingHook.Handle("/regen_token", ApiSessionRequired(regenOutgoingHookToken)).Methods("POST")
+	api.BaseRoutes.OutgoingHooks.Handle("", api.ApiSessionRequired(createOutgoingHook)).Methods("POST")
+	api.BaseRoutes.OutgoingHooks.Handle("", api.ApiSessionRequired(getOutgoingHooks)).Methods("GET")
+	api.BaseRoutes.OutgoingHook.Handle("", api.ApiSessionRequired(getOutgoingHook)).Methods("GET")
+	api.BaseRoutes.OutgoingHook.Handle("", api.ApiSessionRequired(updateOutgoingHook)).Methods("PUT")
+	api.BaseRoutes.OutgoingHook.Handle("", api.ApiSessionRequired(deleteOutgoingHook)).Methods("DELETE")
+	api.BaseRoutes.OutgoingHook.Handle("/regen_token", api.ApiSessionRequired(regenOutgoingHookToken)).Methods("POST")
 
-	BaseRoutes.Root.Handle("/hooks/commands/{id:[A-Za-z0-9]+}", ApiHandler(commandWebhook)).Methods("POST")
-	BaseRoutes.Root.Handle("/hooks/{id:[A-Za-z0-9]+}", ApiHandler(incomingWebhook)).Methods("POST")
+	api.BaseRoutes.Root.Handle("/hooks/commands/{id:[A-Za-z0-9]+}", api.ApiHandler(commandWebhook)).Methods("POST")
+	api.BaseRoutes.Root.Handle("/hooks/{id:[A-Za-z0-9]+}", api.ApiHandler(incomingWebhook)).Methods("POST")
 
 	// Old endpoint for backwards compatibility
-	BaseRoutes.Root.Handle("/api/v3/teams/{team_id:[A-Za-z0-9]+}/hooks/{id:[A-Za-z0-9]+}", ApiHandler(incomingWebhook)).Methods("POST")
+	api.BaseRoutes.Root.Handle("/api/v3/teams/{team_id:[A-Za-z0-9]+}/hooks/{id:[A-Za-z0-9]+}", api.ApiHandler(incomingWebhook)).Methods("POST")
 }
 
 func createIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {

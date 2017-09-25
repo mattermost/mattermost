@@ -11,7 +11,6 @@ import (
 	"unicode/utf8"
 
 	l4g "github.com/alecthomas/log4go"
-	"github.com/mattermost/mattermost-server/einterfaces"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
 	"github.com/mattermost/mattermost-server/utils"
@@ -126,7 +125,7 @@ func (a *App) CreateWebhookPost(userId string, channel *model.Channel, text, ove
 	post := &model.Post{UserId: userId, ChannelId: channel.Id, Message: text, Type: postType}
 	post.AddProp("from_webhook", "true")
 
-	if metrics := einterfaces.GetMetricsInterface(); metrics != nil {
+	if metrics := a.Metrics; metrics != nil {
 		metrics.IncrementWebhookPost()
 	}
 
@@ -523,7 +522,7 @@ func (a *App) HandleIncomingWebhook(hookId string, req *model.IncomingWebhookReq
 
 	if utils.IsLicensed() && *utils.Cfg.TeamSettings.ExperimentalTownSquareIsReadOnly &&
 		channel.Name == model.DEFAULT_CHANNEL {
-		return model.NewLocAppError("HandleIncomingWebhook", "api.post.create_post.town_square_read_only", nil, "")
+		return model.NewAppError("HandleIncomingWebhook", "api.post.create_post.town_square_read_only", nil, "", http.StatusForbidden)
 	}
 
 	if channel.Type != model.CHANNEL_OPEN && !a.HasPermissionToChannel(hook.UserId, channel.Id, model.PERMISSION_READ_CHANNEL) {

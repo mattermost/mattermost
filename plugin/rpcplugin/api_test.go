@@ -66,40 +66,138 @@ func TestAPI(t *testing.T) {
 		Message: "hello",
 	}
 
-	api.On("GetChannelByName", "foo", "theteamid").Return(testChannel, nil)
-	api.On("GetTeamByName", "foo").Return(testTeam, nil)
-	api.On("GetTeamByName", "notateam").Return(nil, teamNotFoundError)
-	api.On("GetUserByUsername", "foo").Return(testUser, nil)
-	api.On("CreatePost", mock.AnythingOfType("*model.Post")).Return(func(p *model.Post) (*model.Post, *model.AppError) {
-		p.Id = "thepostid"
-		return p, nil
-	})
-
 	testAPIRPC(&api, func(remote plugin.API) {
 		var config Config
 		assert.NoError(t, remote.LoadPluginConfiguration(&config))
 		assert.Equal(t, "foo", config.Foo)
 		assert.Equal(t, "baz", config.Bar.Baz)
 
-		channel, err := remote.GetChannelByName("foo", "theteamid")
+		api.On("CreateChannel", mock.AnythingOfType("*model.Channel")).Return(func(c *model.Channel) (*model.Channel, *model.AppError) {
+			c.Id = "thechannelid"
+			return c, nil
+		}).Once()
+		channel, err := remote.CreateChannel(testChannel)
+		assert.Equal(t, "thechannelid", channel.Id)
+		assert.Nil(t, err)
+
+		api.On("DeleteChannel", "thechannelid").Return(nil).Once()
+		assert.Nil(t, remote.DeleteChannel("thechannelid"))
+
+		api.On("GetChannel", "thechannelid").Return(testChannel, nil).Once()
+		channel, err = remote.GetChannel("thechannelid")
 		assert.Equal(t, testChannel, channel)
 		assert.Nil(t, err)
 
-		user, err := remote.GetUserByUsername("foo")
+		api.On("GetChannelByName", "foo", "theteamid").Return(testChannel, nil).Once()
+		channel, err = remote.GetChannelByName("foo", "theteamid")
+		assert.Equal(t, testChannel, channel)
+		assert.Nil(t, err)
+
+		api.On("GetDirectChannel", "user1", "user2").Return(testChannel, nil).Once()
+		channel, err = remote.GetDirectChannel("user1", "user2")
+		assert.Equal(t, testChannel, channel)
+		assert.Nil(t, err)
+
+		api.On("GetGroupChannel", []string{"user1", "user2", "user3"}).Return(testChannel, nil).Once()
+		channel, err = remote.GetGroupChannel([]string{"user1", "user2", "user3"})
+		assert.Equal(t, testChannel, channel)
+		assert.Nil(t, err)
+
+		api.On("UpdateChannel", mock.AnythingOfType("*model.Channel")).Return(func(c *model.Channel) (*model.Channel, *model.AppError) {
+			return c, nil
+		}).Once()
+		channel, err = remote.UpdateChannel(testChannel)
+		assert.Equal(t, testChannel, channel)
+		assert.Nil(t, err)
+
+		api.On("CreateUser", mock.AnythingOfType("*model.User")).Return(func(u *model.User) (*model.User, *model.AppError) {
+			u.Id = "theuserid"
+			return u, nil
+		}).Once()
+		user, err := remote.CreateUser(testUser)
+		assert.Equal(t, "theuserid", user.Id)
+		assert.Nil(t, err)
+
+		api.On("DeleteUser", "theuserid").Return(nil).Once()
+		assert.Nil(t, remote.DeleteUser("theuserid"))
+
+		api.On("GetUser", "theuserid").Return(testUser, nil).Once()
+		user, err = remote.GetUser("theuserid")
 		assert.Equal(t, testUser, user)
 		assert.Nil(t, err)
 
-		team, err := remote.GetTeamByName("foo")
+		api.On("GetUserByEmail", "foo@foo").Return(testUser, nil).Once()
+		user, err = remote.GetUserByEmail("foo@foo")
+		assert.Equal(t, testUser, user)
+		assert.Nil(t, err)
+
+		api.On("GetUserByUsername", "foo").Return(testUser, nil).Once()
+		user, err = remote.GetUserByUsername("foo")
+		assert.Equal(t, testUser, user)
+		assert.Nil(t, err)
+
+		api.On("UpdateUser", mock.AnythingOfType("*model.User")).Return(func(u *model.User) (*model.User, *model.AppError) {
+			return u, nil
+		}).Once()
+		user, err = remote.UpdateUser(testUser)
+		assert.Equal(t, testUser, user)
+		assert.Nil(t, err)
+
+		api.On("CreateTeam", mock.AnythingOfType("*model.Team")).Return(func(t *model.Team) (*model.Team, *model.AppError) {
+			t.Id = "theteamid"
+			return t, nil
+		}).Once()
+		team, err := remote.CreateTeam(testTeam)
+		assert.Equal(t, "theteamid", team.Id)
+		assert.Nil(t, err)
+
+		api.On("DeleteTeam", "theteamid").Return(nil).Once()
+		assert.Nil(t, remote.DeleteTeam("theteamid"))
+
+		api.On("GetTeam", "theteamid").Return(testTeam, nil).Once()
+		team, err = remote.GetTeam("theteamid")
 		assert.Equal(t, testTeam, team)
 		assert.Nil(t, err)
 
+		api.On("GetTeamByName", "foo").Return(testTeam, nil).Once()
+		team, err = remote.GetTeamByName("foo")
+		assert.Equal(t, testTeam, team)
+		assert.Nil(t, err)
+
+		api.On("GetTeamByName", "notateam").Return(nil, teamNotFoundError).Once()
 		team, err = remote.GetTeamByName("notateam")
 		assert.Nil(t, team)
 		assert.Equal(t, teamNotFoundError, err)
 
+		api.On("UpdateTeam", mock.AnythingOfType("*model.Team")).Return(func(t *model.Team) (*model.Team, *model.AppError) {
+			return t, nil
+		}).Once()
+		team, err = remote.UpdateTeam(testTeam)
+		assert.Equal(t, testTeam, team)
+		assert.Nil(t, err)
+
+		api.On("CreatePost", mock.AnythingOfType("*model.Post")).Return(func(p *model.Post) (*model.Post, *model.AppError) {
+			p.Id = "thepostid"
+			return p, nil
+		}).Once()
 		post, err := remote.CreatePost(testPost)
 		assert.NotEmpty(t, post.Id)
 		assert.Equal(t, testPost.Message, post.Message)
+		assert.Nil(t, err)
+
+		api.On("DeletePost", "thepostid").Return(nil).Once()
+		assert.Nil(t, remote.DeletePost("thepostid"))
+
+		api.On("GetPost", "thepostid").Return(testPost, nil).Once()
+		post, err = remote.GetPost("thepostid")
+		assert.Equal(t, testPost, post)
+		assert.Nil(t, err)
+
+		api.On("UpdatePost", mock.AnythingOfType("*model.Post")).Return(func(p *model.Post) (*model.Post, *model.AppError) {
+			return p, nil
+		}).Once()
+		post, err = remote.UpdatePost(testPost)
+		assert.Equal(t, testPost, post)
 		assert.Nil(t, err)
 	})
 }

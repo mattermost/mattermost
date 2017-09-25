@@ -12,14 +12,14 @@ import (
 	"github.com/mattermost/mattermost-server/utils"
 )
 
-func InitPreference() {
+func (api *API) InitPreference() {
 	l4g.Debug(utils.T("api.preference.init.debug"))
 
-	BaseRoutes.Preferences.Handle("", ApiSessionRequired(getPreferences)).Methods("GET")
-	BaseRoutes.Preferences.Handle("", ApiSessionRequired(updatePreferences)).Methods("PUT")
-	BaseRoutes.Preferences.Handle("/delete", ApiSessionRequired(deletePreferences)).Methods("POST")
-	BaseRoutes.Preferences.Handle("/{category:[A-Za-z0-9_]+}", ApiSessionRequired(getPreferencesByCategory)).Methods("GET")
-	BaseRoutes.Preferences.Handle("/{category:[A-Za-z0-9_]+}/name/{preference_name:[A-Za-z0-9_]+}", ApiSessionRequired(getPreferenceByCategoryAndName)).Methods("GET")
+	api.BaseRoutes.Preferences.Handle("", api.ApiSessionRequired(getPreferences)).Methods("GET")
+	api.BaseRoutes.Preferences.Handle("", api.ApiSessionRequired(updatePreferences)).Methods("PUT")
+	api.BaseRoutes.Preferences.Handle("/delete", api.ApiSessionRequired(deletePreferences)).Methods("POST")
+	api.BaseRoutes.Preferences.Handle("/{category:[A-Za-z0-9_]+}", api.ApiSessionRequired(getPreferencesByCategory)).Methods("GET")
+	api.BaseRoutes.Preferences.Handle("/{category:[A-Za-z0-9_]+}/name/{preference_name:[A-Za-z0-9_]+}", api.ApiSessionRequired(getPreferenceByCategoryAndName)).Methods("GET")
 }
 
 func getPreferences(c *Context, w http.ResponseWriter, r *http.Request) {

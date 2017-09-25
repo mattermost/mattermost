@@ -15,20 +15,25 @@ const (
 	ENABLE_EXPERIMENTAL_REDIS = false
 )
 
+type LayeredStoreDatabaseLayer interface {
+	LayeredStoreSupplier
+	Store
+}
+
 type LayeredStore struct {
 	TmpContext      context.Context
 	ReactionStore   ReactionStore
-	DatabaseLayer   *SqlSupplier
+	DatabaseLayer   LayeredStoreDatabaseLayer
 	LocalCacheLayer *LocalCacheSupplier
 	RedisLayer      *RedisSupplier
 	LayerChainHead  LayeredStoreSupplier
 }
 
-func NewLayeredStore() Store {
+func NewLayeredStore(db LayeredStoreDatabaseLayer, metrics einterfaces.MetricsInterface, cluster einterfaces.ClusterInterface) Store {
 	store := &LayeredStore{
 		TmpContext:      context.TODO(),
-		DatabaseLayer:   NewSqlSupplier(einterfaces.GetMetricsInterface()),
-		LocalCacheLayer: NewLocalCacheSupplier(einterfaces.GetMetricsInterface(), einterfaces.GetClusterInterface()),
+		DatabaseLayer:   db,
+		LocalCacheLayer: NewLocalCacheSupplier(metrics, cluster),
 	}
 
 	store.ReactionStore = &LayeredReactionStore{store}

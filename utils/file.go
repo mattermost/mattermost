@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 
 	l4g "github.com/alecthomas/log4go"
 	s3 "github.com/minio/minio-go"
@@ -58,12 +59,12 @@ func TestFileConnection() *model.AppError {
 
 		s3Clnt, err := s3New(endpoint, accessKey, secretKey, secure, signV2, region)
 		if err != nil {
-			return model.NewLocAppError("TestFileConnection", "Bad connection to S3 or minio.", nil, err.Error())
+			return model.NewAppError("TestFileConnection", "Bad connection to S3 or minio.", nil, err.Error(), http.StatusInternalServerError)
 		}
 
 		exists, err := s3Clnt.BucketExists(bucket)
 		if err != nil {
-			return model.NewLocAppError("TestFileConnection", "Error checking if bucket exists.", nil, err.Error())
+			return model.NewAppError("TestFileConnection", "Error checking if bucket exists.", nil, err.Error(), http.StatusInternalServerError)
 		}
 
 		if !exists {
@@ -83,7 +84,7 @@ func TestFileConnection() *model.AppError {
 		os.Remove(Cfg.FileSettings.Directory + TEST_FILE_PATH)
 		l4g.Info("Able to write files to local storage.")
 	} else {
-		return model.NewLocAppError("TestFileConnection", "No file driver selected.", nil, "")
+		return model.NewAppError("TestFileConnection", "No file driver selected.", nil, "", http.StatusInternalServerError)
 	}
 
 	return nil
@@ -99,22 +100,22 @@ func ReadFile(path string) ([]byte, *model.AppError) {
 		region := Cfg.FileSettings.AmazonS3Region
 		s3Clnt, err := s3New(endpoint, accessKey, secretKey, secure, signV2, region)
 		if err != nil {
-			return nil, model.NewLocAppError("ReadFile", "api.file.read_file.s3.app_error", nil, err.Error())
+			return nil, model.NewAppError("ReadFile", "api.file.read_file.s3.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 		bucket := Cfg.FileSettings.AmazonS3Bucket
 		minioObject, err := s3Clnt.GetObject(bucket, path)
 		defer minioObject.Close()
 		if err != nil {
-			return nil, model.NewLocAppError("ReadFile", "api.file.read_file.s3.app_error", nil, err.Error())
+			return nil, model.NewAppError("ReadFile", "api.file.read_file.s3.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 		if f, err := ioutil.ReadAll(minioObject); err != nil {
-			return nil, model.NewLocAppError("ReadFile", "api.file.read_file.s3.app_error", nil, err.Error())
+			return nil, model.NewAppError("ReadFile", "api.file.read_file.s3.app_error", nil, err.Error(), http.StatusInternalServerError)
 		} else {
 			return f, nil
 		}
 	} else if *Cfg.FileSettings.DriverName == model.IMAGE_DRIVER_LOCAL {
 		if f, err := ioutil.ReadFile(Cfg.FileSettings.Directory + path); err != nil {
-			return nil, model.NewLocAppError("ReadFile", "api.file.read_file.reading_local.app_error", nil, err.Error())
+			return nil, model.NewAppError("ReadFile", "api.file.read_file.reading_local.app_error", nil, err.Error(), http.StatusInternalServerError)
 		} else {
 			return f, nil
 		}
@@ -137,31 +138,31 @@ func MoveFile(oldPath, newPath string) *model.AppError {
 		}
 		s3Clnt, err := s3New(endpoint, accessKey, secretKey, secure, signV2, region)
 		if err != nil {
-			return model.NewLocAppError("moveFile", "api.file.write_file.s3.app_error", nil, err.Error())
+			return model.NewAppError("moveFile", "api.file.write_file.s3.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 		bucket := Cfg.FileSettings.AmazonS3Bucket
 
 		source := s3.NewSourceInfo(bucket, oldPath, nil)
 		destination, err := s3.NewDestinationInfo(bucket, newPath, nil, CopyMetadata(encrypt))
 		if err != nil {
-			return model.NewLocAppError("moveFile", "api.file.write_file.s3.app_error", nil, err.Error())
+			return model.NewAppError("moveFile", "api.file.write_file.s3.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 		if err = s3Clnt.CopyObject(destination, source); err != nil {
-			return model.NewLocAppError("moveFile", "api.file.move_file.delete_from_s3.app_error", nil, err.Error())
+			return model.NewAppError("moveFile", "api.file.move_file.delete_from_s3.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 		if err = s3Clnt.RemoveObject(bucket, oldPath); err != nil {
-			return model.NewLocAppError("moveFile", "api.file.move_file.delete_from_s3.app_error", nil, err.Error())
+			return model.NewAppError("moveFile", "api.file.move_file.delete_from_s3.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 	} else if *Cfg.FileSettings.DriverName == model.IMAGE_DRIVER_LOCAL {
 		if err := os.MkdirAll(filepath.Dir(Cfg.FileSettings.Directory+newPath), 0774); err != nil {
-			return model.NewLocAppError("moveFile", "api.file.move_file.rename.app_error", nil, err.Error())
+			return model.NewAppError("moveFile", "api.file.move_file.rename.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 
 		if err := os.Rename(Cfg.FileSettings.Directory+oldPath, Cfg.FileSettings.Directory+newPath); err != nil {
-			return model.NewLocAppError("moveFile", "api.file.move_file.rename.app_error", nil, err.Error())
+			return model.NewAppError("moveFile", "api.file.move_file.rename.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 	} else {
-		return model.NewLocAppError("moveFile", "api.file.move_file.configured.app_error", nil, "")
+		return model.NewAppError("moveFile", "api.file.move_file.configured.app_error", nil, "", http.StatusNotImplemented)
 	}
 
 	return nil
@@ -182,7 +183,7 @@ func WriteFile(f []byte, path string) *model.AppError {
 
 		s3Clnt, err := s3New(endpoint, accessKey, secretKey, secure, signV2, region)
 		if err != nil {
-			return model.NewLocAppError("WriteFile", "api.file.write_file.s3.app_error", nil, err.Error())
+			return model.NewAppError("WriteFile", "api.file.write_file.s3.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 
 		bucket := Cfg.FileSettings.AmazonS3Bucket
@@ -194,14 +195,14 @@ func WriteFile(f []byte, path string) *model.AppError {
 
 		_, err = s3Clnt.PutObjectWithMetadata(bucket, path, bytes.NewReader(f), metaData, nil)
 		if err != nil {
-			return model.NewLocAppError("WriteFile", "api.file.write_file.s3.app_error", nil, err.Error())
+			return model.NewAppError("WriteFile", "api.file.write_file.s3.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 	} else if *Cfg.FileSettings.DriverName == model.IMAGE_DRIVER_LOCAL {
 		if err := writeFileLocally(f, Cfg.FileSettings.Directory+path); err != nil {
 			return err
 		}
 	} else {
-		return model.NewLocAppError("WriteFile", "api.file.write_file.configured.app_error", nil, "")
+		return model.NewAppError("WriteFile", "api.file.write_file.configured.app_error", nil, "", http.StatusNotImplemented)
 	}
 
 	return nil
@@ -210,11 +211,11 @@ func WriteFile(f []byte, path string) *model.AppError {
 func writeFileLocally(f []byte, path string) *model.AppError {
 	if err := os.MkdirAll(filepath.Dir(path), 0774); err != nil {
 		directory, _ := filepath.Abs(filepath.Dir(path))
-		return model.NewLocAppError("WriteFile", "api.file.write_file_locally.create_dir.app_error", nil, "directory="+directory+", err="+err.Error())
+		return model.NewAppError("WriteFile", "api.file.write_file_locally.create_dir.app_error", nil, "directory="+directory+", err="+err.Error(), http.StatusInternalServerError)
 	}
 
 	if err := ioutil.WriteFile(path, f, 0644); err != nil {
-		return model.NewLocAppError("WriteFile", "api.file.write_file_locally.writing.app_error", nil, err.Error())
+		return model.NewAppError("WriteFile", "api.file.write_file_locally.writing.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	return nil
@@ -231,19 +232,19 @@ func RemoveFile(path string) *model.AppError {
 
 		s3Clnt, err := s3New(endpoint, accessKey, secretKey, secure, signV2, region)
 		if err != nil {
-			return model.NewLocAppError("RemoveFile", "utils.file.remove_file.s3.app_error", nil, err.Error())
+			return model.NewAppError("RemoveFile", "utils.file.remove_file.s3.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 
 		bucket := Cfg.FileSettings.AmazonS3Bucket
 		if err := s3Clnt.RemoveObject(bucket, path); err != nil {
-			return model.NewLocAppError("RemoveFile", "utils.file.remove_file.s3.app_error", nil, err.Error())
+			return model.NewAppError("RemoveFile", "utils.file.remove_file.s3.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 	} else if *Cfg.FileSettings.DriverName == model.IMAGE_DRIVER_LOCAL {
 		if err := os.Remove(Cfg.FileSettings.Directory + path); err != nil {
-			return model.NewLocAppError("RemoveFile", "utils.file.remove_file.local.app_error", nil, err.Error())
+			return model.NewAppError("RemoveFile", "utils.file.remove_file.local.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 	} else {
-		return model.NewLocAppError("RemoveFile", "utils.file.remove_file.configured.app_error", nil, "")
+		return model.NewAppError("RemoveFile", "utils.file.remove_file.configured.app_error", nil, "", http.StatusNotImplemented)
 	}
 
 	return nil
@@ -269,6 +270,51 @@ func getPathsFromObjectInfos(in <-chan s3.ObjectInfo) <-chan string {
 	return out
 }
 
+// Returns a list of all the directories within the path directory provided.
+func ListDirectory(path string) (*[]string, *model.AppError) {
+	var paths []string
+
+	if *Cfg.FileSettings.DriverName == model.IMAGE_DRIVER_S3 {
+		endpoint := Cfg.FileSettings.AmazonS3Endpoint
+		accessKey := Cfg.FileSettings.AmazonS3AccessKeyId
+		secretKey := Cfg.FileSettings.AmazonS3SecretAccessKey
+		secure := *Cfg.FileSettings.AmazonS3SSL
+		signV2 := *Cfg.FileSettings.AmazonS3SignV2
+		region := Cfg.FileSettings.AmazonS3Region
+
+		s3Clnt, err := s3New(endpoint, accessKey, secretKey, secure, signV2, region)
+		if err != nil {
+			return nil, model.NewAppError("ListDirectory", "utils.file.list_directory.s3.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+
+		doneCh := make(chan struct{})
+
+		defer close(doneCh)
+
+		bucket := Cfg.FileSettings.AmazonS3Bucket
+		for object := range s3Clnt.ListObjects(bucket, path, false, doneCh) {
+			if object.Err != nil {
+				return nil, model.NewAppError("ListDirectory", "utils.file.list_directory.s3.app_error", nil, object.Err.Error(), http.StatusInternalServerError)
+			}
+			paths = append(paths, strings.Trim(object.Key, "/"))
+		}
+	} else if *Cfg.FileSettings.DriverName == model.IMAGE_DRIVER_LOCAL {
+		if fileInfos, err := ioutil.ReadDir(Cfg.FileSettings.Directory + path); err != nil {
+			return nil, model.NewAppError("ListDirectory", "utils.file.list_directory.local.app_error", nil, err.Error(), http.StatusInternalServerError)
+		} else {
+			for _, fileInfo := range fileInfos {
+				if fileInfo.IsDir() {
+					paths = append(paths, filepath.Join(path, fileInfo.Name()))
+				}
+			}
+		}
+	} else {
+		return nil, model.NewAppError("ListDirectory", "utils.file.list_directory.configured.app_error", nil, "", http.StatusInternalServerError)
+	}
+
+	return &paths, nil
+}
+
 func RemoveDirectory(path string) *model.AppError {
 	if *Cfg.FileSettings.DriverName == model.IMAGE_DRIVER_S3 {
 		endpoint := Cfg.FileSettings.AmazonS3Endpoint
@@ -280,7 +326,7 @@ func RemoveDirectory(path string) *model.AppError {
 
 		s3Clnt, err := s3New(endpoint, accessKey, secretKey, secure, signV2, region)
 		if err != nil {
-			return model.NewLocAppError("RemoveDirectory", "utils.file.remove_directory.s3.app_error", nil, err.Error())
+			return model.NewAppError("RemoveDirectory", "utils.file.remove_directory.s3.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 
 		doneCh := make(chan struct{})
@@ -289,17 +335,17 @@ func RemoveDirectory(path string) *model.AppError {
 		for err := range s3Clnt.RemoveObjects(bucket, getPathsFromObjectInfos(s3Clnt.ListObjects(bucket, path, true, doneCh))) {
 			if err.Err != nil {
 				doneCh <- struct{}{}
-				return model.NewLocAppError("RemoveDirectory", "utils.file.remove_directory.s3.app_error", nil, err.Err.Error())
+				return model.NewAppError("RemoveDirectory", "utils.file.remove_directory.s3.app_error", nil, err.Err.Error(), http.StatusInternalServerError)
 			}
 		}
 
 		close(doneCh)
 	} else if *Cfg.FileSettings.DriverName == model.IMAGE_DRIVER_LOCAL {
 		if err := os.RemoveAll(Cfg.FileSettings.Directory + path); err != nil {
-			return model.NewLocAppError("RemoveDirectory", "utils.file.remove_directory.local.app_error", nil, err.Error())
+			return model.NewAppError("RemoveDirectory", "utils.file.remove_directory.local.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 	} else {
-		return model.NewLocAppError("RemoveDirectory", "utils.file.remove_directory.configured.app_error", nil, "")
+		return model.NewAppError("RemoveDirectory", "utils.file.remove_directory.configured.app_error", nil, "", http.StatusNotImplemented)
 	}
 
 	return nil

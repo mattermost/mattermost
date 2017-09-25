@@ -48,10 +48,6 @@ func (a *App) CreateCommandPost(post *model.Post, teamId string, response *model
 	if response.ResponseType == model.COMMAND_RESPONSE_TYPE_IN_CHANNEL {
 		return a.CreatePostMissingChannel(post, true)
 	} else if response.ResponseType == "" || response.ResponseType == model.COMMAND_RESPONSE_TYPE_EPHEMERAL {
-		if response.Text == "" {
-			return post, nil
-		}
-
 		post.ParentId = ""
 		SendEphemeralPost(post.UserId, post)
 	}

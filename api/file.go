@@ -30,19 +30,19 @@ var UNSAFE_CONTENT_TYPES = [...]string{
 	"text/html",
 }
 
-func InitFile() {
+func (api *API) InitFile() {
 	l4g.Debug(utils.T("api.file.init.debug"))
 
-	BaseRoutes.TeamFiles.Handle("/upload", ApiUserRequired(uploadFile)).Methods("POST")
+	api.BaseRoutes.TeamFiles.Handle("/upload", api.ApiUserRequired(uploadFile)).Methods("POST")
 
-	BaseRoutes.NeedFile.Handle("/get", ApiUserRequiredTrustRequester(getFile)).Methods("GET")
-	BaseRoutes.NeedFile.Handle("/get_thumbnail", ApiUserRequiredTrustRequester(getFileThumbnail)).Methods("GET")
-	BaseRoutes.NeedFile.Handle("/get_preview", ApiUserRequiredTrustRequester(getFilePreview)).Methods("GET")
-	BaseRoutes.NeedFile.Handle("/get_info", ApiUserRequired(getFileInfo)).Methods("GET")
-	BaseRoutes.NeedFile.Handle("/get_public_link", ApiUserRequired(getPublicLink)).Methods("GET")
+	api.BaseRoutes.NeedFile.Handle("/get", api.ApiUserRequiredTrustRequester(getFile)).Methods("GET")
+	api.BaseRoutes.NeedFile.Handle("/get_thumbnail", api.ApiUserRequiredTrustRequester(getFileThumbnail)).Methods("GET")
+	api.BaseRoutes.NeedFile.Handle("/get_preview", api.ApiUserRequiredTrustRequester(getFilePreview)).Methods("GET")
+	api.BaseRoutes.NeedFile.Handle("/get_info", api.ApiUserRequired(getFileInfo)).Methods("GET")
+	api.BaseRoutes.NeedFile.Handle("/get_public_link", api.ApiUserRequired(getPublicLink)).Methods("GET")
 
-	BaseRoutes.Public.Handle("/files/{file_id:[A-Za-z0-9]+}/get", ApiAppHandlerTrustRequesterIndependent(getPublicFile)).Methods("GET")
-	BaseRoutes.Public.Handle("/files/get/{team_id:[A-Za-z0-9]+}/{channel_id:[A-Za-z0-9]+}/{user_id:[A-Za-z0-9]+}/{filename:(?:[A-Za-z0-9]+/)?.+(?:\\.[A-Za-z0-9]{3,})?}", ApiAppHandlerTrustRequesterIndependent(getPublicFileOld)).Methods("GET")
+	api.BaseRoutes.Public.Handle("/files/{file_id:[A-Za-z0-9]+}/get", api.ApiAppHandlerTrustRequesterIndependent(getPublicFile)).Methods("GET")
+	api.BaseRoutes.Public.Handle("/files/get/{team_id:[A-Za-z0-9]+}/{channel_id:[A-Za-z0-9]+}/{user_id:[A-Za-z0-9]+}/{filename:(?:[A-Za-z0-9]+/)?.+(?:\\.[A-Za-z0-9]{3,})?}", api.ApiAppHandlerTrustRequesterIndependent(getPublicFileOld)).Methods("GET")
 }
 
 func uploadFile(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -177,10 +177,12 @@ func getPublicFile(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		if hash != correctHash {
 			c.Err = model.NewAppError("getPublicFile", "api.file.get_file.public_invalid.app_error", nil, "", http.StatusBadRequest)
+			http.Redirect(w, r, c.GetSiteURLHeader()+"/error?message="+utils.T(c.Err.Message), http.StatusTemporaryRedirect)
 			return
 		}
 	} else {
 		c.Err = model.NewAppError("getPublicFile", "api.file.get_file.public_invalid.app_error", nil, "", http.StatusBadRequest)
+		http.Redirect(w, r, c.GetSiteURLHeader()+"/error?message="+utils.T(c.Err.Message), http.StatusTemporaryRedirect)
 		return
 	}
 
@@ -251,10 +253,12 @@ func getPublicFileOld(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		if hash != correctHash {
 			c.Err = model.NewAppError("getPublicFile", "api.file.get_file.public_invalid.app_error", nil, "", http.StatusBadRequest)
+			http.Redirect(w, r, c.GetSiteURLHeader()+"/error?message="+utils.T(c.Err.Message), http.StatusTemporaryRedirect)
 			return
 		}
 	} else {
 		c.Err = model.NewAppError("getPublicFile", "api.file.get_file.public_invalid.app_error", nil, "", http.StatusBadRequest)
+		http.Redirect(w, r, c.GetSiteURLHeader()+"/error?message="+utils.T(c.Err.Message), http.StatusTemporaryRedirect)
 		return
 	}
 

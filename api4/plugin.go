@@ -18,14 +18,14 @@ const (
 	MAXIMUM_PLUGIN_FILE_SIZE = 50 * 1024 * 1024
 )
 
-func InitPlugin() {
+func (api *API) InitPlugin() {
 	l4g.Debug("EXPERIMENTAL: Initializing plugin api")
 
-	BaseRoutes.Plugins.Handle("", ApiSessionRequired(uploadPlugin)).Methods("POST")
-	BaseRoutes.Plugins.Handle("", ApiSessionRequired(getPlugins)).Methods("GET")
-	BaseRoutes.Plugin.Handle("", ApiSessionRequired(removePlugin)).Methods("DELETE")
+	api.BaseRoutes.Plugins.Handle("", api.ApiSessionRequired(uploadPlugin)).Methods("POST")
+	api.BaseRoutes.Plugins.Handle("", api.ApiSessionRequired(getPlugins)).Methods("GET")
+	api.BaseRoutes.Plugin.Handle("", api.ApiSessionRequired(removePlugin)).Methods("DELETE")
 
-	BaseRoutes.Plugins.Handle("/webapp", ApiHandler(getWebappPlugins)).Methods("GET")
+	api.BaseRoutes.Plugins.Handle("/webapp", api.ApiHandler(getWebappPlugins)).Methods("GET")
 
 }
 

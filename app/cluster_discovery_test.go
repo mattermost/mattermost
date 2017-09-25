@@ -12,9 +12,9 @@ import (
 )
 
 func TestClusterDiscoveryService(t *testing.T) {
-	Setup()
+	th := Setup()
 
-	ds := NewClusterDiscoveryService()
+	ds := th.App.NewClusterDiscoveryService()
 	ds.Type = model.CDS_TYPE_APP
 	ds.ClusterName = "ClusterA"
 	ds.AutoFillHostname()

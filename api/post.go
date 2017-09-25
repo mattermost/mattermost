@@ -18,28 +18,28 @@ const OPEN_GRAPH_METADATA_CACHE_SIZE = 10000
 
 var openGraphDataCache = utils.NewLru(OPEN_GRAPH_METADATA_CACHE_SIZE)
 
-func InitPost() {
+func (api *API) InitPost() {
 	l4g.Debug(utils.T("api.post.init.debug"))
 
-	BaseRoutes.ApiRoot.Handle("/get_opengraph_metadata", ApiUserRequired(getOpenGraphMetadata)).Methods("POST")
+	api.BaseRoutes.ApiRoot.Handle("/get_opengraph_metadata", api.ApiUserRequired(getOpenGraphMetadata)).Methods("POST")
 
-	BaseRoutes.NeedTeam.Handle("/posts/search", ApiUserRequiredActivity(searchPosts, true)).Methods("POST")
-	BaseRoutes.NeedTeam.Handle("/posts/flagged/{offset:[0-9]+}/{limit:[0-9]+}", ApiUserRequired(getFlaggedPosts)).Methods("GET")
-	BaseRoutes.NeedTeam.Handle("/posts/{post_id}", ApiUserRequired(getPostById)).Methods("GET")
-	BaseRoutes.NeedTeam.Handle("/pltmp/{post_id}", ApiUserRequired(getPermalinkTmp)).Methods("GET")
+	api.BaseRoutes.NeedTeam.Handle("/posts/search", api.ApiUserRequiredActivity(searchPosts, true)).Methods("POST")
+	api.BaseRoutes.NeedTeam.Handle("/posts/flagged/{offset:[0-9]+}/{limit:[0-9]+}", api.ApiUserRequired(getFlaggedPosts)).Methods("GET")
+	api.BaseRoutes.NeedTeam.Handle("/posts/{post_id}", api.ApiUserRequired(getPostById)).Methods("GET")
+	api.BaseRoutes.NeedTeam.Handle("/pltmp/{post_id}", api.ApiUserRequired(getPermalinkTmp)).Methods("GET")
 
-	BaseRoutes.Posts.Handle("/create", ApiUserRequiredActivity(createPost, true)).Methods("POST")
-	BaseRoutes.Posts.Handle("/update", ApiUserRequiredActivity(updatePost, true)).Methods("POST")
-	BaseRoutes.Posts.Handle("/page/{offset:[0-9]+}/{limit:[0-9]+}", ApiUserRequired(getPosts)).Methods("GET")
-	BaseRoutes.Posts.Handle("/since/{time:[0-9]+}", ApiUserRequired(getPostsSince)).Methods("GET")
+	api.BaseRoutes.Posts.Handle("/create", api.ApiUserRequiredActivity(createPost, true)).Methods("POST")
+	api.BaseRoutes.Posts.Handle("/update", api.ApiUserRequiredActivity(updatePost, true)).Methods("POST")
+	api.BaseRoutes.Posts.Handle("/page/{offset:[0-9]+}/{limit:[0-9]+}", api.ApiUserRequired(getPosts)).Methods("GET")
+	api.BaseRoutes.Posts.Handle("/since/{time:[0-9]+}", api.ApiUserRequired(getPostsSince)).Methods("GET")
 
-	BaseRoutes.NeedPost.Handle("/get", ApiUserRequired(getPost)).Methods("GET")
-	BaseRoutes.NeedPost.Handle("/delete", ApiUserRequiredActivity(deletePost, true)).Methods("POST")
-	BaseRoutes.NeedPost.Handle("/before/{offset:[0-9]+}/{num_posts:[0-9]+}", ApiUserRequired(getPostsBefore)).Methods("GET")
-	BaseRoutes.NeedPost.Handle("/after/{offset:[0-9]+}/{num_posts:[0-9]+}", ApiUserRequired(getPostsAfter)).Methods("GET")
-	BaseRoutes.NeedPost.Handle("/get_file_infos", ApiUserRequired(getFileInfosForPost)).Methods("GET")
-	BaseRoutes.NeedPost.Handle("/pin", ApiUserRequired(pinPost)).Methods("POST")
-	BaseRoutes.NeedPost.Handle("/unpin", ApiUserRequired(unpinPost)).Methods("POST")
+	api.BaseRoutes.NeedPost.Handle("/get", api.ApiUserRequired(getPost)).Methods("GET")
+	api.BaseRoutes.NeedPost.Handle("/delete", api.ApiUserRequiredActivity(deletePost, true)).Methods("POST")
+	api.BaseRoutes.NeedPost.Handle("/before/{offset:[0-9]+}/{num_posts:[0-9]+}", api.ApiUserRequired(getPostsBefore)).Methods("GET")
+	api.BaseRoutes.NeedPost.Handle("/after/{offset:[0-9]+}/{num_posts:[0-9]+}", api.ApiUserRequired(getPostsAfter)).Methods("GET")
+	api.BaseRoutes.NeedPost.Handle("/get_file_infos", api.ApiUserRequired(getFileInfosForPost)).Methods("GET")
+	api.BaseRoutes.NeedPost.Handle("/pin", api.ApiUserRequired(pinPost)).Methods("POST")
+	api.BaseRoutes.NeedPost.Handle("/unpin", api.ApiUserRequired(unpinPost)).Methods("POST")
 }
 
 func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -212,7 +212,7 @@ func getPosts(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	etag := c.App.GetPostsEtag(id)
 
-	if HandleEtag(etag, "Get Posts", w, r) {
+	if c.HandleEtag(etag, "Get Posts", w, r) {
 		return
 	}
 
@@ -278,7 +278,7 @@ func getPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	if list, err := c.App.GetPostThread(postId); err != nil {
 		c.Err = err
 		return
-	} else if HandleEtag(list.Etag(), "Get Post", w, r) {
+	} else if c.HandleEtag(list.Etag(), "Get Post", w, r) {
 		return
 	} else {
 		if !list.IsChannelId(channelId) {
@@ -315,7 +315,7 @@ func getPostById(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		if HandleEtag(list.Etag(), "Get Post By Id", w, r) {
+		if c.HandleEtag(list.Etag(), "Get Post By Id", w, r) {
 			return
 		}
 
@@ -356,7 +356,7 @@ func getPermalinkTmp(c *Context, w http.ResponseWriter, r *http.Request) {
 	if list, err := c.App.GetPermalinkPost(postId, c.Session.UserId); err != nil {
 		c.Err = err
 		return
-	} else if HandleEtag(list.Etag(), "Get Permalink TMP", w, r) {
+	} else if c.HandleEtag(list.Etag(), "Get Permalink TMP", w, r) {
 		return
 	} else {
 		w.Header().Set(model.HEADER_ETAG_SERVER, list.Etag())
@@ -447,7 +447,7 @@ func getPostsBeforeOrAfter(c *Context, w http.ResponseWriter, r *http.Request, b
 	// We can do better than this etag in this situation
 	etag := c.App.GetPostsEtag(id)
 
-	if HandleEtag(etag, "Get Posts Before or After", w, r) {
+	if c.HandleEtag(etag, "Get Posts Before or After", w, r) {
 		return
 	}
 
@@ -507,7 +507,7 @@ func getFileInfosForPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	if infos, err := c.App.GetFileInfosForPost(postId, false); err != nil {
 		c.Err = err
 		return
-	} else if HandleEtag(model.GetEtagForFileInfos(infos), "Get File Infos For Post", w, r) {
+	} else if c.HandleEtag(model.GetEtagForFileInfos(infos), "Get File Infos For Post", w, r) {
 		return
 	} else {
 		if len(infos) > 0 {

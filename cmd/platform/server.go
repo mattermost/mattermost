@@ -13,7 +13,6 @@ import (
 	"github.com/mattermost/mattermost-server/api"
 	"github.com/mattermost/mattermost-server/api4"
 	"github.com/mattermost/mattermost-server/app"
-	"github.com/mattermost/mattermost-server/einterfaces"
 	"github.com/mattermost/mattermost-server/jobs"
 	"github.com/mattermost/mattermost-server/manualtesting"
 	"github.com/mattermost/mattermost-server/model"
@@ -82,10 +81,10 @@ func runServer(configFileLocation string) {
 	}
 
 	wsapi.InitRouter()
-	api4.InitApi(a.Srv.Router, false)
-	api.InitApi(a.Srv.Router)
+	api4.Init(a, a.Srv.Router, false)
+	api3 := api.Init(a, a.Srv.Router)
 	wsapi.InitApi()
-	web.InitWeb()
+	web.Init(api3)
 
 	if !utils.IsLicensed() && len(utils.Cfg.SqlSettings.DataSourceReplicas) > 1 {
 		l4g.Warn(utils.T("store.sql.read_replicas_not_licensed.critical"))
@@ -96,7 +95,7 @@ func runServer(configFileLocation string) {
 		utils.Cfg.TeamSettings.MaxNotificationsPerChannel = &MaxNotificationsPerChannelDefault
 	}
 
-	app.ReloadConfig()
+	a.ReloadConfig()
 
 	// Enable developer settings if this is a "dev" build
 	if model.BuildNumber == "dev" {
@@ -109,7 +108,7 @@ func runServer(configFileLocation string) {
 
 	// If we allow testing then listen for manual testing URL hits
 	if utils.Cfg.ServiceSettings.EnableTesting {
-		manualtesting.InitManualTesting()
+		manualtesting.Init(api3)
 	}
 
 	setDiagnosticId(a)
@@ -120,21 +119,21 @@ func runServer(configFileLocation string) {
 	go runTokenCleanupJob(a)
 	go runCommandWebhookCleanupJob(a)
 
-	if complianceI := einterfaces.GetComplianceInterface(); complianceI != nil {
+	if complianceI := a.Compliance; complianceI != nil {
 		complianceI.StartComplianceDailyJob()
 	}
 
-	if einterfaces.GetClusterInterface() != nil {
+	if a.Cluster != nil {
 		a.RegisterAllClusterMessageHandlers()
-		einterfaces.GetClusterInterface().StartInterNodeCommunication()
+		a.Cluster.StartInterNodeCommunication()
 	}
 
-	if einterfaces.GetMetricsInterface() != nil {
-		einterfaces.GetMetricsInterface().StartServer()
+	if a.Metrics != nil {
+		a.Metrics.StartServer()
 	}
 
-	if einterfaces.GetElasticsearchInterface() != nil {
-		if err := einterfaces.GetElasticsearchInterface().Start(); err != nil {
+	if a.Elasticsearch != nil {
+		if err := a.Elasticsearch.Start(); err != nil {
 			l4g.Error(err.Error())
 		}
 	}
@@ -153,12 +152,12 @@ func runServer(configFileLocation string) {
 	signal.Notify(c, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
 	<-c
 
-	if einterfaces.GetClusterInterface() != nil {
-		einterfaces.GetClusterInterface().StopInterNodeCommunication()
+	if a.Cluster != nil {
+		a.Cluster.StopInterNodeCommunication()
 	}
 
-	if einterfaces.GetMetricsInterface() != nil {
-		einterfaces.GetMetricsInterface().StopServer()
+	if a.Metrics != nil {
+		a.Metrics.StopServer()
 	}
 
 	jobs.Srv.StopSchedulers()

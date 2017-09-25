@@ -15,21 +15,21 @@ import (
 	"github.com/mattermost/mattermost-server/utils"
 )
 
-func InitCommand() {
+func (api *API) InitCommand() {
 	l4g.Debug(utils.T("api.command.init.debug"))
 
-	BaseRoutes.Commands.Handle("", ApiSessionRequired(createCommand)).Methods("POST")
-	BaseRoutes.Commands.Handle("", ApiSessionRequired(listCommands)).Methods("GET")
-	BaseRoutes.Commands.Handle("/execute", ApiSessionRequired(executeCommand)).Methods("POST")
+	api.BaseRoutes.Commands.Handle("", api.ApiSessionRequired(createCommand)).Methods("POST")
+	api.BaseRoutes.Commands.Handle("", api.ApiSessionRequired(listCommands)).Methods("GET")
+	api.BaseRoutes.Commands.Handle("/execute", api.ApiSessionRequired(executeCommand)).Methods("POST")
 
-	BaseRoutes.Command.Handle("", ApiSessionRequired(updateCommand)).Methods("PUT")
-	BaseRoutes.Command.Handle("", ApiSessionRequired(deleteCommand)).Methods("DELETE")
+	api.BaseRoutes.Command.Handle("", api.ApiSessionRequired(updateCommand)).Methods("PUT")
+	api.BaseRoutes.Command.Handle("", api.ApiSessionRequired(deleteCommand)).Methods("DELETE")
 
-	BaseRoutes.Team.Handle("/commands/autocomplete", ApiSessionRequired(listAutocompleteCommands)).Methods("GET")
-	BaseRoutes.Command.Handle("/regen_token", ApiSessionRequired(regenCommandToken)).Methods("PUT")
+	api.BaseRoutes.Team.Handle("/commands/autocomplete", api.ApiSessionRequired(listAutocompleteCommands)).Methods("GET")
+	api.BaseRoutes.Command.Handle("/regen_token", api.ApiSessionRequired(regenCommandToken)).Methods("PUT")
 
-	BaseRoutes.Teams.Handle("/command_test", ApiHandler(testCommand)).Methods("POST")
-	BaseRoutes.Teams.Handle("/command_test", ApiHandler(testCommand)).Methods("GET")
+	api.BaseRoutes.Teams.Handle("/command_test", api.ApiHandler(testCommand)).Methods("POST")
+	api.BaseRoutes.Teams.Handle("/command_test", api.ApiHandler(testCommand)).Methods("GET")
 }
 
 func createCommand(c *Context, w http.ResponseWriter, r *http.Request) {

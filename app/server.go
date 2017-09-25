@@ -20,6 +20,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
+	"github.com/mattermost/mattermost-server/store/sqlstore"
 	"github.com/mattermost/mattermost-server/utils"
 )
 
@@ -84,7 +85,7 @@ func (a *App) NewServer() {
 }
 
 func (a *App) InitStores() {
-	a.Srv.Store = store.NewLayeredStore()
+	a.Srv.Store = store.NewLayeredStore(sqlstore.NewSqlSupplier(a.Metrics), a.Metrics, a.Cluster)
 }
 
 type VaryBy struct{}

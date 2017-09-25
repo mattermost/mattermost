@@ -112,12 +112,12 @@ func removeUsersCmdF(cmd *cobra.Command, args []string) error {
 		return errors.New("Not enough arguments.")
 	}
 
-	team := getTeamFromTeamArg(args[0])
+	team := getTeamFromTeamArg(a, args[0])
 	if team == nil {
 		return errors.New("Unable to find team '" + args[0] + "'")
 	}
 
-	users := getUsersFromUserArgs(args[1:])
+	users := getUsersFromUserArgs(a, args[1:])
 	for i, user := range users {
 		removeUserFromTeam(a, team, user, args[i+1])
 	}
@@ -145,12 +145,12 @@ func addUsersCmdF(cmd *cobra.Command, args []string) error {
 		return errors.New("Not enough arguments.")
 	}
 
-	team := getTeamFromTeamArg(args[0])
+	team := getTeamFromTeamArg(a, args[0])
 	if team == nil {
 		return errors.New("Unable to find team '" + args[0] + "'")
 	}
 
-	users := getUsersFromUserArgs(args[1:])
+	users := getUsersFromUserArgs(a, args[1:])
 	for i, user := range users {
 		addUserToTeam(a, team, user, args[i+1])
 	}
@@ -194,7 +194,7 @@ func deleteTeamsCmdF(cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	teams := getTeamsFromTeamArgs(args)
+	teams := getTeamsFromTeamArgs(a, args)
 	for i, team := range teams {
 		if team == nil {
 			CommandPrintErrorln("Unable to find team '" + args[i] + "'")

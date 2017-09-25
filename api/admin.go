@@ -10,44 +10,43 @@ import (
 	l4g "github.com/alecthomas/log4go"
 	"github.com/gorilla/mux"
 	"github.com/mattermost/mattermost-server/app"
-	"github.com/mattermost/mattermost-server/einterfaces"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
 	"github.com/mssola/user_agent"
 )
 
-func InitAdmin() {
+func (api *API) InitAdmin() {
 	l4g.Debug(utils.T("api.admin.init.debug"))
 
-	BaseRoutes.Admin.Handle("/logs", ApiAdminSystemRequired(getLogs)).Methods("GET")
-	BaseRoutes.Admin.Handle("/audits", ApiAdminSystemRequired(getAllAudits)).Methods("GET")
-	BaseRoutes.Admin.Handle("/config", ApiAdminSystemRequired(getConfig)).Methods("GET")
-	BaseRoutes.Admin.Handle("/save_config", ApiAdminSystemRequired(saveConfig)).Methods("POST")
-	BaseRoutes.Admin.Handle("/reload_config", ApiAdminSystemRequired(reloadConfig)).Methods("GET")
-	BaseRoutes.Admin.Handle("/invalidate_all_caches", ApiAdminSystemRequired(invalidateAllCaches)).Methods("GET")
-	BaseRoutes.Admin.Handle("/test_email", ApiAdminSystemRequired(testEmail)).Methods("POST")
-	BaseRoutes.Admin.Handle("/recycle_db_conn", ApiAdminSystemRequired(recycleDatabaseConnection)).Methods("GET")
-	BaseRoutes.Admin.Handle("/analytics/{id:[A-Za-z0-9]+}/{name:[A-Za-z0-9_]+}", ApiAdminSystemRequired(getAnalytics)).Methods("GET")
-	BaseRoutes.Admin.Handle("/analytics/{name:[A-Za-z0-9_]+}", ApiAdminSystemRequired(getAnalytics)).Methods("GET")
-	BaseRoutes.Admin.Handle("/save_compliance_report", ApiAdminSystemRequired(saveComplianceReport)).Methods("POST")
-	BaseRoutes.Admin.Handle("/compliance_reports", ApiAdminSystemRequired(getComplianceReports)).Methods("GET")
-	BaseRoutes.Admin.Handle("/download_compliance_report/{id:[A-Za-z0-9]+}", ApiAdminSystemRequiredTrustRequester(downloadComplianceReport)).Methods("GET")
-	BaseRoutes.Admin.Handle("/upload_brand_image", ApiAdminSystemRequired(uploadBrandImage)).Methods("POST")
-	BaseRoutes.Admin.Handle("/get_brand_image", ApiAppHandlerTrustRequester(getBrandImage)).Methods("GET")
-	BaseRoutes.Admin.Handle("/reset_mfa", ApiAdminSystemRequired(adminResetMfa)).Methods("POST")
-	BaseRoutes.Admin.Handle("/reset_password", ApiAdminSystemRequired(adminResetPassword)).Methods("POST")
-	BaseRoutes.Admin.Handle("/ldap_sync_now", ApiAdminSystemRequired(ldapSyncNow)).Methods("POST")
-	BaseRoutes.Admin.Handle("/ldap_test", ApiAdminSystemRequired(ldapTest)).Methods("POST")
-	BaseRoutes.Admin.Handle("/saml_metadata", ApiAppHandler(samlMetadata)).Methods("GET")
-	BaseRoutes.Admin.Handle("/add_certificate", ApiAdminSystemRequired(addCertificate)).Methods("POST")
-	BaseRoutes.Admin.Handle("/remove_certificate", ApiAdminSystemRequired(removeCertificate)).Methods("POST")
-	BaseRoutes.Admin.Handle("/saml_cert_status", ApiAdminSystemRequired(samlCertificateStatus)).Methods("GET")
-	BaseRoutes.Admin.Handle("/cluster_status", ApiAdminSystemRequired(getClusterStatus)).Methods("GET")
-	BaseRoutes.Admin.Handle("/recently_active_users/{team_id:[A-Za-z0-9]+}", ApiUserRequired(getRecentlyActiveUsers)).Methods("GET")
+	api.BaseRoutes.Admin.Handle("/logs", api.ApiAdminSystemRequired(getLogs)).Methods("GET")
+	api.BaseRoutes.Admin.Handle("/audits", api.ApiAdminSystemRequired(getAllAudits)).Methods("GET")
+	api.BaseRoutes.Admin.Handle("/config", api.ApiAdminSystemRequired(getConfig)).Methods("GET")
+	api.BaseRoutes.Admin.Handle("/save_config", api.ApiAdminSystemRequired(saveConfig)).Methods("POST")
+	api.BaseRoutes.Admin.Handle("/reload_config", api.ApiAdminSystemRequired(reloadConfig)).Methods("GET")
+	api.BaseRoutes.Admin.Handle("/invalidate_all_caches", api.ApiAdminSystemRequired(invalidateAllCaches)).Methods("GET")
+	api.BaseRoutes.Admin.Handle("/test_email", api.ApiAdminSystemRequired(testEmail)).Methods("POST")
+	api.BaseRoutes.Admin.Handle("/recycle_db_conn", api.ApiAdminSystemRequired(recycleDatabaseConnection)).Methods("GET")
+	api.BaseRoutes.Admin.Handle("/analytics/{id:[A-Za-z0-9]+}/{name:[A-Za-z0-9_]+}", api.ApiAdminSystemRequired(getAnalytics)).Methods("GET")
+	api.BaseRoutes.Admin.Handle("/analytics/{name:[A-Za-z0-9_]+}", api.ApiAdminSystemRequired(getAnalytics)).Methods("GET")
+	api.BaseRoutes.Admin.Handle("/save_compliance_report", api.ApiAdminSystemRequired(saveComplianceReport)).Methods("POST")
+	api.BaseRoutes.Admin.Handle("/compliance_reports", api.ApiAdminSystemRequired(getComplianceReports)).Methods("GET")
+	api.BaseRoutes.Admin.Handle("/download_compliance_report/{id:[A-Za-z0-9]+}", api.ApiAdminSystemRequiredTrustRequester(downloadComplianceReport)).Methods("GET")
+	api.BaseRoutes.Admin.Handle("/upload_brand_image", api.ApiAdminSystemRequired(uploadBrandImage)).Methods("POST")
+	api.BaseRoutes.Admin.Handle("/get_brand_image", api.ApiAppHandlerTrustRequester(getBrandImage)).Methods("GET")
+	api.BaseRoutes.Admin.Handle("/reset_mfa", api.ApiAdminSystemRequired(adminResetMfa)).Methods("POST")
+	api.BaseRoutes.Admin.Handle("/reset_password", api.ApiAdminSystemRequired(adminResetPassword)).Methods("POST")
+	api.BaseRoutes.Admin.Handle("/ldap_sync_now", api.ApiAdminSystemRequired(ldapSyncNow)).Methods("POST")
+	api.BaseRoutes.Admin.Handle("/ldap_test", api.ApiAdminSystemRequired(ldapTest)).Methods("POST")
+	api.BaseRoutes.Admin.Handle("/saml_metadata", api.ApiAppHandler(samlMetadata)).Methods("GET")
+	api.BaseRoutes.Admin.Handle("/add_certificate", api.ApiAdminSystemRequired(addCertificate)).Methods("POST")
+	api.BaseRoutes.Admin.Handle("/remove_certificate", api.ApiAdminSystemRequired(removeCertificate)).Methods("POST")
+	api.BaseRoutes.Admin.Handle("/saml_cert_status", api.ApiAdminSystemRequired(samlCertificateStatus)).Methods("GET")
+	api.BaseRoutes.Admin.Handle("/cluster_status", api.ApiAdminSystemRequired(getClusterStatus)).Methods("GET")
+	api.BaseRoutes.Admin.Handle("/recently_active_users/{team_id:[A-Za-z0-9]+}", api.ApiUserRequired(getRecentlyActiveUsers)).Methods("GET")
 }
 
 func getLogs(c *Context, w http.ResponseWriter, r *http.Request) {
-	lines, err := app.GetLogs(0, 10000)
+	lines, err := c.App.GetLogs(0, 10000)
 	if err != nil {
 		c.Err = err
 		return
@@ -57,10 +56,10 @@ func getLogs(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getClusterStatus(c *Context, w http.ResponseWriter, r *http.Request) {
-	infos := app.GetClusterStatus()
+	infos := c.App.GetClusterStatus()
 
-	if einterfaces.GetClusterInterface() != nil {
-		w.Header().Set(model.HEADER_CLUSTER_ID, einterfaces.GetClusterInterface().GetClusterId())
+	if c.App.Cluster != nil {
+		w.Header().Set(model.HEADER_CLUSTER_ID, c.App.Cluster.GetClusterId())
 	}
 
 	w.Write([]byte(model.ClusterInfosToJson(infos)))
@@ -70,7 +69,7 @@ func getAllAudits(c *Context, w http.ResponseWriter, r *http.Request) {
 	if audits, err := c.App.GetAudits("", 200); err != nil {
 		c.Err = err
 		return
-	} else if HandleEtag(audits.Etag(), "Get All Audits", w, r) {
+	} else if c.HandleEtag(audits.Etag(), "Get All Audits", w, r) {
 		return
 	} else {
 		etag := audits.Etag()
@@ -84,13 +83,13 @@ func getAllAudits(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getConfig(c *Context, w http.ResponseWriter, r *http.Request) {
-	cfg := app.GetConfig()
+	cfg := c.App.GetConfig()
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
 	w.Write([]byte(cfg.ToJson()))
 }
 
 func reloadConfig(c *Context, w http.ResponseWriter, r *http.Request) {
-	app.ReloadConfig()
+	c.App.ReloadConfig()
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
 	ReturnStatusOK(w)
 }
@@ -113,7 +112,7 @@ func saveConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := app.SaveConfig(cfg, true)
+	err := c.App.SaveConfig(cfg, true)
 	if err != nil {
 		c.Err = err
 		return
@@ -261,7 +260,7 @@ func uploadBrandImage(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := app.SaveBrandImage(imageArray[0]); err != nil {
+	if err := c.App.SaveBrandImage(imageArray[0]); err != nil {
 		c.Err = err
 		return
 	}
@@ -272,7 +271,7 @@ func uploadBrandImage(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getBrandImage(c *Context, w http.ResponseWriter, r *http.Request) {
-	if img, err := app.GetBrandImage(); err != nil {
+	if img, err := c.App.GetBrandImage(); err != nil {
 		w.Write(nil)
 	} else {
 		w.Header().Set("Content-Type", "image/png")
@@ -289,7 +288,7 @@ func adminResetMfa(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := app.DeactivateMfa(userId); err != nil {
+	if err := c.App.DeactivateMfa(userId); err != nil {
 		c.Err = err
 		return
 	}
@@ -329,7 +328,7 @@ func adminResetPassword(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func ldapSyncNow(c *Context, w http.ResponseWriter, r *http.Request) {
-	app.SyncLdap()
+	c.App.SyncLdap()
 
 	rdata := map[string]string{}
 	rdata["status"] = "ok"
@@ -337,7 +336,7 @@ func ldapSyncNow(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func ldapTest(c *Context, w http.ResponseWriter, r *http.Request) {
-	if err := app.TestLdap(); err != nil {
+	if err := c.App.TestLdap(); err != nil {
 		c.Err = err
 		return
 	}
@@ -348,7 +347,7 @@ func ldapTest(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func samlMetadata(c *Context, w http.ResponseWriter, r *http.Request) {
-	if result, err := app.GetSamlMetadata(); err != nil {
+	if result, err := c.App.GetSamlMetadata(); err != nil {
 		c.Err = model.NewAppError("loginWithSaml", "api.admin.saml.metadata.app_error", nil, "err="+err.Message, http.StatusInternalServerError)
 		return
 	} else {

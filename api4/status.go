@@ -13,12 +13,12 @@ import (
 	"github.com/mattermost/mattermost-server/utils"
 )
 
-func InitStatus() {
+func (api *API) InitStatus() {
 	l4g.Debug(utils.T("api.status.init.debug"))
 
-	BaseRoutes.User.Handle("/status", ApiSessionRequired(getUserStatus)).Methods("GET")
-	BaseRoutes.Users.Handle("/status/ids", ApiSessionRequired(getUserStatusesByIds)).Methods("POST")
-	BaseRoutes.User.Handle("/status", ApiSessionRequired(updateUserStatus)).Methods("PUT")
+	api.BaseRoutes.User.Handle("/status", api.ApiSessionRequired(getUserStatus)).Methods("GET")
+	api.BaseRoutes.Users.Handle("/status/ids", api.ApiSessionRequired(getUserStatusesByIds)).Methods("POST")
+	api.BaseRoutes.User.Handle("/status", api.ApiSessionRequired(updateUserStatus)).Methods("PUT")
 }
 
 func getUserStatus(c *Context, w http.ResponseWriter, r *http.Request) {

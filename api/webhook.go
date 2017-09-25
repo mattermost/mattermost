@@ -12,19 +12,19 @@ import (
 	"github.com/mattermost/mattermost-server/utils"
 )
 
-func InitWebhook() {
+func (api *API) InitWebhook() {
 	l4g.Debug(utils.T("api.webhook.init.debug"))
 
-	BaseRoutes.Hooks.Handle("/incoming/create", ApiUserRequired(createIncomingHook)).Methods("POST")
-	BaseRoutes.Hooks.Handle("/incoming/update", ApiUserRequired(updateIncomingHook)).Methods("POST")
-	BaseRoutes.Hooks.Handle("/incoming/delete", ApiUserRequired(deleteIncomingHook)).Methods("POST")
-	BaseRoutes.Hooks.Handle("/incoming/list", ApiUserRequired(getIncomingHooks)).Methods("GET")
+	api.BaseRoutes.Hooks.Handle("/incoming/create", api.ApiUserRequired(createIncomingHook)).Methods("POST")
+	api.BaseRoutes.Hooks.Handle("/incoming/update", api.ApiUserRequired(updateIncomingHook)).Methods("POST")
+	api.BaseRoutes.Hooks.Handle("/incoming/delete", api.ApiUserRequired(deleteIncomingHook)).Methods("POST")
+	api.BaseRoutes.Hooks.Handle("/incoming/list", api.ApiUserRequired(getIncomingHooks)).Methods("GET")
 
-	BaseRoutes.Hooks.Handle("/outgoing/create", ApiUserRequired(createOutgoingHook)).Methods("POST")
-	BaseRoutes.Hooks.Handle("/outgoing/update", ApiUserRequired(updateOutgoingHook)).Methods("POST")
-	BaseRoutes.Hooks.Handle("/outgoing/regen_token", ApiUserRequired(regenOutgoingHookToken)).Methods("POST")
-	BaseRoutes.Hooks.Handle("/outgoing/delete", ApiUserRequired(deleteOutgoingHook)).Methods("POST")
-	BaseRoutes.Hooks.Handle("/outgoing/list", ApiUserRequired(getOutgoingHooks)).Methods("GET")
+	api.BaseRoutes.Hooks.Handle("/outgoing/create", api.ApiUserRequired(createOutgoingHook)).Methods("POST")
+	api.BaseRoutes.Hooks.Handle("/outgoing/update", api.ApiUserRequired(updateOutgoingHook)).Methods("POST")
+	api.BaseRoutes.Hooks.Handle("/outgoing/regen_token", api.ApiUserRequired(regenOutgoingHookToken)).Methods("POST")
+	api.BaseRoutes.Hooks.Handle("/outgoing/delete", api.ApiUserRequired(deleteOutgoingHook)).Methods("POST")
+	api.BaseRoutes.Hooks.Handle("/outgoing/list", api.ApiUserRequired(getOutgoingHooks)).Methods("GET")
 }
 
 func createIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
