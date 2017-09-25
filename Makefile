@@ -455,8 +455,10 @@ clean: stop-docker
 	rm -rf logs
 
 	rm -f mattermost.log
+	rm -f mattermost.log.jsonl
 	rm -f npm-debug.log
 	rm -f api/mattermost.log
+	rm -f api/mattermost.log.jsonl
 	rm -f .prepare-go
 	rm -f enterprise
 	rm -f cover.out
