@@ -972,10 +972,6 @@
     "translation": "이메일 배치 작업이 실행됐습니다. 아직 사용자 %v명의 알림이 남아있습니다."
   },
   {
-    "id": "api.email_batching.check_pending_emails.status.app_error",
-    "translation": "배치된 이메일 알림 수신자의 상태를 확인할 수 없습니다."
-  },
-  {
     "id": "api.email_batching.render_batched_post.channel.app_error",
     "translation": "배치된 이메일 알림 대상 글의 채널을 찾을 수 없습니다."
   },
@@ -1400,10 +1396,6 @@
   {
     "id": "api.oauth.authorize_oauth.missing.app_error",
     "translation": "response_type, client_id, redirect_uri 중 하나 이상이 누락되었습니다."
-  },
-  {
-    "id": "api.oauth.complete_oauth.missing_code.app_error",
-    "translation": "서비스 제공자 {{.service}}(이)가 리다이렉트 URL에서 Authorization 코드를 제공하지 않습니다.\n\n[Google Apps](https://docs.mattermost.com/deployment/sso-google.html) 관리자가 Google+ API를 활성화 했는지 확인해보세요.\n\n[Office 365](https://docs.mattermost.com/deployment/sso-office.html) 관리자가  Microsoft organization에서 Mattermost 앱을 활성화 했는지 확인해보세요.\n\n[GitLab](https://docs.mattermost.com/deployment/sso-gitlab.html) 설정 지시를 잘 따라했는지 확인해보세요.\n\n위 설정을 모두 확인한 후 문제가 지속된다면, [Troubleshooting 포럼](https://forum.mattermost.org/c/general/trouble-shoot)에 글로 남겨주시세요. 성심성의 껏 도와드립니다."
   },
   {
     "id": "api.oauth.delete.permissions.app_error",
@@ -2236,14 +2228,6 @@
     "translation": "발신: "
   },
   {
-    "id": "api.templates.error.link",
-    "translation": "Mattermost 로 돌아가기"
-  },
-  {
-    "id": "api.templates.error.title",
-    "translation": "{{ .SiteName }} 에 문제 발생:"
-  },
-  {
     "id": "api.templates.find_teams_body.found",
     "translation": "Your request to find teams associated with your email found the following:"
   },
@@ -2741,7 +2725,7 @@
   },
   {
     "id": "api.user.send_user_access_token.error",
-    "translation": "Failed to send personal access token added email successfully"
+    "translation": "Failed to send \"Personal access token added\" email successfully"
   },
   {
     "id": "api.user.send_verify_email_and_forget.failed.error",
@@ -3444,10 +3428,6 @@
     "translation": "Unable to activate extracted plugin. Plugin may already exist and be activated."
   },
   {
-    "id": "app.plugin.bad_path.app_error",
-    "translation": "Bad file path in extracted files"
-  },
-  {
     "id": "app.plugin.deactivate.app_error",
     "translation": "Unable to deactivate plugin"
   },
@@ -3460,6 +3440,10 @@
     "translation": "Encountered error extracting plugin"
   },
   {
+    "id": "app.plugin.filesystem.app_error",
+    "translation": "Encountered filesystem error"
+  },
+  {
     "id": "app.plugin.get_plugins.app_error",
     "translation": "Unable to get active plugins"
   },
@@ -3470,10 +3454,6 @@
   {
     "id": "app.plugin.mvdir.app_error",
     "translation": "Unable to move plugin from temporary directory to final destination"
-  },
-  {
-    "id": "app.plugin.no_files.app_error",
-    "translation": "No files found in the compressed folder"
   },
   {
     "id": "app.plugin.remove.app_error",
@@ -3988,30 +3968,6 @@
     "translation": "Unable to update existing SAML user. Allowing login anyway. err=%v"
   },
   {
-    "id": "error.generic.link_message",
-    "translation": "Mattermost로 돌아가기"
-  },
-  {
-    "id": "error.generic.message",
-    "translation": "오류가 발생했습니다."
-  },
-  {
-    "id": "error.generic.title",
-    "translation": "오류"
-  },
-  {
-    "id": "error.not_found.link_message",
-    "translation": "Mattermost로 돌아가기"
-  },
-  {
-    "id": "error.not_found.message",
-    "translation": "The page you were trying to reach does not exist."
-  },
-  {
-    "id": "error.not_found.title",
-    "translation": "페이지가 없습니다."
-  },
-  {
     "id": "jobs.request_cancellation.status.error",
     "translation": "Could not request cancellation for job that is not in a cancelable state."
   },
@@ -4394,6 +4350,18 @@
   {
     "id": "model.config.is_valid.cluster_email_batching.app_error",
     "translation": "Unable to enable email batching when clustering is enabled"
+  },
+  {
+    "id": "model.config.is_valid.data_retention.deletion_job_start_time.app_error",
+    "translation": "DataRetention DeletionJobStartTime setting must be set to a time in the format \"hh:mm\""
+  },
+  {
+    "id": "model.config.is_valid.data_retention.file_retention_days_too_low.app_error",
+    "translation": "DataRetention FileRetentionDays setting must be at least 1"
+  },
+  {
+    "id": "model.config.is_valid.data_retention.message_retention_days_too_low.app_error",
+    "translation": "DataRetention MessageRetentionDays setting must be at least 1"
   },
   {
     "id": "model.config.is_valid.elastic_search.aggregate_posts_after_days.app_error",
@@ -5300,6 +5268,10 @@
     "translation": "Limit exceeded for paging"
   },
   {
+    "id": "store.sql_audit.permanent_delete_batch.app_error",
+    "translation": "We encountered an error permanently deleting the batch of audits"
+  },
+  {
     "id": "store.sql_audit.permanent_delete_by_user.app_error",
     "translation": "We encountered an error deleting the audits"
   },
@@ -5660,6 +5632,10 @@
     "translation": "We couldn't permanently delete the file info"
   },
   {
+    "id": "store.sql_file_info.permanent_delete_batch.app_error",
+    "translation": "We encountered an error permanently deleting the batch of file infos"
+  },
+  {
     "id": "store.sql_file_info.save.app_error",
     "translation": "We couldn't save the file info"
   },
@@ -5868,6 +5844,10 @@
     "translation": "We couldn't delete the comments for user"
   },
   {
+    "id": "store.sql_post.permanent_delete_batch.app_error",
+    "translation": "We encountered an error permanently deleting the batch of posts"
+  },
+  {
     "id": "store.sql_post.permanent_delete_by_channel.app_error",
     "translation": "채널을 삭제하지 못했습니다."
   },
@@ -5986,6 +5966,10 @@
   {
     "id": "store.sql_reaction.get_for_post.app_error",
     "translation": "Unable to get reactions for post"
+  },
+  {
+    "id": "store.sql_reaction.permanent_delete_batch.app_error",
+    "translation": "We encountered an error permanently deleting the batch of reactions"
   },
   {
     "id": "store.sql_reaction.save.begin.app_error",
@@ -6684,10 +6668,6 @@
     "translation": "애플리케이션 인증하기"
   },
   {
-    "id": "web.check_browser_compatibility.app_error",
-    "translation": "Your current browser is not supported, please upgrade to one of the following browsers: Google Chrome 21 or higher, Internet Explorer 11 or higher, FireFox 14 or higher, Safari 9 or higher"
-  },
-  {
     "id": "web.claim_account.team.error",
     "translation": "Couldn't find team name=%v, err=%v"
   },
@@ -6730,6 +6710,34 @@
   {
     "id": "web.email_verified.title",
     "translation": "이메일 검증됨"
+  },
+  {
+    "id": "web.error.unsupported_browser.help1",
+    "translation": "Google Chrome 43+"
+  },
+  {
+    "id": "web.error.unsupported_browser.help2",
+    "translation": "Mozilla Firefox 52+"
+  },
+  {
+    "id": "web.error.unsupported_browser.help3",
+    "translation": "Microsoft Internet Explorer 11+"
+  },
+  {
+    "id": "web.error.unsupported_browser.help4",
+    "translation": "Microsoft Edge 40+"
+  },
+  {
+    "id": "web.error.unsupported_browser.help5",
+    "translation": "Apple Safari 9+"
+  },
+  {
+    "id": "web.error.unsupported_browser.message",
+    "translation": "Your current browser is not supported. Please upgrade to one of the following browsers:"
+  },
+  {
+    "id": "web.error.unsupported_browser.title",
+    "translation": "Unsupported Browser"
   },
   {
     "id": "web.find_team.title",
