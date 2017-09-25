@@ -17,6 +17,7 @@ import (
 	"github.com/mattermost/mattermost-server/jobs"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
+	"github.com/mattermost/mattermost-server/store/sqlstore"
 	"github.com/mattermost/mattermost-server/utils"
 )
 
@@ -117,10 +118,10 @@ func (a *App) InvalidateAllCachesSkipSend() {
 	l4g.Info(utils.T("api.context.invalidate_all_caches"))
 	sessionCache.Purge()
 	ClearStatusCache()
-	store.ClearChannelCaches()
-	store.ClearUserCaches()
-	store.ClearPostCaches()
-	store.ClearWebhookCaches()
+	sqlstore.ClearChannelCaches()
+	sqlstore.ClearUserCaches()
+	sqlstore.ClearPostCaches()
+	sqlstore.ClearWebhookCaches()
 	a.LoadLicense()
 }
 
@@ -187,7 +188,7 @@ func (a *App) RecycleDatabaseConnection() {
 	oldStore := a.Srv.Store
 
 	l4g.Warn(utils.T("api.admin.recycle_db_start.warn"))
-	a.Srv.Store = store.NewLayeredStore(a.Metrics, a.Cluster)
+	a.Srv.Store = store.NewLayeredStore(sqlstore.NewSqlSupplier(a.Metrics), a.Metrics, a.Cluster)
 
 	jobs.Srv.Store = a.Srv.Store
 
