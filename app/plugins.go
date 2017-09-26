@@ -335,7 +335,7 @@ func (a *App) UnpackAndActivatePlugin(pluginFile io.Reader) (*model.Manifest, *m
 	if manifest.HasClient() {
 		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_PLUGIN_ACTIVATED, "", "", "", nil)
 		message.Add("manifest", manifest.ClientManifest())
-		Publish(message)
+		a.Publish(message)
 	}
 
 	return manifest, nil
@@ -383,7 +383,7 @@ func (a *App) RemovePlugin(id string) *model.AppError {
 	if manifest.HasClient() {
 		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_PLUGIN_DEACTIVATED, "", "", "", nil)
 		message.Add("manifest", manifest.ClientManifest())
-		Publish(message)
+		a.Publish(message)
 	}
 
 	return nil

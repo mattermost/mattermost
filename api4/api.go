@@ -226,7 +226,7 @@ func Init(a *app.App, root *mux.Router, full bool) *API {
 	if full {
 		utils.InitHTML()
 
-		app.InitEmailBatching()
+		a.InitEmailBatching()
 	}
 
 	return api

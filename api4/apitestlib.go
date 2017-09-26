@@ -61,10 +61,10 @@ func setupTestHelper(enterprise bool) *TestHelper {
 		th.App.NewServer()
 		th.App.InitStores()
 		th.App.Srv.Router = NewRouter()
-		wsapi.InitRouter()
+		th.App.Srv.WebSocketRouter = th.App.NewWebSocketRouter()
 		th.App.StartServer()
 		Init(th.App, th.App.Srv.Router, true)
-		wsapi.InitApi()
+		wsapi.Init(th.App, th.App.Srv.WebSocketRouter)
 		utils.EnableDebugLogForTest()
 		th.App.Srv.Store.MarkSystemRanUnitTests()
 

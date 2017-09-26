@@ -10,11 +10,11 @@ import (
 	"github.com/mattermost/mattermost-server/utils"
 )
 
-func InitStatus() {
+func (api *API) InitStatus() {
 	l4g.Debug(utils.T("wsapi.status.init.debug"))
 
-	app.Global().Srv.WebSocketRouter.Handle("get_statuses", ApiWebSocketHandler(getStatuses))
-	app.Global().Srv.WebSocketRouter.Handle("get_statuses_by_ids", ApiWebSocketHandler(getStatusesByIds))
+	api.Router.Handle("get_statuses", api.ApiWebSocketHandler(getStatuses))
+	api.Router.Handle("get_statuses_by_ids", api.ApiWebSocketHandler(api.getStatusesByIds))
 }
 
 func getStatuses(req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {
@@ -22,14 +22,14 @@ func getStatuses(req *model.WebSocketRequest) (map[string]interface{}, *model.Ap
 	return model.StatusMapToInterfaceMap(statusMap), nil
 }
 
-func getStatusesByIds(req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {
+func (api *API) getStatusesByIds(req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {
 	var userIds []string
 	if userIds = model.ArrayFromInterface(req.Data["user_ids"]); len(userIds) == 0 {
 		l4g.Error(model.StringInterfaceToJson(req.Data))
 		return nil, NewInvalidWebSocketParamError(req.Action, "user_ids")
 	}
 
-	statusMap, err := app.Global().GetStatusesByIds(userIds)
+	statusMap, err := api.App.GetStatusesByIds(userIds)
 	if err != nil {
 		return nil, err
 	}

@@ -8,7 +8,6 @@ import (
 
 	l4g "github.com/alecthomas/log4go"
 	"github.com/gorilla/websocket"
-	"github.com/mattermost/mattermost-server/app"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
 )
@@ -38,7 +37,7 @@ func connectWebSocket(c *Context, w http.ResponseWriter, r *http.Request) {
 	wc := c.App.NewWebConn(ws, c.Session, c.T, "")
 
 	if len(c.Session.UserId) > 0 {
-		app.HubRegister(wc)
+		c.App.HubRegister(wc)
 	}
 
 	go wc.WritePump()

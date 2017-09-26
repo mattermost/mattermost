@@ -166,6 +166,7 @@ func (me *LoadTestProvider) SetupCommand(a *App, args *model.CommandArgs, messag
 		}
 		client.Login(BTEST_USER_EMAIL, BTEST_USER_PASSWORD)
 		environment, err := CreateTestEnvironmentWithTeams(
+			a,
 			client,
 			utils.Range{Begin: numTeams, End: numTeams},
 			utils.Range{Begin: numChannels, End: numChannels},
@@ -193,6 +194,7 @@ func (me *LoadTestProvider) SetupCommand(a *App, args *model.CommandArgs, messag
 		client.MockSession(args.Session.Token)
 		client.SetTeamId(args.TeamId)
 		CreateTestEnvironmentInTeam(
+			a,
 			client,
 			team,
 			utils.Range{Begin: numChannels, End: numChannels},
@@ -227,7 +229,7 @@ func (me *LoadTestProvider) UsersCommand(a *App, args *model.CommandArgs, messag
 
 	client := model.NewClient(args.SiteURL)
 	client.SetTeamId(team.Id)
-	userCreator := NewAutoUserCreator(client, team)
+	userCreator := NewAutoUserCreator(a, client, team)
 	userCreator.Fuzzy = doFuzz
 	userCreator.CreateTestUsers(usersr)
 

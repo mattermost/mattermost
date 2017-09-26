@@ -94,7 +94,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 			if result := <-a.Srv.Store.User().GetProfilesByUsernames(potentialOtherMentions, team.Id); result.Err == nil {
 				outOfChannelMentions := result.Data.([]*model.User)
 				if channel.Type != model.CHANNEL_GROUP {
-					go sendOutOfChannelMentions(sender, post, team.Id, outOfChannelMentions)
+					go a.sendOutOfChannelMentions(sender, post, team.Id, outOfChannelMentions)
 				}
 			}
 		}
@@ -186,7 +186,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 	// If the channel has more than 1K users then @here is disabled
 	if hereNotification && int64(len(profileMap)) > *utils.Cfg.TeamSettings.MaxNotificationsPerChannel {
 		hereNotification = false
-		SendEphemeralPost(
+		a.SendEphemeralPost(
 			post.UserId,
 			&model.Post{
 				ChannelId: post.ChannelId,
@@ -198,7 +198,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 
 	// If the channel has more than 1K users then @channel is disabled
 	if channelNotification && int64(len(profileMap)) > *utils.Cfg.TeamSettings.MaxNotificationsPerChannel {
-		SendEphemeralPost(
+		a.SendEphemeralPost(
 			post.UserId,
 			&model.Post{
 				ChannelId: post.ChannelId,
@@ -210,7 +210,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 
 	// If the channel has more than 1K users then @all is disabled
 	if allNotification && int64(len(profileMap)) > *utils.Cfg.TeamSettings.MaxNotificationsPerChannel {
-		SendEphemeralPost(
+		a.SendEphemeralPost(
 			post.UserId,
 			&model.Post{
 				ChannelId: post.ChannelId,
@@ -298,7 +298,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 		message.Add("mentions", model.ArrayToJson(mentionedUsersList))
 	}
 
-	Publish(message)
+	a.Publish(message)
 	return mentionedUsersList, nil
 }
 
@@ -337,7 +337,7 @@ func (a *App) sendNotificationEmail(post *model.Post, user *model.User, channel 
 		}
 
 		if sendBatched {
-			if err := AddNotificationEmailToBatch(user, post, team); err == nil {
+			if err := a.AddNotificationEmailToBatch(user, post, team); err == nil {
 				return nil
 			}
 		}
@@ -717,7 +717,7 @@ func (a *App) getMobileAppSessions(userId string) ([]*model.Session, *model.AppE
 	}
 }
 
-func sendOutOfChannelMentions(sender *model.User, post *model.Post, teamId string, users []*model.User) *model.AppError {
+func (a *App) sendOutOfChannelMentions(sender *model.User, post *model.Post, teamId string, users []*model.User) *model.AppError {
 	if len(users) == 0 {
 		return nil
 	}
@@ -742,7 +742,7 @@ func sendOutOfChannelMentions(sender *model.User, post *model.Post, teamId strin
 		})
 	}
 
-	SendEphemeralPost(
+	a.SendEphemeralPost(
 		post.UserId,
 		&model.Post{
 			ChannelId: post.ChannelId,

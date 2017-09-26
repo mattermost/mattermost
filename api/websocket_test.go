@@ -11,7 +11,6 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
-	"github.com/mattermost/mattermost-server/app"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
 )
@@ -195,7 +194,7 @@ func TestWebSocketEvent(t *testing.T) {
 	omitUser["somerandomid"] = true
 	evt1 := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_TYPING, "", th.BasicChannel.Id, "", omitUser)
 	evt1.Add("user_id", "somerandomid")
-	app.Publish(evt1)
+	th.App.Publish(evt1)
 
 	time.Sleep(300 * time.Millisecond)
 
@@ -224,7 +223,7 @@ func TestWebSocketEvent(t *testing.T) {
 	}
 
 	evt2 := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_TYPING, "", "somerandomid", "", nil)
-	go app.Publish(evt2)
+	go th.App.Publish(evt2)
 	time.Sleep(300 * time.Millisecond)
 
 	eventHit = false
