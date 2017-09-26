@@ -291,8 +291,11 @@ func (a *App) UploadFiles(teamId string, channelId string, userId string, fileHe
 	return resStruct, nil
 }
 
-func (a *App) DoUploadFile(now time.Time, teamId string, channelId string, userId string, rawFilename string, data []byte) (*model.FileInfo, *model.AppError) {
+func (a *App) DoUploadFile(now time.Time, rawTeamId string, rawChannelId string, rawUserId string, rawFilename string, data []byte) (*model.FileInfo, *model.AppError) {
 	filename := filepath.Base(rawFilename)
+	teamId := filepath.Base(rawTeamId)
+	channelId := filepath.Base(rawChannelId)
+	userId := filepath.Base(rawUserId)
 
 	info, err := model.GetInfoForBytes(filename, data)
 	if err != nil {
