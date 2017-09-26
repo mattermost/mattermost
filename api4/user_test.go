@@ -1890,6 +1890,14 @@ func TestRevokeSessions(t *testing.T) {
 	}
 	CheckNoError(t, resp)
 
+	th.LoginBasic()
+
+	sessions, _ = th.App.GetSessions(th.SystemAdminUser.Id)
+	session = sessions[0]
+
+	_, resp = Client.RevokeSession(user.Id, session.Id)
+	CheckBadRequestStatus(t, resp)
+
 	Client.Logout()
 	_, resp = Client.RevokeSession(user.Id, model.NewId())
 	CheckUnauthorizedStatus(t, resp)
