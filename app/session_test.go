@@ -37,7 +37,7 @@ func TestCache(t *testing.T) {
 	}
 }
 
-func TestGetSessionIdleTimeout(t *testing.T) {
+func TestGetSessionIdleTimeoutInMinutes(t *testing.T) {
 	th := Setup().InitBasic()
 
 	session := &model.Session{
@@ -48,17 +48,17 @@ func TestGetSessionIdleTimeout(t *testing.T) {
 
 	isLicensed := utils.IsLicensed()
 	license := utils.License()
-	timeout := *utils.Cfg.ServiceSettings.SessionIdleTimeout
+	timeout := *utils.Cfg.ServiceSettings.SessionIdleTimeoutInMinutes
 	defer func() {
 		utils.SetIsLicensed(isLicensed)
 		utils.SetLicense(license)
-		*utils.Cfg.ServiceSettings.SessionIdleTimeout = timeout
+		*utils.Cfg.ServiceSettings.SessionIdleTimeoutInMinutes = timeout
 	}()
 	utils.SetIsLicensed(true)
 	utils.SetLicense(&model.License{Features: &model.Features{}})
 	utils.License().Features.SetDefaults()
 	*utils.License().Features.Compliance = true
-	*utils.Cfg.ServiceSettings.SessionIdleTimeout = 5
+	*utils.Cfg.ServiceSettings.SessionIdleTimeoutInMinutes = 5
 
 	rsession, err := th.App.GetSession(session.Token)
 	require.Nil(t, err)
@@ -137,7 +137,7 @@ func TestGetSessionIdleTimeout(t *testing.T) {
 	*utils.License().Features.Compliance = true
 
 	// Test regular session with timeout set to 0, should not timeout
-	*utils.Cfg.ServiceSettings.SessionIdleTimeout = 0
+	*utils.Cfg.ServiceSettings.SessionIdleTimeoutInMinutes = 0
 
 	session = &model.Session{
 		UserId: model.NewId(),
