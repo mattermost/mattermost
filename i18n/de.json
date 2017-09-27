@@ -3441,7 +3441,7 @@
   },
   {
     "id": "app.plugin.filesystem.app_error",
-    "translation": "Encountered filesystem error"
+    "translation": "Es ist ein Dateisystemfehler aufgetreten"
   },
   {
     "id": "app.plugin.get_plugins.app_error",
@@ -3720,6 +3720,14 @@
     "translation": "Konnte ElasticSearch-Index-Mapping nicht einrichten"
   },
   {
+    "id": "ent.elasticsearch.data_retention_delete_indexes.delete_index.error",
+    "translation": "Konnte ElasticSearch-Index nicht löschen"
+  },
+  {
+    "id": "ent.elasticsearch.data_retention_delete_indexes.get_indexes.error",
+    "translation": "Konnte ElasticSearch-Index nicht erstellen"
+  },
+  {
     "id": "ent.elasticsearch.delete_post.error",
     "translation": "Löschen der Nachricht fehlgeschlagen"
   },
@@ -3830,6 +3838,14 @@
   {
     "id": "ent.ldap.mattermost_user_update",
     "translation": "Mattermost-Benutzer durch AD/LDAP-Server aktualisiert."
+  },
+  {
+    "id": "ent.ldap.sync.index_job_failed.error",
+    "translation": "LDAP sync worker failed due to the sync job failing"
+  },
+  {
+    "id": "ent.ldap.sync_worker.create_index_job.error",
+    "translation": "LDAP sync worker failed to create the sync job"
   },
   {
     "id": "ent.ldap.syncdone.info",
@@ -4025,7 +4041,7 @@
   },
   {
     "id": "mattermost.load_license.find.warn",
-    "translation": "Lizenzschlüssel von https://mattermost.com benötigt um Enterprise Features freizuschalten."
+    "translation": "Lizenzschlüssel von https://mattermost.com benötigt um Enterprise-Funktionen freizuschalten."
   },
   {
     "id": "mattermost.security_bulletin.error",
@@ -4353,15 +4369,15 @@
   },
   {
     "id": "model.config.is_valid.data_retention.deletion_job_start_time.app_error",
-    "translation": "DataRetention DeletionJobStartTime setting must be set to a time in the format \"hh:mm\""
+    "translation": "Die Einstellung \"DataRetention DeletionJobStartTime\" muss eine Zeit im Format \"hh:mm\" sein"
   },
   {
     "id": "model.config.is_valid.data_retention.file_retention_days_too_low.app_error",
-    "translation": "DataRetention FileRetentionDays setting must be at least 1"
+    "translation": "Die Einstellung \"DataRetention FileRetentionDays\" muss mindestens 1 sein"
   },
   {
     "id": "model.config.is_valid.data_retention.message_retention_days_too_low.app_error",
-    "translation": "DataRetention MessageRetentionDays setting must be at least 1"
+    "translation": "Die Einstellung \"DataRetention MessageRetentionDays\" muss mindestens 1 sein"
   },
   {
     "id": "model.config.is_valid.elastic_search.aggregate_posts_after_days.app_error",
@@ -5848,6 +5864,10 @@
     "translation": "We encountered an error permanently deleting the batch of posts"
   },
   {
+    "id": "store.sql_post.permanent_delete_batch.app_error",
+    "translation": "We encountered an error permanently deleting the batch of posts"
+  },
+  {
     "id": "store.sql_post.permanent_delete_by_channel.app_error",
     "translation": "Die Nachrichten nach Kanal konnten nicht gelöscht werden"
   },
@@ -5880,12 +5900,16 @@
     "translation": "Die Nachricht konnte nicht aktualisiert werden"
   },
   {
+    "id": "store.sql_preference.cleanup_flags_batch.app_error",
+    "translation": "We encountered an error cleaning up the batch of flags"
+  },
+  {
     "id": "store.sql_preference.delete.app_error",
     "translation": "Es trat ein Fehler beim Löschen der Einstellungen auf"
   },
   {
     "id": "store.sql_preference.delete_unused_features.debug",
-    "translation": "Lösche alle ungenutzten Pre-Release-Features"
+    "translation": "Lösche alle ungenutzten Pre-Release-Funktionen"
   },
   {
     "id": "store.sql_preference.get.app_error",
@@ -6548,6 +6572,18 @@
     "translation": "Analytics nicht initialisiert"
   },
   {
+    "id": "utils.file.list_directory.configured.app_error",
+    "translation": "File storage not configured properly. Please configure for either S3 or local server file storage."
+  },
+  {
+    "id": "utils.file.list_directory.local.app_error",
+    "translation": "Encountered an error listing directory from local server file storage."
+  },
+  {
+    "id": "utils.file.list_directory.s3.app_error",
+    "translation": "Encountered an error listing directory from S3."
+  },
+  {
     "id": "utils.file.remove_directory.configured.app_error",
     "translation": "Der Dateispeicher ist nicht korrekt konfiguriert. Bitte konfigurieren Sie diesen entweder für S3 oder den Dateispeicher des lokalen Servers."
   },
@@ -6733,11 +6769,11 @@
   },
   {
     "id": "web.error.unsupported_browser.message",
-    "translation": "Your current browser is not supported. Please upgrade to one of the following browsers:"
+    "translation": "Ihr aktueller Browser wird nicht unterstützt. Bitte aktualisieren Sie auf einen der folgenden Browser:"
   },
   {
     "id": "web.error.unsupported_browser.title",
-    "translation": "Unsupported Browser"
+    "translation": "Nicht unterstützter Browser"
   },
   {
     "id": "web.find_team.title",

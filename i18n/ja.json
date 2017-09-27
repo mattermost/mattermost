@@ -3417,7 +3417,7 @@
   },
   {
     "id": "app.notification.subject.direct.full",
-    "translation": "[{{ .SiteName}}] {{.Month}} {{.Day}}, {{.Year}} {{.SenderDisplayName}} からの新しいグループメッセージ"
+    "translation": "[{{ .SiteName}}] {{.Month}} {{.Day}}, {{.Year}} {{.SenderDisplayName}} からの新しいダイレクトメッセージ"
   },
   {
     "id": "app.notification.subject.notification.full",
@@ -3720,6 +3720,14 @@
     "translation": "Elasticsearchインデックスのマッピングを設定できませんでした"
   },
   {
+    "id": "ent.elasticsearch.data_retention_delete_indexes.delete_index.error",
+    "translation": "Elasticsearchのインデックスを削除できませんでした"
+  },
+  {
+    "id": "ent.elasticsearch.data_retention_delete_indexes.get_indexes.error",
+    "translation": "Elasticsearchのインデックスを取得できませんでした"
+  },
+  {
     "id": "ent.elasticsearch.delete_post.error",
     "translation": "投稿を削除できませんでした"
   },
@@ -3830,6 +3838,14 @@
   {
     "id": "ent.ldap.mattermost_user_update",
     "translation": "MattermostユーザーはAD/LDAPサーバーによってアップデートされました。"
+  },
+  {
+    "id": "ent.ldap.sync.index_job_failed.error",
+    "translation": "LDAP sync worker failed due to the sync job failing"
+  },
+  {
+    "id": "ent.ldap.sync_worker.create_index_job.error",
+    "translation": "LDAP sync worker failed to create the sync job"
   },
   {
     "id": "ent.ldap.syncdone.info",
@@ -5848,6 +5864,10 @@
     "translation": "投稿バッチを完全に削除する際にエラーが発生しました"
   },
   {
+    "id": "store.sql_post.permanent_delete_batch.app_error",
+    "translation": "投稿バッチを完全に削除する際にエラーが発生しました"
+  },
+  {
     "id": "store.sql_post.permanent_delete_by_channel.app_error",
     "translation": "チャンネルの投稿を削除できませんでした"
   },
@@ -5878,6 +5898,10 @@
   {
     "id": "store.sql_post.update.app_error",
     "translation": "投稿を更新できませんでした"
+  },
+  {
+    "id": "store.sql_preference.cleanup_flags_batch.app_error",
+    "translation": "フラグのバッチ処理をクリーンアップする際にエラーが発生しました"
   },
   {
     "id": "store.sql_preference.delete.app_error",
@@ -6548,6 +6572,18 @@
     "translation": "解析は初期化されていません"
   },
   {
+    "id": "utils.file.list_directory.configured.app_error",
+    "translation": "File storage not configured properly. Please configure for either S3 or local server file storage."
+  },
+  {
+    "id": "utils.file.list_directory.local.app_error",
+    "translation": "Encountered an error listing directory from local server file storage."
+  },
+  {
+    "id": "utils.file.list_directory.s3.app_error",
+    "translation": "Encountered an error listing directory from S3."
+  },
+  {
     "id": "utils.file.remove_directory.configured.app_error",
     "translation": "ファイルストレージが正しく設定されていません。S3またはローカルサーバーファイルストレージを設定してください。"
   },
@@ -6717,7 +6753,7 @@
   },
   {
     "id": "web.error.unsupported_browser.help2",
-    "translation": "Mozzilla Firefox 52+"
+    "translation": "Mozilla Firefox 52+"
   },
   {
     "id": "web.error.unsupported_browser.help3",
@@ -6737,7 +6773,7 @@
   },
   {
     "id": "web.error.unsupported_browser.title",
-    "translation": "サポートされないブラウザ"
+    "translation": "サポートされていないブラウザ"
   },
   {
     "id": "web.find_team.title",
