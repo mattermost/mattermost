@@ -17,13 +17,15 @@ type webSocketHandler interface {
 }
 
 type WebSocketRouter struct {
+	app      *App
 	handlers map[string]webSocketHandler
 }
 
-func NewWebSocketRouter() *WebSocketRouter {
-	router := &WebSocketRouter{}
-	router.handlers = make(map[string]webSocketHandler)
-	return router
+func (a *App) NewWebSocketRouter() *WebSocketRouter {
+	return &WebSocketRouter{
+		app:      a,
+		handlers: make(map[string]webSocketHandler),
+	}
 }
 
 func (wr *WebSocketRouter) Handle(action string, handler webSocketHandler) {
@@ -54,21 +56,21 @@ func (wr *WebSocketRouter) ServeWebSocket(conn *WebConn, r *model.WebSocketReque
 			return
 		}
 
-		session, err := Global().GetSession(token)
+		session, err := wr.app.GetSession(token)
 
 		if err != nil {
 			conn.WebSocket.Close()
 		} else {
 			go func() {
-				Global().SetStatusOnline(session.UserId, session.Id, false)
-				Global().UpdateLastActivityAtIfNeeded(*session)
+				wr.app.SetStatusOnline(session.UserId, session.Id, false)
+				wr.app.UpdateLastActivityAtIfNeeded(*session)
 			}()
 
 			conn.SetSession(session)
 			conn.SetSessionToken(session.Token)
 			conn.UserId = session.UserId
 
-			HubRegister(conn)
+			wr.app.HubRegister(conn)
 
 			resp := model.NewWebSocketResponse(model.STATUS_OK, r.Seq, nil)
 			conn.Send <- resp

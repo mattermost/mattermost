@@ -12,6 +12,7 @@ import (
 )
 
 type AutoUserCreator struct {
+	app          *App
 	client       *model.Client
 	team         *model.Team
 	EmailLength  utils.Range
@@ -21,8 +22,9 @@ type AutoUserCreator struct {
 	Fuzzy        bool
 }
 
-func NewAutoUserCreator(client *model.Client, team *model.Team) *AutoUserCreator {
+func NewAutoUserCreator(a *App, client *model.Client, team *model.Team) *AutoUserCreator {
 	return &AutoUserCreator{
+		app:          a,
 		client:       client,
 		team:         team,
 		EmailLength:  USER_EMAIL_LEN,
@@ -81,14 +83,14 @@ func (cfg *AutoUserCreator) createRandomUser() (*model.User, bool) {
 	ruser := result.Data.(*model.User)
 
 	status := &model.Status{UserId: ruser.Id, Status: model.STATUS_ONLINE, Manual: false, LastActivityAt: model.GetMillis(), ActiveChannel: ""}
-	if result := <-Global().Srv.Store.Status().SaveOrUpdate(status); result.Err != nil {
+	if result := <-cfg.app.Srv.Store.Status().SaveOrUpdate(status); result.Err != nil {
 		result.Err.Translate(utils.T)
 		l4g.Error(result.Err.Error())
 		return nil, false
 	}
 
 	// We need to cheat to verify the user's email
-	store.Must(Global().Srv.Store.User().VerifyEmail(ruser.Id))
+	store.Must(cfg.app.Srv.Store.User().VerifyEmail(ruser.Id))
 
 	return result.Data.(*model.User), true
 }

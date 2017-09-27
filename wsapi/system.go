@@ -5,15 +5,14 @@ package wsapi
 
 import (
 	l4g "github.com/alecthomas/log4go"
-	"github.com/mattermost/mattermost-server/app"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
 )
 
-func InitSystem() {
+func (api *API) InitSystem() {
 	l4g.Debug(utils.T("wsapi.system.init.debug"))
 
-	app.Global().Srv.WebSocketRouter.Handle("ping", ApiWebSocketHandler(ping))
+	api.Router.Handle("ping", api.ApiWebSocketHandler(ping))
 }
 
 func ping(req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {

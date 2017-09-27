@@ -52,10 +52,10 @@ func webClientTestsCmdF(cmd *cobra.Command, args []string) error {
 
 	utils.InitTranslations(utils.Cfg.LocalizationSettings)
 	a.Srv.Router = api.NewRouter()
-	wsapi.InitRouter()
+	a.Srv.WebSocketRouter = a.NewWebSocketRouter()
 	api4.Init(a, a.Srv.Router, false)
 	api.Init(a, a.Srv.Router)
-	wsapi.InitApi()
+	wsapi.Init(a, a.Srv.WebSocketRouter)
 	setupClientTests()
 	a.StartServer()
 	runWebClientTests()
@@ -72,10 +72,10 @@ func serverForWebClientTestsCmdF(cmd *cobra.Command, args []string) error {
 
 	utils.InitTranslations(utils.Cfg.LocalizationSettings)
 	a.Srv.Router = api.NewRouter()
-	wsapi.InitRouter()
+	a.Srv.WebSocketRouter = a.NewWebSocketRouter()
 	api4.Init(a, a.Srv.Router, false)
 	api.Init(a, a.Srv.Router)
-	wsapi.InitApi()
+	wsapi.Init(a, a.Srv.WebSocketRouter)
 	setupClientTests()
 	a.StartServer()
 

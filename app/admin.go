@@ -138,7 +138,7 @@ func (a *App) ReloadConfig() {
 	utils.LoadConfig(utils.CfgFileName)
 
 	// start/restart email batching job if necessary
-	InitEmailBatching()
+	a.InitEmailBatching()
 }
 
 func (a *App) SaveConfig(cfg *model.Config, sendConfigChangeClusterMessage bool) *model.AppError {
@@ -179,7 +179,7 @@ func (a *App) SaveConfig(cfg *model.Config, sendConfigChangeClusterMessage bool)
 	}
 
 	// start/restart email batching job if necessary
-	InitEmailBatching()
+	a.InitEmailBatching()
 
 	return nil
 }

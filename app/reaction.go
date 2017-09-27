@@ -51,7 +51,7 @@ func (a *App) sendReactionEvent(event string, reaction *model.Reaction, post *mo
 	// send out that a reaction has been added/removed
 	message := model.NewWebSocketEvent(event, "", post.ChannelId, "", nil)
 	message.Add("reaction", reaction.ToJson())
-	Publish(message)
+	a.Publish(message)
 
 	// The post is always modified since the UpdateAt always changes
 	a.InvalidateCacheForChannelPosts(post.ChannelId)
@@ -59,5 +59,5 @@ func (a *App) sendReactionEvent(event string, reaction *model.Reaction, post *mo
 	post.UpdateAt = model.GetMillis()
 	umessage := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POST_EDITED, "", post.ChannelId, "", nil)
 	umessage.Add("post", post.ToJson())
-	Publish(umessage)
+	a.Publish(umessage)
 }

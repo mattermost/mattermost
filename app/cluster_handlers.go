@@ -20,12 +20,12 @@ func (a *App) RegisterAllClusterMessageHandlers() {
 	a.Cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_CHANNEL_BY_NAME, a.ClusterInvalidateCacheForChannelByNameHandler)
 	a.Cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_CHANNEL, a.ClusterInvalidateCacheForChannelHandler)
 	a.Cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_USER, a.ClusterInvalidateCacheForUserHandler)
-	a.Cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_CLEAR_SESSION_CACHE_FOR_USER, ClusterClearSessionCacheForUserHandler)
+	a.Cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_CLEAR_SESSION_CACHE_FOR_USER, a.ClusterClearSessionCacheForUserHandler)
 }
 
 func (a *App) ClusterPublishHandler(msg *model.ClusterMessage) {
 	event := model.WebSocketEventFromJson(strings.NewReader(msg.Data))
-	PublishSkipClusterSend(event)
+	a.PublishSkipClusterSend(event)
 }
 
 func (a *App) ClusterUpdateStatusHandler(msg *model.ClusterMessage) {
@@ -65,6 +65,6 @@ func (a *App) ClusterInvalidateCacheForUserHandler(msg *model.ClusterMessage) {
 	a.InvalidateCacheForUserSkipClusterSend(msg.Data)
 }
 
-func ClusterClearSessionCacheForUserHandler(msg *model.ClusterMessage) {
-	ClearSessionCacheForUserSkipClusterSend(msg.Data)
+func (a *App) ClusterClearSessionCacheForUserHandler(msg *model.ClusterMessage) {
+	a.ClearSessionCacheForUserSkipClusterSend(msg.Data)
 }

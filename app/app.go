@@ -20,6 +20,11 @@ type App struct {
 	PluginEnv              *pluginenv.Environment
 	PluginConfigListenerId string
 
+	EmailBatching *EmailBatchingJob
+
+	Hubs                        []*Hub
+	HubsStopCheckingForDeadlock chan bool
+
 	AccountMigration einterfaces.AccountMigrationInterface
 	Brand            einterfaces.BrandInterface
 	Cluster          einterfaces.ClusterInterface

@@ -69,6 +69,7 @@ func runServer(configFileLocation string) {
 	a.NewServer()
 	a.InitStores()
 	a.Srv.Router = api.NewRouter()
+	a.Srv.WebSocketRouter = a.NewWebSocketRouter()
 
 	if model.BuildEnterpriseReady == "true" {
 		a.LoadLicense()
@@ -80,10 +81,9 @@ func runServer(configFileLocation string) {
 		l4g.Error("Unable to find webapp directory, could not initialize plugins")
 	}
 
-	wsapi.InitRouter()
 	api4.Init(a, a.Srv.Router, false)
 	api3 := api.Init(a, a.Srv.Router)
-	wsapi.InitApi()
+	wsapi.Init(a, a.Srv.WebSocketRouter)
 	web.Init(api3)
 
 	if !utils.IsLicensed() && len(utils.Cfg.SqlSettings.DataSourceReplicas) > 1 {
