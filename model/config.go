@@ -494,6 +494,12 @@ type DataRetentionSettings struct {
 	DeletionJobStartTime  *string
 }
 
+type ActianceDataExportSettings struct {
+	EnableExport        *bool
+	DailyRunTime        *string
+	ExportFromTimestamp *int64
+}
+
 type JobSettings struct {
 	RunJobs      *bool
 	RunScheduler *bool
@@ -505,35 +511,36 @@ type PluginSettings struct {
 }
 
 type Config struct {
-	ServiceSettings       ServiceSettings
-	TeamSettings          TeamSettings
-	ClientRequirements    ClientRequirements
-	SqlSettings           SqlSettings
-	LogSettings           LogSettings
-	PasswordSettings      PasswordSettings
-	FileSettings          FileSettings
-	EmailSettings         EmailSettings
-	RateLimitSettings     RateLimitSettings
-	PrivacySettings       PrivacySettings
-	SupportSettings       SupportSettings
-	AnnouncementSettings  AnnouncementSettings
-	ThemeSettings         ThemeSettings
-	GitLabSettings        SSOSettings
-	GoogleSettings        SSOSettings
-	Office365Settings     SSOSettings
-	LdapSettings          LdapSettings
-	ComplianceSettings    ComplianceSettings
-	LocalizationSettings  LocalizationSettings
-	SamlSettings          SamlSettings
-	NativeAppSettings     NativeAppSettings
-	ClusterSettings       ClusterSettings
-	MetricsSettings       MetricsSettings
-	AnalyticsSettings     AnalyticsSettings
-	WebrtcSettings        WebrtcSettings
-	ElasticsearchSettings ElasticsearchSettings
-	DataRetentionSettings DataRetentionSettings
-	JobSettings           JobSettings
-	PluginSettings        PluginSettings
+	ServiceSettings       		ServiceSettings
+	TeamSettings          		TeamSettings
+	ClientRequirements    		ClientRequirements
+	SqlSettings           		SqlSettings
+	LogSettings           		LogSettings
+	PasswordSettings      		PasswordSettings
+	FileSettings          		FileSettings
+	EmailSettings         		EmailSettings
+	RateLimitSettings     		RateLimitSettings
+	PrivacySettings       		PrivacySettings
+	SupportSettings       		SupportSettings
+	AnnouncementSettings  		AnnouncementSettings
+	ThemeSettings         		ThemeSettings
+	GitLabSettings        		SSOSettings
+	GoogleSettings        		SSOSettings
+	Office365Settings     		SSOSettings
+	LdapSettings          		LdapSettings
+	ComplianceSettings    		ComplianceSettings
+	LocalizationSettings  		LocalizationSettings
+	SamlSettings          		SamlSettings
+	NativeAppSettings     		NativeAppSettings
+	ClusterSettings       		ClusterSettings
+	MetricsSettings       		MetricsSettings
+	AnalyticsSettings     		AnalyticsSettings
+	WebrtcSettings        		WebrtcSettings
+	ElasticsearchSettings 		ElasticsearchSettings
+	DataRetentionSettings 		DataRetentionSettings
+	ActianceDataExportSettings 	ActianceDataExportSettings
+	JobSettings           		JobSettings
+	PluginSettings        		PluginSettings
 }
 
 func (o *Config) ToJson() string {

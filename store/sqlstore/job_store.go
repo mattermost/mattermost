@@ -325,6 +325,38 @@ func (jss SqlJobStore) GetAllByStatus(status string) store.StoreChannel {
 	return storeChannel
 }
 
+// GetMostRecentByTypeStatus returns the most recently created job with the specified type and status
+func (jss SqlJobStore) GetMostRecentByTypeStatus(jobType string, jobStatus string) store.StoreChannel {
+	storeChannel := make(store.StoreChannel, 1)
+
+	go func() {
+		params := map[string]interface{}{"Status": jobStatus, "Type": jobType}
+		result := store.StoreResult{}
+		mostRecentJob := &model.Job{}
+
+		if err := jss.GetReplica().SelectOne(mostRecentJob,
+			`SELECT
+				*
+			FROM
+				Jobs
+			WHERE
+				Status = :Status AND
+				Type = :Type
+			ORDER BY
+				CreateAt ASC
+			LIMIT 1`, params); err != nil {
+			result.Err = model.NewAppError("SqlJobStore.GetMostRecentByTypeStatus", "store.sql_job.get_all.app_error", params, err.Error(), http.StatusInternalServerError)
+		} else {
+			result.Data = mostRecentJob
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
 func (jss SqlJobStore) Delete(id string) store.StoreChannel {
 	storeChannel := make(store.StoreChannel, 1)
 

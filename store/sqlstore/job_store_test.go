@@ -10,6 +10,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestJobSaveGet(t *testing.T) {
@@ -228,6 +229,74 @@ func TestJobGetAllByStatus(t *testing.T) {
 		t.Fatal("should've received jobs ordered by CreateAt time")
 	} else if received[1].Data["test"] != "data" {
 		t.Fatal("should've received job data field back as saved")
+	}
+}
+
+func TestGetMostRecentByTypeStatus(t *testing.T) {
+	ss := Setup()
+
+	jobType1 := model.NewId()
+	jobType2 := model.NewId()
+	status1 := model.NewId()
+	status2 := model.NewId()
+
+	jobs := []*model.Job{
+		{
+			Id:       model.NewId(),
+			Type:     jobType1,
+			CreateAt: 1000,
+			Status:   status1,
+		},
+		{
+			Id:       model.NewId(),
+			Type:     jobType1,
+			CreateAt: 999,
+			Status:   status1,
+		},
+		{
+			Id:       model.NewId(),
+			Type:     jobType2,
+			CreateAt: 1001,
+			Status:   status1,
+		},
+		{
+			Id:       model.NewId(),
+			Type:     jobType2,
+			CreateAt: 1002,
+			Status:   status2,
+		},
+	}
+
+	for _, job := range jobs {
+		store.Must(ss.Job().Save(job))
+		defer ss.Job().Delete(job.Id)
+	}
+
+	if result := <-ss.Job().GetMostRecentByTypeStatus(jobType1, status1); result.Err != nil {
+		t.Fatal(result.Err)
+	} else if job, ok := result.Data.(*model.Job); !ok || job == nil {
+		t.Fatal("Returned object is not an instance of job")
+	} else {
+		// should have got the job with create time 999 back
+		assert.Equal(t, jobs[1].Id, job.Id)
+	}
+
+	if result := <-ss.Job().GetMostRecentByTypeStatus(jobType2, status1); result.Err != nil {
+		t.Fatal(result.Err)
+	} else if job, ok := result.Data.(*model.Job); !ok || job == nil {
+		t.Fatal("Returned object is not an instance of job")
+	} else {
+		// should have got the job with create time 1001 back
+		assert.Equal(t, jobs[2].Id,job.Id)
+	}
+
+	if result := <-ss.Job().GetMostRecentByTypeStatus(jobType2, status2); result.Err != nil {
+		t.Fatal(result.Err)
+	} else if job, ok := result.Data.(*model.Job); !ok || job == nil {
+		t.Fatal("Returned object is not an instance of job")
+	} else {
+		// should have got the job with create time 1002 back
+		assert.Equal(t, jobs[3].Id, job.Id)
 	}
 }
 

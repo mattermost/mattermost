@@ -18,6 +18,7 @@ type Schedulers struct {
 
 	DataRetention            model.Scheduler
 	ElasticsearchAggregation model.Scheduler
+	ActianceDataExport		 model.Scheduler
 
 	listenerId string
 }
@@ -33,6 +34,10 @@ func InitSchedulers() *Schedulers {
 		schedulers.ElasticsearchAggregation = elasticsearchAggregatorInterface.MakeScheduler()
 	}
 
+	if actianceDataExportInterface := ejobs.GetActianceDataExportInterface(); actianceDataExportInterface != nil {
+		schedulers.ActianceDataExport = actianceDataExportInterface.MakeScheduler()
+	}
+
 	return schedulers
 }
 
@@ -46,6 +51,10 @@ func (schedulers *Schedulers) Start() *Schedulers {
 
 		if schedulers.ElasticsearchAggregation != nil && *utils.Cfg.ElasticsearchSettings.EnableIndexing {
 			go schedulers.ElasticsearchAggregation.Run()
+		}
+
+		if schedulers.ActianceDataExport != nil && *utils.Cfg.ActianceDataExportSettings.EnableExport {
+			go schedulers.ActianceDataExport.Run()
 		}
 	})
 
@@ -70,6 +79,14 @@ func (schedulers *Schedulers) handleConfigChange(oldConfig *model.Config, newCon
 			schedulers.ElasticsearchAggregation.Stop()
 		}
 	}
+
+	if schedulers.ActianceDataExport != nil {
+		if !*oldConfig.ActianceDataExportSettings.EnableExport && *newConfig.ActianceDataExportSettings.EnableExport {
+			go schedulers.ActianceDataExport.Run()
+		} else if *oldConfig.ActianceDataExportSettings.EnableExport && !*newConfig.ActianceDataExportSettings.EnableExport {
+			schedulers.ActianceDataExport.Stop()
+		}
+	}
 }
 
 func (schedulers *Schedulers) Stop() *Schedulers {
@@ -81,6 +98,10 @@ func (schedulers *Schedulers) Stop() *Schedulers {
 
 	if schedulers.ElasticsearchAggregation != nil && *utils.Cfg.ElasticsearchSettings.EnableIndexing {
 		schedulers.ElasticsearchAggregation.Stop()
+	}
+
+	if schedulers.ActianceDataExport != nil && *utils.Cfg.ActianceDataExportSettings.EnableExport {
+		schedulers.ActianceDataExport.Stop()
 	}
 
 	l4g.Info("Stopped schedulers")

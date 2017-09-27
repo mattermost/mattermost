@@ -412,6 +412,7 @@ type JobStore interface {
 	GetAllByType(jobType string) StoreChannel
 	GetAllByTypePage(jobType string, offset int, limit int) StoreChannel
 	GetAllByStatus(status string) StoreChannel
+	GetMostRecentByTypeStatus(jobType string, jobStatus string) StoreChannel
 	Delete(id string) StoreChannel
 }
 

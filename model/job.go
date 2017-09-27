@@ -13,6 +13,7 @@ const (
 	JOB_TYPE_DATA_RETENTION                 = "data_retention"
 	JOB_TYPE_ELASTICSEARCH_POST_INDEXING    = "elasticsearch_post_indexing"
 	JOB_TYPE_ELASTICSEARCH_POST_AGGREGATION = "elasticsearch_post_aggregation"
+	JOB_TYPE_ACTIANCE_EXPORT                = "actiance_message_export"
 
 	JOB_STATUS_PENDING          = "pending"
 	JOB_STATUS_IN_PROGRESS      = "in_progress"
@@ -43,15 +44,31 @@ func (j *Job) IsValid() *AppError {
 		return NewAppError("Job.IsValid", "model.job.is_valid.create_at.app_error", nil, "id="+j.Id, http.StatusBadRequest)
 	}
 
-	switch j.Type {
-	case JOB_TYPE_DATA_RETENTION:
-	case JOB_TYPE_ELASTICSEARCH_POST_INDEXING:
-	case JOB_TYPE_ELASTICSEARCH_POST_AGGREGATION:
-	default:
+	if !IsValidJobType(j.Type) {
 		return NewAppError("Job.IsValid", "model.job.is_valid.type.app_error", nil, "id="+j.Id, http.StatusBadRequest)
 	}
 
-	switch j.Status {
+	if !IsValidJobStatus(j.Status) {
+		return NewAppError("Job.IsValid", "model.job.is_valid.status.app_error", nil, "id="+j.Id, http.StatusBadRequest)
+	}
+
+	return nil
+}
+
+func IsValidJobType(jobType string) bool {
+	switch jobType {
+	case JOB_TYPE_DATA_RETENTION:
+	case JOB_TYPE_ELASTICSEARCH_POST_INDEXING:
+	case JOB_TYPE_ELASTICSEARCH_POST_AGGREGATION:
+	case JOB_TYPE_ACTIANCE_EXPORT:
+	default:
+		return false
+	}
+	return true
+}
+
+func IsValidJobStatus(jobStatus string) bool {
+	switch jobStatus {
 	case JOB_STATUS_PENDING:
 	case JOB_STATUS_IN_PROGRESS:
 	case JOB_STATUS_SUCCESS:
@@ -59,10 +76,9 @@ func (j *Job) IsValid() *AppError {
 	case JOB_STATUS_CANCEL_REQUESTED:
 	case JOB_STATUS_CANCELED:
 	default:
-		return NewAppError("Job.IsValid", "model.job.is_valid.status.app_error", nil, "id="+j.Id, http.StatusBadRequest)
+		return false
 	}
-
-	return nil
+	return true
 }
 
 func (js *Job) ToJson() string {

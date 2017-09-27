@@ -3984,6 +3984,14 @@
     "translation": "Failed to set job status to error"
   },
   {
+    "id": "jobs.get_most_recent_job.jobType.error",
+    "translation": "Invalid job type specified"
+  },
+  {
+    "id": "jobs.get_most_recent_job.jobStatus.error",
+    "translation": "Invalid job status specified"
+  },
+  {
     "id": "manaultesting.get_channel_id.no_found.debug",
     "translation": "Could not find channel: %v, %v possibilities searched"
   },

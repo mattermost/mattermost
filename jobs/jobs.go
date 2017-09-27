@@ -37,6 +37,22 @@ func CreateJob(jobType string, jobData map[string]string) (*model.Job, *model.Ap
 	return &job, nil
 }
 
+func GetMostRecentJob(jobType string, jobStatus string) (*model.Job, *model.AppError) {
+	if !model.IsValidJobType(jobType) {
+		return nil, model.NewAppError("Job.GetMostRecentJob", "jobs.get_most_recent_job.jobType.error", nil, "jobType="+jobType, http.StatusBadRequest)
+	}
+
+	if !model.IsValidJobStatus(jobStatus) {
+		return nil, model.NewAppError("Job.GetMostRecentJob", "jobs.get_most_recent_job.jobStatus.error", nil, "jobStatus="+jobStatus, http.StatusBadRequest)
+	}
+
+	if result := <-Srv.Store.Job().GetMostRecentByTypeStatus(jobType, jobStatus); result.Err != nil {
+		return nil, result.Err
+	} else {
+		return result.Data.(*model.Job), nil
+	}
+}
+
 func ClaimJob(job *model.Job) (bool, *model.AppError) {
 	if result := <-Srv.Store.Job().UpdateStatusOptimistically(job.Id, model.JOB_STATUS_PENDING, model.JOB_STATUS_IN_PROGRESS); result.Err != nil {
 		return false, result.Err

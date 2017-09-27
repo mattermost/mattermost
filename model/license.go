@@ -55,6 +55,7 @@ type Features struct {
 	ThemeManagement           *bool `json:"theme_management"`
 	EmailNotificationContents *bool `json:"email_notification_contents"`
 	DataRetention             *bool `json:"data_retention"`
+	ActianceDataExport 		  *bool `json:"actiance_data_export"`
 
 	// after we enabled more features for webrtc we'll need to control them with this
 	FutureFeatures *bool `json:"future_features"`
@@ -77,6 +78,7 @@ func (f *Features) ToMap() map[string]interface{} {
 		"email_notification_contents": *f.EmailNotificationContents,
 		"data_retention":              *f.DataRetention,
 		"future":                      *f.FutureFeatures,
+		"actiance_data_export":		   *f.ActianceDataExport,
 	}
 }
 
@@ -168,6 +170,11 @@ func (f *Features) SetDefaults() {
 
 	if f.DataRetention == nil {
 		f.DataRetention = new(bool)
+		*f.DataRetention = *f.FutureFeatures
+	}
+
+	if f.ActianceDataExport == nil {
+		f.ActianceDataExport = new(bool)
 		*f.DataRetention = *f.FutureFeatures
 	}
 }
