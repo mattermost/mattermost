@@ -10,6 +10,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestJobSaveGet(t *testing.T) {
@@ -229,6 +230,108 @@ func TestJobGetAllByStatus(t *testing.T) {
 	} else if received[1].Data["test"] != "data" {
 		t.Fatal("should've received job data field back as saved")
 	}
+}
+
+func TestJobStoreGetNewestJobByStatusAndType(t *testing.T) {
+	ss := Setup()
+
+	jobType1 := model.NewId()
+	jobType2 := model.NewId()
+	status1 := model.NewId()
+	status2 := model.NewId()
+
+	jobs := []*model.Job{
+		{
+			Id:       model.NewId(),
+			Type:     jobType1,
+			CreateAt: 1001,
+			Status:   status1,
+		},
+		{
+			Id:       model.NewId(),
+			Type:     jobType1,
+			CreateAt: 1000,
+			Status:   status1,
+		},
+		{
+			Id:       model.NewId(),
+			Type:     jobType2,
+			CreateAt: 1003,
+			Status:   status1,
+		},
+		{
+			Id:       model.NewId(),
+			Type:     jobType1,
+			CreateAt: 1004,
+			Status:   status2,
+		},
+	}
+
+	for _, job := range jobs {
+		store.Must(ss.Job().Save(job))
+		defer ss.Job().Delete(job.Id)
+	}
+
+	result := <-ss.Job().GetNewestJobByStatusAndType(status1, jobType1)
+	assert.Nil(t, result.Err)
+	assert.EqualValues(t, jobs[0].Id, result.Data.(*model.Job).Id)
+}
+
+func TestJobStoreGetCountByStatusAndType(t *testing.T) {
+	ss := Setup()
+
+	jobType1 := model.NewId()
+	jobType2 := model.NewId()
+	status1 := model.NewId()
+	status2 := model.NewId()
+
+	jobs := []*model.Job{
+		{
+			Id:       model.NewId(),
+			Type:     jobType1,
+			CreateAt: 1000,
+			Status:   status1,
+		},
+		{
+			Id:       model.NewId(),
+			Type:     jobType1,
+			CreateAt: 999,
+			Status:   status1,
+		},
+		{
+			Id:       model.NewId(),
+			Type:     jobType2,
+			CreateAt: 1001,
+			Status:   status1,
+		},
+		{
+			Id:       model.NewId(),
+			Type:     jobType1,
+			CreateAt: 1002,
+			Status:   status2,
+		},
+	}
+
+	for _, job := range jobs {
+		store.Must(ss.Job().Save(job))
+		defer ss.Job().Delete(job.Id)
+	}
+
+	result := <-ss.Job().GetCountByStatusAndType(status1, jobType1)
+	assert.Nil(t, result.Err)
+	assert.EqualValues(t, 2, result.Data.(int64))
+
+	result = <-ss.Job().GetCountByStatusAndType(status2, jobType2)
+	assert.Nil(t, result.Err)
+	assert.EqualValues(t, 0, result.Data.(int64))
+
+	result = <-ss.Job().GetCountByStatusAndType(status1, jobType2)
+	assert.Nil(t, result.Err)
+	assert.EqualValues(t, 1, result.Data.(int64))
+
+	result = <-ss.Job().GetCountByStatusAndType(status2, jobType1)
+	assert.Nil(t, result.Err)
+	assert.EqualValues(t, 1, result.Data.(int64))
 }
 
 func TestJobUpdateOptimistically(t *testing.T) {

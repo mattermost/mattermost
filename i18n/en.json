@@ -5680,6 +5680,14 @@
     "translation": "We couldn't update the job"
   },
   {
+    "id": "store.sql_job.get_newest_job_by_status_and_type.app_error",
+    "translation": "We couldn't get the newest job by status and type"
+  },
+  {
+    "id": "store.sql_job.get_count_by_status_and_type.app_erro",
+    "translation": "We couldn't get the job count by status and type"
+  },
+  {
     "id": "store.sql_license.get.app_error",
     "translation": "We encountered an error getting the license"
   },
