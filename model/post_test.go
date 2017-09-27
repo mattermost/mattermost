@@ -78,6 +78,16 @@ func TestPostIsValid(t *testing.T) {
 	if err := o.IsValid(); err != nil {
 		t.Fatal(err)
 	}
+
+	o.Type = "junk"
+	if err := o.IsValid(); err == nil {
+		t.Fatal("should be invalid")
+	}
+
+	o.Type = POST_CUSTOM_TYPE_PREFIX + "type"
+	if err := o.IsValid(); err != nil {
+		t.Fatal(err)
+	}
 }
 
 func TestPostPreSave(t *testing.T) {

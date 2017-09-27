@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+	"strings"
 	"unicode/utf8"
 )
 
@@ -31,6 +32,7 @@ const (
 	POST_HASHTAGS_MAX_RUNES    = 1000
 	POST_MESSAGE_MAX_RUNES     = 4000
 	POST_PROPS_MAX_RUNES       = 8000
+	POST_CUSTOM_TYPE_PREFIX    = "custom_"
 )
 
 type Post struct {
@@ -162,12 +164,12 @@ func (o *Post) IsValid() *AppError {
 		return NewAppError("Post.IsValid", "model.post.is_valid.hashtags.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
-	// should be removed once more message types are supported
 	if !(o.Type == POST_DEFAULT || o.Type == POST_JOIN_LEAVE || o.Type == POST_ADD_REMOVE ||
 		o.Type == POST_JOIN_CHANNEL || o.Type == POST_LEAVE_CHANNEL ||
 		o.Type == POST_REMOVE_FROM_CHANNEL || o.Type == POST_ADD_TO_CHANNEL ||
 		o.Type == POST_SLACK_ATTACHMENT || o.Type == POST_HEADER_CHANGE || o.Type == POST_PURPOSE_CHANGE ||
-		o.Type == POST_DISPLAYNAME_CHANGE || o.Type == POST_CHANNEL_DELETED) {
+		o.Type == POST_DISPLAYNAME_CHANGE || o.Type == POST_CHANNEL_DELETED ||
+		strings.HasPrefix(o.Type, POST_CUSTOM_TYPE_PREFIX)) {
 		return NewAppError("Post.IsValid", "model.post.is_valid.type.app_error", nil, "id="+o.Type, http.StatusBadRequest)
 	}
 
