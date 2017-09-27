@@ -3688,14 +3688,6 @@
     "translation": "Compliance export started for job '{{.JobName}}' at '{{.FilePath}}'"
   },
   {
-    "id": "ent.ldap.sync_worker.create_index_job.error",
-    "translation": "LDAP sync worker failed to create the sync job"
-  },
-  {
-    "id": "ent.ldap.sync.index_job_failed.error",
-    "translation": "LDAP sync worker failed due to the sync job failing"
-  },
-  {
     "id": "ent.elasticsearch.aggregator_worker.create_index_job.error",
     "translation": "Elasticsearch aggregator worker failed to create the indexing job"
   },
@@ -3728,12 +3720,12 @@
     "translation": "Failed to setup Elasticsearch index mapping"
   },
   {
-    "id": "ent.elasticsearch.data_retention_delete_indexes.get_indexes.error",
-    "translation": "Failed to get Elasticsearch indexes"
-  },
-  {
     "id": "ent.elasticsearch.data_retention_delete_indexes.delete_index.error",
     "translation": "Failed to delete Elasticsearch index"
+  },
+  {
+    "id": "ent.elasticsearch.data_retention_delete_indexes.get_indexes.error",
+    "translation": "Failed to get Elasticsearch indexes"
   },
   {
     "id": "ent.elasticsearch.delete_post.error",
@@ -3846,6 +3838,14 @@
   {
     "id": "ent.ldap.mattermost_user_update",
     "translation": "Mattermost user was updated by AD/LDAP server."
+  },
+  {
+    "id": "ent.ldap.sync.index_job_failed.error",
+    "translation": "LDAP sync worker failed due to the sync job failing"
+  },
+  {
+    "id": "ent.ldap.sync_worker.create_index_job.error",
+    "translation": "LDAP sync worker failed to create the sync job"
   },
   {
     "id": "ent.ldap.syncdone.info",
@@ -5864,6 +5864,10 @@
     "translation": "We encountered an error permanently deleting the batch of posts"
   },
   {
+    "id": "store.sql_post.permanent_delete_batch.app_error",
+    "translation": "We encountered an error permanently deleting the batch of posts"
+  },
+  {
     "id": "store.sql_post.permanent_delete_by_channel.app_error",
     "translation": "We couldn't delete the posts by channel"
   },
@@ -5894,10 +5898,6 @@
   {
     "id": "store.sql_post.update.app_error",
     "translation": "We couldn't update the Post"
-  },
-  {
-    "id": "store.sql_post.permanent_delete_batch.app_error",
-    "translation": "We encountered an error permanently deleting the batch of posts"
   },
   {
     "id": "store.sql_preference.cleanup_flags_batch.app_error",
@@ -6572,18 +6572,6 @@
     "translation": "Analytics not initialized"
   },
   {
-    "id": "utils.file.remove_directory.configured.app_error",
-    "translation": "File storage not configured properly. Please configure for either S3 or local server file storage."
-  },
-  {
-    "id": "utils.file.remove_directory.local.app_error",
-    "translation": "Encountered an error removing directory from local server file storage."
-  },
-  {
-    "id": "utils.file.remove_directory.s3.app_error",
-    "translation": "Encountered an error removing directory from S3."
-  },
-  {
     "id": "utils.file.list_directory.configured.app_error",
     "translation": "File storage not configured properly. Please configure for either S3 or local server file storage."
   },
@@ -6594,6 +6582,18 @@
   {
     "id": "utils.file.list_directory.s3.app_error",
     "translation": "Encountered an error listing directory from S3."
+  },
+  {
+    "id": "utils.file.remove_directory.configured.app_error",
+    "translation": "File storage not configured properly. Please configure for either S3 or local server file storage."
+  },
+  {
+    "id": "utils.file.remove_directory.local.app_error",
+    "translation": "Encountered an error removing directory from local server file storage."
+  },
+  {
+    "id": "utils.file.remove_directory.s3.app_error",
+    "translation": "Encountered an error removing directory from S3."
   },
   {
     "id": "utils.file.remove_file.configured.app_error",

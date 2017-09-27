@@ -2725,7 +2725,7 @@
   },
   {
     "id": "api.user.send_user_access_token.error",
-    "translation": "发送成功添加个人访问令牌邮件失败"
+    "translation": "发送邮件 \"已添加个人访问令牌\" 失败"
   },
   {
     "id": "api.user.send_verify_email_and_forget.failed.error",
@@ -3441,7 +3441,7 @@
   },
   {
     "id": "app.plugin.filesystem.app_error",
-    "translation": "Encountered filesystem error"
+    "translation": "遇到文件系统错误"
   },
   {
     "id": "app.plugin.get_plugins.app_error",
@@ -3720,6 +3720,14 @@
     "translation": "无法配置 ElasticSearch 索引映像"
   },
   {
+    "id": "ent.elasticsearch.data_retention_delete_indexes.delete_index.error",
+    "translation": "删除 ElasticSearch 索引失败"
+  },
+  {
+    "id": "ent.elasticsearch.data_retention_delete_indexes.get_indexes.error",
+    "translation": "创建 ElasticSearch 索引失败"
+  },
+  {
     "id": "ent.elasticsearch.delete_post.error",
     "translation": "删除消息失败"
   },
@@ -3830,6 +3838,14 @@
   {
     "id": "ent.ldap.mattermost_user_update",
     "translation": "Mattermost 用户已被 AD/LDAP 服务器更新。"
+  },
+  {
+    "id": "ent.ldap.sync.index_job_failed.error",
+    "translation": "LDAP sync worker failed due to the sync job failing"
+  },
+  {
+    "id": "ent.ldap.sync_worker.create_index_job.error",
+    "translation": "LDAP sync worker failed to create the sync job"
   },
   {
     "id": "ent.ldap.syncdone.info",
@@ -4353,15 +4369,15 @@
   },
   {
     "id": "model.config.is_valid.data_retention.deletion_job_start_time.app_error",
-    "translation": "DataRetention DeletionJobStartTime setting must be set to a time in the format \"hh:mm\""
+    "translation": "DataRetention DeletionJobStartTime 时间设定格式必须为 \"hh:mm\""
   },
   {
     "id": "model.config.is_valid.data_retention.file_retention_days_too_low.app_error",
-    "translation": "DataRetention FileRetentionDays setting must be at least 1"
+    "translation": "DataRetention FileRetentionDays 设定必须至少为 1"
   },
   {
     "id": "model.config.is_valid.data_retention.message_retention_days_too_low.app_error",
-    "translation": "DataRetention MessageRetentionDays setting must be at least 1"
+    "translation": "DataRetention MessageRetentionDays 设定必须至少为 1"
   },
   {
     "id": "model.config.is_valid.elastic_search.aggregate_posts_after_days.app_error",
@@ -5848,6 +5864,10 @@
     "translation": "We encountered an error permanently deleting the batch of posts"
   },
   {
+    "id": "store.sql_post.permanent_delete_batch.app_error",
+    "translation": "We encountered an error permanently deleting the batch of posts"
+  },
+  {
     "id": "store.sql_post.permanent_delete_by_channel.app_error",
     "translation": "我们无法在频道中删除这些消息"
   },
@@ -5878,6 +5898,10 @@
   {
     "id": "store.sql_post.update.app_error",
     "translation": "我们不能更新这个邮件"
+  },
+  {
+    "id": "store.sql_preference.cleanup_flags_batch.app_error",
+    "translation": "We encountered an error cleaning up the batch of flags"
   },
   {
     "id": "store.sql_preference.delete.app_error",
@@ -6548,6 +6572,18 @@
     "translation": "解析未初始化"
   },
   {
+    "id": "utils.file.list_directory.configured.app_error",
+    "translation": "File storage not configured properly. Please configure for either S3 or local server file storage."
+  },
+  {
+    "id": "utils.file.list_directory.local.app_error",
+    "translation": "Encountered an error listing directory from local server file storage."
+  },
+  {
+    "id": "utils.file.list_directory.s3.app_error",
+    "translation": "Encountered an error listing directory from S3."
+  },
+  {
     "id": "utils.file.remove_directory.configured.app_error",
     "translation": "文件存储没有正确配置。请配置 S3 或本地文件存储服务。"
   },
@@ -6717,7 +6753,7 @@
   },
   {
     "id": "web.error.unsupported_browser.help2",
-    "translation": "Mozilla Firefox 52+"
+    "translation": "火狐 52+"
   },
   {
     "id": "web.error.unsupported_browser.help3",
@@ -6733,11 +6769,11 @@
   },
   {
     "id": "web.error.unsupported_browser.message",
-    "translation": "Your current browser is not supported. Please upgrade to one of the following browsers:"
+    "translation": "您当前的浏览器不支持。请升级到以下浏览器："
   },
   {
     "id": "web.error.unsupported_browser.title",
-    "translation": "Unsupported Browser"
+    "translation": "不支持的浏览器"
   },
   {
     "id": "web.find_team.title",
