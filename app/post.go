@@ -51,7 +51,7 @@ func (a *App) CreatePostAsUser(post *model.Post) (*model.Post, *model.AppError) 
 			}
 
 			T := utils.GetUserTranslations(user.Locale)
-			SendEphemeralPost(
+			a.SendEphemeralPost(
 				post.UserId,
 				&model.Post{
 					ChannelId: channel.Id,
@@ -75,7 +75,7 @@ func (a *App) CreatePostAsUser(post *model.Post) (*model.Post, *model.AppError) 
 			if *utils.Cfg.ServiceSettings.EnableChannelViewedMessages {
 				message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CHANNEL_VIEWED, "", "", post.UserId, nil)
 				message.Add("channel_id", post.ChannelId)
-				go Publish(message)
+				go a.Publish(message)
 			}
 		}
 
@@ -239,7 +239,7 @@ func parseSlackLinksToMarkdown(text string) string {
 	return linkWithTextRegex.ReplaceAllString(text, "[${2}](${1})")
 }
 
-func SendEphemeralPost(userId string, post *model.Post) *model.Post {
+func (a *App) SendEphemeralPost(userId string, post *model.Post) *model.Post {
 	post.Type = model.POST_EPHEMERAL
 
 	// fill in fields which haven't been specified which have sensible defaults
@@ -256,7 +256,7 @@ func SendEphemeralPost(userId string, post *model.Post) *model.Post {
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_EPHEMERAL_MESSAGE, "", post.ChannelId, userId, nil)
 	message.Add("post", post.ToJson())
 
-	go Publish(message)
+	go a.Publish(message)
 
 	return post
 }
@@ -330,7 +330,7 @@ func (a *App) UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model
 			}()
 		}
 
-		sendUpdatedPostEvent(rpost)
+		a.sendUpdatedPostEvent(rpost)
 
 		a.InvalidateCacheForChannelPosts(rpost.ChannelId)
 
@@ -351,17 +351,17 @@ func (a *App) PatchPost(postId string, patch *model.PostPatch) (*model.Post, *mo
 		return nil, err
 	}
 
-	sendUpdatedPostEvent(updatedPost)
+	a.sendUpdatedPostEvent(updatedPost)
 	a.InvalidateCacheForChannelPosts(updatedPost.ChannelId)
 
 	return updatedPost, nil
 }
 
-func sendUpdatedPostEvent(post *model.Post) {
+func (a *App) sendUpdatedPostEvent(post *model.Post) {
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POST_EDITED, "", post.ChannelId, "", nil)
 	message.Add("post", post.ToJson())
 
-	go Publish(message)
+	go a.Publish(message)
 }
 
 func (a *App) GetPostsPage(channelId string, page int, perPage int) (*model.PostList, *model.AppError) {
@@ -502,7 +502,7 @@ func (a *App) DeletePost(postId string) (*model.Post, *model.AppError) {
 		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POST_DELETED, "", post.ChannelId, "", nil)
 		message.Add("post", post.ToJson())
 
-		go Publish(message)
+		go a.Publish(message)
 		go a.DeletePostFiles(post)
 		go a.DeleteFlaggedPosts(post.Id)
 
@@ -724,7 +724,7 @@ func (a *App) DoPostAction(postId string, actionId string, userId string) *model
 		}
 		ephemeralPost.UserId = userId
 		ephemeralPost.AddProp("from_webhook", "true")
-		SendEphemeralPost(userId, ephemeralPost)
+		a.SendEphemeralPost(userId, ephemeralPost)
 	}
 
 	return nil

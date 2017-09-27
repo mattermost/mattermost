@@ -5,18 +5,17 @@ package wsapi
 
 import (
 	l4g "github.com/alecthomas/log4go"
-	"github.com/mattermost/mattermost-server/app"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
 )
 
-func InitWebrtc() {
+func (api *API) InitWebrtc() {
 	l4g.Debug(utils.T("wsapi.webtrc.init.debug"))
 
-	app.Global().Srv.WebSocketRouter.Handle("webrtc", ApiWebSocketHandler(webrtcMessage))
+	api.Router.Handle("webrtc", api.ApiWebSocketHandler(api.webrtcMessage))
 }
 
-func webrtcMessage(req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {
+func (api *API) webrtcMessage(req *model.WebSocketRequest) (map[string]interface{}, *model.AppError) {
 	var ok bool
 	var toUserId string
 	if toUserId, ok = req.Data["to_user_id"].(string); !ok || len(toUserId) != 26 {
@@ -25,7 +24,7 @@ func webrtcMessage(req *model.WebSocketRequest) (map[string]interface{}, *model.
 
 	event := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_WEBRTC, "", "", toUserId, nil)
 	event.Data = req.Data
-	go app.Publish(event)
+	go api.App.Publish(event)
 
 	return nil, nil
 }

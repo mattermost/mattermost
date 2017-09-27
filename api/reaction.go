@@ -8,7 +8,6 @@ import (
 
 	l4g "github.com/alecthomas/log4go"
 	"github.com/gorilla/mux"
-	"github.com/mattermost/mattermost-server/app"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
 )
@@ -110,23 +109,6 @@ func deleteReaction(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	ReturnStatusOK(w)
-}
-
-func sendReactionEvent(event string, channelId string, reaction *model.Reaction, post *model.Post) {
-	// send out that a reaction has been added/removed
-
-	message := model.NewWebSocketEvent(event, "", channelId, "", nil)
-	message.Add("reaction", reaction.ToJson())
-	app.Publish(message)
-
-	// THe post is always modified since the UpdateAt always changes
-	app.Global().InvalidateCacheForChannelPosts(post.ChannelId)
-	post.HasReactions = true
-	post.UpdateAt = model.GetMillis()
-	umessage := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POST_EDITED, "", channelId, "", nil)
-	umessage.Add("post", post.ToJson())
-	app.Publish(umessage)
-
 }
 
 func listReactions(c *Context, w http.ResponseWriter, r *http.Request) {

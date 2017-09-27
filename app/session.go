@@ -107,8 +107,7 @@ func (a *App) RevokeAllSessions(userId string) *model.AppError {
 }
 
 func (a *App) ClearSessionCacheForUser(userId string) {
-
-	ClearSessionCacheForUserSkipClusterSend(userId)
+	a.ClearSessionCacheForUserSkipClusterSend(userId)
 
 	if a.Cluster != nil {
 		msg := &model.ClusterMessage{
@@ -120,7 +119,7 @@ func (a *App) ClearSessionCacheForUser(userId string) {
 	}
 }
 
-func ClearSessionCacheForUserSkipClusterSend(userId string) {
+func (a *App) ClearSessionCacheForUserSkipClusterSend(userId string) {
 	keys := sessionCache.Keys()
 
 	for _, key := range keys {
@@ -132,8 +131,7 @@ func ClearSessionCacheForUserSkipClusterSend(userId string) {
 		}
 	}
 
-	InvalidateWebConnSessionCacheForUser(userId)
-
+	a.InvalidateWebConnSessionCacheForUser(userId)
 }
 
 func AddSessionToCache(session *model.Session) {

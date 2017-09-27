@@ -136,7 +136,7 @@ func (a *App) CreateChannelWithUser(channel *model.Channel, userId string) (*mod
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CHANNEL_CREATED, "", "", userId, nil)
 	message.Add("channel_id", channel.Id)
 	message.Add("team_id", channel.TeamId)
-	Publish(message)
+	a.Publish(message)
 
 	return rchannel, nil
 }
@@ -181,7 +181,7 @@ func (a *App) CreateDirectChannel(userId string, otherUserId string) (*model.Cha
 
 		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_DIRECT_ADDED, "", channel.Id, "", nil)
 		message.Add("teammate_id", otherUserId)
-		Publish(message)
+		a.Publish(message)
 
 		return channel, nil
 	}
@@ -254,7 +254,7 @@ func (a *App) CreateGroupChannel(userIds []string, creatorId string) (*model.Cha
 
 		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_GROUP_ADDED, "", channel.Id, "", nil)
 		message.Add("teammate_ids", model.ArrayToJson(userIds))
-		Publish(message)
+		a.Publish(message)
 
 		return channel, nil
 	}
@@ -316,7 +316,7 @@ func (a *App) UpdateChannel(channel *model.Channel) (*model.Channel, *model.AppE
 
 		messageWs := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CHANNEL_UPDATED, "", channel.Id, "", nil)
 		messageWs.Add("channel", channel.ToJson())
-		Publish(messageWs)
+		a.Publish(messageWs)
 
 		return channel, nil
 	}
@@ -484,7 +484,7 @@ func (a *App) DeleteChannel(channel *model.Channel, userId string) *model.AppErr
 		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CHANNEL_DELETED, channel.TeamId, "", "", nil)
 		message.Add("channel_id", channel.Id)
 
-		Publish(message)
+		a.Publish(message)
 	}
 
 	return nil
@@ -550,7 +550,7 @@ func (a *App) AddUserToChannel(user *model.User, channel *model.Channel) (*model
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_USER_ADDED, "", channel.Id, "", nil)
 	message.Add("user_id", user.Id)
 	message.Add("team_id", channel.TeamId)
-	Publish(message)
+	a.Publish(message)
 
 	return newMember, nil
 }
@@ -1039,13 +1039,13 @@ func (a *App) removeUserFromChannel(userIdToRemove string, removerUserId string,
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_USER_REMOVED, "", channel.Id, "", nil)
 	message.Add("user_id", userIdToRemove)
 	message.Add("remover_id", removerUserId)
-	go Publish(message)
+	go a.Publish(message)
 
 	// because the removed user no longer belongs to the channel we need to send a separate websocket event
 	userMsg := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_USER_REMOVED, "", "", userIdToRemove, nil)
 	userMsg.Add("channel_id", channel.Id)
 	userMsg.Add("remover_id", removerUserId)
-	go Publish(userMsg)
+	go a.Publish(userMsg)
 
 	return nil
 }
@@ -1098,7 +1098,7 @@ func (a *App) SetActiveChannel(userId string, channelId string) *model.AppError 
 	a.AddStatusCache(status)
 
 	if status.Status != oldStatus {
-		BroadcastStatus(status)
+		a.BroadcastStatus(status)
 	}
 
 	return nil
@@ -1113,7 +1113,7 @@ func (a *App) UpdateChannelLastViewedAt(channelIds []string, userId string) *mod
 		for _, channelId := range channelIds {
 			message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CHANNEL_VIEWED, "", "", userId, nil)
 			message.Add("channel_id", channelId)
-			go Publish(message)
+			go a.Publish(message)
 		}
 	}
 
@@ -1179,7 +1179,7 @@ func (a *App) ViewChannel(view *model.ChannelView, userId string, clearPushNotif
 	if *utils.Cfg.ServiceSettings.EnableChannelViewedMessages && model.IsValidId(view.ChannelId) {
 		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CHANNEL_VIEWED, "", "", userId, nil)
 		message.Add("channel_id", view.ChannelId)
-		go Publish(message)
+		go a.Publish(message)
 	}
 
 	return nil

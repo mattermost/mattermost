@@ -8,7 +8,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/app"
 	"github.com/mattermost/mattermost-server/model"
 )
 
@@ -96,7 +95,7 @@ func TestCliCreateUserWithoutTeam(t *testing.T) {
 		t.SkipNow()
 	}
 
-	Setup()
+	th := Setup()
 	id := model.NewId()
 	email := "success+" + id + "@simulator.amazonses.com"
 	username := "name" + id
@@ -108,7 +107,7 @@ func TestCliCreateUserWithoutTeam(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if result := <-app.Global().Srv.Store.User().GetByEmail(email); result.Err != nil {
+	if result := <-th.App.Srv.Store.User().GetByEmail(email); result.Err != nil {
 		t.Fatal()
 	} else {
 		user := result.Data.(*model.User)

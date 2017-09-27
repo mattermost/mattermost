@@ -202,7 +202,7 @@ func (a *App) CreateUser(user *model.User) (*model.User, *model.AppError) {
 		// This message goes to everyone, so the teamId, channelId and userId are irrelevant
 		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_NEW_USER, "", "", "", nil)
 		message.Add("user_id", ruser.Id)
-		go Publish(message)
+		go a.Publish(message)
 
 		return ruser, nil
 	}
@@ -829,7 +829,7 @@ func (a *App) SetProfileImage(userId string, imageData *multipart.FileHeader) *m
 		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_USER_UPDATED, "", "", "", omitUsers)
 		message.Add("user", user)
 
-		Publish(message)
+		a.Publish(message)
 	}
 
 	return nil
@@ -950,7 +950,7 @@ func (a *App) UpdateUserAsUser(user *model.User, asAdmin bool) (*model.User, *mo
 		return nil, err
 	}
 
-	sendUpdatedUserEvent(*updatedUser, asAdmin)
+	a.sendUpdatedUserEvent(*updatedUser, asAdmin)
 
 	return updatedUser, nil
 }
@@ -968,19 +968,19 @@ func (a *App) PatchUser(userId string, patch *model.UserPatch, asAdmin bool) (*m
 		return nil, err
 	}
 
-	sendUpdatedUserEvent(*updatedUser, asAdmin)
+	a.sendUpdatedUserEvent(*updatedUser, asAdmin)
 
 	return updatedUser, nil
 }
 
-func sendUpdatedUserEvent(user model.User, asAdmin bool) {
+func (a *App) sendUpdatedUserEvent(user model.User, asAdmin bool) {
 	SanitizeProfile(&user, asAdmin)
 
 	omitUsers := make(map[string]bool, 1)
 	omitUsers[user.Id] = true
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_USER_UPDATED, "", "", "", omitUsers)
 	message.Add("user", user)
-	go Publish(message)
+	go a.Publish(message)
 }
 
 func (a *App) UpdateUser(user *model.User, sendNotifications bool) (*model.User, *model.AppError) {

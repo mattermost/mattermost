@@ -13,18 +13,19 @@ import (
 	"github.com/mattermost/mattermost-server/utils"
 )
 
-func ApiWebSocketHandler(wh func(*model.WebSocketRequest) (map[string]interface{}, *model.AppError)) webSocketHandler {
-	return webSocketHandler{wh}
+func (api *API) ApiWebSocketHandler(wh func(*model.WebSocketRequest) (map[string]interface{}, *model.AppError)) webSocketHandler {
+	return webSocketHandler{api.App, wh}
 }
 
 type webSocketHandler struct {
+	app         *app.App
 	handlerFunc func(*model.WebSocketRequest) (map[string]interface{}, *model.AppError)
 }
 
 func (wh webSocketHandler) ServeWebSocket(conn *app.WebConn, r *model.WebSocketRequest) {
 	l4g.Debug("/api/v3/users/websocket:%s", r.Action)
 
-	session, sessionErr := app.Global().GetSession(conn.GetSessionToken())
+	session, sessionErr := wh.app.GetSession(conn.GetSessionToken())
 	if sessionErr != nil {
 		l4g.Error(utils.T("api.web_socket_handler.log.error"), "/api/v3/users/websocket", r.Action, r.Seq, conn.UserId, sessionErr.SystemMessage(utils.T), sessionErr.Error())
 		sessionErr.DetailedError = ""

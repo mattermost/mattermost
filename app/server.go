@@ -218,7 +218,7 @@ func (a *App) StopServer() {
 
 	a.Srv.GracefulServer.Stop(TIME_TO_WAIT_FOR_CONNECTIONS_TO_CLOSE_ON_SERVER_SHUTDOWN)
 	a.Srv.Store.Close()
-	HubStop()
+	a.HubStop()
 
 	a.ShutDownPlugins()
 
