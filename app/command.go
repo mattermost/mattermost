@@ -49,7 +49,7 @@ func (a *App) CreateCommandPost(post *model.Post, teamId string, response *model
 		return a.CreatePostMissingChannel(post, true)
 	} else if response.ResponseType == "" || response.ResponseType == model.COMMAND_RESPONSE_TYPE_EPHEMERAL {
 		post.ParentId = ""
-		SendEphemeralPost(post.UserId, post)
+		a.SendEphemeralPost(post.UserId, post)
 	}
 
 	return post, nil

@@ -2725,7 +2725,7 @@
   },
   {
     "id": "api.user.send_user_access_token.error",
-    "translation": "Falha ao enviar o token de acesso do usuário adicionado e-mail com sucesso"
+    "translation": "Falha ao enviar e-mail \"Token de acesso do usuário adicionado\""
   },
   {
     "id": "api.user.send_verify_email_and_forget.failed.error",
@@ -3720,6 +3720,14 @@
     "translation": "Não foi possível configurar o ElasticSearch index mapping"
   },
   {
+    "id": "ent.elasticsearch.data_retention_delete_indexes.delete_index.error",
+    "translation": "Não foi possível remover o índice do ElasticSearch"
+  },
+  {
+    "id": "ent.elasticsearch.data_retention_delete_indexes.get_indexes.error",
+    "translation": "Não foi possível obter os índices do ElasticSearch"
+  },
+  {
     "id": "ent.elasticsearch.delete_post.error",
     "translation": "Não foi possível apagar o post"
   },
@@ -3830,6 +3838,14 @@
   {
     "id": "ent.ldap.mattermost_user_update",
     "translation": "Usuário Mattermost foi atualizado pelo servidor AD/LDAP."
+  },
+  {
+    "id": "ent.ldap.sync.index_job_failed.error",
+    "translation": "LDAP sync worker failed due to the sync job failing"
+  },
+  {
+    "id": "ent.ldap.sync_worker.create_index_job.error",
+    "translation": "LDAP sync worker failed to create the sync job"
   },
   {
     "id": "ent.ldap.syncdone.info",
@@ -4353,15 +4369,15 @@
   },
   {
     "id": "model.config.is_valid.data_retention.deletion_job_start_time.app_error",
-    "translation": "DataRetention DeletionJobStartTime setting must be set to a time in the format \"hh:mm\""
+    "translation": "A configuraçao de DataRetention DeletionJobStartTime deve ser ajustado para o formato de hora \"hh:mm\""
   },
   {
     "id": "model.config.is_valid.data_retention.file_retention_days_too_low.app_error",
-    "translation": "DataRetention FileRetentionDays setting must be at least 1"
+    "translation": "A configuraçao de DataRetention FileRetentionDays deve ser pelo menos 1"
   },
   {
     "id": "model.config.is_valid.data_retention.message_retention_days_too_low.app_error",
-    "translation": "DataRetention MessageRetentionDays setting must be at least 1"
+    "translation": "DataRetention MessageRetentionDays deve ser configurado para pelo menos 1"
   },
   {
     "id": "model.config.is_valid.elastic_search.aggregate_posts_after_days.app_error",
@@ -5269,7 +5285,7 @@
   },
   {
     "id": "store.sql_audit.permanent_delete_batch.app_error",
-    "translation": "We encountered an error permanently deleting the batch of audits"
+    "translation": "Encontramos um erro ao apagar o lote de audits"
   },
   {
     "id": "store.sql_audit.permanent_delete_by_user.app_error",
@@ -5633,7 +5649,7 @@
   },
   {
     "id": "store.sql_file_info.permanent_delete_batch.app_error",
-    "translation": "We encountered an error permanently deleting the batch of file infos"
+    "translation": "Encontramos um erro ao apagar o lote de arquivos de informações"
   },
   {
     "id": "store.sql_file_info.save.app_error",
@@ -5845,7 +5861,11 @@
   },
   {
     "id": "store.sql_post.permanent_delete_batch.app_error",
-    "translation": "We encountered an error permanently deleting the batch of posts"
+    "translation": "Encontramos um erro ao apagar o lote de posts"
+  },
+  {
+    "id": "store.sql_post.permanent_delete_batch.app_error",
+    "translation": "Encontramos um erro ao apagar o lote de posts"
   },
   {
     "id": "store.sql_post.permanent_delete_by_channel.app_error",
@@ -5878,6 +5898,10 @@
   {
     "id": "store.sql_post.update.app_error",
     "translation": "Não foi possível deletar o post"
+  },
+  {
+    "id": "store.sql_preference.cleanup_flags_batch.app_error",
+    "translation": "Encontramos um erro ao limpar o lote de flags"
   },
   {
     "id": "store.sql_preference.delete.app_error",
@@ -5969,7 +5993,7 @@
   },
   {
     "id": "store.sql_reaction.permanent_delete_batch.app_error",
-    "translation": "We encountered an error permanently deleting the batch of reactions"
+    "translation": "Encontramos um erro ao apagar o lote de reações"
   },
   {
     "id": "store.sql_reaction.save.begin.app_error",
@@ -6546,6 +6570,18 @@
   {
     "id": "utils.diagnostic.analytics_not_found.app_error",
     "translation": "Análise não inicializada"
+  },
+  {
+    "id": "utils.file.list_directory.configured.app_error",
+    "translation": "File storage not configured properly. Please configure for either S3 or local server file storage."
+  },
+  {
+    "id": "utils.file.list_directory.local.app_error",
+    "translation": "Encountered an error listing directory from local server file storage."
+  },
+  {
+    "id": "utils.file.list_directory.s3.app_error",
+    "translation": "Encountered an error listing directory from S3."
   },
   {
     "id": "utils.file.remove_directory.configured.app_error",

@@ -13,14 +13,14 @@ import (
 )
 
 func TestHandleNewNotifications(t *testing.T) {
-	Setup()
+	th := Setup()
 
 	id1 := model.NewId()
 	id2 := model.NewId()
 	id3 := model.NewId()
 
 	// test queueing of received posts by user
-	job := MakeEmailBatchingJob(128)
+	job := NewEmailBatchingJob(th.App, 128)
 
 	job.handleNewNotifications()
 
@@ -74,7 +74,7 @@ func TestHandleNewNotifications(t *testing.T) {
 	}
 
 	// test ordering of received posts
-	job = MakeEmailBatchingJob(128)
+	job = NewEmailBatchingJob(th.App, 128)
 
 	job.Add(&model.User{Id: id1}, &model.Post{UserId: id1, Message: "test1"}, &model.Team{Name: "team"})
 	job.Add(&model.User{Id: id1}, &model.Post{UserId: id1, Message: "test2"}, &model.Team{Name: "team"})
@@ -95,7 +95,7 @@ func TestHandleNewNotifications(t *testing.T) {
 func TestCheckPendingNotifications(t *testing.T) {
 	th := Setup().InitBasic()
 
-	job := MakeEmailBatchingJob(128)
+	job := NewEmailBatchingJob(th.App, 128)
 	job.pendingNotifications[th.BasicUser.Id] = []*batchedNotification{
 		{
 			post: &model.Post{
@@ -201,7 +201,7 @@ func TestCheckPendingNotifications(t *testing.T) {
  */
 func TestCheckPendingNotificationsDefaultInterval(t *testing.T) {
 	th := Setup().InitBasic()
-	job := MakeEmailBatchingJob(128)
+	job := NewEmailBatchingJob(th.App, 128)
 
 	// bypasses recent user activity check
 	channelMember := store.Must(th.App.Srv.Store.Channel().GetMember(th.BasicChannel.Id, th.BasicUser.Id)).(*model.ChannelMember)
@@ -237,7 +237,7 @@ func TestCheckPendingNotificationsDefaultInterval(t *testing.T) {
  */
 func TestCheckPendingNotificationsCantParseInterval(t *testing.T) {
 	th := Setup().InitBasic()
-	job := MakeEmailBatchingJob(128)
+	job := NewEmailBatchingJob(th.App, 128)
 
 	// bypasses recent user activity check
 	channelMember := store.Must(th.App.Srv.Store.Channel().GetMember(th.BasicChannel.Id, th.BasicUser.Id)).(*model.ChannelMember)

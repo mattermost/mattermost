@@ -22,26 +22,24 @@ const (
 	EMAIL_BATCHING_TASK_NAME = "Email Batching"
 )
 
-var emailBatchingJob *EmailBatchingJob
-
-func InitEmailBatching() {
+func (a *App) InitEmailBatching() {
 	if *utils.Cfg.EmailSettings.EnableEmailBatching {
-		if emailBatchingJob == nil {
-			emailBatchingJob = MakeEmailBatchingJob(*utils.Cfg.EmailSettings.EmailBatchingBufferSize)
+		if a.EmailBatching == nil {
+			a.EmailBatching = NewEmailBatchingJob(a, *utils.Cfg.EmailSettings.EmailBatchingBufferSize)
 		}
 
 		// note that we don't support changing EmailBatchingBufferSize without restarting the server
 
-		emailBatchingJob.Start()
+		a.EmailBatching.Start()
 	}
 }
 
-func AddNotificationEmailToBatch(user *model.User, post *model.Post, team *model.Team) *model.AppError {
+func (a *App) AddNotificationEmailToBatch(user *model.User, post *model.Post, team *model.Team) *model.AppError {
 	if !*utils.Cfg.EmailSettings.EnableEmailBatching {
 		return model.NewAppError("AddNotificationEmailToBatch", "api.email_batching.add_notification_email_to_batch.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	if !emailBatchingJob.Add(user, post, team) {
+	if !a.EmailBatching.Add(user, post, team) {
 		l4g.Error(utils.T("api.email_batching.add_notification_email_to_batch.channel_full.app_error"))
 		return model.NewAppError("AddNotificationEmailToBatch", "api.email_batching.add_notification_email_to_batch.channel_full.app_error", nil, "", http.StatusInternalServerError)
 	}
@@ -56,12 +54,14 @@ type batchedNotification struct {
 }
 
 type EmailBatchingJob struct {
+	app                  *App
 	newNotifications     chan *batchedNotification
 	pendingNotifications map[string][]*batchedNotification
 }
 
-func MakeEmailBatchingJob(bufferSize int) *EmailBatchingJob {
+func NewEmailBatchingJob(a *App, bufferSize int) *EmailBatchingJob {
 	return &EmailBatchingJob{
+		app:                  a,
 		newNotifications:     make(chan *batchedNotification, bufferSize),
 		pendingNotifications: make(map[string][]*batchedNotification),
 	}
@@ -97,7 +97,7 @@ func (job *EmailBatchingJob) CheckPendingEmails() {
 
 	// it's a bit weird to pass the send email function through here, but it makes it so that we can test
 	// without actually sending emails
-	job.checkPendingNotifications(time.Now(), Global().sendBatchedEmailNotification)
+	job.checkPendingNotifications(time.Now(), job.app.sendBatchedEmailNotification)
 
 	l4g.Debug(utils.T("api.email_batching.check_pending_emails.finished_running"), len(job.pendingNotifications))
 }
@@ -131,7 +131,7 @@ func (job *EmailBatchingJob) checkPendingNotifications(now time.Time, handler fu
 			if inspectedTeamNames[notification.teamName] != "" {
 				continue
 			}
-			tchan := Global().Srv.Store.Team().GetByName(notifications[0].teamName)
+			tchan := job.app.Srv.Store.Team().GetByName(notifications[0].teamName)
 			if result := <-tchan; result.Err != nil {
 				l4g.Error("Unable to find Team id for notification", result.Err)
 				continue
@@ -141,7 +141,7 @@ func (job *EmailBatchingJob) checkPendingNotifications(now time.Time, handler fu
 
 			// if the user has viewed any channels in this team since the notification was queued, delete
 			// all queued notifications
-			mchan := Global().Srv.Store.Channel().GetMembersForUser(inspectedTeamNames[notification.teamName], userId)
+			mchan := job.app.Srv.Store.Channel().GetMembersForUser(inspectedTeamNames[notification.teamName], userId)
 			if result := <-mchan; result.Err != nil {
 				l4g.Error("Unable to find ChannelMembers for user", result.Err)
 				continue
@@ -158,7 +158,7 @@ func (job *EmailBatchingJob) checkPendingNotifications(now time.Time, handler fu
 
 		// get how long we need to wait to send notifications to the user
 		var interval int64
-		pchan := Global().Srv.Store.Preference().Get(userId, model.PREFERENCE_CATEGORY_NOTIFICATIONS, model.PREFERENCE_NAME_EMAIL_INTERVAL)
+		pchan := job.app.Srv.Store.Preference().Get(userId, model.PREFERENCE_CATEGORY_NOTIFICATIONS, model.PREFERENCE_NAME_EMAIL_INTERVAL)
 		if result := <-pchan; result.Err != nil {
 			// use the default batching interval if an error ocurrs while fetching user preferences
 			interval, _ = strconv.ParseInt(model.PREFERENCE_EMAIL_INTERVAL_BATCHING_SECONDS, 10, 64)

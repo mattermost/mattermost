@@ -14,18 +14,19 @@ import (
 
 type Workers struct {
 	startOnce sync.Once
-	watcher   *Watcher
+	Watcher   *Watcher
 
 	DataRetention            model.Worker
 	ElasticsearchIndexing    model.Worker
 	ElasticsearchAggregation model.Worker
+	LdapSync                 model.Worker
 
 	listenerId string
 }
 
 func InitWorkers() *Workers {
 	workers := &Workers{}
-	workers.watcher = MakeWatcher(workers)
+	workers.Watcher = MakeWatcher(workers, DEFAULT_WATCHER_POLLING_INTERVAL)
 
 	if dataRetentionInterface := ejobs.GetDataRetentionInterface(); dataRetentionInterface != nil {
 		workers.DataRetention = dataRetentionInterface.MakeWorker()
@@ -37,6 +38,10 @@ func InitWorkers() *Workers {
 
 	if elasticsearchAggregatorInterface := ejobs.GetElasticsearchAggregatorInterface(); elasticsearchAggregatorInterface != nil {
 		workers.ElasticsearchAggregation = elasticsearchAggregatorInterface.MakeWorker()
+	}
+
+	if ldapSyncInterface := ejobs.GetLdapSyncInterface(); ldapSyncInterface != nil {
+		workers.LdapSync = ldapSyncInterface.MakeWorker()
 	}
 
 	return workers
@@ -58,7 +63,11 @@ func (workers *Workers) Start() *Workers {
 			go workers.ElasticsearchAggregation.Run()
 		}
 
-		go workers.watcher.Start()
+		if workers.LdapSync != nil && *utils.Cfg.LdapSettings.Enable {
+			go workers.LdapSync.Run()
+		}
+
+		go workers.Watcher.Start()
 	})
 
 	workers.listenerId = utils.AddConfigListener(workers.handleConfigChange)
@@ -90,12 +99,20 @@ func (workers *Workers) handleConfigChange(oldConfig *model.Config, newConfig *m
 			workers.ElasticsearchAggregation.Stop()
 		}
 	}
+
+	if workers.LdapSync != nil {
+		if !*oldConfig.LdapSettings.Enable && *newConfig.LdapSettings.Enable {
+			go workers.LdapSync.Run()
+		} else if *oldConfig.LdapSettings.Enable && !*newConfig.LdapSettings.Enable {
+			workers.LdapSync.Stop()
+		}
+	}
 }
 
 func (workers *Workers) Stop() *Workers {
 	utils.RemoveConfigListener(workers.listenerId)
 
-	workers.watcher.Stop()
+	workers.Watcher.Stop()
 
 	if workers.DataRetention != nil && (*utils.Cfg.DataRetentionSettings.EnableMessageDeletion || *utils.Cfg.DataRetentionSettings.EnableFileDeletion) {
 		workers.DataRetention.Stop()
@@ -107,6 +124,10 @@ func (workers *Workers) Stop() *Workers {
 
 	if workers.ElasticsearchAggregation != nil && *utils.Cfg.ElasticsearchSettings.EnableIndexing {
 		workers.ElasticsearchAggregation.Stop()
+	}
+
+	if workers.LdapSync != nil && *utils.Cfg.LdapSettings.Enable {
+		workers.LdapSync.Stop()
 	}
 
 	l4g.Info("Stopped workers")

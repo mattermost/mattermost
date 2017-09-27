@@ -11,6 +11,7 @@ import (
 
 	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/utils"
 )
 
 const (
@@ -53,6 +54,14 @@ func GetMostRecentJob(jobType string, jobStatus string) (*model.Job, *model.AppE
 	}
 }
 
+func GetJob(id string) (*model.Job, *model.AppError) {
+	if result := <-Srv.Store.Job().Get(id); result.Err != nil {
+		return nil, result.Err
+	} else {
+		return result.Data.(*model.Job), nil
+	}
+}
+
 func ClaimJob(job *model.Job) (bool, *model.AppError) {
 	if result := <-Srv.Store.Job().UpdateStatusOptimistically(job.Id, model.JOB_STATUS_PENDING, model.JOB_STATUS_IN_PROGRESS); result.Err != nil {
 		return false, result.Err
@@ -89,7 +98,8 @@ func SetJobError(job *model.Job, jobError *model.AppError) *model.AppError {
 	if job.Data == nil {
 		job.Data = make(map[string]string)
 	}
-	job.Data["error"] = jobError.Error()
+	jobError.Translate(utils.T)
+	job.Data["error"] = jobError.Message + " (" + jobError.DetailedError + ")"
 
 	if result := <-Srv.Store.Job().UpdateOptimistically(job, model.JOB_STATUS_IN_PROGRESS); result.Err != nil {
 		return result.Err

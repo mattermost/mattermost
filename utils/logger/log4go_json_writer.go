@@ -22,6 +22,6 @@ func newJSONLogWriter(fname string, rotate bool) *l4g.FileLogWriter {
 // or above lvl to a file with the specified filename.
 func NewJSONFileLogger(lvl l4g.Level, filename string) l4g.Logger {
 	return l4g.Logger{
-		"file": &l4g.Filter{Level: lvl, LogWriter: newJSONLogWriter(filename, true)},
+		"file": &l4g.Filter{Level: lvl, LogWriter: newJSONLogWriter(filename, false)},
 	}
 }

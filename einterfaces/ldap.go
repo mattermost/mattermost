@@ -4,6 +4,8 @@
 package einterfaces
 
 import (
+	"github.com/go-ldap/ldap"
+
 	"github.com/mattermost/mattermost-server/model"
 )
 
@@ -14,9 +16,10 @@ type LdapInterface interface {
 	CheckPassword(id string, password string) *model.AppError
 	SwitchToLdap(userId, ldapId, ldapPassword string) *model.AppError
 	ValidateFilter(filter string) *model.AppError
-	Syncronize() *model.AppError
-	StartLdapSyncJob()
-	SyncNow()
+	StartSynchronizeJob(waitForJobToFinish bool) (*model.Job, *model.AppError)
 	RunTest() *model.AppError
 	GetAllLdapUsers() ([]*model.User, *model.AppError)
+	UserFromLdapUser(ldapUser *ldap.Entry) *model.User
+	UserHasUpdateFromLdap(existingUser *model.User, currentLdapUser *model.User) bool
+	UpdateLdapUser(existingUser *model.User, currentLdapUser *model.User) *model.User
 }

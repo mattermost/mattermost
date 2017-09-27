@@ -103,7 +103,7 @@ func (a *App) GetAnalytics(name string, teamId string) (model.AnalyticsRows, *mo
 				return nil, err
 			}
 
-			totalSockets := TotalWebsocketConnections()
+			totalSockets := a.TotalWebsocketConnections()
 			totalMasterDb := a.Srv.Store.TotalMasterDbConnections()
 			totalReadDb := a.Srv.Store.TotalReadDbConnections()
 
@@ -118,7 +118,7 @@ func (a *App) GetAnalytics(name string, teamId string) (model.AnalyticsRows, *mo
 			rows[7].Value = float64(totalReadDb)
 
 		} else {
-			rows[5].Value = float64(TotalWebsocketConnections())
+			rows[5].Value = float64(a.TotalWebsocketConnections())
 			rows[6].Value = float64(a.Srv.Store.TotalMasterDbConnections())
 			rows[7].Value = float64(a.Srv.Store.TotalReadDbConnections())
 		}

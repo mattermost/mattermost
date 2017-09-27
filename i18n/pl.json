@@ -3720,6 +3720,14 @@
     "translation": "Nie można ustawić wyświetlanie indeksu elasticsearch"
   },
   {
+    "id": "ent.elasticsearch.data_retention_delete_indexes.delete_index.error",
+    "translation": "Nie udało się utworzyć indeksu ElasticSearch"
+  },
+  {
+    "id": "ent.elasticsearch.data_retention_delete_indexes.get_indexes.error",
+    "translation": "Nie udało się utworzyć indeksu ElasticSearch"
+  },
+  {
     "id": "ent.elasticsearch.delete_post.error",
     "translation": "Failed to delete the post"
   },
@@ -3830,6 +3838,14 @@
   {
     "id": "ent.ldap.mattermost_user_update",
     "translation": "Użytkownik Mattermost został zaktualizowany przez serwer AD/LDAP."
+  },
+  {
+    "id": "ent.ldap.sync.index_job_failed.error",
+    "translation": "LDAP sync worker failed due to the sync job failing"
+  },
+  {
+    "id": "ent.ldap.sync_worker.create_index_job.error",
+    "translation": "LDAP sync worker failed to create the sync job"
   },
   {
     "id": "ent.ldap.syncdone.info",
@@ -5848,6 +5864,10 @@
     "translation": "We encountered an error permanently deleting the batch of posts"
   },
   {
+    "id": "store.sql_post.permanent_delete_batch.app_error",
+    "translation": "We encountered an error permanently deleting the batch of posts"
+  },
+  {
     "id": "store.sql_post.permanent_delete_by_channel.app_error",
     "translation": "Nie można usunąć postów według kanału"
   },
@@ -5878,6 +5898,10 @@
   {
     "id": "store.sql_post.update.app_error",
     "translation": "Nie udało się zaktualizować wiadomości"
+  },
+  {
+    "id": "store.sql_preference.cleanup_flags_batch.app_error",
+    "translation": "We encountered an error cleaning up the batch of flags"
   },
   {
     "id": "store.sql_preference.delete.app_error",
@@ -6546,6 +6570,18 @@
   {
     "id": "utils.diagnostic.analytics_not_found.app_error",
     "translation": "Analytics nie zainicjowany"
+  },
+  {
+    "id": "utils.file.list_directory.configured.app_error",
+    "translation": "File storage not configured properly. Please configure for either S3 or local server file storage."
+  },
+  {
+    "id": "utils.file.list_directory.local.app_error",
+    "translation": "Encountered an error listing directory from local server file storage."
+  },
+  {
+    "id": "utils.file.list_directory.s3.app_error",
+    "translation": "Encountered an error listing directory from S3."
   },
   {
     "id": "utils.file.remove_directory.configured.app_error",

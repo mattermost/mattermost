@@ -20,6 +20,11 @@ type App struct {
 	PluginEnv              *pluginenv.Environment
 	PluginConfigListenerId string
 
+	EmailBatching *EmailBatchingJob
+
+	Hubs                        []*Hub
+	HubsStopCheckingForDeadlock chan bool
+
 	AccountMigration einterfaces.AccountMigrationInterface
 	Brand            einterfaces.BrandInterface
 	Cluster          einterfaces.ClusterInterface
@@ -102,8 +107,6 @@ func (a *App) initEnterprise() {
 			if err := utils.ValidateLdapFilter(cfg, a.Ldap); err != nil {
 				panic(utils.T(err.Id))
 			}
-
-			a.Ldap.StartLdapSyncJob()
 		})
 	}
 	if metricsInterface != nil {

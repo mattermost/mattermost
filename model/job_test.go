@@ -43,5 +43,6 @@ func TestIsValidJobType(t *testing.T) {
 	assert.True(t, IsValidJobType(JOB_TYPE_DATA_RETENTION))
 	assert.True(t, IsValidJobType(JOB_TYPE_ELASTICSEARCH_POST_AGGREGATION))
 	assert.True(t, IsValidJobType(JOB_TYPE_ELASTICSEARCH_POST_INDEXING))
+	assert.True(t, IsValidJobType(JOB_TYPE_LDAP_SYNC))
 	assert.False(t, IsValidJobType("SomeFakeJobTypeThatDoesntExist"))
 }

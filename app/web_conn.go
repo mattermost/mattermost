@@ -96,7 +96,7 @@ func (c *WebConn) SetSession(v *model.Session) {
 
 func (c *WebConn) ReadPump() {
 	defer func() {
-		HubUnregister(c)
+		c.App.HubUnregister(c)
 		c.WebSocket.Close()
 	}()
 	c.WebSocket.SetReadLimit(model.SOCKET_MAX_MESSAGE_SIZE_KB)
