@@ -78,6 +78,14 @@ func (us SqlUserStore) CreateIndexesIfNotExists() {
 	us.CreateIndexIfNotExists("idx_users_create_at", "Users", "CreateAt")
 	us.CreateIndexIfNotExists("idx_users_delete_at", "Users", "DeleteAt")
 
+	if *utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_POSTGRES {
+		us.CreateIndexIfNotExists("idx_users_email_lower", "Users", "lower(Email)")
+		us.CreateIndexIfNotExists("idx_users_username_lower", "Users", "lower(Username)")
+		us.CreateIndexIfNotExists("idx_users_nickname_lower", "Users", "lower(Nickname)")
+		us.CreateIndexIfNotExists("idx_users_firstname_lower", "Users", "lower(FirstName)")
+		us.CreateIndexIfNotExists("idx_users_lastname_lower", "Users", "lower(LastName)")
+	}
+
 	us.CreateFullTextIndexIfNotExists("idx_users_all_txt", "Users", USER_SEARCH_TYPE_ALL)
 	us.CreateFullTextIndexIfNotExists("idx_users_all_no_full_name_txt", "Users", USER_SEARCH_TYPE_ALL_NO_FULL_NAME)
 	us.CreateFullTextIndexIfNotExists("idx_users_names_txt", "Users", USER_SEARCH_TYPE_NAMES)
@@ -1398,46 +1406,26 @@ func (us SqlUserStore) SearchInChannel(channelId string, term string, options ma
 	return storeChannel
 }
 
-var specialUserSearchChar = []string{
-	"<",
-	">",
-	"+",
-	"-",
-	"(",
-	")",
-	"~",
-	":",
-	"*",
-	"\"",
-	"!",
-	"@",
+var escapeUserSearchChar = []string{
+	"%",
+	"_",
 }
 
-var postgresSearchChar = []string{
-	"(",
-	")",
-	":",
-	"!",
+var ignoreUserSearchChar = []string{
+	"*",
 }
 
 func (us SqlUserStore) performSearch(searchQuery string, term string, options map[string]bool, parameters map[string]interface{}) store.StoreResult {
 	result := store.StoreResult{}
 
-	// Special handling for emails
-	originalTerm := term
-	postgresUseOriginalTerm := false
-	if strings.Contains(term, "@") && strings.Contains(term, ".") {
-		if *utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_POSTGRES {
-			postgresUseOriginalTerm = true
-		} else if *utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_MYSQL {
-			lastIndex := strings.LastIndex(term, ".")
-			term = term[0:lastIndex]
-		}
+	// These chars must be removed from the like query.
+	for _, c := range ignoreUserSearchChar {
+		term = strings.Replace(term, c, "", -1)
 	}
 
-	// these chars have special meaning and can be treated as spaces
-	for _, c := range specialUserSearchChar {
-		term = strings.Replace(term, c, " ", -1)
+	// These chars must be escaped in the like query.
+	for _, c := range escapeUserSearchChar {
+		term = strings.Replace(term, c, "*"+c, -1)
 	}
 
 	searchType := USER_SEARCH_TYPE_ALL
@@ -1457,44 +1445,29 @@ func (us SqlUserStore) performSearch(searchQuery string, term string, options ma
 
 	if term == "" {
 		searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", "", 1)
-	} else if *utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_POSTGRES {
-		if postgresUseOriginalTerm {
-			term = originalTerm
-			// these chars will break the query and must be removed
-			for _, c := range postgresSearchChar {
-				term = strings.Replace(term, c, "", -1)
-			}
-		} else {
-			splitTerm := strings.Fields(term)
-			for i, t := range strings.Fields(term) {
-				if i == len(splitTerm)-1 {
-					splitTerm[i] = t + ":*"
+	} else {
+		splitTerms := strings.Fields(term)
+		splitFields := strings.Split(searchType, ", ")
+
+		terms := []string{}
+		for i, term := range splitTerms {
+			fields := []string{}
+			for _, field := range splitFields {
+				if *utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_POSTGRES {
+					fields = append(fields, fmt.Sprintf("lower(%s) LIKE lower(%s) escape '*' ", field, fmt.Sprintf(":Term%d", i)))
 				} else {
-					splitTerm[i] = t + ":* &"
+					fields = append(fields, fmt.Sprintf("%s LIKE %s escape '*' ", field, fmt.Sprintf(":Term%d", i)))
 				}
 			}
-
-			term = strings.Join(splitTerm, " ")
+			terms = append(terms, fmt.Sprintf("(%s)", strings.Join(fields, " OR ")))
+			parameters[fmt.Sprintf("Term%d", i)] = fmt.Sprintf("%s%%", term)
 		}
 
-		searchType = convertMySQLFullTextColumnsToPostgres(searchType)
-		searchClause := fmt.Sprintf("AND (%s) @@  to_tsquery('simple', :Term)", searchType)
-		searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", searchClause, 1)
-	} else if *utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_MYSQL {
-		splitTerm := strings.Fields(term)
-		for i, t := range strings.Fields(term) {
-			splitTerm[i] = "+" + t + "*"
-		}
-
-		term = strings.Join(splitTerm, " ")
-
-		searchClause := fmt.Sprintf("AND MATCH(%s) AGAINST (:Term IN BOOLEAN MODE)", searchType)
-		searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", searchClause, 1)
+		term := strings.Join(terms, " AND ")
+		searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", fmt.Sprintf(" AND %s ", term), 1)
 	}
 
 	var users []*model.User
-
-	parameters["Term"] = term
 
 	if _, err := us.GetReplica().Select(&users, searchQuery, parameters); err != nil {
 		result.Err = model.NewAppError("SqlUserStore.Search", "store.sql_user.search.app_error", nil, "term="+term+", "+"search_type="+searchType+", "+err.Error(), http.StatusInternalServerError)
