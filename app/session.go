@@ -71,6 +71,17 @@ func (a *App) GetSession(token string) (*model.Session, *model.AppError) {
 		return nil, model.NewAppError("GetSession", "api.context.invalid_token.error", map[string]interface{}{"Token": token}, "", http.StatusUnauthorized)
 	}
 
+	if utils.IsLicensed() && *utils.License().Features.Compliance &&
+		session != nil && !session.IsOAuth && !session.IsMobileApp() &&
+		session.Props[model.SESSION_PROP_TYPE] != model.SESSION_TYPE_USER_ACCESS_TOKEN {
+
+		timeout := int64(*utils.Cfg.ServiceSettings.SessionIdleTimeout) * 1000 * 60
+		if timeout > 0 && model.GetMillis()-session.LastActivityAt > timeout {
+			a.RevokeSessionById(session.Id)
+			return nil, model.NewAppError("GetSession", "api.context.invalid_token.error", map[string]interface{}{"Token": token}, "idle timeout", http.StatusUnauthorized)
+		}
+	}
+
 	return session, nil
 }
 

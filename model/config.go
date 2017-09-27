@@ -182,6 +182,7 @@ type ServiceSettings struct {
 	SessionLengthMobileInDays                *int
 	SessionLengthSSOInDays                   *int
 	SessionCacheInMinutes                    *int
+	SessionIdleTimeout                       *int
 	WebsocketSecurePort                      *int
 	WebsocketPort                            *int
 	WebserverMode                            *string
@@ -1153,6 +1154,11 @@ func (o *Config) SetDefaults() {
 	if o.ServiceSettings.SessionCacheInMinutes == nil {
 		o.ServiceSettings.SessionCacheInMinutes = new(int)
 		*o.ServiceSettings.SessionCacheInMinutes = 10
+	}
+
+	if o.ServiceSettings.SessionIdleTimeout == nil {
+		o.ServiceSettings.SessionIdleTimeout = new(int)
+		*o.ServiceSettings.SessionIdleTimeout = 0
 	}
 
 	if o.ServiceSettings.EnableCommands == nil {
