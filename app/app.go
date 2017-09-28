@@ -59,7 +59,9 @@ func New() *App {
 		if appCount > 1 {
 			panic("Only one App should exist at a time. Did you forget to call Shutdown()?")
 		}
-		app := &App{}
+		app := &App{
+			Jobs: &jobs.JobServer{},
+		}
 		app.initEnterprise()
 		return app
 	}

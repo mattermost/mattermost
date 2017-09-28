@@ -76,9 +76,7 @@ func setupTestHelper(enterprise bool) *TestHelper {
 		utils.License().Features.SetDefaults()
 	}
 
-	if th.App.Jobs.Store == nil {
-		th.App.Jobs.Store = th.App.Srv.Store
-	}
+	th.App.Jobs.Store = th.App.Srv.Store
 
 	th.Client = th.CreateClient()
 	th.SystemAdminClient = th.CreateClient()
