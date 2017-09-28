@@ -141,3 +141,29 @@ func CancellationWatcher(ctx context.Context, jobId string, cancelChan chan inte
 		}
 	}
 }
+
+func GenerateNextStartDateTime(now time.Time, nextStartTime time.Time) *time.Time {
+	nextTime := time.Date(now.Year(), now.Month(), now.Day(), nextStartTime.Hour(), nextStartTime.Minute(), 0, 0, time.Local)
+
+	if !now.Before(nextTime) {
+		nextTime = nextTime.AddDate(0, 0, 1)
+	}
+
+	return &nextTime
+}
+
+func CheckForPendingJobsByType(jobType string) (bool, *model.AppError) {
+	if result := <-Srv.Store.Job().GetCountByStatusAndType(model.JOB_STATUS_PENDING, jobType); result.Err != nil {
+		return false, result.Err
+	} else {
+		return result.Data.(int64) > 0, nil
+	}
+}
+
+func GetLastSuccessfulJobByType(jobType string) (*model.Job, *model.AppError) {
+	if result := <-Srv.Store.Job().GetNewestJobByStatusAndType(model.JOB_STATUS_SUCCESS, jobType); result.Err != nil {
+		return nil, result.Err
+	} else {
+		return result.Data.(*model.Job), nil
+	}
+}

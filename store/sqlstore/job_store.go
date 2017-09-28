@@ -325,6 +325,64 @@ func (jss SqlJobStore) GetAllByStatus(status string) store.StoreChannel {
 	return storeChannel
 }
 
+func (jss SqlJobStore) GetNewestJobByStatusAndType(status string, jobType string) store.StoreChannel {
+	storeChannel := make(store.StoreChannel, 1)
+
+	go func() {
+		result := store.StoreResult{}
+
+		var job *model.Job
+
+		if err := jss.GetReplica().SelectOne(&job,
+			`SELECT
+				*
+			FROM
+				Jobs
+			WHERE
+				Status = :Status
+			AND
+				Type = :Type
+			ORDER BY
+				CreateAt DESC
+			LIMIT 1`, map[string]interface{}{"Status": status, "Type": jobType}); err != nil {
+			result.Err = model.NewAppError("SqlJobStore.GetAllByStatus", "store.sql_job.get_newest_job_by_status_and_type.app_error", nil, "Status="+status+", "+err.Error(), http.StatusInternalServerError)
+		} else {
+			result.Data = job
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
+func (jss SqlJobStore) GetCountByStatusAndType(status string, jobType string) store.StoreChannel {
+	storeChannel := make(store.StoreChannel, 1)
+
+	go func() {
+		result := store.StoreResult{}
+
+		if count, err := jss.GetReplica().SelectInt(`SELECT
+				COUNT(*)
+			FROM
+				Jobs
+			WHERE
+				Status = :Status
+			AND
+				Type = :Type`, map[string]interface{}{"Status": status, "Type": jobType}); err != nil {
+			result.Err = model.NewAppError("SqlJobStore.GetCountByStatusAndType", "store.sql_job.get_count_by_status_and_type.app_error", nil, "Status="+status+", "+err.Error(), http.StatusInternalServerError)
+		} else {
+			result.Data = count
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
 func (jss SqlJobStore) Delete(id string) store.StoreChannel {
 	storeChannel := make(store.StoreChannel, 1)
 
