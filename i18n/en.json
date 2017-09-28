@@ -4369,15 +4369,15 @@
   },
   {
     "id": "model.config.is_valid.data_retention.deletion_job_start_time.app_error",
-    "translation": "DataRetention DeletionJobStartTime setting must be set to a time in the format \"hh:mm\""
+    "translation": "Data retention job start time must be a 24-hour time stamp in the form HH:MM."
   },
   {
     "id": "model.config.is_valid.data_retention.file_retention_days_too_low.app_error",
-    "translation": "DataRetention FileRetentionDays setting must be at least 1"
+    "translation": "File retention must be one day or longer."
   },
   {
     "id": "model.config.is_valid.data_retention.message_retention_days_too_low.app_error",
-    "translation": "DataRetention MessageRetentionDays setting must be at least 1"
+    "translation": "Message retention must be one day or longer."
   },
   {
     "id": "model.config.is_valid.elastic_search.aggregate_posts_after_days.app_error",
