@@ -826,6 +826,14 @@ func TestOAuthComplete(t *testing.T) {
 	// We are going to use mattermost as the provider emulating gitlab
 	utils.Cfg.ServiceSettings.EnableOAuthServiceProvider = true
 
+	adminOnly := *utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations
+	defer func() {
+		*utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations = adminOnly
+		utils.SetDefaultRolesBasedOnConfig()
+	}()
+	*utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations = false
+	utils.SetDefaultRolesBasedOnConfig()
+
 	oauthApp := &model.OAuthApp{
 		Name:        "TestApp5" + model.NewId(),
 		Homepage:    "https://nowhere.com",
