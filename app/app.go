@@ -77,7 +77,7 @@ func (a *App) Shutdown() {
 	if appCount == 0 {
 		// XXX: This is to give all of our runaway goroutines time to complete.
 		//      We should wrangle them up and remove this.
-		time.Sleep(time.Millisecond * 500)
+		time.Sleep(time.Second)
 
 		if a.Srv != nil {
 			a.StopServer()
