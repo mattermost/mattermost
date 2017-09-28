@@ -5,7 +5,6 @@ package jira
 
 import (
 	"bytes"
-	"net/url"
 	"strings"
 	"text/template"
 
@@ -130,12 +129,15 @@ func (w *Webhook) SlackAttachment() (*model.SlackAttachment, error) {
 	}, nil
 }
 
-func (w *Webhook) renderText(tplBody string) (string, error) {
-	issueSelf, err := url.Parse(w.Issue.Self)
-	if err != nil {
-		return "", err
+func (w *Webhook) JIRAURL() string {
+	pos := strings.LastIndex(w.Issue.Self, "/rest/api")
+	if pos < 0 {
+		return ""
 	}
-	jiraURL := strings.TrimRight(issueSelf.ResolveReference(&url.URL{Path: "/"}).String(), "/")
+	return w.Issue.Self[:pos]
+}
+
+func (w *Webhook) renderText(tplBody string) (string, error) {
 	verb := strings.TrimPrefix(w.WebhookEvent, "jira:issue_")
 
 	if w.WebhookEvent == "jira:issue_updated" {
@@ -163,7 +165,7 @@ func (w *Webhook) renderText(tplBody string) (string, error) {
 		Verb    string
 	}{
 		Webhook: w,
-		JIRAURL: jiraURL,
+		JIRAURL: w.JIRAURL(),
 		Verb:    verb,
 	}); err != nil {
 		return "", err
