@@ -305,6 +305,8 @@ func testCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 	rc := &model.CommandResponse{
 		Text:         "test command response " + msg,
 		ResponseType: model.COMMAND_RESPONSE_TYPE_IN_CHANNEL,
+		Type:         "custom_test",
+		Props:        map[string]interface{}{"someprop": "somevalue"},
 	}
 
 	w.Write([]byte(rc.ToJson()))

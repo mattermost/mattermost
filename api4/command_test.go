@@ -423,6 +423,14 @@ func TestExecuteCommand(t *testing.T) {
 	cmdPosted := false
 	for _, post := range posts.Posts {
 		if strings.Contains(post.Message, "test command response") {
+			if post.Type != "custom_test" {
+				t.Fatal("wrong type set in slash command post")
+			}
+
+			if post.Props["someprop"] != "somevalue" {
+				t.Fatal("wrong prop set in slash command post")
+			}
+
 			cmdPosted = true
 			break
 		}

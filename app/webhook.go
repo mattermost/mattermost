@@ -105,10 +105,10 @@ func (a *App) TriggerWebhook(payload *model.OutgoingWebhookPayload, hook *model.
 				l4g.Error(utils.T("api.post.handle_webhook_events_and_forget.event_post.error"), err.Error())
 			} else {
 				defer CloseBody(resp)
-				respProps := model.MapFromJson(resp.Body)
+				webhookResp := model.OutgoingWebhookResponseFromJson(resp.Body)
 
-				if text, ok := respProps["text"]; ok {
-					if _, err := a.CreateWebhookPost(hook.CreatorId, channel, text, respProps["username"], respProps["icon_url"], post.Props, post.Type); err != nil {
+				if webhookResp.Text != nil {
+					if _, err := a.CreateWebhookPost(hook.CreatorId, channel, *webhookResp.Text, webhookResp.Username, webhookResp.IconURL, webhookResp.Props, webhookResp.Type); err != nil {
 						l4g.Error(utils.T("api.post.handle_webhook_events_and_forget.create_post.error"), err)
 					}
 				}

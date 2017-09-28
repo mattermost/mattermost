@@ -295,6 +295,16 @@ func testCreatePostWithOutgoingHook(
 			}
 		}
 
+		resp := &model.OutgoingWebhookResponse{}
+		resp.Text = new(string)
+		*resp.Text = "some test text"
+		resp.Username = "testusername"
+		resp.IconURL = "http://www.mattermost.org/wp-content/uploads/2016/04/icon.png"
+		resp.Props = map[string]interface{}{"someprop": "somevalue"}
+		resp.Type = "custom_test"
+
+		w.Write([]byte(resp.ToJson()))
+
 		success <- true
 	}))
 	defer ts.Close()

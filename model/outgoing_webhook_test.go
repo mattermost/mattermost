@@ -176,3 +176,16 @@ func TestOutgoingWebhookTriggerWordStartsWith(t *testing.T) {
 		t.Fatal("Should return false")
 	}
 }
+
+func TestOutgoingWebhookResponseJson(t *testing.T) {
+	o := OutgoingWebhookResponse{}
+	o.Text = new(string)
+	*o.Text = "some text"
+
+	json := o.ToJson()
+	ro := OutgoingWebhookResponseFromJson(strings.NewReader(json))
+
+	if *o.Text != *ro.Text {
+		t.Fatal("Text does not match")
+	}
+}

@@ -239,6 +239,8 @@ func (a *App) HandleCommandResponse(command *model.Command, args *model.CommandA
 	post.RootId = args.RootId
 	post.ParentId = args.ParentId
 	post.UserId = args.UserId
+	post.Type = response.Type
+	post.Props = response.Props
 
 	if !builtIn {
 		post.AddProp("from_webhook", "true")
