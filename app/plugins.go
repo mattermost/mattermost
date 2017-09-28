@@ -186,6 +186,10 @@ func (api *BuiltInPluginAPI) GetLdapUserAttributes(userId string, attributes []s
 		return nil, err
 	}
 
+	if user.AuthData == nil {
+		return map[string]string{}, nil
+	}
+
 	return api.app.Ldap.GetUserAttributes(*user.AuthData, attributes)
 }
 
