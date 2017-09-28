@@ -21,7 +21,7 @@ import (
 
 func TestCreatePost(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
-	defer TearDown()
+	defer th.TearDown()
 	Client := th.Client
 
 	post := &model.Post{ChannelId: th.BasicChannel.Id, Message: "#hashtag a" + model.NewId() + "a"}
@@ -112,7 +112,7 @@ func testCreatePostWithOutgoingHook(
 	triggerWhen int,
 ) {
 	th := Setup().InitBasic().InitSystemAdmin()
-	defer TearDown()
+	defer th.TearDown()
 	user := th.SystemAdminUser
 	team := th.BasicTeam
 	channel := th.BasicChannel
@@ -262,7 +262,7 @@ func TestCreatePostWithOutgoingHook_no_content_type(t *testing.T) {
 
 func TestCreatePostPublic(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
-	defer TearDown()
+	defer th.TearDown()
 	Client := th.Client
 
 	post := &model.Post{ChannelId: th.BasicChannel.Id, Message: "#hashtag a" + model.NewId() + "a"}
@@ -307,7 +307,7 @@ func TestCreatePostPublic(t *testing.T) {
 
 func TestCreatePostAll(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
-	defer TearDown()
+	defer th.TearDown()
 	Client := th.Client
 
 	post := &model.Post{ChannelId: th.BasicChannel.Id, Message: "#hashtag a" + model.NewId() + "a"}
@@ -362,7 +362,7 @@ func TestCreatePostAll(t *testing.T) {
 
 func TestUpdatePost(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
-	defer TearDown()
+	defer th.TearDown()
 	Client := th.Client
 	channel := th.BasicChannel
 
@@ -441,7 +441,7 @@ func TestUpdatePost(t *testing.T) {
 
 func TestPatchPost(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
-	defer TearDown()
+	defer th.TearDown()
 	Client := th.Client
 	channel := th.BasicChannel
 
@@ -546,7 +546,7 @@ func TestPatchPost(t *testing.T) {
 
 func TestPinPost(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
-	defer TearDown()
+	defer th.TearDown()
 	Client := th.Client
 
 	post := th.BasicPost
@@ -581,7 +581,7 @@ func TestPinPost(t *testing.T) {
 
 func TestUnpinPost(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
-	defer TearDown()
+	defer th.TearDown()
 	Client := th.Client
 
 	pinnedPost := th.CreatePinnedPost()
@@ -616,7 +616,7 @@ func TestUnpinPost(t *testing.T) {
 
 func TestGetPostsForChannel(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
-	defer TearDown()
+	defer th.TearDown()
 	Client := th.Client
 
 	post1 := th.CreatePost()
@@ -728,7 +728,7 @@ func TestGetPostsForChannel(t *testing.T) {
 
 func TestGetFlaggedPostsForUser(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
-	defer TearDown()
+	defer th.TearDown()
 	Client := th.Client
 	user := th.BasicUser
 	team1 := th.BasicTeam
@@ -909,7 +909,7 @@ func TestGetFlaggedPostsForUser(t *testing.T) {
 
 func TestGetPostsAfterAndBefore(t *testing.T) {
 	th := Setup().InitBasic()
-	defer TearDown()
+	defer th.TearDown()
 	Client := th.Client
 
 	post1 := th.CreatePost()
@@ -993,7 +993,7 @@ func TestGetPostsAfterAndBefore(t *testing.T) {
 
 func TestGetPost(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
-	defer TearDown()
+	defer th.TearDown()
 	Client := th.Client
 
 	post, resp := Client.GetPost(th.BasicPost.Id, "")
@@ -1042,7 +1042,7 @@ func TestGetPost(t *testing.T) {
 
 func TestDeletePost(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
-	defer TearDown()
+	defer th.TearDown()
 	Client := th.Client
 
 	_, resp := Client.DeletePost("")
@@ -1080,7 +1080,7 @@ func TestDeletePost(t *testing.T) {
 
 func TestGetPostThread(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
-	defer TearDown()
+	defer th.TearDown()
 	Client := th.Client
 
 	post := &model.Post{ChannelId: th.BasicChannel.Id, Message: "zz" + model.NewId() + "a", RootId: th.BasicPost.Id}
@@ -1138,7 +1138,7 @@ func TestGetPostThread(t *testing.T) {
 
 func TestSearchPosts(t *testing.T) {
 	th := Setup().InitBasic()
-	defer TearDown()
+	defer th.TearDown()
 	th.LoginBasic()
 	Client := th.Client
 
@@ -1199,7 +1199,7 @@ func TestSearchPosts(t *testing.T) {
 
 func TestSearchHashtagPosts(t *testing.T) {
 	th := Setup().InitBasic()
-	defer TearDown()
+	defer th.TearDown()
 	th.LoginBasic()
 	Client := th.Client
 
@@ -1225,7 +1225,7 @@ func TestSearchHashtagPosts(t *testing.T) {
 
 func TestSearchPostsInChannel(t *testing.T) {
 	th := Setup().InitBasic()
-	defer TearDown()
+	defer th.TearDown()
 	th.LoginBasic()
 	Client := th.Client
 
@@ -1291,12 +1291,12 @@ func TestSearchPostsInChannel(t *testing.T) {
 
 func TestSearchPostsFromUser(t *testing.T) {
 	th := Setup().InitBasic()
-	defer TearDown()
+	defer th.TearDown()
 	Client := th.Client
 
 	th.LoginTeamAdmin()
 	user := th.CreateUser()
-	LinkUserToTeam(user, th.BasicTeam)
+	th.LinkUserToTeam(user, th.BasicTeam)
 	th.App.AddUserToChannel(user, th.BasicChannel)
 	th.App.AddUserToChannel(user, th.BasicChannel2)
 
@@ -1355,7 +1355,7 @@ func TestSearchPostsFromUser(t *testing.T) {
 
 func TestGetFileInfosForPost(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
-	defer TearDown()
+	defer th.TearDown()
 	Client := th.Client
 
 	fileIds := make([]string, 3, 3)

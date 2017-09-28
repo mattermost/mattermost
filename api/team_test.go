@@ -13,6 +13,8 @@ import (
 
 func TestCreateTeam(t *testing.T) {
 	th := Setup().InitBasic()
+	defer th.TearDown()
+
 	Client := th.BasicClient
 
 	team := model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
@@ -23,7 +25,7 @@ func TestCreateTeam(t *testing.T) {
 
 	user := &model.User{Email: model.NewId() + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1"}
 	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
-	LinkUserToTeam(user, rteam.Data.(*model.Team))
+	th.LinkUserToTeam(user, rteam.Data.(*model.Team))
 	store.Must(th.App.Srv.Store.User().VerifyEmail(user.Id))
 
 	Client.Login(user.Email, "passwd1")
@@ -56,6 +58,8 @@ func TestCreateTeam(t *testing.T) {
 
 func TestAddUserToTeam(t *testing.T) {
 	th := Setup().InitSystemAdmin().InitBasic()
+	defer th.TearDown()
+
 	th.BasicClient.Logout()
 
 	// Test adding a user to a team you are not a member of.
@@ -126,7 +130,7 @@ func TestAddUserToTeam(t *testing.T) {
 	}
 
 	// Should work as team admin.
-	UpdateUserToTeamAdmin(th.BasicUser, th.BasicTeam)
+	th.UpdateUserToTeamAdmin(th.BasicUser, th.BasicTeam)
 	th.App.InvalidateAllCaches()
 	*utils.Cfg.TeamSettings.RestrictTeamInvite = model.PERMISSIONS_TEAM_ADMIN
 	utils.SetIsLicensed(true)
@@ -158,6 +162,7 @@ func TestAddUserToTeam(t *testing.T) {
 
 func TestRemoveUserFromTeam(t *testing.T) {
 	th := Setup().InitSystemAdmin().InitBasic()
+	defer th.TearDown()
 
 	if _, err := th.BasicClient.RemoveUserFromTeam(th.SystemAdminTeam.Id, th.SystemAdminUser.Id); err == nil {
 		t.Fatal("should fail not enough permissions")
@@ -191,6 +196,7 @@ func TestRemoveUserFromTeam(t *testing.T) {
 
 func TestAddUserToTeamFromInvite(t *testing.T) {
 	th := Setup().InitBasic()
+	defer th.TearDown()
 
 	user2 := th.CreateUser(th.BasicClient)
 	th.BasicClient.Must(th.BasicClient.Logout())
@@ -208,6 +214,8 @@ func TestAddUserToTeamFromInvite(t *testing.T) {
 
 func TestGetAllTeams(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
+	defer th.TearDown()
+
 	Client := th.BasicClient
 
 	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
@@ -217,7 +225,7 @@ func TestGetAllTeams(t *testing.T) {
 
 	user := &model.User{Email: model.NewId() + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1"}
 	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
-	LinkUserToTeam(user, team)
+	th.LinkUserToTeam(user, team)
 	store.Must(th.App.Srv.Store.User().VerifyEmail(user.Id))
 
 	Client.Login(user.Email, "passwd1")
@@ -247,6 +255,8 @@ func TestGetAllTeams(t *testing.T) {
 
 func TestGetAllTeamListings(t *testing.T) {
 	th := Setup().InitBasic()
+	defer th.TearDown()
+
 	Client := th.BasicClient
 
 	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN, AllowOpenInvite: true}
@@ -256,7 +266,7 @@ func TestGetAllTeamListings(t *testing.T) {
 
 	user := &model.User{Email: model.NewId() + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1"}
 	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
-	LinkUserToTeam(user, team)
+	th.LinkUserToTeam(user, team)
 	store.Must(th.App.Srv.Store.User().VerifyEmail(user.Id))
 
 	Client.Login(user.Email, "passwd1")
@@ -294,6 +304,8 @@ func TestGetAllTeamListings(t *testing.T) {
 
 func TestTeamPermDelete(t *testing.T) {
 	th := Setup().InitBasic()
+	defer th.TearDown()
+
 	Client := th.BasicClient
 
 	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
@@ -303,7 +315,7 @@ func TestTeamPermDelete(t *testing.T) {
 
 	user1 := &model.User{Email: model.NewId() + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1"}
 	user1 = Client.Must(Client.CreateUser(user1, "")).Data.(*model.User)
-	LinkUserToTeam(user1, team)
+	th.LinkUserToTeam(user1, team)
 	store.Must(th.App.Srv.Store.User().VerifyEmail(user1.Id))
 
 	Client.Login(user1.Email, "passwd1")
@@ -338,6 +350,8 @@ func TestTeamPermDelete(t *testing.T) {
 
 func TestInviteMembers(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
+	defer th.TearDown()
+
 	Client := th.BasicClient
 	SystemAdminClient := th.SystemAdminClient
 
@@ -348,7 +362,7 @@ func TestInviteMembers(t *testing.T) {
 
 	user := &model.User{Email: model.NewId() + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1"}
 	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
-	LinkUserToTeam(user, team)
+	th.LinkUserToTeam(user, team)
 	store.Must(th.App.Srv.Store.User().VerifyEmail(user.Id))
 
 	Client.Login(user.Email, "passwd1")
@@ -379,7 +393,7 @@ func TestInviteMembers(t *testing.T) {
 	utils.SetDefaultRolesBasedOnConfig()
 
 	th.LoginBasic2()
-	LinkUserToTeam(th.BasicUser2, team)
+	th.LinkUserToTeam(th.BasicUser2, team)
 
 	if _, err := Client.InviteMembers(invites); err != nil {
 		t.Fatal(err)
@@ -401,7 +415,7 @@ func TestInviteMembers(t *testing.T) {
 		t.Fatal("should have errored not team admin and licensed")
 	}
 
-	UpdateUserToTeamAdmin(th.BasicUser2, team)
+	th.UpdateUserToTeamAdmin(th.BasicUser2, team)
 	Client.Logout()
 	th.LoginBasic2()
 	Client.SetTeamId(team.Id)
@@ -417,7 +431,7 @@ func TestInviteMembers(t *testing.T) {
 		t.Fatal("should have errored not system admin and licensed")
 	}
 
-	LinkUserToTeam(th.SystemAdminUser, team)
+	th.LinkUserToTeam(th.SystemAdminUser, team)
 
 	if _, err := SystemAdminClient.InviteMembers(invites); err != nil {
 		t.Fatal(err)
@@ -426,6 +440,8 @@ func TestInviteMembers(t *testing.T) {
 
 func TestUpdateTeamDisplayName(t *testing.T) {
 	th := Setup().InitBasic()
+	defer th.TearDown()
+
 	Client := th.BasicClient
 
 	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "success+" + model.NewId() + "@simulator.amazonses.com", Type: model.TEAM_OPEN}
@@ -435,7 +451,7 @@ func TestUpdateTeamDisplayName(t *testing.T) {
 
 	user2 := &model.User{Email: "success+" + model.NewId() + "@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1"}
 	user2 = Client.Must(Client.CreateUser(user2, "")).Data.(*model.User)
-	LinkUserToTeam(user2, team)
+	th.LinkUserToTeam(user2, team)
 	store.Must(th.App.Srv.Store.User().VerifyEmail(user2.Id))
 
 	Client.Login(user2.Email, "passwd1")
@@ -462,6 +478,8 @@ func TestUpdateTeamDisplayName(t *testing.T) {
 
 func TestFuzzyTeamCreate(t *testing.T) {
 	th := Setup().InitBasic()
+	defer th.TearDown()
+
 	Client := th.BasicClient
 
 	for i := 0; i < len(utils.FUZZY_STRINGS_NAMES) || i < len(utils.FUZZY_STRINGS_EMAILS); i++ {
@@ -486,6 +504,8 @@ func TestFuzzyTeamCreate(t *testing.T) {
 
 func TestGetMyTeam(t *testing.T) {
 	th := Setup().InitBasic()
+	defer th.TearDown()
+
 	Client := th.BasicClient
 
 	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
@@ -496,7 +516,7 @@ func TestGetMyTeam(t *testing.T) {
 
 	user := model.User{Email: "success+" + model.NewId() + "@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1"}
 	ruser, _ := Client.CreateUser(&user, "")
-	LinkUserToTeam(ruser.Data.(*model.User), rteam.Data.(*model.Team))
+	th.LinkUserToTeam(ruser.Data.(*model.User), rteam.Data.(*model.Team))
 	store.Must(th.App.Srv.Store.User().VerifyEmail(ruser.Data.(*model.User).Id))
 
 	Client.Login(user.Email, user.Password)
@@ -519,6 +539,7 @@ func TestGetMyTeam(t *testing.T) {
 
 func TestGetTeamMembers(t *testing.T) {
 	th := Setup().InitBasic()
+	defer th.TearDown()
 
 	if result, err := th.BasicClient.GetTeamMembers(th.BasicTeam.Id, 0, 100); err != nil {
 		t.Fatal(err)
@@ -536,6 +557,7 @@ func TestGetTeamMembers(t *testing.T) {
 
 func TestGetMyTeamMembers(t *testing.T) {
 	th := Setup().InitBasic()
+	defer th.TearDown()
 
 	if result, err := th.BasicClient.GetMyTeamMembers(); err != nil {
 		t.Fatal(err)
@@ -549,6 +571,7 @@ func TestGetMyTeamMembers(t *testing.T) {
 
 func TestGetMyTeamsUnread(t *testing.T) {
 	th := Setup().InitBasic()
+	defer th.TearDown()
 
 	if result, err := th.BasicClient.GetMyTeamsUnread(""); err != nil {
 		t.Fatal(err)
@@ -571,6 +594,7 @@ func TestGetMyTeamsUnread(t *testing.T) {
 
 func TestGetTeamMember(t *testing.T) {
 	th := Setup().InitBasic()
+	defer th.TearDown()
 
 	if result, err := th.BasicClient.GetTeamMember(th.BasicTeam.Id, th.BasicUser.Id); err != nil {
 		t.Fatal(err)
@@ -600,6 +624,7 @@ func TestGetTeamMember(t *testing.T) {
 
 func TestGetTeamMembersByIds(t *testing.T) {
 	th := Setup().InitBasic()
+	defer th.TearDown()
 
 	if result, err := th.BasicClient.GetTeamMembersByIds(th.BasicTeam.Id, []string{th.BasicUser.Id}); err != nil {
 		t.Fatal(err)
@@ -633,8 +658,10 @@ func TestGetTeamMembersByIds(t *testing.T) {
 
 func TestUpdateTeamMemberRoles(t *testing.T) {
 	th := Setup().InitSystemAdmin().InitBasic()
+	defer th.TearDown()
+
 	th.SystemAdminClient.SetTeamId(th.BasicTeam.Id)
-	LinkUserToTeam(th.SystemAdminUser, th.BasicTeam)
+	th.LinkUserToTeam(th.SystemAdminUser, th.BasicTeam)
 
 	const BASIC_MEMBER = "team_user"
 	const TEAM_ADMIN = "team_user team_admin"
@@ -696,6 +723,8 @@ func TestUpdateTeamMemberRoles(t *testing.T) {
 
 func TestGetTeamStats(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
+	defer th.TearDown()
+
 	Client := th.BasicClient
 
 	if result, err := th.SystemAdminClient.GetTeamStats(th.BasicTeam.Id); err != nil {
@@ -753,6 +782,8 @@ func TestGetTeamStats(t *testing.T) {
 
 func TestUpdateTeamDescription(t *testing.T) {
 	th := Setup().InitBasic()
+	defer th.TearDown()
+
 	Client := th.BasicClient
 
 	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "success+" + model.NewId() + "@simulator.amazonses.com", Type: model.TEAM_OPEN}
@@ -762,7 +793,7 @@ func TestUpdateTeamDescription(t *testing.T) {
 
 	user2 := &model.User{Email: "success+" + model.NewId() + "@simulator.amazonses.com", Nickname: "Jabba the Hutt", Password: "passwd1"}
 	user2 = Client.Must(Client.CreateUser(user2, "")).Data.(*model.User)
-	LinkUserToTeam(user2, team)
+	th.LinkUserToTeam(user2, team)
 	store.Must(th.App.Srv.Store.User().VerifyEmail(user2.Id))
 
 	Client.Login(user2.Email, "passwd1")
@@ -789,6 +820,8 @@ func TestUpdateTeamDescription(t *testing.T) {
 
 func TestGetTeamByName(t *testing.T) {
 	th := Setup().InitSystemAdmin().InitBasic()
+	defer th.TearDown()
+
 	Client := th.BasicClient
 
 	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "success+" + model.NewId() + "@simulator.amazonses.com", Type: model.TEAM_OPEN, AllowOpenInvite: false}
@@ -867,6 +900,8 @@ func TestGetTeamByName(t *testing.T) {
 
 func TestFindTeamByName(t *testing.T) {
 	th := Setup().InitBasic()
+	defer th.TearDown()
+
 	Client := th.BasicClient
 	Client.Logout()
 

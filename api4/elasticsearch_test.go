@@ -9,7 +9,7 @@ import (
 
 func TestElasticsearchTest(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
-	defer TearDown()
+	defer th.TearDown()
 
 	_, resp := th.Client.TestElasticsearch()
 	CheckForbiddenStatus(t, resp)
@@ -20,7 +20,7 @@ func TestElasticsearchTest(t *testing.T) {
 
 func TestElasticsearchPurgeIndexes(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
-	defer TearDown()
+	defer th.TearDown()
 
 	_, resp := th.Client.PurgeElasticsearchIndexes()
 	CheckForbiddenStatus(t, resp)

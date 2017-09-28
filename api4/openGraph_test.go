@@ -16,6 +16,8 @@ import (
 
 func TestGetOpenGraphMetadata(t *testing.T) {
 	th := Setup().InitBasic()
+	defer th.TearDown()
+
 	Client := th.Client
 
 	enableLinkPreviews := *utils.Cfg.ServiceSettings.EnableLinkPreviews

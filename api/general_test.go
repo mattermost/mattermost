@@ -11,6 +11,7 @@ import (
 
 func TestGetClientProperties(t *testing.T) {
 	th := Setup().InitBasic()
+	defer th.TearDown()
 
 	if props, err := th.BasicClient.GetClientProperties(); err != nil {
 		t.Fatal(err)
@@ -23,6 +24,7 @@ func TestGetClientProperties(t *testing.T) {
 
 func TestLogClient(t *testing.T) {
 	th := Setup().InitBasic()
+	defer th.TearDown()
 
 	if ret, _ := th.BasicClient.LogClient("this is a test"); !ret {
 		t.Fatal("failed to log")
@@ -49,6 +51,7 @@ func TestLogClient(t *testing.T) {
 
 func TestGetPing(t *testing.T) {
 	th := Setup().InitBasic()
+	defer th.TearDown()
 
 	if m, err := th.BasicClient.GetPing(); err != nil {
 		t.Fatal(err)
