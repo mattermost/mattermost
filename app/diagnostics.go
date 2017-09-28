@@ -17,31 +17,32 @@ import (
 const (
 	SEGMENT_KEY = "fwb7VPbFeQ7SKp3wHm1RzFUuXZudqVok"
 
-	TRACK_CONFIG_SERVICE       = "config_service"
-	TRACK_CONFIG_TEAM          = "config_team"
-	TRACK_CONFIG_CLIENT_REQ    = "config_client_requirements"
-	TRACK_CONFIG_SQL           = "config_sql"
-	TRACK_CONFIG_LOG           = "config_log"
-	TRACK_CONFIG_FILE          = "config_file"
-	TRACK_CONFIG_RATE          = "config_rate"
-	TRACK_CONFIG_EMAIL         = "config_email"
-	TRACK_CONFIG_PRIVACY       = "config_privacy"
-	TRACK_CONFIG_THEME         = "config_theme"
-	TRACK_CONFIG_OAUTH         = "config_oauth"
-	TRACK_CONFIG_LDAP          = "config_ldap"
-	TRACK_CONFIG_COMPLIANCE    = "config_compliance"
-	TRACK_CONFIG_LOCALIZATION  = "config_localization"
-	TRACK_CONFIG_SAML          = "config_saml"
-	TRACK_CONFIG_PASSWORD      = "config_password"
-	TRACK_CONFIG_CLUSTER       = "config_cluster"
-	TRACK_CONFIG_METRICS       = "config_metrics"
-	TRACK_CONFIG_WEBRTC        = "config_webrtc"
-	TRACK_CONFIG_SUPPORT       = "config_support"
-	TRACK_CONFIG_NATIVEAPP     = "config_nativeapp"
-	TRACK_CONFIG_ANALYTICS     = "config_analytics"
-	TRACK_CONFIG_ANNOUNCEMENT  = "config_announcement"
-	TRACK_CONFIG_ELASTICSEARCH = "config_elasticsearch"
-	TRACK_CONFIG_PLUGIN        = "config_plugin"
+	TRACK_CONFIG_SERVICE        = "config_service"
+	TRACK_CONFIG_TEAM           = "config_team"
+	TRACK_CONFIG_CLIENT_REQ     = "config_client_requirements"
+	TRACK_CONFIG_SQL            = "config_sql"
+	TRACK_CONFIG_LOG            = "config_log"
+	TRACK_CONFIG_FILE           = "config_file"
+	TRACK_CONFIG_RATE           = "config_rate"
+	TRACK_CONFIG_EMAIL          = "config_email"
+	TRACK_CONFIG_PRIVACY        = "config_privacy"
+	TRACK_CONFIG_THEME          = "config_theme"
+	TRACK_CONFIG_OAUTH          = "config_oauth"
+	TRACK_CONFIG_LDAP           = "config_ldap"
+	TRACK_CONFIG_COMPLIANCE     = "config_compliance"
+	TRACK_CONFIG_LOCALIZATION   = "config_localization"
+	TRACK_CONFIG_SAML           = "config_saml"
+	TRACK_CONFIG_PASSWORD       = "config_password"
+	TRACK_CONFIG_CLUSTER        = "config_cluster"
+	TRACK_CONFIG_METRICS        = "config_metrics"
+	TRACK_CONFIG_WEBRTC         = "config_webrtc"
+	TRACK_CONFIG_SUPPORT        = "config_support"
+	TRACK_CONFIG_NATIVEAPP      = "config_nativeapp"
+	TRACK_CONFIG_ANALYTICS      = "config_analytics"
+	TRACK_CONFIG_ANNOUNCEMENT   = "config_announcement"
+	TRACK_CONFIG_ELASTICSEARCH  = "config_elasticsearch"
+	TRACK_CONFIG_PLUGIN         = "config_plugin"
+	TRACK_CONFIG_DATA_RETENTION = "config_data_retention"
 
 	TRACK_ACTIVITY = "activity"
 	TRACK_LICENSE  = "license"
@@ -445,6 +446,14 @@ func trackConfig() {
 
 	SendDiagnostic(TRACK_CONFIG_PLUGIN, map[string]interface{}{
 		"enable_jira": pluginSetting("jira", "enabled", false),
+	})
+
+	SendDiagnostic(TRACK_CONFIG_DATA_RETENTION, map[string]interface{}{
+		"enable_message_deletion": *utils.Cfg.DataRetentionSettings.EnableMessageDeletion,
+		"enable_file_deletion":    *utils.Cfg.DataRetentionSettings.EnableFileDeletion,
+		"message_retention_days":  *utils.Cfg.DataRetentionSettings.MessageRetentionDays,
+		"file_retention_days":     *utils.Cfg.DataRetentionSettings.FileRetentionDays,
+		"deletion_job_start_time": *utils.Cfg.DataRetentionSettings.DeletionJobStartTime,
 	})
 }
 
