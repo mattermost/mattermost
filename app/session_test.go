@@ -69,7 +69,7 @@ func TestGetSessionIdleTimeoutInMinutes(t *testing.T) {
 	// Test regular session, should timeout
 	time := session.LastActivityAt - (1000 * 60 * 6)
 	<-th.App.Srv.Store.Session().UpdateLastActivityAt(session.Id, time)
-	ClearSessionCacheForUserSkipClusterSend(session.UserId)
+	th.App.ClearSessionCacheForUserSkipClusterSend(session.UserId)
 
 	rsession, err = th.App.GetSession(session.Token)
 	require.NotNil(t, err)
@@ -86,7 +86,7 @@ func TestGetSessionIdleTimeoutInMinutes(t *testing.T) {
 	session, _ = th.App.CreateSession(session)
 	time = session.LastActivityAt - (1000 * 60 * 6)
 	<-th.App.Srv.Store.Session().UpdateLastActivityAt(session.Id, time)
-	ClearSessionCacheForUserSkipClusterSend(session.UserId)
+	th.App.ClearSessionCacheForUserSkipClusterSend(session.UserId)
 
 	_, err = th.App.GetSession(session.Token)
 	assert.Nil(t, err)
@@ -100,7 +100,7 @@ func TestGetSessionIdleTimeoutInMinutes(t *testing.T) {
 	session, _ = th.App.CreateSession(session)
 	time = session.LastActivityAt - (1000 * 60 * 6)
 	<-th.App.Srv.Store.Session().UpdateLastActivityAt(session.Id, time)
-	ClearSessionCacheForUserSkipClusterSend(session.UserId)
+	th.App.ClearSessionCacheForUserSkipClusterSend(session.UserId)
 
 	_, err = th.App.GetSession(session.Token)
 	assert.Nil(t, err)
@@ -114,7 +114,7 @@ func TestGetSessionIdleTimeoutInMinutes(t *testing.T) {
 	session, _ = th.App.CreateSession(session)
 	time = session.LastActivityAt - (1000 * 60 * 6)
 	<-th.App.Srv.Store.Session().UpdateLastActivityAt(session.Id, time)
-	ClearSessionCacheForUserSkipClusterSend(session.UserId)
+	th.App.ClearSessionCacheForUserSkipClusterSend(session.UserId)
 
 	_, err = th.App.GetSession(session.Token)
 	assert.Nil(t, err)
@@ -129,7 +129,7 @@ func TestGetSessionIdleTimeoutInMinutes(t *testing.T) {
 	session, _ = th.App.CreateSession(session)
 	time = session.LastActivityAt - (1000 * 60 * 6)
 	<-th.App.Srv.Store.Session().UpdateLastActivityAt(session.Id, time)
-	ClearSessionCacheForUserSkipClusterSend(session.UserId)
+	th.App.ClearSessionCacheForUserSkipClusterSend(session.UserId)
 
 	_, err = th.App.GetSession(session.Token)
 	assert.Nil(t, err)
@@ -146,7 +146,7 @@ func TestGetSessionIdleTimeoutInMinutes(t *testing.T) {
 	session, _ = th.App.CreateSession(session)
 	time = session.LastActivityAt - (1000 * 60 * 6)
 	<-th.App.Srv.Store.Session().UpdateLastActivityAt(session.Id, time)
-	ClearSessionCacheForUserSkipClusterSend(session.UserId)
+	th.App.ClearSessionCacheForUserSkipClusterSend(session.UserId)
 
 	_, err = th.App.GetSession(session.Token)
 	assert.Nil(t, err)
