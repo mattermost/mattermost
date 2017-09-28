@@ -20,6 +20,8 @@ type CommandResponse struct {
 	Text         string             `json:"text"`
 	Username     string             `json:"username"`
 	IconURL      string             `json:"icon_url"`
+	Type         string             `json:"type"`
+	Props        StringInterface    `json:"props"`
 	GotoLocation string             `json:"goto_location"`
 	Attachments  []*SlackAttachment `json:"attachments"`
 }
