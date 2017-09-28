@@ -52,7 +52,7 @@ func createJob(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if job, err := app.CreateJob(job); err != nil {
+	if job, err := c.App.CreateJob(job); err != nil {
 		c.Err = err
 		return
 	} else {
@@ -109,7 +109,7 @@ func cancelJob(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := app.CancelJob(c.Params.JobId); err != nil {
+	if err := c.App.CancelJob(c.Params.JobId); err != nil {
 		c.Err = err
 		return
 	}
