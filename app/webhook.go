@@ -107,7 +107,7 @@ func (a *App) TriggerWebhook(payload *model.OutgoingWebhookPayload, hook *model.
 				defer CloseBody(resp)
 				webhookResp := model.OutgoingWebhookResponseFromJson(resp.Body)
 
-				if webhookResp.Text != nil {
+				if webhookResp != nil && webhookResp.Text != nil {
 					if _, err := a.CreateWebhookPost(hook.CreatorId, channel, *webhookResp.Text, webhookResp.Username, webhookResp.IconURL, webhookResp.Props, webhookResp.Type); err != nil {
 						l4g.Error(utils.T("api.post.handle_webhook_events_and_forget.create_post.error"), err)
 					}
