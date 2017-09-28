@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"sync"
+	"time"
 
 	"github.com/mattermost/mattermost-server/einterfaces"
 	ejobs "github.com/mattermost/mattermost-server/einterfaces/jobs"
@@ -50,6 +51,7 @@ var initEnterprise sync.Once
 var UseGlobalApp = true
 
 // New creates a new App. You must call Shutdown when you're done with it.
+// XXX: Doesn't necessarily create a new App yet.
 func New() *App {
 	appCount++
 
@@ -70,8 +72,14 @@ func New() *App {
 
 func (a *App) Shutdown() {
 	appCount--
-	if appCount == 0 && a.Srv != nil {
-		a.StopServer()
+	if appCount == 0 {
+		// XXX: This is to give all of our runaway goroutines time to complete.
+		//      We should wrangle them up and remove this.
+		time.Sleep(time.Millisecond * 500)
+
+		if a.Srv != nil {
+			a.StopServer()
+		}
 	}
 }
 
