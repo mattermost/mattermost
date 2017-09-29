@@ -16,6 +16,7 @@ const (
 )
 
 type Watcher struct {
+	srv     *JobServer
 	workers *Workers
 
 	stop            chan bool
@@ -23,12 +24,13 @@ type Watcher struct {
 	pollingInterval int
 }
 
-func MakeWatcher(workers *Workers, pollingInterval int) *Watcher {
+func (srv *JobServer) MakeWatcher(workers *Workers, pollingInterval int) *Watcher {
 	return &Watcher{
 		stop:            make(chan bool, 1),
 		stopped:         make(chan bool, 1),
 		pollingInterval: pollingInterval,
 		workers:         workers,
+		srv:             srv,
 	}
 }
 
@@ -63,7 +65,7 @@ func (watcher *Watcher) Stop() {
 }
 
 func (watcher *Watcher) PollAndNotify() {
-	if result := <-Srv.Store.Job().GetAllByStatus(model.JOB_STATUS_PENDING); result.Err != nil {
+	if result := <-watcher.srv.Store.Job().GetAllByStatus(model.JOB_STATUS_PENDING); result.Err != nil {
 		l4g.Error("Error occured getting all pending statuses: %v", result.Err.Error())
 	} else {
 		jobs := result.Data.([]*model.Job)

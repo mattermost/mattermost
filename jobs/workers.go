@@ -7,7 +7,6 @@ import (
 	"sync"
 
 	l4g "github.com/alecthomas/log4go"
-	ejobs "github.com/mattermost/mattermost-server/einterfaces/jobs"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
 )
@@ -24,23 +23,23 @@ type Workers struct {
 	listenerId string
 }
 
-func InitWorkers() *Workers {
+func (srv *JobServer) InitWorkers() *Workers {
 	workers := &Workers{}
-	workers.Watcher = MakeWatcher(workers, DEFAULT_WATCHER_POLLING_INTERVAL)
+	workers.Watcher = srv.MakeWatcher(workers, DEFAULT_WATCHER_POLLING_INTERVAL)
 
-	if dataRetentionInterface := ejobs.GetDataRetentionInterface(); dataRetentionInterface != nil {
+	if dataRetentionInterface := srv.DataRetention; dataRetentionInterface != nil {
 		workers.DataRetention = dataRetentionInterface.MakeWorker()
 	}
 
-	if elasticsearchIndexerInterface := ejobs.GetElasticsearchIndexerInterface(); elasticsearchIndexerInterface != nil {
+	if elasticsearchIndexerInterface := srv.ElasticsearchIndexer; elasticsearchIndexerInterface != nil {
 		workers.ElasticsearchIndexing = elasticsearchIndexerInterface.MakeWorker()
 	}
 
-	if elasticsearchAggregatorInterface := ejobs.GetElasticsearchAggregatorInterface(); elasticsearchAggregatorInterface != nil {
+	if elasticsearchAggregatorInterface := srv.ElasticsearchAggregator; elasticsearchAggregatorInterface != nil {
 		workers.ElasticsearchAggregation = elasticsearchAggregatorInterface.MakeWorker()
 	}
 
-	if ldapSyncInterface := ejobs.GetLdapSyncInterface(); ldapSyncInterface != nil {
+	if ldapSyncInterface := srv.LdapSync; ldapSyncInterface != nil {
 		workers.LdapSync = ldapSyncInterface.MakeWorker()
 	}
 

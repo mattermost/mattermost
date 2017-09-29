@@ -13,7 +13,6 @@ import (
 	"github.com/mattermost/mattermost-server/api"
 	"github.com/mattermost/mattermost-server/api4"
 	"github.com/mattermost/mattermost-server/app"
-	"github.com/mattermost/mattermost-server/jobs"
 	"github.com/mattermost/mattermost-server/manualtesting"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
@@ -138,12 +137,12 @@ func runServer(configFileLocation string) {
 		}
 	}
 
-	jobs.Srv.Store = a.Srv.Store
+	a.Jobs.Store = a.Srv.Store
 	if *utils.Cfg.JobSettings.RunJobs {
-		jobs.Srv.StartWorkers()
+		a.Jobs.StartWorkers()
 	}
 	if *utils.Cfg.JobSettings.RunScheduler {
-		jobs.Srv.StartSchedulers()
+		a.Jobs.StartSchedulers()
 	}
 
 	// wait for kill signal before attempting to gracefully shutdown
@@ -160,8 +159,8 @@ func runServer(configFileLocation string) {
 		a.Metrics.StopServer()
 	}
 
-	jobs.Srv.StopSchedulers()
-	jobs.Srv.StopWorkers()
+	a.Jobs.StopSchedulers()
+	a.Jobs.StopWorkers()
 
 	a.StopServer()
 }
