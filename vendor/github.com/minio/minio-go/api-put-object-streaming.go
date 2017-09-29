@@ -153,7 +153,7 @@ func (c Client) putObjectMultipartStreamFromReadAt(bucketName, objectName string
 
 	// Receive each part number from the channel allowing three parallel uploads.
 	for w := 1; w <= totalWorkers; w++ {
-		go func() {
+		go func(partSize int64) {
 			// Each worker will draw from the part channel and upload in parallel.
 			for uploadReq := range uploadPartsCh {
 
@@ -197,7 +197,7 @@ func (c Client) putObjectMultipartStreamFromReadAt(bucketName, objectName string
 					Error:   nil,
 				}
 			}
-		}()
+		}(partSize)
 	}
 
 	// Gather the responses as they occur and update any

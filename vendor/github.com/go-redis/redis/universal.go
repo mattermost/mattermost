@@ -90,8 +90,8 @@ func (o *UniversalOptions) simple() *Options {
 	}
 
 	return &Options{
-		Addr:     addr,
-		DB:       o.DB,
+		Addr: addr,
+		DB:   o.DB,
 
 		MaxRetries:         o.MaxRetries,
 		Password:           o.Password,
@@ -116,6 +116,9 @@ type UniversalClient interface {
 	Process(cmd Cmder) error
 	Close() error
 }
+
+var _ UniversalClient = (*Client)(nil)
+var _ UniversalClient = (*ClusterClient)(nil)
 
 // NewUniversalClient returns a new multi client. The type of client returned depends
 // on the following three conditions:

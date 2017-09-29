@@ -54,13 +54,25 @@ func (z *Rasterizer) floatingLineTo(bx, by float32) {
 
 	for ; y < yMax; y++ {
 		dy := floatingMin(float32(y+1), by) - floatingMax(float32(y), ay)
-		xNext := x + dy*dxdy
+
+		// The "float32" in expressions like "float32(foo*bar)" here and below
+		// look redundant, since foo and bar already have type float32, but are
+		// explicit in order to disable the compiler's Fused Multiply Add (FMA)
+		// instruction selection, which can improve performance but can result
+		// in different rounding errors in floating point computations.
+		//
+		// This package aims to have bit-exact identical results across all
+		// GOARCHes, and across pure Go code and assembly, so it disables FMA.
+		//
+		// See the discussion at
+		// https://groups.google.com/d/topic/golang-dev/Sti0bl2xUXQ/discussion
+		xNext := x + float32(dy*dxdy)
 		if y < 0 {
 			x = xNext
 			continue
 		}
 		buf := z.bufF32[y*width:]
-		d := dy * dir
+		d := float32(dy * dir)
 		x0, x1 := x, xNext
 		if x > xNext {
 			x0, x1 = x1, x0
@@ -71,48 +83,48 @@ func (z *Rasterizer) floatingLineTo(bx, by float32) {
 		x1Ceil := float32(x1i)
 
 		if x1i <= x0i+1 {
-			xmf := 0.5*(x+xNext) - x0Floor
+			xmf := float32(0.5*(x+xNext)) - x0Floor
 			if i := clamp(x0i+0, width); i < uint(len(buf)) {
-				buf[i] += d - d*xmf
+				buf[i] += d - float32(d*xmf)
 			}
 			if i := clamp(x0i+1, width); i < uint(len(buf)) {
-				buf[i] += d * xmf
+				buf[i] += float32(d * xmf)
 			}
 		} else {
 			s := 1 / (x1 - x0)
 			x0f := x0 - x0Floor
 			oneMinusX0f := 1 - x0f
-			a0 := 0.5 * s * oneMinusX0f * oneMinusX0f
+			a0 := float32(0.5 * s * oneMinusX0f * oneMinusX0f)
 			x1f := x1 - x1Ceil + 1
-			am := 0.5 * s * x1f * x1f
+			am := float32(0.5 * s * x1f * x1f)
 
 			if i := clamp(x0i, width); i < uint(len(buf)) {
-				buf[i] += d * a0
+				buf[i] += float32(d * a0)
 			}
 
 			if x1i == x0i+2 {
 				if i := clamp(x0i+1, width); i < uint(len(buf)) {
-					buf[i] += d * (1 - a0 - am)
+					buf[i] += float32(d * (1 - a0 - am))
 				}
 			} else {
-				a1 := s * (1.5 - x0f)
+				a1 := float32(s * (1.5 - x0f))
 				if i := clamp(x0i+1, width); i < uint(len(buf)) {
-					buf[i] += d * (a1 - a0)
+					buf[i] += float32(d * (a1 - a0))
 				}
-				dTimesS := d * s
+				dTimesS := float32(d * s)
 				for xi := x0i + 2; xi < x1i-1; xi++ {
 					if i := clamp(xi, width); i < uint(len(buf)) {
 						buf[i] += dTimesS
 					}
 				}
-				a2 := a1 + s*float32(x1i-x0i-3)
+				a2 := a1 + float32(s*float32(x1i-x0i-3))
 				if i := clamp(x1i-1, width); i < uint(len(buf)) {
-					buf[i] += d * (1 - a2 - am)
+					buf[i] += float32(d * (1 - a2 - am))
 				}
 			}
 
 			if i := clamp(x1i, width); i < uint(len(buf)) {
-				buf[i] += d * am
+				buf[i] += float32(d * am)
 			}
 		}
 

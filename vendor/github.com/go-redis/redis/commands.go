@@ -11,7 +11,7 @@ func readTimeout(timeout time.Duration) time.Duration {
 	if timeout == 0 {
 		return 0
 	}
-	return timeout + time.Second
+	return timeout + 10*time.Second
 }
 
 func usePrecise(dur time.Duration) bool {
@@ -41,6 +41,9 @@ func formatSec(dur time.Duration) int64 {
 type Cmdable interface {
 	Pipeline() Pipeliner
 	Pipelined(fn func(Pipeliner) error) ([]Cmder, error)
+
+	TxPipelined(fn func(Pipeliner) error) ([]Cmder, error)
+	TxPipeline() Pipeliner
 
 	ClientGetName() *StringCmd
 	Echo(message interface{}) *StringCmd

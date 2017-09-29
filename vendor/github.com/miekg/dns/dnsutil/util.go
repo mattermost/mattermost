@@ -11,7 +11,7 @@ import (
 	"github.com/miekg/dns"
 )
 
-// AddDomain adds origin to s if s is not already a FQDN.
+// AddOrigin adds origin to s if s is not already a FQDN.
 // Note that the result may not be a FQDN.  If origin does not end
 // with a ".", the result won't either.
 // This implements the zonefile convention (specified in RFC 1035,

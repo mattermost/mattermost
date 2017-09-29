@@ -137,7 +137,7 @@ func (d *decoder) decodeBool(name string, node ast.Node, result reflect.Value) e
 func (d *decoder) decodeFloat(name string, node ast.Node, result reflect.Value) error {
 	switch n := node.(type) {
 	case *ast.LiteralType:
-		if n.Token.Type == token.FLOAT {
+		if n.Token.Type == token.FLOAT || n.Token.Type == token.NUMBER {
 			v, err := strconv.ParseFloat(n.Token.Text, 64)
 			if err != nil {
 				return err

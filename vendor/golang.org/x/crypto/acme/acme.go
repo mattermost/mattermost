@@ -257,7 +257,7 @@ func (c *Client) RevokeCert(ctx context.Context, key crypto.Signer, cert []byte,
 func AcceptTOS(tosURL string) bool { return true }
 
 // Register creates a new account registration by following the "new-reg" flow.
-// It returns registered account. The a argument is not modified.
+// It returns registered account. The account is not modified.
 //
 // The registration may require the caller to agree to the CA's Terms of Service (TOS).
 // If so, and the account has not indicated the acceptance of the terms (see Account for details),

@@ -95,8 +95,8 @@ var _ = Describe("pool", func() {
 		Expect(pool.FreeLen()).To(Equal(1))
 
 		stats := pool.Stats()
-		Expect(stats.Requests).To(Equal(uint32(4)))
 		Expect(stats.Hits).To(Equal(uint32(2)))
+		Expect(stats.Misses).To(Equal(uint32(2)))
 		Expect(stats.Timeouts).To(Equal(uint32(0)))
 	})
 
@@ -112,30 +112,32 @@ var _ = Describe("pool", func() {
 		Expect(pool.FreeLen()).To(Equal(1))
 
 		stats := pool.Stats()
-		Expect(stats.Requests).To(Equal(uint32(101)))
 		Expect(stats.Hits).To(Equal(uint32(100)))
+		Expect(stats.Misses).To(Equal(uint32(1)))
 		Expect(stats.Timeouts).To(Equal(uint32(0)))
 	})
 
 	It("removes idle connections", func() {
 		stats := client.PoolStats()
 		Expect(stats).To(Equal(&redis.PoolStats{
-			Requests:   1,
 			Hits:       0,
+			Misses:     1,
 			Timeouts:   0,
 			TotalConns: 1,
 			FreeConns:  1,
+			StaleConns: 0,
 		}))
 
 		time.Sleep(2 * time.Second)
 
 		stats = client.PoolStats()
 		Expect(stats).To(Equal(&redis.PoolStats{
-			Requests:   1,
 			Hits:       0,
+			Misses:     1,
 			Timeouts:   0,
 			TotalConns: 0,
 			FreeConns:  0,
+			StaleConns: 1,
 		}))
 	})
 })

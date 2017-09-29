@@ -130,13 +130,11 @@ func TestExponentialBackoff(t *testing.T) {
 		t.Errorf("expected [%v..%v], got %v", 8, 256, got)
 	}
 
-	got, ok = b.Next(5)
-	if ok {
+	if _, ok := b.Next(5); ok {
 		t.Fatalf("expected %v, got %v", false, ok)
 	}
 
-	got, ok = b.Next(6)
-	if ok {
+	if _, ok = b.Next(6); ok {
 		t.Fatalf("expected %v, got %v", false, ok)
 	}
 }

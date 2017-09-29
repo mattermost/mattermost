@@ -19,7 +19,7 @@ func main() {
     // The "New" function will create a new UserAgent object and it will parse
     // the given string. If you need to parse more strings, you can re-use
     // this object and call: ua.Parse("another string")
-    ua := user_agent.New("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.97 Safari/537.11");
+    ua := user_agent.New("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.97 Safari/537.11")
 
     fmt.Printf("%v\n", ua.Mobile())   // => false
     fmt.Printf("%v\n", ua.Bot())      // => false
@@ -48,4 +48,4 @@ func main() {
 }
 ~~~
 
-Copyright &copy; 2012-2014 Miquel Sabaté Solà, released under the MIT License.
+Copyright &copy; 2012-2017 Miquel Sabaté Solà, released under the MIT License.
