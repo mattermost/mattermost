@@ -232,7 +232,52 @@ func TestJobGetAllByStatus(t *testing.T) {
 	}
 }
 
-func TestGetMostRecentByTypeStatus(t *testing.T) {
+func TestJobStoreGetNewestJobByStatusAndType(t *testing.T) {
+	ss := Setup()
+
+	jobType1 := model.NewId()
+	jobType2 := model.NewId()
+	status1 := model.NewId()
+	status2 := model.NewId()
+
+	jobs := []*model.Job{
+		{
+			Id:       model.NewId(),
+			Type:     jobType1,
+			CreateAt: 1001,
+			Status:   status1,
+		},
+		{
+			Id:       model.NewId(),
+			Type:     jobType1,
+			CreateAt: 1000,
+			Status:   status1,
+		},
+		{
+			Id:       model.NewId(),
+			Type:     jobType2,
+			CreateAt: 1003,
+			Status:   status1,
+		},
+		{
+			Id:       model.NewId(),
+			Type:     jobType1,
+			CreateAt: 1004,
+			Status:   status2,
+		},
+	}
+
+	for _, job := range jobs {
+		store.Must(ss.Job().Save(job))
+		defer ss.Job().Delete(job.Id)
+	}
+
+	result := <-ss.Job().GetNewestJobByStatusAndType(status1, jobType1)
+	assert.Nil(t, result.Err)
+	assert.EqualValues(t, jobs[0].Id, result.Data.(*model.Job).Id)
+}
+
+func TestJobStoreGetCountByStatusAndType(t *testing.T) {
 	ss := Setup()
 
 	jobType1 := model.NewId()
@@ -261,7 +306,7 @@ func TestGetMostRecentByTypeStatus(t *testing.T) {
 		},
 		{
 			Id:       model.NewId(),
-			Type:     jobType2,
+			Type:     jobType1,
 			CreateAt: 1002,
 			Status:   status2,
 		},
@@ -272,32 +317,21 @@ func TestGetMostRecentByTypeStatus(t *testing.T) {
 		defer ss.Job().Delete(job.Id)
 	}
 
-	if result := <-ss.Job().GetMostRecentByTypeStatus(jobType1, status1); result.Err != nil {
-		t.Fatal(result.Err)
-	} else if job, ok := result.Data.(*model.Job); !ok || job == nil {
-		t.Fatal("Returned object is not an instance of job")
-	} else {
-		// should have got the job with create time 999 back
-		assert.Equal(t, jobs[1].Id, job.Id)
-	}
+	result := <-ss.Job().GetCountByStatusAndType(status1, jobType1)
+	assert.Nil(t, result.Err)
+	assert.EqualValues(t, 2, result.Data.(int64))
 
-	if result := <-ss.Job().GetMostRecentByTypeStatus(jobType2, status1); result.Err != nil {
-		t.Fatal(result.Err)
-	} else if job, ok := result.Data.(*model.Job); !ok || job == nil {
-		t.Fatal("Returned object is not an instance of job")
-	} else {
-		// should have got the job with create time 1001 back
-		assert.Equal(t, jobs[2].Id,job.Id)
-	}
+	result = <-ss.Job().GetCountByStatusAndType(status2, jobType2)
+	assert.Nil(t, result.Err)
+	assert.EqualValues(t, 0, result.Data.(int64))
 
-	if result := <-ss.Job().GetMostRecentByTypeStatus(jobType2, status2); result.Err != nil {
-		t.Fatal(result.Err)
-	} else if job, ok := result.Data.(*model.Job); !ok || job == nil {
-		t.Fatal("Returned object is not an instance of job")
-	} else {
-		// should have got the job with create time 1002 back
-		assert.Equal(t, jobs[3].Id, job.Id)
-	}
+	result = <-ss.Job().GetCountByStatusAndType(status1, jobType2)
+	assert.Nil(t, result.Err)
+	assert.EqualValues(t, 1, result.Data.(int64))
+
+	result = <-ss.Job().GetCountByStatusAndType(status2, jobType1)
+	assert.Nil(t, result.Err)
+	assert.EqualValues(t, 1, result.Data.(int64))
 }
 
 func TestJobUpdateOptimistically(t *testing.T) {

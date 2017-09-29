@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+	"time"
 )
 
 const (
@@ -132,6 +133,9 @@ type Worker interface {
 }
 
 type Scheduler interface {
-	Run()
-	Stop()
+	Name() string
+	JobType() string
+	Enabled(cfg *Config) bool
+	NextScheduleTime(cfg *Config, now time.Time, pendingJobs bool, lastSuccessfulJob *Job) *time.Time
+	ScheduleJob(cfg *Config, pendingJobs bool, lastSuccessfulJob *Job) (*Job, *AppError)
 }

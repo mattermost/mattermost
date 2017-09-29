@@ -325,29 +325,57 @@ func (jss SqlJobStore) GetAllByStatus(status string) store.StoreChannel {
 	return storeChannel
 }
 
-// GetMostRecentByTypeStatus returns the most recently created job with the specified type and status
-func (jss SqlJobStore) GetMostRecentByTypeStatus(jobType string, jobStatus string) store.StoreChannel {
+
+func (jss SqlJobStore) GetNewestJobByStatusAndType(status string, jobType string) store.StoreChannel {
 	storeChannel := make(store.StoreChannel, 1)
 
 	go func() {
-		params := map[string]interface{}{"Status": jobStatus, "Type": jobType}
 		result := store.StoreResult{}
-		mostRecentJob := &model.Job{}
 
-		if err := jss.GetReplica().SelectOne(mostRecentJob,
+		var job *model.Job
+
+		if err := jss.GetReplica().SelectOne(&job,
+
 			`SELECT
 				*
 			FROM
 				Jobs
 			WHERE
-				Status = :Status AND
+				Status = :Status
+			AND
 				Type = :Type
 			ORDER BY
-				CreateAt ASC
-			LIMIT 1`, params); err != nil {
-			result.Err = model.NewAppError("SqlJobStore.GetMostRecentByTypeStatus", "store.sql_job.get_all.app_error", params, err.Error(), http.StatusInternalServerError)
+				CreateAt DESC
+			LIMIT 1`, map[string]interface{}{"Status": status, "Type": jobType}); err != nil {
+			result.Err = model.NewAppError("SqlJobStore.GetAllByStatus", "store.sql_job.get_newest_job_by_status_and_type.app_error", nil, "Status="+status+", "+err.Error(), http.StatusInternalServerError)
 		} else {
-			result.Data = mostRecentJob
+			result.Data = job
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
+func (jss SqlJobStore) GetCountByStatusAndType(status string, jobType string) store.StoreChannel {
+	storeChannel := make(store.StoreChannel, 1)
+
+	go func() {
+		result := store.StoreResult{}
+
+		if count, err := jss.GetReplica().SelectInt(`SELECT
+				COUNT(*)
+			FROM
+				Jobs
+			WHERE
+				Status = :Status
+			AND
+				Type = :Type`, map[string]interface{}{"Status": status, "Type": jobType}); err != nil {
+			result.Err = model.NewAppError("SqlJobStore.GetCountByStatusAndType", "store.sql_job.get_count_by_status_and_type.app_error", nil, "Status="+status+", "+err.Error(), http.StatusInternalServerError)
+		} else {
+			result.Data = count
 		}
 
 		storeChannel <- result

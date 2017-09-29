@@ -5,127 +5,166 @@ package jobs
 
 import (
 	"sync"
+	"time"
 
 	l4g "github.com/alecthomas/log4go"
-	ejobs "github.com/mattermost/mattermost-server/einterfaces/jobs"
 
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
 )
 
 type Schedulers struct {
-	startOnce sync.Once
+	stop          chan bool
+	stopped       chan bool
+	configChanged chan *model.Config
+	listenerId    string
+	startOnce     sync.Once
+	jobs          *JobServer
 
-	DataRetention            model.Scheduler
-	ElasticsearchAggregation model.Scheduler
-	ActianceDataExport		 model.Scheduler
-	LdapSync                 model.Scheduler
-
-	listenerId string
+	schedulers   []model.Scheduler
+	nextRunTimes []*time.Time
 }
 
-func InitSchedulers() *Schedulers {
-	schedulers := &Schedulers{}
+func (srv *JobServer) InitSchedulers() *Schedulers {
+	l4g.Debug("Initialising schedulers.")
 
-	if dataRetentionInterface := ejobs.GetDataRetentionInterface(); dataRetentionInterface != nil {
-		schedulers.DataRetention = dataRetentionInterface.MakeScheduler()
+	schedulers := &Schedulers{
+		stop:          make(chan bool),
+		stopped:       make(chan bool),
+		configChanged: make(chan *model.Config),
+		jobs:          srv,
 	}
 
-	if elasticsearchAggregatorInterface := ejobs.GetElasticsearchAggregatorInterface(); elasticsearchAggregatorInterface != nil {
-		schedulers.ElasticsearchAggregation = elasticsearchAggregatorInterface.MakeScheduler()
+	if dataRetentionInterface := srv.DataRetention; dataRetentionInterface != nil {
+		schedulers.schedulers = append(schedulers.schedulers, dataRetentionInterface.MakeScheduler())
 	}
 
-	if actianceDataExportInterface := ejobs.GetActianceDataExportInterface(); actianceDataExportInterface != nil {
-		schedulers.ActianceDataExport = actianceDataExportInterface.MakeScheduler()
+	if elasticsearchAggregatorInterface := srv.ElasticsearchAggregator; elasticsearchAggregatorInterface != nil {
+		schedulers.schedulers = append(schedulers.schedulers, elasticsearchAggregatorInterface.MakeScheduler())
 	}
 
-	if ldaySyncInterface := ejobs.GetLdapSyncInterface(); ldaySyncInterface != nil {
-		schedulers.LdapSync = ldaySyncInterface.MakeScheduler()
+	if actianceDataExportInterface := srv.ActianceDataExport; actianceDataExportInterface != nil {
+		schedulers.schedulers = append(schedulers.schedulers, actianceDataExportInterface.MakeScheduler())
 	}
 
+	if ldapSyncInterface := srv.LdapSync; ldapSyncInterface != nil {
+		schedulers.schedulers = append(schedulers.schedulers, ldapSyncInterface.MakeScheduler())
+	}
+
+	schedulers.nextRunTimes = make([]*time.Time, len(schedulers.schedulers))
 	return schedulers
 }
 
 func (schedulers *Schedulers) Start() *Schedulers {
-	l4g.Info("Starting schedulers")
-
-	schedulers.startOnce.Do(func() {
-		if schedulers.DataRetention != nil && (*utils.Cfg.DataRetentionSettings.EnableMessageDeletion || *utils.Cfg.DataRetentionSettings.EnableFileDeletion) {
-			go schedulers.DataRetention.Run()
-		}
-
-		if schedulers.ElasticsearchAggregation != nil && *utils.Cfg.ElasticsearchSettings.EnableIndexing {
-			go schedulers.ElasticsearchAggregation.Run()
-		}
-
-		if schedulers.ActianceDataExport != nil && *utils.Cfg.ActianceDataExportSettings.EnableExport {
-			go schedulers.ActianceDataExport.Run()
-		}
-
-		if schedulers.LdapSync != nil && *utils.Cfg.LdapSettings.Enable {
-			go schedulers.LdapSync.Run()
-		}
-	})
-
 	schedulers.listenerId = utils.AddConfigListener(schedulers.handleConfigChange)
 
+	go func() {
+		schedulers.startOnce.Do(func() {
+			l4g.Info("Starting schedulers.")
+
+			defer func() {
+				l4g.Info("Schedulers stopped.")
+				close(schedulers.stopped)
+			}()
+
+			now := time.Now()
+			for idx, scheduler := range schedulers.schedulers {
+				if !scheduler.Enabled(utils.Cfg) {
+					schedulers.nextRunTimes[idx] = nil
+				} else {
+					schedulers.setNextRunTime(utils.Cfg, idx, now, false)
+				}
+			}
+
+			for {
+				select {
+				case <-schedulers.stop:
+					l4g.Debug("Schedulers received stop signal.")
+					return
+				case now = <-time.After(1 * time.Minute):
+					cfg := utils.Cfg
+
+					for idx, nextTime := range schedulers.nextRunTimes {
+						if nextTime == nil {
+							continue
+						}
+
+						if time.Now().After(*nextTime) {
+							scheduler := schedulers.schedulers[idx]
+							if scheduler != nil {
+								if scheduler.Enabled(cfg) {
+									if _, err := schedulers.scheduleJob(cfg, scheduler); err != nil {
+										l4g.Warn("Failed to schedule job with scheduler: %v", scheduler.Name())
+										l4g.Error(err)
+									} else {
+										schedulers.setNextRunTime(cfg, idx, now, true)
+									}
+								}
+							}
+						}
+					}
+				case newCfg := <-schedulers.configChanged:
+					for idx, scheduler := range schedulers.schedulers {
+						if !scheduler.Enabled(newCfg) {
+							schedulers.nextRunTimes[idx] = nil
+						} else {
+							schedulers.setNextRunTime(newCfg, idx, now, false)
+						}
+					}
+				}
+			}
+		})
+	}()
+
 	return schedulers
-}
-
-func (schedulers *Schedulers) handleConfigChange(oldConfig *model.Config, newConfig *model.Config) {
-	if schedulers.DataRetention != nil {
-		if (!*oldConfig.DataRetentionSettings.EnableMessageDeletion && !*oldConfig.DataRetentionSettings.EnableFileDeletion) && (*newConfig.DataRetentionSettings.EnableMessageDeletion || *newConfig.DataRetentionSettings.EnableFileDeletion) {
-			go schedulers.DataRetention.Run()
-		} else if (*oldConfig.DataRetentionSettings.EnableMessageDeletion || *oldConfig.DataRetentionSettings.EnableFileDeletion) && (!*newConfig.DataRetentionSettings.EnableMessageDeletion && !*newConfig.DataRetentionSettings.EnableFileDeletion) {
-			schedulers.DataRetention.Stop()
-		}
-	}
-
-	if schedulers.ElasticsearchAggregation != nil {
-		if !*oldConfig.ElasticsearchSettings.EnableIndexing && *newConfig.ElasticsearchSettings.EnableIndexing {
-			go schedulers.ElasticsearchAggregation.Run()
-		} else if *oldConfig.ElasticsearchSettings.EnableIndexing && !*newConfig.ElasticsearchSettings.EnableIndexing {
-			schedulers.ElasticsearchAggregation.Stop()
-		}
-	}
-
-	if schedulers.ActianceDataExport != nil {
-		if !*oldConfig.ActianceDataExportSettings.EnableExport && *newConfig.ActianceDataExportSettings.EnableExport {
-			go schedulers.ActianceDataExport.Run()
-		} else if *oldConfig.ActianceDataExportSettings.EnableExport && !*newConfig.ActianceDataExportSettings.EnableExport {
-			schedulers.ActianceDataExport.Stop()
-		}
-	}
-
-	if schedulers.LdapSync != nil {
-		if !*oldConfig.LdapSettings.Enable && *newConfig.LdapSettings.Enable {
-			go schedulers.LdapSync.Run()
-		} else if *oldConfig.LdapSettings.Enable && !*newConfig.LdapSettings.Enable {
-			schedulers.LdapSync.Stop()
-		}
-	}
 }
 
 func (schedulers *Schedulers) Stop() *Schedulers {
-	utils.RemoveConfigListener(schedulers.listenerId)
-
-	if schedulers.DataRetention != nil && (*utils.Cfg.DataRetentionSettings.EnableMessageDeletion || *utils.Cfg.DataRetentionSettings.EnableFileDeletion) {
-		schedulers.DataRetention.Stop()
-	}
-
-	if schedulers.ElasticsearchAggregation != nil && *utils.Cfg.ElasticsearchSettings.EnableIndexing {
-		schedulers.ElasticsearchAggregation.Stop()
-	}
-
-	if schedulers.ActianceDataExport != nil && *utils.Cfg.ActianceDataExportSettings.EnableExport {
-		schedulers.ActianceDataExport.Stop()
-	}
-
-	if schedulers.LdapSync != nil && *utils.Cfg.LdapSettings.Enable {
-		schedulers.LdapSync.Stop()
-	}
-
-	l4g.Info("Stopped schedulers")
-
+	l4g.Info("Stopping schedulers.")
+	close(schedulers.stop)
+	<-schedulers.stopped
 	return schedulers
+}
+
+func (schedulers *Schedulers) setNextRunTime(cfg *model.Config, idx int, now time.Time, pendingJobs bool) {
+	scheduler := schedulers.schedulers[idx]
+
+	if !pendingJobs {
+		if pj, err := schedulers.jobs.CheckForPendingJobsByType(scheduler.JobType()); err != nil {
+			l4g.Error("Failed to set next job run time: " + err.Error())
+			schedulers.nextRunTimes[idx] = nil
+			return
+		} else {
+			pendingJobs = pj
+		}
+	}
+
+	lastSuccessfulJob, err := schedulers.jobs.GetLastSuccessfulJobByType(scheduler.JobType())
+	if err != nil {
+		l4g.Error("Failed to set next job run time: " + err.Error())
+		schedulers.nextRunTimes[idx] = nil
+		return
+	}
+
+	schedulers.nextRunTimes[idx] = scheduler.NextScheduleTime(cfg, now, pendingJobs, lastSuccessfulJob)
+	l4g.Debug("Next run time for scheduler %v: %v", scheduler.Name(), schedulers.nextRunTimes[idx])
+}
+
+func (schedulers *Schedulers) scheduleJob(cfg *model.Config, scheduler model.Scheduler) (*model.Job, *model.AppError) {
+	pendingJobs, err := schedulers.jobs.CheckForPendingJobsByType(scheduler.JobType())
+	if err != nil {
+		return nil, err
+	}
+
+	lastSuccessfulJob, err2 := schedulers.jobs.GetLastSuccessfulJobByType(scheduler.JobType())
+	if err2 != nil {
+		return nil, err
+	}
+
+	return scheduler.ScheduleJob(cfg, pendingJobs, lastSuccessfulJob)
+}
+
+func (schedulers *Schedulers) handleConfigChange(oldConfig *model.Config, newConfig *model.Config) {
+	l4g.Debug("Schedulers received config change.")
+	schedulers.configChanged <- newConfig
 }

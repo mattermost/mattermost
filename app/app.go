@@ -9,6 +9,8 @@ import (
 	"sync"
 
 	"github.com/mattermost/mattermost-server/einterfaces"
+	ejobs "github.com/mattermost/mattermost-server/einterfaces/jobs"
+	"github.com/mattermost/mattermost-server/jobs"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/plugin/pluginenv"
 	"github.com/mattermost/mattermost-server/utils"
@@ -25,6 +27,8 @@ type App struct {
 	Hubs                        []*Hub
 	HubsStopCheckingForDeadlock chan bool
 
+	Jobs *jobs.JobServer
+
 	AccountMigration einterfaces.AccountMigrationInterface
 	Brand            einterfaces.BrandInterface
 	Cluster          einterfaces.ClusterInterface
@@ -36,7 +40,9 @@ type App struct {
 	Saml             einterfaces.SamlInterface
 }
 
-var globalApp App
+var globalApp App = App{
+	Jobs: &jobs.JobServer{},
+}
 
 var initEnterprise sync.Once
 
@@ -63,6 +69,30 @@ var complianceInterface func(*App) einterfaces.ComplianceInterface
 
 func RegisterComplianceInterface(f func(*App) einterfaces.ComplianceInterface) {
 	complianceInterface = f
+}
+
+var jobsDataRetentionInterface func(*App) ejobs.DataRetentionInterface
+
+func RegisterJobsDataRetentionInterface(f func(*App) ejobs.DataRetentionInterface) {
+	jobsDataRetentionInterface = f
+}
+
+var jobsElasticsearchAggregatorInterface func(*App) ejobs.ElasticsearchAggregatorInterface
+
+func RegisterJobsElasticsearchAggregatorInterface(f func(*App) ejobs.ElasticsearchAggregatorInterface) {
+	jobsElasticsearchAggregatorInterface = f
+}
+
+var jobsElasticsearchIndexerInterface func(*App) ejobs.ElasticsearchIndexerInterface
+
+func RegisterJobsElasticsearchIndexerInterface(f func(*App) ejobs.ElasticsearchIndexerInterface) {
+	jobsElasticsearchIndexerInterface = f
+}
+
+var jobsLdapSyncInterface func(*App) ejobs.LdapSyncInterface
+
+func RegisterJobsLdapSyncInterface(f func(*App) ejobs.LdapSyncInterface) {
+	jobsLdapSyncInterface = f
 }
 
 var ldapInterface func(*App) einterfaces.LdapInterface
@@ -120,6 +150,19 @@ func (a *App) initEnterprise() {
 		utils.AddConfigListener(func(_, cfg *model.Config) {
 			a.Saml.ConfigureSP()
 		})
+	}
+
+	if jobsDataRetentionInterface != nil {
+		a.Jobs.DataRetention = jobsDataRetentionInterface(a)
+	}
+	if jobsElasticsearchAggregatorInterface != nil {
+		a.Jobs.ElasticsearchAggregator = jobsElasticsearchAggregatorInterface(a)
+	}
+	if jobsElasticsearchIndexerInterface != nil {
+		a.Jobs.ElasticsearchIndexer = jobsElasticsearchIndexerInterface(a)
+	}
+	if jobsLdapSyncInterface != nil {
+		a.Jobs.LdapSync = jobsLdapSyncInterface(a)
 	}
 }
 

@@ -182,6 +182,7 @@ type ServiceSettings struct {
 	SessionLengthMobileInDays                *int
 	SessionLengthSSOInDays                   *int
 	SessionCacheInMinutes                    *int
+	SessionIdleTimeoutInMinutes              *int
 	WebsocketSecurePort                      *int
 	WebsocketPort                            *int
 	WebserverMode                            *string
@@ -1163,6 +1164,11 @@ func (o *Config) SetDefaults() {
 		*o.ServiceSettings.SessionCacheInMinutes = 10
 	}
 
+	if o.ServiceSettings.SessionIdleTimeoutInMinutes == nil {
+		o.ServiceSettings.SessionIdleTimeoutInMinutes = new(int)
+		*o.ServiceSettings.SessionIdleTimeoutInMinutes = 0
+	}
+
 	if o.ServiceSettings.EnableCommands == nil {
 		o.ServiceSettings.EnableCommands = new(bool)
 		*o.ServiceSettings.EnableCommands = false
@@ -1861,7 +1867,7 @@ func (o *Config) IsValid() *AppError {
 		return NewAppError("Config.IsValid", "model.config.is_valid.elastic_search.aggregate_posts_after_days.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if _, err := time.Parse("03:04", *o.ElasticsearchSettings.PostsAggregatorJobStartTime); err != nil {
+	if _, err := time.Parse("15:04", *o.ElasticsearchSettings.PostsAggregatorJobStartTime); err != nil {
 		return NewAppError("Config.IsValid", "model.config.is_valid.elastic_search.posts_aggregator_job_start_time.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
 
@@ -1873,7 +1879,7 @@ func (o *Config) IsValid() *AppError {
 		return NewAppError("Config.IsValid", "model.config.is_valid.data_retention.file_retention_days_too_low.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if _, err := time.Parse("03:04", *o.DataRetentionSettings.DeletionJobStartTime); err != nil {
+	if _, err := time.Parse("15:04", *o.DataRetentionSettings.DeletionJobStartTime); err != nil {
 		return NewAppError("Config.IsValid", "model.config.is_valid.data_retention.deletion_job_start_time.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
 

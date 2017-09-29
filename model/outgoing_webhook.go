@@ -45,6 +45,14 @@ type OutgoingWebhookPayload struct {
 	FileIds     string `json:"file_ids"`
 }
 
+type OutgoingWebhookResponse struct {
+	Text     *string         `json:"text"`
+	Username string          `json:"username"`
+	IconURL  string          `json:"icon_url"`
+	Props    StringInterface `json:"props"`
+	Type     string          `json:"type"`
+}
+
 func (o *OutgoingWebhookPayload) ToJSON() string {
 	b, err := json.Marshal(o)
 	if err != nil {
@@ -107,6 +115,26 @@ func OutgoingWebhookListFromJson(data io.Reader) []*OutgoingWebhook {
 	err := decoder.Decode(&o)
 	if err == nil {
 		return o
+	} else {
+		return nil
+	}
+}
+
+func (o *OutgoingWebhookResponse) ToJson() string {
+	b, err := json.Marshal(o)
+	if err != nil {
+		return ""
+	} else {
+		return string(b)
+	}
+}
+
+func OutgoingWebhookResponseFromJson(data io.Reader) *OutgoingWebhookResponse {
+	decoder := json.NewDecoder(data)
+	var o OutgoingWebhookResponse
+	err := decoder.Decode(&o)
+	if err == nil {
+		return &o
 	} else {
 		return nil
 	}

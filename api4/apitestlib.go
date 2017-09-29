@@ -23,7 +23,6 @@ import (
 	"github.com/mattermost/mattermost-server/utils"
 	"github.com/mattermost/mattermost-server/wsapi"
 
-	"github.com/mattermost/mattermost-server/jobs"
 	s3 "github.com/minio/minio-go"
 	"github.com/minio/minio-go/pkg/credentials"
 )
@@ -76,8 +75,8 @@ func setupTestHelper(enterprise bool) *TestHelper {
 		utils.License().Features.SetDefaults()
 	}
 
-	if jobs.Srv.Store == nil {
-		jobs.Srv.Store = th.App.Srv.Store
+	if th.App.Jobs.Store == nil {
+		th.App.Jobs.Store = th.App.Srv.Store
 	}
 
 	th.Client = th.CreateClient()

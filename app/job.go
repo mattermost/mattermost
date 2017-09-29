@@ -4,7 +4,6 @@
 package app
 
 import (
-	"github.com/mattermost/mattermost-server/jobs"
 	"github.com/mattermost/mattermost-server/model"
 )
 
@@ -40,10 +39,10 @@ func (a *App) GetJobsByType(jobType string, offset int, limit int) ([]*model.Job
 	}
 }
 
-func CreateJob(job *model.Job) (*model.Job, *model.AppError) {
-	return jobs.CreateJob(job.Type, job.Data)
+func (a *App) CreateJob(job *model.Job) (*model.Job, *model.AppError) {
+	return a.Jobs.CreateJob(job.Type, job.Data)
 }
 
-func CancelJob(jobId string) *model.AppError {
-	return jobs.RequestCancellation(jobId)
+func (a *App) CancelJob(jobId string) *model.AppError {
+	return a.Jobs.RequestCancellation(jobId)
 }
