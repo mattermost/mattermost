@@ -63,7 +63,7 @@ func (p *Reader) ReadLine() ([]byte, error) {
 		return nil, bufio.ErrBufferFull
 	}
 	if len(line) == 0 {
-		return nil, internal.RedisError("redis: reply is empty")
+		return nil, fmt.Errorf("redis: reply is empty")
 	}
 	if isNilReply(line) {
 		return nil, internal.Nil

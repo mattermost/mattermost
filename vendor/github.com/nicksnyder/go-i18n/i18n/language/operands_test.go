@@ -8,20 +8,20 @@ import (
 func TestNewOperands(t *testing.T) {
 	tests := []struct {
 		input interface{}
-		ops   *operands
+		ops   *Operands
 		err   bool
 	}{
-		{int64(0), &operands{0.0, 0, 0, 0, 0, 0}, false},
-		{int64(1), &operands{1.0, 1, 0, 0, 0, 0}, false},
-		{"0", &operands{0.0, 0, 0, 0, 0, 0}, false},
-		{"1", &operands{1.0, 1, 0, 0, 0, 0}, false},
-		{"1.0", &operands{1.0, 1, 1, 0, 0, 0}, false},
-		{"1.00", &operands{1.0, 1, 2, 0, 0, 0}, false},
-		{"1.3", &operands{1.3, 1, 1, 1, 3, 3}, false},
-		{"1.30", &operands{1.3, 1, 2, 1, 30, 3}, false},
-		{"1.03", &operands{1.03, 1, 2, 2, 3, 3}, false},
-		{"1.230", &operands{1.23, 1, 3, 2, 230, 23}, false},
-		{"20.0230", &operands{20.023, 20, 4, 3, 230, 23}, false},
+		{int64(0), &Operands{0.0, 0, 0, 0, 0, 0}, false},
+		{int64(1), &Operands{1.0, 1, 0, 0, 0, 0}, false},
+		{"0", &Operands{0.0, 0, 0, 0, 0, 0}, false},
+		{"1", &Operands{1.0, 1, 0, 0, 0, 0}, false},
+		{"1.0", &Operands{1.0, 1, 1, 0, 0, 0}, false},
+		{"1.00", &Operands{1.0, 1, 2, 0, 0, 0}, false},
+		{"1.3", &Operands{1.3, 1, 1, 1, 3, 3}, false},
+		{"1.30", &Operands{1.3, 1, 2, 1, 30, 3}, false},
+		{"1.03", &Operands{1.03, 1, 2, 2, 3, 3}, false},
+		{"1.230", &Operands{1.23, 1, 3, 2, 230, 23}, false},
+		{"20.0230", &Operands{20.023, 20, 4, 3, 230, 23}, false},
 		{20.0230, nil, true},
 	}
 	for _, test := range tests {

@@ -27,8 +27,19 @@ func ReadFromSessionUDP(conn *net.UDPConn, b []byte) (int, *SessionUDP, error) {
 	return n, &SessionUDP{raddr, oob[:oobn]}, err
 }
 
-// WriteToSessionUDP acts just like net.UDPConn.WritetTo(), but uses a *SessionUDP instead of a net.Addr.
+// WriteToSessionUDP acts just like net.UDPConn.WriteTo(), but uses a *SessionUDP instead of a net.Addr.
 func WriteToSessionUDP(conn *net.UDPConn, b []byte, session *SessionUDP) (int, error) {
-	n, _, err := conn.WriteMsgUDP(b, session.context, session.raddr)
+	oob := correctSource(session.context)
+	n, _, err := conn.WriteMsgUDP(b, oob, session.raddr)
 	return n, err
+}
+
+// correctSource takes oob data and returns new oob data with the Src equal to the Dst
+func correctSource(oob []byte) []byte {
+	dst, err := parseUDPSocketDst(oob)
+	// If the destination could not be determined, ignore.
+	if err != nil || dst == nil {
+		return nil
+	}
+	return marshalUDPSocketSrc(dst)
 }

@@ -721,6 +721,65 @@ func TestUnmarshalingBadInput(t *testing.T) {
 	}
 }
 
+type funcResolver func(turl string) (proto.Message, error)
+
+func (fn funcResolver) Resolve(turl string) (proto.Message, error) {
+	return fn(turl)
+}
+
+func TestAnyWithCustomResolver(t *testing.T) {
+	var resolvedTypeUrls []string
+	resolver := funcResolver(func(turl string) (proto.Message, error) {
+		resolvedTypeUrls = append(resolvedTypeUrls, turl)
+		return new(pb.Simple), nil
+	})
+	msg := &pb.Simple{
+		OBytes:  []byte{1, 2, 3, 4},
+		OBool:   proto.Bool(true),
+		OString: proto.String("foobar"),
+		OInt64:  proto.Int64(1020304),
+	}
+	msgBytes, err := proto.Marshal(msg)
+	if err != nil {
+		t.Errorf("an unexpected error occurred when marshaling message: %v", err)
+	}
+	// make an Any with a type URL that won't resolve w/out custom resolver
+	any := &anypb.Any{
+		TypeUrl: "https://foobar.com/some.random.MessageKind",
+		Value:   msgBytes,
+	}
+
+	m := Marshaler{AnyResolver: resolver}
+	js, err := m.MarshalToString(any)
+	if err != nil {
+		t.Errorf("an unexpected error occurred when marshaling any to JSON: %v", err)
+	}
+	if len(resolvedTypeUrls) != 1 {
+		t.Errorf("custom resolver was not invoked during marshaling")
+	} else if resolvedTypeUrls[0] != "https://foobar.com/some.random.MessageKind" {
+		t.Errorf("custom resolver was invoked with wrong URL: got %q, wanted %q", resolvedTypeUrls[0], "https://foobar.com/some.random.MessageKind")
+	}
+	wanted := `{"@type":"https://foobar.com/some.random.MessageKind","oBool":true,"oInt64":"1020304","oString":"foobar","oBytes":"AQIDBA=="}`
+	if js != wanted {
+		t.Errorf("marshalling JSON produced incorrect output: got %s, wanted %s", js, wanted)
+	}
+
+	u := Unmarshaler{AnyResolver: resolver}
+	roundTrip := &anypb.Any{}
+	err = u.Unmarshal(bytes.NewReader([]byte(js)), roundTrip)
+	if err != nil {
+		t.Errorf("an unexpected error occurred when unmarshaling any from JSON: %v", err)
+	}
+	if len(resolvedTypeUrls) != 2 {
+		t.Errorf("custom resolver was not invoked during marshaling")
+	} else if resolvedTypeUrls[1] != "https://foobar.com/some.random.MessageKind" {
+		t.Errorf("custom resolver was invoked with wrong URL: got %q, wanted %q", resolvedTypeUrls[1], "https://foobar.com/some.random.MessageKind")
+	}
+	if !proto.Equal(any, roundTrip) {
+		t.Errorf("message contents not set correctly after unmarshalling JSON: got %s, wanted %s", roundTrip, any)
+	}
+}
+
 func TestUnmarshalJSONPBUnmarshaler(t *testing.T) {
 	rawJson := `{ "foo": "bar", "baz": [0, 1, 2, 3] }`
 	var msg dynamicMessage
@@ -729,6 +788,19 @@ func TestUnmarshalJSONPBUnmarshaler(t *testing.T) {
 	}
 	if msg.rawJson != rawJson {
 		t.Errorf("message contents not set correctly after unmarshalling JSON: got %s, wanted %s", msg.rawJson, rawJson)
+	}
+}
+
+func TestUnmarshalNullWithJSONPBUnmarshaler(t *testing.T) {
+	rawJson := `{"stringField":null}`
+	var ptrFieldMsg ptrFieldMessage
+	if err := Unmarshal(strings.NewReader(rawJson), &ptrFieldMsg); err != nil {
+		t.Errorf("unmarshal error: %v", err)
+	}
+
+	want := ptrFieldMessage{StringField: &stringField{IsSet: true, StringValue: "null"}}
+	if !proto.Equal(&ptrFieldMsg, &want) {
+		t.Errorf("unmarshal result StringField: got %v, want %v", ptrFieldMsg, want)
 	}
 }
 
@@ -760,6 +832,41 @@ const (
 func init() {
 	// we register the custom type below so that we can use it in Any types
 	proto.RegisterType((*dynamicMessage)(nil), dynamicMessageName)
+}
+
+type ptrFieldMessage struct {
+	StringField *stringField `protobuf:"bytes,1,opt,name=stringField"`
+}
+
+func (m *ptrFieldMessage) Reset() {
+}
+
+func (m *ptrFieldMessage) String() string {
+	return m.StringField.StringValue
+}
+
+func (m *ptrFieldMessage) ProtoMessage() {
+}
+
+type stringField struct {
+	IsSet       bool   `protobuf:"varint,1,opt,name=isSet"`
+	StringValue string `protobuf:"bytes,2,opt,name=stringValue"`
+}
+
+func (s *stringField) Reset() {
+}
+
+func (s *stringField) String() string {
+	return s.StringValue
+}
+
+func (s *stringField) ProtoMessage() {
+}
+
+func (s *stringField) UnmarshalJSONPB(jum *Unmarshaler, js []byte) error {
+	s.IsSet = true
+	s.StringValue = string(js)
+	return nil
 }
 
 // dynamicMessage implements protobuf.Message but is not a normal generated message type.

@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.4.1] - 2017-09-26
+
+### Added:
+- lib: A new DNS provider for OTC.
+- lib: The `AWS_HOSTED_ZONE_ID` environment variable for the Route53 DNS provider to directly specify the zone.
+- lib: The `RFC2136_TIMEOUT` enviroment variable to make the timeout for the RFC2136 provider configurable.
+- lib: The `GCE_SERVICE_ACCOUNT_FILE` environment variable to specify a service account file for the Google Cloud DNS provider.
+
+### Fixed:
+- lib: Fixed an authentication issue with the latest Azure SDK.
+
 ## [0.4.0] - 2017-07-13
 
 ### Added:

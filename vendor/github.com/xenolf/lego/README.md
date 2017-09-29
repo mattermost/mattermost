@@ -83,7 +83,7 @@ USAGE:
    lego [global options] command [command options] [arguments...]
 
 VERSION:
-   0.4.0
+   0.4.1
 
 COMMANDS:
      run      Register an account, then create and install a certificate
@@ -93,7 +93,7 @@ COMMANDS:
      help, h  Shows a list of commands or help for one command
 
 GLOBAL OPTIONS:
-   --domains value, -d value   Add domains to the process
+   --domains value, -d value   Add a domain to the process. Can be specified multiple times.
    --csr value, -c value       Certificate signing request filename, if an external CSR is to be used
    --server value, -s value    CA hostname (and optionally :port). The server certificate must be trusted in order to avoid further modifications to the client. (default: "https://acme-v01.api.letsencrypt.org/directory")
    --email value, -m value     Email used for registration and recovery contact.

@@ -11,7 +11,7 @@ import (
 func Scan(b []byte, v interface{}) error {
 	switch v := v.(type) {
 	case nil:
-		return internal.RedisError("redis: Scan(nil)")
+		return fmt.Errorf("redis: Scan(nil)")
 	case *string:
 		*v = internal.BytesToString(b)
 		return nil

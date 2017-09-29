@@ -1,5 +1,10 @@
 ## Changelog
 
+### Unreleased
+
+ * [PR #24](https://github.com/magiconair/properties/pull/24): Update keys when DisableExpansion is enabled
+   Thanks to @mgurov for the fix.
+
 ### [1.7.3](https://github.com/magiconair/properties/tags/v1.7.3) - 10 Jul 2017
 
  * [Issue #17](https://github.com/magiconair/properties/issues/17): Add [SetValue()](http://godoc.org/github.com/magiconair/properties#Properties.SetValue) method to set values generically

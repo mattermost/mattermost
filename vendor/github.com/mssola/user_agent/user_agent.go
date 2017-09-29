@@ -1,4 +1,4 @@
-// Copyright (C) 2012-2014 Miquel Sabaté Solà <mikisabate@gmail.com>
+// Copyright (C) 2012-2017 Miquel Sabaté Solà <mikisabate@gmail.com>
 // This file is licensed under the MIT license.
 // See the LICENSE file.
 
@@ -8,9 +8,7 @@
 // information that has been extracted from a parsed User Agent string.
 package user_agent
 
-import (
-	"strings"
-)
+import "strings"
 
 // A section contains the name of the product, its version and
 // an optional comment.
@@ -141,7 +139,9 @@ func (p *UserAgent) Parse(ua string) {
 	}
 
 	if len(sections) > 0 {
-		p.mozilla = sections[0].version
+		if sections[0].name == "Mozilla" {
+			p.mozilla = sections[0].version
+		}
 
 		p.detectBrowser(sections)
 		p.detectOS(sections[0])
@@ -166,4 +166,9 @@ func (p *UserAgent) Bot() bool {
 // Returns true if it's a mobile device, false otherwise.
 func (p *UserAgent) Mobile() bool {
 	return p.mobile
+}
+
+// Returns the original given user agent.
+func (p *UserAgent) UA() string {
+	return p.ua
 }

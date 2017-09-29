@@ -37,7 +37,7 @@ func (st *singleTranslation) Normalize(language *language.Language) Translation 
 }
 
 func (st *singleTranslation) Backfill(src Translation) Translation {
-	if st.template == nil || st.template.src == "" {
+	if (st.template == nil || st.template.src == "") && src != nil {
 		st.template = src.Template(language.Other)
 	}
 	return st

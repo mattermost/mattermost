@@ -30,6 +30,16 @@ func HelloServerBadID(w ResponseWriter, req *Msg) {
 	w.WriteMsg(m)
 }
 
+func HelloServerEchoAddrPort(w ResponseWriter, req *Msg) {
+	m := new(Msg)
+	m.SetReply(req)
+
+	remoteAddr := w.RemoteAddr().String()
+	m.Extra = make([]RR, 1)
+	m.Extra[0] = &TXT{Hdr: RR_Header{Name: m.Question[0].Name, Rrtype: TypeTXT, Class: ClassINET, Ttl: 0}, Txt: []string{remoteAddr}}
+	w.WriteMsg(m)
+}
+
 func AnotherHelloServer(w ResponseWriter, req *Msg) {
 	m := new(Msg)
 	m.SetReply(req)

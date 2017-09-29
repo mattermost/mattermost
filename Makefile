@@ -80,7 +80,7 @@ endif
 # Prepares the enterprise build if exists. The IGNORE stuff is a hack to get the Makefile to execute the commands outside a target
 ifeq ($(BUILD_ENTERPRISE_READY),true)
 	IGNORE:=$(shell echo Enterprise build selected, preparing)
-	IGNORE:=$(shell mkdir -p imports/)
+	IGNORE:=$(shell rm -f imports/imports.go)
 	IGNORE:=$(shell cp $(BUILD_ENTERPRISE_DIR)/imports/imports.go imports/)
 	IGNORE:=$(shell rm -f enterprise)
 	IGNORE:=$(shell ln -s $(BUILD_ENTERPRISE_DIR) enterprise)
@@ -465,7 +465,7 @@ clean: stop-docker
 	rm -f ecover.out
 	rm -f *.out
 	rm -f *.test
-	rm -f imports.go
+	rm -f imports/imports.go
 
 nuke: clean clean-docker
 	@echo BOOM

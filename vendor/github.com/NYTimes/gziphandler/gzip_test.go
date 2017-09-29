@@ -81,6 +81,17 @@ func TestGzipHandler(t *testing.T) {
 	assert.Equal(t, http.DetectContentType([]byte(testBody)), res3.Header().Get("Content-Type"))
 }
 
+func TestGzipHandlerAlreadyCompressed(t *testing.T) {
+	handler := newTestHandler(testBody)
+
+	req, _ := http.NewRequest("GET", "/gzipped", nil)
+	req.Header.Set("Accept-Encoding", "gzip")
+	res := httptest.NewRecorder()
+	handler.ServeHTTP(res, req)
+
+	assert.Equal(t, testBody, res.Body.String())
+}
+
 func TestNewGzipLevelHandler(t *testing.T) {
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
@@ -435,6 +446,12 @@ func runBenchmark(b *testing.B, req *http.Request, handler http.Handler) {
 
 func newTestHandler(body string) http.Handler {
 	return GzipHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		io.WriteString(w, body)
+		switch r.URL.Path {
+		case "/gzipped":
+			w.Header().Set("Content-Encoding", "gzip")
+			io.WriteString(w, body)
+		default:
+			io.WriteString(w, body)
+		}
 	}))
 }

@@ -33,7 +33,7 @@ import "github.com/pelletier/go-toml"
 Read a TOML document:
 
 ```go
-config, _ := toml.LoadString(`
+config, _ := toml.Load(`
 [postgres]
 user = "pelletier"
 password = "mypassword"`)
@@ -42,7 +42,7 @@ user := config.Get("postgres.user").(string)
 
 // or using an intermediate object
 postgresConfig := config.Get("postgres").(*toml.Tree)
-password = postgresConfig.Get("password").(string)
+password := postgresConfig.Get("password").(string)
 ```
 
 Or use Unmarshal:
@@ -62,7 +62,7 @@ user = "pelletier"
 password = "mypassword"`)
 
 config := Config{}
-Unmarshal(doc, &config)
+toml.Unmarshal(doc, &config)
 fmt.Println("user=", config.Postgres.User)
 ```
 
@@ -70,7 +70,8 @@ Or use a query:
 
 ```go
 // use a query to gather elements without walking the tree
-results, _ := config.Query("$..[user,password]")
+q, _ := query.Compile("$..[user,password]")
+results := q.Execute(config)
 for ii, item := range results.Values() {
     fmt.Println("Query result %d: %v", ii, item)
 }

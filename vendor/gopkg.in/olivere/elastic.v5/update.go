@@ -313,7 +313,7 @@ type UpdateResponse struct {
 	Id            string      `json:"_id"`
 	Version       int         `json:"_version"`
 	Shards        *shardsInfo `json:"_shards"`
-	Result        bool        `json:"string,omitempty"`
+	Result        string      `json:"result,omitempty"`
 	ForcedRefresh bool        `json:"forced_refresh,omitempty"`
 	GetResult     *GetResult  `json:"get,omitempty"`
 }

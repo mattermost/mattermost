@@ -1,11 +1,11 @@
-package: github.com/mattermost/platform
+package: github.com/mattermost/mattermost-server
 import:
 - package: github.com/NYTimes/gziphandler
 - package: github.com/alecthomas/log4go
   repo: https://github.com/mattermost/log4go.git
 - package: github.com/dgryski/dgoogauth
 - package: github.com/disintegration/imaging
-  version: v1.2.1
+  version: v1.2.2
 - package: github.com/dyatlov/go-opengraph
   subpackages:
   - opengraph
@@ -19,7 +19,7 @@ import:
 - package: github.com/gorilla/handlers
   version: v1.2.1
 - package: github.com/gorilla/mux
-  version: v1.4.0
+  version: v1.5.0
 - package: github.com/gorilla/websocket
   version: v1.2.0
 - package: github.com/lib/pq
@@ -27,11 +27,10 @@ import:
   subpackages:
   - qr
 - package: github.com/minio/minio-go
-  version: v3.0.1
+  version: v3.0.3
 - package: github.com/mssola/user_agent
-  version: v0.4.1
 - package: github.com/nicksnyder/go-i18n
-  version: v1.8.1
+  version: v1.9.0
   subpackages:
   - i18n
 - package: github.com/pborman/uuid
@@ -82,11 +81,11 @@ import:
 - package: github.com/prometheus/procfs
 - package: github.com/cpanato/html2text
 - package: gopkg.in/olivere/elastic.v5
-  version: v5.0.45
+  version: v5.0.48
 - package: github.com/mattermost/gorp
   version: 995ddf2264c4ad45fbaf342f7500e4787ebae84a
 - package: github.com/go-redis/redis
-  version: v6.5.7
+  version: v6.7.1
 - package: github.com/stretchr/testify
   version: v1.1.4
   subpackages:

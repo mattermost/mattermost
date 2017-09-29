@@ -301,8 +301,10 @@ func (d *sentinelFailover) listen(sentinel *sentinelClient) {
 
 		msg, err := pubsub.ReceiveMessage()
 		if err != nil {
-			internal.Logf("sentinel: ReceiveMessage failed: %s", err)
-			pubsub.Close()
+			if err != pool.ErrClosed {
+				internal.Logf("sentinel: ReceiveMessage failed: %s", err)
+				pubsub.Close()
+			}
 			d.resetSentinel()
 			return
 		}

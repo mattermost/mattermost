@@ -253,7 +253,7 @@ func (p *queryParser) parseFilterExpr() queryParserStateFn {
 	}
 	tok = p.getToken()
 	if tok.typ != tokenKey && tok.typ != tokenString {
-		return p.parseError(tok, "expected key or string for filter funciton name")
+		return p.parseError(tok, "expected key or string for filter function name")
 	}
 	name := tok.val
 	tok = p.getToken()

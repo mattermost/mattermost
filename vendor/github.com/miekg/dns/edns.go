@@ -21,6 +21,7 @@ const (
 	EDNS0EXPIRE       = 0x9     // EDNS0 expire
 	EDNS0COOKIE       = 0xa     // EDNS0 Cookie
 	EDNS0TCPKEEPALIVE = 0xb     // EDNS0 tcp keep alive (RFC7828)
+	EDNS0PADDING      = 0xc     // EDNS0 padding (RFC7830)
 	EDNS0SUBNETDRAFT  = 0x50fa  // Don't use! Use EDNS0SUBNET
 	EDNS0LOCALSTART   = 0xFDE9  // Beginning of range reserved for local/experimental use (RFC6891)
 	EDNS0LOCALEND     = 0xFFFE  // End of range reserved for local/experimental use (RFC6891)
@@ -74,6 +75,8 @@ func (rr *OPT) String() string {
 			s += "\n; NSEC3 HASH UNDERSTOOD: " + o.String()
 		case *EDNS0_LOCAL:
 			s += "\n; LOCAL OPT: " + o.String()
+		case *EDNS0_PADDING:
+			s += "\n; PADDING: " + o.String()
 		}
 	}
 	return s
@@ -595,3 +598,15 @@ func (e *EDNS0_TCP_KEEPALIVE) String() (s string) {
 	}
 	return
 }
+
+// EDNS0_PADDING option is used to add padding to a request/response. The default
+// value of padding SHOULD be 0x0 but other values MAY be used, for instance if
+// compression is applied before encryption which may break signatures.
+type EDNS0_PADDING struct {
+	Padding []byte
+}
+
+func (e *EDNS0_PADDING) pack() ([]byte, error) { return e.Padding, nil }
+func (e *EDNS0_PADDING) Option() uint16        { return EDNS0PADDING }
+func (e *EDNS0_PADDING) unpack(b []byte) error { e.Padding = b; return nil }
+func (e *EDNS0_PADDING) String() string        { return fmt.Sprintf("%0X", e.Padding) }

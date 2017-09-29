@@ -198,13 +198,3 @@ func newConnPool(opt *Options) *pool.ConnPool {
 		IdleCheckFrequency: opt.IdleCheckFrequency,
 	})
 }
-
-// PoolStats contains pool state information and accumulated stats.
-type PoolStats struct {
-	Requests uint32 // number of times a connection was requested by the pool
-	Hits     uint32 // number of times free connection was found in the pool
-	Timeouts uint32 // number of times a wait timeout occurred
-
-	TotalConns uint32 // the number of total connections in the pool
-	FreeConns  uint32 // the number of free connections in the pool
-}

@@ -66,7 +66,7 @@ func (p *PrometheusSink) SetGaugeWithLabels(parts []string, val float32, labels 
 			ConstLabels: prometheusLabels(labels),
 		})
 		prometheus.MustRegister(g)
-		p.gauges[key] = g
+		p.gauges[hash] = g
 	}
 	g.Set(float64(val))
 }
@@ -88,7 +88,7 @@ func (p *PrometheusSink) AddSampleWithLabels(parts []string, val float32, labels
 			ConstLabels: prometheusLabels(labels),
 		})
 		prometheus.MustRegister(g)
-		p.summaries[key] = g
+		p.summaries[hash] = g
 	}
 	g.Observe(float64(val))
 }
@@ -115,7 +115,7 @@ func (p *PrometheusSink) IncrCounterWithLabels(parts []string, val float32, labe
 			ConstLabels: prometheusLabels(labels),
 		})
 		prometheus.MustRegister(g)
-		p.counters[key] = g
+		p.counters[hash] = g
 	}
 	g.Add(float64(val))
 }

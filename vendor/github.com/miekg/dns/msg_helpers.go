@@ -458,6 +458,13 @@ Option:
 		}
 		edns = append(edns, e)
 		off += int(optlen)
+	case EDNS0PADDING:
+		e := new(EDNS0_PADDING)
+		if err := e.unpack(msg[off : off+int(optlen)]); err != nil {
+			return nil, len(msg), err
+		}
+		edns = append(edns, e)
+		off += int(optlen)
 	default:
 		e := new(EDNS0_LOCAL)
 		e.Code = code
