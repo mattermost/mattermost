@@ -1375,11 +1375,17 @@ func TestViewChannel(t *testing.T) {
 		ChannelId: th.BasicChannel.Id,
 	}
 
-	pass, resp := Client.ViewChannel(th.BasicUser.Id, view)
+	viewResp, resp := Client.ViewChannel(th.BasicUser.Id, view)
 	CheckNoError(t, resp)
 
-	if !pass {
+	if viewResp.Status != "OK" {
 		t.Fatal("should have passed")
+	}
+
+	channel, _ := th.App.GetChannel(th.BasicChannel.Id)
+
+	if lastViewedAt := viewResp.LastViewedAtTimes[channel.Id]; lastViewedAt != channel.LastPostAt {
+		t.Fatal("LastPostAt does not match returned LastViewedAt time")
 	}
 
 	view.PrevChannelId = th.BasicChannel.Id
@@ -1396,7 +1402,7 @@ func TestViewChannel(t *testing.T) {
 
 	member, resp := Client.GetChannelMember(th.BasicChannel.Id, th.BasicUser.Id, "")
 	CheckNoError(t, resp)
-	channel, resp := Client.GetChannel(th.BasicChannel.Id, "")
+	channel, resp = Client.GetChannel(th.BasicChannel.Id, "")
 	CheckNoError(t, resp)
 
 	if member.MsgCount != channel.TotalMsgCount {

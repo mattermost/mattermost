@@ -709,12 +709,20 @@ func viewChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := c.App.ViewChannel(view, c.Params.UserId, !c.Session.IsMobileApp()); err != nil {
+	times, err := c.App.ViewChannel(view, c.Params.UserId, !c.Session.IsMobileApp())
+
+	if err != nil {
 		c.Err = err
 		return
 	}
 
-	ReturnStatusOK(w)
+	// Returning {"status": "OK", ...} for backwards compatability
+	resp := &model.ChannelViewResponse{
+		Status:            "OK",
+		LastViewedAtTimes: times,
+	}
+
+	w.Write([]byte(resp.ToJson()))
 }
 
 func updateChannelMemberRoles(c *Context, w http.ResponseWriter, r *http.Request) {

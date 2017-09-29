@@ -7,6 +7,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
+
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
 )
@@ -1249,6 +1251,7 @@ func TestChannelStoreUpdateLastViewedAt(t *testing.T) {
 	o1.Name = "zz" + model.NewId() + "b"
 	o1.Type = model.CHANNEL_OPEN
 	o1.TotalMsgCount = 25
+	o1.LastPostAt = 12345
 	store.Must(ss.Channel().Save(&o1))
 
 	m1 := model.ChannelMember{}
@@ -1257,13 +1260,44 @@ func TestChannelStoreUpdateLastViewedAt(t *testing.T) {
 	m1.NotifyProps = model.GetDefaultChannelNotifyProps()
 	store.Must(ss.Channel().SaveMember(&m1))
 
-	err := (<-ss.Channel().UpdateLastViewedAt([]string{m1.ChannelId}, m1.UserId)).Err
-	if err != nil {
-		t.Fatal("failed to update", err)
+	o2 := model.Channel{}
+	o2.TeamId = model.NewId()
+	o2.DisplayName = "Channel1"
+	o2.Name = "zz" + model.NewId() + "c"
+	o2.Type = model.CHANNEL_OPEN
+	o2.TotalMsgCount = 26
+	o2.LastPostAt = 123456
+	store.Must(ss.Channel().Save(&o2))
+
+	m2 := model.ChannelMember{}
+	m2.ChannelId = o2.Id
+	m2.UserId = m1.UserId
+	m2.NotifyProps = model.GetDefaultChannelNotifyProps()
+	store.Must(ss.Channel().SaveMember(&m2))
+
+	if result := <-ss.Channel().UpdateLastViewedAt([]string{m1.ChannelId}, m1.UserId); result.Err != nil {
+		t.Fatal("failed to update", result.Err)
+	} else if result.Data.(map[string]int64)[o1.Id] != o1.LastPostAt {
+		t.Fatal("last viewed at time incorrect")
 	}
 
-	err = (<-ss.Channel().UpdateLastViewedAt([]string{m1.ChannelId}, "missing id")).Err
-	if err != nil {
+	if result := <-ss.Channel().UpdateLastViewedAt([]string{m1.ChannelId, m2.ChannelId}, m1.UserId); result.Err != nil {
+		t.Fatal("failed to update", result.Err)
+	} else if result.Data.(map[string]int64)[o2.Id] != o2.LastPostAt {
+		t.Fatal("last viewed at time incorrect")
+	}
+
+	rm1 := store.Must(ss.Channel().GetMember(m1.ChannelId, m1.UserId)).(*model.ChannelMember)
+	assert.Equal(t, rm1.LastViewedAt, o1.LastPostAt)
+	assert.Equal(t, rm1.LastUpdateAt, o1.LastPostAt)
+	assert.Equal(t, rm1.MsgCount, o1.TotalMsgCount)
+
+	rm2 := store.Must(ss.Channel().GetMember(m2.ChannelId, m2.UserId)).(*model.ChannelMember)
+	assert.Equal(t, rm2.LastViewedAt, o2.LastPostAt)
+	assert.Equal(t, rm2.LastUpdateAt, o2.LastPostAt)
+	assert.Equal(t, rm2.MsgCount, o2.TotalMsgCount)
+
+	if result := <-ss.Channel().UpdateLastViewedAt([]string{m1.ChannelId}, "missing id"); result.Err != nil {
 		t.Fatal("failed to update")
 	}
 }
