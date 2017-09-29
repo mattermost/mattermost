@@ -344,8 +344,8 @@ func (jss SqlJobStore) GetNewestJobByStatusAndType(status string, jobType string
 				Type = :Type
 			ORDER BY
 				CreateAt DESC
-			LIMIT 1`, map[string]interface{}{"Status": status, "Type": jobType}); err != nil {
-			result.Err = model.NewAppError("SqlJobStore.GetAllByStatus", "store.sql_job.get_newest_job_by_status_and_type.app_error", nil, "Status="+status+", "+err.Error(), http.StatusInternalServerError)
+			LIMIT 1`, map[string]interface{}{"Status": status, "Type": jobType}); err != nil && err != sql.ErrNoRows {
+			result.Err = model.NewAppError("SqlJobStore.GetNewestJobByStatusAndType", "store.sql_job.get_newest_job_by_status_and_type.app_error", nil, "Status="+status+", "+err.Error(), http.StatusInternalServerError)
 		} else {
 			result.Data = job
 		}

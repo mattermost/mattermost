@@ -275,6 +275,10 @@ func TestJobStoreGetNewestJobByStatusAndType(t *testing.T) {
 	result := <-ss.Job().GetNewestJobByStatusAndType(status1, jobType1)
 	assert.Nil(t, result.Err)
 	assert.EqualValues(t, jobs[0].Id, result.Data.(*model.Job).Id)
+
+	result = <-ss.Job().GetNewestJobByStatusAndType(model.NewId(), model.NewId())
+	assert.Nil(t, result.Err)
+	assert.Nil(t, result.Data.(*model.Job))
 }
 
 func TestJobStoreGetCountByStatusAndType(t *testing.T) {
