@@ -27,11 +27,21 @@ var _ = Describe("Commands", func() {
 	Describe("server", func() {
 
 		It("should Auth", func() {
-			_, err := client.Pipelined(func(pipe redis.Pipeliner) error {
+			cmds, err := client.Pipelined(func(pipe redis.Pipeliner) error {
 				pipe.Auth("password")
+				pipe.Auth("")
 				return nil
 			})
 			Expect(err).To(MatchError("ERR Client sent AUTH, but no password is set"))
+			Expect(cmds[0].Err()).To(MatchError("ERR Client sent AUTH, but no password is set"))
+			Expect(cmds[1].Err()).To(MatchError("ERR Client sent AUTH, but no password is set"))
+
+			stats := client.PoolStats()
+			Expect(stats.Hits).To(Equal(uint32(1)))
+			Expect(stats.Misses).To(Equal(uint32(1)))
+			Expect(stats.Timeouts).To(Equal(uint32(0)))
+			Expect(stats.TotalConns).To(Equal(uint32(1)))
+			Expect(stats.FreeConns).To(Equal(uint32(1)))
 		})
 
 		It("should Echo", func() {
@@ -185,6 +195,29 @@ var _ = Describe("Commands", func() {
 			tm, err := client.Time().Result()
 			Expect(err).NotTo(HaveOccurred())
 			Expect(tm).To(BeTemporally("~", time.Now(), 3*time.Second))
+		})
+
+		It("Should Command", func() {
+			cmds, err := client.Command().Result()
+			Expect(err).NotTo(HaveOccurred())
+			Expect(len(cmds)).To(BeNumerically("~", 180, 10))
+
+			cmd := cmds["mget"]
+			Expect(cmd.Name).To(Equal("mget"))
+			Expect(cmd.Arity).To(Equal(int8(-2)))
+			Expect(cmd.Flags).To(ContainElement("readonly"))
+			Expect(cmd.FirstKeyPos).To(Equal(int8(1)))
+			Expect(cmd.LastKeyPos).To(Equal(int8(-1)))
+			Expect(cmd.StepCount).To(Equal(int8(1)))
+
+			cmd = cmds["ping"]
+			Expect(cmd.Name).To(Equal("ping"))
+			Expect(cmd.Arity).To(Equal(int8(-1)))
+			Expect(cmd.Flags).To(ContainElement("stale"))
+			Expect(cmd.Flags).To(ContainElement("fast"))
+			Expect(cmd.FirstKeyPos).To(Equal(int8(0)))
+			Expect(cmd.LastKeyPos).To(Equal(int8(0)))
+			Expect(cmd.StepCount).To(Equal(int8(0)))
 		})
 
 	})
@@ -1358,8 +1391,8 @@ var _ = Describe("Commands", func() {
 			Expect(client.Ping().Err()).NotTo(HaveOccurred())
 
 			stats := client.PoolStats()
-			Expect(stats.Requests).To(Equal(uint32(3)))
 			Expect(stats.Hits).To(Equal(uint32(1)))
+			Expect(stats.Misses).To(Equal(uint32(2)))
 			Expect(stats.Timeouts).To(Equal(uint32(0)))
 		})
 
@@ -2883,24 +2916,6 @@ var _ = Describe("Commands", func() {
 			err := client.Get("key").Scan(value)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(value.Number).To(Equal(42))
-		})
-
-	})
-
-	Describe("Command", func() {
-
-		It("returns map of commands", func() {
-			cmds, err := client.Command().Result()
-			Expect(err).NotTo(HaveOccurred())
-			Expect(len(cmds)).To(BeNumerically("~", 180, 10))
-
-			cmd := cmds["mget"]
-			Expect(cmd.Name).To(Equal("mget"))
-			Expect(cmd.Arity).To(Equal(int8(-2)))
-			Expect(cmd.Flags).To(ContainElement("readonly"))
-			Expect(cmd.FirstKeyPos).To(Equal(int8(1)))
-			Expect(cmd.LastKeyPos).To(Equal(int8(-1)))
-			Expect(cmd.StepCount).To(Equal(int8(1)))
 		})
 
 	})

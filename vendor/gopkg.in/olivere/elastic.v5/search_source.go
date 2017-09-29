@@ -536,6 +536,7 @@ func (s *SearchSource) Source() (interface{}, error) {
 				}
 			} else {
 				// TODO the Java client throws here, because either path or typ must be specified
+				_ = m
 			}
 		}
 		source["inner_hits"] = m

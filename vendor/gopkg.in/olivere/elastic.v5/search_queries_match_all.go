@@ -10,7 +10,8 @@ package elastic
 // For more details, see
 // https://www.elastic.co/guide/en/elasticsearch/reference/5.2/query-dsl-match-all-query.html
 type MatchAllQuery struct {
-	boost *float64
+	boost     *float64
+	queryName string
 }
 
 // NewMatchAllQuery creates and initializes a new match all query.
@@ -26,7 +27,13 @@ func (q *MatchAllQuery) Boost(boost float64) *MatchAllQuery {
 	return q
 }
 
-// Source returns JSON for the function score query.
+// QueryName sets the query name.
+func (q *MatchAllQuery) QueryName(name string) *MatchAllQuery {
+	q.queryName = name
+	return q
+}
+
+// Source returns JSON for the match all query.
 func (q MatchAllQuery) Source() (interface{}, error) {
 	// {
 	//   "match_all" : { ... }
@@ -36,6 +43,9 @@ func (q MatchAllQuery) Source() (interface{}, error) {
 	source["match_all"] = params
 	if q.boost != nil {
 		params["boost"] = *q.boost
+	}
+	if q.queryName != "" {
+		params["_name"] = q.queryName
 	}
 	return source, nil
 }

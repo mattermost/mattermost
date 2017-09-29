@@ -66,7 +66,10 @@ func (m *MemMapFs) unRegisterWithParent(fileName string) error {
 	if parent == nil {
 		log.Panic("parent of ", f.Name(), " is nil")
 	}
+
+	parent.Lock()
 	mem.RemoveFromMemDir(parent, f)
+	parent.Unlock()
 	return nil
 }
 
@@ -99,8 +102,10 @@ func (m *MemMapFs) registerWithParent(f *mem.FileData) {
 		}
 	}
 
+	parent.Lock()
 	mem.InitializeDir(parent)
 	mem.AddToMemDir(parent, f)
+	parent.Unlock()
 }
 
 func (m *MemMapFs) lockfreeMkdir(name string, perm os.FileMode) error {

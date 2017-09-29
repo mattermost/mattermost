@@ -13,6 +13,10 @@ import (
 	"strings"
 )
 
+var (
+	ErrMethodMismatch = errors.New("method is not allowed")
+)
+
 // NewRouter returns a new router instance.
 func NewRouter() *Router {
 	return &Router{namedRoutes: make(map[string]*Route), KeepContext: false}
@@ -39,6 +43,10 @@ func NewRouter() *Router {
 type Router struct {
 	// Configurable Handler to be used when no route matches.
 	NotFoundHandler http.Handler
+
+	// Configurable Handler to be used when the request method does not match the route.
+	MethodNotAllowedHandler http.Handler
+
 	// Parent route, if this is a subrouter.
 	parent parentRoute
 	// Routes to be matched, in order.
@@ -63,6 +71,11 @@ func (r *Router) Match(req *http.Request, match *RouteMatch) bool {
 		if route.Match(req, match) {
 			return true
 		}
+	}
+
+	if match.MatchErr == ErrMethodMismatch && r.MethodNotAllowedHandler != nil {
+		match.Handler = r.MethodNotAllowedHandler
+		return true
 	}
 
 	// Closest match for a router (includes sub-routers)
@@ -105,9 +118,15 @@ func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		req = setVars(req, match.Vars)
 		req = setCurrentRoute(req, match.Route)
 	}
+
+	if handler == nil && match.MatchErr == ErrMethodMismatch {
+		handler = methodNotAllowedHandler()
+	}
+
 	if handler == nil {
 		handler = http.NotFoundHandler()
 	}
+
 	if !r.KeepContext {
 		defer contextClear(req)
 	}
@@ -175,6 +194,13 @@ func (r *Router) UseEncodedPath() *Router {
 // ----------------------------------------------------------------------------
 // parentRoute
 // ----------------------------------------------------------------------------
+
+func (r *Router) getBuildScheme() string {
+	if r.parent != nil {
+		return r.parent.getBuildScheme()
+	}
+	return ""
+}
 
 // getNamedRoutes returns the map where named routes are registered.
 func (r *Router) getNamedRoutes() map[string]*Route {
@@ -299,10 +325,6 @@ type WalkFunc func(route *Route, router *Router, ancestors []*Route) error
 
 func (r *Router) walk(walkFn WalkFunc, ancestors []*Route) error {
 	for _, t := range r.routes {
-		if t.regexp == nil || t.regexp.path == nil || t.regexp.path.template == "" {
-			continue
-		}
-
 		err := walkFn(t, r, ancestors)
 		if err == SkipRouter {
 			continue
@@ -312,10 +334,12 @@ func (r *Router) walk(walkFn WalkFunc, ancestors []*Route) error {
 		}
 		for _, sr := range t.matchers {
 			if h, ok := sr.(*Router); ok {
+				ancestors = append(ancestors, t)
 				err := h.walk(walkFn, ancestors)
 				if err != nil {
 					return err
 				}
+				ancestors = ancestors[:len(ancestors)-1]
 			}
 		}
 		if h, ok := t.handler.(*Router); ok {
@@ -339,6 +363,11 @@ type RouteMatch struct {
 	Route   *Route
 	Handler http.Handler
 	Vars    map[string]string
+
+	// MatchErr is set to appropriate matching error
+	// It is set to ErrMethodMismatch if there is a mismatch in
+	// the request method and route method
+	MatchErr error
 }
 
 type contextKey int
@@ -458,7 +487,7 @@ func mapFromPairsToString(pairs ...string) (map[string]string, error) {
 	return m, nil
 }
 
-// mapFromPairsToRegex converts variadic string paramers to a
+// mapFromPairsToRegex converts variadic string parameters to a
 // string to regex map.
 func mapFromPairsToRegex(pairs ...string) (map[string]*regexp.Regexp, error) {
 	length, err := checkPairs(pairs...)
@@ -540,3 +569,12 @@ func matchMapWithRegex(toCheck map[string]*regexp.Regexp, toMatch map[string][]s
 	}
 	return true
 }
+
+// methodNotAllowed replies to the request with an HTTP status code 405.
+func methodNotAllowed(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusMethodNotAllowed)
+}
+
+// methodNotAllowedHandler returns a simple request handler
+// that replies to each request with a status code 405.
+func methodNotAllowedHandler() http.Handler { return http.HandlerFunc(methodNotAllowed) }

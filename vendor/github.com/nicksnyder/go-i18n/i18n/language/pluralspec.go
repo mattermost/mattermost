@@ -7,7 +7,7 @@ import "strings"
 // http://unicode.org/reports/tr35/tr35-numbers.html#Operands
 type PluralSpec struct {
 	Plurals    map[Plural]struct{}
-	PluralFunc func(*operands) Plural
+	PluralFunc func(*Operands) Plural
 }
 
 var pluralSpecs = make(map[string]*PluralSpec)
@@ -18,7 +18,8 @@ func normalizePluralSpecID(id string) string {
 	return id
 }
 
-func registerPluralSpec(ids []string, ps *PluralSpec) {
+// RegisterPluralSpec registers a new plural spec for the language ids.
+func RegisterPluralSpec(ids []string, ps *PluralSpec) {
 	for _, id := range ids {
 		id = normalizePluralSpecID(id)
 		pluralSpecs[id] = ps

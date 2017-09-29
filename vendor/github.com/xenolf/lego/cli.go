@@ -32,7 +32,7 @@ func main() {
 	app.Name = "lego"
 	app.Usage = "Let's Encrypt client written in Go"
 
-	version := "0.4.0"
+	version := "0.4.1"
 	if strings.HasPrefix(gittag, "v") {
 		version = gittag
 	}
@@ -109,7 +109,7 @@ func main() {
 	app.Flags = []cli.Flag{
 		cli.StringSliceFlag{
 			Name:  "domains, d",
-			Usage: "Add domains to the process",
+			Usage: "Add a domain to the process. Can be specified multiple times.",
 		},
 		cli.StringFlag{
 			Name:  "csr, c",

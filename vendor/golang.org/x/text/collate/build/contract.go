@@ -26,7 +26,7 @@ import (
 //                in a given contraction.
 //   non-initial: a rune that appears in a suffix.
 //
-// A rune may be both a initial and a non-initial and may be so in
+// A rune may be both an initial and a non-initial and may be so in
 // many contractions.  An initial may typically also appear by itself.
 // In case of ambiguities, the UCA requires we match the longest
 // contraction.

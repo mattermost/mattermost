@@ -463,46 +463,57 @@ func benchGlyph(b *testing.B, colorModel byte, loose bool, height int, op draw.O
 	}
 }
 
-func BenchmarkGlyphAlpha16Over(b *testing.B)  { benchGlyph(b, 'A', false, 16, draw.Over) }
-func BenchmarkGlyphAlpha16Src(b *testing.B)   { benchGlyph(b, 'A', false, 16, draw.Src) }
-func BenchmarkGlyphAlpha32Over(b *testing.B)  { benchGlyph(b, 'A', false, 32, draw.Over) }
-func BenchmarkGlyphAlpha32Src(b *testing.B)   { benchGlyph(b, 'A', false, 32, draw.Src) }
-func BenchmarkGlyphAlpha64Over(b *testing.B)  { benchGlyph(b, 'A', false, 64, draw.Over) }
-func BenchmarkGlyphAlpha64Src(b *testing.B)   { benchGlyph(b, 'A', false, 64, draw.Src) }
-func BenchmarkGlyphAlpha128Over(b *testing.B) { benchGlyph(b, 'A', false, 128, draw.Over) }
-func BenchmarkGlyphAlpha128Src(b *testing.B)  { benchGlyph(b, 'A', false, 128, draw.Src) }
-func BenchmarkGlyphAlpha256Over(b *testing.B) { benchGlyph(b, 'A', false, 256, draw.Over) }
-func BenchmarkGlyphAlpha256Src(b *testing.B)  { benchGlyph(b, 'A', false, 256, draw.Src) }
+// The heights 16, 32, 64, 128, 256, 1024 include numbers both above and below
+// the floatingPointMathThreshold constant (512).
 
-func BenchmarkGlyphAlphaLoose16Over(b *testing.B)  { benchGlyph(b, 'A', true, 16, draw.Over) }
-func BenchmarkGlyphAlphaLoose16Src(b *testing.B)   { benchGlyph(b, 'A', true, 16, draw.Src) }
-func BenchmarkGlyphAlphaLoose32Over(b *testing.B)  { benchGlyph(b, 'A', true, 32, draw.Over) }
-func BenchmarkGlyphAlphaLoose32Src(b *testing.B)   { benchGlyph(b, 'A', true, 32, draw.Src) }
-func BenchmarkGlyphAlphaLoose64Over(b *testing.B)  { benchGlyph(b, 'A', true, 64, draw.Over) }
-func BenchmarkGlyphAlphaLoose64Src(b *testing.B)   { benchGlyph(b, 'A', true, 64, draw.Src) }
-func BenchmarkGlyphAlphaLoose128Over(b *testing.B) { benchGlyph(b, 'A', true, 128, draw.Over) }
-func BenchmarkGlyphAlphaLoose128Src(b *testing.B)  { benchGlyph(b, 'A', true, 128, draw.Src) }
-func BenchmarkGlyphAlphaLoose256Over(b *testing.B) { benchGlyph(b, 'A', true, 256, draw.Over) }
-func BenchmarkGlyphAlphaLoose256Src(b *testing.B)  { benchGlyph(b, 'A', true, 256, draw.Src) }
+func BenchmarkGlyphAlpha16Over(b *testing.B)   { benchGlyph(b, 'A', false, 16, draw.Over) }
+func BenchmarkGlyphAlpha16Src(b *testing.B)    { benchGlyph(b, 'A', false, 16, draw.Src) }
+func BenchmarkGlyphAlpha32Over(b *testing.B)   { benchGlyph(b, 'A', false, 32, draw.Over) }
+func BenchmarkGlyphAlpha32Src(b *testing.B)    { benchGlyph(b, 'A', false, 32, draw.Src) }
+func BenchmarkGlyphAlpha64Over(b *testing.B)   { benchGlyph(b, 'A', false, 64, draw.Over) }
+func BenchmarkGlyphAlpha64Src(b *testing.B)    { benchGlyph(b, 'A', false, 64, draw.Src) }
+func BenchmarkGlyphAlpha128Over(b *testing.B)  { benchGlyph(b, 'A', false, 128, draw.Over) }
+func BenchmarkGlyphAlpha128Src(b *testing.B)   { benchGlyph(b, 'A', false, 128, draw.Src) }
+func BenchmarkGlyphAlpha256Over(b *testing.B)  { benchGlyph(b, 'A', false, 256, draw.Over) }
+func BenchmarkGlyphAlpha256Src(b *testing.B)   { benchGlyph(b, 'A', false, 256, draw.Src) }
+func BenchmarkGlyphAlpha1024Over(b *testing.B) { benchGlyph(b, 'A', false, 1024, draw.Over) }
+func BenchmarkGlyphAlpha1024Src(b *testing.B)  { benchGlyph(b, 'A', false, 1024, draw.Src) }
 
-func BenchmarkGlyphRGBA16Over(b *testing.B)  { benchGlyph(b, 'R', false, 16, draw.Over) }
-func BenchmarkGlyphRGBA16Src(b *testing.B)   { benchGlyph(b, 'R', false, 16, draw.Src) }
-func BenchmarkGlyphRGBA32Over(b *testing.B)  { benchGlyph(b, 'R', false, 32, draw.Over) }
-func BenchmarkGlyphRGBA32Src(b *testing.B)   { benchGlyph(b, 'R', false, 32, draw.Src) }
-func BenchmarkGlyphRGBA64Over(b *testing.B)  { benchGlyph(b, 'R', false, 64, draw.Over) }
-func BenchmarkGlyphRGBA64Src(b *testing.B)   { benchGlyph(b, 'R', false, 64, draw.Src) }
-func BenchmarkGlyphRGBA128Over(b *testing.B) { benchGlyph(b, 'R', false, 128, draw.Over) }
-func BenchmarkGlyphRGBA128Src(b *testing.B)  { benchGlyph(b, 'R', false, 128, draw.Src) }
-func BenchmarkGlyphRGBA256Over(b *testing.B) { benchGlyph(b, 'R', false, 256, draw.Over) }
-func BenchmarkGlyphRGBA256Src(b *testing.B)  { benchGlyph(b, 'R', false, 256, draw.Src) }
+func BenchmarkGlyphAlphaLoose16Over(b *testing.B)   { benchGlyph(b, 'A', true, 16, draw.Over) }
+func BenchmarkGlyphAlphaLoose16Src(b *testing.B)    { benchGlyph(b, 'A', true, 16, draw.Src) }
+func BenchmarkGlyphAlphaLoose32Over(b *testing.B)   { benchGlyph(b, 'A', true, 32, draw.Over) }
+func BenchmarkGlyphAlphaLoose32Src(b *testing.B)    { benchGlyph(b, 'A', true, 32, draw.Src) }
+func BenchmarkGlyphAlphaLoose64Over(b *testing.B)   { benchGlyph(b, 'A', true, 64, draw.Over) }
+func BenchmarkGlyphAlphaLoose64Src(b *testing.B)    { benchGlyph(b, 'A', true, 64, draw.Src) }
+func BenchmarkGlyphAlphaLoose128Over(b *testing.B)  { benchGlyph(b, 'A', true, 128, draw.Over) }
+func BenchmarkGlyphAlphaLoose128Src(b *testing.B)   { benchGlyph(b, 'A', true, 128, draw.Src) }
+func BenchmarkGlyphAlphaLoose256Over(b *testing.B)  { benchGlyph(b, 'A', true, 256, draw.Over) }
+func BenchmarkGlyphAlphaLoose256Src(b *testing.B)   { benchGlyph(b, 'A', true, 256, draw.Src) }
+func BenchmarkGlyphAlphaLoose1024Over(b *testing.B) { benchGlyph(b, 'A', true, 1024, draw.Over) }
+func BenchmarkGlyphAlphaLoose1024Src(b *testing.B)  { benchGlyph(b, 'A', true, 1024, draw.Src) }
 
-func BenchmarkGlyphNRGBA16Over(b *testing.B)  { benchGlyph(b, 'N', false, 16, draw.Over) }
-func BenchmarkGlyphNRGBA16Src(b *testing.B)   { benchGlyph(b, 'N', false, 16, draw.Src) }
-func BenchmarkGlyphNRGBA32Over(b *testing.B)  { benchGlyph(b, 'N', false, 32, draw.Over) }
-func BenchmarkGlyphNRGBA32Src(b *testing.B)   { benchGlyph(b, 'N', false, 32, draw.Src) }
-func BenchmarkGlyphNRGBA64Over(b *testing.B)  { benchGlyph(b, 'N', false, 64, draw.Over) }
-func BenchmarkGlyphNRGBA64Src(b *testing.B)   { benchGlyph(b, 'N', false, 64, draw.Src) }
-func BenchmarkGlyphNRGBA128Over(b *testing.B) { benchGlyph(b, 'N', false, 128, draw.Over) }
-func BenchmarkGlyphNRGBA128Src(b *testing.B)  { benchGlyph(b, 'N', false, 128, draw.Src) }
-func BenchmarkGlyphNRGBA256Over(b *testing.B) { benchGlyph(b, 'N', false, 256, draw.Over) }
-func BenchmarkGlyphNRGBA256Src(b *testing.B)  { benchGlyph(b, 'N', false, 256, draw.Src) }
+func BenchmarkGlyphRGBA16Over(b *testing.B)   { benchGlyph(b, 'R', false, 16, draw.Over) }
+func BenchmarkGlyphRGBA16Src(b *testing.B)    { benchGlyph(b, 'R', false, 16, draw.Src) }
+func BenchmarkGlyphRGBA32Over(b *testing.B)   { benchGlyph(b, 'R', false, 32, draw.Over) }
+func BenchmarkGlyphRGBA32Src(b *testing.B)    { benchGlyph(b, 'R', false, 32, draw.Src) }
+func BenchmarkGlyphRGBA64Over(b *testing.B)   { benchGlyph(b, 'R', false, 64, draw.Over) }
+func BenchmarkGlyphRGBA64Src(b *testing.B)    { benchGlyph(b, 'R', false, 64, draw.Src) }
+func BenchmarkGlyphRGBA128Over(b *testing.B)  { benchGlyph(b, 'R', false, 128, draw.Over) }
+func BenchmarkGlyphRGBA128Src(b *testing.B)   { benchGlyph(b, 'R', false, 128, draw.Src) }
+func BenchmarkGlyphRGBA256Over(b *testing.B)  { benchGlyph(b, 'R', false, 256, draw.Over) }
+func BenchmarkGlyphRGBA256Src(b *testing.B)   { benchGlyph(b, 'R', false, 256, draw.Src) }
+func BenchmarkGlyphRGBA1024Over(b *testing.B) { benchGlyph(b, 'R', false, 1024, draw.Over) }
+func BenchmarkGlyphRGBA1024Src(b *testing.B)  { benchGlyph(b, 'R', false, 1024, draw.Src) }
+
+func BenchmarkGlyphNRGBA16Over(b *testing.B)   { benchGlyph(b, 'N', false, 16, draw.Over) }
+func BenchmarkGlyphNRGBA16Src(b *testing.B)    { benchGlyph(b, 'N', false, 16, draw.Src) }
+func BenchmarkGlyphNRGBA32Over(b *testing.B)   { benchGlyph(b, 'N', false, 32, draw.Over) }
+func BenchmarkGlyphNRGBA32Src(b *testing.B)    { benchGlyph(b, 'N', false, 32, draw.Src) }
+func BenchmarkGlyphNRGBA64Over(b *testing.B)   { benchGlyph(b, 'N', false, 64, draw.Over) }
+func BenchmarkGlyphNRGBA64Src(b *testing.B)    { benchGlyph(b, 'N', false, 64, draw.Src) }
+func BenchmarkGlyphNRGBA128Over(b *testing.B)  { benchGlyph(b, 'N', false, 128, draw.Over) }
+func BenchmarkGlyphNRGBA128Src(b *testing.B)   { benchGlyph(b, 'N', false, 128, draw.Src) }
+func BenchmarkGlyphNRGBA256Over(b *testing.B)  { benchGlyph(b, 'N', false, 256, draw.Over) }
+func BenchmarkGlyphNRGBA256Src(b *testing.B)   { benchGlyph(b, 'N', false, 256, draw.Src) }
+func BenchmarkGlyphNRGBA1024Over(b *testing.B) { benchGlyph(b, 'N', false, 1024, draw.Over) }
+func BenchmarkGlyphNRGBA1024Src(b *testing.B)  { benchGlyph(b, 'N', false, 1024, draw.Src) }

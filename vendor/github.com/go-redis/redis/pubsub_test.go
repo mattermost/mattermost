@@ -68,7 +68,7 @@ var _ = Describe("PubSub", func() {
 		}
 
 		stats := client.PoolStats()
-		Expect(stats.Requests - stats.Hits).To(Equal(uint32(2)))
+		Expect(stats.Misses).To(Equal(uint32(2)))
 	})
 
 	It("should pub/sub channels", func() {
@@ -191,7 +191,7 @@ var _ = Describe("PubSub", func() {
 		}
 
 		stats := client.PoolStats()
-		Expect(stats.Requests - stats.Hits).To(Equal(uint32(2)))
+		Expect(stats.Misses).To(Equal(uint32(2)))
 	})
 
 	It("should ping/pong", func() {
@@ -290,8 +290,8 @@ var _ = Describe("PubSub", func() {
 		Eventually(done).Should(Receive())
 
 		stats := client.PoolStats()
-		Expect(stats.Requests).To(Equal(uint32(2)))
 		Expect(stats.Hits).To(Equal(uint32(1)))
+		Expect(stats.Misses).To(Equal(uint32(1)))
 	})
 
 	It("returns an error when subscribe fails", func() {
