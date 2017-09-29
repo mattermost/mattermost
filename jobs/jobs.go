@@ -142,6 +142,16 @@ func (srv *JobServer) CancellationWatcher(ctx context.Context, jobId string, can
 	}
 }
 
+func GenerateNextStartDateTime(now time.Time, nextStartTime time.Time) *time.Time {
+	nextTime := time.Date(now.Year(), now.Month(), now.Day(), nextStartTime.Hour(), nextStartTime.Minute(), 0, 0, time.Local)
+
+	if !now.Before(nextTime) {
+		nextTime = nextTime.AddDate(0, 0, 1)
+	}
+
+	return &nextTime
+}
+
 func (srv *JobServer) CheckForPendingJobsByType(jobType string) (bool, *model.AppError) {
 	if result := <-srv.Store.Job().GetCountByStatusAndType(model.JOB_STATUS_PENDING, jobType); result.Err != nil {
 		return false, result.Err
