@@ -78,10 +78,10 @@ func RegisterDataRetentionInterface(f func(*App) einterfaces.DataRetentionInterf
 	dataRetentionInterface = f
 }
 
-var jobsDataRetentionInterface func(*App) ejobs.DataRetentionJobInterface
+var jobsDataRetentionJobInterface func(*App) ejobs.DataRetentionJobInterface
 
-func RegisterJobsDataRetentionInterface(f func(*App) ejobs.DataRetentionJobInterface) {
-	jobsDataRetentionInterface = f
+func RegisterJobsDataRetentionJobInterface(f func(*App) ejobs.DataRetentionJobInterface) {
+	jobsDataRetentionJobInterface = f
 }
 
 var jobsElasticsearchAggregatorInterface func(*App) ejobs.ElasticsearchAggregatorInterface
@@ -161,8 +161,8 @@ func (a *App) initEnterprise() {
 	if dataRetentionInterface != nil {
 		a.DataRetention = dataRetentionInterface(a)
 	}
-	if jobsDataRetentionInterface != nil {
-		a.Jobs.DataRetention = jobsDataRetentionInterface(a)
+	if jobsDataRetentionJobInterface != nil {
+		a.Jobs.DataRetentionJob = jobsDataRetentionJobInterface(a)
 	}
 	if jobsElasticsearchAggregatorInterface != nil {
 		a.Jobs.ElasticsearchAggregator = jobsElasticsearchAggregatorInterface(a)

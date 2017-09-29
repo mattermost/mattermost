@@ -17,7 +17,7 @@ type JobServer struct {
 	Workers    *Workers
 	Schedulers *Schedulers
 
-	DataRetention           ejobs.DataRetentionJobInterface
+	DataRetentionJob        ejobs.DataRetentionJobInterface
 	ElasticsearchAggregator ejobs.ElasticsearchAggregatorInterface
 	ElasticsearchIndexer    ejobs.ElasticsearchIndexerInterface
 	LdapSync                ejobs.LdapSyncInterface
