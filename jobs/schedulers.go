@@ -9,7 +9,6 @@ import (
 
 	l4g "github.com/alecthomas/log4go"
 
-	ejobs "github.com/mattermost/mattermost-server/einterfaces/jobs"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
 )
@@ -20,28 +19,31 @@ type Schedulers struct {
 	configChanged chan *model.Config
 	listenerId    string
 	startOnce     sync.Once
+	jobs          *JobServer
 
 	schedulers   []model.Scheduler
 	nextRunTimes []*time.Time
 }
 
-func InitSchedulers() *Schedulers {
+func (srv *JobServer) InitSchedulers() *Schedulers {
 	l4g.Debug("Initialising schedulers.")
+
 	schedulers := &Schedulers{
 		stop:          make(chan bool),
 		stopped:       make(chan bool),
 		configChanged: make(chan *model.Config),
+		jobs:          srv,
 	}
 
-	if dataRetentionInterface := ejobs.GetDataRetentionInterface(); dataRetentionInterface != nil {
+	if dataRetentionInterface := srv.DataRetention; dataRetentionInterface != nil {
 		schedulers.schedulers = append(schedulers.schedulers, dataRetentionInterface.MakeScheduler())
 	}
 
-	if elasticsearchAggregatorInterface := ejobs.GetElasticsearchAggregatorInterface(); elasticsearchAggregatorInterface != nil {
+	if elasticsearchAggregatorInterface := srv.ElasticsearchAggregator; elasticsearchAggregatorInterface != nil {
 		schedulers.schedulers = append(schedulers.schedulers, elasticsearchAggregatorInterface.MakeScheduler())
 	}
 
-	if ldapSyncInterface := ejobs.GetLdapSyncInterface(); ldapSyncInterface != nil {
+	if ldapSyncInterface := srv.LdapSync; ldapSyncInterface != nil {
 		schedulers.schedulers = append(schedulers.schedulers, ldapSyncInterface.MakeScheduler())
 	}
 
@@ -124,7 +126,7 @@ func (schedulers *Schedulers) setNextRunTime(cfg *model.Config, idx int, now tim
 	scheduler := schedulers.schedulers[idx]
 
 	if !pendingJobs {
-		if pj, err := CheckForPendingJobsByType(scheduler.JobType()); err != nil {
+		if pj, err := schedulers.jobs.CheckForPendingJobsByType(scheduler.JobType()); err != nil {
 			l4g.Error("Failed to set next job run time: " + err.Error())
 			schedulers.nextRunTimes[idx] = nil
 			return
@@ -133,7 +135,7 @@ func (schedulers *Schedulers) setNextRunTime(cfg *model.Config, idx int, now tim
 		}
 	}
 
-	lastSuccessfulJob, err := GetLastSuccessfulJobByType(scheduler.JobType())
+	lastSuccessfulJob, err := schedulers.jobs.GetLastSuccessfulJobByType(scheduler.JobType())
 	if err != nil {
 		l4g.Error("Failed to set next job run time: " + err.Error())
 		schedulers.nextRunTimes[idx] = nil
@@ -145,12 +147,12 @@ func (schedulers *Schedulers) setNextRunTime(cfg *model.Config, idx int, now tim
 }
 
 func (schedulers *Schedulers) scheduleJob(cfg *model.Config, scheduler model.Scheduler) (*model.Job, *model.AppError) {
-	pendingJobs, err := CheckForPendingJobsByType(scheduler.JobType())
+	pendingJobs, err := schedulers.jobs.CheckForPendingJobsByType(scheduler.JobType())
 	if err != nil {
 		return nil, err
 	}
 
-	lastSuccessfulJob, err2 := GetLastSuccessfulJobByType(scheduler.JobType())
+	lastSuccessfulJob, err2 := schedulers.jobs.GetLastSuccessfulJobByType(scheduler.JobType())
 	if err2 != nil {
 		return nil, err
 	}
