@@ -498,6 +498,7 @@ type ActianceDataExportSettings struct {
 	EnableExport        *bool
 	DailyRunTime        *string
 	ExportFromTimestamp *int64
+	FileLocation		*string
 }
 
 type JobSettings struct {
