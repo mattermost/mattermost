@@ -1570,13 +1570,13 @@ func (c *Client4) GetChannelMembersForUser(userId, teamId, etag string) (*Channe
 }
 
 // ViewChannel performs a view action for a user. Synonymous with switching channels or marking channels as read by a user.
-func (c *Client4) ViewChannel(userId string, view *ChannelView) (bool, *Response) {
+func (c *Client4) ViewChannel(userId string, view *ChannelView) (*ChannelViewResponse, *Response) {
 	url := fmt.Sprintf(c.GetChannelsRoute()+"/members/%v/view", userId)
 	if r, err := c.DoApiPost(url, view.ToJson()); err != nil {
-		return false, BuildErrorResponse(r, err)
+		return nil, BuildErrorResponse(r, err)
 	} else {
 		defer closeBody(r)
-		return CheckStatusOK(r), BuildResponse(r)
+		return ChannelViewResponseFromJson(r.Body), BuildResponse(r)
 	}
 }
 

@@ -779,7 +779,7 @@ func viewChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := c.App.ViewChannel(view, c.Session.UserId, !c.Session.IsMobileApp()); err != nil {
+	if _, err := c.App.ViewChannel(view, c.Session.UserId, !c.Session.IsMobileApp()); err != nil {
 		c.Err = err
 		return
 	}

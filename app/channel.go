@@ -1136,9 +1136,9 @@ func (a *App) SearchChannelsUserNotIn(teamId string, userId string, term string)
 	}
 }
 
-func (a *App) ViewChannel(view *model.ChannelView, userId string, clearPushNotifications bool) *model.AppError {
+func (a *App) ViewChannel(view *model.ChannelView, userId string, clearPushNotifications bool) (map[string]int64, *model.AppError) {
 	if err := a.SetActiveChannel(userId, view.ChannelId); err != nil {
-		return err
+		return nil, err
 	}
 
 	channelIds := []string{}
@@ -1157,14 +1157,14 @@ func (a *App) ViewChannel(view *model.ChannelView, userId string, clearPushNotif
 	}
 
 	if len(channelIds) == 0 {
-		return nil
+		return map[string]int64{}, nil
 	}
 
 	uchan := a.Srv.Store.Channel().UpdateLastViewedAt(channelIds, userId)
 
 	if pchan != nil {
 		if result := <-pchan; result.Err != nil {
-			return result.Err
+			return nil, result.Err
 		} else {
 			if result.Data.(int64) > 0 {
 				a.ClearPushNotification(userId, view.ChannelId)
@@ -1172,8 +1172,11 @@ func (a *App) ViewChannel(view *model.ChannelView, userId string, clearPushNotif
 		}
 	}
 
+	times := map[string]int64{}
 	if result := <-uchan; result.Err != nil {
-		return result.Err
+		return nil, result.Err
+	} else {
+		times = result.Data.(map[string]int64)
 	}
 
 	if *utils.Cfg.ServiceSettings.EnableChannelViewedMessages && model.IsValidId(view.ChannelId) {
@@ -1182,7 +1185,7 @@ func (a *App) ViewChannel(view *model.ChannelView, userId string, clearPushNotif
 		go a.Publish(message)
 	}
 
-	return nil
+	return times, nil
 }
 
 func (a *App) PermanentDeleteChannel(channel *model.Channel) *model.AppError {

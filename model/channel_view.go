@@ -32,3 +32,28 @@ func ChannelViewFromJson(data io.Reader) *ChannelView {
 		return nil
 	}
 }
+
+type ChannelViewResponse struct {
+	Status            string           `json:"status"`
+	LastViewedAtTimes map[string]int64 `json:"last_viewed_at_times"`
+}
+
+func (o *ChannelViewResponse) ToJson() string {
+	b, err := json.Marshal(o)
+	if err != nil {
+		return ""
+	} else {
+		return string(b)
+	}
+}
+
+func ChannelViewResponseFromJson(data io.Reader) *ChannelViewResponse {
+	decoder := json.NewDecoder(data)
+	var o ChannelViewResponse
+	err := decoder.Decode(&o)
+	if err == nil {
+		return &o
+	} else {
+		return nil
+	}
+}
