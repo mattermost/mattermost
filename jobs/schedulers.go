@@ -35,8 +35,8 @@ func (srv *JobServer) InitSchedulers() *Schedulers {
 		jobs:          srv,
 	}
 
-	if dataRetentionInterface := srv.DataRetention; dataRetentionInterface != nil {
-		schedulers.schedulers = append(schedulers.schedulers, dataRetentionInterface.MakeScheduler())
+	if dataRetentionJobInterface := srv.DataRetention; dataRetentionJobInterface != nil {
+		schedulers.schedulers = append(schedulers.schedulers, dataRetentionJobInterface.MakeScheduler())
 	}
 
 	if elasticsearchAggregatorInterface := srv.ElasticsearchAggregator; elasticsearchAggregatorInterface != nil {

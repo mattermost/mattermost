@@ -33,6 +33,7 @@ type App struct {
 	Brand            einterfaces.BrandInterface
 	Cluster          einterfaces.ClusterInterface
 	Compliance       einterfaces.ComplianceInterface
+	DataRetention    einterfaces.DataRetentionInterface
 	Elasticsearch    einterfaces.ElasticsearchInterface
 	Ldap             einterfaces.LdapInterface
 	Metrics          einterfaces.MetricsInterface
@@ -71,9 +72,15 @@ func RegisterComplianceInterface(f func(*App) einterfaces.ComplianceInterface) {
 	complianceInterface = f
 }
 
-var jobsDataRetentionInterface func(*App) ejobs.DataRetentionInterface
+var dataRetentionInterface func(*App) einterfaces.DataRetentionInterface
 
-func RegisterJobsDataRetentionInterface(f func(*App) ejobs.DataRetentionInterface) {
+func RegisterDataRetentionInterface(f func(*App) einterfaces.DataRetentionInterface) {
+	dataRetentionInterface = f
+}
+
+var jobsDataRetentionInterface func(*App) ejobs.DataRetentionJobInterface
+
+func RegisterJobsDataRetentionInterface(f func(*App) ejobs.DataRetentionJobInterface) {
 	jobsDataRetentionInterface = f
 }
 
@@ -151,7 +158,9 @@ func (a *App) initEnterprise() {
 			a.Saml.ConfigureSP()
 		})
 	}
-
+	if dataRetentionInterface != nil {
+		a.DataRetention = dataRetentionInterface(a)
+	}
 	if jobsDataRetentionInterface != nil {
 		a.Jobs.DataRetention = jobsDataRetentionInterface(a)
 	}
