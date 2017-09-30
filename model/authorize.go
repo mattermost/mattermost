@@ -156,9 +156,6 @@ func AuthorizeRequestFromJson(data io.Reader) *AuthorizeRequest {
 
 func (ad *AuthData) IsExpired() bool {
 
-	if GetMillis() > ad.CreateAt+int64(ad.ExpiresIn*1000) {
-		return true
-	}
+	return GetMillis() > ad.CreateAt+int64(ad.ExpiresIn*1000)
 
-	return false
 }

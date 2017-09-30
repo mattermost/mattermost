@@ -29,7 +29,7 @@ func TestConfigDefaultFileSettingsS3SSE(t *testing.T) {
 	c1 := Config{}
 	c1.SetDefaults()
 
-	if *c1.FileSettings.AmazonS3SSE != false {
+	if *c1.FileSettings.AmazonS3SSE {
 		t.Fatal("FileSettings.AmazonS3SSE should default to false")
 	}
 }

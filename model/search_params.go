@@ -34,9 +34,7 @@ var searchFlags = [...]string{"from", "channel", "in"}
 func splitWordsNoQuotes(text string) []string {
 	words := []string{}
 
-	for _, word := range strings.Fields(text) {
-		words = append(words, word)
-	}
+	words = append(words, strings.Fields(text)...)
 
 	return words
 }
