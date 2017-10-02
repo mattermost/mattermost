@@ -27,8 +27,8 @@ func (srv *JobServer) InitWorkers() *Workers {
 	workers := &Workers{}
 	workers.Watcher = srv.MakeWatcher(workers, DEFAULT_WATCHER_POLLING_INTERVAL)
 
-	if dataRetentionInterface := srv.DataRetention; dataRetentionInterface != nil {
-		workers.DataRetention = dataRetentionInterface.MakeWorker()
+	if srv.DataRetentionJob != nil {
+		workers.DataRetention = srv.DataRetentionJob.MakeWorker()
 	}
 
 	if elasticsearchIndexerInterface := srv.ElasticsearchIndexer; elasticsearchIndexerInterface != nil {
