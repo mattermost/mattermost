@@ -5,7 +5,6 @@ package api4
 
 import (
 	"net/http"
-	"net/url"
 	"strconv"
 	"strings"
 
@@ -338,9 +337,9 @@ func writeFileResponse(filename string, contentType string, bytes []byte, forceD
 	}
 
 	if toDownload {
-		w.Header().Set("Content-Disposition", "attachment;filename=\""+filename+"\"; filename*=UTF-8''"+url.QueryEscape(filename))
+		w.Header().Set("Content-Disposition", "attachment;filename=\""+filename+"\"; filename*=UTF-8''"+filename)
 	} else {
-		w.Header().Set("Content-Disposition", "inline;filename=\""+filename+"\"; filename*=UTF-8''"+url.QueryEscape(filename))
+		w.Header().Set("Content-Disposition", "inline;filename=\""+filename+"\"; filename*=UTF-8''"+filename)
 	}
 
 	// prevent file links from being embedded in iframes
