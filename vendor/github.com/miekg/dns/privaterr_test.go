@@ -143,7 +143,7 @@ func (rd *VERSION) Len() int {
 }
 
 var smallzone = `$ORIGIN example.org.
-@ SOA	sns.dns.icann.org. noc.dns.icann.org. (
+@ 3600 IN SOA	sns.dns.icann.org. noc.dns.icann.org. (
 		2014091518 7200 3600 1209600 3600
 )
     A   1.2.3.4

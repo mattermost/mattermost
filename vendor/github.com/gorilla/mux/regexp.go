@@ -35,7 +35,7 @@ func newRouteRegexp(tpl string, matchHost, matchPrefix, matchQuery, strictSlash,
 	// Now let's parse it.
 	defaultPattern := "[^/]+"
 	if matchQuery {
-		defaultPattern = "[^?&]*"
+		defaultPattern = ".*"
 	} else if matchHost {
 		defaultPattern = "[^.]+"
 		matchPrefix = false
@@ -177,6 +177,9 @@ func (r *routeRegexp) url(values map[string]string) (string, error) {
 		value, ok := values[v]
 		if !ok {
 			return "", fmt.Errorf("mux: missing route variable %q", v)
+		}
+		if r.matchQuery {
+			value = url.QueryEscape(value)
 		}
 		urlValues[k] = value
 	}

@@ -23,6 +23,7 @@ import (
 	"os"
 	"reflect"
 	"runtime"
+	"runtime/debug"
 	"sort"
 	"strings"
 
@@ -233,7 +234,7 @@ func (c Client) putObjectMultipartStreamNoLength(bucketName, objectName string, 
 	var complMultipartUpload completeMultipartUpload
 
 	// Calculate the optimal parts info for a given size.
-	totalPartsCount, _, _, err := optimalPartInfo(-1)
+	totalPartsCount, partSize, _, err := optimalPartInfo(-1)
 	if err != nil {
 		return 0, err
 	}
@@ -256,27 +257,28 @@ func (c Client) putObjectMultipartStreamNoLength(bucketName, objectName string, 
 	// Initialize parts uploaded map.
 	partsInfo := make(map[int]ObjectPart)
 
+	// Create a buffer.
+	buf := make([]byte, partSize)
+	defer debug.FreeOSMemory()
+
 	for partNumber <= totalPartsCount {
-		bufp := bufPool.Get().(*[]byte)
-		length, rErr := io.ReadFull(reader, *bufp)
+		length, rErr := io.ReadFull(reader, buf)
 		if rErr == io.EOF {
 			break
 		}
 		if rErr != nil && rErr != io.ErrUnexpectedEOF {
-			bufPool.Put(bufp)
 			return 0, rErr
 		}
 
 		// Update progress reader appropriately to the latest offset
 		// as we read from the source.
-		rd := newHook(bytes.NewReader((*bufp)[:length]), progress)
+		rd := newHook(bytes.NewReader(buf[:length]), progress)
 
 		// Proceed to upload the part.
 		var objPart ObjectPart
 		objPart, err = c.uploadPart(bucketName, objectName, uploadID, rd, partNumber,
 			nil, nil, int64(length), metadata)
 		if err != nil {
-			bufPool.Put(bufp)
 			return totalUploadedSize, err
 		}
 
@@ -288,9 +290,6 @@ func (c Client) putObjectMultipartStreamNoLength(bucketName, objectName string, 
 
 		// Increment part number.
 		partNumber++
-
-		// Put back data into bufpool.
-		bufPool.Put(bufp)
 
 		// For unknown size, Read EOF we break away.
 		// We do not have to upload till totalPartsCount.

@@ -11,6 +11,8 @@ import (
 
 func TestGetAllPreferences(t *testing.T) {
 	th := Setup().InitBasic()
+	defer th.TearDown()
+
 	Client := th.BasicClient
 	user1 := th.BasicUser
 
@@ -53,6 +55,8 @@ func TestGetAllPreferences(t *testing.T) {
 
 func TestSetPreferences(t *testing.T) {
 	th := Setup().InitBasic()
+	defer th.TearDown()
+
 	Client := th.BasicClient
 	user1 := th.BasicUser
 
@@ -89,6 +93,8 @@ func TestSetPreferences(t *testing.T) {
 
 func TestGetPreferenceCategory(t *testing.T) {
 	th := Setup().InitBasic()
+	defer th.TearDown()
+
 	Client := th.BasicClient
 	user1 := th.BasicUser
 
@@ -133,6 +139,8 @@ func TestGetPreferenceCategory(t *testing.T) {
 
 func TestGetPreference(t *testing.T) {
 	th := Setup().InitBasic()
+	defer th.TearDown()
+
 	Client := th.BasicClient
 	user := th.BasicUser
 
@@ -165,6 +173,8 @@ func TestGetPreference(t *testing.T) {
 
 func TestDeletePreferences(t *testing.T) {
 	th := Setup().InitBasic()
+	defer th.TearDown()
+
 	Client := th.BasicClient
 	user1 := th.BasicUser
 

@@ -12,6 +12,8 @@ import (
 
 func TestHelpCommand(t *testing.T) {
 	th := Setup().InitBasic()
+	defer th.TearDown()
+
 	Client := th.BasicClient
 	channel := th.BasicChannel
 

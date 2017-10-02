@@ -36,11 +36,10 @@ func (c *Client) Watch(fn func(*Tx) error, keys ...string) error {
 			return err
 		}
 	}
-	firstErr := fn(tx)
-	if err := tx.Close(); err != nil && firstErr == nil {
-		firstErr = err
-	}
-	return firstErr
+
+	err := fn(tx)
+	_ = tx.Close()
+	return err
 }
 
 // close closes the transaction, releasing any open resources.
@@ -53,7 +52,7 @@ func (c *Tx) Close() error {
 // of a transaction.
 func (c *Tx) Watch(keys ...string) *StatusCmd {
 	args := make([]interface{}, 1+len(keys))
-	args[0] = "WATCH"
+	args[0] = "watch"
 	for i, key := range keys {
 		args[1+i] = key
 	}
@@ -65,7 +64,7 @@ func (c *Tx) Watch(keys ...string) *StatusCmd {
 // Unwatch flushes all the previously watched keys for a transaction.
 func (c *Tx) Unwatch(keys ...string) *StatusCmd {
 	args := make([]interface{}, 1+len(keys))
-	args[0] = "UNWATCH"
+	args[0] = "unwatch"
 	for i, key := range keys {
 		args[1+i] = key
 	}
@@ -92,5 +91,13 @@ func (c *Tx) Pipeline() Pipeliner {
 // TxFailedErr is returned. Otherwise Exec returns error of the first
 // failed command or nil.
 func (c *Tx) Pipelined(fn func(Pipeliner) error) ([]Cmder, error) {
-	return c.Pipeline().pipelined(fn)
+	return c.Pipeline().Pipelined(fn)
+}
+
+func (c *Tx) TxPipelined(fn func(Pipeliner) error) ([]Cmder, error) {
+	return c.Pipelined(fn)
+}
+
+func (c *Tx) TxPipeline() Pipeliner {
+	return c.Pipeline()
 }

@@ -21,12 +21,15 @@ func TestParseZoneInclude(t *testing.T) {
 		t.Fatalf("could not close tmpfile %q: %s", tmpfile.Name(), err)
 	}
 
-	zone := "$INCLUDE " + tmpfile.Name()
+	zone := "$ORIGIN example.org.\n$INCLUDE " + tmpfile.Name()
 
 	tok := ParseZone(strings.NewReader(zone), "", "")
 	for x := range tok {
 		if x.Error != nil {
 			t.Fatalf("expected no error, but got %s", x.Error)
+		}
+		if x.RR.Header().Name != "foo.example.org." {
+			t.Fatalf("expected %s, but got %s", "foo.example.org.", x.RR.Header().Name)
 		}
 	}
 

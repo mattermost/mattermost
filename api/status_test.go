@@ -15,6 +15,8 @@ import (
 
 func TestStatuses(t *testing.T) {
 	th := Setup().InitBasic()
+	defer th.TearDown()
+
 	Client := th.BasicClient
 	WebSocketClient, err := th.CreateWebSocketClient()
 	if err != nil {
@@ -33,12 +35,12 @@ func TestStatuses(t *testing.T) {
 
 	user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1"}
 	ruser := Client.Must(Client.CreateUser(&user, "")).Data.(*model.User)
-	LinkUserToTeam(ruser, rteam.Data.(*model.Team))
+	th.LinkUserToTeam(ruser, rteam.Data.(*model.Team))
 	store.Must(th.App.Srv.Store.User().VerifyEmail(ruser.Id))
 
 	user2 := model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1"}
 	ruser2 := Client.Must(Client.CreateUser(&user2, "")).Data.(*model.User)
-	LinkUserToTeam(ruser2, rteam.Data.(*model.Team))
+	th.LinkUserToTeam(ruser2, rteam.Data.(*model.Team))
 	store.Must(th.App.Srv.Store.User().VerifyEmail(ruser2.Id))
 
 	Client.Login(user.Email, user.Password)
@@ -206,6 +208,8 @@ func TestStatuses(t *testing.T) {
 func TestGetStatusesByIds(t *testing.T) {
 	ReloadConfigForSetup()
 	th := Setup().InitBasic()
+	defer th.TearDown()
+
 	Client := th.BasicClient
 
 	if result, err := Client.GetStatusesByIds([]string{th.BasicUser.Id}); err != nil {

@@ -80,6 +80,8 @@ type Routes struct {
 
 	Elasticsearch *mux.Router // 'api/v4/elasticsearch'
 
+	DataRetention *mux.Router // 'api/v4/data_retention'
+
 	Brand *mux.Router // 'api/v4/brand'
 
 	System *mux.Router // 'api/v4/system'
@@ -185,6 +187,7 @@ func Init(a *app.App, root *mux.Router, full bool) *API {
 	api.BaseRoutes.Reactions = api.BaseRoutes.ApiRoot.PathPrefix("/reactions").Subrouter()
 	api.BaseRoutes.Jobs = api.BaseRoutes.ApiRoot.PathPrefix("/jobs").Subrouter()
 	api.BaseRoutes.Elasticsearch = api.BaseRoutes.ApiRoot.PathPrefix("/elasticsearch").Subrouter()
+	api.BaseRoutes.DataRetention = api.BaseRoutes.ApiRoot.PathPrefix("/data_retention").Subrouter()
 
 	api.BaseRoutes.Emojis = api.BaseRoutes.ApiRoot.PathPrefix("/emoji").Subrouter()
 	api.BaseRoutes.Emoji = api.BaseRoutes.Emojis.PathPrefix("/{emoji_id:[A-Za-z0-9]+}").Subrouter()
@@ -208,6 +211,7 @@ func Init(a *app.App, root *mux.Router, full bool) *API {
 	api.InitCluster()
 	api.InitLdap()
 	api.InitElasticsearch()
+	api.InitDataRetention()
 	api.InitBrand()
 	api.InitJob()
 	api.InitCommand()

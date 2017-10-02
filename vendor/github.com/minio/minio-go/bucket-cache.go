@@ -91,20 +91,6 @@ func (c Client) getBucketLocation(bucketName string) (string, error) {
 		return c.region, nil
 	}
 
-	if s3utils.IsAmazonChinaEndpoint(c.endpointURL) {
-		// For china specifically we need to set everything to
-		// cn-north-1 for now, there is no easier way until AWS S3
-		// provides a cleaner compatible API across "us-east-1" and
-		// China region.
-		return "cn-north-1", nil
-	} else if s3utils.IsAmazonGovCloudEndpoint(c.endpointURL) {
-		// For us-gov specifically we need to set everything to
-		// us-gov-west-1 for now, there is no easier way until AWS S3
-		// provides a cleaner compatible API across "us-east-1" and
-		// Gov cloud region.
-		return "us-gov-west-1", nil
-	}
-
 	if location, ok := c.bucketLocCache.Get(bucketName); ok {
 		return location, nil
 	}

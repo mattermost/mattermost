@@ -37,6 +37,8 @@ var timeTests = []struct {
 }{
 	{"22001-02-03", time.Date(22001, time.February, 3, 0, 0, 0, 0, time.FixedZone("", 0))},
 	{"2001-02-03", time.Date(2001, time.February, 3, 0, 0, 0, 0, time.FixedZone("", 0))},
+	{"0001-12-31 BC", time.Date(0, time.December, 31, 0, 0, 0, 0, time.FixedZone("", 0))},
+	{"2001-02-03 BC", time.Date(-2000, time.February, 3, 0, 0, 0, 0, time.FixedZone("", 0))},
 	{"2001-02-03 04:05:06", time.Date(2001, time.February, 3, 4, 5, 6, 0, time.FixedZone("", 0))},
 	{"2001-02-03 04:05:06.000001", time.Date(2001, time.February, 3, 4, 5, 6, 1000, time.FixedZone("", 0))},
 	{"2001-02-03 04:05:06.00001", time.Date(2001, time.February, 3, 4, 5, 6, 10000, time.FixedZone("", 0))},
@@ -86,15 +88,22 @@ func TestParseTs(t *testing.T) {
 }
 
 var timeErrorTests = []string{
+	"BC",
+	" BC",
 	"2001",
 	"2001-2-03",
 	"2001-02-3",
 	"2001-02-03 ",
+	"2001-02-03 B",
 	"2001-02-03 04",
 	"2001-02-03 04:",
 	"2001-02-03 04:05",
+	"2001-02-03 04:05 B",
+	"2001-02-03 04:05 BC",
 	"2001-02-03 04:05:",
 	"2001-02-03 04:05:6",
+	"2001-02-03 04:05:06 B",
+	"2001-02-03 04:05:06BC",
 	"2001-02-03 04:05:06.123 B",
 }
 

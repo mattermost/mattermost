@@ -12,28 +12,10 @@ import (
 	"github.com/go-redis/redis/internal/proto"
 )
 
-var (
-	_ Cmder = (*Cmd)(nil)
-	_ Cmder = (*SliceCmd)(nil)
-	_ Cmder = (*StatusCmd)(nil)
-	_ Cmder = (*IntCmd)(nil)
-	_ Cmder = (*DurationCmd)(nil)
-	_ Cmder = (*BoolCmd)(nil)
-	_ Cmder = (*StringCmd)(nil)
-	_ Cmder = (*FloatCmd)(nil)
-	_ Cmder = (*StringSliceCmd)(nil)
-	_ Cmder = (*BoolSliceCmd)(nil)
-	_ Cmder = (*StringStringMapCmd)(nil)
-	_ Cmder = (*StringIntMapCmd)(nil)
-	_ Cmder = (*ZSliceCmd)(nil)
-	_ Cmder = (*ScanCmd)(nil)
-	_ Cmder = (*ClusterSlotsCmd)(nil)
-)
-
 type Cmder interface {
-	args() []interface{}
-	arg(int) string
 	Name() string
+	Args() []interface{}
+	stringArg(int) string
 
 	readReply(*pool.Conn) error
 	setErr(error)
@@ -46,14 +28,25 @@ type Cmder interface {
 
 func setCmdsErr(cmds []Cmder, e error) {
 	for _, cmd := range cmds {
-		cmd.setErr(e)
+		if cmd.Err() == nil {
+			cmd.setErr(e)
+		}
 	}
+}
+
+func firstCmdsErr(cmds []Cmder) error {
+	for _, cmd := range cmds {
+		if err := cmd.Err(); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func writeCmd(cn *pool.Conn, cmds ...Cmder) error {
 	cn.Wb.Reset()
 	for _, cmd := range cmds {
-		if err := cn.Wb.Append(cmd.args()); err != nil {
+		if err := cn.Wb.Append(cmd.Args()); err != nil {
 			return err
 		}
 	}
@@ -64,7 +57,7 @@ func writeCmd(cn *pool.Conn, cmds ...Cmder) error {
 
 func cmdString(cmd Cmder, val interface{}) string {
 	var ss []string
-	for _, arg := range cmd.args() {
+	for _, arg := range cmd.Args() {
 		ss = append(ss, fmt.Sprint(arg))
 	}
 	s := strings.Join(ss, " ")
@@ -86,7 +79,7 @@ func cmdString(cmd Cmder, val interface{}) string {
 func cmdFirstKeyPos(cmd Cmder, info *CommandInfo) int {
 	switch cmd.Name() {
 	case "eval", "evalsha":
-		if cmd.arg(2) != "0" {
+		if cmd.stringArg(2) != "0" {
 			return 3
 		} else {
 			return -1
@@ -95,7 +88,6 @@ func cmdFirstKeyPos(cmd Cmder, info *CommandInfo) int {
 		return 1
 	}
 	if info == nil {
-		internal.Logf("info for cmd=%s not found", cmd.Name())
 		return -1
 	}
 	return int(info.FirstKeyPos)
@@ -110,15 +102,17 @@ type baseCmd struct {
 	_readTimeout *time.Duration
 }
 
+var _ Cmder = (*Cmd)(nil)
+
 func (cmd *baseCmd) Err() error {
 	return cmd.err
 }
 
-func (cmd *baseCmd) args() []interface{} {
+func (cmd *baseCmd) Args() []interface{} {
 	return cmd._args
 }
 
-func (cmd *baseCmd) arg(pos int) string {
+func (cmd *baseCmd) stringArg(pos int) string {
 	if pos < 0 || pos >= len(cmd._args) {
 		return ""
 	}
@@ -129,7 +123,7 @@ func (cmd *baseCmd) arg(pos int) string {
 func (cmd *baseCmd) Name() string {
 	if len(cmd._args) > 0 {
 		// Cmd name must be lower cased.
-		s := internal.ToLower(cmd.arg(0))
+		s := internal.ToLower(cmd.stringArg(0))
 		cmd._args[0] = s
 		return s
 	}
@@ -194,6 +188,8 @@ type SliceCmd struct {
 	val []interface{}
 }
 
+var _ Cmder = (*SliceCmd)(nil)
+
 func NewSliceCmd(args ...interface{}) *SliceCmd {
 	return &SliceCmd{
 		baseCmd: baseCmd{_args: args},
@@ -230,6 +226,8 @@ type StatusCmd struct {
 	val string
 }
 
+var _ Cmder = (*StatusCmd)(nil)
+
 func NewStatusCmd(args ...interface{}) *StatusCmd {
 	return &StatusCmd{
 		baseCmd: baseCmd{_args: args},
@@ -260,6 +258,8 @@ type IntCmd struct {
 
 	val int64
 }
+
+var _ Cmder = (*IntCmd)(nil)
 
 func NewIntCmd(args ...interface{}) *IntCmd {
 	return &IntCmd{
@@ -292,6 +292,8 @@ type DurationCmd struct {
 	val       time.Duration
 	precision time.Duration
 }
+
+var _ Cmder = (*DurationCmd)(nil)
 
 func NewDurationCmd(precision time.Duration, args ...interface{}) *DurationCmd {
 	return &DurationCmd{
@@ -330,6 +332,8 @@ type TimeCmd struct {
 	val time.Time
 }
 
+var _ Cmder = (*TimeCmd)(nil)
+
 func NewTimeCmd(args ...interface{}) *TimeCmd {
 	return &TimeCmd{
 		baseCmd: baseCmd{_args: args},
@@ -365,6 +369,8 @@ type BoolCmd struct {
 
 	val bool
 }
+
+var _ Cmder = (*BoolCmd)(nil)
 
 func NewBoolCmd(args ...interface{}) *BoolCmd {
 	return &BoolCmd{
@@ -420,6 +426,8 @@ type StringCmd struct {
 
 	val []byte
 }
+
+var _ Cmder = (*StringCmd)(nil)
 
 func NewStringCmd(args ...interface{}) *StringCmd {
 	return &StringCmd{
@@ -484,6 +492,8 @@ type FloatCmd struct {
 	val float64
 }
 
+var _ Cmder = (*FloatCmd)(nil)
+
 func NewFloatCmd(args ...interface{}) *FloatCmd {
 	return &FloatCmd{
 		baseCmd: baseCmd{_args: args},
@@ -514,6 +524,8 @@ type StringSliceCmd struct {
 
 	val []string
 }
+
+var _ Cmder = (*StringSliceCmd)(nil)
 
 func NewStringSliceCmd(args ...interface{}) *StringSliceCmd {
 	return &StringSliceCmd{
@@ -555,6 +567,8 @@ type BoolSliceCmd struct {
 	val []bool
 }
 
+var _ Cmder = (*BoolSliceCmd)(nil)
+
 func NewBoolSliceCmd(args ...interface{}) *BoolSliceCmd {
 	return &BoolSliceCmd{
 		baseCmd: baseCmd{_args: args},
@@ -590,6 +604,8 @@ type StringStringMapCmd struct {
 
 	val map[string]string
 }
+
+var _ Cmder = (*StringStringMapCmd)(nil)
 
 func NewStringStringMapCmd(args ...interface{}) *StringStringMapCmd {
 	return &StringStringMapCmd{
@@ -627,6 +643,8 @@ type StringIntMapCmd struct {
 	val map[string]int64
 }
 
+var _ Cmder = (*StringIntMapCmd)(nil)
+
 func NewStringIntMapCmd(args ...interface{}) *StringIntMapCmd {
 	return &StringIntMapCmd{
 		baseCmd: baseCmd{_args: args},
@@ -662,6 +680,8 @@ type ZSliceCmd struct {
 
 	val []Z
 }
+
+var _ Cmder = (*ZSliceCmd)(nil)
 
 func NewZSliceCmd(args ...interface{}) *ZSliceCmd {
 	return &ZSliceCmd{
@@ -701,6 +721,8 @@ type ScanCmd struct {
 
 	process func(cmd Cmder) error
 }
+
+var _ Cmder = (*ScanCmd)(nil)
 
 func NewScanCmd(process func(cmd Cmder) error, args ...interface{}) *ScanCmd {
 	return &ScanCmd{
@@ -751,6 +773,8 @@ type ClusterSlotsCmd struct {
 
 	val []ClusterSlot
 }
+
+var _ Cmder = (*ClusterSlotsCmd)(nil)
 
 func NewClusterSlotsCmd(args ...interface{}) *ClusterSlotsCmd {
 	return &ClusterSlotsCmd{
@@ -810,6 +834,8 @@ type GeoLocationCmd struct {
 	q         *GeoRadiusQuery
 	locations []GeoLocation
 }
+
+var _ Cmder = (*GeoLocationCmd)(nil)
 
 func NewGeoLocationCmd(q *GeoRadiusQuery, args ...interface{}) *GeoLocationCmd {
 	args = append(args, q.Radius)
@@ -881,6 +907,8 @@ type GeoPosCmd struct {
 	positions []*GeoPos
 }
 
+var _ Cmder = (*GeoPosCmd)(nil)
+
 func NewGeoPosCmd(args ...interface{}) *GeoPosCmd {
 	return &GeoPosCmd{
 		baseCmd: baseCmd{_args: args},
@@ -926,6 +954,8 @@ type CommandsInfoCmd struct {
 
 	val map[string]*CommandInfo
 }
+
+var _ Cmder = (*CommandsInfoCmd)(nil)
 
 func NewCommandsInfoCmd(args ...interface{}) *CommandsInfoCmd {
 	return &CommandsInfoCmd{

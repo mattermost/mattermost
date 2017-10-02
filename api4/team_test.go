@@ -20,7 +20,7 @@ import (
 
 func TestCreateTeam(t *testing.T) {
 	th := Setup().InitBasic()
-	defer TearDown()
+	defer th.TearDown()
 	Client := th.Client
 
 	team := &model.Team{Name: GenerateTestUsername(), DisplayName: "Some Team", Type: model.TEAM_OPEN}
@@ -84,7 +84,7 @@ func TestCreateTeam(t *testing.T) {
 
 func TestGetTeam(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
-	defer TearDown()
+	defer th.TearDown()
 	Client := th.Client
 	team := th.BasicTeam
 
@@ -131,7 +131,7 @@ func TestGetTeam(t *testing.T) {
 
 func TestGetTeamUnread(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
-	defer TearDown()
+	defer th.TearDown()
 	Client := th.Client
 
 	teamUnread, resp := Client.GetTeamUnread(th.BasicTeam.Id, th.BasicUser.Id)
@@ -165,7 +165,7 @@ func TestGetTeamUnread(t *testing.T) {
 
 func TestUpdateTeam(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
-	defer TearDown()
+	defer th.TearDown()
 	Client := th.Client
 
 	team := &model.Team{DisplayName: "Name", Description: "Some description", AllowOpenInvite: false, InviteId: "inviteid0", Name: "z-z-" + model.NewId() + "a", Email: "success+" + model.NewId() + "@simulator.amazonses.com", Type: model.TEAM_OPEN}
@@ -263,7 +263,7 @@ func TestUpdateTeam(t *testing.T) {
 
 func TestPatchTeam(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
-	defer TearDown()
+	defer th.TearDown()
 	Client := th.Client
 
 	team := &model.Team{DisplayName: "Name", Description: "Some description", CompanyName: "Some company name", AllowOpenInvite: false, InviteId: "inviteid0", Name: "z-z-" + model.NewId() + "a", Email: "success+" + model.NewId() + "@simulator.amazonses.com", Type: model.TEAM_OPEN}
@@ -332,7 +332,7 @@ func TestPatchTeam(t *testing.T) {
 
 func TestSoftDeleteTeam(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
-	defer TearDown()
+	defer th.TearDown()
 	Client := th.Client
 
 	team := &model.Team{DisplayName: "DisplayName", Name: GenerateTestTeamName(), Email: GenerateTestEmail(), Type: model.TEAM_OPEN}
@@ -374,7 +374,7 @@ func TestSoftDeleteTeam(t *testing.T) {
 
 func TestPermanentDeleteTeam(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
-	defer TearDown()
+	defer th.TearDown()
 	Client := th.Client
 
 	team := &model.Team{DisplayName: "DisplayName", Name: GenerateTestTeamName(), Email: GenerateTestEmail(), Type: model.TEAM_OPEN}
@@ -407,7 +407,7 @@ func TestPermanentDeleteTeam(t *testing.T) {
 
 func TestGetAllTeams(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
-	defer TearDown()
+	defer th.TearDown()
 	Client := th.Client
 
 	team := &model.Team{DisplayName: "Name", Name: GenerateTestTeamName(), Email: GenerateTestEmail(), Type: model.TEAM_OPEN, AllowOpenInvite: true}
@@ -465,7 +465,7 @@ func TestGetAllTeams(t *testing.T) {
 
 func TestGetTeamByName(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
-	defer TearDown()
+	defer th.TearDown()
 	Client := th.Client
 	team := th.BasicTeam
 
@@ -509,7 +509,7 @@ func TestGetTeamByName(t *testing.T) {
 
 func TestSearchAllTeams(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
-	defer TearDown()
+	defer th.TearDown()
 	Client := th.Client
 	oTeam := th.BasicTeam
 	oTeam.AllowOpenInvite = true
@@ -588,7 +588,7 @@ func TestSearchAllTeams(t *testing.T) {
 
 func TestGetTeamsForUser(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
-	defer TearDown()
+	defer th.TearDown()
 	Client := th.Client
 
 	team2 := &model.Team{DisplayName: "Name", Name: GenerateTestTeamName(), Email: GenerateTestEmail(), Type: model.TEAM_INVITE}
@@ -630,7 +630,7 @@ func TestGetTeamsForUser(t *testing.T) {
 
 func TestGetTeamMember(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
-	defer TearDown()
+	defer th.TearDown()
 	Client := th.Client
 	team := th.BasicTeam
 	user := th.BasicUser
@@ -667,7 +667,7 @@ func TestGetTeamMember(t *testing.T) {
 
 func TestGetTeamMembers(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
-	defer TearDown()
+	defer th.TearDown()
 	Client := th.Client
 	team := th.BasicTeam
 	userNotMember := th.CreateUser()
@@ -721,7 +721,7 @@ func TestGetTeamMembers(t *testing.T) {
 
 func TestGetTeamMembersForUser(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
-	defer TearDown()
+	defer th.TearDown()
 	Client := th.Client
 
 	members, resp := Client.GetTeamMembersForUser(th.BasicUser.Id, "")
@@ -759,7 +759,7 @@ func TestGetTeamMembersForUser(t *testing.T) {
 
 func TestGetTeamMembersByIds(t *testing.T) {
 	th := Setup().InitBasic()
-	defer TearDown()
+	defer th.TearDown()
 	Client := th.Client
 
 	tm, resp := Client.GetTeamMembersByIds(th.BasicTeam.Id, []string{th.BasicUser.Id})
@@ -797,7 +797,7 @@ func TestGetTeamMembersByIds(t *testing.T) {
 
 func TestAddTeamMember(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
-	defer TearDown()
+	defer th.TearDown()
 	Client := th.Client
 	team := th.BasicTeam
 	otherUser := th.CreateUser()
@@ -885,7 +885,7 @@ func TestAddTeamMember(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 
 	// Update user to team admin
-	UpdateUserToTeamAdmin(th.BasicUser, th.BasicTeam)
+	th.UpdateUserToTeamAdmin(th.BasicUser, th.BasicTeam)
 	th.App.InvalidateAllCaches()
 	*utils.Cfg.TeamSettings.RestrictTeamInvite = model.PERMISSIONS_TEAM_ADMIN
 	utils.SetIsLicensed(true)
@@ -911,7 +911,7 @@ func TestAddTeamMember(t *testing.T) {
 	CheckNoError(t, resp)
 
 	// Change permission level to All
-	UpdateUserToNonTeamAdmin(th.BasicUser, th.BasicTeam)
+	th.UpdateUserToNonTeamAdmin(th.BasicUser, th.BasicTeam)
 	th.App.InvalidateAllCaches()
 	*utils.Cfg.TeamSettings.RestrictTeamInvite = model.PERMISSIONS_ALL
 	utils.SetIsLicensed(true)
@@ -1010,7 +1010,7 @@ func TestAddTeamMember(t *testing.T) {
 
 func TestAddTeamMembers(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
-	defer TearDown()
+	defer th.TearDown()
 	Client := th.Client
 	team := th.BasicTeam
 	otherUser := th.CreateUser()
@@ -1099,7 +1099,7 @@ func TestAddTeamMembers(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 
 	// Update user to team admin
-	UpdateUserToTeamAdmin(th.BasicUser, th.BasicTeam)
+	th.UpdateUserToTeamAdmin(th.BasicUser, th.BasicTeam)
 	th.App.InvalidateAllCaches()
 	*utils.Cfg.TeamSettings.RestrictTeamInvite = model.PERMISSIONS_TEAM_ADMIN
 	utils.SetIsLicensed(true)
@@ -1125,7 +1125,7 @@ func TestAddTeamMembers(t *testing.T) {
 	CheckNoError(t, resp)
 
 	// Change permission level to All
-	UpdateUserToNonTeamAdmin(th.BasicUser, th.BasicTeam)
+	th.UpdateUserToNonTeamAdmin(th.BasicUser, th.BasicTeam)
 	th.App.InvalidateAllCaches()
 	*utils.Cfg.TeamSettings.RestrictTeamInvite = model.PERMISSIONS_ALL
 	utils.SetIsLicensed(true)
@@ -1141,7 +1141,7 @@ func TestAddTeamMembers(t *testing.T) {
 
 func TestRemoveTeamMember(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
-	defer TearDown()
+	defer th.TearDown()
 	Client := th.Client
 
 	pass, resp := Client.RemoveTeamMember(th.BasicTeam.Id, th.BasicUser.Id)
@@ -1172,7 +1172,7 @@ func TestRemoveTeamMember(t *testing.T) {
 
 func TestGetTeamStats(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
-	defer TearDown()
+	defer th.TearDown()
 	Client := th.Client
 	team := th.BasicTeam
 
@@ -1227,7 +1227,7 @@ func TestGetTeamStats(t *testing.T) {
 
 func TestUpdateTeamMemberRoles(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
-	defer TearDown()
+	defer th.TearDown()
 	Client := th.Client
 	SystemAdminClient := th.SystemAdminClient
 
@@ -1269,7 +1269,7 @@ func TestUpdateTeamMemberRoles(t *testing.T) {
 	CheckBadRequestStatus(t, resp)
 
 	// user 1 (team admin) demotes system admin (member of a team)
-	LinkUserToTeam(th.SystemAdminUser, th.BasicTeam)
+	th.LinkUserToTeam(th.SystemAdminUser, th.BasicTeam)
 	_, resp = Client.UpdateTeamMemberRoles(th.BasicTeam.Id, th.SystemAdminUser.Id, TEAM_MEMBER)
 	CheckNoError(t, resp)
 	// Note from API v3
@@ -1305,7 +1305,7 @@ func TestUpdateTeamMemberRoles(t *testing.T) {
 
 func TestGetMyTeamsUnread(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
-	defer TearDown()
+	defer th.TearDown()
 	Client := th.Client
 
 	user := th.BasicUser
@@ -1336,7 +1336,7 @@ func TestGetMyTeamsUnread(t *testing.T) {
 
 func TestTeamExists(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
-	defer TearDown()
+	defer th.TearDown()
 	Client := th.Client
 	team := th.BasicTeam
 
@@ -1361,7 +1361,7 @@ func TestTeamExists(t *testing.T) {
 
 func TestImportTeam(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
-	defer TearDown()
+	defer th.TearDown()
 
 	t.Run("ImportTeam", func(t *testing.T) {
 		var data []byte
@@ -1440,7 +1440,7 @@ func TestImportTeam(t *testing.T) {
 
 func TestInviteUsersToTeam(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
-	defer TearDown()
+	defer th.TearDown()
 
 	user1 := GenerateTestEmail()
 	user2 := GenerateTestEmail()
@@ -1505,7 +1505,7 @@ func TestInviteUsersToTeam(t *testing.T) {
 
 func TestGetTeamInviteInfo(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
-	defer TearDown()
+	defer th.TearDown()
 	Client := th.Client
 	team := th.BasicTeam
 

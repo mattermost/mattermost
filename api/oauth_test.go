@@ -19,6 +19,8 @@ import (
 
 func TestOAuthRegisterApp(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
+	defer th.TearDown()
+
 	Client := th.BasicClient
 
 	oauthApp := &model.OAuthApp{Name: "TestApp" + model.NewId(), Homepage: "https://nowhere.com", Description: "test", CallbackUrls: []string{"https://nowhere.com"}, IsTrusted: true}
@@ -108,6 +110,8 @@ func TestOAuthRegisterApp(t *testing.T) {
 
 func TestOAuthAllow(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
+	defer th.TearDown()
+
 	Client := th.BasicClient
 	AdminClient := th.SystemAdminClient
 
@@ -193,6 +197,8 @@ func TestOAuthAllow(t *testing.T) {
 
 func TestOAuthGetAppsByUser(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
+	defer th.TearDown()
+
 	Client := th.BasicClient
 	AdminClient := th.SystemAdminClient
 
@@ -263,6 +269,8 @@ func TestOAuthGetAppsByUser(t *testing.T) {
 
 func TestOAuthGetAppInfo(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
+	defer th.TearDown()
+
 	Client := th.BasicClient
 	AdminClient := th.SystemAdminClient
 
@@ -291,6 +299,8 @@ func TestOAuthGetAppInfo(t *testing.T) {
 
 func TestOAuthGetAuthorizedApps(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
+	defer th.TearDown()
+
 	Client := th.BasicClient
 	AdminClient := th.SystemAdminClient
 
@@ -324,6 +334,8 @@ func TestOAuthGetAuthorizedApps(t *testing.T) {
 
 func TestOAuthDeauthorizeApp(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
+	defer th.TearDown()
+
 	Client := th.BasicClient
 	AdminClient := th.SystemAdminClient
 
@@ -375,6 +387,8 @@ func TestOAuthDeauthorizeApp(t *testing.T) {
 
 func TestOAuthRegenerateAppSecret(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
+	defer th.TearDown()
+
 	Client := th.BasicClient
 	AdminClient := th.SystemAdminClient
 
@@ -416,6 +430,8 @@ func TestOAuthRegenerateAppSecret(t *testing.T) {
 
 func TestOAuthDeleteApp(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
+	defer th.TearDown()
+
 	Client := th.BasicClient
 	AdminClient := th.SystemAdminClient
 
@@ -547,6 +563,8 @@ func TestOAuthAccessToken(t *testing.T) {
 	}
 
 	th := Setup().InitBasic()
+	defer th.TearDown()
+
 	Client := th.BasicClient
 
 	enableOAuth := utils.Cfg.ServiceSettings.EnableOAuthServiceProvider
@@ -764,6 +782,8 @@ func TestOAuthComplete(t *testing.T) {
 	}
 
 	th := Setup().InitBasic()
+	defer th.TearDown()
+
 	Client := th.BasicClient
 
 	if r, err := HttpGet(Client.Url+"/login/gitlab/complete", Client.HttpClient, "", true); err == nil {
@@ -805,6 +825,14 @@ func TestOAuthComplete(t *testing.T) {
 
 	// We are going to use mattermost as the provider emulating gitlab
 	utils.Cfg.ServiceSettings.EnableOAuthServiceProvider = true
+
+	adminOnly := *utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations
+	defer func() {
+		*utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations = adminOnly
+		utils.SetDefaultRolesBasedOnConfig()
+	}()
+	*utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations = false
+	utils.SetDefaultRolesBasedOnConfig()
 
 	oauthApp := &model.OAuthApp{
 		Name:        "TestApp5" + model.NewId(),

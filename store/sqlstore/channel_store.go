@@ -1284,52 +1284,82 @@ func (s SqlChannelStore) UpdateLastViewedAt(channelIds []string, userId string) 
 	go func() {
 		result := store.StoreResult{}
 
-		var query string
 		props := make(map[string]interface{})
 
-		idQuery := ""
+		updateIdQuery := ""
 		for index, channelId := range channelIds {
-			if len(idQuery) > 0 {
-				idQuery += " OR "
+			if len(updateIdQuery) > 0 {
+				updateIdQuery += " OR "
 			}
 
 			props["channelId"+strconv.Itoa(index)] = channelId
-			idQuery += "ChannelId = :channelId" + strconv.Itoa(index)
+			updateIdQuery += "ChannelId = :channelId" + strconv.Itoa(index)
 		}
 
+		selectIdQuery := strings.Replace(updateIdQuery, "ChannelId", "Id", -1)
+
+		var lastPostAtTimes []struct {
+			Id            string
+			LastPostAt    int64
+			TotalMsgCount int64
+		}
+
+		selectQuery := "SELECT Id, LastPostAt, TotalMsgCount FROM Channels WHERE (" + selectIdQuery + ")"
+
+		if _, err := s.GetMaster().Select(&lastPostAtTimes, selectQuery, props); err != nil {
+			result.Err = model.NewAppError("SqlChannelStore.UpdateLastViewedAt", "store.sql_channel.update_last_viewed_at.app_error", nil, "channel_ids="+strings.Join(channelIds, ",")+", user_id="+userId+", "+err.Error(), http.StatusInternalServerError)
+			storeChannel <- result
+			close(storeChannel)
+			return
+		}
+
+		times := map[string]int64{}
+		msgCountQuery := ""
+		lastViewedQuery := ""
+		for index, t := range lastPostAtTimes {
+			times[t.Id] = t.LastPostAt
+
+			props["msgCount"+strconv.Itoa(index)] = t.TotalMsgCount
+			msgCountQuery += fmt.Sprintf("WHEN :channelId%d THEN GREATEST(MsgCount, :msgCount%d) ", index, index)
+
+			props["lastViewed"+strconv.Itoa(index)] = t.LastPostAt
+			lastViewedQuery += fmt.Sprintf("WHEN :channelId%d THEN GREATEST(LastViewedAt, :lastViewed%d) ", index, index)
+
+			props["channelId"+strconv.Itoa(index)] = t.Id
+		}
+
+		var updateQuery string
+
 		if *utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_POSTGRES {
-			query = `UPDATE
+			updateQuery = `UPDATE
 				ChannelMembers
 			SET
 			    MentionCount = 0,
-			    MsgCount = Channels.TotalMsgCount,
-			    LastViewedAt = Channels.LastPostAt,
-			    LastUpdateAt = Channels.LastPostAt
-			FROM
-				Channels
+			    MsgCount = CAST(CASE ChannelId ` + msgCountQuery + ` END AS BIGINT),
+			    LastViewedAt = CAST(CASE ChannelId ` + lastViewedQuery + ` END AS BIGINT),
+			    LastUpdateAt = CAST(CASE ChannelId ` + lastViewedQuery + ` END AS BIGINT)
 			WHERE
-			    Channels.Id = ChannelMembers.ChannelId
-			        AND UserId = :UserId
-			        AND (` + idQuery + `)`
+			        UserId = :UserId
+			        AND (` + updateIdQuery + `)`
 		} else if *utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_MYSQL {
-			query = `UPDATE
-				ChannelMembers, Channels
+			updateQuery = `UPDATE
+				ChannelMembers
 			SET
-			    ChannelMembers.MentionCount = 0,
-			    ChannelMembers.MsgCount = Channels.TotalMsgCount,
-			    ChannelMembers.LastViewedAt = Channels.LastPostAt,
-			    ChannelMembers.LastUpdateAt = Channels.LastPostAt
+			    MentionCount = 0,
+			    MsgCount = CASE ChannelId ` + msgCountQuery + ` END,
+			    LastViewedAt = CASE ChannelId ` + lastViewedQuery + ` END,
+			    LastUpdateAt = CASE ChannelId ` + lastViewedQuery + ` END
 			WHERE
-			    Channels.Id = ChannelMembers.ChannelId
-			        AND UserId = :UserId
-			        AND (` + idQuery + `)`
+			        UserId = :UserId
+			        AND (` + updateIdQuery + `)`
 		}
 
 		props["UserId"] = userId
 
-		_, err := s.GetMaster().Exec(query, props)
-		if err != nil {
+		if _, err := s.GetMaster().Exec(updateQuery, props); err != nil {
 			result.Err = model.NewAppError("SqlChannelStore.UpdateLastViewedAt", "store.sql_channel.update_last_viewed_at.app_error", nil, "channel_ids="+strings.Join(channelIds, ",")+", user_id="+userId+", "+err.Error(), http.StatusInternalServerError)
+		} else {
+			result.Data = times
 		}
 
 		storeChannel <- result

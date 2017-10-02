@@ -461,11 +461,6 @@ func IoctlGetTermios(fd int, req uint) (*Termios, error) {
 //sys	Mkdirat(dirfd int, path string, mode uint32) (err error)
 //sys	Mkfifo(path string, mode uint32) (err error)
 //sys	Mknod(path string, mode uint32, dev int) (err error)
-//sys	Mlock(b []byte) (err error)
-//sys	Mlockall(flags int) (err error)
-//sys	Mprotect(b []byte, prot int) (err error)
-//sys	Munlock(b []byte) (err error)
-//sys	Munlockall() (err error)
 //sys	Nanosleep(time *Timespec, leftover *Timespec) (err error)
 //sys	Open(path string, mode int, perm uint32) (fd int, err error)
 //sys	Openat(fdat int, path string, mode int, perm uint32) (fd int, err error)
@@ -546,9 +541,6 @@ func IoctlGetTermios(fd int, req uint) (*Termios, error) {
 // Add_profil
 // Kdebug_trace
 // Sigreturn
-// Mmap
-// Mlock
-// Munlock
 // Atsocket
 // Kqueue_from_portset_np
 // Kqueue_portset
@@ -641,8 +633,6 @@ func IoctlGetTermios(fd int, req uint) (*Termios, error) {
 // Lio_listio
 // __pthread_cond_wait
 // Iopolicysys
-// Mlockall
-// Munlockall
 // __pthread_kill
 // __pthread_sigmask
 // __sigwait
@@ -695,7 +685,6 @@ func IoctlGetTermios(fd int, req uint) (*Termios, error) {
 // Sendmsg_nocancel
 // Recvfrom_nocancel
 // Accept_nocancel
-// Msync_nocancel
 // Fcntl_nocancel
 // Select_nocancel
 // Fsync_nocancel

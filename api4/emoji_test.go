@@ -15,7 +15,7 @@ import (
 
 func TestCreateEmoji(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
-	defer TearDown()
+	defer th.TearDown()
 	Client := th.Client
 
 	EnableCustomEmoji := *utils.Cfg.ServiceSettings.EnableCustomEmoji
@@ -143,7 +143,7 @@ func TestCreateEmoji(t *testing.T) {
 
 func TestGetEmojiList(t *testing.T) {
 	th := Setup().InitBasic()
-	defer TearDown()
+	defer th.TearDown()
 	Client := th.Client
 
 	EnableCustomEmoji := *utils.Cfg.ServiceSettings.EnableCustomEmoji
@@ -213,7 +213,7 @@ func TestGetEmojiList(t *testing.T) {
 
 func TestDeleteEmoji(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
-	defer TearDown()
+	defer th.TearDown()
 	Client := th.Client
 
 	EnableCustomEmoji := *utils.Cfg.ServiceSettings.EnableCustomEmoji
@@ -280,7 +280,7 @@ func TestDeleteEmoji(t *testing.T) {
 
 func TestGetEmoji(t *testing.T) {
 	th := Setup().InitBasic()
-	defer TearDown()
+	defer th.TearDown()
 	Client := th.Client
 
 	EnableCustomEmoji := *utils.Cfg.ServiceSettings.EnableCustomEmoji
@@ -309,7 +309,7 @@ func TestGetEmoji(t *testing.T) {
 
 func TestGetEmojiImage(t *testing.T) {
 	th := Setup().InitBasic()
-	defer TearDown()
+	defer th.TearDown()
 	Client := th.Client
 
 	EnableCustomEmoji := *utils.Cfg.ServiceSettings.EnableCustomEmoji

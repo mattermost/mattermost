@@ -13,7 +13,7 @@ import (
 
 func TestCreateCommand(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
-	defer TearDown()
+	defer th.TearDown()
 	Client := th.Client
 
 	enableCommands := *utils.Cfg.ServiceSettings.EnableCommands
@@ -62,7 +62,7 @@ func TestCreateCommand(t *testing.T) {
 
 func TestUpdateCommand(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
-	defer TearDown()
+	defer th.TearDown()
 	Client := th.SystemAdminClient
 	user := th.SystemAdminUser
 	team := th.BasicTeam
@@ -148,7 +148,7 @@ func TestUpdateCommand(t *testing.T) {
 
 func TestDeleteCommand(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
-	defer TearDown()
+	defer th.TearDown()
 	Client := th.SystemAdminClient
 	user := th.SystemAdminUser
 	team := th.BasicTeam
@@ -211,7 +211,7 @@ func TestDeleteCommand(t *testing.T) {
 
 func TestListCommands(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
-	defer TearDown()
+	defer th.TearDown()
 	Client := th.Client
 
 	newCmd := &model.Command{
@@ -288,7 +288,7 @@ func TestListCommands(t *testing.T) {
 
 func TestListAutocompleteCommands(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
-	defer TearDown()
+	defer th.TearDown()
 	Client := th.Client
 
 	newCmd := &model.Command{
@@ -348,7 +348,7 @@ func TestListAutocompleteCommands(t *testing.T) {
 
 func TestRegenToken(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
-	defer TearDown()
+	defer th.TearDown()
 	Client := th.Client
 
 	enableCommands := *utils.Cfg.ServiceSettings.EnableCommands
@@ -383,7 +383,7 @@ func TestRegenToken(t *testing.T) {
 
 func TestExecuteCommand(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
-	defer TearDown()
+	defer th.TearDown()
 	Client := th.Client
 	channel := th.BasicChannel
 

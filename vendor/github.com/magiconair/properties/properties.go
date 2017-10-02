@@ -511,6 +511,9 @@ func (p *Properties) Set(key, value string) (prev string, ok bool, err error) {
 	if p.DisableExpansion {
 		prev, ok = p.Get(key)
 		p.m[key] = value
+		if !ok {
+			p.k = append(p.k, key)
+		}
 		return prev, ok, nil
 	}
 

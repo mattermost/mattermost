@@ -14,6 +14,8 @@ import (
 
 func TestListCommands(t *testing.T) {
 	th := Setup().InitBasic()
+	defer th.TearDown()
+
 	Client := th.BasicClient
 
 	if results, err := Client.ListCommands(); err != nil {
@@ -36,6 +38,8 @@ func TestListCommands(t *testing.T) {
 
 func TestCreateCommand(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
+	defer th.TearDown()
+
 	Client := th.BasicClient
 	user := th.SystemAdminUser
 	team := th.SystemAdminTeam
@@ -99,6 +103,8 @@ func TestCreateCommand(t *testing.T) {
 
 func TestListTeamCommands(t *testing.T) {
 	th := Setup().InitSystemAdmin()
+	defer th.TearDown()
+
 	Client := th.SystemAdminClient
 
 	enableCommands := *utils.Cfg.ServiceSettings.EnableCommands
@@ -123,6 +129,8 @@ func TestListTeamCommands(t *testing.T) {
 
 func TestUpdateCommand(t *testing.T) {
 	th := Setup().InitSystemAdmin()
+	defer th.TearDown()
+
 	Client := th.SystemAdminClient
 	user := th.SystemAdminUser
 	team := th.SystemAdminTeam
@@ -162,6 +170,8 @@ func TestUpdateCommand(t *testing.T) {
 
 func TestRegenToken(t *testing.T) {
 	th := Setup().InitSystemAdmin()
+	defer th.TearDown()
+
 	Client := th.SystemAdminClient
 
 	enableCommands := *utils.Cfg.ServiceSettings.EnableCommands
@@ -187,6 +197,8 @@ func TestRegenToken(t *testing.T) {
 
 func TestDeleteCommand(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
+	defer th.TearDown()
+
 	Client := th.SystemAdminClient
 
 	enableCommands := *utils.Cfg.ServiceSettings.EnableCommands
@@ -230,6 +242,8 @@ func TestDeleteCommand(t *testing.T) {
 
 func TestTestCommand(t *testing.T) {
 	th := Setup().InitSystemAdmin()
+	defer th.TearDown()
+
 	Client := th.SystemAdminClient
 	channel1 := th.SystemAdminChannel
 

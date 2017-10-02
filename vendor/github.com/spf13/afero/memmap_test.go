@@ -1,6 +1,7 @@
 package afero
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -342,4 +343,44 @@ func TestRacingDeleteAndClose(t *testing.T) {
 		fs.Remove(pathname)
 	}()
 	close(in)
+}
+
+// This test should be run with the race detector on:
+// go test -run TestMemFsDataRace -race
+func TestMemFsDataRace(t *testing.T) {
+	const dir = "test_dir"
+	fs := NewMemMapFs()
+
+	if err := fs.MkdirAll(dir, 0777); err != nil {
+		t.Fatal(err)
+	}
+
+	const n = 1000
+	done := make(chan struct{})
+
+	go func() {
+		defer close(done)
+		for i := 0; i < n; i++ {
+			fname := filepath.Join(dir, fmt.Sprintf("%d.txt", i))
+			if err := WriteFile(fs, fname, []byte(""), 0777); err != nil {
+				panic(err)
+			}
+			if err := fs.Remove(fname); err != nil {
+				panic(err)
+			}
+		}
+	}()
+
+loop:
+	for {
+		select {
+		case <-done:
+			break loop
+		default:
+			_, err := ReadDir(fs, dir)
+			if err != nil {
+				t.Fatal(err)
+			}
+		}
+	}
 }

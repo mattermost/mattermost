@@ -178,7 +178,7 @@ func TestSearchSourceHighlight(t *testing.T) {
 
 func TestSearchSourceRescoring(t *testing.T) {
 	matchAllQ := NewMatchAllQuery()
-	rescorerQuery := NewMatchQuery("field1", "the quick brown fox").Type("phrase").Slop(2)
+	rescorerQuery := NewMatchPhraseQuery("field1", "the quick brown fox").Slop(2)
 	rescorer := NewQueryRescorer(rescorerQuery)
 	rescorer = rescorer.QueryWeight(0.7)
 	rescorer = rescorer.RescoreQueryWeight(1.2)
@@ -193,7 +193,7 @@ func TestSearchSourceRescoring(t *testing.T) {
 		t.Fatalf("marshaling to JSON failed: %v", err)
 	}
 	got := string(data)
-	expected := `{"query":{"match_all":{}},"rescore":{"query":{"query_weight":0.7,"rescore_query":{"match":{"field1":{"query":"the quick brown fox","slop":2,"type":"phrase"}}},"rescore_query_weight":1.2},"window_size":50}}`
+	expected := `{"query":{"match_all":{}},"rescore":{"query":{"query_weight":0.7,"rescore_query":{"match_phrase":{"field1":{"query":"the quick brown fox","slop":2}}},"rescore_query_weight":1.2},"window_size":50}}`
 	if got != expected {
 		t.Errorf("expected\n%s\n,got:\n%s", expected, got)
 	}

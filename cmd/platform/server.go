@@ -64,7 +64,9 @@ func runServer(configFileLocation string) {
 		l4g.Error("Problem with file storage settings: " + err.Error())
 	}
 
-	a := app.Global()
+	a := app.New()
+	defer a.Shutdown()
+
 	a.NewServer()
 	a.InitStores()
 	a.Srv.Router = api.NewRouter()
@@ -161,8 +163,6 @@ func runServer(configFileLocation string) {
 
 	a.Jobs.StopSchedulers()
 	a.Jobs.StopWorkers()
-
-	a.StopServer()
 }
 
 func runSecurityJob(a *app.App) {

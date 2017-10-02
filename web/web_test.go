@@ -18,7 +18,7 @@ var ApiClient *model.Client
 var URL string
 
 func Setup() *app.App {
-	a := app.Global()
+	a := app.New()
 	if a.Srv == nil {
 		utils.TranslationsPreInit()
 		utils.LoadConfig("config.json")
@@ -41,9 +41,7 @@ func Setup() *app.App {
 }
 
 func TearDown(a *app.App) {
-	if a.Srv != nil {
-		a.StopServer()
-	}
+	a.Shutdown()
 }
 
 /* Test disabled for now so we don't requrie the client to build. Maybe re-enable after client gets moved out.

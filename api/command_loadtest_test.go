@@ -14,6 +14,8 @@ import (
 
 func TestLoadTestHelpCommands(t *testing.T) {
 	th := Setup().InitBasic()
+	defer th.TearDown()
+
 	Client := th.BasicClient
 	channel := th.BasicChannel
 
@@ -35,6 +37,8 @@ func TestLoadTestHelpCommands(t *testing.T) {
 
 func TestLoadTestSetupCommands(t *testing.T) {
 	th := Setup().InitBasic()
+	defer th.TearDown()
+
 	Client := th.BasicClient
 	channel := th.BasicChannel
 
@@ -56,6 +60,8 @@ func TestLoadTestSetupCommands(t *testing.T) {
 
 func TestLoadTestUsersCommands(t *testing.T) {
 	th := Setup().InitBasic()
+	defer th.TearDown()
+
 	Client := th.BasicClient
 	channel := th.BasicChannel
 
@@ -77,6 +83,8 @@ func TestLoadTestUsersCommands(t *testing.T) {
 
 func TestLoadTestChannelsCommands(t *testing.T) {
 	th := Setup().InitBasic()
+	defer th.TearDown()
+
 	Client := th.BasicClient
 	channel := th.BasicChannel
 
@@ -98,6 +106,8 @@ func TestLoadTestChannelsCommands(t *testing.T) {
 
 func TestLoadTestPostsCommands(t *testing.T) {
 	th := Setup().InitBasic()
+	defer th.TearDown()
+
 	Client := th.BasicClient
 	channel := th.BasicChannel
 

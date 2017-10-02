@@ -80,6 +80,9 @@ func IsVirtualHostSupported(endpointURL url.URL, bucketName string) bool {
 	return IsAmazonEndpoint(endpointURL) || IsGoogleEndpoint(endpointURL)
 }
 
+// AmazonS3Host - regular expression used to determine if an arg is s3 host.
+var AmazonS3Host = regexp.MustCompile("^s3[.-]?(.*?)\\.amazonaws\\.com$")
+
 // IsAmazonEndpoint - Match if it is exactly Amazon S3 endpoint.
 func IsAmazonEndpoint(endpointURL url.URL) bool {
 	if IsAmazonChinaEndpoint(endpointURL) {
@@ -88,7 +91,7 @@ func IsAmazonEndpoint(endpointURL url.URL) bool {
 	if IsAmazonGovCloudEndpoint(endpointURL) {
 		return true
 	}
-	return endpointURL.Host == "s3.amazonaws.com"
+	return AmazonS3Host.MatchString(endpointURL.Host)
 }
 
 // IsAmazonGovCloudEndpoint - Match if it is exactly Amazon S3 GovCloud endpoint.

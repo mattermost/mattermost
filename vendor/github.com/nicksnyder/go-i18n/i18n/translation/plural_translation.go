@@ -50,7 +50,7 @@ func (pt *pluralTranslation) Normalize(l *language.Language) Translation {
 
 func (pt *pluralTranslation) Backfill(src Translation) Translation {
 	for pc, t := range pt.templates {
-		if t == nil || t.src == "" {
+		if (t == nil || t.src == "") && src != nil {
 			pt.templates[pc] = src.Template(language.Other)
 		}
 	}

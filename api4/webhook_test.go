@@ -16,7 +16,7 @@ import (
 
 func TestCreateIncomingWebhook(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
-	defer TearDown()
+	defer th.TearDown()
 	Client := th.Client
 
 	enableIncomingHooks := utils.Cfg.ServiceSettings.EnableIncomingWebhooks
@@ -73,7 +73,7 @@ func TestCreateIncomingWebhook(t *testing.T) {
 
 func TestGetIncomingWebhooks(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
-	defer TearDown()
+	defer th.TearDown()
 	Client := th.Client
 
 	enableIncomingHooks := utils.Cfg.ServiceSettings.EnableIncomingWebhooks
@@ -155,7 +155,7 @@ func TestGetIncomingWebhooks(t *testing.T) {
 
 func TestGetIncomingWebhook(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
-	defer TearDown()
+	defer th.TearDown()
 	Client := th.SystemAdminClient
 
 	enableIncomingHooks := utils.Cfg.ServiceSettings.EnableIncomingWebhooks
@@ -203,7 +203,7 @@ func TestGetIncomingWebhook(t *testing.T) {
 
 func TestDeleteIncomingWebhook(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
-	defer TearDown()
+	defer th.TearDown()
 	Client := th.SystemAdminClient
 
 	enableIncomingHooks := utils.Cfg.ServiceSettings.EnableIncomingWebhooks
@@ -263,7 +263,7 @@ func TestDeleteIncomingWebhook(t *testing.T) {
 
 func TestCreateOutgoingWebhook(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
-	defer TearDown()
+	defer th.TearDown()
 	Client := th.Client
 
 	enableOutgoingHooks := utils.Cfg.ServiceSettings.EnableOutgoingWebhooks
@@ -316,7 +316,7 @@ func TestCreateOutgoingWebhook(t *testing.T) {
 
 func TestGetOutgoingWebhooks(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
-	defer TearDown()
+	defer th.TearDown()
 	Client := th.Client
 
 	enableOutgoingHooks := utils.Cfg.ServiceSettings.EnableOutgoingWebhooks
@@ -425,7 +425,7 @@ func TestGetOutgoingWebhooks(t *testing.T) {
 
 func TestGetOutgoingWebhook(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
-	defer TearDown()
+	defer th.TearDown()
 	Client := th.Client
 
 	enableOutgoingHooks := utils.Cfg.ServiceSettings.EnableOutgoingWebhooks
@@ -464,7 +464,7 @@ func TestGetOutgoingWebhook(t *testing.T) {
 
 func TestUpdateIncomingHook(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
-	defer TearDown()
+	defer th.TearDown()
 	Client := th.Client
 
 	enableIncomingHooks := utils.Cfg.ServiceSettings.EnableIncomingWebhooks
@@ -585,7 +585,7 @@ func TestUpdateIncomingHook(t *testing.T) {
 	utils.SetDefaultRolesBasedOnConfig()
 
 	Client.Logout()
-	UpdateUserToTeamAdmin(th.BasicUser2, th.BasicTeam)
+	th.UpdateUserToTeamAdmin(th.BasicUser2, th.BasicTeam)
 	th.LoginBasic2()
 	t.Run("UpdateByDifferentUser", func(t *testing.T) {
 		updatedHook, resp := Client.UpdateIncomingWebhook(createdHook)
@@ -622,7 +622,7 @@ func TestUpdateIncomingHook(t *testing.T) {
 
 	team := th.CreateTeamWithClient(Client)
 	user := th.CreateUserWithClient(Client)
-	LinkUserToTeam(user, team)
+	th.LinkUserToTeam(user, team)
 	Client.Logout()
 	Client.Login(user.Id, user.Password)
 	t.Run("UpdateToADifferentTeam", func(t *testing.T) {
@@ -633,7 +633,7 @@ func TestUpdateIncomingHook(t *testing.T) {
 
 func TestRegenOutgoingHookToken(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
-	defer TearDown()
+	defer th.TearDown()
 	Client := th.Client
 
 	enableOutgoingHooks := utils.Cfg.ServiceSettings.EnableOutgoingWebhooks
@@ -674,7 +674,7 @@ func TestRegenOutgoingHookToken(t *testing.T) {
 
 func TestUpdateOutgoingHook(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
-	defer TearDown()
+	defer th.TearDown()
 	Client := th.Client
 
 	enableOutgoingHooks := utils.Cfg.ServiceSettings.EnableOutgoingWebhooks
@@ -774,7 +774,7 @@ func TestUpdateOutgoingHook(t *testing.T) {
 	utils.SetDefaultRolesBasedOnConfig()
 
 	Client.Logout()
-	UpdateUserToTeamAdmin(th.BasicUser2, th.BasicTeam)
+	th.UpdateUserToTeamAdmin(th.BasicUser2, th.BasicTeam)
 	th.LoginBasic2()
 	t.Run("RetainHookCreator", func(t *testing.T) {
 		createdHook.DisplayName = "Basic user 2"
@@ -830,7 +830,7 @@ func TestUpdateOutgoingHook(t *testing.T) {
 
 	team := th.CreateTeamWithClient(Client)
 	user := th.CreateUserWithClient(Client)
-	LinkUserToTeam(user, team)
+	th.LinkUserToTeam(user, team)
 	Client.Logout()
 	Client.Login(user.Id, user.Password)
 	t.Run("UpdateToADifferentTeam", func(t *testing.T) {
@@ -841,7 +841,7 @@ func TestUpdateOutgoingHook(t *testing.T) {
 
 func TestDeleteOutgoingHook(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
-	defer TearDown()
+	defer th.TearDown()
 	Client := th.SystemAdminClient
 
 	enableIncomingHooks := utils.Cfg.ServiceSettings.EnableIncomingWebhooks
@@ -903,6 +903,8 @@ func TestDeleteOutgoingHook(t *testing.T) {
 
 func TestCommandWebhooks(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
+	defer th.TearDown()
+
 	Client := th.SystemAdminClient
 
 	cmd := &model.Command{

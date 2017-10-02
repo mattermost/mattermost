@@ -24,10 +24,10 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"runtime/debug"
 	"sort"
 	"strconv"
 	"strings"
-	"sync"
 
 	"github.com/minio/minio-go/pkg/s3utils"
 )
@@ -51,16 +51,6 @@ func (c Client) putObjectMultipart(bucketName, objectName string, reader io.Read
 	return n, err
 }
 
-// Pool to manage re-usable memory for upload objects
-// with streams with unknown size.
-var bufPool = sync.Pool{
-	New: func() interface{} {
-		_, partSize, _, _ := optimalPartInfo(-1)
-		b := make([]byte, partSize)
-		return &b
-	},
-}
-
 func (c Client) putObjectMultipartNoStream(bucketName, objectName string, reader io.Reader, metadata map[string][]string, progress io.Reader) (n int64, err error) {
 	// Input validation.
 	if err = s3utils.CheckValidBucketName(bucketName); err != nil {
@@ -78,7 +68,7 @@ func (c Client) putObjectMultipartNoStream(bucketName, objectName string, reader
 	var complMultipartUpload completeMultipartUpload
 
 	// Calculate the optimal parts info for a given size.
-	totalPartsCount, _, _, err := optimalPartInfo(-1)
+	totalPartsCount, partSize, _, err := optimalPartInfo(-1)
 	if err != nil {
 		return 0, err
 	}
@@ -101,38 +91,39 @@ func (c Client) putObjectMultipartNoStream(bucketName, objectName string, reader
 	// Initialize parts uploaded map.
 	partsInfo := make(map[int]ObjectPart)
 
+	// Create a buffer.
+	buf := make([]byte, partSize)
+	defer debug.FreeOSMemory()
+
 	for partNumber <= totalPartsCount {
 		// Choose hash algorithms to be calculated by hashCopyN,
 		// avoid sha256 with non-v4 signature request or
 		// HTTPS connection.
 		hashAlgos, hashSums := c.hashMaterials()
 
-		bufp := bufPool.Get().(*[]byte)
-		length, rErr := io.ReadFull(reader, *bufp)
+		length, rErr := io.ReadFull(reader, buf)
 		if rErr == io.EOF {
 			break
 		}
 		if rErr != nil && rErr != io.ErrUnexpectedEOF {
-			bufPool.Put(bufp)
 			return 0, rErr
 		}
 
 		// Calculates hash sums while copying partSize bytes into cw.
 		for k, v := range hashAlgos {
-			v.Write((*bufp)[:length])
+			v.Write(buf[:length])
 			hashSums[k] = v.Sum(nil)
 		}
 
 		// Update progress reader appropriately to the latest offset
 		// as we read from the source.
-		rd := newHook(bytes.NewReader((*bufp)[:length]), progress)
+		rd := newHook(bytes.NewReader(buf[:length]), progress)
 
 		// Proceed to upload the part.
 		var objPart ObjectPart
 		objPart, err = c.uploadPart(bucketName, objectName, uploadID, rd, partNumber,
 			hashSums["md5"], hashSums["sha256"], int64(length), metadata)
 		if err != nil {
-			bufPool.Put(bufp)
 			return totalUploadedSize, err
 		}
 
@@ -144,9 +135,6 @@ func (c Client) putObjectMultipartNoStream(bucketName, objectName string, reader
 
 		// Increment part number.
 		partNumber++
-
-		// Put back data into bufpool.
-		bufPool.Put(bufp)
 
 		// For unknown size, Read EOF we break away.
 		// We do not have to upload till totalPartsCount.

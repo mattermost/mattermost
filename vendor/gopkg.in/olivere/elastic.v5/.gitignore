@@ -21,6 +21,7 @@ _testmain.go
 
 *.exe
 
+/.vscode/
 /generator
 /cluster-test/cluster-test
 /cluster-test/*.log

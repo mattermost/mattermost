@@ -6,6 +6,7 @@
 Supports:
 
 - Redis 3 commands except QUIT, MONITOR, SLOWLOG and SYNC.
+- Automatic connection pooling with [circuit breaker](https://en.wikipedia.org/wiki/Circuit_breaker_design_pattern) support.
 - [Pub/Sub](https://godoc.org/github.com/go-redis/redis#PubSub).
 - [Transactions](https://godoc.org/github.com/go-redis/redis#Multi).
 - [Pipeline](https://godoc.org/github.com/go-redis/redis#example-Client-Pipeline) and [TxPipeline](https://godoc.org/github.com/go-redis/redis#example-Client-TxPipeline).
@@ -16,7 +17,7 @@ Supports:
 - [Ring](https://godoc.org/github.com/go-redis/redis#NewRing).
 - [Instrumentation](https://godoc.org/github.com/go-redis/redis#ex-package--Instrumentation).
 - [Cache friendly](https://github.com/go-redis/cache).
-- [Rate limiting](https://github.com/go-redis/rate).
+- [Rate limiting](https://github.com/go-redis/redis_rate).
 - [Distributed Locks](https://github.com/bsm/redis-lock).
 
 API docs: https://godoc.org/github.com/go-redis/redis.

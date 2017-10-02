@@ -29,7 +29,7 @@ func initDBCommandContext(configFileLocation string) (*app.App, error) {
 
 	utils.ConfigureCmdLineLog()
 
-	a := app.Global()
+	a := app.New()
 	a.NewServer()
 	a.InitStores()
 	if model.BuildEnterpriseReady == "true" {

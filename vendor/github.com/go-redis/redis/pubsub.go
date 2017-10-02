@@ -95,7 +95,10 @@ func (c *PubSub) releaseConn(cn *pool.Conn, err error) {
 }
 
 func (c *PubSub) _releaseConn(cn *pool.Conn, err error) {
-	if internal.IsBadConn(err, true) && c.cn == cn {
+	if c.cn != cn {
+		return
+	}
+	if internal.IsBadConn(err, true) {
 		_ = c.closeTheCn()
 	}
 }

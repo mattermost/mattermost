@@ -18,7 +18,7 @@ import (
 
 func TestCreateUser(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
-	defer TearDown()
+	defer th.TearDown()
 	Client := th.Client
 	AdminClient := th.SystemAdminClient
 
@@ -88,7 +88,7 @@ func TestCreateUser(t *testing.T) {
 
 func TestCreateUserWithHash(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
-	defer TearDown()
+	defer th.TearDown()
 	Client := th.Client
 
 	t.Run("CreateWithHashHappyPath", func(t *testing.T) {
@@ -231,7 +231,7 @@ func TestCreateUserWithHash(t *testing.T) {
 
 func TestCreateUserWithInviteId(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
-	defer TearDown()
+	defer th.TearDown()
 	Client := th.Client
 	AdminClient := th.SystemAdminClient
 
@@ -333,7 +333,7 @@ func TestCreateUserWithInviteId(t *testing.T) {
 
 func TestGetMe(t *testing.T) {
 	th := Setup().InitBasic()
-	defer TearDown()
+	defer th.TearDown()
 	Client := th.Client
 
 	ruser, resp := Client.GetMe("")
@@ -350,7 +350,7 @@ func TestGetMe(t *testing.T) {
 
 func TestGetUser(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
-	defer TearDown()
+	defer th.TearDown()
 	Client := th.Client
 
 	user := th.CreateUser()
@@ -414,7 +414,7 @@ func TestGetUser(t *testing.T) {
 
 func TestGetUserByUsername(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
-	defer TearDown()
+	defer th.TearDown()
 	Client := th.Client
 
 	user := th.BasicUser
@@ -475,7 +475,7 @@ func TestGetUserByUsername(t *testing.T) {
 
 func TestGetUserByEmail(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
-	defer TearDown()
+	defer th.TearDown()
 	Client := th.Client
 
 	user := th.CreateUser()
@@ -539,7 +539,7 @@ func TestGetUserByEmail(t *testing.T) {
 
 func TestSearchUsers(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
-	defer TearDown()
+	defer th.TearDown()
 	Client := th.Client
 
 	search := &model.UserSearch{Term: th.BasicUser.Username}
@@ -728,7 +728,7 @@ func findUserInList(id string, users []*model.User) bool {
 
 func TestAutocompleteUsers(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
-	defer TearDown()
+	defer th.TearDown()
 	Client := th.Client
 	teamId := th.BasicTeam.Id
 	channelId := th.BasicChannel.Id
@@ -855,7 +855,7 @@ func TestAutocompleteUsers(t *testing.T) {
 
 func TestGetProfileImage(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
-	defer TearDown()
+	defer th.TearDown()
 	Client := th.Client
 	user := th.BasicUser
 
@@ -888,6 +888,8 @@ func TestGetProfileImage(t *testing.T) {
 
 func TestGetUsersByIds(t *testing.T) {
 	th := Setup().InitBasic()
+	defer th.TearDown()
+
 	Client := th.Client
 
 	users, resp := Client.GetUsersByIds([]string{th.BasicUser.Id})
@@ -920,6 +922,8 @@ func TestGetUsersByIds(t *testing.T) {
 
 func TestGetUsersByUsernames(t *testing.T) {
 	th := Setup().InitBasic()
+	defer th.TearDown()
+
 	Client := th.Client
 
 	users, resp := Client.GetUsersByUsernames([]string{th.BasicUser.Username})
@@ -952,7 +956,7 @@ func TestGetUsersByUsernames(t *testing.T) {
 
 func TestUpdateUser(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
-	defer TearDown()
+	defer th.TearDown()
 	Client := th.Client
 
 	user := th.CreateUser()
@@ -1008,7 +1012,7 @@ func TestUpdateUser(t *testing.T) {
 
 func TestPatchUser(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
-	defer TearDown()
+	defer th.TearDown()
 	Client := th.Client
 
 	user := th.CreateUser()
@@ -1087,6 +1091,8 @@ func TestPatchUser(t *testing.T) {
 
 func TestDeleteUser(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
+	defer th.TearDown()
+
 	Client := th.Client
 
 	user := th.BasicUser
@@ -1117,6 +1123,8 @@ func TestDeleteUser(t *testing.T) {
 
 func TestUpdateUserRoles(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
+	defer th.TearDown()
+
 	Client := th.Client
 	SystemAdminClient := th.SystemAdminClient
 
@@ -1141,6 +1149,8 @@ func TestUpdateUserRoles(t *testing.T) {
 
 func TestUpdateUserActive(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
+	defer th.TearDown()
+
 	Client := th.Client
 	SystemAdminClient := th.SystemAdminClient
 	user := th.BasicUser
@@ -1184,7 +1194,7 @@ func TestUpdateUserActive(t *testing.T) {
 
 func TestGetUsers(t *testing.T) {
 	th := Setup().InitBasic()
-	defer TearDown()
+	defer th.TearDown()
 	Client := th.Client
 
 	rusers, resp := Client.GetUsers(0, 60, "")
@@ -1226,7 +1236,7 @@ func TestGetUsers(t *testing.T) {
 
 func TestGetNewUsersInTeam(t *testing.T) {
 	th := Setup().InitBasic()
-	defer TearDown()
+	defer th.TearDown()
 	Client := th.Client
 	teamId := th.BasicTeam.Id
 
@@ -1255,7 +1265,7 @@ func TestGetNewUsersInTeam(t *testing.T) {
 
 func TestGetRecentlyActiveUsersInTeam(t *testing.T) {
 	th := Setup().InitBasic()
-	defer TearDown()
+	defer th.TearDown()
 	Client := th.Client
 	teamId := th.BasicTeam.Id
 
@@ -1284,7 +1294,7 @@ func TestGetRecentlyActiveUsersInTeam(t *testing.T) {
 
 func TestGetUsersWithoutTeam(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
-	defer TearDown()
+	defer th.TearDown()
 	Client := th.Client
 	SystemAdminClient := th.SystemAdminClient
 
@@ -1300,7 +1310,7 @@ func TestGetUsersWithoutTeam(t *testing.T) {
 		Password: "Password1",
 	})
 	CheckNoError(t, resp)
-	LinkUserToTeam(user, th.BasicTeam)
+	th.LinkUserToTeam(user, th.BasicTeam)
 	defer th.App.Srv.Store.User().PermanentDelete(user.Id)
 
 	user2, resp := Client.CreateUser(&model.User{
@@ -1334,7 +1344,7 @@ func TestGetUsersWithoutTeam(t *testing.T) {
 
 func TestGetUsersInTeam(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
-	defer TearDown()
+	defer th.TearDown()
 	Client := th.Client
 	teamId := th.BasicTeam.Id
 
@@ -1380,7 +1390,7 @@ func TestGetUsersInTeam(t *testing.T) {
 
 func TestGetUsersNotInTeam(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
-	defer TearDown()
+	defer th.TearDown()
 	Client := th.Client
 	teamId := th.BasicTeam.Id
 
@@ -1426,7 +1436,7 @@ func TestGetUsersNotInTeam(t *testing.T) {
 
 func TestGetUsersInChannel(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
-	defer TearDown()
+	defer th.TearDown()
 	Client := th.Client
 	channelId := th.BasicChannel.Id
 
@@ -1469,13 +1479,13 @@ func TestGetUsersInChannel(t *testing.T) {
 
 func TestGetUsersNotInChannel(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
-	defer TearDown()
+	defer th.TearDown()
 	Client := th.Client
 	teamId := th.BasicTeam.Id
 	channelId := th.BasicChannel.Id
 
 	user := th.CreateUser()
-	LinkUserToTeam(user, th.BasicTeam)
+	th.LinkUserToTeam(user, th.BasicTeam)
 
 	rusers, resp := Client.GetUsersNotInChannel(teamId, channelId, 0, 60, "")
 	CheckNoError(t, resp)
@@ -1510,7 +1520,7 @@ func TestGetUsersNotInChannel(t *testing.T) {
 
 /*func TestUpdateUserMfa(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
-	defer TearDown()
+	defer th.TearDown()
 	Client := th.Client
 
 	isLicensed := utils.IsLicensed()
@@ -1530,7 +1540,7 @@ func TestGetUsersNotInChannel(t *testing.T) {
 
 	user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1"}
 	ruser, _ := Client.CreateUser(&user)
-	LinkUserToTeam(ruser, rteam)
+	th.LinkUserToTeam(ruser, rteam)
 	store.Must(app.Srv.Store.User().VerifyEmail(ruser.Id))
 
 	Client.Logout()
@@ -1552,7 +1562,7 @@ func TestGetUsersNotInChannel(t *testing.T) {
 
 func TestCheckUserMfa(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
-	defer TearDown()
+	defer th.TearDown()
 	Client := th.Client
 
 	required, resp := Client.CheckUserMfa(th.BasicUser.Email)
@@ -1609,7 +1619,7 @@ func TestCheckUserMfa(t *testing.T) {
 
 func TestGenerateMfaSecret(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
-	defer TearDown()
+	defer th.TearDown()
 	Client := th.Client
 
 	_, resp := Client.GenerateMfaSecret(th.BasicUser.Id)
@@ -1632,7 +1642,7 @@ func TestGenerateMfaSecret(t *testing.T) {
 
 func TestUpdateUserPassword(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
-	defer TearDown()
+	defer th.TearDown()
 	Client := th.Client
 
 	password := "newpassword1"
@@ -1809,7 +1819,7 @@ func TestUpdateUserPassword(t *testing.T) {
 
 func TestGetSessions(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
-	defer TearDown()
+	defer th.TearDown()
 	Client := th.Client
 
 	user := th.BasicUser
@@ -1849,7 +1859,7 @@ func TestGetSessions(t *testing.T) {
 
 func TestRevokeSessions(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
-	defer TearDown()
+	defer th.TearDown()
 	Client := th.Client
 
 	user := th.BasicUser
@@ -1904,7 +1914,7 @@ func TestRevokeSessions(t *testing.T) {
 
 func TestAttachDeviceId(t *testing.T) {
 	th := Setup().InitBasic()
-	defer TearDown()
+	defer th.TearDown()
 	Client := th.Client
 
 	deviceId := model.PUSH_NOTIFY_APPLE + ":1234567890"
@@ -1934,7 +1944,7 @@ func TestAttachDeviceId(t *testing.T) {
 
 func TestGetUserAudits(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
-	defer TearDown()
+	defer th.TearDown()
 	Client := th.Client
 	user := th.BasicUser
 
@@ -1959,7 +1969,7 @@ func TestGetUserAudits(t *testing.T) {
 
 func TestVerifyUserEmail(t *testing.T) {
 	th := Setup().InitBasic()
-	defer TearDown()
+	defer th.TearDown()
 	Client := th.Client
 
 	user := model.User{Email: GenerateTestEmail(), Nickname: "Darth Vader", Password: "hello1", Username: GenerateTestUsername(), Roles: model.ROLE_SYSTEM_ADMIN.Id + " " + model.ROLE_SYSTEM_USER.Id}
@@ -1983,7 +1993,7 @@ func TestVerifyUserEmail(t *testing.T) {
 
 func TestSendVerificationEmail(t *testing.T) {
 	th := Setup().InitBasic()
-	defer TearDown()
+	defer th.TearDown()
 	Client := th.Client
 
 	pass, resp := Client.SendVerificationEmail(th.BasicUser.Email)
@@ -2007,7 +2017,7 @@ func TestSendVerificationEmail(t *testing.T) {
 
 func TestSetProfileImage(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
-	defer TearDown()
+	defer th.TearDown()
 	Client := th.Client
 	user := th.BasicUser
 
@@ -2058,7 +2068,7 @@ func TestSetProfileImage(t *testing.T) {
 
 func TestSwitchAccount(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
-	defer TearDown()
+	defer th.TearDown()
 	Client := th.Client
 
 	enableGitLab := utils.Cfg.GitLabSettings.Enable
@@ -2149,7 +2159,7 @@ func TestSwitchAccount(t *testing.T) {
 
 func TestCreateUserAccessToken(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
-	defer TearDown()
+	defer th.TearDown()
 	Client := th.Client
 	AdminClient := th.SystemAdminClient
 
@@ -2223,7 +2233,7 @@ func TestCreateUserAccessToken(t *testing.T) {
 
 func TestGetUserAccessToken(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
-	defer TearDown()
+	defer th.TearDown()
 	Client := th.Client
 	AdminClient := th.SystemAdminClient
 
@@ -2294,7 +2304,7 @@ func TestGetUserAccessToken(t *testing.T) {
 
 func TestRevokeUserAccessToken(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
-	defer TearDown()
+	defer th.TearDown()
 	Client := th.Client
 	AdminClient := th.SystemAdminClient
 
@@ -2342,7 +2352,7 @@ func TestRevokeUserAccessToken(t *testing.T) {
 
 func TestUserAccessTokenInactiveUser(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
-	defer TearDown()
+	defer th.TearDown()
 	Client := th.Client
 
 	testDescription := "test token"
@@ -2369,7 +2379,7 @@ func TestUserAccessTokenInactiveUser(t *testing.T) {
 
 func TestUserAccessTokenDisableConfig(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
-	defer TearDown()
+	defer th.TearDown()
 	Client := th.Client
 
 	testDescription := "test token"

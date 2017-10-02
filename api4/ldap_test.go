@@ -9,7 +9,7 @@ import (
 
 func TestLdapTest(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
-	defer TearDown()
+	defer th.TearDown()
 
 	_, resp := th.Client.TestLdap()
 	CheckForbiddenStatus(t, resp)
@@ -20,7 +20,7 @@ func TestLdapTest(t *testing.T) {
 
 func TestLdapSync(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
-	defer TearDown()
+	defer th.TearDown()
 
 	_, resp := th.SystemAdminClient.SyncLdap()
 	CheckNoError(t, resp)

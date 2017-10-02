@@ -15,7 +15,7 @@ func TestGetWebrtcToken(t *testing.T) {
 	}
 
 	th := Setup().InitBasic().InitSystemAdmin()
-	defer TearDown()
+	defer th.TearDown()
 	Client := th.Client
 
 	enableWebrtc := *utils.Cfg.WebrtcSettings.Enable

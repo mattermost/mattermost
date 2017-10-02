@@ -148,7 +148,7 @@ func (n *Notepad) GetStdoutThreshold() Threshold {
 }
 
 // SetPrefix changes the prefix used by the notepad. Prefixes are displayed between
-// brackets at the begining of the line. An empty prefix won't be displayed at all.
+// brackets at the beginning of the line. An empty prefix won't be displayed at all.
 func (n *Notepad) SetPrefix(prefix string) {
 	if len(prefix) != 0 {
 		n.prefix = "[" + prefix + "] "

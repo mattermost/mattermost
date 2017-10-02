@@ -30,6 +30,7 @@ func TestCliCreateTeam(t *testing.T) {
 	}
 
 	th := Setup().InitSystemAdmin()
+	defer th.TearDown()
 
 	id := model.NewId()
 	name := "name" + id
@@ -55,6 +56,7 @@ func TestCliCreateUserWithTeam(t *testing.T) {
 	}
 
 	th := Setup().InitSystemAdmin()
+	defer th.TearDown()
 
 	id := model.NewId()
 	email := "success+" + id + "@simulator.amazonses.com"
@@ -96,6 +98,8 @@ func TestCliCreateUserWithoutTeam(t *testing.T) {
 	}
 
 	th := Setup()
+	defer th.TearDown()
+
 	id := model.NewId()
 	email := "success+" + id + "@simulator.amazonses.com"
 	username := "name" + id
@@ -123,6 +127,7 @@ func TestCliAssignRole(t *testing.T) {
 	}
 
 	th := Setup().InitBasic()
+	defer th.TearDown()
 
 	cmd := exec.Command("bash", "-c", "go run ../cmd/platform/*.go roles system_admin "+th.BasicUser.Email)
 	output, err := cmd.CombinedOutput()
@@ -147,6 +152,8 @@ func TestCliJoinChannel(t *testing.T) {
 	}
 
 	th := Setup().InitBasic()
+	defer th.TearDown()
+
 	channel := th.CreateChannel(th.BasicClient, th.BasicTeam)
 
 	cmd := exec.Command("bash", "-c", "go run ../cmd/platform/*.go channel add "+th.BasicTeam.Name+":"+channel.Name+" "+th.BasicUser2.Email)
@@ -179,6 +186,8 @@ func TestCliRemoveChannel(t *testing.T) {
 	}
 
 	th := Setup().InitBasic()
+	defer th.TearDown()
+
 	channel := th.CreateChannel(th.BasicClient, th.BasicTeam)
 
 	cmd := exec.Command("bash", "-c", "go run ../cmd/platform/*.go channel add "+th.BasicTeam.Name+":"+channel.Name+" "+th.BasicUser2.Email)
@@ -218,6 +227,8 @@ func TestCliListChannels(t *testing.T) {
 	}
 
 	th := Setup().InitBasic()
+	defer th.TearDown()
+
 	channel := th.CreateChannel(th.BasicClient, th.BasicTeam)
 	th.BasicClient.Must(th.BasicClient.DeleteChannel(channel.Id))
 
@@ -243,6 +254,8 @@ func TestCliRestoreChannel(t *testing.T) {
 	}
 
 	th := Setup().InitBasic()
+	defer th.TearDown()
+
 	channel := th.CreateChannel(th.BasicClient, th.BasicTeam)
 	th.BasicClient.Must(th.BasicClient.DeleteChannel(channel.Id))
 
@@ -268,6 +281,7 @@ func TestCliJoinTeam(t *testing.T) {
 	}
 
 	th := Setup().InitSystemAdmin().InitBasic()
+	defer th.TearDown()
 
 	cmd := exec.Command("bash", "-c", "go run ../cmd/platform/*.go team add "+th.SystemAdminTeam.Name+" "+th.BasicUser.Email)
 	output, err := cmd.CombinedOutput()
@@ -298,6 +312,7 @@ func TestCliLeaveTeam(t *testing.T) {
 	}
 
 	th := Setup().InitBasic()
+	defer th.TearDown()
 
 	cmd := exec.Command("bash", "-c", "go run ../cmd/platform/*.go team remove "+th.BasicTeam.Name+" "+th.BasicUser.Email)
 	output, err := cmd.CombinedOutput()
@@ -335,6 +350,7 @@ func TestCliResetPassword(t *testing.T) {
 	}
 
 	th := Setup().InitBasic()
+	defer th.TearDown()
 
 	cmd := exec.Command("bash", "-c", "go run ../cmd/platform/*.go user password "+th.BasicUser.Email+" password2")
 	output, err := cmd.CombinedOutput()
@@ -354,6 +370,7 @@ func TestCliCreateChannel(t *testing.T) {
 	}
 
 	th := Setup().InitBasic()
+	defer th.TearDown()
 
 	id := model.NewId()
 	name := "name" + id
@@ -380,6 +397,7 @@ func TestCliMakeUserActiveAndInactive(t *testing.T) {
 	}
 
 	th := Setup().InitBasic()
+	defer th.TearDown()
 
 	// first inactivate the user
 	cmd := exec.Command("bash", "-c", "go run ../cmd/platform/*.go user deactivate "+th.BasicUser.Email)

@@ -6,13 +6,18 @@ import (
 	"testing"
 
 	l4g "github.com/alecthomas/log4go"
+	"github.com/mattermost/mattermost-server/app"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
 )
 
+func init() {
+	app.UseGlobalApp = false
+}
+
 func TestGetPing(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
-	defer TearDown()
+	defer th.TearDown()
 	Client := th.Client
 
 	goRoutineHealthThreshold := *utils.Cfg.ServiceSettings.GoroutineHealthThreshold
@@ -36,7 +41,7 @@ func TestGetPing(t *testing.T) {
 
 func TestGetConfig(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
-	defer TearDown()
+	defer th.TearDown()
 	Client := th.Client
 
 	_, resp := Client.GetConfig()
@@ -83,7 +88,7 @@ func TestGetConfig(t *testing.T) {
 
 func TestReloadConfig(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
-	defer TearDown()
+	defer th.TearDown()
 	Client := th.Client
 
 	flag, resp := Client.ReloadConfig()
@@ -104,7 +109,7 @@ func TestReloadConfig(t *testing.T) {
 
 func TestUpdateConfig(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
-	defer TearDown()
+	defer th.TearDown()
 	Client := th.Client
 
 	cfg := th.App.GetConfig()
@@ -144,7 +149,7 @@ func TestUpdateConfig(t *testing.T) {
 
 func TestGetOldClientConfig(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
-	defer TearDown()
+	defer th.TearDown()
 	Client := th.Client
 
 	config, resp := Client.GetOldClientConfig("")
@@ -170,7 +175,7 @@ func TestGetOldClientConfig(t *testing.T) {
 
 func TestGetOldClientLicense(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
-	defer TearDown()
+	defer th.TearDown()
 	Client := th.Client
 
 	license, resp := Client.GetOldClientLicense("")
@@ -203,7 +208,7 @@ func TestGetOldClientLicense(t *testing.T) {
 
 func TestGetAudits(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
-	defer TearDown()
+	defer th.TearDown()
 	Client := th.Client
 
 	audits, resp := th.SystemAdminClient.GetAudits(0, 100, "")
@@ -240,7 +245,7 @@ func TestGetAudits(t *testing.T) {
 
 func TestEmailTest(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
-	defer TearDown()
+	defer th.TearDown()
 	Client := th.Client
 
 	SendEmailNotifications := utils.Cfg.EmailSettings.SendEmailNotifications
@@ -269,7 +274,7 @@ func TestEmailTest(t *testing.T) {
 
 func TestDatabaseRecycle(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
-	defer TearDown()
+	defer th.TearDown()
 	Client := th.Client
 
 	_, resp := Client.DatabaseRecycle()
@@ -281,7 +286,7 @@ func TestDatabaseRecycle(t *testing.T) {
 
 func TestInvalidateCaches(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
-	defer TearDown()
+	defer th.TearDown()
 	Client := th.Client
 
 	flag, resp := Client.InvalidateCaches()
@@ -299,7 +304,7 @@ func TestInvalidateCaches(t *testing.T) {
 
 func TestGetLogs(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
-	defer TearDown()
+	defer th.TearDown()
 	Client := th.Client
 
 	for i := 0; i < 20; i++ {
@@ -339,7 +344,7 @@ func TestGetLogs(t *testing.T) {
 
 func TestPostLog(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
-	defer TearDown()
+	defer th.TearDown()
 	Client := th.Client
 
 	message := make(map[string]string)
@@ -358,7 +363,7 @@ func TestPostLog(t *testing.T) {
 
 func TestUploadLicenseFile(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
-	defer TearDown()
+	defer th.TearDown()
 	Client := th.Client
 
 	ok, resp := Client.UploadLicenseFile([]byte{})
@@ -376,7 +381,7 @@ func TestUploadLicenseFile(t *testing.T) {
 
 func TestRemoveLicenseFile(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
-	defer TearDown()
+	defer th.TearDown()
 	Client := th.Client
 
 	ok, resp := Client.RemoveLicenseFile()
@@ -394,7 +399,7 @@ func TestRemoveLicenseFile(t *testing.T) {
 
 func TestGetAnalyticsOld(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
-	defer TearDown()
+	defer th.TearDown()
 	Client := th.Client
 
 	rows, resp := Client.GetAnalyticsOld("", "")

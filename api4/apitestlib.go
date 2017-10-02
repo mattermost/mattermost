@@ -5,6 +5,7 @@ package api4
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"net/http"
 	"os"
@@ -46,7 +47,7 @@ type TestHelper struct {
 
 func setupTestHelper(enterprise bool) *TestHelper {
 	th := &TestHelper{
-		App: app.Global(),
+		App: app.New(),
 	}
 
 	if th.App.Srv == nil {
@@ -75,9 +76,7 @@ func setupTestHelper(enterprise bool) *TestHelper {
 		utils.License().Features.SetDefaults()
 	}
 
-	if th.App.Jobs.Store == nil {
-		th.App.Jobs.Store = th.App.Srv.Store
-	}
+	th.App.Jobs.Store = th.App.Srv.Store
 
 	th.Client = th.CreateClient()
 	th.SystemAdminClient = th.CreateClient()
@@ -92,13 +91,7 @@ func Setup() *TestHelper {
 	return setupTestHelper(false)
 }
 
-func StopServer() {
-	if app.Global().Srv != nil {
-		app.Global().StopServer()
-	}
-}
-
-func TearDown() {
+func (me *TestHelper) TearDown() {
 	utils.DisableDebugLogForTest()
 
 	var wg sync.WaitGroup
@@ -108,13 +101,13 @@ func TearDown() {
 		defer wg.Done()
 		options := map[string]bool{}
 		options[store.USER_SEARCH_OPTION_NAMES_ONLY_NO_FULL_NAME] = true
-		if result := <-app.Global().Srv.Store.User().Search("", "fakeuser", options); result.Err != nil {
+		if result := <-me.App.Srv.Store.User().Search("", "fakeuser", options); result.Err != nil {
 			l4g.Error("Error tearing down test users")
 		} else {
 			users := result.Data.([]*model.User)
 
 			for _, u := range users {
-				if err := app.Global().PermanentDeleteUser(u); err != nil {
+				if err := me.App.PermanentDeleteUser(u); err != nil {
 					l4g.Error(err.Error())
 				}
 			}
@@ -123,13 +116,13 @@ func TearDown() {
 
 	go func() {
 		defer wg.Done()
-		if result := <-app.Global().Srv.Store.Team().SearchByName("faketeam"); result.Err != nil {
+		if result := <-me.App.Srv.Store.Team().SearchByName("faketeam"); result.Err != nil {
 			l4g.Error("Error tearing down test teams")
 		} else {
 			teams := result.Data.([]*model.Team)
 
 			for _, t := range teams {
-				if err := app.Global().PermanentDeleteTeam(t); err != nil {
+				if err := me.App.PermanentDeleteTeam(t); err != nil {
 					l4g.Error(err.Error())
 				}
 			}
@@ -138,20 +131,22 @@ func TearDown() {
 
 	go func() {
 		defer wg.Done()
-		if result := <-app.Global().Srv.Store.OAuth().GetApps(0, 1000); result.Err != nil {
+		if result := <-me.App.Srv.Store.OAuth().GetApps(0, 1000); result.Err != nil {
 			l4g.Error("Error tearing down test oauth apps")
 		} else {
 			apps := result.Data.([]*model.OAuthApp)
 
 			for _, a := range apps {
 				if strings.HasPrefix(a.Name, "fakeoauthapp") {
-					<-app.Global().Srv.Store.OAuth().DeleteApp(a.Id)
+					<-me.App.Srv.Store.OAuth().DeleteApp(a.Id)
 				}
 			}
 		}
 	}()
 
 	wg.Wait()
+
+	me.App.Shutdown()
 
 	utils.EnableDebugLogForTest()
 }
@@ -165,9 +160,9 @@ func (me *TestHelper) InitBasic() *TestHelper {
 	me.BasicChannel2 = me.CreatePublicChannel()
 	me.BasicPost = me.CreatePost()
 	me.BasicUser = me.CreateUser()
-	LinkUserToTeam(me.BasicUser, me.BasicTeam)
+	me.LinkUserToTeam(me.BasicUser, me.BasicTeam)
 	me.BasicUser2 = me.CreateUser()
-	LinkUserToTeam(me.BasicUser2, me.BasicTeam)
+	me.LinkUserToTeam(me.BasicUser2, me.BasicTeam)
 	me.App.AddUserToChannel(me.BasicUser, me.BasicChannel)
 	me.App.AddUserToChannel(me.BasicUser2, me.BasicChannel)
 	me.App.AddUserToChannel(me.BasicUser, me.BasicChannel2)
@@ -232,9 +227,10 @@ func (me *TestHelper) CreateUserWithClient(client *model.Client4) *model.User {
 	}
 
 	utils.DisableDebugLogForTest()
-	ruser, _ := client.CreateUser(user)
+	ruser, r := client.CreateUser(user)
+	fmt.Println(r)
 	ruser.Password = "Password1"
-	VerifyUserEmail(ruser.Id)
+	store.Must(me.App.Srv.Store.User().VerifyEmail(ruser.Id))
 	utils.EnableDebugLogForTest()
 	return ruser
 }
@@ -379,10 +375,10 @@ func (me *TestHelper) UpdateActiveUser(user *model.User, active bool) {
 	utils.EnableDebugLogForTest()
 }
 
-func LinkUserToTeam(user *model.User, team *model.Team) {
+func (me *TestHelper) LinkUserToTeam(user *model.User, team *model.Team) {
 	utils.DisableDebugLogForTest()
 
-	err := app.Global().JoinUserToTeam(team, user, "")
+	err := me.App.JoinUserToTeam(team, user, "")
 	if err != nil {
 		l4g.Error(err.Error())
 		l4g.Close()
@@ -415,10 +411,6 @@ func GenerateTestAppName() string {
 
 func GenerateTestId() string {
 	return model.NewId()
-}
-
-func VerifyUserEmail(userId string) {
-	store.Must(app.Global().Srv.Store.User().VerifyEmail(userId))
 }
 
 func CheckUserSanitization(t *testing.T, user *model.User) {
@@ -683,13 +675,13 @@ func cleanupTestFile(info *model.FileInfo) error {
 	return nil
 }
 
-func MakeUserChannelAdmin(user *model.User, channel *model.Channel) {
+func (me *TestHelper) MakeUserChannelAdmin(user *model.User, channel *model.Channel) {
 	utils.DisableDebugLogForTest()
 
-	if cmr := <-app.Global().Srv.Store.Channel().GetMember(channel.Id, user.Id); cmr.Err == nil {
+	if cmr := <-me.App.Srv.Store.Channel().GetMember(channel.Id, user.Id); cmr.Err == nil {
 		cm := cmr.Data.(*model.ChannelMember)
 		cm.Roles = "channel_admin channel_user"
-		if sr := <-app.Global().Srv.Store.Channel().UpdateMember(cm); sr.Err != nil {
+		if sr := <-me.App.Srv.Store.Channel().UpdateMember(cm); sr.Err != nil {
 			utils.EnableDebugLogForTest()
 			panic(sr.Err)
 		}
@@ -701,11 +693,11 @@ func MakeUserChannelAdmin(user *model.User, channel *model.Channel) {
 	utils.EnableDebugLogForTest()
 }
 
-func UpdateUserToTeamAdmin(user *model.User, team *model.Team) {
+func (me *TestHelper) UpdateUserToTeamAdmin(user *model.User, team *model.Team) {
 	utils.DisableDebugLogForTest()
 
 	tm := &model.TeamMember{TeamId: team.Id, UserId: user.Id, Roles: model.ROLE_TEAM_USER.Id + " " + model.ROLE_TEAM_ADMIN.Id}
-	if tmr := <-app.Global().Srv.Store.Team().UpdateMember(tm); tmr.Err != nil {
+	if tmr := <-me.App.Srv.Store.Team().UpdateMember(tm); tmr.Err != nil {
 		utils.EnableDebugLogForTest()
 		l4g.Error(tmr.Err.Error())
 		l4g.Close()
@@ -715,11 +707,11 @@ func UpdateUserToTeamAdmin(user *model.User, team *model.Team) {
 	utils.EnableDebugLogForTest()
 }
 
-func UpdateUserToNonTeamAdmin(user *model.User, team *model.Team) {
+func (me *TestHelper) UpdateUserToNonTeamAdmin(user *model.User, team *model.Team) {
 	utils.DisableDebugLogForTest()
 
 	tm := &model.TeamMember{TeamId: team.Id, UserId: user.Id, Roles: model.ROLE_TEAM_USER.Id}
-	if tmr := <-app.Global().Srv.Store.Team().UpdateMember(tm); tmr.Err != nil {
+	if tmr := <-me.App.Srv.Store.Team().UpdateMember(tm); tmr.Err != nil {
 		utils.EnableDebugLogForTest()
 		l4g.Error(tmr.Err.Error())
 		l4g.Close()

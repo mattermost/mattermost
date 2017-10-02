@@ -222,5 +222,7 @@ func (a *App) StopServer() {
 
 	a.ShutDownPlugins()
 
+	a.Srv = nil
+
 	l4g.Info(utils.T("api.server.stop_server.stopped.info"))
 }

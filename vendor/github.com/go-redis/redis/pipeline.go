@@ -13,9 +13,7 @@ type Pipeliner interface {
 	Process(cmd Cmder) error
 	Close() error
 	Discard() error
-	discard() error
 	Exec() ([]Cmder, error)
-	pipelined(fn func(Pipeliner) error) ([]Cmder, error)
 }
 
 var _ Pipeliner = (*Pipeline)(nil)
@@ -102,5 +100,13 @@ func (c *Pipeline) Pipelined(fn func(Pipeliner) error) ([]Cmder, error) {
 }
 
 func (c *Pipeline) Pipeline() Pipeliner {
+	return c
+}
+
+func (c *Pipeline) TxPipelined(fn func(Pipeliner) error) ([]Cmder, error) {
+	return c.pipelined(fn)
+}
+
+func (c *Pipeline) TxPipeline() Pipeliner {
 	return c
 }

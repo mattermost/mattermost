@@ -105,6 +105,12 @@ type Token struct {
 	Comment string
 }
 
+// ttlState describes the state necessary to fill in an omitted RR TTL
+type ttlState struct {
+	ttl           uint32 // ttl is the current default TTL
+	isByDirective bool   // isByDirective indicates whether ttl was set by a $TTL directive
+}
+
 // NewRR reads the RR contained in the string s. Only the first RR is
 // returned. If s contains no RR, return nil with no error. The class
 // defaults to IN and TTL defaults to 3600. The full zone file syntax
@@ -120,7 +126,8 @@ func NewRR(s string) (RR, error) {
 // ReadRR reads the RR contained in q.
 // See NewRR for more documentation.
 func ReadRR(q io.Reader, filename string) (RR, error) {
-	r := <-parseZoneHelper(q, ".", filename, 1)
+	defttl := &ttlState{defaultTtl, false}
+	r := <-parseZoneHelper(q, ".", defttl, filename, 1)
 	if r == nil {
 		return nil, nil
 	}
@@ -132,10 +139,10 @@ func ReadRR(q io.Reader, filename string) (RR, error) {
 }
 
 // ParseZone reads a RFC 1035 style zonefile from r. It returns *Tokens on the
-// returned channel, which consist out the parsed RR, a potential comment or an error.
-// If there is an error the RR is nil. The string file is only used
+// returned channel, each consisting of either a parsed RR and optional comment
+// or a nil RR and an error. The string file is only used
 // in error reporting. The string origin is used as the initial origin, as
-// if the file would start with: $ORIGIN origin .
+// if the file would start with an $ORIGIN directive.
 // The directives $INCLUDE, $ORIGIN, $TTL and $GENERATE are supported.
 // The channel t is closed by ParseZone when the end of r is reached.
 //
@@ -157,16 +164,16 @@ func ReadRR(q io.Reader, filename string) (RR, error) {
 // The text "; this is comment" is returned in Token.Comment. Comments inside the
 // RR are discarded. Comments on a line by themselves are discarded too.
 func ParseZone(r io.Reader, origin, file string) chan *Token {
-	return parseZoneHelper(r, origin, file, 10000)
+	return parseZoneHelper(r, origin, nil, file, 10000)
 }
 
-func parseZoneHelper(r io.Reader, origin, file string, chansize int) chan *Token {
+func parseZoneHelper(r io.Reader, origin string, defttl *ttlState, file string, chansize int) chan *Token {
 	t := make(chan *Token, chansize)
-	go parseZone(r, origin, file, t, 0)
+	go parseZone(r, origin, defttl, file, t, 0)
 	return t
 }
 
-func parseZone(r io.Reader, origin, f string, t chan *Token, include int) {
+func parseZone(r io.Reader, origin string, defttl *ttlState, f string, t chan *Token, include int) {
 	defer func() {
 		if include == 0 {
 			close(t)
@@ -186,18 +193,16 @@ func parseZone(r io.Reader, origin, f string, t chan *Token, include int) {
 	// After detecting these, we know the zRrtype so we can jump to functions
 	// handling the rdata for each of these types.
 
-	if origin == "" {
-		origin = "."
-	}
-	origin = Fqdn(origin)
-	if _, ok := IsDomainName(origin); !ok {
-		t <- &Token{Error: &ParseError{f, "bad initial origin name", lex{}}}
-		return
+	if origin != "" {
+		origin = Fqdn(origin)
+		if _, ok := IsDomainName(origin); !ok {
+			t <- &Token{Error: &ParseError{f, "bad initial origin name", lex{}}}
+			return
+		}
 	}
 
 	st := zExpectOwnerDir // initial state
 	var h RR_Header
-	var defttl uint32 = defaultTtl
 	var prevName string
 	for l := range c {
 		// Lexer spotted an error already
@@ -209,27 +214,21 @@ func parseZone(r io.Reader, origin, f string, t chan *Token, include int) {
 		switch st {
 		case zExpectOwnerDir:
 			// We can also expect a directive, like $TTL or $ORIGIN
-			h.Ttl = defttl
+			if defttl != nil {
+				h.Ttl = defttl.ttl
+			}
 			h.Class = ClassINET
 			switch l.value {
 			case zNewline:
 				st = zExpectOwnerDir
 			case zOwner:
 				h.Name = l.token
-				if l.token[0] == '@' {
-					h.Name = origin
-					prevName = h.Name
-					st = zExpectOwnerBl
-					break
-				}
-				if h.Name[l.length-1] != '.' {
-					h.Name = appendOrigin(h.Name, origin)
-				}
-				_, ok := IsDomainName(l.token)
+				name, ok := toAbsoluteName(l.token, origin)
 				if !ok {
 					t <- &Token{Error: &ParseError{f, "bad owner name", l}}
 					return
 				}
+				h.Name = name
 				prevName = h.Name
 				st = zExpectOwnerBl
 			case zDirTtl:
@@ -258,8 +257,9 @@ func parseZone(r io.Reader, origin, f string, t chan *Token, include int) {
 					return
 				}
 				h.Ttl = ttl
-				// Don't about the defttl, we should take the $TTL value
-				// defttl = ttl
+				if defttl == nil || !defttl.isByDirective {
+					defttl = &ttlState{ttl, false}
+				}
 				st = zExpectAnyNoTtlBl
 
 			default:
@@ -282,20 +282,12 @@ func parseZone(r io.Reader, origin, f string, t chan *Token, include int) {
 			case zBlank:
 				l := <-c
 				if l.value == zString {
-					if _, ok := IsDomainName(l.token); !ok || l.length == 0 || l.err {
+					name, ok := toAbsoluteName(l.token, origin)
+					if !ok {
 						t <- &Token{Error: &ParseError{f, "bad origin name", l}}
 						return
 					}
-					// a new origin is specified.
-					if l.token[l.length-1] != '.' {
-						if origin != "." { // Prevent .. endings
-							neworigin = l.token + "." + origin
-						} else {
-							neworigin = l.token + origin
-						}
-					} else {
-						neworigin = l.token
-					}
+					neworigin = name
 				}
 			case zNewline, zEOF:
 				// Ok
@@ -313,7 +305,7 @@ func parseZone(r io.Reader, origin, f string, t chan *Token, include int) {
 				t <- &Token{Error: &ParseError{f, "too deeply nested $INCLUDE", l}}
 				return
 			}
-			parseZone(r1, l.token, neworigin, t, include+1)
+			parseZone(r1, neworigin, defttl, l.token, t, include+1)
 			st = zExpectOwnerDir
 		case zExpectDirTtlBl:
 			if l.value != zBlank {
@@ -335,7 +327,7 @@ func parseZone(r io.Reader, origin, f string, t chan *Token, include int) {
 				t <- &Token{Error: &ParseError{f, "expecting $TTL value, not this...", l}}
 				return
 			}
-			defttl = ttl
+			defttl = &ttlState{ttl, true}
 			st = zExpectOwnerDir
 		case zExpectDirOriginBl:
 			if l.value != zBlank {
@@ -351,19 +343,12 @@ func parseZone(r io.Reader, origin, f string, t chan *Token, include int) {
 			if e, _ := slurpRemainder(c, f); e != nil {
 				t <- &Token{Error: e}
 			}
-			if _, ok := IsDomainName(l.token); !ok {
+			name, ok := toAbsoluteName(l.token, origin)
+			if !ok {
 				t <- &Token{Error: &ParseError{f, "bad origin name", l}}
 				return
 			}
-			if l.token[l.length-1] != '.' {
-				if origin != "." { // Prevent .. endings
-					origin = l.token + "." + origin
-				} else {
-					origin = l.token + origin
-				}
-			} else {
-				origin = l.token
-			}
+			origin = name
 			st = zExpectOwnerDir
 		case zExpectDirGenerateBl:
 			if l.value != zBlank {
@@ -390,6 +375,10 @@ func parseZone(r io.Reader, origin, f string, t chan *Token, include int) {
 		case zExpectAny:
 			switch l.value {
 			case zRrtpe:
+				if defttl == nil {
+					t <- &Token{Error: &ParseError{f, "missing TTL with no previous value", l}}
+					return
+				}
 				h.Rrtype = l.torc
 				st = zExpectRdata
 			case zClass:
@@ -402,7 +391,9 @@ func parseZone(r io.Reader, origin, f string, t chan *Token, include int) {
 					return
 				}
 				h.Ttl = ttl
-				// defttl = ttl // don't set the defttl here
+				if defttl == nil || !defttl.isByDirective {
+					defttl = &ttlState{ttl, false}
+				}
 				st = zExpectAnyNoTtlBl
 			default:
 				t <- &Token{Error: &ParseError{f, "expecting RR type, TTL or class, not this...", l}}
@@ -441,7 +432,9 @@ func parseZone(r io.Reader, origin, f string, t chan *Token, include int) {
 					return
 				}
 				h.Ttl = ttl
-				// defttl = ttl // don't set the def ttl anymore
+				if defttl == nil || !defttl.isByDirective {
+					defttl = &ttlState{ttl, false}
+				}
 				st = zExpectRrtypeBl
 			case zRrtpe:
 				h.Rrtype = l.torc
@@ -916,6 +909,34 @@ func stringToCm(token string) (e, m uint8, ok bool) {
 	}
 	m = uint8(val)
 	return
+}
+
+func toAbsoluteName(name, origin string) (absolute string, ok bool) {
+	// check for an explicit origin reference
+	if name == "@" {
+		// require a nonempty origin
+		if origin == "" {
+			return "", false
+		}
+		return origin, true
+	}
+
+	// require a valid domain name
+	_, ok = IsDomainName(name)
+	if !ok || name == "" {
+		return "", false
+	}
+
+	// check if name is already absolute
+	if name[len(name)-1] == '.' {
+		return name, true
+	}
+
+	// require a nonempty origin
+	if origin == "" {
+		return "", false
+	}
+	return appendOrigin(name, origin), true
 }
 
 func appendOrigin(name, origin string) string {

@@ -12,7 +12,7 @@ import (
 
 func TestCreateWebhookPost(t *testing.T) {
 	th := Setup().InitBasic()
-	defer th.App.TearDown()
+	defer th.TearDown()
 
 	enableIncomingHooks := utils.Cfg.ServiceSettings.EnableIncomingWebhooks
 	defer func() {

@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"sync"
+	"time"
 
 	"github.com/mattermost/mattermost-server/einterfaces"
 	ejobs "github.com/mattermost/mattermost-server/einterfaces/jobs"
@@ -33,6 +34,7 @@ type App struct {
 	Brand            einterfaces.BrandInterface
 	Cluster          einterfaces.ClusterInterface
 	Compliance       einterfaces.ComplianceInterface
+	DataRetention    einterfaces.DataRetentionInterface
 	Elasticsearch    einterfaces.ElasticsearchInterface
 	Ldap             einterfaces.LdapInterface
 	Metrics          einterfaces.MetricsInterface
@@ -44,13 +46,44 @@ var globalApp App = App{
 	Jobs: &jobs.JobServer{},
 }
 
+var appCount = 0
 var initEnterprise sync.Once
 
-func Global() *App {
+var UseGlobalApp = true
+
+// New creates a new App. You must call Shutdown when you're done with it.
+// XXX: Doesn't necessarily create a new App yet.
+func New() *App {
+	appCount++
+
+	if !UseGlobalApp {
+		if appCount > 1 {
+			panic("Only one App should exist at a time. Did you forget to call Shutdown()?")
+		}
+		app := &App{
+			Jobs: &jobs.JobServer{},
+		}
+		app.initEnterprise()
+		return app
+	}
+
 	initEnterprise.Do(func() {
 		globalApp.initEnterprise()
 	})
 	return &globalApp
+}
+
+func (a *App) Shutdown() {
+	appCount--
+	if appCount == 0 {
+		// XXX: This is to give all of our runaway goroutines time to complete.
+		//      We should wrangle them up and remove this.
+		time.Sleep(time.Second)
+
+		if a.Srv != nil {
+			a.StopServer()
+		}
+	}
 }
 
 var accountMigrationInterface func(*App) einterfaces.AccountMigrationInterface
@@ -71,10 +104,16 @@ func RegisterComplianceInterface(f func(*App) einterfaces.ComplianceInterface) {
 	complianceInterface = f
 }
 
-var jobsDataRetentionInterface func(*App) ejobs.DataRetentionInterface
+var dataRetentionInterface func(*App) einterfaces.DataRetentionInterface
 
-func RegisterJobsDataRetentionInterface(f func(*App) ejobs.DataRetentionInterface) {
-	jobsDataRetentionInterface = f
+func RegisterDataRetentionInterface(f func(*App) einterfaces.DataRetentionInterface) {
+	dataRetentionInterface = f
+}
+
+var jobsDataRetentionJobInterface func(*App) ejobs.DataRetentionJobInterface
+
+func RegisterJobsDataRetentionJobInterface(f func(*App) ejobs.DataRetentionJobInterface) {
+	jobsDataRetentionJobInterface = f
 }
 
 var jobsElasticsearchAggregatorInterface func(*App) ejobs.ElasticsearchAggregatorInterface
@@ -151,9 +190,11 @@ func (a *App) initEnterprise() {
 			a.Saml.ConfigureSP()
 		})
 	}
-
-	if jobsDataRetentionInterface != nil {
-		a.Jobs.DataRetention = jobsDataRetentionInterface(a)
+	if dataRetentionInterface != nil {
+		a.DataRetention = dataRetentionInterface(a)
+	}
+	if jobsDataRetentionJobInterface != nil {
+		a.Jobs.DataRetentionJob = jobsDataRetentionJobInterface(a)
 	}
 	if jobsElasticsearchAggregatorInterface != nil {
 		a.Jobs.ElasticsearchAggregator = jobsElasticsearchAggregatorInterface(a)

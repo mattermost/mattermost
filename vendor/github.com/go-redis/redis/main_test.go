@@ -50,10 +50,6 @@ var cluster = &clusterScenario{
 	clients:   make(map[string]*redis.Client, 6),
 }
 
-func init() {
-	//redis.SetLogger(log.New(os.Stderr, "redis: ", log.LstdFlags|log.Lshortfile))
-}
-
 var _ = BeforeSuite(func() {
 	var err error
 

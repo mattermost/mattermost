@@ -127,7 +127,7 @@ func newMemberlist(conf *Config) (*Memberlist, error) {
 					return nt, nil
 				}
 				if strings.Contains(err.Error(), "address already in use") {
-					logger.Printf("[DEBUG] Got bind error: %v", err)
+					logger.Printf("[DEBUG] memberlist: Got bind error: %v", err)
 					continue
 				}
 			}
@@ -154,7 +154,7 @@ func newMemberlist(conf *Config) (*Memberlist, error) {
 			port := nt.GetAutoBindPort()
 			conf.BindPort = port
 			conf.AdvertisePort = port
-			logger.Printf("[DEBUG] Using dynamic bind port %d", port)
+			logger.Printf("[DEBUG] memberlist: Using dynamic bind port %d", port)
 		}
 		transport = nt
 	}

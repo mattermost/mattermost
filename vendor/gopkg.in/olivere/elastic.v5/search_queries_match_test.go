@@ -26,40 +26,6 @@ func TestMatchQuery(t *testing.T) {
 	}
 }
 
-func TestMatchPhraseQuery(t *testing.T) {
-	q := NewMatchPhraseQuery("message", "this is a test")
-	src, err := q.Source()
-	if err != nil {
-		t.Fatal(err)
-	}
-	data, err := json.Marshal(src)
-	if err != nil {
-		t.Fatalf("marshaling to JSON failed: %v", err)
-	}
-	got := string(data)
-	expected := `{"match":{"message":{"query":"this is a test","type":"phrase"}}}`
-	if got != expected {
-		t.Errorf("expected\n%s\n,got:\n%s", expected, got)
-	}
-}
-
-func TestMatchPhrasePrefixQuery(t *testing.T) {
-	q := NewMatchPhrasePrefixQuery("message", "this is a test")
-	src, err := q.Source()
-	if err != nil {
-		t.Fatal(err)
-	}
-	data, err := json.Marshal(src)
-	if err != nil {
-		t.Fatalf("marshaling to JSON failed: %v", err)
-	}
-	got := string(data)
-	expected := `{"match":{"message":{"query":"this is a test","type":"phrase_prefix"}}}`
-	if got != expected {
-		t.Errorf("expected\n%s\n,got:\n%s", expected, got)
-	}
-}
-
 func TestMatchQueryWithOptions(t *testing.T) {
 	q := NewMatchQuery("message", "this is a test").Analyzer("whitespace").Operator("or").Boost(2.5)
 	src, err := q.Source()

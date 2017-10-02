@@ -81,9 +81,9 @@ var codeTemplate = template.Must(template.New("spec").Parse(`package language
 
 func init() {
 {{range .PluralGroups}}
-	registerPluralSpec({{printf "%#v" .SplitLocales}}, &PluralSpec{
+	RegisterPluralSpec({{printf "%#v" .SplitLocales}}, &PluralSpec{
 		Plurals: newPluralSet({{range $i, $e := .PluralRules}}{{if $i}}, {{end}}{{$e.CountTitle}}{{end}}),
-		PluralFunc: func(ops *operands) Plural { {{range .PluralRules}}{{if .GoCondition}}
+		PluralFunc: func(ops *Operands) Plural { {{range .PluralRules}}{{if .GoCondition}}
 			// {{.Condition}}
 			if {{.GoCondition}} {
 				return {{.CountTitle}}

@@ -9,6 +9,7 @@ import (
 
 func TestGetClusterStatus(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
+	defer th.TearDown()
 
 	_, resp := th.Client.GetClusterStatus()
 	CheckForbiddenStatus(t, resp)

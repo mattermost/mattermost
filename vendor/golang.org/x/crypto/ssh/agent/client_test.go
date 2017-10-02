@@ -19,7 +19,7 @@ import (
 	"golang.org/x/crypto/ssh"
 )
 
-// startOpenSSHAgent executes ssh-agent, and returns a Agent interface to it.
+// startOpenSSHAgent executes ssh-agent, and returns an Agent interface to it.
 func startOpenSSHAgent(t *testing.T) (client Agent, socket string, cleanup func()) {
 	if testing.Short() {
 		// ssh-agent is not always available, and the key

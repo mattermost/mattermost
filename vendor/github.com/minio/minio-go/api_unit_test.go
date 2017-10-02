@@ -164,6 +164,50 @@ func TestGetReaderSize(t *testing.T) {
 	}
 }
 
+// Tests get region from host URL.
+func TestGetRegionFromURL(t *testing.T) {
+	testCases := []struct {
+		u              url.URL
+		expectedRegion string
+	}{
+		{
+			u:              url.URL{Host: "storage.googleapis.com"},
+			expectedRegion: "",
+		},
+		{
+			u:              url.URL{Host: "s3.cn-north-1.amazonaws.com.cn"},
+			expectedRegion: "cn-north-1",
+		},
+		{
+			u:              url.URL{Host: "s3-fips-us-gov-west-1.amazonaws.com"},
+			expectedRegion: "us-gov-west-1",
+		},
+		{
+			u:              url.URL{Host: "s3-us-gov-west-1.amazonaws.com"},
+			expectedRegion: "us-gov-west-1",
+		},
+		{
+			u:              url.URL{Host: "192.168.1.1"},
+			expectedRegion: "",
+		},
+		{
+			u:              url.URL{Host: "s3-eu-west-1.amazonaws.com"},
+			expectedRegion: "eu-west-1",
+		},
+		{
+			u:              url.URL{Host: "s3.amazonaws.com"},
+			expectedRegion: "",
+		},
+	}
+
+	for i, testCase := range testCases {
+		region := getRegionFromURL(testCase.u)
+		if testCase.expectedRegion != region {
+			t.Errorf("Test %d: Expected region %s, got %s", i+1, testCase.expectedRegion, region)
+		}
+	}
+}
+
 // Tests valid hosts for location.
 func TestValidBucketLocation(t *testing.T) {
 	s3Hosts := []struct {

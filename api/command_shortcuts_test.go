@@ -9,5 +9,7 @@ import (
 
 func TestShortcutsCommand(t *testing.T) {
 	th := Setup().InitBasic()
+	defer th.TearDown()
+
 	th.BasicClient.Must(th.BasicClient.Command(th.BasicChannel.Id, "/shortcuts"))
 }

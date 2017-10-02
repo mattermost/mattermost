@@ -11,6 +11,8 @@ import (
 
 func TestGetLicenceConfig(t *testing.T) {
 	th := Setup().InitBasic()
+	defer th.TearDown()
+
 	Client := th.BasicClient
 
 	if result, err := Client.GetClientLicenceConfig(""); err != nil {
