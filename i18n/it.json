@@ -3597,7 +3597,7 @@
   },
   {
     "id": "cli.license.critical",
-    "translation": "La funzionalità richiede una licenza enterprise. Contattare l'amministratore di sistema chiedendo di aggiornare la licenza enterprise."
+    "translation": "Questa opzione richiede una licenza Enterprise Edition valida. Per favore contatta il tuo Amministratore di Sistema."
   },
   {
     "id": "ent.brand.save_brand_image.decode.app_error",
@@ -3686,6 +3686,10 @@
   {
     "id": "ent.compliance.run_started.info",
     "translation": "Esportazione di conformita fallita per l'attività '{{.JobName}}' in '{{.FilePath}}'"
+  },
+  {
+    "id": "ent.data_retention.generic.license.error",
+    "translation": "License does not support Data Retention."
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.create_index_job.error",
@@ -3841,11 +3845,11 @@
   },
   {
     "id": "ent.ldap.sync.index_job_failed.error",
-    "translation": "LDAP sync worker failed due to the sync job failing"
+    "translation": "Il lavoro di sincronizzazione LDAP è fallito"
   },
   {
     "id": "ent.ldap.sync_worker.create_index_job.error",
-    "translation": "LDAP sync worker failed to create the sync job"
+    "translation": "Impossibile creare il lavoro di sincronizzazione LDAP"
   },
   {
     "id": "ent.ldap.syncdone.info",
@@ -4369,15 +4373,15 @@
   },
   {
     "id": "model.config.is_valid.data_retention.deletion_job_start_time.app_error",
-    "translation": "Storico dati il parametro DeletionJobStartTime deve essere in formato \"hh:mm\""
+    "translation": "L'ora di inizio del lavora di ritenzione dei dati deve essere un'ora valida in formato HH:MM."
   },
   {
     "id": "model.config.is_valid.data_retention.file_retention_days_too_low.app_error",
-    "translation": "Storico dati il parametro FileRetentionDays deve essere maggiore o uguale a 1"
+    "translation": "Il tempo di ritenzione del file deve essere di almeno un giorno."
   },
   {
     "id": "model.config.is_valid.data_retention.message_retention_days_too_low.app_error",
-    "translation": "Storico dati Il parametro MessageRetentionDays deve essere maggiore o uguale a 1"
+    "translation": "Il tempo di ritenzione del messaggio deve essere di almeno un giorno."
   },
   {
     "id": "model.config.is_valid.elastic_search.aggregate_posts_after_days.app_error",
@@ -5672,6 +5676,14 @@
     "translation": "Impossibile recuperare i lavori"
   },
   {
+    "id": "store.sql_job.get_count_by_status_and_type.app_erro",
+    "translation": "Impossibile recuperare il numero di lavori per stato e tipo"
+  },
+  {
+    "id": "store.sql_job.get_newest_job_by_status_and_type.app_error",
+    "translation": "Impossibile recuperare il nuovo lavoro per stato e tipo"
+  },
+  {
     "id": "store.sql_job.save.app_error",
     "translation": "Impossibile salvare il lavoro"
   },
@@ -6573,15 +6585,15 @@
   },
   {
     "id": "utils.file.list_directory.configured.app_error",
-    "translation": "File storage not configured properly. Please configure for either S3 or local server file storage."
+    "translation": "Spazio di archiviazione non configurato correttamente. Configura S3 o il server locale."
   },
   {
     "id": "utils.file.list_directory.local.app_error",
-    "translation": "Encountered an error listing directory from local server file storage."
+    "translation": "Si è verificato un errore elencando la cartella dal server locale."
   },
   {
     "id": "utils.file.list_directory.s3.app_error",
-    "translation": "Encountered an error listing directory from S3."
+    "translation": "Si è verificato un errore elencando la cartella da S3."
   },
   {
     "id": "utils.file.remove_directory.configured.app_error",

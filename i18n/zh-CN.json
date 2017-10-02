@@ -3597,7 +3597,7 @@
   },
   {
     "id": "cli.license.critical",
-    "translation": "此功能需要企业授权。请联系您的系统管理员关于升级您的企业许可证。"
+    "translation": "Feature requires an upgrade to Enterprise Edition and the inclusion of a license key. Please contact your System Administrator."
   },
   {
     "id": "ent.brand.save_brand_image.decode.app_error",
@@ -3688,6 +3688,10 @@
     "translation": "导出审核自'{{.FilePath}}'的'{{.JobName}}'任务开始"
   },
   {
+    "id": "ent.data_retention.generic.license.error",
+    "translation": "License does not support Data Retention."
+  },
+  {
     "id": "ent.elasticsearch.aggregator_worker.create_index_job.error",
     "translation": "Elasticsearch 聚合器工作者创建索引任务失败"
   },
@@ -3725,7 +3729,7 @@
   },
   {
     "id": "ent.elasticsearch.data_retention_delete_indexes.get_indexes.error",
-    "translation": "创建 ElasticSearch 索引失败"
+    "translation": "获取 ElasticSearch 索引失败"
   },
   {
     "id": "ent.elasticsearch.delete_post.error",
@@ -4369,15 +4373,15 @@
   },
   {
     "id": "model.config.is_valid.data_retention.deletion_job_start_time.app_error",
-    "translation": "DataRetention DeletionJobStartTime 时间设定格式必须为 \"hh:mm\""
+    "translation": "Data retention job start time must be a 24-hour time stamp in the form HH:MM."
   },
   {
     "id": "model.config.is_valid.data_retention.file_retention_days_too_low.app_error",
-    "translation": "DataRetention FileRetentionDays 设定必须至少为 1"
+    "translation": "File retention must be one day or longer."
   },
   {
     "id": "model.config.is_valid.data_retention.message_retention_days_too_low.app_error",
-    "translation": "DataRetention MessageRetentionDays 设定必须至少为 1"
+    "translation": "Message retention must be one day or longer."
   },
   {
     "id": "model.config.is_valid.elastic_search.aggregate_posts_after_days.app_error",
@@ -5672,6 +5676,14 @@
     "translation": "我们无法获取任务"
   },
   {
+    "id": "store.sql_job.get_count_by_status_and_type.app_erro",
+    "translation": "We couldn't get the job count by status and type"
+  },
+  {
+    "id": "store.sql_job.get_newest_job_by_status_and_type.app_error",
+    "translation": "We couldn't get the newest job by status and type"
+  },
+  {
     "id": "store.sql_job.save.app_error",
     "translation": "我们无法保存任务"
   },
@@ -6573,15 +6585,15 @@
   },
   {
     "id": "utils.file.list_directory.configured.app_error",
-    "translation": "File storage not configured properly. Please configure for either S3 or local server file storage."
+    "translation": "文件存储没有正确配置。请配置 S3 或本地文件存储服务。"
   },
   {
     "id": "utils.file.list_directory.local.app_error",
-    "translation": "Encountered an error listing directory from local server file storage."
+    "translation": "从本地存储列出目录时遇到错误。"
   },
   {
     "id": "utils.file.list_directory.s3.app_error",
-    "translation": "Encountered an error listing directory from S3."
+    "translation": "从 S3 列出目录时遇到错误。"
   },
   {
     "id": "utils.file.remove_directory.configured.app_error",

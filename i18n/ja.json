@@ -3597,7 +3597,7 @@
   },
   {
     "id": "cli.license.critical",
-    "translation": "機能にはエンタープライズライセンスが必要です。システム管理者にエンタープライズライセンスをアップグレードするように連絡してください。"
+    "translation": "この機能はEnterprise Editionへのアップグレードとライセンスキーを要求しています。システム管理者に連絡してください。"
   },
   {
     "id": "ent.brand.save_brand_image.decode.app_error",
@@ -3686,6 +3686,10 @@
   {
     "id": "ent.compliance.run_started.info",
     "translation": "コンプライアンスエクスポートが開始されました ジョブ='{{.JobName}}'、ファイル='{{.FilePath}}'"
+  },
+  {
+    "id": "ent.data_retention.generic.license.error",
+    "translation": "License does not support Data Retention."
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.create_index_job.error",
@@ -3841,11 +3845,11 @@
   },
   {
     "id": "ent.ldap.sync.index_job_failed.error",
-    "translation": "LDAP sync worker failed due to the sync job failing"
+    "translation": "同期ジョブが失敗したためにLDAP同期ワーカーが失敗しました"
   },
   {
     "id": "ent.ldap.sync_worker.create_index_job.error",
-    "translation": "LDAP sync worker failed to create the sync job"
+    "translation": "LDAP同期ワーカーが同期ジョブを作成できませんでした"
   },
   {
     "id": "ent.ldap.syncdone.info",
@@ -4369,15 +4373,15 @@
   },
   {
     "id": "model.config.is_valid.data_retention.deletion_job_start_time.app_error",
-    "translation": "データ保持に関するDeletionJobStartTime設定には \"hh:mm\" の形式の時間を設定してください"
+    "translation": "データ保持ジョブの開始時間は HH:MM 形式の24時間表示でなくてはなりません。"
   },
   {
     "id": "model.config.is_valid.data_retention.file_retention_days_too_low.app_error",
-    "translation": "データ保持に関するFileRetentionDays設定は1以上にしてください"
+    "translation": "ファイル保持期間は１日以上でなくてはなりません。"
   },
   {
     "id": "model.config.is_valid.data_retention.message_retention_days_too_low.app_error",
-    "translation": "データ保持に関するMessageRetentionDays設定は1以上にしてください"
+    "translation": "メッセージ保持期間は１日以上でなくてはなりません。"
   },
   {
     "id": "model.config.is_valid.elastic_search.aggregate_posts_after_days.app_error",
@@ -5672,6 +5676,14 @@
     "translation": "ジョブを取得できませんでした"
   },
   {
+    "id": "store.sql_job.get_count_by_status_and_type.app_erro",
+    "translation": "状態と種類からジョブ数を取得することができませんでした"
+  },
+  {
+    "id": "store.sql_job.get_newest_job_by_status_and_type.app_error",
+    "translation": "状態と種類から最新のジョブを取得することができませんでした"
+  },
+  {
     "id": "store.sql_job.save.app_error",
     "translation": "ジョブを保存できませんでした"
   },
@@ -6573,15 +6585,15 @@
   },
   {
     "id": "utils.file.list_directory.configured.app_error",
-    "translation": "File storage not configured properly. Please configure for either S3 or local server file storage."
+    "translation": "ファイルストレージが正しく設定されていません。S3またはローカルサーバーファイルストレージを設定してください。"
   },
   {
     "id": "utils.file.list_directory.local.app_error",
-    "translation": "Encountered an error listing directory from local server file storage."
+    "translation": "ローカルサーバーストレージのディレクトリ一覧表示に失敗しました。"
   },
   {
     "id": "utils.file.list_directory.s3.app_error",
-    "translation": "Encountered an error listing directory from S3."
+    "translation": "S3のディレクトリ一覧表示に失敗しました。"
   },
   {
     "id": "utils.file.remove_directory.configured.app_error",
