@@ -9,7 +9,7 @@ import (
 
 func TestDataRetentionGetPolicy(t *testing.T) {
 	th := Setup().InitBasic()
-	defer TearDown()
+	defer th.TearDown()
 
 	_, resp := th.Client.GetDataRetentionPolicy()
 	CheckNotImplementedStatus(t, resp)
