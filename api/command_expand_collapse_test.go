@@ -12,6 +12,8 @@ import (
 
 func TestExpandCommand(t *testing.T) {
 	th := Setup().InitBasic()
+	defer th.TearDown()
+
 	Client := th.BasicClient
 	channel := th.BasicChannel
 
@@ -30,6 +32,8 @@ func TestExpandCommand(t *testing.T) {
 
 func TestCollapseCommand(t *testing.T) {
 	th := Setup().InitBasic()
+	defer th.TearDown()
+
 	Client := th.BasicClient
 	channel := th.BasicChannel
 

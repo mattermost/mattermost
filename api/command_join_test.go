@@ -13,6 +13,8 @@ import (
 // also used to test /open (see command_open_test.go)
 func testJoinCommands(t *testing.T, alias string) {
 	th := Setup().InitBasic()
+	defer th.TearDown()
+
 	Client := th.BasicClient
 	team := th.BasicTeam
 	user2 := th.BasicUser2

@@ -22,20 +22,22 @@ import (
 )
 
 func TestCreatePost(t *testing.T) {
-	adm := Setup().InitSystemAdmin()
-	AdminClient := adm.SystemAdminClient
-	adminTeam := adm.SystemAdminTeam
-	adminUser := adm.CreateUser(adm.SystemAdminClient)
-	LinkUserToTeam(adminUser, adminTeam)
-
 	th := Setup().InitBasic()
+	defer th.TearDown()
+
 	Client := th.BasicClient
 	team := th.BasicTeam
 	team2 := th.CreateTeam(th.BasicClient)
 	user3 := th.CreateUser(th.BasicClient)
-	LinkUserToTeam(user3, team2)
+	th.LinkUserToTeam(user3, team2)
 	channel1 := th.BasicChannel
 	channel2 := th.CreateChannel(Client, team)
+
+	th.InitSystemAdmin()
+	AdminClient := th.SystemAdminClient
+	adminTeam := th.SystemAdminTeam
+	adminUser := th.CreateUser(th.SystemAdminClient)
+	th.LinkUserToTeam(adminUser, adminTeam)
 
 	post1 := &model.Post{ChannelId: channel1.Id, Message: "#hashtag a" + model.NewId() + "a"}
 	rpost1, err := Client.CreatePost(post1)
@@ -142,7 +144,7 @@ func TestCreatePost(t *testing.T) {
 	} else if rpost9 := resp.Data.(*model.Post); len(rpost9.FileIds) != 3 {
 		t.Fatal("post should have 3 files")
 	} else {
-		infos := store.Must(adm.App.Srv.Store.FileInfo().GetForPost(rpost9.Id, true, true)).([]*model.FileInfo)
+		infos := store.Must(th.App.Srv.Store.FileInfo().GetForPost(rpost9.Id, true, true)).([]*model.FileInfo)
 
 		if len(infos) != 3 {
 			t.Fatal("should've attached all 3 files to post")
@@ -164,7 +166,7 @@ func TestCreatePost(t *testing.T) {
 	utils.SetLicense(&model.License{Features: &model.Features{}})
 	utils.License().Features.SetDefaults()
 
-	defaultChannel := store.Must(adm.App.Srv.Store.Channel().GetByName(team.Id, model.DEFAULT_CHANNEL, true)).(*model.Channel)
+	defaultChannel := store.Must(th.App.Srv.Store.Channel().GetByName(team.Id, model.DEFAULT_CHANNEL, true)).(*model.Channel)
 	defaultPost := &model.Post{
 		ChannelId: defaultChannel.Id,
 		Message:   "Default Channel Post",
@@ -173,7 +175,7 @@ func TestCreatePost(t *testing.T) {
 		t.Fatal("should have failed -- ExperimentalTownSquareIsReadOnly is true and it's a read only channel")
 	}
 
-	adminDefaultChannel := store.Must(adm.App.Srv.Store.Channel().GetByName(adminTeam.Id, model.DEFAULT_CHANNEL, true)).(*model.Channel)
+	adminDefaultChannel := store.Must(th.App.Srv.Store.Channel().GetByName(adminTeam.Id, model.DEFAULT_CHANNEL, true)).(*model.Channel)
 	adminDefaultPost := &model.Post{
 		ChannelId: adminDefaultChannel.Id,
 		Message:   "Admin Default Channel Post",
@@ -188,6 +190,8 @@ func TestCreatePostWithCreateAt(t *testing.T) {
 	// An ordinary user cannot use CreateAt
 
 	th := Setup().InitBasic()
+	defer th.TearDown()
+
 	Client := th.BasicClient
 	channel1 := th.BasicChannel
 
@@ -204,8 +208,8 @@ func TestCreatePostWithCreateAt(t *testing.T) {
 
 	// But a System Admin user can
 
-	th2 := Setup().InitSystemAdmin()
-	SysClient := th2.SystemAdminClient
+	th.InitSystemAdmin()
+	SysClient := th.SystemAdminClient
 
 	if resp, err := SysClient.CreatePost(post); err != nil {
 		t.Fatal(err)
@@ -221,6 +225,8 @@ func testCreatePostWithOutgoingHook(
 	triggerWhen int,
 ) {
 	th := Setup().InitSystemAdmin()
+	defer th.TearDown()
+
 	Client := th.SystemAdminClient
 	team := th.SystemAdminTeam
 	user := th.SystemAdminUser
@@ -382,6 +388,8 @@ func TestCreatePostWithOutgoingHook_no_content_type(t *testing.T) {
 
 func TestUpdatePost(t *testing.T) {
 	th := Setup().InitBasic()
+	defer th.TearDown()
+
 	Client := th.BasicClient
 	channel1 := th.BasicChannel
 
@@ -510,6 +518,8 @@ func TestUpdatePost(t *testing.T) {
 
 func TestGetPosts(t *testing.T) {
 	th := Setup().InitBasic()
+	defer th.TearDown()
+
 	Client := th.BasicClient
 	channel1 := th.BasicChannel
 
@@ -565,6 +575,8 @@ func TestGetPosts(t *testing.T) {
 
 func TestGetPostsSince(t *testing.T) {
 	th := Setup().InitBasic()
+	defer th.TearDown()
+
 	Client := th.BasicClient
 	channel1 := th.BasicChannel
 
@@ -625,6 +637,8 @@ func TestGetPostsSince(t *testing.T) {
 
 func TestGetPostsBeforeAfter(t *testing.T) {
 	th := Setup().InitBasic()
+	defer th.TearDown()
+
 	Client := th.BasicClient
 	channel1 := th.BasicChannel
 
@@ -693,6 +707,8 @@ func TestGetPostsBeforeAfter(t *testing.T) {
 
 func TestSearchPosts(t *testing.T) {
 	th := Setup().InitBasic()
+	defer th.TearDown()
+
 	Client := th.BasicClient
 	channel1 := th.BasicChannel
 
@@ -739,6 +755,8 @@ func TestSearchPosts(t *testing.T) {
 
 func TestSearchHashtagPosts(t *testing.T) {
 	th := Setup().InitBasic()
+	defer th.TearDown()
+
 	Client := th.BasicClient
 	channel1 := th.BasicChannel
 
@@ -760,6 +778,8 @@ func TestSearchHashtagPosts(t *testing.T) {
 
 func TestSearchPostsInChannel(t *testing.T) {
 	th := Setup().InitBasic()
+	defer th.TearDown()
+
 	Client := th.BasicClient
 	channel1 := th.BasicChannel
 	team := th.BasicTeam
@@ -829,6 +849,8 @@ func TestSearchPostsInChannel(t *testing.T) {
 
 func TestSearchPostsFromUser(t *testing.T) {
 	th := Setup().InitBasic()
+	defer th.TearDown()
+
 	Client := th.BasicClient
 	channel1 := th.BasicChannel
 	team := th.BasicTeam
@@ -838,7 +860,7 @@ func TestSearchPostsFromUser(t *testing.T) {
 	Client.Must(Client.AddChannelMember(channel1.Id, th.BasicUser2.Id))
 	Client.Must(Client.AddChannelMember(channel2.Id, th.BasicUser2.Id))
 	user3 := th.CreateUser(Client)
-	LinkUserToTeam(user3, team)
+	th.LinkUserToTeam(user3, team)
 	Client.Must(Client.AddChannelMember(channel1.Id, user3.Id))
 	Client.Must(Client.AddChannelMember(channel2.Id, user3.Id))
 
@@ -896,6 +918,8 @@ func TestSearchPostsFromUser(t *testing.T) {
 
 func TestGetPostsCache(t *testing.T) {
 	th := Setup().InitBasic()
+	defer th.TearDown()
+
 	Client := th.BasicClient
 	channel1 := th.BasicChannel
 
@@ -935,6 +959,8 @@ func TestGetPostsCache(t *testing.T) {
 
 func TestDeletePosts(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
+	defer th.TearDown()
+
 	Client := th.BasicClient
 	channel1 := th.BasicChannel
 	team1 := th.BasicTeam
@@ -989,7 +1015,7 @@ func TestDeletePosts(t *testing.T) {
 	post4b = Client.Must(Client.CreatePost(post4b)).Data.(*model.Post)
 
 	SystemAdminClient := th.SystemAdminClient
-	LinkUserToTeam(th.SystemAdminUser, th.BasicTeam)
+	th.LinkUserToTeam(th.SystemAdminUser, th.BasicTeam)
 	SystemAdminClient.Must(SystemAdminClient.JoinChannel(channel1.Id))
 
 	th.LoginBasic2()
@@ -1010,7 +1036,7 @@ func TestDeletePosts(t *testing.T) {
 	utils.SetLicense(&model.License{Features: &model.Features{}})
 	utils.License().Features.SetDefaults()
 
-	UpdateUserToTeamAdmin(th.BasicUser2, th.BasicTeam)
+	th.UpdateUserToTeamAdmin(th.BasicUser2, th.BasicTeam)
 
 	Client.Logout()
 	th.LoginBasic2()
@@ -1081,6 +1107,8 @@ func TestDeletePosts(t *testing.T) {
 
 func TestEmailMention(t *testing.T) {
 	th := Setup().InitBasic()
+	defer th.TearDown()
+
 	Client := th.BasicClient
 	channel1 := th.BasicChannel
 	Client.Must(Client.AddChannelMember(channel1.Id, th.BasicUser2.Id))
@@ -1143,6 +1171,8 @@ func TestEmailMention(t *testing.T) {
 
 func TestFuzzyPosts(t *testing.T) {
 	th := Setup().InitBasic()
+	defer th.TearDown()
+
 	Client := th.BasicClient
 	channel1 := th.BasicChannel
 
@@ -1158,6 +1188,8 @@ func TestFuzzyPosts(t *testing.T) {
 
 func TestGetFlaggedPosts(t *testing.T) {
 	th := Setup().InitBasic()
+	defer th.TearDown()
+
 	Client := th.BasicClient
 	user1 := th.BasicUser
 	post1 := th.BasicPost
@@ -1198,6 +1230,7 @@ func TestGetFlaggedPosts(t *testing.T) {
 
 func TestGetMessageForNotification(t *testing.T) {
 	th := Setup().InitBasic()
+	defer th.TearDown()
 
 	testPng := store.Must(th.App.Srv.Store.FileInfo().Save(&model.FileInfo{
 		CreatorId: model.NewId(),
@@ -1273,6 +1306,8 @@ func TestGetMessageForNotification(t *testing.T) {
 
 func TestGetFileInfosForPost(t *testing.T) {
 	th := Setup().InitBasic()
+	defer th.TearDown()
+
 	Client := th.BasicClient
 	channel1 := th.BasicChannel
 
@@ -1311,6 +1346,8 @@ func TestGetFileInfosForPost(t *testing.T) {
 
 func TestGetPostById(t *testing.T) {
 	th := Setup().InitBasic()
+	defer th.TearDown()
+
 	Client := th.BasicClient
 	channel1 := th.BasicChannel
 
@@ -1341,6 +1378,8 @@ func TestGetPostById(t *testing.T) {
 
 func TestGetPermalinkTmp(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
+	defer th.TearDown()
+
 	Client := th.BasicClient
 	channel1 := th.BasicChannel
 	team := th.BasicTeam
@@ -1408,6 +1447,8 @@ func TestGetPermalinkTmp(t *testing.T) {
 
 func TestGetOpenGraphMetadata(t *testing.T) {
 	th := Setup().InitBasic()
+	defer th.TearDown()
+
 	Client := th.BasicClient
 
 	enableLinkPreviews := *utils.Cfg.ServiceSettings.EnableLinkPreviews
@@ -1476,6 +1517,8 @@ func TestGetOpenGraphMetadata(t *testing.T) {
 
 func TestPinPost(t *testing.T) {
 	th := Setup().InitBasic()
+	defer th.TearDown()
+
 	Client := th.BasicClient
 
 	post := th.BasicPost
@@ -1499,6 +1542,8 @@ func TestPinPost(t *testing.T) {
 
 func TestUnpinPost(t *testing.T) {
 	th := Setup().InitBasic()
+	defer th.TearDown()
+
 	Client := th.BasicClient
 
 	pinnedPost := th.PinnedPost

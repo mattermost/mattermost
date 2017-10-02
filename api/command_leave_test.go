@@ -12,6 +12,8 @@ import (
 
 func TestLeaveCommands(t *testing.T) {
 	th := Setup().InitBasic()
+	defer th.TearDown()
+
 	Client := th.BasicClient
 	team := th.BasicTeam
 	user2 := th.BasicUser2

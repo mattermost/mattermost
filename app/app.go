@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"sync"
+	"time"
 
 	"github.com/mattermost/mattermost-server/einterfaces"
 	ejobs "github.com/mattermost/mattermost-server/einterfaces/jobs"
@@ -44,13 +45,44 @@ var globalApp App = App{
 	Jobs: &jobs.JobServer{},
 }
 
+var appCount = 0
 var initEnterprise sync.Once
 
-func Global() *App {
+var UseGlobalApp = true
+
+// New creates a new App. You must call Shutdown when you're done with it.
+// XXX: Doesn't necessarily create a new App yet.
+func New() *App {
+	appCount++
+
+	if !UseGlobalApp {
+		if appCount > 1 {
+			panic("Only one App should exist at a time. Did you forget to call Shutdown()?")
+		}
+		app := &App{
+			Jobs: &jobs.JobServer{},
+		}
+		app.initEnterprise()
+		return app
+	}
+
 	initEnterprise.Do(func() {
 		globalApp.initEnterprise()
 	})
 	return &globalApp
+}
+
+func (a *App) Shutdown() {
+	appCount--
+	if appCount == 0 {
+		// XXX: This is to give all of our runaway goroutines time to complete.
+		//      We should wrangle them up and remove this.
+		time.Sleep(time.Second)
+
+		if a.Srv != nil {
+			a.StopServer()
+		}
+	}
 }
 
 var accountMigrationInterface func(*App) einterfaces.AccountMigrationInterface

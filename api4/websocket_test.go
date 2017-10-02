@@ -12,7 +12,7 @@ import (
 
 func TestWebSocket(t *testing.T) {
 	th := Setup().InitBasic()
-	defer TearDown()
+	defer th.TearDown()
 	WebSocketClient, err := th.CreateWebSocketClient()
 	if err != nil {
 		t.Fatal(err)
@@ -70,13 +70,4 @@ func TestWebSocket(t *testing.T) {
 			t.Fatal("detailed error not cleared")
 		}
 	}
-}
-
-func TestZZWebSocketTearDown(t *testing.T) {
-	// *IMPORTANT* - Kind of hacky
-	// This should be the last function in any test file
-	// that calls Setup()
-	// Should be in the last file too sorted by name
-	time.Sleep(2 * time.Second)
-	StopServer()
 }

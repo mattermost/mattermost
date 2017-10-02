@@ -14,6 +14,8 @@ import (
 
 func TestCreateIncomingHook(t *testing.T) {
 	th := Setup().InitSystemAdmin()
+	defer th.TearDown()
+
 	Client := th.SystemAdminClient
 	user := th.SystemAdminUser
 	team := th.SystemAdminTeam
@@ -21,7 +23,7 @@ func TestCreateIncomingHook(t *testing.T) {
 	channel2 := th.CreatePrivateChannel(Client, team)
 	channel3 := th.CreateChannel(Client, team)
 	user2 := th.CreateUser(Client)
-	LinkUserToTeam(user2, team)
+	th.LinkUserToTeam(user2, team)
 
 	enableIncomingHooks := utils.Cfg.ServiceSettings.EnableIncomingWebhooks
 	enableAdminOnlyHooks := utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations
@@ -90,7 +92,7 @@ func TestCreateIncomingHook(t *testing.T) {
 	}
 
 	Client.Logout()
-	UpdateUserToTeamAdmin(user2, team)
+	th.UpdateUserToTeamAdmin(user2, team)
 	Client.Must(Client.LoginById(user2.Id, user2.Password))
 	Client.SetTeamId(team.Id)
 
@@ -120,6 +122,8 @@ func TestCreateIncomingHook(t *testing.T) {
 
 func TestUpdateIncomingHook(t *testing.T) {
 	th := Setup().InitSystemAdmin()
+	defer th.TearDown()
+
 	Client := th.SystemAdminClient
 	team := th.SystemAdminTeam
 
@@ -128,12 +132,12 @@ func TestUpdateIncomingHook(t *testing.T) {
 	channel3 := th.CreateChannel(Client, team)
 
 	user2 := th.CreateUser(Client)
-	LinkUserToTeam(user2, team)
+	th.LinkUserToTeam(user2, team)
 
 	team2 := th.CreateTeam(Client)
 	user3 := th.CreateUser(Client)
-	LinkUserToTeam(user3, team2)
-	UpdateUserToTeamAdmin(user3, team2)
+	th.LinkUserToTeam(user3, team2)
+	th.UpdateUserToTeamAdmin(user3, team2)
 
 	enableIncomingHooks := utils.Cfg.ServiceSettings.EnableIncomingWebhooks
 	enableAdminOnlyHooks := utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations
@@ -255,7 +259,7 @@ func TestUpdateIncomingHook(t *testing.T) {
 	utils.SetDefaultRolesBasedOnConfig()
 
 	Client.Logout()
-	UpdateUserToTeamAdmin(user2, team)
+	th.UpdateUserToTeamAdmin(user2, team)
 	Client.Must(Client.LoginById(user2.Id, user2.Password))
 	Client.SetTeamId(team.Id)
 	t.Run("UpdateByDifferentUser", func(t *testing.T) {
@@ -326,11 +330,13 @@ func createOutgoingWebhook(channelID string, callbackURLs []string, triggerWords
 
 func TestListIncomingHooks(t *testing.T) {
 	th := Setup().InitSystemAdmin()
+	defer th.TearDown()
+
 	Client := th.SystemAdminClient
 	team := th.SystemAdminTeam
 	channel1 := th.CreateChannel(Client, team)
 	user2 := th.CreateUser(Client)
-	LinkUserToTeam(user2, team)
+	th.LinkUserToTeam(user2, team)
 
 	enableIncomingHooks := utils.Cfg.ServiceSettings.EnableIncomingWebhooks
 	enableAdminOnlyHooks := utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations
@@ -383,11 +389,13 @@ func TestListIncomingHooks(t *testing.T) {
 
 func TestDeleteIncomingHook(t *testing.T) {
 	th := Setup().InitSystemAdmin()
+	defer th.TearDown()
+
 	Client := th.SystemAdminClient
 	team := th.SystemAdminTeam
 	channel1 := th.CreateChannel(Client, team)
 	user2 := th.CreateUser(Client)
-	LinkUserToTeam(user2, team)
+	th.LinkUserToTeam(user2, team)
 
 	enableIncomingHooks := utils.Cfg.ServiceSettings.EnableIncomingWebhooks
 	enableAdminOnlyHooks := utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations
@@ -454,6 +462,8 @@ func TestDeleteIncomingHook(t *testing.T) {
 
 func TestCreateOutgoingHook(t *testing.T) {
 	th := Setup().InitSystemAdmin()
+	defer th.TearDown()
+
 	Client := th.SystemAdminClient
 	user := th.SystemAdminUser
 	team := th.SystemAdminTeam
@@ -461,9 +471,9 @@ func TestCreateOutgoingHook(t *testing.T) {
 	channel1 := th.CreateChannel(Client, team)
 	channel2 := th.CreatePrivateChannel(Client, team)
 	user2 := th.CreateUser(Client)
-	LinkUserToTeam(user2, team)
+	th.LinkUserToTeam(user2, team)
 	user3 := th.CreateUser(Client)
-	LinkUserToTeam(user3, team2)
+	th.LinkUserToTeam(user3, team2)
 
 	enableOutgoingHooks := utils.Cfg.ServiceSettings.EnableOutgoingWebhooks
 	enableAdminOnlyHooks := utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations
@@ -568,11 +578,13 @@ func TestCreateOutgoingHook(t *testing.T) {
 
 func TestListOutgoingHooks(t *testing.T) {
 	th := Setup().InitSystemAdmin()
+	defer th.TearDown()
+
 	Client := th.SystemAdminClient
 	team := th.SystemAdminTeam
 	channel1 := th.CreateChannel(Client, team)
 	user2 := th.CreateUser(Client)
-	LinkUserToTeam(user2, team)
+	th.LinkUserToTeam(user2, team)
 
 	enableOutgoingHooks := utils.Cfg.ServiceSettings.EnableOutgoingWebhooks
 	enableAdminOnlyHooks := utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations
@@ -625,6 +637,8 @@ func TestListOutgoingHooks(t *testing.T) {
 
 func TestUpdateOutgoingHook(t *testing.T) {
 	th := Setup().InitSystemAdmin()
+	defer th.TearDown()
+
 	Client := th.SystemAdminClient
 	user := th.SystemAdminUser
 	team := th.SystemAdminTeam
@@ -633,9 +647,9 @@ func TestUpdateOutgoingHook(t *testing.T) {
 	channel2 := th.CreatePrivateChannel(Client, team)
 	channel3 := th.CreateChannel(Client, team)
 	user2 := th.CreateUser(Client)
-	LinkUserToTeam(user2, team)
+	th.LinkUserToTeam(user2, team)
 	user3 := th.CreateUser(Client)
-	LinkUserToTeam(user3, team2)
+	th.LinkUserToTeam(user3, team2)
 
 	enableOutgoingHooks := utils.Cfg.ServiceSettings.EnableOutgoingWebhooks
 	enableAdminOnlyHooks := utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations
@@ -732,8 +746,8 @@ func TestUpdateOutgoingHook(t *testing.T) {
 	utils.SetDefaultRolesBasedOnConfig()
 
 	Client.Logout()
-	LinkUserToTeam(user3, team)
-	UpdateUserToTeamAdmin(user3, team)
+	th.LinkUserToTeam(user3, team)
+	th.UpdateUserToTeamAdmin(user3, team)
 	Client.Must(Client.LoginById(user3.Id, user3.Password))
 	Client.SetTeamId(team.Id)
 	t.Run("RetainHookCreator", func(t *testing.T) {
@@ -807,11 +821,13 @@ func TestUpdateOutgoingHook(t *testing.T) {
 
 func TestDeleteOutgoingHook(t *testing.T) {
 	th := Setup().InitSystemAdmin()
+	defer th.TearDown()
+
 	Client := th.SystemAdminClient
 	team := th.SystemAdminTeam
 	channel1 := th.CreateChannel(Client, team)
 	user2 := th.CreateUser(Client)
-	LinkUserToTeam(user2, team)
+	th.LinkUserToTeam(user2, team)
 
 	enableOutgoingHooks := utils.Cfg.ServiceSettings.EnableOutgoingWebhooks
 	enableAdminOnlyHooks := utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations
@@ -878,14 +894,16 @@ func TestDeleteOutgoingHook(t *testing.T) {
 
 func TestRegenOutgoingHookToken(t *testing.T) {
 	th := Setup().InitSystemAdmin()
+	defer th.TearDown()
+
 	Client := th.SystemAdminClient
 	team := th.SystemAdminTeam
 	team2 := th.CreateTeam(Client)
 	channel1 := th.CreateChannel(Client, team)
 	user2 := th.CreateUser(Client)
-	LinkUserToTeam(user2, team)
+	th.LinkUserToTeam(user2, team)
 	user3 := th.CreateUser(Client)
-	LinkUserToTeam(user3, team2)
+	th.LinkUserToTeam(user3, team2)
 
 	enableOutgoingHooks := utils.Cfg.ServiceSettings.EnableOutgoingWebhooks
 	enableAdminOnlyHooks := utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations
@@ -957,11 +975,13 @@ func TestRegenOutgoingHookToken(t *testing.T) {
 
 func TestIncomingWebhooks(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
+	defer th.TearDown()
+
 	Client := th.SystemAdminClient
 	team := th.SystemAdminTeam
 	channel1 := th.CreateChannel(Client, team)
 	user2 := th.CreateUser(Client)
-	LinkUserToTeam(user2, team)
+	th.LinkUserToTeam(user2, team)
 
 	enableIncomingHooks := utils.Cfg.ServiceSettings.EnableIncomingWebhooks
 	defer func() {
