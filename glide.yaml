@@ -94,3 +94,7 @@ import:
 - package: gopkg.in/gomail.v2
   version: 2.0.0
 - package: github.com/mattermost/html2text
+- package: https://github.com/nightwatchjs/nightwatch
+  version: 0.9.16
+- package: https://github.com/vvo/selenium-standalone
+  version: 6.6.0
