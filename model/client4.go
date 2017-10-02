@@ -254,6 +254,10 @@ func (c *Client4) GetBrandRoute() string {
 	return fmt.Sprintf("/brand")
 }
 
+func (c *Client4) GetDataRetentionRoute() string {
+	return fmt.Sprintf("/data_retention")
+}
+
 func (c *Client4) GetElasticsearchRoute() string {
 	return fmt.Sprintf("/elasticsearch")
 }
@@ -2744,6 +2748,18 @@ func (c *Client4) PurgeElasticsearchIndexes() (bool, *Response) {
 	} else {
 		defer closeBody(r)
 		return CheckStatusOK(r), BuildResponse(r)
+	}
+}
+
+// Data Retention Section
+
+// GetDataRetentionPolicy will get the current server data retention policy details.
+func (c *Client4) GetDataRetentionPolicy() (*DataRetentionPolicy, *Response) {
+	if r, err := c.DoApiGet(c.GetDataRetentionRoute()+"/policy", ""); err != nil {
+		return nil, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return DataRetentionPolicyFromJson(r.Body), BuildResponse(r)
 	}
 }
 
