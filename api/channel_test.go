@@ -17,6 +17,8 @@ import (
 
 func TestCreateChannel(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
+	defer th.TearDown()
+
 	Client := th.BasicClient
 	SystemAdminClient := th.SystemAdminClient
 	team := th.BasicTeam
@@ -136,7 +138,7 @@ func TestCreateChannel(t *testing.T) {
 		t.Fatal("should have errored not team admin")
 	}
 
-	UpdateUserToTeamAdmin(th.BasicUser, team)
+	th.UpdateUserToTeamAdmin(th.BasicUser, team)
 	Client.Logout()
 	th.LoginBasic()
 	Client.SetTeamId(team.Id)
@@ -161,7 +163,7 @@ func TestCreateChannel(t *testing.T) {
 		t.Fatal("should have errored not system admin")
 	}
 
-	LinkUserToTeam(th.SystemAdminUser, team)
+	th.LinkUserToTeam(th.SystemAdminUser, team)
 
 	if _, err := SystemAdminClient.CreateChannel(channel2); err != nil {
 		t.Fatal(err)
@@ -191,6 +193,8 @@ func TestCreateChannel(t *testing.T) {
 
 func TestCreateDirectChannel(t *testing.T) {
 	th := Setup().InitBasic()
+	defer th.TearDown()
+
 	Client := th.BasicClient
 	user := th.BasicUser
 	user2 := th.BasicUser2
@@ -235,6 +239,8 @@ func TestCreateDirectChannel(t *testing.T) {
 
 func TestCreateGroupChannel(t *testing.T) {
 	th := Setup().InitBasic()
+	defer th.TearDown()
+
 	Client := th.BasicClient
 	user := th.BasicUser
 	user2 := th.BasicUser2
@@ -275,13 +281,15 @@ func TestCreateGroupChannel(t *testing.T) {
 
 func TestUpdateChannel(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
+	defer th.TearDown()
+
 	Client := th.SystemAdminClient
 	team := th.SystemAdminTeam
 	sysAdminUser := th.SystemAdminUser
 	user := th.CreateUser(Client)
-	LinkUserToTeam(user, team)
+	th.LinkUserToTeam(user, team)
 	user2 := th.CreateUser(Client)
-	LinkUserToTeam(user2, team)
+	th.LinkUserToTeam(user2, team)
 
 	Client.Login(user.Email, user.Password)
 
@@ -327,7 +335,7 @@ func TestUpdateChannel(t *testing.T) {
 	}
 
 	Client.Must(Client.JoinChannel(channel1.Id))
-	UpdateUserToTeamAdmin(user2, team)
+	th.UpdateUserToTeamAdmin(user2, team)
 
 	Client.Logout()
 	Client.Login(user2.Email, user2.Password)
@@ -338,7 +346,7 @@ func TestUpdateChannel(t *testing.T) {
 	}
 
 	Client.Login(sysAdminUser.Email, sysAdminUser.Password)
-	LinkUserToTeam(sysAdminUser, team)
+	th.LinkUserToTeam(sysAdminUser, team)
 	Client.Must(Client.JoinChannel(channel1.Id))
 
 	if _, err := Client.UpdateChannel(upChannel1); err != nil {
@@ -372,7 +380,7 @@ func TestUpdateChannel(t *testing.T) {
 	channel2 := th.CreateChannel(Client, team)
 	channel3 := th.CreatePrivateChannel(Client, team)
 
-	LinkUserToTeam(th.BasicUser, team)
+	th.LinkUserToTeam(th.BasicUser, team)
 
 	Client.Must(Client.AddChannelMember(channel2.Id, th.BasicUser.Id))
 	Client.Must(Client.AddChannelMember(channel3.Id, th.BasicUser.Id))
@@ -392,8 +400,8 @@ func TestUpdateChannel(t *testing.T) {
 	utils.SetLicense(&model.License{Features: &model.Features{}})
 	utils.License().Features.SetDefaults()
 	utils.SetDefaultRolesBasedOnConfig()
-	MakeUserChannelUser(th.BasicUser, channel2)
-	MakeUserChannelUser(th.BasicUser, channel3)
+	th.MakeUserChannelUser(th.BasicUser, channel2)
+	th.MakeUserChannelUser(th.BasicUser, channel3)
 	sqlstore.ClearChannelCaches()
 
 	if _, err := Client.UpdateChannel(channel2); err == nil {
@@ -403,7 +411,7 @@ func TestUpdateChannel(t *testing.T) {
 		t.Fatal("should have errored not channel admin")
 	}
 
-	UpdateUserToTeamAdmin(th.BasicUser, team)
+	th.UpdateUserToTeamAdmin(th.BasicUser, team)
 	th.App.InvalidateAllCaches()
 	if _, err := Client.UpdateChannel(channel2); err != nil {
 		t.Fatal(err)
@@ -411,11 +419,11 @@ func TestUpdateChannel(t *testing.T) {
 	if _, err := Client.UpdateChannel(channel3); err != nil {
 		t.Fatal(err)
 	}
-	UpdateUserToNonTeamAdmin(th.BasicUser, team)
+	th.UpdateUserToNonTeamAdmin(th.BasicUser, team)
 	th.App.InvalidateAllCaches()
 
-	MakeUserChannelAdmin(th.BasicUser, channel2)
-	MakeUserChannelAdmin(th.BasicUser, channel3)
+	th.MakeUserChannelAdmin(th.BasicUser, channel2)
+	th.MakeUserChannelAdmin(th.BasicUser, channel3)
 	sqlstore.ClearChannelCaches()
 
 	if _, err := Client.UpdateChannel(channel2); err != nil {
@@ -439,7 +447,7 @@ func TestUpdateChannel(t *testing.T) {
 		t.Fatal("should have errored not team admin")
 	}
 
-	UpdateUserToTeamAdmin(th.BasicUser, team)
+	th.UpdateUserToTeamAdmin(th.BasicUser, team)
 	Client.Logout()
 	Client.Login(th.BasicUser.Email, th.BasicUser.Password)
 	Client.SetTeamId(team.Id)
@@ -489,10 +497,12 @@ func TestUpdateChannel(t *testing.T) {
 
 func TestUpdateChannelDisplayName(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
+	defer th.TearDown()
+
 	Client := th.SystemAdminClient
 	team := th.SystemAdminTeam
 	user := th.CreateUser(Client)
-	LinkUserToTeam(user, team)
+	th.LinkUserToTeam(user, team)
 
 	Client.Login(user.Email, user.Password)
 
@@ -515,6 +525,8 @@ func TestUpdateChannelDisplayName(t *testing.T) {
 
 func TestUpdateChannelHeader(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
+	defer th.TearDown()
+
 	Client := th.BasicClient
 	SystemAdminClient := th.SystemAdminClient
 	team := th.BasicTeam
@@ -628,8 +640,8 @@ func TestUpdateChannelHeader(t *testing.T) {
 	*utils.Cfg.TeamSettings.RestrictPublicChannelManagement = model.PERMISSIONS_CHANNEL_ADMIN
 	*utils.Cfg.TeamSettings.RestrictPrivateChannelManagement = model.PERMISSIONS_CHANNEL_ADMIN
 	utils.SetDefaultRolesBasedOnConfig()
-	MakeUserChannelUser(th.BasicUser, channel2)
-	MakeUserChannelUser(th.BasicUser, channel3)
+	th.MakeUserChannelUser(th.BasicUser, channel2)
+	th.MakeUserChannelUser(th.BasicUser, channel3)
 	sqlstore.ClearChannelCaches()
 
 	if _, err := Client.UpdateChannelHeader(data2); err == nil {
@@ -639,8 +651,8 @@ func TestUpdateChannelHeader(t *testing.T) {
 		t.Fatal("should have errored not channel admin")
 	}
 
-	MakeUserChannelAdmin(th.BasicUser, channel2)
-	MakeUserChannelAdmin(th.BasicUser, channel3)
+	th.MakeUserChannelAdmin(th.BasicUser, channel2)
+	th.MakeUserChannelAdmin(th.BasicUser, channel3)
 	sqlstore.ClearChannelCaches()
 
 	if _, err := Client.UpdateChannelHeader(data2); err != nil {
@@ -661,7 +673,7 @@ func TestUpdateChannelHeader(t *testing.T) {
 		t.Fatal("should have errored not team admin")
 	}
 
-	UpdateUserToTeamAdmin(th.BasicUser, team)
+	th.UpdateUserToTeamAdmin(th.BasicUser, team)
 	Client.Logout()
 	th.LoginBasic()
 	Client.SetTeamId(team.Id)
@@ -684,7 +696,7 @@ func TestUpdateChannelHeader(t *testing.T) {
 		t.Fatal("should have errored not system admin")
 	}
 
-	LinkUserToTeam(th.SystemAdminUser, team)
+	th.LinkUserToTeam(th.SystemAdminUser, team)
 	Client.Must(Client.AddChannelMember(channel2.Id, th.SystemAdminUser.Id))
 	Client.Must(Client.AddChannelMember(channel3.Id, th.SystemAdminUser.Id))
 	th.LoginSystemAdmin()
@@ -711,6 +723,8 @@ func TestUpdateChannelHeader(t *testing.T) {
 
 func TestUpdateChannelPurpose(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
+	defer th.TearDown()
+
 	Client := th.BasicClient
 	SystemAdminClient := th.SystemAdminClient
 	team := th.BasicTeam
@@ -810,8 +824,8 @@ func TestUpdateChannelPurpose(t *testing.T) {
 	*utils.Cfg.TeamSettings.RestrictPublicChannelManagement = model.PERMISSIONS_CHANNEL_ADMIN
 	*utils.Cfg.TeamSettings.RestrictPrivateChannelManagement = model.PERMISSIONS_CHANNEL_ADMIN
 	utils.SetDefaultRolesBasedOnConfig()
-	MakeUserChannelUser(th.BasicUser, channel2)
-	MakeUserChannelUser(th.BasicUser, channel3)
+	th.MakeUserChannelUser(th.BasicUser, channel2)
+	th.MakeUserChannelUser(th.BasicUser, channel3)
 	sqlstore.ClearChannelCaches()
 
 	if _, err := Client.UpdateChannelPurpose(data2); err == nil {
@@ -821,8 +835,8 @@ func TestUpdateChannelPurpose(t *testing.T) {
 		t.Fatal("should have errored not channel admin")
 	}
 
-	MakeUserChannelAdmin(th.BasicUser, channel2)
-	MakeUserChannelAdmin(th.BasicUser, channel3)
+	th.MakeUserChannelAdmin(th.BasicUser, channel2)
+	th.MakeUserChannelAdmin(th.BasicUser, channel3)
 	sqlstore.ClearChannelCaches()
 
 	if _, err := Client.UpdateChannelPurpose(data2); err != nil {
@@ -843,7 +857,7 @@ func TestUpdateChannelPurpose(t *testing.T) {
 		t.Fatal("should have errored not team admin")
 	}
 
-	UpdateUserToTeamAdmin(th.BasicUser, team)
+	th.UpdateUserToTeamAdmin(th.BasicUser, team)
 	Client.Logout()
 	th.LoginBasic()
 	Client.SetTeamId(team.Id)
@@ -866,7 +880,7 @@ func TestUpdateChannelPurpose(t *testing.T) {
 		t.Fatal("should have errored not system admin")
 	}
 
-	LinkUserToTeam(th.SystemAdminUser, team)
+	th.LinkUserToTeam(th.SystemAdminUser, team)
 	Client.Must(Client.AddChannelMember(channel2.Id, th.SystemAdminUser.Id))
 	Client.Must(Client.AddChannelMember(channel3.Id, th.SystemAdminUser.Id))
 	th.LoginSystemAdmin()
@@ -892,6 +906,8 @@ func TestUpdateChannelPurpose(t *testing.T) {
 
 func TestGetChannel(t *testing.T) {
 	th := Setup().InitBasic()
+	defer th.TearDown()
+
 	Client := th.BasicClient
 	team := th.BasicTeam
 	team2 := th.CreateTeam(Client)
@@ -965,6 +981,8 @@ func TestGetChannel(t *testing.T) {
 
 func TestGetMoreChannelsPage(t *testing.T) {
 	th := Setup().InitBasic()
+	defer th.TearDown()
+
 	Client := th.BasicClient
 	team := th.BasicTeam
 
@@ -1034,6 +1052,8 @@ func TestGetMoreChannelsPage(t *testing.T) {
 
 func TestGetChannelCounts(t *testing.T) {
 	th := Setup().InitBasic()
+	defer th.TearDown()
+
 	Client := th.BasicClient
 	team := th.BasicTeam
 
@@ -1068,6 +1088,8 @@ func TestGetChannelCounts(t *testing.T) {
 
 func TestGetMyChannelMembers(t *testing.T) {
 	th := Setup().InitBasic()
+	defer th.TearDown()
+
 	Client := th.BasicClient
 	team := th.BasicTeam
 
@@ -1092,6 +1114,8 @@ func TestGetMyChannelMembers(t *testing.T) {
 
 func TestJoinChannelById(t *testing.T) {
 	th := Setup().InitBasic()
+	defer th.TearDown()
+
 	Client := th.BasicClient
 	team := th.BasicTeam
 
@@ -1112,7 +1136,7 @@ func TestJoinChannelById(t *testing.T) {
 	rchannel := Client.Must(Client.CreateDirectChannel(th.BasicUser.Id)).Data.(*model.Channel)
 
 	user3 := th.CreateUser(th.BasicClient)
-	LinkUserToTeam(user3, team)
+	th.LinkUserToTeam(user3, team)
 	Client.Must(Client.Login(user3.Email, "Password1"))
 
 	if _, err := Client.JoinChannel(rchannel.Id); err == nil {
@@ -1136,6 +1160,8 @@ func TestJoinChannelById(t *testing.T) {
 
 func TestJoinChannelByName(t *testing.T) {
 	th := Setup().InitBasic()
+	defer th.TearDown()
+
 	Client := th.BasicClient
 	team := th.BasicTeam
 
@@ -1156,7 +1182,7 @@ func TestJoinChannelByName(t *testing.T) {
 	rchannel := Client.Must(Client.CreateDirectChannel(th.BasicUser.Id)).Data.(*model.Channel)
 
 	user3 := th.CreateUser(th.BasicClient)
-	LinkUserToTeam(user3, team)
+	th.LinkUserToTeam(user3, team)
 	Client.Must(Client.Login(user3.Email, "Password1"))
 
 	if _, err := Client.JoinChannelByName(rchannel.Name); err == nil {
@@ -1180,6 +1206,8 @@ func TestJoinChannelByName(t *testing.T) {
 
 func TestJoinChannelByNameDisabledUser(t *testing.T) {
 	th := Setup().InitBasic()
+	defer th.TearDown()
+
 	Client := th.BasicClient
 	team := th.BasicTeam
 
@@ -1199,6 +1227,8 @@ func TestJoinChannelByNameDisabledUser(t *testing.T) {
 
 func TestLeaveChannel(t *testing.T) {
 	th := Setup().InitBasic()
+	defer th.TearDown()
+
 	Client := th.BasicClient
 	team := th.BasicTeam
 
@@ -1237,13 +1267,15 @@ func TestLeaveChannel(t *testing.T) {
 
 func TestDeleteChannel(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
+	defer th.TearDown()
+
 	Client := th.SystemAdminClient
 	team := th.SystemAdminTeam
 	userSystemAdmin := th.SystemAdminUser
 	userTeamAdmin := th.CreateUser(Client)
-	LinkUserToTeam(userTeamAdmin, team)
+	th.LinkUserToTeam(userTeamAdmin, team)
 	user2 := th.CreateUser(Client)
-	LinkUserToTeam(user2, team)
+	th.LinkUserToTeam(user2, team)
 
 	Client.Login(user2.Email, user2.Password)
 
@@ -1274,7 +1306,7 @@ func TestDeleteChannel(t *testing.T) {
 	}
 
 	userStd := th.CreateUser(Client)
-	LinkUserToTeam(userStd, team)
+	th.LinkUserToTeam(userStd, team)
 	Client.Login(userStd.Email, userStd.Password)
 
 	if _, err := Client.JoinChannel(channel1.Id); err == nil {
@@ -1298,7 +1330,7 @@ func TestDeleteChannel(t *testing.T) {
 		}
 	}
 
-	UpdateUserToTeamAdmin(userStd, team)
+	th.UpdateUserToTeamAdmin(userStd, team)
 
 	Client.Logout()
 	Client.Login(userStd.Email, userStd.Password)
@@ -1343,7 +1375,7 @@ func TestDeleteChannel(t *testing.T) {
 	utils.SetDefaultRolesBasedOnConfig()
 
 	th.LoginSystemAdmin()
-	LinkUserToTeam(th.BasicUser, team)
+	th.LinkUserToTeam(th.BasicUser, team)
 
 	channel2 = th.CreateChannel(Client, team)
 	channel3 = th.CreatePrivateChannel(Client, team)
@@ -1385,8 +1417,8 @@ func TestDeleteChannel(t *testing.T) {
 		t.Fatal("should have errored not channel admin")
 	}
 
-	MakeUserChannelAdmin(th.BasicUser, channel2)
-	MakeUserChannelAdmin(th.BasicUser, channel3)
+	th.MakeUserChannelAdmin(th.BasicUser, channel2)
+	th.MakeUserChannelAdmin(th.BasicUser, channel3)
 	sqlstore.ClearChannelCaches()
 
 	if _, err := Client.DeleteChannel(channel2.Id); err != nil {
@@ -1403,7 +1435,7 @@ func TestDeleteChannel(t *testing.T) {
 
 	Client.Must(Client.AddChannelMember(channel2.Id, th.BasicUser.Id))
 	Client.Must(Client.AddChannelMember(channel3.Id, th.BasicUser.Id))
-	UpdateUserToTeamAdmin(th.BasicUser, team)
+	th.UpdateUserToTeamAdmin(th.BasicUser, team)
 
 	Client.Login(th.BasicUser.Email, th.BasicUser.Password)
 	th.App.InvalidateAllCaches()
@@ -1415,7 +1447,7 @@ func TestDeleteChannel(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	UpdateUserToNonTeamAdmin(th.BasicUser, team)
+	th.UpdateUserToNonTeamAdmin(th.BasicUser, team)
 	th.App.InvalidateAllCaches()
 
 	utils.SetIsLicensed(true)
@@ -1441,7 +1473,7 @@ func TestDeleteChannel(t *testing.T) {
 		t.Fatal("should have errored not team admin")
 	}
 
-	UpdateUserToTeamAdmin(th.BasicUser, team)
+	th.UpdateUserToTeamAdmin(th.BasicUser, team)
 	Client.Logout()
 	Client.Login(th.BasicUser.Email, th.BasicUser.Password)
 	Client.SetTeamId(team.Id)
@@ -1515,6 +1547,8 @@ func TestDeleteChannel(t *testing.T) {
 
 func TestGetChannelStats(t *testing.T) {
 	th := Setup().InitBasic()
+	defer th.TearDown()
+
 	Client := th.BasicClient
 	team := th.BasicTeam
 
@@ -1532,6 +1566,8 @@ func TestGetChannelStats(t *testing.T) {
 
 func TestAddChannelMember(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
+	defer th.TearDown()
+
 	Client := th.BasicClient
 	team := th.BasicTeam
 	user1 := th.BasicUser
@@ -1633,7 +1669,7 @@ func TestAddChannelMember(t *testing.T) {
 		t.Fatal("Should have failed due to permissions")
 	}
 
-	MakeUserChannelAdmin(user1, channel5)
+	th.MakeUserChannelAdmin(user1, channel5)
 	th.App.InvalidateAllCaches()
 	utils.SetIsLicensed(true)
 	utils.SetLicense(&model.License{Features: &model.Features{}})
@@ -1658,7 +1694,7 @@ func TestAddChannelMember(t *testing.T) {
 		t.Fatal("Should have failed due to permissions")
 	}
 
-	UpdateUserToTeamAdmin(user1, team)
+	th.UpdateUserToTeamAdmin(user1, team)
 	th.App.InvalidateAllCaches()
 	utils.SetIsLicensed(true)
 	utils.SetLicense(&model.License{Features: &model.Features{}})
@@ -1690,11 +1726,13 @@ func TestAddChannelMember(t *testing.T) {
 
 func TestRemoveChannelMember(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
+	defer th.TearDown()
+
 	Client := th.BasicClient
 	team := th.BasicTeam
 	user1 := th.BasicUser
 	user2 := th.BasicUser2
-	UpdateUserToTeamAdmin(user2, team)
+	th.UpdateUserToTeamAdmin(user2, team)
 
 	channelMadeByCA := &model.Channel{DisplayName: "A Test API Name", Name: "zz" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
 	channelMadeByCA = Client.Must(Client.CreateChannel(channelMadeByCA)).Data.(*model.Channel)
@@ -1707,7 +1745,7 @@ func TestRemoveChannelMember(t *testing.T) {
 	channel1 = Client.Must(Client.CreateChannel(channel1)).Data.(*model.Channel)
 
 	userStd := th.CreateUser(th.BasicClient)
-	LinkUserToTeam(userStd, team)
+	th.LinkUserToTeam(userStd, team)
 
 	Client.Must(Client.AddChannelMember(channel1.Id, userStd.Id))
 
@@ -1809,7 +1847,7 @@ func TestRemoveChannelMember(t *testing.T) {
 		t.Fatal("Should have failed due to permissions")
 	}
 
-	MakeUserChannelAdmin(user1, channel5)
+	th.MakeUserChannelAdmin(user1, channel5)
 	th.App.InvalidateAllCaches()
 	utils.SetIsLicensed(true)
 	utils.SetLicense(&model.License{Features: &model.Features{}})
@@ -1834,7 +1872,7 @@ func TestRemoveChannelMember(t *testing.T) {
 		t.Fatal("Should have failed due to permissions")
 	}
 
-	UpdateUserToTeamAdmin(user1, team)
+	th.UpdateUserToTeamAdmin(user1, team)
 	th.App.InvalidateAllCaches()
 	utils.SetIsLicensed(true)
 	utils.SetLicense(&model.License{Features: &model.Features{}})
@@ -1867,6 +1905,8 @@ func TestRemoveChannelMember(t *testing.T) {
 
 func TestUpdateNotifyProps(t *testing.T) {
 	th := Setup().InitBasic()
+	defer th.TearDown()
+
 	Client := th.BasicClient
 	team := th.BasicTeam
 	user := th.BasicUser
@@ -2006,6 +2046,8 @@ func TestUpdateNotifyProps(t *testing.T) {
 
 func TestFuzzyChannel(t *testing.T) {
 	th := Setup().InitBasic()
+	defer th.TearDown()
+
 	Client := th.BasicClient
 	team := th.BasicTeam
 
@@ -2051,6 +2093,8 @@ func TestFuzzyChannel(t *testing.T) {
 
 func TestGetChannelMember(t *testing.T) {
 	th := Setup().InitBasic()
+	defer th.TearDown()
+
 	Client := th.BasicClient
 	team := th.BasicTeam
 
@@ -2089,6 +2133,8 @@ func TestGetChannelMember(t *testing.T) {
 
 func TestSearchMoreChannels(t *testing.T) {
 	th := Setup().InitBasic()
+	defer th.TearDown()
+
 	Client := th.BasicClient
 	team := th.BasicTeam
 
@@ -2166,6 +2212,8 @@ func TestSearchMoreChannels(t *testing.T) {
 
 func TestAutocompleteChannels(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
+	defer th.TearDown()
+
 	Client := th.BasicClient
 	team := th.BasicTeam
 
@@ -2236,6 +2284,8 @@ func TestAutocompleteChannels(t *testing.T) {
 
 func TestGetChannelByName(t *testing.T) {
 	th := Setup().InitBasic()
+	defer th.TearDown()
+
 	Client := th.BasicClient
 
 	if result, err := Client.GetChannelByName(th.BasicChannel.Name); err != nil {
@@ -2268,6 +2318,8 @@ func TestGetChannelByName(t *testing.T) {
 
 func TestViewChannel(t *testing.T) {
 	th := Setup().InitBasic()
+	defer th.TearDown()
+
 	Client := th.BasicClient
 
 	view := model.ChannelView{
@@ -2313,6 +2365,7 @@ func TestViewChannel(t *testing.T) {
 
 func TestGetChannelMembersByIds(t *testing.T) {
 	th := Setup().InitBasic()
+	defer th.TearDown()
 
 	if _, err := th.App.AddUserToChannel(th.BasicUser2, th.BasicChannel); err != nil {
 		t.Fatal("Could not add second user to channel")
@@ -2350,8 +2403,10 @@ func TestGetChannelMembersByIds(t *testing.T) {
 
 func TestUpdateChannelRoles(t *testing.T) {
 	th := Setup().InitSystemAdmin().InitBasic()
+	defer th.TearDown()
+
 	th.SystemAdminClient.SetTeamId(th.BasicTeam.Id)
-	LinkUserToTeam(th.SystemAdminUser, th.BasicTeam)
+	th.LinkUserToTeam(th.SystemAdminUser, th.BasicTeam)
 
 	const CHANNEL_ADMIN = "channel_admin channel_user"
 	const CHANNEL_MEMBER = "channel_user"
@@ -2423,6 +2478,8 @@ func TestUpdateChannelRoles(t *testing.T) {
 
 func TestGetPinnedPosts(t *testing.T) {
 	th := Setup().InitBasic()
+	defer th.TearDown()
+
 	Client := th.BasicClient
 
 	post1 := th.BasicPost
