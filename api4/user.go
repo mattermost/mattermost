@@ -121,6 +121,7 @@ func getUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		} else {
 			app.SanitizeProfile(user, c.IsSystemAdmin())
 		}
+		c.App.UpdateLastActivityAtIfNeeded(c.Session)
 		w.Header().Set(model.HEADER_ETAG_SERVER, etag)
 		w.Write([]byte(user.ToJson()))
 		return
@@ -369,6 +370,7 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		if len(etag) > 0 {
 			w.Header().Set(model.HEADER_ETAG_SERVER, etag)
 		}
+		c.App.UpdateLastActivityAtIfNeeded(c.Session)
 		w.Write([]byte(model.UserListToJson(profiles)))
 	}
 }
