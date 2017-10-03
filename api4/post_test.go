@@ -1078,6 +1078,38 @@ func TestDeletePost(t *testing.T) {
 	CheckNoError(t, resp)
 }
 
+func TestDeletePosts(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer TearDown()
+	Client := th.Client
+	channel := th.BasicChannel
+
+	_, resp := Client.DeletePosts(channel.Id, []string{"junk"})
+	CheckBadRequestStatus(t, resp)
+
+	post1 := th.CreatePost()
+
+	_, resp = Client.DeletePosts(channel.Id, []string{post1.Id})
+	CheckForbiddenStatus(t, resp)
+
+	Client.Login(th.TeamAdminUser.Email, th.TeamAdminUser.Password)
+	_, resp = Client.DeletePosts(channel.Id, []string{post1.Id})
+	CheckForbiddenStatus(t, resp)
+
+	status, resp := th.SystemAdminClient.DeletePosts(channel.Id, []string{post1.Id})
+	if status == false {
+		t.Fatal("Should return status OK")
+	}
+	CheckNoError(t, resp)
+
+	post2 := th.CreatePost()
+	post3 := th.CreatePost()
+	post4 := th.CreatePost()
+
+	_, resp = th.SystemAdminClient.DeletePosts(channel.Id, []string{post2.Id, post3.Id, post4.Id})
+	CheckNoError(t, resp)
+}
+
 func TestGetPostThread(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
 	defer TearDown()

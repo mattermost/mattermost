@@ -517,6 +517,16 @@ func (a *App) DeletePost(postId string) (*model.Post, *model.AppError) {
 	}
 }
 
+func (a *App) DeletePosts(postIds []string) *model.AppError {
+	for _, postId := range postIds {
+		if _, err := a.DeletePost(postId); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 func (a *App) DeleteFlaggedPosts(postId string) {
 	if result := <-a.Srv.Store.Preference().DeleteCategoryAndName(model.PREFERENCE_CATEGORY_FLAGGED_POST, postId); result.Err != nil {
 		l4g.Warn(utils.T("api.post.delete_flagged_post.app_error.warn"), result.Err)
