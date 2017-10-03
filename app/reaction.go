@@ -18,7 +18,9 @@ func (a *App) SaveReactionForPost(reaction *model.Reaction) (*model.Reaction, *m
 	} else {
 		reaction = result.Data.(*model.Reaction)
 
-		go a.sendReactionEvent(model.WEBSOCKET_EVENT_REACTION_ADDED, reaction, post)
+		a.Go(func() {
+			a.sendReactionEvent(model.WEBSOCKET_EVENT_REACTION_ADDED, reaction, post)
+		})
 
 		return reaction, nil
 	}
@@ -41,7 +43,9 @@ func (a *App) DeleteReactionForPost(reaction *model.Reaction) *model.AppError {
 	if result := <-a.Srv.Store.Reaction().Delete(reaction); result.Err != nil {
 		return result.Err
 	} else {
-		go a.sendReactionEvent(model.WEBSOCKET_EVENT_REACTION_REMOVED, reaction, post)
+		a.Go(func() {
+			a.sendReactionEvent(model.WEBSOCKET_EVENT_REACTION_REMOVED, reaction, post)
+		})
 	}
 
 	return nil

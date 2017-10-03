@@ -395,7 +395,9 @@ func (h *Hub) Start() {
 				}
 
 				if !found {
-					go h.app.SetStatusOffline(userId, false)
+					h.app.Go(func() {
+						h.app.SetStatusOffline(userId, false)
+					})
 				}
 
 			case userId := <-h.invalidateUser:

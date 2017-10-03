@@ -40,6 +40,5 @@ func connectWebSocket(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.App.HubRegister(wc)
 	}
 
-	go wc.WritePump()
-	wc.ReadPump()
+	wc.Pump()
 }

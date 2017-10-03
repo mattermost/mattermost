@@ -649,7 +649,9 @@ func addMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	go c.App.PostAddToChannelMessage(oUser, nUser, channel)
+	c.App.Go(func() {
+		c.App.PostAddToChannelMessage(oUser, nUser, channel)
+	})
 
 	c.App.UpdateChannelLastViewedAt([]string{id}, oUser.Id)
 	w.Write([]byte(cm.ToJson()))

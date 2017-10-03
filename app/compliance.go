@@ -35,7 +35,9 @@ func (a *App) SaveComplianceReport(job *model.Compliance) (*model.Compliance, *m
 		return nil, result.Err
 	} else {
 		job = result.Data.(*model.Compliance)
-		go a.Compliance.RunComplianceJob(job)
+		a.Go(func() {
+			a.Compliance.RunComplianceJob(job)
+		})
 	}
 
 	return job, nil
