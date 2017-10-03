@@ -157,7 +157,6 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			c.Err = model.NewAppError("ServeHTTP", "api.context.token_provided.app_error", nil, "token="+token, http.StatusUnauthorized)
 		} else {
 			c.Session = *session
-			c.App.UpdateLastActivityAtIfNeeded(*session)
 		}
 	}
 
