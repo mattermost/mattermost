@@ -79,7 +79,11 @@ func (a *App) handleWebhookEvents(post *model.Post, team *model.Team, channel *m
 			TriggerWord: triggerWord,
 			FileIds:     strings.Join(post.FileIds, ","),
 		}
-		go a.TriggerWebhook(payload, hook, post, channel)
+		a.Go(func(hook *model.OutgoingWebhook) func() {
+			return func() {
+				a.TriggerWebhook(payload, hook, post, channel)
+			}
+		}(hook))
 	}
 
 	return nil
@@ -97,23 +101,25 @@ func (a *App) TriggerWebhook(payload *model.OutgoingWebhookPayload, hook *model.
 	}
 
 	for _, url := range hook.CallbackURLs {
-		go func(url string) {
-			req, _ := http.NewRequest("POST", url, body)
-			req.Header.Set("Content-Type", contentType)
-			req.Header.Set("Accept", "application/json")
-			if resp, err := utils.HttpClient(false).Do(req); err != nil {
-				l4g.Error(utils.T("api.post.handle_webhook_events_and_forget.event_post.error"), err.Error())
-			} else {
-				defer CloseBody(resp)
-				webhookResp := model.OutgoingWebhookResponseFromJson(resp.Body)
+		a.Go(func(url string) func() {
+			return func() {
+				req, _ := http.NewRequest("POST", url, body)
+				req.Header.Set("Content-Type", contentType)
+				req.Header.Set("Accept", "application/json")
+				if resp, err := utils.HttpClient(false).Do(req); err != nil {
+					l4g.Error(utils.T("api.post.handle_webhook_events_and_forget.event_post.error"), err.Error())
+				} else {
+					defer CloseBody(resp)
+					webhookResp := model.OutgoingWebhookResponseFromJson(resp.Body)
 
-				if webhookResp != nil && webhookResp.Text != nil {
-					if _, err := a.CreateWebhookPost(hook.CreatorId, channel, *webhookResp.Text, webhookResp.Username, webhookResp.IconURL, webhookResp.Props, webhookResp.Type); err != nil {
-						l4g.Error(utils.T("api.post.handle_webhook_events_and_forget.create_post.error"), err)
+					if webhookResp != nil && webhookResp.Text != nil {
+						if _, err := a.CreateWebhookPost(hook.CreatorId, channel, *webhookResp.Text, webhookResp.Username, webhookResp.IconURL, webhookResp.Props, webhookResp.Type); err != nil {
+							l4g.Error(utils.T("api.post.handle_webhook_events_and_forget.create_post.error"), err)
+						}
 					}
 				}
 			}
-		}(url)
+		}(url))
 	}
 }
 

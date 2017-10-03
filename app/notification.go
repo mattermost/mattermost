@@ -94,7 +94,9 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 			if result := <-a.Srv.Store.User().GetProfilesByUsernames(potentialOtherMentions, team.Id); result.Err == nil {
 				outOfChannelMentions := result.Data.([]*model.User)
 				if channel.Type != model.CHANNEL_GROUP {
-					go a.sendOutOfChannelMentions(sender, post, team.Id, outOfChannelMentions)
+					a.Go(func() {
+						a.sendOutOfChannelMentions(sender, post, team.Id, outOfChannelMentions)
+					})
 				}
 			}
 		}
@@ -362,11 +364,11 @@ func (a *App) sendNotificationEmail(post *model.Post, user *model.User, channel 
 	teamURL := utils.GetSiteURL() + "/" + team.Name
 	var bodyText = a.getNotificationEmailBody(user, post, channel, senderName, team.Name, teamURL, emailNotificationContentsType, translateFunc)
 
-	go func() {
+	a.Go(func() {
 		if err := utils.SendMail(user.Email, html.UnescapeString(subjectText), bodyText); err != nil {
 			l4g.Error(utils.T("api.post.send_notifications_and_forget.send.error"), user.Email, err)
 		}
-	}()
+	})
 
 	if a.Metrics != nil {
 		a.Metrics.IncrementPostSentEmail()
@@ -638,7 +640,11 @@ func (a *App) sendPushNotification(post *model.Post, user *model.User, channel *
 
 		l4g.Debug("Sending push notification to device %v for user %v with msg of '%v'", tmpMessage.DeviceId, user.Id, msg.Message)
 
-		go a.sendToPushProxy(tmpMessage, session)
+		a.Go(func(session *model.Session) func() {
+			return func() {
+				a.sendToPushProxy(tmpMessage, session)
+			}
+		}(session))
 
 		if a.Metrics != nil {
 			a.Metrics.IncrementPostSentPush()
@@ -649,7 +655,7 @@ func (a *App) sendPushNotification(post *model.Post, user *model.User, channel *
 }
 
 func (a *App) ClearPushNotification(userId string, channelId string) {
-	go func() {
+	a.Go(func() {
 		// Sleep is to allow the read replicas a chance to fully sync
 		// the unread count for sending an accurate count.
 		// Delaying a little doesn't hurt anything and is cheaper than
@@ -678,9 +684,11 @@ func (a *App) ClearPushNotification(userId string, channelId string) {
 		for _, session := range sessions {
 			tmpMessage := *model.PushNotificationFromJson(strings.NewReader(msg.ToJson()))
 			tmpMessage.SetDeviceIdAndPlatform(session.DeviceId)
-			go a.sendToPushProxy(tmpMessage, session)
+			a.Go(func() {
+				a.sendToPushProxy(tmpMessage, session)
+			})
 		}
-	}()
+	})
 }
 
 func (a *App) sendToPushProxy(msg model.PushNotification, session *model.Session) {

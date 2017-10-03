@@ -77,7 +77,7 @@ func (me *EchoProvider) DoCommand(a *App, args *model.CommandArgs, message strin
 	}
 
 	echoSem <- true
-	go func() {
+	a.Go(func() {
 		defer func() { <-echoSem }()
 		post := &model.Post{}
 		post.ChannelId = args.ChannelId
@@ -91,7 +91,7 @@ func (me *EchoProvider) DoCommand(a *App, args *model.CommandArgs, message strin
 		if _, err := a.CreatePostMissingChannel(post, true); err != nil {
 			l4g.Error(args.T("api.command_echo.create.app_error"), err)
 		}
-	}()
+	})
 
 	return &model.CommandResponse{}
 }

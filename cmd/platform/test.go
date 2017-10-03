@@ -49,6 +49,7 @@ func webClientTestsCmdF(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
+	defer a.Shutdown()
 
 	utils.InitTranslations(utils.Cfg.LocalizationSettings)
 	a.Srv.Router = api.NewRouter()
@@ -59,7 +60,6 @@ func webClientTestsCmdF(cmd *cobra.Command, args []string) error {
 	setupClientTests()
 	a.StartServer()
 	runWebClientTests()
-	a.StopServer()
 
 	return nil
 }
@@ -69,6 +69,7 @@ func serverForWebClientTestsCmdF(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
+	defer a.Shutdown()
 
 	utils.InitTranslations(utils.Cfg.LocalizationSettings)
 	a.Srv.Router = api.NewRouter()
@@ -82,8 +83,6 @@ func serverForWebClientTestsCmdF(cmd *cobra.Command, args []string) error {
 	c := make(chan os.Signal)
 	signal.Notify(c, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
 	<-c
-
-	a.StopServer()
 
 	return nil
 }

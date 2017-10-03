@@ -7,7 +7,9 @@ import (
 	"io/ioutil"
 	"net/http"
 	"sync"
-	"time"
+	"sync/atomic"
+
+	l4g "github.com/alecthomas/log4go"
 
 	"github.com/mattermost/mattermost-server/einterfaces"
 	ejobs "github.com/mattermost/mattermost-server/einterfaces/jobs"
@@ -18,6 +20,9 @@ import (
 )
 
 type App struct {
+	goroutineCount      int32
+	goroutineExitSignal chan struct{}
+
 	Srv *Server
 
 	PluginEnv              *pluginenv.Environment
@@ -43,7 +48,8 @@ type App struct {
 }
 
 var globalApp App = App{
-	Jobs: &jobs.JobServer{},
+	goroutineExitSignal: make(chan struct{}, 1),
+	Jobs:                &jobs.JobServer{},
 }
 
 var appCount = 0
@@ -61,7 +67,8 @@ func New() *App {
 			panic("Only one App should exist at a time. Did you forget to call Shutdown()?")
 		}
 		app := &App{
-			Jobs: &jobs.JobServer{},
+			goroutineExitSignal: make(chan struct{}, 1),
+			Jobs:                &jobs.JobServer{},
 		}
 		app.initEnterprise()
 		return app
@@ -76,12 +83,19 @@ func New() *App {
 func (a *App) Shutdown() {
 	appCount--
 	if appCount == 0 {
-		// XXX: This is to give all of our runaway goroutines time to complete.
-		//      We should wrangle them up and remove this.
-		time.Sleep(time.Second)
-
 		if a.Srv != nil {
-			a.StopServer()
+			l4g.Info(utils.T("api.server.stop_server.stopping.info"))
+
+			a.Srv.GracefulServer.Stop(TIME_TO_WAIT_FOR_CONNECTIONS_TO_CLOSE_ON_SERVER_SHUTDOWN)
+			a.Srv.Store.Close()
+			a.HubStop()
+
+			a.ShutDownPlugins()
+			a.WaitForGoroutines()
+
+			a.Srv = nil
+
+			l4g.Info(utils.T("api.server.stop_server.stopped.info"))
 		}
 	}
 }
@@ -209,6 +223,29 @@ func (a *App) initEnterprise() {
 
 func (a *App) Config() *model.Config {
 	return utils.Cfg
+}
+
+// Go creates a goroutine, but maintains a record of it to ensure that execution completes before
+// the app is destroyed.
+func (a *App) Go(f func()) {
+	atomic.AddInt32(&a.goroutineCount, 1)
+
+	go func() {
+		f()
+
+		atomic.AddInt32(&a.goroutineCount, -1)
+		select {
+		case a.goroutineExitSignal <- struct{}{}:
+		default:
+		}
+	}()
+}
+
+// WaitForGoroutines blocks until all goroutines created by App.Go exit.
+func (a *App) WaitForGoroutines() {
+	for atomic.LoadInt32(&a.goroutineCount) != 0 {
+		<-a.goroutineExitSignal
+	}
 }
 
 func CloseBody(r *http.Response) {
