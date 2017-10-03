@@ -716,6 +716,8 @@ func viewChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	c.App.UpdateLastActivityAtIfNeeded(c.Session)
+
 	// Returning {"status": "OK", ...} for backwards compatability
 	resp := &model.ChannelViewResponse{
 		Status:            "OK",
