@@ -212,9 +212,13 @@ func executeCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// DMs don't have teams, so get the team id from the channel if not specified
 	if commandArgs.TeamId == "" {
 		commandArgs.TeamId = channel.TeamId
-	} else if c.Session.GetTeamByTeamId(commandArgs.TeamId) == nil {
+	}
+
+	// ensure that the specified channel is a part of the specified team
+	if commandArgs.TeamId != channel.TeamId {
 		c.SetPermissionError(model.PERMISSION_USE_SLASH_COMMANDS)
 		return
 	}

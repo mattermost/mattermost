@@ -2807,8 +2807,12 @@ func (c *Client4) ListCommands(teamId string, customOnly bool) ([]*Command, *Res
 }
 
 // ExecuteCommand executes a given command.
-func (c *Client4) ExecuteCommand(channelId, command string) (*CommandResponse, *Response) {
-	commandArgs := &CommandArgs{ChannelId: channelId, Command: command}
+func (c *Client4) ExecuteCommand(teamId, channelId, command string) (*CommandResponse, *Response) {
+	commandArgs := &CommandArgs{
+		TeamId:    teamId,
+		ChannelId: channelId,
+		Command:   command,
+	}
 	if r, err := c.DoApiPost(c.GetCommandsRoute()+"/execute", commandArgs.ToJson()); err != nil {
 		return nil, BuildErrorResponse(r, err)
 	} else {
