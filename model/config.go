@@ -8,8 +8,8 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-	"time"
 	"strings"
+	"time"
 )
 
 const (
