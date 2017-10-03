@@ -94,6 +94,16 @@ func (c *WebConn) SetSession(v *model.Session) {
 	c.session.Store(v)
 }
 
+func (c *WebConn) Pump() {
+	ch := make(chan struct{}, 1)
+	go func() {
+		c.WritePump()
+		ch <- struct{}{}
+	}()
+	c.ReadPump()
+	<-ch
+}
+
 func (c *WebConn) ReadPump() {
 	defer func() {
 		c.App.HubUnregister(c)
