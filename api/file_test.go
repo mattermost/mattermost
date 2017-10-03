@@ -24,7 +24,7 @@ import (
 )
 
 func TestUploadFile(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup().InitBasic().InitSystemAdmin()
 	defer th.TearDown()
 
 	if *utils.Cfg.FileSettings.DriverName == "" {
