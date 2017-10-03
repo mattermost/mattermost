@@ -218,6 +218,8 @@ func getClientLicense(l *model.License) map[string]string {
 		props["MHPNS"] = strconv.FormatBool(*l.Features.MHPNS)
 		props["PasswordRequirements"] = strconv.FormatBool(*l.Features.PasswordRequirements)
 		props["Announcement"] = strconv.FormatBool(*l.Features.Announcement)
+		props["Elasticsearch"] = strconv.FormatBool(*l.Features.Elasticsearch)
+		props["DataRetention"] = strconv.FormatBool(*l.Features.DataRetention)
 		props["IssuedAt"] = strconv.FormatInt(l.IssuedAt, 10)
 		props["StartsAt"] = strconv.FormatInt(l.StartsAt, 10)
 		props["ExpiresAt"] = strconv.FormatInt(l.ExpiresAt, 10)
