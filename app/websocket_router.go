@@ -61,10 +61,10 @@ func (wr *WebSocketRouter) ServeWebSocket(conn *WebConn, r *model.WebSocketReque
 		if err != nil {
 			conn.WebSocket.Close()
 		} else {
-			go func() {
+			wr.app.Go(func() {
 				wr.app.SetStatusOnline(session.UserId, session.Id, false)
 				wr.app.UpdateLastActivityAtIfNeeded(*session)
-			}()
+			})
 
 			conn.SetSession(session)
 			conn.SetSessionToken(session.Token)

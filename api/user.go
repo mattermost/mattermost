@@ -1081,7 +1081,7 @@ func updateMfa(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.LogAudit("success - deactivated")
 	}
 
-	go func() {
+	c.App.Go(func() {
 		var user *model.User
 		var err *model.AppError
 		if user, err = c.App.GetUser(c.Session.UserId); err != nil {
@@ -1092,7 +1092,7 @@ func updateMfa(c *Context, w http.ResponseWriter, r *http.Request) {
 		if err := app.SendMfaChangeEmail(user.Email, activate, user.Locale, utils.GetSiteURL()); err != nil {
 			l4g.Error(err.Error())
 		}
-	}()
+	})
 
 	rdata := map[string]string{}
 	rdata["status"] = "ok"
@@ -1212,7 +1212,9 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 		case model.OAUTH_ACTION_SIGNUP:
 			teamId := relayProps["team_id"]
 			if len(teamId) > 0 {
-				go c.App.AddDirectChannels(teamId, user)
+				c.App.Go(func() {
+					c.App.AddDirectChannels(teamId, user)
+				})
 			}
 			break
 		case model.OAUTH_ACTION_EMAIL_TO_SSO:
@@ -1221,11 +1223,11 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 				return
 			}
 			c.LogAuditWithUserId(user.Id, "Revoked all sessions for user")
-			go func() {
+			c.App.Go(func() {
 				if err := app.SendSignInChangeEmail(user.Email, strings.Title(model.USER_AUTH_SERVICE_SAML)+" SSO", user.Locale, utils.GetSiteURL()); err != nil {
 					l4g.Error(err.Error())
 				}
-			}()
+			})
 			break
 		}
 		doLogin(c, w, r, user, "")

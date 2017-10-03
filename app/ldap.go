@@ -12,7 +12,7 @@ import (
 )
 
 func (a *App) SyncLdap() {
-	go func() {
+	a.Go(func() {
 		if utils.IsLicensed() && *utils.License().Features.LDAP && *utils.Cfg.LdapSettings.Enable {
 			if ldapI := a.Ldap; ldapI != nil {
 				ldapI.StartSynchronizeJob(false)
@@ -20,7 +20,7 @@ func (a *App) SyncLdap() {
 				l4g.Error("%v", model.NewAppError("SyncLdap", "ent.ldap.disabled.app_error", nil, "", http.StatusNotImplemented).Error())
 			}
 		}
-	}()
+	})
 }
 
 func (a *App) TestLdap() *model.AppError {
@@ -60,11 +60,11 @@ func (a *App) SwitchEmailToLdap(email, password, code, ldapId, ldapPassword stri
 		return "", err
 	}
 
-	go func() {
+	a.Go(func() {
 		if err := SendSignInChangeEmail(user.Email, "AD/LDAP", user.Locale, utils.GetSiteURL()); err != nil {
 			l4g.Error(err.Error())
 		}
-	}()
+	})
 
 	return "/login?extra=signin_change", nil
 }
@@ -102,11 +102,11 @@ func (a *App) SwitchLdapToEmail(ldapPassword, code, email, newPassword string) (
 
 	T := utils.GetUserTranslations(user.Locale)
 
-	go func() {
+	a.Go(func() {
 		if err := SendSignInChangeEmail(user.Email, T("api.templates.signin_change_email.body.method_email"), user.Locale, utils.GetSiteURL()); err != nil {
 			l4g.Error(err.Error())
 		}
-	}()
+	})
 
 	return "/login?extra=signin_change", nil
 }

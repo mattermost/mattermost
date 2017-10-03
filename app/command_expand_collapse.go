@@ -74,7 +74,9 @@ func (a *App) setCollapsePreference(args *model.CommandArgs, isCollapse bool) *m
 
 	socketMessage := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_PREFERENCE_CHANGED, "", "", args.UserId, nil)
 	socketMessage.Add("preference", pref.ToJson())
-	go a.Publish(socketMessage)
+	a.Go(func() {
+		a.Publish(socketMessage)
+	})
 
 	var rmsg string
 
