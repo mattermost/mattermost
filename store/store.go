@@ -7,6 +7,7 @@ import (
 	"time"
 
 	l4g "github.com/alecthomas/log4go"
+
 	"github.com/mattermost/mattermost-server/model"
 )
 
@@ -323,6 +324,7 @@ type CommandStore interface {
 	Save(webhook *model.Command) StoreChannel
 	Get(id string) StoreChannel
 	GetByTeam(teamId string) StoreChannel
+	GetByTrigger(teamId string, trigger string) StoreChannel
 	Delete(commandId string, time int64) StoreChannel
 	PermanentDeleteByTeam(teamId string) StoreChannel
 	PermanentDeleteByUser(userId string) StoreChannel

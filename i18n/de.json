@@ -3597,7 +3597,7 @@
   },
   {
     "id": "cli.license.critical",
-    "translation": "Feature erfordert Enterprise Lizenz. Bitte kontaktieren Sie Ihren Systemadministrator wegen Upgrade Ihrer Enterprise Lizenz."
+    "translation": "Funktion benötigt ein Upgrade auf die Enterprise Edition und das Hinzufügen eines Lizenzschlüssels. Bitte kontaktieren Sie ihren Systemadministrator."
   },
   {
     "id": "ent.brand.save_brand_image.decode.app_error",
@@ -3688,6 +3688,10 @@
     "translation": "Compliance Export gestartet für Job '{{.JobName}}' in '{{.FilePath}}'"
   },
   {
+    "id": "ent.data_retention.generic.license.error",
+    "translation": "License does not support Data Retention."
+  },
+  {
     "id": "ent.elasticsearch.aggregator_worker.create_index_job.error",
     "translation": "Elasticsearch-Aggregator-Worker konnte den Indizierungs-Job nicht erstellen"
   },
@@ -3721,11 +3725,11 @@
   },
   {
     "id": "ent.elasticsearch.data_retention_delete_indexes.delete_index.error",
-    "translation": "Konnte ElasticSearch-Index nicht löschen"
+    "translation": "Konnte Elasticsearch-Index nicht löschen"
   },
   {
     "id": "ent.elasticsearch.data_retention_delete_indexes.get_indexes.error",
-    "translation": "Konnte ElasticSearch-Index nicht erstellen"
+    "translation": "Konnte Elasticsearch-Index nicht erstellen"
   },
   {
     "id": "ent.elasticsearch.delete_post.error",
@@ -3841,11 +3845,11 @@
   },
   {
     "id": "ent.ldap.sync.index_job_failed.error",
-    "translation": "LDAP sync worker failed due to the sync job failing"
+    "translation": "LDAP-Sync-Worker fehlgeschlagen durch das Fehlschlagen des Sync-Jobs"
   },
   {
     "id": "ent.ldap.sync_worker.create_index_job.error",
-    "translation": "LDAP sync worker failed to create the sync job"
+    "translation": "LDAP-Sync-Worker konnte den Sync-Job nicht erstellen"
   },
   {
     "id": "ent.ldap.syncdone.info",
@@ -4369,15 +4373,15 @@
   },
   {
     "id": "model.config.is_valid.data_retention.deletion_job_start_time.app_error",
-    "translation": "Die Einstellung \"DataRetention DeletionJobStartTime\" muss eine Zeit im Format \"hh:mm\" sein"
+    "translation": "Startzeit des Datenaufbewahrungsjobs muss ein 24-Stunden-Zeitstempel im Format HH:MM sein."
   },
   {
     "id": "model.config.is_valid.data_retention.file_retention_days_too_low.app_error",
-    "translation": "Die Einstellung \"DataRetention FileRetentionDays\" muss mindestens 1 sein"
+    "translation": "Datenaufbewahrung muss ein Tag oder länger sein."
   },
   {
     "id": "model.config.is_valid.data_retention.message_retention_days_too_low.app_error",
-    "translation": "Die Einstellung \"DataRetention MessageRetentionDays\" muss mindestens 1 sein"
+    "translation": "Nachrichtenaufbewahrung muss ein Tag oder länger sein."
   },
   {
     "id": "model.config.is_valid.elastic_search.aggregate_posts_after_days.app_error",
@@ -5285,7 +5289,7 @@
   },
   {
     "id": "store.sql_audit.permanent_delete_batch.app_error",
-    "translation": "We encountered an error permanently deleting the batch of audits"
+    "translation": "Es ist ein Fehler beim permanenten Löschen des Stapels von Audits aufgetreten"
   },
   {
     "id": "store.sql_audit.permanent_delete_by_user.app_error",
@@ -5649,7 +5653,7 @@
   },
   {
     "id": "store.sql_file_info.permanent_delete_batch.app_error",
-    "translation": "We encountered an error permanently deleting the batch of file infos"
+    "translation": "Es ist ein Fehler beim permanenten Löschen des Stapels von Dateiinformationen aufgetreten"
   },
   {
     "id": "store.sql_file_info.save.app_error",
@@ -5670,6 +5674,14 @@
   {
     "id": "store.sql_job.get_all.app_error",
     "translation": "Die Jobs konnten nicht abgerufen werden"
+  },
+  {
+    "id": "store.sql_job.get_count_by_status_and_type.app_erro",
+    "translation": "Die Anzahl der Jobs konnte nicht über Status und Typ abgerufen werden"
+  },
+  {
+    "id": "store.sql_job.get_newest_job_by_status_and_type.app_error",
+    "translation": "Die neuesten Jobs konnten nicht über Status und Typ abgerufen werden"
   },
   {
     "id": "store.sql_job.save.app_error",
@@ -5861,11 +5873,11 @@
   },
   {
     "id": "store.sql_post.permanent_delete_batch.app_error",
-    "translation": "We encountered an error permanently deleting the batch of posts"
+    "translation": "Es ist ein Fehler beim permanenten Löschen des Stapels von Nachrichten aufgetreten"
   },
   {
     "id": "store.sql_post.permanent_delete_batch.app_error",
-    "translation": "We encountered an error permanently deleting the batch of posts"
+    "translation": "Es ist ein Fehler beim permanenten Löschen des Stapels von Nachrichten aufgetreten"
   },
   {
     "id": "store.sql_post.permanent_delete_by_channel.app_error",
@@ -5901,7 +5913,7 @@
   },
   {
     "id": "store.sql_preference.cleanup_flags_batch.app_error",
-    "translation": "We encountered an error cleaning up the batch of flags"
+    "translation": "Es ist ein Fehler beim permanenten Löschen des Stapels von Flags aufgetreten"
   },
   {
     "id": "store.sql_preference.delete.app_error",
@@ -5993,7 +6005,7 @@
   },
   {
     "id": "store.sql_reaction.permanent_delete_batch.app_error",
-    "translation": "We encountered an error permanently deleting the batch of reactions"
+    "translation": "Es ist ein Fehler beim permanenten Löschen des Stapels von Reaktionen aufgetreten"
   },
   {
     "id": "store.sql_reaction.save.begin.app_error",
@@ -6573,15 +6585,15 @@
   },
   {
     "id": "utils.file.list_directory.configured.app_error",
-    "translation": "File storage not configured properly. Please configure for either S3 or local server file storage."
+    "translation": "Der Dateispeicher ist nicht korrekt konfiguriert. Bitte konfigurieren Sie diesen entweder für S3 oder den lokalen Dateispeicher des Servers."
   },
   {
     "id": "utils.file.list_directory.local.app_error",
-    "translation": "Encountered an error listing directory from local server file storage."
+    "translation": "Ein Fehler ist während des Anzeigens des Verzeichnisses vom lokalen Server ist aufgetreten."
   },
   {
     "id": "utils.file.list_directory.s3.app_error",
-    "translation": "Encountered an error listing directory from S3."
+    "translation": "Fehler beim Auflisten des Verzeichnisses von S3."
   },
   {
     "id": "utils.file.remove_directory.configured.app_error",

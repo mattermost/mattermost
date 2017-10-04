@@ -75,7 +75,9 @@ func (a *App) CreatePostAsUser(post *model.Post) (*model.Post, *model.AppError) 
 			if *utils.Cfg.ServiceSettings.EnableChannelViewedMessages {
 				message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CHANNEL_VIEWED, "", "", post.UserId, nil)
 				message.Add("channel_id", post.ChannelId)
-				go a.Publish(message)
+				a.Go(func() {
+					a.Publish(message)
+				})
 			}
 		}
 
@@ -152,7 +154,9 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 
 	esInterface := a.Elasticsearch
 	if esInterface != nil && *utils.Cfg.ElasticsearchSettings.EnableIndexing {
-		go esInterface.IndexPost(rpost, channel.TeamId)
+		a.Go(func() {
+			esInterface.IndexPost(rpost, channel.TeamId)
+		})
 	}
 
 	if a.Metrics != nil {
@@ -207,11 +211,11 @@ func (a *App) handlePostEvents(post *model.Post, user *model.User, channel *mode
 	}
 
 	if triggerWebhooks {
-		go func() {
+		a.Go(func() {
 			if err := a.handleWebhookEvents(post, team, channel, user); err != nil {
 				l4g.Error(err.Error())
 			}
-		}()
+		})
 	}
 
 	return nil
@@ -256,7 +260,9 @@ func (a *App) SendEphemeralPost(userId string, post *model.Post) *model.Post {
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_EPHEMERAL_MESSAGE, "", post.ChannelId, userId, nil)
 	message.Add("post", post.ToJson())
 
-	go a.Publish(message)
+	a.Go(func() {
+		a.Publish(message)
+	})
 
 	return post
 }
@@ -321,13 +327,13 @@ func (a *App) UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model
 
 		esInterface := a.Elasticsearch
 		if esInterface != nil && *utils.Cfg.ElasticsearchSettings.EnableIndexing {
-			go func() {
+			a.Go(func() {
 				if rchannel := <-a.Srv.Store.Channel().GetForPost(rpost.Id); rchannel.Err != nil {
 					l4g.Error("Couldn't get channel %v for post %v for Elasticsearch indexing.", rpost.ChannelId, rpost.Id)
 				} else {
 					esInterface.IndexPost(rpost, rchannel.Data.(*model.Channel).TeamId)
 				}
-			}()
+			})
 		}
 
 		a.sendUpdatedPostEvent(rpost)
@@ -361,7 +367,9 @@ func (a *App) sendUpdatedPostEvent(post *model.Post) {
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POST_EDITED, "", post.ChannelId, "", nil)
 	message.Add("post", post.ToJson())
 
-	go a.Publish(message)
+	a.Go(func() {
+		a.Publish(message)
+	})
 }
 
 func (a *App) GetPostsPage(channelId string, page int, perPage int) (*model.PostList, *model.AppError) {
@@ -502,13 +510,21 @@ func (a *App) DeletePost(postId string) (*model.Post, *model.AppError) {
 		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POST_DELETED, "", post.ChannelId, "", nil)
 		message.Add("post", post.ToJson())
 
-		go a.Publish(message)
-		go a.DeletePostFiles(post)
-		go a.DeleteFlaggedPosts(post.Id)
+		a.Go(func() {
+			a.Publish(message)
+		})
+		a.Go(func() {
+			a.DeletePostFiles(post)
+		})
+		a.Go(func() {
+			a.DeleteFlaggedPosts(post.Id)
+		})
 
 		esInterface := a.Elasticsearch
 		if esInterface != nil && *utils.Cfg.ElasticsearchSettings.EnableIndexing {
-			go esInterface.DeletePost(post)
+			a.Go(func() {
+				esInterface.DeletePost(post)
+			})
 		}
 
 		a.InvalidateCacheForChannelPosts(post.ChannelId)

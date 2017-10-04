@@ -175,7 +175,11 @@ func (job *EmailBatchingJob) checkPendingNotifications(now time.Time, handler fu
 
 		// send the email notification if it's been long enough
 		if now.Sub(time.Unix(batchStartTime/1000, 0)) > time.Duration(interval)*time.Second {
-			go handler(userId, notifications)
+			job.app.Go(func(userId string, notifications []*batchedNotification) func() {
+				return func() {
+					handler(userId, notifications)
+				}
+			}(userId, notifications))
 			delete(job.pendingNotifications, userId)
 		}
 	}

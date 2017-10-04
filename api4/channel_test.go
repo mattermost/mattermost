@@ -1475,7 +1475,7 @@ func TestGetChannelUnread(t *testing.T) {
 	CheckNoError(t, resp)
 
 	_, resp = th.SystemAdminClient.GetChannelUnread(model.NewId(), user.Id)
-	CheckNotFoundStatus(t, resp)
+	CheckForbiddenStatus(t, resp)
 
 	_, resp = th.SystemAdminClient.GetChannelUnread(channel.Id, model.NewId())
 	CheckNotFoundStatus(t, resp)

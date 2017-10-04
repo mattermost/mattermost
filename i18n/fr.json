@@ -3597,7 +3597,7 @@
   },
   {
     "id": "cli.license.critical",
-    "translation": "Fonctionnalité désactivée pour la licence courante. Veuillez contacter votre administrateur système concernant la mise à niveau de votre licence entreprise."
+    "translation": "Feature requires an upgrade to Enterprise Edition and the inclusion of a license key. Please contact your System Administrator."
   },
   {
     "id": "ent.brand.save_brand_image.decode.app_error",
@@ -3686,6 +3686,10 @@
   {
     "id": "ent.compliance.run_started.info",
     "translation": "L'export de compatibilité a démarré pour le job '{{.JobName}}' à '{{.FilePath}}'"
+  },
+  {
+    "id": "ent.data_retention.generic.license.error",
+    "translation": "License does not support Data Retention."
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.create_index_job.error",
@@ -4369,15 +4373,15 @@
   },
   {
     "id": "model.config.is_valid.data_retention.deletion_job_start_time.app_error",
-    "translation": "DataRetention DeletionJobStartTime setting must be set to a time in the format \"hh:mm\""
+    "translation": "Data retention job start time must be a 24-hour time stamp in the form HH:MM."
   },
   {
     "id": "model.config.is_valid.data_retention.file_retention_days_too_low.app_error",
-    "translation": "DataRetention FileRetentionDays setting must be at least 1"
+    "translation": "File retention must be one day or longer."
   },
   {
     "id": "model.config.is_valid.data_retention.message_retention_days_too_low.app_error",
-    "translation": "DataRetention MessageRetentionDays setting must be at least 1"
+    "translation": "Message retention must be one day or longer."
   },
   {
     "id": "model.config.is_valid.elastic_search.aggregate_posts_after_days.app_error",
@@ -5672,6 +5676,14 @@
     "translation": "Impossible de récupérer les tâches"
   },
   {
+    "id": "store.sql_job.get_count_by_status_and_type.app_erro",
+    "translation": "We couldn't get the job count by status and type"
+  },
+  {
+    "id": "store.sql_job.get_newest_job_by_status_and_type.app_error",
+    "translation": "We couldn't get the newest job by status and type"
+  },
+  {
     "id": "store.sql_job.save.app_error",
     "translation": "Impossible d'enregistrer la tâche"
   },
@@ -6573,11 +6585,11 @@
   },
   {
     "id": "utils.file.list_directory.configured.app_error",
-    "translation": "File storage not configured properly. Please configure for either S3 or local server file storage."
+    "translation": "Le stockage de fichier n'est pas configuré correctement. Veuillez le paramétrer soit pour utiliser S3 soit le système de fichier local du serveur."
   },
   {
     "id": "utils.file.list_directory.local.app_error",
-    "translation": "Encountered an error listing directory from local server file storage."
+    "translation": "Une erreur est survenue lors de la lecture depuis le stockage local du serveur"
   },
   {
     "id": "utils.file.list_directory.s3.app_error",

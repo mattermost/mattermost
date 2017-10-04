@@ -10,6 +10,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/mattermost/mattermost-server/app"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
 	"github.com/stretchr/testify/assert"
@@ -998,6 +999,15 @@ func TestUpdateUser(t *testing.T) {
 		}
 	}
 
+	session, _ := th.App.GetSession(Client.AuthToken)
+	session.IsOAuth = true
+	app.AddSessionToCache(session)
+
+	ruser.Id = user.Id
+	ruser.Email = GenerateTestEmail()
+	_, resp = Client.UpdateUser(ruser)
+	CheckForbiddenStatus(t, resp)
+
 	Client.Logout()
 	_, resp = Client.UpdateUser(user)
 	CheckUnauthorizedStatus(t, resp)
@@ -1076,6 +1086,15 @@ func TestPatchUser(t *testing.T) {
 			t.Fatal("wrong status code")
 		}
 	}
+
+	session, _ := th.App.GetSession(Client.AuthToken)
+	session.IsOAuth = true
+	app.AddSessionToCache(session)
+
+	patch.Email = new(string)
+	*patch.Email = GenerateTestEmail()
+	_, resp = Client.PatchUser(user.Id, patch)
+	CheckForbiddenStatus(t, resp)
 
 	Client.Logout()
 	_, resp = Client.PatchUser(user.Id, patch)
@@ -1518,7 +1537,7 @@ func TestGetUsersNotInChannel(t *testing.T) {
 	CheckNoError(t, resp)
 }
 
-/*func TestUpdateUserMfa(t *testing.T) {
+func TestUpdateUserMfa(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
 	defer th.TearDown()
 	Client := th.Client
@@ -1531,34 +1550,45 @@ func TestGetUsersNotInChannel(t *testing.T) {
 		utils.SetLicense(license)
 		*utils.Cfg.ServiceSettings.EnableMultifactorAuthentication = enableMfa
 	}()
-	utils.IsLicensed()= true
+	utils.SetIsLicensed(true)
 	utils.SetLicense(&model.License{Features: &model.Features{}})
 	utils.License().Features.SetDefaults()
-
-	team := model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
-	rteam, _ := Client.CreateTeam(&team)
-
-	user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1"}
-	ruser, _ := Client.CreateUser(&user)
-	th.LinkUserToTeam(ruser, rteam)
-	store.Must(app.Srv.Store.User().VerifyEmail(ruser.Id))
-
-	Client.Logout()
-	_, resp := Client.UpdateUserMfa(ruser.Id, "12334", true)
-	CheckUnauthorizedStatus(t, resp)
-
-	Client.Login(user.Email, user.Password)
-	_, resp = Client.UpdateUserMfa("fail", "56789", false)
-	CheckBadRequestStatus(t, resp)
-
-	_, resp = Client.UpdateUserMfa(ruser.Id, "", true)
-	CheckErrorMessage(t, resp, "api.context.invalid_body_param.app_error")
-
+	*utils.License().Features.MFA = true
 	*utils.Cfg.ServiceSettings.EnableMultifactorAuthentication = true
 
-	_, resp = Client.UpdateUserMfa(ruser.Id, "123456", false)
-	CheckNotImplementedStatus(t, resp)
-}*/
+	session, _ := th.App.GetSession(Client.AuthToken)
+	session.IsOAuth = true
+	app.AddSessionToCache(session)
+
+	_, resp := Client.UpdateUserMfa(th.BasicUser.Id, "12345", false)
+	CheckForbiddenStatus(t, resp)
+
+	/*
+		team := model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
+		rteam, _ := Client.CreateTeam(&team)
+
+		user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1"}
+		ruser, _ := Client.CreateUser(&user)
+		th.LinkUserToTeam(ruser, rteam)
+		store.Must(app.Srv.Store.User().VerifyEmail(ruser.Id))
+
+		Client.Logout()
+		_, resp := Client.UpdateUserMfa(ruser.Id, "12334", true)
+		CheckUnauthorizedStatus(t, resp)
+
+		Client.Login(user.Email, user.Password)
+		_, resp = Client.UpdateUserMfa("fail", "56789", false)
+		CheckBadRequestStatus(t, resp)
+
+		_, resp = Client.UpdateUserMfa(ruser.Id, "", true)
+		CheckErrorMessage(t, resp, "api.context.invalid_body_param.app_error")
+
+		*utils.Cfg.ServiceSettings.EnableMultifactorAuthentication = true
+
+		_, resp = Client.UpdateUserMfa(ruser.Id, "123456", false)
+		CheckNotImplementedStatus(t, resp)
+	*/
+}
 
 func TestCheckUserMfa(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
@@ -1625,19 +1655,40 @@ func TestGenerateMfaSecret(t *testing.T) {
 	_, resp := Client.GenerateMfaSecret(th.BasicUser.Id)
 	CheckNotImplementedStatus(t, resp)
 
+	_, resp = th.SystemAdminClient.GenerateMfaSecret(th.BasicUser.Id)
+	CheckNotImplementedStatus(t, resp)
+
 	_, resp = Client.GenerateMfaSecret("junk")
 	CheckBadRequestStatus(t, resp)
 
+	isLicensed := utils.IsLicensed()
+	license := utils.License()
+	enableMfa := *utils.Cfg.ServiceSettings.EnableMultifactorAuthentication
+	defer func() {
+		utils.SetIsLicensed(isLicensed)
+		utils.SetLicense(license)
+		*utils.Cfg.ServiceSettings.EnableMultifactorAuthentication = enableMfa
+	}()
+	utils.SetIsLicensed(true)
+	utils.SetLicense(&model.License{Features: &model.Features{}})
+	utils.License().Features.SetDefaults()
+	*utils.License().Features.MFA = true
+	*utils.Cfg.ServiceSettings.EnableMultifactorAuthentication = true
+
 	_, resp = Client.GenerateMfaSecret(model.NewId())
+	CheckForbiddenStatus(t, resp)
+
+	session, _ := th.App.GetSession(Client.AuthToken)
+	session.IsOAuth = true
+	app.AddSessionToCache(session)
+
+	_, resp = Client.GenerateMfaSecret(th.BasicUser.Id)
 	CheckForbiddenStatus(t, resp)
 
 	Client.Logout()
 
 	_, resp = Client.GenerateMfaSecret(th.BasicUser.Id)
 	CheckUnauthorizedStatus(t, resp)
-
-	_, resp = th.SystemAdminClient.GenerateMfaSecret(th.BasicUser.Id)
-	CheckNotImplementedStatus(t, resp)
 }
 
 func TestUpdateUserPassword(t *testing.T) {
@@ -1889,6 +1940,14 @@ func TestRevokeSessions(t *testing.T) {
 		t.Fatal("user session revoke unsuccessful")
 	}
 	CheckNoError(t, resp)
+
+	th.LoginBasic()
+
+	sessions, _ = th.App.GetSessions(th.SystemAdminUser.Id)
+	session = sessions[0]
+
+	_, resp = Client.RevokeSession(user.Id, session.Id)
+	CheckBadRequestStatus(t, resp)
 
 	Client.Logout()
 	_, resp = Client.RevokeSession(user.Id, model.NewId())
@@ -2229,6 +2288,15 @@ func TestCreateUserAccessToken(t *testing.T) {
 	if ruser.Id != th.BasicUser.Id {
 		t.Fatal("returned wrong user")
 	}
+
+	Client.AuthToken = oldSessionToken
+
+	session, _ := th.App.GetSession(Client.AuthToken)
+	session.IsOAuth = true
+	app.AddSessionToCache(session)
+
+	_, resp = Client.CreateUserAccessToken(th.BasicUser.Id, testDescription)
+	CheckForbiddenStatus(t, resp)
 }
 
 func TestGetUserAccessToken(t *testing.T) {

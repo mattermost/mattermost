@@ -121,6 +121,7 @@ func getUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		} else {
 			app.SanitizeProfile(user, c.IsSystemAdmin())
 		}
+		c.App.UpdateLastActivityAtIfNeeded(c.Session)
 		w.Header().Set(model.HEADER_ETAG_SERVER, etag)
 		w.Write([]byte(user.ToJson()))
 		return
@@ -369,6 +370,7 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		if len(etag) > 0 {
 			w.Header().Set(model.HEADER_ETAG_SERVER, etag)
 		}
+		c.App.UpdateLastActivityAtIfNeeded(c.Session)
 		w.Write([]byte(model.UserListToJson(profiles)))
 	}
 }
@@ -535,6 +537,20 @@ func updateUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if c.Session.IsOAuth {
+		ouser, err := c.App.GetUser(user.Id)
+		if err != nil {
+			c.Err = err
+			return
+		}
+
+		if ouser.Email != user.Email {
+			c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
+			c.Err.DetailedError += ", attempted email update by oauth app"
+			return
+		}
+	}
+
 	if ruser, err := c.App.UpdateUserAsUser(user, c.IsSystemAdmin()); err != nil {
 		c.Err = err
 		return
@@ -559,6 +575,20 @@ func patchUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	if !app.SessionHasPermissionToUser(c.Session, c.Params.UserId) {
 		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
 		return
+	}
+
+	if c.Session.IsOAuth && patch.Email != nil {
+		ouser, err := c.App.GetUser(c.Params.UserId)
+		if err != nil {
+			c.Err = err
+			return
+		}
+
+		if ouser.Email != *patch.Email {
+			c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
+			c.Err.DetailedError += ", attempted email update by oauth app"
+			return
+		}
 	}
 
 	if ruser, err := c.App.PatchUser(c.Params.UserId, patch, c.IsSystemAdmin()); err != nil {
@@ -688,6 +718,12 @@ func updateUserMfa(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if c.Session.IsOAuth {
+		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
+		c.Err.DetailedError += ", attempted access by oauth app"
+		return
+	}
+
 	if !app.SessionHasPermissionToUser(c.Session, c.Params.UserId) {
 		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
 		return
@@ -724,6 +760,12 @@ func updateUserMfa(c *Context, w http.ResponseWriter, r *http.Request) {
 func generateMfaSecret(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequireUserId()
 	if c.Err != nil {
+		return
+	}
+
+	if c.Session.IsOAuth {
+		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
+		c.Err.DetailedError += ", attempted access by oauth app"
 		return
 	}
 
@@ -924,7 +966,19 @@ func revokeSession(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := c.App.RevokeSessionById(sessionId); err != nil {
+	var session *model.Session
+	var err *model.AppError
+	if session, err = c.App.GetSessionById(sessionId); err != nil {
+		c.Err = err
+		return
+	}
+
+	if session.UserId != c.Params.UserId {
+		c.SetInvalidUrlParam("user_id")
+		return
+	}
+
+	if err := c.App.RevokeSession(session); err != nil {
 		c.Err = err
 		return
 	}
@@ -1085,6 +1139,12 @@ func switchAccountType(c *Context, w http.ResponseWriter, r *http.Request) {
 func createUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequireUserId()
 	if c.Err != nil {
+		return
+	}
+
+	if c.Session.IsOAuth {
+		c.SetPermissionError(model.PERMISSION_CREATE_USER_ACCESS_TOKEN)
+		c.Err.DetailedError += ", attempted access by oauth app"
 		return
 	}
 
