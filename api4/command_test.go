@@ -405,7 +405,7 @@ func TestExecuteCommand(t *testing.T) {
 		t.Fatal("failed to create post command")
 	}
 
-	commandResponse, resp := Client.ExecuteCommand(th.BasicTeam.Id, channel.Id, "/postcommand")
+	commandResponse, resp := Client.ExecuteCommand(channel.Id, "/postcommand")
 	CheckNoError(t, resp)
 
 	if commandResponse == nil {
@@ -429,7 +429,7 @@ func TestExecuteCommand(t *testing.T) {
 		t.Fatal("failed to create get command")
 	}
 
-	commandResponse, resp = Client.ExecuteCommand(th.BasicTeam.Id, channel.Id, "/getcommand")
+	commandResponse, resp = Client.ExecuteCommand(channel.Id, "/getcommand")
 	CheckNoError(t, resp)
 
 	if commandResponse == nil {
@@ -441,30 +441,30 @@ func TestExecuteCommand(t *testing.T) {
 		t.Fatal("Test command failed to send")
 	}
 
-	_, resp = Client.ExecuteCommand(th.BasicTeam.Id, channel.Id, "")
+	_, resp = Client.ExecuteCommand(channel.Id, "")
 	CheckBadRequestStatus(t, resp)
 
-	_, resp = Client.ExecuteCommand(th.BasicTeam.Id, channel.Id, "/")
+	_, resp = Client.ExecuteCommand(channel.Id, "/")
 	CheckBadRequestStatus(t, resp)
 
-	_, resp = Client.ExecuteCommand(th.BasicTeam.Id, channel.Id, "getcommand")
+	_, resp = Client.ExecuteCommand(channel.Id, "getcommand")
 	CheckBadRequestStatus(t, resp)
 
-	_, resp = Client.ExecuteCommand(th.BasicTeam.Id, channel.Id, "/junk")
+	_, resp = Client.ExecuteCommand(channel.Id, "/junk")
 	CheckNotFoundStatus(t, resp)
 
 	otherUser := th.CreateUser()
 	Client.Login(otherUser.Email, otherUser.Password)
 
-	_, resp = Client.ExecuteCommand(th.BasicTeam.Id, channel.Id, "/getcommand")
+	_, resp = Client.ExecuteCommand(channel.Id, "/getcommand")
 	CheckForbiddenStatus(t, resp)
 
 	Client.Logout()
 
-	_, resp = Client.ExecuteCommand(th.BasicTeam.Id, channel.Id, "/getcommand")
+	_, resp = Client.ExecuteCommand(channel.Id, "/getcommand")
 	CheckUnauthorizedStatus(t, resp)
 
-	_, resp = th.SystemAdminClient.ExecuteCommand(th.BasicTeam.Id, channel.Id, "/getcommand")
+	_, resp = th.SystemAdminClient.ExecuteCommand(channel.Id, "/getcommand")
 	CheckNoError(t, resp)
 }
 
@@ -483,7 +483,7 @@ func TestExecuteCommandAgainstChannelOnAnotherTeam(t *testing.T) {
 	*utils.Cfg.ServiceSettings.EnableCommands = true
 	*utils.Cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost"
 
-	// create a slash command on some other team where we have permissionto do so
+	// create a slash command on some other team where we have permission to do so
 	team2 := th.CreateTeam()
 	postCmd := &model.Command{
 		CreatorId: th.BasicUser.Id,
@@ -497,7 +497,8 @@ func TestExecuteCommandAgainstChannelOnAnotherTeam(t *testing.T) {
 		t.Fatal("failed to create post command")
 	}
 
-	// use that slash command on a channel that belongs to the team we're attacking
-	_, resp := Client.ExecuteCommand(team2.Id, channel.Id, "/postcommand")
-	CheckForbiddenStatus(t, resp)
+	// the execute command endpoint will always search for the command by trigger and team id, inferring team id from the
+	// channel id, so there is no way to use that slash command on a channel that belongs to some other team
+	_, resp := Client.ExecuteCommand(channel.Id, "/postcommand")
+	CheckNotFoundStatus(t, resp)
 }
