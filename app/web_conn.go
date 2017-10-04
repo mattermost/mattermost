@@ -40,6 +40,7 @@ type WebConn struct {
 	AllChannelMembers         map[string]string
 	LastAllChannelMembersTime int64
 	Sequence                  int64
+	endWritePump              chan struct{}
 	pumpFinished              chan struct{}
 }
 
@@ -58,6 +59,7 @@ func (a *App) NewWebConn(ws *websocket.Conn, session model.Session, t goi18n.Tra
 		UserId:       session.UserId,
 		T:            t,
 		Locale:       locale,
+		endWritePump: make(chan struct{}, 1),
 		pumpFinished: make(chan struct{}, 1),
 	}
 
@@ -70,6 +72,7 @@ func (a *App) NewWebConn(ws *websocket.Conn, session model.Session, t goi18n.Tra
 
 func (wc *WebConn) Close() {
 	wc.WebSocket.Close()
+	wc.endWritePump <- struct{}{}
 	<-wc.pumpFinished
 }
 
@@ -229,7 +232,8 @@ func (c *WebConn) writePump() {
 
 				return
 			}
-
+		case <-c.endWritePump:
+			return
 		case <-authTicker.C:
 			if c.GetSessionToken() == "" {
 				l4g.Debug(fmt.Sprintf("websocket.authTicker: did not authenticate ip=%v", c.WebSocket.RemoteAddr()))
