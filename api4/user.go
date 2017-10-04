@@ -926,7 +926,19 @@ func revokeSession(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := c.App.RevokeSessionById(sessionId); err != nil {
+	var session *model.Session
+	var err *model.AppError
+	if session, err = c.App.GetSessionById(sessionId); err != nil {
+		c.Err = err
+		return
+	}
+
+	if session.UserId != c.Params.UserId {
+		c.SetInvalidUrlParam("user_id")
+		return
+	}
+
+	if err := c.App.RevokeSession(session); err != nil {
 		c.Err = err
 		return
 	}
