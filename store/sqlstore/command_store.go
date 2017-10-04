@@ -119,6 +119,27 @@ func (s SqlCommandStore) GetByTeam(teamId string) store.StoreChannel {
 	return storeChannel
 }
 
+func (s SqlCommandStore) GetByTrigger(teamId string, trigger string) store.StoreChannel {
+	storeChannel := make(store.StoreChannel, 1)
+
+	go func() {
+		result := store.StoreResult{}
+
+		var command model.Command
+
+		if err := s.GetReplica().SelectOne(&command, "SELECT * FROM Commands WHERE TeamId = :TeamId AND `Trigger` = :Trigger AND DeleteAt = 0", map[string]interface{}{"TeamId": teamId, "Trigger": trigger}); err != nil {
+			result.Err = model.NewAppError("SqlCommandStore.GetByTrigger", "store.sql_command.get_by_trigger.app_error", nil, "teamId="+teamId+", trigger="+trigger+", err="+err.Error(), http.StatusInternalServerError)
+		}
+
+		result.Data = &command
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
 func (s SqlCommandStore) Delete(commandId string, time int64) store.StoreChannel {
 	storeChannel := make(store.StoreChannel, 1)
 

@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/store"
 )
 
 func TestCommandStoreSave(t *testing.T) {
@@ -79,6 +80,41 @@ func TestCommandStoreGetByTeam(t *testing.T) {
 		if len(result.Data.([]*model.Command)) != 0 {
 			t.Fatal("no commands should have returned")
 		}
+	}
+}
+
+func TestCommandStoreGetByTrigger(t *testing.T) {
+	ss := Setup()
+
+	o1 := &model.Command{}
+	o1.CreatorId = model.NewId()
+	o1.Method = model.COMMAND_METHOD_POST
+	o1.TeamId = model.NewId()
+	o1.URL = "http://nowhere.com/"
+	o1.Trigger = "trigger1"
+
+	o2 := &model.Command{}
+	o2.CreatorId = model.NewId()
+	o2.Method = model.COMMAND_METHOD_POST
+	o2.TeamId = model.NewId()
+	o2.URL = "http://nowhere.com/"
+	o2.Trigger = "trigger1"
+
+	o1 = (<-ss.Command().Save(o1)).Data.(*model.Command)
+	o2 = (<-ss.Command().Save(o2)).Data.(*model.Command)
+
+	if r1 := <-ss.Command().GetByTrigger(o1.TeamId, o1.Trigger); r1.Err != nil {
+		t.Fatal(r1.Err)
+	} else {
+		if r1.Data.(*model.Command).Id != o1.Id {
+			t.Fatal("invalid returned command")
+		}
+	}
+
+	store.Must(ss.Command().Delete(o1.Id, model.GetMillis()))
+
+	if result := <-ss.Command().GetByTrigger(o1.TeamId, o1.Trigger); result.Err == nil {
+		t.Fatal("no commands should have returned")
 	}
 }
 

@@ -336,6 +336,16 @@ func (a *App) UpdateCommand(oldCmd, updatedCmd *model.Command) (*model.Command, 
 	}
 }
 
+func (a *App) MoveCommand(team *model.Team, command *model.Command) *model.AppError {
+	command.TeamId = team.Id
+
+	if result := <-a.Srv.Store.Command().Update(command); result.Err != nil {
+		return result.Err
+	}
+
+	return nil
+}
+
 func (a *App) RegenCommandToken(cmd *model.Command) (*model.Command, *model.AppError) {
 	if !*utils.Cfg.ServiceSettings.EnableCommands {
 		return nil, model.NewAppError("RegenCommandToken", "api.command.disabled.app_error", nil, "", http.StatusNotImplemented)
