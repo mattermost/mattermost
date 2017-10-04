@@ -5580,6 +5580,10 @@
     "translation": "We couldn't update the command"
   },
   {
+    "id": "store.sql_command.get_by_trigger.app_error",
+    "translation": "We couldn't get the command"
+  },
+  {
     "id": "store.sql_command_webhooks.get.app_error",
     "translation": "We couldn't get the webhook"
   },
