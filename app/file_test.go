@@ -4,9 +4,12 @@
 package app
 
 import (
+	"fmt"
 	"testing"
+	"time"
 
 	"github.com/mattermost/platform/model"
+	"github.com/mattermost/platform1/platform/utils"
 )
 
 func TestGeneratePublicLinkHash(t *testing.T) {
@@ -29,5 +32,19 @@ func TestGeneratePublicLinkHash(t *testing.T) {
 
 	if hash1 == hash3 {
 		t.Fatal("hashes for the same file with different salts should not be equal")
+	}
+
+	info4, err := DoUploadFile(time.Date(2009, 3, 5, 1, 2, 3, 4, time.Local), "../../"+teamId, "../../"+channelId, "../../"+userId, "../../"+filename, data)
+	if err != nil {
+		t.Fatal(err)
+	} else {
+		defer func() {
+			<-Srv.Store.FileInfo().PermanentDelete(info3.Id)
+			utils.RemoveFile(info3.Path)
+		}()
+	}
+
+	if info4.Path != fmt.Sprintf("20090305/teams/%v/channels/%v/users/%v/%v/%v", teamId, channelId, userId, info4.Id, filename) {
+		t.Fatal("stored file at incorrect path", info4.Path)
 	}
 }

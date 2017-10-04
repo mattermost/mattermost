@@ -164,6 +164,15 @@ func RevokeSessionsForDeviceId(userId string, deviceId string, currentSessionId 
 	return nil
 }
 
+func GetSessionById(sessionId string) (*model.Session, *model.AppError) {
+	if result := <-Srv.Store.Session().Get(sessionId); result.Err != nil {
+		result.Err.StatusCode = http.StatusBadRequest
+		return nil, result.Err
+	} else {
+		return result.Data.(*model.Session), nil
+	}
+}
+
 func RevokeSessionById(sessionId string) *model.AppError {
 	if result := <-Srv.Store.Session().Get(sessionId); result.Err != nil {
 		result.Err.StatusCode = http.StatusBadRequest

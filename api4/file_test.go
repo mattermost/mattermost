@@ -100,6 +100,15 @@ func TestUploadFile(t *testing.T) {
 	_, resp := Client.UploadFile(data, model.NewId(), "test.png")
 	CheckForbiddenStatus(t, resp)
 
+	_, resp = Client.UploadFile(data, "../../junk", "test.png")
+	CheckForbiddenStatus(t, resp)
+
+	_, resp = th.SystemAdminClient.UploadFile(data, model.NewId(), "test.png")
+	CheckForbiddenStatus(t, resp)
+
+	_, resp = th.SystemAdminClient.UploadFile(data, "../../junk", "test.png")
+	CheckForbiddenStatus(t, resp)
+
 	_, resp = th.SystemAdminClient.UploadFile(data, channel.Id, "test.png")
 	CheckNoError(t, resp)
 

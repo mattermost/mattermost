@@ -719,14 +719,6 @@ func TestOAuthAccessToken(t *testing.T) {
 		t.Fatal("Should have failed - code is expired")
 	}
 
-	authData = &model.AuthData{ClientId: oauthApp.Id, RedirectUri: oauthApp.CallbackUrls[0], UserId: th.BasicUser.Id, Code: model.NewId(), ExpiresIn: model.AUTHCODE_EXPIRE_TIME}
-	<-app.Srv.Store.OAuth().SaveAuthData(authData)
-
-	data.Set("code", authData.Code)
-	if _, err := Client.GetAccessToken(data); err == nil {
-		t.Fatal("Should have failed - code with invalid hash comparission")
-	}
-
 	Client.ClearOAuthToken()
 }
 
