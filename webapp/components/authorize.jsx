@@ -29,8 +29,13 @@ export default class Authorize extends React.Component {
     }
 
     componentWillMount() {
+        const clientId = this.props.location.query.client_id;
+        if (!(/^[a-z0-9]+$/.test(clientId))) {
+            return;
+        }
+
         getOAuthAppInfo(
-            this.props.location.query.client_id,
+            clientId,
             (app) => {
                 this.setState({app});
             }
@@ -61,7 +66,13 @@ export default class Authorize extends React.Component {
     }
 
     handleDeny() {
-        window.location.replace(this.props.location.query.redirect_uri + '?error=access_denied');
+        const redirectUri = this.props.location.query.redirect_uri;
+        if (redirectUri.startsWith('https://') || redirectUri.startsWith('http://')) {
+            window.location.replace(redirectUri + '?error=access_denied');
+            return;
+        }
+
+        window.location.replace('/error');
     }
 
     render() {
