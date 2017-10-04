@@ -773,18 +773,14 @@ func (a *App) ImportUserTeams(username string, data *[]UserTeamImportData) *mode
 			roles = *tdata.Roles
 		}
 
-		if _, err := a.joinUserToTeam(team, user); err != nil {
+		var member *model.TeamMember
+		if member, _, err = a.joinUserToTeam(team, user); err != nil {
 			return err
 		}
 
-		var member *model.TeamMember
-		if member, err = a.GetTeamMember(team.Id, user.Id); err != nil {
-			return err
-		} else {
-			if member.Roles != roles {
-				if _, err := a.UpdateTeamMemberRoles(team.Id, user.Id, roles); err != nil {
-					return err
-				}
+		if member.Roles != roles {
+			if _, err := a.UpdateTeamMemberRoles(team.Id, user.Id, roles); err != nil {
+				return err
 			}
 		}
 
