@@ -36,6 +36,7 @@ type Hub struct {
 	unregister      chan *WebConn
 	broadcast       chan *model.WebSocketEvent
 	stop            chan string
+	didStop         chan struct{}
 	invalidateUser  chan string
 	ExplicitStop    bool
 	goroutineId     int
@@ -49,6 +50,7 @@ func (a *App) NewWebHub() *Hub {
 		connections:    make([]*WebConn, 0, model.SESSION_CACHE_SIZE),
 		broadcast:      make(chan *model.WebSocketEvent, BROADCAST_QUEUE_SIZE),
 		stop:           make(chan string),
+		didStop:        make(chan struct{}, 1),
 		invalidateUser: make(chan string),
 		ExplicitStop:   false,
 	}
@@ -348,6 +350,7 @@ func getGoroutineId() int {
 
 func (h *Hub) Stop() {
 	h.stop <- "all"
+	<-h.didStop
 }
 
 func (h *Hub) Start() {
@@ -428,9 +431,10 @@ func (h *Hub) Start() {
 
 			case <-h.stop:
 				for _, webCon := range h.connections {
-					webCon.WebSocket.Close()
+					webCon.Close()
 				}
 				h.ExplicitStop = true
+				h.didStop <- struct{}{}
 
 				return
 			}

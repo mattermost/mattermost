@@ -40,6 +40,7 @@ type WebConn struct {
 	AllChannelMembers         map[string]string
 	LastAllChannelMembersTime int64
 	Sequence                  int64
+	pumpFinished              chan struct{}
 }
 
 func (a *App) NewWebConn(ws *websocket.Conn, session model.Session, t goi18n.TranslateFunc, locale string) *WebConn {
@@ -51,12 +52,13 @@ func (a *App) NewWebConn(ws *websocket.Conn, session model.Session, t goi18n.Tra
 	}
 
 	wc := &WebConn{
-		App:       a,
-		Send:      make(chan model.WebSocketMessage, SEND_QUEUE_SIZE),
-		WebSocket: ws,
-		UserId:    session.UserId,
-		T:         t,
-		Locale:    locale,
+		App:          a,
+		Send:         make(chan model.WebSocketMessage, SEND_QUEUE_SIZE),
+		WebSocket:    ws,
+		UserId:       session.UserId,
+		T:            t,
+		Locale:       locale,
+		pumpFinished: make(chan struct{}, 1),
 	}
 
 	wc.SetSession(&session)
@@ -64,6 +66,11 @@ func (a *App) NewWebConn(ws *websocket.Conn, session model.Session, t goi18n.Tra
 	wc.SetSessionExpiresAt(session.ExpiresAt)
 
 	return wc
+}
+
+func (wc *WebConn) Close() {
+	wc.WebSocket.Close()
+	<-wc.pumpFinished
 }
 
 func (c *WebConn) GetSessionExpiresAt() int64 {
@@ -102,6 +109,7 @@ func (c *WebConn) Pump() {
 	}()
 	c.ReadPump()
 	<-ch
+	c.pumpFinished <- struct{}{}
 }
 
 func (c *WebConn) ReadPump() {

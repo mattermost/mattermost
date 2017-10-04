@@ -71,12 +71,13 @@ func (a *App) Shutdown() {
 		l4g.Info(utils.T("api.server.stop_server.stopping.info"))
 
 		a.Srv.GracefulServer.Stop(TIME_TO_WAIT_FOR_CONNECTIONS_TO_CLOSE_ON_SERVER_SHUTDOWN)
-		a.Srv.Store.Close()
+		<-a.Srv.GracefulServer.StopChan()
 		a.HubStop()
 
 		a.ShutDownPlugins()
 		a.WaitForGoroutines()
 
+		a.Srv.Store.Close()
 		a.Srv = nil
 
 		l4g.Info(utils.T("api.server.stop_server.stopped.info"))
