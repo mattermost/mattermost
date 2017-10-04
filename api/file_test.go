@@ -24,7 +24,7 @@ import (
 )
 
 func TestUploadFile(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup().InitBasic().InitSystemAdmin()
 	defer th.TearDown()
 
 	if *utils.Cfg.FileSettings.DriverName == "" {
@@ -38,7 +38,9 @@ func TestUploadFile(t *testing.T) {
 	channel := th.BasicChannel
 
 	var uploadInfo *model.FileInfo
-	if data, err := readTestFile("test.png"); err != nil {
+	var data []byte
+	var err error
+	if data, err = readTestFile("test.png"); err != nil {
 		t.Fatal(err)
 	} else if resp, err := Client.UploadPostAttachment(data, channel.Id, "test.png"); err != nil {
 		t.Fatal(err)
@@ -101,6 +103,22 @@ func TestUploadFile(t *testing.T) {
 	if info.PreviewPath != expectedPreviewPath {
 		t.Logf("file preview is saved in %v", info.PreviewPath)
 		t.Fatalf("file preview should've been saved in %v", expectedPreviewPath)
+	}
+
+	if _, err := Client.UploadPostAttachment(data, model.NewId(), "test.png"); err == nil || err.StatusCode != http.StatusForbidden {
+		t.Fatal("should have failed - bad channel id")
+	}
+
+	if _, err := Client.UploadPostAttachment(data, "../../junk", "test.png"); err == nil || err.StatusCode != http.StatusForbidden {
+		t.Fatal("should have failed - bad channel id")
+	}
+
+	if _, err := th.SystemAdminClient.UploadPostAttachment(data, model.NewId(), "test.png"); err == nil || err.StatusCode != http.StatusForbidden {
+		t.Fatal("should have failed - bad channel id")
+	}
+
+	if _, err := th.SystemAdminClient.UploadPostAttachment(data, "../../junk", "test.png"); err == nil || err.StatusCode != http.StatusForbidden {
+		t.Fatal("should have failed - bad channel id")
 	}
 
 	enableFileAttachments := *utils.Cfg.FileSettings.EnableFileAttachments

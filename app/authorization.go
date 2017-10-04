@@ -4,6 +4,7 @@
 package app
 
 import (
+	"net/http"
 	"strings"
 
 	l4g "github.com/alecthomas/log4go"
@@ -50,6 +51,8 @@ func (a *App) SessionHasPermissionToChannel(session model.Session, channelId str
 	channel, err := a.GetChannel(channelId)
 	if err == nil && channel.TeamId != "" {
 		return SessionHasPermissionToTeam(session, channel.TeamId, permission)
+	} else if err != nil && err.StatusCode == http.StatusNotFound {
+		return false
 	}
 
 	return SessionHasPermissionTo(session, permission)
