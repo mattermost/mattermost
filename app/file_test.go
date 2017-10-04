@@ -85,4 +85,18 @@ func TestDoUploadFile(t *testing.T) {
 	if info3.Path != fmt.Sprintf("20080305/teams/%v/channels/%v/users/%v/%v/%v", teamId, channelId, userId, info3.Id, filename) {
 		t.Fatal("stored file at incorrect path", info3.Path)
 	}
+
+	info4, err := th.App.DoUploadFile(time.Date(2009, 3, 5, 1, 2, 3, 4, time.Local), "../../"+teamId, "../../"+channelId, "../../"+userId, "../../"+filename, data)
+	if err != nil {
+		t.Fatal(err)
+	} else {
+		defer func() {
+			<-th.App.Srv.Store.FileInfo().PermanentDelete(info3.Id)
+			utils.RemoveFile(info3.Path)
+		}()
+	}
+
+	if info4.Path != fmt.Sprintf("20090305/teams/%v/channels/%v/users/%v/%v/%v", teamId, channelId, userId, info4.Id, filename) {
+		t.Fatal("stored file at incorrect path", info4.Path)
+	}
 }
