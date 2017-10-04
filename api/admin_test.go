@@ -8,15 +8,10 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/app"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
 	"github.com/mattermost/mattermost-server/utils"
 )
-
-func init() {
-	app.UseGlobalApp = false
-}
 
 func TestGetLogs(t *testing.T) {
 	th := Setup().InitSystemAdmin().InitBasic()

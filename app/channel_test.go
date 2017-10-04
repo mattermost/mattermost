@@ -9,6 +9,7 @@ import (
 
 func TestPermanentDeleteChannel(t *testing.T) {
 	th := Setup().InitBasic()
+	defer th.TearDown()
 
 	incomingWasEnabled := utils.Cfg.ServiceSettings.EnableIncomingWebhooks
 	outgoingWasEnabled := utils.Cfg.ServiceSettings.EnableOutgoingWebhooks
@@ -67,6 +68,7 @@ func TestPermanentDeleteChannel(t *testing.T) {
 
 func TestMoveChannel(t *testing.T) {
 	th := Setup().InitBasic()
+	defer th.TearDown()
 
 	sourceTeam := th.CreateTeam()
 	targetTeam := th.CreateTeam()

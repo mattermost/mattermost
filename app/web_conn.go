@@ -40,6 +40,8 @@ type WebConn struct {
 	AllChannelMembers         map[string]string
 	LastAllChannelMembersTime int64
 	Sequence                  int64
+	endWritePump              chan struct{}
+	pumpFinished              chan struct{}
 }
 
 func (a *App) NewWebConn(ws *websocket.Conn, session model.Session, t goi18n.TranslateFunc, locale string) *WebConn {
@@ -51,12 +53,14 @@ func (a *App) NewWebConn(ws *websocket.Conn, session model.Session, t goi18n.Tra
 	}
 
 	wc := &WebConn{
-		App:       a,
-		Send:      make(chan model.WebSocketMessage, SEND_QUEUE_SIZE),
-		WebSocket: ws,
-		UserId:    session.UserId,
-		T:         t,
-		Locale:    locale,
+		App:          a,
+		Send:         make(chan model.WebSocketMessage, SEND_QUEUE_SIZE),
+		WebSocket:    ws,
+		UserId:       session.UserId,
+		T:            t,
+		Locale:       locale,
+		endWritePump: make(chan struct{}, 1),
+		pumpFinished: make(chan struct{}, 1),
 	}
 
 	wc.SetSession(&session)
@@ -64,6 +68,12 @@ func (a *App) NewWebConn(ws *websocket.Conn, session model.Session, t goi18n.Tra
 	wc.SetSessionExpiresAt(session.ExpiresAt)
 
 	return wc
+}
+
+func (wc *WebConn) Close() {
+	wc.WebSocket.Close()
+	wc.endWritePump <- struct{}{}
+	<-wc.pumpFinished
 }
 
 func (c *WebConn) GetSessionExpiresAt() int64 {
@@ -97,14 +107,15 @@ func (c *WebConn) SetSession(v *model.Session) {
 func (c *WebConn) Pump() {
 	ch := make(chan struct{}, 1)
 	go func() {
-		c.WritePump()
+		c.writePump()
 		ch <- struct{}{}
 	}()
-	c.ReadPump()
+	c.readPump()
 	<-ch
+	c.pumpFinished <- struct{}{}
 }
 
-func (c *WebConn) ReadPump() {
+func (c *WebConn) readPump() {
 	defer func() {
 		c.App.HubUnregister(c)
 		c.WebSocket.Close()
@@ -138,7 +149,7 @@ func (c *WebConn) ReadPump() {
 	}
 }
 
-func (c *WebConn) WritePump() {
+func (c *WebConn) writePump() {
 	ticker := time.NewTicker(PING_PERIOD)
 	authTicker := time.NewTicker(AUTH_TIMEOUT)
 
@@ -221,7 +232,8 @@ func (c *WebConn) WritePump() {
 
 				return
 			}
-
+		case <-c.endWritePump:
+			return
 		case <-authTicker.C:
 			if c.GetSessionToken() == "" {
 				l4g.Debug(fmt.Sprintf("websocket.authTicker: did not authenticate ip=%v", c.WebSocket.RemoteAddr()))
