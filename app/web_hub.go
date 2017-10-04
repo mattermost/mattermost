@@ -45,8 +45,8 @@ type Hub struct {
 func (a *App) NewWebHub() *Hub {
 	return &Hub{
 		app:            a,
-		register:       make(chan *WebConn),
-		unregister:     make(chan *WebConn),
+		register:       make(chan *WebConn, 1),
+		unregister:     make(chan *WebConn, 1),
 		connections:    make([]*WebConn, 0, model.SESSION_CACHE_SIZE),
 		broadcast:      make(chan *model.WebSocketEvent, BROADCAST_QUEUE_SIZE),
 		stop:           make(chan string),

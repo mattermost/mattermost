@@ -104,15 +104,15 @@ func (c *WebConn) SetSession(v *model.Session) {
 func (c *WebConn) Pump() {
 	ch := make(chan struct{}, 1)
 	go func() {
-		c.WritePump()
+		c.writePump()
 		ch <- struct{}{}
 	}()
-	c.ReadPump()
+	c.readPump()
 	<-ch
 	c.pumpFinished <- struct{}{}
 }
 
-func (c *WebConn) ReadPump() {
+func (c *WebConn) readPump() {
 	defer func() {
 		c.App.HubUnregister(c)
 		c.WebSocket.Close()
@@ -146,7 +146,7 @@ func (c *WebConn) ReadPump() {
 	}
 }
 
-func (c *WebConn) WritePump() {
+func (c *WebConn) writePump() {
 	ticker := time.NewTicker(PING_PERIOD)
 	authTicker := time.NewTicker(AUTH_TIMEOUT)
 
