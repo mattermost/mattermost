@@ -6,14 +6,9 @@ import (
 	"testing"
 
 	l4g "github.com/alecthomas/log4go"
-	"github.com/mattermost/mattermost-server/app"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
 )
-
-func init() {
-	app.UseGlobalApp = false
-}
 
 func TestGetPing(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()

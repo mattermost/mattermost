@@ -12,6 +12,7 @@ import (
 
 func TestGetJob(t *testing.T) {
 	th := Setup()
+	defer th.TearDown()
 
 	status := &model.Job{
 		Id:     model.NewId(),
@@ -32,6 +33,7 @@ func TestGetJob(t *testing.T) {
 
 func TestGetJobByType(t *testing.T) {
 	th := Setup()
+	defer th.TearDown()
 
 	jobType := model.NewId()
 

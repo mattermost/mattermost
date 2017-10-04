@@ -6,7 +6,6 @@ package app
 import (
 	"io/ioutil"
 	"net/http"
-	"sync"
 	"sync/atomic"
 
 	l4g "github.com/alecthomas/log4go"
@@ -47,56 +46,41 @@ type App struct {
 	Saml             einterfaces.SamlInterface
 }
 
-var globalApp App = App{
-	goroutineExitSignal: make(chan struct{}, 1),
-	Jobs:                &jobs.JobServer{},
-}
-
 var appCount = 0
-var initEnterprise sync.Once
-
-var UseGlobalApp = true
 
 // New creates a new App. You must call Shutdown when you're done with it.
-// XXX: Doesn't necessarily create a new App yet.
+// XXX: For now, only one at a time is allowed as some resources are still shared.
 func New() *App {
 	appCount++
-
-	if !UseGlobalApp {
-		if appCount > 1 {
-			panic("Only one App should exist at a time. Did you forget to call Shutdown()?")
-		}
-		app := &App{
-			goroutineExitSignal: make(chan struct{}, 1),
-			Jobs:                &jobs.JobServer{},
-		}
-		app.initEnterprise()
-		return app
+	if appCount > 1 {
+		panic("Only one App should exist at a time. Did you forget to call Shutdown()?")
 	}
 
-	initEnterprise.Do(func() {
-		globalApp.initEnterprise()
-	})
-	return &globalApp
+	app := &App{
+		goroutineExitSignal: make(chan struct{}, 1),
+		Jobs:                &jobs.JobServer{},
+	}
+	app.initEnterprise()
+	return app
 }
 
 func (a *App) Shutdown() {
 	appCount--
-	if appCount == 0 {
-		if a.Srv != nil {
-			l4g.Info(utils.T("api.server.stop_server.stopping.info"))
 
-			a.Srv.GracefulServer.Stop(TIME_TO_WAIT_FOR_CONNECTIONS_TO_CLOSE_ON_SERVER_SHUTDOWN)
-			a.Srv.Store.Close()
-			a.HubStop()
+	if a.Srv != nil {
+		l4g.Info(utils.T("api.server.stop_server.stopping.info"))
 
-			a.ShutDownPlugins()
-			a.WaitForGoroutines()
+		a.Srv.GracefulServer.Stop(TIME_TO_WAIT_FOR_CONNECTIONS_TO_CLOSE_ON_SERVER_SHUTDOWN)
+		<-a.Srv.GracefulServer.StopChan()
+		a.HubStop()
 
-			a.Srv = nil
+		a.ShutDownPlugins()
+		a.WaitForGoroutines()
 
-			l4g.Info(utils.T("api.server.stop_server.stopped.info"))
-		}
+		a.Srv.Store.Close()
+		a.Srv = nil
+
+		l4g.Info(utils.T("api.server.stop_server.stopped.info"))
 	}
 }
 
