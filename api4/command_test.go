@@ -486,7 +486,7 @@ func TestExecuteCommand(t *testing.T) {
 
 func TestExecuteCommandAgainstChannelOnAnotherTeam(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
-	defer th.TearDown()
+	defer TearDown()
 	Client := th.Client
 	channel := th.BasicChannel
 
@@ -509,7 +509,7 @@ func TestExecuteCommandAgainstChannelOnAnotherTeam(t *testing.T) {
 		Trigger:   "postcommand",
 	}
 
-	if _, err := th.App.CreateCommand(postCmd); err != nil {
+	if _, err := app.CreateCommand(postCmd); err != nil {
 		t.Fatal("failed to create post command")
 	}
 
