@@ -10,9 +10,6 @@ import (
 )
 
 func TestCheckIfRolesGrantPermission(t *testing.T) {
-	Setup()
-	defer th.TearDown()
-
 	cases := []struct {
 		roles        []string
 		permissionId string

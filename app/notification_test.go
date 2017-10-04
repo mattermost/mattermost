@@ -409,7 +409,7 @@ func TestRemoveCodeFromMessage(t *testing.T) {
 }
 
 func TestGetMentionKeywords(t *testing.T) {
-	Setup()
+	th := Setup()
 	defer th.TearDown()
 
 	// user with username or custom mentions enabled
@@ -859,7 +859,7 @@ func TestDoesStatusAllowPushNotification(t *testing.T) {
 }
 
 func TestGetDirectMessageNotificationEmailSubject(t *testing.T) {
-	Setup()
+	th := Setup()
 	defer th.TearDown()
 
 	expectedPrefix := "[http://localhost:8065] New Direct Message from sender on"
@@ -874,7 +874,7 @@ func TestGetDirectMessageNotificationEmailSubject(t *testing.T) {
 }
 
 func TestGetNotificationEmailSubject(t *testing.T) {
-	Setup()
+	th := Setup()
 	defer th.TearDown()
 
 	expectedPrefix := "[http://localhost:8065] Notification in team on"

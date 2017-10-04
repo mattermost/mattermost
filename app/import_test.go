@@ -2896,9 +2896,6 @@ func TestImportBulkImport(t *testing.T) {
 }
 
 func TestImportProcessImportDataFileVersionLine(t *testing.T) {
-	Setup()
-	defer th.TearDown()
-
 	data := LineImportData{
 		Type:    "version",
 		Version: ptrInt(1),
