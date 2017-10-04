@@ -13,6 +13,7 @@ import * as EmojiPicker from 'components/emoji_picker/emoji_picker.jsx';
 
 import AppDispatcher from 'dispatcher/app_dispatcher.jsx';
 import * as GlobalActions from 'actions/global_actions.jsx';
+import {isUrlSafe} from 'utils/url.jsx';
 import * as Utils from 'utils/utils.jsx';
 import * as PostUtils from 'utils/post_utils.jsx';
 import * as UserAgent from 'utils/user_agent.jsx';
@@ -161,12 +162,14 @@ export default class CreatePost extends React.Component {
                 (data) => {
                     this.setState({submitting: false});
 
+                    const hasGotoLocation = data.goto_location && isUrlSafe(data.goto_location);
+
                     if (post.message.trim() === '/logout') {
-                        GlobalActions.clientLogout(data.goto_location);
+                        GlobalActions.clientLogout(hasGotoLocation ? data.goto_location : '/');
                         return;
                     }
 
-                    if (data.goto_location && data.goto_location.length > 0) {
+                    if (hasGotoLocation) {
                         if (data.goto_location.startsWith('/') || data.goto_location.includes(window.location.hostname)) {
                             browserHistory.push(data.goto_location);
                         } else {

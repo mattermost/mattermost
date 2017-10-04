@@ -27,3 +27,19 @@ export function getSiteURL() {
 
     return window.location.protocol + '//' + window.location.hostname + (window.location.port ? ':' + window.location.port : '');
 }
+
+export function isUrlSafe(url) {
+    let unescaped;
+
+    try {
+        unescaped = decodeURIComponent(url);
+    } catch (e) {
+        unescaped = unescape(url);
+    }
+
+    unescaped = unescaped.replace(/[^\w:]/g, '').toLowerCase();
+
+    return !unescaped.startsWith('javascript:') && // eslint-disable-line no-script-url
+        !unescaped.startsWith('vbscript:') &&
+        !unescaped.startsWith('data:');
+}

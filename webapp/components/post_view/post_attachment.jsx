@@ -2,6 +2,7 @@
 // See License.txt for license information.
 
 import * as TextFormatting from 'utils/text_formatting.jsx';
+import {isUrlSafe} from 'utils/url.jsx';
 import {localizeMessage} from 'utils/utils.jsx';
 
 import * as PostActions from 'actions/post_actions.jsx';
@@ -245,7 +246,7 @@ export default class PostAttachment extends React.PureComponent {
                 );
             }
         }
-        if (data.author_link) {
+        if (data.author_link && isUrlSafe(data.author_link)) {
             author = (
                 <a
                     href={data.author_link}
@@ -259,7 +260,7 @@ export default class PostAttachment extends React.PureComponent {
 
         let title;
         if (data.title) {
-            if (data.title_link) {
+            if (data.title_link && isUrlSafe(data.title_link)) {
                 title = (
                     <h1
                         className='attachment__title'
