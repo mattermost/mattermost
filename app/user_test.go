@@ -21,6 +21,8 @@ import (
 
 func TestIsUsernameTaken(t *testing.T) {
 	th := Setup().InitBasic()
+	defer th.TearDown()
+
 	user := th.BasicUser
 	taken := th.App.IsUsernameTaken(user.Username)
 
@@ -40,6 +42,8 @@ func TestIsUsernameTaken(t *testing.T) {
 
 func TestCheckUserDomain(t *testing.T) {
 	th := Setup().InitBasic()
+	defer th.TearDown()
+
 	user := th.BasicUser
 
 	cases := []struct {
@@ -66,6 +70,8 @@ func TestCheckUserDomain(t *testing.T) {
 
 func TestCreateOAuthUser(t *testing.T) {
 	th := Setup().InitBasic()
+	defer th.TearDown()
+
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 	glUser := oauthgitlab.GitLabUser{Id: int64(r.Intn(1000)) + 1, Username: "o" + model.NewId(), Email: model.NewId() + "@simulator.amazonses.com", Name: "Joram Wilander"}
 
@@ -116,6 +122,8 @@ func TestCreateProfileImage(t *testing.T) {
 
 func TestUpdateOAuthUserAttrs(t *testing.T) {
 	th := Setup()
+	defer th.TearDown()
+
 	id := model.NewId()
 	id2 := model.NewId()
 	gitlabProvider := einterfaces.GetOauthProvider("gitlab")

@@ -966,6 +966,7 @@ func TestImportValidateDirectPostImportData(t *testing.T) {
 
 func TestImportImportTeam(t *testing.T) {
 	th := Setup()
+	defer th.TearDown()
 
 	// Check how many teams are in the database.
 	var teamsCount int64
@@ -1074,6 +1075,7 @@ func TestImportImportTeam(t *testing.T) {
 
 func TestImportImportChannel(t *testing.T) {
 	th := Setup()
+	defer th.TearDown()
 
 	// Import a Team.
 	teamName := model.NewId()
@@ -1233,6 +1235,7 @@ func TestImportImportChannel(t *testing.T) {
 
 func TestImportImportUser(t *testing.T) {
 	th := Setup()
+	defer th.TearDown()
 
 	// Check how many users are in the database.
 	var userCount int64
@@ -1910,6 +1913,7 @@ func AssertAllPostsCount(t *testing.T, a *App, initialCount int64, change int64,
 
 func TestImportImportPost(t *testing.T) {
 	th := Setup()
+	defer th.TearDown()
 
 	// Create a Team.
 	teamName := model.NewId()
@@ -2190,6 +2194,7 @@ func TestImportImportPost(t *testing.T) {
 
 func TestImportImportDirectChannel(t *testing.T) {
 	th := Setup().InitBasic()
+	defer th.TearDown()
 
 	// Check how many channels are in the database.
 	var directChannelCount int64
@@ -2400,6 +2405,7 @@ func AssertChannelCount(t *testing.T, a *App, channelType string, expectedCount 
 
 func TestImportImportDirectPost(t *testing.T) {
 	th := Setup().InitBasic()
+	defer th.TearDown()
 
 	// Create the DIRECT channel.
 	channelData := DirectChannelImportData{
@@ -2798,6 +2804,7 @@ func TestImportImportDirectPost(t *testing.T) {
 
 func TestImportImportLine(t *testing.T) {
 	th := Setup()
+	defer th.TearDown()
 
 	// Try import line with an invalid type.
 	line := LineImportData{
@@ -2847,6 +2854,7 @@ func TestImportImportLine(t *testing.T) {
 
 func TestImportBulkImport(t *testing.T) {
 	th := Setup()
+	defer th.TearDown()
 
 	teamName := model.NewId()
 	channelName := model.NewId()
@@ -2889,6 +2897,7 @@ func TestImportBulkImport(t *testing.T) {
 
 func TestImportProcessImportDataFileVersionLine(t *testing.T) {
 	Setup()
+	defer th.TearDown()
 
 	data := LineImportData{
 		Type:    "version",

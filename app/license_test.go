@@ -12,6 +12,7 @@ import (
 
 func TestLoadLicense(t *testing.T) {
 	th := Setup()
+	defer th.TearDown()
 
 	th.App.LoadLicense()
 	if utils.IsLicensed() {
@@ -21,6 +22,7 @@ func TestLoadLicense(t *testing.T) {
 
 func TestSaveLicense(t *testing.T) {
 	th := Setup()
+	defer th.TearDown()
 
 	b1 := []byte("junk")
 
@@ -31,6 +33,7 @@ func TestSaveLicense(t *testing.T) {
 
 func TestRemoveLicense(t *testing.T) {
 	th := Setup()
+	defer th.TearDown()
 
 	if err := th.App.RemoveLicense(); err != nil {
 		t.Fatal("should have removed license")

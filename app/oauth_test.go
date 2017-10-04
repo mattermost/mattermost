@@ -12,6 +12,8 @@ import (
 
 func TestOAuthRevokeAccessToken(t *testing.T) {
 	th := Setup()
+	defer th.TearDown()
+
 	if err := th.App.RevokeAccessToken(model.NewRandomString(16)); err == nil {
 		t.Fatal("Should have failed bad token")
 	}
@@ -46,6 +48,7 @@ func TestOAuthRevokeAccessToken(t *testing.T) {
 
 func TestOAuthDeleteApp(t *testing.T) {
 	th := Setup()
+	defer th.TearDown()
 
 	oldSetting := utils.Cfg.ServiceSettings.EnableOAuthServiceProvider
 	defer func() {

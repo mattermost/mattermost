@@ -13,6 +13,7 @@ import (
 
 func TestSendNotifications(t *testing.T) {
 	th := Setup().InitBasic()
+	defer th.TearDown()
 
 	th.App.AddUserToChannel(th.BasicUser2, th.BasicChannel)
 
@@ -409,6 +410,8 @@ func TestRemoveCodeFromMessage(t *testing.T) {
 
 func TestGetMentionKeywords(t *testing.T) {
 	Setup()
+	defer th.TearDown()
+
 	// user with username or custom mentions enabled
 	user1 := &model.User{
 		Id:        model.NewId(),
@@ -857,6 +860,8 @@ func TestDoesStatusAllowPushNotification(t *testing.T) {
 
 func TestGetDirectMessageNotificationEmailSubject(t *testing.T) {
 	Setup()
+	defer th.TearDown()
+
 	expectedPrefix := "[http://localhost:8065] New Direct Message from sender on"
 	post := &model.Post{
 		CreateAt: 1501804801000,
@@ -870,6 +875,8 @@ func TestGetDirectMessageNotificationEmailSubject(t *testing.T) {
 
 func TestGetNotificationEmailSubject(t *testing.T) {
 	Setup()
+	defer th.TearDown()
+
 	expectedPrefix := "[http://localhost:8065] Notification in team on"
 	post := &model.Post{
 		CreateAt: 1501804801000,
@@ -883,6 +890,8 @@ func TestGetNotificationEmailSubject(t *testing.T) {
 
 func TestGetNotificationEmailBodyFullNotificationPublicChannel(t *testing.T) {
 	th := Setup()
+	defer th.TearDown()
+
 	recipient := &model.User{}
 	post := &model.Post{
 		Message: "This is the message",
@@ -917,6 +926,8 @@ func TestGetNotificationEmailBodyFullNotificationPublicChannel(t *testing.T) {
 
 func TestGetNotificationEmailBodyFullNotificationGroupChannel(t *testing.T) {
 	th := Setup()
+	defer th.TearDown()
+
 	recipient := &model.User{}
 	post := &model.Post{
 		Message: "This is the message",
@@ -951,6 +962,8 @@ func TestGetNotificationEmailBodyFullNotificationGroupChannel(t *testing.T) {
 
 func TestGetNotificationEmailBodyFullNotificationPrivateChannel(t *testing.T) {
 	th := Setup()
+	defer th.TearDown()
+
 	recipient := &model.User{}
 	post := &model.Post{
 		Message: "This is the message",
@@ -985,6 +998,8 @@ func TestGetNotificationEmailBodyFullNotificationPrivateChannel(t *testing.T) {
 
 func TestGetNotificationEmailBodyFullNotificationDirectChannel(t *testing.T) {
 	th := Setup()
+	defer th.TearDown()
+
 	recipient := &model.User{}
 	post := &model.Post{
 		Message: "This is the message",
@@ -1017,6 +1032,8 @@ func TestGetNotificationEmailBodyFullNotificationDirectChannel(t *testing.T) {
 // from here
 func TestGetNotificationEmailBodyGenericNotificationPublicChannel(t *testing.T) {
 	th := Setup()
+	defer th.TearDown()
+
 	recipient := &model.User{}
 	post := &model.Post{
 		Message: "This is the message",
@@ -1048,6 +1065,8 @@ func TestGetNotificationEmailBodyGenericNotificationPublicChannel(t *testing.T) 
 
 func TestGetNotificationEmailBodyGenericNotificationGroupChannel(t *testing.T) {
 	th := Setup()
+	defer th.TearDown()
+
 	recipient := &model.User{}
 	post := &model.Post{
 		Message: "This is the message",
@@ -1079,6 +1098,8 @@ func TestGetNotificationEmailBodyGenericNotificationGroupChannel(t *testing.T) {
 
 func TestGetNotificationEmailBodyGenericNotificationPrivateChannel(t *testing.T) {
 	th := Setup()
+	defer th.TearDown()
+
 	recipient := &model.User{}
 	post := &model.Post{
 		Message: "This is the message",
@@ -1110,6 +1131,8 @@ func TestGetNotificationEmailBodyGenericNotificationPrivateChannel(t *testing.T)
 
 func TestGetNotificationEmailBodyGenericNotificationDirectChannel(t *testing.T) {
 	th := Setup()
+	defer th.TearDown()
+
 	recipient := &model.User{}
 	post := &model.Post{
 		Message: "This is the message",
