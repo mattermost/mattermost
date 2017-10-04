@@ -3597,7 +3597,7 @@
   },
   {
     "id": "cli.license.critical",
-    "translation": "Bu özelliği kullanabilmek için Enterprise sürüm lisansı gereklidir. Lütfen lisansınızı yükseltmek için sistem yöneticisi ile görüşün."
+    "translation": "Bu özellik Enterprise Sürümde bir lisans anahtarı ile birlikte kullanılabilir. Lütfen sistem yöneticiniz ile görüşün."
   },
   {
     "id": "ent.brand.save_brand_image.decode.app_error",
@@ -3686,6 +3686,10 @@
   {
     "id": "ent.compliance.run_started.info",
     "translation": "'{{.JobName}}' görevi için '{{.FilePath}}' konumuna uygunluk dışa aktarma işlemi başlatıldı"
+  },
+  {
+    "id": "ent.data_retention.generic.license.error",
+    "translation": "License does not support Data Retention."
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.create_index_job.error",
@@ -3841,11 +3845,11 @@
   },
   {
     "id": "ent.ldap.sync.index_job_failed.error",
-    "translation": "LDAP sync worker failed due to the sync job failing"
+    "translation": "Eşitleme görevi yürütülemediğinden LDAP eşitleyici çalışamadı"
   },
   {
     "id": "ent.ldap.sync_worker.create_index_job.error",
-    "translation": "LDAP sync worker failed to create the sync job"
+    "translation": "LDAP eşitleyici eşitleme görevini oluşturamadı"
   },
   {
     "id": "ent.ldap.syncdone.info",
@@ -4369,15 +4373,15 @@
   },
   {
     "id": "model.config.is_valid.data_retention.deletion_job_start_time.app_error",
-    "translation": "VeriSaklama SilmeGöreviBaşlangıçZamanı değeri \"ss:dd\" biçiminde bir saat olmalıdır"
+    "translation": "Veri saklama görevinin başlangıç zamanı SS:DD biçiminde 24 saat düzeninde olmalıdır."
   },
   {
     "id": "model.config.is_valid.data_retention.file_retention_days_too_low.app_error",
-    "translation": "VeriSaklama DosyaSaklamaGünü değeri en az 1 olmalıdır"
+    "translation": "Dosya saklama değeri bir ya da daha fazla gün olmalıdır."
   },
   {
     "id": "model.config.is_valid.data_retention.message_retention_days_too_low.app_error",
-    "translation": "VeriSaklama İletiSaklamaGünü değeri en az 1 olmalıdır"
+    "translation": "İleti saklama değeri bir ya da daha fazla gün olmalıdır."
   },
   {
     "id": "model.config.is_valid.elastic_search.aggregate_posts_after_days.app_error",
@@ -5672,6 +5676,14 @@
     "translation": "İşler alınamadı"
   },
   {
+    "id": "store.sql_job.get_count_by_status_and_type.app_erro",
+    "translation": "Durum ve türe göre görev sayısı alınamadı"
+  },
+  {
+    "id": "store.sql_job.get_newest_job_by_status_and_type.app_error",
+    "translation": "Durum ve türe göre en son görev alınamadı"
+  },
+  {
     "id": "store.sql_job.save.app_error",
     "translation": "İş kaydedilemedi"
   },
@@ -6573,15 +6585,15 @@
   },
   {
     "id": "utils.file.list_directory.configured.app_error",
-    "translation": "File storage not configured properly. Please configure for either S3 or local server file storage."
+    "translation": "Dosya depolaması doğru şekilde yapılandırılmamış. Lütfen dosya depolaması için bir S3 ya da yerel sunucu yapılandırın."
   },
   {
     "id": "utils.file.list_directory.local.app_error",
-    "translation": "Encountered an error listing directory from local server file storage."
+    "translation": "Klasör yerel sunucu depolaması üzerinde görüntülenirken bir sorun çıktı."
   },
   {
     "id": "utils.file.list_directory.s3.app_error",
-    "translation": "Encountered an error listing directory from S3."
+    "translation": "Klasör S3 üzerinden görüntülenirken bir sorun çıktı."
   },
   {
     "id": "utils.file.remove_directory.configured.app_error",
