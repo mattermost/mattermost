@@ -391,11 +391,7 @@ func TestGetOutgoingWebhooks(t *testing.T) {
 	}
 
 	hooks, resp = th.SystemAdminClient.GetOutgoingWebhooksForChannel(model.NewId(), 0, 1000, "")
-	CheckNoError(t, resp)
-
-	if len(hooks) != 0 {
-		t.Fatal("no hooks should be returned")
-	}
+	CheckForbiddenStatus(t, resp)
 
 	_, resp = Client.GetOutgoingWebhooks(0, 1000, "")
 	CheckForbiddenStatus(t, resp)
