@@ -10,6 +10,7 @@ import (
 	"strconv"
 	"strings"
 
+	"bytes"
 	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/mattermost-server/einterfaces"
 	"github.com/mattermost/mattermost-server/model"
@@ -1297,12 +1298,22 @@ func (s SqlPostStore) GetPostsByIds(postIds []string) store.StoreChannel {
 	go func() {
 		result := store.StoreResult{}
 
-		inClause := `'` + strings.Join(postIds, `', '`) + `'`
+		keys := bytes.Buffer{}
+		params := make(map[string]interface{})
+		for i, postId := range postIds {
+			if keys.Len() > 0 {
+				keys.WriteString(",")
+			}
 
-		query := `SELECT * FROM Posts WHERE Id in (` + inClause + `) and DeleteAt = 0 ORDER BY CreateAt DESC`
+			key := "Post" + strconv.Itoa(i)
+			keys.WriteString(":" + key)
+			params[key] = postId
+		}
+
+		query := `SELECT * FROM Posts WHERE Id in (` + keys.String() + `) and DeleteAt = 0 ORDER BY CreateAt DESC`
 
 		var posts []*model.Post
-		_, err := s.GetReplica().Select(&posts, query, map[string]interface{}{})
+		_, err := s.GetReplica().Select(&posts, query, params)
 
 		if err != nil {
 			l4g.Error(err)
