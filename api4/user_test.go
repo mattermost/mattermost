@@ -1655,6 +1655,9 @@ func TestGenerateMfaSecret(t *testing.T) {
 	_, resp := Client.GenerateMfaSecret(th.BasicUser.Id)
 	CheckNotImplementedStatus(t, resp)
 
+	_, resp = th.SystemAdminClient.GenerateMfaSecret(th.BasicUser.Id)
+	CheckNotImplementedStatus(t, resp)
+
 	_, resp = Client.GenerateMfaSecret("junk")
 	CheckBadRequestStatus(t, resp)
 
@@ -1686,9 +1689,6 @@ func TestGenerateMfaSecret(t *testing.T) {
 
 	_, resp = Client.GenerateMfaSecret(th.BasicUser.Id)
 	CheckUnauthorizedStatus(t, resp)
-
-	_, resp = th.SystemAdminClient.GenerateMfaSecret(th.BasicUser.Id)
-	CheckNotImplementedStatus(t, resp)
 }
 
 func TestUpdateUserPassword(t *testing.T) {
