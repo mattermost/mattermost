@@ -212,12 +212,9 @@ func executeCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if commandArgs.TeamId == "" {
-		commandArgs.TeamId = channel.TeamId
-	} else if c.Session.GetTeamByTeamId(commandArgs.TeamId) == nil {
-		c.SetPermissionError(model.PERMISSION_USE_SLASH_COMMANDS)
-		return
-	}
+	// team id is implicitly taken from channel so that slash commands
+	// created on some other team can't be run against this one
+	commandArgs.TeamId = channel.TeamId
 
 	commandArgs.UserId = c.Session.UserId
 	commandArgs.T = c.T

@@ -490,3 +490,38 @@ func TestExecuteCommand(t *testing.T) {
 	_, resp = th.SystemAdminClient.ExecuteCommand(channel.Id, "/getcommand")
 	CheckNoError(t, resp)
 }
+
+func TestExecuteCommandAgainstChannelOnAnotherTeam(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer th.TearDown()
+	Client := th.Client
+	channel := th.BasicChannel
+
+	enableCommands := *utils.Cfg.ServiceSettings.EnableCommands
+	allowedInternalConnections := *utils.Cfg.ServiceSettings.AllowedUntrustedInternalConnections
+	defer func() {
+		utils.Cfg.ServiceSettings.EnableCommands = &enableCommands
+		utils.Cfg.ServiceSettings.AllowedUntrustedInternalConnections = &allowedInternalConnections
+	}()
+	*utils.Cfg.ServiceSettings.EnableCommands = true
+	*utils.Cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost"
+
+	// create a slash command on some other team where we have permission to do so
+	team2 := th.CreateTeam()
+	postCmd := &model.Command{
+		CreatorId: th.BasicUser.Id,
+		TeamId:    team2.Id,
+		URL:       "http://localhost" + *utils.Cfg.ServiceSettings.ListenAddress + model.API_URL_SUFFIX_V4 + "/teams/command_test",
+		Method:    model.COMMAND_METHOD_POST,
+		Trigger:   "postcommand",
+	}
+
+	if _, err := th.App.CreateCommand(postCmd); err != nil {
+		t.Fatal("failed to create post command")
+	}
+
+	// the execute command endpoint will always search for the command by trigger and team id, inferring team id from the
+	// channel id, so there is no way to use that slash command on a channel that belongs to some other team
+	_, resp := Client.ExecuteCommand(channel.Id, "/postcommand")
+	CheckNotFoundStatus(t, resp)
+}
