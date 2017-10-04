@@ -273,6 +273,10 @@ func (a *App) AddUserToTeamByInviteId(inviteId string, userId string) (*model.Te
 	return team, nil
 }
 
+// Returns three values:
+// 1. a pointer to the team member, if successful
+// 2. a boolean: true if the user has a non-deleted team member for that team already, otherwise false.
+// 3. a pointer to an AppError if something went wrong.
 func (a *App) joinUserToTeam(team *model.Team, user *model.User) (*model.TeamMember, bool, *model.AppError) {
 	tm := &model.TeamMember{
 		TeamId: team.Id,
@@ -296,14 +300,14 @@ func (a *App) joinUserToTeam(team *model.Team, user *model.User) (*model.TeamMem
 		if tmr := <-a.Srv.Store.Team().UpdateMember(tm); tmr.Err != nil {
 			return nil, false, tmr.Err
 		} else {
-			return tmr.Data.(*model.TeamMember), true, nil
+			return tmr.Data.(*model.TeamMember), false, nil
 		}
 	} else {
 		// Membership appears to be missing.  Lets try to add.
 		if tmr := <-a.Srv.Store.Team().SaveMember(tm); tmr.Err != nil {
 			return nil, false, tmr.Err
 		} else {
-			return tmr.Data.(*model.TeamMember), true, nil
+			return tmr.Data.(*model.TeamMember), false, nil
 		}
 	}
 }
