@@ -1,11 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import * as TextFormatting from './text_formatting.jsx';
-import * as SyntaxHighlighting from './syntax_highlighting.jsx';
-
 import marked from 'marked';
 import katex from 'katex';
+
+import * as TextFormatting from 'utils/text_formatting.jsx';
+import * as SyntaxHighlighting from 'utils/syntax_highlighting.jsx';
+import {isUrlSafe} from 'utils/url.jsx';
 
 class MattermostMarkdownRenderer extends marked.Renderer {
     constructor(options, formattingOptions = {}) {
@@ -151,19 +152,7 @@ class MattermostMarkdownRenderer extends marked.Renderer {
             return text;
         }
 
-        try {
-            let unescaped = unescape(href);
-            try {
-                unescaped = decodeURIComponent(unescaped);
-            } catch (e) {
-                unescaped = global.unescape(unescaped);
-            }
-            unescaped = unescaped.replace(/[^\w:]/g, '').toLowerCase();
-
-            if (unescaped.indexOf('javascript:') === 0 || unescaped.indexOf('vbscript:') === 0 || unescaped.indexOf('data:') === 0) { // eslint-disable-line no-script-url
-                return text;
-            }
-        } catch (e) {
+        if (!isUrlSafe(unescapeHtmlEntities(href))) {
             return text;
         }
 
@@ -255,7 +244,7 @@ export function format(text, options = {}) {
 
 // Marked helper functions that should probably just be exported
 
-function unescape(html) {
+function unescapeHtmlEntities(html) {
     return html.replace(/&([#\w]+);/g, (_, m) => {
         const n = m.toLowerCase();
         if (n === 'colon') {

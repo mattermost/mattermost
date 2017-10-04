@@ -18,6 +18,7 @@ import FileUpload from 'components/file_upload.jsx';
 import FilePreview from 'components/file_preview.jsx';
 import EmojiPickerOverlay from 'components/emoji_picker/emoji_picker_overlay.jsx';
 import * as EmojiPicker from 'components/emoji_picker/emoji_picker.jsx';
+import {isUrlSafe} from 'utils/url.jsx';
 import * as Utils from 'utils/utils.jsx';
 import * as UserAgent from 'utils/user_agent.jsx';
 import * as GlobalActions from 'actions/global_actions.jsx';
@@ -197,7 +198,15 @@ export default class CreateComment extends React.Component {
             args,
             (data) => {
                 this.setState({submitting: false});
-                if (data.goto_location && data.goto_location.length > 0) {
+
+                const hasGotoLocation = data.goto_location && isUrlSafe(data.goto_location);
+
+                if (message.trim() === '/logout') {
+                    GlobalActions.clientLogout(hasGotoLocation ? data.goto_location : '/');
+                    return;
+                }
+
+                if (hasGotoLocation) {
                     if (data.goto_location.startsWith('/') || data.goto_location.includes(window.location.hostname)) {
                         browserHistory.push(data.goto_location);
                     } else {
