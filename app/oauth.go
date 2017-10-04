@@ -6,7 +6,6 @@ package app
 import (
 	"bytes"
 	b64 "encoding/base64"
-	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -116,7 +115,7 @@ func AllowOAuthAppAccessToUser(userId string, authRequest *model.AuthorizeReques
 	}
 
 	authData := &model.AuthData{UserId: userId, ClientId: authRequest.ClientId, CreateAt: model.GetMillis(), RedirectUri: authRequest.RedirectUri, State: authRequest.State, Scope: authRequest.Scope}
-	authData.Code = utils.HashSha256(fmt.Sprintf("%v:%v:%v:%v", authRequest.ClientId, authRequest.RedirectUri, authData.CreateAt, userId))
+	authData.Code = model.NewId() + model.NewId()
 
 	// this saves the OAuth2 app as authorized
 	authorizedApp := model.Preference{
@@ -172,10 +171,6 @@ func GetOAuthAccessToken(clientId, grantType, redirectUri, code, secret, refresh
 
 		if authData.RedirectUri != redirectUri {
 			return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.redirect_uri.app_error", nil, "", http.StatusBadRequest)
-		}
-
-		if code != utils.HashSha256(fmt.Sprintf("%v:%v:%v:%v", clientId, redirectUri, authData.CreateAt, authData.UserId)) {
-			return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.expired_code.app_error", nil, "", http.StatusBadRequest)
 		}
 
 		if result := <-Srv.Store.User().Get(authData.UserId); result.Err != nil {
