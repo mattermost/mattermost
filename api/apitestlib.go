@@ -4,6 +4,7 @@
 package api
 
 import (
+	"strings"
 	"time"
 
 	"github.com/mattermost/platform/api4"
@@ -144,8 +145,8 @@ func (me *TestHelper) CreateTeam(client *model.Client) *model.Team {
 	id := model.NewId()
 	team := &model.Team{
 		DisplayName: "dn_" + id,
-		Name:        "name" + id,
-		Email:       "success+" + id + "@simulator.amazonses.com",
+		Name:        GenerateTestTeamName(),
+		Email:       GenerateTestEmail(),
 		Type:        model.TEAM_OPEN,
 	}
 
@@ -320,6 +321,14 @@ func (me *TestHelper) LoginSystemAdmin() {
 	utils.DisableDebugLogForTest()
 	me.SystemAdminClient.Must(me.SystemAdminClient.Login(me.SystemAdminUser.Email, me.SystemAdminUser.Password))
 	utils.EnableDebugLogForTest()
+}
+
+func GenerateTestEmail() string {
+	return strings.ToLower("success+" + model.NewId() + "@simulator.amazonses.com")
+}
+
+func GenerateTestTeamName() string {
+	return "faketeam" + model.NewRandomString(6)
 }
 
 func TearDown() {

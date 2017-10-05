@@ -104,8 +104,6 @@ func UpdateTeam(team *model.Team) (*model.Team, *model.AppError) {
 		return nil, result.Err
 	}
 
-	oldTeam.Sanitize()
-
 	sendUpdatedTeamEvent(oldTeam)
 
 	return oldTeam, nil
@@ -124,16 +122,18 @@ func PatchTeam(teamId string, patch *model.TeamPatch) (*model.Team, *model.AppEr
 		return nil, err
 	}
 
-	updatedTeam.Sanitize()
-
 	sendUpdatedTeamEvent(updatedTeam)
 
 	return updatedTeam, nil
 }
 
 func sendUpdatedTeamEvent(team *model.Team) {
+	sanitizedTeam := &model.Team{}
+	*sanitizedTeam = *team
+	sanitizedTeam.Sanitize()
+
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_UPDATE_TEAM, "", "", "", nil)
-	message.Add("team", team.ToJson())
+	message.Add("team", sanitizedTeam.ToJson())
 	go Publish(message)
 }
 
@@ -822,4 +822,20 @@ func GetTeamIdFromQuery(query url.Values) (string, *model.AppError) {
 	}
 
 	return "", nil
+}
+
+func SanitizeTeam(session model.Session, team *model.Team) *model.Team {
+	if !SessionHasPermissionToTeam(session, team.Id, model.PERMISSION_MANAGE_TEAM) {
+		team.Sanitize()
+	}
+
+	return team
+}
+
+func SanitizeTeams(session model.Session, teams []*model.Team) []*model.Team {
+	for _, team := range teams {
+		SanitizeTeam(session, team)
+	}
+
+	return teams
 }
