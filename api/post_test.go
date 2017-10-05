@@ -459,13 +459,12 @@ func TestUpdatePost(t *testing.T) {
 		}
 	}
 
-	post3 := &model.Post{ChannelId: channel1.Id, Message: "zz" + model.NewId() + "a", Type: model.POST_JOIN_LEAVE}
-	rpost3, err := Client.CreatePost(post3)
+	rpost3, err := th.App.CreatePost(&model.Post{ChannelId: channel1.Id, Message: "zz" + model.NewId() + "a", Type: model.POST_JOIN_LEAVE, UserId: th.BasicUser.Id}, channel1, false)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	up3 := &model.Post{Id: rpost3.Data.(*model.Post).Id, ChannelId: channel1.Id, Message: "zz" + model.NewId() + " update post 3"}
+	up3 := &model.Post{Id: rpost3.Id, ChannelId: channel1.Id, Message: "zz" + model.NewId() + " update post 3"}
 	if _, err := Client.UpdatePost(up3); err == nil {
 		t.Fatal("shouldn't have been able to update system message")
 	}
