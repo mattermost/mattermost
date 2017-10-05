@@ -61,6 +61,11 @@ func TestCreatePost(t *testing.T) {
 		t.Fatal("Newly craeted post shouldn't have EditAt set")
 	}
 
+	_, err = Client.CreatePost(&model.Post{ChannelId: channel1.Id, Message: "#hashtag a" + model.NewId() + "a", Type: model.POST_SYSTEM_GENERIC})
+	if err == nil {
+		t.Fatal("should have failed - bad post type")
+	}
+
 	post2 := &model.Post{ChannelId: channel1.Id, Message: "zz" + model.NewId() + "a", RootId: rpost1.Data.(*model.Post).Id}
 	rpost2, err := Client.CreatePost(post2)
 	if err != nil {

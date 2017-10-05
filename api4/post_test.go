@@ -66,6 +66,13 @@ func TestCreatePost(t *testing.T) {
 		t.Fatal("create at should not match")
 	}
 
+	post.RootId = ""
+	post.ParentId = ""
+	post.Type = model.POST_SYSTEM_GENERIC
+	_, resp = Client.CreatePost(post)
+	CheckBadRequestStatus(t, resp)
+
+	post.Type = ""
 	post.RootId = rpost2.Id
 	post.ParentId = rpost2.Id
 	_, resp = Client.CreatePost(post)
