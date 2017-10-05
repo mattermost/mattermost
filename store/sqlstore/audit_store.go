@@ -36,38 +36,21 @@ func (s SqlAuditStore) CreateIndexesIfNotExists() {
 }
 
 func (s SqlAuditStore) Save(audit *model.Audit) store.StoreChannel {
-
-	storeChannel := make(store.StoreChannel, 1)
-
-	go func() {
-		result := store.StoreResult{}
-
+	return store.Do(func(result *store.StoreResult) {
 		audit.Id = model.NewId()
 		audit.CreateAt = model.GetMillis()
 
 		if err := s.GetMaster().Insert(audit); err != nil {
 			result.Err = model.NewAppError("SqlAuditStore.Save", "store.sql_audit.save.saving.app_error", nil, "user_id="+audit.UserId+" action="+audit.Action, http.StatusInternalServerError)
 		}
-
-		storeChannel <- result
-		close(storeChannel)
-	}()
-
-	return storeChannel
+	})
 }
 
 func (s SqlAuditStore) Get(user_id string, offset int, limit int) store.StoreChannel {
-
-	storeChannel := make(store.StoreChannel, 1)
-
-	go func() {
-		result := store.StoreResult{}
-
+	return store.Do(func(result *store.StoreResult) {
 		if limit > 1000 {
 			limit = 1000
 			result.Err = model.NewAppError("SqlAuditStore.Get", "store.sql_audit.get.limit.app_error", nil, "user_id="+user_id, http.StatusBadRequest)
-			storeChannel <- result
-			close(storeChannel)
 			return
 		}
 
@@ -85,39 +68,20 @@ func (s SqlAuditStore) Get(user_id string, offset int, limit int) store.StoreCha
 		} else {
 			result.Data = audits
 		}
-
-		storeChannel <- result
-		close(storeChannel)
-	}()
-
-	return storeChannel
+	})
 }
 
 func (s SqlAuditStore) PermanentDeleteByUser(userId string) store.StoreChannel {
-
-	storeChannel := make(store.StoreChannel, 1)
-
-	go func() {
-		result := store.StoreResult{}
-
+	return store.Do(func(result *store.StoreResult) {
 		if _, err := s.GetMaster().Exec("DELETE FROM Audits WHERE UserId = :userId",
 			map[string]interface{}{"userId": userId}); err != nil {
 			result.Err = model.NewAppError("SqlAuditStore.Delete", "store.sql_audit.permanent_delete_by_user.app_error", nil, "user_id="+userId, http.StatusInternalServerError)
 		}
-
-		storeChannel <- result
-		close(storeChannel)
-	}()
-
-	return storeChannel
+	})
 }
 
 func (s SqlAuditStore) PermanentDeleteBatch(endTime int64, limit int64) store.StoreChannel {
-	storeChannel := make(store.StoreChannel, 1)
-
-	go func() {
-		result := store.StoreResult{}
-
+	return store.Do(func(result *store.StoreResult) {
 		var query string
 		if *utils.Cfg.SqlSettings.DriverName == "postgres" {
 			query = "DELETE from Audits WHERE Id = any (array (SELECT Id FROM Audits WHERE CreateAt < :EndTime LIMIT :Limit))"
@@ -137,10 +101,5 @@ func (s SqlAuditStore) PermanentDeleteBatch(endTime int64, limit int64) store.St
 				result.Data = rowsAffected
 			}
 		}
-
-		storeChannel <- result
-		close(storeChannel)
-	}()
-
-	return storeChannel
+	})
 }
