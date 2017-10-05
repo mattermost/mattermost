@@ -71,6 +71,8 @@ func createTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	app.SanitizeTeam(rteam, c.IsSystemAdmin())
+
 	w.WriteHeader(http.StatusCreated)
 	w.Write([]byte(rteam.ToJson()))
 }
@@ -89,6 +91,8 @@ func getTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.SetPermissionError(model.PERMISSION_VIEW_TEAM)
 			return
 		}
+
+		app.SanitizeTeam(team, c.IsSystemAdmin())
 
 		w.Write([]byte(team.ToJson()))
 		return
@@ -109,6 +113,8 @@ func getTeamByName(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.SetPermissionError(model.PERMISSION_VIEW_TEAM)
 			return
 		}
+
+		app.SanitizeTeam(team, c.IsSystemAdmin())
 
 		w.Write([]byte(team.ToJson()))
 		return
@@ -142,6 +148,8 @@ func updateTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	app.SanitizeTeam(updatedTeam, c.IsSystemAdmin())
+
 	w.Write([]byte(updatedTeam.ToJson()))
 }
 
@@ -169,6 +177,8 @@ func patchTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	}
+
+	app.SanitizeTeam(patchedTeam, c.IsSystemAdmin())
 
 	c.LogAudit("")
 	w.Write([]byte(patchedTeam.ToJson()))
@@ -215,6 +225,8 @@ func getTeamsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	} else {
+		app.SanitizeTeams(teams, c.IsSystemAdmin())
+
 		w.Write([]byte(model.TeamListToJson(teams)))
 	}
 }
@@ -541,6 +553,8 @@ func getAllTeams(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	app.SanitizeTeams(teams, c.IsSystemAdmin())
+
 	w.Write([]byte(model.TeamListToJson(teams)))
 }
 
@@ -569,6 +583,8 @@ func searchTeams(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	}
+
+	app.SanitizeTeams(teams, c.IsSystemAdmin())
 
 	w.Write([]byte(model.TeamListToJson(teams)))
 }

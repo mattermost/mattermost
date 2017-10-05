@@ -56,6 +56,43 @@ func TestCreateTeam(t *testing.T) {
 	}
 }
 
+func TestCreateTeamSanitization(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer th.TearDown()
+
+	team := &model.Team{
+		DisplayName:    t.Name() + "_1",
+		Name:           GenerateTestTeamName(),
+		Email:          GenerateTestEmail(),
+		Type:           model.TEAM_OPEN,
+		AllowedDomains: "simulator.amazonses.com",
+	}
+
+	if res, err := th.BasicClient.CreateTeam(team); err != nil {
+		t.Fatal(err)
+	} else if rteam := res.Data.(*model.Team); rteam.Email != "" {
+		t.Fatal("should've sanitized email")
+	} else if rteam.AllowedDomains != "" {
+		t.Fatal("should've sanitized allowed domains")
+	}
+
+	team = &model.Team{
+		DisplayName:    t.Name() + "_2",
+		Name:           GenerateTestTeamName(),
+		Email:          GenerateTestEmail(),
+		Type:           model.TEAM_OPEN,
+		AllowedDomains: "simulator.amazonses.com",
+	}
+
+	if res, err := th.SystemAdminClient.CreateTeam(team); err != nil {
+		t.Fatal(err)
+	} else if rteam := res.Data.(*model.Team); rteam.Email == "" {
+		t.Fatal("should not have sanitized email for admin")
+	} else if rteam.AllowedDomains == "" {
+		t.Fatal("should not have sanitized allowed domains")
+	}
+}
+
 func TestAddUserToTeam(t *testing.T) {
 	th := Setup().InitSystemAdmin().InitBasic()
 	defer th.TearDown()
@@ -253,6 +290,66 @@ func TestGetAllTeams(t *testing.T) {
 	}
 }
 
+func TestGetAllTeamsSanitization(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer th.TearDown()
+
+	var team *model.Team
+	if res, err := th.BasicClient.CreateTeam(&model.Team{
+		DisplayName:    t.Name() + "_1",
+		Name:           GenerateTestTeamName(),
+		Email:          GenerateTestEmail(),
+		Type:           model.TEAM_OPEN,
+		AllowedDomains: "simulator.amazonses.com",
+	}); err != nil {
+		t.Fatal(err)
+	} else {
+		team = res.Data.(*model.Team)
+	}
+
+	var team2 *model.Team
+	if res, err := th.BasicClient.CreateTeam(&model.Team{
+		DisplayName:    t.Name() + "_2",
+		Name:           GenerateTestTeamName(),
+		Email:          GenerateTestEmail(),
+		Type:           model.TEAM_OPEN,
+		AllowedDomains: "simulator.amazonses.com",
+	}); err != nil {
+		t.Fatal(err)
+	} else {
+		team2 = res.Data.(*model.Team)
+	}
+
+	if res, err := th.BasicClient.GetAllTeams(); err != nil {
+		t.Fatal(err)
+	} else {
+		for _, rteam := range res.Data.(map[string]*model.Team) {
+			if rteam.Email != "" {
+				t.Fatal("should've sanitized email")
+			} else if rteam.AllowedDomains != "" {
+				t.Fatal("should've sanitized allowed domains")
+			}
+		}
+	}
+
+	if res, err := th.SystemAdminClient.GetAllTeams(); err != nil {
+		t.Fatal(err)
+	} else {
+		for _, rteam := range res.Data.(map[string]*model.Team) {
+			// System admins receive all teams, everywhere
+			if rteam.Id != team.Id && rteam.Id != team2.Id {
+				continue
+			}
+
+			if rteam.Email == "" {
+				t.Fatal("should not have sanitized email for admin")
+			} else if rteam.AllowedDomains == "" {
+				t.Fatal("should not have sanitized allowed domains")
+			}
+		}
+	}
+}
+
 func TestGetAllTeamListings(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
@@ -298,6 +395,69 @@ func TestGetAllTeamListings(t *testing.T) {
 		}
 		if teams[team.Id].Email != team.Email {
 			t.Fatal()
+		}
+	}
+}
+
+func TestGetAllTeamListingsSanitization(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer th.TearDown()
+
+	var team *model.Team
+	if res, err := th.BasicClient.CreateTeam(&model.Team{
+		DisplayName:    t.Name() + "_1",
+		Name:           GenerateTestTeamName(),
+		Email:          GenerateTestEmail(),
+		Type:           model.TEAM_OPEN,
+		AllowedDomains: "simulator.amazonses.com",
+	}); err != nil {
+		t.Fatal(err)
+	} else {
+		team = res.Data.(*model.Team)
+	}
+
+	var team2 *model.Team
+	if res, err := th.BasicClient.CreateTeam(&model.Team{
+		DisplayName:    t.Name() + "_2",
+		Name:           GenerateTestTeamName(),
+		Email:          GenerateTestEmail(),
+		Type:           model.TEAM_OPEN,
+		AllowedDomains: "simulator.amazonses.com",
+	}); err != nil {
+		t.Fatal(err)
+	} else {
+		team2 = res.Data.(*model.Team)
+	}
+
+	if res, err := th.BasicClient.GetAllTeamListings(); err != nil {
+		t.Fatal(err)
+	} else {
+		for _, rteam := range res.Data.(map[string]*model.Team) {
+			if rteam.Id != team.Id && rteam.Id != team2.Id {
+				continue
+			}
+
+			if rteam.Email != "" {
+				t.Fatal("should've sanitized email")
+			} else if rteam.AllowedDomains != "" {
+				t.Fatal("should've sanitized allowed domains")
+			}
+		}
+	}
+
+	if res, err := th.SystemAdminClient.GetAllTeamListings(); err != nil {
+		t.Fatal(err)
+	} else {
+		for _, rteam := range res.Data.(map[string]*model.Team) {
+			if rteam.Id != team.Id && rteam.Id != team2.Id {
+				continue
+			}
+
+			if rteam.Email == "" {
+				t.Fatal("should not have sanitized email for admin")
+			} else if rteam.AllowedDomains == "" {
+				t.Fatal("should not have sanitized allowed domains")
+			}
 		}
 	}
 }
@@ -476,6 +636,44 @@ func TestUpdateTeamDisplayName(t *testing.T) {
 	}
 }
 
+func TestUpdateTeamSanitization(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer th.TearDown()
+
+	team := &model.Team{
+		DisplayName:    t.Name() + "_1",
+		Name:           GenerateTestTeamName(),
+		Email:          GenerateTestEmail(),
+		Type:           model.TEAM_OPEN,
+		AllowedDomains: "simulator.amazonses.com",
+	}
+	if res, err := th.BasicClient.CreateTeam(team); err != nil {
+		t.Fatal(err)
+	} else {
+		team.Id = res.Data.(*model.Team).Id
+	}
+
+	th.BasicClient.SetTeamId(team.Id)
+
+	if res, err := th.BasicClient.UpdateTeam(team); err != nil {
+		t.Fatal(err)
+	} else if rteam := res.Data.(*model.Team); rteam.Email != "" {
+		t.Fatal("should've sanitized email")
+	} else if rteam.AllowedDomains != "" {
+		t.Fatal("should've sanitized allowed domains")
+	}
+
+	th.SystemAdminClient.SetTeamId(team.Id)
+
+	if res, err := th.SystemAdminClient.UpdateTeam(team); err != nil {
+		t.Fatal(err)
+	} else if rteam := res.Data.(*model.Team); rteam.Email == "" {
+		t.Fatal("should not have sanitized email for admin")
+	} else if rteam.AllowedDomains == "" {
+		t.Fatal("should not have sanitized allowed domains")
+	}
+}
+
 func TestFuzzyTeamCreate(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
@@ -534,6 +732,44 @@ func TestGetMyTeam(t *testing.T) {
 		if result.Data.(*model.Team).Type != team.Type {
 			t.Fatal("team types did not match")
 		}
+	}
+}
+
+func TestGetMyTeamSanitization(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer th.TearDown()
+
+	var team *model.Team
+	if res, err := th.BasicClient.CreateTeam(&model.Team{
+		DisplayName:    t.Name() + "_1",
+		Name:           GenerateTestTeamName(),
+		Email:          GenerateTestEmail(),
+		Type:           model.TEAM_OPEN,
+		AllowedDomains: "simulator.amazonses.com",
+	}); err != nil {
+		t.Fatal(err)
+	} else {
+		team = res.Data.(*model.Team)
+	}
+
+	th.BasicClient.SetTeamId(team.Id)
+
+	if res, err := th.BasicClient.GetMyTeam(""); err != nil {
+		t.Fatal(err)
+	} else if rteam := res.Data.(*model.Team); rteam.Email != "" {
+		t.Fatal("should've sanitized email")
+	} else if rteam.AllowedDomains != "" {
+		t.Fatal("should've sanitized allowed domains")
+	}
+
+	th.SystemAdminClient.SetTeamId(team.Id)
+
+	if res, err := th.SystemAdminClient.GetMyTeam(""); err != nil {
+		t.Fatal(err)
+	} else if rteam := res.Data.(*model.Team); rteam.Email == "" {
+		t.Fatal("should not have sanitized email for admin")
+	} else if rteam.AllowedDomains == "" {
+		t.Fatal("should not have sanitized allowed domains")
 	}
 }
 
@@ -895,6 +1131,40 @@ func TestGetTeamByName(t *testing.T) {
 	Client.Logout()
 	if _, err := Client.GetTeamByName(th.BasicTeam.Name); err == nil {
 		t.Fatal("Should have failed when not logged in.")
+	}
+}
+
+func TestGetTeamByNameSanitization(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer th.TearDown()
+
+	var team *model.Team
+	if res, err := th.BasicClient.CreateTeam(&model.Team{
+		DisplayName:    t.Name() + "_1",
+		Name:           GenerateTestTeamName(),
+		Email:          GenerateTestEmail(),
+		Type:           model.TEAM_OPEN,
+		AllowedDomains: "simulator.amazonses.com",
+	}); err != nil {
+		t.Fatal(err)
+	} else {
+		team = res.Data.(*model.Team)
+	}
+
+	if res, err := th.BasicClient.GetTeamByName(team.Name); err != nil {
+		t.Fatal(err)
+	} else if rteam := res.Data.(*model.Team); rteam.Email != "" {
+		t.Fatal("should've sanitized email")
+	} else if rteam.AllowedDomains != "" {
+		t.Fatal("should've sanitized allowed domains")
+	}
+
+	if res, err := th.SystemAdminClient.GetTeamByName(team.Name); err != nil {
+		t.Fatal(err)
+	} else if rteam := res.Data.(*model.Team); rteam.Email == "" {
+		t.Fatal("should not have sanitized email for admin")
+	} else if rteam.AllowedDomains == "" {
+		t.Fatal("should not have sanitized allowed domains")
 	}
 }
 
