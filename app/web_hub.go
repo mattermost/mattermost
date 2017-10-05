@@ -35,7 +35,7 @@ type Hub struct {
 	register        chan *WebConn
 	unregister      chan *WebConn
 	broadcast       chan *model.WebSocketEvent
-	stop            chan string
+	stop            chan struct{}
 	didStop         chan struct{}
 	invalidateUser  chan string
 	ExplicitStop    bool
@@ -49,7 +49,7 @@ func (a *App) NewWebHub() *Hub {
 		unregister:     make(chan *WebConn, 1),
 		connections:    make([]*WebConn, 0, model.SESSION_CACHE_SIZE),
 		broadcast:      make(chan *model.WebSocketEvent, BROADCAST_QUEUE_SIZE),
-		stop:           make(chan string),
+		stop:           make(chan struct{}),
 		didStop:        make(chan struct{}, 1),
 		invalidateUser: make(chan string),
 		ExplicitStop:   false,
@@ -324,7 +324,10 @@ func (h *Hub) Register(webConn *WebConn) {
 }
 
 func (h *Hub) Unregister(webConn *WebConn) {
-	h.unregister <- webConn
+	select {
+	case h.unregister <- webConn:
+	case <-h.stop:
+	}
 }
 
 func (h *Hub) Broadcast(message *model.WebSocketEvent) {
@@ -349,7 +352,7 @@ func getGoroutineId() int {
 }
 
 func (h *Hub) Stop() {
-	h.stop <- "all"
+	close(h.stop)
 	<-h.didStop
 }
 
@@ -430,9 +433,18 @@ func (h *Hub) Start() {
 				}
 
 			case <-h.stop:
+				userIds := make(map[string]bool)
+
 				for _, webCon := range h.connections {
+					userIds[webCon.UserId] = true
 					webCon.Close()
 				}
+
+				for userId := range userIds {
+					h.app.SetStatusOffline(userId, false)
+				}
+
+				h.connections = make([]*WebConn, 0, model.SESSION_CACHE_SIZE)
 				h.ExplicitStop = true
 				h.didStop <- struct{}{}
 
