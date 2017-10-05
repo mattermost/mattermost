@@ -374,10 +374,7 @@ func TestGetAllTeamListings(t *testing.T) {
 	} else {
 		teams := r1.Data.(map[string]*model.Team)
 		if teams[team.Id].Name != team.Name {
-			t.Fatal()
-		}
-		if teams[team.Id].Email != "" {
-			t.Fatal("Non admin users shoudn't get full listings")
+			t.Fatal("team name doesn't match")
 		}
 	}
 
@@ -391,10 +388,7 @@ func TestGetAllTeamListings(t *testing.T) {
 	} else {
 		teams := r1.Data.(map[string]*model.Team)
 		if teams[team.Id].Name != team.Name {
-			t.Fatal()
-		}
-		if teams[team.Id].Email != team.Email {
-			t.Fatal()
+			t.Fatal("team name doesn't match")
 		}
 	}
 }
