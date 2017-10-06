@@ -836,12 +836,8 @@ func (a *App) GetTeamIdFromQuery(query url.Values) (string, *model.AppError) {
 
 func SanitizeTeam(session model.Session, team *model.Team) *model.Team {
 	if !SessionHasPermissionToTeam(session, team.Id, model.PERMISSION_MANAGE_TEAM) {
-		l4g.Debug("sanitizing " + team.Id)
 		team.Sanitize()
-	} else {
-		l4g.Debug("NOT sanitizing " + team.Id)
 	}
-	l4g.Debug(session.ToJson())
 
 	return team
 }
