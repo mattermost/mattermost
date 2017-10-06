@@ -1068,7 +1068,7 @@ func (s SqlPostStore) GetPostsByIds(postIds []string) store.StoreChannel {
 
 		if err != nil {
 			l4g.Error(err)
-			result.Err = model.NewAppError("SqlPostStore.GetPostsCreatedAt", "store.sql_post.get_posts_by_ids.app_error", nil, "", http.StatusInternalServerError)
+			result.Err = model.NewAppError("SqlPostStore.GetPostsByIds", "store.sql_post.get_posts_by_ids.app_error", nil, "", http.StatusInternalServerError)
 		} else {
 			result.Data = posts
 		}
