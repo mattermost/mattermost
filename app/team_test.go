@@ -182,6 +182,7 @@ func TestPermanentDeleteTeam(t *testing.T) {
 
 func TestSanitizeTeam(t *testing.T) {
 	th := Setup()
+	defer th.TearDown()
 
 	team := &model.Team{
 		Id:             model.NewId(),
@@ -311,6 +312,7 @@ func TestSanitizeTeam(t *testing.T) {
 
 func TestSanitizeTeams(t *testing.T) {
 	th := Setup()
+	defer th.TearDown()
 
 	t.Run("not a system admin", func(t *testing.T) {
 		teams := []*model.Team{
