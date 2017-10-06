@@ -834,14 +834,22 @@ func (a *App) GetTeamIdFromQuery(query url.Values) (string, *model.AppError) {
 	return "", nil
 }
 
-func SanitizeTeam(team *model.Team, asAdmin bool) {
-	if !asAdmin {
+func SanitizeTeam(session model.Session, team *model.Team) *model.Team {
+	if !SessionHasPermissionToTeam(session, team.Id, model.PERMISSION_MANAGE_TEAM) {
+		l4g.Debug("sanitizing " + team.Id)
 		team.Sanitize()
+	} else {
+		l4g.Debug("NOT sanitizing " + team.Id)
 	}
+	l4g.Debug(session.ToJson())
+
+	return team
 }
 
-func SanitizeTeams(teams []*model.Team, asAdmin bool) {
-	if !asAdmin {
-		model.SanitizeTeams(teams)
+func SanitizeTeams(session model.Session, teams []*model.Team) []*model.Team {
+	for _, team := range teams {
+		SanitizeTeam(session, team)
 	}
+
+	return teams
 }

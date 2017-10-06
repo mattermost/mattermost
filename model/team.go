@@ -287,18 +287,6 @@ func (o *Team) SanitizeForNotLoggedIn() {
 	}
 }
 
-func SanitizeTeams(teams []*Team) {
-	for _, team := range teams {
-		team.Sanitize()
-	}
-}
-
-func SanitizeTeamMap(teams map[string]*Team) {
-	for _, team := range teams {
-		team.Sanitize()
-	}
-}
-
 func (t *Team) Patch(patch *TeamPatch) {
 	if patch.DisplayName != nil {
 		t.DisplayName = *patch.DisplayName

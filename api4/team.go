@@ -71,7 +71,7 @@ func createTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	app.SanitizeTeam(rteam, c.IsSystemAdmin())
+	// Don't sanitize the team here since the user will be a team admin and their session won't reflect that yet
 
 	w.WriteHeader(http.StatusCreated)
 	w.Write([]byte(rteam.ToJson()))
@@ -92,7 +92,7 @@ func getTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		app.SanitizeTeam(team, c.IsSystemAdmin())
+		app.SanitizeTeam(c.Session, team)
 
 		w.Write([]byte(team.ToJson()))
 		return
@@ -114,7 +114,7 @@ func getTeamByName(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		app.SanitizeTeam(team, c.IsSystemAdmin())
+		app.SanitizeTeam(c.Session, team)
 
 		w.Write([]byte(team.ToJson()))
 		return
@@ -148,7 +148,7 @@ func updateTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	app.SanitizeTeam(updatedTeam, c.IsSystemAdmin())
+	app.SanitizeTeam(c.Session, updatedTeam)
 
 	w.Write([]byte(updatedTeam.ToJson()))
 }
@@ -178,7 +178,7 @@ func patchTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	app.SanitizeTeam(patchedTeam, c.IsSystemAdmin())
+	app.SanitizeTeam(c.Session, patchedTeam)
 
 	c.LogAudit("")
 	w.Write([]byte(patchedTeam.ToJson()))
@@ -225,7 +225,7 @@ func getTeamsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	} else {
-		app.SanitizeTeams(teams, c.IsSystemAdmin())
+		app.SanitizeTeams(c.Session, teams)
 
 		w.Write([]byte(model.TeamListToJson(teams)))
 	}
@@ -553,7 +553,7 @@ func getAllTeams(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	app.SanitizeTeams(teams, c.IsSystemAdmin())
+	app.SanitizeTeams(c.Session, teams)
 
 	w.Write([]byte(model.TeamListToJson(teams)))
 }
@@ -584,7 +584,7 @@ func searchTeams(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	app.SanitizeTeams(teams, c.IsSystemAdmin())
+	app.SanitizeTeams(c.Session, teams)
 
 	w.Write([]byte(model.TeamListToJson(teams)))
 }

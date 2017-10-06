@@ -67,7 +67,7 @@ func createTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	app.SanitizeTeam(rteam, c.IsSystemAdmin())
+	// Don't sanitize the team here since the user will be a team admin and their session won't reflect that yet
 
 	w.Write([]byte(rteam.ToJson()))
 }
@@ -86,7 +86,7 @@ func GetAllTeamListings(c *Context, w http.ResponseWriter, r *http.Request) {
 		m[v.Id] = v
 	}
 
-	sanitizeTeamMap(m, c.IsSystemAdmin())
+	sanitizeTeamMap(c.Session, m)
 
 	w.Write([]byte(model.TeamMapToJson(m)))
 }
@@ -113,7 +113,7 @@ func getAll(c *Context, w http.ResponseWriter, r *http.Request) {
 		m[v.Id] = v
 	}
 
-	sanitizeTeamMap(m, c.IsSystemAdmin())
+	sanitizeTeamMap(c.Session, m)
 
 	w.Write([]byte(model.TeamMapToJson(m)))
 }
@@ -210,7 +210,7 @@ func addUserToTeamFromInvite(c *Context, w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	app.SanitizeTeam(team, c.IsSystemAdmin())
+	app.SanitizeTeam(c.Session, team)
 
 	w.Write([]byte(team.ToJson()))
 }
@@ -244,7 +244,7 @@ func getTeamByName(c *Context, w http.ResponseWriter, r *http.Request) {
 			}
 		}
 
-		app.SanitizeTeam(team, c.IsSystemAdmin())
+		app.SanitizeTeam(c.Session, team)
 
 		w.Write([]byte(team.ToJson()))
 		return
@@ -299,7 +299,7 @@ func updateTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	app.SanitizeTeam(updatedTeam, c.IsSystemAdmin())
+	app.SanitizeTeam(c.Session, updatedTeam)
 
 	w.Write([]byte(updatedTeam.ToJson()))
 }
@@ -350,7 +350,7 @@ func getMyTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	} else {
 		w.Header().Set(model.HEADER_ETAG_SERVER, team.Etag())
 
-		app.SanitizeTeam(team, c.IsSystemAdmin())
+		app.SanitizeTeam(c.Session, team)
 
 		w.Write([]byte(team.ToJson()))
 		return
@@ -540,8 +540,8 @@ func getTeamMembersByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func sanitizeTeamMap(teams map[string]*model.Team, asAdmin bool) {
-	if !asAdmin {
-		model.SanitizeTeamMap(teams)
+func sanitizeTeamMap(session model.Session, teams map[string]*model.Team) {
+	for _, team := range teams {
+		app.SanitizeTeam(session, team)
 	}
 }
