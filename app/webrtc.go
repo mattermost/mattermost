@@ -23,8 +23,9 @@ func GetWebrtcInfoForSession(sessionId string) (*model.WebrtcInfoResponse, *mode
 	}
 
 	result := &model.WebrtcInfoResponse{
-		Token:      token,
-		GatewayUrl: *utils.Cfg.WebrtcSettings.GatewayWebsocketUrl,
+		Token:       token,
+		GatewayUrl:  *utils.Cfg.WebrtcSettings.GatewayWebsocketUrl,
+		GatewayType: *utils.Cfg.WebrtcSettings.GatewayType,
 	}
 
 	if len(*utils.Cfg.WebrtcSettings.StunURI) > 0 {
@@ -48,6 +49,17 @@ func GetWebrtcToken(sessionId string) (string, *model.AppError) {
 		return "", model.NewAppError("WebRTC.getWebrtcToken", "api.webrtc.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
+	switch strings.ToLower(*utils.Cfg.WebrtcSettings.GatewayType) {
+	case "kopano-webmeetings":
+		return GetKopanoWebmeetingsWebrtcToken(sessionId)
+	case "janus":
+		fallthrough
+	default:
+		return GetJanusWebrtcToken(sessionId)
+	}
+}
+
+func GetJanusWebrtcToken(sessionId string) (string, *model.AppError) {
 	token := base64.StdEncoding.EncodeToString([]byte(sessionId))
 
 	data := make(map[string]string)
@@ -65,13 +77,36 @@ func GetWebrtcToken(sessionId string) (string, *model.AppError) {
 		defer consumeAndClose(rp)
 		return "", model.AppErrorFromJson(rp.Body)
 	} else {
-		janusResponse := model.GatewayResponseFromJson(rp.Body)
+		janusResponse := model.JanusGatewayResponseFromJson(rp.Body)
 		if janusResponse.Status != "success" {
 			return "", model.NewAppError("getWebrtcToken", "api.webrtc.register_token.app_error", nil, "", http.StatusInternalServerError)
 		}
 	}
 
 	return token, nil
+}
+
+func GetKopanoWebmeetingsWebrtcToken(sessionId string) (string, *model.AppError) {
+	data := make(map[string]string)
+	data["type"] = "Token"
+	data["id"] = sessionId
+
+	rq, _ := http.NewRequest("POST", *utils.Cfg.WebrtcSettings.GatewayAdminUrl+"/api/v1/admin/auth/tokens", strings.NewReader(model.MapToJson(data)))
+	rq.Header.Set("Content-Type", "application/json")
+	rq.Header.Set("Authorization", "Bearer "+*utils.Cfg.WebrtcSettings.GatewayAdminSecret)
+
+	if rp, err := utils.HttpClient(true).Do(rq); err != nil {
+		return "", model.NewAppError("WebRTC.Token", "model.client.connecting.app_error", nil, err.Error(), http.StatusInternalServerError)
+	} else if rp.StatusCode >= 300 {
+		defer CloseBody(rp)
+		return "", model.AppErrorFromJson(rp.Body)
+	} else {
+		kwmResponse := model.KopanoWebmeetingsResponseFromJson(rp.Body)
+		if kwmResponse.Value == "" {
+			return "", model.NewAppError("getWebrtcToken", "api.webrtc.register_token.app_error", nil, "", http.StatusInternalServerError)
+		}
+		return kwmResponse.Value, nil
+	}
 }
 
 func GenerateTurnPassword(username string, secret string) string {
