@@ -12,4 +12,6 @@ const (
 	USER_SEARCH_OPTION_NAMES_ONLY_NO_FULL_NAME = "names_only_no_full_name"
 	USER_SEARCH_OPTION_ALL_NO_FULL_NAME        = "all_no_full_name"
 	USER_SEARCH_OPTION_ALLOW_INACTIVE          = "allow_inactive"
+
+	FEATURE_TOGGLE_PREFIX = "feature_enabled_"
 )

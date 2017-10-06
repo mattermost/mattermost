@@ -18,10 +18,6 @@ type SqlPreferenceStore struct {
 	SqlStore
 }
 
-const (
-	FEATURE_TOGGLE_PREFIX = "feature_enabled_"
-)
-
 func NewSqlPreferenceStore(sqlStore SqlStore) store.PreferenceStore {
 	s := &SqlPreferenceStore{sqlStore}
 
@@ -50,7 +46,7 @@ func (s SqlPreferenceStore) DeleteUnusedFeatures() {
 	WHERE
 	Category = :Category
 	AND Value = :Value
-	AND Name LIKE '` + FEATURE_TOGGLE_PREFIX + `%'`
+	AND Name LIKE '` + store.FEATURE_TOGGLE_PREFIX + `%'`
 
 	queryParams := map[string]string{
 		"Category": model.PREFERENCE_CATEGORY_ADVANCED_SETTINGS,
@@ -246,7 +242,7 @@ func (s SqlPreferenceStore) IsFeatureEnabled(feature, userId string) store.Store
 			WHERE
 				UserId = :UserId
 				AND Category = :Category
-				AND Name = :Name`, map[string]interface{}{"UserId": userId, "Category": model.PREFERENCE_CATEGORY_ADVANCED_SETTINGS, "Name": FEATURE_TOGGLE_PREFIX + feature}); err != nil {
+				AND Name = :Name`, map[string]interface{}{"UserId": userId, "Category": model.PREFERENCE_CATEGORY_ADVANCED_SETTINGS, "Name": store.FEATURE_TOGGLE_PREFIX + feature}); err != nil {
 			result.Err = model.NewAppError("SqlPreferenceStore.IsFeatureEnabled", "store.sql_preference.is_feature_enabled.app_error", nil, err.Error(), http.StatusInternalServerError)
 		} else {
 			result.Data = value == "true"
