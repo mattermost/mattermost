@@ -18,6 +18,17 @@ type StoreResult struct {
 
 type StoreChannel chan StoreResult
 
+func Do(f func(result *StoreResult)) StoreChannel {
+	storeChannel := make(StoreChannel, 1)
+	go func() {
+		result := StoreResult{}
+		f(&result)
+		storeChannel <- result
+		close(storeChannel)
+	}()
+	return storeChannel
+}
+
 func Must(sc StoreChannel) interface{} {
 	r := <-sc
 	if r.Err != nil {

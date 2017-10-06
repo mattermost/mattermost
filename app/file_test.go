@@ -37,6 +37,7 @@ func TestGeneratePublicLinkHash(t *testing.T) {
 
 func TestDoUploadFile(t *testing.T) {
 	th := Setup()
+	defer th.TearDown()
 
 	teamId := model.NewId()
 	channelId := model.NewId()

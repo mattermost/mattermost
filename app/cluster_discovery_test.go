@@ -13,6 +13,7 @@ import (
 
 func TestClusterDiscoveryService(t *testing.T) {
 	th := Setup()
+	defer th.TearDown()
 
 	ds := th.App.NewClusterDiscoveryService()
 	ds.Type = model.CDS_TYPE_APP

@@ -20,6 +20,7 @@ import (
 
 func TestUpdatePostEditAt(t *testing.T) {
 	th := Setup().InitBasic()
+	defer th.TearDown()
 
 	post := &model.Post{}
 	*post = *th.BasicPost
@@ -47,6 +48,7 @@ func TestPostReplyToPostWhereRootPosterLeftChannel(t *testing.T) {
 	// This test ensures that when replying to a root post made by a user who has since left the channel, the reply
 	// post completes successfully. This is a regression test for PLT-6523.
 	th := Setup().InitBasic()
+	defer th.TearDown()
 
 	channel := th.BasicChannel
 	userInChannel := th.BasicUser2
@@ -78,6 +80,7 @@ func TestPostReplyToPostWhereRootPosterLeftChannel(t *testing.T) {
 
 func TestPostAction(t *testing.T) {
 	th := Setup().InitBasic()
+	defer th.TearDown()
 
 	allowedInternalConnections := *utils.Cfg.ServiceSettings.AllowedUntrustedInternalConnections
 	defer func() {

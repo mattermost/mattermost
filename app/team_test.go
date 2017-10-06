@@ -12,6 +12,7 @@ import (
 
 func TestCreateTeam(t *testing.T) {
 	th := Setup().InitBasic()
+	defer th.TearDown()
 
 	id := model.NewId()
 	team := &model.Team{
@@ -33,6 +34,7 @@ func TestCreateTeam(t *testing.T) {
 
 func TestCreateTeamWithUser(t *testing.T) {
 	th := Setup().InitBasic()
+	defer th.TearDown()
 
 	id := model.NewId()
 	team := &model.Team{
@@ -76,6 +78,7 @@ func TestCreateTeamWithUser(t *testing.T) {
 
 func TestUpdateTeam(t *testing.T) {
 	th := Setup().InitBasic()
+	defer th.TearDown()
 
 	th.BasicTeam.DisplayName = "Testing 123"
 
@@ -91,6 +94,7 @@ func TestUpdateTeam(t *testing.T) {
 
 func TestAddUserToTeam(t *testing.T) {
 	th := Setup().InitBasic()
+	defer th.TearDown()
 
 	user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
 	ruser, _ := th.App.CreateUser(&user)
@@ -103,6 +107,7 @@ func TestAddUserToTeam(t *testing.T) {
 
 func TestAddUserToTeamByTeamId(t *testing.T) {
 	th := Setup().InitBasic()
+	defer th.TearDown()
 
 	user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
 	ruser, _ := th.App.CreateUser(&user)
@@ -115,6 +120,7 @@ func TestAddUserToTeamByTeamId(t *testing.T) {
 
 func TestPermanentDeleteTeam(t *testing.T) {
 	th := Setup().InitBasic()
+	defer th.TearDown()
 
 	team, err := th.App.CreateTeam(&model.Team{
 		DisplayName: "deletion-test",
