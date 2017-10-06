@@ -34,31 +34,26 @@ type TestHelper struct {
 }
 
 func setupTestHelper(enterprise bool) *TestHelper {
+	utils.TranslationsPreInit()
+	utils.LoadConfig("config.json")
+	utils.InitTranslations(utils.Cfg.LocalizationSettings)
+
 	th := &TestHelper{
 		App: app.New(),
 	}
 
-	if th.App.Srv == nil {
-		utils.TranslationsPreInit()
-		utils.LoadConfig("config.json")
-		utils.InitTranslations(utils.Cfg.LocalizationSettings)
-		*utils.Cfg.TeamSettings.MaxUsersPerTeam = 50
-		*utils.Cfg.RateLimitSettings.Enable = false
-		utils.Cfg.EmailSettings.SendEmailNotifications = true
-		utils.DisableDebugLogForTest()
-		th.App.NewServer()
-		th.App.InitStores()
-		th.App.Srv.Router = NewRouter()
-		th.App.Srv.WebSocketRouter = th.App.NewWebSocketRouter()
-		th.App.StartServer()
-		api4.Init(th.App, th.App.Srv.Router, false)
-		Init(th.App, th.App.Srv.Router)
-		wsapi.Init(th.App, th.App.Srv.WebSocketRouter)
-		utils.EnableDebugLogForTest()
-		th.App.Srv.Store.MarkSystemRanUnitTests()
+	*utils.Cfg.TeamSettings.MaxUsersPerTeam = 50
+	*utils.Cfg.RateLimitSettings.Enable = false
+	utils.Cfg.EmailSettings.SendEmailNotifications = true
+	utils.DisableDebugLogForTest()
+	th.App.StartServer()
+	api4.Init(th.App, th.App.Srv.Router, false)
+	Init(th.App, th.App.Srv.Router)
+	wsapi.Init(th.App, th.App.Srv.WebSocketRouter)
+	utils.EnableDebugLogForTest()
+	th.App.Srv.Store.MarkSystemRanUnitTests()
 
-		*utils.Cfg.TeamSettings.EnableOpenServer = true
-	}
+	*utils.Cfg.TeamSettings.EnableOpenServer = true
 
 	utils.SetIsLicensed(enterprise)
 	if enterprise {
