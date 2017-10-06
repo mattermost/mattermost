@@ -8,7 +8,7 @@ import (
 	"testing"
 
 	"github.com/mattermost/mattermost-server/model"
-"github.com/mattermost/mattermost-server/store"
+	"github.com/mattermost/mattermost-server/store"
 )
 
 func TestFileInfoSaveGet(t *testing.T) {
@@ -267,21 +267,21 @@ func TestFileInfoPermanentDeleteBatch(t *testing.T) {
 		PostId:    postId,
 		CreatorId: model.NewId(),
 		Path:      "file.txt",
-		CreateAt: 1000,
+		CreateAt:  1000,
 	}))
 
 	store.Must(ss.FileInfo().Save(&model.FileInfo{
 		PostId:    postId,
 		CreatorId: model.NewId(),
 		Path:      "file.txt",
-		CreateAt: 1200,
+		CreateAt:  1200,
 	}))
 
 	store.Must(ss.FileInfo().Save(&model.FileInfo{
 		PostId:    postId,
 		CreatorId: model.NewId(),
 		Path:      "file.txt",
-		CreateAt: 2000,
+		CreateAt:  2000,
 	}))
 
 	if result := <-ss.FileInfo().GetForPost(postId, true, false); result.Err != nil {

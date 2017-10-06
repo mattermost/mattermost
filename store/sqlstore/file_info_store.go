@@ -58,15 +58,9 @@ func (fs SqlFileInfoStore) CreateIndexesIfNotExists() {
 }
 
 func (fs SqlFileInfoStore) Save(info *model.FileInfo) store.StoreChannel {
-	storeChannel := make(store.StoreChannel, 1)
-
-	go func() {
-		result := store.StoreResult{}
-
+	return store.Do(func(result *store.StoreResult) {
 		info.PreSave()
 		if result.Err = info.IsValid(); result.Err != nil {
-			storeChannel <- result
-			close(storeChannel)
 			return
 		}
 
@@ -75,20 +69,11 @@ func (fs SqlFileInfoStore) Save(info *model.FileInfo) store.StoreChannel {
 		} else {
 			result.Data = info
 		}
-
-		storeChannel <- result
-		close(storeChannel)
-	}()
-
-	return storeChannel
+	})
 }
 
 func (fs SqlFileInfoStore) Get(id string) store.StoreChannel {
-	storeChannel := make(store.StoreChannel, 1)
-
-	go func() {
-		result := store.StoreResult{}
-
+	return store.Do(func(result *store.StoreResult) {
 		info := &model.FileInfo{}
 
 		if err := fs.GetReplica().SelectOne(info,
@@ -107,20 +92,11 @@ func (fs SqlFileInfoStore) Get(id string) store.StoreChannel {
 		} else {
 			result.Data = info
 		}
-
-		storeChannel <- result
-		close(storeChannel)
-	}()
-
-	return storeChannel
+	})
 }
 
 func (fs SqlFileInfoStore) GetByPath(path string) store.StoreChannel {
-	storeChannel := make(store.StoreChannel, 1)
-
-	go func() {
-		result := store.StoreResult{}
-
+	return store.Do(func(result *store.StoreResult) {
 		info := &model.FileInfo{}
 
 		if err := fs.GetReplica().SelectOne(info,
@@ -136,12 +112,7 @@ func (fs SqlFileInfoStore) GetByPath(path string) store.StoreChannel {
 		} else {
 			result.Data = info
 		}
-
-		storeChannel <- result
-		close(storeChannel)
-	}()
-
-	return storeChannel
+	})
 }
 
 func (fs SqlFileInfoStore) InvalidateFileInfosForPostCache(postId string) {
@@ -149,11 +120,7 @@ func (fs SqlFileInfoStore) InvalidateFileInfosForPostCache(postId string) {
 }
 
 func (fs SqlFileInfoStore) GetForPost(postId string, readFromMaster bool, allowFromCache bool) store.StoreChannel {
-	storeChannel := make(store.StoreChannel, 1)
-
-	go func() {
-		result := store.StoreResult{}
-
+	return store.Do(func(result *store.StoreResult) {
 		if allowFromCache {
 			if cacheItem, ok := fileInfoCache.Get(postId); ok {
 				if fs.metrics != nil {
@@ -161,8 +128,6 @@ func (fs SqlFileInfoStore) GetForPost(postId string, readFromMaster bool, allowF
 				}
 
 				result.Data = cacheItem.([]*model.FileInfo)
-				storeChannel <- result
-				close(storeChannel)
 				return
 			} else {
 				if fs.metrics != nil {
@@ -202,20 +167,11 @@ func (fs SqlFileInfoStore) GetForPost(postId string, readFromMaster bool, allowF
 
 			result.Data = infos
 		}
-
-		storeChannel <- result
-		close(storeChannel)
-	}()
-
-	return storeChannel
+	})
 }
 
 func (fs SqlFileInfoStore) AttachToPost(fileId, postId string) store.StoreChannel {
-	storeChannel := make(store.StoreChannel, 1)
-
-	go func() {
-		result := store.StoreResult{}
-
+	return store.Do(func(result *store.StoreResult) {
 		if _, err := fs.GetMaster().Exec(
 			`UPDATE
 					FileInfo
@@ -227,20 +183,11 @@ func (fs SqlFileInfoStore) AttachToPost(fileId, postId string) store.StoreChanne
 			result.Err = model.NewAppError("SqlFileInfoStore.AttachToPost",
 				"store.sql_file_info.attach_to_post.app_error", nil, "post_id="+postId+", file_id="+fileId+", err="+err.Error(), http.StatusInternalServerError)
 		}
-
-		storeChannel <- result
-		close(storeChannel)
-	}()
-
-	return storeChannel
+	})
 }
 
 func (fs SqlFileInfoStore) DeleteForPost(postId string) store.StoreChannel {
-	storeChannel := make(store.StoreChannel, 1)
-
-	go func() {
-		result := store.StoreResult{}
-
+	return store.Do(func(result *store.StoreResult) {
 		if _, err := fs.GetMaster().Exec(
 			`UPDATE
 				FileInfo
@@ -253,20 +200,11 @@ func (fs SqlFileInfoStore) DeleteForPost(postId string) store.StoreChannel {
 		} else {
 			result.Data = postId
 		}
-
-		storeChannel <- result
-		close(storeChannel)
-	}()
-
-	return storeChannel
+	})
 }
 
 func (fs SqlFileInfoStore) PermanentDelete(fileId string) store.StoreChannel {
-	storeChannel := make(store.StoreChannel, 1)
-
-	go func() {
-		result := store.StoreResult{}
-
+	return store.Do(func(result *store.StoreResult) {
 		if _, err := fs.GetMaster().Exec(
 			`DELETE FROM
 				FileInfo
@@ -275,20 +213,11 @@ func (fs SqlFileInfoStore) PermanentDelete(fileId string) store.StoreChannel {
 			result.Err = model.NewAppError("SqlFileInfoStore.PermanentDelete",
 				"store.sql_file_info.permanent_delete.app_error", nil, "file_id="+fileId+", err="+err.Error(), http.StatusInternalServerError)
 		}
-
-		storeChannel <- result
-		close(storeChannel)
-	}()
-
-	return storeChannel
+	})
 }
 
 func (s SqlFileInfoStore) PermanentDeleteBatch(endTime int64, limit int64) store.StoreChannel {
-	storeChannel := make(store.StoreChannel, 1)
-
-	go func() {
-		result := store.StoreResult{}
-
+	return store.Do(func(result *store.StoreResult) {
 		var query string
 		if *utils.Cfg.SqlSettings.DriverName == "postgres" {
 			query = "DELETE from FileInfo WHERE Id = any (array (SELECT Id FROM FileInfo WHERE CreateAt < :EndTime LIMIT :Limit))"
@@ -308,10 +237,5 @@ func (s SqlFileInfoStore) PermanentDeleteBatch(endTime int64, limit int64) store
 				result.Data = rowsAffected
 			}
 		}
-
-		storeChannel <- result
-		close(storeChannel)
-	}()
-
-	return storeChannel
+	})
 }

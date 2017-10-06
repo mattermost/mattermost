@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/mattermost/mattermost-server/model"
-"github.com/mattermost/mattermost-server/store"
+	"github.com/mattermost/mattermost-server/store"
 )
 
 func TestSqlStatusStore(t *testing.T) {
