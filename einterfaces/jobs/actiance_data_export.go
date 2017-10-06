@@ -11,13 +11,3 @@ type ActianceDataExportInterface interface {
 	MakeWorker() model.Worker
 	MakeScheduler() model.Scheduler
 }
-
-var theActianceDataExportInterface ActianceDataExportInterface
-
-func RegisterActianceDataExportInterface(newInterface ActianceDataExportInterface) {
-	theActianceDataExportInterface = newInterface
-}
-
-func GetActianceDataExportInterface() ActianceDataExportInterface {
-	return theActianceDataExportInterface
-}

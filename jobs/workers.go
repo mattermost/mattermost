@@ -19,6 +19,7 @@ type Workers struct {
 	ElasticsearchIndexing    model.Worker
 	ElasticsearchAggregation model.Worker
 	LdapSync                 model.Worker
+	ActianceDataExport       model.Worker
 
 	listenerId string
 }
@@ -43,6 +44,10 @@ func (srv *JobServer) InitWorkers() *Workers {
 		workers.LdapSync = ldapSyncInterface.MakeWorker()
 	}
 
+	if actianceDataExportInterface := srv.ActianceDataExport; actianceDataExportInterface != nil {
+		workers.ActianceDataExport = actianceDataExportInterface.MakeWorker()
+	}
+
 	return workers
 }
 
@@ -64,6 +69,10 @@ func (workers *Workers) Start() *Workers {
 
 		if workers.LdapSync != nil && *utils.Cfg.LdapSettings.Enable {
 			go workers.LdapSync.Run()
+		}
+
+		if workers.ActianceDataExport != nil && *utils.Cfg.ActianceDataExportSettings.EnableExport {
+			go workers.ActianceDataExport.Run()
 		}
 
 		go workers.Watcher.Start()
@@ -104,6 +113,14 @@ func (workers *Workers) handleConfigChange(oldConfig *model.Config, newConfig *m
 			go workers.LdapSync.Run()
 		} else if *oldConfig.LdapSettings.Enable && !*newConfig.LdapSettings.Enable {
 			workers.LdapSync.Stop()
+		}
+	}
+
+	if workers.ActianceDataExport != nil {
+		if !*oldConfig.ActianceDataExportSettings.EnableExport && *newConfig.ActianceDataExportSettings.EnableExport {
+			go workers.ActianceDataExport.Run()
+		} else if *oldConfig.ActianceDataExportSettings.EnableExport && !*newConfig.ActianceDataExportSettings.EnableExport {
+			workers.ActianceDataExport.Stop()
 		}
 	}
 }

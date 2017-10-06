@@ -99,6 +99,13 @@ func (watcher *Watcher) PollAndNotify() {
 					default:
 					}
 				}
+			} else if job.Type == model.JOB_TYPE_ACTIANCE_EXPORT {
+				if watcher.workers.ActianceDataExport != nil {
+					select {
+					case watcher.workers.ActianceDataExport.JobChannel() <- *job:
+					default:
+					}
+				}
 			}
 		}
 	}
