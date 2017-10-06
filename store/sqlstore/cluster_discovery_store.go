@@ -29,35 +29,20 @@ func NewSqlClusterDiscoveryStore(sqlStore SqlStore) store.ClusterDiscoveryStore 
 }
 
 func (s sqlClusterDiscoveryStore) Save(ClusterDiscovery *model.ClusterDiscovery) store.StoreChannel {
-
-	storeChannel := make(store.StoreChannel, 1)
-
-	go func() {
-		result := store.StoreResult{}
-
+	return store.Do(func(result *store.StoreResult) {
 		ClusterDiscovery.PreSave()
 		if result.Err = ClusterDiscovery.IsValid(); result.Err != nil {
-			storeChannel <- result
-			close(storeChannel)
 			return
 		}
 
 		if err := s.GetMaster().Insert(ClusterDiscovery); err != nil {
 			result.Err = model.NewAppError("SqlClusterDiscoveryStore.Save", "Failed to save ClusterDiscovery row", nil, err.Error(), http.StatusInternalServerError)
 		}
-
-		storeChannel <- result
-		close(storeChannel)
-	}()
-
-	return storeChannel
+	})
 }
 
 func (s sqlClusterDiscoveryStore) Delete(ClusterDiscovery *model.ClusterDiscovery) store.StoreChannel {
-	storeChannel := make(store.StoreChannel, 1)
-
-	go func() {
-		result := store.StoreResult{}
+	return store.Do(func(result *store.StoreResult) {
 		result.Data = false
 
 		if count, err := s.GetMaster().SelectInt(
@@ -82,19 +67,11 @@ func (s sqlClusterDiscoveryStore) Delete(ClusterDiscovery *model.ClusterDiscover
 				result.Data = true
 			}
 		}
-
-		storeChannel <- result
-		close(storeChannel)
-	}()
-
-	return storeChannel
+	})
 }
 
 func (s sqlClusterDiscoveryStore) Exists(ClusterDiscovery *model.ClusterDiscovery) store.StoreChannel {
-	storeChannel := make(store.StoreChannel, 1)
-
-	go func() {
-		result := store.StoreResult{}
+	return store.Do(func(result *store.StoreResult) {
 		result.Data = false
 
 		if count, err := s.GetMaster().SelectInt(
@@ -120,21 +97,11 @@ func (s sqlClusterDiscoveryStore) Exists(ClusterDiscovery *model.ClusterDiscover
 				result.Data = true
 			}
 		}
-
-		storeChannel <- result
-		close(storeChannel)
-	}()
-
-	return storeChannel
+	})
 }
 
 func (s sqlClusterDiscoveryStore) GetAll(ClusterDiscoveryType, clusterName string) store.StoreChannel {
-
-	storeChannel := make(store.StoreChannel, 1)
-
-	go func() {
-		result := store.StoreResult{}
-
+	return store.Do(func(result *store.StoreResult) {
 		lastPingAt := model.GetMillis() - model.CDS_OFFLINE_AFTER_MILLIS
 
 		var list []*model.ClusterDiscovery
@@ -160,20 +127,11 @@ func (s sqlClusterDiscoveryStore) GetAll(ClusterDiscoveryType, clusterName strin
 		} else {
 			result.Data = list
 		}
-
-		storeChannel <- result
-		close(storeChannel)
-	}()
-
-	return storeChannel
+	})
 }
 
 func (s sqlClusterDiscoveryStore) SetLastPingAt(ClusterDiscovery *model.ClusterDiscovery) store.StoreChannel {
-	storeChannel := make(store.StoreChannel, 1)
-
-	go func() {
-		result := store.StoreResult{}
-
+	return store.Do(func(result *store.StoreResult) {
 		if _, err := s.GetMaster().Exec(
 			`
 			UPDATE ClusterDiscovery 
@@ -193,21 +151,11 @@ func (s sqlClusterDiscoveryStore) SetLastPingAt(ClusterDiscovery *model.ClusterD
 		); err != nil {
 			result.Err = model.NewAppError("SqlClusterDiscoveryStore.GetAllForType", "Failed to update last ping at", nil, err.Error(), http.StatusInternalServerError)
 		}
-
-		storeChannel <- result
-		close(storeChannel)
-	}()
-
-	return storeChannel
+	})
 }
 
 func (s sqlClusterDiscoveryStore) Cleanup() store.StoreChannel {
-
-	storeChannel := make(store.StoreChannel, 1)
-
-	go func() {
-		result := store.StoreResult{}
-
+	return store.Do(func(result *store.StoreResult) {
 		if _, err := s.GetMaster().Exec(
 			`
 			DELETE FROM ClusterDiscovery 
@@ -220,10 +168,5 @@ func (s sqlClusterDiscoveryStore) Cleanup() store.StoreChannel {
 		); err != nil {
 			result.Err = model.NewAppError("SqlClusterDiscoveryStore.Save", "Failed to save ClusterDiscovery row", nil, err.Error(), http.StatusInternalServerError)
 		}
-
-		storeChannel <- result
-		close(storeChannel)
-	}()
-
-	return storeChannel
+	})
 }

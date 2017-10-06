@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/mattermost/mattermost-server/model"
-"github.com/mattermost/mattermost-server/store"
+	"github.com/mattermost/mattermost-server/store"
 )
 
 func TestPreferenceSave(t *testing.T) {
