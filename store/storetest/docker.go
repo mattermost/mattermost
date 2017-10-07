@@ -31,8 +31,8 @@ type RunningContainer struct {
 }
 
 func (c *RunningContainer) Stop() error {
-	l4g.Info("stopping container: %v", c.Id)
-	return exec.Command("docker", "stop", c.Id).Run()
+	l4g.Info("removing container: %v", c.Id)
+	return exec.Command("docker", "rm", "-f", c.Id).Run()
 }
 
 func NewMySQLContainer() (*RunningContainer, *model.SqlSettings, error) {
@@ -103,12 +103,12 @@ func runContainer(args []string) (*RunningContainer, error) {
 	id := strings.TrimSpace(string(out))
 	out, err = exec.Command("docker", "inspect", id).Output()
 	if err != nil {
-		exec.Command("docker", "stop", id).Run()
+		exec.Command("docker", "rm", "-f", id).Run()
 		return nil, err
 	}
 	var containers []Container
 	if err := json.Unmarshal(out, &containers); err != nil {
-		exec.Command("docker", "stop", id).Run()
+		exec.Command("docker", "rm", "-f", id).Run()
 		return nil, err
 	}
 	l4g.Info("running container: %v", id)
