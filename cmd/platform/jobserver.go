@@ -10,6 +10,7 @@ import (
 	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/mattermost-server/store"
 	"github.com/mattermost/mattermost-server/store/sqlstore"
+	"github.com/mattermost/mattermost-server/utils"
 	"github.com/spf13/cobra"
 )
 
