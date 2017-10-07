@@ -187,7 +187,7 @@ func (a *App) RecycleDatabaseConnection() {
 	oldStore := a.Srv.Store
 
 	l4g.Warn(utils.T("api.admin.recycle_db_start.warn"))
-	a.Srv.Store = store.NewLayeredStore(sqlstore.NewSqlSupplier(a.Metrics), a.Metrics, a.Cluster)
+	a.Srv.Store = store.NewLayeredStore(sqlstore.NewSqlSupplier(utils.Cfg.SqlSettings, a.Metrics), a.Metrics, a.Cluster)
 
 	a.Jobs.Store = a.Srv.Store
 

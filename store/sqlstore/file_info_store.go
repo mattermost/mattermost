@@ -219,7 +219,7 @@ func (fs SqlFileInfoStore) PermanentDelete(fileId string) store.StoreChannel {
 func (s SqlFileInfoStore) PermanentDeleteBatch(endTime int64, limit int64) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		var query string
-		if *utils.Cfg.SqlSettings.DriverName == "postgres" {
+		if s.DriverName() == "postgres" {
 			query = "DELETE from FileInfo WHERE Id = any (array (SELECT Id FROM FileInfo WHERE CreateAt < :EndTime LIMIT :Limit))"
 		} else {
 			query = "DELETE from FileInfo WHERE CreateAt < :EndTime LIMIT :Limit"

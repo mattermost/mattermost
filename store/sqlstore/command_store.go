@@ -92,7 +92,14 @@ func (s SqlCommandStore) GetByTrigger(teamId string, trigger string) store.Store
 	return store.Do(func(result *store.StoreResult) {
 		var command model.Command
 
-		if err := s.GetReplica().SelectOne(&command, "SELECT * FROM Commands WHERE TeamId = :TeamId AND `Trigger` = :Trigger AND DeleteAt = 0", map[string]interface{}{"TeamId": teamId, "Trigger": trigger}); err != nil {
+		var query string
+		if s.DriverName() == "mysql" {
+			query = "SELECT * FROM Commands WHERE TeamId = :TeamId AND `Trigger` = :Trigger AND DeleteAt = 0"
+		} else {
+			query = "SELECT * FROM Commands WHERE TeamId = :TeamId AND \"trigger\" = :Trigger AND DeleteAt = 0"
+		}
+
+		if err := s.GetReplica().SelectOne(&command, query, map[string]interface{}{"TeamId": teamId, "Trigger": trigger}); err != nil {
 			result.Err = model.NewAppError("SqlCommandStore.GetByTrigger", "store.sql_command.get_by_trigger.app_error", nil, "teamId="+teamId+", trigger="+trigger+", err="+err.Error(), http.StatusInternalServerError)
 		}
 

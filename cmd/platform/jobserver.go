@@ -36,7 +36,7 @@ func jobserverCmdF(cmd *cobra.Command, args []string) {
 	}
 	defer l4g.Close()
 
-	a.Jobs.Store = store.NewLayeredStore(sqlstore.NewSqlSupplier(a.Metrics), a.Metrics, a.Cluster)
+	a.Jobs.Store = store.NewLayeredStore(sqlstore.NewSqlSupplier(utils.Cfg.SqlSettings, a.Metrics), a.Metrics, a.Cluster)
 	defer a.Jobs.Store.Close()
 
 	a.Jobs.LoadLicense()

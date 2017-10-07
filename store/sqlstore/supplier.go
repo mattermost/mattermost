@@ -96,12 +96,14 @@ type SqlSupplier struct {
 	replicas       []*gorp.DbMap
 	searchReplicas []*gorp.DbMap
 	oldStores      SqlSupplierOldStores
+	settings       *model.SqlSettings
 }
 
-func NewSqlSupplier(metrics einterfaces.MetricsInterface) *SqlSupplier {
+func NewSqlSupplier(settings model.SqlSettings, metrics einterfaces.MetricsInterface) *SqlSupplier {
 	supplier := &SqlSupplier{
 		rrCounter: 0,
 		srCounter: 0,
+		settings:  &settings,
 	}
 
 	supplier.initConnection()
@@ -173,8 +175,8 @@ func (s *SqlSupplier) Next() store.LayeredStoreSupplier {
 	return s.next
 }
 
-func setupConnection(con_type string, driver string, dataSource string, maxIdle int, maxOpen int, trace bool) *gorp.DbMap {
-	db, err := dbsql.Open(driver, dataSource)
+func setupConnection(con_type string, dataSource string, settings *model.SqlSettings) *gorp.DbMap {
+	db, err := dbsql.Open(*settings.DriverName, dataSource)
 	if err != nil {
 		l4g.Critical(utils.T("store.sql.open_conn.critical"), err)
 		time.Sleep(time.Second)
@@ -200,19 +202,19 @@ func setupConnection(con_type string, driver string, dataSource string, maxIdle 
 		}
 	}
 
-	db.SetMaxIdleConns(maxIdle)
-	db.SetMaxOpenConns(maxOpen)
+	db.SetMaxIdleConns(*settings.MaxIdleConns)
+	db.SetMaxOpenConns(*settings.MaxOpenConns)
 	db.SetConnMaxLifetime(time.Duration(MAX_DB_CONN_LIFETIME) * time.Minute)
 
 	var dbmap *gorp.DbMap
 
-	connectionTimeout := time.Duration(*utils.Cfg.SqlSettings.QueryTimeout) * time.Second
+	connectionTimeout := time.Duration(*settings.QueryTimeout) * time.Second
 
-	if driver == "sqlite3" {
+	if *settings.DriverName == "sqlite3" {
 		dbmap = &gorp.DbMap{Db: db, TypeConverter: mattermConverter{}, Dialect: gorp.SqliteDialect{}, QueryTimeout: connectionTimeout}
-	} else if driver == model.DATABASE_DRIVER_MYSQL {
+	} else if *settings.DriverName == model.DATABASE_DRIVER_MYSQL {
 		dbmap = &gorp.DbMap{Db: db, TypeConverter: mattermConverter{}, Dialect: gorp.MySQLDialect{Engine: "InnoDB", Encoding: "UTF8MB4"}, QueryTimeout: connectionTimeout}
-	} else if driver == model.DATABASE_DRIVER_POSTGRES {
+	} else if *settings.DriverName == model.DATABASE_DRIVER_POSTGRES {
 		dbmap = &gorp.DbMap{Db: db, TypeConverter: mattermConverter{}, Dialect: gorp.PostgresDialect{}, QueryTimeout: connectionTimeout}
 	} else {
 		l4g.Critical(utils.T("store.sql.dialect_driver.critical"))
@@ -220,7 +222,7 @@ func setupConnection(con_type string, driver string, dataSource string, maxIdle 
 		os.Exit(EXIT_NO_DRIVER)
 	}
 
-	if trace {
+	if settings.Trace {
 		dbmap.TraceOn("", sqltrace.New(os.Stdout, "sql-trace:", sqltrace.Lmicroseconds))
 	}
 
@@ -228,32 +230,30 @@ func setupConnection(con_type string, driver string, dataSource string, maxIdle 
 }
 
 func (s *SqlSupplier) initConnection() {
-	s.master = setupConnection("master", *utils.Cfg.SqlSettings.DriverName,
-		*utils.Cfg.SqlSettings.DataSource, *utils.Cfg.SqlSettings.MaxIdleConns,
-		*utils.Cfg.SqlSettings.MaxOpenConns, utils.Cfg.SqlSettings.Trace)
+	s.master = setupConnection("master", *s.settings.DataSource, s.settings)
 
-	if len(utils.Cfg.SqlSettings.DataSourceReplicas) == 0 {
+	if len(s.settings.DataSourceReplicas) == 0 {
 		s.replicas = make([]*gorp.DbMap, 1)
 		s.replicas[0] = s.master
 	} else {
-		s.replicas = make([]*gorp.DbMap, len(utils.Cfg.SqlSettings.DataSourceReplicas))
-		for i, replica := range utils.Cfg.SqlSettings.DataSourceReplicas {
-			s.replicas[i] = setupConnection(fmt.Sprintf("replica-%v", i), *utils.Cfg.SqlSettings.DriverName, replica,
-				*utils.Cfg.SqlSettings.MaxIdleConns, *utils.Cfg.SqlSettings.MaxOpenConns,
-				utils.Cfg.SqlSettings.Trace)
+		s.replicas = make([]*gorp.DbMap, len(s.settings.DataSourceReplicas))
+		for i, replica := range s.settings.DataSourceReplicas {
+			s.replicas[i] = setupConnection(fmt.Sprintf("replica-%v", i), replica, s.settings)
 		}
 	}
 
-	if len(utils.Cfg.SqlSettings.DataSourceSearchReplicas) == 0 {
+	if len(s.settings.DataSourceSearchReplicas) == 0 {
 		s.searchReplicas = s.replicas
 	} else {
-		s.searchReplicas = make([]*gorp.DbMap, len(utils.Cfg.SqlSettings.DataSourceSearchReplicas))
-		for i, replica := range utils.Cfg.SqlSettings.DataSourceSearchReplicas {
-			s.searchReplicas[i] = setupConnection(fmt.Sprintf("search-replica-%v", i), *utils.Cfg.SqlSettings.DriverName, replica,
-				*utils.Cfg.SqlSettings.MaxIdleConns, *utils.Cfg.SqlSettings.MaxOpenConns,
-				utils.Cfg.SqlSettings.Trace)
+		s.searchReplicas = make([]*gorp.DbMap, len(s.settings.DataSourceSearchReplicas))
+		for i, replica := range s.settings.DataSourceSearchReplicas {
+			s.searchReplicas[i] = setupConnection(fmt.Sprintf("search-replica-%v", i), replica, s.settings)
 		}
 	}
+}
+
+func (ss *SqlSupplier) DriverName() string {
+	return *ss.settings.DriverName
 }
 
 func (ss *SqlSupplier) GetCurrentSchemaVersion() string {
@@ -281,7 +281,7 @@ func (ss *SqlSupplier) TotalMasterDbConnections() int {
 
 func (ss *SqlSupplier) TotalReadDbConnections() int {
 
-	if len(utils.Cfg.SqlSettings.DataSourceReplicas) == 0 {
+	if len(ss.settings.DataSourceReplicas) == 0 {
 		return 0
 	}
 
@@ -294,7 +294,7 @@ func (ss *SqlSupplier) TotalReadDbConnections() int {
 }
 
 func (ss *SqlSupplier) TotalSearchDbConnections() int {
-	if len(utils.Cfg.SqlSettings.DataSourceSearchReplicas) == 0 {
+	if len(ss.settings.DataSourceSearchReplicas) == 0 {
 		return 0
 	}
 
@@ -318,7 +318,7 @@ func (ss *SqlSupplier) MarkSystemRanUnitTests() {
 }
 
 func (ss *SqlSupplier) DoesTableExist(tableName string) bool {
-	if *utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_POSTGRES {
+	if ss.DriverName() == model.DATABASE_DRIVER_POSTGRES {
 		count, err := ss.GetMaster().SelectInt(
 			`SELECT count(relname) FROM pg_class WHERE relname=$1`,
 			strings.ToLower(tableName),
@@ -332,7 +332,7 @@ func (ss *SqlSupplier) DoesTableExist(tableName string) bool {
 
 		return count > 0
 
-	} else if *utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_MYSQL {
+	} else if ss.DriverName() == model.DATABASE_DRIVER_MYSQL {
 
 		count, err := ss.GetMaster().SelectInt(
 			`SELECT
@@ -363,7 +363,7 @@ func (ss *SqlSupplier) DoesTableExist(tableName string) bool {
 }
 
 func (ss *SqlSupplier) DoesColumnExist(tableName string, columnName string) bool {
-	if *utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_POSTGRES {
+	if ss.DriverName() == model.DATABASE_DRIVER_POSTGRES {
 		count, err := ss.GetMaster().SelectInt(
 			`SELECT COUNT(0)
 			FROM   pg_attribute
@@ -386,7 +386,7 @@ func (ss *SqlSupplier) DoesColumnExist(tableName string, columnName string) bool
 
 		return count > 0
 
-	} else if *utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_MYSQL {
+	} else if ss.DriverName() == model.DATABASE_DRIVER_MYSQL {
 
 		count, err := ss.GetMaster().SelectInt(
 			`SELECT
@@ -423,7 +423,7 @@ func (ss *SqlSupplier) CreateColumnIfNotExists(tableName string, columnName stri
 		return false
 	}
 
-	if *utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_POSTGRES {
+	if ss.DriverName() == model.DATABASE_DRIVER_POSTGRES {
 		_, err := ss.GetMaster().ExecNoTimeout("ALTER TABLE " + tableName + " ADD " + columnName + " " + postgresColType + " DEFAULT '" + defaultValue + "'")
 		if err != nil {
 			l4g.Critical(utils.T("store.sql.create_column.critical"), err)
@@ -433,7 +433,7 @@ func (ss *SqlSupplier) CreateColumnIfNotExists(tableName string, columnName stri
 
 		return true
 
-	} else if *utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_MYSQL {
+	} else if ss.DriverName() == model.DATABASE_DRIVER_MYSQL {
 		_, err := ss.GetMaster().ExecNoTimeout("ALTER TABLE " + tableName + " ADD " + columnName + " " + mySqlColType + " DEFAULT '" + defaultValue + "'")
 		if err != nil {
 			l4g.Critical(utils.T("store.sql.create_column.critical"), err)
@@ -488,9 +488,9 @@ func (ss *SqlSupplier) RenameColumnIfExists(tableName string, oldColumnName stri
 	}
 
 	var err error
-	if *utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_MYSQL {
+	if ss.DriverName() == model.DATABASE_DRIVER_MYSQL {
 		_, err = ss.GetMaster().ExecNoTimeout("ALTER TABLE " + tableName + " CHANGE " + oldColumnName + " " + newColumnName + " " + colType)
-	} else if *utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_POSTGRES {
+	} else if ss.DriverName() == model.DATABASE_DRIVER_POSTGRES {
 		_, err = ss.GetMaster().ExecNoTimeout("ALTER TABLE " + tableName + " RENAME COLUMN " + oldColumnName + " TO " + newColumnName)
 	}
 
@@ -510,9 +510,9 @@ func (ss *SqlSupplier) GetMaxLengthOfColumnIfExists(tableName string, columnName
 
 	var result string
 	var err error
-	if *utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_MYSQL {
+	if ss.DriverName() == model.DATABASE_DRIVER_MYSQL {
 		result, err = ss.GetMaster().SelectStr("SELECT CHARACTER_MAXIMUM_LENGTH FROM information_schema.columns WHERE table_name = '" + tableName + "' AND COLUMN_NAME = '" + columnName + "'")
-	} else if *utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_POSTGRES {
+	} else if ss.DriverName() == model.DATABASE_DRIVER_POSTGRES {
 		result, err = ss.GetMaster().SelectStr("SELECT character_maximum_length FROM information_schema.columns WHERE table_name = '" + strings.ToLower(tableName) + "' AND column_name = '" + strings.ToLower(columnName) + "'")
 	}
 
@@ -531,9 +531,9 @@ func (ss *SqlSupplier) AlterColumnTypeIfExists(tableName string, columnName stri
 	}
 
 	var err error
-	if *utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_MYSQL {
+	if ss.DriverName() == model.DATABASE_DRIVER_MYSQL {
 		_, err = ss.GetMaster().ExecNoTimeout("ALTER TABLE " + tableName + " MODIFY " + columnName + " " + mySqlColType)
-	} else if *utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_POSTGRES {
+	} else if ss.DriverName() == model.DATABASE_DRIVER_POSTGRES {
 		_, err = ss.GetMaster().ExecNoTimeout("ALTER TABLE " + strings.ToLower(tableName) + " ALTER COLUMN " + strings.ToLower(columnName) + " TYPE " + postgresColType)
 	}
 
@@ -565,7 +565,7 @@ func (ss *SqlSupplier) createIndexIfNotExists(indexName string, tableName string
 		uniqueStr = "UNIQUE "
 	}
 
-	if *utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_POSTGRES {
+	if ss.DriverName() == model.DATABASE_DRIVER_POSTGRES {
 		_, errExists := ss.GetMaster().SelectStr("SELECT $1::regclass", indexName)
 		// It should fail if the index does not exist
 		if errExists == nil {
@@ -587,7 +587,7 @@ func (ss *SqlSupplier) createIndexIfNotExists(indexName string, tableName string
 			time.Sleep(time.Second)
 			os.Exit(EXIT_CREATE_INDEX_POSTGRES)
 		}
-	} else if *utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_MYSQL {
+	} else if ss.DriverName() == model.DATABASE_DRIVER_MYSQL {
 
 		count, err := ss.GetMaster().SelectInt("SELECT COUNT(0) AS index_exists FROM information_schema.statistics WHERE TABLE_SCHEMA = DATABASE() and table_name = ? AND index_name = ?", tableName, indexName)
 		if err != nil {
@@ -622,7 +622,7 @@ func (ss *SqlSupplier) createIndexIfNotExists(indexName string, tableName string
 
 func (ss *SqlSupplier) RemoveIndexIfExists(indexName string, tableName string) bool {
 
-	if *utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_POSTGRES {
+	if ss.DriverName() == model.DATABASE_DRIVER_POSTGRES {
 		_, err := ss.GetMaster().SelectStr("SELECT $1::regclass", indexName)
 		// It should fail if the index does not exist
 		if err != nil {
@@ -637,7 +637,7 @@ func (ss *SqlSupplier) RemoveIndexIfExists(indexName string, tableName string) b
 		}
 
 		return true
-	} else if *utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_MYSQL {
+	} else if ss.DriverName() == model.DATABASE_DRIVER_MYSQL {
 
 		count, err := ss.GetMaster().SelectInt("SELECT COUNT(0) AS index_exists FROM information_schema.statistics WHERE TABLE_SCHEMA = DATABASE() and table_name = ? AND index_name = ?", tableName, indexName)
 		if err != nil {

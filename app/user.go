@@ -438,7 +438,7 @@ func (a *App) GetUsersPage(page int, perPage int, asAdmin bool) ([]*model.User, 
 }
 
 func (a *App) GetUsersEtag() string {
-	return (<-a.Srv.Store.User().GetEtagForAllProfiles()).Data.(string)
+	return fmt.Sprintf("%v.%v.%v", (<-a.Srv.Store.User().GetEtagForAllProfiles()).Data.(string), utils.Cfg.PrivacySettings.ShowFullName, utils.Cfg.PrivacySettings.ShowEmailAddress)
 }
 
 func (a *App) GetUsersInTeam(teamId string, offset int, limit int) ([]*model.User, *model.AppError) {
@@ -492,11 +492,11 @@ func (a *App) GetUsersNotInTeamPage(teamId string, page int, perPage int, asAdmi
 }
 
 func (a *App) GetUsersInTeamEtag(teamId string) string {
-	return (<-a.Srv.Store.User().GetEtagForProfiles(teamId)).Data.(string)
+	return fmt.Sprintf("%v.%v.%v", (<-a.Srv.Store.User().GetEtagForProfiles(teamId)).Data.(string), utils.Cfg.PrivacySettings.ShowFullName, utils.Cfg.PrivacySettings.ShowEmailAddress)
 }
 
 func (a *App) GetUsersNotInTeamEtag(teamId string) string {
-	return (<-a.Srv.Store.User().GetEtagForProfilesNotInTeam(teamId)).Data.(string)
+	return fmt.Sprintf("%v.%v.%v", (<-a.Srv.Store.User().GetEtagForProfilesNotInTeam(teamId)).Data.(string), utils.Cfg.PrivacySettings.ShowFullName, utils.Cfg.PrivacySettings.ShowEmailAddress)
 }
 
 func (a *App) GetUsersInChannel(channelId string, offset int, limit int) ([]*model.User, *model.AppError) {

@@ -613,6 +613,10 @@ func (a *App) SearchPostsInTeam(terms string, userId string, teamId string, isOr
 
 		return postList, nil
 	} else {
+		if !*utils.Cfg.ServiceSettings.EnablePostSearch {
+			return nil, model.NewAppError("SearchPostsInTeam", "store.sql_post.search.disabled", nil, fmt.Sprintf("teamId=%v userId=%v", teamId, userId), http.StatusNotImplemented)
+		}
+
 		channels := []store.StoreChannel{}
 
 		for _, params := range paramsList {
