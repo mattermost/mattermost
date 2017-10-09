@@ -61,23 +61,14 @@ func (as SqlOAuthStore) CreateIndexesIfNotExists() {
 }
 
 func (as SqlOAuthStore) SaveApp(app *model.OAuthApp) store.StoreChannel {
-
-	storeChannel := make(store.StoreChannel, 1)
-
-	go func() {
-		result := store.StoreResult{}
-
+	return store.Do(func(result *store.StoreResult) {
 		if len(app.Id) > 0 {
 			result.Err = model.NewAppError("SqlOAuthStore.SaveApp", "store.sql_oauth.save_app.existing.app_error", nil, "app_id="+app.Id, http.StatusBadRequest)
-			storeChannel <- result
-			close(storeChannel)
 			return
 		}
 
 		app.PreSave()
 		if result.Err = app.IsValid(); result.Err != nil {
-			storeChannel <- result
-			close(storeChannel)
 			return
 		}
 
@@ -86,26 +77,14 @@ func (as SqlOAuthStore) SaveApp(app *model.OAuthApp) store.StoreChannel {
 		} else {
 			result.Data = app
 		}
-
-		storeChannel <- result
-		close(storeChannel)
-	}()
-
-	return storeChannel
+	})
 }
 
 func (as SqlOAuthStore) UpdateApp(app *model.OAuthApp) store.StoreChannel {
-
-	storeChannel := make(store.StoreChannel, 1)
-
-	go func() {
-		result := store.StoreResult{}
-
+	return store.Do(func(result *store.StoreResult) {
 		app.PreUpdate()
 
 		if result.Err = app.IsValid(); result.Err != nil {
-			storeChannel <- result
-			close(storeChannel)
 			return
 		}
 
@@ -126,21 +105,11 @@ func (as SqlOAuthStore) UpdateApp(app *model.OAuthApp) store.StoreChannel {
 				result.Data = [2]*model.OAuthApp{app, oldApp}
 			}
 		}
-
-		storeChannel <- result
-		close(storeChannel)
-	}()
-
-	return storeChannel
+	})
 }
 
 func (as SqlOAuthStore) GetApp(id string) store.StoreChannel {
-
-	storeChannel := make(store.StoreChannel, 1)
-
-	go func() {
-		result := store.StoreResult{}
-
+	return store.Do(func(result *store.StoreResult) {
 		if obj, err := as.GetReplica().Get(model.OAuthApp{}, id); err != nil {
 			result.Err = model.NewAppError("SqlOAuthStore.GetApp", "store.sql_oauth.get_app.finding.app_error", nil, "app_id="+id+", "+err.Error(), http.StatusInternalServerError)
 		} else if obj == nil {
@@ -148,22 +117,11 @@ func (as SqlOAuthStore) GetApp(id string) store.StoreChannel {
 		} else {
 			result.Data = obj.(*model.OAuthApp)
 		}
-
-		storeChannel <- result
-		close(storeChannel)
-
-	}()
-
-	return storeChannel
+	})
 }
 
 func (as SqlOAuthStore) GetAppByUser(userId string, offset, limit int) store.StoreChannel {
-
-	storeChannel := make(store.StoreChannel, 1)
-
-	go func() {
-		result := store.StoreResult{}
-
+	return store.Do(func(result *store.StoreResult) {
 		var apps []*model.OAuthApp
 
 		if _, err := as.GetReplica().Select(&apps, "SELECT * FROM OAuthApps WHERE CreatorId = :UserId LIMIT :Limit OFFSET :Offset", map[string]interface{}{"UserId": userId, "Offset": offset, "Limit": limit}); err != nil {
@@ -171,21 +129,11 @@ func (as SqlOAuthStore) GetAppByUser(userId string, offset, limit int) store.Sto
 		}
 
 		result.Data = apps
-
-		storeChannel <- result
-		close(storeChannel)
-	}()
-
-	return storeChannel
+	})
 }
 
 func (as SqlOAuthStore) GetApps(offset, limit int) store.StoreChannel {
-
-	storeChannel := make(store.StoreChannel, 1)
-
-	go func() {
-		result := store.StoreResult{}
-
+	return store.Do(func(result *store.StoreResult) {
 		var apps []*model.OAuthApp
 
 		if _, err := as.GetReplica().Select(&apps, "SELECT * FROM OAuthApps LIMIT :Limit OFFSET :Offset", map[string]interface{}{"Offset": offset, "Limit": limit}); err != nil {
@@ -193,20 +141,11 @@ func (as SqlOAuthStore) GetApps(offset, limit int) store.StoreChannel {
 		}
 
 		result.Data = apps
-
-		storeChannel <- result
-		close(storeChannel)
-	}()
-
-	return storeChannel
+	})
 }
 
 func (as SqlOAuthStore) GetAuthorizedApps(userId string, offset, limit int) store.StoreChannel {
-	storeChannel := make(store.StoreChannel, 1)
-
-	go func() {
-		result := store.StoreResult{}
-
+	return store.Do(func(result *store.StoreResult) {
 		var apps []*model.OAuthApp
 
 		if _, err := as.GetReplica().Select(&apps,
@@ -216,27 +155,18 @@ func (as SqlOAuthStore) GetAuthorizedApps(userId string, offset, limit int) stor
 		}
 
 		result.Data = apps
-
-		storeChannel <- result
-		close(storeChannel)
-	}()
-
-	return storeChannel
+	})
 }
 
 func (as SqlOAuthStore) DeleteApp(id string) store.StoreChannel {
-	storeChannel := make(store.StoreChannel, 1)
-
-	go func() {
-		result := store.StoreResult{}
-
+	return store.Do(func(result *store.StoreResult) {
 		// wrap in a transaction so that if one fails, everything fails
 		transaction, err := as.GetMaster().Begin()
 		if err != nil {
 			result.Err = model.NewAppError("SqlOAuthStore.DeleteApp", "store.sql_oauth.delete.open_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
 		} else {
 			if extrasResult := as.deleteApp(transaction, id); extrasResult.Err != nil {
-				result = extrasResult
+				*result = extrasResult
 			}
 
 			if result.Err == nil {
@@ -250,24 +180,12 @@ func (as SqlOAuthStore) DeleteApp(id string) store.StoreChannel {
 				}
 			}
 		}
-
-		storeChannel <- result
-		close(storeChannel)
-	}()
-
-	return storeChannel
+	})
 }
 
 func (as SqlOAuthStore) SaveAccessData(accessData *model.AccessData) store.StoreChannel {
-
-	storeChannel := make(store.StoreChannel, 1)
-
-	go func() {
-		result := store.StoreResult{}
-
+	return store.Do(func(result *store.StoreResult) {
 		if result.Err = accessData.IsValid(); result.Err != nil {
-			storeChannel <- result
-			close(storeChannel)
 			return
 		}
 
@@ -276,21 +194,11 @@ func (as SqlOAuthStore) SaveAccessData(accessData *model.AccessData) store.Store
 		} else {
 			result.Data = accessData
 		}
-
-		storeChannel <- result
-		close(storeChannel)
-	}()
-
-	return storeChannel
+	})
 }
 
 func (as SqlOAuthStore) GetAccessData(token string) store.StoreChannel {
-
-	storeChannel := make(store.StoreChannel, 1)
-
-	go func() {
-		result := store.StoreResult{}
-
+	return store.Do(func(result *store.StoreResult) {
 		accessData := model.AccessData{}
 
 		if err := as.GetReplica().SelectOne(&accessData, "SELECT * FROM OAuthAccessData WHERE Token = :Token", map[string]interface{}{"Token": token}); err != nil {
@@ -298,22 +206,11 @@ func (as SqlOAuthStore) GetAccessData(token string) store.StoreChannel {
 		} else {
 			result.Data = &accessData
 		}
-
-		storeChannel <- result
-		close(storeChannel)
-
-	}()
-
-	return storeChannel
+	})
 }
 
 func (as SqlOAuthStore) GetAccessDataByUserForApp(userId, clientId string) store.StoreChannel {
-
-	storeChannel := make(store.StoreChannel, 1)
-
-	go func() {
-		result := store.StoreResult{}
-
+	return store.Do(func(result *store.StoreResult) {
 		var accessData []*model.AccessData
 
 		if _, err := as.GetReplica().Select(&accessData,
@@ -323,22 +220,11 @@ func (as SqlOAuthStore) GetAccessDataByUserForApp(userId, clientId string) store
 		} else {
 			result.Data = accessData
 		}
-
-		storeChannel <- result
-		close(storeChannel)
-
-	}()
-
-	return storeChannel
+	})
 }
 
 func (as SqlOAuthStore) GetAccessDataByRefreshToken(token string) store.StoreChannel {
-
-	storeChannel := make(store.StoreChannel, 1)
-
-	go func() {
-		result := store.StoreResult{}
-
+	return store.Do(func(result *store.StoreResult) {
 		accessData := model.AccessData{}
 
 		if err := as.GetReplica().SelectOne(&accessData, "SELECT * FROM OAuthAccessData WHERE RefreshToken = :Token", map[string]interface{}{"Token": token}); err != nil {
@@ -346,22 +232,11 @@ func (as SqlOAuthStore) GetAccessDataByRefreshToken(token string) store.StoreCha
 		} else {
 			result.Data = &accessData
 		}
-
-		storeChannel <- result
-		close(storeChannel)
-
-	}()
-
-	return storeChannel
+	})
 }
 
 func (as SqlOAuthStore) GetPreviousAccessData(userId, clientId string) store.StoreChannel {
-
-	storeChannel := make(store.StoreChannel, 1)
-
-	go func() {
-		result := store.StoreResult{}
-
+	return store.Do(func(result *store.StoreResult) {
 		accessData := model.AccessData{}
 
 		if err := as.GetReplica().SelectOne(&accessData, "SELECT * FROM OAuthAccessData WHERE ClientId = :ClientId AND UserId = :UserId",
@@ -374,24 +249,12 @@ func (as SqlOAuthStore) GetPreviousAccessData(userId, clientId string) store.Sto
 		} else {
 			result.Data = &accessData
 		}
-
-		storeChannel <- result
-		close(storeChannel)
-
-	}()
-
-	return storeChannel
+	})
 }
 
 func (as SqlOAuthStore) UpdateAccessData(accessData *model.AccessData) store.StoreChannel {
-	storeChannel := make(store.StoreChannel, 1)
-
-	go func() {
-		result := store.StoreResult{}
-
+	return store.Do(func(result *store.StoreResult) {
 		if result.Err = accessData.IsValid(); result.Err != nil {
-			storeChannel <- result
-			close(storeChannel)
 			return
 		}
 
@@ -402,42 +265,21 @@ func (as SqlOAuthStore) UpdateAccessData(accessData *model.AccessData) store.Sto
 		} else {
 			result.Data = accessData
 		}
-
-		storeChannel <- result
-		close(storeChannel)
-	}()
-
-	return storeChannel
+	})
 }
 
 func (as SqlOAuthStore) RemoveAccessData(token string) store.StoreChannel {
-	storeChannel := make(store.StoreChannel, 1)
-
-	go func() {
-		result := store.StoreResult{}
-
+	return store.Do(func(result *store.StoreResult) {
 		if _, err := as.GetMaster().Exec("DELETE FROM OAuthAccessData WHERE Token = :Token", map[string]interface{}{"Token": token}); err != nil {
 			result.Err = model.NewAppError("SqlOAuthStore.RemoveAccessData", "store.sql_oauth.remove_access_data.app_error", nil, "err="+err.Error(), http.StatusInternalServerError)
 		}
-
-		storeChannel <- result
-		close(storeChannel)
-	}()
-
-	return storeChannel
+	})
 }
 
 func (as SqlOAuthStore) SaveAuthData(authData *model.AuthData) store.StoreChannel {
-
-	storeChannel := make(store.StoreChannel, 1)
-
-	go func() {
-		result := store.StoreResult{}
-
+	return store.Do(func(result *store.StoreResult) {
 		authData.PreSave()
 		if result.Err = authData.IsValid(); result.Err != nil {
-			storeChannel <- result
-			close(storeChannel)
 			return
 		}
 
@@ -446,21 +288,11 @@ func (as SqlOAuthStore) SaveAuthData(authData *model.AuthData) store.StoreChanne
 		} else {
 			result.Data = authData
 		}
-
-		storeChannel <- result
-		close(storeChannel)
-	}()
-
-	return storeChannel
+	})
 }
 
 func (as SqlOAuthStore) GetAuthData(code string) store.StoreChannel {
-
-	storeChannel := make(store.StoreChannel, 1)
-
-	go func() {
-		result := store.StoreResult{}
-
+	return store.Do(func(result *store.StoreResult) {
 		if obj, err := as.GetReplica().Get(model.AuthData{}, code); err != nil {
 			result.Err = model.NewAppError("SqlOAuthStore.GetAuthData", "store.sql_oauth.get_auth_data.finding.app_error", nil, err.Error(), http.StatusInternalServerError)
 		} else if obj == nil {
@@ -468,49 +300,25 @@ func (as SqlOAuthStore) GetAuthData(code string) store.StoreChannel {
 		} else {
 			result.Data = obj.(*model.AuthData)
 		}
-
-		storeChannel <- result
-		close(storeChannel)
-
-	}()
-
-	return storeChannel
+	})
 }
 
 func (as SqlOAuthStore) RemoveAuthData(code string) store.StoreChannel {
-	storeChannel := make(store.StoreChannel, 1)
-
-	go func() {
-		result := store.StoreResult{}
-
+	return store.Do(func(result *store.StoreResult) {
 		_, err := as.GetMaster().Exec("DELETE FROM OAuthAuthData WHERE Code = :Code", map[string]interface{}{"Code": code})
 		if err != nil {
 			result.Err = model.NewAppError("SqlOAuthStore.RemoveAuthData", "store.sql_oauth.remove_auth_data.app_error", nil, "err="+err.Error(), http.StatusInternalServerError)
 		}
-
-		storeChannel <- result
-		close(storeChannel)
-	}()
-
-	return storeChannel
+	})
 }
 
 func (as SqlOAuthStore) PermanentDeleteAuthDataByUser(userId string) store.StoreChannel {
-	storeChannel := make(store.StoreChannel, 1)
-
-	go func() {
-		result := store.StoreResult{}
-
+	return store.Do(func(result *store.StoreResult) {
 		_, err := as.GetMaster().Exec("DELETE FROM OAuthAccessData WHERE UserId = :UserId", map[string]interface{}{"UserId": userId})
 		if err != nil {
 			result.Err = model.NewAppError("SqlOAuthStore.RemoveAuthDataByUserId", "store.sql_oauth.permanent_delete_auth_data_by_user.app_error", nil, "err="+err.Error(), http.StatusInternalServerError)
 		}
-
-		storeChannel <- result
-		close(storeChannel)
-	}()
-
-	return storeChannel
+	})
 }
 
 func (as SqlOAuthStore) deleteApp(transaction *gorp.Transaction, clientId string) store.StoreResult {

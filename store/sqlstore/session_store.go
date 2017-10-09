@@ -42,16 +42,9 @@ func (me SqlSessionStore) CreateIndexesIfNotExists() {
 }
 
 func (me SqlSessionStore) Save(session *model.Session) store.StoreChannel {
-
-	storeChannel := make(store.StoreChannel, 1)
-
-	go func() {
-		result := store.StoreResult{}
-
+	return store.Do(func(result *store.StoreResult) {
 		if len(session.Id) > 0 {
 			result.Err = model.NewAppError("SqlSessionStore.Save", "store.sql_session.save.existing.app_error", nil, "id="+session.Id, http.StatusBadRequest)
-			storeChannel <- result
-			close(storeChannel)
 			return
 		}
 
@@ -82,21 +75,11 @@ func (me SqlSessionStore) Save(session *model.Session) store.StoreChannel {
 				}
 			}
 		}
-
-		storeChannel <- result
-		close(storeChannel)
-	}()
-
-	return storeChannel
+	})
 }
 
 func (me SqlSessionStore) Get(sessionIdOrToken string) store.StoreChannel {
-
-	storeChannel := make(store.StoreChannel, 1)
-
-	go func() {
-		result := store.StoreResult{}
-
+	return store.Do(func(result *store.StoreResult) {
 		var sessions []*model.Session
 
 		if _, err := me.GetReplica().Select(&sessions, "SELECT * FROM Sessions WHERE Token = :Token OR Id = :Id LIMIT 1", map[string]interface{}{"Token": sessionIdOrToken, "Id": sessionIdOrToken}); err != nil {
@@ -120,25 +103,15 @@ func (me SqlSessionStore) Get(sessionIdOrToken string) store.StoreChannel {
 				}
 			}
 		}
-
-		storeChannel <- result
-		close(storeChannel)
-
-	}()
-
-	return storeChannel
+	})
 }
 
 func (me SqlSessionStore) GetSessions(userId string) store.StoreChannel {
-	storeChannel := make(store.StoreChannel, 1)
-
-	go func() {
-
+	return store.Do(func(result *store.StoreResult) {
 		if cur := <-me.CleanUpExpiredSessions(userId); cur.Err != nil {
 			l4g.Error(utils.T("store.sql_session.get_sessions.error"), cur.Err)
 		}
 
-		result := store.StoreResult{}
 		var sessions []*model.Session
 
 		tcs := me.Team().GetTeamsForUser(userId)
@@ -164,20 +137,11 @@ func (me SqlSessionStore) GetSessions(userId string) store.StoreChannel {
 				}
 			}
 		}
-
-		storeChannel <- result
-		close(storeChannel)
-	}()
-
-	return storeChannel
+	})
 }
 
 func (me SqlSessionStore) GetSessionsWithActiveDeviceIds(userId string) store.StoreChannel {
-	storeChannel := make(store.StoreChannel, 1)
-
-	go func() {
-
-		result := store.StoreResult{}
+	return store.Do(func(result *store.StoreResult) {
 		var sessions []*model.Session
 
 		if _, err := me.GetReplica().Select(&sessions, "SELECT * FROM Sessions WHERE UserId = :UserId AND ExpiresAt != 0 AND :ExpiresAt <= ExpiresAt AND DeviceId != ''", map[string]interface{}{"UserId": userId, "ExpiresAt": model.GetMillis()}); err != nil {
@@ -186,148 +150,78 @@ func (me SqlSessionStore) GetSessionsWithActiveDeviceIds(userId string) store.St
 
 			result.Data = sessions
 		}
-
-		storeChannel <- result
-		close(storeChannel)
-	}()
-
-	return storeChannel
+	})
 }
 
 func (me SqlSessionStore) Remove(sessionIdOrToken string) store.StoreChannel {
-	storeChannel := make(store.StoreChannel, 1)
-
-	go func() {
-		result := store.StoreResult{}
-
+	return store.Do(func(result *store.StoreResult) {
 		_, err := me.GetMaster().Exec("DELETE FROM Sessions WHERE Id = :Id Or Token = :Token", map[string]interface{}{"Id": sessionIdOrToken, "Token": sessionIdOrToken})
 		if err != nil {
 			result.Err = model.NewAppError("SqlSessionStore.RemoveSession", "store.sql_session.remove.app_error", nil, "id="+sessionIdOrToken+", err="+err.Error(), http.StatusInternalServerError)
 		}
-
-		storeChannel <- result
-		close(storeChannel)
-	}()
-
-	return storeChannel
+	})
 }
 
 func (me SqlSessionStore) RemoveAllSessions() store.StoreChannel {
-	storeChannel := make(store.StoreChannel, 1)
-
-	go func() {
-		result := store.StoreResult{}
-
+	return store.Do(func(result *store.StoreResult) {
 		_, err := me.GetMaster().Exec("DELETE FROM Sessions")
 		if err != nil {
 			result.Err = model.NewAppError("SqlSessionStore.RemoveAllSessions", "store.sql_session.remove_all_sessions_for_team.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
-
-		storeChannel <- result
-		close(storeChannel)
-	}()
-
-	return storeChannel
+	})
 }
 
 func (me SqlSessionStore) PermanentDeleteSessionsByUser(userId string) store.StoreChannel {
-	storeChannel := make(store.StoreChannel, 1)
-
-	go func() {
-		result := store.StoreResult{}
-
+	return store.Do(func(result *store.StoreResult) {
 		_, err := me.GetMaster().Exec("DELETE FROM Sessions WHERE UserId = :UserId", map[string]interface{}{"UserId": userId})
 		if err != nil {
 			result.Err = model.NewAppError("SqlSessionStore.RemoveAllSessionsForUser", "store.sql_session.permanent_delete_sessions_by_user.app_error", nil, "id="+userId+", err="+err.Error(), http.StatusInternalServerError)
 		}
-
-		storeChannel <- result
-		close(storeChannel)
-	}()
-
-	return storeChannel
+	})
 }
 
 func (me SqlSessionStore) CleanUpExpiredSessions(userId string) store.StoreChannel {
-	storeChannel := make(store.StoreChannel, 1)
-
-	go func() {
-		result := store.StoreResult{}
-
+	return store.Do(func(result *store.StoreResult) {
 		if _, err := me.GetMaster().Exec("DELETE FROM Sessions WHERE UserId = :UserId AND ExpiresAt != 0 AND :ExpiresAt > ExpiresAt", map[string]interface{}{"UserId": userId, "ExpiresAt": model.GetMillis()}); err != nil {
 			result.Err = model.NewAppError("SqlSessionStore.CleanUpExpiredSessions", "store.sql_session.cleanup_expired_sessions.app_error", nil, err.Error(), http.StatusInternalServerError)
 		} else {
 			result.Data = userId
 		}
-
-		storeChannel <- result
-		close(storeChannel)
-	}()
-
-	return storeChannel
+	})
 }
 
 func (me SqlSessionStore) UpdateLastActivityAt(sessionId string, time int64) store.StoreChannel {
-	storeChannel := make(store.StoreChannel, 1)
-
-	go func() {
-		result := store.StoreResult{}
-
+	return store.Do(func(result *store.StoreResult) {
 		if _, err := me.GetMaster().Exec("UPDATE Sessions SET LastActivityAt = :LastActivityAt WHERE Id = :Id", map[string]interface{}{"LastActivityAt": time, "Id": sessionId}); err != nil {
 			result.Err = model.NewAppError("SqlSessionStore.UpdateLastActivityAt", "store.sql_session.update_last_activity.app_error", nil, "sessionId="+sessionId, http.StatusInternalServerError)
 		} else {
 			result.Data = sessionId
 		}
-
-		storeChannel <- result
-		close(storeChannel)
-	}()
-
-	return storeChannel
+	})
 }
 
 func (me SqlSessionStore) UpdateRoles(userId, roles string) store.StoreChannel {
-	storeChannel := make(store.StoreChannel, 1)
-
-	go func() {
-		result := store.StoreResult{}
+	return store.Do(func(result *store.StoreResult) {
 		if _, err := me.GetMaster().Exec("UPDATE Sessions SET Roles = :Roles WHERE UserId = :UserId", map[string]interface{}{"Roles": roles, "UserId": userId}); err != nil {
 			result.Err = model.NewAppError("SqlSessionStore.UpdateRoles", "store.sql_session.update_roles.app_error", nil, "userId="+userId, http.StatusInternalServerError)
 		} else {
 			result.Data = userId
 		}
-
-		storeChannel <- result
-		close(storeChannel)
-	}()
-
-	return storeChannel
+	})
 }
 
 func (me SqlSessionStore) UpdateDeviceId(id string, deviceId string, expiresAt int64) store.StoreChannel {
-	storeChannel := make(store.StoreChannel, 1)
-
-	go func() {
-		result := store.StoreResult{}
+	return store.Do(func(result *store.StoreResult) {
 		if _, err := me.GetMaster().Exec("UPDATE Sessions SET DeviceId = :DeviceId, ExpiresAt = :ExpiresAt WHERE Id = :Id", map[string]interface{}{"DeviceId": deviceId, "Id": id, "ExpiresAt": expiresAt}); err != nil {
 			result.Err = model.NewAppError("SqlSessionStore.UpdateDeviceId", "store.sql_session.update_device_id.app_error", nil, err.Error(), http.StatusInternalServerError)
 		} else {
 			result.Data = deviceId
 		}
-
-		storeChannel <- result
-		close(storeChannel)
-	}()
-
-	return storeChannel
+	})
 }
 
 func (me SqlSessionStore) AnalyticsSessionCount() store.StoreChannel {
-	storeChannel := make(store.StoreChannel, 1)
-
-	go func() {
-		result := store.StoreResult{}
-
+	return store.Do(func(result *store.StoreResult) {
 		query :=
 			`SELECT
                 COUNT(*)
@@ -340,10 +234,5 @@ func (me SqlSessionStore) AnalyticsSessionCount() store.StoreChannel {
 		} else {
 			result.Data = c
 		}
-
-		storeChannel <- result
-		close(storeChannel)
-	}()
-
-	return storeChannel
+	})
 }
