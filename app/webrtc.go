@@ -90,7 +90,7 @@ func GetKopanoWebmeetingsWebrtcToken(sessionId string) (string, *model.AppError)
 	data["type"] = "Token"
 	data["id"] = sessionId
 
-	rq, _ := http.NewRequest("POST", *utils.Cfg.WebrtcSettings.GatewayAdminUrl+"/api/v1/admin/auth/tokens", strings.NewReader(model.MapToJson(data)))
+	rq, _ := http.NewRequest("POST", *utils.Cfg.WebrtcSettings.GatewayAdminUrl+"/auth/tokens", strings.NewReader(model.MapToJson(data)))
 	rq.Header.Set("Content-Type", "application/json")
 	rq.Header.Set("Authorization", "Bearer "+*utils.Cfg.WebrtcSettings.GatewayAdminSecret)
 
