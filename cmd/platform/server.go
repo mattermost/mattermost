@@ -143,7 +143,6 @@ func runServer(configFileLocation string) {
 		}
 	}
 
-	a.Jobs.Store = a.Srv.Store
 	if *utils.Cfg.JobSettings.RunJobs {
 		a.Jobs.StartWorkers()
 	}
