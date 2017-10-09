@@ -3441,7 +3441,7 @@
   },
   {
     "id": "app.plugin.filesystem.app_error",
-    "translation": "Encountered filesystem error"
+    "translation": "遇到檔案系統錯誤"
   },
   {
     "id": "app.plugin.get_plugins.app_error",
@@ -3597,7 +3597,7 @@
   },
   {
     "id": "cli.license.critical",
-    "translation": "Feature requires an upgrade to Enterprise Edition and the inclusion of a license key. Please contact your System Administrator."
+    "translation": "功能需要升級至企業版並加入授權碼。請聯絡系統管理員。"
   },
   {
     "id": "ent.brand.save_brand_image.decode.app_error",
@@ -3689,7 +3689,7 @@
   },
   {
     "id": "ent.data_retention.generic.license.error",
-    "translation": "License does not support Data Retention."
+    "translation": "現有授權不支援資料保留。"
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.create_index_job.error",
@@ -3729,7 +3729,7 @@
   },
   {
     "id": "ent.elasticsearch.data_retention_delete_indexes.get_indexes.error",
-    "translation": "建立 Elasticsearch 索引時失敗"
+    "translation": "取得 Elasticsearch 索引時失敗"
   },
   {
     "id": "ent.elasticsearch.delete_post.error",
@@ -3845,11 +3845,11 @@
   },
   {
     "id": "ent.ldap.sync.index_job_failed.error",
-    "translation": "LDAP sync worker failed due to the sync job failing"
+    "translation": "由於同步工作失敗，LDAP 同步工作失敗。"
   },
   {
     "id": "ent.ldap.sync_worker.create_index_job.error",
-    "translation": "LDAP sync worker failed to create the sync job"
+    "translation": "LDAP 同步工作無法建立同步工作"
   },
   {
     "id": "ent.ldap.syncdone.info",
@@ -4373,15 +4373,15 @@
   },
   {
     "id": "model.config.is_valid.data_retention.deletion_job_start_time.app_error",
-    "translation": "Data retention job start time must be a 24-hour time stamp in the form HH:MM."
+    "translation": "資料保留工作起始時間必須為 HH:MM 格式的 24 小時時間戳記。"
   },
   {
     "id": "model.config.is_valid.data_retention.file_retention_days_too_low.app_error",
-    "translation": "File retention must be one day or longer."
+    "translation": "檔案保留需至少一天。"
   },
   {
     "id": "model.config.is_valid.data_retention.message_retention_days_too_low.app_error",
-    "translation": "Message retention must be one day or longer."
+    "translation": "訊息保留需至少一天。"
   },
   {
     "id": "model.config.is_valid.elastic_search.aggregate_posts_after_days.app_error",
@@ -4526,6 +4526,10 @@
   {
     "id": "model.config.is_valid.listen_address.app_error",
     "translation": "服務設定中的聆聽位址無效。此項目必須設定"
+  },
+  {
+    "id": "model.config.is_valid.localization.available_locales.app_error",
+    "translation": "可用的語言必須包含用戶端預設語言"
   },
   {
     "id": "model.config.is_valid.login_attempts.app_error",
@@ -5289,7 +5293,7 @@
   },
   {
     "id": "store.sql_audit.permanent_delete_batch.app_error",
-    "translation": "We encountered an error permanently deleting the batch of audits"
+    "translation": "永久批次刪除稽核時遇到錯誤"
   },
   {
     "id": "store.sql_audit.permanent_delete_by_user.app_error",
@@ -5548,6 +5552,10 @@
     "translation": "無法計算命令數量"
   },
   {
+    "id": "store.sql_command.get_by_trigger.app_error",
+    "translation": "無法取得命令"
+  },
+  {
     "id": "store.sql_command.save.delete.app_error",
     "translation": "無法刪除命令"
   },
@@ -5653,7 +5661,7 @@
   },
   {
     "id": "store.sql_file_info.permanent_delete_batch.app_error",
-    "translation": "We encountered an error permanently deleting the batch of file infos"
+    "translation": "永久批次刪除檔案資訊時遇到錯誤"
   },
   {
     "id": "store.sql_file_info.save.app_error",
@@ -5677,11 +5685,11 @@
   },
   {
     "id": "store.sql_job.get_count_by_status_and_type.app_erro",
-    "translation": "We couldn't get the job count by status and type"
+    "translation": "無法根據狀態與類型取得工作數量"
   },
   {
     "id": "store.sql_job.get_newest_job_by_status_and_type.app_error",
-    "translation": "We couldn't get the newest job by status and type"
+    "translation": "無法根據狀態與類型取得最新工作"
   },
   {
     "id": "store.sql_job.save.app_error",
@@ -5873,11 +5881,11 @@
   },
   {
     "id": "store.sql_post.permanent_delete_batch.app_error",
-    "translation": "We encountered an error permanently deleting the batch of posts"
+    "translation": "永久批次刪除訊息時遇到錯誤"
   },
   {
     "id": "store.sql_post.permanent_delete_batch.app_error",
-    "translation": "We encountered an error permanently deleting the batch of posts"
+    "translation": "永久批次刪除訊息時遇到錯誤"
   },
   {
     "id": "store.sql_post.permanent_delete_by_channel.app_error",
@@ -5913,7 +5921,7 @@
   },
   {
     "id": "store.sql_preference.cleanup_flags_batch.app_error",
-    "translation": "We encountered an error cleaning up the batch of flags"
+    "translation": "永久批次清除標記時遇到錯誤"
   },
   {
     "id": "store.sql_preference.delete.app_error",
@@ -6005,7 +6013,7 @@
   },
   {
     "id": "store.sql_reaction.permanent_delete_batch.app_error",
-    "translation": "We encountered an error permanently deleting the batch of reactions"
+    "translation": "永久批次刪除回應時遇到錯誤"
   },
   {
     "id": "store.sql_reaction.save.begin.app_error",
@@ -6585,15 +6593,15 @@
   },
   {
     "id": "utils.file.list_directory.configured.app_error",
-    "translation": "檔案儲存位置設定不正確。請設定為 S3 或是本地儲存。"
+    "translation": "檔案儲存位置設定不正確。請設定為 S3 或是本地伺服器檔案儲存空間。"
   },
   {
     "id": "utils.file.list_directory.local.app_error",
-    "translation": "從本地儲存讀取時遇到錯誤"
+    "translation": "從本地伺服器儲存空間表列目錄時遇到錯誤"
   },
   {
     "id": "utils.file.list_directory.s3.app_error",
-    "translation": "從 S3 刪除目錄時遇到錯誤"
+    "translation": "從 S3 表列目錄時遇到錯誤"
   },
   {
     "id": "utils.file.remove_directory.configured.app_error",
@@ -6781,11 +6789,11 @@
   },
   {
     "id": "web.error.unsupported_browser.message",
-    "translation": "Your current browser is not supported. Please upgrade to one of the following browsers:"
+    "translation": "當前的瀏覽器不被支援。請升級至下列瀏覽器之一："
   },
   {
     "id": "web.error.unsupported_browser.title",
-    "translation": "Unsupported Browser"
+    "translation": "不支援的瀏覽器"
   },
   {
     "id": "web.find_team.title",

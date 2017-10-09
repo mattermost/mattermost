@@ -3689,7 +3689,7 @@
   },
   {
     "id": "ent.data_retention.generic.license.error",
-    "translation": "License does not support Data Retention."
+    "translation": "Licença não suporta Retenção de Dados."
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.create_index_job.error",
@@ -4526,6 +4526,10 @@
   {
     "id": "model.config.is_valid.listen_address.app_error",
     "translation": "Inválido endereço de escuta em configurações de serviço Deve ser ajustado."
+  },
+  {
+    "id": "model.config.is_valid.localization.available_locales.app_error",
+    "translation": "Idiomas Disponíveis devem conter Idioma Padrão do Cliente"
   },
   {
     "id": "model.config.is_valid.login_attempts.app_error",
@@ -5546,6 +5550,10 @@
   {
     "id": "store.sql_command.analytics_command_count.app_error",
     "translation": "Não foi possível contar os comandos"
+  },
+  {
+    "id": "store.sql_command.get_by_trigger.app_error",
+    "translation": "Não foi possível obter o comando"
   },
   {
     "id": "store.sql_command.save.delete.app_error",
