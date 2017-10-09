@@ -713,14 +713,6 @@ var specialSearchChar = []string{
 
 func (s SqlPostStore) Search(teamId string, userId string, params *model.SearchParams) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
-		if !*utils.Cfg.ServiceSettings.EnablePostSearch {
-			list := model.NewPostList()
-			result.Data = list
-
-			result.Err = model.NewAppError("SqlPostStore.Search", "store.sql_post.search.disabled", nil, fmt.Sprintf("teamId=%v userId=%v params=%v", teamId, userId, params.ToJson()), http.StatusNotImplemented)
-			return
-		}
-
 		queryParams := map[string]interface{}{
 			"TeamId": teamId,
 			"UserId": userId,
@@ -833,7 +825,7 @@ func (s SqlPostStore) Search(teamId string, userId string, params *model.SearchP
 		if terms == "" {
 			// we've already confirmed that we have a channel or user to search for
 			searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", "", 1)
-		} else if *utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_POSTGRES {
+		} else if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
 			// Parse text for wildcards
 			if wildcard, err := regexp.Compile("\\*($| )"); err == nil {
 				terms = wildcard.ReplaceAllLiteralString(terms, ":* ")
@@ -847,7 +839,7 @@ func (s SqlPostStore) Search(teamId string, userId string, params *model.SearchP
 
 			searchClause := fmt.Sprintf("AND %s @@  to_tsquery(:Terms)", searchType)
 			searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", searchClause, 1)
-		} else if *utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_MYSQL {
+		} else if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
 			searchClause := fmt.Sprintf("AND MATCH (%s) AGAINST (:Terms IN BOOLEAN MODE)", searchType)
 			searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", searchClause, 1)
 
@@ -912,7 +904,7 @@ func (s SqlPostStore) AnalyticsUserCountsWithPostsByDay(teamId string) store.Sto
 			ORDER BY Name DESC
 			LIMIT 30`
 
-		if *utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_POSTGRES {
+		if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
 			query =
 				`SELECT
 					TO_CHAR(DATE(TO_TIMESTAMP(Posts.CreateAt / 1000)), 'YYYY-MM-DD') AS Name, COUNT(DISTINCT Posts.UserId) AS Value
@@ -966,7 +958,7 @@ func (s SqlPostStore) AnalyticsPostCountsByDay(teamId string) store.StoreChannel
 			ORDER BY Name DESC
 			LIMIT 30`
 
-		if *utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_POSTGRES {
+		if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
 			query =
 				`SELECT
 					TO_CHAR(DATE(TO_TIMESTAMP(Posts.CreateAt / 1000)), 'YYYY-MM-DD') AS Name, Count(Posts.Id) AS Value
@@ -1110,7 +1102,7 @@ func (s SqlPostStore) GetPostsBatchForIndexing(startTime int64, limit int) store
 func (s SqlPostStore) PermanentDeleteBatch(endTime int64, limit int64) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		var query string
-		if *utils.Cfg.SqlSettings.DriverName == "postgres" {
+		if s.DriverName() == "postgres" {
 			query = "DELETE from Posts WHERE Id = any (array (SELECT Id FROM Posts WHERE CreateAt < :EndTime LIMIT :Limit))"
 		} else {
 			query = "DELETE from Posts WHERE CreateAt < :EndTime LIMIT :Limit"

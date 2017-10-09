@@ -8,7 +8,6 @@ import (
 
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
-	"github.com/mattermost/mattermost-server/utils"
 )
 
 type SqlAuditStore struct {
@@ -83,7 +82,7 @@ func (s SqlAuditStore) PermanentDeleteByUser(userId string) store.StoreChannel {
 func (s SqlAuditStore) PermanentDeleteBatch(endTime int64, limit int64) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		var query string
-		if *utils.Cfg.SqlSettings.DriverName == "postgres" {
+		if s.DriverName() == "postgres" {
 			query = "DELETE from Audits WHERE Id = any (array (SELECT Id FROM Audits WHERE CreateAt < :EndTime LIMIT :Limit))"
 		} else {
 			query = "DELETE from Audits WHERE CreateAt < :EndTime LIMIT :Limit"

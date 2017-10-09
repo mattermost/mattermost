@@ -40,6 +40,7 @@ import (
 }*/
 
 type SqlStore interface {
+	DriverName() string
 	GetCurrentSchemaVersion() string
 	GetMaster() *gorp.DbMap
 	GetSearchReplica() *gorp.DbMap
