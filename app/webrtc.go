@@ -52,9 +52,8 @@ func GetWebrtcToken(sessionId string) (string, *model.AppError) {
 	switch strings.ToLower(*utils.Cfg.WebrtcSettings.GatewayType) {
 	case "kopano-webmeetings":
 		return GetKopanoWebmeetingsWebrtcToken(sessionId)
-	case "janus":
-		fallthrough
 	default:
+		// Default to Janus.
 		return GetJanusWebrtcToken(sessionId)
 	}
 }
