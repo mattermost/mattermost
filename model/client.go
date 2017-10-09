@@ -429,7 +429,7 @@ func (c *Client) UpdateTeam(team *Team) (*Result, *AppError) {
 	} else {
 		defer closeBody(r)
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
-			r.Header.Get(HEADER_ETAG_SERVER), MapFromJson(r.Body)}, nil
+			r.Header.Get(HEADER_ETAG_SERVER), TeamFromJson(r.Body)}, nil
 	}
 }
 

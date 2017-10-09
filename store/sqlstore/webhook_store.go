@@ -81,22 +81,14 @@ func (s SqlWebhookStore) InvalidateWebhookCache(webhookId string) {
 }
 
 func (s SqlWebhookStore) SaveIncoming(webhook *model.IncomingWebhook) store.StoreChannel {
-	storeChannel := make(store.StoreChannel, 1)
-
-	go func() {
-		result := store.StoreResult{}
-
+	return store.Do(func(result *store.StoreResult) {
 		if len(webhook.Id) > 0 {
 			result.Err = model.NewAppError("SqlWebhookStore.SaveIncoming", "store.sql_webhooks.save_incoming.existing.app_error", nil, "id="+webhook.Id, http.StatusBadRequest)
-			storeChannel <- result
-			close(storeChannel)
 			return
 		}
 
 		webhook.PreSave()
 		if result.Err = webhook.IsValid(); result.Err != nil {
-			storeChannel <- result
-			close(storeChannel)
 			return
 		}
 
@@ -105,20 +97,11 @@ func (s SqlWebhookStore) SaveIncoming(webhook *model.IncomingWebhook) store.Stor
 		} else {
 			result.Data = webhook
 		}
-
-		storeChannel <- result
-		close(storeChannel)
-	}()
-
-	return storeChannel
+	})
 }
 
 func (s SqlWebhookStore) UpdateIncoming(hook *model.IncomingWebhook) store.StoreChannel {
-	storeChannel := make(store.StoreChannel, 1)
-
-	go func() {
-		result := store.StoreResult{}
-
+	return store.Do(func(result *store.StoreResult) {
 		hook.UpdateAt = model.GetMillis()
 
 		if _, err := s.GetMaster().Update(hook); err != nil {
@@ -126,28 +109,17 @@ func (s SqlWebhookStore) UpdateIncoming(hook *model.IncomingWebhook) store.Store
 		} else {
 			result.Data = hook
 		}
-
-		storeChannel <- result
-		close(storeChannel)
-	}()
-
-	return storeChannel
+	})
 }
 
 func (s SqlWebhookStore) GetIncoming(id string, allowFromCache bool) store.StoreChannel {
-	storeChannel := make(store.StoreChannel, 1)
-
-	go func() {
-		result := store.StoreResult{}
-
+	return store.Do(func(result *store.StoreResult) {
 		if allowFromCache {
 			if cacheItem, ok := webhookCache.Get(id); ok {
 				if s.metrics != nil {
 					s.metrics.IncrementMemCacheHitCounter("Webhook")
 				}
 				result.Data = cacheItem.(*model.IncomingWebhook)
-				storeChannel <- result
-				close(storeChannel)
 				return
 			} else {
 				if s.metrics != nil {
@@ -171,80 +143,44 @@ func (s SqlWebhookStore) GetIncoming(id string, allowFromCache bool) store.Store
 		}
 
 		result.Data = &webhook
-
-		storeChannel <- result
-		close(storeChannel)
-	}()
-
-	return storeChannel
+	})
 }
 
 func (s SqlWebhookStore) DeleteIncoming(webhookId string, time int64) store.StoreChannel {
-	storeChannel := make(store.StoreChannel, 1)
-
-	go func() {
-		result := store.StoreResult{}
-
+	return store.Do(func(result *store.StoreResult) {
 		_, err := s.GetMaster().Exec("Update IncomingWebhooks SET DeleteAt = :DeleteAt, UpdateAt = :UpdateAt WHERE Id = :Id", map[string]interface{}{"DeleteAt": time, "UpdateAt": time, "Id": webhookId})
 		if err != nil {
 			result.Err = model.NewAppError("SqlWebhookStore.DeleteIncoming", "store.sql_webhooks.delete_incoming.app_error", nil, "id="+webhookId+", err="+err.Error(), http.StatusInternalServerError)
 		}
 
 		s.InvalidateWebhookCache(webhookId)
-
-		storeChannel <- result
-		close(storeChannel)
-	}()
-
-	return storeChannel
+	})
 }
 
 func (s SqlWebhookStore) PermanentDeleteIncomingByUser(userId string) store.StoreChannel {
-	storeChannel := make(store.StoreChannel, 1)
-
-	go func() {
-		result := store.StoreResult{}
-
+	return store.Do(func(result *store.StoreResult) {
 		_, err := s.GetMaster().Exec("DELETE FROM IncomingWebhooks WHERE UserId = :UserId", map[string]interface{}{"UserId": userId})
 		if err != nil {
 			result.Err = model.NewAppError("SqlWebhookStore.DeleteIncomingByUser", "store.sql_webhooks.permanent_delete_incoming_by_user.app_error", nil, "id="+userId+", err="+err.Error(), http.StatusInternalServerError)
 		}
 
 		ClearWebhookCaches()
-
-		storeChannel <- result
-		close(storeChannel)
-	}()
-
-	return storeChannel
+	})
 }
 
 func (s SqlWebhookStore) PermanentDeleteIncomingByChannel(channelId string) store.StoreChannel {
-	storeChannel := make(store.StoreChannel, 1)
-
-	go func() {
-		result := store.StoreResult{}
-
+	return store.Do(func(result *store.StoreResult) {
 		_, err := s.GetMaster().Exec("DELETE FROM IncomingWebhooks WHERE ChannelId = :ChannelId", map[string]interface{}{"ChannelId": channelId})
 		if err != nil {
 			result.Err = model.NewAppError("SqlWebhookStore.DeleteIncomingByChannel", "store.sql_webhooks.permanent_delete_incoming_by_channel.app_error", nil, "id="+channelId+", err="+err.Error(), http.StatusInternalServerError)
 		}
 
 		ClearWebhookCaches()
-
-		storeChannel <- result
-		close(storeChannel)
-	}()
-
-	return storeChannel
+	})
 }
 
 func (s SqlWebhookStore) GetIncomingList(offset, limit int) store.StoreChannel {
-	storeChannel := make(store.StoreChannel, 1)
-
-	go func() {
-		result := store.StoreResult{}
-
+	return store.Do(func(result *store.StoreResult) {
 		var webhooks []*model.IncomingWebhook
 
 		if _, err := s.GetReplica().Select(&webhooks, "SELECT * FROM IncomingWebhooks WHERE DeleteAt = 0 LIMIT :Limit OFFSET :Offset", map[string]interface{}{"Limit": limit, "Offset": offset}); err != nil {
@@ -252,20 +188,11 @@ func (s SqlWebhookStore) GetIncomingList(offset, limit int) store.StoreChannel {
 		}
 
 		result.Data = webhooks
-
-		storeChannel <- result
-		close(storeChannel)
-	}()
-
-	return storeChannel
+	})
 }
 
 func (s SqlWebhookStore) GetIncomingByTeam(teamId string, offset, limit int) store.StoreChannel {
-	storeChannel := make(store.StoreChannel, 1)
-
-	go func() {
-		result := store.StoreResult{}
-
+	return store.Do(func(result *store.StoreResult) {
 		var webhooks []*model.IncomingWebhook
 
 		if _, err := s.GetReplica().Select(&webhooks, "SELECT * FROM IncomingWebhooks WHERE TeamId = :TeamId AND DeleteAt = 0 LIMIT :Limit OFFSET :Offset", map[string]interface{}{"TeamId": teamId, "Limit": limit, "Offset": offset}); err != nil {
@@ -273,20 +200,11 @@ func (s SqlWebhookStore) GetIncomingByTeam(teamId string, offset, limit int) sto
 		}
 
 		result.Data = webhooks
-
-		storeChannel <- result
-		close(storeChannel)
-	}()
-
-	return storeChannel
+	})
 }
 
 func (s SqlWebhookStore) GetIncomingByChannel(channelId string) store.StoreChannel {
-	storeChannel := make(store.StoreChannel, 1)
-
-	go func() {
-		result := store.StoreResult{}
-
+	return store.Do(func(result *store.StoreResult) {
 		var webhooks []*model.IncomingWebhook
 
 		if _, err := s.GetReplica().Select(&webhooks, "SELECT * FROM IncomingWebhooks WHERE ChannelId = :ChannelId AND DeleteAt = 0", map[string]interface{}{"ChannelId": channelId}); err != nil {
@@ -294,31 +212,18 @@ func (s SqlWebhookStore) GetIncomingByChannel(channelId string) store.StoreChann
 		}
 
 		result.Data = webhooks
-
-		storeChannel <- result
-		close(storeChannel)
-	}()
-
-	return storeChannel
+	})
 }
 
 func (s SqlWebhookStore) SaveOutgoing(webhook *model.OutgoingWebhook) store.StoreChannel {
-	storeChannel := make(store.StoreChannel, 1)
-
-	go func() {
-		result := store.StoreResult{}
-
+	return store.Do(func(result *store.StoreResult) {
 		if len(webhook.Id) > 0 {
 			result.Err = model.NewAppError("SqlWebhookStore.SaveOutgoing", "store.sql_webhooks.save_outgoing.override.app_error", nil, "id="+webhook.Id, http.StatusBadRequest)
-			storeChannel <- result
-			close(storeChannel)
 			return
 		}
 
 		webhook.PreSave()
 		if result.Err = webhook.IsValid(); result.Err != nil {
-			storeChannel <- result
-			close(storeChannel)
 			return
 		}
 
@@ -327,20 +232,11 @@ func (s SqlWebhookStore) SaveOutgoing(webhook *model.OutgoingWebhook) store.Stor
 		} else {
 			result.Data = webhook
 		}
-
-		storeChannel <- result
-		close(storeChannel)
-	}()
-
-	return storeChannel
+	})
 }
 
 func (s SqlWebhookStore) GetOutgoing(id string) store.StoreChannel {
-	storeChannel := make(store.StoreChannel, 1)
-
-	go func() {
-		result := store.StoreResult{}
-
+	return store.Do(func(result *store.StoreResult) {
 		var webhook model.OutgoingWebhook
 
 		if err := s.GetReplica().SelectOne(&webhook, "SELECT * FROM OutgoingWebhooks WHERE Id = :Id AND DeleteAt = 0", map[string]interface{}{"Id": id}); err != nil {
@@ -348,20 +244,11 @@ func (s SqlWebhookStore) GetOutgoing(id string) store.StoreChannel {
 		}
 
 		result.Data = &webhook
-
-		storeChannel <- result
-		close(storeChannel)
-	}()
-
-	return storeChannel
+	})
 }
 
 func (s SqlWebhookStore) GetOutgoingList(offset, limit int) store.StoreChannel {
-	storeChannel := make(store.StoreChannel, 1)
-
-	go func() {
-		result := store.StoreResult{}
-
+	return store.Do(func(result *store.StoreResult) {
 		var webhooks []*model.OutgoingWebhook
 
 		if _, err := s.GetReplica().Select(&webhooks, "SELECT * FROM OutgoingWebhooks WHERE DeleteAt = 0 LIMIT :Limit OFFSET :Offset", map[string]interface{}{"Offset": offset, "Limit": limit}); err != nil {
@@ -369,20 +256,11 @@ func (s SqlWebhookStore) GetOutgoingList(offset, limit int) store.StoreChannel {
 		}
 
 		result.Data = webhooks
-
-		storeChannel <- result
-		close(storeChannel)
-	}()
-
-	return storeChannel
+	})
 }
 
 func (s SqlWebhookStore) GetOutgoingByChannel(channelId string, offset, limit int) store.StoreChannel {
-	storeChannel := make(store.StoreChannel, 1)
-
-	go func() {
-		result := store.StoreResult{}
-
+	return store.Do(func(result *store.StoreResult) {
 		var webhooks []*model.OutgoingWebhook
 
 		query := ""
@@ -397,20 +275,11 @@ func (s SqlWebhookStore) GetOutgoingByChannel(channelId string, offset, limit in
 		}
 
 		result.Data = webhooks
-
-		storeChannel <- result
-		close(storeChannel)
-	}()
-
-	return storeChannel
+	})
 }
 
 func (s SqlWebhookStore) GetOutgoingByTeam(teamId string, offset, limit int) store.StoreChannel {
-	storeChannel := make(store.StoreChannel, 1)
-
-	go func() {
-		result := store.StoreResult{}
-
+	return store.Do(func(result *store.StoreResult) {
 		var webhooks []*model.OutgoingWebhook
 
 		query := ""
@@ -425,76 +294,40 @@ func (s SqlWebhookStore) GetOutgoingByTeam(teamId string, offset, limit int) sto
 		}
 
 		result.Data = webhooks
-
-		storeChannel <- result
-		close(storeChannel)
-	}()
-
-	return storeChannel
+	})
 }
 
 func (s SqlWebhookStore) DeleteOutgoing(webhookId string, time int64) store.StoreChannel {
-	storeChannel := make(store.StoreChannel, 1)
-
-	go func() {
-		result := store.StoreResult{}
-
+	return store.Do(func(result *store.StoreResult) {
 		_, err := s.GetMaster().Exec("Update OutgoingWebhooks SET DeleteAt = :DeleteAt, UpdateAt = :UpdateAt WHERE Id = :Id", map[string]interface{}{"DeleteAt": time, "UpdateAt": time, "Id": webhookId})
 		if err != nil {
 			result.Err = model.NewAppError("SqlWebhookStore.DeleteOutgoing", "store.sql_webhooks.delete_outgoing.app_error", nil, "id="+webhookId+", err="+err.Error(), http.StatusInternalServerError)
 		}
-
-		storeChannel <- result
-		close(storeChannel)
-	}()
-
-	return storeChannel
+	})
 }
 
 func (s SqlWebhookStore) PermanentDeleteOutgoingByUser(userId string) store.StoreChannel {
-	storeChannel := make(store.StoreChannel, 1)
-
-	go func() {
-		result := store.StoreResult{}
-
+	return store.Do(func(result *store.StoreResult) {
 		_, err := s.GetMaster().Exec("DELETE FROM OutgoingWebhooks WHERE CreatorId = :UserId", map[string]interface{}{"UserId": userId})
 		if err != nil {
 			result.Err = model.NewAppError("SqlWebhookStore.DeleteOutgoingByUser", "store.sql_webhooks.permanent_delete_outgoing_by_user.app_error", nil, "id="+userId+", err="+err.Error(), http.StatusInternalServerError)
 		}
-
-		storeChannel <- result
-		close(storeChannel)
-	}()
-
-	return storeChannel
+	})
 }
 
 func (s SqlWebhookStore) PermanentDeleteOutgoingByChannel(channelId string) store.StoreChannel {
-	storeChannel := make(store.StoreChannel, 1)
-
-	go func() {
-		result := store.StoreResult{}
-
+	return store.Do(func(result *store.StoreResult) {
 		_, err := s.GetMaster().Exec("DELETE FROM OutgoingWebhooks WHERE ChannelId = :ChannelId", map[string]interface{}{"ChannelId": channelId})
 		if err != nil {
 			result.Err = model.NewAppError("SqlWebhookStore.DeleteOutgoingByChannel", "store.sql_webhooks.permanent_delete_outgoing_by_channel.app_error", nil, "id="+channelId+", err="+err.Error(), http.StatusInternalServerError)
 		}
 
 		ClearWebhookCaches()
-
-		storeChannel <- result
-		close(storeChannel)
-	}()
-
-	return storeChannel
+	})
 }
 
 func (s SqlWebhookStore) UpdateOutgoing(hook *model.OutgoingWebhook) store.StoreChannel {
-	storeChannel := make(store.StoreChannel, 1)
-
-	go func() {
-		result := store.StoreResult{}
-
+	return store.Do(func(result *store.StoreResult) {
 		hook.UpdateAt = model.GetMillis()
 
 		if _, err := s.GetMaster().Update(hook); err != nil {
@@ -502,20 +335,11 @@ func (s SqlWebhookStore) UpdateOutgoing(hook *model.OutgoingWebhook) store.Store
 		} else {
 			result.Data = hook
 		}
-
-		storeChannel <- result
-		close(storeChannel)
-	}()
-
-	return storeChannel
+	})
 }
 
 func (s SqlWebhookStore) AnalyticsIncomingCount(teamId string) store.StoreChannel {
-	storeChannel := make(store.StoreChannel, 1)
-
-	go func() {
-		result := store.StoreResult{}
-
+	return store.Do(func(result *store.StoreResult) {
 		query :=
 			`SELECT 
 			    COUNT(*)
@@ -533,20 +357,11 @@ func (s SqlWebhookStore) AnalyticsIncomingCount(teamId string) store.StoreChanne
 		} else {
 			result.Data = v
 		}
-
-		storeChannel <- result
-		close(storeChannel)
-	}()
-
-	return storeChannel
+	})
 }
 
 func (s SqlWebhookStore) AnalyticsOutgoingCount(teamId string) store.StoreChannel {
-	storeChannel := make(store.StoreChannel, 1)
-
-	go func() {
-		result := store.StoreResult{}
-
+	return store.Do(func(result *store.StoreResult) {
 		query :=
 			`SELECT 
 			    COUNT(*)
@@ -564,10 +379,5 @@ func (s SqlWebhookStore) AnalyticsOutgoingCount(teamId string) store.StoreChanne
 		} else {
 			result.Data = v
 		}
-
-		storeChannel <- result
-		close(storeChannel)
-	}()
-
-	return storeChannel
+	})
 }

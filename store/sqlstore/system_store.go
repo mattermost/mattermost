@@ -30,30 +30,15 @@ func (s SqlSystemStore) CreateIndexesIfNotExists() {
 }
 
 func (s SqlSystemStore) Save(system *model.System) store.StoreChannel {
-
-	storeChannel := make(store.StoreChannel, 1)
-
-	go func() {
-		result := store.StoreResult{}
-
+	return store.Do(func(result *store.StoreResult) {
 		if err := s.GetMaster().Insert(system); err != nil {
 			result.Err = model.NewAppError("SqlSystemStore.Save", "store.sql_system.save.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
-
-		storeChannel <- result
-		close(storeChannel)
-	}()
-
-	return storeChannel
+	})
 }
 
 func (s SqlSystemStore) SaveOrUpdate(system *model.System) store.StoreChannel {
-
-	storeChannel := make(store.StoreChannel, 1)
-
-	go func() {
-		result := store.StoreResult{}
-
+	return store.Do(func(result *store.StoreResult) {
 		if err := s.GetReplica().SelectOne(&model.System{}, "SELECT * FROM Systems WHERE Name = :Name", map[string]interface{}{"Name": system.Name}); err == nil {
 			if _, err := s.GetMaster().Update(system); err != nil {
 				result.Err = model.NewAppError("SqlSystemStore.SaveOrUpdate", "store.sql_system.update.app_error", nil, "", http.StatusInternalServerError)
@@ -63,39 +48,19 @@ func (s SqlSystemStore) SaveOrUpdate(system *model.System) store.StoreChannel {
 				result.Err = model.NewAppError("SqlSystemStore.SaveOrUpdate", "store.sql_system.save.app_error", nil, "", http.StatusInternalServerError)
 			}
 		}
-
-		storeChannel <- result
-		close(storeChannel)
-	}()
-
-	return storeChannel
+	})
 }
 
 func (s SqlSystemStore) Update(system *model.System) store.StoreChannel {
-
-	storeChannel := make(store.StoreChannel, 1)
-
-	go func() {
-		result := store.StoreResult{}
-
+	return store.Do(func(result *store.StoreResult) {
 		if _, err := s.GetMaster().Update(system); err != nil {
 			result.Err = model.NewAppError("SqlSystemStore.Update", "store.sql_system.update.app_error", nil, "", http.StatusInternalServerError)
 		}
-
-		storeChannel <- result
-		close(storeChannel)
-	}()
-
-	return storeChannel
+	})
 }
 
 func (s SqlSystemStore) Get() store.StoreChannel {
-
-	storeChannel := make(store.StoreChannel, 1)
-
-	go func() {
-		result := store.StoreResult{}
-
+	return store.Do(func(result *store.StoreResult) {
 		var systems []model.System
 		props := make(model.StringMap)
 		if _, err := s.GetReplica().Select(&systems, "SELECT * FROM Systems"); err != nil {
@@ -107,31 +72,16 @@ func (s SqlSystemStore) Get() store.StoreChannel {
 
 			result.Data = props
 		}
-
-		storeChannel <- result
-		close(storeChannel)
-	}()
-
-	return storeChannel
+	})
 }
 
 func (s SqlSystemStore) GetByName(name string) store.StoreChannel {
-
-	storeChannel := make(store.StoreChannel, 1)
-
-	go func() {
-		result := store.StoreResult{}
-
+	return store.Do(func(result *store.StoreResult) {
 		var system model.System
 		if err := s.GetReplica().SelectOne(&system, "SELECT * FROM Systems WHERE Name = :Name", map[string]interface{}{"Name": name}); err != nil {
 			result.Err = model.NewAppError("SqlSystemStore.GetByName", "store.sql_system.get_by_name.app_error", nil, "", http.StatusInternalServerError)
 		}
 
 		result.Data = &system
-
-		storeChannel <- result
-		close(storeChannel)
-	}()
-
-	return storeChannel
+	})
 }
