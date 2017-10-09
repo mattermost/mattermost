@@ -61,12 +61,6 @@ type API struct {
 	BaseRoutes *Routes
 }
 
-func NewRouter() *mux.Router {
-	ret := mux.NewRouter()
-	ret.NotFoundHandler = http.HandlerFunc(Handle404)
-	return ret
-}
-
 func Init(a *app.App, root *mux.Router) *API {
 	api := &API{
 		App:        a,

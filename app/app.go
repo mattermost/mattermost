@@ -4,17 +4,19 @@
 package app
 
 import (
-	"io/ioutil"
 	"net/http"
 	"sync/atomic"
 
 	l4g "github.com/alecthomas/log4go"
+	"github.com/gorilla/mux"
 
 	"github.com/mattermost/mattermost-server/einterfaces"
 	ejobs "github.com/mattermost/mattermost-server/einterfaces/jobs"
 	"github.com/mattermost/mattermost-server/jobs"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/plugin/pluginenv"
+	"github.com/mattermost/mattermost-server/store"
+	"github.com/mattermost/mattermost-server/store/sqlstore"
 	"github.com/mattermost/mattermost-server/utils"
 )
 
@@ -44,44 +46,69 @@ type App struct {
 	Metrics          einterfaces.MetricsInterface
 	Mfa              einterfaces.MfaInterface
 	Saml             einterfaces.SamlInterface
+
+	newStore func() store.Store
 }
 
 var appCount = 0
 
 // New creates a new App. You must call Shutdown when you're done with it.
 // XXX: For now, only one at a time is allowed as some resources are still shared.
-func New() *App {
+func New(options ...Option) *App {
 	appCount++
 	if appCount > 1 {
 		panic("Only one App should exist at a time. Did you forget to call Shutdown()?")
 	}
 
+	l4g.Info(utils.T("api.server.new_server.init.info"))
+
 	app := &App{
 		goroutineExitSignal: make(chan struct{}, 1),
 		Jobs:                &jobs.JobServer{},
+		Srv: &Server{
+			Router: mux.NewRouter(),
+		},
 	}
 	app.initEnterprise()
+
+	for _, option := range options {
+		option(app)
+	}
+
+	if app.newStore == nil {
+		app.newStore = func() store.Store {
+			return store.NewLayeredStore(sqlstore.NewSqlSupplier(utils.Cfg.SqlSettings, app.Metrics), app.Metrics, app.Cluster)
+		}
+	}
+
+	app.Srv.Store = app.newStore()
+	app.Jobs.Store = app.Srv.Store
+
+	app.Srv.Router.NotFoundHandler = http.HandlerFunc(app.Handle404)
+
+	app.Srv.WebSocketRouter = &WebSocketRouter{
+		app:      app,
+		handlers: make(map[string]webSocketHandler),
+	}
+
 	return app
 }
 
 func (a *App) Shutdown() {
 	appCount--
 
-	if a.Srv != nil {
-		l4g.Info(utils.T("api.server.stop_server.stopping.info"))
+	l4g.Info(utils.T("api.server.stop_server.stopping.info"))
 
-		a.Srv.GracefulServer.Stop(TIME_TO_WAIT_FOR_CONNECTIONS_TO_CLOSE_ON_SERVER_SHUTDOWN)
-		<-a.Srv.GracefulServer.StopChan()
-		a.HubStop()
+	a.StopServer()
+	a.HubStop()
 
-		a.ShutDownPlugins()
-		a.WaitForGoroutines()
+	a.ShutDownPlugins()
+	a.WaitForGoroutines()
 
-		a.Srv.Store.Close()
-		a.Srv = nil
+	a.Srv.Store.Close()
+	a.Srv = nil
 
-		l4g.Info(utils.T("api.server.stop_server.stopped.info"))
-	}
+	l4g.Info(utils.T("api.server.stop_server.stopped.info"))
 }
 
 var accountMigrationInterface func(*App) einterfaces.AccountMigrationInterface
@@ -232,9 +259,11 @@ func (a *App) WaitForGoroutines() {
 	}
 }
 
-func CloseBody(r *http.Response) {
-	if r.Body != nil {
-		ioutil.ReadAll(r.Body)
-		r.Body.Close()
-	}
+func (a *App) Handle404(w http.ResponseWriter, r *http.Request) {
+	err := model.NewAppError("Handle404", "api.context.404.app_error", nil, "", http.StatusNotFound)
+	err.Translate(utils.T)
+
+	l4g.Debug("%v: code=404 ip=%v", r.URL.Path, utils.GetIpAddress(r))
+
+	utils.RenderWebError(err, w, r)
 }

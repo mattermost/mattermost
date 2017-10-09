@@ -22,26 +22,23 @@ type TestHelper struct {
 }
 
 func setupTestHelper(enterprise bool) *TestHelper {
+	utils.TranslationsPreInit()
+	utils.LoadConfig("config.json")
+	utils.InitTranslations(utils.Cfg.LocalizationSettings)
+
 	th := &TestHelper{
 		App: New(),
 	}
 
-	if th.App.Srv == nil {
-		utils.TranslationsPreInit()
-		utils.LoadConfig("config.json")
-		utils.InitTranslations(utils.Cfg.LocalizationSettings)
-		*utils.Cfg.TeamSettings.MaxUsersPerTeam = 50
-		*utils.Cfg.RateLimitSettings.Enable = false
-		utils.DisableDebugLogForTest()
-		th.App.NewServer()
-		th.App.InitStores()
-		th.App.StartServer()
-		utils.InitHTML()
-		utils.EnableDebugLogForTest()
-		th.App.Srv.Store.MarkSystemRanUnitTests()
+	*utils.Cfg.TeamSettings.MaxUsersPerTeam = 50
+	*utils.Cfg.RateLimitSettings.Enable = false
+	utils.DisableDebugLogForTest()
+	th.App.StartServer()
+	utils.InitHTML()
+	utils.EnableDebugLogForTest()
+	th.App.Srv.Store.MarkSystemRanUnitTests()
 
-		*utils.Cfg.TeamSettings.EnableOpenServer = true
-	}
+	*utils.Cfg.TeamSettings.EnableOpenServer = true
 
 	utils.SetIsLicensed(enterprise)
 	if enterprise {

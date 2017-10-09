@@ -67,11 +67,6 @@ func runServer(configFileLocation string) {
 	a := app.New()
 	defer a.Shutdown()
 
-	a.NewServer()
-	a.InitStores()
-	a.Srv.Router = api.NewRouter()
-	a.Srv.WebSocketRouter = a.NewWebSocketRouter()
-
 	if model.BuildEnterpriseReady == "true" {
 		a.LoadLicense()
 	}
@@ -92,6 +87,7 @@ func runServer(configFileLocation string) {
 		l4g.Error("Unable to find webapp directory, could not initialize plugins")
 	}
 
+	a.StartServer()
 	api4.Init(a, a.Srv.Router, false)
 	api3 := api.Init(a, a.Srv.Router)
 	wsapi.Init(a, a.Srv.WebSocketRouter)
@@ -114,8 +110,6 @@ func runServer(configFileLocation string) {
 	}
 
 	resetStatuses(a)
-
-	a.StartServer()
 
 	// If we allow testing then listen for manual testing URL hits
 	if utils.Cfg.ServiceSettings.EnableTesting {
@@ -149,7 +143,6 @@ func runServer(configFileLocation string) {
 		}
 	}
 
-	a.Jobs.Store = a.Srv.Store
 	if *utils.Cfg.JobSettings.RunJobs {
 		a.Jobs.StartWorkers()
 	}

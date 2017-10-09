@@ -312,8 +312,8 @@ func UpgradeDatabaseToVersion43(sqlStore SqlStore) {
 }
 
 func UpgradeDatabaseToVersion44(sqlStore SqlStore) {
-	if shouldPerformUpgrade(sqlStore, VERSION_4_3_0, VERSION_4_4_0) {
-		// TODO: Uncomment following when version 4.4.0 is released
-		//saveSchemaVersion(sqlStore, VERSION_4_4_0)
-	}
+	// TODO: Uncomment following when version 4.4.0 is released
+	//if shouldPerformUpgrade(sqlStore, VERSION_4_3_0, VERSION_4_4_0) {
+	//	saveSchemaVersion(sqlStore, VERSION_4_4_0)
+	//}
 }

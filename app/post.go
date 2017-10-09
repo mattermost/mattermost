@@ -679,7 +679,7 @@ func GetOpenGraphMetadata(url string) *opengraph.OpenGraph {
 		l4g.Error("GetOpenGraphMetadata request failed for url=%v with err=%v", url, err.Error())
 		return og
 	}
-	defer CloseBody(res)
+	defer res.Body.Close()
 
 	if err := og.ProcessHTML(res.Body); err != nil {
 		l4g.Error("GetOpenGraphMetadata processing failed for url=%v with err=%v", url, err.Error())
