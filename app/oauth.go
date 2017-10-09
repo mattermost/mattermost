@@ -7,7 +7,6 @@ import (
 	"bytes"
 	b64 "encoding/base64"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strings"
@@ -428,10 +427,7 @@ func (a *App) RevokeAccessToken(token string) *model.AppError {
 }
 
 func (a *App) CompleteOAuth(service string, body io.ReadCloser, teamId string, props map[string]string) (*model.User, *model.AppError) {
-	defer func() {
-		ioutil.ReadAll(body)
-		body.Close()
-	}()
+	defer body.Close()
 
 	action := props["action"]
 
@@ -688,11 +684,9 @@ func (a *App) AuthorizeOAuthUser(w http.ResponseWriter, r *http.Request, service
 	if resp, err := utils.HttpClient(true).Do(req); err != nil {
 		return nil, "", stateProps, model.NewAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.token_failed.app_error", nil, err.Error(), http.StatusInternalServerError)
 	} else {
-		bodyBytes, _ = ioutil.ReadAll(resp.Body)
-		resp.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
-
 		ar = model.AccessResponseFromJson(resp.Body)
-		defer CloseBody(resp)
+		resp.Body.Close()
+
 		if ar == nil {
 			return nil, "", stateProps, model.NewAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.bad_response.app_error", nil, "response_body="+string(bodyBytes), http.StatusInternalServerError)
 		}

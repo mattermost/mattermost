@@ -21,13 +21,6 @@ type WebSocketRouter struct {
 	handlers map[string]webSocketHandler
 }
 
-func (a *App) NewWebSocketRouter() *WebSocketRouter {
-	return &WebSocketRouter{
-		app:      a,
-		handlers: make(map[string]webSocketHandler),
-	}
-}
-
 func (wr *WebSocketRouter) Handle(action string, handler webSocketHandler) {
 	wr.handlers[action] = handler
 }

@@ -85,8 +85,12 @@ func tearDownStores() {
 		for _, st := range storeTypes {
 			st := st
 			go func() {
-				st.Store.Close()
-				st.Container.Stop()
+				if st.Store != nil {
+					st.Store.Close()
+				}
+				if st.Container != nil {
+					st.Container.Stop()
+				}
 				wg.Done()
 			}()
 		}

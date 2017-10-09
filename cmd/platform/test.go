@@ -52,13 +52,11 @@ func webClientTestsCmdF(cmd *cobra.Command, args []string) error {
 	defer a.Shutdown()
 
 	utils.InitTranslations(utils.Cfg.LocalizationSettings)
-	a.Srv.Router = api.NewRouter()
-	a.Srv.WebSocketRouter = a.NewWebSocketRouter()
+	a.StartServer()
 	api4.Init(a, a.Srv.Router, false)
 	api.Init(a, a.Srv.Router)
 	wsapi.Init(a, a.Srv.WebSocketRouter)
 	setupClientTests()
-	a.StartServer()
 	runWebClientTests()
 
 	return nil
@@ -72,13 +70,11 @@ func serverForWebClientTestsCmdF(cmd *cobra.Command, args []string) error {
 	defer a.Shutdown()
 
 	utils.InitTranslations(utils.Cfg.LocalizationSettings)
-	a.Srv.Router = api.NewRouter()
-	a.Srv.WebSocketRouter = a.NewWebSocketRouter()
+	a.StartServer()
 	api4.Init(a, a.Srv.Router, false)
 	api.Init(a, a.Srv.Router)
 	wsapi.Init(a, a.Srv.WebSocketRouter)
 	setupClientTests()
-	a.StartServer()
 
 	c := make(chan os.Signal)
 	signal.Notify(c, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)

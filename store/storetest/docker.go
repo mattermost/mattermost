@@ -116,7 +116,8 @@ func runContainer(args []string) (*RunningContainer, error) {
 }
 
 func waitForPort(port string) error {
-	for i := 0; i < 120; i++ {
+	deadline := time.Now().Add(time.Minute * 10)
+	for time.Now().Before(deadline) {
 		conn, err := net.DialTimeout("tcp", "127.0.0.1:"+port, time.Minute)
 		if err != nil {
 			return err

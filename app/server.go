@@ -20,7 +20,6 @@ import (
 
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
-	"github.com/mattermost/mattermost-server/store/sqlstore"
 	"github.com/mattermost/mattermost-server/utils"
 )
 
@@ -77,16 +76,6 @@ func (cw *CorsWrapper) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 const TIME_TO_WAIT_FOR_CONNECTIONS_TO_CLOSE_ON_SERVER_SHUTDOWN = time.Second
-
-func (a *App) NewServer() {
-	l4g.Info(utils.T("api.server.new_server.init.info"))
-
-	a.Srv = &Server{}
-}
-
-func (a *App) InitStores() {
-	a.Srv.Store = store.NewLayeredStore(sqlstore.NewSqlSupplier(utils.Cfg.SqlSettings, a.Metrics), a.Metrics, a.Cluster)
-}
 
 type VaryBy struct{}
 
@@ -210,4 +199,12 @@ func (a *App) StartServer() {
 			time.Sleep(time.Second)
 		}
 	}()
+}
+
+func (a *App) StopServer() {
+	if a.Srv.GracefulServer != nil {
+		a.Srv.GracefulServer.Stop(TIME_TO_WAIT_FOR_CONNECTIONS_TO_CLOSE_ON_SERVER_SHUTDOWN)
+		<-a.Srv.GracefulServer.StopChan()
+		a.Srv.GracefulServer = nil
+	}
 }
