@@ -602,12 +602,14 @@ func (a *App) SearchPostsInTeam(terms string, userId string, teamId string, isOr
 
 		// Get the posts
 		postList := model.NewPostList()
-		if presult := <-a.Srv.Store.Post().GetPostsByIds(postIds); presult.Err != nil {
-			return nil, presult.Err
-		} else {
-			for _, p := range presult.Data.([]*model.Post) {
-				postList.AddPost(p)
-				postList.AddOrder(p.Id)
+		if len(postIds) > 0 {
+			if presult := <-a.Srv.Store.Post().GetPostsByIds(postIds); presult.Err != nil {
+				return nil, presult.Err
+			} else {
+				for _, p := range presult.Data.([]*model.Post) {
+					postList.AddPost(p)
+					postList.AddOrder(p.Id)
+				}
 			}
 		}
 
