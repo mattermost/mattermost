@@ -85,7 +85,7 @@ func (a *App) NewServer() {
 }
 
 func (a *App) InitStores() {
-	a.Srv.Store = store.NewLayeredStore(sqlstore.NewSqlSupplier(a.Metrics), a.Metrics, a.Cluster)
+	a.Srv.Store = store.NewLayeredStore(sqlstore.NewSqlSupplier(utils.Cfg.SqlSettings, a.Metrics), a.Metrics, a.Cluster)
 }
 
 type VaryBy struct{}

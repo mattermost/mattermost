@@ -78,7 +78,7 @@ func (us SqlUserStore) CreateIndexesIfNotExists() {
 	us.CreateIndexIfNotExists("idx_users_create_at", "Users", "CreateAt")
 	us.CreateIndexIfNotExists("idx_users_delete_at", "Users", "DeleteAt")
 
-	if *utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_POSTGRES {
+	if us.DriverName() == model.DATABASE_DRIVER_POSTGRES {
 		us.CreateIndexIfNotExists("idx_users_email_lower", "Users", "lower(Email)")
 		us.CreateIndexIfNotExists("idx_users_username_lower", "Users", "lower(Username)")
 		us.CreateIndexIfNotExists("idx_users_nickname_lower", "Users", "lower(Nickname)")
@@ -321,9 +321,9 @@ func (s SqlUserStore) GetEtagForAllProfiles() store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		updateAt, err := s.GetReplica().SelectInt("SELECT UpdateAt FROM Users ORDER BY UpdateAt DESC LIMIT 1")
 		if err != nil {
-			result.Data = fmt.Sprintf("%v.%v.%v.%v", model.CurrentVersion, model.GetMillis(), utils.Cfg.PrivacySettings.ShowFullName, utils.Cfg.PrivacySettings.ShowEmailAddress)
+			result.Data = fmt.Sprintf("%v.%v", model.CurrentVersion, model.GetMillis())
 		} else {
-			result.Data = fmt.Sprintf("%v.%v.%v.%v", model.CurrentVersion, updateAt, utils.Cfg.PrivacySettings.ShowFullName, utils.Cfg.PrivacySettings.ShowEmailAddress)
+			result.Data = fmt.Sprintf("%v.%v", model.CurrentVersion, updateAt)
 		}
 	})
 }
@@ -349,9 +349,9 @@ func (s SqlUserStore) GetEtagForProfiles(teamId string) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		updateAt, err := s.GetReplica().SelectInt("SELECT UpdateAt FROM Users, TeamMembers WHERE TeamMembers.TeamId = :TeamId AND Users.Id = TeamMembers.UserId ORDER BY UpdateAt DESC LIMIT 1", map[string]interface{}{"TeamId": teamId})
 		if err != nil {
-			result.Data = fmt.Sprintf("%v.%v.%v.%v", model.CurrentVersion, model.GetMillis(), utils.Cfg.PrivacySettings.ShowFullName, utils.Cfg.PrivacySettings.ShowEmailAddress)
+			result.Data = fmt.Sprintf("%v.%v", model.CurrentVersion, model.GetMillis())
 		} else {
-			result.Data = fmt.Sprintf("%v.%v.%v.%v", model.CurrentVersion, updateAt, utils.Cfg.PrivacySettings.ShowFullName, utils.Cfg.PrivacySettings.ShowEmailAddress)
+			result.Data = fmt.Sprintf("%v.%v", model.CurrentVersion, updateAt)
 		}
 	})
 }
@@ -1066,7 +1066,7 @@ func (us SqlUserStore) performSearch(searchQuery string, term string, options ma
 		for i, term := range splitTerms {
 			fields := []string{}
 			for _, field := range splitFields {
-				if *utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_POSTGRES {
+				if us.DriverName() == model.DATABASE_DRIVER_POSTGRES {
 					fields = append(fields, fmt.Sprintf("lower(%s) LIKE lower(%s) escape '*' ", field, fmt.Sprintf(":Term%d", i)))
 				} else {
 					fields = append(fields, fmt.Sprintf("%s LIKE %s escape '*' ", field, fmt.Sprintf(":Term%d", i)))
@@ -1159,9 +1159,9 @@ func (us SqlUserStore) GetEtagForProfilesNotInTeam(teamId string) store.StoreCha
             `, map[string]interface{}{"TeamId": teamId})
 
 		if err != nil {
-			result.Data = fmt.Sprintf("%v.%v.%v.%v", model.CurrentVersion, model.GetMillis(), utils.Cfg.PrivacySettings.ShowFullName, utils.Cfg.PrivacySettings.ShowEmailAddress)
+			result.Data = fmt.Sprintf("%v.%v", model.CurrentVersion, model.GetMillis())
 		} else {
-			result.Data = fmt.Sprintf("%v.%v.%v.%v", model.CurrentVersion, updateAt, utils.Cfg.PrivacySettings.ShowFullName, utils.Cfg.PrivacySettings.ShowEmailAddress)
+			result.Data = fmt.Sprintf("%v.%v", model.CurrentVersion, updateAt)
 		}
 	})
 }

@@ -10,7 +10,6 @@ import (
 	"github.com/mattermost/gorp"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
-	"github.com/mattermost/mattermost-server/utils"
 )
 
 type SqlOAuthStore struct {
@@ -336,9 +335,9 @@ func (as SqlOAuthStore) deleteOAuthAppSessions(transaction *gorp.Transaction, cl
 	result := store.StoreResult{}
 
 	query := ""
-	if *utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_POSTGRES {
+	if as.DriverName() == model.DATABASE_DRIVER_POSTGRES {
 		query = "DELETE FROM Sessions s USING OAuthAccessData o WHERE o.Token = s.Token AND o.ClientId = :Id"
-	} else if *utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_MYSQL {
+	} else if as.DriverName() == model.DATABASE_DRIVER_MYSQL {
 		query = "DELETE s.* FROM Sessions s INNER JOIN OAuthAccessData o ON o.Token = s.Token WHERE o.ClientId = :Id"
 	}
 
