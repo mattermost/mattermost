@@ -357,9 +357,6 @@ func (a *App) PatchPost(postId string, patch *model.PostPatch) (*model.Post, *mo
 		return nil, err
 	}
 
-	a.sendUpdatedPostEvent(updatedPost)
-	a.InvalidateCacheForChannelPosts(updatedPost.ChannelId)
-
 	return updatedPost, nil
 }
 
