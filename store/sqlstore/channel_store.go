@@ -1256,7 +1256,12 @@ func (s SqlChannelStore) performSearch(searchQuery string, term string, paramete
 		term = strings.Replace(term, c, "*"+c, -1)
 	}
 
-	searchQuery = generateSearchQuery(searchQuery, term, "Name, DisplayName", parameters)
+	if term == "" {
+		searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", "", 1)
+	} else {
+		isPostgreSQL := s.DriverName() == model.DATABASE_DRIVER_POSTGRES
+		searchQuery = generateSearchQuery(searchQuery, term, "Name, DisplayName", parameters, isPostgreSQL)
+	}
 
 	var channels model.ChannelList
 

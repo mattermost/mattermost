@@ -1028,32 +1028,26 @@ var ignoreUserSearchChar = []string{
 	"*",
 }
 
-func generateSearchQuery(searchQuery, term, searchField string, parameters map[string]interface{}) string {
-	if term == "" {
-		searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", "", 1)
-	} else {
-		splitTerms := strings.Fields(term)
-		splitFields := strings.Split(searchField, ", ")
+func generateSearchQuery(searchQuery, term, searchField string, parameters map[string]interface{}, isPostgreSQL bool) string {
+	splitTerms := strings.Fields(term)
+	splitFields := strings.Split(searchField, ", ")
 
-		terms := []string{}
-		for i, term := range splitTerms {
-			fields := []string{}
-			for _, field := range splitFields {
-				if *utils.Cfg.SqlSettings.DriverName == model.DATABASE_DRIVER_POSTGRES {
-					fields = append(fields, fmt.Sprintf("lower(%s) LIKE lower(%s) escape '*' ", field, fmt.Sprintf(":Term%d", i)))
-				} else {
-					fields = append(fields, fmt.Sprintf("%s LIKE %s escape '*' ", field, fmt.Sprintf(":Term%d", i)))
-				}
+	terms := []string{}
+	for i, term := range splitTerms {
+		fields := []string{}
+		for _, field := range splitFields {
+			if isPostgreSQL {
+				fields = append(fields, fmt.Sprintf("lower(%s) LIKE lower(%s) escape '*' ", field, fmt.Sprintf(":Term%d", i)))
+			} else {
+				fields = append(fields, fmt.Sprintf("%s LIKE %s escape '*' ", field, fmt.Sprintf(":Term%d", i)))
 			}
-			terms = append(terms, fmt.Sprintf("(%s)", strings.Join(fields, " OR ")))
-			parameters[fmt.Sprintf("Term%d", i)] = fmt.Sprintf("%s%%", term)
 		}
-
-		term := strings.Join(terms, " AND ")
-		searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", fmt.Sprintf(" AND %s ", term), 1)
+		terms = append(terms, fmt.Sprintf("(%s)", strings.Join(fields, " OR ")))
+		parameters[fmt.Sprintf("Term%d", i)] = fmt.Sprintf("%s%%", term)
 	}
 
-	return searchQuery
+	searchClause := strings.Join(terms, " AND ")
+	return strings.Replace(searchQuery, "SEARCH_CLAUSE", fmt.Sprintf(" AND %s ", searchClause), 1)
 }
 
 func (us SqlUserStore) performSearch(searchQuery string, term string, options map[string]bool, parameters map[string]interface{}) store.StoreResult {
@@ -1084,7 +1078,12 @@ func (us SqlUserStore) performSearch(searchQuery string, term string, options ma
 		searchQuery = strings.Replace(searchQuery, "INACTIVE_CLAUSE", "AND Users.DeleteAt = 0", 1)
 	}
 
-	searchQuery = generateSearchQuery(searchQuery, term, searchType, parameters)
+	if term == "" {
+		searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", "", 1)
+	} else {
+		isPostgreSQL := us.DriverName() == model.DATABASE_DRIVER_POSTGRES
+		searchQuery = generateSearchQuery(searchQuery, term, searchType, parameters, isPostgreSQL)
+	}
 
 	var users []*model.User
 
