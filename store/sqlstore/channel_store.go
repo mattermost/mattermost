@@ -85,6 +85,11 @@ func (s SqlChannelStore) CreateIndexesIfNotExists() {
 	s.CreateIndexIfNotExists("idx_channels_create_at", "Channels", "CreateAt")
 	s.CreateIndexIfNotExists("idx_channels_delete_at", "Channels", "DeleteAt")
 
+	if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+		s.CreateIndexIfNotExists("idx_channels_name_lower", "Channels", "lower(Name)")
+		s.CreateIndexIfNotExists("idx_channels_displayname_lower", "Channels", "lower(DisplayName)")
+	}
+
 	s.CreateIndexIfNotExists("idx_channelmembers_channel_id", "ChannelMembers", "ChannelId")
 	s.CreateIndexIfNotExists("idx_channelmembers_user_id", "ChannelMembers", "UserId")
 

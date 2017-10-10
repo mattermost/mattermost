@@ -1673,6 +1673,27 @@ func testChannelStoreSearchMore(t *testing.T, ss store.Store) {
 	o5.Type = model.CHANNEL_PRIVATE
 	store.Must(ss.Channel().Save(&o5))
 
+	o6 := model.Channel{}
+	o6.TeamId = o1.TeamId
+	o6.DisplayName = "Off-Topic"
+	o6.Name = "off-topic"
+	o6.Type = model.CHANNEL_OPEN
+	store.Must(ss.Channel().Save(&o6))
+
+	o7 := model.Channel{}
+	o7.TeamId = o1.TeamId
+	o7.DisplayName = "Off-Set"
+	o7.Name = "off-set"
+	o7.Type = model.CHANNEL_OPEN
+	store.Must(ss.Channel().Save(&o7))
+
+	o8 := model.Channel{}
+	o8.TeamId = o1.TeamId
+	o8.DisplayName = "Off-Limit"
+	o8.Name = "off-limit"
+	o8.Type = model.CHANNEL_PRIVATE
+	store.Must(ss.Channel().Save(&o8))
+
 	if result := <-ss.Channel().SearchMore(m1.UserId, o1.TeamId, "ChannelA"); result.Err != nil {
 		t.Fatal(result.Err)
 	} else {
@@ -1708,6 +1729,45 @@ func testChannelStoreSearchMore(t *testing.T, ss store.Store) {
 		}
 	}
 
+	if result := <-ss.Channel().SearchMore(m1.UserId, o1.TeamId, "off-"); result.Err != nil {
+		t.Fatal(result.Err)
+	} else {
+		channels := result.Data.(*model.ChannelList)
+		if len(*channels) != 2 {
+			t.Fatal("should return 2 channels, not including private channel")
+		}
+
+		if (*channels)[0].Name != o7.Name {
+			t.Fatal("wrong channel returned")
+		}
+
+		if (*channels)[1].Name != o6.Name {
+			t.Fatal("wrong channel returned")
+		}
+	}
+
+	if result := <-ss.Channel().SearchMore(m1.UserId, o1.TeamId, "off-topic"); result.Err != nil {
+		t.Fatal(result.Err)
+	} else {
+		channels := result.Data.(*model.ChannelList)
+		if len(*channels) != 1 {
+			t.Fatal("should return 1 channel")
+		}
+
+		if (*channels)[0].Name != o6.Name {
+			t.Fatal("wrong channel returned")
+		}
+	}
+
+	if result := <-ss.Channel().SearchMore(m1.UserId, o1.TeamId, "off-topics"); result.Err != nil {
+		t.Fatal(result.Err)
+	} else {
+		channels := result.Data.(*model.ChannelList)
+		if len(*channels) != 0 {
+			t.Logf("%v\n", *channels)
+			t.Fatal("should be empty")
+		}
+	}
 }
 
 func testChannelStoreSearchInTeam(t *testing.T, ss store.Store) {
@@ -1764,6 +1824,27 @@ func testChannelStoreSearchInTeam(t *testing.T, ss store.Store) {
 	o5.Type = model.CHANNEL_PRIVATE
 	store.Must(ss.Channel().Save(&o5))
 
+	o6 := model.Channel{}
+	o6.TeamId = o1.TeamId
+	o6.DisplayName = "Off-Topic"
+	o6.Name = "off-topic"
+	o6.Type = model.CHANNEL_OPEN
+	store.Must(ss.Channel().Save(&o6))
+
+	o7 := model.Channel{}
+	o7.TeamId = o1.TeamId
+	o7.DisplayName = "Off-Set"
+	o7.Name = "off-set"
+	o7.Type = model.CHANNEL_OPEN
+	store.Must(ss.Channel().Save(&o7))
+
+	o8 := model.Channel{}
+	o8.TeamId = o1.TeamId
+	o8.DisplayName = "Off-Limit"
+	o8.Name = "off-limit"
+	o8.Type = model.CHANNEL_PRIVATE
+	store.Must(ss.Channel().Save(&o8))
+
 	if result := <-ss.Channel().SearchInTeam(o1.TeamId, "ChannelA"); result.Err != nil {
 		t.Fatal(result.Err)
 	} else {
@@ -1783,6 +1864,45 @@ func testChannelStoreSearchInTeam(t *testing.T, ss store.Store) {
 	}
 
 	if result := <-ss.Channel().SearchInTeam(o1.TeamId, "blargh"); result.Err != nil {
+		t.Fatal(result.Err)
+	} else {
+		channels := result.Data.(*model.ChannelList)
+		if len(*channels) != 0 {
+			t.Fatal("should be empty")
+		}
+	}
+
+	if result := <-ss.Channel().SearchInTeam(o1.TeamId, "off-"); result.Err != nil {
+		t.Fatal(result.Err)
+	} else {
+		channels := result.Data.(*model.ChannelList)
+		if len(*channels) != 2 {
+			t.Fatal("should return 2 channels, not including private channel")
+		}
+
+		if (*channels)[0].Name != o7.Name {
+			t.Fatal("wrong channel returned")
+		}
+
+		if (*channels)[1].Name != o6.Name {
+			t.Fatal("wrong channel returned")
+		}
+	}
+
+	if result := <-ss.Channel().SearchInTeam(o1.TeamId, "off-topic"); result.Err != nil {
+		t.Fatal(result.Err)
+	} else {
+		channels := result.Data.(*model.ChannelList)
+		if len(*channels) != 1 {
+			t.Fatal("should return 1 channel")
+		}
+
+		if (*channels)[0].Name != o6.Name {
+			t.Fatal("wrong channel returned")
+		}
+	}
+
+	if result := <-ss.Channel().SearchInTeam(o1.TeamId, "off-topics"); result.Err != nil {
 		t.Fatal(result.Err)
 	} else {
 		channels := result.Data.(*model.ChannelList)
