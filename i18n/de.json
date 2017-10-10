@@ -2425,7 +2425,7 @@
   },
   {
     "id": "api.user.activate_mfa.email_and_ldap_only.app_error",
-    "translation": "MFA ist für diesen Accounttyp nicht verfügbar"
+    "translation": "MFA ist für diesen Kontotyp nicht verfügbar"
   },
   {
     "id": "api.user.add_direct_channels_and_forget.failed.error",
@@ -2465,7 +2465,7 @@
   },
   {
     "id": "api.user.check_user_login_attempts.too_many.app_error",
-    "translation": "Ihr Account ist gesperrt, da es zu viele fehlerhafte Passworteingaben gab. Bitte setzen Sie Ihr Passwort zurück."
+    "translation": "Ihr Konto ist gesperrt, da es zu viele fehlerhafte Passworteingaben gab. Bitte setzen Sie Ihr Passwort zurück."
   },
   {
     "id": "api.user.check_user_mfa.bad_code.app_error",
@@ -2493,11 +2493,11 @@
   },
   {
     "id": "api.user.create_oauth_user.already_attached.app_error",
-    "translation": "Mit dieser E-Mail-Adresse ist bereits ein Account verknüpft, der nicht die Anmeldemethode {{.Service}} verwendet. Bitte verwenden Sie {{.Auth}} zum Anmelden."
+    "translation": "Mit dieser E-Mail-Adresse ist bereits ein Konto verknüpft, das nicht die Anmeldemethode {{.Service}} verwendet. Bitte verwenden Sie {{.Auth}} zum Anmelden."
   },
   {
     "id": "api.user.create_oauth_user.already_used.app_error",
-    "translation": "Dieser {{.Service}} Account wurde bereits zur Registrierung verwendet"
+    "translation": "Dieses {{.Service}} Konto wurde bereits zur Registrierung verwendet"
   },
   {
     "id": "api.user.create_oauth_user.create.app_error",
@@ -2597,7 +2597,7 @@
   },
   {
     "id": "api.user.ldap_to_email.not_ldap_account.app_error",
-    "translation": "Dieser Account verwendet kein AD/LDAP"
+    "translation": "Dieses Konto verwendet kein AD/LDAP"
   },
   {
     "id": "api.user.login.blank_pwd.app_error",
@@ -2605,7 +2605,7 @@
   },
   {
     "id": "api.user.login.inactive.app_error",
-    "translation": "Anmeldung nicht möglich, weil Ihr Account deaktiviert wurde.  Bitte wenden Sie sich an einen Administrator."
+    "translation": "Anmeldung nicht möglich, weil Ihr Konto deaktiviert wurde.  Bitte wenden Sie sich an einen Administrator."
   },
   {
     "id": "api.user.login.invalid_credentials",
@@ -2657,15 +2657,15 @@
   },
   {
     "id": "api.user.permanent_delete_user.attempting.warn",
-    "translation": "Versuche, Account %v id=%v permanent zu löschen"
+    "translation": "Versuche Konto %v id=%v permanent zu löschen"
   },
   {
     "id": "api.user.permanent_delete_user.deleted.warn",
-    "translation": "Account permanent gelöscht %v id=%v"
+    "translation": "Konto permanent gelöscht %v id=%v"
   },
   {
     "id": "api.user.permanent_delete_user.system_admin.warn",
-    "translation": "Sie möchten %v löschen, welcher ein Systemadministrator ist.  Eventuell müssen Sie mithilfe der Kommandozeilentools einen anderen Account zum Systemadministrator machen."
+    "translation": "Sie möchten %v löschen, welcher ein Systemadministrator ist.  Eventuell müssen Sie mithilfe der Kommandozeilentools ein anderes Konto zum Systemadministrator machen."
   },
   {
     "id": "api.user.reset_password.invalid_link.app_error",
@@ -2681,7 +2681,7 @@
   },
   {
     "id": "api.user.reset_password.sso.app_error",
-    "translation": "Kann Passwort für SSO-Accounts nicht zurücksetzen"
+    "translation": "Kann Passwort für SSO-Konten nicht zurücksetzen"
   },
   {
     "id": "api.user.reset_password.wrong_team.app_error",
@@ -2709,7 +2709,7 @@
   },
   {
     "id": "api.user.send_password_reset.find.app_error",
-    "translation": "Es konnte kein Account mit dieser Adresse gefunden werden."
+    "translation": "Es konnte kein Konto mit dieser Adresse gefunden werden."
   },
   {
     "id": "api.user.send_password_reset.send.app_error",
@@ -2717,7 +2717,7 @@
   },
   {
     "id": "api.user.send_password_reset.sso.app_error",
-    "translation": "Kann Passwort für SSO-Accounts nicht zurücksetzen"
+    "translation": "Kann Passwort für SSO-Konten nicht zurücksetzen"
   },
   {
     "id": "api.user.send_sign_in_change_email_and_forget.error",
@@ -2737,7 +2737,7 @@
   },
   {
     "id": "api.user.update_active.no_deactivate_ldap.app_error",
-    "translation": "Sie können den Aktivitätsstatus des AD-/LDAP-Accounts nicht ändern. Bitte ändern Sie diesen über den AD-/LDAP-Server."
+    "translation": "Sie können den Aktivitätsstatus des AD-/LDAP-Kontos nicht ändern. Bitte ändern Sie diesen über den AD-/LDAP-Server."
   },
   {
     "id": "api.user.update_active.permissions.app_error",
@@ -2761,7 +2761,7 @@
   },
   {
     "id": "api.user.update_password.incorrect.app_error",
-    "translation": "Das eingegebene \"Aktuelle Kennwort\" ist nicht korrekt. Bitte prüfen Sie, dass die Umschalt-Taste deaktiviert ist und versuchen es erneut."
+    "translation": "Das eingegebene \"Aktuelle Passwort\" ist nicht korrekt. Bitte prüfen Sie, dass die Umschalt-Taste deaktiviert ist und versuchen es erneut."
   },
   {
     "id": "api.user.update_password.menu",
@@ -2773,7 +2773,7 @@
   },
   {
     "id": "api.user.update_password.valid_account.app_error",
-    "translation": "Aktualisieren des Passworts fehlgeschlagen, da kein gültiger Account gefunden werden konnte"
+    "translation": "Aktualisieren des Passworts fehlgeschlagen, da kein gültiges Konto gefunden werden konnte"
   },
   {
     "id": "api.user.update_roles.one_admin.app_error",
@@ -3689,7 +3689,7 @@
   },
   {
     "id": "ent.data_retention.generic.license.error",
-    "translation": "License does not support Data Retention."
+    "translation": "Lizenz unterstützt keine Datenaufbewahrung."
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.create_index_job.error",
@@ -3797,7 +3797,7 @@
   },
   {
     "id": "ent.ldap.create_fail",
-    "translation": "Konnte LDAP Benutzer nicht erstellen."
+    "translation": "Konnte LDAP-Benutzer nicht erstellen."
   },
   {
     "id": "ent.ldap.disabled.app_error",
@@ -3813,7 +3813,7 @@
   },
   {
     "id": "ent.ldap.do_login.licence_disable.app_error",
-    "translation": "AD/LDAP Funktionalität durch die aktuelle Lizenz deaktiviert. Bitte kontaktieren Sie Ihren Systemadministrator wegen eines Enterprise Lizenzupgrades."
+    "translation": "AD/LDAP-Funktionalität durch die aktuelle Lizenz deaktiviert. Bitte kontaktieren Sie ihren Systemadministrator wegen eines Upgrades ihrer Enterprise-Lizenz."
   },
   {
     "id": "ent.ldap.do_login.matched_to_many_users.app_error",
@@ -3833,7 +3833,7 @@
   },
   {
     "id": "ent.ldap.do_login.user_filtered.app_error",
-    "translation": "Ihr AD/LDAP Account hat keine Berechtigung diesen Mattermost Server zu benutzen. Bitte fragen Sie Ihren Systemadministrator, den AD/LDAP Benutzer Filter zu überprüfen."
+    "translation": "Ihr AD/LDAP-Konto hat keine Berechtigung diesen Mattermost-Server zu benutzen. Bitten Sie Ihren Systemadministrator den AD/LDAP-Benutzerfilter zu überprüfen."
   },
   {
     "id": "ent.ldap.do_login.user_not_registered.app_error",
@@ -3861,7 +3861,7 @@
   },
   {
     "id": "ent.ldap.validate_filter.app_error",
-    "translation": "Ungültiger AD/LDAP Filter"
+    "translation": "Ungültiger AD/LDAP-Filter"
   },
   {
     "id": "ent.metrics.starting.info",
@@ -4469,31 +4469,31 @@
   },
   {
     "id": "model.config.is_valid.ldap_basedn",
-    "translation": "AD/LDAP Feld \"BaseDN\" ist erforderlich."
+    "translation": "AD/LDAP-Feld \"BaseDN\" ist erforderlich."
   },
   {
     "id": "model.config.is_valid.ldap_bind_password",
-    "translation": "AD/LDAP Feld \"Bind Passwort\" ist erforderlich."
+    "translation": "AD/LDAP-Feld \"Bind Passwort\" ist erforderlich."
   },
   {
     "id": "model.config.is_valid.ldap_bind_username",
-    "translation": "AD/LDAP Feld \"Bind Benutzername\" ist erforderlich."
+    "translation": "AD/LDAP-Feld \"Bind Benutzername\" ist erforderlich."
   },
   {
     "id": "model.config.is_valid.ldap_email",
-    "translation": "AD/LDAP Feld \"E-Mail Attribut\" ist erforderlich."
+    "translation": "AD/LDAP-Feld \"E-Mail Attribut\" ist erforderlich."
   },
   {
     "id": "model.config.is_valid.ldap_firstname",
-    "translation": "AD/LDAP Feld \"Vornamenattribut\" ist erforderlich."
+    "translation": "AD/LDAP-Feld \"Vornamenattribut\" ist erforderlich."
   },
   {
     "id": "model.config.is_valid.ldap_id",
-    "translation": "AD/LDAP Feld \"ID Attribut\" ist erforderlich."
+    "translation": "AD/LDAP-Feld \"ID Attribut\" ist erforderlich."
   },
   {
     "id": "model.config.is_valid.ldap_lastname",
-    "translation": "AD/LDAP Feld \"Nachnameattribut\" ist erforderlich."
+    "translation": "AD/LDAP-Feld \"Nachnameattribut\" ist erforderlich."
   },
   {
     "id": "model.config.is_valid.ldap_max_page_size.app_error",
@@ -4501,15 +4501,15 @@
   },
   {
     "id": "model.config.is_valid.ldap_required.app_error",
-    "translation": "Notwendiges AD/LDAP Feld fehlt."
+    "translation": "Notwendiges AD/LDAP-Feld fehlt."
   },
   {
     "id": "model.config.is_valid.ldap_required.app_error",
-    "translation": "Notwendiges AD/LDAP Feld fehlt."
+    "translation": "Notwendiges AD/LDAP-Feld fehlt."
   },
   {
     "id": "model.config.is_valid.ldap_security.app_error",
-    "translation": "Ungültige Verbindungssicherheit in AD/LDAP Einstellungen.  Muss '', 'TLS' oder 'STARTTLS' sein"
+    "translation": "Ungültige Verbindungssicherheit in AD/LDAP-Einstellungen.  Muss '', 'TLS' oder 'STARTTLS' sein"
   },
   {
     "id": "model.config.is_valid.ldap_server",
@@ -4521,11 +4521,15 @@
   },
   {
     "id": "model.config.is_valid.ldap_username",
-    "translation": "AD/LDAP Feld \"Benutzername Attribut\" ist erforderlich."
+    "translation": "AD/LDAP-Feld \"Benutzername Attribut\" ist erforderlich."
   },
   {
     "id": "model.config.is_valid.listen_address.app_error",
     "translation": "Ungültige Abhöradresse in Service Einstellungen. Muss gesetzt sein."
+  },
+  {
+    "id": "model.config.is_valid.localization.available_locales.app_error",
+    "translation": "Verfügbare Sprachen muss Standardsprache des Clients enthalten"
   },
   {
     "id": "model.config.is_valid.login_attempts.app_error",
@@ -5548,6 +5552,10 @@
     "translation": "Die Anzahl der Befehle konnte nicht gezählt werden"
   },
   {
+    "id": "store.sql_command.get_by_trigger.app_error",
+    "translation": "Der Befehl konnte nicht abgerufen werden"
+  },
+  {
     "id": "store.sql_command.save.delete.app_error",
     "translation": "Der Befehl konnte nicht gelöscht werden"
   },
@@ -6261,23 +6269,23 @@
   },
   {
     "id": "store.sql_user.get.app_error",
-    "translation": "Wir haben ein Problem beim Finden des Accounts"
+    "translation": "Wir haben ein Problem beim Finden des Kontos"
   },
   {
     "id": "store.sql_user.get_all_using_auth_service.other.app_error",
-    "translation": "Es trat ein Fehler beim Suchen nach allen Accounts mit spezifischem Authentifizierungstyp auf."
+    "translation": "Es trat ein Fehler beim Suchen nach allen Konten mit einem spezifischem Authentifizierungstyp auf."
   },
   {
     "id": "store.sql_user.get_by_auth.missing_account.app_error",
-    "translation": "Es konnte kein existierender Account entsprechend Ihres Authentifizierungstyps für dieses Team gefunden werden. Dieses Team erfordert eventuell eine Einladung vom Teambesitzer um beizutreten."
+    "translation": "Es konnte kein existierende Konto entsprechend Ihres Authentifizierungstyps für dieses Team gefunden werden. Dieses Team erfordert eventuell eine Einladung vom Teambesitzer, um beizutreten."
   },
   {
     "id": "store.sql_user.get_by_auth.other.app_error",
-    "translation": "Es trat ein Fehler bei der Suche nach dem Account nach Authentifizierungstyp auf."
+    "translation": "Es trat ein Fehler bei der Suche nach dem Konto nach Authentifizierungstyp auf."
   },
   {
     "id": "store.sql_user.get_by_username.app_error",
-    "translation": "Es konnte kein existierender Account entsprechend Ihres Benutzernamens für dieses Teams gefunden werden. Dieses Team erfordert eventuell eine Einladung vom Teambesitzer um beizutreten."
+    "translation": "Es konnte kein existierendes Konto entsprechend Ihres Benutzernamens für dieses Teams gefunden werden. Dieses Team erfordert eventuell eine Einladung vom Teambesitzer um beizutreten."
   },
   {
     "id": "store.sql_user.get_for_login.app_error",
@@ -6329,19 +6337,19 @@
   },
   {
     "id": "store.sql_user.save.app_error",
-    "translation": "Der Account konnte nicht gespeichert werden."
+    "translation": "Das Konto konnte nicht gespeichert werden."
   },
   {
     "id": "store.sql_user.save.email_exists.app_error",
-    "translation": "Es gibt bereits einen Account mit dieser E-Mail-Adresse."
+    "translation": "Es gibt bereits ein Konto mit dieser E-Mail-Adresse."
   },
   {
     "id": "store.sql_user.save.email_exists.ldap_app_error",
-    "translation": "Dieser Account verwendet keine AD/LDAP-Authentifizierung. Bitte melden Sie sich mit E-Mail-Adresse und Passwort an."
+    "translation": "Dieses Konto verwendet keine AD/LDAP-Authentifizierung. Bitte melden Sie sich mit E-Mail-Adresse und Passwort an."
   },
   {
     "id": "store.sql_user.save.email_exists.saml_app_error",
-    "translation": "Dieser Account verwendet keine SAML-Authentifizierung. Bitte melden Sie sich mit E-Mail-Adresse und Passwort an."
+    "translation": "Dieses Konto verwendet keine SAML-Authentifizierung. Bitte melden Sie sich mit E-Mail-Adresse und Passwort an."
   },
   {
     "id": "store.sql_user.save.existing.app_error",
@@ -6349,7 +6357,7 @@
   },
   {
     "id": "store.sql_user.save.max_accounts.app_error",
-    "translation": "Dieses Team hat die maximale Anzahl an erlaubten Accounts erreicht. Kontaktieren Sie Ihren Systemadministrator um ein höheres Limit setzen zu lassen."
+    "translation": "Dieses Team hat die maximale Anzahl erlaubter Konten erreicht. Kontaktieren Sie Ihren Systemadministrator, um eine höhere Begrenzung setzen zu lassen."
   },
   {
     "id": "store.sql_user.save.member_count.app_error",
@@ -6357,15 +6365,15 @@
   },
   {
     "id": "store.sql_user.save.username_exists.app_error",
-    "translation": "Es gibt bereits einen Account mit diesem Benutzernamen."
+    "translation": "Es gibt bereits ein Konto mit diesem Benutzernamen."
   },
   {
     "id": "store.sql_user.save.username_exists.ldap_app_error",
-    "translation": "Ein Account mit diesem Benutzernamen existiert bereits. Bitte kontaktieren Sie Ihren Administrator."
+    "translation": "Ein Konto mit diesem Benutzernamen existiert bereits. Bitte kontaktieren Sie Ihren Administrator."
   },
   {
     "id": "store.sql_user.save.username_exists.saml_app_error",
-    "translation": "Ein Account mit diesem Benutzernamen existiert bereits. Bitte kontaktieren Sie Ihren Administrator."
+    "translation": "Ein Konto mit diesem Benutzernamen existiert bereits. Bitte kontaktieren Sie Ihren Administrator."
   },
   {
     "id": "store.sql_user.update.app_error",
@@ -6401,7 +6409,7 @@
   },
   {
     "id": "store.sql_user.update_auth_data.email_exists.app_error",
-    "translation": "Es war nicht möglich den Account zu {{.Service}} zu wechseln. Es existiert bereits ein Account mit der E-Mail-Adresse {{.Email}}."
+    "translation": "Es war nicht möglich, das Konto zu {{.Service}} zu wechseln. Es existiert bereits ein Konto mit der E-Mail-Adresse {{.Email}}."
   },
   {
     "id": "store.sql_user.update_failed_pwd_attempts.app_error",
@@ -6721,7 +6729,7 @@
   },
   {
     "id": "web.claim_account.title",
-    "translation": "Account beanspruchen"
+    "translation": "Konto beanspruchen"
   },
   {
     "id": "web.claim_account.user.error",
