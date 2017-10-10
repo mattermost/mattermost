@@ -4384,10 +4384,6 @@
     "translation": "Message retention must be one day or longer."
   },
   {
-    "id": "model.config.is_valid.localization.available_locales.app_error",
-    "translation": "Available Languages must contain Default Client Language"
-  },
-  {
     "id": "model.config.is_valid.elastic_search.aggregate_posts_after_days.app_error",
     "translation": "Elasticsearch AggregatePostsAfterDays setting must be a number greater than or equal to 1"
   },
@@ -4530,6 +4526,10 @@
   {
     "id": "model.config.is_valid.listen_address.app_error",
     "translation": "Invalid listen address for service settings Must be set."
+  },
+  {
+    "id": "model.config.is_valid.localization.available_locales.app_error",
+    "translation": "Available Languages must contain Default Client Language"
   },
   {
     "id": "model.config.is_valid.login_attempts.app_error",
@@ -5552,6 +5552,10 @@
     "translation": "We couldn't count the commands"
   },
   {
+    "id": "store.sql_command.get_by_trigger.app_error",
+    "translation": "We couldn't get the command"
+  },
+  {
     "id": "store.sql_command.save.delete.app_error",
     "translation": "We couldn't delete the command"
   },
@@ -5578,10 +5582,6 @@
   {
     "id": "store.sql_command.save.update.app_error",
     "translation": "We couldn't update the command"
-  },
-  {
-    "id": "store.sql_command.get_by_trigger.app_error",
-    "translation": "We couldn't get the command"
   },
   {
     "id": "store.sql_command_webhooks.get.app_error",
