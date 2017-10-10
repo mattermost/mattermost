@@ -147,8 +147,8 @@ func (s *SqlSupplier) ReactionPermanentDeleteBatch(ctx context.Context, endTime 
 	result := store.NewSupplierResult()
 
 	var query string
-	if *utils.Cfg.SqlSettings.DriverName == "postgres" {
-		query = "DELETE from Reactions WHERE Id = any (array (SELECT Id FROM Reactions WHERE CreateAt < :EndTime LIMIT :Limit))"
+	if s.DriverName() == "postgres" {
+		query = "DELETE from Reactions WHERE CreateAt = any (array (SELECT CreateAt FROM Reactions WHERE CreateAt < :EndTime LIMIT :Limit))"
 	} else {
 		query = "DELETE from Reactions WHERE CreateAt < :EndTime LIMIT :Limit"
 	}

@@ -15,7 +15,6 @@ import (
 
 	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/store"
 	"github.com/mattermost/mattermost-server/store/sqlstore"
 	"github.com/mattermost/mattermost-server/utils"
 )
@@ -187,12 +186,13 @@ func (a *App) RecycleDatabaseConnection() {
 	oldStore := a.Srv.Store
 
 	l4g.Warn(utils.T("api.admin.recycle_db_start.warn"))
-	a.Srv.Store = store.NewLayeredStore(sqlstore.NewSqlSupplier(a.Metrics), a.Metrics, a.Cluster)
-
+	a.Srv.Store = a.newStore()
 	a.Jobs.Store = a.Srv.Store
 
-	time.Sleep(20 * time.Second)
-	oldStore.Close()
+	if a.Srv.Store != oldStore {
+		time.Sleep(20 * time.Second)
+		oldStore.Close()
+	}
 
 	l4g.Warn(utils.T("api.admin.recycle_db_end.warn"))
 }

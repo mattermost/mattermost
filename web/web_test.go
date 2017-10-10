@@ -18,25 +18,22 @@ var ApiClient *model.Client
 var URL string
 
 func Setup() *app.App {
+	utils.TranslationsPreInit()
+	utils.LoadConfig("config.json")
+	utils.InitTranslations(utils.Cfg.LocalizationSettings)
+
 	a := app.New()
-	if a.Srv == nil {
-		utils.TranslationsPreInit()
-		utils.LoadConfig("config.json")
-		utils.InitTranslations(utils.Cfg.LocalizationSettings)
-		a.NewServer()
-		a.InitStores()
-		a.Srv.Router = api.NewRouter()
-		a.StartServer()
-		api4.Init(a, a.Srv.Router, false)
-		api3 := api.Init(a, a.Srv.Router)
-		Init(api3)
-		URL = "http://localhost" + *utils.Cfg.ServiceSettings.ListenAddress
-		ApiClient = model.NewClient(URL)
+	a.StartServer()
+	api4.Init(a, a.Srv.Router, false)
+	api3 := api.Init(a, a.Srv.Router)
+	Init(api3)
+	URL = "http://localhost" + *utils.Cfg.ServiceSettings.ListenAddress
+	ApiClient = model.NewClient(URL)
 
-		a.Srv.Store.MarkSystemRanUnitTests()
+	a.Srv.Store.MarkSystemRanUnitTests()
 
-		*utils.Cfg.TeamSettings.EnableOpenServer = true
-	}
+	*utils.Cfg.TeamSettings.EnableOpenServer = true
+
 	return a
 }
 
