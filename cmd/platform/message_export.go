@@ -34,11 +34,6 @@ func actianceExportCmdF(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	// it seems that init isn't actually enough to get the useful parts of the server online, so we have to take a few extra steps here
-	a.NewServer()
-	a.InitStores()
-	a.Jobs.Store = a.Srv.Store
-
 	l4g.Debug("CLI command executed")
 
 	if exportInterface := a.Export; exportInterface != nil {
