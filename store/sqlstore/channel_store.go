@@ -85,6 +85,11 @@ func (s SqlChannelStore) CreateIndexesIfNotExists() {
 	s.CreateIndexIfNotExists("idx_channels_create_at", "Channels", "CreateAt")
 	s.CreateIndexIfNotExists("idx_channels_delete_at", "Channels", "DeleteAt")
 
+	if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+		s.CreateIndexIfNotExists("idx_channels_name_lower", "Channels", "lower(Name)")
+		s.CreateIndexIfNotExists("idx_channels_displayname_lower", "Channels", "lower(DisplayName)")
+	}
+
 	s.CreateIndexIfNotExists("idx_channelmembers_channel_id", "ChannelMembers", "ChannelId")
 	s.CreateIndexIfNotExists("idx_channelmembers_user_id", "ChannelMembers", "UserId")
 
@@ -1246,42 +1251,24 @@ func (s SqlChannelStore) SearchMore(userId string, teamId string, term string) s
 func (s SqlChannelStore) performSearch(searchQuery string, term string, parameters map[string]interface{}) store.StoreResult {
 	result := store.StoreResult{}
 
-	// these chars have special meaning and can be treated as spaces
+	// These chars must be removed from the like query.
 	for _, c := range ignoreUserSearchChar {
-		term = strings.Replace(term, c, " ", -1)
+		term = strings.Replace(term, c, "", -1)
+	}
+
+	// These chars must be escaped in the like query.
+	for _, c := range escapeUserSearchChar {
+		term = strings.Replace(term, c, "*"+c, -1)
 	}
 
 	if term == "" {
 		searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", "", 1)
-	} else if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-		splitTerm := strings.Fields(term)
-		for i, t := range strings.Fields(term) {
-			if i == len(splitTerm)-1 {
-				splitTerm[i] = t + ":*"
-			} else {
-				splitTerm[i] = t + ":* &"
-			}
-		}
-
-		term = strings.Join(splitTerm, " ")
-
-		searchClause := fmt.Sprintf("AND (%s) @@  to_tsquery('simple', :Term)", "Name || ' ' || DisplayName")
-		searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", searchClause, 1)
-	} else if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
-		splitTerm := strings.Fields(term)
-		for i, t := range strings.Fields(term) {
-			splitTerm[i] = "+" + t + "*"
-		}
-
-		term = strings.Join(splitTerm, " ")
-
-		searchClause := fmt.Sprintf("AND MATCH(%s) AGAINST (:Term IN BOOLEAN MODE)", "Name, DisplayName")
-		searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", searchClause, 1)
+	} else {
+		isPostgreSQL := s.DriverName() == model.DATABASE_DRIVER_POSTGRES
+		searchQuery = generateSearchQuery(searchQuery, term, "Name, DisplayName", parameters, isPostgreSQL)
 	}
 
 	var channels model.ChannelList
-
-	parameters["Term"] = term
 
 	if _, err := s.GetReplica().Select(&channels, searchQuery, parameters); err != nil {
 		result.Err = model.NewAppError("SqlChannelStore.Search", "store.sql_channel.search.app_error", nil, "term="+term+", "+", "+err.Error(), http.StatusInternalServerError)
