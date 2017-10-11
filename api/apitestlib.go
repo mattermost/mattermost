@@ -35,14 +35,20 @@ type TestHelper struct {
 	SystemAdminChannel *model.Channel
 }
 
+type persistentTestStore struct {
+	store.Store
+}
+
+func (*persistentTestStore) Close() {}
+
 var testStoreContainer *storetest.RunningContainer
-var testStoreSettings *model.SqlSettings
+var testStore *persistentTestStore
 
 // UseTestStore sets the container and corresponding settings to use for tests. Once the tests are
 // complete (e.g. at the end of your TestMain implementation), you should call StopTestStore.
 func UseTestStore(container *storetest.RunningContainer, settings *model.SqlSettings) {
 	testStoreContainer = container
-	testStoreSettings = settings
+	testStore = &persistentTestStore{store.NewLayeredStore(sqlstore.NewSqlSupplier(*settings, nil), nil, nil)}
 }
 
 func StopTestStore() {
@@ -53,15 +59,15 @@ func StopTestStore() {
 }
 
 func setupTestHelper(enterprise bool) *TestHelper {
-	utils.TranslationsPreInit()
+	if utils.T == nil {
+		utils.TranslationsPreInit()
+	}
 	utils.LoadConfig("config.json")
 	utils.InitTranslations(utils.Cfg.LocalizationSettings)
 
 	var options []app.Option
-	if testStoreSettings != nil {
-		options = append(options, app.StoreOverride(func(a *app.App) store.Store {
-			return store.NewLayeredStore(sqlstore.NewSqlSupplier(*testStoreSettings, a.Metrics), a.Metrics, a.Cluster)
-		}))
+	if testStore != nil {
+		options = append(options, app.StoreOverride(testStore))
 	}
 
 	th := &TestHelper{

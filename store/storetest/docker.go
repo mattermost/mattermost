@@ -31,7 +31,7 @@ type RunningContainer struct {
 }
 
 func (c *RunningContainer) Stop() error {
-	l4g.Info("removing container: %v", c.Id)
+	l4g.Info("Removing container: %v", c.Id)
 	return exec.Command("docker", "rm", "-f", c.Id).Run()
 }
 
@@ -111,7 +111,7 @@ func runContainer(args []string) (*RunningContainer, error) {
 		exec.Command("docker", "rm", "-f", id).Run()
 		return nil, err
 	}
-	l4g.Info("running container: %v", id)
+	l4g.Info("Running container: %v", id)
 	return &RunningContainer{containers[0]}, nil
 }
 
