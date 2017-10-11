@@ -4,6 +4,7 @@
 package api
 
 import (
+	"net"
 	"time"
 
 	"github.com/mattermost/mattermost-server/api4"
@@ -113,6 +114,8 @@ func ReloadConfigForSetup() {
 }
 
 func (me *TestHelper) InitBasic() *TestHelper {
+	me.waitForConnectivity()
+
 	me.BasicClient = me.CreateClient()
 	me.BasicUser = me.CreateUser(me.BasicClient)
 	me.App.UpdateUserRoles(me.BasicUser.Id, model.ROLE_SYSTEM_USER.Id)
@@ -133,6 +136,8 @@ func (me *TestHelper) InitBasic() *TestHelper {
 }
 
 func (me *TestHelper) InitSystemAdmin() *TestHelper {
+	me.waitForConnectivity()
+
 	me.SystemAdminClient = me.CreateClient()
 	me.SystemAdminUser = me.CreateUser(me.SystemAdminClient)
 	me.SystemAdminUser.Password = "Password1"
@@ -144,6 +149,17 @@ func (me *TestHelper) InitSystemAdmin() *TestHelper {
 	me.SystemAdminChannel = me.CreateChannel(me.SystemAdminClient, me.SystemAdminTeam)
 
 	return me
+}
+
+func (me *TestHelper) waitForConnectivity() {
+	for i := 0; i < 1000; i++ {
+		_, err := net.Dial("tcp", "localhost"+*utils.Cfg.ServiceSettings.ListenAddress)
+		if err == nil {
+			return
+		}
+		time.Sleep(time.Millisecond * 20)
+	}
+	panic("unable to connect")
 }
 
 func (me *TestHelper) CreateClient() *model.Client {

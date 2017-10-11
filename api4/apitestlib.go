@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"os"
 	"reflect"
@@ -182,6 +183,8 @@ func (me *TestHelper) TearDown() {
 }
 
 func (me *TestHelper) InitBasic() *TestHelper {
+	me.waitForConnectivity()
+
 	me.TeamAdminUser = me.CreateUser()
 	me.App.UpdateUserRoles(me.TeamAdminUser.Id, model.ROLE_SYSTEM_USER.Id)
 	me.LoginTeamAdmin()
@@ -207,11 +210,24 @@ func (me *TestHelper) InitBasic() *TestHelper {
 }
 
 func (me *TestHelper) InitSystemAdmin() *TestHelper {
+	me.waitForConnectivity()
+
 	me.SystemAdminUser = me.CreateUser()
 	me.App.UpdateUserRoles(me.SystemAdminUser.Id, model.ROLE_SYSTEM_USER.Id+" "+model.ROLE_SYSTEM_ADMIN.Id)
 	me.LoginSystemAdmin()
 
 	return me
+}
+
+func (me *TestHelper) waitForConnectivity() {
+	for i := 0; i < 1000; i++ {
+		_, err := net.Dial("tcp", "localhost"+*utils.Cfg.ServiceSettings.ListenAddress)
+		if err == nil {
+			return
+		}
+		time.Sleep(time.Millisecond * 20)
+	}
+	panic("unable to connect")
 }
 
 func (me *TestHelper) CreateClient() *model.Client4 {
