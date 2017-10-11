@@ -4,6 +4,7 @@
 package api
 
 import (
+	"net"
 	"strings"
 	"time"
 
@@ -86,7 +87,20 @@ func ReloadConfigForSetup() {
 	*utils.Cfg.TeamSettings.EnableOpenServer = true
 }
 
+func (me *TestHelper) waitForConnectivity() {
+	for i := 0; i < 1000; i++ {
+		_, err := net.Dial("tcp", "localhost"+*utils.Cfg.ServiceSettings.ListenAddress)
+		if err == nil {
+			return
+		}
+		time.Sleep(time.Millisecond * 20)
+	}
+	panic("unable to connect")
+}
+
 func (me *TestHelper) InitBasic() *TestHelper {
+	me.waitForConnectivity()
+
 	me.BasicClient = me.CreateClient()
 	me.BasicUser = me.CreateUser(me.BasicClient)
 	me.LoginBasic()
@@ -106,6 +120,8 @@ func (me *TestHelper) InitBasic() *TestHelper {
 }
 
 func (me *TestHelper) InitSystemAdmin() *TestHelper {
+	me.waitForConnectivity()
+
 	me.SystemAdminClient = me.CreateClient()
 	me.SystemAdminUser = me.CreateUser(me.SystemAdminClient)
 	me.SystemAdminUser.Password = "Password1"
