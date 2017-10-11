@@ -712,7 +712,7 @@ func (a *App) DoPostAction(postId string, actionId string, userId string) *model
 	if err != nil {
 		return model.NewAppError("DoPostAction", "api.post.do_action.action_integration.app_error", nil, "err="+err.Error(), http.StatusBadRequest)
 	}
-	defer resp.Body.Close()
+	defer consumeAndClose(resp)
 
 	if resp.StatusCode != http.StatusOK {
 		return model.NewAppError("DoPostAction", "api.post.do_action.action_integration.app_error", nil, fmt.Sprintf("status=%v", resp.StatusCode), http.StatusBadRequest)

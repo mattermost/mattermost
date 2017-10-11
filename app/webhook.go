@@ -109,7 +109,7 @@ func (a *App) TriggerWebhook(payload *model.OutgoingWebhookPayload, hook *model.
 				if resp, err := utils.HttpClient(false).Do(req); err != nil {
 					l4g.Error(utils.T("api.post.handle_webhook_events_and_forget.event_post.error"), err.Error())
 				} else {
-					defer resp.Body.Close()
+					defer consumeAndClose(resp)
 					webhookResp := model.OutgoingWebhookResponseFromJson(resp.Body)
 
 					if webhookResp != nil && webhookResp.Text != nil {
