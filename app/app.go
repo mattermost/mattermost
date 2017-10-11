@@ -43,6 +43,7 @@ type App struct {
 	DataRetention    einterfaces.DataRetentionInterface
 	Elasticsearch    einterfaces.ElasticsearchInterface
 	Ldap             einterfaces.LdapInterface
+	Export           einterfaces.ActianceDataExportInterface
 	Metrics          einterfaces.MetricsInterface
 	Mfa              einterfaces.MfaInterface
 	Saml             einterfaces.SamlInterface
@@ -159,6 +160,12 @@ func RegisterJobsLdapSyncInterface(f func(*App) ejobs.LdapSyncInterface) {
 	jobsLdapSyncInterface = f
 }
 
+var jobsActianceDataExport func(*App) einterfaces.ActianceDataExportInterface
+
+func RegisterJobsActianceDataExport(f func(*App) einterfaces.ActianceDataExportInterface) {
+	jobsActianceDataExport = f
+}
+
 var ldapInterface func(*App) einterfaces.LdapInterface
 
 func RegisterLdapInterface(f func(*App) einterfaces.LdapInterface) {
@@ -229,6 +236,9 @@ func (a *App) initEnterprise() {
 	}
 	if jobsLdapSyncInterface != nil {
 		a.Jobs.LdapSync = jobsLdapSyncInterface(a)
+	}
+	if jobsActianceDataExport != nil {
+		a.Export = jobsActianceDataExport(a)
 	}
 }
 

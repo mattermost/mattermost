@@ -67,6 +67,9 @@ Session.vim
 .netrwhist
 *~
 
+# intellij project files
+*.iml
+
 # Build files
 *bundle.js
 

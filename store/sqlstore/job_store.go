@@ -245,11 +245,13 @@ func (jss SqlJobStore) GetAllByStatus(status string) store.StoreChannel {
 	})
 }
 
+
 func (jss SqlJobStore) GetNewestJobByStatusAndType(status string, jobType string) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		var job *model.Job
 
 		if err := jss.GetReplica().SelectOne(&job,
+
 			`SELECT
 				*
 			FROM

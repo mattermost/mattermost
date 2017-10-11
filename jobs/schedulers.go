@@ -43,6 +43,10 @@ func (srv *JobServer) InitSchedulers() *Schedulers {
 		schedulers.schedulers = append(schedulers.schedulers, elasticsearchAggregatorInterface.MakeScheduler())
 	}
 
+	if actianceDataExportInterface := srv.ActianceDataExport; actianceDataExportInterface != nil {
+		schedulers.schedulers = append(schedulers.schedulers, actianceDataExportInterface.MakeScheduler())
+	}
+
 	if ldapSyncInterface := srv.LdapSync; ldapSyncInterface != nil {
 		schedulers.schedulers = append(schedulers.schedulers, ldapSyncInterface.MakeScheduler())
 	}

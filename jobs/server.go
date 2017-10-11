@@ -20,6 +20,7 @@ type JobServer struct {
 	DataRetentionJob        ejobs.DataRetentionJobInterface
 	ElasticsearchAggregator ejobs.ElasticsearchAggregatorInterface
 	ElasticsearchIndexer    ejobs.ElasticsearchIndexerInterface
+	ActianceDataExport      ejobs.ActianceDataExportInterface
 	LdapSync                ejobs.LdapSyncInterface
 }
 
