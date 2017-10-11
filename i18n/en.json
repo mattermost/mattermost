@@ -3692,6 +3692,10 @@
     "translation": "License does not support Data Retention."
   },
   {
+    "id": "ent.message_export.generic.license.error",
+    "translation": "License does not support Message Export."
+  },
+  {
     "id": "ent.elasticsearch.aggregator_worker.create_index_job.error",
     "translation": "Elasticsearch aggregator worker failed to create the indexing job"
   },
@@ -4688,6 +4692,22 @@
     "translation": "Invalid value for write timeout."
   },
   {
+    "id": "model.config.is_valid.message_export.enable.app_error",
+    "translation": "Message export job EnableExport setting must be either true or false"
+  },
+  {
+    "id": "model.config.is_valid.message_export.daily_runtime.app_error",
+    "translation": "Message export job DailyRuntime must be a 24-hour time stamp in the form HH:MM."
+  },
+  {
+    "id": "model.config.is_valid.message_export.export_from.app_error",
+    "translation": "Message export job ExportFromTimestamp must be a timestamp (expressed in seconds since unix epoch). Only messages sent after this timestamp will be exported."
+  },
+  {
+    "id": "model.config.is_valid.message_export.file_location.app_error",
+    "translation": "Message export job FileLocation must be a writable directory that export data will be written to"
+  },
+  {
     "id": "model.emoji.create_at.app_error",
     "translation": "Create at must be a valid time"
   },
@@ -5282,6 +5302,10 @@
   {
     "id": "store.sql.upgraded.warn",
     "translation": "The database schema has been upgraded to version %v"
+  },
+  {
+    "id": "store.sql_compliance.message_export.app_error",
+    "translation": "Failed to select message export data"
   },
   {
     "id": "store.sql_audit.get.finding.app_error",

@@ -12,6 +12,7 @@ import (
 
 const (
 	JOB_TYPE_DATA_RETENTION                 = "data_retention"
+	JOB_TYPE_MESSAGE_EXPORT                 = "message_export"
 	JOB_TYPE_ELASTICSEARCH_POST_INDEXING    = "elasticsearch_post_indexing"
 	JOB_TYPE_ELASTICSEARCH_POST_AGGREGATION = "elasticsearch_post_aggregation"
 	JOB_TYPE_LDAP_SYNC                      = "ldap_sync"

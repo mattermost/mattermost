@@ -496,6 +496,13 @@ type DataRetentionSettings struct {
 	DeletionJobStartTime  *string
 }
 
+type MessageExportSettings struct {
+	EnableExport        *bool
+	DailyRunTime        *string
+	ExportFromTimestamp *int64
+	FileLocation        *string
+}
+
 type JobSettings struct {
 	RunJobs      *bool
 	RunScheduler *bool
@@ -534,6 +541,7 @@ type Config struct {
 	WebrtcSettings        WebrtcSettings
 	ElasticsearchSettings ElasticsearchSettings
 	DataRetentionSettings DataRetentionSettings
+	MessageExportSettings MessageExportSettings
 	JobSettings           JobSettings
 	PluginSettings        PluginSettings
 }
@@ -1627,6 +1635,26 @@ func (o *Config) SetDefaults() {
 		o.PluginSettings.Plugins = make(map[string]interface{})
 	}
 
+	if o.MessageExportSettings.EnableExport == nil {
+		o.MessageExportSettings.EnableExport = new(bool)
+		*o.MessageExportSettings.EnableExport = false
+	}
+
+	if o.MessageExportSettings.FileLocation == nil {
+		o.MessageExportSettings.FileLocation = new(string)
+		*o.MessageExportSettings.FileLocation = "./data/export"
+	}
+
+	if o.MessageExportSettings.DailyRunTime == nil {
+		o.MessageExportSettings.DailyRunTime = new(string)
+		*o.MessageExportSettings.DailyRunTime = "01:00"
+	}
+
+	if o.MessageExportSettings.ExportFromTimestamp == nil {
+		o.MessageExportSettings.ExportFromTimestamp = new(int64)
+		*o.MessageExportSettings.ExportFromTimestamp = 0
+	}
+
 	o.defaultWebrtcSettings()
 }
 
@@ -1688,6 +1716,10 @@ func (o *Config) IsValid() *AppError {
 	}
 
 	if err := o.LocalizationSettings.isValid(); err != nil {
+		return err
+	}
+
+	if err := o.MessageExportSettings.isValid(); err != nil {
 		return err
 	}
 
@@ -1991,6 +2023,28 @@ func (ls *LocalizationSettings) isValid() *AppError {
 	if len(*ls.AvailableLocales) > 0 {
 		if !strings.Contains(*ls.AvailableLocales, *ls.DefaultClientLocale) {
 			return NewAppError("Config.IsValid", "model.config.is_valid.localization.available_locales.app_error", nil, "", http.StatusBadRequest)
+		}
+	}
+
+	return nil
+}
+
+func (mes *MessageExportSettings) isValid() *AppError {
+	if mes.EnableExport == nil {
+		return NewAppError("Config.IsValid", "model.config.is_valid.message_export.enable.app_error", nil, "", http.StatusBadRequest)
+	} else if *mes.EnableExport {
+		if mes.ExportFromTimestamp == nil || *mes.ExportFromTimestamp < 0 || *mes.ExportFromTimestamp > time.Now().Unix() {
+			return NewAppError("Config.IsValid", "model.config.is_valid.message_export.export_from.app_error", nil, "", http.StatusBadRequest)
+		}
+
+		if mes.DailyRunTime == nil {
+			return NewAppError("Config.IsValid", "model.config.is_valid.message_export.daily_runtime.app_error", nil, "", http.StatusBadRequest)
+		} else if _, err := time.Parse("15:04", *mes.DailyRunTime); err != nil {
+			return NewAppError("Config.IsValid", "model.config.is_valid.message_export.daily_runtime.app_error", nil, err.Error(), http.StatusBadRequest)
+		}
+
+		if mes.FileLocation == nil {
+			return NewAppError("Config.IsValid", "model.config.is_valid.message_export.file_location.app_error", nil, "", http.StatusBadRequest)
 		}
 	}
 

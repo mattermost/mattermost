@@ -78,6 +78,13 @@ func (watcher *Watcher) PollAndNotify() {
 					default:
 					}
 				}
+			} else if job.Type == model.JOB_TYPE_MESSAGE_EXPORT {
+				if watcher.workers.MessageExport != nil {
+					select {
+					case watcher.workers.MessageExport.JobChannel() <- *job:
+					default:
+					}
+				}
 			} else if job.Type == model.JOB_TYPE_ELASTICSEARCH_POST_INDEXING {
 				if watcher.workers.ElasticsearchIndexing != nil {
 					select {

@@ -141,6 +141,12 @@ func RegisterJobsDataRetentionJobInterface(f func(*App) ejobs.DataRetentionJobIn
 	jobsDataRetentionJobInterface = f
 }
 
+var jobsMessageExportJobInterface func(*App) ejobs.MessageExportJobInterface
+
+func RegisterJobsMessageExportJobInterface(f func(*App) ejobs.MessageExportJobInterface) {
+	jobsMessageExportJobInterface = f
+}
+
 var jobsElasticsearchAggregatorInterface func(*App) ejobs.ElasticsearchAggregatorInterface
 
 func RegisterJobsElasticsearchAggregatorInterface(f func(*App) ejobs.ElasticsearchAggregatorInterface) {
@@ -220,6 +226,9 @@ func (a *App) initEnterprise() {
 	}
 	if jobsDataRetentionJobInterface != nil {
 		a.Jobs.DataRetentionJob = jobsDataRetentionJobInterface(a)
+	}
+	if jobsMessageExportJobInterface != nil {
+		a.Jobs.MessageExportJob = jobsMessageExportJobInterface(a)
 	}
 	if jobsElasticsearchAggregatorInterface != nil {
 		a.Jobs.ElasticsearchAggregator = jobsElasticsearchAggregatorInterface(a)
