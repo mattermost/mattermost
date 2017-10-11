@@ -17,7 +17,7 @@ func TestMain(m *testing.M) {
 
 	// In the case where a dev just wants to run a single test, it's faster to just use the default
 	// store.
-	if flag.Lookup("test.run").Value.String() != "" {
+	if filter := flag.Lookup("test.run").Value.String(); filter != "" && filter != "." {
 		os.Exit(m.Run())
 	}
 
