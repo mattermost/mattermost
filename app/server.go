@@ -5,6 +5,7 @@ package app
 
 import (
 	"crypto/tls"
+	"io"
 	"io/ioutil"
 	"net"
 	"net/http"
@@ -210,9 +211,10 @@ func (a *App) StopServer() {
 	}
 }
 
+// This is required to re-use the underlying connection and not take up file descriptors
 func consumeAndClose(r *http.Response) {
 	if r.Body != nil {
-		ioutil.ReadAll(r.Body)
+		io.Copy(ioutil.Discard, r.Body)
 		r.Body.Close()
 	}
 }

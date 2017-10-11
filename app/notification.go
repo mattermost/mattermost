@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"html"
 	"html/template"
-	"io/ioutil"
 	"net/http"
 	"net/url"
 	"path/filepath"
@@ -701,8 +700,7 @@ func (a *App) sendToPushProxy(msg model.PushNotification, session *model.Session
 	} else {
 		pushResponse := model.PushResponseFromJson(resp.Body)
 		if resp.Body != nil {
-			ioutil.ReadAll(resp.Body)
-			resp.Body.Close()
+			consumeAndClose(resp)
 		}
 
 		if pushResponse[model.PUSH_STATUS] == model.PUSH_STATUS_REMOVE {
