@@ -21,6 +21,8 @@ import (
 	"github.com/mattermost/mattermost-server/app"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
+	"github.com/mattermost/mattermost-server/store/sqlstore"
+	"github.com/mattermost/mattermost-server/store/storetest"
 	"github.com/mattermost/mattermost-server/utils"
 	"github.com/mattermost/mattermost-server/wsapi"
 
@@ -45,13 +47,37 @@ type TestHelper struct {
 	SystemAdminUser   *model.User
 }
 
+var testStoreContainer *storetest.RunningContainer
+var testStoreSettings *model.SqlSettings
+
+// UseTestStore sets the container and corresponding settings to use for tests. Once the tests are
+// complete (e.g. at the end of your TestMain implementation), you should call StopTestStore.
+func UseTestStore(container *storetest.RunningContainer, settings *model.SqlSettings) {
+	testStoreContainer = container
+	testStoreSettings = settings
+}
+
+func StopTestStore() {
+	if testStoreContainer != nil {
+		testStoreContainer.Stop()
+		testStoreContainer = nil
+	}
+}
+
 func setupTestHelper(enterprise bool) *TestHelper {
 	utils.TranslationsPreInit()
 	utils.LoadConfig("config.json")
 	utils.InitTranslations(utils.Cfg.LocalizationSettings)
 
+	var options []app.Option
+	if testStoreSettings != nil {
+		options = append(options, app.StoreOverride(func(a *app.App) store.Store {
+			return store.NewLayeredStore(sqlstore.NewSqlSupplier(*testStoreSettings, a.Metrics), a.Metrics, a.Cluster)
+		}))
+	}
+
 	th := &TestHelper{
-		App: app.New(),
+		App: app.New(options...),
 	}
 
 	*utils.Cfg.TeamSettings.MaxUsersPerTeam = 50
@@ -142,10 +168,16 @@ func (me *TestHelper) TearDown() {
 	me.App.Shutdown()
 
 	utils.EnableDebugLogForTest()
+
+	if err := recover(); err != nil {
+		StopTestStore()
+		panic(err)
+	}
 }
 
 func (me *TestHelper) InitBasic() *TestHelper {
 	me.TeamAdminUser = me.CreateUser()
+	me.App.UpdateUserRoles(me.TeamAdminUser.Id, model.ROLE_SYSTEM_USER.Id)
 	me.LoginTeamAdmin()
 	me.BasicTeam = me.CreateTeam()
 	me.BasicChannel = me.CreatePublicChannel()
