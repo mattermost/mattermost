@@ -47,6 +47,20 @@ func connectToSMTPServer(config *model.Config) (net.Conn, *model.AppError) {
 	return conn, nil
 }
 
+// TODO: Remove once this bug is fixed: https://github.com/golang/go/issues/22166
+type plainAuthOverTLSConn struct {
+	smtp.Auth
+}
+
+func PlainAuthOverTLSConn(identity, username, password, host string) smtp.Auth {
+	return &plainAuthOverTLSConn{smtp.PlainAuth(identity, username, password, host)}
+}
+
+func (a *plainAuthOverTLSConn) Start(server *smtp.ServerInfo) (string, []byte, error) {
+	server.TLS = true
+	return a.Auth.Start(server)
+}
+
 func newSMTPClient(conn net.Conn, config *model.Config) (*smtp.Client, *model.AppError) {
 	c, err := smtp.NewClient(conn, config.EmailSettings.SMTPServer+":"+config.EmailSettings.SMTPPort)
 	if err != nil {
@@ -72,7 +86,12 @@ func newSMTPClient(conn net.Conn, config *model.Config) (*smtp.Client, *model.Ap
 	}
 
 	if *config.EmailSettings.EnableSMTPAuth {
-		auth := smtp.PlainAuth("", config.EmailSettings.SMTPUsername, config.EmailSettings.SMTPPassword, config.EmailSettings.SMTPServer+":"+config.EmailSettings.SMTPPort)
+		var auth smtp.Auth
+		if _, ok := conn.(*tls.Conn); ok {
+			auth = PlainAuthOverTLSConn("", config.EmailSettings.SMTPUsername, config.EmailSettings.SMTPPassword, config.EmailSettings.SMTPServer+":"+config.EmailSettings.SMTPPort)
+		} else {
+			auth = smtp.PlainAuth("", config.EmailSettings.SMTPUsername, config.EmailSettings.SMTPPassword, config.EmailSettings.SMTPServer+":"+config.EmailSettings.SMTPPort)
+		}
 
 		if err = c.Auth(auth); err != nil {
 			return nil, model.NewAppError("SendMail", "utils.mail.new_client.auth.app_error", nil, err.Error(), http.StatusInternalServerError)
