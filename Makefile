@@ -1,5 +1,7 @@
 .PHONY: build package run stop run-client run-server stop-client stop-server restart restart-server restart-client start-docker clean-dist clean nuke check-style check-client-style check-server-style check-unit-tests test dist setup-mac prepare-enteprise run-client-tests setup-run-client-tests cleanup-run-client-tests test-client build-linux build-osx build-windows internal-test-web-client vet run-server-for-web-client-tests
 
+ROOT := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
+
 # Build Flags
 BUILD_NUMBER ?= $(BUILD_NUMBER:)
 BUILD_DATE = $(shell date -u)
@@ -62,7 +64,7 @@ DIST_PATH=$(DIST_ROOT)/mattermost
 TESTS=.
 
 TESTFLAGS ?= -short
-TESTFLAGSEE ?= -test.short
+TESTFLAGSEE ?= -short
 
 # Packages lists
 TE_PACKAGES=$(shell go list ./... | grep -v vendor)
@@ -306,39 +308,19 @@ do-cover-file:
 
 test-te: do-cover-file
 	@echo Testing TE
-
-
 	@echo "Packages to test: "$(TE_PACKAGES)
-
-	@for package in $(TE_PACKAGES); do \
-		echo "Testing "$$package; \
-		$(GO) test $(GOFLAGS) -run=$(TESTS) $(TESTFLAGS) -test.v -test.timeout=2000s -covermode=count -coverprofile=cprofile.out -coverpkg=$(ALL_PACKAGES_COMMA) $$package || exit 1; \
-		if [ -f cprofile.out ]; then \
-			tail -n +2 cprofile.out >> cover.out; \
-			rm cprofile.out; \
-		fi; \
-	done
+	find . -name 'cprofile.out' -exec sh -c 'rm "{}"' \;
+	$(GO) test $(GOFLAGS) -run=$(TESTS) $(TESTFLAGS) -p 1 -v -timeout=2000s -covermode=count -coverpkg=$(ALL_PACKAGES_COMMA) -exec $(ROOT)/scripts/test-xprog.sh $(TE_PACKAGES)
+	find . -name 'cprofile.out' -exec sh -c 'tail -n +2 {} >> cover.out ; rm "{}"' \;
 
 test-ee: do-cover-file
 	@echo Testing EE
 
 ifeq ($(BUILD_ENTERPRISE_READY),true)
 	@echo "Packages to test: "$(EE_PACKAGES)
-
-	for package in $(EE_PACKAGES); do \
-		echo "Testing "$$package; \
-		$(GO) test $(GOFLAGS) -run=$(TESTS) -covermode=count -coverpkg=$(ALL_PACKAGES_COMMA) -c $$package || exit 1; \
-		if [ -f $$(basename $$package).test ]; then \
-			echo "Testing "$$package; \
-			./$$(basename $$package).test -test.v $(TESTFLAGSEE) -test.timeout=2000s -test.coverprofile=cprofile.out || exit 1; \
-			if [ -f cprofile.out ]; then \
-				tail -n +2 cprofile.out >> cover.out; \
-				rm cprofile.out; \
-			fi; \
-			rm -r $$(basename $$package).test; \
-		fi; \
-	done
-
+	find . -name 'cprofile.out' -exec sh -c 'rm "{}"' \;
+	$(GO) test $(GOFLAGS) -run=$(TESTS) $(TESTFLAGSEE) -p 1 -v -timeout=2000s -covermode=count -coverpkg=$(ALL_PACKAGES_COMMA) -exec $(ROOT)/scripts/test-xprog.sh $(EE_PACKAGES)
+	find . -name 'cprofile.out' -exec sh -c 'tail -n +2 {} >> cover.out ; rm "{}"' \;
 	rm -f config/*.crt
 	rm -f config/*.key
 endif
