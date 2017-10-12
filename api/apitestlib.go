@@ -4,12 +4,15 @@
 package api
 
 import (
+	"net"
 	"time"
 
 	"github.com/mattermost/mattermost-server/api4"
 	"github.com/mattermost/mattermost-server/app"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
+	"github.com/mattermost/mattermost-server/store/sqlstore"
+	"github.com/mattermost/mattermost-server/store/storetest"
 	"github.com/mattermost/mattermost-server/utils"
 	"github.com/mattermost/mattermost-server/wsapi"
 
@@ -33,13 +36,43 @@ type TestHelper struct {
 	SystemAdminChannel *model.Channel
 }
 
+type persistentTestStore struct {
+	store.Store
+}
+
+func (*persistentTestStore) Close() {}
+
+var testStoreContainer *storetest.RunningContainer
+var testStore *persistentTestStore
+
+// UseTestStore sets the container and corresponding settings to use for tests. Once the tests are
+// complete (e.g. at the end of your TestMain implementation), you should call StopTestStore.
+func UseTestStore(container *storetest.RunningContainer, settings *model.SqlSettings) {
+	testStoreContainer = container
+	testStore = &persistentTestStore{store.NewLayeredStore(sqlstore.NewSqlSupplier(*settings, nil), nil, nil)}
+}
+
+func StopTestStore() {
+	if testStoreContainer != nil {
+		testStoreContainer.Stop()
+		testStoreContainer = nil
+	}
+}
+
 func setupTestHelper(enterprise bool) *TestHelper {
-	utils.TranslationsPreInit()
+	if utils.T == nil {
+		utils.TranslationsPreInit()
+	}
 	utils.LoadConfig("config.json")
 	utils.InitTranslations(utils.Cfg.LocalizationSettings)
 
+	var options []app.Option
+	if testStore != nil {
+		options = append(options, app.StoreOverride(testStore))
+	}
+
 	th := &TestHelper{
-		App: app.New(),
+		App: app.New(options...),
 	}
 
 	*utils.Cfg.TeamSettings.MaxUsersPerTeam = 50
@@ -81,8 +114,11 @@ func ReloadConfigForSetup() {
 }
 
 func (me *TestHelper) InitBasic() *TestHelper {
+	me.waitForConnectivity()
+
 	me.BasicClient = me.CreateClient()
 	me.BasicUser = me.CreateUser(me.BasicClient)
+	me.App.UpdateUserRoles(me.BasicUser.Id, model.ROLE_SYSTEM_USER.Id)
 	me.LoginBasic()
 	me.BasicTeam = me.CreateTeam(me.BasicClient)
 	me.LinkUserToTeam(me.BasicUser, me.BasicTeam)
@@ -100,6 +136,8 @@ func (me *TestHelper) InitBasic() *TestHelper {
 }
 
 func (me *TestHelper) InitSystemAdmin() *TestHelper {
+	me.waitForConnectivity()
+
 	me.SystemAdminClient = me.CreateClient()
 	me.SystemAdminUser = me.CreateUser(me.SystemAdminClient)
 	me.SystemAdminUser.Password = "Password1"
@@ -111,6 +149,17 @@ func (me *TestHelper) InitSystemAdmin() *TestHelper {
 	me.SystemAdminChannel = me.CreateChannel(me.SystemAdminClient, me.SystemAdminTeam)
 
 	return me
+}
+
+func (me *TestHelper) waitForConnectivity() {
+	for i := 0; i < 1000; i++ {
+		_, err := net.Dial("tcp", "localhost"+*utils.Cfg.ServiceSettings.ListenAddress)
+		if err == nil {
+			return
+		}
+		time.Sleep(time.Millisecond * 20)
+	}
+	panic("unable to connect")
 }
 
 func (me *TestHelper) CreateClient() *model.Client {
@@ -305,4 +354,8 @@ func (me *TestHelper) LoginSystemAdmin() {
 
 func (me *TestHelper) TearDown() {
 	me.App.Shutdown()
+	if err := recover(); err != nil {
+		StopTestStore()
+		panic(err)
+	}
 }

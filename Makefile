@@ -56,6 +56,8 @@ GO_LINKER_FLAGS ?= -ldflags \
 # GOOS/GOARCH of the build host, used to determine whether we're cross-compiling or not
 BUILDER_GOOS_GOARCH="$(shell $(GO) env GOOS)_$(shell $(GO) env GOARCH)"
 
+PLATFORM_FILES=$(shell ls -1 ./cmd/platform/*.go | grep -v _test.go)
+
 # Output paths
 DIST_ROOT=dist
 DIST_PATH=$(DIST_ROOT)/mattermost
@@ -328,10 +330,10 @@ endif
 test-server: test-te test-ee
 
 internal-test-web-client:
-	$(GO) run $(GOFLAGS) ./cmd/platform/*go test web_client_tests
+	$(GO) run $(GOFLAGS) $(PLATFORM_FILES) test web_client_tests
 
 run-server-for-web-client-tests:
-	$(GO) run $(GOFLAGS) ./cmd/platform/*go test web_client_tests_server
+	$(GO) run $(GOFLAGS) $(PLATFORM_FILES) test web_client_tests_server
 
 test-client:
 	@echo Running client tests
@@ -350,13 +352,13 @@ run-server: start-docker
 	@echo Running mattermost for development
 
 	mkdir -p $(BUILD_WEBAPP_DIR)/dist/files
-	$(GO) run $(GOFLAGS) $(GO_LINKER_FLAGS) ./cmd/platform/*.go --disableconfigwatch &
+	$(GO) run $(GOFLAGS) $(GO_LINKER_FLAGS) $(PLATFORM_FILES) --disableconfigwatch &
 
 run-cli: start-docker
 	@echo Running mattermost for development
 	@echo Example should be like 'make ARGS="-version" run-cli'
 
-	$(GO) run $(GOFLAGS) $(GO_LINKER_FLAGS) ./cmd/platform/*.go ${ARGS}
+	$(GO) run $(GOFLAGS) $(GO_LINKER_FLAGS) $(PLATFORM_FILES) ${ARGS}
 
 run-client:
 	@echo Running mattermost client for development
@@ -407,7 +409,7 @@ restart-client: | stop-client run-client
 
 run-job-server:
 	@echo Running job server for development
-	$(GO) run $(GOFLAGS) $(GO_LINKER_FLAGS) ./cmd/platform/*.go jobserver --disableconfigwatch &
+	$(GO) run $(GOFLAGS) $(GO_LINKER_FLAGS) $(PLATFORM_FILES) jobserver --disableconfigwatch &
 
 clean: stop-docker
 	@echo Cleaning
