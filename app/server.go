@@ -5,6 +5,8 @@ package app
 
 import (
 	"crypto/tls"
+	"io"
+	"io/ioutil"
 	"net"
 	"net/http"
 	"strings"
@@ -206,5 +208,13 @@ func (a *App) StopServer() {
 		a.Srv.GracefulServer.Stop(TIME_TO_WAIT_FOR_CONNECTIONS_TO_CLOSE_ON_SERVER_SHUTDOWN)
 		<-a.Srv.GracefulServer.StopChan()
 		a.Srv.GracefulServer = nil
+	}
+}
+
+// This is required to re-use the underlying connection and not take up file descriptors
+func consumeAndClose(r *http.Response) {
+	if r.Body != nil {
+		io.Copy(ioutil.Discard, r.Body)
+		r.Body.Close()
 	}
 }
