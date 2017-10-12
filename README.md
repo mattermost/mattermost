@@ -28,15 +28,15 @@ Install on your own machine:
 Get Involved:
 
 - [Contribute Code](http://docs.mattermost.com/developer/contribution-guide.html)
-- [Find "Help Wanted" projects](https://mattermost.atlassian.net/issues/?filter=10101)
+- [Find "Help Wanted" projects](https://mattermost.atlassian.net/browse/PLT-7805?filter=10101&jql=status%20in%20(Open%2C%20Reopened)%20AND%20labels%20in%20(accepting-pull-requests%2C%20help-wanted))
 - [Join Developer Discussion on a Mattermost Server for contributors](https://pre-release.mattermost.com/signup_user_complete/?id=f1924a8db44ff3bb41c96424cdc20676)
 - [File Bugs](http://www.mattermost.org/filing-issues/)
-- [Share Feature Ideas](http://www.mattermost.org/feature-requests/)
+- [Share Feature Ideas](https://www.mattermost.org/feature-ideas/)
 - [Get Troubleshooting Help](https://forum.mattermost.org/t/how-to-use-the-troubleshooting-forum/150)
 
 Learn More:
 
-- [API Options - webhooks, slash commands, drivers and web service](http://docs.mattermost.com/developer/api.html)
+- [API Options - webhooks, slash commands, drivers and web service](https://api.mattermost.com/)
 - [Localization Guide](http://docs.mattermost.com/developer/localization.html#translation-process)
 
 Get the Latest News:
