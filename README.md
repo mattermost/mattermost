@@ -28,7 +28,7 @@ Install on your own machine:
 Get Involved:
 
 - [Contribute Code](http://docs.mattermost.com/developer/contribution-guide.html)
-- [Find "Help Wanted" projects](https://mattermost.atlassian.net/browse/PLT-7805?filter=10101&jql=status%20in%20(Open%2C%20Reopened)%20AND%20labels%20in%20(accepting-pull-requests%2C%20help-wanted))
+- [Find "Help Wanted" projects](https://github.com/mattermost/mattermost-server/issues?page=1&q=is%3Aissue+is%3Aopen+%22Help+Wanted%22&utf8=%E2%9C%93)
 - [Join Developer Discussion on a Mattermost Server for contributors](https://pre-release.mattermost.com/signup_user_complete/?id=f1924a8db44ff3bb41c96424cdc20676)
 - [File Bugs](http://www.mattermost.org/filing-issues/)
 - [Share Feature Ideas](https://www.mattermost.org/feature-ideas/)
