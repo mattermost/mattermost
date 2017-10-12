@@ -43,6 +43,7 @@ type App struct {
 	DataRetention    einterfaces.DataRetentionInterface
 	Elasticsearch    einterfaces.ElasticsearchInterface
 	Ldap             einterfaces.LdapInterface
+	MessageExport    einterfaces.MessageExportInterface
 	Metrics          einterfaces.MetricsInterface
 	Mfa              einterfaces.MfaInterface
 	Saml             einterfaces.SamlInterface
@@ -171,6 +172,12 @@ func RegisterLdapInterface(f func(*App) einterfaces.LdapInterface) {
 	ldapInterface = f
 }
 
+var messageExportInterface func(*App) einterfaces.MessageExportInterface
+
+func RegisterMessageExportInterface(f func(*App) einterfaces.MessageExportInterface) {
+	messageExportInterface = f
+}
+
 var metricsInterface func(*App) einterfaces.MetricsInterface
 
 func RegisterMetricsInterface(f func(*App) einterfaces.MetricsInterface) {
@@ -208,6 +215,9 @@ func (a *App) initEnterprise() {
 				panic(utils.T(err.Id))
 			}
 		})
+	}
+	if messageExportInterface != nil {
+		a.MessageExport = messageExportInterface(a)
 	}
 	if metricsInterface != nil {
 		a.Metrics = metricsInterface(a)

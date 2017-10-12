@@ -51,6 +51,7 @@ func (j *Job) IsValid() *AppError {
 	case JOB_TYPE_ELASTICSEARCH_POST_INDEXING:
 	case JOB_TYPE_ELASTICSEARCH_POST_AGGREGATION:
 	case JOB_TYPE_LDAP_SYNC:
+	case JOB_TYPE_MESSAGE_EXPORT:
 	default:
 		return NewAppError("Job.IsValid", "model.job.is_valid.type.app_error", nil, "id="+j.Id, http.StatusBadRequest)
 	}
