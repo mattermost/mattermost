@@ -644,28 +644,30 @@ func (a *App) ImportUser(data *UserImportData, dryRun bool) *model.AppError {
 		}
 	}
 
+	var err *model.AppError
+	var savedUser *model.User
 	if user.Id == "" {
-		if _, err := a.createUser(user); err != nil {
+		if savedUser, err = a.createUser(user); err != nil {
 			return err
 		}
 	} else {
 		if hasUserChanged {
-			if _, err := a.UpdateUser(user, false); err != nil {
+			if savedUser, err = a.UpdateUser(user, false); err != nil {
 				return err
 			}
 		}
 		if hasUserRolesChanged {
-			if _, err := a.UpdateUserRoles(user.Id, roles); err != nil {
+			if savedUser, err = a.UpdateUserRoles(user.Id, roles); err != nil {
 				return err
 			}
 		}
 		if hasNotifyPropsChanged {
-			if _, err := a.UpdateUserNotifyProps(user.Id, user.NotifyProps); err != nil {
+			if savedUser, err = a.UpdateUserNotifyProps(user.Id, user.NotifyProps); err != nil {
 				return err
 			}
 		}
 		if len(password) > 0 {
-			if err := a.UpdatePassword(user, password); err != nil {
+			if err = a.UpdatePassword(user, password); err != nil {
 				return err
 			}
 		} else {
@@ -684,12 +686,16 @@ func (a *App) ImportUser(data *UserImportData, dryRun bool) *model.AppError {
 		}
 	}
 
+	if savedUser == nil {
+		savedUser = user
+	}
+
 	// Preferences.
 	var preferences model.Preferences
 
 	if data.Theme != nil {
 		preferences = append(preferences, model.Preference{
-			UserId:   user.Id,
+			UserId:   savedUser.Id,
 			Category: model.PREFERENCE_CATEGORY_THEME,
 			Name:     "",
 			Value:    *data.Theme,
@@ -698,7 +704,7 @@ func (a *App) ImportUser(data *UserImportData, dryRun bool) *model.AppError {
 
 	if data.UseMilitaryTime != nil {
 		preferences = append(preferences, model.Preference{
-			UserId:   user.Id,
+			UserId:   savedUser.Id,
 			Category: model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS,
 			Name:     "use_military_time",
 			Value:    *data.UseMilitaryTime,
@@ -707,7 +713,7 @@ func (a *App) ImportUser(data *UserImportData, dryRun bool) *model.AppError {
 
 	if data.CollapsePreviews != nil {
 		preferences = append(preferences, model.Preference{
-			UserId:   user.Id,
+			UserId:   savedUser.Id,
 			Category: model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS,
 			Name:     "collapse_previews",
 			Value:    *data.CollapsePreviews,
@@ -716,7 +722,7 @@ func (a *App) ImportUser(data *UserImportData, dryRun bool) *model.AppError {
 
 	if data.MessageDisplay != nil {
 		preferences = append(preferences, model.Preference{
-			UserId:   user.Id,
+			UserId:   savedUser.Id,
 			Category: model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS,
 			Name:     "message_display",
 			Value:    *data.MessageDisplay,
@@ -725,7 +731,7 @@ func (a *App) ImportUser(data *UserImportData, dryRun bool) *model.AppError {
 
 	if data.ChannelDisplayMode != nil {
 		preferences = append(preferences, model.Preference{
-			UserId:   user.Id,
+			UserId:   savedUser.Id,
 			Category: model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS,
 			Name:     "channel_display_mode",
 			Value:    *data.ChannelDisplayMode,
@@ -734,9 +740,9 @@ func (a *App) ImportUser(data *UserImportData, dryRun bool) *model.AppError {
 
 	if data.TutorialStep != nil {
 		preferences = append(preferences, model.Preference{
-			UserId:   user.Id,
+			UserId:   savedUser.Id,
 			Category: model.PREFERENCE_CATEGORY_TUTORIAL_STEPS,
-			Name:     user.Id,
+			Name:     savedUser.Id,
 			Value:    *data.TutorialStep,
 		})
 	}
@@ -747,17 +753,12 @@ func (a *App) ImportUser(data *UserImportData, dryRun bool) *model.AppError {
 		}
 	}
 
-	return a.ImportUserTeams(*data.Username, data.Teams)
+	return a.ImportUserTeams(savedUser, data.Teams)
 }
 
-func (a *App) ImportUserTeams(username string, data *[]UserTeamImportData) *model.AppError {
+func (a *App) ImportUserTeams(user *model.User, data *[]UserTeamImportData) *model.AppError {
 	if data == nil {
 		return nil
-	}
-
-	user, err := a.GetUserByUsername(username)
-	if err != nil {
-		return err
 	}
 
 	for _, tdata := range *data {
