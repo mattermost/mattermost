@@ -94,7 +94,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 				outOfChannelMentions := result.Data.([]*model.User)
 				if channel.Type != model.CHANNEL_GROUP {
 					a.Go(func() {
-						a.sendOutOfChannelMentions(sender, post, team.Id, outOfChannelMentions)
+						a.sendOutOfChannelMentions(sender, post, channel, team, outOfChannelMentions)
 					})
 				}
 			}
@@ -723,7 +723,7 @@ func (a *App) getMobileAppSessions(userId string) ([]*model.Session, *model.AppE
 	}
 }
 
-func (a *App) sendOutOfChannelMentions(sender *model.User, post *model.Post, teamId string, users []*model.User) *model.AppError {
+func (a *App) sendOutOfChannelMentions(sender *model.User, post *model.Post, channel *model.Channel, team *model.Team, users []*model.User) *model.AppError {
 	if len(users) == 0 {
 		return nil
 	}
@@ -734,23 +734,45 @@ func (a *App) sendOutOfChannelMentions(sender *model.User, post *model.Post, tea
 	}
 	sort.Strings(usernames)
 
+	var userIds []string
+	for _, user := range users {
+		userIds = append(userIds, user.Id)
+	}
+
 	T := utils.GetUserTranslations(sender.Locale)
 
+	var linkMessage string
+	if channel.Type == model.CHANNEL_OPEN {
+		linkMessage = T("api.post.check_for_out_of_channel_mentions.link.public")
+	} else if channel.Type == model.CHANNEL_PRIVATE {
+		linkMessage = T("api.post.check_for_out_of_channel_mentions.link.private")
+	}
+
+	siteURL := *utils.Cfg.ServiceSettings.SiteURL
+	ephemeralPostId := model.NewId()
+	var link string
 	var message string
-	if len(usernames) == 1 {
+	if len(users) == 1 {
+		link = fmt.Sprintf("%s/%v/channels/%v/post/%v/acm/%v", siteURL, team.Name, channel.Name, ephemeralPostId, userIds[0])
 		message = T("api.post.check_for_out_of_channel_mentions.message.one", map[string]interface{}{
-			"Username": usernames[0],
+			"Username":    usernames[0],
+			"LinkMessage": linkMessage,
+			"Link":        link,
 		})
 	} else {
+		link = fmt.Sprintf("%s/%v/channels/%v/post/%v/acm/%v", siteURL, team.Name, channel.Name, ephemeralPostId, strings.Join(userIds, "-"))
 		message = T("api.post.check_for_out_of_channel_mentions.message.multiple", map[string]interface{}{
 			"Usernames":    strings.Join(usernames[:len(usernames)-1], ", "),
 			"LastUsername": usernames[len(usernames)-1],
+			"LinkMessage":  linkMessage,
+			"Link":         link,
 		})
 	}
 
 	a.SendEphemeralPost(
 		post.UserId,
 		&model.Post{
+			Id:        ephemeralPostId,
 			ChannelId: post.ChannelId,
 			Message:   message,
 			CreateAt:  post.CreateAt + 1,
