@@ -66,6 +66,13 @@ func TestCreatePost(t *testing.T) {
 		t.Fatal("create at should not match")
 	}
 
+	post.RootId = ""
+	post.ParentId = ""
+	post.Type = model.POST_SYSTEM_GENERIC
+	_, resp = Client.CreatePost(post)
+	CheckBadRequestStatus(t, resp)
+
+	post.Type = ""
 	post.RootId = rpost2.Id
 	post.ParentId = rpost2.Id
 	_, resp = Client.CreatePost(post)
@@ -414,9 +421,10 @@ func TestUpdatePost(t *testing.T) {
 		t.Fatal("failed to updates")
 	}
 
-	post2 := &model.Post{ChannelId: channel.Id, Message: "zz" + model.NewId() + "a", Type: model.POST_JOIN_LEAVE}
-	rpost2, resp := Client.CreatePost(post2)
-	CheckNoError(t, resp)
+	rpost2, err := app.CreatePost(&model.Post{ChannelId: channel.Id, Message: "zz" + model.NewId() + "a", Type: model.POST_JOIN_LEAVE, UserId: th.BasicUser.Id}, channel.TeamId, false)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	up2 := &model.Post{Id: rpost2.Id, ChannelId: channel.Id, Message: "zz" + model.NewId() + " update post 2"}
 	_, resp = Client.UpdatePost(rpost2.Id, up2)

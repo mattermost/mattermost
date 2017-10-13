@@ -6,6 +6,7 @@ package app
 import (
 	"net/http"
 	"regexp"
+	"strings"
 
 	l4g "github.com/alecthomas/log4go"
 	"github.com/dyatlov/go-opengraph/opengraph"
@@ -26,6 +27,11 @@ func CreatePostAsUser(post *model.Post) (*model.Post, *model.AppError) {
 		return nil, err
 	} else {
 		channel = result.Data.(*model.Channel)
+	}
+
+	if strings.HasPrefix(post.Type, model.POST_SYSTEM_MESSAGE_PREFIX) {
+		err := model.NewAppError("CreatePostAsUser", "api.context.invalid_param.app_error", map[string]interface{}{"Name": "post.type"}, "", http.StatusBadRequest)
+		return nil, err
 	}
 
 	if channel.DeleteAt != 0 {

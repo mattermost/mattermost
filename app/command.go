@@ -41,6 +41,11 @@ func CreateCommandPost(post *model.Post, teamId string, response *model.CommandR
 	post.Message = parseSlackLinksToMarkdown(response.Text)
 	post.CreateAt = model.GetMillis()
 
+	if strings.HasPrefix(post.Type, model.POST_SYSTEM_MESSAGE_PREFIX) {
+		err := model.NewAppError("CreateCommandPost", "api.context.invalid_param.app_error", map[string]interface{}{"Name": "post.type"}, "", http.StatusBadRequest)
+		return nil, err
+	}
+
 	if response.Attachments != nil {
 		parseSlackAttachment(post, response.Attachments)
 	}

@@ -126,6 +126,11 @@ func CreateWebhookPost(userId, teamId, channelId, text, overrideUsername, overri
 	post := &model.Post{UserId: userId, ChannelId: channelId, Message: text, Type: postType}
 	post.AddProp("from_webhook", "true")
 
+	if strings.HasPrefix(post.Type, model.POST_SYSTEM_MESSAGE_PREFIX) {
+		err := model.NewAppError("CreateWebhookPost", "api.context.invalid_param.app_error", map[string]interface{}{"Name": "post.type"}, "", http.StatusBadRequest)
+		return nil, err
+	}
+
 	if metrics := einterfaces.GetMetricsInterface(); metrics != nil {
 		metrics.IncrementWebhookPost()
 	}
