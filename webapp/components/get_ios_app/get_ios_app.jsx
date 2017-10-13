@@ -6,6 +6,8 @@ import React from 'react';
 import {FormattedMessage} from 'react-intl';
 import {Link} from 'react-router';
 
+import {useSafeUrl} from 'utils/url.jsx';
+
 import AppStoreButton from 'images/app-store-button.png';
 import IPhone6Mockup from 'images/iphone-6-mockup.png';
 
@@ -21,7 +23,7 @@ export default function GetIosApp() {
             <hr/>
             <a
                 className='get-ios-app__app-store-link'
-                href={global.window.mm_config.IosAppDownloadLink}
+                href={useSafeUrl(global.window.mm_config.IosAppDownloadLink)}
                 rel='noopener noreferrer'
             >
                 <img src={AppStoreButton}/>

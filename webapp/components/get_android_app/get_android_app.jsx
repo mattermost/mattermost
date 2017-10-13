@@ -6,6 +6,8 @@ import React from 'react';
 import {FormattedMessage} from 'react-intl';
 import {Link} from 'react-router';
 
+import {useSafeUrl} from 'utils/url.jsx';
+
 import MattermostIcon from 'images/favicon/android-chrome-192x192.png';
 import Nexus6Mockup from 'images/nexus-6p-mockup.png';
 
@@ -41,7 +43,7 @@ export default function GetAndroidApp() {
             </div>
             <a
                 className='btn btn-primary get-android-app__continue'
-                href={global.window.mm_config.AndroidAppDownloadLink}
+                href={useSafeUrl(global.window.mm_config.AndroidAppDownloadLink)}
             >
                 <FormattedMessage
                     id='get_app.continue'
