@@ -30,6 +30,11 @@ func CreatePostAsUser(post *model.Post) (*model.Post, *model.AppError) {
 		channel = result.Data.(*model.Channel)
 	}
 
+	if strings.HasPrefix(post.Type, model.POST_SYSTEM_MESSAGE_PREFIX) {
+		err := model.NewAppError("CreatePostAsUser", "api.context.invalid_param.app_error", map[string]interface{}{"Name": "post.type"}, "", http.StatusBadRequest)
+		return nil, err
+	}
+
 	if channel.DeleteAt != 0 {
 		err := model.NewAppError("createPost", "api.post.create_post.can_not_post_to_deleted.error", nil, "", http.StatusBadRequest)
 		return nil, err

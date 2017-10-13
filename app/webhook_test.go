@@ -44,4 +44,9 @@ func TestCreateWebhookPost(t *testing.T) {
 			t.Fatal(k)
 		}
 	}
+
+	_, err = CreateWebhookPost(hook.UserId, th.BasicChannel, "foo", "user", "http://iconurl", nil, model.POST_SYSTEM_GENERIC)
+	if err == nil {
+		t.Fatal("should have failed - bad post type")
+	}
 }
