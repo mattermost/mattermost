@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"bytes"
+
 	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/mattermost-server/einterfaces"
 	"github.com/mattermost/mattermost-server/model"
@@ -667,30 +668,38 @@ func (s SqlPostStore) getParentsPosts(channelId string, offset int, limit int) s
 	return store.Do(func(result *store.StoreResult) {
 		var posts []*model.Post
 		_, err := s.GetReplica().Select(&posts,
-			`SELECT
+			`(SELECT
 			    q2.*
 			FROM
 			    Posts q2
-			        INNER JOIN
-			    (SELECT DISTINCT
-			        q3.RootId
-			    FROM
-			        (SELECT
+			INNER JOIN
+			    (SELECT
 			        RootId
 			    FROM
-			        Posts
-			    WHERE
-			        ChannelId = :ChannelId1
-			            AND DeleteAt = 0
-			    ORDER BY CreateAt DESC
-			    LIMIT :Limit OFFSET :Offset) q3
-			    WHERE q3.RootId != '') q1
-			    ON q1.RootId = q2.Id OR q1.RootId = q2.RootId
+					Posts
+				WHERE
+					ChannelId = :ChannelId AND DeleteAt = 0 AND RootId != '') q1
+				ON q1.RootId = q2.Id
 			WHERE
-			    ChannelId = :ChannelId2
-			        AND DeleteAt = 0
+				ChannelId = :ChannelId AND DeleteAt = 0
+			) UNION ALL (
+			SELECT
+				q2.*
+			FROM
+			    Posts q2
+			        INNER JOIN
+			    (SELECT
+			        RootId
+			    FROM
+					Posts
+				WHERE 
+					ChannelId = :ChannelId AND DeleteAt = 0 AND RootId != '') q1
+				ON q1.RootId = q2.RootId
+			WHERE
+				ChannelId = :ChannelId AND DeleteAt = 0
+			)
 			ORDER BY CreateAt`,
-			map[string]interface{}{"ChannelId1": channelId, "Offset": offset, "Limit": limit, "ChannelId2": channelId})
+			map[string]interface{}{"ChannelId": channelId, "Offset": offset, "Limit": limit})
 		if err != nil {
 			result.Err = model.NewAppError("SqlPostStore.GetLinearPosts", "store.sql_post.get_parents_posts.app_error", nil, "channelId="+channelId+err.Error(), http.StatusInternalServerError)
 		} else {
