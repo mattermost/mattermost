@@ -1902,6 +1902,54 @@ func TestRevokeSessions(t *testing.T) {
 	CheckNoError(t, resp)
 }
 
+func TestRevokeAllSessions(t *testing.T) {
+	th := Setup().InitBasic()
+	defer TearDown()
+	Client := th.Client
+
+	user := th.BasicUser
+	Client.Login(user.Email, user.Password)
+
+	_, resp := Client.RevokeAllSessions(th.BasicUser2.Id)
+	CheckForbiddenStatus(t, resp)
+
+	th.InitSystemAdmin()
+
+	_, resp = Client.RevokeAllSessions("junk" + user.Id)
+	CheckBadRequestStatus(t, resp)
+
+	status, resp := Client.RevokeAllSessions(user.Id)
+	if status == false {
+		t.Fatal("user all sessions revoke unsuccessful")
+	}
+	CheckNoError(t, resp)
+
+	Client.Logout()
+	_, resp = Client.RevokeAllSessions(user.Id)
+	CheckUnauthorizedStatus(t, resp)
+
+	// log in twice to get multiple sessions
+	Client.Login(user.Email, user.Password)
+	ClientOnAnotherBrowser := Setup().InitBasic().InitSystemAdmin().Client
+	ClientOnAnotherBrowser.Login(user.Email, user.Password)
+
+	sessions, _ := Client.GetSessions(user.Id, "")
+	if len(sessions) != 2 {
+		t.Fatal("2 sessions should exist")
+	}
+
+	_, resp = Client.RevokeAllSessions(user.Id)
+	CheckNoError(t, resp)
+
+	sessions, _ = th.SystemAdminClient.GetSessions(user.Id, "")
+	if len(sessions) != 0 {
+		t.Fatal("no sessions should exist for user")
+	}
+
+	_, resp = Client.RevokeAllSessions(user.Id)
+	CheckUnauthorizedStatus(t, resp)
+}
+
 func TestAttachDeviceId(t *testing.T) {
 	th := Setup().InitBasic()
 	defer TearDown()
