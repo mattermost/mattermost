@@ -13,7 +13,7 @@ import (
 
 func (a *App) SyncLdap() {
 	a.Go(func() {
-		if utils.IsLicensed() && *utils.License().Features.LDAP && *utils.Cfg.LdapSettings.Enable {
+		if utils.IsLicensed() && *utils.License().Features.LDAP && *utils.Cfg.LdapSettings.EnableSync {
 			if ldapI := a.Ldap; ldapI != nil {
 				ldapI.StartSynchronizeJob(false)
 			} else {

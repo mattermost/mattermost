@@ -388,6 +388,7 @@ type ClientRequirements struct {
 type LdapSettings struct {
 	// Basic
 	Enable             *bool
+	EnableSync         *bool
 	LdapServer         *string
 	LdapPort           *int
 	ConnectionSecurity *string
@@ -433,7 +434,9 @@ type LocalizationSettings struct {
 
 type SamlSettings struct {
 	// Basic
-	Enable  *bool
+	Enable             *bool
+	EnableSyncWithLdap *bool
+
 	Verify  *bool
 	Encrypt *bool
 
@@ -1042,6 +1045,12 @@ func (o *Config) SetDefaults() {
 		*o.LdapSettings.Enable = false
 	}
 
+	// When unset should default to LDAP Enabled
+	if o.LdapSettings.EnableSync == nil {
+		o.LdapSettings.EnableSync = new(bool)
+		*o.LdapSettings.EnableSync = *o.LdapSettings.Enable
+	}
+
 	if o.LdapSettings.LdapServer == nil {
 		o.LdapSettings.LdapServer = new(string)
 		*o.LdapSettings.LdapServer = ""
@@ -1317,6 +1326,11 @@ func (o *Config) SetDefaults() {
 	if o.SamlSettings.Enable == nil {
 		o.SamlSettings.Enable = new(bool)
 		*o.SamlSettings.Enable = false
+	}
+
+	if o.SamlSettings.EnableSyncWithLdap == nil {
+		o.SamlSettings.EnableSyncWithLdap = new(bool)
+		*o.SamlSettings.EnableSyncWithLdap = false
 	}
 
 	if o.SamlSettings.Verify == nil {
