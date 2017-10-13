@@ -84,7 +84,7 @@ func TestCreateTeam(t *testing.T) {
 
 func TestCreateTeamSanitization(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
-	defer th.TearDown()
+	defer TearDown()
 
 	// Non-admin users can create a team, but they become a team admin by doing so
 
@@ -174,7 +174,7 @@ func TestGetTeam(t *testing.T) {
 
 func TestGetTeamSanitization(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
-	defer th.TearDown()
+	defer TearDown()
 
 	team, resp := th.Client.CreateTeam(&model.Team{
 		DisplayName:    t.Name() + "_1",
@@ -186,7 +186,7 @@ func TestGetTeamSanitization(t *testing.T) {
 	CheckNoError(t, resp)
 
 	t.Run("team user", func(t *testing.T) {
-		th.LinkUserToTeam(th.BasicUser2, team)
+		LinkUserToTeam(th.BasicUser2, team)
 
 		client := th.CreateClient()
 		th.LoginBasic2WithClient(client)
@@ -355,7 +355,7 @@ func TestUpdateTeam(t *testing.T) {
 
 func TestUpdateTeamSanitization(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
-	defer th.TearDown()
+	defer TearDown()
 
 	team, resp := th.Client.CreateTeam(&model.Team{
 		DisplayName:    t.Name() + "_1",
@@ -459,7 +459,7 @@ func TestPatchTeam(t *testing.T) {
 
 func TestPatchTeamSanitization(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
-	defer th.TearDown()
+	defer TearDown()
 
 	team, resp := th.Client.CreateTeam(&model.Team{
 		DisplayName:    t.Name() + "_1",
@@ -628,7 +628,7 @@ func TestGetAllTeams(t *testing.T) {
 
 func TestGetAllTeamsSanitization(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
-	defer th.TearDown()
+	defer TearDown()
 
 	team, resp := th.Client.CreateTeam(&model.Team{
 		DisplayName:     t.Name() + "_1",
@@ -743,7 +743,7 @@ func TestGetTeamByName(t *testing.T) {
 
 func TestGetTeamByNameSanitization(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
-	defer th.TearDown()
+	defer TearDown()
 
 	team, resp := th.Client.CreateTeam(&model.Team{
 		DisplayName:    t.Name() + "_1",
@@ -755,7 +755,7 @@ func TestGetTeamByNameSanitization(t *testing.T) {
 	CheckNoError(t, resp)
 
 	t.Run("team user", func(t *testing.T) {
-		th.LinkUserToTeam(th.BasicUser2, team)
+		LinkUserToTeam(th.BasicUser2, team)
 
 		client := th.CreateClient()
 		th.LoginBasic2WithClient(client)
@@ -874,7 +874,7 @@ func TestSearchAllTeams(t *testing.T) {
 
 func TestSearchAllTeamsSanitization(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
-	defer th.TearDown()
+	defer TearDown()
 
 	team, resp := th.Client.CreateTeam(&model.Team{
 		DisplayName:    t.Name() + "_1",
@@ -909,7 +909,7 @@ func TestSearchAllTeamsSanitization(t *testing.T) {
 	})
 
 	t.Run("team user", func(t *testing.T) {
-		th.LinkUserToTeam(th.BasicUser2, team)
+		LinkUserToTeam(th.BasicUser2, team)
 
 		client := th.CreateClient()
 		th.LoginBasic2WithClient(client)
@@ -996,7 +996,7 @@ func TestGetTeamsForUser(t *testing.T) {
 
 func TestGetTeamsForUserSanitization(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
-	defer th.TearDown()
+	defer TearDown()
 
 	team, resp := th.Client.CreateTeam(&model.Team{
 		DisplayName:    t.Name() + "_1",
@@ -1016,8 +1016,8 @@ func TestGetTeamsForUserSanitization(t *testing.T) {
 	CheckNoError(t, resp)
 
 	t.Run("team user", func(t *testing.T) {
-		th.LinkUserToTeam(th.BasicUser2, team)
-		th.LinkUserToTeam(th.BasicUser2, team2)
+		LinkUserToTeam(th.BasicUser2, team)
+		LinkUserToTeam(th.BasicUser2, team2)
 
 		client := th.CreateClient()
 		th.LoginBasic2WithClient(client)

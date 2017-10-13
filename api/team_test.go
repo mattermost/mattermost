@@ -57,7 +57,6 @@ func TestCreateTeam(t *testing.T) {
 
 func TestCreateTeamSanitization(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
-	defer th.TearDown()
 
 	// Non-admin users can create a team, but they become a team admin by doing so
 
@@ -291,7 +290,6 @@ func TestGetAllTeams(t *testing.T) {
 
 func TestGetAllTeamsSanitization(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
-	defer th.TearDown()
 
 	var team *model.Team
 	if res, err := th.BasicClient.CreateTeam(&model.Team{
@@ -403,7 +401,6 @@ func TestGetAllTeamListings(t *testing.T) {
 
 func TestGetAllTeamListingsSanitization(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
-	defer th.TearDown()
 
 	var team *model.Team
 	if res, err := th.BasicClient.CreateTeam(&model.Team{
@@ -644,7 +641,6 @@ func TestUpdateTeamDisplayName(t *testing.T) {
 
 func TestUpdateTeamSanitization(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
-	defer th.TearDown()
 
 	var team *model.Team
 	if res, err := th.BasicClient.CreateTeam(&model.Team{
@@ -747,7 +743,6 @@ func TestGetMyTeam(t *testing.T) {
 
 func TestGetMyTeamSanitization(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
-	defer th.TearDown()
 
 	var team *model.Team
 	if res, err := th.BasicClient.CreateTeam(&model.Team{
@@ -763,7 +758,7 @@ func TestGetMyTeamSanitization(t *testing.T) {
 	}
 
 	t.Run("team user", func(t *testing.T) {
-		th.LinkUserToTeam(th.BasicUser2, team)
+		LinkUserToTeam(th.BasicUser2, team)
 
 		client := th.CreateClient()
 		client.Must(client.Login(th.BasicUser2.Email, th.BasicUser2.Password))
@@ -1154,7 +1149,6 @@ func TestGetTeamByName(t *testing.T) {
 
 func TestGetTeamByNameSanitization(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
-	defer th.TearDown()
 
 	var team *model.Team
 	if res, err := th.BasicClient.CreateTeam(&model.Team{
@@ -1170,7 +1164,7 @@ func TestGetTeamByNameSanitization(t *testing.T) {
 	}
 
 	t.Run("team user", func(t *testing.T) {
-		th.LinkUserToTeam(th.BasicUser2, team)
+		LinkUserToTeam(th.BasicUser2, team)
 
 		client := th.CreateClient()
 		client.Must(client.Login(th.BasicUser2.Email, th.BasicUser2.Password))
