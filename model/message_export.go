@@ -45,9 +45,9 @@ type MessageExport struct {
 	PostHashtags   *string         `json:"post_hashtags"`
 	PostFileIds    StringArray     `json:"post_file_ids,omitempty"`
 
-	// TODO: because of the structure of the query in sql_compliance_store, we only get a result whenever a user sends
-	// 		 a message, which makes ChannelMember unnecessary, because the LastViewed at time is implicitly the time at
-	// 		 which the message was sent... but I don't want a record for every single message viewed event, do I?
-	ChannelMemberLastViewedAt *int64 `json:"channel_member_last_viewed_at"`
-	ChannelMemberLastUpdateAt *int64 `json:"channel_member_last_update_at"`
+	// only non-null if PostType is system_add_to_channel
+	AddedUserEmail *string `json:"added_user_email"`
+
+	// only non-null if PostType is system_remove_from_channel
+	RemovedUserEmail *string `json:"removed_user_email"`
 }

@@ -241,8 +241,6 @@ func (s SqlComplianceStore) MessageExport(after int64, limit int64) store.StoreC
 				Channels.Header AS ChannelHeader,
 				Channels.Purpose AS ChannelPurpose,
 				Channels.LastPostAt AS ChannelLastPostAt,
-				ChannelMembers.LastViewedAt AS ChannelMemberLastViewedAt,
-				ChannelMembers.LastUpdateAt AS ChannelMemberLastUpdateAt,
 				Users.Id AS UserId,
 				Users.CreateAt AS UserCreateAt,
 				Users.UpdateAt AS UserUpdateAt,
@@ -259,11 +257,18 @@ func (s SqlComplianceStore) MessageExport(after int64, limit int64) store.StoreC
 				Teams.DisplayName AS TeamDisplayName,
 				Teams.Name AS TeamName,
 				Teams.Description AS TeamDescription,
-				Teams.AllowOpenInvite AS TeamAllowOpenInvite
+				Teams.AllowOpenInvite AS TeamAllowOpenInvite,
+				CASE
+    				WHEN Posts.Type = 'system_add_to_channel'
+    				THEN (SELECT Email FROM Users WHERE Username = JSON_UNQUOTE(JSON_EXTRACT(CAST(Posts.Props AS JSON), '$.addedUsername')))
+    				ELSE NULL END AS AddedUserEmail,
+  				CASE
+    				WHEN Posts.Type = 'system_remove_from_channel'
+    				THEN (SELECT Email FROM Users WHERE Username = JSON_UNQUOTE(JSON_EXTRACT(CAST(Posts.Props AS JSON), '$.removedUsername')))
+    				ELSE NULL END AS RemovedUserEmail
 			FROM
 				Posts
 				LEFT OUTER JOIN Channels ON Posts.ChannelId = Channels.Id
-				LEFT OUTER JOIN ChannelMembers ON Posts.ChannelId = ChannelMembers.ChannelId AND Posts.UserId = ChannelMembers.UserId
 				LEFT OUTER JOIN Users ON Posts.UserId = Users.Id
 				LEFT OUTER JOIN Teams ON Channels.TeamId = Teams.Id
 			WHERE
