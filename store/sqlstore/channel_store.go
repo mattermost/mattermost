@@ -82,7 +82,6 @@ func NewSqlChannelStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface)
 		tablem.ColMap("UserId").SetMaxSize(26)
 		tablem.ColMap("Roles").SetMaxSize(64)
 		tablem.ColMap("NotifyProps").SetMaxSize(2000)
-		tablem.ColMap("Mute").SetMaxSize(1)
 	}
 
 	return s

@@ -4547,6 +4547,10 @@
     "translation": "Ungültiger E-Mail-Benachrichtigungswert"
   },
   {
+    "id": "model.channel_member.is_valid.mute_value.app_error",
+    "translation": "Ungültiger Wert für Stummschaltung"
+  },
+  {
     "id": "model.channel_member.is_valid.notify_level.app_error",
     "translation": "Ungültige Benachrichtigungsstufe"
   },

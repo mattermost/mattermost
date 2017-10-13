@@ -4567,6 +4567,10 @@
     "translation": "Invalid email notification value"
   },
   {
+    "id": "model.channel_member.is_valid.mute_value.app_error",
+    "translation": "Invalid muting value"
+  },
+  {
     "id": "model.channel_member.is_valid.notify_level.app_error",
     "translation": "Invalid notify level"
   },
