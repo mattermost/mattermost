@@ -5576,6 +5576,10 @@
     "translation": "Der Befehl konnte nicht aktualisiert werden"
   },
   {
+    "id": "store.sql_command.get_by_trigger.app_error",
+    "translation": "Der Befehl konnte nicht aufgelöst werden"
+  },
+  {
     "id": "store.sql_command_webhooks.get.app_error",
     "translation": "Der Webhook konnte nicht gefunden werden"
   },
