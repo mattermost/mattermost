@@ -1,0 +1,22 @@
+{{define "complete_saml_body"}}
+
+<html>
+	<head>
+		<script>
+			document.addEventListener("DOMContentLoaded", function(event) {
+				window.opener.postMessage({
+					value: {{.Token}},
+					error: {{.Error}}
+				}, "*");
+			});
+
+			// TODO: if tabs functionality works
+			// window.close();
+		</script>
+	</head>
+	<body>
+		Login Successful
+	</body>
+</html>
+
+{{end}}

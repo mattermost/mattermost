@@ -16,6 +16,8 @@ import (
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
+	"github.com/mattermost/mattermost-server/utils"
+	"html/template"
 )
 
 func (api *API) InitUser() {
@@ -63,7 +65,8 @@ func (api *API) InitUser() {
 	api.BaseRoutes.NeedUser.Handle("/image", api.ApiUserRequiredTrustRequester(getProfileImage)).Methods("GET")
 	api.BaseRoutes.NeedUser.Handle("/update_roles", api.ApiUserRequired(updateRoles)).Methods("POST")
 
-	api.BaseRoutes.Root.Handle("/login/sso/saml", api.AppHandlerIndependent(loginWithSaml)).Methods("GET")
+	//api.BaseRoutes.Root.Handle("/login/sso/saml", api.AppHandlerIndependent(loginWithSaml)).Methods("GET")
+	api.BaseRoutes.Root.Handle("/login/sso/saml", api.AppHandlerIndependent(loginWithFaml)).Methods("GET")
 	api.BaseRoutes.Root.Handle("/login/sso/saml", api.AppHandlerIndependent(completeSaml)).Methods("POST")
 }
 
@@ -1152,6 +1155,8 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 		if action == model.OAUTH_ACTION_MOBILE {
 			err.Translate(c.T)
 			w.Write([]byte(err.ToJson()))
+		} else if action == model.OAUTH_ACTION_CLIENT {
+			// TODO: c.Session.Token
 		} else {
 			c.Err = err
 			c.Err.StatusCode = http.StatusFound
@@ -1203,6 +1208,59 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 		} else {
 			http.Redirect(w, r, app.GetProtocol(r)+"://"+r.Host, http.StatusFound)
 		}
+	}
+}
+
+// This bypasses loginWithSaml and completeWithSaml for local testing
+func loginWithFaml(c *Context, w http.ResponseWriter, r *http.Request) {
+	action := r.URL.Query().Get("action")
+
+	email := r.URL.Query().Get("email")
+
+	// TODO: keep comment out for now, will be moved to completeSaml
+	user, err := c.App.GetUserByEmail(email)
+	if err != nil {
+		c.Err = err
+		return
+	} else {
+		sanitizeProfile(c, user)
+	}
+	doLogin(c, w, r, user, "")
+
+	if action == model.OAUTH_ACTION_MOBILE {
+		ReturnStatusOK(w)
+	} else if action == model.OAUTH_ACTION_CLIENT {
+		t := template.New("complete_saml_body")
+		t, err := t.ParseFiles("templates/complete_saml_body.html")
+		if err != nil {
+			c.Err = model.NewAppError("completeSaml", "api.user.saml.app_error", nil, "err="+err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		w.Header().Set("Content-Type", "text/html")
+		w.WriteHeader(http.StatusOK)
+
+		var errMessage string
+		if len(c.Session.Token) == 0 {
+			errMessage = "Failed loging"
+		}
+
+		data := struct {
+			Token string
+			Error string
+		}{
+			c.Session.Token,
+			errMessage,
+		}
+
+		if err := t.Execute(w, data); err != nil {
+			c.Err = model.NewAppError("completeSaml", "api.user.saml.app_error", nil, "err="+err.Error(), http.StatusInternalServerError)
+			return
+		}
+	} else {
+		// TODO: This error will not be neccessary when we move to loginSaml and completeSaml
+		c.Err = model.NewAppError("stupidsaml", "api.user.authorize_oauth_user.invalid_state.app_error", nil, "THIS IS A FAKE ERROR", http.StatusConflict)
+		http.Redirect(w, r, "https://google.com", http.StatusFound)
 	}
 }
 
