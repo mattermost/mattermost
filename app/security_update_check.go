@@ -80,8 +80,7 @@ func (a *App) DoSecurityUpdateCheck() {
 				}
 
 				bulletins := model.SecurityBulletinsFromJson(res.Body)
-				ioutil.ReadAll(res.Body)
-				res.Body.Close()
+				consumeAndClose(res)
 
 				for _, bulletin := range bulletins {
 					if bulletin.AppliesToVersion == model.CurrentVersion {

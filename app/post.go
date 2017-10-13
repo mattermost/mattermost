@@ -676,7 +676,7 @@ func GetOpenGraphMetadata(url string) *opengraph.OpenGraph {
 		l4g.Error("GetOpenGraphMetadata request failed for url=%v with err=%v", url, err.Error())
 		return og
 	}
-	defer res.Body.Close()
+	defer consumeAndClose(res)
 
 	if err := og.ProcessHTML(res.Body); err != nil {
 		l4g.Error("GetOpenGraphMetadata processing failed for url=%v with err=%v", url, err.Error())
@@ -712,7 +712,7 @@ func (a *App) DoPostAction(postId string, actionId string, userId string) *model
 	if err != nil {
 		return model.NewAppError("DoPostAction", "api.post.do_action.action_integration.app_error", nil, "err="+err.Error(), http.StatusBadRequest)
 	}
-	defer resp.Body.Close()
+	defer consumeAndClose(resp)
 
 	if resp.StatusCode != http.StatusOK {
 		return model.NewAppError("DoPostAction", "api.post.do_action.action_integration.app_error", nil, fmt.Sprintf("status=%v", resp.StatusCode), http.StatusBadRequest)

@@ -4,7 +4,6 @@
 package sqlstore
 
 import (
-	"flag"
 	"os"
 	"sync"
 	"testing"
@@ -99,8 +98,6 @@ func tearDownStores() {
 }
 
 func TestMain(m *testing.M) {
-	flag.Parse()
-
 	utils.TranslationsPreInit()
 	utils.LoadConfig("config.json")
 	utils.InitTranslations(utils.Cfg.LocalizationSettings)

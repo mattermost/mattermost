@@ -1,5 +1,7 @@
 .PHONY: build package run stop run-client run-server stop-client stop-server restart restart-server restart-client start-docker clean-dist clean nuke check-style check-client-style check-server-style check-unit-tests test dist setup-mac prepare-enteprise run-client-tests setup-run-client-tests cleanup-run-client-tests test-client build-linux build-osx build-windows internal-test-web-client vet run-server-for-web-client-tests
 
+ROOT := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
+
 # Build Flags
 BUILD_NUMBER ?= $(BUILD_NUMBER:)
 BUILD_DATE = $(shell date -u)
@@ -54,6 +56,8 @@ GO_LINKER_FLAGS ?= -ldflags \
 # GOOS/GOARCH of the build host, used to determine whether we're cross-compiling or not
 BUILDER_GOOS_GOARCH="$(shell $(GO) env GOOS)_$(shell $(GO) env GOARCH)"
 
+PLATFORM_FILES=$(shell ls -1 ./cmd/platform/*.go | grep -v _test.go)
+
 # Output paths
 DIST_ROOT=dist
 DIST_PATH=$(DIST_ROOT)/mattermost
@@ -62,7 +66,7 @@ DIST_PATH=$(DIST_ROOT)/mattermost
 TESTS=.
 
 TESTFLAGS ?= -short
-TESTFLAGSEE ?= -test.short
+TESTFLAGSEE ?= -short
 
 # Packages lists
 TE_PACKAGES=$(shell go list ./... | grep -v vendor)
@@ -306,39 +310,19 @@ do-cover-file:
 
 test-te: do-cover-file
 	@echo Testing TE
-
-
 	@echo "Packages to test: "$(TE_PACKAGES)
-
-	@for package in $(TE_PACKAGES); do \
-		echo "Testing "$$package; \
-		$(GO) test $(GOFLAGS) -run=$(TESTS) $(TESTFLAGS) -test.v -test.timeout=2000s -covermode=count -coverprofile=cprofile.out -coverpkg=$(ALL_PACKAGES_COMMA) $$package || exit 1; \
-		if [ -f cprofile.out ]; then \
-			tail -n +2 cprofile.out >> cover.out; \
-			rm cprofile.out; \
-		fi; \
-	done
+	find . -name 'cprofile.out' -exec sh -c 'rm "{}"' \;
+	$(GO) test $(GOFLAGS) -run=$(TESTS) $(TESTFLAGS) -p 1 -v -timeout=2000s -covermode=count -coverpkg=$(ALL_PACKAGES_COMMA) -exec $(ROOT)/scripts/test-xprog.sh $(TE_PACKAGES)
+	find . -name 'cprofile.out' -exec sh -c 'tail -n +2 {} >> cover.out ; rm "{}"' \;
 
 test-ee: do-cover-file
 	@echo Testing EE
 
 ifeq ($(BUILD_ENTERPRISE_READY),true)
 	@echo "Packages to test: "$(EE_PACKAGES)
-
-	for package in $(EE_PACKAGES); do \
-		echo "Testing "$$package; \
-		$(GO) test $(GOFLAGS) -run=$(TESTS) -covermode=count -coverpkg=$(ALL_PACKAGES_COMMA) -c $$package || exit 1; \
-		if [ -f $$(basename $$package).test ]; then \
-			echo "Testing "$$package; \
-			./$$(basename $$package).test -test.v $(TESTFLAGSEE) -test.timeout=2000s -test.coverprofile=cprofile.out || exit 1; \
-			if [ -f cprofile.out ]; then \
-				tail -n +2 cprofile.out >> cover.out; \
-				rm cprofile.out; \
-			fi; \
-			rm -r $$(basename $$package).test; \
-		fi; \
-	done
-
+	find . -name 'cprofile.out' -exec sh -c 'rm "{}"' \;
+	$(GO) test $(GOFLAGS) -run=$(TESTS) $(TESTFLAGSEE) -p 1 -v -timeout=2000s -covermode=count -coverpkg=$(ALL_PACKAGES_COMMA) -exec $(ROOT)/scripts/test-xprog.sh $(EE_PACKAGES)
+	find . -name 'cprofile.out' -exec sh -c 'tail -n +2 {} >> cover.out ; rm "{}"' \;
 	rm -f config/*.crt
 	rm -f config/*.key
 endif
@@ -346,10 +330,10 @@ endif
 test-server: test-te test-ee
 
 internal-test-web-client:
-	$(GO) run $(GOFLAGS) ./cmd/platform/*go test web_client_tests
+	$(GO) run $(GOFLAGS) $(PLATFORM_FILES) test web_client_tests
 
 run-server-for-web-client-tests:
-	$(GO) run $(GOFLAGS) ./cmd/platform/*go test web_client_tests_server
+	$(GO) run $(GOFLAGS) $(PLATFORM_FILES) test web_client_tests_server
 
 test-client:
 	@echo Running client tests
@@ -368,13 +352,13 @@ run-server: start-docker
 	@echo Running mattermost for development
 
 	mkdir -p $(BUILD_WEBAPP_DIR)/dist/files
-	$(GO) run $(GOFLAGS) $(GO_LINKER_FLAGS) ./cmd/platform/*.go --disableconfigwatch &
+	$(GO) run $(GOFLAGS) $(GO_LINKER_FLAGS) $(PLATFORM_FILES) --disableconfigwatch &
 
 run-cli: start-docker
 	@echo Running mattermost for development
 	@echo Example should be like 'make ARGS="-version" run-cli'
 
-	$(GO) run $(GOFLAGS) $(GO_LINKER_FLAGS) ./cmd/platform/*.go ${ARGS}
+	$(GO) run $(GOFLAGS) $(GO_LINKER_FLAGS) $(PLATFORM_FILES) ${ARGS}
 
 run-client:
 	@echo Running mattermost client for development
@@ -425,7 +409,7 @@ restart-client: | stop-client run-client
 
 run-job-server:
 	@echo Running job server for development
-	$(GO) run $(GOFLAGS) $(GO_LINKER_FLAGS) ./cmd/platform/*.go jobserver --disableconfigwatch &
+	$(GO) run $(GOFLAGS) $(GO_LINKER_FLAGS) $(PLATFORM_FILES) jobserver --disableconfigwatch &
 
 clean: stop-docker
 	@echo Cleaning
