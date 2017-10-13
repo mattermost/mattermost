@@ -999,6 +999,26 @@
     "translation": "achselzucken"
   },
   {
+    "id": "api.command_mute.desc",
+    "translation": "Deaktiviert Benachrichtigungen für diesen Kanale"
+  },
+  {
+    "id": "api.command_mute.name",
+    "translation": "stummschalten"
+  },
+  {
+    "id": "api.command_mute.error",
+    "translation": "Es ist ein Fehler beim Stummschalten des Kanals {{.Channel}} aufgetreten."
+  },
+  {
+    "id": "api.command_mute.success_mute",
+    "translation": "Sie werden keine Benachrichtigungen mehr für den Kanal {{.Channel}} erhalten, bis die Stummschaltung für den Kanal aufgehoben wurde."
+  },
+  {
+    "id": "api.command_mute.success_unmute",
+    "translation": "Sie werden nun wieder Benachrichtigungen für den Kanal {{.Channel}} erhalten."
+  },
+  {
     "id": "api.compliance.init.debug",
     "translation": "Initialisiere Compliance-API-Routen"
   },

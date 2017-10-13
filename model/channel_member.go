@@ -35,6 +35,7 @@ type ChannelMember struct {
 	MsgCount     int64     `json:"msg_count"`
 	MentionCount int64     `json:"mention_count"`
 	NotifyProps  StringMap `json:"notify_props"`
+	Mute         int64     `json:"mute"`
 	LastUpdateAt int64     `json:"last_update_at"`
 }
 
