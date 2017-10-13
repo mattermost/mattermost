@@ -43,3 +43,11 @@ export function isUrlSafe(url) {
         !unescaped.startsWith('vbscript:') &&
         !unescaped.startsWith('data:');
 }
+
+export function useSafeUrl(url, defaultUrl = '') {
+    if (isUrlSafe(url)) {
+        return url;
+    }
+
+    return defaultUrl;
+}

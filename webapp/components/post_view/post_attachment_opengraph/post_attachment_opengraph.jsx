@@ -7,9 +7,10 @@ import PropTypes from 'prop-types';
 import {postListScrollChange} from 'actions/global_actions.jsx';
 import {updatePost} from 'actions/post_actions.jsx';
 
-import * as Utils from 'utils/utils.jsx';
 import * as CommonUtils from 'utils/commons.jsx';
 import {PostTypes} from 'utils/constants.jsx';
+import {useSafeUrl} from 'utils/url.jsx';
+import * as Utils from 'utils/utils.jsx';
 
 export default class PostAttachmentOpenGraph extends React.PureComponent {
     static propTypes = {
@@ -50,7 +51,7 @@ export default class PostAttachmentOpenGraph extends React.PureComponent {
     constructor(props) {
         super(props);
         this.largeImageMinWidth = 150;
-        this.imageDimentions = {  // Image dimentions in pixels.
+        this.imageDimentions = { // Image dimentions in pixels.
             height: 80,
             width: 80
         };
@@ -297,7 +298,7 @@ export default class PostAttachmentOpenGraph extends React.PureComponent {
                             >
                                 <a
                                     className='attachment__title-link attachment__title-link--opengraph'
-                                    href={data.url || this.props.link}
+                                    href={useSafeUrl(data.url || this.props.link)}
                                     target='_blank'
                                     rel='noopener noreferrer'
                                     title={data.title || data.url || this.props.link}

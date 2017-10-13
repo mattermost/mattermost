@@ -16,6 +16,7 @@ import TeamMembersModal from './team_members_modal.jsx';
 import AddUsersToTeam from 'components/add_users_to_team';
 
 import {Constants, WebrtcActionTypes} from 'utils/constants.jsx';
+import {useSafeUrl} from 'utils/url.jsx';
 
 import {Dropdown} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
@@ -472,7 +473,7 @@ export default class SidebarHeaderDropdown extends React.Component {
                     <Link
                         target='_blank'
                         rel='noopener noreferrer'
-                        to={global.window.mm_config.AppDownloadLink}
+                        to={useSafeUrl(global.window.mm_config.AppDownloadLink)}
                     >
                         <FormattedMessage
                             id='navbar_dropdown.nativeApps'
