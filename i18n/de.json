@@ -857,7 +857,7 @@
   },
   {
     "id": "api.command_shortcuts.name",
-    "translation": "Tastaturkürzel"
+    "translation": "tastaturkürzel"
   },
   {
     "id": "api.command_shortcuts.unsupported.app_error",
@@ -873,7 +873,7 @@
   },
   {
     "id": "api.command_shrug.name",
-    "translation": "Achselzucken"
+    "translation": "achselzucken"
   },
   {
     "id": "api.compliance.init.debug",
