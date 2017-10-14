@@ -1016,7 +1016,7 @@
   },
   {
     "id": "api.command_mute.success_unmute",
-    "translation": "Sie werden nun wieder Benachrichtigungen für den Kanal {{.Channel}} erhalten."
+    "translation": "Der Kanal {{.Channel}} ist nicht länger stumm geschaltet."
   },
   {
     "id": "api.compliance.init.debug",
