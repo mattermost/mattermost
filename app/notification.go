@@ -163,6 +163,14 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 				}
 			}
 
+			// Remove the user as recipient when the user has muted the channel.
+			if channelMuted, ok := channelMemberNotifyPropsMap[id][model.MUTE_NOTIFY_PROP]; ok {
+				if channelMuted == "true" {
+					l4g.Debug("Channel muted for user_id %v", id)
+					userAllowsEmails = false
+				}
+			}
+
 			//If email verification is required and user email is not verified don't send email.
 			if a.Config().EmailSettings.RequireEmailVerification && !profileMap[id].EmailVerified {
 				l4g.Error("Skipped sending notification email to %v, address not verified. [details: user_id=%v]", profileMap[id].Email, id)
@@ -989,6 +997,10 @@ func DoesNotifyPropsAllowPushNotification(user *model.User, channelNotifyProps m
 	}
 
 	if channelNotify == model.CHANNEL_NOTIFY_MENTION && !wasMentioned {
+		return false
+	}
+
+	if channelNotifyProps[model.MUTE_NOTIFY_PROP] == model.MUTE_NOTIFY_PROP {
 		return false
 	}
 

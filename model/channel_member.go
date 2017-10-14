@@ -149,7 +149,7 @@ func IsSendEmailValid(sendEmail string) bool {
 }
 
 func IsMuteChannelValid(mute string) bool {
-	return mute == "true" || mute == "false"
+	return mute == CHANNEL_NOTIFY_MUTE_ALL || mute == CHANNEL_NOTIFY_MUTE_NONE
 }
 
 func GetDefaultChannelNotifyProps() StringMap {

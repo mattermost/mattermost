@@ -37,14 +37,14 @@ func (me *MuteProvider) DoCommand(a *App, args *model.CommandArgs, message strin
 	var noChannelErr *model.AppError
 
 	if channel, noChannelErr = a.GetChannel(args.ChannelId); noChannelErr != nil {
-		return &model.CommandResponse{Text: args.T("api.command_mute.error", map[string]interface{}{"Channel": channel.Name}), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+		return &model.CommandResponse{Text: args.T("api.command_mute.error", map[string]interface{}{"Channel": channel.DisplayName}), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 	}
 
 	muteChannel := a.ToggleMuteChannel(args.ChannelId, args.UserId)
 
 	if muteChannel {
-		return &model.CommandResponse{Text: args.T("api.command_mute.successmute", map[string]interface{}{"Channel": channel.Name}), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+		return &model.CommandResponse{Text: args.T("api.command_mute.success_mute", map[string]interface{}{"Channel": channel.DisplayName}), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 	} else {
-		return &model.CommandResponse{Text: args.T("api.command_mute.success_unmute", map[string]interface{}{"Channel": channel.Name}), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+		return &model.CommandResponse{Text: args.T("api.command_mute.success_unmute", map[string]interface{}{"Channel": channel.DisplayName}), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 	}
 }
