@@ -12,6 +12,7 @@ import (
 
 func TestUserAccessTokenStore(t *testing.T, ss store.Store) {
 	t.Run("UserAccessTokenSaveGetDelete", func(t *testing.T) { testUserAccessTokenSaveGetDelete(t, ss) })
+	t.Run("UserAccessTokenDisableEnable", func(t *testing.T) { testUserAccessTokenDisableEnable(t, ss) })
 }
 
 func testUserAccessTokenSaveGetDelete(t *testing.T, ss store.Store) {
@@ -85,5 +86,41 @@ func testUserAccessTokenSaveGetDelete(t *testing.T, ss store.Store) {
 
 	if err := (<-ss.UserAccessToken().GetByToken(s2.Token)).Err; err == nil {
 		t.Fatal("should error - access token should be deleted")
+	}
+}
+
+func testUserAccessTokenDisableEnable(t *testing.T, ss store.Store) {
+	uat := &model.UserAccessToken{
+		Token:       model.NewId(),
+		UserId:      model.NewId(),
+		Description: "testtoken",
+	}
+
+	s1 := model.Session{}
+	s1.UserId = uat.UserId
+	s1.Token = uat.Token
+
+	store.Must(ss.Session().Save(&s1))
+
+	if result := <-ss.UserAccessToken().Save(uat); result.Err != nil {
+		t.Fatal(result.Err)
+	}
+
+	if err := (<-ss.UserAccessToken().UpdateTokenDisable(uat.Id)).Err; err != nil {
+		t.Fatal(err)
+	}
+
+	if err := (<-ss.Session().Get(s1.Token)).Err; err == nil {
+		t.Fatal("should error - session should be deleted")
+	}
+
+	s2 := model.Session{}
+	s2.UserId = uat.UserId
+	s2.Token = uat.Token
+
+	store.Must(ss.Session().Save(&s2))
+
+	if err := (<-ss.UserAccessToken().UpdateTokenEnable(uat.Id)).Err; err != nil {
+		t.Fatal(err)
 	}
 }

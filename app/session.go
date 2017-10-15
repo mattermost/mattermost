@@ -268,6 +268,10 @@ func (a *App) createSessionForUserAccessToken(tokenString string) (*model.Sessio
 		return nil, model.NewAppError("createSessionForUserAccessToken", "app.user_access_token.invalid_or_missing", nil, result.Err.Error(), http.StatusUnauthorized)
 	} else {
 		token = result.Data.(*model.UserAccessToken)
+
+		if token.IsActive == false {
+			return nil, model.NewAppError("createSessionForUserAccessToken", "app.user_access_token.invalid_or_missing", nil, "inactive_token", http.StatusUnauthorized)
+		}
 	}
 
 	var user *model.User
@@ -318,6 +322,40 @@ func (a *App) RevokeUserAccessToken(token *model.UserAccessToken) *model.AppErro
 	}
 
 	return a.RevokeSession(session)
+}
+
+func (a *App) DisableUserAccessToken(token *model.UserAccessToken) *model.AppError {
+	var session *model.Session
+	if result := <-a.Srv.Store.Session().Get(token.Token); result.Err == nil {
+		session = result.Data.(*model.Session)
+	}
+
+	if result := <-a.Srv.Store.UserAccessToken().UpdateTokenDisable(token.Id); result.Err != nil {
+		return result.Err
+	}
+
+	if session == nil {
+		return nil
+	}
+
+	return a.RevokeSession(session)
+}
+
+func (a *App) EnableUserAccessToken(token *model.UserAccessToken) *model.AppError {
+	var session *model.Session
+	if result := <-a.Srv.Store.Session().Get(token.Token); result.Err == nil {
+		session = result.Data.(*model.Session)
+	}
+
+	if result := <-a.Srv.Store.UserAccessToken().UpdateTokenEnable(token.Id); result.Err != nil {
+		return result.Err
+	}
+
+	if session == nil {
+		return nil
+	}
+
+	return nil
 }
 
 func (a *App) GetUserAccessTokensForUser(userId string, page, perPage int) ([]*model.UserAccessToken, *model.AppError) {
