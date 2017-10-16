@@ -9,6 +9,7 @@ import * as GlobalActions from 'actions/global_actions.jsx';
 import {trackEvent} from 'actions/diagnostics_actions.jsx';
 
 import {Constants, Preferences} from 'utils/constants.jsx';
+import {useSafeUrl} from 'utils/url.jsx';
 
 import {FormattedMessage, FormattedHTMLMessage} from 'react-intl';
 import {browserHistory} from 'react-router/es6';
@@ -122,6 +123,8 @@ export default class TutorialIntroScreens extends React.Component {
         let appDownloadLink = null;
         let appDownloadImage = null;
         if (global.window.mm_config.AppDownloadLink) {
+            const link = useSafeUrl(global.mm_config.AppDownloadLink);
+
             // not using a FormattedHTMLMessage here since mm_config.AppDownloadLink is configurable and could be used
             // to inject HTML if we're not careful
             appDownloadLink = (
@@ -131,7 +134,7 @@ export default class TutorialIntroScreens extends React.Component {
                     values={{
                         link: (
                             <a
-                                href={global.window.mm_config.AppDownloadLink}
+                                href={link}
                                 target='_blank'
                                 rel='noopener noreferrer'
                             >
@@ -147,7 +150,7 @@ export default class TutorialIntroScreens extends React.Component {
 
             appDownloadImage = (
                 <a
-                    href={global.window.mm_config.AppDownloadLink}
+                    href={link}
                     target='_blank'
                     rel='noopener noreferrer'
                 >
