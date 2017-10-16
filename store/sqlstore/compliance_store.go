@@ -218,7 +218,7 @@ func (s SqlComplianceStore) MessageExport(after int64, limit int64) store.StoreC
 	go func() {
 		props := map[string]interface{}{"StartTime": after, "Limit": limit}
 
-		query :=
+		queryPrefix :=
 			`SELECT
 				Posts.Id AS PostId,
 				Posts.CreateAt AS PostCreateAt,
@@ -257,16 +257,30 @@ func (s SqlComplianceStore) MessageExport(after int64, limit int64) store.StoreC
 				Teams.DisplayName AS TeamDisplayName,
 				Teams.Name AS TeamName,
 				Teams.Description AS TeamDescription,
-				Teams.AllowOpenInvite AS TeamAllowOpenInvite,
-				CASE
-    				WHEN Posts.Type = 'system_add_to_channel'
-    				THEN (SELECT Email FROM Users WHERE Username = JSON_UNQUOTE(JSON_EXTRACT(CAST(Posts.Props AS JSON), '$.addedUsername')))
-    				ELSE NULL END AS AddedUserEmail,
-  				CASE
-    				WHEN Posts.Type = 'system_remove_from_channel'
-    				THEN (SELECT Email FROM Users WHERE Username = JSON_UNQUOTE(JSON_EXTRACT(CAST(Posts.Props AS JSON), '$.removedUsername')))
-    				ELSE NULL END AS RemovedUserEmail
-			FROM
+				Teams.AllowOpenInvite AS TeamAllowOpenInvite, `
+
+		queryMySql :=
+			`CASE
+				WHEN Posts.Type = 'system_add_to_channel'
+				THEN (SELECT Email FROM Users WHERE Username = JSON_UNQUOTE(JSON_EXTRACT(CAST(Posts.Props AS JSON), '$.addedUsername')))
+				ELSE NULL END AS AddedUserEmail,
+			CASE
+				WHEN Posts.Type = 'system_remove_from_channel'
+				THEN (SELECT Email FROM Users WHERE Username = JSON_UNQUOTE(JSON_EXTRACT(CAST(Posts.Props AS JSON), '$.removedUsername')))
+				ELSE NULL END AS RemovedUserEmail `
+
+		queryPostgres :=
+			`CASE
+				WHEN Posts.Type = 'system_add_to_channel'
+				THEN (SELECT Email FROM Users WHERE Username = JSON_EXTRACT_PATH_TEXT(CAST(Posts.Props AS json), 'addedUsername'))
+				ELSE NULL END AS AddedUserEmail,
+			CASE
+				WHEN Posts.Type = 'system_remove_from_channel'
+				THEN (SELECT Email FROM Users WHERE Username = JSON_EXTRACT_PATH_TEXT(CAST(Posts.Props AS json), 'removedUsername'))
+				ELSE NULL END AS RemovedUserEmail `
+
+		querySuffix :=
+			`FROM
 				Posts
 				LEFT OUTER JOIN Channels ON Posts.ChannelId = Channels.Id
 				LEFT OUTER JOIN Users ON Posts.UserId = Users.Id
@@ -279,10 +293,22 @@ func (s SqlComplianceStore) MessageExport(after int64, limit int64) store.StoreC
 		var cposts []*model.MessageExport
 		result := store.StoreResult{}
 
-		if _, err := s.GetReplica().Select(&cposts, query, props); err != nil {
-			result.Err = model.NewAppError("SqlComplianceStore.MessageExport", "store.sql_compliance.message_export.app_error", nil, err.Error(), http.StatusInternalServerError)
+		query := queryPrefix
+		if s.DriverName() != model.DATABASE_DRIVER_MYSQL && s.DriverName() != model.DATABASE_DRIVER_POSTGRES {
+			result.Err = model.NewAppError("SqlPreferenceStore.save", "store.sql_preference.save.missing_driver.app_error", nil, "Failed to update preference because of missing driver", http.StatusNotImplemented)
 		} else {
-			result.Data = cposts
+			if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
+				query += queryMySql
+			} else if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+				query += queryPostgres
+			}
+			query += querySuffix
+
+			if _, err := s.GetReplica().Select(&cposts, query, props); err != nil {
+				result.Err = model.NewAppError("SqlComplianceStore.MessageExport", "store.sql_compliance.message_export.app_error", nil, err.Error(), http.StatusInternalServerError)
+			} else {
+				result.Data = cposts
+			}
 		}
 
 		storeChannel <- result

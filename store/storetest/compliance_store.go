@@ -17,6 +17,7 @@ func TestComplianceStore(t *testing.T, ss store.Store) {
 	t.Run("ComplianceExport", func(t *testing.T) { testComplianceExport(t, ss) })
 	t.Run("ComplianceExportDirectMessages", func(t *testing.T) { testComplianceExportDirectMessages(t, ss) })
 	t.Run("MessageExport", func(t *testing.T) { testComplianceMessageExport(t, ss) })
+	t.Run("MessageExportJoinAndLeave", func(t *testing.T) { testComplianceMessageExportJoinAndLeave(t, ss) })
 }
 
 func testComplianceStore(t *testing.T, ss store.Store) {
@@ -396,27 +397,6 @@ func testComplianceMessageExport(t *testing.T, ss store.Store) {
 	}
 	post3 = store.Must(ss.Post().Save(post3)).(*model.Post)
 
-	// user2 has seen all messages in the public channel
-	channelMember1 := &model.ChannelMember{
-		ChannelId:    channel.Id,
-		UserId:       user2.Id,
-		LastViewedAt: startTime + 30,
-		LastUpdateAt: startTime + 30,
-		NotifyProps:  model.GetDefaultChannelNotifyProps(),
-	}
-	channelMember1 = store.Must(ss.Channel().SaveMember(channelMember1)).(*model.ChannelMember)
-
-	// a ChannelMember record is implicitly created for all users in a DM, so we need to update the existing record for
-	// user2 to make it look like they've read the message that user1 sent
-	channelMember2 := &model.ChannelMember{
-		ChannelId:    directMessageChannel.Id,
-		UserId:       user2.Id,
-		LastViewedAt: startTime + 30,
-		LastUpdateAt: startTime + 30,
-		NotifyProps:  model.GetDefaultChannelNotifyProps(),
-	}
-	channelMember2 = store.Must(ss.Channel().UpdateMember(channelMember2)).(*model.ChannelMember)
-
 	// fetch the message exports for all three posts that user1 sent
 	messageExportMap := map[string]model.MessageExport{}
 	if r1 := <-ss.Compliance().MessageExport(startTime-10, 10); r1.Err != nil {
@@ -435,19 +415,110 @@ func testComplianceMessageExport(t *testing.T, ss store.Store) {
 	assert.Equal(t, channel.Id, *messageExportMap[post1.Id].ChannelId)
 	assert.Equal(t, user1.Id, *messageExportMap[post1.Id].UserId)
 	assert.Equal(t, team.Id, *messageExportMap[post1.Id].TeamId)
-	assert.Empty(t, messageExportMap[post1.Id].ChannelMemberLastViewedAt)
 
 	// post2 was made by user1 in channel1 and team1, but has no channel member because user1 hasn't viewed the channel
 	assert.Equal(t, post2.Message, *messageExportMap[post2.Id].PostMessage)
 	assert.Equal(t, channel.Id, *messageExportMap[post2.Id].ChannelId)
 	assert.Equal(t, user1.Id, *messageExportMap[post2.Id].UserId)
 	assert.Equal(t, team.Id, *messageExportMap[post2.Id].TeamId)
-	assert.Empty(t, messageExportMap[post2.Id].ChannelMemberLastViewedAt)
 
 	// post3 is a DM, so it has no team info, and channel member records were implicitly created for both users
 	assert.Equal(t, post3.Message, *messageExportMap[post3.Id].PostMessage)
 	assert.Equal(t, directMessageChannel.Id, *messageExportMap[post3.Id].ChannelId)
 	assert.Equal(t, user1.Id, *messageExportMap[post3.Id].UserId)
 	assert.Empty(t, messageExportMap[post3.Id].TeamId)
-	assert.Equal(t, int64(0), *messageExportMap[post3.Id].ChannelMemberLastViewedAt)
+}
+
+// Ensures that system_add_to_channel and system_remove_from_channel message types correctly capture affected user emails
+func testComplianceMessageExportJoinAndLeave(t *testing.T, ss store.Store) {
+	// get the starting number of message export entries
+	startTime := model.GetMillis()
+	var numMessageExports = 0
+	if r1 := <-ss.Compliance().MessageExport(startTime-10, 10); r1.Err != nil {
+		t.Fatal(r1.Err)
+	} else {
+		messages := r1.Data.([]*model.MessageExport)
+		numMessageExports = len(messages)
+	}
+
+	// need a team
+	team := &model.Team{
+		DisplayName: model.NewId(),
+		Name:        model.NewId(),
+		Email:       model.NewId() + "@mattermost.com",
+		Type:        model.TEAM_OPEN,
+	}
+	team = store.Must(ss.Team().Save(team)).(*model.Team)
+
+	// the user doing the inviting
+	invitingUser := &model.User{
+		Email:    model.NewId() + "@mattermost.com",
+		Username: model.NewId(),
+	}
+	invitingUser = store.Must(ss.User().Save(invitingUser)).(*model.User)
+	store.Must(ss.Team().SaveMember(&model.TeamMember{
+		TeamId: team.Id,
+		UserId: invitingUser.Id,
+	}))
+
+	// the user being invited
+	invitedUser := &model.User{
+		Email:    model.NewId() + "@mattermost.com",
+		Username: model.NewId(),
+	}
+	invitedUser = store.Must(ss.User().Save(invitedUser)).(*model.User)
+	store.Must(ss.Team().SaveMember(&model.TeamMember{
+		TeamId: team.Id,
+		UserId: invitedUser.Id,
+	}))
+
+	// need a public channel
+	channel := &model.Channel{
+		TeamId:      team.Id,
+		DisplayName: model.NewId(),
+		Name:        model.NewId(),
+		Type:        model.CHANNEL_OPEN,
+	}
+	channel = store.Must(ss.Channel().Save(channel)).(*model.Channel)
+
+	// user is added to channel via a system_add_to_channel message
+	systemAddToChannel := &model.Post{
+		ChannelId: channel.Id,
+		UserId:    invitingUser.Id,
+		CreateAt:  startTime,
+		Message:   model.NewId(),
+		Type:      model.POST_ADD_TO_CHANNEL,
+		Props:     model.StringInterface{"addedUsername": invitedUser.Username, "username": invitingUser.Username},
+	}
+	systemAddToChannel = store.Must(ss.Post().Save(systemAddToChannel)).(*model.Post)
+
+	// user is removed from channel via a system_remove_from_channel message
+	systemRemoveFromChannel := &model.Post{
+		ChannelId: channel.Id,
+		UserId:    invitingUser.Id,
+		CreateAt:  startTime + 10,
+		Message:   model.NewId(),
+		Type:      model.POST_REMOVE_FROM_CHANNEL,
+		Props:     model.StringInterface{"removedUsername": invitedUser.Username},
+	}
+	systemRemoveFromChannel = store.Must(ss.Post().Save(systemRemoveFromChannel)).(*model.Post)
+
+	// fetch the message exports
+	messageExportMap := map[string]model.MessageExport{}
+	if r1 := <-ss.Compliance().MessageExport(startTime-10, 10); r1.Err != nil {
+		t.Fatal(r1.Err)
+	} else {
+		messages := r1.Data.([]*model.MessageExport)
+		assert.Len(t, messages, numMessageExports+2)
+
+		for _, v := range messages {
+			messageExportMap[*v.PostId] = *v
+		}
+	}
+
+	assert.Equal(t, model.POST_ADD_TO_CHANNEL, *messageExportMap[systemAddToChannel.Id].PostType)
+	assert.Equal(t, invitedUser.Email, *messageExportMap[systemAddToChannel.Id].AddedUserEmail)
+
+	assert.Equal(t, model.POST_REMOVE_FROM_CHANNEL, *messageExportMap[systemRemoveFromChannel.Id].PostType)
+	assert.Equal(t, invitedUser.Email, *messageExportMap[systemRemoveFromChannel.Id].RemovedUserEmail)
 }
