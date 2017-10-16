@@ -14,6 +14,7 @@ import WebrtcStore from 'stores/webrtc_store.jsx';
 
 import * as GlobalActions from 'actions/global_actions.jsx';
 import {getFlaggedPosts} from 'actions/post_actions.jsx';
+import {useSafeUrl} from 'utils/url.jsx';
 import * as UserAgent from 'utils/user_agent.jsx';
 import * as Utils from 'utils/utils.jsx';
 import {Constants, WebrtcActionTypes} from 'utils/constants.jsx';
@@ -410,7 +411,7 @@ export default class SidebarRightMenu extends React.Component {
                     <Link
                         target='_blank'
                         rel='noopener noreferrer'
-                        to={global.window.mm_config.AppDownloadLink}
+                        to={useSafeUrl(global.window.mm_config.AppDownloadLink)}
                     >
                         <i className='icon fa fa-mobile'/>
                         <FormattedMessage
