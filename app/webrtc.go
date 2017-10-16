@@ -97,7 +97,7 @@ func GetKopanoWebmeetingsWebrtcToken(sessionId string) (string, *model.AppError)
 	if rp, err := utils.HttpClient(true).Do(rq); err != nil {
 		return "", model.NewAppError("WebRTC.Token", "model.client.connecting.app_error", nil, err.Error(), http.StatusInternalServerError)
 	} else if rp.StatusCode >= 300 {
-		defer CloseBody(rp)
+		defer consumeAndClose(rp)
 		return "", model.AppErrorFromJson(rp.Body)
 	} else {
 		kwmResponse := model.KopanoWebmeetingsResponseFromJson(rp.Body)
