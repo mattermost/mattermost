@@ -46,3 +46,11 @@ func TestMain(m *testing.M) {
 
 	status = m.Run()
 }
+
+func TestAppRace(t *testing.T) {
+	for i := 0; i < 10; i++ {
+		a := New()
+		a.StartServer()
+		a.Shutdown()
+	}
+}

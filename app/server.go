@@ -31,6 +31,8 @@ type Server struct {
 	Router          *mux.Router
 	Server          *http.Server
 	ListenAddr      *net.TCPAddr
+
+	didFinishListen chan struct{}
 }
 
 var allowedMethods []string = []string{
@@ -158,6 +160,7 @@ func (a *App) StartServer() {
 		ReadTimeout:  time.Duration(*utils.Cfg.ServiceSettings.ReadTimeout) * time.Second,
 		WriteTimeout: time.Duration(*utils.Cfg.ServiceSettings.WriteTimeout) * time.Second,
 	}
+	a.Srv.didFinishListen = make(chan struct{})
 
 	addr := *a.Config().ServiceSettings.ListenAddress
 	if addr == "" {
@@ -215,6 +218,7 @@ func (a *App) StartServer() {
 			l4g.Critical(utils.T("api.server.start_server.starting.critical"), err)
 			time.Sleep(time.Second)
 		}
+		close(a.Srv.didFinishListen)
 	}()
 }
 
@@ -247,8 +251,18 @@ func (a *App) StopServer() {
 	if a.Srv.Server != nil {
 		ctx, cancel := context.WithTimeout(context.Background(), TIME_TO_WAIT_FOR_CONNECTIONS_TO_CLOSE_ON_SERVER_SHUTDOWN)
 		defer cancel()
-		if err := a.Srv.Server.Shutdown(ctx); err != nil {
-			l4g.Warn(err.Error())
+		didShutdown := false
+		for !didShutdown {
+			if err := a.Srv.Server.Shutdown(ctx); err != nil {
+				l4g.Warn(err.Error())
+			}
+			timer := time.NewTimer(time.Millisecond * 50)
+			select {
+			case <-a.Srv.didFinishListen:
+				didShutdown = true
+			case <-timer.C:
+			}
+			timer.Stop()
 		}
 		a.Srv.Server.Close()
 		a.Srv.Server = nil
