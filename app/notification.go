@@ -724,6 +724,11 @@ func (a *App) getMobileAppSessions(userId string) ([]*model.Session, *model.AppE
 }
 
 func (a *App) sendOutOfChannelMentions(sender *model.User, post *model.Post, channel *model.Channel, team *model.Team, users []*model.User) *model.AppError {
+	const (
+		CLIENT_LOCALIZATION_OUT_OF_CHANNEL_MENTION_PUBLIC  = "post_body.check_for_out_of_channel_mentions.link.public"
+		CLIENT_LOCALIZATION_OUT_OF_CHANNEL_MENTION_PRIVATE = "post_body.check_for_out_of_channel_mentions.link.private"
+	)
+
 	if len(users) == 0 {
 		return nil
 	}
@@ -741,31 +746,29 @@ func (a *App) sendOutOfChannelMentions(sender *model.User, post *model.Post, cha
 
 	T := utils.GetUserTranslations(sender.Locale)
 
-	var linkMessage string
+	var localizationId string
+
 	if channel.Type == model.CHANNEL_OPEN {
-		linkMessage = T("api.post.check_for_out_of_channel_mentions.link.public")
+		localizationId = CLIENT_LOCALIZATION_OUT_OF_CHANNEL_MENTION_PUBLIC
 	} else if channel.Type == model.CHANNEL_PRIVATE {
-		linkMessage = T("api.post.check_for_out_of_channel_mentions.link.private")
+		localizationId = CLIENT_LOCALIZATION_OUT_OF_CHANNEL_MENTION_PRIVATE
 	}
 
-	siteURL := *utils.Cfg.ServiceSettings.SiteURL
 	ephemeralPostId := model.NewId()
-	var link string
+	var data string
 	var message string
 	if len(users) == 1 {
-		link = fmt.Sprintf("%s/%v/channels/%v/post/%v/acm/%v", siteURL, team.Name, channel.Name, ephemeralPostId, userIds[0])
+		data = fmt.Sprintf("post_id=%v,user_ids=%v,localization_id=%v", ephemeralPostId, userIds[0], localizationId)
 		message = T("api.post.check_for_out_of_channel_mentions.message.one", map[string]interface{}{
-			"Username":    usernames[0],
-			"LinkMessage": linkMessage,
-			"Link":        link,
+			"Username": usernames[0],
+			"Data":     data,
 		})
 	} else {
-		link = fmt.Sprintf("%s/%v/channels/%v/post/%v/acm/%v", siteURL, team.Name, channel.Name, ephemeralPostId, strings.Join(userIds, "-"))
+		data = fmt.Sprintf("post_id=%v,user_ids=%v,localization_id=%v", ephemeralPostId, strings.Join(userIds, "-"), localizationId)
 		message = T("api.post.check_for_out_of_channel_mentions.message.multiple", map[string]interface{}{
-			"Usernames":    strings.Join(usernames[:len(usernames)-1], ", "),
+			"Usernames":    strings.Join(usernames[:len(usernames)-1], ", @"),
 			"LastUsername": usernames[len(usernames)-1],
-			"LinkMessage":  linkMessage,
-			"Link":         link,
+			"Data":         data,
 		})
 	}
 

@@ -1518,20 +1518,12 @@
     "translation": "Missing file in multipart/form request"
   },
   {
-    "id": "api.post.check_for_out_of_channel_mentions.link.public",
-    "translation": "add them to the channel"
-  },
-  {
-    "id": "api.post.check_for_out_of_channel_mentions.link.private",
-    "translation": "add them to this private channel"
-  },
-  {
     "id": "api.post.check_for_out_of_channel_mentions.message.multiple",
-    "translation": "{{.Usernames}} and {{.LastUsername}} were mentioned but they are not in the channel. Would you like to [{{.LinkMessage}}]({{.Link}})? They will have access to all message history."
+    "translation": "@{{.Usernames}} and @{{.LastUsername}} were mentioned but they are not in the channel. Would you like to MM_ADDCHANNELMEMBER{{.Data}}? They will have access to all message history."
   },
   {
     "id": "api.post.check_for_out_of_channel_mentions.message.one",
-    "translation": "@{{.Username}} was mentioned but they are not in the channel. Would you like to [{{.LinkMessage}}]({{.Link}})? They will have access to all message history."
+    "translation": "@{{.Username}} was mentioned but they are not in the channel. Would you like to MM_ADDCHANNELMEMBER{{.Data}}? They will have access to all message history."
   },
   {
     "id": "api.post.create_post.attach_files.error",
