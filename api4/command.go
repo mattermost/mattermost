@@ -210,11 +210,11 @@ func executeCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		c.Err = err
 		return
+	} else if channel.Type != model.CHANNEL_DIRECT && channel.Type != model.CHANNEL_GROUP {
+		// if this isn't a DM or GM, the team id is implicitly taken from the channel so that slash commands created on
+		// some other team can't be run against this one
+		commandArgs.TeamId = channel.TeamId
 	}
-
-	// team id is implicitly taken from channel so that slash commands
-	// created on some other team can't be run against this one
-	commandArgs.TeamId = channel.TeamId
 
 	commandArgs.UserId = c.Session.UserId
 	commandArgs.T = c.T
