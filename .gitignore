@@ -67,6 +67,9 @@ Session.vim
 .netrwhist
 *~
 
+# Gogland project files
+mattermost-server.iml
+
 # Build files
 *bundle.js
 
