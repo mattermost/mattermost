@@ -27,20 +27,20 @@ func TestWebrtcInfoResponseToFromJson(t *testing.T) {
 	}
 }
 
-func TestGatewayResponseFromJson(t *testing.T) {
+func TestJanusGatewayResponseFromJson(t *testing.T) {
 	if testing.Short() {
 		t.SkipNow()
 	}
 
 	// Valid Gateway Response
 	s1 := `{"janus": "something"}`
-	g1 := GatewayResponseFromJson(strings.NewReader(s1))
+	g1 := JanusGatewayResponseFromJson(strings.NewReader(s1))
 
 	CheckString(t, g1.Status, "something")
 
 	// Malformed JSON
 	s2 := `{"wat"`
-	g2 := GatewayResponseFromJson(strings.NewReader(s2))
+	g2 := JanusGatewayResponseFromJson(strings.NewReader(s2))
 
 	if g2 != nil {
 		t.Fatal("expected nil")
