@@ -31,6 +31,8 @@ type Server struct {
 	Router          *mux.Router
 	Server          *http.Server
 	ListenAddr      *net.TCPAddr
+
+	didFinishListen chan struct{}
 }
 
 var allowedMethods []string = []string{
@@ -179,17 +181,19 @@ func (a *App) StartServer() {
 
 	if *utils.Cfg.ServiceSettings.Forward80To443 {
 		go func() {
-			listener, err := net.Listen("tcp", ":80")
+			redirectListener, err := net.Listen("tcp", ":80")
 			if err != nil {
+				listener.Close()
 				l4g.Error("Unable to setup forwarding")
 				return
 			}
-			defer listener.Close()
+			defer redirectListener.Close()
 
-			http.Serve(listener, http.HandlerFunc(redirectHTTPToHTTPS))
+			http.Serve(redirectListener, http.HandlerFunc(redirectHTTPToHTTPS))
 		}()
 	}
 
+	a.Srv.didFinishListen = make(chan struct{})
 	go func() {
 		var err error
 		if *utils.Cfg.ServiceSettings.ConnectionSecurity == model.CONN_SECURITY_TLS {
@@ -215,6 +219,7 @@ func (a *App) StartServer() {
 			l4g.Critical(utils.T("api.server.start_server.starting.critical"), err)
 			time.Sleep(time.Second)
 		}
+		close(a.Srv.didFinishListen)
 	}()
 }
 
@@ -247,8 +252,18 @@ func (a *App) StopServer() {
 	if a.Srv.Server != nil {
 		ctx, cancel := context.WithTimeout(context.Background(), TIME_TO_WAIT_FOR_CONNECTIONS_TO_CLOSE_ON_SERVER_SHUTDOWN)
 		defer cancel()
-		if err := a.Srv.Server.Shutdown(ctx); err != nil {
-			l4g.Warn(err.Error())
+		didShutdown := false
+		for a.Srv.didFinishListen != nil && !didShutdown {
+			if err := a.Srv.Server.Shutdown(ctx); err != nil {
+				l4g.Warn(err.Error())
+			}
+			timer := time.NewTimer(time.Millisecond * 50)
+			select {
+			case <-a.Srv.didFinishListen:
+				didShutdown = true
+			case <-timer.C:
+			}
+			timer.Stop()
 		}
 		a.Srv.Server.Close()
 		a.Srv.Server = nil
