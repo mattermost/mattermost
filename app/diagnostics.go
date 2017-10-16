@@ -204,7 +204,7 @@ func trackConfig() {
 		"session_length_mobile_in_days":                    *utils.Cfg.ServiceSettings.SessionLengthMobileInDays,
 		"session_length_sso_in_days":                       *utils.Cfg.ServiceSettings.SessionLengthSSOInDays,
 		"session_cache_in_minutes":                         *utils.Cfg.ServiceSettings.SessionCacheInMinutes,
-		"session_idle_timeout":                             *utils.Cfg.ServiceSettings.SessionIdleTimeout,
+		"session_idle_timeout_in_minutes":                  *utils.Cfg.ServiceSettings.SessionIdleTimeoutInMinutes,
 		"isdefault_site_url":                               isDefault(*utils.Cfg.ServiceSettings.SiteURL, model.SERVICE_SETTINGS_DEFAULT_SITE_URL),
 		"isdefault_tls_cert_file":                          isDefault(*utils.Cfg.ServiceSettings.TLSCertFile, model.SERVICE_SETTINGS_DEFAULT_TLS_CERT_FILE),
 		"isdefault_tls_key_file":                           isDefault(*utils.Cfg.ServiceSettings.TLSKeyFile, model.SERVICE_SETTINGS_DEFAULT_TLS_KEY_FILE),
