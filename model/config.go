@@ -465,6 +465,7 @@ type NativeAppSettings struct {
 
 type WebrtcSettings struct {
 	Enable              *bool
+	GatewayType         *string
 	GatewayWebsocketUrl *string
 	GatewayAdminUrl     *string
 	GatewayAdminSecret  *string
