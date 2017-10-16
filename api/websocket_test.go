@@ -4,6 +4,7 @@
 package api
 
 import (
+	"fmt"
 	//"encoding/json"
 	//"net/http"
 	"net/http"
@@ -323,7 +324,7 @@ func TestWebsocketOriginSecurity(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
 
-	url := "ws://localhost" + *utils.Cfg.ServiceSettings.ListenAddress
+	url := fmt.Sprintf("ws://localhost:%v", th.App.Srv.ListenAddr.Port)
 
 	// Should fail because origin doesn't match
 	_, _, err := websocket.DefaultDialer.Dial(url+model.API_URL_SUFFIX_V3+"/users/websocket", http.Header{
@@ -335,7 +336,7 @@ func TestWebsocketOriginSecurity(t *testing.T) {
 
 	// We are not a browser so we can spoof this just fine
 	_, _, err = websocket.DefaultDialer.Dial(url+model.API_URL_SUFFIX_V3+"/users/websocket", http.Header{
-		"Origin": []string{"http://localhost" + *utils.Cfg.ServiceSettings.ListenAddress},
+		"Origin": []string{fmt.Sprintf("http://localhost:%v", th.App.Srv.ListenAddr.Port)},
 	})
 	if err != nil {
 		t.Fatal(err)

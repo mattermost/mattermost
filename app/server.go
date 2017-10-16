@@ -4,6 +4,7 @@
 package app
 
 import (
+	"context"
 	"crypto/tls"
 	"io"
 	"io/ioutil"
@@ -16,7 +17,6 @@ import (
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/rsc/letsencrypt"
-	"github.com/tylerb/graceful"
 	"gopkg.in/throttled/throttled.v2"
 	"gopkg.in/throttled/throttled.v2/store/memstore"
 
@@ -29,7 +29,8 @@ type Server struct {
 	Store           store.Store
 	WebSocketRouter *WebSocketRouter
 	Router          *mux.Router
-	GracefulServer  *graceful.Server
+	Server          *http.Server
+	ListenAddr      *net.TCPAddr
 }
 
 var allowedMethods []string = []string{
@@ -152,16 +153,29 @@ func (a *App) StartServer() {
 		handler = httpRateLimiter.RateLimit(handler)
 	}
 
-	a.Srv.GracefulServer = &graceful.Server{
-		Timeout: TIME_TO_WAIT_FOR_CONNECTIONS_TO_CLOSE_ON_SERVER_SHUTDOWN,
-		Server: &http.Server{
-			Addr:         *utils.Cfg.ServiceSettings.ListenAddress,
-			Handler:      handlers.RecoveryHandler(handlers.RecoveryLogger(&RecoveryLogger{}), handlers.PrintRecoveryStack(true))(handler),
-			ReadTimeout:  time.Duration(*utils.Cfg.ServiceSettings.ReadTimeout) * time.Second,
-			WriteTimeout: time.Duration(*utils.Cfg.ServiceSettings.WriteTimeout) * time.Second,
-		},
+	a.Srv.Server = &http.Server{
+		Handler:      handlers.RecoveryHandler(handlers.RecoveryLogger(&RecoveryLogger{}), handlers.PrintRecoveryStack(true))(handler),
+		ReadTimeout:  time.Duration(*utils.Cfg.ServiceSettings.ReadTimeout) * time.Second,
+		WriteTimeout: time.Duration(*utils.Cfg.ServiceSettings.WriteTimeout) * time.Second,
 	}
-	l4g.Info(utils.T("api.server.start_server.listening.info"), *utils.Cfg.ServiceSettings.ListenAddress)
+
+	addr := *a.Config().ServiceSettings.ListenAddress
+	if addr == "" {
+		if *utils.Cfg.ServiceSettings.ConnectionSecurity == model.CONN_SECURITY_TLS {
+			addr = ":https"
+		} else {
+			addr = ":http"
+		}
+	}
+
+	listener, err := net.Listen("tcp", addr)
+	if err != nil {
+		l4g.Critical(utils.T("api.server.start_server.starting.critical"), err)
+		return
+	}
+	a.Srv.ListenAddr = listener.Addr().(*net.TCPAddr)
+
+	l4g.Info(utils.T("api.server.start_server.listening.info"), listener.Addr().String())
 
 	if *utils.Cfg.ServiceSettings.Forward80To443 {
 		go func() {
@@ -189,25 +203,55 @@ func (a *App) StartServer() {
 
 				tlsConfig.NextProtos = append(tlsConfig.NextProtos, "h2")
 
-				err = a.Srv.GracefulServer.ListenAndServeTLSConfig(tlsConfig)
+				a.Srv.Server.TLSConfig = tlsConfig
+				err = a.Srv.Server.ServeTLS(listener, "", "")
 			} else {
-				err = a.Srv.GracefulServer.ListenAndServeTLS(*utils.Cfg.ServiceSettings.TLSCertFile, *utils.Cfg.ServiceSettings.TLSKeyFile)
+				err = a.Srv.Server.ServeTLS(listener, *utils.Cfg.ServiceSettings.TLSCertFile, *utils.Cfg.ServiceSettings.TLSKeyFile)
 			}
 		} else {
-			err = a.Srv.GracefulServer.ListenAndServe()
+			err = a.Srv.Server.Serve(listener)
 		}
-		if err != nil {
+		if err != nil && err != http.ErrServerClosed {
 			l4g.Critical(utils.T("api.server.start_server.starting.critical"), err)
 			time.Sleep(time.Second)
 		}
 	}()
 }
 
+type tcpKeepAliveListener struct {
+	*net.TCPListener
+}
+
+func (ln tcpKeepAliveListener) Accept() (c net.Conn, err error) {
+	tc, err := ln.AcceptTCP()
+	if err != nil {
+		return
+	}
+	tc.SetKeepAlive(true)
+	tc.SetKeepAlivePeriod(3 * time.Minute)
+	return tc, nil
+}
+
+func (a *App) Listen(addr string) (net.Listener, error) {
+	if addr == "" {
+		addr = ":http"
+	}
+	ln, err := net.Listen("tcp", addr)
+	if err != nil {
+		return nil, err
+	}
+	return tcpKeepAliveListener{ln.(*net.TCPListener)}, nil
+}
+
 func (a *App) StopServer() {
-	if a.Srv.GracefulServer != nil {
-		a.Srv.GracefulServer.Stop(TIME_TO_WAIT_FOR_CONNECTIONS_TO_CLOSE_ON_SERVER_SHUTDOWN)
-		<-a.Srv.GracefulServer.StopChan()
-		a.Srv.GracefulServer = nil
+	if a.Srv.Server != nil {
+		ctx, cancel := context.WithTimeout(context.Background(), TIME_TO_WAIT_FOR_CONNECTIONS_TO_CLOSE_ON_SERVER_SHUTDOWN)
+		defer cancel()
+		if err := a.Srv.Server.Shutdown(ctx); err != nil {
+			l4g.Warn(err.Error())
+		}
+		a.Srv.Server.Close()
+		a.Srv.Server = nil
 	}
 }
 
