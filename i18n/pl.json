@@ -1949,7 +1949,7 @@
   },
   {
     "id": "api.slackimport.slack_add_users.missing_email_address.warn",
-    "translation": "Użytkownik {{.Username}} nie posiada adresu email w Slack export. Użyto zastępczo {{.Email}}. Użytkownik powinien zaktualizować swój adres email po zalogowaniu do systemu."
+    "translation": "Slack Import: Użytkownik {{.Username}} nie posiada adresu email w Slack export. Użyto zastępczo {{.Email}}. Użytkownik powinien zaktualizować swój adres email po zalogowaniu do systemu."
   },
   {
     "id": "api.slackimport.slack_add_users.unable_import",
@@ -1989,7 +1989,7 @@
   },
   {
     "id": "api.slackimport.slack_import.notes",
-    "translation": "\r\n Uwagi \r\n"
+    "translation": "\r\nUwagi: \r\n"
   },
   {
     "id": "api.slackimport.slack_import.open.app_error",

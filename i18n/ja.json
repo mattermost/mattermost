@@ -5553,7 +5553,7 @@
   },
   {
     "id": "store.sql_command.get_by_trigger.app_error",
-    "translation": "コマンドが取得できませんでした"
+    "translation": "コマンドを取得できませんでした"
   },
   {
     "id": "store.sql_command.save.delete.app_error",
@@ -5565,11 +5565,11 @@
   },
   {
     "id": "store.sql_command.save.get.app_error",
-    "translation": "コマンドが取得できませんでした"
+    "translation": "コマンドを取得できませんでした"
   },
   {
     "id": "store.sql_command.save.get_team.app_error",
-    "translation": "コマンドが取得できませんでした"
+    "translation": "コマンドを取得できませんでした"
   },
   {
     "id": "store.sql_command.save.saving.app_error",
