@@ -112,12 +112,12 @@ func (c *WebConn) Pump() {
 	}()
 	c.readPump()
 	<-ch
+	c.App.HubUnregister(c)
 	c.pumpFinished <- struct{}{}
 }
 
 func (c *WebConn) readPump() {
 	defer func() {
-		c.App.HubUnregister(c)
 		c.WebSocket.Close()
 	}()
 	c.WebSocket.SetReadLimit(model.SOCKET_MAX_MESSAGE_SIZE_KB)
