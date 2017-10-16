@@ -516,10 +516,7 @@ func TestGetPublicFileOld(t *testing.T) {
 	store.Must(th.App.Srv.Store.FileInfo().AttachToPost(fileId, th.BasicPost.Id))
 
 	// reconstruct old style of link
-	siteURL := *utils.Cfg.ServiceSettings.SiteURL
-	if siteURL == "" {
-		siteURL = "http://localhost" + *utils.Cfg.ServiceSettings.ListenAddress
-	}
+	siteURL := fmt.Sprintf("http://localhost:%v", th.App.Srv.ListenAddr.Port)
 	link := generatePublicLinkOld(siteURL, th.BasicTeam.Id, channel.Id, th.BasicUser.Id, fileId+"/test.png")
 
 	// Wait a bit for files to ready

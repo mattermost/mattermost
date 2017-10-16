@@ -4,6 +4,8 @@
 package web
 
 import (
+	"fmt"
+	"os"
 	"testing"
 
 	"github.com/mattermost/mattermost-server/api"
@@ -11,23 +13,44 @@ import (
 	"github.com/mattermost/mattermost-server/app"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
+	"github.com/mattermost/mattermost-server/store/sqlstore"
+	"github.com/mattermost/mattermost-server/store/storetest"
 	"github.com/mattermost/mattermost-server/utils"
 )
 
 var ApiClient *model.Client
 var URL string
 
+type persistentTestStore struct {
+	store.Store
+}
+
+func (*persistentTestStore) Close() {}
+
+var testStoreContainer *storetest.RunningContainer
+var testStore *persistentTestStore
+
+func StopTestStore() {
+	if testStoreContainer != nil {
+		testStoreContainer.Stop()
+		testStoreContainer = nil
+	}
+}
+
 func Setup() *app.App {
 	utils.TranslationsPreInit()
 	utils.LoadConfig("config.json")
 	utils.InitTranslations(utils.Cfg.LocalizationSettings)
 
-	a := app.New()
+	a := app.New(app.StoreOverride(testStore), app.ConfigOverride(func(cfg *model.Config) {
+		cfg.ServiceSettings.ListenAddress = new(string)
+		*cfg.ServiceSettings.ListenAddress = ":0"
+	}))
 	a.StartServer()
 	api4.Init(a, a.Srv.Router, false)
 	api3 := api.Init(a, a.Srv.Router)
 	Init(api3)
-	URL = "http://localhost" + *utils.Cfg.ServiceSettings.ListenAddress
+	URL = fmt.Sprintf("http://localhost:%v", a.Srv.ListenAddr.Port)
 	ApiClient = model.NewClient(URL)
 
 	a.Srv.Store.MarkSystemRanUnitTests()
@@ -39,6 +62,10 @@ func Setup() *app.App {
 
 func TearDown(a *app.App) {
 	a.Shutdown()
+	if err := recover(); err != nil {
+		StopTestStore()
+		panic(err)
+	}
 }
 
 /* Test disabled for now so we don't requrie the client to build. Maybe re-enable after client gets moved out.
@@ -107,4 +134,27 @@ func TestIncomingWebhook(t *testing.T) {
 			t.Fatal("should have failed - webhooks turned off")
 		}
 	}
+}
+
+func TestMain(m *testing.M) {
+	utils.TranslationsPreInit()
+	utils.LoadConfig("config.json")
+	utils.InitTranslations(utils.Cfg.LocalizationSettings)
+
+	status := 0
+
+	container, settings, err := storetest.NewPostgreSQLContainer()
+	if err != nil {
+		panic(err)
+	}
+
+	testStoreContainer = container
+	testStore = &persistentTestStore{store.NewLayeredStore(sqlstore.NewSqlSupplier(*settings, nil), nil, nil)}
+
+	defer func() {
+		StopTestStore()
+		os.Exit(status)
+	}()
+
+	status = m.Run()
 }

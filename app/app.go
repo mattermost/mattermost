@@ -47,7 +47,8 @@ type App struct {
 	Mfa              einterfaces.MfaInterface
 	Saml             einterfaces.SamlInterface
 
-	newStore func() store.Store
+	newStore       func() store.Store
+	configOverride func(*model.Config) *model.Config
 }
 
 var appCount = 0
@@ -77,7 +78,7 @@ func New(options ...Option) *App {
 
 	if app.newStore == nil {
 		app.newStore = func() store.Store {
-			return store.NewLayeredStore(sqlstore.NewSqlSupplier(utils.Cfg.SqlSettings, app.Metrics), app.Metrics, app.Cluster)
+			return store.NewLayeredStore(sqlstore.NewSqlSupplier(app.Config().SqlSettings, app.Metrics), app.Metrics, app.Cluster)
 		}
 	}
 
@@ -233,6 +234,9 @@ func (a *App) initEnterprise() {
 }
 
 func (a *App) Config() *model.Config {
+	if a.configOverride != nil {
+		return a.configOverride(utils.Cfg)
+	}
 	return utils.Cfg
 }
 

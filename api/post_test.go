@@ -1153,20 +1153,31 @@ func TestEmailMention(t *testing.T) {
 		if !strings.ContainsAny(resultsMailbox[len(resultsMailbox)-1].To[0], th.BasicUser2.Email) {
 			t.Fatal("Wrong To recipient")
 		} else {
-			for i := 0; i < 5; i++ {
-				if resultsEmail, err := utils.GetMessageFromMailbox(th.BasicUser2.Email, resultsMailbox[len(resultsMailbox)-1].ID); err == nil {
-					if strings.Contains(resultsEmail.Body.Text, post1.Message) {
-						break
-					} else if i == 4 {
-						t.Log(resultsEmail.Body.Text)
-						t.Fatal("Received wrong Message")
+			for i := 0; i < 30; i++ {
+				for j := len(resultsMailbox) - 1; j >= 0; j-- {
+					isUser := false
+					for _, to := range resultsMailbox[j].To {
+						if to == "<"+th.BasicUser2.Email+">" {
+							isUser = true
+						}
 					}
-					time.Sleep(100 * time.Millisecond)
+					if !isUser {
+						continue
+					}
+					if resultsEmail, err := utils.GetMessageFromMailbox(th.BasicUser2.Email, resultsMailbox[j].ID); err == nil {
+						if strings.Contains(resultsEmail.Body.Text, post1.Message) {
+							return
+						} else if i == 4 {
+							t.Log(resultsEmail.Body.Text)
+							t.Fatal("Received wrong Message")
+						}
+					}
 				}
+				time.Sleep(100 * time.Millisecond)
 			}
+			t.Fatal("Didn't receive message")
 		}
 	}
-
 }
 
 func TestFuzzyPosts(t *testing.T) {

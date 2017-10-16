@@ -19,6 +19,7 @@ import (
 )
 
 // this pattern allows us to "mock" the underlying l4g code when unit testing
+var logger l4g.Logger
 var debugLog = l4g.Debug
 var infoLog = l4g.Info
 var errorLog = l4g.Error
@@ -50,10 +51,13 @@ func initL4g(logSettings model.LogSettings) {
 		}
 
 		// create a logger that writes JSON objects to a file, and override our log methods to use it
-		flw := NewJSONFileLogger(level, utils.GetLogFileLocation(logSettings.FileLocation)+".jsonl")
-		debugLog = flw.Debug
-		infoLog = flw.Info
-		errorLog = flw.Error
+		if logger != nil {
+			logger.Close()
+		}
+		logger = NewJSONFileLogger(level, utils.GetLogFileLocation(logSettings.FileLocation)+".jsonl")
+		debugLog = logger.Debug
+		infoLog = logger.Info
+		errorLog = logger.Error
 	}
 }
 
