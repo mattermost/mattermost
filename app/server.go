@@ -160,7 +160,6 @@ func (a *App) StartServer() {
 		ReadTimeout:  time.Duration(*utils.Cfg.ServiceSettings.ReadTimeout) * time.Second,
 		WriteTimeout: time.Duration(*utils.Cfg.ServiceSettings.WriteTimeout) * time.Second,
 	}
-	a.Srv.didFinishListen = make(chan struct{})
 
 	addr := *a.Config().ServiceSettings.ListenAddress
 	if addr == "" {
@@ -182,17 +181,19 @@ func (a *App) StartServer() {
 
 	if *utils.Cfg.ServiceSettings.Forward80To443 {
 		go func() {
-			listener, err := net.Listen("tcp", ":80")
+			redirectListener, err := net.Listen("tcp", ":80")
 			if err != nil {
+				listener.Close()
 				l4g.Error("Unable to setup forwarding")
 				return
 			}
-			defer listener.Close()
+			defer redirectListener.Close()
 
-			http.Serve(listener, http.HandlerFunc(redirectHTTPToHTTPS))
+			http.Serve(redirectListener, http.HandlerFunc(redirectHTTPToHTTPS))
 		}()
 	}
 
+	a.Srv.didFinishListen = make(chan struct{})
 	go func() {
 		var err error
 		if *utils.Cfg.ServiceSettings.ConnectionSecurity == model.CONN_SECURITY_TLS {
@@ -252,7 +253,7 @@ func (a *App) StopServer() {
 		ctx, cancel := context.WithTimeout(context.Background(), TIME_TO_WAIT_FOR_CONNECTIONS_TO_CLOSE_ON_SERVER_SHUTDOWN)
 		defer cancel()
 		didShutdown := false
-		for !didShutdown {
+		for a.Srv.didFinishListen != nil && !didShutdown {
 			if err := a.Srv.Server.Shutdown(ctx); err != nil {
 				l4g.Warn(err.Error())
 			}
