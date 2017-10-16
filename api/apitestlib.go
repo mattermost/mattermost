@@ -4,6 +4,7 @@
 package api
 
 import (
+	"fmt"
 	"net"
 	"time"
 
@@ -69,6 +70,10 @@ func setupTestHelper(enterprise bool) *TestHelper {
 	var options []app.Option
 	if testStore != nil {
 		options = append(options, app.StoreOverride(testStore))
+		options = append(options, app.ConfigOverride(func(cfg *model.Config) {
+			cfg.ServiceSettings.ListenAddress = new(string)
+			*cfg.ServiceSettings.ListenAddress = ":0"
+		}))
 	}
 
 	th := &TestHelper{
@@ -153,8 +158,9 @@ func (me *TestHelper) InitSystemAdmin() *TestHelper {
 
 func (me *TestHelper) waitForConnectivity() {
 	for i := 0; i < 1000; i++ {
-		_, err := net.Dial("tcp", "localhost"+*utils.Cfg.ServiceSettings.ListenAddress)
+		conn, err := net.Dial("tcp", fmt.Sprintf("localhost:%v", me.App.Srv.ListenAddr.Port))
 		if err == nil {
+			conn.Close()
 			return
 		}
 		time.Sleep(time.Millisecond * 20)
@@ -163,11 +169,11 @@ func (me *TestHelper) waitForConnectivity() {
 }
 
 func (me *TestHelper) CreateClient() *model.Client {
-	return model.NewClient("http://localhost" + *utils.Cfg.ServiceSettings.ListenAddress)
+	return model.NewClient(fmt.Sprintf("http://localhost:%v", me.App.Srv.ListenAddr.Port))
 }
 
 func (me *TestHelper) CreateWebSocketClient() (*model.WebSocketClient, *model.AppError) {
-	return model.NewWebSocketClient("ws://localhost"+*utils.Cfg.ServiceSettings.ListenAddress, me.BasicClient.AuthToken)
+	return model.NewWebSocketClient(fmt.Sprintf("ws://localhost:%v", me.App.Srv.ListenAddr.Port), me.BasicClient.AuthToken)
 }
 
 func (me *TestHelper) CreateTeam(client *model.Client) *model.Team {
