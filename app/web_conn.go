@@ -59,7 +59,7 @@ func (a *App) NewWebConn(ws *websocket.Conn, session model.Session, t goi18n.Tra
 		UserId:       session.UserId,
 		T:            t,
 		Locale:       locale,
-		endWritePump: make(chan struct{}, 1),
+		endWritePump: make(chan struct{}, 2),
 		pumpFinished: make(chan struct{}, 1),
 	}
 
@@ -111,13 +111,14 @@ func (c *WebConn) Pump() {
 		ch <- struct{}{}
 	}()
 	c.readPump()
+	c.endWritePump <- struct{}{}
 	<-ch
+	c.App.HubUnregister(c)
 	c.pumpFinished <- struct{}{}
 }
 
 func (c *WebConn) readPump() {
 	defer func() {
-		c.App.HubUnregister(c)
 		c.WebSocket.Close()
 	}()
 	c.WebSocket.SetReadLimit(model.SOCKET_MAX_MESSAGE_SIZE_KB)
