@@ -724,11 +724,6 @@ func (a *App) getMobileAppSessions(userId string) ([]*model.Session, *model.AppE
 }
 
 func (a *App) sendOutOfChannelMentions(sender *model.User, post *model.Post, channel *model.Channel, team *model.Team, users []*model.User) *model.AppError {
-	const (
-		CLIENT_LOCALIZATION_OUT_OF_CHANNEL_MENTION_PUBLIC  = "post_body.check_for_out_of_channel_mentions.link.public"
-		CLIENT_LOCALIZATION_OUT_OF_CHANNEL_MENTION_PRIVATE = "post_body.check_for_out_of_channel_mentions.link.private"
-	)
-
 	if len(users) == 0 {
 		return nil
 	}
@@ -746,30 +741,34 @@ func (a *App) sendOutOfChannelMentions(sender *model.User, post *model.Post, cha
 
 	T := utils.GetUserTranslations(sender.Locale)
 
-	var localizationId string
-
+	var localePhrase string
 	if channel.Type == model.CHANNEL_OPEN {
-		localizationId = CLIENT_LOCALIZATION_OUT_OF_CHANNEL_MENTION_PUBLIC
+		localePhrase = T("api.post.check_for_out_of_channel_mentions.link.public")
 	} else if channel.Type == model.CHANNEL_PRIVATE {
-		localizationId = CLIENT_LOCALIZATION_OUT_OF_CHANNEL_MENTION_PRIVATE
+		localePhrase = T("api.post.check_for_out_of_channel_mentions.link.private")
 	}
 
 	ephemeralPostId := model.NewId()
-	var data string
 	var message string
 	if len(users) == 1 {
-		data = fmt.Sprintf("post_id=%v,user_ids=%v,localization_id=%v", ephemeralPostId, userIds[0], localizationId)
 		message = T("api.post.check_for_out_of_channel_mentions.message.one", map[string]interface{}{
 			"Username": usernames[0],
-			"Data":     data,
+			"Phrase":   localePhrase,
 		})
 	} else {
-		data = fmt.Sprintf("post_id=%v,user_ids=%v,localization_id=%v", ephemeralPostId, strings.Join(userIds, "-"), localizationId)
 		message = T("api.post.check_for_out_of_channel_mentions.message.multiple", map[string]interface{}{
 			"Usernames":    strings.Join(usernames[:len(usernames)-1], ", @"),
 			"LastUsername": usernames[len(usernames)-1],
-			"Data":         data,
+			"Phrase":       localePhrase,
 		})
+	}
+
+	props := model.StringInterface{
+		"add_channel_member": model.StringInterface{
+			"post_id":   ephemeralPostId,
+			"usernames": usernames,
+			"user_ids":  userIds,
+		},
 	}
 
 	a.SendEphemeralPost(
@@ -779,6 +778,7 @@ func (a *App) sendOutOfChannelMentions(sender *model.User, post *model.Post, cha
 			ChannelId: post.ChannelId,
 			Message:   message,
 			CreateAt:  post.CreateAt + 1,
+			Props:     props,
 		},
 	)
 
