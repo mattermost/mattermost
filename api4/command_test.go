@@ -539,7 +539,7 @@ func TestExecuteCommandAgainstChannelUserIsNotIn(t *testing.T) {
 	postCmd := &model.Command{
 		CreatorId: th.BasicUser.Id,
 		TeamId:    team2.Id,
-		URL:       fmt.Sprintf("http://localhost:%v", *utils.Cfg.ServiceSettings.ListenAddress) + model.API_URL_SUFFIX_V4 + "/teams/command_test",
+		URL:       fmt.Sprintf("http://localhost%v", *utils.Cfg.ServiceSettings.ListenAddress) + model.API_URL_SUFFIX_V4 + "/teams/command_test",
 		Method:    model.COMMAND_METHOD_POST,
 		Trigger:   "postcommand",
 	}
@@ -577,7 +577,7 @@ func TestExecuteCommandInDirectMessageChannel(t *testing.T) {
 	postCmd := &model.Command{
 		CreatorId: th.BasicUser.Id,
 		TeamId:    team2.Id,
-		URL:       fmt.Sprintf("http://localhost:%v", *utils.Cfg.ServiceSettings.ListenAddress) + model.API_URL_SUFFIX_V4 + "/teams/command_test",
+		URL:       fmt.Sprintf("http://localhost%v", *utils.Cfg.ServiceSettings.ListenAddress) + model.API_URL_SUFFIX_V4 + "/teams/command_test",
 		Method:    model.COMMAND_METHOD_POST,
 		Trigger:   "postcommand",
 	}
@@ -619,7 +619,7 @@ func TestExecuteCommandInTeamUserIsNotOn(t *testing.T) {
 	postCmd := &model.Command{
 		CreatorId: th.BasicUser.Id,
 		TeamId:    team2.Id,
-		URL:       fmt.Sprintf("http://localhost:%v", *utils.Cfg.ServiceSettings.ListenAddress) + model.API_URL_SUFFIX_V4 + "/teams/command_test",
+		URL:       fmt.Sprintf("http://localhost%v", *utils.Cfg.ServiceSettings.ListenAddress) + model.API_URL_SUFFIX_V4 + "/teams/command_test",
 		Method:    model.COMMAND_METHOD_POST,
 		Trigger:   "postcommand",
 	}
