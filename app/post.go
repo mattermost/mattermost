@@ -29,6 +29,11 @@ func (a *App) CreatePostAsUser(post *model.Post) (*model.Post, *model.AppError) 
 		channel = result.Data.(*model.Channel)
 	}
 
+	if strings.HasPrefix(post.Type, model.POST_SYSTEM_MESSAGE_PREFIX) {
+		err := model.NewAppError("CreatePostAsUser", "api.context.invalid_param.app_error", map[string]interface{}{"Name": "post.type"}, "", http.StatusBadRequest)
+		return nil, err
+	}
+
 	if channel.DeleteAt != 0 {
 		err := model.NewAppError("createPost", "api.post.create_post.can_not_post_to_deleted.error", nil, "", http.StatusBadRequest)
 		return nil, err
@@ -599,12 +604,14 @@ func (a *App) SearchPostsInTeam(terms string, userId string, teamId string, isOr
 
 		// Get the posts
 		postList := model.NewPostList()
-		if presult := <-a.Srv.Store.Post().GetPostsByIds(postIds); presult.Err != nil {
-			return nil, presult.Err
-		} else {
-			for _, p := range presult.Data.([]*model.Post) {
-				postList.AddPost(p)
-				postList.AddOrder(p.Id)
+		if len(postIds) > 0 {
+			if presult := <-a.Srv.Store.Post().GetPostsByIds(postIds); presult.Err != nil {
+				return nil, presult.Err
+			} else {
+				for _, p := range presult.Data.([]*model.Post) {
+					postList.AddPost(p)
+					postList.AddOrder(p.Id)
+				}
 			}
 		}
 

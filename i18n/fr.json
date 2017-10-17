@@ -4528,6 +4528,10 @@
     "translation": "Adresse d'écoute invalide dans les paramètres de service. Doit être renseignée."
   },
   {
+    "id": "model.config.is_valid.localization.available_locales.app_error",
+    "translation": "Available Languages must contain Default Client Language"
+  },
+  {
     "id": "model.config.is_valid.login_attempts.app_error",
     "translation": "Nombre maximum de tentatives de connexion invalide dans les paramètre de service. Doit être un entier positif."
   },
@@ -5546,6 +5550,10 @@
   {
     "id": "store.sql_command.analytics_command_count.app_error",
     "translation": "Impossible de compter les commandes"
+  },
+  {
+    "id": "store.sql_command.get_by_trigger.app_error",
+    "translation": "Impossible de récupérer la commande"
   },
   {
     "id": "store.sql_command.save.delete.app_error",
