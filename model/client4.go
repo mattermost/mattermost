@@ -2780,10 +2780,26 @@ func (c *Client4) ListCommands(teamId string, customOnly bool) ([]*Command, *Res
 	}
 }
 
-// ExecuteCommand executes a given command.
+// ExecuteCommand executes a given slash command.
 func (c *Client4) ExecuteCommand(channelId, command string) (*CommandResponse, *Response) {
 	commandArgs := &CommandArgs{
 		ChannelId: channelId,
+		Command:   command,
+	}
+	if r, err := c.DoApiPost(c.GetCommandsRoute()+"/execute", commandArgs.ToJson()); err != nil {
+		return nil, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return CommandResponseFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// ExecuteCommand executes a given slash command against the specified team
+// Use this when executing slash commands in a DM/GM, since the team id cannot be inferred in that case
+func (c *Client4) ExecuteCommandWithTeam(channelId, teamId, command string) (*CommandResponse, *Response) {
+	commandArgs := &CommandArgs{
+		ChannelId: channelId,
+		TeamId:    teamId,
 		Command:   command,
 	}
 	if r, err := c.DoApiPost(c.GetCommandsRoute()+"/execute", commandArgs.ToJson()); err != nil {
