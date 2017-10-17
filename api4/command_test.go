@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"fmt"
+
 	"github.com/mattermost/platform/app"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
@@ -397,7 +398,7 @@ func TestExecuteCommand(t *testing.T) {
 	postCmd := &model.Command{
 		CreatorId: th.BasicUser.Id,
 		TeamId:    th.BasicTeam.Id,
-		URL:       "http://localhost" + *utils.Cfg.ServiceSettings.ListenAddress + model.API_URL_SUFFIX_V4 + "/teams/command_test",
+		URL:       "http://localhost" + utils.Cfg.ServiceSettings.ListenAddress + model.API_URL_SUFFIX_V4 + "/teams/command_test",
 		Method:    model.COMMAND_METHOD_POST,
 		Trigger:   "postcommand",
 	}
@@ -421,7 +422,7 @@ func TestExecuteCommand(t *testing.T) {
 	getCmd := &model.Command{
 		CreatorId: th.BasicUser.Id,
 		TeamId:    th.BasicTeam.Id,
-		URL:       "http://localhost" + *utils.Cfg.ServiceSettings.ListenAddress + model.API_URL_SUFFIX_V4 + "/teams/command_test",
+		URL:       "http://localhost" + utils.Cfg.ServiceSettings.ListenAddress + model.API_URL_SUFFIX_V4 + "/teams/command_test",
 		Method:    model.COMMAND_METHOD_GET,
 		Trigger:   "getcommand",
 	}
@@ -486,7 +487,7 @@ func TestExecuteCommandAgainstChannelOnAnotherTeam(t *testing.T) {
 	postCmd := &model.Command{
 		CreatorId: th.BasicUser.Id,
 		TeamId:    team2.Id,
-		URL:       "http://localhost" + *utils.Cfg.ServiceSettings.ListenAddress + model.API_URL_SUFFIX_V4 + "/teams/command_test",
+		URL:       "http://localhost" + utils.Cfg.ServiceSettings.ListenAddress + model.API_URL_SUFFIX_V4 + "/teams/command_test",
 		Method:    model.COMMAND_METHOD_POST,
 		Trigger:   "postcommand",
 	}
@@ -507,20 +508,17 @@ func TestExecuteCommandAgainstChannelUserIsNotIn(t *testing.T) {
 	client := th.Client
 
 	enableCommands := *utils.Cfg.ServiceSettings.EnableCommands
-	allowedInternalConnections := *utils.Cfg.ServiceSettings.AllowedUntrustedInternalConnections
 	defer func() {
 		utils.Cfg.ServiceSettings.EnableCommands = &enableCommands
-		utils.Cfg.ServiceSettings.AllowedUntrustedInternalConnections = &allowedInternalConnections
 	}()
 	*utils.Cfg.ServiceSettings.EnableCommands = true
-	*utils.Cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost"
 
 	// create a slash command on some other team where we have permission to do so
 	team2 := th.CreateTeam()
 	postCmd := &model.Command{
 		CreatorId: th.BasicUser.Id,
 		TeamId:    team2.Id,
-		URL:       fmt.Sprintf("http://localhost%v", *utils.Cfg.ServiceSettings.ListenAddress) + model.API_URL_SUFFIX_V4 + "/teams/command_test",
+		URL:       fmt.Sprintf("http://localhost%v", utils.Cfg.ServiceSettings.ListenAddress) + model.API_URL_SUFFIX_V4 + "/teams/command_test",
 		Method:    model.COMMAND_METHOD_POST,
 		Trigger:   "postcommand",
 	}
@@ -545,20 +543,17 @@ func TestExecuteCommandInDirectMessageChannel(t *testing.T) {
 	client := th.Client
 
 	enableCommands := *utils.Cfg.ServiceSettings.EnableCommands
-	allowedInternalConnections := *utils.Cfg.ServiceSettings.AllowedUntrustedInternalConnections
 	defer func() {
 		utils.Cfg.ServiceSettings.EnableCommands = &enableCommands
-		utils.Cfg.ServiceSettings.AllowedUntrustedInternalConnections = &allowedInternalConnections
 	}()
 	*utils.Cfg.ServiceSettings.EnableCommands = true
-	*utils.Cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost"
 
 	// create a slash command on some other team where we have permission to do so
 	team2 := th.CreateTeam()
 	postCmd := &model.Command{
 		CreatorId: th.BasicUser.Id,
 		TeamId:    team2.Id,
-		URL:       fmt.Sprintf("http://localhost%v", *utils.Cfg.ServiceSettings.ListenAddress) + model.API_URL_SUFFIX_V4 + "/teams/command_test",
+		URL:       fmt.Sprintf("http://localhost%v", utils.Cfg.ServiceSettings.ListenAddress) + model.API_URL_SUFFIX_V4 + "/teams/command_test",
 		Method:    model.COMMAND_METHOD_POST,
 		Trigger:   "postcommand",
 	}
@@ -585,13 +580,10 @@ func TestExecuteCommandInTeamUserIsNotOn(t *testing.T) {
 	client := th.Client
 
 	enableCommands := *utils.Cfg.ServiceSettings.EnableCommands
-	allowedInternalConnections := *utils.Cfg.ServiceSettings.AllowedUntrustedInternalConnections
 	defer func() {
 		utils.Cfg.ServiceSettings.EnableCommands = &enableCommands
-		utils.Cfg.ServiceSettings.AllowedUntrustedInternalConnections = &allowedInternalConnections
 	}()
 	*utils.Cfg.ServiceSettings.EnableCommands = true
-	*utils.Cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost"
 
 	// create a team that the user isn't a part of
 	team2 := th.CreateTeam()
@@ -600,7 +592,7 @@ func TestExecuteCommandInTeamUserIsNotOn(t *testing.T) {
 	postCmd := &model.Command{
 		CreatorId: th.BasicUser.Id,
 		TeamId:    team2.Id,
-		URL:       fmt.Sprintf("http://localhost%v", *utils.Cfg.ServiceSettings.ListenAddress) + model.API_URL_SUFFIX_V4 + "/teams/command_test",
+		URL:       fmt.Sprintf("http://localhost%v", utils.Cfg.ServiceSettings.ListenAddress) + model.API_URL_SUFFIX_V4 + "/teams/command_test",
 		Method:    model.COMMAND_METHOD_POST,
 		Trigger:   "postcommand",
 	}
