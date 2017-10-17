@@ -29,24 +29,16 @@ type WebSocketClient struct {
 // NewWebSocketClient constructs a new WebSocket client with convienence
 // methods for talking to the server.
 func NewWebSocketClient(url, authToken string) (*WebSocketClient, *AppError) {
-	conn, _, err := websocket.DefaultDialer.Dial(url+API_URL_SUFFIX_V3+"/users/websocket", nil)
-	if err != nil {
-		return nil, NewAppError("NewWebSocketClient", "model.websocket_client.connect_fail.app_error", nil, err.Error(), http.StatusInternalServerError)
-	}
-
 	client := &WebSocketClient{
-		url,
-		url + API_URL_SUFFIX_V3,
-		url + API_URL_SUFFIX_V3 + "/users/websocket",
-		conn,
-		authToken,
-		1,
-		make(chan *WebSocketEvent, 100),
-		make(chan *WebSocketResponse, 100),
-		nil,
+		Url:        url,
+		ApiUrl:     url + API_URL_SUFFIX_V3,
+		ConnectUrl: url + API_URL_SUFFIX_V3 + "/users/websocket",
+		AuthToken:  authToken,
+		Sequence:   1,
 	}
-
-	client.SendMessage(WEBSOCKET_AUTHENTICATION_CHALLENGE, map[string]interface{}{"token": authToken})
+	if err := client.Connect(); err != nil {
+		return nil, err
+	}
 
 	return client, nil
 }
@@ -54,24 +46,16 @@ func NewWebSocketClient(url, authToken string) (*WebSocketClient, *AppError) {
 // NewWebSocketClient4 constructs a new WebSocket client with convienence
 // methods for talking to the server. Uses the v4 endpoint.
 func NewWebSocketClient4(url, authToken string) (*WebSocketClient, *AppError) {
-	conn, _, err := websocket.DefaultDialer.Dial(url+API_URL_SUFFIX+"/websocket", nil)
-	if err != nil {
-		return nil, NewAppError("NewWebSocketClient4", "model.websocket_client.connect_fail.app_error", nil, err.Error(), http.StatusInternalServerError)
-	}
-
 	client := &WebSocketClient{
-		url,
-		url + API_URL_SUFFIX,
-		url + API_URL_SUFFIX + "/websocket",
-		conn,
-		authToken,
-		1,
-		make(chan *WebSocketEvent, 100),
-		make(chan *WebSocketResponse, 100),
-		nil,
+		Url:        url,
+		ApiUrl:     url + API_URL_SUFFIX,
+		ConnectUrl: url + API_URL_SUFFIX + "/websocket",
+		AuthToken:  authToken,
+		Sequence:   1,
 	}
-
-	client.SendMessage(WEBSOCKET_AUTHENTICATION_CHALLENGE, map[string]interface{}{"token": authToken})
+	if err := client.Connect(); err != nil {
+		return nil, err
+	}
 
 	return client, nil
 }
@@ -87,8 +71,36 @@ func (wsc *WebSocketClient) Connect() *AppError {
 	wsc.ResponseChannel = make(chan *WebSocketResponse, 100)
 
 	wsc.SendMessage(WEBSOCKET_AUTHENTICATION_CHALLENGE, map[string]interface{}{"token": wsc.AuthToken})
+	if resp, err := wsc.read(); err != nil {
+		return err
+	} else if resp, ok := resp.(*WebSocketResponse); ok && resp.Status != STATUS_OK {
+		return resp.Error
+	}
 
 	return nil
+}
+
+func (wsc *WebSocketClient) read() (interface{}, *AppError) {
+	var rawMsg json.RawMessage
+	var err error
+	if _, rawMsg, err = wsc.Conn.ReadMessage(); err != nil {
+		if !websocket.IsCloseError(err, websocket.CloseNormalClosure, websocket.CloseNoStatusReceived) {
+			return nil, NewAppError("NewWebSocketClient", "model.websocket_client.connect_fail.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+		return nil, nil
+	}
+
+	var event WebSocketEvent
+	if err := json.Unmarshal(rawMsg, &event); err == nil && event.IsValid() {
+		return &event, nil
+	}
+
+	var response WebSocketResponse
+	if err := json.Unmarshal(rawMsg, &response); err == nil && response.IsValid() {
+		return &response, nil
+	}
+
+	return nil, nil
 }
 
 func (wsc *WebSocketClient) Close() {
@@ -104,28 +116,17 @@ func (wsc *WebSocketClient) Listen() {
 		}()
 
 		for {
-			var rawMsg json.RawMessage
-			var err error
-			if _, rawMsg, err = wsc.Conn.ReadMessage(); err != nil {
-				if !websocket.IsCloseError(err, websocket.CloseNormalClosure, websocket.CloseNoStatusReceived) {
+			incoming, err := wsc.read()
+			if incoming == nil {
+				if err != nil {
 					wsc.ListenError = NewAppError("NewWebSocketClient", "model.websocket_client.connect_fail.app_error", nil, err.Error(), http.StatusInternalServerError)
 				}
-
 				return
+			} else if event, ok := incoming.(*WebSocketEvent); ok {
+				wsc.EventChannel <- event
+			} else if response, ok := incoming.(*WebSocketResponse); ok {
+				wsc.ResponseChannel <- response
 			}
-
-			var event WebSocketEvent
-			if err := json.Unmarshal(rawMsg, &event); err == nil && event.IsValid() {
-				wsc.EventChannel <- &event
-				continue
-			}
-
-			var response WebSocketResponse
-			if err := json.Unmarshal(rawMsg, &response); err == nil && response.IsValid() {
-				wsc.ResponseChannel <- &response
-				continue
-			}
-
 		}
 	}()
 }
