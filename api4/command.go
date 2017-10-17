@@ -201,6 +201,7 @@ func executeCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// checks that user is a member of the specified channel, and that they have permission to use slash commands in it
 	if !app.SessionHasPermissionToChannel(c.Session, commandArgs.ChannelId, model.PERMISSION_USE_SLASH_COMMANDS) {
 		c.SetPermissionError(model.PERMISSION_USE_SLASH_COMMANDS)
 		return
@@ -210,11 +211,20 @@ func executeCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		c.Err = err
 		return
+	} else if channel.Type != model.CHANNEL_DIRECT && channel.Type != model.CHANNEL_GROUP {
+		// if this isn't a DM or GM, the team id is implicitly taken from the channel so that slash commands created on
+		// some other team can't be run against this one
+		commandArgs.TeamId = channel.TeamId
+	} else {
+		// if the slash command was used in a DM or GM, ensure that the user is a member of the specified team, so that
+		// they can't just execute slash commands against arbitrary teams
+		if c.Session.GetTeamByTeamId(commandArgs.TeamId) == nil {
+			if !app.SessionHasPermissionTo(c.Session, model.PERMISSION_USE_SLASH_COMMANDS) {
+				c.SetPermissionError(model.PERMISSION_USE_SLASH_COMMANDS)
+				return
+			}
+		}
 	}
-
-	// team id is implicitly taken from channel so that slash commands
-	// created on some other team can't be run against this one
-	commandArgs.TeamId = channel.TeamId
 
 	commandArgs.UserId = c.Session.UserId
 	commandArgs.T = c.T
