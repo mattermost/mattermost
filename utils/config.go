@@ -518,9 +518,9 @@ func getClientConfig(c *model.Config) map[string]string {
 		if *License.Features.LDAP {
 			props["EnableLdap"] = strconv.FormatBool(*c.LdapSettings.Enable)
 			props["LdapLoginFieldName"] = *c.LdapSettings.LoginFieldName
-			props["NicknameAttributeSet"] = strconv.FormatBool(*c.LdapSettings.NicknameAttribute != "")
-			props["FirstNameAttributeSet"] = strconv.FormatBool(*c.LdapSettings.FirstNameAttribute != "")
-			props["LastNameAttributeSet"] = strconv.FormatBool(*c.LdapSettings.LastNameAttribute != "")
+			props["LdapNicknameAttributeSet"] = strconv.FormatBool(*c.LdapSettings.NicknameAttribute != "")
+			props["LdapFirstNameAttributeSet"] = strconv.FormatBool(*c.LdapSettings.FirstNameAttribute != "")
+			props["LdapLastNameAttributeSet"] = strconv.FormatBool(*c.LdapSettings.LastNameAttribute != "")
 		}
 
 		if *License.Features.MFA {
@@ -535,9 +535,9 @@ func getClientConfig(c *model.Config) map[string]string {
 		if *License.Features.SAML {
 			props["EnableSaml"] = strconv.FormatBool(*c.SamlSettings.Enable)
 			props["SamlLoginButtonText"] = *c.SamlSettings.LoginButtonText
-			props["FirstNameAttributeSet"] = strconv.FormatBool(*c.SamlSettings.FirstNameAttribute != "")
-			props["LastNameAttributeSet"] = strconv.FormatBool(*c.SamlSettings.LastNameAttribute != "")
-			props["NicknameAttributeSet"] = strconv.FormatBool(*c.SamlSettings.NicknameAttribute != "")
+			props["SamlFirstNameAttributeSet"] = strconv.FormatBool(*c.SamlSettings.FirstNameAttribute != "")
+			props["SamlLastNameAttributeSet"] = strconv.FormatBool(*c.SamlSettings.LastNameAttribute != "")
+			props["SamlNicknameAttributeSet"] = strconv.FormatBool(*c.SamlSettings.NicknameAttribute != "")
 		}
 
 		if *License.Features.Cluster {
