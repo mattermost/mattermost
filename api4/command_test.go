@@ -487,7 +487,7 @@ func TestExecuteCommand(t *testing.T) {
 
 func TestExecuteCommandAgainstChannelOnAnotherTeam(t *testing.T) {
 	th := Setup().InitBasic()
-	defer th.TearDown()
+	defer TearDown()
 	Client := th.Client
 	channel := th.BasicChannel
 
@@ -522,7 +522,7 @@ func TestExecuteCommandAgainstChannelOnAnotherTeam(t *testing.T) {
 
 func TestExecuteCommandAgainstChannelUserIsNotIn(t *testing.T) {
 	th := Setup().InitBasic()
-	defer th.TearDown()
+	defer TearDown()
 	client := th.Client
 
 	enableCommands := *utils.Cfg.ServiceSettings.EnableCommands
@@ -539,11 +539,11 @@ func TestExecuteCommandAgainstChannelUserIsNotIn(t *testing.T) {
 	postCmd := &model.Command{
 		CreatorId: th.BasicUser.Id,
 		TeamId:    team2.Id,
-		URL:       fmt.Sprintf("http://localhost:%v", th.App.Srv.ListenAddr.Port) + model.API_URL_SUFFIX_V4 + "/teams/command_test",
+		URL:       fmt.Sprintf("http://localhost:%v", *utils.Cfg.ServiceSettings.ListenAddress) + model.API_URL_SUFFIX_V4 + "/teams/command_test",
 		Method:    model.COMMAND_METHOD_POST,
 		Trigger:   "postcommand",
 	}
-	if _, err := th.App.CreateCommand(postCmd); err != nil {
+	if _, err := app.CreateCommand(postCmd); err != nil {
 		t.Fatal("failed to create post command")
 	}
 
@@ -560,7 +560,7 @@ func TestExecuteCommandAgainstChannelUserIsNotIn(t *testing.T) {
 
 func TestExecuteCommandInDirectMessageChannel(t *testing.T) {
 	th := Setup().InitBasic()
-	defer th.TearDown()
+	defer TearDown()
 	client := th.Client
 
 	enableCommands := *utils.Cfg.ServiceSettings.EnableCommands
@@ -577,11 +577,11 @@ func TestExecuteCommandInDirectMessageChannel(t *testing.T) {
 	postCmd := &model.Command{
 		CreatorId: th.BasicUser.Id,
 		TeamId:    team2.Id,
-		URL:       fmt.Sprintf("http://localhost:%v", th.App.Srv.ListenAddr.Port) + model.API_URL_SUFFIX_V4 + "/teams/command_test",
+		URL:       fmt.Sprintf("http://localhost:%v", *utils.Cfg.ServiceSettings.ListenAddress) + model.API_URL_SUFFIX_V4 + "/teams/command_test",
 		Method:    model.COMMAND_METHOD_POST,
 		Trigger:   "postcommand",
 	}
-	if _, err := th.App.CreateCommand(postCmd); err != nil {
+	if _, err := app.CreateCommand(postCmd); err != nil {
 		t.Fatal("failed to create post command")
 	}
 
@@ -600,7 +600,7 @@ func TestExecuteCommandInDirectMessageChannel(t *testing.T) {
 
 func TestExecuteCommandInTeamUserIsNotOn(t *testing.T) {
 	th := Setup().InitBasic()
-	defer th.TearDown()
+	defer TearDown()
 	client := th.Client
 
 	enableCommands := *utils.Cfg.ServiceSettings.EnableCommands
@@ -619,11 +619,11 @@ func TestExecuteCommandInTeamUserIsNotOn(t *testing.T) {
 	postCmd := &model.Command{
 		CreatorId: th.BasicUser.Id,
 		TeamId:    team2.Id,
-		URL:       fmt.Sprintf("http://localhost:%v", th.App.Srv.ListenAddr.Port) + model.API_URL_SUFFIX_V4 + "/teams/command_test",
+		URL:       fmt.Sprintf("http://localhost:%v", *utils.Cfg.ServiceSettings.ListenAddress) + model.API_URL_SUFFIX_V4 + "/teams/command_test",
 		Method:    model.COMMAND_METHOD_POST,
 		Trigger:   "postcommand",
 	}
-	if _, err := th.App.CreateCommand(postCmd); err != nil {
+	if _, err := app.CreateCommand(postCmd); err != nil {
 		t.Fatal("failed to create post command")
 	}
 
