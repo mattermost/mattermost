@@ -63,10 +63,10 @@ func (wr *WebSocketRouter) ServeWebSocket(conn *WebConn, r *model.WebSocketReque
 			conn.SetSessionToken(session.Token)
 			conn.UserId = session.UserId
 
-			wr.app.HubRegister(conn)
-
 			resp := model.NewWebSocketResponse(model.STATUS_OK, r.Seq, nil)
 			conn.Send <- resp
+
+			wr.app.HubRegister(conn)
 		}
 
 		return
