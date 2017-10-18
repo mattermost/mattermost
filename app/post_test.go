@@ -106,10 +106,10 @@ func TestPostAction(t *testing.T) {
 		UserId:        th.BasicUser.Id,
 		Props: model.StringInterface{
 			"attachments": []*model.SlackAttachment{
-				&model.SlackAttachment{
+				{
 					Text: "hello",
 					Actions: []*model.PostAction{
-						&model.PostAction{
+						{
 							Integration: &model.PostActionIntegration{
 								Context: model.StringInterface{
 									"s": "foo",

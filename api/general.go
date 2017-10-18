@@ -30,7 +30,7 @@ func getClientConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 func logClient(c *Context, w http.ResponseWriter, r *http.Request) {
 	forceToDebug := false
 
-	if !*utils.Cfg.ServiceSettings.EnableDeveloper {
+	if !*c.App.Config().ServiceSettings.EnableDeveloper {
 		if c.Session.UserId == "" {
 			c.Err = model.NewAppError("Permissions", "api.context.permissions.app_error", nil, "", http.StatusForbidden)
 			return

@@ -9,6 +9,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -26,11 +27,11 @@ func TestPlugin(t *testing.T) {
 	th := SetupEnterprise().InitBasic().InitSystemAdmin()
 	defer th.TearDown()
 
-	enablePlugins := *utils.Cfg.PluginSettings.Enable
+	enablePlugins := *th.App.Config().PluginSettings.Enable
 	defer func() {
-		*utils.Cfg.PluginSettings.Enable = enablePlugins
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PluginSettings.Enable = enablePlugins })
 	}()
-	*utils.Cfg.PluginSettings.Enable = true
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PluginSettings.Enable = true })
 
 	th.App.InitPlugins(pluginDir, webappDir)
 	defer func() {
@@ -56,11 +57,11 @@ func TestPlugin(t *testing.T) {
 	_, resp = th.SystemAdminClient.UploadPlugin(bytes.NewReader([]byte("badfile")))
 	CheckBadRequestStatus(t, resp)
 
-	*utils.Cfg.PluginSettings.Enable = false
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PluginSettings.Enable = false })
 	_, resp = th.SystemAdminClient.UploadPlugin(file)
 	CheckNotImplementedStatus(t, resp)
 
-	*utils.Cfg.PluginSettings.Enable = true
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PluginSettings.Enable = true })
 	_, resp = th.Client.UploadPlugin(file)
 	CheckForbiddenStatus(t, resp)
 
@@ -78,11 +79,11 @@ func TestPlugin(t *testing.T) {
 	assert.True(t, found)
 
 	// Get error cases
-	*utils.Cfg.PluginSettings.Enable = false
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PluginSettings.Enable = false })
 	_, resp = th.SystemAdminClient.GetPlugins()
 	CheckNotImplementedStatus(t, resp)
 
-	*utils.Cfg.PluginSettings.Enable = true
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PluginSettings.Enable = true })
 	_, resp = th.Client.GetPlugins()
 	CheckForbiddenStatus(t, resp)
 
@@ -111,11 +112,11 @@ func TestPlugin(t *testing.T) {
 
 	assert.False(t, ok)
 
-	*utils.Cfg.PluginSettings.Enable = false
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PluginSettings.Enable = false })
 	_, resp = th.SystemAdminClient.RemovePlugin(manifest.Id)
 	CheckNotImplementedStatus(t, resp)
 
-	*utils.Cfg.PluginSettings.Enable = true
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PluginSettings.Enable = true })
 	_, resp = th.Client.RemovePlugin(manifest.Id)
 	CheckForbiddenStatus(t, resp)
 

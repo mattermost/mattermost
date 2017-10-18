@@ -46,17 +46,17 @@ func (api *API) InitFile() {
 }
 
 func uploadFile(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !*utils.Cfg.FileSettings.EnableFileAttachments {
+	if !*c.App.Config().FileSettings.EnableFileAttachments {
 		c.Err = model.NewAppError("uploadFile", "api.file.attachments.disabled.app_error", nil, "", http.StatusNotImplemented)
 		return
 	}
 
-	if r.ContentLength > *utils.Cfg.FileSettings.MaxFileSize {
+	if r.ContentLength > *c.App.Config().FileSettings.MaxFileSize {
 		c.Err = model.NewAppError("uploadFile", "api.file.upload_file.too_large.app_error", nil, "", http.StatusRequestEntityTooLarge)
 		return
 	}
 
-	if err := r.ParseMultipartForm(*utils.Cfg.FileSettings.MaxFileSize); err != nil {
+	if err := r.ParseMultipartForm(*c.App.Config().FileSettings.MaxFileSize); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -159,7 +159,7 @@ func getFileInfo(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getPublicFile(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !utils.Cfg.FileSettings.EnablePublicLink {
+	if !c.App.Config().FileSettings.EnablePublicLink {
 		c.Err = model.NewAppError("getPublicFile", "api.file.get_file.public_disabled.app_error", nil, "", http.StatusNotImplemented)
 		return
 	}
@@ -173,7 +173,7 @@ func getPublicFile(c *Context, w http.ResponseWriter, r *http.Request) {
 	hash := r.URL.Query().Get("h")
 
 	if len(hash) > 0 {
-		correctHash := app.GeneratePublicLinkHash(info.Id, *utils.Cfg.FileSettings.PublicLinkSalt)
+		correctHash := app.GeneratePublicLinkHash(info.Id, *c.App.Config().FileSettings.PublicLinkSalt)
 
 		if hash != correctHash {
 			c.Err = model.NewAppError("getPublicFile", "api.file.get_file.public_invalid.app_error", nil, "", http.StatusBadRequest)
@@ -196,7 +196,7 @@ func getPublicFile(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getFileInfoForRequest(c *Context, r *http.Request, requireFileVisible bool) (*model.FileInfo, *model.AppError) {
-	if len(*utils.Cfg.FileSettings.DriverName) == 0 {
+	if len(*c.App.Config().FileSettings.DriverName) == 0 {
 		return nil, model.NewAppError("getFileInfoForRequest", "api.file.get_info_for_request.storage.app_error", nil, "", http.StatusNotImplemented)
 	}
 
@@ -231,10 +231,10 @@ func getFileInfoForRequest(c *Context, r *http.Request, requireFileVisible bool)
 }
 
 func getPublicFileOld(c *Context, w http.ResponseWriter, r *http.Request) {
-	if len(*utils.Cfg.FileSettings.DriverName) == 0 {
+	if len(*c.App.Config().FileSettings.DriverName) == 0 {
 		c.Err = model.NewAppError("getPublicFile", "api.file.get_public_file_old.storage.app_error", nil, "", http.StatusNotImplemented)
 		return
-	} else if !utils.Cfg.FileSettings.EnablePublicLink {
+	} else if !c.App.Config().FileSettings.EnablePublicLink {
 		c.Err = model.NewAppError("getPublicFile", "api.file.get_file.public_disabled.app_error", nil, "", http.StatusNotImplemented)
 		return
 	}
@@ -249,7 +249,7 @@ func getPublicFileOld(c *Context, w http.ResponseWriter, r *http.Request) {
 	hash := r.URL.Query().Get("h")
 
 	if len(hash) > 0 {
-		correctHash := app.GeneratePublicLinkHash(filename, *utils.Cfg.FileSettings.PublicLinkSalt)
+		correctHash := app.GeneratePublicLinkHash(filename, *c.App.Config().FileSettings.PublicLinkSalt)
 
 		if hash != correctHash {
 			c.Err = model.NewAppError("getPublicFile", "api.file.get_file.public_invalid.app_error", nil, "", http.StatusBadRequest)
@@ -316,7 +316,7 @@ func writeFileResponse(filename string, contentType string, bytes []byte, w http
 }
 
 func getPublicLink(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !utils.Cfg.FileSettings.EnablePublicLink {
+	if !c.App.Config().FileSettings.EnablePublicLink {
 		c.Err = model.NewAppError("getPublicLink", "api.file.get_public_link.disabled.app_error", nil, "", http.StatusNotImplemented)
 		return
 	}

@@ -52,7 +52,7 @@ const (
 var client *analytics.Client
 
 func (a *App) SendDailyDiagnostics() {
-	if *utils.Cfg.LogSettings.EnableDiagnostics && a.IsLeader() {
+	if *a.Config().LogSettings.EnableDiagnostics && a.IsLeader() {
 		initDiagnostics("")
 		a.trackActivity()
 		trackConfig()
@@ -483,7 +483,7 @@ func (a *App) trackServer() {
 	data := map[string]interface{}{
 		"edition":          model.BuildEnterpriseReady,
 		"version":          model.CurrentVersion,
-		"database_type":    *utils.Cfg.SqlSettings.DriverName,
+		"database_type":    *a.Config().SqlSettings.DriverName,
 		"operating_system": runtime.GOOS,
 	}
 

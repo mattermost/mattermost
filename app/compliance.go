@@ -13,7 +13,7 @@ import (
 )
 
 func (a *App) GetComplianceReports(page, perPage int) (model.Compliances, *model.AppError) {
-	if !*utils.Cfg.ComplianceSettings.Enable || !utils.IsLicensed() || !*utils.License().Features.Compliance {
+	if !*a.Config().ComplianceSettings.Enable || !utils.IsLicensed() || !*utils.License().Features.Compliance {
 		return nil, model.NewAppError("GetComplianceReports", "ent.compliance.licence_disable.app_error", nil, "", http.StatusNotImplemented)
 	}
 
@@ -25,7 +25,7 @@ func (a *App) GetComplianceReports(page, perPage int) (model.Compliances, *model
 }
 
 func (a *App) SaveComplianceReport(job *model.Compliance) (*model.Compliance, *model.AppError) {
-	if !*utils.Cfg.ComplianceSettings.Enable || !utils.IsLicensed() || !*utils.License().Features.Compliance || a.Compliance == nil {
+	if !*a.Config().ComplianceSettings.Enable || !utils.IsLicensed() || !*utils.License().Features.Compliance || a.Compliance == nil {
 		return nil, model.NewAppError("saveComplianceReport", "ent.compliance.licence_disable.app_error", nil, "", http.StatusNotImplemented)
 	}
 
@@ -44,7 +44,7 @@ func (a *App) SaveComplianceReport(job *model.Compliance) (*model.Compliance, *m
 }
 
 func (a *App) GetComplianceReport(reportId string) (*model.Compliance, *model.AppError) {
-	if !*utils.Cfg.ComplianceSettings.Enable || !utils.IsLicensed() || !*utils.License().Features.Compliance || a.Compliance == nil {
+	if !*a.Config().ComplianceSettings.Enable || !utils.IsLicensed() || !*utils.License().Features.Compliance || a.Compliance == nil {
 		return nil, model.NewAppError("downloadComplianceReport", "ent.compliance.licence_disable.app_error", nil, "", http.StatusNotImplemented)
 	}
 

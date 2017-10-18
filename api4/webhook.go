@@ -459,7 +459,7 @@ func incomingWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 		payload = r.Body
 	}
 
-	if utils.Cfg.LogSettings.EnableWebhookDebugging {
+	if c.App.Config().LogSettings.EnableWebhookDebugging {
 		var err error
 		payload, err = utils.InfoReader(
 			payload,

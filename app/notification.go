@@ -149,7 +149,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 		senderUsername = sender.Username
 	}
 
-	if utils.Cfg.EmailSettings.SendEmailNotifications {
+	if a.Config().EmailSettings.SendEmailNotifications {
 		for _, id := range mentionedUsersList {
 			userAllowsEmails := profileMap[id].NotifyProps[model.EMAIL_NOTIFY_PROP] != "false"
 			if channelEmail, ok := channelMemberNotifyPropsMap[id][model.EMAIL_NOTIFY_PROP]; ok {
@@ -159,7 +159,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 			}
 
 			//If email verification is required and user email is not verified don't send email.
-			if utils.Cfg.EmailSettings.RequireEmailVerification && !profileMap[id].EmailVerified {
+			if a.Config().EmailSettings.RequireEmailVerification && !profileMap[id].EmailVerified {
 				l4g.Error("Skipped sending notification email to %v, address not verified. [details: user_id=%v]", profileMap[id].Email, id)
 				continue
 			}
@@ -185,37 +185,37 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 	T := utils.GetUserTranslations(sender.Locale)
 
 	// If the channel has more than 1K users then @here is disabled
-	if hereNotification && int64(len(profileMap)) > *utils.Cfg.TeamSettings.MaxNotificationsPerChannel {
+	if hereNotification && int64(len(profileMap)) > *a.Config().TeamSettings.MaxNotificationsPerChannel {
 		hereNotification = false
 		a.SendEphemeralPost(
 			post.UserId,
 			&model.Post{
 				ChannelId: post.ChannelId,
-				Message:   T("api.post.disabled_here", map[string]interface{}{"Users": *utils.Cfg.TeamSettings.MaxNotificationsPerChannel}),
+				Message:   T("api.post.disabled_here", map[string]interface{}{"Users": *a.Config().TeamSettings.MaxNotificationsPerChannel}),
 				CreateAt:  post.CreateAt + 1,
 			},
 		)
 	}
 
 	// If the channel has more than 1K users then @channel is disabled
-	if channelNotification && int64(len(profileMap)) > *utils.Cfg.TeamSettings.MaxNotificationsPerChannel {
+	if channelNotification && int64(len(profileMap)) > *a.Config().TeamSettings.MaxNotificationsPerChannel {
 		a.SendEphemeralPost(
 			post.UserId,
 			&model.Post{
 				ChannelId: post.ChannelId,
-				Message:   T("api.post.disabled_channel", map[string]interface{}{"Users": *utils.Cfg.TeamSettings.MaxNotificationsPerChannel}),
+				Message:   T("api.post.disabled_channel", map[string]interface{}{"Users": *a.Config().TeamSettings.MaxNotificationsPerChannel}),
 				CreateAt:  post.CreateAt + 1,
 			},
 		)
 	}
 
 	// If the channel has more than 1K users then @all is disabled
-	if allNotification && int64(len(profileMap)) > *utils.Cfg.TeamSettings.MaxNotificationsPerChannel {
+	if allNotification && int64(len(profileMap)) > *a.Config().TeamSettings.MaxNotificationsPerChannel {
 		a.SendEphemeralPost(
 			post.UserId,
 			&model.Post{
 				ChannelId: post.ChannelId,
-				Message:   T("api.post.disabled_all", map[string]interface{}{"Users": *utils.Cfg.TeamSettings.MaxNotificationsPerChannel}),
+				Message:   T("api.post.disabled_all", map[string]interface{}{"Users": *a.Config().TeamSettings.MaxNotificationsPerChannel}),
 				CreateAt:  post.CreateAt + 1,
 			},
 		)
@@ -231,8 +231,8 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 	}
 
 	sendPushNotifications := false
-	if *utils.Cfg.EmailSettings.SendPushNotifications {
-		pushServer := *utils.Cfg.EmailSettings.PushNotificationServer
+	if *a.Config().EmailSettings.SendPushNotifications {
+		pushServer := *a.Config().EmailSettings.PushNotificationServer
 		if pushServer == model.MHPNS && (!utils.IsLicensed() || !*utils.License().Features.MHPNS) {
 			l4g.Warn(utils.T("api.post.send_notifications_and_forget.push_notification.mhpnsWarn"))
 			sendPushNotifications = false
@@ -323,11 +323,11 @@ func (a *App) sendNotificationEmail(post *model.Post, user *model.User, channel 
 				team = teams[0]
 			} else {
 				// in case the user hasn't joined any teams we send them to the select_team page
-				team = &model.Team{Name: "select_team", DisplayName: utils.Cfg.TeamSettings.SiteName}
+				team = &model.Team{Name: "select_team", DisplayName: a.Config().TeamSettings.SiteName}
 			}
 		}
 	}
-	if *utils.Cfg.EmailSettings.EnableEmailBatching {
+	if *a.Config().EmailSettings.EnableEmailBatching {
 		var sendBatched bool
 		if result := <-a.Srv.Store.Preference().Get(user.Id, model.PREFERENCE_CATEGORY_NOTIFICATIONS, model.PREFERENCE_NAME_EMAIL_INTERVAL); result.Err != nil {
 			// if the call fails, assume that the interval has not been explicitly set and batch the notifications
@@ -350,14 +350,14 @@ func (a *App) sendNotificationEmail(post *model.Post, user *model.User, channel 
 
 	var subjectText string
 	if channel.Type == model.CHANNEL_DIRECT {
-		subjectText = getDirectMessageNotificationEmailSubject(post, translateFunc, utils.Cfg.TeamSettings.SiteName, senderName)
+		subjectText = getDirectMessageNotificationEmailSubject(post, translateFunc, a.Config().TeamSettings.SiteName, senderName)
 	} else {
-		subjectText = getNotificationEmailSubject(post, translateFunc, utils.Cfg.TeamSettings.SiteName, team.DisplayName)
+		subjectText = getNotificationEmailSubject(post, translateFunc, a.Config().TeamSettings.SiteName, team.DisplayName)
 	}
 
 	emailNotificationContentsType := model.EMAIL_NOTIFICATION_CONTENTS_FULL
 	if utils.IsLicensed() && *utils.License().Features.EmailNotificationContents {
-		emailNotificationContentsType = *utils.Cfg.EmailSettings.EmailNotificationContentsType
+		emailNotificationContentsType = *a.Config().EmailSettings.EmailNotificationContentsType
 	}
 
 	teamURL := utils.GetSiteURL() + "/" + team.Name
@@ -594,14 +594,14 @@ func (a *App) sendPushNotification(post *model.Post, user *model.User, channel *
 		msg.FromWebhook = fw.(string)
 	}
 
-	if *utils.Cfg.EmailSettings.PushNotificationContents == model.FULL_NOTIFICATION {
+	if *a.Config().EmailSettings.PushNotificationContents == model.FULL_NOTIFICATION {
 		msg.Category = model.CATEGORY_CAN_REPLY
 		if channel.Type == model.CHANNEL_DIRECT {
 			msg.Message = senderName + ": " + model.ClearMentionTags(post.Message)
 		} else {
 			msg.Message = senderName + userLocale("api.post.send_notifications_and_forget.push_in") + channelName + ": " + model.ClearMentionTags(post.Message)
 		}
-	} else if *utils.Cfg.EmailSettings.PushNotificationContents == model.GENERIC_NO_CHANNEL_NOTIFICATION {
+	} else if *a.Config().EmailSettings.PushNotificationContents == model.GENERIC_NO_CHANNEL_NOTIFICATION {
 		if channel.Type == model.CHANNEL_DIRECT {
 			msg.Category = model.CATEGORY_CAN_REPLY
 			msg.Message = senderName + userLocale("api.post.send_notifications_and_forget.push_message")
@@ -693,7 +693,7 @@ func (a *App) ClearPushNotification(userId string, channelId string) {
 func (a *App) sendToPushProxy(msg model.PushNotification, session *model.Session) {
 	msg.ServerId = utils.CfgDiagnosticId
 
-	request, _ := http.NewRequest("POST", *utils.Cfg.EmailSettings.PushNotificationServer+model.API_URL_SUFFIX_V1+"/send_push", strings.NewReader(msg.ToJson()))
+	request, _ := http.NewRequest("POST", *a.Config().EmailSettings.PushNotificationServer+model.API_URL_SUFFIX_V1+"/send_push", strings.NewReader(msg.ToJson()))
 
 	if resp, err := utils.HttpClient(true).Do(request); err != nil {
 		l4g.Error("Device push reported as error for UserId=%v SessionId=%v message=%v", session.UserId, session.Id, err.Error())

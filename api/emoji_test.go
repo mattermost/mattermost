@@ -22,11 +22,11 @@ func TestGetEmoji(t *testing.T) {
 
 	Client := th.BasicClient
 
-	EnableCustomEmoji := *utils.Cfg.ServiceSettings.EnableCustomEmoji
+	EnableCustomEmoji := *th.App.Config().ServiceSettings.EnableCustomEmoji
 	defer func() {
-		*utils.Cfg.ServiceSettings.EnableCustomEmoji = EnableCustomEmoji
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableCustomEmoji = EnableCustomEmoji })
 	}()
-	*utils.Cfg.ServiceSettings.EnableCustomEmoji = true
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableCustomEmoji = true })
 
 	emojis := []*model.Emoji{
 		{
@@ -102,11 +102,11 @@ func TestCreateEmoji(t *testing.T) {
 
 	Client := th.BasicClient
 
-	EnableCustomEmoji := *utils.Cfg.ServiceSettings.EnableCustomEmoji
+	EnableCustomEmoji := *th.App.Config().ServiceSettings.EnableCustomEmoji
 	defer func() {
-		*utils.Cfg.ServiceSettings.EnableCustomEmoji = EnableCustomEmoji
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableCustomEmoji = EnableCustomEmoji })
 	}()
-	*utils.Cfg.ServiceSettings.EnableCustomEmoji = false
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableCustomEmoji = false })
 
 	emoji := &model.Emoji{
 		CreatorId: th.BasicUser.Id,
@@ -118,7 +118,7 @@ func TestCreateEmoji(t *testing.T) {
 		t.Fatal("shouldn't be able to create an emoji when they're disabled")
 	}
 
-	*utils.Cfg.ServiceSettings.EnableCustomEmoji = true
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableCustomEmoji = true })
 
 	// try to create a valid gif emoji when they're enabled
 	if emojiResult, err := Client.CreateEmoji(emoji, utils.CreateTestGif(t, 10, 10), "image.gif"); err != nil {
@@ -226,11 +226,11 @@ func TestDeleteEmoji(t *testing.T) {
 
 	Client := th.BasicClient
 
-	EnableCustomEmoji := *utils.Cfg.ServiceSettings.EnableCustomEmoji
+	EnableCustomEmoji := *th.App.Config().ServiceSettings.EnableCustomEmoji
 	defer func() {
-		*utils.Cfg.ServiceSettings.EnableCustomEmoji = EnableCustomEmoji
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableCustomEmoji = EnableCustomEmoji })
 	}()
-	*utils.Cfg.ServiceSettings.EnableCustomEmoji = false
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableCustomEmoji = false })
 
 	emoji1 := createTestEmoji(t, th.App, &model.Emoji{
 		CreatorId: th.BasicUser.Id,
@@ -241,7 +241,7 @@ func TestDeleteEmoji(t *testing.T) {
 		t.Fatal("shouldn't have been able to delete an emoji when they're disabled")
 	}
 
-	*utils.Cfg.ServiceSettings.EnableCustomEmoji = true
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableCustomEmoji = true })
 
 	if deleted, err := Client.DeleteEmoji(emoji1.Id); err != nil {
 		t.Fatal(err)
@@ -286,14 +286,18 @@ func TestGetEmojiImage(t *testing.T) {
 
 	Client := th.BasicClient
 
-	EnableCustomEmoji := *utils.Cfg.ServiceSettings.EnableCustomEmoji
-	RestrictCustomEmojiCreation := *utils.Cfg.ServiceSettings.RestrictCustomEmojiCreation
+	EnableCustomEmoji := *th.App.Config().ServiceSettings.EnableCustomEmoji
+	RestrictCustomEmojiCreation := *th.App.Config().ServiceSettings.RestrictCustomEmojiCreation
 	defer func() {
-		*utils.Cfg.ServiceSettings.EnableCustomEmoji = EnableCustomEmoji
-		*utils.Cfg.ServiceSettings.RestrictCustomEmojiCreation = RestrictCustomEmojiCreation
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableCustomEmoji = EnableCustomEmoji })
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.RestrictCustomEmojiCreation = RestrictCustomEmojiCreation
+		})
 	}()
-	*utils.Cfg.ServiceSettings.EnableCustomEmoji = true
-	*utils.Cfg.ServiceSettings.RestrictCustomEmojiCreation = model.RESTRICT_EMOJI_CREATION_ALL
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableCustomEmoji = true })
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.RestrictCustomEmojiCreation = model.RESTRICT_EMOJI_CREATION_ALL
+	})
 
 	emoji1 := &model.Emoji{
 		CreatorId: th.BasicUser.Id,
@@ -302,13 +306,13 @@ func TestGetEmojiImage(t *testing.T) {
 	emoji1 = Client.MustGeneric(Client.CreateEmoji(emoji1, utils.CreateTestGif(t, 10, 10), "image.gif")).(*model.Emoji)
 	defer func() { Client.MustGeneric(Client.DeleteEmoji(emoji1.Id)) }()
 
-	*utils.Cfg.ServiceSettings.EnableCustomEmoji = false
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableCustomEmoji = false })
 
 	if _, err := Client.DoApiGet(Client.GetCustomEmojiImageUrl(emoji1.Id), "", ""); err == nil {
 		t.Fatal("should've failed to get emoji image when disabled")
 	}
 
-	*utils.Cfg.ServiceSettings.EnableCustomEmoji = true
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableCustomEmoji = true })
 
 	if resp, err := Client.DoApiGet(Client.GetCustomEmojiImageUrl(emoji1.Id), "", ""); err != nil {
 		t.Fatal(err)

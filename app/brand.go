@@ -8,11 +8,10 @@ import (
 	"net/http"
 
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils"
 )
 
 func (a *App) SaveBrandImage(imageData *multipart.FileHeader) *model.AppError {
-	if len(*utils.Cfg.FileSettings.DriverName) == 0 {
+	if len(*a.Config().FileSettings.DriverName) == 0 {
 		return model.NewAppError("SaveBrandImage", "api.admin.upload_brand_image.storage.app_error", nil, "", http.StatusNotImplemented)
 	}
 
@@ -28,7 +27,7 @@ func (a *App) SaveBrandImage(imageData *multipart.FileHeader) *model.AppError {
 }
 
 func (a *App) GetBrandImage() ([]byte, *model.AppError) {
-	if len(*utils.Cfg.FileSettings.DriverName) == 0 {
+	if len(*a.Config().FileSettings.DriverName) == 0 {
 		return nil, model.NewAppError("GetBrandImage", "api.admin.get_brand_image.storage.app_error", nil, "", http.StatusNotImplemented)
 	}
 

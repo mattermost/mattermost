@@ -117,7 +117,7 @@ func Init(a *app.App, root *mux.Router) *API {
 
 	a.InitEmailBatching()
 
-	if *utils.Cfg.ServiceSettings.EnableAPIv3 {
+	if *a.Config().ServiceSettings.EnableAPIv3 {
 		l4g.Info("API version 3 is scheduled for deprecation. Please see https://api.mattermost.com for details.")
 	}
 

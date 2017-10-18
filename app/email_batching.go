@@ -23,9 +23,9 @@ const (
 )
 
 func (a *App) InitEmailBatching() {
-	if *utils.Cfg.EmailSettings.EnableEmailBatching {
+	if *a.Config().EmailSettings.EnableEmailBatching {
 		if a.EmailBatching == nil {
-			a.EmailBatching = NewEmailBatchingJob(a, *utils.Cfg.EmailSettings.EmailBatchingBufferSize)
+			a.EmailBatching = NewEmailBatchingJob(a, *a.Config().EmailSettings.EmailBatchingBufferSize)
 		}
 
 		// note that we don't support changing EmailBatchingBufferSize without restarting the server
@@ -35,7 +35,7 @@ func (a *App) InitEmailBatching() {
 }
 
 func (a *App) AddNotificationEmailToBatch(user *model.User, post *model.Post, team *model.Team) *model.AppError {
-	if !*utils.Cfg.EmailSettings.EnableEmailBatching {
+	if !*a.Config().EmailSettings.EnableEmailBatching {
 		return model.NewAppError("AddNotificationEmailToBatch", "api.email_batching.add_notification_email_to_batch.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
@@ -197,7 +197,7 @@ func (a *App) sendBatchedEmailNotification(userId string, notifications []*batch
 	}
 
 	translateFunc := utils.GetUserTranslations(user.Locale)
-	displayNameFormat := *utils.Cfg.TeamSettings.TeammateNameDisplay
+	displayNameFormat := *a.Config().TeamSettings.TeammateNameDisplay
 
 	var contents string
 	for _, notification := range notifications {
@@ -221,23 +221,23 @@ func (a *App) sendBatchedEmailNotification(userId string, notifications []*batch
 
 		emailNotificationContentsType := model.EMAIL_NOTIFICATION_CONTENTS_FULL
 		if utils.IsLicensed() && *utils.License().Features.EmailNotificationContents {
-			emailNotificationContentsType = *utils.Cfg.EmailSettings.EmailNotificationContentsType
+			emailNotificationContentsType = *a.Config().EmailSettings.EmailNotificationContentsType
 		}
 
-		contents += a.renderBatchedPost(notification, channel, sender, *utils.Cfg.ServiceSettings.SiteURL, displayNameFormat, translateFunc, user.Locale, emailNotificationContentsType)
+		contents += a.renderBatchedPost(notification, channel, sender, *a.Config().ServiceSettings.SiteURL, displayNameFormat, translateFunc, user.Locale, emailNotificationContentsType)
 	}
 
 	tm := time.Unix(notifications[0].post.CreateAt/1000, 0)
 
 	subject := translateFunc("api.email_batching.send_batched_email_notification.subject", len(notifications), map[string]interface{}{
-		"SiteName": utils.Cfg.TeamSettings.SiteName,
+		"SiteName": a.Config().TeamSettings.SiteName,
 		"Year":     tm.Year(),
 		"Month":    translateFunc(tm.Month().String()),
 		"Day":      tm.Day(),
 	})
 
 	body := utils.NewHTMLTemplate("post_batched_body", user.Locale)
-	body.Props["SiteURL"] = *utils.Cfg.ServiceSettings.SiteURL
+	body.Props["SiteURL"] = *a.Config().ServiceSettings.SiteURL
 	body.Props["Posts"] = template.HTML(contents)
 	body.Props["BodyText"] = translateFunc("api.email_batching.send_batched_email_notification.body_text", len(notifications))
 

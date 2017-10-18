@@ -68,12 +68,12 @@ func TestCreateTeam(t *testing.T) {
 	CheckUnauthorizedStatus(t, resp)
 
 	// Update permission
-	enableTeamCreation := utils.Cfg.TeamSettings.EnableTeamCreation
+	enableTeamCreation := th.App.Config().TeamSettings.EnableTeamCreation
 	defer func() {
-		utils.Cfg.TeamSettings.EnableTeamCreation = enableTeamCreation
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.TeamSettings.EnableTeamCreation = enableTeamCreation })
 		utils.SetDefaultRolesBasedOnConfig()
 	}()
-	utils.Cfg.TeamSettings.EnableTeamCreation = false
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.TeamSettings.EnableTeamCreation = false })
 	utils.SetDefaultRolesBasedOnConfig()
 
 	th.LoginBasic()
@@ -1295,18 +1295,18 @@ func TestAddTeamMember(t *testing.T) {
 	Client.Logout()
 
 	// Check effects of config and license changes.
-	restrictTeamInvite := *utils.Cfg.TeamSettings.RestrictTeamInvite
+	restrictTeamInvite := *th.App.Config().TeamSettings.RestrictTeamInvite
 	isLicensed := utils.IsLicensed()
 	license := utils.License()
 	defer func() {
-		*utils.Cfg.TeamSettings.RestrictTeamInvite = restrictTeamInvite
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.RestrictTeamInvite = restrictTeamInvite })
 		utils.SetIsLicensed(isLicensed)
 		utils.SetLicense(license)
 		utils.SetDefaultRolesBasedOnConfig()
 	}()
 
 	// Set the config so that only team admins can add a user to a team.
-	*utils.Cfg.TeamSettings.RestrictTeamInvite = model.PERMISSIONS_TEAM_ADMIN
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.RestrictTeamInvite = model.PERMISSIONS_TEAM_ADMIN })
 	utils.SetDefaultRolesBasedOnConfig()
 	th.LoginBasic()
 
@@ -1328,7 +1328,7 @@ func TestAddTeamMember(t *testing.T) {
 	// Update user to team admin
 	th.UpdateUserToTeamAdmin(th.BasicUser, th.BasicTeam)
 	th.App.InvalidateAllCaches()
-	*utils.Cfg.TeamSettings.RestrictTeamInvite = model.PERMISSIONS_TEAM_ADMIN
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.RestrictTeamInvite = model.PERMISSIONS_TEAM_ADMIN })
 	utils.SetIsLicensed(true)
 	utils.SetLicense(&model.License{Features: &model.Features{}})
 	utils.License().Features.SetDefaults()
@@ -1340,7 +1340,7 @@ func TestAddTeamMember(t *testing.T) {
 	CheckNoError(t, resp)
 
 	// Change permission level to System Admin
-	*utils.Cfg.TeamSettings.RestrictTeamInvite = model.PERMISSIONS_SYSTEM_ADMIN
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.RestrictTeamInvite = model.PERMISSIONS_SYSTEM_ADMIN })
 	utils.SetDefaultRolesBasedOnConfig()
 
 	// Should not work as team admin.
@@ -1354,7 +1354,7 @@ func TestAddTeamMember(t *testing.T) {
 	// Change permission level to All
 	th.UpdateUserToNonTeamAdmin(th.BasicUser, th.BasicTeam)
 	th.App.InvalidateAllCaches()
-	*utils.Cfg.TeamSettings.RestrictTeamInvite = model.PERMISSIONS_ALL
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.RestrictTeamInvite = model.PERMISSIONS_ALL })
 	utils.SetIsLicensed(true)
 	utils.SetLicense(&model.License{Features: &model.Features{}})
 	utils.License().Features.SetDefaults()
@@ -1366,7 +1366,7 @@ func TestAddTeamMember(t *testing.T) {
 	CheckNoError(t, resp)
 
 	// Reset config and license.
-	*utils.Cfg.TeamSettings.RestrictTeamInvite = restrictTeamInvite
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.RestrictTeamInvite = restrictTeamInvite })
 	utils.SetIsLicensed(isLicensed)
 	utils.SetLicense(license)
 	utils.SetDefaultRolesBasedOnConfig()
@@ -1380,7 +1380,7 @@ func TestAddTeamMember(t *testing.T) {
 	dataObject["id"] = team.Id
 
 	data := model.MapToJson(dataObject)
-	hashed := utils.HashSha256(fmt.Sprintf("%v:%v", data, utils.Cfg.EmailSettings.InviteSalt))
+	hashed := utils.HashSha256(fmt.Sprintf("%v:%v", data, th.App.Config().EmailSettings.InviteSalt))
 
 	tm, resp = Client.AddTeamMemberFromInvite(hashed, data, "")
 	CheckNoError(t, resp)
@@ -1410,7 +1410,7 @@ func TestAddTeamMember(t *testing.T) {
 	// expired data of more than 50 hours
 	dataObject["time"] = fmt.Sprintf("%v", model.GetMillis()-1000*60*60*50)
 	data = model.MapToJson(dataObject)
-	hashed = utils.HashSha256(fmt.Sprintf("%v:%v", data, utils.Cfg.EmailSettings.InviteSalt))
+	hashed = utils.HashSha256(fmt.Sprintf("%v:%v", data, th.App.Config().EmailSettings.InviteSalt))
 
 	tm, resp = Client.AddTeamMemberFromInvite(hashed, data, "")
 	CheckBadRequestStatus(t, resp)
@@ -1418,7 +1418,7 @@ func TestAddTeamMember(t *testing.T) {
 	// invalid team id
 	dataObject["id"] = GenerateTestId()
 	data = model.MapToJson(dataObject)
-	hashed = utils.HashSha256(fmt.Sprintf("%v:%v", data, utils.Cfg.EmailSettings.InviteSalt))
+	hashed = utils.HashSha256(fmt.Sprintf("%v:%v", data, th.App.Config().EmailSettings.InviteSalt))
 
 	tm, resp = Client.AddTeamMemberFromInvite(hashed, data, "")
 	CheckBadRequestStatus(t, resp)
@@ -1509,18 +1509,18 @@ func TestAddTeamMembers(t *testing.T) {
 	Client.Logout()
 
 	// Check effects of config and license changes.
-	restrictTeamInvite := *utils.Cfg.TeamSettings.RestrictTeamInvite
+	restrictTeamInvite := *th.App.Config().TeamSettings.RestrictTeamInvite
 	isLicensed := utils.IsLicensed()
 	license := utils.License()
 	defer func() {
-		*utils.Cfg.TeamSettings.RestrictTeamInvite = restrictTeamInvite
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.RestrictTeamInvite = restrictTeamInvite })
 		utils.SetIsLicensed(isLicensed)
 		utils.SetLicense(license)
 		utils.SetDefaultRolesBasedOnConfig()
 	}()
 
 	// Set the config so that only team admins can add a user to a team.
-	*utils.Cfg.TeamSettings.RestrictTeamInvite = model.PERMISSIONS_TEAM_ADMIN
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.RestrictTeamInvite = model.PERMISSIONS_TEAM_ADMIN })
 	utils.SetDefaultRolesBasedOnConfig()
 	th.LoginBasic()
 
@@ -1542,7 +1542,7 @@ func TestAddTeamMembers(t *testing.T) {
 	// Update user to team admin
 	th.UpdateUserToTeamAdmin(th.BasicUser, th.BasicTeam)
 	th.App.InvalidateAllCaches()
-	*utils.Cfg.TeamSettings.RestrictTeamInvite = model.PERMISSIONS_TEAM_ADMIN
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.RestrictTeamInvite = model.PERMISSIONS_TEAM_ADMIN })
 	utils.SetIsLicensed(true)
 	utils.SetLicense(&model.License{Features: &model.Features{}})
 	utils.License().Features.SetDefaults()
@@ -1554,7 +1554,7 @@ func TestAddTeamMembers(t *testing.T) {
 	CheckNoError(t, resp)
 
 	// Change permission level to System Admin
-	*utils.Cfg.TeamSettings.RestrictTeamInvite = model.PERMISSIONS_SYSTEM_ADMIN
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.RestrictTeamInvite = model.PERMISSIONS_SYSTEM_ADMIN })
 	utils.SetDefaultRolesBasedOnConfig()
 
 	// Should not work as team admin.
@@ -1568,7 +1568,7 @@ func TestAddTeamMembers(t *testing.T) {
 	// Change permission level to All
 	th.UpdateUserToNonTeamAdmin(th.BasicUser, th.BasicTeam)
 	th.App.InvalidateAllCaches()
-	*utils.Cfg.TeamSettings.RestrictTeamInvite = model.PERMISSIONS_ALL
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.RestrictTeamInvite = model.PERMISSIONS_ALL })
 	utils.SetIsLicensed(true)
 	utils.SetLicense(&model.License{Features: &model.Features{}})
 	utils.License().Features.SetDefaults()
@@ -1898,7 +1898,7 @@ func TestInviteUsersToTeam(t *testing.T) {
 		t.Fatal("should return true")
 	}
 
-	nameFormat := *utils.Cfg.TeamSettings.TeammateNameDisplay
+	nameFormat := *th.App.Config().TeamSettings.TeammateNameDisplay
 	expectedSubject := "[Mattermost] " + th.SystemAdminUser.GetDisplayName(nameFormat) + " invited you to join " + th.BasicTeam.DisplayName + " Team"
 	//Check if the email was send to the rigth email address
 	for _, email := range emailList {
@@ -1927,11 +1927,11 @@ func TestInviteUsersToTeam(t *testing.T) {
 		}
 	}
 
-	restrictCreationToDomains := utils.Cfg.TeamSettings.RestrictCreationToDomains
+	restrictCreationToDomains := th.App.Config().TeamSettings.RestrictCreationToDomains
 	defer func() {
-		utils.Cfg.TeamSettings.RestrictCreationToDomains = restrictCreationToDomains
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.TeamSettings.RestrictCreationToDomains = restrictCreationToDomains })
 	}()
-	utils.Cfg.TeamSettings.RestrictCreationToDomains = "@example.com"
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.TeamSettings.RestrictCreationToDomains = "@example.com" })
 
 	err := th.App.InviteNewUsersToTeam(emailList, th.BasicTeam.Id, th.BasicUser.Id)
 
