@@ -252,6 +252,10 @@ func TestUpdatePreferencesWebsocket(t *testing.T) {
 	}
 
 	WebSocketClient.Listen()
+	time.Sleep(300 * time.Millisecond)
+	if resp := <-WebSocketClient.ResponseChannel; resp.Status != model.STATUS_OK {
+		t.Fatal("should have responded OK to authentication challenge")
+	}
 
 	userId := th.BasicUser.Id
 	preferences := &model.Preferences{
@@ -371,6 +375,10 @@ func TestDeletePreferencesWebsocket(t *testing.T) {
 	}
 
 	WebSocketClient.Listen()
+	time.Sleep(300 * time.Millisecond)
+	if resp := <-WebSocketClient.ResponseChannel; resp.Status != model.STATUS_OK {
+		t.Fatal("should have responded OK to authentication challenge")
+	}
 
 	_, resp = th.Client.DeletePreferences(userId, preferences)
 	CheckNoError(t, resp)
