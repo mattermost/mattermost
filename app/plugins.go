@@ -295,7 +295,7 @@ func (a *App) ActivatePlugins() {
 }
 
 func (a *App) UnpackAndActivatePlugin(pluginFile io.Reader) (*model.Manifest, *model.AppError) {
-	if a.PluginEnv == nil || !*utils.Cfg.PluginSettings.Enable {
+	if a.PluginEnv == nil || !*a.Config().PluginSettings.Enable {
 		return nil, model.NewAppError("UnpackAndActivatePlugin", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
@@ -346,7 +346,7 @@ func (a *App) UnpackAndActivatePlugin(pluginFile io.Reader) (*model.Manifest, *m
 }
 
 func (a *App) GetActivePluginManifests() ([]*model.Manifest, *model.AppError) {
-	if a.PluginEnv == nil || !*utils.Cfg.PluginSettings.Enable {
+	if a.PluginEnv == nil || !*a.Config().PluginSettings.Enable {
 		return nil, model.NewAppError("GetActivePluginManifests", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
@@ -361,7 +361,7 @@ func (a *App) GetActivePluginManifests() ([]*model.Manifest, *model.AppError) {
 }
 
 func (a *App) RemovePlugin(id string) *model.AppError {
-	if a.PluginEnv == nil || !*utils.Cfg.PluginSettings.Enable {
+	if a.PluginEnv == nil || !*a.Config().PluginSettings.Enable {
 		return model.NewAppError("RemovePlugin", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
@@ -394,7 +394,7 @@ func (a *App) RemovePlugin(id string) *model.AppError {
 }
 
 func (a *App) InitPlugins(pluginPath, webappPath string) {
-	if !utils.IsLicensed() || !*utils.License().Features.FutureFeatures || !*utils.Cfg.PluginSettings.Enable {
+	if !utils.IsLicensed() || !*utils.License().Features.FutureFeatures || !*a.Config().PluginSettings.Enable {
 		return
 	}
 

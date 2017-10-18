@@ -10,7 +10,6 @@ import (
 
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
-	"github.com/mattermost/mattermost-server/utils"
 )
 
 func TestGetLogs(t *testing.T) {
@@ -118,8 +117,8 @@ func TestReloadConfig(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	*utils.Cfg.TeamSettings.MaxUsersPerTeam = 50
-	*utils.Cfg.TeamSettings.EnableOpenServer = true
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.MaxUsersPerTeam = 50 })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableOpenServer = true })
 }
 
 func TestInvalidateAllCache(t *testing.T) {
@@ -139,17 +138,17 @@ func TestSaveConfig(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
 	defer th.TearDown()
 
-	if _, err := th.BasicClient.SaveConfig(utils.Cfg); err == nil {
+	if _, err := th.BasicClient.SaveConfig(th.App.Config()); err == nil {
 		t.Fatal("Shouldn't have permissions")
 	}
 
-	*utils.Cfg.TeamSettings.EnableOpenServer = false
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableOpenServer = false })
 
-	if _, err := th.SystemAdminClient.SaveConfig(utils.Cfg); err != nil {
+	if _, err := th.SystemAdminClient.SaveConfig(th.App.Config()); err != nil {
 		t.Fatal(err)
 	}
 
-	*utils.Cfg.TeamSettings.EnableOpenServer = true
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableOpenServer = true })
 }
 
 func TestRecycleDatabaseConnection(t *testing.T) {
@@ -169,27 +168,27 @@ func TestEmailTest(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
 	defer th.TearDown()
 
-	SendEmailNotifications := utils.Cfg.EmailSettings.SendEmailNotifications
-	SMTPServer := utils.Cfg.EmailSettings.SMTPServer
-	SMTPPort := utils.Cfg.EmailSettings.SMTPPort
-	FeedbackEmail := utils.Cfg.EmailSettings.FeedbackEmail
+	SendEmailNotifications := th.App.Config().EmailSettings.SendEmailNotifications
+	SMTPServer := th.App.Config().EmailSettings.SMTPServer
+	SMTPPort := th.App.Config().EmailSettings.SMTPPort
+	FeedbackEmail := th.App.Config().EmailSettings.FeedbackEmail
 	defer func() {
-		utils.Cfg.EmailSettings.SendEmailNotifications = SendEmailNotifications
-		utils.Cfg.EmailSettings.SMTPServer = SMTPServer
-		utils.Cfg.EmailSettings.SMTPPort = SMTPPort
-		utils.Cfg.EmailSettings.FeedbackEmail = FeedbackEmail
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.EmailSettings.SendEmailNotifications = SendEmailNotifications })
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.EmailSettings.SMTPServer = SMTPServer })
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.EmailSettings.SMTPPort = SMTPPort })
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.EmailSettings.FeedbackEmail = FeedbackEmail })
 	}()
 
-	utils.Cfg.EmailSettings.SendEmailNotifications = false
-	utils.Cfg.EmailSettings.SMTPServer = ""
-	utils.Cfg.EmailSettings.SMTPPort = ""
-	utils.Cfg.EmailSettings.FeedbackEmail = ""
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.EmailSettings.SendEmailNotifications = false })
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.EmailSettings.SMTPServer = "" })
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.EmailSettings.SMTPPort = "" })
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.EmailSettings.FeedbackEmail = "" })
 
-	if _, err := th.BasicClient.TestEmail(utils.Cfg); err == nil {
+	if _, err := th.BasicClient.TestEmail(th.App.Config()); err == nil {
 		t.Fatal("Shouldn't have permissions")
 	}
 
-	if _, err := th.SystemAdminClient.TestEmail(utils.Cfg); err == nil {
+	if _, err := th.SystemAdminClient.TestEmail(th.App.Config()); err == nil {
 		t.Fatal("should have errored")
 	} else {
 		if err.Id != "api.admin.test_email.missing_server" {
@@ -202,11 +201,11 @@ func TestLdapTest(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
 	defer th.TearDown()
 
-	if _, err := th.BasicClient.TestLdap(utils.Cfg); err == nil {
+	if _, err := th.BasicClient.TestLdap(th.App.Config()); err == nil {
 		t.Fatal("Shouldn't have permissions")
 	}
 
-	if _, err := th.SystemAdminClient.TestLdap(utils.Cfg); err == nil {
+	if _, err := th.SystemAdminClient.TestLdap(th.App.Config()); err == nil {
 		t.Fatal("should have errored")
 	}
 }
@@ -221,11 +220,11 @@ func TestGetTeamAnalyticsStandard(t *testing.T) {
 		t.Fatal("Shouldn't have permissions")
 	}
 
-	maxUsersForStats := *utils.Cfg.AnalyticsSettings.MaxUsersForStatistics
+	maxUsersForStats := *th.App.Config().AnalyticsSettings.MaxUsersForStatistics
 	defer func() {
-		*utils.Cfg.AnalyticsSettings.MaxUsersForStatistics = maxUsersForStats
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.AnalyticsSettings.MaxUsersForStatistics = maxUsersForStats })
 	}()
-	*utils.Cfg.AnalyticsSettings.MaxUsersForStatistics = 1000000
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.AnalyticsSettings.MaxUsersForStatistics = 1000000 })
 
 	if result, err := th.SystemAdminClient.GetTeamAnalytics(th.BasicTeam.Id, "standard"); err != nil {
 		t.Fatal(err)
@@ -339,7 +338,7 @@ func TestGetTeamAnalyticsStandard(t *testing.T) {
 		}
 	}
 
-	*utils.Cfg.AnalyticsSettings.MaxUsersForStatistics = 1
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.AnalyticsSettings.MaxUsersForStatistics = 1 })
 
 	if result, err := th.SystemAdminClient.GetSystemAnalytics("standard"); err != nil {
 		t.Fatal(err)
@@ -452,11 +451,11 @@ func TestGetTeamAnalyticsExtra(t *testing.T) {
 		t.Fatal("Shouldn't have permissions")
 	}
 
-	maxUsersForStats := *utils.Cfg.AnalyticsSettings.MaxUsersForStatistics
+	maxUsersForStats := *th.App.Config().AnalyticsSettings.MaxUsersForStatistics
 	defer func() {
-		*utils.Cfg.AnalyticsSettings.MaxUsersForStatistics = maxUsersForStats
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.AnalyticsSettings.MaxUsersForStatistics = maxUsersForStats })
 	}()
-	*utils.Cfg.AnalyticsSettings.MaxUsersForStatistics = 1000000
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.AnalyticsSettings.MaxUsersForStatistics = 1000000 })
 
 	if result, err := th.SystemAdminClient.GetTeamAnalytics(th.BasicTeam.Id, "extra_counts"); err != nil {
 		t.Fatal(err)
@@ -560,7 +559,7 @@ func TestGetTeamAnalyticsExtra(t *testing.T) {
 		}
 	}
 
-	*utils.Cfg.AnalyticsSettings.MaxUsersForStatistics = 1
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.AnalyticsSettings.MaxUsersForStatistics = 1 })
 
 	if result, err := th.SystemAdminClient.GetSystemAnalytics("extra_counts"); err != nil {
 		t.Fatal(err)
@@ -678,11 +677,11 @@ func TestDisableAPIv3(t *testing.T) {
 
 	Client := th.BasicClient
 
-	enableAPIv3 := *utils.Cfg.ServiceSettings.EnableAPIv3
+	enableAPIv3 := *th.App.Config().ServiceSettings.EnableAPIv3
 	defer func() {
-		*utils.Cfg.ServiceSettings.EnableAPIv3 = enableAPIv3
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableAPIv3 = enableAPIv3 })
 	}()
-	*utils.Cfg.ServiceSettings.EnableAPIv3 = false
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableAPIv3 = false })
 
 	_, err := Client.GetUser(th.BasicUser.Id, "")
 

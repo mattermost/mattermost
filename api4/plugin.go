@@ -11,7 +11,6 @@ import (
 	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/mattermost-server/app"
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils"
 )
 
 const (
@@ -30,7 +29,7 @@ func (api *API) InitPlugin() {
 }
 
 func uploadPlugin(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !*utils.Cfg.PluginSettings.Enable {
+	if !*c.App.Config().PluginSettings.Enable {
 		c.Err = model.NewAppError("uploadPlugin", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
 		return
 	}
@@ -77,7 +76,7 @@ func uploadPlugin(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getPlugins(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !*utils.Cfg.PluginSettings.Enable {
+	if !*c.App.Config().PluginSettings.Enable {
 		c.Err = model.NewAppError("getPlugins", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
 		return
 	}
@@ -102,7 +101,7 @@ func removePlugin(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !*utils.Cfg.PluginSettings.Enable {
+	if !*c.App.Config().PluginSettings.Enable {
 		c.Err = model.NewAppError("getPlugins", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
 		return
 	}
@@ -122,7 +121,7 @@ func removePlugin(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getWebappPlugins(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !*utils.Cfg.PluginSettings.Enable {
+	if !*c.App.Config().PluginSettings.Enable {
 		c.Err = model.NewAppError("getWebappPlugins", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
 		return
 	}

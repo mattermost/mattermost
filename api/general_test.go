@@ -4,9 +4,8 @@
 package api
 
 import (
+	"github.com/mattermost/mattermost-server/model"
 	"testing"
-
-	"github.com/mattermost/mattermost-server/utils"
 )
 
 func TestGetClientProperties(t *testing.T) {
@@ -30,11 +29,11 @@ func TestLogClient(t *testing.T) {
 		t.Fatal("failed to log")
 	}
 
-	enableDeveloper := *utils.Cfg.ServiceSettings.EnableDeveloper
+	enableDeveloper := *th.App.Config().ServiceSettings.EnableDeveloper
 	defer func() {
-		*utils.Cfg.ServiceSettings.EnableDeveloper = enableDeveloper
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableDeveloper = enableDeveloper })
 	}()
-	*utils.Cfg.ServiceSettings.EnableDeveloper = false
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableDeveloper = false })
 
 	th.BasicClient.Logout()
 
@@ -42,7 +41,7 @@ func TestLogClient(t *testing.T) {
 		t.Fatal("should have failed")
 	}
 
-	*utils.Cfg.ServiceSettings.EnableDeveloper = true
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableDeveloper = true })
 
 	if ret, _ := th.BasicClient.LogClient("this is a test"); !ret {
 		t.Fatal("failed to log")

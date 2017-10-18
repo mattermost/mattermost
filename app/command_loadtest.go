@@ -87,7 +87,7 @@ func (me *LoadTestProvider) GetCommand(T goi18n.TranslateFunc) *model.Command {
 
 func (me *LoadTestProvider) DoCommand(a *App, args *model.CommandArgs, message string) *model.CommandResponse {
 	//This command is only available when EnableTesting is true
-	if !utils.Cfg.ServiceSettings.EnableTesting {
+	if !a.Config().ServiceSettings.EnableTesting {
 		return &model.CommandResponse{}
 	}
 

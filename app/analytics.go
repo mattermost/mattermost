@@ -7,7 +7,6 @@ import (
 	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
-	"github.com/mattermost/mattermost-server/utils"
 )
 
 const (
@@ -22,8 +21,8 @@ func (a *App) GetAnalytics(name string, teamId string) (model.AnalyticsRows, *mo
 		return nil, r.Err
 	} else {
 		systemUserCount = r.Data.(int64)
-		if systemUserCount > int64(*utils.Cfg.AnalyticsSettings.MaxUsersForStatistics) {
-			l4g.Debug("More than %v users on the system, intensive queries skipped", *utils.Cfg.AnalyticsSettings.MaxUsersForStatistics)
+		if systemUserCount > int64(*a.Config().AnalyticsSettings.MaxUsersForStatistics) {
+			l4g.Debug("More than %v users on the system, intensive queries skipped", *a.Config().AnalyticsSettings.MaxUsersForStatistics)
 			skipIntensiveQueries = true
 		}
 	}
@@ -97,7 +96,7 @@ func (a *App) GetAnalytics(name string, teamId string) (model.AnalyticsRows, *mo
 		}
 
 		// If in HA mode then aggregrate all the stats
-		if a.Cluster != nil && *utils.Cfg.ClusterSettings.Enable {
+		if a.Cluster != nil && *a.Config().ClusterSettings.Enable {
 			stats, err := a.Cluster.GetClusterStats()
 			if err != nil {
 				return nil, err

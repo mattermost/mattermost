@@ -19,13 +19,13 @@ func TestCreateOAuthApp(t *testing.T) {
 	Client := th.Client
 	AdminClient := th.SystemAdminClient
 
-	enableOAuth := utils.Cfg.ServiceSettings.EnableOAuthServiceProvider
-	adminOnly := *utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations
+	enableOAuth := th.App.Config().ServiceSettings.EnableOAuthServiceProvider
+	adminOnly := *th.App.Config().ServiceSettings.EnableOnlyAdminIntegrations
 	defer func() {
-		utils.Cfg.ServiceSettings.EnableOAuthServiceProvider = enableOAuth
-		*utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations = adminOnly
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = enableOAuth })
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOnlyAdminIntegrations = adminOnly })
 	}()
-	utils.Cfg.ServiceSettings.EnableOAuthServiceProvider = true
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = true })
 	utils.SetDefaultRolesBasedOnConfig()
 
 	oapp := &model.OAuthApp{Name: GenerateTestAppName(), Homepage: "https://nowhere.com", Description: "test", CallbackUrls: []string{"https://nowhere.com"}, IsTrusted: true}
@@ -42,12 +42,12 @@ func TestCreateOAuthApp(t *testing.T) {
 		t.Fatal("trusted did no match")
 	}
 
-	*utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations = true
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOnlyAdminIntegrations = true })
 	utils.SetDefaultRolesBasedOnConfig()
 	_, resp = Client.CreateOAuthApp(oapp)
 	CheckForbiddenStatus(t, resp)
 
-	*utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations = false
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOnlyAdminIntegrations = false })
 	utils.SetDefaultRolesBasedOnConfig()
 	rapp, resp = Client.CreateOAuthApp(oapp)
 	CheckNoError(t, resp)
@@ -75,7 +75,7 @@ func TestCreateOAuthApp(t *testing.T) {
 	_, resp = Client.CreateOAuthApp(oapp)
 	CheckUnauthorizedStatus(t, resp)
 
-	utils.Cfg.ServiceSettings.EnableOAuthServiceProvider = false
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = false })
 	oapp.Name = GenerateTestAppName()
 	_, resp = AdminClient.CreateOAuthApp(oapp)
 	CheckNotImplementedStatus(t, resp)
@@ -87,13 +87,13 @@ func TestUpdateOAuthApp(t *testing.T) {
 	Client := th.Client
 	AdminClient := th.SystemAdminClient
 
-	enableOAuth := utils.Cfg.ServiceSettings.EnableOAuthServiceProvider
-	adminOnly := *utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations
+	enableOAuth := th.App.Config().ServiceSettings.EnableOAuthServiceProvider
+	adminOnly := *th.App.Config().ServiceSettings.EnableOnlyAdminIntegrations
 	defer func() {
-		utils.Cfg.ServiceSettings.EnableOAuthServiceProvider = enableOAuth
-		*utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations = adminOnly
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = enableOAuth })
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOnlyAdminIntegrations = adminOnly })
 	}()
-	utils.Cfg.ServiceSettings.EnableOAuthServiceProvider = true
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = true })
 	utils.SetDefaultRolesBasedOnConfig()
 
 	oapp := &model.OAuthApp{
@@ -101,7 +101,7 @@ func TestUpdateOAuthApp(t *testing.T) {
 		IsTrusted:    false,
 		IconURL:      "https://nowhere.com/img",
 		Homepage:     "https://nowhere.com",
-		Description:  "test", 
+		Description:  "test",
 		CallbackUrls: []string{"https://callback.com"},
 	}
 
@@ -112,7 +112,7 @@ func TestUpdateOAuthApp(t *testing.T) {
 	oapp.IconURL = "https://nowhere.com/img_update"
 	oapp.Homepage = "https://nowhere_update.com"
 	oapp.Description = "test_update"
-	oapp.CallbackUrls = []string{"https://callback_update.com","https://another_callback.com"}
+	oapp.CallbackUrls = []string{"https://callback_update.com", "https://another_callback.com"}
 
 	updatedApp, resp := AdminClient.UpdateOAuthApp(oapp)
 	CheckNoError(t, resp)
@@ -153,7 +153,7 @@ func TestUpdateOAuthApp(t *testing.T) {
 		for i, callbackUrl := range updatedApp.CallbackUrls {
 			if callbackUrl != oapp.CallbackUrls[i] {
 				t.Fatal("Description should have updated")
-			} 
+			}
 		}
 	}
 
@@ -165,7 +165,7 @@ func TestUpdateOAuthApp(t *testing.T) {
 		t.Fatal("IsTrusted should have updated")
 	}
 
-	*utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations = false
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOnlyAdminIntegrations = false })
 	utils.SetDefaultRolesBasedOnConfig()
 	_, resp = Client.UpdateOAuthApp(oapp)
 	CheckForbiddenStatus(t, resp)
@@ -174,7 +174,7 @@ func TestUpdateOAuthApp(t *testing.T) {
 	_, resp = AdminClient.UpdateOAuthApp(oapp)
 	CheckNotFoundStatus(t, resp)
 
-	utils.Cfg.ServiceSettings.EnableOAuthServiceProvider = false
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = false })
 	_, resp = AdminClient.UpdateOAuthApp(oapp)
 	CheckNotImplementedStatus(t, resp)
 
@@ -193,14 +193,14 @@ func TestGetOAuthApps(t *testing.T) {
 	Client := th.Client
 	AdminClient := th.SystemAdminClient
 
-	enableOAuth := utils.Cfg.ServiceSettings.EnableOAuthServiceProvider
-	adminOnly := *utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations
+	enableOAuth := th.App.Config().ServiceSettings.EnableOAuthServiceProvider
+	adminOnly := *th.App.Config().ServiceSettings.EnableOnlyAdminIntegrations
 	defer func() {
-		utils.Cfg.ServiceSettings.EnableOAuthServiceProvider = enableOAuth
-		*utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations = adminOnly
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = enableOAuth })
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOnlyAdminIntegrations = adminOnly })
 	}()
-	utils.Cfg.ServiceSettings.EnableOAuthServiceProvider = true
-	*utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations = false
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOnlyAdminIntegrations = false })
 	utils.SetDefaultRolesBasedOnConfig()
 
 	oapp := &model.OAuthApp{Name: GenerateTestAppName(), Homepage: "https://nowhere.com", Description: "test", CallbackUrls: []string{"https://nowhere.com"}}
@@ -244,7 +244,7 @@ func TestGetOAuthApps(t *testing.T) {
 		t.Fatal("wrong apps returned")
 	}
 
-	*utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations = true
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOnlyAdminIntegrations = true })
 	utils.SetDefaultRolesBasedOnConfig()
 
 	_, resp = Client.GetOAuthApps(0, 1000)
@@ -255,7 +255,7 @@ func TestGetOAuthApps(t *testing.T) {
 	_, resp = Client.GetOAuthApps(0, 1000)
 	CheckUnauthorizedStatus(t, resp)
 
-	utils.Cfg.ServiceSettings.EnableOAuthServiceProvider = false
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = false })
 	_, resp = AdminClient.GetOAuthApps(0, 1000)
 	CheckNotImplementedStatus(t, resp)
 }
@@ -266,14 +266,14 @@ func TestGetOAuthApp(t *testing.T) {
 	Client := th.Client
 	AdminClient := th.SystemAdminClient
 
-	enableOAuth := utils.Cfg.ServiceSettings.EnableOAuthServiceProvider
-	adminOnly := *utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations
+	enableOAuth := th.App.Config().ServiceSettings.EnableOAuthServiceProvider
+	adminOnly := *th.App.Config().ServiceSettings.EnableOnlyAdminIntegrations
 	defer func() {
-		utils.Cfg.ServiceSettings.EnableOAuthServiceProvider = enableOAuth
-		*utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations = adminOnly
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = enableOAuth })
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOnlyAdminIntegrations = adminOnly })
 	}()
-	utils.Cfg.ServiceSettings.EnableOAuthServiceProvider = true
-	*utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations = false
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOnlyAdminIntegrations = false })
 	utils.SetDefaultRolesBasedOnConfig()
 
 	oapp := &model.OAuthApp{Name: GenerateTestAppName(), Homepage: "https://nowhere.com", Description: "test", CallbackUrls: []string{"https://nowhere.com"}}
@@ -313,7 +313,7 @@ func TestGetOAuthApp(t *testing.T) {
 	_, resp = Client.GetOAuthApp(rapp.Id)
 	CheckForbiddenStatus(t, resp)
 
-	*utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations = true
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOnlyAdminIntegrations = true })
 	utils.SetDefaultRolesBasedOnConfig()
 
 	_, resp = Client.GetOAuthApp(rapp2.Id)
@@ -330,7 +330,7 @@ func TestGetOAuthApp(t *testing.T) {
 	_, resp = AdminClient.GetOAuthApp(model.NewId())
 	CheckNotFoundStatus(t, resp)
 
-	utils.Cfg.ServiceSettings.EnableOAuthServiceProvider = false
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = false })
 	_, resp = AdminClient.GetOAuthApp(rapp.Id)
 	CheckNotImplementedStatus(t, resp)
 }
@@ -341,14 +341,14 @@ func TestGetOAuthAppInfo(t *testing.T) {
 	Client := th.Client
 	AdminClient := th.SystemAdminClient
 
-	enableOAuth := utils.Cfg.ServiceSettings.EnableOAuthServiceProvider
-	adminOnly := *utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations
+	enableOAuth := th.App.Config().ServiceSettings.EnableOAuthServiceProvider
+	adminOnly := *th.App.Config().ServiceSettings.EnableOnlyAdminIntegrations
 	defer func() {
-		utils.Cfg.ServiceSettings.EnableOAuthServiceProvider = enableOAuth
-		*utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations = adminOnly
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = enableOAuth })
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOnlyAdminIntegrations = adminOnly })
 	}()
-	utils.Cfg.ServiceSettings.EnableOAuthServiceProvider = true
-	*utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations = false
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOnlyAdminIntegrations = false })
 	utils.SetDefaultRolesBasedOnConfig()
 
 	oapp := &model.OAuthApp{Name: GenerateTestAppName(), Homepage: "https://nowhere.com", Description: "test", CallbackUrls: []string{"https://nowhere.com"}}
@@ -388,7 +388,7 @@ func TestGetOAuthAppInfo(t *testing.T) {
 	_, resp = Client.GetOAuthAppInfo(rapp.Id)
 	CheckNoError(t, resp)
 
-	*utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations = true
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOnlyAdminIntegrations = true })
 	utils.SetDefaultRolesBasedOnConfig()
 
 	_, resp = Client.GetOAuthAppInfo(rapp2.Id)
@@ -405,7 +405,7 @@ func TestGetOAuthAppInfo(t *testing.T) {
 	_, resp = AdminClient.GetOAuthAppInfo(model.NewId())
 	CheckNotFoundStatus(t, resp)
 
-	utils.Cfg.ServiceSettings.EnableOAuthServiceProvider = false
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = false })
 	_, resp = AdminClient.GetOAuthAppInfo(rapp.Id)
 	CheckNotImplementedStatus(t, resp)
 }
@@ -416,14 +416,14 @@ func TestDeleteOAuthApp(t *testing.T) {
 	Client := th.Client
 	AdminClient := th.SystemAdminClient
 
-	enableOAuth := utils.Cfg.ServiceSettings.EnableOAuthServiceProvider
-	adminOnly := *utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations
+	enableOAuth := th.App.Config().ServiceSettings.EnableOAuthServiceProvider
+	adminOnly := *th.App.Config().ServiceSettings.EnableOnlyAdminIntegrations
 	defer func() {
-		utils.Cfg.ServiceSettings.EnableOAuthServiceProvider = enableOAuth
-		*utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations = adminOnly
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = enableOAuth })
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOnlyAdminIntegrations = adminOnly })
 	}()
-	utils.Cfg.ServiceSettings.EnableOAuthServiceProvider = true
-	*utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations = false
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOnlyAdminIntegrations = false })
 	utils.SetDefaultRolesBasedOnConfig()
 
 	oapp := &model.OAuthApp{Name: GenerateTestAppName(), Homepage: "https://nowhere.com", Description: "test", CallbackUrls: []string{"https://nowhere.com"}}
@@ -458,7 +458,7 @@ func TestDeleteOAuthApp(t *testing.T) {
 	_, resp = Client.DeleteOAuthApp(rapp2.Id)
 	CheckNoError(t, resp)
 
-	*utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations = false
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOnlyAdminIntegrations = false })
 	utils.SetDefaultRolesBasedOnConfig()
 	_, resp = Client.DeleteOAuthApp(rapp.Id)
 	CheckForbiddenStatus(t, resp)
@@ -473,7 +473,7 @@ func TestDeleteOAuthApp(t *testing.T) {
 	_, resp = AdminClient.DeleteOAuthApp(model.NewId())
 	CheckNotFoundStatus(t, resp)
 
-	utils.Cfg.ServiceSettings.EnableOAuthServiceProvider = false
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = false })
 	_, resp = AdminClient.DeleteOAuthApp(rapp.Id)
 	CheckNotImplementedStatus(t, resp)
 }
@@ -484,14 +484,14 @@ func TestRegenerateOAuthAppSecret(t *testing.T) {
 	Client := th.Client
 	AdminClient := th.SystemAdminClient
 
-	enableOAuth := utils.Cfg.ServiceSettings.EnableOAuthServiceProvider
-	adminOnly := *utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations
+	enableOAuth := th.App.Config().ServiceSettings.EnableOAuthServiceProvider
+	adminOnly := *th.App.Config().ServiceSettings.EnableOnlyAdminIntegrations
 	defer func() {
-		utils.Cfg.ServiceSettings.EnableOAuthServiceProvider = enableOAuth
-		*utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations = adminOnly
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = enableOAuth })
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOnlyAdminIntegrations = adminOnly })
 	}()
-	utils.Cfg.ServiceSettings.EnableOAuthServiceProvider = true
-	*utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations = false
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOnlyAdminIntegrations = false })
 	utils.SetDefaultRolesBasedOnConfig()
 
 	oapp := &model.OAuthApp{Name: GenerateTestAppName(), Homepage: "https://nowhere.com", Description: "test", CallbackUrls: []string{"https://nowhere.com"}}
@@ -530,7 +530,7 @@ func TestRegenerateOAuthAppSecret(t *testing.T) {
 	_, resp = Client.RegenerateOAuthAppSecret(rapp2.Id)
 	CheckNoError(t, resp)
 
-	*utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations = false
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOnlyAdminIntegrations = false })
 	utils.SetDefaultRolesBasedOnConfig()
 	_, resp = Client.RegenerateOAuthAppSecret(rapp.Id)
 	CheckForbiddenStatus(t, resp)
@@ -545,7 +545,7 @@ func TestRegenerateOAuthAppSecret(t *testing.T) {
 	_, resp = AdminClient.RegenerateOAuthAppSecret(model.NewId())
 	CheckNotFoundStatus(t, resp)
 
-	utils.Cfg.ServiceSettings.EnableOAuthServiceProvider = false
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = false })
 	_, resp = AdminClient.RegenerateOAuthAppSecret(rapp.Id)
 	CheckNotImplementedStatus(t, resp)
 }
@@ -556,11 +556,11 @@ func TestGetAuthorizedOAuthAppsForUser(t *testing.T) {
 	Client := th.Client
 	AdminClient := th.SystemAdminClient
 
-	enableOAuth := utils.Cfg.ServiceSettings.EnableOAuthServiceProvider
+	enableOAuth := th.App.Config().ServiceSettings.EnableOAuthServiceProvider
 	defer func() {
-		utils.Cfg.ServiceSettings.EnableOAuthServiceProvider = enableOAuth
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = enableOAuth })
 	}()
-	utils.Cfg.ServiceSettings.EnableOAuthServiceProvider = true
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = true })
 
 	oapp := &model.OAuthApp{Name: GenerateTestAppName(), Homepage: "https://nowhere.com", Description: "test", CallbackUrls: []string{"https://nowhere.com"}}
 
@@ -616,11 +616,11 @@ func TestAuthorizeOAuthApp(t *testing.T) {
 	Client := th.Client
 	AdminClient := th.SystemAdminClient
 
-	enableOAuth := utils.Cfg.ServiceSettings.EnableOAuthServiceProvider
+	enableOAuth := th.App.Config().ServiceSettings.EnableOAuthServiceProvider
 	defer func() {
-		utils.Cfg.ServiceSettings.EnableOAuthServiceProvider = enableOAuth
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = enableOAuth })
 	}()
-	utils.Cfg.ServiceSettings.EnableOAuthServiceProvider = true
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = true })
 	utils.SetDefaultRolesBasedOnConfig()
 
 	oapp := &model.OAuthApp{Name: GenerateTestAppName(), Homepage: "https://nowhere.com", Description: "test", CallbackUrls: []string{"https://nowhere.com"}}
@@ -684,11 +684,11 @@ func TestDeauthorizeOAuthApp(t *testing.T) {
 	Client := th.Client
 	AdminClient := th.SystemAdminClient
 
-	enableOAuth := utils.Cfg.ServiceSettings.EnableOAuthServiceProvider
+	enableOAuth := th.App.Config().ServiceSettings.EnableOAuthServiceProvider
 	defer func() {
-		utils.Cfg.ServiceSettings.EnableOAuthServiceProvider = enableOAuth
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = enableOAuth })
 	}()
-	utils.Cfg.ServiceSettings.EnableOAuthServiceProvider = true
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = true })
 
 	oapp := &model.OAuthApp{Name: GenerateTestAppName(), Homepage: "https://nowhere.com", Description: "test", CallbackUrls: []string{"https://nowhere.com"}}
 

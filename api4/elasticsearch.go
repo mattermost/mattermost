@@ -22,7 +22,7 @@ func (api *API) InitElasticsearch() {
 func testElasticsearch(c *Context, w http.ResponseWriter, r *http.Request) {
 	cfg := model.ConfigFromJson(r.Body)
 	if cfg == nil {
-		cfg = utils.Cfg
+		cfg = c.App.Config()
 	}
 
 	if !app.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {

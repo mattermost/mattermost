@@ -26,7 +26,7 @@ func (api *API) InitEmoji() {
 }
 
 func createEmoji(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !*utils.Cfg.ServiceSettings.EnableCustomEmoji {
+	if !*c.App.Config().ServiceSettings.EnableCustomEmoji {
 		c.Err = model.NewAppError("createEmoji", "api.emoji.disabled.app_error", nil, "", http.StatusNotImplemented)
 		return
 	}
@@ -37,7 +37,7 @@ func createEmoji(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if len(*utils.Cfg.FileSettings.DriverName) == 0 {
+	if len(*c.App.Config().FileSettings.DriverName) == 0 {
 		c.Err = model.NewAppError("createEmoji", "api.emoji.storage.app_error", nil, "", http.StatusNotImplemented)
 		return
 	}
@@ -76,7 +76,7 @@ func createEmoji(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getEmojiList(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !*utils.Cfg.ServiceSettings.EnableCustomEmoji {
+	if !*c.App.Config().ServiceSettings.EnableCustomEmoji {
 		c.Err = model.NewAppError("getEmoji", "api.emoji.disabled.app_error", nil, "", http.StatusNotImplemented)
 		return
 	}
@@ -122,7 +122,7 @@ func getEmoji(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !*utils.Cfg.ServiceSettings.EnableCustomEmoji {
+	if !*c.App.Config().ServiceSettings.EnableCustomEmoji {
 		c.Err = model.NewAppError("getEmoji", "api.emoji.disabled.app_error", nil, "", http.StatusNotImplemented)
 		return
 	}
@@ -142,12 +142,12 @@ func getEmojiImage(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !*utils.Cfg.ServiceSettings.EnableCustomEmoji {
+	if !*c.App.Config().ServiceSettings.EnableCustomEmoji {
 		c.Err = model.NewAppError("getEmojiImage", "api.emoji.disabled.app_error", nil, "", http.StatusNotImplemented)
 		return
 	}
 
-	if len(*utils.Cfg.FileSettings.DriverName) == 0 {
+	if len(*c.App.Config().FileSettings.DriverName) == 0 {
 		c.Err = model.NewAppError("getEmojiImage", "api.emoji.storage.app_error", nil, "", http.StatusNotImplemented)
 		return
 	}

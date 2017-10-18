@@ -24,7 +24,7 @@ func (a *App) GetLogs(page, perPage int) ([]string, *model.AppError) {
 	perPage = 10000
 
 	var lines []string
-	if a.Cluster != nil && *utils.Cfg.ClusterSettings.Enable {
+	if a.Cluster != nil && *a.Config().ClusterSettings.Enable {
 		lines = append(lines, "-----------------------------------------------------------------------------------------------------------")
 		lines = append(lines, "-----------------------------------------------------------------------------------------------------------")
 		lines = append(lines, a.Cluster.GetMyClusterInfo().Hostname)
@@ -39,7 +39,7 @@ func (a *App) GetLogs(page, perPage int) ([]string, *model.AppError) {
 
 	lines = append(lines, melines...)
 
-	if a.Cluster != nil && *utils.Cfg.ClusterSettings.Enable {
+	if a.Cluster != nil && *a.Config().ClusterSettings.Enable {
 		clines, err := a.Cluster.GetLogs(page, perPage)
 		if err != nil {
 			return nil, err
@@ -54,8 +54,8 @@ func (a *App) GetLogs(page, perPage int) ([]string, *model.AppError) {
 func (a *App) GetLogsSkipSend(page, perPage int) ([]string, *model.AppError) {
 	var lines []string
 
-	if utils.Cfg.LogSettings.EnableFile {
-		file, err := os.Open(utils.GetLogFileLocation(utils.Cfg.LogSettings.FileLocation))
+	if a.Config().LogSettings.EnableFile {
+		file, err := os.Open(utils.GetLogFileLocation(a.Config().LogSettings.FileLocation))
 		if err != nil {
 			return nil, model.NewAppError("getLogs", "api.admin.file_read_error", nil, err.Error(), http.StatusInternalServerError)
 		}
@@ -124,7 +124,7 @@ func (a *App) InvalidateAllCachesSkipSend() {
 }
 
 func (a *App) GetConfig() *model.Config {
-	json := utils.Cfg.ToJson()
+	json := a.Config().ToJson()
 	cfg := model.ConfigFromJson(strings.NewReader(json))
 	cfg.Sanitize()
 
@@ -140,7 +140,7 @@ func (a *App) ReloadConfig() {
 }
 
 func (a *App) SaveConfig(cfg *model.Config, sendConfigChangeClusterMessage bool) *model.AppError {
-	oldCfg := utils.Cfg
+	oldCfg := a.Config()
 	cfg.SetDefaults()
 	utils.Desanitize(cfg)
 
@@ -152,7 +152,7 @@ func (a *App) SaveConfig(cfg *model.Config, sendConfigChangeClusterMessage bool)
 		return err
 	}
 
-	if *utils.Cfg.ClusterSettings.Enable && *utils.Cfg.ClusterSettings.ReadOnlyConfig {
+	if *a.Config().ClusterSettings.Enable && *a.Config().ClusterSettings.ReadOnlyConfig {
 		return model.NewAppError("saveConfig", "ent.cluster.save_config.error", nil, "", http.StatusForbidden)
 	}
 
@@ -162,7 +162,7 @@ func (a *App) SaveConfig(cfg *model.Config, sendConfigChangeClusterMessage bool)
 	utils.EnableConfigWatch()
 
 	if a.Metrics != nil {
-		if *utils.Cfg.MetricsSettings.Enable {
+		if *a.Config().MetricsSettings.Enable {
 			a.Metrics.StartServer()
 		} else {
 			a.Metrics.StopServer()
@@ -205,10 +205,10 @@ func (a *App) TestEmail(userId string, cfg *model.Config) *model.AppError {
 	// if the user hasn't changed their email settings, fill in the actual SMTP password so that
 	// the user can verify an existing SMTP connection
 	if cfg.EmailSettings.SMTPPassword == model.FAKE_SETTING {
-		if cfg.EmailSettings.SMTPServer == utils.Cfg.EmailSettings.SMTPServer &&
-			cfg.EmailSettings.SMTPPort == utils.Cfg.EmailSettings.SMTPPort &&
-			cfg.EmailSettings.SMTPUsername == utils.Cfg.EmailSettings.SMTPUsername {
-			cfg.EmailSettings.SMTPPassword = utils.Cfg.EmailSettings.SMTPPassword
+		if cfg.EmailSettings.SMTPServer == a.Config().EmailSettings.SMTPServer &&
+			cfg.EmailSettings.SMTPPort == a.Config().EmailSettings.SMTPPort &&
+			cfg.EmailSettings.SMTPUsername == a.Config().EmailSettings.SMTPUsername {
+			cfg.EmailSettings.SMTPPassword = a.Config().EmailSettings.SMTPPassword
 		} else {
 			return model.NewAppError("testEmail", "api.admin.test_email.reenter_password", nil, "", http.StatusBadRequest)
 		}

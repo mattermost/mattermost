@@ -240,6 +240,10 @@ func (a *App) Config() *model.Config {
 	return utils.Cfg
 }
 
+func (a *App) UpdateConfig(f func(*model.Config)) {
+	f(utils.Cfg)
+}
+
 // Go creates a goroutine, but maintains a record of it to ensure that execution completes before
 // the app is destroyed.
 func (a *App) Go(f func()) {
