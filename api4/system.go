@@ -36,7 +36,7 @@ func (api *API) InitSystem() {
 	api.BaseRoutes.ApiRoot.Handle("/caches/invalidate", api.ApiSessionRequired(invalidateCaches)).Methods("POST")
 
 	api.BaseRoutes.ApiRoot.Handle("/logs", api.ApiSessionRequired(getLogs)).Methods("GET")
-	api.BaseRoutes.ApiRoot.Handle("/logs", api.ApiSessionRequired(postLog)).Methods("POST")
+	api.BaseRoutes.ApiRoot.Handle("/logs", api.ApiHandler(postLog)).Methods("POST")
 
 	api.BaseRoutes.ApiRoot.Handle("/analytics/old", api.ApiSessionRequired(getAnalytics)).Methods("GET")
 }
@@ -198,9 +198,17 @@ func getLogs(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func postLog(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !*c.App.Config().ServiceSettings.EnableDeveloper && !app.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
-		return
+	forceToDebug := false
+
+	if !*c.App.Config().ServiceSettings.EnableDeveloper {
+		if c.Session.UserId == "" {
+			c.Err = model.NewAppError("postLog", "api.context.permissions.app_error", nil, "", http.StatusForbidden)
+			return
+		}
+
+		if !app.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
+			forceToDebug = true
+		}
 	}
 
 	m := model.MapFromJson(r.Body)
@@ -211,7 +219,7 @@ func postLog(c *Context, w http.ResponseWriter, r *http.Request) {
 		msg = msg[0:399]
 	}
 
-	if lvl == "ERROR" {
+	if !forceToDebug && lvl == "ERROR" {
 		err := &model.AppError{}
 		err.Message = msg
 		err.Id = msg
