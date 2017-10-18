@@ -6,6 +6,7 @@ package app
 import (
 	"github.com/mattermost/mattermost-server/model"
 	goi18n "github.com/nicksnyder/go-i18n/i18n"
+	"strings"
 )
 
 type MuteProvider struct {
@@ -40,7 +41,14 @@ func (me *MuteProvider) DoCommand(a *App, args *model.CommandArgs, message strin
 		return &model.CommandResponse{Text: args.T("api.command_mute.error", map[string]interface{}{"Channel": channel.DisplayName}), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 	}
 
-	muteChannel := a.ToggleMuteChannel(args.ChannelId, args.UserId)
+	// Overwrite channel with channel-handle if set
+	if strings.HasPrefix(message, "~") {
+		splitMessage := strings.Split(message, " ")
+		chanHandle := strings.Split(splitMessage[0], "~")[1]
+		channel = (<-a.Srv.Store.Channel().GetByName(channel.TeamId, chanHandle, true)).Data.(*model.Channel)
+	}
+
+	muteChannel := a.ToggleMuteChannel(channel.Id, args.UserId)
 
 	// Invalidate cache to allow cache lookups while sending notifications
 	a.Srv.Store.Channel().InvalidateCacheForChannelMembersNotifyProps(channel.Id)
