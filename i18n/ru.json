@@ -4528,6 +4528,10 @@
     "translation": "Неверный адрес прослушивания в настройках службы. Должен быть задан."
   },
   {
+    "id": "model.config.is_valid.localization.available_locales.app_error",
+    "translation": "Available Languages must contain Default Client Language"
+  },
+  {
     "id": "model.config.is_valid.login_attempts.app_error",
     "translation": "Неверное максимальное количество попыток входа в настройках службы. Должно быть положительным числом."
   },
@@ -5546,6 +5550,10 @@
   {
     "id": "store.sql_command.analytics_command_count.app_error",
     "translation": "Не удалось подсчитать команды"
+  },
+  {
+    "id": "store.sql_command.get_by_trigger.app_error",
+    "translation": "Не удалось получить команду"
   },
   {
     "id": "store.sql_command.save.delete.app_error",

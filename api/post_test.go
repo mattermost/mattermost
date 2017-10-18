@@ -61,6 +61,11 @@ func TestCreatePost(t *testing.T) {
 		t.Fatal("Newly craeted post shouldn't have EditAt set")
 	}
 
+	_, err = Client.CreatePost(&model.Post{ChannelId: channel1.Id, Message: "#hashtag a" + model.NewId() + "a", Type: model.POST_SYSTEM_GENERIC})
+	if err == nil {
+		t.Fatal("should have failed - bad post type")
+	}
+
 	post2 := &model.Post{ChannelId: channel1.Id, Message: "zz" + model.NewId() + "a", RootId: rpost1.Data.(*model.Post).Id}
 	rpost2, err := Client.CreatePost(post2)
 	if err != nil {
@@ -454,13 +459,12 @@ func TestUpdatePost(t *testing.T) {
 		}
 	}
 
-	post3 := &model.Post{ChannelId: channel1.Id, Message: "zz" + model.NewId() + "a", Type: model.POST_JOIN_LEAVE}
-	rpost3, err := Client.CreatePost(post3)
+	rpost3, err := th.App.CreatePost(&model.Post{ChannelId: channel1.Id, Message: "zz" + model.NewId() + "a", Type: model.POST_JOIN_LEAVE, UserId: th.BasicUser.Id}, channel1, false)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	up3 := &model.Post{Id: rpost3.Data.(*model.Post).Id, ChannelId: channel1.Id, Message: "zz" + model.NewId() + " update post 3"}
+	up3 := &model.Post{Id: rpost3.Id, ChannelId: channel1.Id, Message: "zz" + model.NewId() + " update post 3"}
 	if _, err := Client.UpdatePost(up3); err == nil {
 		t.Fatal("shouldn't have been able to update system message")
 	}
@@ -1153,20 +1157,31 @@ func TestEmailMention(t *testing.T) {
 		if !strings.ContainsAny(resultsMailbox[len(resultsMailbox)-1].To[0], th.BasicUser2.Email) {
 			t.Fatal("Wrong To recipient")
 		} else {
-			for i := 0; i < 5; i++ {
-				if resultsEmail, err := utils.GetMessageFromMailbox(th.BasicUser2.Email, resultsMailbox[len(resultsMailbox)-1].ID); err == nil {
-					if strings.Contains(resultsEmail.Body.Text, post1.Message) {
-						break
-					} else if i == 4 {
-						t.Log(resultsEmail.Body.Text)
-						t.Fatal("Received wrong Message")
+			for i := 0; i < 30; i++ {
+				for j := len(resultsMailbox) - 1; j >= 0; j-- {
+					isUser := false
+					for _, to := range resultsMailbox[j].To {
+						if to == "<"+th.BasicUser2.Email+">" {
+							isUser = true
+						}
 					}
-					time.Sleep(100 * time.Millisecond)
+					if !isUser {
+						continue
+					}
+					if resultsEmail, err := utils.GetMessageFromMailbox(th.BasicUser2.Email, resultsMailbox[j].ID); err == nil {
+						if strings.Contains(resultsEmail.Body.Text, post1.Message) {
+							return
+						} else if i == 4 {
+							t.Log(resultsEmail.Body.Text)
+							t.Fatal("Received wrong Message")
+						}
+					}
 				}
+				time.Sleep(100 * time.Millisecond)
 			}
+			t.Fatal("Didn't receive message")
 		}
 	}
-
 }
 
 func TestFuzzyPosts(t *testing.T) {
