@@ -196,7 +196,7 @@ func (me *TestHelper) CreateUser(client *model.Client) *model.User {
 	id := model.NewId()
 
 	user := &model.User{
-		Email:    "success+" + id + "@simulator.amazonses.com",
+		Email:    GenerateTestEmail(),
 		Username: "un_" + id,
 		Nickname: "nn_" + id,
 		Password: "Password1",
@@ -360,7 +360,10 @@ func (me *TestHelper) LoginSystemAdmin() {
 }
 
 func GenerateTestEmail() string {
-	return strings.ToLower("success+" + model.NewId() + "@simulator.amazonses.com")
+	if utils.Cfg.EmailSettings.SMTPServer != "dockerhost" {
+		return strings.ToLower("success+" + model.NewId() + "@simulator.amazonses.com")
+	}
+	return strings.ToLower(model.NewId() + "@dockerhost")
 }
 
 func GenerateTestTeamName() string {

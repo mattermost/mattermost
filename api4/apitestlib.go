@@ -446,7 +446,10 @@ func (me *TestHelper) LinkUserToTeam(user *model.User, team *model.Team) {
 }
 
 func GenerateTestEmail() string {
-	return strings.ToLower("success+" + model.NewId() + "@simulator.amazonses.com")
+	if utils.Cfg.EmailSettings.SMTPServer != "dockerhost" {
+		return strings.ToLower("success+" + model.NewId() + "@simulator.amazonses.com")
+	}
+	return strings.ToLower(model.NewId() + "@dockerhost")
 }
 
 func GenerateTestUsername() string {
