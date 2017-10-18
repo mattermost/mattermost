@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"encoding/binary"
 	"io"
-	"os"
 )
 
 type rwc struct {
@@ -13,12 +12,7 @@ type rwc struct {
 }
 
 func (rwc *rwc) Close() (err error) {
-	if f, ok := rwc.ReadCloser.(*os.File); ok {
-		// https://groups.google.com/d/topic/golang-nuts/i4w58KJ5-J8/discussion
-		err = os.NewFile(f.Fd(), "").Close()
-	} else {
-		err = rwc.ReadCloser.Close()
-	}
+	err = rwc.ReadCloser.Close()
 	werr := rwc.WriteCloser.Close()
 	if err == nil {
 		err = werr
