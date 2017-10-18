@@ -260,13 +260,17 @@ func (me *TestHelper) CreatePrivateChannel() *model.Channel {
 }
 
 func (me *TestHelper) CreateChannelWithClient(client *model.Client4, channelType string) *model.Channel {
+	return me.CreateChannelWithClientAndTeam(client, channelType, me.BasicTeam.Id)
+}
+
+func (me *TestHelper) CreateChannelWithClientAndTeam(client *model.Client4, channelType string, teamId string) *model.Channel {
 	id := model.NewId()
 
 	channel := &model.Channel{
 		DisplayName: "dn_" + id,
 		Name:        GenerateTestChannelName(),
 		Type:        channelType,
-		TeamId:      me.BasicTeam.Id,
+		TeamId:      teamId,
 	}
 
 	utils.DisableDebugLogForTest()
