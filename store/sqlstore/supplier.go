@@ -62,28 +62,29 @@ const (
 )
 
 type SqlSupplierOldStores struct {
-	team            store.TeamStore
-	channel         store.ChannelStore
-	post            store.PostStore
-	user            store.UserStore
-	audit           store.AuditStore
-	cluster         store.ClusterDiscoveryStore
-	compliance      store.ComplianceStore
-	session         store.SessionStore
-	oauth           store.OAuthStore
-	system          store.SystemStore
-	webhook         store.WebhookStore
-	command         store.CommandStore
-	commandWebhook  store.CommandWebhookStore
-	preference      store.PreferenceStore
-	license         store.LicenseStore
-	token           store.TokenStore
-	emoji           store.EmojiStore
-	status          store.StatusStore
-	fileInfo        store.FileInfoStore
-	reaction        store.ReactionStore
-	job             store.JobStore
-	userAccessToken store.UserAccessTokenStore
+	team                 store.TeamStore
+	channel              store.ChannelStore
+	post                 store.PostStore
+	user                 store.UserStore
+	audit                store.AuditStore
+	cluster              store.ClusterDiscoveryStore
+	compliance           store.ComplianceStore
+	session              store.SessionStore
+	oauth                store.OAuthStore
+	system               store.SystemStore
+	webhook              store.WebhookStore
+	command              store.CommandStore
+	commandWebhook       store.CommandWebhookStore
+	preference           store.PreferenceStore
+	license              store.LicenseStore
+	token                store.TokenStore
+	emoji                store.EmojiStore
+	status               store.StatusStore
+	fileInfo             store.FileInfoStore
+	reaction             store.ReactionStore
+	job                  store.JobStore
+	userAccessToken      store.UserAccessTokenStore
+	channelMemberHistory store.ChannelMemberHistoryStore
 }
 
 type SqlSupplier struct {
@@ -129,6 +130,7 @@ func NewSqlSupplier(settings model.SqlSettings, metrics einterfaces.MetricsInter
 	supplier.oldStores.fileInfo = NewSqlFileInfoStore(supplier, metrics)
 	supplier.oldStores.job = NewSqlJobStore(supplier)
 	supplier.oldStores.userAccessToken = NewSqlUserAccessTokenStore(supplier)
+	supplier.oldStores.channelMemberHistory = NewSqlChannelMemberHistoryStore(supplier)
 
 	initSqlSupplierReactions(supplier)
 
@@ -787,6 +789,10 @@ func (ss *SqlSupplier) Job() store.JobStore {
 
 func (ss *SqlSupplier) UserAccessToken() store.UserAccessTokenStore {
 	return ss.oldStores.userAccessToken
+}
+
+func (ss *SqlSupplier) ChannelMemberHistory() store.ChannelMemberHistoryStore {
+	return ss.oldStores.channelMemberHistory
 }
 
 func (ss *SqlSupplier) DropAllTables() {

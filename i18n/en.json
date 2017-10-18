@@ -4212,6 +4212,46 @@
     "translation": "Invalid user id"
   },
   {
+    "id": "model.channel_member_history.is_valid.channel_id.app_error",
+    "translation": "Invalid channel id"
+  },
+  {
+    "id": "model.channel_member_history.is_valid.user_id.app_error",
+    "translation": "Invalid user id"
+  },
+  {
+    "id": "model.channel_member_history.is_valid.join_time.app_error",
+    "translation": "Invalid join time"
+  },
+  {
+    "id": "model.channel_member_history.is_valid.leave_time.app_error",
+    "translation": "Invalid leave time"
+  },
+  {
+    "id": "store.sql_channel_member_history.log_join_event.app_error",
+    "translation": "Failed to record channel member history"
+  },
+  {
+    "id": "store.sql_channel_member_history.log_leave_event.select_error",
+    "translation": "Failed to record channel member history. No existing join record found"
+  },
+  {
+    "id": "store.sql_channel_member_history.log_leave_event.update_error",
+    "translation": "Failed to record channel member history. Failed to update existing join record"
+  },
+  {
+    "id": "store.sql_channel_member_history.get_users_in_channel_at.app_error",
+    "translation": "Failed to get users in channel at specified time"
+  },
+  {
+    "id": "store.sql_channel_member_history.get_all.app_error",
+    "translation": "Failed to get records"
+  },
+  {
+    "id": "store.sql_channel_member_history.purge_history_before.app_error",
+    "translation": "Failed to purge records"
+  },
+  {
     "id": "model.client.connecting.app_error",
     "translation": "We encountered an error while connecting to the server"
   },

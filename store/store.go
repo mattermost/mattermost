@@ -63,6 +63,7 @@ type Store interface {
 	Reaction() ReactionStore
 	Job() JobStore
 	UserAccessToken() UserAccessTokenStore
+	ChannelMemberHistory() ChannelMemberHistoryStore
 	MarkSystemRanUnitTests()
 	Close()
 	DropAllTables()
@@ -156,6 +157,13 @@ type ChannelStore interface {
 	GetMembersByIds(channelId string, userIds []string) StoreChannel
 	AnalyticsDeletedTypeCount(teamId string, channelType string) StoreChannel
 	GetChannelUnread(channelId, userId string) StoreChannel
+}
+
+type ChannelMemberHistoryStore interface {
+	LogJoinEvent(userId string, channelId string, joinTime int64) StoreChannel
+	LogLeaveEvent(userId string, channelId string, leaveTime int64) StoreChannel
+	GetUsersInChannelAt(time int64, channelId string) StoreChannel
+	PurgeHistoryBefore(time int64) StoreChannel
 }
 
 type PostStore interface {
