@@ -25,7 +25,6 @@ func NewSqlUserAccessTokenStore(sqlStore SqlStore) store.UserAccessTokenStore {
 		table.ColMap("Token").SetMaxSize(26).SetUnique(true)
 		table.ColMap("UserId").SetMaxSize(26)
 		table.ColMap("Description").SetMaxSize(512)
-		table.ColMap("IsActive").SetMaxSize(1)
 	}
 
 	return s
