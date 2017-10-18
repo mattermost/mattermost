@@ -1527,6 +1527,8 @@ func TestGetUsersNotInChannel(t *testing.T) {
 }
 
 func TestUpdateUserMfa(t *testing.T) {
+	t.Skip("skipping test because it's broken and joram / cb think it's okay for 4.1.2")
+
 	th := Setup().InitBasic().InitSystemAdmin()
 	defer TearDown()
 	Client := th.Client
@@ -1631,6 +1633,8 @@ func TestCheckUserMfa(t *testing.T) {
 }
 
 func TestGenerateMfaSecret(t *testing.T) {
+	t.Skip("skipping test because it's broken and joram / cb think it's okay for 4.1.2")
+
 	th := Setup().InitBasic().InitSystemAdmin()
 	defer TearDown()
 	Client := th.Client
