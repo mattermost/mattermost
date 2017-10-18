@@ -1019,6 +1019,14 @@
     "translation": "Channel {{.Channel}} is no longer muted."
   },
   {
+    "id": "api.command_mute.success_mute_direct_msg",
+    "translation": "You will not receive notifications for this direct message channel until channel mute is turned off."
+  },
+  {
+    "id": "api.command_mute.success_unmute_direct_msg",
+    "translation": "Direct message channel is no longer muted."
+  },
+  {
     "id": "api.compliance.init.debug",
     "translation": "Initializing compliance API routes"
   },

@@ -166,7 +166,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 			// Remove the user as recipient when the user has muted the channel.
 			if channelMuted, ok := channelMemberNotifyPropsMap[id][model.MUTE_NOTIFY_PROP]; ok {
 				if channelMuted == "true" {
-					l4g.Debug("Channel muted for user_id %v", id)
+					l4g.Debug("Channel muted for user_id %v, channel_mute %v", id, channelMuted)
 					userAllowsEmails = false
 				}
 			}

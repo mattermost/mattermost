@@ -1019,6 +1019,14 @@
     "translation": "Der Kanal {{.Channel}} ist nicht länger stumm geschaltet."
   },
   {
+    "id": "api.command_mute.success_mute_direct_msg",
+    "translation": "Sie werden keine Benachrichtigungen mehr für diesen Direktnachrichtenkanal mehr erhalten, bis die Stummschaltung für diesen Direktnachrichtenkanal aufgehoben wurde."
+  },
+  {
+    "id": "api.command_mute.success_unmute_direct_msg",
+    "translation": "Direktnachrichtenkanal ist nicht länger stumm geschaltet."
+  },
+  {
     "id": "api.compliance.init.debug",
     "translation": "Initialisiere Compliance-API-Routen"
   },

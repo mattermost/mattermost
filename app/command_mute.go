@@ -42,6 +42,18 @@ func (me *MuteProvider) DoCommand(a *App, args *model.CommandArgs, message strin
 
 	muteChannel := a.ToggleMuteChannel(args.ChannelId, args.UserId)
 
+	// Invalidate cache to allow cache lookups while sending notifications
+	a.Srv.Store.Channel().InvalidateCacheForChannelMembersNotifyProps(channel.Id)
+
+	// Direct messages won't have a nice channel title, omit it
+	if channel.Type == model.CHANNEL_DIRECT {
+		if muteChannel {
+			return &model.CommandResponse{Text: args.T("api.command_mute.success_mute_direct_msg"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+		} else {
+			return &model.CommandResponse{Text: args.T("api.command_mute.success_unmute_direct_msg"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+		}
+	}
+
 	if muteChannel {
 		return &model.CommandResponse{Text: args.T("api.command_mute.success_mute", map[string]interface{}{"Channel": channel.DisplayName}), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 	} else {
