@@ -30,7 +30,7 @@ func TestCreateWebhookPost(t *testing.T) {
 
 	post, err := th.App.CreateWebhookPost(hook.UserId, th.BasicChannel, "foo", "user", "http://iconurl", model.StringInterface{
 		"attachments": []*model.SlackAttachment{
-			&model.SlackAttachment{
+			{
 				Text: "text",
 			},
 		},

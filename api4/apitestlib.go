@@ -81,27 +81,28 @@ func setupTestHelper(enterprise bool) *TestHelper {
 	var options []app.Option
 	if testStore != nil {
 		options = append(options, app.StoreOverride(testStore))
-		options = append(options, app.ConfigOverride(func(cfg *model.Config) {
-			cfg.ServiceSettings.ListenAddress = new(string)
-			*cfg.ServiceSettings.ListenAddress = ":0"
-		}))
 	}
 
 	th := &TestHelper{
 		App: app.New(options...),
 	}
 
-	*utils.Cfg.TeamSettings.MaxUsersPerTeam = 50
-	*utils.Cfg.RateLimitSettings.Enable = false
-	utils.Cfg.EmailSettings.SendEmailNotifications = true
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.MaxUsersPerTeam = 50 })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.RateLimitSettings.Enable = false })
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.EmailSettings.SendEmailNotifications = true })
 	utils.DisableDebugLogForTest()
+	prevListenAddress := *th.App.Config().ServiceSettings.ListenAddress
+	if testStore != nil {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = ":0" })
+	}
 	th.App.StartServer()
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = prevListenAddress })
 	Init(th.App, th.App.Srv.Router, true)
 	wsapi.Init(th.App, th.App.Srv.WebSocketRouter)
 	utils.EnableDebugLogForTest()
 	th.App.Srv.Store.MarkSystemRanUnitTests()
 
-	*utils.Cfg.TeamSettings.EnableOpenServer = true
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableOpenServer = true })
 
 	utils.SetIsLicensed(enterprise)
 	if enterprise {

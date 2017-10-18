@@ -215,7 +215,7 @@ func (a *App) AddUserToTeamByTeamId(teamId string, user *model.User) *model.AppE
 func (a *App) AddUserToTeamByHash(userId string, hash string, data string) (*model.Team, *model.AppError) {
 	props := model.MapFromJson(strings.NewReader(data))
 
-	if hash != utils.HashSha256(fmt.Sprintf("%v:%v", data, utils.Cfg.EmailSettings.InviteSalt)) {
+	if hash != utils.HashSha256(fmt.Sprintf("%v:%v", data, a.Config().EmailSettings.InviteSalt)) {
 		return nil, model.NewAppError("JoinUserToTeamByHash", "api.user.create_user.signup_link_invalid.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -674,7 +674,7 @@ func (a *App) InviteNewUsersToTeam(emailList []string, teamId, senderId string) 
 		user = result.Data.(*model.User)
 	}
 
-	nameFormat := *utils.Cfg.TeamSettings.TeammateNameDisplay
+	nameFormat := *a.Config().TeamSettings.TeammateNameDisplay
 	SendInviteEmails(team, user.GetDisplayName(nameFormat), emailList, utils.GetSiteURL())
 
 	return nil
@@ -812,7 +812,7 @@ func (a *App) GetTeamIdFromQuery(query url.Values) (string, *model.AppError) {
 		data := query.Get("d")
 		props := model.MapFromJson(strings.NewReader(data))
 
-		if hash != utils.HashSha256(fmt.Sprintf("%v:%v", data, utils.Cfg.EmailSettings.InviteSalt)) {
+		if hash != utils.HashSha256(fmt.Sprintf("%v:%v", data, a.Config().EmailSettings.InviteSalt)) {
 			return "", model.NewAppError("GetTeamIdFromQuery", "api.oauth.singup_with_oauth.invalid_link.app_error", nil, "", http.StatusBadRequest)
 		}
 

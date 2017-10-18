@@ -32,12 +32,12 @@ func getBrandImage(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func uploadBrandImage(c *Context, w http.ResponseWriter, r *http.Request) {
-	if r.ContentLength > *utils.Cfg.FileSettings.MaxFileSize {
+	if r.ContentLength > *c.App.Config().FileSettings.MaxFileSize {
 		c.Err = model.NewAppError("uploadBrandImage", "api.admin.upload_brand_image.too_large.app_error", nil, "", http.StatusRequestEntityTooLarge)
 		return
 	}
 
-	if err := r.ParseMultipartForm(*utils.Cfg.FileSettings.MaxFileSize); err != nil {
+	if err := r.ParseMultipartForm(*c.App.Config().FileSettings.MaxFileSize); err != nil {
 		c.Err = model.NewAppError("uploadBrandImage", "api.admin.upload_brand_image.parse.app_error", nil, "", http.StatusBadRequest)
 		return
 	}

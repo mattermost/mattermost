@@ -139,9 +139,9 @@ func (a *App) SendWelcomeEmail(userId string, email string, verified bool, local
 	bodyPage.Props["Info3"] = T("api.templates.welcome_body.info3")
 	bodyPage.Props["SiteURL"] = siteURL
 
-	if *utils.Cfg.NativeAppSettings.AppDownloadLink != "" {
+	if *a.Config().NativeAppSettings.AppDownloadLink != "" {
 		bodyPage.Props["AppDownloadInfo"] = T("api.templates.welcome_body.app_download_info")
-		bodyPage.Props["AppDownloadLink"] = *utils.Cfg.NativeAppSettings.AppDownloadLink
+		bodyPage.Props["AppDownloadLink"] = *a.Config().NativeAppSettings.AppDownloadLink
 	}
 
 	if !verified {

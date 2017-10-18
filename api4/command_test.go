@@ -9,7 +9,6 @@ import (
 	"testing"
 
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils"
 )
 
 func TestCreateCommand(t *testing.T) {
@@ -17,11 +16,11 @@ func TestCreateCommand(t *testing.T) {
 	defer th.TearDown()
 	Client := th.Client
 
-	enableCommands := *utils.Cfg.ServiceSettings.EnableCommands
+	enableCommands := *th.App.Config().ServiceSettings.EnableCommands
 	defer func() {
-		utils.Cfg.ServiceSettings.EnableCommands = &enableCommands
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableCommands = &enableCommands })
 	}()
-	*utils.Cfg.ServiceSettings.EnableCommands = true
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableCommands = true })
 
 	newCmd := &model.Command{
 		CreatorId: th.BasicUser.Id,
@@ -53,7 +52,7 @@ func TestCreateCommand(t *testing.T) {
 	CheckBadRequestStatus(t, resp)
 	CheckErrorMessage(t, resp, "model.command.is_valid.method.app_error")
 
-	*utils.Cfg.ServiceSettings.EnableCommands = false
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableCommands = false })
 	newCmd.Method = "P"
 	newCmd.Trigger = "testcommand"
 	_, resp = th.SystemAdminClient.CreateCommand(newCmd)
@@ -68,11 +67,11 @@ func TestUpdateCommand(t *testing.T) {
 	user := th.SystemAdminUser
 	team := th.BasicTeam
 
-	enableCommands := *utils.Cfg.ServiceSettings.EnableCommands
+	enableCommands := *th.App.Config().ServiceSettings.EnableCommands
 	defer func() {
-		utils.Cfg.ServiceSettings.EnableCommands = &enableCommands
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableCommands = &enableCommands })
 	}()
-	*utils.Cfg.ServiceSettings.EnableCommands = true
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableCommands = true })
 
 	cmd1 := &model.Command{
 		CreatorId: user.Id,
@@ -154,11 +153,11 @@ func TestDeleteCommand(t *testing.T) {
 	user := th.SystemAdminUser
 	team := th.BasicTeam
 
-	enableCommands := *utils.Cfg.ServiceSettings.EnableCommands
+	enableCommands := *th.App.Config().ServiceSettings.EnableCommands
 	defer func() {
-		utils.Cfg.ServiceSettings.EnableCommands = &enableCommands
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableCommands = &enableCommands })
 	}()
-	*utils.Cfg.ServiceSettings.EnableCommands = true
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableCommands = true })
 
 	cmd1 := &model.Command{
 		CreatorId: user.Id,
@@ -352,11 +351,11 @@ func TestRegenToken(t *testing.T) {
 	defer th.TearDown()
 	Client := th.Client
 
-	enableCommands := *utils.Cfg.ServiceSettings.EnableCommands
+	enableCommands := *th.App.Config().ServiceSettings.EnableCommands
 	defer func() {
-		utils.Cfg.ServiceSettings.EnableCommands = &enableCommands
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableCommands = &enableCommands })
 	}()
-	*utils.Cfg.ServiceSettings.EnableCommands = true
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableCommands = true })
 
 	newCmd := &model.Command{
 		CreatorId: th.BasicUser.Id,
@@ -388,14 +387,16 @@ func TestExecuteCommand(t *testing.T) {
 	Client := th.Client
 	channel := th.BasicChannel
 
-	enableCommands := *utils.Cfg.ServiceSettings.EnableCommands
-	allowedInternalConnections := *utils.Cfg.ServiceSettings.AllowedUntrustedInternalConnections
+	enableCommands := *th.App.Config().ServiceSettings.EnableCommands
+	allowedInternalConnections := *th.App.Config().ServiceSettings.AllowedUntrustedInternalConnections
 	defer func() {
-		utils.Cfg.ServiceSettings.EnableCommands = &enableCommands
-		utils.Cfg.ServiceSettings.AllowedUntrustedInternalConnections = &allowedInternalConnections
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableCommands = &enableCommands })
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.ServiceSettings.AllowedUntrustedInternalConnections = &allowedInternalConnections
+		})
 	}()
-	*utils.Cfg.ServiceSettings.EnableCommands = true
-	*utils.Cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost"
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableCommands = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost" })
 
 	postCmd := &model.Command{
 		CreatorId: th.BasicUser.Id,
@@ -498,14 +499,16 @@ func TestExecuteCommandAgainstChannelOnAnotherTeam(t *testing.T) {
 	Client := th.Client
 	channel := th.BasicChannel
 
-	enableCommands := *utils.Cfg.ServiceSettings.EnableCommands
-	allowedInternalConnections := *utils.Cfg.ServiceSettings.AllowedUntrustedInternalConnections
+	enableCommands := *th.App.Config().ServiceSettings.EnableCommands
+	allowedInternalConnections := *th.App.Config().ServiceSettings.AllowedUntrustedInternalConnections
 	defer func() {
-		utils.Cfg.ServiceSettings.EnableCommands = &enableCommands
-		utils.Cfg.ServiceSettings.AllowedUntrustedInternalConnections = &allowedInternalConnections
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableCommands = &enableCommands })
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.ServiceSettings.AllowedUntrustedInternalConnections = &allowedInternalConnections
+		})
 	}()
-	*utils.Cfg.ServiceSettings.EnableCommands = true
-	*utils.Cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost"
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableCommands = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost" })
 
 	// create a slash command on some other team where we have permission to do so
 	team2 := th.CreateTeam()
@@ -531,14 +534,16 @@ func TestExecuteCommandAgainstChannelUserIsNotIn(t *testing.T) {
 	defer th.TearDown()
 	client := th.Client
 
-	enableCommands := *utils.Cfg.ServiceSettings.EnableCommands
-	allowedInternalConnections := *utils.Cfg.ServiceSettings.AllowedUntrustedInternalConnections
+	enableCommands := *th.App.Config().ServiceSettings.EnableCommands
+	allowedInternalConnections := *th.App.Config().ServiceSettings.AllowedUntrustedInternalConnections
 	defer func() {
-		utils.Cfg.ServiceSettings.EnableCommands = &enableCommands
-		utils.Cfg.ServiceSettings.AllowedUntrustedInternalConnections = &allowedInternalConnections
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableCommands = &enableCommands })
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.ServiceSettings.AllowedUntrustedInternalConnections = &allowedInternalConnections
+		})
 	}()
-	*utils.Cfg.ServiceSettings.EnableCommands = true
-	*utils.Cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost"
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableCommands = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost" })
 
 	// create a slash command on some other team where we have permission to do so
 	team2 := th.CreateTeam()
@@ -569,14 +574,16 @@ func TestExecuteCommandInDirectMessageChannel(t *testing.T) {
 	defer th.TearDown()
 	client := th.Client
 
-	enableCommands := *utils.Cfg.ServiceSettings.EnableCommands
-	allowedInternalConnections := *utils.Cfg.ServiceSettings.AllowedUntrustedInternalConnections
+	enableCommands := *th.App.Config().ServiceSettings.EnableCommands
+	allowedInternalConnections := *th.App.Config().ServiceSettings.AllowedUntrustedInternalConnections
 	defer func() {
-		utils.Cfg.ServiceSettings.EnableCommands = &enableCommands
-		utils.Cfg.ServiceSettings.AllowedUntrustedInternalConnections = &allowedInternalConnections
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableCommands = &enableCommands })
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.ServiceSettings.AllowedUntrustedInternalConnections = &allowedInternalConnections
+		})
 	}()
-	*utils.Cfg.ServiceSettings.EnableCommands = true
-	*utils.Cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost"
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableCommands = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost" })
 
 	// create a slash command on some other team where we have permission to do so
 	team2 := th.CreateTeam()
@@ -609,14 +616,16 @@ func TestExecuteCommandInTeamUserIsNotOn(t *testing.T) {
 	defer th.TearDown()
 	client := th.Client
 
-	enableCommands := *utils.Cfg.ServiceSettings.EnableCommands
-	allowedInternalConnections := *utils.Cfg.ServiceSettings.AllowedUntrustedInternalConnections
+	enableCommands := *th.App.Config().ServiceSettings.EnableCommands
+	allowedInternalConnections := *th.App.Config().ServiceSettings.AllowedUntrustedInternalConnections
 	defer func() {
-		utils.Cfg.ServiceSettings.EnableCommands = &enableCommands
-		utils.Cfg.ServiceSettings.AllowedUntrustedInternalConnections = &allowedInternalConnections
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableCommands = &enableCommands })
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.ServiceSettings.AllowedUntrustedInternalConnections = &allowedInternalConnections
+		})
 	}()
-	*utils.Cfg.ServiceSettings.EnableCommands = true
-	*utils.Cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost"
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableCommands = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost" })
 
 	// create a team that the user isn't a part of
 	team2 := th.CreateTeam()

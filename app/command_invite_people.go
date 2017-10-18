@@ -42,11 +42,11 @@ func (me *InvitePeopleProvider) GetCommand(T goi18n.TranslateFunc) *model.Comman
 }
 
 func (me *InvitePeopleProvider) DoCommand(a *App, args *model.CommandArgs, message string) *model.CommandResponse {
-	if !utils.Cfg.EmailSettings.SendEmailNotifications {
+	if !a.Config().EmailSettings.SendEmailNotifications {
 		return &model.CommandResponse{ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL, Text: args.T("api.command.invite_people.email_off")}
 	}
 
-	if !utils.Cfg.TeamSettings.EnableUserCreation {
+	if !a.Config().TeamSettings.EnableUserCreation {
 		return &model.CommandResponse{ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL, Text: args.T("api.command.invite_people.invite_off")}
 	}
 

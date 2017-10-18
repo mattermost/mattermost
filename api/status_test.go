@@ -10,7 +10,6 @@ import (
 
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
-	"github.com/mattermost/mattermost-server/utils"
 )
 
 func TestStatuses(t *testing.T) {
@@ -141,11 +140,11 @@ func TestStatuses(t *testing.T) {
 
 	th.App.SetStatusAwayIfNeeded(th.BasicUser.Id, false)
 
-	awayTimeout := *utils.Cfg.TeamSettings.UserStatusAwayTimeout
+	awayTimeout := *th.App.Config().TeamSettings.UserStatusAwayTimeout
 	defer func() {
-		*utils.Cfg.TeamSettings.UserStatusAwayTimeout = awayTimeout
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.UserStatusAwayTimeout = awayTimeout })
 	}()
-	*utils.Cfg.TeamSettings.UserStatusAwayTimeout = 1
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.UserStatusAwayTimeout = 1 })
 
 	time.Sleep(1500 * time.Millisecond)
 

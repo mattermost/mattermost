@@ -42,11 +42,11 @@ func Setup() *app.App {
 	utils.LoadConfig("config.json")
 	utils.InitTranslations(utils.Cfg.LocalizationSettings)
 
-	a := app.New(app.StoreOverride(testStore), app.ConfigOverride(func(cfg *model.Config) {
-		cfg.ServiceSettings.ListenAddress = new(string)
-		*cfg.ServiceSettings.ListenAddress = ":0"
-	}))
+	a := app.New(app.StoreOverride(testStore))
+	prevListenAddress := *a.Config().ServiceSettings.ListenAddress
+	a.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = ":0" })
 	a.StartServer()
+	a.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = prevListenAddress })
 	api4.Init(a, a.Srv.Router, false)
 	api3 := api.Init(a, a.Srv.Router)
 	Init(api3)
