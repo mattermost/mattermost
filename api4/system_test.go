@@ -7,7 +7,6 @@ import (
 
 	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils"
 )
 
 func TestGetPing(t *testing.T) {
@@ -107,9 +106,7 @@ func TestUpdateConfig(t *testing.T) {
 	defer th.TearDown()
 	Client := th.Client
 
-	json := utils.Cfg.ToJson()
-	cfg := model.ConfigFromJson(strings.NewReader(json))
-	cfg.Sanitize()
+	cfg := th.App.GetConfig()
 
 	_, resp := Client.UpdateConfig(cfg)
 	CheckForbiddenStatus(t, resp)

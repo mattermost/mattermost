@@ -81,10 +81,6 @@ func setupTestHelper(enterprise bool) *TestHelper {
 	var options []app.Option
 	if testStore != nil {
 		options = append(options, app.StoreOverride(testStore))
-		options = append(options, app.ConfigOverride(func(cfg *model.Config) {
-			cfg.ServiceSettings.ListenAddress = new(string)
-			*cfg.ServiceSettings.ListenAddress = ":0"
-		}))
 	}
 
 	th := &TestHelper{
@@ -95,7 +91,10 @@ func setupTestHelper(enterprise bool) *TestHelper {
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.RateLimitSettings.Enable = false })
 	th.App.UpdateConfig(func(cfg *model.Config) { cfg.EmailSettings.SendEmailNotifications = true })
 	utils.DisableDebugLogForTest()
+	prevListenAddress := *th.App.Config().ServiceSettings.ListenAddress
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = ":0" })
 	th.App.StartServer()
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = prevListenAddress })
 	Init(th.App, th.App.Srv.Router, true)
 	wsapi.Init(th.App, th.App.Srv.WebSocketRouter)
 	utils.EnableDebugLogForTest()

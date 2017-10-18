@@ -57,10 +57,6 @@ func setupTestHelper(enterprise bool) *TestHelper {
 	var options []Option
 	if testStore != nil {
 		options = append(options, StoreOverride(testStore))
-		options = append(options, ConfigOverride(func(cfg *model.Config) {
-			cfg.ServiceSettings.ListenAddress = new(string)
-			*cfg.ServiceSettings.ListenAddress = ":0"
-		}))
 	}
 
 	th := &TestHelper{
@@ -70,7 +66,10 @@ func setupTestHelper(enterprise bool) *TestHelper {
 	*utils.Cfg.TeamSettings.MaxUsersPerTeam = 50
 	*utils.Cfg.RateLimitSettings.Enable = false
 	utils.DisableDebugLogForTest()
+	prevListenAddress := *th.App.Config().ServiceSettings.ListenAddress
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = ":0" })
 	th.App.StartServer()
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = prevListenAddress })
 	utils.InitHTML()
 	utils.EnableDebugLogForTest()
 	th.App.Srv.Store.MarkSystemRanUnitTests()
