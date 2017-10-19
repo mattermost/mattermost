@@ -801,13 +801,29 @@ func GetExplicitMentions(message string, keywords map[string][]string) (map[stri
 		}
 	}
 
+	const emojiPattern = `:([a-zA-Z0-9_-]+):`
+	r, _ := regexp.Compile(emojiPattern)
+
 	message = removeCodeFromMessage(message)
 
 	for _, word := range strings.FieldsFunc(message, func(c rune) bool {
-		// Split on any whitespace or punctuation that can't be part of an at mention
-		return !(c == '.' || c == '-' || c == '_' || c == '@' || unicode.IsLetter(c) || unicode.IsNumber(c))
+		// Split on any whitespace or punctuation that can't be part of an at mention or emoji pattern
+		return !(c == ':' || c == '.' || c == '-' || c == '_' || c == '@' || unicode.IsLetter(c) || unicode.IsNumber(c))
 	}) {
 		isMention := false
+
+		// skip word with format ':word:' with an assumption that it is an emoji format only
+		if matchEmojiFormat := r.MatchString(word); matchEmojiFormat {
+			continue
+		}
+
+		matchedWord := strings.FieldsFunc(word, func(c rune) bool {
+			return c == ':'
+		})
+
+		if len(matchedWord) > 0 && matchedWord[0] != "" {
+			word = matchedWord[0]
+		}
 
 		if word == "@here" {
 			hereMentioned = true

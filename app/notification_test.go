@@ -200,6 +200,30 @@ func TestGetExplicitMentions(t *testing.T) {
 	if mentions, _, _, _, _ := GetExplicitMentions(message, keywords); len(mentions) != 1 || !mentions[id1] || mentions[id2] || mentions[id3] {
 		t.Fatal("should've only mentioned aaa")
 	}
+
+	message = ":smile:"
+	keywords = map[string][]string{"smile": {id1}, "smiley": {id2}, "smiley_cat": {id3}}
+	if mentions, _, _, _, _ := GetExplicitMentions(message, keywords); len(mentions) == 1 || mentions[id1] {
+		t.Fatal("should not mentioned smile")
+	}
+
+	message = "smile"
+	keywords = map[string][]string{"smile": {id1}, "smiley": {id2}, "smiley_cat": {id3}}
+	if mentions, _, _, _, _ := GetExplicitMentions(message, keywords); len(mentions) != 1 || !mentions[id1] || mentions[id2] || mentions[id3] {
+		t.Fatal("should've only mentioned smile")
+	}
+
+	message = ":smile"
+	keywords = map[string][]string{"smile": {id1}, "smiley": {id2}, "smiley_cat": {id3}}
+	if mentions, _, _, _, _ := GetExplicitMentions(message, keywords); len(mentions) != 1 || !mentions[id1] || mentions[id2] || mentions[id3] {
+		t.Fatal("should've only mentioned smile")
+	}
+
+	message = "smile:"
+	keywords = map[string][]string{"smile": {id1}, "smiley": {id2}, "smiley_cat": {id3}}
+	if mentions, _, _, _, _ := GetExplicitMentions(message, keywords); len(mentions) != 1 || !mentions[id1] || mentions[id2] || mentions[id3] {
+		t.Fatal("should've only mentioned smile")
+	}
 }
 
 func TestGetExplicitMentionsAtHere(t *testing.T) {
