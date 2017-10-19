@@ -2,11 +2,13 @@ package model
 
 import (
 	"net/http"
+	"strings"
 )
 
 type ChannelMemberHistory struct {
 	ChannelId string
 	UserId    string
+	UserEmail string `db:"Email"`
 	JoinTime  int64
 	LeaveTime *int64
 }
@@ -18,6 +20,10 @@ func (o *ChannelMemberHistory) IsValid() *AppError {
 
 	if len(o.UserId) > 26 {
 		return NewAppError("ChannelMemberHistory.IsValid", "model.channel_member_history.is_valid.user_id.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if !strings.Contains(o.UserEmail, "@") {
+		return NewAppError("ChannelMemberHistory.IsValid", "model.channel_member_history.is_valid.user_email.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if o.JoinTime <= 0 {

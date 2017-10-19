@@ -32,6 +32,21 @@ func messageExportActianceCmdF(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
+	if !*a.Config().MessageExportSettings.EnableExport {
+		CommandPrintErrorln("ERROR: The message export feature is not enabled.")
+		return nil
+	}
+
+	// TODO: check licensing? This code reports that the server is not licensed, when it is
+	/*
+		if !utils.IsLicensed() || !*utils.License().Features.MessageExport {
+			fmt.Println("IsLicensed: " + strconv.FormatBool(utils.IsLicensed()))
+			fmt.Println("License Features: " + utils.License().ToJson())
+			CommandPrintErrorln("ERROR: The server is not licensed to use the message export feature.")
+			return nil
+		}
+	*/
+
 	if messageExportI := a.MessageExport; messageExportI != nil {
 		job, err := messageExportI.StartSynchronizeJob(true)
 		if err != nil || job.Status == model.JOB_STATUS_ERROR || job.Status == model.JOB_STATUS_CANCELED {

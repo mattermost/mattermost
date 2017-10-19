@@ -36,8 +36,6 @@ func (s SqlChannelMemberHistoryStore) LogJoinEvent(userId string, channelId stri
 
 		if err := s.GetMaster().Insert(channelMemberHistory); err != nil {
 			result.Err = model.NewAppError("SqlChannelMemberHistoryStore.LogJoinEvent", "store.sql_channel_member_history.log_join_event.app_error", map[string]interface{}{"ChannelMemberHistory": channelMemberHistory}, err.Error(), http.StatusInternalServerError)
-		} else {
-			result.Data = channelMemberHistory
 		}
 	})
 }
@@ -45,11 +43,15 @@ func (s SqlChannelMemberHistoryStore) LogJoinEvent(userId string, channelId stri
 func (s SqlChannelMemberHistoryStore) LogLeaveEvent(userId string, channelId string, leaveTime int64) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		query := `
-			SELECT * FROM ChannelMemberHistory
-			WHERE UserId = :UserId
-			AND ChannelId = :ChannelId
-			AND LeaveTime IS NULL
-			ORDER BY JoinTime ASC
+			SELECT
+				cmh.*,
+				u.Email
+			FROM ChannelMemberHistory cmh
+			INNER JOIN Users u ON cmh.UserId = u.Id
+			WHERE cmh.UserId = :UserId
+			AND cmh.ChannelId = :ChannelId
+			AND cmh.LeaveTime IS NULL
+			ORDER BY cmh.JoinTime ASC
 			LIMIT 1`
 
 		params := map[string]interface{}{"UserId": userId, "ChannelId": channelId}
@@ -61,8 +63,6 @@ func (s SqlChannelMemberHistoryStore) LogLeaveEvent(userId string, channelId str
 
 			if _, err := s.GetMaster().Update(channelMemberHistory); err != nil {
 				result.Err = model.NewAppError("SqlChannelMemberHistoryStore.LogLeaveEvent", "store.sql_channel_member_history.log_leave_event.update_error", map[string]interface{}{"ChannelMemberHistory": channelMemberHistory}, err.Error(), http.StatusInternalServerError)
-			} else {
-				result.Data = channelMemberHistory
 			}
 		}
 	})
@@ -71,11 +71,15 @@ func (s SqlChannelMemberHistoryStore) LogLeaveEvent(userId string, channelId str
 func (s SqlChannelMemberHistoryStore) GetUsersInChannelAt(time int64, channelId string) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		query := `
-			SELECT * FROM ChannelMemberHistory
-			WHERE ChannelId = :ChannelId
-			AND JoinTime <= :AtTime
-			AND (LeaveTime IS NULL OR LeaveTime >= :AtTime)
-			ORDER BY JoinTime ASC`
+			SELECT
+				cmh.*,
+				u.Email
+			FROM ChannelMemberHistory cmh
+			INNER JOIN Users u ON cmh.UserId = u.Id
+			WHERE cmh.ChannelId = :ChannelId
+			AND cmh.JoinTime <= :AtTime
+			AND (cmh.LeaveTime IS NULL OR cmh.LeaveTime >= :AtTime)
+			ORDER BY cmh.JoinTime ASC`
 
 		params := map[string]interface{}{"ChannelId": channelId, "AtTime": time}
 		var histories []*model.ChannelMemberHistory
@@ -96,8 +100,6 @@ func (s SqlChannelMemberHistoryStore) PurgeHistoryBefore(time int64) store.Store
 		params := map[string]interface{}{"AtTime": time}
 		if _, err := s.GetReplica().Exec(query, params); err != nil {
 			result.Err = model.NewAppError("SqlChannelMemberHistoryStore.PurgeHistoryBefore", "store.sql_channel_member_history.purge_history_before.app_error", params, err.Error(), http.StatusInternalServerError)
-		} else {
-			result.Data = true
 		}
 	})
 }

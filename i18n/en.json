@@ -4220,6 +4220,10 @@
     "translation": "Invalid user id"
   },
   {
+    "id": "model.channel_member_history.is_valid.user_email.app_error",
+    "translation": "Invalid user email"
+  },
+  {
     "id": "model.channel_member_history.is_valid.join_time.app_error",
     "translation": "Invalid join time"
   },

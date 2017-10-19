@@ -33,11 +33,8 @@ func testLogJoinEvent(t *testing.T, ss store.Store) {
 	user = *store.Must(ss.User().Save(&user)).(*model.User)
 
 	// log a join event
-	channelMemberHistory := *store.Must(ss.ChannelMemberHistory().LogJoinEvent(user.Id, channel.Id, model.GetMillis())).(*model.ChannelMemberHistory)
-	assert.Equal(t, channel.Id, channelMemberHistory.ChannelId)
-	assert.Equal(t, user.Id, channelMemberHistory.UserId)
-	assert.True(t, channelMemberHistory.JoinTime > 0)
-	assert.Nil(t, channelMemberHistory.LeaveTime)
+	result := <-ss.ChannelMemberHistory().LogJoinEvent(user.Id, channel.Id, model.GetMillis())
+	assert.Nil(t, result.Err)
 }
 
 func testLogLeaveEvent(t *testing.T, ss store.Store) {
@@ -58,12 +55,11 @@ func testLogLeaveEvent(t *testing.T, ss store.Store) {
 	user = *store.Must(ss.User().Save(&user)).(*model.User)
 
 	// log a join event, followed by a leave event
-	store.Must(ss.ChannelMemberHistory().LogJoinEvent(user.Id, channel.Id, model.GetMillis()))
-	channelMemberHistory := *store.Must(ss.ChannelMemberHistory().LogLeaveEvent(user.Id, channel.Id, model.GetMillis())).(*model.ChannelMemberHistory)
-	assert.Equal(t, channel.Id, channelMemberHistory.ChannelId)
-	assert.Equal(t, user.Id, channelMemberHistory.UserId)
-	assert.True(t, channelMemberHistory.JoinTime > 0)
-	assert.True(t, *channelMemberHistory.LeaveTime > 0)
+	result := <-ss.ChannelMemberHistory().LogJoinEvent(user.Id, channel.Id, model.GetMillis())
+	assert.Nil(t, result.Err)
+
+	result = <-ss.ChannelMemberHistory().LogLeaveEvent(user.Id, channel.Id, model.GetMillis())
+	assert.Nil(t, result.Err)
 }
 
 func testGetUsersInChannelAt(t *testing.T, ss store.Store) {
@@ -94,6 +90,7 @@ func testGetUsersInChannelAt(t *testing.T, ss store.Store) {
 	assert.Len(t, channelMembers, 1)
 	assert.Equal(t, channel.Id, channelMembers[0].ChannelId)
 	assert.Equal(t, user.Id, channelMembers[0].UserId)
+	assert.Equal(t, user.Email, channelMembers[0].UserEmail)
 	assert.Equal(t, joinTime, channelMembers[0].JoinTime)
 	assert.Equal(t, leaveTime, *channelMembers[0].LeaveTime)
 
