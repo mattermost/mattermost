@@ -5,6 +5,7 @@ package api4
 
 import (
 	"net/http"
+	"net/url"
 	"strconv"
 	"strings"
 
@@ -335,6 +336,8 @@ func writeFileResponse(filename string, contentType string, bytes []byte, forceD
 
 		toDownload = !isMediaType
 	}
+
+	filename = url.PathEscape(filename)
 
 	if toDownload {
 		w.Header().Set("Content-Disposition", "attachment;filename=\""+filename+"\"; filename*=UTF-8''"+filename)
