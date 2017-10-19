@@ -337,10 +337,12 @@ func writeFileResponse(filename string, contentType string, bytes []byte, forceD
 		toDownload = !isMediaType
 	}
 
+	filename = url.PathEscape(filename)
+
 	if toDownload {
-		w.Header().Set("Content-Disposition", "attachment;filename=\""+filename+"\"; filename*=UTF-8''"+url.QueryEscape(filename))
+		w.Header().Set("Content-Disposition", "attachment;filename=\""+filename+"\"; filename*=UTF-8''"+filename)
 	} else {
-		w.Header().Set("Content-Disposition", "inline;filename=\""+filename+"\"; filename*=UTF-8''"+url.QueryEscape(filename))
+		w.Header().Set("Content-Disposition", "inline;filename=\""+filename+"\"; filename*=UTF-8''"+filename)
 	}
 
 	// prevent file links from being embedded in iframes
