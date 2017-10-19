@@ -14,6 +14,7 @@ type UserAccessToken struct {
 	Token       string `json:"token,omitempty"`
 	UserId      string `json:"user_id"`
 	Description string `json:"description"`
+	IsActive    bool   `json:"is_active"`
 }
 
 func (t *UserAccessToken) IsValid() *AppError {
@@ -38,6 +39,7 @@ func (t *UserAccessToken) IsValid() *AppError {
 
 func (t *UserAccessToken) PreSave() {
 	t.Id = NewId()
+	t.IsActive = true
 }
 
 func (t *UserAccessToken) ToJson() string {

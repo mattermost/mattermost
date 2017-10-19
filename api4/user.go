@@ -61,6 +61,8 @@ func (api *API) InitUser() {
 	api.BaseRoutes.User.Handle("/tokens", api.ApiSessionRequired(getUserAccessTokens)).Methods("GET")
 	api.BaseRoutes.Users.Handle("/tokens/{token_id:[A-Za-z0-9]+}", api.ApiSessionRequired(getUserAccessToken)).Methods("GET")
 	api.BaseRoutes.Users.Handle("/tokens/revoke", api.ApiSessionRequired(revokeUserAccessToken)).Methods("POST")
+	api.BaseRoutes.Users.Handle("/tokens/disable", api.ApiSessionRequired(disableUserAccessToken)).Methods("POST")
+	api.BaseRoutes.Users.Handle("/tokens/enable", api.ApiSessionRequired(enableUserAccessToken)).Methods("POST")
 }
 
 func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -1282,6 +1284,80 @@ func revokeUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	err = c.App.RevokeUserAccessToken(accessToken)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	c.LogAudit("success - token_id=" + accessToken.Id)
+	ReturnStatusOK(w)
+}
+
+func disableUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
+	props := model.MapFromJson(r.Body)
+	tokenId := props["token_id"]
+
+	if tokenId == "" {
+		c.SetInvalidParam("token_id")
+	}
+
+	c.LogAudit("")
+
+	// No separate permission for this action for now
+	if !app.SessionHasPermissionTo(c.Session, model.PERMISSION_REVOKE_USER_ACCESS_TOKEN) {
+		c.SetPermissionError(model.PERMISSION_REVOKE_USER_ACCESS_TOKEN)
+		return
+	}
+
+	accessToken, err := c.App.GetUserAccessToken(tokenId, false)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	if !app.SessionHasPermissionToUser(c.Session, accessToken.UserId) {
+		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
+		return
+	}
+
+	err = c.App.DisableUserAccessToken(accessToken)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	c.LogAudit("success - token_id=" + accessToken.Id)
+	ReturnStatusOK(w)
+}
+
+func enableUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
+	props := model.MapFromJson(r.Body)
+	tokenId := props["token_id"]
+
+	if tokenId == "" {
+		c.SetInvalidParam("token_id")
+	}
+
+	c.LogAudit("")
+
+	// No separate permission for this action for now
+	if !app.SessionHasPermissionTo(c.Session, model.PERMISSION_CREATE_USER_ACCESS_TOKEN) {
+		c.SetPermissionError(model.PERMISSION_CREATE_USER_ACCESS_TOKEN)
+		return
+	}
+
+	accessToken, err := c.App.GetUserAccessToken(tokenId, false)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	if !app.SessionHasPermissionToUser(c.Session, accessToken.UserId) {
+		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
+		return
+	}
+
+	err = c.App.EnableUserAccessToken(accessToken)
 	if err != nil {
 		c.Err = err
 		return
