@@ -367,6 +367,73 @@ func TestCreatePostAll(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 }
 
+func TestCreatePostSendOutOfChannelMentions(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer th.TearDown()
+	Client := th.Client
+
+	WebSocketClient, err := th.CreateWebSocketClient()
+	if err != nil {
+		t.Fatal(err)
+	}
+	WebSocketClient.Listen()
+
+	inChannelUser := th.CreateUser()
+	th.LinkUserToTeam(inChannelUser, th.BasicTeam)
+	th.App.AddUserToChannel(inChannelUser, th.BasicChannel)
+
+	post1 := &model.Post{ChannelId: th.BasicChannel.Id, Message: "@" + inChannelUser.Username}
+	_, resp := Client.CreatePost(post1)
+	CheckNoError(t, resp)
+	CheckCreatedStatus(t, resp)
+
+	timeout := time.After(300 * time.Millisecond)
+	waiting := true
+	for waiting {
+		select {
+		case event := <-WebSocketClient.EventChannel:
+			if event.Event == model.WEBSOCKET_EVENT_EPHEMERAL_MESSAGE {
+				t.Fatal("should not have ephemeral message event")
+			}
+
+		case <-timeout:
+			waiting = false
+		}
+	}
+
+	outOfChannelUser := th.CreateUser()
+	th.LinkUserToTeam(outOfChannelUser, th.BasicTeam)
+
+	post2 := &model.Post{ChannelId: th.BasicChannel.Id, Message: "@" + outOfChannelUser.Username}
+	_, resp = Client.CreatePost(post2)
+	CheckNoError(t, resp)
+	CheckCreatedStatus(t, resp)
+
+	timeout = time.After(300 * time.Millisecond)
+	waiting = true
+	for waiting {
+		select {
+		case event := <-WebSocketClient.EventChannel:
+			if event.Event != model.WEBSOCKET_EVENT_EPHEMERAL_MESSAGE {
+				// Ignore any other events
+				continue
+			}
+
+			wpost := model.PostFromJson(strings.NewReader(event.Data["post"].(string)))
+			if acm, ok := wpost.Props[model.PROPS_ADD_CHANNEL_MEMBER].(map[string]interface{}); !ok {
+				t.Fatal("should have received ephemeral post with 'add_channel_member' in props")
+			} else {
+				if acm["post_id"] == nil || acm["user_ids"] == nil || acm["usernames"] == nil {
+					t.Fatal("should not be nil")
+				}
+			}
+			waiting = false
+		case <-timeout:
+			t.Fatal("timed out waiting for ephemeral message event")
+		}
+	}
+}
+
 func TestUpdatePost(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
 	defer th.TearDown()

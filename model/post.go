@@ -33,6 +33,7 @@ const (
 	POST_MESSAGE_MAX_RUNES     = 4000
 	POST_PROPS_MAX_RUNES       = 8000
 	POST_CUSTOM_TYPE_PREFIX    = "custom_"
+	PROPS_ADD_CHANNEL_MEMBER   = "add_channel_member"
 )
 
 type Post struct {
