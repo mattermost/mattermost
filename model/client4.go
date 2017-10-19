@@ -1065,6 +1065,32 @@ func (c *Client4) RevokeUserAccessToken(tokenId string) (bool, *Response) {
 	}
 }
 
+// DisableUserAccessToken will disable a user access token by id. Must have the
+// 'revoke_user_access_token' permission and if disabling for another user, must have the
+// 'edit_other_users' permission.
+func (c *Client4) DisableUserAccessToken(tokenId string) (bool, *Response) {
+	requestBody := map[string]string{"token_id": tokenId}
+	if r, err := c.DoApiPost(c.GetUsersRoute()+"/tokens/disable", MapToJson(requestBody)); err != nil {
+		return false, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return CheckStatusOK(r), BuildResponse(r)
+	}
+}
+
+// EnableUserAccessToken will enable a user access token by id. Must have the
+// 'create_user_access_token' permission and if enabling for another user, must have the
+// 'edit_other_users' permission.
+func (c *Client4) EnableUserAccessToken(tokenId string) (bool, *Response) {
+	requestBody := map[string]string{"token_id": tokenId}
+	if r, err := c.DoApiPost(c.GetUsersRoute()+"/tokens/enable", MapToJson(requestBody)); err != nil {
+		return false, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return CheckStatusOK(r), BuildResponse(r)
+	}
+}
+
 // Team Section
 
 // CreateTeam creates a team in the system based on the provided team struct.

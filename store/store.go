@@ -436,4 +436,6 @@ type UserAccessTokenStore interface {
 	Get(tokenId string) StoreChannel
 	GetByToken(tokenString string) StoreChannel
 	GetByUser(userId string, page, perPage int) StoreChannel
+	UpdateTokenEnable(tokenId string) StoreChannel
+	UpdateTokenDisable(tokenId string) StoreChannel
 }
