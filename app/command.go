@@ -41,6 +41,11 @@ func (a *App) CreateCommandPost(post *model.Post, teamId string, response *model
 	post.Message = parseSlackLinksToMarkdown(response.Text)
 	post.CreateAt = model.GetMillis()
 
+	if strings.HasPrefix(post.Type, model.POST_SYSTEM_MESSAGE_PREFIX) {
+		err := model.NewAppError("CreateCommandPost", "api.context.invalid_param.app_error", map[string]interface{}{"Name": "post.type"}, "", http.StatusBadRequest)
+		return nil, err
+	}
+
 	if response.Attachments != nil {
 		parseSlackAttachment(post, response.Attachments)
 	}
@@ -68,7 +73,7 @@ func (a *App) ListAutocompleteCommands(teamId string, T goi18n.TranslateFunc) ([
 		}
 	}
 
-	if *utils.Cfg.ServiceSettings.EnableCommands {
+	if *a.Config().ServiceSettings.EnableCommands {
 		if result := <-a.Srv.Store.Command().GetByTeam(teamId); result.Err != nil {
 			return nil, result.Err
 		} else {
@@ -87,7 +92,7 @@ func (a *App) ListAutocompleteCommands(teamId string, T goi18n.TranslateFunc) ([
 }
 
 func (a *App) ListTeamCommands(teamId string) ([]*model.Command, *model.AppError) {
-	if !*utils.Cfg.ServiceSettings.EnableCommands {
+	if !*a.Config().ServiceSettings.EnableCommands {
 		return nil, model.NewAppError("ListTeamCommands", "api.command.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
@@ -110,7 +115,7 @@ func (a *App) ListAllCommands(teamId string, T goi18n.TranslateFunc) ([]*model.C
 		}
 	}
 
-	if *utils.Cfg.ServiceSettings.EnableCommands {
+	if *a.Config().ServiceSettings.EnableCommands {
 		if result := <-a.Srv.Store.Command().GetByTeam(teamId); result.Err != nil {
 			return nil, result.Err
 		} else {
@@ -139,7 +144,7 @@ func (a *App) ExecuteCommand(args *model.CommandArgs) (*model.CommandResponse, *
 		response := provider.DoCommand(a, args, message)
 		return a.HandleCommandResponse(provider.GetCommand(args.T), args, response, true)
 	} else {
-		if !*utils.Cfg.ServiceSettings.EnableCommands {
+		if !*a.Config().ServiceSettings.EnableCommands {
 			return nil, model.NewAppError("ExecuteCommand", "api.command.disabled.app_error", nil, "", http.StatusNotImplemented)
 		}
 
@@ -246,7 +251,7 @@ func (a *App) HandleCommandResponse(command *model.Command, args *model.CommandA
 		post.AddProp("from_webhook", "true")
 	}
 
-	if utils.Cfg.ServiceSettings.EnablePostUsernameOverride {
+	if a.Config().ServiceSettings.EnablePostUsernameOverride {
 		if len(command.Username) != 0 {
 			post.AddProp("override_username", command.Username)
 		} else if len(response.Username) != 0 {
@@ -254,7 +259,7 @@ func (a *App) HandleCommandResponse(command *model.Command, args *model.CommandA
 		}
 	}
 
-	if utils.Cfg.ServiceSettings.EnablePostIconOverride {
+	if a.Config().ServiceSettings.EnablePostIconOverride {
 		if len(command.IconURL) != 0 {
 			post.AddProp("override_icon_url", command.IconURL)
 		} else if len(response.IconURL) != 0 {
@@ -272,7 +277,7 @@ func (a *App) HandleCommandResponse(command *model.Command, args *model.CommandA
 }
 
 func (a *App) CreateCommand(cmd *model.Command) (*model.Command, *model.AppError) {
-	if !*utils.Cfg.ServiceSettings.EnableCommands {
+	if !*a.Config().ServiceSettings.EnableCommands {
 		return nil, model.NewAppError("CreateCommand", "api.command.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
@@ -303,7 +308,7 @@ func (a *App) CreateCommand(cmd *model.Command) (*model.Command, *model.AppError
 }
 
 func (a *App) GetCommand(commandId string) (*model.Command, *model.AppError) {
-	if !*utils.Cfg.ServiceSettings.EnableCommands {
+	if !*a.Config().ServiceSettings.EnableCommands {
 		return nil, model.NewAppError("GetCommand", "api.command.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
@@ -316,7 +321,7 @@ func (a *App) GetCommand(commandId string) (*model.Command, *model.AppError) {
 }
 
 func (a *App) UpdateCommand(oldCmd, updatedCmd *model.Command) (*model.Command, *model.AppError) {
-	if !*utils.Cfg.ServiceSettings.EnableCommands {
+	if !*a.Config().ServiceSettings.EnableCommands {
 		return nil, model.NewAppError("UpdateCommand", "api.command.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
@@ -347,7 +352,7 @@ func (a *App) MoveCommand(team *model.Team, command *model.Command) *model.AppEr
 }
 
 func (a *App) RegenCommandToken(cmd *model.Command) (*model.Command, *model.AppError) {
-	if !*utils.Cfg.ServiceSettings.EnableCommands {
+	if !*a.Config().ServiceSettings.EnableCommands {
 		return nil, model.NewAppError("RegenCommandToken", "api.command.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
@@ -361,7 +366,7 @@ func (a *App) RegenCommandToken(cmd *model.Command) (*model.Command, *model.AppE
 }
 
 func (a *App) DeleteCommand(commandId string) *model.AppError {
-	if !*utils.Cfg.ServiceSettings.EnableCommands {
+	if !*a.Config().ServiceSettings.EnableCommands {
 		return model.NewAppError("DeleteCommand", "api.command.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 

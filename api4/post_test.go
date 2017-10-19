@@ -66,6 +66,13 @@ func TestCreatePost(t *testing.T) {
 		t.Fatal("create at should not match")
 	}
 
+	post.RootId = ""
+	post.ParentId = ""
+	post.Type = model.POST_SYSTEM_GENERIC
+	_, resp = Client.CreatePost(post)
+	CheckBadRequestStatus(t, resp)
+
+	post.Type = ""
 	post.RootId = rpost2.Id
 	post.ParentId = rpost2.Id
 	_, resp = Client.CreatePost(post)
@@ -117,19 +124,23 @@ func testCreatePostWithOutgoingHook(
 	team := th.BasicTeam
 	channel := th.BasicChannel
 
-	enableOutgoingHooks := utils.Cfg.ServiceSettings.EnableOutgoingWebhooks
-	enableAdminOnlyHooks := utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations
-	allowedInternalConnections := *utils.Cfg.ServiceSettings.AllowedUntrustedInternalConnections
+	enableOutgoingHooks := th.App.Config().ServiceSettings.EnableOutgoingWebhooks
+	enableAdminOnlyHooks := th.App.Config().ServiceSettings.EnableOnlyAdminIntegrations
+	allowedInternalConnections := *th.App.Config().ServiceSettings.AllowedUntrustedInternalConnections
 	defer func() {
-		utils.Cfg.ServiceSettings.EnableOutgoingWebhooks = enableOutgoingHooks
-		utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations = enableAdminOnlyHooks
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOutgoingWebhooks = enableOutgoingHooks })
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOnlyAdminIntegrations = enableAdminOnlyHooks })
 		utils.SetDefaultRolesBasedOnConfig()
-		utils.Cfg.ServiceSettings.AllowedUntrustedInternalConnections = &allowedInternalConnections
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.ServiceSettings.AllowedUntrustedInternalConnections = &allowedInternalConnections
+		})
 	}()
-	utils.Cfg.ServiceSettings.EnableOutgoingWebhooks = true
-	*utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations = true
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOutgoingWebhooks = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOnlyAdminIntegrations = true })
 	utils.SetDefaultRolesBasedOnConfig()
-	*utils.Cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost 127.0.0.1"
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost 127.0.0.1"
+	})
 
 	var hook *model.OutgoingWebhook
 	var post *model.Post
@@ -368,18 +379,18 @@ func TestUpdatePost(t *testing.T) {
 
 	isLicensed := utils.IsLicensed()
 	license := utils.License()
-	allowEditPost := *utils.Cfg.ServiceSettings.AllowEditPost
+	allowEditPost := *th.App.Config().ServiceSettings.AllowEditPost
 	defer func() {
 		utils.SetIsLicensed(isLicensed)
 		utils.SetLicense(license)
-		*utils.Cfg.ServiceSettings.AllowEditPost = allowEditPost
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowEditPost = allowEditPost })
 		utils.SetDefaultRolesBasedOnConfig()
 	}()
 	utils.SetIsLicensed(true)
 	utils.SetLicense(&model.License{Features: &model.Features{}})
 	utils.License().Features.SetDefaults()
 
-	*utils.Cfg.ServiceSettings.AllowEditPost = model.ALLOW_EDIT_POST_ALWAYS
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowEditPost = model.ALLOW_EDIT_POST_ALWAYS })
 	utils.SetDefaultRolesBasedOnConfig()
 
 	post := &model.Post{ChannelId: channel.Id, Message: "zz" + model.NewId() + "a"}
@@ -417,9 +428,10 @@ func TestUpdatePost(t *testing.T) {
 		t.Fatal("failed to updates")
 	}
 
-	post2 := &model.Post{ChannelId: channel.Id, Message: "zz" + model.NewId() + "a", Type: model.POST_JOIN_LEAVE}
-	rpost2, resp := Client.CreatePost(post2)
-	CheckNoError(t, resp)
+	rpost2, err := th.App.CreatePost(&model.Post{ChannelId: channel.Id, Message: "zz" + model.NewId() + "a", Type: model.POST_JOIN_LEAVE, UserId: th.BasicUser.Id}, channel, false)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	up2 := &model.Post{Id: rpost2.Id, ChannelId: channel.Id, Message: "zz" + model.NewId() + " update post 2"}
 	_, resp = Client.UpdatePost(rpost2.Id, up2)
@@ -447,18 +459,18 @@ func TestPatchPost(t *testing.T) {
 
 	isLicensed := utils.IsLicensed()
 	license := utils.License()
-	allowEditPost := *utils.Cfg.ServiceSettings.AllowEditPost
+	allowEditPost := *th.App.Config().ServiceSettings.AllowEditPost
 	defer func() {
 		utils.SetIsLicensed(isLicensed)
 		utils.SetLicense(license)
-		*utils.Cfg.ServiceSettings.AllowEditPost = allowEditPost
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowEditPost = allowEditPost })
 		utils.SetDefaultRolesBasedOnConfig()
 	}()
 	utils.SetIsLicensed(true)
 	utils.SetLicense(&model.License{Features: &model.Features{}})
 	utils.License().Features.SetDefaults()
 
-	*utils.Cfg.ServiceSettings.AllowEditPost = model.ALLOW_EDIT_POST_ALWAYS
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowEditPost = model.ALLOW_EDIT_POST_ALWAYS })
 	utils.SetDefaultRolesBasedOnConfig()
 
 	post := &model.Post{

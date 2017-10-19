@@ -45,7 +45,7 @@ func (a *App) CreateUserWithHash(user *model.User, hash string, data string) (*m
 
 	props := model.MapFromJson(strings.NewReader(data))
 
-	if hash != utils.HashSha256(fmt.Sprintf("%v:%v", data, utils.Cfg.EmailSettings.InviteSalt)) {
+	if hash != utils.HashSha256(fmt.Sprintf("%v:%v", data, a.Config().EmailSettings.InviteSalt)) {
 		return nil, model.NewAppError("CreateUserWithHash", "api.user.create_user.signup_link_invalid.app_error", nil, "", http.StatusInternalServerError)
 	}
 
@@ -131,7 +131,7 @@ func (a *App) CreateUserFromSignup(user *model.User) (*model.User, *model.AppErr
 		return nil, err
 	}
 
-	if !a.IsFirstUserAccount() && !*utils.Cfg.TeamSettings.EnableOpenServer {
+	if !a.IsFirstUserAccount() && !*a.Config().TeamSettings.EnableOpenServer {
 		err := model.NewAppError("CreateUserFromSignup", "api.user.create_user.no_open_server", nil, "email="+user.Email, http.StatusForbidden)
 		return nil, err
 	}
@@ -175,7 +175,7 @@ func (a *App) IsFirstUserAccount() bool {
 }
 
 func (a *App) CreateUser(user *model.User) (*model.User, *model.AppError) {
-	if !user.IsLDAPUser() && !user.IsSAMLUser() && !CheckUserDomain(user, utils.Cfg.TeamSettings.RestrictCreationToDomains) {
+	if !user.IsLDAPUser() && !user.IsSAMLUser() && !CheckUserDomain(user, a.Config().TeamSettings.RestrictCreationToDomains) {
 		return nil, model.NewAppError("CreateUser", "api.user.create_user.accepted_domain.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -193,7 +193,7 @@ func (a *App) CreateUser(user *model.User) (*model.User, *model.AppError) {
 	}
 
 	if _, ok := utils.GetSupportedLocales()[user.Locale]; !ok {
-		user.Locale = *utils.Cfg.LocalizationSettings.DefaultClientLocale
+		user.Locale = *a.Config().LocalizationSettings.DefaultClientLocale
 	}
 
 	if ruser, err := a.createUser(user); err != nil {
@@ -241,7 +241,7 @@ func (a *App) createUser(user *model.User) (*model.User, *model.AppError) {
 }
 
 func (a *App) CreateOAuthUser(service string, userData io.Reader, teamId string) (*model.User, *model.AppError) {
-	if !utils.Cfg.TeamSettings.EnableUserCreation {
+	if !a.Config().TeamSettings.EnableUserCreation {
 		return nil, model.NewAppError("CreateOAuthUser", "api.user.create_user.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
@@ -374,12 +374,12 @@ func (a *App) GetUserByAuth(authData *string, authService string) (*model.User, 
 }
 
 func (a *App) GetUserForLogin(loginId string, onlyLdap bool) (*model.User, *model.AppError) {
-	ldapAvailable := *utils.Cfg.LdapSettings.Enable && a.Ldap != nil && utils.IsLicensed() && *utils.License().Features.LDAP
+	ldapAvailable := *a.Config().LdapSettings.Enable && a.Ldap != nil && utils.IsLicensed() && *utils.License().Features.LDAP
 
 	if result := <-a.Srv.Store.User().GetForLogin(
 		loginId,
-		*utils.Cfg.EmailSettings.EnableSignInWithUsername && !onlyLdap,
-		*utils.Cfg.EmailSettings.EnableSignInWithEmail && !onlyLdap,
+		*a.Config().EmailSettings.EnableSignInWithUsername && !onlyLdap,
+		*a.Config().EmailSettings.EnableSignInWithEmail && !onlyLdap,
 		ldapAvailable,
 	); result.Err != nil && result.Err.Id == "store.sql_user.get_for_login.multiple_users" {
 		// don't fall back to LDAP in this case since we already know there's an LDAP user, but that it shouldn't work
@@ -438,7 +438,7 @@ func (a *App) GetUsersPage(page int, perPage int, asAdmin bool) ([]*model.User, 
 }
 
 func (a *App) GetUsersEtag() string {
-	return fmt.Sprintf("%v.%v.%v", (<-a.Srv.Store.User().GetEtagForAllProfiles()).Data.(string), utils.Cfg.PrivacySettings.ShowFullName, utils.Cfg.PrivacySettings.ShowEmailAddress)
+	return fmt.Sprintf("%v.%v.%v", (<-a.Srv.Store.User().GetEtagForAllProfiles()).Data.(string), a.Config().PrivacySettings.ShowFullName, a.Config().PrivacySettings.ShowEmailAddress)
 }
 
 func (a *App) GetUsersInTeam(teamId string, offset int, limit int) ([]*model.User, *model.AppError) {
@@ -492,11 +492,11 @@ func (a *App) GetUsersNotInTeamPage(teamId string, page int, perPage int, asAdmi
 }
 
 func (a *App) GetUsersInTeamEtag(teamId string) string {
-	return fmt.Sprintf("%v.%v.%v", (<-a.Srv.Store.User().GetEtagForProfiles(teamId)).Data.(string), utils.Cfg.PrivacySettings.ShowFullName, utils.Cfg.PrivacySettings.ShowEmailAddress)
+	return fmt.Sprintf("%v.%v.%v", (<-a.Srv.Store.User().GetEtagForProfiles(teamId)).Data.(string), a.Config().PrivacySettings.ShowFullName, a.Config().PrivacySettings.ShowEmailAddress)
 }
 
 func (a *App) GetUsersNotInTeamEtag(teamId string) string {
-	return fmt.Sprintf("%v.%v.%v", (<-a.Srv.Store.User().GetEtagForProfilesNotInTeam(teamId)).Data.(string), utils.Cfg.PrivacySettings.ShowFullName, utils.Cfg.PrivacySettings.ShowEmailAddress)
+	return fmt.Sprintf("%v.%v.%v", (<-a.Srv.Store.User().GetEtagForProfilesNotInTeam(teamId)).Data.(string), a.Config().PrivacySettings.ShowFullName, a.Config().PrivacySettings.ShowEmailAddress)
 }
 
 func (a *App) GetUsersInChannel(channelId string, offset int, limit int) ([]*model.User, *model.AppError) {
@@ -823,7 +823,7 @@ func (a *App) SetProfileImage(userId string, imageData *multipart.FileHeader) *m
 	if user, err := a.GetUser(userId); err != nil {
 		l4g.Error(utils.T("api.user.get_me.getting.error"), userId)
 	} else {
-		options := utils.Cfg.GetSanitizeOptions()
+		options := a.Config().GetSanitizeOptions()
 		user.SanitizeProfile(options)
 
 		omitUsers := make(map[string]bool, 1)
@@ -908,7 +908,7 @@ func (a *App) UpdateActive(user *model.User, active bool) (*model.User, *model.A
 		}
 
 		ruser := result.Data.([2]*model.User)[0]
-		options := utils.Cfg.GetSanitizeOptions()
+		options := a.Config().GetSanitizeOptions()
 		options["passwordupdate"] = false
 		ruser.Sanitize(options)
 
@@ -1001,7 +1001,7 @@ func (a *App) UpdateUser(user *model.User, sendNotifications bool) (*model.User,
 					}
 				})
 
-				if utils.Cfg.EmailSettings.RequireEmailVerification {
+				if a.Config().EmailSettings.RequireEmailVerification {
 					if err := a.SendEmailVerification(rusers[0]); err != nil {
 						l4g.Error(err.Error())
 					}

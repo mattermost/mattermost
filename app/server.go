@@ -4,6 +4,7 @@
 package app
 
 import (
+	"context"
 	"crypto/tls"
 	"io"
 	"io/ioutil"
@@ -16,7 +17,6 @@ import (
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/rsc/letsencrypt"
-	"github.com/tylerb/graceful"
 	"gopkg.in/throttled/throttled.v2"
 	"gopkg.in/throttled/throttled.v2/store/memstore"
 
@@ -29,7 +29,10 @@ type Server struct {
 	Store           store.Store
 	WebSocketRouter *WebSocketRouter
 	Router          *mux.Router
-	GracefulServer  *graceful.Server
+	Server          *http.Server
+	ListenAddr      *net.TCPAddr
+
+	didFinishListen chan struct{}
 }
 
 var allowedMethods []string = []string{
@@ -120,18 +123,18 @@ func (a *App) StartServer() {
 
 	var handler http.Handler = &CorsWrapper{a.Srv.Router}
 
-	if *utils.Cfg.RateLimitSettings.Enable {
+	if *a.Config().RateLimitSettings.Enable {
 		l4g.Info(utils.T("api.server.start_server.rate.info"))
 
-		store, err := memstore.New(*utils.Cfg.RateLimitSettings.MemoryStoreSize)
+		store, err := memstore.New(*a.Config().RateLimitSettings.MemoryStoreSize)
 		if err != nil {
 			l4g.Critical(utils.T("api.server.start_server.rate_limiting_memory_store"))
 			return
 		}
 
 		quota := throttled.RateQuota{
-			MaxRate:  throttled.PerSec(*utils.Cfg.RateLimitSettings.PerSec),
-			MaxBurst: *utils.Cfg.RateLimitSettings.MaxBurst,
+			MaxRate:  throttled.PerSec(*a.Config().RateLimitSettings.PerSec),
+			MaxBurst: *a.Config().RateLimitSettings.MaxBurst,
 		}
 
 		rateLimiter, err := throttled.NewGCRARateLimiter(store, quota)
@@ -152,36 +155,51 @@ func (a *App) StartServer() {
 		handler = httpRateLimiter.RateLimit(handler)
 	}
 
-	a.Srv.GracefulServer = &graceful.Server{
-		Timeout: TIME_TO_WAIT_FOR_CONNECTIONS_TO_CLOSE_ON_SERVER_SHUTDOWN,
-		Server: &http.Server{
-			Addr:         *utils.Cfg.ServiceSettings.ListenAddress,
-			Handler:      handlers.RecoveryHandler(handlers.RecoveryLogger(&RecoveryLogger{}), handlers.PrintRecoveryStack(true))(handler),
-			ReadTimeout:  time.Duration(*utils.Cfg.ServiceSettings.ReadTimeout) * time.Second,
-			WriteTimeout: time.Duration(*utils.Cfg.ServiceSettings.WriteTimeout) * time.Second,
-		},
+	a.Srv.Server = &http.Server{
+		Handler:      handlers.RecoveryHandler(handlers.RecoveryLogger(&RecoveryLogger{}), handlers.PrintRecoveryStack(true))(handler),
+		ReadTimeout:  time.Duration(*a.Config().ServiceSettings.ReadTimeout) * time.Second,
+		WriteTimeout: time.Duration(*a.Config().ServiceSettings.WriteTimeout) * time.Second,
 	}
-	l4g.Info(utils.T("api.server.start_server.listening.info"), *utils.Cfg.ServiceSettings.ListenAddress)
 
-	if *utils.Cfg.ServiceSettings.Forward80To443 {
+	addr := *a.Config().ServiceSettings.ListenAddress
+	if addr == "" {
+		if *a.Config().ServiceSettings.ConnectionSecurity == model.CONN_SECURITY_TLS {
+			addr = ":https"
+		} else {
+			addr = ":http"
+		}
+	}
+
+	listener, err := net.Listen("tcp", addr)
+	if err != nil {
+		l4g.Critical(utils.T("api.server.start_server.starting.critical"), err)
+		return
+	}
+	a.Srv.ListenAddr = listener.Addr().(*net.TCPAddr)
+
+	l4g.Info(utils.T("api.server.start_server.listening.info"), listener.Addr().String())
+
+	if *a.Config().ServiceSettings.Forward80To443 {
 		go func() {
-			listener, err := net.Listen("tcp", ":80")
+			redirectListener, err := net.Listen("tcp", ":80")
 			if err != nil {
+				listener.Close()
 				l4g.Error("Unable to setup forwarding")
 				return
 			}
-			defer listener.Close()
+			defer redirectListener.Close()
 
-			http.Serve(listener, http.HandlerFunc(redirectHTTPToHTTPS))
+			http.Serve(redirectListener, http.HandlerFunc(redirectHTTPToHTTPS))
 		}()
 	}
 
+	a.Srv.didFinishListen = make(chan struct{})
 	go func() {
 		var err error
-		if *utils.Cfg.ServiceSettings.ConnectionSecurity == model.CONN_SECURITY_TLS {
-			if *utils.Cfg.ServiceSettings.UseLetsEncrypt {
+		if *a.Config().ServiceSettings.ConnectionSecurity == model.CONN_SECURITY_TLS {
+			if *a.Config().ServiceSettings.UseLetsEncrypt {
 				var m letsencrypt.Manager
-				m.CacheFile(*utils.Cfg.ServiceSettings.LetsEncryptCertificateCacheFile)
+				m.CacheFile(*a.Config().ServiceSettings.LetsEncryptCertificateCacheFile)
 
 				tlsConfig := &tls.Config{
 					GetCertificate: m.GetCertificate,
@@ -189,25 +207,66 @@ func (a *App) StartServer() {
 
 				tlsConfig.NextProtos = append(tlsConfig.NextProtos, "h2")
 
-				err = a.Srv.GracefulServer.ListenAndServeTLSConfig(tlsConfig)
+				a.Srv.Server.TLSConfig = tlsConfig
+				err = a.Srv.Server.ServeTLS(listener, "", "")
 			} else {
-				err = a.Srv.GracefulServer.ListenAndServeTLS(*utils.Cfg.ServiceSettings.TLSCertFile, *utils.Cfg.ServiceSettings.TLSKeyFile)
+				err = a.Srv.Server.ServeTLS(listener, *a.Config().ServiceSettings.TLSCertFile, *a.Config().ServiceSettings.TLSKeyFile)
 			}
 		} else {
-			err = a.Srv.GracefulServer.ListenAndServe()
+			err = a.Srv.Server.Serve(listener)
 		}
-		if err != nil {
+		if err != nil && err != http.ErrServerClosed {
 			l4g.Critical(utils.T("api.server.start_server.starting.critical"), err)
 			time.Sleep(time.Second)
 		}
+		close(a.Srv.didFinishListen)
 	}()
 }
 
+type tcpKeepAliveListener struct {
+	*net.TCPListener
+}
+
+func (ln tcpKeepAliveListener) Accept() (c net.Conn, err error) {
+	tc, err := ln.AcceptTCP()
+	if err != nil {
+		return
+	}
+	tc.SetKeepAlive(true)
+	tc.SetKeepAlivePeriod(3 * time.Minute)
+	return tc, nil
+}
+
+func (a *App) Listen(addr string) (net.Listener, error) {
+	if addr == "" {
+		addr = ":http"
+	}
+	ln, err := net.Listen("tcp", addr)
+	if err != nil {
+		return nil, err
+	}
+	return tcpKeepAliveListener{ln.(*net.TCPListener)}, nil
+}
+
 func (a *App) StopServer() {
-	if a.Srv.GracefulServer != nil {
-		a.Srv.GracefulServer.Stop(TIME_TO_WAIT_FOR_CONNECTIONS_TO_CLOSE_ON_SERVER_SHUTDOWN)
-		<-a.Srv.GracefulServer.StopChan()
-		a.Srv.GracefulServer = nil
+	if a.Srv.Server != nil {
+		ctx, cancel := context.WithTimeout(context.Background(), TIME_TO_WAIT_FOR_CONNECTIONS_TO_CLOSE_ON_SERVER_SHUTDOWN)
+		defer cancel()
+		didShutdown := false
+		for a.Srv.didFinishListen != nil && !didShutdown {
+			if err := a.Srv.Server.Shutdown(ctx); err != nil {
+				l4g.Warn(err.Error())
+			}
+			timer := time.NewTimer(time.Millisecond * 50)
+			select {
+			case <-a.Srv.didFinishListen:
+				didShutdown = true
+			case <-timer.C:
+			}
+			timer.Stop()
+		}
+		a.Srv.Server.Close()
+		a.Srv.Server = nil
 	}
 }
 

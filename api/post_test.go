@@ -61,6 +61,11 @@ func TestCreatePost(t *testing.T) {
 		t.Fatal("Newly craeted post shouldn't have EditAt set")
 	}
 
+	_, err = Client.CreatePost(&model.Post{ChannelId: channel1.Id, Message: "#hashtag a" + model.NewId() + "a", Type: model.POST_SYSTEM_GENERIC})
+	if err == nil {
+		t.Fatal("should have failed - bad post type")
+	}
+
 	post2 := &model.Post{ChannelId: channel1.Id, Message: "zz" + model.NewId() + "a", RootId: rpost1.Data.(*model.Post).Id}
 	rpost2, err := Client.CreatePost(post2)
 	if err != nil {
@@ -153,14 +158,14 @@ func TestCreatePost(t *testing.T) {
 
 	isLicensed := utils.IsLicensed()
 	license := utils.License()
-	disableTownSquareReadOnly := utils.Cfg.TeamSettings.ExperimentalTownSquareIsReadOnly
+	disableTownSquareReadOnly := th.App.Config().TeamSettings.ExperimentalTownSquareIsReadOnly
 	defer func() {
-		utils.Cfg.TeamSettings.ExperimentalTownSquareIsReadOnly = disableTownSquareReadOnly
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.TeamSettings.ExperimentalTownSquareIsReadOnly = disableTownSquareReadOnly })
 		utils.SetIsLicensed(isLicensed)
 		utils.SetLicense(license)
 		utils.SetDefaultRolesBasedOnConfig()
 	}()
-	*utils.Cfg.TeamSettings.ExperimentalTownSquareIsReadOnly = true
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.ExperimentalTownSquareIsReadOnly = true })
 	utils.SetDefaultRolesBasedOnConfig()
 	utils.SetIsLicensed(true)
 	utils.SetLicense(&model.License{Features: &model.Features{}})
@@ -232,14 +237,18 @@ func testCreatePostWithOutgoingHook(
 	user := th.SystemAdminUser
 	channel := th.CreateChannel(Client, team)
 
-	enableOutgoingHooks := utils.Cfg.ServiceSettings.EnableOutgoingWebhooks
-	allowedInternalConnections := *utils.Cfg.ServiceSettings.AllowedUntrustedInternalConnections
+	enableOutgoingHooks := th.App.Config().ServiceSettings.EnableOutgoingWebhooks
+	allowedInternalConnections := *th.App.Config().ServiceSettings.AllowedUntrustedInternalConnections
 	defer func() {
-		utils.Cfg.ServiceSettings.EnableOutgoingWebhooks = enableOutgoingHooks
-		utils.Cfg.ServiceSettings.AllowedUntrustedInternalConnections = &allowedInternalConnections
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOutgoingWebhooks = enableOutgoingHooks })
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.ServiceSettings.AllowedUntrustedInternalConnections = &allowedInternalConnections
+		})
 	}()
-	utils.Cfg.ServiceSettings.EnableOutgoingWebhooks = true
-	*utils.Cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost 127.0.0.1"
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOutgoingWebhooks = true })
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost 127.0.0.1"
+	})
 
 	var hook *model.OutgoingWebhook
 	var post *model.Post
@@ -393,14 +402,14 @@ func TestUpdatePost(t *testing.T) {
 	Client := th.BasicClient
 	channel1 := th.BasicChannel
 
-	allowEditPost := *utils.Cfg.ServiceSettings.AllowEditPost
-	postEditTimeLimit := *utils.Cfg.ServiceSettings.PostEditTimeLimit
+	allowEditPost := *th.App.Config().ServiceSettings.AllowEditPost
+	postEditTimeLimit := *th.App.Config().ServiceSettings.PostEditTimeLimit
 	defer func() {
-		*utils.Cfg.ServiceSettings.AllowEditPost = allowEditPost
-		*utils.Cfg.ServiceSettings.PostEditTimeLimit = postEditTimeLimit
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowEditPost = allowEditPost })
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.PostEditTimeLimit = postEditTimeLimit })
 	}()
 
-	*utils.Cfg.ServiceSettings.AllowEditPost = model.ALLOW_EDIT_POST_ALWAYS
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowEditPost = model.ALLOW_EDIT_POST_ALWAYS })
 
 	post1 := &model.Post{ChannelId: channel1.Id, Message: "zz" + model.NewId() + "a"}
 	rpost1, err := Client.CreatePost(post1)
@@ -454,13 +463,12 @@ func TestUpdatePost(t *testing.T) {
 		}
 	}
 
-	post3 := &model.Post{ChannelId: channel1.Id, Message: "zz" + model.NewId() + "a", Type: model.POST_JOIN_LEAVE}
-	rpost3, err := Client.CreatePost(post3)
+	rpost3, err := th.App.CreatePost(&model.Post{ChannelId: channel1.Id, Message: "zz" + model.NewId() + "a", Type: model.POST_JOIN_LEAVE, UserId: th.BasicUser.Id}, channel1, false)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	up3 := &model.Post{Id: rpost3.Data.(*model.Post).Id, ChannelId: channel1.Id, Message: "zz" + model.NewId() + " update post 3"}
+	up3 := &model.Post{Id: rpost3.Id, ChannelId: channel1.Id, Message: "zz" + model.NewId() + " update post 3"}
 	if _, err := Client.UpdatePost(up3); err == nil {
 		t.Fatal("shouldn't have been able to update system message")
 	}
@@ -476,7 +484,7 @@ func TestUpdatePost(t *testing.T) {
 	utils.SetLicense(&model.License{Features: &model.Features{}})
 	utils.License().Features.SetDefaults()
 
-	*utils.Cfg.ServiceSettings.AllowEditPost = model.ALLOW_EDIT_POST_NEVER
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowEditPost = model.ALLOW_EDIT_POST_NEVER })
 
 	post4 := &model.Post{ChannelId: channel1.Id, Message: "zz" + model.NewId() + "a", RootId: rpost1.Data.(*model.Post).Id}
 	rpost4, err := Client.CreatePost(post4)
@@ -489,8 +497,8 @@ func TestUpdatePost(t *testing.T) {
 		t.Fatal("shouldn't have been able to update a message when not allowed")
 	}
 
-	*utils.Cfg.ServiceSettings.AllowEditPost = model.ALLOW_EDIT_POST_TIME_LIMIT
-	*utils.Cfg.ServiceSettings.PostEditTimeLimit = 1 //seconds
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowEditPost = model.ALLOW_EDIT_POST_TIME_LIMIT })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.PostEditTimeLimit = 1 }) //seconds
 
 	post5 := &model.Post{ChannelId: channel1.Id, Message: "zz" + model.NewId() + "a", RootId: rpost1.Data.(*model.Post).Id}
 	rpost5, err := Client.CreatePost(post5)
@@ -965,12 +973,12 @@ func TestDeletePosts(t *testing.T) {
 	channel1 := th.BasicChannel
 	team1 := th.BasicTeam
 
-	restrictPostDelete := *utils.Cfg.ServiceSettings.RestrictPostDelete
+	restrictPostDelete := *th.App.Config().ServiceSettings.RestrictPostDelete
 	defer func() {
-		*utils.Cfg.ServiceSettings.RestrictPostDelete = restrictPostDelete
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.RestrictPostDelete = restrictPostDelete })
 		utils.SetDefaultRolesBasedOnConfig()
 	}()
-	*utils.Cfg.ServiceSettings.RestrictPostDelete = model.PERMISSIONS_DELETE_POST_ALL
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.RestrictPostDelete = model.PERMISSIONS_DELETE_POST_ALL })
 	utils.SetDefaultRolesBasedOnConfig()
 
 	time.Sleep(10 * time.Millisecond)
@@ -1046,7 +1054,9 @@ func TestDeletePosts(t *testing.T) {
 
 	SystemAdminClient.Must(SystemAdminClient.DeletePost(channel1.Id, post4b.Id))
 
-	*utils.Cfg.ServiceSettings.RestrictPostDelete = model.PERMISSIONS_DELETE_POST_TEAM_ADMIN
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.RestrictPostDelete = model.PERMISSIONS_DELETE_POST_TEAM_ADMIN
+	})
 	utils.SetDefaultRolesBasedOnConfig()
 
 	th.LoginBasic()
@@ -1069,7 +1079,9 @@ func TestDeletePosts(t *testing.T) {
 
 	SystemAdminClient.Must(SystemAdminClient.DeletePost(channel1.Id, post5b.Id))
 
-	*utils.Cfg.ServiceSettings.RestrictPostDelete = model.PERMISSIONS_DELETE_POST_SYSTEM_ADMIN
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.RestrictPostDelete = model.PERMISSIONS_DELETE_POST_SYSTEM_ADMIN
+	})
 	utils.SetDefaultRolesBasedOnConfig()
 
 	th.LoginBasic()
@@ -1153,20 +1165,31 @@ func TestEmailMention(t *testing.T) {
 		if !strings.ContainsAny(resultsMailbox[len(resultsMailbox)-1].To[0], th.BasicUser2.Email) {
 			t.Fatal("Wrong To recipient")
 		} else {
-			for i := 0; i < 5; i++ {
-				if resultsEmail, err := utils.GetMessageFromMailbox(th.BasicUser2.Email, resultsMailbox[len(resultsMailbox)-1].ID); err == nil {
-					if strings.Contains(resultsEmail.Body.Text, post1.Message) {
-						break
-					} else if i == 4 {
-						t.Log(resultsEmail.Body.Text)
-						t.Fatal("Received wrong Message")
+			for i := 0; i < 30; i++ {
+				for j := len(resultsMailbox) - 1; j >= 0; j-- {
+					isUser := false
+					for _, to := range resultsMailbox[j].To {
+						if to == "<"+th.BasicUser2.Email+">" {
+							isUser = true
+						}
 					}
-					time.Sleep(100 * time.Millisecond)
+					if !isUser {
+						continue
+					}
+					if resultsEmail, err := utils.GetMessageFromMailbox(th.BasicUser2.Email, resultsMailbox[j].ID); err == nil {
+						if strings.Contains(resultsEmail.Body.Text, post1.Message) {
+							return
+						} else if i == 4 {
+							t.Log(resultsEmail.Body.Text)
+							t.Fatal("Received wrong Message")
+						}
+					}
 				}
+				time.Sleep(100 * time.Millisecond)
 			}
+			t.Fatal("Didn't receive message")
 		}
 	}
-
 }
 
 func TestFuzzyPosts(t *testing.T) {
@@ -1451,14 +1474,18 @@ func TestGetOpenGraphMetadata(t *testing.T) {
 
 	Client := th.BasicClient
 
-	enableLinkPreviews := *utils.Cfg.ServiceSettings.EnableLinkPreviews
-	allowedInternalConnections := *utils.Cfg.ServiceSettings.AllowedUntrustedInternalConnections
+	enableLinkPreviews := *th.App.Config().ServiceSettings.EnableLinkPreviews
+	allowedInternalConnections := *th.App.Config().ServiceSettings.AllowedUntrustedInternalConnections
 	defer func() {
-		*utils.Cfg.ServiceSettings.EnableLinkPreviews = enableLinkPreviews
-		utils.Cfg.ServiceSettings.AllowedUntrustedInternalConnections = &allowedInternalConnections
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableLinkPreviews = enableLinkPreviews })
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.ServiceSettings.AllowedUntrustedInternalConnections = &allowedInternalConnections
+		})
 	}()
-	*utils.Cfg.ServiceSettings.EnableLinkPreviews = true
-	*utils.Cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost 127.0.0.1"
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableLinkPreviews = true })
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost 127.0.0.1"
+	})
 
 	ogDataCacheMissCount := 0
 
@@ -1509,7 +1536,7 @@ func TestGetOpenGraphMetadata(t *testing.T) {
 		}
 	}
 
-	*utils.Cfg.ServiceSettings.EnableLinkPreviews = false
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableLinkPreviews = false })
 	if _, err := Client.DoApiPost("/get_opengraph_metadata", "{\"url\":\"/og-data/\"}"); err == nil || err.StatusCode != http.StatusNotImplemented {
 		t.Fatal("should have failed with 501 - disabled link previews")
 	}

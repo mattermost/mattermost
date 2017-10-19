@@ -44,11 +44,11 @@ func (api *API) InitSystem() {
 func getSystemPing(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	actualGoroutines := runtime.NumGoroutine()
-	if *utils.Cfg.ServiceSettings.GoroutineHealthThreshold <= 0 || actualGoroutines <= *utils.Cfg.ServiceSettings.GoroutineHealthThreshold {
+	if *c.App.Config().ServiceSettings.GoroutineHealthThreshold <= 0 || actualGoroutines <= *c.App.Config().ServiceSettings.GoroutineHealthThreshold {
 		m := make(map[string]string)
 		m[model.STATUS] = model.STATUS_OK
 
-		reqs := utils.Cfg.ClientRequirements
+		reqs := c.App.Config().ClientRequirements
 		m["AndroidLatestVersion"] = reqs.AndroidLatestVersion
 		m["AndroidMinVersion"] = reqs.AndroidMinVersion
 		m["DesktopLatestVersion"] = reqs.DesktopLatestVersion
@@ -61,7 +61,7 @@ func getSystemPing(c *Context, w http.ResponseWriter, r *http.Request) {
 		rdata := map[string]string{}
 		rdata["status"] = "unhealthy"
 
-		l4g.Warn(utils.T("api.system.go_routines"), actualGoroutines, *utils.Cfg.ServiceSettings.GoroutineHealthThreshold)
+		l4g.Warn(utils.T("api.system.go_routines"), actualGoroutines, *c.App.Config().ServiceSettings.GoroutineHealthThreshold)
 
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(model.MapToJson(rdata)))
@@ -71,7 +71,7 @@ func getSystemPing(c *Context, w http.ResponseWriter, r *http.Request) {
 func testEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 	cfg := model.ConfigFromJson(r.Body)
 	if cfg == nil {
-		cfg = utils.Cfg
+		cfg = c.App.Config()
 	}
 
 	if !app.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
@@ -198,7 +198,7 @@ func getLogs(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func postLog(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !*utils.Cfg.ServiceSettings.EnableDeveloper && !app.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
+	if !*c.App.Config().ServiceSettings.EnableDeveloper && !app.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
 	}
@@ -286,7 +286,7 @@ func addLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := r.ParseMultipartForm(*utils.Cfg.FileSettings.MaxFileSize)
+	err := r.ParseMultipartForm(*c.App.Config().FileSettings.MaxFileSize)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return

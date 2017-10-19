@@ -13,7 +13,8 @@ import (
 
 func (a *App) SyncLdap() {
 	a.Go(func() {
-		if utils.IsLicensed() && *utils.License().Features.LDAP && *utils.Cfg.LdapSettings.EnableSync {
+
+		if utils.IsLicensed() && *utils.License().Features.LDAP && *a.Config().LdapSettings.EnableSync {
 			if ldapI := a.Ldap; ldapI != nil {
 				ldapI.StartSynchronizeJob(false)
 			} else {
@@ -24,7 +25,7 @@ func (a *App) SyncLdap() {
 }
 
 func (a *App) TestLdap() *model.AppError {
-	if ldapI := a.Ldap; ldapI != nil && utils.IsLicensed() && *utils.License().Features.LDAP && *utils.Cfg.LdapSettings.Enable {
+	if ldapI := a.Ldap; ldapI != nil && utils.IsLicensed() && *utils.License().Features.LDAP && *a.Config().LdapSettings.Enable {
 		if err := ldapI.RunTest(); err != nil {
 			err.StatusCode = 500
 			return err

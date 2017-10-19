@@ -1,7 +1,7 @@
 [
   {
     "id": "April",
-    "translation": "kwiecień"
+    "translation": "Kwiecień"
   },
   {
     "id": "August",
@@ -185,11 +185,11 @@
   },
   {
     "id": "api.channel.can_manage_channel.private_restricted_system_admin.app_error",
-    "translation": "Zarządzanie i tworzenie kanałów prywatnych jest dostępne tylko dla Administratorów Systemu."
+    "translation": "Zarządzanie i tworzenie kanałów prywatnych jest dostępne tylko dla administratorów systemu."
   },
   {
     "id": "api.channel.can_manage_channel.private_restricted_team_admin.app_error",
-    "translation": "Zarządzanie i tworzenie kanałów prywatnych jest dostępne tylko dla Zespołów i Administratorów Systemu."
+    "translation": "Zarządzanie i tworzenie kanałów prywatnych jest dostępne tylko dla administratorów systemu i zespołów."
   },
   {
     "id": "api.channel.can_manage_channel.public_restricted_system_admin.app_error",
@@ -861,7 +861,7 @@
   },
   {
     "id": "api.command_shortcuts.unsupported.app_error",
-    "translation": "Polecenie wyszukiwania nie jest wspierana na Twoim urządzeniu"
+    "translation": "Polecenie skrótu nie jest wspierane na Twoim urządzeniu"
   },
   {
     "id": "api.command_shrug.desc",
@@ -1103,7 +1103,7 @@
   },
   {
     "id": "api.file.get_file.public_disabled.app_error",
-    "translation": "Linki publiczne zapisu została wyłączona przez administratora systemu."
+    "translation": "Linki publiczne zostały wyłączone przez administratora systemu."
   },
   {
     "id": "api.file.get_file.public_invalid.app_error",
@@ -1587,7 +1587,7 @@
   },
   {
     "id": "api.post.do_action.action_id.app_error",
-    "translation": "Nieprawidłowy identyfikator klienta"
+    "translation": "Nieprawidłowe id akcji"
   },
   {
     "id": "api.post.do_action.action_integration.app_error",
@@ -1697,7 +1697,7 @@
   },
   {
     "id": "api.post.send_notifications_and_forget.push_mention_no_channel",
-    "translation": " wspomniał o Tobie w "
+    "translation": "wspomniał cię"
   },
   {
     "id": "api.post.send_notifications_and_forget.push_message",
@@ -1857,7 +1857,7 @@
   },
   {
     "id": "api.slackimport.slack_add_channels.added",
-    "translation": "\r\n kanały dodane \r\n"
+    "translation": "\r\nDodane kanały:\r\n"
   },
   {
     "id": "api.slackimport.slack_add_channels.failed_to_add_user",
@@ -1929,7 +1929,7 @@
   },
   {
     "id": "api.slackimport.slack_add_users.created",
-    "translation": "\r\n użytkowników zostało utworzonych\r\n"
+    "translation": "\r\nUtworzeni użytkownicy:\r\n"
   },
   {
     "id": "api.slackimport.slack_add_users.email_pwd",
@@ -1945,7 +1945,7 @@
   },
   {
     "id": "api.slackimport.slack_add_users.missing_email_address",
-    "translation": "Użytkownik {{.Username}} nie posiada adresu email w Slack export. Użyto {{.Email}} jako zastępnik. Użytkownik powinien zaktualizować adres email po zalogowaniu do systemu.\r\n"
+    "translation": "Użytkownik {{.Username}} nie ma adresu e-mail w eksporcie Slacka. Użyto {{.Email}} jako placeholdera. Użytkownik powinien zaktualizować adres po zalogowaniu.\r\n"
   },
   {
     "id": "api.slackimport.slack_add_users.missing_email_address.warn",
@@ -1953,7 +1953,7 @@
   },
   {
     "id": "api.slackimport.slack_add_users.unable_import",
-    "translation": "Nie można zaimportować użytkownika: {{.Username}}\r\n"
+    "translation": "Nie można zaimportować użytkownika: {{.Username}}.\r\n"
   },
   {
     "id": "api.slackimport.slack_convert_channel_mentions.compile_regexp_failed.warn",
@@ -1965,11 +1965,11 @@
   },
   {
     "id": "api.slackimport.slack_convert_user_mentions.compile_regexp_failed.warn",
-    "translation": "Slack Import: Nie można sakompilować !channel, pasującego do regular expressions dla kanału Slacka {{.ChannelName}} (id={{.ChannelID}})."
+    "translation": "Slack Import: Nie można skompilować @mention, pasującej do regular expressions dla kanału Slacka {{.ChannelName}} (id={{.ChannelID}})."
   },
   {
     "id": "api.slackimport.slack_deactivate_bot_user.failed_to_deactivate",
-    "translation": "Slack Import: Unable to deactivate the user account used for the bot."
+    "translation": "Slack Import: Nie można zdezaktywować konta użytkownika używanego przez bota."
   },
   {
     "id": "api.slackimport.slack_import.log",
@@ -1993,7 +1993,7 @@
   },
   {
     "id": "api.slackimport.slack_import.open.app_error",
-    "translation": "Unable to open the file: {{.Filename}}.\r\n"
+    "translation": "Nie można otworzyć pliku: {{.Filename}}.\r\n"
   },
   {
     "id": "api.slackimport.slack_import.team_fail",
@@ -2001,15 +2001,15 @@
   },
   {
     "id": "api.slackimport.slack_import.zip.app_error",
-    "translation": "Unable to open the Slack export zip file.\r\n"
+    "translation": "Nie można otworzyć pliku zip z eksportem Slacka.\r\n"
   },
   {
     "id": "api.slackimport.slack_parse_channels.error",
-    "translation": "Slack Import: Error occurred when parsing some Slack channels. Import may work anyway."
+    "translation": "Slack Import: Wystąpił błąd parsowania kanałów Slacka. Import może działać pomimo tego."
   },
   {
     "id": "api.slackimport.slack_parse_posts.error",
-    "translation": "Slack Import: Error occurred when parsing some Slack posts. Import may work anyway."
+    "translation": "Slack Import: Wystąpił błąd parsowania postów Slacka. Import może działać pomimo tego."
   },
   {
     "id": "api.slackimport.slack_sanitise_channel_properties.display_name_too_long.warn",
@@ -2125,7 +2125,7 @@
   },
   {
     "id": "api.team.invite_members.invalid_email.app_error",
-    "translation": "The following email addresses do not belong to an accepted domain: {{.Addresses}}. Please contact your System Administrator for details."
+    "translation": "Następujące adresy e-mail nie należą do akceptowanej domeny: {{.Addresses}}. Skontaktuj się z administratorem systemu, by dowiedzieć się więcej."
   },
   {
     "id": "api.team.invite_members.member",
@@ -2141,7 +2141,7 @@
   },
   {
     "id": "api.team.invite_members.restricted_team_admin.app_error",
-    "translation": "Zapraszanie nowych użytkowników do zespołu ogranicza się do zespołu i administratorów systemu."
+    "translation": "Zapraszanie nowych użytkowników do zespołu ogranicza się do administratorów systemu i zespołu."
   },
   {
     "id": "api.team.invite_members.send.error",
@@ -2157,7 +2157,7 @@
   },
   {
     "id": "api.team.is_team_creation_allowed.domain.app_error",
-    "translation": "List musi być z określonej domeny (np. @example.com). Proszę, skontaktuj się z administratorem systemu, aby poznać szczegóły."
+    "translation": "E-mail musi być z określonej domeny (np. @example.com). Proszę, skontaktuj się z administratorem systemu, aby poznać szczegóły."
   },
   {
     "id": "api.team.permanent_delete_team.attempting.warn",
@@ -2189,7 +2189,7 @@
   },
   {
     "id": "api.templates.email_change_body.info",
-    "translation": "Twój adres e-mail {{.TeamDisplayName}} został zmieniony na {{.NewEmail}}.<br>Jeśli nie to proszę, skontaktuj się z administratorem systemu."
+    "translation": "Twój adres e-mail na {{.TeamDisplayName}} został zmieniony na {{.NewEmail}}.<br>Jeśli to nie ty dokonałeś tej zmiany, skontaktuj się z administratorem systemu."
   },
   {
     "id": "api.templates.email_change_body.title",
@@ -2357,15 +2357,15 @@
   },
   {
     "id": "api.templates.user_access_token_body.info",
-    "translation": "A personal access token was added to your account on {{ .SiteURL }}. They can be used to access {{.SiteName}} with your account.<br>If this change wasn't initiated by you, please contact your system administrator."
+    "translation": "Osobisty token dostępu został dodany do twojego konta na {{ .SiteURL }}. Można ich użyć by logować się na {{.SiteName}} przy użyciu twojego konta.<br>Jeżeli ta zmiana nie została dokonana przez ciebie, skontaktuj się z administratorem systemu."
   },
   {
     "id": "api.templates.user_access_token_body.title",
-    "translation": "Personal access token added to your account"
+    "translation": "Osobisty token dostępu został dodany do twojego konta"
   },
   {
     "id": "api.templates.user_access_token_subject",
-    "translation": "[{{ .SiteName }}] Personal access token added to your account"
+    "translation": "[{{ .SiteName }}] Osobisty token dostępu został dodany do twojego konta"
   },
   {
     "id": "api.templates.username_change_body.info",
@@ -2981,7 +2981,7 @@
   },
   {
     "id": "app.channel.move_channel.members_do_not_match.error",
-    "translation": "Cannot move a channel unless all its members are already members of the destination team."
+    "translation": "Nie można przenieść kanału, dopóki wszyscy jego członkowie nie są członkami zespołu docelowego."
   },
   {
     "id": "app.channel.post_update_channel_purpose_message.post.error",
@@ -3045,7 +3045,7 @@
   },
   {
     "id": "app.import.import_direct_post.save_preferences.error",
-    "translation": "Error importing direct post. Failed to save preferences."
+    "translation": "Wystąpił błąd podczas importowania wiadomości bezpośrednich. Nie udało się zapisać preferencji."
   },
   {
     "id": "app.import.import_direct_post.user_not_found.error",
@@ -3085,7 +3085,7 @@
   },
   {
     "id": "app.import.import_post.save_preferences.error",
-    "translation": "Error importing post. Failed to save preferences."
+    "translation": "Wystąpił błąd podczas importowania wiadomości. Nie udało się zapisać preferencji."
   },
   {
     "id": "app.import.import_post.team_not_found.error",
@@ -3097,7 +3097,7 @@
   },
   {
     "id": "app.import.import_user_channels.save_preferences.error",
-    "translation": "Error importing user channel memberships. Failed to save preferences."
+    "translation": "Wystąpił błąd podczas importowania przynależności użytkowników do kanałów. Nie udało się zapisać preferencji."
   },
   {
     "id": "app.import.validate_channel_import_data.create_at_zero.error",
@@ -3161,7 +3161,7 @@
   },
   {
     "id": "app.import.validate_direct_channel_import_data.unknown_favoriter.error",
-    "translation": "Direct channel can only be favorited by members. \"{{.Username}}\" is not a member."
+    "translation": "Kanał bezpośredni może być polubiony tylko przez członków. \"{{.Username}}\" nie jest członkiem."
   },
   {
     "id": "app.import.validate_direct_post_import_data.channel_members_required.error",
@@ -3181,7 +3181,7 @@
   },
   {
     "id": "app.import.validate_direct_post_import_data.create_at_zero.error",
-    "translation": "CreateAt must be greater than 0"
+    "translation": "CreateAt musi być większe od 0"
   },
   {
     "id": "app.import.validate_direct_post_import_data.message_length.error",
@@ -3193,7 +3193,7 @@
   },
   {
     "id": "app.import.validate_direct_post_import_data.unknown_flagger.error",
-    "translation": "Direct post can only be flagged by members of the channel it is in. \"{{.Username}}\" is not a member."
+    "translation": "Bezpośrednia wiadomość może być oznaczona tylko przez członków kanału, w którym się znajduje. \"{{.Username}}\" nie jest członkiem."
   },
   {
     "id": "app.import.validate_direct_post_import_data.user_missing.error",
@@ -3325,11 +3325,11 @@
   },
   {
     "id": "app.import.validate_user_import_data.notify_props_channel_trigger_invalid.error",
-    "translation": "Invalid Channel Trigger Notify Prop for user."
+    "translation": "Nieprawidłowy ciąg znaków powiadamiania o kanale dla użytkownika."
   },
   {
     "id": "app.import.validate_user_import_data.notify_props_comment_trigger_invalid.error",
-    "translation": "Invalid Comment Trigger Notify Prop for user."
+    "translation": "Nieprawidłowy ciąg znaków powiadamiania o komentarzu dla użytkownika."
   },
   {
     "id": "app.import.validate_user_import_data.notify_props_desktop_duration_invalid.error",
@@ -4528,6 +4528,10 @@
     "translation": "Nieprawidłowy adres nasłuchiwania dla ustawień usługi."
   },
   {
+    "id": "model.config.is_valid.localization.available_locales.app_error",
+    "translation": "Available Languages must contain Default Client Language"
+  },
+  {
     "id": "model.config.is_valid.login_attempts.app_error",
     "translation": "Nieprawidłowa maksymalna ilość prób logowania dla ustawień usługi. Musi być liczbą większą od 0."
   },
@@ -5546,6 +5550,10 @@
   {
     "id": "store.sql_command.analytics_command_count.app_error",
     "translation": "Nie możemy policzyć poleceń"
+  },
+  {
+    "id": "store.sql_command.get_by_trigger.app_error",
+    "translation": "Nie można pobrać polecenia"
   },
   {
     "id": "store.sql_command.save.delete.app_error",

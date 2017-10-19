@@ -3692,6 +3692,14 @@
     "translation": "License does not support Data Retention."
   },
   {
+    "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
+    "translation": "Failed to create Elasticsearch bulk processor"
+  },
+  {
+    "id": "ent.elasticsearch.start.start_bulk_processor_failed.app_error",
+    "translation": "Failed to start Elasticsearch bulk processor"
+  },
+  {
     "id": "ent.elasticsearch.aggregator_worker.create_index_job.error",
     "translation": "Elasticsearch aggregator worker failed to create the indexing job"
   },
@@ -4384,10 +4392,6 @@
     "translation": "Message retention must be one day or longer."
   },
   {
-    "id": "model.config.is_valid.localization.available_locales.app_error",
-    "translation": "Available Languages must contain Default Client Language"
-  },
-  {
     "id": "model.config.is_valid.elastic_search.aggregate_posts_after_days.app_error",
     "translation": "Elasticsearch AggregatePostsAfterDays setting must be a number greater than or equal to 1"
   },
@@ -4410,6 +4414,10 @@
   {
     "id": "model.config.is_valid.elastic_search.username.app_error",
     "translation": "Elastic Search Username setting must be provided when Elastic Search indexing is enabled."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.live_indexing_batch_size.app_error",
+    "translation": "Elasticsearch Live Indexing Batch Size must be at least 1"
   },
   {
     "id": "model.config.is_valid.email_batching_buffer_size.app_error",
@@ -4530,6 +4538,10 @@
   {
     "id": "model.config.is_valid.listen_address.app_error",
     "translation": "Invalid listen address for service settings Must be set."
+  },
+  {
+    "id": "model.config.is_valid.localization.available_locales.app_error",
+    "translation": "Available Languages must contain Default Client Language"
   },
   {
     "id": "model.config.is_valid.login_attempts.app_error",
@@ -5552,6 +5564,10 @@
     "translation": "We couldn't count the commands"
   },
   {
+    "id": "store.sql_command.get_by_trigger.app_error",
+    "translation": "We couldn't get the command"
+  },
+  {
     "id": "store.sql_command.save.delete.app_error",
     "translation": "We couldn't delete the command"
   },
@@ -5578,10 +5594,6 @@
   {
     "id": "store.sql_command.save.update.app_error",
     "translation": "We couldn't update the command"
-  },
-  {
-    "id": "store.sql_command.get_by_trigger.app_error",
-    "translation": "We couldn't get the command"
   },
   {
     "id": "store.sql_command_webhooks.get.app_error",

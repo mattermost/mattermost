@@ -182,7 +182,7 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		c.Err.Where = r.URL.Path
 
 		// Block out detailed error when not in developer mode
-		if !*utils.Cfg.ServiceSettings.EnableDeveloper {
+		if !*c.App.Config().ServiceSettings.EnableDeveloper {
 			c.Err.DetailedError = ""
 		}
 
@@ -244,7 +244,7 @@ func (c *Context) IsSystemAdmin() bool {
 }
 
 func (c *Context) SessionRequired() {
-	if !*utils.Cfg.ServiceSettings.EnableUserAccessTokens && c.Session.Props[model.SESSION_PROP_TYPE] == model.SESSION_TYPE_USER_ACCESS_TOKEN {
+	if !*c.App.Config().ServiceSettings.EnableUserAccessTokens && c.Session.Props[model.SESSION_PROP_TYPE] == model.SESSION_TYPE_USER_ACCESS_TOKEN {
 		c.Err = model.NewAppError("", "api.context.session_expired.app_error", nil, "UserAccessToken", http.StatusUnauthorized)
 		return
 	}
@@ -257,7 +257,7 @@ func (c *Context) SessionRequired() {
 
 func (c *Context) MfaRequired() {
 	// Must be licensed for MFA and have it configured for enforcement
-	if !utils.IsLicensed() || !*utils.License().Features.MFA || !*utils.Cfg.ServiceSettings.EnableMultifactorAuthentication || !*utils.Cfg.ServiceSettings.EnforceMultifactorAuthentication {
+	if !utils.IsLicensed() || !*utils.License().Features.MFA || !*c.App.Config().ServiceSettings.EnableMultifactorAuthentication || !*c.App.Config().ServiceSettings.EnforceMultifactorAuthentication {
 		return
 	}
 

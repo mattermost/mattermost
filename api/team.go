@@ -67,6 +67,8 @@ func createTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Don't sanitize the team here since the user will be a team admin and their session won't reflect that yet
+
 	w.Write([]byte(rteam.ToJson()))
 }
 
@@ -82,10 +84,9 @@ func GetAllTeamListings(c *Context, w http.ResponseWriter, r *http.Request) {
 	m := make(map[string]*model.Team)
 	for _, v := range teams {
 		m[v.Id] = v
-		if !app.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
-			m[v.Id].Sanitize()
-		}
 	}
+
+	sanitizeTeamMap(c.Session, m)
 
 	w.Write([]byte(model.TeamMapToJson(m)))
 }
@@ -112,6 +113,8 @@ func getAll(c *Context, w http.ResponseWriter, r *http.Request) {
 		m[v.Id] = v
 	}
 
+	sanitizeTeamMap(c.Session, m)
+
 	w.Write([]byte(model.TeamMapToJson(m)))
 }
 
@@ -120,9 +123,9 @@ func inviteMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if utils.IsLicensed() && !app.SessionHasPermissionToTeam(c.Session, c.TeamId, model.PERMISSION_INVITE_USER) {
 		errorId := ""
-		if *utils.Cfg.TeamSettings.RestrictTeamInvite == model.PERMISSIONS_SYSTEM_ADMIN {
+		if *c.App.Config().TeamSettings.RestrictTeamInvite == model.PERMISSIONS_SYSTEM_ADMIN {
 			errorId = "api.team.invite_members.restricted_system_admin.app_error"
-		} else if *utils.Cfg.TeamSettings.RestrictTeamInvite == model.PERMISSIONS_TEAM_ADMIN {
+		} else if *c.App.Config().TeamSettings.RestrictTeamInvite == model.PERMISSIONS_TEAM_ADMIN {
 			errorId = "api.team.invite_members.restricted_team_admin.app_error"
 		}
 
@@ -207,7 +210,7 @@ func addUserToTeamFromInvite(c *Context, w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	team.Sanitize()
+	app.SanitizeTeam(c.Session, team)
 
 	w.Write([]byte(team.ToJson()))
 }
@@ -240,6 +243,8 @@ func getTeamByName(c *Context, w http.ResponseWriter, r *http.Request) {
 				return
 			}
 		}
+
+		app.SanitizeTeam(c.Session, team)
 
 		w.Write([]byte(team.ToJson()))
 		return
@@ -294,6 +299,8 @@ func updateTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	app.SanitizeTeam(c.Session, updatedTeam)
+
 	w.Write([]byte(updatedTeam.ToJson()))
 }
 
@@ -342,6 +349,9 @@ func getMyTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	} else {
 		w.Header().Set(model.HEADER_ETAG_SERVER, team.Etag())
+
+		app.SanitizeTeam(c.Session, team)
+
 		w.Write([]byte(team.ToJson()))
 		return
 	}
@@ -527,5 +537,11 @@ func getTeamMembersByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 	} else {
 		w.Write([]byte(model.TeamMembersToJson(members)))
 		return
+	}
+}
+
+func sanitizeTeamMap(session model.Session, teams map[string]*model.Team) {
+	for _, team := range teams {
+		app.SanitizeTeam(session, team)
 	}
 }

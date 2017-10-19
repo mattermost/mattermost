@@ -104,8 +104,6 @@ func (a *App) UpdateTeam(team *model.Team) (*model.Team, *model.AppError) {
 		return nil, result.Err
 	}
 
-	oldTeam.Sanitize()
-
 	a.sendUpdatedTeamEvent(oldTeam)
 
 	return oldTeam, nil
@@ -124,16 +122,18 @@ func (a *App) PatchTeam(teamId string, patch *model.TeamPatch) (*model.Team, *mo
 		return nil, err
 	}
 
-	updatedTeam.Sanitize()
-
 	a.sendUpdatedTeamEvent(updatedTeam)
 
 	return updatedTeam, nil
 }
 
 func (a *App) sendUpdatedTeamEvent(team *model.Team) {
+	sanitizedTeam := &model.Team{}
+	*sanitizedTeam = *team
+	sanitizedTeam.Sanitize()
+
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_UPDATE_TEAM, "", "", "", nil)
-	message.Add("team", team.ToJson())
+	message.Add("team", sanitizedTeam.ToJson())
 	a.Go(func() {
 		a.Publish(message)
 	})
@@ -215,7 +215,7 @@ func (a *App) AddUserToTeamByTeamId(teamId string, user *model.User) *model.AppE
 func (a *App) AddUserToTeamByHash(userId string, hash string, data string) (*model.Team, *model.AppError) {
 	props := model.MapFromJson(strings.NewReader(data))
 
-	if hash != utils.HashSha256(fmt.Sprintf("%v:%v", data, utils.Cfg.EmailSettings.InviteSalt)) {
+	if hash != utils.HashSha256(fmt.Sprintf("%v:%v", data, a.Config().EmailSettings.InviteSalt)) {
 		return nil, model.NewAppError("JoinUserToTeamByHash", "api.user.create_user.signup_link_invalid.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -674,7 +674,7 @@ func (a *App) InviteNewUsersToTeam(emailList []string, teamId, senderId string) 
 		user = result.Data.(*model.User)
 	}
 
-	nameFormat := *utils.Cfg.TeamSettings.TeammateNameDisplay
+	nameFormat := *a.Config().TeamSettings.TeammateNameDisplay
 	SendInviteEmails(team, user.GetDisplayName(nameFormat), emailList, utils.GetSiteURL())
 
 	return nil
@@ -812,7 +812,7 @@ func (a *App) GetTeamIdFromQuery(query url.Values) (string, *model.AppError) {
 		data := query.Get("d")
 		props := model.MapFromJson(strings.NewReader(data))
 
-		if hash != utils.HashSha256(fmt.Sprintf("%v:%v", data, utils.Cfg.EmailSettings.InviteSalt)) {
+		if hash != utils.HashSha256(fmt.Sprintf("%v:%v", data, a.Config().EmailSettings.InviteSalt)) {
 			return "", model.NewAppError("GetTeamIdFromQuery", "api.oauth.singup_with_oauth.invalid_link.app_error", nil, "", http.StatusBadRequest)
 		}
 
@@ -832,4 +832,20 @@ func (a *App) GetTeamIdFromQuery(query url.Values) (string, *model.AppError) {
 	}
 
 	return "", nil
+}
+
+func SanitizeTeam(session model.Session, team *model.Team) *model.Team {
+	if !SessionHasPermissionToTeam(session, team.Id, model.PERMISSION_MANAGE_TEAM) {
+		team.Sanitize()
+	}
+
+	return team
+}
+
+func SanitizeTeams(session model.Session, teams []*model.Team) []*model.Team {
+	for _, team := range teams {
+		SanitizeTeam(session, team)
+	}
+
+	return teams
 }

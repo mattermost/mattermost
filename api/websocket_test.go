@@ -4,6 +4,7 @@
 package api
 
 import (
+	"fmt"
 	//"encoding/json"
 	//"net/http"
 	"net/http"
@@ -12,7 +13,6 @@ import (
 
 	"github.com/gorilla/websocket"
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils"
 )
 
 /*func TestWebSocketAuthentication(t *testing.T) {
@@ -323,7 +323,7 @@ func TestWebsocketOriginSecurity(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
 
-	url := "ws://localhost" + *utils.Cfg.ServiceSettings.ListenAddress
+	url := fmt.Sprintf("ws://localhost:%v", th.App.Srv.ListenAddr.Port)
 
 	// Should fail because origin doesn't match
 	_, _, err := websocket.DefaultDialer.Dial(url+model.API_URL_SUFFIX_V3+"/users/websocket", http.Header{
@@ -335,14 +335,14 @@ func TestWebsocketOriginSecurity(t *testing.T) {
 
 	// We are not a browser so we can spoof this just fine
 	_, _, err = websocket.DefaultDialer.Dial(url+model.API_URL_SUFFIX_V3+"/users/websocket", http.Header{
-		"Origin": []string{"http://localhost" + *utils.Cfg.ServiceSettings.ListenAddress},
+		"Origin": []string{fmt.Sprintf("http://localhost:%v", th.App.Srv.ListenAddr.Port)},
 	})
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	// Should succeed now because open CORS
-	*utils.Cfg.ServiceSettings.AllowCorsFrom = "*"
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowCorsFrom = "*" })
 	_, _, err = websocket.DefaultDialer.Dial(url+model.API_URL_SUFFIX_V3+"/users/websocket", http.Header{
 		"Origin": []string{"http://www.evil.com"},
 	})
@@ -351,7 +351,7 @@ func TestWebsocketOriginSecurity(t *testing.T) {
 	}
 
 	// Should succeed now because matching CORS
-	*utils.Cfg.ServiceSettings.AllowCorsFrom = "http://www.evil.com"
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowCorsFrom = "http://www.evil.com" })
 	_, _, err = websocket.DefaultDialer.Dial(url+model.API_URL_SUFFIX_V3+"/users/websocket", http.Header{
 		"Origin": []string{"http://www.evil.com"},
 	})
@@ -360,7 +360,7 @@ func TestWebsocketOriginSecurity(t *testing.T) {
 	}
 
 	// Should fail because non-matching CORS
-	*utils.Cfg.ServiceSettings.AllowCorsFrom = "http://www.good.com"
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowCorsFrom = "http://www.good.com" })
 	_, _, err = websocket.DefaultDialer.Dial(url+model.API_URL_SUFFIX_V3+"/users/websocket", http.Header{
 		"Origin": []string{"http://www.evil.com"},
 	})
@@ -369,7 +369,7 @@ func TestWebsocketOriginSecurity(t *testing.T) {
 	}
 
 	// Should fail because non-matching CORS
-	*utils.Cfg.ServiceSettings.AllowCorsFrom = "http://www.good.com"
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowCorsFrom = "http://www.good.com" })
 	_, _, err = websocket.DefaultDialer.Dial(url+model.API_URL_SUFFIX_V3+"/users/websocket", http.Header{
 		"Origin": []string{"http://www.good.co"},
 	})
@@ -377,5 +377,5 @@ func TestWebsocketOriginSecurity(t *testing.T) {
 		t.Fatal("Should have errored because Origin does not match host! SECURITY ISSUE!")
 	}
 
-	*utils.Cfg.ServiceSettings.AllowCorsFrom = ""
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowCorsFrom = "" })
 }

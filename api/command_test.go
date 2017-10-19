@@ -4,12 +4,12 @@
 package api
 
 import (
+	"fmt"
 	"strings"
 	"testing"
 	"time"
 
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils"
 )
 
 func TestListCommands(t *testing.T) {
@@ -44,11 +44,11 @@ func TestCreateCommand(t *testing.T) {
 	user := th.SystemAdminUser
 	team := th.SystemAdminTeam
 
-	enableCommands := *utils.Cfg.ServiceSettings.EnableCommands
+	enableCommands := *th.App.Config().ServiceSettings.EnableCommands
 	defer func() {
-		utils.Cfg.ServiceSettings.EnableCommands = &enableCommands
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableCommands = &enableCommands })
 	}()
-	*utils.Cfg.ServiceSettings.EnableCommands = true
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableCommands = true })
 
 	cmd1 := &model.Command{
 		CreatorId: user.Id,
@@ -107,11 +107,11 @@ func TestListTeamCommands(t *testing.T) {
 
 	Client := th.SystemAdminClient
 
-	enableCommands := *utils.Cfg.ServiceSettings.EnableCommands
+	enableCommands := *th.App.Config().ServiceSettings.EnableCommands
 	defer func() {
-		utils.Cfg.ServiceSettings.EnableCommands = &enableCommands
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableCommands = &enableCommands })
 	}()
-	*utils.Cfg.ServiceSettings.EnableCommands = true
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableCommands = true })
 
 	cmd1 := &model.Command{URL: "http://nowhere.com", Method: model.COMMAND_METHOD_POST, Trigger: "trigger"}
 	cmd1 = Client.Must(Client.CreateCommand(cmd1)).Data.(*model.Command)
@@ -135,11 +135,11 @@ func TestUpdateCommand(t *testing.T) {
 	user := th.SystemAdminUser
 	team := th.SystemAdminTeam
 
-	enableCommands := *utils.Cfg.ServiceSettings.EnableCommands
+	enableCommands := *th.App.Config().ServiceSettings.EnableCommands
 	defer func() {
-		utils.Cfg.ServiceSettings.EnableCommands = &enableCommands
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableCommands = &enableCommands })
 	}()
-	*utils.Cfg.ServiceSettings.EnableCommands = true
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableCommands = true })
 
 	cmd1 := &model.Command{
 		CreatorId: user.Id,
@@ -174,11 +174,11 @@ func TestRegenToken(t *testing.T) {
 
 	Client := th.SystemAdminClient
 
-	enableCommands := *utils.Cfg.ServiceSettings.EnableCommands
+	enableCommands := *th.App.Config().ServiceSettings.EnableCommands
 	defer func() {
-		utils.Cfg.ServiceSettings.EnableCommands = &enableCommands
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableCommands = &enableCommands })
 	}()
-	*utils.Cfg.ServiceSettings.EnableCommands = true
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableCommands = true })
 
 	cmd := &model.Command{URL: "http://nowhere.com", Method: model.COMMAND_METHOD_POST, Trigger: "trigger"}
 	cmd = Client.Must(Client.CreateCommand(cmd)).Data.(*model.Command)
@@ -201,14 +201,14 @@ func TestDeleteCommand(t *testing.T) {
 
 	Client := th.SystemAdminClient
 
-	enableCommands := *utils.Cfg.ServiceSettings.EnableCommands
-	onlyAdminIntegration := *utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations
+	enableCommands := *th.App.Config().ServiceSettings.EnableCommands
+	onlyAdminIntegration := *th.App.Config().ServiceSettings.EnableOnlyAdminIntegrations
 	defer func() {
-		*utils.Cfg.ServiceSettings.EnableCommands = enableCommands
-		*utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations = onlyAdminIntegration
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableCommands = enableCommands })
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOnlyAdminIntegrations = onlyAdminIntegration })
 	}()
-	*utils.Cfg.ServiceSettings.EnableCommands = true
-	*utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations = false
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableCommands = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOnlyAdminIntegrations = false })
 
 	cmd := &model.Command{URL: "http://nowhere.com", Method: model.COMMAND_METHOD_POST, Trigger: "trigger"}
 	cmd = Client.Must(Client.CreateCommand(cmd)).Data.(*model.Command)
@@ -247,17 +247,19 @@ func TestTestCommand(t *testing.T) {
 	Client := th.SystemAdminClient
 	channel1 := th.SystemAdminChannel
 
-	enableCommands := *utils.Cfg.ServiceSettings.EnableCommands
-	allowedInternalConnections := *utils.Cfg.ServiceSettings.AllowedUntrustedInternalConnections
+	enableCommands := *th.App.Config().ServiceSettings.EnableCommands
+	allowedInternalConnections := *th.App.Config().ServiceSettings.AllowedUntrustedInternalConnections
 	defer func() {
-		utils.Cfg.ServiceSettings.EnableCommands = &enableCommands
-		utils.Cfg.ServiceSettings.AllowedUntrustedInternalConnections = &allowedInternalConnections
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableCommands = &enableCommands })
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.ServiceSettings.AllowedUntrustedInternalConnections = &allowedInternalConnections
+		})
 	}()
-	*utils.Cfg.ServiceSettings.EnableCommands = true
-	*utils.Cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost"
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableCommands = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost" })
 
 	cmd1 := &model.Command{
-		URL:     "http://localhost" + *utils.Cfg.ServiceSettings.ListenAddress + model.API_URL_SUFFIX_V3 + "/teams/command_test",
+		URL:     fmt.Sprintf("http://localhost:%v", th.App.Srv.ListenAddr.Port) + model.API_URL_SUFFIX_V3 + "/teams/command_test",
 		Method:  model.COMMAND_METHOD_POST,
 		Trigger: "testcommand",
 	}
@@ -290,7 +292,7 @@ func TestTestCommand(t *testing.T) {
 	}
 
 	cmd2 := &model.Command{
-		URL:     "http://localhost" + *utils.Cfg.ServiceSettings.ListenAddress + model.API_URL_SUFFIX_V3 + "/teams/command_test",
+		URL:     fmt.Sprintf("http://localhost:%v", th.App.Srv.ListenAddr.Port) + model.API_URL_SUFFIX_V3 + "/teams/command_test",
 		Method:  model.COMMAND_METHOD_GET,
 		Trigger: "test2",
 	}

@@ -4,7 +4,9 @@
 package api
 
 import (
+	"fmt"
 	"net"
+	"strings"
 	"time"
 
 	"github.com/mattermost/mattermost-server/api4"
@@ -75,18 +77,23 @@ func setupTestHelper(enterprise bool) *TestHelper {
 		App: app.New(options...),
 	}
 
-	*utils.Cfg.TeamSettings.MaxUsersPerTeam = 50
-	*utils.Cfg.RateLimitSettings.Enable = false
-	utils.Cfg.EmailSettings.SendEmailNotifications = true
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.MaxUsersPerTeam = 50 })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.RateLimitSettings.Enable = false })
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.EmailSettings.SendEmailNotifications = true })
 	utils.DisableDebugLogForTest()
+	prevListenAddress := *th.App.Config().ServiceSettings.ListenAddress
+	if testStore != nil {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = ":0" })
+	}
 	th.App.StartServer()
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = prevListenAddress })
 	api4.Init(th.App, th.App.Srv.Router, false)
 	Init(th.App, th.App.Srv.Router)
 	wsapi.Init(th.App, th.App.Srv.WebSocketRouter)
 	utils.EnableDebugLogForTest()
 	th.App.Srv.Store.MarkSystemRanUnitTests()
 
-	*utils.Cfg.TeamSettings.EnableOpenServer = true
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableOpenServer = true })
 
 	utils.SetIsLicensed(enterprise)
 	if enterprise {
@@ -153,8 +160,9 @@ func (me *TestHelper) InitSystemAdmin() *TestHelper {
 
 func (me *TestHelper) waitForConnectivity() {
 	for i := 0; i < 1000; i++ {
-		_, err := net.Dial("tcp", "localhost"+*utils.Cfg.ServiceSettings.ListenAddress)
+		conn, err := net.Dial("tcp", fmt.Sprintf("localhost:%v", me.App.Srv.ListenAddr.Port))
 		if err == nil {
+			conn.Close()
 			return
 		}
 		time.Sleep(time.Millisecond * 20)
@@ -163,19 +171,19 @@ func (me *TestHelper) waitForConnectivity() {
 }
 
 func (me *TestHelper) CreateClient() *model.Client {
-	return model.NewClient("http://localhost" + *utils.Cfg.ServiceSettings.ListenAddress)
+	return model.NewClient(fmt.Sprintf("http://localhost:%v", me.App.Srv.ListenAddr.Port))
 }
 
 func (me *TestHelper) CreateWebSocketClient() (*model.WebSocketClient, *model.AppError) {
-	return model.NewWebSocketClient("ws://localhost"+*utils.Cfg.ServiceSettings.ListenAddress, me.BasicClient.AuthToken)
+	return model.NewWebSocketClient(fmt.Sprintf("ws://localhost:%v", me.App.Srv.ListenAddr.Port), me.BasicClient.AuthToken)
 }
 
 func (me *TestHelper) CreateTeam(client *model.Client) *model.Team {
 	id := model.NewId()
 	team := &model.Team{
 		DisplayName: "dn_" + id,
-		Name:        "name" + id,
-		Email:       "success+" + id + "@simulator.amazonses.com",
+		Name:        GenerateTestTeamName(),
+		Email:       GenerateTestEmail(),
 		Type:        model.TEAM_OPEN,
 	}
 
@@ -189,7 +197,7 @@ func (me *TestHelper) CreateUser(client *model.Client) *model.User {
 	id := model.NewId()
 
 	user := &model.User{
-		Email:    "success+" + id + "@simulator.amazonses.com",
+		Email:    GenerateTestEmail(),
 		Username: "un_" + id,
 		Nickname: "nn_" + id,
 		Password: "Password1",
@@ -350,6 +358,17 @@ func (me *TestHelper) LoginSystemAdmin() {
 	utils.DisableDebugLogForTest()
 	me.SystemAdminClient.Must(me.SystemAdminClient.Login(me.SystemAdminUser.Email, me.SystemAdminUser.Password))
 	utils.EnableDebugLogForTest()
+}
+
+func GenerateTestEmail() string {
+	if utils.Cfg.EmailSettings.SMTPServer != "dockerhost" {
+		return strings.ToLower("success+" + model.NewId() + "@simulator.amazonses.com")
+	}
+	return strings.ToLower(model.NewId() + "@dockerhost")
+}
+
+func GenerateTestTeamName() string {
+	return "faketeam" + model.NewRandomString(6)
 }
 
 func (me *TestHelper) TearDown() {

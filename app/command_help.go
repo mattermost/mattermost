@@ -5,7 +5,6 @@ package app
 
 import (
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils"
 	goi18n "github.com/nicksnyder/go-i18n/i18n"
 )
 
@@ -34,7 +33,7 @@ func (h *HelpProvider) GetCommand(T goi18n.TranslateFunc) *model.Command {
 }
 
 func (h *HelpProvider) DoCommand(a *App, args *model.CommandArgs, message string) *model.CommandResponse {
-	helpLink := *utils.Cfg.SupportSettings.HelpLink
+	helpLink := *a.Config().SupportSettings.HelpLink
 
 	if helpLink == "" {
 		helpLink = model.SUPPORT_SETTINGS_DEFAULT_HELP_LINK

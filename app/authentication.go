@@ -99,7 +99,7 @@ func (a *App) CheckUserAdditionalAuthenticationCriteria(user *model.User, mfaTok
 }
 
 func (a *App) CheckUserMfa(user *model.User, token string) *model.AppError {
-	if !user.MfaActive || !utils.IsLicensed() || !*utils.License().Features.MFA || !*utils.Cfg.ServiceSettings.EnableMultifactorAuthentication {
+	if !user.MfaActive || !utils.IsLicensed() || !*utils.License().Features.MFA || !*a.Config().ServiceSettings.EnableMultifactorAuthentication {
 		return nil
 	}
 
@@ -139,7 +139,7 @@ func checkUserNotDisabled(user *model.User) *model.AppError {
 }
 
 func (a *App) authenticateUser(user *model.User, password, mfaToken string) (*model.User, *model.AppError) {
-	ldapAvailable := *utils.Cfg.LdapSettings.Enable && a.Ldap != nil && utils.IsLicensed() && *utils.License().Features.LDAP
+	ldapAvailable := *a.Config().LdapSettings.Enable && a.Ldap != nil && utils.IsLicensed() && *utils.License().Features.LDAP
 
 	if user.AuthService == model.USER_AUTH_SERVICE_LDAP {
 		if !ldapAvailable {

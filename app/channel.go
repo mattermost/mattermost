@@ -114,8 +114,8 @@ func (a *App) CreateChannelWithUser(channel *model.Channel, userId string) (*mod
 	if count, err := a.GetNumberOfChannelsOnTeam(channel.TeamId); err != nil {
 		return nil, err
 	} else {
-		if int64(count+1) > *utils.Cfg.TeamSettings.MaxChannelsPerTeam {
-			return nil, model.NewAppError("CreateChannelWithUser", "api.channel.create_channel.max_channel_limit.app_error", map[string]interface{}{"MaxChannelsPerTeam": *utils.Cfg.TeamSettings.MaxChannelsPerTeam}, "", http.StatusBadRequest)
+		if int64(count+1) > *a.Config().TeamSettings.MaxChannelsPerTeam {
+			return nil, model.NewAppError("CreateChannelWithUser", "api.channel.create_channel.max_channel_limit.app_error", map[string]interface{}{"MaxChannelsPerTeam": *a.Config().TeamSettings.MaxChannelsPerTeam}, "", http.StatusBadRequest)
 		}
 	}
 
@@ -212,7 +212,7 @@ func (a *App) createDirectChannel(userId string, otherUserId string) (*model.Cha
 }
 
 func (a *App) WaitForChannelMembership(channelId string, userId string) {
-	if len(utils.Cfg.SqlSettings.DataSourceReplicas) > 0 {
+	if len(a.Config().SqlSettings.DataSourceReplicas) > 0 {
 		now := model.GetMillis()
 
 		for model.GetMillis()-now < 12000 {
@@ -1119,7 +1119,7 @@ func (a *App) UpdateChannelLastViewedAt(channelIds []string, userId string) *mod
 		return result.Err
 	}
 
-	if *utils.Cfg.ServiceSettings.EnableChannelViewedMessages {
+	if *a.Config().ServiceSettings.EnableChannelViewedMessages {
 		for _, channelId := range channelIds {
 			message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CHANNEL_VIEWED, "", "", userId, nil)
 			message.Add("channel_id", channelId)
@@ -1163,7 +1163,7 @@ func (a *App) ViewChannel(view *model.ChannelView, userId string, clearPushNotif
 	if len(view.PrevChannelId) > 0 {
 		channelIds = append(channelIds, view.PrevChannelId)
 
-		if *utils.Cfg.EmailSettings.SendPushNotifications && clearPushNotifications && len(view.ChannelId) > 0 {
+		if *a.Config().EmailSettings.SendPushNotifications && clearPushNotifications && len(view.ChannelId) > 0 {
 			pchan = a.Srv.Store.User().GetUnreadCountForChannel(userId, view.ChannelId)
 		}
 	}
@@ -1191,7 +1191,7 @@ func (a *App) ViewChannel(view *model.ChannelView, userId string, clearPushNotif
 		times = result.Data.(map[string]int64)
 	}
 
-	if *utils.Cfg.ServiceSettings.EnableChannelViewedMessages && model.IsValidId(view.ChannelId) {
+	if *a.Config().ServiceSettings.EnableChannelViewedMessages && model.IsValidId(view.ChannelId) {
 		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CHANNEL_VIEWED, "", "", userId, nil)
 		message.Add("channel_id", view.ChannelId)
 		a.Go(func() {

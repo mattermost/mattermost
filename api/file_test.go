@@ -27,7 +27,7 @@ func TestUploadFile(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
 	defer th.TearDown()
 
-	if *utils.Cfg.FileSettings.DriverName == "" {
+	if *th.App.Config().FileSettings.DriverName == "" {
 		t.Logf("skipping because no file driver is enabled")
 		return
 	}
@@ -121,11 +121,11 @@ func TestUploadFile(t *testing.T) {
 		t.Fatal("should have failed - bad channel id")
 	}
 
-	enableFileAttachments := *utils.Cfg.FileSettings.EnableFileAttachments
+	enableFileAttachments := *th.App.Config().FileSettings.EnableFileAttachments
 	defer func() {
-		*utils.Cfg.FileSettings.EnableFileAttachments = enableFileAttachments
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.EnableFileAttachments = enableFileAttachments })
 	}()
-	*utils.Cfg.FileSettings.EnableFileAttachments = false
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.EnableFileAttachments = false })
 
 	if data, err := readTestFile("test.png"); err != nil {
 		t.Fatal(err)
@@ -145,7 +145,7 @@ func TestGetFileInfo(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
 
-	if *utils.Cfg.FileSettings.DriverName == "" {
+	if *th.App.Config().FileSettings.DriverName == "" {
 		t.Skip("skipping because no file driver is enabled")
 	}
 
@@ -215,7 +215,7 @@ func TestGetFile(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
 
-	if *utils.Cfg.FileSettings.DriverName == "" {
+	if *th.App.Config().FileSettings.DriverName == "" {
 		t.Skip("skipping because no file driver is enabled")
 	}
 
@@ -298,7 +298,7 @@ func TestGetFileThumbnail(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
 
-	if *utils.Cfg.FileSettings.DriverName == "" {
+	if *th.App.Config().FileSettings.DriverName == "" {
 		t.Skip("skipping because no file driver is enabled")
 	}
 
@@ -355,7 +355,7 @@ func TestGetFilePreview(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
 
-	if *utils.Cfg.FileSettings.DriverName == "" {
+	if *th.App.Config().FileSettings.DriverName == "" {
 		t.Skip("skipping because no file driver is enabled")
 	}
 
@@ -412,18 +412,18 @@ func TestGetPublicFile(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
 
-	if *utils.Cfg.FileSettings.DriverName == "" {
+	if *th.App.Config().FileSettings.DriverName == "" {
 		t.Skip("skipping because no file driver is enabled")
 	}
 
-	enablePublicLink := utils.Cfg.FileSettings.EnablePublicLink
-	publicLinkSalt := *utils.Cfg.FileSettings.PublicLinkSalt
+	enablePublicLink := th.App.Config().FileSettings.EnablePublicLink
+	publicLinkSalt := *th.App.Config().FileSettings.PublicLinkSalt
 	defer func() {
-		utils.Cfg.FileSettings.EnablePublicLink = enablePublicLink
-		*utils.Cfg.FileSettings.PublicLinkSalt = publicLinkSalt
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FileSettings.EnablePublicLink = enablePublicLink })
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.PublicLinkSalt = publicLinkSalt })
 	}()
-	utils.Cfg.FileSettings.EnablePublicLink = true
-	*utils.Cfg.FileSettings.PublicLinkSalt = model.NewId()
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FileSettings.EnablePublicLink = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.PublicLinkSalt = model.NewId() })
 
 	Client := th.BasicClient
 	channel := th.BasicChannel
@@ -453,15 +453,15 @@ func TestGetPublicFile(t *testing.T) {
 		t.Fatal("should've failed to get image with public link without hash", resp.Status)
 	}
 
-	utils.Cfg.FileSettings.EnablePublicLink = false
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FileSettings.EnablePublicLink = false })
 	if resp, err := http.Get(link); err == nil && resp.StatusCode != http.StatusNotImplemented {
 		t.Fatal("should've failed to get image with disabled public link")
 	}
 
-	utils.Cfg.FileSettings.EnablePublicLink = true
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FileSettings.EnablePublicLink = true })
 
 	// test after the salt has changed
-	*utils.Cfg.FileSettings.PublicLinkSalt = model.NewId()
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.PublicLinkSalt = model.NewId() })
 
 	if resp, err := http.Get(link); err == nil && resp.StatusCode != http.StatusBadRequest {
 		t.Fatal("should've failed to get image with public link after salt changed")
@@ -480,18 +480,18 @@ func TestGetPublicFileOld(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
 
-	if *utils.Cfg.FileSettings.DriverName == "" {
+	if *th.App.Config().FileSettings.DriverName == "" {
 		t.Skip("skipping because no file driver is enabled")
 	}
 
-	enablePublicLink := utils.Cfg.FileSettings.EnablePublicLink
-	publicLinkSalt := *utils.Cfg.FileSettings.PublicLinkSalt
+	enablePublicLink := th.App.Config().FileSettings.EnablePublicLink
+	publicLinkSalt := *th.App.Config().FileSettings.PublicLinkSalt
 	defer func() {
-		utils.Cfg.FileSettings.EnablePublicLink = enablePublicLink
-		*utils.Cfg.FileSettings.PublicLinkSalt = publicLinkSalt
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FileSettings.EnablePublicLink = enablePublicLink })
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.PublicLinkSalt = publicLinkSalt })
 	}()
-	utils.Cfg.FileSettings.EnablePublicLink = true
-	*utils.Cfg.FileSettings.PublicLinkSalt = model.NewId()
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FileSettings.EnablePublicLink = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.PublicLinkSalt = model.NewId() })
 
 	channel := th.BasicChannel
 
@@ -516,10 +516,7 @@ func TestGetPublicFileOld(t *testing.T) {
 	store.Must(th.App.Srv.Store.FileInfo().AttachToPost(fileId, th.BasicPost.Id))
 
 	// reconstruct old style of link
-	siteURL := *utils.Cfg.ServiceSettings.SiteURL
-	if siteURL == "" {
-		siteURL = "http://localhost" + *utils.Cfg.ServiceSettings.ListenAddress
-	}
+	siteURL := fmt.Sprintf("http://localhost:%v", th.App.Srv.ListenAddr.Port)
 	link := generatePublicLinkOld(siteURL, th.BasicTeam.Id, channel.Id, th.BasicUser.Id, fileId+"/test.png")
 
 	// Wait a bit for files to ready
@@ -533,15 +530,15 @@ func TestGetPublicFileOld(t *testing.T) {
 		t.Fatal("should've failed to get image with public link without hash", resp.Status)
 	}
 
-	utils.Cfg.FileSettings.EnablePublicLink = false
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FileSettings.EnablePublicLink = false })
 	if resp, err := http.Get(link); err == nil && resp.StatusCode != http.StatusNotImplemented {
 		t.Fatal("should've failed to get image with disabled public link")
 	}
 
-	utils.Cfg.FileSettings.EnablePublicLink = true
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FileSettings.EnablePublicLink = true })
 
 	// test after the salt has changed
-	*utils.Cfg.FileSettings.PublicLinkSalt = model.NewId()
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.PublicLinkSalt = model.NewId() })
 
 	if resp, err := http.Get(link); err == nil && resp.StatusCode != http.StatusBadRequest {
 		t.Fatal("should've failed to get image with public link after salt changed")
@@ -565,15 +562,15 @@ func TestGetPublicLink(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
 
-	if *utils.Cfg.FileSettings.DriverName == "" {
+	if *th.App.Config().FileSettings.DriverName == "" {
 		t.Skip("skipping because no file driver is enabled")
 	}
 
-	enablePublicLink := utils.Cfg.FileSettings.EnablePublicLink
+	enablePublicLink := th.App.Config().FileSettings.EnablePublicLink
 	defer func() {
-		utils.Cfg.FileSettings.EnablePublicLink = enablePublicLink
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FileSettings.EnablePublicLink = enablePublicLink })
 	}()
-	utils.Cfg.FileSettings.EnablePublicLink = true
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FileSettings.EnablePublicLink = true })
 
 	Client := th.BasicClient
 	channel := th.BasicChannel
@@ -593,13 +590,13 @@ func TestGetPublicLink(t *testing.T) {
 	// Hacky way to assign file to a post (usually would be done by CreatePost call)
 	store.Must(th.App.Srv.Store.FileInfo().AttachToPost(fileId, th.BasicPost.Id))
 
-	utils.Cfg.FileSettings.EnablePublicLink = false
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FileSettings.EnablePublicLink = false })
 
 	if _, err := Client.GetPublicLink(fileId); err == nil {
 		t.Fatal("should've failed to get public link when disabled")
 	}
 
-	utils.Cfg.FileSettings.EnablePublicLink = true
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FileSettings.EnablePublicLink = true })
 
 	if link, err := Client.GetPublicLink(fileId); err != nil {
 		t.Fatal(err)
@@ -635,7 +632,7 @@ func TestMigrateFilenamesToFileInfos(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
 
-	if *utils.Cfg.FileSettings.DriverName == "" {
+	if *th.App.Config().FileSettings.DriverName == "" {
 		t.Skip("skipping because no file driver is enabled")
 	}
 
@@ -748,7 +745,7 @@ func TestFindTeamIdForFilename(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
 
-	if *utils.Cfg.FileSettings.DriverName == "" {
+	if *th.App.Config().FileSettings.DriverName == "" {
 		t.Skip("skipping because no file driver is enabled")
 	}
 
@@ -815,7 +812,7 @@ func TestGetInfoForFilename(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
 
-	if *utils.Cfg.FileSettings.DriverName == "" {
+	if *th.App.Config().FileSettings.DriverName == "" {
 		t.Skip("skipping because no file driver is enabled")
 	}
 

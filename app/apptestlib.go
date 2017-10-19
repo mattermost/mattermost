@@ -7,6 +7,9 @@ import (
 	"time"
 
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/store"
+	"github.com/mattermost/mattermost-server/store/sqlstore"
+	"github.com/mattermost/mattermost-server/store/storetest"
 	"github.com/mattermost/mattermost-server/utils"
 
 	l4g "github.com/alecthomas/log4go"
@@ -21,19 +24,54 @@ type TestHelper struct {
 	BasicPost    *model.Post
 }
 
+type persistentTestStore struct {
+	store.Store
+}
+
+func (*persistentTestStore) Close() {}
+
+var testStoreContainer *storetest.RunningContainer
+var testStore *persistentTestStore
+
+// UseTestStore sets the container and corresponding settings to use for tests. Once the tests are
+// complete (e.g. at the end of your TestMain implementation), you should call StopTestStore.
+func UseTestStore(container *storetest.RunningContainer, settings *model.SqlSettings) {
+	testStoreContainer = container
+	testStore = &persistentTestStore{store.NewLayeredStore(sqlstore.NewSqlSupplier(*settings, nil), nil, nil)}
+}
+
+func StopTestStore() {
+	if testStoreContainer != nil {
+		testStoreContainer.Stop()
+		testStoreContainer = nil
+	}
+}
+
 func setupTestHelper(enterprise bool) *TestHelper {
-	utils.TranslationsPreInit()
+	if utils.T == nil {
+		utils.TranslationsPreInit()
+	}
 	utils.LoadConfig("config.json")
 	utils.InitTranslations(utils.Cfg.LocalizationSettings)
 
+	var options []Option
+	if testStore != nil {
+		options = append(options, StoreOverride(testStore))
+	}
+
 	th := &TestHelper{
-		App: New(),
+		App: New(options...),
 	}
 
 	*utils.Cfg.TeamSettings.MaxUsersPerTeam = 50
 	*utils.Cfg.RateLimitSettings.Enable = false
 	utils.DisableDebugLogForTest()
+	prevListenAddress := *th.App.Config().ServiceSettings.ListenAddress
+	if testStore != nil {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = ":0" })
+	}
 	th.App.StartServer()
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = prevListenAddress })
 	utils.InitHTML()
 	utils.EnableDebugLogForTest()
 	th.App.Srv.Store.MarkSystemRanUnitTests()
@@ -188,4 +226,8 @@ func (me *TestHelper) LinkUserToTeam(user *model.User, team *model.Team) {
 
 func (me *TestHelper) TearDown() {
 	me.App.Shutdown()
+	if err := recover(); err != nil {
+		StopTestStore()
+		panic(err)
+	}
 }

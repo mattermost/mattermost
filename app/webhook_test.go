@@ -30,7 +30,7 @@ func TestCreateWebhookPost(t *testing.T) {
 
 	post, err := th.App.CreateWebhookPost(hook.UserId, th.BasicChannel, "foo", "user", "http://iconurl", model.StringInterface{
 		"attachments": []*model.SlackAttachment{
-			&model.SlackAttachment{
+			{
 				Text: "text",
 			},
 		},
@@ -43,5 +43,10 @@ func TestCreateWebhookPost(t *testing.T) {
 		if _, ok := post.Props[k]; !ok {
 			t.Fatal(k)
 		}
+	}
+
+	_, err = th.App.CreateWebhookPost(hook.UserId, th.BasicChannel, "foo", "user", "http://iconurl", nil, model.POST_SYSTEM_GENERIC)
+	if err == nil {
+		t.Fatal("should have failed - bad post type")
 	}
 }

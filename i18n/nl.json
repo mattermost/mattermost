@@ -4528,6 +4528,10 @@
     "translation": "Ongeldig luister adres bij de service instellingen. Deze moet geconfigureerd zijn."
   },
   {
+    "id": "model.config.is_valid.localization.available_locales.app_error",
+    "translation": "Available Languages must contain Default Client Language"
+  },
+  {
     "id": "model.config.is_valid.login_attempts.app_error",
     "translation": "Maximaal aantal inlog poging bij service instellingen. Moet een getal grote dan 0 zijn."
   },
@@ -5546,6 +5550,10 @@
   {
     "id": "store.sql_command.analytics_command_count.app_error",
     "translation": "We kunnen de opdrachten niet tellen"
+  },
+  {
+    "id": "store.sql_command.get_by_trigger.app_error",
+    "translation": "We kunnen de opdracht niet ophalen"
   },
   {
     "id": "store.sql_command.save.delete.app_error",

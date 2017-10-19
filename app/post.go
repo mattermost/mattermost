@@ -29,6 +29,11 @@ func (a *App) CreatePostAsUser(post *model.Post) (*model.Post, *model.AppError) 
 		channel = result.Data.(*model.Channel)
 	}
 
+	if strings.HasPrefix(post.Type, model.POST_SYSTEM_MESSAGE_PREFIX) {
+		err := model.NewAppError("CreatePostAsUser", "api.context.invalid_param.app_error", map[string]interface{}{"Name": "post.type"}, "", http.StatusBadRequest)
+		return nil, err
+	}
+
 	if channel.DeleteAt != 0 {
 		err := model.NewAppError("createPost", "api.post.create_post.can_not_post_to_deleted.error", nil, "", http.StatusBadRequest)
 		return nil, err
@@ -72,7 +77,7 @@ func (a *App) CreatePostAsUser(post *model.Post) (*model.Post, *model.AppError) 
 				l4g.Error(utils.T("api.post.create_post.last_viewed.error"), post.ChannelId, post.UserId, result.Err)
 			}
 
-			if *utils.Cfg.ServiceSettings.EnableChannelViewedMessages {
+			if *a.Config().ServiceSettings.EnableChannelViewedMessages {
 				message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CHANNEL_VIEWED, "", "", post.UserId, nil)
 				message.Add("channel_id", post.ChannelId)
 				a.Go(func() {
@@ -112,7 +117,7 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 		user = result.Data.(*model.User)
 	}
 
-	if utils.IsLicensed() && *utils.Cfg.TeamSettings.ExperimentalTownSquareIsReadOnly &&
+	if utils.IsLicensed() && *a.Config().TeamSettings.ExperimentalTownSquareIsReadOnly &&
 		!post.IsSystemMessage() &&
 		channel.Name == model.DEFAULT_CHANNEL &&
 		!CheckIfRolesGrantPermission(user.GetRoles(), model.PERMISSION_MANAGE_SYSTEM.Id) {
@@ -153,7 +158,7 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 	}
 
 	esInterface := a.Elasticsearch
-	if esInterface != nil && *utils.Cfg.ElasticsearchSettings.EnableIndexing {
+	if esInterface != nil && *a.Config().ElasticsearchSettings.EnableIndexing {
 		a.Go(func() {
 			esInterface.IndexPost(rpost, channel.TeamId)
 		})
@@ -275,7 +280,7 @@ func (a *App) UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model
 		oldPost = result.Data.(*model.PostList).Posts[post.Id]
 
 		if utils.IsLicensed() {
-			if *utils.Cfg.ServiceSettings.AllowEditPost == model.ALLOW_EDIT_POST_NEVER && post.Message != oldPost.Message {
+			if *a.Config().ServiceSettings.AllowEditPost == model.ALLOW_EDIT_POST_NEVER && post.Message != oldPost.Message {
 				err := model.NewAppError("UpdatePost", "api.post.update_post.permissions_denied.app_error", nil, "", http.StatusForbidden)
 				return nil, err
 			}
@@ -297,8 +302,8 @@ func (a *App) UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model
 		}
 
 		if utils.IsLicensed() {
-			if *utils.Cfg.ServiceSettings.AllowEditPost == model.ALLOW_EDIT_POST_TIME_LIMIT && model.GetMillis() > oldPost.CreateAt+int64(*utils.Cfg.ServiceSettings.PostEditTimeLimit*1000) && post.Message != oldPost.Message {
-				err := model.NewAppError("UpdatePost", "api.post.update_post.permissions_time_limit.app_error", map[string]interface{}{"timeLimit": *utils.Cfg.ServiceSettings.PostEditTimeLimit}, "", http.StatusBadRequest)
+			if *a.Config().ServiceSettings.AllowEditPost == model.ALLOW_EDIT_POST_TIME_LIMIT && model.GetMillis() > oldPost.CreateAt+int64(*a.Config().ServiceSettings.PostEditTimeLimit*1000) && post.Message != oldPost.Message {
+				err := model.NewAppError("UpdatePost", "api.post.update_post.permissions_time_limit.app_error", map[string]interface{}{"timeLimit": *a.Config().ServiceSettings.PostEditTimeLimit}, "", http.StatusBadRequest)
 				return nil, err
 			}
 		}
@@ -326,7 +331,7 @@ func (a *App) UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model
 		rpost := result.Data.(*model.Post)
 
 		esInterface := a.Elasticsearch
-		if esInterface != nil && *utils.Cfg.ElasticsearchSettings.EnableIndexing {
+		if esInterface != nil && *a.Config().ElasticsearchSettings.EnableIndexing {
 			a.Go(func() {
 				if rchannel := <-a.Srv.Store.Channel().GetForPost(rpost.Id); rchannel.Err != nil {
 					l4g.Error("Couldn't get channel %v for post %v for Elasticsearch indexing.", rpost.ChannelId, rpost.Id)
@@ -518,7 +523,7 @@ func (a *App) DeletePost(postId string) (*model.Post, *model.AppError) {
 		})
 
 		esInterface := a.Elasticsearch
-		if esInterface != nil && *utils.Cfg.ElasticsearchSettings.EnableIndexing {
+		if esInterface != nil && *a.Config().ElasticsearchSettings.EnableIndexing {
 			a.Go(func() {
 				esInterface.DeletePost(post)
 			})
@@ -551,7 +556,7 @@ func (a *App) SearchPostsInTeam(terms string, userId string, teamId string, isOr
 	paramsList := model.ParseSearchParams(terms)
 
 	esInterface := a.Elasticsearch
-	if esInterface != nil && *utils.Cfg.ElasticsearchSettings.EnableSearching && utils.IsLicensed() && *utils.License().Features.Elasticsearch {
+	if esInterface != nil && *a.Config().ElasticsearchSettings.EnableSearching && utils.IsLicensed() && *utils.License().Features.Elasticsearch {
 		finalParamsList := []*model.SearchParams{}
 
 		for _, params := range paramsList {
@@ -599,18 +604,20 @@ func (a *App) SearchPostsInTeam(terms string, userId string, teamId string, isOr
 
 		// Get the posts
 		postList := model.NewPostList()
-		if presult := <-a.Srv.Store.Post().GetPostsByIds(postIds); presult.Err != nil {
-			return nil, presult.Err
-		} else {
-			for _, p := range presult.Data.([]*model.Post) {
-				postList.AddPost(p)
-				postList.AddOrder(p.Id)
+		if len(postIds) > 0 {
+			if presult := <-a.Srv.Store.Post().GetPostsByIds(postIds); presult.Err != nil {
+				return nil, presult.Err
+			} else {
+				for _, p := range presult.Data.([]*model.Post) {
+					postList.AddPost(p)
+					postList.AddOrder(p.Id)
+				}
 			}
 		}
 
 		return postList, nil
 	} else {
-		if !*utils.Cfg.ServiceSettings.EnablePostSearch {
+		if !*a.Config().ServiceSettings.EnablePostSearch {
 			return nil, model.NewAppError("SearchPostsInTeam", "store.sql_post.search.disabled", nil, fmt.Sprintf("teamId=%v userId=%v", teamId, userId), http.StatusNotImplemented)
 		}
 

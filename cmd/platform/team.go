@@ -21,7 +21,7 @@ var teamCreateCmd = &cobra.Command{
 	Short: "Create a team",
 	Long:  `Create a team.`,
 	Example: `  team create --name mynewteam --display_name "My New Team"
-  teams create --name private --display_name "My New Private Team" --private`,
+  team create --name private --display_name "My New Private Team" --private`,
 	RunE: createTeamCmdF,
 }
 

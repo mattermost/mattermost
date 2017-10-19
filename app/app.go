@@ -77,7 +77,7 @@ func New(options ...Option) *App {
 
 	if app.newStore == nil {
 		app.newStore = func() store.Store {
-			return store.NewLayeredStore(sqlstore.NewSqlSupplier(utils.Cfg.SqlSettings, app.Metrics), app.Metrics, app.Cluster)
+			return store.NewLayeredStore(sqlstore.NewSqlSupplier(app.Config().SqlSettings, app.Metrics), app.Metrics, app.Cluster)
 		}
 	}
 
@@ -234,6 +234,10 @@ func (a *App) initEnterprise() {
 
 func (a *App) Config() *model.Config {
 	return utils.Cfg
+}
+
+func (a *App) UpdateConfig(f func(*model.Config)) {
+	f(utils.Cfg)
 }
 
 // Go creates a goroutine, but maintains a record of it to ensure that execution completes before

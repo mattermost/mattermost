@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils"
 	"github.com/mssola/user_agent"
 )
 
@@ -58,10 +57,10 @@ func (a *App) AuthenticateUserForLogin(id, loginId, password, mfaToken, deviceId
 func (a *App) DoLogin(w http.ResponseWriter, r *http.Request, user *model.User, deviceId string) (*model.Session, *model.AppError) {
 	session := &model.Session{UserId: user.Id, Roles: user.GetRawRoles(), DeviceId: deviceId, IsOAuth: false}
 
-	maxAge := *utils.Cfg.ServiceSettings.SessionLengthWebInDays * 60 * 60 * 24
+	maxAge := *a.Config().ServiceSettings.SessionLengthWebInDays * 60 * 60 * 24
 
 	if len(deviceId) > 0 {
-		session.SetExpireInDays(*utils.Cfg.ServiceSettings.SessionLengthMobileInDays)
+		session.SetExpireInDays(*a.Config().ServiceSettings.SessionLengthMobileInDays)
 
 		// A special case where we logout of all other sessions with the same Id
 		if err := a.RevokeSessionsForDeviceId(user.Id, deviceId, ""); err != nil {
@@ -69,7 +68,7 @@ func (a *App) DoLogin(w http.ResponseWriter, r *http.Request, user *model.User, 
 			return nil, err
 		}
 	} else {
-		session.SetExpireInDays(*utils.Cfg.ServiceSettings.SessionLengthWebInDays)
+		session.SetExpireInDays(*a.Config().ServiceSettings.SessionLengthWebInDays)
 	}
 
 	ua := user_agent.New(r.UserAgent())

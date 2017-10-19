@@ -57,7 +57,7 @@ func GetAllStatuses() map[string]*model.Status {
 }
 
 func (a *App) GetStatusesByIds(userIds []string) (map[string]interface{}, *model.AppError) {
-	if !*utils.Cfg.ServiceSettings.EnableUserStatuses {
+	if !*a.Config().ServiceSettings.EnableUserStatuses {
 		return map[string]interface{}{}, nil
 	}
 
@@ -104,7 +104,7 @@ func (a *App) GetStatusesByIds(userIds []string) (map[string]interface{}, *model
 
 //GetUserStatusesByIds used by apiV4
 func (a *App) GetUserStatusesByIds(userIds []string) ([]*model.Status, *model.AppError) {
-	if !*utils.Cfg.ServiceSettings.EnableUserStatuses {
+	if !*a.Config().ServiceSettings.EnableUserStatuses {
 		return []*model.Status{}, nil
 	}
 
@@ -161,7 +161,7 @@ func (a *App) GetUserStatusesByIds(userIds []string) ([]*model.Status, *model.Ap
 }
 
 func (a *App) SetStatusOnline(userId string, sessionId string, manual bool) {
-	if !*utils.Cfg.ServiceSettings.EnableUserStatuses {
+	if !*a.Config().ServiceSettings.EnableUserStatuses {
 		return
 	}
 
@@ -227,7 +227,7 @@ func (a *App) BroadcastStatus(status *model.Status) {
 }
 
 func (a *App) SetStatusOffline(userId string, manual bool) {
-	if !*utils.Cfg.ServiceSettings.EnableUserStatuses {
+	if !*a.Config().ServiceSettings.EnableUserStatuses {
 		return
 	}
 
@@ -253,7 +253,7 @@ func (a *App) SetStatusOffline(userId string, manual bool) {
 }
 
 func (a *App) SetStatusAwayIfNeeded(userId string, manual bool) {
-	if !*utils.Cfg.ServiceSettings.EnableUserStatuses {
+	if !*a.Config().ServiceSettings.EnableUserStatuses {
 		return
 	}
 
@@ -307,7 +307,7 @@ func GetStatusFromCache(userId string) *model.Status {
 }
 
 func (a *App) GetStatus(userId string) (*model.Status, *model.AppError) {
-	if !*utils.Cfg.ServiceSettings.EnableUserStatuses {
+	if !*a.Config().ServiceSettings.EnableUserStatuses {
 		return &model.Status{}, nil
 	}
 

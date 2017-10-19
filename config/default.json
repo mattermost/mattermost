@@ -36,7 +36,7 @@
         "SessionLengthMobileInDays": 30,
         "SessionLengthSSOInDays": 30,
         "SessionCacheInMinutes": 10,
-        "SessionIdleTimeout": 0,
+        "SessionIdleTimeoutInMinutes": 0,
         "WebsocketSecurePort": 443,
         "WebsocketPort": 80,
         "WebserverMode": "gzip",
@@ -317,7 +317,8 @@
         "PostIndexShards": 1,
         "AggregatePostsAfterDays": 365,
         "PostsAggregatorJobStartTime": "03:00",
-        "IndexPrefix": ""
+        "IndexPrefix": "",
+        "LiveIndexingBatchSize": 1
     },
     "DataRetentionSettings": {
         "EnableMessageDeletion": false,

@@ -4528,6 +4528,10 @@
     "translation": "Invalid listen address for service settings Must be set."
   },
   {
+    "id": "model.config.is_valid.localization.available_locales.app_error",
+    "translation": "Available Languages must contain Default Client Language"
+  },
+  {
     "id": "model.config.is_valid.login_attempts.app_error",
     "translation": "Invalid maximum login attempts for service settings.  Must be a positive number."
   },
@@ -5545,6 +5549,10 @@
   },
   {
     "id": "store.sql_command.analytics_command_count.app_error",
+    "translation": "채널을 찾을 수 없습니다"
+  },
+  {
+    "id": "store.sql_command.get_by_trigger.app_error",
     "translation": "채널을 찾을 수 없습니다"
   },
   {

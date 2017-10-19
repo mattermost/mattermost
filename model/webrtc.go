@@ -11,19 +11,24 @@ import (
 type WebrtcInfoResponse struct {
 	Token        string `json:"token"`
 	GatewayUrl   string `json:"gateway_url"`
+	GatewayType  string `json:"gateway_type"`
 	StunUri      string `json:"stun_uri,omitempty"`
 	TurnUri      string `json:"turn_uri,omitempty"`
 	TurnPassword string `json:"turn_password,omitempty"`
 	TurnUsername string `json:"turn_username,omitempty"`
 }
 
-type GatewayResponse struct {
+type JanusGatewayResponse struct {
 	Status string `json:"janus"`
 }
 
-func GatewayResponseFromJson(data io.Reader) *GatewayResponse {
+type KopanoWebmeetingsResponse struct {
+	Value string `json:"value"`
+}
+
+func JanusGatewayResponseFromJson(data io.Reader) *JanusGatewayResponse {
 	decoder := json.NewDecoder(data)
-	var o GatewayResponse
+	var o JanusGatewayResponse
 	err := decoder.Decode(&o)
 	if err == nil {
 		return &o
@@ -50,4 +55,14 @@ func WebrtcInfoResponseFromJson(data io.Reader) *WebrtcInfoResponse {
 	} else {
 		return nil
 	}
+}
+
+func KopanoWebmeetingsResponseFromJson(data io.Reader) *KopanoWebmeetingsResponse {
+	decoder := json.NewDecoder(data)
+	var o KopanoWebmeetingsResponse
+	err := decoder.Decode(&o)
+	if err == nil {
+		return &o
+	}
+	return nil
 }

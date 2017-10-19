@@ -312,7 +312,7 @@ test-te: do-cover-file
 	@echo Testing TE
 	@echo "Packages to test: "$(TE_PACKAGES)
 	find . -name 'cprofile.out' -exec sh -c 'rm "{}"' \;
-	$(GO) test $(GOFLAGS) -run=$(TESTS) $(TESTFLAGS) -p 1 -v -timeout=2000s -covermode=count -coverpkg=$(ALL_PACKAGES_COMMA) -exec $(ROOT)/scripts/test-xprog.sh $(TE_PACKAGES)
+	$(GO) test $(GOFLAGS) -run=$(TESTS) $(TESTFLAGS) -v -timeout=2000s -covermode=count -coverpkg=$(ALL_PACKAGES_COMMA) -exec $(ROOT)/scripts/test-xprog.sh $(TE_PACKAGES)
 	find . -name 'cprofile.out' -exec sh -c 'tail -n +2 {} >> cover.out ; rm "{}"' \;
 
 test-ee: do-cover-file

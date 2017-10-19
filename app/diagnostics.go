@@ -52,7 +52,7 @@ const (
 var client *analytics.Client
 
 func (a *App) SendDailyDiagnostics() {
-	if *utils.Cfg.LogSettings.EnableDiagnostics && a.IsLeader() {
+	if *a.Config().LogSettings.EnableDiagnostics && a.IsLeader() {
 		initDiagnostics("")
 		a.trackActivity()
 		trackConfig()
@@ -204,6 +204,7 @@ func trackConfig() {
 		"session_length_mobile_in_days":                    *utils.Cfg.ServiceSettings.SessionLengthMobileInDays,
 		"session_length_sso_in_days":                       *utils.Cfg.ServiceSettings.SessionLengthSSOInDays,
 		"session_cache_in_minutes":                         *utils.Cfg.ServiceSettings.SessionCacheInMinutes,
+		"session_idle_timeout_in_minutes":                  *utils.Cfg.ServiceSettings.SessionIdleTimeoutInMinutes,
 		"isdefault_site_url":                               isDefault(*utils.Cfg.ServiceSettings.SiteURL, model.SERVICE_SETTINGS_DEFAULT_SITE_URL),
 		"isdefault_tls_cert_file":                          isDefault(*utils.Cfg.ServiceSettings.TLSCertFile, model.SERVICE_SETTINGS_DEFAULT_TLS_CERT_FILE),
 		"isdefault_tls_key_file":                           isDefault(*utils.Cfg.ServiceSettings.TLSKeyFile, model.SERVICE_SETTINGS_DEFAULT_TLS_KEY_FILE),
@@ -442,6 +443,7 @@ func trackConfig() {
 		"sniff":                    *utils.Cfg.ElasticsearchSettings.Sniff,
 		"post_index_replicas":      *utils.Cfg.ElasticsearchSettings.PostIndexReplicas,
 		"post_index_shards":        *utils.Cfg.ElasticsearchSettings.PostIndexShards,
+		"isdefault_index_prefix":   isDefault(*utils.Cfg.ElasticsearchSettings.IndexPrefix, model.ELASTICSEARCH_SETTINGS_DEFAULT_INDEX_PREFIX),
 	})
 
 	SendDiagnostic(TRACK_CONFIG_PLUGIN, map[string]interface{}{
@@ -481,7 +483,7 @@ func (a *App) trackServer() {
 	data := map[string]interface{}{
 		"edition":          model.BuildEnterpriseReady,
 		"version":          model.CurrentVersion,
-		"database_type":    *utils.Cfg.SqlSettings.DriverName,
+		"database_type":    *a.Config().SqlSettings.DriverName,
 		"operating_system": runtime.GOOS,
 	}
 

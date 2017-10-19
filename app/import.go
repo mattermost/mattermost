@@ -558,8 +558,8 @@ func (a *App) ImportUser(data *UserImportData, dryRun bool) *model.AppError {
 			hasUserChanged = true
 		}
 	} else {
-		if user.Locale != *utils.Cfg.LocalizationSettings.DefaultClientLocale {
-			user.Locale = *utils.Cfg.LocalizationSettings.DefaultClientLocale
+		if user.Locale != *a.Config().LocalizationSettings.DefaultClientLocale {
+			user.Locale = *a.Config().LocalizationSettings.DefaultClientLocale
 			hasUserChanged = true
 		}
 	}
