@@ -1,3 +1,6 @@
+// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
+// See License.txt for license information.
+
 package model
 
 // TODO: do we need the JSON tags in here if it isn't directly exported?
