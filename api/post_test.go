@@ -158,14 +158,14 @@ func TestCreatePost(t *testing.T) {
 
 	isLicensed := utils.IsLicensed()
 	license := utils.License()
-	disableTownSquareReadOnly := utils.Cfg.TeamSettings.ExperimentalTownSquareIsReadOnly
+	disableTownSquareReadOnly := th.App.Config().TeamSettings.ExperimentalTownSquareIsReadOnly
 	defer func() {
-		utils.Cfg.TeamSettings.ExperimentalTownSquareIsReadOnly = disableTownSquareReadOnly
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.TeamSettings.ExperimentalTownSquareIsReadOnly = disableTownSquareReadOnly })
 		utils.SetIsLicensed(isLicensed)
 		utils.SetLicense(license)
 		utils.SetDefaultRolesBasedOnConfig()
 	}()
-	*utils.Cfg.TeamSettings.ExperimentalTownSquareIsReadOnly = true
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.ExperimentalTownSquareIsReadOnly = true })
 	utils.SetDefaultRolesBasedOnConfig()
 	utils.SetIsLicensed(true)
 	utils.SetLicense(&model.License{Features: &model.Features{}})
@@ -237,14 +237,18 @@ func testCreatePostWithOutgoingHook(
 	user := th.SystemAdminUser
 	channel := th.CreateChannel(Client, team)
 
-	enableOutgoingHooks := utils.Cfg.ServiceSettings.EnableOutgoingWebhooks
-	allowedInternalConnections := *utils.Cfg.ServiceSettings.AllowedUntrustedInternalConnections
+	enableOutgoingHooks := th.App.Config().ServiceSettings.EnableOutgoingWebhooks
+	allowedInternalConnections := *th.App.Config().ServiceSettings.AllowedUntrustedInternalConnections
 	defer func() {
-		utils.Cfg.ServiceSettings.EnableOutgoingWebhooks = enableOutgoingHooks
-		utils.Cfg.ServiceSettings.AllowedUntrustedInternalConnections = &allowedInternalConnections
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOutgoingWebhooks = enableOutgoingHooks })
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.ServiceSettings.AllowedUntrustedInternalConnections = &allowedInternalConnections
+		})
 	}()
-	utils.Cfg.ServiceSettings.EnableOutgoingWebhooks = true
-	*utils.Cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost 127.0.0.1"
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOutgoingWebhooks = true })
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost 127.0.0.1"
+	})
 
 	var hook *model.OutgoingWebhook
 	var post *model.Post
@@ -398,14 +402,14 @@ func TestUpdatePost(t *testing.T) {
 	Client := th.BasicClient
 	channel1 := th.BasicChannel
 
-	allowEditPost := *utils.Cfg.ServiceSettings.AllowEditPost
-	postEditTimeLimit := *utils.Cfg.ServiceSettings.PostEditTimeLimit
+	allowEditPost := *th.App.Config().ServiceSettings.AllowEditPost
+	postEditTimeLimit := *th.App.Config().ServiceSettings.PostEditTimeLimit
 	defer func() {
-		*utils.Cfg.ServiceSettings.AllowEditPost = allowEditPost
-		*utils.Cfg.ServiceSettings.PostEditTimeLimit = postEditTimeLimit
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowEditPost = allowEditPost })
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.PostEditTimeLimit = postEditTimeLimit })
 	}()
 
-	*utils.Cfg.ServiceSettings.AllowEditPost = model.ALLOW_EDIT_POST_ALWAYS
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowEditPost = model.ALLOW_EDIT_POST_ALWAYS })
 
 	post1 := &model.Post{ChannelId: channel1.Id, Message: "zz" + model.NewId() + "a"}
 	rpost1, err := Client.CreatePost(post1)
@@ -480,7 +484,7 @@ func TestUpdatePost(t *testing.T) {
 	utils.SetLicense(&model.License{Features: &model.Features{}})
 	utils.License().Features.SetDefaults()
 
-	*utils.Cfg.ServiceSettings.AllowEditPost = model.ALLOW_EDIT_POST_NEVER
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowEditPost = model.ALLOW_EDIT_POST_NEVER })
 
 	post4 := &model.Post{ChannelId: channel1.Id, Message: "zz" + model.NewId() + "a", RootId: rpost1.Data.(*model.Post).Id}
 	rpost4, err := Client.CreatePost(post4)
@@ -493,8 +497,8 @@ func TestUpdatePost(t *testing.T) {
 		t.Fatal("shouldn't have been able to update a message when not allowed")
 	}
 
-	*utils.Cfg.ServiceSettings.AllowEditPost = model.ALLOW_EDIT_POST_TIME_LIMIT
-	*utils.Cfg.ServiceSettings.PostEditTimeLimit = 1 //seconds
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowEditPost = model.ALLOW_EDIT_POST_TIME_LIMIT })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.PostEditTimeLimit = 1 }) //seconds
 
 	post5 := &model.Post{ChannelId: channel1.Id, Message: "zz" + model.NewId() + "a", RootId: rpost1.Data.(*model.Post).Id}
 	rpost5, err := Client.CreatePost(post5)
@@ -969,12 +973,12 @@ func TestDeletePosts(t *testing.T) {
 	channel1 := th.BasicChannel
 	team1 := th.BasicTeam
 
-	restrictPostDelete := *utils.Cfg.ServiceSettings.RestrictPostDelete
+	restrictPostDelete := *th.App.Config().ServiceSettings.RestrictPostDelete
 	defer func() {
-		*utils.Cfg.ServiceSettings.RestrictPostDelete = restrictPostDelete
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.RestrictPostDelete = restrictPostDelete })
 		utils.SetDefaultRolesBasedOnConfig()
 	}()
-	*utils.Cfg.ServiceSettings.RestrictPostDelete = model.PERMISSIONS_DELETE_POST_ALL
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.RestrictPostDelete = model.PERMISSIONS_DELETE_POST_ALL })
 	utils.SetDefaultRolesBasedOnConfig()
 
 	time.Sleep(10 * time.Millisecond)
@@ -1050,7 +1054,9 @@ func TestDeletePosts(t *testing.T) {
 
 	SystemAdminClient.Must(SystemAdminClient.DeletePost(channel1.Id, post4b.Id))
 
-	*utils.Cfg.ServiceSettings.RestrictPostDelete = model.PERMISSIONS_DELETE_POST_TEAM_ADMIN
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.RestrictPostDelete = model.PERMISSIONS_DELETE_POST_TEAM_ADMIN
+	})
 	utils.SetDefaultRolesBasedOnConfig()
 
 	th.LoginBasic()
@@ -1073,7 +1079,9 @@ func TestDeletePosts(t *testing.T) {
 
 	SystemAdminClient.Must(SystemAdminClient.DeletePost(channel1.Id, post5b.Id))
 
-	*utils.Cfg.ServiceSettings.RestrictPostDelete = model.PERMISSIONS_DELETE_POST_SYSTEM_ADMIN
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.RestrictPostDelete = model.PERMISSIONS_DELETE_POST_SYSTEM_ADMIN
+	})
 	utils.SetDefaultRolesBasedOnConfig()
 
 	th.LoginBasic()
@@ -1466,14 +1474,18 @@ func TestGetOpenGraphMetadata(t *testing.T) {
 
 	Client := th.BasicClient
 
-	enableLinkPreviews := *utils.Cfg.ServiceSettings.EnableLinkPreviews
-	allowedInternalConnections := *utils.Cfg.ServiceSettings.AllowedUntrustedInternalConnections
+	enableLinkPreviews := *th.App.Config().ServiceSettings.EnableLinkPreviews
+	allowedInternalConnections := *th.App.Config().ServiceSettings.AllowedUntrustedInternalConnections
 	defer func() {
-		*utils.Cfg.ServiceSettings.EnableLinkPreviews = enableLinkPreviews
-		utils.Cfg.ServiceSettings.AllowedUntrustedInternalConnections = &allowedInternalConnections
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableLinkPreviews = enableLinkPreviews })
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.ServiceSettings.AllowedUntrustedInternalConnections = &allowedInternalConnections
+		})
 	}()
-	*utils.Cfg.ServiceSettings.EnableLinkPreviews = true
-	*utils.Cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost 127.0.0.1"
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableLinkPreviews = true })
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost 127.0.0.1"
+	})
 
 	ogDataCacheMissCount := 0
 
@@ -1524,7 +1536,7 @@ func TestGetOpenGraphMetadata(t *testing.T) {
 		}
 	}
 
-	*utils.Cfg.ServiceSettings.EnableLinkPreviews = false
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableLinkPreviews = false })
 	if _, err := Client.DoApiPost("/get_opengraph_metadata", "{\"url\":\"/og-data/\"}"); err == nil || err.StatusCode != http.StatusNotImplemented {
 		t.Fatal("should have failed with 501 - disabled link previews")
 	}

@@ -18,11 +18,11 @@ func TestCreateEmoji(t *testing.T) {
 	defer th.TearDown()
 	Client := th.Client
 
-	EnableCustomEmoji := *utils.Cfg.ServiceSettings.EnableCustomEmoji
+	EnableCustomEmoji := *th.App.Config().ServiceSettings.EnableCustomEmoji
 	defer func() {
-		*utils.Cfg.ServiceSettings.EnableCustomEmoji = EnableCustomEmoji
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableCustomEmoji = EnableCustomEmoji })
 	}()
-	*utils.Cfg.ServiceSettings.EnableCustomEmoji = false
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableCustomEmoji = false })
 
 	emoji := &model.Emoji{
 		CreatorId: th.BasicUser.Id,
@@ -33,7 +33,7 @@ func TestCreateEmoji(t *testing.T) {
 	_, resp := Client.CreateEmoji(emoji, utils.CreateTestGif(t, 10, 10), "image.gif")
 	CheckNotImplementedStatus(t, resp)
 
-	*utils.Cfg.ServiceSettings.EnableCustomEmoji = true
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableCustomEmoji = true })
 	// try to create a valid gif emoji when they're enabled
 	newEmoji, resp := Client.CreateEmoji(emoji, utils.CreateTestGif(t, 10, 10), "image.gif")
 	CheckNoError(t, resp)
@@ -146,11 +146,11 @@ func TestGetEmojiList(t *testing.T) {
 	defer th.TearDown()
 	Client := th.Client
 
-	EnableCustomEmoji := *utils.Cfg.ServiceSettings.EnableCustomEmoji
+	EnableCustomEmoji := *th.App.Config().ServiceSettings.EnableCustomEmoji
 	defer func() {
-		*utils.Cfg.ServiceSettings.EnableCustomEmoji = EnableCustomEmoji
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableCustomEmoji = EnableCustomEmoji })
 	}()
-	*utils.Cfg.ServiceSettings.EnableCustomEmoji = true
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableCustomEmoji = true })
 
 	emojis := []*model.Emoji{
 		{
@@ -216,11 +216,11 @@ func TestDeleteEmoji(t *testing.T) {
 	defer th.TearDown()
 	Client := th.Client
 
-	EnableCustomEmoji := *utils.Cfg.ServiceSettings.EnableCustomEmoji
+	EnableCustomEmoji := *th.App.Config().ServiceSettings.EnableCustomEmoji
 	defer func() {
-		*utils.Cfg.ServiceSettings.EnableCustomEmoji = EnableCustomEmoji
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableCustomEmoji = EnableCustomEmoji })
 	}()
-	*utils.Cfg.ServiceSettings.EnableCustomEmoji = true
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableCustomEmoji = true })
 
 	emoji := &model.Emoji{
 		CreatorId: th.BasicUser.Id,
@@ -283,11 +283,11 @@ func TestGetEmoji(t *testing.T) {
 	defer th.TearDown()
 	Client := th.Client
 
-	EnableCustomEmoji := *utils.Cfg.ServiceSettings.EnableCustomEmoji
+	EnableCustomEmoji := *th.App.Config().ServiceSettings.EnableCustomEmoji
 	defer func() {
-		*utils.Cfg.ServiceSettings.EnableCustomEmoji = EnableCustomEmoji
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableCustomEmoji = EnableCustomEmoji })
 	}()
-	*utils.Cfg.ServiceSettings.EnableCustomEmoji = true
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableCustomEmoji = true })
 
 	emoji := &model.Emoji{
 		CreatorId: th.BasicUser.Id,
@@ -312,13 +312,13 @@ func TestGetEmojiImage(t *testing.T) {
 	defer th.TearDown()
 	Client := th.Client
 
-	EnableCustomEmoji := *utils.Cfg.ServiceSettings.EnableCustomEmoji
-	DriverName := *utils.Cfg.FileSettings.DriverName
+	EnableCustomEmoji := *th.App.Config().ServiceSettings.EnableCustomEmoji
+	DriverName := *th.App.Config().FileSettings.DriverName
 	defer func() {
-		*utils.Cfg.ServiceSettings.EnableCustomEmoji = EnableCustomEmoji
-		*utils.Cfg.FileSettings.DriverName = DriverName
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableCustomEmoji = EnableCustomEmoji })
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.DriverName = DriverName })
 	}()
-	*utils.Cfg.ServiceSettings.EnableCustomEmoji = true
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableCustomEmoji = true })
 
 	emoji1 := &model.Emoji{
 		CreatorId: th.BasicUser.Id,
@@ -328,20 +328,20 @@ func TestGetEmojiImage(t *testing.T) {
 	emoji1, resp := Client.CreateEmoji(emoji1, utils.CreateTestGif(t, 10, 10), "image.gif")
 	CheckNoError(t, resp)
 
-	*utils.Cfg.ServiceSettings.EnableCustomEmoji = false
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableCustomEmoji = false })
 
 	_, resp = Client.GetEmojiImage(emoji1.Id)
 	CheckNotImplementedStatus(t, resp)
 	CheckErrorMessage(t, resp, "api.emoji.disabled.app_error")
 
-	*utils.Cfg.FileSettings.DriverName = ""
-	*utils.Cfg.ServiceSettings.EnableCustomEmoji = true
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.DriverName = "" })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableCustomEmoji = true })
 
 	_, resp = Client.GetEmojiImage(emoji1.Id)
 	CheckNotImplementedStatus(t, resp)
 	CheckErrorMessage(t, resp, "api.emoji.storage.app_error")
 
-	*utils.Cfg.FileSettings.DriverName = DriverName
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.DriverName = DriverName })
 
 	emojiImage, resp := Client.GetEmojiImage(emoji1.Id)
 	CheckNoError(t, resp)

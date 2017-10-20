@@ -140,18 +140,18 @@ func TestAddUserToTeam(t *testing.T) {
 	}
 
 	// Restore config/license at end of test case.
-	restrictTeamInvite := *utils.Cfg.TeamSettings.RestrictTeamInvite
+	restrictTeamInvite := *th.App.Config().TeamSettings.RestrictTeamInvite
 	isLicensed := utils.IsLicensed()
 	license := utils.License()
 	defer func() {
-		*utils.Cfg.TeamSettings.RestrictTeamInvite = restrictTeamInvite
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.RestrictTeamInvite = restrictTeamInvite })
 		utils.SetIsLicensed(isLicensed)
 		utils.SetLicense(license)
 		utils.SetDefaultRolesBasedOnConfig()
 	}()
 
 	// Set the config so that only team admins can add a user to a team.
-	*utils.Cfg.TeamSettings.RestrictTeamInvite = model.PERMISSIONS_TEAM_ADMIN
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.RestrictTeamInvite = model.PERMISSIONS_TEAM_ADMIN })
 	utils.SetDefaultRolesBasedOnConfig()
 
 	// Test without the EE license to see that the permission restriction is ignored.
@@ -175,7 +175,7 @@ func TestAddUserToTeam(t *testing.T) {
 	// Should work as team admin.
 	th.UpdateUserToTeamAdmin(th.BasicUser, th.BasicTeam)
 	th.App.InvalidateAllCaches()
-	*utils.Cfg.TeamSettings.RestrictTeamInvite = model.PERMISSIONS_TEAM_ADMIN
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.RestrictTeamInvite = model.PERMISSIONS_TEAM_ADMIN })
 	utils.SetIsLicensed(true)
 	utils.SetLicense(&model.License{Features: &model.Features{}})
 	utils.License().Features.SetDefaults()
@@ -187,7 +187,7 @@ func TestAddUserToTeam(t *testing.T) {
 	}
 
 	// Change permission level to System Admin
-	*utils.Cfg.TeamSettings.RestrictTeamInvite = model.PERMISSIONS_SYSTEM_ADMIN
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.RestrictTeamInvite = model.PERMISSIONS_SYSTEM_ADMIN })
 	utils.SetDefaultRolesBasedOnConfig()
 
 	// Should not work as team admin.
@@ -565,12 +565,12 @@ func TestInviteMembers(t *testing.T) {
 		t.Fatal("Should have errored out on no invites to send")
 	}
 
-	restrictTeamInvite := *utils.Cfg.TeamSettings.RestrictTeamInvite
+	restrictTeamInvite := *th.App.Config().TeamSettings.RestrictTeamInvite
 	defer func() {
-		*utils.Cfg.TeamSettings.RestrictTeamInvite = restrictTeamInvite
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.RestrictTeamInvite = restrictTeamInvite })
 		utils.SetDefaultRolesBasedOnConfig()
 	}()
-	*utils.Cfg.TeamSettings.RestrictTeamInvite = model.PERMISSIONS_TEAM_ADMIN
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.RestrictTeamInvite = model.PERMISSIONS_TEAM_ADMIN })
 	utils.SetDefaultRolesBasedOnConfig()
 
 	th.LoginBasic2()
@@ -605,7 +605,7 @@ func TestInviteMembers(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	*utils.Cfg.TeamSettings.RestrictTeamInvite = model.PERMISSIONS_SYSTEM_ADMIN
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.RestrictTeamInvite = model.PERMISSIONS_SYSTEM_ADMIN })
 	utils.SetDefaultRolesBasedOnConfig()
 
 	if _, err := Client.InviteMembers(invites); err == nil {

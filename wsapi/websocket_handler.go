@@ -23,11 +23,11 @@ type webSocketHandler struct {
 }
 
 func (wh webSocketHandler) ServeWebSocket(conn *app.WebConn, r *model.WebSocketRequest) {
-	l4g.Debug("/api/v3/users/websocket:%s", r.Action)
+	l4g.Debug("websocket: %s", r.Action)
 
 	session, sessionErr := wh.app.GetSession(conn.GetSessionToken())
 	if sessionErr != nil {
-		l4g.Error(utils.T("api.web_socket_handler.log.error"), "/api/v3/users/websocket", r.Action, r.Seq, conn.UserId, sessionErr.SystemMessage(utils.T), sessionErr.Error())
+		l4g.Error(utils.T("api.web_socket_handler.log.error"), "websocket", r.Action, r.Seq, conn.UserId, sessionErr.SystemMessage(utils.T), sessionErr.Error())
 		sessionErr.DetailedError = ""
 		errResp := model.NewWebSocketError(r.Seq, sessionErr)
 
@@ -43,7 +43,7 @@ func (wh webSocketHandler) ServeWebSocket(conn *app.WebConn, r *model.WebSocketR
 	var err *model.AppError
 
 	if data, err = wh.handlerFunc(r); err != nil {
-		l4g.Error(utils.T("api.web_socket_handler.log.error"), "/api/v3/users/websocket", r.Action, r.Seq, r.Session.UserId, err.SystemMessage(utils.T), err.DetailedError)
+		l4g.Error(utils.T("api.web_socket_handler.log.error"), "websocket", r.Action, r.Seq, r.Session.UserId, err.SystemMessage(utils.T), err.DetailedError)
 		err.DetailedError = ""
 		errResp := model.NewWebSocketError(r.Seq, err)
 
@@ -57,5 +57,5 @@ func (wh webSocketHandler) ServeWebSocket(conn *app.WebConn, r *model.WebSocketR
 }
 
 func NewInvalidWebSocketParamError(action string, name string) *model.AppError {
-	return model.NewAppError("/api/v3/users/websocket:"+action, "api.websocket_handler.invalid_param.app_error", map[string]interface{}{"Name": name}, "", http.StatusBadRequest)
+	return model.NewAppError("websocket: "+action, "api.websocket_handler.invalid_param.app_error", map[string]interface{}{"Name": name}, "", http.StatusBadRequest)
 }

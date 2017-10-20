@@ -7,7 +7,6 @@ import (
 
 	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils"
 )
 
 func TestGetPing(t *testing.T) {
@@ -15,9 +14,9 @@ func TestGetPing(t *testing.T) {
 	defer th.TearDown()
 	Client := th.Client
 
-	goRoutineHealthThreshold := *utils.Cfg.ServiceSettings.GoroutineHealthThreshold
+	goRoutineHealthThreshold := *th.App.Config().ServiceSettings.GoroutineHealthThreshold
 	defer func() {
-		*utils.Cfg.ServiceSettings.GoroutineHealthThreshold = goRoutineHealthThreshold
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.GoroutineHealthThreshold = goRoutineHealthThreshold })
 	}()
 
 	status, resp := Client.GetPing()
@@ -26,7 +25,7 @@ func TestGetPing(t *testing.T) {
 		t.Fatal("should return OK")
 	}
 
-	*utils.Cfg.ServiceSettings.GoroutineHealthThreshold = 10
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.GoroutineHealthThreshold = 10 })
 	status, resp = th.SystemAdminClient.GetPing()
 	CheckInternalErrorStatus(t, resp)
 	if status != "unhealthy" {
@@ -98,8 +97,8 @@ func TestReloadConfig(t *testing.T) {
 		t.Fatal("should Reload the config")
 	}
 
-	*utils.Cfg.TeamSettings.MaxUsersPerTeam = 50
-	*utils.Cfg.TeamSettings.EnableOpenServer = true
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.MaxUsersPerTeam = 50 })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableOpenServer = true })
 }
 
 func TestUpdateConfig(t *testing.T) {
@@ -112,7 +111,7 @@ func TestUpdateConfig(t *testing.T) {
 	_, resp := Client.UpdateConfig(cfg)
 	CheckForbiddenStatus(t, resp)
 
-	SiteName := utils.Cfg.TeamSettings.SiteName
+	SiteName := th.App.Config().TeamSettings.SiteName
 
 	cfg.TeamSettings.SiteName = "MyFancyName"
 	cfg, resp = th.SystemAdminClient.UpdateConfig(cfg)
@@ -243,21 +242,21 @@ func TestEmailTest(t *testing.T) {
 	defer th.TearDown()
 	Client := th.Client
 
-	SendEmailNotifications := utils.Cfg.EmailSettings.SendEmailNotifications
-	SMTPServer := utils.Cfg.EmailSettings.SMTPServer
-	SMTPPort := utils.Cfg.EmailSettings.SMTPPort
-	FeedbackEmail := utils.Cfg.EmailSettings.FeedbackEmail
+	SendEmailNotifications := th.App.Config().EmailSettings.SendEmailNotifications
+	SMTPServer := th.App.Config().EmailSettings.SMTPServer
+	SMTPPort := th.App.Config().EmailSettings.SMTPPort
+	FeedbackEmail := th.App.Config().EmailSettings.FeedbackEmail
 	defer func() {
-		utils.Cfg.EmailSettings.SendEmailNotifications = SendEmailNotifications
-		utils.Cfg.EmailSettings.SMTPServer = SMTPServer
-		utils.Cfg.EmailSettings.SMTPPort = SMTPPort
-		utils.Cfg.EmailSettings.FeedbackEmail = FeedbackEmail
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.EmailSettings.SendEmailNotifications = SendEmailNotifications })
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.EmailSettings.SMTPServer = SMTPServer })
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.EmailSettings.SMTPPort = SMTPPort })
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.EmailSettings.FeedbackEmail = FeedbackEmail })
 	}()
 
-	utils.Cfg.EmailSettings.SendEmailNotifications = false
-	utils.Cfg.EmailSettings.SMTPServer = ""
-	utils.Cfg.EmailSettings.SMTPPort = ""
-	utils.Cfg.EmailSettings.FeedbackEmail = ""
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.EmailSettings.SendEmailNotifications = false })
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.EmailSettings.SMTPServer = "" })
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.EmailSettings.SMTPPort = "" })
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.EmailSettings.FeedbackEmail = "" })
 
 	_, resp := Client.TestEmail()
 	CheckForbiddenStatus(t, resp)

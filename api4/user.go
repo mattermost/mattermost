@@ -61,6 +61,8 @@ func (api *API) InitUser() {
 	api.BaseRoutes.User.Handle("/tokens", api.ApiSessionRequired(getUserAccessTokens)).Methods("GET")
 	api.BaseRoutes.Users.Handle("/tokens/{token_id:[A-Za-z0-9]+}", api.ApiSessionRequired(getUserAccessToken)).Methods("GET")
 	api.BaseRoutes.Users.Handle("/tokens/revoke", api.ApiSessionRequired(revokeUserAccessToken)).Methods("POST")
+	api.BaseRoutes.Users.Handle("/tokens/disable", api.ApiSessionRequired(disableUserAccessToken)).Methods("POST")
+	api.BaseRoutes.Users.Handle("/tokens/enable", api.ApiSessionRequired(enableUserAccessToken)).Methods("POST")
 }
 
 func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -112,7 +114,7 @@ func getUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	etag := user.Etag(utils.Cfg.PrivacySettings.ShowFullName, utils.Cfg.PrivacySettings.ShowEmailAddress)
+	etag := user.Etag(c.App.Config().PrivacySettings.ShowFullName, c.App.Config().PrivacySettings.ShowEmailAddress)
 
 	if c.HandleEtag(etag, "Get User", w, r) {
 		return
@@ -145,7 +147,7 @@ func getUserByUsername(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	etag := user.Etag(utils.Cfg.PrivacySettings.ShowFullName, utils.Cfg.PrivacySettings.ShowEmailAddress)
+	etag := user.Etag(c.App.Config().PrivacySettings.ShowFullName, c.App.Config().PrivacySettings.ShowEmailAddress)
 
 	if c.HandleEtag(etag, "Get User", w, r) {
 		return
@@ -173,7 +175,7 @@ func getUserByEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	etag := user.Etag(utils.Cfg.PrivacySettings.ShowFullName, utils.Cfg.PrivacySettings.ShowEmailAddress)
+	etag := user.Etag(c.App.Config().PrivacySettings.ShowFullName, c.App.Config().PrivacySettings.ShowEmailAddress)
 
 	if c.HandleEtag(etag, "Get User", w, r) {
 		return
@@ -235,17 +237,17 @@ func setProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if len(*utils.Cfg.FileSettings.DriverName) == 0 {
+	if len(*c.App.Config().FileSettings.DriverName) == 0 {
 		c.Err = model.NewAppError("uploadProfileImage", "api.user.upload_profile_user.storage.app_error", nil, "", http.StatusNotImplemented)
 		return
 	}
 
-	if r.ContentLength > *utils.Cfg.FileSettings.MaxFileSize {
+	if r.ContentLength > *c.App.Config().FileSettings.MaxFileSize {
 		c.Err = model.NewAppError("uploadProfileImage", "api.user.upload_profile_user.too_large.app_error", nil, "", http.StatusRequestEntityTooLarge)
 		return
 	}
 
-	if err := r.ParseMultipartForm(*utils.Cfg.FileSettings.MaxFileSize); err != nil {
+	if err := r.ParseMultipartForm(*c.App.Config().FileSettings.MaxFileSize); err != nil {
 		c.Err = model.NewAppError("uploadProfileImage", "api.user.upload_profile_user.parse.app_error", nil, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -453,8 +455,8 @@ func searchUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 	searchOptions[store.USER_SEARCH_OPTION_ALLOW_INACTIVE] = props.AllowInactive
 
 	if !app.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
-		hideFullName := !utils.Cfg.PrivacySettings.ShowFullName
-		hideEmail := !utils.Cfg.PrivacySettings.ShowEmailAddress
+		hideFullName := !c.App.Config().PrivacySettings.ShowFullName
+		hideEmail := !c.App.Config().PrivacySettings.ShowEmailAddress
 
 		if hideFullName && hideEmail {
 			searchOptions[store.USER_SEARCH_OPTION_NAMES_ONLY_NO_FULL_NAME] = true
@@ -483,7 +485,7 @@ func autocompleteUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	searchOptions := map[string]bool{}
 
-	hideFullName := !utils.Cfg.PrivacySettings.ShowFullName
+	hideFullName := !c.App.Config().PrivacySettings.ShowFullName
 	if hideFullName && !app.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
 		searchOptions[store.USER_SEARCH_OPTION_NAMES_ONLY_NO_FULL_NAME] = true
 	} else {
@@ -701,7 +703,7 @@ func checkUserMfa(c *Context, w http.ResponseWriter, r *http.Request) {
 	resp := map[string]interface{}{}
 	resp["mfa_required"] = false
 
-	if !utils.IsLicensed() || !*utils.License().Features.MFA || !*utils.Cfg.ServiceSettings.EnableMultifactorAuthentication {
+	if !utils.IsLicensed() || !*utils.License().Features.MFA || !*c.App.Config().ServiceSettings.EnableMultifactorAuthentication {
 		w.Write([]byte(model.StringInterfaceToJson(resp)))
 		return
 	}
@@ -1022,9 +1024,9 @@ func attachDeviceId(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	c.App.ClearSessionCacheForUser(c.Session.UserId)
-	c.Session.SetExpireInDays(*utils.Cfg.ServiceSettings.SessionLengthMobileInDays)
+	c.Session.SetExpireInDays(*c.App.Config().ServiceSettings.SessionLengthMobileInDays)
 
-	maxAge := *utils.Cfg.ServiceSettings.SessionLengthMobileInDays * 60 * 60 * 24
+	maxAge := *c.App.Config().ServiceSettings.SessionLengthMobileInDays * 60 * 60 * 24
 
 	secure := false
 	if app.GetProtocol(r) == "https" {
@@ -1282,6 +1284,80 @@ func revokeUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	err = c.App.RevokeUserAccessToken(accessToken)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	c.LogAudit("success - token_id=" + accessToken.Id)
+	ReturnStatusOK(w)
+}
+
+func disableUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
+	props := model.MapFromJson(r.Body)
+	tokenId := props["token_id"]
+
+	if tokenId == "" {
+		c.SetInvalidParam("token_id")
+	}
+
+	c.LogAudit("")
+
+	// No separate permission for this action for now
+	if !app.SessionHasPermissionTo(c.Session, model.PERMISSION_REVOKE_USER_ACCESS_TOKEN) {
+		c.SetPermissionError(model.PERMISSION_REVOKE_USER_ACCESS_TOKEN)
+		return
+	}
+
+	accessToken, err := c.App.GetUserAccessToken(tokenId, false)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	if !app.SessionHasPermissionToUser(c.Session, accessToken.UserId) {
+		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
+		return
+	}
+
+	err = c.App.DisableUserAccessToken(accessToken)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	c.LogAudit("success - token_id=" + accessToken.Id)
+	ReturnStatusOK(w)
+}
+
+func enableUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
+	props := model.MapFromJson(r.Body)
+	tokenId := props["token_id"]
+
+	if tokenId == "" {
+		c.SetInvalidParam("token_id")
+	}
+
+	c.LogAudit("")
+
+	// No separate permission for this action for now
+	if !app.SessionHasPermissionTo(c.Session, model.PERMISSION_CREATE_USER_ACCESS_TOKEN) {
+		c.SetPermissionError(model.PERMISSION_CREATE_USER_ACCESS_TOKEN)
+		return
+	}
+
+	accessToken, err := c.App.GetUserAccessToken(tokenId, false)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	if !app.SessionHasPermissionToUser(c.Session, accessToken.UserId) {
+		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
+		return
+	}
+
+	err = c.App.EnableUserAccessToken(accessToken)
 	if err != nil {
 		c.Err = err
 		return

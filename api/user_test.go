@@ -89,18 +89,18 @@ func TestLogin(t *testing.T) {
 
 	Client := th.BasicClient
 
-	enableSignInWithEmail := *utils.Cfg.EmailSettings.EnableSignInWithEmail
-	enableSignInWithUsername := *utils.Cfg.EmailSettings.EnableSignInWithUsername
-	enableLdap := *utils.Cfg.LdapSettings.Enable
+	enableSignInWithEmail := *th.App.Config().EmailSettings.EnableSignInWithEmail
+	enableSignInWithUsername := *th.App.Config().EmailSettings.EnableSignInWithUsername
+	enableLdap := *th.App.Config().LdapSettings.Enable
 	defer func() {
-		*utils.Cfg.EmailSettings.EnableSignInWithEmail = enableSignInWithEmail
-		*utils.Cfg.EmailSettings.EnableSignInWithUsername = enableSignInWithUsername
-		*utils.Cfg.LdapSettings.Enable = enableLdap
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.EmailSettings.EnableSignInWithEmail = enableSignInWithEmail })
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.EmailSettings.EnableSignInWithUsername = enableSignInWithUsername })
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.LdapSettings.Enable = enableLdap })
 	}()
 
-	*utils.Cfg.EmailSettings.EnableSignInWithEmail = false
-	*utils.Cfg.EmailSettings.EnableSignInWithUsername = false
-	*utils.Cfg.LdapSettings.Enable = false
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.EmailSettings.EnableSignInWithEmail = false })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.EmailSettings.EnableSignInWithUsername = false })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.LdapSettings.Enable = false })
 
 	team := model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
 	rteam, _ := Client.CreateTeam(&team)
@@ -127,7 +127,7 @@ func TestLogin(t *testing.T) {
 		t.Fatal("shouldn't be able to log in by email when disabled")
 	}
 
-	*utils.Cfg.EmailSettings.EnableSignInWithEmail = true
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.EmailSettings.EnableSignInWithEmail = true })
 	if result, err := Client.Login(user.Email, user.Password); err != nil {
 		t.Fatal(err)
 	} else {
@@ -140,7 +140,7 @@ func TestLogin(t *testing.T) {
 		t.Fatal("shouldn't be able to log in by username when disabled")
 	}
 
-	*utils.Cfg.EmailSettings.EnableSignInWithUsername = true
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.EmailSettings.EnableSignInWithUsername = true })
 	if result, err := Client.Login(user.Username, user.Password); err != nil {
 		t.Fatal(err)
 	} else {
@@ -186,7 +186,7 @@ func TestLogin(t *testing.T) {
 	props["display_name"] = rteam2.Data.(*model.Team).DisplayName
 	props["time"] = fmt.Sprintf("%v", model.GetMillis())
 	data := model.MapToJson(props)
-	hash := utils.HashSha256(fmt.Sprintf("%v:%v", data, utils.Cfg.EmailSettings.InviteSalt))
+	hash := utils.HashSha256(fmt.Sprintf("%v:%v", data, th.App.Config().EmailSettings.InviteSalt))
 
 	ruser2, err := Client.CreateUserFromSignup(&user2, data, hash)
 	if err != nil {
@@ -272,14 +272,14 @@ func TestPasswordGuessLockout(t *testing.T) {
 	user := th.BasicUser
 	Client.Must(Client.Logout())
 
-	enableSignInWithEmail := *utils.Cfg.EmailSettings.EnableSignInWithEmail
-	passwordAttempts := *utils.Cfg.ServiceSettings.MaximumLoginAttempts
+	enableSignInWithEmail := *th.App.Config().EmailSettings.EnableSignInWithEmail
+	passwordAttempts := *th.App.Config().ServiceSettings.MaximumLoginAttempts
 	defer func() {
-		*utils.Cfg.EmailSettings.EnableSignInWithEmail = enableSignInWithEmail
-		*utils.Cfg.ServiceSettings.MaximumLoginAttempts = passwordAttempts
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.EmailSettings.EnableSignInWithEmail = enableSignInWithEmail })
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.MaximumLoginAttempts = passwordAttempts })
 	}()
-	*utils.Cfg.EmailSettings.EnableSignInWithEmail = true
-	*utils.Cfg.ServiceSettings.MaximumLoginAttempts = 2
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.EmailSettings.EnableSignInWithEmail = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.MaximumLoginAttempts = 2 })
 
 	// OK to log in
 	if _, err := Client.Login(user.Username, user.Password); err != nil {
@@ -410,14 +410,14 @@ func TestGetUser(t *testing.T) {
 		t.Fatal("shouldn't exist")
 	}
 
-	emailPrivacy := utils.Cfg.PrivacySettings.ShowEmailAddress
-	namePrivacy := utils.Cfg.PrivacySettings.ShowFullName
+	emailPrivacy := th.App.Config().PrivacySettings.ShowEmailAddress
+	namePrivacy := th.App.Config().PrivacySettings.ShowFullName
 	defer func() {
-		utils.Cfg.PrivacySettings.ShowEmailAddress = emailPrivacy
-		utils.Cfg.PrivacySettings.ShowFullName = namePrivacy
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.PrivacySettings.ShowEmailAddress = emailPrivacy })
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.PrivacySettings.ShowFullName = namePrivacy })
 	}()
-	utils.Cfg.PrivacySettings.ShowEmailAddress = false
-	utils.Cfg.PrivacySettings.ShowFullName = false
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.PrivacySettings.ShowEmailAddress = false })
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.PrivacySettings.ShowFullName = false })
 
 	if result, err := Client.GetUser(ruser2.Data.(*model.User).Id, ""); err != nil {
 		t.Fatal(err)
@@ -440,8 +440,8 @@ func TestGetUser(t *testing.T) {
 		}
 	}
 
-	utils.Cfg.PrivacySettings.ShowEmailAddress = true
-	utils.Cfg.PrivacySettings.ShowFullName = true
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.PrivacySettings.ShowEmailAddress = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.PrivacySettings.ShowFullName = true })
 
 	if result, err := Client.GetUser(ruser2.Data.(*model.User).Id, ""); err != nil {
 		t.Fatal(err)
@@ -517,12 +517,12 @@ func TestGetProfiles(t *testing.T) {
 
 	th.BasicClient.Must(th.BasicClient.CreateDirectChannel(th.BasicUser2.Id))
 
-	prevShowEmail := utils.Cfg.PrivacySettings.ShowEmailAddress
+	prevShowEmail := th.App.Config().PrivacySettings.ShowEmailAddress
 	defer func() {
-		utils.Cfg.PrivacySettings.ShowEmailAddress = prevShowEmail
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.PrivacySettings.ShowEmailAddress = prevShowEmail })
 	}()
 
-	utils.Cfg.PrivacySettings.ShowEmailAddress = true
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.PrivacySettings.ShowEmailAddress = true })
 
 	if result, err := th.BasicClient.GetProfiles(0, 100, ""); err != nil {
 		t.Fatal(err)
@@ -549,7 +549,7 @@ func TestGetProfiles(t *testing.T) {
 		}
 	}
 
-	utils.Cfg.PrivacySettings.ShowEmailAddress = false
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.PrivacySettings.ShowEmailAddress = false })
 
 	if result, err := th.BasicClient.GetProfiles(0, 100, ""); err != nil {
 		t.Fatal(err)
@@ -572,12 +572,12 @@ func TestGetProfilesByIds(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
 
-	prevShowEmail := utils.Cfg.PrivacySettings.ShowEmailAddress
+	prevShowEmail := th.App.Config().PrivacySettings.ShowEmailAddress
 	defer func() {
-		utils.Cfg.PrivacySettings.ShowEmailAddress = prevShowEmail
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.PrivacySettings.ShowEmailAddress = prevShowEmail })
 	}()
 
-	utils.Cfg.PrivacySettings.ShowEmailAddress = true
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.PrivacySettings.ShowEmailAddress = true })
 
 	if result, err := th.BasicClient.GetProfilesByIds([]string{th.BasicUser.Id}); err != nil {
 		t.Fatal(err)
@@ -595,7 +595,7 @@ func TestGetProfilesByIds(t *testing.T) {
 		}
 	}
 
-	utils.Cfg.PrivacySettings.ShowEmailAddress = false
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.PrivacySettings.ShowEmailAddress = false })
 
 	if result, err := th.BasicClient.GetProfilesByIds([]string{th.BasicUser.Id}); err != nil {
 		t.Fatal(err)
@@ -709,23 +709,23 @@ func TestUserCreateImage(t *testing.T) {
 		}
 	}
 
-	if *utils.Cfg.FileSettings.DriverName == model.IMAGE_DRIVER_S3 {
-		endpoint := utils.Cfg.FileSettings.AmazonS3Endpoint
-		accessKey := utils.Cfg.FileSettings.AmazonS3AccessKeyId
-		secretKey := utils.Cfg.FileSettings.AmazonS3SecretAccessKey
-		secure := *utils.Cfg.FileSettings.AmazonS3SSL
-		signV2 := *utils.Cfg.FileSettings.AmazonS3SignV2
-		region := utils.Cfg.FileSettings.AmazonS3Region
+	if *th.App.Config().FileSettings.DriverName == model.IMAGE_DRIVER_S3 {
+		endpoint := th.App.Config().FileSettings.AmazonS3Endpoint
+		accessKey := th.App.Config().FileSettings.AmazonS3AccessKeyId
+		secretKey := th.App.Config().FileSettings.AmazonS3SecretAccessKey
+		secure := *th.App.Config().FileSettings.AmazonS3SSL
+		signV2 := *th.App.Config().FileSettings.AmazonS3SignV2
+		region := th.App.Config().FileSettings.AmazonS3Region
 		s3Clnt, err := s3New(endpoint, accessKey, secretKey, secure, signV2, region)
 		if err != nil {
 			t.Fatal(err)
 		}
-		bucket := utils.Cfg.FileSettings.AmazonS3Bucket
+		bucket := th.App.Config().FileSettings.AmazonS3Bucket
 		if err = s3Clnt.RemoveObject(bucket, "/users/"+user.Id+"/profile.png"); err != nil {
 			t.Fatal(err)
 		}
 	} else {
-		path := utils.Cfg.FileSettings.Directory + "/users/" + user.Id + "/profile.png"
+		path := th.App.Config().FileSettings.Directory + "/users/" + user.Id + "/profile.png"
 		if err := os.Remove(path); err != nil {
 			t.Fatal("Couldn't remove file at " + path)
 		}
@@ -748,7 +748,7 @@ func TestUserUploadProfileImage(t *testing.T) {
 	th.LinkUserToTeam(user, team)
 	store.Must(th.App.Srv.Store.User().VerifyEmail(user.Id))
 
-	if *utils.Cfg.FileSettings.DriverName != "" {
+	if *th.App.Config().FileSettings.DriverName != "" {
 
 		body := &bytes.Buffer{}
 		writer := multipart.NewWriter(body)
@@ -817,23 +817,23 @@ func TestUserUploadProfileImage(t *testing.T) {
 
 		Client.DoApiGet("/users/"+user.Id+"/image", "", "")
 
-		if *utils.Cfg.FileSettings.DriverName == model.IMAGE_DRIVER_S3 {
-			endpoint := utils.Cfg.FileSettings.AmazonS3Endpoint
-			accessKey := utils.Cfg.FileSettings.AmazonS3AccessKeyId
-			secretKey := utils.Cfg.FileSettings.AmazonS3SecretAccessKey
-			secure := *utils.Cfg.FileSettings.AmazonS3SSL
-			signV2 := *utils.Cfg.FileSettings.AmazonS3SignV2
-			region := utils.Cfg.FileSettings.AmazonS3Region
+		if *th.App.Config().FileSettings.DriverName == model.IMAGE_DRIVER_S3 {
+			endpoint := th.App.Config().FileSettings.AmazonS3Endpoint
+			accessKey := th.App.Config().FileSettings.AmazonS3AccessKeyId
+			secretKey := th.App.Config().FileSettings.AmazonS3SecretAccessKey
+			secure := *th.App.Config().FileSettings.AmazonS3SSL
+			signV2 := *th.App.Config().FileSettings.AmazonS3SignV2
+			region := th.App.Config().FileSettings.AmazonS3Region
 			s3Clnt, err := s3New(endpoint, accessKey, secretKey, secure, signV2, region)
 			if err != nil {
 				t.Fatal(err)
 			}
-			bucket := utils.Cfg.FileSettings.AmazonS3Bucket
+			bucket := th.App.Config().FileSettings.AmazonS3Bucket
 			if err = s3Clnt.RemoveObject(bucket, "/users/"+user.Id+"/profile.png"); err != nil {
 				t.Fatal(err)
 			}
 		} else {
-			path := utils.Cfg.FileSettings.Directory + "users/" + user.Id + "/profile.png"
+			path := th.App.Config().FileSettings.Directory + "users/" + user.Id + "/profile.png"
 			if err := os.Remove(path); err != nil {
 				t.Fatal("Couldn't remove file at " + path)
 			}
@@ -960,11 +960,11 @@ func TestUserUpdatePassword(t *testing.T) {
 	}
 
 	// Test lockout
-	passwordAttempts := *utils.Cfg.ServiceSettings.MaximumLoginAttempts
+	passwordAttempts := *th.App.Config().ServiceSettings.MaximumLoginAttempts
 	defer func() {
-		*utils.Cfg.ServiceSettings.MaximumLoginAttempts = passwordAttempts
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.MaximumLoginAttempts = passwordAttempts })
 	}()
-	*utils.Cfg.ServiceSettings.MaximumLoginAttempts = 2
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.MaximumLoginAttempts = 2 })
 
 	// Fail twice
 	if _, err := Client.UpdateUserPassword(user.Id, "badpwd", "newpwd"); err == nil {
@@ -1887,11 +1887,11 @@ func TestUpdateMfa(t *testing.T) {
 
 	isLicensed := utils.IsLicensed()
 	license := utils.License()
-	enableMfa := *utils.Cfg.ServiceSettings.EnableMultifactorAuthentication
+	enableMfa := *th.App.Config().ServiceSettings.EnableMultifactorAuthentication
 	defer func() {
 		utils.SetIsLicensed(isLicensed)
 		utils.SetLicense(license)
-		*utils.Cfg.ServiceSettings.EnableMultifactorAuthentication = enableMfa
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableMultifactorAuthentication = enableMfa })
 	}()
 	utils.SetIsLicensed(false)
 	utils.SetLicense(&model.License{Features: &model.Features{}})
@@ -1925,7 +1925,7 @@ func TestUpdateMfa(t *testing.T) {
 
 	utils.SetIsLicensed(true)
 	*utils.License().Features.MFA = true
-	*utils.Cfg.ServiceSettings.EnableMultifactorAuthentication = true
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableMultifactorAuthentication = true })
 
 	if _, err := Client.UpdateMfa(true, "123456"); err == nil {
 		t.Fatal("should have failed - bad token")
@@ -2059,12 +2059,12 @@ func TestGetProfilesInChannel(t *testing.T) {
 
 	Client := th.BasicClient
 
-	prevShowEmail := utils.Cfg.PrivacySettings.ShowEmailAddress
+	prevShowEmail := th.App.Config().PrivacySettings.ShowEmailAddress
 	defer func() {
-		utils.Cfg.PrivacySettings.ShowEmailAddress = prevShowEmail
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.PrivacySettings.ShowEmailAddress = prevShowEmail })
 	}()
 
-	utils.Cfg.PrivacySettings.ShowEmailAddress = true
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.PrivacySettings.ShowEmailAddress = true })
 
 	if result, err := Client.GetProfilesInChannel(th.BasicChannel.Id, 0, 100, ""); err != nil {
 		t.Fatal(err)
@@ -2090,7 +2090,7 @@ func TestGetProfilesInChannel(t *testing.T) {
 
 	Client.Must(Client.JoinChannel(th.BasicChannel.Id))
 
-	utils.Cfg.PrivacySettings.ShowEmailAddress = false
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.PrivacySettings.ShowEmailAddress = false })
 
 	if result, err := Client.GetProfilesInChannel(th.BasicChannel.Id, 0, 100, ""); err != nil {
 		t.Fatal(err)
@@ -2133,12 +2133,12 @@ func TestGetProfilesNotInChannel(t *testing.T) {
 
 	Client := th.BasicClient
 
-	prevShowEmail := utils.Cfg.PrivacySettings.ShowEmailAddress
+	prevShowEmail := th.App.Config().PrivacySettings.ShowEmailAddress
 	defer func() {
-		utils.Cfg.PrivacySettings.ShowEmailAddress = prevShowEmail
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.PrivacySettings.ShowEmailAddress = prevShowEmail })
 	}()
 
-	utils.Cfg.PrivacySettings.ShowEmailAddress = true
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.PrivacySettings.ShowEmailAddress = true })
 
 	if result, err := Client.GetProfilesNotInChannel(th.BasicChannel.Id, 0, 100, ""); err != nil {
 		t.Fatal(err)
@@ -2176,7 +2176,7 @@ func TestGetProfilesNotInChannel(t *testing.T) {
 
 	Client.Must(Client.JoinChannel(th.BasicChannel.Id))
 
-	utils.Cfg.PrivacySettings.ShowEmailAddress = false
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.PrivacySettings.ShowEmailAddress = false })
 
 	if result, err := Client.GetProfilesNotInChannel(th.BasicChannel.Id, 0, 100, ""); err != nil {
 		t.Fatal(err)
@@ -2359,14 +2359,14 @@ func TestSearchUsers(t *testing.T) {
 		}
 	}
 
-	emailPrivacy := utils.Cfg.PrivacySettings.ShowEmailAddress
-	namePrivacy := utils.Cfg.PrivacySettings.ShowFullName
+	emailPrivacy := th.App.Config().PrivacySettings.ShowEmailAddress
+	namePrivacy := th.App.Config().PrivacySettings.ShowFullName
 	defer func() {
-		utils.Cfg.PrivacySettings.ShowEmailAddress = emailPrivacy
-		utils.Cfg.PrivacySettings.ShowFullName = namePrivacy
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.PrivacySettings.ShowEmailAddress = emailPrivacy })
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.PrivacySettings.ShowFullName = namePrivacy })
 	}()
-	utils.Cfg.PrivacySettings.ShowEmailAddress = false
-	utils.Cfg.PrivacySettings.ShowFullName = false
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.PrivacySettings.ShowEmailAddress = false })
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.PrivacySettings.ShowFullName = false })
 
 	privacyEmailPrefix := strings.ToLower(model.NewId())
 	privacyUser := &model.User{Email: privacyEmailPrefix + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1", FirstName: model.NewId(), LastName: "Jimmers"}
@@ -2390,7 +2390,7 @@ func TestSearchUsers(t *testing.T) {
 		}
 	}
 
-	utils.Cfg.PrivacySettings.ShowEmailAddress = true
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.PrivacySettings.ShowEmailAddress = true })
 
 	if result, err := Client.SearchUsers(model.UserSearch{Term: privacyUser.FirstName}); err != nil {
 		t.Fatal(err)
@@ -2409,8 +2409,8 @@ func TestSearchUsers(t *testing.T) {
 		}
 	}
 
-	utils.Cfg.PrivacySettings.ShowEmailAddress = false
-	utils.Cfg.PrivacySettings.ShowFullName = true
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.PrivacySettings.ShowEmailAddress = false })
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.PrivacySettings.ShowFullName = true })
 
 	if result, err := Client.SearchUsers(model.UserSearch{Term: privacyUser.FirstName}); err != nil {
 		t.Fatal(err)
@@ -2446,7 +2446,7 @@ func TestSearchUsers(t *testing.T) {
 		}
 	}
 
-	utils.Cfg.PrivacySettings.ShowEmailAddress = true
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.PrivacySettings.ShowEmailAddress = true })
 
 	if result, err := Client.SearchUsers(model.UserSearch{Term: privacyEmailPrefix}); err != nil {
 		t.Fatal(err)
@@ -2653,11 +2653,11 @@ func TestAutocompleteUsers(t *testing.T) {
 		}
 	}
 
-	namePrivacy := utils.Cfg.PrivacySettings.ShowFullName
+	namePrivacy := th.App.Config().PrivacySettings.ShowFullName
 	defer func() {
-		utils.Cfg.PrivacySettings.ShowFullName = namePrivacy
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.PrivacySettings.ShowFullName = namePrivacy })
 	}()
-	utils.Cfg.PrivacySettings.ShowFullName = false
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.PrivacySettings.ShowFullName = false })
 
 	privacyUser := &model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1", FirstName: model.NewId(), LastName: "Jimmers"}
 	privacyUser = Client.Must(Client.CreateUser(privacyUser, "")).Data.(*model.User)
@@ -2712,15 +2712,15 @@ func TestGetByUsername(t *testing.T) {
 		}
 	}
 
-	emailPrivacy := utils.Cfg.PrivacySettings.ShowEmailAddress
-	namePrivacy := utils.Cfg.PrivacySettings.ShowFullName
+	emailPrivacy := th.App.Config().PrivacySettings.ShowEmailAddress
+	namePrivacy := th.App.Config().PrivacySettings.ShowFullName
 	defer func() {
-		utils.Cfg.PrivacySettings.ShowEmailAddress = emailPrivacy
-		utils.Cfg.PrivacySettings.ShowFullName = namePrivacy
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.PrivacySettings.ShowEmailAddress = emailPrivacy })
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.PrivacySettings.ShowFullName = namePrivacy })
 	}()
 
-	utils.Cfg.PrivacySettings.ShowEmailAddress = false
-	utils.Cfg.PrivacySettings.ShowFullName = false
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.PrivacySettings.ShowEmailAddress = false })
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.PrivacySettings.ShowFullName = false })
 
 	if result, err := Client.GetByUsername(th.BasicUser2.Username, ""); err != nil {
 		t.Fatal(err)
@@ -2749,15 +2749,15 @@ func TestGetByEmail(t *testing.T) {
 		t.Fatal("Failed to get user by email")
 	}
 
-	emailPrivacy := utils.Cfg.PrivacySettings.ShowEmailAddress
-	namePrivacy := utils.Cfg.PrivacySettings.ShowFullName
+	emailPrivacy := th.App.Config().PrivacySettings.ShowEmailAddress
+	namePrivacy := th.App.Config().PrivacySettings.ShowFullName
 	defer func() {
-		utils.Cfg.PrivacySettings.ShowEmailAddress = emailPrivacy
-		utils.Cfg.PrivacySettings.ShowFullName = namePrivacy
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.PrivacySettings.ShowEmailAddress = emailPrivacy })
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.PrivacySettings.ShowFullName = namePrivacy })
 	}()
 
-	utils.Cfg.PrivacySettings.ShowEmailAddress = false
-	utils.Cfg.PrivacySettings.ShowFullName = false
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.PrivacySettings.ShowEmailAddress = false })
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.PrivacySettings.ShowFullName = false })
 
 	if user, respMetdata := Client.GetByEmail(th.BasicUser2.Email, ""); respMetdata.Error != nil {
 		t.Fatal(respMetdata.Error)

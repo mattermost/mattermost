@@ -31,7 +31,7 @@ const (
 )
 
 func (a *App) DoSecurityUpdateCheck() {
-	if *utils.Cfg.ServiceSettings.EnableSecurityFixAlert {
+	if *a.Config().ServiceSettings.EnableSecurityFixAlert {
 		if result := <-a.Srv.Store.System().Get(); result.Err == nil {
 			props := result.Data.(model.StringMap)
 			lastSecurityTime, _ := strconv.ParseInt(props[model.SYSTEM_LAST_SECURITY_TIME], 10, 0)
@@ -45,7 +45,7 @@ func (a *App) DoSecurityUpdateCheck() {
 				v.Set(PROP_SECURITY_ID, utils.CfgDiagnosticId)
 				v.Set(PROP_SECURITY_BUILD, model.CurrentVersion+"."+model.BuildNumber)
 				v.Set(PROP_SECURITY_ENTERPRISE_READY, model.BuildEnterpriseReady)
-				v.Set(PROP_SECURITY_DATABASE, *utils.Cfg.SqlSettings.DriverName)
+				v.Set(PROP_SECURITY_DATABASE, *a.Config().SqlSettings.DriverName)
 				v.Set(PROP_SECURITY_OS, runtime.GOOS)
 
 				if len(props[model.SYSTEM_RAN_UNIT_TESTS]) > 0 {

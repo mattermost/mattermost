@@ -71,28 +71,29 @@ func setupTestHelper(enterprise bool) *TestHelper {
 	var options []app.Option
 	if testStore != nil {
 		options = append(options, app.StoreOverride(testStore))
-		options = append(options, app.ConfigOverride(func(cfg *model.Config) {
-			cfg.ServiceSettings.ListenAddress = new(string)
-			*cfg.ServiceSettings.ListenAddress = ":0"
-		}))
 	}
 
 	th := &TestHelper{
 		App: app.New(options...),
 	}
 
-	*utils.Cfg.TeamSettings.MaxUsersPerTeam = 50
-	*utils.Cfg.RateLimitSettings.Enable = false
-	utils.Cfg.EmailSettings.SendEmailNotifications = true
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.MaxUsersPerTeam = 50 })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.RateLimitSettings.Enable = false })
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.EmailSettings.SendEmailNotifications = true })
 	utils.DisableDebugLogForTest()
+	prevListenAddress := *th.App.Config().ServiceSettings.ListenAddress
+	if testStore != nil {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = ":0" })
+	}
 	th.App.StartServer()
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = prevListenAddress })
 	api4.Init(th.App, th.App.Srv.Router, false)
 	Init(th.App, th.App.Srv.Router)
 	wsapi.Init(th.App, th.App.Srv.WebSocketRouter)
 	utils.EnableDebugLogForTest()
 	th.App.Srv.Store.MarkSystemRanUnitTests()
 
-	*utils.Cfg.TeamSettings.EnableOpenServer = true
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableOpenServer = true })
 
 	utils.SetIsLicensed(enterprise)
 	if enterprise {
@@ -196,7 +197,7 @@ func (me *TestHelper) CreateUser(client *model.Client) *model.User {
 	id := model.NewId()
 
 	user := &model.User{
-		Email:    "success+" + id + "@simulator.amazonses.com",
+		Email:    GenerateTestEmail(),
 		Username: "un_" + id,
 		Nickname: "nn_" + id,
 		Password: "Password1",
@@ -360,7 +361,10 @@ func (me *TestHelper) LoginSystemAdmin() {
 }
 
 func GenerateTestEmail() string {
-	return strings.ToLower("success+" + model.NewId() + "@simulator.amazonses.com")
+	if utils.Cfg.EmailSettings.SMTPServer != "dockerhost" {
+		return strings.ToLower("success+" + model.NewId() + "@simulator.amazonses.com")
+	}
+	return strings.ToLower(model.NewId() + "@dockerhost")
 }
 
 func GenerateTestTeamName() string {

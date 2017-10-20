@@ -312,8 +312,12 @@ func UpgradeDatabaseToVersion43(sqlStore SqlStore) {
 }
 
 func UpgradeDatabaseToVersion44(sqlStore SqlStore) {
-	// TODO: Uncomment following when version 4.4.0 is released
-	//if shouldPerformUpgrade(sqlStore, VERSION_4_3_0, VERSION_4_4_0) {
-	//	saveSchemaVersion(sqlStore, VERSION_4_4_0)
-	//}
+	// TODO: Uncomment following condition when version 4.4.0 is released
+	// if shouldPerformUpgrade(sqlStore, VERSION_4_3_0, VERSION_4_4_0) {
+
+	// Add the IsActive column to UserAccessToken.
+	sqlStore.CreateColumnIfNotExists("UserAccessTokens", "IsActive", "boolean", "boolean", "1")
+
+	// saveSchemaVersion(sqlStore, VERSION_4_4_0)
+	// }
 }

@@ -75,21 +75,22 @@ func TestGetJobs(t *testing.T) {
 
 	jobType := model.NewId()
 
+	t0 := model.GetMillis()
 	jobs := []*model.Job{
 		{
 			Id:       model.NewId(),
 			Type:     jobType,
-			CreateAt: model.GetMillis() + 1,
+			CreateAt: t0 + 1,
 		},
 		{
 			Id:       model.NewId(),
 			Type:     jobType,
-			CreateAt: model.GetMillis(),
+			CreateAt: t0,
 		},
 		{
 			Id:       model.NewId(),
 			Type:     jobType,
-			CreateAt: model.GetMillis() + 2,
+			CreateAt: t0 + 2,
 		},
 	}
 

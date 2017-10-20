@@ -123,18 +123,18 @@ func (a *App) StartServer() {
 
 	var handler http.Handler = &CorsWrapper{a.Srv.Router}
 
-	if *utils.Cfg.RateLimitSettings.Enable {
+	if *a.Config().RateLimitSettings.Enable {
 		l4g.Info(utils.T("api.server.start_server.rate.info"))
 
-		store, err := memstore.New(*utils.Cfg.RateLimitSettings.MemoryStoreSize)
+		store, err := memstore.New(*a.Config().RateLimitSettings.MemoryStoreSize)
 		if err != nil {
 			l4g.Critical(utils.T("api.server.start_server.rate_limiting_memory_store"))
 			return
 		}
 
 		quota := throttled.RateQuota{
-			MaxRate:  throttled.PerSec(*utils.Cfg.RateLimitSettings.PerSec),
-			MaxBurst: *utils.Cfg.RateLimitSettings.MaxBurst,
+			MaxRate:  throttled.PerSec(*a.Config().RateLimitSettings.PerSec),
+			MaxBurst: *a.Config().RateLimitSettings.MaxBurst,
 		}
 
 		rateLimiter, err := throttled.NewGCRARateLimiter(store, quota)
@@ -157,13 +157,13 @@ func (a *App) StartServer() {
 
 	a.Srv.Server = &http.Server{
 		Handler:      handlers.RecoveryHandler(handlers.RecoveryLogger(&RecoveryLogger{}), handlers.PrintRecoveryStack(true))(handler),
-		ReadTimeout:  time.Duration(*utils.Cfg.ServiceSettings.ReadTimeout) * time.Second,
-		WriteTimeout: time.Duration(*utils.Cfg.ServiceSettings.WriteTimeout) * time.Second,
+		ReadTimeout:  time.Duration(*a.Config().ServiceSettings.ReadTimeout) * time.Second,
+		WriteTimeout: time.Duration(*a.Config().ServiceSettings.WriteTimeout) * time.Second,
 	}
 
 	addr := *a.Config().ServiceSettings.ListenAddress
 	if addr == "" {
-		if *utils.Cfg.ServiceSettings.ConnectionSecurity == model.CONN_SECURITY_TLS {
+		if *a.Config().ServiceSettings.ConnectionSecurity == model.CONN_SECURITY_TLS {
 			addr = ":https"
 		} else {
 			addr = ":http"
@@ -179,7 +179,7 @@ func (a *App) StartServer() {
 
 	l4g.Info(utils.T("api.server.start_server.listening.info"), listener.Addr().String())
 
-	if *utils.Cfg.ServiceSettings.Forward80To443 {
+	if *a.Config().ServiceSettings.Forward80To443 {
 		go func() {
 			redirectListener, err := net.Listen("tcp", ":80")
 			if err != nil {
@@ -196,10 +196,10 @@ func (a *App) StartServer() {
 	a.Srv.didFinishListen = make(chan struct{})
 	go func() {
 		var err error
-		if *utils.Cfg.ServiceSettings.ConnectionSecurity == model.CONN_SECURITY_TLS {
-			if *utils.Cfg.ServiceSettings.UseLetsEncrypt {
+		if *a.Config().ServiceSettings.ConnectionSecurity == model.CONN_SECURITY_TLS {
+			if *a.Config().ServiceSettings.UseLetsEncrypt {
 				var m letsencrypt.Manager
-				m.CacheFile(*utils.Cfg.ServiceSettings.LetsEncryptCertificateCacheFile)
+				m.CacheFile(*a.Config().ServiceSettings.LetsEncryptCertificateCacheFile)
 
 				tlsConfig := &tls.Config{
 					GetCertificate: m.GetCertificate,
@@ -210,7 +210,7 @@ func (a *App) StartServer() {
 				a.Srv.Server.TLSConfig = tlsConfig
 				err = a.Srv.Server.ServeTLS(listener, "", "")
 			} else {
-				err = a.Srv.Server.ServeTLS(listener, *utils.Cfg.ServiceSettings.TLSCertFile, *utils.Cfg.ServiceSettings.TLSKeyFile)
+				err = a.Srv.Server.ServeTLS(listener, *a.Config().ServiceSettings.TLSCertFile, *a.Config().ServiceSettings.TLSKeyFile)
 			}
 		} else {
 			err = a.Srv.Server.Serve(listener)
