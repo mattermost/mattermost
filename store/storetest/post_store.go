@@ -794,7 +794,7 @@ func testPostStoreSearch(t *testing.T, ss store.Store) {
 	c1.DisplayName = "Channel1"
 	c1.Name = "zz" + model.NewId() + "b"
 	c1.Type = model.CHANNEL_OPEN
-	c1 = (<-ss.Channel().Save(c1)).Data.(*model.Channel)
+	c1 = (<-ss.Channel().Save(c1, -1)).Data.(*model.Channel)
 
 	m1 := model.ChannelMember{}
 	m1.ChannelId = c1.Id
@@ -807,7 +807,7 @@ func testPostStoreSearch(t *testing.T, ss store.Store) {
 	c2.DisplayName = "Channel1"
 	c2.Name = "zz" + model.NewId() + "b"
 	c2.Type = model.CHANNEL_OPEN
-	c2 = (<-ss.Channel().Save(c2)).Data.(*model.Channel)
+	c2 = (<-ss.Channel().Save(c2, -1)).Data.(*model.Channel)
 
 	o1 := &model.Post{}
 	o1.ChannelId = c1.Id
@@ -926,7 +926,7 @@ func testUserCountsWithPostsByDay(t *testing.T, ss store.Store) {
 	c1.DisplayName = "Channel2"
 	c1.Name = "zz" + model.NewId() + "b"
 	c1.Type = model.CHANNEL_OPEN
-	c1 = store.Must(ss.Channel().Save(c1)).(*model.Channel)
+	c1 = store.Must(ss.Channel().Save(c1, -1)).(*model.Channel)
 
 	o1 := &model.Post{}
 	o1.ChannelId = c1.Id
@@ -984,7 +984,7 @@ func testPostCountsByDay(t *testing.T, ss store.Store) {
 	c1.DisplayName = "Channel2"
 	c1.Name = "zz" + model.NewId() + "b"
 	c1.Type = model.CHANNEL_OPEN
-	c1 = store.Must(ss.Channel().Save(c1)).(*model.Channel)
+	c1 = store.Must(ss.Channel().Save(c1, -1)).(*model.Channel)
 
 	o1 := &model.Post{}
 	o1.ChannelId = c1.Id
@@ -1045,7 +1045,7 @@ func testPostStoreGetFlaggedPostsForTeam(t *testing.T, ss store.Store) {
 	c1.DisplayName = "Channel1"
 	c1.Name = "zz" + model.NewId() + "b"
 	c1.Type = model.CHANNEL_OPEN
-	c1 = store.Must(ss.Channel().Save(c1)).(*model.Channel)
+	c1 = store.Must(ss.Channel().Save(c1, -1)).(*model.Channel)
 
 	o1 := &model.Post{}
 	o1.ChannelId = c1.Id
@@ -1585,14 +1585,14 @@ func testPostStoreGetPostsBatchForIndexing(t *testing.T, ss store.Store) {
 	c1.DisplayName = "Channel1"
 	c1.Name = "zz" + model.NewId() + "b"
 	c1.Type = model.CHANNEL_OPEN
-	c1 = (<-ss.Channel().Save(c1)).Data.(*model.Channel)
+	c1 = (<-ss.Channel().Save(c1, -1)).Data.(*model.Channel)
 
 	c2 := &model.Channel{}
 	c2.TeamId = model.NewId()
 	c2.DisplayName = "Channel2"
 	c2.Name = "zz" + model.NewId() + "b"
 	c2.Type = model.CHANNEL_OPEN
-	c2 = (<-ss.Channel().Save(c2)).Data.(*model.Channel)
+	c2 = (<-ss.Channel().Save(c2, -1)).Data.(*model.Channel)
 
 	o1 := &model.Post{}
 	o1.ChannelId = c1.Id
