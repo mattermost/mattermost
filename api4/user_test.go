@@ -286,6 +286,8 @@ func TestCreateUserWithInviteId(t *testing.T) {
 		_, resp := Client.CreateUserWithInviteId(&user, inviteId)
 		CheckNotImplementedStatus(t, resp)
 		CheckErrorMessage(t, resp, "api.user.create_user.signup_email_disabled.app_error")
+
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.TeamSettings.EnableUserCreation = true })
 	})
 
 	t.Run("EnableOpenServerDisable", func(t *testing.T) {
