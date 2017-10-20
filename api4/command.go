@@ -10,7 +10,6 @@ import (
 	"strings"
 
 	l4g "github.com/alecthomas/log4go"
-	"github.com/mattermost/mattermost-server/app"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
 )
@@ -219,7 +218,7 @@ func executeCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 		// if the slash command was used in a DM or GM, ensure that the user is a member of the specified team, so that
 		// they can't just execute slash commands against arbitrary teams
 		if c.Session.GetTeamByTeamId(commandArgs.TeamId) == nil {
-			if !app.SessionHasPermissionTo(c.Session, model.PERMISSION_USE_SLASH_COMMANDS) {
+			if !c.App.SessionHasPermissionTo(c.Session, model.PERMISSION_USE_SLASH_COMMANDS) {
 				c.SetPermissionError(model.PERMISSION_USE_SLASH_COMMANDS)
 				return
 			}
