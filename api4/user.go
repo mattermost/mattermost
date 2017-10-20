@@ -317,7 +317,7 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		profiles, err = c.App.GetUsersNotInChannelPage(inTeamId, notInChannelId, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin())
 	} else if len(notInTeamId) > 0 {
-		if !app.SessionHasPermissionToTeam(c.Session, notInTeamId, model.PERMISSION_VIEW_TEAM) {
+		if !c.App.SessionHasPermissionToTeam(c.Session, notInTeamId, model.PERMISSION_VIEW_TEAM) {
 			c.SetPermissionError(model.PERMISSION_VIEW_TEAM)
 			return
 		}
@@ -329,7 +329,7 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		profiles, err = c.App.GetUsersNotInTeamPage(notInTeamId, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin())
 	} else if len(inTeamId) > 0 {
-		if !app.SessionHasPermissionToTeam(c.Session, inTeamId, model.PERMISSION_VIEW_TEAM) {
+		if !c.App.SessionHasPermissionToTeam(c.Session, inTeamId, model.PERMISSION_VIEW_TEAM) {
 			c.SetPermissionError(model.PERMISSION_VIEW_TEAM)
 			return
 		}
@@ -438,12 +438,12 @@ func searchUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if props.TeamId != "" && !app.SessionHasPermissionToTeam(c.Session, props.TeamId, model.PERMISSION_VIEW_TEAM) {
+	if props.TeamId != "" && !c.App.SessionHasPermissionToTeam(c.Session, props.TeamId, model.PERMISSION_VIEW_TEAM) {
 		c.SetPermissionError(model.PERMISSION_VIEW_TEAM)
 		return
 	}
 
-	if props.NotInTeamId != "" && !app.SessionHasPermissionToTeam(c.Session, props.NotInTeamId, model.PERMISSION_VIEW_TEAM) {
+	if props.NotInTeamId != "" && !c.App.SessionHasPermissionToTeam(c.Session, props.NotInTeamId, model.PERMISSION_VIEW_TEAM) {
 		c.SetPermissionError(model.PERMISSION_VIEW_TEAM)
 		return
 	}
@@ -499,7 +499,7 @@ func autocompleteUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		autocomplete.Users = result.InChannel
 		autocomplete.OutOfChannel = result.OutOfChannel
 	} else if len(teamId) > 0 {
-		if !app.SessionHasPermissionToTeam(c.Session, teamId, model.PERMISSION_VIEW_TEAM) {
+		if !c.App.SessionHasPermissionToTeam(c.Session, teamId, model.PERMISSION_VIEW_TEAM) {
 			c.SetPermissionError(model.PERMISSION_VIEW_TEAM)
 			return
 		}

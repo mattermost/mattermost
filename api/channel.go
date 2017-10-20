@@ -59,12 +59,12 @@ func createChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		channel.TeamId = c.TeamId
 	}
 
-	if channel.Type == model.CHANNEL_OPEN && !app.SessionHasPermissionToTeam(c.Session, channel.TeamId, model.PERMISSION_CREATE_PUBLIC_CHANNEL) {
+	if channel.Type == model.CHANNEL_OPEN && !c.App.SessionHasPermissionToTeam(c.Session, channel.TeamId, model.PERMISSION_CREATE_PUBLIC_CHANNEL) {
 		c.SetPermissionError(model.PERMISSION_CREATE_PUBLIC_CHANNEL)
 		return
 	}
 
-	if channel.Type == model.CHANNEL_PRIVATE && !app.SessionHasPermissionToTeam(c.Session, channel.TeamId, model.PERMISSION_CREATE_PRIVATE_CHANNEL) {
+	if channel.Type == model.CHANNEL_PRIVATE && !c.App.SessionHasPermissionToTeam(c.Session, channel.TeamId, model.PERMISSION_CREATE_PRIVATE_CHANNEL) {
 		c.SetPermissionError(model.PERMISSION_CREATE_PRIVATE_CHANNEL)
 		return
 	}
@@ -351,7 +351,7 @@ func getMoreChannelsPage(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// user is already in the team
-	if !app.SessionHasPermissionToTeam(c.Session, c.TeamId, model.PERMISSION_LIST_TEAM_CHANNELS) {
+	if !c.App.SessionHasPermissionToTeam(c.Session, c.TeamId, model.PERMISSION_LIST_TEAM_CHANNELS) {
 		c.SetPermissionError(model.PERMISSION_LIST_TEAM_CHANNELS)
 		return
 	}
@@ -403,7 +403,7 @@ func join(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if channel.Type == model.CHANNEL_OPEN {
-		if !app.SessionHasPermissionToTeam(c.Session, channel.TeamId, model.PERMISSION_JOIN_PUBLIC_CHANNELS) {
+		if !c.App.SessionHasPermissionToTeam(c.Session, channel.TeamId, model.PERMISSION_JOIN_PUBLIC_CHANNELS) {
 			c.SetPermissionError(model.PERMISSION_JOIN_PUBLIC_CHANNELS)
 			return
 		}
