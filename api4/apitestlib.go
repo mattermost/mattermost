@@ -454,7 +454,7 @@ func (me *TestHelper) LinkUserToTeam(user *model.User, team *model.Team) {
 }
 
 func GenerateTestEmail() string {
-	if utils.Cfg.EmailSettings.SMTPServer != "dockerhost" {
+	if utils.Cfg.EmailSettings.SMTPServer != "dockerhost" && os.Getenv("CI_INBUCKET_PORT") == "" {
 		return strings.ToLower("success+" + model.NewId() + "@simulator.amazonses.com")
 	}
 	return strings.ToLower(model.NewId() + "@dockerhost")
