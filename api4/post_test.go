@@ -488,11 +488,16 @@ func TestUpdatePost(t *testing.T) {
 
 	msg1 := "#hashtag a" + model.NewId() + " update post again"
 	rpost.Message = msg1
+	rpost.Props[model.PROPS_ADD_CHANNEL_MEMBER] = "no good"
 	rrupost, resp := Client.UpdatePost(rpost.Id, rpost)
 	CheckNoError(t, resp)
 
 	if rrupost.Message != msg1 && rrupost.Hashtags != "#hashtag" {
 		t.Fatal("failed to updates")
+	}
+
+	if rrupost.Props[model.PROPS_ADD_CHANNEL_MEMBER] != nil {
+		t.Fatal("failed to sanitize Props['add_channel_member'], should be nil")
 	}
 
 	rpost2, err := th.App.CreatePost(&model.Post{ChannelId: channel.Id, Message: "zz" + model.NewId() + "a", Type: model.POST_JOIN_LEAVE, UserId: th.BasicUser.Id}, channel, false)

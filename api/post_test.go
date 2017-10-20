@@ -433,6 +433,7 @@ func TestUpdatePost(t *testing.T) {
 
 	msg2 := "zz" + model.NewId() + " update post 1"
 	rpost2.Data.(*model.Post).Message = msg2
+	rpost2.Data.(*model.Post).Props[model.PROPS_ADD_CHANNEL_MEMBER] = "no good"
 	if rupost2, err := Client.UpdatePost(rpost2.Data.(*model.Post)); err != nil {
 		t.Fatal(err)
 	} else {
@@ -441,6 +442,9 @@ func TestUpdatePost(t *testing.T) {
 		}
 		if rupost2.Data.(*model.Post).EditAt == 0 {
 			t.Fatal("EditAt not updated for post")
+		}
+		if rupost2.Data.(*model.Post).Props[model.PROPS_ADD_CHANNEL_MEMBER] != nil {
+			t.Fatal("failed to sanitize Props['add_channel_member'], should be nil")
 		}
 	}
 
