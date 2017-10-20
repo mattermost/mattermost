@@ -5,6 +5,8 @@ import (
 
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
+
+	l4g "github.com/alecthomas/log4go"
 )
 
 type SqlChannelMemberHistoryStore struct {
@@ -57,7 +59,8 @@ func (s SqlChannelMemberHistoryStore) LogLeaveEvent(userId string, channelId str
 		params := map[string]interface{}{"UserId": userId, "ChannelId": channelId}
 		channelMemberHistory := new(model.ChannelMemberHistory)
 		if err := s.GetReplica().SelectOne(&channelMemberHistory, query, params); err != nil {
-			result.Err = model.NewAppError("SqlChannelMemberHistoryStore.LogLeaveEvent", "store.sql_channel_member_history.log_leave_event.select_error", params, err.Error(), http.StatusInternalServerError)
+			// if there was no join event, we can't log a leave event, but we shouldn't fail
+			l4g.Warn("Channel join event for user %v and channel %v not found", userId, channelId)
 		} else {
 			channelMemberHistory.LeaveTime = &leaveTime
 
