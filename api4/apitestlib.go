@@ -87,7 +87,7 @@ func setupTestHelper(enterprise bool) *TestHelper {
 	th := &TestHelper{
 		App: app.New(options...),
 	}
-	th.originalConfig = *th.App.Config().Clone()
+	th.originalConfig = th.App.Config().Clone()
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.MaxUsersPerTeam = 50 })
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.RateLimitSettings.Enable = false })
