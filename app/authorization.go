@@ -76,7 +76,7 @@ func (a *App) SessionHasPermissionToChannelByPost(session model.Session, postId 
 	return SessionHasPermissionTo(session, permission)
 }
 
-func SessionHasPermissionToUser(session model.Session, userId string) bool {
+func (a *App) SessionHasPermissionToUser(session model.Session, userId string) bool {
 	if userId == "" {
 		return false
 	}

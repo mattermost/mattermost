@@ -204,7 +204,7 @@ func getSessions(c *Context, w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	id := params["user_id"]
 
-	if !app.SessionHasPermissionToUser(c.Session, id) {
+	if !c.App.SessionHasPermissionToUser(c.Session, id) {
 		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
 		return
 	}
@@ -513,7 +513,7 @@ func getAudits(c *Context, w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	id := params["user_id"]
 
-	if !app.SessionHasPermissionToUser(c.Session, id) {
+	if !c.App.SessionHasPermissionToUser(c.Session, id) {
 		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
 		return
 	}
@@ -628,7 +628,7 @@ func updateUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !app.SessionHasPermissionToUser(c.Session, user.Id) {
+	if !c.App.SessionHasPermissionToUser(c.Session, user.Id) {
 		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
 		return
 	}
@@ -791,7 +791,7 @@ func updateUserNotify(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !app.SessionHasPermissionToUser(c.Session, userId) {
+	if !c.App.SessionHasPermissionToUser(c.Session, userId) {
 		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
 		return
 	}

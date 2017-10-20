@@ -332,7 +332,7 @@ func getChannelUnread(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !app.SessionHasPermissionToUser(c.Session, c.Params.UserId) {
+	if !c.App.SessionHasPermissionToUser(c.Session, c.Params.UserId) {
 		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
 		return
 	}
@@ -473,7 +473,7 @@ func getChannelsForTeamForUser(c *Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	if !app.SessionHasPermissionToUser(c.Session, c.Params.UserId) {
+	if !c.App.SessionHasPermissionToUser(c.Session, c.Params.UserId) {
 		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
 		return
 	}
@@ -698,7 +698,7 @@ func viewChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !app.SessionHasPermissionToUser(c.Session, c.Params.UserId) {
+	if !c.App.SessionHasPermissionToUser(c.Session, c.Params.UserId) {
 		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
 		return
 	}
@@ -766,7 +766,7 @@ func updateChannelMemberNotifyProps(c *Context, w http.ResponseWriter, r *http.R
 		return
 	}
 
-	if !app.SessionHasPermissionToUser(c.Session, c.Params.UserId) {
+	if !c.App.SessionHasPermissionToUser(c.Session, c.Params.UserId) {
 		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
 		return
 	}

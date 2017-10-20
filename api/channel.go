@@ -714,7 +714,7 @@ func updateNotifyProps(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !app.SessionHasPermissionToUser(c.Session, userId) {
+	if !c.App.SessionHasPermissionToUser(c.Session, userId) {
 		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
 		return
 	}

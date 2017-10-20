@@ -232,7 +232,7 @@ func setProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !app.SessionHasPermissionToUser(c.Session, c.Params.UserId) {
+	if !c.App.SessionHasPermissionToUser(c.Session, c.Params.UserId) {
 		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
 		return
 	}
@@ -535,7 +535,7 @@ func updateUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !app.SessionHasPermissionToUser(c.Session, user.Id) {
+	if !c.App.SessionHasPermissionToUser(c.Session, user.Id) {
 		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
 		return
 	}
@@ -575,7 +575,7 @@ func patchUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !app.SessionHasPermissionToUser(c.Session, c.Params.UserId) {
+	if !c.App.SessionHasPermissionToUser(c.Session, c.Params.UserId) {
 		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
 		return
 	}
@@ -611,7 +611,7 @@ func deleteUser(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	userId := c.Params.UserId
 
-	if !app.SessionHasPermissionToUser(c.Session, userId) {
+	if !c.App.SessionHasPermissionToUser(c.Session, userId) {
 		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
 		return
 	}
@@ -727,7 +727,7 @@ func updateUserMfa(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !app.SessionHasPermissionToUser(c.Session, c.Params.UserId) {
+	if !c.App.SessionHasPermissionToUser(c.Session, c.Params.UserId) {
 		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
 		return
 	}
@@ -772,7 +772,7 @@ func generateMfaSecret(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !app.SessionHasPermissionToUser(c.Session, c.Params.UserId) {
+	if !c.App.SessionHasPermissionToUser(c.Session, c.Params.UserId) {
 		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
 		return
 	}
@@ -932,7 +932,7 @@ func getSessions(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !app.SessionHasPermissionToUser(c.Session, c.Params.UserId) {
+	if !c.App.SessionHasPermissionToUser(c.Session, c.Params.UserId) {
 		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
 		return
 	}
@@ -956,7 +956,7 @@ func revokeSession(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !app.SessionHasPermissionToUser(c.Session, c.Params.UserId) {
+	if !c.App.SessionHasPermissionToUser(c.Session, c.Params.UserId) {
 		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
 		return
 	}
@@ -995,7 +995,7 @@ func revokeAllSessionsForUser(c *Context, w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	if !app.SessionHasPermissionToUser(c.Session, c.Params.UserId) {
+	if !c.App.SessionHasPermissionToUser(c.Session, c.Params.UserId) {
 		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
 		return
 	}
@@ -1061,7 +1061,7 @@ func getUserAudits(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !app.SessionHasPermissionToUser(c.Session, c.Params.UserId) {
+	if !c.App.SessionHasPermissionToUser(c.Session, c.Params.UserId) {
 		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
 		return
 	}
@@ -1188,7 +1188,7 @@ func createUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !app.SessionHasPermissionToUser(c.Session, c.Params.UserId) {
+	if !c.App.SessionHasPermissionToUser(c.Session, c.Params.UserId) {
 		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
 		return
 	}
@@ -1218,7 +1218,7 @@ func getUserAccessTokens(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !app.SessionHasPermissionToUser(c.Session, c.Params.UserId) {
+	if !c.App.SessionHasPermissionToUser(c.Session, c.Params.UserId) {
 		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
 		return
 	}
@@ -1249,7 +1249,7 @@ func getUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !app.SessionHasPermissionToUser(c.Session, accessToken.UserId) {
+	if !c.App.SessionHasPermissionToUser(c.Session, accessToken.UserId) {
 		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
 		return
 	}
@@ -1278,7 +1278,7 @@ func revokeUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !app.SessionHasPermissionToUser(c.Session, accessToken.UserId) {
+	if !c.App.SessionHasPermissionToUser(c.Session, accessToken.UserId) {
 		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
 		return
 	}
