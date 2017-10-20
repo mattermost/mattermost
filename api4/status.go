@@ -84,6 +84,8 @@ func updateUserStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.App.SetStatusOffline(c.Params.UserId, true)
 	case "away":
 		c.App.SetStatusAwayIfNeeded(c.Params.UserId, true)
+	case "dnd":
+		c.App.SetStatusDoNotDisturb(c.Params.UserId)
 	default:
 		c.SetInvalidParam("status")
 		return

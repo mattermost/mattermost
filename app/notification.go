@@ -988,6 +988,8 @@ func DoesStatusAllowPushNotification(userNotifyProps model.StringMap, status *mo
 		return true
 	} else if pushStatus == model.STATUS_OFFLINE && status.Status == model.STATUS_OFFLINE {
 		return true
+	} else if status.Status == model.STATUS_DND {
+		return false
 	}
 
 	return false
