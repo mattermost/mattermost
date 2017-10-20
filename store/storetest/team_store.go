@@ -9,7 +9,6 @@ import (
 
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
-	"github.com/mattermost/mattermost-server/utils"
 )
 
 func TestTeamStore(t *testing.T, ss store.Store) {
@@ -367,7 +366,7 @@ func testTeamStoreByUserId(t *testing.T, ss store.Store) {
 	o1 = store.Must(ss.Team().Save(o1)).(*model.Team)
 
 	m1 := &model.TeamMember{TeamId: o1.Id, UserId: model.NewId()}
-	store.Must(ss.Team().SaveMember(m1))
+	store.Must(ss.Team().SaveMember(m1, -1))
 
 	if r1 := <-ss.Team().GetTeamsByUserId(m1.UserId); r1.Err != nil {
 		t.Fatal(r1.Err)
@@ -569,12 +568,12 @@ func testTeamMembers(t *testing.T, ss store.Store) {
 	m2 := &model.TeamMember{TeamId: teamId1, UserId: model.NewId()}
 	m3 := &model.TeamMember{TeamId: teamId2, UserId: model.NewId()}
 
-	if r1 := <-ss.Team().SaveMember(m1); r1.Err != nil {
+	if r1 := <-ss.Team().SaveMember(m1, -1); r1.Err != nil {
 		t.Fatal(r1.Err)
 	}
 
-	store.Must(ss.Team().SaveMember(m2))
-	store.Must(ss.Team().SaveMember(m3))
+	store.Must(ss.Team().SaveMember(m2, -1))
+	store.Must(ss.Team().SaveMember(m3, -1))
 
 	if r1 := <-ss.Team().GetMembers(teamId1, 0, 100); r1.Err != nil {
 		t.Fatal(r1.Err)
@@ -635,7 +634,7 @@ func testTeamMembers(t *testing.T, ss store.Store) {
 		}
 	}
 
-	store.Must(ss.Team().SaveMember(m1))
+	store.Must(ss.Team().SaveMember(m1, -1))
 
 	if r1 := <-ss.Team().RemoveAllMembersByTeam(teamId1); r1.Err != nil {
 		t.Fatal(r1.Err)
@@ -654,8 +653,8 @@ func testTeamMembers(t *testing.T, ss store.Store) {
 	uid := model.NewId()
 	m4 := &model.TeamMember{TeamId: teamId1, UserId: uid}
 	m5 := &model.TeamMember{TeamId: teamId2, UserId: uid}
-	store.Must(ss.Team().SaveMember(m4))
-	store.Must(ss.Team().SaveMember(m5))
+	store.Must(ss.Team().SaveMember(m4, -1))
+	store.Must(ss.Team().SaveMember(m5, -1))
 
 	if r1 := <-ss.Team().GetTeamsForUser(uid); r1.Err != nil {
 		t.Fatal(r1.Err)
@@ -683,11 +682,7 @@ func testTeamMembers(t *testing.T, ss store.Store) {
 }
 
 func testSaveTeamMemberMaxMembers(t *testing.T, ss store.Store) {
-	MaxUsersPerTeam := *utils.Cfg.TeamSettings.MaxUsersPerTeam
-	defer func() {
-		*utils.Cfg.TeamSettings.MaxUsersPerTeam = MaxUsersPerTeam
-	}()
-	*utils.Cfg.TeamSettings.MaxUsersPerTeam = 5
+	maxUsersPerTeam := 5
 
 	team := store.Must(ss.Team().Save(&model.Team{
 		DisplayName: "DisplayName",
@@ -698,9 +693,9 @@ func testSaveTeamMemberMaxMembers(t *testing.T, ss store.Store) {
 		<-ss.Team().PermanentDelete(team.Id)
 	}()
 
-	userIds := make([]string, *utils.Cfg.TeamSettings.MaxUsersPerTeam)
+	userIds := make([]string, maxUsersPerTeam)
 
-	for i := 0; i < *utils.Cfg.TeamSettings.MaxUsersPerTeam; i++ {
+	for i := 0; i < maxUsersPerTeam; i++ {
 		userIds[i] = store.Must(ss.User().Save(&model.User{
 			Username: model.NewId(),
 			Email:    model.NewId(),
@@ -713,7 +708,7 @@ func testSaveTeamMemberMaxMembers(t *testing.T, ss store.Store) {
 		store.Must(ss.Team().SaveMember(&model.TeamMember{
 			TeamId: team.Id,
 			UserId: userIds[i],
-		}))
+		}, maxUsersPerTeam))
 
 		defer func(userId string) {
 			<-ss.Team().RemoveMember(team.Id, userId)
@@ -722,7 +717,7 @@ func testSaveTeamMemberMaxMembers(t *testing.T, ss store.Store) {
 
 	if result := <-ss.Team().GetTotalMemberCount(team.Id); result.Err != nil {
 		t.Fatal(result.Err)
-	} else if count := result.Data.(int64); int(count) != *utils.Cfg.TeamSettings.MaxUsersPerTeam {
+	} else if count := result.Data.(int64); int(count) != maxUsersPerTeam {
 		t.Fatalf("should start with 5 team members, had %v instead", count)
 	}
 
@@ -737,13 +732,13 @@ func testSaveTeamMemberMaxMembers(t *testing.T, ss store.Store) {
 	if result := <-ss.Team().SaveMember(&model.TeamMember{
 		TeamId: team.Id,
 		UserId: newUserId,
-	}); result.Err == nil {
+	}, maxUsersPerTeam); result.Err == nil {
 		t.Fatal("shouldn't be able to save member when at maximum members per team")
 	}
 
 	if result := <-ss.Team().GetTotalMemberCount(team.Id); result.Err != nil {
 		t.Fatal(result.Err)
-	} else if count := result.Data.(int64); int(count) != *utils.Cfg.TeamSettings.MaxUsersPerTeam {
+	} else if count := result.Data.(int64); int(count) != maxUsersPerTeam {
 		t.Fatalf("should still have 5 team members, had %v instead", count)
 	}
 
@@ -756,11 +751,11 @@ func testSaveTeamMemberMaxMembers(t *testing.T, ss store.Store) {
 
 	if result := <-ss.Team().GetTotalMemberCount(team.Id); result.Err != nil {
 		t.Fatal(result.Err)
-	} else if count := result.Data.(int64); int(count) != *utils.Cfg.TeamSettings.MaxUsersPerTeam-1 {
+	} else if count := result.Data.(int64); int(count) != maxUsersPerTeam-1 {
 		t.Fatalf("should now only have 4 team members, had %v instead", count)
 	}
 
-	if result := <-ss.Team().SaveMember(&model.TeamMember{TeamId: team.Id, UserId: newUserId}); result.Err != nil {
+	if result := <-ss.Team().SaveMember(&model.TeamMember{TeamId: team.Id, UserId: newUserId}, maxUsersPerTeam); result.Err != nil {
 		t.Fatal("should've been able to save new member after deleting one", result.Err)
 	} else {
 		defer func(userId string) {
@@ -770,7 +765,7 @@ func testSaveTeamMemberMaxMembers(t *testing.T, ss store.Store) {
 
 	if result := <-ss.Team().GetTotalMemberCount(team.Id); result.Err != nil {
 		t.Fatal(result.Err)
-	} else if count := result.Data.(int64); int(count) != *utils.Cfg.TeamSettings.MaxUsersPerTeam {
+	} else if count := result.Data.(int64); int(count) != maxUsersPerTeam {
 		t.Fatalf("should have 5 team members again, had %v instead", count)
 	}
 
@@ -783,7 +778,7 @@ func testSaveTeamMemberMaxMembers(t *testing.T, ss store.Store) {
 		Username: model.NewId(),
 		Email:    model.NewId(),
 	})).(*model.User).Id
-	if result := <-ss.Team().SaveMember(&model.TeamMember{TeamId: team.Id, UserId: newUserId2}); result.Err != nil {
+	if result := <-ss.Team().SaveMember(&model.TeamMember{TeamId: team.Id, UserId: newUserId2}, maxUsersPerTeam); result.Err != nil {
 		t.Fatal("should've been able to save new member after deleting one", result.Err)
 	} else {
 		defer func(userId string) {
@@ -796,7 +791,7 @@ func testGetTeamMember(t *testing.T, ss store.Store) {
 	teamId1 := model.NewId()
 
 	m1 := &model.TeamMember{TeamId: teamId1, UserId: model.NewId()}
-	store.Must(ss.Team().SaveMember(m1))
+	store.Must(ss.Team().SaveMember(m1, -1))
 
 	if r := <-ss.Team().GetMember(m1.TeamId, m1.UserId); r.Err != nil {
 		t.Fatal(r.Err)
@@ -825,7 +820,7 @@ func testGetTeamMembersByIds(t *testing.T, ss store.Store) {
 	teamId1 := model.NewId()
 
 	m1 := &model.TeamMember{TeamId: teamId1, UserId: model.NewId()}
-	store.Must(ss.Team().SaveMember(m1))
+	store.Must(ss.Team().SaveMember(m1, -1))
 
 	if r := <-ss.Team().GetMembersByIds(m1.TeamId, []string{m1.UserId}); r.Err != nil {
 		t.Fatal(r.Err)
@@ -842,7 +837,7 @@ func testGetTeamMembersByIds(t *testing.T, ss store.Store) {
 	}
 
 	m2 := &model.TeamMember{TeamId: teamId1, UserId: model.NewId()}
-	store.Must(ss.Team().SaveMember(m2))
+	store.Must(ss.Team().SaveMember(m2, -1))
 
 	if r := <-ss.Team().GetMembersByIds(m1.TeamId, []string{m1.UserId, m2.UserId, model.NewId()}); r.Err != nil {
 		t.Fatal(r.Err)
@@ -871,10 +866,10 @@ func testTeamStoreMemberCount(t *testing.T, ss store.Store) {
 
 	teamId1 := model.NewId()
 	m1 := &model.TeamMember{TeamId: teamId1, UserId: u1.Id}
-	store.Must(ss.Team().SaveMember(m1))
+	store.Must(ss.Team().SaveMember(m1, -1))
 
 	m2 := &model.TeamMember{TeamId: teamId1, UserId: u2.Id}
-	store.Must(ss.Team().SaveMember(m2))
+	store.Must(ss.Team().SaveMember(m2, -1))
 
 	if result := <-ss.Team().GetTotalMemberCount(teamId1); result.Err != nil {
 		t.Fatal(result.Err)
@@ -893,7 +888,7 @@ func testTeamStoreMemberCount(t *testing.T, ss store.Store) {
 	}
 
 	m3 := &model.TeamMember{TeamId: teamId1, UserId: model.NewId()}
-	store.Must(ss.Team().SaveMember(m3))
+	store.Must(ss.Team().SaveMember(m3, -1))
 
 	if result := <-ss.Team().GetTotalMemberCount(teamId1); result.Err != nil {
 		t.Fatal(result.Err)
@@ -919,8 +914,8 @@ func testGetChannelUnreadsForAllTeams(t *testing.T, ss store.Store) {
 	uid := model.NewId()
 	m1 := &model.TeamMember{TeamId: teamId1, UserId: uid}
 	m2 := &model.TeamMember{TeamId: teamId2, UserId: uid}
-	store.Must(ss.Team().SaveMember(m1))
-	store.Must(ss.Team().SaveMember(m2))
+	store.Must(ss.Team().SaveMember(m1, -1))
+	store.Must(ss.Team().SaveMember(m2, -1))
 
 	c1 := &model.Channel{TeamId: m1.TeamId, Name: model.NewId(), DisplayName: "Town Square", Type: model.CHANNEL_OPEN, TotalMsgCount: 100}
 	store.Must(ss.Channel().Save(c1))
@@ -983,7 +978,7 @@ func testGetChannelUnreadsForTeam(t *testing.T, ss store.Store) {
 
 	uid := model.NewId()
 	m1 := &model.TeamMember{TeamId: teamId1, UserId: uid}
-	store.Must(ss.Team().SaveMember(m1))
+	store.Must(ss.Team().SaveMember(m1, -1))
 
 	c1 := &model.Channel{TeamId: m1.TeamId, Name: model.NewId(), DisplayName: "Town Square", Type: model.CHANNEL_OPEN, TotalMsgCount: 100}
 	store.Must(ss.Channel().Save(c1))
