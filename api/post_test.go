@@ -39,7 +39,7 @@ func TestCreatePost(t *testing.T) {
 	adminUser := th.CreateUser(th.SystemAdminClient)
 	th.LinkUserToTeam(adminUser, adminTeam)
 
-	post1 := &model.Post{ChannelId: channel1.Id, Message: "#hashtag a" + model.NewId() + "a"}
+	post1 := &model.Post{ChannelId: channel1.Id, Message: "#hashtag a" + model.NewId() + "a", Props: model.StringInterface{model.PROPS_ADD_CHANNEL_MEMBER: "no good"}}
 	rpost1, err := Client.CreatePost(post1)
 	if err != nil {
 		t.Fatal(err)
@@ -59,6 +59,10 @@ func TestCreatePost(t *testing.T) {
 
 	if rpost1.Data.(*model.Post).EditAt != 0 {
 		t.Fatal("Newly craeted post shouldn't have EditAt set")
+	}
+
+	if rpost1.Data.(*model.Post).Props[model.PROPS_ADD_CHANNEL_MEMBER] != nil {
+		t.Fatal("newly created post shouldn't have Props['add_channel_member'] set")
 	}
 
 	_, err = Client.CreatePost(&model.Post{ChannelId: channel1.Id, Message: "#hashtag a" + model.NewId() + "a", Type: model.POST_SYSTEM_GENERIC})

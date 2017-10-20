@@ -24,7 +24,7 @@ func TestCreatePost(t *testing.T) {
 	defer th.TearDown()
 	Client := th.Client
 
-	post := &model.Post{ChannelId: th.BasicChannel.Id, Message: "#hashtag a" + model.NewId() + "a"}
+	post := &model.Post{ChannelId: th.BasicChannel.Id, Message: "#hashtag a" + model.NewId() + "a", Props: model.StringInterface{model.PROPS_ADD_CHANNEL_MEMBER: "no good"}}
 	rpost, resp := Client.CreatePost(post)
 	CheckNoError(t, resp)
 	CheckCreatedStatus(t, resp)
@@ -43,6 +43,10 @@ func TestCreatePost(t *testing.T) {
 
 	if rpost.EditAt != 0 {
 		t.Fatal("newly created post shouldn't have EditAt set")
+	}
+
+	if rpost.Props[model.PROPS_ADD_CHANNEL_MEMBER] != nil {
+		t.Fatal("newly created post shouldn't have Props['add_channel_member'] set")
 	}
 
 	post.RootId = rpost.Id

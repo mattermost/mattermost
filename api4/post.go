@@ -62,6 +62,8 @@ func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		post.CreateAt = 0
 	}
 
+	c.App.SanitizeProps(post)
+
 	rp, err := c.App.CreatePostAsUser(post)
 	if err != nil {
 		c.Err = err

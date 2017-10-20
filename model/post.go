@@ -189,6 +189,18 @@ func (o *Post) IsValid() *AppError {
 	return nil
 }
 
+func (o *Post) SanitizeProps() {
+	membersToSanitize := []string{
+		PROPS_ADD_CHANNEL_MEMBER,
+	}
+
+	for _, member := range membersToSanitize {
+		if _, ok := o.Props[member]; ok {
+			delete(o.Props, member)
+		}
+	}
+}
+
 func (o *Post) PreSave() {
 	if o.Id == "" {
 		o.Id = NewId()

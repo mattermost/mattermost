@@ -190,6 +190,10 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 	return rpost, nil
 }
 
+func (a *App) SanitizeProps(post *model.Post) {
+	post.SanitizeProps()
+}
+
 func (a *App) handlePostEvents(post *model.Post, user *model.User, channel *model.Channel, triggerWebhooks bool, parentPostList *model.PostList) *model.AppError {
 	var tchan store.StoreChannel
 	if len(channel.TeamId) > 0 {
