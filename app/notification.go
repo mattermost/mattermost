@@ -801,9 +801,6 @@ func GetExplicitMentions(message string, keywords map[string][]string) (map[stri
 		}
 	}
 
-	const emojiPattern = `:([a-zA-Z0-9_-]+):`
-	r, _ := regexp.Compile(emojiPattern)
-
 	message = removeCodeFromMessage(message)
 
 	for _, word := range strings.FieldsFunc(message, func(c rune) bool {
@@ -813,16 +810,8 @@ func GetExplicitMentions(message string, keywords map[string][]string) (map[stri
 		isMention := false
 
 		// skip word with format ':word:' with an assumption that it is an emoji format only
-		if matchEmojiFormat := r.MatchString(word); matchEmojiFormat {
+		if word[0] == ':' && word[len(word)-1] == ':' {
 			continue
-		}
-
-		matchedWord := strings.FieldsFunc(word, func(c rune) bool {
-			return c == ':'
-		})
-
-		if len(matchedWord) > 0 && matchedWord[0] != "" {
-			word = matchedWord[0]
 		}
 
 		if word == "@here" {
@@ -853,10 +842,10 @@ func GetExplicitMentions(message string, keywords map[string][]string) (map[stri
 			continue
 		}
 
-		if strings.ContainsAny(word, ".-") {
+		if strings.ContainsAny(word, ".-:") {
 			// This word contains a character that may be the end of a sentence, so split further
 			splitWords := strings.FieldsFunc(word, func(c rune) bool {
-				return c == '.' || c == '-'
+				return c == '.' || c == '-' || c == ':'
 			})
 
 			for _, splitWord := range splitWords {
