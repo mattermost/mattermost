@@ -347,7 +347,7 @@ func (c *Context) SystemAdminRequired() {
 }
 
 func (c *Context) IsSystemAdmin() bool {
-	return app.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM)
+	return c.App.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM)
 }
 
 func (c *Context) RemoveSessionCookie(w http.ResponseWriter, r *http.Request) {
@@ -466,7 +466,7 @@ func Handle404(w http.ResponseWriter, r *http.Request) {
 
 func (c *Context) CheckTeamId() {
 	if c.TeamId != "" && c.Session.GetTeamByTeamId(c.TeamId) == nil {
-		if app.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
+		if c.App.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
 			if result := <-c.App.Srv.Store.Team().Get(c.TeamId); result.Err != nil {
 				c.Err = result.Err
 				c.Err.StatusCode = http.StatusBadRequest

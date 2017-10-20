@@ -11,7 +11,7 @@ import (
 	"github.com/mattermost/mattermost-server/model"
 )
 
-func SessionHasPermissionTo(session model.Session, permission *model.Permission) bool {
+func (a *App) SessionHasPermissionTo(session model.Session, permission *model.Permission) bool {
 	return CheckIfRolesGrantPermission(session.GetUserRoles(), permission.Id)
 }
 
@@ -28,7 +28,7 @@ func SessionHasPermissionToTeam(session model.Session, teamId string, permission
 		}
 	}
 
-	return SessionHasPermissionTo(session, permission)
+	return CheckIfRolesGrantPermission(session.GetUserRoles(), permission.Id)
 }
 
 func (a *App) SessionHasPermissionToTeam(session model.Session, teamId string, permission *model.Permission) bool {
@@ -43,7 +43,7 @@ func (a *App) SessionHasPermissionToTeam(session model.Session, teamId string, p
 		}
 	}
 
-	return SessionHasPermissionTo(session, permission)
+	return a.SessionHasPermissionTo(session, permission)
 }
 
 func (a *App) SessionHasPermissionToChannel(session model.Session, channelId string, permission *model.Permission) bool {
@@ -71,7 +71,7 @@ func (a *App) SessionHasPermissionToChannel(session model.Session, channelId str
 		return false
 	}
 
-	return SessionHasPermissionTo(session, permission)
+	return a.SessionHasPermissionTo(session, permission)
 }
 
 func (a *App) SessionHasPermissionToChannelByPost(session model.Session, postId string, permission *model.Permission) bool {
@@ -89,7 +89,7 @@ func (a *App) SessionHasPermissionToChannelByPost(session model.Session, postId 
 		return a.SessionHasPermissionToTeam(session, channel.TeamId, permission)
 	}
 
-	return SessionHasPermissionTo(session, permission)
+	return a.SessionHasPermissionTo(session, permission)
 }
 
 func (a *App) SessionHasPermissionToUser(session model.Session, userId string) bool {
@@ -101,7 +101,7 @@ func (a *App) SessionHasPermissionToUser(session model.Session, userId string) b
 		return true
 	}
 
-	if SessionHasPermissionTo(session, model.PERMISSION_EDIT_OTHER_USERS) {
+	if a.SessionHasPermissionTo(session, model.PERMISSION_EDIT_OTHER_USERS) {
 		return true
 	}
 
