@@ -33,6 +33,7 @@ const (
 	POST_MESSAGE_MAX_RUNES     = 4000
 	POST_PROPS_MAX_RUNES       = 8000
 	POST_CUSTOM_TYPE_PREFIX    = "custom_"
+	PROPS_ADD_CHANNEL_MEMBER   = "add_channel_member"
 )
 
 type Post struct {
@@ -186,6 +187,18 @@ func (o *Post) IsValid() *AppError {
 	}
 
 	return nil
+}
+
+func (o *Post) SanitizeProps() {
+	membersToSanitize := []string{
+		PROPS_ADD_CHANNEL_MEMBER,
+	}
+
+	for _, member := range membersToSanitize {
+		if _, ok := o.Props[member]; ok {
+			delete(o.Props, member)
+		}
+	}
 }
 
 func (o *Post) PreSave() {

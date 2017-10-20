@@ -39,7 +39,7 @@ func TestCreatePost(t *testing.T) {
 	adminUser := th.CreateUser(th.SystemAdminClient)
 	th.LinkUserToTeam(adminUser, adminTeam)
 
-	post1 := &model.Post{ChannelId: channel1.Id, Message: "#hashtag a" + model.NewId() + "a"}
+	post1 := &model.Post{ChannelId: channel1.Id, Message: "#hashtag a" + model.NewId() + "a", Props: model.StringInterface{model.PROPS_ADD_CHANNEL_MEMBER: "no good"}}
 	rpost1, err := Client.CreatePost(post1)
 	if err != nil {
 		t.Fatal(err)
@@ -59,6 +59,10 @@ func TestCreatePost(t *testing.T) {
 
 	if rpost1.Data.(*model.Post).EditAt != 0 {
 		t.Fatal("Newly craeted post shouldn't have EditAt set")
+	}
+
+	if rpost1.Data.(*model.Post).Props[model.PROPS_ADD_CHANNEL_MEMBER] != nil {
+		t.Fatal("newly created post shouldn't have Props['add_channel_member'] set")
 	}
 
 	_, err = Client.CreatePost(&model.Post{ChannelId: channel1.Id, Message: "#hashtag a" + model.NewId() + "a", Type: model.POST_SYSTEM_GENERIC})
@@ -433,6 +437,7 @@ func TestUpdatePost(t *testing.T) {
 
 	msg2 := "zz" + model.NewId() + " update post 1"
 	rpost2.Data.(*model.Post).Message = msg2
+	rpost2.Data.(*model.Post).Props[model.PROPS_ADD_CHANNEL_MEMBER] = "no good"
 	if rupost2, err := Client.UpdatePost(rpost2.Data.(*model.Post)); err != nil {
 		t.Fatal(err)
 	} else {
@@ -441,6 +446,9 @@ func TestUpdatePost(t *testing.T) {
 		}
 		if rupost2.Data.(*model.Post).EditAt == 0 {
 			t.Fatal("EditAt not updated for post")
+		}
+		if rupost2.Data.(*model.Post).Props[model.PROPS_ADD_CHANNEL_MEMBER] != nil {
+			t.Fatal("failed to sanitize Props['add_channel_member'], should be nil")
 		}
 	}
 
