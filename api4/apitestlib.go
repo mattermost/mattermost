@@ -32,7 +32,8 @@ import (
 )
 
 type TestHelper struct {
-	App *app.App
+	App            *app.App
+	originalConfig *model.Config
 
 	Client              *model.Client4
 	BasicUser           *model.User
@@ -86,6 +87,7 @@ func setupTestHelper(enterprise bool) *TestHelper {
 	th := &TestHelper{
 		App: app.New(options...),
 	}
+	th.originalConfig = *th.App.Config().Clone()
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.MaxUsersPerTeam = 50 })
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.RateLimitSettings.Enable = false })
@@ -176,6 +178,11 @@ func (me *TestHelper) TearDown() {
 	}()
 
 	wg.Wait()
+
+	me.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg = *me.originalConfig
+	})
+	utils.SetDefaultRolesBasedOnConfig()
 
 	me.App.Shutdown()
 
