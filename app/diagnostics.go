@@ -92,8 +92,8 @@ func isDefault(setting interface{}, defaultValue interface{}) bool {
 	return false
 }
 
-func pluginSetting(cfg *model.Config, plugin, key string, defaultValue interface{}) interface{} {
-	settings, ok := cfg.PluginSettings.Plugins[plugin]
+func pluginSetting(pluginSettings *model.PluginSettings, plugin, key string, defaultValue interface{}) interface{} {
+	settings, ok := pluginSettings.Plugins[plugin]
 	if !ok {
 		return defaultValue
 	}
@@ -448,7 +448,7 @@ func (a *App) trackConfig() {
 	})
 
 	SendDiagnostic(TRACK_CONFIG_PLUGIN, map[string]interface{}{
-		"enable_jira": pluginSetting(cfg, "jira", "enabled", false),
+		"enable_jira": pluginSetting(&cfg.PluginSettings, "jira", "enabled", false),
 	})
 
 	SendDiagnostic(TRACK_CONFIG_DATA_RETENTION, map[string]interface{}{
