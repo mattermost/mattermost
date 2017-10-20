@@ -43,6 +43,7 @@ const (
 	TRACK_CONFIG_ELASTICSEARCH  = "config_elasticsearch"
 	TRACK_CONFIG_PLUGIN         = "config_plugin"
 	TRACK_CONFIG_DATA_RETENTION = "config_data_retention"
+	TRACK_CONFIG_MESSAGE_EXPORT = "config_message_export"
 
 	TRACK_ACTIVITY = "activity"
 	TRACK_LICENSE  = "license"
@@ -456,6 +457,12 @@ func trackConfig() {
 		"message_retention_days":  *utils.Cfg.DataRetentionSettings.MessageRetentionDays,
 		"file_retention_days":     *utils.Cfg.DataRetentionSettings.FileRetentionDays,
 		"deletion_job_start_time": *utils.Cfg.DataRetentionSettings.DeletionJobStartTime,
+	})
+
+	SendDiagnostic(TRACK_CONFIG_MESSAGE_EXPORT, map[string]interface{}{
+		"enable_message_export":         *utils.Cfg.MessageExportSettings.EnableExport,
+		"daily_run_time":                *utils.Cfg.MessageExportSettings.DailyRunTime,
+		"default_export_from_timestamp": *utils.Cfg.MessageExportSettings.ExportFromTimestamp,
 	})
 }
 

@@ -138,6 +138,7 @@ func TestDiagnostics(t *testing.T) {
 			TRACK_CONFIG_PLUGIN,
 			TRACK_ACTIVITY,
 			TRACK_SERVER,
+			TRACK_CONFIG_MESSAGE_EXPORT,
 		} {
 			if !strings.Contains(info, item) {
 				t.Fatal("Sent diagnostics missing item: " + item)
