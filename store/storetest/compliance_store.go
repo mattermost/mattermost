@@ -94,7 +94,7 @@ func testComplianceExport(t *testing.T, ss store.Store) {
 	c1.DisplayName = "Channel2"
 	c1.Name = "zz" + model.NewId() + "b"
 	c1.Type = model.CHANNEL_OPEN
-	c1 = store.Must(ss.Channel().Save(c1)).(*model.Channel)
+	c1 = store.Must(ss.Channel().Save(c1, -1)).(*model.Channel)
 
 	o1 := &model.Post{}
 	o1.ChannelId = c1.Id
@@ -256,7 +256,7 @@ func testComplianceExportDirectMessages(t *testing.T, ss store.Store) {
 	c1.DisplayName = "Channel2"
 	c1.Name = "zz" + model.NewId() + "b"
 	c1.Type = model.CHANNEL_OPEN
-	c1 = store.Must(ss.Channel().Save(c1)).(*model.Channel)
+	c1 = store.Must(ss.Channel().Save(c1, -1)).(*model.Channel)
 
 	cDM := store.Must(ss.Channel().CreateDirectChannel(u1.Id, u2.Id)).(*model.Channel)
 

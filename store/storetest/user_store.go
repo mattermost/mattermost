@@ -410,8 +410,8 @@ func testUserStoreGetProfilesInChannel(t *testing.T, ss store.Store) {
 	c2.Name = "profiles-" + model.NewId()
 	c2.Type = model.CHANNEL_PRIVATE
 
-	store.Must(ss.Channel().Save(&c1))
-	store.Must(ss.Channel().Save(&c2))
+	store.Must(ss.Channel().Save(&c1, -1))
+	store.Must(ss.Channel().Save(&c2, -1))
 
 	m1 := model.ChannelMember{}
 	m1.ChannelId = c1.Id
@@ -527,8 +527,8 @@ func testUserStoreGetAllProfilesInChannel(t *testing.T, ss store.Store) {
 	c2.Name = "profiles-" + model.NewId()
 	c2.Type = model.CHANNEL_PRIVATE
 
-	store.Must(ss.Channel().Save(&c1))
-	store.Must(ss.Channel().Save(&c2))
+	store.Must(ss.Channel().Save(&c1, -1))
+	store.Must(ss.Channel().Save(&c2, -1))
 
 	m1 := model.ChannelMember{}
 	m1.ChannelId = c1.Id
@@ -615,8 +615,8 @@ func testUserStoreGetProfilesNotInChannel(t *testing.T, ss store.Store) {
 	c2.Name = "profiles-" + model.NewId()
 	c2.Type = model.CHANNEL_PRIVATE
 
-	store.Must(ss.Channel().Save(&c1))
-	store.Must(ss.Channel().Save(&c2))
+	store.Must(ss.Channel().Save(&c1, -1))
+	store.Must(ss.Channel().Save(&c2, -1))
 
 	if r1 := <-ss.User().GetProfilesNotInChannel(teamId, c1.Id, 0, 100); r1.Err != nil {
 		t.Fatal(r1.Err)
@@ -1164,7 +1164,7 @@ func testUserUnreadCount(t *testing.T, ss store.Store) {
 	store.Must(ss.User().Save(u2))
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u2.Id}))
 
-	if err := (<-ss.Channel().Save(&c1)).Err; err != nil {
+	if err := (<-ss.Channel().Save(&c1, -1)).Err; err != nil {
 		t.Fatal("couldn't save item", err)
 	}
 
@@ -1581,7 +1581,7 @@ func testUserStoreSearch(t *testing.T, ss store.Store) {
 	c1.DisplayName = "NameName"
 	c1.Name = "zz" + model.NewId() + "b"
 	c1.Type = model.CHANNEL_OPEN
-	c1 = *store.Must(ss.Channel().Save(&c1)).(*model.Channel)
+	c1 = *store.Must(ss.Channel().Save(&c1, -1)).(*model.Channel)
 
 	if r1 := <-ss.User().SearchNotInChannel(tid, c1.Id, "jimb", searchOptions); r1.Err != nil {
 		t.Fatal(r1.Err)
