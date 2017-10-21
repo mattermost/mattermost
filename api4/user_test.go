@@ -355,6 +355,9 @@ func TestGetUser(t *testing.T) {
 	Client := th.Client
 
 	user := th.CreateUser()
+	user.Props = map[string]string{"testpropkey": "testpropvalue"}
+
+	th.App.UpdateUser(user, false)
 
 	ruser, resp := Client.GetUser(user.Id, "")
 	CheckNoError(t, resp)
@@ -363,6 +366,9 @@ func TestGetUser(t *testing.T) {
 	if ruser.Email != user.Email {
 		t.Fatal("emails did not match")
 	}
+
+	assert.NotNil(t, ruser.Props)
+	assert.Equal(t, ruser.Props["testpropkey"], "testpropvalue")
 
 	ruser, resp = Client.GetUser(user.Id, resp.Etag)
 	CheckEtag(t, ruser, resp)
@@ -2447,7 +2453,7 @@ func TestRevokeUserAccessToken(t *testing.T) {
 	if !ok {
 		t.Fatal("should have passed")
 	}
-	
+
 	oldSessionToken = Client.AuthToken
 	Client.AuthToken = token.Token
 	_, resp = Client.GetMe("")
