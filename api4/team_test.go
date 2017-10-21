@@ -398,16 +398,11 @@ func TestPatchTeam(t *testing.T) {
 
 	patch := &model.TeamPatch{}
 
-	patch.DisplayName = new(string)
-	*patch.DisplayName = "Other name"
-	patch.Description = new(string)
-	*patch.Description = "Other description"
-	patch.CompanyName = new(string)
-	*patch.CompanyName = "Other company name"
-	patch.InviteId = new(string)
-	*patch.InviteId = "inviteid1"
-	patch.AllowOpenInvite = new(bool)
-	*patch.AllowOpenInvite = true
+	patch.DisplayName = model.NewString("Other name")
+	patch.Description = model.NewString("Other description")
+	patch.CompanyName = model.NewString("Other company name")
+	patch.InviteId = model.NewString("inviteid1")
+	patch.AllowOpenInvite = model.NewBool(true)
 
 	rteam, resp := Client.PatchTeam(team.Id, patch)
 	CheckNoError(t, resp)

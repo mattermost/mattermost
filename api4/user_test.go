@@ -1036,12 +1036,9 @@ func TestPatchUser(t *testing.T) {
 
 	patch := &model.UserPatch{}
 
-	patch.Nickname = new(string)
-	*patch.Nickname = "Joram Wilander"
-	patch.FirstName = new(string)
-	*patch.FirstName = "Joram"
-	patch.LastName = new(string)
-	*patch.LastName = "Wilander"
+	patch.Nickname = model.NewString("Joram Wilander")
+	patch.FirstName = model.NewString("Joram")
+	patch.LastName = model.NewString("Wilander")
 	patch.Position = new(string)
 	patch.NotifyProps = model.StringMap{}
 	patch.NotifyProps["comment"] = "somethingrandom"
@@ -1069,8 +1066,7 @@ func TestPatchUser(t *testing.T) {
 		t.Fatal("NotifyProps did not update properly")
 	}
 
-	patch.Username = new(string)
-	*patch.Username = th.BasicUser2.Username
+	patch.Username = model.NewString(th.BasicUser2.Username)
 	_, resp = Client.PatchUser(user.Id, patch)
 	CheckBadRequestStatus(t, resp)
 
@@ -1097,8 +1093,7 @@ func TestPatchUser(t *testing.T) {
 	session.IsOAuth = true
 	app.AddSessionToCache(session)
 
-	patch.Email = new(string)
-	*patch.Email = GenerateTestEmail()
+	patch.Email = model.NewString(GenerateTestEmail())
 	_, resp = Client.PatchUser(user.Id, patch)
 	CheckForbiddenStatus(t, resp)
 
