@@ -96,7 +96,7 @@ func (s SqlChannelStore) CreateIndexesIfNotExists() {
 	s.CreateFullTextIndexIfNotExists("idx_channels_txt", "Channels", "Name, DisplayName")
 }
 
-func (s SqlChannelStore) Save(channel *model.Channel) store.StoreChannel {
+func (s SqlChannelStore) Save(channel *model.Channel, maxChannelsPerTeam int64) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		if channel.Type == model.CHANNEL_DIRECT {
 			result.Err = model.NewAppError("SqlChannelStore.Save", "store.sql_channel.save.direct_channel.app_error", nil, "", http.StatusBadRequest)
@@ -104,7 +104,7 @@ func (s SqlChannelStore) Save(channel *model.Channel) store.StoreChannel {
 			if transaction, err := s.GetMaster().Begin(); err != nil {
 				result.Err = model.NewAppError("SqlChannelStore.Save", "store.sql_channel.save.open_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
 			} else {
-				*result = s.saveChannelT(transaction, channel)
+				*result = s.saveChannelT(transaction, channel, maxChannelsPerTeam)
 				if result.Err != nil {
 					transaction.Rollback()
 				} else {
@@ -149,7 +149,7 @@ func (s SqlChannelStore) SaveDirectChannel(directchannel *model.Channel, member1
 				result.Err = model.NewAppError("SqlChannelStore.SaveDirectChannel", "store.sql_channel.save_direct_channel.open_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
 			} else {
 				directchannel.TeamId = ""
-				channelResult := s.saveChannelT(transaction, directchannel)
+				channelResult := s.saveChannelT(transaction, directchannel, 0)
 
 				if channelResult.Err != nil {
 					transaction.Rollback()
@@ -187,7 +187,7 @@ func (s SqlChannelStore) SaveDirectChannel(directchannel *model.Channel, member1
 	})
 }
 
-func (s SqlChannelStore) saveChannelT(transaction *gorp.Transaction, channel *model.Channel) store.StoreResult {
+func (s SqlChannelStore) saveChannelT(transaction *gorp.Transaction, channel *model.Channel, maxChannelsPerTeam int64) store.StoreResult {
 	result := store.StoreResult{}
 
 	if len(channel.Id) > 0 {
@@ -200,11 +200,11 @@ func (s SqlChannelStore) saveChannelT(transaction *gorp.Transaction, channel *mo
 		return result
 	}
 
-	if channel.Type != model.CHANNEL_DIRECT && channel.Type != model.CHANNEL_GROUP {
+	if channel.Type != model.CHANNEL_DIRECT && channel.Type != model.CHANNEL_GROUP && maxChannelsPerTeam >= 0 {
 		if count, err := transaction.SelectInt("SELECT COUNT(0) FROM Channels WHERE TeamId = :TeamId AND DeleteAt = 0 AND (Type = 'O' OR Type = 'P')", map[string]interface{}{"TeamId": channel.TeamId}); err != nil {
 			result.Err = model.NewAppError("SqlChannelStore.Save", "store.sql_channel.save_channel.current_count.app_error", nil, "teamId="+channel.TeamId+", "+err.Error(), http.StatusInternalServerError)
 			return result
-		} else if count > *utils.Cfg.TeamSettings.MaxChannelsPerTeam {
+		} else if count >= maxChannelsPerTeam {
 			result.Err = model.NewAppError("SqlChannelStore.Save", "store.sql_channel.save_channel.limit.app_error", nil, "teamId="+channel.TeamId, http.StatusBadRequest)
 			return result
 		}
