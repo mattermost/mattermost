@@ -52,7 +52,7 @@ func (a *App) CreateBasicUser(client *model.Client) *model.AppError {
 		}
 		ruser := result.Data.(*model.User)
 		store.Must(a.Srv.Store.User().VerifyEmail(ruser.Id))
-		store.Must(a.Srv.Store.Team().SaveMember(&model.TeamMember{TeamId: basicteam.Id, UserId: ruser.Id}))
+		store.Must(a.Srv.Store.Team().SaveMember(&model.TeamMember{TeamId: basicteam.Id, UserId: ruser.Id}, *a.Config().TeamSettings.MaxUsersPerTeam))
 	}
 	return nil
 }
