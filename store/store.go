@@ -89,7 +89,7 @@ type TeamStore interface {
 	GetByInviteId(inviteId string) StoreChannel
 	PermanentDelete(teamId string) StoreChannel
 	AnalyticsTeamCount() StoreChannel
-	SaveMember(member *model.TeamMember) StoreChannel
+	SaveMember(member *model.TeamMember, maxUsersPerTeam int) StoreChannel
 	UpdateMember(member *model.TeamMember) StoreChannel
 	GetMember(teamId string, userId string) StoreChannel
 	GetMembers(teamId string, offset int, limit int) StoreChannel
@@ -105,7 +105,7 @@ type TeamStore interface {
 }
 
 type ChannelStore interface {
-	Save(channel *model.Channel) StoreChannel
+	Save(channel *model.Channel, maxChannelsPerTeam int64) StoreChannel
 	CreateDirectChannel(userId string, otherUserId string) StoreChannel
 	SaveDirectChannel(channel *model.Channel, member1 *model.ChannelMember, member2 *model.ChannelMember) StoreChannel
 	Update(channel *model.Channel) StoreChannel

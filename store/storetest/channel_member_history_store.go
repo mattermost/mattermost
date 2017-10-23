@@ -26,7 +26,7 @@ func testLogJoinEvent(t *testing.T, ss store.Store) {
 		Name:        "zz" + model.NewId() + "b",
 		Type:        model.CHANNEL_OPEN,
 	}
-	channel = *store.Must(ss.Channel().Save(&channel)).(*model.Channel)
+	channel = *store.Must(ss.Channel().Save(&channel, -1)).(*model.Channel)
 
 	// and a test user
 	user := model.User{
@@ -48,7 +48,7 @@ func testLogLeaveEvent(t *testing.T, ss store.Store) {
 		Name:        "zz" + model.NewId() + "b",
 		Type:        model.CHANNEL_OPEN,
 	}
-	channel = *store.Must(ss.Channel().Save(&channel)).(*model.Channel)
+	channel = *store.Must(ss.Channel().Save(&channel, -1)).(*model.Channel)
 
 	// and a test user
 	user := model.User{
@@ -73,7 +73,7 @@ func testGetUsersInChannelAt(t *testing.T, ss store.Store) {
 		Name:        "zz" + model.NewId() + "b",
 		Type:        model.CHANNEL_OPEN,
 	}
-	channel = *store.Must(ss.Channel().Save(&channel)).(*model.Channel)
+	channel = *store.Must(ss.Channel().Save(&channel, -1)).(*model.Channel)
 
 	// and a test user
 	user := model.User{
@@ -113,7 +113,7 @@ func testPurgeHistoryBefore(t *testing.T, ss store.Store) {
 		Name:        "zz" + model.NewId() + "b",
 		Type:        model.CHANNEL_OPEN,
 	}
-	channel = *store.Must(ss.Channel().Save(&channel)).(*model.Channel)
+	channel = *store.Must(ss.Channel().Save(&channel, -1)).(*model.Channel)
 
 	// and a test user
 	user := model.User{

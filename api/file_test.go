@@ -136,7 +136,7 @@ func TestUploadFile(t *testing.T) {
 	// Wait a bit for files to ready
 	time.Sleep(2 * time.Second)
 
-	if err := cleanupTestFile(info); err != nil {
+	if err := cleanupTestFile(info, &th.App.Config().FileSettings); err != nil {
 		t.Fatal(err)
 	}
 }
@@ -206,7 +206,7 @@ func TestGetFileInfo(t *testing.T) {
 		t.Fatal("other user got incorrect file")
 	}
 
-	if err := cleanupTestFile(store.Must(th.App.Srv.Store.FileInfo().Get(fileId)).(*model.FileInfo)); err != nil {
+	if err := cleanupTestFile(store.Must(th.App.Srv.Store.FileInfo().Get(fileId)).(*model.FileInfo), &th.App.Config().FileSettings); err != nil {
 		t.Fatal(err)
 	}
 }
@@ -289,7 +289,7 @@ func TestGetFile(t *testing.T) {
 		body.Close()
 	}
 
-	if err := cleanupTestFile(store.Must(th.App.Srv.Store.FileInfo().Get(fileId)).(*model.FileInfo)); err != nil {
+	if err := cleanupTestFile(store.Must(th.App.Srv.Store.FileInfo().Get(fileId)).(*model.FileInfo), &th.App.Config().FileSettings); err != nil {
 		t.Fatal(err)
 	}
 }
@@ -346,7 +346,7 @@ func TestGetFileThumbnail(t *testing.T) {
 		body.Close()
 	}
 
-	if err := cleanupTestFile(store.Must(th.App.Srv.Store.FileInfo().Get(fileId)).(*model.FileInfo)); err != nil {
+	if err := cleanupTestFile(store.Must(th.App.Srv.Store.FileInfo().Get(fileId)).(*model.FileInfo), &th.App.Config().FileSettings); err != nil {
 		t.Fatal(err)
 	}
 }
@@ -403,7 +403,7 @@ func TestGetFilePreview(t *testing.T) {
 		body.Close()
 	}
 
-	if err := cleanupTestFile(store.Must(th.App.Srv.Store.FileInfo().Get(fileId)).(*model.FileInfo)); err != nil {
+	if err := cleanupTestFile(store.Must(th.App.Srv.Store.FileInfo().Get(fileId)).(*model.FileInfo), &th.App.Config().FileSettings); err != nil {
 		t.Fatal(err)
 	}
 }
@@ -471,7 +471,7 @@ func TestGetPublicFile(t *testing.T) {
 		t.Fatal("should've failed to get image with public link after salt changed")
 	}
 
-	if err := cleanupTestFile(store.Must(th.App.Srv.Store.FileInfo().Get(fileId)).(*model.FileInfo)); err != nil {
+	if err := cleanupTestFile(store.Must(th.App.Srv.Store.FileInfo().Get(fileId)).(*model.FileInfo), &th.App.Config().FileSettings); err != nil {
 		t.Fatal(err)
 	}
 }
@@ -548,7 +548,7 @@ func TestGetPublicFileOld(t *testing.T) {
 		t.Fatal("should've failed to get image with public link after salt changed")
 	}
 
-	if err := cleanupTestFile(store.Must(th.App.Srv.Store.FileInfo().Get(fileId)).(*model.FileInfo)); err != nil {
+	if err := cleanupTestFile(store.Must(th.App.Srv.Store.FileInfo().Get(fileId)).(*model.FileInfo), &th.App.Config().FileSettings); err != nil {
 		t.Fatal(err)
 	}
 }
@@ -623,7 +623,7 @@ func TestGetPublicLink(t *testing.T) {
 	// Wait a bit for files to ready
 	time.Sleep(2 * time.Second)
 
-	if err := cleanupTestFile(store.Must(th.App.Srv.Store.FileInfo().Get(fileId)).(*model.FileInfo)); err != nil {
+	if err := cleanupTestFile(store.Must(th.App.Srv.Store.FileInfo().Get(fileId)).(*model.FileInfo), &th.App.Config().FileSettings); err != nil {
 		t.Fatal(err)
 	}
 }
@@ -899,19 +899,19 @@ func s3New(endpoint, accessKey, secretKey string, secure bool, signV2 bool, regi
 	return s3.NewWithCredentials(endpoint, creds, secure, region)
 }
 
-func cleanupTestFile(info *model.FileInfo) error {
-	if *utils.Cfg.FileSettings.DriverName == model.IMAGE_DRIVER_S3 {
-		endpoint := utils.Cfg.FileSettings.AmazonS3Endpoint
-		accessKey := utils.Cfg.FileSettings.AmazonS3AccessKeyId
-		secretKey := utils.Cfg.FileSettings.AmazonS3SecretAccessKey
-		secure := *utils.Cfg.FileSettings.AmazonS3SSL
-		signV2 := *utils.Cfg.FileSettings.AmazonS3SignV2
-		region := utils.Cfg.FileSettings.AmazonS3Region
+func cleanupTestFile(info *model.FileInfo, settings *model.FileSettings) error {
+	if *settings.DriverName == model.IMAGE_DRIVER_S3 {
+		endpoint := settings.AmazonS3Endpoint
+		accessKey := settings.AmazonS3AccessKeyId
+		secretKey := settings.AmazonS3SecretAccessKey
+		secure := *settings.AmazonS3SSL
+		signV2 := *settings.AmazonS3SignV2
+		region := settings.AmazonS3Region
 		s3Clnt, err := s3New(endpoint, accessKey, secretKey, secure, signV2, region)
 		if err != nil {
 			return err
 		}
-		bucket := utils.Cfg.FileSettings.AmazonS3Bucket
+		bucket := settings.AmazonS3Bucket
 		if err := s3Clnt.RemoveObject(bucket, info.Path); err != nil {
 			return err
 		}
@@ -927,19 +927,19 @@ func cleanupTestFile(info *model.FileInfo) error {
 				return err
 			}
 		}
-	} else if *utils.Cfg.FileSettings.DriverName == model.IMAGE_DRIVER_LOCAL {
-		if err := os.Remove(utils.Cfg.FileSettings.Directory + info.Path); err != nil {
+	} else if *settings.DriverName == model.IMAGE_DRIVER_LOCAL {
+		if err := os.Remove(settings.Directory + info.Path); err != nil {
 			return err
 		}
 
 		if info.ThumbnailPath != "" {
-			if err := os.Remove(utils.Cfg.FileSettings.Directory + info.ThumbnailPath); err != nil {
+			if err := os.Remove(settings.Directory + info.ThumbnailPath); err != nil {
 				return err
 			}
 		}
 
 		if info.PreviewPath != "" {
-			if err := os.Remove(utils.Cfg.FileSettings.Directory + info.PreviewPath); err != nil {
+			if err := os.Remove(settings.Directory + info.PreviewPath); err != nil {
 				return err
 			}
 		}

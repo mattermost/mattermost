@@ -8,7 +8,6 @@ import (
 
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
-	"github.com/mattermost/mattermost-server/utils"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -16,14 +15,10 @@ func TestPermanentDeleteChannel(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
 
-	incomingWasEnabled := utils.Cfg.ServiceSettings.EnableIncomingWebhooks
-	outgoingWasEnabled := utils.Cfg.ServiceSettings.EnableOutgoingWebhooks
-	utils.Cfg.ServiceSettings.EnableIncomingWebhooks = true
-	utils.Cfg.ServiceSettings.EnableOutgoingWebhooks = true
-	defer func() {
-		utils.Cfg.ServiceSettings.EnableIncomingWebhooks = incomingWasEnabled
-		utils.Cfg.ServiceSettings.EnableOutgoingWebhooks = outgoingWasEnabled
-	}()
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.ServiceSettings.EnableIncomingWebhooks = true
+		cfg.ServiceSettings.EnableOutgoingWebhooks = true
+	})
 
 	channel, err := th.App.CreateChannel(&model.Channel{DisplayName: "deletion-test", Name: "deletion-test", Type: model.CHANNEL_OPEN, TeamId: th.BasicTeam.Id}, false)
 	if err != nil {

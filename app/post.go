@@ -104,6 +104,8 @@ func (a *App) CreatePostMissingChannel(post *model.Post, triggerWebhooks bool) (
 }
 
 func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhooks bool) (*model.Post, *model.AppError) {
+	post.SanitizeProps()
+
 	var pchan store.StoreChannel
 	if len(post.RootId) > 0 {
 		pchan = a.Srv.Store.Post().Get(post.RootId)
@@ -273,6 +275,8 @@ func (a *App) SendEphemeralPost(userId string, post *model.Post) *model.Post {
 }
 
 func (a *App) UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model.AppError) {
+	post.SanitizeProps()
+
 	var oldPost *model.Post
 	if result := <-a.Srv.Store.Post().Get(post.Id); result.Err != nil {
 		return nil, result.Err

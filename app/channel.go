@@ -156,7 +156,7 @@ func (a *App) CreateChannelWithUser(channel *model.Channel, userId string) (*mod
 }
 
 func (a *App) CreateChannel(channel *model.Channel, addMember bool) (*model.Channel, *model.AppError) {
-	if result := <-a.Srv.Store.Channel().Save(channel); result.Err != nil {
+	if result := <-a.Srv.Store.Channel().Save(channel, *a.Config().TeamSettings.MaxChannelsPerTeam); result.Err != nil {
 		return nil, result.Err
 	} else {
 		sc := result.Data.(*model.Channel)
@@ -299,7 +299,7 @@ func (a *App) createGroupChannel(userIds []string, creatorId string) (*model.Cha
 		Type:        model.CHANNEL_GROUP,
 	}
 
-	if result := <-a.Srv.Store.Channel().Save(group); result.Err != nil {
+	if result := <-a.Srv.Store.Channel().Save(group, *a.Config().TeamSettings.MaxChannelsPerTeam); result.Err != nil {
 		if result.Err.Id == store.CHANNEL_EXISTS_ERROR {
 			return result.Data.(*model.Channel), result.Err
 		} else {

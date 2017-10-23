@@ -10,7 +10,6 @@ import (
 
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
-	"github.com/mattermost/mattermost-server/utils"
 )
 
 const (
@@ -326,30 +325,32 @@ func (s SqlTeamStore) AnalyticsTeamCount() store.StoreChannel {
 	})
 }
 
-func (s SqlTeamStore) SaveMember(member *model.TeamMember) store.StoreChannel {
+func (s SqlTeamStore) SaveMember(member *model.TeamMember, maxUsersPerTeam int) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		if result.Err = member.IsValid(); result.Err != nil {
 			return
 		}
 
-		if count, err := s.GetMaster().SelectInt(
-			`SELECT
-				COUNT(0)
-			FROM
-				TeamMembers
-			INNER JOIN
-				Users
-			ON
-				TeamMembers.UserId = Users.Id
-			WHERE
-				TeamId = :TeamId
-				AND TeamMembers.DeleteAt = 0
-				AND Users.DeleteAt = 0`, map[string]interface{}{"TeamId": member.TeamId}); err != nil {
-			result.Err = model.NewAppError("SqlUserStore.Save", "store.sql_user.save.member_count.app_error", nil, "teamId="+member.TeamId+", "+err.Error(), http.StatusInternalServerError)
-			return
-		} else if int(count) >= *utils.Cfg.TeamSettings.MaxUsersPerTeam {
-			result.Err = model.NewAppError("SqlUserStore.Save", "store.sql_user.save.max_accounts.app_error", nil, "teamId="+member.TeamId, http.StatusBadRequest)
-			return
+		if maxUsersPerTeam >= 0 {
+			if count, err := s.GetMaster().SelectInt(
+				`SELECT
+					COUNT(0)
+				FROM
+					TeamMembers
+				INNER JOIN
+					Users
+				ON
+					TeamMembers.UserId = Users.Id
+				WHERE
+					TeamId = :TeamId
+					AND TeamMembers.DeleteAt = 0
+					AND Users.DeleteAt = 0`, map[string]interface{}{"TeamId": member.TeamId}); err != nil {
+				result.Err = model.NewAppError("SqlUserStore.Save", "store.sql_user.save.member_count.app_error", nil, "teamId="+member.TeamId+", "+err.Error(), http.StatusInternalServerError)
+				return
+			} else if count >= int64(maxUsersPerTeam) {
+				result.Err = model.NewAppError("SqlUserStore.Save", "store.sql_user.save.max_accounts.app_error", nil, "teamId="+member.TeamId, http.StatusBadRequest)
+				return
+			}
 		}
 
 		if err := s.GetMaster().Insert(member); err != nil {
