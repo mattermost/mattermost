@@ -162,7 +162,10 @@ func (s SqlChannelStore) SaveDirectChannel(directchannel *model.Channel, member1
 					member2.ChannelId = newChannel.Id
 
 					member1Result := s.saveMemberT(transaction, member1, newChannel)
-					member2Result := s.saveMemberT(transaction, member2, newChannel)
+					member2Result := member1Result
+					if member1.UserId != member2.UserId {
+						member2Result = s.saveMemberT(transaction, member2, newChannel)
+					}
 
 					if member1Result.Err != nil || member2Result.Err != nil {
 						transaction.Rollback()
