@@ -39,7 +39,7 @@ func TestCreatePost(t *testing.T) {
 	adminUser := th.CreateUser(th.SystemAdminClient)
 	th.LinkUserToTeam(adminUser, adminTeam)
 
-	post1 := &model.Post{ChannelId: channel1.Id, Message: "#hashtag a" + model.NewId() + "a"}
+	post1 := &model.Post{ChannelId: channel1.Id, Message: "#hashtag a" + model.NewId() + "a", Props: model.StringInterface{model.PROPS_ADD_CHANNEL_MEMBER: "no good"}}
 	rpost1, err := Client.CreatePost(post1)
 	if err != nil {
 		t.Fatal(err)
@@ -59,6 +59,10 @@ func TestCreatePost(t *testing.T) {
 
 	if rpost1.Data.(*model.Post).EditAt != 0 {
 		t.Fatal("Newly craeted post shouldn't have EditAt set")
+	}
+
+	if rpost1.Data.(*model.Post).Props[model.PROPS_ADD_CHANNEL_MEMBER] != nil {
+		t.Fatal("newly created post shouldn't have Props['add_channel_member'] set")
 	}
 
 	_, err = Client.CreatePost(&model.Post{ChannelId: channel1.Id, Message: "#hashtag a" + model.NewId() + "a", Type: model.POST_SYSTEM_GENERIC})
@@ -237,16 +241,8 @@ func testCreatePostWithOutgoingHook(
 	user := th.SystemAdminUser
 	channel := th.CreateChannel(Client, team)
 
-	enableOutgoingHooks := th.App.Config().ServiceSettings.EnableOutgoingWebhooks
-	allowedInternalConnections := *th.App.Config().ServiceSettings.AllowedUntrustedInternalConnections
-	defer func() {
-		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOutgoingWebhooks = enableOutgoingHooks })
-		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.ServiceSettings.AllowedUntrustedInternalConnections = &allowedInternalConnections
-		})
-	}()
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOutgoingWebhooks = true })
 	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.ServiceSettings.EnableOutgoingWebhooks = true
 		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost 127.0.0.1"
 	})
 
@@ -402,13 +398,6 @@ func TestUpdatePost(t *testing.T) {
 	Client := th.BasicClient
 	channel1 := th.BasicChannel
 
-	allowEditPost := *th.App.Config().ServiceSettings.AllowEditPost
-	postEditTimeLimit := *th.App.Config().ServiceSettings.PostEditTimeLimit
-	defer func() {
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowEditPost = allowEditPost })
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.PostEditTimeLimit = postEditTimeLimit })
-	}()
-
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowEditPost = model.ALLOW_EDIT_POST_ALWAYS })
 
 	post1 := &model.Post{ChannelId: channel1.Id, Message: "zz" + model.NewId() + "a"}
@@ -433,6 +422,7 @@ func TestUpdatePost(t *testing.T) {
 
 	msg2 := "zz" + model.NewId() + " update post 1"
 	rpost2.Data.(*model.Post).Message = msg2
+	rpost2.Data.(*model.Post).Props[model.PROPS_ADD_CHANNEL_MEMBER] = "no good"
 	if rupost2, err := Client.UpdatePost(rpost2.Data.(*model.Post)); err != nil {
 		t.Fatal(err)
 	} else {
@@ -441,6 +431,9 @@ func TestUpdatePost(t *testing.T) {
 		}
 		if rupost2.Data.(*model.Post).EditAt == 0 {
 			t.Fatal("EditAt not updated for post")
+		}
+		if rupost2.Data.(*model.Post).Props[model.PROPS_ADD_CHANNEL_MEMBER] != nil {
+			t.Fatal("failed to sanitize Props['add_channel_member'], should be nil")
 		}
 	}
 
@@ -973,11 +966,6 @@ func TestDeletePosts(t *testing.T) {
 	channel1 := th.BasicChannel
 	team1 := th.BasicTeam
 
-	restrictPostDelete := *th.App.Config().ServiceSettings.RestrictPostDelete
-	defer func() {
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.RestrictPostDelete = restrictPostDelete })
-		utils.SetDefaultRolesBasedOnConfig()
-	}()
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.RestrictPostDelete = model.PERMISSIONS_DELETE_POST_ALL })
 	utils.SetDefaultRolesBasedOnConfig()
 
@@ -1474,16 +1462,8 @@ func TestGetOpenGraphMetadata(t *testing.T) {
 
 	Client := th.BasicClient
 
-	enableLinkPreviews := *th.App.Config().ServiceSettings.EnableLinkPreviews
-	allowedInternalConnections := *th.App.Config().ServiceSettings.AllowedUntrustedInternalConnections
-	defer func() {
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableLinkPreviews = enableLinkPreviews })
-		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.ServiceSettings.AllowedUntrustedInternalConnections = &allowedInternalConnections
-		})
-	}()
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableLinkPreviews = true })
 	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.EnableLinkPreviews = true
 		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost 127.0.0.1"
 	})
 

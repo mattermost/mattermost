@@ -544,6 +544,14 @@ type Config struct {
 	PluginSettings        PluginSettings
 }
 
+func (o *Config) Clone() *Config {
+	var ret Config
+	if err := json.Unmarshal([]byte(o.ToJson()), &ret); err != nil {
+		panic(err)
+	}
+	return &ret
+}
+
 func (o *Config) ToJson() string {
 	b, err := json.Marshal(o)
 	if err != nil {

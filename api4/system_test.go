@@ -341,11 +341,27 @@ func TestPostLog(t *testing.T) {
 	defer th.TearDown()
 	Client := th.Client
 
+	enableDev := *th.App.Config().ServiceSettings.EnableDeveloper
+	defer func() {
+		*th.App.Config().ServiceSettings.EnableDeveloper = enableDev
+	}()
+	*th.App.Config().ServiceSettings.EnableDeveloper = true
+
 	message := make(map[string]string)
 	message["level"] = "ERROR"
 	message["message"] = "this is a test"
 
 	_, resp := Client.PostLog(message)
+	CheckNoError(t, resp)
+
+	Client.Logout()
+
+	_, resp = Client.PostLog(message)
+	CheckNoError(t, resp)
+
+	*th.App.Config().ServiceSettings.EnableDeveloper = false
+
+	_, resp = Client.PostLog(message)
 	CheckForbiddenStatus(t, resp)
 
 	logMessage, resp := th.SystemAdminClient.PostLog(message)

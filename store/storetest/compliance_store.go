@@ -81,20 +81,20 @@ func testComplianceExport(t *testing.T, ss store.Store) {
 	u1.Email = model.NewId()
 	u1.Username = model.NewId()
 	u1 = store.Must(ss.User().Save(u1)).(*model.User)
-	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: t1.Id, UserId: u1.Id}))
+	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: t1.Id, UserId: u1.Id}, -1))
 
 	u2 := &model.User{}
 	u2.Email = model.NewId()
 	u2.Username = model.NewId()
 	u2 = store.Must(ss.User().Save(u2)).(*model.User)
-	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: t1.Id, UserId: u2.Id}))
+	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: t1.Id, UserId: u2.Id}, -1))
 
 	c1 := &model.Channel{}
 	c1.TeamId = t1.Id
 	c1.DisplayName = "Channel2"
 	c1.Name = "zz" + model.NewId() + "b"
 	c1.Type = model.CHANNEL_OPEN
-	c1 = store.Must(ss.Channel().Save(c1)).(*model.Channel)
+	c1 = store.Must(ss.Channel().Save(c1, -1)).(*model.Channel)
 
 	o1 := &model.Post{}
 	o1.ChannelId = c1.Id
@@ -243,20 +243,20 @@ func testComplianceExportDirectMessages(t *testing.T, ss store.Store) {
 	u1.Email = model.NewId()
 	u1.Username = model.NewId()
 	u1 = store.Must(ss.User().Save(u1)).(*model.User)
-	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: t1.Id, UserId: u1.Id}))
+	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: t1.Id, UserId: u1.Id}, -1))
 
 	u2 := &model.User{}
 	u2.Email = model.NewId()
 	u2.Username = model.NewId()
 	u2 = store.Must(ss.User().Save(u2)).(*model.User)
-	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: t1.Id, UserId: u2.Id}))
+	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: t1.Id, UserId: u2.Id}, -1))
 
 	c1 := &model.Channel{}
 	c1.TeamId = t1.Id
 	c1.DisplayName = "Channel2"
 	c1.Name = "zz" + model.NewId() + "b"
 	c1.Type = model.CHANNEL_OPEN
-	c1 = store.Must(ss.Channel().Save(c1)).(*model.Channel)
+	c1 = store.Must(ss.Channel().Save(c1, -1)).(*model.Channel)
 
 	cDM := store.Must(ss.Channel().CreateDirectChannel(u1.Id, u2.Id)).(*model.Channel)
 
