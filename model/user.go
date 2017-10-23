@@ -320,8 +320,7 @@ func (u *User) Etag(showFullName, showEmail bool) string {
 // Remove any private data from the user object
 func (u *User) Sanitize(options map[string]bool) {
 	u.Password = ""
-	u.AuthData = new(string)
-	*u.AuthData = ""
+	u.AuthData = NewString("")
 	u.MfaSecret = ""
 
 	if len(options) != 0 && !options["email"] {
@@ -341,8 +340,7 @@ func (u *User) Sanitize(options map[string]bool) {
 
 func (u *User) ClearNonProfileFields() {
 	u.Password = ""
-	u.AuthData = new(string)
-	*u.AuthData = ""
+	u.AuthData = NewString("")
 	u.MfaSecret = ""
 	u.EmailVerified = false
 	u.AllowMarketing = false

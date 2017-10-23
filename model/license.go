@@ -82,93 +82,75 @@ func (f *Features) ToMap() map[string]interface{} {
 
 func (f *Features) SetDefaults() {
 	if f.FutureFeatures == nil {
-		f.FutureFeatures = new(bool)
-		*f.FutureFeatures = true
+		f.FutureFeatures = NewBool(true)
 	}
 
 	if f.Users == nil {
-		f.Users = new(int)
-		*f.Users = 0
+		f.Users = NewInt(0)
 	}
 
 	if f.LDAP == nil {
-		f.LDAP = new(bool)
-		*f.LDAP = *f.FutureFeatures
+		f.LDAP = NewBool(*f.FutureFeatures)
 	}
 
 	if f.MFA == nil {
-		f.MFA = new(bool)
-		*f.MFA = *f.FutureFeatures
+		f.MFA = NewBool(*f.FutureFeatures)
 	}
 
 	if f.GoogleOAuth == nil {
-		f.GoogleOAuth = new(bool)
-		*f.GoogleOAuth = *f.FutureFeatures
+		f.GoogleOAuth = NewBool(*f.FutureFeatures)
 	}
 
 	if f.Office365OAuth == nil {
-		f.Office365OAuth = new(bool)
-		*f.Office365OAuth = *f.FutureFeatures
+		f.Office365OAuth = NewBool(*f.FutureFeatures)
 	}
 
 	if f.Compliance == nil {
-		f.Compliance = new(bool)
-		*f.Compliance = *f.FutureFeatures
+		f.Compliance = NewBool(*f.FutureFeatures)
 	}
 
 	if f.Cluster == nil {
-		f.Cluster = new(bool)
-		*f.Cluster = *f.FutureFeatures
+		f.Cluster = NewBool(*f.FutureFeatures)
 	}
 
 	if f.Metrics == nil {
-		f.Metrics = new(bool)
-		*f.Metrics = *f.FutureFeatures
+		f.Metrics = NewBool(*f.FutureFeatures)
 	}
 
 	if f.CustomBrand == nil {
-		f.CustomBrand = new(bool)
-		*f.CustomBrand = *f.FutureFeatures
+		f.CustomBrand = NewBool(*f.FutureFeatures)
 	}
 
 	if f.MHPNS == nil {
-		f.MHPNS = new(bool)
-		*f.MHPNS = *f.FutureFeatures
+		f.MHPNS = NewBool(*f.FutureFeatures)
 	}
 
 	if f.SAML == nil {
-		f.SAML = new(bool)
-		*f.SAML = *f.FutureFeatures
+		f.SAML = NewBool(*f.FutureFeatures)
 	}
 
 	if f.PasswordRequirements == nil {
-		f.PasswordRequirements = new(bool)
-		*f.PasswordRequirements = *f.FutureFeatures
+		f.PasswordRequirements = NewBool(*f.FutureFeatures)
 	}
 
 	if f.Elasticsearch == nil {
-		f.Elasticsearch = new(bool)
-		*f.Elasticsearch = *f.FutureFeatures
+		f.Elasticsearch = NewBool(*f.FutureFeatures)
 	}
 
 	if f.Announcement == nil {
-		f.Announcement = new(bool)
-		*f.Announcement = true
+		f.Announcement = NewBool(true)
 	}
 
 	if f.ThemeManagement == nil {
-		f.ThemeManagement = new(bool)
-		*f.ThemeManagement = true
+		f.ThemeManagement = NewBool(true)
 	}
 
 	if f.EmailNotificationContents == nil {
-		f.EmailNotificationContents = new(bool)
-		*f.EmailNotificationContents = *f.FutureFeatures
+		f.EmailNotificationContents = NewBool(*f.FutureFeatures)
 	}
 
 	if f.DataRetention == nil {
-		f.DataRetention = new(bool)
-		*f.DataRetention = *f.FutureFeatures
+		f.DataRetention = NewBool(*f.FutureFeatures)
 	}
 }
 

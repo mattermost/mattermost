@@ -561,16 +561,13 @@ func TestPatchPost(t *testing.T) {
 
 	patch := &model.PostPatch{}
 
-	patch.IsPinned = new(bool)
-	*patch.IsPinned = false
-	patch.Message = new(string)
-	*patch.Message = "#otherhashtag other message"
+	patch.IsPinned = model.NewBool(false)
+	patch.Message = model.NewString("#otherhashtag other message")
 	patch.Props = new(model.StringInterface)
 	*patch.Props = model.StringInterface{"channel_header": "new_header"}
 	patch.FileIds = new(model.StringArray)
 	*patch.FileIds = model.StringArray{"file1", "otherfile2", "otherfile3"}
-	patch.HasReactions = new(bool)
-	*patch.HasReactions = false
+	patch.HasReactions = model.NewBool(false)
 
 	rpost, resp := Client.PatchPost(post.Id, patch)
 	CheckNoError(t, resp)
