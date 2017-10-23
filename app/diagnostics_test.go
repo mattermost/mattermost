@@ -12,6 +12,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
+
+	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
 )
 
@@ -29,21 +32,15 @@ func newTestServer() (chan string, *httptest.Server) {
 }
 
 func TestPluginSetting(t *testing.T) {
-	before := utils.Cfg.PluginSettings.Plugins
-	utils.Cfg.PluginSettings.Plugins = map[string]interface{}{
-		"test": map[string]string{
-			"foo": "bar",
+	settings := &model.PluginSettings{
+		Plugins: map[string]interface{}{
+			"test": map[string]string{
+				"foo": "bar",
+			},
 		},
 	}
-	defer func() {
-		utils.Cfg.PluginSettings.Plugins = before
-	}()
-	if pluginSetting("test", "foo", "asd") != "bar" {
-		t.Fatal()
-	}
-	if pluginSetting("test", "qwe", "asd") != "asd" {
-		t.Fatal()
-	}
+	assert.Equal(t, "bar", pluginSetting(settings, "test", "foo", "asd"))
+	assert.Equal(t, "asd", pluginSetting(settings, "test", "qwe", "asd"))
 }
 
 func TestDiagnostics(t *testing.T) {

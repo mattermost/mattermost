@@ -241,16 +241,8 @@ func testCreatePostWithOutgoingHook(
 	user := th.SystemAdminUser
 	channel := th.CreateChannel(Client, team)
 
-	enableOutgoingHooks := th.App.Config().ServiceSettings.EnableOutgoingWebhooks
-	allowedInternalConnections := *th.App.Config().ServiceSettings.AllowedUntrustedInternalConnections
-	defer func() {
-		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOutgoingWebhooks = enableOutgoingHooks })
-		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.ServiceSettings.AllowedUntrustedInternalConnections = &allowedInternalConnections
-		})
-	}()
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOutgoingWebhooks = true })
 	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.ServiceSettings.EnableOutgoingWebhooks = true
 		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost 127.0.0.1"
 	})
 
@@ -405,13 +397,6 @@ func TestUpdatePost(t *testing.T) {
 
 	Client := th.BasicClient
 	channel1 := th.BasicChannel
-
-	allowEditPost := *th.App.Config().ServiceSettings.AllowEditPost
-	postEditTimeLimit := *th.App.Config().ServiceSettings.PostEditTimeLimit
-	defer func() {
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowEditPost = allowEditPost })
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.PostEditTimeLimit = postEditTimeLimit })
-	}()
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowEditPost = model.ALLOW_EDIT_POST_ALWAYS })
 
@@ -981,11 +966,6 @@ func TestDeletePosts(t *testing.T) {
 	channel1 := th.BasicChannel
 	team1 := th.BasicTeam
 
-	restrictPostDelete := *th.App.Config().ServiceSettings.RestrictPostDelete
-	defer func() {
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.RestrictPostDelete = restrictPostDelete })
-		utils.SetDefaultRolesBasedOnConfig()
-	}()
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.RestrictPostDelete = model.PERMISSIONS_DELETE_POST_ALL })
 	utils.SetDefaultRolesBasedOnConfig()
 
@@ -1482,16 +1462,8 @@ func TestGetOpenGraphMetadata(t *testing.T) {
 
 	Client := th.BasicClient
 
-	enableLinkPreviews := *th.App.Config().ServiceSettings.EnableLinkPreviews
-	allowedInternalConnections := *th.App.Config().ServiceSettings.AllowedUntrustedInternalConnections
-	defer func() {
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableLinkPreviews = enableLinkPreviews })
-		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.ServiceSettings.AllowedUntrustedInternalConnections = &allowedInternalConnections
-		})
-	}()
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableLinkPreviews = true })
 	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.EnableLinkPreviews = true
 		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost 127.0.0.1"
 	})
 
