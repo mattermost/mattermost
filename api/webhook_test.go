@@ -1065,8 +1065,8 @@ func TestIncomingWebhooks(t *testing.T) {
 	       ]
 	   }`
 
-	if _, err := Client.DoPost(url, attachmentPayload, "application/json"); err == nil || err.StatusCode != http.StatusBadRequest {
-		t.Fatal("should have failed with bad request - attachment too long")
+	if _, err := Client.DoPost(url, attachmentPayload, "application/json"); err != nil {
+		t.Fatal(err)
 	}
 
 	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableIncomingWebhooks = false })
