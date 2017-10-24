@@ -1239,8 +1239,8 @@ func searchUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 	searchOptions[store.USER_SEARCH_OPTION_ALLOW_INACTIVE] = props.AllowInactive
 
 	if !c.App.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
-		hideFullName := !c.App.Config().Cfg.PrivacySettings.ShowFullName
-		hideEmail := !c.App.Config().Cfg.PrivacySettings.ShowEmailAddress
+		hideFullName := !c.App.Config().PrivacySettings.ShowFullName
+		hideEmail := !c.App.Config().PrivacySettings.ShowEmailAddress
 
 		if hideFullName && hideEmail {
 			searchOptions[store.USER_SEARCH_OPTION_NAMES_ONLY_NO_FULL_NAME] = true
@@ -1329,7 +1329,7 @@ func autocompleteUsersInTeam(c *Context, w http.ResponseWriter, r *http.Request)
 
 	searchOptions := map[string]bool{}
 
-	hideFullName := !c.App.Config().Cfg.PrivacySettings.ShowFullName
+	hideFullName := !c.App.Config().PrivacySettings.ShowFullName
 	if hideFullName && !c.App.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
 		searchOptions[store.USER_SEARCH_OPTION_NAMES_ONLY_NO_FULL_NAME] = true
 	} else {

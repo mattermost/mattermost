@@ -1304,7 +1304,7 @@ func disableUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) 
 	c.LogAudit("")
 
 	// No separate permission for this action for now
-	if !app.SessionHasPermissionTo(c.Session, model.PERMISSION_REVOKE_USER_ACCESS_TOKEN) {
+	if !c.App.SessionHasPermissionTo(c.Session, model.PERMISSION_REVOKE_USER_ACCESS_TOKEN) {
 		c.SetPermissionError(model.PERMISSION_REVOKE_USER_ACCESS_TOKEN)
 		return
 	}
@@ -1315,7 +1315,7 @@ func disableUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	if !app.SessionHasPermissionToUser(c.Session, accessToken.UserId) {
+	if !c.App.SessionHasPermissionToUser(c.Session, accessToken.UserId) {
 		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
 		return
 	}
@@ -1341,7 +1341,7 @@ func enableUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.LogAudit("")
 
 	// No separate permission for this action for now
-	if !app.SessionHasPermissionTo(c.Session, model.PERMISSION_CREATE_USER_ACCESS_TOKEN) {
+	if !c.App.SessionHasPermissionTo(c.Session, model.PERMISSION_CREATE_USER_ACCESS_TOKEN) {
 		c.SetPermissionError(model.PERMISSION_CREATE_USER_ACCESS_TOKEN)
 		return
 	}
@@ -1352,7 +1352,7 @@ func enableUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !app.SessionHasPermissionToUser(c.Session, accessToken.UserId) {
+	if !c.App.SessionHasPermissionToUser(c.Session, accessToken.UserId) {
 		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
 		return
 	}
