@@ -142,7 +142,7 @@ func SplitWebhookPost(post *model.Post) ([]*model.Post, *model.AppError) {
 	for utf8.RuneCountInString(remainingText) > model.POST_MESSAGE_MAX_RUNES {
 		split := base
 		x := 0
-		for index, _ := range remainingText {
+		for index := range remainingText {
 			x++
 			if x > model.POST_MESSAGE_MAX_RUNES {
 				split.Message = remainingText[:index]
@@ -188,7 +188,7 @@ func SplitWebhookPost(post *model.Post) ([]*model.Post, *model.AppError) {
 				return nil, model.NewAppError("SplitWebhookPost", "web.incoming_webhook.split_props_length.app_error", map[string]interface{}{"Max": model.POST_PROPS_MAX_USER_RUNES}, "", http.StatusBadRequest)
 			}
 			x := 0
-			for index, _ := range attachment.Text {
+			for index := range attachment.Text {
 				x++
 				if x > textRuneCount-truncationNeeded {
 					newAttachment.Text = newAttachment.Text[:index]
