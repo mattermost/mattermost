@@ -1423,7 +1423,7 @@ func (o *Config) SetDefaults() {
 	}
 
 	if o.DataRetentionSettings.EnableFileDeletion == nil {
-		o.DataRetentionSettings.EnableMessageDeletion = NewBool(false)
+		o.DataRetentionSettings.EnableFileDeletion = NewBool(false)
 	}
 
 	if o.DataRetentionSettings.MessageRetentionDays == nil {
