@@ -32,6 +32,7 @@ const (
 	POST_HASHTAGS_MAX_RUNES    = 1000
 	POST_MESSAGE_MAX_RUNES     = 4000
 	POST_PROPS_MAX_RUNES       = 8000
+	POST_PROPS_MAX_USER_RUNES  = POST_PROPS_MAX_RUNES - 400 // Leave some room for system / pre-save modifications
 	POST_CUSTOM_TYPE_PREFIX    = "custom_"
 	PROPS_ADD_CHANNEL_MEMBER   = "add_channel_member"
 )
