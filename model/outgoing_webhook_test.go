@@ -179,8 +179,7 @@ func TestOutgoingWebhookTriggerWordStartsWith(t *testing.T) {
 
 func TestOutgoingWebhookResponseJson(t *testing.T) {
 	o := OutgoingWebhookResponse{}
-	o.Text = new(string)
-	*o.Text = "some text"
+	o.Text = NewString("some text")
 
 	json := o.ToJson()
 	ro := OutgoingWebhookResponseFromJson(strings.NewReader(json))

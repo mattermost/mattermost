@@ -592,13 +592,11 @@ func ConfigFromJson(data io.Reader) *Config {
 func (o *Config) SetDefaults() {
 
 	if o.SqlSettings.DriverName == nil {
-		o.SqlSettings.DriverName = new(string)
-		*o.SqlSettings.DriverName = DATABASE_DRIVER_MYSQL
+		o.SqlSettings.DriverName = NewString(DATABASE_DRIVER_MYSQL)
 	}
 
 	if o.SqlSettings.DataSource == nil {
-		o.SqlSettings.DataSource = new(string)
-		*o.SqlSettings.DataSource = SQL_SETTINGS_DEFAULT_DATA_SOURCE
+		o.SqlSettings.DataSource = NewString(SQL_SETTINGS_DEFAULT_DATA_SOURCE)
 	}
 
 	if len(o.SqlSettings.AtRestEncryptKey) == 0 {
@@ -606,23 +604,19 @@ func (o *Config) SetDefaults() {
 	}
 
 	if o.SqlSettings.MaxIdleConns == nil {
-		o.SqlSettings.MaxIdleConns = new(int)
-		*o.SqlSettings.MaxIdleConns = 20
+		o.SqlSettings.MaxIdleConns = NewInt(20)
 	}
 
 	if o.SqlSettings.MaxOpenConns == nil {
-		o.SqlSettings.MaxOpenConns = new(int)
-		*o.SqlSettings.MaxOpenConns = 300
+		o.SqlSettings.MaxOpenConns = NewInt(300)
 	}
 
 	if o.SqlSettings.QueryTimeout == nil {
-		o.SqlSettings.QueryTimeout = new(int)
-		*o.SqlSettings.QueryTimeout = 30
+		o.SqlSettings.QueryTimeout = NewInt(30)
 	}
 
 	if o.FileSettings.DriverName == nil {
-		o.FileSettings.DriverName = new(string)
-		*o.FileSettings.DriverName = IMAGE_DRIVER_LOCAL
+		o.FileSettings.DriverName = NewString(IMAGE_DRIVER_LOCAL)
 	}
 
 	if o.FileSettings.AmazonS3Endpoint == "" {
@@ -631,8 +625,7 @@ func (o *Config) SetDefaults() {
 	}
 
 	if o.FileSettings.AmazonS3SSL == nil {
-		o.FileSettings.AmazonS3SSL = new(bool)
-		*o.FileSettings.AmazonS3SSL = true // Secure by default.
+		o.FileSettings.AmazonS3SSL = NewBool(true) // Secure by default.
 	}
 
 	if o.FileSettings.AmazonS3SignV2 == nil {
@@ -641,38 +634,31 @@ func (o *Config) SetDefaults() {
 	}
 
 	if o.FileSettings.AmazonS3SSE == nil {
-		o.FileSettings.AmazonS3SSE = new(bool)
-		*o.FileSettings.AmazonS3SSE = false // Not Encrypted by default.
+		o.FileSettings.AmazonS3SSE = NewBool(false) // Not Encrypted by default.
 	}
 
 	if o.FileSettings.AmazonS3Trace == nil {
-		o.FileSettings.AmazonS3Trace = new(bool)
-		*o.FileSettings.AmazonS3Trace = false
+		o.FileSettings.AmazonS3Trace = NewBool(false)
 	}
 
 	if o.FileSettings.EnableFileAttachments == nil {
-		o.FileSettings.EnableFileAttachments = new(bool)
-		*o.FileSettings.EnableFileAttachments = true
+		o.FileSettings.EnableFileAttachments = NewBool(true)
 	}
 
 	if o.FileSettings.EnableMobileUpload == nil {
-		o.FileSettings.EnableMobileUpload = new(bool)
-		*o.FileSettings.EnableMobileUpload = true
+		o.FileSettings.EnableMobileUpload = NewBool(true)
 	}
 
 	if o.FileSettings.EnableMobileDownload == nil {
-		o.FileSettings.EnableMobileDownload = new(bool)
-		*o.FileSettings.EnableMobileDownload = true
+		o.FileSettings.EnableMobileDownload = NewBool(true)
 	}
 
 	if o.FileSettings.MaxFileSize == nil {
-		o.FileSettings.MaxFileSize = new(int64)
-		*o.FileSettings.MaxFileSize = 52428800 // 50 MB
+		o.FileSettings.MaxFileSize = NewInt64(52428800) // 50 MB
 	}
 
 	if o.FileSettings.PublicLinkSalt == nil || len(*o.FileSettings.PublicLinkSalt) == 0 {
-		o.FileSettings.PublicLinkSalt = new(string)
-		*o.FileSettings.PublicLinkSalt = NewRandomString(32)
+		o.FileSettings.PublicLinkSalt = NewString(NewRandomString(32))
 	}
 
 	if o.FileSettings.InitialFont == "" {
@@ -689,43 +675,35 @@ func (o *Config) SetDefaults() {
 	}
 
 	if o.ServiceSettings.SiteURL == nil {
-		o.ServiceSettings.SiteURL = new(string)
-		*o.ServiceSettings.SiteURL = SERVICE_SETTINGS_DEFAULT_SITE_URL
+		o.ServiceSettings.SiteURL = NewString(SERVICE_SETTINGS_DEFAULT_SITE_URL)
 	}
 
 	if o.ServiceSettings.LicenseFileLocation == nil {
-		o.ServiceSettings.LicenseFileLocation = new(string)
-		*o.ServiceSettings.LicenseFileLocation = ""
+		o.ServiceSettings.LicenseFileLocation = NewString("")
 	}
 
 	if o.ServiceSettings.ListenAddress == nil {
-		o.ServiceSettings.ListenAddress = new(string)
-		*o.ServiceSettings.ListenAddress = SERVICE_SETTINGS_DEFAULT_LISTEN_AND_ADDRESS
+		o.ServiceSettings.ListenAddress = NewString(SERVICE_SETTINGS_DEFAULT_LISTEN_AND_ADDRESS)
 	}
 
 	if o.ServiceSettings.EnableAPIv3 == nil {
-		o.ServiceSettings.EnableAPIv3 = new(bool)
-		*o.ServiceSettings.EnableAPIv3 = true
+		o.ServiceSettings.EnableAPIv3 = NewBool(true)
 	}
 
 	if o.ServiceSettings.EnableLinkPreviews == nil {
-		o.ServiceSettings.EnableLinkPreviews = new(bool)
-		*o.ServiceSettings.EnableLinkPreviews = false
+		o.ServiceSettings.EnableLinkPreviews = NewBool(false)
 	}
 
 	if o.ServiceSettings.EnableDeveloper == nil {
-		o.ServiceSettings.EnableDeveloper = new(bool)
-		*o.ServiceSettings.EnableDeveloper = false
+		o.ServiceSettings.EnableDeveloper = NewBool(false)
 	}
 
 	if o.ServiceSettings.EnableSecurityFixAlert == nil {
-		o.ServiceSettings.EnableSecurityFixAlert = new(bool)
-		*o.ServiceSettings.EnableSecurityFixAlert = true
+		o.ServiceSettings.EnableSecurityFixAlert = NewBool(true)
 	}
 
 	if o.ServiceSettings.EnableInsecureOutgoingConnections == nil {
-		o.ServiceSettings.EnableInsecureOutgoingConnections = new(bool)
-		*o.ServiceSettings.EnableInsecureOutgoingConnections = false
+		o.ServiceSettings.EnableInsecureOutgoingConnections = NewBool(false)
 	}
 
 	if o.ServiceSettings.AllowedUntrustedInternalConnections == nil {
@@ -733,88 +711,71 @@ func (o *Config) SetDefaults() {
 	}
 
 	if o.ServiceSettings.EnableMultifactorAuthentication == nil {
-		o.ServiceSettings.EnableMultifactorAuthentication = new(bool)
-		*o.ServiceSettings.EnableMultifactorAuthentication = false
+		o.ServiceSettings.EnableMultifactorAuthentication = NewBool(false)
 	}
 
 	if o.ServiceSettings.EnforceMultifactorAuthentication == nil {
-		o.ServiceSettings.EnforceMultifactorAuthentication = new(bool)
-		*o.ServiceSettings.EnforceMultifactorAuthentication = false
+		o.ServiceSettings.EnforceMultifactorAuthentication = NewBool(false)
 	}
 
 	if o.ServiceSettings.EnableUserAccessTokens == nil {
-		o.ServiceSettings.EnableUserAccessTokens = new(bool)
-		*o.ServiceSettings.EnableUserAccessTokens = false
+		o.ServiceSettings.EnableUserAccessTokens = NewBool(false)
 	}
 
 	if o.PasswordSettings.MinimumLength == nil {
-		o.PasswordSettings.MinimumLength = new(int)
-		*o.PasswordSettings.MinimumLength = PASSWORD_MINIMUM_LENGTH
+		o.PasswordSettings.MinimumLength = NewInt(PASSWORD_MINIMUM_LENGTH)
 	}
 
 	if o.PasswordSettings.Lowercase == nil {
-		o.PasswordSettings.Lowercase = new(bool)
-		*o.PasswordSettings.Lowercase = false
+		o.PasswordSettings.Lowercase = NewBool(false)
 	}
 
 	if o.PasswordSettings.Number == nil {
-		o.PasswordSettings.Number = new(bool)
-		*o.PasswordSettings.Number = false
+		o.PasswordSettings.Number = NewBool(false)
 	}
 
 	if o.PasswordSettings.Uppercase == nil {
-		o.PasswordSettings.Uppercase = new(bool)
-		*o.PasswordSettings.Uppercase = false
+		o.PasswordSettings.Uppercase = NewBool(false)
 	}
 
 	if o.PasswordSettings.Symbol == nil {
-		o.PasswordSettings.Symbol = new(bool)
-		*o.PasswordSettings.Symbol = false
+		o.PasswordSettings.Symbol = NewBool(false)
 	}
 
 	if o.TeamSettings.MaxUsersPerTeam == nil {
-		o.TeamSettings.MaxUsersPerTeam = new(int)
-		*o.TeamSettings.MaxUsersPerTeam = TEAM_SETTINGS_DEFAULT_MAX_USERS_PER_TEAM
+		o.TeamSettings.MaxUsersPerTeam = NewInt(TEAM_SETTINGS_DEFAULT_MAX_USERS_PER_TEAM)
 	}
 
 	if o.TeamSettings.EnableCustomBrand == nil {
-		o.TeamSettings.EnableCustomBrand = new(bool)
-		*o.TeamSettings.EnableCustomBrand = false
+		o.TeamSettings.EnableCustomBrand = NewBool(false)
 	}
 
 	if o.TeamSettings.CustomBrandText == nil {
-		o.TeamSettings.CustomBrandText = new(string)
-		*o.TeamSettings.CustomBrandText = TEAM_SETTINGS_DEFAULT_CUSTOM_BRAND_TEXT
+		o.TeamSettings.CustomBrandText = NewString(TEAM_SETTINGS_DEFAULT_CUSTOM_BRAND_TEXT)
 	}
 
 	if o.TeamSettings.CustomDescriptionText == nil {
-		o.TeamSettings.CustomDescriptionText = new(string)
-		*o.TeamSettings.CustomDescriptionText = TEAM_SETTINGS_DEFAULT_CUSTOM_DESCRIPTION_TEXT
+		o.TeamSettings.CustomDescriptionText = NewString(TEAM_SETTINGS_DEFAULT_CUSTOM_DESCRIPTION_TEXT)
 	}
 
 	if o.TeamSettings.EnableOpenServer == nil {
-		o.TeamSettings.EnableOpenServer = new(bool)
-		*o.TeamSettings.EnableOpenServer = false
+		o.TeamSettings.EnableOpenServer = NewBool(false)
 	}
 
 	if o.TeamSettings.RestrictDirectMessage == nil {
-		o.TeamSettings.RestrictDirectMessage = new(string)
-		*o.TeamSettings.RestrictDirectMessage = DIRECT_MESSAGE_ANY
+		o.TeamSettings.RestrictDirectMessage = NewString(DIRECT_MESSAGE_ANY)
 	}
 
 	if o.TeamSettings.RestrictTeamInvite == nil {
-		o.TeamSettings.RestrictTeamInvite = new(string)
-		*o.TeamSettings.RestrictTeamInvite = PERMISSIONS_ALL
+		o.TeamSettings.RestrictTeamInvite = NewString(PERMISSIONS_ALL)
 	}
 
 	if o.TeamSettings.RestrictPublicChannelManagement == nil {
-		o.TeamSettings.RestrictPublicChannelManagement = new(string)
-		*o.TeamSettings.RestrictPublicChannelManagement = PERMISSIONS_ALL
+		o.TeamSettings.RestrictPublicChannelManagement = NewString(PERMISSIONS_ALL)
 	}
 
 	if o.TeamSettings.RestrictPrivateChannelManagement == nil {
-		o.TeamSettings.RestrictPrivateChannelManagement = new(string)
-		*o.TeamSettings.RestrictPrivateChannelManagement = PERMISSIONS_ALL
+		o.TeamSettings.RestrictPrivateChannelManagement = NewString(PERMISSIONS_ALL)
 	}
 
 	if o.TeamSettings.RestrictPublicChannelCreation == nil {
@@ -838,50 +799,41 @@ func (o *Config) SetDefaults() {
 	}
 
 	if o.TeamSettings.RestrictPublicChannelDeletion == nil {
-		o.TeamSettings.RestrictPublicChannelDeletion = new(string)
 		// If this setting does not exist, assume migration from <3.6, so use management setting as default.
-		*o.TeamSettings.RestrictPublicChannelDeletion = *o.TeamSettings.RestrictPublicChannelManagement
+		o.TeamSettings.RestrictPublicChannelDeletion = NewString(*o.TeamSettings.RestrictPublicChannelManagement)
 	}
 
 	if o.TeamSettings.RestrictPrivateChannelDeletion == nil {
-		o.TeamSettings.RestrictPrivateChannelDeletion = new(string)
 		// If this setting does not exist, assume migration from <3.6, so use management setting as default.
-		*o.TeamSettings.RestrictPrivateChannelDeletion = *o.TeamSettings.RestrictPrivateChannelManagement
+		o.TeamSettings.RestrictPrivateChannelDeletion = NewString(*o.TeamSettings.RestrictPrivateChannelManagement)
 	}
 
 	if o.TeamSettings.RestrictPrivateChannelManageMembers == nil {
-		o.TeamSettings.RestrictPrivateChannelManageMembers = new(string)
-		*o.TeamSettings.RestrictPrivateChannelManageMembers = PERMISSIONS_ALL
+		o.TeamSettings.RestrictPrivateChannelManageMembers = NewString(PERMISSIONS_ALL)
 	}
 
 	if o.TeamSettings.EnableXToLeaveChannelsFromLHS == nil {
-		o.TeamSettings.EnableXToLeaveChannelsFromLHS = new(bool)
-		*o.TeamSettings.EnableXToLeaveChannelsFromLHS = false
+		o.TeamSettings.EnableXToLeaveChannelsFromLHS = NewBool(false)
 	}
 
 	if o.TeamSettings.UserStatusAwayTimeout == nil {
-		o.TeamSettings.UserStatusAwayTimeout = new(int64)
-		*o.TeamSettings.UserStatusAwayTimeout = TEAM_SETTINGS_DEFAULT_USER_STATUS_AWAY_TIMEOUT
+		o.TeamSettings.UserStatusAwayTimeout = NewInt64(TEAM_SETTINGS_DEFAULT_USER_STATUS_AWAY_TIMEOUT)
 	}
 
 	if o.TeamSettings.MaxChannelsPerTeam == nil {
-		o.TeamSettings.MaxChannelsPerTeam = new(int64)
-		*o.TeamSettings.MaxChannelsPerTeam = 2000
+		o.TeamSettings.MaxChannelsPerTeam = NewInt64(2000)
 	}
 
 	if o.TeamSettings.MaxNotificationsPerChannel == nil {
-		o.TeamSettings.MaxNotificationsPerChannel = new(int64)
-		*o.TeamSettings.MaxNotificationsPerChannel = 1000
+		o.TeamSettings.MaxNotificationsPerChannel = NewInt64(1000)
 	}
 
 	if o.TeamSettings.EnableConfirmNotificationsToChannel == nil {
-		o.TeamSettings.EnableConfirmNotificationsToChannel = new(bool)
-		*o.TeamSettings.EnableConfirmNotificationsToChannel = true
+		o.TeamSettings.EnableConfirmNotificationsToChannel = NewBool(true)
 	}
 
 	if o.TeamSettings.ExperimentalTownSquareIsReadOnly == nil {
-		o.TeamSettings.ExperimentalTownSquareIsReadOnly = new(bool)
-		*o.TeamSettings.ExperimentalTownSquareIsReadOnly = false
+		o.TeamSettings.ExperimentalTownSquareIsReadOnly = NewBool(false)
 	}
 
 	if o.EmailSettings.EnableSignInWithEmail == nil {
@@ -895,43 +847,35 @@ func (o *Config) SetDefaults() {
 	}
 
 	if o.EmailSettings.EnableSignInWithUsername == nil {
-		o.EmailSettings.EnableSignInWithUsername = new(bool)
-		*o.EmailSettings.EnableSignInWithUsername = false
+		o.EmailSettings.EnableSignInWithUsername = NewBool(false)
 	}
 
 	if o.EmailSettings.SendPushNotifications == nil {
-		o.EmailSettings.SendPushNotifications = new(bool)
-		*o.EmailSettings.SendPushNotifications = false
+		o.EmailSettings.SendPushNotifications = NewBool(false)
 	}
 
 	if o.EmailSettings.PushNotificationServer == nil {
-		o.EmailSettings.PushNotificationServer = new(string)
-		*o.EmailSettings.PushNotificationServer = ""
+		o.EmailSettings.PushNotificationServer = NewString("")
 	}
 
 	if o.EmailSettings.PushNotificationContents == nil {
-		o.EmailSettings.PushNotificationContents = new(string)
-		*o.EmailSettings.PushNotificationContents = GENERIC_NOTIFICATION
+		o.EmailSettings.PushNotificationContents = NewString(GENERIC_NOTIFICATION)
 	}
 
 	if o.EmailSettings.FeedbackOrganization == nil {
-		o.EmailSettings.FeedbackOrganization = new(string)
-		*o.EmailSettings.FeedbackOrganization = EMAIL_SETTINGS_DEFAULT_FEEDBACK_ORGANIZATION
+		o.EmailSettings.FeedbackOrganization = NewString(EMAIL_SETTINGS_DEFAULT_FEEDBACK_ORGANIZATION)
 	}
 
 	if o.EmailSettings.EnableEmailBatching == nil {
-		o.EmailSettings.EnableEmailBatching = new(bool)
-		*o.EmailSettings.EnableEmailBatching = false
+		o.EmailSettings.EnableEmailBatching = NewBool(false)
 	}
 
 	if o.EmailSettings.EmailBatchingBufferSize == nil {
-		o.EmailSettings.EmailBatchingBufferSize = new(int)
-		*o.EmailSettings.EmailBatchingBufferSize = EMAIL_BATCHING_BUFFER_SIZE
+		o.EmailSettings.EmailBatchingBufferSize = NewInt(EMAIL_BATCHING_BUFFER_SIZE)
 	}
 
 	if o.EmailSettings.EmailBatchingInterval == nil {
-		o.EmailSettings.EmailBatchingInterval = new(int)
-		*o.EmailSettings.EmailBatchingInterval = EMAIL_BATCHING_INTERVAL
+		o.EmailSettings.EmailBatchingInterval = NewInt(EMAIL_BATCHING_INTERVAL)
 	}
 
 	if o.EmailSettings.EnableSMTPAuth == nil {
@@ -948,13 +892,11 @@ func (o *Config) SetDefaults() {
 	}
 
 	if o.EmailSettings.SkipServerCertificateVerification == nil {
-		o.EmailSettings.SkipServerCertificateVerification = new(bool)
-		*o.EmailSettings.SkipServerCertificateVerification = false
+		o.EmailSettings.SkipServerCertificateVerification = NewBool(false)
 	}
 
 	if o.EmailSettings.EmailNotificationContentsType == nil {
-		o.EmailSettings.EmailNotificationContentsType = new(string)
-		*o.EmailSettings.EmailNotificationContentsType = EMAIL_NOTIFICATION_CONTENTS_FULL
+		o.EmailSettings.EmailNotificationContentsType = NewString(EMAIL_NOTIFICATION_CONTENTS_FULL)
 	}
 
 	if !IsSafeLink(o.SupportSettings.TermsOfServiceLink) {
@@ -962,8 +904,7 @@ func (o *Config) SetDefaults() {
 	}
 
 	if o.SupportSettings.TermsOfServiceLink == nil {
-		o.SupportSettings.TermsOfServiceLink = new(string)
-		*o.SupportSettings.TermsOfServiceLink = SUPPORT_SETTINGS_DEFAULT_TERMS_OF_SERVICE_LINK
+		o.SupportSettings.TermsOfServiceLink = NewString(SUPPORT_SETTINGS_DEFAULT_TERMS_OF_SERVICE_LINK)
 	}
 
 	if !IsSafeLink(o.SupportSettings.PrivacyPolicyLink) {
@@ -971,8 +912,7 @@ func (o *Config) SetDefaults() {
 	}
 
 	if o.SupportSettings.PrivacyPolicyLink == nil {
-		o.SupportSettings.PrivacyPolicyLink = new(string)
-		*o.SupportSettings.PrivacyPolicyLink = SUPPORT_SETTINGS_DEFAULT_PRIVACY_POLICY_LINK
+		o.SupportSettings.PrivacyPolicyLink = NewString(SUPPORT_SETTINGS_DEFAULT_PRIVACY_POLICY_LINK)
 	}
 
 	if !IsSafeLink(o.SupportSettings.AboutLink) {
@@ -980,8 +920,7 @@ func (o *Config) SetDefaults() {
 	}
 
 	if o.SupportSettings.AboutLink == nil {
-		o.SupportSettings.AboutLink = new(string)
-		*o.SupportSettings.AboutLink = SUPPORT_SETTINGS_DEFAULT_ABOUT_LINK
+		o.SupportSettings.AboutLink = NewString(SUPPORT_SETTINGS_DEFAULT_ABOUT_LINK)
 	}
 
 	if !IsSafeLink(o.SupportSettings.HelpLink) {
@@ -989,8 +928,7 @@ func (o *Config) SetDefaults() {
 	}
 
 	if o.SupportSettings.HelpLink == nil {
-		o.SupportSettings.HelpLink = new(string)
-		*o.SupportSettings.HelpLink = SUPPORT_SETTINGS_DEFAULT_HELP_LINK
+		o.SupportSettings.HelpLink = NewString(SUPPORT_SETTINGS_DEFAULT_HELP_LINK)
 	}
 
 	if !IsSafeLink(o.SupportSettings.ReportAProblemLink) {
@@ -998,53 +936,43 @@ func (o *Config) SetDefaults() {
 	}
 
 	if o.SupportSettings.ReportAProblemLink == nil {
-		o.SupportSettings.ReportAProblemLink = new(string)
-		*o.SupportSettings.ReportAProblemLink = SUPPORT_SETTINGS_DEFAULT_REPORT_A_PROBLEM_LINK
+		o.SupportSettings.ReportAProblemLink = NewString(SUPPORT_SETTINGS_DEFAULT_REPORT_A_PROBLEM_LINK)
 	}
 
 	if o.SupportSettings.SupportEmail == nil {
-		o.SupportSettings.SupportEmail = new(string)
-		*o.SupportSettings.SupportEmail = SUPPORT_SETTINGS_DEFAULT_SUPPORT_EMAIL
+		o.SupportSettings.SupportEmail = NewString(SUPPORT_SETTINGS_DEFAULT_SUPPORT_EMAIL)
 	}
 
 	if o.AnnouncementSettings.EnableBanner == nil {
-		o.AnnouncementSettings.EnableBanner = new(bool)
-		*o.AnnouncementSettings.EnableBanner = false
+		o.AnnouncementSettings.EnableBanner = NewBool(false)
 	}
 
 	if o.AnnouncementSettings.BannerText == nil {
-		o.AnnouncementSettings.BannerText = new(string)
-		*o.AnnouncementSettings.BannerText = ""
+		o.AnnouncementSettings.BannerText = NewString("")
 	}
 
 	if o.AnnouncementSettings.BannerColor == nil {
-		o.AnnouncementSettings.BannerColor = new(string)
-		*o.AnnouncementSettings.BannerColor = ANNOUNCEMENT_SETTINGS_DEFAULT_BANNER_COLOR
+		o.AnnouncementSettings.BannerColor = NewString(ANNOUNCEMENT_SETTINGS_DEFAULT_BANNER_COLOR)
 	}
 
 	if o.AnnouncementSettings.BannerTextColor == nil {
-		o.AnnouncementSettings.BannerTextColor = new(string)
-		*o.AnnouncementSettings.BannerTextColor = ANNOUNCEMENT_SETTINGS_DEFAULT_BANNER_TEXT_COLOR
+		o.AnnouncementSettings.BannerTextColor = NewString(ANNOUNCEMENT_SETTINGS_DEFAULT_BANNER_TEXT_COLOR)
 	}
 
 	if o.AnnouncementSettings.AllowBannerDismissal == nil {
-		o.AnnouncementSettings.AllowBannerDismissal = new(bool)
-		*o.AnnouncementSettings.AllowBannerDismissal = true
+		o.AnnouncementSettings.AllowBannerDismissal = NewBool(true)
 	}
 
 	if o.ThemeSettings.EnableThemeSelection == nil {
-		o.ThemeSettings.EnableThemeSelection = new(bool)
-		*o.ThemeSettings.EnableThemeSelection = true
+		o.ThemeSettings.EnableThemeSelection = NewBool(true)
 	}
 
 	if o.ThemeSettings.DefaultTheme == nil {
-		o.ThemeSettings.DefaultTheme = new(string)
-		*o.ThemeSettings.DefaultTheme = TEAM_SETTINGS_DEFAULT_TEAM_TEXT
+		o.ThemeSettings.DefaultTheme = NewString(TEAM_SETTINGS_DEFAULT_TEAM_TEXT)
 	}
 
 	if o.ThemeSettings.AllowCustomThemes == nil {
-		o.ThemeSettings.AllowCustomThemes = new(bool)
-		*o.ThemeSettings.AllowCustomThemes = true
+		o.ThemeSettings.AllowCustomThemes = NewBool(true)
 	}
 
 	if o.ThemeSettings.AllowedThemes == nil {
@@ -1052,8 +980,7 @@ func (o *Config) SetDefaults() {
 	}
 
 	if o.LdapSettings.Enable == nil {
-		o.LdapSettings.Enable = new(bool)
-		*o.LdapSettings.Enable = false
+		o.LdapSettings.Enable = NewBool(false)
 	}
 
 	// When unset should default to LDAP Enabled
@@ -1063,280 +990,225 @@ func (o *Config) SetDefaults() {
 	}
 
 	if o.LdapSettings.LdapServer == nil {
-		o.LdapSettings.LdapServer = new(string)
-		*o.LdapSettings.LdapServer = ""
+		o.LdapSettings.LdapServer = NewString("")
 	}
 
 	if o.LdapSettings.LdapPort == nil {
-		o.LdapSettings.LdapPort = new(int)
-		*o.LdapSettings.LdapPort = 389
+		o.LdapSettings.LdapPort = NewInt(389)
 	}
 
 	if o.LdapSettings.ConnectionSecurity == nil {
-		o.LdapSettings.ConnectionSecurity = new(string)
-		*o.LdapSettings.ConnectionSecurity = ""
+		o.LdapSettings.ConnectionSecurity = NewString("")
 	}
 
 	if o.LdapSettings.BaseDN == nil {
-		o.LdapSettings.BaseDN = new(string)
-		*o.LdapSettings.BaseDN = ""
+		o.LdapSettings.BaseDN = NewString("")
 	}
 
 	if o.LdapSettings.BindUsername == nil {
-		o.LdapSettings.BindUsername = new(string)
-		*o.LdapSettings.BindUsername = ""
+		o.LdapSettings.BindUsername = NewString("")
 	}
 
 	if o.LdapSettings.BindPassword == nil {
-		o.LdapSettings.BindPassword = new(string)
-		*o.LdapSettings.BindPassword = ""
+		o.LdapSettings.BindPassword = NewString("")
 	}
 
 	if o.LdapSettings.UserFilter == nil {
-		o.LdapSettings.UserFilter = new(string)
-		*o.LdapSettings.UserFilter = ""
+		o.LdapSettings.UserFilter = NewString("")
 	}
 
 	if o.LdapSettings.FirstNameAttribute == nil {
-		o.LdapSettings.FirstNameAttribute = new(string)
-		*o.LdapSettings.FirstNameAttribute = LDAP_SETTINGS_DEFAULT_FIRST_NAME_ATTRIBUTE
+		o.LdapSettings.FirstNameAttribute = NewString(LDAP_SETTINGS_DEFAULT_FIRST_NAME_ATTRIBUTE)
 	}
 
 	if o.LdapSettings.LastNameAttribute == nil {
-		o.LdapSettings.LastNameAttribute = new(string)
-		*o.LdapSettings.LastNameAttribute = LDAP_SETTINGS_DEFAULT_LAST_NAME_ATTRIBUTE
+		o.LdapSettings.LastNameAttribute = NewString(LDAP_SETTINGS_DEFAULT_LAST_NAME_ATTRIBUTE)
 	}
 
 	if o.LdapSettings.EmailAttribute == nil {
-		o.LdapSettings.EmailAttribute = new(string)
-		*o.LdapSettings.EmailAttribute = LDAP_SETTINGS_DEFAULT_EMAIL_ATTRIBUTE
+		o.LdapSettings.EmailAttribute = NewString(LDAP_SETTINGS_DEFAULT_EMAIL_ATTRIBUTE)
 	}
 
 	if o.LdapSettings.UsernameAttribute == nil {
-		o.LdapSettings.UsernameAttribute = new(string)
-		*o.LdapSettings.UsernameAttribute = LDAP_SETTINGS_DEFAULT_USERNAME_ATTRIBUTE
+		o.LdapSettings.UsernameAttribute = NewString(LDAP_SETTINGS_DEFAULT_USERNAME_ATTRIBUTE)
 	}
 
 	if o.LdapSettings.NicknameAttribute == nil {
-		o.LdapSettings.NicknameAttribute = new(string)
-		*o.LdapSettings.NicknameAttribute = LDAP_SETTINGS_DEFAULT_NICKNAME_ATTRIBUTE
+		o.LdapSettings.NicknameAttribute = NewString(LDAP_SETTINGS_DEFAULT_NICKNAME_ATTRIBUTE)
 	}
 
 	if o.LdapSettings.IdAttribute == nil {
-		o.LdapSettings.IdAttribute = new(string)
-		*o.LdapSettings.IdAttribute = LDAP_SETTINGS_DEFAULT_ID_ATTRIBUTE
+		o.LdapSettings.IdAttribute = NewString(LDAP_SETTINGS_DEFAULT_ID_ATTRIBUTE)
 	}
 
 	if o.LdapSettings.PositionAttribute == nil {
-		o.LdapSettings.PositionAttribute = new(string)
-		*o.LdapSettings.PositionAttribute = LDAP_SETTINGS_DEFAULT_POSITION_ATTRIBUTE
+		o.LdapSettings.PositionAttribute = NewString(LDAP_SETTINGS_DEFAULT_POSITION_ATTRIBUTE)
 	}
 
 	if o.LdapSettings.SyncIntervalMinutes == nil {
-		o.LdapSettings.SyncIntervalMinutes = new(int)
-		*o.LdapSettings.SyncIntervalMinutes = 60
+		o.LdapSettings.SyncIntervalMinutes = NewInt(60)
 	}
 
 	if o.LdapSettings.SkipCertificateVerification == nil {
-		o.LdapSettings.SkipCertificateVerification = new(bool)
-		*o.LdapSettings.SkipCertificateVerification = false
+		o.LdapSettings.SkipCertificateVerification = NewBool(false)
 	}
 
 	if o.LdapSettings.QueryTimeout == nil {
-		o.LdapSettings.QueryTimeout = new(int)
-		*o.LdapSettings.QueryTimeout = 60
+		o.LdapSettings.QueryTimeout = NewInt(60)
 	}
 
 	if o.LdapSettings.MaxPageSize == nil {
-		o.LdapSettings.MaxPageSize = new(int)
-		*o.LdapSettings.MaxPageSize = 0
+		o.LdapSettings.MaxPageSize = NewInt(0)
 	}
 
 	if o.LdapSettings.LoginFieldName == nil {
-		o.LdapSettings.LoginFieldName = new(string)
-		*o.LdapSettings.LoginFieldName = LDAP_SETTINGS_DEFAULT_LOGIN_FIELD_NAME
+		o.LdapSettings.LoginFieldName = NewString(LDAP_SETTINGS_DEFAULT_LOGIN_FIELD_NAME)
 	}
 
 	if o.ServiceSettings.SessionLengthWebInDays == nil {
-		o.ServiceSettings.SessionLengthWebInDays = new(int)
-		*o.ServiceSettings.SessionLengthWebInDays = 30
+		o.ServiceSettings.SessionLengthWebInDays = NewInt(30)
 	}
 
 	if o.ServiceSettings.SessionLengthMobileInDays == nil {
-		o.ServiceSettings.SessionLengthMobileInDays = new(int)
-		*o.ServiceSettings.SessionLengthMobileInDays = 30
+		o.ServiceSettings.SessionLengthMobileInDays = NewInt(30)
 	}
 
 	if o.ServiceSettings.SessionLengthSSOInDays == nil {
-		o.ServiceSettings.SessionLengthSSOInDays = new(int)
-		*o.ServiceSettings.SessionLengthSSOInDays = 30
+		o.ServiceSettings.SessionLengthSSOInDays = NewInt(30)
 	}
 
 	if o.ServiceSettings.SessionCacheInMinutes == nil {
-		o.ServiceSettings.SessionCacheInMinutes = new(int)
-		*o.ServiceSettings.SessionCacheInMinutes = 10
+		o.ServiceSettings.SessionCacheInMinutes = NewInt(10)
 	}
 
 	if o.ServiceSettings.SessionIdleTimeoutInMinutes == nil {
-		o.ServiceSettings.SessionIdleTimeoutInMinutes = new(int)
-		*o.ServiceSettings.SessionIdleTimeoutInMinutes = 0
+		o.ServiceSettings.SessionIdleTimeoutInMinutes = NewInt(0)
 	}
 
 	if o.ServiceSettings.EnableCommands == nil {
-		o.ServiceSettings.EnableCommands = new(bool)
-		*o.ServiceSettings.EnableCommands = false
+		o.ServiceSettings.EnableCommands = NewBool(false)
 	}
 
 	if o.ServiceSettings.EnableOnlyAdminIntegrations == nil {
-		o.ServiceSettings.EnableOnlyAdminIntegrations = new(bool)
-		*o.ServiceSettings.EnableOnlyAdminIntegrations = true
+		o.ServiceSettings.EnableOnlyAdminIntegrations = NewBool(true)
 	}
 
 	if o.ServiceSettings.WebsocketPort == nil {
-		o.ServiceSettings.WebsocketPort = new(int)
-		*o.ServiceSettings.WebsocketPort = 80
+		o.ServiceSettings.WebsocketPort = NewInt(80)
 	}
 
 	if o.ServiceSettings.WebsocketSecurePort == nil {
-		o.ServiceSettings.WebsocketSecurePort = new(int)
-		*o.ServiceSettings.WebsocketSecurePort = 443
+		o.ServiceSettings.WebsocketSecurePort = NewInt(443)
 	}
 
 	if o.ServiceSettings.AllowCorsFrom == nil {
-		o.ServiceSettings.AllowCorsFrom = new(string)
-		*o.ServiceSettings.AllowCorsFrom = SERVICE_SETTINGS_DEFAULT_ALLOW_CORS_FROM
+		o.ServiceSettings.AllowCorsFrom = NewString(SERVICE_SETTINGS_DEFAULT_ALLOW_CORS_FROM)
 	}
 
 	if o.ServiceSettings.WebserverMode == nil {
-		o.ServiceSettings.WebserverMode = new(string)
-		*o.ServiceSettings.WebserverMode = "gzip"
+		o.ServiceSettings.WebserverMode = NewString("gzip")
 	} else if *o.ServiceSettings.WebserverMode == "regular" {
 		*o.ServiceSettings.WebserverMode = "gzip"
 	}
 
 	if o.ServiceSettings.EnableCustomEmoji == nil {
-		o.ServiceSettings.EnableCustomEmoji = new(bool)
-		*o.ServiceSettings.EnableCustomEmoji = false
+		o.ServiceSettings.EnableCustomEmoji = NewBool(false)
 	}
 
 	if o.ServiceSettings.EnableEmojiPicker == nil {
-		o.ServiceSettings.EnableEmojiPicker = new(bool)
-		*o.ServiceSettings.EnableEmojiPicker = true
+		o.ServiceSettings.EnableEmojiPicker = NewBool(true)
 	}
 
 	if o.ServiceSettings.RestrictCustomEmojiCreation == nil {
-		o.ServiceSettings.RestrictCustomEmojiCreation = new(string)
-		*o.ServiceSettings.RestrictCustomEmojiCreation = RESTRICT_EMOJI_CREATION_ALL
+		o.ServiceSettings.RestrictCustomEmojiCreation = NewString(RESTRICT_EMOJI_CREATION_ALL)
 	}
 
 	if o.ServiceSettings.RestrictPostDelete == nil {
-		o.ServiceSettings.RestrictPostDelete = new(string)
-		*o.ServiceSettings.RestrictPostDelete = PERMISSIONS_DELETE_POST_ALL
+		o.ServiceSettings.RestrictPostDelete = NewString(PERMISSIONS_DELETE_POST_ALL)
 	}
 
 	if o.ServiceSettings.AllowEditPost == nil {
-		o.ServiceSettings.AllowEditPost = new(string)
-		*o.ServiceSettings.AllowEditPost = ALLOW_EDIT_POST_ALWAYS
+		o.ServiceSettings.AllowEditPost = NewString(ALLOW_EDIT_POST_ALWAYS)
 	}
 
 	if o.ServiceSettings.PostEditTimeLimit == nil {
-		o.ServiceSettings.PostEditTimeLimit = new(int)
-		*o.ServiceSettings.PostEditTimeLimit = 300
+		o.ServiceSettings.PostEditTimeLimit = NewInt(300)
 	}
 
 	if o.ClusterSettings.Enable == nil {
-		o.ClusterSettings.Enable = new(bool)
-		*o.ClusterSettings.Enable = false
+		o.ClusterSettings.Enable = NewBool(false)
 	}
 
 	if o.ClusterSettings.ClusterName == nil {
-		o.ClusterSettings.ClusterName = new(string)
-		*o.ClusterSettings.ClusterName = ""
+		o.ClusterSettings.ClusterName = NewString("")
 	}
 
 	if o.ClusterSettings.OverrideHostname == nil {
-		o.ClusterSettings.OverrideHostname = new(string)
-		*o.ClusterSettings.OverrideHostname = ""
+		o.ClusterSettings.OverrideHostname = NewString("")
 	}
 
 	if o.ClusterSettings.UseIpAddress == nil {
-		o.ClusterSettings.UseIpAddress = new(bool)
-		*o.ClusterSettings.UseIpAddress = true
+		o.ClusterSettings.UseIpAddress = NewBool(true)
 	}
 
 	if o.ClusterSettings.UseExperimentalGossip == nil {
-		o.ClusterSettings.UseExperimentalGossip = new(bool)
-		*o.ClusterSettings.UseExperimentalGossip = false
+		o.ClusterSettings.UseExperimentalGossip = NewBool(false)
 	}
 
 	if o.ClusterSettings.ReadOnlyConfig == nil {
-		o.ClusterSettings.ReadOnlyConfig = new(bool)
-		*o.ClusterSettings.ReadOnlyConfig = true
+		o.ClusterSettings.ReadOnlyConfig = NewBool(true)
 	}
 
 	if o.ClusterSettings.GossipPort == nil {
-		o.ClusterSettings.GossipPort = new(int)
-		*o.ClusterSettings.GossipPort = 8074
+		o.ClusterSettings.GossipPort = NewInt(8074)
 	}
 
 	if o.ClusterSettings.StreamingPort == nil {
-		o.ClusterSettings.StreamingPort = new(int)
-		*o.ClusterSettings.StreamingPort = 8075
+		o.ClusterSettings.StreamingPort = NewInt(8075)
 	}
 
 	if o.MetricsSettings.ListenAddress == nil {
-		o.MetricsSettings.ListenAddress = new(string)
-		*o.MetricsSettings.ListenAddress = ":8067"
+		o.MetricsSettings.ListenAddress = NewString(":8067")
 	}
 
 	if o.MetricsSettings.Enable == nil {
-		o.MetricsSettings.Enable = new(bool)
-		*o.MetricsSettings.Enable = false
+		o.MetricsSettings.Enable = NewBool(false)
 	}
 
 	if o.AnalyticsSettings.MaxUsersForStatistics == nil {
-		o.AnalyticsSettings.MaxUsersForStatistics = new(int)
-		*o.AnalyticsSettings.MaxUsersForStatistics = ANALYTICS_SETTINGS_DEFAULT_MAX_USERS_FOR_STATISTICS
+		o.AnalyticsSettings.MaxUsersForStatistics = NewInt(ANALYTICS_SETTINGS_DEFAULT_MAX_USERS_FOR_STATISTICS)
 	}
 
 	if o.ComplianceSettings.Enable == nil {
-		o.ComplianceSettings.Enable = new(bool)
-		*o.ComplianceSettings.Enable = false
+		o.ComplianceSettings.Enable = NewBool(false)
 	}
 
 	if o.ComplianceSettings.Directory == nil {
-		o.ComplianceSettings.Directory = new(string)
-		*o.ComplianceSettings.Directory = "./data/"
+		o.ComplianceSettings.Directory = NewString("./data/")
 	}
 
 	if o.ComplianceSettings.EnableDaily == nil {
-		o.ComplianceSettings.EnableDaily = new(bool)
-		*o.ComplianceSettings.EnableDaily = false
+		o.ComplianceSettings.EnableDaily = NewBool(false)
 	}
 
 	if o.LocalizationSettings.DefaultServerLocale == nil {
-		o.LocalizationSettings.DefaultServerLocale = new(string)
-		*o.LocalizationSettings.DefaultServerLocale = DEFAULT_LOCALE
+		o.LocalizationSettings.DefaultServerLocale = NewString(DEFAULT_LOCALE)
 	}
 
 	if o.LocalizationSettings.DefaultClientLocale == nil {
-		o.LocalizationSettings.DefaultClientLocale = new(string)
-		*o.LocalizationSettings.DefaultClientLocale = DEFAULT_LOCALE
+		o.LocalizationSettings.DefaultClientLocale = NewString(DEFAULT_LOCALE)
 	}
 
 	if o.LocalizationSettings.AvailableLocales == nil {
-		o.LocalizationSettings.AvailableLocales = new(string)
-		*o.LocalizationSettings.AvailableLocales = ""
+		o.LocalizationSettings.AvailableLocales = NewString("")
 	}
 
 	if o.LogSettings.EnableDiagnostics == nil {
-		o.LogSettings.EnableDiagnostics = new(bool)
-		*o.LogSettings.EnableDiagnostics = true
+		o.LogSettings.EnableDiagnostics = NewBool(true)
 	}
 
 	if o.SamlSettings.Enable == nil {
-		o.SamlSettings.Enable = new(bool)
-		*o.SamlSettings.Enable = false
+		o.SamlSettings.Enable = NewBool(false)
 	}
 
 	if o.SamlSettings.EnableSyncWithLdap == nil {
@@ -1345,88 +1217,71 @@ func (o *Config) SetDefaults() {
 	}
 
 	if o.SamlSettings.Verify == nil {
-		o.SamlSettings.Verify = new(bool)
-		*o.SamlSettings.Verify = true
+		o.SamlSettings.Verify = NewBool(true)
 	}
 
 	if o.SamlSettings.Encrypt == nil {
-		o.SamlSettings.Encrypt = new(bool)
-		*o.SamlSettings.Encrypt = true
+		o.SamlSettings.Encrypt = NewBool(true)
 	}
 
 	if o.SamlSettings.IdpUrl == nil {
-		o.SamlSettings.IdpUrl = new(string)
-		*o.SamlSettings.IdpUrl = ""
+		o.SamlSettings.IdpUrl = NewString("")
 	}
 
 	if o.SamlSettings.IdpDescriptorUrl == nil {
-		o.SamlSettings.IdpDescriptorUrl = new(string)
-		*o.SamlSettings.IdpDescriptorUrl = ""
+		o.SamlSettings.IdpDescriptorUrl = NewString("")
 	}
 
 	if o.SamlSettings.IdpCertificateFile == nil {
-		o.SamlSettings.IdpCertificateFile = new(string)
-		*o.SamlSettings.IdpCertificateFile = ""
+		o.SamlSettings.IdpCertificateFile = NewString("")
 	}
 
 	if o.SamlSettings.PublicCertificateFile == nil {
-		o.SamlSettings.PublicCertificateFile = new(string)
-		*o.SamlSettings.PublicCertificateFile = ""
+		o.SamlSettings.PublicCertificateFile = NewString("")
 	}
 
 	if o.SamlSettings.PrivateKeyFile == nil {
-		o.SamlSettings.PrivateKeyFile = new(string)
-		*o.SamlSettings.PrivateKeyFile = ""
+		o.SamlSettings.PrivateKeyFile = NewString("")
 	}
 
 	if o.SamlSettings.AssertionConsumerServiceURL == nil {
-		o.SamlSettings.AssertionConsumerServiceURL = new(string)
-		*o.SamlSettings.AssertionConsumerServiceURL = ""
+		o.SamlSettings.AssertionConsumerServiceURL = NewString("")
 	}
 
 	if o.SamlSettings.LoginButtonText == nil || *o.SamlSettings.LoginButtonText == "" {
-		o.SamlSettings.LoginButtonText = new(string)
-		*o.SamlSettings.LoginButtonText = USER_AUTH_SERVICE_SAML_TEXT
+		o.SamlSettings.LoginButtonText = NewString(USER_AUTH_SERVICE_SAML_TEXT)
 	}
 
 	if o.SamlSettings.FirstNameAttribute == nil {
-		o.SamlSettings.FirstNameAttribute = new(string)
-		*o.SamlSettings.FirstNameAttribute = SAML_SETTINGS_DEFAULT_FIRST_NAME_ATTRIBUTE
+		o.SamlSettings.FirstNameAttribute = NewString(SAML_SETTINGS_DEFAULT_FIRST_NAME_ATTRIBUTE)
 	}
 
 	if o.SamlSettings.LastNameAttribute == nil {
-		o.SamlSettings.LastNameAttribute = new(string)
-		*o.SamlSettings.LastNameAttribute = SAML_SETTINGS_DEFAULT_LAST_NAME_ATTRIBUTE
+		o.SamlSettings.LastNameAttribute = NewString(SAML_SETTINGS_DEFAULT_LAST_NAME_ATTRIBUTE)
 	}
 
 	if o.SamlSettings.EmailAttribute == nil {
-		o.SamlSettings.EmailAttribute = new(string)
-		*o.SamlSettings.EmailAttribute = SAML_SETTINGS_DEFAULT_EMAIL_ATTRIBUTE
+		o.SamlSettings.EmailAttribute = NewString(SAML_SETTINGS_DEFAULT_EMAIL_ATTRIBUTE)
 	}
 
 	if o.SamlSettings.UsernameAttribute == nil {
-		o.SamlSettings.UsernameAttribute = new(string)
-		*o.SamlSettings.UsernameAttribute = SAML_SETTINGS_DEFAULT_USERNAME_ATTRIBUTE
+		o.SamlSettings.UsernameAttribute = NewString(SAML_SETTINGS_DEFAULT_USERNAME_ATTRIBUTE)
 	}
 
 	if o.SamlSettings.NicknameAttribute == nil {
-		o.SamlSettings.NicknameAttribute = new(string)
-		*o.SamlSettings.NicknameAttribute = SAML_SETTINGS_DEFAULT_NICKNAME_ATTRIBUTE
+		o.SamlSettings.NicknameAttribute = NewString(SAML_SETTINGS_DEFAULT_NICKNAME_ATTRIBUTE)
 	}
 
 	if o.SamlSettings.PositionAttribute == nil {
-		o.SamlSettings.PositionAttribute = new(string)
-		*o.SamlSettings.PositionAttribute = SAML_SETTINGS_DEFAULT_POSITION_ATTRIBUTE
+		o.SamlSettings.PositionAttribute = NewString(SAML_SETTINGS_DEFAULT_POSITION_ATTRIBUTE)
 	}
 
 	if o.SamlSettings.LocaleAttribute == nil {
-		o.SamlSettings.LocaleAttribute = new(string)
-		*o.SamlSettings.LocaleAttribute = SAML_SETTINGS_DEFAULT_LOCALE_ATTRIBUTE
+		o.SamlSettings.LocaleAttribute = NewString(SAML_SETTINGS_DEFAULT_LOCALE_ATTRIBUTE)
 	}
 
 	if o.TeamSettings.TeammateNameDisplay == nil {
-		o.TeamSettings.TeammateNameDisplay = new(string)
-		*o.TeamSettings.TeammateNameDisplay = SHOW_USERNAME
+		o.TeamSettings.TeammateNameDisplay = NewString(SHOW_USERNAME)
 
 		if *o.SamlSettings.Enable || *o.LdapSettings.Enable {
 			*o.TeamSettings.TeammateNameDisplay = SHOW_FULLNAME
@@ -1434,223 +1289,179 @@ func (o *Config) SetDefaults() {
 	}
 
 	if o.NativeAppSettings.AppDownloadLink == nil {
-		o.NativeAppSettings.AppDownloadLink = new(string)
-		*o.NativeAppSettings.AppDownloadLink = NATIVEAPP_SETTINGS_DEFAULT_APP_DOWNLOAD_LINK
+		o.NativeAppSettings.AppDownloadLink = NewString(NATIVEAPP_SETTINGS_DEFAULT_APP_DOWNLOAD_LINK)
 	}
 
 	if o.NativeAppSettings.AndroidAppDownloadLink == nil {
-		o.NativeAppSettings.AndroidAppDownloadLink = new(string)
-		*o.NativeAppSettings.AndroidAppDownloadLink = NATIVEAPP_SETTINGS_DEFAULT_ANDROID_APP_DOWNLOAD_LINK
+		o.NativeAppSettings.AndroidAppDownloadLink = NewString(NATIVEAPP_SETTINGS_DEFAULT_ANDROID_APP_DOWNLOAD_LINK)
 	}
 
 	if o.NativeAppSettings.IosAppDownloadLink == nil {
-		o.NativeAppSettings.IosAppDownloadLink = new(string)
-		*o.NativeAppSettings.IosAppDownloadLink = NATIVEAPP_SETTINGS_DEFAULT_IOS_APP_DOWNLOAD_LINK
+		o.NativeAppSettings.IosAppDownloadLink = NewString(NATIVEAPP_SETTINGS_DEFAULT_IOS_APP_DOWNLOAD_LINK)
 	}
 
 	if o.RateLimitSettings.Enable == nil {
-		o.RateLimitSettings.Enable = new(bool)
-		*o.RateLimitSettings.Enable = false
+		o.RateLimitSettings.Enable = NewBool(false)
 	}
 
 	if o.RateLimitSettings.PerSec == nil {
-		o.RateLimitSettings.PerSec = new(int)
-		*o.RateLimitSettings.PerSec = 10
+		o.RateLimitSettings.PerSec = NewInt(10)
 	}
 
 	if o.RateLimitSettings.MaxBurst == nil {
-		o.RateLimitSettings.MaxBurst = new(int)
-		*o.RateLimitSettings.MaxBurst = 100
+		o.RateLimitSettings.MaxBurst = NewInt(100)
 	}
 
 	if o.RateLimitSettings.MemoryStoreSize == nil {
-		o.RateLimitSettings.MemoryStoreSize = new(int)
-		*o.RateLimitSettings.MemoryStoreSize = 10000
+		o.RateLimitSettings.MemoryStoreSize = NewInt(10000)
 	}
 
 	if o.ServiceSettings.GoroutineHealthThreshold == nil {
-		o.ServiceSettings.GoroutineHealthThreshold = new(int)
-		*o.ServiceSettings.GoroutineHealthThreshold = -1
+		o.ServiceSettings.GoroutineHealthThreshold = NewInt(-1)
 	}
 
 	if o.ServiceSettings.ConnectionSecurity == nil {
-		o.ServiceSettings.ConnectionSecurity = new(string)
-		*o.ServiceSettings.ConnectionSecurity = ""
+		o.ServiceSettings.ConnectionSecurity = NewString("")
 	}
 
 	if o.ServiceSettings.TLSKeyFile == nil {
-		o.ServiceSettings.TLSKeyFile = new(string)
-		*o.ServiceSettings.TLSKeyFile = SERVICE_SETTINGS_DEFAULT_TLS_KEY_FILE
+		o.ServiceSettings.TLSKeyFile = NewString(SERVICE_SETTINGS_DEFAULT_TLS_KEY_FILE)
 	}
 
 	if o.ServiceSettings.TLSCertFile == nil {
-		o.ServiceSettings.TLSCertFile = new(string)
-		*o.ServiceSettings.TLSCertFile = SERVICE_SETTINGS_DEFAULT_TLS_CERT_FILE
+		o.ServiceSettings.TLSCertFile = NewString(SERVICE_SETTINGS_DEFAULT_TLS_CERT_FILE)
 	}
 
 	if o.ServiceSettings.UseLetsEncrypt == nil {
-		o.ServiceSettings.UseLetsEncrypt = new(bool)
-		*o.ServiceSettings.UseLetsEncrypt = false
+		o.ServiceSettings.UseLetsEncrypt = NewBool(false)
 	}
 
 	if o.ServiceSettings.LetsEncryptCertificateCacheFile == nil {
-		o.ServiceSettings.LetsEncryptCertificateCacheFile = new(string)
-		*o.ServiceSettings.LetsEncryptCertificateCacheFile = "./config/letsencrypt.cache"
+		o.ServiceSettings.LetsEncryptCertificateCacheFile = NewString("./config/letsencrypt.cache")
 	}
 
 	if o.ServiceSettings.ReadTimeout == nil {
-		o.ServiceSettings.ReadTimeout = new(int)
-		*o.ServiceSettings.ReadTimeout = SERVICE_SETTINGS_DEFAULT_READ_TIMEOUT
+		o.ServiceSettings.ReadTimeout = NewInt(SERVICE_SETTINGS_DEFAULT_READ_TIMEOUT)
 	}
 
 	if o.ServiceSettings.WriteTimeout == nil {
-		o.ServiceSettings.WriteTimeout = new(int)
-		*o.ServiceSettings.WriteTimeout = SERVICE_SETTINGS_DEFAULT_WRITE_TIMEOUT
+		o.ServiceSettings.WriteTimeout = NewInt(SERVICE_SETTINGS_DEFAULT_WRITE_TIMEOUT)
 	}
 
 	if o.ServiceSettings.MaximumLoginAttempts == nil {
-		o.ServiceSettings.MaximumLoginAttempts = new(int)
-		*o.ServiceSettings.MaximumLoginAttempts = SERVICE_SETTINGS_DEFAULT_MAX_LOGIN_ATTEMPTS
+		o.ServiceSettings.MaximumLoginAttempts = NewInt(SERVICE_SETTINGS_DEFAULT_MAX_LOGIN_ATTEMPTS)
 	}
 
 	if o.ServiceSettings.Forward80To443 == nil {
-		o.ServiceSettings.Forward80To443 = new(bool)
-		*o.ServiceSettings.Forward80To443 = false
+		o.ServiceSettings.Forward80To443 = NewBool(false)
 	}
 
 	if o.MetricsSettings.BlockProfileRate == nil {
-		o.MetricsSettings.BlockProfileRate = new(int)
-		*o.MetricsSettings.BlockProfileRate = 0
+		o.MetricsSettings.BlockProfileRate = NewInt(0)
 	}
 
 	if o.ServiceSettings.TimeBetweenUserTypingUpdatesMilliseconds == nil {
-		o.ServiceSettings.TimeBetweenUserTypingUpdatesMilliseconds = new(int64)
-		*o.ServiceSettings.TimeBetweenUserTypingUpdatesMilliseconds = 5000
+		o.ServiceSettings.TimeBetweenUserTypingUpdatesMilliseconds = NewInt64(5000)
 	}
 
 	if o.ServiceSettings.EnablePostSearch == nil {
-		o.ServiceSettings.EnablePostSearch = new(bool)
-		*o.ServiceSettings.EnablePostSearch = true
+		o.ServiceSettings.EnablePostSearch = NewBool(true)
 	}
 
 	if o.ServiceSettings.EnableUserTypingMessages == nil {
-		o.ServiceSettings.EnableUserTypingMessages = new(bool)
-		*o.ServiceSettings.EnableUserTypingMessages = true
+		o.ServiceSettings.EnableUserTypingMessages = NewBool(true)
 	}
 
 	if o.ServiceSettings.EnableChannelViewedMessages == nil {
-		o.ServiceSettings.EnableChannelViewedMessages = new(bool)
-		*o.ServiceSettings.EnableChannelViewedMessages = true
+		o.ServiceSettings.EnableChannelViewedMessages = NewBool(true)
 	}
 
 	if o.ServiceSettings.EnableUserStatuses == nil {
-		o.ServiceSettings.EnableUserStatuses = new(bool)
-		*o.ServiceSettings.EnableUserStatuses = true
+		o.ServiceSettings.EnableUserStatuses = NewBool(true)
 	}
 
 	if o.ServiceSettings.ClusterLogTimeoutMilliseconds == nil {
-		o.ServiceSettings.ClusterLogTimeoutMilliseconds = new(int)
-		*o.ServiceSettings.ClusterLogTimeoutMilliseconds = 2000
+		o.ServiceSettings.ClusterLogTimeoutMilliseconds = NewInt(2000)
 	}
 
 	if o.ElasticsearchSettings.ConnectionUrl == nil {
-		o.ElasticsearchSettings.ConnectionUrl = new(string)
-		*o.ElasticsearchSettings.ConnectionUrl = ELASTICSEARCH_SETTINGS_DEFAULT_CONNECTION_URL
+		o.ElasticsearchSettings.ConnectionUrl = NewString(ELASTICSEARCH_SETTINGS_DEFAULT_CONNECTION_URL)
 	}
 
 	if o.ElasticsearchSettings.Username == nil {
-		o.ElasticsearchSettings.Username = new(string)
-		*o.ElasticsearchSettings.Username = ELASTICSEARCH_SETTINGS_DEFAULT_USERNAME
+		o.ElasticsearchSettings.Username = NewString(ELASTICSEARCH_SETTINGS_DEFAULT_USERNAME)
 	}
 
 	if o.ElasticsearchSettings.Password == nil {
-		o.ElasticsearchSettings.Password = new(string)
-		*o.ElasticsearchSettings.Password = ELASTICSEARCH_SETTINGS_DEFAULT_PASSWORD
+		o.ElasticsearchSettings.Password = NewString(ELASTICSEARCH_SETTINGS_DEFAULT_PASSWORD)
 	}
 
 	if o.ElasticsearchSettings.EnableIndexing == nil {
-		o.ElasticsearchSettings.EnableIndexing = new(bool)
-		*o.ElasticsearchSettings.EnableIndexing = false
+		o.ElasticsearchSettings.EnableIndexing = NewBool(false)
 	}
 
 	if o.ElasticsearchSettings.EnableSearching == nil {
-		o.ElasticsearchSettings.EnableSearching = new(bool)
-		*o.ElasticsearchSettings.EnableSearching = false
+		o.ElasticsearchSettings.EnableSearching = NewBool(false)
 	}
 
 	if o.ElasticsearchSettings.Sniff == nil {
-		o.ElasticsearchSettings.Sniff = new(bool)
-		*o.ElasticsearchSettings.Sniff = true
+		o.ElasticsearchSettings.Sniff = NewBool(true)
 	}
 
 	if o.ElasticsearchSettings.PostIndexReplicas == nil {
-		o.ElasticsearchSettings.PostIndexReplicas = new(int)
-		*o.ElasticsearchSettings.PostIndexReplicas = ELASTICSEARCH_SETTINGS_DEFAULT_POST_INDEX_REPLICAS
+		o.ElasticsearchSettings.PostIndexReplicas = NewInt(ELASTICSEARCH_SETTINGS_DEFAULT_POST_INDEX_REPLICAS)
 	}
 
 	if o.ElasticsearchSettings.PostIndexShards == nil {
-		o.ElasticsearchSettings.PostIndexShards = new(int)
-		*o.ElasticsearchSettings.PostIndexShards = ELASTICSEARCH_SETTINGS_DEFAULT_POST_INDEX_SHARDS
+		o.ElasticsearchSettings.PostIndexShards = NewInt(ELASTICSEARCH_SETTINGS_DEFAULT_POST_INDEX_SHARDS)
 	}
 
 	if o.ElasticsearchSettings.AggregatePostsAfterDays == nil {
-		o.ElasticsearchSettings.AggregatePostsAfterDays = new(int)
-		*o.ElasticsearchSettings.AggregatePostsAfterDays = ELASTICSEARCH_SETTINGS_DEFAULT_AGGREGATE_POSTS_AFTER_DAYS
+		o.ElasticsearchSettings.AggregatePostsAfterDays = NewInt(ELASTICSEARCH_SETTINGS_DEFAULT_AGGREGATE_POSTS_AFTER_DAYS)
 	}
 
 	if o.ElasticsearchSettings.PostsAggregatorJobStartTime == nil {
-		o.ElasticsearchSettings.PostsAggregatorJobStartTime = new(string)
-		*o.ElasticsearchSettings.PostsAggregatorJobStartTime = ELASTICSEARCH_SETTINGS_DEFAULT_POSTS_AGGREGATOR_JOB_START_TIME
+		o.ElasticsearchSettings.PostsAggregatorJobStartTime = NewString(ELASTICSEARCH_SETTINGS_DEFAULT_POSTS_AGGREGATOR_JOB_START_TIME)
 	}
 
 	if o.ElasticsearchSettings.IndexPrefix == nil {
-		o.ElasticsearchSettings.IndexPrefix = new(string)
-		*o.ElasticsearchSettings.IndexPrefix = ELASTICSEARCH_SETTINGS_DEFAULT_INDEX_PREFIX
+		o.ElasticsearchSettings.IndexPrefix = NewString(ELASTICSEARCH_SETTINGS_DEFAULT_INDEX_PREFIX)
 	}
 
 	if o.ElasticsearchSettings.LiveIndexingBatchSize == nil {
-		o.ElasticsearchSettings.LiveIndexingBatchSize = new(int)
-		*o.ElasticsearchSettings.LiveIndexingBatchSize = ELASTICSEARCH_SETTINGS_DEFAULT_LIVE_INDEXING_BATCH_SIZE
+		o.ElasticsearchSettings.LiveIndexingBatchSize = NewInt(ELASTICSEARCH_SETTINGS_DEFAULT_LIVE_INDEXING_BATCH_SIZE)
 	}
 
 	if o.DataRetentionSettings.EnableMessageDeletion == nil {
-		o.DataRetentionSettings.EnableMessageDeletion = new(bool)
-		*o.DataRetentionSettings.EnableMessageDeletion = false
+		o.DataRetentionSettings.EnableMessageDeletion = NewBool(false)
 	}
 
 	if o.DataRetentionSettings.EnableFileDeletion == nil {
-		o.DataRetentionSettings.EnableFileDeletion = new(bool)
-		*o.DataRetentionSettings.EnableMessageDeletion = false
+		o.DataRetentionSettings.EnableFileDeletion = NewBool(false)
 	}
 
 	if o.DataRetentionSettings.MessageRetentionDays == nil {
-		o.DataRetentionSettings.MessageRetentionDays = new(int)
-		*o.DataRetentionSettings.MessageRetentionDays = DATA_RETENTION_SETTINGS_DEFAULT_MESSAGE_RETENTION_DAYS
+		o.DataRetentionSettings.MessageRetentionDays = NewInt(DATA_RETENTION_SETTINGS_DEFAULT_MESSAGE_RETENTION_DAYS)
 	}
 
 	if o.DataRetentionSettings.FileRetentionDays == nil {
-		o.DataRetentionSettings.FileRetentionDays = new(int)
-		*o.DataRetentionSettings.FileRetentionDays = DATA_RETENTION_SETTINGS_DEFAULT_FILE_RETENTION_DAYS
+		o.DataRetentionSettings.FileRetentionDays = NewInt(DATA_RETENTION_SETTINGS_DEFAULT_FILE_RETENTION_DAYS)
 	}
 
 	if o.DataRetentionSettings.DeletionJobStartTime == nil {
-		o.DataRetentionSettings.DeletionJobStartTime = new(string)
-		*o.DataRetentionSettings.DeletionJobStartTime = DATA_RETENTION_SETTINGS_DEFAULT_DELETION_JOB_START_TIME
+		o.DataRetentionSettings.DeletionJobStartTime = NewString(DATA_RETENTION_SETTINGS_DEFAULT_DELETION_JOB_START_TIME)
 	}
 
 	if o.JobSettings.RunJobs == nil {
-		o.JobSettings.RunJobs = new(bool)
-		*o.JobSettings.RunJobs = true
+		o.JobSettings.RunJobs = NewBool(true)
 	}
 
 	if o.JobSettings.RunScheduler == nil {
-		o.JobSettings.RunScheduler = new(bool)
-		*o.JobSettings.RunScheduler = true
+		o.JobSettings.RunScheduler = NewBool(true)
 	}
 
 	if o.PluginSettings.Enable == nil {
-		o.PluginSettings.Enable = new(bool)
-		*o.PluginSettings.Enable = false
+		o.PluginSettings.Enable = NewBool(false)
 	}
 
 	if o.PluginSettings.Plugins == nil {
@@ -2074,42 +1885,34 @@ func (o *Config) Sanitize() {
 
 func (o *Config) defaultWebrtcSettings() {
 	if o.WebrtcSettings.Enable == nil {
-		o.WebrtcSettings.Enable = new(bool)
-		*o.WebrtcSettings.Enable = false
+		o.WebrtcSettings.Enable = NewBool(false)
 	}
 
 	if o.WebrtcSettings.GatewayWebsocketUrl == nil {
-		o.WebrtcSettings.GatewayWebsocketUrl = new(string)
-		*o.WebrtcSettings.GatewayWebsocketUrl = ""
+		o.WebrtcSettings.GatewayWebsocketUrl = NewString("")
 	}
 
 	if o.WebrtcSettings.GatewayAdminUrl == nil {
-		o.WebrtcSettings.GatewayAdminUrl = new(string)
-		*o.WebrtcSettings.GatewayAdminUrl = ""
+		o.WebrtcSettings.GatewayAdminUrl = NewString("")
 	}
 
 	if o.WebrtcSettings.GatewayAdminSecret == nil {
-		o.WebrtcSettings.GatewayAdminSecret = new(string)
-		*o.WebrtcSettings.GatewayAdminSecret = ""
+		o.WebrtcSettings.GatewayAdminSecret = NewString("")
 	}
 
 	if o.WebrtcSettings.StunURI == nil {
-		o.WebrtcSettings.StunURI = new(string)
-		*o.WebrtcSettings.StunURI = WEBRTC_SETTINGS_DEFAULT_STUN_URI
+		o.WebrtcSettings.StunURI = NewString(WEBRTC_SETTINGS_DEFAULT_STUN_URI)
 	}
 
 	if o.WebrtcSettings.TurnURI == nil {
-		o.WebrtcSettings.TurnURI = new(string)
-		*o.WebrtcSettings.TurnURI = WEBRTC_SETTINGS_DEFAULT_TURN_URI
+		o.WebrtcSettings.TurnURI = NewString(WEBRTC_SETTINGS_DEFAULT_TURN_URI)
 	}
 
 	if o.WebrtcSettings.TurnUsername == nil {
-		o.WebrtcSettings.TurnUsername = new(string)
-		*o.WebrtcSettings.TurnUsername = ""
+		o.WebrtcSettings.TurnUsername = NewString("")
 	}
 
 	if o.WebrtcSettings.TurnSharedKey == nil {
-		o.WebrtcSettings.TurnSharedKey = new(string)
-		*o.WebrtcSettings.TurnSharedKey = ""
+		o.WebrtcSettings.TurnSharedKey = NewString("")
 	}
 }

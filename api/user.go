@@ -985,55 +985,6 @@ func ldapToEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(model.MapToJson(map[string]string{"follow_link": link})))
 }
 
-/* Disabling for security reasons. Use apiv4
-func verifyEmail(c *Context, w http.ResponseWriter, r *http.Request) {
-	props := model.MapFromJson(r.Body)
-
-	userId := props["uid"]
-	if len(userId) != 26 {
-		c.SetInvalidParam("verifyEmail", "uid")
-		return
-	}
-
-	hashedId := props["hid"]
-	if len(hashedId) == 0 {
-		c.SetInvalidParam("verifyEmail", "hid")
-		return
-	}
-
-	if model.ComparePassword(hashedId, userId+utils.Cfg.EmailSettings.InviteSalt) {
-		if c.Err = app.VerifyUserEmail(userId); c.Err != nil {
-			return
-		} else {
-			c.LogAudit("Email Verified")
-			return
-		}
-	}
-
-	c.Err = model.NewAppError("verifyEmail", "api.user.verify_email.bad_link.app_error", nil, "", http.StatusBadRequest)
-}
-
-func resendVerification(c *Context, w http.ResponseWriter, r *http.Request) {
-	props := model.MapFromJson(r.Body)
-
-	email := props["email"]
-	if len(email) == 0 {
-		c.SetInvalidParam("resendVerification", "email")
-		return
-	}
-
-	if user, error := app.GetUserForLogin(email, false); error != nil {
-		c.Err = error
-		return
-	} else {
-		if _, err := app.GetStatus(user.Id); err != nil {
-			go app.SendVerifyEmail(user.Id, user.Email, user.Locale, utils.GetSiteURL())
-		} else {
-			go app.SendEmailChangeVerifyEmail(user.Id, user.Email, user.Locale, utils.GetSiteURL())
-		}
-	}
-}*/
-
 func generateMfaSecret(c *Context, w http.ResponseWriter, r *http.Request) {
 	secret, err := c.App.GenerateMfaSecret(c.Session.UserId)
 	if err != nil {
@@ -1224,7 +1175,7 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 			}
 			c.LogAuditWithUserId(user.Id, "Revoked all sessions for user")
 			c.App.Go(func() {
-				if err := app.SendSignInChangeEmail(user.Email, strings.Title(model.USER_AUTH_SERVICE_SAML)+" SSO", user.Locale, utils.GetSiteURL()); err != nil {
+				if err := c.App.SendSignInChangeEmail(user.Email, strings.Title(model.USER_AUTH_SERVICE_SAML)+" SSO", user.Locale, utils.GetSiteURL()); err != nil {
 					l4g.Error(err.Error())
 				}
 			})
