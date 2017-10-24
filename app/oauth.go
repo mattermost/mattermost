@@ -527,7 +527,7 @@ func (a *App) CompleteSwitchWithOAuth(service string, userData io.ReadCloser, em
 	}
 
 	a.Go(func() {
-		if err := SendSignInChangeEmail(user.Email, strings.Title(service)+" SSO", user.Locale, utils.GetSiteURL()); err != nil {
+		if err := a.SendSignInChangeEmail(user.Email, strings.Title(service)+" SSO", user.Locale, utils.GetSiteURL()); err != nil {
 			l4g.Error(err.Error())
 		}
 	})
@@ -760,7 +760,7 @@ func (a *App) SwitchOAuthToEmail(email, password, requesterId string) (string, *
 	T := utils.GetUserTranslations(user.Locale)
 
 	a.Go(func() {
-		if err := SendSignInChangeEmail(user.Email, T("api.templates.signin_change_email.body.method_email"), user.Locale, utils.GetSiteURL()); err != nil {
+		if err := a.SendSignInChangeEmail(user.Email, T("api.templates.signin_change_email.body.method_email"), user.Locale, utils.GetSiteURL()); err != nil {
 			l4g.Error(err.Error())
 		}
 	})

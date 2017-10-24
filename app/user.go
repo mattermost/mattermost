@@ -996,7 +996,7 @@ func (a *App) UpdateUser(user *model.User, sendNotifications bool) (*model.User,
 		if sendNotifications {
 			if rusers[0].Email != rusers[1].Email {
 				a.Go(func() {
-					if err := SendEmailChangeEmail(rusers[1].Email, rusers[0].Email, rusers[0].Locale, utils.GetSiteURL()); err != nil {
+					if err := a.SendEmailChangeEmail(rusers[1].Email, rusers[0].Email, rusers[0].Locale, utils.GetSiteURL()); err != nil {
 						l4g.Error(err.Error())
 					}
 				})
@@ -1010,7 +1010,7 @@ func (a *App) UpdateUser(user *model.User, sendNotifications bool) (*model.User,
 
 			if rusers[0].Username != rusers[1].Username {
 				a.Go(func() {
-					if err := SendChangeUsernameEmail(rusers[1].Username, rusers[0].Username, rusers[0].Email, rusers[0].Locale, utils.GetSiteURL()); err != nil {
+					if err := a.SendChangeUsernameEmail(rusers[1].Username, rusers[0].Username, rusers[0].Email, rusers[0].Locale, utils.GetSiteURL()); err != nil {
 						l4g.Error(err.Error())
 					}
 				})
@@ -1098,7 +1098,7 @@ func (a *App) UpdatePasswordSendEmail(user *model.User, newPassword, method stri
 	}
 
 	a.Go(func() {
-		if err := SendPasswordChangeEmail(user.Email, method, user.Locale, utils.GetSiteURL()); err != nil {
+		if err := a.SendPasswordChangeEmail(user.Email, method, user.Locale, utils.GetSiteURL()); err != nil {
 			l4g.Error(err.Error())
 		}
 	})
@@ -1304,9 +1304,9 @@ func (a *App) SendEmailVerification(user *model.User) *model.AppError {
 	}
 
 	if _, err := a.GetStatus(user.Id); err != nil {
-		return SendVerifyEmail(user.Email, user.Locale, utils.GetSiteURL(), token.Token)
+		return a.SendVerifyEmail(user.Email, user.Locale, utils.GetSiteURL(), token.Token)
 	} else {
-		return SendEmailChangeVerifyEmail(user.Email, user.Locale, utils.GetSiteURL(), token.Token)
+		return a.SendEmailChangeVerifyEmail(user.Email, user.Locale, utils.GetSiteURL(), token.Token)
 	}
 }
 
