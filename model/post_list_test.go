@@ -6,6 +6,8 @@ package model
 import (
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestPostListJson(t *testing.T) {
@@ -67,4 +69,24 @@ func TestPostListExtend(t *testing.T) {
 	} else if len(l2.Posts) != 3 || len(l2.Order) != 3 {
 		t.Fatal("extending l2 again changed l2")
 	}
+}
+
+func TestPostListSortByCreateAt(t *testing.T) {
+	pl := PostList{}
+	p1 := &Post{Id: NewId(), Message: NewId(), CreateAt: 2}
+	pl.AddPost(p1)
+	p2 := &Post{Id: NewId(), Message: NewId(), CreateAt: 1}
+	pl.AddPost(p2)
+	p3 := &Post{Id: NewId(), Message: NewId(), CreateAt: 3}
+	pl.AddPost(p3)
+
+	pl.AddOrder(p1.Id)
+	pl.AddOrder(p2.Id)
+	pl.AddOrder(p3.Id)
+
+	pl.SortByCreateAt()
+
+	assert.EqualValues(t, pl.Order[0], p3.Id)
+	assert.EqualValues(t, pl.Order[1], p1.Id)
+	assert.EqualValues(t, pl.Order[2], p2.Id)
 }

@@ -273,7 +273,7 @@ func userInviteCmdF(cmd *cobra.Command, args []string) error {
 
 	teams := getTeamsFromTeamArgs(a, args[1:])
 	for i, team := range teams {
-		err := inviteUser(email, team, args[i+1])
+		err := inviteUser(a, email, team, args[i+1])
 
 		if err != nil {
 			CommandPrintErrorln(err.Error())
@@ -283,13 +283,13 @@ func userInviteCmdF(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func inviteUser(email string, team *model.Team, teamArg string) error {
+func inviteUser(a *app.App, email string, team *model.Team, teamArg string) error {
 	invites := []string{email}
 	if team == nil {
 		return fmt.Errorf("Can't find team '%v'", teamArg)
 	}
 
-	app.SendInviteEmails(team, "Administrator", invites, *utils.Cfg.ServiceSettings.SiteURL)
+	a.SendInviteEmails(team, "Administrator", invites, *utils.Cfg.ServiceSettings.SiteURL)
 	CommandPrettyPrintln("Invites may or may not have been sent.")
 
 	return nil

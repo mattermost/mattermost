@@ -645,6 +645,8 @@ func (a *App) SearchPostsInTeam(terms string, userId string, teamId string, isOr
 			}
 		}
 
+		posts.SortByCreateAt()
+
 		return posts, nil
 	}
 }
