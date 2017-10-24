@@ -50,7 +50,7 @@ func (a *App) GetWebrtcToken(sessionId string) (string, *model.AppError) {
 	}
 
 	switch strings.ToLower(*a.Config().WebrtcSettings.GatewayType) {
-	case "kopano-webmeetings":
+	case model.WEBRTC_GATEWAY_TYPE_KOPANO_WEBMEETINGS:
 		return a.GetKopanoWebmeetingsWebrtcToken(sessionId)
 	default:
 		// Default to Janus.

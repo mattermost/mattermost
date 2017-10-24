@@ -125,6 +125,9 @@ const (
 	WEBRTC_SETTINGS_DEFAULT_STUN_URI = ""
 	WEBRTC_SETTINGS_DEFAULT_TURN_URI = ""
 
+	WEBRTC_GATEWAY_TYPE_JANUS              = "janus"
+	WEBRTC_GATEWAY_TYPE_KOPANO_WEBMEETINGS = "kopano-webmeetings"
+
 	ANALYTICS_SETTINGS_DEFAULT_MAX_USERS_FOR_STATISTICS = 2500
 
 	ANNOUNCEMENT_SETTINGS_DEFAULT_BANNER_COLOR      = "#f2a93b"
@@ -1763,7 +1766,7 @@ func (ws *WebrtcSettings) isValid() *AppError {
 			return NewAppError("Config.IsValid", "model.config.is_valid.webrtc_gateway_ws_url.app_error", nil, "", http.StatusBadRequest)
 		} else if len(*ws.GatewayAdminUrl) == 0 || !IsValidHttpUrl(*ws.GatewayAdminUrl) {
 			return NewAppError("Config.IsValid", "model.config.is_valid.webrtc_gateway_admin_url.app_error", nil, "", http.StatusBadRequest)
-		} else if len(*ws.GatewayAdminSecret) == 0 {
+		} else if len(*ws.GatewayAdminSecret) == 0 && *ws.GatewayType != WEBRTC_GATEWAY_TYPE_KOPANO_WEBMEETINGS {
 			return NewAppError("Config.IsValid", "model.config.is_valid.webrtc_gateway_admin_secret.app_error", nil, "", http.StatusBadRequest)
 		} else if len(*ws.StunURI) != 0 && !IsValidTurnOrStunServer(*ws.StunURI) {
 			return NewAppError("Config.IsValid", "model.config.is_valid.webrtc_stun_uri.app_error", nil, "", http.StatusBadRequest)
@@ -1920,6 +1923,10 @@ func (o *Config) Sanitize() {
 func (o *Config) defaultWebrtcSettings() {
 	if o.WebrtcSettings.Enable == nil {
 		o.WebrtcSettings.Enable = NewBool(false)
+	}
+
+	if o.WebrtcSettings.GatewayType == nil {
+		o.WebrtcSettings.GatewayType = NewString(WEBRTC_GATEWAY_TYPE_JANUS)
 	}
 
 	if o.WebrtcSettings.GatewayWebsocketUrl == nil {
