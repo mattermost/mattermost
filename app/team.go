@@ -675,7 +675,7 @@ func (a *App) InviteNewUsersToTeam(emailList []string, teamId, senderId string) 
 	}
 
 	nameFormat := *a.Config().TeamSettings.TeammateNameDisplay
-	SendInviteEmails(team, user.GetDisplayName(nameFormat), emailList, utils.GetSiteURL())
+	a.SendInviteEmails(team, user.GetDisplayName(nameFormat), emailList, utils.GetSiteURL())
 
 	return nil
 }
