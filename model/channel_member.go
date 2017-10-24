@@ -112,7 +112,7 @@ func (o *ChannelMember) IsValid() *AppError {
 
 	if mute, ok := o.NotifyProps[MUTE_NOTIFY_PROP]; ok {
 		if len(mute) > 20 || !IsMuteChannelValid(mute) {
-			return NewAppError("ChannelMember.IsValid", "model.channel_member.is_valid.email_value.app_error", nil, "push_notification_level="+mute, http.StatusBadRequest)
+			return NewAppError("ChannelMember.IsValid", "model.channel_member.is_valid.mute_value.app_error", nil, "mute_notification_level="+mute, http.StatusBadRequest)
 		}
 	}
 

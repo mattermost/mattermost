@@ -36,9 +36,10 @@ func (me *MuteProvider) GetCommand(T goi18n.TranslateFunc) *model.Command {
 func (me *MuteProvider) DoCommand(a *App, args *model.CommandArgs, message string) *model.CommandResponse {
 	var channel *model.Channel
 	var noChannelErr *model.AppError
+	var response *model.CommandResponse
 
 	if channel, noChannelErr = a.GetChannel(args.ChannelId); noChannelErr != nil {
-		return &model.CommandResponse{Text: args.T("api.command_mute.error", map[string]interface{}{"Channel": channel.DisplayName}), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+		response = &model.CommandResponse{Text: args.T("api.command_mute.error", map[string]interface{}{"Channel": channel.DisplayName}), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 	}
 
 	// Overwrite channel with channel-handle if set
@@ -48,29 +49,35 @@ func (me *MuteProvider) DoCommand(a *App, args *model.CommandArgs, message strin
 		data := (<-a.Srv.Store.Channel().GetByName(channel.TeamId, chanHandle, true)).Data
 
 		if data == nil {
-			return &model.CommandResponse{Text: args.T("api.command_mute.error", map[string]interface{}{"Channel": chanHandle}), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+			response = &model.CommandResponse{Text: args.T("api.command_mute.error", map[string]interface{}{"Channel": chanHandle}), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 		}
 
 		channel = data.(*model.Channel)
 	}
 
-	muteChannel := a.ToggleMuteChannel(channel.Id, args.UserId)
+	channelMember := a.ToggleMuteChannel(channel.Id, args.UserId)
 
 	// Invalidate cache to allow cache lookups while sending notifications
 	a.Srv.Store.Channel().InvalidateCacheForChannelMembersNotifyProps(channel.Id)
 
 	// Direct messages won't have a nice channel title, omit it
 	if channel.Type == model.CHANNEL_DIRECT {
-		if muteChannel {
-			return &model.CommandResponse{Text: args.T("api.command_mute.success_mute_direct_msg"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+		if channelMember.NotifyProps[model.MUTE_NOTIFY_PROP] == "true" {
+			response = &model.CommandResponse{Text: args.T("api.command_mute.success_mute_direct_msg"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 		} else {
-			return &model.CommandResponse{Text: args.T("api.command_mute.success_unmute_direct_msg"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+			response = &model.CommandResponse{Text: args.T("api.command_mute.success_unmute_direct_msg"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 		}
 	}
 
-	if muteChannel {
-		return &model.CommandResponse{Text: args.T("api.command_mute.success_mute", map[string]interface{}{"Channel": channel.DisplayName}), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+	if channelMember.NotifyProps[model.MUTE_NOTIFY_PROP] == "true" {
+		response = &model.CommandResponse{Text: args.T("api.command_mute.success_mute", map[string]interface{}{"Channel": channel.DisplayName}), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 	} else {
-		return &model.CommandResponse{Text: args.T("api.command_mute.success_unmute", map[string]interface{}{"Channel": channel.DisplayName}), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+		response = &model.CommandResponse{Text: args.T("api.command_mute.success_unmute", map[string]interface{}{"Channel": channel.DisplayName}), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 	}
+
+	evt := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CHANNEL_MEMBER_UPDATED, "", "", args.UserId, nil)
+	evt.Add("channelMember", channelMember.ToJson())
+	a.Publish(evt)
+
+	return response
 }
