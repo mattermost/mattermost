@@ -6,6 +6,7 @@ package model
 import (
 	"encoding/json"
 	"io"
+	"sort"
 )
 
 type PostList struct {
@@ -80,6 +81,12 @@ func (o *PostList) Extend(other *PostList) {
 			o.AddOrder(postId)
 		}
 	}
+}
+
+func (o *PostList) SortByCreateAt() {
+	sort.Slice(o.Order, func(i, j int) bool {
+		return o.Posts[o.Order[i]].CreateAt > o.Posts[o.Order[j]].CreateAt
+	})
 }
 
 func (o *PostList) Etag() string {
