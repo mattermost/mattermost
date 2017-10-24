@@ -16,58 +16,58 @@ import (
 	"github.com/mattermost/mattermost-server/utils"
 )
 
-func GetWebrtcInfoForSession(sessionId string) (*model.WebrtcInfoResponse, *model.AppError) {
-	token, err := GetWebrtcToken(sessionId)
+func (a *App) GetWebrtcInfoForSession(sessionId string) (*model.WebrtcInfoResponse, *model.AppError) {
+	token, err := a.GetWebrtcToken(sessionId)
 	if err != nil {
 		return nil, err
 	}
 
 	result := &model.WebrtcInfoResponse{
 		Token:       token,
-		GatewayUrl:  *utils.Cfg.WebrtcSettings.GatewayWebsocketUrl,
-		GatewayType: *utils.Cfg.WebrtcSettings.GatewayType,
+		GatewayUrl:  *a.Config().WebrtcSettings.GatewayWebsocketUrl,
+		GatewayType: *a.Config().WebrtcSettings.GatewayType,
 	}
 
-	if len(*utils.Cfg.WebrtcSettings.StunURI) > 0 {
-		result.StunUri = *utils.Cfg.WebrtcSettings.StunURI
+	if len(*a.Config().WebrtcSettings.StunURI) > 0 {
+		result.StunUri = *a.Config().WebrtcSettings.StunURI
 	}
 
-	if len(*utils.Cfg.WebrtcSettings.TurnURI) > 0 {
+	if len(*a.Config().WebrtcSettings.TurnURI) > 0 {
 		timestamp := strconv.FormatInt(utils.EndOfDay(time.Now().AddDate(0, 0, 1)).Unix(), 10)
-		username := timestamp + ":" + *utils.Cfg.WebrtcSettings.TurnUsername
+		username := timestamp + ":" + *a.Config().WebrtcSettings.TurnUsername
 
-		result.TurnUri = *utils.Cfg.WebrtcSettings.TurnURI
-		result.TurnPassword = GenerateTurnPassword(username, *utils.Cfg.WebrtcSettings.TurnSharedKey)
+		result.TurnUri = *a.Config().WebrtcSettings.TurnURI
+		result.TurnPassword = GenerateTurnPassword(username, *a.Config().WebrtcSettings.TurnSharedKey)
 		result.TurnUsername = username
 	}
 
 	return result, nil
 }
 
-func GetWebrtcToken(sessionId string) (string, *model.AppError) {
-	if !*utils.Cfg.WebrtcSettings.Enable {
+func (a *App) GetWebrtcToken(sessionId string) (string, *model.AppError) {
+	if !*a.Config().WebrtcSettings.Enable {
 		return "", model.NewAppError("WebRTC.getWebrtcToken", "api.webrtc.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	switch strings.ToLower(*utils.Cfg.WebrtcSettings.GatewayType) {
+	switch strings.ToLower(*a.Config().WebrtcSettings.GatewayType) {
 	case "kopano-webmeetings":
-		return GetKopanoWebmeetingsWebrtcToken(sessionId)
+		return a.GetKopanoWebmeetingsWebrtcToken(sessionId)
 	default:
 		// Default to Janus.
-		return GetJanusWebrtcToken(sessionId)
+		return a.GetJanusWebrtcToken(sessionId)
 	}
 }
 
-func GetJanusWebrtcToken(sessionId string) (string, *model.AppError) {
+func (a *App) GetJanusWebrtcToken(sessionId string) (string, *model.AppError) {
 	token := base64.StdEncoding.EncodeToString([]byte(sessionId))
 
 	data := make(map[string]string)
 	data["janus"] = "add_token"
 	data["token"] = token
 	data["transaction"] = model.NewId()
-	data["admin_secret"] = *utils.Cfg.WebrtcSettings.GatewayAdminSecret
+	data["admin_secret"] = *a.Config().WebrtcSettings.GatewayAdminSecret
 
-	rq, _ := http.NewRequest("POST", *utils.Cfg.WebrtcSettings.GatewayAdminUrl, strings.NewReader(model.MapToJson(data)))
+	rq, _ := http.NewRequest("POST", *a.Config().WebrtcSettings.GatewayAdminUrl, strings.NewReader(model.MapToJson(data)))
 	rq.Header.Set("Content-Type", "application/json")
 
 	if rp, err := utils.HttpClient(true).Do(rq); err != nil {
@@ -85,14 +85,14 @@ func GetJanusWebrtcToken(sessionId string) (string, *model.AppError) {
 	return token, nil
 }
 
-func GetKopanoWebmeetingsWebrtcToken(sessionId string) (string, *model.AppError) {
+func (a *App) GetKopanoWebmeetingsWebrtcToken(sessionId string) (string, *model.AppError) {
 	data := make(map[string]string)
 	data["type"] = "Token"
 	data["id"] = sessionId
 
-	rq, _ := http.NewRequest("POST", *utils.Cfg.WebrtcSettings.GatewayAdminUrl+"/auth/tokens", strings.NewReader(model.MapToJson(data)))
+	rq, _ := http.NewRequest("POST", *a.Config().WebrtcSettings.GatewayAdminUrl+"/auth/tokens", strings.NewReader(model.MapToJson(data)))
 	rq.Header.Set("Content-Type", "application/json")
-	rq.Header.Set("Authorization", "Bearer "+*utils.Cfg.WebrtcSettings.GatewayAdminSecret)
+	rq.Header.Set("Authorization", "Bearer "+*a.Config().WebrtcSettings.GatewayAdminSecret)
 
 	if rp, err := utils.HttpClient(true).Do(rq); err != nil {
 		return "", model.NewAppError("WebRTC.Token", "model.client.connecting.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -115,15 +115,15 @@ func GenerateTurnPassword(username string, secret string) string {
 	return base64.StdEncoding.EncodeToString(h.Sum(nil))
 }
 
-func RevokeWebrtcToken(sessionId string) {
+func (a *App) RevokeWebrtcToken(sessionId string) {
 	token := base64.StdEncoding.EncodeToString([]byte(sessionId))
 	data := make(map[string]string)
 	data["janus"] = "remove_token"
 	data["token"] = token
 	data["transaction"] = model.NewId()
-	data["admin_secret"] = *utils.Cfg.WebrtcSettings.GatewayAdminSecret
+	data["admin_secret"] = *a.Config().WebrtcSettings.GatewayAdminSecret
 
-	rq, _ := http.NewRequest("POST", *utils.Cfg.WebrtcSettings.GatewayAdminUrl, strings.NewReader(model.MapToJson(data)))
+	rq, _ := http.NewRequest("POST", *a.Config().WebrtcSettings.GatewayAdminUrl, strings.NewReader(model.MapToJson(data)))
 	rq.Header.Set("Content-Type", "application/json")
 
 	// we do not care about the response
