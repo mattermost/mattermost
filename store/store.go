@@ -182,8 +182,9 @@ type PostStore interface {
 	GetPostsCreatedAt(channelId string, time int64) StoreChannel
 	Overwrite(post *model.Post) StoreChannel
 	GetPostsByIds(postIds []string) StoreChannel
-	GetPostsBatchForIndexing(startTime int64, limit int) StoreChannel
+	GetPostsBatchForIndexing(startTime int64, endTime int64, limit int) StoreChannel
 	PermanentDeleteBatch(endTime int64, limit int64) StoreChannel
+	GetOldest() StoreChannel
 }
 
 type UserStore interface {
