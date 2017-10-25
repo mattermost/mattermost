@@ -318,7 +318,8 @@
         "PostsAggregatorJobStartTime": "03:00",
         "IndexPrefix": "",
         "LiveIndexingBatchSize": 1,
-        "BulkIndexingTimeWindowSeconds": 3600
+        "BulkIndexingTimeWindowSeconds": 3600,
+        "RequestTimeoutSeconds": 30
     },
     "DataRetentionSettings": {
         "EnableMessageDeletion": false,
