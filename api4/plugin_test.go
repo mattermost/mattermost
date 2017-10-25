@@ -28,10 +28,17 @@ func TestPlugin(t *testing.T) {
 	defer th.TearDown()
 
 	enablePlugins := *th.App.Config().PluginSettings.Enable
+	enableUploadPlugins := *th.App.Config().PluginSettings.EnableUploads
 	defer func() {
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PluginSettings.Enable = enablePlugins })
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.Enable = enablePlugins
+			*cfg.PluginSettings.EnableUploads = enableUploadPlugins
+		})
 	}()
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PluginSettings.Enable = true })
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.PluginSettings.Enable = true
+		*cfg.PluginSettings.EnableUploads = true
+	})
 
 	th.App.InitPlugins(pluginDir, webappDir)
 	defer func() {
@@ -61,7 +68,14 @@ func TestPlugin(t *testing.T) {
 	_, resp = th.SystemAdminClient.UploadPlugin(file)
 	CheckNotImplementedStatus(t, resp)
 
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PluginSettings.Enable = true })
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.PluginSettings.Enable = true
+		*cfg.PluginSettings.EnableUploads = false
+	})
+	_, resp = th.SystemAdminClient.UploadPlugin(file)
+	CheckNotImplementedStatus(t, resp)
+
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PluginSettings.EnableUploads = true })
 	_, resp = th.Client.UploadPlugin(file)
 	CheckForbiddenStatus(t, resp)
 
