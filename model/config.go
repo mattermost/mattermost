@@ -519,6 +519,8 @@ type PluginSettings struct {
 	PluginStates  map[string]*PluginState
 }
 
+type ConfigFunc func() *Config
+
 type Config struct {
 	ServiceSettings       ServiceSettings
 	TeamSettings          TeamSettings

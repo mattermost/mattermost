@@ -292,7 +292,7 @@ func getInitialLoad(c *Context, w http.ResponseWriter, r *http.Request) {
 		il.TeamMembers = c.Session.TeamMembers
 	}
 
-	if app.SessionCacheLength() == 0 {
+	if c.App.SessionCacheLength() == 0 {
 		// Below is a special case when intializating a new server
 		// Lets check to make sure the server is really empty
 

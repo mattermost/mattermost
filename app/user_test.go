@@ -87,11 +87,11 @@ func TestCreateOAuthUser(t *testing.T) {
 
 	th.App.PermanentDeleteUser(user)
 
-	userCreation := utils.Cfg.TeamSettings.EnableUserCreation
-	defer func() {
-		utils.Cfg.TeamSettings.EnableUserCreation = userCreation
-	}()
-	utils.Cfg.TeamSettings.EnableUserCreation = false
+	userCreation := th.App.Config().TeamSettings.EnableUserCreation
+	defer th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.TeamSettings.EnableUserCreation = userCreation
+	})
+	th.App.Config().TeamSettings.EnableUserCreation = false
 
 	_, err = th.App.CreateOAuthUser(model.USER_AUTH_SERVICE_GITLAB, strings.NewReader(json), th.BasicTeam.Id)
 	if err == nil {

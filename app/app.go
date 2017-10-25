@@ -48,6 +48,8 @@ type App struct {
 	Saml             einterfaces.SamlInterface
 
 	newStore func() store.Store
+
+	sessionCache *utils.Cache
 }
 
 var appCount = 0
@@ -64,10 +66,10 @@ func New(options ...Option) *App {
 
 	app := &App{
 		goroutineExitSignal: make(chan struct{}, 1),
-		Jobs:                &jobs.JobServer{},
 		Srv: &Server{
 			Router: mux.NewRouter(),
 		},
+		sessionCache: utils.NewLru(model.SESSION_CACHE_SIZE),
 	}
 	app.initEnterprise()
 
@@ -82,7 +84,7 @@ func New(options ...Option) *App {
 	}
 
 	app.Srv.Store = app.newStore()
-	app.Jobs.Store = app.Srv.Store
+	app.Jobs = jobs.NewJobServer(app.Config, app.Srv.Store)
 
 	app.Srv.Router.NotFoundHandler = http.HandlerFunc(app.Handle404)
 
@@ -238,6 +240,10 @@ func (a *App) Config() *model.Config {
 
 func (a *App) UpdateConfig(f func(*model.Config)) {
 	f(utils.Cfg)
+}
+
+func (a *App) ConfigFileName() string {
+	return utils.CfgFileName
 }
 
 // Go creates a goroutine, but maintains a record of it to ensure that execution completes before

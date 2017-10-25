@@ -53,11 +53,12 @@ func (rl *RecoveryLogger) Println(i ...interface{}) {
 }
 
 type CorsWrapper struct {
+	config model.ConfigFunc
 	router *mux.Router
 }
 
 func (cw *CorsWrapper) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if len(*utils.Cfg.ServiceSettings.AllowCorsFrom) > 0 {
+	if len(*cw.config().ServiceSettings.AllowCorsFrom) > 0 {
 		if utils.OriginChecker(r) {
 			w.Header().Set("Access-Control-Allow-Origin", r.Header.Get("Origin"))
 
@@ -88,25 +89,6 @@ func (m *VaryBy) Key(r *http.Request) string {
 	return utils.GetIpAddress(r)
 }
 
-func initalizeThrottledVaryBy() *throttled.VaryBy {
-	vary := throttled.VaryBy{}
-
-	if utils.Cfg.RateLimitSettings.VaryByRemoteAddr {
-		vary.RemoteAddr = true
-	}
-
-	if len(utils.Cfg.RateLimitSettings.VaryByHeader) > 0 {
-		vary.Headers = strings.Fields(utils.Cfg.RateLimitSettings.VaryByHeader)
-
-		if utils.Cfg.RateLimitSettings.VaryByRemoteAddr {
-			l4g.Warn(utils.T("api.server.start_server.rate.warn"))
-			vary.RemoteAddr = false
-		}
-	}
-
-	return &vary
-}
-
 func redirectHTTPToHTTPS(w http.ResponseWriter, r *http.Request) {
 	if r.Host == "" {
 		http.Error(w, "Not Found", http.StatusNotFound)
@@ -121,7 +103,7 @@ func redirectHTTPToHTTPS(w http.ResponseWriter, r *http.Request) {
 func (a *App) StartServer() {
 	l4g.Info(utils.T("api.server.start_server.starting.info"))
 
-	var handler http.Handler = &CorsWrapper{a.Srv.Router}
+	var handler http.Handler = &CorsWrapper{a.Config, a.Srv.Router}
 
 	if *a.Config().RateLimitSettings.Enable {
 		l4g.Info(utils.T("api.server.start_server.rate.info"))
