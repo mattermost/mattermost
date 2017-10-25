@@ -84,7 +84,7 @@ func New(options ...Option) *App {
 	}
 
 	app.Srv.Store = app.newStore()
-	app.Jobs = jobs.NewJobServer(app.Config, app.Srv.Store)
+	app.initJobs()
 
 	app.Srv.Router.NotFoundHandler = http.HandlerFunc(app.Handle404)
 
@@ -220,6 +220,10 @@ func (a *App) initEnterprise() {
 	if dataRetentionInterface != nil {
 		a.DataRetention = dataRetentionInterface(a)
 	}
+}
+
+func (a *App) initJobs() {
+	a.Jobs = jobs.NewJobServer(a.Config, a.Srv.Store)
 	if jobsDataRetentionJobInterface != nil {
 		a.Jobs.DataRetentionJob = jobsDataRetentionJobInterface(a)
 	}
