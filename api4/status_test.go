@@ -31,6 +31,13 @@ func TestGetUserStatus(t *testing.T) {
 		t.Fatal("Should return away status")
 	}
 
+	th.App.SetStatusDoNotDisturb(th.BasicUser.Id)
+	userStatus, resp = Client.GetUserStatus(th.BasicUser.Id, "")
+	CheckNoError(t, resp)
+	if userStatus.Status != "dnd" {
+		t.Fatal("Should return dnd status")
+	}
+
 	th.App.SetStatusOffline(th.BasicUser.Id, true)
 	userStatus, resp = Client.GetUserStatus(th.BasicUser.Id, "")
 	CheckNoError(t, resp)
@@ -93,6 +100,16 @@ func TestGetUsersStatusesByIds(t *testing.T) {
 		}
 	}
 
+	th.App.SetStatusDoNotDisturb(th.BasicUser.Id)
+	th.App.SetStatusDoNotDisturb(th.BasicUser2.Id)
+	usersStatuses, resp = Client.GetUsersStatusesByIds(usersIds)
+	CheckNoError(t, resp)
+	for _, userStatus := range usersStatuses {
+		if userStatus.Status != "dnd" {
+			t.Fatal("Status should be offline")
+		}
+	}
+
 	Client.Logout()
 
 	_, resp = Client.GetUsersStatusesByIds(usersIds)
@@ -116,6 +133,13 @@ func TestUpdateUserStatus(t *testing.T) {
 	CheckNoError(t, resp)
 	if updateUserStatus.Status != "away" {
 		t.Fatal("Should return away status")
+	}
+
+	toUpdateUserStatus.Status = "dnd"
+	updateUserStatus, resp = Client.UpdateUserStatus(th.BasicUser.Id, toUpdateUserStatus)
+	CheckNoError(t, resp)
+	if updateUserStatus.Status != "dnd" {
+		t.Fatal("Should return dnd status")
 	}
 
 	toUpdateUserStatus.Status = "offline"
