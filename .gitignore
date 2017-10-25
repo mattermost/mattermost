@@ -83,6 +83,7 @@ data/*
 webapp/data/*
 api/data/*
 api4/data/*
+app/data/*
 
 enterprise
 
