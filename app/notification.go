@@ -804,10 +804,15 @@ func GetExplicitMentions(message string, keywords map[string][]string) (map[stri
 	message = removeCodeFromMessage(message)
 
 	for _, word := range strings.FieldsFunc(message, func(c rune) bool {
-		// Split on any whitespace or punctuation that can't be part of an at mention
-		return !(c == '.' || c == '-' || c == '_' || c == '@' || unicode.IsLetter(c) || unicode.IsNumber(c))
+		// Split on any whitespace or punctuation that can't be part of an at mention or emoji pattern
+		return !(c == ':' || c == '.' || c == '-' || c == '_' || c == '@' || unicode.IsLetter(c) || unicode.IsNumber(c))
 	}) {
 		isMention := false
+
+		// skip word with format ':word:' with an assumption that it is an emoji format only
+		if word[0] == ':' && word[len(word)-1] == ':' {
+			continue
+		}
 
 		if word == "@here" {
 			hereMentioned = true
@@ -837,10 +842,10 @@ func GetExplicitMentions(message string, keywords map[string][]string) (map[stri
 			continue
 		}
 
-		if strings.ContainsAny(word, ".-") {
+		if strings.ContainsAny(word, ".-:") {
 			// This word contains a character that may be the end of a sentence, so split further
 			splitWords := strings.FieldsFunc(word, func(c rune) bool {
-				return c == '.' || c == '-'
+				return c == '.' || c == '-' || c == ':'
 			})
 
 			for _, splitWord := range splitWords {
