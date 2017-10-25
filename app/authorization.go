@@ -12,7 +12,12 @@ import (
 )
 
 func SessionHasPermissionTo(session model.Session, permission *model.Permission) bool {
-	return CheckIfRolesGrantPermission(session.GetUserRoles(), permission.Id)
+	if !CheckIfRolesGrantPermission(session.GetUserRoles(), permission.Id) {
+		ClearSessionCacheForUser(session.UserId)
+		return false
+	}
+
+	return true
 }
 
 func SessionHasPermissionToTeam(session model.Session, teamId string, permission *model.Permission) bool {

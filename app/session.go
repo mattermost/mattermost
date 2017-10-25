@@ -114,7 +114,7 @@ func ClearSessionCacheForUser(userId string) {
 	if einterfaces.GetClusterInterface() != nil {
 		msg := &model.ClusterMessage{
 			Event:    model.CLUSTER_EVENT_CLEAR_SESSION_CACHE_FOR_USER,
-			SendType: model.CLUSTER_SEND_BEST_EFFORT,
+			SendType: model.CLUSTER_SEND_RELIABLE,
 			Data:     userId,
 		}
 		einterfaces.GetClusterInterface().SendClusterMessage(msg)
