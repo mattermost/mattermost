@@ -132,15 +132,16 @@ const (
 
 	TEAM_SETTINGS_DEFAULT_TEAM_TEXT = "default"
 
-	ELASTICSEARCH_SETTINGS_DEFAULT_CONNECTION_URL                  = ""
-	ELASTICSEARCH_SETTINGS_DEFAULT_USERNAME                        = ""
-	ELASTICSEARCH_SETTINGS_DEFAULT_PASSWORD                        = ""
-	ELASTICSEARCH_SETTINGS_DEFAULT_POST_INDEX_REPLICAS             = 1
-	ELASTICSEARCH_SETTINGS_DEFAULT_POST_INDEX_SHARDS               = 1
-	ELASTICSEARCH_SETTINGS_DEFAULT_AGGREGATE_POSTS_AFTER_DAYS      = 365
-	ELASTICSEARCH_SETTINGS_DEFAULT_POSTS_AGGREGATOR_JOB_START_TIME = "03:00"
-	ELASTICSEARCH_SETTINGS_DEFAULT_INDEX_PREFIX                    = ""
-	ELASTICSEARCH_SETTINGS_DEFAULT_LIVE_INDEXING_BATCH_SIZE        = 1
+	ELASTICSEARCH_SETTINGS_DEFAULT_CONNECTION_URL                    = ""
+	ELASTICSEARCH_SETTINGS_DEFAULT_USERNAME                          = ""
+	ELASTICSEARCH_SETTINGS_DEFAULT_PASSWORD                          = ""
+	ELASTICSEARCH_SETTINGS_DEFAULT_POST_INDEX_REPLICAS               = 1
+	ELASTICSEARCH_SETTINGS_DEFAULT_POST_INDEX_SHARDS                 = 1
+	ELASTICSEARCH_SETTINGS_DEFAULT_AGGREGATE_POSTS_AFTER_DAYS        = 365
+	ELASTICSEARCH_SETTINGS_DEFAULT_POSTS_AGGREGATOR_JOB_START_TIME   = "03:00"
+	ELASTICSEARCH_SETTINGS_DEFAULT_INDEX_PREFIX                      = ""
+	ELASTICSEARCH_SETTINGS_DEFAULT_LIVE_INDEXING_BATCH_SIZE          = 1
+	ELASTICSEARCH_SETTINGS_DEFAULT_BULK_INDEXING_TIME_WINDOW_SECONDS = 3600
 
 	DATA_RETENTION_SETTINGS_DEFAULT_MESSAGE_RETENTION_DAYS  = 365
 	DATA_RETENTION_SETTINGS_DEFAULT_FILE_RETENTION_DAYS     = 365
@@ -476,18 +477,19 @@ type WebrtcSettings struct {
 }
 
 type ElasticsearchSettings struct {
-	ConnectionUrl               *string
-	Username                    *string
-	Password                    *string
-	EnableIndexing              *bool
-	EnableSearching             *bool
-	Sniff                       *bool
-	PostIndexReplicas           *int
-	PostIndexShards             *int
-	AggregatePostsAfterDays     *int
-	PostsAggregatorJobStartTime *string
-	IndexPrefix                 *string
-	LiveIndexingBatchSize       *int
+	ConnectionUrl                 *string
+	Username                      *string
+	Password                      *string
+	EnableIndexing                *bool
+	EnableSearching               *bool
+	Sniff                         *bool
+	PostIndexReplicas             *int
+	PostIndexShards               *int
+	AggregatePostsAfterDays       *int
+	PostsAggregatorJobStartTime   *string
+	IndexPrefix                   *string
+	LiveIndexingBatchSize         *int
+	BulkIndexingTimeWindowSeconds *int
 }
 
 type DataRetentionSettings struct {
@@ -1590,6 +1592,11 @@ func (o *Config) SetDefaults() {
 		*o.ElasticsearchSettings.LiveIndexingBatchSize = ELASTICSEARCH_SETTINGS_DEFAULT_LIVE_INDEXING_BATCH_SIZE
 	}
 
+	if o.ElasticsearchSettings.BulkIndexingTimeWindowSeconds == nil {
+		o.ElasticsearchSettings.BulkIndexingTimeWindowSeconds = new(int)
+		*o.ElasticsearchSettings.BulkIndexingTimeWindowSeconds = ELASTICSEARCH_SETTINGS_DEFAULT_BULK_INDEXING_TIME_WINDOW_SECONDS
+	}
+
 	if o.DataRetentionSettings.EnableMessageDeletion == nil {
 		o.DataRetentionSettings.EnableMessageDeletion = new(bool)
 		*o.DataRetentionSettings.EnableMessageDeletion = false
@@ -1977,6 +1984,10 @@ func (ess *ElasticsearchSettings) isValid() *AppError {
 
 	if *ess.LiveIndexingBatchSize < 1 {
 		return NewAppError("Config.IsValid", "model.config.is_valid.elastic_search.live_indexing_batch_size.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if *ess.BulkIndexingTimeWindowSeconds < 1 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.elastic_search.bulk_indexing_time_window_seconds.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	return nil
