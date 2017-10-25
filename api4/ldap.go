@@ -7,7 +7,6 @@ import (
 	"net/http"
 
 	l4g "github.com/alecthomas/log4go"
-	"github.com/mattermost/mattermost-server/app"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
 )
@@ -20,7 +19,7 @@ func (api *API) InitLdap() {
 }
 
 func syncLdap(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !app.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
+	if !c.App.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
 	}
@@ -31,7 +30,7 @@ func syncLdap(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func testLdap(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !app.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
+	if !c.App.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
 	}

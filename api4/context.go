@@ -240,7 +240,7 @@ func (c *Context) LogDebug(err *model.AppError) {
 }
 
 func (c *Context) IsSystemAdmin() bool {
-	return app.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM)
+	return c.App.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM)
 }
 
 func (c *Context) SessionRequired() {
