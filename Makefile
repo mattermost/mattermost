@@ -271,7 +271,10 @@ gofmt:
 	done
 	@echo "gofmt success"; \
 
-check-style: govet gofmt
+check-licenses:
+	./scripts/license-check.sh $(TE_PACKAGES) $(EE_PACKAGES)
+
+check-style: govet gofmt check-licenses
 
 test-te-race:
 	@echo Testing TE race conditions
