@@ -9,7 +9,6 @@ import (
 	"net/http"
 
 	l4g "github.com/alecthomas/log4go"
-	"github.com/mattermost/mattermost-server/app"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
 )
@@ -85,7 +84,7 @@ func removeLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getClientLicenceConfig(c *Context, w http.ResponseWriter, r *http.Request) {
-	useSanitizedLicense := !app.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM)
+	useSanitizedLicense := !c.App.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM)
 
 	etag := utils.GetClientLicenseEtag(useSanitizedLicense)
 	if c.HandleEtag(etag, "Get Client License Config", w, r) {
