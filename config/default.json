@@ -332,7 +332,8 @@
         "RunScheduler": true
     },
     "PluginSettings": {
-        "Enable": false,
+        "Enable": true,
+        "EnableUploads": false,
         "Plugins": {}
     }
 }

@@ -511,9 +511,10 @@ type PluginState struct {
 }
 
 type PluginSettings struct {
-	Enable       *bool
-	Plugins      map[string]interface{}
-	PluginStates map[string]*PluginState
+	Enable        *bool
+	EnableUploads *bool
+	Plugins       map[string]interface{}
+	PluginStates  map[string]*PluginState
 }
 
 type Config struct {
@@ -1459,6 +1460,10 @@ func (o *Config) SetDefaults() {
 	}
 
 	if o.PluginSettings.Enable == nil {
+		o.PluginSettings.Enable = NewBool(true)
+	}
+
+	if o.PluginSettings.EnableUploads == nil {
 		o.PluginSettings.Enable = NewBool(false)
 	}
 
