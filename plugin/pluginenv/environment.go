@@ -1,3 +1,6 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See License.txt for license information.
+
 // Package pluginenv provides high level functionality for discovering and launching plugins.
 package pluginenv
 

@@ -1,3 +1,6 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See License.txt for license information.
+
 // glue functions that allow logger.go to leverage log4Go to write JSON-formatted log records to a file
 
 package logger
