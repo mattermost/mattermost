@@ -504,9 +504,14 @@ type JobSettings struct {
 	RunScheduler *bool
 }
 
+type PluginState struct {
+	Enable bool
+}
+
 type PluginSettings struct {
-	Enable  *bool
-	Plugins map[string]interface{}
+	Enable       *bool
+	Plugins      map[string]interface{}
+	PluginStates map[string]*PluginState
 }
 
 type Config struct {
@@ -1452,6 +1457,10 @@ func (o *Config) SetDefaults() {
 
 	if o.PluginSettings.Plugins == nil {
 		o.PluginSettings.Plugins = make(map[string]interface{})
+	}
+
+	if o.PluginSettings.PluginStates == nil {
+		o.PluginSettings.PluginStates = make(map[string]*PluginState)
 	}
 
 	o.defaultWebrtcSettings()

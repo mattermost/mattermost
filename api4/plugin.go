@@ -24,6 +24,9 @@ func (api *API) InitPlugin() {
 	api.BaseRoutes.Plugins.Handle("", api.ApiSessionRequired(getPlugins)).Methods("GET")
 	api.BaseRoutes.Plugin.Handle("", api.ApiSessionRequired(removePlugin)).Methods("DELETE")
 
+	api.BaseRoutes.Plugin.Handle("/activate", api.ApiSessionRequired(activatePlugin)).Methods("POST")
+	api.BaseRoutes.Plugin.Handle("/deactivate", api.ApiSessionRequired(deactivatePlugin)).Methods("POST")
+
 	api.BaseRoutes.Plugins.Handle("/webapp", api.ApiHandler(getWebappPlugins)).Methods("GET")
 
 }
@@ -64,7 +67,7 @@ func uploadPlugin(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	defer file.Close()
 
-	manifest, unpackErr := c.App.UnpackAndActivatePlugin(file)
+	manifest, unpackErr := c.App.InstallPlugin(file)
 
 	if unpackErr != nil {
 		c.Err = unpackErr
@@ -86,13 +89,13 @@ func getPlugins(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	manifests, err := c.App.GetActivePluginManifests()
+	response, err := c.App.GetPluginManifests()
 	if err != nil {
 		c.Err = err
 		return
 	}
 
-	w.Write([]byte(model.ManifestListToJson(manifests)))
+	w.Write([]byte(response.ToJson()))
 }
 
 func removePlugin(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -140,4 +143,52 @@ func getWebappPlugins(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Write([]byte(model.ManifestListToJson(clientManifests)))
+}
+
+func activatePlugin(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequirePluginId()
+	if c.Err != nil {
+		return
+	}
+
+	if !*c.App.Config().PluginSettings.Enable {
+		c.Err = model.NewAppError("activatePlugin", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
+		return
+	}
+
+	if !app.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+
+	if err := c.App.EnablePlugin(c.Params.PluginId); err != nil {
+		c.Err = err
+		return
+	}
+
+	ReturnStatusOK(w)
+}
+
+func deactivatePlugin(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequirePluginId()
+	if c.Err != nil {
+		return
+	}
+
+	if !*c.App.Config().PluginSettings.Enable {
+		c.Err = model.NewAppError("deactivatePlugin", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
+		return
+	}
+
+	if !app.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+
+	if err := c.App.DisablePlugin(c.Params.PluginId); err != nil {
+		c.Err = err
+		return
+	}
+
+	ReturnStatusOK(w)
 }
