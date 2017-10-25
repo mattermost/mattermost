@@ -8,13 +8,13 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 )
 
 const (
-	INBUCKET_HOST = "http://dockerhost:9000"
-	INBUCKET_API  = "/api/v1/mailbox/"
+	INBUCKET_API = "/api/v1/mailbox/"
 )
 
 // OutputJSONHeader holds the received Header to test sending emails (inbucket)
@@ -49,7 +49,7 @@ func GetMailBox(email string) (results JSONMessageHeaderInbucket, err error) {
 
 	parsedEmail := ParseEmail(email)
 
-	url := fmt.Sprintf("%s%s%s", INBUCKET_HOST, INBUCKET_API, parsedEmail)
+	url := fmt.Sprintf("%s%s%s", getInbucketHost(), INBUCKET_API, parsedEmail)
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return nil, err
@@ -88,7 +88,7 @@ func GetMessageFromMailbox(email, id string) (results JSONMessageInbucket, err e
 
 	var record JSONMessageInbucket
 
-	url := fmt.Sprintf("%s%s%s/%s", INBUCKET_HOST, INBUCKET_API, parsedEmail, id)
+	url := fmt.Sprintf("%s%s%s/%s", getInbucketHost(), INBUCKET_API, parsedEmail, id)
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return record, err
@@ -112,7 +112,7 @@ func DeleteMailBox(email string) (err error) {
 
 	parsedEmail := ParseEmail(email)
 
-	url := fmt.Sprintf("%s%s%s", INBUCKET_HOST, INBUCKET_API, parsedEmail)
+	url := fmt.Sprintf("%s%s%s", getInbucketHost(), INBUCKET_API, parsedEmail)
 	req, err := http.NewRequest("DELETE", url, nil)
 	if err != nil {
 		return err
@@ -145,4 +145,18 @@ func RetryInbucket(attempts int, callback func() error) (err error) {
 		fmt.Println("retrying...")
 	}
 	return fmt.Errorf("After %d attempts, last error: %s", attempts, err)
+}
+
+func getInbucketHost() (host string) {
+
+	inbucket_host := os.Getenv("CI_HOST")
+	if inbucket_host == "" {
+		inbucket_host = "dockerhost"
+	}
+
+	inbucket_port := os.Getenv("CI_INBUCKET_PORT")
+	if inbucket_port == "" {
+		inbucket_port = "9000"
+	}
+	return fmt.Sprintf("http://%s:%s", inbucket_host, inbucket_port)
 }
