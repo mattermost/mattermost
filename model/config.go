@@ -142,6 +142,7 @@ const (
 	ELASTICSEARCH_SETTINGS_DEFAULT_INDEX_PREFIX                      = ""
 	ELASTICSEARCH_SETTINGS_DEFAULT_LIVE_INDEXING_BATCH_SIZE          = 1
 	ELASTICSEARCH_SETTINGS_DEFAULT_BULK_INDEXING_TIME_WINDOW_SECONDS = 3600
+	ELASTICSEARCH_SETTINGS_DEFAULT_REQUEST_TIMEOUT_SECONDS           = 30
 
 	DATA_RETENTION_SETTINGS_DEFAULT_MESSAGE_RETENTION_DAYS  = 365
 	DATA_RETENTION_SETTINGS_DEFAULT_FILE_RETENTION_DAYS     = 365
@@ -490,6 +491,7 @@ type ElasticsearchSettings struct {
 	IndexPrefix                   *string
 	LiveIndexingBatchSize         *int
 	BulkIndexingTimeWindowSeconds *int
+	RequestTimeoutSeconds         *int
 }
 
 type DataRetentionSettings struct {
@@ -1597,6 +1599,11 @@ func (o *Config) SetDefaults() {
 		*o.ElasticsearchSettings.BulkIndexingTimeWindowSeconds = ELASTICSEARCH_SETTINGS_DEFAULT_BULK_INDEXING_TIME_WINDOW_SECONDS
 	}
 
+	if o.ElasticsearchSettings.RequestTimeoutSeconds == nil {
+		o.ElasticsearchSettings.RequestTimeoutSeconds = new(int)
+		*o.ElasticsearchSettings.RequestTimeoutSeconds = ELASTICSEARCH_SETTINGS_DEFAULT_REQUEST_TIMEOUT_SECONDS
+	}
+
 	if o.DataRetentionSettings.EnableMessageDeletion == nil {
 		o.DataRetentionSettings.EnableMessageDeletion = new(bool)
 		*o.DataRetentionSettings.EnableMessageDeletion = false
@@ -1988,6 +1995,10 @@ func (ess *ElasticsearchSettings) isValid() *AppError {
 
 	if *ess.BulkIndexingTimeWindowSeconds < 1 {
 		return NewAppError("Config.IsValid", "model.config.is_valid.elastic_search.bulk_indexing_time_window_seconds.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if *ess.RequestTimeoutSeconds < 1 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.elastic_search.request_timeout_seconds.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	return nil
