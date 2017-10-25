@@ -4,10 +4,20 @@
 package storetest
 
 import (
+	"github.com/stretchr/testify/mock"
+
 	"github.com/mattermost/mattermost-server/store"
 	"github.com/mattermost/mattermost-server/store/storetest/mocks"
 )
 
+// NewStoreChannel returns a channel that will receive the given result.
+func NewStoreChannel(result store.StoreResult) store.StoreChannel {
+	ch := make(store.StoreChannel, 1)
+	ch <- result
+	return ch
+}
+
+// Store can be used to provide mock stores for testing.
 type Store struct {
 	TeamStore             mocks.TeamStore
 	ChannelStore          mocks.ChannelStore
@@ -61,3 +71,30 @@ func (s *Store) DropAllTables()                                { /* do nothing *
 func (s *Store) TotalMasterDbConnections() int                 { return 1 }
 func (s *Store) TotalReadDbConnections() int                   { return 1 }
 func (s *Store) TotalSearchDbConnections() int                 { return 1 }
+
+func (s *Store) AssertExpectations(t mock.TestingT) bool {
+	return mock.AssertExpectationsForObjects(t,
+		&s.TeamStore,
+		&s.ChannelStore,
+		&s.PostStore,
+		&s.UserStore,
+		&s.AuditStore,
+		&s.ClusterDiscoveryStore,
+		&s.ComplianceStore,
+		&s.SessionStore,
+		&s.OAuthStore,
+		&s.SystemStore,
+		&s.WebhookStore,
+		&s.CommandStore,
+		&s.CommandWebhookStore,
+		&s.PreferenceStore,
+		&s.LicenseStore,
+		&s.TokenStore,
+		&s.EmojiStore,
+		&s.StatusStore,
+		&s.FileInfoStore,
+		&s.ReactionStore,
+		&s.JobStore,
+		&s.UserAccessTokenStore,
+	)
+}
