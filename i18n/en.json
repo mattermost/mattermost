@@ -3472,6 +3472,18 @@
     "translation": "Unable to activate extracted plugin. Plugin may already exist and be activated."
   },
   {
+    "id": "app.plugin.get_plugins.app_error",
+    "translation": "Unable to get plugins"
+  },
+  {
+    "id": "app.plugin.not_installed.app_error",
+    "translation": "Plugin is not installed"
+  },
+  {
+    "id": "app.plugin.config.app_error",
+    "translation": "Error saving plugin state in config"
+  },
+  {
     "id": "app.plugin.deactivate.app_error",
     "translation": "Unable to deactivate plugin"
   },

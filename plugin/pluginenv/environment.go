@@ -89,6 +89,20 @@ func (env *Environment) ActivePluginIds() (ids []string) {
 	return
 }
 
+// Returns true if the plugin is active, false otherwise.
+func (env *Environment) IsPluginActive(pluginId string) bool {
+	env.mutex.RLock()
+	defer env.mutex.RUnlock()
+
+	for id := range env.activePlugins {
+		if id == pluginId {
+			return true
+		}
+	}
+
+	return false
+}
+
 // Activates the plugin with the given id.
 func (env *Environment) ActivatePlugin(id string) error {
 	env.mutex.Lock()
