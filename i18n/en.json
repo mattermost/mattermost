@@ -583,42 +583,6 @@
     "id": "api.command_channel_purpose.update_channel.app_error",
     "translation": "Error to update the current channel."
   },
-    {
-    "id": "api.command_remove.message.app_error",
-    "translation": "A message must be provided with the /remove or /kick command."
-  },
-  {
-    "id": "api.command_remove.missing.app_error",
-    "translation": "We couldn't find the user"
-  },
-  {
-    "id": "api.command_remove.permission.app_error",
-    "translation": "You do not have the appropriate permissions to remove the member."
-  },
-  {
-    "id": "api.command_remove.direct_group.app_error",
-    "translation": "You can't remove someone from a direct message channel."
-  },
-  {
-    "id": "api.command_remove.name",
-    "translation": "remove"
-  },
-  {
-    "id": "api.command_remove.hint",
-    "translation": "@[username]"
-  },
-  {
-    "id": "api.command_remove.desc",
-    "translation": "Remove a member from the channel"
-  },
-  {
-    "id": "api.command_remove.user_not_in_channel",
-    "translation": "{{.Username}} is not a member of this channel."
-  },
-  {
-    "id": "api.command_kick.name",
-    "translation": "kick"
-  },
   {
     "id": "api.command_channel_rename.channel.app_error",
     "translation": "Error to retrieve the current channel."
@@ -772,6 +736,10 @@
     "translation": "Joined channel."
   },
   {
+    "id": "api.command_kick.name",
+    "translation": "kick"
+  },
+  {
     "id": "api.command_leave.desc",
     "translation": "Leave the current channel"
   },
@@ -878,6 +846,38 @@
   {
     "id": "api.command_open.name",
     "translation": "open"
+  },
+  {
+    "id": "api.command_remove.desc",
+    "translation": "Remove a member from the channel"
+  },
+  {
+    "id": "api.command_remove.direct_group.app_error",
+    "translation": "You can't remove someone from a direct message channel."
+  },
+  {
+    "id": "api.command_remove.hint",
+    "translation": "@[username]"
+  },
+  {
+    "id": "api.command_remove.message.app_error",
+    "translation": "A message must be provided with the /remove or /kick command."
+  },
+  {
+    "id": "api.command_remove.missing.app_error",
+    "translation": "We couldn't find the user"
+  },
+  {
+    "id": "api.command_remove.name",
+    "translation": "remove"
+  },
+  {
+    "id": "api.command_remove.permission.app_error",
+    "translation": "You do not have the appropriate permissions to remove the member."
+  },
+  {
+    "id": "api.command_remove.user_not_in_channel",
+    "translation": "{{.Username}} is not a member of this channel."
   },
   {
     "id": "api.command_search.desc",
@@ -1574,12 +1574,12 @@
     "translation": "Missing file in multipart/form request"
   },
   {
-    "id": "api.post.check_for_out_of_channel_mentions.link.public",
-    "translation": "add them to the channel"
-  },
-  {
     "id": "api.post.check_for_out_of_channel_mentions.link.private",
     "translation": "add them to this private channel"
+  },
+  {
+    "id": "api.post.check_for_out_of_channel_mentions.link.public",
+    "translation": "add them to the channel"
   },
   {
     "id": "api.post.check_for_out_of_channel_mentions.message.multiple",
@@ -3772,14 +3772,6 @@
     "translation": "License does not support Data Retention."
   },
   {
-    "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
-    "translation": "Failed to create Elasticsearch bulk processor"
-  },
-  {
-    "id": "ent.elasticsearch.start.start_bulk_processor_failed.app_error",
-    "translation": "Failed to start Elasticsearch bulk processor"
-  },
-  {
     "id": "ent.elasticsearch.aggregator_worker.create_index_job.error",
     "translation": "Elasticsearch aggregator worker failed to create the indexing job"
   },
@@ -3860,8 +3852,16 @@
     "translation": "Failed to decode search results"
   },
   {
+    "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
+    "translation": "Failed to create Elasticsearch bulk processor"
+  },
+  {
     "id": "ent.elasticsearch.start.index_settings_failed",
     "translation": "Failed to set Elasticsearch index settings"
+  },
+  {
+    "id": "ent.elasticsearch.start.start_bulk_processor_failed.app_error",
+    "translation": "Failed to start Elasticsearch bulk processor"
   },
   {
     "id": "ent.elasticsearch.test_config.connect_failed",
@@ -4496,6 +4496,10 @@
     "translation": "Elastic Search IndexingEnabled setting must be set to true when Elastic Search SearchEnabled is set to true."
   },
   {
+    "id": "model.config.is_valid.elastic_search.live_indexing_batch_size.app_error",
+    "translation": "Elasticsearch Live Indexing Batch Size must be at least 1"
+  },
+  {
     "id": "model.config.is_valid.elastic_search.password.app_error",
     "translation": "Elastic Search Password setting must be provided when Elastic Search indexing is enabled."
   },
@@ -4506,10 +4510,6 @@
   {
     "id": "model.config.is_valid.elastic_search.username.app_error",
     "translation": "Elastic Search Username setting must be provided when Elastic Search indexing is enabled."
-  },
-  {
-    "id": "model.config.is_valid.elastic_search.live_indexing_batch_size.app_error",
-    "translation": "Elasticsearch Live Indexing Batch Size must be at least 1"
   },
   {
     "id": "model.config.is_valid.email_batching_buffer_size.app_error",

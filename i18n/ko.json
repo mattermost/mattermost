@@ -65,7 +65,7 @@
   },
   {
     "id": "api.admin.get_brand_image.not_available.app_error",
-    "translation": "커스텀 브랜딩을 설정하지 않았거나 서버에서 지원하지 않습니다"
+    "translation": "커스텀 브랜딩을 설정하지 않았거나 서버에서 지원하지 않습니다."
   },
   {
     "id": "api.admin.get_brand_image.storage.app_error",
@@ -73,7 +73,7 @@
   },
   {
     "id": "api.admin.init.debug",
-    "translation": "관리자 API 경로 초기화 중"
+    "translation": "관리자 API 경로 초기화 중입니다."
   },
   {
     "id": "api.admin.recycle_db_end.warn",
@@ -81,7 +81,7 @@
   },
   {
     "id": "api.admin.recycle_db_start.warn",
-    "translation": "DB 연결을 재사용하려고 시도 중"
+    "translation": "DB 연결을 재사용하려고 시도 중."
   },
   {
     "id": "api.admin.remove_certificate.delete.app_error",
@@ -716,6 +716,10 @@
     "translation": "참가한 채널"
   },
   {
+    "id": "api.command_kick.name",
+    "translation": "kick"
+  },
+  {
     "id": "api.command_leave.desc",
     "translation": "Leave the current channel"
   },
@@ -822,6 +826,38 @@
   {
     "id": "api.command_open.name",
     "translation": "열기"
+  },
+  {
+    "id": "api.command_remove.desc",
+    "translation": "Remove a member from the channel"
+  },
+  {
+    "id": "api.command_remove.direct_group.app_error",
+    "translation": "You can't remove someone from a direct message channel."
+  },
+  {
+    "id": "api.command_remove.hint",
+    "translation": "@[username]"
+  },
+  {
+    "id": "api.command_remove.message.app_error",
+    "translation": "메시지는 /echo 명령어와 함께 제공되어야 합니다."
+  },
+  {
+    "id": "api.command_remove.missing.app_error",
+    "translation": "사용자를 찾을 수 없습니다"
+  },
+  {
+    "id": "api.command_remove.name",
+    "translation": "remove"
+  },
+  {
+    "id": "api.command_remove.permission.app_error",
+    "translation": "당신은 채널 머릿말을 수정할 권한을 가지고 있지 않습니다."
+  },
+  {
+    "id": "api.command_remove.user_not_in_channel",
+    "translation": "{{.Username}} is not a member of this channel."
   },
   {
     "id": "api.command_search.desc",
@@ -1518,12 +1554,20 @@
     "translation": "Missing file in multipart/form request"
   },
   {
+    "id": "api.post.check_for_out_of_channel_mentions.link.private",
+    "translation": "add them to this private channel"
+  },
+  {
+    "id": "api.post.check_for_out_of_channel_mentions.link.public",
+    "translation": "add them to the channel"
+  },
+  {
     "id": "api.post.check_for_out_of_channel_mentions.message.multiple",
-    "translation": "{{.Usernames}}, {{.LastUsername}} 이 멘션되었으나, 그들은 이 채널에 속하지 않기 때문에 알림을 받지 못했습니다."
+    "translation": "@{{.Usernames}} and @{{.LastUsername}} were mentioned but they are not in the channel. Would you like to {{.Phrase}}? They will have access to all message history."
   },
   {
     "id": "api.post.check_for_out_of_channel_mentions.message.one",
-    "translation": "{{.Username}}이 멘션되었으나, 그는 이 채널에 속하지 않기 때문에 알림을 받지 못했습니다."
+    "translation": "@{{.Username}} was mentioned but they are not in the channel. Would you like to {{.Phrase}}? They will have access to all message history."
   },
   {
     "id": "api.post.create_post.attach_files.error",
@@ -3772,8 +3816,16 @@
     "translation": "Failed to decode search results"
   },
   {
+    "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
+    "translation": "Failed to create Elasticsearch bulk processor"
+  },
+  {
     "id": "ent.elasticsearch.start.index_settings_failed",
     "translation": "Failed to set Elasticsearch index settings"
+  },
+  {
+    "id": "ent.elasticsearch.start.start_bulk_processor_failed.app_error",
+    "translation": "Failed to start Elasticsearch bulk processor"
   },
   {
     "id": "ent.elasticsearch.test_config.connect_failed",
@@ -4394,6 +4446,10 @@
   {
     "id": "model.config.is_valid.elastic_search.enable_searching.app_error",
     "translation": "Elastic Search IndexingEnabled setting must be set to true when Elastic Search SearchEnabled is set to true."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.live_indexing_batch_size.app_error",
+    "translation": "Elasticsearch Live Indexing Batch Size must be at least 1"
   },
   {
     "id": "model.config.is_valid.elastic_search.password.app_error",
