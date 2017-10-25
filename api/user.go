@@ -204,7 +204,7 @@ func getSessions(c *Context, w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	id := params["user_id"]
 
-	if !app.SessionHasPermissionToUser(c.Session, id) {
+	if !c.App.SessionHasPermissionToUser(c.Session, id) {
 		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
 		return
 	}
@@ -300,7 +300,7 @@ func getInitialLoad(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	il.ClientCfg = utils.ClientCfg
-	if app.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
+	if c.App.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
 		il.LicenseCfg = utils.ClientLicense()
 	} else {
 		il.LicenseCfg = utils.GetSanitizedClientLicense()
@@ -406,7 +406,7 @@ func getProfilesInTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	teamId := params["team_id"]
 
 	if c.Session.GetTeamByTeamId(teamId) == nil {
-		if !app.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
+		if !c.App.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
 			return
 		}
 	}
@@ -454,7 +454,7 @@ func getProfilesInChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if c.Session.GetTeamByTeamId(c.TeamId) == nil {
-		if !app.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
+		if !c.App.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
 			c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 			return
 		}
@@ -478,7 +478,7 @@ func getProfilesNotInChannel(c *Context, w http.ResponseWriter, r *http.Request)
 	channelId := params["channel_id"]
 
 	if c.Session.GetTeamByTeamId(c.TeamId) == nil {
-		if !app.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
+		if !c.App.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
 			c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 			return
 		}
@@ -513,7 +513,7 @@ func getAudits(c *Context, w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	id := params["user_id"]
 
-	if !app.SessionHasPermissionToUser(c.Session, id) {
+	if !c.App.SessionHasPermissionToUser(c.Session, id) {
 		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
 		return
 	}
@@ -628,7 +628,7 @@ func updateUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !app.SessionHasPermissionToUser(c.Session, user.Id) {
+	if !c.App.SessionHasPermissionToUser(c.Session, user.Id) {
 		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
 		return
 	}
@@ -694,7 +694,7 @@ func updateRoles(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !app.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_ROLES) {
+	if !c.App.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_ROLES) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_ROLES)
 		return
 	}
@@ -724,7 +724,7 @@ func updateActive(c *Context, w http.ResponseWriter, r *http.Request) {
 	// true when you're trying to de-activate yourself
 	isSelfDeactive := !active && userId == c.Session.UserId
 
-	if !isSelfDeactive && !app.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
+	if !isSelfDeactive && !c.App.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
 		c.Err = model.NewAppError("updateActive", "api.user.update_active.permissions.app_error", nil, "userId="+userId, http.StatusForbidden)
 		return
 	}
@@ -791,7 +791,7 @@ func updateUserNotify(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !app.SessionHasPermissionToUser(c.Session, userId) {
+	if !c.App.SessionHasPermissionToUser(c.Session, userId) {
 		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
 		return
 	}
@@ -1202,7 +1202,7 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 func sanitizeProfile(c *Context, user *model.User) *model.User {
 	options := c.App.Config().GetSanitizeOptions()
 
-	if app.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
+	if c.App.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
 		options["email"] = true
 		options["fullname"] = true
 		options["authservice"] = true
@@ -1238,7 +1238,7 @@ func searchUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 	searchOptions := map[string]bool{}
 	searchOptions[store.USER_SEARCH_OPTION_ALLOW_INACTIVE] = props.AllowInactive
 
-	if !app.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
+	if !c.App.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
 		hideFullName := !c.App.Config().PrivacySettings.ShowFullName
 		hideEmail := !c.App.Config().PrivacySettings.ShowEmailAddress
 
@@ -1287,7 +1287,7 @@ func autocompleteUsersInChannel(c *Context, w http.ResponseWriter, r *http.Reque
 	term := r.URL.Query().Get("term")
 
 	if c.Session.GetTeamByTeamId(teamId) == nil {
-		if !app.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
+		if !c.App.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
 			return
 		}
 	}
@@ -1300,7 +1300,7 @@ func autocompleteUsersInChannel(c *Context, w http.ResponseWriter, r *http.Reque
 	searchOptions := map[string]bool{}
 
 	hideFullName := !c.App.Config().PrivacySettings.ShowFullName
-	if hideFullName && !app.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
+	if hideFullName && !c.App.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
 		searchOptions[store.USER_SEARCH_OPTION_NAMES_ONLY_NO_FULL_NAME] = true
 	} else {
 		searchOptions[store.USER_SEARCH_OPTION_NAMES_ONLY] = true
@@ -1322,7 +1322,7 @@ func autocompleteUsersInTeam(c *Context, w http.ResponseWriter, r *http.Request)
 	term := r.URL.Query().Get("term")
 
 	if c.Session.GetTeamByTeamId(teamId) == nil {
-		if !app.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
+		if !c.App.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
 			return
 		}
 	}
@@ -1330,7 +1330,7 @@ func autocompleteUsersInTeam(c *Context, w http.ResponseWriter, r *http.Request)
 	searchOptions := map[string]bool{}
 
 	hideFullName := !c.App.Config().PrivacySettings.ShowFullName
-	if hideFullName && !app.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
+	if hideFullName && !c.App.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
 		searchOptions[store.USER_SEARCH_OPTION_NAMES_ONLY_NO_FULL_NAME] = true
 	} else {
 		searchOptions[store.USER_SEARCH_OPTION_NAMES_ONLY] = true
@@ -1351,7 +1351,7 @@ func autocompleteUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 	searchOptions := map[string]bool{}
 
 	hideFullName := !c.App.Config().PrivacySettings.ShowFullName
-	if hideFullName && !app.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
+	if hideFullName && !c.App.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
 		searchOptions[store.USER_SEARCH_OPTION_NAMES_ONLY_NO_FULL_NAME] = true
 	} else {
 		searchOptions[store.USER_SEARCH_OPTION_NAMES_ONLY] = true

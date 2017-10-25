@@ -11,10 +11,16 @@ import (
 	"github.com/mattermost/mattermost-server/model"
 )
 
-func SessionHasPermissionTo(session model.Session, permission *model.Permission) bool {
-	return CheckIfRolesGrantPermission(session.GetUserRoles(), permission.Id)
+func (a *App) SessionHasPermissionTo(session model.Session, permission *model.Permission) bool {
+	if !CheckIfRolesGrantPermission(session.GetUserRoles(), permission.Id) {
+		a.ClearSessionCacheForUser(session.UserId)
+		return false
+	}
+
+	return true
 }
 
+/// DO NOT USE: LEGACY
 func SessionHasPermissionToTeam(session model.Session, teamId string, permission *model.Permission) bool {
 	if teamId == "" {
 		return false
@@ -27,7 +33,22 @@ func SessionHasPermissionToTeam(session model.Session, teamId string, permission
 		}
 	}
 
-	return SessionHasPermissionTo(session, permission)
+	return CheckIfRolesGrantPermission(session.GetUserRoles(), permission.Id)
+}
+
+func (a *App) SessionHasPermissionToTeam(session model.Session, teamId string, permission *model.Permission) bool {
+	if teamId == "" {
+		return false
+	}
+
+	teamMember := session.GetTeamByTeamId(teamId)
+	if teamMember != nil {
+		if CheckIfRolesGrantPermission(teamMember.GetRoles(), permission.Id) {
+			return true
+		}
+	}
+
+	return a.SessionHasPermissionTo(session, permission)
 }
 
 func (a *App) SessionHasPermissionToChannel(session model.Session, channelId string, permission *model.Permission) bool {
@@ -50,12 +71,12 @@ func (a *App) SessionHasPermissionToChannel(session model.Session, channelId str
 
 	channel, err := a.GetChannel(channelId)
 	if err == nil && channel.TeamId != "" {
-		return SessionHasPermissionToTeam(session, channel.TeamId, permission)
+		return a.SessionHasPermissionToTeam(session, channel.TeamId, permission)
 	} else if err != nil && err.StatusCode == http.StatusNotFound {
 		return false
 	}
 
-	return SessionHasPermissionTo(session, permission)
+	return a.SessionHasPermissionTo(session, permission)
 }
 
 func (a *App) SessionHasPermissionToChannelByPost(session model.Session, postId string, permission *model.Permission) bool {
@@ -70,13 +91,13 @@ func (a *App) SessionHasPermissionToChannelByPost(session model.Session, postId 
 
 	if result := <-a.Srv.Store.Channel().GetForPost(postId); result.Err == nil {
 		channel := result.Data.(*model.Channel)
-		return SessionHasPermissionToTeam(session, channel.TeamId, permission)
+		return a.SessionHasPermissionToTeam(session, channel.TeamId, permission)
 	}
 
-	return SessionHasPermissionTo(session, permission)
+	return a.SessionHasPermissionTo(session, permission)
 }
 
-func SessionHasPermissionToUser(session model.Session, userId string) bool {
+func (a *App) SessionHasPermissionToUser(session model.Session, userId string) bool {
 	if userId == "" {
 		return false
 	}
@@ -85,7 +106,7 @@ func SessionHasPermissionToUser(session model.Session, userId string) bool {
 		return true
 	}
 
-	if SessionHasPermissionTo(session, model.PERMISSION_EDIT_OTHER_USERS) {
+	if a.SessionHasPermissionTo(session, model.PERMISSION_EDIT_OTHER_USERS) {
 		return true
 	}
 
