@@ -159,7 +159,7 @@ func IsUserSignUpAllowed() *model.AppError {
 }
 
 func (a *App) IsFirstUserAccount() bool {
-	if SessionCacheLength() == 0 {
+	if a.SessionCacheLength() == 0 {
 		if cr := <-a.Srv.Store.User().GetTotalUsersCount(); cr.Err != nil {
 			l4g.Error(cr.Err)
 			return false

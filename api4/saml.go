@@ -8,7 +8,6 @@ import (
 	"net/http"
 
 	l4g "github.com/alecthomas/log4go"
-	"github.com/mattermost/mattermost-server/app"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
 )
@@ -73,7 +72,7 @@ func addSamlPublicCertificate(c *Context, w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	if err := app.AddSamlPublicCertificate(fileData); err != nil {
+	if err := c.App.AddSamlPublicCertificate(fileData); err != nil {
 		c.Err = err
 		return
 	}
@@ -92,7 +91,7 @@ func addSamlPrivateCertificate(c *Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	if err := app.AddSamlPrivateCertificate(fileData); err != nil {
+	if err := c.App.AddSamlPrivateCertificate(fileData); err != nil {
 		c.Err = err
 		return
 	}
@@ -111,7 +110,7 @@ func addSamlIdpCertificate(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := app.AddSamlIdpCertificate(fileData); err != nil {
+	if err := c.App.AddSamlIdpCertificate(fileData); err != nil {
 		c.Err = err
 		return
 	}
@@ -124,7 +123,7 @@ func removeSamlPublicCertificate(c *Context, w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	if err := app.RemoveSamlPublicCertificate(); err != nil {
+	if err := c.App.RemoveSamlPublicCertificate(); err != nil {
 		c.Err = err
 		return
 	}
@@ -138,7 +137,7 @@ func removeSamlPrivateCertificate(c *Context, w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	if err := app.RemoveSamlPrivateCertificate(); err != nil {
+	if err := c.App.RemoveSamlPrivateCertificate(); err != nil {
 		c.Err = err
 		return
 	}
@@ -152,7 +151,7 @@ func removeSamlIdpCertificate(c *Context, w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	if err := app.RemoveSamlIdpCertificate(); err != nil {
+	if err := c.App.RemoveSamlIdpCertificate(); err != nil {
 		c.Err = err
 		return
 	}
@@ -166,6 +165,6 @@ func getSamlCertificateStatus(c *Context, w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	status := app.GetSamlCertificateStatus()
+	status := c.App.GetSamlCertificateStatus()
 	w.Write([]byte(status.ToJson()))
 }
