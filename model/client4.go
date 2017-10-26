@@ -3150,12 +3150,12 @@ func (c *Client4) UploadPlugin(file io.Reader) (*Manifest, *Response) {
 
 // GetPlugins will return a list of plugin manifests for currently active plugins.
 // WARNING: PLUGINS ARE STILL EXPERIMENTAL. THIS FUNCTION IS SUBJECT TO CHANGE.
-func (c *Client4) GetPlugins() ([]*Manifest, *Response) {
+func (c *Client4) GetPlugins() (*PluginsResponse, *Response) {
 	if r, err := c.DoApiGet(c.GetPluginsRoute(), ""); err != nil {
 		return nil, BuildErrorResponse(r, err)
 	} else {
 		defer closeBody(r)
-		return ManifestListFromJson(r.Body), BuildResponse(r)
+		return PluginsResponseFromJson(r.Body), BuildResponse(r)
 	}
 }
 
@@ -3178,5 +3178,27 @@ func (c *Client4) GetWebappPlugins() ([]*Manifest, *Response) {
 	} else {
 		defer closeBody(r)
 		return ManifestListFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// ActivatePlugin will activate an plugin installed.
+// WARNING: PLUGINS ARE STILL EXPERIMENTAL. THIS FUNCTION IS SUBJECT TO CHANGE.
+func (c *Client4) ActivatePlugin(id string) (bool, *Response) {
+	if r, err := c.DoApiPost(c.GetPluginRoute(id)+"/activate", ""); err != nil {
+		return false, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return CheckStatusOK(r), BuildResponse(r)
+	}
+}
+
+// DeactivatePlugin will deactivate an active plugin.
+// WARNING: PLUGINS ARE STILL EXPERIMENTAL. THIS FUNCTION IS SUBJECT TO CHANGE.
+func (c *Client4) DeactivatePlugin(id string) (bool, *Response) {
+	if r, err := c.DoApiPost(c.GetPluginRoute(id)+"/deactivate", ""); err != nil {
+		return false, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return CheckStatusOK(r), BuildResponse(r)
 	}
 }

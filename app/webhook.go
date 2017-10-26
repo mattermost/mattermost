@@ -123,6 +123,86 @@ func (a *App) TriggerWebhook(payload *model.OutgoingWebhookPayload, hook *model.
 	}
 }
 
+func SplitWebhookPost(post *model.Post) ([]*model.Post, *model.AppError) {
+	splits := make([]*model.Post, 0)
+	remainingText := post.Message
+
+	base := *post
+	base.Message = ""
+	base.Props = make(map[string]interface{})
+	for k, v := range post.Props {
+		if k != "attachments" {
+			base.Props[k] = v
+		}
+	}
+	if utf8.RuneCountInString(model.StringInterfaceToJson(base.Props)) > model.POST_PROPS_MAX_USER_RUNES {
+		return nil, model.NewAppError("SplitWebhookPost", "web.incoming_webhook.split_props_length.app_error", map[string]interface{}{"Max": model.POST_PROPS_MAX_USER_RUNES}, "", http.StatusBadRequest)
+	}
+
+	for utf8.RuneCountInString(remainingText) > model.POST_MESSAGE_MAX_RUNES {
+		split := base
+		x := 0
+		for index := range remainingText {
+			x++
+			if x > model.POST_MESSAGE_MAX_RUNES {
+				split.Message = remainingText[:index]
+				remainingText = remainingText[index:]
+				break
+			}
+		}
+		splits = append(splits, &split)
+	}
+
+	split := base
+	split.Message = remainingText
+	splits = append(splits, &split)
+
+	attachments, _ := post.Props["attachments"].([]*model.SlackAttachment)
+	for _, attachment := range attachments {
+		newAttachment := *attachment
+		for {
+			lastSplit := splits[len(splits)-1]
+			newProps := make(map[string]interface{})
+			for k, v := range lastSplit.Props {
+				newProps[k] = v
+			}
+			origAttachments, _ := newProps["attachments"].([]*model.SlackAttachment)
+			newProps["attachments"] = append(origAttachments, &newAttachment)
+			newPropsString := model.StringInterfaceToJson(newProps)
+			runeCount := utf8.RuneCountInString(newPropsString)
+
+			if runeCount <= model.POST_PROPS_MAX_USER_RUNES {
+				lastSplit.Props = newProps
+				break
+			}
+
+			if len(origAttachments) > 0 {
+				newSplit := base
+				splits = append(splits, &newSplit)
+				continue
+			}
+
+			truncationNeeded := runeCount - model.POST_PROPS_MAX_USER_RUNES
+			textRuneCount := utf8.RuneCountInString(attachment.Text)
+			if textRuneCount < truncationNeeded {
+				return nil, model.NewAppError("SplitWebhookPost", "web.incoming_webhook.split_props_length.app_error", map[string]interface{}{"Max": model.POST_PROPS_MAX_USER_RUNES}, "", http.StatusBadRequest)
+			}
+			x := 0
+			for index := range attachment.Text {
+				x++
+				if x > textRuneCount-truncationNeeded {
+					newAttachment.Text = newAttachment.Text[:index]
+					break
+				}
+			}
+			lastSplit.Props = newProps
+			break
+		}
+	}
+
+	return splits, nil
+}
+
 func (a *App) CreateWebhookPost(userId string, channel *model.Channel, text, overrideUsername, overrideIconUrl string, props model.StringInterface, postType string) (*model.Post, *model.AppError) {
 	// parse links into Markdown format
 	linkWithTextRegex := regexp.MustCompile(`<([^<\|]+)\|([^>]+)>`)
@@ -166,37 +246,18 @@ func (a *App) CreateWebhookPost(userId string, channel *model.Channel, text, ove
 		}
 	}
 
-	splits := make([]string, 0)
-	remainingText := post.Message
-
-	for len(remainingText) > model.POST_MESSAGE_MAX_RUNES {
-		splits = append(splits, remainingText[:model.POST_MESSAGE_MAX_RUNES])
-		remainingText = remainingText[model.POST_MESSAGE_MAX_RUNES:]
+	splits, err := SplitWebhookPost(post)
+	if err != nil {
+		return nil, err
 	}
 
-	splits = append(splits, remainingText)
-
-	var firstPost *model.Post = nil
-
-	for _, txt := range splits {
-		post.Id = ""
-		post.UpdateAt = 0
-		post.CreateAt = 0
-		post.Message = txt
-		if _, err := a.CreatePostMissingChannel(post, false); err != nil {
+	for _, split := range splits {
+		if _, err := a.CreatePostMissingChannel(split, false); err != nil {
 			return nil, model.NewAppError("CreateWebhookPost", "api.post.create_webhook_post.creating.app_error", nil, "err="+err.Message, http.StatusInternalServerError)
 		}
-
-		if firstPost == nil {
-			if len(splits) > 1 {
-				firstPost = model.PostFromJson(strings.NewReader(post.ToJson()))
-			} else {
-				firstPost = post
-			}
-		}
 	}
 
-	return firstPost, nil
+	return splits[0], nil
 }
 
 func (a *App) CreateIncomingWebhookForChannel(creatorId string, channel *model.Channel, hook *model.IncomingWebhook) (*model.IncomingWebhook, *model.AppError) {
@@ -482,13 +543,6 @@ func (a *App) HandleIncomingWebhook(hookId string, req *model.IncomingWebhookReq
 			req.Props = make(model.StringInterface)
 		}
 		req.Props["attachments"] = req.Attachments
-
-		attachmentSize := utf8.RuneCountInString(model.StringInterfaceToJson(req.Props))
-		// Minus 100 to leave room for setting post type in the Props
-		if attachmentSize > model.POST_PROPS_MAX_RUNES-100 {
-			return model.NewAppError("HandleIncomingWebhook", "web.incoming_webhook.attachment.app_error", map[string]interface{}{"Max": model.POST_PROPS_MAX_RUNES - 100, "Actual": attachmentSize}, "", http.StatusBadRequest)
-		}
-
 		webhookType = model.POST_SLACK_ATTACHMENT
 	}
 

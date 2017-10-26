@@ -273,6 +273,8 @@ func (a *App) InitBuiltInPlugins() {
 	}
 }
 
+// ActivatePlugins will activate any plugins enabled in the config
+// and deactivate all other plugins.
 func (a *App) ActivatePlugins() {
 	if a.PluginEnv == nil {
 		l4g.Error("plugin env not initialized")
@@ -281,20 +283,52 @@ func (a *App) ActivatePlugins() {
 
 	plugins, err := a.PluginEnv.Plugins()
 	if err != nil {
-		l4g.Error("failed to start up plugins: " + err.Error())
+		l4g.Error("failed to activate plugins: " + err.Error())
 		return
 	}
 
 	for _, plugin := range plugins {
-		err := a.PluginEnv.ActivatePlugin(plugin.Manifest.Id)
-		if err != nil {
-			l4g.Error(err.Error())
+		id := plugin.Manifest.Id
+
+		pluginState := &model.PluginState{Enable: false}
+		if state, ok := a.Config().PluginSettings.PluginStates[id]; ok {
+			pluginState = state
 		}
-		l4g.Info("Activated %v plugin", plugin.Manifest.Id)
+
+		active := a.PluginEnv.IsPluginActive(id)
+
+		if pluginState.Enable && !active {
+			if err := a.PluginEnv.ActivatePlugin(id); err != nil {
+				l4g.Error(err.Error())
+				continue
+			}
+
+			if plugin.Manifest.HasClient() {
+				message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_PLUGIN_ACTIVATED, "", "", "", nil)
+				message.Add("manifest", plugin.Manifest.ClientManifest())
+				a.Publish(message)
+			}
+
+			l4g.Info("Activated %v plugin", id)
+		} else if !pluginState.Enable && active {
+			if err := a.PluginEnv.DeactivatePlugin(id); err != nil {
+				l4g.Error(err.Error())
+				continue
+			}
+
+			if plugin.Manifest.HasClient() {
+				message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_PLUGIN_DEACTIVATED, "", "", "", nil)
+				message.Add("manifest", plugin.Manifest.ClientManifest())
+				a.Publish(message)
+			}
+
+			l4g.Info("Deactivated %v plugin", id)
+		}
 	}
 }
 
-func (a *App) UnpackAndActivatePlugin(pluginFile io.Reader) (*model.Manifest, *model.AppError) {
+// InstallPlugin unpacks and installs a plugin but does not activate it.
+func (a *App) InstallPlugin(pluginFile io.Reader) (*model.Manifest, *model.AppError) {
 	if a.PluginEnv == nil || !*a.Config().PluginSettings.Enable {
 		return nil, model.NewAppError("UnpackAndActivatePlugin", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
@@ -331,18 +365,29 @@ func (a *App) UnpackAndActivatePlugin(pluginFile io.Reader) (*model.Manifest, *m
 
 	// Should add manifest validation and error handling here
 
-	err = a.PluginEnv.ActivatePlugin(manifest.Id)
-	if err != nil {
-		return nil, model.NewAppError("UnpackAndActivatePlugin", "app.plugin.activate.app_error", nil, err.Error(), http.StatusBadRequest)
-	}
-
-	if manifest.HasClient() {
-		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_PLUGIN_ACTIVATED, "", "", "", nil)
-		message.Add("manifest", manifest.ClientManifest())
-		a.Publish(message)
-	}
-
 	return manifest, nil
+}
+
+func (a *App) GetPluginManifests() (*model.PluginsResponse, *model.AppError) {
+	if a.PluginEnv == nil || !*a.Config().PluginSettings.Enable {
+		return nil, model.NewAppError("GetPluginManifests", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
+	}
+
+	plugins, err := a.PluginEnv.Plugins()
+	if err != nil {
+		return nil, model.NewAppError("GetPluginManifests", "app.plugin.get_plugins.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	resp := &model.PluginsResponse{Active: []*model.Manifest{}, Inactive: []*model.Manifest{}}
+	for _, plugin := range plugins {
+		if a.PluginEnv.IsPluginActive(plugin.Manifest.Id) {
+			resp.Active = append(resp.Active, plugin.Manifest)
+		} else {
+			resp.Inactive = append(resp.Inactive, plugin.Manifest)
+		}
+	}
+
+	return resp, nil
 }
 
 func (a *App) GetActivePluginManifests() ([]*model.Manifest, *model.AppError) {
@@ -365,8 +410,12 @@ func (a *App) RemovePlugin(id string) *model.AppError {
 		return model.NewAppError("RemovePlugin", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	plugins := a.PluginEnv.ActivePlugins()
-	manifest := &model.Manifest{}
+	plugins, err := a.PluginEnv.Plugins()
+	if err != nil {
+		return model.NewAppError("RemovePlugin", "app.plugin.deactivate.app_error", nil, err.Error(), http.StatusBadRequest)
+	}
+
+	var manifest *model.Manifest
 	for _, p := range plugins {
 		if p.Manifest.Id == id {
 			manifest = p.Manifest
@@ -374,9 +423,21 @@ func (a *App) RemovePlugin(id string) *model.AppError {
 		}
 	}
 
-	err := a.PluginEnv.DeactivatePlugin(id)
-	if err != nil {
-		return model.NewAppError("RemovePlugin", "app.plugin.deactivate.app_error", nil, err.Error(), http.StatusBadRequest)
+	if manifest == nil {
+		return model.NewAppError("RemovePlugin", "app.plugin.not_installed.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if a.PluginEnv.IsPluginActive(id) {
+		err := a.PluginEnv.DeactivatePlugin(id)
+		if err != nil {
+			return model.NewAppError("RemovePlugin", "app.plugin.deactivate.app_error", nil, err.Error(), http.StatusBadRequest)
+		}
+
+		if manifest.HasClient() {
+			message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_PLUGIN_DEACTIVATED, "", "", "", nil)
+			message.Add("manifest", manifest.ClientManifest())
+			a.Publish(message)
+		}
 	}
 
 	err = os.RemoveAll(filepath.Join(a.PluginEnv.SearchPath(), id))
@@ -384,10 +445,70 @@ func (a *App) RemovePlugin(id string) *model.AppError {
 		return model.NewAppError("RemovePlugin", "app.plugin.remove.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	if manifest.HasClient() {
-		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_PLUGIN_DEACTIVATED, "", "", "", nil)
-		message.Add("manifest", manifest.ClientManifest())
-		a.Publish(message)
+	return nil
+}
+
+// EnablePlugin will set the config for an installed plugin to enabled, triggering activation if inactive.
+func (a *App) EnablePlugin(id string) *model.AppError {
+	if a.PluginEnv == nil || !*a.Config().PluginSettings.Enable {
+		return model.NewAppError("RemovePlugin", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
+	}
+
+	plugins, err := a.PluginEnv.Plugins()
+	if err != nil {
+		return model.NewAppError("EnablePlugin", "app.plugin.config.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	var manifest *model.Manifest
+	for _, p := range plugins {
+		if p.Manifest.Id == id {
+			manifest = p.Manifest
+			break
+		}
+	}
+
+	if manifest == nil {
+		return model.NewAppError("EnablePlugin", "app.plugin.not_installed.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	cfg := a.Config()
+	cfg.PluginSettings.PluginStates[id] = &model.PluginState{Enable: true}
+
+	if err := a.SaveConfig(cfg, true); err != nil {
+		return model.NewAppError("EnablePlugin", "app.plugin.config.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return nil
+}
+
+// DisablePlugin will set the config for an installed plugin to disabled, triggering deactivation if active.
+func (a *App) DisablePlugin(id string) *model.AppError {
+	if a.PluginEnv == nil || !*a.Config().PluginSettings.Enable {
+		return model.NewAppError("RemovePlugin", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
+	}
+
+	plugins, err := a.PluginEnv.Plugins()
+	if err != nil {
+		return model.NewAppError("DisablePlugin", "app.plugin.config.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	var manifest *model.Manifest
+	for _, p := range plugins {
+		if p.Manifest.Id == id {
+			manifest = p.Manifest
+			break
+		}
+	}
+
+	if manifest == nil {
+		return model.NewAppError("DisablePlugin", "app.plugin.not_installed.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	cfg := a.Config()
+	cfg.PluginSettings.PluginStates[id] = &model.PluginState{Enable: false}
+
+	if err := a.SaveConfig(cfg, true); err != nil {
+		return model.NewAppError("DisablePlugin", "app.plugin.config.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	return nil
@@ -432,7 +553,20 @@ func (a *App) InitPlugins(pluginPath, webappPath string) {
 		return
 	}
 
-	a.PluginConfigListenerId = utils.AddConfigListener(func(_, _ *model.Config) {
+	utils.RemoveConfigListener(a.PluginConfigListenerId)
+	a.PluginConfigListenerId = utils.AddConfigListener(func(prevCfg, cfg *model.Config) {
+		if !*prevCfg.PluginSettings.Enable && *cfg.PluginSettings.Enable {
+			a.InitPlugins(pluginPath, webappPath)
+		} else if *prevCfg.PluginSettings.Enable && !*cfg.PluginSettings.Enable {
+			a.ShutDownPlugins()
+		} else if *prevCfg.PluginSettings.Enable && *cfg.PluginSettings.Enable {
+			a.ActivatePlugins()
+		}
+
+		if a.PluginEnv == nil {
+			return
+		}
+
 		for _, err := range a.PluginEnv.Hooks().OnConfigurationChange() {
 			l4g.Error(err.Error())
 		}

@@ -716,6 +716,10 @@
     "translation": "Kanala katıldı."
   },
   {
+    "id": "api.command_kick.name",
+    "translation": "kov"
+  },
+  {
     "id": "api.command_leave.desc",
     "translation": "Geçerli kanaldan ayrıl"
   },
@@ -822,6 +826,38 @@
   {
     "id": "api.command_open.name",
     "translation": "açık"
+  },
+  {
+    "id": "api.command_remove.desc",
+    "translation": "Kanaldan bir üyeyi çıkar"
+  },
+  {
+    "id": "api.command_remove.direct_group.app_error",
+    "translation": "Bir kişiyi doğrudan ileti kanalından çıkaramazsınız."
+  },
+  {
+    "id": "api.command_remove.hint",
+    "translation": "@[username]"
+  },
+  {
+    "id": "api.command_remove.message.app_error",
+    "translation": "/remove ya da /kick komutu ile bir ileti yazılmalıdır."
+  },
+  {
+    "id": "api.command_remove.missing.app_error",
+    "translation": "Kullanıcı bulunamadı"
+  },
+  {
+    "id": "api.command_remove.name",
+    "translation": "çıkar"
+  },
+  {
+    "id": "api.command_remove.permission.app_error",
+    "translation": "Üyeyi çıkarma izniniz yok."
+  },
+  {
+    "id": "api.command_remove.user_not_in_channel",
+    "translation": "{{.Username}} bu kanalın bir üyesi değil."
   },
   {
     "id": "api.command_search.desc",
@@ -1518,12 +1554,20 @@
     "translation": "Multipart/form isteğindeki dosya eksik"
   },
   {
+    "id": "api.post.check_for_out_of_channel_mentions.link.private",
+    "translation": "kullanıcıları bu özel kanala ekle"
+  },
+  {
+    "id": "api.post.check_for_out_of_channel_mentions.link.public",
+    "translation": "kullanıcıları kanala ekle"
+  },
+  {
     "id": "api.post.check_for_out_of_channel_mentions.message.multiple",
-    "translation": "{{.Usernames}} ve {{.LastUsername}} anıldı, ancak bu kanalın üyesi olmadıklarından bildirimleri almayacaklar."
+    "translation": "@{{.Usernames}} ve @{{.LastUsername}} anıldı ancak kanalda değiller. {{.Phrase}} ister misiniz? Eklenen kullanıcılar tüm ileti geçmişini görebilirler."
   },
   {
     "id": "api.post.check_for_out_of_channel_mentions.message.one",
-    "translation": "{{.Usernames}} anıldı, ancak bu kanalın üyesi olmadıklarından bildirimleri almayacaklar."
+    "translation": "@{{.Username}} anıldı ancak kanalda değil. {{.Phrase}} ister misiniz? Eklenen kullanıcı tüm ileti geçmişini görebilir."
   },
   {
     "id": "api.post.create_post.attach_files.error",
@@ -3772,8 +3816,16 @@
     "translation": "Failed to decode search results"
   },
   {
+    "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
+    "translation": "Elasticsearch toplu işlemi oluşturulamadı"
+  },
+  {
     "id": "ent.elasticsearch.start.index_settings_failed",
     "translation": "Elasticsearch dizin ayarları yapılamadı"
+  },
+  {
+    "id": "ent.elasticsearch.start.start_bulk_processor_failed.app_error",
+    "translation": "Elasticsearch toplu işlemi başlatılamadı"
   },
   {
     "id": "ent.elasticsearch.test_config.connect_failed",
@@ -4394,6 +4446,10 @@
   {
     "id": "model.config.is_valid.elastic_search.enable_searching.app_error",
     "translation": "Elastic Search IndexingEnabled setting must be set to true when Elastic Search SearchEnabled is set to true."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.live_indexing_batch_size.app_error",
+    "translation": "Elasticsearch Live dizin işlemi boyutu en az 1 olmalıdır"
   },
   {
     "id": "model.config.is_valid.elastic_search.password.app_error",
