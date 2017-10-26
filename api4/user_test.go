@@ -10,7 +10,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/mattermost/mattermost-server/app"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
 	"github.com/stretchr/testify/assert"
@@ -961,7 +960,7 @@ func TestUpdateUser(t *testing.T) {
 
 	session, _ := th.App.GetSession(Client.AuthToken)
 	session.IsOAuth = true
-	app.AddSessionToCache(session)
+	th.App.AddSessionToCache(session)
 
 	ruser.Id = user.Id
 	ruser.Email = GenerateTestEmail()
@@ -1045,7 +1044,7 @@ func TestPatchUser(t *testing.T) {
 
 	session, _ := th.App.GetSession(Client.AuthToken)
 	session.IsOAuth = true
-	app.AddSessionToCache(session)
+	th.App.AddSessionToCache(session)
 
 	patch.Email = model.NewString(GenerateTestEmail())
 	_, resp = Client.PatchUser(user.Id, patch)
@@ -1513,7 +1512,7 @@ func TestUpdateUserMfa(t *testing.T) {
 
 	session, _ := th.App.GetSession(Client.AuthToken)
 	session.IsOAuth = true
-	app.AddSessionToCache(session)
+	th.App.AddSessionToCache(session)
 
 	_, resp := Client.UpdateUserMfa(th.BasicUser.Id, "12345", false)
 	CheckForbiddenStatus(t, resp)
@@ -1609,7 +1608,7 @@ func TestGenerateMfaSecret(t *testing.T) {
 
 	session, _ := th.App.GetSession(Client.AuthToken)
 	session.IsOAuth = true
-	app.AddSessionToCache(session)
+	th.App.AddSessionToCache(session)
 
 	_, resp = Client.GenerateMfaSecret(th.BasicUser.Id)
 	CheckForbiddenStatus(t, resp)
@@ -2257,7 +2256,7 @@ func TestCreateUserAccessToken(t *testing.T) {
 
 	session, _ := th.App.GetSession(Client.AuthToken)
 	session.IsOAuth = true
-	app.AddSessionToCache(session)
+	th.App.AddSessionToCache(session)
 
 	_, resp = Client.CreateUserAccessToken(th.BasicUser.Id, testDescription)
 	CheckForbiddenStatus(t, resp)

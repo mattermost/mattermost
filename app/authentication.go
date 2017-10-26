@@ -25,7 +25,7 @@ func (a *App) CheckPasswordAndAllCriteria(user *model.User, password string, mfa
 
 // This to be used for places we check the users password when they are already logged in
 func (a *App) doubleCheckPassword(user *model.User, password string) *model.AppError {
-	if err := checkUserLoginAttempts(user); err != nil {
+	if err := checkUserLoginAttempts(user, *a.Config().ServiceSettings.MaximumLoginAttempts); err != nil {
 		return err
 	}
 
@@ -83,15 +83,15 @@ func (a *App) CheckUserAdditionalAuthenticationCriteria(user *model.User, mfaTok
 		return err
 	}
 
-	if err := checkEmailVerified(user); err != nil {
-		return err
+	if !user.EmailVerified && a.Config().EmailSettings.RequireEmailVerification {
+		return model.NewAppError("Login", "api.user.login.not_verified.app_error", nil, "user_id="+user.Id, http.StatusUnauthorized)
 	}
 
 	if err := checkUserNotDisabled(user); err != nil {
 		return err
 	}
 
-	if err := checkUserLoginAttempts(user); err != nil {
+	if err := checkUserLoginAttempts(user, *a.Config().ServiceSettings.MaximumLoginAttempts); err != nil {
 		return err
 	}
 
@@ -116,18 +116,11 @@ func (a *App) CheckUserMfa(user *model.User, token string) *model.AppError {
 	return nil
 }
 
-func checkUserLoginAttempts(user *model.User) *model.AppError {
-	if user.FailedAttempts >= *utils.Cfg.ServiceSettings.MaximumLoginAttempts {
+func checkUserLoginAttempts(user *model.User, max int) *model.AppError {
+	if user.FailedAttempts >= max {
 		return model.NewAppError("checkUserLoginAttempts", "api.user.check_user_login_attempts.too_many.app_error", nil, "user_id="+user.Id, http.StatusUnauthorized)
 	}
 
-	return nil
-}
-
-func checkEmailVerified(user *model.User) *model.AppError {
-	if !user.EmailVerified && utils.Cfg.EmailSettings.RequireEmailVerification {
-		return model.NewAppError("Login", "api.user.login.not_verified.app_error", nil, "user_id="+user.Id, http.StatusUnauthorized)
-	}
 	return nil
 }
 

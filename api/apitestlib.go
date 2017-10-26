@@ -114,15 +114,6 @@ func Setup() *TestHelper {
 	return setupTestHelper(false)
 }
 
-func ReloadConfigForSetup() {
-	utils.LoadConfig("config.json")
-	utils.InitTranslations(utils.Cfg.LocalizationSettings)
-	*utils.Cfg.TeamSettings.MaxUsersPerTeam = 50
-	*utils.Cfg.RateLimitSettings.Enable = false
-	utils.Cfg.EmailSettings.SendEmailNotifications = true
-	*utils.Cfg.TeamSettings.EnableOpenServer = true
-}
-
 func (me *TestHelper) InitBasic() *TestHelper {
 	me.waitForConnectivity()
 
