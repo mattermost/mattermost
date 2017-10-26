@@ -775,6 +775,7 @@ func (a *App) sendOutOfChannelMentions(sender *model.User, post *model.Post, cha
 		post.UserId,
 		&model.Post{
 			Id:        ephemeralPostId,
+			RootId:    post.RootId,
 			ChannelId: post.ChannelId,
 			Message:   message,
 			CreateAt:  post.CreateAt + 1,
