@@ -205,7 +205,6 @@ func TestStatuses(t *testing.T) {
 }
 
 func TestGetStatusesByIds(t *testing.T) {
-	ReloadConfigForSetup()
 	th := Setup().InitBasic()
 	defer th.TearDown()
 

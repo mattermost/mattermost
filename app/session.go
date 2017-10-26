@@ -12,8 +12,6 @@ import (
 	l4g "github.com/alecthomas/log4go"
 )
 
-var sessionCache *utils.Cache = utils.NewLru(model.SESSION_CACHE_SIZE)
-
 func (a *App) CreateSession(session *model.Session) (*model.Session, *model.AppError) {
 	session.Token = ""
 
@@ -22,7 +20,7 @@ func (a *App) CreateSession(session *model.Session) (*model.Session, *model.AppE
 	} else {
 		session := result.Data.(*model.Session)
 
-		AddSessionToCache(session)
+		a.AddSessionToCache(session)
 
 		return session, nil
 	}
@@ -32,7 +30,7 @@ func (a *App) GetSession(token string) (*model.Session, *model.AppError) {
 	metrics := a.Metrics
 
 	var session *model.Session
-	if ts, ok := sessionCache.Get(token); ok {
+	if ts, ok := a.sessionCache.Get(token); ok {
 		session = ts.(*model.Session)
 		if metrics != nil {
 			metrics.IncrementMemCacheHitCounterSession()
@@ -53,7 +51,7 @@ func (a *App) GetSession(token string) (*model.Session, *model.AppError) {
 				}
 
 				if !session.IsExpired() {
-					AddSessionToCache(session)
+					a.AddSessionToCache(session)
 				}
 			}
 		}
@@ -124,7 +122,7 @@ func (a *App) ClearSessionCacheForUser(userId string) {
 	if a.Cluster != nil {
 		msg := &model.ClusterMessage{
 			Event:    model.CLUSTER_EVENT_CLEAR_SESSION_CACHE_FOR_USER,
-			SendType: model.CLUSTER_SEND_BEST_EFFORT,
+			SendType: model.CLUSTER_SEND_RELIABLE,
 			Data:     userId,
 		}
 		a.Cluster.SendClusterMessage(msg)
@@ -132,13 +130,13 @@ func (a *App) ClearSessionCacheForUser(userId string) {
 }
 
 func (a *App) ClearSessionCacheForUserSkipClusterSend(userId string) {
-	keys := sessionCache.Keys()
+	keys := a.sessionCache.Keys()
 
 	for _, key := range keys {
-		if ts, ok := sessionCache.Get(key); ok {
+		if ts, ok := a.sessionCache.Get(key); ok {
 			session := ts.(*model.Session)
 			if session.UserId == userId {
-				sessionCache.Remove(key)
+				a.sessionCache.Remove(key)
 			}
 		}
 	}
@@ -146,12 +144,12 @@ func (a *App) ClearSessionCacheForUserSkipClusterSend(userId string) {
 	a.InvalidateWebConnSessionCacheForUser(userId)
 }
 
-func AddSessionToCache(session *model.Session) {
-	sessionCache.AddWithExpiresInSecs(session.Token, session, int64(*utils.Cfg.ServiceSettings.SessionCacheInMinutes*60))
+func (a *App) AddSessionToCache(session *model.Session) {
+	a.sessionCache.AddWithExpiresInSecs(session.Token, session, int64(*a.Config().ServiceSettings.SessionCacheInMinutes*60))
 }
 
-func SessionCacheLength() int {
-	return sessionCache.Len()
+func (a *App) SessionCacheLength() int {
+	return a.sessionCache.Len()
 }
 
 func (a *App) RevokeSessionsForDeviceId(userId string, deviceId string, currentSessionId string) *model.AppError {
@@ -227,7 +225,7 @@ func (a *App) UpdateLastActivityAtIfNeeded(session model.Session) {
 	}
 
 	session.LastActivityAt = now
-	AddSessionToCache(&session)
+	a.AddSessionToCache(&session)
 }
 
 func (a *App) CreateUserAccessToken(token *model.UserAccessToken) (*model.UserAccessToken, *model.AppError) {
@@ -301,7 +299,7 @@ func (a *App) createSessionForUserAccessToken(tokenString string) (*model.Sessio
 	} else {
 		session := result.Data.(*model.Session)
 
-		AddSessionToCache(session)
+		a.AddSessionToCache(session)
 
 		return session, nil
 	}

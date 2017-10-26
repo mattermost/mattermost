@@ -12,6 +12,7 @@ import (
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
 	"github.com/mattermost/mattermost-server/utils"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestPostStore(t *testing.T, ss store.Store) {
@@ -1614,7 +1615,7 @@ func testPostStoreGetPostsBatchForIndexing(t *testing.T, ss store.Store) {
 	o3.Message = "zz" + model.NewId() + "QQQQQQQQQQ"
 	o3 = (<-ss.Post().Save(o3)).Data.(*model.Post)
 
-	if r := store.Must(ss.Post().GetPostsBatchForIndexing(o1.CreateAt, 100)).([]*model.PostForIndexing); len(r) != 3 {
+	if r := store.Must(ss.Post().GetPostsBatchForIndexing(o1.CreateAt, model.GetMillis()+100000, 100)).([]*model.PostForIndexing); len(r) != 3 {
 		t.Fatalf("Expected 3 posts in results. Got %v", len(r))
 	} else {
 		for _, p := range r {
@@ -1681,4 +1682,32 @@ func testPostStorePermanentDeleteBatch(t *testing.T, ss store.Store) {
 	if p := <-ss.Post().Get(o3.Id); p.Err != nil {
 		t.Fatalf("Should have found post 3 after purge")
 	}
+}
+
+func testPostStoreGetOldest(t *testing.T, ss store.Store) {
+	o0 := &model.Post{}
+	o0.ChannelId = model.NewId()
+	o0.UserId = model.NewId()
+	o0.Message = "zz" + model.NewId() + "b"
+	o0.CreateAt = 3
+	o0 = (<-ss.Post().Save(o0)).Data.(*model.Post)
+
+	o1 := &model.Post{}
+	o1.ChannelId = o0.Id
+	o1.UserId = model.NewId()
+	o1.Message = "zz" + model.NewId() + "b"
+	o1.CreateAt = 2
+	o1 = (<-ss.Post().Save(o1)).Data.(*model.Post)
+
+	o2 := &model.Post{}
+	o2.Id = model.NewId()
+	o2.ChannelId = o1.ChannelId
+	o2.UserId = model.NewId()
+	o2.Message = "zz" + model.NewId() + "b"
+	o2.CreateAt = 1
+	o2 = (<-ss.Post().Save(o2)).Data.(*model.Post)
+
+	r1 := (<-ss.Post().GetOldest()).Data.(*model.Post)
+
+	assert.EqualValues(t, o2.Id, r1.Id)
 }

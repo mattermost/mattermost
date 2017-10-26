@@ -1,3 +1,6 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See License.txt for license information.
+
 // Package pluginenv provides high level functionality for discovering and launching plugins.
 package pluginenv
 
@@ -87,6 +90,20 @@ func (env *Environment) ActivePluginIds() (ids []string) {
 		ids = append(ids, id)
 	}
 	return
+}
+
+// Returns true if the plugin is active, false otherwise.
+func (env *Environment) IsPluginActive(pluginId string) bool {
+	env.mutex.RLock()
+	defer env.mutex.RUnlock()
+
+	for id := range env.activePlugins {
+		if id == pluginId {
+			return true
+		}
+	}
+
+	return false
 }
 
 // Activates the plugin with the given id.

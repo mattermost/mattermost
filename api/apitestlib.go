@@ -6,6 +6,7 @@ package api
 import (
 	"fmt"
 	"net"
+	"os"
 	"strings"
 	"time"
 
@@ -111,15 +112,6 @@ func SetupEnterprise() *TestHelper {
 
 func Setup() *TestHelper {
 	return setupTestHelper(false)
-}
-
-func ReloadConfigForSetup() {
-	utils.LoadConfig("config.json")
-	utils.InitTranslations(utils.Cfg.LocalizationSettings)
-	*utils.Cfg.TeamSettings.MaxUsersPerTeam = 50
-	*utils.Cfg.RateLimitSettings.Enable = false
-	utils.Cfg.EmailSettings.SendEmailNotifications = true
-	*utils.Cfg.TeamSettings.EnableOpenServer = true
 }
 
 func (me *TestHelper) InitBasic() *TestHelper {
@@ -363,7 +355,7 @@ func (me *TestHelper) LoginSystemAdmin() {
 }
 
 func GenerateTestEmail() string {
-	if utils.Cfg.EmailSettings.SMTPServer != "dockerhost" {
+	if utils.Cfg.EmailSettings.SMTPServer != "dockerhost" && os.Getenv("CI_INBUCKET_PORT") == "" {
 		return strings.ToLower("success+" + model.NewId() + "@simulator.amazonses.com")
 	}
 	return strings.ToLower(model.NewId() + "@dockerhost")

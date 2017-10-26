@@ -132,19 +132,23 @@ const (
 
 	TEAM_SETTINGS_DEFAULT_TEAM_TEXT = "default"
 
-	ELASTICSEARCH_SETTINGS_DEFAULT_CONNECTION_URL                  = ""
-	ELASTICSEARCH_SETTINGS_DEFAULT_USERNAME                        = ""
-	ELASTICSEARCH_SETTINGS_DEFAULT_PASSWORD                        = ""
-	ELASTICSEARCH_SETTINGS_DEFAULT_POST_INDEX_REPLICAS             = 1
-	ELASTICSEARCH_SETTINGS_DEFAULT_POST_INDEX_SHARDS               = 1
-	ELASTICSEARCH_SETTINGS_DEFAULT_AGGREGATE_POSTS_AFTER_DAYS      = 365
-	ELASTICSEARCH_SETTINGS_DEFAULT_POSTS_AGGREGATOR_JOB_START_TIME = "03:00"
-	ELASTICSEARCH_SETTINGS_DEFAULT_INDEX_PREFIX                    = ""
-	ELASTICSEARCH_SETTINGS_DEFAULT_LIVE_INDEXING_BATCH_SIZE        = 1
+	ELASTICSEARCH_SETTINGS_DEFAULT_CONNECTION_URL                    = ""
+	ELASTICSEARCH_SETTINGS_DEFAULT_USERNAME                          = ""
+	ELASTICSEARCH_SETTINGS_DEFAULT_PASSWORD                          = ""
+	ELASTICSEARCH_SETTINGS_DEFAULT_POST_INDEX_REPLICAS               = 1
+	ELASTICSEARCH_SETTINGS_DEFAULT_POST_INDEX_SHARDS                 = 1
+	ELASTICSEARCH_SETTINGS_DEFAULT_AGGREGATE_POSTS_AFTER_DAYS        = 365
+	ELASTICSEARCH_SETTINGS_DEFAULT_POSTS_AGGREGATOR_JOB_START_TIME   = "03:00"
+	ELASTICSEARCH_SETTINGS_DEFAULT_INDEX_PREFIX                      = ""
+	ELASTICSEARCH_SETTINGS_DEFAULT_LIVE_INDEXING_BATCH_SIZE          = 1
+	ELASTICSEARCH_SETTINGS_DEFAULT_BULK_INDEXING_TIME_WINDOW_SECONDS = 3600
+	ELASTICSEARCH_SETTINGS_DEFAULT_REQUEST_TIMEOUT_SECONDS           = 30
 
 	DATA_RETENTION_SETTINGS_DEFAULT_MESSAGE_RETENTION_DAYS  = 365
 	DATA_RETENTION_SETTINGS_DEFAULT_FILE_RETENTION_DAYS     = 365
 	DATA_RETENTION_SETTINGS_DEFAULT_DELETION_JOB_START_TIME = "02:00"
+
+	PLUGIN_SETTINGS_DEFAULT_DIRECTORY = "./plugins"
 )
 
 type ServiceSettings struct {
@@ -480,18 +484,20 @@ type WebrtcSettings struct {
 }
 
 type ElasticsearchSettings struct {
-	ConnectionUrl               *string
-	Username                    *string
-	Password                    *string
-	EnableIndexing              *bool
-	EnableSearching             *bool
-	Sniff                       *bool
-	PostIndexReplicas           *int
-	PostIndexShards             *int
-	AggregatePostsAfterDays     *int
-	PostsAggregatorJobStartTime *string
-	IndexPrefix                 *string
-	LiveIndexingBatchSize       *int
+	ConnectionUrl                 *string
+	Username                      *string
+	Password                      *string
+	EnableIndexing                *bool
+	EnableSearching               *bool
+	Sniff                         *bool
+	PostIndexReplicas             *int
+	PostIndexShards               *int
+	AggregatePostsAfterDays       *int
+	PostsAggregatorJobStartTime   *string
+	IndexPrefix                   *string
+	LiveIndexingBatchSize         *int
+	BulkIndexingTimeWindowSeconds *int
+	RequestTimeoutSeconds         *int
 }
 
 type DataRetentionSettings struct {
@@ -507,10 +513,19 @@ type JobSettings struct {
 	RunScheduler *bool
 }
 
-type PluginSettings struct {
-	Enable  *bool
-	Plugins map[string]interface{}
+type PluginState struct {
+	Enable bool
 }
+
+type PluginSettings struct {
+	Enable        *bool
+	EnableUploads *bool
+	Directory     *string
+	Plugins       map[string]interface{}
+	PluginStates  map[string]*PluginState
+}
+
+type ConfigFunc func() *Config
 
 type Config struct {
 	ServiceSettings       ServiceSettings
@@ -1432,6 +1447,15 @@ func (o *Config) SetDefaults() {
 		o.ElasticsearchSettings.LiveIndexingBatchSize = NewInt(ELASTICSEARCH_SETTINGS_DEFAULT_LIVE_INDEXING_BATCH_SIZE)
 	}
 
+	if o.ElasticsearchSettings.BulkIndexingTimeWindowSeconds == nil {
+		o.ElasticsearchSettings.BulkIndexingTimeWindowSeconds = new(int)
+		*o.ElasticsearchSettings.BulkIndexingTimeWindowSeconds = ELASTICSEARCH_SETTINGS_DEFAULT_BULK_INDEXING_TIME_WINDOW_SECONDS
+	}
+
+	if o.ElasticsearchSettings.RequestTimeoutSeconds == nil {
+		o.ElasticsearchSettings.RequestTimeoutSeconds = NewInt(ELASTICSEARCH_SETTINGS_DEFAULT_REQUEST_TIMEOUT_SECONDS)
+	}
+
 	if o.DataRetentionSettings.EnableMessageDeletion == nil {
 		o.DataRetentionSettings.EnableMessageDeletion = NewBool(false)
 	}
@@ -1461,11 +1485,27 @@ func (o *Config) SetDefaults() {
 	}
 
 	if o.PluginSettings.Enable == nil {
-		o.PluginSettings.Enable = NewBool(false)
+		o.PluginSettings.Enable = NewBool(true)
+	}
+
+	if o.PluginSettings.EnableUploads == nil {
+		o.PluginSettings.EnableUploads = NewBool(false)
+	}
+
+	if o.PluginSettings.Directory == nil {
+		o.PluginSettings.Directory = NewString(PLUGIN_SETTINGS_DEFAULT_DIRECTORY)
+	}
+
+	if *o.PluginSettings.Directory == "" {
+		*o.PluginSettings.Directory = PLUGIN_SETTINGS_DEFAULT_DIRECTORY
 	}
 
 	if o.PluginSettings.Plugins == nil {
 		o.PluginSettings.Plugins = make(map[string]interface{})
+	}
+
+	if o.PluginSettings.PluginStates == nil {
+		o.PluginSettings.PluginStates = make(map[string]*PluginState)
 	}
 
 	o.defaultWebrtcSettings()
@@ -1811,6 +1851,14 @@ func (ess *ElasticsearchSettings) isValid() *AppError {
 
 	if *ess.LiveIndexingBatchSize < 1 {
 		return NewAppError("Config.IsValid", "model.config.is_valid.elastic_search.live_indexing_batch_size.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if *ess.BulkIndexingTimeWindowSeconds < 1 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.elastic_search.bulk_indexing_time_window_seconds.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if *ess.RequestTimeoutSeconds < 1 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.elastic_search.request_timeout_seconds.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	return nil

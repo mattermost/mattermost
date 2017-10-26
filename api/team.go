@@ -56,7 +56,7 @@ func createTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !app.SessionHasPermissionTo(c.Session, model.PERMISSION_CREATE_TEAM) {
+	if !c.App.SessionHasPermissionTo(c.Session, model.PERMISSION_CREATE_TEAM) {
 		c.Err = model.NewAppError("createTeam", "api.team.is_team_creation_allowed.disabled.app_error", nil, "", http.StatusForbidden)
 		return
 	}
@@ -121,7 +121,7 @@ func getAll(c *Context, w http.ResponseWriter, r *http.Request) {
 func inviteMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 	invites := model.InvitesFromJson(r.Body)
 
-	if utils.IsLicensed() && !app.SessionHasPermissionToTeam(c.Session, c.TeamId, model.PERMISSION_INVITE_USER) {
+	if utils.IsLicensed() && !c.App.SessionHasPermissionToTeam(c.Session, c.TeamId, model.PERMISSION_INVITE_USER) {
 		errorId := ""
 		if *c.App.Config().TeamSettings.RestrictTeamInvite == model.PERMISSIONS_SYSTEM_ADMIN {
 			errorId = "api.team.invite_members.restricted_system_admin.app_error"
@@ -150,7 +150,7 @@ func addUserToTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !app.SessionHasPermissionToTeam(c.Session, c.TeamId, model.PERMISSION_ADD_USER_TO_TEAM) {
+	if !c.App.SessionHasPermissionToTeam(c.Session, c.TeamId, model.PERMISSION_ADD_USER_TO_TEAM) {
 		c.SetPermissionError(model.PERMISSION_ADD_USER_TO_TEAM)
 		return
 	}
@@ -173,7 +173,7 @@ func removeUserFromTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if c.Session.UserId != userId {
-		if !app.SessionHasPermissionToTeam(c.Session, c.TeamId, model.PERMISSION_REMOVE_USER_FROM_TEAM) {
+		if !c.App.SessionHasPermissionToTeam(c.Session, c.TeamId, model.PERMISSION_REMOVE_USER_FROM_TEAM) {
 			c.SetPermissionError(model.PERMISSION_REMOVE_USER_FROM_TEAM)
 			return
 		}
@@ -238,7 +238,7 @@ func getTeamByName(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	} else {
 		if (!team.AllowOpenInvite || team.Type != model.TEAM_OPEN) && c.Session.GetTeamByTeamId(team.Id) == nil {
-			if !app.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
+			if !c.App.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
 				c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 				return
 			}
@@ -285,7 +285,7 @@ func updateTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	team.Id = c.TeamId
 
-	if !app.SessionHasPermissionToTeam(c.Session, team.Id, model.PERMISSION_MANAGE_TEAM) {
+	if !c.App.SessionHasPermissionToTeam(c.Session, team.Id, model.PERMISSION_MANAGE_TEAM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_TEAM)
 		return
 	}
@@ -321,7 +321,7 @@ func updateMemberRoles(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !app.SessionHasPermissionToTeam(c.Session, teamId, model.PERMISSION_MANAGE_TEAM_ROLES) {
+	if !c.App.SessionHasPermissionToTeam(c.Session, teamId, model.PERMISSION_MANAGE_TEAM_ROLES) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_TEAM_ROLES)
 		return
 	}
@@ -359,7 +359,7 @@ func getMyTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func getTeamStats(c *Context, w http.ResponseWriter, r *http.Request) {
 	if c.Session.GetTeamByTeamId(c.TeamId) == nil {
-		if !app.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
+		if !c.App.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
 			c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 			return
 		}
@@ -375,7 +375,7 @@ func getTeamStats(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func importTeam(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !app.SessionHasPermissionToTeam(c.Session, c.TeamId, model.PERMISSION_IMPORT_TEAM) {
+	if !c.App.SessionHasPermissionToTeam(c.Session, c.TeamId, model.PERMISSION_IMPORT_TEAM) {
 		c.SetPermissionError(model.PERMISSION_IMPORT_TEAM)
 		return
 	}
@@ -477,7 +477,7 @@ func getTeamMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if c.Session.GetTeamByTeamId(c.TeamId) == nil {
-		if !app.SessionHasPermissionToTeam(c.Session, c.TeamId, model.PERMISSION_MANAGE_SYSTEM) {
+		if !c.App.SessionHasPermissionToTeam(c.Session, c.TeamId, model.PERMISSION_MANAGE_SYSTEM) {
 			c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 			return
 		}
@@ -502,7 +502,7 @@ func getTeamMember(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if c.Session.GetTeamByTeamId(c.TeamId) == nil {
-		if !app.SessionHasPermissionToTeam(c.Session, c.TeamId, model.PERMISSION_MANAGE_SYSTEM) {
+		if !c.App.SessionHasPermissionToTeam(c.Session, c.TeamId, model.PERMISSION_MANAGE_SYSTEM) {
 			c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 			return
 		}
@@ -525,7 +525,7 @@ func getTeamMembersByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if c.Session.GetTeamByTeamId(c.TeamId) == nil {
-		if !app.SessionHasPermissionToTeam(c.Session, c.TeamId, model.PERMISSION_MANAGE_SYSTEM) {
+		if !c.App.SessionHasPermissionToTeam(c.Session, c.TeamId, model.PERMISSION_MANAGE_SYSTEM) {
 			c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 			return
 		}

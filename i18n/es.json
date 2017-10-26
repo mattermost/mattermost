@@ -716,6 +716,10 @@
     "translation": "Te uniste al canal."
   },
   {
+    "id": "api.command_kick.name",
+    "translation": "patear"
+  },
+  {
     "id": "api.command_leave.desc",
     "translation": "Abandonar el canal actual"
   },
@@ -822,6 +826,38 @@
   {
     "id": "api.command_open.name",
     "translation": "abrir"
+  },
+  {
+    "id": "api.command_remove.desc",
+    "translation": "Remueve a un miembro del canal"
+  },
+  {
+    "id": "api.command_remove.direct_group.app_error",
+    "translation": "No se puede remover a alguien de un canal de mensajes directos."
+  },
+  {
+    "id": "api.command_remove.hint",
+    "translation": "@[nombre de usuario]"
+  },
+  {
+    "id": "api.command_remove.message.app_error",
+    "translation": "Un mensaje debe ser proporcionado con el comando /remove o /kick."
+  },
+  {
+    "id": "api.command_remove.missing.app_error",
+    "translation": "No pudimos encontrar el usuario"
+  },
+  {
+    "id": "api.command_remove.name",
+    "translation": "remover"
+  },
+  {
+    "id": "api.command_remove.permission.app_error",
+    "translation": "No tienes los permisos adecuados para remover al miembro."
+  },
+  {
+    "id": "api.command_remove.user_not_in_channel",
+    "translation": "{{.Username}} no es un miembro de este canal."
   },
   {
     "id": "api.command_search.desc",
@@ -1518,12 +1554,20 @@
     "translation": "Falta el archivo en la solicitud multipart/form"
   },
   {
+    "id": "api.post.check_for_out_of_channel_mentions.link.private",
+    "translation": "agregalos al canal privado"
+  },
+  {
+    "id": "api.post.check_for_out_of_channel_mentions.link.public",
+    "translation": "agregalos al canal"
+  },
+  {
     "id": "api.post.check_for_out_of_channel_mentions.message.multiple",
-    "translation": "{{.Usernames}} y {{.LastUsername}} fueron mencionados, pero no recibieron una notificación porque no pertenecen a este canal."
+    "translation": "@{{.Usernames}} and @{{.LastUsername}} fueron mencionados pero no son parte del canal. ¿Quisieras {{.Phrase}}? Tendrán acceso a todo el historial de mensajes."
   },
   {
     "id": "api.post.check_for_out_of_channel_mentions.message.one",
-    "translation": "{{.Username}} fue mencionado, pero no recibió una notificación porque no pertenece a este canal."
+    "translation": "@{{.Username}} fue mencionado pero no es parte del canal. ¿Quisieras {{.Phrase}}? Tendrá acceso a todo el historial de mensajes."
   },
   {
     "id": "api.post.create_post.attach_files.error",
@@ -3772,8 +3816,16 @@
     "translation": "No pudo decodificar los resultados de búsqueda"
   },
   {
+    "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
+    "translation": "No se pudo crear el procesador a granel de Elasticsearch"
+  },
+  {
     "id": "ent.elasticsearch.start.index_settings_failed",
     "translation": "No se pudo establecer el índice de configuración de Elasticsearch"
+  },
+  {
+    "id": "ent.elasticsearch.start.start_bulk_processor_failed.app_error",
+    "translation": "No se pudo iniciar procesador a granel de Elasticsearch"
   },
   {
     "id": "ent.elasticsearch.test_config.connect_failed",
@@ -4394,6 +4446,10 @@
   {
     "id": "model.config.is_valid.elastic_search.enable_searching.app_error",
     "translation": "El valor de Elastic Search IndexingEnabled debe ser verdadero cuando el valor de Elastic Search SearchEnabled es verdadero."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.live_indexing_batch_size.app_error",
+    "translation": "El tamaño del lote de la indexación en tiempo real de Elasticsearch debe ser de al menos 1"
   },
   {
     "id": "model.config.is_valid.elastic_search.password.app_error",

@@ -716,6 +716,10 @@
     "translation": "チャンネルに参加しました。"
   },
   {
+    "id": "api.command_kick.name",
+    "translation": "退出"
+  },
+  {
     "id": "api.command_leave.desc",
     "translation": "現在のチャンネルを脱退する"
   },
@@ -822,6 +826,38 @@
   {
     "id": "api.command_open.name",
     "translation": "開く"
+  },
+  {
+    "id": "api.command_remove.desc",
+    "translation": "チャンネルからメンバーを削除する"
+  },
+  {
+    "id": "api.command_remove.direct_group.app_error",
+    "translation": "ダイレクトメッセージチャンネルからメンバーを削除することはできません。"
+  },
+  {
+    "id": "api.command_remove.hint",
+    "translation": "@[ユーザー名]"
+  },
+  {
+    "id": "api.command_remove.message.app_error",
+    "translation": "/remove もしくは /kick コマンドはメッセージを指定しなくてはいけません。"
+  },
+  {
+    "id": "api.command_remove.missing.app_error",
+    "translation": "ユーザーが見付かりませんでした"
+  },
+  {
+    "id": "api.command_remove.name",
+    "translation": "削除"
+  },
+  {
+    "id": "api.command_remove.permission.app_error",
+    "translation": "あなたにはメンバーを削除するのに必要な権限が付与されていません。"
+  },
+  {
+    "id": "api.command_remove.user_not_in_channel",
+    "translation": "{{.Username}} はこのチャンネルのメンバーではありません。"
   },
   {
     "id": "api.command_search.desc",
@@ -1518,12 +1554,20 @@
     "translation": "multipart/formリクエストにファイルが存在しません"
   },
   {
+    "id": "api.post.check_for_out_of_channel_mentions.link.private",
+    "translation": "彼らを非公開チャンネルに追加する"
+  },
+  {
+    "id": "api.post.check_for_out_of_channel_mentions.link.public",
+    "translation": "彼らをチャンネルに追加する"
+  },
+  {
     "id": "api.post.check_for_out_of_channel_mentions.message.multiple",
-    "translation": "{{.Usernames}}と{{.LastUsername}}が投稿に現れましたが、彼らはこのチャンネルには属していません。"
+    "translation": "@{{.Usernames}} と @{{.LastUsername}} についての投稿が行われましたが、彼らはチャンネルにいません。{{.Phrase}}しますか? 彼らは全てのメッセージ履歴にアクセスできるようになります。"
   },
   {
     "id": "api.post.check_for_out_of_channel_mentions.message.one",
-    "translation": "{{.Usernames}}が投稿に現れましたが、このチャンネルには属していません。"
+    "translation": "@{{.Username}} についての投稿が行われましたが、彼らはチャンネルにいません。{{.Phrase}}しますか?彼らは全てのメッセージにアクセスできるようになります。"
   },
   {
     "id": "api.post.create_post.attach_files.error",
@@ -3772,8 +3816,16 @@
     "translation": "検索結果をデコードできませんでした"
   },
   {
+    "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
+    "translation": "Elasticsearch一括処理器を生成することが出来ませんでした"
+  },
+  {
     "id": "ent.elasticsearch.start.index_settings_failed",
     "translation": "Elasticsearchインデックス設定を設定できませんでした"
+  },
+  {
+    "id": "ent.elasticsearch.start.start_bulk_processor_failed.app_error",
+    "translation": "Elasticsearch一括処理器を開始することが出来ませんでした"
   },
   {
     "id": "ent.elasticsearch.test_config.connect_failed",
@@ -4394,6 +4446,10 @@
   {
     "id": "model.config.is_valid.elastic_search.enable_searching.app_error",
     "translation": "Elastic Search検索有効化に有効が設定されている場合、Elastic Searchインデックス有効化設定は有効でなければなりません。"
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.live_indexing_batch_size.app_error",
+    "translation": "Elasticsearchライブインデックス処理バッチのサイズは1以上でなければなりません"
   },
   {
     "id": "model.config.is_valid.elastic_search.password.app_error",
@@ -5553,7 +5609,7 @@
   },
   {
     "id": "store.sql_command.get_by_trigger.app_error",
-    "translation": "コマンドが取得できませんでした"
+    "translation": "コマンドを取得できませんでした"
   },
   {
     "id": "store.sql_command.save.delete.app_error",
@@ -5565,11 +5621,11 @@
   },
   {
     "id": "store.sql_command.save.get.app_error",
-    "translation": "コマンドが取得できませんでした"
+    "translation": "コマンドを取得できませんでした"
   },
   {
     "id": "store.sql_command.save.get_team.app_error",
-    "translation": "コマンドが取得できませんでした"
+    "translation": "コマンドを取得できませんでした"
   },
   {
     "id": "store.sql_command.save.saving.app_error",

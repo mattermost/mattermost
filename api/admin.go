@@ -400,7 +400,7 @@ func removeCertificate(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func samlCertificateStatus(c *Context, w http.ResponseWriter, r *http.Request) {
-	status := app.GetSamlCertificateStatus()
+	status := c.App.GetSamlCertificateStatus()
 
 	statusMap := map[string]interface{}{}
 	statusMap["IdpCertificateFile"] = status.IdpCertificateFile

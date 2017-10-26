@@ -21,14 +21,14 @@ func Init(api3 *api.API) {
 
 	mainrouter := api3.BaseRoutes.Root
 
-	if *utils.Cfg.ServiceSettings.WebserverMode != "disabled" {
+	if *api3.App.Config().ServiceSettings.WebserverMode != "disabled" {
 		staticDir, _ := utils.FindDir(model.CLIENT_DIR)
 		l4g.Debug("Using client directory at %v", staticDir)
 
 		staticHandler := staticHandler(http.StripPrefix("/static/", http.FileServer(http.Dir(staticDir))))
-		pluginHandler := pluginHandler(http.StripPrefix("/static/plugins/", http.FileServer(http.Dir(staticDir+"plugins/"))))
+		pluginHandler := pluginHandler(api3.App.Config, http.StripPrefix("/static/plugins/", http.FileServer(http.Dir(staticDir+"plugins/"))))
 
-		if *utils.Cfg.ServiceSettings.WebserverMode == "gzip" {
+		if *api3.App.Config().ServiceSettings.WebserverMode == "gzip" {
 			staticHandler = gziphandler.GzipHandler(staticHandler)
 			pluginHandler = gziphandler.GzipHandler(pluginHandler)
 		}
@@ -50,9 +50,9 @@ func staticHandler(handler http.Handler) http.Handler {
 	})
 }
 
-func pluginHandler(handler http.Handler) http.Handler {
+func pluginHandler(config model.ConfigFunc, handler http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if *utils.Cfg.ServiceSettings.EnableDeveloper {
+		if *config().ServiceSettings.EnableDeveloper {
 			w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
 		} else {
 			w.Header().Set("Cache-Control", "max-age=31556926, public")

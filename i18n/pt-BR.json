@@ -716,6 +716,10 @@
     "translation": "Juntou ao canal."
   },
   {
+    "id": "api.command_kick.name",
+    "translation": "kick"
+  },
+  {
     "id": "api.command_leave.desc",
     "translation": "Deixar o canal atual"
   },
@@ -822,6 +826,38 @@
   {
     "id": "api.command_open.name",
     "translation": "abrir"
+  },
+  {
+    "id": "api.command_remove.desc",
+    "translation": "Remover um membro do canal"
+  },
+  {
+    "id": "api.command_remove.direct_group.app_error",
+    "translation": "Você não pode remover a pessoa de um canal de mensagens diretas"
+  },
+  {
+    "id": "api.command_remove.hint",
+    "translation": "@[nome do usuário]"
+  },
+  {
+    "id": "api.command_remove.message.app_error",
+    "translation": "Uma mensagem deve ser fornecida com o comando /rename ou /kick."
+  },
+  {
+    "id": "api.command_remove.missing.app_error",
+    "translation": "Não foi possível encontrar o usuário"
+  },
+  {
+    "id": "api.command_remove.name",
+    "translation": "remover"
+  },
+  {
+    "id": "api.command_remove.permission.app_error",
+    "translation": "Você não tem a permissão apropriada para remover o usuário."
+  },
+  {
+    "id": "api.command_remove.user_not_in_channel",
+    "translation": "{{.Username}} não é um membro deste canal."
   },
   {
     "id": "api.command_search.desc",
@@ -1518,12 +1554,20 @@
     "translation": "Arquivo faltando na requisição multipart/form"
   },
   {
+    "id": "api.post.check_for_out_of_channel_mentions.link.private",
+    "translation": "adicione-os ao canal privado"
+  },
+  {
+    "id": "api.post.check_for_out_of_channel_mentions.link.public",
+    "translation": "adicione-os ao canal"
+  },
+  {
     "id": "api.post.check_for_out_of_channel_mentions.message.multiple",
-    "translation": "{{.Usernames}} e {{.LastUsername}} foram mencionados, mas eles não receberam notificação porque eles não pertencem a este canal."
+    "translation": "@{{.Usernames}} e @{{.LastUsername}} foram mencionados mas não estão no canal. Você gostaria que {{.Phrase}}? Eles terão acesso o histórico de mensagens."
   },
   {
     "id": "api.post.check_for_out_of_channel_mentions.message.one",
-    "translation": "{{.Username}} foi mencionado, mas eles não receberam uma notificação porque eles não pertencem a este canal."
+    "translation": "@{{.Username}} foi mencionado mas não está no canal. Você gostaria de {{.Phrase}}? Ele terá acesso a todo o histórico de mensagens."
   },
   {
     "id": "api.post.create_post.attach_files.error",
@@ -3772,8 +3816,16 @@
     "translation": "Falha ao decodificar os resultados da pesquisa"
   },
   {
+    "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
+    "translation": "Erro ao criar o bulk processor do Elastisearch"
+  },
+  {
     "id": "ent.elasticsearch.start.index_settings_failed",
     "translation": "Não foi possível configurar as opções do ElasticSearch index"
+  },
+  {
+    "id": "ent.elasticsearch.start.start_bulk_processor_failed.app_error",
+    "translation": "Erro ao iniciar o bulk processor do Elasticsearch"
   },
   {
     "id": "ent.elasticsearch.test_config.connect_failed",
@@ -4394,6 +4446,10 @@
   {
     "id": "model.config.is_valid.elastic_search.enable_searching.app_error",
     "translation": "O opção ElasticSearch IndexingEnabled deve ser configurada para verdadeiro quando o ElasticSearch SearchEnabled estiver configurado como verdadeiro."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.live_indexing_batch_size.app_error",
+    "translation": "Elasticsearch Live Indexing Batch Size deve ser pelo menos 1"
   },
   {
     "id": "model.config.is_valid.elastic_search.password.app_error",

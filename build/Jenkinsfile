@@ -1,44 +1,64 @@
 #!/usr/bin/env groovy
 
-podTemplate(label: 'jenkins-slave', 
+podTemplate(label: 'jenkins-slave',
     containers: [
         containerTemplate(
             name: 'mattermost-mysql',
             image: 'mysql:5.7',
             alwaysPullImage: false,
-            resourceRequestCpu: '1000m',
-            resourceLimitCpu: '2000m',
-            resourceRequestMemory: '2Gi',
-            resourceLimitMemory: '4Gi',
+            resourceRequestCpu: '500m',
+            resourceLimitCpu: '1000m',
+            resourceRequestMemory: '1Gi',
+            resourceLimitMemory: '2Gi',
             ports: [portMapping(name: 'mysql', containerPort: 3306, hostPort: 3306)],
-            envVars: [envVar(key: 'MYSQL_ROOT_PASSWORD', value: 'mostest'), envVar(key: 'MYSQL_USER', value: 'mmuser'), envVar(key: 'MYSQL_PASSWORD', value: 'mostest'), envVar(key: 'MYSQL_DATABASE', value: 'mattermost_test')]
+            envVars: [
+                envVar(key: 'MYSQL_ROOT_PASSWORD', value: 'mostest'),
+                envVar(key: 'MYSQL_USER', value: 'mmuser'),
+                envVar(key: 'MYSQL_PASSWORD', value: 'mostest'),
+                envVar(key: 'MYSQL_DATABASE', value: 'mattermost_test')
+            ]
         ),
         containerTemplate(
-            name: 'golang', 
-            image: 'golang:1.8', 
-            ttyEnabled: true, 
+            name: 'golang',
+            image: 'golang:1.9.1',
+            ttyEnabled: true,
             command: 'cat',
             alwaysPullImage: false,
             resourceRequestCpu: '1000m',
-            resourceLimitCpu: '2000m',
+            resourceLimitCpu: '1000m',
             resourceRequestMemory: '2Gi',
             resourceLimitMemory: '4Gi'
         ),
         containerTemplate(
-            name: 'mattermost-inbucket', 
-            image: 'jhillyerd/inbucket:latest', 
-            ports: [portMapping(name: 'inbucket', hostPost: 10025, containerPort: 10025)],
+            name: 'mattermost-inbucket',
+            image: 'jhillyerd/inbucket:latest',
             resourceRequestCpu: '250m',
             resourceLimitCpu: '250m',
             resourceRequestMemory: '256Mi',
             resourceLimitMemory: '256Mi'
         ),
         containerTemplate(
-            name: 'mattermost-openldap', 
-            image: 'osixia/openldap:1.1.9', 
+            name: 'mattermost-redis',
+            image: 'redis',
+            ports: [portMapping(name: 'redis', hostPost: 6379, containerPort: 6379)],
+            resourceRequestCpu: '250m',
+            resourceLimitCpu: '250m',
+            resourceRequestMemory: '256Mi',
+            resourceLimitMemory: '256Mi'
+        ),
+        containerTemplate(
+            name: 'mattermost-openldap',
+            image: 'osixia/openldap:1.1.9',
             alwaysPullImage: true,
-            ports: [portMapping(name: 'openldap1', hostPost: 389, containerPort: 389), portMapping(name: 'openldap2', hostPost: 636, containerPort: 636)],
-            envVars: [envVar(key: 'LDAP_TLS_VERIFY_CLIENT', value: 'never'), envVar(key: 'LDAP_ORGANISATION', value: 'Mattermost Test'), envVar(key: 'LDAP_DOMAIN', value: 'mm.test.com'), envVar(key: 'LDAP_ADMIN_PASSWORD', value: 'mostest')],
+            ports: [
+                portMapping(name: 'openldap1', hostPost: 389, containerPort: 389),
+                portMapping(name: 'openldap2', hostPost: 636, containerPort: 636)
+            ],
+            envVars: [
+                envVar(key: 'LDAP_TLS_VERIFY_CLIENT', value: 'never'),
+                envVar(key: 'LDAP_ORGANISATION', value: 'Mattermost Test'),
+                envVar(key: 'LDAP_DOMAIN', value: 'mm.test.com'), envVar(key: 'LDAP_ADMIN_PASSWORD', value: 'mostest')
+            ],
             args: "--loglevel debug",
             resourceRequestCpu: '250m',
             resourceLimitCpu: '250m',
@@ -46,35 +66,42 @@ podTemplate(label: 'jenkins-slave',
             resourceLimitMemory: '256Mi'
         ),
         containerTemplate(
-            name: 'mattermost-redis', 
-            image: 'redis', 
-            ports: [portMapping(name: 'redis', hostPost: 6379, containerPort: 6379)],
+            name: 'mattermost-minio',
+            image: 'minio/minio:latest',
+            ttyEnabled: false,
+            args: 'server /data',
+            alwaysPullImage: true,
             resourceRequestCpu: '250m',
             resourceLimitCpu: '250m',
             resourceRequestMemory: '256Mi',
-            resourceLimitMemory: '256Mi'
-        ),/*
+            resourceLimitMemory: '256Mi',
+            envVars: [
+                envVar(key: 'MINIO_ACCESS_KEY', value: 'minioaccesskey'),
+                envVar(key: 'MINIO_SECRET_KEY', value: 'miniosecretkey')
+            ]
+        ),
         containerTemplate(
-            name: 'mattermost-elasticsearch', 
-            image: 'grundleborg/elasticsearch:latest', 
+            name: 'mattermost-node',
+            image: 'node',
+            ttyEnabled: true,
+            command: 'cat',
+            alwaysPullImage: false,
+            resourceRequestCpu: '500m',
+            resourceLimitCpu: '1000m',
+            resourceRequestMemory: '1Gi',
+            resourceLimitMemory: '2Gi'
+        ),
+        /*
+        containerTemplate(
+            name: 'mattermost-elasticsearch',
+            image: 'grundleborg/elasticsearch:latest',
             ports: [portMapping(name: 'elasticsearch', hostPost: 9200, containerPort: 9200)],
             envVars: [envVar(key: 'http.host', value: '0.0.0.0'), envVar(key: 'transport.host', value: '127.0.0.1'), envVar(key: 'ES_JAVA_OPTS', value: '-Xmx250m -Xmx250m')],
             resourceRequestCpu: '250m',
             resourceLimitCpu: '250m',
             resourceRequestMemory: '256Mi',
             resourceLimitMemory: '256Mi'
-        ),*/
-        containerTemplate(
-            name: 'mattermost-node', 
-            image: 'node', 
-            ttyEnabled: true, 
-            command: 'cat',
-            alwaysPullImage: false,
-            resourceRequestCpu: '1000m',
-            resourceLimitCpu: '2000m',
-            resourceRequestMemory: '2Gi',
-            resourceLimitMemory: '4Gi'
-        )
+        )*/
     ]
 )
 {
@@ -107,11 +134,16 @@ podTemplate(label: 'jenkins-slave',
 
             // Install build deps
             sh 'apt-get update && apt-get install zip -y'
-                
+
             // Modify config to run on jenkins
             sh 'mv /go/src/github.com/mattermost/mattermost-server/config/default.json /go/src/github.com/mattermost/mattermost-server/config/config.json'
             sh 'cd /go/src/github.com/mattermost/mattermost-server && sed -i \'s/dockerhost/localhost/g\' config/config.json'
             sh 'cd /go/src/github.com/mattermost/mattermost-server && sed -i \'s/2500/10025/g\' config/config.json'
+        }
+
+        container('mattermost-minio') {
+            // setting up the minio folder
+            sh 'mkdir -p /data/mattermost-test'
         }
 
         // Setup openldap container
@@ -128,23 +160,25 @@ podTemplate(label: 'jenkins-slave',
     }
     stage('Style Checks') {
         container('golang') {
-            sh 'cd /go/src/github.com/mattermost/mattermost-server && make check-style BUILD_NUMBER=$BUILD_NUMBER'
+            sh 'cd /go/src/github.com/mattermost/mattermost-server && make check-style'
         }
     }
     stage('Build') {
         container('golang') {
-            sh 'cd /go/src/github.com/mattermost/mattermost-server && make build BUILD_NUMBER=$BUILD_NUMBER'
+            sh "cd /go/src/github.com/mattermost/mattermost-server && make build BUILD_NUMBER=${env.BUILD_NUMBER}"
         }
         container('mattermost-node') {
-            sh 'cd mattermost-webapp && curl -f -o ./dist.tar.gz https://releases.mattermost.com/mattermost-webapp/commit/`git rev-parse HEAD`/mattermost-webapp.tar.gz && mkdir ./dist && tar -xvf ./dist.tar.gz -C ./dist --strip-components=1 || make build'
+            sh "cd mattermost-webapp && curl -f -o ./dist.tar.gz https://releases.mattermost.com/mattermost-webapp/commit/`git rev-parse HEAD`/mattermost-webapp.tar.gz && mkdir ./dist && tar -xvf ./dist.tar.gz -C ./dist --strip-components=1 || make build"
         }
         container('golang') {
-            sh 'cd /go/src/github.com/mattermost/mattermost-server && make package BUILD_NUMBER=$BUILD_NUMBER'
+            sh "cd /go/src/github.com/mattermost/mattermost-server && make package BUILD_NUMBER=${env.BUILD_NUMBER}"
         }
     }
     stage('Unit Tests') {
         container('golang') {
-            sh 'cd /go/src/github.com/mattermost/mattermost-server && make test-te BUILD_NUMBER=$BUILD_NUMBER TESTFLAGS= TESTFLAGSEE='
+            withEnv(['CI_HOST=localhost', 'CI_INBUCKET_PORT=10080', 'CI_MINIO_PORT=9000']) {
+                sh "cd /go/src/github.com/mattermost/mattermost-server && make test-te BUILD_NUMBER=${env.BUILD_NUMBER} TESTFLAGS= TESTFLAGSEE="
+            }
         }
     }
     stage('S3 Publish') {

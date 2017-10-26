@@ -7,7 +7,6 @@ import (
 	"net/http"
 
 	l4g "github.com/alecthomas/log4go"
-	"github.com/mattermost/mattermost-server/app"
 	"github.com/mattermost/mattermost-server/model"
 )
 
@@ -27,7 +26,7 @@ func getJob(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !app.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_JOBS) {
+	if !c.App.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_JOBS) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_JOBS)
 		return
 	}
@@ -47,7 +46,7 @@ func createJob(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !app.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_JOBS) {
+	if !c.App.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_JOBS) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_JOBS)
 		return
 	}
@@ -66,7 +65,7 @@ func getJobs(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !app.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_JOBS) {
+	if !c.App.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_JOBS) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_JOBS)
 		return
 	}
@@ -85,7 +84,7 @@ func getJobsByType(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !app.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_JOBS) {
+	if !c.App.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_JOBS) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_JOBS)
 		return
 	}
@@ -104,7 +103,7 @@ func cancelJob(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !app.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_JOBS) {
+	if !c.App.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_JOBS) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_JOBS)
 		return
 	}

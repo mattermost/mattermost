@@ -285,7 +285,7 @@ func InitAndLoadConfig(filename string) error {
 // LoadConfig will try to search around for the corresponding config file.
 // It will search /tmp/fileName then attempt ./config/fileName,
 // then ../config/fileName and last it will look at fileName
-func LoadConfig(fileName string) {
+func LoadConfig(fileName string) *model.Config {
 	cfgMutex.Lock()
 	defer cfgMutex.Unlock()
 
@@ -394,6 +394,8 @@ func LoadConfig(fileName string) {
 	for _, listener := range cfgListeners {
 		listener(&oldConfig, &config)
 	}
+
+	return &config
 }
 
 func RegenerateClientConfig() {

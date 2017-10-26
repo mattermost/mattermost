@@ -4,6 +4,8 @@
 package utils
 
 import (
+	"fmt"
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
@@ -53,6 +55,17 @@ func (s *FileTestSuite) SetupTest() {
 	s.amazonS3SSL = *Cfg.FileSettings.AmazonS3SSL
 
 	// Set up the state for the tests.
+	s3Host := os.Getenv("CI_HOST")
+	if s3Host == "" {
+		s3Host = "dockerhost"
+	}
+
+	s3Port := os.Getenv("CI_MINIO_PORT")
+	if s3Port == "" {
+		s3Port = "9001"
+	}
+
+	s3Endpoint := fmt.Sprintf("%s:%s", s3Host, s3Port)
 	if s.testDriver == model.IMAGE_DRIVER_LOCAL {
 		*Cfg.FileSettings.DriverName = model.IMAGE_DRIVER_LOCAL
 	} else if s.testDriver == model.IMAGE_DRIVER_S3 {
@@ -60,7 +73,7 @@ func (s *FileTestSuite) SetupTest() {
 		Cfg.FileSettings.AmazonS3AccessKeyId = "minioaccesskey"
 		Cfg.FileSettings.AmazonS3SecretAccessKey = "miniosecretkey"
 		Cfg.FileSettings.AmazonS3Bucket = "mattermost-test"
-		Cfg.FileSettings.AmazonS3Endpoint = "dockerhost:9001"
+		Cfg.FileSettings.AmazonS3Endpoint = s3Endpoint
 		*Cfg.FileSettings.AmazonS3SSL = false
 	} else {
 		s.T().Fatal("Invalid image driver set for test suite.")

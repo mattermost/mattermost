@@ -114,7 +114,7 @@ func (a *App) InvalidateAllCaches() *model.AppError {
 
 func (a *App) InvalidateAllCachesSkipSend() {
 	l4g.Info(utils.T("api.context.invalidate_all_caches"))
-	sessionCache.Purge()
+	a.sessionCache.Purge()
 	ClearStatusCache()
 	sqlstore.ClearChannelCaches()
 	sqlstore.ClearUserCaches()
@@ -133,7 +133,7 @@ func (a *App) GetConfig() *model.Config {
 
 func (a *App) ReloadConfig() {
 	debug.FreeOSMemory()
-	utils.LoadConfig(utils.CfgFileName)
+	utils.LoadConfig(a.ConfigFileName())
 
 	// start/restart email batching job if necessary
 	a.InitEmailBatching()
@@ -157,8 +157,8 @@ func (a *App) SaveConfig(cfg *model.Config, sendConfigChangeClusterMessage bool)
 	}
 
 	utils.DisableConfigWatch()
-	utils.SaveConfig(utils.CfgFileName, cfg)
-	utils.LoadConfig(utils.CfgFileName)
+	utils.SaveConfig(a.ConfigFileName(), cfg)
+	utils.LoadConfig(a.ConfigFileName())
 	utils.EnableConfigWatch()
 
 	if a.Metrics != nil {
