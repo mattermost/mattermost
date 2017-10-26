@@ -146,6 +146,21 @@ func testChannelStoreSaveDirectChannel(t *testing.T, ss store.Store) {
 	if err := (<-ss.Channel().SaveDirectChannel(&o1, &m1, &m2)).Err; err == nil {
 		t.Fatal("Should not be able to save non-direct channel")
 	}
+
+	// Save yourself Direct Message
+	o1.Id = ""
+	o1.DisplayName = "Myself"
+	o1.Name = "zz" + model.NewId() + "b"
+	o1.Type = model.CHANNEL_DIRECT
+	if err := (<-ss.Channel().SaveDirectChannel(&o1, &m1, &m1)).Err; err != nil {
+		t.Fatal("couldn't save direct channel", err)
+	}
+
+	members = (<-ss.Channel().GetMembers(o1.Id, 0, 100)).Data.(*model.ChannelMembers)
+	if len(*members) != 1 {
+		t.Fatal("should have saved just 1 member")
+	}
+
 }
 
 func testChannelStoreCreateDirectChannel(t *testing.T, ss store.Store) {
