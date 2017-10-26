@@ -271,6 +271,10 @@ gofmt:
 	done
 	@echo "gofmt success"; \
 
+store-mocks:
+	go get github.com/vektra/mockery/...
+	mockery -dir store -all -output store/storetest/mocks -note 'Regenerate this file using `make store-mocks`.'
+
 check-licenses:
 	./scripts/license-check.sh $(TE_PACKAGES) $(EE_PACKAGES)
 
