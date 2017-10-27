@@ -36,7 +36,7 @@ func TestCreateTask(t *testing.T) {
 		t.Fatal("Bad interval")
 	}
 
-	if task.Recurring != false {
+	if task.Recurring {
 		t.Fatal("should not reccur")
 	}
 }
@@ -75,7 +75,7 @@ func TestCreateRecurringTask(t *testing.T) {
 		t.Fatal("Bad interval")
 	}
 
-	if task.Recurring != true {
+	if !task.Recurring {
 		t.Fatal("should reccur")
 	}
 
