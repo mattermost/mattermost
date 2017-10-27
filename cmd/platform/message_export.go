@@ -5,6 +5,7 @@ package main
 
 import (
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -38,15 +39,10 @@ func messageExportActianceCmdF(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
-	// TODO: check licensing? This code reports that the server is not licensed, when it is
-	/*
-		if !utils.IsLicensed() || !*utils.License().Features.MessageExport {
-			fmt.Println("IsLicensed: " + strconv.FormatBool(utils.IsLicensed()))
-			fmt.Println("License Features: " + utils.License().ToJson())
-			CommandPrintErrorln("ERROR: The server is not licensed to use the message export feature.")
-			return nil
-		}
-	*/
+	if !utils.IsLicensed() || !*utils.License().Features.MessageExport {
+		CommandPrintErrorln("ERROR: The server is not licensed to use the message export feature.")
+		return nil
+	}
 
 	if messageExportI := a.MessageExport; messageExportI != nil {
 		job, err := messageExportI.StartSynchronizeJob(true)
