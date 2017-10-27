@@ -1008,15 +1008,15 @@
   },
   {
     "id": "api.command_mute.error",
-    "translation": "An error on muting the Channel {{.Channel}} occurred."
+    "translation": "An error occurred on muting {{.Channel}} occurred."
   },
   {
     "id": "api.command_mute.success_mute",
-    "translation": "You will not receive notifications for the channel {{.Channel}} until channel mute is turned off."
+    "translation": "You will not receive notifications for {{.Channel}} until channel mute is turned off."
   },
   {
     "id": "api.command_mute.success_unmute",
-    "translation": "Channel {{.Channel}} is no longer muted."
+    "translation": "{{.Channel}} is no longer muted."
   },
   {
     "id": "api.command_mute.success_mute_direct_msg",
