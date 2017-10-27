@@ -338,6 +338,12 @@ func LoadConfig(fileName string) *model.Config {
 
 	var config model.Config
 	unmarshalErr := viper.Unmarshal(&config)
+	if unmarshalErr == nil {
+		// https://github.com/spf13/viper/issues/324
+		// https://github.com/spf13/viper/issues/348
+		config.PluginSettings = model.PluginSettings{}
+		unmarshalErr = viper.UnmarshalKey("pluginsettings", &config.PluginSettings)
+	}
 	if unmarshalErr != nil {
 		errMsg := T("utils.config.load_config.decoding.panic", map[string]interface{}{"Filename": fileName, "Error": unmarshalErr.Error()})
 		fmt.Fprintln(os.Stderr, errMsg)
