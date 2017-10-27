@@ -7,7 +7,6 @@ import (
 	"testing"
 
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils"
 )
 
 func TestOAuthRevokeAccessToken(t *testing.T) {
@@ -50,11 +49,11 @@ func TestOAuthDeleteApp(t *testing.T) {
 	th := Setup()
 	defer th.TearDown()
 
-	oldSetting := utils.Cfg.ServiceSettings.EnableOAuthServiceProvider
-	defer func() {
-		utils.Cfg.ServiceSettings.EnableOAuthServiceProvider = oldSetting
-	}()
-	utils.Cfg.ServiceSettings.EnableOAuthServiceProvider = true
+	oldSetting := th.App.Config().ServiceSettings.EnableOAuthServiceProvider
+	defer th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.ServiceSettings.EnableOAuthServiceProvider = oldSetting
+	})
+	th.App.Config().ServiceSettings.EnableOAuthServiceProvider = true
 
 	a1 := &model.OAuthApp{}
 	a1.CreatorId = model.NewId()

@@ -275,7 +275,7 @@ func (a *App) newSession(appName string, user *model.User) (*model.Session, *mod
 		return nil, model.NewAppError("newSession", "api.oauth.get_access_token.internal_session.app_error", nil, "", http.StatusInternalServerError)
 	} else {
 		session = result.Data.(*model.Session)
-		AddSessionToCache(session)
+		a.AddSessionToCache(session)
 	}
 
 	return session, nil

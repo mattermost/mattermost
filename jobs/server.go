@@ -13,6 +13,7 @@ import (
 )
 
 type JobServer struct {
+	Config     model.ConfigFunc
 	Store      store.Store
 	Workers    *Workers
 	Schedulers *Schedulers
@@ -22,6 +23,13 @@ type JobServer struct {
 	ElasticsearchAggregator ejobs.ElasticsearchAggregatorInterface
 	ElasticsearchIndexer    ejobs.ElasticsearchIndexerInterface
 	LdapSync                ejobs.LdapSyncInterface
+}
+
+func NewJobServer(config model.ConfigFunc, store store.Store) *JobServer {
+	return &JobServer{
+		Config: config,
+		Store:  store,
+	}
 }
 
 func (srv *JobServer) LoadLicense() {

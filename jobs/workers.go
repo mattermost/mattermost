@@ -13,6 +13,7 @@ import (
 
 type Workers struct {
 	startOnce sync.Once
+	Config    model.ConfigFunc
 	Watcher   *Watcher
 
 	DataRetention            model.Worker
@@ -25,7 +26,9 @@ type Workers struct {
 }
 
 func (srv *JobServer) InitWorkers() *Workers {
-	workers := &Workers{}
+	workers := &Workers{
+		Config: srv.Config,
+	}
 	workers.Watcher = srv.MakeWatcher(workers, DEFAULT_WATCHER_POLLING_INTERVAL)
 
 	if srv.DataRetentionJob != nil {
@@ -55,23 +58,23 @@ func (workers *Workers) Start() *Workers {
 	l4g.Info("Starting workers")
 
 	workers.startOnce.Do(func() {
-		if workers.DataRetention != nil && (*utils.Cfg.DataRetentionSettings.EnableMessageDeletion || *utils.Cfg.DataRetentionSettings.EnableFileDeletion) {
+		if workers.DataRetention != nil && (*workers.Config().DataRetentionSettings.EnableMessageDeletion || *workers.Config().DataRetentionSettings.EnableFileDeletion) {
 			go workers.DataRetention.Run()
 		}
 
-		if workers.MessageExport != nil && *utils.Cfg.MessageExportSettings.EnableExport {
+		if workers.MessageExport != nil && *workers.Config().MessageExportSettings.EnableExport {
 			go workers.MessageExport.Run()
 		}
 
-		if workers.ElasticsearchIndexing != nil && *utils.Cfg.ElasticsearchSettings.EnableIndexing {
+		if workers.ElasticsearchIndexing != nil && *workers.Config().ElasticsearchSettings.EnableIndexing {
 			go workers.ElasticsearchIndexing.Run()
 		}
 
-		if workers.ElasticsearchAggregation != nil && *utils.Cfg.ElasticsearchSettings.EnableIndexing {
+		if workers.ElasticsearchAggregation != nil && *workers.Config().ElasticsearchSettings.EnableIndexing {
 			go workers.ElasticsearchAggregation.Run()
 		}
 
-		if workers.LdapSync != nil && *utils.Cfg.LdapSettings.Enable {
+		if workers.LdapSync != nil && *workers.Config().LdapSettings.Enable {
 			go workers.LdapSync.Run()
 		}
 
@@ -130,23 +133,23 @@ func (workers *Workers) Stop() *Workers {
 
 	workers.Watcher.Stop()
 
-	if workers.DataRetention != nil && (*utils.Cfg.DataRetentionSettings.EnableMessageDeletion || *utils.Cfg.DataRetentionSettings.EnableFileDeletion) {
+	if workers.DataRetention != nil && (*workers.Config().DataRetentionSettings.EnableMessageDeletion || *workers.Config().DataRetentionSettings.EnableFileDeletion) {
 		workers.DataRetention.Stop()
 	}
 
-	if workers.MessageExport != nil && *utils.Cfg.MessageExportSettings.EnableExport {
+	if workers.MessageExport != nil && *workers.Config().MessageExportSettings.EnableExport {
 		workers.MessageExport.Stop()
 	}
 
-	if workers.ElasticsearchIndexing != nil && *utils.Cfg.ElasticsearchSettings.EnableIndexing {
+	if workers.ElasticsearchIndexing != nil && *workers.Config().ElasticsearchSettings.EnableIndexing {
 		workers.ElasticsearchIndexing.Stop()
 	}
 
-	if workers.ElasticsearchAggregation != nil && *utils.Cfg.ElasticsearchSettings.EnableIndexing {
+	if workers.ElasticsearchAggregation != nil && *workers.Config().ElasticsearchSettings.EnableIndexing {
 		workers.ElasticsearchAggregation.Stop()
 	}
 
-	if workers.LdapSync != nil && *utils.Cfg.LdapSettings.Enable {
+	if workers.LdapSync != nil && *workers.Config().LdapSettings.Enable {
 		workers.LdapSync.Stop()
 	}
 

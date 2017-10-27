@@ -549,18 +549,22 @@ func (ss *SqlSupplier) AlterColumnTypeIfExists(tableName string, columnName stri
 }
 
 func (ss *SqlSupplier) CreateUniqueIndexIfNotExists(indexName string, tableName string, columnName string) bool {
-	return ss.createIndexIfNotExists(indexName, tableName, columnName, INDEX_TYPE_DEFAULT, true)
+	return ss.createIndexIfNotExists(indexName, tableName, []string{columnName}, INDEX_TYPE_DEFAULT, true)
 }
 
 func (ss *SqlSupplier) CreateIndexIfNotExists(indexName string, tableName string, columnName string) bool {
-	return ss.createIndexIfNotExists(indexName, tableName, columnName, INDEX_TYPE_DEFAULT, false)
+	return ss.createIndexIfNotExists(indexName, tableName, []string{columnName}, INDEX_TYPE_DEFAULT, false)
+}
+
+func (ss *SqlSupplier) CreateCompositeIndexIfNotExists(indexName string, tableName string, columnNames []string) bool {
+	return ss.createIndexIfNotExists(indexName, tableName, columnNames, INDEX_TYPE_DEFAULT, false)
 }
 
 func (ss *SqlSupplier) CreateFullTextIndexIfNotExists(indexName string, tableName string, columnName string) bool {
-	return ss.createIndexIfNotExists(indexName, tableName, columnName, INDEX_TYPE_FULL_TEXT, false)
+	return ss.createIndexIfNotExists(indexName, tableName, []string{columnName}, INDEX_TYPE_FULL_TEXT, false)
 }
 
-func (ss *SqlSupplier) createIndexIfNotExists(indexName string, tableName string, columnName string, indexType string, unique bool) bool {
+func (ss *SqlSupplier) createIndexIfNotExists(indexName string, tableName string, columnNames []string, indexType string, unique bool) bool {
 
 	uniqueStr := ""
 	if unique {
@@ -576,10 +580,15 @@ func (ss *SqlSupplier) createIndexIfNotExists(indexName string, tableName string
 
 		query := ""
 		if indexType == INDEX_TYPE_FULL_TEXT {
+			if len(columnNames) != 1 {
+				l4g.Critical("Unable to create multi column full text index")
+				os.Exit(EXIT_CREATE_INDEX_POSTGRES)
+			}
+			columnName := columnNames[0]
 			postgresColumnNames := convertMySQLFullTextColumnsToPostgres(columnName)
 			query = "CREATE INDEX " + indexName + " ON " + tableName + " USING gin(to_tsvector('english', " + postgresColumnNames + "))"
 		} else {
-			query = "CREATE " + uniqueStr + "INDEX " + indexName + " ON " + tableName + " (" + columnName + ")"
+			query = "CREATE " + uniqueStr + "INDEX " + indexName + " ON " + tableName + " (" + strings.Join(columnNames, ", ") + ")"
 		}
 
 		_, err := ss.GetMaster().ExecNoTimeout(query)
@@ -607,7 +616,7 @@ func (ss *SqlSupplier) createIndexIfNotExists(indexName string, tableName string
 			fullTextIndex = " FULLTEXT "
 		}
 
-		_, err = ss.GetMaster().ExecNoTimeout("CREATE  " + uniqueStr + fullTextIndex + " INDEX " + indexName + " ON " + tableName + " (" + columnName + ")")
+		_, err = ss.GetMaster().ExecNoTimeout("CREATE  " + uniqueStr + fullTextIndex + " INDEX " + indexName + " ON " + tableName + " (" + strings.Join(columnNames, ", ") + ")")
 		if err != nil {
 			l4g.Critical(utils.T("store.sql.create_index.critical"), err)
 			time.Sleep(time.Second)

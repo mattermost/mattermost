@@ -33,7 +33,7 @@ type PluginAPI struct {
 }
 
 func (api *PluginAPI) LoadPluginConfiguration(dest interface{}) error {
-	if b, err := json.Marshal(utils.Cfg.PluginSettings.Plugins[api.id]); err != nil {
+	if b, err := json.Marshal(api.app.Config().PluginSettings.Plugins[api.id]); err != nil {
 		return err
 	} else {
 		return json.Unmarshal(b, dest)
@@ -145,7 +145,7 @@ type BuiltInPluginAPI struct {
 }
 
 func (api *BuiltInPluginAPI) LoadPluginConfiguration(dest interface{}) error {
-	if b, err := json.Marshal(utils.Cfg.PluginSettings.Plugins[api.id]); err != nil {
+	if b, err := json.Marshal(api.app.Config().PluginSettings.Plugins[api.id]); err != nil {
 		return err
 	} else {
 		return json.Unmarshal(b, dest)
