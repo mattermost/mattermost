@@ -59,6 +59,7 @@ type SqlStore interface {
 	AlterColumnTypeIfExists(tableName string, columnName string, mySqlColType string, postgresColType string) bool
 	CreateUniqueIndexIfNotExists(indexName string, tableName string, columnName string) bool
 	CreateIndexIfNotExists(indexName string, tableName string, columnName string) bool
+	CreateCompositeIndexIfNotExists(indexName string, tableName string, columnNames []string) bool
 	CreateFullTextIndexIfNotExists(indexName string, tableName string, columnName string) bool
 	RemoveIndexIfExists(indexName string, tableName string) bool
 	GetAllConns() []*gorp.DbMap
