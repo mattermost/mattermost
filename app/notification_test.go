@@ -796,6 +796,7 @@ func TestDoesStatusAllowPushNotification(t *testing.T) {
 	offline := &model.Status{UserId: userId, Status: model.STATUS_OFFLINE, Manual: false, LastActivityAt: 0, ActiveChannel: ""}
 	away := &model.Status{UserId: userId, Status: model.STATUS_AWAY, Manual: false, LastActivityAt: 0, ActiveChannel: ""}
 	online := &model.Status{UserId: userId, Status: model.STATUS_ONLINE, Manual: false, LastActivityAt: model.GetMillis(), ActiveChannel: ""}
+	dnd := &model.Status{UserId: userId, Status: model.STATUS_DND, Manual: true, LastActivityAt: model.GetMillis(), ActiveChannel: ""}
 
 	userNotifyProps["push_status"] = model.STATUS_ONLINE
 	// WHEN props is ONLINE and user is offline
@@ -822,6 +823,15 @@ func TestDoesStatusAllowPushNotification(t *testing.T) {
 	}
 
 	if DoesStatusAllowPushNotification(userNotifyProps, online, "") {
+		t.Fatal("Should have been false")
+	}
+
+	// WHEN props is ONLINE and user is dnd
+	if DoesStatusAllowPushNotification(userNotifyProps, dnd, channelId) {
+		t.Fatal("Should have been false")
+	}
+
+	if DoesStatusAllowPushNotification(userNotifyProps, dnd, "") {
 		t.Fatal("Should have been false")
 	}
 
@@ -853,8 +863,17 @@ func TestDoesStatusAllowPushNotification(t *testing.T) {
 		t.Fatal("Should have been false")
 	}
 
+	// WHEN props is AWAY and user is dnd
+	if DoesStatusAllowPushNotification(userNotifyProps, dnd, channelId) {
+		t.Fatal("Should have been false")
+	}
+
+	if DoesStatusAllowPushNotification(userNotifyProps, dnd, "") {
+		t.Fatal("Should have been false")
+	}
+
 	userNotifyProps["push_status"] = model.STATUS_OFFLINE
-	// WHEN props is AWAY and user is offline
+	// WHEN props is OFFLINE and user is offline
 	if !DoesStatusAllowPushNotification(userNotifyProps, offline, channelId) {
 		t.Fatal("Should have been true")
 	}
@@ -863,7 +882,7 @@ func TestDoesStatusAllowPushNotification(t *testing.T) {
 		t.Fatal("Should have been true")
 	}
 
-	// WHEN props is AWAY and user is away
+	// WHEN props is OFFLINE and user is away
 	if DoesStatusAllowPushNotification(userNotifyProps, away, channelId) {
 		t.Fatal("Should have been false")
 	}
@@ -872,7 +891,7 @@ func TestDoesStatusAllowPushNotification(t *testing.T) {
 		t.Fatal("Should have been false")
 	}
 
-	// WHEN props is AWAY and user is online
+	// WHEN props is OFFLINE and user is online
 	if DoesStatusAllowPushNotification(userNotifyProps, online, channelId) {
 		t.Fatal("Should have been false")
 	}
@@ -880,6 +899,16 @@ func TestDoesStatusAllowPushNotification(t *testing.T) {
 	if DoesStatusAllowPushNotification(userNotifyProps, online, "") {
 		t.Fatal("Should have been false")
 	}
+
+	// WHEN props is OFFLINE and user is dnd
+	if DoesStatusAllowPushNotification(userNotifyProps, dnd, channelId) {
+		t.Fatal("Should have been false")
+	}
+
+	if DoesStatusAllowPushNotification(userNotifyProps, dnd, "") {
+		t.Fatal("Should have been false")
+	}
+
 }
 
 func TestGetDirectMessageNotificationEmailSubject(t *testing.T) {
