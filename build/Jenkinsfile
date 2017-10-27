@@ -110,17 +110,17 @@ podTemplate(label: 'jenkins-slave',
         container('golang') {
             // Checkout mattermost-server
             dir('mattermost-server') {
-                git branch: env.BRANCH_NAME, credentialsId: 'a8f2d76b-8a29-4525-b57a-eb0447d7779c', url: 'https://github.com/mattermost/mattermost-server.git'
+                git branch: env.BRANCH_NAME, credentialsId: 'mattermostBuild', url: 'https://github.com/mattermost/mattermost-server.git'
             }
 
             dir('mattermost-webapp') {
-                git branch: 'master', credentialsId: 'a8f2d76b-8a29-4525-b57a-eb0447d7779c', url: 'https://github.com/mattermost/mattermost-webapp.git'
+                git branch: 'master', credentialsId: 'mattermostBuild', url: 'https://github.com/mattermost/mattermost-webapp.git'
                 sh "git checkout ${env.BRANCH_NAME} || echo 'NO CLIENT BRANCH'"
             }
 
             // Checkout enterprise
             dir('enterprise') {
-                git branch: 'master', credentialsId: 'a8f2d76b-8a29-4525-b57a-eb0447d7779c', url: 'https://github.com/mattermost/enterprise.git'
+                git branch: 'master', credentialsId: 'mattermostBuild', url: 'https://github.com/mattermost/enterprise.git'
                 sh "git checkout ${env.BRANCH_NAME} || echo 'NO EE BRANCH'"
             }
         }
@@ -182,7 +182,7 @@ podTemplate(label: 'jenkins-slave',
         }
     }
     stage('S3 Publish') {
-        step([$class: 'S3BucketPublisher', dontWaitForConcurrentBuildCompletion: false, entries: [[bucket: 'releases.mattermost.com/mattermost-server/${env.BRAANCH_NAME}', excludedFile: '', flatten: true, gzipFiles: false, keepForever: false, managedArtifacts: false, noUploadOnFailure: true, selectedRegion: 'us-east-1', showDirectlyInBrowser: false, sourceFile: 'src/github.com/mattermost/platform/dist/mattermost-enterprise*', storageClass: 'STANDARD', uploadFromSlave: false, useServerSideEncryption: false, userMetadata: [[key: 'Cache-Control', value: 'no-cache']]]], profileName: 'Releases', userMetadata: []])
+        step([$class: 'S3BucketPublisher', dontWaitForConcurrentBuildCompletion: false, entries: [[bucket: 'releases.mattermost.com/mattermost-server/${env.BRANCH_NAME}', excludedFile: '', flatten: true, gzipFiles: false, keepForever: false, managedArtifacts: false, noUploadOnFailure: true, selectedRegion: 'us-east-1', showDirectlyInBrowser: false, sourceFile: 'src/github.com/mattermost/platform/dist/mattermost-enterprise*', storageClass: 'STANDARD', uploadFromSlave: false, useServerSideEncryption: false, userMetadata: [[key: 'Cache-Control', value: 'no-cache']]]], profileName: 'Releases', userMetadata: []])
     }
   }
 }
