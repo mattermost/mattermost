@@ -2649,7 +2649,7 @@ func (c *Client4) UploadBrandImage(data []byte) (bool, *Response) {
 
 // GetLogs page of logs as a string array.
 func (c *Client4) GetLogs(page, perPage int) ([]string, *Response) {
-	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)
+	query := fmt.Sprintf("?page=%v&logs_per_page=%v", page, perPage)
 	if r, err := c.DoApiGet("/logs"+query, ""); err != nil {
 		return nil, BuildErrorResponse(r, err)
 	} else {

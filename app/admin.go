@@ -4,7 +4,6 @@
 package app
 
 import (
-	"bufio"
 	"os"
 	"strings"
 	"time"
@@ -20,9 +19,6 @@ import (
 )
 
 func (a *App) GetLogs(page, perPage int) ([]string, *model.AppError) {
-
-	perPage = 10000
-
 	var lines []string
 	if a.Cluster != nil && *a.Config().ClusterSettings.Enable {
 		lines = append(lines, "-----------------------------------------------------------------------------------------------------------")
@@ -62,20 +58,51 @@ func (a *App) GetLogsSkipSend(page, perPage int) ([]string, *model.AppError) {
 
 		defer file.Close()
 
-		offsetCount := 0
-		limitCount := 0
-		scanner := bufio.NewScanner(file)
-		for scanner.Scan() {
-			if limitCount >= perPage {
-				break
+		stat, err := file.Stat()
+		if err != nil {
+			return nil, model.NewAppError("getLogs", "api.admin.file_read_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+
+		var newLine = []byte{'\n'}
+		var lineCount int
+		var searchPos = int64(-1)
+		var lineEndPos = stat.Size()
+		file.Seek(lineEndPos, os.SEEK_SET)
+		for {
+			pos, err := file.Seek(searchPos, os.SEEK_CUR)
+			if err != nil {
+				return nil, model.NewAppError("getLogs", "api.admin.file_read_error", nil, err.Error(), http.StatusInternalServerError)
 			}
 
-			if offsetCount >= page*perPage {
-				lines = append(lines, scanner.Text())
-				limitCount++
-			} else {
-				offsetCount++
+			b := make([]byte, 1)
+			_, err = file.ReadAt(b, pos)
+			if err != nil {
+				return nil, model.NewAppError("getLogs", "api.admin.file_read_error", nil, err.Error(), http.StatusInternalServerError)
 			}
+
+			if b[0] == newLine[0] || pos == 0 {
+				lineCount++
+				if lineCount > page*perPage {
+					line := make([]byte, lineEndPos-pos)
+					_, err := file.ReadAt(line, pos)
+					if err != nil {
+						return nil, model.NewAppError("getLogs", "api.admin.file_read_error", nil, err.Error(), http.StatusInternalServerError)
+					}
+					lines = append(lines, string(line))
+				}
+				if pos == 0 {
+					break
+				}
+				lineEndPos = pos
+			}
+
+			if len(lines) == perPage {
+				break
+			}
+		}
+
+		for i, j := 0, len(lines)-1; i < j; i, j = i+1, j-1 {
+			lines[i], lines[j] = lines[j], lines[i]
 		}
 	} else {
 		lines = append(lines, "")
