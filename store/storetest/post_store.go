@@ -41,6 +41,7 @@ func TestPostStore(t *testing.T, ss store.Store) {
 	t.Run("GetPostsByIds", func(t *testing.T) { testPostStoreGetPostsByIds(t, ss) })
 	t.Run("GetPostsBatchForIndexing", func(t *testing.T) { testPostStoreGetPostsBatchForIndexing(t, ss) })
 	t.Run("PermanentDeleteBatch", func(t *testing.T) { testPostStorePermanentDeleteBatch(t, ss) })
+	t.Run("GetOldest", func(t *testing.T) { testPostStoreGetOldest(t, ss) })
 }
 
 func testPostStoreSave(t *testing.T, ss store.Store) {

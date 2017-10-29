@@ -586,10 +586,6 @@ func (o *Config) GetSSOService(service string) *SSOSettings {
 	return nil
 }
 
-func (o *Config) getClientRequirementsFromConfig() ClientRequirements {
-	return o.ClientRequirements
-}
-
 func ConfigFromJson(data io.Reader) *Config {
 	decoder := json.NewDecoder(data)
 	var o Config
