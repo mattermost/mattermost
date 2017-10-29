@@ -1701,7 +1701,6 @@ func testPostStoreGetOldest(t *testing.T, ss store.Store) {
 	o1 = (<-ss.Post().Save(o1)).Data.(*model.Post)
 
 	o2 := &model.Post{}
-	o2.Id = model.NewId()
 	o2.ChannelId = o1.ChannelId
 	o2.UserId = model.NewId()
 	o2.Message = "zz" + model.NewId() + "b"
