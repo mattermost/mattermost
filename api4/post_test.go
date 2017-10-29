@@ -572,7 +572,7 @@ func TestPatchPost(t *testing.T) {
 	rpost, resp := Client.PatchPost(post.Id, patch)
 	CheckNoError(t, resp)
 
-	if rpost.IsPinned != false {
+	if rpost.IsPinned {
 		t.Fatal("IsPinned did not update properly")
 	}
 	if rpost.Message != "#otherhashtag other message" {
@@ -593,7 +593,7 @@ func TestPatchPost(t *testing.T) {
 	if !reflect.DeepEqual(rpost.FileIds, *patch.FileIds) {
 		t.Fatal("FileIds did not update properly")
 	}
-	if rpost.HasReactions != false {
+	if rpost.HasReactions {
 		t.Fatal("HasReactions did not update properly")
 	}
 
@@ -642,7 +642,7 @@ func TestPinPost(t *testing.T) {
 		t.Fatal("should have passed")
 	}
 
-	if rpost, err := th.App.GetSinglePost(post.Id); err != nil && rpost.IsPinned != true {
+	if rpost, err := th.App.GetSinglePost(post.Id); err != nil && !rpost.IsPinned {
 		t.Fatal("failed to pin post")
 	}
 
@@ -677,7 +677,7 @@ func TestUnpinPost(t *testing.T) {
 		t.Fatal("should have passed")
 	}
 
-	if rpost, err := th.App.GetSinglePost(pinnedPost.Id); err != nil && rpost.IsPinned != false {
+	if rpost, err := th.App.GetSinglePost(pinnedPost.Id); err != nil && rpost.IsPinned {
 		t.Fatal("failed to pin post")
 	}
 
@@ -1157,7 +1157,7 @@ func TestDeletePost(t *testing.T) {
 	CheckUnauthorizedStatus(t, resp)
 
 	status, resp := th.SystemAdminClient.DeletePost(post.Id)
-	if status == false {
+	if !status {
 		t.Fatal("post should return status OK")
 	}
 	CheckNoError(t, resp)
@@ -1443,7 +1443,7 @@ func TestGetFileInfosForPost(t *testing.T) {
 	defer th.TearDown()
 	Client := th.Client
 
-	fileIds := make([]string, 3, 3)
+	fileIds := make([]string, 3)
 	if data, err := readTestFile("test.png"); err != nil {
 		t.Fatal(err)
 	} else {

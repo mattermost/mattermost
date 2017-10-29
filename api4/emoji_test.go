@@ -127,7 +127,7 @@ func TestCreateEmoji(t *testing.T) {
 		Name:      model.NewId(),
 	}
 
-	_, resp = Client.CreateEmoji(emoji, make([]byte, 100, 100), "image.gif")
+	_, resp = Client.CreateEmoji(emoji, make([]byte, 100), "image.gif")
 	CheckBadRequestStatus(t, resp)
 	CheckErrorMessage(t, resp, "api.emoji.upload.image.app_error")
 
@@ -232,7 +232,7 @@ func TestDeleteEmoji(t *testing.T) {
 
 	ok, resp := Client.DeleteEmoji(newEmoji.Id)
 	CheckNoError(t, resp)
-	if ok != true {
+	if !ok {
 		t.Fatal("should return true")
 	} else {
 		_, err := Client.GetEmoji(newEmoji.Id)
@@ -247,7 +247,7 @@ func TestDeleteEmoji(t *testing.T) {
 
 	ok, resp = th.SystemAdminClient.DeleteEmoji(newEmoji.Id)
 	CheckNoError(t, resp)
-	if ok != true {
+	if !ok {
 		t.Fatal("should return true")
 	} else {
 		_, err := th.SystemAdminClient.GetEmoji(newEmoji.Id)

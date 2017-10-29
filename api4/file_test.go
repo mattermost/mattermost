@@ -151,7 +151,7 @@ func TestGetFile(t *testing.T) {
 	data, resp := Client.GetFile(fileId)
 	CheckNoError(t, resp)
 
-	if data == nil || len(data) == 0 {
+	if len(data) == 0 {
 		t.Fatal("should not be empty")
 	}
 
@@ -268,7 +268,7 @@ func TestGetFileThumbnail(t *testing.T) {
 	data, resp := Client.GetFileThumbnail(fileId)
 	CheckNoError(t, resp)
 
-	if data == nil || len(data) == 0 {
+	if len(data) == 0 {
 		t.Fatal("should not be empty")
 	}
 
@@ -395,7 +395,7 @@ func TestGetFilePreview(t *testing.T) {
 	data, resp := Client.GetFilePreview(fileId)
 	CheckNoError(t, resp)
 
-	if data == nil || len(data) == 0 {
+	if len(data) == 0 {
 		t.Fatal("should not be empty")
 	}
 

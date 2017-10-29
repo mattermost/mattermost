@@ -37,7 +37,7 @@ func TestConfigFromEnviroVars(t *testing.T) {
 		t.Fatal("Couldn't read config from enviroment var")
 	}
 
-	if *Cfg.ServiceSettings.EnableCommands != false {
+	if *Cfg.ServiceSettings.EnableCommands {
 		t.Fatal("Couldn't read config from enviroment var")
 	}
 

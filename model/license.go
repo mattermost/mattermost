@@ -155,19 +155,11 @@ func (f *Features) SetDefaults() {
 }
 
 func (l *License) IsExpired() bool {
-	now := GetMillis()
-	if l.ExpiresAt < now {
-		return true
-	}
-	return false
+	return l.ExpiresAt < GetMillis()
 }
 
 func (l *License) IsStarted() bool {
-	now := GetMillis()
-	if l.StartsAt < now {
-		return true
-	}
-	return false
+	return l.StartsAt < GetMillis()
 }
 
 func (l *License) ToJson() string {

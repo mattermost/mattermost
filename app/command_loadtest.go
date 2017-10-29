@@ -173,7 +173,7 @@ func (me *LoadTestProvider) SetupCommand(a *App, args *model.CommandArgs, messag
 			utils.Range{Begin: numUsers, End: numUsers},
 			utils.Range{Begin: numPosts, End: numPosts},
 			doFuzz)
-		if err != true {
+		if !err {
 			return &model.CommandResponse{Text: "Failed to create testing environment", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 		} else {
 			l4g.Info("Testing environment created")
@@ -216,7 +216,7 @@ func (me *LoadTestProvider) UsersCommand(a *App, args *model.CommandArgs, messag
 	}
 
 	usersr, err := parseRange(cmd, "")
-	if err == false {
+	if !err {
 		usersr = utils.Range{Begin: 2, End: 5}
 	}
 
@@ -246,7 +246,7 @@ func (me *LoadTestProvider) ChannelsCommand(a *App, args *model.CommandArgs, mes
 	}
 
 	channelsr, err := parseRange(cmd, "")
-	if err == false {
+	if !err {
 		channelsr = utils.Range{Begin: 2, End: 5}
 	}
 
@@ -277,7 +277,7 @@ func (me *LoadTestProvider) PostsCommand(a *App, args *model.CommandArgs, messag
 	}
 
 	postsr, err := parseRange(cmd, "")
-	if err == false {
+	if !err {
 		postsr = utils.Range{Begin: 20, End: 30}
 	}
 
