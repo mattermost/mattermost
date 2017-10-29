@@ -361,7 +361,7 @@
   },
   {
     "id": "api.channel.remove_member.removed",
-    "translation": "%v was removed from the channel."
+    "translation": "%v was removed from the team."
   },
   {
     "id": "api.channel.remove_member.unable.app_error",
@@ -2273,6 +2273,10 @@
   {
     "id": "api.team.is_team_creation_allowed.disabled.app_error",
     "translation": "Team creation has been disabled. Please ask your systems administrator for details."
+  },
+  {
+    "id": "api.team.leave.left",
+    "translation": "%v has left the team."
   },
   {
     "id": "api.team.is_team_creation_allowed.domain.app_error",
