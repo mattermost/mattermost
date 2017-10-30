@@ -100,7 +100,7 @@ func TestIncomingWebhook(t *testing.T) {
 
 	a.JoinUserToTeam(team, user, "")
 
-	a.UpdateUserRoles(user.Id, model.ROLE_SYSTEM_ADMIN.Id)
+	a.UpdateUserRoles(user.Id, model.ROLE_SYSTEM_ADMIN.Id, false)
 	ApiClient.SetTeamId(team.Id)
 
 	channel1 := &model.Channel{DisplayName: "Test API Name", Name: "zz" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
