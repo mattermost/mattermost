@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"sync/atomic"
 	"time"
 
 	l4g "github.com/alecthomas/log4go"
@@ -218,7 +219,7 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if h.isApi {
-		model.UsedApiV3 = true
+		atomic.StoreInt32(model.UsedApiV3, 1)
 	}
 
 	if c.Err == nil {

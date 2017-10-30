@@ -18,7 +18,7 @@ import (
 	l4g "github.com/alecthomas/log4go"
 )
 
-var UsedApiV3 bool
+var UsedApiV3 *int32 = new(int32)
 
 const (
 	HEADER_REQUEST_ID         = "X-Request-ID"
