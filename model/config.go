@@ -204,7 +204,7 @@ type ServiceSettings struct {
 	EnableChannelViewedMessages              *bool
 	EnableUserStatuses                       *bool
 	ClusterLogTimeoutMilliseconds            *int
-	CloseUnusedDirectMessagesInSidebar       *bool
+	CloseUnusedDirectMessages                *bool
 }
 
 type ClusterSettings struct {
@@ -1386,8 +1386,8 @@ func (o *Config) SetDefaults() {
 		o.ServiceSettings.ClusterLogTimeoutMilliseconds = NewInt(2000)
 	}
 
-	if o.ServiceSettings.CloseUnusedDirectMessagesInSidebar == nil {
-		o.ServiceSettings.CloseUnusedDirectMessagesInSidebar = NewBool(false)
+	if o.ServiceSettings.CloseUnusedDirectMessages == nil {
+		o.ServiceSettings.CloseUnusedDirectMessages = NewBool(false)
 	}
 
 	if o.ElasticsearchSettings.ConnectionUrl == nil {
