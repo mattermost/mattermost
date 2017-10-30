@@ -98,7 +98,7 @@ func (a *App) HubStart() {
 						splits := strings.Split(output, "goroutine ")
 
 						for _, part := range splits {
-							if strings.Index(part, fmt.Sprintf("%v", hub.goroutineId)) > -1 {
+							if strings.Contains(part, fmt.Sprintf("%v", hub.goroutineId)) {
 								l4g.Error("Trace for possible deadlock goroutine %v", part)
 							}
 						}

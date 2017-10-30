@@ -40,7 +40,7 @@ func (watcher *Watcher) Start() {
 	// Delay for some random number of milliseconds before starting to ensure that multiple
 	// instances of the jobserver  don't poll at a time too close to each other.
 	rand.Seed(time.Now().UTC().UnixNano())
-	_ = <-time.After(time.Duration(rand.Intn(watcher.pollingInterval)) * time.Millisecond)
+	<-time.After(time.Duration(rand.Intn(watcher.pollingInterval)) * time.Millisecond)
 
 	defer func() {
 		l4g.Debug("Watcher Finished")

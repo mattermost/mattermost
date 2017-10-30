@@ -273,11 +273,7 @@ func GetServerIpAddress() string {
 }
 
 func IsLower(s string) bool {
-	if strings.ToLower(s) == s {
-		return true
-	}
-
-	return false
+	return strings.ToLower(s) == s
 }
 
 func IsValidEmail(email string) bool {

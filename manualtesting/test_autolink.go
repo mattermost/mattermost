@@ -25,7 +25,7 @@ https://medium.com/@slackhq/11-useful-tips-for-getting-the-most-of-slack-5dfb3d1
 func testAutoLink(env TestEnvironment) *model.AppError {
 	l4g.Info(utils.T("manaultesting.test_autolink.info"))
 	channelID, err := getChannelID(env.Context.App, model.DEFAULT_CHANNEL, env.CreatedTeamId, env.CreatedUserId)
-	if err != true {
+	if !err {
 		return model.NewAppError("/manualtest", "manaultesting.test_autolink.unable.app_error", nil, "", http.StatusInternalServerError)
 	}
 
@@ -33,9 +33,5 @@ func testAutoLink(env TestEnvironment) *model.AppError {
 		ChannelId: channelID,
 		Message:   LINK_POST_TEXT}
 	_, err2 := env.Client.CreatePost(post)
-	if err2 != nil {
-		return err2
-	}
-
-	return nil
+	return err2
 }

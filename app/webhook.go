@@ -597,11 +597,8 @@ func (a *App) HandleIncomingWebhook(hookId string, req *model.IncomingWebhookReq
 	overrideUsername := req.Username
 	overrideIconUrl := req.IconURL
 
-	if _, err := a.CreateWebhookPost(hook.UserId, channel, text, overrideUsername, overrideIconUrl, req.Props, webhookType); err != nil {
-		return err
-	}
-
-	return nil
+	_, err := a.CreateWebhookPost(hook.UserId, channel, text, overrideUsername, overrideIconUrl, req.Props, webhookType)
+	return err
 }
 
 func (a *App) CreateCommandWebhook(commandId string, args *model.CommandArgs) (*model.CommandWebhook, *model.AppError) {

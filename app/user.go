@@ -864,11 +864,7 @@ func (a *App) UpdatePasswordAsUser(userId, currentPassword, newPassword string) 
 
 	T := utils.GetUserTranslations(user.Locale)
 
-	if err := a.UpdatePasswordSendEmail(user, newPassword, T("api.user.update_password.menu")); err != nil {
-		return err
-	}
-
-	return nil
+	return a.UpdatePasswordSendEmail(user, newPassword, T("api.user.update_password.menu"))
 }
 
 func (a *App) UpdateActiveNoLdap(userId string, active bool) (*model.User, *model.AppError) {
@@ -1353,11 +1349,7 @@ func (a *App) GetVerifyEmailToken(token string) (*model.Token, *model.AppError) 
 }
 
 func (a *App) VerifyUserEmail(userId string) *model.AppError {
-	if err := (<-a.Srv.Store.User().VerifyEmail(userId)).Err; err != nil {
-		return err
-	}
-
-	return nil
+	return (<-a.Srv.Store.User().VerifyEmail(userId)).Err
 }
 
 func (a *App) SearchUsers(props *model.UserSearch, searchOptions map[string]bool, asAdmin bool) ([]*model.User, *model.AppError) {
