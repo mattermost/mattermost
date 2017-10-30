@@ -1717,7 +1717,7 @@ func TestAddChannelMember(t *testing.T) {
 	_, resp := th.SystemAdminClient.AddTeamMember(team.Id, user3.Id)
 	CheckNoError(t, resp)
 
-	cm, resp := Client.AddChannelMember(publicChannel.Id, user2.Id, "")
+	cm, resp := Client.AddChannelMember(publicChannel.Id, user2.Id)
 	CheckNoError(t, resp)
 	CheckCreatedStatus(t, resp)
 
@@ -1729,7 +1729,7 @@ func TestAddChannelMember(t *testing.T) {
 		t.Fatal("should have returned exact user added to public channel")
 	}
 
-	cm, resp = Client.AddChannelMember(privateChannel.Id, user2.Id, "")
+	cm, resp = Client.AddChannelMember(privateChannel.Id, user2.Id)
 	CheckNoError(t, resp)
 
 	if cm.ChannelId != privateChannel.Id {
@@ -1747,35 +1747,35 @@ func TestAddChannelMember(t *testing.T) {
 	}
 
 	Client.RemoveUserFromChannel(publicChannel.Id, user.Id)
-	_, resp = Client.AddChannelMember(publicChannel.Id, user.Id, rpost.Id)
+	_, resp = Client.AddChannelMemberWithRootId(publicChannel.Id, user.Id, rpost.Id)
 	CheckNoError(t, resp)
 	CheckCreatedStatus(t, resp)
 
 	Client.RemoveUserFromChannel(publicChannel.Id, user.Id)
-	_, resp = Client.AddChannelMember(publicChannel.Id, user.Id, "junk")
+	_, resp = Client.AddChannelMemberWithRootId(publicChannel.Id, user.Id, "junk")
 	CheckBadRequestStatus(t, resp)
 
-	_, resp = Client.AddChannelMember(publicChannel.Id, user.Id, GenerateTestId())
+	_, resp = Client.AddChannelMemberWithRootId(publicChannel.Id, user.Id, GenerateTestId())
 	CheckNotFoundStatus(t, resp)
 
 	Client.RemoveUserFromChannel(publicChannel.Id, user.Id)
-	_, resp = Client.AddChannelMember(publicChannel.Id, user.Id, "")
+	_, resp = Client.AddChannelMember(publicChannel.Id, user.Id)
 	CheckNoError(t, resp)
 
-	cm, resp = Client.AddChannelMember(publicChannel.Id, "junk", "")
+	cm, resp = Client.AddChannelMember(publicChannel.Id, "junk")
 	CheckBadRequestStatus(t, resp)
 
 	if cm != nil {
 		t.Fatal("should return nothing")
 	}
 
-	_, resp = Client.AddChannelMember(publicChannel.Id, GenerateTestId(), "")
+	_, resp = Client.AddChannelMember(publicChannel.Id, GenerateTestId())
 	CheckNotFoundStatus(t, resp)
 
-	_, resp = Client.AddChannelMember("junk", user2.Id, "")
+	_, resp = Client.AddChannelMember("junk", user2.Id)
 	CheckBadRequestStatus(t, resp)
 
-	_, resp = Client.AddChannelMember(GenerateTestId(), user2.Id, "")
+	_, resp = Client.AddChannelMember(GenerateTestId(), user2.Id)
 	CheckNotFoundStatus(t, resp)
 
 	otherUser := th.CreateUser()
@@ -1783,39 +1783,39 @@ func TestAddChannelMember(t *testing.T) {
 	Client.Logout()
 	Client.Login(user2.Id, user2.Password)
 
-	_, resp = Client.AddChannelMember(publicChannel.Id, otherUser.Id, "")
+	_, resp = Client.AddChannelMember(publicChannel.Id, otherUser.Id)
 	CheckUnauthorizedStatus(t, resp)
 
-	_, resp = Client.AddChannelMember(privateChannel.Id, otherUser.Id, "")
+	_, resp = Client.AddChannelMember(privateChannel.Id, otherUser.Id)
 	CheckUnauthorizedStatus(t, resp)
 
-	_, resp = Client.AddChannelMember(otherChannel.Id, otherUser.Id, "")
+	_, resp = Client.AddChannelMember(otherChannel.Id, otherUser.Id)
 	CheckUnauthorizedStatus(t, resp)
 
 	Client.Logout()
 	Client.Login(user.Id, user.Password)
 
 	// should fail adding user who is not a member of the team
-	_, resp = Client.AddChannelMember(otherChannel.Id, otherUser.Id, "")
+	_, resp = Client.AddChannelMember(otherChannel.Id, otherUser.Id)
 	CheckUnauthorizedStatus(t, resp)
 
 	Client.DeleteChannel(otherChannel.Id)
 
 	// should fail adding user to a deleted channel
-	_, resp = Client.AddChannelMember(otherChannel.Id, user2.Id, "")
+	_, resp = Client.AddChannelMember(otherChannel.Id, user2.Id)
 	CheckUnauthorizedStatus(t, resp)
 
 	Client.Logout()
-	_, resp = Client.AddChannelMember(publicChannel.Id, user2.Id, "")
+	_, resp = Client.AddChannelMember(publicChannel.Id, user2.Id)
 	CheckUnauthorizedStatus(t, resp)
 
-	_, resp = Client.AddChannelMember(privateChannel.Id, user2.Id, "")
+	_, resp = Client.AddChannelMember(privateChannel.Id, user2.Id)
 	CheckUnauthorizedStatus(t, resp)
 
-	_, resp = th.SystemAdminClient.AddChannelMember(publicChannel.Id, user2.Id, "")
+	_, resp = th.SystemAdminClient.AddChannelMember(publicChannel.Id, user2.Id)
 	CheckNoError(t, resp)
 
-	_, resp = th.SystemAdminClient.AddChannelMember(privateChannel.Id, user2.Id, "")
+	_, resp = th.SystemAdminClient.AddChannelMember(privateChannel.Id, user2.Id)
 	CheckNoError(t, resp)
 
 	// Test policy does not apply to TE.
@@ -1832,12 +1832,12 @@ func TestAddChannelMember(t *testing.T) {
 
 	Client.Login(user2.Username, user2.Password)
 	privateChannel = th.CreatePrivateChannel()
-	_, resp = Client.AddChannelMember(privateChannel.Id, user.Id, "")
+	_, resp = Client.AddChannelMember(privateChannel.Id, user.Id)
 	CheckNoError(t, resp)
 	Client.Logout()
 
 	Client.Login(user.Username, user.Password)
-	_, resp = Client.AddChannelMember(privateChannel.Id, user3.Id, "")
+	_, resp = Client.AddChannelMember(privateChannel.Id, user3.Id)
 	CheckNoError(t, resp)
 	Client.Logout()
 
@@ -1858,12 +1858,12 @@ func TestAddChannelMember(t *testing.T) {
 	// Check that a regular channel user can add other users.
 	Client.Login(user2.Username, user2.Password)
 	privateChannel = th.CreatePrivateChannel()
-	_, resp = Client.AddChannelMember(privateChannel.Id, user.Id, "")
+	_, resp = Client.AddChannelMember(privateChannel.Id, user.Id)
 	CheckNoError(t, resp)
 	Client.Logout()
 
 	Client.Login(user.Username, user.Password)
-	_, resp = Client.AddChannelMember(privateChannel.Id, user3.Id, "")
+	_, resp = Client.AddChannelMember(privateChannel.Id, user3.Id)
 	CheckNoError(t, resp)
 	Client.Logout()
 
@@ -1878,12 +1878,12 @@ func TestAddChannelMember(t *testing.T) {
 
 	Client.Login(user2.Username, user2.Password)
 	privateChannel = th.CreatePrivateChannel()
-	_, resp = Client.AddChannelMember(privateChannel.Id, user.Id, "")
+	_, resp = Client.AddChannelMember(privateChannel.Id, user.Id)
 	CheckNoError(t, resp)
 	Client.Logout()
 
 	Client.Login(user.Username, user.Password)
-	_, resp = Client.AddChannelMember(privateChannel.Id, user3.Id, "")
+	_, resp = Client.AddChannelMember(privateChannel.Id, user3.Id)
 	CheckForbiddenStatus(t, resp)
 	Client.Logout()
 
@@ -1895,7 +1895,7 @@ func TestAddChannelMember(t *testing.T) {
 	utils.SetDefaultRolesBasedOnConfig()
 
 	Client.Login(user.Username, user.Password)
-	_, resp = Client.AddChannelMember(privateChannel.Id, user3.Id, "")
+	_, resp = Client.AddChannelMember(privateChannel.Id, user3.Id)
 	CheckNoError(t, resp)
 	Client.Logout()
 
@@ -1910,12 +1910,12 @@ func TestAddChannelMember(t *testing.T) {
 
 	Client.Login(user2.Username, user2.Password)
 	privateChannel = th.CreatePrivateChannel()
-	_, resp = th.SystemAdminClient.AddChannelMember(privateChannel.Id, user.Id, "")
+	_, resp = th.SystemAdminClient.AddChannelMember(privateChannel.Id, user.Id)
 	CheckNoError(t, resp)
 	Client.Logout()
 
 	Client.Login(user.Username, user.Password)
-	_, resp = Client.AddChannelMember(privateChannel.Id, user3.Id, "")
+	_, resp = Client.AddChannelMember(privateChannel.Id, user3.Id)
 	CheckForbiddenStatus(t, resp)
 	Client.Logout()
 
@@ -1927,7 +1927,7 @@ func TestAddChannelMember(t *testing.T) {
 	utils.SetDefaultRolesBasedOnConfig()
 
 	Client.Login(user.Username, user.Password)
-	_, resp = Client.AddChannelMember(privateChannel.Id, user3.Id, "")
+	_, resp = Client.AddChannelMember(privateChannel.Id, user3.Id)
 	CheckNoError(t, resp)
 	Client.Logout()
 
@@ -1942,16 +1942,16 @@ func TestAddChannelMember(t *testing.T) {
 
 	Client.Login(user2.Username, user2.Password)
 	privateChannel = th.CreatePrivateChannel()
-	_, resp = th.SystemAdminClient.AddChannelMember(privateChannel.Id, user.Id, "")
+	_, resp = th.SystemAdminClient.AddChannelMember(privateChannel.Id, user.Id)
 	CheckNoError(t, resp)
 	Client.Logout()
 
 	Client.Login(user.Username, user.Password)
-	_, resp = Client.AddChannelMember(privateChannel.Id, user3.Id, "")
+	_, resp = Client.AddChannelMember(privateChannel.Id, user3.Id)
 	CheckForbiddenStatus(t, resp)
 	Client.Logout()
 
-	_, resp = th.SystemAdminClient.AddChannelMember(privateChannel.Id, user3.Id, "")
+	_, resp = th.SystemAdminClient.AddChannelMember(privateChannel.Id, user3.Id)
 	CheckNoError(t, resp)
 }
 
@@ -2027,9 +2027,9 @@ func TestRemoveChannelMember(t *testing.T) {
 	utils.SetDefaultRolesBasedOnConfig()
 
 	privateChannel := th.CreateChannelWithClient(th.SystemAdminClient, model.CHANNEL_PRIVATE)
-	_, resp = th.SystemAdminClient.AddChannelMember(privateChannel.Id, user1.Id, "")
+	_, resp = th.SystemAdminClient.AddChannelMember(privateChannel.Id, user1.Id)
 	CheckNoError(t, resp)
-	_, resp = th.SystemAdminClient.AddChannelMember(privateChannel.Id, user2.Id, "")
+	_, resp = th.SystemAdminClient.AddChannelMember(privateChannel.Id, user2.Id)
 	CheckNoError(t, resp)
 
 	_, resp = Client.RemoveUserFromChannel(privateChannel.Id, user2.Id)
@@ -2051,9 +2051,9 @@ func TestRemoveChannelMember(t *testing.T) {
 
 	// Check that a regular channel user can remove other users.
 	privateChannel = th.CreateChannelWithClient(th.SystemAdminClient, model.CHANNEL_PRIVATE)
-	_, resp = th.SystemAdminClient.AddChannelMember(privateChannel.Id, user1.Id, "")
+	_, resp = th.SystemAdminClient.AddChannelMember(privateChannel.Id, user1.Id)
 	CheckNoError(t, resp)
-	_, resp = th.SystemAdminClient.AddChannelMember(privateChannel.Id, user2.Id, "")
+	_, resp = th.SystemAdminClient.AddChannelMember(privateChannel.Id, user2.Id)
 	CheckNoError(t, resp)
 
 	_, resp = Client.RemoveUserFromChannel(privateChannel.Id, user2.Id)
@@ -2069,9 +2069,9 @@ func TestRemoveChannelMember(t *testing.T) {
 	utils.SetDefaultRolesBasedOnConfig()
 
 	privateChannel = th.CreateChannelWithClient(th.SystemAdminClient, model.CHANNEL_PRIVATE)
-	_, resp = th.SystemAdminClient.AddChannelMember(privateChannel.Id, user1.Id, "")
+	_, resp = th.SystemAdminClient.AddChannelMember(privateChannel.Id, user1.Id)
 	CheckNoError(t, resp)
-	_, resp = th.SystemAdminClient.AddChannelMember(privateChannel.Id, user2.Id, "")
+	_, resp = th.SystemAdminClient.AddChannelMember(privateChannel.Id, user2.Id)
 	CheckNoError(t, resp)
 
 	_, resp = Client.RemoveUserFromChannel(privateChannel.Id, user2.Id)
@@ -2096,9 +2096,9 @@ func TestRemoveChannelMember(t *testing.T) {
 	utils.SetDefaultRolesBasedOnConfig()
 
 	privateChannel = th.CreateChannelWithClient(th.SystemAdminClient, model.CHANNEL_PRIVATE)
-	_, resp = th.SystemAdminClient.AddChannelMember(privateChannel.Id, user1.Id, "")
+	_, resp = th.SystemAdminClient.AddChannelMember(privateChannel.Id, user1.Id)
 	CheckNoError(t, resp)
-	_, resp = th.SystemAdminClient.AddChannelMember(privateChannel.Id, user2.Id, "")
+	_, resp = th.SystemAdminClient.AddChannelMember(privateChannel.Id, user2.Id)
 	CheckNoError(t, resp)
 
 	_, resp = Client.RemoveUserFromChannel(privateChannel.Id, user2.Id)
@@ -2123,9 +2123,9 @@ func TestRemoveChannelMember(t *testing.T) {
 	utils.SetDefaultRolesBasedOnConfig()
 
 	privateChannel = th.CreateChannelWithClient(th.SystemAdminClient, model.CHANNEL_PRIVATE)
-	_, resp = th.SystemAdminClient.AddChannelMember(privateChannel.Id, user1.Id, "")
+	_, resp = th.SystemAdminClient.AddChannelMember(privateChannel.Id, user1.Id)
 	CheckNoError(t, resp)
-	_, resp = th.SystemAdminClient.AddChannelMember(privateChannel.Id, user2.Id, "")
+	_, resp = th.SystemAdminClient.AddChannelMember(privateChannel.Id, user2.Id)
 	CheckNoError(t, resp)
 
 	_, resp = Client.RemoveUserFromChannel(privateChannel.Id, user2.Id)

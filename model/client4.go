@@ -1653,9 +1653,20 @@ func (c *Client4) UpdateChannelNotifyProps(channelId, userId string, props map[s
 }
 
 // AddChannelMember adds user to channel and return a channel member.
-func (c *Client4) AddChannelMember(channelId, userId, postRootId string) (*ChannelMember, *Response) {
-	requestBody := map[string]interface{}{"user_id": userId, "post_root_id": postRootId}
-	if r, err := c.DoApiPost(c.GetChannelMembersRoute(channelId)+"", StringInterfaceToJson(requestBody)); err != nil {
+func (c *Client4) AddChannelMember(channelId, userId string) (*ChannelMember, *Response) {
+	requestBody := map[string]string{"user_id": userId}
+	if r, err := c.DoApiPost(c.GetChannelMembersRoute(channelId)+"", MapToJson(requestBody)); err != nil {
+		return nil, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return ChannelMemberFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// AddChannelMemberWithRootId adds user to channel and return a channel member. Post add to channel message has the postRootId.
+func (c *Client4) AddChannelMemberWithRootId(channelId, userId, postRootId string) (*ChannelMember, *Response) {
+	requestBody := map[string]string{"user_id": userId, "post_root_id": postRootId}
+	if r, err := c.DoApiPost(c.GetChannelMembersRoute(channelId)+"", MapToJson(requestBody)); err != nil {
 		return nil, BuildErrorResponse(r, err)
 	} else {
 		defer closeBody(r)
