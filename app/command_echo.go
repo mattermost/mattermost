@@ -53,7 +53,7 @@ func (me *EchoProvider) DoCommand(a *App, args *model.CommandArgs, message strin
 			delay = checkDelay
 		}
 		message = message[1:endMsg]
-	} else if strings.Index(message, " ") > -1 {
+	} else if strings.Contains(message, " ") {
 		delayIdx := strings.LastIndex(message, " ")
 		delayStr := strings.Trim(message[delayIdx:], " ")
 

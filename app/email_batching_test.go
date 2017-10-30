@@ -184,7 +184,7 @@ func TestCheckPendingNotifications(t *testing.T) {
 		if post.Message != "post1" {
 			t.Fatal("should've received post1 first")
 		}
-	case _ = <-timeout:
+	case <-timeout:
 		t.Fatal("timed out waiting for first post notification")
 	}
 
@@ -193,7 +193,7 @@ func TestCheckPendingNotifications(t *testing.T) {
 		if post.Message != "post2" {
 			t.Fatal("should've received post2 second")
 		}
-	case _ = <-timeout:
+	case <-timeout:
 		t.Fatal("timed out waiting for second post notification")
 	}
 }

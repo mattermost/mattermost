@@ -87,13 +87,13 @@ func TestReloadConfig(t *testing.T) {
 
 	flag, resp := Client.ReloadConfig()
 	CheckForbiddenStatus(t, resp)
-	if flag == true {
+	if flag {
 		t.Fatal("should not Reload the config due no permission.")
 	}
 
 	flag, resp = th.SystemAdminClient.ReloadConfig()
 	CheckNoError(t, resp)
-	if flag == false {
+	if !flag {
 		t.Fatal("should Reload the config")
 	}
 
@@ -285,13 +285,13 @@ func TestInvalidateCaches(t *testing.T) {
 
 	flag, resp := Client.InvalidateCaches()
 	CheckForbiddenStatus(t, resp)
-	if flag == true {
+	if flag {
 		t.Fatal("should not clean the cache due no permission.")
 	}
 
 	flag, resp = th.SystemAdminClient.InvalidateCaches()
 	CheckNoError(t, resp)
-	if flag == false {
+	if !flag {
 		t.Fatal("should clean the cache")
 	}
 }

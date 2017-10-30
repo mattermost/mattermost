@@ -38,7 +38,7 @@ func NewAutoUserCreator(a *App, client *model.Client, team *model.Team) *AutoUse
 // Basic test team and user so you always know one
 func (a *App) CreateBasicUser(client *model.Client) *model.AppError {
 	result, _ := client.FindTeamByName(BTEST_TEAM_NAME)
-	if result.Data.(bool) == false {
+	if !result.Data.(bool) {
 		newteam := &model.Team{DisplayName: BTEST_TEAM_DISPLAY_NAME, Name: BTEST_TEAM_NAME, Email: BTEST_TEAM_EMAIL, Type: BTEST_TEAM_TYPE}
 		result, err := client.CreateTeam(newteam)
 		if err != nil {
@@ -102,7 +102,7 @@ func (cfg *AutoUserCreator) CreateTestUsers(num utils.Range) ([]*model.User, boo
 	for i := 0; i < numUsers; i++ {
 		var err bool
 		users[i], err = cfg.createRandomUser()
-		if err != true {
+		if !err {
 			return users, false
 		}
 	}

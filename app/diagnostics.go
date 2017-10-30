@@ -86,10 +86,7 @@ func SendDiagnostic(event string, properties map[string]interface{}) {
 }
 
 func isDefault(setting interface{}, defaultValue interface{}) bool {
-	if setting == defaultValue {
-		return true
-	}
-	return false
+	return setting == defaultValue
 }
 
 func pluginSetting(pluginSettings *model.PluginSettings, plugin, key string, defaultValue interface{}) interface{} {

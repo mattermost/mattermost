@@ -821,7 +821,7 @@ func TestGetProfileImage(t *testing.T) {
 
 	data, resp := Client.GetProfileImage(user.Id, "")
 	CheckNoError(t, resp)
-	if data == nil || len(data) == 0 {
+	if len(data) == 0 {
 		t.Fatal("Should not be empty")
 	}
 
@@ -1860,7 +1860,7 @@ func TestRevokeSessions(t *testing.T) {
 	CheckBadRequestStatus(t, resp)
 
 	status, resp := Client.RevokeSession(user.Id, session.Id)
-	if status == false {
+	if !status {
 		t.Fatal("user session revoke unsuccessful")
 	}
 	CheckNoError(t, resp)
@@ -1912,7 +1912,7 @@ func TestRevokeAllSessions(t *testing.T) {
 	CheckBadRequestStatus(t, resp)
 
 	status, resp := Client.RevokeAllSessions(user.Id)
-	if status == false {
+	if !status {
 		t.Fatal("user all sessions revoke unsuccessful")
 	}
 	CheckNoError(t, resp)

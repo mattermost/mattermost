@@ -850,12 +850,7 @@ func (o *Config) SetDefaults() {
 
 	if o.EmailSettings.EnableSignInWithEmail == nil {
 		o.EmailSettings.EnableSignInWithEmail = new(bool)
-
-		if o.EmailSettings.EnableSignUpWithEmail == true {
-			*o.EmailSettings.EnableSignInWithEmail = true
-		} else {
-			*o.EmailSettings.EnableSignInWithEmail = false
-		}
+		*o.EmailSettings.EnableSignInWithEmail = o.EmailSettings.EnableSignUpWithEmail
 	}
 
 	if o.EmailSettings.EnableSignInWithUsername == nil {

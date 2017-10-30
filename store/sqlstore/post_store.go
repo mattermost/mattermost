@@ -831,7 +831,7 @@ func (s SqlPostStore) Search(teamId string, userId string, params *model.SearchP
 			searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", "", 1)
 		} else if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
 			// Parse text for wildcards
-			if wildcard, err := regexp.Compile("\\*($| )"); err == nil {
+			if wildcard, err := regexp.Compile(`\*($| )`); err == nil {
 				terms = wildcard.ReplaceAllLiteralString(terms, ":* ")
 			}
 

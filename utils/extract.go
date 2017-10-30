@@ -23,7 +23,7 @@ func ExtractTarGz(gzipStream io.Reader, dst string) error {
 
 	tarReader := tar.NewReader(uncompressedStream)
 
-	for true {
+	for {
 		header, err := tarReader.Next()
 
 		if err == io.EOF {

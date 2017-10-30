@@ -604,7 +604,6 @@ func teamExists(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Write([]byte(model.MapBoolToJson(resp)))
-	return
 }
 
 func importTeam(c *Context, w http.ResponseWriter, r *http.Request) {

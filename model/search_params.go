@@ -31,16 +31,6 @@ func (o *SearchParams) ToJson() string {
 
 var searchFlags = [...]string{"from", "channel", "in"}
 
-func splitWordsNoQuotes(text string) []string {
-	words := []string{}
-
-	for _, word := range strings.Fields(text) {
-		words = append(words, word)
-	}
-
-	return words
-}
-
 func splitWords(text string) []string {
 	words := []string{}
 
@@ -55,14 +45,14 @@ func splitWords(text string) []string {
 				foundQuote = false
 				location = i + 1
 			} else {
-				words = append(words, splitWordsNoQuotes(text[location:i])...)
+				words = append(words, strings.Fields(text[location:i])...)
 				foundQuote = true
 				location = i
 			}
 		}
 	}
 
-	words = append(words, splitWordsNoQuotes(text[location:])...)
+	words = append(words, strings.Fields(text[location:])...)
 
 	return words
 }
