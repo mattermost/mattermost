@@ -803,8 +803,11 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var err *model.AppError
 	if ok && len(postRootId) == 26 {
-		if _, err = c.App.GetSinglePost(postRootId); err != nil {
+		if rootPost, err := c.App.GetSinglePost(postRootId); err != nil {
 			c.Err = err
+			return
+		} else if rootPost.ChannelId != member.ChannelId {
+			c.SetInvalidParam("post_root_id")
 			return
 		}
 	}
