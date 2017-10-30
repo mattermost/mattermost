@@ -192,10 +192,6 @@ func getEmojiImage(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Write(image)
 }
 
-func getEmojiImagePath(id string) string {
-	return "emoji/" + id + "/image"
-}
-
 func resizeEmoji(img image.Image, width int, height int) image.Image {
 	emojiWidth := float64(width)
 	emojiHeight := float64(height)

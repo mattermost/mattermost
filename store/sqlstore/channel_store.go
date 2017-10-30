@@ -420,11 +420,6 @@ func (s SqlChannelStore) PermanentDeleteMembersByChannel(channelId string) store
 	})
 }
 
-type channelWithMember struct {
-	model.Channel
-	model.ChannelMember
-}
-
 func (s SqlChannelStore) GetChannels(teamId string, userId string) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		data := &model.ChannelList{}
