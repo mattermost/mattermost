@@ -515,7 +515,7 @@ func (a *App) DisablePlugin(id string) *model.AppError {
 }
 
 func (a *App) InitPlugins(pluginPath, webappPath string) {
-	if !utils.IsLicensed() || !*utils.License().Features.FutureFeatures || !*a.Config().PluginSettings.Enable {
+	if !*a.Config().PluginSettings.Enable {
 		return
 	}
 
