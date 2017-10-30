@@ -657,7 +657,7 @@ func (a *App) ImportUser(data *UserImportData, dryRun bool) *model.AppError {
 			}
 		}
 		if hasUserRolesChanged {
-			if savedUser, err = a.UpdateUserRoles(user.Id, roles); err != nil {
+			if savedUser, err = a.UpdateUserRoles(user.Id, roles, false); err != nil {
 				return err
 			}
 		}

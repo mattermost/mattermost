@@ -699,7 +699,7 @@ func updateRoles(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if _, err := c.App.UpdateUserRoles(userId, newRoles); err != nil {
+	if _, err := c.App.UpdateUserRoles(userId, newRoles, true); err != nil {
 		return
 	} else {
 		c.LogAuditWithUserId(userId, "roles="+newRoles)

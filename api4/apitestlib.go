@@ -198,7 +198,7 @@ func (me *TestHelper) InitBasic() *TestHelper {
 	me.waitForConnectivity()
 
 	me.TeamAdminUser = me.CreateUser()
-	me.App.UpdateUserRoles(me.TeamAdminUser.Id, model.ROLE_SYSTEM_USER.Id)
+	me.App.UpdateUserRoles(me.TeamAdminUser.Id, model.ROLE_SYSTEM_USER.Id, false)
 	me.LoginTeamAdmin()
 	me.BasicTeam = me.CreateTeam()
 	me.BasicChannel = me.CreatePublicChannel()
@@ -215,7 +215,7 @@ func (me *TestHelper) InitBasic() *TestHelper {
 	me.App.AddUserToChannel(me.BasicUser2, me.BasicChannel2)
 	me.App.AddUserToChannel(me.BasicUser, me.BasicPrivateChannel)
 	me.App.AddUserToChannel(me.BasicUser2, me.BasicPrivateChannel)
-	me.App.UpdateUserRoles(me.BasicUser.Id, model.ROLE_SYSTEM_USER.Id)
+	me.App.UpdateUserRoles(me.BasicUser.Id, model.ROLE_SYSTEM_USER.Id, false)
 	me.LoginBasic()
 
 	return me
@@ -225,7 +225,7 @@ func (me *TestHelper) InitSystemAdmin() *TestHelper {
 	me.waitForConnectivity()
 
 	me.SystemAdminUser = me.CreateUser()
-	me.App.UpdateUserRoles(me.SystemAdminUser.Id, model.ROLE_SYSTEM_USER.Id+" "+model.ROLE_SYSTEM_ADMIN.Id)
+	me.App.UpdateUserRoles(me.SystemAdminUser.Id, model.ROLE_SYSTEM_USER.Id+" "+model.ROLE_SYSTEM_ADMIN.Id, false)
 	me.LoginSystemAdmin()
 
 	return me

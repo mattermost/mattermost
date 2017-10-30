@@ -1192,7 +1192,7 @@ func (a *App) DeleteToken(token *model.Token) *model.AppError {
 	return nil
 }
 
-func (a *App) UpdateUserRoles(userId string, newRoles string) (*model.User, *model.AppError) {
+func (a *App) UpdateUserRoles(userId string, newRoles string, sendWebSocketEvent bool) (*model.User, *model.AppError) {
 	var user *model.User
 	var err *model.AppError
 	if user, err = a.GetUser(userId); err != nil {
@@ -1217,6 +1217,13 @@ func (a *App) UpdateUserRoles(userId string, newRoles string) (*model.User, *mod
 	}
 
 	a.ClearSessionCacheForUser(user.Id)
+
+	if sendWebSocketEvent {
+		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_USER_ROLE_UPDATED, "", "", user.Id, nil)
+		message.Add("user_id", user.Id)
+		message.Add("roles", newRoles)
+		a.Publish(message)
+	}
 
 	return ruser, nil
 }
