@@ -148,6 +148,8 @@ func SendMailUsingConfig(to, subject, htmlBody string, config *model.Config) *mo
 		"To":                        {to},
 		"Subject":                   {encodeRFC2047Word(subject)},
 		"Content-Transfer-Encoding": {"8bit"},
+		"Auto-Submitted": {"auto-generated"},
+		"Precedence": {"bulk"},
 	})
 	m.SetDateHeader("Date", time.Now())
 
