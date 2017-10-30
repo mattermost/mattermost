@@ -458,6 +458,7 @@ func getClientConfig(c *model.Config) map[string]string {
 	props["RestrictPostDelete"] = *c.ServiceSettings.RestrictPostDelete
 	props["AllowEditPost"] = *c.ServiceSettings.AllowEditPost
 	props["PostEditTimeLimit"] = fmt.Sprintf("%v", *c.ServiceSettings.PostEditTimeLimit)
+	props["CloseUnusedDirectMessages"] = strconv.FormatBool(*c.ServiceSettings.CloseUnusedDirectMessages)
 
 	props["SendEmailNotifications"] = strconv.FormatBool(c.EmailSettings.SendEmailNotifications)
 	props["SendPushNotifications"] = strconv.FormatBool(*c.EmailSettings.SendPushNotifications)
