@@ -988,14 +988,17 @@ func DoesNotifyPropsAllowPushNotification(user *model.User, channelNotifyProps m
 }
 
 func DoesStatusAllowPushNotification(userNotifyProps model.StringMap, status *model.Status, channelId string) bool {
+	// If User status is DND return false right away
+	if status.Status == model.STATUS_DND {
+		return false
+	}
+
 	if pushStatus, ok := userNotifyProps["push_status"]; (pushStatus == model.STATUS_ONLINE || !ok) && (status.ActiveChannel != channelId || model.GetMillis()-status.LastActivityAt > model.STATUS_CHANNEL_TIMEOUT) {
 		return true
 	} else if pushStatus == model.STATUS_AWAY && (status.Status == model.STATUS_AWAY || status.Status == model.STATUS_OFFLINE) {
 		return true
 	} else if pushStatus == model.STATUS_OFFLINE && status.Status == model.STATUS_OFFLINE {
 		return true
-	} else if status.Status == model.STATUS_DND {
-		return false
 	}
 
 	return false
