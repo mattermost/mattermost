@@ -273,7 +273,7 @@ gofmt:
 
 store-mocks:
 	go get github.com/vektra/mockery/...
-	$(shell go env GOPATH)/bin/mockery -dir store -all -output store/storetest/mocks -note 'Regenerate this file using `make store-mocks`.'
+	GOPATH=$(shell go env GOPATH) $(shell go env GOPATH)/bin/mockery -dir store -all -output store/storetest/mocks -note 'Regenerate this file using `make store-mocks`.'
 
 check-licenses:
 	./scripts/license-check.sh $(TE_PACKAGES) $(EE_PACKAGES)
