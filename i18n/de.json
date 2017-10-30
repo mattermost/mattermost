@@ -636,6 +636,26 @@
     "translation": "Links zu Bildern werden nun per Standard verkleinert"
   },
   {
+    "id": "api.command_dnd.desc",
+    "translation": "Do not disturb disables desktop and mobile push notifications."
+  },
+  {
+    "id": "api.command_dnd.disabled",
+    "translation": "Do Not Disturb is disabled."
+  },
+  {
+    "id": "api.command_dnd.error",
+    "translation": "Error to retrieve the user status."
+  },
+  {
+    "id": "api.command_dnd.name",
+    "translation": "dnd"
+  },
+  {
+    "id": "api.command_dnd.success",
+    "translation": "Do Not Disturb is enabled. You will not receive desktop or mobile push notifications until Do Not Disturb is turned off."
+  },
+  {
     "id": "api.command_echo.create.app_error",
     "translation": "Die /echo-Nachricht konnte nicht erstellt werden, err=%v"
   },
@@ -829,7 +849,7 @@
   },
   {
     "id": "api.command_remove.desc",
-    "translation": "Remove a member from the channel"
+    "translation": "Benutzer aus Kanal entfernen"
   },
   {
     "id": "api.command_remove.direct_group.app_error",
@@ -841,7 +861,7 @@
   },
   {
     "id": "api.command_remove.message.app_error",
-    "translation": "Es muss eine Nachricht für den Befehl /umbenennen angegeben werden."
+    "translation": "Für den /entfernen oder /kick Befehl muss eine Nachricht angegeben werden."
   },
   {
     "id": "api.command_remove.missing.app_error",
@@ -849,7 +869,7 @@
   },
   {
     "id": "api.command_remove.name",
-    "translation": "remove"
+    "translation": "entfernen"
   },
   {
     "id": "api.command_remove.permission.app_error",
@@ -857,7 +877,7 @@
   },
   {
     "id": "api.command_remove.user_not_in_channel",
-    "translation": "{{.Username}} is not a member of this channel."
+    "translation": "{{.Username}} ist kein Mitglied dieses Kanals."
   },
   {
     "id": "api.command_search.desc",
@@ -2297,7 +2317,7 @@
   },
   {
     "id": "api.templates.invite_body.info",
-    "translation": "Das Team {{.SenderStatus}} <strong>{{.SenderName}}</strong>, hat Sie eingeladen, dem Team <strong>{{.TeamDisplayName}}</strong> beizutreten."
+    "translation": "Das Team {{.SenderStatus}} <strong>{{.SenderName}}</strong> hat Sie eingeladen, dem Team <strong>{{.TeamDisplayName}}</strong> beizutreten."
   },
   {
     "id": "api.templates.invite_body.title",
@@ -2305,7 +2325,7 @@
   },
   {
     "id": "api.templates.invite_subject",
-    "translation": "[{{ .SiteName }}] {{ .SenderName }} hat Sie eingeladen dem Team {{ .TeamDisplayName }} beizutreten"
+    "translation": "[{{ .SiteName }}] {{ .SenderName }} hat Sie eingeladen, dem Team {{ .TeamDisplayName }} beizutreten"
   },
   {
     "id": "api.templates.mfa_activated_body.info",
@@ -2561,7 +2581,7 @@
   },
   {
     "id": "api.user.create_profile_image.initial.app_error",
-    "translation": "Konnte Benutzer Initial nicht zu Standard Profilbild hinzufügen"
+    "translation": "Konnte Benutzerinitial nicht zu Standardprofilbild hinzufügen"
   },
   {
     "id": "api.user.create_user.accepted_domain.app_error",
@@ -3472,12 +3492,16 @@
     "translation": "Kann extrahiertes Plugin nicht aktivieren. Plugin könnte schon existieren und aktiviert sein."
   },
   {
+    "id": "app.plugin.config.app_error",
+    "translation": "Error saving plugin state in config"
+  },
+  {
     "id": "app.plugin.deactivate.app_error",
     "translation": "Konnte Plugin nicht deaktivieren"
   },
   {
     "id": "app.plugin.disabled.app_error",
-    "translation": "Plugins wurden durch den Systemadministrator deaktiviert oder der Server wurde nicht neugestartet, seitdem sie aktiviert wurden."
+    "translation": "Plugins have been disabled."
   },
   {
     "id": "app.plugin.extract.app_error",
@@ -3492,6 +3516,10 @@
     "translation": "Konnte aktive Plugins nicht ermitteln"
   },
   {
+    "id": "app.plugin.get_plugins.app_error",
+    "translation": "Konnte aktive Plugins nicht ermitteln"
+  },
+  {
     "id": "app.plugin.manifest.app_error",
     "translation": "Konnte Manifest des extrahierten Plugins nicht abrufen"
   },
@@ -3500,8 +3528,16 @@
     "translation": "Konnte Plugin nicht vom temporären Verzeichnis in das Zielverzeichnis bewegen"
   },
   {
+    "id": "app.plugin.not_installed.app_error",
+    "translation": "Plugin is not installed"
+  },
+  {
     "id": "app.plugin.remove.app_error",
     "translation": "Konnte Plugin nicht löschen"
+  },
+  {
+    "id": "app.plugin.upload_disabled.app_error",
+    "translation": "Plugins and/or plugin uploads have been disabled."
   },
   {
     "id": "app.user_access_token.disabled",
@@ -3788,6 +3824,10 @@
     "translation": "Indizierung der Nachricht fehlgeschlagen"
   },
   {
+    "id": "ent.elasticsearch.indexer.do_job.get_oldest_post.error",
+    "translation": "The oldest post could not be retrieved from the database."
+  },
+  {
     "id": "ent.elasticsearch.indexer.do_job.parse_end_time.error",
     "translation": "Elasticsearch-Aggregator-Worker konnte die Endzeit nicht verarbeiten"
   },
@@ -3817,7 +3857,7 @@
   },
   {
     "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
-    "translation": "Failed to create Elasticsearch bulk processor"
+    "translation": "Fehler beim Erstellen der Elasticsearch-Massenverarbeitung"
   },
   {
     "id": "ent.elasticsearch.start.index_settings_failed",
@@ -3825,7 +3865,7 @@
   },
   {
     "id": "ent.elasticsearch.start.start_bulk_processor_failed.app_error",
-    "translation": "Failed to start Elasticsearch bulk processor"
+    "translation": "Fehler beim Starten der Elasticsearch-Massenverarbeitung"
   },
   {
     "id": "ent.elasticsearch.test_config.connect_failed",
@@ -4440,6 +4480,10 @@
     "translation": "Elasticsearch AggregatePostsAfterDays-Einstellung muss eine Zahl sein, die größer als oder gleich 1 ist"
   },
   {
+    "id": "model.config.is_valid.elastic_search.bulk_indexing_time_window_seconds.app_error",
+    "translation": "Elasticsearch Bulk Indexing Time Window must be at least 1 second."
+  },
+  {
     "id": "model.config.is_valid.elastic_search.connection_url.app_error",
     "translation": "ElasticSearch-Einstellung ConnectionUrl muss angegeben sein, wenn Elastic-Search-Indizierung aktiviert ist."
   },
@@ -4449,7 +4493,7 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.live_indexing_batch_size.app_error",
-    "translation": "Elasticsearch Live Indexing Batch Size must be at least 1"
+    "translation": "\"Elasticsearch Live Indexing Batch Size\" muss mindestens 1 sein"
   },
   {
     "id": "model.config.is_valid.elastic_search.password.app_error",
@@ -4458,6 +4502,10 @@
   {
     "id": "model.config.is_valid.elastic_search.posts_aggregator_job_start_time.app_error",
     "translation": "Elasticsearch PostsAggregatorJobStartTime-Einstellung muss eine Uhrzeit im Format \"hh:mm\" sein"
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.request_timeout_seconds.app_error",
+    "translation": "Elasticsearch Request Timeout must be at least 1 second."
   },
   {
     "id": "model.config.is_valid.elastic_search.username.app_error",
@@ -6860,10 +6908,6 @@
     "translation": "Zurück"
   },
   {
-    "id": "web.incoming_webhook.attachment.app_error",
-    "translation": "Maximale Anhangslänge sind {{.Max}} Zeichen, empfangene Größe ist {{.Actual}}"
-  },
-  {
     "id": "web.incoming_webhook.channel.app_error",
     "translation": "Der Kanal konnte nicht gefunden werden"
   },
@@ -6882,6 +6926,10 @@
   {
     "id": "web.incoming_webhook.permissions.app_error",
     "translation": "Ungültige Kanalberechtigungen"
+  },
+  {
+    "id": "web.incoming_webhook.split_props_length.app_error",
+    "translation": "Unable to split webhook props into {{.Max}} character parts."
   },
   {
     "id": "web.incoming_webhook.text.app_error",
