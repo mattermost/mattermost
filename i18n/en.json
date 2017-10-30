@@ -4864,6 +4864,10 @@
     "translation": "Message export job FileLocation must be a writable directory that export data will be written to"
   },
   {
+    "id": "model.config.is_valid.message_export.batch_size.app_error",
+    "translation": "Message export job BatchSize must be a positive integer"
+  },
+  {
     "id": "model.emoji.create_at.app_error",
     "translation": "Create at must be a valid time"
   },

@@ -464,6 +464,7 @@ func (a *App) trackConfig() {
 		"enable_message_export":         *utils.Cfg.MessageExportSettings.EnableExport,
 		"daily_run_time":                *utils.Cfg.MessageExportSettings.DailyRunTime,
 		"default_export_from_timestamp": *utils.Cfg.MessageExportSettings.ExportFromTimestamp,
+		"batch_size":                    *utils.Cfg.MessageExportSettings.BatchSize,
 	})
 }
 

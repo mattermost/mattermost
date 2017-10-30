@@ -212,7 +212,7 @@ func (s SqlComplianceStore) ComplianceExport(job *model.Compliance) store.StoreC
 	})
 }
 
-func (s SqlComplianceStore) MessageExport(after int64, limit int64) store.StoreChannel {
+func (s SqlComplianceStore) MessageExport(after int64, limit int) store.StoreChannel {
 	storeChannel := make(store.StoreChannel, 1)
 
 	go func() {

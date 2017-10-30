@@ -62,11 +62,11 @@ func (_m *ComplianceStore) GetAll(offset int, limit int) store.StoreChannel {
 }
 
 // MessageExport provides a mock function with given fields: after, limit
-func (_m *ComplianceStore) MessageExport(after int64, limit int64) store.StoreChannel {
+func (_m *ComplianceStore) MessageExport(after int64, limit int) store.StoreChannel {
 	ret := _m.Called(after, limit)
 
 	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(int64, int64) store.StoreChannel); ok {
+	if rf, ok := ret.Get(0).(func(int64, int) store.StoreChannel); ok {
 		r0 = rf(after, limit)
 	} else {
 		if ret.Get(0) != nil {

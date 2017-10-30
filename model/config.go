@@ -510,6 +510,7 @@ type MessageExportSettings struct {
 	DailyRunTime        *string
 	ExportFromTimestamp *int64
 	FileLocation        *string
+	BatchSize           *int
 }
 
 type JobSettings struct {
@@ -1499,23 +1500,23 @@ func (o *Config) SetDefaults() {
 	}
 
 	if o.MessageExportSettings.EnableExport == nil {
-		o.MessageExportSettings.EnableExport = new(bool)
-		*o.MessageExportSettings.EnableExport = false
+		o.MessageExportSettings.EnableExport = NewBool(false)
 	}
 
 	if o.MessageExportSettings.FileLocation == nil {
-		o.MessageExportSettings.FileLocation = new(string)
-		*o.MessageExportSettings.FileLocation = "./data/export"
+		o.MessageExportSettings.FileLocation = NewString("./data/export")
 	}
 
 	if o.MessageExportSettings.DailyRunTime == nil {
-		o.MessageExportSettings.DailyRunTime = new(string)
-		*o.MessageExportSettings.DailyRunTime = "01:00"
+		o.MessageExportSettings.DailyRunTime = NewString("01:00")
 	}
 
 	if o.MessageExportSettings.ExportFromTimestamp == nil {
-		o.MessageExportSettings.ExportFromTimestamp = new(int64)
-		*o.MessageExportSettings.ExportFromTimestamp = 0
+		o.MessageExportSettings.ExportFromTimestamp = NewInt64(0)
+	}
+
+	if o.MessageExportSettings.BatchSize == nil {
+		o.MessageExportSettings.BatchSize = NewInt(10000)
 	}
 
 	if o.PluginSettings.PluginStates == nil {
@@ -1924,6 +1925,10 @@ func (mes *MessageExportSettings) isValid() *AppError {
 
 		if mes.FileLocation == nil {
 			return NewAppError("Config.IsValid", "model.config.is_valid.message_export.file_location.app_error", nil, "", http.StatusBadRequest)
+		}
+
+		if mes.BatchSize == nil || *mes.BatchSize < 0 {
+			return NewAppError("Config.IsValid", "model.config.is_valid.message_export.batch_size.app_error", nil, "", http.StatusBadRequest)
 		}
 	}
 

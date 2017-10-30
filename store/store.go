@@ -282,7 +282,7 @@ type ComplianceStore interface {
 	Get(id string) StoreChannel
 	GetAll(offset, limit int) StoreChannel
 	ComplianceExport(compliance *model.Compliance) StoreChannel
-	MessageExport(after int64, limit int64) StoreChannel
+	MessageExport(after int64, limit int) StoreChannel
 }
 
 type OAuthStore interface {
