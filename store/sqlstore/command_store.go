@@ -138,6 +138,10 @@ func (s SqlCommandStore) Update(cmd *model.Command) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		cmd.UpdateAt = model.GetMillis()
 
+		if result.Err = cmd.IsValid(); result.Err != nil {
+			return
+		}
+
 		if _, err := s.GetMaster().Update(cmd); err != nil {
 			result.Err = model.NewAppError("SqlCommandStore.Update", "store.sql_command.save.update.app_error", nil, "id="+cmd.Id+", "+err.Error(), http.StatusInternalServerError)
 		} else {
