@@ -217,6 +217,10 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		c.CheckTeamId()
 	}
 
+	if h.isApi {
+		model.UsedApiV3 = true
+	}
+
 	if c.Err == nil {
 		h.handleFunc(c, w, r)
 	}

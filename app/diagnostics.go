@@ -172,7 +172,10 @@ func (a *App) trackActivity() {
 		"public_channels_deleted":   deletedPublicChannelCount,
 		"private_channels_deleted":  deletedPrivateChannelCount,
 		"posts":                     postsCount,
+		"used_apiv3":                model.UsedApiV3,
 	})
+
+	model.UsedApiV3 = false
 }
 
 func (a *App) trackConfig() {
