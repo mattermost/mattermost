@@ -849,7 +849,7 @@ func (a *App) ImportUserChannels(user *model.User, team *model.Team, teamMember 
 			}
 		}
 
-		if cdata.Favorite != nil && *cdata.Favorite == true {
+		if cdata.Favorite != nil && *cdata.Favorite {
 			preferences = append(preferences, model.Preference{
 				UserId:   user.Id,
 				Category: model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL,

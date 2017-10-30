@@ -1167,7 +1167,6 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 					c.App.AddDirectChannels(teamId, user)
 				})
 			}
-			break
 		case model.OAUTH_ACTION_EMAIL_TO_SSO:
 			if err := c.App.RevokeAllSessions(user.Id); err != nil {
 				c.Err = err
@@ -1179,7 +1178,6 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 					l4g.Error(err.Error())
 				}
 			})
-			break
 		}
 		doLogin(c, w, r, user, "")
 		if c.Err != nil {

@@ -61,9 +61,5 @@ func moveCommandCmdF(cmd *cobra.Command, args []string) error {
 }
 
 func moveCommand(a *app.App, team *model.Team, command *model.Command) *model.AppError {
-	if err := a.MoveCommand(team, command); err != nil {
-		return err
-	}
-
-	return nil
+	return a.MoveCommand(team, command)
 }

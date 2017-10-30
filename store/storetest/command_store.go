@@ -221,6 +221,12 @@ func testCommandStoreUpdate(t *testing.T, ss store.Store) {
 	if r2 := <-ss.Command().Update(o1); r2.Err != nil {
 		t.Fatal(r2.Err)
 	}
+
+	o1.URL = "junk"
+
+	if r2 := <-ss.Command().Update(o1); r2.Err == nil {
+		t.Fatal("should have failed - bad URL")
+	}
 }
 
 func testCommandCount(t *testing.T, ss store.Store) {

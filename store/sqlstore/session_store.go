@@ -84,7 +84,7 @@ func (me SqlSessionStore) Get(sessionIdOrToken string) store.StoreChannel {
 
 		if _, err := me.GetReplica().Select(&sessions, "SELECT * FROM Sessions WHERE Token = :Token OR Id = :Id LIMIT 1", map[string]interface{}{"Token": sessionIdOrToken, "Id": sessionIdOrToken}); err != nil {
 			result.Err = model.NewAppError("SqlSessionStore.Get", "store.sql_session.get.app_error", nil, "sessionIdOrToken="+sessionIdOrToken+", "+err.Error(), http.StatusInternalServerError)
-		} else if sessions == nil || len(sessions) == 0 {
+		} else if len(sessions) == 0 {
 			result.Err = model.NewAppError("SqlSessionStore.Get", "store.sql_session.get.app_error", nil, "sessionIdOrToken="+sessionIdOrToken, http.StatusNotFound)
 		} else {
 			result.Data = sessions[0]

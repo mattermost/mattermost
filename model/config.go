@@ -204,6 +204,7 @@ type ServiceSettings struct {
 	EnableChannelViewedMessages              *bool
 	EnableUserStatuses                       *bool
 	ClusterLogTimeoutMilliseconds            *int
+	CloseUnusedDirectMessages                *bool
 }
 
 type ClusterSettings struct {
@@ -589,10 +590,6 @@ func (o *Config) GetSSOService(service string) *SSOSettings {
 	return nil
 }
 
-func (o *Config) getClientRequirementsFromConfig() ClientRequirements {
-	return o.ClientRequirements
-}
-
 func ConfigFromJson(data io.Reader) *Config {
 	decoder := json.NewDecoder(data)
 	var o Config
@@ -853,12 +850,7 @@ func (o *Config) SetDefaults() {
 
 	if o.EmailSettings.EnableSignInWithEmail == nil {
 		o.EmailSettings.EnableSignInWithEmail = new(bool)
-
-		if o.EmailSettings.EnableSignUpWithEmail == true {
-			*o.EmailSettings.EnableSignInWithEmail = true
-		} else {
-			*o.EmailSettings.EnableSignInWithEmail = false
-		}
+		*o.EmailSettings.EnableSignInWithEmail = o.EmailSettings.EnableSignUpWithEmail
 	}
 
 	if o.EmailSettings.EnableSignInWithUsername == nil {
@@ -1397,6 +1389,10 @@ func (o *Config) SetDefaults() {
 
 	if o.ServiceSettings.ClusterLogTimeoutMilliseconds == nil {
 		o.ServiceSettings.ClusterLogTimeoutMilliseconds = NewInt(2000)
+	}
+
+	if o.ServiceSettings.CloseUnusedDirectMessages == nil {
+		o.ServiceSettings.CloseUnusedDirectMessages = NewBool(false)
 	}
 
 	if o.ElasticsearchSettings.ConnectionUrl == nil {

@@ -85,10 +85,10 @@ func TestLRUAdd(t *testing.T) {
 		t.Fatalf("err: %v", err)
 	}
 
-	if l.Add(1, 1) == true || evictCounter != 0 {
+	if l.Add(1, 1) || evictCounter != 0 {
 		t.Errorf("should not have an eviction")
 	}
-	if l.Add(2, 2) == false || evictCounter != 1 {
+	if !l.Add(2, 2) || evictCounter != 1 {
 		t.Errorf("should have an eviction")
 	}
 }

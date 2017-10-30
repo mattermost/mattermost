@@ -22,7 +22,7 @@ func CreateTestEnvironmentWithTeams(a *App, client *model.Client, rangeTeams uti
 	teamCreator := NewAutoTeamCreator(client)
 	teamCreator.Fuzzy = fuzzy
 	teams, err := teamCreator.CreateTestTeams(rangeTeams)
-	if err != true {
+	if !err {
 		return TestEnvironment{}, false
 	}
 
@@ -32,13 +32,13 @@ func CreateTestEnvironmentWithTeams(a *App, client *model.Client, rangeTeams uti
 		userCreator := NewAutoUserCreator(a, client, team)
 		userCreator.Fuzzy = fuzzy
 		randomUser, err := userCreator.createRandomUser()
-		if err != true {
+		if !err {
 			return TestEnvironment{}, false
 		}
 		client.LoginById(randomUser.Id, USER_PASSWORD)
 		client.SetTeamId(team.Id)
 		teamEnvironment, err := CreateTestEnvironmentInTeam(a, client, team, rangeChannels, rangeUsers, rangePosts, fuzzy)
-		if err != true {
+		if !err {
 			return TestEnvironment{}, false
 		}
 		environment.Environments[i] = teamEnvironment
@@ -58,7 +58,7 @@ func CreateTestEnvironmentInTeam(a *App, client *model.Client, team *model.Team,
 	userCreator := NewAutoUserCreator(a, client, team)
 	userCreator.Fuzzy = fuzzy
 	users, err := userCreator.CreateTestUsers(rangeUsers)
-	if err != true {
+	if !err {
 		return TeamEnvironment{}, false
 	}
 	usernames := make([]string, len(users))
@@ -78,7 +78,7 @@ func CreateTestEnvironmentInTeam(a *App, client *model.Client, team *model.Team,
 		}
 	}
 
-	if err != true {
+	if !err {
 		return TeamEnvironment{}, false
 	}
 

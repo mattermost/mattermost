@@ -18,14 +18,3 @@ func hintsContains(hints []LayeredStoreHint, contains LayeredStoreHint) bool {
 	}
 	return false
 }
-
-func hintsContainsAny(hints []LayeredStoreHint, contains ...LayeredStoreHint) bool {
-	for _, hint := range hints {
-		for _, hint2 := range contains {
-			if hint == hint2 {
-				return true
-			}
-		}
-	}
-	return false
-}

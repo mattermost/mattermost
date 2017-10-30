@@ -338,6 +338,12 @@ func LoadConfig(fileName string) *model.Config {
 
 	var config model.Config
 	unmarshalErr := viper.Unmarshal(&config)
+	if unmarshalErr == nil {
+		// https://github.com/spf13/viper/issues/324
+		// https://github.com/spf13/viper/issues/348
+		config.PluginSettings = model.PluginSettings{}
+		unmarshalErr = viper.UnmarshalKey("pluginsettings", &config.PluginSettings)
+	}
 	if unmarshalErr != nil {
 		errMsg := T("utils.config.load_config.decoding.panic", map[string]interface{}{"Filename": fileName, "Error": unmarshalErr.Error()})
 		fmt.Fprintln(os.Stderr, errMsg)
@@ -452,6 +458,7 @@ func getClientConfig(c *model.Config) map[string]string {
 	props["RestrictPostDelete"] = *c.ServiceSettings.RestrictPostDelete
 	props["AllowEditPost"] = *c.ServiceSettings.AllowEditPost
 	props["PostEditTimeLimit"] = fmt.Sprintf("%v", *c.ServiceSettings.PostEditTimeLimit)
+	props["CloseUnusedDirectMessages"] = strconv.FormatBool(*c.ServiceSettings.CloseUnusedDirectMessages)
 
 	props["SendEmailNotifications"] = strconv.FormatBool(c.EmailSettings.SendEmailNotifications)
 	props["SendPushNotifications"] = strconv.FormatBool(*c.EmailSettings.SendPushNotifications)

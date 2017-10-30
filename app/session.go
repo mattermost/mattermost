@@ -267,7 +267,7 @@ func (a *App) createSessionForUserAccessToken(tokenString string) (*model.Sessio
 	} else {
 		token = result.Data.(*model.UserAccessToken)
 
-		if token.IsActive == false {
+		if !token.IsActive {
 			return nil, model.NewAppError("createSessionForUserAccessToken", "app.user_access_token.invalid_or_missing", nil, "inactive_token", http.StatusUnauthorized)
 		}
 	}

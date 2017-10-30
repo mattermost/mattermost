@@ -322,7 +322,6 @@ func getChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Write([]byte(channel.ToJson()))
-	return
 }
 
 func getChannelUnread(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -601,7 +600,6 @@ func getChannelByNameForTeamName(c *Context, w http.ResponseWriter, r *http.Requ
 	}
 
 	w.Write([]byte(channel.ToJson()))
-	return
 }
 
 func getChannelMembers(c *Context, w http.ResponseWriter, r *http.Request) {

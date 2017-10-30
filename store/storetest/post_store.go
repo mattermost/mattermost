@@ -41,6 +41,7 @@ func TestPostStore(t *testing.T, ss store.Store) {
 	t.Run("GetPostsByIds", func(t *testing.T) { testPostStoreGetPostsByIds(t, ss) })
 	t.Run("GetPostsBatchForIndexing", func(t *testing.T) { testPostStoreGetPostsBatchForIndexing(t, ss) })
 	t.Run("PermanentDeleteBatch", func(t *testing.T) { testPostStorePermanentDeleteBatch(t, ss) })
+	t.Run("GetOldest", func(t *testing.T) { testPostStoreGetOldest(t, ss) })
 }
 
 func testPostStoreSave(t *testing.T, ss store.Store) {
@@ -1700,7 +1701,6 @@ func testPostStoreGetOldest(t *testing.T, ss store.Store) {
 	o1 = (<-ss.Post().Save(o1)).Data.(*model.Post)
 
 	o2 := &model.Post{}
-	o2.Id = model.NewId()
 	o2.ChannelId = o1.ChannelId
 	o2.UserId = model.NewId()
 	o2.Message = "zz" + model.NewId() + "b"

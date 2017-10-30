@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"bytes"
+
 	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/mattermost-server/einterfaces"
 	"github.com/mattermost/mattermost-server/model"
@@ -72,6 +73,9 @@ func (s SqlPostStore) CreateIndexesIfNotExists() {
 	s.CreateIndexIfNotExists("idx_posts_root_id", "Posts", "RootId")
 	s.CreateIndexIfNotExists("idx_posts_user_id", "Posts", "UserId")
 	s.CreateIndexIfNotExists("idx_posts_is_pinned", "Posts", "IsPinned")
+
+	s.CreateCompositeIndexIfNotExists("idx_posts_channel_id_update_at", "Posts", []string{"ChannelId", "UpdateAt"})
+	s.CreateCompositeIndexIfNotExists("idx_posts_channel_id_delete_at_create_at", "Posts", []string{"ChannelId", "DeleteAt", "CreateAt"})
 
 	s.CreateFullTextIndexIfNotExists("idx_posts_message_txt", "Posts", "Message")
 	s.CreateFullTextIndexIfNotExists("idx_posts_hashtags_txt", "Posts", "Hashtags")
@@ -827,7 +831,7 @@ func (s SqlPostStore) Search(teamId string, userId string, params *model.SearchP
 			searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", "", 1)
 		} else if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
 			// Parse text for wildcards
-			if wildcard, err := regexp.Compile("\\*($| )"); err == nil {
+			if wildcard, err := regexp.Compile(`\*($| )`); err == nil {
 				terms = wildcard.ReplaceAllLiteralString(terms, ":* ")
 			}
 

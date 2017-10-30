@@ -102,10 +102,8 @@ func GetMessageFromMailbox(email, id string) (results JSONMessageInbucket, err e
 	}
 	defer resp.Body.Close()
 
-	if err := json.NewDecoder(resp.Body).Decode(&record); err != nil {
-		return record, err
-	}
-	return record, nil
+	err = json.NewDecoder(resp.Body).Decode(&record)
+	return record, err
 }
 
 func DeleteMailBox(email string) (err error) {
