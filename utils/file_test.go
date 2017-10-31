@@ -43,7 +43,7 @@ func TestFileMinioTestSuite(t *testing.T) {
 
 func (s *FileTestSuite) SetupTest() {
 	TranslationsPreInit()
-	LoadConfig("config.json")
+	LoadGlobalConfig("config.json")
 	InitTranslations(Cfg.LocalizationSettings)
 
 	// Save state to restore after the test has run.

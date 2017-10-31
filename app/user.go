@@ -39,7 +39,7 @@ const (
 )
 
 func (a *App) CreateUserWithHash(user *model.User, hash string, data string) (*model.User, *model.AppError) {
-	if err := IsUserSignUpAllowed(); err != nil {
+	if err := a.IsUserSignUpAllowed(); err != nil {
 		return nil, err
 	}
 
@@ -81,7 +81,7 @@ func (a *App) CreateUserWithHash(user *model.User, hash string, data string) (*m
 }
 
 func (a *App) CreateUserWithInviteId(user *model.User, inviteId string) (*model.User, *model.AppError) {
-	if err := IsUserSignUpAllowed(); err != nil {
+	if err := a.IsUserSignUpAllowed(); err != nil {
 		return nil, err
 	}
 
@@ -127,7 +127,7 @@ func (a *App) CreateUserAsAdmin(user *model.User) (*model.User, *model.AppError)
 }
 
 func (a *App) CreateUserFromSignup(user *model.User) (*model.User, *model.AppError) {
-	if err := IsUserSignUpAllowed(); err != nil {
+	if err := a.IsUserSignUpAllowed(); err != nil {
 		return nil, err
 	}
 
@@ -150,8 +150,8 @@ func (a *App) CreateUserFromSignup(user *model.User) (*model.User, *model.AppErr
 	return ruser, nil
 }
 
-func IsUserSignUpAllowed() *model.AppError {
-	if !utils.Cfg.EmailSettings.EnableSignUpWithEmail || !utils.Cfg.TeamSettings.EnableUserCreation {
+func (a *App) IsUserSignUpAllowed() *model.AppError {
+	if !a.Config().EmailSettings.EnableSignUpWithEmail || !a.Config().TeamSettings.EnableUserCreation {
 		err := model.NewAppError("IsUserSignUpAllowed", "api.user.create_user.signup_email_disabled.app_error", nil, "", http.StatusNotImplemented)
 		return err
 	}
@@ -421,7 +421,7 @@ func (a *App) GetUsersMap(offset int, limit int, asAdmin bool) (map[string]*mode
 	userMap := make(map[string]*model.User, len(users))
 
 	for _, user := range users {
-		SanitizeProfile(user, asAdmin)
+		a.SanitizeProfile(user, asAdmin)
 		userMap[user.Id] = user
 	}
 
@@ -434,7 +434,7 @@ func (a *App) GetUsersPage(page int, perPage int, asAdmin bool) ([]*model.User, 
 		return nil, err
 	}
 
-	return sanitizeProfiles(users, asAdmin), nil
+	return a.sanitizeProfiles(users, asAdmin), nil
 }
 
 func (a *App) GetUsersEtag() string {
@@ -466,7 +466,7 @@ func (a *App) GetUsersInTeamMap(teamId string, offset int, limit int, asAdmin bo
 	userMap := make(map[string]*model.User, len(users))
 
 	for _, user := range users {
-		SanitizeProfile(user, asAdmin)
+		a.SanitizeProfile(user, asAdmin)
 		userMap[user.Id] = user
 	}
 
@@ -479,7 +479,7 @@ func (a *App) GetUsersInTeamPage(teamId string, page int, perPage int, asAdmin b
 		return nil, err
 	}
 
-	return sanitizeProfiles(users, asAdmin), nil
+	return a.sanitizeProfiles(users, asAdmin), nil
 }
 
 func (a *App) GetUsersNotInTeamPage(teamId string, page int, perPage int, asAdmin bool) ([]*model.User, *model.AppError) {
@@ -488,7 +488,7 @@ func (a *App) GetUsersNotInTeamPage(teamId string, page int, perPage int, asAdmi
 		return nil, err
 	}
 
-	return sanitizeProfiles(users, asAdmin), nil
+	return a.sanitizeProfiles(users, asAdmin), nil
 }
 
 func (a *App) GetUsersInTeamEtag(teamId string) string {
@@ -516,7 +516,7 @@ func (a *App) GetUsersInChannelMap(channelId string, offset int, limit int, asAd
 	userMap := make(map[string]*model.User, len(users))
 
 	for _, user := range users {
-		SanitizeProfile(user, asAdmin)
+		a.SanitizeProfile(user, asAdmin)
 		userMap[user.Id] = user
 	}
 
@@ -529,7 +529,7 @@ func (a *App) GetUsersInChannelPage(channelId string, page int, perPage int, asA
 		return nil, err
 	}
 
-	return sanitizeProfiles(users, asAdmin), nil
+	return a.sanitizeProfiles(users, asAdmin), nil
 }
 
 func (a *App) GetUsersNotInChannel(teamId string, channelId string, offset int, limit int) ([]*model.User, *model.AppError) {
@@ -549,7 +549,7 @@ func (a *App) GetUsersNotInChannelMap(teamId string, channelId string, offset in
 	userMap := make(map[string]*model.User, len(users))
 
 	for _, user := range users {
-		SanitizeProfile(user, asAdmin)
+		a.SanitizeProfile(user, asAdmin)
 		userMap[user.Id] = user
 	}
 
@@ -562,7 +562,7 @@ func (a *App) GetUsersNotInChannelPage(teamId string, channelId string, page int
 		return nil, err
 	}
 
-	return sanitizeProfiles(users, asAdmin), nil
+	return a.sanitizeProfiles(users, asAdmin), nil
 }
 
 func (a *App) GetUsersWithoutTeamPage(page int, perPage int, asAdmin bool) ([]*model.User, *model.AppError) {
@@ -571,7 +571,7 @@ func (a *App) GetUsersWithoutTeamPage(page int, perPage int, asAdmin bool) ([]*m
 		return nil, err
 	}
 
-	return sanitizeProfiles(users, asAdmin), nil
+	return a.sanitizeProfiles(users, asAdmin), nil
 }
 
 func (a *App) GetUsersWithoutTeam(offset int, limit int) ([]*model.User, *model.AppError) {
@@ -587,7 +587,7 @@ func (a *App) GetUsersByIds(userIds []string, asAdmin bool) ([]*model.User, *mod
 		return nil, result.Err
 	} else {
 		users := result.Data.([]*model.User)
-		return sanitizeProfiles(users, asAdmin), nil
+		return a.sanitizeProfiles(users, asAdmin), nil
 	}
 }
 
@@ -596,13 +596,13 @@ func (a *App) GetUsersByUsernames(usernames []string, asAdmin bool) ([]*model.Us
 		return nil, result.Err
 	} else {
 		users := result.Data.([]*model.User)
-		return sanitizeProfiles(users, asAdmin), nil
+		return a.sanitizeProfiles(users, asAdmin), nil
 	}
 }
 
-func sanitizeProfiles(users []*model.User, asAdmin bool) []*model.User {
+func (a *App) sanitizeProfiles(users []*model.User, asAdmin bool) []*model.User {
 	for _, u := range users {
-		SanitizeProfile(u, asAdmin)
+		a.SanitizeProfile(u, asAdmin)
 	}
 
 	return users
@@ -665,7 +665,7 @@ func (a *App) DeactivateMfa(userId string) *model.AppError {
 	return nil
 }
 
-func CreateProfileImage(username string, userId string) ([]byte, *model.AppError) {
+func CreateProfileImage(username string, userId string, initialFont string) ([]byte, *model.AppError) {
 	colors := []color.NRGBA{
 		{197, 8, 126, 255},
 		{227, 207, 18, 255},
@@ -702,7 +702,7 @@ func CreateProfileImage(username string, userId string) ([]byte, *model.AppError
 	initial := string(strings.ToUpper(username)[0])
 
 	fontDir, _ := utils.FindDir("fonts")
-	fontBytes, err := ioutil.ReadFile(fontDir + utils.Cfg.FileSettings.InitialFont)
+	fontBytes, err := ioutil.ReadFile(fontDir + initialFont)
 	if err != nil {
 		return nil, model.NewAppError("CreateProfileImage", "api.user.create_profile_image.default_font.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -739,13 +739,13 @@ func CreateProfileImage(username string, userId string) ([]byte, *model.AppError
 	}
 }
 
-func GetProfileImage(user *model.User) ([]byte, bool, *model.AppError) {
+func (a *App) GetProfileImage(user *model.User) ([]byte, bool, *model.AppError) {
 	var img []byte
 	readFailed := false
 
 	if len(*utils.Cfg.FileSettings.DriverName) == 0 {
 		var err *model.AppError
-		if img, err = CreateProfileImage(user.Username, user.Id); err != nil {
+		if img, err = CreateProfileImage(user.Username, user.Id, a.Config().FileSettings.InitialFont); err != nil {
 			return nil, false, err
 		}
 	} else {
@@ -754,7 +754,7 @@ func GetProfileImage(user *model.User) ([]byte, bool, *model.AppError) {
 		if data, err := utils.ReadFile(path); err != nil {
 			readFailed = true
 
-			if img, err = CreateProfileImage(user.Username, user.Id); err != nil {
+			if img, err = CreateProfileImage(user.Username, user.Id, a.Config().FileSettings.InitialFont); err != nil {
 				return nil, false, err
 			}
 
@@ -932,8 +932,8 @@ func (a *App) UpdateActive(user *model.User, active bool) (*model.User, *model.A
 	}
 }
 
-func SanitizeProfile(user *model.User, asAdmin bool) {
-	options := utils.Cfg.GetSanitizeOptions()
+func (a *App) SanitizeProfile(user *model.User, asAdmin bool) {
+	options := a.Config().GetSanitizeOptions()
 	if asAdmin {
 		options["email"] = true
 		options["fullname"] = true
@@ -972,7 +972,7 @@ func (a *App) PatchUser(userId string, patch *model.UserPatch, asAdmin bool) (*m
 }
 
 func (a *App) sendUpdatedUserEvent(user model.User, asAdmin bool) {
-	SanitizeProfile(&user, asAdmin)
+	a.SanitizeProfile(&user, asAdmin)
 
 	omitUsers := make(map[string]bool, 1)
 	omitUsers[user.Id] = true
@@ -1373,7 +1373,7 @@ func (a *App) SearchUsersInChannel(channelId string, term string, searchOptions 
 		users := result.Data.([]*model.User)
 
 		for _, user := range users {
-			SanitizeProfile(user, asAdmin)
+			a.SanitizeProfile(user, asAdmin)
 		}
 
 		return users, nil
@@ -1387,7 +1387,7 @@ func (a *App) SearchUsersNotInChannel(teamId string, channelId string, term stri
 		users := result.Data.([]*model.User)
 
 		for _, user := range users {
-			SanitizeProfile(user, asAdmin)
+			a.SanitizeProfile(user, asAdmin)
 		}
 
 		return users, nil
@@ -1401,7 +1401,7 @@ func (a *App) SearchUsersInTeam(teamId string, term string, searchOptions map[st
 		users := result.Data.([]*model.User)
 
 		for _, user := range users {
-			SanitizeProfile(user, asAdmin)
+			a.SanitizeProfile(user, asAdmin)
 		}
 
 		return users, nil
@@ -1415,7 +1415,7 @@ func (a *App) SearchUsersNotInTeam(notInTeamId string, term string, searchOption
 		users := result.Data.([]*model.User)
 
 		for _, user := range users {
-			SanitizeProfile(user, asAdmin)
+			a.SanitizeProfile(user, asAdmin)
 		}
 
 		return users, nil
@@ -1429,7 +1429,7 @@ func (a *App) SearchUsersWithoutTeam(term string, searchOptions map[string]bool,
 		users := result.Data.([]*model.User)
 
 		for _, user := range users {
-			SanitizeProfile(user, asAdmin)
+			a.SanitizeProfile(user, asAdmin)
 		}
 
 		return users, nil
@@ -1448,7 +1448,7 @@ func (a *App) AutocompleteUsersInChannel(teamId string, channelId string, term s
 		users := result.Data.([]*model.User)
 
 		for _, user := range users {
-			SanitizeProfile(user, asAdmin)
+			a.SanitizeProfile(user, asAdmin)
 		}
 
 		autocomplete.InChannel = users
@@ -1460,7 +1460,7 @@ func (a *App) AutocompleteUsersInChannel(teamId string, channelId string, term s
 		users := result.Data.([]*model.User)
 
 		for _, user := range users {
-			SanitizeProfile(user, asAdmin)
+			a.SanitizeProfile(user, asAdmin)
 		}
 
 		autocomplete.OutOfChannel = users
@@ -1478,7 +1478,7 @@ func (a *App) AutocompleteUsersInTeam(teamId string, term string, searchOptions 
 		users := result.Data.([]*model.User)
 
 		for _, user := range users {
-			SanitizeProfile(user, asAdmin)
+			a.SanitizeProfile(user, asAdmin)
 		}
 
 		autocomplete.InTeam = users

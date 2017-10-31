@@ -9,7 +9,7 @@ import (
 )
 
 func TestMailConnection(t *testing.T) {
-	LoadConfig("config.json")
+	LoadGlobalConfig("config.json")
 
 	if conn, err := connectToSMTPServer(Cfg); err != nil {
 		t.Log(err)
@@ -32,7 +32,7 @@ func TestMailConnection(t *testing.T) {
 }
 
 func TestSendMail(t *testing.T) {
-	LoadConfig("config.json")
+	LoadGlobalConfig("config.json")
 	T = GetUserTranslations("en")
 
 	var emailTo string = "test@example.com"

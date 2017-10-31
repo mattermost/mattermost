@@ -38,10 +38,6 @@ func StopTestStore() {
 }
 
 func Setup() *app.App {
-	utils.TranslationsPreInit()
-	utils.LoadConfig("config.json")
-	utils.InitTranslations(utils.Cfg.LocalizationSettings)
-
 	a := app.New(app.StoreOverride(testStore))
 	prevListenAddress := *a.Config().ServiceSettings.ListenAddress
 	a.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = ":0" })
@@ -55,7 +51,9 @@ func Setup() *app.App {
 
 	a.Srv.Store.MarkSystemRanUnitTests()
 
-	*utils.Cfg.TeamSettings.EnableOpenServer = true
+	a.UpdateConfig(func(cfg *model.Config) {
+		*cfg.TeamSettings.EnableOpenServer = true
+	})
 
 	return a
 }
@@ -106,7 +104,7 @@ func TestIncomingWebhook(t *testing.T) {
 	channel1 := &model.Channel{DisplayName: "Test API Name", Name: "zz" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
 	channel1 = ApiClient.Must(ApiClient.CreateChannel(channel1)).Data.(*model.Channel)
 
-	if utils.Cfg.ServiceSettings.EnableIncomingWebhooks {
+	if a.Config().ServiceSettings.EnableIncomingWebhooks {
 		hook1 := &model.IncomingWebhook{ChannelId: channel1.Id}
 		hook1 = ApiClient.Must(ApiClient.CreateIncomingWebhook(hook1)).Data.(*model.IncomingWebhook)
 
@@ -138,8 +136,6 @@ func TestIncomingWebhook(t *testing.T) {
 
 func TestMain(m *testing.M) {
 	utils.TranslationsPreInit()
-	utils.LoadConfig("config.json")
-	utils.InitTranslations(utils.Cfg.LocalizationSettings)
 
 	status := 0
 

@@ -16,7 +16,6 @@ import (
 	"github.com/mattermost/mattermost-server/einterfaces"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/model/gitlab"
-	"github.com/mattermost/mattermost-server/utils"
 )
 
 func TestIsUsernameTaken(t *testing.T) {
@@ -100,9 +99,7 @@ func TestCreateOAuthUser(t *testing.T) {
 }
 
 func TestCreateProfileImage(t *testing.T) {
-	utils.LoadConfig("config.json")
-
-	b, err := CreateProfileImage("Corey Hulen", "eo1zkdr96pdj98pjmq8zy35wba")
+	b, err := CreateProfileImage("Corey Hulen", "eo1zkdr96pdj98pjmq8zy35wba", "luximbi.ttf")
 	if err != nil {
 		t.Fatal(err)
 	}

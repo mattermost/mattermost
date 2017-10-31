@@ -326,7 +326,7 @@ func getUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	if c.HandleEtag(etag, "Get User", w, r) {
 		return
 	} else {
-		app.SanitizeProfile(user, c.IsSystemAdmin())
+		c.App.SanitizeProfile(user, c.IsSystemAdmin())
 		w.Header().Set(model.HEADER_ETAG_SERVER, etag)
 		w.Write([]byte(user.ToJson()))
 		return
@@ -560,7 +560,7 @@ func getProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 
 		var img []byte
-		img, readFailed, err = app.GetProfileImage(user)
+		img, readFailed, err = c.App.GetProfileImage(user)
 		if err != nil {
 			c.Err = err
 			return
