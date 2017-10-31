@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"sync/atomic"
 	"time"
 
 	l4g "github.com/alecthomas/log4go"
@@ -214,6 +215,10 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if c.Err == nil && (h.requireUser || h.requireSystemAdmin) {
 		//check if teamId exist
 		c.CheckTeamId()
+	}
+
+	if h.isApi {
+		atomic.StoreInt32(model.UsedApiV3, 1)
 	}
 
 	if c.Err == nil {
