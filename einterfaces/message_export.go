@@ -8,5 +8,5 @@ import (
 )
 
 type MessageExportInterface interface {
-	StartSynchronizeJob(waitForJobToFinish bool) (*model.Job, *model.AppError)
+	StartSynchronizeJob(waitForJobToFinish bool, exportFromTimestamp int64) (*model.Job, *model.AppError)
 }
