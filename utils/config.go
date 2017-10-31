@@ -299,7 +299,7 @@ func ReadConfig(r io.Reader, allowEnvironmentOverrides bool) (*model.Config, err
 	return &config, unmarshalErr
 }
 
-// ReadConfig reads and parses the configuration at the given file path.
+// ReadConfigFile reads and parses the configuration at the given file path.
 func ReadConfigFile(path string, allowEnvironmentOverrides bool) (*model.Config, error) {
 	f, err := os.Open(path)
 	if err != nil {
@@ -311,24 +311,28 @@ func ReadConfigFile(path string, allowEnvironmentOverrides bool) (*model.Config,
 
 // EnsureConfigFile will attempt to locate a config file with the given name. If it does not exist,
 // it will attempt to locate a default config file, and copy it. In either case, the config file
-// path is returned, or "" if a default config file cannot be copied.
-func EnsureConfigFile(fileName string) string {
+// path is returned.
+func EnsureConfigFile(fileName string) (string, error) {
 	if configFile := FindConfigFile(fileName); configFile != "" {
-		return configFile
+		return configFile, nil
 	}
 	if defaultPath := FindConfigFile("default.json"); defaultPath != "" {
 		destPath := filepath.Join(filepath.Dir(defaultPath), fileName)
-		if src, err := os.Open(defaultPath); err == nil {
-			defer src.Close()
-			if dest, err := os.OpenFile(destPath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0600); err == nil {
-				defer dest.Close()
-				if _, err := io.Copy(dest, src); err == nil {
-					return destPath
-				}
-			}
+		src, err := os.Open(defaultPath)
+		if err != nil {
+			return "", err
+		}
+		defer src.Close()
+		dest, err := os.OpenFile(destPath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0600)
+		if err != nil {
+			return "", err
+		}
+		defer dest.Close()
+		if _, err := io.Copy(dest, src); err == nil {
+			return destPath, nil
 		}
 	}
-	return ""
+	return "", fmt.Errorf("no config file found")
 }
 
 // LoadGlobalConfig will try to search around for the corresponding config file.  It will search
@@ -347,13 +351,13 @@ func LoadGlobalConfig(fileName string) *model.Config {
 	if fileName != filepath.Base(fileName) {
 		configPath = fileName
 	} else {
-		configPath = EnsureConfigFile(fileName)
-	}
-
-	if configPath == "" {
-		errMsg := T("utils.config.load_config.opening.panic", map[string]interface{}{"Filename": fileName})
-		fmt.Fprintln(os.Stderr, errMsg)
-		os.Exit(1)
+		if path, err := EnsureConfigFile(fileName); err != nil {
+			errMsg := T("utils.config.load_config.opening.panic", map[string]interface{}{"Filename": fileName, "Error": err.Error()})
+			fmt.Fprintln(os.Stderr, errMsg)
+			os.Exit(1)
+		} else {
+			configPath = path
+		}
 	}
 
 	config, err := ReadConfigFile(configPath, true)
