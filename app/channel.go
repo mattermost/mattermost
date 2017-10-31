@@ -61,7 +61,7 @@ func (a *App) JoinDefaultChannels(teamId string, user *model.User, channelRole s
 				l4g.Error(utils.T("api.channel.post_user_add_remove_message_and_forget.error"), err)
 			}
 		} else {
-			if err := a.PostAddToChannelMessage(requestor, user, townSquare); err != nil {
+			if err := a.PostAddToChannelMessage(requestor, user, townSquare, ""); err != nil {
 				l4g.Error(utils.T("api.channel.post_user_add_remove_message_and_forget.error"), err)
 			}
 		}
@@ -86,7 +86,7 @@ func (a *App) JoinDefaultChannels(teamId string, user *model.User, channelRole s
 				l4g.Error(utils.T("api.channel.post_user_add_remove_message_and_forget.error"), err)
 			}
 		} else {
-			if err := a.PostAddToChannelMessage(requestor, user, offTopic); err != nil {
+			if err := a.PostAddToChannelMessage(requestor, user, offTopic, ""); err != nil {
 				l4g.Error(utils.T("api.channel.post_user_add_remove_message_and_forget.error"), err)
 			}
 		}
@@ -555,7 +555,7 @@ func (a *App) AddUserToChannel(user *model.User, channel *model.Channel) (*model
 	return newMember, nil
 }
 
-func (a *App) AddChannelMember(userId string, channel *model.Channel, userRequestorId string) (*model.ChannelMember, *model.AppError) {
+func (a *App) AddChannelMember(userId string, channel *model.Channel, userRequestorId string, postRootId string) (*model.ChannelMember, *model.AppError) {
 	if result := <-a.Srv.Store.Channel().GetMember(channel.Id, userId); result.Err != nil {
 		if result.Err.Id != store.MISSING_CHANNEL_MEMBER_ERROR {
 			return nil, result.Err
@@ -585,7 +585,7 @@ func (a *App) AddChannelMember(userId string, channel *model.Channel, userReques
 		a.postJoinChannelMessage(user, channel)
 	} else {
 		a.Go(func() {
-			a.PostAddToChannelMessage(userRequestor, user, channel)
+			a.PostAddToChannelMessage(userRequestor, user, channel, postRootId)
 		})
 	}
 
@@ -986,12 +986,13 @@ func (a *App) postLeaveChannelMessage(user *model.User, channel *model.Channel) 
 	return nil
 }
 
-func (a *App) PostAddToChannelMessage(user *model.User, addedUser *model.User, channel *model.Channel) *model.AppError {
+func (a *App) PostAddToChannelMessage(user *model.User, addedUser *model.User, channel *model.Channel, postRootId string) *model.AppError {
 	post := &model.Post{
 		ChannelId: channel.Id,
 		Message:   fmt.Sprintf(utils.T("api.channel.add_member.added"), addedUser.Username, user.Username),
 		Type:      model.POST_ADD_TO_CHANNEL,
 		UserId:    user.Id,
+		RootId:    postRootId,
 		Props: model.StringInterface{
 			"username":      user.Username,
 			"addedUsername": addedUser.Username,
