@@ -99,10 +99,6 @@ func (me *msgProvider) DoCommand(a *App, args *model.CommandArgs, message string
 		teamId = args.Session.TeamMembers[0].TeamId
 	}
 
-	if args.Session.GetTeamByTeamId(teamId) == nil {
-		return &model.CommandResponse{Text: args.T("api.command_msg.fail.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
-	}
-
 	team, err := a.GetTeam(teamId)
 	if err != nil {
 		return &model.CommandResponse{Text: args.T("api.command_msg.fail.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}

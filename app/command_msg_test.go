@@ -24,13 +24,6 @@ func TestMsgProvider(t *testing.T) {
 		SiteURL: "http://test.url",
 		TeamId:  team.Id,
 		UserId:  th.BasicUser.Id,
-		Session: model.Session{
-			TeamMembers: []*model.TeamMember{
-				{
-					TeamId: team.Id,
-				},
-			},
-		},
 	}, "@"+th.BasicUser2.Username+" hello")
 	channelName := model.GetDMNameFromIds(th.BasicUser.Id, th.BasicUser2.Id)
 	assert.Equal(t, "", resp.Text)
