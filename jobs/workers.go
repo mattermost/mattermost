@@ -65,7 +65,7 @@ func (workers *Workers) Start() *Workers {
 			go workers.ElasticsearchAggregation.Run()
 		}
 
-		if workers.LdapSync != nil && *workers.Config().LdapSettings.Enable {
+		if workers.LdapSync != nil && *workers.Config().LdapSettings.EnableSync {
 			go workers.LdapSync.Run()
 		}
 
@@ -103,9 +103,9 @@ func (workers *Workers) handleConfigChange(oldConfig *model.Config, newConfig *m
 	}
 
 	if workers.LdapSync != nil {
-		if !*oldConfig.LdapSettings.Enable && *newConfig.LdapSettings.Enable {
+		if !*oldConfig.LdapSettings.EnableSync && *newConfig.LdapSettings.EnableSync {
 			go workers.LdapSync.Run()
-		} else if *oldConfig.LdapSettings.Enable && !*newConfig.LdapSettings.Enable {
+		} else if *oldConfig.LdapSettings.EnableSync && !*newConfig.LdapSettings.EnableSync {
 			workers.LdapSync.Stop()
 		}
 	}
@@ -128,7 +128,7 @@ func (workers *Workers) Stop() *Workers {
 		workers.ElasticsearchAggregation.Stop()
 	}
 
-	if workers.LdapSync != nil && *workers.Config().LdapSettings.Enable {
+	if workers.LdapSync != nil && *workers.Config().LdapSettings.EnableSync {
 		workers.LdapSync.Stop()
 	}
 
