@@ -483,7 +483,7 @@ func TestGetUser(t *testing.T) {
 		t.Fatal("shouldn't have accss")
 	}
 
-	th.App.UpdateUserRoles(ruser.Data.(*model.User).Id, model.ROLE_SYSTEM_ADMIN.Id)
+	th.App.UpdateUserRoles(ruser.Data.(*model.User).Id, model.ROLE_SYSTEM_ADMIN.Id, false)
 
 	Client.Login(user.Email, "passwd1")
 

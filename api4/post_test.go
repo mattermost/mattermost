@@ -292,7 +292,7 @@ func TestCreatePostPublic(t *testing.T) {
 	_, resp = Client.CreatePost(post)
 	CheckForbiddenStatus(t, resp)
 
-	th.App.UpdateUserRoles(ruser.Id, model.ROLE_SYSTEM_USER.Id+" "+model.ROLE_SYSTEM_POST_ALL_PUBLIC.Id)
+	th.App.UpdateUserRoles(ruser.Id, model.ROLE_SYSTEM_USER.Id+" "+model.ROLE_SYSTEM_POST_ALL_PUBLIC.Id, false)
 	th.App.InvalidateAllCaches()
 
 	Client.Login(user.Email, user.Password)
@@ -304,7 +304,7 @@ func TestCreatePostPublic(t *testing.T) {
 	_, resp = Client.CreatePost(post)
 	CheckForbiddenStatus(t, resp)
 
-	th.App.UpdateUserRoles(ruser.Id, model.ROLE_SYSTEM_USER.Id)
+	th.App.UpdateUserRoles(ruser.Id, model.ROLE_SYSTEM_USER.Id, false)
 	th.App.JoinUserToTeam(th.BasicTeam, ruser, "")
 	th.App.UpdateTeamMemberRoles(th.BasicTeam.Id, ruser.Id, model.ROLE_TEAM_USER.Id+" "+model.ROLE_TEAM_POST_ALL_PUBLIC.Id)
 	th.App.InvalidateAllCaches()
@@ -339,7 +339,7 @@ func TestCreatePostAll(t *testing.T) {
 	_, resp = Client.CreatePost(post)
 	CheckForbiddenStatus(t, resp)
 
-	th.App.UpdateUserRoles(ruser.Id, model.ROLE_SYSTEM_USER.Id+" "+model.ROLE_SYSTEM_POST_ALL.Id)
+	th.App.UpdateUserRoles(ruser.Id, model.ROLE_SYSTEM_USER.Id+" "+model.ROLE_SYSTEM_POST_ALL.Id, false)
 	th.App.InvalidateAllCaches()
 
 	Client.Login(user.Email, user.Password)
@@ -355,7 +355,7 @@ func TestCreatePostAll(t *testing.T) {
 	_, resp = Client.CreatePost(post)
 	CheckNoError(t, resp)
 
-	th.App.UpdateUserRoles(ruser.Id, model.ROLE_SYSTEM_USER.Id)
+	th.App.UpdateUserRoles(ruser.Id, model.ROLE_SYSTEM_USER.Id, false)
 	th.App.JoinUserToTeam(th.BasicTeam, ruser, "")
 	th.App.UpdateTeamMemberRoles(th.BasicTeam.Id, ruser.Id, model.ROLE_TEAM_USER.Id+" "+model.ROLE_TEAM_POST_ALL.Id)
 	th.App.InvalidateAllCaches()
