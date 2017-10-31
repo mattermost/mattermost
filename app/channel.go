@@ -60,7 +60,7 @@ func (a *App) JoinDefaultChannels(teamId string, user *model.User, channelRole s
 			err = cmResult.Err
 		}
 		if result := <-a.Srv.Store.ChannelMemberHistory().LogJoinEvent(user.Id, townSquare.Id, model.GetMillis()); result.Err != nil {
-			err = result.Err
+			l4g.Warn("Failed to update ChannelMemberHistory table %v", result.Err)
 		}
 
 		if requestor == nil {
@@ -92,7 +92,7 @@ func (a *App) JoinDefaultChannels(teamId string, user *model.User, channelRole s
 			err = cmResult.Err
 		}
 		if result := <-a.Srv.Store.ChannelMemberHistory().LogJoinEvent(user.Id, offTopic.Id, model.GetMillis()); result.Err != nil {
-			err = result.Err
+			l4g.Warn("Failed to update ChannelMemberHistory table %v", result.Err)
 		}
 
 		if requestor == nil {
@@ -173,7 +173,7 @@ func (a *App) CreateChannel(channel *model.Channel, addMember bool) (*model.Chan
 				return nil, cmresult.Err
 			}
 			if result := <-a.Srv.Store.ChannelMemberHistory().LogJoinEvent(channel.CreatorId, sc.Id, model.GetMillis()); result.Err != nil {
-				return nil, result.Err
+				l4g.Warn("Failed to update ChannelMemberHistory table %v", result.Err)
 			}
 
 			a.InvalidateCacheForUser(channel.CreatorId)
@@ -320,7 +320,7 @@ func (a *App) createGroupChannel(userIds []string, creatorId string) (*model.Cha
 				return nil, result.Err
 			}
 			if result := <-a.Srv.Store.ChannelMemberHistory().LogJoinEvent(user.Id, channel.Id, model.GetMillis()); result.Err != nil {
-				return nil, result.Err
+				l4g.Warn("Failed to update ChannelMemberHistory table %v", result.Err)
 			}
 		}
 
@@ -543,8 +543,7 @@ func (a *App) addUserToChannel(user *model.User, channel *model.Channel, teamMem
 	a.WaitForChannelMembership(channel.Id, user.Id)
 
 	if result := <-a.Srv.Store.ChannelMemberHistory().LogJoinEvent(user.Id, channel.Id, model.GetMillis()); result.Err != nil {
-		l4g.Error("Failed to add channel member join record for user_id=%v channel_id=%v err=%v", user.Id, channel.Id, result.Err)
-		return nil, model.NewAppError("AddUserToChannel", "api.channel.add_user.to.channel.failed.app_error", nil, "", http.StatusInternalServerError)
+		l4g.Warn("Failed to update ChannelMemberHistory table %v", result.Err)
 	}
 
 	a.InvalidateCacheForUser(user.Id)
