@@ -395,7 +395,7 @@ func TestGetAllTeamListings(t *testing.T) {
 		}
 	}
 
-	th.App.UpdateUserRoles(user.Id, model.ROLE_SYSTEM_ADMIN.Id)
+	th.App.UpdateUserRoles(user.Id, model.ROLE_SYSTEM_ADMIN.Id, false)
 
 	Client.Login(user.Email, "passwd1")
 	Client.SetTeamId(team.Id)
