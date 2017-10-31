@@ -10,7 +10,6 @@ import (
 
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
-	"github.com/mattermost/mattermost-server/utils"
 )
 
 func TestGetLogs(t *testing.T) {
@@ -139,13 +138,13 @@ func TestSaveConfig(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
 	defer th.TearDown()
 
-	if _, err := th.BasicClient.SaveConfig(utils.Cfg); err == nil {
+	if _, err := th.BasicClient.SaveConfig(th.App.Config()); err == nil {
 		t.Fatal("Shouldn't have permissions")
 	}
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableOpenServer = false })
 
-	if _, err := th.SystemAdminClient.SaveConfig(utils.Cfg); err != nil {
+	if _, err := th.SystemAdminClient.SaveConfig(th.App.Config()); err != nil {
 		t.Fatal(err)
 	}
 

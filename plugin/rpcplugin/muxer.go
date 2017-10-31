@@ -223,7 +223,6 @@ type muxerStream struct {
 	readWake     *sync.Cond
 	isClosed     bool
 	remoteClosed bool
-	closeErr     error
 }
 
 func (s *muxerStream) Read(p []byte) (int, error) {

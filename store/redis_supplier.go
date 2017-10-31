@@ -34,11 +34,7 @@ func GetBytes(key interface{}) ([]byte, error) {
 
 func DecodeBytes(input []byte, thing interface{}) error {
 	dec := gob.NewDecoder(bytes.NewReader(input))
-	err := dec.Decode(thing)
-	if err != nil {
-		return err
-	}
-	return nil
+	return dec.Decode(thing)
 }
 
 func NewRedisSupplier() *RedisSupplier {

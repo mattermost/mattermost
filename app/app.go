@@ -5,6 +5,7 @@ package app
 
 import (
 	"net/http"
+	"runtime/debug"
 	"sync/atomic"
 
 	l4g "github.com/alecthomas/log4go"
@@ -62,6 +63,12 @@ func New(options ...Option) *App {
 	if appCount > 1 {
 		panic("Only one App should exist at a time. Did you forget to call Shutdown()?")
 	}
+
+	if utils.T == nil {
+		utils.TranslationsPreInit()
+	}
+	utils.LoadGlobalConfig("config.json")
+	utils.InitTranslations(utils.Cfg.LocalizationSettings)
 
 	l4g.Info(utils.T("api.server.new_server.init.info"))
 
@@ -263,6 +270,18 @@ func (a *App) Config() *model.Config {
 
 func (a *App) UpdateConfig(f func(*model.Config)) {
 	f(utils.Cfg)
+}
+
+func (a *App) PersistConfig() {
+	utils.SaveConfig(a.ConfigFileName(), a.Config())
+}
+
+func (a *App) ReloadConfig() {
+	debug.FreeOSMemory()
+	utils.LoadGlobalConfig(a.ConfigFileName())
+
+	// start/restart email batching job if necessary
+	a.InitEmailBatching()
 }
 
 func (a *App) ConfigFileName() string {

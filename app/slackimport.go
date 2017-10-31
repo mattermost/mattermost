@@ -243,7 +243,7 @@ func (a *App) SlackAddPosts(teamId string, channel *model.Channel, posts []Slack
 				CreateAt:  SlackConvertTimeStamp(sPost.TimeStamp),
 			}
 			if sPost.Upload {
-				if fileInfo, ok := a.SlackUploadFile(sPost, uploads, teamId, newPost.ChannelId, newPost.UserId); ok == true {
+				if fileInfo, ok := a.SlackUploadFile(sPost, uploads, teamId, newPost.ChannelId, newPost.UserId); ok {
 					newPost.FileIds = append(newPost.FileIds, fileInfo.Id)
 					newPost.Message = sPost.File.Title
 				}
@@ -395,7 +395,7 @@ func (a *App) SlackAddPosts(teamId string, channel *model.Channel, posts []Slack
 
 func (a *App) SlackUploadFile(sPost SlackPost, uploads map[string]*zip.File, teamId string, channelId string, userId string) (*model.FileInfo, bool) {
 	if sPost.File != nil {
-		if file, ok := uploads[sPost.File.Id]; ok == true {
+		if file, ok := uploads[sPost.File.Id]; ok {
 			openFile, err := file.Open()
 			if err != nil {
 				l4g.Warn(utils.T("api.slackimport.slack_add_posts.upload_file_open_failed.warn", map[string]interface{}{"FileId": sPost.File.Id, "Error": err.Error()}))
@@ -655,7 +655,7 @@ func (a *App) SlackImport(fileData multipart.File, fileSize int64, teamID string
 			if len(spl) == 2 && strings.HasSuffix(spl[1], ".json") {
 				newposts, _ := SlackParsePosts(reader)
 				channel := spl[0]
-				if _, ok := posts[channel]; ok == false {
+				if _, ok := posts[channel]; !ok {
 					posts[channel] = newposts
 				} else {
 					posts[channel] = append(posts[channel], newposts...)

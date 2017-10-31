@@ -40,8 +40,8 @@ func getSamlMetadata(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(metadata))
 }
 
-func parseSamlCertificateRequest(r *http.Request) (*multipart.FileHeader, *model.AppError) {
-	err := r.ParseMultipartForm(*utils.Cfg.FileSettings.MaxFileSize)
+func parseSamlCertificateRequest(r *http.Request, maxFileSize int64) (*multipart.FileHeader, *model.AppError) {
+	err := r.ParseMultipartForm(maxFileSize)
 	if err != nil {
 		return nil, model.NewAppError("addSamlCertificate", "api.admin.add_certificate.no_file.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
@@ -66,7 +66,7 @@ func addSamlPublicCertificate(c *Context, w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	fileData, err := parseSamlCertificateRequest(r)
+	fileData, err := parseSamlCertificateRequest(r, *c.App.Config().FileSettings.MaxFileSize)
 	if err != nil {
 		c.Err = err
 		return
@@ -85,7 +85,7 @@ func addSamlPrivateCertificate(c *Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	fileData, err := parseSamlCertificateRequest(r)
+	fileData, err := parseSamlCertificateRequest(r, *c.App.Config().FileSettings.MaxFileSize)
 	if err != nil {
 		c.Err = err
 		return
@@ -104,7 +104,7 @@ func addSamlIdpCertificate(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fileData, err := parseSamlCertificateRequest(r)
+	fileData, err := parseSamlCertificateRequest(r, *c.App.Config().FileSettings.MaxFileSize)
 	if err != nil {
 		c.Err = err
 		return

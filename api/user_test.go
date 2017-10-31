@@ -483,7 +483,7 @@ func TestGetUser(t *testing.T) {
 		t.Fatal("shouldn't have accss")
 	}
 
-	th.App.UpdateUserRoles(ruser.Data.(*model.User).Id, model.ROLE_SYSTEM_ADMIN.Id)
+	th.App.UpdateUserRoles(ruser.Data.(*model.User).Id, model.ROLE_SYSTEM_ADMIN.Id, false)
 
 	Client.Login(user.Email, "passwd1")
 
@@ -643,7 +643,7 @@ func TestUserCreateImage(t *testing.T) {
 
 	Client := th.BasicClient
 
-	b, err := app.CreateProfileImage("Corey Hulen", "eo1zkdr96pdj98pjmq8zy35wba")
+	b, err := app.CreateProfileImage("Corey Hulen", "eo1zkdr96pdj98pjmq8zy35wba", th.App.Config().FileSettings.InitialFont)
 	if err != nil {
 		t.Fatal(err)
 	}

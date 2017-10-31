@@ -223,6 +223,7 @@
     },
     "LdapSettings": {
         "Enable": false,
+        "EnableSync": false,
         "LdapServer": "",
         "LdapPort": 389,
         "ConnectionSecurity": "",

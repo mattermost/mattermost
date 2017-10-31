@@ -326,7 +326,7 @@ func getUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	if c.HandleEtag(etag, "Get User", w, r) {
 		return
 	} else {
-		app.SanitizeProfile(user, c.IsSystemAdmin())
+		c.App.SanitizeProfile(user, c.IsSystemAdmin())
 		w.Header().Set(model.HEADER_ETAG_SERVER, etag)
 		w.Write([]byte(user.ToJson()))
 		return
@@ -560,7 +560,7 @@ func getProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 
 		var img []byte
-		img, readFailed, err = app.GetProfileImage(user)
+		img, readFailed, err = c.App.GetProfileImage(user)
 		if err != nil {
 			c.Err = err
 			return
@@ -699,7 +699,7 @@ func updateRoles(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if _, err := c.App.UpdateUserRoles(userId, newRoles); err != nil {
+	if _, err := c.App.UpdateUserRoles(userId, newRoles, true); err != nil {
 		return
 	} else {
 		c.LogAuditWithUserId(userId, "roles="+newRoles)
@@ -1167,7 +1167,6 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 					c.App.AddDirectChannels(teamId, user)
 				})
 			}
-			break
 		case model.OAUTH_ACTION_EMAIL_TO_SSO:
 			if err := c.App.RevokeAllSessions(user.Id); err != nil {
 				c.Err = err
@@ -1179,7 +1178,6 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 					l4g.Error(err.Error())
 				}
 			})
-			break
 		}
 		doLogin(c, w, r, user, "")
 		if c.Err != nil {

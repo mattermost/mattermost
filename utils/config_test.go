@@ -9,25 +9,26 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
 	"github.com/mattermost/mattermost-server/model"
 )
 
 func TestConfig(t *testing.T) {
 	TranslationsPreInit()
-	LoadConfig("config.json")
+	LoadGlobalConfig("config.json")
 	InitTranslations(Cfg.LocalizationSettings)
 }
 
 func TestConfigFromEnviroVars(t *testing.T) {
-
 	os.Setenv("MM_TEAMSETTINGS_SITENAME", "From Enviroment")
 	os.Setenv("MM_TEAMSETTINGS_CUSTOMBRANDTEXT", "Custom Brand")
 	os.Setenv("MM_SERVICESETTINGS_ENABLECOMMANDS", "false")
 	os.Setenv("MM_SERVICESETTINGS_READTIMEOUT", "400")
 
 	TranslationsPreInit()
-	EnableConfigFromEnviromentVars()
-	LoadConfig("config.json")
+	LoadGlobalConfig("config.json")
 
 	if Cfg.TeamSettings.SiteName != "From Enviroment" {
 		t.Fatal("Couldn't read config from enviroment var")
@@ -37,7 +38,7 @@ func TestConfigFromEnviroVars(t *testing.T) {
 		t.Fatal("Couldn't read config from enviroment var")
 	}
 
-	if *Cfg.ServiceSettings.EnableCommands != false {
+	if *Cfg.ServiceSettings.EnableCommands {
 		t.Fatal("Couldn't read config from enviroment var")
 	}
 
@@ -56,7 +57,7 @@ func TestConfigFromEnviroVars(t *testing.T) {
 	*Cfg.ServiceSettings.ReadTimeout = 300
 	SaveConfig(CfgFileName, Cfg)
 
-	LoadConfig("config.json")
+	LoadGlobalConfig("config.json")
 
 	if Cfg.TeamSettings.SiteName != "Mattermost" {
 		t.Fatal("should have been reset")
@@ -65,7 +66,7 @@ func TestConfigFromEnviroVars(t *testing.T) {
 
 func TestRedirectStdLog(t *testing.T) {
 	TranslationsPreInit()
-	LoadConfig("config.json")
+	LoadGlobalConfig("config.json")
 	InitTranslations(Cfg.LocalizationSettings)
 
 	log := NewRedirectStdLog("test", false)
@@ -110,8 +111,7 @@ func TestAddRemoveConfigListener(t *testing.T) {
 
 func TestConfigListener(t *testing.T) {
 	TranslationsPreInit()
-	EnableConfigFromEnviromentVars()
-	LoadConfig("config.json")
+	LoadGlobalConfig("config.json")
 
 	SiteName := Cfg.TeamSettings.SiteName
 	defer func() {
@@ -148,7 +148,7 @@ func TestConfigListener(t *testing.T) {
 	listener2Id := AddConfigListener(listener2)
 	defer RemoveConfigListener(listener2Id)
 
-	LoadConfig("config.json")
+	LoadGlobalConfig("config.json")
 
 	if !listenerCalled {
 		t.Fatal("listener should've been called")
@@ -159,7 +159,7 @@ func TestConfigListener(t *testing.T) {
 
 func TestValidateLocales(t *testing.T) {
 	TranslationsPreInit()
-	LoadConfig("config.json")
+	LoadGlobalConfig("config.json")
 
 	defaultServerLocale := *Cfg.LocalizationSettings.DefaultServerLocale
 	defaultClientLocale := *Cfg.LocalizationSettings.DefaultClientLocale
@@ -278,10 +278,21 @@ func TestValidateLocales(t *testing.T) {
 
 func TestGetClientConfig(t *testing.T) {
 	TranslationsPreInit()
-	LoadConfig("config.json")
+	LoadGlobalConfig("config.json")
 
 	configMap := getClientConfig(Cfg)
 	if configMap["EmailNotificationContentsType"] != *Cfg.EmailSettings.EmailNotificationContentsType {
 		t.Fatal("EmailSettings.EmailNotificationContentsType not exposed to client config")
 	}
+}
+
+func TestReadConfig(t *testing.T) {
+	config, err := ReadConfig(strings.NewReader(`{
+		"ServiceSettings": {
+			"SiteURL": "http://foo.bar"
+		}
+	}`), false)
+	require.NoError(t, err)
+
+	assert.Equal(t, "http://foo.bar", *config.ServiceSettings.SiteURL)
 }

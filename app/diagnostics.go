@@ -48,6 +48,7 @@ const (
 	TRACK_ACTIVITY = "activity"
 	TRACK_LICENSE  = "license"
 	TRACK_SERVER   = "server"
+	TRACK_PLUGINS  = "plugins"
 )
 
 var client *analytics.Client
@@ -58,6 +59,7 @@ func (a *App) SendDailyDiagnostics() {
 		a.trackActivity()
 		a.trackConfig()
 		trackLicense()
+		a.trackPlugins()
 		a.trackServer()
 	}
 }
@@ -87,10 +89,7 @@ func SendDiagnostic(event string, properties map[string]interface{}) {
 }
 
 func isDefault(setting interface{}, defaultValue interface{}) bool {
-	if setting == defaultValue {
-		return true
-	}
-	return false
+	return setting == defaultValue
 }
 
 func pluginSetting(pluginSettings *model.PluginSettings, plugin, key string, defaultValue interface{}) interface{} {
@@ -449,7 +448,9 @@ func (a *App) trackConfig() {
 	})
 
 	SendDiagnostic(TRACK_CONFIG_PLUGIN, map[string]interface{}{
-		"enable_jira": pluginSetting(&cfg.PluginSettings, "jira", "enabled", false),
+		"enable_jira":    pluginSetting(&cfg.PluginSettings, "jira", "enabled", false),
+		"enable":         *utils.Cfg.PluginSettings.Enable,
+		"enable_uploads": *utils.Cfg.PluginSettings.EnableUploads,
 	})
 
 	SendDiagnostic(TRACK_CONFIG_DATA_RETENTION, map[string]interface{}{
@@ -485,6 +486,54 @@ func trackLicense() {
 		}
 
 		SendDiagnostic(TRACK_LICENSE, data)
+	}
+}
+
+func (a *App) trackPlugins() {
+	if *a.Config().PluginSettings.Enable {
+		totalActiveCount := -1 // -1 to indicate disabled or error
+		webappActiveCount := 0
+		backendActiveCount := 0
+		totalInactiveCount := -1 // -1 to indicate disabled or error
+		webappInactiveCount := 0
+		backendInactiveCount := 0
+
+		plugins, _ := a.GetPluginManifests()
+
+		if plugins != nil {
+			totalActiveCount = len(plugins.Active)
+
+			for _, plugin := range plugins.Active {
+				if plugin.Webapp != nil {
+					webappActiveCount += 1
+				}
+
+				if plugin.Backend != nil {
+					backendActiveCount += 1
+				}
+			}
+
+			totalInactiveCount = len(plugins.Inactive)
+
+			for _, plugin := range plugins.Inactive {
+				if plugin.Webapp != nil {
+					webappInactiveCount += 1
+				}
+
+				if plugin.Backend != nil {
+					backendInactiveCount += 1
+				}
+			}
+		}
+
+		SendDiagnostic(TRACK_PLUGINS, map[string]interface{}{
+			"active_plugins":           totalActiveCount,
+			"active_webapp_plugins":    webappActiveCount,
+			"active_backend_plugins":   backendActiveCount,
+			"inactive_plugins":         totalInactiveCount,
+			"inactive_webapp_plugins":  webappInactiveCount,
+			"inactive_backend_plugins": backendInactiveCount,
+		})
 	}
 }
 

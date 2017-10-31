@@ -48,12 +48,6 @@ func StopTestStore() {
 }
 
 func setupTestHelper(enterprise bool) *TestHelper {
-	if utils.T == nil {
-		utils.TranslationsPreInit()
-	}
-	utils.LoadConfig("config.json")
-	utils.InitTranslations(utils.Cfg.LocalizationSettings)
-
 	var options []Option
 	if testStore != nil {
 		options = append(options, StoreOverride(testStore))
@@ -63,8 +57,8 @@ func setupTestHelper(enterprise bool) *TestHelper {
 		App: New(options...),
 	}
 
-	*utils.Cfg.TeamSettings.MaxUsersPerTeam = 50
-	*utils.Cfg.RateLimitSettings.Enable = false
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.MaxUsersPerTeam = 50 })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.RateLimitSettings.Enable = false })
 	utils.DisableDebugLogForTest()
 	prevListenAddress := *th.App.Config().ServiceSettings.ListenAddress
 	if testStore != nil {
@@ -76,7 +70,7 @@ func setupTestHelper(enterprise bool) *TestHelper {
 	utils.EnableDebugLogForTest()
 	th.App.Srv.Store.MarkSystemRanUnitTests()
 
-	*utils.Cfg.TeamSettings.EnableOpenServer = true
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableOpenServer = true })
 
 	utils.SetIsLicensed(enterprise)
 	if enterprise {

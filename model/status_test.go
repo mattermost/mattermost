@@ -61,8 +61,7 @@ func TestStatusListFromJson(t *testing.T) {
 	}
 
 	toDec := strings.NewReader(jsonStream)
-	var statusesFromJson []*Status
-	statusesFromJson = StatusListFromJson(toDec)
+	statusesFromJson := StatusListFromJson(toDec)
 
 	if statusesFromJson[0].UserId != dat[0]["user_id"] {
 		t.Fatal("UserId should be equal")

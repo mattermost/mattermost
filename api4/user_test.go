@@ -821,7 +821,7 @@ func TestGetProfileImage(t *testing.T) {
 
 	data, resp := Client.GetProfileImage(user.Id, "")
 	CheckNoError(t, resp)
-	if data == nil || len(data) == 0 {
+	if len(data) == 0 {
 		t.Fatal("Should not be empty")
 	}
 
@@ -1860,7 +1860,7 @@ func TestRevokeSessions(t *testing.T) {
 	CheckBadRequestStatus(t, resp)
 
 	status, resp := Client.RevokeSession(user.Id, session.Id)
-	if status == false {
+	if !status {
 		t.Fatal("user session revoke unsuccessful")
 	}
 	CheckNoError(t, resp)
@@ -1912,7 +1912,7 @@ func TestRevokeAllSessions(t *testing.T) {
 	CheckBadRequestStatus(t, resp)
 
 	status, resp := Client.RevokeAllSessions(user.Id)
-	if status == false {
+	if !status {
 		t.Fatal("user all sessions revoke unsuccessful")
 	}
 	CheckNoError(t, resp)
@@ -2200,7 +2200,7 @@ func TestCreateUserAccessToken(t *testing.T) {
 	_, resp = Client.CreateUserAccessToken(th.BasicUser.Id, "")
 	CheckBadRequestStatus(t, resp)
 
-	th.App.UpdateUserRoles(th.BasicUser.Id, model.ROLE_SYSTEM_USER.Id+" "+model.ROLE_SYSTEM_USER_ACCESS_TOKEN.Id)
+	th.App.UpdateUserRoles(th.BasicUser.Id, model.ROLE_SYSTEM_USER.Id+" "+model.ROLE_SYSTEM_USER_ACCESS_TOKEN.Id, false)
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = false })
 	_, resp = Client.CreateUserAccessToken(th.BasicUser.Id, testDescription)
@@ -2278,7 +2278,7 @@ func TestGetUserAccessToken(t *testing.T) {
 	_, resp = Client.GetUserAccessToken(model.NewId())
 	CheckForbiddenStatus(t, resp)
 
-	th.App.UpdateUserRoles(th.BasicUser.Id, model.ROLE_SYSTEM_USER.Id+" "+model.ROLE_SYSTEM_USER_ACCESS_TOKEN.Id)
+	th.App.UpdateUserRoles(th.BasicUser.Id, model.ROLE_SYSTEM_USER.Id+" "+model.ROLE_SYSTEM_USER_ACCESS_TOKEN.Id, false)
 	token, resp := Client.CreateUserAccessToken(th.BasicUser.Id, testDescription)
 	CheckNoError(t, resp)
 
@@ -2339,7 +2339,7 @@ func TestRevokeUserAccessToken(t *testing.T) {
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
 
-	th.App.UpdateUserRoles(th.BasicUser.Id, model.ROLE_SYSTEM_USER.Id+" "+model.ROLE_SYSTEM_USER_ACCESS_TOKEN.Id)
+	th.App.UpdateUserRoles(th.BasicUser.Id, model.ROLE_SYSTEM_USER.Id+" "+model.ROLE_SYSTEM_USER_ACCESS_TOKEN.Id, false)
 	token, resp := Client.CreateUserAccessToken(th.BasicUser.Id, testDescription)
 	CheckNoError(t, resp)
 
@@ -2387,7 +2387,7 @@ func TestDisableUserAccessToken(t *testing.T) {
 	}()
 	*utils.Cfg.ServiceSettings.EnableUserAccessTokens = true
 
-	th.App.UpdateUserRoles(th.BasicUser.Id, model.ROLE_SYSTEM_USER.Id+" "+model.ROLE_SYSTEM_USER_ACCESS_TOKEN.Id)
+	th.App.UpdateUserRoles(th.BasicUser.Id, model.ROLE_SYSTEM_USER.Id+" "+model.ROLE_SYSTEM_USER_ACCESS_TOKEN.Id, false)
 	token, resp := Client.CreateUserAccessToken(th.BasicUser.Id, testDescription)
 	CheckNoError(t, resp)
 
@@ -2434,7 +2434,7 @@ func TestEnableUserAccessToken(t *testing.T) {
 	}()
 	*utils.Cfg.ServiceSettings.EnableUserAccessTokens = true
 
-	th.App.UpdateUserRoles(th.BasicUser.Id, model.ROLE_SYSTEM_USER.Id+" "+model.ROLE_SYSTEM_USER_ACCESS_TOKEN.Id)
+	th.App.UpdateUserRoles(th.BasicUser.Id, model.ROLE_SYSTEM_USER.Id+" "+model.ROLE_SYSTEM_USER_ACCESS_TOKEN.Id, false)
 	token, resp := Client.CreateUserAccessToken(th.BasicUser.Id, testDescription)
 	CheckNoError(t, resp)
 
@@ -2476,7 +2476,7 @@ func TestUserAccessTokenInactiveUser(t *testing.T) {
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
 
-	th.App.UpdateUserRoles(th.BasicUser.Id, model.ROLE_SYSTEM_USER.Id+" "+model.ROLE_SYSTEM_USER_ACCESS_TOKEN.Id)
+	th.App.UpdateUserRoles(th.BasicUser.Id, model.ROLE_SYSTEM_USER.Id+" "+model.ROLE_SYSTEM_USER_ACCESS_TOKEN.Id, false)
 	token, resp := Client.CreateUserAccessToken(th.BasicUser.Id, testDescription)
 	CheckNoError(t, resp)
 
@@ -2499,7 +2499,7 @@ func TestUserAccessTokenDisableConfig(t *testing.T) {
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
 
-	th.App.UpdateUserRoles(th.BasicUser.Id, model.ROLE_SYSTEM_USER.Id+" "+model.ROLE_SYSTEM_USER_ACCESS_TOKEN.Id)
+	th.App.UpdateUserRoles(th.BasicUser.Id, model.ROLE_SYSTEM_USER.Id+" "+model.ROLE_SYSTEM_USER_ACCESS_TOKEN.Id, false)
 	token, resp := Client.CreateUserAccessToken(th.BasicUser.Id, testDescription)
 	CheckNoError(t, resp)
 

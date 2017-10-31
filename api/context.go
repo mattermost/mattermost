@@ -32,7 +32,6 @@ type Context struct {
 	T             goi18n.TranslateFunc
 	Locale        string
 	TeamId        string
-	isSystemAdmin bool
 }
 
 func (api *API) ApiAppHandler(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {

@@ -64,12 +64,6 @@ func StopTestStore() {
 }
 
 func setupTestHelper(enterprise bool) *TestHelper {
-	if utils.T == nil {
-		utils.TranslationsPreInit()
-	}
-	utils.LoadConfig("config.json")
-	utils.InitTranslations(utils.Cfg.LocalizationSettings)
-
 	var options []app.Option
 	if testStore != nil {
 		options = append(options, app.StoreOverride(testStore))
@@ -80,9 +74,11 @@ func setupTestHelper(enterprise bool) *TestHelper {
 	}
 	th.originalConfig = th.App.Config().Clone()
 
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.MaxUsersPerTeam = 50 })
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.RateLimitSettings.Enable = false })
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.EmailSettings.SendEmailNotifications = true })
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.TeamSettings.MaxUsersPerTeam = 50
+		*cfg.RateLimitSettings.Enable = false
+		cfg.EmailSettings.SendEmailNotifications = true
+	})
 	utils.DisableDebugLogForTest()
 	prevListenAddress := *th.App.Config().ServiceSettings.ListenAddress
 	if testStore != nil {
@@ -119,7 +115,7 @@ func (me *TestHelper) InitBasic() *TestHelper {
 
 	me.BasicClient = me.CreateClient()
 	me.BasicUser = me.CreateUser(me.BasicClient)
-	me.App.UpdateUserRoles(me.BasicUser.Id, model.ROLE_SYSTEM_USER.Id)
+	me.App.UpdateUserRoles(me.BasicUser.Id, model.ROLE_SYSTEM_USER.Id, false)
 	me.LoginBasic()
 	me.BasicTeam = me.CreateTeam(me.BasicClient)
 	me.LinkUserToTeam(me.BasicUser, me.BasicTeam)
@@ -146,7 +142,7 @@ func (me *TestHelper) InitSystemAdmin() *TestHelper {
 	me.SystemAdminTeam = me.CreateTeam(me.SystemAdminClient)
 	me.LinkUserToTeam(me.SystemAdminUser, me.SystemAdminTeam)
 	me.SystemAdminClient.SetTeamId(me.SystemAdminTeam.Id)
-	me.App.UpdateUserRoles(me.SystemAdminUser.Id, model.ROLE_SYSTEM_USER.Id+" "+model.ROLE_SYSTEM_ADMIN.Id)
+	me.App.UpdateUserRoles(me.SystemAdminUser.Id, model.ROLE_SYSTEM_USER.Id+" "+model.ROLE_SYSTEM_ADMIN.Id, false)
 	me.SystemAdminChannel = me.CreateChannel(me.SystemAdminClient, me.SystemAdminTeam)
 
 	return me

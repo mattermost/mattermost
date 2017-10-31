@@ -282,7 +282,7 @@ func TestUpdateTeam(t *testing.T) {
 	uteam, resp = Client.UpdateTeam(team)
 	CheckNoError(t, resp)
 
-	if uteam.AllowOpenInvite != true {
+	if !uteam.AllowOpenInvite {
 		t.Fatal("Update failed")
 	}
 
@@ -419,7 +419,7 @@ func TestPatchTeam(t *testing.T) {
 	if rteam.InviteId != "inviteid1" {
 		t.Fatal("InviteId did not update properly")
 	}
-	if rteam.AllowOpenInvite != true {
+	if !rteam.AllowOpenInvite {
 		t.Fatal("AllowOpenInvite did not update properly")
 	}
 
@@ -1780,13 +1780,13 @@ func TestTeamExists(t *testing.T) {
 
 	exists, resp := Client.TeamExists(team.Name, "")
 	CheckNoError(t, resp)
-	if exists != true {
+	if !exists {
 		t.Fatal("team should exist")
 	}
 
 	exists, resp = Client.TeamExists("testingteam", "")
 	CheckNoError(t, resp)
-	if exists != false {
+	if exists {
 		t.Fatal("team should not exist")
 	}
 
@@ -1889,7 +1889,7 @@ func TestInviteUsersToTeam(t *testing.T) {
 
 	okMsg, resp := th.SystemAdminClient.InviteUsersToTeam(th.BasicTeam.Id, emailList)
 	CheckNoError(t, resp)
-	if okMsg != true {
+	if !okMsg {
 		t.Fatal("should return true")
 	}
 

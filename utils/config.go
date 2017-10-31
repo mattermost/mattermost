@@ -70,16 +70,14 @@ func RemoveConfigListener(id string) {
 	delete(cfgListeners, id)
 }
 
-func FindConfigFile(fileName string) string {
-	if _, err := os.Stat("./config/" + fileName); err == nil {
-		fileName, _ = filepath.Abs("./config/" + fileName)
-	} else if _, err := os.Stat("../config/" + fileName); err == nil {
-		fileName, _ = filepath.Abs("../config/" + fileName)
-	} else if _, err := os.Stat(fileName); err == nil {
-		fileName, _ = filepath.Abs(fileName)
+func FindConfigFile(fileName string) (path string) {
+	for _, dir := range []string{"./config", "../config", "../../config", "."} {
+		path, _ := filepath.Abs(filepath.Join(dir, fileName))
+		if _, err := os.Stat(path); err == nil {
+			return path
+		}
 	}
-
-	return fileName
+	return ""
 }
 
 func FindDir(dir string) (string, bool) {
@@ -197,12 +195,6 @@ func SaveConfig(fileName string, config *model.Config) *model.AppError {
 	return nil
 }
 
-func EnableConfigFromEnviromentVars() {
-	viper.SetEnvPrefix("mm")
-	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
-	viper.AutomaticEnv()
-}
-
 func InitializeConfigWatch() {
 	cfgMutex.Lock()
 	defer cfgMutex.Unlock()
@@ -230,7 +222,7 @@ func InitializeConfigWatch() {
 							l4g.Info(fmt.Sprintf("Config file watcher detected a change reloading %v", CfgFileName))
 
 							if configReadErr := viper.ReadInConfig(); configReadErr == nil {
-								LoadConfig(CfgFileName)
+								LoadGlobalConfig(CfgFileName)
 							} else {
 								l4g.Error(fmt.Sprintf("Failed to read while watching config file at %v with err=%v", CfgFileName, configReadErr.Error()))
 							}
@@ -274,83 +266,108 @@ func InitAndLoadConfig(filename string) error {
 		return err
 	}
 
-	EnableConfigFromEnviromentVars()
-	LoadConfig(filename)
+	LoadGlobalConfig(filename)
 	InitializeConfigWatch()
 	EnableConfigWatch()
 
 	return nil
 }
 
-// LoadConfig will try to search around for the corresponding config file.
-// It will search /tmp/fileName then attempt ./config/fileName,
-// then ../config/fileName and last it will look at fileName
-func LoadConfig(fileName string) *model.Config {
+// ReadConfig reads and parses the given configuration.
+func ReadConfig(r io.Reader, allowEnvironmentOverrides bool) (*model.Config, error) {
+	v := viper.New()
+
+	if allowEnvironmentOverrides {
+		v.SetEnvPrefix("mm")
+		v.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
+		v.AutomaticEnv()
+	}
+
+	v.SetConfigType("json")
+	if err := v.ReadConfig(r); err != nil {
+		return nil, err
+	}
+
+	var config model.Config
+	unmarshalErr := v.Unmarshal(&config)
+	if unmarshalErr == nil {
+		// https://github.com/spf13/viper/issues/324
+		// https://github.com/spf13/viper/issues/348
+		config.PluginSettings = model.PluginSettings{}
+		unmarshalErr = v.UnmarshalKey("pluginsettings", &config.PluginSettings)
+	}
+	return &config, unmarshalErr
+}
+
+// ReadConfigFile reads and parses the configuration at the given file path.
+func ReadConfigFile(path string, allowEnvironmentOverrides bool) (*model.Config, error) {
+	f, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	defer f.Close()
+	return ReadConfig(f, allowEnvironmentOverrides)
+}
+
+// EnsureConfigFile will attempt to locate a config file with the given name. If it does not exist,
+// it will attempt to locate a default config file, and copy it. In either case, the config file
+// path is returned.
+func EnsureConfigFile(fileName string) (string, error) {
+	if configFile := FindConfigFile(fileName); configFile != "" {
+		return configFile, nil
+	}
+	if defaultPath := FindConfigFile("default.json"); defaultPath != "" {
+		destPath := filepath.Join(filepath.Dir(defaultPath), fileName)
+		src, err := os.Open(defaultPath)
+		if err != nil {
+			return "", err
+		}
+		defer src.Close()
+		dest, err := os.OpenFile(destPath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0600)
+		if err != nil {
+			return "", err
+		}
+		defer dest.Close()
+		if _, err := io.Copy(dest, src); err == nil {
+			return destPath, nil
+		}
+	}
+	return "", fmt.Errorf("no config file found")
+}
+
+// LoadGlobalConfig will try to search around for the corresponding config file.  It will search
+// /tmp/fileName then attempt ./config/fileName, then ../config/fileName and last it will look at
+// fileName
+//
+// XXX: This is deprecated.
+func LoadGlobalConfig(fileName string) *model.Config {
 	cfgMutex.Lock()
 	defer cfgMutex.Unlock()
 
 	// Cfg should never be null
 	oldConfig := *Cfg
 
-	fileNameWithExtension := filepath.Base(fileName)
-	fileExtension := filepath.Ext(fileNameWithExtension)
-	fileDir := filepath.Dir(fileName)
-
-	if len(fileNameWithExtension) > 0 {
-		fileNameOnly := fileNameWithExtension[:len(fileNameWithExtension)-len(fileExtension)]
-		viper.SetConfigName(fileNameOnly)
+	var configPath string
+	if fileName != filepath.Base(fileName) {
+		configPath = fileName
 	} else {
-		viper.SetConfigName("config")
-	}
-
-	if len(fileDir) > 0 {
-		viper.AddConfigPath(fileDir)
-	}
-
-	viper.SetConfigType("json")
-	viper.AddConfigPath("./config")
-	viper.AddConfigPath("../config")
-	viper.AddConfigPath("../../config")
-	viper.AddConfigPath(".")
-
-	configReadErr := viper.ReadInConfig()
-	if configReadErr != nil {
-		if _, ok := configReadErr.(viper.ConfigFileNotFoundError); ok {
-			// In case of a file-not-found error, try to copy default.json if it's present.
-			defaultPath := FindConfigFile("default.json")
-			if src, err := os.Open(defaultPath); err == nil {
-				if dest, err := os.OpenFile(filepath.Join(filepath.Dir(defaultPath), "config.json"), os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0600); err == nil {
-					if _, err := io.Copy(dest, src); err == nil {
-						configReadErr = viper.ReadInConfig()
-					}
-					dest.Close()
-				}
-				src.Close()
-			}
+		if path, err := EnsureConfigFile(fileName); err != nil {
+			errMsg := T("utils.config.load_config.opening.panic", map[string]interface{}{"Filename": fileName, "Error": err.Error()})
+			fmt.Fprintln(os.Stderr, errMsg)
+			os.Exit(1)
+		} else {
+			configPath = path
 		}
 	}
 
-	if configReadErr != nil {
-		errMsg := T("utils.config.load_config.opening.panic", map[string]interface{}{"Filename": fileName, "Error": configReadErr.Error()})
+	config, err := ReadConfigFile(configPath, true)
+	if err != nil {
+		errMsg := T("utils.config.load_config.decoding.panic", map[string]interface{}{"Filename": fileName, "Error": err.Error()})
 		fmt.Fprintln(os.Stderr, errMsg)
 		os.Exit(1)
 	}
 
-	var config model.Config
-	unmarshalErr := viper.Unmarshal(&config)
-	if unmarshalErr == nil {
-		// https://github.com/spf13/viper/issues/324
-		// https://github.com/spf13/viper/issues/348
-		config.PluginSettings = model.PluginSettings{}
-		unmarshalErr = viper.UnmarshalKey("pluginsettings", &config.PluginSettings)
-	}
-	if unmarshalErr != nil {
-		errMsg := T("utils.config.load_config.decoding.panic", map[string]interface{}{"Filename": fileName, "Error": unmarshalErr.Error()})
-		fmt.Fprintln(os.Stderr, errMsg)
-		os.Exit(1)
-	}
-
-	CfgFileName = viper.ConfigFileUsed()
+	CfgFileName = configPath
 
 	needSave := len(config.SqlSettings.AtRestEncryptKey) == 0 || len(*config.FileSettings.PublicLinkSalt) == 0 ||
 		len(config.EmailSettings.InviteSalt) == 0
@@ -363,16 +380,16 @@ func LoadConfig(fileName string) *model.Config {
 
 	if needSave {
 		cfgMutex.Unlock()
-		if err := SaveConfig(CfgFileName, &config); err != nil {
+		if err := SaveConfig(CfgFileName, config); err != nil {
 			err.Translate(T)
 			l4g.Warn(err.Error())
 		}
 		cfgMutex.Lock()
 	}
 
-	if err := ValidateLocales(&config); err != nil {
+	if err := ValidateLocales(config); err != nil {
 		cfgMutex.Unlock()
-		if err := SaveConfig(CfgFileName, &config); err != nil {
+		if err := SaveConfig(CfgFileName, config); err != nil {
 			err.Translate(T)
 			l4g.Warn(err.Error())
 		}
@@ -388,7 +405,7 @@ func LoadConfig(fileName string) *model.Config {
 		}
 	}
 
-	Cfg = &config
+	Cfg = config
 	CfgHash = fmt.Sprintf("%x", md5.Sum([]byte(Cfg.ToJson())))
 	ClientCfg = getClientConfig(Cfg)
 	clientCfgJson, _ := json.Marshal(ClientCfg)
@@ -398,10 +415,10 @@ func LoadConfig(fileName string) *model.Config {
 	SetSiteURL(*Cfg.ServiceSettings.SiteURL)
 
 	for _, listener := range cfgListeners {
-		listener(&oldConfig, &config)
+		listener(&oldConfig, config)
 	}
 
-	return &config
+	return config
 }
 
 func RegenerateClientConfig() {
@@ -458,6 +475,7 @@ func getClientConfig(c *model.Config) map[string]string {
 	props["RestrictPostDelete"] = *c.ServiceSettings.RestrictPostDelete
 	props["AllowEditPost"] = *c.ServiceSettings.AllowEditPost
 	props["PostEditTimeLimit"] = fmt.Sprintf("%v", *c.ServiceSettings.PostEditTimeLimit)
+	props["CloseUnusedDirectMessages"] = strconv.FormatBool(*c.ServiceSettings.CloseUnusedDirectMessages)
 
 	props["SendEmailNotifications"] = strconv.FormatBool(c.EmailSettings.SendEmailNotifications)
 	props["SendPushNotifications"] = strconv.FormatBool(*c.EmailSettings.SendPushNotifications)

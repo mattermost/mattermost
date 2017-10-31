@@ -99,8 +99,6 @@ func tearDownStores() {
 
 func TestMain(m *testing.M) {
 	utils.TranslationsPreInit()
-	utils.LoadConfig("config.json")
-	utils.InitTranslations(utils.Cfg.LocalizationSettings)
 
 	status := 0
 

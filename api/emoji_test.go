@@ -206,7 +206,7 @@ func TestCreateEmoji(t *testing.T) {
 		CreatorId: th.BasicUser.Id,
 		Name:      model.NewId(),
 	}
-	if _, err := Client.CreateEmoji(emoji, make([]byte, 100, 100), "image.gif"); err == nil {
+	if _, err := Client.CreateEmoji(emoji, make([]byte, 100), "image.gif"); err == nil {
 		t.Fatal("shouldn't be able to create an emoji with non-image data")
 	}
 

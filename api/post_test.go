@@ -1321,7 +1321,7 @@ func TestGetFileInfosForPost(t *testing.T) {
 	Client := th.BasicClient
 	channel1 := th.BasicChannel
 
-	fileIds := make([]string, 3, 3)
+	fileIds := make([]string, 3)
 	if data, err := readTestFile("test.png"); err != nil {
 		t.Fatal(err)
 	} else {
@@ -1531,7 +1531,7 @@ func TestPinPost(t *testing.T) {
 	if rupost1, err := Client.PinPost(post.ChannelId, post.Id); err != nil {
 		t.Fatal(err)
 	} else {
-		if rupost1.Data.(*model.Post).IsPinned != true {
+		if !rupost1.Data.(*model.Post).IsPinned {
 			t.Fatal("failed to pin post")
 		}
 	}
@@ -1540,7 +1540,7 @@ func TestPinPost(t *testing.T) {
 	if rupost2, err := Client.PinPost(pinnedPost.ChannelId, pinnedPost.Id); err != nil {
 		t.Fatal(err)
 	} else {
-		if rupost2.Data.(*model.Post).IsPinned != true {
+		if !rupost2.Data.(*model.Post).IsPinned {
 			t.Fatal("pinning a post should be idempotent")
 		}
 	}
@@ -1556,7 +1556,7 @@ func TestUnpinPost(t *testing.T) {
 	if rupost1, err := Client.UnpinPost(pinnedPost.ChannelId, pinnedPost.Id); err != nil {
 		t.Fatal(err)
 	} else {
-		if rupost1.Data.(*model.Post).IsPinned != false {
+		if rupost1.Data.(*model.Post).IsPinned {
 			t.Fatal("failed to unpin post")
 		}
 	}
@@ -1565,7 +1565,7 @@ func TestUnpinPost(t *testing.T) {
 	if rupost2, err := Client.UnpinPost(post.ChannelId, post.Id); err != nil {
 		t.Fatal(err)
 	} else {
-		if rupost2.Data.(*model.Post).IsPinned != false {
+		if rupost2.Data.(*model.Post).IsPinned {
 			t.Fatal("unpinning a post should be idempotent")
 		}
 	}

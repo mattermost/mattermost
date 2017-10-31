@@ -204,6 +204,7 @@ type ServiceSettings struct {
 	EnableChannelViewedMessages              *bool
 	EnableUserStatuses                       *bool
 	ClusterLogTimeoutMilliseconds            *int
+	CloseUnusedDirectMessages                *bool
 }
 
 type ClusterSettings struct {
@@ -393,6 +394,7 @@ type ClientRequirements struct {
 type LdapSettings struct {
 	// Basic
 	Enable             *bool
+	EnableSync         *bool
 	LdapServer         *string
 	LdapPort           *int
 	ConnectionSecurity *string
@@ -438,7 +440,9 @@ type LocalizationSettings struct {
 
 type SamlSettings struct {
 	// Basic
-	Enable  *bool
+	Enable             *bool
+	EnableSyncWithLdap *bool
+
 	Verify  *bool
 	Encrypt *bool
 
@@ -593,10 +597,6 @@ func (o *Config) GetSSOService(service string) *SSOSettings {
 	}
 
 	return nil
-}
-
-func (o *Config) getClientRequirementsFromConfig() ClientRequirements {
-	return o.ClientRequirements
 }
 
 func ConfigFromJson(data io.Reader) *Config {
@@ -859,12 +859,7 @@ func (o *Config) SetDefaults() {
 
 	if o.EmailSettings.EnableSignInWithEmail == nil {
 		o.EmailSettings.EnableSignInWithEmail = new(bool)
-
-		if o.EmailSettings.EnableSignUpWithEmail == true {
-			*o.EmailSettings.EnableSignInWithEmail = true
-		} else {
-			*o.EmailSettings.EnableSignInWithEmail = false
-		}
+		*o.EmailSettings.EnableSignInWithEmail = o.EmailSettings.EnableSignUpWithEmail
 	}
 
 	if o.EmailSettings.EnableSignInWithUsername == nil {
@@ -1002,6 +997,12 @@ func (o *Config) SetDefaults() {
 
 	if o.LdapSettings.Enable == nil {
 		o.LdapSettings.Enable = NewBool(false)
+	}
+
+	// When unset should default to LDAP Enabled
+	if o.LdapSettings.EnableSync == nil {
+		o.LdapSettings.EnableSync = new(bool)
+		*o.LdapSettings.EnableSync = *o.LdapSettings.Enable
 	}
 
 	if o.LdapSettings.LdapServer == nil {
@@ -1226,6 +1227,11 @@ func (o *Config) SetDefaults() {
 		o.SamlSettings.Enable = NewBool(false)
 	}
 
+	if o.SamlSettings.EnableSyncWithLdap == nil {
+		o.SamlSettings.EnableSyncWithLdap = new(bool)
+		*o.SamlSettings.EnableSyncWithLdap = false
+	}
+
 	if o.SamlSettings.Verify == nil {
 		o.SamlSettings.Verify = NewBool(true)
 	}
@@ -1392,6 +1398,10 @@ func (o *Config) SetDefaults() {
 
 	if o.ServiceSettings.ClusterLogTimeoutMilliseconds == nil {
 		o.ServiceSettings.ClusterLogTimeoutMilliseconds = NewInt(2000)
+	}
+
+	if o.ServiceSettings.CloseUnusedDirectMessages == nil {
+		o.ServiceSettings.CloseUnusedDirectMessages = NewBool(false)
 	}
 
 	if o.ElasticsearchSettings.ConnectionUrl == nil {

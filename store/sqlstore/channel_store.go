@@ -420,11 +420,6 @@ func (s SqlChannelStore) PermanentDeleteMembersByChannel(channelId string) store
 	})
 }
 
-type channelWithMember struct {
-	model.Channel
-	model.ChannelMember
-}
-
 func (s SqlChannelStore) GetChannels(teamId string, userId string) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		data := &model.ChannelList{}
@@ -1268,7 +1263,7 @@ func (s SqlChannelStore) performSearch(searchQuery string, term string, paramete
 		searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", "", 1)
 	} else {
 		isPostgreSQL := s.DriverName() == model.DATABASE_DRIVER_POSTGRES
-		searchQuery = generateSearchQuery(searchQuery, term, "Name, DisplayName", parameters, isPostgreSQL)
+		searchQuery = generateSearchQuery(searchQuery, []string{term}, []string{"Name", "DisplayName"}, parameters, isPostgreSQL)
 	}
 
 	var channels model.ChannelList

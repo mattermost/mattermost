@@ -21,5 +21,5 @@ type LdapInterface interface {
 	GetAllLdapUsers() ([]*model.User, *model.AppError)
 	UserFromLdapUser(ldapUser *ldap.Entry) *model.User
 	UserHasUpdateFromLdap(existingUser *model.User, currentLdapUser *model.User) bool
-	UpdateLdapUser(existingUser *model.User, currentLdapUser *model.User) *model.User
+	UpdateLocalLdapUser(existingUser *model.User, currentLdapUser *model.User) *model.User
 }
