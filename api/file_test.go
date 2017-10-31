@@ -517,7 +517,7 @@ func TestGetPublicFileOld(t *testing.T) {
 
 	// reconstruct old style of link
 	siteURL := fmt.Sprintf("http://localhost:%v", th.App.Srv.ListenAddr.Port)
-	link := generatePublicLinkOld(siteURL, th.BasicTeam.Id, channel.Id, th.BasicUser.Id, fileId+"/test.png")
+	link := generatePublicLinkOld(siteURL, th.BasicTeam.Id, channel.Id, th.BasicUser.Id, fileId+"/test.png", *th.App.Config().FileSettings.PublicLinkSalt)
 
 	// Wait a bit for files to ready
 	time.Sleep(2 * time.Second)
@@ -553,8 +553,8 @@ func TestGetPublicFileOld(t *testing.T) {
 	}
 }
 
-func generatePublicLinkOld(siteURL, teamId, channelId, userId, filename string) string {
-	hash := app.GeneratePublicLinkHash(filename, *utils.Cfg.FileSettings.PublicLinkSalt)
+func generatePublicLinkOld(siteURL, teamId, channelId, userId, filename, salt string) string {
+	hash := app.GeneratePublicLinkHash(filename, salt)
 	return fmt.Sprintf("%s%s/public/files/get/%s/%s/%s/%s?h=%s", siteURL, model.API_URL_SUFFIX_V3, teamId, channelId, userId, filename, hash)
 }
 

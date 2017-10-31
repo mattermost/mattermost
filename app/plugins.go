@@ -471,10 +471,11 @@ func (a *App) EnablePlugin(id string) *model.AppError {
 		return model.NewAppError("EnablePlugin", "app.plugin.not_installed.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	cfg := a.Config()
-	cfg.PluginSettings.PluginStates[id] = &model.PluginState{Enable: true}
+	a.UpdateConfig(func(cfg *model.Config) {
+		cfg.PluginSettings.PluginStates[id] = &model.PluginState{Enable: true}
+	})
 
-	if err := a.SaveConfig(cfg, true); err != nil {
+	if err := a.SaveConfig(a.Config(), true); err != nil {
 		return model.NewAppError("EnablePlugin", "app.plugin.config.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
@@ -504,10 +505,11 @@ func (a *App) DisablePlugin(id string) *model.AppError {
 		return model.NewAppError("DisablePlugin", "app.plugin.not_installed.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	cfg := a.Config()
-	cfg.PluginSettings.PluginStates[id] = &model.PluginState{Enable: false}
+	a.UpdateConfig(func(cfg *model.Config) {
+		cfg.PluginSettings.PluginStates[id] = &model.PluginState{Enable: false}
+	})
 
-	if err := a.SaveConfig(cfg, true); err != nil {
+	if err := a.SaveConfig(a.Config(), true); err != nil {
 		return model.NewAppError("DisablePlugin", "app.plugin.config.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 

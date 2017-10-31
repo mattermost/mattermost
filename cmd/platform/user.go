@@ -289,7 +289,7 @@ func inviteUser(a *app.App, email string, team *model.Team, teamArg string) erro
 		return fmt.Errorf("Can't find team '%v'", teamArg)
 	}
 
-	a.SendInviteEmails(team, "Administrator", invites, *utils.Cfg.ServiceSettings.SiteURL)
+	a.SendInviteEmails(team, "Administrator", invites, *a.Config().ServiceSettings.SiteURL)
 	CommandPrettyPrintln("Invites may or may not have been sent.")
 
 	return nil

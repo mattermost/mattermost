@@ -131,14 +131,6 @@ func (a *App) GetConfig() *model.Config {
 	return cfg
 }
 
-func (a *App) ReloadConfig() {
-	debug.FreeOSMemory()
-	utils.LoadConfig(a.ConfigFileName())
-
-	// start/restart email batching job if necessary
-	a.InitEmailBatching()
-}
-
 func (a *App) SaveConfig(cfg *model.Config, sendConfigChangeClusterMessage bool) *model.AppError {
 	oldCfg := a.Config()
 	cfg.SetDefaults()
@@ -157,8 +149,11 @@ func (a *App) SaveConfig(cfg *model.Config, sendConfigChangeClusterMessage bool)
 	}
 
 	utils.DisableConfigWatch()
-	utils.SaveConfig(a.ConfigFileName(), cfg)
-	utils.LoadConfig(a.ConfigFileName())
+	a.UpdateConfig(func(update *model.Config) {
+		*update = *cfg
+	})
+	a.PersistConfig()
+	a.ReloadConfig()
 	utils.EnableConfigWatch()
 
 	if a.Metrics != nil {

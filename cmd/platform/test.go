@@ -14,6 +14,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/api"
 	"github.com/mattermost/mattermost-server/api4"
+	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
 	"github.com/mattermost/mattermost-server/wsapi"
 	"github.com/spf13/cobra"
@@ -51,12 +52,12 @@ func webClientTestsCmdF(cmd *cobra.Command, args []string) error {
 	}
 	defer a.Shutdown()
 
-	utils.InitTranslations(utils.Cfg.LocalizationSettings)
+	utils.InitTranslations(a.Config().LocalizationSettings)
 	a.StartServer()
 	api4.Init(a, a.Srv.Router, false)
 	api.Init(a, a.Srv.Router)
 	wsapi.Init(a, a.Srv.WebSocketRouter)
-	setupClientTests()
+	a.UpdateConfig(setupClientTests)
 	runWebClientTests()
 
 	return nil
@@ -69,12 +70,12 @@ func serverForWebClientTestsCmdF(cmd *cobra.Command, args []string) error {
 	}
 	defer a.Shutdown()
 
-	utils.InitTranslations(utils.Cfg.LocalizationSettings)
+	utils.InitTranslations(a.Config().LocalizationSettings)
 	a.StartServer()
 	api4.Init(a, a.Srv.Router, false)
 	api.Init(a, a.Srv.Router)
 	wsapi.Init(a, a.Srv.WebSocketRouter)
-	setupClientTests()
+	a.UpdateConfig(setupClientTests)
 
 	c := make(chan os.Signal)
 	signal.Notify(c, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
@@ -83,13 +84,13 @@ func serverForWebClientTestsCmdF(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func setupClientTests() {
-	*utils.Cfg.TeamSettings.EnableOpenServer = true
-	*utils.Cfg.ServiceSettings.EnableCommands = false
-	*utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations = false
-	*utils.Cfg.ServiceSettings.EnableCustomEmoji = true
-	utils.Cfg.ServiceSettings.EnableIncomingWebhooks = false
-	utils.Cfg.ServiceSettings.EnableOutgoingWebhooks = false
+func setupClientTests(cfg *model.Config) {
+	*cfg.TeamSettings.EnableOpenServer = true
+	*cfg.ServiceSettings.EnableCommands = false
+	*cfg.ServiceSettings.EnableOnlyAdminIntegrations = false
+	*cfg.ServiceSettings.EnableCustomEmoji = true
+	cfg.ServiceSettings.EnableIncomingWebhooks = false
+	cfg.ServiceSettings.EnableOutgoingWebhooks = false
 	utils.SetDefaultRolesBasedOnConfig()
 }
 
