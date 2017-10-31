@@ -643,7 +643,7 @@ func TestUserCreateImage(t *testing.T) {
 
 	Client := th.BasicClient
 
-	b, err := app.CreateProfileImage("Corey Hulen", "eo1zkdr96pdj98pjmq8zy35wba")
+	b, err := app.CreateProfileImage("Corey Hulen", "eo1zkdr96pdj98pjmq8zy35wba", th.App.Config().FileSettings.InitialFont)
 	if err != nil {
 		t.Fatal(err)
 	}

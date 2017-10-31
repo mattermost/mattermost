@@ -251,7 +251,7 @@ func (a *App) GetRecentlyActiveUsersForTeamPage(teamId string, page, perPage int
 		users = result.Data.([]*model.User)
 	}
 
-	return sanitizeProfiles(users, asAdmin), nil
+	return a.sanitizeProfiles(users, asAdmin), nil
 }
 
 func (a *App) GetNewUsersForTeamPage(teamId string, page, perPage int, asAdmin bool) ([]*model.User, *model.AppError) {
@@ -262,5 +262,5 @@ func (a *App) GetNewUsersForTeamPage(teamId string, page, perPage int, asAdmin b
 		users = result.Data.([]*model.User)
 	}
 
-	return sanitizeProfiles(users, asAdmin), nil
+	return a.sanitizeProfiles(users, asAdmin), nil
 }

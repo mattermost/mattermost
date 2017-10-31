@@ -15,7 +15,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils"
 )
 
 func TestUpdatePostEditAt(t *testing.T) {
@@ -82,11 +81,9 @@ func TestPostAction(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
 
-	allowedInternalConnections := *utils.Cfg.ServiceSettings.AllowedUntrustedInternalConnections
-	defer func() {
-		utils.Cfg.ServiceSettings.AllowedUntrustedInternalConnections = &allowedInternalConnections
-	}()
-	*utils.Cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost 127.0.0.1"
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost 127.0.0.1"
+	})
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var request model.PostActionIntegrationRequest
