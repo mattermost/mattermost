@@ -17,14 +17,17 @@ import (
 )
 
 const (
-	PROFILES_IN_CHANNEL_CACHE_SIZE      = model.CHANNEL_CACHE_SIZE
-	PROFILES_IN_CHANNEL_CACHE_SEC       = 900 // 15 mins
-	PROFILE_BY_IDS_CACHE_SIZE           = model.SESSION_CACHE_SIZE
-	PROFILE_BY_IDS_CACHE_SEC            = 900 // 15 mins
-	USER_SEARCH_TYPE_NAMES_NO_FULL_NAME = "Username, Nickname"
-	USER_SEARCH_TYPE_NAMES              = "Username, FirstName, LastName, Nickname"
-	USER_SEARCH_TYPE_ALL_NO_FULL_NAME   = "Username, Nickname, Email"
-	USER_SEARCH_TYPE_ALL                = "Username, FirstName, LastName, Nickname, Email"
+	PROFILES_IN_CHANNEL_CACHE_SIZE = model.CHANNEL_CACHE_SIZE
+	PROFILES_IN_CHANNEL_CACHE_SEC  = 900 // 15 mins
+	PROFILE_BY_IDS_CACHE_SIZE      = model.SESSION_CACHE_SIZE
+	PROFILE_BY_IDS_CACHE_SEC       = 900 // 15 mins
+)
+
+var (
+	USER_SEARCH_TYPE_NAMES_NO_FULL_NAME = []string{"Username", "Nickname"}
+	USER_SEARCH_TYPE_NAMES              = []string{"Username", "FirstName", "LastName", "Nickname"}
+	USER_SEARCH_TYPE_ALL_NO_FULL_NAME   = []string{"Username", "Nickname", "Email"}
+	USER_SEARCH_TYPE_ALL                = []string{"Username", "FirstName", "LastName", "Nickname", "Email"}
 )
 
 type SqlUserStore struct {
@@ -86,10 +89,10 @@ func (us SqlUserStore) CreateIndexesIfNotExists() {
 		us.CreateIndexIfNotExists("idx_users_lastname_lower", "Users", "lower(LastName)")
 	}
 
-	us.CreateFullTextIndexIfNotExists("idx_users_all_txt", "Users", USER_SEARCH_TYPE_ALL)
-	us.CreateFullTextIndexIfNotExists("idx_users_all_no_full_name_txt", "Users", USER_SEARCH_TYPE_ALL_NO_FULL_NAME)
-	us.CreateFullTextIndexIfNotExists("idx_users_names_txt", "Users", USER_SEARCH_TYPE_NAMES)
-	us.CreateFullTextIndexIfNotExists("idx_users_names_no_full_name_txt", "Users", USER_SEARCH_TYPE_NAMES_NO_FULL_NAME)
+	us.CreateFullTextIndexIfNotExists("idx_users_all_txt", "Users", strings.Join(USER_SEARCH_TYPE_ALL, ", "))
+	us.CreateFullTextIndexIfNotExists("idx_users_all_no_full_name_txt", "Users", strings.Join(USER_SEARCH_TYPE_ALL_NO_FULL_NAME, ", "))
+	us.CreateFullTextIndexIfNotExists("idx_users_names_txt", "Users", strings.Join(USER_SEARCH_TYPE_NAMES, ", "))
+	us.CreateFullTextIndexIfNotExists("idx_users_names_no_full_name_txt", "Users", strings.Join(USER_SEARCH_TYPE_NAMES_NO_FULL_NAME, ", "))
 }
 
 func (us SqlUserStore) Save(user *model.User) store.StoreChannel {
@@ -1028,25 +1031,22 @@ var ignoreUserSearchChar = []string{
 	"*",
 }
 
-func generateSearchQuery(searchQuery, term, searchField string, parameters map[string]interface{}, isPostgreSQL bool) string {
-	splitTerms := strings.Fields(term)
-	splitFields := strings.Split(searchField, ", ")
-
-	terms := []string{}
-	for i, term := range splitTerms {
-		fields := []string{}
-		for _, field := range splitFields {
+func generateSearchQuery(searchQuery string, terms []string, fields []string, parameters map[string]interface{}, isPostgreSQL bool) string {
+	searchTerms := []string{}
+	for i, term := range terms {
+		searchFields := []string{}
+		for _, field := range fields {
 			if isPostgreSQL {
-				fields = append(fields, fmt.Sprintf("lower(%s) LIKE lower(%s) escape '*' ", field, fmt.Sprintf(":Term%d", i)))
+				searchFields = append(searchFields, fmt.Sprintf("lower(%s) LIKE lower(%s) escape '*' ", field, fmt.Sprintf(":Term%d", i)))
 			} else {
-				fields = append(fields, fmt.Sprintf("%s LIKE %s escape '*' ", field, fmt.Sprintf(":Term%d", i)))
+				searchFields = append(searchFields, fmt.Sprintf("%s LIKE %s escape '*' ", field, fmt.Sprintf(":Term%d", i)))
 			}
 		}
-		terms = append(terms, fmt.Sprintf("(%s)", strings.Join(fields, " OR ")))
+		searchTerms = append(searchTerms, fmt.Sprintf("(%s)", strings.Join(searchFields, " OR ")))
 		parameters[fmt.Sprintf("Term%d", i)] = fmt.Sprintf("%s%%", term)
 	}
 
-	searchClause := strings.Join(terms, " AND ")
+	searchClause := strings.Join(searchTerms, " AND ")
 	return strings.Replace(searchQuery, "SEARCH_CLAUSE", fmt.Sprintf(" AND %s ", searchClause), 1)
 }
 
@@ -1082,13 +1082,14 @@ func (us SqlUserStore) performSearch(searchQuery string, term string, options ma
 		searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", "", 1)
 	} else {
 		isPostgreSQL := us.DriverName() == model.DATABASE_DRIVER_POSTGRES
-		searchQuery = generateSearchQuery(searchQuery, term, searchType, parameters, isPostgreSQL)
+		searchQuery = generateSearchQuery(searchQuery, strings.Fields(term), searchType, parameters, isPostgreSQL)
 	}
 
 	var users []*model.User
 
 	if _, err := us.GetReplica().Select(&users, searchQuery, parameters); err != nil {
-		result.Err = model.NewAppError("SqlUserStore.Search", "store.sql_user.search.app_error", nil, "term="+term+", "+"search_type="+searchType+", "+err.Error(), http.StatusInternalServerError)
+		result.Err = model.NewAppError("SqlUserStore.Search", "store.sql_user.search.app_error", nil,
+			fmt.Sprintf("term=%v, search_type=%v, %v", term, searchType, err.Error()), http.StatusInternalServerError)
 	} else {
 		for _, u := range users {
 			u.Sanitize(map[string]bool{})
