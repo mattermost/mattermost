@@ -25,7 +25,7 @@ func TestPlugin(t *testing.T) {
 	require.NoError(t, err)
 	defer os.RemoveAll(webappDir)
 
-	th := SetupEnterprise().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic().InitSystemAdmin()
 	defer th.TearDown()
 
 	enablePlugins := *th.App.Config().PluginSettings.Enable
