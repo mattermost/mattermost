@@ -1740,6 +1740,24 @@ func TestAddChannelMember(t *testing.T) {
 		t.Fatal("should have returned exact user added to private channel")
 	}
 
+	post := &model.Post{ChannelId: publicChannel.Id, Message: "a" + GenerateTestId() + "a"}
+	rpost, err := Client.CreatePost(post)
+	if err == nil {
+		t.Fatal("should have created a post")
+	}
+
+	Client.RemoveUserFromChannel(publicChannel.Id, user.Id)
+	_, resp = Client.AddChannelMemberWithRootId(publicChannel.Id, user.Id, rpost.Id)
+	CheckNoError(t, resp)
+	CheckCreatedStatus(t, resp)
+
+	Client.RemoveUserFromChannel(publicChannel.Id, user.Id)
+	_, resp = Client.AddChannelMemberWithRootId(publicChannel.Id, user.Id, "junk")
+	CheckBadRequestStatus(t, resp)
+
+	_, resp = Client.AddChannelMemberWithRootId(publicChannel.Id, user.Id, GenerateTestId())
+	CheckNotFoundStatus(t, resp)
+
 	Client.RemoveUserFromChannel(publicChannel.Id, user.Id)
 	_, resp = Client.AddChannelMember(publicChannel.Id, user.Id)
 	CheckNoError(t, resp)
