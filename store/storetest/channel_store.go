@@ -1861,6 +1861,13 @@ func testChannelStoreSearchInTeam(t *testing.T, ss store.Store) {
 	o8.Type = model.CHANNEL_PRIVATE
 	store.Must(ss.Channel().Save(&o8, -1))
 
+	o9 := model.Channel{}
+	o9.TeamId = o1.TeamId
+	o9.DisplayName = "Town Square"
+	o9.Name = "town-square"
+	o9.Type = model.CHANNEL_OPEN
+	store.Must(ss.Channel().Save(&o9, -1))
+
 	if result := <-ss.Channel().SearchInTeam(o1.TeamId, "ChannelA"); result.Err != nil {
 		t.Fatal(result.Err)
 	} else {
@@ -1924,6 +1931,19 @@ func testChannelStoreSearchInTeam(t *testing.T, ss store.Store) {
 		channels := result.Data.(*model.ChannelList)
 		if len(*channels) != 0 {
 			t.Fatal("should be empty")
+		}
+	}
+
+	if result := <-ss.Channel().SearchInTeam(o1.TeamId, "town square"); result.Err != nil {
+		t.Fatal(result.Err)
+	} else {
+		channels := result.Data.(*model.ChannelList)
+		if len(*channels) != 1 {
+			t.Fatal("should return 1 channel")
+		}
+
+		if (*channels)[0].Name != o9.Name {
+			t.Fatal("wrong channel returned")
 		}
 	}
 }
