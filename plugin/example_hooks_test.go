@@ -18,10 +18,10 @@ func (p *MyPlugin) OnActivate(api plugin.API) {
 }
 
 func (p *MyPlugin) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if r.Header.Get("Mattermost-User-Id") == "" {
+	if userId := r.Header.Get("Mattermost-User-Id"); userId == "" {
 		// Our visitor is unauthenticated.
 		fmt.Fprintf(w, "Hello, stranger!")
-	} else if user, err := p.api.GetUser(r.Header.Get("Mattermost-User-Id")); err == nil {
+	} else if user, err := p.api.GetUser(userId); err == nil {
 		// Greet the user by name!
 		fmt.Fprintf(w, "Welcome back, %v!", user.Username)
 	} else {
