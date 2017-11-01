@@ -37,12 +37,10 @@ func (me *msgProvider) GetCommand(T goi18n.TranslateFunc) *model.Command {
 }
 
 func (me *msgProvider) DoCommand(a *App, args *model.CommandArgs, message string) *model.CommandResponse {
-
 	splitMessage := strings.SplitN(message, " ", 2)
 
 	parsedMessage := ""
 	targetUsername := ""
-	teamId := ""
 
 	if len(splitMessage) > 1 {
 		parsedMessage = strings.SplitN(message, " ", 2)[1]
@@ -81,7 +79,6 @@ func (me *msgProvider) DoCommand(a *App, args *model.CommandArgs, message string
 	} else {
 		channel := channel.Data.(*model.Channel)
 		targetChannelId = channel.Id
-		teamId = channel.TeamId
 	}
 
 	if len(parsedMessage) > 0 {
@@ -94,6 +91,7 @@ func (me *msgProvider) DoCommand(a *App, args *model.CommandArgs, message string
 		}
 	}
 
+	teamId := args.TeamId
 	if teamId == "" {
 		if len(args.Session.TeamMembers) == 0 {
 			return &model.CommandResponse{Text: args.T("api.command_msg.fail.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
