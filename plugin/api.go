@@ -7,6 +7,8 @@ import (
 	"github.com/mattermost/mattermost-server/model"
 )
 
+// API implementations can be used to retrieve data or perform actions on behalf of the plugin. Most
+// methods have direct counterparts in the REST API and very similar behavior.
 type API interface {
 	// LoadPluginConfiguration loads the plugin's configuration. dest should be a pointer to a
 	// struct that the configuration JSON can be unmarshalled to.
