@@ -729,7 +729,7 @@ func updateActive(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if ruser, err := c.App.UpdateActiveNoLdap(userId, active); err != nil {
+	if ruser, err := c.App.UpdateNonSSOUserActive(userId, active); err != nil {
 		c.Err = err
 	} else {
 		c.LogAuditWithUserId(ruser.Id, fmt.Sprintf("active=%v", active))
