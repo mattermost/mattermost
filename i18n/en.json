@@ -2800,8 +2800,8 @@
     "translation": "Failed to send welcome email successfully"
   },
   {
-    "id": "api.user.update_active.no_deactivate_ldap.app_error",
-    "translation": "You can not modify the activation status of AD/LDAP accounts. Please modify through the AD/LDAP server."
+    "id": "api.user.update_active.no_deactivate_sso.app_error",
+    "translation": "You can not modify the activation status of SSO accounts. Please modify through the SSO server."
   },
   {
     "id": "api.user.update_active.permissions.app_error",
