@@ -130,9 +130,11 @@ func runServer(configFileLocation string) {
 	}
 
 	if a.Elasticsearch != nil {
-		if err := a.Elasticsearch.Start(); err != nil {
-			l4g.Error(err.Error())
-		}
+		go func() {
+			if err := a.Elasticsearch.Start(); err != nil {
+				l4g.Error(err.Error())
+			}
+		}()
 	}
 
 	if *utils.Cfg.JobSettings.RunJobs {
