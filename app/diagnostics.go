@@ -226,6 +226,7 @@ func (a *App) trackConfig() {
 		"cluster_log_timeout_milliseconds":                 *cfg.ServiceSettings.ClusterLogTimeoutMilliseconds,
 		"enable_post_search":                               *cfg.ServiceSettings.EnablePostSearch,
 		"enable_user_statuses":                             *cfg.ServiceSettings.EnableUserStatuses,
+		"close_unused_direct_messages":                     *cfg.ServiceSettings.CloseUnusedDirectMessages,
 	})
 
 	SendDiagnostic(TRACK_CONFIG_TEAM, map[string]interface{}{
