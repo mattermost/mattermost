@@ -256,6 +256,7 @@
     },
     "SamlSettings": {
         "Enable": false,
+        "EnableSyncWithLdap": false,
         "Verify": true,
         "Encrypt": true,
         "IdpUrl": "",
