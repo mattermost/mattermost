@@ -7,8 +7,14 @@ import (
 	"net/http"
 )
 
+// Hooks represents an object that handles events for a plugin. Methods are likely to be added over
+// time, and plugins are not expected to implement all of them. Instead, plugins are expected to
+// implement a subset of them and pass an instance to plugin/rpcplugin.Main, which will take over
+// execution of the process and add default behaviors for missing hooks.
 type Hooks interface {
-	// OnActivate is invoked when the plugin is activated.
+	// OnActivate is invoked when the plugin is activated. Implementations will usually want to save
+	// the api argument for later use. Loading configuration for the first time is also a commonly
+	// done here.
 	OnActivate(API) error
 
 	// OnDeactivate is invoked when the plugin is deactivated. This is the plugin's last chance to
