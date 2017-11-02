@@ -418,6 +418,25 @@ run-job-server:
 	@echo Running job server for development
 	$(GO) run $(GOFLAGS) $(GO_LINKER_FLAGS) $(PLATFORM_FILES) jobserver --disableconfigwatch &
 
+config-ldap:
+	@echo Setting up configuration for local LDAP
+
+	@sed -i'' -e 's|"LdapServer": ".*"|"LdapServer": "dockerhost"|g' config/config.json
+	@sed -i'' -e 's|"BaseDN": ".*"|"BaseDN": "ou=testusers,dc=mm,dc=test,dc=com"|g' config/config.json
+	@sed -i'' -e 's|"BindUsername": ".*"|"BindUsername": "cn=admin,dc=mm,dc=test,dc=com"|g' config/config.json
+	@sed -i'' -e 's|"BindPassword": ".*"|"BindPassword": "mostest"|g' config/config.json
+	@sed -i'' -e 's|"FirstNameAttribute": ".*"|"FirstNameAttribute": "cn"|g' config/config.json
+	@sed -i'' -e 's|"LastNameAttribute": ".*"|"LastNameAttribute": "sn"|g' config/config.json
+	@sed -i'' -e 's|"NicknameAttribute": ".*"|"NicknameAttribute": "cn"|g' config/config.json
+	@sed -i'' -e 's|"EmailAttribute": ".*"|"EmailAttribute": "mail"|g' config/config.json
+	@sed -i'' -e 's|"UsernameAttribute": ".*"|"UsernameAttribute": "uid"|g' config/config.json
+	@sed -i'' -e 's|"IdAttribute": ".*"|"IdAttribute": "uid"|g' config/config.json
+
+config-reset:
+	@echo Resetting configuration to default
+	rm -f config/config.json
+	cp config/default.json config/config.json
+
 clean: stop-docker
 	@echo Cleaning
 
