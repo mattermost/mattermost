@@ -521,7 +521,7 @@ func TestSearchUsers(t *testing.T) {
 		t.Fatal("should have found user")
 	}
 
-	_, err := th.App.UpdateActiveNoLdap(th.BasicUser2.Id, false)
+	_, err := th.App.UpdateNonSSOUserActive(th.BasicUser2.Id, false)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -638,7 +638,7 @@ func TestSearchUsers(t *testing.T) {
 	th.App.UpdateConfig(func(cfg *model.Config) { cfg.PrivacySettings.ShowEmailAddress = false })
 	th.App.UpdateConfig(func(cfg *model.Config) { cfg.PrivacySettings.ShowFullName = false })
 
-	_, err = th.App.UpdateActiveNoLdap(th.BasicUser2.Id, true)
+	_, err = th.App.UpdateNonSSOUserActive(th.BasicUser2.Id, true)
 	if err != nil {
 		t.Fatal(err)
 	}

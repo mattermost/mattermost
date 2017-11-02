@@ -867,15 +867,15 @@ func (a *App) UpdatePasswordAsUser(userId, currentPassword, newPassword string) 
 	return a.UpdatePasswordSendEmail(user, newPassword, T("api.user.update_password.menu"))
 }
 
-func (a *App) UpdateActiveNoLdap(userId string, active bool) (*model.User, *model.AppError) {
+func (a *App) UpdateNonSSOUserActive(userId string, active bool) (*model.User, *model.AppError) {
 	var user *model.User
 	var err *model.AppError
 	if user, err = a.GetUser(userId); err != nil {
 		return nil, err
 	}
 
-	if user.IsLDAPUser() {
-		err := model.NewAppError("UpdateActive", "api.user.update_active.no_deactivate_ldap.app_error", nil, "userId="+user.Id, http.StatusBadRequest)
+	if user.IsSSOUser() {
+		err := model.NewAppError("UpdateActive", "api.user.update_active.no_deactivate_sso.app_error", nil, "userId="+user.Id, http.StatusBadRequest)
 		err.StatusCode = http.StatusBadRequest
 		return nil, err
 	}
