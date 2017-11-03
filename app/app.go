@@ -253,7 +253,9 @@ func (a *App) Config() *model.Config {
 }
 
 func (a *App) UpdateConfig(f func(*model.Config)) {
+	old := utils.Cfg.Clone()
 	f(utils.Cfg)
+	utils.InvokeGlobalConfigListeners(old, utils.Cfg)
 }
 
 func (a *App) PersistConfig() {
