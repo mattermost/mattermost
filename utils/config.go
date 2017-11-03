@@ -414,11 +414,15 @@ func LoadGlobalConfig(fileName string) *model.Config {
 	SetDefaultRolesBasedOnConfig()
 	SetSiteURL(*Cfg.ServiceSettings.SiteURL)
 
-	for _, listener := range cfgListeners {
-		listener(&oldConfig, config)
-	}
+	InvokeGlobalConfigListeners(&oldConfig, config)
 
 	return config
+}
+
+func InvokeGlobalConfigListeners(old, current *model.Config) {
+	for _, listener := range cfgListeners {
+		listener(old, current)
+	}
 }
 
 func RegenerateClientConfig() {
