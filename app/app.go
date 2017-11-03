@@ -93,6 +93,9 @@ func New(options ...Option) *App {
 	app.Srv.Store = app.newStore()
 	app.initJobs()
 
+	app.Srv.Router.HandleFunc("/plugins/{plugin_id:[A-Za-z0-9\\_\\-\\.]+}", app.ServePluginRequest)
+	app.Srv.Router.HandleFunc("/plugins/{plugin_id:[A-Za-z0-9\\_\\-\\.]+}/{anything:.*}", app.ServePluginRequest)
+
 	app.Srv.Router.NotFoundHandler = http.HandlerFunc(app.Handle404)
 
 	app.Srv.WebSocketRouter = &WebSocketRouter{
