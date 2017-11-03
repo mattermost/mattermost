@@ -8,16 +8,16 @@ import (
 	"github.com/mattermost/mattermost-server/plugin/rpcplugin"
 )
 
-type MyPlugin struct {
+type HelloUserPlugin struct {
 	api plugin.API
 }
 
-func (p *MyPlugin) OnActivate(api plugin.API) {
+func (p *HelloUserPlugin) OnActivate(api plugin.API) {
 	// Just save api for later when we need to look up users.
 	p.api = api
 }
 
-func (p *MyPlugin) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (p *HelloUserPlugin) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if userId := r.Header.Get("Mattermost-User-Id"); userId == "" {
 		// Our visitor is unauthenticated.
 		fmt.Fprintf(w, "Hello, stranger!")
@@ -33,6 +33,6 @@ func (p *MyPlugin) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 // This example demonstrates a plugin that handles HTTP requests which respond by greeting the user
 // by name.
-func Example_plugin() {
-	rpcplugin.Main(&MyPlugin{})
+func Example_helloUser() {
+	rpcplugin.Main(&HelloUserPlugin{})
 }
