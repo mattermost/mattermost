@@ -137,6 +137,25 @@ func TestCreateProfileImage(t *testing.T) {
 	}
 }
 
+func TestUpdateUserToRestrictedDomain(t *testing.T) {
+	th := Setup()
+	defer th.TearDown()
+
+	user := th.CreateUser()
+	defer th.App.PermanentDeleteUser(user)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.TeamSettings.RestrictCreationToDomains = "foo.com"
+	})
+
+	_, err := th.App.UpdateUser(user, false)
+	assert.True(t, err == nil)
+
+	user.Email = "asdf@ghjk.l"
+	_, err = th.App.UpdateUser(user, false)
+	assert.False(t, err == nil)
+}
+
 func TestUpdateOAuthUserAttrs(t *testing.T) {
 	th := Setup()
 	defer th.TearDown()
