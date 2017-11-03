@@ -45,11 +45,11 @@ func addLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 	fileData := fileArray[0]
 
 	file, err := fileData.Open()
-	defer file.Close()
 	if err != nil {
 		c.Err = model.NewAppError("addLicense", "api.license.add_license.open.app_error", nil, err.Error(), http.StatusInternalServerError)
 		return
 	}
+	defer file.Close()
 
 	buf := bytes.NewBuffer(nil)
 	io.Copy(buf, file)

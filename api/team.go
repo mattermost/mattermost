@@ -386,10 +386,14 @@ func importTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	importFromArray, ok := r.MultipartForm.Value["importFrom"]
+	if !ok || len(importFromArray) < 1 {
+		c.Err = model.NewAppError("importTeam", "api.team.import_team.no_import_from.app_error", nil, "", http.StatusBadRequest)
+		return
+	}
 	importFrom := importFromArray[0]
 
 	fileSizeStr, ok := r.MultipartForm.Value["filesize"]
-	if !ok {
+	if !ok || len(fileSizeStr) < 1 {
 		c.Err = model.NewAppError("importTeam", "api.team.import_team.unavailable.app_error", nil, "", http.StatusBadRequest)
 		return
 	}
@@ -414,11 +418,11 @@ func importTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	fileInfo := fileInfoArray[0]
 
 	fileData, err := fileInfo.Open()
-	defer fileData.Close()
 	if err != nil {
 		c.Err = model.NewAppError("importTeam", "api.team.import_team.open.app_error", nil, err.Error(), http.StatusBadRequest)
 		return
 	}
+	defer fileData.Close()
 
 	var log *bytes.Buffer
 	switch importFrom {

@@ -156,8 +156,8 @@ func listCommands(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	commands := []*model.Command{}
-	err := &model.AppError{}
+	var commands []*model.Command
+	var err *model.AppError
 	if customOnly {
 		if !c.App.SessionHasPermissionToTeam(c.Session, teamId, model.PERMISSION_MANAGE_SLASH_COMMANDS) {
 			c.SetPermissionError(model.PERMISSION_MANAGE_SLASH_COMMANDS)

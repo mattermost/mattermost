@@ -2172,6 +2172,10 @@
     "translation": "Could not parse multipart form"
   },
   {
+    "id": "api.team.import_team.no_import_from.app_error",
+    "translation": "Malformed request: importFrom field is not present."
+  },
+  {
     "id": "api.team.import_team.unavailable.app_error",
     "translation": "Malformed request: filesize field is not present."
   },
