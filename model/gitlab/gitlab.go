@@ -46,7 +46,6 @@ func userFromGitLabUser(glu *GitLabUser) *model.User {
 	} else {
 		user.FirstName = glu.Name
 	}
-	strings.TrimSpace(user.Email)
 	user.Email = glu.Email
 	userId := strconv.FormatInt(glu.Id, 10)
 	user.AuthData = &userId

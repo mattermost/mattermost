@@ -774,10 +774,10 @@ func (a *App) GetProfileImage(user *model.User) ([]byte, bool, *model.AppError) 
 
 func (a *App) SetProfileImage(userId string, imageData *multipart.FileHeader) *model.AppError {
 	file, err := imageData.Open()
-	defer file.Close()
 	if err != nil {
 		return model.NewAppError("SetProfileImage", "api.user.upload_profile_user.open.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
+	defer file.Close()
 
 	// Decode image config first to check dimensions before loading the whole thing into memory later on
 	config, _, err := image.DecodeConfig(file)

@@ -36,10 +36,10 @@ func WriteSamlFile(fileData *multipart.FileHeader) *model.AppError {
 	}
 
 	file, err := fileData.Open()
-	defer file.Close()
 	if err != nil {
 		return model.NewAppError("AddSamlCertificate", "api.admin.add_certificate.open.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
+	defer file.Close()
 
 	configDir, _ := utils.FindDir("config")
 	out, err := os.Create(configDir + filename)

@@ -104,10 +104,10 @@ func ReadFile(path string) ([]byte, *model.AppError) {
 		}
 		bucket := Cfg.FileSettings.AmazonS3Bucket
 		minioObject, err := s3Clnt.GetObject(bucket, path)
-		defer minioObject.Close()
 		if err != nil {
 			return nil, model.NewAppError("ReadFile", "api.file.read_file.s3.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
+		defer minioObject.Close()
 		if f, err := ioutil.ReadAll(minioObject); err != nil {
 			return nil, model.NewAppError("ReadFile", "api.file.read_file.s3.app_error", nil, err.Error(), http.StatusInternalServerError)
 		} else {
