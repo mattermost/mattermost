@@ -557,16 +557,12 @@ func (a *App) InitPlugins(pluginPath, webappPath string) {
 
 	utils.RemoveConfigListener(a.PluginConfigListenerId)
 	a.PluginConfigListenerId = utils.AddConfigListener(func(prevCfg, cfg *model.Config) {
-		if !*prevCfg.PluginSettings.Enable && *cfg.PluginSettings.Enable {
-			a.InitPlugins(pluginPath, webappPath)
-		} else if *prevCfg.PluginSettings.Enable && !*cfg.PluginSettings.Enable {
-			a.ShutDownPlugins()
-		} else if *prevCfg.PluginSettings.Enable && *cfg.PluginSettings.Enable {
-			a.ActivatePlugins()
-		}
-
 		if a.PluginEnv == nil {
 			return
+		}
+
+		if *prevCfg.PluginSettings.Enable && *cfg.PluginSettings.Enable {
+			a.ActivatePlugins()
 		}
 
 		for _, err := range a.PluginEnv.Hooks().OnConfigurationChange() {
