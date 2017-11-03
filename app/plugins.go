@@ -579,6 +579,7 @@ func (a *App) ServePluginRequest(w http.ResponseWriter, r *http.Request) {
 		err.Translate(utils.T)
 		l4g.Error(err.Error())
 		w.WriteHeader(err.StatusCode)
+		w.Header().Set("Content-Type", "application/json")
 		w.Write([]byte(err.ToJson()))
 		return
 	}
