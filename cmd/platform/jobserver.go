@@ -46,7 +46,7 @@ func jobserverCmdF(cmd *cobra.Command, args []string) {
 		a.Jobs.StartSchedulers()
 	}
 
-	var signalChan chan os.Signal = make(chan os.Signal)
+	signalChan := make(chan os.Signal, 1)
 	signal.Notify(signalChan, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
 	<-signalChan
 

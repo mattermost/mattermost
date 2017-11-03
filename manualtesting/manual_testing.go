@@ -138,18 +138,16 @@ func manualTest(c *api.Context, w http.ResponseWriter, r *http.Request) {
 
 	// Grab the test ID and pick the test
 	testname, ok := params["test"]
-	var err2 *model.AppError
-	switch testname[0] {
-	case "autolink":
-		err2 = testAutoLink(env)
-		// ADD YOUR NEW TEST HERE!
-	case "general":
-		err2 = nil
+	if !ok {
+		c.Err = model.NewAppError("/manual", "manaultesting.manual_test.parse.app_error", nil, "", http.StatusBadRequest)
+		return
 	}
 
-	if err != nil {
-		c.Err = err2
-		return
+	switch testname[0] {
+	case "autolink":
+		c.Err = testAutoLink(env)
+		// ADD YOUR NEW TEST HERE!
+	case "general":
 	}
 }
 

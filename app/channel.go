@@ -1185,7 +1185,7 @@ func (a *App) ViewChannel(view *model.ChannelView, userId string, clearPushNotif
 		}
 	}
 
-	times := map[string]int64{}
+	var times map[string]int64
 	if result := <-uchan; result.Err != nil {
 		return nil, result.Err
 	} else {
