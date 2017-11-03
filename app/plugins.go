@@ -570,13 +570,19 @@ func (a *App) InitPlugins(pluginPath, webappPath string) {
 		}
 	})
 
-	a.Srv.Router.HandleFunc("/plugins/{plugin_id:[A-Za-z0-9\\_\\-\\.]+}", a.ServePluginRequest)
-	a.Srv.Router.HandleFunc("/plugins/{plugin_id:[A-Za-z0-9\\_\\-\\.]+}/{anything:.*}", a.ServePluginRequest)
-
 	a.ActivatePlugins()
 }
 
 func (a *App) ServePluginRequest(w http.ResponseWriter, r *http.Request) {
+	if a.PluginEnv == nil || !*a.Config().PluginSettings.Enable {
+		err := model.NewAppError("ServePluginRequest", "app.plugin.disabled.app_error", nil, "Enable plugins to serve plugin requests", http.StatusNotImplemented)
+		err.Translate(utils.T)
+		l4g.Error(err.Error())
+		w.WriteHeader(err.StatusCode)
+		w.Write([]byte(err.ToJson()))
+		return
+	}
+
 	token := ""
 
 	authHeader := r.Header.Get(model.HEADER_AUTH)
