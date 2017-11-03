@@ -984,6 +984,17 @@ func (a *App) sendUpdatedUserEvent(user model.User, asAdmin bool) {
 }
 
 func (a *App) UpdateUser(user *model.User, sendNotifications bool) (*model.User, *model.AppError) {
+	if !CheckUserDomain(user, a.Config().TeamSettings.RestrictCreationToDomains) {
+		result := <-a.Srv.Store.User().Get(user.Id)
+		if result.Err != nil {
+			return nil, result.Err
+		}
+		prev := result.Data.(*model.User)
+		if !prev.IsLDAPUser() && !prev.IsSAMLUser() && user.Email != prev.Email {
+			return nil, model.NewAppError("UpdateUser", "api.user.create_user.accepted_domain.app_error", nil, "", http.StatusBadRequest)
+		}
+	}
+
 	if result := <-a.Srv.Store.User().Update(user, false); result.Err != nil {
 		return nil, result.Err
 	} else {
