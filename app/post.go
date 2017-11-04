@@ -736,9 +736,18 @@ func (a *App) DoPostAction(postId string, actionId string, userId string) *model
 		return model.NewAppError("DoPostAction", "api.post.do_action.action_integration.app_error", nil, "err="+err.Error(), http.StatusBadRequest)
 	}
 
+	retainedProps := []string{"override_username", "override_icon_url"}
+
 	if response.Update != nil {
 		response.Update.Id = postId
 		response.Update.AddProp("from_webhook", "true")
+		for _, prop := range retainedProps {
+			if value, ok := post.Props[prop]; ok {
+				response.Update.Props[prop] = value
+			} else {
+				delete(response.Update.Props, prop)
+			}
+		}
 		if _, err := a.UpdatePost(response.Update, false); err != nil {
 			return err
 		}
@@ -752,8 +761,15 @@ func (a *App) DoPostAction(postId string, actionId string, userId string) *model
 		if ephemeralPost.RootId == "" {
 			ephemeralPost.RootId = post.Id
 		}
-		ephemeralPost.UserId = userId
+		ephemeralPost.UserId = post.UserId
 		ephemeralPost.AddProp("from_webhook", "true")
+		for _, prop := range retainedProps {
+			if value, ok := post.Props[prop]; ok {
+				ephemeralPost.Props[prop] = value
+			} else {
+				delete(ephemeralPost.Props, prop)
+			}
+		}
 		a.SendEphemeralPost(userId, ephemeralPost)
 	}
 
