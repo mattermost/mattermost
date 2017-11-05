@@ -2276,7 +2276,7 @@
   },
   {
     "id": "api.team.leave.left",
-    "translation": "%v has left the team."
+    "translation": "%v left the team."
   },
   {
     "id": "api.team.is_team_creation_allowed.domain.app_error",
