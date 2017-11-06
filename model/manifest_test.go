@@ -73,9 +73,14 @@ func TestManifestUnmarshal(t *testing.T) {
 			Settings: map[string]*PluginUISetting{
 				"thesetting": &PluginUISetting{
 					DisplayName: "thedisplayname",
-					Type:        PLUGIN_CONFIG_TYPE_TEXT,
+					Type:        PLUGIN_CONFIG_TYPE_DROPDOWN,
 					HelpText:    "thehelptext",
-					Default:     "thedefault",
+					Options: []*PluginOption{&PluginOption{
+						DisplayName: "theoptiondisplayname",
+						Value:       "thevalue",
+					},
+					},
+					Default: "thedefault",
 				},
 			},
 		},
@@ -94,8 +99,11 @@ ui_settings:
     settings:
         thesetting:
             display_name: thedisplayname
-            type: text
+            type: dropdown
             help_text: thehelptext
+            options:
+                - display_name: theoptiondisplayname
+                  value: thevalue
             default: thedefault
 `), &yamlResult))
 	assert.Equal(t, expected, yamlResult)
@@ -115,8 +123,14 @@ ui_settings:
         "settings": {
             "thesetting": {
                 "display_name": "thedisplayname",
-                "type": "text",
+                "type": "dropdown",
                 "help_text": "thehelptext",
+                "options": [
+                    {
+                        "display_name": "theoptiondisplayname",
+                        "value": "thevalue"
+                    }
+                ],
                 "default": "thedefault"
             }
         }
@@ -157,9 +171,14 @@ func TestManifestJson(t *testing.T) {
 			Settings: map[string]*PluginUISetting{
 				"thesetting": &PluginUISetting{
 					DisplayName: "thedisplayname",
-					Type:        PLUGIN_CONFIG_TYPE_TEXT,
+					Type:        PLUGIN_CONFIG_TYPE_DROPDOWN,
 					HelpText:    "thehelptext",
-					Default:     "thedefault",
+					Options: []*PluginOption{&PluginOption{
+						DisplayName: "theoptiondisplayname",
+						Value:       "thevalue",
+					},
+					},
+					Default: "thedefault",
 				},
 			},
 		},
@@ -213,9 +232,14 @@ func TestManifestClientManifest(t *testing.T) {
 			Settings: map[string]*PluginUISetting{
 				"thesetting": &PluginUISetting{
 					DisplayName: "thedisplayname",
-					Type:        PLUGIN_CONFIG_TYPE_TEXT,
+					Type:        PLUGIN_CONFIG_TYPE_DROPDOWN,
 					HelpText:    "thehelptext",
-					Default:     "thedefault",
+					Options: []*PluginOption{&PluginOption{
+						DisplayName: "theoptiondisplayname",
+						Value:       "thevalue",
+					},
+					},
+					Default: "thedefault",
 				},
 			},
 		},

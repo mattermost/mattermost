@@ -21,11 +21,17 @@ const (
 	PLUGIN_CONFIG_TYPE_GENERATED = "generated"
 )
 
+type PluginOption struct {
+	DisplayName string `json:"display_name" yaml:"display_name"`
+	Value       string `json:"value" yaml:"value"`
+}
+
 type PluginUISetting struct {
-	DisplayName string      `json:"display_name" yaml:"display_name"`
-	Type        string      `json:"type" yaml:"type"`
-	HelpText    string      `json:"help_text" yaml:"help_text"`
-	Default     interface{} `json:"default" yaml:"default"`
+	DisplayName string          `json:"display_name" yaml:"display_name"`
+	Type        string          `json:"type" yaml:"type"`
+	HelpText    string          `json:"help_text" yaml:"help_text"`
+	Default     interface{}     `json:"default" yaml:"default"`
+	Options     []*PluginOption `json:"options,omitempty" yaml:"options,omitempty"`
 }
 
 type PluginUISettings struct {
