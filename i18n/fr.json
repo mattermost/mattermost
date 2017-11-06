@@ -636,6 +636,26 @@
     "translation": "Les liens vers les images se réduisent maintenant par défaut"
   },
   {
+    "id": "api.command_dnd.desc",
+    "translation": "Do not disturb disables desktop and mobile push notifications."
+  },
+  {
+    "id": "api.command_dnd.disabled",
+    "translation": "Do Not Disturb is disabled."
+  },
+  {
+    "id": "api.command_dnd.error",
+    "translation": "Error to retrieve the user status."
+  },
+  {
+    "id": "api.command_dnd.name",
+    "translation": "dnd"
+  },
+  {
+    "id": "api.command_dnd.success",
+    "translation": "Do Not Disturb is enabled. You will not receive desktop or mobile push notifications until Do Not Disturb is turned off."
+  },
+  {
     "id": "api.command_echo.create.app_error",
     "translation": "Impossible de créer le message avec la commande /echo, err=%v"
   },
@@ -3472,12 +3492,16 @@
     "translation": "Impossible d'activer le plugin extrait. Il se peut qu'il existe déjà et soit déjà activé."
   },
   {
+    "id": "app.plugin.config.app_error",
+    "translation": "Error saving plugin state in config"
+  },
+  {
     "id": "app.plugin.deactivate.app_error",
     "translation": "Impossible de désactiver le plugin"
   },
   {
     "id": "app.plugin.disabled.app_error",
-    "translation": "Les plugins ont été désactivés par l'administrateur système ou le serveur n'a pas encore été redémarré depuis leur activation."
+    "translation": "Plugins have been disabled."
   },
   {
     "id": "app.plugin.extract.app_error",
@@ -3492,6 +3516,10 @@
     "translation": "Impossible de récupérer les plugins actifs"
   },
   {
+    "id": "app.plugin.get_plugins.app_error",
+    "translation": "Impossible de récupérer les plugins actifs"
+  },
+  {
     "id": "app.plugin.manifest.app_error",
     "translation": "Impossible de trouver le manifeste pour le plugin extrait"
   },
@@ -3500,8 +3528,16 @@
     "translation": "Impossible de déplacer le plugin de son emplacement temporaire à sa destination finale"
   },
   {
+    "id": "app.plugin.not_installed.app_error",
+    "translation": "Plugin is not installed"
+  },
+  {
     "id": "app.plugin.remove.app_error",
     "translation": "Impossible de supprimer le plugin"
+  },
+  {
+    "id": "app.plugin.upload_disabled.app_error",
+    "translation": "Plugins and/or plugin uploads have been disabled."
   },
   {
     "id": "app.user_access_token.disabled",
@@ -3786,6 +3822,10 @@
   {
     "id": "ent.elasticsearch.index_post.error",
     "translation": "Impossible d'indexer le message"
+  },
+  {
+    "id": "ent.elasticsearch.indexer.do_job.get_oldest_post.error",
+    "translation": "The oldest post could not be retrieved from the database."
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.parse_end_time.error",
@@ -4440,6 +4480,10 @@
     "translation": "Le paramètre Elasticsearch AggregatePostsAfterDays doit être un nombre plus grand ou égal à 1"
   },
   {
+    "id": "model.config.is_valid.elastic_search.bulk_indexing_time_window_seconds.app_error",
+    "translation": "Elasticsearch Bulk Indexing Time Window must be at least 1 second."
+  },
+  {
     "id": "model.config.is_valid.elastic_search.connection_url.app_error",
     "translation": "Le paramètre ConnectionUrl d'ElasticSearch doit être spécifié lorsque l'indexation avec ElasticSearch est activée."
   },
@@ -4458,6 +4502,10 @@
   {
     "id": "model.config.is_valid.elastic_search.posts_aggregator_job_start_time.app_error",
     "translation": "Le paramètre Elasticsearch PostsAggregatorJobStartTime doit être une heure au format \"hh:mm\""
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.request_timeout_seconds.app_error",
+    "translation": "Elasticsearch Request Timeout must be at least 1 second."
   },
   {
     "id": "model.config.is_valid.elastic_search.username.app_error",
@@ -6860,10 +6908,6 @@
     "translation": "Précédent"
   },
   {
-    "id": "web.incoming_webhook.attachment.app_error",
-    "translation": "La longueur maximale des pièces jointes est de {{.Max}} caractères, la taille reçue est de {{.Actual}}"
-  },
-  {
     "id": "web.incoming_webhook.channel.app_error",
     "translation": "Impossible de trouver le canal"
   },
@@ -6882,6 +6926,10 @@
   {
     "id": "web.incoming_webhook.permissions.app_error",
     "translation": "Permissions insuffisantes pour ce canal"
+  },
+  {
+    "id": "web.incoming_webhook.split_props_length.app_error",
+    "translation": "Unable to split webhook props into {{.Max}} character parts."
   },
   {
     "id": "web.incoming_webhook.text.app_error",

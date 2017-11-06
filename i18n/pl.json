@@ -636,6 +636,26 @@
     "translation": "Odnośniki do obrazków teraz są domyślnie zwinięte"
   },
   {
+    "id": "api.command_dnd.desc",
+    "translation": "Do not disturb disables desktop and mobile push notifications."
+  },
+  {
+    "id": "api.command_dnd.disabled",
+    "translation": "Do Not Disturb is disabled."
+  },
+  {
+    "id": "api.command_dnd.error",
+    "translation": "Error to retrieve the user status."
+  },
+  {
+    "id": "api.command_dnd.name",
+    "translation": "dnd"
+  },
+  {
+    "id": "api.command_dnd.success",
+    "translation": "Do Not Disturb is enabled. You will not receive desktop or mobile push notifications until Do Not Disturb is turned off."
+  },
+  {
     "id": "api.command_echo.create.app_error",
     "translation": "Nie można utworzyć wiadomości /echo, błąd=%v"
   },
@@ -3472,12 +3492,16 @@
     "translation": "Unable to activate extracted plugin. Plugin may already exist and be activated."
   },
   {
+    "id": "app.plugin.config.app_error",
+    "translation": "Error saving plugin state in config"
+  },
+  {
     "id": "app.plugin.deactivate.app_error",
     "translation": "Nie udało się skasować reakcji"
   },
   {
     "id": "app.plugin.disabled.app_error",
-    "translation": "Plugins have been disabled by the system admin or the server has not been restarted since they were enabled."
+    "translation": "Plugins have been disabled."
   },
   {
     "id": "app.plugin.extract.app_error",
@@ -3492,6 +3516,10 @@
     "translation": "Nie udało się skasować reakcji"
   },
   {
+    "id": "app.plugin.get_plugins.app_error",
+    "translation": "Nie udało się skasować reakcji"
+  },
+  {
     "id": "app.plugin.manifest.app_error",
     "translation": "Unable to find manifest for extracted plugin"
   },
@@ -3500,8 +3528,16 @@
     "translation": "Unable to move plugin from temporary directory to final destination"
   },
   {
+    "id": "app.plugin.not_installed.app_error",
+    "translation": "Plugin is not installed"
+  },
+  {
     "id": "app.plugin.remove.app_error",
     "translation": "Nie udało się skasować reakcji"
+  },
+  {
+    "id": "app.plugin.upload_disabled.app_error",
+    "translation": "Plugins and/or plugin uploads have been disabled."
   },
   {
     "id": "app.user_access_token.disabled",
@@ -3786,6 +3822,10 @@
   {
     "id": "ent.elasticsearch.index_post.error",
     "translation": "Failed to index the post"
+  },
+  {
+    "id": "ent.elasticsearch.indexer.do_job.get_oldest_post.error",
+    "translation": "The oldest post could not be retrieved from the database."
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.parse_end_time.error",
@@ -4440,6 +4480,10 @@
     "translation": "Elasticsearch AggregatePostsAfterDays setting must be a number greater than or equal to 1"
   },
   {
+    "id": "model.config.is_valid.elastic_search.bulk_indexing_time_window_seconds.app_error",
+    "translation": "Elasticsearch Bulk Indexing Time Window must be at least 1 second."
+  },
+  {
     "id": "model.config.is_valid.elastic_search.connection_url.app_error",
     "translation": "Aby włączyć indeksowanie Elastic Search, należy ustawić hasło dla Elastic Search"
   },
@@ -4458,6 +4502,10 @@
   {
     "id": "model.config.is_valid.elastic_search.posts_aggregator_job_start_time.app_error",
     "translation": "Elasticsearch PostsAggregatorJobStartTime setting must be a time in the format \"hh:mm\""
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.request_timeout_seconds.app_error",
+    "translation": "Elasticsearch Request Timeout must be at least 1 second."
   },
   {
     "id": "model.config.is_valid.elastic_search.username.app_error",
@@ -6860,10 +6908,6 @@
     "translation": "Wstecz"
   },
   {
-    "id": "web.incoming_webhook.attachment.app_error",
-    "translation": "Maximum attachments length is {{.Max}} characters, received size is {{.Actual}}"
-  },
-  {
     "id": "web.incoming_webhook.channel.app_error",
     "translation": "Nie odnaleziono kanału"
   },
@@ -6882,6 +6926,10 @@
   {
     "id": "web.incoming_webhook.permissions.app_error",
     "translation": "Niewłaściwe uprawnienia do kanału"
+  },
+  {
+    "id": "web.incoming_webhook.split_props_length.app_error",
+    "translation": "Unable to split webhook props into {{.Max}} character parts."
   },
   {
     "id": "web.incoming_webhook.text.app_error",

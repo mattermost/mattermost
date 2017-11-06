@@ -636,6 +636,26 @@
     "translation": "圖片連結現在預設為折疊起來"
   },
   {
+    "id": "api.command_dnd.desc",
+    "translation": "Do not disturb disables desktop and mobile push notifications."
+  },
+  {
+    "id": "api.command_dnd.disabled",
+    "translation": "Do Not Disturb is disabled."
+  },
+  {
+    "id": "api.command_dnd.error",
+    "translation": "Error to retrieve the user status."
+  },
+  {
+    "id": "api.command_dnd.name",
+    "translation": "dnd"
+  },
+  {
+    "id": "api.command_dnd.success",
+    "translation": "Do Not Disturb is enabled. You will not receive desktop or mobile push notifications until Do Not Disturb is turned off."
+  },
+  {
     "id": "api.command_echo.create.app_error",
     "translation": "無法建立 /echo 訊息 err=%v"
   },
@@ -3472,12 +3492,16 @@
     "translation": "無法啟動已解開的模組。模組可能已存在並已啟動。"
   },
   {
+    "id": "app.plugin.config.app_error",
+    "translation": "Error saving plugin state in config"
+  },
+  {
     "id": "app.plugin.deactivate.app_error",
     "translation": "無法停用模組"
   },
   {
     "id": "app.plugin.disabled.app_error",
-    "translation": "模組已被系統管理員停用或在啟用之後伺服器尚未重啟。"
+    "translation": "Plugins have been disabled."
   },
   {
     "id": "app.plugin.extract.app_error",
@@ -3492,6 +3516,10 @@
     "translation": "無法取得啟用的模組"
   },
   {
+    "id": "app.plugin.get_plugins.app_error",
+    "translation": "無法取得啟用的模組"
+  },
+  {
     "id": "app.plugin.manifest.app_error",
     "translation": "已解開的模組中找不到資訊清單"
   },
@@ -3500,8 +3528,16 @@
     "translation": "無法將模組由暫存目錄移動至最終目的地"
   },
   {
+    "id": "app.plugin.not_installed.app_error",
+    "translation": "Plugin is not installed"
+  },
+  {
     "id": "app.plugin.remove.app_error",
     "translation": "無法刪除模組"
+  },
+  {
+    "id": "app.plugin.upload_disabled.app_error",
+    "translation": "Plugins and/or plugin uploads have been disabled."
   },
   {
     "id": "app.user_access_token.disabled",
@@ -3786,6 +3822,10 @@
   {
     "id": "ent.elasticsearch.index_post.error",
     "translation": "索引訊息時失敗"
+  },
+  {
+    "id": "ent.elasticsearch.indexer.do_job.get_oldest_post.error",
+    "translation": "The oldest post could not be retrieved from the database."
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.parse_end_time.error",
@@ -4440,6 +4480,10 @@
     "translation": "Elasticsearch 設定 AggregatePostsAfterDays 必須為大於或等於 1 的數字"
   },
   {
+    "id": "model.config.is_valid.elastic_search.bulk_indexing_time_window_seconds.app_error",
+    "translation": "Elasticsearch Bulk Indexing Time Window must be at least 1 second."
+  },
+  {
     "id": "model.config.is_valid.elastic_search.connection_url.app_error",
     "translation": "當啟用 ElasticSearch 搜尋時必須設定 ElasticSearch ConnectionUrl。"
   },
@@ -4458,6 +4502,10 @@
   {
     "id": "model.config.is_valid.elastic_search.posts_aggregator_job_start_time.app_error",
     "translation": "Elasticsearch 設定 PostsAggregatorJobStartTime 必須為 \"hh:mm\" 格式的時間"
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.request_timeout_seconds.app_error",
+    "translation": "Elasticsearch Request Timeout must be at least 1 second."
   },
   {
     "id": "model.config.is_valid.elastic_search.username.app_error",
@@ -6860,10 +6908,6 @@
     "translation": "回上一步"
   },
   {
-    "id": "web.incoming_webhook.attachment.app_error",
-    "translation": "附件最大大小為 {{.Max}} 字元，已接收大小為 {{.Actual}}"
-  },
-  {
     "id": "web.incoming_webhook.channel.app_error",
     "translation": "找不到頻道"
   },
@@ -6882,6 +6926,10 @@
   {
     "id": "web.incoming_webhook.permissions.app_error",
     "translation": "不適當的頻道權限"
+  },
+  {
+    "id": "web.incoming_webhook.split_props_length.app_error",
+    "translation": "Unable to split webhook props into {{.Max}} character parts."
   },
   {
     "id": "web.incoming_webhook.text.app_error",
