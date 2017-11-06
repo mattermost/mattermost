@@ -1,4 +1,4 @@
-// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 package model
@@ -13,13 +13,35 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
+const (
+	PLUGIN_CONFIG_TYPE_TEXT      = "text"
+	PLUGIN_CONFIG_TYPE_BOOL      = "bool"
+	PLUGIN_CONFIG_TYPE_RADIO     = "radio"
+	PLUGIN_CONFIG_TYPE_DROPDOWN  = "dropdown"
+	PLUGIN_CONFIG_TYPE_GENERATED = "generated"
+)
+
+type PluginUISetting struct {
+	DisplayName string      `json:"display_name" yaml:"display_name"`
+	Type        string      `json:"type" yaml:"type"`
+	HelpText    string      `json:"help_text" yaml:"help_text"`
+	Default     interface{} `json:"default" yaml:"default"`
+}
+
+type PluginUISettings struct {
+	HeaderText string                      `json:"header_text" yaml:"header_text"`
+	FooterText string                      `json:"footer_text" yaml:"footer_text"`
+	Settings   map[string]*PluginUISetting `json:"settings" yaml:"settings"`
+}
+
 type Manifest struct {
-	Id          string           `json:"id" yaml:"id"`
-	Name        string           `json:"name,omitempty" yaml:"name,omitempty"`
-	Description string           `json:"description,omitempty" yaml:"description,omitempty"`
-	Version     string           `json:"version" yaml:"version"`
-	Backend     *ManifestBackend `json:"backend,omitempty" yaml:"backend,omitempty"`
-	Webapp      *ManifestWebapp  `json:"webapp,omitempty" yaml:"webapp,omitempty"`
+	Id          string            `json:"id" yaml:"id"`
+	Name        string            `json:"name,omitempty" yaml:"name,omitempty"`
+	Description string            `json:"description,omitempty" yaml:"description,omitempty"`
+	Version     string            `json:"version" yaml:"version"`
+	Backend     *ManifestBackend  `json:"backend,omitempty" yaml:"backend,omitempty"`
+	Webapp      *ManifestWebapp   `json:"webapp,omitempty" yaml:"webapp,omitempty"`
+	UISettings  *PluginUISettings `json:"ui_settings,omitempty" yaml:"ui_settings,omitempty"`
 }
 
 type ManifestBackend struct {

@@ -1,3 +1,6 @@
+// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
+// See License.txt for license information.
+
 package model
 
 import (
@@ -64,6 +67,18 @@ func TestManifestUnmarshal(t *testing.T) {
 		Webapp: &ManifestWebapp{
 			BundlePath: "thebundlepath",
 		},
+		UISettings: &PluginUISettings{
+			HeaderText: "theheadertext",
+			FooterText: "thefootertext",
+			Settings: map[string]*PluginUISetting{
+				"thesetting": &PluginUISetting{
+					DisplayName: "thedisplayname",
+					Type:        PLUGIN_CONFIG_TYPE_TEXT,
+					HelpText:    "thehelptext",
+					Default:     "thedefault",
+				},
+			},
+		},
 	}
 
 	var yamlResult Manifest
@@ -73,6 +88,15 @@ backend:
     executable: theexecutable
 webapp:
     bundle_path: thebundlepath
+ui_settings:
+    header_text: theheadertext
+    footer_text: thefootertext
+    settings:
+        thesetting:
+            display_name: thedisplayname
+            type: text
+            help_text: thehelptext
+            default: thedefault
 `), &yamlResult))
 	assert.Equal(t, expected, yamlResult)
 
@@ -84,7 +108,19 @@ webapp:
 	},
 	"webapp": {
 		"bundle_path": "thebundlepath"
-	}
+	},
+    "ui_settings": {
+        "header_text": "theheadertext",
+        "footer_text": "thefootertext",
+        "settings": {
+            "thesetting": {
+                "display_name": "thedisplayname",
+                "type": "text",
+                "help_text": "thehelptext",
+                "default": "thedefault"
+            }
+        }
+    }
 	}`), &jsonResult))
 	assert.Equal(t, expected, jsonResult)
 }
@@ -114,6 +150,18 @@ func TestManifestJson(t *testing.T) {
 		},
 		Webapp: &ManifestWebapp{
 			BundlePath: "thebundlepath",
+		},
+		UISettings: &PluginUISettings{
+			HeaderText: "theheadertext",
+			FooterText: "thefootertext",
+			Settings: map[string]*PluginUISetting{
+				"thesetting": &PluginUISetting{
+					DisplayName: "thedisplayname",
+					Type:        PLUGIN_CONFIG_TYPE_TEXT,
+					HelpText:    "thehelptext",
+					Default:     "thedefault",
+				},
+			},
 		},
 	}
 
