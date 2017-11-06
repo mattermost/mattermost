@@ -636,6 +636,26 @@
     "translation": "图片链接现在默认折叠"
   },
   {
+    "id": "api.command_dnd.desc",
+    "translation": "Do not disturb disables desktop and mobile push notifications."
+  },
+  {
+    "id": "api.command_dnd.disabled",
+    "translation": "Do Not Disturb is disabled."
+  },
+  {
+    "id": "api.command_dnd.error",
+    "translation": "Error to retrieve the user status."
+  },
+  {
+    "id": "api.command_dnd.name",
+    "translation": "dnd"
+  },
+  {
+    "id": "api.command_dnd.success",
+    "translation": "Do Not Disturb is enabled. You will not receive desktop or mobile push notifications until Do Not Disturb is turned off."
+  },
+  {
     "id": "api.command_echo.create.app_error",
     "translation": "不能创建 /echo 帖文，err=%v"
   },
@@ -3472,12 +3492,16 @@
     "translation": "无法激活揭开的插件。插件可能已存在并已激活。"
   },
   {
+    "id": "app.plugin.config.app_error",
+    "translation": "Error saving plugin state in config"
+  },
+  {
     "id": "app.plugin.deactivate.app_error",
     "translation": "无法停用插件"
   },
   {
     "id": "app.plugin.disabled.app_error",
-    "translation": "插件已被系统管理员禁用或开启后未重启服务器。"
+    "translation": "Plugins have been disabled."
   },
   {
     "id": "app.plugin.extract.app_error",
@@ -3492,6 +3516,10 @@
     "translation": "无法获取已启动的插件"
   },
   {
+    "id": "app.plugin.get_plugins.app_error",
+    "translation": "无法获取已启动的插件"
+  },
+  {
     "id": "app.plugin.manifest.app_error",
     "translation": "无法在解压的插件里找到 manifest 档"
   },
@@ -3500,8 +3528,16 @@
     "translation": "无法移动插件从临时目录到最终目录"
   },
   {
+    "id": "app.plugin.not_installed.app_error",
+    "translation": "Plugin is not installed"
+  },
+  {
     "id": "app.plugin.remove.app_error",
     "translation": "无法删除插件"
+  },
+  {
+    "id": "app.plugin.upload_disabled.app_error",
+    "translation": "Plugins and/or plugin uploads have been disabled."
   },
   {
     "id": "app.user_access_token.disabled",
@@ -3786,6 +3822,10 @@
   {
     "id": "ent.elasticsearch.index_post.error",
     "translation": "索引消息失败"
+  },
+  {
+    "id": "ent.elasticsearch.indexer.do_job.get_oldest_post.error",
+    "translation": "The oldest post could not be retrieved from the database."
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.parse_end_time.error",
@@ -4440,6 +4480,10 @@
     "translation": "Elasticsearch AggregatePostsAfterDays 设定必须为大于或等于 1 的数字"
   },
   {
+    "id": "model.config.is_valid.elastic_search.bulk_indexing_time_window_seconds.app_error",
+    "translation": "Elasticsearch Bulk Indexing Time Window must be at least 1 second."
+  },
+  {
     "id": "model.config.is_valid.elastic_search.connection_url.app_error",
     "translation": "当 Elastic Search 索引开启时必须提供 Elastic Search ConnectionUrl 设定。"
   },
@@ -4458,6 +4502,10 @@
   {
     "id": "model.config.is_valid.elastic_search.posts_aggregator_job_start_time.app_error",
     "translation": "Elasticsearch PostsAggregatorJobStartTime 设定必须以 \"hh:mm\" 格式的时间"
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.request_timeout_seconds.app_error",
+    "translation": "Elasticsearch Request Timeout must be at least 1 second."
   },
   {
     "id": "model.config.is_valid.elastic_search.username.app_error",
@@ -6860,10 +6908,6 @@
     "translation": "返回"
   },
   {
-    "id": "web.incoming_webhook.attachment.app_error",
-    "translation": "最大附件长度为 {{.Max}} 字，已收到大小为 {{.Actual}}"
-  },
-  {
     "id": "web.incoming_webhook.channel.app_error",
     "translation": "找不到该频道"
   },
@@ -6882,6 +6926,10 @@
   {
     "id": "web.incoming_webhook.permissions.app_error",
     "translation": "不合适的频道权限"
+  },
+  {
+    "id": "web.incoming_webhook.split_props_length.app_error",
+    "translation": "Unable to split webhook props into {{.Max}} character parts."
   },
   {
     "id": "web.incoming_webhook.text.app_error",

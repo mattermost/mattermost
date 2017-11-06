@@ -636,6 +636,26 @@
     "translation": "Görsel bağlantıları varsayılan olarak daraltılmış olacak"
   },
   {
+    "id": "api.command_dnd.desc",
+    "translation": "Rahatsız Etmeyin kipi masaüstü ve mobil uygulamalardaki anında bildirimleri devre dışı bırakır."
+  },
+  {
+    "id": "api.command_dnd.disabled",
+    "translation": "Rahatsız Etmeyin kipi devre dışı bırakılmış."
+  },
+  {
+    "id": "api.command_dnd.error",
+    "translation": "Kullanıcı durumu alınırken sorun çıktı."
+  },
+  {
+    "id": "api.command_dnd.name",
+    "translation": "re"
+  },
+  {
+    "id": "api.command_dnd.success",
+    "translation": "Rahatsız Etmeyin kipi etkinleştirilmiş. Rahatsız Etmeyin kipini devre dışı bırakana kadar Masaüstü ya da mobil uygulamadan anında bildirimleri almayacaksınız."
+  },
+  {
     "id": "api.command_echo.create.app_error",
     "translation": "/echo iletisi oluşturulamadı. Hata: %v"
   },
@@ -3472,12 +3492,16 @@
     "translation": "Ayıklanan uygulama eki etkinleştirilemedi. Uygulama eki zaten var ve etkinleştirilmiş olabilir."
   },
   {
+    "id": "app.plugin.config.app_error",
+    "translation": "Uygulama eki durumu yapılandırmaya kaydedilirken sorun çıktı"
+  },
+  {
     "id": "app.plugin.deactivate.app_error",
     "translation": "Uygulama eki devre dışı bırakılamadı"
   },
   {
     "id": "app.plugin.disabled.app_error",
-    "translation": "Uygulama ekleri sistem yöneticisi tarafından devre dışı bırakılmış ya da sunucu uygulama ekleri etkinleştirildikten sonra yeniden başlatılmamış."
+    "translation": "Uygulama ekleri devre dışı bırakılmış."
   },
   {
     "id": "app.plugin.extract.app_error",
@@ -3492,6 +3516,10 @@
     "translation": "Etkin uygulama ekleri alınamadı"
   },
   {
+    "id": "app.plugin.get_plugins.app_error",
+    "translation": "Etkin uygulama ekleri alınamadı"
+  },
+  {
     "id": "app.plugin.manifest.app_error",
     "translation": "Ayıklanan uygulama eki bilgi dosyası bulunamadı"
   },
@@ -3500,8 +3528,16 @@
     "translation": "Uygulama eki geçici klasörden son hedefine taşınamadı"
   },
   {
+    "id": "app.plugin.not_installed.app_error",
+    "translation": "Uygulama eki kurulmamış"
+  },
+  {
     "id": "app.plugin.remove.app_error",
     "translation": "Uygulama eki silinemedi"
+  },
+  {
+    "id": "app.plugin.upload_disabled.app_error",
+    "translation": "Uygulama ekleri ya da uygulama eki yüklemeleri devre dışı bırakılmış. "
   },
   {
     "id": "app.user_access_token.disabled",
@@ -3786,6 +3822,10 @@
   {
     "id": "ent.elasticsearch.index_post.error",
     "translation": "İleti dizine eklenemedi"
+  },
+  {
+    "id": "ent.elasticsearch.indexer.do_job.get_oldest_post.error",
+    "translation": "Veritabanından en eski ileti alınamadı."
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.parse_end_time.error",
@@ -4440,6 +4480,10 @@
     "translation": "Elasticsearch toplayıcı AggregatePostsAfterDays ayarının değeri 1 ya da daha büyük bir sayı olmalıdır"
   },
   {
+    "id": "model.config.is_valid.elastic_search.bulk_indexing_time_window_seconds.app_error",
+    "translation": "Elasticsearch toplu dizine ekleme süresi aralığı en az 1 saniye olmalıdır."
+  },
+  {
     "id": "model.config.is_valid.elastic_search.connection_url.app_error",
     "translation": "Elastic Search ConnectionUrl setting must be provided when Elastic Search indexing is enabled."
   },
@@ -4458,6 +4502,10 @@
   {
     "id": "model.config.is_valid.elastic_search.posts_aggregator_job_start_time.app_error",
     "translation": "Elasticsearch toplayıcı JobStartTime ayarının değeri \"ss:dd\" biçiminde bir zaman olmalıdır"
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.request_timeout_seconds.app_error",
+    "translation": "Elasticsearch İsteği Zaman Aşımı en az 1 saniye olmalıdır."
   },
   {
     "id": "model.config.is_valid.elastic_search.username.app_error",
@@ -6860,10 +6908,6 @@
     "translation": "Geri"
   },
   {
-    "id": "web.incoming_webhook.attachment.app_error",
-    "translation": "Olabilecek en uzun ek dosyası uzunluğu {{.Max}} karakter, alınan boyut {{.Actual}}"
-  },
-  {
     "id": "web.incoming_webhook.channel.app_error",
     "translation": "Kanal bulunamadı"
   },
@@ -6882,6 +6926,10 @@
   {
     "id": "web.incoming_webhook.permissions.app_error",
     "translation": "Kanal izinleri yeterli değil"
+  },
+  {
+    "id": "web.incoming_webhook.split_props_length.app_error",
+    "translation": "Web bağlantısı bölümleri {{.Max}} karakterlik parçalara ayrılamadı."
   },
   {
     "id": "web.incoming_webhook.text.app_error",

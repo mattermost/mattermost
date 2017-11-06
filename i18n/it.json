@@ -636,6 +636,26 @@
     "translation": "I collegamenti a immagini ora sono contratti per default"
   },
   {
+    "id": "api.command_dnd.desc",
+    "translation": "Non disturbare disattiva le notifiche desktop e mobile."
+  },
+  {
+    "id": "api.command_dnd.disabled",
+    "translation": "Non Disturbare non è attivo."
+  },
+  {
+    "id": "api.command_dnd.error",
+    "translation": "Impossibile recuperare lo stato dell'utente."
+  },
+  {
+    "id": "api.command_dnd.name",
+    "translation": "dnd"
+  },
+  {
+    "id": "api.command_dnd.success",
+    "translation": "Non Disturbare è attivo. Non riceverai notifiche desktop o notifiche mobile fino a quando Non Disturbare non verrà disattivato."
+  },
+  {
     "id": "api.command_echo.create.app_error",
     "translation": "Impossibile creare /echo post, err=%v"
   },
@@ -1555,19 +1575,19 @@
   },
   {
     "id": "api.post.check_for_out_of_channel_mentions.link.private",
-    "translation": "add them to this private channel"
+    "translation": "aggiungili al canale privato"
   },
   {
     "id": "api.post.check_for_out_of_channel_mentions.link.public",
-    "translation": "add them to the channel"
+    "translation": "aggiungili al canale"
   },
   {
     "id": "api.post.check_for_out_of_channel_mentions.message.multiple",
-    "translation": "@{{.Usernames}} and @{{.LastUsername}} were mentioned but they are not in the channel. Would you like to {{.Phrase}}? They will have access to all message history."
+    "translation": "@{{.Usernames}} e @{{.LastUsername}} sono stati citati ma non sono nel canale. Vuoi {{.Phrase}}? Avranno accesso allo storico dei messaggi."
   },
   {
     "id": "api.post.check_for_out_of_channel_mentions.message.one",
-    "translation": "@{{.Username}} was mentioned but they are not in the channel. Would you like to {{.Phrase}}? They will have access to all message history."
+    "translation": "@{{.Username}} è stato citato ma non è nel canale. Vuoi {{.Phrase}}? Avrà accesso allo storico dei messaggi."
   },
   {
     "id": "api.post.create_post.attach_files.error",
@@ -3472,12 +3492,16 @@
     "translation": "Impossibile attivare il plugin estratto. Il plugin può essere già disponibile e dev'essere attivato."
   },
   {
+    "id": "app.plugin.config.app_error",
+    "translation": "Errore durante il salvataggio della configurazione del plugin"
+  },
+  {
     "id": "app.plugin.deactivate.app_error",
     "translation": "Impossibile disattivare il plugin"
   },
   {
     "id": "app.plugin.disabled.app_error",
-    "translation": "I plugin sono stati disattivati dall'amministratore di sistema oppure il sistema non è stato riavviato dopo la loro attivazione."
+    "translation": "Il plugin è stato disattivato."
   },
   {
     "id": "app.plugin.extract.app_error",
@@ -3492,6 +3516,10 @@
     "translation": "Impossibile trovare i plugin attivi"
   },
   {
+    "id": "app.plugin.get_plugins.app_error",
+    "translation": "Impossibile trovare i plugin attivi"
+  },
+  {
     "id": "app.plugin.manifest.app_error",
     "translation": "Impossibile trovare il manifest del plugin estratto"
   },
@@ -3500,8 +3528,16 @@
     "translation": "Impossibile spostare il plugin dalla cartella temporanea alla destinazione definitiva"
   },
   {
+    "id": "app.plugin.not_installed.app_error",
+    "translation": "Il plugin non è installato"
+  },
+  {
     "id": "app.plugin.remove.app_error",
     "translation": "Impossibile eliminare il plugin"
+  },
+  {
+    "id": "app.plugin.upload_disabled.app_error",
+    "translation": "I plugin e/o il caricamento dei plugin è stato disattivato."
   },
   {
     "id": "app.user_access_token.disabled",
@@ -3786,6 +3822,10 @@
   {
     "id": "ent.elasticsearch.index_post.error",
     "translation": "Impossibile indicizzare la pubblicazione"
+  },
+  {
+    "id": "ent.elasticsearch.indexer.do_job.get_oldest_post.error",
+    "translation": "Il post più vecchio non può essere recuperato dal database."
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.parse_end_time.error",
@@ -4440,6 +4480,10 @@
     "translation": "L'impostazione AggregatePostsAfterDays di Elasticsearch deve essere un numero maggiore o uguale a 1"
   },
   {
+    "id": "model.config.is_valid.elastic_search.bulk_indexing_time_window_seconds.app_error",
+    "translation": "La finestra temporale per il lavoro di indicizzazione massiva di Elasticsearch deve essere di almeno 1 secondo."
+  },
+  {
     "id": "model.config.is_valid.elastic_search.connection_url.app_error",
     "translation": "Il ConnectionUrl di Elastich Search deve essere fornito quando l'indicizzazione di Elastic Search è abilitata."
   },
@@ -4458,6 +4502,10 @@
   {
     "id": "model.config.is_valid.elastic_search.posts_aggregator_job_start_time.app_error",
     "translation": "L'impostazione PostsAggregatorJobStartTime di Elasticsearch deve essere un'ora in formato \"hh:mm\""
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.request_timeout_seconds.app_error",
+    "translation": "Il timeout per le richieste di Elasticsearch deve essere almeno di 1 secondo."
   },
   {
     "id": "model.config.is_valid.elastic_search.username.app_error",
@@ -6860,10 +6908,6 @@
     "translation": "Indietro"
   },
   {
-    "id": "web.incoming_webhook.attachment.app_error",
-    "translation": "La dimensione massima allegato è di {{.Max}} caratteri, la dimensione ricevuta è {{.Actual}}"
-  },
-  {
     "id": "web.incoming_webhook.channel.app_error",
     "translation": "Impossibile trovare il canale"
   },
@@ -6882,6 +6926,10 @@
   {
     "id": "web.incoming_webhook.permissions.app_error",
     "translation": "Permessi per il canale inappropriati"
+  },
+  {
+    "id": "web.incoming_webhook.split_props_length.app_error",
+    "translation": "Impossibile dividere le proprietà del webhook in {{.Max}} singole parti."
   },
   {
     "id": "web.incoming_webhook.text.app_error",
