@@ -207,6 +207,18 @@ func TestManifestClientManifest(t *testing.T) {
 		Webapp: &ManifestWebapp{
 			BundlePath: "thebundlepath",
 		},
+		UISettings: &PluginUISettings{
+			HeaderText: "theheadertext",
+			FooterText: "thefootertext",
+			Settings: map[string]*PluginUISetting{
+				"thesetting": &PluginUISetting{
+					DisplayName: "thedisplayname",
+					Type:        PLUGIN_CONFIG_TYPE_TEXT,
+					HelpText:    "thehelptext",
+					Default:     "thedefault",
+				},
+			},
+		},
 	}
 
 	sanitized := manifest.ClientManifest()
@@ -214,6 +226,7 @@ func TestManifestClientManifest(t *testing.T) {
 	assert.NotEmpty(t, sanitized.Id)
 	assert.NotEmpty(t, sanitized.Version)
 	assert.NotEmpty(t, sanitized.Webapp)
+	assert.NotEmpty(t, sanitized.UISettings)
 	assert.Empty(t, sanitized.Name)
 	assert.Empty(t, sanitized.Description)
 	assert.Empty(t, sanitized.Backend)
@@ -224,4 +237,5 @@ func TestManifestClientManifest(t *testing.T) {
 	assert.NotEmpty(t, manifest.Name)
 	assert.NotEmpty(t, manifest.Description)
 	assert.NotEmpty(t, manifest.Backend)
+	assert.NotEmpty(t, manifest.UISettings)
 }
