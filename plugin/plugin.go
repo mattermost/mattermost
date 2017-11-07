@@ -12,7 +12,7 @@
 //
 // Testing
 //
-// To make testing plugins easier, you can use the storetest package to create a mock API for your
+// To make testing plugins easier, you can use the plugintest package to create a mock API for your
 // plugin to interact with. See
 // https://godoc.org/github.com/mattermost/mattermost-server/plugin/plugintest
 package plugin

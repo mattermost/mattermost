@@ -1,7 +1,7 @@
 // Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-// The storetest package provides mocks that can be used to test plugins. For example, to test the
+// The plugintest package provides mocks that can be used to test plugins. For example, to test the
 // ServeHTTP method of the plugin package's HelloUser example:
 //
 //    package plugin_test
