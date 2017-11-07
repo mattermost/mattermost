@@ -27,11 +27,12 @@ type PluginOption struct {
 }
 
 type PluginSetting struct {
-	DisplayName string          `json:"display_name" yaml:"display_name"`
-	Type        string          `json:"type" yaml:"type"`
-	HelpText    string          `json:"help_text" yaml:"help_text"`
-	Default     interface{}     `json:"default" yaml:"default"`
-	Options     []*PluginOption `json:"options,omitempty" yaml:"options,omitempty"`
+	DisplayName        string          `json:"display_name" yaml:"display_name"`
+	Type               string          `json:"type" yaml:"type"`
+	HelpText           string          `json:"help_text" yaml:"help_text"`
+	RegenerateHelpText string          `json:"regenerate_help_text,omitempty" yaml:"regenerate_help_text,omitempty"`
+	Default            interface{}     `json:"default" yaml:"default"`
+	Options            []*PluginOption `json:"options,omitempty" yaml:"options,omitempty"`
 }
 
 type PluginSettingsSchema struct {

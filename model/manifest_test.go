@@ -72,13 +72,15 @@ func TestManifestUnmarshal(t *testing.T) {
 			Footer: "thefootertext",
 			Settings: map[string]*PluginSetting{
 				"thesetting": &PluginSetting{
-					DisplayName: "thedisplayname",
-					Type:        PLUGIN_CONFIG_TYPE_DROPDOWN,
-					HelpText:    "thehelptext",
-					Options: []*PluginOption{&PluginOption{
-						DisplayName: "theoptiondisplayname",
-						Value:       "thevalue",
-					},
+					DisplayName:        "thedisplayname",
+					Type:               PLUGIN_CONFIG_TYPE_DROPDOWN,
+					HelpText:           "thehelptext",
+					RegenerateHelpText: "theregeneratehelptext",
+					Options: []*PluginOption{
+						&PluginOption{
+							DisplayName: "theoptiondisplayname",
+							Value:       "thevalue",
+						},
 					},
 					Default: "thedefault",
 				},
@@ -101,6 +103,7 @@ settings_schema:
             display_name: thedisplayname
             type: dropdown
             help_text: thehelptext
+            regenerate_help_text: theregeneratehelptext
             options:
                 - display_name: theoptiondisplayname
                   value: thevalue
@@ -125,6 +128,7 @@ settings_schema:
                 "display_name": "thedisplayname",
                 "type": "dropdown",
                 "help_text": "thehelptext",
+                "regenerate_help_text": "theregeneratehelptext",
                 "options": [
                     {
                         "display_name": "theoptiondisplayname",
@@ -170,9 +174,10 @@ func TestManifestJson(t *testing.T) {
 			Footer: "thefootertext",
 			Settings: map[string]*PluginSetting{
 				"thesetting": &PluginSetting{
-					DisplayName: "thedisplayname",
-					Type:        PLUGIN_CONFIG_TYPE_DROPDOWN,
-					HelpText:    "thehelptext",
+					DisplayName:        "thedisplayname",
+					Type:               PLUGIN_CONFIG_TYPE_DROPDOWN,
+					HelpText:           "thehelptext",
+					RegenerateHelpText: "theregeneratehelptext",
 					Options: []*PluginOption{
 						&PluginOption{
 							DisplayName: "theoptiondisplayname",
@@ -232,13 +237,15 @@ func TestManifestClientManifest(t *testing.T) {
 			Footer: "thefootertext",
 			Settings: map[string]*PluginSetting{
 				"thesetting": &PluginSetting{
-					DisplayName: "thedisplayname",
-					Type:        PLUGIN_CONFIG_TYPE_DROPDOWN,
-					HelpText:    "thehelptext",
-					Options: []*PluginOption{&PluginOption{
-						DisplayName: "theoptiondisplayname",
-						Value:       "thevalue",
-					},
+					DisplayName:        "thedisplayname",
+					Type:               PLUGIN_CONFIG_TYPE_DROPDOWN,
+					HelpText:           "thehelptext",
+					RegenerateHelpText: "theregeneratehelptext",
+					Options: []*PluginOption{
+						&PluginOption{
+							DisplayName: "theoptiondisplayname",
+							Value:       "thevalue",
+						},
 					},
 					Default: "thedefault",
 				},
