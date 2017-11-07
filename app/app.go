@@ -93,6 +93,7 @@ func New(options ...Option) *App {
 	app.Srv.Store = app.newStore()
 	app.initJobs()
 
+	app.initBuiltInPlugins()
 	app.Srv.Router.HandleFunc("/plugins/{plugin_id:[A-Za-z0-9\\_\\-\\.]+}", app.ServePluginRequest)
 	app.Srv.Router.HandleFunc("/plugins/{plugin_id:[A-Za-z0-9\\_\\-\\.]+}/{anything:.*}", app.ServePluginRequest)
 

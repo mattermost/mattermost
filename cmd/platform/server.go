@@ -71,8 +71,6 @@ func runServer(configFileLocation string) {
 		a.LoadLicense()
 	}
 
-	a.InitBuiltInPlugins()
-
 	if webappDir, ok := utils.FindDir(model.CLIENT_DIR); ok {
 		a.InitPlugins(*a.Config().PluginSettings.Directory, webappDir+"/plugins")
 		utils.AddConfigListener(func(prevCfg, cfg *model.Config) {

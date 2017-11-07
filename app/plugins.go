@@ -249,7 +249,7 @@ func (api *BuiltInPluginAPI) I18n(id string, r *http.Request) string {
 	return f(id)
 }
 
-func (a *App) InitBuiltInPlugins() {
+func (a *App) initBuiltInPlugins() {
 	plugins := map[string]builtinplugin.Plugin{
 		"jira":       &jira.Plugin{},
 		"ldapextras": &ldapextras.Plugin{},
