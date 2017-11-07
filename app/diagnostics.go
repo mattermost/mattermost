@@ -8,6 +8,7 @@ import (
 	"log"
 	"os"
 	"runtime"
+	"sync/atomic"
 
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
@@ -172,7 +173,10 @@ func (a *App) trackActivity() {
 		"public_channels_deleted":   deletedPublicChannelCount,
 		"private_channels_deleted":  deletedPrivateChannelCount,
 		"posts":                     postsCount,
+		"used_apiv3":                atomic.LoadInt32(model.UsedApiV3) == 1,
 	})
+
+	atomic.StoreInt32(model.UsedApiV3, 0)
 }
 
 func (a *App) trackConfig() {
@@ -223,6 +227,7 @@ func (a *App) trackConfig() {
 		"cluster_log_timeout_milliseconds":                 *cfg.ServiceSettings.ClusterLogTimeoutMilliseconds,
 		"enable_post_search":                               *cfg.ServiceSettings.EnablePostSearch,
 		"enable_user_statuses":                             *cfg.ServiceSettings.EnableUserStatuses,
+		"close_unused_direct_messages":                     *cfg.ServiceSettings.CloseUnusedDirectMessages,
 	})
 
 	SendDiagnostic(TRACK_CONFIG_TEAM, map[string]interface{}{
@@ -360,6 +365,7 @@ func (a *App) trackConfig() {
 
 	SendDiagnostic(TRACK_CONFIG_LDAP, map[string]interface{}{
 		"enable":                         *cfg.LdapSettings.Enable,
+		"enable_sync":                    *cfg.LdapSettings.EnableSync,
 		"connection_security":            *cfg.LdapSettings.ConnectionSecurity,
 		"skip_certificate_verification":  *cfg.LdapSettings.SkipCertificateVerification,
 		"sync_interval_minutes":          *cfg.LdapSettings.SyncIntervalMinutes,
@@ -388,6 +394,7 @@ func (a *App) trackConfig() {
 
 	SendDiagnostic(TRACK_CONFIG_SAML, map[string]interface{}{
 		"enable":                         *cfg.SamlSettings.Enable,
+		"enable_sync_with_ldap":          *cfg.SamlSettings.EnableSyncWithLdap,
 		"verify":                         *cfg.SamlSettings.Verify,
 		"encrypt":                        *cfg.SamlSettings.Encrypt,
 		"isdefault_first_name_attribute": isDefault(*cfg.SamlSettings.FirstNameAttribute, model.SAML_SETTINGS_DEFAULT_FIRST_NAME_ATTRIBUTE),
@@ -436,15 +443,18 @@ func (a *App) trackConfig() {
 	})
 
 	SendDiagnostic(TRACK_CONFIG_ELASTICSEARCH, map[string]interface{}{
-		"isdefault_connection_url": isDefault(*cfg.ElasticsearchSettings.ConnectionUrl, model.ELASTICSEARCH_SETTINGS_DEFAULT_CONNECTION_URL),
-		"isdefault_username":       isDefault(*cfg.ElasticsearchSettings.Username, model.ELASTICSEARCH_SETTINGS_DEFAULT_USERNAME),
-		"isdefault_password":       isDefault(*cfg.ElasticsearchSettings.Password, model.ELASTICSEARCH_SETTINGS_DEFAULT_PASSWORD),
-		"enable_indexing":          *cfg.ElasticsearchSettings.EnableIndexing,
-		"enable_searching":         *cfg.ElasticsearchSettings.EnableSearching,
-		"sniff":                    *cfg.ElasticsearchSettings.Sniff,
-		"post_index_replicas":      *cfg.ElasticsearchSettings.PostIndexReplicas,
-		"post_index_shards":        *cfg.ElasticsearchSettings.PostIndexShards,
-		"isdefault_index_prefix":   isDefault(*cfg.ElasticsearchSettings.IndexPrefix, model.ELASTICSEARCH_SETTINGS_DEFAULT_INDEX_PREFIX),
+		"isdefault_connection_url":          isDefault(*cfg.ElasticsearchSettings.ConnectionUrl, model.ELASTICSEARCH_SETTINGS_DEFAULT_CONNECTION_URL),
+		"isdefault_username":                isDefault(*cfg.ElasticsearchSettings.Username, model.ELASTICSEARCH_SETTINGS_DEFAULT_USERNAME),
+		"isdefault_password":                isDefault(*cfg.ElasticsearchSettings.Password, model.ELASTICSEARCH_SETTINGS_DEFAULT_PASSWORD),
+		"enable_indexing":                   *cfg.ElasticsearchSettings.EnableIndexing,
+		"enable_searching":                  *cfg.ElasticsearchSettings.EnableSearching,
+		"sniff":                             *cfg.ElasticsearchSettings.Sniff,
+		"post_index_replicas":               *cfg.ElasticsearchSettings.PostIndexReplicas,
+		"post_index_shards":                 *cfg.ElasticsearchSettings.PostIndexShards,
+		"isdefault_index_prefix":            isDefault(*cfg.ElasticsearchSettings.IndexPrefix, model.ELASTICSEARCH_SETTINGS_DEFAULT_INDEX_PREFIX),
+		"live_indexing_batch_size":          *cfg.ElasticsearchSettings.LiveIndexingBatchSize,
+		"bulk_indexing_time_window_seconds": *cfg.ElasticsearchSettings.BulkIndexingTimeWindowSeconds,
+		"request_timeout_seconds":           *cfg.ElasticsearchSettings.RequestTimeoutSeconds,
 	})
 
 	SendDiagnostic(TRACK_CONFIG_PLUGIN, map[string]interface{}{

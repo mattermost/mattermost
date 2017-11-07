@@ -71,10 +71,15 @@ func runServer(configFileLocation string) {
 		a.LoadLicense()
 	}
 
-	a.InitBuiltInPlugins()
-
 	if webappDir, ok := utils.FindDir(model.CLIENT_DIR); ok {
 		a.InitPlugins(*a.Config().PluginSettings.Directory, webappDir+"/plugins")
+		utils.AddConfigListener(func(prevCfg, cfg *model.Config) {
+			if *cfg.PluginSettings.Enable {
+				a.InitPlugins(*cfg.PluginSettings.Directory, webappDir+"/plugins")
+			} else {
+				a.ShutDownPlugins()
+			}
+		})
 	} else {
 		l4g.Error("Unable to find webapp directory, could not initialize plugins")
 	}
@@ -130,9 +135,11 @@ func runServer(configFileLocation string) {
 	}
 
 	if a.Elasticsearch != nil {
-		if err := a.Elasticsearch.Start(); err != nil {
-			l4g.Error(err.Error())
-		}
+		a.Go(func() {
+			if err := a.Elasticsearch.Start(); err != nil {
+				l4g.Error(err.Error())
+			}
+		})
 	}
 
 	if *utils.Cfg.JobSettings.RunJobs {
@@ -144,7 +151,7 @@ func runServer(configFileLocation string) {
 
 	// wait for kill signal before attempting to gracefully shutdown
 	// the running service
-	c := make(chan os.Signal)
+	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
 	<-c
 

@@ -201,7 +201,7 @@
   },
   {
     "id": "api.channel.create_channel.direct_channel.app_error",
-    "translation": "ダイレクトメッセージチャンネルを作成するためには、createDirectChannel APIを使ってください"
+    "translation": "ダイレクトメッセージチャンネルを作成するにはcreateDirectChannel APIを使用してください"
   },
   {
     "id": "api.channel.create_channel.invalid_character.app_error",
@@ -634,6 +634,26 @@
   {
     "id": "api.command_collapse.success",
     "translation": "画像のリンクはデフォルトで折りたたまれます"
+  },
+  {
+    "id": "api.command_dnd.desc",
+    "translation": "取り込み中 はデスクトップ通知やモバイルプッシュ通知を無効にします。"
+  },
+  {
+    "id": "api.command_dnd.disabled",
+    "translation": "取り込み中 は無効です。"
+  },
+  {
+    "id": "api.command_dnd.error",
+    "translation": "ユーザーの状態を取得する際にエラーが発生しました。"
+  },
+  {
+    "id": "api.command_dnd.name",
+    "translation": "取り込み中"
+  },
+  {
+    "id": "api.command_dnd.success",
+    "translation": "取り込み中 が有効です。オフにするまでデスクトップ通知やモバイルプッシュ通知を受け取らなくなります。"
   },
   {
     "id": "api.command_echo.create.app_error",
@@ -1849,7 +1869,7 @@
   },
   {
     "id": "api.server.new_server.init.info",
-    "translation": "サーバーが初期化中です…"
+    "translation": "サーバーを初期化しています…"
   },
   {
     "id": "api.server.start_server.listening.info",
@@ -3472,12 +3492,16 @@
     "translation": "抽出されたプラグインを有効化できませんでした。プラグインが既に存在し、有効化されている可能性があります。"
   },
   {
+    "id": "app.plugin.config.app_error",
+    "translation": "設定にプラグインの状態を保存する際にエラーが発生しました"
+  },
+  {
     "id": "app.plugin.deactivate.app_error",
     "translation": "プラグインを無効化できませんでした"
   },
   {
     "id": "app.plugin.disabled.app_error",
-    "translation": "プラグインはシステム管理者によって無効にされているか、有効化した後にサーバーが再起動されていません。"
+    "translation": "プラグインは無効化されています。"
   },
   {
     "id": "app.plugin.extract.app_error",
@@ -3492,6 +3516,10 @@
     "translation": "有効なプラグインを取得できませんでした"
   },
   {
+    "id": "app.plugin.get_plugins.app_error",
+    "translation": "有効なプラグインを取得できませんでした"
+  },
+  {
     "id": "app.plugin.manifest.app_error",
     "translation": "抽出されたプラグインのマニフェストが見付かりませんでした"
   },
@@ -3500,8 +3528,16 @@
     "translation": "プラグインを一時ディレクトリから最終的な移動先へ移動できませんでした"
   },
   {
+    "id": "app.plugin.not_installed.app_error",
+    "translation": "プラグインはインストールされていません"
+  },
+  {
     "id": "app.plugin.remove.app_error",
     "translation": "プラグインを削除できませんでした"
+  },
+  {
+    "id": "app.plugin.upload_disabled.app_error",
+    "translation": "\bプラグインのアップロードは無効化されています。"
   },
   {
     "id": "app.user_access_token.disabled",
@@ -3737,19 +3773,19 @@
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.create_index_job.error",
-    "translation": "Elasticsearchアグリゲーターのワーカーがインデックス付与処理を作成できませんでした"
+    "translation": "Elasticsearch Aggregatorのワーカーがインデックス付与処理を作成できませんでした"
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.delete_indexes.error",
-    "translation": "Elasticsearchアグリゲーターのワーカーがインデックスを削除できませんでした"
+    "translation": "Elasticsearch Aggregatorのワーカーがインデックスを削除できませんでした"
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.get_indexes.error",
-    "translation": "Elasticsearchアグリゲーターのワーカーがインデックスを取得できませんでした"
+    "translation": "Elasticsearch Aggregatorのワーカーがインデックスを取得できませんでした"
   },
   {
     "id": "ent.elasticsearch.aggregator_worker.index_job_failed.error",
-    "translation": "Elasticsearchアグリゲーターのワーカーがインデックス付与処理失敗ために失敗しました"
+    "translation": "Elasticsearch Aggregatorのワーカーがインデックス付与処理失敗ために失敗しました"
   },
   {
     "id": "ent.elasticsearch.create_client.connect_failed",
@@ -3788,6 +3824,10 @@
     "translation": "投稿にインデックスを付与できませんでした"
   },
   {
+    "id": "ent.elasticsearch.indexer.do_job.get_oldest_post.error",
+    "translation": "最も古い投稿をデータベースから取り出せませんでした。"
+  },
+  {
     "id": "ent.elasticsearch.indexer.do_job.parse_end_time.error",
     "translation": "Elasticsearchインデックス付与ワーカーが終了時刻を解析できませんでした"
   },
@@ -3817,7 +3857,7 @@
   },
   {
     "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
-    "translation": "Elasticsearch一括処理器を生成することが出来ませんでした"
+    "translation": "Elasticsearch Bulk Processorを生成することが出来ませんでした"
   },
   {
     "id": "ent.elasticsearch.start.index_settings_failed",
@@ -3825,7 +3865,7 @@
   },
   {
     "id": "ent.elasticsearch.start.start_bulk_processor_failed.app_error",
-    "translation": "Elasticsearch一括処理器を開始することが出来ませんでした"
+    "translation": "Elasticsearch Bulk Processorを開始することが出来ませんでした"
   },
   {
     "id": "ent.elasticsearch.test_config.connect_failed",
@@ -4440,6 +4480,10 @@
     "translation": "ElasticsearchのAggregatePostsAfterDays設定は1以上でなくてはなりません"
   },
   {
+    "id": "model.config.is_valid.elastic_search.bulk_indexing_time_window_seconds.app_error",
+    "translation": "Elasticsearchの一括インデックス付与処理の時間は1秒以上でなければなりません。"
+  },
+  {
     "id": "model.config.is_valid.elastic_search.connection_url.app_error",
     "translation": "Elastic Searchインデックスが有効な場合、Elastic SearchのConnectionUrl設定は必須です。"
   },
@@ -4458,6 +4502,10 @@
   {
     "id": "model.config.is_valid.elastic_search.posts_aggregator_job_start_time.app_error",
     "translation": "ElasticsearchのPostsAggregatorJobStartTime設定は \"hh:mm\" の形式でなくてはなりません"
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.request_timeout_seconds.app_error",
+    "translation": "Elasticsearchリクエストタイムアウトは1秒以上でなくてはなりません。"
   },
   {
     "id": "model.config.is_valid.elastic_search.username.app_error",
@@ -5509,7 +5557,7 @@
   },
   {
     "id": "store.sql_channel.save.direct_channel.app_error",
-    "translation": "ダイレクトチャンネルを作成するにはSaveDirectChannelを使ってください"
+    "translation": "ダイレクトチャンネルを作成するにはSaveDirectChannelを使用してください"
   },
   {
     "id": "store.sql_channel.save.open_transaction.app_error",
@@ -6860,10 +6908,6 @@
     "translation": "戻る"
   },
   {
-    "id": "web.incoming_webhook.attachment.app_error",
-    "translation": "最大添付サイズは{{.Max}}文字ですが、受け取ったサイズは{{.Actual}}です。"
-  },
-  {
     "id": "web.incoming_webhook.channel.app_error",
     "translation": "チャンネルが見付かりません"
   },
@@ -6882,6 +6926,10 @@
   {
     "id": "web.incoming_webhook.permissions.app_error",
     "translation": "チャンネルへの権限が足りません"
+  },
+  {
+    "id": "web.incoming_webhook.split_props_length.app_error",
+    "translation": "ウェブフックの設定を {{.Max}} 文字に分割できませんでした。"
   },
   {
     "id": "web.incoming_webhook.text.app_error",

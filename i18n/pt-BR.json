@@ -636,6 +636,26 @@
     "translation": "Imagens para links agora ficarão recolhidos por padrão"
   },
   {
+    "id": "api.command_dnd.desc",
+    "translation": "Não Perturbe desabilita notificações no desktop e no celular."
+  },
+  {
+    "id": "api.command_dnd.disabled",
+    "translation": "Não Perturbe está desabilitado."
+  },
+  {
+    "id": "api.command_dnd.error",
+    "translation": "Falha para buscar os status do usuário."
+  },
+  {
+    "id": "api.command_dnd.name",
+    "translation": "dnd"
+  },
+  {
+    "id": "api.command_dnd.success",
+    "translation": "Não Perturbe está habilitado. Você não irá receber notificações no desktop ou push no celular enquanto o Não Perturbe não for desativado."
+  },
+  {
     "id": "api.command_echo.create.app_error",
     "translation": "Não é possível criar o post /echo, err=%v"
   },
@@ -3472,12 +3492,16 @@
     "translation": "Não foi possível ativar o plugin extraído. O plugin já pode existir e estar ativado."
   },
   {
+    "id": "app.plugin.config.app_error",
+    "translation": "Falha ao salvar o estado do plugin na configuração"
+  },
+  {
     "id": "app.plugin.deactivate.app_error",
     "translation": "Não é possível desativar o plugin"
   },
   {
     "id": "app.plugin.disabled.app_error",
-    "translation": "Os plugins foram desativados pelo administrador do sistema ou o servidor não foi reiniciado quando eles foram ativados."
+    "translation": "Os plugins foram desabilitados."
   },
   {
     "id": "app.plugin.extract.app_error",
@@ -3492,6 +3516,10 @@
     "translation": "Não é possível obter os plugins ativos"
   },
   {
+    "id": "app.plugin.get_plugins.app_error",
+    "translation": "Não é possível obter os plugins ativos"
+  },
+  {
     "id": "app.plugin.manifest.app_error",
     "translation": "Não foi possível encontrar o manifesto para o plugin extraído"
   },
@@ -3500,8 +3528,16 @@
     "translation": "Não foi possível mover o plugin da pasta temporária para o destino final"
   },
   {
+    "id": "app.plugin.not_installed.app_error",
+    "translation": "Plugin não está instalado"
+  },
+  {
     "id": "app.plugin.remove.app_error",
     "translation": "Não é possível deletar o plugin"
+  },
+  {
+    "id": "app.plugin.upload_disabled.app_error",
+    "translation": "Plugins e/ou envio de plugin foi desabilitado."
   },
   {
     "id": "app.user_access_token.disabled",
@@ -3786,6 +3822,10 @@
   {
     "id": "ent.elasticsearch.index_post.error",
     "translation": "Não foi possível indexar o post"
+  },
+  {
+    "id": "ent.elasticsearch.indexer.do_job.get_oldest_post.error",
+    "translation": "A postagem mais antiga não pode ser obtida do banco de dados."
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.parse_end_time.error",
@@ -4440,6 +4480,10 @@
     "translation": "Elasticsearch AggregatePostsAfterDays a configuração deve ser um número maior ou igual a 1"
   },
   {
+    "id": "model.config.is_valid.elastic_search.bulk_indexing_time_window_seconds.app_error",
+    "translation": "Janela de Tempo de Indexação em Massa do Elasticsearch deve ter pelo menos 1 segundo."
+  },
+  {
     "id": "model.config.is_valid.elastic_search.connection_url.app_error",
     "translation": "A ElasticSearch ConnectionUrl deve ser fornecida quando ElasticSearch indexing está ativado."
   },
@@ -4458,6 +4502,10 @@
   {
     "id": "model.config.is_valid.elastic_search.posts_aggregator_job_start_time.app_error",
     "translation": "Elasticsearch PostsAggregatorJobStartTime a configuração deve ser uma hora no formato \"hh:mm\""
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.request_timeout_seconds.app_error",
+    "translation": "O tempo limite de Requisição Elasticsearch deve ser pelo menos 1 segundo."
   },
   {
     "id": "model.config.is_valid.elastic_search.username.app_error",
@@ -6860,10 +6908,6 @@
     "translation": "Voltar"
   },
   {
-    "id": "web.incoming_webhook.attachment.app_error",
-    "translation": "Máximo tamanho dos anexos é de {{.Max}} caracteres, tamanho recebido é de {{.Actual}}"
-  },
-  {
     "id": "web.incoming_webhook.channel.app_error",
     "translation": "Não foi possível encontrar o canal"
   },
@@ -6882,6 +6926,10 @@
   {
     "id": "web.incoming_webhook.permissions.app_error",
     "translation": "Permissões do canal inapropriadas"
+  },
+  {
+    "id": "web.incoming_webhook.split_props_length.app_error",
+    "translation": "Não foi possível dividir o webhook props em {{.Max}} partes de caracteres."
   },
   {
     "id": "web.incoming_webhook.text.app_error",

@@ -13,6 +13,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
+
 	"github.com/mattermost/mattermost-server/einterfaces"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/model/gitlab"
@@ -98,6 +100,24 @@ func TestCreateOAuthUser(t *testing.T) {
 	}
 }
 
+func TestDeactivateSSOUser(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+	glUser := oauthgitlab.GitLabUser{Id: int64(r.Intn(1000)) + 1, Username: "o" + model.NewId(), Email: model.NewId() + "@simulator.amazonses.com", Name: "Joram Wilander"}
+
+	json := glUser.ToJson()
+	user, err := th.App.CreateOAuthUser(model.USER_AUTH_SERVICE_GITLAB, strings.NewReader(json), th.BasicTeam.Id)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer th.App.PermanentDeleteUser(user)
+
+	_, err = th.App.UpdateNonSSOUserActive(user.Id, false)
+	assert.Equal(t, "api.user.update_active.no_deactivate_sso.app_error", err.Id)
+}
+
 func TestCreateProfileImage(t *testing.T) {
 	b, err := CreateProfileImage("Corey Hulen", "eo1zkdr96pdj98pjmq8zy35wba", "luximbi.ttf")
 	if err != nil {
@@ -115,6 +135,25 @@ func TestCreateProfileImage(t *testing.T) {
 	if img.At(1, 1) != colorful {
 		t.Fatal("Failed to create correct color")
 	}
+}
+
+func TestUpdateUserToRestrictedDomain(t *testing.T) {
+	th := Setup()
+	defer th.TearDown()
+
+	user := th.CreateUser()
+	defer th.App.PermanentDeleteUser(user)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.TeamSettings.RestrictCreationToDomains = "foo.com"
+	})
+
+	_, err := th.App.UpdateUser(user, false)
+	assert.True(t, err == nil)
+
+	user.Email = "asdf@ghjk.l"
+	_, err = th.App.UpdateUser(user, false)
+	assert.False(t, err == nil)
 }
 
 func TestUpdateOAuthUserAttrs(t *testing.T) {

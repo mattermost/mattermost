@@ -259,10 +259,10 @@ func (a *App) UploadFiles(teamId string, channelId string, userId string, fileHe
 
 	for i, fileHeader := range fileHeaders {
 		file, fileErr := fileHeader.Open()
-		defer file.Close()
 		if fileErr != nil {
 			return nil, model.NewAppError("UploadFiles", "api.file.upload_file.bad_parse.app_error", nil, fileErr.Error(), http.StatusBadRequest)
 		}
+		defer file.Close()
 
 		buf := bytes.NewBuffer(nil)
 		io.Copy(buf, file)

@@ -44,6 +44,9 @@ func (cfg *AutoPostCreator) UploadTestFile() ([]string, bool) {
 
 	path, _ := utils.FindDir("web/static/images")
 	file, err := os.Open(path + "/" + filename)
+	if err != nil {
+		return nil, false
+	}
 	defer file.Close()
 
 	data := &bytes.Buffer{}

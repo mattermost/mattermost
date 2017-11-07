@@ -221,7 +221,7 @@ func InitializeConfigWatch() {
 						if event.Op&fsnotify.Write == fsnotify.Write || event.Op&fsnotify.Create == fsnotify.Create {
 							l4g.Info(fmt.Sprintf("Config file watcher detected a change reloading %v", CfgFileName))
 
-							if configReadErr := viper.ReadInConfig(); configReadErr == nil {
+							if _, configReadErr := ReadConfigFile(CfgFileName, true); configReadErr == nil {
 								LoadGlobalConfig(CfgFileName)
 							} else {
 								l4g.Error(fmt.Sprintf("Failed to read while watching config file at %v with err=%v", CfgFileName, configReadErr.Error()))
@@ -414,11 +414,15 @@ func LoadGlobalConfig(fileName string) *model.Config {
 	SetDefaultRolesBasedOnConfig()
 	SetSiteURL(*Cfg.ServiceSettings.SiteURL)
 
-	for _, listener := range cfgListeners {
-		listener(&oldConfig, config)
-	}
+	InvokeGlobalConfigListeners(&oldConfig, config)
 
 	return config
+}
+
+func InvokeGlobalConfigListeners(old, current *model.Config) {
+	for _, listener := range cfgListeners {
+		listener(old, current)
+	}
 }
 
 func RegenerateClientConfig() {

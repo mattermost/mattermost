@@ -774,10 +774,10 @@ func (a *App) GetProfileImage(user *model.User) ([]byte, bool, *model.AppError) 
 
 func (a *App) SetProfileImage(userId string, imageData *multipart.FileHeader) *model.AppError {
 	file, err := imageData.Open()
-	defer file.Close()
 	if err != nil {
 		return model.NewAppError("SetProfileImage", "api.user.upload_profile_user.open.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
+	defer file.Close()
 
 	// Decode image config first to check dimensions before loading the whole thing into memory later on
 	config, _, err := image.DecodeConfig(file)
@@ -867,15 +867,15 @@ func (a *App) UpdatePasswordAsUser(userId, currentPassword, newPassword string) 
 	return a.UpdatePasswordSendEmail(user, newPassword, T("api.user.update_password.menu"))
 }
 
-func (a *App) UpdateActiveNoLdap(userId string, active bool) (*model.User, *model.AppError) {
+func (a *App) UpdateNonSSOUserActive(userId string, active bool) (*model.User, *model.AppError) {
 	var user *model.User
 	var err *model.AppError
 	if user, err = a.GetUser(userId); err != nil {
 		return nil, err
 	}
 
-	if user.IsLDAPUser() {
-		err := model.NewAppError("UpdateActive", "api.user.update_active.no_deactivate_ldap.app_error", nil, "userId="+user.Id, http.StatusBadRequest)
+	if user.IsSSOUser() {
+		err := model.NewAppError("UpdateActive", "api.user.update_active.no_deactivate_sso.app_error", nil, "userId="+user.Id, http.StatusBadRequest)
 		err.StatusCode = http.StatusBadRequest
 		return nil, err
 	}
@@ -984,6 +984,17 @@ func (a *App) sendUpdatedUserEvent(user model.User, asAdmin bool) {
 }
 
 func (a *App) UpdateUser(user *model.User, sendNotifications bool) (*model.User, *model.AppError) {
+	if !CheckUserDomain(user, a.Config().TeamSettings.RestrictCreationToDomains) {
+		result := <-a.Srv.Store.User().Get(user.Id)
+		if result.Err != nil {
+			return nil, result.Err
+		}
+		prev := result.Data.(*model.User)
+		if !prev.IsLDAPUser() && !prev.IsSAMLUser() && user.Email != prev.Email {
+			return nil, model.NewAppError("UpdateUser", "api.user.create_user.accepted_domain.app_error", nil, "", http.StatusBadRequest)
+		}
+	}
+
 	if result := <-a.Srv.Store.User().Update(user, false); result.Err != nil {
 		return nil, result.Err
 	} else {

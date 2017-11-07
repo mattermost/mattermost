@@ -783,21 +783,36 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	member := model.ChannelMemberFromJson(r.Body)
-	if member == nil {
-		c.SetInvalidParam("channel_member")
-		return
-	}
-
-	if len(member.UserId) != 26 {
+	props := model.StringInterfaceFromJson(r.Body)
+	userId, ok := props["user_id"].(string)
+	if !ok || len(userId) != 26 {
 		c.SetInvalidParam("user_id")
 		return
 	}
 
-	member.ChannelId = c.Params.ChannelId
+	member := &model.ChannelMember{
+		ChannelId: c.Params.ChannelId,
+		UserId:    userId,
+	}
+
+	postRootId, ok := props["post_root_id"].(string)
+	if ok && len(postRootId) != 0 && len(postRootId) != 26 {
+		c.SetInvalidParam("post_root_id")
+		return
+	}
+
+	var err *model.AppError
+	if ok && len(postRootId) == 26 {
+		if rootPost, err := c.App.GetSinglePost(postRootId); err != nil {
+			c.Err = err
+			return
+		} else if rootPost.ChannelId != member.ChannelId {
+			c.SetInvalidParam("post_root_id")
+			return
+		}
+	}
 
 	var channel *model.Channel
-	var err *model.AppError
 	if channel, err = c.App.GetChannel(member.ChannelId); err != nil {
 		c.Err = err
 		return
@@ -828,7 +843,7 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if cm, err := c.App.AddChannelMember(member.UserId, channel, c.Session.UserId); err != nil {
+	if cm, err := c.App.AddChannelMember(member.UserId, channel, c.Session.UserId, postRootId); err != nil {
 		c.Err = err
 		return
 	} else {
