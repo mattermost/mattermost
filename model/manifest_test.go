@@ -67,11 +67,11 @@ func TestManifestUnmarshal(t *testing.T) {
 		Webapp: &ManifestWebapp{
 			BundlePath: "thebundlepath",
 		},
-		UISettings: &PluginUISettings{
-			HeaderText: "theheadertext",
-			FooterText: "thefootertext",
-			Settings: map[string]*PluginUISetting{
-				"thesetting": &PluginUISetting{
+		SettingsSchema: &PluginSettingsSchema{
+			Header: "theheadertext",
+			Footer: "thefootertext",
+			Settings: map[string]*PluginSetting{
+				"thesetting": &PluginSetting{
 					DisplayName: "thedisplayname",
 					Type:        PLUGIN_CONFIG_TYPE_DROPDOWN,
 					HelpText:    "thehelptext",
@@ -93,9 +93,9 @@ backend:
     executable: theexecutable
 webapp:
     bundle_path: thebundlepath
-ui_settings:
-    header_text: theheadertext
-    footer_text: thefootertext
+settings_schema:
+    header: theheadertext
+    footer: thefootertext
     settings:
         thesetting:
             display_name: thedisplayname
@@ -117,9 +117,9 @@ ui_settings:
 	"webapp": {
 		"bundle_path": "thebundlepath"
 	},
-    "ui_settings": {
-        "header_text": "theheadertext",
-        "footer_text": "thefootertext",
+    "settings_schema": {
+        "header": "theheadertext",
+        "footer": "thefootertext",
         "settings": {
             "thesetting": {
                 "display_name": "thedisplayname",
@@ -165,18 +165,19 @@ func TestManifestJson(t *testing.T) {
 		Webapp: &ManifestWebapp{
 			BundlePath: "thebundlepath",
 		},
-		UISettings: &PluginUISettings{
-			HeaderText: "theheadertext",
-			FooterText: "thefootertext",
-			Settings: map[string]*PluginUISetting{
-				"thesetting": &PluginUISetting{
+		SettingsSchema: &PluginSettingsSchema{
+			Header: "theheadertext",
+			Footer: "thefootertext",
+			Settings: map[string]*PluginSetting{
+				"thesetting": &PluginSetting{
 					DisplayName: "thedisplayname",
 					Type:        PLUGIN_CONFIG_TYPE_DROPDOWN,
 					HelpText:    "thehelptext",
-					Options: []*PluginOption{&PluginOption{
-						DisplayName: "theoptiondisplayname",
-						Value:       "thevalue",
-					},
+					Options: []*PluginOption{
+						&PluginOption{
+							DisplayName: "theoptiondisplayname",
+							Value:       "thevalue",
+						},
 					},
 					Default: "thedefault",
 				},
@@ -226,11 +227,11 @@ func TestManifestClientManifest(t *testing.T) {
 		Webapp: &ManifestWebapp{
 			BundlePath: "thebundlepath",
 		},
-		UISettings: &PluginUISettings{
-			HeaderText: "theheadertext",
-			FooterText: "thefootertext",
-			Settings: map[string]*PluginUISetting{
-				"thesetting": &PluginUISetting{
+		SettingsSchema: &PluginSettingsSchema{
+			Header: "theheadertext",
+			Footer: "thefootertext",
+			Settings: map[string]*PluginSetting{
+				"thesetting": &PluginSetting{
 					DisplayName: "thedisplayname",
 					Type:        PLUGIN_CONFIG_TYPE_DROPDOWN,
 					HelpText:    "thehelptext",
@@ -250,7 +251,7 @@ func TestManifestClientManifest(t *testing.T) {
 	assert.NotEmpty(t, sanitized.Id)
 	assert.NotEmpty(t, sanitized.Version)
 	assert.NotEmpty(t, sanitized.Webapp)
-	assert.NotEmpty(t, sanitized.UISettings)
+	assert.NotEmpty(t, sanitized.SettingsSchema)
 	assert.Empty(t, sanitized.Name)
 	assert.Empty(t, sanitized.Description)
 	assert.Empty(t, sanitized.Backend)
@@ -261,5 +262,5 @@ func TestManifestClientManifest(t *testing.T) {
 	assert.NotEmpty(t, manifest.Name)
 	assert.NotEmpty(t, manifest.Description)
 	assert.NotEmpty(t, manifest.Backend)
-	assert.NotEmpty(t, manifest.UISettings)
+	assert.NotEmpty(t, manifest.SettingsSchema)
 }

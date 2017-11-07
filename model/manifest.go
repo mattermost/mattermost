@@ -26,7 +26,7 @@ type PluginOption struct {
 	Value       string `json:"value" yaml:"value"`
 }
 
-type PluginUISetting struct {
+type PluginSetting struct {
 	DisplayName string          `json:"display_name" yaml:"display_name"`
 	Type        string          `json:"type" yaml:"type"`
 	HelpText    string          `json:"help_text" yaml:"help_text"`
@@ -34,20 +34,20 @@ type PluginUISetting struct {
 	Options     []*PluginOption `json:"options,omitempty" yaml:"options,omitempty"`
 }
 
-type PluginUISettings struct {
-	HeaderText string                      `json:"header_text" yaml:"header_text"`
-	FooterText string                      `json:"footer_text" yaml:"footer_text"`
-	Settings   map[string]*PluginUISetting `json:"settings" yaml:"settings"`
+type PluginSettingsSchema struct {
+	Header   string                    `json:"header" yaml:"header"`
+	Footer   string                    `json:"footer" yaml:"footer"`
+	Settings map[string]*PluginSetting `json:"settings" yaml:"settings"`
 }
 
 type Manifest struct {
-	Id          string            `json:"id" yaml:"id"`
-	Name        string            `json:"name,omitempty" yaml:"name,omitempty"`
-	Description string            `json:"description,omitempty" yaml:"description,omitempty"`
-	Version     string            `json:"version" yaml:"version"`
-	Backend     *ManifestBackend  `json:"backend,omitempty" yaml:"backend,omitempty"`
-	Webapp      *ManifestWebapp   `json:"webapp,omitempty" yaml:"webapp,omitempty"`
-	UISettings  *PluginUISettings `json:"ui_settings,omitempty" yaml:"ui_settings,omitempty"`
+	Id             string                `json:"id" yaml:"id"`
+	Name           string                `json:"name,omitempty" yaml:"name,omitempty"`
+	Description    string                `json:"description,omitempty" yaml:"description,omitempty"`
+	Version        string                `json:"version" yaml:"version"`
+	Backend        *ManifestBackend      `json:"backend,omitempty" yaml:"backend,omitempty"`
+	Webapp         *ManifestWebapp       `json:"webapp,omitempty" yaml:"webapp,omitempty"`
+	SettingsSchema *PluginSettingsSchema `json:"settings_schema,omitempty" yaml:"settings_schema,omitempty"`
 }
 
 type ManifestBackend struct {
