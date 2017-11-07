@@ -9,4 +9,10 @@
 // Plugins should define a type that implements some of the methods from the Hook interface, then
 // pass an instance of that object into the rpcplugin package's Main function (See the HelloWorld
 // example.).
+//
+// Testing
+//
+// To make testing plugins easier, you can use the plugintest package to create a mock API for your
+// plugin to interact with. See
+// https://godoc.org/github.com/mattermost/mattermost-server/plugin/plugintest
 package plugin
