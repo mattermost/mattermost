@@ -2164,6 +2164,10 @@
     "translation": "要求中的 'file' 欄位沒有檔案"
   },
   {
+    "id": "api.team.import_team.no_import_from.app_error",
+    "translation": "要求格式錯誤：沒有檔案大小欄位。"
+  },
+  {
     "id": "api.team.import_team.open.app_error",
     "translation": "無法開啟檔案"
   },
@@ -2800,7 +2804,7 @@
     "translation": "歡迎電子郵件傳送失敗"
   },
   {
-    "id": "api.user.update_active.no_deactivate_ldap.app_error",
+    "id": "api.user.update_active.no_deactivate_sso.app_error",
     "translation": "不能變更 AD/LDAP 帳號的啟用狀態。請變更 AD/LDAP 伺服器上對應的帳號狀態。"
   },
   {
