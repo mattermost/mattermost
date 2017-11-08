@@ -499,6 +499,7 @@ func (a *App) trackPlugins() {
 		totalInactiveCount := -1 // -1 to indicate disabled or error
 		webappInactiveCount := 0
 		backendInactiveCount := 0
+		settingsCount := 0
 
 		plugins, _ := a.GetPluginManifests()
 
@@ -513,6 +514,10 @@ func (a *App) trackPlugins() {
 				if plugin.Backend != nil {
 					backendActiveCount += 1
 				}
+
+				if plugin.SettingsSchema != nil {
+					settingsCount += 1
+				}
 			}
 
 			totalInactiveCount = len(plugins.Inactive)
@@ -525,6 +530,10 @@ func (a *App) trackPlugins() {
 				if plugin.Backend != nil {
 					backendInactiveCount += 1
 				}
+
+				if plugin.SettingsSchema != nil {
+					settingsCount += 1
+				}
 			}
 		}
 
@@ -535,6 +544,7 @@ func (a *App) trackPlugins() {
 			"inactive_plugins":         totalInactiveCount,
 			"inactive_webapp_plugins":  webappInactiveCount,
 			"inactive_backend_plugins": backendInactiveCount,
+			"plugins_with_settings":    settingsCount,
 		})
 	}
 }
