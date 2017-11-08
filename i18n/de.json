@@ -2164,6 +2164,10 @@
     "translation": "Keine Datei unter 'file' in der Anfrage"
   },
   {
+    "id": "api.team.import_team.no_import_from.app_error",
+    "translation": "Falsch gebildete Anfrage: Feld filesize fehlt."
+  },
+  {
     "id": "api.team.import_team.open.app_error",
     "translation": "Konnte Datei nicht öffnen"
   },
@@ -2800,7 +2804,7 @@
     "translation": "Die Willkommens-E-Mail konnte nicht versandt werden"
   },
   {
-    "id": "api.user.update_active.no_deactivate_ldap.app_error",
+    "id": "api.user.update_active.no_deactivate_sso.app_error",
     "translation": "Sie können den Aktivitätsstatus des AD-/LDAP-Kontos nicht ändern. Bitte ändern Sie diesen über den AD-/LDAP-Server."
   },
   {

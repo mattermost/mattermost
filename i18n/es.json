@@ -2164,6 +2164,10 @@
     "translation": "No hay un archivo bajo la solicitud de 'archivo'"
   },
   {
+    "id": "api.team.import_team.no_import_from.app_error",
+    "translation": "Solicitud con formato incorrecto: campo importFrom no está presente."
+  },
+  {
     "id": "api.team.import_team.open.app_error",
     "translation": "No se pudo abrir el archivo"
   },
@@ -2800,8 +2804,8 @@
     "translation": "Error al enviar la notificación de bienvenida por correo electrónico"
   },
   {
-    "id": "api.user.update_active.no_deactivate_ldap.app_error",
-    "translation": "No puedes modificar el estado de activación de cuentas AD/LDAP. Por favor, haz la modificación a través del servidor AD/LDAP."
+    "id": "api.user.update_active.no_deactivate_sso.app_error",
+    "translation": "No puedes modificar el estado de activación para cuentas de tipo SSO. Por favor, haz la modificación a través del servicio SSO."
   },
   {
     "id": "api.user.update_active.permissions.app_error",

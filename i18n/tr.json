@@ -2164,6 +2164,10 @@
     "translation": "İstekte 'dosya' altında dosya yok"
   },
   {
+    "id": "api.team.import_team.no_import_from.app_error",
+    "translation": "İstek biçimi bozuk: İçe Aktarılacak Konum alanı bulunamadı."
+  },
+  {
     "id": "api.team.import_team.open.app_error",
     "translation": "Dosya açılamadı"
   },
@@ -2800,8 +2804,8 @@
     "translation": "Karşılama e-postası gönderilemedi"
   },
   {
-    "id": "api.user.update_active.no_deactivate_ldap.app_error",
-    "translation": "AD/LDAP hesaplarının etkinleştirme durumu değiştirilemez. Lütfen değişiklikleri AD/LDAP sunucusu üzerinde yapın."
+    "id": "api.user.update_active.no_deactivate_sso.app_error",
+    "translation": "SSO hesaplarının etkinleştirme durumu değiştirilemez. Lütfen değişiklikleri SSO sunucusu üzerinde yapın."
   },
   {
     "id": "api.user.update_active.permissions.app_error",
