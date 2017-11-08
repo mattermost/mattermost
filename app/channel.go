@@ -1009,7 +1009,7 @@ func (a *App) PostAddToChannelMessage(user *model.User, addedUser *model.User, c
 func (a *App) PostRemoveFromChannelMessage(removerUserId string, removedUser *model.User, channel *model.Channel) *model.AppError {
 	post := &model.Post{
 		ChannelId: channel.Id,
-		Message:   fmt.Sprintf(utils.T("api.channel.remove_member.removed"), removedUser.Username),
+		Message:   fmt.Sprintf(utils.T("api.team.remove_user_from_team.removed"), removedUser.Username),
 		Type:      model.POST_REMOVE_FROM_CHANNEL,
 		UserId:    removerUserId,
 		Props: model.StringInterface{

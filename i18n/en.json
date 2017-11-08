@@ -153,7 +153,7 @@
   },
   {
     "id": "api.channel.add_member.added",
-    "translation": "%v added to the channel by %v"
+    "translation": "%v added to the team by %v"
   },
   {
     "id": "api.channel.add_member.find_channel.app_error",
@@ -361,7 +361,7 @@
   },
   {
     "id": "api.channel.remove_member.removed",
-    "translation": "%v was removed from the team."
+    "translation": "%v was removed from the channel."
   },
   {
     "id": "api.channel.remove_member.unable.app_error",
@@ -2289,6 +2289,10 @@
   {
     "id": "api.team.permanent_delete_team.deleted.warn",
     "translation": "Permanently deleted team %v id=%v"
+  },
+  {
+    "id": "api.team.remove_user_from_team.removed",
+    "translation": "%v was removed from the team."
   },
   {
     "id": "api.team.remove_user_from_team.missing.app_error",
