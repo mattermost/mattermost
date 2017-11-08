@@ -1025,7 +1025,9 @@
   },
   {
     "id": "api.email_batching.check_pending_emails.finished_running",
-    "translation": "Email batching job ran. %v user(s) still have notifications pending."
+      "one": "Email batching job ran. %v user still has notifications pending.",
+      "other": "Email batching job ran. %v users still have notifications pending."
+    }
   },
   {
     "id": "api.email_batching.render_batched_post.channel.app_error",
