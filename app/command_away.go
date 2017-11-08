@@ -23,7 +23,7 @@ func (me *AwayProvider) GetTrigger() string {
 	return CMD_AWAY
 }
 
-func (me *AwayProvider) GetCommand(T goi18n.TranslateFunc) *model.Command {
+func (me *AwayProvider) GetCommand(a *App, T goi18n.TranslateFunc) *model.Command {
 	return &model.Command{
 		Trigger:          CMD_AWAY,
 		AutoComplete:     true,

@@ -743,7 +743,7 @@ func (a *App) GetProfileImage(user *model.User) ([]byte, bool, *model.AppError) 
 	var img []byte
 	readFailed := false
 
-	if len(*utils.Cfg.FileSettings.DriverName) == 0 {
+	if len(*a.Config().FileSettings.DriverName) == 0 {
 		var err *model.AppError
 		if img, err = CreateProfileImage(user.Username, user.Id, a.Config().FileSettings.InitialFont); err != nil {
 			return nil, false, err

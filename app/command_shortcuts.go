@@ -23,7 +23,7 @@ func (me *ShortcutsProvider) GetTrigger() string {
 	return CMD_SHORTCUTS
 }
 
-func (me *ShortcutsProvider) GetCommand(T goi18n.TranslateFunc) *model.Command {
+func (me *ShortcutsProvider) GetCommand(a *App, T goi18n.TranslateFunc) *model.Command {
 	return &model.Command{
 		Trigger:          CMD_SHORTCUTS,
 		AutoComplete:     true,

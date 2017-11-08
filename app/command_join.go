@@ -23,7 +23,7 @@ func (me *JoinProvider) GetTrigger() string {
 	return CMD_JOIN
 }
 
-func (me *JoinProvider) GetCommand(T goi18n.TranslateFunc) *model.Command {
+func (me *JoinProvider) GetCommand(a *App, T goi18n.TranslateFunc) *model.Command {
 	return &model.Command{
 		Trigger:          CMD_JOIN,
 		AutoComplete:     true,

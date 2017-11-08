@@ -24,8 +24,8 @@ func (open *OpenProvider) GetTrigger() string {
 	return CMD_OPEN
 }
 
-func (open *OpenProvider) GetCommand(T goi18n.TranslateFunc) *model.Command {
-	cmd := open.JoinProvider.GetCommand(T)
+func (open *OpenProvider) GetCommand(a *App, T goi18n.TranslateFunc) *model.Command {
+	cmd := open.JoinProvider.GetCommand(a, T)
 	cmd.Trigger = CMD_OPEN
 	cmd.DisplayName = T("api.command_open.name")
 	return cmd

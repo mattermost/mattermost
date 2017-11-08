@@ -189,7 +189,7 @@ func downloadComplianceReport(c *Context, w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	reportBytes, err := app.GetComplianceFile(job)
+	reportBytes, err := c.App.GetComplianceFile(job)
 	if err != nil {
 		c.Err = err
 		return

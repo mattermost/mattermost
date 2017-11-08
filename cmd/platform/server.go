@@ -90,26 +90,30 @@ func runServer(configFileLocation string) {
 	wsapi.Init(a, a.Srv.WebSocketRouter)
 	web.Init(api3)
 
-	if !utils.IsLicensed() && len(utils.Cfg.SqlSettings.DataSourceReplicas) > 1 {
+	if !utils.IsLicensed() && len(a.Config().SqlSettings.DataSourceReplicas) > 1 {
 		l4g.Warn(utils.T("store.sql.read_replicas_not_licensed.critical"))
-		utils.Cfg.SqlSettings.DataSourceReplicas = utils.Cfg.SqlSettings.DataSourceReplicas[:1]
+		a.UpdateConfig(func(cfg *model.Config) {
+			cfg.SqlSettings.DataSourceReplicas = cfg.SqlSettings.DataSourceReplicas[:1]
+		})
 	}
 
 	if !utils.IsLicensed() {
-		utils.Cfg.TeamSettings.MaxNotificationsPerChannel = &MaxNotificationsPerChannelDefault
+		a.UpdateConfig(func(cfg *model.Config) {
+			cfg.TeamSettings.MaxNotificationsPerChannel = &MaxNotificationsPerChannelDefault
+		})
 	}
 
 	a.ReloadConfig()
 
 	// Enable developer settings if this is a "dev" build
 	if model.BuildNumber == "dev" {
-		*utils.Cfg.ServiceSettings.EnableDeveloper = true
+		a.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableDeveloper = true })
 	}
 
 	resetStatuses(a)
 
 	// If we allow testing then listen for manual testing URL hits
-	if utils.Cfg.ServiceSettings.EnableTesting {
+	if a.Config().ServiceSettings.EnableTesting {
 		manualtesting.Init(api3)
 	}
 
@@ -142,10 +146,10 @@ func runServer(configFileLocation string) {
 		})
 	}
 
-	if *utils.Cfg.JobSettings.RunJobs {
+	if *a.Config().JobSettings.RunJobs {
 		a.Jobs.StartWorkers()
 	}
-	if *utils.Cfg.JobSettings.RunScheduler {
+	if *a.Config().JobSettings.RunScheduler {
 		a.Jobs.StartSchedulers()
 	}
 

@@ -841,7 +841,7 @@ func TestGetProfileImage(t *testing.T) {
 	CheckNoError(t, resp)
 
 	info := &model.FileInfo{Path: "/users/" + user.Id + "/profile.png"}
-	if err := cleanupTestFile(info); err != nil {
+	if err := th.cleanupTestFile(info); err != nil {
 		t.Fatal(err)
 	}
 }
@@ -2089,7 +2089,7 @@ func TestSetProfileImage(t *testing.T) {
 	assert.True(t, buser.LastPictureUpdate < ruser.LastPictureUpdate, "Picture should have updated for user")
 
 	info := &model.FileInfo{Path: "users/" + user.Id + "/profile.png"}
-	if err := cleanupTestFile(info); err != nil {
+	if err := th.cleanupTestFile(info); err != nil {
 		t.Fatal(err)
 	}
 }
@@ -2381,11 +2381,9 @@ func TestDisableUserAccessToken(t *testing.T) {
 
 	testDescription := "test token"
 
-	enableUserAccessTokens := *utils.Cfg.ServiceSettings.EnableUserAccessTokens
-	defer func() {
-		*utils.Cfg.ServiceSettings.EnableUserAccessTokens = enableUserAccessTokens
-	}()
-	*utils.Cfg.ServiceSettings.EnableUserAccessTokens = true
+	enableUserAccessTokens := *th.App.Config().ServiceSettings.EnableUserAccessTokens
+	defer th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = enableUserAccessTokens })
+	*th.App.Config().ServiceSettings.EnableUserAccessTokens = true
 
 	th.App.UpdateUserRoles(th.BasicUser.Id, model.ROLE_SYSTEM_USER.Id+" "+model.ROLE_SYSTEM_USER_ACCESS_TOKEN.Id, false)
 	token, resp := Client.CreateUserAccessToken(th.BasicUser.Id, testDescription)
@@ -2428,11 +2426,9 @@ func TestEnableUserAccessToken(t *testing.T) {
 
 	testDescription := "test token"
 
-	enableUserAccessTokens := *utils.Cfg.ServiceSettings.EnableUserAccessTokens
-	defer func() {
-		*utils.Cfg.ServiceSettings.EnableUserAccessTokens = enableUserAccessTokens
-	}()
-	*utils.Cfg.ServiceSettings.EnableUserAccessTokens = true
+	enableUserAccessTokens := *th.App.Config().ServiceSettings.EnableUserAccessTokens
+	defer th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = enableUserAccessTokens })
+	*th.App.Config().ServiceSettings.EnableUserAccessTokens = true
 
 	th.App.UpdateUserRoles(th.BasicUser.Id, model.ROLE_SYSTEM_USER.Id+" "+model.ROLE_SYSTEM_USER_ACCESS_TOKEN.Id, false)
 	token, resp := Client.CreateUserAccessToken(th.BasicUser.Id, testDescription)

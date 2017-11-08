@@ -447,7 +447,7 @@ func TestGetMentionKeywords(t *testing.T) {
 	}
 
 	profiles := map[string]*model.User{user1.Id: user1}
-	mentions := GetMentionKeywordsInChannel(profiles, true)
+	mentions := th.App.GetMentionKeywordsInChannel(profiles, true)
 	if len(mentions) != 3 {
 		t.Fatal("should've returned three mention keywords")
 	} else if ids, ok := mentions["user"]; !ok || ids[0] != user1.Id {
@@ -469,7 +469,7 @@ func TestGetMentionKeywords(t *testing.T) {
 	}
 
 	profiles = map[string]*model.User{user2.Id: user2}
-	mentions = GetMentionKeywordsInChannel(profiles, true)
+	mentions = th.App.GetMentionKeywordsInChannel(profiles, true)
 	if len(mentions) != 2 {
 		t.Fatal("should've returned two mention keyword")
 	} else if ids, ok := mentions["First"]; !ok || ids[0] != user2.Id {
@@ -487,7 +487,7 @@ func TestGetMentionKeywords(t *testing.T) {
 	}
 
 	profiles = map[string]*model.User{user3.Id: user3}
-	mentions = GetMentionKeywordsInChannel(profiles, true)
+	mentions = th.App.GetMentionKeywordsInChannel(profiles, true)
 	if len(mentions) != 3 {
 		t.Fatal("should've returned three mention keywords")
 	} else if ids, ok := mentions["@channel"]; !ok || ids[0] != user3.Id {
@@ -509,7 +509,7 @@ func TestGetMentionKeywords(t *testing.T) {
 	}
 
 	profiles = map[string]*model.User{user4.Id: user4}
-	mentions = GetMentionKeywordsInChannel(profiles, true)
+	mentions = th.App.GetMentionKeywordsInChannel(profiles, true)
 	if len(mentions) != 6 {
 		t.Fatal("should've returned six mention keywords")
 	} else if ids, ok := mentions["user"]; !ok || ids[0] != user4.Id {
@@ -551,7 +551,7 @@ func TestGetMentionKeywords(t *testing.T) {
 		user3.Id: user3,
 		user4.Id: user4,
 	}
-	mentions = GetMentionKeywordsInChannel(profiles, true)
+	mentions = th.App.GetMentionKeywordsInChannel(profiles, true)
 	if len(mentions) != 6 {
 		t.Fatal("should've returned six mention keywords")
 	} else if ids, ok := mentions["user"]; !ok || len(ids) != 2 || (ids[0] != user1.Id && ids[1] != user1.Id) || (ids[0] != user4.Id && ids[1] != user4.Id) {
@@ -572,7 +572,7 @@ func TestGetMentionKeywords(t *testing.T) {
 	profiles = map[string]*model.User{
 		user1.Id: user1,
 	}
-	mentions = GetMentionKeywordsInChannel(profiles, false)
+	mentions = th.App.GetMentionKeywordsInChannel(profiles, false)
 	if len(mentions) != 3 {
 		t.Fatal("should've returned three mention keywords")
 	} else if ids, ok := mentions["user"]; !ok || len(ids) != 1 || ids[0] != user1.Id {

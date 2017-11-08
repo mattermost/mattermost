@@ -23,7 +23,7 @@ func (me *LeaveProvider) GetTrigger() string {
 	return CMD_LEAVE
 }
 
-func (me *LeaveProvider) GetCommand(T goi18n.TranslateFunc) *model.Command {
+func (me *LeaveProvider) GetCommand(a *App, T goi18n.TranslateFunc) *model.Command {
 	return &model.Command{
 		Trigger:          CMD_LEAVE,
 		AutoComplete:     true,

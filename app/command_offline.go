@@ -23,7 +23,7 @@ func (me *OfflineProvider) GetTrigger() string {
 	return CMD_OFFLINE
 }
 
-func (me *OfflineProvider) GetCommand(T goi18n.TranslateFunc) *model.Command {
+func (me *OfflineProvider) GetCommand(a *App, T goi18n.TranslateFunc) *model.Command {
 	return &model.Command{
 		Trigger:          CMD_OFFLINE,
 		AutoComplete:     true,

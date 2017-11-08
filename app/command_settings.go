@@ -23,7 +23,7 @@ func (settings *SettingsProvider) GetTrigger() string {
 	return CMD_SETTINGS
 }
 
-func (settings *SettingsProvider) GetCommand(T goi18n.TranslateFunc) *model.Command {
+func (settings *SettingsProvider) GetCommand(a *App, T goi18n.TranslateFunc) *model.Command {
 	return &model.Command{
 		Trigger:          CMD_SETTINGS,
 		AutoComplete:     true,
