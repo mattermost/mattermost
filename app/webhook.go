@@ -110,10 +110,15 @@ func (a *App) TriggerWebhook(payload *model.OutgoingWebhookPayload, hook *model.
 					l4g.Error(utils.T("api.post.handle_webhook_events_and_forget.event_post.error"), err.Error())
 				} else {
 					defer consumeAndClose(resp)
+
 					webhookResp := model.OutgoingWebhookResponseFromJson(resp.Body)
 
 					if webhookResp != nil && webhookResp.Text != nil {
-						if _, err := a.CreateWebhookPost(hook.CreatorId, channel, *webhookResp.Text, webhookResp.Username, webhookResp.IconURL, webhookResp.Props, webhookResp.Type); err != nil {
+						postRootId := ""
+						if webhookResp.ResponseType == model.OUTGOING_HOOK_RESPONSE_TYPE_COMMENT {
+							postRootId = post.Id
+						}
+						if _, err := a.CreateWebhookPost(hook.CreatorId, channel, *webhookResp.Text, webhookResp.Username, webhookResp.IconURL, webhookResp.Props, webhookResp.Type, postRootId); err != nil {
 							l4g.Error(utils.T("api.post.handle_webhook_events_and_forget.create_post.error"), err)
 						}
 					}
@@ -203,12 +208,12 @@ func SplitWebhookPost(post *model.Post) ([]*model.Post, *model.AppError) {
 	return splits, nil
 }
 
-func (a *App) CreateWebhookPost(userId string, channel *model.Channel, text, overrideUsername, overrideIconUrl string, props model.StringInterface, postType string) (*model.Post, *model.AppError) {
+func (a *App) CreateWebhookPost(userId string, channel *model.Channel, text, overrideUsername, overrideIconUrl string, props model.StringInterface, postType string, postRootId string) (*model.Post, *model.AppError) {
 	// parse links into Markdown format
 	linkWithTextRegex := regexp.MustCompile(`<([^<\|]+)\|([^>]+)>`)
 	text = linkWithTextRegex.ReplaceAllString(text, "[${2}](${1})")
 
-	post := &model.Post{UserId: userId, ChannelId: channel.Id, Message: text, Type: postType}
+	post := &model.Post{UserId: userId, ChannelId: channel.Id, Message: text, Type: postType, RootId: postRootId}
 	post.AddProp("from_webhook", "true")
 
 	if strings.HasPrefix(post.Type, model.POST_SYSTEM_MESSAGE_PREFIX) {
@@ -600,7 +605,7 @@ func (a *App) HandleIncomingWebhook(hookId string, req *model.IncomingWebhookReq
 	overrideUsername := req.Username
 	overrideIconUrl := req.IconURL
 
-	_, err := a.CreateWebhookPost(hook.UserId, channel, text, overrideUsername, overrideIconUrl, req.Props, webhookType)
+	_, err := a.CreateWebhookPost(hook.UserId, channel, text, overrideUsername, overrideIconUrl, req.Props, webhookType, "")
 	return err
 }
 
