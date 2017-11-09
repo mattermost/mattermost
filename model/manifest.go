@@ -24,6 +24,7 @@ const (
 type PluginOption struct {
 	// The display name for the option.
 	DisplayName string `json:"display_name" yaml:"display_name"`
+
 	// The string value for the option.
 	Value string `json:"value" yaml:"value"`
 }
@@ -31,6 +32,7 @@ type PluginOption struct {
 type PluginSetting struct {
 	// The display name for the setting.
 	DisplayName string `json:"display_name" yaml:"display_name"`
+
 	// The type of the setting.
 	//
 	// "bool" will result in a boolean true or false setting.
@@ -46,12 +48,16 @@ type PluginSetting struct {
 	//
 	// "text" will result in a string setting that can be typed in manually.
 	Type string `json:"type" yaml:"type"`
+
 	// The help text to display to the user.
 	HelpText string `json:"help_text" yaml:"help_text"`
+
 	// The help text to display alongside the "Regenerate" button for settings of the "generated" type.
 	RegenerateHelpText string `json:"regenerate_help_text,omitempty" yaml:"regenerate_help_text,omitempty"`
+
 	// The default value of the setting.
 	Default interface{} `json:"default" yaml:"default"`
+
 	// For "radio" or "dropdown" settings, this is the list of pre-defined options that the user can choose
 	// from.
 	Options []*PluginOption `json:"options,omitempty" yaml:"options,omitempty"`
@@ -60,8 +66,10 @@ type PluginSetting struct {
 type PluginSettingsSchema struct {
 	// Optional text to display above the settings.
 	Header string `json:"header" yaml:"header"`
+
 	// Optional text to display below the settings.
 	Footer string `json:"footer" yaml:"footer"`
+
 	// A mapping of setting keys to schema definitions.
 	Settings map[string]*PluginSetting `json:"settings" yaml:"settings"`
 }
@@ -88,16 +96,22 @@ type Manifest struct {
 	// The id is a globally unique identifier that represents your plugin. Reverse-DNS notation
 	// using a name you control is a good option. For example, "com.mycompany.myplugin".
 	Id string `json:"id" yaml:"id"`
+
 	// The name to be displayed for the plugin.
 	Name string `json:"name,omitempty" yaml:"name,omitempty"`
+
 	// A description of what your plugin is and does.
 	Description string `json:"description,omitempty" yaml:"description,omitempty"`
+
 	// A version number for your plugin. Semantic versioning is recommended: http://semver.org
 	Version string `json:"version" yaml:"version"`
+
 	// If your plugin extends the server, you'll need define backend.
 	Backend *ManifestBackend `json:"backend,omitempty" yaml:"backend,omitempty"`
+
 	// If your plugin extends the web app, you'll need to define webapp.
 	Webapp *ManifestWebapp `json:"webapp,omitempty" yaml:"webapp,omitempty"`
+
 	// To allow administrators to configure your plugin via the Mattermost system console, you can
 	// provide your settings schema.
 	SettingsSchema *PluginSettingsSchema `json:"settings_schema,omitempty" yaml:"settings_schema,omitempty"`
