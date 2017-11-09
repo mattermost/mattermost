@@ -4,9 +4,11 @@
 package einterfaces
 
 import (
+	"context"
+
 	"github.com/mattermost/mattermost-server/model"
 )
 
 type MessageExportInterface interface {
-	StartSynchronizeJob(waitForJobToFinish bool, exportFromTimestamp int64) (*model.Job, *model.AppError)
+	StartSynchronizeJob(ctx context.Context, exportFromTimestamp int64) (*model.Job, *model.AppError)
 }

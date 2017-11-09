@@ -6,6 +6,10 @@ package main
 import (
 	"errors"
 
+	"context"
+
+	"time"
+
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/spf13/cobra"
 )
@@ -21,6 +25,7 @@ var messageExportCmd = &cobra.Command{
 func init() {
 	messageExportCmd.Flags().String("format", "actiance", "The format to export data in")
 	messageExportCmd.Flags().Int64("exportFrom", -1, "The timestamp of the earliest post to export, expressed in seconds since the unix epoch.")
+	messageExportCmd.Flags().Int("timeoutSeconds", -1, "The maximum number of seconds to wait for the job to complete before timing out.")
 }
 
 func messageExportCmdF(cmd *cobra.Command, args []string) error {
@@ -47,8 +52,18 @@ func messageExportCmdF(cmd *cobra.Command, args []string) error {
 		return errors.New("exportFrom flag error")
 	}
 
+	timeoutSeconds, err := cmd.Flags().GetInt("timeoutSeconds")
+	if err != nil {
+		return errors.New("timeoutSeconds error")
+	}
+
 	if messageExportI := a.MessageExport; messageExportI != nil {
-		job, err := messageExportI.StartSynchronizeJob(true, startTime)
+		ctx := context.Background()
+		if timeoutSeconds > 0 {
+			ctx, _ = context.WithTimeout(ctx, time.Second*time.Duration(timeoutSeconds))
+		}
+
+		job, err := messageExportI.StartSynchronizeJob(ctx, startTime)
 		if err != nil || job.Status == model.JOB_STATUS_ERROR || job.Status == model.JOB_STATUS_CANCELED {
 			CommandPrintErrorln("ERROR: Message export job failed. Please check the server logs")
 		} else {
