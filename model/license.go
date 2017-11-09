@@ -156,8 +156,7 @@ func (f *Features) SetDefaults() {
 	}
 
 	if f.MessageExport == nil {
-		f.MessageExport = new(bool)
-		*f.MessageExport = *f.FutureFeatures
+		f.MessageExport = NewBool(*f.FutureFeatures)
 	}
 }
 

@@ -213,9 +213,7 @@ func (s SqlComplianceStore) ComplianceExport(job *model.Compliance) store.StoreC
 }
 
 func (s SqlComplianceStore) MessageExport(after int64, limit int) store.StoreChannel {
-	storeChannel := make(store.StoreChannel, 1)
-
-	go func() {
+	return store.Do(func(result *store.StoreResult) {
 		props := map[string]interface{}{"StartTime": after, "Limit": limit}
 
 		queryPrefix :=
@@ -291,7 +289,6 @@ func (s SqlComplianceStore) MessageExport(after int64, limit int) store.StoreCha
 			LIMIT :Limit`
 
 		var cposts []*model.MessageExport
-		result := store.StoreResult{}
 
 		query := queryPrefix
 		if s.DriverName() != model.DATABASE_DRIVER_MYSQL && s.DriverName() != model.DATABASE_DRIVER_POSTGRES {
@@ -310,10 +307,5 @@ func (s SqlComplianceStore) MessageExport(after int64, limit int) store.StoreCha
 				result.Data = cposts
 			}
 		}
-
-		storeChannel <- result
-		close(storeChannel)
-	}()
-
-	return storeChannel
+	})
 }

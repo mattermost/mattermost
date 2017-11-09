@@ -40,8 +40,7 @@ func messageExportCmdF(cmd *cobra.Command, args []string) error {
 	}
 
 	// for now, format is hard-coded to actiance. In time, we'll have to support other formats and inject them into job data
-	format, err := cmd.Flags().GetString("format")
-	if err != nil {
+	if format, err := cmd.Flags().GetString("format"); err != nil {
 		return errors.New("format flag error")
 	} else if format != "actiance" {
 		return errors.New("unsupported export format")

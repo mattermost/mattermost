@@ -459,8 +459,8 @@ func (a *App) trackConfig() {
 
 	SendDiagnostic(TRACK_CONFIG_PLUGIN, map[string]interface{}{
 		"enable_jira":    pluginSetting(&cfg.PluginSettings, "jira", "enabled", false),
-		"enable":         *utils.Cfg.PluginSettings.Enable,
-		"enable_uploads": *utils.Cfg.PluginSettings.EnableUploads,
+		"enable":         *cfg.PluginSettings.Enable,
+		"enable_uploads": *cfg.PluginSettings.EnableUploads,
 	})
 
 	SendDiagnostic(TRACK_CONFIG_DATA_RETENTION, map[string]interface{}{
@@ -472,10 +472,10 @@ func (a *App) trackConfig() {
 	})
 
 	SendDiagnostic(TRACK_CONFIG_MESSAGE_EXPORT, map[string]interface{}{
-		"enable_message_export":         *utils.Cfg.MessageExportSettings.EnableExport,
-		"daily_run_time":                *utils.Cfg.MessageExportSettings.DailyRunTime,
-		"default_export_from_timestamp": *utils.Cfg.MessageExportSettings.ExportFromTimestamp,
-		"batch_size":                    *utils.Cfg.MessageExportSettings.BatchSize,
+		"enable_message_export":         *cfg.MessageExportSettings.EnableExport,
+		"daily_run_time":                *cfg.MessageExportSettings.DailyRunTime,
+		"default_export_from_timestamp": *cfg.MessageExportSettings.ExportFromTimestamp,
+		"batch_size":                    *cfg.MessageExportSettings.BatchSize,
 	})
 }
 
