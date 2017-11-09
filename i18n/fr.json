@@ -2164,6 +2164,10 @@
     "translation": "Aucun fichier pour les 'fichiers' dans la requête"
   },
   {
+    "id": "api.team.import_team.no_import_from.app_error",
+    "translation": "Requête malformée : le champ de taille de fichier n'est pas présent."
+  },
+  {
     "id": "api.team.import_team.open.app_error",
     "translation": "Impossible d'ouvrir le fichier"
   },
@@ -2800,7 +2804,7 @@
     "translation": "Impossible d'envoyer l'e-mail de bienvenue"
   },
   {
-    "id": "api.user.update_active.no_deactivate_ldap.app_error",
+    "id": "api.user.update_active.no_deactivate_sso.app_error",
     "translation": "Vous ne pouvez pas modifier le statut actif des comptes AD/LDAP. Veuillez désactiver ce compte dans votre serveur AD/LDAP."
   },
   {

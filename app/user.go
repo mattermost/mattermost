@@ -1534,6 +1534,12 @@ func (a *App) UpdateOAuthUserAttrs(userData io.Reader, user *model.User, provide
 		}
 	}
 
+	if user.DeleteAt > 0 {
+		// Make sure they are not disabled
+		user.DeleteAt = 0
+		userAttrsChanged = true
+	}
+
 	if userAttrsChanged {
 		var result store.StoreResult
 		if result = <-a.Srv.Store.User().Update(user, true); result.Err != nil {

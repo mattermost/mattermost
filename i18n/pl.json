@@ -2164,6 +2164,10 @@
     "translation": "Brak pliku w polu 'file' w żądaniu"
   },
   {
+    "id": "api.team.import_team.no_import_from.app_error",
+    "translation": "Nieprawidłowe zapytanie: pole rozmiaru pliku nie istnieje."
+  },
+  {
     "id": "api.team.import_team.open.app_error",
     "translation": "Nie można otworzyć pliku."
   },
@@ -2800,7 +2804,7 @@
     "translation": "Nie udało się pomyślnie wysłać emaila powitalnego"
   },
   {
-    "id": "api.user.update_active.no_deactivate_ldap.app_error",
+    "id": "api.user.update_active.no_deactivate_sso.app_error",
     "translation": "Nie możesz zmieniać stanu aktywacji kont AD/LDAP. Proszę je zmodyfikować przez serwer LDAP."
   },
   {
