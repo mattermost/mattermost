@@ -66,7 +66,24 @@ type PluginSettingsSchema struct {
 	Settings map[string]*PluginSetting `json:"settings" yaml:"settings"`
 }
 
-// All plugins must have a manifest with an id and name defined.
+// The plugin manifest defines the metadata required to load and present your plugin. The manifest
+// file should be named plugin.json or plugin.yaml and placed in the top of your
+// plugin bundle.
+//
+// Example plugin.yaml:
+//
+//     id: com.mycompany.myplugin
+//     name: My Plugin
+//     description: This is my plugin. It does stuff.
+//     backend:
+//         executable: myplugin
+//     settings_schema:
+//         settings:
+//             enable_extra_thing:
+//                 type: bool
+//                 display_name: Enable Extra Thing
+//                 help_text: When true, an extra thing will be enabled!
+//                 default: false
 type Manifest struct {
 	// The id is a globally unique identifier that represents your plugin. Reverse-DNS notation
 	// using a name you control is a good option. For example, "com.mycompany.myplugin".
