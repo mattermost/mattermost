@@ -689,19 +689,20 @@ func s3New(endpoint, accessKey, secretKey string, secure bool, signV2 bool, regi
 	return s3.NewWithCredentials(endpoint, creds, secure, region)
 }
 
-func cleanupTestFile(info *model.FileInfo) error {
-	if *utils.Cfg.FileSettings.DriverName == model.IMAGE_DRIVER_S3 {
-		endpoint := utils.Cfg.FileSettings.AmazonS3Endpoint
-		accessKey := utils.Cfg.FileSettings.AmazonS3AccessKeyId
-		secretKey := utils.Cfg.FileSettings.AmazonS3SecretAccessKey
-		secure := *utils.Cfg.FileSettings.AmazonS3SSL
-		signV2 := *utils.Cfg.FileSettings.AmazonS3SignV2
-		region := utils.Cfg.FileSettings.AmazonS3Region
+func (me *TestHelper) cleanupTestFile(info *model.FileInfo) error {
+	cfg := me.App.Config()
+	if *cfg.FileSettings.DriverName == model.IMAGE_DRIVER_S3 {
+		endpoint := cfg.FileSettings.AmazonS3Endpoint
+		accessKey := cfg.FileSettings.AmazonS3AccessKeyId
+		secretKey := cfg.FileSettings.AmazonS3SecretAccessKey
+		secure := *cfg.FileSettings.AmazonS3SSL
+		signV2 := *cfg.FileSettings.AmazonS3SignV2
+		region := cfg.FileSettings.AmazonS3Region
 		s3Clnt, err := s3New(endpoint, accessKey, secretKey, secure, signV2, region)
 		if err != nil {
 			return err
 		}
-		bucket := utils.Cfg.FileSettings.AmazonS3Bucket
+		bucket := cfg.FileSettings.AmazonS3Bucket
 		if err := s3Clnt.RemoveObject(bucket, info.Path); err != nil {
 			return err
 		}
@@ -717,19 +718,19 @@ func cleanupTestFile(info *model.FileInfo) error {
 				return err
 			}
 		}
-	} else if *utils.Cfg.FileSettings.DriverName == model.IMAGE_DRIVER_LOCAL {
-		if err := os.Remove(utils.Cfg.FileSettings.Directory + info.Path); err != nil {
+	} else if *cfg.FileSettings.DriverName == model.IMAGE_DRIVER_LOCAL {
+		if err := os.Remove(cfg.FileSettings.Directory + info.Path); err != nil {
 			return err
 		}
 
 		if info.ThumbnailPath != "" {
-			if err := os.Remove(utils.Cfg.FileSettings.Directory + info.ThumbnailPath); err != nil {
+			if err := os.Remove(cfg.FileSettings.Directory + info.ThumbnailPath); err != nil {
 				return err
 			}
 		}
 
 		if info.PreviewPath != "" {
-			if err := os.Remove(utils.Cfg.FileSettings.Directory + info.PreviewPath); err != nil {
+			if err := os.Remove(cfg.FileSettings.Directory + info.PreviewPath); err != nil {
 				return err
 			}
 		}

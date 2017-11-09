@@ -10,7 +10,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/mattermost/mattermost-server/app"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
 )
@@ -94,7 +93,7 @@ func TestUploadFile(t *testing.T) {
 	// Wait a bit for files to ready
 	time.Sleep(2 * time.Second)
 
-	if err := cleanupTestFile(info); err != nil {
+	if err := th.cleanupTestFile(info); err != nil {
 		t.Fatal(err)
 	}
 
@@ -363,7 +362,7 @@ func TestGetFileLink(t *testing.T) {
 	if result := <-th.App.Srv.Store.FileInfo().Get(fileId); result.Err != nil {
 		t.Fatal(result.Err)
 	} else {
-		cleanupTestFile(result.Data.(*model.FileInfo))
+		th.cleanupTestFile(result.Data.(*model.FileInfo))
 	}
 }
 
@@ -520,7 +519,7 @@ func TestGetPublicFile(t *testing.T) {
 
 	result := <-th.App.Srv.Store.FileInfo().Get(fileId)
 	info := result.Data.(*model.FileInfo)
-	link := app.GeneratePublicLink(Client.Url, info)
+	link := th.App.GeneratePublicLink(Client.Url, info)
 
 	// Wait a bit for files to ready
 	time.Sleep(2 * time.Second)
@@ -551,9 +550,9 @@ func TestGetPublicFile(t *testing.T) {
 		t.Fatal("should've failed to get image with public link after salt changed")
 	}
 
-	if err := cleanupTestFile(store.Must(th.App.Srv.Store.FileInfo().Get(fileId)).(*model.FileInfo)); err != nil {
+	if err := th.cleanupTestFile(store.Must(th.App.Srv.Store.FileInfo().Get(fileId)).(*model.FileInfo)); err != nil {
 		t.Fatal(err)
 	}
 
-	cleanupTestFile(info)
+	th.cleanupTestFile(info)
 }

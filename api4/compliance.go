@@ -8,7 +8,6 @@ import (
 	"strconv"
 
 	l4g "github.com/alecthomas/log4go"
-	"github.com/mattermost/mattermost-server/app"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
 	"github.com/mssola/user_agent"
@@ -100,7 +99,7 @@ func downloadComplianceReport(c *Context, w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	reportBytes, err := app.GetComplianceFile(job)
+	reportBytes, err := c.App.GetComplianceFile(job)
 	if err != nil {
 		c.Err = err
 		return

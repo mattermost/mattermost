@@ -26,7 +26,7 @@ func (me *msgProvider) GetTrigger() string {
 	return CMD_MSG
 }
 
-func (me *msgProvider) GetCommand(T goi18n.TranslateFunc) *model.Command {
+func (me *msgProvider) GetCommand(a *App, T goi18n.TranslateFunc) *model.Command {
 	return &model.Command{
 		Trigger:          CMD_MSG,
 		AutoComplete:     true,

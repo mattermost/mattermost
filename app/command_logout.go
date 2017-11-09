@@ -23,7 +23,7 @@ func (me *LogoutProvider) GetTrigger() string {
 	return CMD_LOGOUT
 }
 
-func (me *LogoutProvider) GetCommand(T goi18n.TranslateFunc) *model.Command {
+func (me *LogoutProvider) GetCommand(a *App, T goi18n.TranslateFunc) *model.Command {
 	return &model.Command{
 		Trigger:          CMD_LOGOUT,
 		AutoComplete:     true,

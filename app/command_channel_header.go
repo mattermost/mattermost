@@ -24,7 +24,7 @@ func (me *HeaderProvider) GetTrigger() string {
 	return CMD_HEADER
 }
 
-func (me *HeaderProvider) GetCommand(T goi18n.TranslateFunc) *model.Command {
+func (me *HeaderProvider) GetCommand(a *App, T goi18n.TranslateFunc) *model.Command {
 	return &model.Command{
 		Trigger:          CMD_HEADER,
 		AutoComplete:     true,
