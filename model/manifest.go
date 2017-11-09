@@ -1,4 +1,4 @@
-// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 package model
@@ -13,13 +13,42 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
+const (
+	PLUGIN_CONFIG_TYPE_TEXT      = "text"
+	PLUGIN_CONFIG_TYPE_BOOL      = "bool"
+	PLUGIN_CONFIG_TYPE_RADIO     = "radio"
+	PLUGIN_CONFIG_TYPE_DROPDOWN  = "dropdown"
+	PLUGIN_CONFIG_TYPE_GENERATED = "generated"
+)
+
+type PluginOption struct {
+	DisplayName string `json:"display_name" yaml:"display_name"`
+	Value       string `json:"value" yaml:"value"`
+}
+
+type PluginSetting struct {
+	DisplayName        string          `json:"display_name" yaml:"display_name"`
+	Type               string          `json:"type" yaml:"type"`
+	HelpText           string          `json:"help_text" yaml:"help_text"`
+	RegenerateHelpText string          `json:"regenerate_help_text,omitempty" yaml:"regenerate_help_text,omitempty"`
+	Default            interface{}     `json:"default" yaml:"default"`
+	Options            []*PluginOption `json:"options,omitempty" yaml:"options,omitempty"`
+}
+
+type PluginSettingsSchema struct {
+	Header   string                    `json:"header" yaml:"header"`
+	Footer   string                    `json:"footer" yaml:"footer"`
+	Settings map[string]*PluginSetting `json:"settings" yaml:"settings"`
+}
+
 type Manifest struct {
-	Id          string           `json:"id" yaml:"id"`
-	Name        string           `json:"name,omitempty" yaml:"name,omitempty"`
-	Description string           `json:"description,omitempty" yaml:"description,omitempty"`
-	Version     string           `json:"version" yaml:"version"`
-	Backend     *ManifestBackend `json:"backend,omitempty" yaml:"backend,omitempty"`
-	Webapp      *ManifestWebapp  `json:"webapp,omitempty" yaml:"webapp,omitempty"`
+	Id             string                `json:"id" yaml:"id"`
+	Name           string                `json:"name,omitempty" yaml:"name,omitempty"`
+	Description    string                `json:"description,omitempty" yaml:"description,omitempty"`
+	Version        string                `json:"version" yaml:"version"`
+	Backend        *ManifestBackend      `json:"backend,omitempty" yaml:"backend,omitempty"`
+	Webapp         *ManifestWebapp       `json:"webapp,omitempty" yaml:"webapp,omitempty"`
+	SettingsSchema *PluginSettingsSchema `json:"settings_schema,omitempty" yaml:"settings_schema,omitempty"`
 }
 
 type ManifestBackend struct {
