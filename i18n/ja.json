@@ -2164,6 +2164,10 @@
     "translation": "リクエストの'file'以下にファイルがありません"
   },
   {
+    "id": "api.team.import_team.no_import_from.app_error",
+    "translation": "不正なリクエスト: importFromが存在しません。"
+  },
+  {
     "id": "api.team.import_team.open.app_error",
     "translation": "ファイルを開けません"
   },
@@ -2800,8 +2804,8 @@
     "translation": "歓迎の電子メールを送信できませんでした"
   },
   {
-    "id": "api.user.update_active.no_deactivate_ldap.app_error",
-    "translation": "AD/LDAPアカウントのアクティベーション状態を変更することはできません。AD/LDAPサーバーを通じて変更してください。"
+    "id": "api.user.update_active.no_deactivate_sso.app_error",
+    "translation": "SSOアカウントのアクティベーション状態を変更することはできません。SSOサーバーを通じて変更してください。"
   },
   {
     "id": "api.user.update_active.permissions.app_error",
@@ -3537,7 +3541,7 @@
   },
   {
     "id": "app.plugin.upload_disabled.app_error",
-    "translation": "\bプラグインのアップロードは無効化されています。"
+    "translation": "プラグインのアップロードは無効化されています。"
   },
   {
     "id": "app.user_access_token.disabled",

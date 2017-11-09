@@ -2164,6 +2164,10 @@
     "translation": "Geen bestand bij 'licentie' in aanvraag"
   },
   {
+    "id": "api.team.import_team.no_import_from.app_error",
+    "translation": "Malformed request: importFrom field is not present."
+  },
+  {
     "id": "api.team.import_team.open.app_error",
     "translation": "Kan het bestand niet openen"
   },
@@ -2800,7 +2804,7 @@
     "translation": "Welkomst mail kon niet verstuurd worden, fout=%v"
   },
   {
-    "id": "api.user.update_active.no_deactivate_ldap.app_error",
+    "id": "api.user.update_active.no_deactivate_sso.app_error",
     "translation": "Je kan niet de activatie status veranderen van AD/LDAP account. Wijzig dit via de AD/LDAP server."
   },
   {

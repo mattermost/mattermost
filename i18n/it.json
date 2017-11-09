@@ -2164,6 +2164,10 @@
     "translation": "Non ci sono file nella richiesta sotto il campo 'file'"
   },
   {
+    "id": "api.team.import_team.no_import_from.app_error",
+    "translation": "Richiesta malformata: campo importFrom non presente."
+  },
+  {
     "id": "api.team.import_team.open.app_error",
     "translation": "Impossibile aprire il file"
   },
@@ -2800,8 +2804,8 @@
     "translation": "Invio email di benvenuto fallito"
   },
   {
-    "id": "api.user.update_active.no_deactivate_ldap.app_error",
-    "translation": "Non è possibile modificare lo stato di attivazione degli account AD/LDAP. Vanno modificati sul server AD/LDAP."
+    "id": "api.user.update_active.no_deactivate_sso.app_error",
+    "translation": "Non è possibile modificare lo stato di attivazione degli account SSO. Vanno modificati sul server SSO."
   },
   {
     "id": "api.user.update_active.permissions.app_error",
