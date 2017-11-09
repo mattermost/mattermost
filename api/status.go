@@ -8,7 +8,6 @@ import (
 
 	l4g "github.com/alecthomas/log4go"
 
-	"github.com/mattermost/mattermost-server/app"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
 )
@@ -21,7 +20,7 @@ func (api *API) InitStatus() {
 }
 
 func getStatusesHttp(c *Context, w http.ResponseWriter, r *http.Request) {
-	statusMap := model.StatusMapToInterfaceMap(app.GetAllStatuses())
+	statusMap := model.StatusMapToInterfaceMap(c.App.GetAllStatuses())
 	w.Write([]byte(model.StringInterfaceToJson(statusMap)))
 }
 

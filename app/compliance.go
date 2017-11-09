@@ -55,10 +55,9 @@ func (a *App) GetComplianceReport(reportId string) (*model.Compliance, *model.Ap
 	}
 }
 
-func GetComplianceFile(job *model.Compliance) ([]byte, *model.AppError) {
-	if f, err := ioutil.ReadFile(*utils.Cfg.ComplianceSettings.Directory + "compliance/" + job.JobName() + ".zip"); err != nil {
+func (a *App) GetComplianceFile(job *model.Compliance) ([]byte, *model.AppError) {
+	if f, err := ioutil.ReadFile(*a.Config().ComplianceSettings.Directory + "compliance/" + job.JobName() + ".zip"); err != nil {
 		return nil, model.NewAppError("readFile", "api.file.read_file.reading_local.app_error", nil, err.Error(), http.StatusNotImplemented)
-
 	} else {
 		return f, nil
 	}

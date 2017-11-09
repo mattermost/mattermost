@@ -34,7 +34,7 @@ func (me *CollapseProvider) GetTrigger() string {
 	return CMD_COLLAPSE
 }
 
-func (me *ExpandProvider) GetCommand(T goi18n.TranslateFunc) *model.Command {
+func (me *ExpandProvider) GetCommand(a *App, T goi18n.TranslateFunc) *model.Command {
 	return &model.Command{
 		Trigger:          CMD_EXPAND,
 		AutoComplete:     true,
@@ -43,7 +43,7 @@ func (me *ExpandProvider) GetCommand(T goi18n.TranslateFunc) *model.Command {
 	}
 }
 
-func (me *CollapseProvider) GetCommand(T goi18n.TranslateFunc) *model.Command {
+func (me *CollapseProvider) GetCommand(a *App, T goi18n.TranslateFunc) *model.Command {
 	return &model.Command{
 		Trigger:          CMD_COLLAPSE,
 		AutoComplete:     true,

@@ -65,10 +65,10 @@ func (schedulers *Schedulers) Start() *Schedulers {
 
 			now := time.Now()
 			for idx, scheduler := range schedulers.schedulers {
-				if !scheduler.Enabled(utils.Cfg) {
+				if !scheduler.Enabled(schedulers.jobs.Config()) {
 					schedulers.nextRunTimes[idx] = nil
 				} else {
-					schedulers.setNextRunTime(utils.Cfg, idx, now, false)
+					schedulers.setNextRunTime(schedulers.jobs.Config(), idx, now, false)
 				}
 			}
 
@@ -78,7 +78,7 @@ func (schedulers *Schedulers) Start() *Schedulers {
 					l4g.Debug("Schedulers received stop signal.")
 					return
 				case now = <-time.After(1 * time.Minute):
-					cfg := utils.Cfg
+					cfg := schedulers.jobs.Config()
 
 					for idx, nextTime := range schedulers.nextRunTimes {
 						if nextTime == nil {

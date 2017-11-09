@@ -458,8 +458,8 @@ func (a *App) trackConfig() {
 
 	SendDiagnostic(TRACK_CONFIG_PLUGIN, map[string]interface{}{
 		"enable_jira":    pluginSetting(&cfg.PluginSettings, "jira", "enabled", false),
-		"enable":         *utils.Cfg.PluginSettings.Enable,
-		"enable_uploads": *utils.Cfg.PluginSettings.EnableUploads,
+		"enable":         *cfg.PluginSettings.Enable,
+		"enable_uploads": *cfg.PluginSettings.EnableUploads,
 	})
 
 	SendDiagnostic(TRACK_CONFIG_DATA_RETENTION, map[string]interface{}{

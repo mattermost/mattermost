@@ -18,12 +18,12 @@ func TestCreateWebhookPost(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
 
-	enableIncomingHooks := utils.Cfg.ServiceSettings.EnableIncomingWebhooks
+	enableIncomingHooks := th.App.Config().ServiceSettings.EnableIncomingWebhooks
 	defer func() {
-		utils.Cfg.ServiceSettings.EnableIncomingWebhooks = enableIncomingHooks
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableIncomingWebhooks = enableIncomingHooks })
 		utils.SetDefaultRolesBasedOnConfig()
 	}()
-	utils.Cfg.ServiceSettings.EnableIncomingWebhooks = true
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableIncomingWebhooks = true })
 	utils.SetDefaultRolesBasedOnConfig()
 
 	hook, err := th.App.CreateIncomingWebhookForChannel(th.BasicUser.Id, th.BasicChannel, &model.IncomingWebhook{ChannelId: th.BasicChannel.Id})

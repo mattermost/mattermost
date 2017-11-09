@@ -23,7 +23,7 @@ func (search *SearchProvider) GetTrigger() string {
 	return CMD_SEARCH
 }
 
-func (search *SearchProvider) GetCommand(T goi18n.TranslateFunc) *model.Command {
+func (search *SearchProvider) GetCommand(a *App, T goi18n.TranslateFunc) *model.Command {
 	return &model.Command{
 		Trigger:          CMD_SEARCH,
 		AutoComplete:     true,

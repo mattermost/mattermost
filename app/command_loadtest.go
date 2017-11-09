@@ -66,16 +66,17 @@ type LoadTestProvider struct {
 }
 
 func init() {
-	if !utils.Cfg.ServiceSettings.EnableTesting {
-		RegisterCommandProvider(&LoadTestProvider{})
-	}
+	RegisterCommandProvider(&LoadTestProvider{})
 }
 
 func (me *LoadTestProvider) GetTrigger() string {
 	return CMD_TEST
 }
 
-func (me *LoadTestProvider) GetCommand(T goi18n.TranslateFunc) *model.Command {
+func (me *LoadTestProvider) GetCommand(a *App, T goi18n.TranslateFunc) *model.Command {
+	if !a.Config().ServiceSettings.EnableTesting {
+		return nil
+	}
 	return &model.Command{
 		Trigger:          CMD_TEST,
 		AutoComplete:     false,

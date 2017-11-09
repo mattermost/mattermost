@@ -8,7 +8,6 @@ import (
 
 	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils"
 	goi18n "github.com/nicksnyder/go-i18n/i18n"
 )
 
@@ -27,9 +26,9 @@ func (me *InvitePeopleProvider) GetTrigger() string {
 	return CMD_INVITE_PEOPLE
 }
 
-func (me *InvitePeopleProvider) GetCommand(T goi18n.TranslateFunc) *model.Command {
+func (me *InvitePeopleProvider) GetCommand(a *App, T goi18n.TranslateFunc) *model.Command {
 	autoComplete := true
-	if !utils.Cfg.EmailSettings.SendEmailNotifications || !utils.Cfg.TeamSettings.EnableUserCreation {
+	if !a.Config().EmailSettings.SendEmailNotifications || !a.Config().TeamSettings.EnableUserCreation {
 		autoComplete = false
 	}
 	return &model.Command{

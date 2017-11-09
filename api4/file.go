@@ -201,7 +201,7 @@ func getFileLink(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	resp := make(map[string]string)
-	resp["link"] = app.GeneratePublicLink(c.GetSiteURLHeader(), info)
+	resp["link"] = c.App.GeneratePublicLink(c.GetSiteURLHeader(), info)
 
 	w.Write([]byte(model.MapToJson(resp)))
 }

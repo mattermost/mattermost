@@ -23,7 +23,7 @@ func (me *RenameProvider) GetTrigger() string {
 	return CMD_RENAME
 }
 
-func (me *RenameProvider) GetCommand(T goi18n.TranslateFunc) *model.Command {
+func (me *RenameProvider) GetCommand(a *App, T goi18n.TranslateFunc) *model.Command {
 	return &model.Command{
 		Trigger:          CMD_RENAME,
 		AutoComplete:     true,
