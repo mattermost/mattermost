@@ -39,7 +39,7 @@ func TestAXFR_Miek(t *testing.T) {
 				break
 			}
 			for _, rr := range ex.RR {
-				t.Log(rr.String())
+				// Nothing
 			}
 		}
 	}
@@ -90,7 +90,7 @@ func TestAXFR_Miek_Tsig(t *testing.T) {
 				break
 			}
 			for _, rr := range ex.RR {
-				t.Log(rr.String())
+				// Nothing
 			}
 		}
 	}

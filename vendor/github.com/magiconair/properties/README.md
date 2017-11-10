@@ -1,7 +1,7 @@
 Overview [![Build Status](https://travis-ci.org/magiconair/properties.svg?branch=master)](https://travis-ci.org/magiconair/properties)
 ========
 
-#### Current version: 1.7.3
+#### Current version: 1.7.4
 
 properties is a Go library for reading and writing properties files.
 

@@ -445,7 +445,7 @@ clean: stop-docker
 
 	cd $(BUILD_WEBAPP_DIR) && $(MAKE) clean
 
-	rm -rf api/data
+	find . -type d -name data | xargs rm -r
 	rm -rf logs
 
 	rm -f mattermost.log

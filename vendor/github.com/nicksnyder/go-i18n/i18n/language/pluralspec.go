@@ -36,9 +36,9 @@ func (ps *PluralSpec) Plural(number interface{}) (Plural, error) {
 	return ps.PluralFunc(ops), nil
 }
 
-// getPluralSpec returns the PluralSpec that matches the longest prefix of tag.
+// GetPluralSpec returns the PluralSpec that matches the longest prefix of tag.
 // It returns nil if no PluralSpec matches tag.
-func getPluralSpec(tag string) *PluralSpec {
+func GetPluralSpec(tag string) *PluralSpec {
 	tag = NormalizeTag(tag)
 	subtag := tag
 	for {

@@ -267,9 +267,7 @@ func TestTimestampWithOutTimezone(t *testing.T) {
 			t.Fatalf("Could not run query: %v", err)
 		}
 
-		n := r.Next()
-
-		if n != true {
+		if !r.Next() {
 			t.Fatal("Expected at least one row")
 		}
 
@@ -289,8 +287,7 @@ func TestTimestampWithOutTimezone(t *testing.T) {
 				expected, result)
 		}
 
-		n = r.Next()
-		if n != false {
+		if r.Next() {
 			t.Fatal("Expected only one row")
 		}
 	}
@@ -731,8 +728,7 @@ func TestAppendEscapedText(t *testing.T) {
 }
 
 func TestAppendEscapedTextExistingBuffer(t *testing.T) {
-	var buf []byte
-	buf = []byte("123\t")
+	buf := []byte("123\t")
 	if esc := appendEscapedText(buf, "hallo\tescape"); string(esc) != "123\thallo\\tescape" {
 		t.Fatal(string(esc))
 	}

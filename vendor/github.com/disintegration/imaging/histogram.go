@@ -28,7 +28,7 @@ func Histogram(img image.Image) [256]float64 {
 			g := src.Pix[i+1]
 			b := src.Pix[i+2]
 
-			var y float32 = 0.299*float32(r) + 0.587*float32(g) + 0.114*float32(b)
+			y := 0.299*float32(r) + 0.587*float32(g) + 0.114*float32(b)
 
 			histogram[int(y+0.5)]++
 			total++

@@ -68,6 +68,7 @@ type serverTester struct {
 
 func init() {
 	testHookOnPanicMu = new(sync.Mutex)
+	goAwayTimeout = 25 * time.Millisecond
 }
 
 func resetHooks() {
@@ -3189,11 +3190,17 @@ func TestConfigureServer(t *testing.T) {
 			},
 		},
 		{
+			name: "just the alternative required cipher suite",
+			tlsConfig: &tls.Config{
+				CipherSuites: []uint16{tls.TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256},
+			},
+		},
+		{
 			name: "missing required cipher suite",
 			tlsConfig: &tls.Config{
 				CipherSuites: []uint16{tls.TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384},
 			},
-			wantErr: "is missing HTTP/2-required TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256",
+			wantErr: "is missing an HTTP/2-required AES_128_GCM_SHA256 cipher.",
 		},
 		{
 			name: "required after bad",

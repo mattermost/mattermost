@@ -46,7 +46,7 @@ func assertTree(t *testing.T, tree *Tree, err error, ref map[string]interface{})
 func TestCreateSubTree(t *testing.T) {
 	tree := newTree()
 	tree.createSubTree([]string{"a", "b", "c"}, Position{})
-	tree.Set("a.b.c", 42)
+	tree.Set("a.b.c", "", false, 42)
 	if tree.Get("a.b.c") != 42 {
 		t.Fail()
 	}

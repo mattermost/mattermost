@@ -7,6 +7,9 @@ package elastic
 import (
 	"context"
 	"encoding/json"
+	"fmt"
+	"net/http"
+	"net/http/httptest"
 	"testing"
 )
 
@@ -504,4 +507,28 @@ func BenchmarkBulkEstimatedSizeInBytesWith100Requests(b *testing.B) {
 	}
 	b.ReportAllocs()
 	benchmarkBulkEstimatedSizeInBytes = result // ensure the compiler doesn't optimize
+}
+
+func TestBulkContentType(t *testing.T) {
+	var header http.Header
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		header = r.Header
+		fmt.Fprintln(w, `{}`)
+	}))
+	defer ts.Close()
+
+	client, err := NewSimpleClient(SetURL(ts.URL))
+	if err != nil {
+		t.Fatal(err)
+	}
+	indexReq := NewBulkIndexRequest().Index(testIndexName).Type("tweet").Id("1").Doc(tweet{User: "olivere", Message: "Welcome to Golang and Elasticsearch."})
+	if _, err := client.Bulk().Add(indexReq).Do(context.Background()); err != nil {
+		t.Fatal(err)
+	}
+	if header == nil {
+		t.Fatalf("expected header, got %v", header)
+	}
+	if want, have := "application/x-ndjson", header.Get("Content-Type"); want != have {
+		t.Fatalf("Content-Type: want %q, have %q", want, have)
+	}
 }

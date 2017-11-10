@@ -68,7 +68,7 @@ func (s *MultiSearchService) Do(ctx context.Context) (*MultiSearchResult, error)
 		if err != nil {
 			return nil, err
 		}
-		body, err := json.Marshal(sr.body())
+		body, err := json.Marshal(sr.Body())
 		if err != nil {
 			return nil, err
 		}

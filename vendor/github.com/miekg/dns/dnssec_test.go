@@ -35,57 +35,6 @@ func getSoa() *SOA {
 	return soa
 }
 
-func TestGenerateEC(t *testing.T) {
-	if testing.Short() {
-		t.Skip("skipping test in short mode.")
-	}
-	key := new(DNSKEY)
-	key.Hdr.Rrtype = TypeDNSKEY
-	key.Hdr.Name = "miek.nl."
-	key.Hdr.Class = ClassINET
-	key.Hdr.Ttl = 14400
-	key.Flags = 256
-	key.Protocol = 3
-	key.Algorithm = ECDSAP256SHA256
-	privkey, _ := key.Generate(256)
-	t.Log(key.String())
-	t.Log(key.PrivateKeyString(privkey))
-}
-
-func TestGenerateDSA(t *testing.T) {
-	if testing.Short() {
-		t.Skip("skipping test in short mode.")
-	}
-	key := new(DNSKEY)
-	key.Hdr.Rrtype = TypeDNSKEY
-	key.Hdr.Name = "miek.nl."
-	key.Hdr.Class = ClassINET
-	key.Hdr.Ttl = 14400
-	key.Flags = 256
-	key.Protocol = 3
-	key.Algorithm = DSA
-	privkey, _ := key.Generate(1024)
-	t.Log(key.String())
-	t.Log(key.PrivateKeyString(privkey))
-}
-
-func TestGenerateRSA(t *testing.T) {
-	if testing.Short() {
-		t.Skip("skipping test in short mode.")
-	}
-	key := new(DNSKEY)
-	key.Hdr.Rrtype = TypeDNSKEY
-	key.Hdr.Name = "miek.nl."
-	key.Hdr.Class = ClassINET
-	key.Hdr.Ttl = 14400
-	key.Flags = 256
-	key.Protocol = 3
-	key.Algorithm = RSASHA256
-	privkey, _ := key.Generate(1024)
-	t.Log(key.String())
-	t.Log(key.PrivateKeyString(privkey))
-}
-
 func TestSecure(t *testing.T) {
 	soa := getSoa()
 
@@ -211,10 +160,9 @@ func TestSignVerify(t *testing.T) {
 			continue
 		}
 		if err := sig.Verify(key, []RR{r}); err != nil {
-			t.Error("failure to validate")
+			t.Errorf("failure to validate: %s", r.Header().Name)
 			continue
 		}
-		t.Logf("validated: %s", r.Header().Name)
 	}
 }
 
@@ -248,9 +196,7 @@ func Test65534(t *testing.T) {
 	}
 	if err := sig.Verify(key, []RR{t6}); err != nil {
 		t.Error(err)
-		t.Error("failure to validate")
-	} else {
-		t.Logf("validated: %s", t6.Header().Name)
+		t.Errorf("failure to validate %s", t6.Header().Name)
 	}
 }
 
@@ -381,7 +327,7 @@ Created: 20110302104537
 Publish: 20110302104537
 Activate: 20110302104537`
 
-	xk, _ := NewRR(pub)
+	xk := testRR(pub)
 	k := xk.(*DNSKEY)
 	p, err := k.NewPrivateKey(priv)
 	if err != nil {
@@ -432,10 +378,7 @@ func TestSignVerifyECDSA(t *testing.T) {
 Algorithm: 14 (ECDSAP384SHA384)
 PrivateKey: WURgWHCcYIYUPWgeLmiPY2DJJk02vgrmTfitxgqcL4vwW7BOrbawVmVe0d9V94SR`
 
-	eckey, err := NewRR(pub)
-	if err != nil {
-		t.Fatal(err)
-	}
+	eckey := testRR(pub)
 	privkey, err := eckey.(*DNSKEY).NewPrivateKey(priv)
 	if err != nil {
 		t.Fatal(err)
@@ -448,7 +391,7 @@ PrivateKey: WURgWHCcYIYUPWgeLmiPY2DJJk02vgrmTfitxgqcL4vwW7BOrbawVmVe0d9V94SR`
 	if ds.Digest != "72d7b62976ce06438e9c0bf319013cf801f09ecc84b8d7e9495f27e305c6a9b0563a9b5f4d288405c3008a946df983d6" {
 		t.Fatal("wrong DS Digest")
 	}
-	a, _ := NewRR("www.example.net. 3600 IN A 192.0.2.1")
+	a := testRR("www.example.net. 3600 IN A 192.0.2.1")
 	sig := new(RRSIG)
 	sig.Hdr = RR_Header{"example.net.", TypeRRSIG, ClassINET, 14400, 0}
 	sig.Expiration, _ = StringToTime("20100909102025")
@@ -473,10 +416,7 @@ PrivateKey: WURgWHCcYIYUPWgeLmiPY2DJJk02vgrmTfitxgqcL4vwW7BOrbawVmVe0d9V94SR`
 }
 
 func TestSignVerifyECDSA2(t *testing.T) {
-	srv1, err := NewRR("srv.miek.nl. IN SRV 1000 800 0 web1.miek.nl.")
-	if err != nil {
-		t.Fatal(err)
-	}
+	srv1 := testRR("srv.miek.nl. IN SRV 1000 800 0 web1.miek.nl.")
 	srv := srv1.(*SRV)
 
 	// With this key
@@ -511,7 +451,7 @@ func TestSignVerifyECDSA2(t *testing.T) {
 
 	err = sig.Verify(key, []RR{srv})
 	if err != nil {
-		t.Logf("failure to validate:\n%s\n%s\n%s\n\n%s\n\n%v",
+		t.Errorf("failure to validate:\n%s\n%s\n%s\n\n%s\n\n%v",
 			key.String(),
 			srv.String(),
 			sig.String(),
@@ -530,10 +470,7 @@ func TestRFC6605P256(t *testing.T) {
 	exPriv := `Private-key-format: v1.2
 Algorithm: 13 (ECDSAP256SHA256)
 PrivateKey: GU6SnQ/Ou+xC5RumuIUIuJZteXT2z0O/ok1s38Et6mQ=`
-	rrDNSKEY, err := NewRR(exDNSKEY)
-	if err != nil {
-		t.Fatal(err)
-	}
+	rrDNSKEY := testRR(exDNSKEY)
 	priv, err := rrDNSKEY.(*DNSKEY).NewPrivateKey(exPriv)
 	if err != nil {
 		t.Fatal(err)
@@ -542,10 +479,7 @@ PrivateKey: GU6SnQ/Ou+xC5RumuIUIuJZteXT2z0O/ok1s38Et6mQ=`
 	exDS := `example.net. 3600 IN DS 55648 13 2 (
              b4c8c1fe2e7477127b27115656ad6256f424625bf5c1
              e2770ce6d6e37df61d17 )`
-	rrDS, err := NewRR(exDS)
-	if err != nil {
-		t.Fatal(err)
-	}
+	rrDS := testRR(exDS)
 	ourDS := rrDNSKEY.(*DNSKEY).ToDS(SHA256)
 	if !reflect.DeepEqual(ourDS, rrDS.(*DS)) {
 		t.Errorf("DS record differs:\n%v\n%v", ourDS, rrDS.(*DS))
@@ -556,15 +490,9 @@ PrivateKey: GU6SnQ/Ou+xC5RumuIUIuJZteXT2z0O/ok1s38Et6mQ=`
                 20100909100439 20100812100439 55648 example.net.
                 qx6wLYqmh+l9oCKTN6qIc+bw6ya+KJ8oMz0YP107epXA
                 yGmt+3SNruPFKG7tZoLBLlUzGGus7ZwmwWep666VCw== )`
-	rrA, err := NewRR(exA)
-	if err != nil {
-		t.Fatal(err)
-	}
-	rrRRSIG, err := NewRR(exRRSIG)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if err = rrRRSIG.(*RRSIG).Verify(rrDNSKEY.(*DNSKEY), []RR{rrA}); err != nil {
+	rrA := testRR(exA)
+	rrRRSIG := testRR(exRRSIG)
+	if err := rrRRSIG.(*RRSIG).Verify(rrDNSKEY.(*DNSKEY), []RR{rrA}); err != nil {
 		t.Errorf("failure to validate the spec RRSIG: %v", err)
 	}
 
@@ -604,10 +532,7 @@ func TestRFC6605P384(t *testing.T) {
 	exPriv := `Private-key-format: v1.2
 Algorithm: 14 (ECDSAP384SHA384)
 PrivateKey: WURgWHCcYIYUPWgeLmiPY2DJJk02vgrmTfitxgqcL4vwW7BOrbawVmVe0d9V94SR`
-	rrDNSKEY, err := NewRR(exDNSKEY)
-	if err != nil {
-		t.Fatal(err)
-	}
+	rrDNSKEY := testRR(exDNSKEY)
 	priv, err := rrDNSKEY.(*DNSKEY).NewPrivateKey(exPriv)
 	if err != nil {
 		t.Fatal(err)
@@ -617,10 +542,7 @@ PrivateKey: WURgWHCcYIYUPWgeLmiPY2DJJk02vgrmTfitxgqcL4vwW7BOrbawVmVe0d9V94SR`
            72d7b62976ce06438e9c0bf319013cf801f09ecc84b8
            d7e9495f27e305c6a9b0563a9b5f4d288405c3008a94
            6df983d6 )`
-	rrDS, err := NewRR(exDS)
-	if err != nil {
-		t.Fatal(err)
-	}
+	rrDS := testRR(exDS)
 	ourDS := rrDNSKEY.(*DNSKEY).ToDS(SHA384)
 	if !reflect.DeepEqual(ourDS, rrDS.(*DS)) {
 		t.Fatalf("DS record differs:\n%v\n%v", ourDS, rrDS.(*DS))
@@ -632,11 +554,8 @@ PrivateKey: WURgWHCcYIYUPWgeLmiPY2DJJk02vgrmTfitxgqcL4vwW7BOrbawVmVe0d9V94SR`
            /L5hDKIvGDyI1fcARX3z65qrmPsVz73QD1Mr5CEqOiLP
            95hxQouuroGCeZOvzFaxsT8Glr74hbavRKayJNuydCuz
            WTSSPdz7wnqXL5bdcJzusdnI0RSMROxxwGipWcJm )`
-	rrA, err := NewRR(exA)
-	if err != nil {
-		t.Fatal(err)
-	}
-	rrRRSIG, err := NewRR(exRRSIG)
+	rrA := testRR(exA)
+	rrRRSIG := testRR(exRRSIG)
 	if err != nil {
 		t.Fatal(err)
 	}

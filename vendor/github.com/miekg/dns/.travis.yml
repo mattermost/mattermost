@@ -1,9 +1,12 @@
 language: go
 sudo: false
 go:
-  - 1.7.x
-  - 1.8.x
+  - 1.9.x
   - tip
+
+env:
+  - TESTS="-race -v -bench=. -coverprofile=coverage.txt -covermode=atomic"
+  - TESTS="-race -v ./..."
 
 before_install:
   # don't use the miekg/dns when testing forks
@@ -11,4 +14,7 @@ before_install:
   - ln -s $TRAVIS_BUILD_DIR $GOPATH/src/github.com/miekg/ || true
 
 script:
-  - go test -race -v -bench=.
+  - go test $TESTS
+
+after_success:
+  - bash <(curl -s https://codecov.io/bash)

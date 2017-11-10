@@ -120,8 +120,9 @@ func ScanSlice(data []string, slice interface{}) error {
 		return fmt.Errorf("redis: ScanSlice(non-slice %T)", slice)
 	}
 
+	next := internal.MakeSliceNextElemFunc(v)
 	for i, s := range data {
-		elem := internal.SliceNextElem(v)
+		elem := next()
 		if err := Scan(internal.StringToBytes(s), elem.Addr().Interface()); err != nil {
 			return fmt.Errorf("redis: ScanSlice(index=%d value=%q) failed: %s", i, s, err)
 		}

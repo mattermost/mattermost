@@ -68,7 +68,7 @@ func TestGetPluralSpec(t *testing.T) {
 		{"xx", nil},
 	}
 	for _, test := range tests {
-		spec := getPluralSpec(test.src)
+		spec := GetPluralSpec(test.src)
 		if spec != test.spec {
 			t.Errorf("getPluralSpec(%q) = %q expected %q", test.src, spec, test.spec)
 		}
