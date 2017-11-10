@@ -14,12 +14,12 @@ import (
 )
 
 const (
-	PLUGIN_CONFIG_TYPE_TEXT              = "text"
-	PLUGIN_CONFIG_TYPE_BOOL              = "bool"
-	PLUGIN_CONFIG_TYPE_RADIO             = "radio"
-	PLUGIN_CONFIG_TYPE_DROPDOWN          = "dropdown"
-	PLUGIN_CONFIG_TYPE_GENERATED         = "generated"
-	PLUGIN_CONFIG_TYPE_USER_AUTOCOMPLETE = "user_autocomplete"
+	PLUGIN_CONFIG_TYPE_TEXT      = "text"
+	PLUGIN_CONFIG_TYPE_BOOL      = "bool"
+	PLUGIN_CONFIG_TYPE_RADIO     = "radio"
+	PLUGIN_CONFIG_TYPE_DROPDOWN  = "dropdown"
+	PLUGIN_CONFIG_TYPE_GENERATED = "generated"
+	PLUGIN_CONFIG_TYPE_USERNAME  = "username"
 )
 
 type PluginOption struct {
@@ -49,7 +49,7 @@ type PluginSetting struct {
 	//
 	// "text" will result in a string setting that can be typed in manually.
 	//
-	// "user_autocomplete" will result in a text setting that will autocomplete to a username.
+	// "username" will result in a text setting that will autocomplete to a username.
 	Type string `json:"type" yaml:"type"`
 
 	// The help text to display to the user.
@@ -58,7 +58,7 @@ type PluginSetting struct {
 	// The help text to display alongside the "Regenerate" button for settings of the "generated" type.
 	RegenerateHelpText string `json:"regenerate_help_text,omitempty" yaml:"regenerate_help_text,omitempty"`
 
-	// The placeholder to display for "text", "generated" and "user_autocomplete" types when blank.
+	// The placeholder to display for "text", "generated" and "username" types when blank.
 	Placeholder string `json:"placeholder" yaml:"placeholder"`
 
 	// The default value of the setting.
