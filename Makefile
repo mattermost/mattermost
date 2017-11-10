@@ -370,9 +370,7 @@ run-cli: start-docker
 run-client:
 	@echo Running mattermost client for development
 
-	@if [ ! -e client ]; then \
-		ln -s $(BUILD_WEBAPP_DIR)/dist client; \
-	fi
+	ln -nfs $(BUILD_WEBAPP_DIR)/dist client
 	cd $(BUILD_WEBAPP_DIR) && $(MAKE) run
 
 run-client-fullmap:
