@@ -1,2 +1,2 @@
 ignore:
-  - store/storetest/mocks
+  - store/storetest
