@@ -4,10 +4,10 @@
 package main
 
 import (
-	"io/ioutil"
+	"flag"
+	"fmt"
 	"os"
 	"os/exec"
-	"path/filepath"
 	"strings"
 	"testing"
 
@@ -17,12 +17,31 @@ import (
 	"github.com/mattermost/mattermost-server/model"
 )
 
-var testExePath string
+var coverprofileCounters map[string]int = make(map[string]int)
+
+func execArgs(t *testing.T, args []string) []string {
+	ret := []string{"-test.run", "ExecCommand"}
+	if coverprofile := flag.Lookup("test.coverprofile").Value.String(); coverprofile != "" {
+		parts := strings.SplitN(coverprofile, ".", 2)
+		coverprofileCounters[t.Name()] = coverprofileCounters[t.Name()] + 1
+		parts[0] = fmt.Sprintf("%v-%v-%v", parts[0], t.Name(), coverprofileCounters[t.Name()])
+		ret = append(ret, "-test.coverprofile", strings.Join(parts, "."))
+	}
+	return append(append(ret, "--"), args...)
+}
 
 func checkCommand(t *testing.T, args ...string) string {
-	output, err := exec.Command(testExePath, args...).CombinedOutput()
+	path, err := os.Executable()
+	require.NoError(t, err)
+	output, err := exec.Command(path, execArgs(t, args)...).CombinedOutput()
 	require.NoError(t, err, string(output))
 	return string(output)
+}
+
+func runCommand(t *testing.T, args ...string) error {
+	path, err := os.Executable()
+	require.NoError(t, err)
+	return exec.Command(path, execArgs(t, args)...).Run()
 }
 
 func TestCliVersion(t *testing.T) {
@@ -122,7 +141,7 @@ func TestCliJoinChannel(t *testing.T) {
 	checkCommand(t, "channel", "add", th.BasicTeam.Name+":"+channel.Name, th.BasicUser2.Email)
 
 	// should fail because channel does not exist
-	require.Error(t, exec.Command(testExePath, "channel", "add", th.BasicTeam.Name+":"+channel.Name+"asdf", th.BasicUser2.Email).Run())
+	require.Error(t, runCommand(t, "channel", "add", th.BasicTeam.Name+":"+channel.Name+"asdf", th.BasicUser2.Email))
 }
 
 func TestCliRemoveChannel(t *testing.T) {
@@ -134,7 +153,7 @@ func TestCliRemoveChannel(t *testing.T) {
 	checkCommand(t, "channel", "add", th.BasicTeam.Name+":"+channel.Name, th.BasicUser2.Email)
 
 	// should fail because channel does not exist
-	require.Error(t, exec.Command(testExePath, "channel", "remove", th.BasicTeam.Name+":doesnotexist", th.BasicUser2.Email).Run())
+	require.Error(t, runCommand(t, "channel", "remove", th.BasicTeam.Name+":doesnotexist", th.BasicUser2.Email))
 
 	checkCommand(t, "channel", "remove", th.BasicTeam.Name+":"+channel.Name, th.BasicUser2.Email)
 
@@ -259,29 +278,10 @@ func TestCliMakeUserActiveAndInactive(t *testing.T) {
 	checkCommand(t, "user", "activate", th.BasicUser.Email)
 }
 
-func TestMain(m *testing.M) {
-	dir, err := ioutil.TempDir("", "cli_test")
-	if err != nil {
-		panic(err)
+func TestExecCommand(t *testing.T) {
+	if filter := flag.Lookup("test.run").Value.String(); filter != "ExecCommand" {
+		t.Skip("use -run ExecCommand to execute a command via the test executable")
 	}
-	defer os.RemoveAll(dir)
-
-	testExePath = filepath.Join(dir, "cli")
-	files, err := filepath.Glob("./*.go")
-	if err != nil {
-		panic(err)
-	}
-
-	cmd := exec.Command("go", append([]string{"build", "-o", testExePath}, files...)...)
-	cmd.Stderr = os.Stderr
-	cmd.Stdout = os.Stdout
-	if err := cmd.Run(); err != nil {
-		panic(err)
-	}
-
-	status := 0
-	defer func() {
-		os.Exit(status)
-	}()
-	status = m.Run()
+	rootCmd.SetArgs(flag.Args())
+	require.NoError(t, rootCmd.Execute())
 }

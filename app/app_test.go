@@ -48,6 +48,7 @@ func TestMain(m *testing.M) {
 func TestAppRace(t *testing.T) {
 	for i := 0; i < 10; i++ {
 		a := New()
+		a.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = ":0" })
 		a.StartServer()
 		a.Shutdown()
 	}
