@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -22,10 +23,12 @@ var coverprofileCounters map[string]int = make(map[string]int)
 func execArgs(t *testing.T, args []string) []string {
 	ret := []string{"-test.run", "ExecCommand"}
 	if coverprofile := flag.Lookup("test.coverprofile").Value.String(); coverprofile != "" {
-		parts := strings.SplitN(coverprofile, ".", 2)
+		dir := filepath.Dir(coverprofile)
+		base := filepath.Base(coverprofile)
+		baseParts := strings.SplitN(base, ".", 2)
 		coverprofileCounters[t.Name()] = coverprofileCounters[t.Name()] + 1
-		parts[0] = fmt.Sprintf("%v-%v-%v", parts[0], t.Name(), coverprofileCounters[t.Name()])
-		ret = append(ret, "-test.coverprofile", strings.Join(parts, "."))
+		baseParts[0] = fmt.Sprintf("%v-%v-%v", baseParts[0], t.Name(), coverprofileCounters[t.Name()])
+		ret = append(ret, "-test.coverprofile", filepath.Join(dir, strings.Join(baseParts, ".")))
 	}
 	return append(append(ret, "--"), args...)
 }
