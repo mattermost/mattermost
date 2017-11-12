@@ -24,7 +24,7 @@ func (me *MuteProvider) GetTrigger() string {
 	return CMD_MUTE
 }
 
-func (me *MuteProvider) GetCommand(T goi18n.TranslateFunc) *model.Command {
+func (me *MuteProvider) GetCommand(a *App, T goi18n.TranslateFunc) *model.Command {
 	return &model.Command{
 		Trigger:          CMD_MUTE,
 		AutoComplete:     true,
