@@ -44,7 +44,7 @@ func TestCmToM(t *testing.T) {
 func TestSplitN(t *testing.T) {
 	xs := splitN("abc", 5)
 	if len(xs) != 1 && xs[0] != "abc" {
-		t.Errorf("Failure to split abc")
+		t.Errorf("failure to split abc")
 	}
 
 	s := ""

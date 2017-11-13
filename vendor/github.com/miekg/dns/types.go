@@ -164,14 +164,15 @@ const (
 	_Z  = 1 << 6  // Z
 	_AD = 1 << 5  // authticated data
 	_CD = 1 << 4  // checking disabled
+)
 
+// Various constants used in the LOC RR, See RFC 1887.
+const (
 	LOC_EQUATOR       = 1 << 31 // RFC 1876, Section 2.
 	LOC_PRIMEMERIDIAN = 1 << 31 // RFC 1876, Section 2.
-
-	LOC_HOURS   = 60 * 1000
-	LOC_DEGREES = 60 * LOC_HOURS
-
-	LOC_ALTITUDEBASE = 100000
+	LOC_HOURS         = 60 * 1000
+	LOC_DEGREES       = 60 * LOC_HOURS
+	LOC_ALTITUDEBASE  = 100000
 )
 
 // Different Certificate Types, see RFC 4398, Section 2.1
@@ -237,6 +238,7 @@ type ANY struct {
 
 func (rr *ANY) String() string { return rr.Hdr.String() }
 
+// CNAME RR. See RFC 1034.
 type CNAME struct {
 	Hdr    RR_Header
 	Target string `dns:"cdomain-name"`
@@ -244,6 +246,7 @@ type CNAME struct {
 
 func (rr *CNAME) String() string { return rr.Hdr.String() + sprintName(rr.Target) }
 
+// HINFO RR. See RFC 1034.
 type HINFO struct {
 	Hdr RR_Header
 	Cpu string
@@ -254,6 +257,7 @@ func (rr *HINFO) String() string {
 	return rr.Hdr.String() + sprintTxt([]string{rr.Cpu, rr.Os})
 }
 
+// MB RR. See RFC 1035.
 type MB struct {
 	Hdr RR_Header
 	Mb  string `dns:"cdomain-name"`
@@ -261,6 +265,7 @@ type MB struct {
 
 func (rr *MB) String() string { return rr.Hdr.String() + sprintName(rr.Mb) }
 
+// MG RR. See RFC 1035.
 type MG struct {
 	Hdr RR_Header
 	Mg  string `dns:"cdomain-name"`
@@ -268,6 +273,7 @@ type MG struct {
 
 func (rr *MG) String() string { return rr.Hdr.String() + sprintName(rr.Mg) }
 
+// MINFO RR. See RFC 1035.
 type MINFO struct {
 	Hdr   RR_Header
 	Rmail string `dns:"cdomain-name"`
@@ -278,6 +284,7 @@ func (rr *MINFO) String() string {
 	return rr.Hdr.String() + sprintName(rr.Rmail) + " " + sprintName(rr.Email)
 }
 
+// MR RR. See RFC 1035.
 type MR struct {
 	Hdr RR_Header
 	Mr  string `dns:"cdomain-name"`
@@ -287,6 +294,7 @@ func (rr *MR) String() string {
 	return rr.Hdr.String() + sprintName(rr.Mr)
 }
 
+// MF RR. See RFC 1035.
 type MF struct {
 	Hdr RR_Header
 	Mf  string `dns:"cdomain-name"`
@@ -296,6 +304,7 @@ func (rr *MF) String() string {
 	return rr.Hdr.String() + sprintName(rr.Mf)
 }
 
+// MD RR. See RFC 1035.
 type MD struct {
 	Hdr RR_Header
 	Md  string `dns:"cdomain-name"`
@@ -305,6 +314,7 @@ func (rr *MD) String() string {
 	return rr.Hdr.String() + sprintName(rr.Md)
 }
 
+// MX RR. See RFC 1035.
 type MX struct {
 	Hdr        RR_Header
 	Preference uint16
@@ -315,6 +325,7 @@ func (rr *MX) String() string {
 	return rr.Hdr.String() + strconv.Itoa(int(rr.Preference)) + " " + sprintName(rr.Mx)
 }
 
+// AFSDB RR. See RFC 1183.
 type AFSDB struct {
 	Hdr      RR_Header
 	Subtype  uint16
@@ -325,6 +336,7 @@ func (rr *AFSDB) String() string {
 	return rr.Hdr.String() + strconv.Itoa(int(rr.Subtype)) + " " + sprintName(rr.Hostname)
 }
 
+// X25 RR. See RFC 1183, Section 3.1.
 type X25 struct {
 	Hdr         RR_Header
 	PSDNAddress string
@@ -334,6 +346,7 @@ func (rr *X25) String() string {
 	return rr.Hdr.String() + rr.PSDNAddress
 }
 
+// RT RR. See RFC 1183, Section 3.3.
 type RT struct {
 	Hdr        RR_Header
 	Preference uint16
@@ -344,6 +357,7 @@ func (rr *RT) String() string {
 	return rr.Hdr.String() + strconv.Itoa(int(rr.Preference)) + " " + sprintName(rr.Host)
 }
 
+// NS RR. See RFC 1035.
 type NS struct {
 	Hdr RR_Header
 	Ns  string `dns:"cdomain-name"`
@@ -353,6 +367,7 @@ func (rr *NS) String() string {
 	return rr.Hdr.String() + sprintName(rr.Ns)
 }
 
+// PTR RR. See RFC 1035.
 type PTR struct {
 	Hdr RR_Header
 	Ptr string `dns:"cdomain-name"`
@@ -362,6 +377,7 @@ func (rr *PTR) String() string {
 	return rr.Hdr.String() + sprintName(rr.Ptr)
 }
 
+// RP RR. See RFC 1138, Section 2.2.
 type RP struct {
 	Hdr  RR_Header
 	Mbox string `dns:"domain-name"`
@@ -372,6 +388,7 @@ func (rr *RP) String() string {
 	return rr.Hdr.String() + rr.Mbox + " " + sprintTxt([]string{rr.Txt})
 }
 
+// SOA RR. See RFC 1035.
 type SOA struct {
 	Hdr     RR_Header
 	Ns      string `dns:"cdomain-name"`
@@ -392,6 +409,7 @@ func (rr *SOA) String() string {
 		" " + strconv.FormatInt(int64(rr.Minttl), 10)
 }
 
+// TXT RR. See RFC 1035.
 type TXT struct {
 	Hdr RR_Header
 	Txt []string `dns:"txt"`
@@ -524,6 +542,7 @@ func nextByte(b []byte, offset int) (byte, int) {
 	return b[offset+1], 2
 }
 
+// SPF RR. See RFC 4408, Section 3.1.1.
 type SPF struct {
 	Hdr RR_Header
 	Txt []string `dns:"txt"`
@@ -531,6 +550,7 @@ type SPF struct {
 
 func (rr *SPF) String() string { return rr.Hdr.String() + sprintTxt(rr.Txt) }
 
+// AVC RR. See https://www.iana.org/assignments/dns-parameters/AVC/avc-completed-template.
 type AVC struct {
 	Hdr RR_Header
 	Txt []string `dns:"txt"`
@@ -538,6 +558,7 @@ type AVC struct {
 
 func (rr *AVC) String() string { return rr.Hdr.String() + sprintTxt(rr.Txt) }
 
+// SRV RR. See RFC 2782.
 type SRV struct {
 	Hdr      RR_Header
 	Priority uint16
@@ -553,6 +574,7 @@ func (rr *SRV) String() string {
 		strconv.Itoa(int(rr.Port)) + " " + sprintName(rr.Target)
 }
 
+// NAPTR RR. See RFC 2915.
 type NAPTR struct {
 	Hdr         RR_Header
 	Order       uint16
@@ -573,7 +595,7 @@ func (rr *NAPTR) String() string {
 		rr.Replacement
 }
 
-// The CERT resource record, see RFC 4398.
+// CERT RR. See RFC 4398.
 type CERT struct {
 	Hdr         RR_Header
 	Type        uint16
@@ -599,7 +621,7 @@ func (rr *CERT) String() string {
 		" " + rr.Certificate
 }
 
-// The DNAME resource record, see RFC 2672.
+// DNAME RR. See RFC 2672.
 type DNAME struct {
 	Hdr    RR_Header
 	Target string `dns:"domain-name"`
@@ -609,6 +631,7 @@ func (rr *DNAME) String() string {
 	return rr.Hdr.String() + sprintName(rr.Target)
 }
 
+// A RR. See RFC 1035.
 type A struct {
 	Hdr RR_Header
 	A   net.IP `dns:"a"`
@@ -621,6 +644,7 @@ func (rr *A) String() string {
 	return rr.Hdr.String() + rr.A.String()
 }
 
+// AAAA RR. See RFC 3596.
 type AAAA struct {
 	Hdr  RR_Header
 	AAAA net.IP `dns:"aaaa"`
@@ -633,6 +657,7 @@ func (rr *AAAA) String() string {
 	return rr.Hdr.String() + rr.AAAA.String()
 }
 
+// PX RR. See RFC 2163.
 type PX struct {
 	Hdr        RR_Header
 	Preference uint16
@@ -644,6 +669,7 @@ func (rr *PX) String() string {
 	return rr.Hdr.String() + strconv.Itoa(int(rr.Preference)) + " " + sprintName(rr.Map822) + " " + sprintName(rr.Mapx400)
 }
 
+// GPOS RR. See RFC 1712.
 type GPOS struct {
 	Hdr       RR_Header
 	Longitude string
@@ -655,6 +681,7 @@ func (rr *GPOS) String() string {
 	return rr.Hdr.String() + rr.Longitude + " " + rr.Latitude + " " + rr.Altitude
 }
 
+// LOC RR. See RFC RFC 1876.
 type LOC struct {
 	Hdr       RR_Header
 	Version   uint8
@@ -731,11 +758,12 @@ func (rr *LOC) String() string {
 	return s
 }
 
-// SIG is identical to RRSIG and nowadays only used for SIG(0), RFC2931.
+// SIG RR. See RFC 2535. The SIG RR is identical to RRSIG and nowadays only used for SIG(0), See RFC 2931.
 type SIG struct {
 	RRSIG
 }
 
+// RRSIG RR. See RFC 4034 and RFC 3755.
 type RRSIG struct {
 	Hdr         RR_Header
 	TypeCovered uint16
@@ -763,6 +791,7 @@ func (rr *RRSIG) String() string {
 	return s
 }
 
+// NSEC RR. See RFC 4034 and RFC 3755.
 type NSEC struct {
 	Hdr        RR_Header
 	NextDomain string   `dns:"domain-name"`
@@ -790,14 +819,13 @@ func (rr *NSEC) len() int {
 	return l
 }
 
-type DLV struct {
-	DS
-}
+// DLV RR. See RFC 4431.
+type DLV struct{ DS }
 
-type CDS struct {
-	DS
-}
+// CDS RR. See RFC 7344.
+type CDS struct{ DS }
 
+// DS RR. See RFC 4034 and RFC 3658.
 type DS struct {
 	Hdr        RR_Header
 	KeyTag     uint16
@@ -813,6 +841,7 @@ func (rr *DS) String() string {
 		" " + strings.ToUpper(rr.Digest)
 }
 
+// KX RR. See RFC 2230.
 type KX struct {
 	Hdr        RR_Header
 	Preference uint16
@@ -824,6 +853,7 @@ func (rr *KX) String() string {
 		" " + sprintName(rr.Exchanger)
 }
 
+// TA RR. See http://www.watson.org/~weiler/INI1999-19.pdf.
 type TA struct {
 	Hdr        RR_Header
 	KeyTag     uint16
@@ -839,6 +869,7 @@ func (rr *TA) String() string {
 		" " + strings.ToUpper(rr.Digest)
 }
 
+// TALINK RR. See https://www.iana.org/assignments/dns-parameters/TALINK/talink-completed-template.
 type TALINK struct {
 	Hdr          RR_Header
 	PreviousName string `dns:"domain-name"`
@@ -850,6 +881,7 @@ func (rr *TALINK) String() string {
 		sprintName(rr.PreviousName) + " " + sprintName(rr.NextName)
 }
 
+// SSHFP RR. See RFC RFC 4255.
 type SSHFP struct {
 	Hdr         RR_Header
 	Algorithm   uint8
@@ -863,14 +895,17 @@ func (rr *SSHFP) String() string {
 		" " + strings.ToUpper(rr.FingerPrint)
 }
 
+// KEY RR. See RFC RFC 2535.
 type KEY struct {
 	DNSKEY
 }
 
+// CDNSKEY RR. See RFC 7344.
 type CDNSKEY struct {
 	DNSKEY
 }
 
+// DNSKEY RR. See RFC 4034 and RFC 3755.
 type DNSKEY struct {
 	Hdr       RR_Header
 	Flags     uint16
@@ -886,6 +921,7 @@ func (rr *DNSKEY) String() string {
 		" " + rr.PublicKey
 }
 
+// RKEY RR. See https://www.iana.org/assignments/dns-parameters/RKEY/rkey-completed-template.
 type RKEY struct {
 	Hdr       RR_Header
 	Flags     uint16
@@ -901,6 +937,7 @@ func (rr *RKEY) String() string {
 		" " + rr.PublicKey
 }
 
+// NSAPPTR RR. See RFC 1348.
 type NSAPPTR struct {
 	Hdr RR_Header
 	Ptr string `dns:"domain-name"`
@@ -908,6 +945,7 @@ type NSAPPTR struct {
 
 func (rr *NSAPPTR) String() string { return rr.Hdr.String() + sprintName(rr.Ptr) }
 
+// NSEC3 RR. See RFC 5155.
 type NSEC3 struct {
 	Hdr        RR_Header
 	Hash       uint8
@@ -946,6 +984,7 @@ func (rr *NSEC3) len() int {
 	return l
 }
 
+// NSEC3PARAM RR. See RFC 5155.
 type NSEC3PARAM struct {
 	Hdr        RR_Header
 	Hash       uint8
@@ -964,6 +1003,7 @@ func (rr *NSEC3PARAM) String() string {
 	return s
 }
 
+// TKEY RR. See RFC 2930.
 type TKEY struct {
 	Hdr        RR_Header
 	Algorithm  string `dns:"domain-name"`
@@ -982,7 +1022,7 @@ func (rr *TKEY) String() string {
 	return ""
 }
 
-// RFC3597 represents an unknown/generic RR.
+// RFC3597 represents an unknown/generic RR. See RFC 3597.
 type RFC3597 struct {
 	Hdr   RR_Header
 	Rdata string `dns:"hex"`
@@ -1006,6 +1046,7 @@ func rfc3597Header(h RR_Header) string {
 	return s
 }
 
+// URI RR. See RFC 7553.
 type URI struct {
 	Hdr      RR_Header
 	Priority uint16
@@ -1018,6 +1059,7 @@ func (rr *URI) String() string {
 		" " + strconv.Itoa(int(rr.Weight)) + " " + sprintTxtOctet(rr.Target)
 }
 
+// DHCID RR. See RFC 4701.
 type DHCID struct {
 	Hdr    RR_Header
 	Digest string `dns:"base64"`
@@ -1025,6 +1067,7 @@ type DHCID struct {
 
 func (rr *DHCID) String() string { return rr.Hdr.String() + rr.Digest }
 
+// TLSA RR. See RFC 6698.
 type TLSA struct {
 	Hdr          RR_Header
 	Usage        uint8
@@ -1041,6 +1084,7 @@ func (rr *TLSA) String() string {
 		" " + rr.Certificate
 }
 
+// SMIMEA RR. See RFC 8162.
 type SMIMEA struct {
 	Hdr          RR_Header
 	Usage        uint8
@@ -1063,6 +1107,7 @@ func (rr *SMIMEA) String() string {
 	return s
 }
 
+// HIP RR. See RFC 8005.
 type HIP struct {
 	Hdr                RR_Header
 	HitLength          uint8
@@ -1084,6 +1129,7 @@ func (rr *HIP) String() string {
 	return s
 }
 
+// NINFO RR. See https://www.iana.org/assignments/dns-parameters/NINFO/ninfo-completed-template.
 type NINFO struct {
 	Hdr    RR_Header
 	ZSData []string `dns:"txt"`
@@ -1091,6 +1137,7 @@ type NINFO struct {
 
 func (rr *NINFO) String() string { return rr.Hdr.String() + sprintTxt(rr.ZSData) }
 
+// NID RR. See RFC RFC 6742.
 type NID struct {
 	Hdr        RR_Header
 	Preference uint16
@@ -1104,6 +1151,7 @@ func (rr *NID) String() string {
 	return s
 }
 
+// L32 RR, See RFC 6742.
 type L32 struct {
 	Hdr        RR_Header
 	Preference uint16
@@ -1118,6 +1166,7 @@ func (rr *L32) String() string {
 		" " + rr.Locator32.String()
 }
 
+// L64 RR, See RFC 6742.
 type L64 struct {
 	Hdr        RR_Header
 	Preference uint16
@@ -1131,6 +1180,7 @@ func (rr *L64) String() string {
 	return s
 }
 
+// LP RR. See RFC 6742.
 type LP struct {
 	Hdr        RR_Header
 	Preference uint16
@@ -1141,6 +1191,7 @@ func (rr *LP) String() string {
 	return rr.Hdr.String() + strconv.Itoa(int(rr.Preference)) + " " + sprintName(rr.Fqdn)
 }
 
+// EUI48 RR. See RFC 7043.
 type EUI48 struct {
 	Hdr     RR_Header
 	Address uint64 `dns:"uint48"`
@@ -1148,6 +1199,7 @@ type EUI48 struct {
 
 func (rr *EUI48) String() string { return rr.Hdr.String() + euiToString(rr.Address, 48) }
 
+// EUI64 RR. See RFC 7043.
 type EUI64 struct {
 	Hdr     RR_Header
 	Address uint64
@@ -1155,6 +1207,7 @@ type EUI64 struct {
 
 func (rr *EUI64) String() string { return rr.Hdr.String() + euiToString(rr.Address, 64) }
 
+// CAA RR. See RFC 6844.
 type CAA struct {
 	Hdr   RR_Header
 	Flag  uint8
@@ -1166,6 +1219,7 @@ func (rr *CAA) String() string {
 	return rr.Hdr.String() + strconv.Itoa(int(rr.Flag)) + " " + rr.Tag + " " + sprintTxtOctet(rr.Value)
 }
 
+// UID RR. Deprecated, IANA-Reserved.
 type UID struct {
 	Hdr RR_Header
 	Uid uint32
@@ -1173,6 +1227,7 @@ type UID struct {
 
 func (rr *UID) String() string { return rr.Hdr.String() + strconv.FormatInt(int64(rr.Uid), 10) }
 
+// GID RR. Deprecated, IANA-Reserved.
 type GID struct {
 	Hdr RR_Header
 	Gid uint32
@@ -1180,6 +1235,7 @@ type GID struct {
 
 func (rr *GID) String() string { return rr.Hdr.String() + strconv.FormatInt(int64(rr.Gid), 10) }
 
+// UINFO RR. Deprecated, IANA-Reserved.
 type UINFO struct {
 	Hdr   RR_Header
 	Uinfo string
@@ -1187,6 +1243,7 @@ type UINFO struct {
 
 func (rr *UINFO) String() string { return rr.Hdr.String() + sprintTxt([]string{rr.Uinfo}) }
 
+// EID RR. See http://ana-3.lcs.mit.edu/~jnc/nimrod/dns.txt.
 type EID struct {
 	Hdr      RR_Header
 	Endpoint string `dns:"hex"`
@@ -1194,6 +1251,7 @@ type EID struct {
 
 func (rr *EID) String() string { return rr.Hdr.String() + strings.ToUpper(rr.Endpoint) }
 
+// NIMLOC RR. See http://ana-3.lcs.mit.edu/~jnc/nimrod/dns.txt.
 type NIMLOC struct {
 	Hdr     RR_Header
 	Locator string `dns:"hex"`
@@ -1201,6 +1259,7 @@ type NIMLOC struct {
 
 func (rr *NIMLOC) String() string { return rr.Hdr.String() + strings.ToUpper(rr.Locator) }
 
+// OPENPGPKEY RR. See RFC 7929.
 type OPENPGPKEY struct {
 	Hdr       RR_Header
 	PublicKey string `dns:"base64"`

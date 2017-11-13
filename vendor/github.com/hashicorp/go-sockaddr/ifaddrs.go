@@ -1,6 +1,7 @@
 package sockaddr
 
 import (
+	"encoding/binary"
 	"errors"
 	"fmt"
 	"math/big"
@@ -860,6 +861,80 @@ func IfAddrMath(operation, value string, inputIfAddr IfAddr) (IfAddr, error) {
 				SockAddr: IPv6Addr{
 					Address: IPv6Address(ipv6BigInt),
 					Mask:    ipv6.Mask,
+				},
+				Interface: inputIfAddr.Interface,
+			}, nil
+		default:
+			return IfAddr{}, fmt.Errorf("unsupported type for operation %q: %T", operation, sockType)
+		}
+	case "mask":
+		// "mask" operates on the IP address and returns the IP address on
+		// which the given integer mask has been applied. If the applied mask
+		// corresponds to a larger network than the mask of the IP address,
+		// the latter will be replaced by the former.
+		switch sockType := inputIfAddr.SockAddr.Type(); sockType {
+		case TypeIPv4:
+			i, err := strconv.ParseUint(value, 10, 32)
+			if err != nil {
+				return IfAddr{}, fmt.Errorf("unable to convert %q to int for operation %q: %v", value, operation, err)
+			}
+
+			if i > 32 {
+				return IfAddr{}, fmt.Errorf("parameter for operation %q on ipv4 addresses must be between 0 and 32", operation)
+			}
+
+			ipv4 := *ToIPv4Addr(inputIfAddr.SockAddr)
+
+			ipv4Mask := net.CIDRMask(int(i), 32)
+			ipv4MaskUint32 := binary.BigEndian.Uint32(ipv4Mask)
+
+			maskedIpv4 := ipv4.NetIP().Mask(ipv4Mask)
+			maskedIpv4Uint32 := binary.BigEndian.Uint32(maskedIpv4)
+
+			maskedIpv4MaskUint32 := uint32(ipv4.Mask)
+
+			if ipv4MaskUint32 < maskedIpv4MaskUint32 {
+				maskedIpv4MaskUint32 = ipv4MaskUint32
+			}
+
+			return IfAddr{
+				SockAddr: IPv4Addr{
+					Address: IPv4Address(maskedIpv4Uint32),
+					Mask:    IPv4Mask(maskedIpv4MaskUint32),
+				},
+				Interface: inputIfAddr.Interface,
+			}, nil
+		case TypeIPv6:
+			i, err := strconv.ParseUint(value, 10, 32)
+			if err != nil {
+				return IfAddr{}, fmt.Errorf("unable to convert %q to int for operation %q: %v", value, operation, err)
+			}
+
+			if i > 128 {
+				return IfAddr{}, fmt.Errorf("parameter for operation %q on ipv6 addresses must be between 0 and 64", operation)
+			}
+
+			ipv6 := *ToIPv6Addr(inputIfAddr.SockAddr)
+
+			ipv6Mask := net.CIDRMask(int(i), 128)
+			ipv6MaskBigInt := new(big.Int)
+			ipv6MaskBigInt.SetBytes(ipv6Mask)
+
+			maskedIpv6 := ipv6.NetIP().Mask(ipv6Mask)
+			maskedIpv6BigInt := new(big.Int)
+			maskedIpv6BigInt.SetBytes(maskedIpv6)
+
+			maskedIpv6MaskBigInt := new(big.Int)
+			maskedIpv6MaskBigInt.Set(ipv6.Mask)
+
+			if ipv6MaskBigInt.Cmp(maskedIpv6MaskBigInt) == -1 {
+				maskedIpv6MaskBigInt = ipv6MaskBigInt
+			}
+
+			return IfAddr{
+				SockAddr: IPv6Addr{
+					Address: IPv6Address(maskedIpv6BigInt),
+					Mask:    IPv6Mask(maskedIpv6MaskBigInt),
 				},
 				Interface: inputIfAddr.Interface,
 			}, nil

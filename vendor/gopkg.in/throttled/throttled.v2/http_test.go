@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"gopkg.in/throttled/throttled.v2"
+	"github.com/throttled/throttled"
 )
 
 type stubLimiter struct {

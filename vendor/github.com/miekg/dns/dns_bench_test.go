@@ -17,7 +17,26 @@ func BenchmarkMsgLength(b *testing.B) {
 		return msg
 	}
 	name1 := "12345678901234567890123456789012345.12345678.123."
-	rrMx, _ := NewRR(name1 + " 3600 IN MX 10 " + name1)
+	rrMx := testRR(name1 + " 3600 IN MX 10 " + name1)
+	msg := makeMsg(name1, []RR{rrMx, rrMx}, nil, nil)
+	b.StartTimer()
+	for i := 0; i < b.N; i++ {
+		msg.Len()
+	}
+}
+
+func BenchmarkMsgLengthNoCompression(b *testing.B) {
+	b.StopTimer()
+	makeMsg := func(question string, ans, ns, e []RR) *Msg {
+		msg := new(Msg)
+		msg.SetQuestion(Fqdn(question), TypeANY)
+		msg.Answer = append(msg.Answer, ans...)
+		msg.Ns = append(msg.Ns, ns...)
+		msg.Extra = append(msg.Extra, e...)
+		return msg
+	}
+	name1 := "12345678901234567890123456789012345.12345678.123."
+	rrMx := testRR(name1 + " 3600 IN MX 10 " + name1)
 	msg := makeMsg(name1, []RR{rrMx, rrMx}, nil, nil)
 	b.StartTimer()
 	for i := 0; i < b.N; i++ {
@@ -36,7 +55,7 @@ func BenchmarkMsgLengthPack(b *testing.B) {
 		return msg
 	}
 	name1 := "12345678901234567890123456789012345.12345678.123."
-	rrMx, _ := NewRR(name1 + " 3600 IN MX 10 " + name1)
+	rrMx := testRR(name1 + " 3600 IN MX 10 " + name1)
 	msg := makeMsg(name1, []RR{rrMx, rrMx}, nil, nil)
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
@@ -77,11 +96,11 @@ func BenchmarkCopy(b *testing.B) {
 	b.ReportAllocs()
 	m := new(Msg)
 	m.SetQuestion("miek.nl.", TypeA)
-	rr, _ := NewRR("miek.nl. 2311 IN A 127.0.0.1")
+	rr := testRR("miek.nl. 2311 IN A 127.0.0.1")
 	m.Answer = []RR{rr}
-	rr, _ = NewRR("miek.nl. 2311 IN NS 127.0.0.1")
+	rr = testRR("miek.nl. 2311 IN NS 127.0.0.1")
 	m.Ns = []RR{rr}
-	rr, _ = NewRR("miek.nl. 2311 IN A 127.0.0.1")
+	rr = testRR("miek.nl. 2311 IN A 127.0.0.1")
 	m.Extra = []RR{rr}
 
 	b.ResetTimer()
@@ -139,7 +158,7 @@ func BenchmarkUnpackMX(b *testing.B) {
 }
 
 func BenchmarkPackAAAAA(b *testing.B) {
-	aaaa, _ := NewRR(". IN A ::1")
+	aaaa := testRR(". IN A ::1")
 
 	buf := make([]byte, aaaa.len())
 	b.ReportAllocs()
@@ -150,7 +169,7 @@ func BenchmarkPackAAAAA(b *testing.B) {
 }
 
 func BenchmarkUnpackAAAA(b *testing.B) {
-	aaaa, _ := NewRR(". IN A ::1")
+	aaaa := testRR(". IN A ::1")
 
 	buf := make([]byte, aaaa.len())
 	PackRR(aaaa, buf, 0, nil, false)
@@ -173,7 +192,7 @@ func BenchmarkPackMsg(b *testing.B) {
 		return msg
 	}
 	name1 := "12345678901234567890123456789012345.12345678.123."
-	rrMx, _ := NewRR(name1 + " 3600 IN MX 10 " + name1)
+	rrMx := testRR(name1 + " 3600 IN MX 10 " + name1)
 	msg := makeMsg(name1, []RR{rrMx, rrMx}, nil, nil)
 	buf := make([]byte, 512)
 	b.ReportAllocs()
@@ -194,7 +213,7 @@ func BenchmarkUnpackMsg(b *testing.B) {
 		return msg
 	}
 	name1 := "12345678901234567890123456789012345.12345678.123."
-	rrMx, _ := NewRR(name1 + " 3600 IN MX 10 " + name1)
+	rrMx := testRR(name1 + " 3600 IN MX 10 " + name1)
 	msg := makeMsg(name1, []RR{rrMx, rrMx}, nil, nil)
 	msgBuf, _ := msg.Pack()
 	b.ReportAllocs()

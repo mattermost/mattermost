@@ -5,7 +5,7 @@ import:
   repo: https://github.com/mattermost/log4go.git
 - package: github.com/dgryski/dgoogauth
 - package: github.com/disintegration/imaging
-  version: v1.2.2
+  version: v1.2.4
 - package: github.com/dyatlov/go-opengraph
   subpackages:
   - opengraph
@@ -17,9 +17,9 @@ import:
   version: v1.3
 - package: github.com/golang/freetype
 - package: github.com/gorilla/handlers
-  version: v1.2.1
+  version: v1.3.0
 - package: github.com/gorilla/mux
-  version: v1.5.0
+  version: v1.6.0
 - package: github.com/gorilla/websocket
   version: v1.2.0
 - package: github.com/lib/pq
@@ -30,7 +30,7 @@ import:
   version: v3.0.3
 - package: github.com/mssola/user_agent
 - package: github.com/nicksnyder/go-i18n
-  version: v1.9.0
+  version: v1.10.0
   subpackages:
   - i18n
 - package: github.com/pborman/uuid
@@ -55,7 +55,7 @@ import:
   subpackages:
   - bmp
 - package: gopkg.in/throttled/throttled.v2
-  version: v2.0.3
+  version: v2.1.0
   subpackages:
   - store/memstore
 - package: github.com/prometheus/client_golang
@@ -81,11 +81,11 @@ import:
 - package: github.com/prometheus/procfs
 - package: github.com/cpanato/html2text
 - package: gopkg.in/olivere/elastic.v5
-  version: v5.0.48
+  version: v5.0.53
 - package: github.com/mattermost/gorp
   version: 995ddf2264c4ad45fbaf342f7500e4787ebae84a
 - package: github.com/go-redis/redis
-  version: v6.7.1
+  version: v6.7.3
 - package: github.com/stretchr/testify
   version: v1.1.4
   subpackages:

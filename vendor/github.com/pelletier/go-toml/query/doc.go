@@ -139,7 +139,7 @@
 // Compiled Queries
 //
 // Queries may be executed directly on a Tree object, or compiled ahead
-// of time and executed discretely.  The former is more convienent, but has the
+// of time and executed discretely.  The former is more convenient, but has the
 // penalty of having to recompile the query expression each time.
 //
 //   // basic query

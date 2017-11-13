@@ -7,24 +7,31 @@ import (
 	"time"
 )
 
-func Test_hasPort(t *testing.T) {
-	cases := []struct {
-		s        string
-		expected bool
+func TestUtil_PortFunctions(t *testing.T) {
+	tests := []struct {
+		addr       string
+		hasPort    bool
+		ensurePort string
 	}{
-		{"", false},
-		{":80", true},
-		{"127.0.0.1", false},
-		{"127.0.0.1:80", true},
-		{"::1", false},
-		{"2001:db8:a0b:12f0::1", false},
-		{"[2001:db8:a0b:12f0::1]", false},
-		{"[2001:db8:a0b:12f0::1]:80", true},
+		{"1.2.3.4", false, "1.2.3.4:8301"},
+		{"1.2.3.4:1234", true, "1.2.3.4:1234"},
+		{"2600:1f14:e22:1501:f9a:2e0c:a167:67e8", false, "[2600:1f14:e22:1501:f9a:2e0c:a167:67e8]:8301"},
+		{"[2600:1f14:e22:1501:f9a:2e0c:a167:67e8]", false, "[2600:1f14:e22:1501:f9a:2e0c:a167:67e8]:8301"},
+		{"[2600:1f14:e22:1501:f9a:2e0c:a167:67e8]:1234", true, "[2600:1f14:e22:1501:f9a:2e0c:a167:67e8]:1234"},
+		{"localhost", false, "localhost:8301"},
+		{"localhost:1234", true, "localhost:1234"},
+		{"hashicorp.com", false, "hashicorp.com:8301"},
+		{"hashicorp.com:1234", true, "hashicorp.com:1234"},
 	}
-	for _, c := range cases {
-		if hasPort(c.s) != c.expected {
-			t.Fatalf("bad: '%s' hasPort was not %v", c.s, c.expected)
-		}
+	for _, tt := range tests {
+		t.Run(tt.addr, func(t *testing.T) {
+			if got, want := hasPort(tt.addr), tt.hasPort; got != want {
+				t.Fatalf("got %v want %v", got, want)
+			}
+			if got, want := ensurePort(tt.addr, 8301), tt.ensurePort; got != want {
+				t.Fatalf("got %v want %v", got, want)
+			}
+		})
 	}
 }
 

@@ -44,6 +44,8 @@ var complexTests = [][]string{
 	{"\nkey=value\n", "key", "value"},
 	{"\rkey=value\r", "key", "value"},
 	{"\r\nkey=value\r\n", "key", "value"},
+	{"\nkey=value\n \nkey2=value2", "key", "value", "key2", "value2"},
+	{"\nkey=value\n\t\nkey2=value2", "key", "value", "key2", "value2"},
 
 	// escaped chars in key
 	{"k\\ ey = value", "k ey", "value"},

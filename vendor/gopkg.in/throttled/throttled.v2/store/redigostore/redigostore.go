@@ -1,5 +1,5 @@
 // Package redigostore offers Redis-based store implementation for throttled using redigo.
-package redigostore // import "gopkg.in/throttled/throttled.v2/store/redigostore"
+package redigostore // import "github.com/throttled/throttled/store/redigostore"
 
 import (
 	"strings"
@@ -18,11 +18,7 @@ end
 if v ~= ARGV[1] then
   return 0
 end
-if ARGV[3] ~= "0" then
-  redis.call('setex', KEYS[1], ARGV[3], ARGV[2])
-else
-  redis.call('set', KEYS[1], ARGV[2])
-end
+redis.call('setex', KEYS[1], ARGV[3], ARGV[2])
 return 1
 `
 )
@@ -106,10 +102,17 @@ func (r *RedigoStore) SetIfNotExistsWithTTL(key string, value int64, ttl time.Du
 
 	updated := v == 1
 
-	if ttl >= time.Second {
-		if _, err := conn.Do("EXPIRE", key, int(ttl.Seconds())); err != nil {
-			return updated, err
-		}
+	ttlSeconds := int(ttl.Seconds())
+
+	// An `EXPIRE 0` will delete the key immediately, so make sure that we set
+	// expiry for a minimum of one second out so that our results stay in the
+	// store.
+	if ttlSeconds < 1 {
+		ttlSeconds = 1
+	}
+
+	if _, err := conn.Do("EXPIRE", key, ttlSeconds); err != nil {
+		return updated, err
 	}
 
 	return updated, nil
@@ -128,7 +131,16 @@ func (r *RedigoStore) CompareAndSwapWithTTL(key string, old, new int64, ttl time
 	}
 	defer conn.Close()
 
-	swapped, err := redis.Bool(conn.Do("EVAL", redisCASScript, 1, key, old, new, int(ttl.Seconds())))
+	ttlSeconds := int(ttl.Seconds())
+
+	// An `EXPIRE 0` will delete the key immediately, so make sure that we set
+	// expiry for a minimum of one second out so that our results stay in the
+	// store.
+	if ttlSeconds < 1 {
+		ttlSeconds = 1
+	}
+
+	swapped, err := redis.Bool(conn.Do("EVAL", redisCASScript, 1, key, old, new, ttlSeconds))
 	if err != nil {
 		if strings.Contains(err.Error(), redisCASMissingKey) {
 			return false, nil

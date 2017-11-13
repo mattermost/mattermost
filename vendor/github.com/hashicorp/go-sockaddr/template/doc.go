@@ -212,6 +212,13 @@ Supported operations include:
     from the network's broadcast address (e.g. 127.0.0.1 `"network" "-1"` will
     return "127.255.255.255").  Values that overflow the network size will
     safely wrap.
+  - `mask`: Applies the given network mask to the address. The network mask is
+  	expressed as a decimal value (e.g. network mask "24" corresponds to
+  	`255.255.255.0`). After applying the network mask, the network mask of the
+  	resulting address will be either the applied network mask or the network mask
+  	of the input address depending on which network is larger
+  	(e.g. 192.168.10.20/24 `"mask" "16"` will return "192.168.0.0/16" but
+  	192.168.10.20/24 `"mask" "28"` will return "192.168.10.16/24").
 
 Example:
 
@@ -219,6 +226,7 @@ Example:
     {{ GetPrivateInterfaces | include "type" "IP" | math "address" "-256" | attr "address" }}
     {{ GetPrivateInterfaces | include "type" "IP" | math "network" "+2" | attr "address" }}
     {{ GetPrivateInterfaces | include "type" "IP" | math "network" "-2" | attr "address" }}
+    {{ GetPrivateInterfaces | include "type" "IP" | math "mask" "24" | attr "address" }}
     {{ GetPrivateInterfaces | include "flags" "forwardable|up" | include "type" "IPv4" | math "network" "+2" | attr "address" }}
 
 

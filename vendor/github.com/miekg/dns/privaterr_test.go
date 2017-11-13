@@ -59,8 +59,6 @@ func TestPrivateText(t *testing.T) {
 	}
 	if rr.String() != testrecord {
 		t.Errorf("record string representation did not match original %#v != %#v", rr.String(), testrecord)
-	} else {
-		t.Log(rr.String())
 	}
 }
 
@@ -96,8 +94,6 @@ func TestPrivateByteSlice(t *testing.T) {
 
 	if rr1.String() != testrecord {
 		t.Errorf("record string representation did not match original %#v != %#v", rr1.String(), testrecord)
-	} else {
-		t.Log(rr1.String())
 	}
 }
 
@@ -166,6 +162,5 @@ func TestPrivateZoneParser(t *testing.T) {
 		if err := x.Error; err != nil {
 			t.Fatal(err)
 		}
-		t.Log(x.RR)
 	}
 }

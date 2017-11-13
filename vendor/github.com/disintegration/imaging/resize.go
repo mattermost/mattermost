@@ -19,6 +19,7 @@ func precomputeWeights(dstSize, srcSize int, filter ResampleFilter) [][]indexWei
 	ru := math.Ceil(scale * filter.Support)
 
 	out := make([][]indexWeight, dstSize)
+	tmp := make([]indexWeight, 0, dstSize*int(ru+2)*2)
 
 	for v := 0; v < dstSize; v++ {
 		fu := (float64(v)+0.5)*du - 0.5
@@ -37,14 +38,17 @@ func precomputeWeights(dstSize, srcSize int, filter ResampleFilter) [][]indexWei
 			w := filter.Kernel((float64(u) - fu) / scale)
 			if w != 0 {
 				sum += w
-				out[v] = append(out[v], indexWeight{index: u, weight: w})
+				tmp = append(tmp, indexWeight{index: u, weight: w})
 			}
 		}
 		if sum != 0 {
-			for i := range out[v] {
-				out[v][i].weight /= sum
+			for i := range tmp {
+				tmp[i].weight /= sum
 			}
 		}
+
+		out[v] = tmp
+		tmp = tmp[len(tmp):]
 	}
 
 	return out

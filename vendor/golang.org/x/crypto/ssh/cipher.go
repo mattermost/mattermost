@@ -304,7 +304,7 @@ type gcmCipher struct {
 	buf    []byte
 }
 
-func newGCMCipher(iv, key, macKey []byte) (packetCipher, error) {
+func newGCMCipher(iv, key []byte) (packetCipher, error) {
 	c, err := aes.NewCipher(key)
 	if err != nil {
 		return nil, err
