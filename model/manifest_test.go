@@ -76,6 +76,7 @@ func TestManifestUnmarshal(t *testing.T) {
 					Type:               PLUGIN_CONFIG_TYPE_DROPDOWN,
 					HelpText:           "thehelptext",
 					RegenerateHelpText: "theregeneratehelptext",
+					Placeholder:        "theplaceholder",
 					Options: []*PluginOption{
 						&PluginOption{
 							DisplayName: "theoptiondisplayname",
@@ -104,6 +105,7 @@ settings_schema:
             type: dropdown
             help_text: thehelptext
             regenerate_help_text: theregeneratehelptext
+            placeholder: theplaceholder
             options:
                 - display_name: theoptiondisplayname
                   value: thevalue
@@ -129,6 +131,7 @@ settings_schema:
                 "type": "dropdown",
                 "help_text": "thehelptext",
                 "regenerate_help_text": "theregeneratehelptext",
+                "placeholder": "theplaceholder",
                 "options": [
                     {
                         "display_name": "theoptiondisplayname",
@@ -178,6 +181,7 @@ func TestManifestJson(t *testing.T) {
 					Type:               PLUGIN_CONFIG_TYPE_DROPDOWN,
 					HelpText:           "thehelptext",
 					RegenerateHelpText: "theregeneratehelptext",
+					Placeholder:        "theplaceholder",
 					Options: []*PluginOption{
 						&PluginOption{
 							DisplayName: "theoptiondisplayname",
@@ -241,6 +245,7 @@ func TestManifestClientManifest(t *testing.T) {
 					Type:               PLUGIN_CONFIG_TYPE_DROPDOWN,
 					HelpText:           "thehelptext",
 					RegenerateHelpText: "theregeneratehelptext",
+					Placeholder:        "theplaceholder",
 					Options: []*PluginOption{
 						&PluginOption{
 							DisplayName: "theoptiondisplayname",
