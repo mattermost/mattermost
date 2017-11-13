@@ -1361,12 +1361,12 @@
     "translation": "Unable to upload file. Header cannot be parsed."
   },
   {
-    "id": "api.file.upload_file.large_image.app_error",
-    "translation": "File above maximum dimensions could not be uploaded: {{.Filename}}"
-  },
-  {
     "id": "api.file.upload_file.storage.app_error",
     "translation": "Unable to upload file. Image storage is not configured."
+  },
+  {
+    "id": "api.file.upload_file.thumbnail_upload.app_error",
+    "translation": "Unable to upload default thumbnail image from: {{.Path}}"
   },
   {
     "id": "api.file.upload_file.too_large.app_error",
