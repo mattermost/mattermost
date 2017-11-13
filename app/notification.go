@@ -69,7 +69,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 			mentionedUserIds[post.UserId] = true
 		}
 	} else {
-		keywords := GetMentionKeywordsInChannel(profileMap, post.Type != model.POST_HEADER_CHANGE && post.Type != model.POST_PURPOSE_CHANGE)
+		keywords := a.GetMentionKeywordsInChannel(profileMap, post.Type != model.POST_HEADER_CHANGE && post.Type != model.POST_PURPOSE_CHANGE)
 
 		var potentialOtherMentions []string
 		mentionedUserIds, potentialOtherMentions, hereNotification, channelNotification, allNotification = GetExplicitMentions(post.Message, keywords)
@@ -909,7 +909,7 @@ func removeCodeFromMessage(message string) string {
 
 // Given a map of user IDs to profiles, returns a list of mention
 // keywords for all users in the channel.
-func GetMentionKeywordsInChannel(profiles map[string]*model.User, lookForSpecialMentions bool) map[string][]string {
+func (a *App) GetMentionKeywordsInChannel(profiles map[string]*model.User, lookForSpecialMentions bool) map[string][]string {
 	keywords := make(map[string][]string)
 
 	for id, profile := range profiles {
@@ -933,7 +933,7 @@ func GetMentionKeywordsInChannel(profiles map[string]*model.User, lookForSpecial
 
 		// Add @channel and @all to keywords if user has them turned on
 		if lookForSpecialMentions {
-			if int64(len(profiles)) < *utils.Cfg.TeamSettings.MaxNotificationsPerChannel && profile.NotifyProps["channel"] == "true" {
+			if int64(len(profiles)) < *a.Config().TeamSettings.MaxNotificationsPerChannel && profile.NotifyProps["channel"] == "true" {
 				keywords["@channel"] = append(keywords["@channel"], profile.Id)
 				keywords["@all"] = append(keywords["@all"], profile.Id)
 

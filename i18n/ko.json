@@ -2164,6 +2164,10 @@
     "translation": "요청의 'file' 항목에 파일이 없습니다."
   },
   {
+    "id": "api.team.import_team.no_import_from.app_error",
+    "translation": "Malformed request: importFrom field is not present."
+  },
+  {
     "id": "api.team.import_team.open.app_error",
     "translation": "파일을 열 수 없습니다."
   },
@@ -2800,7 +2804,7 @@
     "translation": "가입 환영 메일을 발송하지 못하였습니다."
   },
   {
-    "id": "api.user.update_active.no_deactivate_ldap.app_error",
+    "id": "api.user.update_active.no_deactivate_sso.app_error",
     "translation": "You can not modify the activation status of LDAP accounts. Please modify through the LDAP server."
   },
   {

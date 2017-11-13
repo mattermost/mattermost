@@ -30,7 +30,7 @@ func (me *EchoProvider) GetTrigger() string {
 	return CMD_ECHO
 }
 
-func (me *EchoProvider) GetCommand(T goi18n.TranslateFunc) *model.Command {
+func (me *EchoProvider) GetCommand(a *App, T goi18n.TranslateFunc) *model.Command {
 	return &model.Command{
 		Trigger:          CMD_ECHO,
 		AutoComplete:     true,

@@ -1,7 +1,7 @@
 # Testing Files and Attachments
 This test contains instructions for the core team to manually test common attachment types. All files for testing are stored in the [mm_file_testing](https://www.dropbox.com/sh/i7ft8is5hbhk8ii/AAAyM-WG-X2jiQOgg6-E3MmLa?dl=0) dropbox folder. Follow these instructions:
 
-1. Download the entire [mm_file_testing](https://www.dropbox.com/sh/i7ft8is5hbhk8ii/AAAyM-WG-X2jiQOgg6-E3MmLa?dl=0) folder. 
+1. Download the entire [mm_file_testing](https://drive.google.com/drive/folders/0B9-SWBTtyOCBRlEyaW1IdkZ4X1k) folder. 
 2. Drag and drop each file type into Mattermost to upload it.
 3. Post the file attachment
 

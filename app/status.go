@@ -34,8 +34,8 @@ func (a *App) AddStatusCache(status *model.Status) {
 	}
 }
 
-func GetAllStatuses() map[string]*model.Status {
-	if !*utils.Cfg.ServiceSettings.EnableUserStatuses {
+func (a *App) GetAllStatuses() map[string]*model.Status {
+	if !*a.Config().ServiceSettings.EnableUserStatuses {
 		return map[string]*model.Status{}
 	}
 
@@ -272,7 +272,7 @@ func (a *App) SetStatusAwayIfNeeded(userId string, manual bool) {
 			return
 		}
 
-		if !IsUserAway(status.LastActivityAt) {
+		if !a.IsUserAway(status.LastActivityAt) {
 			return
 		}
 	}
@@ -351,6 +351,6 @@ func (a *App) GetStatus(userId string) (*model.Status, *model.AppError) {
 	}
 }
 
-func IsUserAway(lastActivityAt int64) bool {
-	return model.GetMillis()-lastActivityAt >= *utils.Cfg.TeamSettings.UserStatusAwayTimeout*1000
+func (a *App) IsUserAway(lastActivityAt int64) bool {
+	return model.GetMillis()-lastActivityAt >= *a.Config().TeamSettings.UserStatusAwayTimeout*1000
 }

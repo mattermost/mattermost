@@ -23,7 +23,7 @@ func (h *HelpProvider) GetTrigger() string {
 	return CMD_HELP
 }
 
-func (h *HelpProvider) GetCommand(T goi18n.TranslateFunc) *model.Command {
+func (h *HelpProvider) GetCommand(a *App, T goi18n.TranslateFunc) *model.Command {
 	return &model.Command{
 		Trigger:          CMD_HELP,
 		AutoComplete:     true,

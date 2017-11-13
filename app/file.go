@@ -225,13 +225,13 @@ func (a *App) MigrateFilenamesToFileInfos(post *model.Post) []*model.FileInfo {
 	}
 }
 
-func GeneratePublicLink(siteURL string, info *model.FileInfo) string {
-	hash := GeneratePublicLinkHash(info.Id, *utils.Cfg.FileSettings.PublicLinkSalt)
+func (a *App) GeneratePublicLink(siteURL string, info *model.FileInfo) string {
+	hash := GeneratePublicLinkHash(info.Id, *a.Config().FileSettings.PublicLinkSalt)
 	return fmt.Sprintf("%s/files/%v/public?h=%s", siteURL, info.Id, hash)
 }
 
-func GeneratePublicLinkV3(siteURL string, info *model.FileInfo) string {
-	hash := GeneratePublicLinkHash(info.Id, *utils.Cfg.FileSettings.PublicLinkSalt)
+func (a *App) GeneratePublicLinkV3(siteURL string, info *model.FileInfo) string {
+	hash := GeneratePublicLinkHash(info.Id, *a.Config().FileSettings.PublicLinkSalt)
 	return fmt.Sprintf("%s%s/public/files/%v/get?h=%s", siteURL, model.API_URL_SUFFIX_V3, info.Id, hash)
 }
 

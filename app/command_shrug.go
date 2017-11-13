@@ -23,7 +23,7 @@ func (me *ShrugProvider) GetTrigger() string {
 	return CMD_SHRUG
 }
 
-func (me *ShrugProvider) GetCommand(T goi18n.TranslateFunc) *model.Command {
+func (me *ShrugProvider) GetCommand(a *App, T goi18n.TranslateFunc) *model.Command {
 	return &model.Command{
 		Trigger:          CMD_SHRUG,
 		AutoComplete:     true,

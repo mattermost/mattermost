@@ -10,7 +10,6 @@ import (
 
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
-	"github.com/mattermost/mattermost-server/utils"
 )
 
 func ptrStr(s string) *string {
@@ -1344,7 +1343,7 @@ func TestImportImportUser(t *testing.T) {
 			t.Fatalf("Expected EmailVerified to be true.")
 		}
 
-		if user.Locale != *utils.Cfg.LocalizationSettings.DefaultClientLocale {
+		if user.Locale != *th.App.Config().LocalizationSettings.DefaultClientLocale {
 			t.Fatalf("Expected Locale to be the default.")
 		}
 

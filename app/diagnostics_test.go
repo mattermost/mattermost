@@ -145,11 +145,9 @@ func TestDiagnostics(t *testing.T) {
 	})
 
 	t.Run("SendDailyDiagnosticsDisabled", func(t *testing.T) {
-		oldSetting := *utils.Cfg.LogSettings.EnableDiagnostics
-		*utils.Cfg.LogSettings.EnableDiagnostics = false
-		defer func() {
-			*utils.Cfg.LogSettings.EnableDiagnostics = oldSetting
-		}()
+		oldSetting := *th.App.Config().LogSettings.EnableDiagnostics
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.LogSettings.EnableDiagnostics = false })
+		defer th.App.UpdateConfig(func(cfg *model.Config) { *cfg.LogSettings.EnableDiagnostics = oldSetting })
 
 		th.App.SendDailyDiagnostics()
 

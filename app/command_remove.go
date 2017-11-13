@@ -10,7 +10,6 @@ import (
 	goi18n "github.com/nicksnyder/go-i18n/i18n"
 
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils"
 )
 
 type RemoveProvider struct {
@@ -37,7 +36,7 @@ func (me *KickProvider) GetTrigger() string {
 	return CMD_KICK
 }
 
-func (me *RemoveProvider) GetCommand(T goi18n.TranslateFunc) *model.Command {
+func (me *RemoveProvider) GetCommand(a *App, T goi18n.TranslateFunc) *model.Command {
 	return &model.Command{
 		Trigger:          CMD_REMOVE,
 		AutoComplete:     true,
@@ -47,7 +46,7 @@ func (me *RemoveProvider) GetCommand(T goi18n.TranslateFunc) *model.Command {
 	}
 }
 
-func (me *KickProvider) GetCommand(T goi18n.TranslateFunc) *model.Command {
+func (me *KickProvider) GetCommand(a *App, T goi18n.TranslateFunc) *model.Command {
 	return &model.Command{
 		Trigger:          CMD_KICK,
 		AutoComplete:     true,
@@ -102,7 +101,7 @@ func doCommand(a *App, args *model.CommandArgs, message string) *model.CommandRe
 
 	_, err = a.GetChannelMember(args.ChannelId, userProfile.Id)
 	if err != nil {
-		nameFormat := *utils.Cfg.TeamSettings.TeammateNameDisplay
+		nameFormat := *a.Config().TeamSettings.TeammateNameDisplay
 		return &model.CommandResponse{Text: args.T("api.command_remove.user_not_in_channel", map[string]interface{}{"Username": userProfile.GetDisplayName(nameFormat)}), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 	}
 

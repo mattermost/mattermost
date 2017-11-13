@@ -39,7 +39,7 @@ func (a *App) CreateTeamWithUser(team *model.Team, userId string) (*model.Team, 
 		team.Email = user.Email
 	}
 
-	if !isTeamEmailAllowed(user) {
+	if !a.isTeamEmailAllowed(user) {
 		return nil, model.NewAppError("isTeamEmailAllowed", "api.team.is_team_creation_allowed.domain.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -55,11 +55,11 @@ func (a *App) CreateTeamWithUser(team *model.Team, userId string) (*model.Team, 
 	return rteam, nil
 }
 
-func isTeamEmailAddressAllowed(email string) bool {
+func (a *App) isTeamEmailAddressAllowed(email string) bool {
 	email = strings.ToLower(email)
 	// commas and @ signs are optional
 	// can be in the form of "@corp.mattermost.com, mattermost.com mattermost.org" -> corp.mattermost.com mattermost.com mattermost.org
-	domains := strings.Fields(strings.TrimSpace(strings.ToLower(strings.Replace(strings.Replace(utils.Cfg.TeamSettings.RestrictCreationToDomains, "@", " ", -1), ",", " ", -1))))
+	domains := strings.Fields(strings.TrimSpace(strings.ToLower(strings.Replace(strings.Replace(a.Config().TeamSettings.RestrictCreationToDomains, "@", " ", -1), ",", " ", -1))))
 
 	matched := false
 	for _, d := range domains {
@@ -69,21 +69,21 @@ func isTeamEmailAddressAllowed(email string) bool {
 		}
 	}
 
-	if len(utils.Cfg.TeamSettings.RestrictCreationToDomains) > 0 && !matched {
+	if len(a.Config().TeamSettings.RestrictCreationToDomains) > 0 && !matched {
 		return false
 	}
 
 	return true
 }
 
-func isTeamEmailAllowed(user *model.User) bool {
+func (a *App) isTeamEmailAllowed(user *model.User) bool {
 	email := strings.ToLower(user.Email)
 
 	if len(user.AuthService) > 0 && len(*user.AuthData) > 0 {
 		return true
 	}
 
-	return isTeamEmailAddressAllowed(email)
+	return a.isTeamEmailAddressAllowed(email)
 }
 
 func (a *App) UpdateTeam(team *model.Team) (*model.Team, *model.AppError) {
@@ -646,7 +646,7 @@ func (a *App) InviteNewUsersToTeam(emailList []string, teamId, senderId string) 
 	var invalidEmailList []string
 
 	for _, email := range emailList {
-		if !isTeamEmailAddressAllowed(email) {
+		if !a.isTeamEmailAddressAllowed(email) {
 			invalidEmailList = append(invalidEmailList, email)
 		}
 	}

@@ -332,5 +332,5 @@ func getPublicLink(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write([]byte(model.StringToJson(app.GeneratePublicLinkV3(c.GetSiteURLHeader(), info))))
+	w.Write([]byte(model.StringToJson(c.App.GeneratePublicLinkV3(c.GetSiteURLHeader(), info))))
 }

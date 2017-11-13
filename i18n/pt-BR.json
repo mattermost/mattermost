@@ -2164,6 +2164,10 @@
     "translation": "Nenhum arquivo sobre a 'file' no pedido"
   },
   {
+    "id": "api.team.import_team.no_import_from.app_error",
+    "translation": "Requisição mal formada: campo filesize não está presente."
+  },
+  {
     "id": "api.team.import_team.open.app_error",
     "translation": "Não foi possível abrir o arquivo"
   },
@@ -2800,8 +2804,8 @@
     "translation": "Erro ao enviar boas vindas por email"
   },
   {
-    "id": "api.user.update_active.no_deactivate_ldap.app_error",
-    "translation": "Você não pode modificar o status de ativação de contas AD/LDAP. Por favor modifique através do servidor AD/LDAP."
+    "id": "api.user.update_active.no_deactivate_sso.app_error",
+    "translation": "Você não pode modificar o status de ativação de contas SSO. Por favor modifique através do servidor SSO."
   },
   {
     "id": "api.user.update_active.permissions.app_error",

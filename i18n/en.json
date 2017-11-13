@@ -2164,16 +2164,16 @@
     "translation": "No file under 'file' in request"
   },
   {
+    "id": "api.team.import_team.no_import_from.app_error",
+    "translation": "Malformed request: importFrom field is not present."
+  },
+  {
     "id": "api.team.import_team.open.app_error",
     "translation": "Could not open file"
   },
   {
     "id": "api.team.import_team.parse.app_error",
     "translation": "Could not parse multipart form"
-  },
-  {
-    "id": "api.team.import_team.no_import_from.app_error",
-    "translation": "Malformed request: importFrom field is not present."
   },
   {
     "id": "api.team.import_team.unavailable.app_error",
