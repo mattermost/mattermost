@@ -7,8 +7,8 @@ func TestCompareDomainName(t *testing.T) {
 	s2 := "miek.nl."
 	s3 := "www.bla.nl."
 	s4 := "nl.www.bla."
-	s5 := "nl"
-	s6 := "miek.nl"
+	s5 := "nl."
+	s6 := "miek.nl."
 
 	if CompareDomainName(s1, s2) != 2 {
 		t.Errorf("%s with %s should be %d", s1, s2, 2)
@@ -54,8 +54,6 @@ func TestSplit(t *testing.T) {
 	for s, i := range splitter {
 		if x := len(Split(s)); x != i {
 			t.Errorf("labels should be %d, got %d: %s %v", i, x, s, Split(s))
-		} else {
-			t.Logf("%s %v", s, Split(s))
 		}
 	}
 }
@@ -87,19 +85,19 @@ func TestPrevLabel(t *testing.T) {
 		int
 	}
 	prever := map[prev]int{
-		prev{"www.miek.nl.", 0}: 12,
-		prev{"www.miek.nl.", 1}: 9,
-		prev{"www.miek.nl.", 2}: 4,
+		{"www.miek.nl.", 0}: 12,
+		{"www.miek.nl.", 1}: 9,
+		{"www.miek.nl.", 2}: 4,
 
-		prev{"www.miek.nl", 0}: 11,
-		prev{"www.miek.nl", 1}: 9,
-		prev{"www.miek.nl", 2}: 4,
+		{"www.miek.nl", 0}: 11,
+		{"www.miek.nl", 1}: 9,
+		{"www.miek.nl", 2}: 4,
 
-		prev{"www.miek.nl.", 5}: 0,
-		prev{"www.miek.nl", 5}:  0,
+		{"www.miek.nl.", 5}: 0,
+		{"www.miek.nl", 5}:  0,
 
-		prev{"www.miek.nl.", 3}: 0,
-		prev{"www.miek.nl", 3}:  0,
+		{"www.miek.nl.", 3}: 0,
+		{"www.miek.nl", 3}:  0,
 	}
 	for s, i := range prever {
 		x, ok := PrevLabel(s.string, s.int)
@@ -176,28 +174,28 @@ func TestIsDomainName(t *testing.T) {
 
 func BenchmarkSplitLabels(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		Split("www.example.com")
+		Split("www.example.com.")
 	}
 }
 
 func BenchmarkLenLabels(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		CountLabel("www.example.com")
+		CountLabel("www.example.com.")
 	}
 }
 
-func BenchmarkCompareLabels(b *testing.B) {
+func BenchmarkCompareDomainName(b *testing.B) {
 	b.ReportAllocs()
 	for i := 0; i < b.N; i++ {
-		CompareDomainName("www.example.com", "aa.example.com")
+		CompareDomainName("www.example.com.", "aa.example.com.")
 	}
 }
 
 func BenchmarkIsSubDomain(b *testing.B) {
 	b.ReportAllocs()
 	for i := 0; i < b.N; i++ {
-		IsSubDomain("www.example.com", "aa.example.com")
-		IsSubDomain("example.com", "aa.example.com")
-		IsSubDomain("miek.nl", "aa.example.com")
+		IsSubDomain("www.example.com.", "aa.example.com.")
+		IsSubDomain("example.com.", "aa.example.com.")
+		IsSubDomain("miek.nl.", "aa.example.com.")
 	}
 }

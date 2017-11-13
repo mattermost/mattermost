@@ -141,7 +141,7 @@ type routeRegexp struct {
 	matchQuery bool
 	// The strictSlash value defined on the route, but disabled if PathPrefix was used.
 	strictSlash bool
-	// Determines whether to use encoded path from getPath function or unencoded
+	// Determines whether to use encoded req.URL.EnscapedPath() or unencoded
 	// req.URL.Path for path matching
 	useEncodedPath bool
 	// Expanded regexp.
@@ -162,7 +162,7 @@ func (r *routeRegexp) Match(req *http.Request, match *RouteMatch) bool {
 		}
 		path := req.URL.Path
 		if r.useEncodedPath {
-			path = getPath(req)
+			path = req.URL.EscapedPath()
 		}
 		return r.regexp.MatchString(path)
 	}
@@ -272,7 +272,7 @@ func (v *routeRegexpGroup) setMatch(req *http.Request, m *RouteMatch, r *Route) 
 	}
 	path := req.URL.Path
 	if r.useEncodedPath {
-		path = getPath(req)
+		path = req.URL.EscapedPath()
 	}
 	// Store path variables.
 	if v.path != nil {

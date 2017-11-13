@@ -747,13 +747,16 @@ func (v *Viper) Unmarshal(rawVal interface{}) error {
 }
 
 // defaultDecoderConfig returns default mapsstructure.DecoderConfig with suppot
-// of time.Duration values
+// of time.Duration values & string slices
 func defaultDecoderConfig(output interface{}) *mapstructure.DecoderConfig {
 	return &mapstructure.DecoderConfig{
 		Metadata:         nil,
 		Result:           output,
 		WeaklyTypedInput: true,
-		DecodeHook:       mapstructure.StringToTimeDurationHookFunc(),
+		DecodeHook: mapstructure.ComposeDecodeHookFunc(
+			mapstructure.StringToTimeDurationHookFunc(),
+			mapstructure.StringToSliceHookFunc(","),
+		),
 	}
 }
 
@@ -1534,7 +1537,7 @@ func (v *Viper) searchInPath(in string) (filename string) {
 	jww.DEBUG.Println("Searching for config in ", in)
 	for _, ext := range SupportedExts {
 		jww.DEBUG.Println("Checking for", filepath.Join(in, v.configName+"."+ext))
-		if b, _ := exists(filepath.Join(in, v.configName+"."+ext)); b {
+		if b, _ := exists(v.fs, filepath.Join(in, v.configName+"."+ext)); b {
 			jww.DEBUG.Println("Found: ", filepath.Join(in, v.configName+"."+ext))
 			return filepath.Join(in, v.configName+"."+ext)
 		}

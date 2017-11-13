@@ -5,7 +5,7 @@ import (
 	"net/url"
 	"testing"
 
-	"gopkg.in/throttled/throttled.v2"
+	"github.com/throttled/throttled"
 )
 
 func TestVaryBy(t *testing.T) {

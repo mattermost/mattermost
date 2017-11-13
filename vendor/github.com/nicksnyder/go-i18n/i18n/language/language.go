@@ -45,7 +45,7 @@ func Parse(src string) []*Language {
 		switch chr {
 		case ',', ';', '.':
 			tag := strings.TrimSpace(src[start:end])
-			if spec := getPluralSpec(tag); spec != nil {
+			if spec := GetPluralSpec(tag); spec != nil {
 				langs = append(langs, &Language{NormalizeTag(tag), spec})
 			}
 			start = end + 1
@@ -53,12 +53,12 @@ func Parse(src string) []*Language {
 	}
 	if start > 0 {
 		tag := strings.TrimSpace(src[start:])
-		if spec := getPluralSpec(tag); spec != nil {
+		if spec := GetPluralSpec(tag); spec != nil {
 			langs = append(langs, &Language{NormalizeTag(tag), spec})
 		}
 		return dedupe(langs)
 	}
-	if spec := getPluralSpec(src); spec != nil {
+	if spec := GetPluralSpec(src); spec != nil {
 		langs = append(langs, &Language{NormalizeTag(src), spec})
 	}
 	return langs

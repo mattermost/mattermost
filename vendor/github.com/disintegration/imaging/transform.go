@@ -235,7 +235,7 @@ func Rotate(img image.Image, angle float64, bgColor color.Color) *image.NRGBA {
 	dstYOff := float64(dstH)/2 - 0.5
 
 	bgColorNRGBA := color.NRGBAModel.Convert(bgColor).(color.NRGBA)
-	sin, cos := math.Sincos(math.Pi * float64(angle) / 180)
+	sin, cos := math.Sincos(math.Pi * angle / 180)
 
 	parallel(dstH, func(partStart, partEnd int) {
 		for dstY := partStart; dstY < partEnd; dstY++ {
@@ -259,7 +259,7 @@ func rotatedSize(w, h int, angle float64) (int, int) {
 		return 0, 0
 	}
 
-	sin, cos := math.Sincos(math.Pi * float64(angle) / 180)
+	sin, cos := math.Sincos(math.Pi * angle / 180)
 	x1, y1 := rotatePoint(float64(w-1), 0, sin, cos)
 	x2, y2 := rotatePoint(float64(w-1), float64(h-1), sin, cos)
 	x3, y3 := rotatePoint(0, float64(h-1), sin, cos)

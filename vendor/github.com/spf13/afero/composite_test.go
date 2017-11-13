@@ -1,6 +1,7 @@
 package afero
 
 import (
+	"bytes"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -365,4 +366,39 @@ func TestUnionCacheExpire(t *testing.T) {
 	if string(data) != "Another test" {
 		t.Errorf("cache time failed: <%s>", data)
 	}
+}
+
+func TestCacheOnReadFsNotInLayer(t *testing.T) {
+	base := NewMemMapFs()
+	layer := NewMemMapFs()
+	fs := NewCacheOnReadFs(base, layer, 0)
+
+	fh, err := base.Create("/file.txt")
+	if err != nil {
+		t.Fatal("unable to create file: ", err)
+	}
+
+	txt := []byte("This is a test")
+	fh.Write(txt)
+	fh.Close()
+
+	fh, err = fs.Open("/file.txt")
+	if err != nil {
+		t.Fatal("could not open file: ", err)
+	}
+
+	b, err := ReadAll(fh)
+	fh.Close()
+
+	if err != nil {
+		t.Fatal("could not read file: ", err)
+	} else if !bytes.Equal(txt, b) {
+		t.Fatalf("wanted file text %q, got %q", txt, b)
+	}
+
+	fh, err = layer.Open("/file.txt")
+	if err != nil {
+		t.Fatal("could not open file from layer: ", err)
+	}
+	fh.Close()
 }

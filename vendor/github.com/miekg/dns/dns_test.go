@@ -126,60 +126,17 @@ func TestBailiwick(t *testing.T) {
 	}
 }
 
-func TestPack(t *testing.T) {
-	rr := []string{"US.    86400	IN	NSEC	0-.us. NS SOA RRSIG NSEC DNSKEY TYPE65534"}
-	m := new(Msg)
-	var err error
-	m.Answer = make([]RR, 1)
-	for _, r := range rr {
-		m.Answer[0], err = NewRR(r)
-		if err != nil {
-			t.Errorf("failed to create RR: %v", err)
-			continue
-		}
-		if _, err := m.Pack(); err != nil {
-			t.Errorf("packing failed: %v", err)
-		}
-	}
-	x := new(Msg)
-	ns, _ := NewRR("pool.ntp.org.   390 IN  NS  a.ntpns.org")
-	ns.(*NS).Ns = "a.ntpns.org"
-	x.Ns = append(m.Ns, ns)
-	x.Ns = append(m.Ns, ns)
-	x.Ns = append(m.Ns, ns)
-	// This crashes due to the fact the a.ntpns.org isn't a FQDN
-	// How to recover() from a remove panic()?
-	if _, err := x.Pack(); err == nil {
-		t.Error("packing should fail")
-	}
-	x.Answer = make([]RR, 1)
-	x.Answer[0], err = NewRR(rr[0])
-	if err != nil {
-		t.Fatal(err)
-	}
-	if _, err := x.Pack(); err == nil {
-		t.Error("packing should fail")
-	}
-	x.Question = make([]Question, 1)
-	x.Question[0] = Question{";sd#eddddséâèµâââ¥âxzztsestxssweewwsssstx@s@Zåµe@cn.pool.ntp.org.", TypeA, ClassINET}
-	if _, err := x.Pack(); err == nil {
-		t.Error("packing should fail")
-	}
-}
-
 func TestPackNAPTR(t *testing.T) {
 	for _, n := range []string{
 		`apple.com. IN NAPTR   100 50 "se" "SIP+D2U" "" _sip._udp.apple.com.`,
 		`apple.com. IN NAPTR   90 50 "se" "SIP+D2T" "" _sip._tcp.apple.com.`,
 		`apple.com. IN NAPTR   50 50 "se" "SIPS+D2T" "" _sips._tcp.apple.com.`,
 	} {
-		rr, _ := NewRR(n)
+		rr := testRR(n)
 		msg := make([]byte, rr.len())
 		if off, err := PackRR(rr, msg, 0, nil, false); err != nil {
 			t.Errorf("packing failed: %v", err)
 			t.Errorf("length %d, need more than %d", rr.len(), off)
-		} else {
-			t.Logf("buf size needed: %d", off)
 		}
 	}
 }
@@ -207,8 +164,8 @@ func TestMsgCompressLength(t *testing.T) {
 	}
 
 	name1 := "12345678901234567890123456789012345.12345678.123."
-	rrA, _ := NewRR(name1 + " 3600 IN A 192.0.2.1")
-	rrMx, _ := NewRR(name1 + " 3600 IN MX 10 " + name1)
+	rrA := testRR(name1 + " 3600 IN A 192.0.2.1")
+	rrMx := testRR(name1 + " 3600 IN MX 10 " + name1)
 	tests := []*Msg{
 		makeMsg(name1, []RR{rrA}, nil, nil),
 		makeMsg(name1, []RR{rrMx, rrMx}, nil, nil)}
@@ -237,8 +194,8 @@ func TestMsgLength(t *testing.T) {
 	}
 
 	name1 := "12345678901234567890123456789012345.12345678.123."
-	rrA, _ := NewRR(name1 + " 3600 IN A 192.0.2.1")
-	rrMx, _ := NewRR(name1 + " 3600 IN MX 10 " + name1)
+	rrA := testRR(name1 + " 3600 IN A 192.0.2.1")
+	rrMx := testRR(name1 + " 3600 IN MX 10 " + name1)
 	tests := []*Msg{
 		makeMsg(name1, []RR{rrA}, nil, nil),
 		makeMsg(name1, []RR{rrMx, rrMx}, nil, nil)}
@@ -331,14 +288,14 @@ func TestMsgCompressLength2(t *testing.T) {
 }
 
 func TestToRFC3597(t *testing.T) {
-	a, _ := NewRR("miek.nl. IN A 10.0.1.1")
+	a := testRR("miek.nl. IN A 10.0.1.1")
 	x := new(RFC3597)
 	x.ToRFC3597(a)
 	if x.String() != `miek.nl.	3600	CLASS1	TYPE1	\# 4 0a000101` {
 		t.Errorf("string mismatch, got: %s", x)
 	}
 
-	b, _ := NewRR("miek.nl. IN MX 10 mx.miek.nl.")
+	b := testRR("miek.nl. IN MX 10 mx.miek.nl.")
 	x.ToRFC3597(b)
 	if x.String() != `miek.nl.	3600	CLASS1	TYPE15	\# 14 000a026d78046d69656b026e6c00` {
 		t.Errorf("string mismatch, got: %s", x)
@@ -372,11 +329,9 @@ func TestNoRdataUnpack(t *testing.T) {
 			t.Errorf("failed to pack RR: %v", err)
 			continue
 		}
-		rr, _, err := UnpackRR(data[:off], 0)
-		if err != nil {
+		if _, _, err := UnpackRR(data[:off], 0); err != nil {
 			t.Errorf("failed to unpack RR with zero rdata: %s: %v", TypeToString[typ], err)
 		}
-		t.Log(rr)
 	}
 }
 
@@ -397,7 +352,7 @@ func TestRdataOverflow(t *testing.T) {
 }
 
 func TestCopy(t *testing.T) {
-	rr, _ := NewRR("miek.nl. 2311 IN A 127.0.0.1") // Weird TTL to avoid catching TTL
+	rr := testRR("miek.nl. 2311 IN A 127.0.0.1") // Weird TTL to avoid catching TTL
 	rr1 := Copy(rr)
 	if rr.String() != rr1.String() {
 		t.Fatalf("Copy() failed %s != %s", rr.String(), rr1.String())
@@ -407,9 +362,9 @@ func TestCopy(t *testing.T) {
 func TestMsgCopy(t *testing.T) {
 	m := new(Msg)
 	m.SetQuestion("miek.nl.", TypeA)
-	rr, _ := NewRR("miek.nl. 2311 IN A 127.0.0.1")
+	rr := testRR("miek.nl. 2311 IN A 127.0.0.1")
 	m.Answer = []RR{rr}
-	rr, _ = NewRR("miek.nl. 2311 IN NS 127.0.0.1")
+	rr = testRR("miek.nl. 2311 IN NS 127.0.0.1")
 	m.Ns = []RR{rr}
 
 	m1 := m.Copy()
@@ -417,12 +372,12 @@ func TestMsgCopy(t *testing.T) {
 		t.Fatalf("Msg.Copy() failed %s != %s", m.String(), m1.String())
 	}
 
-	m1.Answer[0], _ = NewRR("somethingelse.nl. 2311 IN A 127.0.0.1")
+	m1.Answer[0] = testRR("somethingelse.nl. 2311 IN A 127.0.0.1")
 	if m.String() == m1.String() {
 		t.Fatalf("Msg.Copy() failed; change to copy changed template %s", m.String())
 	}
 
-	rr, _ = NewRR("miek.nl. 2311 IN A 127.0.0.2")
+	rr = testRR("miek.nl. 2311 IN A 127.0.0.2")
 	m1.Answer = append(m1.Answer, rr)
 	if m1.Ns[0].String() == m1.Answer[1].String() {
 		t.Fatalf("Msg.Copy() failed; append changed underlying array %s", m1.Ns[0].String())
@@ -448,6 +403,5 @@ func TestMsgPackBuffer(t *testing.T) {
 			t.Errorf("packet %d failed to unpack", i)
 			continue
 		}
-		t.Logf("packet %d %s", i, m.String())
 	}
 }

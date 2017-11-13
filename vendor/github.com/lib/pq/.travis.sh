@@ -70,4 +70,29 @@ postgresql_uninstall() {
 	sudo rm -rf /var/lib/postgresql
 }
 
+megacheck_install() {
+	# Megacheck is Go 1.6+, so skip if Go 1.5.
+	if [[ "$(go version)" =~ "go1.5" ]]
+	then
+		echo "megacheck not supported, skipping installation"
+		return 0
+	fi
+	# Lock megacheck version at $MEGACHECK_VERSION to prevent spontaneous
+	# new error messages in old code.
+	go get -d honnef.co/go/tools/...
+	git -C $GOPATH/src/honnef.co/go/tools/ checkout $MEGACHECK_VERSION
+	go install honnef.co/go/tools/cmd/megacheck
+	megacheck --version
+}
+
+golint_install() {
+	# Golint is Go 1.6+, so skip if Go 1.5.
+	if [[ "$(go version)" =~ "go1.5" ]]
+	then
+		echo "golint not supported, skipping installation"
+		return 0
+	fi
+	go get github.com/golang/lint/golint
+}
+
 $1

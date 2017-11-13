@@ -214,6 +214,40 @@ func TestBounds(t *testing.T) {
 	}
 }
 
+func TestMetrics(t *testing.T) {
+	cmapFont, err := ioutil.ReadFile(filepath.FromSlash("../testdata/cmapTest.ttf"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	testCases := map[string]struct {
+		font []byte
+		want font.Metrics
+	}{
+		"goregular": {goregular.TTF, font.Metrics{Height: 2048, Ascent: 1935, Descent: 432}},
+		// cmapTest.ttf has a non-zero lineGap.
+		"cmapTest": {cmapFont, font.Metrics{Height: 2232, Ascent: 1365, Descent: 0}},
+	}
+	var b Buffer
+	for name, tc := range testCases {
+		f, err := Parse(tc.font)
+		if err != nil {
+			t.Errorf("name=%q: Parse: %v", name, err)
+			continue
+		}
+		ppem := fixed.Int26_6(f.UnitsPerEm())
+
+		got, err := f.Metrics(&b, ppem, font.HintingNone)
+		if err != nil {
+			t.Errorf("name=%q: Metrics: %v", name, err)
+			continue
+		}
+		if got != tc.want {
+			t.Errorf("name=%q: Metrics: got %v, want %v", name, got, tc.want)
+			continue
+		}
+	}
+}
+
 func TestGlyphAdvance(t *testing.T) {
 	testCases := map[string][]struct {
 		r    rune

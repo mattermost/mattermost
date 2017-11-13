@@ -110,7 +110,17 @@ func (ch *cors) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set(corsVaryHeader, corsOriginHeader)
 	}
 
-	w.Header().Set(corsAllowOriginHeader, origin)
+	returnOrigin := origin
+	for _, o := range ch.allowedOrigins {
+		// A configuration of * is different than explicitly setting an allowed
+		// origin. Returning arbitrary origin headers an an access control allow
+		// origin header is unsafe and is not required by any use case.
+		if o == corsOriginMatchAll {
+			returnOrigin = "*"
+			break
+		}
+	}
+	w.Header().Set(corsAllowOriginHeader, returnOrigin)
 
 	if r.Method == corsOptionMethod {
 		return

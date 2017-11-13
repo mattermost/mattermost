@@ -32,7 +32,7 @@ func nametomib(name string) (mib []_C_int, err error) {
 
 	// NOTE(rsc): It seems strange to set the buffer to have
 	// size CTL_MAXNAME+2 but use only CTL_MAXNAME
-	// as the size.  I don't know why the +2 is here, but the
+	// as the size. I don't know why the +2 is here, but the
 	// kernel uses +2 for its own implementation of this function.
 	// I am scared that if we don't include the +2 here, the kernel
 	// will silently write 2 words farther than we specify
@@ -118,6 +118,11 @@ func Getfsstat(buf []Statfs_t, flags int) (n int, err error) {
 		err = e1
 	}
 	return
+}
+
+func setattrlistTimes(path string, times []Timespec, flags int) error {
+	// used on Darwin for UtimesNano
+	return ENOSYS
 }
 
 // Derive extattr namespace and attribute name
@@ -550,7 +555,6 @@ func IoctlGetTermios(fd int, req uint) (*Termios, error) {
 // Searchfs
 // Delete
 // Copyfile
-// Poll
 // Watchevent
 // Waitevent
 // Modwatch

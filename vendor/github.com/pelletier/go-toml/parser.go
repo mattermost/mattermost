@@ -110,7 +110,7 @@ func (p *tomlParser) parseGroupArray() tomlParserStateFn {
 	newTree := newTree()
 	newTree.position = startToken.Position
 	array = append(array, newTree)
-	p.tree.SetPath(p.currentTable, array)
+	p.tree.SetPath(p.currentTable, "", false, array)
 
 	// remove all keys that were children of this table array
 	prefix := key.val + "."
@@ -205,7 +205,7 @@ func (p *tomlParser) parseAssign() tomlParserStateFn {
 	case *Tree, []*Tree:
 		toInsert = value
 	default:
-		toInsert = &tomlValue{value, key.Position}
+		toInsert = &tomlValue{value: value, position: key.Position}
 	}
 	targetNode.values[keyVal] = toInsert
 	return p.parseStart
@@ -299,7 +299,7 @@ Loop:
 			key := p.getToken()
 			p.assume(tokenEqual)
 			value := p.parseRvalue()
-			tree.Set(key.val, value)
+			tree.Set(key.val, "", false, value)
 		case tokenComma:
 			if previous == nil {
 				p.raiseError(follow, "inline table cannot start with a comma")

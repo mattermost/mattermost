@@ -135,6 +135,14 @@ r.HandleFunc("/products", ProductsHandler).
   Schemes("http")
 ```
 
+Routes are tested in the order they were added to the router. If two routes match, the first one wins:
+
+```go
+r := mux.NewRouter()
+r.HandleFunc("/specific", specificHandler)
+r.PathPrefix("/").Handler(catchAllHandler)
+```
+
 Setting the same matching conditions again and again can be boring, so we have a way to group several routes that share the same requirements. We call it "subrouting".
 
 For example, let's say we have several URLs that should only match when the host is `www.example.com`. Create a route for that host and get a "subrouter" from it:
@@ -193,8 +201,13 @@ func main() {
     r.HandleFunc("/products", handler).Methods("POST")
     r.HandleFunc("/articles", handler).Methods("GET")
     r.HandleFunc("/articles/{id}", handler).Methods("GET", "PUT")
+    r.HandleFunc("/authors", handler).Queries("surname", "{surname}")
     r.Walk(func(route *mux.Route, router *mux.Router, ancestors []*mux.Route) error {
         t, err := route.GetPathTemplate()
+        if err != nil {
+            return err
+        }
+        qt, err := route.GetQueriesTemplates()
         if err != nil {
             return err
         }
@@ -204,11 +217,18 @@ func main() {
         if err != nil {
             return err
         }
+        // qr will contain a list of regular expressions with the same semantics as GetPathRegexp,
+        // just applied to the Queries pairs instead, e.g., 'Queries("surname", "{surname}") will return
+        // {"^surname=(?P<v0>.*)$}. Where each combined query pair will have an entry in the list.
+        qr, err := route.GetQueriesRegexp()
+        if err != nil {
+            return err
+        }
         m, err := route.GetMethods()
         if err != nil {
             return err
         }
-        fmt.Println(strings.Join(m, ","), t, p)
+        fmt.Println(strings.Join(m, ","), strings.Join(qt, ","), strings.Join(qr, ","), t, p)
         return nil
     })
     http.Handle("/", r)
@@ -331,8 +351,13 @@ r.HandleFunc("/", handler)
 r.HandleFunc("/products", handler).Methods("POST")
 r.HandleFunc("/articles", handler).Methods("GET")
 r.HandleFunc("/articles/{id}", handler).Methods("GET", "PUT")
+r.HandleFunc("/authors", handler).Queries("surname", "{surname}")
 r.Walk(func(route *mux.Route, router *mux.Router, ancestors []*mux.Route) error {
     t, err := route.GetPathTemplate()
+    if err != nil {
+        return err
+    }
+    qt, err := route.GetQueriesTemplates()
     if err != nil {
         return err
     }
@@ -342,11 +367,18 @@ r.Walk(func(route *mux.Route, router *mux.Router, ancestors []*mux.Route) error 
     if err != nil {
         return err
     }
+    // qr will contain a list of regular expressions with the same semantics as GetPathRegexp,
+    // just applied to the Queries pairs instead, e.g., 'Queries("surname", "{surname}") will return
+    // {"^surname=(?P<v0>.*)$}. Where each combined query pair will have an entry in the list.
+    qr, err := route.GetQueriesRegexp()
+    if err != nil {
+        return err
+    }
     m, err := route.GetMethods()
     if err != nil {
         return err
     }
-    fmt.Println(strings.Join(m, ","), t, p)
+    fmt.Println(strings.Join(m, ","), strings.Join(qt, ","), strings.Join(qr, ","), t, p)
     return nil
 })
 ```

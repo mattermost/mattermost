@@ -14,11 +14,10 @@ import (
 )
 
 // RefreshService explicitly refreshes one or more indices.
-// See https://www.elastic.co/guide/en/elasticsearch/reference/5.2/indices-refresh.html.
+// See https://www.elastic.co/guide/en/elasticsearch/reference/5.6/indices-refresh.html.
 type RefreshService struct {
 	client *Client
 	index  []string
-	force  *bool
 	pretty bool
 }
 
@@ -33,12 +32,6 @@ func NewRefreshService(client *Client) *RefreshService {
 // Index specifies the indices to refresh.
 func (s *RefreshService) Index(index ...string) *RefreshService {
 	s.index = append(s.index, index...)
-	return s
-}
-
-// Force forces a refresh.
-func (s *RefreshService) Force(force bool) *RefreshService {
-	s.force = &force
 	return s
 }
 
@@ -66,9 +59,6 @@ func (s *RefreshService) buildURL() (string, url.Values, error) {
 
 	// Add query string parameters
 	params := url.Values{}
-	if s.force != nil {
-		params.Set("force", fmt.Sprintf("%v", *s.force))
-	}
 	if s.pretty {
 		params.Set("pretty", fmt.Sprintf("%v", s.pretty))
 	}

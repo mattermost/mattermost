@@ -424,4 +424,20 @@ var _ = Describe("PubSub", func() {
 
 		wg.Wait()
 	})
+
+	It("handles big message payload", func() {
+		pubsub := client.Subscribe("mychannel")
+		defer pubsub.Close()
+
+		ch := pubsub.Channel()
+
+		bigVal := bigVal()
+		err := client.Publish("mychannel", bigVal).Err()
+		Expect(err).NotTo(HaveOccurred())
+
+		var msg *redis.Message
+		Eventually(ch).Should(Receive(&msg))
+		Expect(msg.Channel).To(Equal("mychannel"))
+		Expect(msg.Payload).To(Equal(string(bigVal)))
+	})
 })

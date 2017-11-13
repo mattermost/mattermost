@@ -51,8 +51,9 @@ func main() {
 	fatalIfErr(err)
 	scope := pkg.Scope()
 
-	domainTypes := map[string]bool{}  // Types that have a domain name in them (either comressible or not).
-	cdomainTypes := map[string]bool{} // Types that have a compressible domain name in them (subset of domainType)
+	var domainTypes []string  // Types that have a domain name in them (either compressible or not).
+	var cdomainTypes []string // Types that have a compressible domain name in them (subset of domainType)
+Names:
 	for _, name := range scope.Names() {
 		o := scope.Lookup(name)
 		if o == nil || !o.Exported() {
@@ -73,21 +74,25 @@ func main() {
 		for i := 1; i < st.NumFields(); i++ {
 			if _, ok := st.Field(i).Type().(*types.Slice); ok {
 				if st.Tag(i) == `dns:"domain-name"` {
-					domainTypes[o.Name()] = true
+					domainTypes = append(domainTypes, o.Name())
+					continue Names
 				}
 				if st.Tag(i) == `dns:"cdomain-name"` {
-					cdomainTypes[o.Name()] = true
-					domainTypes[o.Name()] = true
+					cdomainTypes = append(cdomainTypes, o.Name())
+					domainTypes = append(domainTypes, o.Name())
+					continue Names
 				}
 				continue
 			}
 
 			switch {
 			case st.Tag(i) == `dns:"domain-name"`:
-				domainTypes[o.Name()] = true
+				domainTypes = append(domainTypes, o.Name())
+				continue Names
 			case st.Tag(i) == `dns:"cdomain-name"`:
-				cdomainTypes[o.Name()] = true
-				domainTypes[o.Name()] = true
+				cdomainTypes = append(cdomainTypes, o.Name())
+				domainTypes = append(domainTypes, o.Name())
+				continue Names
 			}
 		}
 	}
@@ -99,7 +104,7 @@ func main() {
 
 	fmt.Fprint(b, "func compressionLenHelperType(c map[string]int, r RR) {\n")
 	fmt.Fprint(b, "switch x := r.(type) {\n")
-	for name, _ := range domainTypes {
+	for _, name := range domainTypes {
 		o := scope.Lookup(name)
 		st, _ := getTypeStruct(o.Type(), scope)
 
@@ -135,7 +140,7 @@ func main() {
 
 	fmt.Fprint(b, "func compressionLenSearchType(c map[string]int, r RR) (int, bool) {\n")
 	fmt.Fprint(b, "switch x := r.(type) {\n")
-	for name, _ := range cdomainTypes {
+	for _, name := range cdomainTypes {
 		o := scope.Lookup(name)
 		st, _ := getTypeStruct(o.Type(), scope)
 

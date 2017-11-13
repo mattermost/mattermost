@@ -61,11 +61,11 @@ import "github.com/spf13/afero"
 
 First define a package variable and set it to a pointer to a filesystem.
 ```go
-var AppFs afero.Fs = afero.NewMemMapFs()
+var AppFs = afero.NewMemMapFs()
 
 or
 
-var AppFs afero.Fs = afero.NewOsFs()
+var AppFs = afero.NewOsFs()
 ```
 It is important to note that if you repeat the composite literal you
 will be using a completely new and isolated filesystem. In the case of
@@ -81,7 +81,10 @@ So if my application before had:
 ```go
 os.Open('/tmp/foo')
 ```
-We would replace it with a call to `AppFs.Open('/tmp/foo')`.
+We would replace it with:
+```go
+AppFs.Open('/tmp/foo')
+```
 
 `AppFs` being the variable we defined above.
 
@@ -166,8 +169,8 @@ f, err := afero.TempFile(fs,"", "ioutil-test")
 ### Calling via Afero
 
 ```go
-fs := afero.NewMemMapFs
-afs := &Afero{Fs: fs}
+fs := afero.NewMemMapFs()
+afs := &afero.Afero{Fs: fs}
 f, err := afs.TempFile("", "ioutil-test")
 ```
 

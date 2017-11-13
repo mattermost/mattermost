@@ -8,7 +8,7 @@ Max resident set          unlimited            unlimited            bytes
 Max processes             62898                62898                processes
 Max open files            2048                 4096                 files
 Max locked memory         65536                65536                bytes
-Max address space         unlimited            unlimited            bytes
+Max address space         8589934592           unlimited            bytes
 Max file locks            unlimited            unlimited            locks
 Max pending signals       62898                62898                signals
 Max msgqueue size         819200               819200               bytes

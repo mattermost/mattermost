@@ -564,14 +564,17 @@ type Font struct {
 	kern table
 
 	cached struct {
+		ascent           int32
 		glyphData        glyphData
 		glyphIndex       glyphIndexFunc
 		bounds           [4]int16
+		descent          int32
 		indexToLocFormat bool // false means short, true means long.
 		isColorBitmap    bool
 		isPostScript     bool
 		kernNumPairs     int32
 		kernOffset       int32
+		lineGap          int32
 		numHMetrics      int32
 		postTableVersion uint32
 		unitsPerEm       Units
@@ -621,7 +624,7 @@ func (f *Font) initialize(offset int, isDfont bool) error {
 	if err != nil {
 		return err
 	}
-	buf, numHMetrics, err := f.parseHhea(buf, numGlyphs)
+	buf, ascent, descent, lineGap, numHMetrics, err := f.parseHhea(buf, numGlyphs)
 	if err != nil {
 		return err
 	}
@@ -634,14 +637,17 @@ func (f *Font) initialize(offset int, isDfont bool) error {
 		return err
 	}
 
+	f.cached.ascent = ascent
 	f.cached.glyphData = glyphData
 	f.cached.glyphIndex = glyphIndex
 	f.cached.bounds = bounds
+	f.cached.descent = descent
 	f.cached.indexToLocFormat = indexToLocFormat
 	f.cached.isColorBitmap = isColorBitmap
 	f.cached.isPostScript = isPostScript
 	f.cached.kernNumPairs = kernNumPairs
 	f.cached.kernOffset = kernOffset
+	f.cached.lineGap = lineGap
 	f.cached.numHMetrics = numHMetrics
 	f.cached.postTableVersion = postTableVersion
 	f.cached.unitsPerEm = unitsPerEm
@@ -838,20 +844,32 @@ func (f *Font) parseHead(buf []byte) (buf1 []byte, bounds [4]int16, indexToLocFo
 	return buf, bounds, indexToLocFormat, unitsPerEm, nil
 }
 
-func (f *Font) parseHhea(buf []byte, numGlyphs int32) (buf1 []byte, numHMetrics int32, err error) {
+func (f *Font) parseHhea(buf []byte, numGlyphs int32) (buf1 []byte, ascent, descent, lineGap, numHMetrics int32, err error) {
 	// https://www.microsoft.com/typography/OTSPEC/hhea.htm
 
 	if f.hhea.length != 36 {
-		return nil, 0, errInvalidHheaTable
+		return nil, 0, 0, 0, 0, errInvalidHheaTable
 	}
 	u, err := f.src.u16(buf, f.hhea, 34)
 	if err != nil {
-		return nil, 0, err
+		return nil, 0, 0, 0, 0, err
 	}
 	if int32(u) > numGlyphs || u == 0 {
-		return nil, 0, errInvalidHheaTable
+		return nil, 0, 0, 0, 0, errInvalidHheaTable
 	}
-	return buf, int32(u), nil
+	a, err := f.src.u16(buf, f.hhea, 4)
+	if err != nil {
+		return nil, 0, 0, 0, 0, err
+	}
+	d, err := f.src.u16(buf, f.hhea, 6)
+	if err != nil {
+		return nil, 0, 0, 0, 0, err
+	}
+	l, err := f.src.u16(buf, f.hhea, 8)
+	if err != nil {
+		return nil, 0, 0, 0, 0, err
+	}
+	return buf, int32(int16(a)), int32(int16(d)), int32(int16(l)), int32(u), nil
 }
 
 func (f *Font) parseHmtx(buf []byte, numGlyphs, numHMetrics int32) (buf1 []byte, err error) {
@@ -1334,6 +1352,23 @@ func (f *Font) Kern(b *Buffer, x0, x1 GlyphIndex, ppem fixed.Int26_6, h font.Hin
 		}
 	}
 	return 0, nil
+}
+
+// Metrics returns the metrics of this font.
+func (f *Font) Metrics(b *Buffer, ppem fixed.Int26_6, h font.Hinting) (font.Metrics, error) {
+	m := font.Metrics{
+		// TODO: is adding lineGap correct?
+		Height:  ppem + scale(fixed.Int26_6(f.cached.lineGap)*ppem, f.cached.unitsPerEm),
+		Ascent:  +scale(fixed.Int26_6(f.cached.ascent)*ppem, f.cached.unitsPerEm),
+		Descent: -scale(fixed.Int26_6(f.cached.descent)*ppem, f.cached.unitsPerEm),
+	}
+	if h == font.HintingFull {
+		// Quantize up to a whole pixel.
+		m.Height = (m.Height + 63) &^ 63
+		m.Ascent = (m.Ascent + 63) &^ 63
+		m.Descent = (m.Descent + 63) &^ 63
+	}
+	return m, nil
 }
 
 // Name returns the name value keyed by the given NameID.
