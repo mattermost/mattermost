@@ -358,7 +358,7 @@ func (a *App) InstallPlugin(pluginFile io.Reader) (*model.Manifest, *model.AppEr
 		return nil, model.NewAppError("UnpackAndActivatePlugin", "app.plugin.manifest.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
 
-	os.Rename(tmpPluginDir, filepath.Join(a.PluginEnv.SearchPath(), manifest.Id))
+	err = utils.CopyDir(tmpPluginDir, filepath.Join(a.PluginEnv.SearchPath(), manifest.Id))
 	if err != nil {
 		return nil, model.NewAppError("UnpackAndActivatePlugin", "app.plugin.mvdir.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
