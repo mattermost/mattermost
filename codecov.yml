@@ -6,3 +6,4 @@ coverage:
     patch: off
 ignore:
   - store/storetest
+comment: false
