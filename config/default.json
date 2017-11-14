@@ -81,7 +81,8 @@
         "MaxNotificationsPerChannel": 1000,
         "EnableConfirmNotificationsToChannel": true,
         "TeammateNameDisplay": "username",
-        "ExperimentalTownSquareIsReadOnly": false
+        "ExperimentalTownSquareIsReadOnly": false,
+        "DefaultTeamName": ""
     },
     "ClientRequirements": {
         "AndroidLatestVersion": "",
