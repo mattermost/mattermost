@@ -2805,7 +2805,7 @@
   },
   {
     "id": "api.user.update_active.no_deactivate_sso.app_error",
-    "translation": "SSOアカウントのアクティベーション状態を変更することはできません。SSOサーバーを通じて変更してください。"
+    "translation": "シングルサインオンアカウントのアクティベーション状態を変更することはできません。シングルサインオンサーバーを通じて変更してください。"
   },
   {
     "id": "api.user.update_active.permissions.app_error",
@@ -4705,7 +4705,7 @@
   },
   {
     "id": "model.config.is_valid.saml_idp_url.app_error",
-    "translation": "SAML SSOのURLを正しく設定してください。URLはhttp://またはhttps://で始まります。"
+    "translation": "SAMLシングルサインオンのURLを正しく設定してください。URLはhttp://またはhttps://で始まります。"
   },
   {
     "id": "model.config.is_valid.saml_private_key.app_error",

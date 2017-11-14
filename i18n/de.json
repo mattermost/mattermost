@@ -637,15 +637,15 @@
   },
   {
     "id": "api.command_dnd.desc",
-    "translation": "Do not disturb disables desktop and mobile push notifications."
+    "translation": "\"Nicht stören\" deaktiviert Desktop-Benachrichtigungen und mobile Push-Benachrichtigungen."
   },
   {
     "id": "api.command_dnd.disabled",
-    "translation": "Do Not Disturb is disabled."
+    "translation": "\"Nicht stören\" ist deaktiviert."
   },
   {
     "id": "api.command_dnd.error",
-    "translation": "Error to retrieve the user status."
+    "translation": "Fehler beim Abrufen des Benutzerstatus."
   },
   {
     "id": "api.command_dnd.name",
@@ -653,7 +653,7 @@
   },
   {
     "id": "api.command_dnd.success",
-    "translation": "Do Not Disturb is enabled. You will not receive desktop or mobile push notifications until Do Not Disturb is turned off."
+    "translation": "\"Nicht stören\" ist aktiviert. Sie werden keine Desktop-Benachrichtigungen oder mobile Push-Benachrichtigungen erhalten, bis \"Nicht stören\" deaktiviert ist."
   },
   {
     "id": "api.command_echo.create.app_error",
@@ -853,11 +853,11 @@
   },
   {
     "id": "api.command_remove.direct_group.app_error",
-    "translation": "You can't remove someone from a direct message channel."
+    "translation": "Sie können keinen Benutzer aus einem Direktnachrichtenkanal entfernen."
   },
   {
     "id": "api.command_remove.hint",
-    "translation": "@[username]"
+    "translation": "@[Benutzername]"
   },
   {
     "id": "api.command_remove.message.app_error",
@@ -873,7 +873,7 @@
   },
   {
     "id": "api.command_remove.permission.app_error",
-    "translation": "Sie haben nicht die nötigen Berechtigungen, um den Kanal umzubenennen."
+    "translation": "Sie haben nicht die nötigen Berechtigungen, um das Mitglied zu Entfernen."
   },
   {
     "id": "api.command_remove.user_not_in_channel",
@@ -929,7 +929,7 @@
   },
   {
     "id": "api.command_shrug.name",
-    "translation": "zucken"
+    "translation": "achselzucken"
   },
   {
     "id": "api.compliance.init.debug",
@@ -1029,7 +1029,7 @@
   },
   {
     "id": "api.email_batching.render_batched_post.channel.app_error",
-    "translation": "Konnte Kanal für gestapelte E-Mail-Benachrichtigung nicht finden"
+    "translation": "Konnte Kanal der Nachricht für gestapelte E-Mail-Benachrichtigung nicht finden"
   },
   {
     "id": "api.email_batching.render_batched_post.date",
@@ -1575,19 +1575,19 @@
   },
   {
     "id": "api.post.check_for_out_of_channel_mentions.link.private",
-    "translation": "add them to this private channel"
+    "translation": "sie diesem privaten Kanal hinzufügen"
   },
   {
     "id": "api.post.check_for_out_of_channel_mentions.link.public",
-    "translation": "add them to the channel"
+    "translation": "sie diesem Kanal hinzufügen"
   },
   {
     "id": "api.post.check_for_out_of_channel_mentions.message.multiple",
-    "translation": "@{{.Usernames}} and @{{.LastUsername}} were mentioned but they are not in the channel. Would you like to {{.Phrase}}? They will have access to all message history."
+    "translation": "@{{.Usernames}} und @{{.LastUsername}} wurden erwähnt, befinden sich aber nicht im Kanal. Möchten Sie {{.Phrase}}? Sie werden Zugriff auf den Nachrichtenverlauf haben."
   },
   {
     "id": "api.post.check_for_out_of_channel_mentions.message.one",
-    "translation": "@{{.Username}} was mentioned but they are not in the channel. Would you like to {{.Phrase}}? They will have access to all message history."
+    "translation": "@{{.Usernames}} wurde erwähnt, befindet sich aber nicht im Kanal. Möchten Sie {{.Phrase}}? Der Benutzer wird Zugriff auf den Nachrichtenverlauf haben."
   },
   {
     "id": "api.post.create_post.attach_files.error",
@@ -1729,7 +1729,7 @@
   },
   {
     "id": "api.post.send_notifications_and_forget.clear_push_notification.debug",
-    "translation": "Leere Push-Mitteilung an %v mit channel_id %v"
+    "translation": "Leere Push-Benachrichtigung an %v mit channel_id %v"
   },
   {
     "id": "api.post.send_notifications_and_forget.files.error",
@@ -2165,7 +2165,7 @@
   },
   {
     "id": "api.team.import_team.no_import_from.app_error",
-    "translation": "Falsch gebildete Anfrage: Feld filesize fehlt."
+    "translation": "Falsch gebildete Anfrage: Feld importFrom fehlt."
   },
   {
     "id": "api.team.import_team.open.app_error",
@@ -2805,7 +2805,7 @@
   },
   {
     "id": "api.user.update_active.no_deactivate_sso.app_error",
-    "translation": "Sie können den Aktivitätsstatus des AD-/LDAP-Kontos nicht ändern. Bitte ändern Sie diesen über den AD-/LDAP-Server."
+    "translation": "Sie können den Aktivitätsstatus des SSO-Kontos nicht ändern. Bitte ändern Sie diesen über denSSO-Server."
   },
   {
     "id": "api.user.update_active.permissions.app_error",
@@ -3497,7 +3497,7 @@
   },
   {
     "id": "app.plugin.config.app_error",
-    "translation": "Error saving plugin state in config"
+    "translation": "Fehler beim Speichern des Plugin-Status in der Konfiguration"
   },
   {
     "id": "app.plugin.deactivate.app_error",
@@ -3505,7 +3505,7 @@
   },
   {
     "id": "app.plugin.disabled.app_error",
-    "translation": "Plugins have been disabled."
+    "translation": "Plugins wurden deaktiviert."
   },
   {
     "id": "app.plugin.extract.app_error",
@@ -3533,7 +3533,7 @@
   },
   {
     "id": "app.plugin.not_installed.app_error",
-    "translation": "Plugin is not installed"
+    "translation": "Plugin ist nicht installiert"
   },
   {
     "id": "app.plugin.remove.app_error",
@@ -3541,7 +3541,7 @@
   },
   {
     "id": "app.plugin.upload_disabled.app_error",
-    "translation": "Plugins and/or plugin uploads have been disabled."
+    "translation": "Plugins und/oder Plugin-Uploads wurden deaktiviert."
   },
   {
     "id": "app.user_access_token.disabled",
@@ -3829,7 +3829,7 @@
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.get_oldest_post.error",
-    "translation": "The oldest post could not be retrieved from the database."
+    "translation": "Die älteste Nachricht konnte nicht aus der Datenbank abgerufen werden."
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.parse_end_time.error",
@@ -4281,7 +4281,7 @@
   },
   {
     "id": "model.channel_member.is_valid.push_level.app_error",
-    "translation": "Ungültige Pushbenachrichtigungsstufe"
+    "translation": "Ungültige Push-Benachrichtigungsstufe"
   },
   {
     "id": "model.channel_member.is_valid.role.app_error",
@@ -4485,7 +4485,7 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.bulk_indexing_time_window_seconds.app_error",
-    "translation": "Elasticsearch Bulk Indexing Time Window must be at least 1 second."
+    "translation": "Zeitfenster für Elasticsearch-Bulk-Indizierung muss mindestens eine Sekunde sein."
   },
   {
     "id": "model.config.is_valid.elastic_search.connection_url.app_error",
@@ -4509,7 +4509,7 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.request_timeout_seconds.app_error",
-    "translation": "Elasticsearch Request Timeout must be at least 1 second."
+    "translation": "Timeout für Elasticsearch-Anfrage muss mindestens 1 Sekunde sein."
   },
   {
     "id": "model.config.is_valid.elastic_search.username.app_error",
@@ -6933,7 +6933,7 @@
   },
   {
     "id": "web.incoming_webhook.split_props_length.app_error",
-    "translation": "Unable to split webhook props into {{.Max}} character parts."
+    "translation": "Konnte Webhook-Props nicht in {{.Max}} Teile aufteilen."
   },
   {
     "id": "web.incoming_webhook.text.app_error",

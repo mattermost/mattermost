@@ -3517,11 +3517,11 @@
   },
   {
     "id": "app.plugin.get_plugins.app_error",
-    "translation": "No se puede obtener los plugins activos"
+    "translation": "No se puede obtener los complementos activos"
   },
   {
     "id": "app.plugin.get_plugins.app_error",
-    "translation": "No se puede obtener los plugins activos"
+    "translation": "No se puede obtener los complementos activos"
   },
   {
     "id": "app.plugin.manifest.app_error",
@@ -3541,7 +3541,7 @@
   },
   {
     "id": "app.plugin.upload_disabled.app_error",
-    "translation": "Plugins y/o la carga de plugins han sido deshabilitados."
+    "translation": "Los Complementos y/o la carga de complementos han sido deshabilitados."
   },
   {
     "id": "app.user_access_token.disabled",
