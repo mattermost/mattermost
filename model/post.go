@@ -298,12 +298,14 @@ func PostPatchFromJson(data io.Reader) *PostPatch {
 var channelMentionRegexp = regexp.MustCompile(`(^|\s)(~([a-zA-Z0-9.\-_]*))`)
 
 func (o *Post) ChannelMentions() (names []string) {
-	alreadyMentioned := make(map[string]bool)
-	for _, match := range channelMentionRegexp.FindAllStringSubmatch(o.Message, -1) {
-		name := match[3]
-		if !alreadyMentioned[name] {
-			names = append(names, name)
-			alreadyMentioned[name] = true
+	if strings.Contains(o.Message, "~") {
+		alreadyMentioned := make(map[string]bool)
+		for _, match := range channelMentionRegexp.FindAllStringSubmatch(o.Message, -1) {
+			name := match[3]
+			if !alreadyMentioned[name] {
+				names = append(names, name)
+				alreadyMentioned[name] = true
+			}
 		}
 	}
 	return
