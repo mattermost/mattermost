@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+	"regexp"
 	"strings"
 	"unicode/utf8"
 )
@@ -292,6 +293,20 @@ func PostPatchFromJson(data io.Reader) *PostPatch {
 	}
 
 	return &post
+}
+
+var channelMentionRegexp = regexp.MustCompile(`(^|\s)(~([a-zA-Z0-9.\-_]*))`)
+
+func (o *Post) ChannelMentions() (names []string) {
+	alreadyMentioned := make(map[string]bool)
+	for _, match := range channelMentionRegexp.FindAllStringSubmatch(o.Message, -1) {
+		name := match[3]
+		if !alreadyMentioned[name] {
+			names = append(names, name)
+			alreadyMentioned[name] = true
+		}
+	}
+	return
 }
 
 func (r *PostActionIntegrationRequest) ToJson() string {

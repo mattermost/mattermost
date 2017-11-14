@@ -152,6 +152,10 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 
 	post.Hashtags, _ = model.ParseHashtags(post.Message)
 
+	if err := a.FillInPostProps(post, channel); err != nil {
+		return nil, err
+	}
+
 	var rpost *model.Post
 	if result := <-a.Srv.Store.Post().Save(post); result.Err != nil {
 		return nil, result.Err
@@ -190,6 +194,46 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 	}
 
 	return rpost, nil
+}
+
+// FillInPostProps should be invoked before saving posts to fill in properties such as
+// channel_mentions.
+//
+// If channel is nil, FillInPostProps will look up the channel corresponding to the post.
+func (a *App) FillInPostProps(post *model.Post, channel *model.Channel) *model.AppError {
+	channelMentions := post.ChannelMentions()
+	channelMentionsProp := make(map[string]interface{})
+
+	if len(channelMentions) > 0 {
+		if channel == nil {
+			result := <-a.Srv.Store.Channel().GetForPost(post.Id)
+			if result.Err == nil {
+				return model.NewAppError("FillInPostProps", "api.context.invalid_param.app_error", map[string]interface{}{"Name": "post.channel_id"}, result.Err.Error(), http.StatusBadRequest)
+			}
+			channel = result.Data.(*model.Channel)
+		}
+
+		mentionedChannels, err := a.GetChannelsByNames(channelMentions, channel.TeamId)
+		if err != nil {
+			return err
+		}
+
+		for _, mentioned := range mentionedChannels {
+			if mentioned.Type == model.CHANNEL_OPEN {
+				channelMentionsProp[mentioned.Name] = map[string]interface{}{
+					"display_name": mentioned.DisplayName,
+				}
+			}
+		}
+	}
+
+	if len(channelMentionsProp) > 0 {
+		post.AddProp("channel_mentions", channelMentionsProp)
+	} else if post.Props != nil {
+		delete(post.Props, "channel_mentions")
+	}
+
+	return nil
 }
 
 func (a *App) handlePostEvents(post *model.Post, user *model.User, channel *model.Channel, triggerWebhooks bool, parentPostList *model.PostList) *model.AppError {
@@ -327,6 +371,10 @@ func (a *App) UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model
 		newPost.HasReactions = post.HasReactions
 		newPost.FileIds = post.FileIds
 		newPost.Props = post.Props
+	}
+
+	if err := a.FillInPostProps(post, nil); err != nil {
+		return nil, err
 	}
 
 	if result := <-a.Srv.Store.Post().Update(newPost, oldPost); result.Err != nil {
