@@ -2099,7 +2099,7 @@ func TestSwitchAccount(t *testing.T) {
 	defer th.TearDown()
 	Client := th.Client
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.GitLabSettings.Enable = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.GitLabSettings.Enable = true; *cfg.ServiceSettings.ExperimentalEnableAuthenticationTransfer = true })
 
 	Client.Logout()
 
@@ -2116,6 +2116,46 @@ func TestSwitchAccount(t *testing.T) {
 	if link == "" {
 		t.Fatal("bad link")
 	}
+
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ExperimentalEnableAuthenticationTransfer = false })
+
+	sr = &model.SwitchRequest{
+		CurrentService: model.USER_AUTH_SERVICE_EMAIL,
+		NewService:     model.USER_AUTH_SERVICE_GITLAB,
+	}
+
+	_, resp = Client.SwitchAccountType(sr)
+	CheckForbiddenStatus(t, resp)
+
+	th.LoginBasic()
+
+	sr = &model.SwitchRequest{
+		CurrentService: model.USER_AUTH_SERVICE_SAML,
+		NewService:     model.USER_AUTH_SERVICE_EMAIL,
+		Email:          th.BasicUser.Email,
+		NewPassword:    th.BasicUser.Password,
+	}
+
+	_, resp = Client.SwitchAccountType(sr)
+	CheckForbiddenStatus(t, resp)
+
+	sr = &model.SwitchRequest{
+		CurrentService: model.USER_AUTH_SERVICE_EMAIL,
+		NewService:     model.USER_AUTH_SERVICE_LDAP,
+	}
+
+	_, resp = Client.SwitchAccountType(sr)
+	CheckForbiddenStatus(t, resp)
+
+	sr = &model.SwitchRequest{
+		CurrentService: model.USER_AUTH_SERVICE_LDAP,
+		NewService:     model.USER_AUTH_SERVICE_EMAIL,
+	}
+
+	_, resp = Client.SwitchAccountType(sr)
+	CheckForbiddenStatus(t, resp)
+
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ExperimentalEnableAuthenticationTransfer = true })
 
 	th.LoginBasic()
 

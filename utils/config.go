@@ -526,7 +526,7 @@ func getClientConfig(c *model.Config) map[string]string {
 	props["EnableEmojiPicker"] = strconv.FormatBool(*c.ServiceSettings.EnableEmojiPicker)
 	props["RestrictCustomEmojiCreation"] = *c.ServiceSettings.RestrictCustomEmojiCreation
 	props["MaxFileSize"] = strconv.FormatInt(*c.FileSettings.MaxFileSize, 10)
-
+	props["ExperimentalEnableAuthenticationTransfer"] = strconv.FormatBool(*c.ServiceSettings.ExperimentalEnableAuthenticationTransfer)
 	props["AppDownloadLink"] = *c.NativeAppSettings.AppDownloadLink
 	props["AndroidAppDownloadLink"] = *c.NativeAppSettings.AndroidAppDownloadLink
 	props["IosAppDownloadLink"] = *c.NativeAppSettings.IosAppDownloadLink
