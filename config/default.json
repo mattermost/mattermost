@@ -129,7 +129,7 @@
         "AmazonS3AccessKeyId": "",
         "AmazonS3SecretAccessKey": "",
         "AmazonS3Bucket": "",
-        "AmazonS3Region": "us-east-1",
+        "AmazonS3Region": "",
         "AmazonS3Endpoint": "s3.amazonaws.com",
         "AmazonS3SSL": true,
         "AmazonS3SignV2": false,
