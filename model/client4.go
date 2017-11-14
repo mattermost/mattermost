@@ -250,6 +250,10 @@ func (c *Client4) GetLdapRoute() string {
 	return fmt.Sprintf("/ldap")
 }
 
+func (c *Client4) GetAdminRoute() string {
+	return fmt.Sprintf("/admin")
+}
+
 func (c *Client4) GetBrandRoute() string {
 	return fmt.Sprintf("/brand")
 }
@@ -2587,6 +2591,18 @@ func (c *Client4) GetAudits(page int, perPage int, etag string) (Audits, *Respon
 	} else {
 		defer closeBody(r)
 		return AuditsFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// Admin Section
+
+// GetBrandImage retrieves the previously uploaded brand image.
+func (c *Client4) AdminUpdateUser(user *User) (*User, *Response) {
+	if r, err := c.DoApiPost(c.GetAdminRoute()+"/users/update", user.ToJson()); err != nil {
+		return nil, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return UserFromJson(r.Body), BuildResponse(r)
 	}
 }
 

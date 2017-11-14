@@ -188,6 +188,67 @@ func (us SqlUserStore) Update(user *model.User, trustedUpdateData bool) store.St
 	})
 }
 
+func (us SqlUserStore) AdminUpdate(user *model.User, trustedUpdateData bool) store.StoreChannel {
+	return store.Do(func(result *store.StoreResult) {
+		user.PreUpdate()
+
+		if result.Err = user.IsValid(); result.Err != nil {
+			return
+		}
+
+		if oldUserResult, err := us.GetMaster().Get(model.User{}, user.Id); err != nil {
+			result.Err = model.NewAppError("SqlUserStore.Update", "store.sql_user.update.finding.app_error", nil, "user_id="+user.Id+", "+err.Error(), http.StatusBadRequest)
+		} else if oldUserResult == nil {
+			result.Err = model.NewAppError("SqlUserStore.Update", "store.sql_user.update.find.app_error", nil, "user_id="+user.Id, http.StatusBadRequest)
+		} else {
+			oldUser := oldUserResult.(*model.User)
+			user.CreateAt = oldUser.CreateAt
+			user.Password = oldUser.Password
+			user.LastPasswordUpdate = oldUser.LastPasswordUpdate
+			user.LastPictureUpdate = oldUser.LastPictureUpdate
+			user.EmailVerified = oldUser.EmailVerified
+			user.FailedAttempts = oldUser.FailedAttempts
+			user.MfaSecret = oldUser.MfaSecret
+			user.MfaActive = oldUser.MfaActive
+
+			if !trustedUpdateData {
+				user.Roles = oldUser.Roles
+				user.DeleteAt = oldUser.DeleteAt
+			}
+
+			if user.IsOAuthUser() {
+				user.Email = oldUser.Email
+			} else if user.IsLDAPUser() && !trustedUpdateData {
+				if user.Username != oldUser.Username ||
+					user.Email != oldUser.Email {
+					result.Err = model.NewAppError("SqlUserStore.Update", "store.sql_user.update.can_not_change_ldap.app_error", nil, "user_id="+user.Id, http.StatusBadRequest)
+					return
+				}
+			} else if user.Email != oldUser.Email {
+				user.EmailVerified = false
+			}
+
+			if user.Username != oldUser.Username {
+				user.UpdateMentionKeysFromUsername(oldUser.Username)
+			}
+
+			if count, err := us.GetMaster().Update(user); err != nil {
+				if IsUniqueConstraintError(err, []string{"Email", "users_email_key", "idx_users_email_unique"}) {
+					result.Err = model.NewAppError("SqlUserStore.Update", "store.sql_user.update.email_taken.app_error", nil, "user_id="+user.Id+", "+err.Error(), http.StatusBadRequest)
+				} else if IsUniqueConstraintError(err, []string{"Username", "users_username_key", "idx_users_username_unique"}) {
+					result.Err = model.NewAppError("SqlUserStore.Update", "store.sql_user.update.username_taken.app_error", nil, "user_id="+user.Id+", "+err.Error(), http.StatusBadRequest)
+				} else {
+					result.Err = model.NewAppError("SqlUserStore.Update", "store.sql_user.update.updating.app_error", nil, "user_id="+user.Id+", "+err.Error(), http.StatusBadRequest)
+				}
+			} else if count != 1 {
+				result.Err = model.NewAppError("SqlUserStore.Update", "store.sql_user.update.app_error", nil, fmt.Sprintf("user_id=%v, count=%v", user.Id, count), http.StatusBadRequest)
+			} else {
+				result.Data = [2]*model.User{user, oldUser}
+			}
+		}
+	})
+}
+
 func (us SqlUserStore) UpdateLastPictureUpdate(userId string) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		curTime := model.GetMillis()

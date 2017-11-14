@@ -620,6 +620,22 @@ func (_m *UserStore) Update(user *model.User, allowRoleUpdate bool) store.StoreC
 	return r0
 }
 
+// AdminUpdate provides a mock function with given fields: user, allowRoleUpdate
+func (_m *UserStore) AdminUpdate(user *model.User, allowRoleUpdate bool) store.StoreChannel {
+	ret := _m.Called(user, allowRoleUpdate)
+
+	var r0 store.StoreChannel
+	if rf, ok := ret.Get(0).(func(*model.User, bool) store.StoreChannel); ok {
+		r0 = rf(user, allowRoleUpdate)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.StoreChannel)
+		}
+	}
+
+	return r0
+}
+
 // UpdateAuthData provides a mock function with given fields: userId, service, authData, email, resetMfa
 func (_m *UserStore) UpdateAuthData(userId string, service string, authData *string, email string, resetMfa bool) store.StoreChannel {
 	ret := _m.Called(userId, service, authData, email, resetMfa)
