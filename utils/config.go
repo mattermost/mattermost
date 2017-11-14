@@ -521,6 +521,8 @@ func getClientConfig(c *model.Config) map[string]string {
 
 	props["DefaultClientLocale"] = *c.LocalizationSettings.DefaultClientLocale
 	props["AvailableLocales"] = *c.LocalizationSettings.AvailableLocales
+	props["EnableLocaleSetting"] = strconv.FormatBool(*c.LocalizationSettings.EnableLocaleSetting)
+
 	props["SQLDriverName"] = *c.SqlSettings.DriverName
 
 	props["EnableCustomEmoji"] = strconv.FormatBool(*c.ServiceSettings.EnableCustomEmoji)

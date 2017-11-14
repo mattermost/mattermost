@@ -1153,6 +1153,7 @@ type LocalizationSettings struct {
 	DefaultServerLocale *string
 	DefaultClientLocale *string
 	AvailableLocales    *string
+	EnableLocaleSetting *bool
 }
 
 func (s *LocalizationSettings) SetDefaults() {
