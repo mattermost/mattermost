@@ -297,7 +297,7 @@
   },
   {
     "id": "api.channel.join_channel.post_and_forget",
-    "translation": "%v присоединился к каналу."
+    "translation": "%v присоединился(ась) к каналу."
   },
   {
     "id": "api.channel.leave.default.app_error",
@@ -6901,7 +6901,7 @@
   },
   {
     "id": "web.error.unsupported_browser.title",
-    "translation": "Unsupported Browser"
+    "translation": "Неподдерживаемый Браузер"
   },
   {
     "id": "web.find_team.title",

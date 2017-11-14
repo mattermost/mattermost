@@ -2165,7 +2165,7 @@
   },
   {
     "id": "api.team.import_team.no_import_from.app_error",
-    "translation": "错误请求：缺少 filesize 字段。"
+    "translation": "错误请求：缺少 importFrom 字段。"
   },
   {
     "id": "api.team.import_team.open.app_error",
@@ -4485,7 +4485,7 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.bulk_indexing_time_window_seconds.app_error",
-    "translation": "Elasticsearch Bulk Indexing Time Window must be at least 1 second."
+    "translation": "Elasticsearch 批量索引时间段必须至少 1 秒。"
   },
   {
     "id": "model.config.is_valid.elastic_search.connection_url.app_error",
@@ -4497,7 +4497,7 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.live_indexing_batch_size.app_error",
-    "translation": "Elasticsearch Live Indexing Batch Size must be at least 1"
+    "translation": "Elasticsearch 即时索引批量大小必须至少为 1"
   },
   {
     "id": "model.config.is_valid.elastic_search.password.app_error",
@@ -4509,7 +4509,7 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.request_timeout_seconds.app_error",
-    "translation": "Elasticsearch Request Timeout must be at least 1 second."
+    "translation": "Elasticsearch 请求超时必须至少 1 秒。"
   },
   {
     "id": "model.config.is_valid.elastic_search.username.app_error",
@@ -6933,7 +6933,7 @@
   },
   {
     "id": "web.incoming_webhook.split_props_length.app_error",
-    "translation": "Unable to split webhook props into {{.Max}} character parts."
+    "translation": "无法拆分 webhook 属性信息到 {{.Max}} 字符块。"
   },
   {
     "id": "web.incoming_webhook.text.app_error",

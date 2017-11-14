@@ -69,7 +69,7 @@
   },
   {
     "id": "api.admin.get_brand_image.storage.app_error",
-    "translation": "Görsel deposu yapılandırılmamış."
+    "translation": "Görsel deposu ayarları yapılmamış."
   },
   {
     "id": "api.admin.init.debug",
@@ -125,7 +125,7 @@
   },
   {
     "id": "api.admin.upload_brand_image.storage.app_error",
-    "translation": "Görsel yüklenemedi. Görsel deposu ayarlanmamış."
+    "translation": "Görsel yüklenemedi. Görsel deposu ayarları yapılmamış."
   },
   {
     "id": "api.admin.upload_brand_image.too_large.app_error",
@@ -1131,7 +1131,7 @@
   },
   {
     "id": "api.emoji.storage.app_error",
-    "translation": "Dosya depolaması doğru şekilde ayarlanmamış. Lütfen dosya depolaması için bir S3 ya da yerel sunucusu ayarlayın."
+    "translation": "Dosya depolama ayarları doğru şekilde yapılmamış. Lütfen dosya depolaması için bir S3 ya da yerel sunucusu ayarlayın."
   },
   {
     "id": "api.emoji.upload.image.app_error",
@@ -1279,7 +1279,7 @@
   },
   {
     "id": "api.file.move_file.configured.app_error",
-    "translation": "Dosya depolaması doğru şekilde ayarlanmamış. Lütfen dosya depolaması için bir S3 ya da yerel sunucusu ayarlayın."
+    "translation": "Dosya depolaması ayarları doğru şekilde yapılmamış. Lütfen dosya depolaması için bir S3 ya da yerel sunucusu ayarlayın."
   },
   {
     "id": "api.file.move_file.delete_from_s3.app_error",
@@ -1295,7 +1295,7 @@
   },
   {
     "id": "api.file.read_file.configured.app_error",
-    "translation": "Dosya depolaması doğru şekilde ayarlanmamış. Lütfen dosya depolaması için bir S3 ya da yerel sunucusu ayarlayın."
+    "translation": "Dosya depolama ayarları doğru şekilde yapılmamış. Lütfen dosya depolaması için bir S3 ya da yerel sunucusu ayarlayın."
   },
   {
     "id": "api.file.read_file.get.app_error",
@@ -1315,7 +1315,7 @@
   },
   {
     "id": "api.file.upload_file.storage.app_error",
-    "translation": "Dosya yüklenemedi. Görsel deposu ayarlanmamış."
+    "translation": "Dosya yüklenemedi. Görsel deposu ayarları yapılmamış."
   },
   {
     "id": "api.file.upload_file.too_large.app_error",
@@ -1323,7 +1323,7 @@
   },
   {
     "id": "api.file.write_file.configured.app_error",
-    "translation": "Dosya depolaması doğru şekilde ayarlanmamış. Lütfen dosya depolaması için bir S3 ya da yerel sunucusu ayarlayın."
+    "translation": "Dosya depolaması ayarları doğru şekilde yapılmamış. Lütfen dosya depolaması için bir S3 ya da yerel sunucusu ayarlayın."
   },
   {
     "id": "api.file.write_file.s3.app_error",
@@ -1881,7 +1881,7 @@
   },
   {
     "id": "api.server.start_server.rate.warn",
-    "translation": "Hız Sınırlama Ayarları VaryByHeader kullanılarak ve VaryByRemoteAddr devre dışı bırakılarak doğru şekilde ayarlanamamış"
+    "translation": "Hız Sınırlama Ayarları VaryByHeader kullanılarak ve VaryByRemoteAddr devre dışı bırakılarak doğru şekilde yapılmamış"
   },
   {
     "id": "api.server.start_server.rate_limiting_memory_store",
@@ -2893,7 +2893,7 @@
   },
   {
     "id": "api.user.upload_profile_user.storage.app_error",
-    "translation": "Dosya yüklenemedi. Görsel deposu ayarlanmamış."
+    "translation": "Dosya yüklenemedi. Görsel deposu ayarları yapılmamış."
   },
   {
     "id": "api.user.upload_profile_user.too_large.app_error",
@@ -4029,7 +4029,7 @@
   },
   {
     "id": "ent.saml.configure.app_error",
-    "translation": "SAML Hizmet Sağlayıcısı yapılandırılırken bir sorun çıktı. Hata: %v"
+    "translation": "SAML Hizmet Sağlayıcısı ayarları yapılırken bir sorun çıktı. Hata: %v"
   },
   {
     "id": "ent.saml.configure.encryption_not_enabled.app_error",
@@ -4129,7 +4129,7 @@
   },
   {
     "id": "mattermost.config_file",
-    "translation": "%v üzerinden yüklenen yapılandırma dosyası"
+    "translation": "%v üzerinden yüklenen ayar dosyası"
   },
   {
     "id": "mattermost.current_version",
@@ -6657,23 +6657,23 @@
   },
   {
     "id": "utils.config.add_client_locale.app_error",
-    "translation": "Mattermost yapılandırma dosyası yüklenemedi:  Kullanılabilecek Yerel ayarlara VarsayılanİstemciYereli ekleniyor."
+    "translation": "Mattermost ayar dosyası yüklenemedi:  Kullanılabilecek Yerel ayarlara VarsayılanİstemciYereli ekleniyor."
   },
   {
     "id": "utils.config.load_config.decoding.panic",
-    "translation": "Yapılandırma dosyasının kodu çözülürken sorun çıktı. Dosya: {{.Filename}}, Hata: {{.Error}}"
+    "translation": "Ayar dosyasının kodu çözülürken sorun çıktı. Dosya: {{.Filename}}, Hata: {{.Error}}"
   },
   {
     "id": "utils.config.load_config.getting.panic",
-    "translation": "Yapılandırma bilgileri dosyası alınırken sorun çıktı. Dosya: {{.Filename}}, Hata: {{.Error}}"
+    "translation": "Ayar bilgileri dosyası alınırken sorun çıktı. Dosya: {{.Filename}}, Hata: {{.Error}}"
   },
   {
     "id": "utils.config.load_config.opening.panic",
-    "translation": "Yapılandırma dosyası açılırken sorun çıktı. Dosya: {{.Filename}}, Hata: {{.Error}}"
+    "translation": "Ayar dosyası açılırken sorun çıktı. Dosya: {{.Filename}}, Hata: {{.Error}}"
   },
   {
     "id": "utils.config.load_config.validating.panic",
-    "translation": "Yapılandırma dosyası doğrulanırken sorun çıktı. Dosya: {{.Filename}}, Hata: {{.Error}}"
+    "translation": "Ayar dosyası doğrulanırken sorun çıktı. Dosya: {{.Filename}}, Hata: {{.Error}}"
   },
   {
     "id": "utils.config.save_config.saving.app_error",
@@ -6681,19 +6681,19 @@
   },
   {
     "id": "utils.config.supported_available_locales.app_error",
-    "translation": "Mattermost yapılandırma dosyası yüklenemedi:  Kullanılabilecek Yerel ayarlarda VarsayılanİstemciYereli bulunmalıdır. Tüm yerel ayarlar için varsayılan değer olarak Kullanılabilecek Yerel Ayarlar ayarlanıyor."
+    "translation": "Mattermost ayar dosyası yüklenemedi:  Kullanılabilecek Yerel ayarlarda VarsayılanİstemciYereli bulunmalıdır. Tüm yerel ayarlar için varsayılan değer olarak Kullanılabilecek Yerel Ayarlar ayarlanıyor."
   },
   {
     "id": "utils.config.supported_client_locale.app_error",
-    "translation": "Mattermost yapılandırma dosyası yüklenemedi:  VarsayılanİstemciYereli desteklenen yerel ayarlardan biri olmalıdır. VarsayılanİstemciYereli varsayılan değer olarak en değerine ayarlanıyor."
+    "translation": "Mattermost ayar dosyası yüklenemedi:  VarsayılanİstemciYereli desteklenen yerel ayarlardan biri olmalıdır. VarsayılanİstemciYereli varsayılan değer olarak en değerine ayarlanıyor."
   },
   {
     "id": "utils.config.supported_server_locale.app_error",
-    "translation": "Mattermost yapılandırma dosyası yüklenemedi:  DefaultServerLocale desteklenen yerel seçeneklerinden birine ayarlanmalıdır. DefaultServerLocale varsayılan olarak en değerine ayarlanıyor."
+    "translation": "Mattermost ayar dosyası yüklenemedi:  DefaultServerLocale desteklenen yerel seçeneklerinden birine ayarlanmalıdır. DefaultServerLocale varsayılan olarak en değerine ayarlanıyor."
   },
   {
     "id": "utils.config.validate_locale.app_error",
-    "translation": "Mattermost yapılandırma dosyası yüklenemedi: AvailableLocales seçeneğinde DefaultClientLocale bulunmalıdır"
+    "translation": "Mattermost ayar dosyası yüklenemedi: AvailableLocales seçeneğinde DefaultClientLocale bulunmalıdır"
   },
   {
     "id": "utils.diagnostic.analytics_not_found.app_error",
@@ -6701,7 +6701,7 @@
   },
   {
     "id": "utils.file.list_directory.configured.app_error",
-    "translation": "Dosya depolaması doğru şekilde yapılandırılmamış. Lütfen dosya depolaması için bir S3 ya da yerel sunucu yapılandırın."
+    "translation": "Dosya depolama ayarları doğru şekilde yapılmamış. Lütfen dosya depolaması için bir S3 ya da yerel sunucu ayarlayın."
   },
   {
     "id": "utils.file.list_directory.local.app_error",
@@ -6713,7 +6713,7 @@
   },
   {
     "id": "utils.file.remove_directory.configured.app_error",
-    "translation": "Dosya depolaması doğru şekilde yapılandırılmamış. Lütfen S3 ya da yerel sunucusu depolamasını yapılandırın."
+    "translation": "Dosya depolama ayarları doğru şekilde yapılmamış. Lütfen S3 ya da yerel sunucusu depolama ayarlarını yapın."
   },
   {
     "id": "utils.file.remove_directory.local.app_error",
@@ -6725,7 +6725,7 @@
   },
   {
     "id": "utils.file.remove_file.configured.app_error",
-    "translation": "Dosya depolaması doğru şekilde yapılandırılmamış. Lütfen S3 ya da yerel sunucu depolamasını yapılandırın."
+    "translation": "Dosya depolama ayarları doğru şekilde yapılmamış. Lütfen S3 ya da yerel sunucu depolama ayarlarını yapın."
   },
   {
     "id": "utils.file.remove_file.local.app_error",
@@ -6817,11 +6817,11 @@
   },
   {
     "id": "utils.mail.test.configured.error",
-    "translation": "SMTP sunucu ayarları doğru yapılmamış görünüyor. Hata: %v, Ayrıntılar: %v"
+    "translation": "SMTP sunucu ayarları doğru şekilde yapılmamış görünüyor. Hata: %v, Ayrıntılar: %v"
   },
   {
     "id": "utils.mail.test.configured.error",
-    "translation": "SMTP sunucu ayarları doğru yapılmamış görünüyor. Hata: %v, Ayrıntılar: %v"
+    "translation": "SMTP sunucu ayarları doğru şekilde yapılmamış görünüyor. Hata: %v, Ayrıntılar: %v"
   },
   {
     "id": "web.admin_console.title",

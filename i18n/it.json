@@ -4985,7 +4985,7 @@
   },
   {
     "id": "model.post.is_valid.msg.app_error",
-    "translation": "Messagio invalido"
+    "translation": "Messaggio invalido"
   },
   {
     "id": "model.post.is_valid.original_id.app_error",
