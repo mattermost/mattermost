@@ -69,17 +69,8 @@ TESTFLAGS ?= -short
 TESTFLAGSEE ?= -short
 
 # Packages lists
-TE_PACKAGES=$(shell go list ./... | grep -v vendor)
+TE_PACKAGES=$(shell go list ./...)
 TE_PACKAGES_COMMA=$(shell echo $(TE_PACKAGES) | tr ' ' ',')
-
-EE_PACKAGES=$(shell go list ./enterprise/... | grep -v vendor | tail -n +2)
-EE_PACKAGES_COMMA=$(shell echo $(EE_PACKAGES) | tr ' ' ',')
-
-ifeq ($(BUILD_ENTERPRISE_READY),true)
-ALL_PACKAGES_COMMA=$(TE_PACKAGES_COMMA),$(EE_PACKAGES_COMMA)
-else
-ALL_PACKAGES_COMMA=$(TE_PACKAGES_COMMA)
-endif
 
 # Prepares the enterprise build if exists. The IGNORE stuff is a hack to get the Makefile to execute the commands outside a target
 ifeq ($(BUILD_ENTERPRISE_READY),true)
@@ -88,6 +79,15 @@ ifeq ($(BUILD_ENTERPRISE_READY),true)
 	IGNORE:=$(shell cp $(BUILD_ENTERPRISE_DIR)/imports/imports.go imports/)
 	IGNORE:=$(shell rm -f enterprise)
 	IGNORE:=$(shell ln -s $(BUILD_ENTERPRISE_DIR) enterprise)
+endif
+
+EE_PACKAGES=$(shell go list ./enterprise/...)
+EE_PACKAGES_COMMA=$(shell echo $(EE_PACKAGES) | tr ' ' ',')
+
+ifeq ($(BUILD_ENTERPRISE_READY),true)
+ALL_PACKAGES_COMMA=$(TE_PACKAGES_COMMA),$(EE_PACKAGES_COMMA)
+else
+ALL_PACKAGES_COMMA=$(TE_PACKAGES_COMMA)
 endif
 
 
