@@ -234,7 +234,7 @@ func (s *BulkService) Do(ctx context.Context) (*BulkResponse, error) {
 	}
 
 	// Get response
-	res, err := s.client.PerformRequest(ctx, "POST", path, params, body)
+	res, err := s.client.PerformRequestWithContentType(ctx, "POST", path, params, body, "application/x-ndjson")
 	if err != nil {
 		return nil, err
 	}

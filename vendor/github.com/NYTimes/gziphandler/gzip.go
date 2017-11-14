@@ -82,6 +82,7 @@ type GzipResponseWriter struct {
 	buf     []byte // Holds the first part of the write before reaching the minSize or the end of the write.
 
 	contentTypes []string // Only compress if the response is one of these content-types. All are accepted if empty.
+	flushed      bool     // Indicate if the stream was already flushed
 }
 
 // Write appends data to the gzip writer.
@@ -150,7 +151,9 @@ func (w *GzipResponseWriter) startGzip() error {
 
 // WriteHeader just saves the response code until close or GZIP effective writes.
 func (w *GzipResponseWriter) WriteHeader(code int) {
-	w.code = code
+	if w.code == 0 {
+		w.code = code
+	}
 }
 
 // init graps a new gzip writer from the gzipWriterPool and writes the correct
@@ -167,7 +170,8 @@ func (w *GzipResponseWriter) init() {
 func (w *GzipResponseWriter) Close() error {
 	if w.gw == nil {
 		// Gzip not trigged yet, write out regular response.
-		if w.code != 0 {
+		// WriteHeader only if it wasn't already wrote by a Flush
+		if !w.flushed && w.code != 0 {
 			w.ResponseWriter.WriteHeader(w.code)
 		}
 		if w.buf != nil {
@@ -195,7 +199,11 @@ func (w *GzipResponseWriter) Flush() {
 	}
 
 	if fw, ok := w.ResponseWriter.(http.Flusher); ok {
+		if !w.flushed && w.code != 0 {
+			w.ResponseWriter.WriteHeader(w.code)
+		}
 		fw.Flush()
+		w.flushed = true
 	}
 }
 

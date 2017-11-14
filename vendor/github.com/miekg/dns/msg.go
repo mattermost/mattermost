@@ -26,6 +26,7 @@ const (
 	maxDomainNameWireOctets = 255     // See RFC 1035 section 2.3.4
 )
 
+// Errors defined in this package.
 var (
 	ErrAlg           error = &Error{err: "bad algorithm"}                  // ErrAlg indicates an error with the (DNSSEC) algorithm.
 	ErrAuth          error = &Error{err: "bad authentication"}             // ErrAuth indicates an error in the TSIG authentication.
@@ -57,7 +58,7 @@ var (
 // For instance, to make it return a static value:
 //
 //	dns.Id = func() uint16 { return 3 }
-var Id func() uint16 = id
+var Id = id
 
 var (
 	idLock sync.Mutex
@@ -360,7 +361,7 @@ Loop:
 				case '"', '\\':
 					s = append(s, '\\', b)
 					// presentation-format \X escapes add an extra byte
-					maxLen += 1
+					maxLen++
 				default:
 					if b < 32 || b >= 127 { // unprintable, use \DDD
 						var buf [3]byte
@@ -913,67 +914,55 @@ func (dns *Msg) Len() int { return compressedLen(dns, dns.Compress) }
 func compressedLen(dns *Msg, compress bool) int {
 	// We always return one more than needed.
 	l := 12 // Message header is always 12 bytes
-	compression := map[string]int{}
+	if compress {
+		compression := map[string]int{}
+		for _, r := range dns.Question {
+			l += r.len()
+			compressionLenHelper(compression, r.Name)
+		}
+		l += compressionLenSlice(compression, dns.Answer)
+		l += compressionLenSlice(compression, dns.Ns)
+		l += compressionLenSlice(compression, dns.Extra)
+	} else {
+		for _, r := range dns.Question {
+			l += r.len()
+		}
+		for _, r := range dns.Answer {
+			if r != nil {
+				l += r.len()
+			}
+		}
+		for _, r := range dns.Ns {
+			if r != nil {
+				l += r.len()
+			}
+		}
+		for _, r := range dns.Extra {
+			if r != nil {
+				l += r.len()
+			}
+		}
+	}
+	return l
+}
 
-	for i := 0; i < len(dns.Question); i++ {
-		l += dns.Question[i].len()
-		if compress {
-			compressionLenHelper(compression, dns.Question[i].Name)
-		}
-	}
-	for i := 0; i < len(dns.Answer); i++ {
-		if dns.Answer[i] == nil {
+func compressionLenSlice(c map[string]int, rs []RR) int {
+	var l int
+	for _, r := range rs {
+		if r == nil {
 			continue
 		}
-		l += dns.Answer[i].len()
-		if compress {
-			k, ok := compressionLenSearch(compression, dns.Answer[i].Header().Name)
-			if ok {
-				l += 1 - k
-			}
-			compressionLenHelper(compression, dns.Answer[i].Header().Name)
-			k, ok = compressionLenSearchType(compression, dns.Answer[i])
-			if ok {
-				l += 1 - k
-			}
-			compressionLenHelperType(compression, dns.Answer[i])
+		l += r.len()
+		k, ok := compressionLenSearch(c, r.Header().Name)
+		if ok {
+			l += 1 - k
 		}
-	}
-	for i := 0; i < len(dns.Ns); i++ {
-		if dns.Ns[i] == nil {
-			continue
+		compressionLenHelper(c, r.Header().Name)
+		k, ok = compressionLenSearchType(c, r)
+		if ok {
+			l += 1 - k
 		}
-		l += dns.Ns[i].len()
-		if compress {
-			k, ok := compressionLenSearch(compression, dns.Ns[i].Header().Name)
-			if ok {
-				l += 1 - k
-			}
-			compressionLenHelper(compression, dns.Ns[i].Header().Name)
-			k, ok = compressionLenSearchType(compression, dns.Ns[i])
-			if ok {
-				l += 1 - k
-			}
-			compressionLenHelperType(compression, dns.Ns[i])
-		}
-	}
-	for i := 0; i < len(dns.Extra); i++ {
-		if dns.Extra[i] == nil {
-			continue
-		}
-		l += dns.Extra[i].len()
-		if compress {
-			k, ok := compressionLenSearch(compression, dns.Extra[i].Header().Name)
-			if ok {
-				l += 1 - k
-			}
-			compressionLenHelper(compression, dns.Extra[i].Header().Name)
-			k, ok = compressionLenSearchType(compression, dns.Extra[i])
-			if ok {
-				l += 1 - k
-			}
-			compressionLenHelperType(compression, dns.Extra[i])
-		}
+		compressionLenHelperType(c, r)
 	}
 	return l
 }

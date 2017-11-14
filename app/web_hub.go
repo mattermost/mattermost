@@ -50,7 +50,7 @@ func (a *App) NewWebHub() *Hub {
 		connections:    make([]*WebConn, 0, model.SESSION_CACHE_SIZE),
 		broadcast:      make(chan *model.WebSocketEvent, BROADCAST_QUEUE_SIZE),
 		stop:           make(chan struct{}),
-		didStop:        make(chan struct{}, 1),
+		didStop:        make(chan struct{}),
 		invalidateUser: make(chan string),
 		ExplicitStop:   false,
 	}
@@ -446,7 +446,7 @@ func (h *Hub) Start() {
 
 				h.connections = make([]*WebConn, 0, model.SESSION_CACHE_SIZE)
 				h.ExplicitStop = true
-				h.didStop <- struct{}{}
+				close(h.didStop)
 
 				return
 			}

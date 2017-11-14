@@ -34,9 +34,7 @@ func (c *Client) newResponse(res *http.Response) (*Response, error) {
 		}
 		// HEAD requests return a body but no content
 		if len(slurp) > 0 {
-			if err := c.decoder.Decode(slurp, &r.Body); err != nil {
-				return nil, err
-			}
+			r.Body = json.RawMessage(slurp)
 		}
 	}
 	return r, nil

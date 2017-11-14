@@ -306,6 +306,39 @@ func TestStatusCodes(t *testing.T) {
 	}
 }
 
+func TestStatusCodesFlushed(t *testing.T) {
+	handler := GzipHandler(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
+		rw.WriteHeader(http.StatusNotFound)
+		rw.(http.Flusher).Flush()
+		rw.Write([]byte("Not found"))
+	}))
+	r := httptest.NewRequest(http.MethodGet, "/", nil)
+	r.Header.Set(acceptEncoding, "gzip")
+	w := httptest.NewRecorder()
+	handler.ServeHTTP(w, r)
+
+	result := w.Result()
+	if result.StatusCode != http.StatusNotFound {
+		t.Errorf("StatusCode should have been 404 but was %d", result.StatusCode)
+	}
+}
+
+func TestIgnoreSubsequentWriteHeader(t *testing.T) {
+	handler := GzipHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(500)
+		w.WriteHeader(404)
+	}))
+	r := httptest.NewRequest("GET", "/", nil)
+	r.Header.Set("Accept-Encoding", "gzip")
+	w := httptest.NewRecorder()
+	handler.ServeHTTP(w, r)
+
+	result := w.Result()
+	if result.StatusCode != 500 {
+		t.Errorf("StatusCode should have been 500 but was %d", result.StatusCode)
+	}
+}
+
 func TestDontWriteWhenNotWrittenTo(t *testing.T) {
 	// When using gzip as middleware without ANY writes in the handler,
 	// ensure the gzip middleware doesn't touch the actual ResponseWriter

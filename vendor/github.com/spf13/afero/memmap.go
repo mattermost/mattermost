@@ -141,7 +141,7 @@ func (m *MemMapFs) Mkdir(name string, perm os.FileMode) error {
 	m.registerWithParent(item)
 	m.mu.Unlock()
 
-	m.Chmod(name, perm)
+	m.Chmod(name, perm|os.ModeDir)
 
 	return nil
 }
@@ -151,9 +151,8 @@ func (m *MemMapFs) MkdirAll(path string, perm os.FileMode) error {
 	if err != nil {
 		if err.(*os.PathError).Err == ErrFileExists {
 			return nil
-		} else {
-			return err
 		}
+		return err
 	}
 	return nil
 }

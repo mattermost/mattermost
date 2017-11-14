@@ -78,6 +78,7 @@ func (c *Client) writeTimeout() time.Duration {
 	return dnsTimeout
 }
 
+// Dial connects to the address on the named network.
 func (c *Client) Dial(address string) (conn *Conn, err error) {
 	// create a new dialer with the appropriate timeout
 	var d net.Dialer
@@ -454,8 +455,7 @@ func ExchangeConn(c net.Conn, m *Msg) (r *Msg, err error) {
 
 // DialTimeout acts like Dial but takes a timeout.
 func DialTimeout(network, address string, timeout time.Duration) (conn *Conn, err error) {
-
-	client := Client{Net: "udp", Dialer: &net.Dialer{Timeout: timeout}}
+	client := Client{Net: network, Dialer: &net.Dialer{Timeout: timeout}}
 	conn, err = client.Dial(address)
 	if err != nil {
 		return nil, err

@@ -54,7 +54,7 @@ func nametomib(name string) (mib []_C_int, err error) {
 
 	// NOTE(rsc): It seems strange to set the buffer to have
 	// size CTL_MAXNAME+2 but use only CTL_MAXNAME
-	// as the size.  I don't know why the +2 is here, but the
+	// as the size. I don't know why the +2 is here, but the
 	// kernel uses +2 for its own implementation of this function.
 	// I am scared that if we don't include the +2 here, the kernel
 	// will silently write 2 words farther than we specify
@@ -185,6 +185,37 @@ func Getfsstat(buf []Statfs_t, flags int) (n int, err error) {
 		err = e1
 	}
 	return
+}
+
+func setattrlistTimes(path string, times []Timespec, flags int) error {
+	_p0, err := BytePtrFromString(path)
+	if err != nil {
+		return err
+	}
+
+	var attrList attrList
+	attrList.bitmapCount = ATTR_BIT_MAP_COUNT
+	attrList.CommonAttr = ATTR_CMN_MODTIME | ATTR_CMN_ACCTIME
+
+	// order is mtime, atime: the opposite of Chtimes
+	attributes := [2]Timespec{times[1], times[0]}
+	options := 0
+	if flags&AT_SYMLINK_NOFOLLOW != 0 {
+		options |= FSOPT_NOFOLLOW
+	}
+	_, _, e1 := Syscall6(
+		SYS_SETATTRLIST,
+		uintptr(unsafe.Pointer(_p0)),
+		uintptr(unsafe.Pointer(&attrList)),
+		uintptr(unsafe.Pointer(&attributes)),
+		uintptr(unsafe.Sizeof(attributes)),
+		uintptr(options),
+		0,
+	)
+	if e1 != 0 {
+		return e1
+	}
+	return nil
 }
 
 func utimensat(dirfd int, path string, times *[2]Timespec, flags int) error {
@@ -377,7 +408,6 @@ func IoctlGetTermios(fd int, req uint) (*Termios, error) {
 // Searchfs
 // Delete
 // Copyfile
-// Poll
 // Watchevent
 // Waitevent
 // Modwatch

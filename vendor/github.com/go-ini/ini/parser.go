@@ -193,7 +193,7 @@ func hasSurroundedQuote(in string, quote byte) bool {
 		strings.IndexByte(in[1:], quote) == len(in)-2
 }
 
-func (p *parser) readValue(in []byte, ignoreContinuation, ignoreInlineComment bool) (string, error) {
+func (p *parser) readValue(in []byte, ignoreContinuation, ignoreInlineComment, unescapeValueDoubleQuotes bool) (string, error) {
 	line := strings.TrimLeftFunc(string(in), unicode.IsSpace)
 	if len(line) == 0 {
 		return "", nil
@@ -204,6 +204,8 @@ func (p *parser) readValue(in []byte, ignoreContinuation, ignoreInlineComment bo
 		valQuote = `"""`
 	} else if line[0] == '`' {
 		valQuote = "`"
+	} else if unescapeValueDoubleQuotes && line[0] == '"' {
+		valQuote = `"`
 	}
 
 	if len(valQuote) > 0 {
@@ -214,6 +216,9 @@ func (p *parser) readValue(in []byte, ignoreContinuation, ignoreInlineComment bo
 			return p.readMultilines(line, line[startIdx:], valQuote)
 		}
 
+		if unescapeValueDoubleQuotes && valQuote == `"` {
+			return strings.Replace(line[startIdx:pos+startIdx], `\"`, `"`, -1), nil
+		}
 		return line[startIdx : pos+startIdx], nil
 	}
 
@@ -234,7 +239,7 @@ func (p *parser) readValue(in []byte, ignoreContinuation, ignoreInlineComment bo
 		}
 	}
 
-	// Trim single quotes
+	// Trim single and double quotes
 	if hasSurroundedQuote(line, '\'') ||
 		hasSurroundedQuote(line, '"') {
 		line = line[1 : len(line)-1]
@@ -250,7 +255,11 @@ func (f *File) parse(reader io.Reader) (err error) {
 	}
 
 	// Ignore error because default section name is never empty string.
-	section, _ := f.NewSection(DEFAULT_SECTION)
+	name := DEFAULT_SECTION
+	if f.options.Insensitive {
+		name = strings.ToLower(DEFAULT_SECTION)
+	}
+	section, _ := f.NewSection(name)
 
 	var line []byte
 	var inUnparseableSection bool
@@ -321,7 +330,10 @@ func (f *File) parse(reader io.Reader) (err error) {
 		if err != nil {
 			// Treat as boolean key when desired, and whole line is key name.
 			if IsErrDelimiterNotFound(err) && f.options.AllowBooleanKeys {
-				kname, err := p.readValue(line, f.options.IgnoreContinuation, f.options.IgnoreInlineComment)
+				kname, err := p.readValue(line,
+					f.options.IgnoreContinuation,
+					f.options.IgnoreInlineComment,
+					f.options.UnescapeValueDoubleQuotes)
 				if err != nil {
 					return err
 				}
@@ -344,7 +356,10 @@ func (f *File) parse(reader io.Reader) (err error) {
 			p.count++
 		}
 
-		value, err := p.readValue(line[offset:], f.options.IgnoreContinuation, f.options.IgnoreInlineComment)
+		value, err := p.readValue(line[offset:],
+			f.options.IgnoreContinuation,
+			f.options.IgnoreInlineComment,
+			f.options.UnescapeValueDoubleQuotes)
 		if err != nil {
 			return err
 		}

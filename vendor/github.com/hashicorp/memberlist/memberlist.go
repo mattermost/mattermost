@@ -308,23 +308,17 @@ func (m *Memberlist) tcpLookupIP(host string, defaultPort uint16) ([]ipPort, err
 // resolveAddr is used to resolve the address into an address,
 // port, and error. If no port is given, use the default
 func (m *Memberlist) resolveAddr(hostStr string) ([]ipPort, error) {
-	// Normalize the incoming string to host:port so we can apply Go's
-	// parser to it.
-	port := uint16(0)
-	if !hasPort(hostStr) {
-		hostStr += ":" + strconv.Itoa(m.config.BindPort)
-	}
+	// This captures the supplied port, or the default one.
+	hostStr = ensurePort(hostStr, m.config.BindPort)
 	host, sport, err := net.SplitHostPort(hostStr)
 	if err != nil {
 		return nil, err
 	}
-
-	// This will capture the supplied port, or the default one added above.
 	lport, err := strconv.ParseUint(sport, 10, 16)
 	if err != nil {
 		return nil, err
 	}
-	port = uint16(lport)
+	port := uint16(lport)
 
 	// If it looks like an IP address we are done. The SplitHostPort() above
 	// will make sure the host part is in good shape for parsing, even for

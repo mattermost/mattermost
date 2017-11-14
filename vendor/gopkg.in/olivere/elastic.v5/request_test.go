@@ -8,6 +8,20 @@ import "testing"
 
 var testReq *Request // used as a temporary variable to avoid compiler optimizations in tests/benchmarks
 
+func TestRequestSetContentType(t *testing.T) {
+	req, err := NewRequest("GET", "/")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if want, have := "application/json", req.Header.Get("Content-Type"); want != have {
+		t.Fatalf("want %q, have %q", want, have)
+	}
+	req.Header.Set("Content-Type", "application/x-ndjson")
+	if want, have := "application/x-ndjson", req.Header.Get("Content-Type"); want != have {
+		t.Fatalf("want %q, have %q", want, have)
+	}
+}
+
 func BenchmarkRequestSetBodyString(b *testing.B) {
 	req, err := NewRequest("GET", "/")
 	if err != nil {

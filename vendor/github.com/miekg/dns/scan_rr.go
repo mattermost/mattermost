@@ -590,7 +590,7 @@ func setSOA(h RR_Header, c chan lex, o, f string) (RR, *ParseError, string) {
 				return nil, &ParseError{f, "bad SOA zone parameter", l}, ""
 			}
 			// We allow other fields to be unitful duration strings
-			if v, ok = stringToTtl(l.token); !ok {
+			if v, ok = stringToTTL(l.token); !ok {
 				return nil, &ParseError{f, "bad SOA zone parameter", l}, ""
 
 			}
