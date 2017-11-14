@@ -342,8 +342,7 @@ func testComplianceMessageExport(t *testing.T, ss store.Store) {
 
 	// and two users that are a part of that team
 	user1 := &model.User{
-		Email:    model.NewId(),
-		Username: model.NewId(),
+		Email: model.NewId(),
 	}
 	user1 = store.Must(ss.User().Save(user1)).(*model.User)
 	store.Must(ss.Team().SaveMember(&model.TeamMember{
@@ -352,8 +351,7 @@ func testComplianceMessageExport(t *testing.T, ss store.Store) {
 	}, -1))
 
 	user2 := &model.User{
-		Email:    model.NewId(),
-		Username: model.NewId(),
+		Email: model.NewId(),
 	}
 	user2 = store.Must(ss.User().Save(user2)).(*model.User)
 	store.Must(ss.Team().SaveMember(&model.TeamMember{
@@ -364,8 +362,8 @@ func testComplianceMessageExport(t *testing.T, ss store.Store) {
 	// need a public channel as well as a DM channel between the two users
 	channel := &model.Channel{
 		TeamId:      team.Id,
+		Name:        model.NewId(),
 		DisplayName: "Channel2",
-		Name:        "zz" + model.NewId() + "b",
 		Type:        model.CHANNEL_OPEN,
 	}
 	channel = store.Must(ss.Channel().Save(channel, -1)).(*model.Channel)
@@ -410,23 +408,31 @@ func testComplianceMessageExport(t *testing.T, ss store.Store) {
 		}
 	}
 
-	// post1 was made by user1 in channel1 and team1, but has no channel member because user1 hasn't viewed the channel
+	// post1 was made by user1 in channel1 and team1
+	assert.Equal(t, post1.Id, *messageExportMap[post1.Id].PostId)
+	assert.Equal(t, post1.CreateAt, *messageExportMap[post1.Id].PostCreateAt)
 	assert.Equal(t, post1.Message, *messageExportMap[post1.Id].PostMessage)
 	assert.Equal(t, channel.Id, *messageExportMap[post1.Id].ChannelId)
+	assert.Equal(t, channel.DisplayName, *messageExportMap[post1.Id].ChannelDisplayName)
 	assert.Equal(t, user1.Id, *messageExportMap[post1.Id].UserId)
-	assert.Equal(t, team.Id, *messageExportMap[post1.Id].TeamId)
+	assert.Equal(t, user1.Email, *messageExportMap[post1.Id].UserEmail)
 
-	// post2 was made by user1 in channel1 and team1, but has no channel member because user1 hasn't viewed the channel
+	// post2 was made by user1 in channel1 and team1
+	assert.Equal(t, post2.Id, *messageExportMap[post2.Id].PostId)
+	assert.Equal(t, post2.CreateAt, *messageExportMap[post2.Id].PostCreateAt)
 	assert.Equal(t, post2.Message, *messageExportMap[post2.Id].PostMessage)
 	assert.Equal(t, channel.Id, *messageExportMap[post2.Id].ChannelId)
+	assert.Equal(t, channel.DisplayName, *messageExportMap[post2.Id].ChannelDisplayName)
 	assert.Equal(t, user1.Id, *messageExportMap[post2.Id].UserId)
-	assert.Equal(t, team.Id, *messageExportMap[post2.Id].TeamId)
+	assert.Equal(t, user1.Email, *messageExportMap[post2.Id].UserEmail)
 
-	// post3 is a DM, so it has no team info, and channel member records were implicitly created for both users
+	// post3 is a DM between user1 and user2
+	assert.Equal(t, post3.Id, *messageExportMap[post3.Id].PostId)
+	assert.Equal(t, post3.CreateAt, *messageExportMap[post3.Id].PostCreateAt)
 	assert.Equal(t, post3.Message, *messageExportMap[post3.Id].PostMessage)
 	assert.Equal(t, directMessageChannel.Id, *messageExportMap[post3.Id].ChannelId)
 	assert.Equal(t, user1.Id, *messageExportMap[post3.Id].UserId)
-	assert.Empty(t, messageExportMap[post3.Id].TeamId)
+	assert.Equal(t, user1.Email, *messageExportMap[post3.Id].UserEmail)
 }
 
 // Ensures that system_add_to_channel and system_remove_from_channel message types correctly capture affected user emails

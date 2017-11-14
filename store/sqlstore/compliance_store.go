@@ -220,42 +220,13 @@ func (s SqlComplianceStore) MessageExport(after int64, limit int) store.StoreCha
 			`SELECT
 				Posts.Id AS PostId,
 				Posts.CreateAt AS PostCreateAt,
-				Posts.UpdateAt AS PostUpdateAt,
-				Posts.DeleteAt AS PostDeleteAt,
-				Posts.RootId AS PostRootId,
-				Posts.ParentId AS PostParentId,
-				Posts.OriginalId AS PostOriginalId,
 				Posts.Message AS PostMessage,
 				Posts.Type AS PostType,
-				Posts.Props AS PostProps,
-				Posts.Hashtags AS PostHashtags,
 				Posts.FileIds AS PostFileIds,
 				Channels.Id AS ChannelId,
-				Channels.CreateAt AS ChannelCreateAt,
-				Channels.UpdateAt AS ChannelUpdateAt,
-				Channels.DeleteAt AS ChannelDeleteAt,
 				Channels.DisplayName AS ChannelDisplayName,
-				Channels.Name AS ChannelName,
-				Channels.Header AS ChannelHeader,
-				Channels.Purpose AS ChannelPurpose,
-				Channels.LastPostAt AS ChannelLastPostAt,
 				Users.Id AS UserId,
-				Users.CreateAt AS UserCreateAt,
-				Users.UpdateAt AS UserUpdateAt,
-				Users.DeleteAt AS UserDeleteAt,
-				Users.Username AS UserUsername,
-				Users.Email AS UserEmail,
-				Users.Nickname AS UserNickname,
-				Users.FirstName AS UserFirstName,
-				Users.LastName AS UserLastName,
-				Teams.Id AS TeamId,
-				Teams.CreateAt AS TeamCreateAt,
-				Teams.UpdateAt AS TeamUpdateAt,
-				Teams.DeleteAt AS TeamDeleteAt,
-				Teams.DisplayName AS TeamDisplayName,
-				Teams.Name AS TeamName,
-				Teams.Description AS TeamDescription,
-				Teams.AllowOpenInvite AS TeamAllowOpenInvite, `
+				Users.Email AS UserEmail, `
 
 		queryMySql :=
 			`CASE
@@ -282,7 +253,6 @@ func (s SqlComplianceStore) MessageExport(after int64, limit int) store.StoreCha
 				Posts
 				LEFT OUTER JOIN Channels ON Posts.ChannelId = Channels.Id
 				LEFT OUTER JOIN Users ON Posts.UserId = Users.Id
-				LEFT OUTER JOIN Teams ON Channels.TeamId = Teams.Id
 			WHERE
 				Posts.CreateAt > :StartTime
 			ORDER BY PostCreateAt
