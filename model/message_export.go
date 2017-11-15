@@ -15,10 +15,4 @@ type MessageExport struct {
 	PostMessage  *string
 	PostType     *string
 	PostFileIds  StringArray
-
-	// only non-null if PostType is system_add_to_channel
-	AddedUserEmail *string
-
-	// only non-null if PostType is system_remove_from_channel
-	RemovedUserEmail *string
 }

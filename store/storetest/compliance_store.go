@@ -17,7 +17,6 @@ func TestComplianceStore(t *testing.T, ss store.Store) {
 	t.Run("ComplianceExport", func(t *testing.T) { testComplianceExport(t, ss) })
 	t.Run("ComplianceExportDirectMessages", func(t *testing.T) { testComplianceExportDirectMessages(t, ss) })
 	t.Run("MessageExport", func(t *testing.T) { testComplianceMessageExport(t, ss) })
-	t.Run("MessageExportJoinAndLeave", func(t *testing.T) { testComplianceMessageExportJoinAndLeave(t, ss) })
 }
 
 func testComplianceStore(t *testing.T, ss store.Store) {
@@ -386,7 +385,7 @@ func testComplianceMessageExport(t *testing.T, ss store.Store) {
 	}
 	post2 = store.Must(ss.Post().Save(post2)).(*model.Post)
 
-	// they also send a DM to user2
+	// user1 also sends a DM to user2
 	post3 := &model.Post{
 		ChannelId: directMessageChannel.Id,
 		UserId:    user1.Id,
@@ -433,98 +432,4 @@ func testComplianceMessageExport(t *testing.T, ss store.Store) {
 	assert.Equal(t, directMessageChannel.Id, *messageExportMap[post3.Id].ChannelId)
 	assert.Equal(t, user1.Id, *messageExportMap[post3.Id].UserId)
 	assert.Equal(t, user1.Email, *messageExportMap[post3.Id].UserEmail)
-}
-
-// Ensures that system_add_to_channel and system_remove_from_channel message types correctly capture affected user emails
-func testComplianceMessageExportJoinAndLeave(t *testing.T, ss store.Store) {
-	// get the starting number of message export entries
-	startTime := model.GetMillis()
-	var numMessageExports = 0
-	if r1 := <-ss.Compliance().MessageExport(startTime-10, 10); r1.Err != nil {
-		t.Fatal(r1.Err)
-	} else {
-		messages := r1.Data.([]*model.MessageExport)
-		numMessageExports = len(messages)
-	}
-
-	// need a team
-	team := &model.Team{
-		DisplayName: model.NewId(),
-		Name:        model.NewId(),
-		Email:       model.NewId() + "@mattermost.com",
-		Type:        model.TEAM_OPEN,
-	}
-	team = store.Must(ss.Team().Save(team)).(*model.Team)
-
-	// the user doing the inviting
-	invitingUser := &model.User{
-		Email:    model.NewId() + "@mattermost.com",
-		Username: model.NewId(),
-	}
-	invitingUser = store.Must(ss.User().Save(invitingUser)).(*model.User)
-	store.Must(ss.Team().SaveMember(&model.TeamMember{
-		TeamId: team.Id,
-		UserId: invitingUser.Id,
-	}, -1))
-
-	// the user being invited
-	invitedUser := &model.User{
-		Email:    model.NewId() + "@mattermost.com",
-		Username: model.NewId(),
-	}
-	invitedUser = store.Must(ss.User().Save(invitedUser)).(*model.User)
-	store.Must(ss.Team().SaveMember(&model.TeamMember{
-		TeamId: team.Id,
-		UserId: invitedUser.Id,
-	}, -1))
-
-	// need a public channel
-	channel := &model.Channel{
-		TeamId:      team.Id,
-		DisplayName: model.NewId(),
-		Name:        model.NewId(),
-		Type:        model.CHANNEL_OPEN,
-	}
-	channel = store.Must(ss.Channel().Save(channel, -1)).(*model.Channel)
-
-	// user is added to channel via a system_add_to_channel message
-	systemAddToChannel := &model.Post{
-		ChannelId: channel.Id,
-		UserId:    invitingUser.Id,
-		CreateAt:  startTime,
-		Message:   model.NewId(),
-		Type:      model.POST_ADD_TO_CHANNEL,
-		Props:     model.StringInterface{"addedUsername": invitedUser.Username, "username": invitingUser.Username},
-	}
-	systemAddToChannel = store.Must(ss.Post().Save(systemAddToChannel)).(*model.Post)
-
-	// user is removed from channel via a system_remove_from_channel message
-	systemRemoveFromChannel := &model.Post{
-		ChannelId: channel.Id,
-		UserId:    invitingUser.Id,
-		CreateAt:  startTime + 10,
-		Message:   model.NewId(),
-		Type:      model.POST_REMOVE_FROM_CHANNEL,
-		Props:     model.StringInterface{"removedUsername": invitedUser.Username},
-	}
-	systemRemoveFromChannel = store.Must(ss.Post().Save(systemRemoveFromChannel)).(*model.Post)
-
-	// fetch the message exports
-	messageExportMap := map[string]model.MessageExport{}
-	if r1 := <-ss.Compliance().MessageExport(startTime-10, 10); r1.Err != nil {
-		t.Fatal(r1.Err)
-	} else {
-		messages := r1.Data.([]*model.MessageExport)
-		assert.Len(t, messages, numMessageExports+2)
-
-		for _, v := range messages {
-			messageExportMap[*v.PostId] = *v
-		}
-	}
-
-	assert.Equal(t, model.POST_ADD_TO_CHANNEL, *messageExportMap[systemAddToChannel.Id].PostType)
-	assert.Equal(t, invitedUser.Email, *messageExportMap[systemAddToChannel.Id].AddedUserEmail)
-
-	assert.Equal(t, model.POST_REMOVE_FROM_CHANNEL, *messageExportMap[systemRemoveFromChannel.Id].PostType)
-	assert.Equal(t, invitedUser.Email, *messageExportMap[systemRemoveFromChannel.Id].RemovedUserEmail)
 }

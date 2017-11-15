@@ -215,8 +215,7 @@ func (s SqlComplianceStore) ComplianceExport(job *model.Compliance) store.StoreC
 func (s SqlComplianceStore) MessageExport(after int64, limit int) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		props := map[string]interface{}{"StartTime": after, "Limit": limit}
-
-		queryPrefix :=
+		query :=
 			`SELECT
 				Posts.Id AS PostId,
 				Posts.CreateAt AS PostCreateAt,
@@ -226,56 +225,22 @@ func (s SqlComplianceStore) MessageExport(after int64, limit int) store.StoreCha
 				Channels.Id AS ChannelId,
 				Channels.DisplayName AS ChannelDisplayName,
 				Users.Id AS UserId,
-				Users.Email AS UserEmail, `
-
-		queryMySql :=
-			`CASE
-				WHEN Posts.Type = 'system_add_to_channel'
-				THEN (SELECT Email FROM Users WHERE Username = JSON_UNQUOTE(JSON_EXTRACT(CAST(Posts.Props AS JSON), '$.addedUsername')))
-				ELSE NULL END AS AddedUserEmail,
-			CASE
-				WHEN Posts.Type = 'system_remove_from_channel'
-				THEN (SELECT Email FROM Users WHERE Username = JSON_UNQUOTE(JSON_EXTRACT(CAST(Posts.Props AS JSON), '$.removedUsername')))
-				ELSE NULL END AS RemovedUserEmail `
-
-		queryPostgres :=
-			`CASE
-				WHEN Posts.Type = 'system_add_to_channel'
-				THEN (SELECT Email FROM Users WHERE Username = JSON_EXTRACT_PATH_TEXT(CAST(Posts.Props AS json), 'addedUsername'))
-				ELSE NULL END AS AddedUserEmail,
-			CASE
-				WHEN Posts.Type = 'system_remove_from_channel'
-				THEN (SELECT Email FROM Users WHERE Username = JSON_EXTRACT_PATH_TEXT(CAST(Posts.Props AS json), 'removedUsername'))
-				ELSE NULL END AS RemovedUserEmail `
-
-		querySuffix :=
-			`FROM
+				Users.Email AS UserEmail
+			FROM
 				Posts
 				LEFT OUTER JOIN Channels ON Posts.ChannelId = Channels.Id
 				LEFT OUTER JOIN Users ON Posts.UserId = Users.Id
 			WHERE
-				Posts.CreateAt > :StartTime
+				Posts.CreateAt > :StartTime AND
+				Posts.Type = ''
 			ORDER BY PostCreateAt
 			LIMIT :Limit`
 
 		var cposts []*model.MessageExport
-
-		query := queryPrefix
-		if s.DriverName() != model.DATABASE_DRIVER_MYSQL && s.DriverName() != model.DATABASE_DRIVER_POSTGRES {
-			result.Err = model.NewAppError("SqlPreferenceStore.save", "store.sql_preference.save.missing_driver.app_error", nil, "Failed to update preference because of missing driver", http.StatusNotImplemented)
+		if _, err := s.GetReplica().Select(&cposts, query, props); err != nil {
+			result.Err = model.NewAppError("SqlComplianceStore.MessageExport", "store.sql_compliance.message_export.app_error", nil, err.Error(), http.StatusInternalServerError)
 		} else {
-			if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
-				query += queryMySql
-			} else if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-				query += queryPostgres
-			}
-			query += querySuffix
-
-			if _, err := s.GetReplica().Select(&cposts, query, props); err != nil {
-				result.Err = model.NewAppError("SqlComplianceStore.MessageExport", "store.sql_compliance.message_export.app_error", nil, err.Error(), http.StatusInternalServerError)
-			} else {
-				result.Data = cposts
-			}
+			result.Data = cposts
 		}
 	})
 }
