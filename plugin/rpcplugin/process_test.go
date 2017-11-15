@@ -62,3 +62,10 @@ func TestProcess(t *testing.T) {
 	assert.Equal(t, "ping", string(b[:4]))
 	require.NoError(t, p.Wait())
 }
+
+func TestInvalidProcess(t *testing.T) {
+	p, ipc, err := NewProcess(context.Background(), "thisfileshouldnotexist")
+	require.Nil(t, p)
+	require.Nil(t, ipc)
+	require.Error(t, err)
+}
