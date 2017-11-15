@@ -27,7 +27,7 @@ func (me *groupmsgProvider) GetTrigger() string {
 	return CMD_GROUPMSG
 }
 
-func (me *groupmsgProvider) GetCommand(T goi18n.TranslateFunc) *model.Command {
+func (me *groupmsgProvider) GetCommand(a *App, T goi18n.TranslateFunc) *model.Command {
 	return &model.Command{
 		Trigger:          CMD_GROUPMSG,
 		AutoComplete:     true,
