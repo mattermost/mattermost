@@ -56,6 +56,21 @@ func TestSupervisor_InvalidExecutablePath(t *testing.T) {
 	assert.Error(t, err)
 }
 
+func TestSupervisor_NonExistentExecutablePath(t *testing.T) {
+	dir, err := ioutil.TempDir("", "")
+	require.NoError(t, err)
+	defer os.RemoveAll(dir)
+
+	ioutil.WriteFile(filepath.Join(dir, "plugin.json"), []byte(`{"id": "foo", "backend": {"executable": "thisfileshouldnotexist"}}`), 0600)
+
+	bundle := model.BundleInfoForPath(dir)
+	supervisor, err := SupervisorProvider(bundle)
+	require.NotNil(t, supervisor)
+	require.NoError(t, err)
+
+	require.Error(t, supervisor.Start())
+}
+
 // If plugin development goes really wrong, let's make sure plugin activation won't block forever.
 func TestSupervisor_StartTimeout(t *testing.T) {
 	dir, err := ioutil.TempDir("", "")
@@ -101,6 +116,10 @@ func TestSupervisor_PluginCrash(t *testing.T) {
 
 		func (p *MyPlugin) OnActivate(api plugin.API) error {
 			os.Exit(1)
+			return nil
+		}
+
+		func (p *MyPlugin) OnDeactivate() error {
 			return nil
 		}
 
