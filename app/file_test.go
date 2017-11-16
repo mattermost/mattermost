@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils"
 )
 
 func TestGeneratePublicLinkHash(t *testing.T) {
@@ -51,7 +50,7 @@ func TestDoUploadFile(t *testing.T) {
 	} else {
 		defer func() {
 			<-th.App.Srv.Store.FileInfo().PermanentDelete(info1.Id)
-			utils.RemoveFile(info1.Path)
+			th.App.RemoveFile(info1.Path)
 		}()
 	}
 
@@ -65,7 +64,7 @@ func TestDoUploadFile(t *testing.T) {
 	} else {
 		defer func() {
 			<-th.App.Srv.Store.FileInfo().PermanentDelete(info2.Id)
-			utils.RemoveFile(info2.Path)
+			th.App.RemoveFile(info2.Path)
 		}()
 	}
 
@@ -79,7 +78,7 @@ func TestDoUploadFile(t *testing.T) {
 	} else {
 		defer func() {
 			<-th.App.Srv.Store.FileInfo().PermanentDelete(info3.Id)
-			utils.RemoveFile(info3.Path)
+			th.App.RemoveFile(info3.Path)
 		}()
 	}
 
@@ -93,7 +92,7 @@ func TestDoUploadFile(t *testing.T) {
 	} else {
 		defer func() {
 			<-th.App.Srv.Store.FileInfo().PermanentDelete(info3.Id)
-			utils.RemoveFile(info3.Path)
+			th.App.RemoveFile(info3.Path)
 		}()
 	}
 

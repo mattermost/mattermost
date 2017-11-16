@@ -43,6 +43,7 @@ type App struct {
 	Compliance       einterfaces.ComplianceInterface
 	DataRetention    einterfaces.DataRetentionInterface
 	Elasticsearch    einterfaces.ElasticsearchInterface
+	Emoji            einterfaces.EmojiInterface
 	Ldap             einterfaces.LdapInterface
 	MessageExport    einterfaces.MessageExportInterface
 	Metrics          einterfaces.MetricsInterface
@@ -134,6 +135,12 @@ func RegisterAccountMigrationInterface(f func(*App) einterfaces.AccountMigration
 	accountMigrationInterface = f
 }
 
+var brandInterface func(*App) einterfaces.BrandInterface
+
+func RegisterBrandInterface(f func(*App) einterfaces.BrandInterface) {
+	brandInterface = f
+}
+
 var clusterInterface func(*App) einterfaces.ClusterInterface
 
 func RegisterClusterInterface(f func(*App) einterfaces.ClusterInterface) {
@@ -150,6 +157,18 @@ var dataRetentionInterface func(*App) einterfaces.DataRetentionInterface
 
 func RegisterDataRetentionInterface(f func(*App) einterfaces.DataRetentionInterface) {
 	dataRetentionInterface = f
+}
+
+var elasticsearchInterface func(*App) einterfaces.ElasticsearchInterface
+
+func RegisterElasticsearchInterface(f func(*App) einterfaces.ElasticsearchInterface) {
+	elasticsearchInterface = f
+}
+
+var emojiInterface func(*App) einterfaces.EmojiInterface
+
+func RegisterEmojiInterface(f func(*App) einterfaces.EmojiInterface) {
+	emojiInterface = f
 }
 
 var jobsDataRetentionJobInterface func(*App) ejobs.DataRetentionJobInterface
@@ -216,14 +235,21 @@ func (a *App) initEnterprise() {
 	if accountMigrationInterface != nil {
 		a.AccountMigration = accountMigrationInterface(a)
 	}
-	a.Brand = einterfaces.GetBrandInterface()
+	if brandInterface != nil {
+		a.Brand = brandInterface(a)
+	}
 	if clusterInterface != nil {
 		a.Cluster = clusterInterface(a)
 	}
 	if complianceInterface != nil {
 		a.Compliance = complianceInterface(a)
 	}
-	a.Elasticsearch = einterfaces.GetElasticsearchInterface()
+	if elasticsearchInterface != nil {
+		a.Elasticsearch = elasticsearchInterface(a)
+	}
+	if emojiInterface != nil {
+		a.Emoji = emojiInterface(a)
+	}
 	if ldapInterface != nil {
 		a.Ldap = ldapInterface(a)
 		utils.AddConfigListener(func(_, cfg *model.Config) {

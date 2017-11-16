@@ -57,7 +57,43 @@ const (
 	IMAGE_PREVIEW_PIXEL_WIDTH    = 1024
 )
 
-func GetInfoForFilename(post *model.Post, teamId string, filename string) *model.FileInfo {
+func (a *App) FileBackend() (utils.FileBackend, *model.AppError) {
+	return utils.NewFileBackend(&a.Config().FileSettings)
+}
+
+func (a *App) ReadFile(path string) ([]byte, *model.AppError) {
+	backend, err := a.FileBackend()
+	if err != nil {
+		return nil, err
+	}
+	return backend.ReadFile(path)
+}
+
+func (a *App) MoveFile(oldPath, newPath string) *model.AppError {
+	backend, err := a.FileBackend()
+	if err != nil {
+		return err
+	}
+	return backend.MoveFile(oldPath, newPath)
+}
+
+func (a *App) WriteFile(f []byte, path string) *model.AppError {
+	backend, err := a.FileBackend()
+	if err != nil {
+		return err
+	}
+	return backend.WriteFile(f, path)
+}
+
+func (a *App) RemoveFile(path string) *model.AppError {
+	backend, err := a.FileBackend()
+	if err != nil {
+		return err
+	}
+	return backend.RemoveFile(path)
+}
+
+func (a *App) GetInfoForFilename(post *model.Post, teamId string, filename string) *model.FileInfo {
 	// Find the path from the Filename of the form /{channelId}/{userId}/{uid}/{nameWithExtension}
 	split := strings.SplitN(filename, "/", 5)
 	if len(split) < 5 {
@@ -79,7 +115,7 @@ func GetInfoForFilename(post *model.Post, teamId string, filename string) *model
 
 	// Open the file and populate the fields of the FileInfo
 	var info *model.FileInfo
-	if data, err := utils.ReadFile(path); err != nil {
+	if data, err := a.ReadFile(path); err != nil {
 		l4g.Error(utils.T("api.file.migrate_filenames_to_file_infos.file_not_found.error"), post.Id, filename, path, err)
 		return nil
 	} else {
@@ -121,7 +157,7 @@ func (a *App) FindTeamIdForFilename(post *model.Post, filename string) string {
 	} else {
 		for _, team := range teams {
 			path := fmt.Sprintf("teams/%s/channels/%s/users/%s/%s/%s", team.Id, post.ChannelId, post.UserId, id, name)
-			if _, err := utils.ReadFile(path); err == nil {
+			if _, err := a.ReadFile(path); err == nil {
 				// Found the team that this file was posted from
 				return team.Id
 			}
@@ -168,7 +204,7 @@ func (a *App) MigrateFilenamesToFileInfos(post *model.Post) []*model.FileInfo {
 		l4g.Error(utils.T("api.file.migrate_filenames_to_file_infos.team_id.error"), post.Id, filenames)
 	} else {
 		for _, filename := range filenames {
-			info := GetInfoForFilename(post, teamId, filename)
+			info := a.GetInfoForFilename(post, teamId, filename)
 			if info == nil {
 				continue
 			}
@@ -286,7 +322,7 @@ func (a *App) UploadFiles(teamId string, channelId string, userId string, fileHe
 		}
 	}
 
-	HandleImages(previewPathList, thumbnailPathList, imageDataList)
+	a.HandleImages(previewPathList, thumbnailPathList, imageDataList)
 
 	return resStruct, nil
 }
@@ -321,7 +357,7 @@ func (a *App) DoUploadFile(now time.Time, rawTeamId string, rawChannelId string,
 		info.ThumbnailPath = pathPrefix + nameWithoutExtension + "_thumb.jpg"
 	}
 
-	if err := utils.WriteFile(data, info.Path); err != nil {
+	if err := a.WriteFile(data, info.Path); err != nil {
 		return nil, err
 	}
 
@@ -332,7 +368,7 @@ func (a *App) DoUploadFile(now time.Time, rawTeamId string, rawChannelId string,
 	return info, nil
 }
 
-func HandleImages(previewPathList []string, thumbnailPathList []string, fileData [][]byte) {
+func (a *App) HandleImages(previewPathList []string, thumbnailPathList []string, fileData [][]byte) {
 	wg := new(sync.WaitGroup)
 
 	for i := range fileData {
@@ -341,12 +377,12 @@ func HandleImages(previewPathList []string, thumbnailPathList []string, fileData
 			wg.Add(2)
 			go func(img *image.Image, path string, width int, height int) {
 				defer wg.Done()
-				generateThumbnailImage(*img, path, width, height)
+				a.generateThumbnailImage(*img, path, width, height)
 			}(img, thumbnailPathList[i], width, height)
 
 			go func(img *image.Image, path string, width int) {
 				defer wg.Done()
-				generatePreviewImage(*img, path, width)
+				a.generatePreviewImage(*img, path, width)
 			}(img, previewPathList[i], width)
 		}
 	}
@@ -417,7 +453,7 @@ func getImageOrientation(input io.Reader) (int, error) {
 	}
 }
 
-func generateThumbnailImage(img image.Image, thumbnailPath string, width int, height int) {
+func (a *App) generateThumbnailImage(img image.Image, thumbnailPath string, width int, height int) {
 	thumbWidth := float64(IMAGE_THUMBNAIL_PIXEL_WIDTH)
 	thumbHeight := float64(IMAGE_THUMBNAIL_PIXEL_HEIGHT)
 	imgWidth := float64(width)
@@ -438,13 +474,13 @@ func generateThumbnailImage(img image.Image, thumbnailPath string, width int, he
 		return
 	}
 
-	if err := utils.WriteFile(buf.Bytes(), thumbnailPath); err != nil {
+	if err := a.WriteFile(buf.Bytes(), thumbnailPath); err != nil {
 		l4g.Error(utils.T("api.file.handle_images_forget.upload_thumb.error"), thumbnailPath, err)
 		return
 	}
 }
 
-func generatePreviewImage(img image.Image, previewPath string, width int) {
+func (a *App) generatePreviewImage(img image.Image, previewPath string, width int) {
 	var preview image.Image
 
 	if width > IMAGE_PREVIEW_PIXEL_WIDTH {
@@ -460,7 +496,7 @@ func generatePreviewImage(img image.Image, previewPath string, width int) {
 		return
 	}
 
-	if err := utils.WriteFile(buf.Bytes(), previewPath); err != nil {
+	if err := a.WriteFile(buf.Bytes(), previewPath); err != nil {
 		l4g.Error(utils.T("api.file.handle_images_forget.upload_preview.error"), previewPath, err)
 		return
 	}
