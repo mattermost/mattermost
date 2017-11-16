@@ -60,10 +60,6 @@ func runServer(configFileLocation string) {
 	l4g.Info(utils.T("mattermost.working_dir"), pwd)
 	l4g.Info(utils.T("mattermost.config_file"), utils.FindConfigFile(configFileLocation))
 
-	if err := utils.TestFileConnection(); err != nil {
-		l4g.Error("Problem with file storage settings: " + err.Error())
-	}
-
 	a := app.New(app.ConfigFile(configFileLocation))
 	defer a.Shutdown()
 
