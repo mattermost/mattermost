@@ -35,7 +35,7 @@ func checkCommand(t *testing.T, args ...string) string {
 	require.NoError(t, err)
 	output, err := exec.Command(path, execArgs(t, args)...).CombinedOutput()
 	require.NoError(t, err, string(output))
-	return string(output)
+	return strings.TrimSpace(strings.TrimSuffix(strings.TrimSpace(string(output)), "PASS"))
 }
 
 func runCommand(t *testing.T, args ...string) error {

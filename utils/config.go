@@ -70,11 +70,20 @@ func RemoveConfigListener(id string) {
 	delete(cfgListeners, id)
 }
 
+// FindConfigFile attempts to find an existing configuration file. fileName can be an absolute or
+// relative path or name such as "/opt/mattermost/config.json" or simply "config.json". An empty
+// string is returned if no configuration is found.
 func FindConfigFile(fileName string) (path string) {
-	for _, dir := range []string{"./config", "../config", "../../config", "."} {
-		path, _ := filepath.Abs(filepath.Join(dir, fileName))
-		if _, err := os.Stat(path); err == nil {
-			return path
+	if filepath.IsAbs(fileName) {
+		if _, err := os.Stat(fileName); err == nil {
+			return fileName
+		}
+	} else {
+		for _, dir := range []string{"./config", "../config", "../../config", "."} {
+			path, _ := filepath.Abs(filepath.Join(dir, fileName))
+			if _, err := os.Stat(path); err == nil {
+				return path
+			}
 		}
 	}
 	return ""
@@ -310,8 +319,8 @@ func ReadConfigFile(path string, allowEnvironmentOverrides bool) (*model.Config,
 }
 
 // EnsureConfigFile will attempt to locate a config file with the given name. If it does not exist,
-// it will attempt to locate a default config file, and copy it. In either case, the config file
-// path is returned.
+// it will attempt to locate a default config file, and copy it to a file named fileName in the same
+// directory. In either case, the config file path is returned.
 func EnsureConfigFile(fileName string) (string, error) {
 	if configFile := FindConfigFile(fileName); configFile != "" {
 		return configFile, nil
