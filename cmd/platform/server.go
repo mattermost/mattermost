@@ -64,7 +64,7 @@ func runServer(configFileLocation string) {
 		l4g.Error("Problem with file storage settings: " + err.Error())
 	}
 
-	a := app.New()
+	a := app.New(app.ConfigFile(configFileLocation))
 	defer a.Shutdown()
 
 	if model.BuildEnterpriseReady == "true" {
