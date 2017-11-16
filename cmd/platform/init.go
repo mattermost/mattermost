@@ -32,7 +32,7 @@ func initDBCommandContext(configFileLocation string) (*app.App, error) {
 
 	utils.ConfigureCmdLineLog()
 
-	a := app.New()
+	a := app.New(app.ConfigFile(configFileLocation))
 	if model.BuildEnterpriseReady == "true" {
 		a.LoadLicense()
 	}

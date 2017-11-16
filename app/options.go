@@ -29,3 +29,9 @@ func StoreOverride(override interface{}) Option {
 		}
 	}
 }
+
+func ConfigFile(file string) Option {
+	return func(a *App) {
+		a.configFile = file
+	}
+}
