@@ -849,7 +849,7 @@ func TestGetInfoForFilename(t *testing.T) {
 
 	date := time.Now().Format("20060102")
 
-	if info := app.GetInfoForFilename(post1, team1.Id, post1.Filenames[0]); info == nil {
+	if info := th.App.GetInfoForFilename(post1, team1.Id, post1.Filenames[0]); info == nil {
 		t.Fatal("info shouldn't be nil")
 	} else if info.Id == "" {
 		t.Fatal("info.Id shouldn't be empty")
