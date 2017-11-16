@@ -82,14 +82,38 @@ func testGetUsersInChannelAt(t *testing.T, ss store.Store) {
 	}
 	user = *store.Must(ss.User().Save(&user)).(*model.User)
 
-	// log a join event, followed by a leave event
+	// log a join event
 	leaveTime := model.GetMillis()
 	joinTime := leaveTime - 10000
 	store.Must(ss.ChannelMemberHistory().LogJoinEvent(user.Id, channel.Id, joinTime))
+
+	// case 1: both start and end before join time
+	channelMembers := store.Must(ss.ChannelMemberHistory().GetUsersInChannelDuring(joinTime-500, joinTime-100, channel.Id)).([]*model.ChannelMemberHistory)
+	assert.Len(t, channelMembers, 0)
+
+	// case 2: start before join time, no leave time
+	channelMembers = store.Must(ss.ChannelMemberHistory().GetUsersInChannelDuring(joinTime-100, joinTime+100, channel.Id)).([]*model.ChannelMemberHistory)
+	assert.Len(t, channelMembers, 1)
+	assert.Equal(t, channel.Id, channelMembers[0].ChannelId)
+	assert.Equal(t, user.Id, channelMembers[0].UserId)
+	assert.Equal(t, user.Email, channelMembers[0].UserEmail)
+	assert.Equal(t, joinTime, channelMembers[0].JoinTime)
+	assert.Nil(t, channelMembers[0].LeaveTime)
+
+	// case 3: start after join time, no leave time
+	channelMembers = store.Must(ss.ChannelMemberHistory().GetUsersInChannelDuring(joinTime+100, joinTime+500, channel.Id)).([]*model.ChannelMemberHistory)
+	assert.Len(t, channelMembers, 1)
+	assert.Equal(t, channel.Id, channelMembers[0].ChannelId)
+	assert.Equal(t, user.Id, channelMembers[0].UserId)
+	assert.Equal(t, user.Email, channelMembers[0].UserEmail)
+	assert.Equal(t, joinTime, channelMembers[0].JoinTime)
+	assert.Nil(t, channelMembers[0].LeaveTime)
+
+	// add a leave time for the user
 	store.Must(ss.ChannelMemberHistory().LogLeaveEvent(user.Id, channel.Id, leaveTime))
 
-	// in between the join time and the leave time, the user was a member of the channel
-	channelMembers := store.Must(ss.ChannelMemberHistory().GetUsersInChannelAt(joinTime+10, channel.Id)).([]*model.ChannelMemberHistory)
+	// case 4: start after join time, end before leave time
+	channelMembers = store.Must(ss.ChannelMemberHistory().GetUsersInChannelDuring(joinTime+100, leaveTime-100, channel.Id)).([]*model.ChannelMemberHistory)
 	assert.Len(t, channelMembers, 1)
 	assert.Equal(t, channel.Id, channelMembers[0].ChannelId)
 	assert.Equal(t, user.Id, channelMembers[0].UserId)
@@ -97,11 +121,17 @@ func testGetUsersInChannelAt(t *testing.T, ss store.Store) {
 	assert.Equal(t, joinTime, channelMembers[0].JoinTime)
 	assert.Equal(t, leaveTime, *channelMembers[0].LeaveTime)
 
-	// outside of those bounds, they were not
-	channelMembers = store.Must(ss.ChannelMemberHistory().GetUsersInChannelAt(joinTime-10, channel.Id)).([]*model.ChannelMemberHistory)
-	assert.Len(t, channelMembers, 0)
+	// case 5: start before join time, end after leave time
+	channelMembers = store.Must(ss.ChannelMemberHistory().GetUsersInChannelDuring(joinTime-100, leaveTime+100, channel.Id)).([]*model.ChannelMemberHistory)
+	assert.Len(t, channelMembers, 1)
+	assert.Equal(t, channel.Id, channelMembers[0].ChannelId)
+	assert.Equal(t, user.Id, channelMembers[0].UserId)
+	assert.Equal(t, user.Email, channelMembers[0].UserEmail)
+	assert.Equal(t, joinTime, channelMembers[0].JoinTime)
+	assert.Equal(t, leaveTime, *channelMembers[0].LeaveTime)
 
-	channelMembers = store.Must(ss.ChannelMemberHistory().GetUsersInChannelAt(leaveTime+10, channel.Id)).([]*model.ChannelMemberHistory)
+	// case 6: start and end after leave time
+	channelMembers = store.Must(ss.ChannelMemberHistory().GetUsersInChannelDuring(leaveTime+100, leaveTime+200, channel.Id)).([]*model.ChannelMemberHistory)
 	assert.Len(t, channelMembers, 0)
 }
 
@@ -115,25 +145,35 @@ func testPurgeHistoryBefore(t *testing.T, ss store.Store) {
 	}
 	channel = *store.Must(ss.Channel().Save(&channel, -1)).(*model.Channel)
 
-	// and a test user
+	// and two test users
 	user := model.User{
 		Email:    model.NewId() + "@mattermost.com",
 		Nickname: model.NewId(),
 	}
 	user = *store.Must(ss.User().Save(&user)).(*model.User)
 
-	// log a join event, followed by a leave event
+	user2 := model.User{
+		Email:    model.NewId() + "@mattermost.com",
+		Nickname: model.NewId(),
+	}
+	user2 = *store.Must(ss.User().Save(&user2)).(*model.User)
+
+	// user1 joins and leaves the channel
 	leaveTime := model.GetMillis()
 	joinTime := leaveTime - 10000
 	store.Must(ss.ChannelMemberHistory().LogJoinEvent(user.Id, channel.Id, joinTime))
 	store.Must(ss.ChannelMemberHistory().LogLeaveEvent(user.Id, channel.Id, leaveTime))
 
-	// in between the join time and the leave time, the user was a member of the channel
-	channelMembers := store.Must(ss.ChannelMemberHistory().GetUsersInChannelAt(joinTime+10, channel.Id)).([]*model.ChannelMemberHistory)
-	assert.Len(t, channelMembers, 1)
+	// user2 joins the channel but never leaves
+	store.Must(ss.ChannelMemberHistory().LogJoinEvent(user2.Id, channel.Id, joinTime))
 
-	// but if we purge the old data, that's no longer the case
-	store.Must(ss.ChannelMemberHistory().PurgeHistoryBefore(leaveTime))
-	channelMembers = store.Must(ss.ChannelMemberHistory().GetUsersInChannelAt(joinTime+10, channel.Id)).([]*model.ChannelMemberHistory)
-	assert.Len(t, channelMembers, 0)
+	// in between the join time and the leave time, both users were members of the channel
+	channelMembers := store.Must(ss.ChannelMemberHistory().GetUsersInChannelDuring(joinTime+10, leaveTime-10, channel.Id)).([]*model.ChannelMemberHistory)
+	assert.Len(t, channelMembers, 2)
+
+	// but if we purge the old data, only the user that didn't leave is left
+	store.Must(ss.ChannelMemberHistory().PurgeHistoryBefore(leaveTime, channel.Id))
+	channelMembers = store.Must(ss.ChannelMemberHistory().GetUsersInChannelDuring(joinTime+10, leaveTime-10, channel.Id)).([]*model.ChannelMemberHistory)
+	assert.Len(t, channelMembers, 1)
+	assert.Equal(t, user2.Id, channelMembers[0].UserId)
 }

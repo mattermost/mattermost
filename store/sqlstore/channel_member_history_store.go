@@ -74,7 +74,7 @@ func (s SqlChannelMemberHistoryStore) LogLeaveEvent(userId string, channelId str
 	})
 }
 
-func (s SqlChannelMemberHistoryStore) GetUsersInChannelAt(time int64, channelId string) store.StoreChannel {
+func (s SqlChannelMemberHistoryStore) GetUsersInChannelDuring(startTime int64, endTime int64, channelId string) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		query := `
 			SELECT
@@ -83,27 +83,29 @@ func (s SqlChannelMemberHistoryStore) GetUsersInChannelAt(time int64, channelId 
 			FROM ChannelMemberHistory cmh
 			INNER JOIN Users u ON cmh.UserId = u.Id
 			WHERE cmh.ChannelId = :ChannelId
-			AND cmh.JoinTime <= :AtTime
-			AND (cmh.LeaveTime IS NULL OR cmh.LeaveTime >= :AtTime)
+			AND cmh.JoinTime <= :EndTime
+			AND (cmh.LeaveTime IS NULL OR cmh.LeaveTime >= :StartTime)
 			ORDER BY cmh.JoinTime ASC`
 
-		params := map[string]interface{}{"ChannelId": channelId, "AtTime": time}
+		params := map[string]interface{}{"ChannelId": channelId, "StartTime": startTime, "EndTime": endTime}
 		var histories []*model.ChannelMemberHistory
 		if _, err := s.GetReplica().Select(&histories, query, params); err != nil {
-			result.Err = model.NewAppError("SqlChannelMemberHistoryStore.GetUsersInChannelAt", "store.sql_channel_member_history.get_users_in_channel_at.app_error", params, err.Error(), http.StatusInternalServerError)
+			result.Err = model.NewAppError("SqlChannelMemberHistoryStore.GetUsersInChannelAt", "store.sql_channel_member_history.get_users_in_channel_during.app_error", params, err.Error(), http.StatusInternalServerError)
 		} else {
 			result.Data = histories
 		}
 	})
 }
 
-func (s SqlChannelMemberHistoryStore) PurgeHistoryBefore(time int64) store.StoreChannel {
+func (s SqlChannelMemberHistoryStore) PurgeHistoryBefore(time int64, channelId string) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		query := `
 			DELETE FROM ChannelMemberHistory
-			WHERE LeaveTime <= :AtTime`
+			WHERE ChannelId = :ChannelId
+			AND LeaveTime IS NOT NULL
+			AND LeaveTime <= :AtTime`
 
-		params := map[string]interface{}{"AtTime": time}
+		params := map[string]interface{}{"AtTime": time, "ChannelId": channelId}
 		if _, err := s.GetReplica().Exec(query, params); err != nil {
 			result.Err = model.NewAppError("SqlChannelMemberHistoryStore.PurgeHistoryBefore", "store.sql_channel_member_history.purge_history_before.app_error", params, err.Error(), http.StatusInternalServerError)
 		}

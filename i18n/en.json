@@ -4344,6 +4344,10 @@
     "translation": "Failed to get users in channel at specified time"
   },
   {
+    "id": "store.sql_channel_member_history.get_users_in_channel_during.app_error",
+    "translation": "Failed to get users in channel during specified time period"
+  },
+  {
     "id": "store.sql_channel_member_history.get_all.app_error",
     "translation": "Failed to get records"
   },

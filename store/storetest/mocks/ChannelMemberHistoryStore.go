@@ -12,13 +12,13 @@ type ChannelMemberHistoryStore struct {
 	mock.Mock
 }
 
-// GetUsersInChannelAt provides a mock function with given fields: time, channelId
-func (_m *ChannelMemberHistoryStore) GetUsersInChannelAt(time int64, channelId string) store.StoreChannel {
-	ret := _m.Called(time, channelId)
+// GetUsersInChannelDuring provides a mock function with given fields: startTime, endTime, channelId
+func (_m *ChannelMemberHistoryStore) GetUsersInChannelDuring(startTime int64, endTime int64, channelId string) store.StoreChannel {
+	ret := _m.Called(startTime, endTime, channelId)
 
 	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(int64, string) store.StoreChannel); ok {
-		r0 = rf(time, channelId)
+	if rf, ok := ret.Get(0).(func(int64, int64, string) store.StoreChannel); ok {
+		r0 = rf(startTime, endTime, channelId)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(store.StoreChannel)
@@ -60,13 +60,13 @@ func (_m *ChannelMemberHistoryStore) LogLeaveEvent(userId string, channelId stri
 	return r0
 }
 
-// PurgeHistoryBefore provides a mock function with given fields: time
-func (_m *ChannelMemberHistoryStore) PurgeHistoryBefore(time int64) store.StoreChannel {
-	ret := _m.Called(time)
+// PurgeHistoryBefore provides a mock function with given fields: time, channelId
+func (_m *ChannelMemberHistoryStore) PurgeHistoryBefore(time int64, channelId string) store.StoreChannel {
+	ret := _m.Called(time, channelId)
 
 	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(int64) store.StoreChannel); ok {
-		r0 = rf(time)
+	if rf, ok := ret.Get(0).(func(int64, string) store.StoreChannel); ok {
+		r0 = rf(time, channelId)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(store.StoreChannel)
