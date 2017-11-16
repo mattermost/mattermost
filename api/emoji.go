@@ -16,7 +16,6 @@ import (
 	"github.com/disintegration/imaging"
 	"github.com/gorilla/mux"
 	"github.com/mattermost/mattermost-server/app"
-	"github.com/mattermost/mattermost-server/einterfaces"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
 )
@@ -51,7 +50,7 @@ func createEmoji(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if emojiInterface := einterfaces.GetEmojiInterface(); emojiInterface != nil &&
+	if emojiInterface := c.App.Emoji; emojiInterface != nil &&
 		!emojiInterface.CanUserCreateEmoji(c.Session.Roles, c.Session.TeamMembers) {
 		c.Err = model.NewAppError("createEmoji", "api.emoji.create.permissions.app_error", nil, "user_id="+c.Session.UserId, http.StatusUnauthorized)
 		return
@@ -106,7 +105,7 @@ func createEmoji(c *Context, w http.ResponseWriter, r *http.Request) {
 	if imageData := m.File["image"]; len(imageData) == 0 {
 		c.SetInvalidParam("createEmoji", "image")
 		return
-	} else if err := app.UploadEmojiImage(emoji.Id, imageData[0]); err != nil {
+	} else if err := c.App.UploadEmojiImage(emoji.Id, imageData[0]); err != nil {
 		c.Err = err
 		return
 	}

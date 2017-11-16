@@ -1497,8 +1497,8 @@ func (a *App) OldImportFile(timestamp time.Time, file io.Reader, teamId string, 
 
 	img, width, height := prepareImage(data)
 	if img != nil {
-		generateThumbnailImage(*img, fileInfo.ThumbnailPath, width, height)
-		generatePreviewImage(*img, fileInfo.PreviewPath, width)
+		a.generateThumbnailImage(*img, fileInfo.ThumbnailPath, width, height)
+		a.generatePreviewImage(*img, fileInfo.PreviewPath, width)
 	}
 
 	return fileInfo, nil
