@@ -2165,7 +2165,7 @@
   },
   {
     "id": "api.team.import_team.no_import_from.app_error",
-    "translation": "Requisição mal formada: campo filesize não está presente."
+    "translation": "Requisição mal formada: campo importFrom não está presente."
   },
   {
     "id": "api.team.import_team.open.app_error",
