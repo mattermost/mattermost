@@ -637,23 +637,23 @@
   },
   {
     "id": "api.command_dnd.desc",
-    "translation": "Do not disturb disables desktop and mobile push notifications."
+    "translation": "請勿打擾會停止桌面以及行動推播通知。"
   },
   {
     "id": "api.command_dnd.disabled",
-    "translation": "Do Not Disturb is disabled."
+    "translation": "請勿打擾已被停用。"
   },
   {
     "id": "api.command_dnd.error",
-    "translation": "Error to retrieve the user status."
+    "translation": "取得使用者狀態時錯誤。"
   },
   {
     "id": "api.command_dnd.name",
-    "translation": "dnd"
+    "translation": "請勿打擾"
   },
   {
     "id": "api.command_dnd.success",
-    "translation": "Do Not Disturb is enabled. You will not receive desktop or mobile push notifications until Do Not Disturb is turned off."
+    "translation": "請勿打擾已啟用。在停用前您將不會收到桌面以及行動推播通知。"
   },
   {
     "id": "api.command_echo.create.app_error",
@@ -737,7 +737,7 @@
   },
   {
     "id": "api.command_kick.name",
-    "translation": "kick"
+    "translation": "踢出"
   },
   {
     "id": "api.command_leave.desc",
@@ -849,11 +849,11 @@
   },
   {
     "id": "api.command_remove.desc",
-    "translation": "Remove a member from the channel"
+    "translation": "將成員從頻道中移除"
   },
   {
     "id": "api.command_remove.direct_group.app_error",
-    "translation": "You can't remove someone from a direct message channel."
+    "translation": "無法將成員從直接通訊頻道中移除。"
   },
   {
     "id": "api.command_remove.hint",
@@ -861,7 +861,7 @@
   },
   {
     "id": "api.command_remove.message.app_error",
-    "translation": "使用 /rename 命令必須提供訊息。"
+    "translation": "使用 /remove 或 /kick 命令必須提供訊息。"
   },
   {
     "id": "api.command_remove.missing.app_error",
@@ -869,15 +869,15 @@
   },
   {
     "id": "api.command_remove.name",
-    "translation": "remove"
+    "translation": "移除"
   },
   {
     "id": "api.command_remove.permission.app_error",
-    "translation": "權限不足以更改頻道名稱。"
+    "translation": "權限不足以移除成員。"
   },
   {
     "id": "api.command_remove.user_not_in_channel",
-    "translation": "{{.Username}} is not a member of this channel."
+    "translation": "{{.Username}}不是此頻道的成員。"
   },
   {
     "id": "api.command_search.desc",
@@ -1575,19 +1575,19 @@
   },
   {
     "id": "api.post.check_for_out_of_channel_mentions.link.private",
-    "translation": "add them to this private channel"
+    "translation": "將他們加入此私人頻道"
   },
   {
     "id": "api.post.check_for_out_of_channel_mentions.link.public",
-    "translation": "add them to the channel"
+    "translation": "將他們加入頻道"
   },
   {
     "id": "api.post.check_for_out_of_channel_mentions.message.multiple",
-    "translation": "@{{.Usernames}} and @{{.LastUsername}} were mentioned but they are not in the channel. Would you like to {{.Phrase}}? They will have access to all message history."
+    "translation": "提到了 @{{.Usernames}} 跟 @{{.LastUsername}} 但他們不在此頻道。要{{.Phrase}}？他們將能看到全部的訊息紀錄。"
   },
   {
     "id": "api.post.check_for_out_of_channel_mentions.message.one",
-    "translation": "@{{.Username}} was mentioned but they are not in the channel. Would you like to {{.Phrase}}? They will have access to all message history."
+    "translation": "提到了 @{{.Username}} 但他們不在此頻道。要{{.Phrase}}？他們將能看到全部的訊息紀錄。"
   },
   {
     "id": "api.post.create_post.attach_files.error",
@@ -2165,7 +2165,7 @@
   },
   {
     "id": "api.team.import_team.no_import_from.app_error",
-    "translation": "要求格式錯誤：沒有檔案大小欄位。"
+    "translation": "要求格式錯誤：沒有 importFrom 欄位。"
   },
   {
     "id": "api.team.import_team.open.app_error",
@@ -2805,7 +2805,7 @@
   },
   {
     "id": "api.user.update_active.no_deactivate_sso.app_error",
-    "translation": "不能變更 AD/LDAP 帳號的啟用狀態。請變更 AD/LDAP 伺服器上對應的帳號狀態。"
+    "translation": "不能變更 SSO 帳號的啟用狀態。請透過 SSO 伺服器變更。"
   },
   {
     "id": "api.user.update_active.permissions.app_error",
@@ -3497,7 +3497,7 @@
   },
   {
     "id": "app.plugin.config.app_error",
-    "translation": "Error saving plugin state in config"
+    "translation": "儲存模組狀態於設定時錯誤"
   },
   {
     "id": "app.plugin.deactivate.app_error",
@@ -3505,7 +3505,7 @@
   },
   {
     "id": "app.plugin.disabled.app_error",
-    "translation": "Plugins have been disabled."
+    "translation": "模組已被停用。"
   },
   {
     "id": "app.plugin.extract.app_error",
@@ -3533,7 +3533,7 @@
   },
   {
     "id": "app.plugin.not_installed.app_error",
-    "translation": "Plugin is not installed"
+    "translation": "模組尚未安裝"
   },
   {
     "id": "app.plugin.remove.app_error",
@@ -3541,7 +3541,7 @@
   },
   {
     "id": "app.plugin.upload_disabled.app_error",
-    "translation": "Plugins and/or plugin uploads have been disabled."
+    "translation": "模組 跟/或 上傳模組已被停用。"
   },
   {
     "id": "app.user_access_token.disabled",
@@ -3829,7 +3829,7 @@
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.get_oldest_post.error",
-    "translation": "The oldest post could not be retrieved from the database."
+    "translation": "無法從資料庫取得最老的訊息。"
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.parse_end_time.error",
@@ -3861,7 +3861,7 @@
   },
   {
     "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
-    "translation": "Failed to create Elasticsearch bulk processor"
+    "translation": "建立 Elasticsearch 批次處理器時失敗"
   },
   {
     "id": "ent.elasticsearch.start.index_settings_failed",
@@ -3869,7 +3869,7 @@
   },
   {
     "id": "ent.elasticsearch.start.start_bulk_processor_failed.app_error",
-    "translation": "Failed to start Elasticsearch bulk processor"
+    "translation": "啟動 Elasticsearch 批次處理器時失敗"
   },
   {
     "id": "ent.elasticsearch.test_config.connect_failed",
@@ -4485,7 +4485,7 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.bulk_indexing_time_window_seconds.app_error",
-    "translation": "Elasticsearch Bulk Indexing Time Window must be at least 1 second."
+    "translation": "Elasticsearch 批次索引的時間範圍必須至少為 1 秒。"
   },
   {
     "id": "model.config.is_valid.elastic_search.connection_url.app_error",
@@ -4497,7 +4497,7 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.live_indexing_batch_size.app_error",
-    "translation": "Elasticsearch Live Indexing Batch Size must be at least 1"
+    "translation": "Elasticsearch 即時索引的批次大小必須至少為 1 。"
   },
   {
     "id": "model.config.is_valid.elastic_search.password.app_error",
@@ -4509,7 +4509,7 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.request_timeout_seconds.app_error",
-    "translation": "Elasticsearch Request Timeout must be at least 1 second."
+    "translation": "Elasticsearch 回應逾期的時間必須至少為 1 秒。"
   },
   {
     "id": "model.config.is_valid.elastic_search.username.app_error",
@@ -6933,7 +6933,7 @@
   },
   {
     "id": "web.incoming_webhook.split_props_length.app_error",
-    "translation": "Unable to split webhook props into {{.Max}} character parts."
+    "translation": "無法拆分 Webhook 屬性成 {{.Max}} 字元。"
   },
   {
     "id": "web.incoming_webhook.text.app_error",

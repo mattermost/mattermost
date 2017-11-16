@@ -49,7 +49,8 @@ type App struct {
 	Mfa              einterfaces.MfaInterface
 	Saml             einterfaces.SamlInterface
 
-	newStore func() store.Store
+	configFile string
+	newStore   func() store.Store
 
 	sessionCache *utils.Cache
 }
@@ -64,26 +65,28 @@ func New(options ...Option) *App {
 		panic("Only one App should exist at a time. Did you forget to call Shutdown()?")
 	}
 
-	if utils.T == nil {
-		utils.TranslationsPreInit()
-	}
-	utils.LoadGlobalConfig("config.json")
-	utils.InitTranslations(utils.Cfg.LocalizationSettings)
-
-	l4g.Info(utils.T("api.server.new_server.init.info"))
-
 	app := &App{
 		goroutineExitSignal: make(chan struct{}, 1),
 		Srv: &Server{
 			Router: mux.NewRouter(),
 		},
 		sessionCache: utils.NewLru(model.SESSION_CACHE_SIZE),
+		configFile:   "config.json",
 	}
-	app.initEnterprise()
 
 	for _, option := range options {
 		option(app)
 	}
+
+	if utils.T == nil {
+		utils.TranslationsPreInit()
+	}
+	utils.LoadGlobalConfig(app.configFile)
+	utils.InitTranslations(utils.Cfg.LocalizationSettings)
+
+	l4g.Info(utils.T("api.server.new_server.init.info"))
+
+	app.initEnterprise()
 
 	if app.newStore == nil {
 		app.newStore = func() store.Store {

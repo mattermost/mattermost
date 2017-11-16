@@ -4,7 +4,9 @@
 package utils
 
 import (
+	"io/ioutil"
 	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 	"time"
@@ -19,6 +21,23 @@ func TestConfig(t *testing.T) {
 	TranslationsPreInit()
 	LoadGlobalConfig("config.json")
 	InitTranslations(Cfg.LocalizationSettings)
+}
+
+func TestFindConfigFile(t *testing.T) {
+	dir, err := ioutil.TempDir("", "")
+	require.NoError(t, err)
+	defer os.RemoveAll(dir)
+
+	path := filepath.Join(dir, "config.json")
+	require.NoError(t, ioutil.WriteFile(path, []byte("{}"), 0600))
+
+	assert.Equal(t, path, FindConfigFile(path))
+
+	prevDir, err := os.Getwd()
+	require.NoError(t, err)
+	defer os.Chdir(prevDir)
+	os.Chdir(dir)
+	assert.Equal(t, path, FindConfigFile(path))
 }
 
 func TestConfigFromEnviroVars(t *testing.T) {
