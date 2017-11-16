@@ -18,13 +18,3 @@ type ElasticsearchInterface interface {
 	PurgeIndexes() *model.AppError
 	DataRetentionDeleteIndexes(cutoff time.Time) *model.AppError
 }
-
-var theElasticsearchInterface ElasticsearchInterface
-
-func RegisterElasticsearchInterface(newInterface ElasticsearchInterface) {
-	theElasticsearchInterface = newInterface
-}
-
-func GetElasticsearchInterface() ElasticsearchInterface {
-	return theElasticsearchInterface
-}

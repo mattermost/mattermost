@@ -10,7 +10,6 @@ import (
 	l4g "github.com/alecthomas/log4go"
 
 	"github.com/mattermost/mattermost-server/app"
-	"github.com/mattermost/mattermost-server/einterfaces"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
 )
@@ -31,7 +30,7 @@ func createEmoji(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if emojiInterface := einterfaces.GetEmojiInterface(); emojiInterface != nil &&
+	if emojiInterface := c.App.Emoji; emojiInterface != nil &&
 		!emojiInterface.CanUserCreateEmoji(c.Session.Roles, c.Session.TeamMembers) {
 		c.Err = model.NewAppError("getEmoji", "api.emoji.disabled.app_error", nil, "user_id="+c.Session.UserId, http.StatusUnauthorized)
 		return
