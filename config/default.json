@@ -142,6 +142,7 @@
         "EnableSignInWithEmail": true,
         "EnableSignInWithUsername": true,
         "SendEmailNotifications": true,
+        "UseChannelInEmailNotifications": false,
         "RequireEmailVerification": false,
         "FeedbackName": "",
         "FeedbackEmail": "test@example.com",
