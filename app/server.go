@@ -166,7 +166,7 @@ func (a *App) StartServer() {
 			redirectListener, err := net.Listen("tcp", ":80")
 			if err != nil {
 				listener.Close()
-				l4g.Error("Unable to setup forwarding")
+				l4g.Error("Unable to setup forwarding: " + err.Error())
 				return
 			}
 			defer redirectListener.Close()
