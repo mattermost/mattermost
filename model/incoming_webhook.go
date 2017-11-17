@@ -208,8 +208,7 @@ func IncomingWebhookRequestFromJson(data io.Reader) (*IncomingWebhookRequest, *A
 		}
 	}
 
-	o.Text = ExpandAnnouncement(o.Text)
-	o.Attachments = ProcessSlackAttachments(o.Attachments)
+	o.Attachments = StringifySlackFieldValue(o.Attachments)
 
 	return o, nil
 }
