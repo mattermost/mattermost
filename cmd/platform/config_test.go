@@ -25,5 +25,6 @@ func TestConfigValidate(t *testing.T) {
 	config.SetDefaults()
 	require.NoError(t, ioutil.WriteFile(path, []byte(config.ToJson()), 0600))
 
-	assert.Contains(t, checkCommand(t, "--config", path, "config", "validate"), "The document is valid")
+	assert.Error(t, runCommand(t, "--config", "foo.json", "config", "validate"))
+	assert.NoError(t, runCommand(t, "--config", path, "config", "validate"))
 }
