@@ -4,7 +4,6 @@
 package main
 
 import (
-	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -25,17 +24,9 @@ func TestConfigFlag(t *testing.T) {
 	configPath := filepath.Join(dir, "foo.json")
 	require.NoError(t, ioutil.WriteFile(configPath, []byte(config.ToJson()), 0600))
 
-	os.Mkdir(filepath.Join(dir, "i18n"), 0700)
 	i18n, ok := utils.FindDir("i18n")
 	require.True(t, ok)
-	en, err := os.Open(filepath.Join(i18n, "en.json"))
-	require.NoError(t, err)
-	defer en.Close()
-	dest, err := os.OpenFile(filepath.Join(dir, "i18n", "en.json"), os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0600)
-	require.NoError(t, err)
-	defer dest.Close()
-	_, err = io.Copy(dest, en)
-	require.NoError(t, err)
+	require.NoError(t, utils.CopyDir(i18n, filepath.Join(dir, "i18n")))
 
 	prevDir, err := os.Getwd()
 	require.NoError(t, err)

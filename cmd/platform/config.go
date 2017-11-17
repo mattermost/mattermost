@@ -20,7 +20,8 @@ var configCmd = &cobra.Command{
 var validateConfigCmd = &cobra.Command{
 	Use:   "validate",
 	Short: "Validate config file",
-	Run:   configValidateCmdF,
+	Long:  "If the config file is valid, this command will output a success message and have a zero exit code. If it is invalid, this command will output an error and have a non-zero exit code.",
+	RunE:  configValidateCmdF,
 }
 
 func init() {
@@ -29,39 +30,35 @@ func init() {
 	)
 }
 
-func configValidateCmdF(cmd *cobra.Command, args []string) {
+func configValidateCmdF(cmd *cobra.Command, args []string) error {
 	utils.TranslationsPreInit()
 	filePath, err := cmd.Flags().GetString("config")
 	if err != nil {
-		CommandPrintErrorln(err)
-		return
+		return err
 	}
 
 	filePath = utils.FindConfigFile(filePath)
 
 	file, err := os.Open(filePath)
 	if err != nil {
-		CommandPrintErrorln(err)
-		return
+		return err
 	}
 
 	decoder := json.NewDecoder(file)
 	config := model.Config{}
 	err = decoder.Decode(&config)
 	if err != nil {
-		CommandPrintErrorln(err)
-		return
+		return err
 	}
 
 	if _, err := file.Stat(); err != nil {
-		CommandPrintErrorln(err)
-		return
+		return err
 	}
 
 	if err := config.IsValid(); err != nil {
-		CommandPrintErrorln(errors.New(utils.T(err.Id)))
-		return
+		return errors.New(utils.T(err.Id))
 	}
 
 	CommandPrettyPrintln("The document is valid")
+	return nil
 }
