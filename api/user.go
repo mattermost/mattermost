@@ -873,7 +873,7 @@ func oauthToEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 	props := model.MapFromJson(r.Body)
 
 	password := props["password"]
-	if err := utils.IsPasswordValid(password); err != nil {
+	if err := c.App.IsPasswordValid(password); err != nil {
 		c.Err = err
 		return
 	}
@@ -955,7 +955,7 @@ func ldapToEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	emailPassword := props["email_password"]
-	if err := utils.IsPasswordValid(emailPassword); err != nil {
+	if err := c.App.IsPasswordValid(emailPassword); err != nil {
 		c.Err = err
 		return
 	}

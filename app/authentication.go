@@ -11,6 +11,13 @@ import (
 	"github.com/mattermost/mattermost-server/utils"
 )
 
+func (a *App) IsPasswordValid(password string) *model.AppError {
+	if utils.IsLicensed() && *utils.License().Features.PasswordRequirements {
+		return utils.IsPasswordValidWithSettings(password, &a.Config().PasswordSettings)
+	}
+	return utils.IsPasswordValid(password)
+}
+
 func (a *App) CheckPasswordAndAllCriteria(user *model.User, password string, mfaToken string) *model.AppError {
 	if err := a.CheckUserAdditionalAuthenticationCriteria(user, mfaToken); err != nil {
 		return err

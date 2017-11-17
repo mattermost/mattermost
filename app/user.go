@@ -213,7 +213,7 @@ func (a *App) CreateUser(user *model.User) (*model.User, *model.AppError) {
 func (a *App) createUser(user *model.User) (*model.User, *model.AppError) {
 	user.MakeNonNil()
 
-	if err := utils.IsPasswordValid(user.Password); user.AuthService == "" && err != nil {
+	if err := a.IsPasswordValid(user.Password); user.AuthService == "" && err != nil {
 		return nil, err
 	}
 
@@ -1086,7 +1086,7 @@ func (a *App) UpdatePasswordByUserIdSendEmail(userId, newPassword, method string
 }
 
 func (a *App) UpdatePassword(user *model.User, newPassword string) *model.AppError {
-	if err := utils.IsPasswordValid(newPassword); err != nil {
+	if err := a.IsPasswordValid(newPassword); err != nil {
 		return err
 	}
 
