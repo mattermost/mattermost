@@ -537,6 +537,9 @@ func (a *App) HandleIncomingWebhook(hookId string, req *model.IncomingWebhookReq
 	channelName := req.ChannelName
 	webhookType := req.Type
 
+	text = a.ProcessSlackText(text)
+	req.Attachments = a.ProcessSlackAttachments(req.Attachments)
+
 	// attachments is in here for slack compatibility
 	if len(req.Attachments) > 0 {
 		if len(req.Props) == 0 {
