@@ -1569,6 +1569,17 @@ func ConfigFromJson(data io.Reader) *Config {
 }
 
 func (o *Config) SetDefaults() {
+	o.LdapSettings.SetDefaults()
+	o.SamlSettings.SetDefaults()
+
+	if o.TeamSettings.TeammateNameDisplay == nil {
+		o.TeamSettings.TeammateNameDisplay = NewString(SHOW_USERNAME)
+
+		if *o.SamlSettings.Enable || *o.LdapSettings.Enable {
+			*o.TeamSettings.TeammateNameDisplay = SHOW_FULLNAME
+		}
+	}
+
 	o.SqlSettings.SetDefaults()
 	o.FileSettings.SetDefaults()
 	o.EmailSettings.SetDefaults()
@@ -1579,9 +1590,7 @@ func (o *Config) SetDefaults() {
 	o.SupportSettings.SetDefaults()
 	o.AnnouncementSettings.SetDefaults()
 	o.ThemeSettings.SetDefaults()
-	o.LdapSettings.SetDefaults()
 	o.ClusterSettings.SetDefaults()
-	o.SamlSettings.SetDefaults()
 	o.PluginSettings.SetDefaults()
 	o.AnalyticsSettings.SetDefaults()
 	o.ComplianceSettings.SetDefaults()
@@ -1593,14 +1602,6 @@ func (o *Config) SetDefaults() {
 	o.LogSettings.SetDefaults()
 	o.JobSettings.SetDefaults()
 	o.WebrtcSettings.SetDefaults()
-
-	if o.TeamSettings.TeammateNameDisplay == nil {
-		o.TeamSettings.TeammateNameDisplay = NewString(SHOW_USERNAME)
-
-		if *o.SamlSettings.Enable || *o.LdapSettings.Enable {
-			*o.TeamSettings.TeammateNameDisplay = SHOW_FULLNAME
-		}
-	}
 }
 
 func (o *Config) IsValid() *AppError {
