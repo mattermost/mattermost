@@ -1040,7 +1040,7 @@ func updateMfa(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		if err := app.SendMfaChangeEmail(user.Email, activate, user.Locale, utils.GetSiteURL()); err != nil {
+		if err := c.App.SendMfaChangeEmail(user.Email, activate, user.Locale, utils.GetSiteURL()); err != nil {
 			l4g.Error(err.Error())
 		}
 	})

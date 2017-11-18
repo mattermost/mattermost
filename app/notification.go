@@ -413,10 +413,10 @@ func (a *App) getNotificationEmailBody(recipient *model.User, post *model.Post, 
 	// only include message contents in notification email if email notification contents type is set to full
 	var bodyPage *utils.HTMLTemplate
 	if emailNotificationContentsType == model.EMAIL_NOTIFICATION_CONTENTS_FULL {
-		bodyPage = utils.NewHTMLTemplate("post_body_full", recipient.Locale)
+		bodyPage = a.NewEmailTemplate("post_body_full", recipient.Locale)
 		bodyPage.Props["PostMessage"] = a.GetMessageForNotification(post, translateFunc)
 	} else {
-		bodyPage = utils.NewHTMLTemplate("post_body_generic", recipient.Locale)
+		bodyPage = a.NewEmailTemplate("post_body_generic", recipient.Locale)
 	}
 
 	bodyPage.Props["SiteURL"] = utils.GetSiteURL()
