@@ -153,7 +153,7 @@
   },
   {
     "id": "api.channel.add_member.added",
-    "translation": "%v added to the team by %v"
+    "translation": "%v added to the channel by %v"
   },
   {
     "id": "api.channel.add_member.find_channel.app_error",
@@ -2165,6 +2165,10 @@
   {
     "id": "api.system.go_routines",
     "translation": "The number of running goroutines is over the health threshold %v of %v"
+  },
+  {
+    "id": "api.team.add_user_to_team.added",
+    "translation": "%v added to the team by %v"
   },
   {
     "id": "api.team.add_user_to_team.missing_parameter.app_error",
