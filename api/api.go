@@ -10,7 +10,6 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/mattermost/mattermost-server/app"
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils"
 
 	_ "github.com/nicksnyder/go-i18n/i18n"
 )
@@ -112,8 +111,6 @@ func Init(a *app.App, root *mux.Router) *API {
 
 	// 404 on any api route before web.go has a chance to serve it
 	root.Handle("/api/{anything:.*}", http.HandlerFunc(Handle404))
-
-	utils.InitHTML()
 
 	a.InitEmailBatching()
 

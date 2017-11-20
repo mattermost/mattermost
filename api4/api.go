@@ -222,8 +222,6 @@ func Init(a *app.App, root *mux.Router, full bool) *API {
 
 	// REMOVE CONDITION WHEN APIv3 REMOVED
 	if full {
-		utils.InitHTML()
-
 		a.InitEmailBatching()
 	}
 
