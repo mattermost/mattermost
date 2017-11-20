@@ -38,7 +38,7 @@ func TestCreateWebhookPost(t *testing.T) {
 				Text: "text",
 			},
 		},
-	}, model.POST_SLACK_ATTACHMENT)
+	}, model.POST_SLACK_ATTACHMENT, "")
 	if err != nil {
 		t.Fatal(err.Error())
 	}
@@ -49,7 +49,7 @@ func TestCreateWebhookPost(t *testing.T) {
 		}
 	}
 
-	_, err = th.App.CreateWebhookPost(hook.UserId, th.BasicChannel, "foo", "user", "http://iconurl", nil, model.POST_SYSTEM_GENERIC)
+	_, err = th.App.CreateWebhookPost(hook.UserId, th.BasicChannel, "foo", "user", "http://iconurl", nil, model.POST_SYSTEM_GENERIC, "")
 	if err == nil {
 		t.Fatal("should have failed - bad post type")
 	}
