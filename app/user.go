@@ -826,9 +826,7 @@ func (a *App) SetProfileImage(userId string, imageData *multipart.FileHeader) *m
 		options := a.Config().GetSanitizeOptions()
 		user.SanitizeProfile(options)
 
-		omitUsers := make(map[string]bool, 1)
-		omitUsers[userId] = true
-		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_USER_UPDATED, "", "", "", omitUsers)
+		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_USER_UPDATED, "", "", "", nil)
 		message.Add("user", user)
 
 		a.Publish(message)
