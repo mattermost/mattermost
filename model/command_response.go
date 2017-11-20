@@ -59,8 +59,7 @@ func CommandResponseFromJson(data io.Reader) *CommandResponse {
 		return nil
 	}
 
-	o.Text = ExpandAnnouncement(o.Text)
-	o.Attachments = ProcessSlackAttachments(o.Attachments)
+	o.Attachments = StringifySlackFieldValue(o.Attachments)
 
 	return &o
 }

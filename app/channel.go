@@ -68,7 +68,7 @@ func (a *App) JoinDefaultChannels(teamId string, user *model.User, channelRole s
 				l4g.Error(utils.T("api.channel.post_user_add_remove_message_and_forget.error"), err)
 			}
 		} else {
-			if err := a.PostAddToChannelMessage(requestor, user, townSquare, ""); err != nil {
+			if err := a.PostAddToTeamMessage(requestor, user, townSquare, ""); err != nil {
 				l4g.Error(utils.T("api.channel.post_user_add_remove_message_and_forget.error"), err)
 			}
 		}
@@ -1029,10 +1029,30 @@ func (a *App) PostAddToChannelMessage(user *model.User, addedUser *model.User, c
 	return nil
 }
 
+func (a *App) PostAddToTeamMessage(user *model.User, addedUser *model.User, channel *model.Channel, postRootId string) *model.AppError {
+	post := &model.Post{
+		ChannelId: channel.Id,
+		Message:   fmt.Sprintf(utils.T("api.team.add_user_to_team.added"), addedUser.Username, user.Username),
+		Type:      model.POST_ADD_TO_TEAM,
+		UserId:    user.Id,
+		RootId:    postRootId,
+		Props: model.StringInterface{
+			"username":      user.Username,
+			"addedUsername": addedUser.Username,
+		},
+	}
+
+	if _, err := a.CreatePost(post, channel, false); err != nil {
+		return model.NewAppError("postAddToTeamMessage", "api.channel.post_user_add_remove_message_and_forget.error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return nil
+}
+
 func (a *App) PostRemoveFromChannelMessage(removerUserId string, removedUser *model.User, channel *model.Channel) *model.AppError {
 	post := &model.Post{
 		ChannelId: channel.Id,
-		Message:   fmt.Sprintf(utils.T("api.channel.remove_member.removed"), removedUser.Username),
+		Message:   fmt.Sprintf(utils.T("api.team.remove_user_from_team.removed"), removedUser.Username),
 		Type:      model.POST_REMOVE_FROM_CHANNEL,
 		UserId:    removerUserId,
 		Props: model.StringInterface{

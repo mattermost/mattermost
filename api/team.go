@@ -179,7 +179,7 @@ func removeUserFromTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if err := c.App.RemoveUserFromTeam(c.TeamId, userId); err != nil {
+	if err := c.App.RemoveUserFromTeam(c.TeamId, userId, c.Session.UserId); err != nil {
 		c.Err = err
 		return
 	}

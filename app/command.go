@@ -275,6 +275,10 @@ func (a *App) HandleCommandResponse(command *model.Command, args *model.CommandA
 		}
 	}
 
+	// Process Slack text replacements
+	response.Text = a.ProcessSlackText(response.Text)
+	response.Attachments = a.ProcessSlackAttachments(response.Attachments)
+
 	if _, err := a.CreateCommandPost(post, args.TeamId, response); err != nil {
 		l4g.Error(err.Error())
 	}

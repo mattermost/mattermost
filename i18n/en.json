@@ -2171,6 +2171,10 @@
     "translation": "The number of running goroutines is over the health threshold %v of %v"
   },
   {
+    "id": "api.team.add_user_to_team.added",
+    "translation": "%v added to the team by %v"
+  },
+  {
     "id": "api.team.add_user_to_team.missing_parameter.app_error",
     "translation": "Parameter required to add user to team."
   },
@@ -2279,6 +2283,10 @@
     "translation": "Team creation has been disabled. Please ask your systems administrator for details."
   },
   {
+    "id": "api.team.leave.left",
+    "translation": "%v left the team."
+  },
+  {
     "id": "api.team.is_team_creation_allowed.domain.app_error",
     "translation": "Email must be from a specific domain (e.g. @example.com). Please ask your systems administrator for details."
   },
@@ -2289,6 +2297,10 @@
   {
     "id": "api.team.permanent_delete_team.deleted.warn",
     "translation": "Permanently deleted team %v id=%v"
+  },
+  {
+    "id": "api.team.remove_user_from_team.removed",
+    "translation": "%v was removed from the team."
   },
   {
     "id": "api.team.remove_user_from_team.missing.app_error",

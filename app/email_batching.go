@@ -236,7 +236,7 @@ func (a *App) sendBatchedEmailNotification(userId string, notifications []*batch
 		"Day":      tm.Day(),
 	})
 
-	body := utils.NewHTMLTemplate("post_batched_body", user.Locale)
+	body := a.NewEmailTemplate("post_batched_body", user.Locale)
 	body.Props["SiteURL"] = *a.Config().ServiceSettings.SiteURL
 	body.Props["Posts"] = template.HTML(contents)
 	body.Props["BodyText"] = translateFunc("api.email_batching.send_batched_email_notification.body_text", len(notifications))
@@ -250,9 +250,9 @@ func (a *App) renderBatchedPost(notification *batchedNotification, channel *mode
 	// don't include message contents if email notification contents type is set to generic
 	var template *utils.HTMLTemplate
 	if emailNotificationContentsType == model.EMAIL_NOTIFICATION_CONTENTS_FULL {
-		template = utils.NewHTMLTemplate("post_batched_post_full", userLocale)
+		template = a.NewEmailTemplate("post_batched_post_full", userLocale)
 	} else {
-		template = utils.NewHTMLTemplate("post_batched_post_generic", userLocale)
+		template = a.NewEmailTemplate("post_batched_post_generic", userLocale)
 	}
 
 	template.Props["Button"] = translateFunc("api.email_batching.render_batched_post.go_to_post")

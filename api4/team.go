@@ -458,7 +458,7 @@ func removeTeamMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if err := c.App.RemoveUserFromTeam(c.Params.TeamId, c.Params.UserId); err != nil {
+	if err := c.App.RemoveUserFromTeam(c.Params.TeamId, c.Params.UserId, c.Session.UserId); err != nil {
 		c.Err = err
 		return
 	}

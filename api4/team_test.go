@@ -1238,7 +1238,7 @@ func TestAddTeamMember(t *testing.T) {
 	team := th.BasicTeam
 	otherUser := th.CreateUser()
 
-	if err := th.App.RemoveUserFromTeam(th.BasicTeam.Id, th.BasicUser2.Id); err != nil {
+	if err := th.App.RemoveUserFromTeam(th.BasicTeam.Id, th.BasicUser2.Id, ""); err != nil {
 		t.Fatalf(err.Error())
 	}
 
@@ -1454,7 +1454,7 @@ func TestAddTeamMembers(t *testing.T) {
 		otherUser.Id,
 	}
 
-	if err := th.App.RemoveUserFromTeam(th.BasicTeam.Id, th.BasicUser2.Id); err != nil {
+	if err := th.App.RemoveUserFromTeam(th.BasicTeam.Id, th.BasicUser2.Id, ""); err != nil {
 		t.Fatalf(err.Error())
 	}
 
