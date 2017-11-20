@@ -66,7 +66,6 @@ func setupTestHelper(enterprise bool) *TestHelper {
 	}
 	th.App.StartServer()
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = prevListenAddress })
-	utils.InitHTML()
 	utils.EnableDebugLogForTest()
 	th.App.Srv.Store.MarkSystemRanUnitTests()
 

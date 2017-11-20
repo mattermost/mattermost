@@ -4,6 +4,7 @@
 package app
 
 import (
+	"html/template"
 	"net/http"
 	"runtime/debug"
 	"sync/atomic"
@@ -52,7 +53,8 @@ type App struct {
 	configFile string
 	newStore   func() store.Store
 
-	sessionCache *utils.Cache
+	htmlTemplateWatcher *utils.HTMLTemplateWatcher
+	sessionCache        *utils.Cache
 }
 
 var appCount = 0
@@ -94,6 +96,12 @@ func New(options ...Option) *App {
 		}
 	}
 
+	if htmlTemplateWatcher, err := utils.NewHTMLTemplateWatcher("templates"); err != nil {
+		l4g.Error(utils.T("api.api.init.parsing_templates.error"), err)
+	} else {
+		app.htmlTemplateWatcher = htmlTemplateWatcher
+	}
+
 	app.Srv.Store = app.newStore()
 	app.initJobs()
 
@@ -124,6 +132,10 @@ func (a *App) Shutdown() {
 
 	a.Srv.Store.Close()
 	a.Srv = nil
+
+	if a.htmlTemplateWatcher != nil {
+		a.htmlTemplateWatcher.Close()
+	}
 
 	l4g.Info(utils.T("api.server.stop_server.stopped.info"))
 }
@@ -325,6 +337,10 @@ func (a *App) WaitForGoroutines() {
 	for atomic.LoadInt32(&a.goroutineCount) != 0 {
 		<-a.goroutineExitSignal
 	}
+}
+
+func (a *App) HTMLTemplates() *template.Template {
+	return a.htmlTemplateWatcher.Templates()
 }
 
 func (a *App) Handle404(w http.ResponseWriter, r *http.Request) {

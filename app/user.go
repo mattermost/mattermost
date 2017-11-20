@@ -213,7 +213,7 @@ func (a *App) CreateUser(user *model.User) (*model.User, *model.AppError) {
 func (a *App) createUser(user *model.User) (*model.User, *model.AppError) {
 	user.MakeNonNil()
 
-	if err := utils.IsPasswordValid(user.Password); user.AuthService == "" && err != nil {
+	if err := a.IsPasswordValid(user.Password); user.AuthService == "" && err != nil {
 		return nil, err
 	}
 
@@ -826,9 +826,7 @@ func (a *App) SetProfileImage(userId string, imageData *multipart.FileHeader) *m
 		options := a.Config().GetSanitizeOptions()
 		user.SanitizeProfile(options)
 
-		omitUsers := make(map[string]bool, 1)
-		omitUsers[userId] = true
-		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_USER_UPDATED, "", "", "", omitUsers)
+		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_USER_UPDATED, "", "", "", nil)
 		message.Add("user", user)
 
 		a.Publish(message)
@@ -1067,7 +1065,7 @@ func (a *App) UpdateMfa(activate bool, userId, token string) *model.AppError {
 			return
 		}
 
-		if err := SendMfaChangeEmail(user.Email, activate, user.Locale, utils.GetSiteURL()); err != nil {
+		if err := a.SendMfaChangeEmail(user.Email, activate, user.Locale, utils.GetSiteURL()); err != nil {
 			l4g.Error(err.Error())
 		}
 	})
@@ -1086,7 +1084,7 @@ func (a *App) UpdatePasswordByUserIdSendEmail(userId, newPassword, method string
 }
 
 func (a *App) UpdatePassword(user *model.User, newPassword string) *model.AppError {
-	if err := utils.IsPasswordValid(newPassword); err != nil {
+	if err := a.IsPasswordValid(newPassword); err != nil {
 		return err
 	}
 
@@ -1162,7 +1160,7 @@ func (a *App) SendPasswordReset(email string, siteURL string) (bool, *model.AppE
 		return false, err
 	}
 
-	if _, err := SendPasswordResetEmail(user.Email, token, user.Locale, siteURL); err != nil {
+	if _, err := a.SendPasswordResetEmail(user.Email, token, user.Locale, siteURL); err != nil {
 		return false, model.NewAppError("SendPasswordReset", "api.user.send_password_reset.send.app_error", nil, "err="+err.Message, http.StatusInternalServerError)
 	}
 

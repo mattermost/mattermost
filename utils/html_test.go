@@ -4,50 +4,144 @@
 package utils
 
 import (
+	"bytes"
 	"html/template"
+	"io/ioutil"
+	"os"
+	"path/filepath"
 	"testing"
+	"time"
+
+	"github.com/nicksnyder/go-i18n/i18n"
+	"github.com/nicksnyder/go-i18n/i18n/bundle"
+	"github.com/nicksnyder/go-i18n/i18n/language"
+	"github.com/nicksnyder/go-i18n/i18n/translation"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
+	"github.com/mattermost/mattermost-server/model"
 )
 
-func TestTranslateAsHtml(t *testing.T) {
+var htmlTestTranslationBundle *bundle.Bundle
+
+func init() {
+	htmlTestTranslationBundle = bundle.New()
+	fooBold, _ := translation.NewTranslation(map[string]interface{}{
+		"id":          "foo.bold",
+		"translation": "<b>{{ .Foo }}</b>",
+	})
+	htmlTestTranslationBundle.AddTranslation(&language.Language{Tag: "en"}, fooBold)
+}
+
+func TestHTMLTemplateWatcher(t *testing.T) {
 	TranslationsPreInit()
 
-	translateFunc := TfuncWithFallback("en")
+	dir, err := ioutil.TempDir("", "")
+	require.NoError(t, err)
+	defer os.RemoveAll(dir)
 
-	expected := "To finish updating your email address for YOUR TEAM HERE, please click the link below to confirm this is the right address."
-	if actual := TranslateAsHtml(translateFunc, "api.templates.email_change_verify_body.info",
-		map[string]interface{}{"TeamDisplayName": "YOUR TEAM HERE"}); actual != template.HTML(expected) {
-		t.Fatalf("Incorrectly translated template, got %v, expected %v", actual, expected)
-	}
+	require.NoError(t, os.Mkdir(filepath.Join(dir, "templates"), 0700))
+	require.NoError(t, ioutil.WriteFile(filepath.Join(dir, "templates", "foo.html"), []byte(`{{ define "foo" }}foo{{ end }}`), 0600))
 
-	expected = "To finish updating your email address for &lt;b&gt;YOUR TEAM HERE&lt;/b&gt;, please click the link below to confirm this is the right address."
-	if actual := TranslateAsHtml(translateFunc, "api.templates.email_change_verify_body.info",
-		map[string]interface{}{"TeamDisplayName": "<b>YOUR TEAM HERE</b>"}); actual != template.HTML(expected) {
-		t.Fatalf("Incorrectly translated template, got %v, expected %v", actual, expected)
+	prevDir, err := os.Getwd()
+	require.NoError(t, err)
+	defer os.Chdir(prevDir)
+	os.Chdir(dir)
+
+	watcher, err := NewHTMLTemplateWatcher("templates")
+	require.NotNil(t, watcher)
+	require.NoError(t, err)
+	defer watcher.Close()
+
+	tpl := NewHTMLTemplate(watcher.Templates(), "foo")
+	assert.Equal(t, "foo", tpl.Render())
+
+	require.NoError(t, ioutil.WriteFile(filepath.Join(dir, "templates", "foo.html"), []byte(`{{ define "foo" }}bar{{ end }}`), 0600))
+
+	for i := 0; i < 30; i++ {
+		tpl = NewHTMLTemplate(watcher.Templates(), "foo")
+		if tpl.Render() == "bar" {
+			break
+		}
+		time.Sleep(time.Millisecond * 50)
 	}
+	assert.Equal(t, "bar", tpl.Render())
+}
+
+func TestHTMLTemplateWatcher_BadDirectory(t *testing.T) {
+	TranslationsPreInit()
+	watcher, err := NewHTMLTemplateWatcher("notarealdirectory")
+	assert.Nil(t, watcher)
+	assert.Error(t, err)
+}
+
+func TestHTMLTemplate(t *testing.T) {
+	tpl := template.New("test")
+	_, err := tpl.Parse(`{{ define "foo" }}foo{{ .Props.Bar }}{{ end }}`)
+	require.NoError(t, err)
+
+	htmlTemplate := NewHTMLTemplate(tpl, "foo")
+	htmlTemplate.Props["Bar"] = "bar"
+	assert.Equal(t, "foobar", htmlTemplate.Render())
+
+	buf := &bytes.Buffer{}
+	require.NoError(t, htmlTemplate.RenderToWriter(buf))
+	assert.Equal(t, "foobar", buf.String())
+}
+
+func TestHTMLTemplate_RenderError(t *testing.T) {
+	tpl := template.New("test")
+	_, err := tpl.Parse(`{{ define "foo" }}foo{{ .Foo.Bar }}bar{{ end }}`)
+	require.NoError(t, err)
+
+	htmlTemplate := NewHTMLTemplate(tpl, "foo")
+	assert.Equal(t, "foo", htmlTemplate.Render())
+
+	buf := &bytes.Buffer{}
+	assert.Error(t, htmlTemplate.RenderToWriter(buf))
+	assert.Equal(t, "foo", buf.String())
+}
+
+func TestTranslateAsHtml(t *testing.T) {
+	assert.EqualValues(t, "<b>&lt;i&gt;foo&lt;/i&gt;</b>", TranslateAsHtml(i18n.TranslateFunc(htmlTestTranslationBundle.MustTfunc("en")), "foo.bold", map[string]interface{}{
+		"Foo": "<i>foo</i>",
+	}))
 }
 
 func TestEscapeForHtml(t *testing.T) {
-	input := "abc"
-	expected := "abc"
-	if actual := escapeForHtml(input).(string); actual != expected {
-		t.Fatalf("incorrectly escaped %v, got %v expected %v", input, actual, expected)
-	}
-
-	input = "<b>abc</b>"
-	expected = "&lt;b&gt;abc&lt;/b&gt;"
-	if actual := escapeForHtml(input).(string); actual != expected {
-		t.Fatalf("incorrectly escaped %v, got %v expected %v", input, actual, expected)
-	}
-
-	inputMap := map[string]interface{}{
-		"abc": "abc",
-		"123": "<b>123</b>",
-	}
-	expectedMap := map[string]interface{}{
-		"abc": "abc",
-		"123": "&lt;b&gt;123&lt;/b&gt;",
-	}
-	if actualMap := escapeForHtml(inputMap).(map[string]interface{}); actualMap["abc"] != expectedMap["abc"] || actualMap["123"] != expectedMap["123"] {
-		t.Fatalf("incorrectly escaped %v, got %v expected %v", inputMap, actualMap, expectedMap)
+	for name, tc := range map[string]struct {
+		In       interface{}
+		Expected interface{}
+	}{
+		"NoHTML": {
+			In:       "abc",
+			Expected: "abc",
+		},
+		"String": {
+			In:       "<b>abc</b>",
+			Expected: "&lt;b&gt;abc&lt;/b&gt;",
+		},
+		"StringPointer": {
+			In:       model.NewString("<b>abc</b>"),
+			Expected: "&lt;b&gt;abc&lt;/b&gt;",
+		},
+		"Map": {
+			In: map[string]interface{}{
+				"abc": "abc",
+				"123": "<b>123</b>",
+			},
+			Expected: map[string]interface{}{
+				"abc": "abc",
+				"123": "&lt;b&gt;123&lt;/b&gt;",
+			},
+		},
+		"Unsupported": {
+			In:       struct{ string }{"<b>abc</b>"},
+			Expected: "",
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			assert.Equal(t, tc.Expected, escapeForHtml(tc.In))
+		})
 	}
 }

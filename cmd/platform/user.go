@@ -8,7 +8,6 @@ import (
 
 	"github.com/mattermost/mattermost-server/app"
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -259,8 +258,6 @@ func userInviteCmdF(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-
-	utils.InitHTML()
 
 	if len(args) < 2 {
 		return errors.New("Expected at least two arguments. See help text for details.")
