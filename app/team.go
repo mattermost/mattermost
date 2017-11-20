@@ -554,7 +554,7 @@ func (a *App) GetTeamUnread(teamId, userId string) (*model.TeamUnread, *model.Ap
 	return teamUnread, nil
 }
 
-func (a *App) RemoveUserFromTeam(teamId string, userId string) *model.AppError {
+func (a *App) RemoveUserFromTeam(teamId string, userId string, requestorId string) *model.AppError {
 	tchan := a.Srv.Store.Team().Get(teamId)
 	uchan := a.Srv.Store.User().Get(userId)
 
@@ -572,14 +572,14 @@ func (a *App) RemoveUserFromTeam(teamId string, userId string) *model.AppError {
 		user = result.Data.(*model.User)
 	}
 
-	if err := a.LeaveTeam(team, user); err != nil {
+	if err := a.LeaveTeam(team, user, requestorId); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (a *App) LeaveTeam(team *model.Team, user *model.User) *model.AppError {
+func (a *App) LeaveTeam(team *model.Team, user *model.User, requestorId string) *model.AppError {
 	var teamMember *model.TeamMember
 	var err *model.AppError
 
@@ -609,6 +609,23 @@ func (a *App) LeaveTeam(team *model.Team, user *model.User) *model.AppError {
 		}
 	}
 
+	var channel *model.Channel
+	if result := <-a.Srv.Store.Channel().GetByName(team.Id, model.DEFAULT_CHANNEL, false); result.Err != nil {
+		return result.Err
+	} else {
+		channel = result.Data.(*model.Channel)
+	}
+
+	if requestorId == user.Id {
+		if err := a.postLeaveTeamMessage(user, channel); err != nil {
+			l4g.Error(utils.T("api.channel.post_user_add_remove_message_and_forget.error"), err)
+		}
+	} else {
+		if err := a.PostRemoveFromChannelMessage(user.Id, user, channel); err != nil {
+			l4g.Error(utils.T("api.channel.post_user_add_remove_message_and_forget.error"), err)
+		}
+	}
+
 	// Send the websocket message before we actually do the remove so the user being removed gets it.
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_LEAVE_TEAM, team.Id, "", "", nil)
 	message.Add("user_id", user.Id)
@@ -633,6 +650,24 @@ func (a *App) LeaveTeam(team *model.Team, user *model.User) *model.AppError {
 
 	a.ClearSessionCacheForUser(user.Id)
 	a.InvalidateCacheForUser(user.Id)
+
+	return nil
+}
+
+func (a *App) postLeaveTeamMessage(user *model.User, channel *model.Channel) *model.AppError {
+	post := &model.Post{
+		ChannelId: channel.Id,
+		Message:   fmt.Sprintf(utils.T("api.team.leave.left"), user.Username),
+		Type:      model.POST_LEAVE_TEAM,
+		UserId:    user.Id,
+		Props: model.StringInterface{
+			"username": user.Username,
+		},
+	}
+
+	if _, err := a.CreatePost(post, channel, false); err != nil {
+		return model.NewAppError("postRemoveFromChannelMessage", "api.channel.post_user_add_remove_message_and_forget.error", nil, err.Error(), http.StatusInternalServerError)
+	}
 
 	return nil
 }

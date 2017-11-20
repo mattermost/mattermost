@@ -130,7 +130,7 @@ func removeUserFromTeam(a *app.App, team *model.Team, user *model.User, userArg 
 		CommandPrintErrorln("Can't find user '" + userArg + "'")
 		return
 	}
-	if err := a.LeaveTeam(team, user); err != nil {
+	if err := a.LeaveTeam(team, user, ""); err != nil {
 		CommandPrintErrorln("Unable to remove '" + userArg + "' from " + team.Name + ". Error: " + err.Error())
 	}
 }
