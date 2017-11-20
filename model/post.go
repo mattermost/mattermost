@@ -20,6 +20,7 @@ const (
 	POST_JOIN_LEAVE            = "system_join_leave" // Deprecated, use POST_JOIN_CHANNEL or POST_LEAVE_CHANNEL instead
 	POST_JOIN_CHANNEL          = "system_join_channel"
 	POST_LEAVE_CHANNEL         = "system_leave_channel"
+	POST_JOIN_TEAM             = "system_join_team"
 	POST_LEAVE_TEAM            = "system_leave_team"
 	POST_ADD_REMOVE            = "system_add_remove" // Deprecated, use POST_ADD_TO_CHANNEL or POST_REMOVE_FROM_CHANNEL instead
 	POST_ADD_TO_CHANNEL        = "system_add_to_channel"
@@ -171,7 +172,7 @@ func (o *Post) IsValid() *AppError {
 
 	if !(o.Type == POST_DEFAULT || o.Type == POST_JOIN_LEAVE || o.Type == POST_ADD_REMOVE ||
 		o.Type == POST_JOIN_CHANNEL || o.Type == POST_LEAVE_CHANNEL || o.Type == POST_LEAVE_TEAM ||
-		o.Type == POST_REMOVE_FROM_CHANNEL || o.Type == POST_ADD_TO_CHANNEL || o.Type == POST_ADD_TO_TEAM ||
+		o.Type == POST_REMOVE_FROM_CHANNEL || o.Type == POST_ADD_TO_CHANNEL || o.Type == POST_ADD_TO_TEAM || o.Type == POST_JOIN_TEAM ||
 		o.Type == POST_SLACK_ATTACHMENT || o.Type == POST_HEADER_CHANGE || o.Type == POST_PURPOSE_CHANGE ||
 		o.Type == POST_DISPLAYNAME_CHANGE || o.Type == POST_CHANNEL_DELETED ||
 		strings.HasPrefix(o.Type, POST_CUSTOM_TYPE_PREFIX)) {
