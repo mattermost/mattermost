@@ -15,8 +15,6 @@ const (
 	CHANNEL_NOTIFY_ALL          = "all"
 	CHANNEL_NOTIFY_MENTION      = "mention"
 	CHANNEL_NOTIFY_NONE         = "none"
-	CHANNEL_NOTIFY_MUTE_ALL     = "true"
-	CHANNEL_NOTIFY_MUTE_NONE    = "false"
 	CHANNEL_MARK_UNREAD_ALL     = "all"
 	CHANNEL_MARK_UNREAD_MENTION = "mention"
 )
@@ -110,12 +108,6 @@ func (o *ChannelMember) IsValid() *AppError {
 		}
 	}
 
-	if mute, ok := o.NotifyProps[MUTE_NOTIFY_PROP]; ok {
-		if len(mute) > 20 || !IsMuteChannelValid(mute) {
-			return NewAppError("ChannelMember.IsValid", "model.channel_member.is_valid.mute_value.app_error", nil, "mute_notification_level="+mute, http.StatusBadRequest)
-		}
-	}
-
 	return nil
 }
 
@@ -135,9 +127,7 @@ func IsChannelNotifyLevelValid(notifyLevel string) bool {
 	return notifyLevel == CHANNEL_NOTIFY_DEFAULT ||
 		notifyLevel == CHANNEL_NOTIFY_ALL ||
 		notifyLevel == CHANNEL_NOTIFY_MENTION ||
-		notifyLevel == CHANNEL_NOTIFY_NONE ||
-		notifyLevel == CHANNEL_NOTIFY_MUTE_ALL ||
-		notifyLevel == CHANNEL_NOTIFY_MUTE_NONE
+		notifyLevel == CHANNEL_NOTIFY_NONE
 }
 
 func IsChannelMarkUnreadLevelValid(markUnreadLevel string) bool {
@@ -148,16 +138,11 @@ func IsSendEmailValid(sendEmail string) bool {
 	return sendEmail == CHANNEL_NOTIFY_DEFAULT || sendEmail == "true" || sendEmail == "false"
 }
 
-func IsMuteChannelValid(mute string) bool {
-	return mute == CHANNEL_NOTIFY_MUTE_ALL || mute == CHANNEL_NOTIFY_MUTE_NONE
-}
-
 func GetDefaultChannelNotifyProps() StringMap {
 	return StringMap{
 		DESKTOP_NOTIFY_PROP:     CHANNEL_NOTIFY_DEFAULT,
 		MARK_UNREAD_NOTIFY_PROP: CHANNEL_MARK_UNREAD_ALL,
 		PUSH_NOTIFY_PROP:        CHANNEL_NOTIFY_DEFAULT,
 		EMAIL_NOTIFY_PROP:       CHANNEL_NOTIFY_DEFAULT,
-		MUTE_NOTIFY_PROP:        CHANNEL_NOTIFY_MUTE_NONE,
 	}
 }

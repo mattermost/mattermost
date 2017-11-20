@@ -473,10 +473,6 @@ func (a *App) UpdateChannelMemberNotifyProps(data map[string]string, channelId s
 		member.NotifyProps[model.PUSH_NOTIFY_PROP] = push
 	}
 
-	if mute, exists := data[model.MUTE_NOTIFY_PROP]; exists {
-		member.NotifyProps[model.MUTE_NOTIFY_PROP] = mute
-	}
-
 	if result := <-a.Srv.Store.Channel().UpdateMember(member); result.Err != nil {
 		return nil, result.Err
 	} else {
@@ -1457,10 +1453,10 @@ func (a *App) GetDirectChannel(userId1, userId2 string) (*model.Channel, *model.
 func (a *App) ToggleMuteChannel(channelId string, userId string) *model.ChannelMember {
 	member := (<-a.Srv.Store.Channel().GetMember(channelId, userId)).Data.(*model.ChannelMember)
 
-	if member.NotifyProps[model.MUTE_NOTIFY_PROP] == model.CHANNEL_NOTIFY_MUTE_ALL {
-		member.NotifyProps[model.MUTE_NOTIFY_PROP] = "false"
+	if member.NotifyProps[model.MARK_UNREAD_NOTIFY_PROP] == model.CHANNEL_NOTIFY_MENTION {
+		member.NotifyProps[model.MARK_UNREAD_NOTIFY_PROP] = model.CHANNEL_MARK_UNREAD_ALL
 	} else {
-		member.NotifyProps[model.MUTE_NOTIFY_PROP] = "true"
+		member.NotifyProps[model.MARK_UNREAD_NOTIFY_PROP] = model.CHANNEL_NOTIFY_MENTION
 	}
 
 	a.Srv.Store.Channel().UpdateMember(member)

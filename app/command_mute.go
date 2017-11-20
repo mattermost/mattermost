@@ -4,9 +4,10 @@
 package app
 
 import (
+	"strings"
+
 	"github.com/mattermost/mattermost-server/model"
 	goi18n "github.com/nicksnyder/go-i18n/i18n"
-	"strings"
 )
 
 type MuteProvider struct {
@@ -61,7 +62,7 @@ func (me *MuteProvider) DoCommand(a *App, args *model.CommandArgs, message strin
 
 	// Direct messages won't have a nice channel title, omit it
 	if channel.Type == model.CHANNEL_DIRECT {
-		if channelMember.NotifyProps[model.MUTE_NOTIFY_PROP] == "true" {
+		if channelMember.NotifyProps[model.MARK_UNREAD_NOTIFY_PROP] == model.CHANNEL_NOTIFY_MENTION {
 			publishChannelMemberEvt(a, channelMember, args.UserId)
 			return &model.CommandResponse{Text: args.T("api.command_mute.success_mute_direct_msg"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 		} else {
@@ -70,7 +71,7 @@ func (me *MuteProvider) DoCommand(a *App, args *model.CommandArgs, message strin
 		}
 	}
 
-	if channelMember.NotifyProps[model.MUTE_NOTIFY_PROP] == "true" {
+	if channelMember.NotifyProps[model.MARK_UNREAD_NOTIFY_PROP] == model.CHANNEL_NOTIFY_MENTION {
 		publishChannelMemberEvt(a, channelMember, args.UserId)
 		return &model.CommandResponse{Text: args.T("api.command_mute.success_mute", map[string]interface{}{"Channel": channel.DisplayName}), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 	} else {

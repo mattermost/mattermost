@@ -30,7 +30,7 @@ func TestMuteCommand(t *testing.T) {
 	Client.Must(Client.JoinChannel(channel1.Id))
 
 	channel1M := Client.Must(Client.GetChannelMember(channel1.Id, user1.Id)).Data.(*model.ChannelMember)
-	if channel1M.NotifyProps[model.MUTE_NOTIFY_PROP] == model.CHANNEL_NOTIFY_MUTE_ALL {
+	if channel1M.NotifyProps[model.MARK_UNREAD_NOTIFY_PROP] == model.CHANNEL_NOTIFY_MENTION {
 		t.Fatal("channel shouldn't be muted on initial setup")
 	}
 
@@ -40,7 +40,7 @@ func TestMuteCommand(t *testing.T) {
 	}
 
 	channel1M = Client.Must(Client.GetChannelMember(channel1.Id, user1.Id)).Data.(*model.ChannelMember)
-	if channel1M.NotifyProps[model.MUTE_NOTIFY_PROP] == model.CHANNEL_NOTIFY_MUTE_NONE {
+	if channel1M.NotifyProps[model.MARK_UNREAD_NOTIFY_PROP] == model.CHANNEL_NOTIFY_ALL {
 		t.Fatal("channel should be muted")
 	}
 
@@ -50,7 +50,7 @@ func TestMuteCommand(t *testing.T) {
 	}
 
 	channel1M = Client.Must(Client.GetChannelMember(channel1.Id, user1.Id)).Data.(*model.ChannelMember)
-	if channel1M.NotifyProps[model.MUTE_NOTIFY_PROP] == model.CHANNEL_NOTIFY_MUTE_ALL {
+	if channel1M.NotifyProps[model.MARK_UNREAD_NOTIFY_PROP] == model.CHANNEL_NOTIFY_MENTION {
 		t.Fatal("channel shouldn't be muted anymore")
 	}
 
@@ -61,7 +61,7 @@ func TestMuteCommand(t *testing.T) {
 	Client.Must(Client.AddChannelMember(channel2.Id, user2.Id))
 
 	channel2M := Client.Must(Client.GetChannelMember(channel2.Id, user1.Id)).Data.(*model.ChannelMember)
-	if channel2M.NotifyProps[model.MUTE_NOTIFY_PROP] == model.CHANNEL_NOTIFY_MUTE_ALL {
+	if channel2M.NotifyProps[model.MARK_UNREAD_NOTIFY_PROP] == model.CHANNEL_NOTIFY_MENTION {
 		t.Fatal("channel shouldn't be muted on initial setup")
 	}
 
@@ -71,7 +71,7 @@ func TestMuteCommand(t *testing.T) {
 	}
 
 	channel2M = Client.Must(Client.GetChannelMember(channel2.Id, user1.Id)).Data.(*model.ChannelMember)
-	if channel2M.NotifyProps[model.MUTE_NOTIFY_PROP] == model.CHANNEL_NOTIFY_MUTE_NONE {
+	if channel2M.NotifyProps[model.MARK_UNREAD_NOTIFY_PROP] == model.CHANNEL_NOTIFY_ALL {
 		t.Fatal("channel should be muted")
 	}
 
@@ -81,14 +81,14 @@ func TestMuteCommand(t *testing.T) {
 	}
 
 	channel2M = Client.Must(Client.GetChannelMember(channel2.Id, user1.Id)).Data.(*model.ChannelMember)
-	if channel2M.NotifyProps[model.MUTE_NOTIFY_PROP] == model.CHANNEL_NOTIFY_MUTE_ALL {
+	if channel2M.NotifyProps[model.MARK_UNREAD_NOTIFY_PROP] == model.CHANNEL_NOTIFY_MENTION {
 		t.Fatal("channel shouldn't be muted anymore")
 	}
 
 	// Mute direct message
 	channel3 := Client.Must(Client.CreateDirectChannel(user2.Id)).Data.(*model.Channel)
 	channel3M := Client.Must(Client.GetChannelMember(channel3.Id, user1.Id)).Data.(*model.ChannelMember)
-	if channel3M.NotifyProps[model.MUTE_NOTIFY_PROP] == model.CHANNEL_NOTIFY_MUTE_ALL {
+	if channel3M.NotifyProps[model.MARK_UNREAD_NOTIFY_PROP] == model.CHANNEL_NOTIFY_MENTION {
 		t.Fatal("channel shouldn't be muted on initial setup")
 	}
 
@@ -98,7 +98,7 @@ func TestMuteCommand(t *testing.T) {
 	}
 
 	channel3M = Client.Must(Client.GetChannelMember(channel3.Id, user1.Id)).Data.(*model.ChannelMember)
-	if channel3M.NotifyProps[model.MUTE_NOTIFY_PROP] == model.CHANNEL_NOTIFY_MUTE_NONE {
+	if channel3M.NotifyProps[model.MARK_UNREAD_NOTIFY_PROP] == model.CHANNEL_NOTIFY_ALL {
 		t.Fatal("channel should be muted")
 	}
 
@@ -108,7 +108,7 @@ func TestMuteCommand(t *testing.T) {
 	}
 
 	channel3M = Client.Must(Client.GetChannelMember(channel3.Id, user1.Id)).Data.(*model.ChannelMember)
-	if channel3M.NotifyProps[model.MUTE_NOTIFY_PROP] == model.CHANNEL_NOTIFY_MUTE_ALL {
+	if channel3M.NotifyProps[model.MARK_UNREAD_NOTIFY_PROP] == model.CHANNEL_NOTIFY_MENTION {
 		t.Fatal("channel shouldn't be muted anymore")
 	}
 }

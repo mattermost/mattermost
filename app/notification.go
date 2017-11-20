@@ -164,8 +164,8 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 			}
 
 			// Remove the user as recipient when the user has muted the channel.
-			if channelMuted, ok := channelMemberNotifyPropsMap[id][model.MUTE_NOTIFY_PROP]; ok {
-				if channelMuted == "true" {
+			if channelMuted, ok := channelMemberNotifyPropsMap[id][model.MARK_UNREAD_NOTIFY_PROP]; ok {
+				if channelMuted == model.CHANNEL_MARK_UNREAD_MENTION {
 					l4g.Debug("Channel muted for user_id %v, channel_mute %v", id, channelMuted)
 					userAllowsEmails = false
 				}
@@ -997,10 +997,6 @@ func DoesNotifyPropsAllowPushNotification(user *model.User, channelNotifyProps m
 	}
 
 	if channelNotify == model.CHANNEL_NOTIFY_MENTION && !wasMentioned {
-		return false
-	}
-
-	if channelNotifyProps[model.MUTE_NOTIFY_PROP] == model.MUTE_NOTIFY_PROP {
 		return false
 	}
 

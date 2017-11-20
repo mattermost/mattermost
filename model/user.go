@@ -33,7 +33,6 @@ const (
 	COMMENTS_NOTIFY_NEVER        = "never"
 	COMMENTS_NOTIFY_ROOT         = "root"
 	COMMENTS_NOTIFY_ANY          = "any"
-	MUTE_NOTIFY_PROP             = "mute"
 
 	DEFAULT_LOCALE          = "en"
 	USER_AUTH_SERVICE_EMAIL = "email"
