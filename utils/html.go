@@ -6,55 +6,60 @@ package utils
 import (
 	"bytes"
 	"html/template"
-	"net/http"
+	"io"
 	"reflect"
+	"sync/atomic"
 
 	l4g "github.com/alecthomas/log4go"
 	"github.com/fsnotify/fsnotify"
 	"github.com/nicksnyder/go-i18n/i18n"
 )
 
-// Global storage for templates
-var htmlTemplates *template.Template
-
-type HTMLTemplate struct {
-	TemplateName string
-	Props        map[string]interface{}
-	Html         map[string]template.HTML
-	Locale       string
+type HTMLTemplateWatcher struct {
+	templates atomic.Value
+	stop      chan struct{}
+	stopped   chan struct{}
 }
 
-func InitHTML() {
-	InitHTMLWithDir("templates")
-}
-
-func InitHTMLWithDir(dir string) {
-
-	if htmlTemplates != nil {
-		return
-	}
-
-	templatesDir, _ := FindDir(dir)
+func NewHTMLTemplateWatcher(directory string) (*HTMLTemplateWatcher, error) {
+	templatesDir, _ := FindDir(directory)
 	l4g.Debug(T("api.api.init.parsing_templates.debug"), templatesDir)
-	var err error
-	if htmlTemplates, err = template.ParseGlob(templatesDir + "*.html"); err != nil {
-		l4g.Error(T("api.api.init.parsing_templates.error"), err)
+
+	ret := &HTMLTemplateWatcher{
+		stop:    make(chan struct{}),
+		stopped: make(chan struct{}),
 	}
 
-	// Watch the templates folder for changes.
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
-		l4g.Error(T("web.create_dir.error"), err)
+		return nil, err
+	}
+
+	if err = watcher.Add(templatesDir); err != nil {
+		return nil, err
+	}
+
+	if htmlTemplates, err := template.ParseGlob(templatesDir + "*.html"); err != nil {
+		return nil, err
+	} else {
+		ret.templates.Store(htmlTemplates)
 	}
 
 	go func() {
+		defer close(ret.stopped)
+		defer watcher.Close()
+
 		for {
 			select {
+			case <-ret.stop:
+				return
 			case event := <-watcher.Events:
 				if event.Op&fsnotify.Write == fsnotify.Write {
 					l4g.Info(T("web.reparse_templates.info"), event.Name)
-					if htmlTemplates, err = template.ParseGlob(templatesDir + "*.html"); err != nil {
+					if htmlTemplates, err := template.ParseGlob(templatesDir + "*.html"); err != nil {
 						l4g.Error(T("web.parsing_templates.error"), err)
+					} else {
+						ret.templates.Store(htmlTemplates)
 					}
 				}
 			case err := <-watcher.Errors:
@@ -63,57 +68,42 @@ func InitHTMLWithDir(dir string) {
 		}
 	}()
 
-	err = watcher.Add(templatesDir)
-	if err != nil {
-		l4g.Error(T("web.watcher_fail.error"), err)
-	}
+	return ret, nil
 }
 
-func NewHTMLTemplate(templateName string, locale string) *HTMLTemplate {
+func (w *HTMLTemplateWatcher) Templates() *template.Template {
+	return w.templates.Load().(*template.Template)
+}
+
+func (w *HTMLTemplateWatcher) Close() {
+	close(w.stop)
+	<-w.stopped
+}
+
+type HTMLTemplate struct {
+	Templates    *template.Template
+	TemplateName string
+	Props        map[string]interface{}
+	Html         map[string]template.HTML
+}
+
+func NewHTMLTemplate(templates *template.Template, templateName string) *HTMLTemplate {
 	return &HTMLTemplate{
+		Templates:    templates,
 		TemplateName: templateName,
 		Props:        make(map[string]interface{}),
 		Html:         make(map[string]template.HTML),
-		Locale:       locale,
 	}
-}
-
-func (t *HTMLTemplate) addDefaultProps() {
-	var localT i18n.TranslateFunc
-	if len(t.Locale) > 0 {
-		localT = GetUserTranslations(t.Locale)
-	} else {
-		localT = T
-	}
-
-	t.Props["Footer"] = localT("api.templates.email_footer")
-
-	if *Cfg.EmailSettings.FeedbackOrganization != "" {
-		t.Props["Organization"] = localT("api.templates.email_organization") + *Cfg.EmailSettings.FeedbackOrganization
-	} else {
-		t.Props["Organization"] = ""
-	}
-
-	t.Html["EmailInfo"] = TranslateAsHtml(localT, "api.templates.email_info",
-		map[string]interface{}{"SupportEmail": *Cfg.SupportSettings.SupportEmail, "SiteName": Cfg.TeamSettings.SiteName})
 }
 
 func (t *HTMLTemplate) Render() string {
-	t.addDefaultProps()
-
 	var text bytes.Buffer
-
-	if err := htmlTemplates.ExecuteTemplate(&text, t.TemplateName, t); err != nil {
-		l4g.Error(T("api.api.render.error"), t.TemplateName, err)
-	}
-
+	t.RenderToWriter(&text)
 	return text.String()
 }
 
-func (t *HTMLTemplate) RenderToWriter(w http.ResponseWriter) error {
-	t.addDefaultProps()
-
-	if err := htmlTemplates.ExecuteTemplate(w, t.TemplateName, t); err != nil {
+func (t *HTMLTemplate) RenderToWriter(w io.Writer) error {
+	if err := t.Templates.ExecuteTemplate(w, t.TemplateName, t); err != nil {
 		l4g.Error(T("api.api.render.error"), t.TemplateName, err)
 		return err
 	}

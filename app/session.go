@@ -247,7 +247,7 @@ func (a *App) CreateUserAccessToken(token *model.UserAccessToken) (*model.UserAc
 		l4g.Error(result.Err.Error())
 	} else {
 		user := result.Data.(*model.User)
-		if err := SendUserAccessTokenAddedEmail(user.Email, user.Locale); err != nil {
+		if err := a.SendUserAccessTokenAddedEmail(user.Email, user.Locale); err != nil {
 			l4g.Error(err.Error())
 		}
 	}
