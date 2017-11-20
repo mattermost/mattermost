@@ -2279,12 +2279,16 @@
     "translation": "Team creation has been disabled. Please ask your systems administrator for details."
   },
   {
-    "id": "api.team.leave.left",
-    "translation": "%v left the team."
-  },
-  {
     "id": "api.team.is_team_creation_allowed.domain.app_error",
     "translation": "Email must be from a specific domain (e.g. @example.com). Please ask your systems administrator for details."
+  },
+  {
+    "id": "api.team.join_team.post_and_forget",
+    "translation": "%v joined the team."
+  },
+  {
+    "id": "api.team.leave.left",
+    "translation": "%v left the team."
   },
   {
     "id": "api.team.permanent_delete_team.attempting.warn",
