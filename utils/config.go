@@ -737,6 +737,7 @@ func GenerateLimitedClientConfig(c *model.Config, diagnosticId string, license *
 	props["EnableSignUpWithEmail"] = strconv.FormatBool(c.EmailSettings.EnableSignUpWithEmail)
 	props["EnableSignInWithEmail"] = strconv.FormatBool(*c.EmailSettings.EnableSignInWithEmail)
 	props["EnableSignInWithUsername"] = strconv.FormatBool(*c.EmailSettings.EnableSignInWithUsername)
+	props["EnableSignInWithEmailFromWebhook"] = strconv.FormatBool(*c.EmailSettings.EnableSignInWithEmailFromWebhook)
 
 	props["EmailLoginButtonColor"] = *c.EmailSettings.LoginButtonColor
 	props["EmailLoginButtonBorderColor"] = *c.EmailSettings.LoginButtonBorderColor

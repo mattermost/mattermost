@@ -92,7 +92,7 @@ func (a *App) AuthenticateUserForLogin(id, loginId, password, mfaToken string, l
 
 func (a *App) GetUserForLogin(id, loginId string) (*model.User, *model.AppError) {
 	enableUsername := *a.Config().EmailSettings.EnableSignInWithUsername
-	enableEmail := *a.Config().EmailSettings.EnableSignInWithEmail
+	enableEmail := (*a.Config().EmailSettings.EnableSignInWithEmailFromWebhook || *a.Config().EmailSettings.EnableSignInWithEmail)
 
 	// If we are given a userID then fail if we can't find a user with that ID
 	if len(id) != 0 {
