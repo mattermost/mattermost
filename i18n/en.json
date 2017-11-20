@@ -1333,6 +1333,10 @@
     "translation": "File storage not configured properly. Please configure for either S3 or local server file storage."
   },
   {
+    "id": "api.file.move_file.copy_within_s3.app_error",
+    "translation": "Unable to copy file within S3."
+  },
+  {
     "id": "api.file.move_file.delete_from_s3.app_error",
     "translation": "Unable to delete file from S3."
   },
@@ -4921,6 +4925,10 @@
   {
     "id": "model.config.is_valid.message_export.file_location.app_error",
     "translation": "Message export job FileLocation must be a writable directory that export data will be written to"
+  },
+  {
+    "id": "model.config.is_valid.message_export.file_location.relative",
+    "translation": "Message export job FileLocation must be a sub-directory of FileSettings.Directory"
   },
   {
     "id": "model.config.is_valid.message_export.batch_size.app_error",

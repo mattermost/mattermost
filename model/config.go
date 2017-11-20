@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"path/filepath"
 	"strings"
 	"time"
 )
@@ -1596,7 +1597,7 @@ func (o *Config) IsValid() *AppError {
 		return err
 	}
 
-	if err := o.MessageExportSettings.isValid(); err != nil {
+	if err := o.MessageExportSettings.isValid(o.FileSettings); err != nil {
 		return err
 	}
 
@@ -1918,7 +1919,7 @@ func (ls *LocalizationSettings) isValid() *AppError {
 	return nil
 }
 
-func (mes *MessageExportSettings) isValid() *AppError {
+func (mes *MessageExportSettings) isValid(fs FileSettings) *AppError {
 	if mes.EnableExport == nil {
 		return NewAppError("Config.IsValid", "model.config.is_valid.message_export.enable.app_error", nil, "", http.StatusBadRequest)
 	} else if *mes.EnableExport {
@@ -1934,6 +1935,21 @@ func (mes *MessageExportSettings) isValid() *AppError {
 
 		if mes.FileLocation == nil {
 			return NewAppError("Config.IsValid", "model.config.is_valid.message_export.file_location.app_error", nil, "", http.StatusBadRequest)
+		}
+
+		if !(*fs.DriverName == IMAGE_DRIVER_LOCAL) {
+			var absFileDir, absMessageExportDir string
+			var err error
+			if absFileDir, err = filepath.Abs(fs.Directory); err != nil {
+				return NewAppError("Config.IsValid", "model.config.is_valid.message_export.file_location.relative", nil, err.Error(), http.StatusBadRequest)
+			}
+			if absMessageExportDir, err = filepath.Abs(*mes.FileLocation); err != nil {
+				return NewAppError("Config.IsValid", "model.config.is_valid.message_export.file_location.relative", nil, err.Error(), http.StatusBadRequest)
+			}
+			if !strings.HasPrefix(absMessageExportDir, absFileDir) {
+				// configured export directory must be relative to data directory
+				return NewAppError("Config.IsValid", "model.config.is_valid.message_export.file_location.relative", nil, "", http.StatusBadRequest)
+			}
 		}
 
 		if mes.BatchSize == nil || *mes.BatchSize < 0 {
