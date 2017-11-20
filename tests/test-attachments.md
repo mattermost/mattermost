@@ -1,15 +1,15 @@
 # Testing Files and Attachments
-This test contains instructions for the core team to manually test common attachment types. All files for testing are stored in the [mm_file_testing](https://www.dropbox.com/sh/i7ft8is5hbhk8ii/AAAyM-WG-X2jiQOgg6-E3MmLa?dl=0) dropbox folder. Follow these instructions:
+This test contains instructions for the core team to manually test common attachment types. All files for testing are stored in the [mm_file_testing](https://drive.google.com/drive/folders/0B9-SWBTtyOCBRlEyaW1IdkZ4X1k) Drive folder. Follow these instructions:
 
 1. Download the entire [mm_file_testing](https://drive.google.com/drive/folders/0B9-SWBTtyOCBRlEyaW1IdkZ4X1k) folder. 
-2. Drag and drop each file type into Mattermost to upload it.
+2. Drag and drop each file type into Mattermost to upload it (upload some as multiple attachments on the same post)
 3. Post the file attachment
 
 **Notes:**  
 - All file types should upload and post.
 - Read the expected for details on the behavior of the thumbnail and preview window.  
 - The expected behavior of video and audio formats depends on the operating system, browser and plugins. View the permalinks to the Public Test Channel on Pre-Release Core to see the expected cases.   
-- If the browser can play the media file, media player controls should appear. If the browser cannot play the file, it should show appear as a regular attachment without the media controls.
+- If the browser can play the media file, media player controls should appear. If the browser cannot play the file, it should  appear as a regular attachment without the media controls.
 
 
 ### Images  
