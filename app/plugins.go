@@ -330,23 +330,23 @@ func (a *App) ActivatePlugins() {
 // InstallPlugin unpacks and installs a plugin but does not activate it.
 func (a *App) InstallPlugin(pluginFile io.Reader) (*model.Manifest, *model.AppError) {
 	if a.PluginEnv == nil || !*a.Config().PluginSettings.Enable {
-		return nil, model.NewAppError("UnpackAndActivatePlugin", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
+		return nil, model.NewAppError("InstallPlugin", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
 	tmpDir, err := ioutil.TempDir("", "plugintmp")
 	if err != nil {
-		return nil, model.NewAppError("UnpackAndActivatePlugin", "app.plugin.filesystem.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("InstallPlugin", "app.plugin.filesystem.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	defer os.RemoveAll(tmpDir)
 
 	if err := utils.ExtractTarGz(pluginFile, tmpDir); err != nil {
-		return nil, model.NewAppError("UnpackAndActivatePlugin", "app.plugin.extract.app_error", nil, err.Error(), http.StatusBadRequest)
+		return nil, model.NewAppError("InstallPlugin", "app.plugin.extract.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
 
 	tmpPluginDir := tmpDir
 	dir, err := ioutil.ReadDir(tmpDir)
 	if err != nil {
-		return nil, model.NewAppError("UnpackAndActivatePlugin", "app.plugin.filesystem.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("InstallPlugin", "app.plugin.filesystem.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	if len(dir) == 1 && dir[0].IsDir() {
@@ -355,12 +355,23 @@ func (a *App) InstallPlugin(pluginFile io.Reader) (*model.Manifest, *model.AppEr
 
 	manifest, _, err := model.FindManifest(tmpPluginDir)
 	if err != nil {
-		return nil, model.NewAppError("UnpackAndActivatePlugin", "app.plugin.manifest.app_error", nil, err.Error(), http.StatusBadRequest)
+		return nil, model.NewAppError("InstallPlugin", "app.plugin.manifest.app_error", nil, err.Error(), http.StatusBadRequest)
+	}
+
+	bundles, err := a.PluginEnv.Plugins()
+	if err != nil {
+		return nil, model.NewAppError("InstallPlugin", "app.plugin.install.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	for _, bundle := range bundles {
+		if bundle.Manifest.Id == manifest.Id {
+			return nil, model.NewAppError("InstallPlugin", "app.plugin.install_id.app_error", nil, "", http.StatusBadRequest)
+		}
 	}
 
 	err = utils.CopyDir(tmpPluginDir, filepath.Join(a.PluginEnv.SearchPath(), manifest.Id))
 	if err != nil {
-		return nil, model.NewAppError("UnpackAndActivatePlugin", "app.plugin.mvdir.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("InstallPlugin", "app.plugin.mvdir.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	// Should add manifest validation and error handling here
