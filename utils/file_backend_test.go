@@ -91,17 +91,27 @@ func (s *FileBackendTestSuite) TestCopyFile() {
 	path1 := "tests/" + model.NewId()
 	path2 := "tests/" + model.NewId()
 
-	s.Nil(s.backend.WriteFile(b, path1))
+	err := s.backend.WriteFile(b, path1)
+	if !s.Nil(err) {
+		s.Fail("Failed to write file. Error %v", err)
+	}
 	defer s.backend.RemoveFile(path1)
 
-	s.Nil(s.backend.CopyFile(path1, path2))
+	err = s.backend.CopyFile(path1, path2)
+	if !s.Nil(err) {
+		s.Fail("Failed to copy file. Error %v", err)
+	}
 	defer s.backend.RemoveFile(path2)
 
-	_, err := s.backend.ReadFile(path1)
-	s.Error(err)
+	_, err = s.backend.ReadFile(path1)
+	if !s.Nil(err) {
+		s.Fail("Failed to read file1. Error %v", err)
+	}
 
 	_, err = s.backend.ReadFile(path2)
-	s.Nil(err)
+	if !s.Nil(err) {
+		s.Fail("Failed to read file2. Error %v", err)
+	}
 }
 
 func (s *FileBackendTestSuite) TestMoveFile() {
