@@ -844,7 +844,7 @@
   },
   {
     "id": "api.command_groupmsg.min_users.app_error",
-    "translation": "Group messages are limited to a minimun of {{.MinUsers}} users."
+    "translation": "Group messages are limited to a minimum of {{.MinUsers}} users."
   },
   {
     "id": "api.command_groupmsg.max_users.app_error",
