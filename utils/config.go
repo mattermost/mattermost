@@ -420,7 +420,6 @@ func LoadGlobalConfig(fileName string) *model.Config {
 	clientCfgJson, _ := json.Marshal(ClientCfg)
 	ClientCfgHash = fmt.Sprintf("%x", md5.Sum(clientCfgJson))
 
-	SetDefaultRolesBasedOnConfig()
 	SetSiteURL(*Cfg.ServiceSettings.SiteURL)
 
 	InvokeGlobalConfigListeners(&oldConfig, config)

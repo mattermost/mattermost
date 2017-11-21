@@ -129,12 +129,12 @@ func (s SqlChannelStore) CreateDirectChannel(userId string, otherUserId string) 
 	cm1 := &model.ChannelMember{
 		UserId:      userId,
 		NotifyProps: model.GetDefaultChannelNotifyProps(),
-		Roles:       model.ROLE_CHANNEL_USER.Id,
+		Roles:       model.CHANNEL_USER_ROLE_ID,
 	}
 	cm2 := &model.ChannelMember{
 		UserId:      otherUserId,
 		NotifyProps: model.GetDefaultChannelNotifyProps(),
-		Roles:       model.ROLE_CHANNEL_USER.Id,
+		Roles:       model.CHANNEL_USER_ROLE_ID,
 	}
 
 	return s.SaveDirectChannel(channel, cm1, cm2)

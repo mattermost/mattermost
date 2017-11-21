@@ -572,8 +572,8 @@ func (a *App) ImportUser(data *UserImportData, dryRun bool) *model.AppError {
 		}
 	} else if len(user.Roles) == 0 {
 		// Set SYSTEM_USER roles on newly created users by default.
-		if user.Roles != model.ROLE_SYSTEM_USER.Id {
-			roles = model.ROLE_SYSTEM_USER.Id
+		if user.Roles != model.SYSTEM_USER_ROLE_ID {
+			roles = model.SYSTEM_USER_ROLE_ID
 			hasUserRolesChanged = true
 		}
 	}
@@ -769,7 +769,7 @@ func (a *App) ImportUserTeams(user *model.User, data *[]UserTeamImportData) *mod
 
 		var roles string
 		if tdata.Roles == nil {
-			roles = model.ROLE_TEAM_USER.Id
+			roles = model.TEAM_USER_ROLE_ID
 		} else {
 			roles = *tdata.Roles
 		}
@@ -809,7 +809,7 @@ func (a *App) ImportUserChannels(user *model.User, team *model.Team, teamMember 
 
 		var roles string
 		if cdata.Roles == nil {
-			roles = model.ROLE_CHANNEL_USER.Id
+			roles = model.CHANNEL_USER_ROLE_ID
 		} else {
 			roles = *cdata.Roles
 		}
@@ -1455,7 +1455,7 @@ func (a *App) OldImportPost(post *model.Post) {
 func (a *App) OldImportUser(team *model.Team, user *model.User) *model.User {
 	user.MakeNonNil()
 
-	user.Roles = model.ROLE_SYSTEM_USER.Id
+	user.Roles = model.SYSTEM_USER_ROLE_ID
 
 	if result := <-a.Srv.Store.User().Save(user); result.Err != nil {
 		l4g.Error(utils.T("api.import.import_user.saving.error"), result.Err)

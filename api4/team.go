@@ -10,7 +10,6 @@ import (
 	"strconv"
 
 	l4g "github.com/alecthomas/log4go"
-	"github.com/mattermost/mattermost-server/app"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
 )
@@ -92,7 +91,7 @@ func getTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		app.SanitizeTeam(c.Session, team)
+		c.App.SanitizeTeam(c.Session, team)
 
 		w.Write([]byte(team.ToJson()))
 		return
@@ -114,7 +113,7 @@ func getTeamByName(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		app.SanitizeTeam(c.Session, team)
+		c.App.SanitizeTeam(c.Session, team)
 
 		w.Write([]byte(team.ToJson()))
 		return
@@ -148,7 +147,7 @@ func updateTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	app.SanitizeTeam(c.Session, updatedTeam)
+	c.App.SanitizeTeam(c.Session, updatedTeam)
 
 	w.Write([]byte(updatedTeam.ToJson()))
 }
@@ -178,7 +177,7 @@ func patchTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	app.SanitizeTeam(c.Session, patchedTeam)
+	c.App.SanitizeTeam(c.Session, patchedTeam)
 
 	c.LogAudit("")
 	w.Write([]byte(patchedTeam.ToJson()))
@@ -225,7 +224,7 @@ func getTeamsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	} else {
-		app.SanitizeTeams(c.Session, teams)
+		c.App.SanitizeTeams(c.Session, teams)
 
 		w.Write([]byte(model.TeamListToJson(teams)))
 	}
@@ -553,7 +552,7 @@ func getAllTeams(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	app.SanitizeTeams(c.Session, teams)
+	c.App.SanitizeTeams(c.Session, teams)
 
 	w.Write([]byte(model.TeamListToJson(teams)))
 }
@@ -584,7 +583,7 @@ func searchTeams(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	app.SanitizeTeams(c.Session, teams)
+	c.App.SanitizeTeams(c.Session, teams)
 
 	w.Write([]byte(model.TeamListToJson(teams)))
 }

@@ -483,7 +483,7 @@ func TestGetUser(t *testing.T) {
 		t.Fatal("shouldn't have accss")
 	}
 
-	th.App.UpdateUserRoles(ruser.Data.(*model.User).Id, model.ROLE_SYSTEM_ADMIN.Id, false)
+	th.App.UpdateUserRoles(ruser.Data.(*model.User).Id, model.SYSTEM_ADMIN_ROLE_ID, false)
 
 	Client.Login(user.Email, "passwd1")
 
@@ -842,7 +842,7 @@ func TestUserUpdate(t *testing.T) {
 	Client.SetTeamId(team.Id)
 
 	user.Nickname = "Jim Jimmy"
-	user.Roles = model.ROLE_SYSTEM_ADMIN.Id
+	user.Roles = model.SYSTEM_ADMIN_ROLE_ID
 	user.LastPasswordUpdate = 123
 
 	if result, err := Client.UpdateUser(user); err != nil {
@@ -851,7 +851,7 @@ func TestUserUpdate(t *testing.T) {
 		if result.Data.(*model.User).Nickname != "Jim Jimmy" {
 			t.Fatal("Nickname did not update properly")
 		}
-		if result.Data.(*model.User).Roles != model.ROLE_SYSTEM_USER.Id {
+		if result.Data.(*model.User).Roles != model.SYSTEM_USER_ROLE_ID {
 			t.Fatal("Roles should not have updated")
 		}
 		if result.Data.(*model.User).LastPasswordUpdate == 123 {

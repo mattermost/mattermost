@@ -89,12 +89,8 @@ func TestOAuthRegisterApp(t *testing.T) {
 	}
 
 	adminOnly := *th.App.Config().ServiceSettings.EnableOnlyAdminIntegrations
-	defer func() {
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOnlyAdminIntegrations = adminOnly })
-		utils.SetDefaultRolesBasedOnConfig()
-	}()
+	defer th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOnlyAdminIntegrations = adminOnly })
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOnlyAdminIntegrations = false })
-	utils.SetDefaultRolesBasedOnConfig()
 
 	th.LoginBasic()
 
@@ -217,7 +213,6 @@ func TestOAuthGetAppsByUser(t *testing.T) {
 	}
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOnlyAdminIntegrations = false })
-	utils.SetDefaultRolesBasedOnConfig()
 
 	if result, err := Client.GetOAuthAppsByUser(); err != nil {
 		t.Fatal(err)
@@ -445,7 +440,6 @@ func TestOAuthDeleteApp(t *testing.T) {
 
 	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = true })
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOnlyAdminIntegrations = false })
-	utils.SetDefaultRolesBasedOnConfig()
 
 	oauthApp := &model.OAuthApp{Name: "TestApp5" + model.NewId(), Homepage: "https://nowhere.com", Description: "test", CallbackUrls: []string{"https://nowhere.com"}}
 
@@ -504,11 +498,9 @@ func TestOAuthAccessToken(t *testing.T) {
 	defer func() {
 		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = enableOAuth })
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOnlyAdminIntegrations = adminOnly })
-		utils.SetDefaultRolesBasedOnConfig()
 	}()
 	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = true })
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOnlyAdminIntegrations = false })
-	utils.SetDefaultRolesBasedOnConfig()
 
 	oauthApp := &model.OAuthApp{Name: "TestApp5" + model.NewId(), Homepage: "https://nowhere.com", Description: "test", CallbackUrls: []string{"https://nowhere.com"}}
 	oauthApp = Client.Must(Client.RegisterApp(oauthApp)).Data.(*model.OAuthApp)
@@ -751,12 +743,8 @@ func TestOAuthComplete(t *testing.T) {
 	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = true })
 
 	adminOnly := *th.App.Config().ServiceSettings.EnableOnlyAdminIntegrations
-	defer func() {
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOnlyAdminIntegrations = adminOnly })
-		utils.SetDefaultRolesBasedOnConfig()
-	}()
+	defer th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOnlyAdminIntegrations = adminOnly })
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOnlyAdminIntegrations = false })
-	utils.SetDefaultRolesBasedOnConfig()
 
 	oauthApp := &model.OAuthApp{
 		Name:        "TestApp5" + model.NewId(),

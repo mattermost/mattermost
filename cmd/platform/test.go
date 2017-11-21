@@ -91,7 +91,6 @@ func setupClientTests(cfg *model.Config) {
 	*cfg.ServiceSettings.EnableCustomEmoji = true
 	cfg.ServiceSettings.EnableIncomingWebhooks = false
 	cfg.ServiceSettings.EnableOutgoingWebhooks = false
-	utils.SetDefaultRolesBasedOnConfig()
 }
 
 func executeTestCommand(cmd *exec.Cmd) {

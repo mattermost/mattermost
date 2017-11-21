@@ -178,7 +178,6 @@ func (me *TestHelper) TearDown() {
 	me.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg = *me.originalConfig
 	})
-	utils.SetDefaultRolesBasedOnConfig()
 
 	me.App.Shutdown()
 
@@ -194,7 +193,7 @@ func (me *TestHelper) InitBasic() *TestHelper {
 	me.waitForConnectivity()
 
 	me.TeamAdminUser = me.CreateUser()
-	me.App.UpdateUserRoles(me.TeamAdminUser.Id, model.ROLE_SYSTEM_USER.Id, false)
+	me.App.UpdateUserRoles(me.TeamAdminUser.Id, model.SYSTEM_USER_ROLE_ID, false)
 	me.LoginTeamAdmin()
 	me.BasicTeam = me.CreateTeam()
 	me.BasicChannel = me.CreatePublicChannel()
@@ -211,7 +210,7 @@ func (me *TestHelper) InitBasic() *TestHelper {
 	me.App.AddUserToChannel(me.BasicUser2, me.BasicChannel2)
 	me.App.AddUserToChannel(me.BasicUser, me.BasicPrivateChannel)
 	me.App.AddUserToChannel(me.BasicUser2, me.BasicPrivateChannel)
-	me.App.UpdateUserRoles(me.BasicUser.Id, model.ROLE_SYSTEM_USER.Id, false)
+	me.App.UpdateUserRoles(me.BasicUser.Id, model.SYSTEM_USER_ROLE_ID, false)
 	me.LoginBasic()
 
 	return me
@@ -221,7 +220,7 @@ func (me *TestHelper) InitSystemAdmin() *TestHelper {
 	me.waitForConnectivity()
 
 	me.SystemAdminUser = me.CreateUser()
-	me.App.UpdateUserRoles(me.SystemAdminUser.Id, model.ROLE_SYSTEM_USER.Id+" "+model.ROLE_SYSTEM_ADMIN.Id, false)
+	me.App.UpdateUserRoles(me.SystemAdminUser.Id, model.SYSTEM_USER_ROLE_ID+" "+model.SYSTEM_ADMIN_ROLE_ID, false)
 	me.LoginSystemAdmin()
 
 	return me
@@ -760,7 +759,7 @@ func (me *TestHelper) MakeUserChannelAdmin(user *model.User, channel *model.Chan
 func (me *TestHelper) UpdateUserToTeamAdmin(user *model.User, team *model.Team) {
 	utils.DisableDebugLogForTest()
 
-	tm := &model.TeamMember{TeamId: team.Id, UserId: user.Id, Roles: model.ROLE_TEAM_USER.Id + " " + model.ROLE_TEAM_ADMIN.Id}
+	tm := &model.TeamMember{TeamId: team.Id, UserId: user.Id, Roles: model.TEAM_USER_ROLE_ID + " " + model.TEAM_ADMIN_ROLE_ID}
 	if tmr := <-me.App.Srv.Store.Team().UpdateMember(tm); tmr.Err != nil {
 		utils.EnableDebugLogForTest()
 		l4g.Error(tmr.Err.Error())
@@ -774,7 +773,7 @@ func (me *TestHelper) UpdateUserToTeamAdmin(user *model.User, team *model.Team) 
 func (me *TestHelper) UpdateUserToNonTeamAdmin(user *model.User, team *model.Team) {
 	utils.DisableDebugLogForTest()
 
-	tm := &model.TeamMember{TeamId: team.Id, UserId: user.Id, Roles: model.ROLE_TEAM_USER.Id}
+	tm := &model.TeamMember{TeamId: team.Id, UserId: user.Id, Roles: model.TEAM_USER_ROLE_ID}
 	if tmr := <-me.App.Srv.Store.Team().UpdateMember(tm); tmr.Err != nil {
 		utils.EnableDebugLogForTest()
 		l4g.Error(tmr.Err.Error())
