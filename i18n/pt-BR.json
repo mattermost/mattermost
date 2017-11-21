@@ -700,6 +700,57 @@
     "translation": "Um erro ocorreu ao expandir as visualizações"
   },
   {
+    "id": "api.command_groupmsg.desc",
+    "translation": "Envia uma mensagem de grupo para os usuários especificados"
+  },
+  {
+    "id": "api.command_groupmsg.fail.app_error",
+    "translation": "Um erro ocorreu durante o envio da mensagem aos usuários."
+  },
+  {
+    "id": "api.command_groupmsg.group_fail.app_error",
+    "translation": "Um erro ocorreu durante a criação do grupo de mensagens."
+  },
+  {
+    "id": "api.command_groupmsg.hint",
+    "translation": "@[username1],@[username2] 'mensagem'"
+  },
+  {
+    "id": "api.command_groupmsg.invalid_user.app_error",
+    "translation": {
+      "one": "Não foi possível encontrar o usuário: {{.Users}}",
+      "other": "Não foi possível encontrar os usuários: {{.Users}}"
+    }
+  },
+  {
+    "id": "api.command_groupmsg.invalid_users.app_error",
+    "translation": "Não foi possível encontrar os usuários: %s"
+  },
+  {
+    "id": "api.command_groupmsg.list.app_error",
+    "translation": "Ocorreu um erro durante a listagem de usuários."
+  },
+  {
+    "id": "api.command_groupmsg.max_users.app_error",
+    "translation": "Mensagem em grupo está limitada a um máximo de {{.MinUsers}} usuários."
+  },
+  {
+    "id": "api.command_groupmsg.min_users.app_error",
+    "translation": "Mensagem em grupo está limitada a um mínimo de {{.MinUsers}} usuários."
+  },
+  {
+    "id": "api.command_groupmsg.missing.app_error",
+    "translation": "Não foi possível encontrar o usuário"
+  },
+  {
+    "id": "api.command_groupmsg.name",
+    "translation": "mensagem"
+  },
+  {
+    "id": "api.command_groupmsg.success",
+    "translation": "Mensagem enviada."
+  },
+  {
     "id": "api.command_help.desc",
     "translation": "Abrir a página de ajuda do Mattermost"
   },
@@ -2116,6 +2167,10 @@
     "translation": "O número de goroutines rodando é maior que o limite configurado %v de %v"
   },
   {
+    "id": "api.team.add_user_to_team.added",
+    "translation": "%v added to the team by %v"
+  },
+  {
     "id": "api.team.add_user_to_team.missing_parameter.app_error",
     "translation": "Parâmetro requerido para adicionar o usuário ao time."
   },
@@ -2228,6 +2283,10 @@
     "translation": "Email precisa ser de um domínio específico (ex. @example.com). Por favor pergunte ao administrador do sistema por detalhes."
   },
   {
+    "id": "api.team.leave.left",
+    "translation": "%v left the team."
+  },
+  {
     "id": "api.team.permanent_delete_team.attempting.warn",
     "translation": "Tentando permanentemente deletar a equipe %v id=%v"
   },
@@ -2238,6 +2297,10 @@
   {
     "id": "api.team.remove_user_from_team.missing.app_error",
     "translation": "O usuário não parece ser parte desta equipe."
+  },
+  {
+    "id": "api.team.remove_user_from_team.removed",
+    "translation": "%v was removed from the team."
   },
   {
     "id": "api.team.signup_team.email_disabled.app_error",

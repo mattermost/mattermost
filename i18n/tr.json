@@ -700,6 +700,57 @@
     "translation": "Önizlemeler genişletilirken bir sorun çıktı"
   },
   {
+    "id": "api.command_groupmsg.desc",
+    "translation": "Belirtilen kullanıcılara bir Grup İletisi gönderir"
+  },
+  {
+    "id": "api.command_groupmsg.fail.app_error",
+    "translation": "Kullanıcılara ileti gönderilirken bir sorun çıktı."
+  },
+  {
+    "id": "api.command_groupmsg.group_fail.app_error",
+    "translation": "Grup iletisi oluşturulurken bir sorun çıktı."
+  },
+  {
+    "id": "api.command_groupmsg.hint",
+    "translation": "@[username1],@[username2] 'ileti'"
+  },
+  {
+    "id": "api.command_groupmsg.invalid_user.app_error",
+    "translation": {
+      "one": "Kullanıcı bulunamadı: {{.Users}}",
+      "other": ""
+    }
+  },
+  {
+    "id": "api.command_groupmsg.invalid_users.app_error",
+    "translation": "Kullanıcılar bulunamadı: %s"
+  },
+  {
+    "id": "api.command_groupmsg.list.app_error",
+    "translation": "Kullanıcılar listelenirken bir sorun çıktı."
+  },
+  {
+    "id": "api.command_groupmsg.max_users.app_error",
+    "translation": "Grup iletileri en fazla {{.MaxUsers}} kullanıcı ile sınırlıdır."
+  },
+  {
+    "id": "api.command_groupmsg.min_users.app_error",
+    "translation": "Grup iletileri en az {{.MinUsers}} kullanıcı ile sınırlıdır."
+  },
+  {
+    "id": "api.command_groupmsg.missing.app_error",
+    "translation": "Kullanıcı bulunamadı"
+  },
+  {
+    "id": "api.command_groupmsg.name",
+    "translation": "ileti"
+  },
+  {
+    "id": "api.command_groupmsg.success",
+    "translation": "İleti kullanıcılara gönderildi."
+  },
+  {
     "id": "api.command_help.desc",
     "translation": "Mattermost yardım sayfasını aç"
   },
@@ -2116,6 +2167,10 @@
     "translation": "Çalışan yordamlar %v/%v sağlıklı eşiğin üzerinde "
   },
   {
+    "id": "api.team.add_user_to_team.added",
+    "translation": "%v added to the team by %v"
+  },
+  {
     "id": "api.team.add_user_to_team.missing_parameter.app_error",
     "translation": "Takıma kullanıcı eklemek için parametre gerekli."
   },
@@ -2228,6 +2283,10 @@
     "translation": "E-posta belirli bir etki alanından (@ornek.com gibi) gelmelidir. Lütfen ayrıntılı bilgi almak için sistem yöneticinizle görüşün."
   },
   {
+    "id": "api.team.leave.left",
+    "translation": "%v left the team."
+  },
+  {
     "id": "api.team.permanent_delete_team.attempting.warn",
     "translation": "%v takımı kalıcı olarak silinmeye çalışılıyor. Kod: %v"
   },
@@ -2238,6 +2297,10 @@
   {
     "id": "api.team.remove_user_from_team.missing.app_error",
     "translation": "Kullanıcı bu takımın bir üyesi gibi görünmüyor."
+  },
+  {
+    "id": "api.team.remove_user_from_team.removed",
+    "translation": "%v was removed from the team."
   },
   {
     "id": "api.team.signup_team.email_disabled.app_error",

@@ -700,6 +700,57 @@
     "translation": "プレビューの展開中にエラーが発生しました"
   },
   {
+    "id": "api.command_groupmsg.desc",
+    "translation": "指定したユーザーへのグループメッセージを送信する"
+  },
+  {
+    "id": "api.command_groupmsg.fail.app_error",
+    "translation": "ユーザーにメッセージを送信中にエラーが発生しました。"
+  },
+  {
+    "id": "api.command_groupmsg.group_fail.app_error",
+    "translation": "グループメッセージを作成中にエラーが発生しました。"
+  },
+  {
+    "id": "api.command_groupmsg.hint",
+    "translation": "@[ユーザー名1],@[ユーザー名2] 'メッセージ'"
+  },
+  {
+    "id": "api.command_groupmsg.invalid_user.app_error",
+    "translation": {
+      "one": "ユーザーが見付かりません: {{.Users}}",
+      "other": ""
+    }
+  },
+  {
+    "id": "api.command_groupmsg.invalid_users.app_error",
+    "translation": "ユーザーが見付かりませんでした: %s"
+  },
+  {
+    "id": "api.command_groupmsg.list.app_error",
+    "translation": "ユーザー一覧を作成中にエラーが発生しました。"
+  },
+  {
+    "id": "api.command_groupmsg.max_users.app_error",
+    "translation": "グループメッセージは最大で{{.MaxUsers}}ユーザーに制限されています。"
+  },
+  {
+    "id": "api.command_groupmsg.min_users.app_error",
+    "translation": "グループメッセージは最小で{{.MinUsers}}ユーザーに制限されています。"
+  },
+  {
+    "id": "api.command_groupmsg.missing.app_error",
+    "translation": "ユーザーが見付かりませんでした"
+  },
+  {
+    "id": "api.command_groupmsg.name",
+    "translation": "メッセージ"
+  },
+  {
+    "id": "api.command_groupmsg.success",
+    "translation": "ユーザーにメッセージを送信しました。"
+  },
+  {
     "id": "api.command_help.desc",
     "translation": "Mattermostヘルプページを開く"
   },
@@ -2116,6 +2167,10 @@
     "translation": "動作中のgoroutineの数が正常動作の上限を超えています %v / %v"
   },
   {
+    "id": "api.team.add_user_to_team.added",
+    "translation": "%v added to the team by %v"
+  },
+  {
     "id": "api.team.add_user_to_team.missing_parameter.app_error",
     "translation": "チームにユーザーを追加するにはパラメーターが必要です。"
   },
@@ -2228,6 +2283,10 @@
     "translation": "電子メールは特定のドメイン(例えば、@example.com)から送信される必要があります。詳細はシステム管理者に問い合わせてください。"
   },
   {
+    "id": "api.team.leave.left",
+    "translation": "%v left the team."
+  },
+  {
     "id": "api.team.permanent_delete_team.attempting.warn",
     "translation": "チーム%vを完全に削除しようとしています id=%v"
   },
@@ -2238,6 +2297,10 @@
   {
     "id": "api.team.remove_user_from_team.missing.app_error",
     "translation": "ユーザーはこのチームの一員ではありません。"
+  },
+  {
+    "id": "api.team.remove_user_from_team.removed",
+    "translation": "%v was removed from the team."
   },
   {
     "id": "api.team.signup_team.email_disabled.app_error",

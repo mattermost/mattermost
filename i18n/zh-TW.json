@@ -700,6 +700,57 @@
     "translation": "展開預覽時發生錯誤"
   },
   {
+    "id": "api.command_groupmsg.desc",
+    "translation": "Sends a Group Message to the specified users"
+  },
+  {
+    "id": "api.command_groupmsg.fail.app_error",
+    "translation": "傳訊使用者時遇到錯誤。"
+  },
+  {
+    "id": "api.command_groupmsg.group_fail.app_error",
+    "translation": "建立直接傳訊時遇到錯誤。"
+  },
+  {
+    "id": "api.command_groupmsg.hint",
+    "translation": "@[username1],@[username2] 'message'"
+  },
+  {
+    "id": "api.command_groupmsg.invalid_user.app_error",
+    "translation": {
+      "one": "We couldn't find the user: {{.Users}}",
+      "other": "We couldn't find the users: {{.Users}}"
+    }
+  },
+  {
+    "id": "api.command_groupmsg.invalid_users.app_error",
+    "translation": "找不到使用者"
+  },
+  {
+    "id": "api.command_groupmsg.list.app_error",
+    "translation": "列表使用者時遇到錯誤。"
+  },
+  {
+    "id": "api.command_groupmsg.max_users.app_error",
+    "translation": "Group messages are limited to a maximum of {{.MaxUsers}} users."
+  },
+  {
+    "id": "api.command_groupmsg.min_users.app_error",
+    "translation": "Group messages are limited to a minimun of {{.MinUsers}} users."
+  },
+  {
+    "id": "api.command_groupmsg.missing.app_error",
+    "translation": "找不到使用者"
+  },
+  {
+    "id": "api.command_groupmsg.name",
+    "translation": "訊息"
+  },
+  {
+    "id": "api.command_groupmsg.success",
+    "translation": "已傳訊給使用者。"
+  },
+  {
     "id": "api.command_help.desc",
     "translation": "開啟 Mattermost 說明頁面"
   },
@@ -2116,6 +2167,10 @@
     "translation": "執行中的 Goroutine 數量超過健康界線 %v (%v)"
   },
   {
+    "id": "api.team.add_user_to_team.added",
+    "translation": "%v added to the team by %v"
+  },
+  {
     "id": "api.team.add_user_to_team.missing_parameter.app_error",
     "translation": "需要參數以新增團隊成員。"
   },
@@ -2228,6 +2283,10 @@
     "translation": "電子郵件地址必須來自一個指定的網域 (例如 @example.com)。請洽詢系統管理員了解詳情。"
   },
   {
+    "id": "api.team.leave.left",
+    "translation": "%v left the team."
+  },
+  {
     "id": "api.team.permanent_delete_team.attempting.warn",
     "translation": "正在嘗試永久刪除團隊 %v id=%v"
   },
@@ -2238,6 +2297,10 @@
   {
     "id": "api.team.remove_user_from_team.missing.app_error",
     "translation": "此使用者似乎不屬於此團隊。"
+  },
+  {
+    "id": "api.team.remove_user_from_team.removed",
+    "translation": "%v was removed from the team."
   },
   {
     "id": "api.team.signup_team.email_disabled.app_error",

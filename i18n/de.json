@@ -700,6 +700,57 @@
     "translation": "Es trat ein Fehler beim Erweitern der Vorschauen auf"
   },
   {
+    "id": "api.command_groupmsg.desc",
+    "translation": "Sendet eine Gruppennachricht an die spezifizierten Benutzer"
+  },
+  {
+    "id": "api.command_groupmsg.fail.app_error",
+    "translation": "Es ist ein Fehler beim Benachrichtigen der Benutzer aufgetreten."
+  },
+  {
+    "id": "api.command_groupmsg.group_fail.app_error",
+    "translation": "Es ist ein Fehler beim Erstellen der Gruppennachricht aufgetreten."
+  },
+  {
+    "id": "api.command_groupmsg.hint",
+    "translation": "@[Benutzername1],@[Benutzername2] 'Nachricht'"
+  },
+  {
+    "id": "api.command_groupmsg.invalid_user.app_error",
+    "translation": {
+      "one": "Der Benutzer konnte nicht gefunden werden: {{.Users}}",
+      "other": "Die Benutzer konnten nicht gefunden werden: {{.Users}}"
+    }
+  },
+  {
+    "id": "api.command_groupmsg.invalid_users.app_error",
+    "translation": "Die Benutzer konnten nicht gefunden werden: %s"
+  },
+  {
+    "id": "api.command_groupmsg.list.app_error",
+    "translation": "Es ist ein Fehler beim Auflisten der Benutzer aufgetreten."
+  },
+  {
+    "id": "api.command_groupmsg.max_users.app_error",
+    "translation": "Gruppennachrichten sind auf ein Maximum von {{.MinUsers}} Benutzern beschränkt."
+  },
+  {
+    "id": "api.command_groupmsg.min_users.app_error",
+    "translation": "Gruppennachrichten sind auf ein Minimum von {{.MinUsers}} Benutzern beschränkt."
+  },
+  {
+    "id": "api.command_groupmsg.missing.app_error",
+    "translation": "Der Benutzer konnte nicht gefunden werden"
+  },
+  {
+    "id": "api.command_groupmsg.name",
+    "translation": "nachricht"
+  },
+  {
+    "id": "api.command_groupmsg.success",
+    "translation": "Benachrichtigte Benutzer."
+  },
+  {
     "id": "api.command_help.desc",
     "translation": "Die Mattermost-Hilfeseite öffnen"
   },
@@ -2116,6 +2167,10 @@
     "translation": "Die Anzahl von laufenden Go-Routinen ist oberhalb des Gesundheits-Schwellenwerts %v von %v"
   },
   {
+    "id": "api.team.add_user_to_team.added",
+    "translation": "%v wurde von %v zum Kanal hinzugefügt"
+  },
+  {
     "id": "api.team.add_user_to_team.missing_parameter.app_error",
     "translation": "Parameter um Benutzer zu Team hinzuzufügen erforderlich."
   },
@@ -2228,6 +2283,10 @@
     "translation": "Die E-Mail-Adresse muss von einer bestimmten Domain stammen (z.B. @example.com). Bitte wenden Sie sich an Ihren Systemadministrator."
   },
   {
+    "id": "api.team.leave.left",
+    "translation": "%v left the team."
+  },
+  {
     "id": "api.team.permanent_delete_team.attempting.warn",
     "translation": "Versuche Team permanent zu löschen %v id=%v"
   },
@@ -2238,6 +2297,10 @@
   {
     "id": "api.team.remove_user_from_team.missing.app_error",
     "translation": "Der Benutzer scheint nicht Teil dieses Teams zu sein."
+  },
+  {
+    "id": "api.team.remove_user_from_team.removed",
+    "translation": "%v wurde aus dem Kanal entfernt."
   },
   {
     "id": "api.team.signup_team.email_disabled.app_error",
@@ -2805,7 +2868,7 @@
   },
   {
     "id": "api.user.update_active.no_deactivate_sso.app_error",
-    "translation": "Sie können den Aktivitätsstatus des SSO-Kontos nicht ändern. Bitte ändern Sie diesen über denSSO-Server."
+    "translation": "Sie können den Aktivitätsstatus des SSO-Kontos nicht ändern. Bitte ändern Sie diesen über den SSO-Server."
   },
   {
     "id": "api.user.update_active.permissions.app_error",
@@ -4373,7 +4436,7 @@
   },
   {
     "id": "model.command.is_valid.display_name.app_error",
-    "translation": "Ungültiger Anzeigename"
+    "translation": "Ungültiger Typ"
   },
   {
     "id": "model.command.is_valid.id.app_error",
@@ -4833,7 +4896,7 @@
   },
   {
     "id": "model.incoming_hook.display_name.app_error",
-    "translation": "Ungültiger Anzeigename"
+    "translation": "Ungültiger Typ"
   },
   {
     "id": "model.incoming_hook.id.app_error",
@@ -4925,7 +4988,7 @@
   },
   {
     "id": "model.outgoing_hook.is_valid.display_name.app_error",
-    "translation": "Ungültiger Anzeigename"
+    "translation": "Ungültiger Typ"
   },
   {
     "id": "model.outgoing_hook.is_valid.id.app_error",

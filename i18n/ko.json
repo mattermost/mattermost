@@ -700,6 +700,57 @@
     "translation": "미리보기를 펼치는 중 오류가 발생하였습니다."
   },
   {
+    "id": "api.command_groupmsg.desc",
+    "translation": "Sends a Group Message to the specified users"
+  },
+  {
+    "id": "api.command_groupmsg.fail.app_error",
+    "translation": "사용자에게 메시지 전달 중 오류가 발생하였습니다."
+  },
+  {
+    "id": "api.command_groupmsg.group_fail.app_error",
+    "translation": "메시지 암호화 중 오류가 발생하였습니다."
+  },
+  {
+    "id": "api.command_groupmsg.hint",
+    "translation": "@[username1],@[username2] 'message'"
+  },
+  {
+    "id": "api.command_groupmsg.invalid_user.app_error",
+    "translation": {
+      "one": "We couldn't find the user: {{.Users}}",
+      "other": "We couldn't find the users: {{.Users}}"
+    }
+  },
+  {
+    "id": "api.command_groupmsg.invalid_users.app_error",
+    "translation": "사용자를 찾을 수 없습니다"
+  },
+  {
+    "id": "api.command_groupmsg.list.app_error",
+    "translation": "사용자 제거 중 오류가 발생하였습니다."
+  },
+  {
+    "id": "api.command_groupmsg.max_users.app_error",
+    "translation": "Group messages are limited to a maximum of {{.MaxUsers}} users."
+  },
+  {
+    "id": "api.command_groupmsg.min_users.app_error",
+    "translation": "Group messages are limited to a minimun of {{.MinUsers}} users."
+  },
+  {
+    "id": "api.command_groupmsg.missing.app_error",
+    "translation": "사용자를 찾을 수 없습니다"
+  },
+  {
+    "id": "api.command_groupmsg.name",
+    "translation": "메시지"
+  },
+  {
+    "id": "api.command_groupmsg.success",
+    "translation": "메세지를 보낸 유저."
+  },
+  {
     "id": "api.command_help.desc",
     "translation": "Mattermost 도움말 페이지 열기"
   },
@@ -2116,6 +2167,10 @@
     "translation": "The number of running goroutines is over the health threshold %v of %v"
   },
   {
+    "id": "api.team.add_user_to_team.added",
+    "translation": "%v added to the team by %v"
+  },
+  {
     "id": "api.team.add_user_to_team.missing_parameter.app_error",
     "translation": "Parameter required to add user to team."
   },
@@ -2228,6 +2283,10 @@
     "translation": "허용된 도메인의 이메일만 사용하세요. (예시: @example.com). 또는 시스템 관리자에게 문의해보세요."
   },
   {
+    "id": "api.team.leave.left",
+    "translation": "%v left the team."
+  },
+  {
     "id": "api.team.permanent_delete_team.attempting.warn",
     "translation": "Attempting to permanently delete team %v id=%v"
   },
@@ -2238,6 +2297,10 @@
   {
     "id": "api.team.remove_user_from_team.missing.app_error",
     "translation": "The user does not appear to be part of this team."
+  },
+  {
+    "id": "api.team.remove_user_from_team.removed",
+    "translation": "%v was removed from the team."
   },
   {
     "id": "api.team.signup_team.email_disabled.app_error",

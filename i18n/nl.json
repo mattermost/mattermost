@@ -700,6 +700,57 @@
     "translation": "Er is een fout opgetreden tijdens het vergroten van de voorbeelden"
   },
   {
+    "id": "api.command_groupmsg.desc",
+    "translation": "Sends a Group Message to the specified users"
+  },
+  {
+    "id": "api.command_groupmsg.fail.app_error",
+    "translation": "Er is een fout opgetreden tijdens het sturen van een bericht naar de gebruiker."
+  },
+  {
+    "id": "api.command_groupmsg.group_fail.app_error",
+    "translation": "Fout opgetreden bij het opstellen van privébericht."
+  },
+  {
+    "id": "api.command_groupmsg.hint",
+    "translation": "@[username1],@[username2] 'message'"
+  },
+  {
+    "id": "api.command_groupmsg.invalid_user.app_error",
+    "translation": {
+      "one": "We couldn't find the user: {{.Users}}",
+      "other": "We couldn't find the users: {{.Users}}"
+    }
+  },
+  {
+    "id": "api.command_groupmsg.invalid_users.app_error",
+    "translation": "De gebruiker kan niet gevonden worden"
+  },
+  {
+    "id": "api.command_groupmsg.list.app_error",
+    "translation": "Er is een fout opgetreden tijdens het ophalen van de lijst van gebruikers."
+  },
+  {
+    "id": "api.command_groupmsg.max_users.app_error",
+    "translation": "Group messages are limited to a maximum of {{.MaxUsers}} users."
+  },
+  {
+    "id": "api.command_groupmsg.min_users.app_error",
+    "translation": "Group messages are limited to a minimun of {{.MinUsers}} users."
+  },
+  {
+    "id": "api.command_groupmsg.missing.app_error",
+    "translation": "De gebruiker kan niet gevonden worden"
+  },
+  {
+    "id": "api.command_groupmsg.name",
+    "translation": "bericht"
+  },
+  {
+    "id": "api.command_groupmsg.success",
+    "translation": "Bericht verzonden."
+  },
+  {
     "id": "api.command_help.desc",
     "translation": "Open the Mattermost help page"
   },
@@ -2116,6 +2167,10 @@
     "translation": "The number of running goroutines is over the health threshold %v of %v"
   },
   {
+    "id": "api.team.add_user_to_team.added",
+    "translation": "%v added to the team by %v"
+  },
+  {
     "id": "api.team.add_user_to_team.missing_parameter.app_error",
     "translation": "Parameter required to add user to team."
   },
@@ -2228,6 +2283,10 @@
     "translation": "Email moet uit bepaalde domeinen komen (bijv. @voorbeeld.nl). Neem contact op met de systeem beheerder voor meer details."
   },
   {
+    "id": "api.team.leave.left",
+    "translation": "%v left the team."
+  },
+  {
     "id": "api.team.permanent_delete_team.attempting.warn",
     "translation": "Poging om team %v permanent te verwijderen, id=%v"
   },
@@ -2238,6 +2297,10 @@
   {
     "id": "api.team.remove_user_from_team.missing.app_error",
     "translation": "De gebruiker is geen onderdeel van dit team"
+  },
+  {
+    "id": "api.team.remove_user_from_team.removed",
+    "translation": "%v was removed from the team."
   },
   {
     "id": "api.team.signup_team.email_disabled.app_error",
