@@ -8,7 +8,10 @@ import (
 	"net/http"
 	"strings"
 
+	l4g "github.com/alecthomas/log4go"
+
 	"github.com/gorilla/mux"
+	"github.com/gorilla/schema"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
 )
@@ -447,34 +450,40 @@ func incomingWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	r.ParseForm()
 
-	var payload io.Reader
+	var err *model.AppError
+	incomingWebhookPayload := &model.IncomingWebhookRequest{}
 	contentType := r.Header.Get("Content-Type")
 	if strings.Split(contentType, "; ")[0] == "application/x-www-form-urlencoded" {
-		payload = strings.NewReader(r.FormValue("payload"))
-	} else {
-		payload = r.Body
-	}
+		payload := strings.NewReader(r.FormValue("payload"))
 
-	if c.App.Config().LogSettings.EnableWebhookDebugging {
-		var err error
-		payload, err = utils.InfoReader(
-			payload,
-			utils.T("api.webhook.incoming.debug"),
-		)
+		incomingWebhookPayload, err = decodePayload(payload)
 		if err != nil {
-			c.Err = model.NewAppError("incomingWebhook", "api.webhook.incoming.debug.error", nil, err.Error(), http.StatusInternalServerError)
+			c.Err = err
+			return
+		}
+	} else if strings.HasPrefix(contentType, "multipart/form-data") {
+		r.ParseMultipartForm(0)
+
+		decoder := schema.NewDecoder()
+		err := decoder.Decode(incomingWebhookPayload, r.PostForm)
+
+		if err != nil {
+			c.Err = model.NewAppError("incomingWebhook", "api.webhook.incoming.error", nil, err.Error(), http.StatusBadRequest)
+			return
+		}
+	} else {
+		incomingWebhookPayload, err = decodePayload(r.Body)
+		if err != nil {
+			c.Err = err
 			return
 		}
 	}
 
-	parsedRequest, decodeError := model.IncomingWebhookRequestFromJson(payload)
-
-	if decodeError != nil {
-		c.Err = decodeError
-		return
+	if c.App.Config().LogSettings.EnableWebhookDebugging {
+		l4g.Debug(utils.T("api.webhook.incoming.debug"), incomingWebhookPayload.ToJson())
 	}
 
-	err := c.App.HandleIncomingWebhook(id, parsedRequest)
+	err = c.App.HandleIncomingWebhook(id, incomingWebhookPayload)
 	if err != nil {
 		c.Err = err
 		return
@@ -498,4 +507,15 @@ func commandWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "text/plain")
 	w.Write([]byte("ok"))
+}
+
+func decodePayload(payload io.Reader) (*model.IncomingWebhookRequest, *model.AppError) {
+	decodeError := &model.AppError{}
+	incomingWebhookPayload, decodeError := model.IncomingWebhookRequestFromJson(payload)
+
+	if decodeError != nil {
+		return nil, decodeError
+	}
+
+	return incomingWebhookPayload, nil
 }

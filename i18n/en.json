@@ -3063,6 +3063,10 @@
     "translation": "Could not read payload of incoming webhook."
   },
   {
+    "id": "api.webhook.incoming.error",
+    "translation": "Could not decode the multipart payload of incoming webhook."
+  },
+  {
     "id": "api.webhook.init.debug",
     "translation": "Initializing webhook API routes"
   },
