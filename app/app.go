@@ -5,8 +5,10 @@ package app
 
 import (
 	"html/template"
+	"net"
 	"net/http"
 	"runtime/debug"
+	"strings"
 	"sync/atomic"
 
 	l4g "github.com/alecthomas/log4go"
@@ -349,6 +351,48 @@ func (a *App) WaitForGoroutines() {
 
 func (a *App) HTMLTemplates() *template.Template {
 	return a.htmlTemplateWatcher.Templates()
+}
+
+func (a *App) HTTPClient(trustURLs bool) *http.Client {
+	insecure := a.Config().ServiceSettings.EnableInsecureOutgoingConnections != nil && *a.Config().ServiceSettings.EnableInsecureOutgoingConnections
+
+	allowHost := func(host string) bool {
+		if a.Config().ServiceSettings.AllowedUntrustedInternalConnections == nil {
+			return false
+		}
+		for _, allowed := range strings.Fields(*a.Config().ServiceSettings.AllowedUntrustedInternalConnections) {
+			if host == allowed {
+				return true
+			}
+		}
+		return false
+	}
+
+	allowIP := func(ip net.IP) bool {
+		if !utils.IsReservedIP(ip) {
+			return true
+		}
+		if a.Config().ServiceSettings.AllowedUntrustedInternalConnections == nil {
+			return false
+		}
+		for _, allowed := range strings.Fields(*a.Config().ServiceSettings.AllowedUntrustedInternalConnections) {
+			if _, ipRange, err := net.ParseCIDR(allowed); err == nil && ipRange.Contains(ip) {
+				return true
+			}
+		}
+		return false
+	}
+
+	switch {
+	case insecure && trustURLs:
+		return utils.NewHTTPClient(true, nil, nil)
+	case insecure:
+		return utils.NewHTTPClient(true, allowHost, allowIP)
+	case trustURLs:
+		return utils.NewHTTPClient(false, nil, nil)
+	default:
+		return utils.NewHTTPClient(false, allowHost, allowIP)
+	}
 }
 
 func (a *App) Handle404(w http.ResponseWriter, r *http.Request) {

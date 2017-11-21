@@ -9,7 +9,6 @@ import (
 	"errors"
 	"net"
 	"net/http"
-	"strings"
 	"time"
 )
 
@@ -18,37 +17,9 @@ const (
 	requestTimeout = 30 * time.Second
 )
 
-var secureHttpClient *http.Client
-var secureUntrustedHttpClient *http.Client
-var insecureHttpClient *http.Client
-var insecureUntrustedHttpClient *http.Client
-
-// HttpClient returns a variation the default implementation of Client.
-// It uses a Transport with the same settings as the default Transport
-// but with the following modifications:
-// - shorter timeout for dial and TLS handshake (defined as constant
-//   "connectTimeout")
-// - timeout for the end-to-end request (defined as constant
-//   "requestTimeout")
-// - skipping server certificate check if specified in "config.json"
-//   via "ServiceSettings.EnableInsecureOutgoingConnections"
-func HttpClient(trustURLs bool) *http.Client {
-	insecure := Cfg.ServiceSettings.EnableInsecureOutgoingConnections != nil && *Cfg.ServiceSettings.EnableInsecureOutgoingConnections
-	switch {
-	case insecure && trustURLs:
-		return insecureHttpClient
-	case insecure:
-		return insecureUntrustedHttpClient
-	case trustURLs:
-		return secureHttpClient
-	default:
-		return secureUntrustedHttpClient
-	}
-}
-
 var reservedIPRanges []*net.IPNet
 
-func isReserved(ip net.IP) bool {
+func IsReservedIP(ip net.IP) bool {
 	for _, ipRange := range reservedIPRanges {
 		if ipRange.Contains(ip) {
 			return true
@@ -77,39 +48,6 @@ func init() {
 		}
 		reservedIPRanges = append(reservedIPRanges, parsed)
 	}
-
-	allowHost := func(host string) bool {
-		if Cfg.ServiceSettings.AllowedUntrustedInternalConnections == nil {
-			return false
-		}
-		for _, allowed := range strings.Fields(*Cfg.ServiceSettings.AllowedUntrustedInternalConnections) {
-			if host == allowed {
-				return true
-			}
-		}
-		return false
-	}
-
-	allowIP := func(ip net.IP) bool {
-		if !isReserved(ip) {
-			return true
-		}
-		if Cfg.ServiceSettings.AllowedUntrustedInternalConnections == nil {
-			return false
-		}
-		for _, allowed := range strings.Fields(*Cfg.ServiceSettings.AllowedUntrustedInternalConnections) {
-			if _, ipRange, err := net.ParseCIDR(allowed); err == nil && ipRange.Contains(ip) {
-				return true
-			}
-		}
-		return false
-	}
-
-	secureHttpClient = createHttpClient(false, nil, nil)
-	insecureHttpClient = createHttpClient(true, nil, nil)
-
-	secureUntrustedHttpClient = createHttpClient(false, allowHost, allowIP)
-	insecureUntrustedHttpClient = createHttpClient(true, allowHost, allowIP)
 }
 
 type DialContextFunction func(ctx context.Context, network, addr string) (net.Conn, error)
@@ -159,7 +97,14 @@ func dialContextFilter(dial DialContextFunction, allowHost func(host string) boo
 	}
 }
 
-func createHttpClient(enableInsecureConnections bool, allowHost func(host string) bool, allowIP func(ip net.IP) bool) *http.Client {
+// NewHTTPClient returns a variation the default implementation of Client.
+// It uses a Transport with the same settings as the default Transport
+// but with the following modifications:
+// - shorter timeout for dial and TLS handshake (defined as constant
+//   "connectTimeout")
+// - timeout for the end-to-end request (defined as constant
+//   "requestTimeout")
+func NewHTTPClient(enableInsecureConnections bool, allowHost func(host string) bool, allowIP func(ip net.IP) bool) *http.Client {
 	dialContext := (&net.Dialer{
 		Timeout:   connectTimeout,
 		KeepAlive: 30 * time.Second,

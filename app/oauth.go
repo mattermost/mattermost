@@ -681,7 +681,7 @@ func (a *App) AuthorizeOAuthUser(w http.ResponseWriter, r *http.Request, service
 
 	var ar *model.AccessResponse
 	var bodyBytes []byte
-	if resp, err := utils.HttpClient(true).Do(req); err != nil {
+	if resp, err := a.HTTPClient(true).Do(req); err != nil {
 		return nil, "", stateProps, model.NewAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.token_failed.app_error", nil, err.Error(), http.StatusInternalServerError)
 	} else {
 		ar = model.AccessResponseFromJson(resp.Body)
@@ -708,7 +708,7 @@ func (a *App) AuthorizeOAuthUser(w http.ResponseWriter, r *http.Request, service
 	req.Header.Set("Accept", "application/json")
 	req.Header.Set("Authorization", "Bearer "+ar.AccessToken)
 
-	if resp, err := utils.HttpClient(true).Do(req); err != nil {
+	if resp, err := a.HTTPClient(true).Do(req); err != nil {
 		return nil, "", stateProps, model.NewAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.service.app_error", map[string]interface{}{"Service": service}, err.Error(), http.StatusInternalServerError)
 	} else {
 		return resp.Body, teamId, stateProps, nil
