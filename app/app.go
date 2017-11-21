@@ -356,6 +356,10 @@ func (a *App) HTMLTemplates() *template.Template {
 func (a *App) HTTPClient(trustURLs bool) *http.Client {
 	insecure := a.Config().ServiceSettings.EnableInsecureOutgoingConnections != nil && *a.Config().ServiceSettings.EnableInsecureOutgoingConnections
 
+	if trustURLs {
+		return utils.NewHTTPClient(insecure, nil, nil)
+	}
+
 	allowHost := func(host string) bool {
 		if a.Config().ServiceSettings.AllowedUntrustedInternalConnections == nil {
 			return false
@@ -383,16 +387,7 @@ func (a *App) HTTPClient(trustURLs bool) *http.Client {
 		return false
 	}
 
-	switch {
-	case insecure && trustURLs:
-		return utils.NewHTTPClient(true, nil, nil)
-	case insecure:
-		return utils.NewHTTPClient(true, allowHost, allowIP)
-	case trustURLs:
-		return utils.NewHTTPClient(false, nil, nil)
-	default:
-		return utils.NewHTTPClient(false, allowHost, allowIP)
-	}
+	return utils.NewHTTPClient(insecure, allowHost, allowIP)
 }
 
 func (a *App) Handle404(w http.ResponseWriter, r *http.Request) {
