@@ -205,6 +205,7 @@ type ServiceSettings struct {
 	EnableUserStatuses                       *bool
 	ClusterLogTimeoutMilliseconds            *int
 	CloseUnusedDirectMessages                *bool
+	EnablePreviewFeatures                    *bool
 }
 
 func (s *ServiceSettings) SetDefaults() {
