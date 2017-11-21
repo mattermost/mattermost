@@ -22,7 +22,7 @@ func TestCreateUser(t *testing.T) {
 	Client := th.Client
 	AdminClient := th.SystemAdminClient
 
-	user := model.User{Email: GenerateTestEmail(), Nickname: "Corey Hulen", Password: "hello1", Username: GenerateTestUsername(), Roles: model.ROLE_SYSTEM_ADMIN.Id + " " + model.ROLE_SYSTEM_USER.Id}
+	user := model.User{Email: GenerateTestEmail(), Nickname: "Corey Hulen", Password: "hello1", Username: GenerateTestUsername(), Roles: model.SYSTEM_ADMIN_ROLE_ID + " " + model.SYSTEM_USER_ROLE_ID}
 
 	ruser, resp := Client.CreateUser(&user)
 	CheckNoError(t, resp)
@@ -34,7 +34,7 @@ func TestCreateUser(t *testing.T) {
 		t.Fatal("nickname didn't match")
 	}
 
-	if ruser.Roles != model.ROLE_SYSTEM_USER.Id {
+	if ruser.Roles != model.SYSTEM_USER_ROLE_ID {
 		t.Log(ruser.Roles)
 		t.Fatal("did not clear roles")
 	}
@@ -86,7 +86,7 @@ func TestCreateUserWithHash(t *testing.T) {
 	Client := th.Client
 
 	t.Run("CreateWithHashHappyPath", func(t *testing.T) {
-		user := model.User{Email: GenerateTestEmail(), Nickname: "Corey Hulen", Password: "hello1", Username: GenerateTestUsername(), Roles: model.ROLE_SYSTEM_ADMIN.Id + " " + model.ROLE_SYSTEM_USER.Id}
+		user := model.User{Email: GenerateTestEmail(), Nickname: "Corey Hulen", Password: "hello1", Username: GenerateTestUsername(), Roles: model.SYSTEM_ADMIN_ROLE_ID + " " + model.SYSTEM_USER_ROLE_ID}
 		props := make(map[string]string)
 		props["email"] = user.Email
 		props["id"] = th.BasicTeam.Id
@@ -104,7 +104,7 @@ func TestCreateUserWithHash(t *testing.T) {
 		if ruser.Nickname != user.Nickname {
 			t.Fatal("nickname didn't match")
 		}
-		if ruser.Roles != model.ROLE_SYSTEM_USER.Id {
+		if ruser.Roles != model.SYSTEM_USER_ROLE_ID {
 			t.Log(ruser.Roles)
 			t.Fatal("did not clear roles")
 		}
@@ -112,7 +112,7 @@ func TestCreateUserWithHash(t *testing.T) {
 	})
 
 	t.Run("NoHashAndNoData", func(t *testing.T) {
-		user := model.User{Email: GenerateTestEmail(), Nickname: "Corey Hulen", Password: "hello1", Username: GenerateTestUsername(), Roles: model.ROLE_SYSTEM_ADMIN.Id + " " + model.ROLE_SYSTEM_USER.Id}
+		user := model.User{Email: GenerateTestEmail(), Nickname: "Corey Hulen", Password: "hello1", Username: GenerateTestUsername(), Roles: model.SYSTEM_ADMIN_ROLE_ID + " " + model.SYSTEM_USER_ROLE_ID}
 		props := make(map[string]string)
 		props["email"] = user.Email
 		props["id"] = th.BasicTeam.Id
@@ -132,7 +132,7 @@ func TestCreateUserWithHash(t *testing.T) {
 	})
 
 	t.Run("HashExpired", func(t *testing.T) {
-		user := model.User{Email: GenerateTestEmail(), Nickname: "Corey Hulen", Password: "hello1", Username: GenerateTestUsername(), Roles: model.ROLE_SYSTEM_ADMIN.Id + " " + model.ROLE_SYSTEM_USER.Id}
+		user := model.User{Email: GenerateTestEmail(), Nickname: "Corey Hulen", Password: "hello1", Username: GenerateTestUsername(), Roles: model.SYSTEM_ADMIN_ROLE_ID + " " + model.SYSTEM_USER_ROLE_ID}
 		timeNow := time.Now()
 		past49Hours := timeNow.Add(-49*time.Hour).UnixNano() / int64(time.Millisecond)
 
@@ -151,7 +151,7 @@ func TestCreateUserWithHash(t *testing.T) {
 	})
 
 	t.Run("WrongHash", func(t *testing.T) {
-		user := model.User{Email: GenerateTestEmail(), Nickname: "Corey Hulen", Password: "hello1", Username: GenerateTestUsername(), Roles: model.ROLE_SYSTEM_ADMIN.Id + " " + model.ROLE_SYSTEM_USER.Id}
+		user := model.User{Email: GenerateTestEmail(), Nickname: "Corey Hulen", Password: "hello1", Username: GenerateTestUsername(), Roles: model.SYSTEM_ADMIN_ROLE_ID + " " + model.SYSTEM_USER_ROLE_ID}
 		props := make(map[string]string)
 		props["email"] = user.Email
 		props["id"] = th.BasicTeam.Id
@@ -167,7 +167,7 @@ func TestCreateUserWithHash(t *testing.T) {
 	})
 
 	t.Run("EnableUserCreationDisable", func(t *testing.T) {
-		user := model.User{Email: GenerateTestEmail(), Nickname: "Corey Hulen", Password: "hello1", Username: GenerateTestUsername(), Roles: model.ROLE_SYSTEM_ADMIN.Id + " " + model.ROLE_SYSTEM_USER.Id}
+		user := model.User{Email: GenerateTestEmail(), Nickname: "Corey Hulen", Password: "hello1", Username: GenerateTestUsername(), Roles: model.SYSTEM_ADMIN_ROLE_ID + " " + model.SYSTEM_USER_ROLE_ID}
 
 		props := make(map[string]string)
 		props["email"] = user.Email
@@ -188,7 +188,7 @@ func TestCreateUserWithHash(t *testing.T) {
 	})
 
 	t.Run("EnableOpenServerDisable", func(t *testing.T) {
-		user := model.User{Email: GenerateTestEmail(), Nickname: "Corey Hulen", Password: "hello1", Username: GenerateTestUsername(), Roles: model.ROLE_SYSTEM_ADMIN.Id + " " + model.ROLE_SYSTEM_USER.Id}
+		user := model.User{Email: GenerateTestEmail(), Nickname: "Corey Hulen", Password: "hello1", Username: GenerateTestUsername(), Roles: model.SYSTEM_ADMIN_ROLE_ID + " " + model.SYSTEM_USER_ROLE_ID}
 
 		props := make(map[string]string)
 		props["email"] = user.Email
@@ -209,7 +209,7 @@ func TestCreateUserWithHash(t *testing.T) {
 		if ruser.Nickname != user.Nickname {
 			t.Fatal("nickname didn't match")
 		}
-		if ruser.Roles != model.ROLE_SYSTEM_USER.Id {
+		if ruser.Roles != model.SYSTEM_USER_ROLE_ID {
 			t.Log(ruser.Roles)
 			t.Fatal("did not clear roles")
 		}
@@ -224,7 +224,7 @@ func TestCreateUserWithInviteId(t *testing.T) {
 	AdminClient := th.SystemAdminClient
 
 	t.Run("CreateWithInviteIdHappyPath", func(t *testing.T) {
-		user := model.User{Email: GenerateTestEmail(), Nickname: "Corey Hulen", Password: "hello1", Username: GenerateTestUsername(), Roles: model.ROLE_SYSTEM_ADMIN.Id + " " + model.ROLE_SYSTEM_USER.Id}
+		user := model.User{Email: GenerateTestEmail(), Nickname: "Corey Hulen", Password: "hello1", Username: GenerateTestUsername(), Roles: model.SYSTEM_ADMIN_ROLE_ID + " " + model.SYSTEM_USER_ROLE_ID}
 
 		inviteId := th.BasicTeam.InviteId
 
@@ -236,7 +236,7 @@ func TestCreateUserWithInviteId(t *testing.T) {
 		if ruser.Nickname != user.Nickname {
 			t.Fatal("nickname didn't match")
 		}
-		if ruser.Roles != model.ROLE_SYSTEM_USER.Id {
+		if ruser.Roles != model.SYSTEM_USER_ROLE_ID {
 			t.Log(ruser.Roles)
 			t.Fatal("did not clear roles")
 		}
@@ -244,7 +244,7 @@ func TestCreateUserWithInviteId(t *testing.T) {
 	})
 
 	t.Run("WrongInviteId", func(t *testing.T) {
-		user := model.User{Email: GenerateTestEmail(), Nickname: "Corey Hulen", Password: "hello1", Username: GenerateTestUsername(), Roles: model.ROLE_SYSTEM_ADMIN.Id + " " + model.ROLE_SYSTEM_USER.Id}
+		user := model.User{Email: GenerateTestEmail(), Nickname: "Corey Hulen", Password: "hello1", Username: GenerateTestUsername(), Roles: model.SYSTEM_ADMIN_ROLE_ID + " " + model.SYSTEM_USER_ROLE_ID}
 
 		inviteId := model.NewId()
 
@@ -254,7 +254,7 @@ func TestCreateUserWithInviteId(t *testing.T) {
 	})
 
 	t.Run("NoInviteId", func(t *testing.T) {
-		user := model.User{Email: GenerateTestEmail(), Nickname: "Corey Hulen", Password: "hello1", Username: GenerateTestUsername(), Roles: model.ROLE_SYSTEM_ADMIN.Id + " " + model.ROLE_SYSTEM_USER.Id}
+		user := model.User{Email: GenerateTestEmail(), Nickname: "Corey Hulen", Password: "hello1", Username: GenerateTestUsername(), Roles: model.SYSTEM_ADMIN_ROLE_ID + " " + model.SYSTEM_USER_ROLE_ID}
 
 		_, resp := Client.CreateUserWithInviteId(&user, "")
 		CheckBadRequestStatus(t, resp)
@@ -262,7 +262,7 @@ func TestCreateUserWithInviteId(t *testing.T) {
 	})
 
 	t.Run("ExpiredInviteId", func(t *testing.T) {
-		user := model.User{Email: GenerateTestEmail(), Nickname: "Corey Hulen", Password: "hello1", Username: GenerateTestUsername(), Roles: model.ROLE_SYSTEM_ADMIN.Id + " " + model.ROLE_SYSTEM_USER.Id}
+		user := model.User{Email: GenerateTestEmail(), Nickname: "Corey Hulen", Password: "hello1", Username: GenerateTestUsername(), Roles: model.SYSTEM_ADMIN_ROLE_ID + " " + model.SYSTEM_USER_ROLE_ID}
 
 		inviteId := th.BasicTeam.InviteId
 
@@ -276,7 +276,7 @@ func TestCreateUserWithInviteId(t *testing.T) {
 	})
 
 	t.Run("EnableUserCreationDisable", func(t *testing.T) {
-		user := model.User{Email: GenerateTestEmail(), Nickname: "Corey Hulen", Password: "hello1", Username: GenerateTestUsername(), Roles: model.ROLE_SYSTEM_ADMIN.Id + " " + model.ROLE_SYSTEM_USER.Id}
+		user := model.User{Email: GenerateTestEmail(), Nickname: "Corey Hulen", Password: "hello1", Username: GenerateTestUsername(), Roles: model.SYSTEM_ADMIN_ROLE_ID + " " + model.SYSTEM_USER_ROLE_ID}
 
 		th.App.UpdateConfig(func(cfg *model.Config) { cfg.TeamSettings.EnableUserCreation = false })
 
@@ -290,7 +290,7 @@ func TestCreateUserWithInviteId(t *testing.T) {
 	})
 
 	t.Run("EnableOpenServerDisable", func(t *testing.T) {
-		user := model.User{Email: GenerateTestEmail(), Nickname: "Corey Hulen", Password: "hello1", Username: GenerateTestUsername(), Roles: model.ROLE_SYSTEM_ADMIN.Id + " " + model.ROLE_SYSTEM_USER.Id}
+		user := model.User{Email: GenerateTestEmail(), Nickname: "Corey Hulen", Password: "hello1", Username: GenerateTestUsername(), Roles: model.SYSTEM_ADMIN_ROLE_ID + " " + model.SYSTEM_USER_ROLE_ID}
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableOpenServer = false })
 
@@ -304,7 +304,7 @@ func TestCreateUserWithInviteId(t *testing.T) {
 		if ruser.Nickname != user.Nickname {
 			t.Fatal("nickname didn't match")
 		}
-		if ruser.Roles != model.ROLE_SYSTEM_USER.Id {
+		if ruser.Roles != model.SYSTEM_USER_ROLE_ID {
 			t.Log(ruser.Roles)
 			t.Fatal("did not clear roles")
 		}
@@ -923,7 +923,7 @@ func TestUpdateUser(t *testing.T) {
 	Client.Login(user.Email, user.Password)
 
 	user.Nickname = "Joram Wilander"
-	user.Roles = model.ROLE_SYSTEM_ADMIN.Id
+	user.Roles = model.SYSTEM_ADMIN_ROLE_ID
 	user.LastPasswordUpdate = 123
 
 	ruser, resp := Client.UpdateUser(user)
@@ -933,7 +933,7 @@ func TestUpdateUser(t *testing.T) {
 	if ruser.Nickname != "Joram Wilander" {
 		t.Fatal("Nickname did not update properly")
 	}
-	if ruser.Roles != model.ROLE_SYSTEM_USER.Id {
+	if ruser.Roles != model.SYSTEM_USER_ROLE_ID {
 		t.Fatal("Roles should not have updated")
 	}
 	if ruser.LastPasswordUpdate == 123 {
@@ -1101,22 +1101,22 @@ func TestUpdateUserRoles(t *testing.T) {
 	Client := th.Client
 	SystemAdminClient := th.SystemAdminClient
 
-	_, resp := Client.UpdateUserRoles(th.SystemAdminUser.Id, model.ROLE_SYSTEM_USER.Id)
+	_, resp := Client.UpdateUserRoles(th.SystemAdminUser.Id, model.SYSTEM_USER_ROLE_ID)
 	CheckForbiddenStatus(t, resp)
 
-	_, resp = SystemAdminClient.UpdateUserRoles(th.BasicUser.Id, model.ROLE_SYSTEM_USER.Id)
+	_, resp = SystemAdminClient.UpdateUserRoles(th.BasicUser.Id, model.SYSTEM_USER_ROLE_ID)
 	CheckNoError(t, resp)
 
-	_, resp = SystemAdminClient.UpdateUserRoles(th.BasicUser.Id, model.ROLE_SYSTEM_USER.Id+" "+model.ROLE_SYSTEM_ADMIN.Id)
+	_, resp = SystemAdminClient.UpdateUserRoles(th.BasicUser.Id, model.SYSTEM_USER_ROLE_ID+" "+model.SYSTEM_ADMIN_ROLE_ID)
 	CheckNoError(t, resp)
 
 	_, resp = SystemAdminClient.UpdateUserRoles(th.BasicUser.Id, "junk")
 	CheckBadRequestStatus(t, resp)
 
-	_, resp = SystemAdminClient.UpdateUserRoles("junk", model.ROLE_SYSTEM_USER.Id)
+	_, resp = SystemAdminClient.UpdateUserRoles("junk", model.SYSTEM_USER_ROLE_ID)
 	CheckBadRequestStatus(t, resp)
 
-	_, resp = SystemAdminClient.UpdateUserRoles(model.NewId(), model.ROLE_SYSTEM_USER.Id)
+	_, resp = SystemAdminClient.UpdateUserRoles(model.NewId(), model.SYSTEM_USER_ROLE_ID)
 	CheckBadRequestStatus(t, resp)
 }
 
@@ -2000,7 +2000,7 @@ func TestVerifyUserEmail(t *testing.T) {
 	defer th.TearDown()
 	Client := th.Client
 
-	user := model.User{Email: GenerateTestEmail(), Nickname: "Darth Vader", Password: "hello1", Username: GenerateTestUsername(), Roles: model.ROLE_SYSTEM_ADMIN.Id + " " + model.ROLE_SYSTEM_USER.Id}
+	user := model.User{Email: GenerateTestEmail(), Nickname: "Darth Vader", Password: "hello1", Username: GenerateTestUsername(), Roles: model.SYSTEM_ADMIN_ROLE_ID + " " + model.SYSTEM_USER_ROLE_ID}
 
 	ruser, resp := Client.CreateUser(&user)
 
@@ -2200,7 +2200,7 @@ func TestCreateUserAccessToken(t *testing.T) {
 	_, resp = Client.CreateUserAccessToken(th.BasicUser.Id, "")
 	CheckBadRequestStatus(t, resp)
 
-	th.App.UpdateUserRoles(th.BasicUser.Id, model.ROLE_SYSTEM_USER.Id+" "+model.ROLE_SYSTEM_USER_ACCESS_TOKEN.Id, false)
+	th.App.UpdateUserRoles(th.BasicUser.Id, model.SYSTEM_USER_ROLE_ID+" "+model.SYSTEM_USER_ACCESS_TOKEN_ROLE_ID, false)
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = false })
 	_, resp = Client.CreateUserAccessToken(th.BasicUser.Id, testDescription)
@@ -2278,7 +2278,7 @@ func TestGetUserAccessToken(t *testing.T) {
 	_, resp = Client.GetUserAccessToken(model.NewId())
 	CheckForbiddenStatus(t, resp)
 
-	th.App.UpdateUserRoles(th.BasicUser.Id, model.ROLE_SYSTEM_USER.Id+" "+model.ROLE_SYSTEM_USER_ACCESS_TOKEN.Id, false)
+	th.App.UpdateUserRoles(th.BasicUser.Id, model.SYSTEM_USER_ROLE_ID+" "+model.SYSTEM_USER_ACCESS_TOKEN_ROLE_ID, false)
 	token, resp := Client.CreateUserAccessToken(th.BasicUser.Id, testDescription)
 	CheckNoError(t, resp)
 
@@ -2339,7 +2339,7 @@ func TestRevokeUserAccessToken(t *testing.T) {
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
 
-	th.App.UpdateUserRoles(th.BasicUser.Id, model.ROLE_SYSTEM_USER.Id+" "+model.ROLE_SYSTEM_USER_ACCESS_TOKEN.Id, false)
+	th.App.UpdateUserRoles(th.BasicUser.Id, model.SYSTEM_USER_ROLE_ID+" "+model.SYSTEM_USER_ACCESS_TOKEN_ROLE_ID, false)
 	token, resp := Client.CreateUserAccessToken(th.BasicUser.Id, testDescription)
 	CheckNoError(t, resp)
 
@@ -2385,7 +2385,7 @@ func TestDisableUserAccessToken(t *testing.T) {
 	defer th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = enableUserAccessTokens })
 	*th.App.Config().ServiceSettings.EnableUserAccessTokens = true
 
-	th.App.UpdateUserRoles(th.BasicUser.Id, model.ROLE_SYSTEM_USER.Id+" "+model.ROLE_SYSTEM_USER_ACCESS_TOKEN.Id, false)
+	th.App.UpdateUserRoles(th.BasicUser.Id, model.SYSTEM_USER_ROLE_ID+" "+model.SYSTEM_USER_ACCESS_TOKEN_ROLE_ID, false)
 	token, resp := Client.CreateUserAccessToken(th.BasicUser.Id, testDescription)
 	CheckNoError(t, resp)
 
@@ -2430,7 +2430,7 @@ func TestEnableUserAccessToken(t *testing.T) {
 	defer th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = enableUserAccessTokens })
 	*th.App.Config().ServiceSettings.EnableUserAccessTokens = true
 
-	th.App.UpdateUserRoles(th.BasicUser.Id, model.ROLE_SYSTEM_USER.Id+" "+model.ROLE_SYSTEM_USER_ACCESS_TOKEN.Id, false)
+	th.App.UpdateUserRoles(th.BasicUser.Id, model.SYSTEM_USER_ROLE_ID+" "+model.SYSTEM_USER_ACCESS_TOKEN_ROLE_ID, false)
 	token, resp := Client.CreateUserAccessToken(th.BasicUser.Id, testDescription)
 	CheckNoError(t, resp)
 
@@ -2472,7 +2472,7 @@ func TestUserAccessTokenInactiveUser(t *testing.T) {
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
 
-	th.App.UpdateUserRoles(th.BasicUser.Id, model.ROLE_SYSTEM_USER.Id+" "+model.ROLE_SYSTEM_USER_ACCESS_TOKEN.Id, false)
+	th.App.UpdateUserRoles(th.BasicUser.Id, model.SYSTEM_USER_ROLE_ID+" "+model.SYSTEM_USER_ACCESS_TOKEN_ROLE_ID, false)
 	token, resp := Client.CreateUserAccessToken(th.BasicUser.Id, testDescription)
 	CheckNoError(t, resp)
 
@@ -2495,7 +2495,7 @@ func TestUserAccessTokenDisableConfig(t *testing.T) {
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
 
-	th.App.UpdateUserRoles(th.BasicUser.Id, model.ROLE_SYSTEM_USER.Id+" "+model.ROLE_SYSTEM_USER_ACCESS_TOKEN.Id, false)
+	th.App.UpdateUserRoles(th.BasicUser.Id, model.SYSTEM_USER_ROLE_ID+" "+model.SYSTEM_USER_ACCESS_TOKEN_ROLE_ID, false)
 	token, resp := Client.CreateUserAccessToken(th.BasicUser.Id, testDescription)
 	CheckNoError(t, resp)
 

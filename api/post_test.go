@@ -167,10 +167,10 @@ func TestCreatePost(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { cfg.TeamSettings.ExperimentalTownSquareIsReadOnly = disableTownSquareReadOnly })
 		utils.SetIsLicensed(isLicensed)
 		utils.SetLicense(license)
-		utils.SetDefaultRolesBasedOnConfig()
+		th.App.SetDefaultRolesBasedOnConfig()
 	}()
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.ExperimentalTownSquareIsReadOnly = true })
-	utils.SetDefaultRolesBasedOnConfig()
+	th.App.SetDefaultRolesBasedOnConfig()
 	utils.SetIsLicensed(true)
 	utils.SetLicense(&model.License{Features: &model.Features{}})
 	utils.License().Features.SetDefaults()
@@ -966,7 +966,7 @@ func TestDeletePosts(t *testing.T) {
 	team1 := th.BasicTeam
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.RestrictPostDelete = model.PERMISSIONS_DELETE_POST_ALL })
-	utils.SetDefaultRolesBasedOnConfig()
+	th.App.SetDefaultRolesBasedOnConfig()
 
 	time.Sleep(10 * time.Millisecond)
 	post1 := &model.Post{ChannelId: channel1.Id, Message: "zz" + model.NewId() + "a"}
@@ -1044,7 +1044,7 @@ func TestDeletePosts(t *testing.T) {
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.RestrictPostDelete = model.PERMISSIONS_DELETE_POST_TEAM_ADMIN
 	})
-	utils.SetDefaultRolesBasedOnConfig()
+	th.App.SetDefaultRolesBasedOnConfig()
 
 	th.LoginBasic()
 
@@ -1069,7 +1069,7 @@ func TestDeletePosts(t *testing.T) {
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.RestrictPostDelete = model.PERMISSIONS_DELETE_POST_SYSTEM_ADMIN
 	})
-	utils.SetDefaultRolesBasedOnConfig()
+	th.App.SetDefaultRolesBasedOnConfig()
 
 	th.LoginBasic()
 
@@ -1090,7 +1090,7 @@ func TestDeletePosts(t *testing.T) {
 	// Check that if unlicensed the policy restriction is not enforced.
 	utils.SetIsLicensed(false)
 	utils.SetLicense(nil)
-	utils.SetDefaultRolesBasedOnConfig()
+	th.App.SetDefaultRolesBasedOnConfig()
 
 	time.Sleep(10 * time.Millisecond)
 	post7 := &model.Post{ChannelId: channel1.Id, Message: "zz" + model.NewId() + "a"}

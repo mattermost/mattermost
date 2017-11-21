@@ -281,11 +281,11 @@ func (a *App) joinUserToTeam(team *model.Team, user *model.User) (*model.TeamMem
 	tm := &model.TeamMember{
 		TeamId: team.Id,
 		UserId: user.Id,
-		Roles:  model.ROLE_TEAM_USER.Id,
+		Roles:  model.TEAM_USER_ROLE_ID,
 	}
 
 	if team.Email == user.Email {
-		tm.Roles = model.ROLE_TEAM_USER.Id + " " + model.ROLE_TEAM_ADMIN.Id
+		tm.Roles = model.TEAM_USER_ROLE_ID + " " + model.TEAM_ADMIN_ROLE_ID
 	}
 
 	if etmr := <-a.Srv.Store.Team().GetMember(team.Id, user.Id); etmr.Err == nil {
@@ -323,10 +323,10 @@ func (a *App) JoinUserToTeam(team *model.Team, user *model.User, userRequestorId
 		return uua.Err
 	}
 
-	channelRole := model.ROLE_CHANNEL_USER.Id
+	channelRole := model.CHANNEL_USER_ROLE_ID
 
 	if team.Email == user.Email {
-		channelRole = model.ROLE_CHANNEL_USER.Id + " " + model.ROLE_CHANNEL_ADMIN.Id
+		channelRole = model.CHANNEL_USER_ROLE_ID + " " + model.CHANNEL_ADMIN_ROLE_ID
 	}
 
 	// Soft error if there is an issue joining the default channels
@@ -869,17 +869,17 @@ func (a *App) GetTeamIdFromQuery(query url.Values) (string, *model.AppError) {
 	return "", nil
 }
 
-func SanitizeTeam(session model.Session, team *model.Team) *model.Team {
-	if !SessionHasPermissionToTeam(session, team.Id, model.PERMISSION_MANAGE_TEAM) {
+func (a *App) SanitizeTeam(session model.Session, team *model.Team) *model.Team {
+	if !a.SessionHasPermissionToTeam(session, team.Id, model.PERMISSION_MANAGE_TEAM) {
 		team.Sanitize()
 	}
 
 	return team
 }
 
-func SanitizeTeams(session model.Session, teams []*model.Team) []*model.Team {
+func (a *App) SanitizeTeams(session model.Session, teams []*model.Team) []*model.Team {
 	for _, team := range teams {
-		SanitizeTeam(session, team)
+		a.SanitizeTeam(session, team)
 	}
 
 	return teams

@@ -198,17 +198,17 @@ func TestSanitizeTeam(t *testing.T) {
 	t.Run("not a user of the team", func(t *testing.T) {
 		userId := model.NewId()
 		session := model.Session{
-			Roles: model.ROLE_SYSTEM_USER.Id,
+			Roles: model.SYSTEM_USER_ROLE_ID,
 			TeamMembers: []*model.TeamMember{
 				{
 					UserId: userId,
 					TeamId: model.NewId(),
-					Roles:  model.ROLE_TEAM_USER.Id,
+					Roles:  model.TEAM_USER_ROLE_ID,
 				},
 			},
 		}
 
-		sanitized := SanitizeTeam(session, copyTeam())
+		sanitized := th.App.SanitizeTeam(session, copyTeam())
 		if sanitized.Email != "" && sanitized.AllowedDomains != "" {
 			t.Fatal("should've sanitized team")
 		}
@@ -217,17 +217,17 @@ func TestSanitizeTeam(t *testing.T) {
 	t.Run("user of the team", func(t *testing.T) {
 		userId := model.NewId()
 		session := model.Session{
-			Roles: model.ROLE_SYSTEM_USER.Id,
+			Roles: model.SYSTEM_USER_ROLE_ID,
 			TeamMembers: []*model.TeamMember{
 				{
 					UserId: userId,
 					TeamId: team.Id,
-					Roles:  model.ROLE_TEAM_USER.Id,
+					Roles:  model.TEAM_USER_ROLE_ID,
 				},
 			},
 		}
 
-		sanitized := SanitizeTeam(session, copyTeam())
+		sanitized := th.App.SanitizeTeam(session, copyTeam())
 		if sanitized.Email != "" && sanitized.AllowedDomains != "" {
 			t.Fatal("should've sanitized team")
 		}
@@ -236,17 +236,17 @@ func TestSanitizeTeam(t *testing.T) {
 	t.Run("team admin", func(t *testing.T) {
 		userId := model.NewId()
 		session := model.Session{
-			Roles: model.ROLE_SYSTEM_USER.Id,
+			Roles: model.SYSTEM_USER_ROLE_ID,
 			TeamMembers: []*model.TeamMember{
 				{
 					UserId: userId,
 					TeamId: team.Id,
-					Roles:  model.ROLE_TEAM_USER.Id + " " + model.ROLE_TEAM_ADMIN.Id,
+					Roles:  model.TEAM_USER_ROLE_ID + " " + model.TEAM_ADMIN_ROLE_ID,
 				},
 			},
 		}
 
-		sanitized := SanitizeTeam(session, copyTeam())
+		sanitized := th.App.SanitizeTeam(session, copyTeam())
 		if sanitized.Email == "" && sanitized.AllowedDomains == "" {
 			t.Fatal("shouldn't have sanitized team")
 		}
@@ -255,17 +255,17 @@ func TestSanitizeTeam(t *testing.T) {
 	t.Run("team admin of another team", func(t *testing.T) {
 		userId := model.NewId()
 		session := model.Session{
-			Roles: model.ROLE_SYSTEM_USER.Id,
+			Roles: model.SYSTEM_USER_ROLE_ID,
 			TeamMembers: []*model.TeamMember{
 				{
 					UserId: userId,
 					TeamId: model.NewId(),
-					Roles:  model.ROLE_TEAM_USER.Id + " " + model.ROLE_TEAM_ADMIN.Id,
+					Roles:  model.TEAM_USER_ROLE_ID + " " + model.TEAM_ADMIN_ROLE_ID,
 				},
 			},
 		}
 
-		sanitized := SanitizeTeam(session, copyTeam())
+		sanitized := th.App.SanitizeTeam(session, copyTeam())
 		if sanitized.Email != "" && sanitized.AllowedDomains != "" {
 			t.Fatal("should've sanitized team")
 		}
@@ -274,17 +274,17 @@ func TestSanitizeTeam(t *testing.T) {
 	t.Run("system admin, not a user of team", func(t *testing.T) {
 		userId := model.NewId()
 		session := model.Session{
-			Roles: model.ROLE_SYSTEM_USER.Id + " " + model.ROLE_SYSTEM_ADMIN.Id,
+			Roles: model.SYSTEM_USER_ROLE_ID + " " + model.SYSTEM_ADMIN_ROLE_ID,
 			TeamMembers: []*model.TeamMember{
 				{
 					UserId: userId,
 					TeamId: model.NewId(),
-					Roles:  model.ROLE_TEAM_USER.Id,
+					Roles:  model.TEAM_USER_ROLE_ID,
 				},
 			},
 		}
 
-		sanitized := SanitizeTeam(session, copyTeam())
+		sanitized := th.App.SanitizeTeam(session, copyTeam())
 		if sanitized.Email == "" && sanitized.AllowedDomains == "" {
 			t.Fatal("shouldn't have sanitized team")
 		}
@@ -293,17 +293,17 @@ func TestSanitizeTeam(t *testing.T) {
 	t.Run("system admin, user of team", func(t *testing.T) {
 		userId := model.NewId()
 		session := model.Session{
-			Roles: model.ROLE_SYSTEM_USER.Id + " " + model.ROLE_SYSTEM_ADMIN.Id,
+			Roles: model.SYSTEM_USER_ROLE_ID + " " + model.SYSTEM_ADMIN_ROLE_ID,
 			TeamMembers: []*model.TeamMember{
 				{
 					UserId: userId,
 					TeamId: team.Id,
-					Roles:  model.ROLE_TEAM_USER.Id,
+					Roles:  model.TEAM_USER_ROLE_ID,
 				},
 			},
 		}
 
-		sanitized := SanitizeTeam(session, copyTeam())
+		sanitized := th.App.SanitizeTeam(session, copyTeam())
 		if sanitized.Email == "" && sanitized.AllowedDomains == "" {
 			t.Fatal("shouldn't have sanitized team")
 		}
@@ -330,22 +330,22 @@ func TestSanitizeTeams(t *testing.T) {
 
 		userId := model.NewId()
 		session := model.Session{
-			Roles: model.ROLE_SYSTEM_USER.Id,
+			Roles: model.SYSTEM_USER_ROLE_ID,
 			TeamMembers: []*model.TeamMember{
 				{
 					UserId: userId,
 					TeamId: teams[0].Id,
-					Roles:  model.ROLE_TEAM_USER.Id,
+					Roles:  model.TEAM_USER_ROLE_ID,
 				},
 				{
 					UserId: userId,
 					TeamId: teams[1].Id,
-					Roles:  model.ROLE_TEAM_USER.Id + " " + model.ROLE_TEAM_ADMIN.Id,
+					Roles:  model.TEAM_USER_ROLE_ID + " " + model.TEAM_ADMIN_ROLE_ID,
 				},
 			},
 		}
 
-		sanitized := SanitizeTeams(session, teams)
+		sanitized := th.App.SanitizeTeams(session, teams)
 
 		if sanitized[0].Email != "" && sanitized[0].AllowedDomains != "" {
 			t.Fatal("should've sanitized first team")
@@ -372,17 +372,17 @@ func TestSanitizeTeams(t *testing.T) {
 
 		userId := model.NewId()
 		session := model.Session{
-			Roles: model.ROLE_SYSTEM_USER.Id + " " + model.ROLE_SYSTEM_ADMIN.Id,
+			Roles: model.SYSTEM_USER_ROLE_ID + " " + model.SYSTEM_ADMIN_ROLE_ID,
 			TeamMembers: []*model.TeamMember{
 				{
 					UserId: userId,
 					TeamId: teams[0].Id,
-					Roles:  model.ROLE_TEAM_USER.Id,
+					Roles:  model.TEAM_USER_ROLE_ID,
 				},
 			},
 		}
 
-		sanitized := SanitizeTeams(session, teams)
+		sanitized := th.App.SanitizeTeams(session, teams)
 
 		if sanitized[0].Email == "" && sanitized[0].AllowedDomains == "" {
 			t.Fatal("shouldn't have sanitized first team")

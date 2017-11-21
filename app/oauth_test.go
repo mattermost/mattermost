@@ -21,7 +21,7 @@ func TestOAuthRevokeAccessToken(t *testing.T) {
 	session.CreateAt = model.GetMillis()
 	session.UserId = model.NewId()
 	session.Token = model.NewId()
-	session.Roles = model.ROLE_SYSTEM_USER.Id
+	session.Roles = model.SYSTEM_USER_ROLE_ID
 	session.SetExpireInDays(1)
 
 	session, _ = th.App.CreateSession(session)
@@ -71,7 +71,7 @@ func TestOAuthDeleteApp(t *testing.T) {
 	session.CreateAt = model.GetMillis()
 	session.UserId = model.NewId()
 	session.Token = model.NewId()
-	session.Roles = model.ROLE_SYSTEM_USER.Id
+	session.Roles = model.SYSTEM_USER_ROLE_ID
 	session.IsOAuth = true
 	session.SetExpireInDays(1)
 
