@@ -4500,7 +4500,7 @@
   },
   {
     "id": "model.command.is_valid.display_name.app_error",
-    "translation": "Invalid display name"
+    "translation": "Invalid title"
   },
   {
     "id": "model.command.is_valid.id.app_error",
@@ -4984,7 +4984,7 @@
   },
   {
     "id": "model.incoming_hook.display_name.app_error",
-    "translation": "Invalid display name"
+    "translation": "Invalid title"
   },
   {
     "id": "model.incoming_hook.id.app_error",
@@ -5076,7 +5076,7 @@
   },
   {
     "id": "model.outgoing_hook.is_valid.display_name.app_error",
-    "translation": "Invalid display name"
+    "translation": "Invalid title"
   },
   {
     "id": "model.outgoing_hook.is_valid.id.app_error",
