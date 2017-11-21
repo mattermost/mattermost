@@ -700,6 +700,57 @@
     "translation": "Se ha producido un error durante la expansión de las previsualizaciones"
   },
   {
+    "id": "api.command_groupmsg.desc",
+    "translation": "Envía un Mensaje de Grupo a los usuarios especificados"
+  },
+  {
+    "id": "api.command_groupmsg.fail.app_error",
+    "translation": "Ha ocurrido un error mientras se enviaba el mensaje a los usuarios."
+  },
+  {
+    "id": "api.command_groupmsg.group_fail.app_error",
+    "translation": "Ha ocurrido un error mientras se creaba el mensaje de grupo."
+  },
+  {
+    "id": "api.command_groupmsg.hint",
+    "translation": "@[nombre de usuario 1], @[nombre de usuario 2] 'mensaje'"
+  },
+  {
+    "id": "api.command_groupmsg.invalid_user.app_error",
+    "translation": {
+      "one": "No pudimos encontrar al usuario: {{.Users}}",
+      "other": "No pudimos encontrar a los usuarios: {{.Users}}"
+    }
+  },
+  {
+    "id": "api.command_groupmsg.invalid_users.app_error",
+    "translation": "No pudimos encontrar los usuarios. %s"
+  },
+  {
+    "id": "api.command_groupmsg.list.app_error",
+    "translation": "Ha ocurrido un error mientras se listaban los usuarios."
+  },
+  {
+    "id": "api.command_groupmsg.max_users.app_error",
+    "translation": "Los mensajes de Grupo están limitados a un máximo de {{.MaxUsers}} usuarios."
+  },
+  {
+    "id": "api.command_groupmsg.min_users.app_error",
+    "translation": "Los mensajes de Grupo están limitados a un mínimo de {{.MinUsers}} usuarios."
+  },
+  {
+    "id": "api.command_groupmsg.missing.app_error",
+    "translation": "No pudimos encontrar el usuario"
+  },
+  {
+    "id": "api.command_groupmsg.name",
+    "translation": "mensaje"
+  },
+  {
+    "id": "api.command_groupmsg.success",
+    "translation": "Mensaje enviado a los usuarios."
+  },
+  {
     "id": "api.command_help.desc",
     "translation": "Abrir la página de ayuda de Mattermost"
   },
@@ -2116,6 +2167,10 @@
     "translation": "El número de goroutines supera umbral recomendado %v %v"
   },
   {
+    "id": "api.team.add_user_to_team.added",
+    "translation": "%v agregado al canal por %v"
+  },
+  {
     "id": "api.team.add_user_to_team.missing_parameter.app_error",
     "translation": "Parámetro requerido para agregar un usuario al equipo."
   },
@@ -2228,6 +2283,10 @@
     "translation": "El correo electrónico debe ser de un dominio específico (e.j. @ejemplo.com). Por favor pidele más detalles tu administrador de sistemas."
   },
   {
+    "id": "api.team.leave.left",
+    "translation": "%v left the team."
+  },
+  {
     "id": "api.team.permanent_delete_team.attempting.warn",
     "translation": "Intentando eliminar permanentemente al equipo %v id=%v"
   },
@@ -2238,6 +2297,10 @@
   {
     "id": "api.team.remove_user_from_team.missing.app_error",
     "translation": "El usuario no parece ser parte de este equipo."
+  },
+  {
+    "id": "api.team.remove_user_from_team.removed",
+    "translation": "%v fue removido del canal."
   },
   {
     "id": "api.team.signup_team.email_disabled.app_error",
@@ -4373,7 +4436,7 @@
   },
   {
     "id": "model.command.is_valid.display_name.app_error",
-    "translation": "Nombre para mostrar no válido"
+    "translation": "Tipo inválido"
   },
   {
     "id": "model.command.is_valid.id.app_error",
@@ -4833,7 +4896,7 @@
   },
   {
     "id": "model.incoming_hook.display_name.app_error",
-    "translation": "Nombre para mostrar no válido"
+    "translation": "Tipo inválido"
   },
   {
     "id": "model.incoming_hook.id.app_error",
@@ -4925,7 +4988,7 @@
   },
   {
     "id": "model.outgoing_hook.is_valid.display_name.app_error",
-    "translation": "Nombre para mostrar no válido"
+    "translation": "Tipo inválido"
   },
   {
     "id": "model.outgoing_hook.is_valid.id.app_error",

@@ -700,6 +700,57 @@
     "translation": "An error occurred while expanding previews"
   },
   {
+    "id": "api.command_groupmsg.desc",
+    "translation": "Sends a Group Message to the specified users"
+  },
+  {
+    "id": "api.command_groupmsg.fail.app_error",
+    "translation": "An error occurred while messaging the users."
+  },
+  {
+    "id": "api.command_groupmsg.group_fail.app_error",
+    "translation": "An error occurred while creating the group message."
+  },
+  {
+    "id": "api.command_groupmsg.hint",
+    "translation": "@[username1],@[username2] 'message'"
+  },
+  {
+    "id": "api.command_groupmsg.invalid_user.app_error",
+    "translation": {
+      "one": "We couldn't find the user: {{.Users}}",
+      "other": "We couldn't find the users: {{.Users}}"
+    }
+  },
+  {
+    "id": "api.command_groupmsg.invalid_users.app_error",
+    "translation": "We couldn't find the users: %s"
+  },
+  {
+    "id": "api.command_groupmsg.list.app_error",
+    "translation": "An error occurred while listing users."
+  },
+  {
+    "id": "api.command_groupmsg.max_users.app_error",
+    "translation": "Group messages are limited to a maximum of {{.MaxUsers}} users."
+  },
+  {
+    "id": "api.command_groupmsg.min_users.app_error",
+    "translation": "Group messages are limited to a minimun of {{.MinUsers}} users."
+  },
+  {
+    "id": "api.command_groupmsg.missing.app_error",
+    "translation": "We couldn't find the user"
+  },
+  {
+    "id": "api.command_groupmsg.name",
+    "translation": "message"
+  },
+  {
+    "id": "api.command_groupmsg.success",
+    "translation": "Messaged users."
+  },
+  {
     "id": "api.command_help.desc",
     "translation": "Open the Mattermost help page"
   },
@@ -818,57 +869,6 @@
   {
     "id": "api.command_msg.success",
     "translation": "Messaged user."
-  },
-  {
-    "id": "api.command_groupmsg.desc",
-    "translation": "Sends a Group Message to the specified users"
-  },
-  {
-    "id": "api.command_groupmsg.group_fail.app_error",
-    "translation": "An error occurred while creating the group message."
-  },
-  {
-    "id": "api.command_groupmsg.fail.app_error",
-    "translation": "An error occurred while messaging the users."
-  },
-  {
-    "id": "api.command_groupmsg.invalid_user.app_error",
-    "translation": {
-      "one": "We couldn't find the user: {{.Users}}",
-      "other": "We couldn't find the users: {{.Users}}"
-    }
-  },
-  {
-    "id": "api.command_groupmsg.invalid_users.app_error",
-    "translation": "We couldn't find the users: %s"
-  },
-  {
-    "id": "api.command_groupmsg.min_users.app_error",
-    "translation": "Group messages are limited to a minimun of {{.MinUsers}} users."
-  },
-  {
-    "id": "api.command_groupmsg.max_users.app_error",
-    "translation": "Group messages are limited to a maximum of {{.MaxUsers}} users."
-  },
-  {
-    "id": "api.command_groupmsg.hint",
-    "translation": "@[username1],@[username2] 'message'"
-  },
-  {
-    "id": "api.command_groupmsg.list.app_error",
-    "translation": "An error occurred while listing users."
-  },
-  {
-    "id": "api.command_groupmsg.missing.app_error",
-    "translation": "We couldn't find the user"
-  },
-  {
-    "id": "api.command_groupmsg.name",
-    "translation": "message"
-  },
-  {
-    "id": "api.command_groupmsg.success",
-    "translation": "Messaged users."
   },
   {
     "id": "api.command_offline.desc",
@@ -2279,12 +2279,12 @@
     "translation": "Team creation has been disabled. Please ask your systems administrator for details."
   },
   {
-    "id": "api.team.leave.left",
-    "translation": "%v left the team."
-  },
-  {
     "id": "api.team.is_team_creation_allowed.domain.app_error",
     "translation": "Email must be from a specific domain (e.g. @example.com). Please ask your systems administrator for details."
+  },
+  {
+    "id": "api.team.leave.left",
+    "translation": "%v left the team."
   },
   {
     "id": "api.team.permanent_delete_team.attempting.warn",
@@ -2295,12 +2295,12 @@
     "translation": "Permanently deleted team %v id=%v"
   },
   {
-    "id": "api.team.remove_user_from_team.removed",
-    "translation": "%v was removed from the team."
-  },
-  {
     "id": "api.team.remove_user_from_team.missing.app_error",
     "translation": "The user does not appear to be part of this team."
+  },
+  {
+    "id": "api.team.remove_user_from_team.removed",
+    "translation": "%v was removed from the team."
   },
   {
     "id": "api.team.signup_team.email_disabled.app_error",
