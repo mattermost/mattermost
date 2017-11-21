@@ -151,7 +151,7 @@ func (a *App) CreateChannel(channel *model.Channel, addMember bool) (*model.Chan
 			cm := &model.ChannelMember{
 				ChannelId:   sc.Id,
 				UserId:      channel.CreatorId,
-				Roles:       model.ROLE_CHANNEL_USER.Id + " " + model.ROLE_CHANNEL_ADMIN.Id,
+				Roles:       model.CHANNEL_USER_ROLE_ID + " " + model.CHANNEL_ADMIN_ROLE_ID,
 				NotifyProps: model.GetDefaultChannelNotifyProps(),
 			}
 
@@ -296,7 +296,7 @@ func (a *App) createGroupChannel(userIds []string, creatorId string) (*model.Cha
 				UserId:      user.Id,
 				ChannelId:   group.Id,
 				NotifyProps: model.GetDefaultChannelNotifyProps(),
-				Roles:       model.ROLE_CHANNEL_USER.Id,
+				Roles:       model.CHANNEL_USER_ROLE_ID,
 			}
 
 			if result := <-a.Srv.Store.Channel().SaveMember(cm); result.Err != nil {
@@ -514,7 +514,7 @@ func (a *App) addUserToChannel(user *model.User, channel *model.Channel, teamMem
 		ChannelId:   channel.Id,
 		UserId:      user.Id,
 		NotifyProps: model.GetDefaultChannelNotifyProps(),
-		Roles:       model.ROLE_CHANNEL_USER.Id,
+		Roles:       model.CHANNEL_USER_ROLE_ID,
 	}
 	if result := <-a.Srv.Store.Channel().SaveMember(newMember); result.Err != nil {
 		l4g.Error("Failed to add member user_id=%v channel_id=%v err=%v", user.Id, channel.Id, result.Err)

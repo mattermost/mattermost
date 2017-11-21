@@ -13,7 +13,6 @@ import (
 	l4g "github.com/alecthomas/log4go"
 	"github.com/gorilla/mux"
 
-	"github.com/mattermost/mattermost-server/app"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
 )
@@ -86,7 +85,7 @@ func GetAllTeamListings(c *Context, w http.ResponseWriter, r *http.Request) {
 		m[v.Id] = v
 	}
 
-	sanitizeTeamMap(c.Session, m)
+	sanitizeTeamMap(c, m)
 
 	w.Write([]byte(model.TeamMapToJson(m)))
 }
@@ -113,7 +112,7 @@ func getAll(c *Context, w http.ResponseWriter, r *http.Request) {
 		m[v.Id] = v
 	}
 
-	sanitizeTeamMap(c.Session, m)
+	sanitizeTeamMap(c, m)
 
 	w.Write([]byte(model.TeamMapToJson(m)))
 }
@@ -210,7 +209,7 @@ func addUserToTeamFromInvite(c *Context, w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	app.SanitizeTeam(c.Session, team)
+	c.App.SanitizeTeam(c.Session, team)
 
 	w.Write([]byte(team.ToJson()))
 }
@@ -244,7 +243,7 @@ func getTeamByName(c *Context, w http.ResponseWriter, r *http.Request) {
 			}
 		}
 
-		app.SanitizeTeam(c.Session, team)
+		c.App.SanitizeTeam(c.Session, team)
 
 		w.Write([]byte(team.ToJson()))
 		return
@@ -299,7 +298,7 @@ func updateTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	app.SanitizeTeam(c.Session, updatedTeam)
+	c.App.SanitizeTeam(c.Session, updatedTeam)
 
 	w.Write([]byte(updatedTeam.ToJson()))
 }
@@ -350,7 +349,7 @@ func getMyTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	} else {
 		w.Header().Set(model.HEADER_ETAG_SERVER, team.Etag())
 
-		app.SanitizeTeam(c.Session, team)
+		c.App.SanitizeTeam(c.Session, team)
 
 		w.Write([]byte(team.ToJson()))
 		return
@@ -544,8 +543,8 @@ func getTeamMembersByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func sanitizeTeamMap(session model.Session, teams map[string]*model.Team) {
+func sanitizeTeamMap(c *Context, teams map[string]*model.Team) {
 	for _, team := range teams {
-		app.SanitizeTeam(session, team)
+		c.App.SanitizeTeam(c.Session, team)
 	}
 }

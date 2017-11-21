@@ -179,7 +179,7 @@ func (a *App) CreateUser(user *model.User) (*model.User, *model.AppError) {
 		return nil, model.NewAppError("CreateUser", "api.user.create_user.accepted_domain.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	user.Roles = model.ROLE_SYSTEM_USER.Id
+	user.Roles = model.SYSTEM_USER_ROLE_ID
 
 	// Below is a special case where the first user in the entire
 	// system is granted the system_admin role
@@ -188,7 +188,7 @@ func (a *App) CreateUser(user *model.User) (*model.User, *model.AppError) {
 	} else {
 		count := result.Data.(int64)
 		if count <= 0 {
-			user.Roles = model.ROLE_SYSTEM_ADMIN.Id + " " + model.ROLE_SYSTEM_USER.Id
+			user.Roles = model.SYSTEM_ADMIN_ROLE_ID + " " + model.SYSTEM_USER_ROLE_ID
 		}
 	}
 
@@ -1235,7 +1235,7 @@ func (a *App) UpdateUserRoles(userId string, newRoles string, sendWebSocketEvent
 
 func (a *App) PermanentDeleteUser(user *model.User) *model.AppError {
 	l4g.Warn(utils.T("api.user.permanent_delete_user.attempting.warn"), user.Email, user.Id)
-	if user.IsInRole(model.ROLE_SYSTEM_ADMIN.Id) {
+	if user.IsInRole(model.SYSTEM_ADMIN_ROLE_ID) {
 		l4g.Warn(utils.T("api.user.permanent_delete_user.system_admin.warn"), user.Email)
 	}
 
