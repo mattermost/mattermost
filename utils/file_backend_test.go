@@ -69,21 +69,21 @@ func (s *FileBackendTestSuite) SetupTest() {
 }
 
 func (s *FileBackendTestSuite) TestConnection() {
-	s.Nil(s.backend.TestConnection())
+	require.Nil(s.T(), s.backend.TestConnection())
 }
 
 func (s *FileBackendTestSuite) TestReadWriteFile() {
 	b := []byte("test")
 	path := "tests/" + model.NewId()
 
-	s.Nil(s.backend.WriteFile(b, path))
+	require.Nil(s.T(), s.backend.WriteFile(b, path))
 	defer s.backend.RemoveFile(path)
 
 	read, err := s.backend.ReadFile(path)
-	s.Nil(err)
+	require.Nil(s.T(), err)
 
 	readString := string(read)
-	s.EqualValues(readString, "test")
+	require.EqualValues(s.T(), readString, "test")
 }
 
 func (s *FileBackendTestSuite) TestMoveFile() {
@@ -91,33 +91,33 @@ func (s *FileBackendTestSuite) TestMoveFile() {
 	path1 := "tests/" + model.NewId()
 	path2 := "tests/" + model.NewId()
 
-	s.Nil(s.backend.WriteFile(b, path1))
+	require.Nil(s.T(), s.backend.WriteFile(b, path1))
 	defer s.backend.RemoveFile(path1)
 
-	s.Nil(s.backend.MoveFile(path1, path2))
+	require.Nil(s.T(), s.backend.MoveFile(path1, path2))
 	defer s.backend.RemoveFile(path2)
 
 	_, err := s.backend.ReadFile(path1)
-	s.Error(err)
+	require.Error(s.T(), err)
 
 	_, err = s.backend.ReadFile(path2)
-	s.Nil(err)
+	require.Nil(s.T(), err)
 }
 
 func (s *FileBackendTestSuite) TestRemoveFile() {
 	b := []byte("test")
 	path := "tests/" + model.NewId()
 
-	s.Nil(s.backend.WriteFile(b, path))
-	s.Nil(s.backend.RemoveFile(path))
+	require.Nil(s.T(), s.backend.WriteFile(b, path))
+	require.Nil(s.T(), s.backend.RemoveFile(path))
 
 	_, err := s.backend.ReadFile(path)
-	s.Error(err)
+	require.Error(s.T(), err)
 
-	s.Nil(s.backend.WriteFile(b, "tests2/foo"))
-	s.Nil(s.backend.WriteFile(b, "tests2/bar"))
-	s.Nil(s.backend.WriteFile(b, "tests2/asdf"))
-	s.Nil(s.backend.RemoveDirectory("tests2"))
+	require.Nil(s.T(), s.backend.WriteFile(b, "tests2/foo"))
+	require.Nil(s.T(), s.backend.WriteFile(b, "tests2/bar"))
+	require.Nil(s.T(), s.backend.WriteFile(b, "tests2/asdf"))
+	require.Nil(s.T(), s.backend.RemoveDirectory("tests2"))
 }
 
 func (s *FileBackendTestSuite) TestListDirectory() {
@@ -125,13 +125,13 @@ func (s *FileBackendTestSuite) TestListDirectory() {
 	path1 := "19700101/" + model.NewId()
 	path2 := "19800101/" + model.NewId()
 
-	s.Nil(s.backend.WriteFile(b, path1))
+	require.Nil(s.T(), s.backend.WriteFile(b, path1))
 	defer s.backend.RemoveFile(path1)
-	s.Nil(s.backend.WriteFile(b, path2))
+	require.Nil(s.T(), s.backend.WriteFile(b, path2))
 	defer s.backend.RemoveFile(path2)
 
 	paths, err := s.backend.ListDirectory("")
-	s.Nil(err)
+	require.Nil(s.T(), err)
 
 	found1 := false
 	found2 := false
@@ -142,23 +142,23 @@ func (s *FileBackendTestSuite) TestListDirectory() {
 			found2 = true
 		}
 	}
-	s.True(found1)
-	s.True(found2)
+	require.True(s.T(), found1)
+	require.True(s.T(), found2)
 }
 
 func (s *FileBackendTestSuite) TestRemoveDirectory() {
 	b := []byte("test")
 
-	s.Nil(s.backend.WriteFile(b, "tests2/foo"))
-	s.Nil(s.backend.WriteFile(b, "tests2/bar"))
-	s.Nil(s.backend.WriteFile(b, "tests2/aaa"))
+	require.Nil(s.T(), s.backend.WriteFile(b, "tests2/foo"))
+	require.Nil(s.T(), s.backend.WriteFile(b, "tests2/bar"))
+	require.Nil(s.T(), s.backend.WriteFile(b, "tests2/aaa"))
 
-	s.Nil(s.backend.RemoveDirectory("tests2"))
+	require.Nil(s.T(), s.backend.RemoveDirectory("tests2"))
 
 	_, err := s.backend.ReadFile("tests2/foo")
-	s.Error(err)
+	require.Error(s.T(), err)
 	_, err = s.backend.ReadFile("tests2/bar")
-	s.Error(err)
+	require.Error(s.T(), err)
 	_, err = s.backend.ReadFile("tests2/asdf")
-	s.Error(err)
+	require.Error(s.T(), err)
 }
