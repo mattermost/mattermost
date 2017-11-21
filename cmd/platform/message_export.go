@@ -58,8 +58,10 @@ func messageExportCmdF(cmd *cobra.Command, args []string) error {
 
 	if messageExportI := a.MessageExport; messageExportI != nil {
 		ctx := context.Background()
+		var cancel context.CancelFunc
 		if timeoutSeconds > 0 {
-			ctx, _ = context.WithTimeout(ctx, time.Second*time.Duration(timeoutSeconds))
+			ctx, cancel = context.WithTimeout(ctx, time.Second*time.Duration(timeoutSeconds))
+			defer cancel()
 		}
 
 		job, err := messageExportI.StartSynchronizeJob(ctx, startTime)
