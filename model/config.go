@@ -394,6 +394,10 @@ func (s *ServiceSettings) SetDefaults() {
 	if s.PostEditTimeLimit == nil {
 		s.PostEditTimeLimit = NewInt(300)
 	}
+
+	if s.EnablePreviewFeatures == nil {
+		s.EnablePreviewFeatures = NewBool(true)
+	}
 }
 
 type ClusterSettings struct {
