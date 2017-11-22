@@ -434,7 +434,7 @@ func IsValidUserRoles(userRoles string) bool {
 }
 
 func isValidRole(roleId string) bool {
-	_, ok := BuiltInRoles[roleId]
+	_, ok := DefaultRoles[roleId]
 	return ok
 }
 

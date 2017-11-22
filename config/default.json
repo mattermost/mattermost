@@ -51,7 +51,8 @@
         "EnableUserTypingMessages": true,
         "EnableChannelViewedMessages": true,
         "EnableUserStatuses": true,
-        "ClusterLogTimeoutMilliseconds": 2000
+        "ClusterLogTimeoutMilliseconds": 2000,
+        "EnablePreviewFeatures": true
     },
     "TeamSettings": {
         "SiteName": "Mattermost",

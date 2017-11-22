@@ -10,23 +10,26 @@ import (
 )
 
 func TestCheckIfRolesGrantPermission(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
 	cases := []struct {
 		roles        []string
 		permissionId string
 		shouldGrant  bool
 	}{
-		{[]string{model.ROLE_SYSTEM_ADMIN.Id}, model.ROLE_SYSTEM_ADMIN.Permissions[0], true},
-		{[]string{model.ROLE_SYSTEM_ADMIN.Id}, "non-existant-permission", false},
-		{[]string{model.ROLE_CHANNEL_USER.Id}, model.ROLE_CHANNEL_USER.Permissions[0], true},
-		{[]string{model.ROLE_CHANNEL_USER.Id}, model.PERMISSION_MANAGE_SYSTEM.Id, false},
-		{[]string{model.ROLE_SYSTEM_ADMIN.Id, model.ROLE_CHANNEL_USER.Id}, model.PERMISSION_MANAGE_SYSTEM.Id, true},
-		{[]string{model.ROLE_CHANNEL_USER.Id, model.ROLE_SYSTEM_ADMIN.Id}, model.PERMISSION_MANAGE_SYSTEM.Id, true},
-		{[]string{model.ROLE_TEAM_USER.Id, model.ROLE_TEAM_ADMIN.Id}, model.PERMISSION_MANAGE_SLASH_COMMANDS.Id, true},
-		{[]string{model.ROLE_TEAM_ADMIN.Id, model.ROLE_TEAM_USER.Id}, model.PERMISSION_MANAGE_SLASH_COMMANDS.Id, true},
+		{[]string{model.SYSTEM_ADMIN_ROLE_ID}, th.App.Role(model.SYSTEM_ADMIN_ROLE_ID).Permissions[0], true},
+		{[]string{model.SYSTEM_ADMIN_ROLE_ID}, "non-existant-permission", false},
+		{[]string{model.CHANNEL_USER_ROLE_ID}, th.App.Role(model.CHANNEL_USER_ROLE_ID).Permissions[0], true},
+		{[]string{model.CHANNEL_USER_ROLE_ID}, model.PERMISSION_MANAGE_SYSTEM.Id, false},
+		{[]string{model.SYSTEM_ADMIN_ROLE_ID, model.CHANNEL_USER_ROLE_ID}, model.PERMISSION_MANAGE_SYSTEM.Id, true},
+		{[]string{model.CHANNEL_USER_ROLE_ID, model.SYSTEM_ADMIN_ROLE_ID}, model.PERMISSION_MANAGE_SYSTEM.Id, true},
+		{[]string{model.TEAM_USER_ROLE_ID, model.TEAM_ADMIN_ROLE_ID}, model.PERMISSION_MANAGE_SLASH_COMMANDS.Id, true},
+		{[]string{model.TEAM_ADMIN_ROLE_ID, model.TEAM_USER_ROLE_ID}, model.PERMISSION_MANAGE_SLASH_COMMANDS.Id, true},
 	}
 
 	for testnum, testcase := range cases {
-		if CheckIfRolesGrantPermission(testcase.roles, testcase.permissionId) != testcase.shouldGrant {
+		if th.App.CheckIfRolesGrantPermission(testcase.roles, testcase.permissionId) != testcase.shouldGrant {
 			t.Fatal("Failed test case ", testnum)
 		}
 	}

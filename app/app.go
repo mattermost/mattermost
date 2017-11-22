@@ -56,6 +56,8 @@ type App struct {
 
 	htmlTemplateWatcher *utils.HTMLTemplateWatcher
 	sessionCache        *utils.Cache
+	roles               map[string]*model.Role
+	configListenerId    string
 }
 
 var appCount = 0
@@ -86,6 +88,11 @@ func New(options ...Option) *App {
 	}
 	utils.LoadGlobalConfig(app.configFile)
 	utils.InitTranslations(utils.Cfg.LocalizationSettings)
+
+	app.configListenerId = utils.AddConfigListener(func(_, cfg *model.Config) {
+		app.SetDefaultRolesBasedOnConfig()
+	})
+	app.SetDefaultRolesBasedOnConfig()
 
 	l4g.Info(utils.T("api.server.new_server.init.info"))
 
@@ -138,6 +145,7 @@ func (a *App) Shutdown() {
 		a.htmlTemplateWatcher.Close()
 	}
 
+	utils.RemoveConfigListener(a.configListenerId)
 	l4g.Info(utils.T("api.server.stop_server.stopped.info"))
 }
 

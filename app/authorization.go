@@ -12,7 +12,7 @@ import (
 )
 
 func (a *App) SessionHasPermissionTo(session model.Session, permission *model.Permission) bool {
-	if !CheckIfRolesGrantPermission(session.GetUserRoles(), permission.Id) {
+	if !a.CheckIfRolesGrantPermission(session.GetUserRoles(), permission.Id) {
 		a.ClearSessionCacheForUser(session.UserId)
 		return false
 	}
@@ -21,21 +21,6 @@ func (a *App) SessionHasPermissionTo(session model.Session, permission *model.Pe
 }
 
 /// DO NOT USE: LEGACY
-func SessionHasPermissionToTeam(session model.Session, teamId string, permission *model.Permission) bool {
-	if teamId == "" {
-		return false
-	}
-
-	teamMember := session.GetTeamByTeamId(teamId)
-	if teamMember != nil {
-		if CheckIfRolesGrantPermission(teamMember.GetRoles(), permission.Id) {
-			return true
-		}
-	}
-
-	return CheckIfRolesGrantPermission(session.GetUserRoles(), permission.Id)
-}
-
 func (a *App) SessionHasPermissionToTeam(session model.Session, teamId string, permission *model.Permission) bool {
 	if teamId == "" {
 		return false
@@ -43,12 +28,12 @@ func (a *App) SessionHasPermissionToTeam(session model.Session, teamId string, p
 
 	teamMember := session.GetTeamByTeamId(teamId)
 	if teamMember != nil {
-		if CheckIfRolesGrantPermission(teamMember.GetRoles(), permission.Id) {
+		if a.CheckIfRolesGrantPermission(teamMember.GetRoles(), permission.Id) {
 			return true
 		}
 	}
 
-	return a.SessionHasPermissionTo(session, permission)
+	return a.CheckIfRolesGrantPermission(session.GetUserRoles(), permission.Id)
 }
 
 func (a *App) SessionHasPermissionToChannel(session model.Session, channelId string, permission *model.Permission) bool {
@@ -63,7 +48,7 @@ func (a *App) SessionHasPermissionToChannel(session model.Session, channelId str
 		ids := cmcresult.Data.(map[string]string)
 		if roles, ok := ids[channelId]; ok {
 			channelRoles = strings.Fields(roles)
-			if CheckIfRolesGrantPermission(channelRoles, permission.Id) {
+			if a.CheckIfRolesGrantPermission(channelRoles, permission.Id) {
 				return true
 			}
 		}
@@ -84,7 +69,7 @@ func (a *App) SessionHasPermissionToChannelByPost(session model.Session, postId 
 	if result := <-a.Srv.Store.Channel().GetMemberForPost(postId, session.UserId); result.Err == nil {
 		channelMember = result.Data.(*model.ChannelMember)
 
-		if CheckIfRolesGrantPermission(channelMember.GetRoles(), permission.Id) {
+		if a.CheckIfRolesGrantPermission(channelMember.GetRoles(), permission.Id) {
 			return true
 		}
 	}
@@ -134,7 +119,7 @@ func (a *App) HasPermissionTo(askingUserId string, permission *model.Permission)
 
 	roles := user.GetRoles()
 
-	return CheckIfRolesGrantPermission(roles, permission.Id)
+	return a.CheckIfRolesGrantPermission(roles, permission.Id)
 }
 
 func (a *App) HasPermissionToTeam(askingUserId string, teamId string, permission *model.Permission) bool {
@@ -149,7 +134,7 @@ func (a *App) HasPermissionToTeam(askingUserId string, teamId string, permission
 
 	roles := teamMember.GetRoles()
 
-	if CheckIfRolesGrantPermission(roles, permission.Id) {
+	if a.CheckIfRolesGrantPermission(roles, permission.Id) {
 		return true
 	}
 
@@ -164,7 +149,7 @@ func (a *App) HasPermissionToChannel(askingUserId string, channelId string, perm
 	channelMember, err := a.GetChannelMember(channelId, askingUserId)
 	if err == nil {
 		roles := channelMember.GetRoles()
-		if CheckIfRolesGrantPermission(roles, permission.Id) {
+		if a.CheckIfRolesGrantPermission(roles, permission.Id) {
 			return true
 		}
 	}
@@ -183,7 +168,7 @@ func (a *App) HasPermissionToChannelByPost(askingUserId string, postId string, p
 	if result := <-a.Srv.Store.Channel().GetMemberForPost(postId, askingUserId); result.Err == nil {
 		channelMember = result.Data.(*model.ChannelMember)
 
-		if CheckIfRolesGrantPermission(channelMember.GetRoles(), permission.Id) {
+		if a.CheckIfRolesGrantPermission(channelMember.GetRoles(), permission.Id) {
 			return true
 		}
 	}
@@ -208,9 +193,9 @@ func (a *App) HasPermissionToUser(askingUserId string, userId string) bool {
 	return false
 }
 
-func CheckIfRolesGrantPermission(roles []string, permissionId string) bool {
+func (a *App) CheckIfRolesGrantPermission(roles []string, permissionId string) bool {
 	for _, roleId := range roles {
-		if role, ok := model.BuiltInRoles[roleId]; !ok {
+		if role := a.Role(roleId); role == nil {
 			l4g.Debug("Bad role in system " + roleId)
 			return false
 		} else {

@@ -11,7 +11,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils"
 )
 
 func TestCreateWebhookPost(t *testing.T) {
@@ -19,12 +18,8 @@ func TestCreateWebhookPost(t *testing.T) {
 	defer th.TearDown()
 
 	enableIncomingHooks := th.App.Config().ServiceSettings.EnableIncomingWebhooks
-	defer func() {
-		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableIncomingWebhooks = enableIncomingHooks })
-		utils.SetDefaultRolesBasedOnConfig()
-	}()
+	defer th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableIncomingWebhooks = enableIncomingHooks })
 	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableIncomingWebhooks = true })
-	utils.SetDefaultRolesBasedOnConfig()
 
 	hook, err := th.App.CreateIncomingWebhookForChannel(th.BasicUser.Id, th.BasicChannel, &model.IncomingWebhook{ChannelId: th.BasicChannel.Id})
 	if err != nil {

@@ -206,6 +206,7 @@ type ServiceSettings struct {
 	EnableUserStatuses                       *bool
 	ClusterLogTimeoutMilliseconds            *int
 	CloseUnusedDirectMessages                *bool
+	EnablePreviewFeatures                    *bool
 }
 
 func (s *ServiceSettings) SetDefaults() {
@@ -393,6 +394,10 @@ func (s *ServiceSettings) SetDefaults() {
 
 	if s.PostEditTimeLimit == nil {
 		s.PostEditTimeLimit = NewInt(300)
+	}
+
+	if s.EnablePreviewFeatures == nil {
+		s.EnablePreviewFeatures = NewBool(true)
 	}
 }
 

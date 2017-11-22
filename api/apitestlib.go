@@ -115,7 +115,7 @@ func (me *TestHelper) InitBasic() *TestHelper {
 
 	me.BasicClient = me.CreateClient()
 	me.BasicUser = me.CreateUser(me.BasicClient)
-	me.App.UpdateUserRoles(me.BasicUser.Id, model.ROLE_SYSTEM_USER.Id, false)
+	me.App.UpdateUserRoles(me.BasicUser.Id, model.SYSTEM_USER_ROLE_ID, false)
 	me.LoginBasic()
 	me.BasicTeam = me.CreateTeam(me.BasicClient)
 	me.LinkUserToTeam(me.BasicUser, me.BasicTeam)
@@ -142,7 +142,7 @@ func (me *TestHelper) InitSystemAdmin() *TestHelper {
 	me.SystemAdminTeam = me.CreateTeam(me.SystemAdminClient)
 	me.LinkUserToTeam(me.SystemAdminUser, me.SystemAdminTeam)
 	me.SystemAdminClient.SetTeamId(me.SystemAdminTeam.Id)
-	me.App.UpdateUserRoles(me.SystemAdminUser.Id, model.ROLE_SYSTEM_USER.Id+" "+model.ROLE_SYSTEM_ADMIN.Id, false)
+	me.App.UpdateUserRoles(me.SystemAdminUser.Id, model.SYSTEM_USER_ROLE_ID+" "+model.SYSTEM_ADMIN_ROLE_ID, false)
 	me.SystemAdminChannel = me.CreateChannel(me.SystemAdminClient, me.SystemAdminTeam)
 
 	return me
@@ -218,7 +218,7 @@ func (me *TestHelper) LinkUserToTeam(user *model.User, team *model.Team) {
 func (me *TestHelper) UpdateUserToTeamAdmin(user *model.User, team *model.Team) {
 	utils.DisableDebugLogForTest()
 
-	tm := &model.TeamMember{TeamId: team.Id, UserId: user.Id, Roles: model.ROLE_TEAM_USER.Id + " " + model.ROLE_TEAM_ADMIN.Id}
+	tm := &model.TeamMember{TeamId: team.Id, UserId: user.Id, Roles: model.TEAM_USER_ROLE_ID + " " + model.TEAM_ADMIN_ROLE_ID}
 	if tmr := <-me.App.Srv.Store.Team().UpdateMember(tm); tmr.Err != nil {
 		utils.EnableDebugLogForTest()
 		l4g.Error(tmr.Err.Error())
@@ -232,7 +232,7 @@ func (me *TestHelper) UpdateUserToTeamAdmin(user *model.User, team *model.Team) 
 func (me *TestHelper) UpdateUserToNonTeamAdmin(user *model.User, team *model.Team) {
 	utils.DisableDebugLogForTest()
 
-	tm := &model.TeamMember{TeamId: team.Id, UserId: user.Id, Roles: model.ROLE_TEAM_USER.Id}
+	tm := &model.TeamMember{TeamId: team.Id, UserId: user.Id, Roles: model.TEAM_USER_ROLE_ID}
 	if tmr := <-me.App.Srv.Store.Team().UpdateMember(tm); tmr.Err != nil {
 		utils.EnableDebugLogForTest()
 		l4g.Error(tmr.Err.Error())
@@ -365,7 +365,6 @@ func (me *TestHelper) TearDown() {
 	me.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg = *me.originalConfig
 	})
-	utils.SetDefaultRolesBasedOnConfig()
 
 	me.App.Shutdown()
 	if err := recover(); err != nil {

@@ -914,7 +914,7 @@ func testUserStoreGetSystemAdminProfiles(t *testing.T, ss store.Store) {
 
 	u1 := &model.User{}
 	u1.Email = model.NewId()
-	u1.Roles = model.ROLE_SYSTEM_USER.Id + " " + model.ROLE_SYSTEM_ADMIN.Id
+	u1.Roles = model.SYSTEM_USER_ROLE_ID + " " + model.SYSTEM_ADMIN_ROLE_ID
 	store.Must(ss.User().Save(u1))
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u1.Id}, -1))
 

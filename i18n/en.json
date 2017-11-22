@@ -844,7 +844,7 @@
   },
   {
     "id": "api.command_groupmsg.min_users.app_error",
-    "translation": "Group messages are limited to a minimun of {{.MinUsers}} users."
+    "translation": "Group messages are limited to a minimum of {{.MinUsers}} users."
   },
   {
     "id": "api.command_groupmsg.max_users.app_error",
@@ -3563,6 +3563,14 @@
     "translation": "Unable to activate extracted plugin. Plugin may already exist and be activated."
   },
   {
+    "id": "app.plugin.install.app_error",
+    "translation": "Unable to install plugin."
+  },
+  {
+    "id": "app.plugin.install_id.app_error",
+    "translation": "Unable to install plugin. A plugin with the same ID is already installed."
+  },
+  {
     "id": "app.plugin.config.app_error",
     "translation": "Error saving plugin state in config"
   },
@@ -3596,7 +3604,7 @@
   },
   {
     "id": "app.plugin.mvdir.app_error",
-    "translation": "Unable to move plugin from temporary directory to final destination"
+    "translation": "Unable to move plugin from temporary directory to final destination. Another plugin may be using the same directory name."
   },
   {
     "id": "app.plugin.not_installed.app_error",

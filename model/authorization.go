@@ -69,24 +69,24 @@ var PERMISSION_REVOKE_USER_ACCESS_TOKEN *Permission
 // admin functions but not others
 var PERMISSION_MANAGE_SYSTEM *Permission
 
-var ROLE_SYSTEM_USER *Role
-var ROLE_SYSTEM_ADMIN *Role
-var ROLE_SYSTEM_POST_ALL *Role
-var ROLE_SYSTEM_POST_ALL_PUBLIC *Role
-var ROLE_SYSTEM_USER_ACCESS_TOKEN *Role
+const (
+	SYSTEM_USER_ROLE_ID              = "system_user"
+	SYSTEM_ADMIN_ROLE_ID             = "system_admin"
+	SYSTEM_POST_ALL_ROLE_ID          = "system_post_all"
+	SYSTEM_POST_ALL_PUBLIC_ROLE_ID   = "system_post_all_public"
+	SYSTEM_USER_ACCESS_TOKEN_ROLE_ID = "system_user_access_token"
 
-var ROLE_TEAM_USER *Role
-var ROLE_TEAM_ADMIN *Role
-var ROLE_TEAM_POST_ALL *Role
-var ROLE_TEAM_POST_ALL_PUBLIC *Role
+	TEAM_USER_ROLE_ID            = "team_user"
+	TEAM_ADMIN_ROLE_ID           = "team_admin"
+	TEAM_POST_ALL_ROLE_ID        = "team_post_all"
+	TEAM_POST_ALL_PUBLIC_ROLE_ID = "team_post_all_public"
 
-var ROLE_CHANNEL_USER *Role
-var ROLE_CHANNEL_ADMIN *Role
-var ROLE_CHANNEL_GUEST *Role
+	CHANNEL_USER_ROLE_ID  = "channel_user"
+	CHANNEL_ADMIN_ROLE_ID = "channel_admin"
+	CHANNEL_GUEST_ROLE_ID = "guest"
+)
 
-var BuiltInRoles map[string]*Role
-
-func InitalizePermissions() {
+func initializePermissions() {
 	PERMISSION_INVITE_USER = &Permission{
 		"invite_user",
 		"authentication.permissions.team_invite_user.name",
@@ -329,11 +329,12 @@ func InitalizePermissions() {
 	}
 }
 
-func InitalizeRoles() {
-	InitalizePermissions()
-	BuiltInRoles = make(map[string]*Role)
+var DefaultRoles map[string]*Role
 
-	ROLE_CHANNEL_USER = &Role{
+func initializeDefaultRoles() {
+	DefaultRoles = make(map[string]*Role)
+
+	DefaultRoles[CHANNEL_USER_ROLE_ID] = &Role{
 		"channel_user",
 		"authentication.roles.channel_user.name",
 		"authentication.roles.channel_user.description",
@@ -347,8 +348,8 @@ func InitalizeRoles() {
 			PERMISSION_USE_SLASH_COMMANDS.Id,
 		},
 	}
-	BuiltInRoles[ROLE_CHANNEL_USER.Id] = ROLE_CHANNEL_USER
-	ROLE_CHANNEL_ADMIN = &Role{
+
+	DefaultRoles[CHANNEL_ADMIN_ROLE_ID] = &Role{
 		"channel_admin",
 		"authentication.roles.channel_admin.name",
 		"authentication.roles.channel_admin.description",
@@ -356,16 +357,15 @@ func InitalizeRoles() {
 			PERMISSION_MANAGE_CHANNEL_ROLES.Id,
 		},
 	}
-	BuiltInRoles[ROLE_CHANNEL_ADMIN.Id] = ROLE_CHANNEL_ADMIN
-	ROLE_CHANNEL_GUEST = &Role{
+
+	DefaultRoles[CHANNEL_GUEST_ROLE_ID] = &Role{
 		"guest",
 		"authentication.roles.global_guest.name",
 		"authentication.roles.global_guest.description",
 		[]string{},
 	}
-	BuiltInRoles[ROLE_CHANNEL_GUEST.Id] = ROLE_CHANNEL_GUEST
 
-	ROLE_TEAM_USER = &Role{
+	DefaultRoles[TEAM_USER_ROLE_ID] = &Role{
 		"team_user",
 		"authentication.roles.team_user.name",
 		"authentication.roles.team_user.description",
@@ -376,9 +376,8 @@ func InitalizeRoles() {
 			PERMISSION_VIEW_TEAM.Id,
 		},
 	}
-	BuiltInRoles[ROLE_TEAM_USER.Id] = ROLE_TEAM_USER
 
-	ROLE_TEAM_POST_ALL = &Role{
+	DefaultRoles[TEAM_POST_ALL_ROLE_ID] = &Role{
 		"team_post_all",
 		"authentication.roles.team_post_all.name",
 		"authentication.roles.team_post_all.description",
@@ -386,9 +385,8 @@ func InitalizeRoles() {
 			PERMISSION_CREATE_POST.Id,
 		},
 	}
-	BuiltInRoles[ROLE_TEAM_POST_ALL.Id] = ROLE_TEAM_POST_ALL
 
-	ROLE_TEAM_POST_ALL_PUBLIC = &Role{
+	DefaultRoles[TEAM_POST_ALL_PUBLIC_ROLE_ID] = &Role{
 		"team_post_all_public",
 		"authentication.roles.team_post_all_public.name",
 		"authentication.roles.team_post_all_public.description",
@@ -396,9 +394,8 @@ func InitalizeRoles() {
 			PERMISSION_CREATE_POST_PUBLIC.Id,
 		},
 	}
-	BuiltInRoles[ROLE_TEAM_POST_ALL_PUBLIC.Id] = ROLE_TEAM_POST_ALL_PUBLIC
 
-	ROLE_TEAM_ADMIN = &Role{
+	DefaultRoles[TEAM_ADMIN_ROLE_ID] = &Role{
 		"team_admin",
 		"authentication.roles.team_admin.name",
 		"authentication.roles.team_admin.description",
@@ -415,9 +412,8 @@ func InitalizeRoles() {
 			PERMISSION_MANAGE_WEBHOOKS.Id,
 		},
 	}
-	BuiltInRoles[ROLE_TEAM_ADMIN.Id] = ROLE_TEAM_ADMIN
 
-	ROLE_SYSTEM_USER = &Role{
+	DefaultRoles[SYSTEM_USER_ROLE_ID] = &Role{
 		"system_user",
 		"authentication.roles.global_user.name",
 		"authentication.roles.global_user.description",
@@ -427,9 +423,8 @@ func InitalizeRoles() {
 			PERMISSION_PERMANENT_DELETE_USER.Id,
 		},
 	}
-	BuiltInRoles[ROLE_SYSTEM_USER.Id] = ROLE_SYSTEM_USER
 
-	ROLE_SYSTEM_POST_ALL = &Role{
+	DefaultRoles[SYSTEM_POST_ALL_ROLE_ID] = &Role{
 		"system_post_all",
 		"authentication.roles.system_post_all.name",
 		"authentication.roles.system_post_all.description",
@@ -437,9 +432,8 @@ func InitalizeRoles() {
 			PERMISSION_CREATE_POST.Id,
 		},
 	}
-	BuiltInRoles[ROLE_SYSTEM_POST_ALL.Id] = ROLE_SYSTEM_POST_ALL
 
-	ROLE_SYSTEM_POST_ALL_PUBLIC = &Role{
+	DefaultRoles[SYSTEM_POST_ALL_PUBLIC_ROLE_ID] = &Role{
 		"system_post_all_public",
 		"authentication.roles.system_post_all_public.name",
 		"authentication.roles.system_post_all_public.description",
@@ -447,9 +441,8 @@ func InitalizeRoles() {
 			PERMISSION_CREATE_POST_PUBLIC.Id,
 		},
 	}
-	BuiltInRoles[ROLE_SYSTEM_POST_ALL_PUBLIC.Id] = ROLE_SYSTEM_POST_ALL_PUBLIC
 
-	ROLE_SYSTEM_USER_ACCESS_TOKEN = &Role{
+	DefaultRoles[SYSTEM_USER_ACCESS_TOKEN_ROLE_ID] = &Role{
 		"system_user_access_token",
 		"authentication.roles.system_user_access_token.name",
 		"authentication.roles.system_user_access_token.description",
@@ -459,9 +452,8 @@ func InitalizeRoles() {
 			PERMISSION_REVOKE_USER_ACCESS_TOKEN.Id,
 		},
 	}
-	BuiltInRoles[ROLE_SYSTEM_USER_ACCESS_TOKEN.Id] = ROLE_SYSTEM_USER_ACCESS_TOKEN
 
-	ROLE_SYSTEM_ADMIN = &Role{
+	DefaultRoles[SYSTEM_ADMIN_ROLE_ID] = &Role{
 		"system_admin",
 		"authentication.roles.global_admin.name",
 		"authentication.roles.global_admin.description",
@@ -500,17 +492,15 @@ func InitalizeRoles() {
 							PERMISSION_READ_USER_ACCESS_TOKEN.Id,
 							PERMISSION_REVOKE_USER_ACCESS_TOKEN.Id,
 						},
-						ROLE_TEAM_USER.Permissions...,
+						DefaultRoles[TEAM_USER_ROLE_ID].Permissions...,
 					),
-					ROLE_CHANNEL_USER.Permissions...,
+					DefaultRoles[CHANNEL_USER_ROLE_ID].Permissions...,
 				),
-				ROLE_TEAM_ADMIN.Permissions...,
+				DefaultRoles[TEAM_ADMIN_ROLE_ID].Permissions...,
 			),
-			ROLE_CHANNEL_ADMIN.Permissions...,
+			DefaultRoles[CHANNEL_ADMIN_ROLE_ID].Permissions...,
 		),
 	}
-	BuiltInRoles[ROLE_SYSTEM_ADMIN.Id] = ROLE_SYSTEM_ADMIN
-
 }
 
 func RoleIdsToString(roles []string) string {
@@ -527,5 +517,6 @@ func RoleIdsToString(roles []string) string {
 }
 
 func init() {
-	InitalizeRoles()
+	initializePermissions()
+	initializeDefaultRoles()
 }
