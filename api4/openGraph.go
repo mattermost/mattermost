@@ -7,7 +7,6 @@ import (
 	"net/http"
 
 	l4g "github.com/alecthomas/log4go"
-	"github.com/mattermost/mattermost-server/app"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
 )
@@ -43,7 +42,7 @@ func getOpenGraphMetadata(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	og := app.GetOpenGraphMetadata(url)
+	og := c.App.GetOpenGraphMetadata(url)
 
 	ogJSON, err := og.ToJSON()
 	openGraphDataCache.AddWithExpiresInSecs(props["url"], ogJSON, 3600) // Cache would expire after 1 hour
