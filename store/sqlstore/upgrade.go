@@ -324,8 +324,20 @@ func UpgradeDatabaseToVersion44(sqlStore SqlStore) {
 
 func UpgradeDatabaseToVersion45(sqlStore SqlStore) {
 	//TODO: Uncomment when 4.5 is released
-	/*if shouldPerformUpgrade(sqlStore, VERSION_4_4_0, VERSION_4_5_0) {
-
-		saveSchemaVersion(sqlStore, VERSION_4_5_0)
-	}*/
+	//if shouldPerformUpgrade(sqlStore, VERSION_4_4_0, VERSION_4_5_0) {
+	if sqlStore.CreateColumnIfNotExists("Channels", "DeactivateAt", "bigint", "bigint", "0") {
+		if _, err := sqlStore.GetMaster().Exec(`
+			UPDATE Channels c
+			SET DeactivateAt = COALESCE((
+				SELECT MIN(Users.DeleteAt)
+				FROM ChannelMembers, Users
+				WHERE Users.DeleteAt > 0 AND ChannelMembers.UserId = Users.Id AND ChannelMembers.ChannelId = c.Id
+			), 0)
+			WHERE Type = 'D' OR Type = 'G'
+		`); err != nil {
+			panic(err)
+		}
+	}
+	//saveSchemaVersion(sqlStore, VERSION_4_5_0)
+	//}
 }
