@@ -14,9 +14,9 @@ import (
 	"testing"
 )
 
-func TestHttpClient(t *testing.T) {
+func TestHTTPClient(t *testing.T) {
 	for _, allowInternal := range []bool{true, false} {
-		c := HttpClient(allowInternal)
+		c := NewHTTPClient(false, func(_ string) bool { return false }, func(ip net.IP) bool { return allowInternal || !IsReservedIP(ip) })
 		for _, tc := range []struct {
 			URL        string
 			IsInternal bool
@@ -52,11 +52,11 @@ func TestHttpClient(t *testing.T) {
 	}
 }
 
-func TestHttpClientWithProxy(t *testing.T) {
+func TestHTTPClientWithProxy(t *testing.T) {
 	proxy := createProxyServer()
 	defer proxy.Close()
 
-	c := createHttpClient(true, nil, nil)
+	c := NewHTTPClient(true, nil, nil)
 	purl, _ := url.Parse(proxy.URL)
 	c.Transport.(*http.Transport).Proxy = http.ProxyURL(purl)
 
@@ -108,7 +108,7 @@ func TestDialContextFilter(t *testing.T) {
 		filter := dialContextFilter(func(ctx context.Context, network, addr string) (net.Conn, error) {
 			didDial = true
 			return nil, nil
-		}, func(host string) bool { return host == "10.0.0.1" }, func(ip net.IP) bool { return !isReserved(ip) })
+		}, func(host string) bool { return host == "10.0.0.1" }, func(ip net.IP) bool { return !IsReservedIP(ip) })
 		_, err := filter(context.Background(), "", tc.Addr)
 		switch {
 		case tc.IsValid == (err == AddressForbidden) || (err != nil && err != AddressForbidden):

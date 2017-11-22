@@ -681,10 +681,10 @@ func (a *App) GetFileInfosForPost(postId string, readFromMaster bool) ([]*model.
 	return infos, nil
 }
 
-func GetOpenGraphMetadata(url string) *opengraph.OpenGraph {
+func (a *App) GetOpenGraphMetadata(url string) *opengraph.OpenGraph {
 	og := opengraph.NewOpenGraph()
 
-	res, err := utils.HttpClient(false).Get(url)
+	res, err := a.HTTPClient(false).Get(url)
 	if err != nil {
 		l4g.Error("GetOpenGraphMetadata request failed for url=%v with err=%v", url, err.Error())
 		return og
@@ -721,7 +721,7 @@ func (a *App) DoPostAction(postId string, actionId string, userId string) *model
 	req, _ := http.NewRequest("POST", action.Integration.URL, strings.NewReader(request.ToJson()))
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Accept", "application/json")
-	resp, err := utils.HttpClient(false).Do(req)
+	resp, err := a.HTTPClient(false).Do(req)
 	if err != nil {
 		return model.NewAppError("DoPostAction", "api.post.do_action.action_integration.app_error", nil, "err="+err.Error(), http.StatusBadRequest)
 	}
