@@ -1,4 +1,4 @@
-.PHONY: build package run stop run-client run-server stop-client stop-server restart restart-server restart-client start-docker clean-dist clean nuke check-style check-client-style check-server-style check-unit-tests test dist setup-mac prepare-enteprise run-client-tests setup-run-client-tests cleanup-run-client-tests test-client build-linux build-osx build-windows internal-test-web-client vet run-server-for-web-client-tests
+.PHONY: build package run stop restart start-docker clean-dist clean nuke check-style check-unit-tests test test-race dist setup-mac prepare-enteprise build-linux build-osx build-windows internal-test-web-client vet run-server-for-web-client-tests help
 
 ROOT := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 
@@ -29,18 +29,6 @@ else
 	BUILD_TYPE_NAME = team
 endif
 BUILD_WEBAPP_DIR ?= ../mattermost-webapp
-BUILD_CLIENT = false
-BUILD_HASH_CLIENT = independant
-ifneq ($(wildcard $(BUILD_WEBAPP_DIR)/.),)
-	ifeq ($(BUILD_CLIENT),true)
-		BUILD_CLIENT = true
-		BUILD_HASH_CLIENT = $(shell cd $(BUILD_WEBAPP_DIR) && git rev-parse HEAD)
-	else
-		BUILD_CLIENT = false
-	endif
-else
-	BUILD_CLIENT = false
-endif
 
 # Golang Flags
 GOPATH ?= $(GOPATH:):./vendor
@@ -91,11 +79,11 @@ ALL_PACKAGES_COMMA=$(TE_PACKAGES_COMMA)
 endif
 
 
-all: run
+all: run ## An alias for 'run'.
 
 include build/*.mk
 
-start-docker:
+start-docker: ## Runs the docker cntainers for mysql, postgres, inbucket, and minio. If running enterprise edition it also starts openldap, elastic search, and redis.
 	@echo Starting docker containers
 
 	@if [ $(shell docker ps -a | grep -ci mattermost-mysql) -eq 0 ]; then \
@@ -174,7 +162,7 @@ ifeq ($(BUILD_ENTERPRISE_READY),true)
 	fi
 endif
 
-stop-docker:
+stop-docker: ## Stops all docker containers.
 	@echo Stopping docker containers
 
 	@if [ $(shell docker ps -a | grep -ci mattermost-mysql) -eq 1 ]; then \
@@ -207,7 +195,7 @@ stop-docker:
 		docker stop mattermost-elasticsearch > /dev/null; \
 	fi
 
-clean-docker:
+clean-docker: ## Removes all docker processes.
 	@echo Removing docker containers
 
 	@if [ $(shell docker ps -a | grep -ci mattermost-mysql) -eq 1 ]; then \
@@ -246,7 +234,7 @@ clean-docker:
 		docker rm -v mattermost-elasticsearch > /dev/null; \
 	fi
 
-govet:
+govet: ## Vets the Go code.
 	@echo Running GOVET
 	$(GO) vet $(GOFLAGS) $(TE_PACKAGES) || exit 1
 
@@ -254,7 +242,7 @@ ifeq ($(BUILD_ENTERPRISE_READY),true)
 	$(GO) vet $(GOFLAGS) $(EE_PACKAGES) || exit 1
 endif
 
-gofmt: 
+gofmt: ## Formats the Go code.
 	@echo Running GOFMT
 
 	@for package in $(TE_PACKAGES) $(EE_PACKAGES); do \
@@ -271,11 +259,11 @@ gofmt:
 	done
 	@echo "gofmt success"; \
 
-store-mocks:
+store-mocks: ## Creates mock files.
 	go get github.com/vektra/mockery/...
 	GOPATH=$(shell go env GOPATH) $(shell go env GOPATH)/bin/mockery -dir store -all -output store/storetest/mocks -note 'Regenerate this file using `make store-mocks`.'
 
-update-jira-plugin:
+update-jira-plugin: ## Updates Jira plugin.
 	go get github.com/jteeuwen/go-bindata/...
 	curl -s https://api.github.com/repos/mattermost/mattermost-plugin-jira/releases/latest | grep browser_download_url | grep darwin-amd64 | cut -d '"' -f 4 | wget -qi - -O plugin.tar.gz
 	$(shell go env GOPATH)/bin/go-bindata -pkg jira -o app/plugin/jira/plugin_darwin_amd64.go plugin.tar.gz
@@ -286,7 +274,7 @@ update-jira-plugin:
 	rm plugin.tar.gz
 	gofmt -s -w ./app/plugin/jira
 
-update-zoom-plugin:
+update-zoom-plugin: ## Updates Zoom plugin.
 	go get github.com/jteeuwen/go-bindata/...
 	curl -s https://api.github.com/repos/mattermost/mattermost-plugin-zoom/releases/latest | grep browser_download_url | grep darwin-amd64 | cut -d '"' -f 4 | wget -qi - -O plugin.tar.gz
 	$(shell go env GOPATH)/bin/go-bindata -pkg zoom -o app/plugin/zoom/plugin_darwin_amd64.go plugin.tar.gz
@@ -297,12 +285,12 @@ update-zoom-plugin:
 	rm plugin.tar.gz
 	gofmt -s -w ./app/plugin/zoom
 
-check-licenses:
+check-licenses: ## Checks license status.
 	./scripts/license-check.sh $(TE_PACKAGES) $(EE_PACKAGES)
 
-check-style: govet gofmt check-licenses
+check-style: govet gofmt check-licenses ## Runs all pre-pull-request required code style checks.
 
-test-te-race:
+test-te-race: ## Checks for race conditions in the team edition.
 	@echo Testing TE race conditions
 
 	@echo "Packages to test: "$(TE_PACKAGES)
@@ -312,7 +300,7 @@ test-te-race:
 		$(GO) test $(GOFLAGS) -race -run=$(TESTS) -test.timeout=4000s $$package || exit 1; \
 	done
 
-test-ee-race:
+test-ee-race: ## Checks for race conditions in the enterprise edition.
 	@echo Testing EE race conditions
 
 ifeq ($(BUILD_ENTERPRISE_READY),true)
@@ -332,19 +320,19 @@ ifeq ($(BUILD_ENTERPRISE_READY),true)
 	rm -f config/*.key
 endif
 
-test-server-race: test-te-race test-ee-race
+test-race: test-te-race test-ee-race ## Checks for race conditions.
 
-do-cover-file:
+do-cover-file: ## Creates the test coverage report file.
 	@echo "mode: count" > cover.out
 
-test-te: do-cover-file
+test-te: do-cover-file ## Runs tests in the team edition.
 	@echo Testing TE
 	@echo "Packages to test: "$(TE_PACKAGES)
 	find . -name 'cprofile*.out' -exec sh -c 'rm "{}"' \;
 	$(GO) test $(GOFLAGS) -run=$(TESTS) $(TESTFLAGS) -v -timeout=2000s -covermode=count -coverpkg=$(ALL_PACKAGES_COMMA) -exec $(ROOT)/scripts/test-xprog.sh $(TE_PACKAGES)
 	find . -name 'cprofile*.out' -exec sh -c 'tail -n +2 {} >> cover.out ; rm "{}"' \;
 
-test-ee: do-cover-file
+test-ee: do-cover-file ## Runs tests in the enterprise edition.
 	@echo Testing EE
 
 ifeq ($(BUILD_ENTERPRISE_READY),true)
@@ -356,55 +344,33 @@ ifeq ($(BUILD_ENTERPRISE_READY),true)
 	rm -f config/*.key
 endif
 
-test-server: test-te test-ee
+test: test-te test-ee ## Runs tests.
 
-internal-test-web-client:
+internal-test-web-client: ## Runs web client tests.
 	$(GO) run $(GOFLAGS) $(PLATFORM_FILES) test web_client_tests
 
-run-server-for-web-client-tests:
+run-server-for-web-client-tests: ## Tests the server for web client.
 	$(GO) run $(GOFLAGS) $(PLATFORM_FILES) test web_client_tests_server
 
-test-client:
-	@echo Running client tests
-
-	cd $(BUILD_WEBAPP_DIR) && $(MAKE) test
-
-test: test-server test-client
-
-cover:
+cover: ## Opens test coverage report in a browser.
 	@echo Opening coverage info in browser. If this failed run make test first
 
 	$(GO) tool cover -html=cover.out
 	$(GO) tool cover -html=ecover.out
 
-run-server: start-docker
+run: start-docker ## Starts the server and webapp.
 	@echo Running mattermost for development
 
 	mkdir -p $(BUILD_WEBAPP_DIR)/dist/files
 	$(GO) run $(GOFLAGS) $(GO_LINKER_FLAGS) $(PLATFORM_FILES) --disableconfigwatch &
 
-run-cli: start-docker
+run-cli: start-docker ## Starts the server.
 	@echo Running mattermost for development
 	@echo Example should be like 'make ARGS="-version" run-cli'
 
 	$(GO) run $(GOFLAGS) $(GO_LINKER_FLAGS) $(PLATFORM_FILES) ${ARGS}
 
-run-client:
-	@echo Running mattermost client for development
-
-	ln -nfs $(BUILD_WEBAPP_DIR)/dist client
-	cd $(BUILD_WEBAPP_DIR) && $(MAKE) run
-
-run-client-fullmap:
-	@echo Running mattermost client for development with FULL SOURCE MAP
-
-	cd $(BUILD_WEBAPP_DIR) && $(MAKE) run-fullmap
-
-run: run-server run-client
-
-run-fullmap: run-server run-client-fullmap
-
-stop-server:
+stop: ## Stops the server.
 	@echo Stopping mattermost
 
 ifeq ($(BUILDER_GOOS_GOARCH),"windows_amd64")
@@ -421,24 +387,13 @@ else
 	done
 endif
 
-stop-client:
-	@echo Stopping mattermost client
+restart: | stop run ## Restarts the server.
 
-	cd $(BUILD_WEBAPP_DIR) && $(MAKE) stop
-
-stop: stop-server stop-client
-
-restart: restart-server restart-client
-
-restart-server: | stop-server run-server
-
-restart-client: | stop-client run-client
-
-run-job-server:
+run-job-server: ## Starts the background job server.
 	@echo Running job server for development
 	$(GO) run $(GOFLAGS) $(GO_LINKER_FLAGS) $(PLATFORM_FILES) jobserver --disableconfigwatch &
 
-config-ldap:
+config-ldap: ## Configures LDAP.
 	@echo Setting up configuration for local LDAP
 
 	@sed -i'' -e 's|"LdapServer": ".*"|"LdapServer": "dockerhost"|g' config/config.json
@@ -452,18 +407,16 @@ config-ldap:
 	@sed -i'' -e 's|"UsernameAttribute": ".*"|"UsernameAttribute": "uid"|g' config/config.json
 	@sed -i'' -e 's|"IdAttribute": ".*"|"IdAttribute": "uid"|g' config/config.json
 
-config-reset:
+config-reset: ## Resets the config/config.json file to the default.
 	@echo Resetting configuration to default
 	rm -f config/config.json
 	cp config/default.json config/config.json
 
-clean: stop-docker
+clean: stop-docker ## Stops docker containers and removes all temp files.
 	@echo Cleaning
 
 	rm -Rf $(DIST_ROOT)
 	go clean $(GOFLAGS) -i ./...
-
-	cd $(BUILD_WEBAPP_DIR) && $(MAKE) clean
 
 	find . -type d -name data | xargs rm -r
 	rm -rf logs
@@ -482,16 +435,16 @@ clean: stop-docker
 	rm -f imports/imports.go
 	rm -f cmd/platform/cprofile*.out
 
-nuke: clean clean-docker
+nuke: clean clean-docker ## Resets everything back to the initial repo clone state.
 	@echo BOOM
 
 	rm -rf data
 
-setup-mac:
+setup-mac: ## Adds macOS hosts entries for Docker.
 	echo $$(boot2docker ip 2> /dev/null) dockerhost | sudo tee -a /etc/hosts
 
 
-todo:
+todo: ## Display TODO and FIXME items in the source code.
 	@! ag --ignore Makefile --ignore-dir vendor --ignore-dir runtime TODO
 	@! ag --ignore Makefile --ignore-dir vendor --ignore-dir runtime XXX
 	@! ag --ignore Makefile --ignore-dir vendor --ignore-dir runtime FIXME
@@ -502,3 +455,7 @@ ifeq ($(BUILD_ENTERPRISE_READY),true)
 	@! ag --ignore Makefile --ignore-dir vendor --ignore-dir runtime FIXME enterprise/
 	@! ag --ignore Makefile --ignore-dir vendor --ignore-dir runtime "FIX ME" enterprise/
 endif
+
+## Help documentatin à la https://marmelab.com/blog/2016/02/29/auto-documented-makefile.html
+help:
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' ./Makefile | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
