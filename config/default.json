@@ -335,7 +335,7 @@
         "EnableExport": false,
         "DailyRunTime": "01:00",
         "ExportFromTimestamp": 0,
-        "FileLocation": "./data/export",
+        "FileLocation": "export",
         "BatchSize": 10000
     },
     "JobSettings": {

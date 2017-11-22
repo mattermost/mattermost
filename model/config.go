@@ -1513,7 +1513,7 @@ func (s *MessageExportSettings) SetDefaults() {
 	}
 
 	if s.FileLocation == nil {
-		s.FileLocation = NewString("./data/export")
+		s.FileLocation = NewString("export")
 	}
 
 	if s.DailyRunTime == nil {
