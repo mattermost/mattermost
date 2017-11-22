@@ -2811,6 +2811,10 @@
     "translation": "using a reset password link"
   },
   {
+    "id": "api.user.reset_password.system_console",
+    "translation": "using system console interface"
+  },
+  {
     "id": "api.user.reset_password.sso.app_error",
     "translation": "Cannot reset password for SSO accounts"
   },

@@ -803,13 +803,18 @@ func updatePassword(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var err *model.AppError
 	if c.Params.UserId == c.Session.UserId {
-		currentPassword := props["current_password"]
-		if len(currentPassword) <= 0 {
-			c.SetInvalidParam("current_password")
-			return
+
+		if c.App.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
+			err = c.App.UpdatePasswordByUserIdSendEmail(c.Params.UserId, newPassword, c.T("api.user.reset_password.system_console"))
+		} else {
+			currentPassword := props["current_password"]
+			if len(currentPassword) <= 0 {
+				c.SetInvalidParam("current_password")
+				return
+			}
+			err = c.App.UpdatePasswordAsUser(c.Params.UserId, currentPassword, newPassword)
 		}
 
-		err = c.App.UpdatePasswordAsUser(c.Params.UserId, currentPassword, newPassword)
 	} else if c.App.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
 		err = c.App.UpdatePasswordByUserIdSendEmail(c.Params.UserId, newPassword, c.T("api.user.reset_password.method"))
 	} else {
