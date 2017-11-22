@@ -253,7 +253,8 @@
     "LocalizationSettings": {
         "DefaultServerLocale": "en",
         "DefaultClientLocale": "en",
-        "AvailableLocales": ""
+        "AvailableLocales": "",
+        "EnableLocaleSetting": false
     },
     "SamlSettings": {
         "Enable": false,
