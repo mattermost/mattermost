@@ -106,7 +106,7 @@ func (s SqlChannelMemberHistoryStore) PurgeHistoryBefore(time int64, channelId s
 			AND LeaveTime <= :AtTime`
 
 		params := map[string]interface{}{"AtTime": time, "ChannelId": channelId}
-		if _, err := s.GetReplica().Exec(query, params); err != nil {
+		if _, err := s.GetMaster().Exec(query, params); err != nil {
 			result.Err = model.NewAppError("SqlChannelMemberHistoryStore.PurgeHistoryBefore", "store.sql_channel_member_history.purge_history_before.app_error", params, err.Error(), http.StatusInternalServerError)
 		}
 	})
