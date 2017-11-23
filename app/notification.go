@@ -364,7 +364,7 @@ func (a *App) sendNotificationEmail(post *model.Post, user *model.User, channel 
 	var bodyText = a.getNotificationEmailBody(user, post, channel, senderName, team.Name, teamURL, emailNotificationContentsType, translateFunc)
 
 	a.Go(func() {
-		if err := utils.SendMail(user.Email, html.UnescapeString(subjectText), bodyText); err != nil {
+		if err := a.SendMail(user.Email, html.UnescapeString(subjectText), bodyText); err != nil {
 			l4g.Error(utils.T("api.post.send_notifications_and_forget.send.error"), user.Email, err)
 		}
 	})
