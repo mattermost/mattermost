@@ -148,7 +148,7 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		session, err := c.App.GetSession(token)
 
 		if err != nil {
-			l4g.Error(utils.T("api.context.invalid_session.error"), err.Error())
+			l4g.Info(utils.T("api.context.invalid_session.error"), err.Error())
 			c.RemoveSessionCookie(w, r)
 			if h.requireSession {
 				c.Err = model.NewAppError("ServeHTTP", "api.context.session_expired.app_error", nil, "token="+token, http.StatusUnauthorized)
@@ -178,7 +178,13 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if c.Err != nil {
 		c.Err.Translate(c.T)
 		c.Err.RequestId = c.RequestId
-		c.LogError(c.Err)
+
+		if c.Err.Id == "api.context.session_expired.app_error" {
+			c.LogInfo(c.Err)
+		} else {
+			c.LogError(c.Err)
+		}
+
 		c.Err.Where = r.URL.Path
 
 		// Block out detailed error when not in developer mode
@@ -232,6 +238,11 @@ func (c *Context) LogError(err *model.AppError) {
 		l4g.Error(utils.TDefault("api.context.log.error"), c.Path, err.Where, err.StatusCode,
 			c.RequestId, c.Session.UserId, c.IpAddress, err.SystemMessage(utils.TDefault), err.DetailedError)
 	}
+}
+
+func (c *Context) LogInfo(err *model.AppError) {
+	l4g.Info(utils.TDefault("api.context.log.error"), c.Path, err.Where, err.StatusCode,
+		c.RequestId, c.Session.UserId, c.IpAddress, err.SystemMessage(utils.TDefault), err.DetailedError)
 }
 
 func (c *Context) LogDebug(err *model.AppError) {
