@@ -2099,7 +2099,7 @@ func TestSwitchAccount(t *testing.T) {
 	defer th.TearDown()
 	Client := th.Client
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.GitLabSettings.Enable = true; *cfg.ServiceSettings.ExperimentalEnableAuthenticationTransfer = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.GitLabSettings.Enable = true })
 
 	Client.Logout()
 
@@ -2117,6 +2117,17 @@ func TestSwitchAccount(t *testing.T) {
 		t.Fatal("bad link")
 	}
 
+	isLicensed := utils.IsLicensed()
+	license := utils.License()
+	enableAuthenticationTransfer := *th.App.Config().ServiceSettings.ExperimentalEnableAuthenticationTransfer
+	defer func() {
+		utils.SetIsLicensed(isLicensed)
+		utils.SetLicense(license)
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ExperimentalEnableAuthenticationTransfer = enableAuthenticationTransfer })
+	}()
+	utils.SetIsLicensed(true)
+	utils.SetLicense(&model.License{Features: &model.Features{}})
+	utils.License().Features.SetDefaults()
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ExperimentalEnableAuthenticationTransfer = false })
 
 	sr = &model.SwitchRequest{
