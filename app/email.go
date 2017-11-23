@@ -29,7 +29,7 @@ func (a *App) SendChangeUsernameEmail(oldUsername, newUsername, email, locale, s
 	bodyPage.Html["Info"] = utils.TranslateAsHtml(T, "api.templates.username_change_body.info",
 		map[string]interface{}{"TeamDisplayName": a.Config().TeamSettings.SiteName, "NewUsername": newUsername})
 
-	if err := utils.SendMail(email, subject, bodyPage.Render()); err != nil {
+	if err := a.SendMail(email, subject, bodyPage.Render()); err != nil {
 		return model.NewAppError("SendChangeUsernameEmail", "api.user.send_email_change_username_and_forget.error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
@@ -53,7 +53,7 @@ func (a *App) SendEmailChangeVerifyEmail(newUserEmail, locale, siteURL, token st
 	bodyPage.Props["VerifyUrl"] = link
 	bodyPage.Props["VerifyButton"] = T("api.templates.email_change_verify_body.button")
 
-	if err := utils.SendMail(newUserEmail, subject, bodyPage.Render()); err != nil {
+	if err := a.SendMail(newUserEmail, subject, bodyPage.Render()); err != nil {
 		return model.NewAppError("SendEmailChangeVerifyEmail", "api.user.send_email_change_verify_email_and_forget.error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
@@ -73,7 +73,7 @@ func (a *App) SendEmailChangeEmail(oldEmail, newEmail, locale, siteURL string) *
 	bodyPage.Html["Info"] = utils.TranslateAsHtml(T, "api.templates.email_change_body.info",
 		map[string]interface{}{"TeamDisplayName": a.Config().TeamSettings.SiteName, "NewEmail": newEmail})
 
-	if err := utils.SendMail(oldEmail, subject, bodyPage.Render()); err != nil {
+	if err := a.SendMail(oldEmail, subject, bodyPage.Render()); err != nil {
 		return model.NewAppError("SendEmailChangeEmail", "api.user.send_email_change_email_and_forget.error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
@@ -97,7 +97,7 @@ func (a *App) SendVerifyEmail(userEmail, locale, siteURL, token string) *model.A
 	bodyPage.Props["VerifyUrl"] = link
 	bodyPage.Props["Button"] = T("api.templates.verify_body.button")
 
-	if err := utils.SendMail(userEmail, subject, bodyPage.Render()); err != nil {
+	if err := a.SendMail(userEmail, subject, bodyPage.Render()); err != nil {
 		return model.NewAppError("SendVerifyEmail", "api.user.send_verify_email_and_forget.failed.error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
@@ -116,7 +116,7 @@ func (a *App) SendSignInChangeEmail(email, method, locale, siteURL string) *mode
 	bodyPage.Html["Info"] = utils.TranslateAsHtml(T, "api.templates.signin_change_email.body.info",
 		map[string]interface{}{"SiteName": utils.ClientCfg["SiteName"], "Method": method})
 
-	if err := utils.SendMail(email, subject, bodyPage.Render()); err != nil {
+	if err := a.SendMail(email, subject, bodyPage.Render()); err != nil {
 		return model.NewAppError("SendSignInChangeEmail", "api.user.send_sign_in_change_email_and_forget.error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
@@ -155,7 +155,7 @@ func (a *App) SendWelcomeEmail(userId string, email string, verified bool, local
 		bodyPage.Props["VerifyUrl"] = link
 	}
 
-	if err := utils.SendMail(email, subject, bodyPage.Render()); err != nil {
+	if err := a.SendMail(email, subject, bodyPage.Render()); err != nil {
 		return model.NewAppError("SendWelcomeEmail", "api.user.send_welcome_email_and_forget.failed.error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
@@ -175,7 +175,7 @@ func (a *App) SendPasswordChangeEmail(email, method, locale, siteURL string) *mo
 	bodyPage.Html["Info"] = utils.TranslateAsHtml(T, "api.templates.password_change_body.info",
 		map[string]interface{}{"TeamDisplayName": a.Config().TeamSettings.SiteName, "TeamURL": siteURL, "Method": method})
 
-	if err := utils.SendMail(email, subject, bodyPage.Render()); err != nil {
+	if err := a.SendMail(email, subject, bodyPage.Render()); err != nil {
 		return model.NewAppError("SendPasswordChangeEmail", "api.user.send_password_change_email_and_forget.error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
@@ -193,7 +193,7 @@ func (a *App) SendUserAccessTokenAddedEmail(email, locale string) *model.AppErro
 	bodyPage.Html["Info"] = utils.TranslateAsHtml(T, "api.templates.user_access_token_body.info",
 		map[string]interface{}{"SiteName": utils.ClientCfg["SiteName"], "SiteURL": utils.GetSiteURL()})
 
-	if err := utils.SendMail(email, subject, bodyPage.Render()); err != nil {
+	if err := a.SendMail(email, subject, bodyPage.Render()); err != nil {
 		return model.NewAppError("SendUserAccessTokenAddedEmail", "api.user.send_user_access_token.error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
@@ -216,7 +216,7 @@ func (a *App) SendPasswordResetEmail(email string, token *model.Token, locale, s
 	bodyPage.Props["ResetUrl"] = link
 	bodyPage.Props["Button"] = T("api.templates.reset_body.button")
 
-	if err := utils.SendMail(email, subject, bodyPage.Render()); err != nil {
+	if err := a.SendMail(email, subject, bodyPage.Render()); err != nil {
 		return false, model.NewAppError("SendPasswordReset", "api.user.send_password_reset.send.app_error", nil, "err="+err.Message, http.StatusInternalServerError)
 	}
 
@@ -243,7 +243,7 @@ func (a *App) SendMfaChangeEmail(email string, activated bool, locale, siteURL s
 
 	bodyPage.Html["Info"] = utils.TranslateAsHtml(T, bodyText, map[string]interface{}{"SiteURL": siteURL})
 
-	if err := utils.SendMail(email, subject, bodyPage.Render()); err != nil {
+	if err := a.SendMail(email, subject, bodyPage.Render()); err != nil {
 		return model.NewAppError("SendMfaChangeEmail", "api.user.send_mfa_change_email.error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
@@ -284,7 +284,7 @@ func (a *App) SendInviteEmails(team *model.Team, senderName string, invites []st
 				l4g.Info(utils.T("api.team.invite_members.sending.info"), invite, bodyPage.Props["Link"])
 			}
 
-			if err := utils.SendMail(invite, subject, bodyPage.Render()); err != nil {
+			if err := a.SendMail(invite, subject, bodyPage.Render()); err != nil {
 				l4g.Error(utils.T("api.team.invite_members.send.error"), err)
 			}
 		}
@@ -313,4 +313,8 @@ func (a *App) NewEmailTemplate(name, locale string) *utils.HTMLTemplate {
 		map[string]interface{}{"SupportEmail": *a.Config().SupportSettings.SupportEmail, "SiteName": a.Config().TeamSettings.SiteName})
 
 	return t
+}
+
+func (a *App) SendMail(to, subject, htmlBody string) *model.AppError {
+	return utils.SendMailUsingConfig(to, subject, htmlBody, a.Config())
 }

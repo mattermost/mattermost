@@ -106,7 +106,7 @@ func (a *App) DoSecurityUpdateCheck() {
 
 								for _, user := range users {
 									l4g.Info(utils.T("mattermost.send_bulletin.info"), bulletin.Id, user.Email)
-									utils.SendMail(user.Email, utils.T("mattermost.bulletin.subject"), string(body))
+									a.SendMail(user.Email, utils.T("mattermost.bulletin.subject"), string(body))
 								}
 							}
 
