@@ -364,7 +364,7 @@ func (a *App) sendNotificationEmail(post *model.Post, user *model.User, channel 
 	var bodyText = a.getNotificationEmailBody(user, post, channel, senderName, team.Name, teamURL, emailNotificationContentsType, translateFunc)
 
 	a.Go(func() {
-		if err := utils.SendMail(user.Email, html.UnescapeString(subjectText), bodyText); err != nil {
+		if err := a.SendMail(user.Email, html.UnescapeString(subjectText), bodyText); err != nil {
 			l4g.Error(utils.T("api.post.send_notifications_and_forget.send.error"), user.Email, err)
 		}
 	})
@@ -695,7 +695,7 @@ func (a *App) sendToPushProxy(msg model.PushNotification, session *model.Session
 
 	request, _ := http.NewRequest("POST", *a.Config().EmailSettings.PushNotificationServer+model.API_URL_SUFFIX_V1+"/send_push", strings.NewReader(msg.ToJson()))
 
-	if resp, err := utils.HttpClient(true).Do(request); err != nil {
+	if resp, err := a.HTTPClient(true).Do(request); err != nil {
 		l4g.Error("Device push reported as error for UserId=%v SessionId=%v message=%v", session.UserId, session.Id, err.Error())
 	} else {
 		pushResponse := model.PushResponseFromJson(resp.Body)

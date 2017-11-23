@@ -58,8 +58,8 @@ type CorsWrapper struct {
 }
 
 func (cw *CorsWrapper) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if len(*cw.config().ServiceSettings.AllowCorsFrom) > 0 {
-		if utils.OriginChecker(r) {
+	if allowed := *cw.config().ServiceSettings.AllowCorsFrom; allowed != "" {
+		if utils.CheckOrigin(r, allowed) {
 			w.Header().Set("Access-Control-Allow-Origin", r.Header.Get("Origin"))
 
 			if r.Method == "OPTIONS" {
@@ -250,6 +250,13 @@ func (a *App) StopServer() {
 		a.Srv.Server.Close()
 		a.Srv.Server = nil
 	}
+}
+
+func (a *App) OriginChecker() func(*http.Request) bool {
+	if allowed := *a.Config().ServiceSettings.AllowCorsFrom; allowed != "" {
+		return utils.OriginChecker(allowed)
+	}
+	return nil
 }
 
 // This is required to re-use the underlying connection and not take up file descriptors
