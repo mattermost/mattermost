@@ -92,18 +92,18 @@ func (s *FileBackendTestSuite) TestCopyFile() {
 	path2 := "tests/" + model.NewId()
 
 	err := s.backend.WriteFile(b, path1)
-	require.Nil(s.T(), err)
+	s.Nil(err)
 	defer s.backend.RemoveFile(path1)
 
 	err = s.backend.CopyFile(path1, path2)
-	require.Nil(s.T(), err)
+	s.Nil(err)
 	defer s.backend.RemoveFile(path2)
 
 	_, err = s.backend.ReadFile(path1)
-	require.Nil(s.T(), err)
+	s.Nil(err)
 
 	_, err = s.backend.ReadFile(path2)
-	require.Nil(s.T(), err)
+	s.Nil(err)
 }
 
 func (s *FileBackendTestSuite) TestMoveFile() {
