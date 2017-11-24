@@ -57,24 +57,6 @@ func TestSendNotifications(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-
-	th.App.UpdateActive(th.BasicUser2, false)
-	th.App.InvalidateAllCaches()
-
-	post3, err := th.App.CreatePostMissingChannel(&model.Post{
-		UserId:    th.BasicUser.Id,
-		ChannelId: dm.Id,
-		Message:   "dm message",
-	}, true)
-
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	_, err = th.App.SendNotifications(post3, th.BasicTeam, dm, th.BasicUser, nil)
-	if err != nil {
-		t.Fatal(err)
-	}
 }
 
 func TestGetExplicitMentions(t *testing.T) {

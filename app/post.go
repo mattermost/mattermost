@@ -104,6 +104,10 @@ func (a *App) CreatePostMissingChannel(post *model.Post, triggerWebhooks bool) (
 }
 
 func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhooks bool) (*model.Post, *model.AppError) {
+	if channel.DeactivateAt > 0 {
+		return nil, model.NewAppError("CreatePost", "api.post.create_post.deactivated", nil, "", http.StatusForbidden)
+	}
+
 	post.SanitizeProps()
 
 	var pchan store.StoreChannel

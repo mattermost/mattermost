@@ -46,6 +46,10 @@ type Channel struct {
 	TotalMsgCount int64  `json:"total_msg_count"`
 	ExtraUpdateAt int64  `json:"extra_update_at"`
 	CreatorId     string `json:"creator_id"`
+
+	// If the channel is a group or direct channel with one or more deactivated user, this is the time that
+	// the first user was deactivated.
+	DeactivateAt int64 `json:"deactivate_at"`
 }
 
 type ChannelPatch struct {

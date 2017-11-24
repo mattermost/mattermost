@@ -156,6 +156,7 @@ type ChannelStore interface {
 	GetMembersByIds(channelId string, userIds []string) StoreChannel
 	AnalyticsDeletedTypeCount(teamId string, channelType string) StoreChannel
 	GetChannelUnread(channelId, userId string) StoreChannel
+	UpdateActiveByUser(userId string, time int64) StoreChannel
 }
 
 type PostStore interface {

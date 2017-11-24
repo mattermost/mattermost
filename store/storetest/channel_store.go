@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
@@ -47,6 +48,7 @@ func TestChannelStore(t *testing.T, ss store.Store) {
 	t.Run("AnalyticsDeletedTypeCount", func(t *testing.T) { testChannelStoreAnalyticsDeletedTypeCount(t, ss) })
 	t.Run("GetPinnedPosts", func(t *testing.T) { testChannelStoreGetPinnedPosts(t, ss) })
 	t.Run("MaxChannelsPerTeam", func(t *testing.T) { testChannelStoreMaxChannelsPerTeam(t, ss) })
+	t.Run("UpdateActiveByUser", func(t *testing.T) { testUpdateActiveByUser(t, ss) })
 }
 
 func testChannelStoreSave(t *testing.T, ss store.Store) {
@@ -2136,4 +2138,68 @@ func testChannelStoreMaxChannelsPerTeam(t *testing.T, ss store.Store) {
 	channel.Id = ""
 	result = <-ss.Channel().Save(channel, 1)
 	assert.Nil(t, result.Err)
+}
+
+func testUpdateActiveByUser(t *testing.T, ss store.Store) {
+	u1 := &model.User{}
+	u1.Email = model.NewId()
+	u1.Nickname = model.NewId()
+	store.Must(ss.User().Save(u1))
+	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u1.Id}, -1))
+
+	u2 := &model.User{}
+	u2.Email = model.NewId()
+	u2.Nickname = model.NewId()
+	store.Must(ss.User().Save(u2))
+	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u2.Id}, -1))
+
+	result := <-ss.Channel().CreateDirectChannel(u1.Id, u2.Id)
+	require.Nil(t, result.Err)
+	channel := result.Data.(*model.Channel)
+
+	// DeactivateAt should initially be 0
+	result = <-ss.Channel().Get(channel.Id, false)
+	require.Nil(t, result.Err)
+	assert.Zero(t, result.Data.(*model.Channel).DeactivateAt)
+
+	store.Must(ss.Channel().UpdateActiveByUser(u1.Id, model.GetMillis()))
+
+	// DeactivateAt should still be 0
+	result = <-ss.Channel().Get(channel.Id, false)
+	require.Nil(t, result.Err)
+	assert.Zero(t, result.Data.(*model.Channel).DeactivateAt)
+
+	result = <-ss.User().Get(u1.Id)
+	require.Nil(t, result.Err)
+	u1 = result.Data.(*model.User)
+	u1.DeleteAt = model.GetMillis()
+	store.Must(ss.User().Update(u1, true))
+
+	updateTime := model.GetMillis()
+	store.Must(ss.Channel().UpdateActiveByUser(u1.Id, updateTime))
+
+	// DeactivateAt should now be updateTime
+	result = <-ss.Channel().Get(channel.Id, false)
+	require.Nil(t, result.Err)
+	assert.Equal(t, updateTime, result.Data.(*model.Channel).DeactivateAt)
+
+	store.Must(ss.Channel().UpdateActiveByUser(u1.Id, updateTime+5000))
+
+	// DeactivateAt shouldn't have changed
+	result = <-ss.Channel().Get(channel.Id, false)
+	require.Nil(t, result.Err)
+	assert.Equal(t, updateTime, result.Data.(*model.Channel).DeactivateAt)
+
+	result = <-ss.User().Get(u1.Id)
+	require.Nil(t, result.Err)
+	u1 = result.Data.(*model.User)
+	u1.DeleteAt = 0
+	store.Must(ss.User().Update(u1, true))
+
+	store.Must(ss.Channel().UpdateActiveByUser(u1.Id, updateTime))
+
+	// DeactivateAt should now be 0 again
+	result = <-ss.Channel().Get(channel.Id, false)
+	require.Nil(t, result.Err)
+	assert.Zero(t, result.Data.(*model.Channel).DeactivateAt)
 }

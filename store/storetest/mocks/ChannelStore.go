@@ -754,6 +754,22 @@ func (_m *ChannelStore) Update(channel *model.Channel) store.StoreChannel {
 	return r0
 }
 
+// UpdateActiveByUser provides a mock function with given fields: userId, time
+func (_m *ChannelStore) UpdateActiveByUser(userId string, time int64) store.StoreChannel {
+	ret := _m.Called(userId, time)
+
+	var r0 store.StoreChannel
+	if rf, ok := ret.Get(0).(func(string, int64) store.StoreChannel); ok {
+		r0 = rf(userId, time)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.StoreChannel)
+		}
+	}
+
+	return r0
+}
+
 // UpdateLastViewedAt provides a mock function with given fields: channelIds, userId
 func (_m *ChannelStore) UpdateLastViewedAt(channelIds []string, userId string) store.StoreChannel {
 	ret := _m.Called(channelIds, userId)

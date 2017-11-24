@@ -1302,3 +1302,23 @@ func (s SqlChannelStore) GetMembersByIds(channelId string, userIds []string) sto
 		}
 	})
 }
+
+func (s SqlChannelStore) UpdateActiveByUser(userId string, time int64) store.StoreChannel {
+	return store.Do(func(result *store.StoreResult) {
+		timeParameter := ":Time"
+		if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+			timeParameter = "CAST(" + timeParameter + " AS BIGINT)"
+		}
+		if _, err := s.GetMaster().Exec(`
+			UPDATE Channels c
+			SET DeactivateAt = (CASE WHEN (
+				SELECT MAX(Users.DeleteAt)
+				FROM ChannelMembers, Users
+				WHERE ChannelMembers.UserId = Users.Id AND ChannelMembers.ChannelId = c.Id
+			) = 0 THEN 0 WHEN c.DeactivateAt = 0 THEN `+timeParameter+` ELSE c.DeactivateAt END)
+			WHERE (Type = 'D' OR Type = 'G') AND Id IN (SELECT ChannelId FROM ChannelMembers WHERE UserId = :UserId)
+		`, map[string]interface{}{"UserId": userId, "Time": time}); err != nil {
+			result.Err = model.NewAppError("SqlChannelStore.UpdateActive", "store.sql_channel.update_active.app_error", nil, "userId="+userId+" "+err.Error(), http.StatusInternalServerError)
+		}
+	})
+}
