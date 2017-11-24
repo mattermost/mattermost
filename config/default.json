@@ -52,7 +52,8 @@
         "EnableChannelViewedMessages": true,
         "EnableUserStatuses": true,
         "ClusterLogTimeoutMilliseconds": 2000,
-        "EnablePreviewFeatures": true
+        "EnablePreviewFeatures": true,
+        "CloseUnusedDirectMessages": false
     },
     "TeamSettings": {
         "SiteName": "Mattermost",
