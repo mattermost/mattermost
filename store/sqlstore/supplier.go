@@ -84,6 +84,7 @@ type SqlSupplierOldStores struct {
 	reaction        store.ReactionStore
 	job             store.JobStore
 	userAccessToken store.UserAccessTokenStore
+	plugin          store.PluginStore
 }
 
 type SqlSupplier struct {
@@ -129,6 +130,7 @@ func NewSqlSupplier(settings model.SqlSettings, metrics einterfaces.MetricsInter
 	supplier.oldStores.fileInfo = NewSqlFileInfoStore(supplier, metrics)
 	supplier.oldStores.job = NewSqlJobStore(supplier)
 	supplier.oldStores.userAccessToken = NewSqlUserAccessTokenStore(supplier)
+	supplier.oldStores.plugin = NewSqlPluginStore(supplier)
 
 	initSqlSupplierReactions(supplier)
 
@@ -161,6 +163,7 @@ func NewSqlSupplier(settings model.SqlSettings, metrics einterfaces.MetricsInter
 	supplier.oldStores.fileInfo.(*SqlFileInfoStore).CreateIndexesIfNotExists()
 	supplier.oldStores.job.(*SqlJobStore).CreateIndexesIfNotExists()
 	supplier.oldStores.userAccessToken.(*SqlUserAccessTokenStore).CreateIndexesIfNotExists()
+	supplier.oldStores.plugin.(*SqlPluginStore).CreateIndexesIfNotExists()
 
 	supplier.oldStores.preference.(*SqlPreferenceStore).DeleteUnusedFeatures()
 
@@ -796,6 +799,10 @@ func (ss *SqlSupplier) Job() store.JobStore {
 
 func (ss *SqlSupplier) UserAccessToken() store.UserAccessTokenStore {
 	return ss.oldStores.userAccessToken
+}
+
+func (ss *SqlSupplier) Plugin() store.PluginStore {
+	return ss.oldStores.plugin
 }
 
 func (ss *SqlSupplier) DropAllTables() {

@@ -259,6 +259,41 @@ func (api *LocalAPI) UpdatePost(args *model.Post, reply *APIPostReply) error {
 	return nil
 }
 
+type APIPluginStoreValueReply struct {
+	Value *model.PluginStoreValue
+	Error *model.AppError
+}
+
+type APISetKeyArgs struct {
+	Key   string
+	Value interface{}
+}
+
+func (api *LocalAPI) SetKey(args *APISetKeyArgs, reply *APIErrorReply) error {
+	err := api.api.SetKey(args.Key, args.Value)
+	*reply = APIErrorReply{
+		Error: err,
+	}
+	return nil
+}
+
+func (api *LocalAPI) GetKey(args string, reply *APIPluginStoreValueReply) error {
+	v, err := api.api.GetKey(args)
+	*reply = APIPluginStoreValueReply{
+		Value: v,
+		Error: err,
+	}
+	return nil
+}
+
+func (api *LocalAPI) DeleteKey(args string, reply *APIErrorReply) error {
+	err := api.api.DeleteKey(args)
+	*reply = APIErrorReply{
+		Error: err,
+	}
+	return nil
+}
+
 func ServeAPI(api plugin.API, conn io.ReadWriteCloser, muxer *Muxer) {
 	server := rpc.NewServer()
 	server.Register(&LocalAPI{
@@ -465,6 +500,30 @@ func (api *RemoteAPI) UpdatePost(post *model.Post) (*model.Post, *model.AppError
 		return nil, model.NewAppError("RemoteAPI.UpdatePost", "plugin.rpcplugin.invocation.error", nil, "err="+err.Error(), http.StatusInternalServerError)
 	}
 	return reply.Post, reply.Error
+}
+
+func (api *RemoteAPI) SetKey(key string, value interface{}) *model.AppError {
+	var reply APIErrorReply
+	if err := api.client.Call("LocalAPI.SetKey", &APISetKeyArgs{Key: key, Value: value}, &reply); err != nil {
+		return model.NewAppError("RemoteAPI.SetKey", "plugin.rpcplugin.invocation.error", nil, "err="+err.Error(), http.StatusInternalServerError)
+	}
+	return reply.Error
+}
+
+func (api *RemoteAPI) GetKey(key string) (*model.PluginStoreValue, *model.AppError) {
+	var reply APIPluginStoreValueReply
+	if err := api.client.Call("LocalAPI.GetKey", key, &reply); err != nil {
+		return nil, model.NewAppError("RemoteAPI.GetKey", "plugin.rpcplugin.invocation.error", nil, "err="+err.Error(), http.StatusInternalServerError)
+	}
+	return reply.Value, reply.Error
+}
+
+func (api *RemoteAPI) DeleteKey(key string) *model.AppError {
+	var reply APIErrorReply
+	if err := api.client.Call("LocalAPI.DeleteKey", key, &reply); err != nil {
+		return model.NewAppError("RemoteAPI.DeleteKey", "plugin.rpcplugin.invocation.error", nil, "err="+err.Error(), http.StatusInternalServerError)
+	}
+	return reply.Error
 }
 
 func (h *RemoteAPI) Close() error {

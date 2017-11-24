@@ -199,5 +199,21 @@ func TestAPI(t *testing.T) {
 		post, err = remote.UpdatePost(testPost)
 		assert.Equal(t, testPost, post)
 		assert.Nil(t, err)
+
+		api.On("SetKey", "thekey", "thevalue").Return(nil).Once()
+		err = remote.SetKey("thekey", "thevalue")
+		assert.Nil(t, err)
+
+		api.On("GetKey", "thekey").Return(func(key string) (*model.PluginStoreValue, *model.AppError) {
+			return model.NewPluginStoreValue("thevalue"), nil
+		}).Once()
+		psv, err := remote.GetKey("thekey")
+		assert.Nil(t, err)
+		retStr, _ := psv.String()
+		assert.Equal(t, "thevalue", retStr)
+
+		api.On("DeleteKey", "thekey").Return(nil).Once()
+		err = remote.DeleteKey("thekey")
+		assert.Nil(t, err)
 	})
 }

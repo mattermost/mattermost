@@ -153,6 +153,10 @@ func (s *LayeredStore) UserAccessToken() UserAccessTokenStore {
 	return s.DatabaseLayer.UserAccessToken()
 }
 
+func (s *LayeredStore) Plugin() PluginStore {
+	return s.DatabaseLayer.Plugin()
+}
+
 func (s *LayeredStore) MarkSystemRanUnitTests() {
 	s.DatabaseLayer.MarkSystemRanUnitTests()
 }
