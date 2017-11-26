@@ -114,7 +114,7 @@ func (me *groupmsgProvider) DoCommand(a *App, args *model.CommandArgs, message s
 		return &model.CommandResponse{Text: args.T("api.command_groupmsg.fail.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 	}
 
-	return &model.CommandResponse{GotoLocation: args.SiteURL + "/" + team.Name + "/channels/" + groupChannel.Name, Text: "", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+	return &model.CommandResponse{GotoLocation: "/" + team.Name + "/channels/" + groupChannel.Name, Text: "", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 }
 
 func groupMsgUsernames(message string) ([]string, string) {

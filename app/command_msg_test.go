@@ -27,5 +27,5 @@ func TestMsgProvider(t *testing.T) {
 	}, "@"+th.BasicUser2.Username+" hello")
 	channelName := model.GetDMNameFromIds(th.BasicUser.Id, th.BasicUser2.Id)
 	assert.Equal(t, "", resp.Text)
-	assert.Equal(t, "http://test.url/"+team.Name+"/channels/"+channelName, resp.GotoLocation)
+	assert.Equal(t, "/"+team.Name+"/channels/"+channelName, resp.GotoLocation)
 }

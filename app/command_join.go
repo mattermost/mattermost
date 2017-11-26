@@ -58,7 +58,7 @@ func (me *JoinProvider) DoCommand(a *App, args *model.CommandArgs, message strin
 				return &model.CommandResponse{Text: args.T("api.command_join.fail.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 			}
 
-			return &model.CommandResponse{GotoLocation: args.SiteURL + "/" + team.Name + "/channels/" + channel.Name}
+			return &model.CommandResponse{GotoLocation: "/" + team.Name + "/channels/" + channel.Name}
 		}
 	}
 
