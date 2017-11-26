@@ -51,5 +51,5 @@ func (me *LeaveProvider) DoCommand(a *App, args *model.CommandArgs, message stri
 		return &model.CommandResponse{Text: args.T("api.command_leave.fail.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 	}
 
-	return &model.CommandResponse{GotoLocation: args.SiteURL + "/" + team.Name + "/channels/" + model.DEFAULT_CHANNEL, Text: args.T("api.command_leave.success"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+	return &model.CommandResponse{GotoLocation: "/" + team.Name + "/channels/" + model.DEFAULT_CHANNEL, Text: args.T("api.command_leave.success"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 }
