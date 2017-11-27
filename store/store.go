@@ -63,6 +63,7 @@ type Store interface {
 	Reaction() ReactionStore
 	Job() JobStore
 	UserAccessToken() UserAccessTokenStore
+	Plugin() PluginStore
 	MarkSystemRanUnitTests()
 	Close()
 	DropAllTables()
@@ -439,4 +440,10 @@ type UserAccessTokenStore interface {
 	GetByUser(userId string, page, perPage int) StoreChannel
 	UpdateTokenEnable(tokenId string) StoreChannel
 	UpdateTokenDisable(tokenId string) StoreChannel
+}
+
+type PluginStore interface {
+	SaveOrUpdate(keyVal *model.PluginKeyValue) StoreChannel
+	Get(pluginId, key string) StoreChannel
+	Delete(pluginId, key string) StoreChannel
 }
