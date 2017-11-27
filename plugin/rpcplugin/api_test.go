@@ -34,7 +34,8 @@ func testAPIRPC(api plugin.API, f func(plugin.API)) {
 }
 
 func TestAPI(t *testing.T) {
-	var api plugintest.API
+	keyValueStore := &plugintest.KeyValueStore{}
+	api := plugintest.API{Store: keyValueStore}
 	defer api.AssertExpectations(t)
 
 	type Config struct {
@@ -198,6 +199,21 @@ func TestAPI(t *testing.T) {
 		}).Once()
 		post, err = remote.UpdatePost(testPost)
 		assert.Equal(t, testPost, post)
+		assert.Nil(t, err)
+
+		api.KeyValueStore().(*plugintest.KeyValueStore).On("Set", "thekey", []byte("thevalue")).Return(nil).Once()
+		err = remote.KeyValueStore().Set("thekey", []byte("thevalue"))
+		assert.Nil(t, err)
+
+		api.KeyValueStore().(*plugintest.KeyValueStore).On("Get", "thekey").Return(func(key string) ([]byte, *model.AppError) {
+			return []byte("thevalue"), nil
+		}).Once()
+		ret, err := remote.KeyValueStore().Get("thekey")
+		assert.Nil(t, err)
+		assert.Equal(t, []byte("thevalue"), ret)
+
+		api.KeyValueStore().(*plugintest.KeyValueStore).On("Delete", "thekey").Return(nil).Once()
+		err = remote.KeyValueStore().Delete("thekey")
 		assert.Nil(t, err)
 	})
 }

@@ -12,9 +12,15 @@ import (
 
 type API struct {
 	mock.Mock
+	Store *KeyValueStore
+}
+
+type KeyValueStore struct {
+	mock.Mock
 }
 
 var _ plugin.API = (*API)(nil)
+var _ plugin.KeyValueStore = (*KeyValueStore)(nil)
 
 func (m *API) LoadPluginConfiguration(dest interface{}) error {
 	return m.Called(dest).Error(0)
@@ -234,4 +240,36 @@ func (m *API) UpdatePost(post *model.Post) (*model.Post, *model.AppError) {
 	postOut, _ := ret.Get(0).(*model.Post)
 	err, _ := ret.Get(1).(*model.AppError)
 	return postOut, err
+}
+
+func (m *API) KeyValueStore() plugin.KeyValueStore {
+	return m.Store
+}
+
+func (m *KeyValueStore) Set(key string, value []byte) *model.AppError {
+	ret := m.Called(key, value)
+	if f, ok := ret.Get(0).(func(string, []byte) *model.AppError); ok {
+		return f(key, value)
+	}
+	err, _ := ret.Get(0).(*model.AppError)
+	return err
+}
+
+func (m *KeyValueStore) Get(key string) ([]byte, *model.AppError) {
+	ret := m.Called(key)
+	if f, ok := ret.Get(0).(func(string) ([]byte, *model.AppError)); ok {
+		return f(key)
+	}
+	psv, _ := ret.Get(0).([]byte)
+	err, _ := ret.Get(1).(*model.AppError)
+	return psv, err
+}
+
+func (m *KeyValueStore) Delete(key string) *model.AppError {
+	ret := m.Called(key)
+	if f, ok := ret.Get(0).(func(string) *model.AppError); ok {
+		return f(key)
+	}
+	err, _ := ret.Get(0).(*model.AppError)
+	return err
 }

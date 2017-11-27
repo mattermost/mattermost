@@ -203,6 +203,22 @@ func (_m *Store) OAuth() store.OAuthStore {
 	return r0
 }
 
+// Plugin provides a mock function with given fields:
+func (_m *Store) Plugin() store.PluginStore {
+	ret := _m.Called()
+
+	var r0 store.PluginStore
+	if rf, ok := ret.Get(0).(func() store.PluginStore); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.PluginStore)
+		}
+	}
+
+	return r0
+}
+
 // Post provides a mock function with given fields:
 func (_m *Store) Post() store.PostStore {
 	ret := _m.Called()
