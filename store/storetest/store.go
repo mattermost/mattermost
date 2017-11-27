@@ -41,6 +41,7 @@ type Store struct {
 	ReactionStore         mocks.ReactionStore
 	JobStore              mocks.JobStore
 	UserAccessTokenStore  mocks.UserAccessTokenStore
+	PluginStore           mocks.PluginStore
 }
 
 func (s *Store) Team() store.TeamStore                         { return &s.TeamStore }
@@ -65,6 +66,7 @@ func (s *Store) FileInfo() store.FileInfoStore                 { return &s.FileI
 func (s *Store) Reaction() store.ReactionStore                 { return &s.ReactionStore }
 func (s *Store) Job() store.JobStore                           { return &s.JobStore }
 func (s *Store) UserAccessToken() store.UserAccessTokenStore   { return &s.UserAccessTokenStore }
+func (s *Store) Plugin() store.PluginStore                     { return &s.PluginStore }
 func (s *Store) MarkSystemRanUnitTests()                       { /* do nothing */ }
 func (s *Store) Close()                                        { /* do nothing */ }
 func (s *Store) DropAllTables()                                { /* do nothing */ }
@@ -96,5 +98,6 @@ func (s *Store) AssertExpectations(t mock.TestingT) bool {
 		&s.ReactionStore,
 		&s.JobStore,
 		&s.UserAccessTokenStore,
+		&s.PluginStore,
 	)
 }

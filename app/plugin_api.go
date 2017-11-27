@@ -11,9 +11,17 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
+
+	"github.com/mattermost/mattermost-server/plugin"
 )
 
 type PluginAPI struct {
+	id            string
+	app           *App
+	keyValueStore *PluginKeyValueStore
+}
+
+type PluginKeyValueStore struct {
 	id  string
 	app *App
 }
@@ -124,16 +132,20 @@ func (api *PluginAPI) UpdatePost(post *model.Post) (*model.Post, *model.AppError
 	return api.app.UpdatePost(post, false)
 }
 
-func (api *PluginAPI) SetKey(key string, value interface{}) *model.AppError {
-	return api.app.SetPluginKey(api.id, key, value)
+func (api *PluginAPI) KeyValueStore() plugin.KeyValueStore {
+	return api.keyValueStore
 }
 
-func (api *PluginAPI) GetKey(key string) (*model.PluginStoreValue, *model.AppError) {
-	return api.app.GetPluginKey(api.id, key)
+func (s *PluginKeyValueStore) Set(key string, value []byte) *model.AppError {
+	return s.app.SetPluginKey(s.id, key, value)
 }
 
-func (api *PluginAPI) DeleteKey(key string) *model.AppError {
-	return api.app.DeletePluginKey(api.id, key)
+func (s *PluginKeyValueStore) Get(key string) ([]byte, *model.AppError) {
+	return s.app.GetPluginKey(s.id, key)
+}
+
+func (s *PluginKeyValueStore) Delete(key string) *model.AppError {
+	return s.app.DeletePluginKey(s.id, key)
 }
 
 type BuiltInPluginAPI struct {

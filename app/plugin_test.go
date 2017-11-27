@@ -7,9 +7,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
-
-	"github.com/mattermost/mattermost-server/model"
 )
 
 func TestPluginKeyValueStore(t *testing.T) {
@@ -18,30 +15,18 @@ func TestPluginKeyValueStore(t *testing.T) {
 
 	pluginId := "testpluginid"
 
-	assert.Nil(t, th.App.SetPluginKey(pluginId, "stringkey", "test"))
-	assert.Nil(t, th.App.SetPluginKey(pluginId, "intkey", 123))
-	assert.Nil(t, th.App.SetPluginKey(pluginId, "postkey", th.BasicPost))
-
-	ret, err := th.App.GetPluginKey(pluginId, "stringkey")
-	require.Nil(t, err)
-	retStr, _ := ret.String()
-	assert.Equal(t, retStr, "test")
-
-	ret, err = th.App.GetPluginKey(pluginId, "intkey")
-	require.Nil(t, err)
-	retInt, _ := ret.Int64()
-	assert.Equal(t, retInt, int64(123))
-
-	ret, err = th.App.GetPluginKey(pluginId, "postkey")
-	require.Nil(t, err)
-	var retPost *model.Post
-	ret.Scan(&retPost)
-	assert.Equal(t, retPost.Id, th.BasicPost.Id)
+	assert.Nil(t, th.App.SetPluginKey(pluginId, "key", []byte("test")))
+	ret, err := th.App.GetPluginKey(pluginId, "key")
+	assert.Nil(t, err)
+	assert.Equal(t, []byte("test"), ret)
 
 	// Test inserting over existing entries
-	assert.Nil(t, th.App.SetPluginKey(pluginId, "stringkey", "test2"))
-	assert.Nil(t, th.App.SetPluginKey(pluginId, "intkey", 1234))
-	assert.Nil(t, th.App.SetPluginKey(pluginId, "postkey", th.BasicPost))
+	assert.Nil(t, th.App.SetPluginKey(pluginId, "key", []byte("test2")))
+
+	// Test getting non-existent key
+	ret, err = th.App.GetPluginKey(pluginId, "notakey")
+	assert.Nil(t, err)
+	assert.Nil(t, ret)
 
 	assert.Nil(t, th.App.DeletePluginKey(pluginId, "stringkey"))
 	assert.Nil(t, th.App.DeletePluginKey(pluginId, "intkey"))

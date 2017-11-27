@@ -12,9 +12,15 @@ import (
 
 type API struct {
 	mock.Mock
+	Store *KeyValueStore
+}
+
+type KeyValueStore struct {
+	mock.Mock
 }
 
 var _ plugin.API = (*API)(nil)
+var _ plugin.KeyValueStore = (*KeyValueStore)(nil)
 
 func (m *API) LoadPluginConfiguration(dest interface{}) error {
 	return m.Called(dest).Error(0)
@@ -236,26 +242,30 @@ func (m *API) UpdatePost(post *model.Post) (*model.Post, *model.AppError) {
 	return postOut, err
 }
 
-func (m *API) SetKey(key string, value interface{}) *model.AppError {
+func (m *API) KeyValueStore() plugin.KeyValueStore {
+	return m.Store
+}
+
+func (m *KeyValueStore) Set(key string, value []byte) *model.AppError {
 	ret := m.Called(key, value)
-	if f, ok := ret.Get(0).(func(string, interface{}) *model.AppError); ok {
+	if f, ok := ret.Get(0).(func(string, []byte) *model.AppError); ok {
 		return f(key, value)
 	}
 	err, _ := ret.Get(0).(*model.AppError)
 	return err
 }
 
-func (m *API) GetKey(key string) (*model.PluginStoreValue, *model.AppError) {
+func (m *KeyValueStore) Get(key string) ([]byte, *model.AppError) {
 	ret := m.Called(key)
-	if f, ok := ret.Get(0).(func(string) (*model.PluginStoreValue, *model.AppError)); ok {
+	if f, ok := ret.Get(0).(func(string) ([]byte, *model.AppError)); ok {
 		return f(key)
 	}
-	psv, _ := ret.Get(0).(*model.PluginStoreValue)
+	psv, _ := ret.Get(0).([]byte)
 	err, _ := ret.Get(1).(*model.AppError)
 	return psv, err
 }
 
-func (m *API) DeleteKey(key string) *model.AppError {
+func (m *KeyValueStore) Delete(key string) *model.AppError {
 	ret := m.Called(key)
 	if f, ok := ret.Get(0).(func(string) *model.AppError); ok {
 		return f(key)

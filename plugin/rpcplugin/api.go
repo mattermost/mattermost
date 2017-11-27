@@ -259,35 +259,35 @@ func (api *LocalAPI) UpdatePost(args *model.Post, reply *APIPostReply) error {
 	return nil
 }
 
-type APIPluginStoreValueReply struct {
-	Value *model.PluginStoreValue
+type APIKeyValueStoreReply struct {
+	Value []byte
 	Error *model.AppError
 }
 
-type APISetKeyArgs struct {
+type APIKeyValueStoreSetArgs struct {
 	Key   string
-	Value interface{}
+	Value []byte
 }
 
-func (api *LocalAPI) SetKey(args *APISetKeyArgs, reply *APIErrorReply) error {
-	err := api.api.SetKey(args.Key, args.Value)
+func (api *LocalAPI) KeyValueStoreSet(args *APIKeyValueStoreSetArgs, reply *APIErrorReply) error {
+	err := api.api.KeyValueStore().Set(args.Key, args.Value)
 	*reply = APIErrorReply{
 		Error: err,
 	}
 	return nil
 }
 
-func (api *LocalAPI) GetKey(args string, reply *APIPluginStoreValueReply) error {
-	v, err := api.api.GetKey(args)
-	*reply = APIPluginStoreValueReply{
+func (api *LocalAPI) KeyValueStoreGet(args string, reply *APIKeyValueStoreReply) error {
+	v, err := api.api.KeyValueStore().Get(args)
+	*reply = APIKeyValueStoreReply{
 		Value: v,
 		Error: err,
 	}
 	return nil
 }
 
-func (api *LocalAPI) DeleteKey(args string, reply *APIErrorReply) error {
-	err := api.api.DeleteKey(args)
+func (api *LocalAPI) KeyValueStoreDelete(args string, reply *APIErrorReply) error {
+	err := api.api.KeyValueStore().Delete(args)
 	*reply = APIErrorReply{
 		Error: err,
 	}
@@ -304,11 +304,17 @@ func ServeAPI(api plugin.API, conn io.ReadWriteCloser, muxer *Muxer) {
 }
 
 type RemoteAPI struct {
-	client *rpc.Client
-	muxer  *Muxer
+	client        *rpc.Client
+	muxer         *Muxer
+	keyValueStore *RemoteKeyValueStore
+}
+
+type RemoteKeyValueStore struct {
+	api *RemoteAPI
 }
 
 var _ plugin.API = (*RemoteAPI)(nil)
+var _ plugin.KeyValueStore = (*RemoteKeyValueStore)(nil)
 
 func (api *RemoteAPI) LoadPluginConfiguration(dest interface{}) error {
 	var config []byte
@@ -502,26 +508,30 @@ func (api *RemoteAPI) UpdatePost(post *model.Post) (*model.Post, *model.AppError
 	return reply.Post, reply.Error
 }
 
-func (api *RemoteAPI) SetKey(key string, value interface{}) *model.AppError {
+func (api *RemoteAPI) KeyValueStore() plugin.KeyValueStore {
+	return api.keyValueStore
+}
+
+func (s *RemoteKeyValueStore) Set(key string, value []byte) *model.AppError {
 	var reply APIErrorReply
-	if err := api.client.Call("LocalAPI.SetKey", &APISetKeyArgs{Key: key, Value: value}, &reply); err != nil {
-		return model.NewAppError("RemoteAPI.SetKey", "plugin.rpcplugin.invocation.error", nil, "err="+err.Error(), http.StatusInternalServerError)
+	if err := s.api.client.Call("LocalAPI.KeyValueStoreSet", &APIKeyValueStoreSetArgs{Key: key, Value: value}, &reply); err != nil {
+		return model.NewAppError("RemoteAPI.KeyValueStoreSet", "plugin.rpcplugin.invocation.error", nil, "err="+err.Error(), http.StatusInternalServerError)
 	}
 	return reply.Error
 }
 
-func (api *RemoteAPI) GetKey(key string) (*model.PluginStoreValue, *model.AppError) {
-	var reply APIPluginStoreValueReply
-	if err := api.client.Call("LocalAPI.GetKey", key, &reply); err != nil {
-		return nil, model.NewAppError("RemoteAPI.GetKey", "plugin.rpcplugin.invocation.error", nil, "err="+err.Error(), http.StatusInternalServerError)
+func (s *RemoteKeyValueStore) Get(key string) ([]byte, *model.AppError) {
+	var reply APIKeyValueStoreReply
+	if err := s.api.client.Call("LocalAPI.KeyValueStoreGet", key, &reply); err != nil {
+		return nil, model.NewAppError("RemoteAPI.KeyValueStoreGet", "plugin.rpcplugin.invocation.error", nil, "err="+err.Error(), http.StatusInternalServerError)
 	}
 	return reply.Value, reply.Error
 }
 
-func (api *RemoteAPI) DeleteKey(key string) *model.AppError {
+func (s *RemoteKeyValueStore) Delete(key string) *model.AppError {
 	var reply APIErrorReply
-	if err := api.client.Call("LocalAPI.DeleteKey", key, &reply); err != nil {
-		return model.NewAppError("RemoteAPI.DeleteKey", "plugin.rpcplugin.invocation.error", nil, "err="+err.Error(), http.StatusInternalServerError)
+	if err := s.api.client.Call("LocalAPI.KeyValueStoreDelete", key, &reply); err != nil {
+		return model.NewAppError("RemoteAPI.KeyValueStoreDelete", "plugin.rpcplugin.invocation.error", nil, "err="+err.Error(), http.StatusInternalServerError)
 	}
 	return reply.Error
 }
@@ -531,8 +541,14 @@ func (h *RemoteAPI) Close() error {
 }
 
 func ConnectAPI(conn io.ReadWriteCloser, muxer *Muxer) *RemoteAPI {
-	return &RemoteAPI{
-		client: rpc.NewClient(conn),
-		muxer:  muxer,
+	remoteKeyValueStore := &RemoteKeyValueStore{}
+	remoteApi := &RemoteAPI{
+		client:        rpc.NewClient(conn),
+		muxer:         muxer,
+		keyValueStore: remoteKeyValueStore,
 	}
+
+	remoteKeyValueStore.api = remoteApi
+
+	return remoteApi
 }

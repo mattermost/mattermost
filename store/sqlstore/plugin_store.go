@@ -37,28 +37,22 @@ func (ps SqlPluginStore) SaveOrUpdate(kv *model.PluginKeyValue) store.StoreChann
 		}
 
 		if ps.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-			// Unfortunately PostgreSQL pre-9.5 does not support upsert by default
-			// This wCTE will reduce the odds of a race but does not eliminate the chance
-			// of getting unique key violations
-			if _, err := ps.GetMaster().Exec(`
-				WITH new_values (PluginId, PKey, PValue) AS (VALUES (:PluginId, :Key, :Value)),
-				upsert AS (
-					UPDATE PluginKeyValueStore pkv SET PValue = :Value
-					FROM new_values nv
-					WHERE pkv.PluginId = nv.PluginId AND pkv.PKey = nv.PKey
-					RETURNING pkv.*
-				)
-				INSERT INTO PluginKeyValueStore (PluginId, PKey, PValue)
-				SELECT PluginId, PKey, PValue FROM new_values
-				WHERE NOT EXISTS (
-					SELECT 1 FROM upsert up WHERE up.PluginId = new_values.PluginId AND up.PKey = new_values.PKey)
-                `, map[string]interface{}{"PluginId": kv.PluginId, "Key": kv.Key, "Value": kv.Value}); err != nil {
-				if IsUniqueConstraintError(err, []string{"PRIMARY", "PluginId", "Key"}) {
-					result.Err = model.NewAppError("SqlPluginStore.SaveOrUpdate", "store.sql_plugin_store.save_unique.app_error", nil, err.Error(), http.StatusInternalServerError)
-				} else {
-					result.Err = model.NewAppError("SqlPluginStore.SaveOrUpdate", "store.sql_plugin_store.save.app_error", nil, err.Error(), http.StatusInternalServerError)
-				}
+			// Unfortunately PostgreSQL pre-9.5 does not have an atomic upsert, so we use
+			// separate update and insert queries to accomplish our upsert
+			if rowsAffected, err := ps.GetMaster().Update(kv); err != nil {
+				result.Err = model.NewAppError("SqlPluginStore.SaveOrUpdate", "store.sql_plugin_store.save.app_error", nil, err.Error(), http.StatusInternalServerError)
 				return
+			} else if rowsAffected == 0 {
+				// No rows were affected by the update, so let's try an insert
+				if err := ps.GetMaster().Insert(kv); err != nil {
+					// If the error is from unique constraints violation, it's the result of a
+					// valid race and we can report success. Otherwise we have a real error and
+					// need to return it
+					if !IsUniqueConstraintError(err, []string{"PRIMARY", "PluginId", "Key", "PKey"}) {
+						result.Err = model.NewAppError("SqlPluginStore.SaveOrUpdate", "store.sql_plugin_store.save.app_error", nil, err.Error(), http.StatusInternalServerError)
+						return
+					}
+				}
 			}
 		} else if ps.DriverName() == model.DATABASE_DRIVER_MYSQL {
 			if _, err := ps.GetMaster().Exec("INSERT INTO PluginKeyValueStore (PluginId, PKey, PValue) VALUES(:PluginId, :Key, :Value) ON DUPLICATE KEY UPDATE PValue = :Value", map[string]interface{}{"PluginId": kv.PluginId, "Key": kv.Key, "Value": kv.Value}); err != nil {

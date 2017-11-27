@@ -82,14 +82,17 @@ type API interface {
 	// UpdatePost updates a post.
 	UpdatePost(post *model.Post) (*model.Post, *model.AppError)
 
-	// SetKey will persistently store a key-value pair uniquely per plugin.
-	SetKey(key string, value interface{}) *model.AppError
+	// KeyValueStore returns an object for accessing the persistent key value storage.
+	KeyValueStore() KeyValueStore
+}
 
-	// GetKey will get a key-value pair previously stored by SetKey. Returns nil if
-	// key does not exist.
-	GetKey(key string) (*model.PluginStoreValue, *model.AppError)
+type KeyValueStore interface {
+	// Set will store a key-value pair, unique per plugin.
+	Set(key string, value []byte) *model.AppError
 
-	// DeleteKey will delete a key-value pair previously stored by SetKey. Returns nil if
-	// key does not exist.
-	DeleteKey(key string) *model.AppError
+	// Get will retrieve a value based on the key. Returns nil for non-existent keys.
+	Get(key string) ([]byte, *model.AppError)
+
+	// Delete will remove a key-value pair. Returns nil for non-existent keys.
+	Delete(key string) *model.AppError
 }

@@ -5,7 +5,6 @@ package app
 
 import (
 	"context"
-	"encoding/json"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -17,7 +16,6 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/store"
 	"github.com/mattermost/mattermost-server/utils"
 
 	builtinplugin "github.com/mattermost/mattermost-server/app/plugin"
@@ -336,6 +334,10 @@ func (a *App) InitPlugins(pluginPath, webappPath string) {
 			return &PluginAPI{
 				id:  m.Id,
 				app: a,
+				keyValueStore: &PluginKeyValueStore{
+					id:  m.Id,
+					app: a,
+				},
 			}, nil
 		}),
 	)
@@ -427,31 +429,14 @@ func (a *App) ShutDownPlugins() {
 	a.PluginEnv = nil
 }
 
-func (a *App) SetPluginKey(pluginId string, key string, value interface{}) *model.AppError {
-	jsonBytes, err := json.Marshal(value)
-	if err != nil {
-		return model.NewAppError("SetPluginKey", "app.plugin.key_value.set.app_error", nil, err.Error(), http.StatusInternalServerError)
-	}
-
+func (a *App) SetPluginKey(pluginId string, key string, value []byte) *model.AppError {
 	kv := &model.PluginKeyValue{
 		PluginId: pluginId,
 		Key:      key,
-		Value:    string(jsonBytes),
+		Value:    value,
 	}
 
-	tries := 0
-	result := store.StoreResult{}
-
-	// Retry once to deal with unique constraint errors from races in PostgreSQL query
-	for {
-		result = <-a.Srv.Store.Plugin().SaveOrUpdate(kv)
-
-		tries += 1
-
-		if result.Err == nil || result.Err.Id != "store.sql_plugin_store.save_unique.app_error" || tries > 1 {
-			break
-		}
-	}
+	result := <-a.Srv.Store.Plugin().SaveOrUpdate(kv)
 
 	if result.Err != nil {
 		l4g.Error(result.Err.Error())
@@ -460,7 +445,7 @@ func (a *App) SetPluginKey(pluginId string, key string, value interface{}) *mode
 	return result.Err
 }
 
-func (a *App) GetPluginKey(pluginId string, key string) (*model.PluginStoreValue, *model.AppError) {
+func (a *App) GetPluginKey(pluginId string, key string) ([]byte, *model.AppError) {
 	result := <-a.Srv.Store.Plugin().Get(pluginId, key)
 
 	if result.Err != nil {
@@ -473,7 +458,7 @@ func (a *App) GetPluginKey(pluginId string, key string) (*model.PluginStoreValue
 
 	kv := result.Data.(*model.PluginKeyValue)
 
-	return model.NewPluginStoreResult(kv.Value), nil
+	return kv.Value, nil
 }
 
 func (a *App) DeletePluginKey(pluginId string, key string) *model.AppError {

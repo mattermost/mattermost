@@ -34,7 +34,8 @@ func testAPIRPC(api plugin.API, f func(plugin.API)) {
 }
 
 func TestAPI(t *testing.T) {
-	var api plugintest.API
+	keyValueStore := &plugintest.KeyValueStore{}
+	api := plugintest.API{Store: keyValueStore}
 	defer api.AssertExpectations(t)
 
 	type Config struct {
@@ -200,20 +201,19 @@ func TestAPI(t *testing.T) {
 		assert.Equal(t, testPost, post)
 		assert.Nil(t, err)
 
-		api.On("SetKey", "thekey", "thevalue").Return(nil).Once()
-		err = remote.SetKey("thekey", "thevalue")
+		api.KeyValueStore().(*plugintest.KeyValueStore).On("Set", "thekey", []byte("thevalue")).Return(nil).Once()
+		err = remote.KeyValueStore().Set("thekey", []byte("thevalue"))
 		assert.Nil(t, err)
 
-		api.On("GetKey", "thekey").Return(func(key string) (*model.PluginStoreValue, *model.AppError) {
-			return model.NewPluginStoreValue("thevalue"), nil
+		api.KeyValueStore().(*plugintest.KeyValueStore).On("Get", "thekey").Return(func(key string) ([]byte, *model.AppError) {
+			return []byte("thevalue"), nil
 		}).Once()
-		psv, err := remote.GetKey("thekey")
+		ret, err := remote.KeyValueStore().Get("thekey")
 		assert.Nil(t, err)
-		retStr, _ := psv.String()
-		assert.Equal(t, "thevalue", retStr)
+		assert.Equal(t, []byte("thevalue"), ret)
 
-		api.On("DeleteKey", "thekey").Return(nil).Once()
-		err = remote.DeleteKey("thekey")
+		api.KeyValueStore().(*plugintest.KeyValueStore).On("Delete", "thekey").Return(nil).Once()
+		err = remote.KeyValueStore().Delete("thekey")
 		assert.Nil(t, err)
 	})
 }
