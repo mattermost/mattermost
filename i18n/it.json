@@ -700,6 +700,57 @@
     "translation": "Errore durante l'espansione delle anteprime"
   },
   {
+    "id": "api.command_groupmsg.desc",
+    "translation": "Invia un Messaggio di Gruppo agli utenti specificati"
+  },
+  {
+    "id": "api.command_groupmsg.fail.app_error",
+    "translation": "Si è verificato un errore durante lo scambio di messaggi con gli utenti."
+  },
+  {
+    "id": "api.command_groupmsg.group_fail.app_error",
+    "translation": "Si è verificato un errore durante la creazione del messaggio di gruppo."
+  },
+  {
+    "id": "api.command_groupmsg.hint",
+    "translation": "@[nomeutente1],@[nomeutente2]'messaggio'"
+  },
+  {
+    "id": "api.command_groupmsg.invalid_user.app_error",
+    "translation": {
+      "one": "Impossibile trovare l'utente: {{.Users}}Impossibile trovare gli utenti: {{.Users}}",
+      "other": ""
+    }
+  },
+  {
+    "id": "api.command_groupmsg.invalid_users.app_error",
+    "translation": "Impossibile trovare gli utenti: %s"
+  },
+  {
+    "id": "api.command_groupmsg.list.app_error",
+    "translation": "Si è verificato un errore durante la creazione della lista degli utenti."
+  },
+  {
+    "id": "api.command_groupmsg.max_users.app_error",
+    "translation": "I messaggi di gruppo sono limitati ad un massimo di {{.MaxUsers}} utenti."
+  },
+  {
+    "id": "api.command_groupmsg.min_users.app_error",
+    "translation": "I messaggi di gruppo sono limitati ad un minimo di {{.MinUsers}} utenti."
+  },
+  {
+    "id": "api.command_groupmsg.missing.app_error",
+    "translation": "Non è stato possibile trovare l'utente"
+  },
+  {
+    "id": "api.command_groupmsg.name",
+    "translation": "messaggio"
+  },
+  {
+    "id": "api.command_groupmsg.success",
+    "translation": "Messaggio consegnato agli utenti."
+  },
+  {
     "id": "api.command_help.desc",
     "translation": "Vai alla pagina di aiuto di Mattermost"
   },
@@ -2116,6 +2167,10 @@
     "translation": "Il numero di goroutines è oltre la soglia ottimale %v di %v"
   },
   {
+    "id": "api.team.add_user_to_team.added",
+    "translation": "%v aggiunto al gruppo da parte di %v"
+  },
+  {
     "id": "api.team.add_user_to_team.missing_parameter.app_error",
     "translation": "Parametro necessario per aggiungere l'utente al gruppo."
   },
@@ -2228,6 +2283,10 @@
     "translation": "La email deve essere da uno specifico dominio (e.s. @example.com). Per favore chiedi al tuo amministratore di sistema maggiori informazioni."
   },
   {
+    "id": "api.team.leave.left",
+    "translation": "%v ha lasciato il gruppo."
+  },
+  {
     "id": "api.team.permanent_delete_team.attempting.warn",
     "translation": "Tentativo di eliminazione permanente del gruppo %v id=%v"
   },
@@ -2238,6 +2297,10 @@
   {
     "id": "api.team.remove_user_from_team.missing.app_error",
     "translation": "L'utente non è membro di questo gruppo."
+  },
+  {
+    "id": "api.team.remove_user_from_team.removed",
+    "translation": "%v è stato rimosso dal gruppo."
   },
   {
     "id": "api.team.signup_team.email_disabled.app_error",
@@ -3524,12 +3587,20 @@
     "translation": "Impossibile trovare i plugin attivi"
   },
   {
+    "id": "app.plugin.install.app_error",
+    "translation": "Impossibile installare il plugin."
+  },
+  {
+    "id": "app.plugin.install_id.app_error",
+    "translation": "Impossibile installare il plugin. Un plugin con lo stesso ID è già installato."
+  },
+  {
     "id": "app.plugin.manifest.app_error",
     "translation": "Impossibile trovare il manifest del plugin estratto"
   },
   {
     "id": "app.plugin.mvdir.app_error",
-    "translation": "Impossibile spostare il plugin dalla cartella temporanea alla destinazione definitiva"
+    "translation": "Impossibile spostare il plugin dalla cartella temporanea alla cartella definitiva. Può essere che un altro plugin stia utilizzando lo stesso nome cartella."
   },
   {
     "id": "app.plugin.not_installed.app_error",
@@ -4261,7 +4332,7 @@
   },
   {
     "id": "model.channel.is_valid.type.app_error",
-    "translation": "Nome non valido"
+    "translation": "Tipo non valido"
   },
   {
     "id": "model.channel.is_valid.update_at.app_error",
@@ -4285,7 +4356,7 @@
   },
   {
     "id": "model.channel_member.is_valid.role.app_error",
-    "translation": "Nome non valido"
+    "translation": "Ruolo non valido"
   },
   {
     "id": "model.channel_member.is_valid.unread_level.app_error",
@@ -4373,7 +4444,7 @@
   },
   {
     "id": "model.command.is_valid.display_name.app_error",
-    "translation": "Nome visualizzato invalido"
+    "translation": "Titolo non valido"
   },
   {
     "id": "model.command.is_valid.id.app_error",
@@ -4833,7 +4904,7 @@
   },
   {
     "id": "model.incoming_hook.display_name.app_error",
-    "translation": "Nome visualizzato non valido"
+    "translation": "Titolo non valido"
   },
   {
     "id": "model.incoming_hook.id.app_error",
@@ -4925,7 +4996,7 @@
   },
   {
     "id": "model.outgoing_hook.is_valid.display_name.app_error",
-    "translation": "Nome visualizzato invalido"
+    "translation": "Titolo non valido"
   },
   {
     "id": "model.outgoing_hook.is_valid.id.app_error",
@@ -4953,7 +5024,7 @@
   },
   {
     "id": "model.outgoing_hook.is_valid.user_id.app_error",
-    "translation": "Nome non valido"
+    "translation": "Id utente non valido"
   },
   {
     "id": "model.outgoing_hook.is_valid.words.app_error",

@@ -700,6 +700,57 @@
     "translation": "展开预览时发生了错误"
   },
   {
+    "id": "api.command_groupmsg.desc",
+    "translation": "Sends a Group Message to the specified users"
+  },
+  {
+    "id": "api.command_groupmsg.fail.app_error",
+    "translation": "发送消息给用户时发生错误。"
+  },
+  {
+    "id": "api.command_groupmsg.group_fail.app_error",
+    "translation": "创建私信时发生错误。"
+  },
+  {
+    "id": "api.command_groupmsg.hint",
+    "translation": "@[username1],@[username2] 'message'"
+  },
+  {
+    "id": "api.command_groupmsg.invalid_user.app_error",
+    "translation": {
+      "one": "我们无法找到用户：{{.Users}}我们无法找到用户：{{.Users}}",
+      "other": ""
+    }
+  },
+  {
+    "id": "api.command_groupmsg.invalid_users.app_error",
+    "translation": "无法找到用户：%s"
+  },
+  {
+    "id": "api.command_groupmsg.list.app_error",
+    "translation": "列出用户时出错。"
+  },
+  {
+    "id": "api.command_groupmsg.max_users.app_error",
+    "translation": "Group messages are limited to a maximum of {{.MaxUsers}} users."
+  },
+  {
+    "id": "api.command_groupmsg.min_users.app_error",
+    "translation": "Group messages are limited to a minimum of {{.MinUsers}} users."
+  },
+  {
+    "id": "api.command_groupmsg.missing.app_error",
+    "translation": "无法找到用户"
+  },
+  {
+    "id": "api.command_groupmsg.name",
+    "translation": "消息"
+  },
+  {
+    "id": "api.command_groupmsg.success",
+    "translation": "消息已发送给用户。"
+  },
+  {
     "id": "api.command_help.desc",
     "translation": "打开 Mattermost 帮助页面"
   },
@@ -2116,6 +2167,10 @@
     "translation": "运行中的 goroutine 数量 %v 已经超过健康界限 %v"
   },
   {
+    "id": "api.team.add_user_to_team.added",
+    "translation": "%v 由 %v 邀请加入频道"
+  },
+  {
     "id": "api.team.add_user_to_team.missing_parameter.app_error",
     "translation": "添加用户到团队所需的参数。"
   },
@@ -2228,6 +2283,10 @@
     "translation": "电子邮件必须来自指定域名 (例如 @example.com)。详情请询问您的系统管理员。"
   },
   {
+    "id": "api.team.leave.left",
+    "translation": "%v left the team."
+  },
+  {
     "id": "api.team.permanent_delete_team.attempting.warn",
     "translation": "试图永久删除团队 %v id=%v"
   },
@@ -2238,6 +2297,10 @@
   {
     "id": "api.team.remove_user_from_team.missing.app_error",
     "translation": "此用户似乎不属于此团队。"
+  },
+  {
+    "id": "api.team.remove_user_from_team.removed",
+    "translation": "%v 已从频道移出。"
   },
   {
     "id": "api.team.signup_team.email_disabled.app_error",
@@ -3524,12 +3587,20 @@
     "translation": "无法获取已启动的插件"
   },
   {
+    "id": "app.plugin.install.app_error",
+    "translation": "Unable to install plugin."
+  },
+  {
+    "id": "app.plugin.install_id.app_error",
+    "translation": "Unable to install plugin. A plugin with the same ID is already installed."
+  },
+  {
     "id": "app.plugin.manifest.app_error",
     "translation": "无法在解压的插件里找到 manifest 档"
   },
   {
     "id": "app.plugin.mvdir.app_error",
-    "translation": "无法移动插件从临时目录到最终目录"
+    "translation": "Unable to move plugin from temporary directory to final destination. Another plugin may be using the same directory name."
   },
   {
     "id": "app.plugin.not_installed.app_error",
@@ -4373,7 +4444,7 @@
   },
   {
     "id": "model.command.is_valid.display_name.app_error",
-    "translation": "无效的显示名称"
+    "translation": "无效类型"
   },
   {
     "id": "model.command.is_valid.id.app_error",
@@ -4833,7 +4904,7 @@
   },
   {
     "id": "model.incoming_hook.display_name.app_error",
-    "translation": "无效显示名"
+    "translation": "无效类型"
   },
   {
     "id": "model.incoming_hook.id.app_error",
@@ -4925,7 +4996,7 @@
   },
   {
     "id": "model.outgoing_hook.is_valid.display_name.app_error",
-    "translation": "无效显示名"
+    "translation": "无效类型"
   },
   {
     "id": "model.outgoing_hook.is_valid.id.app_error",
