@@ -654,6 +654,7 @@ type EmailSettings struct {
 	EnableSignInWithEmail             *bool
 	EnableSignInWithUsername          *bool
 	SendEmailNotifications            bool
+	UseChannelInEmailNotifications    *bool
 	RequireEmailVerification          bool
 	FeedbackName                      string
 	FeedbackEmail                     string
@@ -686,6 +687,10 @@ func (s *EmailSettings) SetDefaults() {
 
 	if s.EnableSignInWithUsername == nil {
 		s.EnableSignInWithUsername = NewBool(false)
+	}
+
+	if s.UseChannelInEmailNotifications == nil {
+		s.UseChannelInEmailNotifications = NewBool(false)
 	}
 
 	if s.SendPushNotifications == nil {
