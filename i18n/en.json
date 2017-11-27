@@ -4248,11 +4248,11 @@
   },
   {
     "id": "model.plugin_key_value.is_valid.plugin_id.app_error",
-    "translation": "Invalid plugin ID"
+    "translation": "Invalid plugin ID, must be more than {{.Min}} and a of maximum {{.Max}} characters long."
   },
   {
     "id": "model.plugin_key_value.is_valid.key.app_error",
-    "translation": "Invalid key"
+    "translation": "Invalid key, must be more than {{.Min}} and a of maximum {{.Max}} characters long."
   },
   {
     "id": "model.access.is_valid.access_token.app_error",
