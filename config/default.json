@@ -46,6 +46,7 @@
         "RestrictPostDelete": "all",
         "AllowEditPost": "always",
         "PostEditTimeLimit": 300,
+        "ExperimentalEnableAuthenticationTransfer": true,
         "TimeBetweenUserTypingUpdatesMilliseconds": 5000,
         "EnablePostSearch": true,
         "EnableUserTypingMessages": true,
