@@ -189,6 +189,22 @@ func (_m *ChannelStore) GetByNameIncludeDeleted(team_id string, name string, all
 	return r0
 }
 
+// GetByNames provides a mock function with given fields: team_id, names, allowFromCache
+func (_m *ChannelStore) GetByNames(team_id string, names []string, allowFromCache bool) store.StoreChannel {
+	ret := _m.Called(team_id, names, allowFromCache)
+
+	var r0 store.StoreChannel
+	if rf, ok := ret.Get(0).(func(string, []string, bool) store.StoreChannel); ok {
+		r0 = rf(team_id, names, allowFromCache)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.StoreChannel)
+		}
+	}
+
+	return r0
+}
+
 // GetChannelCounts provides a mock function with given fields: teamId, userId
 func (_m *ChannelStore) GetChannelCounts(teamId string, userId string) store.StoreChannel {
 	ret := _m.Called(teamId, userId)

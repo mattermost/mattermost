@@ -6,6 +6,8 @@ package model
 import (
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestPostJson(t *testing.T) {
@@ -122,6 +124,11 @@ func TestPostIsSystemMessage(t *testing.T) {
 	if !post2.IsSystemMessage() {
 		t.Fatalf("TestPostIsSystemMessage failed, expected post2.IsSystemMessage() to be true")
 	}
+}
+
+func TestPostChannelMentions(t *testing.T) {
+	post := Post{Message: "~a ~b ~b ~c/~d."}
+	assert.Equal(t, []string{"a", "b", "c", "d"}, post.ChannelMentions())
 }
 
 func TestPostSanitizeProps(t *testing.T) {
