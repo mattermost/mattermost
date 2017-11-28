@@ -586,6 +586,65 @@ func (s SqlChannelStore) GetByName(teamId string, name string, allowFromCache bo
 	return s.getByName(teamId, name, false, allowFromCache)
 }
 
+func (s SqlChannelStore) GetByNames(teamId string, names []string, allowFromCache bool) store.StoreChannel {
+	return store.Do(func(result *store.StoreResult) {
+		var channels []*model.Channel
+
+		if allowFromCache {
+			var misses []string
+			visited := make(map[string]struct{})
+			for _, name := range names {
+				if _, ok := visited[name]; ok {
+					continue
+				}
+				visited[name] = struct{}{}
+				if cacheItem, ok := channelByNameCache.Get(teamId + name); ok {
+					if s.metrics != nil {
+						s.metrics.IncrementMemCacheHitCounter("Channel By Name")
+					}
+					channels = append(channels, cacheItem.(*model.Channel))
+				} else {
+					if s.metrics != nil {
+						s.metrics.IncrementMemCacheMissCounter("Channel By Name")
+					}
+					misses = append(misses, name)
+				}
+			}
+			names = misses
+		}
+
+		if len(names) > 0 {
+			props := map[string]interface{}{}
+			var namePlaceholders []string
+			for _, name := range names {
+				key := fmt.Sprintf("Name%v", len(namePlaceholders))
+				props[key] = name
+				namePlaceholders = append(namePlaceholders, ":"+key)
+			}
+
+			var query string
+			if teamId == "" {
+				query = `SELECT * FROM Channels WHERE Name IN (` + strings.Join(namePlaceholders, ", ") + `) AND DeleteAt = 0`
+			} else {
+				props["TeamId"] = teamId
+				query = `SELECT * FROM Channels WHERE Name IN (` + strings.Join(namePlaceholders, ", ") + `) AND TeamId = :TeamId AND DeleteAt = 0`
+			}
+
+			var dbChannels []*model.Channel
+			if _, err := s.GetReplica().Select(&dbChannels, query, props); err != nil && err != sql.ErrNoRows {
+				result.Err = model.NewAppError("SqlChannelStore.GetByName", "store.sql_channel.get_by_name.existing.app_error", nil, "teamId="+teamId+", "+err.Error(), http.StatusInternalServerError)
+				return
+			}
+			for _, channel := range dbChannels {
+				channelByNameCache.AddWithExpiresInSecs(teamId+channel.Name, channel, CHANNEL_CACHE_SEC)
+				channels = append(channels, channel)
+			}
+		}
+
+		result.Data = channels
+	})
+}
+
 func (s SqlChannelStore) GetByNameIncludeDeleted(teamId string, name string, allowFromCache bool) store.StoreChannel {
 	return s.getByName(teamId, name, true, allowFromCache)
 }
