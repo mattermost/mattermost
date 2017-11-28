@@ -101,7 +101,7 @@ func TestUpdateOAuthApp(t *testing.T) {
 		IsTrusted:    false,
 		IconURL:      "https://nowhere.com/img",
 		Homepage:     "https://nowhere.com",
-		Description:  "test", 
+		Description:  "test",
 		CallbackUrls: []string{"https://callback.com"},
 	}
 
@@ -112,7 +112,7 @@ func TestUpdateOAuthApp(t *testing.T) {
 	oapp.IconURL = "https://nowhere.com/img_update"
 	oapp.Homepage = "https://nowhere_update.com"
 	oapp.Description = "test_update"
-	oapp.CallbackUrls = []string{"https://callback_update.com","https://another_callback.com"}
+	oapp.CallbackUrls = []string{"https://callback_update.com", "https://another_callback.com"}
 
 	updatedApp, resp := AdminClient.UpdateOAuthApp(oapp)
 	CheckNoError(t, resp)
@@ -153,7 +153,7 @@ func TestUpdateOAuthApp(t *testing.T) {
 		for i, callbackUrl := range updatedApp.CallbackUrls {
 			if callbackUrl != oapp.CallbackUrls[i] {
 				t.Fatal("Description should have updated")
-			} 
+			}
 		}
 	}
 
@@ -164,6 +164,13 @@ func TestUpdateOAuthApp(t *testing.T) {
 	if updatedApp.IsTrusted != oapp.IsTrusted {
 		t.Fatal("IsTrusted should have updated")
 	}
+
+	th.LoginBasic2()
+	updatedApp.CreatorId = th.BasicUser2.Id
+	_, resp = Client.UpdateOAuthApp(oapp)
+	CheckForbiddenStatus(t, resp)
+
+	th.LoginBasic()
 
 	*utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations = false
 	utils.SetDefaultRolesBasedOnConfig()
