@@ -165,6 +165,13 @@ func TestUpdateOAuthApp(t *testing.T) {
 		t.Fatal("IsTrusted should have updated")
 	}
 
+	th.LoginBasic2()
+	updatedApp.CreatorId = th.BasicUser2.Id
+	_, resp = Client.UpdateOAuthApp(oapp)
+	CheckForbiddenStatus(t, resp)
+
+	th.LoginBasic()
+
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOnlyAdminIntegrations = false })
 	utils.SetDefaultRolesBasedOnConfig()
 	_, resp = Client.UpdateOAuthApp(oapp)
