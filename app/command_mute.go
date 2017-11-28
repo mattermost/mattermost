@@ -30,6 +30,7 @@ func (me *MuteProvider) GetCommand(a *App, T goi18n.TranslateFunc) *model.Comman
 		Trigger:          CMD_MUTE,
 		AutoComplete:     true,
 		AutoCompleteDesc: T("api.command_mute.desc"),
+		AutoCompleteHint: T("api.command_mute.hint"),
 		DisplayName:      T("api.command_mute.name"),
 	}
 }

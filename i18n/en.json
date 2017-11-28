@@ -1000,7 +1000,11 @@
   },
   {
     "id": "api.command_mute.desc",
-    "translation": "Mutes the notifications for this channel"
+    "translation": "Turns off desktop, email and push notifications for the current channel or the [channel] specified."
+  },
+  {
+    "id": "api.command_mute.hint",
+    "translation": "[channel]"
   },
   {
     "id": "api.command_mute.name",
@@ -1008,7 +1012,7 @@
   },
   {
     "id": "api.command_mute.error",
-    "translation": "An error occurred on muting {{.Channel}} occurred."
+    "translation": "Could not find the channel {{.Channel}}."
   },
   {
     "id": "api.command_mute.success_mute",
@@ -1020,11 +1024,11 @@
   },
   {
     "id": "api.command_mute.success_mute_direct_msg",
-    "translation": "You will not receive notifications for this direct message channel until channel mute is turned off."
+    "translation": "You will not receive notifications for this channel until channel mute is turned off."
   },
   {
     "id": "api.command_mute.success_unmute_direct_msg",
-    "translation": "Direct message channel is no longer muted."
+    "translation": "This channel is no longer muted."
   },
   {
     "id": "api.compliance.init.debug",
