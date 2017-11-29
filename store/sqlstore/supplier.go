@@ -84,6 +84,7 @@ type SqlSupplierOldStores struct {
 	reaction             store.ReactionStore
 	job                  store.JobStore
 	userAccessToken      store.UserAccessTokenStore
+	plugin               store.PluginStore
 	channelMemberHistory store.ChannelMemberHistoryStore
 }
 
@@ -131,6 +132,7 @@ func NewSqlSupplier(settings model.SqlSettings, metrics einterfaces.MetricsInter
 	supplier.oldStores.job = NewSqlJobStore(supplier)
 	supplier.oldStores.userAccessToken = NewSqlUserAccessTokenStore(supplier)
 	supplier.oldStores.channelMemberHistory = NewSqlChannelMemberHistoryStore(supplier)
+	supplier.oldStores.plugin = NewSqlPluginStore(supplier)
 
 	initSqlSupplierReactions(supplier)
 
@@ -163,6 +165,7 @@ func NewSqlSupplier(settings model.SqlSettings, metrics einterfaces.MetricsInter
 	supplier.oldStores.fileInfo.(*SqlFileInfoStore).CreateIndexesIfNotExists()
 	supplier.oldStores.job.(*SqlJobStore).CreateIndexesIfNotExists()
 	supplier.oldStores.userAccessToken.(*SqlUserAccessTokenStore).CreateIndexesIfNotExists()
+	supplier.oldStores.plugin.(*SqlPluginStore).CreateIndexesIfNotExists()
 
 	supplier.oldStores.preference.(*SqlPreferenceStore).DeleteUnusedFeatures()
 
@@ -802,6 +805,10 @@ func (ss *SqlSupplier) UserAccessToken() store.UserAccessTokenStore {
 
 func (ss *SqlSupplier) ChannelMemberHistory() store.ChannelMemberHistoryStore {
 	return ss.oldStores.channelMemberHistory
+}
+
+func (ss *SqlSupplier) Plugin() store.PluginStore {
+	return ss.oldStores.plugin
 }
 
 func (ss *SqlSupplier) DropAllTables() {

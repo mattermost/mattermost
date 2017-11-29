@@ -204,6 +204,7 @@ type ServiceSettings struct {
 	EnableUserTypingMessages                 *bool
 	EnableChannelViewedMessages              *bool
 	EnableUserStatuses                       *bool
+	ExperimentalEnableAuthenticationTransfer *bool
 	ClusterLogTimeoutMilliseconds            *int
 	CloseUnusedDirectMessages                *bool
 	EnablePreviewFeatures                    *bool
@@ -390,6 +391,10 @@ func (s *ServiceSettings) SetDefaults() {
 
 	if s.AllowEditPost == nil {
 		s.AllowEditPost = NewString(ALLOW_EDIT_POST_ALWAYS)
+	}
+
+	if s.ExperimentalEnableAuthenticationTransfer == nil {
+		s.ExperimentalEnableAuthenticationTransfer = NewBool(true)
 	}
 
 	if s.PostEditTimeLimit == nil {

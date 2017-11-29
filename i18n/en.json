@@ -3559,6 +3559,10 @@
     "translation": "[{{ .SiteName }}] Notification in {{ .TeamName}} on {{.Month}} {{.Day}}, {{.Year}}"
   },
   {
+    "id": "app.plugin.key_value.set.app_error",
+    "translation": "Unable to set key value. See detailed error for more information."
+  },
+  {
     "id": "app.plugin.activate.app_error",
     "translation": "Unable to activate extracted plugin. Plugin may already exist and be activated."
   },
@@ -4257,6 +4261,14 @@
   {
     "id": "mattermost.working_dir",
     "translation": "Current working directory is %v"
+  },
+  {
+    "id": "model.plugin_key_value.is_valid.plugin_id.app_error",
+    "translation": "Invalid plugin ID, must be more than {{.Min}} and a of maximum {{.Max}} characters long."
+  },
+  {
+    "id": "model.plugin_key_value.is_valid.key.app_error",
+    "translation": "Invalid key, must be more than {{.Min}} and a of maximum {{.Max}} characters long."
   },
   {
     "id": "model.access.is_valid.access_token.app_error",
@@ -6525,6 +6537,22 @@
   {
     "id": "store.sql_team.update_display_name.app_error",
     "translation": "We couldn't update the team name"
+  },
+  {
+    "id": "store.sql_plugin_store.delete.app_error",
+    "translation": "Could not delete plugin key value"
+  },
+  {
+    "id": "store.sql_plugin_store.get.app_error",
+    "translation": "Could not get plugin key value"
+  },
+  {
+    "id": "store.sql_plugin_store.save.app_error",
+    "translation": "Could not save or update plugin key value"
+  },
+  {
+    "id": "store.sql_plugin_store.save_unique.app_error",
+    "translation": "Could not save or update plugin key value due to unique constraint violation"
   },
   {
     "id": "store.sql_user.analytics_get_inactive_users_count.app_error",

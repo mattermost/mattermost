@@ -2117,6 +2117,57 @@ func TestSwitchAccount(t *testing.T) {
 		t.Fatal("bad link")
 	}
 
+	isLicensed := utils.IsLicensed()
+	license := utils.License()
+	enableAuthenticationTransfer := *th.App.Config().ServiceSettings.ExperimentalEnableAuthenticationTransfer
+	defer func() {
+		utils.SetIsLicensed(isLicensed)
+		utils.SetLicense(license)
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ExperimentalEnableAuthenticationTransfer = enableAuthenticationTransfer })
+	}()
+	utils.SetIsLicensed(true)
+	utils.SetLicense(&model.License{Features: &model.Features{}})
+	utils.License().Features.SetDefaults()
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ExperimentalEnableAuthenticationTransfer = false })
+
+	sr = &model.SwitchRequest{
+		CurrentService: model.USER_AUTH_SERVICE_EMAIL,
+		NewService:     model.USER_AUTH_SERVICE_GITLAB,
+	}
+
+	_, resp = Client.SwitchAccountType(sr)
+	CheckForbiddenStatus(t, resp)
+
+	th.LoginBasic()
+
+	sr = &model.SwitchRequest{
+		CurrentService: model.USER_AUTH_SERVICE_SAML,
+		NewService:     model.USER_AUTH_SERVICE_EMAIL,
+		Email:          th.BasicUser.Email,
+		NewPassword:    th.BasicUser.Password,
+	}
+
+	_, resp = Client.SwitchAccountType(sr)
+	CheckForbiddenStatus(t, resp)
+
+	sr = &model.SwitchRequest{
+		CurrentService: model.USER_AUTH_SERVICE_EMAIL,
+		NewService:     model.USER_AUTH_SERVICE_LDAP,
+	}
+
+	_, resp = Client.SwitchAccountType(sr)
+	CheckForbiddenStatus(t, resp)
+
+	sr = &model.SwitchRequest{
+		CurrentService: model.USER_AUTH_SERVICE_LDAP,
+		NewService:     model.USER_AUTH_SERVICE_EMAIL,
+	}
+
+	_, resp = Client.SwitchAccountType(sr)
+	CheckForbiddenStatus(t, resp)
+
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ExperimentalEnableAuthenticationTransfer = true })
+
 	th.LoginBasic()
 
 	fakeAuthData := model.NewId()

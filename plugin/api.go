@@ -79,6 +79,20 @@ type API interface {
 	// GetPost gets a post.
 	GetPost(postId string) (*model.Post, *model.AppError)
 
-	// Update post updates a post.
+	// UpdatePost updates a post.
 	UpdatePost(post *model.Post) (*model.Post, *model.AppError)
+
+	// KeyValueStore returns an object for accessing the persistent key value storage.
+	KeyValueStore() KeyValueStore
+}
+
+type KeyValueStore interface {
+	// Set will store a key-value pair, unique per plugin.
+	Set(key string, value []byte) *model.AppError
+
+	// Get will retrieve a value based on the key. Returns nil for non-existent keys.
+	Get(key string) ([]byte, *model.AppError)
+
+	// Delete will remove a key-value pair. Returns nil for non-existent keys.
+	Delete(key string) *model.AppError
 }

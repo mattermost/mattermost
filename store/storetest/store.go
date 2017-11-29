@@ -41,6 +41,7 @@ type Store struct {
 	ReactionStore             mocks.ReactionStore
 	JobStore                  mocks.JobStore
 	UserAccessTokenStore      mocks.UserAccessTokenStore
+	PluginStore               mocks.PluginStore
 	ChannelMemberHistoryStore mocks.ChannelMemberHistoryStore
 }
 
@@ -66,6 +67,7 @@ func (s *Store) FileInfo() store.FileInfoStore                 { return &s.FileI
 func (s *Store) Reaction() store.ReactionStore                 { return &s.ReactionStore }
 func (s *Store) Job() store.JobStore                           { return &s.JobStore }
 func (s *Store) UserAccessToken() store.UserAccessTokenStore   { return &s.UserAccessTokenStore }
+func (s *Store) Plugin() store.PluginStore                     { return &s.PluginStore }
 func (s *Store) ChannelMemberHistory() store.ChannelMemberHistoryStore {
 	return &s.ChannelMemberHistoryStore
 }
@@ -101,5 +103,6 @@ func (s *Store) AssertExpectations(t mock.TestingT) bool {
 		&s.JobStore,
 		&s.UserAccessTokenStore,
 		&s.ChannelMemberHistoryStore,
+		&s.PluginStore,
 	)
 }

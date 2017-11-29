@@ -138,3 +138,41 @@ func TestPostAction(t *testing.T) {
 	err = th.App.DoPostAction(post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id)
 	require.Nil(t, err)
 }
+
+func TestPostChannelMentions(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	channel := th.BasicChannel
+	user := th.BasicUser
+
+	channelToMention, err := th.App.CreateChannel(&model.Channel{
+		DisplayName: "Mention Test",
+		Name:        "mention-test",
+		Type:        model.CHANNEL_OPEN,
+		TeamId:      th.BasicTeam.Id,
+	}, false)
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+	defer th.App.PermanentDeleteChannel(channelToMention)
+
+	_, err = th.App.AddUserToChannel(user, channel)
+	require.Nil(t, err)
+
+	post := &model.Post{
+		Message:       fmt.Sprintf("hello, ~%v!", channelToMention.Name),
+		ChannelId:     channel.Id,
+		PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
+		UserId:        user.Id,
+		CreateAt:      0,
+	}
+
+	result, err := th.App.CreatePostAsUser(post)
+	require.Nil(t, err)
+	assert.Equal(t, map[string]interface{}{
+		"mention-test": map[string]interface{}{
+			"display_name": "Mention Test",
+		},
+	}, result.Props["channel_mentions"])
+}

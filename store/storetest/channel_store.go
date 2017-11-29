@@ -4,10 +4,12 @@
 package storetest
 
 import (
+	"sort"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
@@ -24,6 +26,7 @@ func TestChannelStore(t *testing.T, ss store.Store) {
 	t.Run("Restore", func(t *testing.T) { testChannelStoreRestore(t, ss) })
 	t.Run("Delete", func(t *testing.T) { testChannelStoreDelete(t, ss) })
 	t.Run("GetByName", func(t *testing.T) { testChannelStoreGetByName(t, ss) })
+	t.Run("GetByNames", func(t *testing.T) { testChannelStoreGetByNames(t, ss) })
 	t.Run("GetDeletedByName", func(t *testing.T) { testChannelStoreGetDeletedByName(t, ss) })
 	t.Run("GetDeleted", func(t *testing.T) { testChannelStoreGetDeleted(t, ss) })
 	t.Run("ChannelMemberStore", func(t *testing.T) { testChannelMemberStore(t, ss) })
@@ -548,6 +551,57 @@ func testChannelStoreGetByName(t *testing.T, ss store.Store) {
 	if err := (<-ss.Channel().GetByName(o1.TeamId, "", false)).Err; err == nil {
 		t.Fatal("Deleted channel should not be returned by GetByName()")
 	}
+}
+
+func testChannelStoreGetByNames(t *testing.T, ss store.Store) {
+	o1 := model.Channel{
+		TeamId:      model.NewId(),
+		DisplayName: "Name",
+		Name:        "zz" + model.NewId() + "b",
+		Type:        model.CHANNEL_OPEN,
+	}
+	store.Must(ss.Channel().Save(&o1, -1))
+
+	o2 := model.Channel{
+		TeamId:      o1.TeamId,
+		DisplayName: "Name",
+		Name:        "zz" + model.NewId() + "b",
+		Type:        model.CHANNEL_OPEN,
+	}
+	store.Must(ss.Channel().Save(&o2, -1))
+
+	for index, tc := range []struct {
+		TeamId      string
+		Names       []string
+		ExpectedIds []string
+	}{
+		{o1.TeamId, []string{o1.Name}, []string{o1.Id}},
+		{o1.TeamId, []string{o1.Name, o2.Name}, []string{o1.Id, o2.Id}},
+		{o1.TeamId, nil, nil},
+		{o1.TeamId, []string{"foo"}, nil},
+		{o1.TeamId, []string{o1.Name, "foo", o2.Name, o2.Name}, []string{o1.Id, o2.Id}},
+		{"", []string{o1.Name, "foo", o2.Name, o2.Name}, []string{o1.Id, o2.Id}},
+		{"asd", []string{o1.Name, "foo", o2.Name, o2.Name}, nil},
+	} {
+		r := <-ss.Channel().GetByNames(tc.TeamId, tc.Names, true)
+		require.Nil(t, r.Err)
+		channels := r.Data.([]*model.Channel)
+		var ids []string
+		for _, channel := range channels {
+			ids = append(ids, channel.Id)
+		}
+		sort.Strings(ids)
+		sort.Strings(tc.ExpectedIds)
+		assert.Equal(t, tc.ExpectedIds, ids, "tc %v", index)
+	}
+
+	store.Must(ss.Channel().Delete(o1.Id, model.GetMillis()))
+	store.Must(ss.Channel().Delete(o2.Id, model.GetMillis()))
+
+	r := <-ss.Channel().GetByNames(o1.TeamId, []string{o1.Name}, false)
+	require.Nil(t, r.Err)
+	channels := r.Data.([]*model.Channel)
+	assert.Len(t, channels, 0)
 }
 
 func testChannelStoreGetDeletedByName(t *testing.T, ss store.Store) {

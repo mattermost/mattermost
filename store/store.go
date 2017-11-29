@@ -64,6 +64,7 @@ type Store interface {
 	Job() JobStore
 	UserAccessToken() UserAccessTokenStore
 	ChannelMemberHistory() ChannelMemberHistoryStore
+	Plugin() PluginStore
 	MarkSystemRanUnitTests()
 	Close()
 	DropAllTables()
@@ -119,6 +120,7 @@ type ChannelStore interface {
 	PermanentDeleteByTeam(teamId string) StoreChannel
 	PermanentDelete(channelId string) StoreChannel
 	GetByName(team_id string, name string, allowFromCache bool) StoreChannel
+	GetByNames(team_id string, names []string, allowFromCache bool) StoreChannel
 	GetByNameIncludeDeleted(team_id string, name string, allowFromCache bool) StoreChannel
 	GetDeletedByName(team_id string, name string) StoreChannel
 	GetDeleted(team_id string, offset int, limit int) StoreChannel
@@ -448,4 +450,10 @@ type UserAccessTokenStore interface {
 	GetByUser(userId string, page, perPage int) StoreChannel
 	UpdateTokenEnable(tokenId string) StoreChannel
 	UpdateTokenDisable(tokenId string) StoreChannel
+}
+
+type PluginStore interface {
+	SaveOrUpdate(keyVal *model.PluginKeyValue) StoreChannel
+	Get(pluginId, key string) StoreChannel
+	Delete(pluginId, key string) StoreChannel
 }
