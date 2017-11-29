@@ -7,7 +7,7 @@ It's written in Golang and React and runs as a single Linux binary with MySQL or
 - [Review product documentation](http://docs.mattermost.com/).
 - [Download compiled version](https://mattermost.org/download).
 
-![s](https://camo.githubusercontent.com/b091ba61ca15a5e71d9692f626af3fb95e060ba1/687474703a2f2f7777772e6d61747465726d6f73742e6f72672f77702d636f6e74656e742f75706c6f6164732f323031352f30392f32303136303331355f763231302e706e67)
+.. image:: ../../source/images/steve-jobs-screenshot.png
 ## Try out Mattermost
 
 - [Join the Mattermost Contributor's server](https://pre-release.mattermost.com/) (latest nightly builds, unstable)
