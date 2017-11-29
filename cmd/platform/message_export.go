@@ -35,8 +35,7 @@ func messageExportCmdF(cmd *cobra.Command, args []string) error {
 	}
 
 	if !*a.Config().MessageExportSettings.EnableExport {
-		CommandPrintErrorln("ERROR: The message export feature is not enabled.")
-		return nil
+		return errors.New("ERROR: The message export feature is not enabled")
 	}
 
 	// for now, format is hard-coded to actiance. In time, we'll have to support other formats and inject them into job data
@@ -49,11 +48,15 @@ func messageExportCmdF(cmd *cobra.Command, args []string) error {
 	startTime, err := cmd.Flags().GetInt64("exportFrom")
 	if err != nil {
 		return errors.New("exportFrom flag error")
+	} else if startTime < 0 {
+		return errors.New("exportFrom must be a positive integer")
 	}
 
 	timeoutSeconds, err := cmd.Flags().GetInt("timeoutSeconds")
 	if err != nil {
 		return errors.New("timeoutSeconds error")
+	} else if timeoutSeconds < 0 {
+		return errors.New("timeoutSeconds must be a positive integer")
 	}
 
 	if messageExportI := a.MessageExport; messageExportI != nil {
