@@ -42,4 +42,7 @@
 //
 // The mocks are created using testify's mock package:
 // https://godoc.org/github.com/stretchr/testify/mock
+//
+// If you need to import the mock package, you can import it with
+// "github.com/mattermost/mattermost-server/plugin/plugintest/mock".
 package plugintest
