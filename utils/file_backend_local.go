@@ -11,8 +11,6 @@ import (
 
 	l4g "github.com/alecthomas/log4go"
 
-	"io"
-
 	"github.com/mattermost/mattermost-server/model"
 )
 
@@ -43,30 +41,9 @@ func (b *LocalFileBackend) ReadFile(path string) ([]byte, *model.AppError) {
 }
 
 func (b *LocalFileBackend) CopyFile(oldPath, newPath string) *model.AppError {
-	if err := os.MkdirAll(filepath.Dir(filepath.Join(b.directory, newPath)), 0774); err != nil {
+	if err := CopyFile(filepath.Join(b.directory, oldPath), filepath.Join(b.directory, newPath)); err != nil {
 		return model.NewAppError("copyFile", "api.file.move_file.rename.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
-
-	in, err := os.Open(filepath.Join(b.directory, oldPath))
-	if err != nil {
-		return model.NewAppError("moveFile", "api.file.move_file.rename.app_error", nil, err.Error(), http.StatusInternalServerError)
-	}
-	defer in.Close()
-
-	out, err := os.Create(filepath.Join(b.directory, newPath))
-	if err != nil {
-		return model.NewAppError("moveFile", "api.file.move_file.rename.app_error", nil, err.Error(), http.StatusInternalServerError)
-	}
-	defer out.Close()
-
-	_, err = io.Copy(out, in)
-	if err != nil {
-		return model.NewAppError("moveFile", "api.file.move_file.rename.app_error", nil, err.Error(), http.StatusInternalServerError)
-	}
-	if err = out.Close(); err != nil {
-		return model.NewAppError("moveFile", "api.file.move_file.rename.app_error", nil, err.Error(), http.StatusInternalServerError)
-	}
-
 	return nil
 }
 

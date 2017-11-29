@@ -6,10 +6,9 @@ package sqlstore
 import (
 	"net/http"
 
+	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
-
-	l4g "github.com/alecthomas/log4go"
 )
 
 type SqlChannelMemberHistoryStore struct {
@@ -48,28 +47,18 @@ func (s SqlChannelMemberHistoryStore) LogJoinEvent(userId string, channelId stri
 func (s SqlChannelMemberHistoryStore) LogLeaveEvent(userId string, channelId string, leaveTime int64) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		query := `
-			SELECT
-				cmh.*,
-				u.Email
-			FROM ChannelMemberHistory cmh
-			INNER JOIN Users u ON cmh.UserId = u.Id
-			WHERE cmh.UserId = :UserId
-			AND cmh.ChannelId = :ChannelId
-			AND cmh.LeaveTime IS NULL
-			ORDER BY cmh.JoinTime ASC
-			LIMIT 1`
+			UPDATE ChannelMemberHistory
+			SET LeaveTime = :LeaveTime
+			WHERE UserId = :UserId
+			AND ChannelId = :ChannelId
+			AND LeaveTime IS NULL`
 
-		params := map[string]interface{}{"UserId": userId, "ChannelId": channelId}
-		channelMemberHistory := new(model.ChannelMemberHistory)
-		if err := s.GetReplica().SelectOne(&channelMemberHistory, query, params); err != nil {
-			// if there was no join event, we can't log a leave event, but we shouldn't fail
+		params := map[string]interface{}{"UserId": userId, "ChannelId": channelId, "LeaveTime": leaveTime}
+		if sqlResult, err := s.GetMaster().Exec(query, params); err != nil {
+			result.Err = model.NewAppError("SqlChannelMemberHistoryStore.LogLeaveEvent", "store.sql_channel_member_history.log_leave_event.update_error", nil, err.Error(), http.StatusInternalServerError)
+		} else if rows, err := sqlResult.RowsAffected(); err == nil && rows != 1 {
+			// there was no join event to update
 			l4g.Warn("Channel join event for user %v and channel %v not found", userId, channelId)
-		} else {
-			channelMemberHistory.LeaveTime = &leaveTime
-
-			if _, err := s.GetMaster().Update(channelMemberHistory); err != nil {
-				result.Err = model.NewAppError("SqlChannelMemberHistoryStore.LogLeaveEvent", "store.sql_channel_member_history.log_leave_event.update_error", map[string]interface{}{"ChannelMemberHistory": channelMemberHistory}, err.Error(), http.StatusInternalServerError)
-			}
 		}
 	})
 }
