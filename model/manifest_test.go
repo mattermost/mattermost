@@ -70,8 +70,9 @@ func TestManifestUnmarshal(t *testing.T) {
 		SettingsSchema: &PluginSettingsSchema{
 			Header: "theheadertext",
 			Footer: "thefootertext",
-			Settings: map[string]*PluginSetting{
-				"thesetting": &PluginSetting{
+			Settings: []*PluginSetting{
+				&PluginSetting{
+					Key:                "thesetting",
 					DisplayName:        "thedisplayname",
 					Type:               PLUGIN_CONFIG_TYPE_DROPDOWN,
 					HelpText:           "thehelptext",
@@ -100,16 +101,16 @@ settings_schema:
     header: theheadertext
     footer: thefootertext
     settings:
-        thesetting:
-            display_name: thedisplayname
-            type: dropdown
-            help_text: thehelptext
-            regenerate_help_text: theregeneratehelptext
-            placeholder: theplaceholder
-            options:
-                - display_name: theoptiondisplayname
-                  value: thevalue
-            default: thedefault
+        - key: thesetting
+          display_name: thedisplayname
+          type: dropdown
+          help_text: thehelptext
+          regenerate_help_text: theregeneratehelptext
+          placeholder: theplaceholder
+          options:
+              - display_name: theoptiondisplayname
+                value: thevalue
+          default: thedefault
 `), &yamlResult))
 	assert.Equal(t, expected, yamlResult)
 
@@ -125,22 +126,23 @@ settings_schema:
     "settings_schema": {
         "header": "theheadertext",
         "footer": "thefootertext",
-        "settings": {
-            "thesetting": {
-                "display_name": "thedisplayname",
-                "type": "dropdown",
-                "help_text": "thehelptext",
-                "regenerate_help_text": "theregeneratehelptext",
-                "placeholder": "theplaceholder",
-                "options": [
-                    {
-                        "display_name": "theoptiondisplayname",
-                        "value": "thevalue"
-                    }
-                ],
-                "default": "thedefault"
-            }
-        }
+        "settings": [
+			{
+				"key": "thesetting",
+				"display_name": "thedisplayname",
+				"type": "dropdown",
+				"help_text": "thehelptext",
+				"regenerate_help_text": "theregeneratehelptext",
+				"placeholder": "theplaceholder",
+				"options": [
+					{
+						"display_name": "theoptiondisplayname",
+						"value": "thevalue"
+					}
+				],
+				"default": "thedefault"
+			}
+		]
     }
 	}`), &jsonResult))
 	assert.Equal(t, expected, jsonResult)
@@ -175,8 +177,9 @@ func TestManifestJson(t *testing.T) {
 		SettingsSchema: &PluginSettingsSchema{
 			Header: "theheadertext",
 			Footer: "thefootertext",
-			Settings: map[string]*PluginSetting{
-				"thesetting": &PluginSetting{
+			Settings: []*PluginSetting{
+				&PluginSetting{
+					Key:                "thesetting",
 					DisplayName:        "thedisplayname",
 					Type:               PLUGIN_CONFIG_TYPE_DROPDOWN,
 					HelpText:           "thehelptext",
@@ -239,8 +242,9 @@ func TestManifestClientManifest(t *testing.T) {
 		SettingsSchema: &PluginSettingsSchema{
 			Header: "theheadertext",
 			Footer: "thefootertext",
-			Settings: map[string]*PluginSetting{
-				"thesetting": &PluginSetting{
+			Settings: []*PluginSetting{
+				&PluginSetting{
+					Key:                "thesetting",
 					DisplayName:        "thedisplayname",
 					Type:               PLUGIN_CONFIG_TYPE_DROPDOWN,
 					HelpText:           "thehelptext",
