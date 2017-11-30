@@ -3567,6 +3567,10 @@
     "translation": "Unable to activate extracted plugin. Plugin may already exist and be activated."
   },
   {
+    "id": "app.plugin.id_length.app_error",
+    "translation": "Plugin Id must be less than {{.Max}} characters."
+  },
+  {
     "id": "app.plugin.config.app_error",
     "translation": "Error saving plugin state in config"
   },
