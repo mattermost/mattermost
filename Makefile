@@ -109,7 +109,7 @@ start-docker:
 
 	@if [ $(shell docker ps -a | grep -ci mattermost-postgres) -eq 0 ]; then \
 		echo starting mattermost-postgres; \
-		docker run --name mattermost-postgres -p 5432:5432 -e POSTGRES_USER=mmuser -e POSTGRES_PASSWORD=mostest \
+		docker run --name mattermost-postgres -p 5432:5432 -e POSTGRES_USER=mmuser -e POSTGRES_PASSWORD=mostest -e POSTGRES_DB=mattermost_test \
 		-d postgres:9.4 > /dev/null; \
 	elif [ $(shell docker ps | grep -ci mattermost-postgres) -eq 0 ]; then \
 		echo restarting mattermost-postgres; \
