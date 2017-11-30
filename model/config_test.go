@@ -6,7 +6,8 @@ package model
 import (
 	"testing"
 
-	"github.com/Masterminds/glide/path"
+	"os"
+
 	"github.com/stretchr/testify/require"
 )
 
@@ -120,7 +121,7 @@ func TestMessageExportSettingsIsValidFileLocationInvalid(t *testing.T) {
 
 	// if using the local file driver, there are more rules for FileLocation
 	fs.DriverName = NewString(IMAGE_DRIVER_LOCAL)
-	fs.Directory = path.Basepath()
+	fs.Directory, _ = os.Getwd()
 	mes.FileLocation = NewString("")
 
 	// should fail fast because file location is not relative to basepath
