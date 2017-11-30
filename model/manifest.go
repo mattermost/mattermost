@@ -31,6 +31,9 @@ type PluginOption struct {
 }
 
 type PluginSetting struct {
+	// The key that the setting will be assigned to in the configuration file.
+	Key string `json:"key" yaml:"key"`
+
 	// The display name for the setting.
 	DisplayName string `json:"display_name" yaml:"display_name"`
 
@@ -76,8 +79,8 @@ type PluginSettingsSchema struct {
 	// Optional text to display below the settings.
 	Footer string `json:"footer" yaml:"footer"`
 
-	// A mapping of setting keys to schema definitions.
-	Settings map[string]*PluginSetting `json:"settings" yaml:"settings"`
+	// A list of setting definitions.
+	Settings []*PluginSetting `json:"settings" yaml:"settings"`
 }
 
 // The plugin manifest defines the metadata required to load and present your plugin. The manifest
@@ -93,11 +96,11 @@ type PluginSettingsSchema struct {
 //         executable: myplugin
 //     settings_schema:
 //         settings:
-//             enable_extra_thing:
-//                 type: bool
-//                 display_name: Enable Extra Thing
-//                 help_text: When true, an extra thing will be enabled!
-//                 default: false
+//             - key: enable_extra_thing
+//               type: bool
+//               display_name: Enable Extra Thing
+//               help_text: When true, an extra thing will be enabled!
+//               default: false
 type Manifest struct {
 	// The id is a globally unique identifier that represents your plugin. Reverse-DNS notation
 	// using a name you control is a good option. For example, "com.mycompany.myplugin".
@@ -126,6 +129,8 @@ type Manifest struct {
 type ManifestBackend struct {
 	// The path to your executable binary. This should be relative to the root of your bundle and the
 	// location of the manifest file.
+	//
+	// On Windows, this file must have a ".exe" extension.
 	Executable string `json:"executable" yaml:"executable"`
 }
 
