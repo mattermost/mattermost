@@ -417,9 +417,9 @@ func (a *App) ServePluginRequest(w http.ResponseWriter, r *http.Request) {
 	token := ""
 
 	authHeader := r.Header.Get(model.HEADER_AUTH)
-	if strings.HasPrefix(strings.ToUpper(authHeader), model.HEADER_BEARER+":") {
+	if strings.HasPrefix(strings.ToUpper(authHeader), model.HEADER_BEARER+" ") {
 		token = authHeader[len(model.HEADER_BEARER)+1:]
-	} else if strings.HasPrefix(strings.ToLower(authHeader), model.HEADER_TOKEN+":") {
+	} else if strings.HasPrefix(strings.ToLower(authHeader), model.HEADER_TOKEN+" ") {
 		token = authHeader[len(model.HEADER_TOKEN)+1:]
 	} else if cookie, _ := r.Cookie(model.SESSION_COOKIE_TOKEN); cookie != nil && (r.Method == "GET" || r.Header.Get(model.HEADER_REQUESTED_WITH) == model.HEADER_REQUESTED_WITH_XML) {
 		token = cookie.Value
@@ -429,7 +429,7 @@ func (a *App) ServePluginRequest(w http.ResponseWriter, r *http.Request) {
 
 	r.Header.Del("Mattermost-User-Id")
 	if token != "" {
-		if session, err := a.GetSession(token); err != nil {
+		if session, err := a.GetSession(token); err == nil {
 			r.Header.Set("Mattermost-User-Id", session.UserId)
 		}
 	}
