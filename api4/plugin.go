@@ -88,7 +88,7 @@ func getPlugins(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response, err := c.App.GetPluginManifests()
+	response, err := c.App.GetPlugins()
 	if err != nil {
 		c.Err = err
 		return
