@@ -9,8 +9,8 @@ import (
 )
 
 const (
-	KEY_VALUE_PLUGIN_ID_MAX_RUNES = 100
-	KEY_VALUE_KEY_MAX_RUNES       = 100
+	KEY_VALUE_PLUGIN_ID_MAX_RUNES = 200
+	KEY_VALUE_KEY_MAX_RUNES       = 50
 )
 
 type PluginKeyValue struct {

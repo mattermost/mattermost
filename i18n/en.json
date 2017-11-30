@@ -3559,12 +3559,8 @@
     "translation": "[{{ .SiteName }}] Notification in {{ .TeamName}} on {{.Month}} {{.Day}}, {{.Year}}"
   },
   {
-    "id": "app.plugin.prepackaged.app_error",
-    "translation": "Prepackaged plugins cannot be modified."
-  },
-  {
-    "id": "app.plugin.key_value.set.app_error",
-    "translation": "Unable to set key value. See detailed error for more information."
+    "id": "app.plugin.key_value.key.app_error",
+    "translation": "Key must be more than 0 characters"
   },
   {
     "id": "app.plugin.activate.app_error",
