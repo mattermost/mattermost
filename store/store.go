@@ -63,6 +63,7 @@ type Store interface {
 	Reaction() ReactionStore
 	Job() JobStore
 	UserAccessToken() UserAccessTokenStore
+	ChannelMemberHistory() ChannelMemberHistoryStore
 	Plugin() PluginStore
 	MarkSystemRanUnitTests()
 	Close()
@@ -158,6 +159,13 @@ type ChannelStore interface {
 	GetMembersByIds(channelId string, userIds []string) StoreChannel
 	AnalyticsDeletedTypeCount(teamId string, channelType string) StoreChannel
 	GetChannelUnread(channelId, userId string) StoreChannel
+}
+
+type ChannelMemberHistoryStore interface {
+	LogJoinEvent(userId string, channelId string, joinTime int64) StoreChannel
+	LogLeaveEvent(userId string, channelId string, leaveTime int64) StoreChannel
+	GetUsersInChannelDuring(startTime int64, endTime int64, channelId string) StoreChannel
+	PurgeHistoryBefore(time int64, channelId string) StoreChannel
 }
 
 type PostStore interface {
@@ -276,6 +284,7 @@ type ComplianceStore interface {
 	Get(id string) StoreChannel
 	GetAll(offset, limit int) StoreChannel
 	ComplianceExport(compliance *model.Compliance) StoreChannel
+	MessageExport(after int64, limit int) StoreChannel
 }
 
 type OAuthStore interface {

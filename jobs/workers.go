@@ -17,6 +17,7 @@ type Workers struct {
 	Watcher   *Watcher
 
 	DataRetention            model.Worker
+	MessageExport            model.Worker
 	ElasticsearchIndexing    model.Worker
 	ElasticsearchAggregation model.Worker
 	LdapSync                 model.Worker
@@ -32,6 +33,10 @@ func (srv *JobServer) InitWorkers() *Workers {
 
 	if srv.DataRetentionJob != nil {
 		workers.DataRetention = srv.DataRetentionJob.MakeWorker()
+	}
+
+	if srv.MessageExportJob != nil {
+		workers.MessageExport = srv.MessageExportJob.MakeWorker()
 	}
 
 	if elasticsearchIndexerInterface := srv.ElasticsearchIndexer; elasticsearchIndexerInterface != nil {
@@ -55,6 +60,10 @@ func (workers *Workers) Start() *Workers {
 	workers.startOnce.Do(func() {
 		if workers.DataRetention != nil && (*workers.Config().DataRetentionSettings.EnableMessageDeletion || *workers.Config().DataRetentionSettings.EnableFileDeletion) {
 			go workers.DataRetention.Run()
+		}
+
+		if workers.MessageExport != nil && *workers.Config().MessageExportSettings.EnableExport {
+			go workers.MessageExport.Run()
 		}
 
 		if workers.ElasticsearchIndexing != nil && *workers.Config().ElasticsearchSettings.EnableIndexing {
@@ -83,6 +92,14 @@ func (workers *Workers) handleConfigChange(oldConfig *model.Config, newConfig *m
 			go workers.DataRetention.Run()
 		} else if (*oldConfig.DataRetentionSettings.EnableMessageDeletion || *oldConfig.DataRetentionSettings.EnableFileDeletion) && (!*newConfig.DataRetentionSettings.EnableMessageDeletion && !*newConfig.DataRetentionSettings.EnableFileDeletion) {
 			workers.DataRetention.Stop()
+		}
+	}
+
+	if workers.MessageExport != nil {
+		if !*oldConfig.MessageExportSettings.EnableExport && *newConfig.MessageExportSettings.EnableExport {
+			go workers.MessageExport.Run()
+		} else if *oldConfig.MessageExportSettings.EnableExport && !*newConfig.MessageExportSettings.EnableExport {
+			workers.MessageExport.Stop()
 		}
 	}
 
@@ -118,6 +135,10 @@ func (workers *Workers) Stop() *Workers {
 
 	if workers.DataRetention != nil && (*workers.Config().DataRetentionSettings.EnableMessageDeletion || *workers.Config().DataRetentionSettings.EnableFileDeletion) {
 		workers.DataRetention.Stop()
+	}
+
+	if workers.MessageExport != nil && *workers.Config().MessageExportSettings.EnableExport {
+		workers.MessageExport.Stop()
 	}
 
 	if workers.ElasticsearchIndexing != nil && *workers.Config().ElasticsearchSettings.EnableIndexing {

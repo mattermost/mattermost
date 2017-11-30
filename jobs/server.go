@@ -19,6 +19,7 @@ type JobServer struct {
 	Schedulers *Schedulers
 
 	DataRetentionJob        ejobs.DataRetentionJobInterface
+	MessageExportJob        ejobs.MessageExportJobInterface
 	ElasticsearchAggregator ejobs.ElasticsearchAggregatorInterface
 	ElasticsearchIndexer    ejobs.ElasticsearchIndexerInterface
 	LdapSync                ejobs.LdapSyncInterface

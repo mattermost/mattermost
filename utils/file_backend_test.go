@@ -86,6 +86,26 @@ func (s *FileBackendTestSuite) TestReadWriteFile() {
 	s.EqualValues(readString, "test")
 }
 
+func (s *FileBackendTestSuite) TestCopyFile() {
+	b := []byte("test")
+	path1 := "tests/" + model.NewId()
+	path2 := "tests/" + model.NewId()
+
+	err := s.backend.WriteFile(b, path1)
+	s.Nil(err)
+	defer s.backend.RemoveFile(path1)
+
+	err = s.backend.CopyFile(path1, path2)
+	s.Nil(err)
+	defer s.backend.RemoveFile(path2)
+
+	_, err = s.backend.ReadFile(path1)
+	s.Nil(err)
+
+	_, err = s.backend.ReadFile(path2)
+	s.Nil(err)
+}
+
 func (s *FileBackendTestSuite) TestMoveFile() {
 	b := []byte("test")
 	path1 := "tests/" + model.NewId()
