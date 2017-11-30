@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"path/filepath"
 	"strings"
 	"time"
 )
@@ -1508,6 +1509,36 @@ func (s *PluginSettings) SetDefaults() {
 	}
 }
 
+type MessageExportSettings struct {
+	EnableExport        *bool
+	DailyRunTime        *string
+	ExportFromTimestamp *int64
+	FileLocation        *string
+	BatchSize           *int
+}
+
+func (s *MessageExportSettings) SetDefaults() {
+	if s.EnableExport == nil {
+		s.EnableExport = NewBool(false)
+	}
+
+	if s.FileLocation == nil {
+		s.FileLocation = NewString("export")
+	}
+
+	if s.DailyRunTime == nil {
+		s.DailyRunTime = NewString("01:00")
+	}
+
+	if s.ExportFromTimestamp == nil {
+		s.ExportFromTimestamp = NewInt64(0)
+	}
+
+	if s.BatchSize == nil {
+		s.BatchSize = NewInt(10000)
+	}
+}
+
 type ConfigFunc func() *Config
 
 type Config struct {
@@ -1538,6 +1569,7 @@ type Config struct {
 	WebrtcSettings        WebrtcSettings
 	ElasticsearchSettings ElasticsearchSettings
 	DataRetentionSettings DataRetentionSettings
+	MessageExportSettings MessageExportSettings
 	JobSettings           JobSettings
 	PluginSettings        PluginSettings
 }
@@ -1617,6 +1649,7 @@ func (o *Config) SetDefaults() {
 	o.LogSettings.SetDefaults()
 	o.JobSettings.SetDefaults()
 	o.WebrtcSettings.SetDefaults()
+	o.MessageExportSettings.SetDefaults()
 }
 
 func (o *Config) IsValid() *AppError {
@@ -1677,6 +1710,10 @@ func (o *Config) IsValid() *AppError {
 	}
 
 	if err := o.LocalizationSettings.isValid(); err != nil {
+		return err
+	}
+
+	if err := o.MessageExportSettings.isValid(o.FileSettings); err != nil {
 		return err
 	}
 
@@ -1995,6 +2032,35 @@ func (ls *LocalizationSettings) isValid() *AppError {
 		}
 	}
 
+	return nil
+}
+
+func (mes *MessageExportSettings) isValid(fs FileSettings) *AppError {
+	if mes.EnableExport == nil {
+		return NewAppError("Config.IsValid", "model.config.is_valid.message_export.enable.app_error", nil, "", http.StatusBadRequest)
+	}
+	if *mes.EnableExport {
+		if mes.ExportFromTimestamp == nil || *mes.ExportFromTimestamp < 0 || *mes.ExportFromTimestamp > time.Now().Unix() {
+			return NewAppError("Config.IsValid", "model.config.is_valid.message_export.export_from.app_error", nil, "", http.StatusBadRequest)
+		} else if mes.DailyRunTime == nil {
+			return NewAppError("Config.IsValid", "model.config.is_valid.message_export.daily_runtime.app_error", nil, "", http.StatusBadRequest)
+		} else if _, err := time.Parse("15:04", *mes.DailyRunTime); err != nil {
+			return NewAppError("Config.IsValid", "model.config.is_valid.message_export.daily_runtime.app_error", nil, err.Error(), http.StatusBadRequest)
+		} else if mes.FileLocation == nil {
+			return NewAppError("Config.IsValid", "model.config.is_valid.message_export.file_location.app_error", nil, "", http.StatusBadRequest)
+		} else if mes.BatchSize == nil || *mes.BatchSize < 0 {
+			return NewAppError("Config.IsValid", "model.config.is_valid.message_export.batch_size.app_error", nil, "", http.StatusBadRequest)
+		} else if *fs.DriverName != IMAGE_DRIVER_LOCAL {
+			if absFileDir, err := filepath.Abs(fs.Directory); err != nil {
+				return NewAppError("Config.IsValid", "model.config.is_valid.message_export.file_location.relative", nil, err.Error(), http.StatusBadRequest)
+			} else if absMessageExportDir, err := filepath.Abs(*mes.FileLocation); err != nil {
+				return NewAppError("Config.IsValid", "model.config.is_valid.message_export.file_location.relative", nil, err.Error(), http.StatusBadRequest)
+			} else if !strings.HasPrefix(absMessageExportDir, absFileDir) {
+				// configured export directory must be relative to data directory
+				return NewAppError("Config.IsValid", "model.config.is_valid.message_export.file_location.relative", nil, "", http.StatusBadRequest)
+			}
+		}
+	}
 	return nil
 }
 

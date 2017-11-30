@@ -153,6 +153,10 @@ func (s *LayeredStore) UserAccessToken() UserAccessTokenStore {
 	return s.DatabaseLayer.UserAccessToken()
 }
 
+func (s *LayeredStore) ChannelMemberHistory() ChannelMemberHistoryStore {
+	return s.DatabaseLayer.ChannelMemberHistory()
+}
+
 func (s *LayeredStore) Plugin() PluginStore {
 	return s.DatabaseLayer.Plugin()
 }

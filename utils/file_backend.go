@@ -13,6 +13,7 @@ type FileBackend interface {
 	TestConnection() *model.AppError
 
 	ReadFile(path string) ([]byte, *model.AppError)
+	CopyFile(oldPath, newPath string) *model.AppError
 	MoveFile(oldPath, newPath string) *model.AppError
 	WriteFile(f []byte, path string) *model.AppError
 	RemoveFile(path string) *model.AppError

@@ -48,6 +48,7 @@ type App struct {
 	Elasticsearch    einterfaces.ElasticsearchInterface
 	Emoji            einterfaces.EmojiInterface
 	Ldap             einterfaces.LdapInterface
+	MessageExport    einterfaces.MessageExportInterface
 	Metrics          einterfaces.MetricsInterface
 	Mfa              einterfaces.MfaInterface
 	Saml             einterfaces.SamlInterface
@@ -198,6 +199,12 @@ func RegisterJobsDataRetentionJobInterface(f func(*App) ejobs.DataRetentionJobIn
 	jobsDataRetentionJobInterface = f
 }
 
+var jobsMessageExportJobInterface func(*App) ejobs.MessageExportJobInterface
+
+func RegisterJobsMessageExportJobInterface(f func(*App) ejobs.MessageExportJobInterface) {
+	jobsMessageExportJobInterface = f
+}
+
 var jobsElasticsearchAggregatorInterface func(*App) ejobs.ElasticsearchAggregatorInterface
 
 func RegisterJobsElasticsearchAggregatorInterface(f func(*App) ejobs.ElasticsearchAggregatorInterface) {
@@ -220,6 +227,12 @@ var ldapInterface func(*App) einterfaces.LdapInterface
 
 func RegisterLdapInterface(f func(*App) einterfaces.LdapInterface) {
 	ldapInterface = f
+}
+
+var messageExportInterface func(*App) einterfaces.MessageExportInterface
+
+func RegisterMessageExportInterface(f func(*App) einterfaces.MessageExportInterface) {
+	messageExportInterface = f
 }
 
 var metricsInterface func(*App) einterfaces.MetricsInterface
@@ -267,6 +280,9 @@ func (a *App) initEnterprise() {
 			}
 		})
 	}
+	if messageExportInterface != nil {
+		a.MessageExport = messageExportInterface(a)
+	}
 	if metricsInterface != nil {
 		a.Metrics = metricsInterface(a)
 	}
@@ -288,6 +304,9 @@ func (a *App) initJobs() {
 	a.Jobs = jobs.NewJobServer(a.Config, a.Srv.Store)
 	if jobsDataRetentionJobInterface != nil {
 		a.Jobs.DataRetentionJob = jobsDataRetentionJobInterface(a)
+	}
+	if jobsMessageExportJobInterface != nil {
+		a.Jobs.MessageExportJob = jobsMessageExportJobInterface(a)
 	}
 	if jobsElasticsearchAggregatorInterface != nil {
 		a.Jobs.ElasticsearchAggregator = jobsElasticsearchAggregatorInterface(a)

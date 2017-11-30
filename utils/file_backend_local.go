@@ -40,6 +40,13 @@ func (b *LocalFileBackend) ReadFile(path string) ([]byte, *model.AppError) {
 	}
 }
 
+func (b *LocalFileBackend) CopyFile(oldPath, newPath string) *model.AppError {
+	if err := CopyFile(filepath.Join(b.directory, oldPath), filepath.Join(b.directory, newPath)); err != nil {
+		return model.NewAppError("copyFile", "api.file.move_file.rename.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return nil
+}
+
 func (b *LocalFileBackend) MoveFile(oldPath, newPath string) *model.AppError {
 	if err := os.MkdirAll(filepath.Dir(filepath.Join(b.directory, newPath)), 0774); err != nil {
 		return model.NewAppError("moveFile", "api.file.move_file.rename.app_error", nil, err.Error(), http.StatusInternalServerError)

@@ -95,6 +95,23 @@ func (b *S3FileBackend) ReadFile(path string) ([]byte, *model.AppError) {
 	}
 }
 
+func (b *S3FileBackend) CopyFile(oldPath, newPath string) *model.AppError {
+	s3Clnt, err := b.s3New()
+	if err != nil {
+		return model.NewAppError("copyFile", "api.file.write_file.s3.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	source := s3.NewSourceInfo(b.bucket, oldPath, nil)
+	destination, err := s3.NewDestinationInfo(b.bucket, newPath, nil, s3CopyMetadata(b.encrypt))
+	if err != nil {
+		return model.NewAppError("copyFile", "api.file.write_file.s3.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	if err = s3Clnt.CopyObject(destination, source); err != nil {
+		return model.NewAppError("copyFile", "api.file.move_file.copy_within_s3.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return nil
+}
+
 func (b *S3FileBackend) MoveFile(oldPath, newPath string) *model.AppError {
 	s3Clnt, err := b.s3New()
 	if err != nil {
@@ -107,7 +124,7 @@ func (b *S3FileBackend) MoveFile(oldPath, newPath string) *model.AppError {
 		return model.NewAppError("moveFile", "api.file.write_file.s3.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	if err = s3Clnt.CopyObject(destination, source); err != nil {
-		return model.NewAppError("moveFile", "api.file.move_file.delete_from_s3.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("moveFile", "api.file.move_file.copy_within_s3.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	if err = s3Clnt.RemoveObject(b.bucket, oldPath); err != nil {
 		return model.NewAppError("moveFile", "api.file.move_file.delete_from_s3.app_error", nil, err.Error(), http.StatusInternalServerError)
