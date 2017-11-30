@@ -3559,10 +3559,6 @@
     "translation": "[{{ .SiteName }}] Notification in {{ .TeamName}} on {{.Month}} {{.Day}}, {{.Year}}"
   },
   {
-    "id": "app.plugin.key_value.key.app_error",
-    "translation": "Key must be more than 0 characters"
-  },
-  {
     "id": "app.plugin.activate.app_error",
     "translation": "Unable to activate extracted plugin. Plugin may already exist and be activated."
   },
