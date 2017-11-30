@@ -275,6 +275,16 @@ store-mocks:
 	go get github.com/vektra/mockery/...
 	GOPATH=$(shell go env GOPATH) $(shell go env GOPATH)/bin/mockery -dir store -all -output store/storetest/mocks -note 'Regenerate this file using `make store-mocks`.'
 
+update-jira-plugin:
+	go get github.com/jteeuwen/go-bindata/...
+	curl -s https://api.github.com/repos/mattermost/mattermost-plugin-jira/releases/latest | grep browser_download_url | grep darwin-amd64 | cut -d '"' -f 4 | wget -qi - -O plugin.tar.gz
+	go-bindata -pkg jira -o app/plugin/jira/plugin_darwin_amd64.go plugin.tar.gz
+	curl -s https://api.github.com/repos/mattermost/mattermost-plugin-jira/releases/latest | grep browser_download_url | grep linux-amd64 | cut -d '"' -f 4 | wget -qi - -O plugin.tar.gz
+	go-bindata -pkg jira -o app/plugin/jira/plugin_linux_amd64.go plugin.tar.gz
+	curl -s https://api.github.com/repos/mattermost/mattermost-plugin-jira/releases/latest | grep browser_download_url | grep windows-amd64 | cut -d '"' -f 4 | wget -qi - -O plugin.tar.gz
+	go-bindata -pkg jira -o app/plugin/jira/plugin_windows_amd64.go plugin.tar.gz
+	rm plugin.tar.gz
+
 check-licenses:
 	./scripts/license-check.sh $(TE_PACKAGES) $(EE_PACKAGES)
 

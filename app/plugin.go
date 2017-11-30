@@ -4,6 +4,7 @@
 package app
 
 import (
+	"bytes"
 	"context"
 	"io"
 	"io/ioutil"
@@ -26,9 +27,12 @@ import (
 	"github.com/mattermost/mattermost-server/plugin/pluginenv"
 )
 
+var bundledPlugins map[string]func(string) ([]byte, error) = map[string]func(string) ([]byte, error){
+	"jira": jira.Asset,
+}
+
 func (a *App) initBuiltInPlugins() {
 	plugins := map[string]builtinplugin.Plugin{
-		"jira":       &jira.Plugin{},
 		"ldapextras": &ldapextras.Plugin{},
 	}
 	for id, p := range plugins {
@@ -315,19 +319,17 @@ func (a *App) InitPlugins(pluginPath, webappPath string) {
 
 	l4g.Info("Starting up plugins")
 
-	err := os.Mkdir(pluginPath, 0744)
-	if err != nil && !os.IsExist(err) {
+	if err := os.Mkdir(pluginPath, 0744); err != nil && !os.IsExist(err) {
 		l4g.Error("failed to start up plugins: " + err.Error())
 		return
 	}
 
-	err = os.Mkdir(webappPath, 0744)
-	if err != nil && !os.IsExist(err) {
+	if err := os.Mkdir(webappPath, 0744); err != nil && !os.IsExist(err) {
 		l4g.Error("failed to start up plugins: " + err.Error())
 		return
 	}
 
-	a.PluginEnv, err = pluginenv.New(
+	if env, err := pluginenv.New(
 		pluginenv.SearchPath(pluginPath),
 		pluginenv.WebappPath(webappPath),
 		pluginenv.APIProvider(func(m *model.Manifest) (plugin.API, error) {
@@ -340,11 +342,27 @@ func (a *App) InitPlugins(pluginPath, webappPath string) {
 				},
 			}, nil
 		}),
-	)
-
-	if err != nil {
+	); err != nil {
 		l4g.Error("failed to start up plugins: " + err.Error())
 		return
+	} else {
+		a.PluginEnv = env
+	}
+
+	for id, asset := range bundledPlugins {
+		if tarball, err := asset("plugin.tar.gz"); err != nil {
+			l4g.Error("failed to install bundled plugin: " + err.Error())
+		} else if tarball != nil {
+			a.RemovePlugin(id)
+			if _, err := a.InstallPlugin(bytes.NewReader(tarball)); err != nil {
+				l4g.Error("failed to install bundled plugin: " + err.Error())
+			}
+			if _, ok := a.Config().PluginSettings.PluginStates[id]; !ok {
+				if err := a.EnablePlugin(id); err != nil {
+					l4g.Error("failed to enable bundled plugin: " + err.Error())
+				}
+			}
+		}
 	}
 
 	utils.RemoveConfigListener(a.PluginConfigListenerId)
