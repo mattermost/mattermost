@@ -19,8 +19,8 @@ func TestPluginsResponseJson(t *testing.T) {
 	}
 
 	response := &PluginsResponse{
-		Active:   []*Manifest{manifest},
-		Inactive: []*Manifest{},
+		Active:   []*PluginInfo{{Manifest: *manifest}},
+		Inactive: []*PluginInfo{},
 	}
 
 	json := response.ToJson()

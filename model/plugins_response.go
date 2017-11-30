@@ -8,9 +8,14 @@ import (
 	"io"
 )
 
+type PluginInfo struct {
+	Manifest
+	Prepackaged bool `json:"prepackaged"`
+}
+
 type PluginsResponse struct {
-	Active   []*Manifest `json:"active"`
-	Inactive []*Manifest `json:"inactive"`
+	Active   []*PluginInfo `json:"active"`
+	Inactive []*PluginInfo `json:"inactive"`
 }
 
 func (m *PluginsResponse) ToJson() string {
