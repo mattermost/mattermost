@@ -510,7 +510,7 @@ func (a *App) trackPlugins() {
 		backendInactiveCount := 0
 		settingsCount := 0
 
-		plugins, _ := a.GetPluginManifests()
+		plugins, _ := a.GetPlugins()
 
 		if plugins != nil {
 			totalActiveCount = len(plugins.Active)

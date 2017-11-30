@@ -27,7 +27,7 @@ import (
 	"github.com/mattermost/mattermost-server/plugin/pluginenv"
 )
 
-var bundledPlugins map[string]func(string) ([]byte, error) = map[string]func(string) ([]byte, error){
+var prepackagedPlugins map[string]func(string) ([]byte, error) = map[string]func(string) ([]byte, error){
 	"jira": jira.Asset,
 }
 
@@ -110,24 +110,28 @@ func (a *App) ActivatePlugins() {
 
 // InstallPlugin unpacks and installs a plugin but does not activate it.
 func (a *App) InstallPlugin(pluginFile io.Reader) (*model.Manifest, *model.AppError) {
+	return a.installPlugin(pluginFile, false)
+}
+
+func (a *App) installPlugin(pluginFile io.Reader, allowPrepackaged bool) (*model.Manifest, *model.AppError) {
 	if a.PluginEnv == nil || !*a.Config().PluginSettings.Enable {
-		return nil, model.NewAppError("InstallPlugin", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
+		return nil, model.NewAppError("installPlugin", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
 	tmpDir, err := ioutil.TempDir("", "plugintmp")
 	if err != nil {
-		return nil, model.NewAppError("InstallPlugin", "app.plugin.filesystem.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("installPlugin", "app.plugin.filesystem.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	defer os.RemoveAll(tmpDir)
 
 	if err := utils.ExtractTarGz(pluginFile, tmpDir); err != nil {
-		return nil, model.NewAppError("InstallPlugin", "app.plugin.extract.app_error", nil, err.Error(), http.StatusBadRequest)
+		return nil, model.NewAppError("installPlugin", "app.plugin.extract.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
 
 	tmpPluginDir := tmpDir
 	dir, err := ioutil.ReadDir(tmpDir)
 	if err != nil {
-		return nil, model.NewAppError("InstallPlugin", "app.plugin.filesystem.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("installPlugin", "app.plugin.filesystem.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	if len(dir) == 1 && dir[0].IsDir() {
@@ -136,23 +140,27 @@ func (a *App) InstallPlugin(pluginFile io.Reader) (*model.Manifest, *model.AppEr
 
 	manifest, _, err := model.FindManifest(tmpPluginDir)
 	if err != nil {
-		return nil, model.NewAppError("InstallPlugin", "app.plugin.manifest.app_error", nil, err.Error(), http.StatusBadRequest)
+		return nil, model.NewAppError("installPlugin", "app.plugin.manifest.app_error", nil, err.Error(), http.StatusBadRequest)
+	}
+
+	if _, ok := prepackagedPlugins[manifest.Id]; ok && !allowPrepackaged {
+		return nil, model.NewAppError("installPlugin", "app.plugin.prepackaged.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	bundles, err := a.PluginEnv.Plugins()
 	if err != nil {
-		return nil, model.NewAppError("InstallPlugin", "app.plugin.install.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("installPlugin", "app.plugin.install.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	for _, bundle := range bundles {
 		if bundle.Manifest.Id == manifest.Id {
-			return nil, model.NewAppError("InstallPlugin", "app.plugin.install_id.app_error", nil, "", http.StatusBadRequest)
+			return nil, model.NewAppError("installPlugin", "app.plugin.install_id.app_error", nil, "", http.StatusBadRequest)
 		}
 	}
 
 	err = utils.CopyDir(tmpPluginDir, filepath.Join(a.PluginEnv.SearchPath(), manifest.Id))
 	if err != nil {
-		return nil, model.NewAppError("InstallPlugin", "app.plugin.mvdir.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("installPlugin", "app.plugin.mvdir.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	// Should add manifest validation and error handling here
@@ -160,22 +168,26 @@ func (a *App) InstallPlugin(pluginFile io.Reader) (*model.Manifest, *model.AppEr
 	return manifest, nil
 }
 
-func (a *App) GetPluginManifests() (*model.PluginsResponse, *model.AppError) {
+func (a *App) GetPlugins() (*model.PluginsResponse, *model.AppError) {
 	if a.PluginEnv == nil || !*a.Config().PluginSettings.Enable {
-		return nil, model.NewAppError("GetPluginManifests", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
+		return nil, model.NewAppError("GetPlugins", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
 	plugins, err := a.PluginEnv.Plugins()
 	if err != nil {
-		return nil, model.NewAppError("GetPluginManifests", "app.plugin.get_plugins.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("GetPlugins", "app.plugin.get_plugins.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	resp := &model.PluginsResponse{Active: []*model.Manifest{}, Inactive: []*model.Manifest{}}
+	resp := &model.PluginsResponse{Active: []*model.PluginInfo{}, Inactive: []*model.PluginInfo{}}
 	for _, plugin := range plugins {
+		info := &model.PluginInfo{
+			Manifest: *plugin.Manifest,
+		}
+		_, info.Prepackaged = prepackagedPlugins[plugin.Manifest.Id]
 		if a.PluginEnv.IsPluginActive(plugin.Manifest.Id) {
-			resp.Active = append(resp.Active, plugin.Manifest)
+			resp.Active = append(resp.Active, info)
 		} else {
-			resp.Inactive = append(resp.Inactive, plugin.Manifest)
+			resp.Inactive = append(resp.Inactive, info)
 		}
 	}
 
@@ -198,13 +210,21 @@ func (a *App) GetActivePluginManifests() ([]*model.Manifest, *model.AppError) {
 }
 
 func (a *App) RemovePlugin(id string) *model.AppError {
+	return a.removePlugin(id, false)
+}
+
+func (a *App) removePlugin(id string, allowPrepackaged bool) *model.AppError {
 	if a.PluginEnv == nil || !*a.Config().PluginSettings.Enable {
-		return model.NewAppError("RemovePlugin", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
+		return model.NewAppError("removePlugin", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
+	}
+
+	if _, ok := prepackagedPlugins[id]; ok && !allowPrepackaged {
+		return model.NewAppError("removePlugin", "app.plugin.prepackaged.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	plugins, err := a.PluginEnv.Plugins()
 	if err != nil {
-		return model.NewAppError("RemovePlugin", "app.plugin.deactivate.app_error", nil, err.Error(), http.StatusBadRequest)
+		return model.NewAppError("removePlugin", "app.plugin.deactivate.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
 
 	var manifest *model.Manifest
@@ -216,13 +236,13 @@ func (a *App) RemovePlugin(id string) *model.AppError {
 	}
 
 	if manifest == nil {
-		return model.NewAppError("RemovePlugin", "app.plugin.not_installed.app_error", nil, "", http.StatusBadRequest)
+		return model.NewAppError("removePlugin", "app.plugin.not_installed.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if a.PluginEnv.IsPluginActive(id) {
 		err := a.PluginEnv.DeactivatePlugin(id)
 		if err != nil {
-			return model.NewAppError("RemovePlugin", "app.plugin.deactivate.app_error", nil, err.Error(), http.StatusBadRequest)
+			return model.NewAppError("removePlugin", "app.plugin.deactivate.app_error", nil, err.Error(), http.StatusBadRequest)
 		}
 
 		if manifest.HasClient() {
@@ -234,7 +254,7 @@ func (a *App) RemovePlugin(id string) *model.AppError {
 
 	err = os.RemoveAll(filepath.Join(a.PluginEnv.SearchPath(), id))
 	if err != nil {
-		return model.NewAppError("RemovePlugin", "app.plugin.remove.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("removePlugin", "app.plugin.remove.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	return nil
@@ -243,7 +263,7 @@ func (a *App) RemovePlugin(id string) *model.AppError {
 // EnablePlugin will set the config for an installed plugin to enabled, triggering activation if inactive.
 func (a *App) EnablePlugin(id string) *model.AppError {
 	if a.PluginEnv == nil || !*a.Config().PluginSettings.Enable {
-		return model.NewAppError("RemovePlugin", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
+		return model.NewAppError("EnablePlugin", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
 	plugins, err := a.PluginEnv.Plugins()
@@ -277,7 +297,7 @@ func (a *App) EnablePlugin(id string) *model.AppError {
 // DisablePlugin will set the config for an installed plugin to disabled, triggering deactivation if active.
 func (a *App) DisablePlugin(id string) *model.AppError {
 	if a.PluginEnv == nil || !*a.Config().PluginSettings.Enable {
-		return model.NewAppError("RemovePlugin", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
+		return model.NewAppError("DisablePlugin", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
 	plugins, err := a.PluginEnv.Plugins()
@@ -349,17 +369,17 @@ func (a *App) InitPlugins(pluginPath, webappPath string) {
 		a.PluginEnv = env
 	}
 
-	for id, asset := range bundledPlugins {
+	for id, asset := range prepackagedPlugins {
 		if tarball, err := asset("plugin.tar.gz"); err != nil {
-			l4g.Error("failed to install bundled plugin: " + err.Error())
+			l4g.Error("failed to install prepackaged plugin: " + err.Error())
 		} else if tarball != nil {
-			a.RemovePlugin(id)
-			if _, err := a.InstallPlugin(bytes.NewReader(tarball)); err != nil {
-				l4g.Error("failed to install bundled plugin: " + err.Error())
+			a.removePlugin(id, true)
+			if _, err := a.installPlugin(bytes.NewReader(tarball), true); err != nil {
+				l4g.Error("failed to install prepackaged plugin: " + err.Error())
 			}
 			if _, ok := a.Config().PluginSettings.PluginStates[id]; !ok {
 				if err := a.EnablePlugin(id); err != nil {
-					l4g.Error("failed to enable bundled plugin: " + err.Error())
+					l4g.Error("failed to enable prepackaged plugin: " + err.Error())
 				}
 			}
 		}
