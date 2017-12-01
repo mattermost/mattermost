@@ -211,3 +211,36 @@ func (s SqlComplianceStore) ComplianceExport(job *model.Compliance) store.StoreC
 		}
 	})
 }
+
+func (s SqlComplianceStore) MessageExport(after int64, limit int) store.StoreChannel {
+	return store.Do(func(result *store.StoreResult) {
+		props := map[string]interface{}{"StartTime": after, "Limit": limit}
+		query :=
+			`SELECT
+				Posts.Id AS PostId,
+				Posts.CreateAt AS PostCreateAt,
+				Posts.Message AS PostMessage,
+				Posts.Type AS PostType,
+				Posts.FileIds AS PostFileIds,
+				Channels.Id AS ChannelId,
+				Channels.DisplayName AS ChannelDisplayName,
+				Users.Id AS UserId,
+				Users.Email AS UserEmail
+			FROM
+				Posts
+				LEFT OUTER JOIN Channels ON Posts.ChannelId = Channels.Id
+				LEFT OUTER JOIN Users ON Posts.UserId = Users.Id
+			WHERE
+				Posts.CreateAt > :StartTime AND
+				Posts.Type = ''
+			ORDER BY PostCreateAt
+			LIMIT :Limit`
+
+		var cposts []*model.MessageExport
+		if _, err := s.GetReplica().Select(&cposts, query, props); err != nil {
+			result.Err = model.NewAppError("SqlComplianceStore.MessageExport", "store.sql_compliance.message_export.app_error", nil, err.Error(), http.StatusInternalServerError)
+		} else {
+			result.Data = cposts
+		}
+	})
+}

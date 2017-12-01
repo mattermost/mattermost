@@ -44,6 +44,22 @@ func (_m *Store) Channel() store.ChannelStore {
 	return r0
 }
 
+// ChannelMemberHistory provides a mock function with given fields:
+func (_m *Store) ChannelMemberHistory() store.ChannelMemberHistoryStore {
+	ret := _m.Called()
+
+	var r0 store.ChannelMemberHistoryStore
+	if rf, ok := ret.Get(0).(func() store.ChannelMemberHistoryStore); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.ChannelMemberHistoryStore)
+		}
+	}
+
+	return r0
+}
+
 // Close provides a mock function with given fields:
 func (_m *Store) Close() {
 	_m.Called()

@@ -148,7 +148,7 @@ func (job *EmailBatchingJob) checkPendingNotifications(now time.Time, handler fu
 			} else if channelMembers, ok := result.Data.(*model.ChannelMembers); ok {
 				for _, channelMember := range *channelMembers {
 					if channelMember.LastViewedAt >= batchStartTime {
-						l4g.Info("Deleted notifications for user %s", userId)
+						l4g.Debug("Deleted notifications for user %s", userId)
 						delete(job.pendingNotifications, userId)
 						break
 					}

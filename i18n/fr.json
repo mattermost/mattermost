@@ -700,6 +700,57 @@
     "translation": "Une erreur est survenue lors de l'expansion des aperçus"
   },
   {
+    "id": "api.command_groupmsg.desc",
+    "translation": "Sends a Group Message to the specified users"
+  },
+  {
+    "id": "api.command_groupmsg.fail.app_error",
+    "translation": "Une erreur s'est produite lors de l'envoi du message à l'utilisateur."
+  },
+  {
+    "id": "api.command_groupmsg.group_fail.app_error",
+    "translation": "Une erreur s'est produite à la création du message personnel."
+  },
+  {
+    "id": "api.command_groupmsg.hint",
+    "translation": "@[username1],@[username2] 'message'"
+  },
+  {
+    "id": "api.command_groupmsg.invalid_user.app_error",
+    "translation": {
+      "one": "We couldn't find the user: {{.Users}}",
+      "other": "We couldn't find the users: {{.Users}}"
+    }
+  },
+  {
+    "id": "api.command_groupmsg.invalid_users.app_error",
+    "translation": "Utilisateur introuvable"
+  },
+  {
+    "id": "api.command_groupmsg.list.app_error",
+    "translation": "Une erreur s'est produite lors de la récupération de la liste des utilisateurs."
+  },
+  {
+    "id": "api.command_groupmsg.max_users.app_error",
+    "translation": "Group messages are limited to a maximum of {{.MaxUsers}} users."
+  },
+  {
+    "id": "api.command_groupmsg.min_users.app_error",
+    "translation": "Group messages are limited to a minimum of {{.MinUsers}} users."
+  },
+  {
+    "id": "api.command_groupmsg.missing.app_error",
+    "translation": "Utilisateur introuvable"
+  },
+  {
+    "id": "api.command_groupmsg.name",
+    "translation": "[message]"
+  },
+  {
+    "id": "api.command_groupmsg.success",
+    "translation": "Message envoyé."
+  },
+  {
     "id": "api.command_help.desc",
     "translation": "Ouvre l'aide de Mattermost"
   },
@@ -2116,6 +2167,10 @@
     "translation": "Le nombre de routines Go en fonctionnement est supérieur à la limite de %v / %v"
   },
   {
+    "id": "api.team.add_user_to_team.added",
+    "translation": "%v a été ajouté au canal par %v"
+  },
+  {
     "id": "api.team.add_user_to_team.missing_parameter.app_error",
     "translation": "Paramètre requis pour ajouter l'utilisateur à une équipe."
   },
@@ -2228,6 +2283,10 @@
     "translation": "L'adresse e-mail doit être liée à un domaine spécifique (ex. @exemple.com). Veuillez demander à votre administrateur système pour plus d'informations."
   },
   {
+    "id": "api.team.leave.left",
+    "translation": "%v left the team."
+  },
+  {
     "id": "api.team.permanent_delete_team.attempting.warn",
     "translation": "Tentative de suppression définitive de l'équipe %v id=%v"
   },
@@ -2238,6 +2297,10 @@
   {
     "id": "api.team.remove_user_from_team.missing.app_error",
     "translation": "L'utilisateur n'appartient pas à cette équipe."
+  },
+  {
+    "id": "api.team.remove_user_from_team.removed",
+    "translation": "%v a été retiré du canal."
   },
   {
     "id": "api.team.signup_team.email_disabled.app_error",
@@ -3524,12 +3587,20 @@
     "translation": "Impossible de récupérer les plugins actifs"
   },
   {
+    "id": "app.plugin.install.app_error",
+    "translation": "Unable to install plugin."
+  },
+  {
+    "id": "app.plugin.install_id.app_error",
+    "translation": "Unable to install plugin. A plugin with the same ID is already installed."
+  },
+  {
     "id": "app.plugin.manifest.app_error",
     "translation": "Impossible de trouver le manifeste pour le plugin extrait"
   },
   {
     "id": "app.plugin.mvdir.app_error",
-    "translation": "Impossible de déplacer le plugin de son emplacement temporaire à sa destination finale"
+    "translation": "Unable to move plugin from temporary directory to final destination. Another plugin may be using the same directory name."
   },
   {
     "id": "app.plugin.not_installed.app_error",
@@ -4373,7 +4444,7 @@
   },
   {
     "id": "model.command.is_valid.display_name.app_error",
-    "translation": "Nom d'affichage invalide"
+    "translation": "Type invalide"
   },
   {
     "id": "model.command.is_valid.id.app_error",
@@ -4833,7 +4904,7 @@
   },
   {
     "id": "model.incoming_hook.display_name.app_error",
-    "translation": "Nom d'affichage invalide"
+    "translation": "Type invalide"
   },
   {
     "id": "model.incoming_hook.id.app_error",
@@ -4925,7 +4996,7 @@
   },
   {
     "id": "model.outgoing_hook.is_valid.display_name.app_error",
-    "translation": "Nom d'affichage invalide"
+    "translation": "Type invalide"
   },
   {
     "id": "model.outgoing_hook.is_valid.id.app_error",
