@@ -7,9 +7,8 @@ import (
 	"net/http"
 	"strings"
 
-	"xojoc.pw/useragent"
-
 	"github.com/NYTimes/gziphandler"
+	"github.com/avct/uasurfer"
 
 	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/mattermost-server/api"
@@ -71,22 +70,17 @@ func pluginHandler(config model.ConfigFunc, handler http.Handler) http.Handler {
 
 // Map should be of minimum required browser version.
 var browserMinimumSupported = map[string]int{
-	"MSIE":   11,
-	"Safari": 9,
+	"BrowserIE":     11,
+	"BrowserSafari": 9,
 }
 
 func CheckClientCompatability(agentString string) bool {
-	ua := useragent.Parse(agentString)
+	ua := uasurfer.Parse(agentString)
 
-	l4g.Debug("User Agent: %v", agentString)
-	l4g.Debug("Detected Client: %v %v", ua.Name, ua.Version)
-
-	if version, exist := browserMinimumSupported[ua.Name]; exist && int(ua.Version.Major) < version {
-		l4g.Debug("Client not supported.")
+	if version, exist := browserMinimumSupported[ua.Browser.Name.String()]; exist && ua.Browser.Version.Major < version {
 		return false
 	}
 
-	l4g.Debug("Client allowed or not version controlled.")
 	return true
 }
 
