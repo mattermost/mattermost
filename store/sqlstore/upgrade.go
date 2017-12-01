@@ -323,6 +323,10 @@ func UpgradeDatabaseToVersion44(sqlStore SqlStore) {
 }
 
 func UpgradeDatabaseToVersion45(sqlStore SqlStore) {
+	//TODO: Remove next two lines before 4.5 release. They're just here to fix CI servers
+	sqlStore.AlterColumnTypeIfExists("PluginKeyValueStore", "PluginId", "varchar(50)", "varchar(50)")
+	sqlStore.AlterColumnTypeIfExists("PluginKeyValueStore", "PKey", "varchar(200)", "varchar(200)")
+
 	//TODO: Uncomment when 4.5 is released
 	/*if shouldPerformUpgrade(sqlStore, VERSION_4_4_0, VERSION_4_5_0) {
 
