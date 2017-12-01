@@ -1534,6 +1534,14 @@ func (s *MessageExportSettings) SetDefaults() {
 		s.ExportFromTimestamp = NewInt64(0)
 	}
 
+	if s.EnableExport != nil && *s.EnableExport && *s.ExportFromTimestamp == int64(0) {
+		// when the feature is enabled via the System Console, use the current timestamp as the start time for future exports
+		s.ExportFromTimestamp = NewInt64(GetMillis())
+	} else if s.EnableExport != nil && !*s.EnableExport {
+		// when the feature is disabled, reset the timestamp so that the timestamp will be set if the feature is re-enabled
+		s.ExportFromTimestamp = NewInt64(0)
+	}
+
 	if s.BatchSize == nil {
 		s.BatchSize = NewInt(10000)
 	}
@@ -2040,7 +2048,7 @@ func (mes *MessageExportSettings) isValid(fs FileSettings) *AppError {
 		return NewAppError("Config.IsValid", "model.config.is_valid.message_export.enable.app_error", nil, "", http.StatusBadRequest)
 	}
 	if *mes.EnableExport {
-		if mes.ExportFromTimestamp == nil || *mes.ExportFromTimestamp < 0 || *mes.ExportFromTimestamp > time.Now().Unix() {
+		if mes.ExportFromTimestamp == nil || *mes.ExportFromTimestamp < 0 || *mes.ExportFromTimestamp > GetMillis() {
 			return NewAppError("Config.IsValid", "model.config.is_valid.message_export.export_from.app_error", nil, "", http.StatusBadRequest)
 		} else if mes.DailyRunTime == nil {
 			return NewAppError("Config.IsValid", "model.config.is_valid.message_export.daily_runtime.app_error", nil, "", http.StatusBadRequest)
