@@ -700,6 +700,57 @@
     "translation": "Önizlemeler genişletilirken bir sorun çıktı"
   },
   {
+    "id": "api.command_groupmsg.desc",
+    "translation": "Belirtilen kullanıcılara bir Grup İletisi gönderir"
+  },
+  {
+    "id": "api.command_groupmsg.fail.app_error",
+    "translation": "Kullanıcılara ileti gönderilirken bir sorun çıktı."
+  },
+  {
+    "id": "api.command_groupmsg.group_fail.app_error",
+    "translation": "Grup iletisi oluşturulurken bir sorun çıktı."
+  },
+  {
+    "id": "api.command_groupmsg.hint",
+    "translation": "@[username1],@[username2] 'ileti'"
+  },
+  {
+    "id": "api.command_groupmsg.invalid_user.app_error",
+    "translation": {
+      "one": "Kullanıcı bulunamadı: {{.Users}}",
+      "other": ""
+    }
+  },
+  {
+    "id": "api.command_groupmsg.invalid_users.app_error",
+    "translation": "Kullanıcılar bulunamadı: %s"
+  },
+  {
+    "id": "api.command_groupmsg.list.app_error",
+    "translation": "Kullanıcılar listelenirken bir sorun çıktı."
+  },
+  {
+    "id": "api.command_groupmsg.max_users.app_error",
+    "translation": "Grup iletileri en fazla {{.MaxUsers}} kullanıcı ile sınırlıdır."
+  },
+  {
+    "id": "api.command_groupmsg.min_users.app_error",
+    "translation": "Grup iletileri için en az {{.MinUsers}} kullanıcı olmalıdır."
+  },
+  {
+    "id": "api.command_groupmsg.missing.app_error",
+    "translation": "Kullanıcı bulunamadı"
+  },
+  {
+    "id": "api.command_groupmsg.name",
+    "translation": "ileti"
+  },
+  {
+    "id": "api.command_groupmsg.success",
+    "translation": "İleti kullanıcılara gönderildi."
+  },
+  {
     "id": "api.command_help.desc",
     "translation": "Mattermost yardım sayfasını aç"
   },
@@ -2116,6 +2167,10 @@
     "translation": "Çalışan yordamlar %v/%v sağlıklı eşiğin üzerinde "
   },
   {
+    "id": "api.team.add_user_to_team.added",
+    "translation": "%v takıma %v tarafından eklendi"
+  },
+  {
     "id": "api.team.add_user_to_team.missing_parameter.app_error",
     "translation": "Takıma kullanıcı eklemek için parametre gerekli."
   },
@@ -2228,6 +2283,10 @@
     "translation": "E-posta belirli bir etki alanından (@ornek.com gibi) gelmelidir. Lütfen ayrıntılı bilgi almak için sistem yöneticinizle görüşün."
   },
   {
+    "id": "api.team.leave.left",
+    "translation": "%v takımdan ayrıldı."
+  },
+  {
     "id": "api.team.permanent_delete_team.attempting.warn",
     "translation": "%v takımı kalıcı olarak silinmeye çalışılıyor. Kod: %v"
   },
@@ -2238,6 +2297,10 @@
   {
     "id": "api.team.remove_user_from_team.missing.app_error",
     "translation": "Kullanıcı bu takımın bir üyesi gibi görünmüyor."
+  },
+  {
+    "id": "api.team.remove_user_from_team.removed",
+    "translation": "%v takımdan çıkarıldı."
   },
   {
     "id": "api.team.signup_team.email_disabled.app_error",
@@ -3524,12 +3587,20 @@
     "translation": "Etkin uygulama ekleri alınamadı"
   },
   {
+    "id": "app.plugin.install.app_error",
+    "translation": "Uygulama eki kurulamadı."
+  },
+  {
+    "id": "app.plugin.install_id.app_error",
+    "translation": "Uygulama eki kurulamadı. Aynı kodu taşıyan bir uygulama eki zaten var."
+  },
+  {
     "id": "app.plugin.manifest.app_error",
     "translation": "Ayıklanan uygulama eki bilgi dosyası bulunamadı"
   },
   {
     "id": "app.plugin.mvdir.app_error",
-    "translation": "Uygulama eki geçici klasörden son hedefine taşınamadı"
+    "translation": "Uygulama eki geçici klasörden hedef klasöre taşınamadı. Başka bir uygulama eki aynı klasör adını kullanıyor olabilir."
   },
   {
     "id": "app.plugin.not_installed.app_error",
@@ -4373,7 +4444,7 @@
   },
   {
     "id": "model.command.is_valid.display_name.app_error",
-    "translation": "Görüntülenecek ad geçersiz"
+    "translation": "Başlık geçersiz"
   },
   {
     "id": "model.command.is_valid.id.app_error",
@@ -4833,7 +4904,7 @@
   },
   {
     "id": "model.incoming_hook.display_name.app_error",
-    "translation": "Görüntülenecek ad geçersiz"
+    "translation": "Başlık geçersiz"
   },
   {
     "id": "model.incoming_hook.id.app_error",
@@ -4925,7 +4996,7 @@
   },
   {
     "id": "model.outgoing_hook.is_valid.display_name.app_error",
-    "translation": "Görüntülenecek ad geçersiz"
+    "translation": "Başlık geçersiz"
   },
   {
     "id": "model.outgoing_hook.is_valid.id.app_error",
