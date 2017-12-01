@@ -23,7 +23,11 @@ var _ plugin.API = (*API)(nil)
 var _ plugin.KeyValueStore = (*KeyValueStore)(nil)
 
 func (m *API) LoadPluginConfiguration(dest interface{}) error {
-	return m.Called(dest).Error(0)
+	ret := m.Called(dest)
+	if f, ok := ret.Get(0).(func(interface{}) error); ok {
+		return f(dest)
+	}
+	return ret.Error(0)
 }
 
 func (m *API) CreateUser(user *model.User) (*model.User, *model.AppError) {
