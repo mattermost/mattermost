@@ -649,7 +649,7 @@
   },
   {
     "id": "api.command_dnd.name",
-    "translation": "dnd"
+    "translation": "не беспокоить"
   },
   {
     "id": "api.command_dnd.success",
@@ -698,6 +698,57 @@
   {
     "id": "api.command_expand_collapse.fail.app_error",
     "translation": "Произошла ошибка при открытии превью"
+  },
+  {
+    "id": "api.command_groupmsg.desc",
+    "translation": "Sends a Group Message to the specified users"
+  },
+  {
+    "id": "api.command_groupmsg.fail.app_error",
+    "translation": "Произошла ошибка при передаче сообщения пользователю."
+  },
+  {
+    "id": "api.command_groupmsg.group_fail.app_error",
+    "translation": "При создании канала личных сообщений произошла ошибка."
+  },
+  {
+    "id": "api.command_groupmsg.hint",
+    "translation": "@[username1],@[username2] 'message'"
+  },
+  {
+    "id": "api.command_groupmsg.invalid_user.app_error",
+    "translation": {
+      "one": "We couldn't find the user: {{.Users}}",
+      "other": "We couldn't find the users: {{.Users}}"
+    }
+  },
+  {
+    "id": "api.command_groupmsg.invalid_users.app_error",
+    "translation": "Мы не смогли найти пользователей: %s"
+  },
+  {
+    "id": "api.command_groupmsg.list.app_error",
+    "translation": "Произошла ошибка при перечислении пользователей."
+  },
+  {
+    "id": "api.command_groupmsg.max_users.app_error",
+    "translation": "Group messages are limited to a maximum of {{.MaxUsers}} users."
+  },
+  {
+    "id": "api.command_groupmsg.min_users.app_error",
+    "translation": "Group messages are limited to a minimum of {{.MinUsers}} users."
+  },
+  {
+    "id": "api.command_groupmsg.missing.app_error",
+    "translation": "Мы не смогли найти пользователя"
+  },
+  {
+    "id": "api.command_groupmsg.name",
+    "translation": "сообщение"
+  },
+  {
+    "id": "api.command_groupmsg.success",
+    "translation": "Коммуницируемый пользователь."
   },
   {
     "id": "api.command_help.desc",
@@ -2116,6 +2167,10 @@
     "translation": "Количество запущенных goroutines больше, чем порог стабильной работы %v из %v"
   },
   {
+    "id": "api.team.add_user_to_team.added",
+    "translation": "%v добавлен(а) в канал %v"
+  },
+  {
     "id": "api.team.add_user_to_team.missing_parameter.app_error",
     "translation": "Для добавления пользователя в команду требуется указать параметр."
   },
@@ -2228,6 +2283,10 @@
     "translation": "E-mail должен принадлежать реальному домену (например @example.com). Пожалуйста, обратитесь к системному администратору за дополнительной информацией."
   },
   {
+    "id": "api.team.leave.left",
+    "translation": "%v left the team."
+  },
+  {
     "id": "api.team.permanent_delete_team.attempting.warn",
     "translation": "Попытка безвозвратно удалить команду %v id=%v"
   },
@@ -2238,6 +2297,10 @@
   {
     "id": "api.team.remove_user_from_team.missing.app_error",
     "translation": "Пользователь неактивен для участия в этой команде."
+  },
+  {
+    "id": "api.team.remove_user_from_team.removed",
+    "translation": "%v удален из канала."
   },
   {
     "id": "api.team.signup_team.email_disabled.app_error",
@@ -3524,12 +3587,20 @@
     "translation": "Не удалось получить активные плагины"
   },
   {
+    "id": "app.plugin.install.app_error",
+    "translation": "Unable to install plugin."
+  },
+  {
+    "id": "app.plugin.install_id.app_error",
+    "translation": "Unable to install plugin. A plugin with the same ID is already installed."
+  },
+  {
     "id": "app.plugin.manifest.app_error",
     "translation": "Unable to find manifest for extracted plugin"
   },
   {
     "id": "app.plugin.mvdir.app_error",
-    "translation": "Unable to move plugin from temporary directory to final destination"
+    "translation": "Unable to move plugin from temporary directory to final destination. Another plugin may be using the same directory name."
   },
   {
     "id": "app.plugin.not_installed.app_error",
@@ -4373,7 +4444,7 @@
   },
   {
     "id": "model.command.is_valid.display_name.app_error",
-    "translation": "Недопустимое имя для отображения"
+    "translation": "Недопустимый тип"
   },
   {
     "id": "model.command.is_valid.id.app_error",
@@ -4833,7 +4904,7 @@
   },
   {
     "id": "model.incoming_hook.display_name.app_error",
-    "translation": "Некорректное имя"
+    "translation": "Недопустимый тип"
   },
   {
     "id": "model.incoming_hook.id.app_error",
@@ -4925,7 +4996,7 @@
   },
   {
     "id": "model.outgoing_hook.is_valid.display_name.app_error",
-    "translation": "Некорректное имя"
+    "translation": "Недопустимый тип"
   },
   {
     "id": "model.outgoing_hook.is_valid.id.app_error",
