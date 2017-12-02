@@ -58,16 +58,13 @@ func (a *App) GetLogsSkipSend(page, perPage int) ([]string, *model.AppError) {
 
 		defer file.Close()
 
-		stat, err := file.Stat()
-		if err != nil {
-			return nil, model.NewAppError("getLogs", "api.admin.file_read_error", nil, err.Error(), http.StatusInternalServerError)
-		}
-
 		var newLine = []byte{'\n'}
 		var lineCount int
 		var searchPos = int64(-1)
-		var lineEndPos = stat.Size()
-		file.Seek(lineEndPos, os.SEEK_SET)
+		lineEndPos, err := file.Seek(0, os.SEEK_END)
+		if err != nil {
+			return nil, model.NewAppError("getLogs", "api.admin.file_read_error", nil, err.Error(), http.StatusInternalServerError)
+		}
 		for {
 			pos, err := file.Seek(searchPos, os.SEEK_CUR)
 			if err != nil {
