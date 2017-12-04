@@ -148,12 +148,8 @@ func (env *Environment) ActivatePlugin(id string) error {
 		if err != nil {
 			return errors.Wrapf(err, "unable to get api for plugin: %v", id)
 		}
-		if err := supervisor.Start(); err != nil {
+		if err := supervisor.Start(api); err != nil {
 			return errors.Wrapf(err, "unable to start plugin: %v", id)
-		}
-		if err := supervisor.Hooks().OnActivate(api); err != nil {
-			supervisor.Stop()
-			return errors.Wrapf(err, "unable to activate plugin: %v", id)
 		}
 
 		activePlugin.Supervisor = supervisor

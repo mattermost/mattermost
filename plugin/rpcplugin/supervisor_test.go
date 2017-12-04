@@ -1,6 +1,8 @@
 package rpcplugin
 
 import (
+	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -8,9 +10,11 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/plugin/plugintest"
 )
 
 func TestSupervisor(t *testing.T) {
@@ -38,8 +42,7 @@ func TestSupervisor(t *testing.T) {
 	bundle := model.BundleInfoForPath(dir)
 	supervisor, err := SupervisorProvider(bundle)
 	require.NoError(t, err)
-	require.NoError(t, supervisor.Start())
-	require.NoError(t, supervisor.Hooks().OnActivate(nil))
+	require.NoError(t, supervisor.Start(nil))
 	require.NoError(t, supervisor.Stop())
 }
 
@@ -68,7 +71,7 @@ func TestSupervisor_NonExistentExecutablePath(t *testing.T) {
 	require.NotNil(t, supervisor)
 	require.NoError(t, err)
 
-	require.Error(t, supervisor.Start())
+	require.Error(t, supervisor.Start(nil))
 }
 
 // If plugin development goes really wrong, let's make sure plugin activation won't block forever.
@@ -92,7 +95,7 @@ func TestSupervisor_StartTimeout(t *testing.T) {
 	bundle := model.BundleInfoForPath(dir)
 	supervisor, err := SupervisorProvider(bundle)
 	require.NoError(t, err)
-	require.Error(t, supervisor.Start())
+	require.Error(t, supervisor.Start(nil))
 }
 
 // Crashed plugins should be relaunched.
@@ -112,14 +115,23 @@ func TestSupervisor_PluginCrash(t *testing.T) {
 			"github.com/mattermost/mattermost-server/plugin/rpcplugin"
 		)
 
-		type MyPlugin struct {}
+		type Configuration struct {
+			ShouldExit bool
+		}
+
+		type MyPlugin struct {
+			config Configuration
+		}
 
 		func (p *MyPlugin) OnActivate(api plugin.API) error {
-			os.Exit(1)
+			api.LoadPluginConfiguration(&p.config)
 			return nil
 		}
 
 		func (p *MyPlugin) OnDeactivate() error {
+			if p.config.ShouldExit {
+				os.Exit(1)
+			}
 			return nil
 		}
 
@@ -130,17 +142,28 @@ func TestSupervisor_PluginCrash(t *testing.T) {
 
 	ioutil.WriteFile(filepath.Join(dir, "plugin.json"), []byte(`{"id": "foo", "backend": {"executable": "backend.exe"}}`), 0600)
 
+	var api plugintest.API
+	shouldExit := true
+	api.On("LoadPluginConfiguration", mock.MatchedBy(func(x interface{}) bool { return true })).Return(func(dest interface{}) error {
+		err := json.Unmarshal([]byte(fmt.Sprintf(`{"ShouldExit": %v}`, shouldExit)), dest)
+		shouldExit = false
+		return err
+	})
+
 	bundle := model.BundleInfoForPath(dir)
 	supervisor, err := SupervisorProvider(bundle)
 	require.NoError(t, err)
-	require.NoError(t, supervisor.Start())
-	require.Error(t, supervisor.Hooks().OnActivate(nil))
+	require.NoError(t, supervisor.Start(&api))
 
+	failed := false
 	recovered := false
 	for i := 0; i < 30; i++ {
 		if supervisor.Hooks().OnDeactivate() == nil {
+			require.True(t, failed)
 			recovered = true
 			break
+		} else {
+			failed = true
 		}
 		time.Sleep(time.Millisecond * 100)
 	}

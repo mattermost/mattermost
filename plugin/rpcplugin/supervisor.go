@@ -30,11 +30,11 @@ var _ plugin.Supervisor = (*Supervisor)(nil)
 
 // Starts the plugin. This method will block until the plugin is successfully launched for the first
 // time and will return an error if the plugin cannot be launched at all.
-func (s *Supervisor) Start() error {
+func (s *Supervisor) Start(api plugin.API) error {
 	ctx, cancel := context.WithCancel(context.Background())
 	s.done = make(chan bool, 1)
 	start := make(chan error, 1)
-	go s.run(ctx, start)
+	go s.run(ctx, start, api)
 
 	select {
 	case <-time.After(time.Second * 3):
@@ -60,13 +60,13 @@ func (s *Supervisor) Hooks() plugin.Hooks {
 	return s.hooks.Load().(plugin.Hooks)
 }
 
-func (s *Supervisor) run(ctx context.Context, start chan<- error) {
+func (s *Supervisor) run(ctx context.Context, start chan<- error, api plugin.API) {
 	defer func() {
 		s.done <- true
 	}()
 	done := ctx.Done()
 	for {
-		s.runPlugin(ctx, start)
+		s.runPlugin(ctx, start, api)
 		select {
 		case <-done:
 			return
@@ -77,7 +77,7 @@ func (s *Supervisor) run(ctx context.Context, start chan<- error) {
 	}
 }
 
-func (s *Supervisor) runPlugin(ctx context.Context, start chan<- error) error {
+func (s *Supervisor) runPlugin(ctx context.Context, start chan<- error, api plugin.API) error {
 	p, ipc, err := NewProcess(ctx, s.executable)
 	if err != nil {
 		if start != nil {
@@ -100,6 +100,10 @@ func (s *Supervisor) runPlugin(ctx context.Context, start chan<- error) error {
 	}()
 
 	hooks, err := ConnectMain(muxer)
+	if err == nil {
+		err = hooks.OnActivate(api)
+	}
+
 	if err != nil {
 		if start != nil {
 			start <- err
@@ -111,6 +115,7 @@ func (s *Supervisor) runPlugin(ctx context.Context, start chan<- error) error {
 	}
 
 	s.hooks.Store(hooks)
+
 	if start != nil {
 		start <- nil
 	}
