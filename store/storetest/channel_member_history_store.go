@@ -15,7 +15,7 @@ func TestChannelMemberHistoryStore(t *testing.T, ss store.Store) {
 	t.Run("Log Join Event", func(t *testing.T) { testLogJoinEvent(t, ss) })
 	t.Run("Log Leave Event", func(t *testing.T) { testLogLeaveEvent(t, ss) })
 	t.Run("Get Users In Channel At Time", func(t *testing.T) { testGetUsersInChannelAt(t, ss) })
-	t.Run("Purge History", func(t *testing.T) { testPurgeHistoryBefore(t, ss) })
+	t.Run("Purge History", func(t *testing.T) { testPermanentDeleteBatch(t, ss) })
 }
 
 func testLogJoinEvent(t *testing.T, ss store.Store) {
@@ -135,7 +135,7 @@ func testGetUsersInChannelAt(t *testing.T, ss store.Store) {
 	assert.Len(t, channelMembers, 0)
 }
 
-func testPurgeHistoryBefore(t *testing.T, ss store.Store) {
+func testPermanentDeleteBatch(t *testing.T, ss store.Store) {
 	// create a test channel
 	channel := model.Channel{
 		TeamId:      model.NewId(),
@@ -172,7 +172,9 @@ func testPurgeHistoryBefore(t *testing.T, ss store.Store) {
 	assert.Len(t, channelMembers, 2)
 
 	// but if we purge the old data, only the user that didn't leave is left
-	store.Must(ss.ChannelMemberHistory().PurgeHistoryBefore(leaveTime, channel.Id))
+	rowsDeleted := store.Must(ss.ChannelMemberHistory().PermanentDeleteBatchForChannel(channel.Id, leaveTime, 2)).(int64)
+	assert.Equal(t, int64(1), rowsDeleted)
+
 	channelMembers = store.Must(ss.ChannelMemberHistory().GetUsersInChannelDuring(joinTime+10, leaveTime-10, channel.Id)).([]*model.ChannelMemberHistory)
 	assert.Len(t, channelMembers, 1)
 	assert.Equal(t, user2.Id, channelMembers[0].UserId)

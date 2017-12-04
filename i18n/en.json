@@ -4443,7 +4443,7 @@
     "translation": "Failed to get records"
   },
   {
-    "id": "store.sql_channel_member_history.purge_history_before.app_error",
+    "id": "store.sql_channel_member_history.permanent_delete_batch.app_error",
     "translation": "Failed to purge records"
   },
   {

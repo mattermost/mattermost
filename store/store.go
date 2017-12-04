@@ -165,7 +165,8 @@ type ChannelMemberHistoryStore interface {
 	LogJoinEvent(userId string, channelId string, joinTime int64) StoreChannel
 	LogLeaveEvent(userId string, channelId string, leaveTime int64) StoreChannel
 	GetUsersInChannelDuring(startTime int64, endTime int64, channelId string) StoreChannel
-	PurgeHistoryBefore(time int64, channelId string) StoreChannel
+	PermanentDeleteBatch(endTime int64, limit int64) StoreChannel
+	PermanentDeleteBatchForChannel(channelId string, endTime int64, limit int64) StoreChannel
 }
 
 type PostStore interface {
