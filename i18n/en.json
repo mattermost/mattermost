@@ -3559,14 +3559,6 @@
     "translation": "[{{ .SiteName }}] Notification in {{ .TeamName}} on {{.Month}} {{.Day}}, {{.Year}}"
   },
   {
-    "id": "app.plugin.prepackaged.app_error",
-    "translation": "Prepackaged plugins cannot be modified."
-  },
-  {
-    "id": "app.plugin.key_value.set.app_error",
-    "translation": "Unable to set key value. See detailed error for more information."
-  },
-  {
     "id": "app.plugin.activate.app_error",
     "translation": "Unable to activate extracted plugin. Plugin may already exist and be activated."
   },
@@ -3607,6 +3599,10 @@
     "translation": "Unable to install plugin. A plugin with the same ID is already installed."
   },
   {
+    "id": "app.plugin.key_value.set.app_error",
+    "translation": "Unable to set key value. See detailed error for more information."
+  },
+  {
     "id": "app.plugin.manifest.app_error",
     "translation": "Unable to find manifest for extracted plugin"
   },
@@ -3617,6 +3613,10 @@
   {
     "id": "app.plugin.not_installed.app_error",
     "translation": "Plugin is not installed"
+  },
+  {
+    "id": "app.plugin.prepackaged.app_error",
+    "translation": "Prepackaged plugins cannot be modified."
   },
   {
     "id": "app.plugin.remove.app_error",
@@ -3859,18 +3859,6 @@
     "translation": "License does not support Data Retention."
   },
   {
-    "id": "ent.message_export.generic.license.error",
-    "translation": "License does not support Message Export."
-  },
-  {
-    "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
-    "translation": "Failed to create Elasticsearch bulk processor"
-  },
-  {
-    "id": "ent.elasticsearch.start.start_bulk_processor_failed.app_error",
-    "translation": "Failed to start Elasticsearch bulk processor"
-  },
-  {
     "id": "ent.elasticsearch.aggregator_worker.create_index_job.error",
     "translation": "Elasticsearch aggregator worker failed to create the indexing job"
   },
@@ -3959,8 +3947,16 @@
     "translation": "Failed to create Elasticsearch bulk processor"
   },
   {
+    "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
+    "translation": "Failed to create Elasticsearch bulk processor"
+  },
+  {
     "id": "ent.elasticsearch.start.index_settings_failed",
     "translation": "Failed to set Elasticsearch index settings"
+  },
+  {
+    "id": "ent.elasticsearch.start.start_bulk_processor_failed.app_error",
+    "translation": "Failed to start Elasticsearch bulk processor"
   },
   {
     "id": "ent.elasticsearch.start.start_bulk_processor_failed.app_error",
@@ -4053,6 +4049,10 @@
   {
     "id": "ent.ldap.validate_filter.app_error",
     "translation": "Invalid AD/LDAP Filter"
+  },
+  {
+    "id": "ent.message_export.generic.license.error",
+    "translation": "License does not support Message Export."
   },
   {
     "id": "ent.metrics.starting.info",
@@ -4267,14 +4267,6 @@
     "translation": "Current working directory is %v"
   },
   {
-    "id": "model.plugin_key_value.is_valid.plugin_id.app_error",
-    "translation": "Invalid plugin ID, must be more than {{.Min}} and a of maximum {{.Max}} characters long."
-  },
-  {
-    "id": "model.plugin_key_value.is_valid.key.app_error",
-    "translation": "Invalid key, must be more than {{.Min}} and a of maximum {{.Max}} characters long."
-  },
-  {
     "id": "model.access.is_valid.access_token.app_error",
     "translation": "Invalid access token"
   },
@@ -4403,14 +4395,6 @@
     "translation": "Invalid channel id"
   },
   {
-    "id": "model.channel_member_history.is_valid.user_id.app_error",
-    "translation": "Invalid user id"
-  },
-  {
-    "id": "model.channel_member_history.is_valid.user_email.app_error",
-    "translation": "Invalid user email"
-  },
-  {
     "id": "model.channel_member_history.is_valid.join_time.app_error",
     "translation": "Invalid join time"
   },
@@ -4419,32 +4403,12 @@
     "translation": "Invalid leave time"
   },
   {
-    "id": "store.sql_channel_member_history.log_join_event.app_error",
-    "translation": "Failed to record channel member history"
+    "id": "model.channel_member_history.is_valid.user_email.app_error",
+    "translation": "Invalid user email"
   },
   {
-    "id": "store.sql_channel_member_history.log_leave_event.select_error",
-    "translation": "Failed to record channel member history. No existing join record found"
-  },
-  {
-    "id": "store.sql_channel_member_history.log_leave_event.update_error",
-    "translation": "Failed to record channel member history. Failed to update existing join record"
-  },
-  {
-    "id": "store.sql_channel_member_history.get_users_in_channel_at.app_error",
-    "translation": "Failed to get users in channel at specified time"
-  },
-  {
-    "id": "store.sql_channel_member_history.get_users_in_channel_during.app_error",
-    "translation": "Failed to get users in channel during specified time period"
-  },
-  {
-    "id": "store.sql_channel_member_history.get_all.app_error",
-    "translation": "Failed to get records"
-  },
-  {
-    "id": "store.sql_channel_member_history.purge_history_before.app_error",
-    "translation": "Failed to purge records"
+    "id": "model.channel_member_history.is_valid.user_id.app_error",
+    "translation": "Invalid user id"
   },
   {
     "id": "model.client.connecting.app_error",
@@ -4815,6 +4779,30 @@
     "translation": "Invalid maximum users per team for team settings.  Must be a positive number."
   },
   {
+    "id": "model.config.is_valid.message_export.batch_size.app_error",
+    "translation": "Message export job BatchSize must be a positive integer"
+  },
+  {
+    "id": "model.config.is_valid.message_export.daily_runtime.app_error",
+    "translation": "Message export job DailyRuntime must be a 24-hour time stamp in the form HH:MM."
+  },
+  {
+    "id": "model.config.is_valid.message_export.enable.app_error",
+    "translation": "Message export job EnableExport setting must be either true or false"
+  },
+  {
+    "id": "model.config.is_valid.message_export.export_from.app_error",
+    "translation": "Message export job ExportFromTimestamp must be a timestamp (expressed in seconds since unix epoch). Only messages sent after this timestamp will be exported."
+  },
+  {
+    "id": "model.config.is_valid.message_export.file_location.app_error",
+    "translation": "Message export job FileLocation must be a writable directory that export data will be written to"
+  },
+  {
+    "id": "model.config.is_valid.message_export.file_location.relative",
+    "translation": "Message export job FileLocation must be a sub-directory of FileSettings.Directory"
+  },
+  {
     "id": "model.config.is_valid.password_length.app_error",
     "translation": "Minimum password length must be a whole number greater than or equal to {{.MinLength}} and less than or equal to {{.MaxLength}}."
   },
@@ -4945,30 +4933,6 @@
   {
     "id": "model.config.is_valid.write_timeout.app_error",
     "translation": "Invalid value for write timeout."
-  },
-  {
-    "id": "model.config.is_valid.message_export.enable.app_error",
-    "translation": "Message export job EnableExport setting must be either true or false"
-  },
-  {
-    "id": "model.config.is_valid.message_export.daily_runtime.app_error",
-    "translation": "Message export job DailyRuntime must be a 24-hour time stamp in the form HH:MM."
-  },
-  {
-    "id": "model.config.is_valid.message_export.export_from.app_error",
-    "translation": "Message export job ExportFromTimestamp must be a timestamp (expressed in seconds since unix epoch). Only messages sent after this timestamp will be exported."
-  },
-  {
-    "id": "model.config.is_valid.message_export.file_location.app_error",
-    "translation": "Message export job FileLocation must be a writable directory that export data will be written to"
-  },
-  {
-    "id": "model.config.is_valid.message_export.file_location.relative",
-    "translation": "Message export job FileLocation must be a sub-directory of FileSettings.Directory"
-  },
-  {
-    "id": "model.config.is_valid.message_export.batch_size.app_error",
-    "translation": "Message export job BatchSize must be a positive integer"
   },
   {
     "id": "model.emoji.create_at.app_error",
@@ -5133,6 +5097,14 @@
   {
     "id": "model.outgoing_hook.is_valid.words.app_error",
     "translation": "Invalid trigger words"
+  },
+  {
+    "id": "model.plugin_key_value.is_valid.key.app_error",
+    "translation": "Invalid key, must be more than {{.Min}} and a of maximum {{.Max}} characters long."
+  },
+  {
+    "id": "model.plugin_key_value.is_valid.plugin_id.app_error",
+    "translation": "Invalid plugin ID, must be more than {{.Min}} and a of maximum {{.Max}} characters long."
   },
   {
     "id": "model.post.is_valid.channel_id.app_error",
@@ -5567,10 +5539,6 @@
     "translation": "The database schema has been upgraded to version %v"
   },
   {
-    "id": "store.sql_compliance.message_export.app_error",
-    "translation": "Failed to select message export data"
-  },
-  {
     "id": "store.sql_audit.get.finding.app_error",
     "translation": "We encountered an error finding the audits"
   },
@@ -5835,6 +5803,34 @@
     "translation": "We encountered an error updating the channel member"
   },
   {
+    "id": "store.sql_channel_member_history.get_all.app_error",
+    "translation": "Failed to get records"
+  },
+  {
+    "id": "store.sql_channel_member_history.get_users_in_channel_at.app_error",
+    "translation": "Failed to get users in channel at specified time"
+  },
+  {
+    "id": "store.sql_channel_member_history.get_users_in_channel_during.app_error",
+    "translation": "Failed to get users in channel during specified time period"
+  },
+  {
+    "id": "store.sql_channel_member_history.log_join_event.app_error",
+    "translation": "Failed to record channel member history"
+  },
+  {
+    "id": "store.sql_channel_member_history.log_leave_event.select_error",
+    "translation": "Failed to record channel member history. No existing join record found"
+  },
+  {
+    "id": "store.sql_channel_member_history.log_leave_event.update_error",
+    "translation": "Failed to record channel member history. Failed to update existing join record"
+  },
+  {
+    "id": "store.sql_channel_member_history.purge_history_before.app_error",
+    "translation": "Failed to purge records"
+  },
+  {
     "id": "store.sql_command.analytics_command_count.app_error",
     "translation": "We couldn't count the commands"
   },
@@ -5893,6 +5889,10 @@
   {
     "id": "store.sql_compliance.get.finding.app_error",
     "translation": "We encountered an error retrieving the compliance reports"
+  },
+  {
+    "id": "store.sql_compliance.message_export.app_error",
+    "translation": "Failed to select message export data"
   },
   {
     "id": "store.sql_compliance.save.saving.app_error",
@@ -6097,6 +6097,22 @@
   {
     "id": "store.sql_oauth.update_app.updating.app_error",
     "translation": "We encountered an error updating the app"
+  },
+  {
+    "id": "store.sql_plugin_store.delete.app_error",
+    "translation": "Could not delete plugin key value"
+  },
+  {
+    "id": "store.sql_plugin_store.get.app_error",
+    "translation": "Could not get plugin key value"
+  },
+  {
+    "id": "store.sql_plugin_store.save.app_error",
+    "translation": "Could not save or update plugin key value"
+  },
+  {
+    "id": "store.sql_plugin_store.save_unique.app_error",
+    "translation": "Could not save or update plugin key value due to unique constraint violation"
   },
   {
     "id": "store.sql_post.analytics_posts_count.app_error",
@@ -6541,22 +6557,6 @@
   {
     "id": "store.sql_team.update_display_name.app_error",
     "translation": "We couldn't update the team name"
-  },
-  {
-    "id": "store.sql_plugin_store.delete.app_error",
-    "translation": "Could not delete plugin key value"
-  },
-  {
-    "id": "store.sql_plugin_store.get.app_error",
-    "translation": "Could not get plugin key value"
-  },
-  {
-    "id": "store.sql_plugin_store.save.app_error",
-    "translation": "Could not save or update plugin key value"
-  },
-  {
-    "id": "store.sql_plugin_store.save_unique.app_error",
-    "translation": "Could not save or update plugin key value due to unique constraint violation"
   },
   {
     "id": "store.sql_user.analytics_get_inactive_users_count.app_error",

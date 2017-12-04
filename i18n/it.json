@@ -1333,6 +1333,10 @@
     "translation": "Spazio di archiviazione non configurato correttamente. Configura S3 o server locale."
   },
   {
+    "id": "api.file.move_file.copy_within_s3.app_error",
+    "translation": "Impossibile copiare il file in S3."
+  },
+  {
     "id": "api.file.move_file.delete_from_s3.app_error",
     "translation": "Impossibile eliminare file da S3."
   },
@@ -3595,6 +3599,10 @@
     "translation": "Impossibile installare il plugin. Un plugin con lo stesso ID è già installato."
   },
   {
+    "id": "app.plugin.key_value.set.app_error",
+    "translation": "Impossibile impostare il valore della chiave. Vedere i dettagli dell'errore per maggiori informazioni."
+  },
+  {
     "id": "app.plugin.manifest.app_error",
     "translation": "Impossibile trovare il manifest del plugin estratto"
   },
@@ -3605,6 +3613,10 @@
   {
     "id": "app.plugin.not_installed.app_error",
     "translation": "Il plugin non è installato"
+  },
+  {
+    "id": "app.plugin.prepackaged.app_error",
+    "translation": "I plugin precompilati non possono essere modificati."
   },
   {
     "id": "app.plugin.remove.app_error",
@@ -3935,8 +3947,16 @@
     "translation": "Impossibile creare il processore massivo Elasticsearch"
   },
   {
+    "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
+    "translation": "Impossibile creare il processore massivo Elasticsearch"
+  },
+  {
     "id": "ent.elasticsearch.start.index_settings_failed",
     "translation": "Impossibile salvare le impostazioni dell'index Elasticsearch"
+  },
+  {
+    "id": "ent.elasticsearch.start.start_bulk_processor_failed.app_error",
+    "translation": "Impossibile avviare il processore massivo Elasticsearch"
   },
   {
     "id": "ent.elasticsearch.start.start_bulk_processor_failed.app_error",
@@ -4029,6 +4049,10 @@
   {
     "id": "ent.ldap.validate_filter.app_error",
     "translation": "Filtro AD/LDAP non valido"
+  },
+  {
+    "id": "ent.message_export.generic.license.error",
+    "translation": "La licenza non supporta la funzione Esporta Messaggi."
   },
   {
     "id": "ent.metrics.starting.info",
@@ -4364,6 +4388,26 @@
   },
   {
     "id": "model.channel_member.is_valid.user_id.app_error",
+    "translation": "Id utente non valido"
+  },
+  {
+    "id": "model.channel_member_history.is_valid.channel_id.app_error",
+    "translation": "Id canale non valido"
+  },
+  {
+    "id": "model.channel_member_history.is_valid.join_time.app_error",
+    "translation": "Ora di ingresso non valida"
+  },
+  {
+    "id": "model.channel_member_history.is_valid.leave_time.app_error",
+    "translation": "Ora di uscita non valida"
+  },
+  {
+    "id": "model.channel_member_history.is_valid.user_email.app_error",
+    "translation": "Email utente non valida"
+  },
+  {
+    "id": "model.channel_member_history.is_valid.user_id.app_error",
     "translation": "Id utente non valido"
   },
   {
@@ -4735,6 +4779,30 @@
     "translation": "Numero massimo utenti per gruppo non valido per le impostazioni gruppo.  Deve essere un numero positivo."
   },
   {
+    "id": "model.config.is_valid.message_export.batch_size.app_error",
+    "translation": "Lavoro esportazione messaggi il valore BatchSize deve essere un numero intero positivo"
+  },
+  {
+    "id": "model.config.is_valid.message_export.daily_runtime.app_error",
+    "translation": "Lavoro esportazione messaggi l'impostazione DailyRuntime deve essere un'ora 24 ore in formato HH:MM."
+  },
+  {
+    "id": "model.config.is_valid.message_export.enable.app_error",
+    "translation": "Lavoro esportazione messaggi l'impostazione EnableExport deve essere vera o false"
+  },
+  {
+    "id": "model.config.is_valid.message_export.export_from.app_error",
+    "translation": "Lavoro esportazione messaggi il valore ExportFromTimestamp deve essere un timestamp (espresso in secondi dall'epoca unix). Solo i messaggi successivi a questo valore saranno esportati."
+  },
+  {
+    "id": "model.config.is_valid.message_export.file_location.app_error",
+    "translation": "Lavoro esportazione messaggi il valore FileLocation deve essere una cartella accessibile in scrittura in cui verranno salvati i dati esportati"
+  },
+  {
+    "id": "model.config.is_valid.message_export.file_location.relative",
+    "translation": "Lavoro esportazione messaggi il valore FileLocation deve essere una sottocartella di FileSettings.Directory"
+  },
+  {
     "id": "model.config.is_valid.password_length.app_error",
     "translation": "Lunghezza minima password deve essere un numero intero maggiore o uguale a {{.MinLength}} e minore o uguale a {{.MaxLength}}."
   },
@@ -5029,6 +5097,14 @@
   {
     "id": "model.outgoing_hook.is_valid.words.app_error",
     "translation": "Parola di innesco non valida"
+  },
+  {
+    "id": "model.plugin_key_value.is_valid.key.app_error",
+    "translation": "Chiave non valida, deve essere più lunga di {{.Min}} e al massimo {{.Mac}} caratteri."
+  },
+  {
+    "id": "model.plugin_key_value.is_valid.plugin_id.app_error",
+    "translation": "ID plugin non valido, deve essere più lungo di {{.Min}} e al massimo{{.Max}} caratteri."
   },
   {
     "id": "model.post.is_valid.channel_id.app_error",
@@ -5727,6 +5803,34 @@
     "translation": "Riscontrato un errore nel aggiornamento il membro del canale"
   },
   {
+    "id": "store.sql_channel_member_history.get_all.app_error",
+    "translation": "Impossibile recuperare i record"
+  },
+  {
+    "id": "store.sql_channel_member_history.get_users_in_channel_at.app_error",
+    "translation": "Impossibile trovare gli utenti del canale per il momento specificato"
+  },
+  {
+    "id": "store.sql_channel_member_history.get_users_in_channel_during.app_error",
+    "translation": "Impossibile trovare gli utenti del canale durante il momento specificato"
+  },
+  {
+    "id": "store.sql_channel_member_history.log_join_event.app_error",
+    "translation": "Impossibile registrare la cronologia del membro del canale"
+  },
+  {
+    "id": "store.sql_channel_member_history.log_leave_event.select_error",
+    "translation": "Impossibile registrare la cronologia del membro del canale. Nessun record di ingresso trovato"
+  },
+  {
+    "id": "store.sql_channel_member_history.log_leave_event.update_error",
+    "translation": "Impossibile registrare la cronologia del membro del canale. Errore durante l'aggiornamento del record d'ingresso esistente"
+  },
+  {
+    "id": "store.sql_channel_member_history.purge_history_before.app_error",
+    "translation": "Impossibile cancellare i record"
+  },
+  {
     "id": "store.sql_command.analytics_command_count.app_error",
     "translation": "Impossibile contare comandi"
   },
@@ -5785,6 +5889,10 @@
   {
     "id": "store.sql_compliance.get.finding.app_error",
     "translation": "Non è stato possibile recuperare i rapporti di compliance"
+  },
+  {
+    "id": "store.sql_compliance.message_export.app_error",
+    "translation": "Impossibile selezionare i dati dei messaggi da esportare"
   },
   {
     "id": "store.sql_compliance.save.saving.app_error",
@@ -5989,6 +6097,22 @@
   {
     "id": "store.sql_oauth.update_app.updating.app_error",
     "translation": "Riscontrato un errore nel aggiornamento dell'app"
+  },
+  {
+    "id": "store.sql_plugin_store.delete.app_error",
+    "translation": "Impossibile cancellare il valore della chiave del plugin"
+  },
+  {
+    "id": "store.sql_plugin_store.get.app_error",
+    "translation": "Impossibile ottenere il valore della chiave del plugin"
+  },
+  {
+    "id": "store.sql_plugin_store.save.app_error",
+    "translation": "Impossibile salvare o aggiornare il valore della chiave del plugin"
+  },
+  {
+    "id": "store.sql_plugin_store.save_unique.app_error",
+    "translation": "Impossibile salvare o aggiornare il valore della chiave del plugin a causa di un vincolo su valore univoco"
   },
   {
     "id": "store.sql_post.analytics_posts_count.app_error",

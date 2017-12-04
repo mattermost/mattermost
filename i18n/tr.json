@@ -1333,6 +1333,10 @@
     "translation": "Dosya depolaması ayarları doğru şekilde yapılmamış. Lütfen dosya depolaması için bir S3 ya da yerel sunucusu ayarlayın."
   },
   {
+    "id": "api.file.move_file.copy_within_s3.app_error",
+    "translation": "Dosya S3 üzerine kopyalanamadı"
+  },
+  {
     "id": "api.file.move_file.delete_from_s3.app_error",
     "translation": "Dosya S3 üzerinden silinemedi."
   },
@@ -3595,6 +3599,10 @@
     "translation": "Uygulama eki kurulamadı. Aynı kodu taşıyan bir uygulama eki zaten var."
   },
   {
+    "id": "app.plugin.key_value.set.app_error",
+    "translation": "Anahtar değeri ayarlanamadı. Ayrıntılı bilgi almak için hata ayrıntılarına bakın."
+  },
+  {
     "id": "app.plugin.manifest.app_error",
     "translation": "Ayıklanan uygulama eki bilgi dosyası bulunamadı"
   },
@@ -3605,6 +3613,10 @@
   {
     "id": "app.plugin.not_installed.app_error",
     "translation": "Uygulama eki kurulmamış"
+  },
+  {
+    "id": "app.plugin.prepackaged.app_error",
+    "translation": "Önceden paketlenmiş uygulama ekleri değiştirilemez"
   },
   {
     "id": "app.plugin.remove.app_error",
@@ -3935,8 +3947,16 @@
     "translation": "Elasticsearch toplu işlemi oluşturulamadı"
   },
   {
+    "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
+    "translation": "Elasticsearch toplu işlemi oluşturulamadı"
+  },
+  {
     "id": "ent.elasticsearch.start.index_settings_failed",
     "translation": "Elasticsearch dizin ayarları yapılamadı"
+  },
+  {
+    "id": "ent.elasticsearch.start.start_bulk_processor_failed.app_error",
+    "translation": "Elasticsearch toplu işlemi başlatılamadı"
   },
   {
     "id": "ent.elasticsearch.start.start_bulk_processor_failed.app_error",
@@ -4029,6 +4049,10 @@
   {
     "id": "ent.ldap.validate_filter.app_error",
     "translation": "AD/LDAP süzgeci geçersiz"
+  },
+  {
+    "id": "ent.message_export.generic.license.error",
+    "translation": "Bu lisans sürümü İletilerin Dışa Aktarılmasını desteklemiyor."
   },
   {
     "id": "ent.metrics.starting.info",
@@ -4364,6 +4388,26 @@
   },
   {
     "id": "model.channel_member.is_valid.user_id.app_error",
+    "translation": "Kullanıcı kodu geçersiz"
+  },
+  {
+    "id": "model.channel_member_history.is_valid.channel_id.app_error",
+    "translation": "Kanal kodu geçersiz"
+  },
+  {
+    "id": "model.channel_member_history.is_valid.join_time.app_error",
+    "translation": "Katılma zamanı geçersiz"
+  },
+  {
+    "id": "model.channel_member_history.is_valid.leave_time.app_error",
+    "translation": "Ayrılma zamanı geçersiz"
+  },
+  {
+    "id": "model.channel_member_history.is_valid.user_email.app_error",
+    "translation": "Kullanıcı e-posta adresi geçersiz"
+  },
+  {
+    "id": "model.channel_member_history.is_valid.user_id.app_error",
     "translation": "Kullanıcı kodu geçersiz"
   },
   {
@@ -4735,6 +4779,30 @@
     "translation": "En fazla takım kullanıcısı sayısı takım ayarı geçersiz. Pozitif bir sayı olmalıdır."
   },
   {
+    "id": "model.config.is_valid.message_export.batch_size.app_error",
+    "translation": "İleti dışa aktarma görevi TopluİşlemBoyutu değeri pozitif bir tamsayı olmalıdır"
+  },
+  {
+    "id": "model.config.is_valid.message_export.daily_runtime.app_error",
+    "translation": "İleti dışa aktarma görevi GünlükÇalışmaZamanı değeri SS:DD şeklinde 24 saat biçiminde bir zaman damgası olmalıdır."
+  },
+  {
+    "id": "model.config.is_valid.message_export.enable.app_error",
+    "translation": "İleti dışa aktarma görevi DışaAktarılabilsin değeri doğru ya da yanlış olmalıdır"
+  },
+  {
+    "id": "model.config.is_valid.message_export.export_from.app_error",
+    "translation": "İleti dışa aktarma görevi DışaAktarmaZamanıBaşlangıcı değeri bir zaman damgası olmalıdır (Unix Epoch başlangıcından itibaren saniye olarak). Yalnız bu zaman damgasından sonra gönderilmiş iletiler dışa aktarılır."
+  },
+  {
+    "id": "model.config.is_valid.message_export.file_location.app_error",
+    "translation": "İleti dışa aktarma görevi DosyaKonumu değeri dışa aktarılacak verilerin kaydedilebilmesi için yazılabilen bir klasör olmalıdır"
+  },
+  {
+    "id": "model.config.is_valid.message_export.file_location.relative",
+    "translation": "İleti dışa aktarma görevi DosyaKonumu DosyaAyarları.Klasör değerinin bir alt klasörü olmalıdır"
+  },
+  {
     "id": "model.config.is_valid.password_length.app_error",
     "translation": "En kısa parola uzunluğu {{.MinLength}} ile {{.MaxLength}} arasında bir tamsayı olmalıdır."
   },
@@ -5029,6 +5097,14 @@
   {
     "id": "model.outgoing_hook.is_valid.words.app_error",
     "translation": "Tetikleyici sözcükler geçersiz"
+  },
+  {
+    "id": "model.plugin_key_value.is_valid.key.app_error",
+    "translation": "Anahtar geçersiz, {{.Min}} ile {{.Max}} karakter arasında olmalıdır."
+  },
+  {
+    "id": "model.plugin_key_value.is_valid.plugin_id.app_error",
+    "translation": "Uygulama eki kodu geçersiz, {{.Min}} ile {{.Max}} karakter arasında olmalıdır."
   },
   {
     "id": "model.post.is_valid.channel_id.app_error",
@@ -5727,6 +5803,34 @@
     "translation": "Kanal üyesi güncellenirken bir sorun çıktı"
   },
   {
+    "id": "store.sql_channel_member_history.get_all.app_error",
+    "translation": "Kayıtlar alınamadı"
+  },
+  {
+    "id": "store.sql_channel_member_history.get_users_in_channel_at.app_error",
+    "translation": "Belirtilen zaman için kanaldaki kullanıcılar alınamadı"
+  },
+  {
+    "id": "store.sql_channel_member_history.get_users_in_channel_during.app_error",
+    "translation": "Belirtilen zaman aralığı için kanaldaki kullanıcılar alınamadı"
+  },
+  {
+    "id": "store.sql_channel_member_history.log_join_event.app_error",
+    "translation": "Kanal üyeleri geçmişi kaydedilemedi"
+  },
+  {
+    "id": "store.sql_channel_member_history.log_leave_event.select_error",
+    "translation": "Kanal üyeleri geçmişi kaydedilemedi. Herhangi bir katılma kaydı bulunamadı"
+  },
+  {
+    "id": "store.sql_channel_member_history.log_leave_event.update_error",
+    "translation": "Kanal üye geçmişi kaydedilemedi. Var olan katılma kaydı güncellenemedi"
+  },
+  {
+    "id": "store.sql_channel_member_history.purge_history_before.app_error",
+    "translation": "Kayıtlar silinemedi"
+  },
+  {
     "id": "store.sql_command.analytics_command_count.app_error",
     "translation": "Komutlar sayılamadı"
   },
@@ -5785,6 +5889,10 @@
   {
     "id": "store.sql_compliance.get.finding.app_error",
     "translation": "Uygunluk raporları alınırken bir sorun çıktı"
+  },
+  {
+    "id": "store.sql_compliance.message_export.app_error",
+    "translation": "İleti dışa aktarma verisi seçilemedi"
   },
   {
     "id": "store.sql_compliance.save.saving.app_error",
@@ -5989,6 +6097,22 @@
   {
     "id": "store.sql_oauth.update_app.updating.app_error",
     "translation": "Uygulama güncellenirken bir sorun çıktı"
+  },
+  {
+    "id": "store.sql_plugin_store.delete.app_error",
+    "translation": "Uygulama eki anahtarı değeri silinemedi"
+  },
+  {
+    "id": "store.sql_plugin_store.get.app_error",
+    "translation": "Uygulama eki anahtarı değeri alınamadı"
+  },
+  {
+    "id": "store.sql_plugin_store.save.app_error",
+    "translation": "Uygulama eki anahtarı değeri kaydedilemedi ya da güncellenemedi"
+  },
+  {
+    "id": "store.sql_plugin_store.save_unique.app_error",
+    "translation": "Uygulama eki anahtarı değeri eşsiz olma sınırlaması nedeniyle kaydedilemedi ya da güncellenemedi"
   },
   {
     "id": "store.sql_post.analytics_posts_count.app_error",
