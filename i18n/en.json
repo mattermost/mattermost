@@ -4263,10 +4263,6 @@
     "translation": "Current working directory is %v"
   },
   {
-    "id": "model.plugin_command.duplicate.app_error",
-    "translation": "A command with this trigger already exists."
-  },
-  {
     "id": "model.plugin_command.error.app_error",
     "translation": "An error occurred while trying to execute this command."
   },
