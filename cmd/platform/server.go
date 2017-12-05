@@ -71,18 +71,14 @@ func runServer(configFileLocation string) {
 		a.LoadLicense()
 	}
 
-	if webappDir, ok := utils.FindDir(model.CLIENT_DIR); ok {
-		a.InitPlugins(*a.Config().PluginSettings.Directory, webappDir+"/plugins")
-		utils.AddConfigListener(func(prevCfg, cfg *model.Config) {
-			if *cfg.PluginSettings.Enable {
-				a.InitPlugins(*cfg.PluginSettings.Directory, webappDir+"/plugins")
-			} else {
-				a.ShutDownPlugins()
-			}
-		})
-	} else {
-		l4g.Error("Unable to find webapp directory, could not initialize plugins")
-	}
+	a.InitPlugins(*a.Config().PluginSettings.Directory, *a.Config().PluginSettings.ClientDirectory)
+	utils.AddConfigListener(func(prevCfg, cfg *model.Config) {
+		if *cfg.PluginSettings.Enable {
+			a.InitPlugins(*cfg.PluginSettings.Directory, *a.Config().PluginSettings.ClientDirectory)
+		} else {
+			a.ShutDownPlugins()
+		}
+	})
 
 	a.StartServer()
 	api4.Init(a, a.Srv.Router, false)

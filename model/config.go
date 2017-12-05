@@ -148,7 +148,8 @@ const (
 	DATA_RETENTION_SETTINGS_DEFAULT_FILE_RETENTION_DAYS     = 365
 	DATA_RETENTION_SETTINGS_DEFAULT_DELETION_JOB_START_TIME = "02:00"
 
-	PLUGIN_SETTINGS_DEFAULT_DIRECTORY = "./plugins"
+	PLUGIN_SETTINGS_DEFAULT_DIRECTORY        = "./plugins"
+	PLUGIN_SETTINGS_DEFAULT_CLIENT_DIRECTORY = "./client/plugins"
 )
 
 type ServiceSettings struct {
@@ -518,11 +519,12 @@ type PluginState struct {
 }
 
 type PluginSettings struct {
-	Enable        *bool
-	EnableUploads *bool
-	Directory     *string
-	Plugins       map[string]interface{}
-	PluginStates  map[string]*PluginState
+	Enable          *bool
+	EnableUploads   *bool
+	Directory       *string
+	ClientDirectory *string
+	Plugins         map[string]interface{}
+	PluginStates    map[string]*PluginState
 }
 
 type ConfigFunc func() *Config
@@ -1493,6 +1495,14 @@ func (o *Config) SetDefaults() {
 
 	if *o.PluginSettings.Directory == "" {
 		*o.PluginSettings.Directory = PLUGIN_SETTINGS_DEFAULT_DIRECTORY
+	}
+
+	if o.PluginSettings.ClientDirectory == nil {
+		o.PluginSettings.ClientDirectory = NewString(PLUGIN_SETTINGS_DEFAULT_CLIENT_DIRECTORY)
+	}
+
+	if *o.PluginSettings.ClientDirectory == "" {
+		*o.PluginSettings.ClientDirectory = PLUGIN_SETTINGS_DEFAULT_CLIENT_DIRECTORY
 	}
 
 	if o.PluginSettings.Plugins == nil {
