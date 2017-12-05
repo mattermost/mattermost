@@ -23,7 +23,11 @@ var _ plugin.API = (*API)(nil)
 var _ plugin.KeyValueStore = (*KeyValueStore)(nil)
 
 func (m *API) LoadPluginConfiguration(dest interface{}) error {
-	return m.Called(dest).Error(0)
+	ret := m.Called(dest)
+	if f, ok := ret.Get(0).(func(interface{}) error); ok {
+		return f(dest)
+	}
+	return ret.Error(0)
 }
 
 func (m *API) CreateUser(user *model.User) (*model.User, *model.AppError) {
@@ -201,6 +205,16 @@ func (m *API) UpdateChannel(channel *model.Channel) (*model.Channel, *model.AppE
 	channelOut, _ := ret.Get(0).(*model.Channel)
 	err, _ := ret.Get(1).(*model.AppError)
 	return channelOut, err
+}
+
+func (m *API) GetChannelMember(channelId, userId string) (*model.ChannelMember, *model.AppError) {
+	ret := m.Called(channelId, userId)
+	if f, ok := ret.Get(0).(func(_, _ string) (*model.ChannelMember, *model.AppError)); ok {
+		return f(channelId, userId)
+	}
+	member, _ := ret.Get(0).(*model.ChannelMember)
+	err, _ := ret.Get(1).(*model.AppError)
+	return member, err
 }
 
 func (m *API) CreatePost(post *model.Post) (*model.Post, *model.AppError) {

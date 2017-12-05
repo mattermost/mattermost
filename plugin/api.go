@@ -70,6 +70,9 @@ type API interface {
 	// UpdateChannel updates a channel.
 	UpdateChannel(channel *model.Channel) (*model.Channel, *model.AppError)
 
+	// GetChannelMember gets a channel membership for a user.
+	GetChannelMember(channelId, userId string) (*model.ChannelMember, *model.AppError)
+
 	// CreatePost creates a post.
 	CreatePost(post *model.Post) (*model.Post, *model.AppError)
 

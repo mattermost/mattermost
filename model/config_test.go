@@ -143,3 +143,98 @@ func TestMessageExportSettingsIsValid(t *testing.T) {
 	// should pass because everything is valid
 	require.Nil(t, mes.isValid(*fs))
 }
+
+func TestMessageExportSetDefaults(t *testing.T) {
+	mes := &MessageExportSettings{}
+	mes.SetDefaults()
+
+	require.False(t, *mes.EnableExport)
+	require.Equal(t, "export", *mes.FileLocation)
+	require.Equal(t, "01:00", *mes.DailyRunTime)
+	require.Equal(t, int64(0), *mes.ExportFromTimestamp)
+	require.Equal(t, 10000, *mes.BatchSize)
+}
+
+func TestMessageExportSetDefaultsExportEnabledExportFromTimestampNil(t *testing.T) {
+	mes := &MessageExportSettings{
+		EnableExport: NewBool(true),
+	}
+	mes.SetDefaults()
+
+	require.True(t, *mes.EnableExport)
+	require.Equal(t, "export", *mes.FileLocation)
+	require.Equal(t, "01:00", *mes.DailyRunTime)
+	require.NotEqual(t, int64(0), *mes.ExportFromTimestamp)
+	require.True(t, *mes.ExportFromTimestamp <= GetMillis())
+	require.Equal(t, 10000, *mes.BatchSize)
+}
+
+func TestMessageExportSetDefaultsExportEnabledExportFromTimestampZero(t *testing.T) {
+	mes := &MessageExportSettings{
+		EnableExport:        NewBool(true),
+		ExportFromTimestamp: NewInt64(0),
+	}
+	mes.SetDefaults()
+
+	require.True(t, *mes.EnableExport)
+	require.Equal(t, "export", *mes.FileLocation)
+	require.Equal(t, "01:00", *mes.DailyRunTime)
+	require.NotEqual(t, int64(0), *mes.ExportFromTimestamp)
+	require.True(t, *mes.ExportFromTimestamp <= GetMillis())
+	require.Equal(t, 10000, *mes.BatchSize)
+}
+
+func TestMessageExportSetDefaultsExportEnabledExportFromTimestampNonZero(t *testing.T) {
+	mes := &MessageExportSettings{
+		EnableExport:        NewBool(true),
+		ExportFromTimestamp: NewInt64(12345),
+	}
+	mes.SetDefaults()
+
+	require.True(t, *mes.EnableExport)
+	require.Equal(t, "export", *mes.FileLocation)
+	require.Equal(t, "01:00", *mes.DailyRunTime)
+	require.Equal(t, int64(12345), *mes.ExportFromTimestamp)
+	require.Equal(t, 10000, *mes.BatchSize)
+}
+
+func TestMessageExportSetDefaultsExportDisabledExportFromTimestampNil(t *testing.T) {
+	mes := &MessageExportSettings{
+		EnableExport: NewBool(false),
+	}
+	mes.SetDefaults()
+
+	require.False(t, *mes.EnableExport)
+	require.Equal(t, "export", *mes.FileLocation)
+	require.Equal(t, "01:00", *mes.DailyRunTime)
+	require.Equal(t, int64(0), *mes.ExportFromTimestamp)
+	require.Equal(t, 10000, *mes.BatchSize)
+}
+
+func TestMessageExportSetDefaultsExportDisabledExportFromTimestampZero(t *testing.T) {
+	mes := &MessageExportSettings{
+		EnableExport:        NewBool(false),
+		ExportFromTimestamp: NewInt64(0),
+	}
+	mes.SetDefaults()
+
+	require.False(t, *mes.EnableExport)
+	require.Equal(t, "export", *mes.FileLocation)
+	require.Equal(t, "01:00", *mes.DailyRunTime)
+	require.Equal(t, int64(0), *mes.ExportFromTimestamp)
+	require.Equal(t, 10000, *mes.BatchSize)
+}
+
+func TestMessageExportSetDefaultsExportDisabledExportFromTimestampNonZero(t *testing.T) {
+	mes := &MessageExportSettings{
+		EnableExport:        NewBool(false),
+		ExportFromTimestamp: NewInt64(12345),
+	}
+	mes.SetDefaults()
+
+	require.False(t, *mes.EnableExport)
+	require.Equal(t, "export", *mes.FileLocation)
+	require.Equal(t, "01:00", *mes.DailyRunTime)
+	require.Equal(t, int64(0), *mes.ExportFromTimestamp)
+	require.Equal(t, 10000, *mes.BatchSize)
+}
