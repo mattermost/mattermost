@@ -175,4 +175,13 @@ func TestPostChannelMentions(t *testing.T) {
 			"display_name": "Mention Test",
 		},
 	}, result.Props["channel_mentions"])
+
+	post.Message = fmt.Sprintf("goodbye, ~%v!", channelToMention.Name)
+	result, err = th.App.UpdatePost(post, false)
+	require.Nil(t, err)
+	assert.Equal(t, map[string]interface{}{
+		"mention-test": map[string]interface{}{
+			"display_name": "Mention Test",
+		},
+	}, result.Props["channel_mentions"])
 }

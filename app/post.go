@@ -207,7 +207,7 @@ func (a *App) FillInPostProps(post *model.Post, channel *model.Channel) *model.A
 	if len(channelMentions) > 0 {
 		if channel == nil {
 			result := <-a.Srv.Store.Channel().GetForPost(post.Id)
-			if result.Err == nil {
+			if result.Err != nil {
 				return model.NewAppError("FillInPostProps", "api.context.invalid_param.app_error", map[string]interface{}{"Name": "post.channel_id"}, result.Err.Error(), http.StatusBadRequest)
 			}
 			channel = result.Data.(*model.Channel)
