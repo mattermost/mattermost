@@ -26,7 +26,7 @@ func Init(api3 *api.API) {
 		l4g.Debug("Using client directory at %v", staticDir)
 
 		staticHandler := staticHandler(http.StripPrefix("/static/", http.FileServer(http.Dir(staticDir))))
-		pluginHandler := pluginHandler(api3.App.Config, http.StripPrefix("/static/plugins/", http.FileServer(http.Dir(staticDir+"plugins/"))))
+		pluginHandler := pluginHandler(api3.App.Config, http.StripPrefix("/static/plugins/", http.FileServer(http.Dir(*api3.App.Config().PluginSettings.ClientDirectory))))
 
 		if *api3.App.Config().ServiceSettings.WebserverMode == "gzip" {
 			staticHandler = gziphandler.GzipHandler(staticHandler)
