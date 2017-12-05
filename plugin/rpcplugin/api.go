@@ -154,9 +154,19 @@ type APIGetGroupChannelArgs struct {
 	UserIds []string
 }
 
+type APIGetChannelMemberArgs struct {
+	ChannelId string
+	UserId    string
+}
+
 type APIChannelReply struct {
 	Channel *model.Channel
 	Error   *model.AppError
+}
+
+type APIChannelMemberReply struct {
+	ChannelMember *model.ChannelMember
+	Error         *model.AppError
 }
 
 func (api *LocalAPI) CreateChannel(args *model.Channel, reply *APIChannelReply) error {
@@ -216,6 +226,15 @@ func (api *LocalAPI) UpdateChannel(args *model.Channel, reply *APIChannelReply) 
 	*reply = APIChannelReply{
 		Channel: channel,
 		Error:   err,
+	}
+	return nil
+}
+
+func (api *LocalAPI) GetChannelMember(args *APIGetChannelMemberArgs, reply *APIChannelMemberReply) error {
+	member, err := api.api.GetChannelMember(args.ChannelId, args.UserId)
+	*reply = APIChannelMemberReply{
+		ChannelMember: member,
+		Error:         err,
 	}
 	return nil
 }
@@ -474,6 +493,17 @@ func (api *RemoteAPI) UpdateChannel(channel *model.Channel) (*model.Channel, *mo
 		return nil, model.NewAppError("RemoteAPI.UpdateChannel", "plugin.rpcplugin.invocation.error", nil, "err="+err.Error(), http.StatusInternalServerError)
 	}
 	return reply.Channel, reply.Error
+}
+
+func (api *RemoteAPI) GetChannelMember(channelId, userId string) (*model.ChannelMember, *model.AppError) {
+	var reply APIChannelMemberReply
+	if err := api.client.Call("LocalAPI.GetChannelMember", &APIGetChannelMemberArgs{
+		ChannelId: channelId,
+		UserId:    userId,
+	}, &reply); err != nil {
+		return nil, model.NewAppError("RemoteAPI.GetChannelMember", "plugin.rpcplugin.invocation.error", nil, "err="+err.Error(), http.StatusInternalServerError)
+	}
+	return reply.ChannelMember, reply.Error
 }
 
 func (api *RemoteAPI) CreatePost(post *model.Post) (*model.Post, *model.AppError) {

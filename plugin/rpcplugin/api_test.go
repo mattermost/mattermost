@@ -54,6 +54,11 @@ func TestAPI(t *testing.T) {
 		Id: "thechannelid",
 	}
 
+	testChannelMember := &model.ChannelMember{
+		ChannelId: "thechannelid",
+		UserId:    "theuserid",
+	}
+
 	testTeam := &model.Team{
 		Id: "theteamid",
 	}
@@ -109,6 +114,11 @@ func TestAPI(t *testing.T) {
 		}).Once()
 		channel, err = remote.UpdateChannel(testChannel)
 		assert.Equal(t, testChannel, channel)
+		assert.Nil(t, err)
+
+		api.On("GetChannelMember", "thechannelid", "theuserid").Return(testChannelMember, nil).Once()
+		member, err := remote.GetChannelMember("thechannelid", "theuserid")
+		assert.Equal(t, testChannelMember, member)
 		assert.Nil(t, err)
 
 		api.On("CreateUser", mock.AnythingOfType("*model.User")).Return(func(u *model.User) (*model.User, *model.AppError) {
