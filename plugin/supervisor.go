@@ -6,7 +6,7 @@ package plugin
 // Supervisor provides the interface for an object that controls the execution of a plugin. This
 // type is only relevant to the server, and isn't used by the plugins themselves.
 type Supervisor interface {
-	Start() error
+	Start(API) error
 	Stop() error
 	Hooks() Hooks
 }

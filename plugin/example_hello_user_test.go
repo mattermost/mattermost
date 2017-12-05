@@ -12,9 +12,10 @@ type HelloUserPlugin struct {
 	api plugin.API
 }
 
-func (p *HelloUserPlugin) OnActivate(api plugin.API) {
+func (p *HelloUserPlugin) OnActivate(api plugin.API) error {
 	// Just save api for later when we need to look up users.
 	p.api = api
+	return nil
 }
 
 func (p *HelloUserPlugin) ServeHTTP(w http.ResponseWriter, r *http.Request) {
