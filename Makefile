@@ -469,6 +469,7 @@ clean: stop-docker
 	rm -f *.out
 	rm -f *.test
 	rm -f imports/imports.go
+	rm -f cmd/platform/cprofile*.out
 
 nuke: clean clean-docker
 	@echo BOOM
