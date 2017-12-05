@@ -4,6 +4,7 @@
 package rpcplugin
 
 import (
+	"encoding/gob"
 	"encoding/json"
 	"io"
 	"net/http"
@@ -581,4 +582,8 @@ func ConnectAPI(conn io.ReadWriteCloser, muxer *Muxer) *RemoteAPI {
 	remoteKeyValueStore.api = remoteApi
 
 	return remoteApi
+}
+
+func init() {
+	gob.Register([]*model.SlackAttachment{})
 }
