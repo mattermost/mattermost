@@ -22,6 +22,7 @@ import (
 	builtinplugin "github.com/mattermost/mattermost-server/app/plugin"
 	"github.com/mattermost/mattermost-server/app/plugin/jira"
 	"github.com/mattermost/mattermost-server/app/plugin/ldapextras"
+	"github.com/mattermost/mattermost-server/app/plugin/zoom"
 
 	"github.com/mattermost/mattermost-server/plugin"
 	"github.com/mattermost/mattermost-server/plugin/pluginenv"
@@ -29,6 +30,7 @@ import (
 
 var prepackagedPlugins map[string]func(string) ([]byte, error) = map[string]func(string) ([]byte, error){
 	"jira": jira.Asset,
+	"zoom": zoom.Asset,
 }
 
 func (a *App) initBuiltInPlugins() {
@@ -377,7 +379,7 @@ func (a *App) InitPlugins(pluginPath, webappPath string) {
 			if _, err := a.installPlugin(bytes.NewReader(tarball), true); err != nil {
 				l4g.Error("failed to install prepackaged plugin: " + err.Error())
 			}
-			if _, ok := a.Config().PluginSettings.PluginStates[id]; !ok {
+			if _, ok := a.Config().PluginSettings.PluginStates[id]; !ok && id != "zoom" {
 				if err := a.EnablePlugin(id); err != nil {
 					l4g.Error("failed to enable prepackaged plugin: " + err.Error())
 				}
