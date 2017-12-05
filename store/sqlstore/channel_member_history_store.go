@@ -87,34 +87,6 @@ func (s SqlChannelMemberHistoryStore) GetUsersInChannelDuring(startTime int64, e
 }
 
 func (s SqlChannelMemberHistoryStore) PermanentDeleteBatch(endTime int64, limit int64) store.StoreChannel {
-	// when the data retention job runs, it deletes ChannelMemberHistory records for all channels, but that's very
-	// destructive while testing, so this helper function is used by data retention, but not tested, which allows the
-	// PermanentDeleteBatchForChannel function to be unit tested on a more specific set of data
-	return store.Do(func(result *store.StoreResult) {
-		var channelIds []string
-		var query = `SELECT DISTINCT ChannelId FROM ChannelMemberHistory`
-		if _, err := s.GetReplica().Select(&channelIds, query, nil); err != nil {
-			result.Err = model.NewAppError("SqlChannelMemberHistoryStore.PermanentDeleteBatch", "store.sql_channel_member_history.permanent_delete_batch.app_error", nil, err.Error(), http.StatusInternalServerError)
-			return
-		} else {
-			var numDeleted int64
-			for _, channelId := range channelIds {
-				if res := <-s.PermanentDeleteBatchForChannel(channelId, endTime, limit-numDeleted); res.Err != nil {
-					result.Err = model.NewAppError("SqlChannelMemberHistoryStore.PermanentDeleteBatch", "store.sql_channel_member_history.permanent_delete_batch.app_error", nil, err.Error(), http.StatusInternalServerError)
-					return
-				} else {
-					numDeleted += res.Data.(int64)
-				}
-				if limit-numDeleted <= int64(0) {
-					break
-				}
-			}
-			result.Data = numDeleted
-		}
-	})
-}
-
-func (s SqlChannelMemberHistoryStore) PermanentDeleteBatchForChannel(channelId string, endTime int64, limit int64) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		var query string
 		if s.DriverName() == "postgres" {
@@ -122,21 +94,19 @@ func (s SqlChannelMemberHistoryStore) PermanentDeleteBatchForChannel(channelId s
 				`DELETE FROM ChannelMemberHistory
 				 WHERE ctid IN (
 				 	SELECT ctid FROM ChannelMemberHistory
-					WHERE ChannelId = :ChannelId
-					AND LeaveTime IS NOT NULL
+					WHERE LeaveTime IS NOT NULL
 					AND LeaveTime <= :EndTime
 					LIMIT :Limit
 				);`
 		} else {
 			query =
 				`DELETE FROM ChannelMemberHistory
-				 WHERE ChannelId = :ChannelId
-				 AND LeaveTime IS NOT NULL
+				 WHERE LeaveTime IS NOT NULL
 				 AND LeaveTime <= :EndTime
 				 LIMIT :Limit`
 		}
 
-		params := map[string]interface{}{"ChannelId": channelId, "EndTime": endTime, "Limit": limit}
+		params := map[string]interface{}{"EndTime": endTime, "Limit": limit}
 		if sqlResult, err := s.GetMaster().Exec(query, params); err != nil {
 			result.Err = model.NewAppError("SqlChannelMemberHistoryStore.PermanentDeleteBatchForChannel", "store.sql_channel_member_history.permanent_delete_batch.app_error", params, err.Error(), http.StatusInternalServerError)
 		} else {

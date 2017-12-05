@@ -6,6 +6,8 @@ package storetest
 import (
 	"testing"
 
+	"math"
+
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
 	"github.com/stretchr/testify/assert"
@@ -171,10 +173,11 @@ func testPermanentDeleteBatch(t *testing.T, ss store.Store) {
 	channelMembers := store.Must(ss.ChannelMemberHistory().GetUsersInChannelDuring(joinTime+10, leaveTime-10, channel.Id)).([]*model.ChannelMemberHistory)
 	assert.Len(t, channelMembers, 2)
 
-	// but if we purge the old data, only the user that didn't leave is left
-	rowsDeleted := store.Must(ss.ChannelMemberHistory().PermanentDeleteBatchForChannel(channel.Id, leaveTime, 2)).(int64)
-	assert.Equal(t, int64(1), rowsDeleted)
+	// the permanent delete should delete at least one record
+	rowsDeleted := store.Must(ss.ChannelMemberHistory().PermanentDeleteBatch(leaveTime, math.MaxInt64)).(int64)
+	assert.NotEqual(t, int64(0), rowsDeleted)
 
+	// after the delete, there should be one less member in the channel
 	channelMembers = store.Must(ss.ChannelMemberHistory().GetUsersInChannelDuring(joinTime+10, leaveTime-10, channel.Id)).([]*model.ChannelMemberHistory)
 	assert.Len(t, channelMembers, 1)
 	assert.Equal(t, user2.Id, channelMembers[0].UserId)
