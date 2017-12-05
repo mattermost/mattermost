@@ -6,12 +6,15 @@ package app
 import (
 	"bytes"
 	"context"
+	"crypto/sha256"
+	"encoding/base64"
 	"io"
 	"io/ioutil"
 	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
+	"unicode/utf8"
 
 	l4g "github.com/alecthomas/log4go"
 
@@ -26,6 +29,10 @@ import (
 
 	"github.com/mattermost/mattermost-server/plugin"
 	"github.com/mattermost/mattermost-server/plugin/pluginenv"
+)
+
+const (
+	PLUGIN_MAX_ID_LENGTH = 190
 )
 
 var prepackagedPlugins map[string]func(string) ([]byte, error) = map[string]func(string) ([]byte, error){
@@ -147,6 +154,10 @@ func (a *App) installPlugin(pluginFile io.Reader, allowPrepackaged bool) (*model
 
 	if _, ok := prepackagedPlugins[manifest.Id]; ok && !allowPrepackaged {
 		return nil, model.NewAppError("installPlugin", "app.plugin.prepackaged.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if utf8.RuneCountInString(manifest.Id) > PLUGIN_MAX_ID_LENGTH {
+		return nil, model.NewAppError("installPlugin", "app.plugin.id_length.app_error", map[string]interface{}{"Max": PLUGIN_MAX_ID_LENGTH}, err.Error(), http.StatusBadRequest)
 	}
 
 	bundles, err := a.PluginEnv.Plugins()
@@ -475,10 +486,16 @@ func (a *App) ShutDownPlugins() {
 	a.PluginEnv = nil
 }
 
+func getKeyHash(key string) string {
+	hash := sha256.New()
+	hash.Write([]byte(key))
+	return base64.StdEncoding.EncodeToString(hash.Sum(nil))
+}
+
 func (a *App) SetPluginKey(pluginId string, key string, value []byte) *model.AppError {
 	kv := &model.PluginKeyValue{
 		PluginId: pluginId,
-		Key:      key,
+		Key:      getKeyHash(key),
 		Value:    value,
 	}
 
@@ -492,7 +509,7 @@ func (a *App) SetPluginKey(pluginId string, key string, value []byte) *model.App
 }
 
 func (a *App) GetPluginKey(pluginId string, key string) ([]byte, *model.AppError) {
-	result := <-a.Srv.Store.Plugin().Get(pluginId, key)
+	result := <-a.Srv.Store.Plugin().Get(pluginId, getKeyHash(key))
 
 	if result.Err != nil {
 		if result.Err.StatusCode == http.StatusNotFound {
@@ -508,7 +525,7 @@ func (a *App) GetPluginKey(pluginId string, key string) ([]byte, *model.AppError
 }
 
 func (a *App) DeletePluginKey(pluginId string, key string) *model.AppError {
-	result := <-a.Srv.Store.Plugin().Delete(pluginId, key)
+	result := <-a.Srv.Store.Plugin().Delete(pluginId, getKeyHash(key))
 
 	if result.Err != nil {
 		l4g.Error(result.Err.Error())
