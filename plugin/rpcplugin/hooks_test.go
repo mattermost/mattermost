@@ -13,6 +13,7 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
+	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/plugin"
 	"github.com/mattermost/mattermost-server/plugin/plugintest"
 )
@@ -79,6 +80,17 @@ func TestHooks(t *testing.T) {
 		body, err := ioutil.ReadAll(resp.Body)
 		assert.NoError(t, err)
 		assert.Equal(t, "bar", string(body))
+
+		hooks.On("ExecuteCommand", &model.CommandArgs{
+			Command: "/foo",
+		}).Return(&model.CommandResponse{
+			Text: "bar",
+		}, nil)
+		commandResponse, appErr := hooks.ExecuteCommand(&model.CommandArgs{
+			Command: "/foo",
+		})
+		assert.Equal(t, "bar", commandResponse.Text)
+		assert.Nil(t, appErr)
 	}))
 }
 

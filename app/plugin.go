@@ -8,6 +8,7 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/base64"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -101,20 +102,28 @@ func (a *App) ActivatePlugins() {
 
 			l4g.Info("Activated %v plugin", id)
 		} else if !pluginState.Enable && active {
-			if err := a.PluginEnv.DeactivatePlugin(id); err != nil {
+			if err := a.deactivatePlugin(plugin.Manifest); err != nil {
 				l4g.Error(err.Error())
-				continue
 			}
-
-			if plugin.Manifest.HasClient() {
-				message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_PLUGIN_DEACTIVATED, "", "", "", nil)
-				message.Add("manifest", plugin.Manifest.ClientManifest())
-				a.Publish(message)
-			}
-
-			l4g.Info("Deactivated %v plugin", id)
 		}
 	}
+}
+
+func (a *App) deactivatePlugin(manifest *model.Manifest) *model.AppError {
+	if err := a.PluginEnv.DeactivatePlugin(manifest.Id); err != nil {
+		return model.NewAppError("removePlugin", "app.plugin.deactivate.app_error", nil, err.Error(), http.StatusBadRequest)
+	}
+
+	a.UnregisterPluginCommands(manifest.Id)
+
+	if manifest.HasClient() {
+		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_PLUGIN_DEACTIVATED, "", "", "", nil)
+		message.Add("manifest", manifest.ClientManifest())
+		a.Publish(message)
+	}
+
+	l4g.Info("Deactivated %v plugin", manifest.Id)
+	return nil
 }
 
 // InstallPlugin unpacks and installs a plugin but does not activate it.
@@ -253,15 +262,9 @@ func (a *App) removePlugin(id string, allowPrepackaged bool) *model.AppError {
 	}
 
 	if a.PluginEnv.IsPluginActive(id) {
-		err := a.PluginEnv.DeactivatePlugin(id)
+		err := a.deactivatePlugin(manifest)
 		if err != nil {
-			return model.NewAppError("removePlugin", "app.plugin.deactivate.app_error", nil, err.Error(), http.StatusBadRequest)
-		}
-
-		if manifest.HasClient() {
-			message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_PLUGIN_DEACTIVATED, "", "", "", nil)
-			message.Add("manifest", manifest.ClientManifest())
-			a.Publish(message)
+			return err
 		}
 	}
 
@@ -341,7 +344,7 @@ func (a *App) DisablePlugin(id string) *model.AppError {
 	return nil
 }
 
-func (a *App) InitPlugins(pluginPath, webappPath string) {
+func (a *App) InitPlugins(pluginPath, webappPath string, supervisorOverride pluginenv.SupervisorProviderFunc) {
 	if !*a.Config().PluginSettings.Enable {
 		return
 	}
@@ -362,7 +365,7 @@ func (a *App) InitPlugins(pluginPath, webappPath string) {
 		return
 	}
 
-	if env, err := pluginenv.New(
+	options := []pluginenv.Option{
 		pluginenv.SearchPath(pluginPath),
 		pluginenv.WebappPath(webappPath),
 		pluginenv.APIProvider(func(m *model.Manifest) (plugin.API, error) {
@@ -375,7 +378,13 @@ func (a *App) InitPlugins(pluginPath, webappPath string) {
 				},
 			}, nil
 		}),
-	); err != nil {
+	}
+
+	if supervisorOverride != nil {
+		options = append(options, pluginenv.SupervisorProvider(supervisorOverride))
+	}
+
+	if env, err := pluginenv.New(options...); err != nil {
 		l4g.Error("failed to start up plugins: " + err.Error())
 		return
 	} else {
@@ -532,4 +541,102 @@ func (a *App) DeletePluginKey(pluginId string, key string) *model.AppError {
 	}
 
 	return result.Err
+}
+
+type PluginCommand struct {
+	Command  *model.Command
+	PluginId string
+}
+
+func (a *App) RegisterPluginCommand(pluginId string, command *model.Command) error {
+	if command.Trigger == "" {
+		return fmt.Errorf("invalid command")
+	}
+
+	command = &model.Command{
+		Trigger:          strings.ToLower(command.Trigger),
+		TeamId:           command.TeamId,
+		AutoComplete:     command.AutoComplete,
+		AutoCompleteDesc: command.AutoCompleteDesc,
+		DisplayName:      command.DisplayName,
+	}
+
+	a.pluginCommandsLock.Lock()
+	defer a.pluginCommandsLock.Unlock()
+
+	for _, pc := range a.pluginCommands {
+		if pc.Command.Trigger == command.Trigger && pc.Command.TeamId == command.TeamId {
+			if pc.PluginId == pluginId {
+				pc.Command = command
+				return nil
+			}
+		}
+	}
+
+	a.pluginCommands = append(a.pluginCommands, &PluginCommand{
+		Command:  command,
+		PluginId: pluginId,
+	})
+	return nil
+}
+
+func (a *App) UnregisterPluginCommand(pluginId, teamId, trigger string) {
+	trigger = strings.ToLower(trigger)
+
+	a.pluginCommandsLock.Lock()
+	defer a.pluginCommandsLock.Unlock()
+
+	var remaining []*PluginCommand
+	for _, pc := range a.pluginCommands {
+		if pc.Command.TeamId != teamId || pc.Command.Trigger != trigger {
+			remaining = append(remaining, pc)
+		}
+	}
+	a.pluginCommands = remaining
+}
+
+func (a *App) UnregisterPluginCommands(pluginId string) {
+	a.pluginCommandsLock.Lock()
+	defer a.pluginCommandsLock.Unlock()
+
+	var remaining []*PluginCommand
+	for _, pc := range a.pluginCommands {
+		if pc.PluginId != pluginId {
+			remaining = append(remaining, pc)
+		}
+	}
+	a.pluginCommands = remaining
+}
+
+func (a *App) PluginCommandsForTeam(teamId string) []*model.Command {
+	a.pluginCommandsLock.RLock()
+	defer a.pluginCommandsLock.RUnlock()
+
+	var commands []*model.Command
+	for _, pc := range a.pluginCommands {
+		if pc.Command.TeamId == "" || pc.Command.TeamId == teamId {
+			commands = append(commands, pc.Command)
+		}
+	}
+	return commands
+}
+
+func (a *App) ExecutePluginCommand(args *model.CommandArgs) (*model.Command, *model.CommandResponse, *model.AppError) {
+	parts := strings.Split(args.Command, " ")
+	trigger := parts[0][1:]
+	trigger = strings.ToLower(trigger)
+
+	a.pluginCommandsLock.RLock()
+	defer a.pluginCommandsLock.RUnlock()
+
+	for _, pc := range a.pluginCommands {
+		if (pc.Command.TeamId == "" || pc.Command.TeamId == args.TeamId) && pc.Command.Trigger == trigger {
+			response, appErr, err := a.PluginEnv.HooksForPlugin(pc.PluginId).ExecuteCommand(args)
+			if err != nil {
+				return pc.Command, nil, model.NewAppError("ExecutePluginCommand", "model.plugin_command.error.app_error", nil, "err="+err.Error(), http.StatusInternalServerError)
+			}
+			return pc.Command, response, appErr
+		}
+	}
+	return nil, nil, nil
 }

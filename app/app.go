@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"runtime/debug"
 	"strings"
+	"sync"
 	"sync/atomic"
 
 	l4g "github.com/alecthomas/log4go"
@@ -60,6 +61,9 @@ type App struct {
 	sessionCache        *utils.Cache
 	roles               map[string]*model.Role
 	configListenerId    string
+
+	pluginCommands     []*PluginCommand
+	pluginCommandsLock sync.RWMutex
 }
 
 var appCount = 0
