@@ -75,19 +75,3 @@ func (_m *ChannelMemberHistoryStore) PermanentDeleteBatch(endTime int64, limit i
 
 	return r0
 }
-
-// PermanentDeleteBatchForChannel provides a mock function with given fields: channelId, endTime, limit
-func (_m *ChannelMemberHistoryStore) PermanentDeleteBatchForChannel(channelId string, endTime int64, limit int64) store.StoreChannel {
-	ret := _m.Called(channelId, endTime, limit)
-
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string, int64, int64) store.StoreChannel); ok {
-		r0 = rf(channelId, endTime, limit)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
-		}
-	}
-
-	return r0
-}
