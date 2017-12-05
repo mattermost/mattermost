@@ -89,7 +89,7 @@ func (s SqlChannelMemberHistoryStore) GetUsersInChannelDuring(startTime int64, e
 func (s SqlChannelMemberHistoryStore) PermanentDeleteBatch(endTime int64, limit int64) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		var query string
-		if s.DriverName() == "postgres" {
+		if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
 			query =
 				`DELETE FROM ChannelMemberHistory
 				 WHERE ctid IN (
