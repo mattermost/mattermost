@@ -65,7 +65,40 @@ func (s SqlChannelMemberHistoryStore) LogLeaveEvent(userId string, channelId str
 
 func (s SqlChannelMemberHistoryStore) GetUsersInChannelDuring(startTime int64, endTime int64, channelId string) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
-		query := `
+		if useChannelMemberHistory, err := s.hasDataFromBefore(startTime); err != nil {
+			result.Err = model.NewAppError("SqlChannelMemberHistoryStore.GetUsersInChannelAt", "store.sql_channel_member_history.get_users_in_channel_during.app_error", nil, err.Error(), http.StatusInternalServerError)
+		} else if useChannelMemberHistory {
+			// the export period starts after the ChannelMemberHistory table was first introduced, so we can use the
+			// data from it for our export
+			if channelMemberHistories, err := s.getFromChannelMemberHistoryTable(startTime, endTime, channelId); err != nil {
+				result.Err = model.NewAppError("SqlChannelMemberHistoryStore.GetUsersInChannelAt", "store.sql_channel_member_history.get_users_in_channel_during.app_error", nil, err.Error(), http.StatusInternalServerError)
+			} else {
+				result.Data = channelMemberHistories
+			}
+		} else {
+			// the export period starts before the ChannelMemberHistory table was introduced, so we need to fake the
+			// data by assuming that anybody who has ever joined the channel in question was present during the export period.
+			// this may not always be true, but it's better than saying that somebody wasn't there when they were
+			if channelMemberHistories, err := s.getFromChannelMembersTable(startTime, endTime, channelId); err != nil {
+				result.Err = model.NewAppError("SqlChannelMemberHistoryStore.GetUsersInChannelAt", "store.sql_channel_member_history.get_users_in_channel_during.app_error", nil, err.Error(), http.StatusInternalServerError)
+			} else {
+				result.Data = channelMemberHistories
+			}
+		}
+	})
+}
+
+func (s SqlChannelMemberHistoryStore) hasDataFromBefore(time int64) (bool, error) {
+	query := "SELECT MIN(JoinTime) FROM ChannelMemberHistory"
+	if earliestJoinTime, err := s.GetReplica().SelectInt(query); err != nil {
+		return false, err
+	} else {
+		return earliestJoinTime < time, nil
+	}
+}
+
+func (s SqlChannelMemberHistoryStore) getFromChannelMemberHistoryTable(startTime int64, endTime int64, channelId string) ([]*model.ChannelMemberHistory, error) {
+	query := `
 			SELECT
 				cmh.*,
 				u.Email
@@ -76,14 +109,37 @@ func (s SqlChannelMemberHistoryStore) GetUsersInChannelDuring(startTime int64, e
 			AND (cmh.LeaveTime IS NULL OR cmh.LeaveTime >= :StartTime)
 			ORDER BY cmh.JoinTime ASC`
 
-		params := map[string]interface{}{"ChannelId": channelId, "StartTime": startTime, "EndTime": endTime}
-		var histories []*model.ChannelMemberHistory
-		if _, err := s.GetReplica().Select(&histories, query, params); err != nil {
-			result.Err = model.NewAppError("SqlChannelMemberHistoryStore.GetUsersInChannelAt", "store.sql_channel_member_history.get_users_in_channel_during.app_error", params, err.Error(), http.StatusInternalServerError)
-		} else {
-			result.Data = histories
+	params := map[string]interface{}{"ChannelId": channelId, "StartTime": startTime, "EndTime": endTime}
+	var histories []*model.ChannelMemberHistory
+	if _, err := s.GetReplica().Select(&histories, query, params); err != nil {
+		return nil, err
+	} else {
+		return histories, nil
+	}
+}
+
+func (s SqlChannelMemberHistoryStore) getFromChannelMembersTable(startTime int64, endTime int64, channelId string) ([]*model.ChannelMemberHistory, error) {
+	query := `
+		SELECT DISTINCT
+  			ch.ChannelId,
+  			ch.UserId,
+  			u.email
+		FROM ChannelMembers AS ch
+		INNER JOIN Users AS u ON ch.UserId = u.id
+		WHERE ch.ChannelId = :ChannelId`
+
+	params := map[string]interface{}{"ChannelId": channelId}
+	var histories []*model.ChannelMemberHistory
+	if _, err := s.GetReplica().Select(&histories, query, params); err != nil {
+		return nil, err
+	} else {
+		// we have to fill in the join/leave times, because that data doesn't exist in the channel members table
+		for _, channelMemberHistory := range histories {
+			channelMemberHistory.JoinTime = startTime
+			channelMemberHistory.LeaveTime = model.NewInt64(endTime)
 		}
-	})
+		return histories, nil
+	}
 }
 
 func (s SqlChannelMemberHistoryStore) PurgeHistoryBefore(time int64, channelId string) store.StoreChannel {
