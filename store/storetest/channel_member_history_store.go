@@ -14,11 +14,11 @@ import (
 )
 
 func TestChannelMemberHistoryStore(t *testing.T, ss store.Store) {
-	t.Run("Log Join Event", func(t *testing.T) { testLogJoinEvent(t, ss) })
-	t.Run("Log Leave Event", func(t *testing.T) { testLogLeaveEvent(t, ss) })
-	t.Run("Get Users In Channel At Time - ChannelMemberHistory", func(t *testing.T) { testGetUsersInChannelAtChannelMemberHistory(t, ss) })
-	t.Run("Get Users In Channel At Time - ChannelMembers Fallback", func(t *testing.T) { testGetUsersInChannelAtChannelMembers(t, ss) })
-	t.Run("Permanent Delete Batch", func(t *testing.T) { testPermanentDeleteBatch(t, ss) })
+	t.Run("TestLogJoinEvent", func(t *testing.T) { testLogJoinEvent(t, ss) })
+	t.Run("TestLogLeaveEvent", func(t *testing.T) { testLogLeaveEvent(t, ss) })
+	t.Run("TestGetUsersInChannelAtChannelMemberHistory", func(t *testing.T) { testGetUsersInChannelAtChannelMemberHistory(t, ss) })
+	t.Run("TestGetUsersInChannelAtChannelMembers", func(t *testing.T) { testGetUsersInChannelAtChannelMembers(t, ss) })
+	t.Run("TestPermanentDeleteBatch", func(t *testing.T) { testPermanentDeleteBatch(t, ss) })
 }
 
 func testLogJoinEvent(t *testing.T, ss store.Store) {
