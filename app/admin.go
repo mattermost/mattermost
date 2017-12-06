@@ -4,6 +4,7 @@
 package app
 
 import (
+	"io"
 	"os"
 	"strings"
 	"time"
@@ -61,12 +62,12 @@ func (a *App) GetLogsSkipSend(page, perPage int) ([]string, *model.AppError) {
 		var newLine = []byte{'\n'}
 		var lineCount int
 		var searchPos = int64(-1)
-		lineEndPos, err := file.Seek(0, os.SEEK_END)
+		lineEndPos, err := file.Seek(0, io.SeekEnd)
 		if err != nil {
 			return nil, model.NewAppError("getLogs", "api.admin.file_read_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 		for {
-			pos, err := file.Seek(searchPos, os.SEEK_CUR)
+			pos, err := file.Seek(searchPos, io.SeekCurrent)
 			if err != nil {
 				return nil, model.NewAppError("getLogs", "api.admin.file_read_error", nil, err.Error(), http.StatusInternalServerError)
 			}
