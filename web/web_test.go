@@ -236,9 +236,9 @@ func TestCheckClientCompatability(t *testing.T) {
 	//Safari 9
 	ua = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/604.1.38 (KHTML, like Gecko) Version/11.0 Safari/604.1.38"
 	if result := CheckClientCompatability(ua); result == true {
-		t.Log("Pass: IE 11 passed browser compatibility.")
+		t.Log("Pass: Safari 9 passed browser compatibility.")
 	} else {
-		t.Error("Fail: IE 11 User Agent Test failed!")
+		t.Error("Fail: Safari 9 User Agent Test failed!")
 	}
 
 	//Safari 8
