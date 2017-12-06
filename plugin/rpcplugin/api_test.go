@@ -8,6 +8,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/plugin"
@@ -70,6 +71,11 @@ func TestAPI(t *testing.T) {
 
 	testPost := &model.Post{
 		Message: "hello",
+		Props: map[string]interface{}{
+			"attachments": []*model.SlackAttachment{
+				&model.SlackAttachment{},
+			},
+		},
 	}
 
 	testAPIRPC(&api, func(remote plugin.API) {
@@ -192,9 +198,9 @@ func TestAPI(t *testing.T) {
 			return p, nil
 		}).Once()
 		post, err := remote.CreatePost(testPost)
+		require.Nil(t, err)
 		assert.NotEmpty(t, post.Id)
 		assert.Equal(t, testPost.Message, post.Message)
-		assert.Nil(t, err)
 
 		api.On("DeletePost", "thepostid").Return(nil).Once()
 		assert.Nil(t, remote.DeletePost("thepostid"))

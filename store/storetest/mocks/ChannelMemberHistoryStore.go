@@ -60,13 +60,13 @@ func (_m *ChannelMemberHistoryStore) LogLeaveEvent(userId string, channelId stri
 	return r0
 }
 
-// PurgeHistoryBefore provides a mock function with given fields: time, channelId
-func (_m *ChannelMemberHistoryStore) PurgeHistoryBefore(time int64, channelId string) store.StoreChannel {
-	ret := _m.Called(time, channelId)
+// PermanentDeleteBatch provides a mock function with given fields: endTime, limit
+func (_m *ChannelMemberHistoryStore) PermanentDeleteBatch(endTime int64, limit int64) store.StoreChannel {
+	ret := _m.Called(endTime, limit)
 
 	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(int64, string) store.StoreChannel); ok {
-		r0 = rf(time, channelId)
+	if rf, ok := ret.Get(0).(func(int64, int64) store.StoreChannel); ok {
+		r0 = rf(endTime, limit)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(store.StoreChannel)

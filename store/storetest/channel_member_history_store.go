@@ -6,6 +6,8 @@ package storetest
 import (
 	"testing"
 
+	"math"
+
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
 	"github.com/stretchr/testify/assert"
@@ -16,7 +18,7 @@ func TestChannelMemberHistoryStore(t *testing.T, ss store.Store) {
 	t.Run("Log Leave Event", func(t *testing.T) { testLogLeaveEvent(t, ss) })
 	t.Run("Get Users In Channel At Time - ChannelMemberHistory", func(t *testing.T) { testGetUsersInChannelAtChannelMemberHistory(t, ss) })
 	t.Run("Get Users In Channel At Time - ChannelMembers Fallback", func(t *testing.T) { testGetUsersInChannelAtChannelMembers(t, ss) })
-	t.Run("Purge History", func(t *testing.T) { testPurgeHistoryBefore(t, ss) })
+	t.Run("Permanent Delete Batch", func(t *testing.T) { testPermanentDeleteBatch(t, ss) })
 }
 
 func testLogJoinEvent(t *testing.T, ss store.Store) {
@@ -230,7 +232,7 @@ func testGetUsersInChannelAtChannelMembers(t *testing.T, ss store.Store) {
 	assert.Equal(t, leaveTime+200, *channelMembers[0].LeaveTime)
 }
 
-func testPurgeHistoryBefore(t *testing.T, ss store.Store) {
+func testPermanentDeleteBatch(t *testing.T, ss store.Store) {
 	// create a test channel
 	channel := model.Channel{
 		TeamId:      model.NewId(),
@@ -266,8 +268,11 @@ func testPurgeHistoryBefore(t *testing.T, ss store.Store) {
 	channelMembers := store.Must(ss.ChannelMemberHistory().GetUsersInChannelDuring(joinTime+10, leaveTime-10, channel.Id)).([]*model.ChannelMemberHistory)
 	assert.Len(t, channelMembers, 2)
 
-	// but if we purge the old data, only the user that didn't leave is left
-	store.Must(ss.ChannelMemberHistory().PurgeHistoryBefore(leaveTime, channel.Id))
+	// the permanent delete should delete at least one record
+	rowsDeleted := store.Must(ss.ChannelMemberHistory().PermanentDeleteBatch(leaveTime, math.MaxInt64)).(int64)
+	assert.NotEqual(t, int64(0), rowsDeleted)
+
+	// after the delete, there should be one less member in the channel
 	channelMembers = store.Must(ss.ChannelMemberHistory().GetUsersInChannelDuring(joinTime+10, leaveTime-10, channel.Id)).([]*model.ChannelMemberHistory)
 	assert.Len(t, channelMembers, 1)
 	assert.Equal(t, user2.Id, channelMembers[0].UserId)

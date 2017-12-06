@@ -39,7 +39,7 @@ func (s SqlChannelMemberHistoryStore) LogJoinEvent(userId string, channelId stri
 		}
 
 		if err := s.GetMaster().Insert(channelMemberHistory); err != nil {
-			result.Err = model.NewAppError("SqlChannelMemberHistoryStore.LogJoinEvent", "store.sql_channel_member_history.log_join_event.app_error", map[string]interface{}{"ChannelMemberHistory": channelMemberHistory}, err.Error(), http.StatusInternalServerError)
+			result.Err = model.NewAppError("SqlChannelMemberHistoryStore.LogJoinEvent", "store.sql_channel_member_history.log_join_event.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 	})
 }
@@ -55,9 +55,9 @@ func (s SqlChannelMemberHistoryStore) LogLeaveEvent(userId string, channelId str
 
 		params := map[string]interface{}{"UserId": userId, "ChannelId": channelId, "LeaveTime": leaveTime}
 		if sqlResult, err := s.GetMaster().Exec(query, params); err != nil {
-			result.Err = model.NewAppError("SqlChannelMemberHistoryStore.LogLeaveEvent", "store.sql_channel_member_history.log_leave_event.update_error", nil, err.Error(), http.StatusInternalServerError)
+			result.Err = model.NewAppError("SqlChannelMemberHistoryStore.LogLeaveEvent", "store.sql_channel_member_history.log_leave_event.update_error", params, err.Error(), http.StatusInternalServerError)
 		} else if rows, err := sqlResult.RowsAffected(); err == nil && rows != 1 {
-			// there was no join event to update
+			// there was no join event to update - this is best effort, so no need to raise an error
 			l4g.Warn("Channel join event for user %v and channel %v not found", userId, channelId)
 		}
 	})
@@ -142,17 +142,36 @@ func (s SqlChannelMemberHistoryStore) getFromChannelMembersTable(startTime int64
 	}
 }
 
-func (s SqlChannelMemberHistoryStore) PurgeHistoryBefore(time int64, channelId string) store.StoreChannel {
+func (s SqlChannelMemberHistoryStore) PermanentDeleteBatch(endTime int64, limit int64) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
-		query := `
-			DELETE FROM ChannelMemberHistory
-			WHERE ChannelId = :ChannelId
-			AND LeaveTime IS NOT NULL
-			AND LeaveTime <= :AtTime`
+		var query string
+		if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+			query =
+				`DELETE FROM ChannelMemberHistory
+				 WHERE ctid IN (
+				 	SELECT ctid FROM ChannelMemberHistory
+					WHERE LeaveTime IS NOT NULL
+					AND LeaveTime <= :EndTime
+					LIMIT :Limit
+				);`
+		} else {
+			query =
+				`DELETE FROM ChannelMemberHistory
+				 WHERE LeaveTime IS NOT NULL
+				 AND LeaveTime <= :EndTime
+				 LIMIT :Limit`
+		}
 
-		params := map[string]interface{}{"AtTime": time, "ChannelId": channelId}
-		if _, err := s.GetMaster().Exec(query, params); err != nil {
-			result.Err = model.NewAppError("SqlChannelMemberHistoryStore.PurgeHistoryBefore", "store.sql_channel_member_history.purge_history_before.app_error", params, err.Error(), http.StatusInternalServerError)
+		params := map[string]interface{}{"EndTime": endTime, "Limit": limit}
+		if sqlResult, err := s.GetMaster().Exec(query, params); err != nil {
+			result.Err = model.NewAppError("SqlChannelMemberHistoryStore.PermanentDeleteBatchForChannel", "store.sql_channel_member_history.permanent_delete_batch.app_error", params, err.Error(), http.StatusInternalServerError)
+		} else {
+			if rowsAffected, err1 := sqlResult.RowsAffected(); err1 != nil {
+				result.Err = model.NewAppError("SqlChannelMemberHistoryStore.PermanentDeleteBatchForChannel", "store.sql_channel_member_history.permanent_delete_batch.app_error", params, err.Error(), http.StatusInternalServerError)
+				result.Data = int64(0)
+			} else {
+				result.Data = rowsAffected
+			}
 		}
 	})
 }
