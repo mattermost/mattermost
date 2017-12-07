@@ -51,9 +51,9 @@ func TestS3FileBackendTestSuite(t *testing.T) {
 	suite.Run(t, &FileBackendTestSuite{
 		settings: model.FileSettings{
 			DriverName:              model.NewString(model.IMAGE_DRIVER_S3),
-			AmazonS3AccessKeyId:     "minioaccesskey",
-			AmazonS3SecretAccessKey: "miniosecretkey",
-			AmazonS3Bucket:          "mattermost-test",
+			AmazonS3AccessKeyId:     model.MINIO_ACCESS_KEY,
+			AmazonS3SecretAccessKey: model.MINIO_SECRET_KEY,
+			AmazonS3Bucket:          model.MINIO_BUCKET,
 			AmazonS3Endpoint:        s3Endpoint,
 			AmazonS3SSL:             model.NewBool(false),
 		},
@@ -90,6 +90,26 @@ func (s *FileBackendTestSuite) TestCopyFile() {
 	b := []byte("test")
 	path1 := "tests/" + model.NewId()
 	path2 := "tests/" + model.NewId()
+
+	err := s.backend.WriteFile(b, path1)
+	s.Nil(err)
+	defer s.backend.RemoveFile(path1)
+
+	err = s.backend.CopyFile(path1, path2)
+	s.Nil(err)
+	defer s.backend.RemoveFile(path2)
+
+	_, err = s.backend.ReadFile(path1)
+	s.Nil(err)
+
+	_, err = s.backend.ReadFile(path2)
+	s.Nil(err)
+}
+
+func (s *FileBackendTestSuite) TestCopyFileToDirectoryThatDoesntExist() {
+	b := []byte("test")
+	path1 := "tests/" + model.NewId()
+	path2 := "tests/newdirectory/" + model.NewId()
 
 	err := s.backend.WriteFile(b, path1)
 	s.Nil(err)
