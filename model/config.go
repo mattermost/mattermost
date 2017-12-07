@@ -8,7 +8,6 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-	"path/filepath"
 	"strings"
 	"time"
 )
@@ -24,6 +23,10 @@ const (
 
 	DATABASE_DRIVER_MYSQL    = "mysql"
 	DATABASE_DRIVER_POSTGRES = "postgres"
+
+	MINIO_ACCESS_KEY = "minioaccesskey"
+	MINIO_SECRET_KEY = "miniosecretkey"
+	MINIO_BUCKET     = "mattermost-test"
 
 	PASSWORD_MAXIMUM_LENGTH = 64
 	PASSWORD_MINIMUM_LENGTH = 5
@@ -1523,17 +1526,12 @@ type MessageExportSettings struct {
 	EnableExport        *bool
 	DailyRunTime        *string
 	ExportFromTimestamp *int64
-	FileLocation        *string
 	BatchSize           *int
 }
 
 func (s *MessageExportSettings) SetDefaults() {
 	if s.EnableExport == nil {
 		s.EnableExport = NewBool(false)
-	}
-
-	if s.FileLocation == nil {
-		s.FileLocation = NewString("export")
 	}
 
 	if s.DailyRunTime == nil {
@@ -2064,19 +2062,8 @@ func (mes *MessageExportSettings) isValid(fs FileSettings) *AppError {
 			return NewAppError("Config.IsValid", "model.config.is_valid.message_export.daily_runtime.app_error", nil, "", http.StatusBadRequest)
 		} else if _, err := time.Parse("15:04", *mes.DailyRunTime); err != nil {
 			return NewAppError("Config.IsValid", "model.config.is_valid.message_export.daily_runtime.app_error", nil, err.Error(), http.StatusBadRequest)
-		} else if mes.FileLocation == nil {
-			return NewAppError("Config.IsValid", "model.config.is_valid.message_export.file_location.app_error", nil, "", http.StatusBadRequest)
 		} else if mes.BatchSize == nil || *mes.BatchSize < 0 {
 			return NewAppError("Config.IsValid", "model.config.is_valid.message_export.batch_size.app_error", nil, "", http.StatusBadRequest)
-		} else if *fs.DriverName != IMAGE_DRIVER_LOCAL {
-			if absFileDir, err := filepath.Abs(fs.Directory); err != nil {
-				return NewAppError("Config.IsValid", "model.config.is_valid.message_export.file_location.relative", nil, err.Error(), http.StatusBadRequest)
-			} else if absMessageExportDir, err := filepath.Abs(*mes.FileLocation); err != nil {
-				return NewAppError("Config.IsValid", "model.config.is_valid.message_export.file_location.relative", nil, err.Error(), http.StatusBadRequest)
-			} else if !strings.HasPrefix(absMessageExportDir, absFileDir) {
-				// configured export directory must be relative to data directory
-				return NewAppError("Config.IsValid", "model.config.is_valid.message_export.file_location.relative", nil, "", http.StatusBadRequest)
-			}
 		}
 	}
 	return nil
