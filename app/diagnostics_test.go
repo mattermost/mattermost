@@ -43,6 +43,20 @@ func TestPluginSetting(t *testing.T) {
 	assert.Equal(t, "asd", pluginSetting(settings, "test", "qwe", "asd"))
 }
 
+func TestPluginActivated(t *testing.T) {
+	states := map[string]*model.PluginState{
+		"foo": &model.PluginState{
+			Enable: true,
+		},
+		"bar": &model.PluginState{
+			Enable: false,
+		},
+	}
+	assert.True(t, pluginActivated(states, "foo"))
+	assert.False(t, pluginActivated(states, "bar"))
+	assert.False(t, pluginActivated(states, "none"))
+}
+
 func TestDiagnostics(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
