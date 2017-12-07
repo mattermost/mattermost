@@ -6,8 +6,6 @@ package model
 import (
 	"testing"
 
-	"os"
-
 	"github.com/stretchr/testify/require"
 )
 
@@ -100,31 +98,9 @@ func TestMessageExportSettingsIsValidBatchSizeInvalid(t *testing.T) {
 		EnableExport:        NewBool(true),
 		ExportFromTimestamp: NewInt64(0),
 		DailyRunTime:        NewString("15:04"),
-		FileLocation:        NewString("foo"),
 	}
 
 	// should fail fast because batch size isn't set
-	require.Error(t, mes.isValid(*fs))
-}
-
-func TestMessageExportSettingsIsValidFileLocationInvalid(t *testing.T) {
-	fs := &FileSettings{}
-	mes := &MessageExportSettings{
-		EnableExport:        NewBool(true),
-		ExportFromTimestamp: NewInt64(0),
-		DailyRunTime:        NewString("15:04"),
-		BatchSize:           NewInt(100),
-	}
-
-	// should fail fast because FileLocation isn't set
-	require.Error(t, mes.isValid(*fs))
-
-	// if using the local file driver, there are more rules for FileLocation
-	fs.DriverName = NewString(IMAGE_DRIVER_LOCAL)
-	fs.Directory, _ = os.Getwd()
-	mes.FileLocation = NewString("")
-
-	// should fail fast because file location is not relative to basepath
 	require.Error(t, mes.isValid(*fs))
 }
 
@@ -136,7 +112,6 @@ func TestMessageExportSettingsIsValid(t *testing.T) {
 		EnableExport:        NewBool(true),
 		ExportFromTimestamp: NewInt64(0),
 		DailyRunTime:        NewString("15:04"),
-		FileLocation:        NewString("foo"),
 		BatchSize:           NewInt(100),
 	}
 
@@ -149,7 +124,6 @@ func TestMessageExportSetDefaults(t *testing.T) {
 	mes.SetDefaults()
 
 	require.False(t, *mes.EnableExport)
-	require.Equal(t, "export", *mes.FileLocation)
 	require.Equal(t, "01:00", *mes.DailyRunTime)
 	require.Equal(t, int64(0), *mes.ExportFromTimestamp)
 	require.Equal(t, 10000, *mes.BatchSize)
@@ -162,7 +136,6 @@ func TestMessageExportSetDefaultsExportEnabledExportFromTimestampNil(t *testing.
 	mes.SetDefaults()
 
 	require.True(t, *mes.EnableExport)
-	require.Equal(t, "export", *mes.FileLocation)
 	require.Equal(t, "01:00", *mes.DailyRunTime)
 	require.NotEqual(t, int64(0), *mes.ExportFromTimestamp)
 	require.True(t, *mes.ExportFromTimestamp <= GetMillis())
@@ -177,7 +150,6 @@ func TestMessageExportSetDefaultsExportEnabledExportFromTimestampZero(t *testing
 	mes.SetDefaults()
 
 	require.True(t, *mes.EnableExport)
-	require.Equal(t, "export", *mes.FileLocation)
 	require.Equal(t, "01:00", *mes.DailyRunTime)
 	require.NotEqual(t, int64(0), *mes.ExportFromTimestamp)
 	require.True(t, *mes.ExportFromTimestamp <= GetMillis())
@@ -192,7 +164,6 @@ func TestMessageExportSetDefaultsExportEnabledExportFromTimestampNonZero(t *test
 	mes.SetDefaults()
 
 	require.True(t, *mes.EnableExport)
-	require.Equal(t, "export", *mes.FileLocation)
 	require.Equal(t, "01:00", *mes.DailyRunTime)
 	require.Equal(t, int64(12345), *mes.ExportFromTimestamp)
 	require.Equal(t, 10000, *mes.BatchSize)
@@ -205,7 +176,6 @@ func TestMessageExportSetDefaultsExportDisabledExportFromTimestampNil(t *testing
 	mes.SetDefaults()
 
 	require.False(t, *mes.EnableExport)
-	require.Equal(t, "export", *mes.FileLocation)
 	require.Equal(t, "01:00", *mes.DailyRunTime)
 	require.Equal(t, int64(0), *mes.ExportFromTimestamp)
 	require.Equal(t, 10000, *mes.BatchSize)
@@ -219,7 +189,6 @@ func TestMessageExportSetDefaultsExportDisabledExportFromTimestampZero(t *testin
 	mes.SetDefaults()
 
 	require.False(t, *mes.EnableExport)
-	require.Equal(t, "export", *mes.FileLocation)
 	require.Equal(t, "01:00", *mes.DailyRunTime)
 	require.Equal(t, int64(0), *mes.ExportFromTimestamp)
 	require.Equal(t, 10000, *mes.BatchSize)
@@ -233,7 +202,6 @@ func TestMessageExportSetDefaultsExportDisabledExportFromTimestampNonZero(t *tes
 	mes.SetDefaults()
 
 	require.False(t, *mes.EnableExport)
-	require.Equal(t, "export", *mes.FileLocation)
 	require.Equal(t, "01:00", *mes.DailyRunTime)
 	require.Equal(t, int64(0), *mes.ExportFromTimestamp)
 	require.Equal(t, 10000, *mes.BatchSize)
