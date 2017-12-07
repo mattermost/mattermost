@@ -110,6 +110,14 @@ func pluginSetting(pluginSettings *model.PluginSettings, plugin, key string, def
 	return defaultValue
 }
 
+func pluginActivated(pluginStates map[string]*model.PluginState, pluginId string) bool {
+	state, ok := pluginStates[pluginId]
+	if !ok {
+		return false
+	}
+	return state.Enable
+}
+
 func (a *App) trackActivity() {
 	var userCount int64
 	var activeUserCount int64
@@ -460,6 +468,7 @@ func (a *App) trackConfig() {
 
 	SendDiagnostic(TRACK_CONFIG_PLUGIN, map[string]interface{}{
 		"enable_jira":    pluginSetting(&cfg.PluginSettings, "jira", "enabled", false),
+		"enable_zoom":    pluginActivated(cfg.PluginSettings.PluginStates, "zoom"),
 		"enable":         *cfg.PluginSettings.Enable,
 		"enable_uploads": *cfg.PluginSettings.EnableUploads,
 	})
