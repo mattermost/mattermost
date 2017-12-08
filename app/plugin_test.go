@@ -13,6 +13,8 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/plugin"
+	"github.com/mattermost/mattermost-server/plugin/plugintest"
 )
 
 func TestPluginKeyValueStore(t *testing.T) {
@@ -97,4 +99,99 @@ func TestHandlePluginRequest(t *testing.T) {
 		assert.Empty(t, r.Header.Get("Mattermost-User-Id"))
 	}
 	router.ServeHTTP(nil, r)
+}
+
+type testPlugin struct {
+	plugintest.Hooks
+}
+
+func (p *testPlugin) OnConfigurationChange() error {
+	return nil
+}
+
+func (p *testPlugin) OnDeactivate() error {
+	return nil
+}
+
+type pluginCommandTestPlugin struct {
+	testPlugin
+
+	TeamId string
+}
+
+func (p *pluginCommandTestPlugin) OnActivate(api plugin.API) error {
+	if err := api.RegisterCommand(&model.Command{
+		Trigger: "foo",
+		TeamId:  p.TeamId,
+	}); err != nil {
+		return err
+	}
+	if err := api.RegisterCommand(&model.Command{
+		Trigger: "foo2",
+		TeamId:  p.TeamId,
+	}); err != nil {
+		return err
+	}
+	return api.UnregisterCommand(p.TeamId, "foo2")
+}
+
+func (p *pluginCommandTestPlugin) ExecuteCommand(args *model.CommandArgs) (*model.CommandResponse, *model.AppError) {
+	if args.Command == "/foo" {
+		return &model.CommandResponse{
+			Text: "bar",
+		}, nil
+	}
+	return nil, model.NewAppError("ExecuteCommand", "this is an error", nil, "", http.StatusBadRequest)
+}
+
+func TestPluginCommands(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	th.InstallPlugin(&model.Manifest{
+		Id: "foo",
+	}, &pluginCommandTestPlugin{
+		TeamId: th.BasicTeam.Id,
+	})
+
+	require.Nil(t, th.App.EnablePlugin("foo"))
+
+	resp, err := th.App.ExecuteCommand(&model.CommandArgs{
+		Command:   "/foo2",
+		TeamId:    th.BasicTeam.Id,
+		UserId:    th.BasicUser.Id,
+		ChannelId: th.BasicChannel.Id,
+	})
+	require.NotNil(t, err)
+	assert.Equal(t, http.StatusNotFound, err.StatusCode)
+
+	resp, err = th.App.ExecuteCommand(&model.CommandArgs{
+		Command:   "/foo",
+		TeamId:    th.BasicTeam.Id,
+		UserId:    th.BasicUser.Id,
+		ChannelId: th.BasicChannel.Id,
+	})
+	require.Nil(t, err)
+	assert.Equal(t, "bar", resp.Text)
+
+	resp, err = th.App.ExecuteCommand(&model.CommandArgs{
+		Command:   "/foo baz",
+		TeamId:    th.BasicTeam.Id,
+		UserId:    th.BasicUser.Id,
+		ChannelId: th.BasicChannel.Id,
+	})
+	require.NotNil(t, err)
+	require.Equal(t, "this is an error", err.Message)
+	assert.Nil(t, resp)
+
+	require.Nil(t, th.App.RemovePlugin("foo"))
+
+	resp, err = th.App.ExecuteCommand(&model.CommandArgs{
+		Command:   "/foo",
+		TeamId:    th.BasicTeam.Id,
+		UserId:    th.BasicUser.Id,
+		ChannelId: th.BasicChannel.Id,
+	})
+	require.NotNil(t, err)
+	assert.Equal(t, http.StatusNotFound, err.StatusCode)
 }

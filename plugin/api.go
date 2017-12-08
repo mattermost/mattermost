@@ -16,6 +16,13 @@ type API interface {
 	// struct that the configuration JSON can be unmarshalled to.
 	LoadPluginConfiguration(dest interface{}) error
 
+	// RegisterCommand registers a custom slash command. When the command is triggered, your plugin
+	// can fulfill it via the ExecuteCommand hook.
+	RegisterCommand(command *model.Command) error
+
+	// UnregisterCommand unregisters a command previously registered via RegisterCommand.
+	UnregisterCommand(teamId, trigger string) error
+
 	// CreateUser creates a user.
 	CreateUser(user *model.User) (*model.User, *model.AppError)
 

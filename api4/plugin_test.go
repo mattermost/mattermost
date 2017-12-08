@@ -46,7 +46,7 @@ func TestPlugin(t *testing.T) {
 		*cfg.PluginSettings.EnableUploads = true
 	})
 
-	th.App.InitPlugins(pluginDir, webappDir)
+	th.App.InitPlugins(pluginDir, webappDir, nil)
 	defer func() {
 		th.App.ShutDownPlugins()
 		th.App.PluginEnv = nil

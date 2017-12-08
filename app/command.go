@@ -75,6 +75,13 @@ func (a *App) ListAutocompleteCommands(teamId string, T goi18n.TranslateFunc) ([
 		}
 	}
 
+	for _, cmd := range a.PluginCommandsForTeam(teamId) {
+		if cmd.AutoComplete && !seen[cmd.Trigger] {
+			seen[cmd.Trigger] = true
+			commands = append(commands, cmd)
+		}
+	}
+
 	if *a.Config().ServiceSettings.EnableCommands {
 		if result := <-a.Srv.Store.Command().GetByTeam(teamId); result.Err != nil {
 			return nil, result.Err
@@ -111,11 +118,18 @@ func (a *App) ListAllCommands(teamId string, T goi18n.TranslateFunc) ([]*model.C
 	for _, value := range commandProviders {
 		if cmd := value.GetCommand(a, T); cmd != nil {
 			cpy := *cmd
-			if cpy.AutoComplete && !seen[cpy.Id] {
+			if cpy.AutoComplete && !seen[cpy.Trigger] {
 				cpy.Sanitize()
 				seen[cpy.Trigger] = true
 				commands = append(commands, &cpy)
 			}
+		}
+	}
+
+	for _, cmd := range a.PluginCommandsForTeam(teamId) {
+		if !seen[cmd.Trigger] {
+			seen[cmd.Trigger] = true
+			commands = append(commands, cmd)
 		}
 	}
 
@@ -125,7 +139,7 @@ func (a *App) ListAllCommands(teamId string, T goi18n.TranslateFunc) ([]*model.C
 		} else {
 			teamCmds := result.Data.([]*model.Command)
 			for _, cmd := range teamCmds {
-				if !seen[cmd.Id] {
+				if !seen[cmd.Trigger] {
 					cmd.Sanitize()
 					seen[cmd.Trigger] = true
 					commands = append(commands, cmd)
@@ -149,6 +163,12 @@ func (a *App) ExecuteCommand(args *model.CommandArgs) (*model.CommandResponse, *
 			response := provider.DoCommand(a, args, message)
 			return a.HandleCommandResponse(cmd, args, response, true)
 		}
+	}
+
+	if cmd, response, err := a.ExecutePluginCommand(args); err != nil {
+		return nil, err
+	} else if cmd != nil {
+		return a.HandleCommandResponse(cmd, args, response, true)
 	}
 
 	if !*a.Config().ServiceSettings.EnableCommands {

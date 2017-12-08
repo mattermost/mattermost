@@ -30,6 +30,22 @@ func (m *API) LoadPluginConfiguration(dest interface{}) error {
 	return ret.Error(0)
 }
 
+func (m *API) RegisterCommand(command *model.Command) error {
+	ret := m.Called(command)
+	if f, ok := ret.Get(0).(func(*model.Command) error); ok {
+		return f(command)
+	}
+	return ret.Error(0)
+}
+
+func (m *API) UnregisterCommand(teamId, trigger string) error {
+	ret := m.Called(teamId, trigger)
+	if f, ok := ret.Get(0).(func(string, string) error); ok {
+		return f(teamId, trigger)
+	}
+	return ret.Error(0)
+}
+
 func (m *API) CreateUser(user *model.User) (*model.User, *model.AppError) {
 	ret := m.Called(user)
 	if f, ok := ret.Get(0).(func(*model.User) (*model.User, *model.AppError)); ok {
