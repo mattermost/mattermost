@@ -242,8 +242,8 @@ type mockPluginSupervisor struct {
 	hooks plugin.Hooks
 }
 
-func (s *mockPluginSupervisor) Start() error {
-	return nil
+func (s *mockPluginSupervisor) Start(api plugin.API) error {
+	return s.hooks.OnActivate(api)
 }
 
 func (s *mockPluginSupervisor) Stop() error {

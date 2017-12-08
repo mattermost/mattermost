@@ -382,11 +382,10 @@ func TestEnvironment_HooksForPlugins(t *testing.T) {
 	provider.On("API").Return(&api, nil)
 	provider.On("Supervisor").Return(&supervisor, nil)
 
-	supervisor.On("Start").Return(nil)
+	supervisor.On("Start", &api).Return(nil)
 	supervisor.On("Stop").Return(nil)
 	supervisor.On("Hooks").Return(&hooks)
 
-	hooks.On("OnActivate", &api).Return(nil)
 	hooks.On("OnDeactivate").Return(nil)
 	hooks.On("ExecuteCommand", mock.AnythingOfType("*model.CommandArgs")).Return(&model.CommandResponse{
 		Text: "bar",
