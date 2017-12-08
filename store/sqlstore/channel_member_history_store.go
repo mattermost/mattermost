@@ -6,7 +6,10 @@ package sqlstore
 import (
 	"net/http"
 
+	"database/sql"
+
 	l4g "github.com/alecthomas/log4go"
+	"github.com/mattermost/gorp"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
 )
@@ -89,11 +92,18 @@ func (s SqlChannelMemberHistoryStore) GetUsersInChannelDuring(startTime int64, e
 }
 
 func (s SqlChannelMemberHistoryStore) hasDataFromBefore(time int64) (bool, error) {
-	query := "SELECT MIN(JoinTime) FROM ChannelMemberHistory"
-	if earliestJoinTime, err := s.GetReplica().SelectInt(query); err != nil {
+	type NullableCountResult struct {
+		Min sql.NullInt64
+	}
+	var result NullableCountResult
+	query := "SELECT MIN(JoinTime) AS Min FROM ChannelMemberHistory"
+	if err := s.GetReplica().SelectOne(&result, query); err != nil {
 		return false, err
+	} else if result.Min.Valid {
+		return result.Min.Int64 < time, nil
 	} else {
-		return earliestJoinTime < time, nil
+		// if the result was null, there are no rows in the table, so there is no data from before
+		return false, nil
 	}
 }
 
@@ -174,4 +184,9 @@ func (s SqlChannelMemberHistoryStore) PermanentDeleteBatch(endTime int64, limit 
 			}
 		}
 	})
+}
+
+// used by tests to truncate data in the store
+func (s SqlChannelMemberHistoryStore) GetDbMaster() *gorp.DbMap {
+	return s.GetMaster()
 }

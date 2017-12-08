@@ -163,9 +163,13 @@ func testGetUsersInChannelAtChannelMembers(t *testing.T, ss store.Store) {
 	}
 	user = *store.Must(ss.User().Save(&user)).(*model.User)
 
+	// clear any existing ChannelMemberHistory data that might interfere with our test
+	if _, err := ss.ChannelMemberHistory().GetDbMaster().Exec("TRUNCATE TABLE ChannelMemberHistory"); err != nil {
+		assert.Fail(t, "Failed to truncate table", err.Error())
+	}
+
 	// in this test, we're pretending that Message Export was not activated during the export period, so there's no data
 	// available in the ChannelMemberHistory table. Instead, we'll fall back to the ChannelMembers table for a rough approximation
-	// Note: This will break if another test inserts records into ChannelMemberHistory with a join time before 1000
 	joinTime := int64(1000)
 	leaveTime := joinTime + 5000
 	store.Must(ss.Channel().SaveMember(&model.ChannelMember{
