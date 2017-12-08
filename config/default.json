@@ -54,7 +54,8 @@
         "EnableUserStatuses": true,
         "ClusterLogTimeoutMilliseconds": 2000,
         "EnablePreviewFeatures": true,
-        "CloseUnusedDirectMessages": false
+        "CloseUnusedDirectMessages": false,
+        "EnableTutorial": true
     },
     "TeamSettings": {
         "SiteName": "Mattermost",
