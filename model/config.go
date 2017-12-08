@@ -212,6 +212,7 @@ type ServiceSettings struct {
 	ClusterLogTimeoutMilliseconds            *int
 	CloseUnusedDirectMessages                *bool
 	EnablePreviewFeatures                    *bool
+	EnableTutorial                           *bool
 }
 
 func (s *ServiceSettings) SetDefaults() {
@@ -329,6 +330,10 @@ func (s *ServiceSettings) SetDefaults() {
 
 	if s.CloseUnusedDirectMessages == nil {
 		s.CloseUnusedDirectMessages = NewBool(false)
+	}
+
+	if s.EnableTutorial == nil {
+		s.EnableTutorial = NewBool(true)
 	}
 
 	if s.SessionLengthWebInDays == nil {
