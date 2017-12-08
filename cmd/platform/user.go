@@ -184,8 +184,8 @@ func changeUserActiveStatus(a *app.App, user *model.User, userArg string, activa
 	if user == nil {
 		return fmt.Errorf("Can't find user '%v'", userArg)
 	}
-	if user.IsLDAPUser() {
-		return errors.New("You can not modify the activation status of AD/LDAP accounts. Please modify through the AD/LDAP server.")
+	if user.IsSSOUser() {
+		fmt.Println("You must also deactivate this user in the SSO provider or they will be reactivated on next login or sync.")
 	}
 	if _, err := a.UpdateActive(user, activate); err != nil {
 		return fmt.Errorf("Unable to change activation status of user: %v", userArg)

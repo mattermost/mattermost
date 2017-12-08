@@ -1163,6 +1163,13 @@ func TestUpdateUserActive(t *testing.T) {
 
 	_, resp = SystemAdminClient.UpdateUserActive(user.Id, false)
 	CheckNoError(t, resp)
+
+	authData := model.NewId()
+	result := <-th.App.Srv.Store.User().UpdateAuthData(user.Id, "random", &authData, "", true)
+	require.Nil(t, result.Err)
+
+	_, resp = SystemAdminClient.UpdateUserActive(user.Id, false)
+	CheckNoError(t, resp)
 }
 
 func TestGetUsers(t *testing.T) {
@@ -2123,7 +2130,9 @@ func TestSwitchAccount(t *testing.T) {
 	defer func() {
 		utils.SetIsLicensed(isLicensed)
 		utils.SetLicense(license)
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ExperimentalEnableAuthenticationTransfer = enableAuthenticationTransfer })
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.ExperimentalEnableAuthenticationTransfer = enableAuthenticationTransfer
+		})
 	}()
 	utils.SetIsLicensed(true)
 	utils.SetLicense(&model.License{Features: &model.Features{}})
