@@ -34,6 +34,15 @@ func (api *PluginAPI) LoadPluginConfiguration(dest interface{}) error {
 	}
 }
 
+func (api *PluginAPI) RegisterCommand(command *model.Command) error {
+	return api.app.RegisterPluginCommand(api.id, command)
+}
+
+func (api *PluginAPI) UnregisterCommand(teamId, trigger string) error {
+	api.app.UnregisterPluginCommand(api.id, teamId, trigger)
+	return nil
+}
+
 func (api *PluginAPI) CreateTeam(team *model.Team) (*model.Team, *model.AppError) {
 	return api.app.CreateTeam(team)
 }

@@ -11,6 +11,7 @@ import (
 	"net/rpc"
 	"reflect"
 
+	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/plugin"
 )
 
@@ -125,6 +126,20 @@ func (h *LocalHooks) ServeHTTP(args ServeHTTPArgs, reply *struct{}) error {
 	return nil
 }
 
+type HooksExecuteCommandReply struct {
+	Response *model.CommandResponse
+	Error    *model.AppError
+}
+
+func (h *LocalHooks) ExecuteCommand(args *model.CommandArgs, reply *HooksExecuteCommandReply) error {
+	if hook, ok := h.hooks.(interface {
+		ExecuteCommand(*model.CommandArgs) (*model.CommandResponse, *model.AppError)
+	}); ok {
+		reply.Response, reply.Error = hook.ExecuteCommand(args)
+	}
+	return nil
+}
+
 func ServeHooks(hooks interface{}, conn io.ReadWriteCloser, muxer *Muxer) {
 	server := rpc.NewServer()
 	server.Register(&LocalHooks{
@@ -141,6 +156,7 @@ const (
 	remoteOnDeactivate          = 1
 	remoteServeHTTP             = 2
 	remoteOnConfigurationChange = 3
+	remoteExecuteCommand        = 4
 	maxRemoteHookCount          = iota
 )
 
@@ -225,6 +241,17 @@ func (h *RemoteHooks) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (h *RemoteHooks) ExecuteCommand(args *model.CommandArgs) (*model.CommandResponse, *model.AppError) {
+	if !h.implemented[remoteExecuteCommand] {
+		return nil, model.NewAppError("RemoteHooks.ExecuteCommand", "plugin.rpcplugin.invocation.error", nil, "err=ExecuteCommand hook not implemented", http.StatusInternalServerError)
+	}
+	var reply HooksExecuteCommandReply
+	if err := h.client.Call("LocalHooks.ExecuteCommand", args, &reply); err != nil {
+		return nil, model.NewAppError("RemoteHooks.ExecuteCommand", "plugin.rpcplugin.invocation.error", nil, "err="+err.Error(), http.StatusInternalServerError)
+	}
+	return reply.Response, reply.Error
+}
+
 func (h *RemoteHooks) Close() error {
 	if h.apiCloser != nil {
 		h.apiCloser.Close()
@@ -253,6 +280,8 @@ func ConnectHooks(conn io.ReadWriteCloser, muxer *Muxer) (*RemoteHooks, error) {
 			remote.implemented[remoteOnConfigurationChange] = true
 		case "ServeHTTP":
 			remote.implemented[remoteServeHTTP] = true
+		case "ExecuteCommand":
+			remote.implemented[remoteExecuteCommand] = true
 		}
 	}
 	return remote, nil
