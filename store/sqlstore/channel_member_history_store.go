@@ -67,7 +67,7 @@ func (s SqlChannelMemberHistoryStore) LogLeaveEvent(userId string, channelId str
 
 func (s SqlChannelMemberHistoryStore) GetUsersInChannelDuring(startTime int64, endTime int64, channelId string) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
-		if useChannelMemberHistory, err := s.hasDataFromBefore(startTime); err != nil {
+		if useChannelMemberHistory, err := s.hasDataAtOrBefore(startTime); err != nil {
 			result.Err = model.NewAppError("SqlChannelMemberHistoryStore.GetUsersInChannelAt", "store.sql_channel_member_history.get_users_in_channel_during.app_error", nil, err.Error(), http.StatusInternalServerError)
 		} else if useChannelMemberHistory {
 			// the export period starts after the ChannelMemberHistory table was first introduced, so we can use the
@@ -90,7 +90,7 @@ func (s SqlChannelMemberHistoryStore) GetUsersInChannelDuring(startTime int64, e
 	})
 }
 
-func (s SqlChannelMemberHistoryStore) hasDataFromBefore(time int64) (bool, error) {
+func (s SqlChannelMemberHistoryStore) hasDataAtOrBefore(time int64) (bool, error) {
 	type NullableCountResult struct {
 		Min sql.NullInt64
 	}
