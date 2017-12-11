@@ -8,7 +8,6 @@ import (
 
 	l4g "github.com/alecthomas/log4go"
 
-	"github.com/mattermost/gorp"
 	"github.com/mattermost/mattermost-server/model"
 )
 
@@ -167,7 +166,6 @@ type ChannelMemberHistoryStore interface {
 	LogLeaveEvent(userId string, channelId string, leaveTime int64) StoreChannel
 	GetUsersInChannelDuring(startTime int64, endTime int64, channelId string) StoreChannel
 	PermanentDeleteBatch(endTime int64, limit int64) StoreChannel
-	GetDbMaster() *gorp.DbMap
 }
 
 type PostStore interface {

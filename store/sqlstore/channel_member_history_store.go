@@ -9,7 +9,6 @@ import (
 	"database/sql"
 
 	l4g "github.com/alecthomas/log4go"
-	"github.com/mattermost/gorp"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
 )
@@ -184,9 +183,4 @@ func (s SqlChannelMemberHistoryStore) PermanentDeleteBatch(endTime int64, limit 
 			}
 		}
 	})
-}
-
-// used by tests to truncate data in the store
-func (s SqlChannelMemberHistoryStore) GetDbMaster() *gorp.DbMap {
-	return s.GetMaster()
 }
