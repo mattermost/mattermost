@@ -64,7 +64,7 @@ func (a *App) JoinDefaultChannels(teamId string, user *model.User, channelRole s
 		}
 
 		if requestor == nil {
-			if err := a.postJoinChannelMessage(user, townSquare); err != nil {
+			if err := a.postJoinTeamMessage(user, townSquare); err != nil {
 				l4g.Error(utils.T("api.channel.post_user_add_remove_message_and_forget.error"), err)
 			}
 		} else {
@@ -960,6 +960,24 @@ func (a *App) postJoinChannelMessage(user *model.User, channel *model.Channel) *
 
 	if _, err := a.CreatePost(post, channel, false); err != nil {
 		return model.NewAppError("postJoinChannelMessage", "api.channel.post_user_add_remove_message_and_forget.error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return nil
+}
+
+func (a *App) postJoinTeamMessage(user *model.User, channel *model.Channel) *model.AppError {
+	post := &model.Post{
+		ChannelId: channel.Id,
+		Message:   fmt.Sprintf(utils.T("api.team.join_team.post_and_forget"), user.Username),
+		Type:      model.POST_JOIN_TEAM,
+		UserId:    user.Id,
+		Props: model.StringInterface{
+			"username": user.Username,
+		},
+	}
+
+	if _, err := a.CreatePost(post, channel, false); err != nil {
+		return model.NewAppError("postJoinTeamMessage", "api.channel.post_user_add_remove_message_and_forget.error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	return nil

@@ -15,6 +15,7 @@ import (
 )
 
 const (
+	VERSION_4_6_0            = "4.6.0"
 	VERSION_4_5_0            = "4.5.0"
 	VERSION_4_4_0            = "4.4.0"
 	VERSION_4_3_0            = "4.3.0"
@@ -60,6 +61,7 @@ func UpgradeDatabase(sqlStore SqlStore) {
 	UpgradeDatabaseToVersion43(sqlStore)
 	UpgradeDatabaseToVersion44(sqlStore)
 	UpgradeDatabaseToVersion45(sqlStore)
+	UpgradeDatabaseToVersion46(sqlStore)
 
 	// If the SchemaVersion is empty this this is the first time it has ran
 	// so lets set it to the current version.
@@ -322,14 +324,16 @@ func UpgradeDatabaseToVersion44(sqlStore SqlStore) {
 	}
 }
 
+func UpgradeDatabaseToVersion46(sqlStore SqlStore) {
+	//TODO: Uncomment folowing when version 4.6 is released
+	//if shouldPerformUpgrade(sqlStore, VERSION_4_5_0, VERSION_4_6_0) {
+
+	//saveSchemaVersion(sqlStore, VERSION_4_6_0)
+	//}
+}
+
 func UpgradeDatabaseToVersion45(sqlStore SqlStore) {
-	//TODO: Remove next two lines before 4.5 release. They're just here to fix CI servers
-	sqlStore.AlterColumnTypeIfExists("PluginKeyValueStore", "PKey", "varchar(50)", "varchar(50)")
-	sqlStore.AlterColumnTypeIfExists("PluginKeyValueStore", "PluginId", "varchar(190)", "varchar(190)")
-
-	//TODO: Uncomment when 4.5 is released
-	/*if shouldPerformUpgrade(sqlStore, VERSION_4_4_0, VERSION_4_5_0) {
-
+	if shouldPerformUpgrade(sqlStore, VERSION_4_4_0, VERSION_4_5_0) {
 		saveSchemaVersion(sqlStore, VERSION_4_5_0)
-	}*/
+	}
 }

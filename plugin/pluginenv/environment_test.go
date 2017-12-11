@@ -355,3 +355,51 @@ func TestEnvironment_ConcurrentHookInvocations(t *testing.T) {
 
 	wg.Wait()
 }
+
+func TestEnvironment_HooksForPlugins(t *testing.T) {
+	dir := initTmpDir(t, map[string]string{
+		"foo/plugin.json": `{"id": "foo", "backend": {}}`,
+	})
+	defer os.RemoveAll(dir)
+
+	var provider MockProvider
+	defer provider.AssertExpectations(t)
+
+	env, err := New(
+		SearchPath(dir),
+		APIProvider(provider.API),
+		SupervisorProvider(provider.Supervisor),
+	)
+	require.NoError(t, err)
+	defer env.Shutdown()
+
+	var api struct{ plugin.API }
+	var supervisor MockSupervisor
+	defer supervisor.AssertExpectations(t)
+	var hooks plugintest.Hooks
+	defer hooks.AssertExpectations(t)
+
+	provider.On("API").Return(&api, nil)
+	provider.On("Supervisor").Return(&supervisor, nil)
+
+	supervisor.On("Start", &api).Return(nil)
+	supervisor.On("Stop").Return(nil)
+	supervisor.On("Hooks").Return(&hooks)
+
+	hooks.On("OnDeactivate").Return(nil)
+	hooks.On("ExecuteCommand", mock.AnythingOfType("*model.CommandArgs")).Return(&model.CommandResponse{
+		Text: "bar",
+	}, nil)
+
+	assert.NoError(t, env.ActivatePlugin("foo"))
+	assert.Equal(t, env.ActivePluginIds(), []string{"foo"})
+
+	resp, appErr, err := env.HooksForPlugin("foo").ExecuteCommand(&model.CommandArgs{
+		Command: "/foo",
+	})
+	assert.Equal(t, "bar", resp.Text)
+	assert.Nil(t, appErr)
+	assert.NoError(t, err)
+
+	assert.Empty(t, env.Shutdown())
+}

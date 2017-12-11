@@ -5,6 +5,8 @@ package plugin
 
 import (
 	"net/http"
+
+	"github.com/mattermost/mattermost-server/model"
 )
 
 // Methods from the Hooks interface can be used by a plugin to respond to events. Methods are likely
@@ -30,4 +32,8 @@ type Hooks interface {
 	// The Mattermost-User-Id header will be present if (and only if) the request is by an
 	// authenticated user.
 	ServeHTTP(http.ResponseWriter, *http.Request)
+
+	// ExecuteCommand executes a command that has been previously registered via the RegisterCommand
+	// API.
+	ExecuteCommand(args *model.CommandArgs) (*model.CommandResponse, *model.AppError)
 }

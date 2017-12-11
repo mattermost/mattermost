@@ -2,6 +2,7 @@ package rpcplugin
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"testing"
@@ -83,6 +84,16 @@ func TestAPI(t *testing.T) {
 		assert.NoError(t, remote.LoadPluginConfiguration(&config))
 		assert.Equal(t, "foo", config.Foo)
 		assert.Equal(t, "baz", config.Bar.Baz)
+
+		api.On("RegisterCommand", mock.AnythingOfType("*model.Command")).Return(fmt.Errorf("foo")).Once()
+		assert.Error(t, remote.RegisterCommand(&model.Command{}))
+		api.On("RegisterCommand", mock.AnythingOfType("*model.Command")).Return(nil).Once()
+		assert.NoError(t, remote.RegisterCommand(&model.Command{}))
+
+		api.On("UnregisterCommand", "team", "trigger").Return(fmt.Errorf("foo")).Once()
+		assert.Error(t, remote.UnregisterCommand("team", "trigger"))
+		api.On("UnregisterCommand", "team", "trigger").Return(nil).Once()
+		assert.NoError(t, remote.UnregisterCommand("team", "trigger"))
 
 		api.On("CreateChannel", mock.AnythingOfType("*model.Channel")).Return(func(c *model.Channel) (*model.Channel, *model.AppError) {
 			c.Id = "thechannelid"

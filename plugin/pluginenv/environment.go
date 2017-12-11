@@ -223,35 +223,59 @@ func (env *Environment) Shutdown() (errs []error) {
 	return
 }
 
-type EnvironmentHooks struct {
+type MultiPluginHooks struct {
 	env *Environment
 }
 
-func (env *Environment) Hooks() *EnvironmentHooks {
-	return &EnvironmentHooks{env}
+type SinglePluginHooks struct {
+	env      *Environment
+	pluginId string
 }
 
-// OnConfigurationChange invokes the OnConfigurationChange hook for all plugins. Any errors
-// encountered will be returned.
-func (h *EnvironmentHooks) OnConfigurationChange() (errs []error) {
+func (env *Environment) Hooks() *MultiPluginHooks {
+	return &MultiPluginHooks{
+		env: env,
+	}
+}
+
+func (env *Environment) HooksForPlugin(id string) *SinglePluginHooks {
+	return &SinglePluginHooks{
+		env:      env,
+		pluginId: id,
+	}
+}
+
+func (h *MultiPluginHooks) invoke(f func(plugin.Hooks) error) (errs []error) {
 	h.env.mutex.RLock()
 	defer h.env.mutex.RUnlock()
+
 	for _, activePlugin := range h.env.activePlugins {
 		if activePlugin.Supervisor == nil {
 			continue
 		}
-		if err := activePlugin.Supervisor.Hooks().OnConfigurationChange(); err != nil {
-			errs = append(errs, errors.Wrapf(err, "OnConfigurationChange error for %v", activePlugin.BundleInfo.Manifest.Id))
+		if err := f(activePlugin.Supervisor.Hooks()); err != nil {
+			errs = append(errs, errors.Wrapf(err, "hook error for %v", activePlugin.BundleInfo.Manifest.Id))
 		}
 	}
 	return
+}
+
+// OnConfigurationChange invokes the OnConfigurationChange hook for all plugins. Any errors
+// encountered will be returned.
+func (h *MultiPluginHooks) OnConfigurationChange() []error {
+	return h.invoke(func(hooks plugin.Hooks) error {
+		if err := hooks.OnConfigurationChange(); err != nil {
+			return errors.Wrapf(err, "error calling OnConfigurationChange hook")
+		}
+		return nil
+	})
 }
 
 // ServeHTTP invokes the ServeHTTP hook for the plugin identified by the request or responds with a
 // 404 not found.
 //
 // It expects the request's context to have a plugin_id set.
-func (h *EnvironmentHooks) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (h *MultiPluginHooks) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if id := r.Context().Value("plugin_id"); id != nil {
 		if idstr, ok := id.(string); ok {
 			h.env.mutex.RLock()
@@ -263,4 +287,26 @@ func (h *EnvironmentHooks) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	http.NotFound(w, r)
+}
+
+func (h *SinglePluginHooks) invoke(f func(plugin.Hooks) error) error {
+	h.env.mutex.RLock()
+	defer h.env.mutex.RUnlock()
+
+	if activePlugin, ok := h.env.activePlugins[h.pluginId]; ok && activePlugin.Supervisor != nil {
+		if err := f(activePlugin.Supervisor.Hooks()); err != nil {
+			return errors.Wrapf(err, "hook error for plugin: %v", activePlugin.BundleInfo.Manifest.Id)
+		}
+		return nil
+	}
+	return fmt.Errorf("unable to invoke hook for plugin: %v", h.pluginId)
+}
+
+// ExecuteCommand invokes the ExecuteCommand hook for the plugin.
+func (h *SinglePluginHooks) ExecuteCommand(args *model.CommandArgs) (resp *model.CommandResponse, appErr *model.AppError, err error) {
+	err = h.invoke(func(hooks plugin.Hooks) error {
+		resp, appErr = hooks.ExecuteCommand(args)
+		return nil
+	})
+	return
 }

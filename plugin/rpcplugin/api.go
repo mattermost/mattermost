@@ -32,6 +32,14 @@ func (api *LocalAPI) LoadPluginConfiguration(args struct{}, reply *[]byte) error
 	return nil
 }
 
+func (api *LocalAPI) RegisterCommand(args *model.Command, reply *APITeamReply) error {
+	return api.api.RegisterCommand(args)
+}
+
+func (api *LocalAPI) UnregisterCommand(args *APIUnregisterCommandArgs, reply *APITeamReply) error {
+	return api.api.UnregisterCommand(args.TeamId, args.Trigger)
+}
+
 type APIErrorReply struct {
 	Error *model.AppError
 }
@@ -342,6 +350,22 @@ func (api *RemoteAPI) LoadPluginConfiguration(dest interface{}) error {
 		return err
 	}
 	return json.Unmarshal(config, dest)
+}
+
+func (api *RemoteAPI) RegisterCommand(command *model.Command) error {
+	return api.client.Call("LocalAPI.RegisterCommand", command, nil)
+}
+
+type APIUnregisterCommandArgs struct {
+	TeamId  string
+	Trigger string
+}
+
+func (api *RemoteAPI) UnregisterCommand(teamId, trigger string) error {
+	return api.client.Call("LocalAPI.UnregisterCommand", &APIUnregisterCommandArgs{
+		TeamId:  teamId,
+		Trigger: trigger,
+	}, nil)
 }
 
 func (api *RemoteAPI) CreateUser(user *model.User) (*model.User, *model.AppError) {

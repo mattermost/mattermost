@@ -2287,6 +2287,10 @@
     "translation": "Email must be from a specific domain (e.g. @example.com). Please ask your systems administrator for details."
   },
   {
+    "id": "api.team.join_team.post_and_forget",
+    "translation": "%v joined the team."
+  },
+  {
     "id": "api.team.leave.left",
     "translation": "%v left the team."
   },
@@ -4261,6 +4265,10 @@
   {
     "id": "mattermost.working_dir",
     "translation": "Current working directory is %v"
+  },
+  {
+    "id": "model.plugin_command.error.app_error",
+    "translation": "An error occurred while trying to execute this command."
   },
   {
     "id": "model.plugin_key_value.is_valid.plugin_id.app_error",
