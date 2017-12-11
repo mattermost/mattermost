@@ -100,7 +100,7 @@ func (s SqlChannelMemberHistoryStore) hasDataFromBefore(time int64) (bool, error
 	if err := s.GetReplica().SelectOne(&result, query); err != nil {
 		return false, err
 	} else if result.Min.Valid {
-		return result.Min.Int64 < time, nil
+		return result.Min.Int64 <= time, nil
 	} else {
 		// if the result was null, there are no rows in the table, so there is no data from before
 		return false, nil
