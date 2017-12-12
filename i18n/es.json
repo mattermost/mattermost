@@ -984,7 +984,7 @@
   },
   {
     "id": "api.compliance.init.debug",
-    "translation": "Inicializando rutas del API de cumplimiento"
+    "translation": "Inicializando rutas del API de conformidad"
   },
   {
     "id": "api.config.client.old_format.app_error",
@@ -1331,6 +1331,10 @@
   {
     "id": "api.file.move_file.configured.app_error",
     "translation": "No ha sido configurado apropiadamente el almacenamiento. Por favor configuralo para utilizar ya sea S3 o almacenamiento local."
+  },
+  {
+    "id": "api.file.move_file.copy_within_s3.app_error",
+    "translation": "No se puede copiar el archivo dentro de S3."
   },
   {
     "id": "api.file.move_file.delete_from_s3.app_error",
@@ -3587,6 +3591,10 @@
     "translation": "No se puede obtener los complementos activos"
   },
   {
+    "id": "app.plugin.id_length.app_error",
+    "translation": "Id del Plugin debe tener menos de {{.Max}} caracteres."
+  },
+  {
     "id": "app.plugin.install.app_error",
     "translation": "No se puede instalar el plugin."
   },
@@ -3824,23 +3832,23 @@
   },
   {
     "id": "ent.compliance.licence_disable.app_error",
-    "translation": "La característica de Cumplimiento está inhabilitada para tu licencia actual. Por favor contacta a un administrador del sistema sobre como actualizar a una licencia empresarial."
+    "translation": "La característica de Conformidad está inhabilitada para tu licencia actual. Por favor contacta a un administrador del sistema sobre como actualizar a una licencia empresarial."
   },
   {
     "id": "ent.compliance.run_failed.error",
-    "translation": "Fallo el trabajo '{{.JobName}}' para exportar el Cumplimiento en '{{.FilePath}}'"
+    "translation": "Fallo el trabajo '{{.JobName}}' al exportar la conformidad en '{{.FilePath}}'"
   },
   {
     "id": "ent.compliance.run_finished.info",
-    "translation": "Se completo la exportación de Cumplimiento para el trabajo '{{.JobName}}' exportados {{.Count}} registros en '{{.FilePath}}'"
+    "translation": "Se completo la exportación de Conformidad para el trabajo '{{.JobName}}' exportados {{.Count}} registros en '{{.FilePath}}'"
   },
   {
     "id": "ent.compliance.run_limit.warning",
-    "translation": "Advertencia en el trabajo '{{.JobName}}' para exportación de Cumplimiento. Se retornaron demasiados registros, truncando a 30,000 en '{{.FilePath}}'"
+    "translation": "Advertencia en el trabajo '{{.JobName}}' para exportación de Conformidad. Se retornaron demasiados registros, truncando a 30,000 en '{{.FilePath}}'"
   },
   {
     "id": "ent.compliance.run_started.info",
-    "translation": "Iniciado el trabajo '{{.JobName}}' para exportar el Cumplimiento en '{{.FilePath}}'"
+    "translation": "Iniciado el trabajo '{{.JobName}}' para exportar la Conformidad en '{{.FilePath}}'"
   },
   {
     "id": "ent.data_retention.generic.license.error",
@@ -3935,8 +3943,16 @@
     "translation": "No se pudo crear el procesador a granel de Elasticsearch"
   },
   {
+    "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
+    "translation": "No se pudo crear el procesador a granel de Elasticsearch"
+  },
+  {
     "id": "ent.elasticsearch.start.index_settings_failed",
     "translation": "No se pudo establecer el índice de configuración de Elasticsearch"
+  },
+  {
+    "id": "ent.elasticsearch.start.start_bulk_processor_failed.app_error",
+    "translation": "No se pudo iniciar procesador a granel de Elasticsearch"
   },
   {
     "id": "ent.elasticsearch.start.start_bulk_processor_failed.app_error",
@@ -4029,6 +4045,10 @@
   {
     "id": "ent.ldap.validate_filter.app_error",
     "translation": "Filtro de AD/LDAP inválido"
+  },
+  {
+    "id": "ent.message_export.generic.license.error",
+    "translation": "Licencia no soporta la Exportación de Mensajes."
   },
   {
     "id": "ent.metrics.starting.info",
@@ -4365,6 +4385,26 @@
   {
     "id": "model.channel_member.is_valid.user_id.app_error",
     "translation": "User id inválido"
+  },
+  {
+    "id": "model.channel_member_history.is_valid.channel_id.app_error",
+    "translation": "Id de canal no válido"
+  },
+  {
+    "id": "model.channel_member_history.is_valid.join_time.app_error",
+    "translation": "Fecha de unión no válida"
+  },
+  {
+    "id": "model.channel_member_history.is_valid.leave_time.app_error",
+    "translation": "Fecha de abandono no válida"
+  },
+  {
+    "id": "model.channel_member_history.is_valid.user_email.app_error",
+    "translation": "Correo electrónico de usuario no válido"
+  },
+  {
+    "id": "model.channel_member_history.is_valid.user_id.app_error",
+    "translation": "Id de usuario no válido"
   },
   {
     "id": "model.client.connecting.app_error",
@@ -4735,6 +4775,30 @@
     "translation": "Número inválido del máximo de usuarios por equipo en la configuración de equipo.  Debe ser un número positivo."
   },
   {
+    "id": "model.config.is_valid.message_export.batch_size.app_error",
+    "translation": "El ajuste BatchSize para realizar el trabajo de Exportación de Mensajes debe un entero positivo"
+  },
+  {
+    "id": "model.config.is_valid.message_export.daily_runtime.app_error",
+    "translation": "El ajuste DailyRuntime para realizar el trabajo de Exportación de Mensajes debe ser en formato 24 horas HH:MM."
+  },
+  {
+    "id": "model.config.is_valid.message_export.enable.app_error",
+    "translation": "El ajuste EnableExport para realizar el trabajo de Exportación de Mensajes debe ser verdadero o falso"
+  },
+  {
+    "id": "model.config.is_valid.message_export.export_from.app_error",
+    "translation": "El ajuste ExportFromTimestamp para realizar el trabajo de Exportación de Mensajes debe ser una marca de tiempo (expresada en segundos desde la época unix). Sólo los mensajes enviados después de esa fecha serán exportados."
+  },
+  {
+    "id": "model.config.is_valid.message_export.file_location.app_error",
+    "translation": "El ajuste FileLocation para realizar el trabajo de Exportación de Mensajes debe ser un directorio con permiso de escritura donde la data de exportación será almacenada."
+  },
+  {
+    "id": "model.config.is_valid.message_export.file_location.relative",
+    "translation": "El ajuste FileLocation para realizar el trabajo de Exportación de Mensajes debe ser un sub-directorio de FileSettings.Directory"
+  },
+  {
     "id": "model.config.is_valid.password_length.app_error",
     "translation": "Longitud mínima de la contraseña debe ser un número entero mayor que o igual a {{.MinLength}} y menor o igual que {{.MaxLength}}."
   },
@@ -5029,6 +5093,14 @@
   {
     "id": "model.outgoing_hook.is_valid.words.app_error",
     "translation": "Palabras que desencadenan acciones no válidas"
+  },
+  {
+    "id": "model.plugin_key_value.is_valid.key.app_error",
+    "translation": "Clave no válida, debe ser más de {{.Min}} y un máximo de {{.Max}} caracteres."
+  },
+  {
+    "id": "model.plugin_key_value.is_valid.plugin_id.app_error",
+    "translation": "ID de plugin no válido, debe ser más de {{.Min}} y un máximo de {{.Max}} caracteres."
   },
   {
     "id": "model.post.is_valid.channel_id.app_error",
@@ -5727,6 +5799,34 @@
     "translation": "Encontramos un error actualizando el miembro del canal"
   },
   {
+    "id": "store.sql_channel_member_history.get_all.app_error",
+    "translation": "No se pudo obtener los registros"
+  },
+  {
+    "id": "store.sql_channel_member_history.get_users_in_channel_at.app_error",
+    "translation": "No se pudo obtener los usuarios del canal en el tiempo especificado"
+  },
+  {
+    "id": "store.sql_channel_member_history.get_users_in_channel_during.app_error",
+    "translation": "No se pudo obtener los usuarios del canal en el período de tiempo especificado"
+  },
+  {
+    "id": "store.sql_channel_member_history.log_join_event.app_error",
+    "translation": "No se pudo registrar el historial de los miembros del canal"
+  },
+  {
+    "id": "store.sql_channel_member_history.log_leave_event.select_error",
+    "translation": "No se pudo registrar el historial de los miembros del canal. No se han encontrados registros de unión existentes"
+  },
+  {
+    "id": "store.sql_channel_member_history.log_leave_event.update_error",
+    "translation": "No se pudo registrar el historial de los miembros del canal. Falla al actualizar en registro de unión existente"
+  },
+  {
+    "id": "store.sql_channel_member_history.permanent_delete_batch.app_error",
+    "translation": "No se pudo purgar los registros"
+  },
+  {
     "id": "store.sql_command.analytics_command_count.app_error",
     "translation": "No pudimos contar los comandos de barra"
   },
@@ -5784,11 +5884,15 @@
   },
   {
     "id": "store.sql_compliance.get.finding.app_error",
-    "translation": "Se ha detectado un error al recuperar los informes de cumplimiento"
+    "translation": "Se ha detectado un error al recuperar los informes de conformidad"
+  },
+  {
+    "id": "store.sql_compliance.message_export.app_error",
+    "translation": "Error al seleccionar los mensajes a exportar"
   },
   {
     "id": "store.sql_compliance.save.saving.app_error",
-    "translation": "Se ha detectado un error al guardar el informe de cumplimiento"
+    "translation": "Se ha detectado un error al guardar el informe de conformidad"
   },
   {
     "id": "store.sql_emoji.delete.app_error",
@@ -5989,6 +6093,22 @@
   {
     "id": "store.sql_oauth.update_app.updating.app_error",
     "translation": "Encontramos un error actualizando la app"
+  },
+  {
+    "id": "store.sql_plugin_store.delete.app_error",
+    "translation": "No se puede eliminar el valor de la clave del plugin"
+  },
+  {
+    "id": "store.sql_plugin_store.get.app_error",
+    "translation": "No se pudo obtener el valor de la clave del plugin"
+  },
+  {
+    "id": "store.sql_plugin_store.save.app_error",
+    "translation": "No se pudo guardar o actualizar el valor de la clave del plugin"
+  },
+  {
+    "id": "store.sql_plugin_store.save_unique.app_error",
+    "translation": "No pudo guardar o  actualizar valor de la clave del plugin debido a una infracción de restricción única"
   },
   {
     "id": "store.sql_post.analytics_posts_count.app_error",
