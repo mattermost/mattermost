@@ -177,7 +177,6 @@ func (s SqlChannelMemberHistoryStore) PermanentDeleteBatch(endTime int64, limit 
 		} else {
 			if rowsAffected, err1 := sqlResult.RowsAffected(); err1 != nil {
 				result.Err = model.NewAppError("SqlChannelMemberHistoryStore.PermanentDeleteBatchForChannel", "store.sql_channel_member_history.permanent_delete_batch.app_error", params, err.Error(), http.StatusInternalServerError)
-				result.Data = int64(0)
 			} else {
 				result.Data = rowsAffected
 			}

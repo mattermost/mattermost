@@ -167,9 +167,9 @@ func testGetUsersInChannelAtChannelMembers(t *testing.T, ss store.Store) {
 	var tableDataTruncated = false
 	for !tableDataTruncated {
 		if result := <-ss.ChannelMemberHistory().PermanentDeleteBatch(model.GetMillis(), 1000); result.Err != nil {
-			tableDataTruncated = result.Data.(int) == 0
+			assert.Fail(t, "Failed to truncate ChannelMemberHistory contents", result.Err.Error())
 		} else {
-			t.Fail()
+			tableDataTruncated = result.Data.(int64) == int64(0)
 		}
 	}
 
