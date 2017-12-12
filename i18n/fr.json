@@ -1333,6 +1333,10 @@
     "translation": "Le stockage de fichier n'est pas configuré correctement. Veuillez le paramétrer soit pour utiliser S3 soit le système de fichier local du serveur."
   },
   {
+    "id": "api.file.move_file.copy_within_s3.app_error",
+    "translation": "Unable to copy file within S3."
+  },
+  {
     "id": "api.file.move_file.delete_from_s3.app_error",
     "translation": "Impossible de supprimer le fichier de S3."
   },
@@ -3587,6 +3591,10 @@
     "translation": "Impossible de récupérer les plugins actifs"
   },
   {
+    "id": "app.plugin.id_length.app_error",
+    "translation": "Plugin Id must be less than {{.Max}} characters."
+  },
+  {
     "id": "app.plugin.install.app_error",
     "translation": "Unable to install plugin."
   },
@@ -3935,8 +3943,16 @@
     "translation": "Impossible de créer le processeur d'opérations en masse d'Elasticsearch (Elasticsearch bulk processor)"
   },
   {
+    "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
+    "translation": "Impossible de créer le processeur d'opérations en masse d'Elasticsearch (Elasticsearch bulk processor)"
+  },
+  {
     "id": "ent.elasticsearch.start.index_settings_failed",
     "translation": "Impossible de définir les paramètres de l'index d'Elasticsearch"
+  },
+  {
+    "id": "ent.elasticsearch.start.start_bulk_processor_failed.app_error",
+    "translation": "Impossible de démarrer le processeur d'opérations en masse d'Elasticsearch (Elasticsearch bulk processor)"
   },
   {
     "id": "ent.elasticsearch.start.start_bulk_processor_failed.app_error",
@@ -4029,6 +4045,10 @@
   {
     "id": "ent.ldap.validate_filter.app_error",
     "translation": "Filtre AD/LDAP Invalide"
+  },
+  {
+    "id": "ent.message_export.generic.license.error",
+    "translation": "License does not support Message Export."
   },
   {
     "id": "ent.metrics.starting.info",
@@ -4364,6 +4384,26 @@
   },
   {
     "id": "model.channel_member.is_valid.user_id.app_error",
+    "translation": "Id utilisateur invalide"
+  },
+  {
+    "id": "model.channel_member_history.is_valid.channel_id.app_error",
+    "translation": "Id canal invalide"
+  },
+  {
+    "id": "model.channel_member_history.is_valid.join_time.app_error",
+    "translation": "Type de tâche invalide"
+  },
+  {
+    "id": "model.channel_member_history.is_valid.leave_time.app_error",
+    "translation": "Invalid leave time"
+  },
+  {
+    "id": "model.channel_member_history.is_valid.user_email.app_error",
+    "translation": "Id utilisateur invalide"
+  },
+  {
+    "id": "model.channel_member_history.is_valid.user_id.app_error",
     "translation": "Id utilisateur invalide"
   },
   {
@@ -4735,6 +4775,30 @@
     "translation": "Nombre maximum d'utilisateurs par équipe invalide dans les paramètres d'équipes. Doit être un entier positif."
   },
   {
+    "id": "model.config.is_valid.message_export.batch_size.app_error",
+    "translation": "Message export job BatchSize must be a positive integer"
+  },
+  {
+    "id": "model.config.is_valid.message_export.daily_runtime.app_error",
+    "translation": "Message export job DailyRuntime must be a 24-hour time stamp in the form HH:MM."
+  },
+  {
+    "id": "model.config.is_valid.message_export.enable.app_error",
+    "translation": "Message export job EnableExport setting must be either true or false"
+  },
+  {
+    "id": "model.config.is_valid.message_export.export_from.app_error",
+    "translation": "Message export job ExportFromTimestamp must be a timestamp (expressed in seconds since unix epoch). Only messages sent after this timestamp will be exported."
+  },
+  {
+    "id": "model.config.is_valid.message_export.file_location.app_error",
+    "translation": "Message export job FileLocation must be a writable directory that export data will be written to"
+  },
+  {
+    "id": "model.config.is_valid.message_export.file_location.relative",
+    "translation": "Message export job FileLocation must be a sub-directory of FileSettings.Directory"
+  },
+  {
     "id": "model.config.is_valid.password_length.app_error",
     "translation": "La taille minimale du mot de passe doit être un nombre entier supérieur ou égal à {{.MinLength}} et inférieur ou égal à {{.MaxLength}}."
   },
@@ -5029,6 +5093,14 @@
   {
     "id": "model.outgoing_hook.is_valid.words.app_error",
     "translation": "Mots déclencheurs invalides"
+  },
+  {
+    "id": "model.plugin_key_value.is_valid.key.app_error",
+    "translation": "Invalid key, must be more than {{.Min}} and a of maximum {{.Max}} characters long."
+  },
+  {
+    "id": "model.plugin_key_value.is_valid.plugin_id.app_error",
+    "translation": "Invalid plugin ID, must be more than {{.Min}} and a of maximum {{.Max}} characters long."
   },
   {
     "id": "model.post.is_valid.channel_id.app_error",
@@ -5727,6 +5799,34 @@
     "translation": "Nous avons rencontré une erreur durant la mise à jour du membre du canal"
   },
   {
+    "id": "store.sql_channel_member_history.get_all.app_error",
+    "translation": "Failed to get records"
+  },
+  {
+    "id": "store.sql_channel_member_history.get_users_in_channel_at.app_error",
+    "translation": "Failed to get users in channel at specified time"
+  },
+  {
+    "id": "store.sql_channel_member_history.get_users_in_channel_during.app_error",
+    "translation": "Failed to get users in channel during specified time period"
+  },
+  {
+    "id": "store.sql_channel_member_history.log_join_event.app_error",
+    "translation": "Failed to record channel member history"
+  },
+  {
+    "id": "store.sql_channel_member_history.log_leave_event.select_error",
+    "translation": "Failed to record channel member history. No existing join record found"
+  },
+  {
+    "id": "store.sql_channel_member_history.log_leave_event.update_error",
+    "translation": "Failed to record channel member history. Failed to update existing join record"
+  },
+  {
+    "id": "store.sql_channel_member_history.permanent_delete_batch.app_error",
+    "translation": "Failed to purge records"
+  },
+  {
     "id": "store.sql_command.analytics_command_count.app_error",
     "translation": "Impossible de compter les commandes"
   },
@@ -5785,6 +5885,10 @@
   {
     "id": "store.sql_compliance.get.finding.app_error",
     "translation": "Nous avons rencontré une erreur durant le chargement des rapports de conformité"
+  },
+  {
+    "id": "store.sql_compliance.message_export.app_error",
+    "translation": "Failed to select message export data"
   },
   {
     "id": "store.sql_compliance.save.saving.app_error",
@@ -5989,6 +6093,22 @@
   {
     "id": "store.sql_oauth.update_app.updating.app_error",
     "translation": "Nous avons rencontré une erreur durant la mise à jour de l'application"
+  },
+  {
+    "id": "store.sql_plugin_store.delete.app_error",
+    "translation": "Could not delete plugin key value"
+  },
+  {
+    "id": "store.sql_plugin_store.get.app_error",
+    "translation": "Could not get plugin key value"
+  },
+  {
+    "id": "store.sql_plugin_store.save.app_error",
+    "translation": "Could not save or update plugin key value"
+  },
+  {
+    "id": "store.sql_plugin_store.save_unique.app_error",
+    "translation": "Could not save or update plugin key value due to unique constraint violation"
   },
   {
     "id": "store.sql_post.analytics_posts_count.app_error",

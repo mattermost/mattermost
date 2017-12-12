@@ -1333,6 +1333,10 @@
     "translation": "Dateispeicher wurde nicht vollständig konfiguriert. Bitte konfigurieren Sie diesen entweder für S3 oder einen lokalen Server mit Dateispeicher."
   },
   {
+    "id": "api.file.move_file.copy_within_s3.app_error",
+    "translation": "Kopieren der Datei innerhalb von S3 fehlgeschlagen."
+  },
+  {
     "id": "api.file.move_file.delete_from_s3.app_error",
     "translation": "Die Datei von S3 kann nicht gelöscht werden."
   },
@@ -2168,7 +2172,7 @@
   },
   {
     "id": "api.team.add_user_to_team.added",
-    "translation": "%v wurde von %v zum Kanal hinzugefügt"
+    "translation": "%v wurde von %v zum Team hinzugefügt"
   },
   {
     "id": "api.team.add_user_to_team.missing_parameter.app_error",
@@ -2284,7 +2288,7 @@
   },
   {
     "id": "api.team.leave.left",
-    "translation": "%v left the team."
+    "translation": "%v hat das Team verlassen."
   },
   {
     "id": "api.team.permanent_delete_team.attempting.warn",
@@ -2300,7 +2304,7 @@
   },
   {
     "id": "api.team.remove_user_from_team.removed",
-    "translation": "%v wurde aus dem Kanal entfernt."
+    "translation": "%v wurde aus dem Team entfernt."
   },
   {
     "id": "api.team.signup_team.email_disabled.app_error",
@@ -3587,12 +3591,16 @@
     "translation": "Konnte aktive Plugins nicht ermitteln"
   },
   {
+    "id": "app.plugin.id_length.app_error",
+    "translation": "Plugin-ID muss kürzer als {{.Max}} Zeichen sein."
+  },
+  {
     "id": "app.plugin.install.app_error",
-    "translation": "Unable to install plugin."
+    "translation": "Konnte Plugin nicht installieren."
   },
   {
     "id": "app.plugin.install_id.app_error",
-    "translation": "Unable to install plugin. A plugin with the same ID is already installed."
+    "translation": "Konnte Plugin nicht installieren. Ein Plugin mit der selben ID ist bereits installiert."
   },
   {
     "id": "app.plugin.manifest.app_error",
@@ -3600,7 +3608,7 @@
   },
   {
     "id": "app.plugin.mvdir.app_error",
-    "translation": "Unable to move plugin from temporary directory to final destination. Another plugin may be using the same directory name."
+    "translation": "Konnte Plugin nicht vom temporären Verzeichnis zum Zielort bewegen. Ein anderes Plugin könnte den selben Verzeichnisnamen verwenden."
   },
   {
     "id": "app.plugin.not_installed.app_error",
@@ -3935,8 +3943,16 @@
     "translation": "Fehler beim Erstellen der Elasticsearch-Massenverarbeitung"
   },
   {
+    "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
+    "translation": "Fehler beim Erstellen der Elasticsearch-Massenverarbeitung"
+  },
+  {
     "id": "ent.elasticsearch.start.index_settings_failed",
     "translation": "Konnte ElasticSearch-Index-Einstellungen nicht setzen"
+  },
+  {
+    "id": "ent.elasticsearch.start.start_bulk_processor_failed.app_error",
+    "translation": "Fehler beim Starten der Elasticsearch-Massenverarbeitung"
   },
   {
     "id": "ent.elasticsearch.start.start_bulk_processor_failed.app_error",
@@ -4029,6 +4045,10 @@
   {
     "id": "ent.ldap.validate_filter.app_error",
     "translation": "Ungültiger AD/LDAP-Filter"
+  },
+  {
+    "id": "ent.message_export.generic.license.error",
+    "translation": "Lizenz unterstützt Nachrichten-Export nicht."
   },
   {
     "id": "ent.metrics.starting.info",
@@ -4367,6 +4387,26 @@
     "translation": "Ungültige Benutzer-ID"
   },
   {
+    "id": "model.channel_member_history.is_valid.channel_id.app_error",
+    "translation": "Ungültige Kanal-ID"
+  },
+  {
+    "id": "model.channel_member_history.is_valid.join_time.app_error",
+    "translation": "Ungültige Beitrittszeit"
+  },
+  {
+    "id": "model.channel_member_history.is_valid.leave_time.app_error",
+    "translation": "Ungültige Verlassenszeit"
+  },
+  {
+    "id": "model.channel_member_history.is_valid.user_email.app_error",
+    "translation": "Ungültige Benutzer E-Mail-Adresse"
+  },
+  {
+    "id": "model.channel_member_history.is_valid.user_id.app_error",
+    "translation": "Ungültige Benutzer-ID"
+  },
+  {
     "id": "model.client.connecting.app_error",
     "translation": "Beim Verbinden mit dem Server ist ein Fehler aufgetreten"
   },
@@ -4444,7 +4484,7 @@
   },
   {
     "id": "model.command.is_valid.display_name.app_error",
-    "translation": "Ungültiger Typ"
+    "translation": "Ungültiger Titel"
   },
   {
     "id": "model.command.is_valid.id.app_error",
@@ -4735,6 +4775,30 @@
     "translation": "Ungültige maximale Anzahl an Benutzers pro Team in Teameinstellungen.  Muss eine positive Zahl sein."
   },
   {
+    "id": "model.config.is_valid.message_export.batch_size.app_error",
+    "translation": "Nachrichten-Export-Einstellung \"BatchSize\" muss eine positive Integer sein"
+  },
+  {
+    "id": "model.config.is_valid.message_export.daily_runtime.app_error",
+    "translation": "Nachrichten-Export-Aufgabe \"DailyRuntime\" muss ein Zeitstempel im 24-Stunden-Format HH:MM sein."
+  },
+  {
+    "id": "model.config.is_valid.message_export.enable.app_error",
+    "translation": "Nachrichten-Export-Aufgabe Einstellung \"EnableExport\" muss entweder wahr oder falsch sein"
+  },
+  {
+    "id": "model.config.is_valid.message_export.export_from.app_error",
+    "translation": "Nachrichten-Export-Aufgabe \"ExportFromTimestamp\" muss ein Zeitstempel (angegeben in Sekunden seid der Unix Epoche) sein. Nur Nachrichten nach diesem Zeitpunk werden exportiert."
+  },
+  {
+    "id": "model.config.is_valid.message_export.file_location.app_error",
+    "translation": "Nachrichten-Export-Aufgabe \"FileLocation\" muss ein beschreibbares Verzeichnis sein in welches die Exportdaten geschrieben werden"
+  },
+  {
+    "id": "model.config.is_valid.message_export.file_location.relative",
+    "translation": "Nachrichten-Export-Aufgabe \"FileLocation\" muss ein Unterverzeichnis von \"FileSettings.Directory\" sein"
+  },
+  {
     "id": "model.config.is_valid.password_length.app_error",
     "translation": "Minimale Passwortlänge muss eine ganze Zahl größer oder gleich zu {{.MinLength}} und weniger oder gleich zu {{.MaxLength}} sein."
   },
@@ -4904,7 +4968,7 @@
   },
   {
     "id": "model.incoming_hook.display_name.app_error",
-    "translation": "Ungültiger Typ"
+    "translation": "Ungültiger Titel"
   },
   {
     "id": "model.incoming_hook.id.app_error",
@@ -4996,7 +5060,7 @@
   },
   {
     "id": "model.outgoing_hook.is_valid.display_name.app_error",
-    "translation": "Ungültiger Typ"
+    "translation": "Ungültiger Titel"
   },
   {
     "id": "model.outgoing_hook.is_valid.id.app_error",
@@ -5029,6 +5093,14 @@
   {
     "id": "model.outgoing_hook.is_valid.words.app_error",
     "translation": "Ungültige Auslösewörter"
+  },
+  {
+    "id": "model.plugin_key_value.is_valid.key.app_error",
+    "translation": "Ungültiger Schlüssel, er muss länger als {{.Min}} und kürzer als {{.Max}} Zeichen sein."
+  },
+  {
+    "id": "model.plugin_key_value.is_valid.plugin_id.app_error",
+    "translation": "Ungültige Plugin-ID, sie muss länger als {{.Min}} und kürzer als {{.Max}} Zeichen sein."
   },
   {
     "id": "model.post.is_valid.channel_id.app_error",
@@ -5727,6 +5799,34 @@
     "translation": "Es trat ein Fehler beim Aktualisieren der Kanalmitglieder auf"
   },
   {
+    "id": "store.sql_channel_member_history.get_all.app_error",
+    "translation": "Konnte Datensätze nicht abrufen"
+  },
+  {
+    "id": "store.sql_channel_member_history.get_users_in_channel_at.app_error",
+    "translation": "Konnte Mitglieder des Kanals zu einem spezifischen Zeitpunkt nicht abrufen"
+  },
+  {
+    "id": "store.sql_channel_member_history.get_users_in_channel_during.app_error",
+    "translation": "Konnte Mitglieder des Kanals während einer spezifischen Zeitperiode nicht abrufen"
+  },
+  {
+    "id": "store.sql_channel_member_history.log_join_event.app_error",
+    "translation": "Konnte Historie der Kanalmitglieder nicht speichern"
+  },
+  {
+    "id": "store.sql_channel_member_history.log_leave_event.select_error",
+    "translation": "Konnte Historie der Kanalmitglieder nicht speichern. Kein existierender Beitrittsdatendatensatz gefunden"
+  },
+  {
+    "id": "store.sql_channel_member_history.log_leave_event.update_error",
+    "translation": "Konnte Historie der Kanalmitglieder nicht speichern. Konnte bestehenden Beitrittsdatensatz nicht aktualisieren"
+  },
+  {
+    "id": "store.sql_channel_member_history.permanent_delete_batch.app_error",
+    "translation": "Konnte Datensätze nicht säubern"
+  },
+  {
     "id": "store.sql_command.analytics_command_count.app_error",
     "translation": "Die Anzahl der Befehle konnte nicht gezählt werden"
   },
@@ -5785,6 +5885,10 @@
   {
     "id": "store.sql_compliance.get.finding.app_error",
     "translation": "Beim Empfang des Compliance-Berichtes wurde ein Fehler festgestellt"
+  },
+  {
+    "id": "store.sql_compliance.message_export.app_error",
+    "translation": "Konnte Nachichten-Exportdaten nicht selektieren"
   },
   {
     "id": "store.sql_compliance.save.saving.app_error",
@@ -5989,6 +6093,22 @@
   {
     "id": "store.sql_oauth.update_app.updating.app_error",
     "translation": "Es trat ein Fehler beim Aktualisieren der App auf"
+  },
+  {
+    "id": "store.sql_plugin_store.delete.app_error",
+    "translation": "Konnte Plugin-Key-Value nicht löschen"
+  },
+  {
+    "id": "store.sql_plugin_store.get.app_error",
+    "translation": "Konnte Plugin-Key-Value nicht abrufen"
+  },
+  {
+    "id": "store.sql_plugin_store.save.app_error",
+    "translation": "Konnte Plugin-Key-Value nicht speichern oder aktualisieren"
+  },
+  {
+    "id": "store.sql_plugin_store.save_unique.app_error",
+    "translation": "Konnte Plugin-Key-Value nicht speichern oder aktualisieren aufgrund von Bindungsverletzung"
   },
   {
     "id": "store.sql_post.analytics_posts_count.app_error",
