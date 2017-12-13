@@ -228,18 +228,13 @@ func (u *User) SetDefaultNotifications() {
 	u.NotifyProps = make(map[string]string)
 	u.NotifyProps["email"] = "true"
 	u.NotifyProps["push"] = USER_NOTIFY_MENTION
-	u.NotifyProps["desktop"] = USER_NOTIFY_ALL
+	u.NotifyProps["desktop"] = USER_NOTIFY_MENTION
 	u.NotifyProps["desktop_sound"] = "true"
 	u.NotifyProps["mention_keys"] = u.Username + ",@" + u.Username
 	u.NotifyProps["channel"] = "true"
 	u.NotifyProps["push_status"] = STATUS_AWAY
-	u.NotifyProps["comments"] = "root"
-
-	if u.FirstName == "" {
-		u.NotifyProps["first_name"] = "false"
-	} else {
-		u.NotifyProps["first_name"] = "true"
-	}
+	u.NotifyProps["comments"] = "never"
+	u.NotifyProps["first_name"] = "false"
 }
 
 func (user *User) UpdateMentionKeysFromUsername(oldUsername string) {
