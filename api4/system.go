@@ -187,7 +187,7 @@ func getLogs(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	lines, err := c.App.GetLogs(c.Params.Page, c.Params.PerPage)
+	lines, err := c.App.GetLogs(c.Params.Page, c.Params.LogsPerPage)
 	if err != nil {
 		c.Err = err
 		return
