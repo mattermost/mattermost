@@ -78,8 +78,7 @@ func (a *App) JoinDefaultChannels(teamId string, user *model.User, channelRole s
 
 	if result := <-a.Srv.Store.Channel().GetByName(teamId, "off-topic", true); result.Err != nil {
 		err = result.Err
-	} else {
-		offTopic := result.Data.(*model.Channel)
+	} else if offTopic := result.Data.(*model.Channel); offTopic.Type == model.CHANNEL_OPEN {
 
 		cm := &model.ChannelMember{
 			ChannelId:   offTopic.Id,
