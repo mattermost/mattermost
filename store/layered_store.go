@@ -161,6 +161,10 @@ func (s *LayeredStore) Plugin() PluginStore {
 	return s.DatabaseLayer.Plugin()
 }
 
+func (s *LayeredStore) Role() RoleStore {
+	return s.DatabaseLayer.Role()
+}
+
 func (s *LayeredStore) MarkSystemRanUnitTests() {
 	s.DatabaseLayer.MarkSystemRanUnitTests()
 }

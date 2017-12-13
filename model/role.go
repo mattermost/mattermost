@@ -4,11 +4,15 @@
 package model
 
 type Role struct {
-	Id          string   `json:"id"`
-	Name        string   `json:"name"`
-	Description string   `json:"description"`
-	Permissions []string `json:"permissions"`
+	Id            int64   `json:"id"`
+	Name          string   `json:"name"`
+	DisplayName   string   `json:"display_name"`
+	Description   string   `json:"description"`
+	Permissions   []string `json:"permissions"`
+	SchemeManaged bool     `json:"scheme_managed"`
 }
+
+type Roles []*Role
 
 const (
 	SYSTEM_USER_ROLE_ID              = "system_user"
@@ -33,6 +37,7 @@ func initializeDefaultRoles() {
 	DefaultRoles = make(map[string]*Role)
 
 	DefaultRoles[CHANNEL_USER_ROLE_ID] = &Role{
+		0,
 		"channel_user",
 		"authentication.roles.channel_user.name",
 		"authentication.roles.channel_user.description",
@@ -45,25 +50,31 @@ func initializeDefaultRoles() {
 			PERMISSION_EDIT_POST.Id,
 			PERMISSION_USE_SLASH_COMMANDS.Id,
 		},
+		true,
 	}
 
 	DefaultRoles[CHANNEL_ADMIN_ROLE_ID] = &Role{
+		1,
 		"channel_admin",
 		"authentication.roles.channel_admin.name",
 		"authentication.roles.channel_admin.description",
 		[]string{
 			PERMISSION_MANAGE_CHANNEL_ROLES.Id,
 		},
+		true,
 	}
 
 	DefaultRoles[CHANNEL_GUEST_ROLE_ID] = &Role{
+		2,
 		"guest",
 		"authentication.roles.global_guest.name",
 		"authentication.roles.global_guest.description",
 		[]string{},
+		true,
 	}
 
 	DefaultRoles[TEAM_USER_ROLE_ID] = &Role{
+		3,
 		"team_user",
 		"authentication.roles.team_user.name",
 		"authentication.roles.team_user.description",
@@ -73,27 +84,33 @@ func initializeDefaultRoles() {
 			PERMISSION_READ_PUBLIC_CHANNEL.Id,
 			PERMISSION_VIEW_TEAM.Id,
 		},
+		true,
 	}
 
 	DefaultRoles[TEAM_POST_ALL_ROLE_ID] = &Role{
+		4,
 		"team_post_all",
 		"authentication.roles.team_post_all.name",
 		"authentication.roles.team_post_all.description",
 		[]string{
 			PERMISSION_CREATE_POST.Id,
 		},
+		true,
 	}
 
 	DefaultRoles[TEAM_POST_ALL_PUBLIC_ROLE_ID] = &Role{
+		5,
 		"team_post_all_public",
 		"authentication.roles.team_post_all_public.name",
 		"authentication.roles.team_post_all_public.description",
 		[]string{
 			PERMISSION_CREATE_POST_PUBLIC.Id,
 		},
+		true,
 	}
 
 	DefaultRoles[TEAM_ADMIN_ROLE_ID] = &Role{
+		6,
 		"team_admin",
 		"authentication.roles.team_admin.name",
 		"authentication.roles.team_admin.description",
@@ -109,9 +126,11 @@ func initializeDefaultRoles() {
 			PERMISSION_MANAGE_OTHERS_SLASH_COMMANDS.Id,
 			PERMISSION_MANAGE_WEBHOOKS.Id,
 		},
+		true,
 	}
 
 	DefaultRoles[SYSTEM_USER_ROLE_ID] = &Role{
+		7,
 		"system_user",
 		"authentication.roles.global_user.name",
 		"authentication.roles.global_user.description",
@@ -120,27 +139,33 @@ func initializeDefaultRoles() {
 			PERMISSION_CREATE_GROUP_CHANNEL.Id,
 			PERMISSION_PERMANENT_DELETE_USER.Id,
 		},
+		true,
 	}
 
 	DefaultRoles[SYSTEM_POST_ALL_ROLE_ID] = &Role{
+		8,
 		"system_post_all",
 		"authentication.roles.system_post_all.name",
 		"authentication.roles.system_post_all.description",
 		[]string{
 			PERMISSION_CREATE_POST.Id,
 		},
+		true,
 	}
 
 	DefaultRoles[SYSTEM_POST_ALL_PUBLIC_ROLE_ID] = &Role{
+		9,
 		"system_post_all_public",
 		"authentication.roles.system_post_all_public.name",
 		"authentication.roles.system_post_all_public.description",
 		[]string{
 			PERMISSION_CREATE_POST_PUBLIC.Id,
 		},
+		true,
 	}
 
 	DefaultRoles[SYSTEM_USER_ACCESS_TOKEN_ROLE_ID] = &Role{
+		10,
 		"system_user_access_token",
 		"authentication.roles.system_user_access_token.name",
 		"authentication.roles.system_user_access_token.description",
@@ -149,9 +174,11 @@ func initializeDefaultRoles() {
 			PERMISSION_READ_USER_ACCESS_TOKEN.Id,
 			PERMISSION_REVOKE_USER_ACCESS_TOKEN.Id,
 		},
+		true,
 	}
 
 	DefaultRoles[SYSTEM_ADMIN_ROLE_ID] = &Role{
+		11,
 		"system_admin",
 		"authentication.roles.global_admin.name",
 		"authentication.roles.global_admin.description",
@@ -198,20 +225,8 @@ func initializeDefaultRoles() {
 			),
 			DefaultRoles[CHANNEL_ADMIN_ROLE_ID].Permissions...,
 		),
+		true,
 	}
-}
-
-func RoleIdsToString(roles []string) string {
-	output := ""
-	for _, role := range roles {
-		output += role + ", "
-	}
-
-	if output == "" {
-		return "[<NO ROLES>]"
-	}
-
-	return output[:len(output)-1]
 }
 
 func init() {
