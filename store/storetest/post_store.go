@@ -1408,7 +1408,7 @@ func testPostStoreGetFlaggedPostsForChannel(t *testing.T, ss store.Store) {
 }
 
 func testPostStoreGetPostsCreatedAt(t *testing.T, ss store.Store) {
-	createTime := model.GetMillis()
+	createTime := model.GetMillis() + 1
 
 	o0 := &model.Post{}
 	o0.ChannelId = model.NewId()
@@ -1418,12 +1418,11 @@ func testPostStoreGetPostsCreatedAt(t *testing.T, ss store.Store) {
 	o0 = (<-ss.Post().Save(o0)).Data.(*model.Post)
 
 	o1 := &model.Post{}
-	o1.ChannelId = o0.Id
+	o1.ChannelId = o0.ChannelId
 	o1.UserId = model.NewId()
 	o1.Message = "zz" + model.NewId() + "b"
-	o0.CreateAt = createTime
+	o1.CreateAt = createTime
 	o1 = (<-ss.Post().Save(o1)).Data.(*model.Post)
-	time.Sleep(2 * time.Millisecond)
 
 	o2 := &model.Post{}
 	o2.ChannelId = o1.ChannelId
@@ -1431,8 +1430,8 @@ func testPostStoreGetPostsCreatedAt(t *testing.T, ss store.Store) {
 	o2.Message = "zz" + model.NewId() + "b"
 	o2.ParentId = o1.Id
 	o2.RootId = o1.Id
+	o2.CreateAt = createTime + 1
 	o2 = (<-ss.Post().Save(o2)).Data.(*model.Post)
-	time.Sleep(2 * time.Millisecond)
 
 	o3 := &model.Post{}
 	o3.ChannelId = model.NewId()
@@ -1440,13 +1439,9 @@ func testPostStoreGetPostsCreatedAt(t *testing.T, ss store.Store) {
 	o3.Message = "zz" + model.NewId() + "b"
 	o3.CreateAt = createTime
 	o3 = (<-ss.Post().Save(o3)).Data.(*model.Post)
-	time.Sleep(2 * time.Millisecond)
 
 	r1 := (<-ss.Post().GetPostsCreatedAt(o1.ChannelId, createTime)).Data.([]*model.Post)
-
-	if len(r1) != 2 {
-		t.Fatalf("Got the wrong number of posts.")
-	}
+	assert.Equal(t, 2, len(r1))
 }
 
 func testPostStoreOverwrite(t *testing.T, ss store.Store) {
