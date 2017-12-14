@@ -935,7 +935,7 @@ func (a *App) GetMentionKeywordsInChannel(profiles map[string]*model.User, lookF
 
 		// Add @channel and @all to keywords if user has them turned on
 		if lookForSpecialMentions {
-			if int64(len(profiles)) < *a.Config().TeamSettings.MaxNotificationsPerChannel && profile.NotifyProps["channel"] == "true" {
+			if int64(len(profiles)) <= *a.Config().TeamSettings.MaxNotificationsPerChannel && profile.NotifyProps["channel"] == "true" {
 				keywords["@channel"] = append(keywords["@channel"], profile.Id)
 				keywords["@all"] = append(keywords["@all"], profile.Id)
 

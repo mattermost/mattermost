@@ -544,7 +544,8 @@ func TestGetMentionKeywords(t *testing.T) {
 		return duplicate_frequency
 	}
 
-	// multiple users
+	// multiple users but no more than MaxNotificationsPerChannel
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.MaxNotificationsPerChannel = 4 })
 	profiles = map[string]*model.User{
 		user1.Id: user1,
 		user2.Id: user2,
@@ -566,6 +567,19 @@ func TestGetMentionKeywords(t *testing.T) {
 		t.Fatal("should've mentioned user3 and user4 with @channel")
 	} else if ids, ok := mentions["@all"]; !ok || len(ids) != 2 || (ids[0] != user3.Id && ids[1] != user3.Id) || (ids[0] != user4.Id && ids[1] != user4.Id) {
 		t.Fatal("should've mentioned user3 and user4 with @all")
+	}
+
+	// multiple users and more than MaxNotificationsPerChannel
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.MaxNotificationsPerChannel = 3 })
+	mentions = th.App.GetMentionKeywordsInChannel(profiles, true)
+	if len(mentions) != 4 {
+		t.Fatal("should've returned four mention keywords")
+	} else if _, ok := mentions["@channel"]; ok {
+		t.Fatal("should not have mentioned any user with @channel")
+	} else if _, ok := mentions["@all"]; ok {
+		t.Fatal("should not have mentioned any user with @all")
+	} else if _, ok := mentions["@here"]; ok {
+		t.Fatal("should not have mentioned any user with @here")
 	}
 
 	// no special mentions
