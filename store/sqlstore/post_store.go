@@ -1030,10 +1030,10 @@ func (s SqlPostStore) AnalyticsPostCount(teamId string, mustHaveFile bool, mustH
 
 func (s SqlPostStore) GetPostsCreatedAt(channelId string, time int64) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
-		query := `SELECT * FROM Posts WHERE CreateAt = :CreateAt`
+		query := `SELECT * FROM Posts WHERE CreateAt = :CreateAt AND ChannelId = :ChannelId`
 
 		var posts []*model.Post
-		_, err := s.GetReplica().Select(&posts, query, map[string]interface{}{"CreateAt": time})
+		_, err := s.GetReplica().Select(&posts, query, map[string]interface{}{"CreateAt": time, "ChannelId": channelId})
 
 		if err != nil {
 			result.Err = model.NewAppError("SqlPostStore.GetPostsCreatedAt", "store.sql_post.get_posts_created_att.app_error", nil, "channelId="+channelId+err.Error(), http.StatusInternalServerError)
