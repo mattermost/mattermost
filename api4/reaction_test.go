@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"reflect"
+	"github.com/stretchr/testify/assert"
 
 	"github.com/mattermost/mattermost-server/model"
 )
@@ -180,20 +180,15 @@ func TestGetReactions(t *testing.T) {
 	rr, resp := Client.GetReactions(postId)
 	CheckNoError(t, resp)
 
-	if len(rr) != 5 {
-		t.Fatal("reactions should returned correct length")
-	}
-
-	if !reflect.DeepEqual(rr, reactions) {
-		t.Fatal("reactions should have matched")
+	assert.Len(t, rr, 5)
+	for _, r := range reactions {
+		assert.Contains(t, reactions, r)
 	}
 
 	rr, resp = Client.GetReactions("junk")
 	CheckBadRequestStatus(t, resp)
 
-	if len(rr) != 0 {
-		t.Fatal("reactions should return empty")
-	}
+	assert.Empty(t, rr)
 
 	_, resp = Client.GetReactions(GenerateTestId())
 	CheckForbiddenStatus(t, resp)
