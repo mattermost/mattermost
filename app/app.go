@@ -110,7 +110,6 @@ func New(options ...Option) *App {
 	})
 	app.licenseListenerId = utils.AddLicenseListener(app.configOrLicenseListener)
 	app.regenerateClientConfig()
-	app.SetDefaultRolesBasedOnConfig()
 
 	l4g.Info(utils.T("api.server.new_server.init.info"))
 
@@ -146,8 +145,7 @@ func New(options ...Option) *App {
 }
 
 func (a *App) configOrLicenseListener() {
-	a.regenerateClientConfig()
-	a.SetDefaultRolesBasedOnConfig()
+	a.regenerateClientConfig())
 }
 
 func (a *App) Shutdown() {
