@@ -324,8 +324,13 @@ func UpgradeDatabaseToVersion44(sqlStore SqlStore) {
 	}
 }
 
-func UpgradeDatabaseToVersion46(sqlStore SqlStore) {
+func UpgradeDatabaseToVersion45(sqlStore SqlStore) {
+	if shouldPerformUpgrade(sqlStore, VERSION_4_4_0, VERSION_4_5_0) {
+		saveSchemaVersion(sqlStore, VERSION_4_5_0)
+	}
+}
 
+func UpgradeDatabaseToVersion46(sqlStore SqlStore) {
 	if shouldPerformUpgrade(sqlStore, VERSION_4_5_0, VERSION_4_6_0) {
 		sqlStore.CreateColumnIfNotExists("IncomingWebhooks", "Username", "varchar(64)", "varchar(64)", "")
 		sqlStore.CreateColumnIfNotExists("IncomingWebhooks", "IconURL", "varchar(1024)", "varchar(1024)", "")
@@ -333,8 +338,19 @@ func UpgradeDatabaseToVersion46(sqlStore SqlStore) {
 	}
 }
 
-func UpgradeDatabaseToVersion45(sqlStore SqlStore) {
-	if shouldPerformUpgrade(sqlStore, VERSION_4_4_0, VERSION_4_5_0) {
-		saveSchemaVersion(sqlStore, VERSION_4_5_0)
+// This function migrates the default built in roles from code/config to the database.
+func MigrateRolesToDatabase(sqlStore SqlStore) {
+	l4g.Info("Migrating roles to database.")
+	roles := model.MakeDefaultRoles()
+
+	// FIXME: Don't use global state for config here.
+	roles = utils.SetRolePermissionsFromConfig(roles, utils.Cfg)
+
+	for _, role := range roles {
+		if result := <-sqlStore.Role().Save(role); result.Err != nil {
+			// FIXME: What to do here in case of error?
+			l4g.Critical("Failed to migrate role to database.")
+			l4g.Critical(result.Err)
+		}
 	}
 }

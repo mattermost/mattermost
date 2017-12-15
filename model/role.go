@@ -3,17 +3,6 @@
 
 package model
 
-type Role struct {
-	Id            int64   `json:"id"`
-	Name          string   `json:"name"`
-	DisplayName   string   `json:"display_name"`
-	Description   string   `json:"description"`
-	Permissions   []string `json:"permissions"`
-	SchemeManaged bool     `json:"scheme_managed"`
-}
-
-type Roles []*Role
-
 const (
 	SYSTEM_USER_ROLE_ID              = "system_user"
 	SYSTEM_ADMIN_ROLE_ID             = "system_admin"
@@ -31,17 +20,31 @@ const (
 	CHANNEL_GUEST_ROLE_ID = "guest"
 )
 
-var DefaultRoles map[string]*Role
+type Role struct {
+	Id            int64    `json:"id"`
+	Name          string   `json:"name"`
+	DisplayName   string   `json:"display_name"`
+	Description   string   `json:"description"`
+	Permissions   []string `json:"permissions"`
+	SchemeManaged bool     `json:"scheme_managed"`
+}
+
+type Roles []*Role
+
+//var DefaultRoles map[string]*Role
 
 func initializeDefaultRoles() {
-	DefaultRoles = make(map[string]*Role)
 
-	DefaultRoles[CHANNEL_USER_ROLE_ID] = &Role{
-		0,
-		"channel_user",
-		"authentication.roles.channel_user.name",
-		"authentication.roles.channel_user.description",
-		[]string{
+}
+
+func MakeDefaultRoles() map[string]*Role {
+	roles := make(map[string]*Role)
+
+	roles[CHANNEL_USER_ROLE_ID] = &Role{
+		Name:        "channel_user",
+		DisplayName: "authentication.roles.channel_user.name",
+		Description: "authentication.roles.channel_user.description",
+		Permissions: []string{
 			PERMISSION_READ_CHANNEL.Id,
 			PERMISSION_MANAGE_PUBLIC_CHANNEL_MEMBERS.Id,
 			PERMISSION_UPLOAD_FILE.Id,
@@ -50,71 +53,65 @@ func initializeDefaultRoles() {
 			PERMISSION_EDIT_POST.Id,
 			PERMISSION_USE_SLASH_COMMANDS.Id,
 		},
-		true,
+		SchemeManaged: true,
 	}
 
-	DefaultRoles[CHANNEL_ADMIN_ROLE_ID] = &Role{
-		1,
-		"channel_admin",
-		"authentication.roles.channel_admin.name",
-		"authentication.roles.channel_admin.description",
-		[]string{
+	roles[CHANNEL_ADMIN_ROLE_ID] = &Role{
+		Name:        "channel_admin",
+		DisplayName: "authentication.roles.channel_admin.name",
+		Description: "authentication.roles.channel_admin.description",
+		Permissions: []string{
 			PERMISSION_MANAGE_CHANNEL_ROLES.Id,
 		},
-		true,
+		SchemeManaged: true,
 	}
 
-	DefaultRoles[CHANNEL_GUEST_ROLE_ID] = &Role{
-		2,
-		"guest",
-		"authentication.roles.global_guest.name",
-		"authentication.roles.global_guest.description",
-		[]string{},
-		true,
+	roles[CHANNEL_GUEST_ROLE_ID] = &Role{
+		Name:          "guest",
+		DisplayName:   "authentication.roles.global_guest.name",
+		Description:   "authentication.roles.global_guest.description",
+		Permissions:   []string{},
+		SchemeManaged: true,
 	}
 
-	DefaultRoles[TEAM_USER_ROLE_ID] = &Role{
-		3,
-		"team_user",
-		"authentication.roles.team_user.name",
-		"authentication.roles.team_user.description",
-		[]string{
+	roles[TEAM_USER_ROLE_ID] = &Role{
+		Name:        "team_user",
+		DisplayName: "authentication.roles.team_user.name",
+		Description: "authentication.roles.team_user.description",
+		Permissions: []string{
 			PERMISSION_LIST_TEAM_CHANNELS.Id,
 			PERMISSION_JOIN_PUBLIC_CHANNELS.Id,
 			PERMISSION_READ_PUBLIC_CHANNEL.Id,
 			PERMISSION_VIEW_TEAM.Id,
 		},
-		true,
+		SchemeManaged: true,
 	}
 
-	DefaultRoles[TEAM_POST_ALL_ROLE_ID] = &Role{
-		4,
-		"team_post_all",
-		"authentication.roles.team_post_all.name",
-		"authentication.roles.team_post_all.description",
-		[]string{
+	roles[TEAM_POST_ALL_ROLE_ID] = &Role{
+		Name:        "team_post_all",
+		DisplayName: "authentication.roles.team_post_all.name",
+		Description: "authentication.roles.team_post_all.description",
+		Permissions: []string{
 			PERMISSION_CREATE_POST.Id,
 		},
-		true,
+		SchemeManaged: true,
 	}
 
-	DefaultRoles[TEAM_POST_ALL_PUBLIC_ROLE_ID] = &Role{
-		5,
-		"team_post_all_public",
-		"authentication.roles.team_post_all_public.name",
-		"authentication.roles.team_post_all_public.description",
-		[]string{
+	roles[TEAM_POST_ALL_PUBLIC_ROLE_ID] = &Role{
+		Name:        "team_post_all_public",
+		DisplayName: "authentication.roles.team_post_all_public.name",
+		Description: "authentication.roles.team_post_all_public.description",
+		Permissions: []string{
 			PERMISSION_CREATE_POST_PUBLIC.Id,
 		},
-		true,
+		SchemeManaged: true,
 	}
 
-	DefaultRoles[TEAM_ADMIN_ROLE_ID] = &Role{
-		6,
-		"team_admin",
-		"authentication.roles.team_admin.name",
-		"authentication.roles.team_admin.description",
-		[]string{
+	roles[TEAM_ADMIN_ROLE_ID] = &Role{
+		Name:        "team_admin",
+		DisplayName: "authentication.roles.team_admin.name",
+		Description: "authentication.roles.team_admin.description",
+		Permissions: []string{
 			PERMISSION_EDIT_OTHERS_POSTS.Id,
 			PERMISSION_REMOVE_USER_FROM_TEAM.Id,
 			PERMISSION_MANAGE_TEAM.Id,
@@ -126,66 +123,61 @@ func initializeDefaultRoles() {
 			PERMISSION_MANAGE_OTHERS_SLASH_COMMANDS.Id,
 			PERMISSION_MANAGE_WEBHOOKS.Id,
 		},
-		true,
+		SchemeManaged: true,
 	}
 
-	DefaultRoles[SYSTEM_USER_ROLE_ID] = &Role{
-		7,
-		"system_user",
-		"authentication.roles.global_user.name",
-		"authentication.roles.global_user.description",
-		[]string{
+	roles[SYSTEM_USER_ROLE_ID] = &Role{
+		Name:        "system_user",
+		DisplayName: "authentication.roles.global_user.name",
+		Description: "authentication.roles.global_user.description",
+		Permissions: []string{
 			PERMISSION_CREATE_DIRECT_CHANNEL.Id,
 			PERMISSION_CREATE_GROUP_CHANNEL.Id,
 			PERMISSION_PERMANENT_DELETE_USER.Id,
 		},
-		true,
+		SchemeManaged: true,
 	}
 
-	DefaultRoles[SYSTEM_POST_ALL_ROLE_ID] = &Role{
-		8,
-		"system_post_all",
-		"authentication.roles.system_post_all.name",
-		"authentication.roles.system_post_all.description",
-		[]string{
+	roles[SYSTEM_POST_ALL_ROLE_ID] = &Role{
+		Name:        "system_post_all",
+		DisplayName: "authentication.roles.system_post_all.name",
+		Description: "authentication.roles.system_post_all.description",
+		Permissions: []string{
 			PERMISSION_CREATE_POST.Id,
 		},
-		true,
+		SchemeManaged: true,
 	}
 
-	DefaultRoles[SYSTEM_POST_ALL_PUBLIC_ROLE_ID] = &Role{
-		9,
-		"system_post_all_public",
-		"authentication.roles.system_post_all_public.name",
-		"authentication.roles.system_post_all_public.description",
-		[]string{
+	roles[SYSTEM_POST_ALL_PUBLIC_ROLE_ID] = &Role{
+		Name:        "system_post_all_public",
+		DisplayName: "authentication.roles.system_post_all_public.name",
+		Description: "authentication.roles.system_post_all_public.description",
+		Permissions: []string{
 			PERMISSION_CREATE_POST_PUBLIC.Id,
 		},
-		true,
+		SchemeManaged: true,
 	}
 
-	DefaultRoles[SYSTEM_USER_ACCESS_TOKEN_ROLE_ID] = &Role{
-		10,
-		"system_user_access_token",
-		"authentication.roles.system_user_access_token.name",
-		"authentication.roles.system_user_access_token.description",
-		[]string{
+	roles[SYSTEM_USER_ACCESS_TOKEN_ROLE_ID] = &Role{
+		Name:        "system_user_access_token",
+		DisplayName: "authentication.roles.system_user_access_token.name",
+		Description: "authentication.roles.system_user_access_token.description",
+		Permissions: []string{
 			PERMISSION_CREATE_USER_ACCESS_TOKEN.Id,
 			PERMISSION_READ_USER_ACCESS_TOKEN.Id,
 			PERMISSION_REVOKE_USER_ACCESS_TOKEN.Id,
 		},
-		true,
+		SchemeManaged: true,
 	}
 
-	DefaultRoles[SYSTEM_ADMIN_ROLE_ID] = &Role{
-		11,
-		"system_admin",
-		"authentication.roles.global_admin.name",
-		"authentication.roles.global_admin.description",
+	roles[SYSTEM_ADMIN_ROLE_ID] = &Role{
+		Name:        "system_admin",
+		DisplayName: "authentication.roles.global_admin.name",
+		Description: "authentication.roles.global_admin.description",
 		// System admins can do anything channel and team admins can do
 		// plus everything members of teams and channels can do to all teams
 		// and channels on the system
-		append(
+		Permissions: append(
 			append(
 				append(
 					append(
@@ -217,16 +209,18 @@ func initializeDefaultRoles() {
 							PERMISSION_READ_USER_ACCESS_TOKEN.Id,
 							PERMISSION_REVOKE_USER_ACCESS_TOKEN.Id,
 						},
-						DefaultRoles[TEAM_USER_ROLE_ID].Permissions...,
+						roles[TEAM_USER_ROLE_ID].Permissions...,
 					),
-					DefaultRoles[CHANNEL_USER_ROLE_ID].Permissions...,
+					roles[CHANNEL_USER_ROLE_ID].Permissions...,
 				),
-				DefaultRoles[TEAM_ADMIN_ROLE_ID].Permissions...,
+				roles[TEAM_ADMIN_ROLE_ID].Permissions...,
 			),
-			DefaultRoles[CHANNEL_ADMIN_ROLE_ID].Permissions...,
+			roles[CHANNEL_ADMIN_ROLE_ID].Permissions...,
 		),
-		true,
+		SchemeManaged: true,
 	}
+
+	return roles
 }
 
 func init() {
