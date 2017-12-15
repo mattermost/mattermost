@@ -95,10 +95,12 @@ func New(options ...Option) *App {
 	utils.LoadGlobalConfig(app.configFile)
 	utils.InitTranslations(utils.Cfg.LocalizationSettings)
 
+	/*
 	app.configListenerId = utils.AddConfigListener(func(_, cfg *model.Config) {
 		app.SetDefaultRolesBasedOnConfig()
 	})
 	app.SetDefaultRolesBasedOnConfig()
+	*/
 
 	l4g.Info(utils.T("api.server.new_server.init.info"))
 
