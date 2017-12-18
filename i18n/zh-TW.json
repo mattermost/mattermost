@@ -701,7 +701,7 @@
   },
   {
     "id": "api.command_groupmsg.desc",
-    "translation": "Sends a Group Message to the specified users"
+    "translation": "發送群組訊息給指定的使用者"
   },
   {
     "id": "api.command_groupmsg.fail.app_error",
@@ -709,22 +709,22 @@
   },
   {
     "id": "api.command_groupmsg.group_fail.app_error",
-    "translation": "建立直接傳訊時遇到錯誤。"
+    "translation": "建立群組傳訊時遇到錯誤。"
   },
   {
     "id": "api.command_groupmsg.hint",
-    "translation": "@[username1],@[username2] 'message'"
+    "translation": "@[第一個使用者名稱],@[第二個使用者名稱] '訊息'"
   },
   {
     "id": "api.command_groupmsg.invalid_user.app_error",
     "translation": {
-      "one": "We couldn't find the user: {{.Users}}",
-      "other": "We couldn't find the users: {{.Users}}"
+      "one": "找不到使用者：{{.Users}}找不到使用者：{{.Users}}",
+      "other": ""
     }
   },
   {
     "id": "api.command_groupmsg.invalid_users.app_error",
-    "translation": "找不到使用者"
+    "translation": "找不到使用者：%s"
   },
   {
     "id": "api.command_groupmsg.list.app_error",
@@ -732,11 +732,11 @@
   },
   {
     "id": "api.command_groupmsg.max_users.app_error",
-    "translation": "Group messages are limited to a maximum of {{.MaxUsers}} users."
+    "translation": "群組訊息頻道最多只能發給 {{.MaxUsers}} 位使用者。"
   },
   {
     "id": "api.command_groupmsg.min_users.app_error",
-    "translation": "Group messages are limited to a minimum of {{.MinUsers}} users."
+    "translation": "群組訊息頻道最少必須發給 {{.MaxUsers}} 位使用者。"
   },
   {
     "id": "api.command_groupmsg.missing.app_error",
@@ -1331,6 +1331,10 @@
   {
     "id": "api.file.move_file.configured.app_error",
     "translation": "檔案儲存位置設定不正確。請設定為 S3 或是本地儲存。"
+  },
+  {
+    "id": "api.file.move_file.copy_within_s3.app_error",
+    "translation": "無法在 S3 內複製檔案。"
   },
   {
     "id": "api.file.move_file.delete_from_s3.app_error",
@@ -2284,7 +2288,7 @@
   },
   {
     "id": "api.team.leave.left",
-    "translation": "%v left the team."
+    "translation": "%v 已離開團隊。 "
   },
   {
     "id": "api.team.permanent_delete_team.attempting.warn",
@@ -3587,12 +3591,16 @@
     "translation": "無法取得啟用的模組"
   },
   {
+    "id": "app.plugin.id_length.app_error",
+    "translation": "模組 ID 必須少於 {{.Max}} 字元。"
+  },
+  {
     "id": "app.plugin.install.app_error",
-    "translation": "Unable to install plugin."
+    "translation": "無法安裝模組。"
   },
   {
     "id": "app.plugin.install_id.app_error",
-    "translation": "Unable to install plugin. A plugin with the same ID is already installed."
+    "translation": "無法安裝模組。已安裝了相同 ID 的模組。"
   },
   {
     "id": "app.plugin.manifest.app_error",
@@ -3600,7 +3608,7 @@
   },
   {
     "id": "app.plugin.mvdir.app_error",
-    "translation": "Unable to move plugin from temporary directory to final destination. Another plugin may be using the same directory name."
+    "translation": "無法將模組從暫存目錄移動到最終目的地。可能是因為有其他的模組使用同樣的目錄名稱。"
   },
   {
     "id": "app.plugin.not_installed.app_error",
@@ -3935,8 +3943,16 @@
     "translation": "建立 Elasticsearch 批次處理器時失敗"
   },
   {
+    "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
+    "translation": "建立 Elasticsearch 批次處理器時失敗"
+  },
+  {
     "id": "ent.elasticsearch.start.index_settings_failed",
     "translation": "設定 Elasticsearch 索引設定時失敗"
+  },
+  {
+    "id": "ent.elasticsearch.start.start_bulk_processor_failed.app_error",
+    "translation": "啟動 Elasticsearch 批次處理器時失敗"
   },
   {
     "id": "ent.elasticsearch.start.start_bulk_processor_failed.app_error",
@@ -4029,6 +4045,10 @@
   {
     "id": "ent.ldap.validate_filter.app_error",
     "translation": "無效的 AD/LDAP Filter"
+  },
+  {
+    "id": "ent.message_export.generic.license.error",
+    "translation": "授權不支援匯出訊息。"
   },
   {
     "id": "ent.metrics.starting.info",
@@ -4367,6 +4387,26 @@
     "translation": "無效的使用者 ID"
   },
   {
+    "id": "model.channel_member_history.is_valid.channel_id.app_error",
+    "translation": "無效的頻道 ID"
+  },
+  {
+    "id": "model.channel_member_history.is_valid.join_time.app_error",
+    "translation": "無效的加入時間"
+  },
+  {
+    "id": "model.channel_member_history.is_valid.leave_time.app_error",
+    "translation": "無效的離開時間"
+  },
+  {
+    "id": "model.channel_member_history.is_valid.user_email.app_error",
+    "translation": "無效的使用者 ID"
+  },
+  {
+    "id": "model.channel_member_history.is_valid.user_id.app_error",
+    "translation": "無效的使用者 ID"
+  },
+  {
     "id": "model.client.connecting.app_error",
     "translation": "連接伺服器時遇到錯誤"
   },
@@ -4444,7 +4484,7 @@
   },
   {
     "id": "model.command.is_valid.display_name.app_error",
-    "translation": "無效的類型"
+    "translation": "無效的標題"
   },
   {
     "id": "model.command.is_valid.id.app_error",
@@ -4735,6 +4775,30 @@
     "translation": "團隊設定中的單一團隊最高使用者數無效。必須為正數。"
   },
   {
+    "id": "model.config.is_valid.message_export.batch_size.app_error",
+    "translation": "匯出訊息工作 BatchSize 設定必須為正整數"
+  },
+  {
+    "id": "model.config.is_valid.message_export.daily_runtime.app_error",
+    "translation": "匯出訊息工作 DailyRuntime 設定必須為 HH:MM 格式的 24 小時時間戳記。"
+  },
+  {
+    "id": "model.config.is_valid.message_export.enable.app_error",
+    "translation": "匯出訊息工作 EnableExport 設定必須為 true 或是 false"
+  },
+  {
+    "id": "model.config.is_valid.message_export.export_from.app_error",
+    "translation": "匯出訊息工作 ExportFromTimestamp 設定必須為時間戳記 (以 Unix Epoch 以來的秒數表示)。只有在此時間戳記之後發送的訊息會被匯出。"
+  },
+  {
+    "id": "model.config.is_valid.message_export.file_location.app_error",
+    "translation": "匯出訊息工作 FileLocation 設定必須為可寫入的目錄，匯出資料將寫入此處"
+  },
+  {
+    "id": "model.config.is_valid.message_export.file_location.relative",
+    "translation": "匯出訊息工作 FileLocation 設定必須為 FileSettings.Directory 的子目錄"
+  },
+  {
     "id": "model.config.is_valid.password_length.app_error",
     "translation": "密碼最小長度必須是一個整數且大於或等於{{.MinLength}}同時小於或等於{{.MaxLength}}。"
   },
@@ -4904,7 +4968,7 @@
   },
   {
     "id": "model.incoming_hook.display_name.app_error",
-    "translation": "無效的類型"
+    "translation": "無效的標題"
   },
   {
     "id": "model.incoming_hook.id.app_error",
@@ -4996,7 +5060,7 @@
   },
   {
     "id": "model.outgoing_hook.is_valid.display_name.app_error",
-    "translation": "無效的類型"
+    "translation": "無效的標題"
   },
   {
     "id": "model.outgoing_hook.is_valid.id.app_error",
@@ -5029,6 +5093,14 @@
   {
     "id": "model.outgoing_hook.is_valid.words.app_error",
     "translation": "無效的觸發關鍵字"
+  },
+  {
+    "id": "model.plugin_key_value.is_valid.key.app_error",
+    "translation": "無效的鍵值。字元長度必須介於 {{.Min}} 與 {{.Max}} 之間。 "
+  },
+  {
+    "id": "model.plugin_key_value.is_valid.plugin_id.app_error",
+    "translation": "無效的模組 ID。字元長度必須介於 {{.Min}} 與 {{.Max}} 之間。"
   },
   {
     "id": "model.post.is_valid.channel_id.app_error",
@@ -5727,6 +5799,34 @@
     "translation": "更新頻道成員時遇到錯誤"
   },
   {
+    "id": "store.sql_channel_member_history.get_all.app_error",
+    "translation": "無法取得紀錄"
+  },
+  {
+    "id": "store.sql_channel_member_history.get_users_in_channel_at.app_error",
+    "translation": "無法取得特定時間時在頻道的使用者"
+  },
+  {
+    "id": "store.sql_channel_member_history.get_users_in_channel_during.app_error",
+    "translation": "無法取得特定時間區段中在頻道的使用者"
+  },
+  {
+    "id": "store.sql_channel_member_history.log_join_event.app_error",
+    "translation": "無法紀錄頻道成員歷史"
+  },
+  {
+    "id": "store.sql_channel_member_history.log_leave_event.select_error",
+    "translation": "無法紀錄頻道成員歷史。找不到現存的加入紀錄"
+  },
+  {
+    "id": "store.sql_channel_member_history.log_leave_event.update_error",
+    "translation": "無法紀錄頻道成員歷史。無法更新現存的加入紀錄"
+  },
+  {
+    "id": "store.sql_channel_member_history.permanent_delete_batch.app_error",
+    "translation": "無法清除紀錄"
+  },
+  {
     "id": "store.sql_command.analytics_command_count.app_error",
     "translation": "無法計算命令數量"
   },
@@ -5785,6 +5885,10 @@
   {
     "id": "store.sql_compliance.get.finding.app_error",
     "translation": "取得規範報告時遇到錯誤"
+  },
+  {
+    "id": "store.sql_compliance.message_export.app_error",
+    "translation": "無法選擇匯出訊息資料"
   },
   {
     "id": "store.sql_compliance.save.saving.app_error",
@@ -5989,6 +6093,22 @@
   {
     "id": "store.sql_oauth.update_app.updating.app_error",
     "translation": "更新應用程式時遇到錯誤"
+  },
+  {
+    "id": "store.sql_plugin_store.delete.app_error",
+    "translation": "無法刪除模組鍵值"
+  },
+  {
+    "id": "store.sql_plugin_store.get.app_error",
+    "translation": "無法取得模組鍵值"
+  },
+  {
+    "id": "store.sql_plugin_store.save.app_error",
+    "translation": "無法儲存或更新模組鍵值"
+  },
+  {
+    "id": "store.sql_plugin_store.save_unique.app_error",
+    "translation": "由於唯一性限制，無法儲存或更新模組鍵值"
   },
   {
     "id": "store.sql_post.analytics_posts_count.app_error",
