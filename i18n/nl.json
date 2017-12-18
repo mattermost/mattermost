@@ -2287,6 +2287,10 @@
     "translation": "Email moet uit bepaalde domeinen komen (bijv. @voorbeeld.nl). Neem contact op met de systeem beheerder voor meer details."
   },
   {
+    "id": "api.team.join_team.post_and_forget",
+    "translation": "%v joined the team."
+  },
+  {
     "id": "api.team.leave.left",
     "translation": "%v left the team."
   },
@@ -5095,8 +5099,20 @@
     "translation": "Ongeldige trigger-woorden"
   },
   {
+    "id": "model.plugin_command.error.app_error",
+    "translation": "An error occurred while trying to execute this command."
+  },
+  {
     "id": "model.plugin_key_value.is_valid.key.app_error",
     "translation": "Invalid key, must be more than {{.Min}} and a of maximum {{.Max}} characters long."
+  },
+  {
+    "id": "model.plugin_key_value.is_valid.key.app_error",
+    "translation": "Invalid key, must be more than {{.Min}} and a of maximum {{.Max}} characters long."
+  },
+  {
+    "id": "model.plugin_key_value.is_valid.plugin_id.app_error",
+    "translation": "Invalid plugin ID, must be more than {{.Min}} and a of maximum {{.Max}} characters long."
   },
   {
     "id": "model.plugin_key_value.is_valid.plugin_id.app_error",

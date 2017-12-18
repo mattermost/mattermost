@@ -2287,6 +2287,10 @@
     "translation": "电子邮件必须来自指定域名 (例如 @example.com)。详情请询问您的系统管理员。"
   },
   {
+    "id": "api.team.join_team.post_and_forget",
+    "translation": "%v 已加入团队。"
+  },
+  {
     "id": "api.team.leave.left",
     "translation": "%v 离开了团队。"
   },
@@ -5095,8 +5099,20 @@
     "translation": "无效的触发关键词"
   },
   {
+    "id": "model.plugin_command.error.app_error",
+    "translation": "执行此指令时发生了错误。"
+  },
+  {
     "id": "model.plugin_key_value.is_valid.key.app_error",
     "translation": "无效键，必须为 {{.Min}} 至 {{.Max}} 个字符。"
+  },
+  {
+    "id": "model.plugin_key_value.is_valid.key.app_error",
+    "translation": "无效键，必须为 {{.Min}} 至 {{.Max}} 个字符。"
+  },
+  {
+    "id": "model.plugin_key_value.is_valid.plugin_id.app_error",
+    "translation": "无效插件 ID，必须为 {{.Min}} 至 {{.Max}} 个字符。"
   },
   {
     "id": "model.plugin_key_value.is_valid.plugin_id.app_error",

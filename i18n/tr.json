@@ -2287,6 +2287,10 @@
     "translation": "E-posta belirli bir etki alanından (@ornek.com gibi) gelmelidir. Lütfen ayrıntılı bilgi almak için sistem yöneticinizle görüşün."
   },
   {
+    "id": "api.team.join_team.post_and_forget",
+    "translation": "%v takıma katıldı."
+  },
+  {
     "id": "api.team.leave.left",
     "translation": "%v takımdan ayrıldı."
   },
@@ -5095,8 +5099,20 @@
     "translation": "Tetikleyici sözcükler geçersiz"
   },
   {
+    "id": "model.plugin_command.error.app_error",
+    "translation": "Bu komut yürütülürken bir sorun çıktı."
+  },
+  {
     "id": "model.plugin_key_value.is_valid.key.app_error",
     "translation": "Anahtar geçersiz, {{.Min}} ile {{.Max}} karakter arasında olmalıdır."
+  },
+  {
+    "id": "model.plugin_key_value.is_valid.key.app_error",
+    "translation": "Anahtar geçersiz, {{.Min}} ile {{.Max}} karakter arasında olmalıdır."
+  },
+  {
+    "id": "model.plugin_key_value.is_valid.plugin_id.app_error",
+    "translation": "Uygulama eki kodu geçersiz, {{.Min}} ile {{.Max}} karakter arasında olmalıdır."
   },
   {
     "id": "model.plugin_key_value.is_valid.plugin_id.app_error",

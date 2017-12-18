@@ -2287,6 +2287,10 @@
     "translation": "L'adresse e-mail doit être liée à un domaine spécifique (ex. @exemple.com). Veuillez demander à votre administrateur système pour plus d'informations."
   },
   {
+    "id": "api.team.join_team.post_and_forget",
+    "translation": "%v joined the team."
+  },
+  {
     "id": "api.team.leave.left",
     "translation": "%v left the team."
   },
@@ -5095,8 +5099,20 @@
     "translation": "Mots déclencheurs invalides"
   },
   {
+    "id": "model.plugin_command.error.app_error",
+    "translation": "An error occurred while trying to execute this command."
+  },
+  {
     "id": "model.plugin_key_value.is_valid.key.app_error",
     "translation": "Invalid key, must be more than {{.Min}} and a of maximum {{.Max}} characters long."
+  },
+  {
+    "id": "model.plugin_key_value.is_valid.key.app_error",
+    "translation": "Invalid key, must be more than {{.Min}} and a of maximum {{.Max}} characters long."
+  },
+  {
+    "id": "model.plugin_key_value.is_valid.plugin_id.app_error",
+    "translation": "Invalid plugin ID, must be more than {{.Min}} and a of maximum {{.Max}} characters long."
   },
   {
     "id": "model.plugin_key_value.is_valid.plugin_id.app_error",

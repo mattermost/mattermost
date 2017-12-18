@@ -2287,6 +2287,10 @@
     "translation": "電子郵件地址必須來自一個指定的網域 (例如 @example.com)。請洽詢系統管理員了解詳情。"
   },
   {
+    "id": "api.team.join_team.post_and_forget",
+    "translation": "%v 已加入團隊。"
+  },
+  {
     "id": "api.team.leave.left",
     "translation": "%v 已離開團隊。 "
   },
@@ -5095,8 +5099,20 @@
     "translation": "無效的觸發關鍵字"
   },
   {
+    "id": "model.plugin_command.error.app_error",
+    "translation": "執行此指令時發生錯誤。"
+  },
+  {
     "id": "model.plugin_key_value.is_valid.key.app_error",
     "translation": "無效的鍵值。字元長度必須介於 {{.Min}} 與 {{.Max}} 之間。 "
+  },
+  {
+    "id": "model.plugin_key_value.is_valid.key.app_error",
+    "translation": "無效的鍵值。字元長度必須介於 {{.Min}} 與 {{.Max}} 之間。 "
+  },
+  {
+    "id": "model.plugin_key_value.is_valid.plugin_id.app_error",
+    "translation": "無效的模組 ID。字元長度必須介於 {{.Min}} 與 {{.Max}} 之間。"
   },
   {
     "id": "model.plugin_key_value.is_valid.plugin_id.app_error",

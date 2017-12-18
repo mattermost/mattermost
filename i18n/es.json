@@ -2287,6 +2287,10 @@
     "translation": "El correo electrónico debe ser de un dominio específico (e.j. @ejemplo.com). Por favor pidele más detalles tu administrador de sistemas."
   },
   {
+    "id": "api.team.join_team.post_and_forget",
+    "translation": "%v se unió al equipo."
+  },
+  {
     "id": "api.team.leave.left",
     "translation": "%v abandonó el equipo."
   },
@@ -5095,8 +5099,20 @@
     "translation": "Palabras que desencadenan acciones no válidas"
   },
   {
+    "id": "model.plugin_command.error.app_error",
+    "translation": "Ocurrió un error mientras se intentaba ejecutar este comando."
+  },
+  {
     "id": "model.plugin_key_value.is_valid.key.app_error",
     "translation": "Clave no válida, debe ser más de {{.Min}} y un máximo de {{.Max}} caracteres."
+  },
+  {
+    "id": "model.plugin_key_value.is_valid.key.app_error",
+    "translation": "Clave no válida, debe ser más de {{.Min}} y un máximo de {{.Max}} caracteres."
+  },
+  {
+    "id": "model.plugin_key_value.is_valid.plugin_id.app_error",
+    "translation": "ID de plugin no válido, debe ser más de {{.Min}} y un máximo de {{.Max}} caracteres."
   },
   {
     "id": "model.plugin_key_value.is_valid.plugin_id.app_error",
