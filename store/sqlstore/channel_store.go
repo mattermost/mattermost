@@ -1318,12 +1318,19 @@ func (s SqlChannelStore) performSearch(searchQuery string, term string, paramete
 		term = strings.Replace(term, c, "*"+c, -1)
 	}
 
+	searchType := "Name, DisplayName"
 	if term == "" {
 		searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", "", 1)
-	} else {
-		isPostgreSQL := s.DriverName() == model.DATABASE_DRIVER_POSTGRES
-		searchQuery = generateSearchQuery(searchQuery, []string{term}, []string{"Name", "DisplayName"}, parameters, isPostgreSQL)
+	} else if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+		postgresColumnNames := convertMySQLFullTextColumnsToPostgres(searchType)
+		searchClause := fmt.Sprintf("AND to_tsvector(%s) @@  to_tsquery(:Terms)", postgresColumnNames)
+		searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", searchClause, 1)
+	} else if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
+		searchClause := fmt.Sprintf("AND MATCH (%s) AGAINST (:Terms IN BOOLEAN MODE)", searchType)
+		searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", searchClause, 1)
 	}
+
+	parameters["Terms"] = fmt.Sprintf("%s:*", term)
 
 	var channels model.ChannelList
 
