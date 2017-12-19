@@ -25,7 +25,8 @@ func adminUpdateUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToUser(c.Session, user.Id) {
+	if !c.IsSystemAdmin() {
+		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
 		return
 	}
 
