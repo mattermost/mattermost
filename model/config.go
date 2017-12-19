@@ -1021,6 +1021,10 @@ func (s *TeamSettings) SetDefaults() {
 	if s.ExperimentalTownSquareIsReadOnly == nil {
 		s.ExperimentalTownSquareIsReadOnly = NewBool(false)
 	}
+
+	if s.DefaultTeamName == nil {
+		s.DefaultTeamName = NewString("")
+	}
 }
 
 type ClientRequirements struct {
