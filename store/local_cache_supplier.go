@@ -15,12 +15,17 @@ const (
 	REACTION_CACHE_SIZE = 20000
 	REACTION_CACHE_SEC  = 1800 // 30 minutes
 
+	ROLE_CACHE_SIZE = 20000
+	ROLE_CACHE_SEC  = 1800 // 30 minutes
+
+
 	CLEAR_CACHE_MESSAGE_DATA = ""
 )
 
 type LocalCacheSupplier struct {
 	next          LayeredStoreSupplier
 	reactionCache *utils.Cache
+	roleCache     *utils.Cache
 	metrics       einterfaces.MetricsInterface
 	cluster       einterfaces.ClusterInterface
 }
@@ -28,12 +33,14 @@ type LocalCacheSupplier struct {
 func NewLocalCacheSupplier(metrics einterfaces.MetricsInterface, cluster einterfaces.ClusterInterface) *LocalCacheSupplier {
 	supplier := &LocalCacheSupplier{
 		reactionCache: utils.NewLruWithParams(REACTION_CACHE_SIZE, "Reaction", REACTION_CACHE_SEC, model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_REACTIONS),
+		roleCache: utils.NewLruWithParams(ROLE_CACHE_SIZE, "Role", ROLE_CACHE_SEC, model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_ROLES),
 		metrics:       metrics,
 		cluster:       cluster,
 	}
 
 	if cluster != nil {
 		cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_REACTIONS, supplier.handleClusterInvalidateReaction)
+		cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_ROLES, supplier.handleClusterInvalidateRole)
 	}
 
 	return supplier
