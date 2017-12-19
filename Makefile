@@ -91,7 +91,7 @@ ALL_PACKAGES_COMMA=$(TE_PACKAGES_COMMA)
 endif
 
 
-all: run ## Build and run the Mattermost server for development.
+all: run ## Alias for 'run'.
 
 include build/*.mk
 
