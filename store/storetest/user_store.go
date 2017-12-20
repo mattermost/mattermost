@@ -8,6 +8,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
+
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
 )
@@ -1817,6 +1819,10 @@ func testUserStoreSearch(t *testing.T, ss store.Store) {
 			t.Fatal("should have found user")
 		}
 	}
+
+	// Check PLT-8354 - search that ends up with just space for terms doesn't error.
+	r1 := <-ss.User().SearchWithoutTeam("* ", searchOptions)
+	assert.Nil(t, r1.Err)
 }
 
 func testUserStoreSearchWithoutTeam(t *testing.T, ss store.Store) {

@@ -1078,7 +1078,7 @@ func (us SqlUserStore) performSearch(searchQuery string, term string, options ma
 		searchQuery = strings.Replace(searchQuery, "INACTIVE_CLAUSE", "AND Users.DeleteAt = 0", 1)
 	}
 
-	if term == "" {
+	if strings.TrimSpace(term) == "" {
 		searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", "", 1)
 	} else {
 		isPostgreSQL := us.DriverName() == model.DATABASE_DRIVER_POSTGRES
