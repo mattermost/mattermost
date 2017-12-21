@@ -347,10 +347,11 @@ func MigrateRolesToDatabase(sqlStore SqlStore) {
 	roles = utils.SetRolePermissionsFromConfig(roles, utils.Cfg)
 
 	for _, role := range roles {
-		if result := <-sqlStore.Role().Save(role); result.Err != nil {
+		dbRole := FromRole(role)
+		if err := sqlStore.GetMaster().Insert(dbRole); err != nil {
 			// FIXME: What to do here in case of error?
 			l4g.Critical("Failed to migrate role to database.")
-			l4g.Critical(result.Err)
+			l4g.Critical(err)
 		}
 	}
 }
