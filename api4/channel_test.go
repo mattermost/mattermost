@@ -9,6 +9,7 @@ import (
 	"reflect"
 	"sort"
 	"strconv"
+	"strings"
 	"testing"
 
 	"github.com/mattermost/mattermost-server/model"
@@ -1135,6 +1136,9 @@ func TestGetChannelByName(t *testing.T) {
 	if channel.Name != th.BasicPrivateChannel.Name {
 		t.Fatal("names did not match")
 	}
+
+	_, resp = Client.GetChannelByName(strings.ToUpper(th.BasicPrivateChannel.Name), th.BasicTeam.Id, "")
+	CheckNoError(t, resp)
 
 	Client.RemoveUserFromChannel(th.BasicChannel.Id, th.BasicUser.Id)
 	_, resp = Client.GetChannelByName(th.BasicChannel.Name, th.BasicTeam.Id, "")

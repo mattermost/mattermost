@@ -710,6 +710,9 @@ func TestGetTeamByName(t *testing.T) {
 	_, resp = Client.GetTeamByName("", "")
 	CheckNotFoundStatus(t, resp)
 
+	_, resp = th.SystemAdminClient.GetTeamByName(strings.ToUpper(team.Name), "")
+	CheckNoError(t, resp)
+
 	Client.Logout()
 	_, resp = Client.GetTeamByName(team.Name, "")
 	CheckUnauthorizedStatus(t, resp)
