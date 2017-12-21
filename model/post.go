@@ -461,7 +461,7 @@ func RewriteImageURLs(message string, f func(string) string) string {
 		original := message[r.Position:r.End]
 		replacement := markdownDestinationEscaper.Replace(f(markdown.Unescape(original)))
 		resultLength += len(replacement) - len(original)
-		copyRanges = append(copyRanges, markdown.Range{start, r.Position})
+		copyRanges = append(copyRanges, markdown.Range{Position: start, End: r.Position})
 		urls = append(urls, replacement)
 	}
 
