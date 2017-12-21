@@ -11,7 +11,7 @@ jq_cmd=jq
 ldapsearch_cmd=ldapsearch
 [[ $(type -P "$ldapsearch_cmd") ]] || { 
 	echo "'$ldapsearch_cmd' shell accessible interface to ldap not found";
-	echo "Please install on linux with 'sudo apt-get install jq'"
+	echo "Please install on linux with 'sudo apt-get install ldap-utils'"
 	exit 1; 
 }
 
