@@ -7,17 +7,13 @@ import (
 	"net/http"
 	"strconv"
 
-	l4g "github.com/alecthomas/log4go"
 	"github.com/gorilla/mux"
 	"github.com/mattermost/mattermost-server/app"
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils"
 	"github.com/mssola/user_agent"
 )
 
 func (api *API) InitAdmin() {
-	l4g.Debug(utils.T("api.admin.init.debug"))
-
 	api.BaseRoutes.Admin.Handle("/logs", api.ApiAdminSystemRequired(getLogs)).Methods("GET")
 	api.BaseRoutes.Admin.Handle("/audits", api.ApiAdminSystemRequired(getAllAudits)).Methods("GET")
 	api.BaseRoutes.Admin.Handle("/config", api.ApiAdminSystemRequired(getConfig)).Methods("GET")

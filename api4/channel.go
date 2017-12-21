@@ -8,12 +8,9 @@ import (
 
 	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils"
 )
 
 func (api *API) InitChannel() {
-	l4g.Debug(utils.T("api.channel.init.debug"))
-
 	api.BaseRoutes.Channels.Handle("", api.ApiSessionRequired(createChannel)).Methods("POST")
 	api.BaseRoutes.Channels.Handle("/direct", api.ApiSessionRequired(createDirectChannel)).Methods("POST")
 	api.BaseRoutes.Channels.Handle("/group", api.ApiSessionRequired(createGroupChannel)).Methods("POST")

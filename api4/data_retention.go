@@ -5,15 +5,9 @@ package api4
 
 import (
 	"net/http"
-
-	l4g "github.com/alecthomas/log4go"
-
-	"github.com/mattermost/mattermost-server/utils"
 )
 
 func (api *API) InitDataRetention() {
-	l4g.Debug(utils.T("api.data_retention.init.debug"))
-
 	api.BaseRoutes.DataRetention.Handle("/policy", api.ApiSessionRequired(getPolicy)).Methods("GET")
 }
 

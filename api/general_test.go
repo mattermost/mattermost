@@ -4,8 +4,9 @@
 package api
 
 import (
-	"github.com/mattermost/mattermost-server/model"
 	"testing"
+
+	"github.com/mattermost/mattermost-server/model"
 )
 
 func TestGetClientProperties(t *testing.T) {

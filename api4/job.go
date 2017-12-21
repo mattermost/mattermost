@@ -6,13 +6,10 @@ package api4
 import (
 	"net/http"
 
-	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/mattermost-server/model"
 )
 
 func (api *API) InitJob() {
-	l4g.Info("Initializing job API routes")
-
 	api.BaseRoutes.Jobs.Handle("", api.ApiSessionRequired(getJobs)).Methods("GET")
 	api.BaseRoutes.Jobs.Handle("", api.ApiSessionRequired(createJob)).Methods("POST")
 	api.BaseRoutes.Jobs.Handle("/{job_id:[A-Za-z0-9]+}", api.ApiSessionRequired(getJob)).Methods("GET")

@@ -9,8 +9,9 @@ import (
 	"net/http/httptest"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/model"
 	"testing"
+
+	"github.com/mattermost/mattermost-server/model"
 )
 
 func TestGetOpenGraphMetadata(t *testing.T) {

@@ -8,15 +8,10 @@ import (
 	"strconv"
 	"time"
 
-	l4g "github.com/alecthomas/log4go"
-
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils"
 )
 
 func (api *API) InitPost() {
-	l4g.Debug(utils.T("api.post.init.debug"))
-
 	api.BaseRoutes.Posts.Handle("", api.ApiSessionRequired(createPost)).Methods("POST")
 	api.BaseRoutes.Post.Handle("", api.ApiSessionRequired(getPost)).Methods("GET")
 	api.BaseRoutes.Post.Handle("", api.ApiSessionRequired(deletePost)).Methods("DELETE")

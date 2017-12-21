@@ -10,7 +10,6 @@ import (
 	"strconv"
 	"strings"
 
-	l4g "github.com/alecthomas/log4go"
 	"github.com/gorilla/mux"
 
 	"github.com/mattermost/mattermost-server/model"
@@ -18,8 +17,6 @@ import (
 )
 
 func (api *API) InitTeam() {
-	l4g.Debug(utils.T("api.team.init.debug"))
-
 	api.BaseRoutes.Teams.Handle("/create", api.ApiUserRequired(createTeam)).Methods("POST")
 	api.BaseRoutes.Teams.Handle("/all", api.ApiUserRequired(getAll)).Methods("GET")
 	api.BaseRoutes.Teams.Handle("/all_team_listings", api.ApiUserRequired(GetAllTeamListings)).Methods("GET")

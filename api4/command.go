@@ -9,14 +9,10 @@ import (
 	"strconv"
 	"strings"
 
-	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils"
 )
 
 func (api *API) InitCommand() {
-	l4g.Debug(utils.T("api.command.init.debug"))
-
 	api.BaseRoutes.Commands.Handle("", api.ApiSessionRequired(createCommand)).Methods("POST")
 	api.BaseRoutes.Commands.Handle("", api.ApiSessionRequired(listCommands)).Methods("GET")
 	api.BaseRoutes.Commands.Handle("/execute", api.ApiSessionRequired(executeCommand)).Methods("POST")

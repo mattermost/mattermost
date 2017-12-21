@@ -9,7 +9,6 @@ import (
 	"strconv"
 	"strings"
 
-	l4g "github.com/alecthomas/log4go"
 	"github.com/gorilla/mux"
 	"github.com/mattermost/mattermost-server/app"
 	"github.com/mattermost/mattermost-server/model"
@@ -31,8 +30,6 @@ var UNSAFE_CONTENT_TYPES = [...]string{
 }
 
 func (api *API) InitFile() {
-	l4g.Debug(utils.T("api.file.init.debug"))
-
 	api.BaseRoutes.TeamFiles.Handle("/upload", api.ApiUserRequired(uploadFile)).Methods("POST")
 
 	api.BaseRoutes.NeedFile.Handle("/get", api.ApiUserRequiredTrustRequester(getFile)).Methods("GET")

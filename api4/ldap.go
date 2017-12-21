@@ -6,14 +6,10 @@ package api4
 import (
 	"net/http"
 
-	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils"
 )
 
 func (api *API) InitLdap() {
-	l4g.Debug(utils.T("api.ldap.init.debug"))
-
 	api.BaseRoutes.LDAP.Handle("/sync", api.ApiSessionRequired(syncLdap)).Methods("POST")
 	api.BaseRoutes.LDAP.Handle("/test", api.ApiSessionRequired(testLdap)).Methods("POST")
 }

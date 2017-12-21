@@ -15,8 +15,6 @@ import (
 )
 
 func (api *API) InitOAuth() {
-	l4g.Debug(utils.T("api.oauth.init.debug"))
-
 	api.BaseRoutes.OAuthApps.Handle("", api.ApiSessionRequired(createOAuthApp)).Methods("POST")
 	api.BaseRoutes.OAuthApp.Handle("", api.ApiSessionRequired(updateOAuthApp)).Methods("PUT")
 	api.BaseRoutes.OAuthApps.Handle("", api.ApiSessionRequired(getOAuthApps)).Methods("GET")

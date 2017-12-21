@@ -6,14 +6,10 @@ package api4
 import (
 	"net/http"
 
-	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils"
 )
 
 func (api *API) InitReaction() {
-	l4g.Debug(utils.T("api.reaction.init.debug"))
-
 	api.BaseRoutes.Reactions.Handle("", api.ApiSessionRequired(saveReaction)).Methods("POST")
 	api.BaseRoutes.Post.Handle("/reactions", api.ApiSessionRequired(getReactions)).Methods("GET")
 	api.BaseRoutes.ReactionByNameForPostForUser.Handle("", api.ApiSessionRequired(deleteReaction)).Methods("DELETE")

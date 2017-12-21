@@ -20,8 +20,6 @@ import (
 )
 
 func (api *API) InitUser() {
-	l4g.Debug(utils.T("api.user.init.debug"))
-
 	api.BaseRoutes.Users.Handle("/create", api.ApiAppHandler(createUser)).Methods("POST")
 	api.BaseRoutes.Users.Handle("/update", api.ApiUserRequired(updateUser)).Methods("POST")
 	api.BaseRoutes.Users.Handle("/update_active", api.ApiUserRequired(updateActive)).Methods("POST")

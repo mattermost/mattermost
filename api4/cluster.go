@@ -6,14 +6,10 @@ package api4
 import (
 	"net/http"
 
-	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils"
 )
 
 func (api *API) InitCluster() {
-	l4g.Debug(utils.T("api.cluster.init.debug"))
-
 	api.BaseRoutes.Cluster.Handle("/status", api.ApiSessionRequired(getClusterStatus)).Methods("GET")
 }
 
