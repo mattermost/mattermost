@@ -2287,6 +2287,10 @@
     "translation": "電子メールは特定のドメイン(例えば、@example.com)から送信される必要があります。詳細はシステム管理者に問い合わせてください。"
   },
   {
+    "id": "api.team.join_team.post_and_forget",
+    "translation": "%v がチームに参加しました。"
+  },
+  {
     "id": "api.team.leave.left",
     "translation": "%v はチームから脱退しました。"
   },
@@ -5095,8 +5099,20 @@
     "translation": "不正なトリガーワードです"
   },
   {
+    "id": "model.plugin_command.error.app_error",
+    "translation": "このコマンドを実行中にエラーが発生しました。"
+  },
+  {
     "id": "model.plugin_key_value.is_valid.key.app_error",
     "translation": "不正なキーです。{{.Min}}文字以上 {{.Max}}文字以下でなくてはなりません。"
+  },
+  {
+    "id": "model.plugin_key_value.is_valid.key.app_error",
+    "translation": "不正なキーです。{{.Min}}文字以上 {{.Max}}文字以下でなくてはなりません。"
+  },
+  {
+    "id": "model.plugin_key_value.is_valid.plugin_id.app_error",
+    "translation": "不正なプラグインIDです。{{.Min}}文字以上 {{.Max}}文字以下でなくてはなりません。"
   },
   {
     "id": "model.plugin_key_value.is_valid.plugin_id.app_error",

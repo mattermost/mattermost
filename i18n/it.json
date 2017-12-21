@@ -2287,6 +2287,10 @@
     "translation": "La email deve essere da uno specifico dominio (e.s. @example.com). Per favore chiedi al tuo amministratore di sistema maggiori informazioni."
   },
   {
+    "id": "api.team.join_team.post_and_forget",
+    "translation": "%v si è unito al gruppo."
+  },
+  {
     "id": "api.team.leave.left",
     "translation": "%v ha lasciato il gruppo."
   },
@@ -5095,8 +5099,20 @@
     "translation": "Parola di innesco non valida"
   },
   {
+    "id": "model.plugin_command.error.app_error",
+    "translation": "Si è verificato un errore durante l'esecuzione di questo comando."
+  },
+  {
     "id": "model.plugin_key_value.is_valid.key.app_error",
     "translation": "Chiave non valida, deve essere più lunga di {{.Min}} e al massimo {{.Mac}} caratteri."
+  },
+  {
+    "id": "model.plugin_key_value.is_valid.key.app_error",
+    "translation": "Chiave non valida, deve essere più lunga di {{.Min}} e al massimo {{.Mac}} caratteri."
+  },
+  {
+    "id": "model.plugin_key_value.is_valid.plugin_id.app_error",
+    "translation": "ID plugin non valido, deve essere più lungo di {{.Min}} e al massimo{{.Max}} caratteri."
   },
   {
     "id": "model.plugin_key_value.is_valid.plugin_id.app_error",
