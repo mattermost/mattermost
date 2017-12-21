@@ -190,7 +190,7 @@ func (us SqlUserStore) Update(user *model.User, trustedUpdateData bool) store.St
 
 func (us SqlUserStore) UpdateLastPictureUpdate(userId string) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
-		curTime := 1234
+		curTime := model.GetMillis()
 
 		if _, err := us.GetMaster().Exec("UPDATE Users SET LastPictureUpdate = :Time, UpdateAt = :Time WHERE Id = :UserId", map[string]interface{}{"Time": curTime, "UserId": userId}); err != nil {
 			result.Err = model.NewAppError("SqlUserStore.UpdateUpdateAt", "store.sql_user.update_last_picture_update.app_error", nil, "user_id="+userId, http.StatusInternalServerError)
