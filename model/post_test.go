@@ -191,8 +191,7 @@ func init() {
 	markdownSampleWithRewrittenImageURLs = string(bytes)
 }
 
-func TestPostMessageWithRewrittenImageURLs(t *testing.T) {
-
+func TestRewriteImageURLs(t *testing.T) {
 	for name, tc := range map[string]struct {
 		Markdown string
 		Expected string
@@ -285,24 +284,18 @@ func TestPostMessageWithRewrittenImageURLs(t *testing.T) {
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
-			p := &Post{
-				Message: tc.Markdown,
-			}
-			assert.Equal(t, tc.Expected, p.MessageWithRewrittenImageURLs(func(url string) string {
+			assert.Equal(t, tc.Expected, RewriteImageURLs(tc.Markdown, func(url string) string {
 				return "rewritten:" + url
 			}))
 		})
 	}
 }
 
-var postURLRewritingBenchmarkSink string
+var rewriteImageURLsSink string
 
-func BenchmarkPostMessageWithRewrittenImageURLs(b *testing.B) {
-	p := &Post{
-		Message: markdownSample,
-	}
+func BenchmarkRewriteImageURLs(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		postURLRewritingBenchmarkSink = p.MessageWithRewrittenImageURLs(func(url string) string {
+		rewriteImageURLsSink = RewriteImageURLs(markdownSample, func(url string) string {
 			return "rewritten:" + url
 		})
 	}
