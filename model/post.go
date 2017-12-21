@@ -8,8 +8,11 @@ import (
 	"io"
 	"net/http"
 	"regexp"
+	"sort"
 	"strings"
 	"unicode/utf8"
+
+	"github.com/mattermost/mattermost-server/utils/markdown"
 )
 
 const (
@@ -70,6 +73,14 @@ type PostPatch struct {
 	Props        *StringInterface `json:"props"`
 	FileIds      *StringArray     `json:"file_ids"`
 	HasReactions *bool            `json:"has_reactions"`
+}
+
+func (o *PostPatch) WithRewrittenImageURLs(f func(string) string) *PostPatch {
+	copy := *o
+	if copy.Message != nil {
+		*copy.Message = RewriteImageURLs(*o.Message, f)
+	}
+	return &copy
 }
 
 type PostForIndexing struct {
@@ -391,4 +402,77 @@ func (o *Post) GenerateActionIds() {
 			}
 		}
 	}
+}
+
+var markdownDestinationEscaper = strings.NewReplacer(
+	`\`, `\\`,
+	`<`, `\<`,
+	`>`, `\>`,
+	`(`, `\(`,
+	`)`, `\)`,
+)
+
+func (o *Post) WithRewrittenImageURLs(f func(string) string) *Post {
+	copy := *o
+	copy.Message = RewriteImageURLs(o.Message, f)
+	return &copy
+}
+
+func RewriteImageURLs(message string, f func(string) string) string {
+	if !strings.Contains(message, "![") {
+		return message
+	}
+
+	var ranges []markdown.Range
+
+	markdown.Inspect(message, func(blockOrInline interface{}) bool {
+		switch v := blockOrInline.(type) {
+		case *markdown.ReferenceImage:
+			ranges = append(ranges, v.ReferenceDefinition.RawDestination)
+		case *markdown.InlineImage:
+			ranges = append(ranges, v.RawDestination)
+		default:
+			return true
+		}
+		return true
+	})
+
+	if ranges == nil {
+		return message
+	}
+
+	sort.Slice(ranges, func(i, j int) bool {
+		return ranges[i].Position < ranges[j].Position
+	})
+
+	copyRanges := make([]markdown.Range, 0, len(ranges))
+	urls := make([]string, 0, len(ranges))
+	resultLength := len(message)
+
+	start := 0
+	for i, r := range ranges {
+		switch {
+		case i == 0:
+		case r.Position != ranges[i-1].Position:
+			start = ranges[i-1].End
+		default:
+			continue
+		}
+		original := message[r.Position:r.End]
+		replacement := markdownDestinationEscaper.Replace(f(markdown.Unescape(original)))
+		resultLength += len(replacement) - len(original)
+		copyRanges = append(copyRanges, markdown.Range{start, r.Position})
+		urls = append(urls, replacement)
+	}
+
+	result := make([]byte, resultLength)
+
+	offset := 0
+	for i, r := range copyRanges {
+		offset += copy(result[offset:], message[r.Position:r.End])
+		offset += copy(result[offset:], urls[i])
+	}
+	copy(result[offset:], message[ranges[len(ranges)-1].End:])
+
+	return string(result)
 }

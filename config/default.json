@@ -56,7 +56,9 @@
         "EnablePreviewFeatures": true,
         "CloseUnusedDirectMessages": false,
         "EnableTutorial": true,
-        "ExperimentalEnableDefaultChannelLeaveJoinMessages": true
+        "ExperimentalEnableDefaultChannelLeaveJoinMessages": true,
+        "ImageProxyType": "",
+        "ImageProxyURL": ""
     },
     "TeamSettings": {
         "SiteName": "Mattermost",

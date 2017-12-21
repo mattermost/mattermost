@@ -62,6 +62,6 @@ func (a *App) sendReactionEvent(event string, reaction *model.Reaction, post *mo
 	post.HasReactions = true
 	post.UpdateAt = model.GetMillis()
 	umessage := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POST_EDITED, "", post.ChannelId, "", nil)
-	umessage.Add("post", post.ToJson())
+	umessage.Add("post", a.PostWithProxyAddedToImageURLs(post).ToJson())
 	a.Publish(umessage)
 }

@@ -4,6 +4,7 @@
 package model
 
 import (
+	"io/ioutil"
 	"strings"
 	"testing"
 
@@ -171,5 +172,138 @@ func TestPostSanitizeProps(t *testing.T) {
 
 	if post3.Props["attachments"] == nil {
 		t.Fatal("should not be nil")
+	}
+}
+
+var markdownSample, markdownSampleWithRewrittenImageURLs string
+
+func init() {
+	bytes, err := ioutil.ReadFile("testdata/markdown-sample.md")
+	if err != nil {
+		panic(err)
+	}
+	markdownSample = string(bytes)
+
+	bytes, err = ioutil.ReadFile("testdata/markdown-sample-with-rewritten-image-urls.md")
+	if err != nil {
+		panic(err)
+	}
+	markdownSampleWithRewrittenImageURLs = string(bytes)
+}
+
+func TestPostMessageWithRewrittenImageURLs(t *testing.T) {
+
+	for name, tc := range map[string]struct {
+		Markdown string
+		Expected string
+	}{
+		"Empty": {
+			Markdown: ``,
+			Expected: ``,
+		},
+		"NoImages": {
+			Markdown: `foo`,
+			Expected: `foo`,
+		},
+		"Link": {
+			Markdown: `[foo](/url)`,
+			Expected: `[foo](/url)`,
+		},
+		"Image": {
+			Markdown: `![foo](/url)`,
+			Expected: `![foo](rewritten:/url)`,
+		},
+		"SpacedURL": {
+			Markdown: `![foo]( /url )`,
+			Expected: `![foo]( rewritten:/url )`,
+		},
+		"Title": {
+			Markdown: `![foo](/url "title")`,
+			Expected: `![foo](rewritten:/url "title")`,
+		},
+		"Parentheses": {
+			Markdown: `![foo](/url(1) "title")`,
+			Expected: `![foo](rewritten:/url\(1\) "title")`,
+		},
+		"AngleBrackets": {
+			Markdown: `![foo](</url\<1\>\\> "title")`,
+			Expected: `![foo](<rewritten:/url\<1\>\\> "title")`,
+		},
+		"MultipleLines": {
+			Markdown: `![foo](
+				</url\<1\>\\>
+				"title"
+			)`,
+			Expected: `![foo](
+				<rewritten:/url\<1\>\\>
+				"title"
+			)`,
+		},
+		"ReferenceLink": {
+			Markdown: `[foo]: </url\<1\>\\> "title"
+		 		[foo]`,
+			Expected: `[foo]: </url\<1\>\\> "title"
+		 		[foo]`,
+		},
+		"ReferenceImage": {
+			Markdown: `[foo]: </url\<1\>\\> "title"
+		 		![foo]`,
+			Expected: `[foo]: <rewritten:/url\<1\>\\> "title"
+		 		![foo]`,
+		},
+		"MultipleReferenceImages": {
+			Markdown: `[foo]: </url1> "title"
+				[bar]: </url2>
+				[baz]: /url3 "title"
+				[qux]: /url4
+				![foo]![qux]`,
+			Expected: `[foo]: <rewritten:/url1> "title"
+				[bar]: </url2>
+				[baz]: /url3 "title"
+				[qux]: rewritten:/url4
+				![foo]![qux]`,
+		},
+		"DuplicateReferences": {
+			Markdown: `[foo]: </url1> "title"
+				[foo]: </url2>
+				[foo]: /url3 "title"
+				[foo]: /url4
+				![foo]![foo]![foo]`,
+			Expected: `[foo]: <rewritten:/url1> "title"
+				[foo]: </url2>
+				[foo]: /url3 "title"
+				[foo]: /url4
+				![foo]![foo]![foo]`,
+		},
+		"TrailingURL": {
+			Markdown: "![foo]\n\n[foo]: /url",
+			Expected: "![foo]\n\n[foo]: rewritten:/url",
+		},
+		"Sample": {
+			Markdown: markdownSample,
+			Expected: markdownSampleWithRewrittenImageURLs,
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			p := &Post{
+				Message: tc.Markdown,
+			}
+			assert.Equal(t, tc.Expected, p.MessageWithRewrittenImageURLs(func(url string) string {
+				return "rewritten:" + url
+			}))
+		})
+	}
+}
+
+var postURLRewritingBenchmarkSink string
+
+func BenchmarkPostMessageWithRewrittenImageURLs(b *testing.B) {
+	p := &Post{
+		Message: markdownSample,
+	}
+	for i := 0; i < b.N; i++ {
+		postURLRewritingBenchmarkSink = p.MessageWithRewrittenImageURLs(func(url string) string {
+			return "rewritten:" + url
+		})
 	}
 }
