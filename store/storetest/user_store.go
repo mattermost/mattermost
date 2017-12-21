@@ -119,7 +119,7 @@ func testUserStoreUpdate(t *testing.T, ss store.Store) {
 	store.Must(ss.User().Save(u2))
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u2.Id}, -1))
 
-	time.Sleep(50 * time.Millisecond) // updates with no changes fail if the UpdateAt time doesn't change
+	time.Sleep(100 * time.Millisecond)
 
 	if err := (<-ss.User().Update(u1, false)).Err; err != nil {
 		t.Fatal(err)
@@ -157,13 +157,12 @@ func testUserStoreUpdate(t *testing.T, ss store.Store) {
 		}
 	}
 
-	time.Sleep(50 * time.Millisecond) // updates with no changes fail if the UpdateAt time doesn't change
-
+	u3.Email = model.NewId()
 	if result := <-ss.User().Update(u3, true); result.Err != nil {
 		t.Fatal("Update should not have failed")
 	} else {
 		newUser := result.Data.([2]*model.User)[0]
-		if newUser.Email != u3.Email {
+		if newUser.Email == oldEmail {
 			t.Fatal("Email should have been updated as the update is trusted")
 		}
 	}
