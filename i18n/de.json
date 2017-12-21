@@ -2287,6 +2287,10 @@
     "translation": "Die E-Mail-Adresse muss von einer bestimmten Domain stammen (z.B. @example.com). Bitte wenden Sie sich an Ihren Systemadministrator."
   },
   {
+    "id": "api.team.join_team.post_and_forget",
+    "translation": "%v ist dem Team beigetreten."
+  },
+  {
     "id": "api.team.leave.left",
     "translation": "%v hat das Team verlassen."
   },
@@ -5095,8 +5099,20 @@
     "translation": "Ungültige Auslösewörter"
   },
   {
+    "id": "model.plugin_command.error.app_error",
+    "translation": "Beim Versuch diesen Befehl trat ein Fehler auf auszuführen."
+  },
+  {
     "id": "model.plugin_key_value.is_valid.key.app_error",
     "translation": "Ungültiger Schlüssel, er muss länger als {{.Min}} und kürzer als {{.Max}} Zeichen sein."
+  },
+  {
+    "id": "model.plugin_key_value.is_valid.key.app_error",
+    "translation": "Ungültiger Schlüssel, er muss länger als {{.Min}} und kürzer als {{.Max}} Zeichen sein."
+  },
+  {
+    "id": "model.plugin_key_value.is_valid.plugin_id.app_error",
+    "translation": "Ungültige Plugin-ID, sie muss länger als {{.Min}} und kürzer als {{.Max}} Zeichen sein."
   },
   {
     "id": "model.plugin_key_value.is_valid.plugin_id.app_error",

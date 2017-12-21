@@ -2287,6 +2287,10 @@
     "translation": "Email precisa ser de um domínio específico (ex. @example.com). Por favor pergunte ao administrador do sistema por detalhes."
   },
   {
+    "id": "api.team.join_team.post_and_forget",
+    "translation": "%v joined the team."
+  },
+  {
     "id": "api.team.leave.left",
     "translation": "%v deixou a equipe."
   },
@@ -5095,8 +5099,20 @@
     "translation": "Palavras gatilho inválida"
   },
   {
+    "id": "model.plugin_command.error.app_error",
+    "translation": "An error occurred while trying to execute this command."
+  },
+  {
     "id": "model.plugin_key_value.is_valid.key.app_error",
     "translation": "Chave inválida, deve ter mais de {{.Min}} e um máximo de {{.Max}} caracteres de comprimento."
+  },
+  {
+    "id": "model.plugin_key_value.is_valid.key.app_error",
+    "translation": "Chave inválida, deve ter mais de {{.Min}} e um máximo de {{.Max}} caracteres de comprimento."
+  },
+  {
+    "id": "model.plugin_key_value.is_valid.plugin_id.app_error",
+    "translation": "Plugin ID inválido, deve ter mais de {{.Min}} e um máximo de {{.Max}} caracteres de comprimento."
   },
   {
     "id": "model.plugin_key_value.is_valid.plugin_id.app_error",
