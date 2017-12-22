@@ -33,13 +33,15 @@ func TestCreateWebhookPost(t *testing.T) {
 				Text: "text",
 			},
 		},
+		"webhook_display_name": hook.DisplayName,
 	}, model.POST_SLACK_ATTACHMENT, "")
 	if err != nil {
 		t.Fatal(err.Error())
 	}
 
-	for _, k := range []string{"from_webhook", "attachments"} {
+	for _, k := range []string{"from_webhook", "attachments", "webhook_display_name"} {
 		if _, ok := post.Props[k]; !ok {
+			t.Log("missing one props: " + k)
 			t.Fatal(k)
 		}
 	}
