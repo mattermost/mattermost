@@ -6,15 +6,11 @@ package api
 import (
 	"net/http"
 
-	l4g "github.com/alecthomas/log4go"
 	"github.com/gorilla/mux"
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils"
 )
 
 func (api *API) InitOAuth() {
-	l4g.Debug(utils.T("api.oauth.init.debug"))
-
 	api.BaseRoutes.OAuth.Handle("/register", api.ApiUserRequired(registerOAuthApp)).Methods("POST")
 	api.BaseRoutes.OAuth.Handle("/list", api.ApiUserRequired(getOAuthApps)).Methods("GET")
 	api.BaseRoutes.OAuth.Handle("/app/{client_id}", api.ApiUserRequired(getOAuthAppInfo)).Methods("GET")

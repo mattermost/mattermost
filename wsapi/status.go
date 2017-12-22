@@ -7,12 +7,9 @@ import (
 	l4g "github.com/alecthomas/log4go"
 
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils"
 )
 
 func (api *API) InitStatus() {
-	l4g.Debug(utils.T("wsapi.status.init.debug"))
-
 	api.Router.Handle("get_statuses", api.ApiWebSocketHandler(api.getStatuses))
 	api.Router.Handle("get_statuses_by_ids", api.ApiWebSocketHandler(api.getStatusesByIds))
 }

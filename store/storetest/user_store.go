@@ -157,11 +157,12 @@ func testUserStoreUpdate(t *testing.T, ss store.Store) {
 		}
 	}
 
+	u3.Email = model.NewId()
 	if result := <-ss.User().Update(u3, true); result.Err != nil {
 		t.Fatal("Update should not have failed")
 	} else {
 		newUser := result.Data.([2]*model.User)[0]
-		if newUser.Email != u3.Email {
+		if newUser.Email == oldEmail {
 			t.Fatal("Email should have been updated as the update is trusted")
 		}
 	}

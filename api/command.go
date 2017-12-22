@@ -8,15 +8,10 @@ import (
 	"net/http"
 	"strings"
 
-	l4g "github.com/alecthomas/log4go"
-
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils"
 )
 
 func (api *API) InitCommand() {
-	l4g.Debug(utils.T("api.command.init.debug"))
-
 	api.BaseRoutes.Commands.Handle("/execute", api.ApiUserRequired(executeCommand)).Methods("POST")
 	api.BaseRoutes.Commands.Handle("/list", api.ApiUserRequired(listCommands)).Methods("GET")
 

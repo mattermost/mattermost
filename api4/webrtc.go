@@ -5,14 +5,9 @@ package api4
 
 import (
 	"net/http"
-
-	l4g "github.com/alecthomas/log4go"
-	"github.com/mattermost/mattermost-server/utils"
 )
 
 func (api *API) InitWebrtc() {
-	l4g.Debug(utils.T("api.webrtc.init.debug"))
-
 	api.BaseRoutes.Webrtc.Handle("/token", api.ApiSessionRequired(webrtcToken)).Methods("GET")
 }
 

@@ -16,8 +16,6 @@ import (
 )
 
 func (api *API) InitSystem() {
-	l4g.Debug(utils.T("api.system.init.debug"))
-
 	api.BaseRoutes.System.Handle("/ping", api.ApiHandler(getSystemPing)).Methods("GET")
 
 	api.BaseRoutes.ApiRoot.Handle("/config", api.ApiSessionRequired(getConfig)).Methods("GET")

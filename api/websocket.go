@@ -13,7 +13,6 @@ import (
 )
 
 func (api *API) InitWebSocket() {
-	l4g.Debug(utils.T("api.web_socket.init.debug"))
 	api.BaseRoutes.Users.Handle("/websocket", api.ApiAppHandlerTrustRequester(connect)).Methods("GET")
 }
 

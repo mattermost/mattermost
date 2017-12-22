@@ -6,15 +6,11 @@ package api
 import (
 	"net/http"
 
-	l4g "github.com/alecthomas/log4go"
 	"github.com/gorilla/mux"
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils"
 )
 
 func (api *API) InitPreference() {
-	l4g.Debug(utils.T("api.preference.init.debug"))
-
 	api.BaseRoutes.Preferences.Handle("/", api.ApiUserRequired(getAllPreferences)).Methods("GET")
 	api.BaseRoutes.Preferences.Handle("/save", api.ApiUserRequired(savePreferences)).Methods("POST")
 	api.BaseRoutes.Preferences.Handle("/delete", api.ApiUserRequired(deletePreferences)).Methods("POST")
