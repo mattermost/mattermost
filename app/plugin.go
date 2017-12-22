@@ -46,7 +46,7 @@ func (a *App) initBuiltInPlugins() {
 		"ldapextras": &ldapextras.Plugin{},
 	}
 	for id, p := range plugins {
-		l4g.Info("Initializing plugin: " + id)
+		l4g.Debug("Initializing built-in plugin: " + id)
 		api := &BuiltInPluginAPI{
 			id:     id,
 			router: a.Srv.Router.PathPrefix("/plugins/" + id).Subrouter(),
