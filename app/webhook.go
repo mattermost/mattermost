@@ -118,6 +118,10 @@ func (a *App) TriggerWebhook(payload *model.OutgoingWebhookPayload, hook *model.
 						if webhookResp.ResponseType == model.OUTGOING_HOOK_RESPONSE_TYPE_COMMENT {
 							postRootId = post.Id
 						}
+						if len(webhookResp.Props) == 0 {
+							webhookResp.Props = make(model.StringInterface)
+						}
+						webhookResp.Props["webhook_display_name"] = hook.DisplayName
 						if _, err := a.CreateWebhookPost(hook.CreatorId, channel, *webhookResp.Text, webhookResp.Username, webhookResp.IconURL, webhookResp.Props, webhookResp.Type, postRootId); err != nil {
 							l4g.Error(utils.T("api.post.handle_webhook_events_and_forget.create_post.error"), err)
 						}
@@ -542,23 +546,25 @@ func (a *App) HandleIncomingWebhook(hookId string, req *model.IncomingWebhookReq
 	channelName := req.ChannelName
 	webhookType := req.Type
 
-	text = a.ProcessSlackText(text)
-	req.Attachments = a.ProcessSlackAttachments(req.Attachments)
-
-	// attachments is in here for slack compatibility
-	if len(req.Attachments) > 0 {
-		if len(req.Props) == 0 {
-			req.Props = make(model.StringInterface)
-		}
-		req.Props["attachments"] = req.Attachments
-		webhookType = model.POST_SLACK_ATTACHMENT
-	}
-
 	var hook *model.IncomingWebhook
 	if result := <-hchan; result.Err != nil {
 		return model.NewAppError("HandleIncomingWebhook", "web.incoming_webhook.invalid.app_error", nil, "err="+result.Err.Message, http.StatusBadRequest)
 	} else {
 		hook = result.Data.(*model.IncomingWebhook)
+	}
+
+	if len(req.Props) == 0 {
+		req.Props = make(model.StringInterface)
+	}
+
+	req.Props["webhook_display_name"] = hook.DisplayName
+
+	text = a.ProcessSlackText(text)
+	req.Attachments = a.ProcessSlackAttachments(req.Attachments)
+	// attachments is in here for slack compatibility
+	if len(req.Attachments) > 0 {
+		req.Props["attachments"] = req.Attachments
+		webhookType = model.POST_SLACK_ATTACHMENT
 	}
 
 	var channel *model.Channel
