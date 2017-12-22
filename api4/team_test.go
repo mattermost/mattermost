@@ -1894,7 +1894,11 @@ func TestInviteUsersToTeam(t *testing.T) {
 	}
 
 	nameFormat := *th.App.Config().TeamSettings.TeammateNameDisplay
-	expectedSubject := "[Mattermost] " + th.SystemAdminUser.GetDisplayName(nameFormat) + " invited you to join " + th.BasicTeam.DisplayName + " Team"
+	expectedSubject := utils.T("api.templates.invite_subject",
+		map[string]interface{}{"SenderName": th.SystemAdminUser.GetDisplayName(nameFormat),
+			"TeamDisplayName": th.BasicTeam.DisplayName,
+			"SiteName":        utils.ClientCfg["SiteName"]})
+
 	//Check if the email was send to the rigth email address
 	for _, email := range emailList {
 		var resultsMailbox utils.JSONMessageHeaderInbucket
