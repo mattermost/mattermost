@@ -727,7 +727,15 @@ func updateActive(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if ruser, err := c.App.UpdateNonSSOUserActive(userId, active); err != nil {
+	var ruser *model.User
+	var err *model.AppError
+
+	if ruser, err = c.App.GetUser(userId); err != nil {
+		c.Err = err
+		return
+	}
+
+	if _, err := c.App.UpdateActive(ruser, active); err != nil {
 		c.Err = err
 	} else {
 		c.LogAuditWithUserId(ruser.Id, fmt.Sprintf("active=%v", active))
