@@ -107,7 +107,6 @@ func Init(a *app.App, root *mux.Router) *API {
 	api.InitStatus()
 	api.InitWebrtc()
 	api.InitReaction()
-	api.InitDeprecated()
 
 	// 404 on any api route before web.go has a chance to serve it
 	root.Handle("/api/{anything:.*}", http.HandlerFunc(Handle404))

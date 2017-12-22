@@ -14,8 +14,6 @@ import (
 )
 
 func (api *API) InitChannel() {
-	l4g.Debug(utils.T("api.channel.init.debug"))
-
 	api.BaseRoutes.Channels.Handle("/", api.ApiUserRequired(getChannels)).Methods("GET")
 	api.BaseRoutes.Channels.Handle("/more/{offset:[0-9]+}/{limit:[0-9]+}", api.ApiUserRequired(getMoreChannelsPage)).Methods("GET")
 	api.BaseRoutes.Channels.Handle("/more/search", api.ApiUserRequired(searchMoreChannels)).Methods("POST")

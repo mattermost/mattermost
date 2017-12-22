@@ -8,7 +8,6 @@ import (
 	"strconv"
 	"time"
 
-	l4g "github.com/alecthomas/log4go"
 	"github.com/gorilla/mux"
 
 	"github.com/mattermost/mattermost-server/model"
@@ -20,8 +19,6 @@ const OPEN_GRAPH_METADATA_CACHE_SIZE = 10000
 var openGraphDataCache = utils.NewLru(OPEN_GRAPH_METADATA_CACHE_SIZE)
 
 func (api *API) InitPost() {
-	l4g.Debug(utils.T("api.post.init.debug"))
-
 	api.BaseRoutes.ApiRoot.Handle("/get_opengraph_metadata", api.ApiUserRequired(getOpenGraphMetadata)).Methods("POST")
 
 	api.BaseRoutes.NeedTeam.Handle("/posts/search", api.ApiUserRequiredActivity(searchPosts, true)).Methods("POST")

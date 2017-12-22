@@ -8,14 +8,11 @@ import (
 	"io"
 	"net/http"
 
-	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
 )
 
 func (api *API) InitLicense() {
-	l4g.Debug(utils.T("api.license.init.debug"))
-
 	api.BaseRoutes.License.Handle("/add", api.ApiAdminSystemRequired(addLicense)).Methods("POST")
 	api.BaseRoutes.License.Handle("/remove", api.ApiAdminSystemRequired(removeLicense)).Methods("POST")
 	api.BaseRoutes.License.Handle("/client_config", api.ApiAppHandler(getClientLicenceConfig)).Methods("GET")
