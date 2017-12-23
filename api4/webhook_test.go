@@ -20,6 +20,8 @@ func TestCreateIncomingWebhook(t *testing.T) {
 
 	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableIncomingWebhooks = true })
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOnlyAdminIntegrations = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnablePostUsernameOverride = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnablePostIconOverride = true })
 
 	hook := &model.IncomingWebhook{ChannelId: th.BasicChannel.Id}
 
@@ -52,6 +54,12 @@ func TestCreateIncomingWebhook(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOnlyAdminIntegrations = false })
+
+	_, resp = Client.CreateIncomingWebhook(hook)
+	CheckNoError(t, resp)
+
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnablePostUsernameOverride = false })
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnablePostIconOverride = false })
 
 	_, resp = Client.CreateIncomingWebhook(hook)
 	CheckNoError(t, resp)
@@ -410,10 +418,15 @@ func TestUpdateIncomingHook(t *testing.T) {
 	createdHook, resp := th.SystemAdminClient.CreateIncomingWebhook(hook1)
 	CheckNoError(t, resp)
 
-	t.Run("UpdateIncomingHook", func(t *testing.T) {
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnablePostUsernameOverride = false })
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnablePostIconOverride = false })
+
+	t.Run("UpdateIncomingHook, overrides disabled", func(t *testing.T) {
 		createdHook.DisplayName = "hook2"
 		createdHook.Description = "description"
 		createdHook.ChannelId = th.BasicChannel2.Id
+		createdHook.PostUsername = "username"
+		createdHook.PostIconURL = "icon"
 
 		updatedHook, resp := th.SystemAdminClient.UpdateIncomingWebhook(createdHook)
 		CheckNoError(t, resp)
@@ -428,6 +441,54 @@ func TestUpdateIncomingHook(t *testing.T) {
 
 			if updatedHook.ChannelId != th.BasicChannel2.Id {
 				t.Fatal("Hook channel is not updated")
+			}
+
+			if updatedHook.PostUsername != "" {
+				t.Fatal("Hook username was incorrectly updated")
+			}
+
+			if updatedHook.PostIconURL != "" {
+				t.Fatal("Hook icon was incorrectly updated")
+			}
+		} else {
+			t.Fatal("should not be nil")
+		}
+
+		//updatedHook, _ = th.App.GetIncomingWebhook(createdHook.Id)
+		assert.Equal(t, updatedHook.ChannelId, createdHook.ChannelId)
+	})
+
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnablePostUsernameOverride = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnablePostIconOverride = true })
+
+	t.Run("UpdateIncomingHook", func(t *testing.T) {
+		createdHook.DisplayName = "hook2"
+		createdHook.Description = "description"
+		createdHook.ChannelId = th.BasicChannel2.Id
+		createdHook.PostUsername = "username"
+		createdHook.PostIconURL = "icon"
+
+		updatedHook, resp := th.SystemAdminClient.UpdateIncomingWebhook(createdHook)
+		CheckNoError(t, resp)
+		if updatedHook != nil {
+			if updatedHook.DisplayName != "hook2" {
+				t.Fatal("Hook name is not updated")
+			}
+
+			if updatedHook.Description != "description" {
+				t.Fatal("Hook description is not updated")
+			}
+
+			if updatedHook.ChannelId != th.BasicChannel2.Id {
+				t.Fatal("Hook channel is not updated")
+			}
+
+			if updatedHook.PostUsername != "username" {
+				t.Fatal("Hook username is not updated")
+			}
+
+			if updatedHook.PostIconURL != "icon" {
+				t.Fatal("Hook icon is not updated")
 			}
 		} else {
 			t.Fatal("should not be nil")

@@ -1425,6 +1425,10 @@
     "translation": "Incoming webhooks have been disabled by the system admin."
   },
   {
+    "id": "api.incoming_webhook.invalid_post_username.app_error",
+    "translation": "Invalid username."
+  },
+  {
     "id": "api.ldap.init.debug",
     "translation": "Initializing LDAP API routes"
   },
@@ -4977,6 +4981,14 @@
   {
     "id": "model.incoming_hook.id.app_error",
     "translation": "Invalid Id"
+  },
+  {
+    "id": "model.incoming_hook.username.app_error",
+    "translation": "Invalid username"
+  },
+  {
+    "id": "model.incoming_hook.post_icon_url.app_error",
+    "translation": "Invalid post icon"
   },
   {
     "id": "model.incoming_hook.team_id.app_error",
