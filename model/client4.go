@@ -2597,8 +2597,8 @@ func (c *Client4) GetAudits(page int, perPage int, etag string) (Audits, *Respon
 // Admin Section
 
 // GetBrandImage retrieves the previously uploaded brand image.
-func (c *Client4) AdminUpdateUser(user *User) (*User, *Response) {
-	if r, err := c.DoApiPost(c.GetAdminRoute()+"/users/update", user.ToJson()); err != nil {
+func (c *Client4) AdminUpdateUser(userId string, authData string, authService string, password string) (*User, *Response) {
+	if r, err := c.DoApiPost(c.GetAdminRoute()+"/users/update", fmt.Sprintf("{\"id\":\"%v\",\"auth_data\":\"%v\",\"auth_service\":\"%v\",\"password\":\"%v\"}", userId, authData, authService, password)); err != nil {
 		return nil, BuildErrorResponse(r, err)
 	} else {
 		defer closeBody(r)

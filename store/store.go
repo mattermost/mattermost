@@ -246,7 +246,7 @@ type UserStore interface {
 	AnalyticsGetSystemAdminCount() StoreChannel
 	GetProfilesNotInTeam(teamId string, offset int, limit int) StoreChannel
 	GetEtagForProfilesNotInTeam(teamId string) StoreChannel
-	AdminUpdate(user *model.User, allowRoleUpdate bool) StoreChannel
+	AdminUpdateAuthData(userId string, authData *string, authService string, password string) StoreChannel
 }
 
 type SessionStore interface {

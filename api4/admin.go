@@ -18,67 +18,53 @@ func (api *API) InitAdmin() {
 }
 
 func adminUpdateUser(c *Context, w http.ResponseWriter, r *http.Request) {
-	user := model.UserFromJson(r.Body)
-
-	if user == nil {
-		c.SetInvalidParam("updateUser")
-		return
-	}
-
 	if !c.IsSystemAdmin() {
 		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
 		return
 	}
 
-	if err := utils.IsPasswordValid(user.Password); user.Password != "" && err != nil {
-		c.Err = err
+	props := model.MapFromJson(r.Body)
+	if props == nil {
+		c.SetInvalidParam("parameters map")
 		return
 	}
 
-	if result := <-c.App.Srv.Store.User().AdminUpdate(user, false); result.Err != nil {
+	var authData = new(string)
+	*authData = props["auth_data"]
+	authService := props["auth_service"]
+	password := props["password"]
+
+	if authData == nil || *authData == "" || authService == "" {
+		if err := c.App.IsPasswordValid(props["password"]); err != nil {
+			c.SetInvalidParam("password")
+			return
+		}
+		authData = nil
+		authService = ""
+	} else {
+		password = ""
+	}
+
+	if result := <-c.App.Srv.Store.User().AdminUpdateAuthData(props["id"], authData, authService, password); result.Err != nil {
 		c.Err = result.Err
 		return
 	} else {
-		c.LogAudit("")
+		updatedUser := result.Data.(*model.User)
 
-		rusers := result.Data.([2]*model.User)
-
-		if rusers[0].Email != rusers[1].Email {
-			c.App.Go(func() {
-				if err := c.App.SendEmailChangeEmail(rusers[1].Email, rusers[0].Email, rusers[0].Locale, utils.GetSiteURL()); err != nil {
-					l4g.Error(err.Error())
-				}
-			})
-
-			if c.App.Config().EmailSettings.RequireEmailVerification {
-				if err := c.App.SendEmailVerification(rusers[0]); err != nil {
-					l4g.Error(err.Error())
-				}
-			}
-		}
-
-		if rusers[0].Username != rusers[1].Username {
-			c.App.Go(func() {
-				if err := c.App.SendChangeUsernameEmail(rusers[1].Username, rusers[0].Username, rusers[0].Email, rusers[0].Locale, utils.GetSiteURL()); err != nil {
-					l4g.Error(err.Error())
-				}
-			})
-		}
-
-		c.App.InvalidateCacheForUser(user.Id)
-
-		updatedUser := rusers[0]
+		c.App.InvalidateCacheForUser(props["id"])
 		c.App.SanitizeProfile(updatedUser, c.IsSystemAdmin())
 
 		omitUsers := make(map[string]bool, 1)
-		omitUsers[user.Id] = true
+		omitUsers[props["id"]] = true
 		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_USER_UPDATED, "", "", "", omitUsers)
 		message.Add("user", updatedUser)
 		go c.App.Publish(message)
 
-		rusers[0].Password = ""
-		rusers[0].AuthData = new(string)
-		*rusers[0].AuthData = ""
-		w.Write([]byte(rusers[0].ToJson()))
+		updatedUser.Password = ""
+		if authData != nil {
+			updatedUser.AuthData = new(string)
+			*updatedUser.AuthData = *authData
+		}
+		w.Write([]byte(updatedUser.ToJson()))
 	}
 }
