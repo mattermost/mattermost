@@ -44,6 +44,24 @@ func TestRemoveChannel(t *testing.T) {
 	checkCommand(t, "channel", "remove", th.BasicTeam.Name+":"+channel.Name, th.BasicUser2.Email)
 }
 
+func TestMoveChannel(t *testing.T) {
+	th := api.Setup().InitBasic()
+	defer th.TearDown()
+
+	channel := th.CreateChannel(th.BasicClient, th.BasicTeam)
+
+	adminEmail := th.BasicUser2.Email
+	origin := th.BasicTeam.Name + ":" + channel.Name
+	dest := th.BasicTeam2.Name
+
+	checkCommand(t, "channel", "add", origin, adminEmail)
+
+	// should fail with nill because errors are logged instead of returned when a channel does not exist
+	require.Nil(t, runCommand(t, "channel", "move", dest, th.BasicTeam.Name+":doesnotexist"))
+
+	checkCommand(t, "channel", "move", dest, origin)
+}
+
 func TestListChannels(t *testing.T) {
 	th := api.Setup().InitBasic()
 	defer th.TearDown()
