@@ -1378,8 +1378,16 @@ func (a *App) MoveChannel(team *model.Team, channel *model.Channel) *model.AppEr
 		}
 	}
 
-	// Change the Team ID of the channel.
+	// keep instance of the previous team
+	var previousTeam *model.Team
+	if result := <-a.Srv.Store.Team().Get(channel.TeamId); result.Err != nil {
+		return result.Err
+	} else {
+		previousTeam = result.Data.(*model.Team)
+	}
+
 	channel.TeamId = team.Id
+	channel.Header = channel.Header + " ~ " + fmt.Sprintf(utils.T("api.team.move_channel.success"), previousTeam.Name)
 	if result := <-a.Srv.Store.Channel().Update(channel); result.Err != nil {
 		return result.Err
 	}

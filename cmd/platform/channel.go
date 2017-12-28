@@ -325,10 +325,11 @@ func moveChannelsCmdF(cmd *cobra.Command, args []string) error {
 			CommandPrintErrorln("Unable to find channel '" + args[i] + "'")
 			continue
 		}
+		originTeamID := channel.TeamId
 		if err := moveChannel(a, team, channel); err != nil {
 			CommandPrintErrorln("Unable to move channel '" + channel.Name + "' error: " + err.Error())
 		} else {
-			CommandPrettyPrintln("Moved channel '" + channel.Name + "'")
+			CommandPrettyPrintln("Moved channel '" + channel.Name + "' to " + team.Name + "(" + team.Id + ") from " + originTeamID + ".")
 		}
 	}
 
