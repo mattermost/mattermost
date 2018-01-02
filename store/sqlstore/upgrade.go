@@ -328,6 +328,9 @@ func UpgradeDatabaseToVersion46(sqlStore SqlStore) {
 	//TODO: Uncomment folowing when version 4.6 is released
 	//if shouldPerformUpgrade(sqlStore, VERSION_4_5_0, VERSION_4_6_0) {
 
+	sqlStore.CreateColumnIfNotExists("IncomingWebhooks", "PostUsername", "varchar(64)", "varchar(64)", "")
+	sqlStore.CreateColumnIfNotExists("IncomingWebhooks", "PostIconURL", "varchar(1024)", "varchar(1024)", "")
+
 	//saveSchemaVersion(sqlStore, VERSION_4_6_0)
 	//}
 }
