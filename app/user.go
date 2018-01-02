@@ -972,9 +972,7 @@ func (a *App) PatchUser(userId string, patch *model.UserPatch, asAdmin bool) (*m
 func (a *App) sendUpdatedUserEvent(user model.User, asAdmin bool) {
 	a.SanitizeProfile(&user, asAdmin)
 
-	omitUsers := make(map[string]bool, 1)
-	omitUsers[user.Id] = true
-	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_USER_UPDATED, "", "", "", omitUsers)
+	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_USER_UPDATED, "", "", "", nil)
 	message.Add("user", user)
 	a.Go(func() {
 		a.Publish(message)
