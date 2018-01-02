@@ -501,6 +501,10 @@ func getClientConfig(c *model.Config) map[string]string {
 	props["EnableEmailBatching"] = strconv.FormatBool(*c.EmailSettings.EnableEmailBatching)
 	props["EmailNotificationContentsType"] = *c.EmailSettings.EmailNotificationContentsType
 
+	props["EmailLoginButtonColor"] = *c.EmailSettings.LoginButtonColor
+	props["EmailLoginButtonBorderColor"] = *c.EmailSettings.LoginButtonBorderColor
+	props["EmailLoginButtonTextColor"] = *c.EmailSettings.LoginButtonTextColor
+
 	props["EnableSignUpWithGitLab"] = strconv.FormatBool(c.GitLabSettings.Enable)
 
 	props["ShowEmailAddress"] = strconv.FormatBool(c.PrivacySettings.ShowEmailAddress)
@@ -562,6 +566,9 @@ func getClientConfig(c *model.Config) map[string]string {
 			props["LdapNicknameAttributeSet"] = strconv.FormatBool(*c.LdapSettings.NicknameAttribute != "")
 			props["LdapFirstNameAttributeSet"] = strconv.FormatBool(*c.LdapSettings.FirstNameAttribute != "")
 			props["LdapLastNameAttributeSet"] = strconv.FormatBool(*c.LdapSettings.LastNameAttribute != "")
+			props["LdapLoginButtonColor"] = *c.LdapSettings.LoginButtonColor
+			props["LdapLoginButtonBorderColor"] = *c.LdapSettings.LoginButtonBorderColor
+			props["LdapLoginButtonTextColor"] = *c.LdapSettings.LoginButtonTextColor
 		}
 
 		if *License.Features.MFA {
@@ -579,6 +586,9 @@ func getClientConfig(c *model.Config) map[string]string {
 			props["SamlFirstNameAttributeSet"] = strconv.FormatBool(*c.SamlSettings.FirstNameAttribute != "")
 			props["SamlLastNameAttributeSet"] = strconv.FormatBool(*c.SamlSettings.LastNameAttribute != "")
 			props["SamlNicknameAttributeSet"] = strconv.FormatBool(*c.SamlSettings.NicknameAttribute != "")
+			props["SamlLoginButtonColor"] = *c.SamlSettings.LoginButtonColor
+			props["SamlLoginButtonBorderColor"] = *c.SamlSettings.LoginButtonBorderColor
+			props["SamlLoginButtonTextColor"] = *c.SamlSettings.LoginButtonTextColor
 		}
 
 		if *License.Features.Cluster {
