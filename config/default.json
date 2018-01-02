@@ -165,7 +165,10 @@
         "EmailBatchingBufferSize": 256,
         "EmailBatchingInterval": 30,
         "SkipServerCertificateVerification": false,
-        "EmailNotificationContentsType": "full"
+        "EmailNotificationContentsType": "full",
+        "LoginButtonColor": "",
+        "LoginButtonBorderColor": "",
+        "LoginButtonTextColor": ""
     },
     "RateLimitSettings": {
         "Enable": false,
@@ -248,7 +251,10 @@
         "SkipCertificateVerification": false,
         "QueryTimeout": 60,
         "MaxPageSize": 0,
-        "LoginFieldName": ""
+        "LoginFieldName": "",
+        "LoginButtonColor": "",
+        "LoginButtonBorderColor": "",
+        "LoginButtonTextColor": ""
     },
     "ComplianceSettings": {
         "Enable": false,
@@ -278,7 +284,10 @@
         "NicknameAttribute": "",
         "LocaleAttribute": "",
         "PositionAttribute": "",
-        "LoginButtonText": "With SAML"
+        "LoginButtonText": "With SAML",
+        "LoginButtonColor": "",
+        "LoginButtonBorderColor": "",
+        "LoginButtonTextColor": ""
     },
     "NativeAppSettings": {
         "AppDownloadLink": "https://about.mattermost.com/downloads/",
