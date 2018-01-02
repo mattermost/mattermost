@@ -2452,7 +2452,7 @@
   },
   {
     "id": "api.templates.reset_subject",
-    "translation": "[{{ .SiteName }}] あなたのパスワードをリセットしました"
+    "translation": "[{{ .SiteName }}] あなたのパスワードを初期化しました"
   },
   {
     "id": "api.templates.signin_change_email.body.info",
