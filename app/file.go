@@ -14,6 +14,7 @@ import (
 	_ "image/gif"
 	"image/jpeg"
 	"io"
+	"io/ioutil"
 	"mime/multipart"
 	"net/http"
 	"net/url"
@@ -55,6 +56,9 @@ const (
 	IMAGE_THUMBNAIL_PIXEL_WIDTH  = 120
 	IMAGE_THUMBNAIL_PIXEL_HEIGHT = 100
 	IMAGE_PREVIEW_PIXEL_WIDTH    = 1024
+
+	GENERIC_THUMBNAIL_LOCAL_PATH   = "./images/generic_thumbnail_image.png"
+	GENERIC_THUMBNAIL_STORAGE_PATH = "icons/generic_thumbnail_image.png"
 )
 
 func (a *App) FileBackend() (utils.FileBackend, *model.AppError) {
@@ -346,21 +350,22 @@ func (a *App) DoUploadFile(now time.Time, rawTeamId string, rawChannelId string,
 	info.Path = pathPrefix + filename
 
 	if info.IsImage() {
-		// Check dimensions before loading the whole thing into memory later on
-		if info.Width*info.Height > MaxImageSize {
-			err := model.NewAppError("uploadFile", "api.file.upload_file.large_image.app_error", map[string]interface{}{"Filename": filename}, "", http.StatusBadRequest)
-			return nil, err
-		}
-
 		nameWithoutExtension := filename[:strings.LastIndex(filename, ".")]
+		// use generic thumbnail if pixel width * height > MaxImageSize
+		if info.Width*info.Height > MaxImageSize {
+			if err := a.genericThumbnailHandler(); err != nil {
+				return nil, err
+			}
+			info.ThumbnailPath = GENERIC_THUMBNAIL_STORAGE_PATH
+		} else {
+			info.ThumbnailPath = pathPrefix + nameWithoutExtension + "_thumb.jpg"
+		}
 		info.PreviewPath = pathPrefix + nameWithoutExtension + "_preview.jpg"
-		info.ThumbnailPath = pathPrefix + nameWithoutExtension + "_thumb.jpg"
 	}
 
 	if err := a.WriteFile(data, info.Path); err != nil {
 		return nil, err
 	}
-
 	if result := <-a.Srv.Store.FileInfo().Save(info); result.Err != nil {
 		return nil, result.Err
 	}
@@ -377,7 +382,10 @@ func (a *App) HandleImages(previewPathList []string, thumbnailPathList []string,
 			wg.Add(2)
 			go func(img *image.Image, path string, width int, height int) {
 				defer wg.Done()
-				a.generateThumbnailImage(*img, path, width, height)
+				// only generate thumbnail if thumbnail is not already set to GENERIC_THUMBNAIL_STORAGE_PATH
+				if thumbnailPathList[i] != GENERIC_THUMBNAIL_STORAGE_PATH {
+					a.generateThumbnailImage(*img, path, width, height)
+				}
 			}(img, thumbnailPathList[i], width, height)
 
 			go func(img *image.Image, path string, width int) {
@@ -451,6 +459,25 @@ func getImageOrientation(input io.Reader) (int, error) {
 			}
 		}
 	}
+}
+
+func (a *App) genericThumbnailHandler() *model.AppError {
+	// Check to see if Generic Thumbnail is already in Storage
+	_, err := a.ReadFile(GENERIC_THUMBNAIL_STORAGE_PATH)
+	if err == nil {
+		return nil
+	}
+	// No thumbnail set, read generic thumbnail bytes from local path
+	thumbImageData, error := ioutil.ReadFile(GENERIC_THUMBNAIL_LOCAL_PATH)
+	if error != nil {
+		err := model.NewAppError("uploadFile", "api.file.upload_file.thumbnail_upload.app_error", map[string]interface{}{"Path": GENERIC_THUMBNAIL_LOCAL_PATH}, "", http.StatusBadRequest)
+		return err
+	}
+	// Write generic thumbnail to storage
+	if err := a.WriteFile(thumbImageData, GENERIC_THUMBNAIL_STORAGE_PATH); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (a *App) generateThumbnailImage(img image.Image, thumbnailPath string, width int, height int) {
