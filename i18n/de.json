@@ -4052,7 +4052,7 @@
   },
   {
     "id": "ent.message_export.generic.license.error",
-    "translation": "Lizenz unterstützt Nachrichten-Export nicht."
+    "translation": "Lizenz unterstützt Nachrichtenexport nicht."
   },
   {
     "id": "ent.metrics.starting.info",
@@ -4404,7 +4404,7 @@
   },
   {
     "id": "model.channel_member_history.is_valid.user_email.app_error",
-    "translation": "Ungültige Benutzer E-Mail-Adresse"
+    "translation": "Ungültige Benutzer-E-Mail-Adresse"
   },
   {
     "id": "model.channel_member_history.is_valid.user_id.app_error",
@@ -4780,7 +4780,7 @@
   },
   {
     "id": "model.config.is_valid.message_export.batch_size.app_error",
-    "translation": "Nachrichten-Export-Einstellung \"BatchSize\" muss eine positive Integer sein"
+    "translation": "Nachrichten-Export-Einstellung \"BatchSize\" muss ein positives Integer sein"
   },
   {
     "id": "model.config.is_valid.message_export.daily_runtime.app_error",
@@ -4788,11 +4788,11 @@
   },
   {
     "id": "model.config.is_valid.message_export.enable.app_error",
-    "translation": "Nachrichten-Export-Aufgabe Einstellung \"EnableExport\" muss entweder wahr oder falsch sein"
+    "translation": "Einstellung Nachrichten-Export-Aufgabe \"EnableExport\" muss entweder wahr oder falsch sein"
   },
   {
     "id": "model.config.is_valid.message_export.export_from.app_error",
-    "translation": "Nachrichten-Export-Aufgabe \"ExportFromTimestamp\" muss ein Zeitstempel (angegeben in Sekunden seid der Unix Epoche) sein. Nur Nachrichten nach diesem Zeitpunk werden exportiert."
+    "translation": "Nachrichten-Export-Aufgabe \"ExportFromTimestamp\" muss ein Zeitstempel (angegeben in Sekunden seit der Unix-Epoche) sein. Nur Nachrichten nach diesem Zeitpunkt werden exportiert."
   },
   {
     "id": "model.config.is_valid.message_export.file_location.app_error",
@@ -5100,7 +5100,7 @@
   },
   {
     "id": "model.plugin_command.error.app_error",
-    "translation": "Beim Versuch diesen Befehl trat ein Fehler auf auszuführen."
+    "translation": "Es ist ein Fehler beim Versuch diesen Befehl auszuführen aufgetreten."
   },
   {
     "id": "model.plugin_key_value.is_valid.key.app_error",
@@ -5820,11 +5820,11 @@
   },
   {
     "id": "store.sql_channel_member_history.get_users_in_channel_at.app_error",
-    "translation": "Konnte Mitglieder des Kanals zu einem spezifischen Zeitpunkt nicht abrufen"
+    "translation": "Konnte Mitglieder des Kanals zum spezifizierten Zeitpunkt nicht abrufen"
   },
   {
     "id": "store.sql_channel_member_history.get_users_in_channel_during.app_error",
-    "translation": "Konnte Mitglieder des Kanals während einer spezifischen Zeitperiode nicht abrufen"
+    "translation": "Konnte Mitglieder des Kanals während der spezifizierten Zeitperiode nicht abrufen"
   },
   {
     "id": "store.sql_channel_member_history.log_join_event.app_error",
@@ -5844,7 +5844,7 @@
   },
   {
     "id": "store.sql_command.analytics_command_count.app_error",
-    "translation": "Die Anzahl der Befehle konnte nicht gezählt werden"
+    "translation": "Die Anzahl der Befehle konnte nicht ermittelt werden"
   },
   {
     "id": "store.sql_command.get_by_trigger.app_error",
@@ -5904,7 +5904,7 @@
   },
   {
     "id": "store.sql_compliance.message_export.app_error",
-    "translation": "Konnte Nachichten-Exportdaten nicht selektieren"
+    "translation": "Konnte Nachrichten-Exportdaten nicht auswählen"
   },
   {
     "id": "store.sql_compliance.save.saving.app_error",
@@ -6124,7 +6124,7 @@
   },
   {
     "id": "store.sql_plugin_store.save_unique.app_error",
-    "translation": "Konnte Plugin-Key-Value nicht speichern oder aktualisieren aufgrund von Bindungsverletzung"
+    "translation": "Konnte Plugin-Key-Value aufgrund von Bindungsverletzung nicht speichern oder aktualisieren"
   },
   {
     "id": "store.sql_post.analytics_posts_count.app_error",
