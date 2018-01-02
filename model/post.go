@@ -412,12 +412,20 @@ var markdownDestinationEscaper = strings.NewReplacer(
 	`)`, `\)`,
 )
 
+// WithRewrittenImageURLs returns a new shallow copy of the post where the message has been
+// rewritten via RewriteImageURLs.
 func (o *Post) WithRewrittenImageURLs(f func(string) string) *Post {
 	copy := *o
 	copy.Message = RewriteImageURLs(o.Message, f)
 	return &copy
 }
 
+// RewriteImageURLs takes a message and returns a copy that has all of the image URLs replaced
+// according to the function f. For each image URL, f will be invoked, and the resulting markdown
+// will contain the URL returned by that invocation instead.
+//
+// Image URLs are destination URLs used in inline images or reference definitions that are used
+// anywhere in the input markdown as an image.
 func RewriteImageURLs(message string, f func(string) string) string {
 	if !strings.Contains(message, "![") {
 		return message
