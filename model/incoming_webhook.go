@@ -16,15 +16,17 @@ const (
 )
 
 type IncomingWebhook struct {
-	Id          string `json:"id"`
-	CreateAt    int64  `json:"create_at"`
-	UpdateAt    int64  `json:"update_at"`
-	DeleteAt    int64  `json:"delete_at"`
-	UserId      string `json:"user_id"`
-	ChannelId   string `json:"channel_id"`
-	TeamId      string `json:"team_id"`
-	DisplayName string `json:"display_name"`
-	Description string `json:"description"`
+	Id           string `json:"id"`
+	CreateAt     int64  `json:"create_at"`
+	UpdateAt     int64  `json:"update_at"`
+	DeleteAt     int64  `json:"delete_at"`
+	UserId       string `json:"user_id"`
+	ChannelId    string `json:"channel_id"`
+	TeamId       string `json:"team_id"`
+	DisplayName  string `json:"display_name"`
+	Description  string `json:"description"`
+	PostUsername string `json:"post_username"`
+	PostIconURL  string `json:"post_icon_url"`
 }
 
 type IncomingWebhookRequest struct {
@@ -110,6 +112,14 @@ func (o *IncomingWebhook) IsValid() *AppError {
 
 	if len(o.Description) > 128 {
 		return NewAppError("IncomingWebhook.IsValid", "model.incoming_hook.description.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if len(o.PostUsername) > 64 {
+		return NewAppError("IncomingWebhook.IsValid", "model.incoming_hook.username.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if len(o.PostIconURL) > 1024 {
+		return NewAppError("IncomingWebhook.IsValid", "model.incoming_hook.post_icon_url.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	return nil

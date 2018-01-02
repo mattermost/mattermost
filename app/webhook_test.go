@@ -13,6 +13,289 @@ import (
 	"github.com/mattermost/mattermost-server/model"
 )
 
+func TestCreateIncomingWebhookForChannel(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	enableIncomingHooks := th.App.Config().ServiceSettings.EnableIncomingWebhooks
+	defer th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableIncomingWebhooks = enableIncomingHooks })
+	enablePostUsernameOverride := th.App.Config().ServiceSettings.EnablePostUsernameOverride
+	defer th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnablePostUsernameOverride = enablePostUsernameOverride })
+	enablePostIconOverride := th.App.Config().ServiceSettings.EnablePostIconOverride
+	defer th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnablePostIconOverride = enablePostIconOverride })
+
+	type TestCase struct {
+		EnableIncomingHooks        bool
+		EnablePostUsernameOverride bool
+		EnablePostIconOverride     bool
+		IncomingWebhook            model.IncomingWebhook
+
+		ExpectedError           bool
+		ExpectedIncomingWebhook *model.IncomingWebhook
+	}
+
+	for name, tc := range map[string]TestCase{
+		"webhooks not enabled": {
+			EnableIncomingHooks:        false,
+			EnablePostUsernameOverride: false,
+			EnablePostIconOverride:     false,
+			IncomingWebhook: model.IncomingWebhook{
+				DisplayName: "title",
+				Description: "description",
+				ChannelId:   th.BasicChannel.Id,
+			},
+
+			ExpectedError:           true,
+			ExpectedIncomingWebhook: nil,
+		},
+		"valid: username and post icon url ignored, since override not enabled": {
+			EnableIncomingHooks:        true,
+			EnablePostUsernameOverride: false,
+			EnablePostIconOverride:     false,
+			IncomingWebhook: model.IncomingWebhook{
+				DisplayName:  "title",
+				Description:  "description",
+				ChannelId:    th.BasicChannel.Id,
+				PostUsername: ":invalid and ignored:",
+				PostIconURL:  "ignored",
+			},
+
+			ExpectedError: false,
+			ExpectedIncomingWebhook: &model.IncomingWebhook{
+				DisplayName: "title",
+				Description: "description",
+				ChannelId:   th.BasicChannel.Id,
+			},
+		},
+		"invalid username, override enabled": {
+			EnableIncomingHooks:        true,
+			EnablePostUsernameOverride: true,
+			EnablePostIconOverride:     false,
+			IncomingWebhook: model.IncomingWebhook{
+				DisplayName:  "title",
+				Description:  "description",
+				ChannelId:    th.BasicChannel.Id,
+				PostUsername: ":invalid:",
+			},
+
+			ExpectedError:           true,
+			ExpectedIncomingWebhook: nil,
+		},
+		"valid, no username or post icon url provided": {
+			EnableIncomingHooks:        true,
+			EnablePostUsernameOverride: true,
+			EnablePostIconOverride:     true,
+			IncomingWebhook: model.IncomingWebhook{
+				DisplayName: "title",
+				Description: "description",
+				ChannelId:   th.BasicChannel.Id,
+			},
+
+			ExpectedError: false,
+			ExpectedIncomingWebhook: &model.IncomingWebhook{
+				DisplayName: "title",
+				Description: "description",
+				ChannelId:   th.BasicChannel.Id,
+			},
+		},
+		"valid, with username and post icon": {
+			EnableIncomingHooks:        true,
+			EnablePostUsernameOverride: true,
+			EnablePostIconOverride:     true,
+			IncomingWebhook: model.IncomingWebhook{
+				DisplayName:  "title",
+				Description:  "description",
+				ChannelId:    th.BasicChannel.Id,
+				PostUsername: "valid",
+				PostIconURL:  "http://example.com/icon",
+			},
+
+			ExpectedError: false,
+			ExpectedIncomingWebhook: &model.IncomingWebhook{
+				DisplayName:  "title",
+				Description:  "description",
+				ChannelId:    th.BasicChannel.Id,
+				PostUsername: "valid",
+				PostIconURL:  "http://example.com/icon",
+			},
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			assert := assert.New(t)
+
+			th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableIncomingWebhooks = tc.EnableIncomingHooks })
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				cfg.ServiceSettings.EnablePostUsernameOverride = tc.EnablePostUsernameOverride
+			})
+			th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnablePostIconOverride = tc.EnablePostIconOverride })
+
+			createdHook, err := th.App.CreateIncomingWebhookForChannel(th.BasicUser.Id, th.BasicChannel, &tc.IncomingWebhook)
+			if tc.ExpectedError && err == nil {
+				t.Fatal("should have failed")
+			} else if !tc.ExpectedError && err != nil {
+				t.Fatalf("should not have failed: %v", err.Error())
+			}
+			if createdHook != nil {
+				defer th.App.DeleteIncomingWebhook(createdHook.Id)
+			}
+			if tc.ExpectedIncomingWebhook == nil {
+				assert.Nil(createdHook, "expected nil webhook")
+			} else if assert.NotNil(createdHook, "expected non-nil webhook") {
+				assert.Equal(tc.ExpectedIncomingWebhook.DisplayName, createdHook.DisplayName)
+				assert.Equal(tc.ExpectedIncomingWebhook.Description, createdHook.Description)
+				assert.Equal(tc.ExpectedIncomingWebhook.ChannelId, createdHook.ChannelId)
+				assert.Equal(tc.ExpectedIncomingWebhook.PostUsername, createdHook.PostUsername)
+				assert.Equal(tc.ExpectedIncomingWebhook.PostIconURL, createdHook.PostIconURL)
+			}
+		})
+	}
+}
+
+func TestUpdateIncomingWebhook(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	enableIncomingHooks := th.App.Config().ServiceSettings.EnableIncomingWebhooks
+	defer th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableIncomingWebhooks = enableIncomingHooks })
+	enablePostUsernameOverride := th.App.Config().ServiceSettings.EnablePostUsernameOverride
+	defer th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnablePostUsernameOverride = enablePostUsernameOverride })
+	enablePostIconOverride := th.App.Config().ServiceSettings.EnablePostIconOverride
+	defer th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnablePostIconOverride = enablePostIconOverride })
+
+	type TestCase struct {
+		EnableIncomingHooks        bool
+		EnablePostUsernameOverride bool
+		EnablePostIconOverride     bool
+		IncomingWebhook            model.IncomingWebhook
+
+		ExpectedError           bool
+		ExpectedIncomingWebhook *model.IncomingWebhook
+	}
+
+	for name, tc := range map[string]TestCase{
+		"webhooks not enabled": {
+			EnableIncomingHooks:        false,
+			EnablePostUsernameOverride: false,
+			EnablePostIconOverride:     false,
+			IncomingWebhook: model.IncomingWebhook{
+				DisplayName: "title",
+				Description: "description",
+				ChannelId:   th.BasicChannel.Id,
+			},
+
+			ExpectedError:           true,
+			ExpectedIncomingWebhook: nil,
+		},
+		"valid: username and post icon url ignored, since override not enabled": {
+			EnableIncomingHooks:        true,
+			EnablePostUsernameOverride: false,
+			EnablePostIconOverride:     false,
+			IncomingWebhook: model.IncomingWebhook{
+				DisplayName:  "title",
+				Description:  "description",
+				ChannelId:    th.BasicChannel.Id,
+				PostUsername: ":invalid and ignored:",
+				PostIconURL:  "ignored",
+			},
+
+			ExpectedError: false,
+			ExpectedIncomingWebhook: &model.IncomingWebhook{
+				DisplayName: "title",
+				Description: "description",
+				ChannelId:   th.BasicChannel.Id,
+			},
+		},
+		"invalid username, override enabled": {
+			EnableIncomingHooks:        true,
+			EnablePostUsernameOverride: true,
+			EnablePostIconOverride:     false,
+			IncomingWebhook: model.IncomingWebhook{
+				DisplayName:  "title",
+				Description:  "description",
+				ChannelId:    th.BasicChannel.Id,
+				PostUsername: ":invalid:",
+			},
+
+			ExpectedError:           true,
+			ExpectedIncomingWebhook: nil,
+		},
+		"valid, no username or post icon url provided": {
+			EnableIncomingHooks:        true,
+			EnablePostUsernameOverride: true,
+			EnablePostIconOverride:     true,
+			IncomingWebhook: model.IncomingWebhook{
+				DisplayName: "title",
+				Description: "description",
+				ChannelId:   th.BasicChannel.Id,
+			},
+
+			ExpectedError: false,
+			ExpectedIncomingWebhook: &model.IncomingWebhook{
+				DisplayName: "title",
+				Description: "description",
+				ChannelId:   th.BasicChannel.Id,
+			},
+		},
+		"valid, with username and post icon": {
+			EnableIncomingHooks:        true,
+			EnablePostUsernameOverride: true,
+			EnablePostIconOverride:     true,
+			IncomingWebhook: model.IncomingWebhook{
+				DisplayName:  "title",
+				Description:  "description",
+				ChannelId:    th.BasicChannel.Id,
+				PostUsername: "valid",
+				PostIconURL:  "http://example.com/icon",
+			},
+
+			ExpectedError: false,
+			ExpectedIncomingWebhook: &model.IncomingWebhook{
+				DisplayName:  "title",
+				Description:  "description",
+				ChannelId:    th.BasicChannel.Id,
+				PostUsername: "valid",
+				PostIconURL:  "http://example.com/icon",
+			},
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			assert := assert.New(t)
+
+			th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableIncomingWebhooks = true })
+
+			hook, err := th.App.CreateIncomingWebhookForChannel(th.BasicUser.Id, th.BasicChannel, &model.IncomingWebhook{
+				ChannelId: th.BasicChannel.Id,
+			})
+			if err != nil {
+				t.Fatal(err.Error())
+			}
+			defer th.App.DeleteIncomingWebhook(hook.Id)
+
+			th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableIncomingWebhooks = tc.EnableIncomingHooks })
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				cfg.ServiceSettings.EnablePostUsernameOverride = tc.EnablePostUsernameOverride
+			})
+			th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnablePostIconOverride = tc.EnablePostIconOverride })
+
+			updatedHook, err := th.App.UpdateIncomingWebhook(hook, &tc.IncomingWebhook)
+			if tc.ExpectedError && err == nil {
+				t.Fatal("should have failed")
+			} else if !tc.ExpectedError && err != nil {
+				t.Fatalf("should not have failed: %v", err.Error())
+			}
+			if tc.ExpectedIncomingWebhook == nil {
+				assert.Nil(updatedHook, "expected nil webhook")
+			} else if assert.NotNil(updatedHook, "expected non-nil webhook") {
+				assert.Equal(tc.ExpectedIncomingWebhook.DisplayName, updatedHook.DisplayName)
+				assert.Equal(tc.ExpectedIncomingWebhook.Description, updatedHook.Description)
+				assert.Equal(tc.ExpectedIncomingWebhook.ChannelId, updatedHook.ChannelId)
+				assert.Equal(tc.ExpectedIncomingWebhook.PostUsername, updatedHook.PostUsername)
+				assert.Equal(tc.ExpectedIncomingWebhook.PostIconURL, updatedHook.PostIconURL)
+			}
+		})
+	}
+}
+
 func TestCreateWebhookPost(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()

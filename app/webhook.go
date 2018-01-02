@@ -277,6 +277,17 @@ func (a *App) CreateIncomingWebhookForChannel(creatorId string, channel *model.C
 	hook.UserId = creatorId
 	hook.TeamId = channel.TeamId
 
+	if !a.Config().ServiceSettings.EnablePostUsernameOverride {
+		hook.PostUsername = ""
+	}
+	if !a.Config().ServiceSettings.EnablePostIconOverride {
+		hook.PostIconURL = ""
+	}
+
+	if hook.PostUsername != "" && !model.IsValidUsername(hook.PostUsername) {
+		return nil, model.NewAppError("CreateIncomingWebhookForChannel", "api.incoming_webhook.invalid_post_username.app_error", nil, "", http.StatusBadRequest)
+	}
+
 	if result := <-a.Srv.Store.Webhook().SaveIncoming(hook); result.Err != nil {
 		return nil, result.Err
 	} else {
@@ -287,6 +298,17 @@ func (a *App) CreateIncomingWebhookForChannel(creatorId string, channel *model.C
 func (a *App) UpdateIncomingWebhook(oldHook, updatedHook *model.IncomingWebhook) (*model.IncomingWebhook, *model.AppError) {
 	if !a.Config().ServiceSettings.EnableIncomingWebhooks {
 		return nil, model.NewAppError("UpdateIncomingWebhook", "api.incoming_webhook.disabled.app_error", nil, "", http.StatusNotImplemented)
+	}
+
+	if !a.Config().ServiceSettings.EnablePostUsernameOverride {
+		updatedHook.PostUsername = oldHook.PostUsername
+	}
+	if !a.Config().ServiceSettings.EnablePostIconOverride {
+		updatedHook.PostIconURL = oldHook.PostIconURL
+	}
+
+	if updatedHook.PostUsername != "" && !model.IsValidUsername(updatedHook.PostUsername) {
+		return nil, model.NewAppError("UpdateIncomingWebhook", "api.incoming_webhook.invalid_post_username.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	updatedHook.Id = oldHook.Id
@@ -608,8 +630,15 @@ func (a *App) HandleIncomingWebhook(hookId string, req *model.IncomingWebhookReq
 		return model.NewAppError("HandleIncomingWebhook", "web.incoming_webhook.permissions.app_error", nil, "", http.StatusForbidden)
 	}
 
-	overrideUsername := req.Username
-	overrideIconUrl := req.IconURL
+	overrideUsername := hook.PostUsername
+	if req.Username != "" {
+		overrideUsername = req.Username
+	}
+
+	overrideIconUrl := hook.PostIconURL
+	if req.IconURL != "" {
+		overrideIconUrl = req.IconURL
+	}
 
 	_, err := a.CreateWebhookPost(hook.UserId, channel, text, overrideUsername, overrideIconUrl, req.Props, webhookType, "")
 	return err
