@@ -41,7 +41,7 @@ if [[ -z ${config_file} && -e "../config/config.json" ]]; then
 fi
 
 if [[ -z ${config_file} ]]; then
-	echo "We could not fine config.json";
+	echo "We could not find config.json";
 	exit 1;
 fi
 
