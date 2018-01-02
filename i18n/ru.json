@@ -705,11 +705,11 @@
   },
   {
     "id": "api.command_groupmsg.fail.app_error",
-    "translation": "Произошла ошибка при передаче сообщения пользователю."
+    "translation": "Произошла ошибка при передаче сообщения пользователям."
   },
   {
     "id": "api.command_groupmsg.group_fail.app_error",
-    "translation": "При создании канала личных сообщений произошла ошибка."
+    "translation": "При создании группового сообщения произошла ошибка."
   },
   {
     "id": "api.command_groupmsg.hint",
@@ -732,11 +732,11 @@
   },
   {
     "id": "api.command_groupmsg.max_users.app_error",
-    "translation": "Group messages are limited to a maximum of {{.MaxUsers}} users."
+    "translation": "Максимальное количество получателей групповых сообщений ограничено  {{.MaxUsers}} пользователями."
   },
   {
     "id": "api.command_groupmsg.min_users.app_error",
-    "translation": "Group messages are limited to a minimum of {{.MinUsers}} users."
+    "translation": "Максимальное количество получателей групповых сообщений ограничено  {{.MaxUsers}} пользователями."
   },
   {
     "id": "api.command_groupmsg.missing.app_error",
@@ -1334,7 +1334,7 @@
   },
   {
     "id": "api.file.move_file.copy_within_s3.app_error",
-    "translation": "Unable to copy file within S3."
+    "translation": "Невозможно скопировать файл в пределах S3"
   },
   {
     "id": "api.file.move_file.delete_from_s3.app_error",
@@ -2172,7 +2172,7 @@
   },
   {
     "id": "api.team.add_user_to_team.added",
-    "translation": "%v добавлен(а) в канал %v"
+    "translation": "%v добавлен(а) в команду пользователем %v"
   },
   {
     "id": "api.team.add_user_to_team.missing_parameter.app_error",
@@ -2224,7 +2224,7 @@
   },
   {
     "id": "api.team.import_team.no_import_from.app_error",
-    "translation": "Неправильный запрос: отсутствует поле \"filesize\"."
+    "translation": "Неправильный запрос: отсутствует поле \"importFrom\"."
   },
   {
     "id": "api.team.import_team.open.app_error",
