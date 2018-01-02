@@ -278,14 +278,14 @@ func (a *App) CreateIncomingWebhookForChannel(creatorId string, channel *model.C
 	hook.TeamId = channel.TeamId
 
 	if !a.Config().ServiceSettings.EnablePostUsernameOverride {
-		hook.PostUsername = ""
+		hook.Username = ""
 	}
 	if !a.Config().ServiceSettings.EnablePostIconOverride {
-		hook.PostIconURL = ""
+		hook.IconURL = ""
 	}
 
-	if hook.PostUsername != "" && !model.IsValidUsername(hook.PostUsername) {
-		return nil, model.NewAppError("CreateIncomingWebhookForChannel", "api.incoming_webhook.invalid_post_username.app_error", nil, "", http.StatusBadRequest)
+	if hook.Username != "" && !model.IsValidUsername(hook.Username) {
+		return nil, model.NewAppError("CreateIncomingWebhookForChannel", "api.incoming_webhook.invalid_username.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if result := <-a.Srv.Store.Webhook().SaveIncoming(hook); result.Err != nil {
@@ -301,14 +301,14 @@ func (a *App) UpdateIncomingWebhook(oldHook, updatedHook *model.IncomingWebhook)
 	}
 
 	if !a.Config().ServiceSettings.EnablePostUsernameOverride {
-		updatedHook.PostUsername = oldHook.PostUsername
+		updatedHook.Username = oldHook.Username
 	}
 	if !a.Config().ServiceSettings.EnablePostIconOverride {
-		updatedHook.PostIconURL = oldHook.PostIconURL
+		updatedHook.IconURL = oldHook.IconURL
 	}
 
-	if updatedHook.PostUsername != "" && !model.IsValidUsername(updatedHook.PostUsername) {
-		return nil, model.NewAppError("UpdateIncomingWebhook", "api.incoming_webhook.invalid_post_username.app_error", nil, "", http.StatusBadRequest)
+	if updatedHook.Username != "" && !model.IsValidUsername(updatedHook.Username) {
+		return nil, model.NewAppError("UpdateIncomingWebhook", "api.incoming_webhook.invalid_username.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	updatedHook.Id = oldHook.Id
@@ -630,12 +630,12 @@ func (a *App) HandleIncomingWebhook(hookId string, req *model.IncomingWebhookReq
 		return model.NewAppError("HandleIncomingWebhook", "web.incoming_webhook.permissions.app_error", nil, "", http.StatusForbidden)
 	}
 
-	overrideUsername := hook.PostUsername
+	overrideUsername := hook.Username
 	if req.Username != "" {
 		overrideUsername = req.Username
 	}
 
-	overrideIconUrl := hook.PostIconURL
+	overrideIconUrl := hook.IconURL
 	if req.IconURL != "" {
 		overrideIconUrl = req.IconURL
 	}

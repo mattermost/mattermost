@@ -1425,7 +1425,7 @@
     "translation": "Incoming webhooks have been disabled by the system admin."
   },
   {
-    "id": "api.incoming_webhook.invalid_post_username.app_error",
+    "id": "api.incoming_webhook.invalid_username.app_error",
     "translation": "Invalid username."
   },
   {
@@ -4987,7 +4987,7 @@
     "translation": "Invalid username"
   },
   {
-    "id": "model.incoming_hook.post_icon_url.app_error",
+    "id": "model.incoming_hook.icon_url.app_error",
     "translation": "Invalid post icon"
   },
   {
