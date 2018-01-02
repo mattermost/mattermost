@@ -1421,7 +1421,7 @@
     "translation": "Failed to set email verified err=%v"
   },
   {
-    "id": "api.incoming_webhook.disabled.app_errror",
+    "id": "api.incoming_webhook.disabled.app_error",
     "translation": "Incoming webhooks have been disabled by the system admin."
   },
   {
