@@ -18,6 +18,7 @@ func (api *API) InitPost() {
 	api.BaseRoutes.Post.Handle("/thread", api.ApiSessionRequired(getPostThread)).Methods("GET")
 	api.BaseRoutes.Post.Handle("/files/info", api.ApiSessionRequired(getFileInfosForPost)).Methods("GET")
 	api.BaseRoutes.PostsForChannel.Handle("", api.ApiSessionRequired(getPostsForChannel)).Methods("GET")
+	api.BaseRoutes.PostsForChannel.Handle("/delete", api.ApiSessionRequired(deletePosts)).Methods("POST")
 	api.BaseRoutes.PostsForUser.Handle("/flagged", api.ApiSessionRequired(getFlaggedPostsForUser)).Methods("GET")
 
 	api.BaseRoutes.Team.Handle("/posts/search", api.ApiSessionRequired(searchPosts)).Methods("POST")
@@ -222,6 +223,38 @@ func deletePost(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if _, err := c.App.DeletePost(c.Params.PostId); err != nil {
+		c.Err = err
+		return
+	}
+
+	ReturnStatusOK(w)
+}
+
+func deletePosts(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireChannelId()
+	if c.Err != nil {
+		return
+	}
+
+	postIds := model.ArrayFromJson(r.Body)
+	if len(postIds) == 0 {
+		c.SetInvalidParam("post_ids")
+		return
+	}
+
+	for _, id := range postIds {
+		if len(id) != 26 {
+			c.SetInvalidParam("post_id")
+			return
+		}
+	}
+
+	if !app.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+
+	if err := c.App.DeletePosts(postIds); err != nil {
 		c.Err = err
 		return
 	}

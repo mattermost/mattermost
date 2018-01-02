@@ -170,6 +170,10 @@ func (c *Client4) GetPostRoute(postId string) string {
 	return fmt.Sprintf(c.GetPostsRoute()+"/%v", postId)
 }
 
+func (c *Client4) GetPostsForChannelRoute(channelId string) string {
+	return fmt.Sprintf(c.GetChannelRoute(channelId) + "/posts")
+}
+
 func (c *Client4) GetFilesRoute() string {
 	return fmt.Sprintf("/files")
 }
@@ -1756,6 +1760,16 @@ func (c *Client4) DeletePost(postId string) (bool, *Response) {
 	}
 }
 
+// DeletePosts deletes posts from channel based on provided array of post ids.
+func (c *Client4) DeletePosts(channelId string, postIds []string) (bool, *Response) {
+	if r, err := c.DoApiPost(c.GetPostsForChannelRoute(channelId)+"/delete", ArrayToJson(postIds)); err != nil {
+		return false, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return CheckStatusOK(r), BuildResponse(r)
+	}
+}
+
 // GetPostThread gets a post with all the other posts in the same thread.
 func (c *Client4) GetPostThread(postId string, etag string) (*PostList, *Response) {
 	if r, err := c.DoApiGet(c.GetPostRoute(postId)+"/thread", etag); err != nil {
@@ -1769,7 +1783,7 @@ func (c *Client4) GetPostThread(postId string, etag string) (*PostList, *Respons
 // GetPostsForChannel gets a page of posts with an array for ordering for a channel.
 func (c *Client4) GetPostsForChannel(channelId string, page, perPage int, etag string) (*PostList, *Response) {
 	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)
-	if r, err := c.DoApiGet(c.GetChannelRoute(channelId)+"/posts"+query, etag); err != nil {
+	if r, err := c.DoApiGet(c.GetPostsForChannelRoute(channelId)+query, etag); err != nil {
 		return nil, BuildErrorResponse(r, err)
 	} else {
 		defer closeBody(r)
@@ -1821,7 +1835,7 @@ func (c *Client4) GetFlaggedPostsForUserInChannel(userId string, channelId strin
 // GetPostsSince gets posts created after a specified time as Unix time in milliseconds.
 func (c *Client4) GetPostsSince(channelId string, time int64) (*PostList, *Response) {
 	query := fmt.Sprintf("?since=%v", time)
-	if r, err := c.DoApiGet(c.GetChannelRoute(channelId)+"/posts"+query, ""); err != nil {
+	if r, err := c.DoApiGet(c.GetPostsForChannelRoute(channelId)+query, ""); err != nil {
 		return nil, BuildErrorResponse(r, err)
 	} else {
 		defer closeBody(r)
@@ -1832,7 +1846,7 @@ func (c *Client4) GetPostsSince(channelId string, time int64) (*PostList, *Respo
 // GetPostsAfter gets a page of posts that were posted after the post provided.
 func (c *Client4) GetPostsAfter(channelId, postId string, page, perPage int, etag string) (*PostList, *Response) {
 	query := fmt.Sprintf("?page=%v&per_page=%v&after=%v", page, perPage, postId)
-	if r, err := c.DoApiGet(c.GetChannelRoute(channelId)+"/posts"+query, etag); err != nil {
+	if r, err := c.DoApiGet(c.GetPostsForChannelRoute(channelId)+query, etag); err != nil {
 		return nil, BuildErrorResponse(r, err)
 	} else {
 		defer closeBody(r)
@@ -1843,7 +1857,7 @@ func (c *Client4) GetPostsAfter(channelId, postId string, page, perPage int, eta
 // GetPostsBefore gets a page of posts that were posted before the post provided.
 func (c *Client4) GetPostsBefore(channelId, postId string, page, perPage int, etag string) (*PostList, *Response) {
 	query := fmt.Sprintf("?page=%v&per_page=%v&before=%v", page, perPage, postId)
-	if r, err := c.DoApiGet(c.GetChannelRoute(channelId)+"/posts"+query, etag); err != nil {
+	if r, err := c.DoApiGet(c.GetPostsForChannelRoute(channelId)+query, etag); err != nil {
 		return nil, BuildErrorResponse(r, err)
 	} else {
 		defer closeBody(r)
