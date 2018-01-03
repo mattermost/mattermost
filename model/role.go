@@ -21,7 +21,7 @@ const (
 )
 
 type Role struct {
-	Id            int64    `json:"id"`
+	Id            string   `json:"id"`
 	Name          string   `json:"name"`
 	DisplayName   string   `json:"display_name"`
 	Description   string   `json:"description"`
