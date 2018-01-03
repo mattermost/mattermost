@@ -19,13 +19,13 @@ func (s *LocalCacheSupplier) handleClusterInvalidateRole(msg *model.ClusterMessa
 }
 
 func (s *LocalCacheSupplier) RoleSave(ctx context.Context, role *model.Role, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
-	if role.Id > 0 {
+	if len(role.Id) != 0 {
 		s.doInvalidateCacheCluster(s.roleCache, role.Name)
 	}
 	return s.Next().RoleSave(ctx, role, hints...)
 }
 
-func (s *LocalCacheSupplier) RoleGet(ctx context.Context, roleId int64, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
+func (s *LocalCacheSupplier) RoleGet(ctx context.Context, roleId string, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
 	// TODO: No caching. Remove this method altogether from the store.
 	return s.Next().RoleGet(ctx, roleId, hints...)
 }

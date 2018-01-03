@@ -235,7 +235,7 @@ func (s *LayeredRoleStore) Save(role *model.Role) StoreChannel {
 	})
 }
 
-func (s *LayeredRoleStore) Get(roleId int64) StoreChannel {
+func (s *LayeredRoleStore) Get(roleId string) StoreChannel {
 	return s.RunQuery(func(supplier LayeredStoreSupplier) *LayeredStoreSupplierResult {
 		return supplier.RoleGet(s.TmpContext, roleId)
 	})

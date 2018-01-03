@@ -14,7 +14,7 @@ import (
 )
 
 type Role struct {
-	Id            int64
+	Id            string
 	Name          string
 	DisplayName   string
 	Description   string
@@ -46,7 +46,7 @@ func (role Role) ToRole() *model.Role {
 
 func initSqlSupplierRoles(sqlStore SqlStore) {
 	for _, db := range sqlStore.GetAllConns() {
-		table := db.AddTableWithName(Role{}, "Roles").SetKeys(true, "Id")
+		table := db.AddTableWithName(Role{}, "Roles").SetKeys(false, "Id")
 		table.ColMap("Name").SetMaxSize(64).SetUnique(true)
 		table.ColMap("DisplayName").SetMaxSize(128)
 		table.ColMap("Description").SetMaxSize(1024)
@@ -58,7 +58,8 @@ func (s *SqlSupplier) RoleSave(ctx context.Context, role *model.Role, hints ...s
 	result := store.NewSupplierResult()
 
 	dbRole := FromRole(role)
-	if dbRole.Id > 0 {
+	if len(dbRole.Id) == 0 {
+		dbRole.Id = model.NewId()
 		if _, err := s.GetMaster().Update(dbRole); err != nil {
 			result.Err = model.NewAppError("SqlRoleStore.Save", "store.sql_role.save.update.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
@@ -73,7 +74,7 @@ func (s *SqlSupplier) RoleSave(ctx context.Context, role *model.Role, hints ...s
 	return result
 }
 
-func (s *SqlSupplier) RoleGet(ctx context.Context, roleId int64, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
+func (s *SqlSupplier) RoleGet(ctx context.Context, roleId string, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
 	result := store.NewSupplierResult()
 
 	var dbRole Role

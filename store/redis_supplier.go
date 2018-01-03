@@ -138,7 +138,7 @@ func (s *RedisSupplier) RoleSave(ctx context.Context, role *model.Role, hints ..
 	return s.Next().RoleSave(ctx, role, hints...)
 }
 
-func (s *RedisSupplier) RoleGet(ctx context.Context, roleId int64, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
+func (s *RedisSupplier) RoleGet(ctx context.Context, roleId string, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
 	// TODO: Redis Caching.
 	return s.Next().RoleGet(ctx, roleId, hints...)
 }

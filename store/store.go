@@ -462,7 +462,7 @@ type PluginStore interface {
 
 type RoleStore interface {
 	Save(role *model.Role) StoreChannel
-	Get(roleId int64) StoreChannel
+	Get(roleId string) StoreChannel
 	GetByName(name string) StoreChannel
 	GetByNames(names []string) StoreChannel
 }
