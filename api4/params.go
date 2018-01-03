@@ -43,6 +43,8 @@ type ApiParams struct {
 	JobId          string
 	JobType        string
 	ActionId       string
+	RoleId         string
+	RoleName       string
 	Page           int
 	PerPage        int
 	LogsPerPage    int
@@ -148,6 +150,14 @@ func ApiParamsFromRequest(r *http.Request) *ApiParams {
 
 	if val, ok := props["action_id"]; ok {
 		params.ActionId = val
+	}
+
+	if val, ok := props["role_id"]; ok {
+		params.RoleId = val
+	}
+
+	if val, ok := props["role_name"]; ok {
+		params.RoleName = val
 	}
 
 	if val, err := strconv.Atoi(r.URL.Query().Get("page")); err != nil || val < 0 {
