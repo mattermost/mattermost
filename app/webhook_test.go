@@ -53,11 +53,11 @@ func TestCreateIncomingWebhookForChannel(t *testing.T) {
 			EnablePostUsernameOverride: false,
 			EnablePostIconOverride:     false,
 			IncomingWebhook: model.IncomingWebhook{
-				DisplayName:  "title",
-				Description:  "description",
-				ChannelId:    th.BasicChannel.Id,
-				PostUsername: ":invalid and ignored:",
-				PostIconURL:  "ignored",
+				DisplayName: "title",
+				Description: "description",
+				ChannelId:   th.BasicChannel.Id,
+				Username:    ":invalid and ignored:",
+				IconURL:     "ignored",
 			},
 
 			ExpectedError: false,
@@ -72,10 +72,10 @@ func TestCreateIncomingWebhookForChannel(t *testing.T) {
 			EnablePostUsernameOverride: true,
 			EnablePostIconOverride:     false,
 			IncomingWebhook: model.IncomingWebhook{
-				DisplayName:  "title",
-				Description:  "description",
-				ChannelId:    th.BasicChannel.Id,
-				PostUsername: ":invalid:",
+				DisplayName: "title",
+				Description: "description",
+				ChannelId:   th.BasicChannel.Id,
+				Username:    ":invalid:",
 			},
 
 			ExpectedError:           true,
@@ -103,20 +103,20 @@ func TestCreateIncomingWebhookForChannel(t *testing.T) {
 			EnablePostUsernameOverride: true,
 			EnablePostIconOverride:     true,
 			IncomingWebhook: model.IncomingWebhook{
-				DisplayName:  "title",
-				Description:  "description",
-				ChannelId:    th.BasicChannel.Id,
-				PostUsername: "valid",
-				PostIconURL:  "http://example.com/icon",
+				DisplayName: "title",
+				Description: "description",
+				ChannelId:   th.BasicChannel.Id,
+				Username:    "valid",
+				IconURL:     "http://example.com/icon",
 			},
 
 			ExpectedError: false,
 			ExpectedIncomingWebhook: &model.IncomingWebhook{
-				DisplayName:  "title",
-				Description:  "description",
-				ChannelId:    th.BasicChannel.Id,
-				PostUsername: "valid",
-				PostIconURL:  "http://example.com/icon",
+				DisplayName: "title",
+				Description: "description",
+				ChannelId:   th.BasicChannel.Id,
+				Username:    "valid",
+				IconURL:     "http://example.com/icon",
 			},
 		},
 	} {
@@ -144,8 +144,8 @@ func TestCreateIncomingWebhookForChannel(t *testing.T) {
 				assert.Equal(tc.ExpectedIncomingWebhook.DisplayName, createdHook.DisplayName)
 				assert.Equal(tc.ExpectedIncomingWebhook.Description, createdHook.Description)
 				assert.Equal(tc.ExpectedIncomingWebhook.ChannelId, createdHook.ChannelId)
-				assert.Equal(tc.ExpectedIncomingWebhook.PostUsername, createdHook.PostUsername)
-				assert.Equal(tc.ExpectedIncomingWebhook.PostIconURL, createdHook.PostIconURL)
+				assert.Equal(tc.ExpectedIncomingWebhook.Username, createdHook.Username)
+				assert.Equal(tc.ExpectedIncomingWebhook.IconURL, createdHook.IconURL)
 			}
 		})
 	}
@@ -191,11 +191,11 @@ func TestUpdateIncomingWebhook(t *testing.T) {
 			EnablePostUsernameOverride: false,
 			EnablePostIconOverride:     false,
 			IncomingWebhook: model.IncomingWebhook{
-				DisplayName:  "title",
-				Description:  "description",
-				ChannelId:    th.BasicChannel.Id,
-				PostUsername: ":invalid and ignored:",
-				PostIconURL:  "ignored",
+				DisplayName: "title",
+				Description: "description",
+				ChannelId:   th.BasicChannel.Id,
+				Username:    ":invalid and ignored:",
+				IconURL:     "ignored",
 			},
 
 			ExpectedError: false,
@@ -210,10 +210,10 @@ func TestUpdateIncomingWebhook(t *testing.T) {
 			EnablePostUsernameOverride: true,
 			EnablePostIconOverride:     false,
 			IncomingWebhook: model.IncomingWebhook{
-				DisplayName:  "title",
-				Description:  "description",
-				ChannelId:    th.BasicChannel.Id,
-				PostUsername: ":invalid:",
+				DisplayName: "title",
+				Description: "description",
+				ChannelId:   th.BasicChannel.Id,
+				Username:    ":invalid:",
 			},
 
 			ExpectedError:           true,
@@ -241,20 +241,20 @@ func TestUpdateIncomingWebhook(t *testing.T) {
 			EnablePostUsernameOverride: true,
 			EnablePostIconOverride:     true,
 			IncomingWebhook: model.IncomingWebhook{
-				DisplayName:  "title",
-				Description:  "description",
-				ChannelId:    th.BasicChannel.Id,
-				PostUsername: "valid",
-				PostIconURL:  "http://example.com/icon",
+				DisplayName: "title",
+				Description: "description",
+				ChannelId:   th.BasicChannel.Id,
+				Username:    "valid",
+				IconURL:     "http://example.com/icon",
 			},
 
 			ExpectedError: false,
 			ExpectedIncomingWebhook: &model.IncomingWebhook{
-				DisplayName:  "title",
-				Description:  "description",
-				ChannelId:    th.BasicChannel.Id,
-				PostUsername: "valid",
-				PostIconURL:  "http://example.com/icon",
+				DisplayName: "title",
+				Description: "description",
+				ChannelId:   th.BasicChannel.Id,
+				Username:    "valid",
+				IconURL:     "http://example.com/icon",
 			},
 		},
 	} {
@@ -289,8 +289,8 @@ func TestUpdateIncomingWebhook(t *testing.T) {
 				assert.Equal(tc.ExpectedIncomingWebhook.DisplayName, updatedHook.DisplayName)
 				assert.Equal(tc.ExpectedIncomingWebhook.Description, updatedHook.Description)
 				assert.Equal(tc.ExpectedIncomingWebhook.ChannelId, updatedHook.ChannelId)
-				assert.Equal(tc.ExpectedIncomingWebhook.PostUsername, updatedHook.PostUsername)
-				assert.Equal(tc.ExpectedIncomingWebhook.PostIconURL, updatedHook.PostIconURL)
+				assert.Equal(tc.ExpectedIncomingWebhook.Username, updatedHook.Username)
+				assert.Equal(tc.ExpectedIncomingWebhook.IconURL, updatedHook.IconURL)
 			}
 		})
 	}

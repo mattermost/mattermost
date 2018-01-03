@@ -90,22 +90,22 @@ func TestIncomingWebhookIsValid(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	o.PostUsername = strings.Repeat("1", 65)
+	o.Username = strings.Repeat("1", 65)
 	if err := o.IsValid(); err == nil {
 		t.Fatal("should be invalid")
 	}
 
-	o.PostUsername = strings.Repeat("1", 64)
+	o.Username = strings.Repeat("1", 64)
 	if err := o.IsValid(); err != nil {
 		t.Fatal(err)
 	}
 
-	o.PostIconURL = strings.Repeat("1", 1025)
+	o.IconURL = strings.Repeat("1", 1025)
 	if err := o.IsValid(); err == nil {
 		t.Fatal("should be invalid")
 	}
 
-	o.PostIconURL = strings.Repeat("1", 1024)
+	o.IconURL = strings.Repeat("1", 1024)
 	if err := o.IsValid(); err != nil {
 		t.Fatal(err)
 	}
