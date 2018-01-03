@@ -3,6 +3,11 @@
 
 package model
 
+import (
+	"encoding/json"
+	"io"
+)
+
 const (
 	SYSTEM_USER_ROLE_ID              = "system_user"
 	SYSTEM_ADMIN_ROLE_ID             = "system_admin"
@@ -30,6 +35,44 @@ type Role struct {
 }
 
 type Roles []*Role
+
+type RolePatch struct {
+	Permissions *[]string `json:"permissions"`
+}
+
+func (role *Role) ToJson() string {
+	if b, err := json.Marshal(role); err != nil {
+		return ""
+	} else {
+		return string(b)
+	}
+}
+
+func RoleListToJson(r []*Role) string {
+	b, err := json.Marshal(r)
+	if err != nil {
+		return ""
+	} else {
+		return string(b)
+	}
+}
+
+func RolePatchFromJson(data io.Reader) *RolePatch {
+	decoder := json.NewDecoder(data)
+	var o RolePatch
+	err := decoder.Decode(&o)
+	if err == nil {
+		return &o
+	} else {
+		return nil
+	}
+}
+
+func (o *Role) Patch(patch *RolePatch) {
+	if patch.Permissions != nil {
+		o.Permissions = *patch.Permissions
+	}
+}
 
 func MakeDefaultRoles() map[string]*Role {
 	roles := make(map[string]*Role)
