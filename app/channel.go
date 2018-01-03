@@ -1039,20 +1039,35 @@ func (a *App) postLeaveChannelMessage(user *model.User, channel *model.Channel) 
 }
 
 func (a *App) PostAddToChannelMessage(user *model.User, addedUser *model.User, channel *model.Channel, postRootId string) *model.AppError {
-	post := &model.Post{
-		ChannelId: channel.Id,
-		Message:   fmt.Sprintf(utils.T("api.channel.add_member.added"), addedUser.Username, user.Username),
-		Type:      model.POST_ADD_TO_CHANNEL,
-		UserId:    user.Id,
-		RootId:    postRootId,
-		Props: model.StringInterface{
-			"username":      user.Username,
-			"addedUsername": addedUser.Username,
-		},
+	message := fmt.Sprintf(utils.T("api.channel.add_member.added"), addedUser.Username, user.Username)
+	props := model.StringInterface{
+		"username":      user.Username,
+		"addedUsername": addedUser.Username,
 	}
 
-	if _, err := a.CreatePost(post, channel, false); err != nil {
+	systemPost := &model.Post{
+		ChannelId: channel.Id,
+		Message:   message,
+		Type:      model.POST_ADD_TO_CHANNEL,
+		UserId:    user.Id,
+		Props:     props,
+	}
+	if _, err := a.CreatePost(systemPost, channel, false); err != nil {
 		return model.NewAppError("postAddToChannelMessage", "api.channel.post_user_add_remove_message_and_forget.error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	// send ephemeral post when postRootId is present since it's from RHS
+	// where mentioned user link is triggered.
+	if postRootId != "" {
+		ephemeralPost := &model.Post{
+			RootId:    postRootId,
+			ChannelId: channel.Id,
+			Message:   message,
+			UserId:    user.Id,
+			Props:     props,
+		}
+
+		a.SendEphemeralPost(user.Id, ephemeralPost)
 	}
 
 	return nil
