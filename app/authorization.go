@@ -197,8 +197,9 @@ func (a *App) CheckIfRolesGrantPermission(roleNames []string, permissionId strin
 	var roles model.Roles
 
 	if result := <-a.Srv.Store.Role().GetByNames(roleNames); result.Err != nil {
-		// FIXME: What should we do if an error occurs here?
-		l4g.Error("Failed to get roles from database.")
+		// This should only happen if something is very broken. We can't realistically
+		// recover the situation, so deny permission and log an error.
+		l4g.Error("Failed to get roles from database with role names: " + strings.Join(roleNames, ","))
 		l4g.Error(result.Err)
 		return false
 	} else {
