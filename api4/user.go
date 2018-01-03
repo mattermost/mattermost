@@ -38,6 +38,8 @@ func (api *API) InitUser() {
 	api.BaseRoutes.Users.Handle("/email/verify", api.ApiHandler(verifyUserEmail)).Methods("POST")
 	api.BaseRoutes.Users.Handle("/email/verify/send", api.ApiHandler(sendVerificationEmail)).Methods("POST")
 
+	api.BaseRoutes.User.Handle("/auth", api.ApiSessionRequiredTrustRequester(updateUserAuth)).Methods("PUT")
+
 	api.BaseRoutes.Users.Handle("/mfa", api.ApiHandler(checkUserMfa)).Methods("POST")
 	api.BaseRoutes.User.Handle("/mfa", api.ApiSessionRequiredMfa(updateUserMfa)).Methods("PUT")
 	api.BaseRoutes.User.Handle("/mfa/generate", api.ApiSessionRequiredMfa(generateMfaSecret)).Methods("POST")
@@ -694,6 +696,31 @@ func updateUserActive(c *Context, w http.ResponseWriter, r *http.Request) {
 	} else {
 		c.LogAuditWithUserId(user.Id, fmt.Sprintf("active=%v", active))
 		ReturnStatusOK(w)
+	}
+}
+
+func updateUserAuth(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !c.IsSystemAdmin() {
+		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
+		return
+	}
+
+	c.RequireUserId()
+	if c.Err != nil {
+		return
+	}
+
+	userAuth := model.UserAuthFromJson(r.Body)
+	if userAuth == nil {
+		c.SetInvalidParam("user")
+		return
+	}
+
+	if user, err := c.App.UpdateUserAuth(c.Params.UserId, userAuth); err != nil {
+		c.Err = err
+	} else {
+		c.LogAuditWithUserId(c.Params.UserId, fmt.Sprintf("updated user auth to service=%v", user.AuthService))
+		w.Write([]byte(user.ToJson()))
 	}
 }
 

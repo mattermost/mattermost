@@ -82,8 +82,6 @@ type Routes struct {
 
 	DataRetention *mux.Router // 'api/v4/data_retention'
 
-	Admin *mux.Router // 'api/v4/admin'
-
 	Brand *mux.Router // 'api/v4/brand'
 
 	System *mux.Router // 'api/v4/system'
@@ -175,7 +173,6 @@ func Init(a *app.App, root *mux.Router, full bool) *API {
 	api.BaseRoutes.Compliance = api.BaseRoutes.ApiRoot.PathPrefix("/compliance").Subrouter()
 	api.BaseRoutes.Cluster = api.BaseRoutes.ApiRoot.PathPrefix("/cluster").Subrouter()
 	api.BaseRoutes.LDAP = api.BaseRoutes.ApiRoot.PathPrefix("/ldap").Subrouter()
-	api.BaseRoutes.Admin = api.BaseRoutes.ApiRoot.PathPrefix("/admin").Subrouter()
 	api.BaseRoutes.Brand = api.BaseRoutes.ApiRoot.PathPrefix("/brand").Subrouter()
 	api.BaseRoutes.System = api.BaseRoutes.ApiRoot.PathPrefix("/system").Subrouter()
 	api.BaseRoutes.Preferences = api.BaseRoutes.User.PathPrefix("/preferences").Subrouter()
@@ -209,7 +206,6 @@ func Init(a *app.App, root *mux.Router, full bool) *API {
 	api.InitLdap()
 	api.InitElasticsearch()
 	api.InitDataRetention()
-	api.InitAdmin()
 	api.InitBrand()
 	api.InitJob()
 	api.InitCommand()

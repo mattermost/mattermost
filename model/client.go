@@ -101,7 +101,7 @@ func (c *Client) SetTeamId(teamId string) {
 
 func (c *Client) GetTeamId() string {
 	if len(c.TeamId) == 0 {
-		println(`You are trying to use a route that requires a team_id,
+		println(`You are trying to use a route that requires a team_id, 
         	but you have not called SetTeamId() in client.go`)
 	}
 

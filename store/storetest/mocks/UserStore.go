@@ -620,22 +620,6 @@ func (_m *UserStore) Update(user *model.User, allowRoleUpdate bool) store.StoreC
 	return r0
 }
 
-// AdminUpdateAuthData provides a mock function with given fields: user
-func (_m *UserStore) AdminUpdateAuthData(userId string, authData *string, authService string, password string) store.StoreChannel {
-	ret := _m.Called(userId, authData, authService, password)
-
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string, *string, string, string) store.StoreChannel); ok {
-		r0 = rf(userId, authData, authService, password)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
-		}
-	}
-
-	return r0
-}
-
 // UpdateAuthData provides a mock function with given fields: userId, service, authData, email, resetMfa
 func (_m *UserStore) UpdateAuthData(userId string, service string, authData *string, email string, resetMfa bool) store.StoreChannel {
 	ret := _m.Called(userId, service, authData, email, resetMfa)

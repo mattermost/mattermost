@@ -188,38 +188,6 @@ func (us SqlUserStore) Update(user *model.User, trustedUpdateData bool) store.St
 	})
 }
 
-func (us SqlUserStore) AdminUpdateAuthData(userId string, authData *string, authService string, password string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-
-		if userResult, err := us.GetMaster().Get(model.User{}, userId); err != nil {
-			result.Err = model.NewAppError("SqlUserStore.Update", "store.sql_user.update.finding.app_error", nil, "user_id="+userId+", "+err.Error(), http.StatusBadRequest)
-		} else if userResult == nil {
-			result.Err = model.NewAppError("SqlUserStore.Update", "store.sql_user.update.find.app_error", nil, "user_id="+userId, http.StatusBadRequest)
-		} else {
-			user := userResult.(*model.User)
-			user.AuthData = authData
-			user.AuthService = authService
-			user.UpdateAt = model.GetMillis()
-			if user.Password != model.HashPassword(password) {
-				if password == "" {
-					user.Password = password
-				} else {
-					user.Password = model.HashPassword(password)
-				}
-				user.LastPasswordUpdate = model.GetMillis()
-			}
-
-			if count, err := us.GetMaster().Update(user); err != nil {
-				result.Err = model.NewAppError("SqlUserStore.Update", "store.sql_user.update.updating.app_error", nil, "user_id="+userId+", "+err.Error(), http.StatusBadRequest)
-			} else if count != 1 {
-				result.Err = model.NewAppError("SqlUserStore.Update", "store.sql_user.update.app_error", nil, fmt.Sprintf("user_id=%v, count=%v", userId, count), http.StatusBadRequest)
-			} else {
-				result.Data = user
-			}
-		}
-	})
-}
-
 func (us SqlUserStore) UpdateLastPictureUpdate(userId string) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		curTime := model.GetMillis()

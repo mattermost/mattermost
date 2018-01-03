@@ -88,6 +88,12 @@ type UserPatch struct {
 	Locale      *string   `json:"locale"`
 }
 
+type UserAuth struct {
+	Password    string  `json:"password,omitempty"`
+	AuthData    *string `json:"auth_data,omitempty"`
+	AuthService string  `json:"auth_service,omitempty"`
+}
+
 // IsValid validates the user and returns an error if it isn't configured
 // correctly.
 func (u *User) IsValid() *AppError {
@@ -309,6 +315,15 @@ func (u *UserPatch) ToJson() string {
 	}
 }
 
+func (u *UserAuth) ToJson() string {
+	b, err := json.Marshal(u)
+	if err != nil {
+		return ""
+	} else {
+		return string(b)
+	}
+}
+
 // Generate a valid strong etag so the browser can cache the results
 func (u *User) Etag(showFullName, showEmail bool) string {
 	return Etag(u.Id, u.UpdateAt, showFullName, showEmail)
@@ -486,6 +501,17 @@ func UserFromJson(data io.Reader) *User {
 func UserPatchFromJson(data io.Reader) *UserPatch {
 	decoder := json.NewDecoder(data)
 	var user UserPatch
+	err := decoder.Decode(&user)
+	if err == nil {
+		return &user
+	} else {
+		return nil
+	}
+}
+
+func UserAuthFromJson(data io.Reader) *UserAuth {
+	decoder := json.NewDecoder(data)
+	var user UserAuth
 	err := decoder.Decode(&user)
 	if err == nil {
 		return &user

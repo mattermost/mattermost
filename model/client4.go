@@ -250,10 +250,6 @@ func (c *Client4) GetLdapRoute() string {
 	return fmt.Sprintf("/ldap")
 }
 
-func (c *Client4) GetAdminRoute() string {
-	return fmt.Sprintf("/admin")
-}
-
 func (c *Client4) GetBrandRoute() string {
 	return fmt.Sprintf("/brand")
 }
@@ -767,6 +763,16 @@ func (c *Client4) PatchUser(userId string, patch *UserPatch) (*User, *Response) 
 	} else {
 		defer closeBody(r)
 		return UserFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// UpdateUserAuth updates a user AuthData (uthData, authService and password) in the system.
+func (c *Client4) UpdateUserAuth(userId string, userAuth *UserAuth) (*UserAuth, *Response) {
+	if r, err := c.DoApiPut(c.GetUserRoute(userId)+"/auth", userAuth.ToJson()); err != nil {
+		return nil, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return UserAuthFromJson(r.Body), BuildResponse(r)
 	}
 }
 
@@ -2591,18 +2597,6 @@ func (c *Client4) GetAudits(page int, perPage int, etag string) (Audits, *Respon
 	} else {
 		defer closeBody(r)
 		return AuditsFromJson(r.Body), BuildResponse(r)
-	}
-}
-
-// Admin Section
-
-// GetBrandImage retrieves the previously uploaded brand image.
-func (c *Client4) AdminUpdateUser(userId string, authData string, authService string, password string) (*User, *Response) {
-	if r, err := c.DoApiPost(c.GetAdminRoute()+"/users/update", fmt.Sprintf("{\"id\":\"%v\",\"auth_data\":\"%v\",\"auth_service\":\"%v\",\"password\":\"%v\"}", userId, authData, authService, password)); err != nil {
-		return nil, BuildErrorResponse(r, err)
-	} else {
-		defer closeBody(r)
-		return UserFromJson(r.Body), BuildResponse(r)
 	}
 }
 
