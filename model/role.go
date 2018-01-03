@@ -78,6 +78,7 @@ func MakeDefaultRoles() map[string]*Role {
 	roles := make(map[string]*Role)
 
 	roles[CHANNEL_USER_ROLE_ID] = &Role{
+		Id:          NewId(),
 		Name:        "channel_user",
 		DisplayName: "authentication.roles.channel_user.name",
 		Description: "authentication.roles.channel_user.description",
@@ -94,6 +95,7 @@ func MakeDefaultRoles() map[string]*Role {
 	}
 
 	roles[CHANNEL_ADMIN_ROLE_ID] = &Role{
+		Id:          NewId(),
 		Name:        "channel_admin",
 		DisplayName: "authentication.roles.channel_admin.name",
 		Description: "authentication.roles.channel_admin.description",
@@ -104,6 +106,7 @@ func MakeDefaultRoles() map[string]*Role {
 	}
 
 	roles[CHANNEL_GUEST_ROLE_ID] = &Role{
+		Id:            NewId(),
 		Name:          "guest",
 		DisplayName:   "authentication.roles.global_guest.name",
 		Description:   "authentication.roles.global_guest.description",
@@ -112,6 +115,7 @@ func MakeDefaultRoles() map[string]*Role {
 	}
 
 	roles[TEAM_USER_ROLE_ID] = &Role{
+		Id:          NewId(),
 		Name:        "team_user",
 		DisplayName: "authentication.roles.team_user.name",
 		Description: "authentication.roles.team_user.description",
@@ -125,6 +129,7 @@ func MakeDefaultRoles() map[string]*Role {
 	}
 
 	roles[TEAM_POST_ALL_ROLE_ID] = &Role{
+		Id:          NewId(),
 		Name:        "team_post_all",
 		DisplayName: "authentication.roles.team_post_all.name",
 		Description: "authentication.roles.team_post_all.description",
@@ -135,6 +140,7 @@ func MakeDefaultRoles() map[string]*Role {
 	}
 
 	roles[TEAM_POST_ALL_PUBLIC_ROLE_ID] = &Role{
+		Id:          NewId(),
 		Name:        "team_post_all_public",
 		DisplayName: "authentication.roles.team_post_all_public.name",
 		Description: "authentication.roles.team_post_all_public.description",
@@ -145,6 +151,7 @@ func MakeDefaultRoles() map[string]*Role {
 	}
 
 	roles[TEAM_ADMIN_ROLE_ID] = &Role{
+		Id:          NewId(),
 		Name:        "team_admin",
 		DisplayName: "authentication.roles.team_admin.name",
 		Description: "authentication.roles.team_admin.description",
@@ -164,6 +171,7 @@ func MakeDefaultRoles() map[string]*Role {
 	}
 
 	roles[SYSTEM_USER_ROLE_ID] = &Role{
+		Id:          NewId(),
 		Name:        "system_user",
 		DisplayName: "authentication.roles.global_user.name",
 		Description: "authentication.roles.global_user.description",
@@ -176,6 +184,7 @@ func MakeDefaultRoles() map[string]*Role {
 	}
 
 	roles[SYSTEM_POST_ALL_ROLE_ID] = &Role{
+		Id:          NewId(),
 		Name:        "system_post_all",
 		DisplayName: "authentication.roles.system_post_all.name",
 		Description: "authentication.roles.system_post_all.description",
@@ -186,6 +195,7 @@ func MakeDefaultRoles() map[string]*Role {
 	}
 
 	roles[SYSTEM_POST_ALL_PUBLIC_ROLE_ID] = &Role{
+		Id:          NewId(),
 		Name:        "system_post_all_public",
 		DisplayName: "authentication.roles.system_post_all_public.name",
 		Description: "authentication.roles.system_post_all_public.description",
@@ -196,6 +206,7 @@ func MakeDefaultRoles() map[string]*Role {
 	}
 
 	roles[SYSTEM_USER_ACCESS_TOKEN_ROLE_ID] = &Role{
+		Id:          NewId(),
 		Name:        "system_user_access_token",
 		DisplayName: "authentication.roles.system_user_access_token.name",
 		Description: "authentication.roles.system_user_access_token.description",
@@ -208,6 +219,7 @@ func MakeDefaultRoles() map[string]*Role {
 	}
 
 	roles[SYSTEM_ADMIN_ROLE_ID] = &Role{
+		Id:          NewId(),
 		Name:        "system_admin",
 		DisplayName: "authentication.roles.global_admin.name",
 		Description: "authentication.roles.global_admin.description",
