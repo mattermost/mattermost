@@ -8,9 +8,9 @@ import (
 	"net/http"
 	"strings"
 
+	"fmt"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
-	"fmt"
 )
 
 type Role struct {

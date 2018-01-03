@@ -446,9 +446,7 @@ func IsValidUserRoles(userRoles string) bool {
 }
 
 func isValidRole(roleId string) bool {
-	/*_, ok := DefaultRoles[roleId]
-	return ok
-	*/
+	// TODO: How should we validate here with custom database-backed roles?
 	return true
 }
 

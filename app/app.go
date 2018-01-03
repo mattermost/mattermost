@@ -155,7 +155,7 @@ func New(options ...Option) (*App, error) {
 }
 
 func (a *App) configOrLicenseListener() {
-	a.regenerateClientConfig())
+	a.regenerateClientConfig()
 }
 
 func (a *App) Shutdown() {
