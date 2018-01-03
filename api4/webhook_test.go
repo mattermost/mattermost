@@ -425,8 +425,8 @@ func TestUpdateIncomingHook(t *testing.T) {
 		createdHook.DisplayName = "hook2"
 		createdHook.Description = "description"
 		createdHook.ChannelId = th.BasicChannel2.Id
-		createdHook.PostUsername = "username"
-		createdHook.PostIconURL = "icon"
+		createdHook.Username = "username"
+		createdHook.IconURL = "icon"
 
 		updatedHook, resp := th.SystemAdminClient.UpdateIncomingWebhook(createdHook)
 		CheckNoError(t, resp)
@@ -443,11 +443,11 @@ func TestUpdateIncomingHook(t *testing.T) {
 				t.Fatal("Hook channel is not updated")
 			}
 
-			if updatedHook.PostUsername != "" {
+			if updatedHook.Username != "" {
 				t.Fatal("Hook username was incorrectly updated")
 			}
 
-			if updatedHook.PostIconURL != "" {
+			if updatedHook.IconURL != "" {
 				t.Fatal("Hook icon was incorrectly updated")
 			}
 		} else {
@@ -465,8 +465,8 @@ func TestUpdateIncomingHook(t *testing.T) {
 		createdHook.DisplayName = "hook2"
 		createdHook.Description = "description"
 		createdHook.ChannelId = th.BasicChannel2.Id
-		createdHook.PostUsername = "username"
-		createdHook.PostIconURL = "icon"
+		createdHook.Username = "username"
+		createdHook.IconURL = "icon"
 
 		updatedHook, resp := th.SystemAdminClient.UpdateIncomingWebhook(createdHook)
 		CheckNoError(t, resp)
@@ -483,11 +483,11 @@ func TestUpdateIncomingHook(t *testing.T) {
 				t.Fatal("Hook channel is not updated")
 			}
 
-			if updatedHook.PostUsername != "username" {
+			if updatedHook.Username != "username" {
 				t.Fatal("Hook username is not updated")
 			}
 
-			if updatedHook.PostIconURL != "icon" {
+			if updatedHook.IconURL != "icon" {
 				t.Fatal("Hook icon is not updated")
 			}
 		} else {
