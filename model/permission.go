@@ -359,3 +359,7 @@ func initializePermissions() {
 		PERMISSION_SCOPE_SYSTEM,
 	}
 }
+
+func init() {
+	initializePermissions()
+}

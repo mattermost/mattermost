@@ -31,12 +31,6 @@ type Role struct {
 
 type Roles []*Role
 
-//var DefaultRoles map[string]*Role
-
-func initializeDefaultRoles() {
-
-}
-
 func MakeDefaultRoles() map[string]*Role {
 	roles := make(map[string]*Role)
 
@@ -221,9 +215,4 @@ func MakeDefaultRoles() map[string]*Role {
 	}
 
 	return roles
-}
-
-func init() {
-	initializePermissions()
-	initializeDefaultRoles()
 }

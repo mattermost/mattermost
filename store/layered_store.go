@@ -23,7 +23,7 @@ type LayeredStoreDatabaseLayer interface {
 type LayeredStore struct {
 	TmpContext      context.Context
 	ReactionStore   ReactionStore
-	RoleStore		RoleStore
+	RoleStore       RoleStore
 	DatabaseLayer   LayeredStoreDatabaseLayer
 	LocalCacheLayer *LocalCacheSupplier
 	RedisLayer      *RedisSupplier
