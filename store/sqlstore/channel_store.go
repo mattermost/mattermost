@@ -1332,21 +1332,16 @@ func (s SqlChannelStore) performSearch(searchQuery string, term string, paramete
 		searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", "", 1)
 	} else {
 		// Prepare the LIKE portion of the query.
-		var likeSearchTerms []string
-		for i, term := range []string{term} {
-			var searchFields []string
-			for _, field := range []string{"Name", "DisplayName"} {
-				if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-					searchFields = append(searchFields, fmt.Sprintf("lower(%s) LIKE lower(%s) escape '*' ", field, fmt.Sprintf(":Term%d", i)))
-				} else {
-					searchFields = append(searchFields, fmt.Sprintf("%s LIKE %s escape '*' ", field, fmt.Sprintf(":Term%d", i)))
-				}
+		var searchFields []string
+		for _, field := range []string{"Name", "DisplayName"} {
+			if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+				searchFields = append(searchFields, fmt.Sprintf("lower(%s) LIKE lower(%s) escape '*' ", field, ":LikeTerm"))
+			} else {
+				searchFields = append(searchFields, fmt.Sprintf("%s LIKE %s escape '*' ", field, ":LikeTerm"))
 			}
-			likeSearchTerms = append(likeSearchTerms, fmt.Sprintf("(%s)", strings.Join(searchFields, " OR ")))
-			parameters[fmt.Sprintf("Term%d", i)] = fmt.Sprintf("%s%%", term)
 		}
-
-		likeSearchClause := strings.Join(likeSearchTerms, " AND ")
+		likeSearchClause := fmt.Sprintf("(%s)", strings.Join(searchFields, " OR "))
+		parameters["LikeTerm"] = fmt.Sprintf("%s%%", likeSearchClause)
 
 		// Prepare the FULLTEXT portion of the query.
 		if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
@@ -1361,7 +1356,7 @@ func (s SqlChannelStore) performSearch(searchQuery string, term string, paramete
 
 			fulltextTerm = strings.Join(splitTerm, " ")
 
-			fulltextSearchClause := fmt.Sprintf("(%s) @@  to_tsquery('simple', :Term)", "Name || ' ' || DisplayName")
+			fulltextSearchClause := fmt.Sprintf("(%s) @@  to_tsquery('simple', :FulltextTerm)", "Name || ' ' || DisplayName")
 			searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", "AND ("+likeSearchClause+" OR "+fulltextSearchClause+")", 1)
 		} else if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
 			splitTerm := strings.Fields(fulltextTerm)
@@ -1371,14 +1366,12 @@ func (s SqlChannelStore) performSearch(searchQuery string, term string, paramete
 
 			fulltextTerm = strings.Join(splitTerm, " ")
 
-			fulltextSearchClause := fmt.Sprintf("MATCH(%s) AGAINST (:Term IN BOOLEAN MODE)", "Name, DisplayName")
+			fulltextSearchClause := fmt.Sprintf("MATCH(%s) AGAINST (:FulltextTerm IN BOOLEAN MODE)", "Name, DisplayName")
 			searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", fmt.Sprintf("AND (%s OR %s)", likeSearchClause, fulltextSearchClause), 1)
 		}
 	}
 
-	l4g.Debug(searchQuery)
-
-	parameters["Term"] = fulltextTerm
+	parameters["FulltextTerm"] = fulltextTerm
 
 	var channels model.ChannelList
 
