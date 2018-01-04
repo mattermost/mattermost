@@ -83,7 +83,7 @@ func (c *Client4) GetUserRoute(userId string) string {
 }
 
 func (c *Client4) GetAllUserAccessTokensRoute() string {
-	return fmt.Sprintf(c.GetUsersRoute()+"/tokens/all")
+	return fmt.Sprintf(c.GetUsersRoute() + "/tokens/all")
 }
 
 func (c *Client4) GetUserAccessTokenRoute(tokenId string) string {
@@ -1039,8 +1039,8 @@ func (c *Client4) CreateUserAccessToken(userId, description string) (*UserAccess
 	}
 }
 
-// GetAllUserAccessToken will get a all access token's id, description, is_active 
-// and the user_id in the system. The actual token will not be returned. Must have  
+// GetAllUserAccessToken will get a all access token's id, description, is_active
+// and the user_id in the system. The actual token will not be returned. Must have
 // the 'manage_system' permission.
 func (c *Client4) GetAllUserAccessTokens(page int, perPage int) ([]*UserAccessToken, *Response) {
 	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)
@@ -1052,7 +1052,7 @@ func (c *Client4) GetAllUserAccessTokens(page int, perPage int) ([]*UserAccessTo
 	}
 }
 
-// GetUserAccessToken will get a user access token's id, description, is_active 
+// GetUserAccessToken will get a user access token's id, description, is_active
 // and the user_id of the user it is for. The actual token will not be returned.
 // Must have the 'read_user_access_token' permission and if getting for another
 // user, must have the 'edit_other_users' permission.

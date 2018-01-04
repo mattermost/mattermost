@@ -53,7 +53,7 @@ func testUserAccessTokenSaveGetDelete(t *testing.T, ss store.Store) {
 	} else if received := result.Data.([]*model.UserAccessToken); len(received) != 1 {
 		t.Fatal("received incorrect number of tokens after save")
 	}
-	
+
 	if result := <-ss.UserAccessToken().GetAll(0, 100); result.Err != nil {
 		t.Fatal(result.Err)
 	} else if received := result.Data.([]*model.UserAccessToken); len(received) != 1 {
