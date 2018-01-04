@@ -2454,9 +2454,6 @@ func TestGetUserAccessToken(t *testing.T) {
 	_, resp = Client.GetAllUserAccessTokens(0,100)
 	CheckForbiddenStatus(t, resp)
 	
-	_, resp = AdminClient.GetAllUserAccessTokens(0,100)
-	CheckNoError(t, resp)
-	
 	rtokens, resp = AdminClient.GetAllUserAccessTokens(1,1)
 	CheckNoError(t, resp)
 	
