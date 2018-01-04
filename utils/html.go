@@ -24,7 +24,7 @@ type HTMLTemplateWatcher struct {
 func NewHTMLTemplateWatcher(directory string) (*HTMLTemplateWatcher, error) {
 	templatesDir, _ := FindDir(directory)
 	l4g.Debug(T("api.api.init.parsing_templates.debug"), templatesDir)
-	return newHTMLTemplateWatcher(directory, func() (*template.Template, error) {
+	return newHTMLTemplateWatcher(templatesDir, func() (*template.Template, error) {
 		return template.ParseGlob(templatesDir + "*.html")
 	})
 }
