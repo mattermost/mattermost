@@ -25,7 +25,7 @@ func (r *ClientRoot) Serve(w http.ResponseWriter, _ *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	w.Header().Set("Cache-Control", "no-cache, max-age=31556926, public")
+	w.Header().Set("Cache-Control", "no-cache")
 
 	r.watcher.Templates().Execute(w, &ClientRootData{
 		Nonce: model.NewId(),
