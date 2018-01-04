@@ -66,23 +66,6 @@ func TearDown(a *app.App) {
 	}
 }
 
-/* Test disabled for now so we don't requrie the client to build. Maybe re-enable after client gets moved out.
-func TestStatic(t *testing.T) {
-	Setup()
-
-	// add a short delay to make sure the server is ready to receive requests
-	time.Sleep(1 * time.Second)
-
-	resp, err := http.Get(URL + "/static/root.html")
-
-	if err != nil {
-		t.Fatalf("got error while trying to get static files %v", err)
-	} else if resp.StatusCode != http.StatusOK {
-		t.Fatalf("couldn't get static files %v", resp.StatusCode)
-	}
-}
-*/
-
 func TestIncomingWebhook(t *testing.T) {
 	a := Setup()
 	defer TearDown(a)

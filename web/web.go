@@ -35,7 +35,7 @@ func Init(api3 *api.API) {
 
 		mainrouter.PathPrefix("/static/plugins/").Handler(pluginHandler)
 		mainrouter.PathPrefix("/static/").Handler(staticHandler)
-		mainrouter.Handle("/{anything:.*}", api3.AppHandlerIndependent(root)).Methods("GET")
+		mainrouter.Handle("/{anything:.*}", api3.AppHandlerIndependent(root())).Methods("GET")
 	}
 }
 
@@ -83,23 +83,30 @@ func CheckBrowserCompatability(c *api.Context, r *http.Request) bool {
 	return true
 }
 
-func root(c *api.Context, w http.ResponseWriter, r *http.Request) {
-	if !CheckBrowserCompatability(c, r) {
-		w.Header().Set("Cache-Control", "no-store")
-		page := utils.NewHTMLTemplate(c.App.HTMLTemplates(), "unsupported_browser")
-		page.Props["Title"] = c.T("web.error.unsupported_browser.title")
-		page.Props["Message"] = c.T("web.error.unsupported_browser.message")
-		page.RenderToWriter(w)
-		return
-	}
-
-	if api.IsApiCall(r) {
-		api.Handle404(w, r)
-		return
-	}
-
-	w.Header().Set("Cache-Control", "no-cache, max-age=31556926, public")
-
+func root() func(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	staticDir, _ := utils.FindDir(model.CLIENT_DIR)
-	http.ServeFile(w, r, staticDir+"root.html")
+	root, err := utils.NewClientRoot(staticDir+"root.html", false)
+	if err != nil {
+		l4g.Error(err.Error())
+	}
+
+	return func(c *api.Context, w http.ResponseWriter, r *http.Request) {
+		if !CheckBrowserCompatability(c, r) {
+			w.Header().Set("Cache-Control", "no-store")
+			page := utils.NewHTMLTemplate(c.App.HTMLTemplates(), "unsupported_browser")
+			page.Props["Title"] = c.T("web.error.unsupported_browser.title")
+			page.Props["Message"] = c.T("web.error.unsupported_browser.message")
+			page.RenderToWriter(w)
+			return
+		}
+
+		if api.IsApiCall(r) {
+			api.Handle404(w, r)
+			return
+		}
+
+		if root != nil {
+			root.Serve(w, r)
+		}
+	}
 }

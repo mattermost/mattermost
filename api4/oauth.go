@@ -26,7 +26,7 @@ func (api *API) InitOAuth() {
 	api.BaseRoutes.User.Handle("/oauth/apps/authorized", api.ApiSessionRequired(getAuthorizedOAuthApps)).Methods("GET")
 
 	// API version independent OAuth 2.0 as a service provider endpoints
-	api.BaseRoutes.Root.Handle("/oauth/authorize", api.ApiHandlerTrustRequester(authorizeOAuthPage)).Methods("GET")
+	api.BaseRoutes.Root.Handle("/oauth/authorize", api.ApiHandlerTrustRequester(authorizeOAuthPage())).Methods("GET")
 	api.BaseRoutes.Root.Handle("/oauth/authorize", api.ApiSessionRequired(authorizeOAuthApp)).Methods("POST")
 	api.BaseRoutes.Root.Handle("/oauth/deauthorize", api.ApiSessionRequired(deauthorizeOAuthApp)).Methods("POST")
 	api.BaseRoutes.Root.Handle("/oauth/access_token", api.ApiHandlerTrustRequester(getAccessToken)).Methods("POST")
@@ -310,71 +310,75 @@ func deauthorizeOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 	ReturnStatusOK(w)
 }
 
-func authorizeOAuthPage(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.Config().ServiceSettings.EnableOAuthServiceProvider {
-		err := model.NewAppError("authorizeOAuth", "api.oauth.authorize_oauth.disabled.app_error", nil, "", http.StatusNotImplemented)
-		utils.RenderWebError(err, w, r)
-		return
-	}
-
-	authRequest := &model.AuthorizeRequest{
-		ResponseType: r.URL.Query().Get("response_type"),
-		ClientId:     r.URL.Query().Get("client_id"),
-		RedirectUri:  r.URL.Query().Get("redirect_uri"),
-		Scope:        r.URL.Query().Get("scope"),
-		State:        r.URL.Query().Get("state"),
-	}
-
-	if err := authRequest.IsValid(); err != nil {
-		utils.RenderWebError(err, w, r)
-		return
-	}
-
-	oauthApp, err := c.App.GetOAuthApp(authRequest.ClientId)
+func authorizeOAuthPage() func(c *Context, w http.ResponseWriter, r *http.Request) {
+	staticDir, _ := utils.FindDir(model.CLIENT_DIR)
+	root, err := utils.NewClientRoot(staticDir+"root.html", true)
 	if err != nil {
-		utils.RenderWebError(err, w, r)
-		return
+		l4g.Error(err.Error())
 	}
 
-	// here we should check if the user is logged in
-	if len(c.Session.UserId) == 0 {
-		http.Redirect(w, r, c.GetSiteURLHeader()+"/login?redirect_to="+url.QueryEscape(r.RequestURI), http.StatusFound)
-		return
-	}
+	return func(c *Context, w http.ResponseWriter, r *http.Request) {
+		if !c.App.Config().ServiceSettings.EnableOAuthServiceProvider {
+			err := model.NewAppError("authorizeOAuth", "api.oauth.authorize_oauth.disabled.app_error", nil, "", http.StatusNotImplemented)
+			utils.RenderWebError(err, w, r)
+			return
+		}
 
-	if !oauthApp.IsValidRedirectURL(authRequest.RedirectUri) {
-		utils.RenderWebError(model.NewAppError("authorizeOAuthPage", "api.oauth.allow_oauth.redirect_callback.app_error", nil, "", http.StatusBadRequest), w, r)
-		return
-	}
+		authRequest := &model.AuthorizeRequest{
+			ResponseType: r.URL.Query().Get("response_type"),
+			ClientId:     r.URL.Query().Get("client_id"),
+			RedirectUri:  r.URL.Query().Get("redirect_uri"),
+			Scope:        r.URL.Query().Get("scope"),
+			State:        r.URL.Query().Get("state"),
+		}
 
-	isAuthorized := false
+		if err := authRequest.IsValid(); err != nil {
+			utils.RenderWebError(err, w, r)
+			return
+		}
 
-	if _, err := c.App.GetPreferenceByCategoryAndNameForUser(c.Session.UserId, model.PREFERENCE_CATEGORY_AUTHORIZED_OAUTH_APP, authRequest.ClientId); err == nil {
-		// when we support scopes we should check if the scopes match
-		isAuthorized = true
-	}
-
-	// Automatically allow if the app is trusted
-	if oauthApp.IsTrusted || isAuthorized {
-		authRequest.ResponseType = model.AUTHCODE_RESPONSE_TYPE
-		redirectUrl, err := c.App.AllowOAuthAppAccessToUser(c.Session.UserId, authRequest)
-
+		oauthApp, err := c.App.GetOAuthApp(authRequest.ClientId)
 		if err != nil {
 			utils.RenderWebError(err, w, r)
 			return
 		}
 
-		http.Redirect(w, r, redirectUrl, http.StatusFound)
-		return
+		// here we should check if the user is logged in
+		if len(c.Session.UserId) == 0 {
+			http.Redirect(w, r, c.GetSiteURLHeader()+"/login?redirect_to="+url.QueryEscape(r.RequestURI), http.StatusFound)
+			return
+		}
+
+		if !oauthApp.IsValidRedirectURL(authRequest.RedirectUri) {
+			utils.RenderWebError(model.NewAppError("authorizeOAuthPage", "api.oauth.allow_oauth.redirect_callback.app_error", nil, "", http.StatusBadRequest), w, r)
+			return
+		}
+
+		isAuthorized := false
+
+		if _, err := c.App.GetPreferenceByCategoryAndNameForUser(c.Session.UserId, model.PREFERENCE_CATEGORY_AUTHORIZED_OAUTH_APP, authRequest.ClientId); err == nil {
+			// when we support scopes we should check if the scopes match
+			isAuthorized = true
+		}
+
+		// Automatically allow if the app is trusted
+		if oauthApp.IsTrusted || isAuthorized {
+			authRequest.ResponseType = model.AUTHCODE_RESPONSE_TYPE
+			redirectUrl, err := c.App.AllowOAuthAppAccessToUser(c.Session.UserId, authRequest)
+
+			if err != nil {
+				utils.RenderWebError(err, w, r)
+				return
+			}
+
+			http.Redirect(w, r, redirectUrl, http.StatusFound)
+			return
+		}
+
+		if root != nil {
+			root.Serve(w, r)
+		}
 	}
-
-	w.Header().Set("X-Frame-Options", "SAMEORIGIN")
-	w.Header().Set("Content-Security-Policy", "frame-ancestors 'self'")
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	w.Header().Set("Cache-Control", "no-cache, max-age=31556926, public")
-
-	staticDir, _ := utils.FindDir(model.CLIENT_DIR)
-	http.ServeFile(w, r, staticDir+"root.html")
 }
 
 func getAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
