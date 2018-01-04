@@ -4,6 +4,7 @@
 package app
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/mattermost/mattermost-server/model"
@@ -269,4 +270,40 @@ func TestRemoveUserFromChannel(t *testing.T) {
 	assert.Equal(t, th.BasicUser.Id, histories[0].UserId)
 	assert.Equal(t, publicChannel.Id, histories[0].ChannelId)
 	assert.NotNil(t, histories[0].LeaveTime)
+}
+
+func TestPostAddToChannelMessage(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	// create a user and add it to a channel
+	user := th.CreateUser()
+	if _, err := th.App.AddTeamMember(th.BasicTeam.Id, user.Id); err != nil {
+		t.Fatal("Failed to add user to team. Error: " + err.Message)
+	}
+
+	channel := th.createChannel(th.BasicTeam, model.CHANNEL_OPEN)
+	if _, err := th.App.AddUserToChannel(user, channel); err != nil {
+		t.Fatal("Failed to add user to channel. Error: " + err.Message)
+	}
+
+	post := &model.Post{
+		Message:   fmt.Sprintf("message"),
+		ChannelId: channel.Id,
+		UserId:    user.Id,
+		CreateAt:  0,
+	}
+
+	// user is added with post_root_id (via RHS)
+	rootPost, _ := th.App.CreatePostAsUser(post)
+	addedUser := th.CreateUser()
+	if err := th.App.PostAddToChannelMessage(user, addedUser, channel, rootPost.Id); err != nil {
+		t.Fatal("Failed to post add to channel message with post_root_id. Error: " + err.Message)
+	}
+
+	// user is added without post_root_id (via Center)
+	addedUser2 := th.CreateUser()
+	if err := th.App.PostAddToChannelMessage(user, addedUser2, channel, ""); err != nil {
+		t.Fatal("Failed to post add to channel message without post_root_id. Error: " + err.Message)
+	}
 }
