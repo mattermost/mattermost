@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/store"
 	"github.com/mattermost/mattermost-server/utils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -1060,6 +1061,68 @@ func TestPatchUser(t *testing.T) {
 
 	_, resp = th.SystemAdminClient.PatchUser(user.Id, patch)
 	CheckNoError(t, resp)
+}
+
+func TestUpdateUserAuth(t *testing.T) {
+	th := Setup().InitSystemAdmin().InitBasic()
+	defer th.TearDown()
+
+	Client := th.SystemAdminClient
+	team := th.CreateTeamWithClient(Client)
+
+	user := th.CreateUser()
+
+	th.LinkUserToTeam(user, team)
+	store.Must(th.App.Srv.Store.User().VerifyEmail(user.Id))
+
+	userAuth := &model.UserAuth{}
+	userAuth.AuthData = user.AuthData
+	userAuth.AuthService = user.AuthService
+	userAuth.Password = user.Password
+
+	// Regular user can not use endpoint
+	if _, err := th.Client.UpdateUserAuth(user.Id, userAuth); err == nil {
+		t.Fatal("Shouldn't have permissions. Only Admins")
+	}
+
+	userAuth.AuthData = model.NewString("test@test.com")
+	userAuth.AuthService = model.USER_AUTH_SERVICE_SAML
+	userAuth.Password = "newpassword"
+	ruser, resp := Client.UpdateUserAuth(user.Id, userAuth)
+	CheckNoError(t, resp)
+
+	// AuthData and AuthService are set, password is set to empty
+	if *ruser.AuthData != *userAuth.AuthData {
+		t.Fatal("Should have set the correct AuthData")
+	}
+	if ruser.AuthService != model.USER_AUTH_SERVICE_SAML {
+		t.Fatal("Should have set the correct AuthService")
+	}
+	if ruser.Password != "" {
+		t.Fatal("Password should be empty")
+	}
+
+	// When AuthData or AuthService are empty, password must be valid
+	userAuth.AuthData = user.AuthData
+	userAuth.AuthService = ""
+	userAuth.Password = "1"
+	if _, err := Client.UpdateUserAuth(user.Id, userAuth); err == nil {
+		t.Fatal("Should have errored - user password not valid")
+	}
+
+	// Regular user can not use endpoint
+	user2 := th.CreateUser()
+	th.LinkUserToTeam(user2, team)
+	store.Must(th.App.Srv.Store.User().VerifyEmail(user2.Id))
+
+	Client.Login(user2.Email, "passwd1")
+
+	userAuth.AuthData = user.AuthData
+	userAuth.AuthService = user.AuthService
+	userAuth.Password = user.Password
+	if _, err := Client.UpdateUserAuth(user.Id, userAuth); err == nil {
+		t.Fatal("Should have errored")
+	}
 }
 
 func TestDeleteUser(t *testing.T) {
