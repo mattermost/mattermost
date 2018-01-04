@@ -2394,7 +2394,7 @@ func TestGetUserAccessToken(t *testing.T) {
 	testDescription := "test token"
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
-	
+
 	_, resp := Client.GetUserAccessToken("123")
 	CheckBadRequestStatus(t, resp)
 
