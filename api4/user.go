@@ -56,7 +56,7 @@ func (api *API) InitUser() {
 	api.BaseRoutes.User.Handle("/sessions/revoke/all", api.ApiSessionRequired(revokeAllSessionsForUser)).Methods("POST")
 	api.BaseRoutes.Users.Handle("/sessions/device", api.ApiSessionRequired(attachDeviceId)).Methods("PUT")
 	api.BaseRoutes.User.Handle("/audits", api.ApiSessionRequired(getUserAudits)).Methods("GET")
-	
+
 	api.BaseRoutes.User.Handle("/tokens", api.ApiSessionRequired(createUserAccessToken)).Methods("POST")
 	api.BaseRoutes.User.Handle("/tokens", api.ApiSessionRequired(getUserAccessTokens)).Methods("GET")
 	api.BaseRoutes.Users.Handle("/tokens/all", api.ApiSessionRequired(getAllUserAccessTokens)).Methods("GET")
@@ -1246,7 +1246,7 @@ func getAllUserAccessTokens(c *Context, w http.ResponseWriter, r *http.Request) 
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
 	}
-	
+
 	accessTokens, err := c.App.GetAllUserAccessTokens(c.Params.Page, c.Params.PerPage)
 	if err != nil {
 		c.Err = err
