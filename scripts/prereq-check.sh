@@ -22,7 +22,7 @@ check_prereq()
     else 
         echo "WARNING! Mattermost did not find the minimum supported version of '$dependency' installed. Required: $required_version, Found: $installed_version"
         echo "We highly recommend stopping installation and updating dependencies before continuing"
-        read -p "Enter Y to continue anyway (not recommended).. " -n 1 -r
+        read -p "Enter Y to continue anyway (not recommended)." -n 1 -r
         echo
         if [[ ! $REPLY =~ ^[Yy]$ ]]
         then
