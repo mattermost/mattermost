@@ -2394,7 +2394,7 @@ func TestGetUserAccessToken(t *testing.T) {
 	testDescription := "test token"
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
-
+	
 	_, resp := Client.GetUserAccessToken("123")
 	CheckBadRequestStatus(t, resp)
 
@@ -2447,6 +2447,26 @@ func TestGetUserAccessToken(t *testing.T) {
 	rtokens, resp = AdminClient.GetUserAccessTokensForUser(th.BasicUser.Id, 0, 100)
 	CheckNoError(t, resp)
 
+	if len(rtokens) != 2 {
+		t.Fatal("should have 2 tokens")
+	}
+	
+	_, resp = Client.GetAllUserAccessTokens(0,100)
+	CheckForbiddenStatus(t, resp)
+	
+	_, resp = AdminClient.GetAllUserAccessTokens(0,100)
+	CheckNoError(t, resp)
+	
+	rtokens, resp = AdminClient.GetAllUserAccessTokens(1,1)
+	CheckNoError(t, resp)
+	
+	if len(rtokens) != 1 {
+		t.Fatal("should have 1 tokens")
+	}
+	
+	rtokens, resp = AdminClient.GetAllUserAccessTokens(0,2)
+	CheckNoError(t, resp)
+	
 	if len(rtokens) != 2 {
 		t.Fatal("should have 2 tokens")
 	}

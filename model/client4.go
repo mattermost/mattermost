@@ -82,6 +82,10 @@ func (c *Client4) GetUserRoute(userId string) string {
 	return fmt.Sprintf(c.GetUsersRoute()+"/%v", userId)
 }
 
+func (c *Client4) GetAllUserAccessTokensRoute() string {
+	return fmt.Sprintf(c.GetUsersRoute()+"/tokens/all")
+}
+
 func (c *Client4) GetUserAccessTokenRoute(tokenId string) string {
 	return fmt.Sprintf(c.GetUsersRoute()+"/tokens/%v", tokenId)
 }
@@ -1035,10 +1039,23 @@ func (c *Client4) CreateUserAccessToken(userId, description string) (*UserAccess
 	}
 }
 
-// GetUserAccessToken will get a user access token's id, description and the user_id
-// of the user it is for. The actual token will not be returned. Must have the
-// 'read_user_access_token' permission and if getting for another user, must have the
-// 'edit_other_users' permission.
+// GetAllUserAccessToken will get a all access token's id, description, is_active 
+// and the user_id in the system. The actual token will not be returned. Must have  
+// the 'manage_system' permission.
+func (c *Client4) GetAllUserAccessTokens(page int, perPage int) ([]*UserAccessToken, *Response) {
+	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)
+	if r, err := c.DoApiGet(c.GetAllUserAccessTokensRoute()+query, ""); err != nil {
+		return nil, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return UserAccessTokenListFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// GetUserAccessToken will get a user access token's id, description, is_active 
+// and the user_id of the user it is for. The actual token will not be returned.
+// Must have the 'read_user_access_token' permission and if getting for another
+// user, must have the 'edit_other_users' permission.
 func (c *Client4) GetUserAccessToken(tokenId string) (*UserAccessToken, *Response) {
 	if r, err := c.DoApiGet(c.GetUserAccessTokenRoute(tokenId), ""); err != nil {
 		return nil, BuildErrorResponse(r, err)
