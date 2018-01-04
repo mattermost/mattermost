@@ -403,7 +403,7 @@ run-client-fullmap: ## Runs the webapp with source code mapping (slower; better 
 
 	cd $(BUILD_WEBAPP_DIR) && $(MAKE) run-fullmap
 
-run: check-prereqs run-server run-client ## Checks prerequisites, Runs the server and webapp.
+run: check-prereqs run-server run-client ## Runs the server and webapp.
 
 run-fullmap: run-server run-client-fullmap ## Same as run but with a full sourcemap for client.
 
