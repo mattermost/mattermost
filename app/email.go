@@ -20,7 +20,7 @@ func (a *App) SendChangeUsernameEmail(oldUsername, newUsername, email, locale, s
 	T := utils.GetUserTranslations(locale)
 
 	subject := T("api.templates.username_change_subject",
-		map[string]interface{}{"SiteName": utils.ClientCfg["SiteName"],
+		map[string]interface{}{"SiteName": a.ClientConfig()["SiteName"],
 			"TeamDisplayName": a.Config().TeamSettings.SiteName})
 
 	bodyPage := a.NewEmailTemplate("email_change_body", locale)
@@ -42,7 +42,7 @@ func (a *App) SendEmailChangeVerifyEmail(newUserEmail, locale, siteURL, token st
 	link := fmt.Sprintf("%s/do_verify_email?token=%s&email=%s", siteURL, token, url.QueryEscape(newUserEmail))
 
 	subject := T("api.templates.email_change_verify_subject",
-		map[string]interface{}{"SiteName": utils.ClientCfg["SiteName"],
+		map[string]interface{}{"SiteName": a.ClientConfig()["SiteName"],
 			"TeamDisplayName": a.Config().TeamSettings.SiteName})
 
 	bodyPage := a.NewEmailTemplate("email_change_verify_body", locale)
@@ -64,7 +64,7 @@ func (a *App) SendEmailChangeEmail(oldEmail, newEmail, locale, siteURL string) *
 	T := utils.GetUserTranslations(locale)
 
 	subject := T("api.templates.email_change_subject",
-		map[string]interface{}{"SiteName": utils.ClientCfg["SiteName"],
+		map[string]interface{}{"SiteName": a.ClientConfig()["SiteName"],
 			"TeamDisplayName": a.Config().TeamSettings.SiteName})
 
 	bodyPage := a.NewEmailTemplate("email_change_body", locale)
@@ -88,7 +88,7 @@ func (a *App) SendVerifyEmail(userEmail, locale, siteURL, token string) *model.A
 	url, _ := url.Parse(siteURL)
 
 	subject := T("api.templates.verify_subject",
-		map[string]interface{}{"SiteName": utils.ClientCfg["SiteName"]})
+		map[string]interface{}{"SiteName": a.ClientConfig()["SiteName"]})
 
 	bodyPage := a.NewEmailTemplate("verify_body", locale)
 	bodyPage.Props["SiteURL"] = siteURL
@@ -108,13 +108,13 @@ func (a *App) SendSignInChangeEmail(email, method, locale, siteURL string) *mode
 	T := utils.GetUserTranslations(locale)
 
 	subject := T("api.templates.signin_change_email.subject",
-		map[string]interface{}{"SiteName": utils.ClientCfg["SiteName"]})
+		map[string]interface{}{"SiteName": a.ClientConfig()["SiteName"]})
 
 	bodyPage := a.NewEmailTemplate("signin_change_body", locale)
 	bodyPage.Props["SiteURL"] = siteURL
 	bodyPage.Props["Title"] = T("api.templates.signin_change_email.body.title")
 	bodyPage.Html["Info"] = utils.TranslateAsHtml(T, "api.templates.signin_change_email.body.info",
-		map[string]interface{}{"SiteName": utils.ClientCfg["SiteName"], "Method": method})
+		map[string]interface{}{"SiteName": a.ClientConfig()["SiteName"], "Method": method})
 
 	if err := a.SendMail(email, subject, bodyPage.Render()); err != nil {
 		return model.NewAppError("SendSignInChangeEmail", "api.user.send_sign_in_change_email_and_forget.error", nil, err.Error(), http.StatusInternalServerError)
@@ -129,7 +129,7 @@ func (a *App) SendWelcomeEmail(userId string, email string, verified bool, local
 	rawUrl, _ := url.Parse(siteURL)
 
 	subject := T("api.templates.welcome_subject",
-		map[string]interface{}{"SiteName": utils.ClientCfg["SiteName"],
+		map[string]interface{}{"SiteName": a.ClientConfig()["SiteName"],
 			"ServerURL": rawUrl.Host})
 
 	bodyPage := a.NewEmailTemplate("welcome_body", locale)
@@ -166,7 +166,7 @@ func (a *App) SendPasswordChangeEmail(email, method, locale, siteURL string) *mo
 	T := utils.GetUserTranslations(locale)
 
 	subject := T("api.templates.password_change_subject",
-		map[string]interface{}{"SiteName": utils.ClientCfg["SiteName"],
+		map[string]interface{}{"SiteName": a.ClientConfig()["SiteName"],
 			"TeamDisplayName": a.Config().TeamSettings.SiteName})
 
 	bodyPage := a.NewEmailTemplate("password_change_body", locale)
@@ -186,12 +186,12 @@ func (a *App) SendUserAccessTokenAddedEmail(email, locale string) *model.AppErro
 	T := utils.GetUserTranslations(locale)
 
 	subject := T("api.templates.user_access_token_subject",
-		map[string]interface{}{"SiteName": utils.ClientCfg["SiteName"]})
+		map[string]interface{}{"SiteName": a.ClientConfig()["SiteName"]})
 
 	bodyPage := a.NewEmailTemplate("password_change_body", locale)
 	bodyPage.Props["Title"] = T("api.templates.user_access_token_body.title")
 	bodyPage.Html["Info"] = utils.TranslateAsHtml(T, "api.templates.user_access_token_body.info",
-		map[string]interface{}{"SiteName": utils.ClientCfg["SiteName"], "SiteURL": utils.GetSiteURL()})
+		map[string]interface{}{"SiteName": a.ClientConfig()["SiteName"], "SiteURL": utils.GetSiteURL()})
 
 	if err := a.SendMail(email, subject, bodyPage.Render()); err != nil {
 		return model.NewAppError("SendUserAccessTokenAddedEmail", "api.user.send_user_access_token.error", nil, err.Error(), http.StatusInternalServerError)
@@ -207,7 +207,7 @@ func (a *App) SendPasswordResetEmail(email string, token *model.Token, locale, s
 	link := fmt.Sprintf("%s/reset_password_complete?token=%s", siteURL, url.QueryEscape(token.Token))
 
 	subject := T("api.templates.reset_subject",
-		map[string]interface{}{"SiteName": utils.ClientCfg["SiteName"]})
+		map[string]interface{}{"SiteName": a.ClientConfig()["SiteName"]})
 
 	bodyPage := a.NewEmailTemplate("reset_body", locale)
 	bodyPage.Props["SiteURL"] = siteURL
@@ -227,7 +227,7 @@ func (a *App) SendMfaChangeEmail(email string, activated bool, locale, siteURL s
 	T := utils.GetUserTranslations(locale)
 
 	subject := T("api.templates.mfa_change_subject",
-		map[string]interface{}{"SiteName": utils.ClientCfg["SiteName"]})
+		map[string]interface{}{"SiteName": a.ClientConfig()["SiteName"]})
 
 	bodyPage := a.NewEmailTemplate("mfa_change_body", locale)
 	bodyPage.Props["SiteURL"] = siteURL
@@ -258,7 +258,7 @@ func (a *App) SendInviteEmails(team *model.Team, senderName string, invites []st
 			subject := utils.T("api.templates.invite_subject",
 				map[string]interface{}{"SenderName": senderName,
 					"TeamDisplayName": team.DisplayName,
-					"SiteName":        utils.ClientCfg["SiteName"]})
+					"SiteName":        a.ClientConfig()["SiteName"]})
 
 			bodyPage := a.NewEmailTemplate("invite_body", model.DEFAULT_LOCALE)
 			bodyPage.Props["SiteURL"] = siteURL
