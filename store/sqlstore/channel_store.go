@@ -1261,7 +1261,8 @@ func (s SqlChannelStore) SearchInTeam(teamId string, term string) store.StoreCha
 	return store.Do(func(result *store.StoreResult) {
 		searchQuery := `
 			SELECT
-			    *
+			    *,
+				AS_RELEVANCE_CLAUSE
 			FROM
 			    Channels
 			WHERE
@@ -1269,7 +1270,7 @@ func (s SqlChannelStore) SearchInTeam(teamId string, term string) store.StoreCha
 				AND Type = 'O'
 				AND DeleteAt = 0
 			    SEARCH_CLAUSE
-			ORDER BY DisplayName
+			ORDER BY relevance DESC
 			LIMIT 100`
 
 		*result = s.performSearch(searchQuery, term, map[string]interface{}{"TeamId": teamId})
@@ -1280,7 +1281,8 @@ func (s SqlChannelStore) SearchMore(userId string, teamId string, term string) s
 	return store.Do(func(result *store.StoreResult) {
 		searchQuery := `
 			SELECT
-			    *
+			    *,
+				AS_RELEVANCE_CLAUSE
 			FROM
 			    Channels
 			WHERE
@@ -1298,7 +1300,7 @@ func (s SqlChannelStore) SearchMore(userId string, teamId string, term string) s
 			        AND UserId = :UserId
 			        AND DeleteAt = 0)
 			    SEARCH_CLAUSE
-			ORDER BY DisplayName
+			ORDER BY relevance DESC
 			LIMIT 100`
 
 		*result = s.performSearch(searchQuery, term, map[string]interface{}{"TeamId": teamId, "UserId": userId})
@@ -1320,20 +1322,56 @@ func (s SqlChannelStore) performSearch(searchQuery string, term string, paramete
 
 	searchType := "Name, DisplayName, Purpose"
 	if term == "" {
+
+		searchQuery = strings.Replace(searchQuery, "*,", "*", 1)
+		searchQuery = strings.Replace(searchQuery, "AS_RELEVANCE_CLAUSE", "", 1)
 		searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", "", 1)
+		searchQuery = strings.Replace(searchQuery, "ORDER BY relevance DESC", "ORDER BY DisplayName", 1)
 	} else if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+		// containerSelect := `
+		// 	SELECT *
+		// 	FROM (
+		// 		INNER_SELECT
+		// 	) s
+		// 	WHERE relevance > 0
+		// 	ORDER BY relevance DESC`
+
+		// remove mysql specific clauses
+		searchQuery = strings.Replace(searchQuery, "*,", "*", 1)
+		searchQuery = strings.Replace(searchQuery, "AS_RELEVANCE_CLAUSE", "", 1)
+		// searchQuery = strings.Replace(searchQuery, "ORDER BY relevance DESC", "", 1)
+
 		postgresColumnNames := convertMySQLFullTextColumnsToPostgres(searchType)
-		searchClause := fmt.Sprintf("AND to_tsvector(%s) @@  to_tsquery(:Terms)", postgresColumnNames)
-		searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", searchClause, 1)
+		// searchClause := fmt.Sprintf("to_tsvector(%s) @@ plainto_tsquery(:Terms)", postgresColumnNames)
+		searchClause := fmt.Sprintf("to_tsvector(%s) @@ plainto_tsquery(:Terms)", postgresColumnNames)
+
+		searchForRankClause := fmt.Sprintf("to_tsvector(%s), plainto_tsquery(:Terms)", postgresColumnNames)
+		searchWithRankClause := fmt.Sprintf("ts_rank_cd(%s, 1)", searchForRankClause)
+
+		mainSearchClause := fmt.Sprintf("AND %s", searchClause)
+
+		searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", mainSearchClause, 1)
+		orderByClause := fmt.Sprintf(`
+			ORDER BY
+				%s DESC
+			`, searchWithRankClause)
+		searchQuery = strings.Replace(searchQuery, "ORDER BY relevance DESC", orderByClause, 1)
+		// searchQuery = strings.Replace(containerSelect, "INNER_SELECT", searchQuery, 1)
 	} else if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
-		searchClause := fmt.Sprintf("AND MATCH (%s) AGAINST (:Terms IN NATURAL LANGUAGE MODE)", searchType)
+		matchClause := fmt.Sprintf("MATCH (%s) AGAINST (:Terms IN BOOLEAN MODE)", searchType)
+		searchClause := fmt.Sprintf("AND %s", matchClause)
+		asRelevanceClause := fmt.Sprintf("%s as relevance", matchClause)
+
+		searchQuery = strings.Replace(searchQuery, "AS_RELEVANCE_CLAUSE", asRelevanceClause, 1)
 		searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", searchClause, 1)
 	}
 
 	parameters["Terms"] = fmt.Sprintf("%s:*", term)
 
 	var channels model.ChannelList
-
+	l4g.Info("----------------")
+	l4g.Info("searchQuery", searchQuery)
+	l4g.Info("----------------")
 	if _, err := s.GetReplica().Select(&channels, searchQuery, parameters); err != nil {
 		result.Err = model.NewAppError("SqlChannelStore.Search", "store.sql_channel.search.app_error", nil, "term="+term+", "+", "+err.Error(), http.StatusInternalServerError)
 	} else {
