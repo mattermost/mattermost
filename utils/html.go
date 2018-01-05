@@ -24,7 +24,18 @@ type HTMLTemplateWatcher struct {
 func NewHTMLTemplateWatcher(directory string) (*HTMLTemplateWatcher, error) {
 	templatesDir, _ := FindDir(directory)
 	l4g.Debug(T("api.api.init.parsing_templates.debug"), templatesDir)
+	return newHTMLTemplateWatcher(templatesDir, func() (*template.Template, error) {
+		return template.ParseGlob(templatesDir + "*.html")
+	})
+}
 
+func NewHTMLTemplateWatcherFile(file string) (*HTMLTemplateWatcher, error) {
+	return newHTMLTemplateWatcher(file, func() (*template.Template, error) {
+		return template.ParseFiles(file)
+	})
+}
+
+func newHTMLTemplateWatcher(watchPath string, loadTemplates func() (*template.Template, error)) (*HTMLTemplateWatcher, error) {
 	ret := &HTMLTemplateWatcher{
 		stop:    make(chan struct{}),
 		stopped: make(chan struct{}),
@@ -35,11 +46,11 @@ func NewHTMLTemplateWatcher(directory string) (*HTMLTemplateWatcher, error) {
 		return nil, err
 	}
 
-	if err = watcher.Add(templatesDir); err != nil {
+	if err = watcher.Add(watchPath); err != nil {
 		return nil, err
 	}
 
-	if htmlTemplates, err := template.ParseGlob(templatesDir + "*.html"); err != nil {
+	if htmlTemplates, err := loadTemplates(); err != nil {
 		return nil, err
 	} else {
 		ret.templates.Store(htmlTemplates)
@@ -56,7 +67,7 @@ func NewHTMLTemplateWatcher(directory string) (*HTMLTemplateWatcher, error) {
 			case event := <-watcher.Events:
 				if event.Op&fsnotify.Write == fsnotify.Write {
 					l4g.Info(T("web.reparse_templates.info"), event.Name)
-					if htmlTemplates, err := template.ParseGlob(templatesDir + "*.html"); err != nil {
+					if htmlTemplates, err := loadTemplates(); err != nil {
 						l4g.Error(T("web.parsing_templates.error"), err)
 					} else {
 						ret.templates.Store(htmlTemplates)
