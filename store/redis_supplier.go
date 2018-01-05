@@ -132,3 +132,23 @@ func (s *RedisSupplier) ReactionPermanentDeleteBatch(ctx context.Context, endTim
 	// Ignoring this. It's probably OK to have the emoji slowly expire from Redis.
 	return s.Next().ReactionPermanentDeleteBatch(ctx, endTime, limit, hints...)
 }
+
+func (s *RedisSupplier) RoleSave(ctx context.Context, role *model.Role, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
+	// TODO: Redis Caching.
+	return s.Next().RoleSave(ctx, role, hints...)
+}
+
+func (s *RedisSupplier) RoleGet(ctx context.Context, roleId string, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
+	// TODO: Redis Caching.
+	return s.Next().RoleGet(ctx, roleId, hints...)
+}
+
+func (s *RedisSupplier) RoleGetByName(ctx context.Context, name string, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
+	// TODO: Redis Caching.
+	return s.Next().RoleGetByName(ctx, name, hints...)
+}
+
+func (s *RedisSupplier) RoleGetByNames(ctx context.Context, roleNames []string, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
+	// TODO: Redis Caching.
+	return s.Next().RoleGetByNames(ctx, roleNames, hints...)
+}

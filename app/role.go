@@ -1,19 +1,51 @@
-// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2018-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 package app
 
-import (
-	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils"
-)
+import "github.com/mattermost/mattermost-server/model"
 
-func (a *App) Role(id string) *model.Role {
-	return a.roles[id]
+func (a *App) GetRole(id string) (*model.Role, *model.AppError) {
+	if result := <-a.Srv.Store.Role().Get(id); result.Err != nil {
+		return nil, result.Err
+	} else {
+		return result.Data.(*model.Role), nil
+	}
 }
 
-// Updates the roles based on the app config and the global license check. You may need to invoke
-// this when license changes are made.
-func (a *App) SetDefaultRolesBasedOnConfig() {
-	a.roles = utils.DefaultRolesBasedOnConfig(a.Config())
+func (a *App) GetRoleByName(name string) (*model.Role, *model.AppError) {
+	if result := <-a.Srv.Store.Role().GetByName(name); result.Err != nil {
+		return nil, result.Err
+	} else {
+		return result.Data.(*model.Role), nil
+	}
+}
+
+func (a *App) GetRolesByNames(names []string) ([]*model.Role, *model.AppError) {
+	if result := <-a.Srv.Store.Role().GetByNames(names); result.Err != nil {
+		return nil, result.Err
+	} else {
+		return result.Data.([]*model.Role), nil
+	}
+}
+
+func (a *App) PatchRole(role *model.Role, patch *model.RolePatch) (*model.Role, *model.AppError) {
+	role.Patch(patch)
+	role, err := a.UpdateRole(role)
+	if err != nil {
+		return nil, err
+	}
+
+	return role, err
+}
+
+func (a *App) UpdateRole(role *model.Role) (*model.Role, *model.AppError) {
+	if result := <-a.Srv.Store.Role().Save(role); result.Err != nil {
+		return nil, result.Err
+	} else {
+		// TODO: Is any cache invalidation required here?
+		// TODO: Should a Web Socket event be sent here?
+
+		return role, nil
+	}
 }
