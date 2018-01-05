@@ -2450,6 +2450,23 @@ func TestGetUserAccessToken(t *testing.T) {
 	if len(rtokens) != 2 {
 		t.Fatal("should have 2 tokens")
 	}
+	
+	_, resp = Client.GetUserAccessTokens(0,100)
+	CheckForbiddenStatus(t, resp)
+	
+	rtokens, resp = AdminClient.GetUserAccessTokens(1,1)
+	CheckNoError(t, resp)
+	
+	if len(rtokens) != 1 {
+		t.Fatal("should have 1 token")
+	}
+	
+	rtokens, resp = AdminClient.GetUserAccessTokens(0,2)
+	CheckNoError(t, resp)
+	
+	if len(rtokens) != 2 {
+		t.Fatal("should have 2 tokens")
+	}
 }
 
 func TestRevokeUserAccessToken(t *testing.T) {
