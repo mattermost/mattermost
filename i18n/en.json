@@ -6783,6 +6783,10 @@
     "translation": "We couldn't get the personal access token by token"
   },
   {
+    "id": "store.sql_user_access_token.get_all.app_error",
+    "translation": "We couldn't get all personal access tokens"
+  },
+  {
     "id": "store.sql_user_access_token.get_by_user.app_error",
     "translation": "We couldn't get the personal access tokens by user"
   },
