@@ -27,7 +27,7 @@ func execArgs(t *testing.T, args []string) []string {
 		baseParts[0] = fmt.Sprintf("%v-%v-%v", baseParts[0], t.Name(), coverprofileCounters[t.Name()])
 		ret = append(ret, "-test.coverprofile", filepath.Join(dir, strings.Join(baseParts, ".")))
 	}
-	return append(append(ret, "--"), args...)
+	return append(append(ret, "--", "--disableconfigwatch"), args...)
 }
 
 func checkCommand(t *testing.T, args ...string) string {
