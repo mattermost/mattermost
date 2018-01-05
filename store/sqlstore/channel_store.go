@@ -1343,7 +1343,7 @@ func (s SqlChannelStore) performSearch(searchQuery string, term string, paramete
 	} else if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
 		matchClause := fmt.Sprintf("MATCH (%s) AGAINST (:Terms IN BOOLEAN MODE)", searchType)
 		searchClause := fmt.Sprintf("AND %s", matchClause)
-		asRelevanceClause := fmt.Sprintf("%s as relevance", matchClause)
+		asRelevanceClause := fmt.Sprintf("%s AS relevance", matchClause)
 
 		searchQuery = strings.Replace(searchQuery, "AS_RELEVANCE_CLAUSE", asRelevanceClause, 1)
 		searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", searchClause, 1)
