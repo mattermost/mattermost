@@ -2451,17 +2451,17 @@ func TestGetUserAccessToken(t *testing.T) {
 		t.Fatal("should have 2 tokens")
 	}
 	
-	_, resp = Client.GetAllUserAccessTokens(0,100)
+	_, resp = Client.GetUserAccessTokens(0,100)
 	CheckForbiddenStatus(t, resp)
 	
-	rtokens, resp = AdminClient.GetAllUserAccessTokens(1,1)
+	rtokens, resp = AdminClient.GetUserAccessTokens(1,1)
 	CheckNoError(t, resp)
 	
 	if len(rtokens) != 1 {
 		t.Fatal("should have 1 tokens")
 	}
 	
-	rtokens, resp = AdminClient.GetAllUserAccessTokens(0,2)
+	rtokens, resp = AdminClient.GetUserAccessTokens(0,2)
 	CheckNoError(t, resp)
 	
 	if len(rtokens) != 2 {

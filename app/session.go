@@ -356,7 +356,7 @@ func (a *App) EnableUserAccessToken(token *model.UserAccessToken) *model.AppErro
 	return nil
 }
 
-func (a *App) GetAllUserAccessTokens(page, perPage int) ([]*model.UserAccessToken, *model.AppError) {
+func (a *App) GetUserAccessTokens(page, perPage int) ([]*model.UserAccessToken, *model.AppError) {
 	if result := <-a.Srv.Store.UserAccessToken().GetAll(page*perPage, perPage); result.Err != nil {
 		return nil, result.Err
 	} else {
