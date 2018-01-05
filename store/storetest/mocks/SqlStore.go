@@ -538,6 +538,22 @@ func (_m *SqlStore) RenameColumnIfExists(tableName string, oldColumnName string,
 	return r0
 }
 
+// Role provides a mock function with given fields:
+func (_m *SqlStore) Role() store.RoleStore {
+	ret := _m.Called()
+
+	var r0 store.RoleStore
+	if rf, ok := ret.Get(0).(func() store.RoleStore); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.RoleStore)
+		}
+	}
+
+	return r0
+}
+
 // Session provides a mock function with given fields:
 func (_m *SqlStore) Session() store.SessionStore {
 	ret := _m.Called()
