@@ -83,7 +83,7 @@
         "EnableConfirmNotificationsToChannel": true,
         "TeammateNameDisplay": "username",
         "ExperimentalTownSquareIsReadOnly": false,
-        "DefaultTeamName": ""
+        "ExperimentalPrimaryTeam": ""
     },
     "ClientRequirements": {
         "AndroidLatestVersion": "",
