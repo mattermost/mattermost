@@ -81,6 +81,8 @@ func runServer(configFileLocation string) {
 		a.LoadLicense()
 	}
 
+	a.DoAdvancedPermissionsMigration()
+
 	a.InitPlugins(*a.Config().PluginSettings.Directory, *a.Config().PluginSettings.ClientDirectory, nil)
 	utils.AddConfigListener(func(prevCfg, cfg *model.Config) {
 		if *cfg.PluginSettings.Enable {

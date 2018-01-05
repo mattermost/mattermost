@@ -337,21 +337,3 @@ func UpgradeDatabaseToVersion46(sqlStore SqlStore) {
 		saveSchemaVersion(sqlStore, VERSION_4_6_0)
 	}
 }
-
-// This function migrates the default built in roles from code/config to the database.
-func MigrateRolesToDatabase(sqlStore SqlStore) {
-	l4g.Info("Migrating roles to database.")
-	roles := model.MakeDefaultRoles()
-
-	// FIXME: Don't use global state for config here.
-	roles = utils.SetRolePermissionsFromConfig(roles, utils.Cfg)
-
-	for _, role := range roles {
-		dbRole := FromRole(role)
-		if err := sqlStore.GetMaster().Insert(dbRole); err != nil {
-			// FIXME: What to do here in case of error?
-			l4g.Critical("Failed to migrate role to database.")
-			l4g.Critical(err)
-		}
-	}
-}
