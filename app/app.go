@@ -4,6 +4,9 @@
 package app
 
 import (
+	"crypto/md5"
+	"encoding/json"
+	"fmt"
 	"html/template"
 	"net"
 	"net/http"
@@ -61,9 +64,14 @@ type App struct {
 	sessionCache        *utils.Cache
 	roles               map[string]*model.Role
 	configListenerId    string
+	licenseListenerId   string
 
 	pluginCommands     []*PluginCommand
 	pluginCommandsLock sync.RWMutex
+
+	clientConfig     map[string]string
+	clientConfigHash string
+	diagnosticId     string
 }
 
 var appCount = 0
@@ -83,6 +91,7 @@ func New(options ...Option) *App {
 		},
 		sessionCache: utils.NewLru(model.SESSION_CACHE_SIZE),
 		configFile:   "config.json",
+		clientConfig: make(map[string]string),
 	}
 
 	for _, option := range options {
@@ -95,9 +104,11 @@ func New(options ...Option) *App {
 	utils.LoadGlobalConfig(app.configFile)
 	utils.InitTranslations(utils.Cfg.LocalizationSettings)
 
-	app.configListenerId = utils.AddConfigListener(func(_, cfg *model.Config) {
-		app.SetDefaultRolesBasedOnConfig()
+	app.configListenerId = utils.AddConfigListener(func(_, _ *model.Config) {
+		app.configOrLicenseListener()
 	})
+	app.licenseListenerId = utils.AddLicenseListener(app.configOrLicenseListener)
+	app.regenerateClientConfig()
 	app.SetDefaultRolesBasedOnConfig()
 
 	l4g.Info(utils.T("api.server.new_server.init.info"))
@@ -133,6 +144,11 @@ func New(options ...Option) *App {
 	return app
 }
 
+func (a *App) configOrLicenseListener() {
+	a.regenerateClientConfig()
+	a.SetDefaultRolesBasedOnConfig()
+}
+
 func (a *App) Shutdown() {
 	appCount--
 
@@ -152,6 +168,7 @@ func (a *App) Shutdown() {
 	}
 
 	utils.RemoveConfigListener(a.configListenerId)
+	utils.RemoveLicenseListener(a.licenseListenerId)
 	l4g.Info(utils.T("api.server.stop_server.stopped.info"))
 }
 
@@ -347,6 +364,46 @@ func (a *App) ReloadConfig() {
 
 func (a *App) ConfigFileName() string {
 	return utils.CfgFileName
+}
+
+func (a *App) ClientConfig() map[string]string {
+	return a.clientConfig
+}
+
+func (a *App) ClientConfigHash() string {
+	return a.clientConfigHash
+}
+
+func (a *App) regenerateClientConfig() {
+	a.clientConfig = utils.GenerateClientConfig(a.Config(), a.DiagnosticId())
+	clientConfigJSON, _ := json.Marshal(a.clientConfig)
+	a.clientConfigHash = fmt.Sprintf("%x", md5.Sum(clientConfigJSON))
+}
+
+func (a *App) DiagnosticId() string {
+	return a.diagnosticId
+}
+
+func (a *App) SetDiagnosticId(id string) {
+	a.diagnosticId = id
+}
+
+func (a *App) EnsureDiagnosticId() {
+	if a.diagnosticId != "" {
+		return
+	}
+	if result := <-a.Srv.Store.System().Get(); result.Err == nil {
+		props := result.Data.(model.StringMap)
+
+		id := props[model.SYSTEM_DIAGNOSTIC_ID]
+		if len(id) == 0 {
+			id = model.NewId()
+			systemId := &model.System{Name: model.SYSTEM_DIAGNOSTIC_ID, Value: id}
+			<-a.Srv.Store.System().Save(systemId)
+		}
+
+		a.diagnosticId = id
+	}
 }
 
 // Go creates a goroutine, but maintains a record of it to ensure that execution completes before

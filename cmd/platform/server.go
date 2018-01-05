@@ -117,8 +117,8 @@ func runServer(configFileLocation string) {
 		manualtesting.Init(api3)
 	}
 
-	setDiagnosticId(a)
-	utils.RegenerateClientConfig()
+	a.EnsureDiagnosticId()
+
 	go runSecurityJob(a)
 	go runDiagnosticsJob(a)
 
@@ -202,21 +202,6 @@ func runCommandWebhookCleanupJob(a *app.App) {
 func resetStatuses(a *app.App) {
 	if result := <-a.Srv.Store.Status().ResetAll(); result.Err != nil {
 		l4g.Error(utils.T("mattermost.reset_status.error"), result.Err.Error())
-	}
-}
-
-func setDiagnosticId(a *app.App) {
-	if result := <-a.Srv.Store.System().Get(); result.Err == nil {
-		props := result.Data.(model.StringMap)
-
-		id := props[model.SYSTEM_DIAGNOSTIC_ID]
-		if len(id) == 0 {
-			id = model.NewId()
-			systemId := &model.System{Name: model.SYSTEM_DIAGNOSTIC_ID, Value: id}
-			<-a.Srv.Store.System().Save(systemId)
-		}
-
-		utils.CfgDiagnosticId = id
 	}
 }
 

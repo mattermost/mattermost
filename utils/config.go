@@ -37,12 +37,9 @@ const (
 var cfgMutex = &sync.Mutex{}
 var watcher *fsnotify.Watcher
 var Cfg *model.Config = &model.Config{}
-var CfgDiagnosticId = ""
 var CfgHash = ""
-var ClientCfgHash = ""
 var CfgFileName string = ""
 var CfgDisableConfigWatch = false
-var ClientCfg map[string]string = map[string]string{}
 var originalDisableDebugLvl l4g.Level = l4g.DEBUG
 var siteURL = ""
 
@@ -416,9 +413,6 @@ func LoadGlobalConfig(fileName string) *model.Config {
 
 	Cfg = config
 	CfgHash = fmt.Sprintf("%x", md5.Sum([]byte(Cfg.ToJson())))
-	ClientCfg = getClientConfig(Cfg)
-	clientCfgJson, _ := json.Marshal(ClientCfg)
-	ClientCfgHash = fmt.Sprintf("%x", md5.Sum(clientCfgJson))
 
 	SetSiteURL(*Cfg.ServiceSettings.SiteURL)
 
@@ -433,11 +427,7 @@ func InvokeGlobalConfigListeners(old, current *model.Config) {
 	}
 }
 
-func RegenerateClientConfig() {
-	ClientCfg = getClientConfig(Cfg)
-}
-
-func getClientConfig(c *model.Config) map[string]string {
+func GenerateClientConfig(c *model.Config, diagnosticId string) map[string]string {
 	props := make(map[string]string)
 
 	props["Version"] = model.CurrentVersion
@@ -544,7 +534,7 @@ func getClientConfig(c *model.Config) map[string]string {
 	props["EnableUserTypingMessages"] = strconv.FormatBool(*c.ServiceSettings.EnableUserTypingMessages)
 	props["EnableChannelViewedMessages"] = strconv.FormatBool(*c.ServiceSettings.EnableChannelViewedMessages)
 
-	props["DiagnosticId"] = CfgDiagnosticId
+	props["DiagnosticId"] = diagnosticId
 	props["DiagnosticsEnabled"] = strconv.FormatBool(*c.LogSettings.EnableDiagnostics)
 
 	props["PluginsEnabled"] = strconv.FormatBool(*c.PluginSettings.Enable)
