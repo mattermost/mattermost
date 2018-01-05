@@ -1308,22 +1308,72 @@ func (s SqlChannelStore) SearchMore(userId string, teamId string, term string) s
 func (s SqlChannelStore) performSearch(searchQuery string, term string, parameters map[string]interface{}) store.StoreResult {
 	result := store.StoreResult{}
 
+	// Copy the terms as we will need to prepare them differently for each search type.
+	likeTerm := term
+	fulltextTerm := term
+
+	searchColumns := "Name, DisplayName"
+
 	// These chars must be removed from the like query.
-	for _, c := range ignoreUserSearchChar {
-		term = strings.Replace(term, c, "", -1)
+	for _, c := range ignoreLikeSearchChar {
+		likeTerm = strings.Replace(likeTerm, c, "", -1)
 	}
 
 	// These chars must be escaped in the like query.
-	for _, c := range escapeUserSearchChar {
-		term = strings.Replace(term, c, "*"+c, -1)
+	for _, c := range escapeLikeSearchChar {
+		likeTerm = strings.Replace(likeTerm, c, "*"+c, -1)
 	}
 
-	if term == "" {
+	// These chars must be treated as spaces in the fulltext query.
+	for _, c := range spaceFulltextSearchChar {
+		fulltextTerm = strings.Replace(fulltextTerm, c, " ", -1)
+	}
+
+	if likeTerm == "" {
+		// If the likeTerm is empty after preparing, then don't bother searching.
 		searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", "", 1)
 	} else {
-		isPostgreSQL := s.DriverName() == model.DATABASE_DRIVER_POSTGRES
-		searchQuery = generateSearchQuery(searchQuery, []string{term}, []string{"Name", "DisplayName"}, parameters, isPostgreSQL)
+		// Prepare the LIKE portion of the query.
+		var searchFields []string
+		for _, field := range strings.Split(searchColumns, ", ") {
+			if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+				searchFields = append(searchFields, fmt.Sprintf("lower(%s) LIKE lower(%s) escape '*'", field, ":LikeTerm"))
+			} else {
+				searchFields = append(searchFields, fmt.Sprintf("%s LIKE %s escape '*'", field, ":LikeTerm"))
+			}
+		}
+		likeSearchClause := fmt.Sprintf("(%s)", strings.Join(searchFields, " OR "))
+		parameters["LikeTerm"] = fmt.Sprintf("%s%%", likeTerm)
+
+		// Prepare the FULLTEXT portion of the query.
+		if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+			splitTerm := strings.Fields(fulltextTerm)
+			for i, t := range strings.Fields(fulltextTerm) {
+				if i == len(splitTerm)-1 {
+					splitTerm[i] = t + ":*"
+				} else {
+					splitTerm[i] = t + ":* &"
+				}
+			}
+
+			fulltextTerm = strings.Join(splitTerm, " ")
+
+			fulltextSearchClause := fmt.Sprintf("((%s) @@ to_tsquery(:FulltextTerm))", convertMySQLFullTextColumnsToPostgres(searchColumns))
+			searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", "AND ("+likeSearchClause+" OR "+fulltextSearchClause+")", 1)
+		} else if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
+			splitTerm := strings.Fields(fulltextTerm)
+			for i, t := range strings.Fields(fulltextTerm) {
+				splitTerm[i] = "+" + t + "*"
+			}
+
+			fulltextTerm = strings.Join(splitTerm, " ")
+
+			fulltextSearchClause := fmt.Sprintf("MATCH(%s) AGAINST (:FulltextTerm IN BOOLEAN MODE)", searchColumns)
+			searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", fmt.Sprintf("AND (%s OR %s)", likeSearchClause, fulltextSearchClause), 1)
+		}
 	}
+
+	parameters["FulltextTerm"] = fulltextTerm
 
 	var channels model.ChannelList
 
