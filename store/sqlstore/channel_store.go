@@ -93,7 +93,7 @@ func (s SqlChannelStore) CreateIndexesIfNotExists() {
 	s.CreateIndexIfNotExists("idx_channelmembers_channel_id", "ChannelMembers", "ChannelId")
 	s.CreateIndexIfNotExists("idx_channelmembers_user_id", "ChannelMembers", "UserId")
 
-	s.CreateFullTextIndexIfNotExists("idx_channels_txt", "Channels", "Name, DisplayName")
+	s.CreateFullTextIndexIfNotExists("idx_channels_txt", "Channels", "Name, DisplayName, Purpose")
 }
 
 func (s SqlChannelStore) Save(channel *model.Channel, maxChannelsPerTeam int64) store.StoreChannel {
@@ -1318,7 +1318,7 @@ func (s SqlChannelStore) performSearch(searchQuery string, term string, paramete
 		term = strings.Replace(term, c, "*"+c, -1)
 	}
 
-	searchType := "Name, DisplayName"
+	searchType := "Name, DisplayName, Purpose"
 	if term == "" {
 		searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", "", 1)
 	} else if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
@@ -1326,7 +1326,7 @@ func (s SqlChannelStore) performSearch(searchQuery string, term string, paramete
 		searchClause := fmt.Sprintf("AND to_tsvector(%s) @@  to_tsquery(:Terms)", postgresColumnNames)
 		searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", searchClause, 1)
 	} else if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
-		searchClause := fmt.Sprintf("AND MATCH (%s) AGAINST (:Terms IN BOOLEAN MODE)", searchType)
+		searchClause := fmt.Sprintf("AND MATCH (%s) AGAINST (:Terms IN NATURAL LANGUAGE MODE)", searchType)
 		searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", searchClause, 1)
 	}
 
