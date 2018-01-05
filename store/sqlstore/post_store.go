@@ -98,8 +98,10 @@ func (s SqlPostStore) Save(post *model.Post) store.StoreChannel {
 		} else {
 			time := post.UpdateAt
 
-			if post.Type != model.POST_JOIN_LEAVE && post.Type != model.POST_JOIN_CHANNEL && post.Type != model.POST_LEAVE_CHANNEL &&
-				post.Type != model.POST_ADD_REMOVE && post.Type != model.POST_ADD_TO_CHANNEL && post.Type != model.POST_REMOVE_FROM_CHANNEL {
+			if post.Type != model.POST_JOIN_LEAVE && post.Type != model.POST_ADD_REMOVE &&
+				post.Type != model.POST_JOIN_CHANNEL && post.Type != model.POST_LEAVE_CHANNEL &&
+				post.Type != model.POST_JOIN_TEAM && post.Type != model.POST_LEAVE_TEAM &&
+				post.Type != model.POST_ADD_TO_CHANNEL && post.Type != model.POST_REMOVE_FROM_CHANNEL {
 				s.GetMaster().Exec("UPDATE Channels SET LastPostAt = :LastPostAt, TotalMsgCount = TotalMsgCount + 1 WHERE Id = :ChannelId", map[string]interface{}{"LastPostAt": time, "ChannelId": post.ChannelId})
 			} else {
 				// don't update TotalMsgCount for unimportant messages so that the channel isn't marked as unread
