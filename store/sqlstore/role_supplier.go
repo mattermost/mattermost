@@ -60,12 +60,14 @@ func (s *SqlSupplier) RoleSave(ctx context.Context, role *model.Role, hints ...s
 	dbRole := FromRole(role)
 	if len(dbRole.Id) == 0 {
 		dbRole.Id = model.NewId()
-		if _, err := s.GetMaster().Update(dbRole); err != nil {
-			result.Err = model.NewAppError("SqlRoleStore.Save", "store.sql_role.save.update.app_error", nil, err.Error(), http.StatusInternalServerError)
-		}
-	} else {
 		if err := s.GetMaster().Insert(dbRole); err != nil {
 			result.Err = model.NewAppError("SqlRoleStore.Save", "store.sql_role.save.insert.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+	} else {
+		if rowsChanged, err := s.GetMaster().Update(dbRole); err != nil {
+			result.Err = model.NewAppError("SqlRoleStore.Save", "store.sql_role.save.update.app_error", nil, err.Error(), http.StatusInternalServerError)
+		} else if rowsChanged != 1 {
+			result.Err = model.NewAppError("SqlRoleStore.Save", "store.sql_role.save.update.app_error", nil, "no record to update", http.StatusInternalServerError)
 		}
 	}
 
