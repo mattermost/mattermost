@@ -74,6 +74,8 @@ func runServer(configFileLocation string, disableConfigWatch bool) {
 		a.LoadLicense()
 	}
 
+	a.DoAdvancedPermissionsMigration()
+
 	a.InitPlugins(*a.Config().PluginSettings.Directory, *a.Config().PluginSettings.ClientDirectory, nil)
 	a.AddConfigListener(func(prevCfg, cfg *model.Config) {
 		if *cfg.PluginSettings.Enable {
