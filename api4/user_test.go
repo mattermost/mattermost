@@ -2458,7 +2458,7 @@ func TestGetUserAccessToken(t *testing.T) {
 	CheckNoError(t, resp)
 	
 	if len(rtokens) != 1 {
-		t.Fatal("should have 1 tokens")
+		t.Fatal("should have 1 token")
 	}
 	
 	rtokens, resp = AdminClient.GetUserAccessTokens(0,2)
