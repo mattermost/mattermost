@@ -106,6 +106,8 @@ func init() {
 	channelCreateCmd.Flags().String("purpose", "", "Channel purpose")
 	channelCreateCmd.Flags().Bool("private", false, "Create a private channel.")
 
+	moveChannelsCmd.Flags().String("username", "", "Required. Username who is moving the channel.")
+
 	deleteChannelsCmd.Flags().Bool("confirm", false, "Confirm you really want to delete the channels.")
 
 	modifyChannelCmd.Flags().Bool("private", false, "Convert the channel to a private channel")
@@ -319,6 +321,12 @@ func moveChannelsCmdF(cmd *cobra.Command, args []string) error {
 		return errors.New("Unable to find destination team '" + args[0] + "'")
 	}
 
+	username, erru := cmd.Flags().GetString("username")
+	if erru != nil || username == "" {
+		return errors.New("Username is required")
+	}
+	user := getUserFromUserArg(a, username)
+
 	channels := getChannelsFromChannelArgs(a, args[1:])
 	for i, channel := range channels {
 		if channel == nil {
@@ -326,7 +334,7 @@ func moveChannelsCmdF(cmd *cobra.Command, args []string) error {
 			continue
 		}
 		originTeamID := channel.TeamId
-		if err := moveChannel(a, team, channel); err != nil {
+		if err := moveChannel(a, team, channel, user); err != nil {
 			CommandPrintErrorln("Unable to move channel '" + channel.Name + "' error: " + err.Error())
 		} else {
 			CommandPrettyPrintln("Moved channel '" + channel.Name + "' to " + team.Name + "(" + team.Id + ") from " + originTeamID + ".")
@@ -336,10 +344,10 @@ func moveChannelsCmdF(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func moveChannel(a *app.App, team *model.Team, channel *model.Channel) *model.AppError {
+func moveChannel(a *app.App, team *model.Team, channel *model.Channel, user *model.User) *model.AppError {
 	oldTeamId := channel.TeamId
 
-	if err := a.MoveChannel(team, channel); err != nil {
+	if err := a.MoveChannel(team, channel, user); err != nil {
 		return err
 	}
 
