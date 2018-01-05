@@ -1829,15 +1829,19 @@ func testChannelStoreSearchMore(t *testing.T, ss store.Store) {
 		}
 	}
 
-	if result := <-ss.Channel().SearchMore(m1.UserId, o1.TeamId, "off-topics"); result.Err != nil {
-		t.Fatal(result.Err)
-	} else {
-		channels := result.Data.(*model.ChannelList)
-		if len(*channels) != 0 {
-			t.Logf("%v\n", *channels)
-			t.Fatal("should be empty")
+	/*
+		// Disabling this check as it will fail on PostgreSQL as we have "liberalised" channel matching to deal with
+		// Full-Text Stemming Limitations.
+		if result := <-ss.Channel().SearchMore(m1.UserId, o1.TeamId, "off-topics"); result.Err != nil {
+			t.Fatal(result.Err)
+		} else {
+			channels := result.Data.(*model.ChannelList)
+			if len(*channels) != 0 {
+				t.Logf("%v\n", *channels)
+				t.Fatal("should be empty")
+			}
 		}
-	}
+	*/
 }
 
 func testChannelStoreSearchInTeam(t *testing.T, ss store.Store) {
@@ -1922,6 +1926,20 @@ func testChannelStoreSearchInTeam(t *testing.T, ss store.Store) {
 	o9.Type = model.CHANNEL_OPEN
 	store.Must(ss.Channel().Save(&o9, -1))
 
+	o10 := model.Channel{}
+	o10.TeamId = o1.TeamId
+	o10.DisplayName = "The"
+	o10.Name = "the"
+	o10.Type = model.CHANNEL_OPEN
+	store.Must(ss.Channel().Save(&o10, -1))
+
+	o11 := model.Channel{}
+	o11.TeamId = o1.TeamId
+	o11.DisplayName = "Native Mobile Apps"
+	o11.Name = "native-mobile-apps"
+	o11.Type = model.CHANNEL_OPEN
+	store.Must(ss.Channel().Save(&o11, -1))
+
 	if result := <-ss.Channel().SearchInTeam(o1.TeamId, "ChannelA"); result.Err != nil {
 		t.Fatal(result.Err)
 	} else {
@@ -1979,14 +1997,19 @@ func testChannelStoreSearchInTeam(t *testing.T, ss store.Store) {
 		}
 	}
 
-	if result := <-ss.Channel().SearchInTeam(o1.TeamId, "off-topics"); result.Err != nil {
-		t.Fatal(result.Err)
-	} else {
-		channels := result.Data.(*model.ChannelList)
-		if len(*channels) != 0 {
-			t.Fatal("should be empty")
+	/*
+		// Disabling this check as it will fail on PostgreSQL as we have "liberalised" channel matching to deal with
+		// Full-Text Stemming Limitations.
+		if result := <-ss.Channel().SearchMore(m1.
+		if result := <-ss.Channel().SearchInTeam(o1.TeamId, "off-topics"); result.Err != nil {
+			t.Fatal(result.Err)
+		} else {
+			channels := result.Data.(*model.ChannelList)
+			if len(*channels) != 0 {
+				t.Fatal("should be empty")
+			}
 		}
-	}
+	*/
 
 	if result := <-ss.Channel().SearchInTeam(o1.TeamId, "town square"); result.Err != nil {
 		t.Fatal(result.Err)
@@ -1997,6 +2020,34 @@ func testChannelStoreSearchInTeam(t *testing.T, ss store.Store) {
 		}
 
 		if (*channels)[0].Name != o9.Name {
+			t.Fatal("wrong channel returned")
+		}
+	}
+
+	if result := <-ss.Channel().SearchInTeam(o1.TeamId, "the"); result.Err != nil {
+		t.Fatal(result.Err)
+	} else {
+		channels := result.Data.(*model.ChannelList)
+		t.Log(channels.ToJson())
+		if len(*channels) != 1 {
+			t.Fatal("should return 1 channel")
+		}
+
+		if (*channels)[0].Name != o10.Name {
+			t.Fatal("wrong channel returned")
+		}
+	}
+
+	if result := <-ss.Channel().SearchInTeam(o1.TeamId, "Mobile"); result.Err != nil {
+		t.Fatal(result.Err)
+	} else {
+		channels := result.Data.(*model.ChannelList)
+		t.Log(channels.ToJson())
+		if len(*channels) != 1 {
+			t.Fatal("should return 1 channel")
+		}
+
+		if (*channels)[0].Name != o11.Name {
 			t.Fatal("wrong channel returned")
 		}
 	}
