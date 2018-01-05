@@ -15,7 +15,6 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils"
 )
 
 func newTestServer() (chan string, *httptest.Server) {
@@ -68,18 +67,15 @@ func TestDiagnostics(t *testing.T) {
 	data, server := newTestServer()
 	defer server.Close()
 
-	oldId := utils.CfgDiagnosticId
-	utils.CfgDiagnosticId = "i am not real"
-	defer func() {
-		utils.CfgDiagnosticId = oldId
-	}()
-	initDiagnostics(server.URL)
+	diagnosticId := "i am not real"
+	th.App.SetDiagnosticId(diagnosticId)
+	th.App.initDiagnostics(server.URL)
 
 	// Should send a client identify message
 	select {
 	case identifyMessage := <-data:
 		t.Log("Got idmessage:\n" + identifyMessage)
-		if !strings.Contains(identifyMessage, utils.CfgDiagnosticId) {
+		if !strings.Contains(identifyMessage, diagnosticId) {
 			t.Fail()
 		}
 	case <-time.After(time.Second * 1):
@@ -88,7 +84,7 @@ func TestDiagnostics(t *testing.T) {
 
 	t.Run("Send", func(t *testing.T) {
 		const TEST_VALUE = "stuff548959847"
-		SendDiagnostic("Testing Diagnostic", map[string]interface{}{
+		th.App.SendDiagnostic("Testing Diagnostic", map[string]interface{}{
 			"hey": TEST_VALUE,
 		})
 		select {

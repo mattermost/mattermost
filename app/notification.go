@@ -693,7 +693,7 @@ func (a *App) ClearPushNotification(userId string, channelId string) {
 }
 
 func (a *App) sendToPushProxy(msg model.PushNotification, session *model.Session) {
-	msg.ServerId = utils.CfgDiagnosticId
+	msg.ServerId = a.DiagnosticId()
 
 	request, _ := http.NewRequest("POST", *a.Config().EmailSettings.PushNotificationServer+model.API_URL_SUFFIX_V1+"/send_push", strings.NewReader(msg.ToJson()))
 

@@ -299,7 +299,7 @@ func TestGetClientConfig(t *testing.T) {
 	TranslationsPreInit()
 	LoadGlobalConfig("config.json")
 
-	configMap := getClientConfig(Cfg)
+	configMap := GenerateClientConfig(Cfg, "")
 	if configMap["EmailNotificationContentsType"] != *Cfg.EmailSettings.EmailNotificationContentsType {
 		t.Fatal("EmailSettings.EmailNotificationContentsType not exposed to client config")
 	}
