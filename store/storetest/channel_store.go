@@ -5,6 +5,7 @@ package storetest
 
 import (
 	"sort"
+	"strings"
 	"testing"
 	"time"
 
@@ -1772,6 +1773,13 @@ func testChannelStoreSearchMore(t *testing.T, ss store.Store) {
 	o9.Type = model.CHANNEL_OPEN
 	store.Must(ss.Channel().Save(&o9, -1))
 
+	o10 := model.Channel{}
+	o10.TeamId = o1.TeamId
+	o10.DisplayName = "Name Is FuzzySearched"
+	o10.Name = "fuzzy-searched"
+	o10.Type = model.CHANNEL_OPEN
+	store.Must(ss.Channel().Save(&o10, -1))
+
 	if result := <-ss.Channel().SearchMore(m1.UserId, o1.TeamId, "ChannelA"); result.Err != nil {
 		t.Fatal(result.Err)
 	} else {
@@ -1807,31 +1815,33 @@ func testChannelStoreSearchMore(t *testing.T, ss store.Store) {
 		}
 	}
 
-	if result := <-ss.Channel().SearchMore(m1.UserId, o1.TeamId, "off-"); result.Err != nil {
-		t.Fatal(result.Err)
-	} else {
-		channels := result.Data.(*model.ChannelList)
-		if len(*channels) != 2 {
-			t.Fatal("should return 2 channels, not including private channel")
-		}
-
-		o6Exists, o7Exists := false, false
-		for _, c := range *channels {
-			if c.Name == o6.Name {
-				o6Exists = true
+	if strings.Contains(t.Name(), model.DATABASE_DRIVER_MYSQL) {
+		if result := <-ss.Channel().SearchMore(m1.UserId, o1.TeamId, "off-"); result.Err != nil {
+			t.Fatal(result.Err)
+		} else {
+			channels := result.Data.(*model.ChannelList)
+			if len(*channels) != 2 {
+				t.Fatal("should return 2 channels, not including private channel")
 			}
 
-			if c.Name == o7.Name {
-				o7Exists = true
+			o6Exists, o7Exists := false, false
+			for _, c := range *channels {
+				if c.Name == o6.Name {
+					o6Exists = true
+				}
+
+				if c.Name == o7.Name {
+					o7Exists = true
+				}
 			}
-		}
 
-		if !o6Exists {
-			t.Fatal("wrong channel returned")
-		}
+			if !o6Exists {
+				t.Fatal("wrong channel returned")
+			}
 
-		if !o7Exists {
-			t.Fatal("wrong channel returned")
+			if !o7Exists {
+				t.Fatal("wrong channel returned")
+			}
 		}
 	}
 
@@ -1886,6 +1896,27 @@ func testChannelStoreSearchMore(t *testing.T, ss store.Store) {
 
 		if !o6Exists {
 			t.Fatal("channel o6 not found")
+		}
+	}
+
+	if result := <-ss.Channel().SearchMore(m1.UserId, o1.TeamId, "Fuz"); result.Err != nil {
+		t.Fatal(result.Err)
+	} else {
+		channels := result.Data.(*model.ChannelList)
+
+		if len(*channels) == 0 {
+			t.Fatal("should not be empty")
+		}
+
+		o10Exists := false
+		for _, c := range *channels {
+			if c.Name == o10.Name {
+				o10Exists = true
+			}
+		}
+
+		if !o10Exists {
+			t.Fatal("channel o10 not found")
 		}
 	}
 }
@@ -1980,6 +2011,13 @@ func testChannelStoreSearchInTeam(t *testing.T, ss store.Store) {
 	o10.Type = model.CHANNEL_OPEN
 	store.Must(ss.Channel().Save(&o10, -1))
 
+	o11 := model.Channel{}
+	o11.TeamId = o1.TeamId
+	o11.DisplayName = "Name Is FuzzySearched"
+	o11.Name = "fuzzy-searched"
+	o11.Type = model.CHANNEL_OPEN
+	store.Must(ss.Channel().Save(&o11, -1))
+
 	if result := <-ss.Channel().SearchInTeam(o1.TeamId, "ChannelA"); result.Err != nil {
 		t.Fatal(result.Err)
 	} else {
@@ -2006,32 +2044,33 @@ func testChannelStoreSearchInTeam(t *testing.T, ss store.Store) {
 			t.Fatal("should be empty")
 		}
 	}
-
-	if result := <-ss.Channel().SearchInTeam(o1.TeamId, "off-"); result.Err != nil {
-		t.Fatal(result.Err)
-	} else {
-		channels := result.Data.(*model.ChannelList)
-		if len(*channels) != 2 {
-			t.Fatal("should return 2 channels, not including private channel")
-		}
-
-		o6Exists, o7Exists := false, false
-		for _, c := range *channels {
-			if c.Name == o6.Name {
-				o6Exists = true
+	if strings.Contains(t.Name(), model.DATABASE_DRIVER_MYSQL) {
+		if result := <-ss.Channel().SearchInTeam(o1.TeamId, "off-"); result.Err != nil {
+			t.Fatal(result.Err)
+		} else {
+			channels := result.Data.(*model.ChannelList)
+			if len(*channels) != 2 {
+				t.Fatal("should return 2 channels, not including private channel")
 			}
 
-			if c.Name == o7.Name {
-				o7Exists = true
+			o6Exists, o7Exists := false, false
+			for _, c := range *channels {
+				if c.Name == o6.Name {
+					o6Exists = true
+				}
+
+				if c.Name == o7.Name {
+					o7Exists = true
+				}
 			}
-		}
 
-		if !o6Exists {
-			t.Fatal("wrong channel returned")
-		}
+			if !o6Exists {
+				t.Fatal("wrong channel returned")
+			}
 
-		if !o7Exists {
-			t.Fatal("wrong channel returned")
+			if !o7Exists {
+				t.Fatal("wrong channel returned")
+			}
 		}
 	}
 
@@ -2098,6 +2137,27 @@ func testChannelStoreSearchInTeam(t *testing.T, ss store.Store) {
 
 		if (*channels)[0].Name != o10.Name {
 			t.Fatal("wrong channel returned")
+		}
+	}
+
+	if result := <-ss.Channel().SearchInTeam(o1.TeamId, "Fuz"); result.Err != nil {
+		t.Fatal(result.Err)
+	} else {
+		channels := result.Data.(*model.ChannelList)
+
+		if len(*channels) == 0 {
+			t.Fatal("should not be empty")
+		}
+
+		o11Exists := false
+		for _, c := range *channels {
+			if c.Name == o11.Name {
+				o11Exists = true
+			}
+		}
+
+		if !o11Exists {
+			t.Fatal("channel o11 not found")
 		}
 	}
 }

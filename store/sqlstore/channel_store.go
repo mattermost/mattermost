@@ -1322,41 +1322,24 @@ func (s SqlChannelStore) performSearch(searchQuery string, term string, paramete
 
 	searchType := "Name, DisplayName, Purpose"
 	if term == "" {
-
 		searchQuery = strings.Replace(searchQuery, "*,", "*", 1)
 		searchQuery = strings.Replace(searchQuery, "AS_RELEVANCE_CLAUSE", "", 1)
 		searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", "", 1)
 		searchQuery = strings.Replace(searchQuery, "ORDER BY relevance DESC", "ORDER BY DisplayName", 1)
 	} else if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-		// containerSelect := `
-		// 	SELECT *
-		// 	FROM (
-		// 		INNER_SELECT
-		// 	) s
-		// 	WHERE relevance > 0
-		// 	ORDER BY relevance DESC`
-
-		// remove mysql specific clauses
 		searchQuery = strings.Replace(searchQuery, "*,", "*", 1)
 		searchQuery = strings.Replace(searchQuery, "AS_RELEVANCE_CLAUSE", "", 1)
-		// searchQuery = strings.Replace(searchQuery, "ORDER BY relevance DESC", "", 1)
+		searchQuery = strings.Replace(searchQuery, "ORDER BY relevance DESC", "ORDER BY DisplayName", 1)
+
+		hasMultiWords := strings.Contains(term, " ")
+		queryType := "to_tsquery"
+		if hasMultiWords {
+			queryType = "plainto_tsquery"
+		}
 
 		postgresColumnNames := convertMySQLFullTextColumnsToPostgres(searchType)
-		// searchClause := fmt.Sprintf("to_tsvector(%s) @@ plainto_tsquery(:Terms)", postgresColumnNames)
-		searchClause := fmt.Sprintf("to_tsvector(%s) @@ plainto_tsquery(:Terms)", postgresColumnNames)
-
-		searchForRankClause := fmt.Sprintf("to_tsvector(%s), plainto_tsquery(:Terms)", postgresColumnNames)
-		searchWithRankClause := fmt.Sprintf("ts_rank_cd(%s, 1)", searchForRankClause)
-
-		mainSearchClause := fmt.Sprintf("AND %s", searchClause)
-
-		searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", mainSearchClause, 1)
-		orderByClause := fmt.Sprintf(`
-			ORDER BY
-				%s DESC
-			`, searchWithRankClause)
-		searchQuery = strings.Replace(searchQuery, "ORDER BY relevance DESC", orderByClause, 1)
-		// searchQuery = strings.Replace(containerSelect, "INNER_SELECT", searchQuery, 1)
+		searchClause := fmt.Sprintf("AND to_tsvector(%s) @@  %s(:Terms)", postgresColumnNames, queryType)
+		searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", searchClause, 1)
 	} else if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
 		matchClause := fmt.Sprintf("MATCH (%s) AGAINST (:Terms IN BOOLEAN MODE)", searchType)
 		searchClause := fmt.Sprintf("AND %s", matchClause)
@@ -1369,9 +1352,6 @@ func (s SqlChannelStore) performSearch(searchQuery string, term string, paramete
 	parameters["Terms"] = fmt.Sprintf("%s:*", term)
 
 	var channels model.ChannelList
-	l4g.Info("----------------")
-	l4g.Info("searchQuery", searchQuery)
-	l4g.Info("----------------")
 	if _, err := s.GetReplica().Select(&channels, searchQuery, parameters); err != nil {
 		result.Err = model.NewAppError("SqlChannelStore.Search", "store.sql_channel.search.app_error", nil, "term="+term+", "+", "+err.Error(), http.StatusInternalServerError)
 	} else {

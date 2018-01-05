@@ -24,10 +24,10 @@ var storeTypes = []*struct {
 		Name: "MySQL",
 		Func: storetest.NewMySQLContainer,
 	},
-	// {
-	// 	Name: "PostgreSQL",
-	// 	Func: storetest.NewPostgreSQLContainer,
-	// },
+	{
+		Name: "PostgreSQL",
+		Func: storetest.NewPostgreSQLContainer,
+	},
 }
 
 func StoreTest(t *testing.T, f func(*testing.T, store.Store)) {
