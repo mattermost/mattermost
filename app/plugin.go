@@ -428,7 +428,6 @@ func (a *App) InitPlugins(pluginPath, webappPath string, supervisorOverride plug
 func (a *App) ServePluginRequest(w http.ResponseWriter, r *http.Request) {
 	if a.PluginEnv == nil || !*a.Config().PluginSettings.Enable {
 		err := model.NewAppError("ServePluginRequest", "app.plugin.disabled.app_error", nil, "Enable plugins to serve plugin requests", http.StatusNotImplemented)
-		err.Translate(utils.T)
 		l4g.Error(err.Error())
 		w.WriteHeader(err.StatusCode)
 		w.Header().Set("Content-Type", "application/json")

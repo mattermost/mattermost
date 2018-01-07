@@ -42,6 +42,12 @@ func runServerCmd(cmd *cobra.Command, args []string) error {
 }
 
 func runServer(configFileLocation string) {
+	if err := utils.TranslationsPreInit(); err != nil {
+		l4g.Exit("Unable to load Mattermost configuration file: ", err)
+		return
+	}
+	model.AppErrorInit(utils.T)
+
 	if err := utils.InitAndLoadConfig(configFileLocation); err != nil {
 		l4g.Exit("Unable to load Mattermost configuration file: ", err)
 		return

@@ -101,6 +101,7 @@ func New(options ...Option) *App {
 	if utils.T == nil {
 		utils.TranslationsPreInit()
 	}
+	model.AppErrorInit(utils.T)
 	utils.LoadGlobalConfig(app.configFile)
 	utils.InitTranslations(utils.Cfg.LocalizationSettings)
 
@@ -472,7 +473,6 @@ func (a *App) HTTPClient(trustURLs bool) *http.Client {
 
 func (a *App) Handle404(w http.ResponseWriter, r *http.Request) {
 	err := model.NewAppError("Handle404", "api.context.404.app_error", nil, "", http.StatusNotFound)
-	err.Translate(utils.T)
 
 	l4g.Debug("%v: code=404 ip=%v", r.URL.Path, utils.GetIpAddress(r))
 

@@ -268,10 +268,6 @@ func DisableConfigWatch() {
 }
 
 func InitAndLoadConfig(filename string) error {
-	if err := TranslationsPreInit(); err != nil {
-		return err
-	}
-
 	LoadGlobalConfig(filename)
 	InitializeConfigWatch()
 	EnableConfigWatch()
@@ -381,13 +377,12 @@ func LoadGlobalConfig(fileName string) *model.Config {
 	config.SetDefaults()
 
 	if err := config.IsValid(); err != nil {
-		panic(T(err.Id))
+		panic(err.Message)
 	}
 
 	if needSave {
 		cfgMutex.Unlock()
 		if err := SaveConfig(CfgFileName, config); err != nil {
-			err.Translate(T)
 			l4g.Warn(err.Error())
 		}
 		cfgMutex.Lock()
@@ -396,7 +391,6 @@ func LoadGlobalConfig(fileName string) *model.Config {
 	if err := ValidateLocales(config); err != nil {
 		cfgMutex.Unlock()
 		if err := SaveConfig(CfgFileName, config); err != nil {
-			err.Translate(T)
 			l4g.Warn(err.Error())
 		}
 		cfgMutex.Lock()
