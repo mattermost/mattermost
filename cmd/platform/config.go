@@ -32,6 +32,7 @@ func init() {
 
 func configValidateCmdF(cmd *cobra.Command, args []string) error {
 	utils.TranslationsPreInit()
+	model.AppErrorInit(utils.T)
 	filePath, err := cmd.Flags().GetString("config")
 	if err != nil {
 		return err
