@@ -3343,6 +3343,54 @@
     "translation": "Missing required direct post property: user"
   },
   {
+    "id": "app.import.validate_reaction_import_data.user_missing.error",
+    "translation": "Missing required Reaction property: User."
+  },
+  {
+    "id": "app.import.validate_reaction_import_data.emoji_name_missing.error",
+    "translation": "Missing required Reaction property: EmojiName."
+  },
+  {
+    "id": "app.import.validate_reaction_import_data.emoji_name_length.error",
+    "translation": "Reaction EmojiName property is longer than the maximum permitted length."
+  },
+  {
+    "id": "app.import.validate_reaction_import_data.create_at_missing.error",
+    "translation": "Missing required Reaction property: create_at."
+  },
+  {
+    "id": "app.import.validate_reaction_import_data.create_at_zero.error",
+    "translation": "Reaction CreateAt property must not be zero."
+  },
+  {
+    "id": "app.import.validate_reaction_import_data.create_at_before_parent.error",
+    "translation": "Reactoin CreateAt property must be greater than the parent post CreateAt."
+  },
+  {
+    "id": "app.import.validate_reply_import_data.user_missing.error",
+    "translation": "Missing required Reply property: User."
+  },
+  {
+    "id": "app.import.validate_reply_import_data.message_missing.error",
+    "translation": "Missing required Reply property: Message."
+  },
+  {
+    "id": "app.import.validate_reply_import_data.message_length.error",
+    "translation": "Reply Message property is longer than the maximum permitted length."
+  },
+  {
+    "id": "app.import.validate_reply_import_data.create_at_missing.error",
+    "translation": "Missing required Reply property: create_at."
+  },
+  {
+    "id": "app.import.validate_reply_import_data.create_at_zero.error",
+    "translation": "Reply CreateAt property must not be zero."
+  },
+  {
+    "id": "app.import.validate_reply_import_data.create_at_before_parent.error",
+    "translation": "Reply CreateAt property must be greater than the parent post CreateAt."
+  },
+  {
     "id": "app.import.validate_post_import_data.channel_missing.error",
     "translation": "Missing required Post property: Channel."
   },
@@ -3352,7 +3400,7 @@
   },
   {
     "id": "app.import.validate_post_import_data.create_at_zero.error",
-    "translation": "Post CreateAt property must not be zero if provided."
+    "translation": "Post CreateAt property must not be zero."
   },
   {
     "id": "app.import.validate_post_import_data.message_length.error",
@@ -3517,6 +3565,10 @@
   {
     "id": "app.import.validate_user_import_data.username_missing.error",
     "translation": "Missing require user property: username."
+  },
+  {
+    "id": "app.import.validate_user_import_data.profile_image.error",
+    "translation": "Invalid profile image."
   },
   {
     "id": "app.import.validate_user_teams_import_data.invalid_roles.error",
