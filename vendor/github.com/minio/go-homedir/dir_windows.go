@@ -1,6 +1,3 @@
-// Copyright 2016 (C) Mitchell Hashimoto
-// Distributed under the MIT License.
-
 package homedir
 
 import (
