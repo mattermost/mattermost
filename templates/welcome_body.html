@@ -8,13 +8,13 @@
                     <td style="border: 1px solid #ddd;">
                         <table align="center" border="0" cellpadding="0" cellspacing="0" width="100%" style="border-collapse: collapse;">
                             <tr>
-                                <td style="padding: 20px 20px 10px; text-align:left;">
-                                    <img src="{{.Props.SiteURL}}/static/images/logo-email.png" width="130px" style="opacity: 0.5" alt="">
+                                <td style="padding-top: 40px; text-align: center;">
+                                    <img src="{{.Props.SiteURL}}/static/images/logo-email.png" style="margin: auto; width: 80px; display: block;">
                                 </td>
                             </tr>
                             <tr>
                                 <td>
-                                    <table border="0" cellpadding="0" cellspacing="0" style="padding: 20px 50px 0; text-align: center; margin: 0 auto">
+                                    <table border="0" cellpadding="0" cellspacing="0" style="padding: 0px 50px 0; text-align: center; margin: 0 auto">
                                         {{if .Props.VerifyUrl }}
                                         <tr>
                                             <td style="border-bottom: 1px solid #ddd; padding: 0 0 20px;">
@@ -28,18 +28,21 @@
                                         {{end}}
                                         <tr>
                                             <td style="border-bottom: 1px solid #ddd; padding: 0 0 20px;">
-                                                <h2 style="font-weight: normal; margin-top: 25px; line-height: 1.5;">{{.Props.Info2}}</h2>
-                                                <a href="{{.Props.SiteURL}}">{{.Props.SiteURL}}</a>
+                                                <h2 style="color: #8ed0bb; font-weight: normal; margin-top: 25px; line-height: 1.5;">
+                                                    {{.Props.Title}}
+                                                </h2>
                                                 <p>{{.Props.Info3}}</p>
+                                                <a href="{{.Props.SiteURL}}" style="background: #109499; display: inline-block; border-radius: 3px; color: #fff; border: none; outline: none; min-width: 170px; padding: 10px 15px; font-size: 12px; font-family: inherit; cursor: pointer; -webkit-appearance: none;text-decoration: none;">
+                                                    Sign In
+                                                </a>
                                             </td>
                                         </tr>
                                         {{if .Props.AppDownloadLink}}
                                         <tr>
                                             <td style="border-bottom: 1px solid #ddd; padding: 0 0 20px;">
                                                 <p>{{.Props.AppDownloadInfo}}</p>
-                                                <a href="{{.Props.AppDownloadLink}}">
-                                                    <p>{{.Props.AppDownloadLink}}</p>
-                                                    <img src="{{.Props.SiteURL}}/static/images/appIcons.png" />
+                                                <a href="{{.Props.AppDownloadLink}}" style="background: #109499; display: inline-block; border-radius: 3px; color: #fff; border: none; outline: none; min-width: 170px; padding: 10px 15px; font-size: 12px; font-family: inherit; cursor: pointer; -webkit-appearance: none;text-decoration: none;">
+                                                    Download Now
                                                 </a>
                                             </td>
                                         </tr>
@@ -59,4 +62,3 @@
 </table>
 
 {{end}}
-
