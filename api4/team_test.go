@@ -1937,7 +1937,7 @@ func TestInviteUsersToTeam(t *testing.T) {
 	if err == nil {
 		t.Fatal("Adding users with non-restricted domains was allowed")
 	}
-	if err.Where != "InviteNewUsersToTeam" || err.Message != "api.team.invite_members.invalid_email.app_error" {
+	if err.Where != "InviteNewUsersToTeam" || err.Id != "api.team.invite_members.invalid_email.app_error" {
 		t.Log(err)
 		t.Fatal("Got wrong error message!")
 	}

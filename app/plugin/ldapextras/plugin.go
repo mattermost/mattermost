@@ -13,7 +13,6 @@ import (
 
 	"github.com/mattermost/mattermost-server/app/plugin"
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils"
 )
 
 type Plugin struct {
@@ -65,7 +64,6 @@ func (p *Plugin) handleGetAttributes(w http.ResponseWriter, r *http.Request) {
 
 	attributes, err := p.api.GetLdapUserAttributes(id, config.Attributes)
 	if err != nil {
-		err.Translate(utils.T)
 		http.Error(w, fmt.Sprintf("Errored getting attributes: %v", err.Error()), http.StatusInternalServerError)
 	}
 
