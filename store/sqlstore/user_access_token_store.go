@@ -171,11 +171,24 @@ func (s SqlUserAccessTokenStore) Get(tokenId string) store.StoreChannel {
 	})
 }
 
+type UserAccessTokenWithUsername struct {
+	model.UserAccessToken
+	Username string
+}
+
 func (s SqlUserAccessTokenStore) GetAll(offset, limit int) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
-		tokens := []*model.UserAccessToken{}
+		tokens := []*UserAccessTokenWithUsername{}
 
-		if _, err := s.GetReplica().Select(&tokens, "SELECT * FROM UserAccessTokens LIMIT :Limit OFFSET :Offset", map[string]interface{}{"Offset": offset, "Limit": limit}); err != nil {
+		if _, err := s.GetReplica().Select(
+			&tokens, 
+			`SELECT 
+			  UserAccessTokens.*,
+				Users.Username
+			FROM UserAccessTokens
+				INNER JOIN Users ON UserAccessTokens.UserId = Users.Id
+			LIMIT :Limit OFFSET :Offset`,
+			map[string]interface{}{"Offset": offset, "Limit": limit}); err != nil {
 			result.Err = model.NewAppError("SqlUserAccessTokenStore.GetAll", "store.sql_user_access_token.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 
