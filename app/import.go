@@ -1250,7 +1250,7 @@ func validateReactionImportData(data *ReactionImportData, parentCreateAt int64) 
 
 	if data.EmojiName == nil {
 		return model.NewAppError("BulkImport", "app.import.validate_reaction_import_data.emoji_name_missing.error", nil, "", http.StatusBadRequest)
-	} else if utf8.RuneCountInString(*data.EmojiName) > 64 {
+	} else if utf8.RuneCountInString(*data.EmojiName) > model.EMOJI_NAME_MAX_LENGTH {
 		return model.NewAppError("BulkImport", "app.import.validate_reaction_import_data.emoji_name_length.error", nil, "", http.StatusBadRequest)
 	}
 

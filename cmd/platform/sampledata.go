@@ -110,18 +110,18 @@ func randomMessage(users []string) string {
 }
 
 func init() {
-	sampleDataCmd.Flags().Int64P("seed", "s", 1, "Seed used for generate the random data.")
+	sampleDataCmd.Flags().Int64P("seed", "s", 1, "Seed used for generating the random data (Different seeds generate different data).")
 	sampleDataCmd.Flags().IntP("teams", "t", 2, "The number of sample teams.")
 	sampleDataCmd.Flags().Int("channels-per-team", 10, "The number of sample channels per team.")
 	sampleDataCmd.Flags().IntP("users", "u", 15, "The number of sample users.")
 	sampleDataCmd.Flags().Int("team-memberships", 2, "The number of sample team memberships per user.")
 	sampleDataCmd.Flags().Int("channel-memberships", 5, "The number of sample channel memberships per user in a team.")
 	sampleDataCmd.Flags().Int("posts-per-channel", 100, "The number of sample post per channel.")
-	sampleDataCmd.Flags().Int("direct-channels", 30, "The number of sample direct channels.")
-	sampleDataCmd.Flags().Int("posts-per-direct-channel", 15, "The number of sample post per direct channel.")
-	sampleDataCmd.Flags().Int("group-channels", 15, "The number of sample group channels.")
-	sampleDataCmd.Flags().Int("posts-per-group-channel", 30, "The number of sample post per group channel.")
-	sampleDataCmd.Flags().IntP("workers", "w", 2, "How many workers to run whilst doing the import.")
+	sampleDataCmd.Flags().Int("direct-channels", 30, "The number of sample direct message channels.")
+	sampleDataCmd.Flags().Int("posts-per-direct-channel", 15, "The number of sample posts per direct message channel.")
+	sampleDataCmd.Flags().Int("group-channels", 15, "The number of sample group message channels.")
+	sampleDataCmd.Flags().Int("posts-per-group-channel", 30, "The number of sample posts per group message channel.")
+	sampleDataCmd.Flags().IntP("workers", "w", 2, "How many workers to run during the import.")
 	sampleDataCmd.Flags().String("profile-images", "", "Optional. Path to folder with images to randomly pick as user profile image.")
 	sampleDataCmd.Flags().StringP("bulk", "b", "", "Optional. Path to write a JSONL bulk file instead of loading into the database.")
 }
