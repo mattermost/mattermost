@@ -70,18 +70,18 @@ func TestNewProcess(t *testing.T) {
 
 			assert.Equal(t, 0, os.Getgid(), "we should see ourselves as root")
 			assert.Equal(t, 0, os.Getuid(), "we should see ourselves as root")
-		    
-		    f, err := ioutil.TempFile("", "")
-		    require.NoError(t, err, "we should be able to create temporary files")
-		    f.Close()
 
-		    _, err = os.Stat("ping.exe")
-		    assert.NoError(t, err, "we should be able to read files in the working directory")
+			f, err := ioutil.TempFile("", "")
+			require.NoError(t, err, "we should be able to create temporary files")
+			f.Close()
 
-		    buf := make([]byte, 20)
-		    n, err := rand.Read(buf)
-		    assert.Equal(t, 20, n)
-		    assert.NoError(t, err, "we should be able to read from /dev/urandom")
+			_, err = os.Stat("ping.exe")
+			assert.NoError(t, err, "we should be able to read files in the working directory")
+
+			buf := make([]byte, 20)
+			n, err := rand.Read(buf)
+			assert.Equal(t, 20, n)
+			assert.NoError(t, err, "we should be able to read from /dev/urandom")
 
 			f, err = os.Create("/dev/zero")
 			require.NoError(t, err, "we should be able to write to /dev/zero")
@@ -89,12 +89,15 @@ func TestNewProcess(t *testing.T) {
 			n, err = f.Write([]byte("foo"))
 			assert.Equal(t, 3, n)
 			require.NoError(t, err, "we should be able to write to /dev/zero")
-		    
-		    f, err = os.Create("/dir/foo")
-		    if f != nil {
-		    	defer f.Close()
-		    }
-		    assert.Error(t, err, "we shouldn't be able to write to this read-only mount point")
+
+			f, err = os.Create("/dir/foo")
+			if f != nil {
+				defer f.Close()
+			}
+			assert.Error(t, err, "we shouldn't be able to write to this read-only mount point")
+
+			_, err := ioutil.ReadFile("/etc/resolv.conf")
+			require.NoError(t, err, "we should be able to read /etc/resolv.conf")
 
 			resp, err := http.Get("https://github.com")
 			require.NoError(t, err, "we should be able to use the network")

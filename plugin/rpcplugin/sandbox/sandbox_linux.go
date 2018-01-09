@@ -4,6 +4,7 @@
 package sandbox
 
 import (
+	"bufio"
 	"bytes"
 	"context"
 	"encoding/json"
@@ -13,10 +14,12 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"syscall"
 	"unsafe"
 
 	"github.com/pkg/errors"
+	"golang.org/x/sys/unix"
 
 	"github.com/mattermost/mattermost-server/plugin/rpcplugin"
 )
@@ -49,11 +52,14 @@ func systemMountPoints() (points []*MountPoint) {
 		Destination: "/proc",
 		Type:        "proc",
 	}, &MountPoint{
-		Source: "/dev/null",
+		Source:      "/dev/null",
+		Destination: "/dev/null",
 	}, &MountPoint{
-		Source: "/dev/zero",
+		Source:      "/dev/zero",
+		Destination: "/dev/zero",
 	}, &MountPoint{
-		Source: "/dev/full",
+		Source:      "/dev/full",
+		Destination: "/dev/full",
 	})
 
 	readOnly := []string{
@@ -81,8 +87,9 @@ func systemMountPoints() (points []*MountPoint) {
 
 	for _, point := range readOnly {
 		points = append(points, &MountPoint{
-			Source:   point,
-			ReadOnly: true,
+			Source:      point,
+			Destination: point,
+			ReadOnly:    true,
 		})
 	}
 
@@ -95,6 +102,10 @@ func runProcess(config *Configuration, path string) error {
 		return err
 	}
 	defer os.RemoveAll(root)
+
+	if err := syscall.Mount("", "/", "", syscall.MS_PRIVATE|syscall.MS_REC, ""); err != nil {
+		return errors.Wrapf(err, "unable to make root private")
+	}
 
 	if err := mountMountPoints(root, systemMountPoints()); err != nil {
 		return errors.Wrapf(err, "unable to mount sandbox system mount points")
@@ -129,54 +140,120 @@ func runProcess(config *Configuration, path string) error {
 	return runExecutable(path)
 }
 
-func mountMountPoints(root string, mountPoints []*MountPoint) error {
-	for _, mountPoint := range mountPoints {
-		isDir := true
-		if mountPoint.Type == "" {
-			stat, err := os.Stat(mountPoint.Source)
-			if err != nil {
-				if os.IsNotExist(err) {
-					continue
+var mountOptions = map[string]uintptr{
+	"ro":         syscall.MS_RDONLY,
+	"nosuid":     syscall.MS_NOSUID,
+	"noexec":     syscall.MS_NOEXEC,
+	"noatime":    syscall.MS_NOATIME,
+	"nodiratime": syscall.MS_NODIRATIME,
+	"relatime":   syscall.MS_RELATIME,
+}
+
+func mountFlagsForPath(path string) (uintptr, error) {
+	f, err := os.Open("/proc/self/mountinfo")
+	if err != nil {
+		return 0, errors.Wrapf(err, "unable to open proc file")
+	}
+	defer f.Close()
+
+	scanner := bufio.NewScanner(f)
+	for scanner.Scan() {
+		info := strings.Fields(scanner.Text())
+		if len(info) >= 6 && info[4] == path {
+			flags := uintptr(0)
+			for _, o := range strings.Split(info[5], ",") {
+				flags |= mountOptions[o]
+			}
+			return flags, nil
+		}
+	}
+
+	return 0, fmt.Errorf("unable to find mount info")
+}
+
+func mountMountPoint(root string, mountPoint *MountPoint) error {
+	isDir := true
+	if mountPoint.Type == "" {
+		stat, err := os.Lstat(mountPoint.Source)
+		if err != nil {
+			return nil
+		}
+		if (stat.Mode() & os.ModeSymlink) != 0 {
+			if path, err := filepath.EvalSymlinks(mountPoint.Source); err == nil {
+				newMountPoint := *mountPoint
+				newMountPoint.Source = path
+				if err := mountMountPoint(root, &newMountPoint); err != nil {
+					return errors.Wrapf(err, "unable to mount symbolic link target: "+mountPoint.Source)
 				}
-				return errors.Wrapf(err, "unable to stat mount point: "+mountPoint.Source)
+				return nil
 			}
-			isDir = stat.IsDir()
 		}
+		isDir = stat.IsDir()
+	}
 
-		destination := mountPoint.Destination
-		if destination == "" {
-			destination = mountPoint.Source
+	target := filepath.Join(root, mountPoint.Destination)
+
+	if isDir {
+		if err := os.MkdirAll(target, 0755); err != nil {
+			return errors.Wrapf(err, "unable to create directory: "+target)
 		}
-		target := filepath.Join(root, destination)
-
-		if isDir {
-			if err := os.MkdirAll(target, 0755); err != nil {
-				return errors.Wrapf(err, "unable to create directory: "+target)
-			}
-		} else {
-			if err := os.MkdirAll(filepath.Dir(target), 0755); err != nil {
-				return errors.Wrapf(err, "unable to create directory: "+target)
-			}
-			f, err := os.Create(target)
-			if err != nil {
-				return errors.Wrapf(err, "unable to create file: "+target)
-			}
-			f.Close()
+	} else {
+		if err := os.MkdirAll(filepath.Dir(target), 0755); err != nil {
+			return errors.Wrapf(err, "unable to create directory: "+target)
 		}
-
-		var flags uintptr = syscall.MS_NOSUID | syscall.MS_NODEV
-		if mountPoint.Type == "" {
-			flags |= syscall.MS_BIND
+		f, err := os.Create(target)
+		if err != nil {
+			return errors.Wrapf(err, "unable to create file: "+target)
 		}
+		f.Close()
+	}
 
-		if err := syscall.Mount(mountPoint.Source, target, mountPoint.Type, flags, ""); err != nil {
-			return errors.Wrapf(err, "unable to mount "+mountPoint.Source)
+	flags := uintptr(syscall.MS_NOSUID | syscall.MS_NODEV)
+	if mountPoint.Type == "" {
+		flags |= syscall.MS_BIND
+	}
+	if mountPoint.ReadOnly {
+		flags |= syscall.MS_RDONLY
+	}
+
+	if err := syscall.Mount(mountPoint.Source, target, mountPoint.Type, flags, ""); err != nil {
+		return errors.Wrapf(err, "unable to mount "+mountPoint.Source)
+	}
+
+	if (flags & syscall.MS_BIND) != 0 {
+		// If this was a bind mount, our other flags actually got silently ignored during the above syscall:
+		//
+		//     If mountflags includes MS_BIND [...] The remaining bits in the mountflags argument are
+		//     also ignored, with the exception of MS_REC.
+		//
+		// Furthermore, remounting will fail if we attempt to unset a bit that was inherited from
+		// the mount's parent:
+		//
+		//     The mount(2) flags MS_RDONLY, MS_NOSUID, MS_NOEXEC, and the "atime" flags
+		//     (MS_NOATIME, MS_NODIRATIME, MS_RELATIME) settings become locked when propagated from
+		//     a more privileged to a less privileged mount namespace, and may not be changed in the
+		//     less privileged mount namespace.
+		//
+		// So we need to get the actual flags, add our new ones, then do a remount if needed.
+		mountFlags, err := mountFlagsForPath(target)
+		if err != nil {
+			return errors.Wrapf(err, "unable to get mount flags for "+target)
 		}
-
-		if mountPoint.ReadOnly {
-			if err := syscall.Mount(mountPoint.Source, target, mountPoint.Type, flags|syscall.MS_RDONLY|syscall.MS_REMOUNT, ""); err != nil {
+		const lockedFlags = unix.MS_RDONLY | unix.MS_NOSUID | unix.MS_NOEXEC | unix.MS_NOATIME | unix.MS_NODIRATIME | unix.MS_RELATIME
+		if (mountFlags & lockedFlags) != ((flags | mountFlags) & lockedFlags) {
+			if err := syscall.Mount("", target, "", flags|mountFlags|syscall.MS_REMOUNT, ""); err != nil {
 				return errors.Wrapf(err, "unable to remount "+mountPoint.Source)
 			}
+		}
+	}
+
+	return nil
+}
+
+func mountMountPoints(root string, mountPoints []*MountPoint) error {
+	for _, mountPoint := range mountPoints {
+		if err := mountMountPoint(root, mountPoint); err != nil {
+			return err
 		}
 	}
 
@@ -202,11 +279,13 @@ func pivotRoot(newRoot string) error {
 		return errors.Wrapf(err, "unable to change directory")
 	}
 
-	if err := syscall.Unmount("/.prev_root", syscall.MNT_DETACH); err != nil {
+	prevRoot = "/.prev_root"
+
+	if err := syscall.Unmount(prevRoot, syscall.MNT_DETACH); err != nil {
 		return errors.Wrapf(err, "unable to unmount previous root")
 	}
 
-	if err := os.RemoveAll("/.prev_root"); err != nil {
+	if err := os.RemoveAll(prevRoot); err != nil {
 		return errors.Wrapf(err, "unable to remove previous root directory")
 	}
 
@@ -353,6 +432,10 @@ func checkSupportInNamespace() error {
 		return err
 	}
 	defer os.RemoveAll(root)
+
+	if err := syscall.Mount("", "/", "", syscall.MS_PRIVATE|syscall.MS_REC, ""); err != nil {
+		return errors.Wrapf(err, "unable to make root private")
+	}
 
 	if err := mountMountPoints(root, systemMountPoints()); err != nil {
 		return errors.Wrapf(err, "unable to mount sandbox system mount points")
