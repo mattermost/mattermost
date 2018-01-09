@@ -127,8 +127,6 @@ func (s *Supervisor) runPlugin(ctx context.Context, start chan<- error, api plug
 	return nil
 }
 
-type SupervisorProviderFunc = func(*model.BundleInfo) (plugin.Supervisor, error)
-
 func SupervisorProvider(bundle *model.BundleInfo) (plugin.Supervisor, error) {
 	return SupervisorWithNewProcessFunc(bundle, func(ctx context.Context) (Process, io.ReadWriteCloser, error) {
 		executable := filepath.Clean(filepath.Join(".", bundle.Manifest.Backend.Executable))
