@@ -96,7 +96,7 @@ func TestNewProcess(t *testing.T) {
 			}
 			assert.Error(t, err, "we shouldn't be able to write to this read-only mount point")
 
-			_, err := ioutil.ReadFile("/etc/resolv.conf")
+			_, err = ioutil.ReadFile("/etc/resolv.conf")
 			require.NoError(t, err, "we should be able to read /etc/resolv.conf")
 
 			resp, err := http.Get("https://github.com")
