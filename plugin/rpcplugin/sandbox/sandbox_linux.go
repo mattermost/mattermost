@@ -206,10 +206,10 @@ func mountMountPoint(root string, mountPoint *MountPoint) error {
 		if err := syscall.Statfs(target, &stats); err != nil {
 			return errors.Wrap(err, "unable to get mount flags for target: "+target)
 		}
-		mountFlags := uintptr(stats.Flags)
-		const lockedFlags = unix.MS_RDONLY | unix.MS_NOSUID | unix.MS_NOEXEC | unix.MS_NOATIME | unix.MS_NODIRATIME | unix.MS_RELATIME
-		if (mountFlags & lockedFlags) != ((flags | mountFlags) & lockedFlags) {
-			if err := syscall.Mount("", target, "", flags|mountFlags|syscall.MS_REMOUNT, ""); err != nil {
+		const lockedFlagsMask = unix.MS_RDONLY | unix.MS_NOSUID | unix.MS_NOEXEC | unix.MS_NOATIME | unix.MS_NODIRATIME | unix.MS_RELATIME
+		lockedFlags := uintptr(stats.Flags & lockedFlagsMask)
+		if lockedFlags != ((flags | lockedFlags) & lockedFlagsMask) {
+			if err := syscall.Mount("", target, "", flags|lockedFlags|syscall.MS_REMOUNT, ""); err != nil {
 				return errors.Wrapf(err, "unable to remount "+mountPoint.Source)
 			}
 		}
