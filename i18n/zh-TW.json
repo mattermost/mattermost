@@ -1421,8 +1421,12 @@
     "translation": "設定電子郵件為已驗證時失敗 err=%v"
   },
   {
-    "id": "api.incoming_webhook.disabled.app_errror",
+    "id": "api.incoming_webhook.disabled.app_error",
     "translation": "傳入的 Webhook 已被系統管理員停用。"
+  },
+  {
+    "id": "api.incoming_webhook.invalid_username.app_error",
+    "translation": "無效的使用者名稱。"
   },
   {
     "id": "api.ldap.init.debug",
@@ -4975,6 +4979,10 @@
     "translation": "無效的標題"
   },
   {
+    "id": "model.incoming_hook.icon_url.app_error",
+    "translation": "無效的文章圖示"
+  },
+  {
     "id": "model.incoming_hook.id.app_error",
     "translation": "無效的 ID"
   },
@@ -4989,6 +4997,10 @@
   {
     "id": "model.incoming_hook.user_id.app_error",
     "translation": "無效的使用者 ID"
+  },
+  {
+    "id": "model.incoming_hook.username.app_error",
+    "translation": "無效的使用者名稱"
   },
   {
     "id": "model.job.is_valid.create_at.app_error",
