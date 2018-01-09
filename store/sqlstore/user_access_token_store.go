@@ -183,8 +183,8 @@ func (s SqlUserAccessTokenStore) GetAll(offset, limit int) store.StoreChannel {
 		if _, err := s.GetReplica().Select(
 			&tokens, 
 			`SELECT 
-			  UserAccessTokens.*,
-			  Users.Username
+			 	UserAccessTokens.*,
+				Users.Username
 			FROM UserAccessTokens
 				INNER JOIN Users ON UserAccessTokens.UserId = Users.Id
 			LIMIT :Limit OFFSET :Offset`,
