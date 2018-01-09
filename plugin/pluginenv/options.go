@@ -4,11 +4,10 @@
 package pluginenv
 
 import (
-	"fmt"
-
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/plugin"
 	"github.com/mattermost/mattermost-server/plugin/rpcplugin"
+	"github.com/mattermost/mattermost-server/plugin/rpcplugin/sandbox"
 )
 
 // APIProvider specifies a function that provides an API implementation to each plugin.
@@ -40,14 +39,12 @@ func WebappPath(path string) Option {
 	}
 }
 
-// DefaultSupervisorProvider chooses a supervisor based on the plugin's manifest contents. E.g. if
-// the manifest specifies a backend executable, it will be given an rpcplugin.Supervisor.
+// DefaultSupervisorProvider chooses a supervisor based on the system and the plugin's manifest
+// contents. E.g. if the manifest specifies a backend executable, it will be given an
+// rpcplugin.Supervisor.
 func DefaultSupervisorProvider(bundle *model.BundleInfo) (plugin.Supervisor, error) {
-	if bundle.Manifest == nil {
-		return nil, fmt.Errorf("a manifest is required")
-	}
-	if bundle.Manifest.Backend == nil {
-		return nil, fmt.Errorf("invalid manifest: missing backend plugin")
+	if err := sandbox.CheckSupport(); err == nil {
+		return sandbox.SupervisorProvider(bundle)
 	}
 	return rpcplugin.SupervisorProvider(bundle)
 }

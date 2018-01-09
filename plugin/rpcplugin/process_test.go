@@ -4,25 +4,14 @@ import (
 	"context"
 	"io/ioutil"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-)
 
-func compileGo(t *testing.T, sourceCode, outputPath string) {
-	dir, err := ioutil.TempDir(".", "")
-	require.NoError(t, err)
-	defer os.RemoveAll(dir)
-	require.NoError(t, ioutil.WriteFile(filepath.Join(dir, "main.go"), []byte(sourceCode), 0600))
-	cmd := exec.Command("go", "build", "-o", outputPath, "main.go")
-	cmd.Dir = dir
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	require.NoError(t, cmd.Run())
-}
+	"github.com/mattermost/mattermost-server/plugin/rpcplugin/rpcplugintest"
+)
 
 func TestProcess(t *testing.T) {
 	dir, err := ioutil.TempDir("", "")
@@ -30,7 +19,7 @@ func TestProcess(t *testing.T) {
 	defer os.RemoveAll(dir)
 
 	ping := filepath.Join(dir, "ping.exe")
-	compileGo(t, `
+	rpcplugintest.CompileGo(t, `
 		package main
 
 		import (

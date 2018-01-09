@@ -6,6 +6,7 @@ package rpcplugin
 import (
 	"context"
 	"fmt"
+	"io"
 	"path/filepath"
 	"strings"
 	"sync/atomic"
@@ -20,10 +21,10 @@ import (
 //
 // If the plugin unexpectedly exists, the supervisor will relaunch it after a short delay.
 type Supervisor struct {
-	executable string
 	hooks      atomic.Value
 	done       chan bool
 	cancel     context.CancelFunc
+	newProcess func(context.Context) (Process, io.ReadWriteCloser, error)
 }
 
 var _ plugin.Supervisor = (*Supervisor)(nil)
@@ -78,7 +79,7 @@ func (s *Supervisor) run(ctx context.Context, start chan<- error, api plugin.API
 }
 
 func (s *Supervisor) runPlugin(ctx context.Context, start chan<- error, api plugin.API) error {
-	p, ipc, err := NewProcess(ctx, s.executable)
+	p, ipc, err := s.newProcess(ctx)
 	if err != nil {
 		if start != nil {
 			start <- err
@@ -126,7 +127,19 @@ func (s *Supervisor) runPlugin(ctx context.Context, start chan<- error, api plug
 	return nil
 }
 
+type SupervisorProviderFunc = func(*model.BundleInfo) (plugin.Supervisor, error)
+
 func SupervisorProvider(bundle *model.BundleInfo) (plugin.Supervisor, error) {
+	return SupervisorWithNewProcessFunc(bundle, func(ctx context.Context) (Process, io.ReadWriteCloser, error) {
+		executable := filepath.Clean(filepath.Join(".", bundle.Manifest.Backend.Executable))
+		if strings.HasPrefix(executable, "..") {
+			return nil, nil, fmt.Errorf("invalid backend executable")
+		}
+		return NewProcess(ctx, filepath.Join(bundle.Path, executable))
+	})
+}
+
+func SupervisorWithNewProcessFunc(bundle *model.BundleInfo, newProcess func(context.Context) (Process, io.ReadWriteCloser, error)) (plugin.Supervisor, error) {
 	if bundle.Manifest == nil {
 		return nil, fmt.Errorf("no manifest available")
 	} else if bundle.Manifest.Backend == nil || bundle.Manifest.Backend.Executable == "" {
@@ -136,7 +149,5 @@ func SupervisorProvider(bundle *model.BundleInfo) (plugin.Supervisor, error) {
 	if strings.HasPrefix(executable, "..") {
 		return nil, fmt.Errorf("invalid backend executable")
 	}
-	return &Supervisor{
-		executable: filepath.Join(bundle.Path, executable),
-	}, nil
+	return &Supervisor{newProcess: newProcess}, nil
 }
