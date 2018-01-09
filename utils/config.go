@@ -18,6 +18,7 @@ import (
 
 	l4g "github.com/alecthomas/log4go"
 	"github.com/fsnotify/fsnotify"
+	"github.com/pkg/errors"
 	"github.com/spf13/viper"
 
 	"net/http"
@@ -35,11 +36,9 @@ const (
 )
 
 var cfgMutex = &sync.Mutex{}
-var watcher *fsnotify.Watcher
 var Cfg *model.Config = &model.Config{}
 var CfgHash = ""
 var CfgFileName string = ""
-var CfgDisableConfigWatch = false
 var originalDisableDebugLvl l4g.Level = l4g.DEBUG
 var siteURL = ""
 
@@ -201,78 +200,61 @@ func SaveConfig(fileName string, config *model.Config) *model.AppError {
 	return nil
 }
 
-func InitializeConfigWatch() {
-	cfgMutex.Lock()
-	defer cfgMutex.Unlock()
+type ConfigWatcher struct {
+	watcher *fsnotify.Watcher
+	close   chan struct{}
+	closed  chan struct{}
+}
 
-	if CfgDisableConfigWatch {
-		return
+func NewConfigWatcher(cfgFileName string) (*ConfigWatcher, error) {
+	watcher, err := fsnotify.NewWatcher()
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to create config watcher for file: "+cfgFileName)
 	}
 
-	if watcher == nil {
-		var err error
-		watcher, err = fsnotify.NewWatcher()
-		if err != nil {
-			l4g.Error(fmt.Sprintf("Failed to watch config file at %v with err=%v", CfgFileName, err.Error()))
-		}
+	configFile := filepath.Clean(cfgFileName)
+	configDir, _ := filepath.Split(configFile)
+	watcher.Add(configDir)
 
-		go func() {
-			configFile := filepath.Clean(CfgFileName)
+	ret := &ConfigWatcher{
+		watcher: watcher,
+		close:   make(chan struct{}),
+		closed:  make(chan struct{}),
+	}
 
-			for {
-				select {
-				case event := <-watcher.Events:
-					// we only care about the config file
-					if filepath.Clean(event.Name) == configFile {
-						if event.Op&fsnotify.Write == fsnotify.Write || event.Op&fsnotify.Create == fsnotify.Create {
-							l4g.Info(fmt.Sprintf("Config file watcher detected a change reloading %v", CfgFileName))
+	go func() {
+		defer close(ret.closed)
+		defer watcher.Close()
 
-							if _, configReadErr := ReadConfigFile(CfgFileName, true); configReadErr == nil {
-								LoadGlobalConfig(CfgFileName)
-							} else {
-								l4g.Error(fmt.Sprintf("Failed to read while watching config file at %v with err=%v", CfgFileName, configReadErr.Error()))
-							}
+		for {
+			select {
+			case event := <-watcher.Events:
+				// we only care about the config file
+				if filepath.Clean(event.Name) == configFile {
+					if event.Op&fsnotify.Write == fsnotify.Write || event.Op&fsnotify.Create == fsnotify.Create {
+						l4g.Info(fmt.Sprintf("Config file watcher detected a change reloading %v", cfgFileName))
+
+						if _, configReadErr := ReadConfigFile(cfgFileName, true); configReadErr == nil {
+							LoadGlobalConfig(cfgFileName)
+						} else {
+							l4g.Error(fmt.Sprintf("Failed to read while watching config file at %v with err=%v", cfgFileName, configReadErr.Error()))
 						}
 					}
-				case err := <-watcher.Errors:
-					l4g.Error(fmt.Sprintf("Failed while watching config file at %v with err=%v", CfgFileName, err.Error()))
 				}
+			case err := <-watcher.Errors:
+				l4g.Error(fmt.Sprintf("Failed while watching config file at %v with err=%v", cfgFileName, err.Error()))
+			case <-ret.close:
+				return
 			}
-		}()
-	}
-}
-
-func EnableConfigWatch() {
-	cfgMutex.Lock()
-	defer cfgMutex.Unlock()
-
-	if watcher != nil {
-		configFile := filepath.Clean(CfgFileName)
-		configDir, _ := filepath.Split(configFile)
-
-		if watcher != nil {
-			watcher.Add(configDir)
 		}
-	}
+	}()
+
+	return ret, nil
 }
 
-func DisableConfigWatch() {
-	cfgMutex.Lock()
-	defer cfgMutex.Unlock()
-
-	if watcher != nil {
-		configFile := filepath.Clean(CfgFileName)
-		configDir, _ := filepath.Split(configFile)
-		watcher.Remove(configDir)
-	}
-}
-
-func InitAndLoadConfig(filename string) error {
-	LoadGlobalConfig(filename)
-	InitializeConfigWatch()
-	EnableConfigWatch()
-
-	return nil
+func (w *ConfigWatcher) Close() {
+	close(w.close)
+	<-w.closed
 }
 
 // ReadConfig reads and parses the given configuration.
@@ -337,26 +319,16 @@ func EnsureConfigFile(fileName string) (string, error) {
 	return "", fmt.Errorf("no config file found")
 }
 
-// LoadGlobalConfig will try to search around for the corresponding config file.  It will search
+// LoadConfig will try to search around for the corresponding config file.  It will search
 // /tmp/fileName then attempt ./config/fileName, then ../config/fileName and last it will look at
-// fileName
-//
-// XXX: This is deprecated.
-func LoadGlobalConfig(fileName string) *model.Config {
-	cfgMutex.Lock()
-	defer cfgMutex.Unlock()
-
-	// Cfg should never be null
-	oldConfig := *Cfg
-
-	var configPath string
+// fileName.
+func LoadConfig(fileName string) (configPath string, config *model.Config, appErr *model.AppError) {
 	if fileName != filepath.Base(fileName) {
 		configPath = fileName
 	} else {
 		if path, err := EnsureConfigFile(fileName); err != nil {
-			errMsg := T("utils.config.load_config.opening.panic", map[string]interface{}{"Filename": fileName, "Error": err.Error()})
-			fmt.Fprintln(os.Stderr, errMsg)
-			os.Exit(1)
+			appErr = model.NewAppError("LoadConfig", "utils.config.load_config.opening.panic", map[string]interface{}{"Filename": fileName, "Error": err.Error()}, "", 0)
+			return
 		} else {
 			configPath = path
 		}
@@ -364,12 +336,9 @@ func LoadGlobalConfig(fileName string) *model.Config {
 
 	config, err := ReadConfigFile(configPath, true)
 	if err != nil {
-		errMsg := T("utils.config.load_config.decoding.panic", map[string]interface{}{"Filename": fileName, "Error": err.Error()})
-		fmt.Fprintln(os.Stderr, errMsg)
-		os.Exit(1)
+		appErr = model.NewAppError("LoadConfig", "utils.config.load_config.decoding.panic", map[string]interface{}{"Filename": fileName, "Error": err.Error()}, "", 0)
+		return
 	}
-
-	CfgFileName = configPath
 
 	needSave := len(config.SqlSettings.AtRestEncryptKey) == 0 || len(*config.FileSettings.PublicLinkSalt) == 0 ||
 		len(config.EmailSettings.InviteSalt) == 0
@@ -377,26 +346,20 @@ func LoadGlobalConfig(fileName string) *model.Config {
 	config.SetDefaults()
 
 	if err := config.IsValid(); err != nil {
-		panic(err.Message)
+		return "", nil, err
 	}
 
 	if needSave {
-		cfgMutex.Unlock()
-		if err := SaveConfig(CfgFileName, config); err != nil {
+		if err := SaveConfig(configPath, config); err != nil {
 			l4g.Warn(err.Error())
 		}
-		cfgMutex.Lock()
 	}
 
 	if err := ValidateLocales(config); err != nil {
-		cfgMutex.Unlock()
-		if err := SaveConfig(CfgFileName, config); err != nil {
+		if err := SaveConfig(configPath, config); err != nil {
 			l4g.Warn(err.Error())
 		}
-		cfgMutex.Lock()
 	}
-
-	configureLog(&config.LogSettings)
 
 	if *config.FileSettings.DriverName == model.IMAGE_DRIVER_LOCAL {
 		dir := config.FileSettings.Directory
@@ -404,6 +367,27 @@ func LoadGlobalConfig(fileName string) *model.Config {
 			config.FileSettings.Directory += "/"
 		}
 	}
+
+	return configPath, config, nil
+}
+
+// XXX: This is deprecated. Use LoadConfig instead if possible.
+func LoadGlobalConfig(fileName string) *model.Config {
+	configPath, config, err := LoadConfig(fileName)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err.SystemMessage(T))
+		os.Exit(1)
+	}
+
+	cfgMutex.Lock()
+	defer cfgMutex.Unlock()
+
+	CfgFileName = configPath
+
+	configureLog(&config.LogSettings)
+
+	// Cfg should never be null
+	oldConfig := *Cfg
 
 	Cfg = config
 	CfgHash = fmt.Sprintf("%x", md5.Sum([]byte(Cfg.ToJson())))

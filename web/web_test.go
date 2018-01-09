@@ -38,7 +38,10 @@ func StopTestStore() {
 }
 
 func Setup() *app.App {
-	a := app.New(app.StoreOverride(testStore))
+	a, err := app.New(app.StoreOverride(testStore))
+	if err != nil {
+		panic(err)
+	}
 	prevListenAddress := *a.Config().ServiceSettings.ListenAddress
 	a.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = ":0" })
 	a.StartServer()

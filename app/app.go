@@ -4,19 +4,16 @@
 package app
 
 import (
-	"crypto/md5"
-	"encoding/json"
-	"fmt"
 	"html/template"
 	"net"
 	"net/http"
-	"runtime/debug"
 	"strings"
 	"sync"
 	"sync/atomic"
 
 	l4g "github.com/alecthomas/log4go"
 	"github.com/gorilla/mux"
+	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost-server/einterfaces"
 	ejobs "github.com/mattermost/mattermost-server/einterfaces/jobs"
@@ -65,6 +62,8 @@ type App struct {
 	roles               map[string]*model.Role
 	configListenerId    string
 	licenseListenerId   string
+	disableConfigWatch  bool
+	configWatcher       *utils.ConfigWatcher
 
 	pluginCommands     []*PluginCommand
 	pluginCommandsLock sync.RWMutex
@@ -78,7 +77,7 @@ var appCount = 0
 
 // New creates a new App. You must call Shutdown when you're done with it.
 // XXX: For now, only one at a time is allowed as some resources are still shared.
-func New(options ...Option) *App {
+func New(options ...Option) (*App, error) {
 	appCount++
 	if appCount > 1 {
 		panic("Only one App should exist at a time. Did you forget to call Shutdown()?")
@@ -99,11 +98,16 @@ func New(options ...Option) *App {
 	}
 
 	if utils.T == nil {
-		utils.TranslationsPreInit()
+		if err := utils.TranslationsPreInit(); err != nil {
+			return nil, errors.Wrapf(err, "unable to load Mattermost translation files")
+		}
 	}
 	model.AppErrorInit(utils.T)
 	utils.LoadGlobalConfig(app.configFile)
-	utils.InitTranslations(utils.Cfg.LocalizationSettings)
+	app.EnableConfigWatch()
+	if err := utils.InitTranslations(utils.Cfg.LocalizationSettings); err != nil {
+		return nil, errors.Wrapf(err, "unable to load Mattermost translation files")
+	}
 
 	app.configListenerId = utils.AddConfigListener(func(_, _ *model.Config) {
 		app.configOrLicenseListener()
@@ -142,7 +146,7 @@ func New(options ...Option) *App {
 		handlers: make(map[string]webSocketHandler),
 	}
 
-	return app
+	return app, nil
 }
 
 func (a *App) configOrLicenseListener() {
@@ -339,46 +343,6 @@ func (a *App) initJobs() {
 	if jobsLdapSyncInterface != nil {
 		a.Jobs.LdapSync = jobsLdapSyncInterface(a)
 	}
-}
-
-func (a *App) Config() *model.Config {
-	return utils.Cfg
-}
-
-func (a *App) UpdateConfig(f func(*model.Config)) {
-	old := utils.Cfg.Clone()
-	f(utils.Cfg)
-	utils.InvokeGlobalConfigListeners(old, utils.Cfg)
-}
-
-func (a *App) PersistConfig() {
-	utils.SaveConfig(a.ConfigFileName(), a.Config())
-}
-
-func (a *App) ReloadConfig() {
-	debug.FreeOSMemory()
-	utils.LoadGlobalConfig(a.ConfigFileName())
-
-	// start/restart email batching job if necessary
-	a.InitEmailBatching()
-}
-
-func (a *App) ConfigFileName() string {
-	return utils.CfgFileName
-}
-
-func (a *App) ClientConfig() map[string]string {
-	return a.clientConfig
-}
-
-func (a *App) ClientConfigHash() string {
-	return a.clientConfigHash
-}
-
-func (a *App) regenerateClientConfig() {
-	a.clientConfig = utils.GenerateClientConfig(a.Config(), a.DiagnosticId())
-	clientConfigJSON, _ := json.Marshal(a.clientConfig)
-	a.clientConfigHash = fmt.Sprintf("%x", md5.Sum(clientConfigJSON))
 }
 
 func (a *App) DiagnosticId() string {

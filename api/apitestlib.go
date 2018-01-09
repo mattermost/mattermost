@@ -69,8 +69,13 @@ func setupTestHelper(enterprise bool) *TestHelper {
 		options = append(options, app.StoreOverride(testStore))
 	}
 
+	a, err := app.New(options...)
+	if err != nil {
+		panic(err)
+	}
+
 	th := &TestHelper{
-		App: app.New(options...),
+		App: a,
 	}
 	th.originalConfig = th.App.Config().Clone()
 

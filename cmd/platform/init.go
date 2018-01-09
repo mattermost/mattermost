@@ -31,13 +31,13 @@ func initDBCommandContext(configFileLocation string) (*app.App, error) {
 	}
 	model.AppErrorInit(utils.T)
 
-	if err := utils.InitAndLoadConfig(configFileLocation); err != nil {
+	utils.ConfigureCmdLineLog()
+
+	a, err := app.New(app.ConfigFile(configFileLocation))
+	if err != nil {
 		return nil, err
 	}
 
-	utils.ConfigureCmdLineLog()
-
-	a := app.New(app.ConfigFile(configFileLocation))
 	if model.BuildEnterpriseReady == "true" {
 		a.LoadLicense()
 	}
