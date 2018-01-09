@@ -4,7 +4,6 @@
 package sandbox
 
 import (
-	"bufio"
 	"bytes"
 	"context"
 	"encoding/json"
@@ -14,7 +13,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"strings"
 	"syscall"
 	"unsafe"
 
@@ -140,37 +138,6 @@ func runProcess(config *Configuration, path string) error {
 	return runExecutable(path)
 }
 
-var mountOptions = map[string]uintptr{
-	"ro":         syscall.MS_RDONLY,
-	"nosuid":     syscall.MS_NOSUID,
-	"noexec":     syscall.MS_NOEXEC,
-	"noatime":    syscall.MS_NOATIME,
-	"nodiratime": syscall.MS_NODIRATIME,
-	"relatime":   syscall.MS_RELATIME,
-}
-
-func mountFlagsForPath(path string) (uintptr, error) {
-	f, err := os.Open("/proc/self/mountinfo")
-	if err != nil {
-		return 0, errors.Wrapf(err, "unable to open proc file")
-	}
-	defer f.Close()
-
-	scanner := bufio.NewScanner(f)
-	for scanner.Scan() {
-		info := strings.Fields(scanner.Text())
-		if len(info) >= 6 && info[4] == path {
-			flags := uintptr(0)
-			for _, o := range strings.Split(info[5], ",") {
-				flags |= mountOptions[o]
-			}
-			return flags, nil
-		}
-	}
-
-	return 0, fmt.Errorf("unable to find mount info")
-}
-
 func mountMountPoint(root string, mountPoint *MountPoint) error {
 	isDir := true
 	if mountPoint.Type == "" {
@@ -235,10 +202,11 @@ func mountMountPoint(root string, mountPoint *MountPoint) error {
 		//     less privileged mount namespace.
 		//
 		// So we need to get the actual flags, add our new ones, then do a remount if needed.
-		mountFlags, err := mountFlagsForPath(target)
-		if err != nil {
-			return errors.Wrapf(err, "unable to get mount flags for "+target)
+		var stats syscall.Statfs_t
+		if err := syscall.Statfs(target, &stats); err != nil {
+			return errors.Wrap(err, "unable to get mount flags for target: "+target)
 		}
+		mountFlags := uintptr(stats.Flags)
 		const lockedFlags = unix.MS_RDONLY | unix.MS_NOSUID | unix.MS_NOEXEC | unix.MS_NOATIME | unix.MS_NODIRATIME | unix.MS_RELATIME
 		if (mountFlags & lockedFlags) != ((flags | mountFlags) & lockedFlags) {
 			if err := syscall.Mount("", target, "", flags|mountFlags|syscall.MS_REMOUNT, ""); err != nil {
