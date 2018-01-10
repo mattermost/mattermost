@@ -6,6 +6,7 @@ package model
 import (
 	"encoding/json"
 	"io"
+	"regexp"
 )
 
 const (
@@ -23,6 +24,8 @@ const (
 	CHANNEL_USER_ROLE_ID  = "channel_user"
 	CHANNEL_ADMIN_ROLE_ID = "channel_admin"
 	CHANNEL_GUEST_ROLE_ID = "guest"
+
+	ROLE_NAME_MAX_LENGTH = 64
 )
 
 type Role struct {
@@ -103,6 +106,20 @@ func (o *Role) Patch(patch *RolePatch) {
 	if patch.Permissions != nil {
 		o.Permissions = *patch.Permissions
 	}
+}
+
+var validRoleNameCharacters = regexp.MustCompile(`^[a-z0-9_]+$`)
+
+func IsValidRoleName(roleName string) bool {
+	if len(roleName) <= 0 || len(roleName) > 64 {
+		return false
+	}
+
+	if !validRoleNameCharacters.MatchString(roleName) {
+		return false
+	}
+
+	return true
 }
 
 func MakeDefaultRoles() map[string]*Role {

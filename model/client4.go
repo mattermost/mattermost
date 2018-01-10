@@ -3175,7 +3175,7 @@ func (c *Client4) GetRole(id string) (*Role, *Response) {
 
 // GetRoleByName gets a single role by Name.
 func (c *Client4) GetRoleByName(name string) (*Role, *Response) {
-	if r, err := c.DoApiGet(c.GetRolesRoute()+fmt.Sprintf("/names/%v", name), ""); err != nil {
+	if r, err := c.DoApiGet(c.GetRolesRoute()+fmt.Sprintf("/name/%v", name), ""); err != nil {
 		return nil, BuildErrorResponse(r, err)
 	} else {
 		defer closeBody(r)
