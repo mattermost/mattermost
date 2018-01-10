@@ -145,7 +145,7 @@ func TestTXTEscapeParsing(t *testing.T) {
 }
 
 func GenerateDomain(r *rand.Rand, size int) []byte {
-	dnLen := size % 70 // artificially limit size so there's less to intrepret if a failure occurs
+	dnLen := size % 70 // artificially limit size so there's less to interpret if a failure occurs
 	var dn []byte
 	done := false
 	for i := 0; i < dnLen && !done; {
@@ -203,7 +203,7 @@ func TestDomainQuick(t *testing.T) {
 }
 
 func GenerateTXT(r *rand.Rand, size int) []byte {
-	rdLen := size % 300 // artificially limit size so there's less to intrepret if a failure occurs
+	rdLen := size % 300 // artificially limit size so there's less to interpret if a failure occurs
 	var rd []byte
 	for i := 0; i < rdLen; {
 		max := rdLen - 1
@@ -433,6 +433,7 @@ func TestParseClass(t *testing.T) {
 		// ClassANY can not occur in zone files
 		// "t.example.com. ANY A 127.0.0.1": "t.example.com.	3600	ANY	A	127.0.0.1",
 		"t.example.com. NONE A 127.0.0.1": "t.example.com.	3600	NONE	A	127.0.0.1",
+		"t.example.com. CLASS255 A 127.0.0.1": "t.example.com.	3600	CLASS255	A	127.0.0.1",
 	}
 	for i, o := range tests {
 		rr, err := NewRR(i)
@@ -1104,6 +1105,7 @@ func TestNewPrivateKey(t *testing.T) {
 		{RSASHA1, 1024},
 		{RSASHA256, 2048},
 		{DSA, 1024},
+		{ED25519, 256},
 	}
 
 	for _, algo := range algorithms {
@@ -1406,6 +1408,34 @@ func TestParseAVC(t *testing.T) {
 	}
 }
 
+func TestParseCSYNC(t *testing.T) {
+	syncs := map[string]string{
+		`example.com. 3600 IN CSYNC 66 3 A NS AAAA`: `example.com.	3600	IN	CSYNC	66 3 A NS AAAA`,
+	}
+	for s, o := range syncs {
+		rr, err := NewRR(s)
+		if err != nil {
+			t.Error("failed to parse RR: ", err)
+			continue
+		}
+		if rr.String() != o {
+			t.Errorf("`%s' should be equal to\n`%s', but is     `%s'", s, o, rr.String())
+		}
+	}
+}
+
+func TestParseBadNAPTR(t *testing.T) {
+	// Should look like: mplus.ims.vodafone.com.	3600	IN	NAPTR	10 100 "S" "SIP+D2U" "" _sip._udp.mplus.ims.vodafone.com.
+	naptr := `mplus.ims.vodafone.com.	3600	IN	NAPTR	10 100 S SIP+D2U  _sip._udp.mplus.ims.vodafone.com.`
+	_, err := NewRR(naptr) // parse fails, we should not have leaked a goroutine.
+	if err == nil {
+		t.Fatalf("parsing NAPTR should have failed: %s", naptr)
+	}
+	if err := goroutineLeaked(); err != nil {
+		t.Errorf("leaked goroutines: %s", err)
+	}
+}
+
 func TestUnbalancedParens(t *testing.T) {
 	sig := `example.com. 3600 IN RRSIG MX 15 2 3600 (
               1440021600 1438207200 3613 example.com. (
@@ -1413,6 +1443,23 @@ func TestUnbalancedParens(t *testing.T) {
               x8A4M3e23mRZ9VrbpMngwcrqNAg== )`
 	_, err := NewRR(sig)
 	if err == nil {
-		t.Fatalf("Failed to detect extra opening brace")
+		t.Fatalf("failed to detect extra opening brace")
+	}
+}
+
+func TestBad(t *testing.T) {
+	tests := []string{
+		`" TYPE257 9 1E12\x00\x105"`,
+		`" TYPE256  9 5"`,
+		`" TYPE257 0\"00000000000000400000000000000000000\x00\x10000000000000000000000000000000000 9 l\x16\x01\x005266"`,
+	}
+	for i := range tests {
+		s, err := strconv.Unquote(tests[i])
+		if err != nil {
+			t.Fatalf("failed to unquote: %q: %s", tests[i], err)
+		}
+		if _, err = NewRR(s); err == nil {
+			t.Errorf("correctly parsed %q", s)
+		}
 	}
 }

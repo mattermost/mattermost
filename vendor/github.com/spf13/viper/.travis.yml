@@ -2,8 +2,9 @@ go_import_path: github.com/spf13/viper
 
 language: go
 go:
-  - 1.7.5
-  - 1.8
+  - 1.7.x
+  - 1.8.x
+  - 1.9.x
   - tip
 
 os:

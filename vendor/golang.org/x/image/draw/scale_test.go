@@ -551,6 +551,17 @@ func TestRectDstMask(t *testing.T) {
 	}
 }
 
+func TestDstMaskSameSizeCopy(t *testing.T) {
+	bounds := image.Rect(0, 0, 42, 42)
+	src := image.Opaque
+	dst := image.NewRGBA(bounds)
+	mask := image.NewRGBA(bounds)
+
+	Copy(dst, image.ZP, src, bounds, Src, &Options{
+		DstMask: mask,
+	})
+}
+
 // TODO: delete this wrapper type once Go 1.5 is released, where an
 // image.Rectangle implements image.Image.
 type rectImage image.Rectangle

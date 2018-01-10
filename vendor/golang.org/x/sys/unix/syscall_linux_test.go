@@ -9,6 +9,7 @@ package unix_test
 import (
 	"io/ioutil"
 	"os"
+	"runtime"
 	"testing"
 	"time"
 
@@ -182,17 +183,129 @@ func TestSelect(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Select: %v", err)
 	}
-}
 
-func TestUname(t *testing.T) {
-	var utsname unix.Utsname
-	err := unix.Uname(&utsname)
+	dur := 150 * time.Millisecond
+	tv := unix.NsecToTimeval(int64(dur))
+	start := time.Now()
+	_, err = unix.Select(0, nil, nil, nil, &tv)
+	took := time.Since(start)
 	if err != nil {
-		t.Fatalf("Uname: %v", err)
+		t.Fatalf("Select: %v", err)
 	}
 
-	// conversion from []byte to string, golang.org/issue/20753
-	t.Logf("OS: %s/%s %s", string(utsname.Sysname[:]), string(utsname.Machine[:]), string(utsname.Release[:]))
+	if took < dur {
+		t.Errorf("Select: timeout should have been at least %v, got %v", dur, took)
+	}
+}
+
+func TestPselect(t *testing.T) {
+	_, err := unix.Pselect(0, nil, nil, nil, &unix.Timespec{Sec: 0, Nsec: 0}, nil)
+	if err != nil {
+		t.Fatalf("Pselect: %v", err)
+	}
+
+	dur := 2500 * time.Microsecond
+	ts := unix.NsecToTimespec(int64(dur))
+	start := time.Now()
+	_, err = unix.Pselect(0, nil, nil, nil, &ts, nil)
+	took := time.Since(start)
+	if err != nil {
+		t.Fatalf("Pselect: %v", err)
+	}
+
+	if took < dur {
+		t.Errorf("Pselect: timeout should have been at least %v, got %v", dur, took)
+	}
+}
+
+func TestFstatat(t *testing.T) {
+	defer chtmpdir(t)()
+
+	touch(t, "file1")
+
+	var st1 unix.Stat_t
+	err := unix.Stat("file1", &st1)
+	if err != nil {
+		t.Fatalf("Stat: %v", err)
+	}
+
+	var st2 unix.Stat_t
+	err = unix.Fstatat(unix.AT_FDCWD, "file1", &st2, 0)
+	if err != nil {
+		t.Fatalf("Fstatat: %v", err)
+	}
+
+	if st1 != st2 {
+		t.Errorf("Fstatat: returned stat does not match Stat")
+	}
+
+	os.Symlink("file1", "symlink1")
+
+	err = unix.Lstat("symlink1", &st1)
+	if err != nil {
+		t.Fatalf("Lstat: %v", err)
+	}
+
+	err = unix.Fstatat(unix.AT_FDCWD, "symlink1", &st2, unix.AT_SYMLINK_NOFOLLOW)
+	if err != nil {
+		t.Fatalf("Fstatat: %v", err)
+	}
+
+	if st1 != st2 {
+		t.Errorf("Fstatat: returned stat does not match Lstat")
+	}
+}
+
+func TestSchedSetaffinity(t *testing.T) {
+	runtime.LockOSThread()
+	defer runtime.UnlockOSThread()
+
+	var oldMask unix.CPUSet
+	err := unix.SchedGetaffinity(0, &oldMask)
+	if err != nil {
+		t.Fatalf("SchedGetaffinity: %v", err)
+	}
+
+	var newMask unix.CPUSet
+	newMask.Zero()
+	if newMask.Count() != 0 {
+		t.Errorf("CpuZero: didn't zero CPU set: %v", newMask)
+	}
+	cpu := 1
+	newMask.Set(cpu)
+	if newMask.Count() != 1 || !newMask.IsSet(cpu) {
+		t.Errorf("CpuSet: didn't set CPU %d in set: %v", cpu, newMask)
+	}
+	cpu = 5
+	newMask.Set(cpu)
+	if newMask.Count() != 2 || !newMask.IsSet(cpu) {
+		t.Errorf("CpuSet: didn't set CPU %d in set: %v", cpu, newMask)
+	}
+	newMask.Clear(cpu)
+	if newMask.Count() != 1 || newMask.IsSet(cpu) {
+		t.Errorf("CpuClr: didn't clear CPU %d in set: %v", cpu, newMask)
+	}
+
+	err = unix.SchedSetaffinity(0, &newMask)
+	if err != nil {
+		t.Fatalf("SchedSetaffinity: %v", err)
+	}
+
+	var gotMask unix.CPUSet
+	err = unix.SchedGetaffinity(0, &gotMask)
+	if err != nil {
+		t.Fatalf("SchedGetaffinity: %v", err)
+	}
+
+	if gotMask != newMask {
+		t.Errorf("SchedSetaffinity: returned affinity mask does not match set affinity mask")
+	}
+
+	// Restore old mask so it doesn't affect successive tests
+	err = unix.SchedSetaffinity(0, &oldMask)
+	if err != nil {
+		t.Fatalf("SchedSetaffinity: %v", err)
+	}
 }
 
 // utilities taken from os/os_test.go

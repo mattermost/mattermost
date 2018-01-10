@@ -255,6 +255,13 @@ func FindZoneByFqdn(fqdn string, nameservers []string) (string, error) {
 
 		// Check if we got a SOA RR in the answer section
 		if in.Rcode == dns.RcodeSuccess {
+
+			// CNAME records cannot/should not exist at the root of a zone.
+			// So we skip a domain when a CNAME is found.
+			if dnsMsgContainsCNAME(in) {
+				continue
+			}
+
 			for _, ans := range in.Answer {
 				if soa, ok := ans.(*dns.SOA); ok {
 					zone := soa.Hdr.Name
@@ -266,6 +273,16 @@ func FindZoneByFqdn(fqdn string, nameservers []string) (string, error) {
 	}
 
 	return "", fmt.Errorf("Could not find the start of authority")
+}
+
+// dnsMsgContainsCNAME checks for a CNAME answer in msg
+func dnsMsgContainsCNAME(msg *dns.Msg) bool {
+	for _, ans := range msg.Answer {
+		if _, ok := ans.(*dns.CNAME); ok {
+			return true
+		}
+	}
+	return false
 }
 
 // ClearFqdnCache clears the cache of fqdn to zone mappings. Primarily used in testing.
