@@ -1247,7 +1247,6 @@ func searchUserAccessTokens(c *Context, w http.ResponseWriter, r *http.Request) 
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
 	}
-	
 	props := model.UserAccessTokenSearchFromJson(r.Body)
 	if props == nil {
 		c.SetInvalidParam("user_access_token_search")
@@ -1258,7 +1257,6 @@ func searchUserAccessTokens(c *Context, w http.ResponseWriter, r *http.Request) 
 		c.SetInvalidParam("term")
 		return
 	}
-	
 	accessTokens, err := c.App.SearchUserAccessTokens(props.Term)
 	if err != nil {
 		c.Err = err
