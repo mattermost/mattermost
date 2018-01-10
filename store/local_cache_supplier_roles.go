@@ -43,7 +43,7 @@ func (s *LocalCacheSupplier) RoleGetByName(ctx context.Context, name string, hin
 }
 
 func (s *LocalCacheSupplier) RoleGetByNames(ctx context.Context, roleNames []string, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
-	var foundRoles model.Roles
+	var foundRoles []*model.Role
 
 	for _, roleName := range roleNames {
 		if result := s.doStandardReadCache(ctx, s.reactionCache, roleName, hints...); result != nil {
@@ -69,13 +69,13 @@ func (s *LocalCacheSupplier) RoleGetByNames(ctx context.Context, roleNames []str
 	result := s.Next().RoleGetByNames(ctx, rolesToQuery, hints...)
 
 	if result.Data != nil {
-		rolesFound := result.Data.(model.Roles)
+		rolesFound := result.Data.([]*model.Role)
 		for _, role := range rolesFound {
 			res := NewSupplierResult()
 			res.Data = role
 			s.doStandardAddToCache(ctx, s.roleCache, role.Name, res, hints...)
 		}
-		result.Data = append(foundRoles, result.Data.(model.Roles)...)
+		result.Data = append(foundRoles, result.Data.([]*model.Role)...)
 	}
 
 	return result

@@ -81,7 +81,61 @@ func TestGetRoleByName(t *testing.T) {
 }
 
 func TestGetRolesByNames(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer th.TearDown()
 
+	role1 := &model.Role{
+		Name:          model.NewId(),
+		DisplayName:   model.NewId(),
+		Description:   model.NewId(),
+		Permissions:   []string{"manage_system create_public_channel"},
+		SchemeManaged: true,
+	}
+	role2 := &model.Role{
+		Name:          model.NewId(),
+		DisplayName:   model.NewId(),
+		Description:   model.NewId(),
+		Permissions:   []string{"manage_system delete_private_channel"},
+		SchemeManaged: true,
+	}
+	role3 := &model.Role{
+		Name:          model.NewId(),
+		DisplayName:   model.NewId(),
+		Description:   model.NewId(),
+		Permissions:   []string{"manage_system manage_public_channels"},
+		SchemeManaged: true,
+	}
+
+	res1 := <-th.App.Srv.Store.Role().Save(role1)
+	assert.Nil(t, res1.Err)
+	role1 = res1.Data.(*model.Role)
+	defer th.App.Srv.Store.Job().Delete(role1.Id)
+
+	res2 := <-th.App.Srv.Store.Role().Save(role2)
+	assert.Nil(t, res2.Err)
+	role2 = res2.Data.(*model.Role)
+	defer th.App.Srv.Store.Job().Delete(role2.Id)
+
+	res3 := <-th.App.Srv.Store.Role().Save(role3)
+	assert.Nil(t, res3.Err)
+	role3 = res3.Data.(*model.Role)
+	defer th.App.Srv.Store.Job().Delete(role3.Id)
+
+	// Check all three roles can be found.
+	received, resp := th.Client.GetRolesByNames([]string{role1.Name, role2.Name, role3.Name})
+	CheckNoError(t, resp)
+
+	assert.Contains(t, received, role1)
+	assert.Contains(t, received, role2)
+	assert.Contains(t, received, role3)
+
+	// Check a list of invalid roles.
+	// TODO: Confirm whether no error for invalid role names is intended.
+	received, resp = th.Client.GetRolesByNames([]string{model.NewId(), model.NewId()})
+	CheckNoError(t, resp)
+
+	_, resp = th.SystemAdminClient.GetRolesByNames([]string{})
+	CheckBadRequestStatus(t, resp)
 }
 
 func TestPatchRole(t *testing.T) {

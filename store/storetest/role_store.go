@@ -219,7 +219,7 @@ func testRoleStoreGetByNames(t *testing.T, ss store.Store) {
 	n4 := []string{r1.Name, r2.Name}
 	res4 := <-ss.Role().GetByNames(n4)
 	assert.Nil(t, res4.Err)
-	roles4 := res4.Data.(model.Roles)
+	roles4 := res4.Data.([]*model.Role)
 	assert.Len(t, roles4, 2)
 	assert.Contains(t, roles4, d1)
 	assert.Contains(t, roles4, d2)
@@ -229,14 +229,14 @@ func testRoleStoreGetByNames(t *testing.T, ss store.Store) {
 	n5 := []string{model.NewId(), model.NewId()}
 	res5 := <-ss.Role().GetByNames(n5)
 	assert.Nil(t, res5.Err)
-	roles5 := res5.Data.(model.Roles)
+	roles5 := res5.Data.([]*model.Role)
 	assert.Len(t, roles5, 0)
 
 	// Get one valid one and one invalid one.
 	n6 := []string{r1.Name, model.NewId()}
 	res6 := <-ss.Role().GetByNames(n6)
 	assert.Nil(t, res6.Err)
-	roles6 := res6.Data.(model.Roles)
+	roles6 := res6.Data.([]*model.Role)
 	assert.Len(t, roles6, 1)
 	assert.Contains(t, roles6, d1)
 	assert.NotContains(t, roles6, d2)

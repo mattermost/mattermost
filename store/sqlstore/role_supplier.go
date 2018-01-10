@@ -119,7 +119,7 @@ func (s *SqlSupplier) RoleGetByNames(ctx context.Context, names []string, hints 
 	var dbRoles []*Role
 
 	if len(names) == 0 {
-		result.Data = model.Roles{}
+		result.Data = []*model.Role{}
 		return result
 	}
 
@@ -136,7 +136,7 @@ func (s *SqlSupplier) RoleGetByNames(ctx context.Context, names []string, hints 
 		result.Err = model.NewAppError("SqlRoleStore.GetByNames", "store.sql_role.get_by_names.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	var roles model.Roles
+	var roles []*model.Role
 	for _, dbRole := range dbRoles {
 		roles = append(roles, dbRole.ToRole())
 	}
