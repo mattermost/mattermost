@@ -73,7 +73,7 @@ func StopTestStore() {
 }
 
 func setupTestHelper(enterprise bool) *TestHelper {
-	options := []app.Option{app.DisableConfigWatcher}
+	options := []app.Option{app.DisableConfigWatch}
 	if testStore != nil {
 		options = append(options, app.StoreOverride(testStore))
 	}
