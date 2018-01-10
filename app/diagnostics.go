@@ -237,6 +237,8 @@ func (a *App) trackConfig() {
 		"enable_post_search":                               *cfg.ServiceSettings.EnablePostSearch,
 		"enable_user_statuses":                             *cfg.ServiceSettings.EnableUserStatuses,
 		"close_unused_direct_messages":                     *cfg.ServiceSettings.CloseUnusedDirectMessages,
+		"enable_preview_features":                          *cfg.ServiceSettings.EnablePreviewFeatures,
+		"enable_tutorial":                                  *cfg.ServiceSettings.EnableTutorial,
 	})
 
 	SendDiagnostic(TRACK_CONFIG_TEAM, map[string]interface{}{
@@ -264,6 +266,7 @@ func (a *App) trackConfig() {
 		"restrict_private_channel_manage_members": *cfg.TeamSettings.RestrictPrivateChannelManageMembers,
 		"enable_X_to_leave_channels_from_LHS":     *cfg.TeamSettings.EnableXToLeaveChannelsFromLHS,
 		"experimental_town_square_is_read_only":   *cfg.TeamSettings.ExperimentalTownSquareIsReadOnly,
+		"experimental_primary_team":               isDefault(*cfg.TeamSettings.ExperimentalPrimaryTeam, ""),
 	})
 
 	SendDiagnostic(TRACK_CONFIG_CLIENT_REQ, map[string]interface{}{
@@ -322,6 +325,7 @@ func (a *App) trackConfig() {
 		"enable_sign_in_with_username":         *cfg.EmailSettings.EnableSignInWithUsername,
 		"require_email_verification":           cfg.EmailSettings.RequireEmailVerification,
 		"send_email_notifications":             cfg.EmailSettings.SendEmailNotifications,
+		"use_channel_in_email_notifications":   *cfg.EmailSettings.UseChannelInEmailNotifications,
 		"email_notification_contents_type":     *cfg.EmailSettings.EmailNotificationContentsType,
 		"enable_smtp_auth":                     *cfg.EmailSettings.EnableSMTPAuth,
 		"connection_security":                  cfg.EmailSettings.ConnectionSecurity,
@@ -334,6 +338,9 @@ func (a *App) trackConfig() {
 		"isdefault_feedback_email":             isDefault(cfg.EmailSettings.FeedbackEmail, ""),
 		"isdefault_feedback_organization":      isDefault(*cfg.EmailSettings.FeedbackOrganization, model.EMAIL_SETTINGS_DEFAULT_FEEDBACK_ORGANIZATION),
 		"skip_server_certificate_verification": *cfg.EmailSettings.SkipServerCertificateVerification,
+		"isdefault_login_button_color":         isDefault(*cfg.EmailSettings.LoginButtonColor, ""),
+		"isdefault_login_button_border_color":  isDefault(*cfg.EmailSettings.LoginButtonBorderColor, ""),
+		"isdefault_login_button_text_color":    isDefault(*cfg.EmailSettings.LoginButtonTextColor, ""),
 	})
 
 	SendDiagnostic(TRACK_CONFIG_RATE, map[string]interface{}{
@@ -373,21 +380,24 @@ func (a *App) trackConfig() {
 	})
 
 	SendDiagnostic(TRACK_CONFIG_LDAP, map[string]interface{}{
-		"enable":                         *cfg.LdapSettings.Enable,
-		"enable_sync":                    *cfg.LdapSettings.EnableSync,
-		"connection_security":            *cfg.LdapSettings.ConnectionSecurity,
-		"skip_certificate_verification":  *cfg.LdapSettings.SkipCertificateVerification,
-		"sync_interval_minutes":          *cfg.LdapSettings.SyncIntervalMinutes,
-		"query_timeout":                  *cfg.LdapSettings.QueryTimeout,
-		"max_page_size":                  *cfg.LdapSettings.MaxPageSize,
-		"isdefault_first_name_attribute": isDefault(*cfg.LdapSettings.FirstNameAttribute, model.LDAP_SETTINGS_DEFAULT_FIRST_NAME_ATTRIBUTE),
-		"isdefault_last_name_attribute":  isDefault(*cfg.LdapSettings.LastNameAttribute, model.LDAP_SETTINGS_DEFAULT_LAST_NAME_ATTRIBUTE),
-		"isdefault_email_attribute":      isDefault(*cfg.LdapSettings.EmailAttribute, model.LDAP_SETTINGS_DEFAULT_EMAIL_ATTRIBUTE),
-		"isdefault_username_attribute":   isDefault(*cfg.LdapSettings.UsernameAttribute, model.LDAP_SETTINGS_DEFAULT_USERNAME_ATTRIBUTE),
-		"isdefault_nickname_attribute":   isDefault(*cfg.LdapSettings.NicknameAttribute, model.LDAP_SETTINGS_DEFAULT_NICKNAME_ATTRIBUTE),
-		"isdefault_id_attribute":         isDefault(*cfg.LdapSettings.IdAttribute, model.LDAP_SETTINGS_DEFAULT_ID_ATTRIBUTE),
-		"isdefault_position_attribute":   isDefault(*cfg.LdapSettings.PositionAttribute, model.LDAP_SETTINGS_DEFAULT_POSITION_ATTRIBUTE),
-		"isdefault_login_field_name":     isDefault(*cfg.LdapSettings.LoginFieldName, model.LDAP_SETTINGS_DEFAULT_LOGIN_FIELD_NAME),
+		"enable":                               *cfg.LdapSettings.Enable,
+		"enable_sync":                          *cfg.LdapSettings.EnableSync,
+		"connection_security":                  *cfg.LdapSettings.ConnectionSecurity,
+		"skip_certificate_verification":        *cfg.LdapSettings.SkipCertificateVerification,
+		"sync_interval_minutes":                *cfg.LdapSettings.SyncIntervalMinutes,
+		"query_timeout":                        *cfg.LdapSettings.QueryTimeout,
+		"max_page_size":                        *cfg.LdapSettings.MaxPageSize,
+		"isdefault_first_name_attribute":       isDefault(*cfg.LdapSettings.FirstNameAttribute, model.LDAP_SETTINGS_DEFAULT_FIRST_NAME_ATTRIBUTE),
+		"isdefault_last_name_attribute":        isDefault(*cfg.LdapSettings.LastNameAttribute, model.LDAP_SETTINGS_DEFAULT_LAST_NAME_ATTRIBUTE),
+		"isdefault_email_attribute":            isDefault(*cfg.LdapSettings.EmailAttribute, model.LDAP_SETTINGS_DEFAULT_EMAIL_ATTRIBUTE),
+		"isdefault_username_attribute":         isDefault(*cfg.LdapSettings.UsernameAttribute, model.LDAP_SETTINGS_DEFAULT_USERNAME_ATTRIBUTE),
+		"isdefault_nickname_attribute":         isDefault(*cfg.LdapSettings.NicknameAttribute, model.LDAP_SETTINGS_DEFAULT_NICKNAME_ATTRIBUTE),
+		"isdefault_id_attribute":               isDefault(*cfg.LdapSettings.IdAttribute, model.LDAP_SETTINGS_DEFAULT_ID_ATTRIBUTE),
+		"isdefault_position_attribute":         isDefault(*cfg.LdapSettings.PositionAttribute, model.LDAP_SETTINGS_DEFAULT_POSITION_ATTRIBUTE),
+		"isdefault_login_field_name":           isDefault(*cfg.LdapSettings.LoginFieldName, model.LDAP_SETTINGS_DEFAULT_LOGIN_FIELD_NAME),
+		"isdefault_login_button_color":         isDefault(*cfg.LdapSettings.LoginButtonColor, ""),
+		"isdefault_login_button_border_color":  isDefault(*cfg.LdapSettings.LoginButtonBorderColor, ""),
+		"isdefault_login_button_text_color":    isDefault(*cfg.LdapSettings.LoginButtonTextColor, ""),
 	})
 
 	SendDiagnostic(TRACK_CONFIG_COMPLIANCE, map[string]interface{}{
@@ -402,18 +412,21 @@ func (a *App) trackConfig() {
 	})
 
 	SendDiagnostic(TRACK_CONFIG_SAML, map[string]interface{}{
-		"enable":                         *cfg.SamlSettings.Enable,
-		"enable_sync_with_ldap":          *cfg.SamlSettings.EnableSyncWithLdap,
-		"verify":                         *cfg.SamlSettings.Verify,
-		"encrypt":                        *cfg.SamlSettings.Encrypt,
-		"isdefault_first_name_attribute": isDefault(*cfg.SamlSettings.FirstNameAttribute, model.SAML_SETTINGS_DEFAULT_FIRST_NAME_ATTRIBUTE),
-		"isdefault_last_name_attribute":  isDefault(*cfg.SamlSettings.LastNameAttribute, model.SAML_SETTINGS_DEFAULT_LAST_NAME_ATTRIBUTE),
-		"isdefault_email_attribute":      isDefault(*cfg.SamlSettings.EmailAttribute, model.SAML_SETTINGS_DEFAULT_EMAIL_ATTRIBUTE),
-		"isdefault_username_attribute":   isDefault(*cfg.SamlSettings.UsernameAttribute, model.SAML_SETTINGS_DEFAULT_USERNAME_ATTRIBUTE),
-		"isdefault_nickname_attribute":   isDefault(*cfg.SamlSettings.NicknameAttribute, model.SAML_SETTINGS_DEFAULT_NICKNAME_ATTRIBUTE),
-		"isdefault_locale_attribute":     isDefault(*cfg.SamlSettings.LocaleAttribute, model.SAML_SETTINGS_DEFAULT_LOCALE_ATTRIBUTE),
-		"isdefault_position_attribute":   isDefault(*cfg.SamlSettings.PositionAttribute, model.SAML_SETTINGS_DEFAULT_POSITION_ATTRIBUTE),
-		"isdefault_login_button_text":    isDefault(*cfg.SamlSettings.LoginButtonText, model.USER_AUTH_SERVICE_SAML_TEXT),
+		"enable":                               *cfg.SamlSettings.Enable,
+		"enable_sync_with_ldap":                *cfg.SamlSettings.EnableSyncWithLdap,
+		"verify":                               *cfg.SamlSettings.Verify,
+		"encrypt":                              *cfg.SamlSettings.Encrypt,
+		"isdefault_first_name_attribute":       isDefault(*cfg.SamlSettings.FirstNameAttribute, model.SAML_SETTINGS_DEFAULT_FIRST_NAME_ATTRIBUTE),
+		"isdefault_last_name_attribute":        isDefault(*cfg.SamlSettings.LastNameAttribute, model.SAML_SETTINGS_DEFAULT_LAST_NAME_ATTRIBUTE),
+		"isdefault_email_attribute":            isDefault(*cfg.SamlSettings.EmailAttribute, model.SAML_SETTINGS_DEFAULT_EMAIL_ATTRIBUTE),
+		"isdefault_username_attribute":         isDefault(*cfg.SamlSettings.UsernameAttribute, model.SAML_SETTINGS_DEFAULT_USERNAME_ATTRIBUTE),
+		"isdefault_nickname_attribute":         isDefault(*cfg.SamlSettings.NicknameAttribute, model.SAML_SETTINGS_DEFAULT_NICKNAME_ATTRIBUTE),
+		"isdefault_locale_attribute":           isDefault(*cfg.SamlSettings.LocaleAttribute, model.SAML_SETTINGS_DEFAULT_LOCALE_ATTRIBUTE),
+		"isdefault_position_attribute":         isDefault(*cfg.SamlSettings.PositionAttribute, model.SAML_SETTINGS_DEFAULT_POSITION_ATTRIBUTE),
+		"isdefault_login_button_text":          isDefault(*cfg.SamlSettings.LoginButtonText, model.USER_AUTH_SERVICE_SAML_TEXT),
+		"isdefault_login_button_color":         isDefault(*cfg.SamlSettings.LoginButtonColor, ""),
+		"isdefault_login_button_border_color":  isDefault(*cfg.SamlSettings.LoginButtonBorderColor, ""),
+		"isdefault_login_button_text_color":    isDefault(*cfg.SamlSettings.LoginButtonTextColor, ""),
 	})
 
 	SendDiagnostic(TRACK_CONFIG_CLUSTER, map[string]interface{}{
