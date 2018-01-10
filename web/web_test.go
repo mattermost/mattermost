@@ -38,7 +38,7 @@ func StopTestStore() {
 }
 
 func Setup() *app.App {
-	a, err := app.New(app.StoreOverride(testStore))
+	a, err := app.New(app.StoreOverride(testStore), app.DisableConfigWatcher)
 	if err != nil {
 		panic(err)
 	}
