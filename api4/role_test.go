@@ -139,5 +139,42 @@ func TestGetRolesByNames(t *testing.T) {
 }
 
 func TestPatchRole(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer th.TearDown()
 
+	role := &model.Role{
+		Name:          model.NewId(),
+		DisplayName:   model.NewId(),
+		Description:   model.NewId(),
+		Permissions:   []string{"manage_system create_public_channel"},
+		SchemeManaged: true,
+	}
+
+	res1 := <-th.App.Srv.Store.Role().Save(role)
+	assert.Nil(t, res1.Err)
+	role = res1.Data.(*model.Role)
+	defer th.App.Srv.Store.Job().Delete(role.Id)
+
+	patch := &model.RolePatch{
+		Permissions: &[]string{"manage_system", "delete_public_channel"},
+	}
+
+	received, resp := th.SystemAdminClient.PatchRole(role.Id, patch)
+	CheckNoError(t, resp)
+
+	assert.Equal(t, received.Id, role.Id)
+	assert.Equal(t, received.Name, role.Name)
+	assert.Equal(t, received.DisplayName, role.DisplayName)
+	assert.Equal(t, received.Description, role.Description)
+	assert.EqualValues(t, received.Permissions, []string{"manage_system", "delete_public_channel"})
+	assert.Equal(t, received.SchemeManaged, role.SchemeManaged)
+
+	received, resp = th.SystemAdminClient.PatchRole("junk", patch)
+	CheckBadRequestStatus(t, resp)
+
+	received, resp = th.Client.PatchRole(model.NewId(), patch)
+	CheckNotFoundStatus(t, resp)
+
+	received, resp = th.Client.PatchRole(role.Id, patch)
+	CheckForbiddenStatus(t, resp)
 }
