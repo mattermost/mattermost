@@ -658,9 +658,9 @@ func (c *Context) RequireRoleName() *Context {
 		return c
 	}
 
-	// FIXME: Validate role name here using model package function.
-	if true == false {
+	if !model.IsValidRoleName(c.Params.RoleName){
 		c.SetInvalidUrlParam("role_name")
 	}
+
 	return c
 }

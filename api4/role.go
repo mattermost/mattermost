@@ -49,6 +49,7 @@ func getRolesByNames(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if len(rolenames) == 0 {
 		c.SetInvalidParam("rolenames")
+		return
 	}
 
 	if roles, err := c.App.GetRolesByNames(rolenames); err != nil {

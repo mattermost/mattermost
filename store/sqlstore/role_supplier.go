@@ -101,7 +101,11 @@ func (s *SqlSupplier) RoleGetByName(ctx context.Context, name string, hints ...s
 	var dbRole Role
 
 	if err := s.GetReplica().SelectOne(&dbRole, "SELECT * from Roles WHERE Name = :Name", map[string]interface{}{"Name": name}); err != nil {
-		result.Err = model.NewAppError("SqlRoleStore.GetByName", "store.sql_role.get_by_name.app_error", nil, "name="+name+",err="+err.Error(), http.StatusInternalServerError)
+		if err == sql.ErrNoRows {
+			result.Err = model.NewAppError("SqlRoleStore.GetByName", "store.sql_role.get_by_name.app_error", nil, "name="+name+",err="+err.Error(), http.StatusNotFound)
+		} else {
+			result.Err = model.NewAppError("SqlRoleStore.GetByName", "store.sql_role.get_by_name.app_error", nil, "name="+name+",err="+err.Error(), http.StatusInternalServerError)
+		}
 	}
 
 	result.Data = dbRole.ToRole()
