@@ -211,6 +211,26 @@ func (s SqlUserAccessTokenStore) GetByUser(userId string, offset, limit int) sto
 	})
 }
 
+func (s SqlUserAccessTokenStore) Search(term string) store.StoreChannel {
+	return store.Do(func(result *store.StoreResult) {
+		tokens := []*model.UserAccessToken{}
+		params := map[string]interface{}{"Term": term + "%"}
+		query := `
+			SELECT 
+				uat.*
+			FROM UserAccessTokens uat
+			INNER JOIN Users u 
+				ON uat.UserId = u.Id
+			WHERE uat.Id LIKE :Term OR uat.UserId LIKE :Term OR u.Username LIKE :Term`
+
+		if _, err := s.GetReplica().Select(&tokens, query, params); err != nil {
+			result.Err = model.NewAppError("SqlUserAccessTokenStore.Search", "store.sql_user_access_token.search.app_error", nil, "term="+term+", "+err.Error(), http.StatusInternalServerError)
+		}
+
+		result.Data = tokens
+	})
+}
+
 func (s SqlUserAccessTokenStore) UpdateTokenEnable(tokenId string) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		if _, err := s.GetMaster().Exec("UPDATE UserAccessTokens SET IsActive = TRUE WHERE Id = :Id", map[string]interface{}{"Id": tokenId}); err != nil {

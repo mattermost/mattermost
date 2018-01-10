@@ -1092,6 +1092,16 @@ func (c *Client4) RevokeUserAccessToken(tokenId string) (bool, *Response) {
 	}
 }
 
+// SearchUserAccessTokens returns user access tokens matching the provided search term.
+func (c *Client4) SearchUserAccessTokens(search *UserAccessTokenSearch) ([]*UserAccessToken, *Response) {
+	if r, err := c.DoApiPost(c.GetUsersRoute()+"/tokens/search", search.ToJson()); err != nil {
+		return nil, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return UserAccessTokenListFromJson(r.Body), BuildResponse(r)
+	}
+}
+
 // DisableUserAccessToken will disable a user access token by id. Must have the
 // 'revoke_user_access_token' permission and if disabling for another user, must have the
 // 'edit_other_users' permission.

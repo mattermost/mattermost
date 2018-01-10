@@ -6791,6 +6791,10 @@
     "translation": "We couldn't get the personal access tokens by user"
   },
   {
+    "id": "store.sql_user_access_token.search.app_error",
+    "translation": "We encountered an error searching user access tokens"
+  },
+  {
     "id": "store.sql_user_access_token.save.app_error",
     "translation": "We couldn't save the personal access token"
   },
