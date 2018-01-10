@@ -48,7 +48,38 @@ func (role *Role) ToJson() string {
 	}
 }
 
+func RoleFromJson(data io.Reader) *Role {
+	decoder := json.NewDecoder(data)
+	var role Role
+	err := decoder.Decode(&role)
+	if err == nil {
+		return &role
+	} else {
+		return nil
+	}
+}
+
 func RoleListToJson(r []*Role) string {
+	b, err := json.Marshal(r)
+	if err != nil {
+		return ""
+	} else {
+		return string(b)
+	}
+}
+
+func RoleListFromJson(data io.Reader) []*Role {
+	decoder := json.NewDecoder(data)
+	var roles []*Role
+	err := decoder.Decode(&roles)
+	if err == nil {
+		return roles
+	} else {
+		return nil
+	}
+}
+
+func (r *RolePatch) ToJson() string {
 	b, err := json.Marshal(r)
 	if err != nil {
 		return ""
