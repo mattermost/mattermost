@@ -175,6 +175,8 @@ func (a *App) Shutdown() {
 	utils.RemoveConfigListener(a.configListenerId)
 	utils.RemoveLicenseListener(a.licenseListenerId)
 	l4g.Info(utils.T("api.server.stop_server.stopped.info"))
+
+	a.DisableConfigWatch()
 }
 
 var accountMigrationInterface func(*App) einterfaces.AccountMigrationInterface
