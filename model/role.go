@@ -37,8 +37,6 @@ type Role struct {
 	SchemeManaged bool     `json:"scheme_managed"`
 }
 
-type Roles []*Role
-
 type RolePatch struct {
 	Permissions *[]string `json:"permissions"`
 }

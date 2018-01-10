@@ -194,7 +194,7 @@ func (a *App) HasPermissionToUser(askingUserId string, userId string) bool {
 }
 
 func (a *App) CheckIfRolesGrantPermission(roleNames []string, permissionId string) bool {
-	var roles model.Roles
+	var roles []*model.Role
 
 	if result := <-a.Srv.Store.Role().GetByNames(roleNames); result.Err != nil {
 		// This should only happen if something is very broken. We can't realistically
@@ -203,7 +203,7 @@ func (a *App) CheckIfRolesGrantPermission(roleNames []string, permissionId strin
 		l4g.Error(result.Err)
 		return false
 	} else {
-		roles = result.Data.(model.Roles)
+		roles = result.Data.([]*model.Role)
 	}
 
 	for _, role := range roles {
