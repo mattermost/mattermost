@@ -434,6 +434,10 @@ func (a *App) HTMLTemplates() *template.Template {
 	return a.htmlTemplateWatcher.Templates()
 }
 
+func (a *App) SetDefaultRolesBasedOnConfig() {
+	// TODO: DELETE ME WHEN ALL UNIT TESTS ARE MIGRATED
+}
+
 func (a *App) HTTPClient(trustURLs bool) *http.Client {
 	insecure := a.Config().ServiceSettings.EnableInsecureOutgoingConnections != nil && *a.Config().ServiceSettings.EnableInsecureOutgoingConnections
 

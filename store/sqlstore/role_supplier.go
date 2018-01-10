@@ -5,10 +5,11 @@ package sqlstore
 
 import (
 	"context"
+	"database/sql"
+	"fmt"
 	"net/http"
 	"strings"
 
-	"fmt"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
 )
@@ -82,7 +83,11 @@ func (s *SqlSupplier) RoleGet(ctx context.Context, roleId string, hints ...store
 	var dbRole Role
 
 	if err := s.GetReplica().SelectOne(&dbRole, "SELECT * from Roles WHERE Id = :Id", map[string]interface{}{"Id": roleId}); err != nil {
-		result.Err = model.NewAppError("SqlRoleStore.Get", "store.sql_role.get.app_error", nil, err.Error(), http.StatusInternalServerError)
+		if err == sql.ErrNoRows {
+			result.Err = model.NewAppError("SqlRoleStore.Get", "store.sql_role.get.app_error", nil, "Id="+roleId+", "+err.Error(), http.StatusNotFound)
+		} else {
+			result.Err = model.NewAppError("SqlRoleStore.Get", "store.sql_role.get.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
 	}
 
 	result.Data = dbRole.ToRole()
