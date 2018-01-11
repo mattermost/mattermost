@@ -64,13 +64,18 @@ func StopTestStore() {
 }
 
 func setupTestHelper(enterprise bool) *TestHelper {
-	var options []app.Option
+	options := []app.Option{app.DisableConfigWatch}
 	if testStore != nil {
 		options = append(options, app.StoreOverride(testStore))
 	}
 
+	a, err := app.New(options...)
+	if err != nil {
+		panic(err)
+	}
+
 	th := &TestHelper{
-		App: app.New(options...),
+		App: a,
 	}
 	th.originalConfig = th.App.Config().Clone()
 
