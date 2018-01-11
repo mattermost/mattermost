@@ -10,6 +10,7 @@ import (
 	"strconv"
 
 	"github.com/mattermost/mattermost-server/model"
+	"strings"
 )
 
 const (
@@ -517,6 +518,14 @@ func updateTeamMemberRoles(c *Context, w http.ResponseWriter, r *http.Request) {
 	newRoles := props["roles"]
 	if !model.IsValidUserRoles(newRoles) {
 		c.SetInvalidParam("team_member_roles")
+		return
+	}
+
+	if exist, err := c.App.CheckRolesExist(strings.Split(newRoles, " ")); err != nil {
+		c.Err = err
+		return
+	} else if !exist {
+		c.SetInvalidParam("roles")
 		return
 	}
 
