@@ -718,8 +718,8 @@
   {
     "id": "api.command_groupmsg.invalid_user.app_error",
     "translation": {
-      "one": "Impossible de trouver l'utilisateur : {{Users.}}",
-      "other": "Impossible de trouver les utilisateurs : {{Users.}}"
+      "one": "Impossible de trouver l'utilisateur : {{.Users}}",
+      "other": "Impossible de trouver les utilisateurs : {{.Users}}"
     }
   },
   {
