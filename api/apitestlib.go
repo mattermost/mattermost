@@ -370,3 +370,102 @@ func (me *TestHelper) TearDown() {
 		panic(err)
 	}
 }
+
+func (me *TestHelper) SaveDefaultRolePermissions() map[string][]string {
+	utils.DisableDebugLogForTest()
+
+	results := make(map[string][]string)
+
+	for _, roleName := range []string{
+		"system_user",
+		"system_admin",
+		"team_user",
+		"team_admin",
+		"channel_user",
+		"channel_admin",
+	} {
+		role, err1 := me.App.GetRoleByName(roleName)
+		if err1 != nil {
+			utils.EnableDebugLogForTest()
+			panic(err1)
+		}
+
+		results[roleName] = role.Permissions
+	}
+
+	utils.EnableDebugLogForTest()
+	return results
+}
+
+func (me *TestHelper) RestoreDefaultRolePermissions(data map[string][]string) {
+	utils.DisableDebugLogForTest()
+
+	for roleName, permissions := range data {
+		role, err1 := me.App.GetRoleByName(roleName)
+		if err1 != nil {
+			utils.EnableDebugLogForTest()
+			panic(err1)
+		}
+
+		if strings.Join(role.Permissions, " ") == strings.Join(permissions, " ") {
+			continue
+		}
+
+		role.Permissions = permissions
+
+		_, err2 := me.App.UpdateRole(role)
+		if err2 != nil {
+			utils.EnableDebugLogForTest()
+			panic(err2)
+		}
+	}
+
+	utils.EnableDebugLogForTest()
+}
+
+func (me *TestHelper) RemovePermissionFromRole(permission string, roleName string) {
+	utils.DisableDebugLogForTest()
+
+	role, err1 := me.App.GetRoleByName(roleName)
+	if err1 != nil {
+		utils.EnableDebugLogForTest()
+		panic(err1)
+	}
+
+	var newPermissions []string
+	for _, p := range role.Permissions {
+		if p != permission {
+			newPermissions = append(newPermissions, p)
+		}
+	}
+
+	role.Permissions = newPermissions
+
+	_, err2 := me.App.UpdateRole(role)
+	if err2 != nil {
+		utils.EnableDebugLogForTest()
+		panic(err2)
+	}
+
+	utils.EnableDebugLogForTest()
+}
+
+func (me *TestHelper) AddPermissionToRole(permission string, roleName string) {
+	utils.DisableDebugLogForTest()
+
+	role, err1 := me.App.GetRoleByName(roleName)
+	if err1 != nil {
+		utils.EnableDebugLogForTest()
+		panic(err1)
+	}
+
+	role.Permissions = append(role.Permissions, permission)
+
+	_, err2 := me.App.UpdateRole(role)
+	if err2 != nil {
+		utils.EnableDebugLogForTest()
+		panic(err2)
+	}
+
+	utils.EnableDebugLogForTest()
+}

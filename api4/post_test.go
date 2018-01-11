@@ -136,14 +136,12 @@ func testCreatePostWithOutgoingHook(
 	defer func() {
 		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOutgoingWebhooks = enableOutgoingHooks })
 		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOnlyAdminIntegrations = enableAdminOnlyHooks })
-		th.App.SetDefaultRolesBasedOnConfig()
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			cfg.ServiceSettings.AllowedUntrustedInternalConnections = &allowedInternalConnections
 		})
 	}()
 	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOutgoingWebhooks = true })
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOnlyAdminIntegrations = true })
-	th.App.SetDefaultRolesBasedOnConfig()
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost 127.0.0.1"
 	})
@@ -496,14 +494,11 @@ func TestUpdatePost(t *testing.T) {
 		utils.SetIsLicensed(isLicensed)
 		utils.SetLicense(license)
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowEditPost = allowEditPost })
-		th.App.SetDefaultRolesBasedOnConfig()
 	}()
 	utils.SetIsLicensed(true)
 	utils.SetLicense(&model.License{Features: &model.Features{}})
 	utils.License().Features.SetDefaults()
-
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowEditPost = model.ALLOW_EDIT_POST_ALWAYS })
-	th.App.SetDefaultRolesBasedOnConfig()
 
 	post := &model.Post{ChannelId: channel.Id, Message: "zz" + model.NewId() + "a"}
 	rpost, resp := Client.CreatePost(post)
@@ -581,14 +576,12 @@ func TestPatchPost(t *testing.T) {
 		utils.SetIsLicensed(isLicensed)
 		utils.SetLicense(license)
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowEditPost = allowEditPost })
-		th.App.SetDefaultRolesBasedOnConfig()
 	}()
 	utils.SetIsLicensed(true)
 	utils.SetLicense(&model.License{Features: &model.Features{}})
 	utils.License().Features.SetDefaults()
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowEditPost = model.ALLOW_EDIT_POST_ALWAYS })
-	th.App.SetDefaultRolesBasedOnConfig()
 
 	post := &model.Post{
 		ChannelId:    channel.Id,

@@ -167,10 +167,8 @@ func TestCreatePost(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { cfg.TeamSettings.ExperimentalTownSquareIsReadOnly = disableTownSquareReadOnly })
 		utils.SetIsLicensed(isLicensed)
 		utils.SetLicense(license)
-		th.App.SetDefaultRolesBasedOnConfig()
 	}()
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.ExperimentalTownSquareIsReadOnly = true })
-	th.App.SetDefaultRolesBasedOnConfig()
 	utils.SetIsLicensed(true)
 	utils.SetLicense(&model.License{Features: &model.Features{}})
 	utils.License().Features.SetDefaults()
@@ -965,9 +963,6 @@ func TestDeletePosts(t *testing.T) {
 	channel1 := th.BasicChannel
 	team1 := th.BasicTeam
 
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.RestrictPostDelete = model.PERMISSIONS_DELETE_POST_ALL })
-	th.App.SetDefaultRolesBasedOnConfig()
-
 	time.Sleep(10 * time.Millisecond)
 	post1 := &model.Post{ChannelId: channel1.Id, Message: "zz" + model.NewId() + "a"}
 	post1 = Client.Must(Client.CreatePost(post1)).Data.(*model.Post)
@@ -1020,16 +1015,11 @@ func TestDeletePosts(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	// Test licensed policy controls for delete post
-	isLicensed := utils.IsLicensed()
-	license := utils.License()
+	// Check the appropriate permissions are enforced.
+	defaultRolePermissions := th.SaveDefaultRolePermissions()
 	defer func() {
-		utils.SetIsLicensed(isLicensed)
-		utils.SetLicense(license)
+		th.RestoreDefaultRolePermissions(defaultRolePermissions)
 	}()
-	utils.SetIsLicensed(true)
-	utils.SetLicense(&model.License{Features: &model.Features{}})
-	utils.License().Features.SetDefaults()
 
 	th.UpdateUserToTeamAdmin(th.BasicUser2, th.BasicTeam)
 
@@ -1041,10 +1031,8 @@ func TestDeletePosts(t *testing.T) {
 
 	SystemAdminClient.Must(SystemAdminClient.DeletePost(channel1.Id, post4b.Id))
 
-	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.ServiceSettings.RestrictPostDelete = model.PERMISSIONS_DELETE_POST_TEAM_ADMIN
-	})
-	th.App.SetDefaultRolesBasedOnConfig()
+	th.RemovePermissionFromRole(model.PERMISSION_DELETE_POST.Id, model.CHANNEL_USER_ROLE_ID)
+	th.AddPermissionToRole(model.PERMISSION_DELETE_POST.Id, model.TEAM_ADMIN_ROLE_ID)
 
 	th.LoginBasic()
 
@@ -1065,43 +1053,6 @@ func TestDeletePosts(t *testing.T) {
 	Client.Must(Client.DeletePost(channel1.Id, post5a.Id))
 
 	SystemAdminClient.Must(SystemAdminClient.DeletePost(channel1.Id, post5b.Id))
-
-	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.ServiceSettings.RestrictPostDelete = model.PERMISSIONS_DELETE_POST_SYSTEM_ADMIN
-	})
-	th.App.SetDefaultRolesBasedOnConfig()
-
-	th.LoginBasic()
-
-	time.Sleep(10 * time.Millisecond)
-	post6a := &model.Post{ChannelId: channel1.Id, Message: "zz" + model.NewId() + "a"}
-	post6a = Client.Must(Client.CreatePost(post6a)).Data.(*model.Post)
-
-	if _, err := Client.DeletePost(channel1.Id, post6a.Id); err == nil {
-		t.Fatal(err)
-	}
-
-	th.LoginBasic2()
-
-	if _, err := Client.DeletePost(channel1.Id, post6a.Id); err == nil {
-		t.Fatal(err)
-	}
-
-	// Check that if unlicensed the policy restriction is not enforced.
-	utils.SetIsLicensed(false)
-	utils.SetLicense(nil)
-	th.App.SetDefaultRolesBasedOnConfig()
-
-	time.Sleep(10 * time.Millisecond)
-	post7 := &model.Post{ChannelId: channel1.Id, Message: "zz" + model.NewId() + "a"}
-	post7 = Client.Must(Client.CreatePost(post7)).Data.(*model.Post)
-
-	if _, err := Client.DeletePost(channel1.Id, post7.Id); err != nil {
-		t.Fatal(err)
-	}
-
-	SystemAdminClient.Must(SystemAdminClient.DeletePost(channel1.Id, post6a.Id))
-
 }
 
 func TestEmailMention(t *testing.T) {
