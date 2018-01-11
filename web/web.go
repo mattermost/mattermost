@@ -65,7 +65,7 @@ func pluginHandler(config model.ConfigFunc, handler http.Handler) http.Handler {
 	})
 }
 
-// Due to the complexities of UA detection and the ramifications of a misdetection only older Safari and IE browsers throw incopatability errors.
+// Due to the complexities of UA detection and the ramifications of a misdetection only older Safari and IE browsers throw incompatibility errors.
 
 // Map should be of minimum required browser version.
 var browserMinimumSupported = map[string]int{
