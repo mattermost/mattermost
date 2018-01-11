@@ -393,3 +393,15 @@ func (a *App) GetUserAccessToken(tokenId string, sanitize bool) (*model.UserAcce
 		return token, nil
 	}
 }
+
+func (a *App) SearchUserAccessTokens(term string) ([]*model.UserAccessToken, *model.AppError) {
+	if result := <-a.Srv.Store.UserAccessToken().Search(term); result.Err != nil {
+		return nil, result.Err
+	} else {
+		tokens := result.Data.([]*model.UserAccessToken)
+		for _, token := range tokens {
+			token.Token = ""
+		}
+		return tokens, nil
+	}
+}

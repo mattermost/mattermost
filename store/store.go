@@ -449,6 +449,7 @@ type UserAccessTokenStore interface {
 	GetAll(offset int, limit int) StoreChannel
 	GetByToken(tokenString string) StoreChannel
 	GetByUser(userId string, page, perPage int) StoreChannel
+	Search(term string) StoreChannel
 	UpdateTokenEnable(tokenId string) StoreChannel
 	UpdateTokenDisable(tokenId string) StoreChannel
 }

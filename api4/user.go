@@ -60,6 +60,7 @@ func (api *API) InitUser() {
 	api.BaseRoutes.User.Handle("/tokens", api.ApiSessionRequired(createUserAccessToken)).Methods("POST")
 	api.BaseRoutes.User.Handle("/tokens", api.ApiSessionRequired(getUserAccessTokensForUser)).Methods("GET")
 	api.BaseRoutes.Users.Handle("/tokens", api.ApiSessionRequired(getUserAccessTokens)).Methods("GET")
+	api.BaseRoutes.Users.Handle("/tokens/search", api.ApiSessionRequired(searchUserAccessTokens)).Methods("POST")
 	api.BaseRoutes.Users.Handle("/tokens/{token_id:[A-Za-z0-9]+}", api.ApiSessionRequired(getUserAccessToken)).Methods("GET")
 	api.BaseRoutes.Users.Handle("/tokens/revoke", api.ApiSessionRequired(revokeUserAccessToken)).Methods("POST")
 	api.BaseRoutes.Users.Handle("/tokens/disable", api.ApiSessionRequired(disableUserAccessToken)).Methods("POST")
@@ -1239,6 +1240,30 @@ func createUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	c.LogAudit("success - token_id=" + accessToken.Id)
 	w.Write([]byte(accessToken.ToJson()))
+}
+
+func searchUserAccessTokens(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !c.App.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+	props := model.UserAccessTokenSearchFromJson(r.Body)
+	if props == nil {
+		c.SetInvalidParam("user_access_token_search")
+		return
+	}
+
+	if len(props.Term) == 0 {
+		c.SetInvalidParam("term")
+		return
+	}
+	accessTokens, err := c.App.SearchUserAccessTokens(props.Term)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	w.Write([]byte(model.UserAccessTokenListToJson(accessTokens)))
 }
 
 func getUserAccessTokens(c *Context, w http.ResponseWriter, r *http.Request) {
