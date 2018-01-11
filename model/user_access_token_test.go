@@ -12,6 +12,7 @@ func TestUserAccessTokenJson(t *testing.T) {
 	a1 := UserAccessToken{}
 	a1.UserId = NewId()
 	a1.Token = NewId()
+
 	json := a1.ToJson()
 	ra1 := UserAccessTokenFromJson(strings.NewReader(json))
 
