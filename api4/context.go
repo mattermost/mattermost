@@ -658,7 +658,7 @@ func (c *Context) RequireRoleName() *Context {
 		return c
 	}
 
-	if !model.IsValidRoleName(c.Params.RoleName){
+	if !model.IsValidRoleName(c.Params.RoleName) {
 		c.SetInvalidUrlParam("role_name")
 	}
 

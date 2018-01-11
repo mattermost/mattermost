@@ -474,7 +474,7 @@ func (a *App) DoAdvancedPermissionsMigration() {
 	}
 
 	system := model.System{
-		Name: ADVANCED_PERMISSIONS_MIGRATION_KEY,
+		Name:  ADVANCED_PERMISSIONS_MIGRATION_KEY,
 		Value: "true",
 	}
 
