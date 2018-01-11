@@ -260,6 +260,7 @@ type SessionStore interface {
 	UpdateRoles(userId string, roles string) StoreChannel
 	UpdateDeviceId(id string, deviceId string, expiresAt int64) StoreChannel
 	AnalyticsSessionCount() StoreChannel
+	Cleanup()
 }
 
 type AuditStore interface {

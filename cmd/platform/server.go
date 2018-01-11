@@ -127,7 +127,7 @@ func runServer(configFileLocation string) {
 
 	go runSecurityJob(a)
 	go runDiagnosticsJob(a)
-
+	go runSessionCleanupJob(a)
 	go runTokenCleanupJob(a)
 	go runCommandWebhookCleanupJob(a)
 
@@ -205,6 +205,13 @@ func runCommandWebhookCleanupJob(a *app.App) {
 	}, time.Hour*1)
 }
 
+func runSessionCleanupJob(a *app.App) {
+	doSessionCleanup(a)
+	model.CreateRecurringTask("Session Cleanup", func() {
+		doSessionCleanup(a)
+	}, time.Hour*24)
+}
+
 func resetStatuses(a *app.App) {
 	if result := <-a.Srv.Store.Status().ResetAll(); result.Err != nil {
 		l4g.Error(utils.T("mattermost.reset_status.error"), result.Err.Error())
@@ -227,4 +234,8 @@ func doTokenCleanup(a *app.App) {
 
 func doCommandWebhookCleanup(a *app.App) {
 	a.Srv.Store.CommandWebhook().Cleanup()
+}
+
+func doSessionCleanup(a *app.App) {
+	a.Srv.Store.Session().Cleanup()
 }
