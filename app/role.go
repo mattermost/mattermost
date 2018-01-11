@@ -49,3 +49,25 @@ func (a *App) UpdateRole(role *model.Role) (*model.Role, *model.AppError) {
 		return role, nil
 	}
 }
+
+func (a *App) CheckRolesExist(roleNames []string) (bool, *model.AppError) {
+	roles, err1 := a.GetRolesByNames(roleNames)
+	if err1 != nil {
+		return false, err1
+	}
+
+	for _, name := range roleNames {
+		nameFound := false
+		for _, role := range roles {
+			if name == role.Name {
+				nameFound = true
+				break
+			}
+		}
+		if !nameFound {
+			return false, nil
+		}
+	}
+
+	return true, nil
+}
