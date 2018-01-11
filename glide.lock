@@ -1,5 +1,5 @@
-hash: 247f32b2f130a845591b5e1b573ae301517d0e5275dd17678969917155dd1c61
-updated: 2017-11-10T12:37:36.496151071-08:00
+hash: fa27dd8f4fd1b15c505a3d6f2023662471391e4a3ea22e67c829376c7e6e90c8
+updated: 2018-01-05T10:08:00.418197689+01:00
 imports:
 - name: github.com/alecthomas/log4go
   version: 3fbce08846379ec7f4f6bc7fce6dd01ce28fae4c
@@ -10,6 +10,8 @@ imports:
   version: 4c0e84591b9aa9e6dcfdf3e020114cd81f89d5f9
   subpackages:
   - quantile
+- name: github.com/corpix/uarand
+  version: 2b8494104d86337cdd41d0a49cbed8e4583c0ab4
 - name: github.com/cpanato/html2text
   version: d47a5532a7bc36ad7b2b8ec3eebe24e975154f94
 - name: github.com/davecgh/go-spew
@@ -88,6 +90,8 @@ imports:
   - json/token
 - name: github.com/hashicorp/memberlist
   version: caa5d20d6a642b7543b3745e54031a96008bee57
+- name: github.com/icrowley/fake
+  version: e64cc2cf92049a299f359734c6ea76073f2a8b2c
 - name: github.com/inconshreveable/mousetrap
   version: 76626ae9c91c4f2a10f34cad8ce83ea42c93bb75
 - name: github.com/jehiah/go-strftime
@@ -117,7 +121,7 @@ imports:
   subpackages:
   - internal/socket
 - name: github.com/minio/go-homedir
-  version: 21304a94172ae3a09dee2cd86a12fb6f842138c7
+  version: 4d76aabb80b22bad8695d3904e943f1fb5e6199f
 - name: github.com/minio/minio-go
   version: 4e0f567303d4cc90ceb055a451959fb9fc391fb9
   subpackages:
