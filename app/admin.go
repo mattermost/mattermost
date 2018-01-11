@@ -173,13 +173,13 @@ func (a *App) SaveConfig(cfg *model.Config, sendConfigChangeClusterMessage bool)
 		return model.NewAppError("saveConfig", "ent.cluster.save_config.error", nil, "", http.StatusForbidden)
 	}
 
-	utils.DisableConfigWatch()
+	a.DisableConfigWatch()
 	a.UpdateConfig(func(update *model.Config) {
 		*update = *cfg
 	})
 	a.PersistConfig()
 	a.ReloadConfig()
-	utils.EnableConfigWatch()
+	a.EnableConfigWatch()
 
 	if a.Metrics != nil {
 		if *a.Config().MetricsSettings.Enable {

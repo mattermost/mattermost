@@ -11,6 +11,7 @@ import (
 	l4g "github.com/alecthomas/log4go"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store/storetest"
@@ -47,7 +48,8 @@ func TestMain(m *testing.M) {
 
 func TestAppRace(t *testing.T) {
 	for i := 0; i < 10; i++ {
-		a := New()
+		a, err := New()
+		require.NoError(t, err)
 		a.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = ":0" })
 		a.StartServer()
 		a.Shutdown()

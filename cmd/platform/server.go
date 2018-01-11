@@ -35,30 +35,26 @@ func runServerCmd(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	utils.CfgDisableConfigWatch, _ = cmd.Flags().GetBool("disableconfigwatch")
+	disableConfigWatch, _ := cmd.Flags().GetBool("disableconfigwatch")
 
-	runServer(config)
+	runServer(config, disableConfigWatch)
 	return nil
 }
 
-func runServer(configFileLocation string) {
-	if err := utils.TranslationsPreInit(); err != nil {
-		l4g.Exit("Unable to load Mattermost configuration file: ", err)
-		return
-	}
-	model.AppErrorInit(utils.T)
-
-	if err := utils.InitAndLoadConfig(configFileLocation); err != nil {
-		l4g.Exit("Unable to load Mattermost configuration file: ", err)
-		return
+func runServer(configFileLocation string, disableConfigWatch bool) {
+	options := []app.Option{app.ConfigFile(configFileLocation)}
+	if disableConfigWatch {
+		options = append(options, app.DisableConfigWatch)
 	}
 
-	if err := utils.InitTranslations(utils.Cfg.LocalizationSettings); err != nil {
-		l4g.Exit("Unable to load Mattermost translation files: %v", err)
+	a, err := app.New(options...)
+	if err != nil {
+		l4g.Error(err.Error())
 		return
 	}
+	defer a.Shutdown()
 
-	utils.TestConnection(utils.Cfg)
+	utils.TestConnection(a.Config())
 
 	pwd, _ := os.Getwd()
 	l4g.Info(utils.T("mattermost.current_version"), model.CurrentVersion, model.BuildNumber, model.BuildDate, model.BuildHash, model.BuildHashEnterprise)
@@ -66,15 +62,12 @@ func runServer(configFileLocation string) {
 	l4g.Info(utils.T("mattermost.working_dir"), pwd)
 	l4g.Info(utils.T("mattermost.config_file"), utils.FindConfigFile(configFileLocation))
 
-	a := app.New(app.ConfigFile(configFileLocation))
-	defer a.Shutdown()
-
-	backend, err := a.FileBackend()
-	if err == nil {
-		err = backend.TestConnection()
+	backend, appErr := a.FileBackend()
+	if appErr == nil {
+		appErr = backend.TestConnection()
 	}
-	if err != nil {
-		l4g.Error("Problem with file storage settings: " + err.Error())
+	if appErr != nil {
+		l4g.Error("Problem with file storage settings: " + appErr.Error())
 	}
 
 	if model.BuildEnterpriseReady == "true" {

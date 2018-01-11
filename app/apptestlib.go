@@ -57,13 +57,18 @@ func StopTestStore() {
 }
 
 func setupTestHelper(enterprise bool) *TestHelper {
-	var options []Option
+	options := []Option{DisableConfigWatch}
 	if testStore != nil {
 		options = append(options, StoreOverride(testStore))
 	}
 
+	a, err := New(options...)
+	if err != nil {
+		panic(err)
+	}
+
 	th := &TestHelper{
-		App:         New(options...),
+		App:         a,
 		pluginHooks: make(map[string]plugin.Hooks),
 	}
 
