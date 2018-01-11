@@ -94,3 +94,4 @@ import:
 - package: gopkg.in/gomail.v2
   version: 2.0.0
 - package: github.com/mattermost/html2text
+- package: github.com/icrowley/fake

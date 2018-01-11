@@ -579,7 +579,7 @@ func (c *Context) RequireEmojiName() *Context {
 
 	validName := regexp.MustCompile(`^[a-zA-Z0-9\-\+_]+$`)
 
-	if len(c.Params.EmojiName) == 0 || len(c.Params.EmojiName) > 64 || !validName.MatchString(c.Params.EmojiName) {
+	if len(c.Params.EmojiName) == 0 || len(c.Params.EmojiName) > model.EMOJI_NAME_MAX_LENGTH || !validName.MatchString(c.Params.EmojiName) {
 		c.SetInvalidUrlParam("emoji_name")
 	}
 

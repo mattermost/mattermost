@@ -1,0 +1,22 @@
+#!/usr/bin/env python3
+import sys
+import xml.etree.ElementTree as XML
+from argparse import ArgumentParser
+
+
+if __name__ == "__main__":
+    p = ArgumentParser(
+        description=(
+            "Expects XML from "
+            "http://techpatterns.com/downloads/firefox/useragentswitcher.xml "
+            "to be passed into STDIN and outputs user agents from this XML."
+        )
+    )
+    p.parse_args()
+
+    sys.stderr.write("Reading stdin...\n")
+    doc = XML.iterparse(sys.stdin)
+    for _, node in doc:
+        ua = node.get("useragent")
+        if ua != "" and ua is not None:
+            print(ua)

@@ -10,6 +10,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
+	"github.com/mattermost/mattermost-server/utils"
 )
 
 func ptrStr(s string) *string {
@@ -325,6 +326,13 @@ func TestImportValidateUserImportData(t *testing.T) {
 
 	data.Username = ptrStr("bob")
 
+	// Unexisting Picture Image
+	data.ProfileImage = ptrStr("not-existing-file")
+	if err := validateUserImportData(&data); err == nil {
+		t.Fatal("Validation should have failed due to not existing profile image file.")
+	}
+	data.ProfileImage = nil
+
 	// Invalid Emails
 	data.Email = nil
 	if err := validateUserImportData(&data); err == nil {
@@ -360,17 +368,19 @@ func TestImportValidateUserImportData(t *testing.T) {
 	}
 
 	// Test a valid User with all fields populated.
+	testsDir, _ := utils.FindDir("tests")
 	data = UserImportData{
-		Username:    ptrStr("bob"),
-		Email:       ptrStr("bob@example.com"),
-		AuthService: ptrStr("ldap"),
-		AuthData:    ptrStr("bob"),
-		Nickname:    ptrStr("BobNick"),
-		FirstName:   ptrStr("Bob"),
-		LastName:    ptrStr("Blob"),
-		Position:    ptrStr("The Boss"),
-		Roles:       ptrStr("system_user"),
-		Locale:      ptrStr("en"),
+		ProfileImage: ptrStr(testsDir + "test.png"),
+		Username:     ptrStr("bob"),
+		Email:        ptrStr("bob@example.com"),
+		AuthService:  ptrStr("ldap"),
+		AuthData:     ptrStr("bob"),
+		Nickname:     ptrStr("BobNick"),
+		FirstName:    ptrStr("Bob"),
+		LastName:     ptrStr("Blob"),
+		Position:     ptrStr("The Boss"),
+		Roles:        ptrStr("system_user"),
+		Locale:       ptrStr("en"),
 	}
 	if err := validateUserImportData(&data); err != nil {
 		t.Fatal("Validation failed but should have been valid.")
@@ -563,6 +573,140 @@ func TestImportValidateUserChannelsImportData(t *testing.T) {
 	}
 }
 
+func TestImportValidateReactionImportData(t *testing.T) {
+	// Test with minimum required valid properties.
+	parentCreateAt := model.GetMillis() - 100
+	data := ReactionImportData{
+		User:      ptrStr("username"),
+		EmojiName: ptrStr("emoji"),
+		CreateAt:  ptrInt64(model.GetMillis()),
+	}
+	if err := validateReactionImportData(&data, parentCreateAt); err != nil {
+		t.Fatal("Validation failed but should have been valid.")
+	}
+
+	// Test with missing required properties.
+	data = ReactionImportData{
+		EmojiName: ptrStr("emoji"),
+		CreateAt:  ptrInt64(model.GetMillis()),
+	}
+	if err := validateReactionImportData(&data, parentCreateAt); err == nil {
+		t.Fatal("Should have failed due to missing required property.")
+	}
+
+	data = ReactionImportData{
+		User:     ptrStr("username"),
+		CreateAt: ptrInt64(model.GetMillis()),
+	}
+	if err := validateReactionImportData(&data, parentCreateAt); err == nil {
+		t.Fatal("Should have failed due to missing required property.")
+	}
+
+	data = ReactionImportData{
+		User:      ptrStr("username"),
+		EmojiName: ptrStr("emoji"),
+	}
+	if err := validateReactionImportData(&data, parentCreateAt); err == nil {
+		t.Fatal("Should have failed due to missing required property.")
+	}
+
+	// Test with invalid emoji name.
+	data = ReactionImportData{
+		User:      ptrStr("username"),
+		EmojiName: ptrStr(strings.Repeat("1234567890", 500)),
+		CreateAt:  ptrInt64(model.GetMillis()),
+	}
+	if err := validateReactionImportData(&data, parentCreateAt); err == nil {
+		t.Fatal("Should have failed due to too long emoji name.")
+	}
+
+	// Test with invalid CreateAt
+	data = ReactionImportData{
+		User:      ptrStr("username"),
+		EmojiName: ptrStr("emoji"),
+		CreateAt:  ptrInt64(0),
+	}
+	if err := validateReactionImportData(&data, parentCreateAt); err == nil {
+		t.Fatal("Should have failed due to 0 create-at value.")
+	}
+
+	data = ReactionImportData{
+		User:      ptrStr("username"),
+		EmojiName: ptrStr("emoji"),
+		CreateAt:  ptrInt64(parentCreateAt - 100),
+	}
+	if err := validateReactionImportData(&data, parentCreateAt); err == nil {
+		t.Fatal("Should have failed due parent with newer create-at value.")
+	}
+}
+
+func TestImportValidateReplyImportData(t *testing.T) {
+	// Test with minimum required valid properties.
+	parentCreateAt := model.GetMillis() - 100
+	data := ReplyImportData{
+		User:     ptrStr("username"),
+		Message:  ptrStr("message"),
+		CreateAt: ptrInt64(model.GetMillis()),
+	}
+	if err := validateReplyImportData(&data, parentCreateAt); err != nil {
+		t.Fatal("Validation failed but should have been valid.")
+	}
+
+	// Test with missing required properties.
+	data = ReplyImportData{
+		Message:  ptrStr("message"),
+		CreateAt: ptrInt64(model.GetMillis()),
+	}
+	if err := validateReplyImportData(&data, parentCreateAt); err == nil {
+		t.Fatal("Should have failed due to missing required property.")
+	}
+
+	data = ReplyImportData{
+		User:     ptrStr("username"),
+		CreateAt: ptrInt64(model.GetMillis()),
+	}
+	if err := validateReplyImportData(&data, parentCreateAt); err == nil {
+		t.Fatal("Should have failed due to missing required property.")
+	}
+
+	data = ReplyImportData{
+		User:    ptrStr("username"),
+		Message: ptrStr("message"),
+	}
+	if err := validateReplyImportData(&data, parentCreateAt); err == nil {
+		t.Fatal("Should have failed due to missing required property.")
+	}
+
+	// Test with invalid message.
+	data = ReplyImportData{
+		User:     ptrStr("username"),
+		Message:  ptrStr(strings.Repeat("1234567890", 500)),
+		CreateAt: ptrInt64(model.GetMillis()),
+	}
+	if err := validateReplyImportData(&data, parentCreateAt); err == nil {
+		t.Fatal("Should have failed due to too long message.")
+	}
+
+	// Test with invalid CreateAt
+	data = ReplyImportData{
+		User:     ptrStr("username"),
+		Message:  ptrStr("message"),
+		CreateAt: ptrInt64(0),
+	}
+	if err := validateReplyImportData(&data, parentCreateAt); err == nil {
+		t.Fatal("Should have failed due to 0 create-at value.")
+	}
+
+	data = ReplyImportData{
+		User:     ptrStr("username"),
+		Message:  ptrStr("message"),
+		CreateAt: ptrInt64(parentCreateAt - 100),
+	}
+	if err := validateReplyImportData(&data, parentCreateAt); err == nil {
+		t.Fatal("Should have failed due parent with newer create-at value.")
+	}
+}
+
 func TestImportValidatePostImportData(t *testing.T) {
 
 	// Test with minimum required valid properties.
@@ -653,12 +797,24 @@ func TestImportValidatePostImportData(t *testing.T) {
 	}
 
 	// Test with valid all optional parameters.
-	data = PostImportData{
-		Team:     ptrStr("teamname"),
-		Channel:  ptrStr("channelname"),
+	reactions := []ReactionImportData{ReactionImportData{
+		User:      ptrStr("username"),
+		EmojiName: ptrStr("emoji"),
+		CreateAt:  ptrInt64(model.GetMillis()),
+	}}
+	replies := []ReplyImportData{ReplyImportData{
 		User:     ptrStr("username"),
 		Message:  ptrStr("message"),
 		CreateAt: ptrInt64(model.GetMillis()),
+	}}
+	data = PostImportData{
+		Team:      ptrStr("teamname"),
+		Channel:   ptrStr("channelname"),
+		User:      ptrStr("username"),
+		Message:   ptrStr("message"),
+		CreateAt:  ptrInt64(model.GetMillis()),
+		Reactions: &reactions,
+		Replies:   &replies,
 	}
 	if err := validatePostImportData(&data); err != nil {
 		t.Fatal("Should have succeeded.")
@@ -958,6 +1114,37 @@ func TestImportValidateDirectPostImportData(t *testing.T) {
 		Message:  ptrStr("message"),
 		CreateAt: ptrInt64(model.GetMillis()),
 	}
+	if err := validateDirectPostImportData(&data); err != nil {
+		t.Fatal(err)
+	}
+
+	// Test with valid all optional parameters.
+	reactions := []ReactionImportData{ReactionImportData{
+		User:      ptrStr("username"),
+		EmojiName: ptrStr("emoji"),
+		CreateAt:  ptrInt64(model.GetMillis()),
+	}}
+	replies := []ReplyImportData{ReplyImportData{
+		User:     ptrStr("username"),
+		Message:  ptrStr("message"),
+		CreateAt: ptrInt64(model.GetMillis()),
+	}}
+	data = DirectPostImportData{
+		ChannelMembers: &[]string{
+			member1,
+			member2,
+		},
+		FlaggedBy: &[]string{
+			member1,
+			member2,
+		},
+		User:      ptrStr("username"),
+		Message:   ptrStr("message"),
+		CreateAt:  ptrInt64(model.GetMillis()),
+		Reactions: &reactions,
+		Replies:   &replies,
+	}
+
 	if err := validateDirectPostImportData(&data); err != nil {
 		t.Fatal(err)
 	}
@@ -1298,13 +1485,15 @@ func TestImportImportUser(t *testing.T) {
 
 	// Do a valid user in apply mode.
 	username := model.NewId()
+	testsDir, _ := utils.FindDir("tests")
 	data = UserImportData{
-		Username:  &username,
-		Email:     ptrStr(model.NewId() + "@example.com"),
-		Nickname:  ptrStr(model.NewId()),
-		FirstName: ptrStr(model.NewId()),
-		LastName:  ptrStr(model.NewId()),
-		Position:  ptrStr(model.NewId()),
+		ProfileImage: ptrStr(testsDir + "test.png"),
+		Username:     &username,
+		Email:        ptrStr(model.NewId() + "@example.com"),
+		Nickname:     ptrStr(model.NewId()),
+		FirstName:    ptrStr(model.NewId()),
+		LastName:     ptrStr(model.NewId()),
+		Position:     ptrStr(model.NewId()),
 	}
 	if err := th.App.ImportUser(&data, false); err != nil {
 		t.Fatalf("Should have succeeded to import valid user.")
@@ -1354,6 +1543,7 @@ func TestImportImportUser(t *testing.T) {
 
 	// Alter all the fields of that user.
 	data.Email = ptrStr(model.NewId() + "@example.com")
+	data.ProfileImage = ptrStr(testsDir + "testgif.gif")
 	data.AuthService = ptrStr("ldap")
 	data.AuthData = &username
 	data.Nickname = ptrStr(model.NewId())
@@ -2188,6 +2378,98 @@ func TestImportImportPost(t *testing.T) {
 
 		checkPreference(t, th.App, user.Id, model.PREFERENCE_CATEGORY_FLAGGED_POST, post.Id, "true")
 		checkPreference(t, th.App, user2.Id, model.PREFERENCE_CATEGORY_FLAGGED_POST, post.Id, "true")
+	}
+
+	// Post with reaction.
+	reactionPostTime := hashtagTime + 2
+	reactionTime := hashtagTime + 3
+	data = &PostImportData{
+		Team:     &teamName,
+		Channel:  &channelName,
+		User:     &username,
+		Message:  ptrStr("Message with reaction"),
+		CreateAt: &reactionPostTime,
+		Reactions: &[]ReactionImportData{{
+			User:      &user2.Username,
+			EmojiName: ptrStr("+1"),
+			CreateAt:  &reactionTime,
+		}},
+	}
+	if err := th.App.ImportPost(data, false); err != nil {
+		t.Fatalf("Expected success.")
+	}
+	AssertAllPostsCount(t, th.App, initialPostCount, 6, team.Id)
+
+	// Check the post values.
+	if result := <-th.App.Srv.Store.Post().GetPostsCreatedAt(channel.Id, reactionPostTime); result.Err != nil {
+		t.Fatal(result.Err.Error())
+	} else {
+		posts := result.Data.([]*model.Post)
+		if len(posts) != 1 {
+			t.Fatal("Unexpected number of posts found.")
+		}
+		post := posts[0]
+		if post.Message != *data.Message || post.CreateAt != *data.CreateAt || post.UserId != user.Id || !post.HasReactions {
+			t.Fatal("Post properties not as expected")
+		}
+
+		if result := <-th.App.Srv.Store.Reaction().GetForPost(post.Id, false); result.Err != nil {
+			t.Fatal("Can't get reaction")
+		} else if len(result.Data.([]*model.Reaction)) != 1 {
+			t.Fatal("Invalid number of reactions")
+		}
+	}
+
+	// Post with reply.
+	replyPostTime := hashtagTime + 4
+	replyTime := hashtagTime + 5
+	data = &PostImportData{
+		Team:     &teamName,
+		Channel:  &channelName,
+		User:     &username,
+		Message:  ptrStr("Message with reply"),
+		CreateAt: &replyPostTime,
+		Replies: &[]ReplyImportData{{
+			User:     &user2.Username,
+			Message:  ptrStr("Message reply"),
+			CreateAt: &replyTime,
+		}},
+	}
+	if err := th.App.ImportPost(data, false); err != nil {
+		t.Fatalf("Expected success.")
+	}
+	AssertAllPostsCount(t, th.App, initialPostCount, 8, team.Id)
+
+	// Check the post values.
+	if result := <-th.App.Srv.Store.Post().GetPostsCreatedAt(channel.Id, replyPostTime); result.Err != nil {
+		t.Fatal(result.Err.Error())
+	} else {
+		posts := result.Data.([]*model.Post)
+		if len(posts) != 1 {
+			t.Fatal("Unexpected number of posts found.")
+		}
+		post := posts[0]
+		if post.Message != *data.Message || post.CreateAt != *data.CreateAt || post.UserId != user.Id {
+			t.Fatal("Post properties not as expected")
+		}
+
+		// Check the reply values.
+		if result := <-th.App.Srv.Store.Post().GetPostsCreatedAt(channel.Id, replyTime); result.Err != nil {
+			t.Fatal(result.Err.Error())
+		} else {
+			replies := result.Data.([]*model.Post)
+			if len(replies) != 1 {
+				t.Fatal("Unexpected number of posts found.")
+			}
+			reply := replies[0]
+			if reply.Message != *(*data.Replies)[0].Message || reply.CreateAt != *(*data.Replies)[0].CreateAt || reply.UserId != user2.Id {
+				t.Fatal("Post properties not as expected")
+			}
+
+			if reply.RootId != post.Id {
+				t.Fatal("Unexpected reply RootId")
+			}
+		}
 	}
 }
 
