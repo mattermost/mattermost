@@ -43,15 +43,33 @@ Next, the PM tests changes on the spinmint:
    - PM removes `1: PM Review` and `Setup Test Server` labels
    - PM applies the `Stage 2: Dev Review` label, which moves the PR to Stage 2
 
-#### Stage 2: Dev Review
+#### Stage 2: 
 
-Two developers will review the pull request and either give feedback or approve the PR. If changes are required:
+
+#### Stage 5: Dev review
+
+ - Initial review within 24-48 hrs (1-2 business days).
+ - Devs to review the code and provide initial feedback.
+   - Things we look for:
+     - Proper Unit Tests
+     - API documentation
+     - Localization
+ - After the submitter has addressed and satisfied all reviewers comments then PR gets marked as approved
+PRs require a minimum of 2 dev approvals. They will either give feedback or approve the PR. If changes are required:
  - Dev submits review as "Changes Requested", with a comment on the areas that require tweaks.
  - Once changes are made, dev reviews code changes
 
 Any comments should be addressed before the pull request moves on to the last stage.
 
-#### Stage 3: Ready to Merge
+#### Stage 6: Ready to Merge
+
+Assign `3: Ready to Merge` Label
+ - Verify we are not in release mode and the PR can be merged into master.
+ - If the PR is a major change we prefer to postpone the merge for the next release cycle.
+   - Call out on the issue that it is a major change and it will be merged after branching.
+   - Once the current release is branched the PR can be merged into master.
+
+#### Step 7: Merge the PR
 
 The review process is complete, and the pull request will be merged.
 
