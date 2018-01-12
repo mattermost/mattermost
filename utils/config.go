@@ -4,7 +4,6 @@
 package utils
 
 import (
-	"crypto/md5"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -14,7 +13,6 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
-	"sync"
 
 	l4g "github.com/alecthomas/log4go"
 	"github.com/fsnotify/fsnotify"
@@ -35,12 +33,9 @@ const (
 	LOG_FILENAME    = "mattermost.log"
 )
 
-var cfgMutex = &sync.Mutex{}
-var Cfg *model.Config = &model.Config{}
-var CfgHash = ""
-var CfgFileName string = ""
 var originalDisableDebugLvl l4g.Level = l4g.DEBUG
 var siteURL = ""
+var Cfg *model.Config
 
 func GetSiteURL() string {
 	return siteURL
@@ -48,22 +43,6 @@ func GetSiteURL() string {
 
 func SetSiteURL(url string) {
 	siteURL = strings.TrimRight(url, "/")
-}
-
-var cfgListeners = map[string]func(*model.Config, *model.Config){}
-
-// Registers a function with a given to be called when the config is reloaded and may have changed. The function
-// will be called with two arguments: the old config and the new config. AddConfigListener returns a unique ID
-// for the listener that can later be used to remove it.
-func AddConfigListener(listener func(*model.Config, *model.Config)) string {
-	id := model.NewId()
-	cfgListeners[id] = listener
-	return id
-}
-
-// Removes a listener function by the unique ID returned when AddConfigListener was called
-func RemoveConfigListener(id string) {
-	delete(cfgListeners, id)
 }
 
 // FindConfigFile attempts to find an existing configuration file. fileName can be an absolute or
@@ -103,8 +82,6 @@ func FindDir(dir string) (string, bool) {
 }
 
 func DisableDebugLogForTest() {
-	cfgMutex.Lock()
-	defer cfgMutex.Unlock()
 	if l4g.Global["stdout"] != nil {
 		originalDisableDebugLvl = l4g.Global["stdout"].Level
 		l4g.Global["stdout"].Level = l4g.ERROR
@@ -112,8 +89,6 @@ func DisableDebugLogForTest() {
 }
 
 func EnableDebugLogForTest() {
-	cfgMutex.Lock()
-	defer cfgMutex.Unlock()
 	if l4g.Global["stdout"] != nil {
 		l4g.Global["stdout"].Level = originalDisableDebugLvl
 	}
@@ -123,12 +98,12 @@ func ConfigureCmdLineLog() {
 	ls := model.LogSettings{}
 	ls.EnableConsole = true
 	ls.ConsoleLevel = "WARN"
-	configureLog(&ls)
+	ConfigureLog(&ls)
 }
 
 // TODO: this code initializes console and file logging. It will eventually be replaced by JSON logging in logger/logger.go
 // See PLT-3893 for more information
-func configureLog(s *model.LogSettings) {
+func ConfigureLog(s *model.LogSettings) {
 
 	l4g.Close()
 
@@ -182,9 +157,6 @@ func GetLogFileLocation(fileLocation string) string {
 }
 
 func SaveConfig(fileName string, config *model.Config) *model.AppError {
-	cfgMutex.Lock()
-	defer cfgMutex.Unlock()
-
 	b, err := json.MarshalIndent(config, "", "    ")
 	if err != nil {
 		return model.NewAppError("SaveConfig", "utils.config.save_config.saving.app_error",
@@ -206,7 +178,7 @@ type ConfigWatcher struct {
 	closed  chan struct{}
 }
 
-func NewConfigWatcher(cfgFileName string) (*ConfigWatcher, error) {
+func NewConfigWatcher(cfgFileName string, f func()) (*ConfigWatcher, error) {
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to create config watcher for file: "+cfgFileName)
@@ -235,7 +207,7 @@ func NewConfigWatcher(cfgFileName string) (*ConfigWatcher, error) {
 						l4g.Info(fmt.Sprintf("Config file watcher detected a change reloading %v", cfgFileName))
 
 						if _, configReadErr := ReadConfigFile(cfgFileName, true); configReadErr == nil {
-							LoadGlobalConfig(cfgFileName)
+							f()
 						} else {
 							l4g.Error(fmt.Sprintf("Failed to read while watching config file at %v with err=%v", cfgFileName, configReadErr.Error()))
 						}
@@ -322,7 +294,7 @@ func EnsureConfigFile(fileName string) (string, error) {
 // LoadConfig will try to search around for the corresponding config file.  It will search
 // /tmp/fileName then attempt ./config/fileName, then ../config/fileName and last it will look at
 // fileName.
-func LoadConfig(fileName string) (configPath string, config *model.Config, appErr *model.AppError) {
+func LoadConfig(fileName string) (config *model.Config, configPath string, appErr *model.AppError) {
 	if fileName != filepath.Base(fileName) {
 		configPath = fileName
 	} else {
@@ -346,7 +318,7 @@ func LoadConfig(fileName string) (configPath string, config *model.Config, appEr
 	config.SetDefaults()
 
 	if err := config.IsValid(); err != nil {
-		return "", nil, err
+		return nil, "", err
 	}
 
 	if needSave {
@@ -368,41 +340,7 @@ func LoadConfig(fileName string) (configPath string, config *model.Config, appEr
 		}
 	}
 
-	return configPath, config, nil
-}
-
-// XXX: This is deprecated. Use LoadConfig instead if possible.
-func LoadGlobalConfig(fileName string) *model.Config {
-	configPath, config, err := LoadConfig(fileName)
-	if err != nil {
-		fmt.Fprintln(os.Stderr, err.SystemMessage(T))
-		os.Exit(1)
-	}
-
-	cfgMutex.Lock()
-	defer cfgMutex.Unlock()
-
-	CfgFileName = configPath
-
-	configureLog(&config.LogSettings)
-
-	// Cfg should never be null
-	oldConfig := *Cfg
-
-	Cfg = config
-	CfgHash = fmt.Sprintf("%x", md5.Sum([]byte(Cfg.ToJson())))
-
-	SetSiteURL(*Cfg.ServiceSettings.SiteURL)
-
-	InvokeGlobalConfigListeners(&oldConfig, config)
-
-	return config
-}
-
-func InvokeGlobalConfigListeners(old, current *model.Config) {
-	for _, listener := range cfgListeners {
-		listener(old, current)
-	}
+	return config, configPath, nil
 }
 
 func GenerateClientConfig(c *model.Config, diagnosticId string) map[string]string {
@@ -658,47 +596,4 @@ func ValidateLocales(cfg *model.Config) *model.AppError {
 	}
 
 	return err
-}
-
-func Desanitize(cfg *model.Config) {
-	if cfg.LdapSettings.BindPassword != nil && *cfg.LdapSettings.BindPassword == model.FAKE_SETTING {
-		*cfg.LdapSettings.BindPassword = *Cfg.LdapSettings.BindPassword
-	}
-
-	if *cfg.FileSettings.PublicLinkSalt == model.FAKE_SETTING {
-		*cfg.FileSettings.PublicLinkSalt = *Cfg.FileSettings.PublicLinkSalt
-	}
-	if cfg.FileSettings.AmazonS3SecretAccessKey == model.FAKE_SETTING {
-		cfg.FileSettings.AmazonS3SecretAccessKey = Cfg.FileSettings.AmazonS3SecretAccessKey
-	}
-
-	if cfg.EmailSettings.InviteSalt == model.FAKE_SETTING {
-		cfg.EmailSettings.InviteSalt = Cfg.EmailSettings.InviteSalt
-	}
-	if cfg.EmailSettings.SMTPPassword == model.FAKE_SETTING {
-		cfg.EmailSettings.SMTPPassword = Cfg.EmailSettings.SMTPPassword
-	}
-
-	if cfg.GitLabSettings.Secret == model.FAKE_SETTING {
-		cfg.GitLabSettings.Secret = Cfg.GitLabSettings.Secret
-	}
-
-	if *cfg.SqlSettings.DataSource == model.FAKE_SETTING {
-		*cfg.SqlSettings.DataSource = *Cfg.SqlSettings.DataSource
-	}
-	if cfg.SqlSettings.AtRestEncryptKey == model.FAKE_SETTING {
-		cfg.SqlSettings.AtRestEncryptKey = Cfg.SqlSettings.AtRestEncryptKey
-	}
-
-	if *cfg.ElasticsearchSettings.Password == model.FAKE_SETTING {
-		*cfg.ElasticsearchSettings.Password = *Cfg.ElasticsearchSettings.Password
-	}
-
-	for i := range cfg.SqlSettings.DataSourceReplicas {
-		cfg.SqlSettings.DataSourceReplicas[i] = Cfg.SqlSettings.DataSourceReplicas[i]
-	}
-
-	for i := range cfg.SqlSettings.DataSourceSearchReplicas {
-		cfg.SqlSettings.DataSourceSearchReplicas[i] = Cfg.SqlSettings.DataSourceSearchReplicas[i]
-	}
 }

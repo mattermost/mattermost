@@ -159,7 +159,7 @@ func (a *App) GetConfig() *model.Config {
 func (a *App) SaveConfig(cfg *model.Config, sendConfigChangeClusterMessage bool) *model.AppError {
 	oldCfg := a.Config()
 	cfg.SetDefaults()
-	utils.Desanitize(cfg)
+	a.Desanitize(cfg)
 
 	if err := cfg.IsValid(); err != nil {
 		return err

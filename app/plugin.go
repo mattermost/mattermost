@@ -54,7 +54,7 @@ func (a *App) initBuiltInPlugins() {
 		}
 		p.Initialize(api)
 	}
-	utils.AddConfigListener(func(before, after *model.Config) {
+	a.AddConfigListener(func(before, after *model.Config) {
 		for _, p := range plugins {
 			p.OnConfigurationChange()
 		}
@@ -407,8 +407,8 @@ func (a *App) InitPlugins(pluginPath, webappPath string, supervisorOverride plug
 		}
 	}
 
-	utils.RemoveConfigListener(a.PluginConfigListenerId)
-	a.PluginConfigListenerId = utils.AddConfigListener(func(prevCfg, cfg *model.Config) {
+	a.RemoveConfigListener(a.PluginConfigListenerId)
+	a.PluginConfigListenerId = a.AddConfigListener(func(prevCfg, cfg *model.Config) {
 		if a.PluginEnv == nil {
 			return
 		}
@@ -489,7 +489,7 @@ func (a *App) ShutDownPlugins() {
 	for _, err := range a.PluginEnv.Shutdown() {
 		l4g.Error(err.Error())
 	}
-	utils.RemoveConfigListener(a.PluginConfigListenerId)
+	a.RemoveConfigListener(a.PluginConfigListenerId)
 	a.PluginConfigListenerId = ""
 	a.PluginEnv = nil
 }
