@@ -30,12 +30,12 @@ Then, one or more of the labels is applied:
    - When in doubt, look for a related Jira ticket or Github issue.
    - If still unclear, assign based on best judgment.
    - PM to re-assign to proper owner if needed.
-  - In some instances it makes sense to skip this stage, if, for example, it is an internal code change from a core commmitter and doesn't need PM review.
+ - In some instances it makes sense to skip this stage, if, for example, it is an internal code change from a core commmitter and doesn't need PM review.
    - In this case the core committer will submit the PR and assign the appropriate devs for review.
 
 #### Stage 3: PM Review
 
-A product manager will review the pull request to make sure it:
+A PM will review the pull request to make sure it:
 
  - Fits with our product roadmap.
  - Works as described in the ticket.
@@ -50,22 +50,22 @@ When the review process begins, the PM applies a milestone:
 
 - Initial review should be completed within 24-48 hrs (1-2 business days).
  - PM to follow up if the CLA has not been signed.
-   - If no response after 7 days, PM to close the issue **???**.
+   - If no response after 7 days, PM to close the issue.
  - PM to verify there is a corresponding Jira ticket or Github issue.
-   - If no corresponding issue then PM to do extra vetting, but lower priority.
+   - If no corresponding issue is found, PM will do extra vetting. However, this is lower priority.
 
 - PM tests and verifies pull requests utilizing the Setup Test Server.
  - If changes are required, PM submits review as "Changes Requested", with a comment on the areas that require updates. Comment explains why changes are needed linking back to design principles.
- - Not all pull requests can be tested so this step may be optional or PMs might require developer support to setup a test instance.
+ - Not all pull requests can be tested so this step may be optional or PMs might require developer support to set up a test instance.
    - PM applies `Awaiting Submitter Action` label to more easily query the PR queue.
    - Once changes are made, PM regenerates test server and repeats testing.
  - If bugs are found that are also on `master`, a new bug report is submitted in JIRA and linked to the PR. Bugs that are also found on `master` will typically not block merging of PRs.
- - If PR is approved, PM submits review as "Approved" commenting with areas that were tested.
+ - If PR is approved, PM submits review as "Approved", commenting with areas that were tested.
  
-#### Stage 4: Assign `2: Dev Review` Label
+#### Stage 4: Assign `2: Dev Review` label
 
  - PM owner to add label and remove `1: PM Review` and `Setup Test Server` labels.
- - PM to assign 2 developers for review under Reviewers.
+ - PM to assign 2 devs for review under Reviewers.
  - Primary dev should be assigned based on their feature area link.
  - Secondary dev should be assigned as well, but doesn't need to be in their feature area.
    - When in doubt, devs should be assigned based on best guess, or person who appears to have cycles.
