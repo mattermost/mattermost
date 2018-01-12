@@ -19,22 +19,18 @@ Then, one or more of the labels is applied:
  - `Setup Test Server`: Applied if the PR is queued for PM testing.
  - `Work in Progress`: Applied if the PR is unfinished and needs further work before it's ready for review.
 
-#### Stage 1: Community Pull Request is submitted to any Mattermost Repo
-
-#### Stage 2: Assign `1: PM Review` label
+#### Stage 1: Assign `1: PM Review` label
 
  - The label should be assigned within 1 business day.
  - Any Mattermost Core Committer can add the label.
  - Core Committer will assign PM under Assignees.
-   - Assignment of PM should be based on their feature area (**see link??**).
+   - Assign PRs related to end user features to @esethna, others to @jasonblais.
    - When in doubt, look for a related Jira ticket or Github issue.
    - If still unclear, assign based on best judgment.
    - PM to re-assign to proper owner if needed.
  - In some instances it makes sense to skip this stage, if, for example, it is an internal code change from a core commmitter and doesn't need PM review.
    - In this case the core committer will submit the PR and assign the appropriate devs for review.
-
-#### Stage 3: PM Review
-
+   
  - A PM will review the pull request to make sure it:
    - Fits with our product roadmap.
    - Works as described in the ticket.
@@ -48,7 +44,7 @@ Then, one or more of the labels is applied:
 
  - Initial review should be completed within 24-48 hrs (1-2 business days).
  - PM to follow up if the CLA has not been signed.
-   - If no response after 7 days, PM to close the issue (**??**).
+   - If no response after 7 days, PM to close the issue.
  - PM to verify there is a corresponding Jira ticket or Github issue.
    - If no corresponding issue is found, PM will do extra vetting. However, this is lower priority.
  
@@ -60,7 +56,7 @@ Then, one or more of the labels is applied:
  - If bugs are found that are also on `master`, a new bug report is submitted in JIRA and linked to the PR. Bugs that are also found on `master` will typically not block merging of PRs.
  - If PR is approved, PM submits review as "Approved", commenting with areas that were tested.
  
-#### Stage 4: Assign `2: Dev Review` label
+#### Stage 2: Assign `2: Dev Review` label
 
  - PM owner to add label and remove `1: PM Review` and `Setup Test Server` labels.
  - PM to assign 2 devs for review under Reviewers.
@@ -68,9 +64,6 @@ Then, one or more of the labels is applied:
  - Secondary dev should be assigned as well, but doesn't need to be in their feature area.
    - When in doubt, devs should be assigned based on best guess, or person who appears to have cycles.
  - Devs will re-assign to proper owner if needed.
-
-#### Stage 5: Dev review
-
  - Initial review should be completed within 24-48 hrs (1-2 business days).
  - Devs to review the code and provide initial feedback.
    - Things to look for:
@@ -83,7 +76,7 @@ Then, one or more of the labels is applied:
    - Once changes are made, dev reviews code changes.
  - Any comments should be addressed before the pull request moves on to the next stage.
 
-#### Stage 6: Ready to Merge
+#### Stage 3: Ready to Merge
 
  - Assign `3: Ready to Merge` label.
  - Verify we are not in release mode and the PR can be merged into master.
@@ -91,7 +84,7 @@ Then, one or more of the labels is applied:
    - Call out on the issue that it is a major change and it will be merged after branching.
    - Once the current release is branched the PR can be merged into master.
 
-#### Step 7: Merge the PR
+#### Step 4: Merge the PR
 
  - The review process is complete, and the pull request will be merged.
 
