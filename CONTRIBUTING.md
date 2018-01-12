@@ -35,26 +35,24 @@ Then, one or more of the labels is applied:
 
 #### Stage 3: PM Review
 
-A PM will review the pull request to make sure it:
+ - A PM will review the pull request to make sure it:
+   - Fits with our product roadmap.
+   - Works as described in the ticket.
+   - Meets [user experience guidelines](https://docs.mattermost.com/developer/fx-guidelines.html).
+ - This step is sometimes skipped for bugs or small improvements with a well defined ticket.
+ 
+ - When the review process begins, the PM applies a milestone:
+   - Set for next release if the PM thinks there is enough time for the PR to be merged and sufficiently tested on `master` before code complete.
+   - Set for a future release if PR is too large to test prior to the code complete date.
+ - PM responds to submitter letting them know that PR may have a delay in review due to the release cycle.
 
- - Fits with our product roadmap.
- - Works as described in the ticket.
- - Meets [user experience guidelines](https://docs.mattermost.com/developer/fx-guidelines.html).
-
-This step is sometimes skipped for bugs or small improvements with a well defined ticket.
-
-When the review process begins, the PM applies a milestone:
- - Set for next release if the PM thinks there is enough time for the PR to be merged and sufficiently tested on `master` before code complete.
- - Set for a future release if PR is too large to test prior to the code complete date.
-   - PM responds to submitter letting them know that PR may have a delay in review due to the release cycle.
-
-- Initial review should be completed within 24-48 hrs (1-2 business days).
+ - Initial review should be completed within 24-48 hrs (1-2 business days).
  - PM to follow up if the CLA has not been signed.
-   - If no response after 7 days, PM to close the issue.
+   - If no response after 7 days, PM to close the issue (**??**).
  - PM to verify there is a corresponding Jira ticket or Github issue.
    - If no corresponding issue is found, PM will do extra vetting. However, this is lower priority.
-
-- PM tests and verifies pull requests utilizing the Setup Test Server.
+ 
+ - PM tests and verifies pull requests utilizing the Setup Test Server.
  - If changes are required, PM submits review as "Changes Requested", with a comment on the areas that require updates. Comment explains why changes are needed linking back to design principles.
  - Not all pull requests can be tested so this step may be optional or PMs might require developer support to set up a test instance.
    - PM applies `Awaiting Submitter Action` label to more easily query the PR queue.
