@@ -4,15 +4,15 @@
 package main
 
 import (
-	"testing"
-
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"testing"
+
+	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
-	"github.com/stretchr/testify/require"
 )
 
 // There are no tests that actually run the Message Export job, because it can take a long time to complete depending
@@ -56,7 +56,8 @@ func writeTempConfig(t *testing.T, isMessageExportEnabled bool) string {
 	require.NoError(t, err)
 
 	utils.TranslationsPreInit()
-	config := utils.LoadGlobalConfig("config.json")
+	config, _, appErr := utils.LoadConfig("config.json")
+	require.Nil(t, appErr)
 	config.MessageExportSettings.EnableExport = model.NewBool(isMessageExportEnabled)
 	configPath := filepath.Join(dir, "foo.json")
 	require.NoError(t, ioutil.WriteFile(configPath, []byte(config.ToJson()), 0600))

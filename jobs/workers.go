@@ -8,13 +8,12 @@ import (
 
 	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils"
 )
 
 type Workers struct {
-	startOnce sync.Once
-	Config    model.ConfigFunc
-	Watcher   *Watcher
+	startOnce     sync.Once
+	ConfigService ConfigService
+	Watcher       *Watcher
 
 	DataRetention            model.Worker
 	MessageExport            model.Worker
@@ -27,7 +26,7 @@ type Workers struct {
 
 func (srv *JobServer) InitWorkers() *Workers {
 	workers := &Workers{
-		Config: srv.Config,
+		ConfigService: srv.ConfigService,
 	}
 	workers.Watcher = srv.MakeWatcher(workers, DEFAULT_WATCHER_POLLING_INTERVAL)
 
@@ -58,30 +57,30 @@ func (workers *Workers) Start() *Workers {
 	l4g.Info("Starting workers")
 
 	workers.startOnce.Do(func() {
-		if workers.DataRetention != nil && (*workers.Config().DataRetentionSettings.EnableMessageDeletion || *workers.Config().DataRetentionSettings.EnableFileDeletion) {
+		if workers.DataRetention != nil && (*workers.ConfigService.Config().DataRetentionSettings.EnableMessageDeletion || *workers.ConfigService.Config().DataRetentionSettings.EnableFileDeletion) {
 			go workers.DataRetention.Run()
 		}
 
-		if workers.MessageExport != nil && *workers.Config().MessageExportSettings.EnableExport {
+		if workers.MessageExport != nil && *workers.ConfigService.Config().MessageExportSettings.EnableExport {
 			go workers.MessageExport.Run()
 		}
 
-		if workers.ElasticsearchIndexing != nil && *workers.Config().ElasticsearchSettings.EnableIndexing {
+		if workers.ElasticsearchIndexing != nil && *workers.ConfigService.Config().ElasticsearchSettings.EnableIndexing {
 			go workers.ElasticsearchIndexing.Run()
 		}
 
-		if workers.ElasticsearchAggregation != nil && *workers.Config().ElasticsearchSettings.EnableIndexing {
+		if workers.ElasticsearchAggregation != nil && *workers.ConfigService.Config().ElasticsearchSettings.EnableIndexing {
 			go workers.ElasticsearchAggregation.Run()
 		}
 
-		if workers.LdapSync != nil && *workers.Config().LdapSettings.EnableSync {
+		if workers.LdapSync != nil && *workers.ConfigService.Config().LdapSettings.EnableSync {
 			go workers.LdapSync.Run()
 		}
 
 		go workers.Watcher.Start()
 	})
 
-	workers.listenerId = utils.AddConfigListener(workers.handleConfigChange)
+	workers.listenerId = workers.ConfigService.AddConfigListener(workers.handleConfigChange)
 
 	return workers
 }
@@ -129,27 +128,27 @@ func (workers *Workers) handleConfigChange(oldConfig *model.Config, newConfig *m
 }
 
 func (workers *Workers) Stop() *Workers {
-	utils.RemoveConfigListener(workers.listenerId)
+	workers.ConfigService.RemoveConfigListener(workers.listenerId)
 
 	workers.Watcher.Stop()
 
-	if workers.DataRetention != nil && (*workers.Config().DataRetentionSettings.EnableMessageDeletion || *workers.Config().DataRetentionSettings.EnableFileDeletion) {
+	if workers.DataRetention != nil && (*workers.ConfigService.Config().DataRetentionSettings.EnableMessageDeletion || *workers.ConfigService.Config().DataRetentionSettings.EnableFileDeletion) {
 		workers.DataRetention.Stop()
 	}
 
-	if workers.MessageExport != nil && *workers.Config().MessageExportSettings.EnableExport {
+	if workers.MessageExport != nil && *workers.ConfigService.Config().MessageExportSettings.EnableExport {
 		workers.MessageExport.Stop()
 	}
 
-	if workers.ElasticsearchIndexing != nil && *workers.Config().ElasticsearchSettings.EnableIndexing {
+	if workers.ElasticsearchIndexing != nil && *workers.ConfigService.Config().ElasticsearchSettings.EnableIndexing {
 		workers.ElasticsearchIndexing.Stop()
 	}
 
-	if workers.ElasticsearchAggregation != nil && *workers.Config().ElasticsearchSettings.EnableIndexing {
+	if workers.ElasticsearchAggregation != nil && *workers.ConfigService.Config().ElasticsearchSettings.EnableIndexing {
 		workers.ElasticsearchAggregation.Stop()
 	}
 
-	if workers.LdapSync != nil && *workers.Config().LdapSettings.EnableSync {
+	if workers.LdapSync != nil && *workers.ConfigService.Config().LdapSettings.EnableSync {
 		workers.LdapSync.Stop()
 	}
 

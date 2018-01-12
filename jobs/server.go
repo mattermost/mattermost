@@ -12,11 +12,17 @@ import (
 	"github.com/mattermost/mattermost-server/utils"
 )
 
+type ConfigService interface {
+	Config() *model.Config
+	AddConfigListener(func(old, current *model.Config)) string
+	RemoveConfigListener(string)
+}
+
 type JobServer struct {
-	Config     model.ConfigFunc
-	Store      store.Store
-	Workers    *Workers
-	Schedulers *Schedulers
+	ConfigService ConfigService
+	Store         store.Store
+	Workers       *Workers
+	Schedulers    *Schedulers
 
 	DataRetentionJob        ejobs.DataRetentionJobInterface
 	MessageExportJob        ejobs.MessageExportJobInterface
@@ -25,11 +31,15 @@ type JobServer struct {
 	LdapSync                ejobs.LdapSyncInterface
 }
 
-func NewJobServer(config model.ConfigFunc, store store.Store) *JobServer {
+func NewJobServer(configService ConfigService, store store.Store) *JobServer {
 	return &JobServer{
-		Config: config,
-		Store:  store,
+		ConfigService: configService,
+		Store:         store,
 	}
+}
+
+func (srv *JobServer) Config() *model.Config {
+	return srv.ConfigService.Config()
 }
 
 func (srv *JobServer) LoadLicense() {

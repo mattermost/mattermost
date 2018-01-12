@@ -54,8 +54,11 @@ type App struct {
 	Mfa              einterfaces.MfaInterface
 	Saml             einterfaces.SamlInterface
 
-	configFile string
-	newStore   func() store.Store
+	config          atomic.Value
+	configFile      string
+	configListeners map[string]func(*model.Config, *model.Config)
+
+	newStore func() store.Store
 
 	htmlTemplateWatcher *utils.HTMLTemplateWatcher
 	sessionCache        *utils.Cache
@@ -88,9 +91,10 @@ func New(options ...Option) (*App, error) {
 		Srv: &Server{
 			Router: mux.NewRouter(),
 		},
-		sessionCache: utils.NewLru(model.SESSION_CACHE_SIZE),
-		configFile:   "config.json",
-		clientConfig: make(map[string]string),
+		sessionCache:    utils.NewLru(model.SESSION_CACHE_SIZE),
+		configFile:      "config.json",
+		configListeners: make(map[string]func(*model.Config, *model.Config)),
+		clientConfig:    make(map[string]string),
 	}
 
 	for _, option := range options {
@@ -103,13 +107,15 @@ func New(options ...Option) (*App, error) {
 		}
 	}
 	model.AppErrorInit(utils.T)
-	utils.LoadGlobalConfig(app.configFile)
+	if err := app.LoadConfig(app.configFile); err != nil {
+		return nil, err
+	}
 	app.EnableConfigWatch()
-	if err := utils.InitTranslations(utils.Cfg.LocalizationSettings); err != nil {
+	if err := utils.InitTranslations(app.Config().LocalizationSettings); err != nil {
 		return nil, errors.Wrapf(err, "unable to load Mattermost translation files")
 	}
 
-	app.configListenerId = utils.AddConfigListener(func(_, _ *model.Config) {
+	app.configListenerId = app.AddConfigListener(func(_, _ *model.Config) {
 		app.configOrLicenseListener()
 	})
 	app.licenseListenerId = utils.AddLicenseListener(app.configOrLicenseListener)
@@ -172,7 +178,7 @@ func (a *App) Shutdown() {
 		a.htmlTemplateWatcher.Close()
 	}
 
-	utils.RemoveConfigListener(a.configListenerId)
+	a.RemoveConfigListener(a.configListenerId)
 	utils.RemoveLicenseListener(a.licenseListenerId)
 	l4g.Info(utils.T("api.server.stop_server.stopped.info"))
 
@@ -302,7 +308,7 @@ func (a *App) initEnterprise() {
 	}
 	if ldapInterface != nil {
 		a.Ldap = ldapInterface(a)
-		utils.AddConfigListener(func(_, cfg *model.Config) {
+		a.AddConfigListener(func(_, cfg *model.Config) {
 			if err := utils.ValidateLdapFilter(cfg, a.Ldap); err != nil {
 				panic(utils.T(err.Id))
 			}
@@ -319,7 +325,7 @@ func (a *App) initEnterprise() {
 	}
 	if samlInterface != nil {
 		a.Saml = samlInterface(a)
-		utils.AddConfigListener(func(_, cfg *model.Config) {
+		a.AddConfigListener(func(_, cfg *model.Config) {
 			a.Saml.ConfigureSP()
 		})
 	}
@@ -329,7 +335,7 @@ func (a *App) initEnterprise() {
 }
 
 func (a *App) initJobs() {
-	a.Jobs = jobs.NewJobServer(a.Config, a.Srv.Store)
+	a.Jobs = jobs.NewJobServer(a, a.Srv.Store)
 	if jobsDataRetentionJobInterface != nil {
 		a.Jobs.DataRetentionJob = jobsDataRetentionJobInterface(a)
 	}

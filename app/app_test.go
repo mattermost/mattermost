@@ -65,11 +65,11 @@ func TestUpdateConfig(t *testing.T) {
 		*cfg.ServiceSettings.SiteURL = prev
 	})
 
-	listener := utils.AddConfigListener(func(old, current *model.Config) {
+	listener := th.App.AddConfigListener(func(old, current *model.Config) {
 		assert.Equal(t, prev, *old.ServiceSettings.SiteURL)
 		assert.Equal(t, "foo", *current.ServiceSettings.SiteURL)
 	})
-	defer utils.RemoveConfigListener(listener)
+	defer th.App.RemoveConfigListener(listener)
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.SiteURL = "foo"

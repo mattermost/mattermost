@@ -75,7 +75,7 @@ func runServer(configFileLocation string, disableConfigWatch bool) {
 	}
 
 	a.InitPlugins(*a.Config().PluginSettings.Directory, *a.Config().PluginSettings.ClientDirectory, nil)
-	utils.AddConfigListener(func(prevCfg, cfg *model.Config) {
+	a.AddConfigListener(func(prevCfg, cfg *model.Config) {
 		if *cfg.PluginSettings.Enable {
 			a.InitPlugins(*cfg.PluginSettings.Directory, *a.Config().PluginSettings.ClientDirectory, nil)
 		} else {
