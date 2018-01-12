@@ -373,7 +373,7 @@ func TestGetAllTeamListings(t *testing.T) {
 
 	Client := th.BasicClient
 
-	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN, AllowOpenInvite: true}
+	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
 	team = Client.Must(Client.CreateTeam(team)).Data.(*model.Team)
 
 	Client.Logout()
@@ -416,12 +416,11 @@ func TestGetAllTeamListingsSanitization(t *testing.T) {
 
 	var team *model.Team
 	if res, err := th.BasicClient.CreateTeam(&model.Team{
-		DisplayName:     t.Name() + "_1",
-		Name:            GenerateTestTeamName(),
-		Email:           GenerateTestEmail(),
-		Type:            model.TEAM_OPEN,
-		AllowedDomains:  "simulator.amazonses.com",
-		AllowOpenInvite: true,
+		DisplayName:    t.Name() + "_1",
+		Name:           GenerateTestTeamName(),
+		Email:          GenerateTestEmail(),
+		Type:           model.TEAM_OPEN,
+		AllowedDomains: "simulator.amazonses.com",
 	}); err != nil {
 		t.Fatal(err)
 	} else {
@@ -430,12 +429,11 @@ func TestGetAllTeamListingsSanitization(t *testing.T) {
 
 	var team2 *model.Team
 	if res, err := th.SystemAdminClient.CreateTeam(&model.Team{
-		DisplayName:     t.Name() + "_2",
-		Name:            GenerateTestTeamName(),
-		Email:           GenerateTestEmail(),
-		Type:            model.TEAM_OPEN,
-		AllowedDomains:  "simulator.amazonses.com",
-		AllowOpenInvite: true,
+		DisplayName:    t.Name() + "_2",
+		Name:           GenerateTestTeamName(),
+		Email:          GenerateTestEmail(),
+		Type:           model.TEAM_OPEN,
+		AllowedDomains: "simulator.amazonses.com",
 	}); err != nil {
 		t.Fatal(err)
 	} else {
@@ -1110,13 +1108,13 @@ func TestGetTeamByName(t *testing.T) {
 
 	Client := th.BasicClient
 
-	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "success+" + model.NewId() + "@simulator.amazonses.com", Type: model.TEAM_OPEN, AllowOpenInvite: false}
+	team := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "success+" + model.NewId() + "@simulator.amazonses.com", Type: model.TEAM_OPEN}
 	team = Client.Must(Client.CreateTeam(team)).Data.(*model.Team)
 
-	team2 := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "success+" + model.NewId() + "@simulator.amazonses.com", Type: model.TEAM_OPEN, AllowOpenInvite: true}
+	team2 := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "success+" + model.NewId() + "@simulator.amazonses.com", Type: model.TEAM_OPEN}
 	team2 = Client.Must(Client.CreateTeam(team2)).Data.(*model.Team)
 
-	team3 := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "success+" + model.NewId() + "@simulator.amazonses.com", Type: model.TEAM_INVITE, AllowOpenInvite: true}
+	team3 := &model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "success+" + model.NewId() + "@simulator.amazonses.com", Type: model.TEAM_INVITE}
 	team3 = Client.Must(Client.CreateTeam(team3)).Data.(*model.Team)
 
 	if _, err := Client.GetTeamByName(team.Name); err != nil {

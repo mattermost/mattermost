@@ -1224,7 +1224,7 @@ func TestImportImportTeam(t *testing.T) {
 	if team, err := th.App.GetTeamByName(*data.Name); err != nil {
 		t.Fatalf("Failed to get team from database.")
 	} else {
-		if team.DisplayName != *data.DisplayName || team.Type != *data.Type || team.Description != *data.Description || team.AllowOpenInvite != *data.AllowOpenInvite {
+		if team.DisplayName != *data.DisplayName || team.Type != *data.Type || team.Description != *data.Description {
 			t.Fatalf("Imported team properties do not match import data.")
 		}
 	}
@@ -1253,7 +1253,7 @@ func TestImportImportTeam(t *testing.T) {
 	if team, err := th.App.GetTeamByName(*data.Name); err != nil {
 		t.Fatalf("Failed to get team from database.")
 	} else {
-		if team.DisplayName != *data.DisplayName || team.Type != *data.Type || team.Description != *data.Description || team.AllowOpenInvite != *data.AllowOpenInvite {
+		if team.DisplayName != *data.DisplayName || team.Type != *data.Type || team.Description != *data.Description {
 			t.Fatalf("Updated team properties do not match import data.")
 		}
 	}

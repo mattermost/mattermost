@@ -339,8 +339,11 @@ func (a *App) ImportTeam(data *TeamImportData, dryRun bool) *model.AppError {
 		team.Description = *data.Description
 	}
 
-	if data.AllowOpenInvite != nil {
-		team.AllowOpenInvite = *data.AllowOpenInvite
+	// AllowOpenInvite is deprecated. Until fully removed, it will be based on type
+	if data.AllowOpenInvite != nil && *data.AllowOpenInvite {
+		team.Type = model.TEAM_OPEN
+	} else {
+		team.Type = model.TEAM_INVITE
 	}
 
 	if team.Id == "" {

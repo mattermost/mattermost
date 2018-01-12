@@ -26,27 +26,32 @@ const (
 )
 
 type Team struct {
-	Id              string `json:"id"`
-	CreateAt        int64  `json:"create_at"`
-	UpdateAt        int64  `json:"update_at"`
-	DeleteAt        int64  `json:"delete_at"`
-	DisplayName     string `json:"display_name"`
-	Name            string `json:"name"`
-	Description     string `json:"description"`
-	Email           string `json:"email"`
-	Type            string `json:"type"`
-	CompanyName     string `json:"company_name"`
-	AllowedDomains  string `json:"allowed_domains"`
-	InviteId        string `json:"invite_id"`
-	AllowOpenInvite bool   `json:"allow_open_invite"`
+	Id             string `json:"id"`
+	CreateAt       int64  `json:"create_at"`
+	UpdateAt       int64  `json:"update_at"`
+	DeleteAt       int64  `json:"delete_at"`
+	DisplayName    string `json:"display_name"`
+	Name           string `json:"name"`
+	Description    string `json:"description"`
+	Email          string `json:"email"`
+	Type           string `json:"type"`
+	CompanyName    string `json:"company_name"`
+	AllowedDomains string `json:"allowed_domains"`
+	InviteId       string `json:"invite_id"`
+
+	// Deprecated - use Type instead
+	AllowOpenInvite bool `json:"allow_open_invite"`
 }
 
 type TeamPatch struct {
-	DisplayName     *string `json:"display_name"`
-	Description     *string `json:"description"`
-	CompanyName     *string `json:"company_name"`
-	InviteId        *string `json:"invite_id"`
-	AllowOpenInvite *bool   `json:"allow_open_invite"`
+	DisplayName *string `json:"display_name"`
+	Description *string `json:"description"`
+	CompanyName *string `json:"company_name"`
+	InviteId    *string `json:"invite_id"`
+	Type        *string `json:"type"`
+
+	// Deprecated - use Type instead
+	AllowOpenInvite *bool `json:"allow_open_invite"`
 }
 
 type Invites struct {
@@ -213,10 +218,16 @@ func (o *Team) PreSave() {
 	if len(o.InviteId) == 0 {
 		o.InviteId = NewId()
 	}
+
+	// AllowOpenInvite is deprecated. Until fully removed, it will be based on type
+	o.AllowOpenInvite = o.Type == TEAM_OPEN
 }
 
 func (o *Team) PreUpdate() {
 	o.UpdateAt = GetMillis()
+
+	// AllowOpenInvite is deprecated. Until fully removed, it will be based on type
+	o.AllowOpenInvite = o.Type == TEAM_OPEN
 }
 
 func IsReservedTeamName(s string) bool {
@@ -282,7 +293,7 @@ func (o *Team) SanitizeForNotLoggedIn() {
 	o.Email = ""
 	o.AllowedDomains = ""
 	o.CompanyName = ""
-	if !o.AllowOpenInvite {
+	if o.Type != TEAM_OPEN {
 		o.InviteId = ""
 	}
 }
@@ -304,7 +315,18 @@ func (t *Team) Patch(patch *TeamPatch) {
 		t.InviteId = *patch.InviteId
 	}
 
+	if patch.Type != nil {
+		t.Type = *patch.Type
+		t.AllowOpenInvite = *patch.Type == TEAM_OPEN
+	}
+
+	// AllowOpenInvite is deprecated. Until fully removed, it will be based on type
 	if patch.AllowOpenInvite != nil {
+		if *patch.AllowOpenInvite {
+			t.Type = TEAM_OPEN
+		} else {
+			t.Type = TEAM_INVITE
+		}
 		t.AllowOpenInvite = *patch.AllowOpenInvite
 	}
 }
