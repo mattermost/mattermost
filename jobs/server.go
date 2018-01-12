@@ -18,6 +18,14 @@ type ConfigService interface {
 	RemoveConfigListener(string)
 }
 
+type StaticConfigService struct {
+	Cfg *model.Config
+}
+
+func (s StaticConfigService) Config() *model.Config                                   { return s.Cfg }
+func (StaticConfigService) AddConfigListener(func(old, current *model.Config)) string { return "" }
+func (StaticConfigService) RemoveConfigListener(string)                               {}
+
 type JobServer struct {
 	ConfigService ConfigService
 	Store         store.Store
