@@ -724,7 +724,7 @@
   },
   {
     "id": "api.command_groupmsg.invalid_users.app_error",
-    "translation": "사용자를 찾을 수 없습니다"
+    "translation": "사용자를 찾을 수 없습니다: %s"
   },
   {
     "id": "api.command_groupmsg.list.app_error",
@@ -1421,8 +1421,12 @@
     "translation": "확인된 이메일로 설정하는데 실패했습니다. err=%v"
   },
   {
-    "id": "api.incoming_webhook.disabled.app_errror",
+    "id": "api.incoming_webhook.disabled.app_error",
     "translation": "Incoming webhook은 관리자가 사용할 수 없게 설정했습니다."
+  },
+  {
+    "id": "api.incoming_webhook.invalid_username.app_error",
+    "translation": "잘못된 유저이름입니다."
   },
   {
     "id": "api.ldap.init.debug",
@@ -4975,6 +4979,10 @@
     "translation": "잘못된 형식"
   },
   {
+    "id": "model.incoming_hook.icon_url.app_error",
+    "translation": "잘못된 루트 아이디입니다."
+  },
+  {
     "id": "model.incoming_hook.id.app_error",
     "translation": "잘못된 Id"
   },
@@ -4989,6 +4997,10 @@
   {
     "id": "model.incoming_hook.user_id.app_error",
     "translation": "잘못된 사용자 ID"
+  },
+  {
+    "id": "model.incoming_hook.username.app_error",
+    "translation": "잘못된 유저이름입니다."
   },
   {
     "id": "model.job.is_valid.create_at.app_error",

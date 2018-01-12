@@ -4979,16 +4979,12 @@
     "translation": "Invalid title"
   },
   {
-    "id": "model.incoming_hook.id.app_error",
-    "translation": "Invalid Id"
-  },
-  {
-    "id": "model.incoming_hook.username.app_error",
-    "translation": "Invalid username"
-  },
-  {
     "id": "model.incoming_hook.icon_url.app_error",
     "translation": "Invalid post icon"
+  },
+  {
+    "id": "model.incoming_hook.id.app_error",
+    "translation": "Invalid Id"
   },
   {
     "id": "model.incoming_hook.team_id.app_error",
@@ -5001,6 +4997,10 @@
   {
     "id": "model.incoming_hook.user_id.app_error",
     "translation": "Invalid user id"
+  },
+  {
+    "id": "model.incoming_hook.username.app_error",
+    "translation": "Invalid username"
   },
   {
     "id": "model.job.is_valid.create_at.app_error",
