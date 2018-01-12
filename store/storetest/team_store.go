@@ -13,7 +13,9 @@ import (
 
 func TestTeamStore(t *testing.T, ss store.Store) {
 	t.Run("Save", func(t *testing.T) { testTeamStoreSave(t, ss) })
+	t.Run("SaveAllowOpenInviteDeprecated", func(t *testing.T) { testTeamStoreSaveAllowOpenInviteDeprecated(t, ss) })
 	t.Run("Update", func(t *testing.T) { testTeamStoreUpdate(t, ss) })
+	t.Run("UpdateAllowOpenInviteDeprecated", func(t *testing.T) { testTeamStoreUpdateAllowOpenInviteDeprecated(t, ss) })
 	t.Run("UpdateDisplayName", func(t *testing.T) { testTeamStoreUpdateDisplayName(t, ss) })
 	t.Run("Get", func(t *testing.T) { testTeamStoreGet(t, ss) })
 	t.Run("GetByName", func(t *testing.T) { testTeamStoreGetByName(t, ss) })
@@ -56,6 +58,29 @@ func testTeamStoreSave(t *testing.T, ss store.Store) {
 	}
 }
 
+func testTeamStoreSaveAllowOpenInviteDeprecated(t *testing.T, ss store.Store) {
+	// this team doesn't make sense - Type and AllowOpenInvite should be kept in lockstep, but we need fake data to pass validation
+	o1 := model.Team{}
+	o1.DisplayName = "DisplayName"
+	o1.Name = "z-z-z" + model.NewId() + "b"
+	o1.Email = model.NewId() + "@nowhere.com"
+	o1.Type = model.TEAM_OPEN
+	o1.AllowOpenInvite = false
+
+	if err := (<-ss.Team().Save(&o1)).Err; err != nil {
+		t.Fatal("couldn't save item", err)
+	}
+
+	if result := <-ss.Team().Get(o1.Id); result.Err != nil {
+		t.Fatal("Failed to get team")
+	} else {
+		team := result.Data.(*model.Team)
+		if !team.AllowOpenInvite {
+			t.Fatal("AllowOpenInvite was not converted from Type as expected")
+		}
+	}
+}
+
 func testTeamStoreUpdate(t *testing.T, ss store.Store) {
 	o1 := model.Team{}
 	o1.DisplayName = "DisplayName"
@@ -80,6 +105,43 @@ func testTeamStoreUpdate(t *testing.T, ss store.Store) {
 	o1.Id = model.NewId()
 	if err := (<-ss.Team().Update(&o1)).Err; err == nil {
 		t.Fatal("Update should have faile because id change")
+	}
+}
+
+func testTeamStoreUpdateAllowOpenInviteDeprecated(t *testing.T, ss store.Store) {
+	o1 := model.Team{}
+	o1.DisplayName = "DisplayName"
+	o1.Name = "z-z-z" + model.NewId() + "b"
+	o1.Email = model.NewId() + "@nowhere.com"
+	o1.AllowOpenInvite = false
+	o1.Type = model.TEAM_INVITE
+	if err := (<-ss.Team().Save(&o1)).Err; err != nil {
+		t.Fatal(err)
+	}
+
+	time.Sleep(100 * time.Millisecond)
+
+	if result := <-ss.Team().Get(o1.Id); result.Err != nil {
+		t.Fatal("Failed to get team")
+	} else {
+		team := result.Data.(*model.Team)
+		if team.Type != model.TEAM_INVITE {
+			t.Fatal("AllowOpenInvite was not correctly saved")
+		}
+	}
+
+	o1.Type = model.TEAM_OPEN
+	if err := (<-ss.Team().Update(&o1)).Err; err != nil {
+		t.Fatal(err)
+	}
+
+	if result := <-ss.Team().Get(o1.Id); result.Err != nil {
+		t.Fatal("Failed to get team")
+	} else {
+		team := result.Data.(*model.Team)
+		if !team.AllowOpenInvite {
+			t.Fatal("AllowOpenInvite was not converted from Type as expected")
+		}
 	}
 }
 
@@ -227,20 +289,8 @@ func testTeamStoreSearchOpen(t *testing.T, ss store.Store) {
 	o1.Name = "zz" + model.NewId() + "a"
 	o1.Email = model.NewId() + "@nowhere.com"
 	o1.Type = model.TEAM_OPEN
-	o1.AllowOpenInvite = true
 
 	if err := (<-ss.Team().Save(&o1)).Err; err != nil {
-		t.Fatal(err)
-	}
-
-	o2 := model.Team{}
-	o2.DisplayName = "ADisplayName" + model.NewId()
-	o2.Name = "zz" + model.NewId() + "a"
-	o2.Email = model.NewId() + "@nowhere.com"
-	o2.Type = model.TEAM_OPEN
-	o2.AllowOpenInvite = false
-
-	if err := (<-ss.Team().Save(&o2)).Err; err != nil {
 		t.Fatal(err)
 	}
 
@@ -249,7 +299,6 @@ func testTeamStoreSearchOpen(t *testing.T, ss store.Store) {
 	p2.Name = "b" + model.NewId() + "b"
 	p2.Email = model.NewId() + "@nowhere.com"
 	p2.Type = model.TEAM_INVITE
-	p2.AllowOpenInvite = true
 
 	if err := (<-ss.Team().Save(&p2)).Err; err != nil {
 		t.Fatal(err)
@@ -294,14 +343,6 @@ func testTeamStoreSearchOpen(t *testing.T, ss store.Store) {
 	}
 
 	r1 = <-ss.Team().SearchOpen("junk")
-	if r1.Err != nil {
-		t.Fatal(r1.Err)
-	}
-	if len(r1.Data.([]*model.Team)) != 0 {
-		t.Fatal("should have not returned a team")
-	}
-
-	r1 = <-ss.Team().SearchOpen(o2.DisplayName)
 	if r1.Err != nil {
 		t.Fatal(r1.Err)
 	}
@@ -389,7 +430,6 @@ func testGetAllTeamListing(t *testing.T, ss store.Store) {
 	o1.Name = "z-z-z" + model.NewId() + "b"
 	o1.Email = model.NewId() + "@nowhere.com"
 	o1.Type = model.TEAM_OPEN
-	o1.AllowOpenInvite = true
 	store.Must(ss.Team().Save(&o1))
 
 	o2 := model.Team{}
@@ -403,15 +443,14 @@ func testGetAllTeamListing(t *testing.T, ss store.Store) {
 	o3.DisplayName = "DisplayName"
 	o3.Name = "z-z-z" + model.NewId() + "b"
 	o3.Email = model.NewId() + "@nowhere.com"
-	o3.Type = model.TEAM_INVITE
-	o3.AllowOpenInvite = true
+	o3.Type = model.TEAM_OPEN
 	store.Must(ss.Team().Save(&o3))
 
 	o4 := model.Team{}
 	o4.DisplayName = "DisplayName"
 	o4.Name = "zz" + model.NewId() + "b"
 	o4.Email = model.NewId() + "@nowhere.com"
-	o4.Type = model.TEAM_INVITE
+	o4.Type = model.TEAM_OPEN
 	store.Must(ss.Team().Save(&o4))
 
 	if r1 := <-ss.Team().GetAllTeamListing(); r1.Err != nil {
@@ -420,8 +459,8 @@ func testGetAllTeamListing(t *testing.T, ss store.Store) {
 		teams := r1.Data.([]*model.Team)
 
 		for _, team := range teams {
-			if !team.AllowOpenInvite {
-				t.Fatal("should have returned team with AllowOpenInvite as true")
+			if team.Type != model.TEAM_OPEN {
+				t.Fatal("should have returned team with Type as Open")
 			}
 		}
 
@@ -437,7 +476,6 @@ func testGetAllTeamPageListing(t *testing.T, ss store.Store) {
 	o1.Name = "z-z-z" + model.NewId() + "b"
 	o1.Email = model.NewId() + "@nowhere.com"
 	o1.Type = model.TEAM_OPEN
-	o1.AllowOpenInvite = true
 	store.Must(ss.Team().Save(&o1))
 
 	o2 := model.Team{}
@@ -445,23 +483,20 @@ func testGetAllTeamPageListing(t *testing.T, ss store.Store) {
 	o2.Name = "zz" + model.NewId() + "b"
 	o2.Email = model.NewId() + "@nowhere.com"
 	o2.Type = model.TEAM_OPEN
-	o2.AllowOpenInvite = false
 	store.Must(ss.Team().Save(&o2))
 
 	o3 := model.Team{}
 	o3.DisplayName = "DisplayName"
 	o3.Name = "z-z-z" + model.NewId() + "b"
 	o3.Email = model.NewId() + "@nowhere.com"
-	o3.Type = model.TEAM_INVITE
-	o3.AllowOpenInvite = true
+	o3.Type = model.TEAM_OPEN
 	store.Must(ss.Team().Save(&o3))
 
 	o4 := model.Team{}
 	o4.DisplayName = "DisplayName"
 	o4.Name = "zz" + model.NewId() + "b"
 	o4.Email = model.NewId() + "@nowhere.com"
-	o4.Type = model.TEAM_INVITE
-	o4.AllowOpenInvite = false
+	o4.Type = model.TEAM_OPEN
 	store.Must(ss.Team().Save(&o4))
 
 	if r1 := <-ss.Team().GetAllTeamPageListing(0, 10); r1.Err != nil {
@@ -470,8 +505,8 @@ func testGetAllTeamPageListing(t *testing.T, ss store.Store) {
 		teams := r1.Data.([]*model.Team)
 
 		for _, team := range teams {
-			if !team.AllowOpenInvite {
-				t.Fatal("should have returned team with AllowOpenInvite as true")
+			if team.Type != model.TEAM_OPEN {
+				t.Fatal("should have returned team with Type as Open")
 			}
 		}
 
@@ -485,7 +520,6 @@ func testGetAllTeamPageListing(t *testing.T, ss store.Store) {
 	o5.Name = "z-z-z" + model.NewId() + "b"
 	o5.Email = model.NewId() + "@nowhere.com"
 	o5.Type = model.TEAM_OPEN
-	o5.AllowOpenInvite = true
 	store.Must(ss.Team().Save(&o5))
 
 	if r1 := <-ss.Team().GetAllTeamPageListing(0, 4); r1.Err != nil {
@@ -494,8 +528,8 @@ func testGetAllTeamPageListing(t *testing.T, ss store.Store) {
 		teams := r1.Data.([]*model.Team)
 
 		for _, team := range teams {
-			if !team.AllowOpenInvite {
-				t.Fatal("should have returned team with AllowOpenInvite as true")
+			if team.Type != model.TEAM_OPEN {
+				t.Fatal("should have returned team with Type as Open")
 			}
 		}
 
@@ -510,8 +544,8 @@ func testGetAllTeamPageListing(t *testing.T, ss store.Store) {
 		teams := r1.Data.([]*model.Team)
 
 		for _, team := range teams {
-			if !team.AllowOpenInvite {
-				t.Fatal("should have returned team with AllowOpenInvite as true")
+			if team.Type != model.TEAM_OPEN {
+				t.Fatal("should have returned team with Type as Open")
 			}
 		}
 
@@ -527,7 +561,6 @@ func testDelete(t *testing.T, ss store.Store) {
 	o1.Name = "z-z-z" + model.NewId() + "b"
 	o1.Email = model.NewId() + "@nowhere.com"
 	o1.Type = model.TEAM_OPEN
-	o1.AllowOpenInvite = true
 	store.Must(ss.Team().Save(&o1))
 
 	o2 := model.Team{}
@@ -548,7 +581,6 @@ func testTeamCount(t *testing.T, ss store.Store) {
 	o1.Name = "z-z-z" + model.NewId() + "b"
 	o1.Email = model.NewId() + "@nowhere.com"
 	o1.Type = model.TEAM_OPEN
-	o1.AllowOpenInvite = true
 	store.Must(ss.Team().Save(&o1))
 
 	if r1 := <-ss.Team().AnalyticsTeamCount(); r1.Err != nil {

@@ -96,9 +96,11 @@ func (a *App) UpdateTeam(team *model.Team) (*model.Team, *model.AppError) {
 	oldTeam.DisplayName = team.DisplayName
 	oldTeam.Description = team.Description
 	oldTeam.InviteId = team.InviteId
-	oldTeam.AllowOpenInvite = team.AllowOpenInvite
 	oldTeam.CompanyName = team.CompanyName
 	oldTeam.AllowedDomains = team.AllowedDomains
+
+	// AllowOpenInvite is deprecated. Until fully removed, it will be based on type
+	oldTeam.AllowOpenInvite = team.Type == model.TEAM_OPEN
 
 	if result := <-a.Srv.Store.Team().Update(oldTeam); result.Err != nil {
 		return nil, result.Err
