@@ -89,6 +89,7 @@ func setupTestHelper(enterprise bool) *TestHelper {
 	Init(th.App, th.App.Srv.Router)
 	wsapi.Init(th.App, th.App.Srv.WebSocketRouter)
 	th.App.Srv.Store.MarkSystemRanUnitTests()
+	th.App.DoAdvancedPermissionsMigration()
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableOpenServer = true })
 
@@ -437,6 +438,11 @@ func (me *TestHelper) RemovePermissionFromRole(permission string, roleName strin
 		if p != permission {
 			newPermissions = append(newPermissions, p)
 		}
+	}
+
+	if strings.Join(role.Permissions, " ") == strings.Join(newPermissions, " ") {
+		utils.EnableDebugLogForTest()
+		return
 	}
 
 	role.Permissions = newPermissions
