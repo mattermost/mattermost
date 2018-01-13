@@ -856,6 +856,11 @@ func (me *TestHelper) RemovePermissionFromRole(permission string, roleName strin
 		}
 	}
 
+	if strings.Join(role.Permissions, " ") == strings.Join(newPermissions, " ") {
+		utils.EnableDebugLogForTest()
+		return
+	}
+
 	role.Permissions = newPermissions
 
 	_, err2 := me.App.UpdateRole(role)
