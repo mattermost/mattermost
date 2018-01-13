@@ -113,7 +113,7 @@ func (a *App) TriggerWebhook(payload *model.OutgoingWebhookPayload, hook *model.
 
 					webhookResp := model.OutgoingWebhookResponseFromJson(resp.Body)
 
-					if webhookResp != nil && webhookResp.Text != nil {
+					if webhookResp != nil && (webhookResp.Text != nil || len(webhookResp.Attachments) > 0) {
 						postRootId := ""
 						if webhookResp.ResponseType == model.OUTGOING_HOOK_RESPONSE_TYPE_COMMENT {
 							postRootId = post.Id
@@ -122,7 +122,18 @@ func (a *App) TriggerWebhook(payload *model.OutgoingWebhookPayload, hook *model.
 							webhookResp.Props = make(model.StringInterface)
 						}
 						webhookResp.Props["webhook_display_name"] = hook.DisplayName
-						if _, err := a.CreateWebhookPost(hook.CreatorId, channel, *webhookResp.Text, webhookResp.Username, webhookResp.IconURL, webhookResp.Props, webhookResp.Type, postRootId); err != nil {
+
+						text := ""
+						if webhookResp.Text != nil {
+							text = a.ProcessSlackText(*webhookResp.Text)
+						}
+						webhookResp.Attachments = a.ProcessSlackAttachments(webhookResp.Attachments)
+						// attachments is in here for slack compatibility
+						if len(webhookResp.Attachments) > 0 {
+							webhookResp.Props["attachments"] = webhookResp.Attachments
+						}
+
+						if _, err := a.CreateWebhookPost(hook.CreatorId, channel, text, webhookResp.Username, webhookResp.IconURL, webhookResp.Props, webhookResp.Type, postRootId); err != nil {
 							l4g.Error(utils.T("api.post.handle_webhook_events_and_forget.create_post.error"), err)
 						}
 					}
