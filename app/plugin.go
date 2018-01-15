@@ -30,6 +30,8 @@ import (
 
 	"github.com/mattermost/mattermost-server/plugin"
 	"github.com/mattermost/mattermost-server/plugin/pluginenv"
+	"github.com/mattermost/mattermost-server/plugin/rpcplugin"
+	"github.com/mattermost/mattermost-server/plugin/rpcplugin/sandbox"
 )
 
 const (
@@ -382,6 +384,12 @@ func (a *App) InitPlugins(pluginPath, webappPath string, supervisorOverride plug
 
 	if supervisorOverride != nil {
 		options = append(options, pluginenv.SupervisorProvider(supervisorOverride))
+	} else if err := sandbox.CheckSupport(); err != nil {
+		l4g.Warn(err.Error())
+		l4g.Warn("plugin sandboxing is not supported. plugins will run with the same access level as the server")
+		options = append(options, pluginenv.SupervisorProvider(rpcplugin.SupervisorProvider))
+	} else {
+		options = append(options, pluginenv.SupervisorProvider(sandbox.SupervisorProvider))
 	}
 
 	if env, err := pluginenv.New(options...); err != nil {
