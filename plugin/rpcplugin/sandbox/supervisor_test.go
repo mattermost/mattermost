@@ -1,7 +1,7 @@
 // Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-package rpcplugin
+package sandbox
 
 import (
 	"testing"
@@ -10,5 +10,9 @@ import (
 )
 
 func TestSupervisorProvider(t *testing.T) {
+	if err := CheckSupport(); err != nil {
+		t.Skip("sandboxing not supported:", err)
+	}
+
 	rpcplugintest.TestSupervisorProvider(t, SupervisorProvider)
 }

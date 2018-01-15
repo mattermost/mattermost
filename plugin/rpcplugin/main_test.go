@@ -11,6 +11,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/plugin/plugintest"
+	"github.com/mattermost/mattermost-server/plugin/rpcplugin/rpcplugintest"
 )
 
 func TestMain(t *testing.T) {
@@ -19,7 +20,7 @@ func TestMain(t *testing.T) {
 	defer os.RemoveAll(dir)
 
 	plugin := filepath.Join(dir, "plugin.exe")
-	compileGo(t, `
+	rpcplugintest.CompileGo(t, `
 		package main
 
 		import (
