@@ -356,6 +356,19 @@ func (a *App) EnableUserAccessToken(token *model.UserAccessToken) *model.AppErro
 	return nil
 }
 
+func (a *App) GetUserAccessTokens(page, perPage int) ([]*model.UserAccessToken, *model.AppError) {
+	if result := <-a.Srv.Store.UserAccessToken().GetAll(page*perPage, perPage); result.Err != nil {
+		return nil, result.Err
+	} else {
+		tokens := result.Data.([]*model.UserAccessToken)
+		for _, token := range tokens {
+			token.Token = ""
+		}
+
+		return tokens, nil
+	}
+}
+
 func (a *App) GetUserAccessTokensForUser(userId string, page, perPage int) ([]*model.UserAccessToken, *model.AppError) {
 	if result := <-a.Srv.Store.UserAccessToken().GetByUser(userId, page*perPage, perPage); result.Err != nil {
 		return nil, result.Err
@@ -378,5 +391,17 @@ func (a *App) GetUserAccessToken(tokenId string, sanitize bool) (*model.UserAcce
 			token.Token = ""
 		}
 		return token, nil
+	}
+}
+
+func (a *App) SearchUserAccessTokens(term string) ([]*model.UserAccessToken, *model.AppError) {
+	if result := <-a.Srv.Store.UserAccessToken().Search(term); result.Err != nil {
+		return nil, result.Err
+	} else {
+		tokens := result.Data.([]*model.UserAccessToken)
+		for _, token := range tokens {
+			token.Token = ""
+		}
+		return tokens, nil
 	}
 }

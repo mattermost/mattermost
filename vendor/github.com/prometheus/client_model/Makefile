@@ -39,6 +39,7 @@ src/main/java/io/prometheus/client/Metrics.java: metrics.proto
 python: python/prometheus/client/model/metrics_pb2.py
 
 python/prometheus/client/model/metrics_pb2.py: metrics.proto
+	mkdir -p python/prometheus/client/model
 	protoc $< --python_out=python/prometheus/client/model
 
 ruby:

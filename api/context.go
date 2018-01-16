@@ -151,7 +151,7 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	c.SetSiteURLHeader(app.GetProtocol(r) + "://" + r.Host)
 
 	w.Header().Set(model.HEADER_REQUEST_ID, c.RequestId)
-	w.Header().Set(model.HEADER_VERSION_ID, fmt.Sprintf("%v.%v.%v.%v", model.CurrentVersion, model.BuildNumber, utils.ClientCfgHash, utils.IsLicensed()))
+	w.Header().Set(model.HEADER_VERSION_ID, fmt.Sprintf("%v.%v.%v.%v", model.CurrentVersion, model.BuildNumber, c.App.ClientConfigHash(), utils.IsLicensed()))
 
 	// Instruct the browser not to display us in an iframe unless is the same origin for anti-clickjacking
 	if !h.isApi {
@@ -455,7 +455,6 @@ func IsApiCall(r *http.Request) bool {
 
 func Handle404(w http.ResponseWriter, r *http.Request) {
 	err := model.NewAppError("Handle404", "api.context.404.app_error", nil, "", http.StatusNotFound)
-	err.Translate(utils.T)
 
 	l4g.Debug("%v: code=404 ip=%v", r.URL.Path, utils.GetIpAddress(r))
 

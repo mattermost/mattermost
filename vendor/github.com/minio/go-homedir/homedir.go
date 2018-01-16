@@ -1,6 +1,3 @@
-// Copyright 2016 (C) Mitchell Hashimoto
-// Distributed under the MIT License.
-
 // Package homedir implements a portable function to determine current user's homedir.
 package homedir
 
@@ -15,22 +12,24 @@ import (
 var DisableCache bool
 
 var homedirCache string
-var cacheLock sync.Mutex
+var cacheLock sync.RWMutex
 
 // Dir returns the home directory for the executing user.
 //
 // This uses an OS-specific method for discovering the home directory.
 // An error is returned if a home directory cannot be detected.
 func Dir() (string, error) {
-	cacheLock.Lock()
-	defer cacheLock.Unlock()
-
-	// Return cached homedir if available.
 	if !DisableCache {
-		if homedirCache != "" {
-			return homedirCache, nil
+		cacheLock.RLock()
+		cached := homedirCache
+		cacheLock.RUnlock()
+		if cached != "" {
+			return cached, nil
 		}
 	}
+
+	cacheLock.Lock()
+	defer cacheLock.Unlock()
 
 	// Determine OS speific current homedir.
 	result, err := dir()

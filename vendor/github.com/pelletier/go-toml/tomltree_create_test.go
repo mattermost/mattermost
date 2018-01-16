@@ -60,7 +60,7 @@ func TestTreeCreateToTree(t *testing.T) {
 		},
 		"array":                 []string{"a", "b", "c"},
 		"array_uint":            []uint{uint(1), uint(2)},
-		"array_table":           []map[string]interface{}{map[string]interface{}{"sub_map": 52}},
+		"array_table":           []map[string]interface{}{{"sub_map": 52}},
 		"array_times":           []time.Time{time.Now(), time.Now()},
 		"map_times":             map[string]time.Time{"now": time.Now()},
 		"custom_string_map_key": map[customString]interface{}{customString("custom"): "custom"},
@@ -97,7 +97,7 @@ func TestTreeCreateToTreeInvalidArrayMemberType(t *testing.T) {
 }
 
 func TestTreeCreateToTreeInvalidTableGroupType(t *testing.T) {
-	_, err := TreeFromMap(map[string]interface{}{"foo": []map[string]interface{}{map[string]interface{}{"hello": t}}})
+	_, err := TreeFromMap(map[string]interface{}{"foo": []map[string]interface{}{{"hello": t}}})
 	expected := "cannot convert type *testing.T to Tree"
 	if err.Error() != expected {
 		t.Fatalf("expected error %s, got %s", expected, err.Error())

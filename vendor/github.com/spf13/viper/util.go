@@ -11,23 +11,16 @@
 package viper
 
 import (
-	"bytes"
-	"encoding/json"
 	"fmt"
-	"io"
 	"os"
 	"path/filepath"
 	"runtime"
 	"strings"
 	"unicode"
 
-	"github.com/hashicorp/hcl"
-	"github.com/magiconair/properties"
-	toml "github.com/pelletier/go-toml"
 	"github.com/spf13/afero"
 	"github.com/spf13/cast"
 	jww "github.com/spf13/jwalterweatherman"
-	"gopkg.in/yaml.v2"
 )
 
 // ConfigParseError denotes failing to parse configuration file.
@@ -151,61 +144,6 @@ func userHomeDir() string {
 		return home
 	}
 	return os.Getenv("HOME")
-}
-
-func unmarshallConfigReader(in io.Reader, c map[string]interface{}, configType string) error {
-	buf := new(bytes.Buffer)
-	buf.ReadFrom(in)
-
-	switch strings.ToLower(configType) {
-	case "yaml", "yml":
-		if err := yaml.Unmarshal(buf.Bytes(), &c); err != nil {
-			return ConfigParseError{err}
-		}
-
-	case "json":
-		if err := json.Unmarshal(buf.Bytes(), &c); err != nil {
-			return ConfigParseError{err}
-		}
-
-	case "hcl":
-		obj, err := hcl.Parse(string(buf.Bytes()))
-		if err != nil {
-			return ConfigParseError{err}
-		}
-		if err = hcl.DecodeObject(&c, obj); err != nil {
-			return ConfigParseError{err}
-		}
-
-	case "toml":
-		tree, err := toml.LoadReader(buf)
-		if err != nil {
-			return ConfigParseError{err}
-		}
-		tmap := tree.ToMap()
-		for k, v := range tmap {
-			c[k] = v
-		}
-
-	case "properties", "props", "prop":
-		var p *properties.Properties
-		var err error
-		if p, err = properties.Load(buf.Bytes(), properties.UTF8); err != nil {
-			return ConfigParseError{err}
-		}
-		for _, key := range p.Keys() {
-			value, _ := p.Get(key)
-			// recursively build nested maps
-			path := strings.Split(key, ".")
-			lastKey := strings.ToLower(path[len(path)-1])
-			deepestMap := deepSearch(c, path[0:len(path)-1])
-			// set innermost value
-			deepestMap[lastKey] = value
-		}
-	}
-
-	insensitiviseMap(c)
-	return nil
 }
 
 func safeMul(a, b uint) uint {

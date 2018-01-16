@@ -79,3 +79,52 @@ func TestHostKeyCheck(t *testing.T) {
 		}
 	}
 }
+
+func TestBannerCallback(t *testing.T) {
+	c1, c2, err := netPipe()
+	if err != nil {
+		t.Fatalf("netPipe: %v", err)
+	}
+	defer c1.Close()
+	defer c2.Close()
+
+	serverConf := &ServerConfig{
+		PasswordCallback: func(conn ConnMetadata, password []byte) (*Permissions, error) {
+			return &Permissions{}, nil
+		},
+		BannerCallback: func(conn ConnMetadata) string {
+			return "Hello World"
+		},
+	}
+	serverConf.AddHostKey(testSigners["rsa"])
+	go NewServerConn(c1, serverConf)
+
+	var receivedBanner string
+	var bannerCount int
+	clientConf := ClientConfig{
+		Auth: []AuthMethod{
+			Password("123"),
+		},
+		User:            "user",
+		HostKeyCallback: InsecureIgnoreHostKey(),
+		BannerCallback: func(message string) error {
+			bannerCount++
+			receivedBanner = message
+			return nil
+		},
+	}
+
+	_, _, _, err = NewClientConn(c2, "", &clientConf)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if bannerCount != 1 {
+		t.Errorf("got %d banners; want 1", bannerCount)
+	}
+
+	expected := "Hello World"
+	if receivedBanner != expected {
+		t.Fatalf("got %s; want %s", receivedBanner, expected)
+	}
+}

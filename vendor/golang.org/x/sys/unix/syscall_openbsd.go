@@ -13,6 +13,7 @@
 package unix
 
 import (
+	"sort"
 	"syscall"
 	"unsafe"
 )
@@ -32,22 +33,11 @@ type SockaddrDatalink struct {
 func Syscall9(trap, a1, a2, a3, a4, a5, a6, a7, a8, a9 uintptr) (r1, r2 uintptr, err syscall.Errno)
 
 func nametomib(name string) (mib []_C_int, err error) {
-	// Perform lookup via a binary search
-	left := 0
-	right := len(sysctlMib) - 1
-	for {
-		idx := left + (right-left)/2
-		switch {
-		case name == sysctlMib[idx].ctlname:
-			return sysctlMib[idx].ctloid, nil
-		case name > sysctlMib[idx].ctlname:
-			left = idx + 1
-		default:
-			right = idx - 1
-		}
-		if left > right {
-			break
-		}
+	i := sort.Search(len(sysctlMib), func(i int) bool {
+		return sysctlMib[i].ctlname >= name
+	})
+	if i < len(sysctlMib) && sysctlMib[i].ctlname == name {
+		return sysctlMib[i].ctloid, nil
 	}
 	return nil, EINVAL
 }
@@ -79,6 +69,23 @@ func Pipe(p []int) (err error) {
 //sys getdents(fd int, buf []byte) (n int, err error)
 func Getdirentries(fd int, buf []byte, basep *uintptr) (n int, err error) {
 	return getdents(fd, buf)
+}
+
+const ImplementsGetwd = true
+
+//sys	Getcwd(buf []byte) (n int, err error) = SYS___GETCWD
+
+func Getwd() (string, error) {
+	var buf [PathMax]byte
+	_, err := Getcwd(buf[0:])
+	if err != nil {
+		return "", err
+	}
+	n := clen(buf[:])
+	if n < 1 {
+		return "", EINVAL
+	}
+	return string(buf[:n]), nil
 }
 
 // TODO
@@ -143,6 +150,52 @@ func IoctlGetTermios(fd int, req uint) (*Termios, error) {
 	var value Termios
 	err := ioctl(fd, req, uintptr(unsafe.Pointer(&value)))
 	return &value, err
+}
+
+func Uname(uname *Utsname) error {
+	mib := []_C_int{CTL_KERN, KERN_OSTYPE}
+	n := unsafe.Sizeof(uname.Sysname)
+	if err := sysctl(mib, &uname.Sysname[0], &n, nil, 0); err != nil {
+		return err
+	}
+
+	mib = []_C_int{CTL_KERN, KERN_HOSTNAME}
+	n = unsafe.Sizeof(uname.Nodename)
+	if err := sysctl(mib, &uname.Nodename[0], &n, nil, 0); err != nil {
+		return err
+	}
+
+	mib = []_C_int{CTL_KERN, KERN_OSRELEASE}
+	n = unsafe.Sizeof(uname.Release)
+	if err := sysctl(mib, &uname.Release[0], &n, nil, 0); err != nil {
+		return err
+	}
+
+	mib = []_C_int{CTL_KERN, KERN_VERSION}
+	n = unsafe.Sizeof(uname.Version)
+	if err := sysctl(mib, &uname.Version[0], &n, nil, 0); err != nil {
+		return err
+	}
+
+	// The version might have newlines or tabs in it, convert them to
+	// spaces.
+	for i, b := range uname.Version {
+		if b == '\n' || b == '\t' {
+			if i == len(uname.Version)-1 {
+				uname.Version[i] = 0
+			} else {
+				uname.Version[i] = ' '
+			}
+		}
+	}
+
+	mib = []_C_int{CTL_HW, HW_MACHINE}
+	n = unsafe.Sizeof(uname.Machine)
+	if err := sysctl(mib, &uname.Machine[0], &n, nil, 0); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 /*

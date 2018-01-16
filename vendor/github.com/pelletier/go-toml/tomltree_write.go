@@ -44,7 +44,7 @@ func encodeTomlString(value string) string {
 	return b.String()
 }
 
-func tomlValueStringRepresentation(v interface{}) (string, error) {
+func tomlValueStringRepresentation(v interface{}, indent string, arraysOneElementPerLine bool) (string, error) {
 	switch value := v.(type) {
 	case uint64:
 		return strconv.FormatUint(value, 10), nil
@@ -61,7 +61,7 @@ func tomlValueStringRepresentation(v interface{}) (string, error) {
 		return "\"" + encodeTomlString(value) + "\"", nil
 	case []byte:
 		b, _ := v.([]byte)
-		return tomlValueStringRepresentation(string(b))
+		return tomlValueStringRepresentation(string(b), indent, arraysOneElementPerLine)
 	case bool:
 		if value {
 			return "true", nil
@@ -76,21 +76,40 @@ func tomlValueStringRepresentation(v interface{}) (string, error) {
 	rv := reflect.ValueOf(v)
 
 	if rv.Kind() == reflect.Slice {
-		values := []string{}
+		var values []string
 		for i := 0; i < rv.Len(); i++ {
 			item := rv.Index(i).Interface()
-			itemRepr, err := tomlValueStringRepresentation(item)
+			itemRepr, err := tomlValueStringRepresentation(item, indent, arraysOneElementPerLine)
 			if err != nil {
 				return "", err
 			}
 			values = append(values, itemRepr)
+		}
+		if arraysOneElementPerLine && len(values) > 1 {
+			stringBuffer := bytes.Buffer{}
+			valueIndent := indent + `  ` // TODO: move that to a shared encoder state
+
+			stringBuffer.WriteString("[\n")
+
+			for i, value := range values {
+				stringBuffer.WriteString(valueIndent)
+				stringBuffer.WriteString(value)
+				if i != len(values)-1 {
+					stringBuffer.WriteString(`,`)
+				}
+				stringBuffer.WriteString("\n")
+			}
+
+			stringBuffer.WriteString(indent + "]")
+
+			return stringBuffer.String(), nil
 		}
 		return "[" + strings.Join(values, ",") + "]", nil
 	}
 	return "", fmt.Errorf("unsupported value type %T: %v", v, v)
 }
 
-func (t *Tree) writeTo(w io.Writer, indent, keyspace string, bytesCount int64) (int64, error) {
+func (t *Tree) writeTo(w io.Writer, indent, keyspace string, bytesCount int64, arraysOneElementPerLine bool) (int64, error) {
 	simpleValuesKeys := make([]string, 0)
 	complexValuesKeys := make([]string, 0)
 
@@ -113,7 +132,7 @@ func (t *Tree) writeTo(w io.Writer, indent, keyspace string, bytesCount int64) (
 			return bytesCount, fmt.Errorf("invalid value type at %s: %T", k, t.values[k])
 		}
 
-		repr, err := tomlValueStringRepresentation(v.value)
+		repr, err := tomlValueStringRepresentation(v.value, indent, arraysOneElementPerLine)
 		if err != nil {
 			return bytesCount, err
 		}
@@ -178,7 +197,7 @@ func (t *Tree) writeTo(w io.Writer, indent, keyspace string, bytesCount int64) (
 			if err != nil {
 				return bytesCount, err
 			}
-			bytesCount, err = node.writeTo(w, indent+"  ", combinedKey, bytesCount)
+			bytesCount, err = node.writeTo(w, indent+"  ", combinedKey, bytesCount, arraysOneElementPerLine)
 			if err != nil {
 				return bytesCount, err
 			}
@@ -190,7 +209,7 @@ func (t *Tree) writeTo(w io.Writer, indent, keyspace string, bytesCount int64) (
 					return bytesCount, err
 				}
 
-				bytesCount, err = subTree.writeTo(w, indent+"  ", combinedKey, bytesCount)
+				bytesCount, err = subTree.writeTo(w, indent+"  ", combinedKey, bytesCount, arraysOneElementPerLine)
 				if err != nil {
 					return bytesCount, err
 				}
@@ -216,7 +235,7 @@ func writeStrings(w io.Writer, s ...string) (int, error) {
 // WriteTo encode the Tree as Toml and writes it to the writer w.
 // Returns the number of bytes written in case of success, or an error if anything happened.
 func (t *Tree) WriteTo(w io.Writer) (int64, error) {
-	return t.writeTo(w, "", "", 0)
+	return t.writeTo(w, "", "", 0, false)
 }
 
 // ToTomlString generates a human-readable representation of the current tree.

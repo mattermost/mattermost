@@ -20,7 +20,8 @@ func TestConfigFlag(t *testing.T) {
 	defer os.RemoveAll(dir)
 
 	utils.TranslationsPreInit()
-	config := utils.LoadGlobalConfig("config.json")
+	config, _, err := utils.LoadConfig("config.json")
+	require.Nil(t, err)
 	configPath := filepath.Join(dir, "foo.json")
 	require.NoError(t, ioutil.WriteFile(configPath, []byte(config.ToJson()), 0600))
 

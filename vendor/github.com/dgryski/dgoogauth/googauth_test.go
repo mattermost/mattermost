@@ -1,7 +1,7 @@
 package dgoogauth
 
 import (
-	"strconv"
+	"fmt"
 	"testing"
 	"time"
 )
@@ -199,11 +199,11 @@ func TestAuthenticate(t *testing.T) {
 		t0 = int64(time.Now().Unix() / 30)
 	}
 	c := ComputeCode(otpconf.Secret, t0)
+	code := fmt.Sprintf("%06d", c)
 
-	invalid := c + 1
 	attempts = []attempt{
-		{strconv.Itoa(invalid), false},
-		{strconv.Itoa(c), true},
+		{code + "1", false},
+		{code, true},
 	}
 
 	for _, a := range attempts {

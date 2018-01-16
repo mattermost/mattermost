@@ -176,6 +176,9 @@ func (f *File) Read(b []byte) (n int, err error) {
 	if len(b) > 0 && int(f.at) == len(f.fileData.data) {
 		return 0, io.EOF
 	}
+	if int(f.at) > len(f.fileData.data) {
+		return 0, io.ErrUnexpectedEOF
+	}
 	if len(f.fileData.data)-int(f.at) >= len(b) {
 		n = len(b)
 	} else {

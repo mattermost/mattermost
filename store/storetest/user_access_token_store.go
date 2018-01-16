@@ -13,6 +13,7 @@ import (
 func TestUserAccessTokenStore(t *testing.T, ss store.Store) {
 	t.Run("UserAccessTokenSaveGetDelete", func(t *testing.T) { testUserAccessTokenSaveGetDelete(t, ss) })
 	t.Run("UserAccessTokenDisableEnable", func(t *testing.T) { testUserAccessTokenDisableEnable(t, ss) })
+	t.Run("UserAccessTokenSearch", func(t *testing.T) { testUserAccessTokenSearch(t, ss) })
 }
 
 func testUserAccessTokenSaveGetDelete(t *testing.T, ss store.Store) {
@@ -49,6 +50,12 @@ func testUserAccessTokenSaveGetDelete(t *testing.T, ss store.Store) {
 	}
 
 	if result := <-ss.UserAccessToken().GetByUser(uat.UserId, 0, 100); result.Err != nil {
+		t.Fatal(result.Err)
+	} else if received := result.Data.([]*model.UserAccessToken); len(received) != 1 {
+		t.Fatal("received incorrect number of tokens after save")
+	}
+
+	if result := <-ss.UserAccessToken().GetAll(0, 100); result.Err != nil {
 		t.Fatal(result.Err)
 	} else if received := result.Data.([]*model.UserAccessToken); len(received) != 1 {
 		t.Fatal("received incorrect number of tokens after save")
@@ -122,5 +129,47 @@ func testUserAccessTokenDisableEnable(t *testing.T, ss store.Store) {
 
 	if err := (<-ss.UserAccessToken().UpdateTokenEnable(uat.Id)).Err; err != nil {
 		t.Fatal(err)
+	}
+}
+
+func testUserAccessTokenSearch(t *testing.T, ss store.Store) {
+	u1 := model.User{}
+	u1.Email = model.NewId()
+	u1.Username = model.NewId()
+
+	store.Must(ss.User().Save(&u1))
+
+	uat := &model.UserAccessToken{
+		Token:       model.NewId(),
+		UserId:      u1.Id,
+		Description: "testtoken",
+	}
+
+	s1 := model.Session{}
+	s1.UserId = uat.UserId
+	s1.Token = uat.Token
+
+	store.Must(ss.Session().Save(&s1))
+
+	if result := <-ss.UserAccessToken().Save(uat); result.Err != nil {
+		t.Fatal(result.Err)
+	}
+
+	if result := <-ss.UserAccessToken().Search(uat.Id); result.Err != nil {
+		t.Fatal(result.Err)
+	} else if received := result.Data.([]*model.UserAccessToken); len(received) != 1 {
+		t.Fatal("received incorrect number of tokens after search")
+	}
+
+	if result := <-ss.UserAccessToken().Search(uat.UserId); result.Err != nil {
+		t.Fatal(result.Err)
+	} else if received := result.Data.([]*model.UserAccessToken); len(received) != 1 {
+		t.Fatal("received incorrect number of tokens after search")
+	}
+
+	if result := <-ss.UserAccessToken().Search(u1.Username); result.Err != nil {
+		t.Fatal(result.Err)
+	} else if received := result.Data.([]*model.UserAccessToken); len(received) != 1 {
+		t.Fatal("received incorrect number of tokens after search")
 	}
 }

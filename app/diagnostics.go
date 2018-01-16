@@ -56,16 +56,16 @@ var client *analytics.Client
 
 func (a *App) SendDailyDiagnostics() {
 	if *a.Config().LogSettings.EnableDiagnostics && a.IsLeader() {
-		initDiagnostics("")
+		a.initDiagnostics("")
 		a.trackActivity()
 		a.trackConfig()
-		trackLicense()
+		a.trackLicense()
 		a.trackPlugins()
 		a.trackServer()
 	}
 }
 
-func initDiagnostics(endpoint string) {
+func (a *App) initDiagnostics(endpoint string) {
 	if client == nil {
 		client = analytics.New(SEGMENT_KEY)
 		// For testing
@@ -76,15 +76,15 @@ func initDiagnostics(endpoint string) {
 			client.Logger = log.New(os.Stdout, "segment ", log.LstdFlags)
 		}
 		client.Identify(&analytics.Identify{
-			UserId: utils.CfgDiagnosticId,
+			UserId: a.DiagnosticId(),
 		})
 	}
 }
 
-func SendDiagnostic(event string, properties map[string]interface{}) {
+func (a *App) SendDiagnostic(event string, properties map[string]interface{}) {
 	client.Track(&analytics.Track{
 		Event:      event,
-		UserId:     utils.CfgDiagnosticId,
+		UserId:     a.DiagnosticId(),
 		Properties: properties,
 	})
 }
@@ -170,7 +170,7 @@ func (a *App) trackActivity() {
 		postsCount = pcr.Data.(int64)
 	}
 
-	SendDiagnostic(TRACK_ACTIVITY, map[string]interface{}{
+	a.SendDiagnostic(TRACK_ACTIVITY, map[string]interface{}{
 		"registered_users":          userCount,
 		"active_users":              activeUserCount,
 		"registered_inactive_users": inactiveUserCount,
@@ -189,7 +189,7 @@ func (a *App) trackActivity() {
 
 func (a *App) trackConfig() {
 	cfg := a.Config()
-	SendDiagnostic(TRACK_CONFIG_SERVICE, map[string]interface{}{
+	a.SendDiagnostic(TRACK_CONFIG_SERVICE, map[string]interface{}{
 		"web_server_mode":                                  *cfg.ServiceSettings.WebserverMode,
 		"enable_security_fix_alert":                        *cfg.ServiceSettings.EnableSecurityFixAlert,
 		"enable_insecure_outgoing_connections":             *cfg.ServiceSettings.EnableInsecureOutgoingConnections,
@@ -241,7 +241,7 @@ func (a *App) trackConfig() {
 		"enable_tutorial":                                  *cfg.ServiceSettings.EnableTutorial,
 	})
 
-	SendDiagnostic(TRACK_CONFIG_TEAM, map[string]interface{}{
+	a.SendDiagnostic(TRACK_CONFIG_TEAM, map[string]interface{}{
 		"enable_user_creation":                    cfg.TeamSettings.EnableUserCreation,
 		"enable_team_creation":                    cfg.TeamSettings.EnableTeamCreation,
 		"restrict_team_invite":                    *cfg.TeamSettings.RestrictTeamInvite,
@@ -269,7 +269,7 @@ func (a *App) trackConfig() {
 		"experimental_primary_team":               isDefault(*cfg.TeamSettings.ExperimentalPrimaryTeam, ""),
 	})
 
-	SendDiagnostic(TRACK_CONFIG_CLIENT_REQ, map[string]interface{}{
+	a.SendDiagnostic(TRACK_CONFIG_CLIENT_REQ, map[string]interface{}{
 		"android_latest_version": cfg.ClientRequirements.AndroidLatestVersion,
 		"android_min_version":    cfg.ClientRequirements.AndroidMinVersion,
 		"desktop_latest_version": cfg.ClientRequirements.DesktopLatestVersion,
@@ -278,7 +278,7 @@ func (a *App) trackConfig() {
 		"ios_min_version":        cfg.ClientRequirements.IosMinVersion,
 	})
 
-	SendDiagnostic(TRACK_CONFIG_SQL, map[string]interface{}{
+	a.SendDiagnostic(TRACK_CONFIG_SQL, map[string]interface{}{
 		"driver_name":                 *cfg.SqlSettings.DriverName,
 		"trace":                       cfg.SqlSettings.Trace,
 		"max_idle_conns":              *cfg.SqlSettings.MaxIdleConns,
@@ -288,7 +288,7 @@ func (a *App) trackConfig() {
 		"query_timeout":               *cfg.SqlSettings.QueryTimeout,
 	})
 
-	SendDiagnostic(TRACK_CONFIG_LOG, map[string]interface{}{
+	a.SendDiagnostic(TRACK_CONFIG_LOG, map[string]interface{}{
 		"enable_console":           cfg.LogSettings.EnableConsole,
 		"console_level":            cfg.LogSettings.ConsoleLevel,
 		"enable_file":              cfg.LogSettings.EnableFile,
@@ -298,7 +298,7 @@ func (a *App) trackConfig() {
 		"isdefault_file_location":  isDefault(cfg.LogSettings.FileLocation, ""),
 	})
 
-	SendDiagnostic(TRACK_CONFIG_PASSWORD, map[string]interface{}{
+	a.SendDiagnostic(TRACK_CONFIG_PASSWORD, map[string]interface{}{
 		"minimum_length": *cfg.PasswordSettings.MinimumLength,
 		"lowercase":      *cfg.PasswordSettings.Lowercase,
 		"number":         *cfg.PasswordSettings.Number,
@@ -306,7 +306,7 @@ func (a *App) trackConfig() {
 		"symbol":         *cfg.PasswordSettings.Symbol,
 	})
 
-	SendDiagnostic(TRACK_CONFIG_FILE, map[string]interface{}{
+	a.SendDiagnostic(TRACK_CONFIG_FILE, map[string]interface{}{
 		"enable_public_links":     cfg.FileSettings.EnablePublicLink,
 		"driver_name":             *cfg.FileSettings.DriverName,
 		"amazon_s3_ssl":           *cfg.FileSettings.AmazonS3SSL,
@@ -319,7 +319,7 @@ func (a *App) trackConfig() {
 		"enable_mobile_download":  *cfg.FileSettings.EnableMobileDownload,
 	})
 
-	SendDiagnostic(TRACK_CONFIG_EMAIL, map[string]interface{}{
+	a.SendDiagnostic(TRACK_CONFIG_EMAIL, map[string]interface{}{
 		"enable_sign_up_with_email":            cfg.EmailSettings.EnableSignUpWithEmail,
 		"enable_sign_in_with_email":            *cfg.EmailSettings.EnableSignInWithEmail,
 		"enable_sign_in_with_username":         *cfg.EmailSettings.EnableSignInWithUsername,
@@ -343,7 +343,7 @@ func (a *App) trackConfig() {
 		"isdefault_login_button_text_color":    isDefault(*cfg.EmailSettings.LoginButtonTextColor, ""),
 	})
 
-	SendDiagnostic(TRACK_CONFIG_RATE, map[string]interface{}{
+	a.SendDiagnostic(TRACK_CONFIG_RATE, map[string]interface{}{
 		"enable_rate_limiter":      *cfg.RateLimitSettings.Enable,
 		"vary_by_remote_address":   cfg.RateLimitSettings.VaryByRemoteAddr,
 		"per_sec":                  *cfg.RateLimitSettings.PerSec,
@@ -352,25 +352,25 @@ func (a *App) trackConfig() {
 		"isdefault_vary_by_header": isDefault(cfg.RateLimitSettings.VaryByHeader, ""),
 	})
 
-	SendDiagnostic(TRACK_CONFIG_PRIVACY, map[string]interface{}{
+	a.SendDiagnostic(TRACK_CONFIG_PRIVACY, map[string]interface{}{
 		"show_email_address": cfg.PrivacySettings.ShowEmailAddress,
 		"show_full_name":     cfg.PrivacySettings.ShowFullName,
 	})
 
-	SendDiagnostic(TRACK_CONFIG_THEME, map[string]interface{}{
+	a.SendDiagnostic(TRACK_CONFIG_THEME, map[string]interface{}{
 		"enable_theme_selection":  *cfg.ThemeSettings.EnableThemeSelection,
 		"isdefault_default_theme": isDefault(*cfg.ThemeSettings.DefaultTheme, model.TEAM_SETTINGS_DEFAULT_TEAM_TEXT),
 		"allow_custom_themes":     *cfg.ThemeSettings.AllowCustomThemes,
 		"allowed_themes":          len(cfg.ThemeSettings.AllowedThemes),
 	})
 
-	SendDiagnostic(TRACK_CONFIG_OAUTH, map[string]interface{}{
+	a.SendDiagnostic(TRACK_CONFIG_OAUTH, map[string]interface{}{
 		"enable_gitlab":    cfg.GitLabSettings.Enable,
 		"enable_google":    cfg.GoogleSettings.Enable,
 		"enable_office365": cfg.Office365Settings.Enable,
 	})
 
-	SendDiagnostic(TRACK_CONFIG_SUPPORT, map[string]interface{}{
+	a.SendDiagnostic(TRACK_CONFIG_SUPPORT, map[string]interface{}{
 		"isdefault_terms_of_service_link": isDefault(*cfg.SupportSettings.TermsOfServiceLink, model.SUPPORT_SETTINGS_DEFAULT_TERMS_OF_SERVICE_LINK),
 		"isdefault_privacy_policy_link":   isDefault(*cfg.SupportSettings.PrivacyPolicyLink, model.SUPPORT_SETTINGS_DEFAULT_PRIVACY_POLICY_LINK),
 		"isdefault_about_link":            isDefault(*cfg.SupportSettings.AboutLink, model.SUPPORT_SETTINGS_DEFAULT_ABOUT_LINK),
@@ -379,7 +379,7 @@ func (a *App) trackConfig() {
 		"isdefault_support_email":         isDefault(*cfg.SupportSettings.SupportEmail, model.SUPPORT_SETTINGS_DEFAULT_SUPPORT_EMAIL),
 	})
 
-	SendDiagnostic(TRACK_CONFIG_LDAP, map[string]interface{}{
+	a.SendDiagnostic(TRACK_CONFIG_LDAP, map[string]interface{}{
 		"enable":                              *cfg.LdapSettings.Enable,
 		"enable_sync":                         *cfg.LdapSettings.EnableSync,
 		"connection_security":                 *cfg.LdapSettings.ConnectionSecurity,
@@ -400,18 +400,18 @@ func (a *App) trackConfig() {
 		"isdefault_login_button_text_color":   isDefault(*cfg.LdapSettings.LoginButtonTextColor, ""),
 	})
 
-	SendDiagnostic(TRACK_CONFIG_COMPLIANCE, map[string]interface{}{
+	a.SendDiagnostic(TRACK_CONFIG_COMPLIANCE, map[string]interface{}{
 		"enable":       *cfg.ComplianceSettings.Enable,
 		"enable_daily": *cfg.ComplianceSettings.EnableDaily,
 	})
 
-	SendDiagnostic(TRACK_CONFIG_LOCALIZATION, map[string]interface{}{
+	a.SendDiagnostic(TRACK_CONFIG_LOCALIZATION, map[string]interface{}{
 		"default_server_locale": *cfg.LocalizationSettings.DefaultServerLocale,
 		"default_client_locale": *cfg.LocalizationSettings.DefaultClientLocale,
 		"available_locales":     *cfg.LocalizationSettings.AvailableLocales,
 	})
 
-	SendDiagnostic(TRACK_CONFIG_SAML, map[string]interface{}{
+	a.SendDiagnostic(TRACK_CONFIG_SAML, map[string]interface{}{
 		"enable":                              *cfg.SamlSettings.Enable,
 		"enable_sync_with_ldap":               *cfg.SamlSettings.EnableSyncWithLdap,
 		"verify":                              *cfg.SamlSettings.Verify,
@@ -429,42 +429,42 @@ func (a *App) trackConfig() {
 		"isdefault_login_button_text_color":   isDefault(*cfg.SamlSettings.LoginButtonTextColor, ""),
 	})
 
-	SendDiagnostic(TRACK_CONFIG_CLUSTER, map[string]interface{}{
+	a.SendDiagnostic(TRACK_CONFIG_CLUSTER, map[string]interface{}{
 		"enable":                  *cfg.ClusterSettings.Enable,
 		"use_ip_address":          *cfg.ClusterSettings.UseIpAddress,
 		"use_experimental_gossip": *cfg.ClusterSettings.UseExperimentalGossip,
 		"read_only_config":        *cfg.ClusterSettings.ReadOnlyConfig,
 	})
 
-	SendDiagnostic(TRACK_CONFIG_METRICS, map[string]interface{}{
+	a.SendDiagnostic(TRACK_CONFIG_METRICS, map[string]interface{}{
 		"enable":             *cfg.MetricsSettings.Enable,
 		"block_profile_rate": *cfg.MetricsSettings.BlockProfileRate,
 	})
 
-	SendDiagnostic(TRACK_CONFIG_NATIVEAPP, map[string]interface{}{
+	a.SendDiagnostic(TRACK_CONFIG_NATIVEAPP, map[string]interface{}{
 		"isdefault_app_download_link":         isDefault(*cfg.NativeAppSettings.AppDownloadLink, model.NATIVEAPP_SETTINGS_DEFAULT_APP_DOWNLOAD_LINK),
 		"isdefault_android_app_download_link": isDefault(*cfg.NativeAppSettings.AndroidAppDownloadLink, model.NATIVEAPP_SETTINGS_DEFAULT_ANDROID_APP_DOWNLOAD_LINK),
 		"isdefault_iosapp_download_link":      isDefault(*cfg.NativeAppSettings.IosAppDownloadLink, model.NATIVEAPP_SETTINGS_DEFAULT_IOS_APP_DOWNLOAD_LINK),
 	})
 
-	SendDiagnostic(TRACK_CONFIG_WEBRTC, map[string]interface{}{
+	a.SendDiagnostic(TRACK_CONFIG_WEBRTC, map[string]interface{}{
 		"enable":             *cfg.WebrtcSettings.Enable,
 		"isdefault_stun_uri": isDefault(*cfg.WebrtcSettings.StunURI, model.WEBRTC_SETTINGS_DEFAULT_STUN_URI),
 		"isdefault_turn_uri": isDefault(*cfg.WebrtcSettings.TurnURI, model.WEBRTC_SETTINGS_DEFAULT_TURN_URI),
 	})
 
-	SendDiagnostic(TRACK_CONFIG_ANALYTICS, map[string]interface{}{
+	a.SendDiagnostic(TRACK_CONFIG_ANALYTICS, map[string]interface{}{
 		"isdefault_max_users_for_statistics": isDefault(*cfg.AnalyticsSettings.MaxUsersForStatistics, model.ANALYTICS_SETTINGS_DEFAULT_MAX_USERS_FOR_STATISTICS),
 	})
 
-	SendDiagnostic(TRACK_CONFIG_ANNOUNCEMENT, map[string]interface{}{
+	a.SendDiagnostic(TRACK_CONFIG_ANNOUNCEMENT, map[string]interface{}{
 		"enable_banner":               *cfg.AnnouncementSettings.EnableBanner,
 		"isdefault_banner_color":      isDefault(*cfg.AnnouncementSettings.BannerColor, model.ANNOUNCEMENT_SETTINGS_DEFAULT_BANNER_COLOR),
 		"isdefault_banner_text_color": isDefault(*cfg.AnnouncementSettings.BannerTextColor, model.ANNOUNCEMENT_SETTINGS_DEFAULT_BANNER_TEXT_COLOR),
 		"allow_banner_dismissal":      *cfg.AnnouncementSettings.AllowBannerDismissal,
 	})
 
-	SendDiagnostic(TRACK_CONFIG_ELASTICSEARCH, map[string]interface{}{
+	a.SendDiagnostic(TRACK_CONFIG_ELASTICSEARCH, map[string]interface{}{
 		"isdefault_connection_url":          isDefault(*cfg.ElasticsearchSettings.ConnectionUrl, model.ELASTICSEARCH_SETTINGS_DEFAULT_CONNECTION_URL),
 		"isdefault_username":                isDefault(*cfg.ElasticsearchSettings.Username, model.ELASTICSEARCH_SETTINGS_DEFAULT_USERNAME),
 		"isdefault_password":                isDefault(*cfg.ElasticsearchSettings.Password, model.ELASTICSEARCH_SETTINGS_DEFAULT_PASSWORD),
@@ -479,14 +479,14 @@ func (a *App) trackConfig() {
 		"request_timeout_seconds":           *cfg.ElasticsearchSettings.RequestTimeoutSeconds,
 	})
 
-	SendDiagnostic(TRACK_CONFIG_PLUGIN, map[string]interface{}{
+	a.SendDiagnostic(TRACK_CONFIG_PLUGIN, map[string]interface{}{
 		"enable_jira":    pluginSetting(&cfg.PluginSettings, "jira", "enabled", false),
 		"enable_zoom":    pluginActivated(cfg.PluginSettings.PluginStates, "zoom"),
 		"enable":         *cfg.PluginSettings.Enable,
 		"enable_uploads": *cfg.PluginSettings.EnableUploads,
 	})
 
-	SendDiagnostic(TRACK_CONFIG_DATA_RETENTION, map[string]interface{}{
+	a.SendDiagnostic(TRACK_CONFIG_DATA_RETENTION, map[string]interface{}{
 		"enable_message_deletion": *cfg.DataRetentionSettings.EnableMessageDeletion,
 		"enable_file_deletion":    *cfg.DataRetentionSettings.EnableFileDeletion,
 		"message_retention_days":  *cfg.DataRetentionSettings.MessageRetentionDays,
@@ -494,7 +494,7 @@ func (a *App) trackConfig() {
 		"deletion_job_start_time": *cfg.DataRetentionSettings.DeletionJobStartTime,
 	})
 
-	SendDiagnostic(TRACK_CONFIG_MESSAGE_EXPORT, map[string]interface{}{
+	a.SendDiagnostic(TRACK_CONFIG_MESSAGE_EXPORT, map[string]interface{}{
 		"enable_message_export":         *cfg.MessageExportSettings.EnableExport,
 		"daily_run_time":                *cfg.MessageExportSettings.DailyRunTime,
 		"default_export_from_timestamp": *cfg.MessageExportSettings.ExportFromTimestamp,
@@ -502,7 +502,7 @@ func (a *App) trackConfig() {
 	})
 }
 
-func trackLicense() {
+func (a *App) trackLicense() {
 	if utils.IsLicensed() {
 		data := map[string]interface{}{
 			"customer_id": utils.License().Customer.Id,
@@ -518,7 +518,7 @@ func trackLicense() {
 			data["feature_"+featureName] = featureValue
 		}
 
-		SendDiagnostic(TRACK_LICENSE, data)
+		a.SendDiagnostic(TRACK_LICENSE, data)
 	}
 }
 
@@ -568,7 +568,7 @@ func (a *App) trackPlugins() {
 			}
 		}
 
-		SendDiagnostic(TRACK_PLUGINS, map[string]interface{}{
+		a.SendDiagnostic(TRACK_PLUGINS, map[string]interface{}{
 			"active_plugins":           totalActiveCount,
 			"active_webapp_plugins":    webappActiveCount,
 			"active_backend_plugins":   backendActiveCount,
@@ -592,5 +592,5 @@ func (a *App) trackServer() {
 		data["system_admins"] = scr.Data.(int64)
 	}
 
-	SendDiagnostic(TRACK_SERVER, data)
+	a.SendDiagnostic(TRACK_SERVER, data)
 }

@@ -171,6 +171,18 @@ func (s SqlUserAccessTokenStore) Get(tokenId string) store.StoreChannel {
 	})
 }
 
+func (s SqlUserAccessTokenStore) GetAll(offset, limit int) store.StoreChannel {
+	return store.Do(func(result *store.StoreResult) {
+		tokens := []*model.UserAccessToken{}
+
+		if _, err := s.GetReplica().Select(&tokens, "SELECT * FROM UserAccessTokens LIMIT :Limit OFFSET :Offset", map[string]interface{}{"Offset": offset, "Limit": limit}); err != nil {
+			result.Err = model.NewAppError("SqlUserAccessTokenStore.GetAll", "store.sql_user_access_token.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+
+		result.Data = tokens
+	})
+}
+
 func (s SqlUserAccessTokenStore) GetByToken(tokenString string) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		token := model.UserAccessToken{}
@@ -193,6 +205,26 @@ func (s SqlUserAccessTokenStore) GetByUser(userId string, offset, limit int) sto
 
 		if _, err := s.GetReplica().Select(&tokens, "SELECT * FROM UserAccessTokens WHERE UserId = :UserId LIMIT :Limit OFFSET :Offset", map[string]interface{}{"UserId": userId, "Offset": offset, "Limit": limit}); err != nil {
 			result.Err = model.NewAppError("SqlUserAccessTokenStore.GetByUser", "store.sql_user_access_token.get_by_user.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+
+		result.Data = tokens
+	})
+}
+
+func (s SqlUserAccessTokenStore) Search(term string) store.StoreChannel {
+	return store.Do(func(result *store.StoreResult) {
+		tokens := []*model.UserAccessToken{}
+		params := map[string]interface{}{"Term": term + "%"}
+		query := `
+			SELECT 
+				uat.*
+			FROM UserAccessTokens uat
+			INNER JOIN Users u 
+				ON uat.UserId = u.Id
+			WHERE uat.Id LIKE :Term OR uat.UserId LIKE :Term OR u.Username LIKE :Term`
+
+		if _, err := s.GetReplica().Select(&tokens, query, params); err != nil {
+			result.Err = model.NewAppError("SqlUserAccessTokenStore.Search", "store.sql_user_access_token.search.app_error", nil, "term="+term+", "+err.Error(), http.StatusInternalServerError)
 		}
 
 		result.Data = tokens

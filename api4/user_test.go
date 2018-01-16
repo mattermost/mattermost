@@ -2450,6 +2450,69 @@ func TestGetUserAccessToken(t *testing.T) {
 	if len(rtokens) != 2 {
 		t.Fatal("should have 2 tokens")
 	}
+	
+	_, resp = Client.GetUserAccessTokens(0,100)
+	CheckForbiddenStatus(t, resp)
+	
+	rtokens, resp = AdminClient.GetUserAccessTokens(1,1)
+	CheckNoError(t, resp)
+	
+	if len(rtokens) != 1 {
+		t.Fatal("should have 1 token")
+	}
+	
+	rtokens, resp = AdminClient.GetUserAccessTokens(0,2)
+	CheckNoError(t, resp)
+	
+	if len(rtokens) != 2 {
+		t.Fatal("should have 2 tokens")
+	}
+}
+
+func TestSearchUserAccessToken(t *testing.T) {
+	th := Setup().InitBasic().InitSystemAdmin()
+	defer th.TearDown()
+	Client := th.Client
+	AdminClient := th.SystemAdminClient
+	
+	testDescription := "test token"
+	
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
+	
+	th.App.UpdateUserRoles(th.BasicUser.Id, model.SYSTEM_USER_ROLE_ID+" "+model.SYSTEM_USER_ACCESS_TOKEN_ROLE_ID, false)
+	token, resp := Client.CreateUserAccessToken(th.BasicUser.Id, testDescription)
+	CheckNoError(t, resp)
+	
+	_, resp = Client.SearchUserAccessTokens(&model.UserAccessTokenSearch{Term: token.Id})
+	CheckForbiddenStatus(t, resp)
+	
+	rtokens, resp := AdminClient.SearchUserAccessTokens(&model.UserAccessTokenSearch{Term: th.BasicUser.Id})
+	CheckNoError(t, resp)
+	
+	if len(rtokens) != 1 {
+		t.Fatal("should have 1 tokens")
+	}
+	
+	rtokens, resp = AdminClient.SearchUserAccessTokens(&model.UserAccessTokenSearch{Term: token.Id})
+	CheckNoError(t, resp)
+	
+	if len(rtokens) != 1 {
+		t.Fatal("should have 1 tokens")
+	}
+	
+	rtokens, resp = AdminClient.SearchUserAccessTokens(&model.UserAccessTokenSearch{Term: th.BasicUser.Username})
+	CheckNoError(t, resp)
+	
+	if len(rtokens) != 1 {
+		t.Fatal("should have 1 tokens")
+	}
+	
+	rtokens, resp = AdminClient.SearchUserAccessTokens(&model.UserAccessTokenSearch{Term: "not found"})
+	CheckNoError(t, resp)
+	
+	if len(rtokens) != 0 {
+		t.Fatal("should have 0 tokens")
+	}
 }
 
 func TestRevokeUserAccessToken(t *testing.T) {
