@@ -119,15 +119,15 @@ func TestPreReqAndRemovals(t *testing.T) {
 ;example.org.	IN	 SOA
 
 ;; ANSWER SECTION:
-name_used.	0	ANY	ANY	
+name_used.	0	CLASS255	ANY	
 name_not_used.	0	NONE	ANY	
-rrset_used1.	0	ANY	A	
+rrset_used1.	0	CLASS255	A	
 rrset_used2.	3600	IN	A	127.0.0.1
 rrset_not_used.	0	NONE	A	
 
 ;; AUTHORITY SECTION:
-remove1.	0	ANY	ANY	
-remove2.	0	ANY	A	
+remove1.	0	CLASS255	ANY	
+remove2.	0	CLASS255	A	
 remove3.	0	NONE	A	127.0.0.1
 insert.	3600	IN	A	127.0.0.1
 `

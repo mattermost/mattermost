@@ -13,19 +13,18 @@ import (
 const (
 	EDNS0LLQ          = 0x1     // long lived queries: http://tools.ietf.org/html/draft-sekar-dns-llq-01
 	EDNS0UL           = 0x2     // update lease draft: http://files.dns-sd.org/draft-sekar-dns-ul.txt
-	EDNS0NSID         = 0x3     // nsid (RFC5001)
+	EDNS0NSID         = 0x3     // nsid (See RFC 5001)
 	EDNS0DAU          = 0x5     // DNSSEC Algorithm Understood
 	EDNS0DHU          = 0x6     // DS Hash Understood
 	EDNS0N3U          = 0x7     // NSEC3 Hash Understood
-	EDNS0SUBNET       = 0x8     // client-subnet (RFC6891)
+	EDNS0SUBNET       = 0x8     // client-subnet (See RFC 7871)
 	EDNS0EXPIRE       = 0x9     // EDNS0 expire
 	EDNS0COOKIE       = 0xa     // EDNS0 Cookie
-	EDNS0TCPKEEPALIVE = 0xb     // EDNS0 tcp keep alive (RFC7828)
-	EDNS0PADDING      = 0xc     // EDNS0 padding (RFC7830)
-	EDNS0SUBNETDRAFT  = 0x50fa  // Don't use! Use EDNS0SUBNET
-	EDNS0LOCALSTART   = 0xFDE9  // Beginning of range reserved for local/experimental use (RFC6891)
-	EDNS0LOCALEND     = 0xFFFE  // End of range reserved for local/experimental use (RFC6891)
-	_DO               = 1 << 15 // dnssec ok
+	EDNS0TCPKEEPALIVE = 0xb     // EDNS0 tcp keep alive (See RFC 7828)
+	EDNS0PADDING      = 0xc     // EDNS0 padding (See RFC 7830)
+	EDNS0LOCALSTART   = 0xFDE9  // Beginning of range reserved for local/experimental use (See RFC 6891)
+	EDNS0LOCALEND     = 0xFFFE  // End of range reserved for local/experimental use (See RFC 6891)
+	_DO               = 1 << 15 // DNSSEC OK
 )
 
 // OPT is the EDNS0 RR appended to messages to convey extra (meta) information.
@@ -58,9 +57,6 @@ func (rr *OPT) String() string {
 			}
 		case *EDNS0_SUBNET:
 			s += "\n; SUBNET: " + o.String()
-			if o.(*EDNS0_SUBNET).DraftOption {
-				s += " (draft)"
-			}
 		case *EDNS0_COOKIE:
 			s += "\n; COOKIE: " + o.String()
 		case *EDNS0_UL:
@@ -188,7 +184,7 @@ func (e *EDNS0_NSID) unpack(b []byte) error { e.Nsid = hex.EncodeToString(b); re
 func (e *EDNS0_NSID) String() string        { return string(e.Nsid) }
 
 // EDNS0_SUBNET is the subnet option that is used to give the remote nameserver
-// an idea of where the client lives. It can then give back a different
+// an idea of where the client lives. See RFC 7871. It can then give back a different
 // answer depending on the location or network topology.
 // Basic use pattern for creating an subnet option:
 //
@@ -204,26 +200,19 @@ func (e *EDNS0_NSID) String() string        { return string(e.Nsid) }
 //	// e.Address = net.ParseIP("2001:7b8:32a::2")	// for IPV6
 //	o.Option = append(o.Option, e)
 //
-// Note: the spec (draft-ietf-dnsop-edns-client-subnet-00) has some insane logic
-// for which netmask applies to the address. This code will parse all the
-// available bits when unpacking (up to optlen). When packing it will apply
-// SourceNetmask. If you need more advanced logic, patches welcome and good luck.
+// This code will parse all the available bits when unpacking (up to optlen).
+// When packing it will apply SourceNetmask. If you need more advanced logic,
+// patches welcome and good luck.
 type EDNS0_SUBNET struct {
 	Code          uint16 // Always EDNS0SUBNET
 	Family        uint16 // 1 for IP, 2 for IP6
 	SourceNetmask uint8
 	SourceScope   uint8
 	Address       net.IP
-	DraftOption   bool // Set to true if using the old (0x50fa) option code
 }
 
 // Option implements the EDNS0 interface.
-func (e *EDNS0_SUBNET) Option() uint16 {
-	if e.DraftOption {
-		return EDNS0SUBNETDRAFT
-	}
-	return EDNS0SUBNET
-}
+func (e *EDNS0_SUBNET) Option() uint16 { return EDNS0SUBNET }
 
 func (e *EDNS0_SUBNET) pack() ([]byte, error) {
 	b := make([]byte, 4)
@@ -431,6 +420,7 @@ func (e *EDNS0_LLQ) String() string {
 	return s
 }
 
+// EDNS0_DUA implements the EDNS0 "DNSSEC Algorithm Understood" option. See RFC 6975.
 type EDNS0_DAU struct {
 	Code    uint16 // Always EDNS0DAU
 	AlgCode []uint8
@@ -453,6 +443,7 @@ func (e *EDNS0_DAU) String() string {
 	return s
 }
 
+// EDNS0_DHU implements the EDNS0 "DS Hash Understood" option. See RFC 6975.
 type EDNS0_DHU struct {
 	Code    uint16 // Always EDNS0DHU
 	AlgCode []uint8
@@ -475,6 +466,7 @@ func (e *EDNS0_DHU) String() string {
 	return s
 }
 
+// EDNS0_N3U implements the EDNS0 "NSEC3 Hash Understood" option. See RFC 6975.
 type EDNS0_N3U struct {
 	Code    uint16 // Always EDNS0N3U
 	AlgCode []uint8
@@ -498,6 +490,7 @@ func (e *EDNS0_N3U) String() string {
 	return s
 }
 
+// EDNS0_EXPIRE implementes the EDNS0 option as described in RFC 7314.
 type EDNS0_EXPIRE struct {
 	Code   uint16 // Always EDNS0EXPIRE
 	Expire uint32

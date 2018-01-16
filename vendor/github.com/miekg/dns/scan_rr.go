@@ -1024,6 +1024,56 @@ func setOPENPGPKEY(h RR_Header, c chan lex, o, f string) (RR, *ParseError, strin
 	return rr, nil, c1
 }
 
+func setCSYNC(h RR_Header, c chan lex, o, f string) (RR, *ParseError, string) {
+	rr := new(CSYNC)
+	rr.Hdr = h
+
+	l := <-c
+	if l.length == 0 { // dynamic update rr.
+		return rr, nil, l.comment
+	}
+	j, e := strconv.ParseUint(l.token, 10, 32)
+	if e != nil {
+		// Serial must be a number
+		return nil, &ParseError{f, "bad CSYNC serial", l}, ""
+	}
+	rr.Serial = uint32(j)
+
+	<-c // zBlank
+
+	l = <-c
+	j, e = strconv.ParseUint(l.token, 10, 16)
+	if e != nil {
+		// Serial must be a number
+		return nil, &ParseError{f, "bad CSYNC flags", l}, ""
+	}
+	rr.Flags = uint16(j)
+
+	rr.TypeBitMap = make([]uint16, 0)
+	var (
+		k  uint16
+		ok bool
+	)
+	l = <-c
+	for l.value != zNewline && l.value != zEOF {
+		switch l.value {
+		case zBlank:
+			// Ok
+		case zString:
+			if k, ok = StringToType[l.tokenUpper]; !ok {
+				if k, ok = typeToInt(l.tokenUpper); !ok {
+					return nil, &ParseError{f, "bad CSYNC TypeBitMap", l}, ""
+				}
+			}
+			rr.TypeBitMap = append(rr.TypeBitMap, k)
+		default:
+			return nil, &ParseError{f, "bad CSYNC TypeBitMap", l}, ""
+		}
+		l = <-c
+	}
+	return rr, nil, l.comment
+}
+
 func setSIG(h RR_Header, c chan lex, o, f string) (RR, *ParseError, string) {
 	r, e, s := setRRSIG(h, c, o, f)
 	if r != nil {
@@ -1797,7 +1847,7 @@ func setURI(h RR_Header, c chan lex, o, f string) (RR, *ParseError, string) {
 	if err != nil {
 		return nil, err, ""
 	}
-	if len(s) > 1 {
+	if len(s) != 1 {
 		return nil, &ParseError{f, "bad URI Target", l}, ""
 	}
 	rr.Target = s[0]
@@ -2027,11 +2077,56 @@ func setCAA(h RR_Header, c chan lex, o, f string) (RR, *ParseError, string) {
 	if e != nil {
 		return nil, e, ""
 	}
-	if len(s) > 1 {
+	if len(s) != 1 {
 		return nil, &ParseError{f, "bad CAA Value", l}, ""
 	}
 	rr.Value = s[0]
 	return rr, nil, c1
+}
+
+func setTKEY(h RR_Header, c chan lex, o, f string) (RR, *ParseError, string) {
+	rr := new(TKEY)
+	rr.Hdr = h
+
+	l := <-c
+
+	// Algorithm
+	if l.value != zString {
+		return nil, &ParseError{f, "bad TKEY algorithm", l}, ""
+	}
+	rr.Algorithm = l.token
+	<-c // zBlank
+
+	// Get the key length and key values
+	l = <-c
+	i, err := strconv.ParseUint(l.token, 10, 8)
+	if err != nil || l.err {
+		return nil, &ParseError{f, "bad TKEY key length", l}, ""
+	}
+	rr.KeySize = uint16(i)
+	<-c // zBlank
+	l = <-c
+	if l.value != zString {
+		return nil, &ParseError{f, "bad TKEY key", l}, ""
+	}
+	rr.Key = l.token
+	<-c // zBlank
+
+	// Get the otherdata length and string data
+	l = <-c
+	i, err = strconv.ParseUint(l.token, 10, 8)
+	if err != nil || l.err {
+		return nil, &ParseError{f, "bad TKEY otherdata length", l}, ""
+	}
+	rr.OtherLen = uint16(i)
+	<-c // zBlank
+	l = <-c
+	if l.value != zString {
+		return nil, &ParseError{f, "bad TKEY otherday", l}, ""
+	}
+	rr.OtherData = l.token
+
+	return rr, nil, ""
 }
 
 var typeToparserFunc = map[uint16]parserFunc{
@@ -2043,6 +2138,7 @@ var typeToparserFunc = map[uint16]parserFunc{
 	TypeCDNSKEY:    {setCDNSKEY, true},
 	TypeCERT:       {setCERT, true},
 	TypeCNAME:      {setCNAME, false},
+	TypeCSYNC:      {setCSYNC, true},
 	TypeDHCID:      {setDHCID, true},
 	TypeDLV:        {setDLV, true},
 	TypeDNAME:      {setDNAME, false},
@@ -2099,4 +2195,5 @@ var typeToparserFunc = map[uint16]parserFunc{
 	TypeUINFO:      {setUINFO, true},
 	TypeURI:        {setURI, true},
 	TypeX25:        {setX25, false},
+	TypeTKEY:       {setTKEY, true},
 }

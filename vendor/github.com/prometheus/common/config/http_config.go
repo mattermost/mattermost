@@ -22,7 +22,7 @@ import (
 	"net/url"
 	"strings"
 
-	yaml "gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v2"
 )
 
 // BasicAuth contains basic HTTP authentication credentials.
@@ -79,7 +79,9 @@ type HTTPClientConfig struct {
 	XXX map[string]interface{} `yaml:",inline"`
 }
 
-func (c *HTTPClientConfig) validate() error {
+// Validate validates the HTTPClientConfig to check only one of BearerToken,
+// BasicAuth and BearerTokenFile is configured.
+func (c *HTTPClientConfig) Validate() error {
 	if len(c.BearerToken) > 0 && len(c.BearerTokenFile) > 0 {
 		return fmt.Errorf("at most one of bearer_token & bearer_token_file must be configured")
 	}
@@ -96,9 +98,9 @@ func (c *HTTPClientConfig) UnmarshalYAML(unmarshal func(interface{}) error) erro
 	if err != nil {
 		return err
 	}
-	err = c.validate()
+	err = c.Validate()
 	if err != nil {
-		return c.validate()
+		return c.Validate()
 	}
 	return checkOverflow(c.XXX, "http_client_config")
 }
