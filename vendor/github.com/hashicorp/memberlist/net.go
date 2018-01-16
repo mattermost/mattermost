@@ -1059,7 +1059,7 @@ func (m *Memberlist) readUserMsg(bufConn io.Reader, dec *codec.Decoder) error {
 // operations, given the deadline. The bool return parameter is true if we
 // we able to round trip a ping to the other node.
 func (m *Memberlist) sendPingAndWaitForAck(addr string, ping ping, deadline time.Time) (bool, error) {
-	conn, err := m.transport.DialTimeout(addr, m.config.TCPTimeout)
+	conn, err := m.transport.DialTimeout(addr, deadline.Sub(time.Now()))
 	if err != nil {
 		// If the node is actually dead we expect this to fail, so we
 		// shouldn't spam the logs with it. After this point, errors

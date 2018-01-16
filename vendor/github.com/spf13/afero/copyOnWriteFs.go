@@ -80,7 +80,7 @@ func (u *CopyOnWriteFs) Stat(name string) (os.FileInfo, error) {
 		if e, ok := err.(*os.PathError); ok {
 			err = e.Err
 		}
-		if err == syscall.ENOENT || err == syscall.ENOTDIR {
+		if err == os.ErrNotExist || err == syscall.ENOENT || err == syscall.ENOTDIR {
 			return u.base.Stat(name)
 		}
 		return nil, origErr

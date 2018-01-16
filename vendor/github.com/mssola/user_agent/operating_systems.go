@@ -1,4 +1,4 @@
-// Copyright (C) 2012-2017 Miquel Sabaté Solà <mikisabate@gmail.com>
+// Copyright (C) 2012-2018 Miquel Sabaté Solà <mikisabate@gmail.com>
 // This file is licensed under the MIT license.
 // See the LICENSE file.
 
@@ -88,6 +88,8 @@ func webkit(p *UserAgent, comment []string) {
 		}
 		if len(comment) > 3 {
 			p.localization = comment[3]
+		} else if len(comment) == 3 {
+			_ = p.googleBot()
 		}
 	} else if len(comment) > 0 {
 		if len(comment) > 3 {

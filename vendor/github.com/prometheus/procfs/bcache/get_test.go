@@ -14,8 +14,8 @@
 package bcache
 
 import (
-	"testing"
 	"math"
+	"testing"
 )
 
 func TestDehumanizeTests(t *testing.T) {
@@ -45,8 +45,8 @@ func TestDehumanizeTests(t *testing.T) {
 			out: 2024,
 		},
 		{
-			in:  []byte(""),
-			out: 0,
+			in:      []byte(""),
+			out:     0,
 			invalid: true,
 		},
 	}
@@ -59,7 +59,7 @@ func TestDehumanizeTests(t *testing.T) {
 			t.Errorf("unexpected error: %v", err)
 		}
 		if got != tst.out {
-			t.Errorf("dehumanize: '%s', want %f, got %f", tst.in, tst.out, got)
+			t.Errorf("dehumanize: '%s', want %d, got %d", tst.in, tst.out, got)
 		}
 	}
 }
@@ -84,7 +84,7 @@ func TestParsePseudoFloatTests(t *testing.T) {
 	}
 	for _, tst := range parsePseudoFloatTests {
 		got, err := parsePseudoFloat(tst.in)
-		if err != nil || math.Abs(got - tst.out) > 0.0001 {
+		if err != nil || math.Abs(got-tst.out) > 0.0001 {
 			t.Errorf("parsePseudoFloat: %s, want %f, got %f", tst.in, tst.out, got)
 		}
 	}
@@ -92,23 +92,23 @@ func TestParsePseudoFloatTests(t *testing.T) {
 
 func TestPriorityStats(t *testing.T) {
 	var want = PriorityStats{
-		UnusedPercent: 99,
+		UnusedPercent:   99,
 		MetadataPercent: 5,
 	}
 	var (
-		in string
+		in     string
 		gotErr error
-		got PriorityStats
+		got    PriorityStats
 	)
 	in = "Metadata:       5%"
 	gotErr = parsePriorityStats(in, &got)
 	if gotErr != nil || got.MetadataPercent != want.MetadataPercent {
-		t.Errorf("parsePriorityStats: '%s', want %f, got %f", in, want.MetadataPercent, got.MetadataPercent)
+		t.Errorf("parsePriorityStats: '%s', want %d, got %d", in, want.MetadataPercent, got.MetadataPercent)
 	}
 
 	in = "Unused:         99%"
 	gotErr = parsePriorityStats(in, &got)
 	if gotErr != nil || got.UnusedPercent != want.UnusedPercent {
-		t.Errorf("parsePriorityStats: '%s', want %f, got %f", in, want.UnusedPercent, got.UnusedPercent)
+		t.Errorf("parsePriorityStats: '%s', want %d, got %d", in, want.UnusedPercent, got.UnusedPercent)
 	}
 }

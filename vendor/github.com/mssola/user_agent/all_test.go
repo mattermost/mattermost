@@ -1,4 +1,4 @@
-// Copyright (C) 2012-2017 Miquel Sabaté Solà <mikisabate@gmail.com>
+// Copyright (C) 2012-2018 Miquel Sabaté Solà <mikisabate@gmail.com>
 // This file is licensed under the MIT license.
 // See the LICENSE file.
 
@@ -25,8 +25,13 @@ var uastrings = []struct {
 		expected: "Mozilla:5.0 Browser:Googlebot-2.1 Bot:true Mobile:false",
 	},
 	{
-		title:    "GoogleBotSmartphone",
+		title:    "GoogleBotSmartphone (iPhone)",
 		ua:       "Mozilla/5.0 (iPhone; CPU iPhone OS 6_0 like Mac OS X) AppleWebKit/536.26 (KHTML, like Gecko) Version/6.0 Mobile/10A5376e Safari/8536.25 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)",
+		expected: "Mozilla:5.0 Browser:Googlebot-2.1 Bot:true Mobile:true",
+	},
+	{
+		title:    "GoogleBotSmartphone (Android)",
+		ua:       "Mozilla/5.0 (Linux; Android 6.0.1; Nexus 5X Build/MMB29P) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2272.96 Mobile Safari/537.36 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)",
 		expected: "Mozilla:5.0 Browser:Googlebot-2.1 Bot:true Mobile:true",
 	},
 	{

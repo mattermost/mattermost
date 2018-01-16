@@ -639,7 +639,9 @@ func (m *Memberlist) Shutdown() error {
 	// Shut down the transport first, which should block until it's
 	// completely torn down. If we kill the memberlist-side handlers
 	// those I/O handlers might get stuck.
-	m.transport.Shutdown()
+	if err := m.transport.Shutdown(); err != nil {
+		m.logger.Printf("[ERR] Failed to shutdown transport: %v", err)
+	}
 
 	// Now tear down everything else.
 	atomic.StoreInt32(&m.shutdown, 1)

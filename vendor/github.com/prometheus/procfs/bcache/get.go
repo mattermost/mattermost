@@ -61,7 +61,7 @@ func dehumanize(hbytes []byte) (uint64, error) {
 	mul := float64(1)
 	var (
 		mant float64
-		err error
+		err  error
 	)
 	// If lastByte is beyond the range of ASCII digits, it must be a
 	// multiplier.
@@ -93,7 +93,7 @@ func dehumanize(hbytes []byte) (uint64, error) {
 			'Z': ZiB,
 			'Y': YiB,
 		}
-		mul = float64(multipliers[rune(lastByte)])
+		mul = multipliers[rune(lastByte)]
 		mant, err = parsePseudoFloat(string(hbytes))
 		if err != nil {
 			return 0, err
@@ -139,10 +139,10 @@ func (p *parser) readValue(fileName string) uint64 {
 }
 
 // ParsePriorityStats parses lines from the priority_stats file.
-func parsePriorityStats(line string, ps *PriorityStats) (error) {
+func parsePriorityStats(line string, ps *PriorityStats) error {
 	var (
 		value uint64
-		err error
+		err   error
 	)
 	switch {
 	case strings.HasPrefix(line, "Unused:"):

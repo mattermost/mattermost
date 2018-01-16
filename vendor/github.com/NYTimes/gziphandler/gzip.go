@@ -82,7 +82,14 @@ type GzipResponseWriter struct {
 	buf     []byte // Holds the first part of the write before reaching the minSize or the end of the write.
 
 	contentTypes []string // Only compress if the response is one of these content-types. All are accepted if empty.
-	flushed      bool     // Indicate if the stream was already flushed
+}
+
+type GzipResponseWriterWithCloseNotify struct {
+	*GzipResponseWriter
+}
+
+func (w *GzipResponseWriterWithCloseNotify) CloseNotify() <-chan bool {
+	return w.ResponseWriter.(http.CloseNotifier).CloseNotify()
 }
 
 // Write appends data to the gzip writer.
@@ -170,8 +177,7 @@ func (w *GzipResponseWriter) init() {
 func (w *GzipResponseWriter) Close() error {
 	if w.gw == nil {
 		// Gzip not trigged yet, write out regular response.
-		// WriteHeader only if it wasn't already wrote by a Flush
-		if !w.flushed && w.code != 0 {
+		if w.code != 0 {
 			w.ResponseWriter.WriteHeader(w.code)
 		}
 		if w.buf != nil {
@@ -194,16 +200,18 @@ func (w *GzipResponseWriter) Close() error {
 // http.ResponseWriter if it is an http.Flusher. This makes GzipResponseWriter
 // an http.Flusher.
 func (w *GzipResponseWriter) Flush() {
-	if w.gw != nil {
-		w.gw.Flush()
+	if w.gw == nil {
+		// Only flush once startGzip has been called.
+		//
+		// Flush is thus a no-op until the written body
+		// exceeds minSize.
+		return
 	}
 
+	w.gw.Flush()
+
 	if fw, ok := w.ResponseWriter.(http.Flusher); ok {
-		if !w.flushed && w.code != 0 {
-			w.ResponseWriter.WriteHeader(w.code)
-		}
 		fw.Flush()
-		w.flushed = true
 	}
 }
 
@@ -264,7 +272,6 @@ func GzipHandlerWithOpts(opts ...option) (func(http.Handler) http.Handler, error
 
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Add(vary, acceptEncoding)
-
 			if acceptsGzip(r) {
 				gw := &GzipResponseWriter{
 					ResponseWriter: w,
@@ -274,7 +281,13 @@ func GzipHandlerWithOpts(opts ...option) (func(http.Handler) http.Handler, error
 				}
 				defer gw.Close()
 
-				h.ServeHTTP(gw, r)
+				if _, ok := w.(http.CloseNotifier); ok {
+					gwcn := GzipResponseWriterWithCloseNotify{gw}
+					h.ServeHTTP(gwcn, r)
+				} else {
+					h.ServeHTTP(gw, r)
+				}
+
 			} else {
 				h.ServeHTTP(w, r)
 			}
