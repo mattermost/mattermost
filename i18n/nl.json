@@ -1421,8 +1421,12 @@
     "translation": "Fout tijdens het instellen van e-mail verificatie. Fout=%v"
   },
   {
-    "id": "api.incoming_webhook.disabled.app_errror",
+    "id": "api.incoming_webhook.disabled.app_error",
     "translation": "Commando's zijn uitgeschakeld door de beheerder."
+  },
+  {
+    "id": "api.incoming_webhook.invalid_username.app_error",
+    "translation": "Ongeldige gebruikersnaam"
   },
   {
     "id": "api.ldap.init.debug",
@@ -4975,6 +4979,10 @@
     "translation": "Ongeldige type"
   },
   {
+    "id": "model.incoming_hook.icon_url.app_error",
+    "translation": "Ongeldig start id"
+  },
+  {
     "id": "model.incoming_hook.id.app_error",
     "translation": "Ongeldig Id"
   },
@@ -4989,6 +4997,10 @@
   {
     "id": "model.incoming_hook.user_id.app_error",
     "translation": "Ongeldig gebruikers id"
+  },
+  {
+    "id": "model.incoming_hook.username.app_error",
+    "translation": "Ongeldige gebruikersnaam"
   },
   {
     "id": "model.job.is_valid.create_at.app_error",

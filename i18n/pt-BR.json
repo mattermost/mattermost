@@ -1421,8 +1421,12 @@
     "translation": "Não foi possível definir email verificado err=%v"
   },
   {
-    "id": "api.incoming_webhook.disabled.app_errror",
+    "id": "api.incoming_webhook.disabled.app_error",
     "translation": "Webhooks de entrada foram desabilitados pelo administrador do sistema."
+  },
+  {
+    "id": "api.incoming_webhook.invalid_username.app_error",
+    "translation": "Nome do usuário inválido"
   },
   {
     "id": "api.ldap.init.debug",
@@ -2288,7 +2292,7 @@
   },
   {
     "id": "api.team.join_team.post_and_forget",
-    "translation": "%v joined the team."
+    "translation": "%v entrou na equipe."
   },
   {
     "id": "api.team.leave.left",
@@ -4975,6 +4979,10 @@
     "translation": "Título inválido"
   },
   {
+    "id": "model.incoming_hook.icon_url.app_error",
+    "translation": "Ícone de postagem inválido"
+  },
+  {
     "id": "model.incoming_hook.id.app_error",
     "translation": "ID inválida"
   },
@@ -4989,6 +4997,10 @@
   {
     "id": "model.incoming_hook.user_id.app_error",
     "translation": "Id de usuário inválido"
+  },
+  {
+    "id": "model.incoming_hook.username.app_error",
+    "translation": "Nome do usuário inválido"
   },
   {
     "id": "model.job.is_valid.create_at.app_error",
@@ -5100,7 +5112,7 @@
   },
   {
     "id": "model.plugin_command.error.app_error",
-    "translation": "An error occurred while trying to execute this command."
+    "translation": "Um erro aconteceu enquanto tentava executar este comando."
   },
   {
     "id": "model.plugin_key_value.is_valid.key.app_error",
