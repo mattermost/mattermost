@@ -144,5 +144,5 @@ This is an early release. I’ve been using it for a while and this is the
 third interface I’ve tried. I like this one pretty well, but no guarantees
 that it won’t change a bit.
 
-I wrote this for use in [hugo](http://hugo.spf13.com). If you are looking
+I wrote this for use in [hugo](https://gohugo.io). If you are looking
 for a static website engine that’s super fast please checkout Hugo.

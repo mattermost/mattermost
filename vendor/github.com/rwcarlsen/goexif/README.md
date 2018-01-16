@@ -6,7 +6,7 @@ Suggestions and pull requests are welcome.  Functionality is split into two pack
 The exif package depends on the tiff package. 
 Documentation can be found at http://godoc.org/github.com/rwcarlsen/goexif
 
-Like goexif? - Bitcoin tips welcome: 17M7LFh3ETz4bz83VikB7xuGQskt8K5Lj4
+Like goexif? - Bitcoin Cash tips welcome: 1DrU5V37nTXuv4vnRLVpahJEjhdATNgoBh
 
 To install, in a terminal type:
 

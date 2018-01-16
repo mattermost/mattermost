@@ -95,3 +95,4 @@ import:
   version: 2.0.0
 - package: github.com/mattermost/html2text
 - package: github.com/icrowley/fake
+- package: github.com/avct/uasurfer
