@@ -255,6 +255,8 @@ func testSessionCount(t *testing.T, ss store.Store) {
 }
 
 func testSessionCleanup(t *testing.T, ss store.Store) {
+	now := model.GetMillis()
+
 	s1 := model.Session{}
 	s1.UserId = model.NewId()
 	s1.ExpiresAt = 0 // never expires
@@ -262,7 +264,7 @@ func testSessionCleanup(t *testing.T, ss store.Store) {
 
 	s2 := model.Session{}
 	s2.UserId = s1.UserId
-	s2.ExpiresAt = model.GetMillis() + 1000000 // expires in the future
+	s2.ExpiresAt = now + 1000000 // expires in the future
 	store.Must(ss.Session().Save(&s2))
 
 	s3 := model.Session{}
@@ -270,7 +272,12 @@ func testSessionCleanup(t *testing.T, ss store.Store) {
 	s3.ExpiresAt = 1 // expired
 	store.Must(ss.Session().Save(&s3))
 
-	ss.Session().Cleanup()
+	s4 := model.Session{}
+	s4.UserId = model.NewId()
+	s4.ExpiresAt = 2 // expired
+	store.Must(ss.Session().Save(&s4))
+
+	ss.Session().Cleanup(now, 1)
 
 	err := (<-ss.Session().Get(s1.Id)).Err
 	assert.Nil(t, err)
@@ -279,6 +286,9 @@ func testSessionCleanup(t *testing.T, ss store.Store) {
 	assert.Nil(t, err)
 
 	err = (<-ss.Session().Get(s3.Id)).Err
+	assert.NotNil(t, err)
+
+	err = (<-ss.Session().Get(s4.Id)).Err
 	assert.NotNil(t, err)
 
 	store.Must(ss.Session().Remove(s1.Id))

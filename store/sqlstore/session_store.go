@@ -5,10 +5,15 @@ package sqlstore
 
 import (
 	"net/http"
+	"time"
 
 	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
+)
+
+const (
+	SESSIONS_CLEANUP_DELAY_MILLISECONDS = 100
 )
 
 type SqlSessionStore struct {
@@ -217,9 +222,31 @@ func (me SqlSessionStore) AnalyticsSessionCount() store.StoreChannel {
 	})
 }
 
-func (me SqlSessionStore) Cleanup() {
+func (me SqlSessionStore) Cleanup(expiryTime int64, batchSize int64) {
 	l4g.Debug("Cleaning up session store.")
-	if _, err := me.GetMaster().Exec("DELETE FROM Sessions WHERE ExpiresAt != 0 AND :ExpiresAt > ExpiresAt", map[string]interface{}{"ExpiresAt": model.GetMillis()}); err != nil {
-		l4g.Error("Unable to cleanup session store. err=%v", err.Error())
+
+	var query string
+	if me.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+		query = "DELETE FROM Sessions WHERE Id = any (array (SELECT Id FROM Sessions WHERE ExpiresAt != 0 AND :ExpiresAt > ExpiresAt LIMIT :Limit))"
+	} else {
+		query = "DELETE FROM Sessions WHERE ExpiresAt != 0 AND :ExpiresAt > ExpiresAt LIMIT :Limit"
+	}
+
+	var rowsAffected int64 = 1
+
+	for rowsAffected > 0 {
+		if sqlResult, err := me.GetMaster().Exec(query, map[string]interface{}{"ExpiresAt": expiryTime, "Limit": batchSize}); err != nil {
+			l4g.Error("Unable to cleanup session store. err=%v", err.Error())
+			return
+		} else {
+			var rowErr error
+			rowsAffected, rowErr = sqlResult.RowsAffected()
+			if rowErr != nil {
+				l4g.Error("Unable to cleanup session store. err=%v", err.Error())
+				return
+			}
+		}
+
+		time.Sleep(SESSIONS_CLEANUP_DELAY_MILLISECONDS * time.Millisecond)
 	}
 }

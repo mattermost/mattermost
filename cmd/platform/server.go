@@ -21,6 +21,10 @@ import (
 	"github.com/spf13/cobra"
 )
 
+const (
+	SESSIONS_CLEANUP_BATCH_SIZE = 1000
+)
+
 var MaxNotificationsPerChannelDefault int64 = 1000000
 
 var serverCmd = &cobra.Command{
@@ -237,5 +241,5 @@ func doCommandWebhookCleanup(a *app.App) {
 }
 
 func doSessionCleanup(a *app.App) {
-	a.Srv.Store.Session().Cleanup()
+	a.Srv.Store.Session().Cleanup(model.GetMillis(), SESSIONS_CLEANUP_BATCH_SIZE)
 }
