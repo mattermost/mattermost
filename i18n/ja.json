@@ -1421,8 +1421,12 @@
     "translation": "電子メールを確認済みに設定できませんでした err=%v"
   },
   {
-    "id": "api.incoming_webhook.disabled.app_errror",
+    "id": "api.incoming_webhook.disabled.app_error",
     "translation": "内向きのウェブフックはシステム管理者によって無効にされています。"
+  },
+  {
+    "id": "api.incoming_webhook.invalid_username.app_error",
+    "translation": "不正なユーザー名です。"
   },
   {
     "id": "api.ldap.init.debug",
@@ -4975,6 +4979,10 @@
     "translation": "不正なタイトルです"
   },
   {
+    "id": "model.incoming_hook.icon_url.app_error",
+    "translation": "不正な投稿アイコンです。"
+  },
+  {
     "id": "model.incoming_hook.id.app_error",
     "translation": "不正なIDです"
   },
@@ -4989,6 +4997,10 @@
   {
     "id": "model.incoming_hook.user_id.app_error",
     "translation": "不正なユーザーIDです"
+  },
+  {
+    "id": "model.incoming_hook.username.app_error",
+    "translation": "不正なユーザー名です。"
   },
   {
     "id": "model.job.is_valid.create_at.app_error",
