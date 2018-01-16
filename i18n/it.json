@@ -1421,8 +1421,12 @@
     "translation": "Impostazione dell email come verificata fallita err=%v"
   },
   {
-    "id": "api.incoming_webhook.disabled.app_errror",
+    "id": "api.incoming_webhook.disabled.app_error",
     "translation": "I webhooks in ingresso sono stati disabilitati dall'amministratore di sistema."
+  },
+  {
+    "id": "api.incoming_webhook.invalid_username.app_error",
+    "translation": "Nome utente non valido"
   },
   {
     "id": "api.ldap.init.debug",
@@ -4975,6 +4979,10 @@
     "translation": "Titolo non valido"
   },
   {
+    "id": "model.incoming_hook.icon_url.app_error",
+    "translation": "Id pubblicazione non valido"
+  },
+  {
     "id": "model.incoming_hook.id.app_error",
     "translation": "ID non valido"
   },
@@ -4989,6 +4997,10 @@
   {
     "id": "model.incoming_hook.user_id.app_error",
     "translation": "User id non valido"
+  },
+  {
+    "id": "model.incoming_hook.username.app_error",
+    "translation": "Nome utente non valido"
   },
   {
     "id": "model.job.is_valid.create_at.app_error",
