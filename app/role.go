@@ -3,7 +3,9 @@
 
 package app
 
-import "github.com/mattermost/mattermost-server/model"
+import (
+	"github.com/mattermost/mattermost-server/model"
+)
 
 func (a *App) GetRole(id string) (*model.Role, *model.AppError) {
 	if result := <-a.Srv.Store.Role().Get(id); result.Err != nil {
@@ -44,7 +46,7 @@ func (a *App) UpdateRole(role *model.Role) (*model.Role, *model.AppError) {
 		return nil, result.Err
 	} else {
 		// TODO: Is any cache invalidation required here?
-		// TODO: Should a Web Socket event be sent here?
+		a.sendUpdatedRoleEvent(role)
 
 		return role, nil
 	}
@@ -70,4 +72,13 @@ func (a *App) CheckRolesExist(roleNames []string) (bool, *model.AppError) {
 	}
 
 	return true, nil
+}
+
+func (a *App) sendUpdatedRoleEvent(role *model.Role) {
+	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_ROLE_UPDATED, "", "", "", nil)
+	message.Add("role", role.ToJson())
+
+	a.Go(func() {
+		a.Publish(message)
+	})
 }
