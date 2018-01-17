@@ -24,7 +24,7 @@ import (
 
 type TestHelper struct {
 	App            *app.App
-	originalConfig *model.Config
+	tempConfigPath string
 
 	BasicClient  *model.Client
 	BasicTeam    *model.Team
@@ -64,7 +64,22 @@ func StopTestStore() {
 }
 
 func setupTestHelper(enterprise bool) *TestHelper {
-	options := []app.Option{app.DisableConfigWatch}
+	permConfig, err := os.Open(utils.FindConfigFile("config.json"))
+	if err != nil {
+		panic(err)
+	}
+	defer permConfig.Close()
+	tempConfig, err := ioutil.TempFile("", "")
+	if err != nil {
+		panic(err)
+	}
+	_, err = io.Copy(tempConfig, permConfig)
+	tempConfig.Close()
+	if err != nil {
+		panic(err)
+	}
+
+	options := []app.Option{app.ConfigFile(tempConfig.Name()), app.DisableConfigWatch}
 	if testStore != nil {
 		options = append(options, app.StoreOverride(testStore))
 	}
@@ -75,9 +90,9 @@ func setupTestHelper(enterprise bool) *TestHelper {
 	}
 
 	th := &TestHelper{
-		App: a,
+		App:            a,
+		tempConfigPath: tempConfig.Name(),
 	}
-	th.originalConfig = th.App.Config().Clone()
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.TeamSettings.MaxUsersPerTeam = 50
@@ -176,7 +191,7 @@ func (me *TestHelper) CreateTeam(client *model.Client) *model.Team {
 	team := &model.Team{
 		DisplayName: "dn_" + id,
 		Name:        GenerateTestTeamName(),
-		Email:       GenerateTestEmail(),
+		Email:       me.GenerateTestEmail(),
 		Type:        model.TEAM_OPEN,
 	}
 
@@ -190,7 +205,7 @@ func (me *TestHelper) CreateUser(client *model.Client) *model.User {
 	id := model.NewId()
 
 	user := &model.User{
-		Email:    GenerateTestEmail(),
+		Email:    me.GenerateTestEmail(),
 		Username: "un_" + id,
 		Nickname: "nn_" + id,
 		Password: "Password1",
@@ -353,8 +368,8 @@ func (me *TestHelper) LoginSystemAdmin() {
 	utils.EnableDebugLogForTest()
 }
 
-func GenerateTestEmail() string {
-	if utils.Cfg.EmailSettings.SMTPServer != "dockerhost" && os.Getenv("CI_INBUCKET_PORT") == "" {
+func (me *TestHelper) GenerateTestEmail() string {
+	if me.App.Config().EmailSettings.SMTPServer != "dockerhost" && os.Getenv("CI_INBUCKET_PORT") == "" {
 		return strings.ToLower("success+" + model.NewId() + "@simulator.amazonses.com")
 	}
 	return strings.ToLower(model.NewId() + "@dockerhost")
@@ -365,11 +380,8 @@ func GenerateTestTeamName() string {
 }
 
 func (me *TestHelper) TearDown() {
-	me.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg = *me.originalConfig
-	})
-
 	me.App.Shutdown()
+	os.Remove(me.tempConfigPath)
 	if err := recover(); err != nil {
 		StopTestStore()
 		panic(err)

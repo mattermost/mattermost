@@ -27,7 +27,6 @@ func (a *App) UpdateConfig(f func(*model.Config)) {
 	updated := old.Clone()
 	f(updated)
 	a.config.Store(updated)
-	utils.Cfg = updated
 	a.InvokeConfigListeners(old, updated)
 }
 
@@ -48,7 +47,6 @@ func (a *App) LoadConfig(configFile string) *model.AppError {
 	utils.ConfigureLog(&cfg.LogSettings)
 
 	a.config.Store(cfg)
-	utils.Cfg = cfg
 
 	utils.SetSiteURL(*cfg.ServiceSettings.SiteURL)
 

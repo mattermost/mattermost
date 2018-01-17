@@ -88,8 +88,6 @@ func TestOAuthRegisterApp(t *testing.T) {
 		t.Fatal("should have failed. not enough permissions")
 	}
 
-	adminOnly := *th.App.Config().ServiceSettings.EnableOnlyAdminIntegrations
-	defer th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOnlyAdminIntegrations = adminOnly })
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOnlyAdminIntegrations = false })
 
 	th.LoginBasic()
@@ -741,9 +739,6 @@ func TestOAuthComplete(t *testing.T) {
 
 	// We are going to use mattermost as the provider emulating gitlab
 	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = true })
-
-	adminOnly := *th.App.Config().ServiceSettings.EnableOnlyAdminIntegrations
-	defer th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOnlyAdminIntegrations = adminOnly })
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOnlyAdminIntegrations = false })
 
 	oauthApp := &model.OAuthApp{

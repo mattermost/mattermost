@@ -61,7 +61,7 @@ func (srv *JobServer) LoadLicense() {
 
 	if len(licenseId) != 26 {
 		// Lets attempt to load the file from disk since it was missing from the DB
-		_, licenseBytes = utils.GetAndValidateLicenseFileFromDisk()
+		_, licenseBytes = utils.GetAndValidateLicenseFileFromDisk(*srv.ConfigService.Config().ServiceSettings.LicenseFileLocation)
 	} else {
 		if result := <-srv.Store.License().Get(licenseId); result.Err == nil {
 			record := result.Data.(*model.LicenseRecord)

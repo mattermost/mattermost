@@ -55,7 +55,7 @@ func manualTest(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Create a client for tests to use
-	client := model.NewClient("http://localhost" + *utils.Cfg.ServiceSettings.ListenAddress)
+	client := model.NewClient("http://localhost" + *c.App.Config().ServiceSettings.ListenAddress)
 
 	// Check for username parameter and create a user if present
 	username, ok1 := params["username"]
@@ -118,7 +118,7 @@ func manualTest(c *api.Context, w http.ResponseWriter, r *http.Request) {
 			Name:     model.SESSION_COOKIE_TOKEN,
 			Value:    client.AuthToken,
 			Path:     "/",
-			MaxAge:   *utils.Cfg.ServiceSettings.SessionLengthWebInDays * 60 * 60 * 24,
+			MaxAge:   *c.App.Config().ServiceSettings.SessionLengthWebInDays * 60 * 60 * 24,
 			HttpOnly: true,
 		}
 		http.SetCookie(w, sessionCookie)

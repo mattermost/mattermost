@@ -5,6 +5,7 @@ package app
 
 import (
 	"encoding/json"
+	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -12,6 +13,7 @@ import (
 
 	l4g "github.com/alecthomas/log4go"
 
+	"github.com/mattermost/mattermost-server/app"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/plugin"
 	"github.com/mattermost/mattermost-server/plugin/pluginenv"
@@ -29,8 +31,9 @@ type TestHelper struct {
 	BasicChannel *model.Channel
 	BasicPost    *model.Post
 
-	tempWorkspace string
-	pluginHooks   map[string]plugin.Hooks
+	tempConfigPath string
+	tempWorkspace  string
+	pluginHooks    map[string]plugin.Hooks
 }
 
 type persistentTestStore struct {
@@ -57,7 +60,22 @@ func StopTestStore() {
 }
 
 func setupTestHelper(enterprise bool) *TestHelper {
-	options := []Option{DisableConfigWatch}
+	permConfig, err := os.Open(utils.FindConfigFile("config.json"))
+	if err != nil {
+		panic(err)
+	}
+	defer permConfig.Close()
+	tempConfig, err := ioutil.TempFile("", "")
+	if err != nil {
+		panic(err)
+	}
+	_, err = io.Copy(tempConfig, permConfig)
+	tempConfig.Close()
+	if err != nil {
+		panic(err)
+	}
+
+	options := []app.Option{app.ConfigFile(tempConfig.Name()), app.DisableConfigWatch}
 	if testStore != nil {
 		options = append(options, StoreOverride(testStore))
 	}
@@ -68,8 +86,9 @@ func setupTestHelper(enterprise bool) *TestHelper {
 	}
 
 	th := &TestHelper{
-		App:         a,
-		pluginHooks: make(map[string]plugin.Hooks),
+		App:            a,
+		pluginHooks:    make(map[string]plugin.Hooks),
+		tempConfigPath: tempConfig.Name(),
 	}
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.MaxUsersPerTeam = 50 })
@@ -232,6 +251,7 @@ func (me *TestHelper) LinkUserToTeam(user *model.User, team *model.Team) {
 
 func (me *TestHelper) TearDown() {
 	me.App.Shutdown()
+	os.Remove(me.tempConfigPath)
 	if err := recover(); err != nil {
 		StopTestStore()
 		panic(err)
