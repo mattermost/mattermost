@@ -220,7 +220,7 @@ func doSecurity(a *app.App) {
 }
 
 func doDiagnostics(a *app.App) {
-	if *utils.Cfg.LogSettings.EnableDiagnostics {
+	if *a.Config().LogSettings.EnableDiagnostics {
 		a.SendDailyDiagnostics()
 	}
 }
