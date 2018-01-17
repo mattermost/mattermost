@@ -5,12 +5,15 @@ package sqlstore
 
 import (
 	"net/http"
+	"time"
 
 	l4g "github.com/alecthomas/log4go"
-
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
-	"github.com/mattermost/mattermost-server/utils"
+)
+
+const (
+	SESSIONS_CLEANUP_DELAY_MILLISECONDS = 100
 )
 
 type SqlSessionStore struct {
@@ -49,10 +52,6 @@ func (me SqlSessionStore) Save(session *model.Session) store.StoreChannel {
 		}
 
 		session.PreSave()
-
-		if cur := <-me.CleanUpExpiredSessions(session.UserId); cur.Err != nil {
-			l4g.Error(utils.T("store.sql_session.save.cleanup.error"), cur.Err)
-		}
 
 		tcs := me.Team().GetTeamsForUser(session.UserId)
 
@@ -108,10 +107,6 @@ func (me SqlSessionStore) Get(sessionIdOrToken string) store.StoreChannel {
 
 func (me SqlSessionStore) GetSessions(userId string) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
-		if cur := <-me.CleanUpExpiredSessions(userId); cur.Err != nil {
-			l4g.Error(utils.T("store.sql_session.get_sessions.error"), cur.Err)
-		}
-
 		var sessions []*model.Session
 
 		tcs := me.Team().GetTeamsForUser(userId)
@@ -180,16 +175,6 @@ func (me SqlSessionStore) PermanentDeleteSessionsByUser(userId string) store.Sto
 	})
 }
 
-func (me SqlSessionStore) CleanUpExpiredSessions(userId string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		if _, err := me.GetMaster().Exec("DELETE FROM Sessions WHERE UserId = :UserId AND ExpiresAt != 0 AND :ExpiresAt > ExpiresAt", map[string]interface{}{"UserId": userId, "ExpiresAt": model.GetMillis()}); err != nil {
-			result.Err = model.NewAppError("SqlSessionStore.CleanUpExpiredSessions", "store.sql_session.cleanup_expired_sessions.app_error", nil, err.Error(), http.StatusInternalServerError)
-		} else {
-			result.Data = userId
-		}
-	})
-}
-
 func (me SqlSessionStore) UpdateLastActivityAt(sessionId string, time int64) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		if _, err := me.GetMaster().Exec("UPDATE Sessions SET LastActivityAt = :LastActivityAt WHERE Id = :Id", map[string]interface{}{"LastActivityAt": time, "Id": sessionId}); err != nil {
@@ -235,4 +220,33 @@ func (me SqlSessionStore) AnalyticsSessionCount() store.StoreChannel {
 			result.Data = c
 		}
 	})
+}
+
+func (me SqlSessionStore) Cleanup(expiryTime int64, batchSize int64) {
+	l4g.Debug("Cleaning up session store.")
+
+	var query string
+	if me.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+		query = "DELETE FROM Sessions WHERE Id = any (array (SELECT Id FROM Sessions WHERE ExpiresAt != 0 AND :ExpiresAt > ExpiresAt LIMIT :Limit))"
+	} else {
+		query = "DELETE FROM Sessions WHERE ExpiresAt != 0 AND :ExpiresAt > ExpiresAt LIMIT :Limit"
+	}
+
+	var rowsAffected int64 = 1
+
+	for rowsAffected > 0 {
+		if sqlResult, err := me.GetMaster().Exec(query, map[string]interface{}{"ExpiresAt": expiryTime, "Limit": batchSize}); err != nil {
+			l4g.Error("Unable to cleanup session store. err=%v", err.Error())
+			return
+		} else {
+			var rowErr error
+			rowsAffected, rowErr = sqlResult.RowsAffected()
+			if rowErr != nil {
+				l4g.Error("Unable to cleanup session store. err=%v", err.Error())
+				return
+			}
+		}
+
+		time.Sleep(SESSIONS_CLEANUP_DELAY_MILLISECONDS * time.Millisecond)
+	}
 }

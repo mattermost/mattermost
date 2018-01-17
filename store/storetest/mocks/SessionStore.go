@@ -29,6 +29,11 @@ func (_m *SessionStore) AnalyticsSessionCount() store.StoreChannel {
 	return r0
 }
 
+// Cleanup provides a mock function with given fields: expiryTime, batchSize
+func (_m *SessionStore) Cleanup(expiryTime int64, batchSize int64) {
+	_m.Called(expiryTime, batchSize)
+}
+
 // Get provides a mock function with given fields: sessionIdOrToken
 func (_m *SessionStore) Get(sessionIdOrToken string) store.StoreChannel {
 	ret := _m.Called(sessionIdOrToken)
