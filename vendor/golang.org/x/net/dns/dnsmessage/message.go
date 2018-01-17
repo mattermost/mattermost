@@ -13,7 +13,7 @@ import (
 	"errors"
 )
 
-// Message formats
+// Packet formats
 
 // A Type is a type of DNS request and response.
 type Type uint16
@@ -826,8 +826,8 @@ func (m *Message) AppendPack(b []byte) ([]byte, error) {
 	// unconditionally enabling it is fine.
 	//
 	// DNS lookups are typically done over UDP, and RFC 1035 states that UDP
-	// DNS messages can be a maximum of 512 bytes long. Without compression,
-	// many DNS response messages are over this limit, so enabling
+	// DNS packets can be a maximum of 512 bytes long. Without compression,
+	// many DNS response packets are over this limit, so enabling
 	// compression will help ensure compliance.
 	compression := map[string]int{}
 
@@ -1207,7 +1207,7 @@ func (b *Builder) AAAAResource(h ResourceHeader, r AAAAResource) error {
 	return nil
 }
 
-// Finish ends message building and generates a binary message.
+// Finish ends message building and generates a binary packet.
 func (b *Builder) Finish() ([]byte, error) {
 	if b.section < sectionHeader {
 		return nil, ErrNotStarted

@@ -1718,6 +1718,7 @@ func TestServer_Response_NoData_Header_FooBar(t *testing.T) {
 		wanth := [][2]string{
 			{":status", "200"},
 			{"foo-bar", "some-value"},
+			{"content-type", "text/plain; charset=utf-8"},
 			{"content-length", "0"},
 		}
 		if !reflect.DeepEqual(goth, wanth) {
@@ -2952,6 +2953,7 @@ func TestServerDoesntWriteInvalidHeaders(t *testing.T) {
 		wanth := [][2]string{
 			{":status", "200"},
 			{"ok1", "x"},
+			{"content-type", "text/plain; charset=utf-8"},
 			{"content-length", "0"},
 		}
 		if !reflect.DeepEqual(goth, wanth) {
@@ -3264,6 +3266,7 @@ func TestServerNoAutoContentLengthOnHead(t *testing.T) {
 	headers := st.decodeHeader(h.HeaderBlockFragment())
 	want := [][2]string{
 		{":status", "200"},
+		{"content-type", "text/plain; charset=utf-8"},
 	}
 	if !reflect.DeepEqual(headers, want) {
 		t.Errorf("Headers mismatch.\n got: %q\nwant: %q\n", headers, want)

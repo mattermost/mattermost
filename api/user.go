@@ -297,7 +297,7 @@ func getInitialLoad(c *Context, w http.ResponseWriter, r *http.Request) {
 		il.NoAccounts = c.App.IsFirstUserAccount()
 	}
 
-	il.ClientCfg = c.App.ClientConfig()
+	il.ClientCfg = utils.ClientCfg
 	if c.App.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
 		il.LicenseCfg = utils.ClientLicense()
 	} else {

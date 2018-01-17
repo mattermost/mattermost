@@ -75,6 +75,7 @@ func (cfg *AutoUserCreator) createRandomUser() (*model.User, bool) {
 
 	result, err := cfg.client.CreateUserWithInvite(user, "", "", cfg.team.InviteId)
 	if err != nil {
+		err.Translate(utils.T)
 		l4g.Error(err.Error())
 		return nil, false
 	}
@@ -83,6 +84,7 @@ func (cfg *AutoUserCreator) createRandomUser() (*model.User, bool) {
 
 	status := &model.Status{UserId: ruser.Id, Status: model.STATUS_ONLINE, Manual: false, LastActivityAt: model.GetMillis(), ActiveChannel: ""}
 	if result := <-cfg.app.Srv.Store.Status().SaveOrUpdate(status); result.Err != nil {
+		result.Err.Translate(utils.T)
 		l4g.Error(result.Err.Error())
 		return nil, false
 	}

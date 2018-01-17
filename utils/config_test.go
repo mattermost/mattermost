@@ -9,16 +9,18 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/mattermost/mattermost-server/model"
 )
 
 func TestConfig(t *testing.T) {
 	TranslationsPreInit()
-	cfg, _, err := LoadConfig("config.json")
-	require.Nil(t, err)
-	InitTranslations(cfg.LocalizationSettings)
+	LoadGlobalConfig("config.json")
+	InitTranslations(Cfg.LocalizationSettings)
 }
 
 func TestFindConfigFile(t *testing.T) {
@@ -45,22 +47,21 @@ func TestConfigFromEnviroVars(t *testing.T) {
 	os.Setenv("MM_SERVICESETTINGS_READTIMEOUT", "400")
 
 	TranslationsPreInit()
-	cfg, cfgPath, err := LoadConfig("config.json")
-	require.Nil(t, err)
+	LoadGlobalConfig("config.json")
 
-	if cfg.TeamSettings.SiteName != "From Enviroment" {
+	if Cfg.TeamSettings.SiteName != "From Enviroment" {
 		t.Fatal("Couldn't read config from enviroment var")
 	}
 
-	if *cfg.TeamSettings.CustomBrandText != "Custom Brand" {
+	if *Cfg.TeamSettings.CustomBrandText != "Custom Brand" {
 		t.Fatal("Couldn't read config from enviroment var")
 	}
 
-	if *cfg.ServiceSettings.EnableCommands {
+	if *Cfg.ServiceSettings.EnableCommands {
 		t.Fatal("Couldn't read config from enviroment var")
 	}
 
-	if *cfg.ServiceSettings.ReadTimeout != 400 {
+	if *Cfg.ServiceSettings.ReadTimeout != 400 {
 		t.Fatal("Couldn't read config from enviroment var")
 	}
 
@@ -69,67 +70,169 @@ func TestConfigFromEnviroVars(t *testing.T) {
 	os.Unsetenv("MM_SERVICESETTINGS_ENABLECOMMANDS")
 	os.Unsetenv("MM_SERVICESETTINGS_READTIMEOUT")
 
-	cfg.TeamSettings.SiteName = "Mattermost"
-	*cfg.ServiceSettings.SiteURL = ""
-	*cfg.ServiceSettings.EnableCommands = true
-	*cfg.ServiceSettings.ReadTimeout = 300
-	SaveConfig(cfgPath, cfg)
+	Cfg.TeamSettings.SiteName = "Mattermost"
+	*Cfg.ServiceSettings.SiteURL = ""
+	*Cfg.ServiceSettings.EnableCommands = true
+	*Cfg.ServiceSettings.ReadTimeout = 300
+	SaveConfig(CfgFileName, Cfg)
 
-	cfg, _, err = LoadConfig("config.json")
-	require.Nil(t, err)
+	LoadGlobalConfig("config.json")
 
-	if cfg.TeamSettings.SiteName != "Mattermost" {
+	if Cfg.TeamSettings.SiteName != "Mattermost" {
 		t.Fatal("should have been reset")
+	}
+}
+
+func TestRedirectStdLog(t *testing.T) {
+	TranslationsPreInit()
+	LoadGlobalConfig("config.json")
+	InitTranslations(Cfg.LocalizationSettings)
+
+	log := NewRedirectStdLog("test", false)
+
+	log.Println("[DEBUG] this is a message")
+	log.Println("[DEBG] this is a message")
+	log.Println("[WARN] this is a message")
+	log.Println("[ERROR] this is a message")
+	log.Println("[EROR] this is a message")
+	log.Println("[ERR] this is a message")
+	log.Println("[INFO] this is a message")
+	log.Println("this is a message")
+
+	time.Sleep(time.Second * 1)
+}
+
+func TestAddRemoveConfigListener(t *testing.T) {
+	numIntitialCfgListeners := len(cfgListeners)
+
+	id1 := AddConfigListener(func(*model.Config, *model.Config) {
+	})
+	if len(cfgListeners) != numIntitialCfgListeners+1 {
+		t.Fatal("should now have 1 listener")
+	}
+
+	id2 := AddConfigListener(func(*model.Config, *model.Config) {
+	})
+	if len(cfgListeners) != numIntitialCfgListeners+2 {
+		t.Fatal("should now have 2 listeners")
+	}
+
+	RemoveConfigListener(id1)
+	if len(cfgListeners) != numIntitialCfgListeners+1 {
+		t.Fatal("should've removed first listener")
+	}
+
+	RemoveConfigListener(id2)
+	if len(cfgListeners) != numIntitialCfgListeners {
+		t.Fatal("should've removed both listeners")
+	}
+}
+
+func TestConfigListener(t *testing.T) {
+	TranslationsPreInit()
+	LoadGlobalConfig("config.json")
+
+	SiteName := Cfg.TeamSettings.SiteName
+	defer func() {
+		Cfg.TeamSettings.SiteName = SiteName
+		SaveConfig(CfgFileName, Cfg)
+	}()
+	Cfg.TeamSettings.SiteName = "test123"
+
+	listenerCalled := false
+	listener := func(oldConfig *model.Config, newConfig *model.Config) {
+		if listenerCalled {
+			t.Fatal("listener called twice")
+		}
+
+		if oldConfig.TeamSettings.SiteName != "test123" {
+			t.Fatal("old config contains incorrect site name")
+		} else if newConfig.TeamSettings.SiteName != "Mattermost" {
+			t.Fatal("new config contains incorrect site name")
+		}
+
+		listenerCalled = true
+	}
+	listenerId := AddConfigListener(listener)
+	defer RemoveConfigListener(listenerId)
+
+	listener2Called := false
+	listener2 := func(oldConfig *model.Config, newConfig *model.Config) {
+		if listener2Called {
+			t.Fatal("listener2 called twice")
+		}
+
+		listener2Called = true
+	}
+	listener2Id := AddConfigListener(listener2)
+	defer RemoveConfigListener(listener2Id)
+
+	LoadGlobalConfig("config.json")
+
+	if !listenerCalled {
+		t.Fatal("listener should've been called")
+	} else if !listener2Called {
+		t.Fatal("listener 2 should've been called")
 	}
 }
 
 func TestValidateLocales(t *testing.T) {
 	TranslationsPreInit()
-	cfg, _, err := LoadConfig("config.json")
-	require.Nil(t, err)
+	LoadGlobalConfig("config.json")
 
-	*cfg.LocalizationSettings.DefaultServerLocale = "en"
-	*cfg.LocalizationSettings.DefaultClientLocale = "en"
-	*cfg.LocalizationSettings.AvailableLocales = ""
+	defaultServerLocale := *Cfg.LocalizationSettings.DefaultServerLocale
+	defaultClientLocale := *Cfg.LocalizationSettings.DefaultClientLocale
+	availableLocales := *Cfg.LocalizationSettings.AvailableLocales
 
-	// t.Logf("*cfg.LocalizationSettings.DefaultClientLocale: %+v", *cfg.LocalizationSettings.DefaultClientLocale)
-	if err := ValidateLocales(cfg); err != nil {
+	defer func() {
+		*Cfg.LocalizationSettings.DefaultClientLocale = defaultClientLocale
+		*Cfg.LocalizationSettings.DefaultServerLocale = defaultServerLocale
+		*Cfg.LocalizationSettings.AvailableLocales = availableLocales
+	}()
+
+	*Cfg.LocalizationSettings.DefaultServerLocale = "en"
+	*Cfg.LocalizationSettings.DefaultClientLocale = "en"
+	*Cfg.LocalizationSettings.AvailableLocales = ""
+
+	// t.Logf("*Cfg.LocalizationSettings.DefaultClientLocale: %+v", *Cfg.LocalizationSettings.DefaultClientLocale)
+	if err := ValidateLocales(Cfg); err != nil {
 		t.Fatal("Should have not returned an error")
 	}
 
 	// validate DefaultServerLocale
-	*cfg.LocalizationSettings.DefaultServerLocale = "junk"
-	if err := ValidateLocales(cfg); err != nil {
-		if *cfg.LocalizationSettings.DefaultServerLocale != "en" {
+	*Cfg.LocalizationSettings.DefaultServerLocale = "junk"
+	if err := ValidateLocales(Cfg); err != nil {
+		if *Cfg.LocalizationSettings.DefaultServerLocale != "en" {
+			t.Fatal("DefaultServerLocale should have assigned to en as a default value")
+		}
+	} else {
+
+		t.Fatal("Should have returned an error validating DefaultServerLocale")
+	}
+
+	*Cfg.LocalizationSettings.DefaultServerLocale = ""
+	if err := ValidateLocales(Cfg); err != nil {
+		if *Cfg.LocalizationSettings.DefaultServerLocale != "en" {
 			t.Fatal("DefaultServerLocale should have assigned to en as a default value")
 		}
 	} else {
 		t.Fatal("Should have returned an error validating DefaultServerLocale")
 	}
 
-	*cfg.LocalizationSettings.DefaultServerLocale = ""
-	if err := ValidateLocales(cfg); err != nil {
-		if *cfg.LocalizationSettings.DefaultServerLocale != "en" {
-			t.Fatal("DefaultServerLocale should have assigned to en as a default value")
-		}
-	} else {
-		t.Fatal("Should have returned an error validating DefaultServerLocale")
-	}
-
-	*cfg.LocalizationSettings.AvailableLocales = "en"
-	*cfg.LocalizationSettings.DefaultServerLocale = "de"
-	if err := ValidateLocales(cfg); err != nil {
-		if strings.Contains(*cfg.LocalizationSettings.AvailableLocales, *cfg.LocalizationSettings.DefaultServerLocale) {
+	*Cfg.LocalizationSettings.AvailableLocales = "en"
+	*Cfg.LocalizationSettings.DefaultServerLocale = "de"
+	if err := ValidateLocales(Cfg); err != nil {
+		if strings.Contains(*Cfg.LocalizationSettings.AvailableLocales, *Cfg.LocalizationSettings.DefaultServerLocale) {
 			t.Fatal("DefaultServerLocale should not be added to AvailableLocales")
 		}
 		t.Fatal("Should have not returned an error validating DefaultServerLocale")
 	}
 
 	// validate DefaultClientLocale
-	*cfg.LocalizationSettings.AvailableLocales = ""
-	*cfg.LocalizationSettings.DefaultClientLocale = "junk"
-	if err := ValidateLocales(cfg); err != nil {
-		if *cfg.LocalizationSettings.DefaultClientLocale != "en" {
+	*Cfg.LocalizationSettings.AvailableLocales = ""
+	*Cfg.LocalizationSettings.DefaultClientLocale = "junk"
+	if err := ValidateLocales(Cfg); err != nil {
+		if *Cfg.LocalizationSettings.DefaultClientLocale != "en" {
 			t.Fatal("DefaultClientLocale should have assigned to en as a default value")
 		}
 	} else {
@@ -137,19 +240,19 @@ func TestValidateLocales(t *testing.T) {
 		t.Fatal("Should have returned an error validating DefaultClientLocale")
 	}
 
-	*cfg.LocalizationSettings.DefaultClientLocale = ""
-	if err := ValidateLocales(cfg); err != nil {
-		if *cfg.LocalizationSettings.DefaultClientLocale != "en" {
+	*Cfg.LocalizationSettings.DefaultClientLocale = ""
+	if err := ValidateLocales(Cfg); err != nil {
+		if *Cfg.LocalizationSettings.DefaultClientLocale != "en" {
 			t.Fatal("DefaultClientLocale should have assigned to en as a default value")
 		}
 	} else {
 		t.Fatal("Should have returned an error validating DefaultClientLocale")
 	}
 
-	*cfg.LocalizationSettings.AvailableLocales = "en"
-	*cfg.LocalizationSettings.DefaultClientLocale = "de"
-	if err := ValidateLocales(cfg); err != nil {
-		if !strings.Contains(*cfg.LocalizationSettings.AvailableLocales, *cfg.LocalizationSettings.DefaultClientLocale) {
+	*Cfg.LocalizationSettings.AvailableLocales = "en"
+	*Cfg.LocalizationSettings.DefaultClientLocale = "de"
+	if err := ValidateLocales(Cfg); err != nil {
+		if !strings.Contains(*Cfg.LocalizationSettings.AvailableLocales, *Cfg.LocalizationSettings.DefaultClientLocale) {
 			t.Fatal("DefaultClientLocale should have added to AvailableLocales")
 		}
 	} else {
@@ -157,34 +260,34 @@ func TestValidateLocales(t *testing.T) {
 	}
 
 	// validate AvailableLocales
-	*cfg.LocalizationSettings.DefaultServerLocale = "en"
-	*cfg.LocalizationSettings.DefaultClientLocale = "en"
-	*cfg.LocalizationSettings.AvailableLocales = "junk"
-	if err := ValidateLocales(cfg); err != nil {
-		if *cfg.LocalizationSettings.AvailableLocales != "" {
+	*Cfg.LocalizationSettings.DefaultServerLocale = "en"
+	*Cfg.LocalizationSettings.DefaultClientLocale = "en"
+	*Cfg.LocalizationSettings.AvailableLocales = "junk"
+	if err := ValidateLocales(Cfg); err != nil {
+		if *Cfg.LocalizationSettings.AvailableLocales != "" {
 			t.Fatal("AvailableLocales should have assigned to empty string as a default value")
 		}
 	} else {
 		t.Fatal("Should have returned an error validating AvailableLocales")
 	}
 
-	*cfg.LocalizationSettings.AvailableLocales = "en,de,junk"
-	if err := ValidateLocales(cfg); err != nil {
-		if *cfg.LocalizationSettings.AvailableLocales != "" {
+	*Cfg.LocalizationSettings.AvailableLocales = "en,de,junk"
+	if err := ValidateLocales(Cfg); err != nil {
+		if *Cfg.LocalizationSettings.AvailableLocales != "" {
 			t.Fatal("AvailableLocales should have assigned to empty string as a default value")
 		}
 	} else {
 		t.Fatal("Should have returned an error validating AvailableLocales")
 	}
 
-	*cfg.LocalizationSettings.DefaultServerLocale = "fr"
-	*cfg.LocalizationSettings.DefaultClientLocale = "de"
-	*cfg.LocalizationSettings.AvailableLocales = "en"
-	if err := ValidateLocales(cfg); err != nil {
-		if strings.Contains(*cfg.LocalizationSettings.AvailableLocales, *cfg.LocalizationSettings.DefaultServerLocale) {
+	*Cfg.LocalizationSettings.DefaultServerLocale = "fr"
+	*Cfg.LocalizationSettings.DefaultClientLocale = "de"
+	*Cfg.LocalizationSettings.AvailableLocales = "en"
+	if err := ValidateLocales(Cfg); err != nil {
+		if strings.Contains(*Cfg.LocalizationSettings.AvailableLocales, *Cfg.LocalizationSettings.DefaultServerLocale) {
 			t.Fatal("DefaultServerLocale should not be added to AvailableLocales")
 		}
-		if !strings.Contains(*cfg.LocalizationSettings.AvailableLocales, *cfg.LocalizationSettings.DefaultClientLocale) {
+		if !strings.Contains(*Cfg.LocalizationSettings.AvailableLocales, *Cfg.LocalizationSettings.DefaultClientLocale) {
 			t.Fatal("DefaultClientLocale should have added to AvailableLocales")
 		}
 	} else {
@@ -194,11 +297,10 @@ func TestValidateLocales(t *testing.T) {
 
 func TestGetClientConfig(t *testing.T) {
 	TranslationsPreInit()
-	cfg, _, err := LoadConfig("config.json")
-	require.Nil(t, err)
+	LoadGlobalConfig("config.json")
 
-	configMap := GenerateClientConfig(cfg, "")
-	if configMap["EmailNotificationContentsType"] != *cfg.EmailSettings.EmailNotificationContentsType {
+	configMap := getClientConfig(Cfg)
+	if configMap["EmailNotificationContentsType"] != *Cfg.EmailSettings.EmailNotificationContentsType {
 		t.Fatal("EmailSettings.EmailNotificationContentsType not exposed to client config")
 	}
 }

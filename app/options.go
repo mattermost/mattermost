@@ -35,7 +35,3 @@ func ConfigFile(file string) Option {
 		a.configFile = file
 	}
 }
-
-func DisableConfigWatch(a *App) {
-	a.disableConfigWatch = true
-}

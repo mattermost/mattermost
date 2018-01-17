@@ -27,6 +27,15 @@ var debugLog = l4g.Debug
 var infoLog = l4g.Info
 var errorLog = l4g.Error
 
+func init() {
+	// listens for configuration changes that we might need to respond to
+	utils.AddConfigListener(func(oldConfig *model.Config, newConfig *model.Config) {
+		infoLog("Configuration change detected, reloading log settings")
+		initL4g(newConfig.LogSettings)
+	})
+	initL4g(utils.Cfg.LogSettings)
+}
+
 // assumes that ../config.go::configureLog has already been called, and has in turn called l4g.close() to clean up
 // any old filters that we might have previously created
 func initL4g(logSettings model.LogSettings) {

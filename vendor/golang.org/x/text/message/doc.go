@@ -11,15 +11,15 @@
 // A format string can be localized by replacing any of the print functions of
 // fmt with an equivalent call to a Printer.
 //
-//    p := message.NewPrinter(message.MatchLanguage("en"))
+//    p := message.NewPrinter(language.English)
 //    p.Println(123456.78) // Prints 123,456.78
 //
 //    p.Printf("%d ducks in a row", 4331) // Prints 4,331 ducks in a row
 //
-//    p := message.NewPrinter(message.MatchLanguage("nl"))
+//    p := message.NewPrinter(language.Dutch)
 //    p.Println("Hoogte: %f meter", 1244.9) // Prints Hoogte: 1.244,9 meter
 //
-//    p := message.NewPrinter(message.MatchLanguage("bn"))
+//    p := message.NewPrinter(language.Bengali)
 //    p.Println(123456.78) // Prints ১,২৩,৪৫৬.৭৮
 //
 // Printer currently supports numbers and specialized types for which packages

@@ -811,7 +811,7 @@ func (cc *ClientConn) roundTrip(req *http.Request) (res *http.Response, gotErrAf
 
 	cc.wmu.Lock()
 	endStream := !hasBody && !hasTrailers
-	werr := cc.writeHeaders(cs.ID, endStream, int(cc.maxFrameSize), hdrs)
+	werr := cc.writeHeaders(cs.ID, endStream, hdrs)
 	cc.wmu.Unlock()
 	traceWroteHeaders(cs.trace)
 	cc.mu.Unlock()
@@ -964,12 +964,13 @@ func (cc *ClientConn) awaitOpenSlotForRequest(req *http.Request) error {
 }
 
 // requires cc.wmu be held
-func (cc *ClientConn) writeHeaders(streamID uint32, endStream bool, maxFrameSize int, hdrs []byte) error {
+func (cc *ClientConn) writeHeaders(streamID uint32, endStream bool, hdrs []byte) error {
 	first := true // first frame written (HEADERS is first, then CONTINUATION)
+	frameSize := int(cc.maxFrameSize)
 	for len(hdrs) > 0 && cc.werr == nil {
 		chunk := hdrs
-		if len(chunk) > maxFrameSize {
-			chunk = chunk[:maxFrameSize]
+		if len(chunk) > frameSize {
+			chunk = chunk[:frameSize]
 		}
 		hdrs = hdrs[len(chunk):]
 		endHeaders := len(hdrs) == 0
@@ -1086,17 +1087,13 @@ func (cs *clientStream) writeRequestBody(body io.Reader, bodyCloser io.Closer) (
 		}
 	}
 
-	cc.mu.Lock()
-	maxFrameSize := int(cc.maxFrameSize)
-	cc.mu.Unlock()
-
 	cc.wmu.Lock()
 	defer cc.wmu.Unlock()
 
 	// Two ways to send END_STREAM: either with trailers, or
 	// with an empty DATA frame.
 	if len(trls) > 0 {
-		err = cc.writeHeaders(cs.ID, true, maxFrameSize, trls)
+		err = cc.writeHeaders(cs.ID, true, trls)
 	} else {
 		err = cc.fr.WriteData(cs.ID, true, nil)
 	}
@@ -1376,12 +1373,17 @@ func (cc *ClientConn) streamByID(id uint32, andRemove bool) *clientStream {
 // clientConnReadLoop is the state owned by the clientConn's frame-reading readLoop.
 type clientConnReadLoop struct {
 	cc            *ClientConn
+	activeRes     map[uint32]*clientStream // keyed by streamID
 	closeWhenIdle bool
 }
 
 // readLoop runs in its own goroutine and reads and dispatches frames.
 func (cc *ClientConn) readLoop() {
-	rl := &clientConnReadLoop{cc: cc}
+	rl := &clientConnReadLoop{
+		cc:        cc,
+		activeRes: make(map[uint32]*clientStream),
+	}
+
 	defer rl.cleanup()
 	cc.readerErr = rl.run()
 	if ce, ok := cc.readerErr.(ConnectionError); ok {
@@ -1436,8 +1438,10 @@ func (rl *clientConnReadLoop) cleanup() {
 	} else if err == io.EOF {
 		err = io.ErrUnexpectedEOF
 	}
+	for _, cs := range rl.activeRes {
+		cs.bufPipe.CloseWithError(err)
+	}
 	for _, cs := range cc.streams {
-		cs.bufPipe.CloseWithError(err) // no-op if already closed
 		select {
 		case cs.resc <- resAndError{err: err}:
 		default:
@@ -1515,7 +1519,7 @@ func (rl *clientConnReadLoop) run() error {
 			}
 			return err
 		}
-		if rl.closeWhenIdle && gotReply && maybeIdle {
+		if rl.closeWhenIdle && gotReply && maybeIdle && len(rl.activeRes) == 0 {
 			cc.closeIfIdle()
 		}
 	}
@@ -1523,13 +1527,6 @@ func (rl *clientConnReadLoop) run() error {
 
 func (rl *clientConnReadLoop) processHeaders(f *MetaHeadersFrame) error {
 	cc := rl.cc
-	cs := cc.streamByID(f.StreamID, false)
-	if cs == nil {
-		// We'd get here if we canceled a request while the
-		// server had its response still in flight. So if this
-		// was just something we canceled, ignore it.
-		return nil
-	}
 	if f.StreamEnded() {
 		// Issue 20521: If the stream has ended, streamByID() causes
 		// clientStream.done to be closed, which causes the request's bodyWriter
@@ -1538,15 +1535,14 @@ func (rl *clientConnReadLoop) processHeaders(f *MetaHeadersFrame) error {
 		// Deferring stream closure allows the header processing to occur first.
 		// clientConn.RoundTrip may still receive the bodyWriter error first, but
 		// the fix for issue 16102 prioritises any response.
-		//
-		// Issue 22413: If there is no request body, we should close the
-		// stream before writing to cs.resc so that the stream is closed
-		// immediately once RoundTrip returns.
-		if cs.req.Body != nil {
-			defer cc.forgetStreamID(f.StreamID)
-		} else {
-			cc.forgetStreamID(f.StreamID)
-		}
+		defer cc.streamByID(f.StreamID, true)
+	}
+	cs := cc.streamByID(f.StreamID, false)
+	if cs == nil {
+		// We'd get here if we canceled a request while the
+		// server had its response still in flight. So if this
+		// was just something we canceled, ignore it.
+		return nil
 	}
 	if !cs.firstByte {
 		if cs.trace != nil {
@@ -1571,13 +1567,15 @@ func (rl *clientConnReadLoop) processHeaders(f *MetaHeadersFrame) error {
 		}
 		// Any other error type is a stream error.
 		cs.cc.writeStreamReset(f.StreamID, ErrCodeProtocol, err)
-		cc.forgetStreamID(cs.ID)
 		cs.resc <- resAndError{err: err}
 		return nil // return nil from process* funcs to keep conn alive
 	}
 	if res == nil {
 		// (nil, nil) special case. See handleResponse docs.
 		return nil
+	}
+	if res.Body != noBody {
+		rl.activeRes[cs.ID] = cs
 	}
 	cs.resTrailer = &res.Trailer
 	cs.resc <- resAndError{res: res}
@@ -1598,11 +1596,11 @@ func (rl *clientConnReadLoop) handleResponse(cs *clientStream, f *MetaHeadersFra
 
 	status := f.PseudoValue("status")
 	if status == "" {
-		return nil, errors.New("malformed response from server: missing status pseudo header")
+		return nil, errors.New("missing status pseudo header")
 	}
 	statusCode, err := strconv.Atoi(status)
 	if err != nil {
-		return nil, errors.New("malformed response from server: malformed non-numeric status pseudo header")
+		return nil, errors.New("malformed non-numeric status pseudo header")
 	}
 
 	if statusCode == 100 {
@@ -1917,6 +1915,7 @@ func (rl *clientConnReadLoop) endStreamError(cs *clientStream, err error) {
 		rl.closeWhenIdle = true
 	}
 	cs.bufPipe.closeWithErrorAndCode(err, code)
+	delete(rl.activeRes, cs.ID)
 
 	select {
 	case cs.resc <- resAndError{err: err}:
@@ -2043,6 +2042,7 @@ func (rl *clientConnReadLoop) processResetStream(f *RSTStreamFrame) error {
 		cs.bufPipe.CloseWithError(err)
 		cs.cc.cond.Broadcast() // wake up checkResetOrDone via clientStream.awaitFlowControl
 	}
+	delete(rl.activeRes, cs.ID)
 	return nil
 }
 

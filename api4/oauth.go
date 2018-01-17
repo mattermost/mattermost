@@ -559,7 +559,7 @@ func signupWithOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !c.App.Config().TeamSettings.EnableUserCreation {
-		http.Redirect(w, r, c.GetSiteURLHeader()+"/error?message="+url.QueryEscape(utils.T("api.oauth.singup_with_oauth.disabled.app_error")), http.StatusTemporaryRedirect)
+		c.Err = model.NewAppError("signupWithOAuth", "api.oauth.singup_with_oauth.disabled.app_error", nil, "", http.StatusNotImplemented)
 		return
 	}
 

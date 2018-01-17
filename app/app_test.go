@@ -11,7 +11,6 @@ import (
 	l4g "github.com/alecthomas/log4go"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store/storetest"
@@ -48,8 +47,7 @@ func TestMain(m *testing.M) {
 
 func TestAppRace(t *testing.T) {
 	for i := 0; i < 10; i++ {
-		a, err := New()
-		require.NoError(t, err)
+		a := New()
 		a.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = ":0" })
 		a.StartServer()
 		a.Shutdown()
@@ -65,11 +63,11 @@ func TestUpdateConfig(t *testing.T) {
 		*cfg.ServiceSettings.SiteURL = prev
 	})
 
-	listener := th.App.AddConfigListener(func(old, current *model.Config) {
+	listener := utils.AddConfigListener(func(old, current *model.Config) {
 		assert.Equal(t, prev, *old.ServiceSettings.SiteURL)
 		assert.Equal(t, "foo", *current.ServiceSettings.SiteURL)
 	})
-	defer th.App.RemoveConfigListener(listener)
+	defer utils.RemoveConfigListener(listener)
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.SiteURL = "foo"

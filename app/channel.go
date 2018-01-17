@@ -63,15 +63,13 @@ func (a *App) JoinDefaultChannels(teamId string, user *model.User, channelRole s
 			l4g.Warn("Failed to update ChannelMemberHistory table %v", result.Err)
 		}
 
-		if *a.Config().ServiceSettings.ExperimentalEnableDefaultChannelLeaveJoinMessages == true {
-			if requestor == nil {
-				if err := a.postJoinTeamMessage(user, townSquare); err != nil {
-					l4g.Error(utils.T("api.channel.post_user_add_remove_message_and_forget.error"), err)
-				}
-			} else {
-				if err := a.postAddToTeamMessage(requestor, user, townSquare, ""); err != nil {
-					l4g.Error(utils.T("api.channel.post_user_add_remove_message_and_forget.error"), err)
-				}
+		if requestor == nil {
+			if err := a.postJoinTeamMessage(user, townSquare); err != nil {
+				l4g.Error(utils.T("api.channel.post_user_add_remove_message_and_forget.error"), err)
+			}
+		} else {
+			if err := a.postAddToTeamMessage(requestor, user, townSquare, ""); err != nil {
+				l4g.Error(utils.T("api.channel.post_user_add_remove_message_and_forget.error"), err)
 			}
 		}
 
@@ -1012,10 +1010,6 @@ func (a *App) LeaveChannel(channelId string, userId string) *model.AppError {
 
 		if err := a.removeUserFromChannel(userId, userId, channel); err != nil {
 			return err
-		}
-
-		if channel.Name == model.DEFAULT_CHANNEL && *a.Config().ServiceSettings.ExperimentalEnableDefaultChannelLeaveJoinMessages == false {
-			return nil
 		}
 
 		a.Go(func() {

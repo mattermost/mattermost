@@ -9,7 +9,6 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
-	"os"
 	"regexp"
 	"strings"
 	"sync"
@@ -54,18 +53,17 @@ type ChannelImportData struct {
 }
 
 type UserImportData struct {
-	ProfileImage *string `json:"profile_image"`
-	Username     *string `json:"username"`
-	Email        *string `json:"email"`
-	AuthService  *string `json:"auth_service"`
-	AuthData     *string `json:"auth_data"`
-	Password     *string `json:"password"`
-	Nickname     *string `json:"nickname"`
-	FirstName    *string `json:"first_name"`
-	LastName     *string `json:"last_name"`
-	Position     *string `json:"position"`
-	Roles        *string `json:"roles"`
-	Locale       *string `json:"locale"`
+	Username    *string `json:"username"`
+	Email       *string `json:"email"`
+	AuthService *string `json:"auth_service"`
+	AuthData    *string `json:"auth_data"`
+	Password    *string `json:"password"`
+	Nickname    *string `json:"nickname"`
+	FirstName   *string `json:"first_name"`
+	LastName    *string `json:"last_name"`
+	Position    *string `json:"position"`
+	Roles       *string `json:"roles"`
+	Locale      *string `json:"locale"`
 
 	Teams *[]UserTeamImportData `json:"teams"`
 
@@ -113,22 +111,6 @@ type UserChannelNotifyPropsImportData struct {
 	MarkUnread *string `json:"mark_unread"`
 }
 
-type ReactionImportData struct {
-	User      *string `json:"user"`
-	CreateAt  *int64  `json:"create_at"`
-	EmojiName *string `json:"emoji_name"`
-}
-
-type ReplyImportData struct {
-	User *string `json:"user"`
-
-	Message  *string `json:"message"`
-	CreateAt *int64  `json:"create_at"`
-
-	FlaggedBy *[]string             `json:"flagged_by"`
-	Reactions *[]ReactionImportData `json:"reactions"`
-}
-
 type PostImportData struct {
 	Team    *string `json:"team"`
 	Channel *string `json:"channel"`
@@ -137,9 +119,7 @@ type PostImportData struct {
 	Message  *string `json:"message"`
 	CreateAt *int64  `json:"create_at"`
 
-	FlaggedBy *[]string             `json:"flagged_by"`
-	Reactions *[]ReactionImportData `json:"reactions"`
-	Replies   *[]ReplyImportData    `json:"replies"`
+	FlaggedBy *[]string `json:"flagged_by"`
 }
 
 type DirectChannelImportData struct {
@@ -156,9 +136,7 @@ type DirectPostImportData struct {
 	Message  *string `json:"message"`
 	CreateAt *int64  `json:"create_at"`
 
-	FlaggedBy *[]string             `json:"flagged_by"`
-	Reactions *[]ReactionImportData `json:"reactions"`
-	Replies   *[]ReplyImportData    `json:"replies"`
+	FlaggedBy *[]string `json:"flagged_by"`
 }
 
 type LineImportWorkerData struct {
@@ -712,16 +690,6 @@ func (a *App) ImportUser(data *UserImportData, dryRun bool) *model.AppError {
 		savedUser = user
 	}
 
-	if data.ProfileImage != nil {
-		file, err := os.Open(*data.ProfileImage)
-		if err != nil {
-			l4g.Error(utils.T("api.import.import_user.profile_image.error"), err)
-		}
-		if err := a.SetProfileImageFromFile(savedUser.Id, file); err != nil {
-			l4g.Error(utils.T("api.import.import_user.profile_image.error"), err)
-		}
-	}
-
 	// Preferences.
 	var preferences model.Preferences
 
@@ -901,11 +869,6 @@ func (a *App) ImportUserChannels(user *model.User, team *model.Team, teamMember 
 }
 
 func validateUserImportData(data *UserImportData) *model.AppError {
-	if data.ProfileImage != nil {
-		if _, err := os.Stat(*data.ProfileImage); os.IsNotExist(err) {
-			return model.NewAppError("BulkImport", "app.import.validate_user_import_data.profile_image.error", nil, "", http.StatusBadRequest)
-		}
-	}
 
 	if data.Username == nil {
 		return model.NewAppError("BulkImport", "app.import.validate_user_import_data.username_missing.error", nil, "", http.StatusBadRequest)
@@ -1056,79 +1019,6 @@ func validateUserChannelsImportData(data *[]UserChannelImportData) *model.AppErr
 	return nil
 }
 
-func (a *App) ImportReaction(data *ReactionImportData, post *model.Post, dryRun bool) *model.AppError {
-	if err := validateReactionImportData(data, post.CreateAt); err != nil {
-		return err
-	}
-
-	var user *model.User
-	if result := <-a.Srv.Store.User().GetByUsername(*data.User); result.Err != nil {
-		return model.NewAppError("BulkImport", "app.import.import_post.user_not_found.error", map[string]interface{}{"Username": data.User}, "", http.StatusBadRequest)
-	} else {
-		user = result.Data.(*model.User)
-	}
-	reaction := &model.Reaction{
-		UserId:    user.Id,
-		PostId:    post.Id,
-		EmojiName: *data.EmojiName,
-		CreateAt:  *data.CreateAt,
-	}
-	if result := <-a.Srv.Store.Reaction().Save(reaction); result.Err != nil {
-		return result.Err
-	}
-	return nil
-}
-
-func (a *App) ImportReply(data *ReplyImportData, post *model.Post, dryRun bool) *model.AppError {
-	if err := validateReplyImportData(data, post.CreateAt); err != nil {
-		return err
-	}
-
-	var user *model.User
-	if result := <-a.Srv.Store.User().GetByUsername(*data.User); result.Err != nil {
-		return model.NewAppError("BulkImport", "app.import.import_post.user_not_found.error", map[string]interface{}{"Username": data.User}, "", http.StatusBadRequest)
-	} else {
-		user = result.Data.(*model.User)
-	}
-
-	// Check if this post already exists.
-	var replies []*model.Post
-	if result := <-a.Srv.Store.Post().GetPostsCreatedAt(post.ChannelId, *data.CreateAt); result.Err != nil {
-		return result.Err
-	} else {
-		replies = result.Data.([]*model.Post)
-	}
-
-	var reply *model.Post
-	for _, r := range replies {
-		if r.Message == *data.Message {
-			reply = r
-			break
-		}
-	}
-
-	if reply == nil {
-		reply = &model.Post{}
-	}
-	reply.UserId = user.Id
-	reply.ChannelId = post.ChannelId
-	reply.ParentId = post.Id
-	reply.RootId = post.Id
-	reply.Message = *data.Message
-	reply.CreateAt = *data.CreateAt
-
-	if reply.Id == "" {
-		if result := <-a.Srv.Store.Post().Save(reply); result.Err != nil {
-			return result.Err
-		}
-	} else {
-		if result := <-a.Srv.Store.Post().Overwrite(reply); result.Err != nil {
-			return result.Err
-		}
-	}
-	return nil
-}
-
 func (a *App) ImportPost(data *PostImportData, dryRun bool) *model.AppError {
 	if err := validatePostImportData(data); err != nil {
 		return err
@@ -1224,66 +1114,6 @@ func (a *App) ImportPost(data *PostImportData, dryRun bool) *model.AppError {
 		}
 	}
 
-	if data.Reactions != nil {
-		for _, reaction := range *data.Reactions {
-			if err := a.ImportReaction(&reaction, post, dryRun); err != nil {
-				return err
-			}
-		}
-	}
-
-	if data.Replies != nil {
-		for _, reply := range *data.Replies {
-			if err := a.ImportReply(&reply, post, dryRun); err != nil {
-				return err
-			}
-		}
-	}
-
-	return nil
-}
-
-func validateReactionImportData(data *ReactionImportData, parentCreateAt int64) *model.AppError {
-	if data.User == nil {
-		return model.NewAppError("BulkImport", "app.import.validate_reaction_import_data.user_missing.error", nil, "", http.StatusBadRequest)
-	}
-
-	if data.EmojiName == nil {
-		return model.NewAppError("BulkImport", "app.import.validate_reaction_import_data.emoji_name_missing.error", nil, "", http.StatusBadRequest)
-	} else if utf8.RuneCountInString(*data.EmojiName) > model.EMOJI_NAME_MAX_LENGTH {
-		return model.NewAppError("BulkImport", "app.import.validate_reaction_import_data.emoji_name_length.error", nil, "", http.StatusBadRequest)
-	}
-
-	if data.CreateAt == nil {
-		return model.NewAppError("BulkImport", "app.import.validate_reaction_import_data.create_at_missing.error", nil, "", http.StatusBadRequest)
-	} else if *data.CreateAt == 0 {
-		return model.NewAppError("BulkImport", "app.import.validate_reaction_import_data.create_at_zero.error", nil, "", http.StatusBadRequest)
-	} else if *data.CreateAt < parentCreateAt {
-		return model.NewAppError("BulkImport", "app.import.validate_reaction_import_data.create_at_before_parent.error", nil, "", http.StatusBadRequest)
-	}
-
-	return nil
-}
-
-func validateReplyImportData(data *ReplyImportData, parentCreateAt int64) *model.AppError {
-	if data.User == nil {
-		return model.NewAppError("BulkImport", "app.import.validate_reply_import_data.user_missing.error", nil, "", http.StatusBadRequest)
-	}
-
-	if data.Message == nil {
-		return model.NewAppError("BulkImport", "app.import.validate_reply_import_data.message_missing.error", nil, "", http.StatusBadRequest)
-	} else if utf8.RuneCountInString(*data.Message) > model.POST_MESSAGE_MAX_RUNES {
-		return model.NewAppError("BulkImport", "app.import.validate_reply_import_data.message_length.error", nil, "", http.StatusBadRequest)
-	}
-
-	if data.CreateAt == nil {
-		return model.NewAppError("BulkImport", "app.import.validate_reply_import_data.create_at_missing.error", nil, "", http.StatusBadRequest)
-	} else if *data.CreateAt == 0 {
-		return model.NewAppError("BulkImport", "app.import.validate_reply_import_data.create_at_zero.error", nil, "", http.StatusBadRequest)
-	} else if *data.CreateAt < parentCreateAt {
-		return model.NewAppError("BulkImport", "app.import.validate_reply_import_data.create_at_before_parent.error", nil, "", http.StatusBadRequest)
-	}
-
 	return nil
 }
 
@@ -1310,18 +1140,6 @@ func validatePostImportData(data *PostImportData) *model.AppError {
 		return model.NewAppError("BulkImport", "app.import.validate_post_import_data.create_at_missing.error", nil, "", http.StatusBadRequest)
 	} else if *data.CreateAt == 0 {
 		return model.NewAppError("BulkImport", "app.import.validate_post_import_data.create_at_zero.error", nil, "", http.StatusBadRequest)
-	}
-
-	if data.Reactions != nil {
-		for _, reaction := range *data.Reactions {
-			validateReactionImportData(&reaction, *data.CreateAt)
-		}
-	}
-
-	if data.Replies != nil {
-		for _, reply := range *data.Replies {
-			validateReplyImportData(&reply, *data.CreateAt)
-		}
 	}
 
 	return nil
@@ -1547,22 +1365,6 @@ func (a *App) ImportDirectPost(data *DirectPostImportData, dryRun bool) *model.A
 		}
 	}
 
-	if data.Reactions != nil {
-		for _, reaction := range *data.Reactions {
-			if err := a.ImportReaction(&reaction, post, dryRun); err != nil {
-				return err
-			}
-		}
-	}
-
-	if data.Replies != nil {
-		for _, reply := range *data.Replies {
-			if err := a.ImportReply(&reply, post, dryRun); err != nil {
-				return err
-			}
-		}
-	}
-
 	return nil
 }
 
@@ -1607,18 +1409,6 @@ func validateDirectPostImportData(data *DirectPostImportData) *model.AppError {
 			if !found {
 				return model.NewAppError("BulkImport", "app.import.validate_direct_post_import_data.unknown_flagger.error", map[string]interface{}{"Username": flagger}, "", http.StatusBadRequest)
 			}
-		}
-	}
-
-	if data.Reactions != nil {
-		for _, reaction := range *data.Reactions {
-			validateReactionImportData(&reaction, *data.CreateAt)
-		}
-	}
-
-	if data.Replies != nil {
-		for _, reply := range *data.Replies {
-			validateReplyImportData(&reply, *data.CreateAt)
 		}
 	}
 

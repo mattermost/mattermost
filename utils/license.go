@@ -75,24 +75,7 @@ func LoadLicense(licenseBytes []byte) {
 	l4g.Warn(T("utils.license.load_license.invalid.warn"))
 }
 
-var licenseListeners = map[string]func(){}
-
-func AddLicenseListener(listener func()) string {
-	id := model.NewId()
-	licenseListeners[id] = listener
-	return id
-}
-
-func RemoveLicenseListener(id string) {
-	delete(licenseListeners, id)
-}
-
 func SetLicense(license *model.License) bool {
-	defer func() {
-		for _, listener := range licenseListeners {
-			listener()
-		}
-	}()
 
 	if license == nil {
 		SetIsLicensed(false)
@@ -112,6 +95,7 @@ func SetLicense(license *model.License) bool {
 			licenseValue.Store(license)
 			SetIsLicensed(true)
 			clientLicenseValue.Store(getClientLicense(license))
+			ClientCfg = getClientConfig(Cfg)
 			return true
 		}
 
@@ -121,6 +105,7 @@ func SetLicense(license *model.License) bool {
 
 func RemoveLicense() {
 	SetLicense(nil)
+	ClientCfg = getClientConfig(Cfg)
 }
 
 func ValidateLicense(signed []byte) (bool, string) {

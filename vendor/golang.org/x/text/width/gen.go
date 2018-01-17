@@ -69,7 +69,7 @@ func genTables() {
 
 	fmt.Fprintf(w, "// Total table size %d bytes (%dKiB)\n", sz, sz/1024)
 
-	gen.WriteVersionedGoFile(*outputFile, "width", w.Bytes())
+	gen.WriteGoFile(*outputFile, "width", w.Bytes())
 }
 
 const inverseDataComment = `

@@ -61,22 +61,6 @@ func (_m *UserAccessTokenStore) Get(tokenId string) store.StoreChannel {
 	return r0
 }
 
-// GetAll provides a mock function with given fields:
-func (_m *UserAccessTokenStore) GetAll(page int, perPage int) store.StoreChannel {
-	ret := _m.Called(page, perPage)
-
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(int, int) store.StoreChannel); ok {
-		r0 = rf(page, perPage)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
-		}
-	}
-
-	return r0
-}
-
 // GetByToken provides a mock function with given fields: tokenString
 func (_m *UserAccessTokenStore) GetByToken(tokenString string) store.StoreChannel {
 	ret := _m.Called(tokenString)
@@ -100,22 +84,6 @@ func (_m *UserAccessTokenStore) GetByUser(userId string, page int, perPage int) 
 	var r0 store.StoreChannel
 	if rf, ok := ret.Get(0).(func(string, int, int) store.StoreChannel); ok {
 		r0 = rf(userId, page, perPage)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
-		}
-	}
-
-	return r0
-}
-
-// Search provides a mock function with given fields:
-func (_m *UserAccessTokenStore) Search(term string) store.StoreChannel {
-	ret := _m.Called(term)
-
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string) store.StoreChannel); ok {
-		r0 = rf(term)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(store.StoreChannel)

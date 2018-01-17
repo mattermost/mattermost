@@ -13,4 +13,4 @@ it has a cgo dependency on Darwin systems. This means that any Go code
 that uses that package cannot cross compile. But 99% of the time the
 use for `os/user` is just to retrieve the home directory, which we can
 do for the current user without cgo. This library does that, enabling
-cross-compilation.
+cross-compilation. 

@@ -230,6 +230,7 @@ func Init(a *app.App, root *mux.Router, full bool) *API {
 
 func Handle404(w http.ResponseWriter, r *http.Request) {
 	err := model.NewAppError("Handle404", "api.context.404.app_error", nil, "", http.StatusNotFound)
+	err.Translate(utils.T)
 
 	l4g.Debug("%v: code=404 ip=%v", r.URL.Path, utils.GetIpAddress(r))
 

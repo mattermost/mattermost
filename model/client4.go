@@ -82,10 +82,6 @@ func (c *Client4) GetUserRoute(userId string) string {
 	return fmt.Sprintf(c.GetUsersRoute()+"/%v", userId)
 }
 
-func (c *Client4) GetUserAccessTokensRoute() string {
-	return fmt.Sprintf(c.GetUsersRoute() + "/tokens")
-}
-
 func (c *Client4) GetUserAccessTokenRoute(tokenId string) string {
 	return fmt.Sprintf(c.GetUsersRoute()+"/tokens/%v", tokenId)
 }
@@ -1039,23 +1035,10 @@ func (c *Client4) CreateUserAccessToken(userId, description string) (*UserAccess
 	}
 }
 
-// GetUserAccessTokens will get a page of access tokens' id, description, is_active
-// and the user_id in the system. The actual token will not be returned. Must have
-// the 'manage_system' permission.
-func (c *Client4) GetUserAccessTokens(page int, perPage int) ([]*UserAccessToken, *Response) {
-	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)
-	if r, err := c.DoApiGet(c.GetUserAccessTokensRoute()+query, ""); err != nil {
-		return nil, BuildErrorResponse(r, err)
-	} else {
-		defer closeBody(r)
-		return UserAccessTokenListFromJson(r.Body), BuildResponse(r)
-	}
-}
-
-// GetUserAccessToken will get a user access tokens' id, description, is_active
-// and the user_id of the user it is for. The actual token will not be returned.
-// Must have the 'read_user_access_token' permission and if getting for another
-// user, must have the 'edit_other_users' permission.
+// GetUserAccessToken will get a user access token's id, description and the user_id
+// of the user it is for. The actual token will not be returned. Must have the
+// 'read_user_access_token' permission and if getting for another user, must have the
+// 'edit_other_users' permission.
 func (c *Client4) GetUserAccessToken(tokenId string) (*UserAccessToken, *Response) {
 	if r, err := c.DoApiGet(c.GetUserAccessTokenRoute(tokenId), ""); err != nil {
 		return nil, BuildErrorResponse(r, err)
@@ -1089,16 +1072,6 @@ func (c *Client4) RevokeUserAccessToken(tokenId string) (bool, *Response) {
 	} else {
 		defer closeBody(r)
 		return CheckStatusOK(r), BuildResponse(r)
-	}
-}
-
-// SearchUserAccessTokens returns user access tokens matching the provided search term.
-func (c *Client4) SearchUserAccessTokens(search *UserAccessTokenSearch) ([]*UserAccessToken, *Response) {
-	if r, err := c.DoApiPost(c.GetUsersRoute()+"/tokens/search", search.ToJson()); err != nil {
-		return nil, BuildErrorResponse(r, err)
-	} else {
-		defer closeBody(r)
-		return UserAccessTokenListFromJson(r.Body), BuildResponse(r)
 	}
 }
 

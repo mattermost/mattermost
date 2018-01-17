@@ -710,9 +710,6 @@ func TestGetTeamByName(t *testing.T) {
 	_, resp = Client.GetTeamByName("", "")
 	CheckNotFoundStatus(t, resp)
 
-	_, resp = th.SystemAdminClient.GetTeamByName(strings.ToUpper(team.Name), "")
-	CheckNoError(t, resp)
-
 	Client.Logout()
 	_, resp = Client.GetTeamByName(team.Name, "")
 	CheckUnauthorizedStatus(t, resp)
@@ -1900,7 +1897,7 @@ func TestInviteUsersToTeam(t *testing.T) {
 	expectedSubject := utils.T("api.templates.invite_subject",
 		map[string]interface{}{"SenderName": th.SystemAdminUser.GetDisplayName(nameFormat),
 			"TeamDisplayName": th.BasicTeam.DisplayName,
-			"SiteName":        th.App.ClientConfig()["SiteName"]})
+			"SiteName":        utils.ClientCfg["SiteName"]})
 
 	//Check if the email was send to the rigth email address
 	for _, email := range emailList {
@@ -1940,7 +1937,7 @@ func TestInviteUsersToTeam(t *testing.T) {
 	if err == nil {
 		t.Fatal("Adding users with non-restricted domains was allowed")
 	}
-	if err.Where != "InviteNewUsersToTeam" || err.Id != "api.team.invite_members.invalid_email.app_error" {
+	if err.Where != "InviteNewUsersToTeam" || err.Message != "api.team.invite_members.invalid_email.app_error" {
 		t.Log(err)
 		t.Fatal("Got wrong error message!")
 	}

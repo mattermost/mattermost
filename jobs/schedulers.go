@@ -10,6 +10,7 @@ import (
 	l4g "github.com/alecthomas/log4go"
 
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/utils"
 )
 
 type Schedulers struct {
@@ -55,7 +56,7 @@ func (srv *JobServer) InitSchedulers() *Schedulers {
 }
 
 func (schedulers *Schedulers) Start() *Schedulers {
-	schedulers.listenerId = schedulers.jobs.ConfigService.AddConfigListener(schedulers.handleConfigChange)
+	schedulers.listenerId = utils.AddConfigListener(schedulers.handleConfigChange)
 
 	go func() {
 		schedulers.startOnce.Do(func() {

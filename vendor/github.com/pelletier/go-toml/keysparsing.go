@@ -23,19 +23,19 @@ var escapeSequenceMap = map[rune]rune{
 type parseKeyState int
 
 const (
-	bare parseKeyState = iota
-	basic
-	literal
-	esc
-	unicode4
-	unicode8
+	BARE parseKeyState = iota
+	BASIC
+	LITERAL
+	ESC
+	UNICODE_4
+	UNICODE_8
 )
 
 func parseKey(key string) ([]string, error) {
 	groups := []string{}
 	var buffer bytes.Buffer
 	var hex bytes.Buffer
-	state := bare
+	state := BARE
 	wasInQuotes := false
 	ignoreSpace := true
 	expectDot := false
@@ -48,66 +48,66 @@ func parseKey(key string) ([]string, error) {
 			ignoreSpace = false
 		}
 
-		if state == esc {
+		if state == ESC {
 			if char == 'u' {
-				state = unicode4
+				state = UNICODE_4
 				hex.Reset()
 			} else if char == 'U' {
-				state = unicode8
+				state = UNICODE_8
 				hex.Reset()
 			} else if newChar, ok := escapeSequenceMap[char]; ok {
 				buffer.WriteRune(newChar)
-				state = basic
+				state = BASIC
 			} else {
 				return nil, fmt.Errorf(`invalid escape sequence \%c`, char)
 			}
 			continue
 		}
 
-		if state == unicode4 || state == unicode8 {
+		if state == UNICODE_4 || state == UNICODE_8 {
 			if isHexDigit(char) {
 				hex.WriteRune(char)
 			}
-			if (state == unicode4 && hex.Len() == 4) || (state == unicode8 && hex.Len() == 8) {
+			if (state == UNICODE_4 && hex.Len() == 4) || (state == UNICODE_8 && hex.Len() == 8) {
 				if value, err := strconv.ParseInt(hex.String(), 16, 32); err == nil {
 					buffer.WriteRune(rune(value))
 				} else {
 					return nil, err
 				}
-				state = basic
+				state = BASIC
 			}
 			continue
 		}
 
 		switch char {
 		case '\\':
-			if state == basic {
-				state = esc
-			} else if state == literal {
+			if state == BASIC {
+				state = ESC
+			} else if state == LITERAL {
 				buffer.WriteRune(char)
 			}
 		case '\'':
-			if state == bare {
-				state = literal
-			} else if state == literal {
+			if state == BARE {
+				state = LITERAL
+			} else if state == LITERAL {
 				groups = append(groups, buffer.String())
 				buffer.Reset()
 				wasInQuotes = true
-				state = bare
+				state = BARE
 			}
 			expectDot = false
 		case '"':
-			if state == bare {
-				state = basic
-			} else if state == basic {
+			if state == BARE {
+				state = BASIC
+			} else if state == BASIC {
 				groups = append(groups, buffer.String())
 				buffer.Reset()
-				state = bare
+				state = BARE
 				wasInQuotes = true
 			}
 			expectDot = false
 		case '.':
-			if state != bare {
+			if state != BARE {
 				buffer.WriteRune(char)
 			} else {
 				if !wasInQuotes {
@@ -122,13 +122,13 @@ func parseKey(key string) ([]string, error) {
 				wasInQuotes = false
 			}
 		case ' ':
-			if state == basic {
+			if state == BASIC {
 				buffer.WriteRune(char)
 			} else {
 				expectDot = true
 			}
 		default:
-			if state == bare {
+			if state == BARE {
 				if !isValidBareChar(char) {
 					return nil, fmt.Errorf("invalid bare character: %c", char)
 				} else if expectDot {
@@ -140,10 +140,10 @@ func parseKey(key string) ([]string, error) {
 		}
 	}
 
-	// state must be bare at the end
-	if state == esc {
+	// state must be BARE at the end
+	if state == ESC {
 		return nil, errors.New("unfinished escape sequence")
-	} else if state != bare {
+	} else if state != BARE {
 		return nil, errors.New("mismatched quotes")
 	}
 

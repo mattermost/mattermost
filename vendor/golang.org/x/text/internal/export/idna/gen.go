@@ -100,7 +100,7 @@ func genTables() {
 	})
 
 	w := gen.NewCodeWriter()
-	defer w.WriteVersionedGoFile("tables.go", "idna")
+	defer w.WriteGoFile("tables.go", "idna")
 
 	gen.WriteUnicodeVersion(w)
 

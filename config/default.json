@@ -55,8 +55,7 @@
         "ClusterLogTimeoutMilliseconds": 2000,
         "EnablePreviewFeatures": true,
         "CloseUnusedDirectMessages": false,
-        "EnableTutorial": true,
-        "ExperimentalEnableDefaultChannelLeaveJoinMessages": true
+        "EnableTutorial": true
     },
     "TeamSettings": {
         "SiteName": "Mattermost",

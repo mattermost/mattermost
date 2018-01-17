@@ -35,26 +35,24 @@ func runServerCmd(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	disableConfigWatch, _ := cmd.Flags().GetBool("disableconfigwatch")
+	utils.CfgDisableConfigWatch, _ = cmd.Flags().GetBool("disableconfigwatch")
 
-	runServer(config, disableConfigWatch)
+	runServer(config)
 	return nil
 }
 
-func runServer(configFileLocation string, disableConfigWatch bool) {
-	options := []app.Option{app.ConfigFile(configFileLocation)}
-	if disableConfigWatch {
-		options = append(options, app.DisableConfigWatch)
-	}
-
-	a, err := app.New(options...)
-	if err != nil {
-		l4g.Error(err.Error())
+func runServer(configFileLocation string) {
+	if err := utils.InitAndLoadConfig(configFileLocation); err != nil {
+		l4g.Exit("Unable to load Mattermost configuration file: ", err)
 		return
 	}
-	defer a.Shutdown()
 
-	utils.TestConnection(a.Config())
+	if err := utils.InitTranslations(utils.Cfg.LocalizationSettings); err != nil {
+		l4g.Exit("Unable to load Mattermost translation files: %v", err)
+		return
+	}
+
+	utils.TestConnection(utils.Cfg)
 
 	pwd, _ := os.Getwd()
 	l4g.Info(utils.T("mattermost.current_version"), model.CurrentVersion, model.BuildNumber, model.BuildDate, model.BuildHash, model.BuildHashEnterprise)
@@ -62,12 +60,15 @@ func runServer(configFileLocation string, disableConfigWatch bool) {
 	l4g.Info(utils.T("mattermost.working_dir"), pwd)
 	l4g.Info(utils.T("mattermost.config_file"), utils.FindConfigFile(configFileLocation))
 
-	backend, appErr := a.FileBackend()
-	if appErr == nil {
-		appErr = backend.TestConnection()
+	a := app.New(app.ConfigFile(configFileLocation))
+	defer a.Shutdown()
+
+	backend, err := a.FileBackend()
+	if err == nil {
+		err = backend.TestConnection()
 	}
-	if appErr != nil {
-		l4g.Error("Problem with file storage settings: " + appErr.Error())
+	if err != nil {
+		l4g.Error("Problem with file storage settings: " + err.Error())
 	}
 
 	if model.BuildEnterpriseReady == "true" {
@@ -75,7 +76,7 @@ func runServer(configFileLocation string, disableConfigWatch bool) {
 	}
 
 	a.InitPlugins(*a.Config().PluginSettings.Directory, *a.Config().PluginSettings.ClientDirectory, nil)
-	a.AddConfigListener(func(prevCfg, cfg *model.Config) {
+	utils.AddConfigListener(func(prevCfg, cfg *model.Config) {
 		if *cfg.PluginSettings.Enable {
 			a.InitPlugins(*cfg.PluginSettings.Directory, *a.Config().PluginSettings.ClientDirectory, nil)
 		} else {
@@ -116,8 +117,8 @@ func runServer(configFileLocation string, disableConfigWatch bool) {
 		manualtesting.Init(api3)
 	}
 
-	a.EnsureDiagnosticId()
-
+	setDiagnosticId(a)
+	utils.RegenerateClientConfig()
 	go runSecurityJob(a)
 	go runDiagnosticsJob(a)
 
@@ -201,6 +202,21 @@ func runCommandWebhookCleanupJob(a *app.App) {
 func resetStatuses(a *app.App) {
 	if result := <-a.Srv.Store.Status().ResetAll(); result.Err != nil {
 		l4g.Error(utils.T("mattermost.reset_status.error"), result.Err.Error())
+	}
+}
+
+func setDiagnosticId(a *app.App) {
+	if result := <-a.Srv.Store.System().Get(); result.Err == nil {
+		props := result.Data.(model.StringMap)
+
+		id := props[model.SYSTEM_DIAGNOSTIC_ID]
+		if len(id) == 0 {
+			id = model.NewId()
+			systemId := &model.System{Name: model.SYSTEM_DIAGNOSTIC_ID, Value: id}
+			<-a.Srv.Store.System().Save(systemId)
+		}
+
+		utils.CfgDiagnosticId = id
 	}
 }
 

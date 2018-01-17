@@ -157,63 +157,62 @@ const (
 )
 
 type ServiceSettings struct {
-	SiteURL                                           *string
-	LicenseFileLocation                               *string
-	ListenAddress                                     *string
-	ConnectionSecurity                                *string
-	TLSCertFile                                       *string
-	TLSKeyFile                                        *string
-	UseLetsEncrypt                                    *bool
-	LetsEncryptCertificateCacheFile                   *string
-	Forward80To443                                    *bool
-	ReadTimeout                                       *int
-	WriteTimeout                                      *int
-	MaximumLoginAttempts                              *int
-	GoroutineHealthThreshold                          *int
-	GoogleDeveloperKey                                string
-	EnableOAuthServiceProvider                        bool
-	EnableIncomingWebhooks                            bool
-	EnableOutgoingWebhooks                            bool
-	EnableCommands                                    *bool
-	EnableOnlyAdminIntegrations                       *bool
-	EnablePostUsernameOverride                        bool
-	EnablePostIconOverride                            bool
-	EnableAPIv3                                       *bool
-	EnableLinkPreviews                                *bool
-	EnableTesting                                     bool
-	EnableDeveloper                                   *bool
-	EnableSecurityFixAlert                            *bool
-	EnableInsecureOutgoingConnections                 *bool
-	AllowedUntrustedInternalConnections               *string
-	EnableMultifactorAuthentication                   *bool
-	EnforceMultifactorAuthentication                  *bool
-	EnableUserAccessTokens                            *bool
-	AllowCorsFrom                                     *string
-	SessionLengthWebInDays                            *int
-	SessionLengthMobileInDays                         *int
-	SessionLengthSSOInDays                            *int
-	SessionCacheInMinutes                             *int
-	SessionIdleTimeoutInMinutes                       *int
-	WebsocketSecurePort                               *int
-	WebsocketPort                                     *int
-	WebserverMode                                     *string
-	EnableCustomEmoji                                 *bool
-	EnableEmojiPicker                                 *bool
-	RestrictCustomEmojiCreation                       *string
-	RestrictPostDelete                                *string
-	AllowEditPost                                     *string
-	PostEditTimeLimit                                 *int
-	TimeBetweenUserTypingUpdatesMilliseconds          *int64
-	EnablePostSearch                                  *bool
-	EnableUserTypingMessages                          *bool
-	EnableChannelViewedMessages                       *bool
-	EnableUserStatuses                                *bool
-	ExperimentalEnableAuthenticationTransfer          *bool
-	ClusterLogTimeoutMilliseconds                     *int
-	CloseUnusedDirectMessages                         *bool
-	EnablePreviewFeatures                             *bool
-	EnableTutorial                                    *bool
-	ExperimentalEnableDefaultChannelLeaveJoinMessages *bool
+	SiteURL                                  *string
+	LicenseFileLocation                      *string
+	ListenAddress                            *string
+	ConnectionSecurity                       *string
+	TLSCertFile                              *string
+	TLSKeyFile                               *string
+	UseLetsEncrypt                           *bool
+	LetsEncryptCertificateCacheFile          *string
+	Forward80To443                           *bool
+	ReadTimeout                              *int
+	WriteTimeout                             *int
+	MaximumLoginAttempts                     *int
+	GoroutineHealthThreshold                 *int
+	GoogleDeveloperKey                       string
+	EnableOAuthServiceProvider               bool
+	EnableIncomingWebhooks                   bool
+	EnableOutgoingWebhooks                   bool
+	EnableCommands                           *bool
+	EnableOnlyAdminIntegrations              *bool
+	EnablePostUsernameOverride               bool
+	EnablePostIconOverride                   bool
+	EnableAPIv3                              *bool
+	EnableLinkPreviews                       *bool
+	EnableTesting                            bool
+	EnableDeveloper                          *bool
+	EnableSecurityFixAlert                   *bool
+	EnableInsecureOutgoingConnections        *bool
+	AllowedUntrustedInternalConnections      *string
+	EnableMultifactorAuthentication          *bool
+	EnforceMultifactorAuthentication         *bool
+	EnableUserAccessTokens                   *bool
+	AllowCorsFrom                            *string
+	SessionLengthWebInDays                   *int
+	SessionLengthMobileInDays                *int
+	SessionLengthSSOInDays                   *int
+	SessionCacheInMinutes                    *int
+	SessionIdleTimeoutInMinutes              *int
+	WebsocketSecurePort                      *int
+	WebsocketPort                            *int
+	WebserverMode                            *string
+	EnableCustomEmoji                        *bool
+	EnableEmojiPicker                        *bool
+	RestrictCustomEmojiCreation              *string
+	RestrictPostDelete                       *string
+	AllowEditPost                            *string
+	PostEditTimeLimit                        *int
+	TimeBetweenUserTypingUpdatesMilliseconds *int64
+	EnablePostSearch                         *bool
+	EnableUserTypingMessages                 *bool
+	EnableChannelViewedMessages              *bool
+	EnableUserStatuses                       *bool
+	ExperimentalEnableAuthenticationTransfer *bool
+	ClusterLogTimeoutMilliseconds            *int
+	CloseUnusedDirectMessages                *bool
+	EnablePreviewFeatures                    *bool
+	EnableTutorial                           *bool
 }
 
 func (s *ServiceSettings) SetDefaults() {
@@ -413,10 +412,6 @@ func (s *ServiceSettings) SetDefaults() {
 
 	if s.EnablePreviewFeatures == nil {
 		s.EnablePreviewFeatures = NewBool(true)
-	}
-
-	if s.ExperimentalEnableDefaultChannelLeaveJoinMessages == nil {
-		s.ExperimentalEnableDefaultChannelLeaveJoinMessages = NewBool(true)
 	}
 }
 

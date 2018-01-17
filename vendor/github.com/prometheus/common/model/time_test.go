@@ -91,9 +91,6 @@ func TestParseDuration(t *testing.T) {
 		out time.Duration
 	}{
 		{
-			in:  "0s",
-			out: 0,
-		}, {
 			in:  "324ms",
 			out: 324 * time.Millisecond,
 		}, {

@@ -50,6 +50,7 @@ func (cfg *AutoChannelCreator) createRandomChannel() (*model.Channel, bool) {
 	println(cfg.client.GetTeamRoute())
 	result, err := cfg.client.CreateChannel(channel)
 	if err != nil {
+		err.Translate(utils.T)
 		println(err.Error())
 		println(err.DetailedError)
 		return nil, false

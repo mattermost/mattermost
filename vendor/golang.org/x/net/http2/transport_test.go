@@ -13,7 +13,6 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"log"
 	"math/rand"
 	"net"
 	"net/http"
@@ -2292,11 +2291,6 @@ func TestTransportReadHeadResponse(t *testing.T) {
 }
 
 func TestTransportReadHeadResponseWithBody(t *testing.T) {
-	// This test use not valid response format.
-	// Discarding logger output to not spam tests output.
-	log.SetOutput(ioutil.Discard)
-	defer log.SetOutput(os.Stderr)
-
 	response := "redirecting to /elsewhere"
 	ct := newClientTester(t)
 	clientDone := make(chan struct{})
@@ -3389,11 +3383,6 @@ func TestTransportRetryHasLimit(t *testing.T) {
 }
 
 func TestTransportResponseDataBeforeHeaders(t *testing.T) {
-	// This test use not valid response format.
-	// Discarding logger output to not spam tests output.
-	log.SetOutput(ioutil.Discard)
-	defer log.SetOutput(os.Stderr)
-
 	ct := newClientTester(t)
 	ct.client = func() error {
 		defer ct.cc.(*net.TCPConn).CloseWrite()
@@ -3797,46 +3786,6 @@ func TestTransportResponseAndResetWithoutConsumingBodyRace(t *testing.T) {
 	if res.StatusCode != http.StatusOK {
 		t.Fatalf("Response code = %v; want %v", res.StatusCode, http.StatusOK)
 	}
-}
-
-// Verify transport doesn't crash when receiving bogus response lacking a :status header.
-// Issue 22880.
-func TestTransportHandlesInvalidStatuslessResponse(t *testing.T) {
-	ct := newClientTester(t)
-	ct.client = func() error {
-		req, _ := http.NewRequest("GET", "https://dummy.tld/", nil)
-		_, err := ct.tr.RoundTrip(req)
-		const substr = "malformed response from server: missing status pseudo header"
-		if !strings.Contains(fmt.Sprint(err), substr) {
-			return fmt.Errorf("RoundTrip error = %v; want substring %q", err, substr)
-		}
-		return nil
-	}
-	ct.server = func() error {
-		ct.greet()
-		var buf bytes.Buffer
-		enc := hpack.NewEncoder(&buf)
-
-		for {
-			f, err := ct.fr.ReadFrame()
-			if err != nil {
-				return err
-			}
-			switch f := f.(type) {
-			case *HeadersFrame:
-				enc.WriteField(hpack.HeaderField{Name: "content-type", Value: "text/html"}) // no :status header
-				ct.fr.WriteHeaders(HeadersFrameParam{
-					StreamID:      f.StreamID,
-					EndHeaders:    true,
-					EndStream:     false, // we'll send some DATA to try to crash the transport
-					BlockFragment: buf.Bytes(),
-				})
-				ct.fr.WriteData(f.StreamID, true, []byte("payload"))
-				return nil
-			}
-		}
-	}
-	ct.run()
 }
 
 func BenchmarkClientRequestHeaders(b *testing.B) {

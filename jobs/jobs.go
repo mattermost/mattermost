@@ -11,6 +11,7 @@ import (
 
 	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/utils"
 )
 
 const (
@@ -81,6 +82,7 @@ func (srv *JobServer) SetJobError(job *model.Job, jobError *model.AppError) *mod
 	if job.Data == nil {
 		job.Data = make(map[string]string)
 	}
+	jobError.Translate(utils.T)
 	job.Data["error"] = jobError.Message + " (" + jobError.DetailedError + ")"
 
 	if result := <-srv.Store.Job().UpdateOptimistically(job, model.JOB_STATUS_IN_PROGRESS); result.Err != nil {

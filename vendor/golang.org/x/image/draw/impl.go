@@ -11,9 +11,8 @@ import (
 )
 
 func (z nnInterpolator) Scale(dst Image, dr image.Rectangle, src image.Image, sr image.Rectangle, op Op, opts *Options) {
-	// Try to simplify a Scale to a Copy when DstMask is not specified.
-	// If DstMask is not nil, Copy will call Scale back with same dr and sr, and cause stack overflow.
-	if dr.Size() == sr.Size() && (opts == nil || opts.DstMask == nil) {
+	// Try to simplify a Scale to a Copy.
+	if dr.Size() == sr.Size() {
 		Copy(dst, dr.Min, src, sr, op, opts)
 		return
 	}
@@ -1049,9 +1048,8 @@ func (nnInterpolator) transform_Image_Image_Src(dst Image, dr, adr image.Rectang
 }
 
 func (z ablInterpolator) Scale(dst Image, dr image.Rectangle, src image.Image, sr image.Rectangle, op Op, opts *Options) {
-	// Try to simplify a Scale to a Copy when DstMask is not specified.
-	// If DstMask is not nil, Copy will call Scale back with same dr and sr, and cause stack overflow.
-	if dr.Size() == sr.Size() && (opts == nil || opts.DstMask == nil) {
+	// Try to simplify a Scale to a Copy.
+	if dr.Size() == sr.Size() {
 		Copy(dst, dr.Min, src, sr, op, opts)
 		return
 	}

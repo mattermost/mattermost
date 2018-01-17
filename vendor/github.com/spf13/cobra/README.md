@@ -20,7 +20,6 @@ Many of the most widely used Go projects are built using Cobra including:
 * [Nanobox](https://github.com/nanobox-io/nanobox)/[Nanopack](https://github.com/nanopack)
 * [rclone](http://rclone.org/)
 * [nehm](https://github.com/bogem/nehm)
-* [Pouch](https://github.com/alibaba/pouch)
 
 [![Build Status](https://travis-ci.org/spf13/cobra.svg "Travis CI status")](https://travis-ci.org/spf13/cobra)
 [![CircleCI status](https://circleci.com/gh/spf13/cobra.png?circle-token=:circle-token "CircleCI status")](https://circleci.com/gh/spf13/cobra)
@@ -159,7 +158,10 @@ import (
 )
 
 func main() {
-  cmd.Execute()
+  if err := cmd.RootCmd.Execute(); err != nil {
+    fmt.Println(err)
+    os.Exit(1)
+  }
 }
 ```
 
@@ -172,7 +174,7 @@ commands you want. It's the easiest way to incorporate Cobra into your applicati
 
 ## Using the Cobra Library
 
-To manually implement Cobra you need to create a bare main.go file and a rootCmd file.
+To manually implement Cobra you need to create a bare main.go file and a RootCmd file.
 You will optionally provide additional commands as you see fit.
 
 ### Create rootCmd
@@ -182,7 +184,7 @@ Cobra doesn't require any special constructors. Simply create your commands.
 Ideally you place this in app/cmd/root.go:
 
 ```go
-var rootCmd = &cobra.Command{
+var RootCmd = &cobra.Command{
   Use:   "hugo",
   Short: "Hugo is a very fast static site generator",
   Long: `A Fast and Flexible Static Site Generator built with
@@ -210,14 +212,14 @@ import (
 
 func init() {
   cobra.OnInitialize(initConfig)
-  rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.cobra.yaml)")
-  rootCmd.PersistentFlags().StringVarP(&projectBase, "projectbase", "b", "", "base project directory eg. github.com/spf13/")
-  rootCmd.PersistentFlags().StringP("author", "a", "YOUR NAME", "Author name for copyright attribution")
-  rootCmd.PersistentFlags().StringVarP(&userLicense, "license", "l", "", "Name of license for the project (can provide `licensetext` in config)")
-  rootCmd.PersistentFlags().Bool("viper", true, "Use Viper for configuration")
-  viper.BindPFlag("author", rootCmd.PersistentFlags().Lookup("author"))
-  viper.BindPFlag("projectbase", rootCmd.PersistentFlags().Lookup("projectbase"))
-  viper.BindPFlag("useViper", rootCmd.PersistentFlags().Lookup("viper"))
+  RootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.cobra.yaml)")
+  RootCmd.PersistentFlags().StringVarP(&projectBase, "projectbase", "b", "", "base project directory eg. github.com/spf13/")
+  RootCmd.PersistentFlags().StringP("author", "a", "YOUR NAME", "Author name for copyright attribution")
+  RootCmd.PersistentFlags().StringVarP(&userLicense, "license", "l", "", "Name of license for the project (can provide `licensetext` in config)")
+  RootCmd.PersistentFlags().Bool("viper", true, "Use Viper for configuration")
+  viper.BindPFlag("author", RootCmd.PersistentFlags().Lookup("author"))
+  viper.BindPFlag("projectbase", RootCmd.PersistentFlags().Lookup("projectbase"))
+  viper.BindPFlag("useViper", RootCmd.PersistentFlags().Lookup("viper"))
   viper.SetDefault("author", "NAME HERE <EMAIL ADDRESS>")
   viper.SetDefault("license", "apache")
 }
@@ -265,7 +267,10 @@ import (
 )
 
 func main() {
-  cmd.Execute()
+  if err := cmd.RootCmd.Execute(); err != nil {
+    fmt.Println(err)
+    os.Exit(1)
+  }
 }
 ```
 
@@ -281,13 +286,12 @@ populate it with the following:
 package cmd
 
 import (
-  "fmt"
-
   "github.com/spf13/cobra"
+  "fmt"
 )
 
 func init() {
-  rootCmd.AddCommand(versionCmd)
+  RootCmd.AddCommand(versionCmd)
 }
 
 var versionCmd = &cobra.Command{
@@ -324,7 +328,7 @@ command it's assigned to as well as every command under that command. For
 global flags, assign a flag as a persistent flag on the root.
 
 ```go
-rootCmd.PersistentFlags().BoolVarP(&Verbose, "verbose", "v", false, "verbose output")
+RootCmd.PersistentFlags().BoolVarP(&Verbose, "verbose", "v", false, "verbose output")
 ```
 
 ### Local Flags
@@ -332,7 +336,7 @@ rootCmd.PersistentFlags().BoolVarP(&Verbose, "verbose", "v", false, "verbose out
 A flag can also be assigned locally which will only apply to that specific command.
 
 ```go
-rootCmd.Flags().StringVarP(&Source, "source", "s", "", "Source directory to read from")
+RootCmd.Flags().StringVarP(&Source, "source", "s", "", "Source directory to read from")
 ```
 
 ### Local Flag on Parent Commands
@@ -355,8 +359,8 @@ You can also bind your flags with [viper](https://github.com/spf13/viper):
 var author string
 
 func init() {
-  rootCmd.PersistentFlags().StringVar(&author, "author", "YOUR NAME", "Author name for copyright attribution")
-  viper.BindPFlag("author", rootCmd.PersistentFlags().Lookup("author"))
+  RootCmd.PersistentFlags().StringVar(&author, "author", "YOUR NAME", "Author name for copyright attribution")
+  viper.BindPFlag("author", RootCmd.PersistentFlags().Lookup("author"))
 }
 ```
 
@@ -514,7 +518,7 @@ around it. In fact, you can provide your own if you want.
 ### Defining your own help
 
 You can provide your own Help command or your own template for the default command to use
-with following functions:
+with followind functions:
 
 ```go
 cmd.SetHelpCommand(cmd *Command)
@@ -560,13 +564,6 @@ Like help, the function and template are overridable through public methods:
 cmd.SetUsageFunc(f func(*Command) error)
 cmd.SetUsageTemplate(s string)
 ```
-
-## Version Flag
-
-Cobra adds a top-level '--version' flag if the Version field is set on the root command.
-Running an application with the '--version' flag will print the version to stdout using
-the version template. The template can be customized using the
-`cmd.SetVersionTemplate(s string)` function.
 
 ## PreRun and PostRun Hooks
 

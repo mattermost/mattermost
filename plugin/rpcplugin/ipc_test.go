@@ -9,8 +9,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
-	"github.com/mattermost/mattermost-server/plugin/rpcplugin/rpcplugintest"
 )
 
 func TestIPC(t *testing.T) {
@@ -19,7 +17,7 @@ func TestIPC(t *testing.T) {
 	defer os.RemoveAll(dir)
 
 	pingpong := filepath.Join(dir, "pingpong.exe")
-	rpcplugintest.CompileGo(t, `
+	compileGo(t, `
 		package main
 
 		import (

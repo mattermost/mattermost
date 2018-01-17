@@ -8,28 +8,26 @@ import (
 	"io"
 	"os"
 
-	// Include features to facilitate generated catalogs.
-	_ "golang.org/x/text/feature/plural"
-
-	"golang.org/x/text/internal/number"
 	"golang.org/x/text/language"
 	"golang.org/x/text/message/catalog"
 )
 
+// TODO: allow more than one goroutine per printer. This will allow porting from
+// fmt much less error prone.
+
 // A Printer implements language-specific formatted I/O analogous to the fmt
-// package.
+// package. Only one goroutine may use a Printer at the same time.
 type Printer struct {
-	// the language
-	tag language.Tag
+	// Wrap the fields in a hidden type to hide some of the implemented methods.
+	printer printer
 
-	toDecimal    number.Formatter
-	toScientific number.Formatter
-
-	cat catalog.Catalog
+	// NOTE: limiting one goroutine per Printer allows for many optimizations
+	// and simplifications. We can consider removing this restriction down the
+	// road if it the benefits do not seem to outweigh the disadvantages.
 }
 
 type options struct {
-	cat catalog.Catalog
+	cat *catalog.Catalog
 	// TODO:
 	// - allow %s to print integers in written form (tables are likely too large
 	//   to enable this by default).
@@ -41,42 +39,39 @@ type options struct {
 type Option func(o *options)
 
 // Catalog defines the catalog to be used.
-func Catalog(c catalog.Catalog) Option {
+func Catalog(c *catalog.Catalog) Option {
 	return func(o *options) { o.cat = c }
 }
 
 // NewPrinter returns a Printer that formats messages tailored to language t.
 func NewPrinter(t language.Tag, opts ...Option) *Printer {
 	options := &options{
-		cat: DefaultCatalog,
+		cat: defaultCatalog,
 	}
 	for _, o := range opts {
 		o(options)
 	}
-	p := &Printer{
+	p := &Printer{printer{
 		tag: t,
-		cat: options.cat,
-	}
-	p.toDecimal.InitDecimal(t)
-	p.toScientific.InitScientific(t)
+	}}
+	p.printer.toDecimal.InitDecimal(t)
+	p.printer.toScientific.InitScientific(t)
+	p.printer.catContext = options.cat.Context(t, &p.printer)
 	return p
 }
 
 // Sprint is like fmt.Sprint, but using language-specific formatting.
 func (p *Printer) Sprint(a ...interface{}) string {
-	pp := newPrinter(p)
-	pp.doPrint(a)
-	s := pp.String()
-	pp.free()
-	return s
+	p.printer.reset()
+	p.printer.doPrint(a)
+	return p.printer.String()
 }
 
 // Fprint is like fmt.Fprint, but using language-specific formatting.
 func (p *Printer) Fprint(w io.Writer, a ...interface{}) (n int, err error) {
-	pp := newPrinter(p)
-	pp.doPrint(a)
-	n64, err := io.Copy(w, &pp.Buffer)
-	pp.free()
+	p.printer.reset()
+	p.printer.doPrint(a)
+	n64, err := io.Copy(w, &p.printer.Buffer)
 	return int(n64), err
 }
 
@@ -87,19 +82,16 @@ func (p *Printer) Print(a ...interface{}) (n int, err error) {
 
 // Sprintln is like fmt.Sprintln, but using language-specific formatting.
 func (p *Printer) Sprintln(a ...interface{}) string {
-	pp := newPrinter(p)
-	pp.doPrintln(a)
-	s := pp.String()
-	pp.free()
-	return s
+	p.printer.reset()
+	p.printer.doPrintln(a)
+	return p.printer.String()
 }
 
 // Fprintln is like fmt.Fprintln, but using language-specific formatting.
 func (p *Printer) Fprintln(w io.Writer, a ...interface{}) (n int, err error) {
-	pp := newPrinter(p)
-	pp.doPrintln(a)
-	n64, err := io.Copy(w, &pp.Buffer)
-	pp.free()
+	p.printer.reset()
+	p.printer.doPrintln(a)
+	n64, err := io.Copy(w, &p.printer.Buffer)
 	return int(n64), err
 }
 
@@ -110,34 +102,25 @@ func (p *Printer) Println(a ...interface{}) (n int, err error) {
 
 // Sprintf is like fmt.Sprintf, but using language-specific formatting.
 func (p *Printer) Sprintf(key Reference, a ...interface{}) string {
-	pp := newPrinter(p)
-	lookupAndFormat(pp, key, a)
-	s := pp.String()
-	pp.free()
-	return s
+	lookupAndFormat(p, key, a)
+	return p.printer.String()
 }
 
 // Fprintf is like fmt.Fprintf, but using language-specific formatting.
 func (p *Printer) Fprintf(w io.Writer, key Reference, a ...interface{}) (n int, err error) {
-	pp := newPrinter(p)
-	lookupAndFormat(pp, key, a)
-	n, err = w.Write(pp.Bytes())
-	pp.free()
-	return n, err
-
+	lookupAndFormat(p, key, a)
+	return w.Write(p.printer.Bytes())
 }
 
 // Printf is like fmt.Printf, but using language-specific formatting.
 func (p *Printer) Printf(key Reference, a ...interface{}) (n int, err error) {
-	pp := newPrinter(p)
-	lookupAndFormat(pp, key, a)
-	n, err = os.Stdout.Write(pp.Bytes())
-	pp.free()
-	return n, err
+	lookupAndFormat(p, key, a)
+	return os.Stdout.Write(p.printer.Bytes())
 }
 
-func lookupAndFormat(p *printer, r Reference, a []interface{}) {
-	p.fmt.Reset(a)
+func lookupAndFormat(p *Printer, r Reference, a []interface{}) {
+	p.printer.reset()
+	p.printer.args = a
 	var id, msg string
 	switch v := r.(type) {
 	case string:
@@ -148,9 +131,9 @@ func lookupAndFormat(p *printer, r Reference, a []interface{}) {
 		panic("key argument is not a Reference")
 	}
 
-	if p.catContext.Execute(id) == catalog.ErrNotFound {
-		if p.catContext.Execute(msg) == catalog.ErrNotFound {
-			p.Render(msg)
+	if p.printer.catContext.Execute(id) == catalog.ErrNotFound {
+		if p.printer.catContext.Execute(msg) == catalog.ErrNotFound {
+			p.printer.Render(msg)
 			return
 		}
 	}
@@ -159,8 +142,8 @@ func lookupAndFormat(p *printer, r Reference, a []interface{}) {
 // Arg implements catmsg.Renderer.
 func (p *printer) Arg(i int) interface{} { // TODO, also return "ok" bool
 	i--
-	if uint(i) < uint(len(p.fmt.Args)) {
-		return p.fmt.Args[i]
+	if uint(i) < uint(len(p.args)) {
+		return p.args[i]
 	}
 	return nil
 }

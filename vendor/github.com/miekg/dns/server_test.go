@@ -654,11 +654,11 @@ func TestServerStartStopRace(t *testing.T) {
 		s := &Server{}
 		s, _, _, err = RunLocalUDPServerWithFinChan(":0")
 		if err != nil {
-			t.Fatalf("could not start server: %s", err)
+			t.Fatalf("Could not start server: %s", err)
 		}
 		go func() {
 			if err := s.Shutdown(); err != nil {
-				t.Fatalf("could not stop server: %s", err)
+				t.Fatalf("Could not stop server: %s", err)
 			}
 		}()
 	}

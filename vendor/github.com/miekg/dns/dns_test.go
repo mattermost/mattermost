@@ -1,7 +1,6 @@
 package dns
 
 import (
-	"bytes"
 	"encoding/hex"
 	"net"
 	"testing"
@@ -318,9 +317,8 @@ func TestNoRdataPack(t *testing.T) {
 func TestNoRdataUnpack(t *testing.T) {
 	data := make([]byte, 1024)
 	for typ, fn := range TypeToRR {
-		if typ == TypeSOA || typ == TypeTSIG || typ == TypeTKEY {
+		if typ == TypeSOA || typ == TypeTSIG {
 			// SOA, TSIG will not be seen (like this) in dyn. updates?
-			// TKEY requires length fields to be present for the Key and OtherData fields
 			continue
 		}
 		r := fn()
@@ -406,61 +404,4 @@ func TestMsgPackBuffer(t *testing.T) {
 			continue
 		}
 	}
-}
-
-// Make sure we can decode a TKEY packet from the string, modify the RR, and then pack it again.
-func TestTKEY(t *testing.T) {
-	// An example TKEY RR captured.  There is no known accepted standard text format for a TKEY
-	// record so we do this from a hex string instead of from a text readable string.
-	tkeyStr := "0737362d6d732d370932322d3332633233332463303439663961662d633065612d313165372d363839362d6463333937396666656666640000f900ff0000000000d2086773732d747369670059fd01f359fe53730003000000b8a181b53081b2a0030a0100a10b06092a864882f712010202a2819d04819a60819706092a864886f71201020202006f8187308184a003020105a10302010fa2783076a003020112a26f046db29b1b1d2625da3b20b49dafef930dd1e9aad335e1c5f45dcd95e0005d67a1100f3e573d70506659dbed064553f1ab890f68f65ae10def0dad5b423b39f240ebe666f2886c5fe03819692d29182bbed87b83e1f9d16b7334ec16a3c4fc5ad4a990088e0be43f0c6957916f5fe60000"
-	tkeyBytes, err := hex.DecodeString(tkeyStr)
-	if err != nil {
-		t.Fatal("unable to decode TKEY string ", err)
-	}
-	// Decode the RR
-	rr, tkeyLen, unPackErr := UnpackRR(tkeyBytes, 0)
-	if unPackErr != nil {
-		t.Fatal("unable to decode TKEY RR", unPackErr)
-	}
-	// Make sure it's a TKEY record
-	if rr.Header().Rrtype != TypeTKEY {
-		t.Fatal("Unable to decode TKEY")
-	}
-	// Make sure we get back the same length
-	if rr.len() != len(tkeyBytes) {
-		t.Fatalf("Lengths don't match %d != %d", rr.len(), len(tkeyBytes))
-	}
-	// make space for it with some fudge room
-	msg := make([]byte, tkeyLen+1000)
-	offset, packErr := PackRR(rr, msg, 0, nil, false)
-	if packErr != nil {
-		t.Fatal("unable to pack TKEY RR", packErr)
-	}
-	if offset != len(tkeyBytes) {
-		t.Fatalf("mismatched TKEY RR size %d != %d", len(tkeyBytes), offset)
-	}
-	if bytes.Compare(tkeyBytes, msg[0:offset]) != 0 {
-		t.Fatal("mismatched TKEY data after rewriting bytes")
-	}
-	t.Logf("got TKEY of: " + rr.String())
-	// Now add some bytes to this and make sure we can encode OtherData properly
-	tkey := rr.(*TKEY)
-	tkey.OtherData = "abcd"
-	tkey.OtherLen = 2
-	offset, packErr = PackRR(tkey, msg, 0, nil, false)
-	if packErr != nil {
-		t.Fatal("unable to pack TKEY RR after modification", packErr)
-	}
-	if offset != (len(tkeyBytes) + 2) {
-		t.Fatalf("mismatched TKEY RR size %d != %d", offset, len(tkeyBytes)+2)
-	}
-	t.Logf("modified to TKEY of: " + rr.String())
-
-	// Make sure we can parse our string output
-	tkey.Hdr.Class = ClassINET // https://github.com/miekg/dns/issues/577
-	newRR, newError := NewRR(tkey.String())
-	if newError != nil {
-		t.Fatalf("unable to parse TKEY string: %s", newError)
-	}
-	t.Log("got reparsed TKEY of newRR: " + newRR.String())
 }

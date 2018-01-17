@@ -33,11 +33,7 @@ func (d *dict) Lookup(key string) (data string, ok bool) {
 	return d.s.lookup(d.tag, key)
 }
 
-func (b *Builder) lookup(tag language.Tag, key string) (data string, ok bool) {
-	return b.index.lookup(tag, key)
-}
-
-func (c *Builder) set(tag language.Tag, key string, s *store, msg ...Message) error {
+func (c *Catalog) set(tag language.Tag, key string, s *store, msg ...Message) error {
 	data, err := catmsg.Compile(tag, &dict{&c.macros, tag}, firstInSequence(msg))
 
 	s.mutex.Lock()
@@ -49,29 +45,11 @@ func (c *Builder) set(tag language.Tag, key string, s *store, msg ...Message) er
 		if s.index == nil {
 			s.index = map[language.Tag]msgMap{}
 		}
-		c.matcher = nil
 		s.index[tag] = m
 	}
 
 	m[key] = data
 	return err
-}
-
-func (c *Builder) Matcher() language.Matcher {
-	c.index.mutex.RLock()
-	m := c.matcher
-	c.index.mutex.RUnlock()
-	if m != nil {
-		return m
-	}
-
-	c.index.mutex.Lock()
-	if c.matcher == nil {
-		c.matcher = language.NewMatcher(c.unlockedLanguages())
-	}
-	m = c.matcher
-	c.index.mutex.Unlock()
-	return m
 }
 
 type store struct {
@@ -98,32 +76,15 @@ func (s *store) lookup(tag language.Tag, key string) (data string, ok bool) {
 	return "", false
 }
 
-// Languages returns all languages for which the Catalog contains variants.
-func (b *Builder) Languages() []language.Tag {
-	s := &b.index
+// Languages returns all languages for which the store contains variants.
+func (s *store) languages() []language.Tag {
 	s.mutex.RLock()
 	defer s.mutex.RUnlock()
 
-	return b.unlockedLanguages()
-}
-
-func (b *Builder) unlockedLanguages() []language.Tag {
-	s := &b.index
-	if len(s.index) == 0 {
-		return nil
-	}
 	tags := make([]language.Tag, 0, len(s.index))
-	_, hasFallback := s.index[b.options.fallback]
-	offset := 0
-	if hasFallback {
-		tags = append(tags, b.options.fallback)
-		offset = 1
-	}
 	for t := range s.index {
-		if t != b.options.fallback {
-			tags = append(tags, t)
-		}
+		tags = append(tags, t)
 	}
-	internal.SortTags(tags[offset:])
+	internal.SortTags(tags)
 	return tags
 }

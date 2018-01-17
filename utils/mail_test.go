@@ -6,13 +6,10 @@ package utils
 import (
 	"strings"
 	"testing"
-
-	"github.com/stretchr/testify/require"
 )
 
 func TestMailConnection(t *testing.T) {
-	cfg, _, err := LoadConfig("config.json")
-	require.Nil(t, err)
+	cfg := LoadGlobalConfig("config.json")
 
 	if conn, err := connectToSMTPServer(cfg); err != nil {
 		t.Log(err)
@@ -35,8 +32,7 @@ func TestMailConnection(t *testing.T) {
 }
 
 func TestSendMailUsingConfig(t *testing.T) {
-	cfg, _, err := LoadConfig("config.json")
-	require.Nil(t, err)
+	cfg := LoadGlobalConfig("config.json")
 	T = GetUserTranslations("en")
 
 	var emailTo string = "test@example.com"

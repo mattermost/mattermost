@@ -244,7 +244,7 @@ func getClientConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	respCfg := map[string]string{}
-	for k, v := range c.App.ClientConfig() {
+	for k, v := range utils.ClientCfg {
 		respCfg[k] = v
 	}
 

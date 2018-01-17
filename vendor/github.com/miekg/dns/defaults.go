@@ -273,11 +273,8 @@ func (t Type) String() string {
 
 // String returns the string representation for the class c.
 func (c Class) String() string {
-	if s, ok := ClassToString[uint16(c)]; ok {
-		// Only emit mnemonics when they are unambiguous, specically ANY is in both.
-		if _, ok := StringToType[s]; !ok {
-			return s
-		}
+	if c1, ok := ClassToString[uint16(c)]; ok {
+		return c1
 	}
 	return "CLASS" + strconv.Itoa(int(c))
 }

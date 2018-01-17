@@ -79,10 +79,8 @@ func ClientConfigFromReader(resolvconf io.Reader) (*ClientConfig, error) {
 				switch {
 				case len(s) >= 6 && s[:6] == "ndots:":
 					n, _ := strconv.Atoi(s[6:])
-					if n < 0 {
-						n = 0
-					} else if n > 15 {
-						n = 15
+					if n < 1 {
+						n = 1
 					}
 					c.Ndots = n
 				case len(s) >= 8 && s[:8] == "timeout:":

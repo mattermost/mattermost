@@ -306,57 +306,22 @@ func TestStatusCodes(t *testing.T) {
 	}
 }
 
-func TestFlushBeforeWrite(t *testing.T) {
-	b := []byte(testBody)
+func TestStatusCodesFlushed(t *testing.T) {
 	handler := GzipHandler(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
 		rw.WriteHeader(http.StatusNotFound)
 		rw.(http.Flusher).Flush()
-		rw.Write(b)
+		rw.Write([]byte("Not found"))
 	}))
 	r := httptest.NewRequest(http.MethodGet, "/", nil)
-	r.Header.Set("Accept-Encoding", "gzip")
+	r.Header.Set(acceptEncoding, "gzip")
 	w := httptest.NewRecorder()
 	handler.ServeHTTP(w, r)
 
-	res := w.Result()
-	assert.Equal(t, http.StatusNotFound, res.StatusCode)
-	assert.Equal(t, "gzip", res.Header.Get("Content-Encoding"))
-	assert.NotEqual(t, b, w.Body.Bytes())
+	result := w.Result()
+	if result.StatusCode != http.StatusNotFound {
+		t.Errorf("StatusCode should have been 404 but was %d", result.StatusCode)
+	}
 }
-
-func TestImplementCloseNotifier(t *testing.T) {
-	GzipHandler(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request){
-		_, ok := rw.(http.CloseNotifier)
-		assert.True(t, ok, "response writer must implement http.CloseNotifier")
-	})).ServeHTTP(&mockRWCloseNotify{}, &http.Request{})
-}
-
-func TestNotImplementCloseNotifier(t *testing.T) {
-	GzipHandler(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request){
-		_, ok := rw.(http.CloseNotifier)
-		assert.False(t, ok, "response writer must not implement http.CloseNotifier")
-	})).ServeHTTP(httptest.NewRecorder(), &http.Request{})
-}
-
-
-type mockRWCloseNotify struct{}
-
-func (m *mockRWCloseNotify) CloseNotify() <-chan bool {
-	panic("implement me")
-}
-
-func (m *mockRWCloseNotify) Header() http.Header {
-	return http.Header{}
-}
-
-func (m *mockRWCloseNotify) Write([]byte) (int, error) {
-	panic("implement me")
-}
-
-func (m *mockRWCloseNotify) WriteHeader(int) {
-	panic("implement me")
-}
-
 
 func TestIgnoreSubsequentWriteHeader(t *testing.T) {
 	handler := GzipHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
