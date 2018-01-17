@@ -60,7 +60,9 @@ func TestUpdateConfig(t *testing.T) {
 	th := Setup()
 	defer th.TearDown()
 
-	listener := th.App.AddConfigListener(func(old, current *model.Config) {
+	prev := *th.App.Config().ServiceSettings.SiteURL
+
+	th.App.AddConfigListener(func(old, current *model.Config) {
 		assert.Equal(t, prev, *old.ServiceSettings.SiteURL)
 		assert.Equal(t, "foo", *current.ServiceSettings.SiteURL)
 	})

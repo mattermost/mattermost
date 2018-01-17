@@ -13,7 +13,6 @@ import (
 
 	l4g "github.com/alecthomas/log4go"
 
-	"github.com/mattermost/mattermost-server/app"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/plugin"
 	"github.com/mattermost/mattermost-server/plugin/pluginenv"
@@ -75,7 +74,7 @@ func setupTestHelper(enterprise bool) *TestHelper {
 		panic(err)
 	}
 
-	options := []app.Option{app.ConfigFile(tempConfig.Name()), app.DisableConfigWatch}
+	options := []Option{ConfigFile(tempConfig.Name()), DisableConfigWatch}
 	if testStore != nil {
 		options = append(options, StoreOverride(testStore))
 	}
