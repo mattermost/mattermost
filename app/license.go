@@ -23,7 +23,7 @@ func (a *App) LoadLicense() {
 
 	if len(licenseId) != 26 {
 		// Lets attempt to load the file from disk since it was missing from the DB
-		license, licenseBytes := utils.GetAndValidateLicenseFileFromDisk()
+		license, licenseBytes := utils.GetAndValidateLicenseFileFromDisk(*a.Config().ServiceSettings.LicenseFileLocation)
 
 		if license != nil {
 			if _, err := a.SaveLicense(licenseBytes); err != nil {

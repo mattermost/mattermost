@@ -35,7 +35,6 @@ const (
 
 var originalDisableDebugLvl l4g.Level = l4g.DEBUG
 var siteURL = ""
-var Cfg *model.Config
 
 func GetSiteURL() string {
 	return siteURL

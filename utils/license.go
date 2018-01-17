@@ -168,8 +168,8 @@ func ValidateLicense(signed []byte) (bool, string) {
 	return true, string(plaintext)
 }
 
-func GetAndValidateLicenseFileFromDisk() (*model.License, []byte) {
-	fileName := GetLicenseFileLocation(*Cfg.ServiceSettings.LicenseFileLocation)
+func GetAndValidateLicenseFileFromDisk(location string) (*model.License, []byte) {
+	fileName := GetLicenseFileLocation(location)
 
 	if _, err := os.Stat(fileName); err != nil {
 		l4g.Debug("We could not find the license key in the database or on disk at %v", fileName)
