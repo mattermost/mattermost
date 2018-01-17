@@ -117,6 +117,8 @@ func Setup() *TestHelper {
 func (me *TestHelper) InitBasic() *TestHelper {
 	me.waitForConnectivity()
 
+	me.App.DoAdvancedPermissionsMigration()
+
 	me.BasicClient = me.CreateClient()
 	me.BasicUser = me.CreateUser(me.BasicClient)
 	me.App.UpdateUserRoles(me.BasicUser.Id, model.SYSTEM_USER_ROLE_ID, false)

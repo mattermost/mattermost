@@ -80,6 +80,9 @@ func setupTestHelper(enterprise bool) *TestHelper {
 	}
 	th.App.StartServer()
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = prevListenAddress })
+
+	th.App.DoAdvancedPermissionsMigration()
+
 	th.App.Srv.Store.MarkSystemRanUnitTests()
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableOpenServer = true })

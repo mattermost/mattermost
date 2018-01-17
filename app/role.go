@@ -3,7 +3,9 @@
 
 package app
 
-import "github.com/mattermost/mattermost-server/model"
+import (
+	"github.com/mattermost/mattermost-server/model"
+)
 
 func (a *App) GetRole(id string) (*model.Role, *model.AppError) {
 	if result := <-a.Srv.Store.Role().Get(id); result.Err != nil {

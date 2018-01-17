@@ -196,6 +196,8 @@ func (me *TestHelper) TearDown() {
 func (me *TestHelper) InitBasic() *TestHelper {
 	me.waitForConnectivity()
 
+	me.App.DoAdvancedPermissionsMigration()
+
 	me.TeamAdminUser = me.CreateUser()
 	me.App.UpdateUserRoles(me.TeamAdminUser.Id, model.SYSTEM_USER_ROLE_ID, false)
 	me.LoginTeamAdmin()
