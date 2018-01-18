@@ -42,6 +42,7 @@ const (
 	WEBSOCKET_EVENT_CHANNEL_VIEWED      = "channel_viewed"
 	WEBSOCKET_EVENT_PLUGIN_ACTIVATED    = "plugin_activated"   // EXPERIMENTAL - SUBJECT TO CHANGE
 	WEBSOCKET_EVENT_PLUGIN_DEACTIVATED  = "plugin_deactivated" // EXPERIMENTAL - SUBJECT TO CHANGE
+	WEBSOCKET_EVENT_ROLE_UPDATED        = "role_updated"
 )
 
 type WebSocketMessage interface {
