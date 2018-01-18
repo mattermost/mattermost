@@ -324,17 +324,16 @@ func UpgradeDatabaseToVersion44(sqlStore SqlStore) {
 	}
 }
 
-func UpgradeDatabaseToVersion46(sqlStore SqlStore) {
+func UpgradeDatabaseToVersion45(sqlStore SqlStore) {
+	if shouldPerformUpgrade(sqlStore, VERSION_4_4_0, VERSION_4_5_0) {
+		saveSchemaVersion(sqlStore, VERSION_4_5_0)
+	}
+}
 
+func UpgradeDatabaseToVersion46(sqlStore SqlStore) {
 	if shouldPerformUpgrade(sqlStore, VERSION_4_5_0, VERSION_4_6_0) {
 		sqlStore.CreateColumnIfNotExists("IncomingWebhooks", "Username", "varchar(64)", "varchar(64)", "")
 		sqlStore.CreateColumnIfNotExists("IncomingWebhooks", "IconURL", "varchar(1024)", "varchar(1024)", "")
 		saveSchemaVersion(sqlStore, VERSION_4_6_0)
-	}
-}
-
-func UpgradeDatabaseToVersion45(sqlStore SqlStore) {
-	if shouldPerformUpgrade(sqlStore, VERSION_4_4_0, VERSION_4_5_0) {
-		saveSchemaVersion(sqlStore, VERSION_4_5_0)
 	}
 }
