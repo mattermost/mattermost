@@ -167,7 +167,7 @@ func initializePermissions() {
 		PERMISSION_SCOPE_SYSTEM,
 	}
 	PERMISSION_MANAGE_PUBLIC_CHANNEL_PROPERTIES = &Permission{
-		"manage__publicchannel_properties",
+		"manage_public_channel_properties",
 		"authentication.permissions.manage_public_channel_properties.name",
 		"authentication.permissions.manage_public_channel_properties.description",
 		PERMISSION_SCOPE_CHANNEL,
