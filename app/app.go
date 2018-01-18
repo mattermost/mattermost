@@ -25,6 +25,8 @@ import (
 	"github.com/mattermost/mattermost-server/utils"
 )
 
+const ADVANCED_PERMISSIONS_MIGRATION_KEY = "AdvancedPermissionsMigrationComplete"
+
 type App struct {
 	goroutineCount      int32
 	goroutineExitSignal chan struct{}
@@ -120,7 +122,6 @@ func New(options ...Option) (*App, error) {
 	})
 	app.licenseListenerId = utils.AddLicenseListener(app.configOrLicenseListener)
 	app.regenerateClientConfig()
-	app.SetDefaultRolesBasedOnConfig()
 
 	l4g.Info(utils.T("api.server.new_server.init.info"))
 
@@ -157,7 +158,6 @@ func New(options ...Option) (*App, error) {
 
 func (a *App) configOrLicenseListener() {
 	a.regenerateClientConfig()
-	a.SetDefaultRolesBasedOnConfig()
 }
 
 func (a *App) Shutdown() {
@@ -449,4 +449,43 @@ func (a *App) Handle404(w http.ResponseWriter, r *http.Request) {
 	l4g.Debug("%v: code=404 ip=%v", r.URL.Path, utils.GetIpAddress(r))
 
 	utils.RenderWebError(err, w, r)
+}
+
+// This function migrates the default built in roles from code/config to the database.
+func (a *App) DoAdvancedPermissionsMigration() {
+	// If the migration is already marked as completed, don't do it again.
+	if result := <-a.Srv.Store.System().GetByName(ADVANCED_PERMISSIONS_MIGRATION_KEY); result.Err == nil {
+		return
+	}
+
+	l4g.Info("Migrating roles to database.")
+	roles := model.MakeDefaultRoles()
+	roles = utils.SetRolePermissionsFromConfig(roles, a.Config())
+
+	allSucceeded := true
+
+	for _, role := range roles {
+		if result := <-a.Srv.Store.Role().Save(role); result.Err != nil {
+			l4g.Critical("Failed to migrate role to database.")
+			l4g.Critical(result.Err)
+			// If this failed for reasons other than the role already existing, don't mark the migration as done.
+			if result2 := <-a.Srv.Store.Role().GetByName(role.Name); result2.Err != nil {
+				allSucceeded = false
+			}
+		}
+	}
+
+	if !allSucceeded {
+		return
+	}
+
+	system := model.System{
+		Name:  ADVANCED_PERMISSIONS_MIGRATION_KEY,
+		Value: "true",
+	}
+
+	if result := <-a.Srv.Store.System().Save(&system); result.Err != nil {
+		l4g.Critical("Failed to mark advanced permissions migration as completed.")
+		l4g.Critical(result.Err)
+	}
 }
