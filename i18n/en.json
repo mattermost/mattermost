@@ -6423,6 +6423,26 @@
     "translation": "Unable to save reaction"
   },
   {
+    "id": "store.sql_role.save.insert.app_error",
+    "translation": "Unable to save new role"
+  },
+  {
+    "id": "store.sql_role.save.update.app_error",
+    "translation": "Unable to update role"
+  },
+  {
+    "id": "store.sql_role.get.app_error",
+    "translation": "Unable to get role"
+  },
+  {
+    "id": "store.sql_role.get_by_name.app_error",
+    "translation": "Unable to get role"
+  },
+  {
+    "id": "store.sql_role.get_by_names.app_error",
+    "translation": "Unable to get roles"
+  },
+  {
     "id": "store.sql_session.analytics_session_count.app_error",
     "translation": "We couldn't count the sessions"
   },
