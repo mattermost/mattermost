@@ -63,7 +63,7 @@ func (a *App) JoinDefaultChannels(teamId string, user *model.User, channelRole s
 			l4g.Warn("Failed to update ChannelMemberHistory table %v", result.Err)
 		}
 
-		if *a.Config().ServiceSettings.ExperimentalEnableDefaultChannelLeaveJoinMessages == true {
+		if *a.Config().ServiceSettings.ExperimentalEnableDefaultChannelLeaveJoinMessages {
 			if requestor == nil {
 				if err := a.postJoinTeamMessage(user, townSquare); err != nil {
 					l4g.Error(utils.T("api.channel.post_user_add_remove_message_and_forget.error"), err)
