@@ -316,6 +316,14 @@
     "translation": "%v has left the channel."
   },
   {
+    "id": "api.channel.change_channel_privacy.private_to_public",
+    "translation": "This channel has been converted to a Public Channel and can be joined by any team member."
+  },
+  {
+    "id": "api.channel.change_channel_privacy.public_to_private",
+    "translation": "This channel has been converted to a Private Channel."
+  },
+  {
     "id": "api.channel.post_update_channel_displayname_message_and_forget.create_post.error",
     "translation": "Failed to post displayname update message"
   },
