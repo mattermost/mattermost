@@ -7,14 +7,7 @@ import (
 	"github.com/mattermost/mattermost-server/model"
 )
 
-func DefaultRolesBasedOnConfig(cfg *model.Config) map[string]*model.Role {
-	roles := make(map[string]*model.Role)
-	for id, role := range model.DefaultRoles {
-		copy := &model.Role{}
-		*copy = *role
-		roles[id] = copy
-	}
-
+func SetRolePermissionsFromConfig(roles map[string]*model.Role, cfg *model.Config) map[string]*model.Role {
 	if IsLicensed() {
 		switch *cfg.TeamSettings.RestrictPublicChannelCreation {
 		case model.PERMISSIONS_ALL:
