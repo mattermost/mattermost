@@ -193,17 +193,24 @@ func (a *App) HasPermissionToUser(askingUserId string, userId string) bool {
 	return false
 }
 
-func (a *App) CheckIfRolesGrantPermission(roles []string, permissionId string) bool {
-	for _, roleId := range roles {
-		if role := a.Role(roleId); role == nil {
-			l4g.Debug("Bad role in system " + roleId)
-			return false
-		} else {
-			permissions := role.Permissions
-			for _, permission := range permissions {
-				if permission == permissionId {
-					return true
-				}
+func (a *App) CheckIfRolesGrantPermission(roleNames []string, permissionId string) bool {
+	var roles []*model.Role
+
+	if result := <-a.Srv.Store.Role().GetByNames(roleNames); result.Err != nil {
+		// This should only happen if something is very broken. We can't realistically
+		// recover the situation, so deny permission and log an error.
+		l4g.Error("Failed to get roles from database with role names: " + strings.Join(roleNames, ","))
+		l4g.Error(result.Err)
+		return false
+	} else {
+		roles = result.Data.([]*model.Role)
+	}
+
+	for _, role := range roles {
+		permissions := role.Permissions
+		for _, permission := range permissions {
+			if permission == permissionId {
+				return true
 			}
 		}
 	}
