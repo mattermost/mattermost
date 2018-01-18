@@ -3023,6 +3023,18 @@ func (c *Client4) GetEmojiList(page, perPage int) ([]*Emoji, *Response) {
 	}
 }
 
+// GetSortedEmojiList returns a page of custom emoji on the system sorted based on the sort
+// parameter, blank for no sorting and "name" to sort by emoji names.
+func (c *Client4) GetSortedEmojiList(page, perPage int, sort string) ([]*Emoji, *Response) {
+	query := fmt.Sprintf("?page=%v&per_page=%v&sort=%v", page, perPage, sort)
+	if r, err := c.DoApiGet(c.GetEmojisRoute()+query, ""); err != nil {
+		return nil, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return EmojiListFromJson(r.Body), BuildResponse(r)
+	}
+}
+
 // DeleteEmoji delete an custom emoji on the provided emoji id string.
 func (c *Client4) DeleteEmoji(emojiId string) (bool, *Response) {
 	if r, err := c.DoApiDelete(c.GetEmojiRoute(emojiId)); err != nil {

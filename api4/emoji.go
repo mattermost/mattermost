@@ -75,7 +75,13 @@ func getEmojiList(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	listEmoji, err := c.App.GetEmojiList(c.Params.Page, c.Params.PerPage)
+	sort := r.URL.Query().Get("sort")
+	if sort != "" && sort != model.EMOJI_SORT_BY_NAME {
+		c.SetInvalidUrlParam("sort")
+		return
+	}
+
+	listEmoji, err := c.App.GetEmojiList(c.Params.Page, c.Params.PerPage, sort)
 	if err != nil {
 		c.Err = err
 		return
