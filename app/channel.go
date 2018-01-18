@@ -343,6 +343,47 @@ func (a *App) UpdateChannel(channel *model.Channel) (*model.Channel, *model.AppE
 	}
 }
 
+func (a *App) UpdateChannelPrivacy(oldChannel *model.Channel, user *model.User) (*model.Channel, *model.AppError) {
+	if channel, err := a.UpdateChannel(oldChannel); err != nil {
+		return channel, err
+	} else {
+		if err := a.postChannelPrivacyMessage(user, channel); err != nil {
+			if channel.Type == model.CHANNEL_OPEN {
+				channel.Type = model.CHANNEL_PRIVATE
+			} else {
+				channel.Type = model.CHANNEL_OPEN
+			}
+			// revert to previous channel privacy
+			a.UpdateChannel(channel)
+			return channel, err
+		}
+
+		return channel, nil
+	}
+}
+
+func (a *App) postChannelPrivacyMessage(user *model.User, channel *model.Channel) *model.AppError {
+	privacy := (map[string]string{
+		model.CHANNEL_OPEN:    "private_to_public",
+		model.CHANNEL_PRIVATE: "public_to_private",
+	})[channel.Type]
+	post := &model.Post{
+		ChannelId: channel.Id,
+		Message:   fmt.Sprintf(utils.T("api.channel.change_channel_privacy." + privacy)),
+		Type:      model.POST_CHANGE_CHANNEL_PRIVACY,
+		UserId:    user.Id,
+		Props: model.StringInterface{
+			"username": user.Username,
+		},
+	}
+
+	if _, err := a.CreatePost(post, channel, false); err != nil {
+		return model.NewAppError("postChannelPrivacyMessage", "api.channel.post_channel_privacy_message.error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return nil
+}
+
 func (a *App) RestoreChannel(channel *model.Channel) (*model.Channel, *model.AppError) {
 	if result := <-a.Srv.Store.Channel().Restore(channel.Id, model.GetMillis()); result.Err != nil {
 		return nil, result.Err
