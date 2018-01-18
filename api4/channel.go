@@ -5,6 +5,7 @@ package api4
 
 import (
 	"net/http"
+	"strings"
 
 	l4g "github.com/alecthomas/log4go"
 
@@ -754,6 +755,14 @@ func updateChannelMemberRoles(c *Context, w http.ResponseWriter, r *http.Request
 
 	newRoles := props["roles"]
 	if !(model.IsValidUserRoles(newRoles)) {
+		c.SetInvalidParam("roles")
+		return
+	}
+
+	if exist, err := c.App.CheckRolesExist(strings.Split(newRoles, " ")); err != nil {
+		c.Err = err
+		return
+	} else if !exist {
 		c.SetInvalidParam("roles")
 		return
 	}
