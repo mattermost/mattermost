@@ -11,6 +11,10 @@ import (
 	"github.com/mattermost/mattermost-server/model"
 )
 
+const (
+	EMOJI_MAX_AUTOCOMPLETE_ITEMS = 100
+)
+
 func (api *API) InitEmoji() {
 	api.BaseRoutes.Emojis.Handle("", api.ApiSessionRequired(createEmoji)).Methods("POST")
 	api.BaseRoutes.Emojis.Handle("", api.ApiSessionRequired(getEmojiList)).Methods("GET")
@@ -194,7 +198,7 @@ func autocompleteEmojis(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	emojis, err := c.App.SearchEmoji(name, true, 100)
+	emojis, err := c.App.SearchEmoji(name, true, EMOJI_MAX_AUTOCOMPLETE_ITEMS)
 	if err != nil {
 		c.Err = err
 		return
