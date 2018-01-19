@@ -209,6 +209,13 @@ func TestGetEmojiList(t *testing.T) {
 	if len(listEmoji) != 1 {
 		t.Fatal("should only return 1")
 	}
+
+	listEmoji, resp = Client.GetSortedEmojiList(0, 100, model.EMOJI_SORT_BY_NAME)
+	CheckNoError(t, resp)
+
+	if len(listEmoji) == 0 {
+		t.Fatal("should return more than 0")
+	}
 }
 
 func TestDeleteEmoji(t *testing.T) {
