@@ -14,6 +14,8 @@ import (
 func (api *API) InitEmoji() {
 	api.BaseRoutes.Emojis.Handle("", api.ApiSessionRequired(createEmoji)).Methods("POST")
 	api.BaseRoutes.Emojis.Handle("", api.ApiSessionRequired(getEmojiList)).Methods("GET")
+	api.BaseRoutes.Emojis.Handle("/search", api.ApiSessionRequired(searchEmojis)).Methods("POST")
+	api.BaseRoutes.Emojis.Handle("/autocomplete", api.ApiSessionRequired(autocompleteEmojis)).Methods("GET")
 	api.BaseRoutes.Emoji.Handle("", api.ApiSessionRequired(deleteEmoji)).Methods("DELETE")
 	api.BaseRoutes.Emoji.Handle("", api.ApiSessionRequired(getEmoji)).Methods("GET")
 	api.BaseRoutes.Emoji.Handle("/image", api.ApiSessionRequiredTrustRequester(getEmojiImage)).Methods("GET")
@@ -161,4 +163,42 @@ func getEmojiImage(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "image/"+imageType)
 	w.Header().Set("Cache-Control", "max-age=2592000, public")
 	w.Write(image)
+}
+
+func searchEmojis(c *Context, w http.ResponseWriter, r *http.Request) {
+	emojiSearch := model.EmojiSearchFromJson(r.Body)
+	if emojiSearch == nil {
+		c.SetInvalidParam("term")
+		return
+	}
+
+	if emojiSearch.Term == "" {
+		c.SetInvalidParam("term")
+		return
+	}
+
+	emojis, err := c.App.SearchEmoji(emojiSearch.Term, emojiSearch.PrefixOnly, PER_PAGE_MAXIMUM)
+	if err != nil {
+		c.Err = err
+		return
+	} else {
+		w.Write([]byte(model.EmojiListToJson(emojis)))
+	}
+}
+
+func autocompleteEmojis(c *Context, w http.ResponseWriter, r *http.Request) {
+	name := r.URL.Query().Get("name")
+
+	if name == "" {
+		c.SetInvalidUrlParam("name")
+		return
+	}
+
+	emojis, err := c.App.SearchEmoji(name, true, 100)
+	if err != nil {
+		c.Err = err
+		return
+	} else {
+		w.Write([]byte(model.EmojiListToJson(emojis)))
+	}
 }
