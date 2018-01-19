@@ -11,6 +11,7 @@ import (
 
 const (
 	EMOJI_NAME_MAX_LENGTH = 64
+	EMOJI_SORT_BY_NAME    = "name"
 )
 
 type Emoji struct {
