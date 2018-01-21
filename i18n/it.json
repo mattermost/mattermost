@@ -1422,11 +1422,11 @@
   },
   {
     "id": "api.incoming_webhook.disabled.app_error",
-    "translation": "I webhooks in ingresso sono stati disabilitati dall'amministratore di sistema."
+    "translation": "I webhook in ingresso sono stati disabilitati dall'amministratore di sistema."
   },
   {
     "id": "api.incoming_webhook.invalid_username.app_error",
-    "translation": "Nome utente non valido"
+    "translation": "Nome utente non valido."
   },
   {
     "id": "api.ldap.init.debug",
@@ -4980,7 +4980,7 @@
   },
   {
     "id": "model.incoming_hook.icon_url.app_error",
-    "translation": "Id pubblicazione non valido"
+    "translation": "Icona pubblicazione non valida"
   },
   {
     "id": "model.incoming_hook.id.app_error",
