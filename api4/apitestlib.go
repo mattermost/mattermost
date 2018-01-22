@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net"
 	"net/http"
 	"os"
@@ -33,7 +34,7 @@ import (
 
 type TestHelper struct {
 	App            *app.App
-	originalConfig *model.Config
+	tempConfigPath string
 
 	Client              *model.Client4
 	BasicUser           *model.User
@@ -73,15 +74,35 @@ func StopTestStore() {
 }
 
 func setupTestHelper(enterprise bool) *TestHelper {
-	var options []app.Option
+	permConfig, err := os.Open(utils.FindConfigFile("config.json"))
+	if err != nil {
+		panic(err)
+	}
+	defer permConfig.Close()
+	tempConfig, err := ioutil.TempFile("", "")
+	if err != nil {
+		panic(err)
+	}
+	_, err = io.Copy(tempConfig, permConfig)
+	tempConfig.Close()
+	if err != nil {
+		panic(err)
+	}
+
+	options := []app.Option{app.ConfigFile(tempConfig.Name()), app.DisableConfigWatch}
 	if testStore != nil {
 		options = append(options, app.StoreOverride(testStore))
 	}
 
-	th := &TestHelper{
-		App: app.New(options...),
+	a, err := app.New(options...)
+	if err != nil {
+		panic(err)
 	}
-	th.originalConfig = th.App.Config().Clone()
+
+	th := &TestHelper{
+		App:            a,
+		tempConfigPath: tempConfig.Name(),
+	}
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.TeamSettings.MaxUsersPerTeam = 50
@@ -173,11 +194,8 @@ func (me *TestHelper) TearDown() {
 
 	wg.Wait()
 
-	me.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg = *me.originalConfig
-	})
-
 	me.App.Shutdown()
+	os.Remove(me.tempConfigPath)
 
 	utils.EnableDebugLogForTest()
 
@@ -257,7 +275,7 @@ func (me *TestHelper) CreateTeamWithClient(client *model.Client4) *model.Team {
 	team := &model.Team{
 		DisplayName: "dn_" + id,
 		Name:        GenerateTestTeamName(),
-		Email:       GenerateTestEmail(),
+		Email:       me.GenerateTestEmail(),
 		Type:        model.TEAM_OPEN,
 	}
 
@@ -271,7 +289,7 @@ func (me *TestHelper) CreateUserWithClient(client *model.Client4) *model.User {
 	id := model.NewId()
 
 	user := &model.User{
-		Email:     GenerateTestEmail(),
+		Email:     me.GenerateTestEmail(),
 		Username:  GenerateTestUsername(),
 		Nickname:  "nn_" + id,
 		FirstName: "f_" + id,
@@ -446,8 +464,8 @@ func (me *TestHelper) LinkUserToTeam(user *model.User, team *model.Team) {
 	utils.EnableDebugLogForTest()
 }
 
-func GenerateTestEmail() string {
-	if utils.Cfg.EmailSettings.SMTPServer != "dockerhost" && os.Getenv("CI_INBUCKET_PORT") == "" {
+func (me *TestHelper) GenerateTestEmail() string {
+	if me.App.Config().EmailSettings.SMTPServer != "dockerhost" && os.Getenv("CI_INBUCKET_PORT") == "" {
 		return strings.ToLower("success+" + model.NewId() + "@simulator.amazonses.com")
 	}
 	return strings.ToLower(model.NewId() + "@dockerhost")

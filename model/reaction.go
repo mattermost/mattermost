@@ -64,7 +64,7 @@ func (o *Reaction) IsValid() *AppError {
 
 	validName := regexp.MustCompile(`^[a-zA-Z0-9\-\+_]+$`)
 
-	if len(o.EmojiName) == 0 || len(o.EmojiName) > 64 || !validName.MatchString(o.EmojiName) {
+	if len(o.EmojiName) == 0 || len(o.EmojiName) > EMOJI_NAME_MAX_LENGTH || !validName.MatchString(o.EmojiName) {
 		return NewAppError("Reaction.IsValid", "model.reaction.is_valid.emoji_name.app_error", nil, "emoji_name="+o.EmojiName, http.StatusBadRequest)
 	}
 

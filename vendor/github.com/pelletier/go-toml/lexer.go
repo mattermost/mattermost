@@ -575,8 +575,67 @@ func (l *tomlLexer) lexRightBracket() tomlLexStateFn {
 	return l.lexRvalue
 }
 
+type validRuneFn func(r rune) bool
+
+func isValidHexRune(r rune) bool {
+	return r >= 'a' && r <= 'f' ||
+		r >= 'A' && r <= 'F' ||
+		r >= '0' && r <= '9' ||
+		r == '_'
+}
+
+func isValidOctalRune(r rune) bool {
+	return r >= '0' && r <= '7' || r == '_'
+}
+
+func isValidBinaryRune(r rune) bool {
+	return r == '0' || r == '1' || r == '_'
+}
+
 func (l *tomlLexer) lexNumber() tomlLexStateFn {
 	r := l.peek()
+
+	if r == '0' {
+		follow := l.peekString(2)
+		if len(follow) == 2 {
+			var isValidRune validRuneFn
+			switch follow[1] {
+			case 'x':
+				isValidRune = isValidHexRune
+			case 'o':
+				isValidRune = isValidOctalRune
+			case 'b':
+				isValidRune = isValidBinaryRune
+			default:
+				if follow[1] >= 'a' && follow[1] <= 'z' || follow[1] >= 'A' && follow[1] <= 'Z' {
+					return l.errorf("unknown number base: %s. possible options are x (hex) o (octal) b (binary)", string(follow[1]))
+				}
+			}
+
+			if isValidRune != nil {
+				l.next()
+				l.next()
+				digitSeen := false
+				for {
+					next := l.peek()
+					if !isValidRune(next) {
+						break
+					}
+					digitSeen = true
+					l.next()
+				}
+
+				if !digitSeen {
+					return l.errorf("number needs at least one digit")
+				}
+
+				l.emit(tokenInteger)
+
+				return l.lexRvalue
+			}
+		}
+	}
+
 	if r == '+' || r == '-' {
 		l.next()
 	}

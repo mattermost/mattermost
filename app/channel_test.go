@@ -190,6 +190,21 @@ func TestCreateChannelPrivate(t *testing.T) {
 	assert.Equal(t, privateChannel.Id, histories[0].ChannelId)
 }
 
+func TestUpdateChannelPrivacy(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	privateChannel := th.createChannel(th.BasicTeam, model.CHANNEL_PRIVATE)
+	privateChannel.Type = model.CHANNEL_OPEN
+
+	if publicChannel, err := th.App.UpdateChannelPrivacy(privateChannel, th.BasicUser); err != nil {
+		t.Fatal("Failed to update channel privacy. Error: " + err.Error())
+	} else {
+		assert.Equal(t, publicChannel.Id, privateChannel.Id)
+		assert.Equal(t, publicChannel.Type, model.CHANNEL_OPEN)
+	}
+}
+
 func TestCreateGroupChannel(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()

@@ -49,10 +49,6 @@ func TestOAuthDeleteApp(t *testing.T) {
 	th := Setup()
 	defer th.TearDown()
 
-	oldSetting := th.App.Config().ServiceSettings.EnableOAuthServiceProvider
-	defer th.App.UpdateConfig(func(cfg *model.Config) {
-		cfg.ServiceSettings.EnableOAuthServiceProvider = oldSetting
-	})
 	th.App.Config().ServiceSettings.EnableOAuthServiceProvider = true
 
 	a1 := &model.OAuthApp{}

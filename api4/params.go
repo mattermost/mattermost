@@ -6,6 +6,7 @@ package api4
 import (
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/gorilla/mux"
 )
@@ -115,11 +116,11 @@ func ApiParamsFromRequest(r *http.Request) *ApiParams {
 	}
 
 	if val, ok := props["team_name"]; ok {
-		params.TeamName = val
+		params.TeamName = strings.ToLower(val)
 	}
 
 	if val, ok := props["channel_name"]; ok {
-		params.ChannelName = val
+		params.ChannelName = strings.ToLower(val)
 	}
 
 	if val, ok := props["category"]; ok {

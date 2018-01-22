@@ -91,7 +91,7 @@ func TestCreateTeamSanitization(t *testing.T) {
 		team := &model.Team{
 			DisplayName:    t.Name() + "_1",
 			Name:           GenerateTestTeamName(),
-			Email:          GenerateTestEmail(),
+			Email:          th.GenerateTestEmail(),
 			Type:           model.TEAM_OPEN,
 			AllowedDomains: "simulator.amazonses.com",
 		}
@@ -109,7 +109,7 @@ func TestCreateTeamSanitization(t *testing.T) {
 		team := &model.Team{
 			DisplayName:    t.Name() + "_2",
 			Name:           GenerateTestTeamName(),
-			Email:          GenerateTestEmail(),
+			Email:          th.GenerateTestEmail(),
 			Type:           model.TEAM_OPEN,
 			AllowedDomains: "simulator.amazonses.com",
 		}
@@ -148,10 +148,10 @@ func TestGetTeam(t *testing.T) {
 
 	th.LoginTeamAdmin()
 
-	team2 := &model.Team{DisplayName: "Name", Name: GenerateTestTeamName(), Email: GenerateTestEmail(), Type: model.TEAM_OPEN, AllowOpenInvite: false}
+	team2 := &model.Team{DisplayName: "Name", Name: GenerateTestTeamName(), Email: th.GenerateTestEmail(), Type: model.TEAM_OPEN, AllowOpenInvite: false}
 	rteam2, _ := Client.CreateTeam(team2)
 
-	team3 := &model.Team{DisplayName: "Name", Name: GenerateTestTeamName(), Email: GenerateTestEmail(), Type: model.TEAM_INVITE, AllowOpenInvite: true}
+	team3 := &model.Team{DisplayName: "Name", Name: GenerateTestTeamName(), Email: th.GenerateTestEmail(), Type: model.TEAM_INVITE, AllowOpenInvite: true}
 	rteam3, _ := Client.CreateTeam(team3)
 
 	th.LoginBasic()
@@ -178,7 +178,7 @@ func TestGetTeamSanitization(t *testing.T) {
 	team, resp := th.Client.CreateTeam(&model.Team{
 		DisplayName:    t.Name() + "_1",
 		Name:           GenerateTestTeamName(),
-		Email:          GenerateTestEmail(),
+		Email:          th.GenerateTestEmail(),
 		Type:           model.TEAM_OPEN,
 		AllowedDomains: "simulator.amazonses.com",
 	})
@@ -359,7 +359,7 @@ func TestUpdateTeamSanitization(t *testing.T) {
 	team, resp := th.Client.CreateTeam(&model.Team{
 		DisplayName:    t.Name() + "_1",
 		Name:           GenerateTestTeamName(),
-		Email:          GenerateTestEmail(),
+		Email:          th.GenerateTestEmail(),
 		Type:           model.TEAM_OPEN,
 		AllowedDomains: "simulator.amazonses.com",
 	})
@@ -458,7 +458,7 @@ func TestPatchTeamSanitization(t *testing.T) {
 	team, resp := th.Client.CreateTeam(&model.Team{
 		DisplayName:    t.Name() + "_1",
 		Name:           GenerateTestTeamName(),
-		Email:          GenerateTestEmail(),
+		Email:          th.GenerateTestEmail(),
 		Type:           model.TEAM_OPEN,
 		AllowedDomains: "simulator.amazonses.com",
 	})
@@ -492,7 +492,7 @@ func TestSoftDeleteTeam(t *testing.T) {
 	defer th.TearDown()
 	Client := th.Client
 
-	team := &model.Team{DisplayName: "DisplayName", Name: GenerateTestTeamName(), Email: GenerateTestEmail(), Type: model.TEAM_OPEN}
+	team := &model.Team{DisplayName: "DisplayName", Name: GenerateTestTeamName(), Email: th.GenerateTestEmail(), Type: model.TEAM_OPEN}
 	team, _ = Client.CreateTeam(team)
 
 	ok, resp := Client.SoftDeleteTeam(team.Id)
@@ -534,7 +534,7 @@ func TestPermanentDeleteTeam(t *testing.T) {
 	defer th.TearDown()
 	Client := th.Client
 
-	team := &model.Team{DisplayName: "DisplayName", Name: GenerateTestTeamName(), Email: GenerateTestEmail(), Type: model.TEAM_OPEN}
+	team := &model.Team{DisplayName: "DisplayName", Name: GenerateTestTeamName(), Email: th.GenerateTestEmail(), Type: model.TEAM_OPEN}
 	team, _ = Client.CreateTeam(team)
 
 	ok, resp := Client.PermanentDeleteTeam(team.Id)
@@ -567,7 +567,7 @@ func TestGetAllTeams(t *testing.T) {
 	defer th.TearDown()
 	Client := th.Client
 
-	team := &model.Team{DisplayName: "Name", Name: GenerateTestTeamName(), Email: GenerateTestEmail(), Type: model.TEAM_OPEN, AllowOpenInvite: true}
+	team := &model.Team{DisplayName: "Name", Name: GenerateTestTeamName(), Email: th.GenerateTestEmail(), Type: model.TEAM_OPEN, AllowOpenInvite: true}
 	_, resp := Client.CreateTeam(team)
 	CheckNoError(t, resp)
 
@@ -627,7 +627,7 @@ func TestGetAllTeamsSanitization(t *testing.T) {
 	team, resp := th.Client.CreateTeam(&model.Team{
 		DisplayName:     t.Name() + "_1",
 		Name:            GenerateTestTeamName(),
-		Email:           GenerateTestEmail(),
+		Email:           th.GenerateTestEmail(),
 		Type:            model.TEAM_OPEN,
 		AllowedDomains:  "simulator.amazonses.com",
 		AllowOpenInvite: true,
@@ -636,7 +636,7 @@ func TestGetAllTeamsSanitization(t *testing.T) {
 	team2, resp := th.SystemAdminClient.CreateTeam(&model.Team{
 		DisplayName:     t.Name() + "_2",
 		Name:            GenerateTestTeamName(),
-		Email:           GenerateTestEmail(),
+		Email:           th.GenerateTestEmail(),
 		Type:            model.TEAM_OPEN,
 		AllowedDomains:  "simulator.amazonses.com",
 		AllowOpenInvite: true,
@@ -710,6 +710,9 @@ func TestGetTeamByName(t *testing.T) {
 	_, resp = Client.GetTeamByName("", "")
 	CheckNotFoundStatus(t, resp)
 
+	_, resp = th.SystemAdminClient.GetTeamByName(strings.ToUpper(team.Name), "")
+	CheckNoError(t, resp)
+
 	Client.Logout()
 	_, resp = Client.GetTeamByName(team.Name, "")
 	CheckUnauthorizedStatus(t, resp)
@@ -719,10 +722,10 @@ func TestGetTeamByName(t *testing.T) {
 
 	th.LoginTeamAdmin()
 
-	team2 := &model.Team{DisplayName: "Name", Name: GenerateTestTeamName(), Email: GenerateTestEmail(), Type: model.TEAM_OPEN, AllowOpenInvite: false}
+	team2 := &model.Team{DisplayName: "Name", Name: GenerateTestTeamName(), Email: th.GenerateTestEmail(), Type: model.TEAM_OPEN, AllowOpenInvite: false}
 	rteam2, _ := Client.CreateTeam(team2)
 
-	team3 := &model.Team{DisplayName: "Name", Name: GenerateTestTeamName(), Email: GenerateTestEmail(), Type: model.TEAM_INVITE, AllowOpenInvite: true}
+	team3 := &model.Team{DisplayName: "Name", Name: GenerateTestTeamName(), Email: th.GenerateTestEmail(), Type: model.TEAM_INVITE, AllowOpenInvite: true}
 	rteam3, _ := Client.CreateTeam(team3)
 
 	th.LoginBasic()
@@ -742,7 +745,7 @@ func TestGetTeamByNameSanitization(t *testing.T) {
 	team, resp := th.Client.CreateTeam(&model.Team{
 		DisplayName:    t.Name() + "_1",
 		Name:           GenerateTestTeamName(),
-		Email:          GenerateTestEmail(),
+		Email:          th.GenerateTestEmail(),
 		Type:           model.TEAM_OPEN,
 		AllowedDomains: "simulator.amazonses.com",
 	})
@@ -797,7 +800,7 @@ func TestSearchAllTeams(t *testing.T) {
 		oTeam.UpdateAt = updatedTeam.UpdateAt
 	}
 
-	pTeam := &model.Team{DisplayName: "PName", Name: GenerateTestTeamName(), Email: GenerateTestEmail(), Type: model.TEAM_INVITE}
+	pTeam := &model.Team{DisplayName: "PName", Name: GenerateTestTeamName(), Email: th.GenerateTestEmail(), Type: model.TEAM_INVITE}
 	Client.CreateTeam(pTeam)
 
 	rteams, resp := Client.SearchTeams(&model.TeamSearch{Term: oTeam.Name})
@@ -873,7 +876,7 @@ func TestSearchAllTeamsSanitization(t *testing.T) {
 	team, resp := th.Client.CreateTeam(&model.Team{
 		DisplayName:    t.Name() + "_1",
 		Name:           GenerateTestTeamName(),
-		Email:          GenerateTestEmail(),
+		Email:          th.GenerateTestEmail(),
 		Type:           model.TEAM_OPEN,
 		AllowedDomains: "simulator.amazonses.com",
 	})
@@ -881,7 +884,7 @@ func TestSearchAllTeamsSanitization(t *testing.T) {
 	team2, resp := th.Client.CreateTeam(&model.Team{
 		DisplayName:    t.Name() + "_2",
 		Name:           GenerateTestTeamName(),
-		Email:          GenerateTestEmail(),
+		Email:          th.GenerateTestEmail(),
 		Type:           model.TEAM_OPEN,
 		AllowedDomains: "simulator.amazonses.com",
 	})
@@ -951,7 +954,7 @@ func TestGetTeamsForUser(t *testing.T) {
 	defer th.TearDown()
 	Client := th.Client
 
-	team2 := &model.Team{DisplayName: "Name", Name: GenerateTestTeamName(), Email: GenerateTestEmail(), Type: model.TEAM_INVITE}
+	team2 := &model.Team{DisplayName: "Name", Name: GenerateTestTeamName(), Email: th.GenerateTestEmail(), Type: model.TEAM_INVITE}
 	rteam2, _ := Client.CreateTeam(team2)
 
 	teams, resp := Client.GetTeamsForUser(th.BasicUser.Id, "")
@@ -995,7 +998,7 @@ func TestGetTeamsForUserSanitization(t *testing.T) {
 	team, resp := th.Client.CreateTeam(&model.Team{
 		DisplayName:    t.Name() + "_1",
 		Name:           GenerateTestTeamName(),
-		Email:          GenerateTestEmail(),
+		Email:          th.GenerateTestEmail(),
 		Type:           model.TEAM_OPEN,
 		AllowedDomains: "simulator.amazonses.com",
 	})
@@ -1003,7 +1006,7 @@ func TestGetTeamsForUserSanitization(t *testing.T) {
 	team2, resp := th.Client.CreateTeam(&model.Team{
 		DisplayName:    t.Name() + "_2",
 		Name:           GenerateTestTeamName(),
-		Email:          GenerateTestEmail(),
+		Email:          th.GenerateTestEmail(),
 		Type:           model.TEAM_OPEN,
 		AllowedDomains: "simulator.amazonses.com",
 	})
@@ -1878,8 +1881,8 @@ func TestInviteUsersToTeam(t *testing.T) {
 	th := Setup().InitBasic().InitSystemAdmin()
 	defer th.TearDown()
 
-	user1 := GenerateTestEmail()
-	user2 := GenerateTestEmail()
+	user1 := th.GenerateTestEmail()
+	user2 := th.GenerateTestEmail()
 
 	emailList := []string{user1, user2}
 
@@ -1897,7 +1900,7 @@ func TestInviteUsersToTeam(t *testing.T) {
 	expectedSubject := utils.T("api.templates.invite_subject",
 		map[string]interface{}{"SenderName": th.SystemAdminUser.GetDisplayName(nameFormat),
 			"TeamDisplayName": th.BasicTeam.DisplayName,
-			"SiteName":        utils.ClientCfg["SiteName"]})
+			"SiteName":        th.App.ClientConfig()["SiteName"]})
 
 	//Check if the email was send to the rigth email address
 	for _, email := range emailList {
@@ -1937,7 +1940,7 @@ func TestInviteUsersToTeam(t *testing.T) {
 	if err == nil {
 		t.Fatal("Adding users with non-restricted domains was allowed")
 	}
-	if err.Where != "InviteNewUsersToTeam" || err.Message != "api.team.invite_members.invalid_email.app_error" {
+	if err.Where != "InviteNewUsersToTeam" || err.Id != "api.team.invite_members.invalid_email.app_error" {
 		t.Log(err)
 		t.Fatal("Got wrong error message!")
 	}

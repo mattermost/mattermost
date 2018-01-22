@@ -30,6 +30,8 @@ import (
 
 	"github.com/mattermost/mattermost-server/plugin"
 	"github.com/mattermost/mattermost-server/plugin/pluginenv"
+	"github.com/mattermost/mattermost-server/plugin/rpcplugin"
+	"github.com/mattermost/mattermost-server/plugin/rpcplugin/sandbox"
 )
 
 const (
@@ -54,7 +56,7 @@ func (a *App) initBuiltInPlugins() {
 		}
 		p.Initialize(api)
 	}
-	utils.AddConfigListener(func(before, after *model.Config) {
+	a.AddConfigListener(func(before, after *model.Config) {
 		for _, p := range plugins {
 			p.OnConfigurationChange()
 		}
@@ -382,6 +384,12 @@ func (a *App) InitPlugins(pluginPath, webappPath string, supervisorOverride plug
 
 	if supervisorOverride != nil {
 		options = append(options, pluginenv.SupervisorProvider(supervisorOverride))
+	} else if err := sandbox.CheckSupport(); err != nil {
+		l4g.Warn(err.Error())
+		l4g.Warn("plugin sandboxing is not supported. plugins will run with the same access level as the server")
+		options = append(options, pluginenv.SupervisorProvider(rpcplugin.SupervisorProvider))
+	} else {
+		options = append(options, pluginenv.SupervisorProvider(sandbox.SupervisorProvider))
 	}
 
 	if env, err := pluginenv.New(options...); err != nil {
@@ -407,8 +415,8 @@ func (a *App) InitPlugins(pluginPath, webappPath string, supervisorOverride plug
 		}
 	}
 
-	utils.RemoveConfigListener(a.PluginConfigListenerId)
-	a.PluginConfigListenerId = utils.AddConfigListener(func(prevCfg, cfg *model.Config) {
+	a.RemoveConfigListener(a.PluginConfigListenerId)
+	a.PluginConfigListenerId = a.AddConfigListener(func(prevCfg, cfg *model.Config) {
 		if a.PluginEnv == nil {
 			return
 		}
@@ -428,7 +436,6 @@ func (a *App) InitPlugins(pluginPath, webappPath string, supervisorOverride plug
 func (a *App) ServePluginRequest(w http.ResponseWriter, r *http.Request) {
 	if a.PluginEnv == nil || !*a.Config().PluginSettings.Enable {
 		err := model.NewAppError("ServePluginRequest", "app.plugin.disabled.app_error", nil, "Enable plugins to serve plugin requests", http.StatusNotImplemented)
-		err.Translate(utils.T)
 		l4g.Error(err.Error())
 		w.WriteHeader(err.StatusCode)
 		w.Header().Set("Content-Type", "application/json")
@@ -490,7 +497,7 @@ func (a *App) ShutDownPlugins() {
 	for _, err := range a.PluginEnv.Shutdown() {
 		l4g.Error(err.Error())
 	}
-	utils.RemoveConfigListener(a.PluginConfigListenerId)
+	a.RemoveConfigListener(a.PluginConfigListenerId)
 	a.PluginConfigListenerId = ""
 	a.PluginEnv = nil
 }

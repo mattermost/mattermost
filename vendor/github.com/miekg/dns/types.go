@@ -78,6 +78,7 @@ const (
 	TypeCDS        uint16 = 59
 	TypeCDNSKEY    uint16 = 60
 	TypeOPENPGPKEY uint16 = 61
+	TypeCSYNC      uint16 = 62
 	TypeSPF        uint16 = 99
 	TypeUINFO      uint16 = 100
 	TypeUID        uint16 = 101
@@ -1012,14 +1013,18 @@ type TKEY struct {
 	Mode       uint16
 	Error      uint16
 	KeySize    uint16
-	Key        string
+	Key        string `dns:"size-hex:KeySize"`
 	OtherLen   uint16
-	OtherData  string
+	OtherData  string `dns:"size-hex:OtherLen"`
 }
 
+// TKEY has no official presentation format, but this will suffice.
 func (rr *TKEY) String() string {
-	// It has no presentation format
-	return ""
+	s := "\n;; TKEY PSEUDOSECTION:\n"
+	s += rr.Hdr.String() + " " + rr.Algorithm + " " +
+		strconv.Itoa(int(rr.KeySize)) + " " + rr.Key + " " +
+		strconv.Itoa(int(rr.OtherLen)) + " " + rr.OtherData
+	return s
 }
 
 // RFC3597 represents an unknown/generic RR. See RFC 3597.
@@ -1266,6 +1271,36 @@ type OPENPGPKEY struct {
 }
 
 func (rr *OPENPGPKEY) String() string { return rr.Hdr.String() + rr.PublicKey }
+
+// CSYNC RR. See RFC 7477.
+type CSYNC struct {
+	Hdr        RR_Header
+	Serial     uint32
+	Flags      uint16
+	TypeBitMap []uint16 `dns:"nsec"`
+}
+
+func (rr *CSYNC) String() string {
+	s := rr.Hdr.String() + strconv.FormatInt(int64(rr.Serial), 10) + " " + strconv.Itoa(int(rr.Flags))
+
+	for i := 0; i < len(rr.TypeBitMap); i++ {
+		s += " " + Type(rr.TypeBitMap[i]).String()
+	}
+	return s
+}
+
+func (rr *CSYNC) len() int {
+	l := rr.Hdr.len() + 4 + 2
+	lastwindow := uint32(2 ^ 32 + 1)
+	for _, t := range rr.TypeBitMap {
+		window := t / 256
+		if uint32(window) != lastwindow {
+			l += 1 + 32
+		}
+		lastwindow = uint32(window)
+	}
+	return l
+}
 
 // TimeToString translates the RRSIG's incep. and expir. times to the
 // string representation used when printing the record.

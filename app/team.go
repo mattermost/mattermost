@@ -616,9 +616,15 @@ func (a *App) LeaveTeam(team *model.Team, user *model.User, requestorId string) 
 		channel = result.Data.(*model.Channel)
 	}
 
-	if requestorId == user.Id {
-		if err := a.postLeaveTeamMessage(user, channel); err != nil {
-			l4g.Error(utils.T("api.channel.post_user_add_remove_message_and_forget.error"), err)
+	if *a.Config().ServiceSettings.ExperimentalEnableDefaultChannelLeaveJoinMessages {
+		if requestorId == user.Id {
+			if err := a.postLeaveTeamMessage(user, channel); err != nil {
+				l4g.Error(utils.T("api.channel.post_user_add_remove_message_and_forget.error"), err)
+			}
+		} else {
+			if err := a.PostRemoveFromChannelMessage(user.Id, user, channel); err != nil {
+				l4g.Error(utils.T("api.channel.post_user_add_remove_message_and_forget.error"), err)
+			}
 		}
 	} else {
 		if err := a.postRemoveFromTeamMessage(user, channel); err != nil {

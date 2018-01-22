@@ -9,6 +9,11 @@ import (
 	"net/http"
 )
 
+const (
+	EMOJI_NAME_MAX_LENGTH = 64
+	EMOJI_SORT_BY_NAME    = "name"
+)
+
 type Emoji struct {
 	Id        string `json:"id"`
 	CreateAt  int64  `json:"create_at"`
@@ -35,7 +40,7 @@ func (emoji *Emoji) IsValid() *AppError {
 		return NewAppError("Emoji.IsValid", "model.emoji.user_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if len(emoji.Name) == 0 || len(emoji.Name) > 64 || !IsValidAlphaNumHyphenUnderscore(emoji.Name, false) {
+	if len(emoji.Name) == 0 || len(emoji.Name) > EMOJI_NAME_MAX_LENGTH || !IsValidAlphaNumHyphenUnderscore(emoji.Name, false) {
 		return NewAppError("Emoji.IsValid", "model.emoji.name.app_error", nil, "", http.StatusBadRequest)
 	}
 

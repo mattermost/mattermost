@@ -123,18 +123,19 @@ func (es SqlEmojiStore) GetByName(name string) store.StoreChannel {
 	})
 }
 
-func (es SqlEmojiStore) GetList(offset, limit int) store.StoreChannel {
+func (es SqlEmojiStore) GetList(offset, limit int, sort string) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		var emoji []*model.Emoji
 
-		if _, err := es.GetReplica().Select(&emoji,
-			`SELECT
-				*
-			FROM
-				Emoji
-			WHERE
-				DeleteAt = 0
-			LIMIT :Limit OFFSET :Offset`, map[string]interface{}{"Offset": offset, "Limit": limit}); err != nil {
+		query := "SELECT * FROM Emoji WHERE DeleteAt = 0"
+
+		if sort == model.EMOJI_SORT_BY_NAME {
+			query += " ORDER BY Name"
+		}
+
+		query += " LIMIT :Limit OFFSET :Offset"
+
+		if _, err := es.GetReplica().Select(&emoji, query, map[string]interface{}{"Offset": offset, "Limit": limit}); err != nil {
 			result.Err = model.NewAppError("SqlEmojiStore.GetList", "store.sql_emoji.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
 		} else {
 			result.Data = emoji

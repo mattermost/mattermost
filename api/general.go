@@ -9,7 +9,6 @@ import (
 	"strings"
 
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils"
 )
 
 func (api *API) InitGeneral() {
@@ -19,7 +18,7 @@ func (api *API) InitGeneral() {
 }
 
 func getClientConfig(c *Context, w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte(model.MapToJson(utils.ClientCfg)))
+	w.Write([]byte(model.MapToJson(c.App.ClientConfig())))
 }
 
 func logClient(c *Context, w http.ResponseWriter, r *http.Request) {

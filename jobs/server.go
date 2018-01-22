@@ -12,11 +12,25 @@ import (
 	"github.com/mattermost/mattermost-server/utils"
 )
 
+type ConfigService interface {
+	Config() *model.Config
+	AddConfigListener(func(old, current *model.Config)) string
+	RemoveConfigListener(string)
+}
+
+type StaticConfigService struct {
+	Cfg *model.Config
+}
+
+func (s StaticConfigService) Config() *model.Config                                   { return s.Cfg }
+func (StaticConfigService) AddConfigListener(func(old, current *model.Config)) string { return "" }
+func (StaticConfigService) RemoveConfigListener(string)                               {}
+
 type JobServer struct {
-	Config     model.ConfigFunc
-	Store      store.Store
-	Workers    *Workers
-	Schedulers *Schedulers
+	ConfigService ConfigService
+	Store         store.Store
+	Workers       *Workers
+	Schedulers    *Schedulers
 
 	DataRetentionJob        ejobs.DataRetentionJobInterface
 	MessageExportJob        ejobs.MessageExportJobInterface
@@ -25,11 +39,15 @@ type JobServer struct {
 	LdapSync                ejobs.LdapSyncInterface
 }
 
-func NewJobServer(config model.ConfigFunc, store store.Store) *JobServer {
+func NewJobServer(configService ConfigService, store store.Store) *JobServer {
 	return &JobServer{
-		Config: config,
-		Store:  store,
+		ConfigService: configService,
+		Store:         store,
 	}
+}
+
+func (srv *JobServer) Config() *model.Config {
+	return srv.ConfigService.Config()
 }
 
 func (srv *JobServer) LoadLicense() {
@@ -43,7 +61,7 @@ func (srv *JobServer) LoadLicense() {
 
 	if len(licenseId) != 26 {
 		// Lets attempt to load the file from disk since it was missing from the DB
-		_, licenseBytes = utils.GetAndValidateLicenseFileFromDisk()
+		_, licenseBytes = utils.GetAndValidateLicenseFileFromDisk(*srv.ConfigService.Config().ServiceSettings.LicenseFileLocation)
 	} else {
 		if result := <-srv.Store.License().Get(licenseId); result.Err == nil {
 			record := result.Data.(*model.LicenseRecord)

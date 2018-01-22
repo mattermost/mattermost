@@ -2,6 +2,7 @@ package afero
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -417,5 +418,34 @@ func TestMemFsDirMode(t *testing.T) {
 	}
 	if !info.Mode().IsDir() {
 		t.Error("FileMode is not directory")
+	}
+}
+
+func TestMemFsUnexpectedEOF(t *testing.T) {
+	t.Parallel()
+
+	fs := NewMemMapFs()
+
+	if err := WriteFile(fs, "file.txt", []byte("abc"), 0777); err != nil {
+		t.Fatal(err)
+	}
+
+	f, err := fs.Open("file.txt")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer f.Close()
+
+	// Seek beyond the end.
+	_, err = f.Seek(512, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	buff := make([]byte, 256)
+	_, err = io.ReadAtLeast(f, buff, 256)
+
+	if err != io.ErrUnexpectedEOF {
+		t.Fatal("Expected ErrUnexpectedEOF")
 	}
 }

@@ -5,6 +5,7 @@ package app
 
 import (
 	"encoding/json"
+	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -29,8 +30,9 @@ type TestHelper struct {
 	BasicChannel *model.Channel
 	BasicPost    *model.Post
 
-	tempWorkspace string
-	pluginHooks   map[string]plugin.Hooks
+	tempConfigPath string
+	tempWorkspace  string
+	pluginHooks    map[string]plugin.Hooks
 }
 
 type persistentTestStore struct {
@@ -57,14 +59,35 @@ func StopTestStore() {
 }
 
 func setupTestHelper(enterprise bool) *TestHelper {
-	var options []Option
+	permConfig, err := os.Open(utils.FindConfigFile("config.json"))
+	if err != nil {
+		panic(err)
+	}
+	defer permConfig.Close()
+	tempConfig, err := ioutil.TempFile("", "")
+	if err != nil {
+		panic(err)
+	}
+	_, err = io.Copy(tempConfig, permConfig)
+	tempConfig.Close()
+	if err != nil {
+		panic(err)
+	}
+
+	options := []Option{ConfigFile(tempConfig.Name()), DisableConfigWatch}
 	if testStore != nil {
 		options = append(options, StoreOverride(testStore))
 	}
 
+	a, err := New(options...)
+	if err != nil {
+		panic(err)
+	}
+
 	th := &TestHelper{
-		App:         New(options...),
-		pluginHooks: make(map[string]plugin.Hooks),
+		App:            a,
+		pluginHooks:    make(map[string]plugin.Hooks),
+		tempConfigPath: tempConfig.Name(),
 	}
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.MaxUsersPerTeam = 50 })
@@ -227,6 +250,7 @@ func (me *TestHelper) LinkUserToTeam(user *model.User, team *model.Team) {
 
 func (me *TestHelper) TearDown() {
 	me.App.Shutdown()
+	os.Remove(me.tempConfigPath)
 	if err := recover(); err != nil {
 		StopTestStore()
 		panic(err)

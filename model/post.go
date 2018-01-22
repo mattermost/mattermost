@@ -40,6 +40,7 @@ const (
 	POST_PROPS_MAX_USER_RUNES  = POST_PROPS_MAX_RUNES - 400 // Leave some room for system / pre-save modifications
 	POST_CUSTOM_TYPE_PREFIX    = "custom_"
 	PROPS_ADD_CHANNEL_MEMBER   = "add_channel_member"
+	POST_CHANGE_CHANNEL_PRIVACY = "system_change_chan_privacy"
 )
 
 type Post struct {
@@ -188,7 +189,8 @@ func (o *Post) IsValid() *AppError {
 		POST_HEADER_CHANGE,
 		POST_PURPOSE_CHANGE,
 		POST_DISPLAYNAME_CHANGE,
-		POST_CHANNEL_DELETED:
+		POST_CHANNEL_DELETED,
+		POST_CHANGE_CHANNEL_PRIVACY:
 	default:
 		if !strings.HasPrefix(o.Type, POST_CUSTOM_TYPE_PREFIX) {
 			return NewAppError("Post.IsValid", "model.post.is_valid.type.app_error", nil, "id="+o.Type, http.StatusBadRequest)

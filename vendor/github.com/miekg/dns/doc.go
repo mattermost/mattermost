@@ -63,7 +63,7 @@ class) is as easy as setting:
 
 	c.SingleInflight = true
 
-More advanced options are availabe using a net.Dialer and the corresponding API.
+More advanced options are available using a net.Dialer and the corresponding API.
 For example it is possible to set a timeout, or to specify a source IP address
 and port to use for the connection:
 

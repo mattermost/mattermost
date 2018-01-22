@@ -9,6 +9,8 @@ import (
 
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestEmojiStore(t *testing.T, ss store.Store) {
@@ -133,15 +135,15 @@ func testEmojiGetList(t *testing.T, ss store.Store) {
 	emojis := []model.Emoji{
 		{
 			CreatorId: model.NewId(),
-			Name:      model.NewId(),
+			Name:      "00000000000000000000000000a" + model.NewId(),
 		},
 		{
 			CreatorId: model.NewId(),
-			Name:      model.NewId(),
+			Name:      "00000000000000000000000000b" + model.NewId(),
 		},
 		{
 			CreatorId: model.NewId(),
-			Name:      model.NewId(),
+			Name:      "00000000000000000000000000c" + model.NewId(),
 		},
 	}
 
@@ -154,7 +156,7 @@ func testEmojiGetList(t *testing.T, ss store.Store) {
 		}
 	}()
 
-	if result := <-ss.Emoji().GetList(0, 100); result.Err != nil {
+	if result := <-ss.Emoji().GetList(0, 100, ""); result.Err != nil {
 		t.Fatal(result.Err)
 	} else {
 		for _, emoji := range emojis {
@@ -172,4 +174,20 @@ func testEmojiGetList(t *testing.T, ss store.Store) {
 			}
 		}
 	}
+
+	result := <-ss.Emoji().GetList(0, 3, model.EMOJI_SORT_BY_NAME)
+	assert.Nil(t, result.Err)
+	remojis := result.Data.([]*model.Emoji)
+	assert.Equal(t, 3, len(remojis))
+	assert.Equal(t, emojis[0].Name, remojis[0].Name)
+	assert.Equal(t, emojis[1].Name, remojis[1].Name)
+	assert.Equal(t, emojis[2].Name, remojis[2].Name)
+
+	result = <-ss.Emoji().GetList(1, 2, model.EMOJI_SORT_BY_NAME)
+	assert.Nil(t, result.Err)
+	remojis = result.Data.([]*model.Emoji)
+	assert.Equal(t, 2, len(remojis))
+	assert.Equal(t, emojis[1].Name, remojis[0].Name)
+	assert.Equal(t, emojis[2].Name, remojis[1].Name)
+
 }

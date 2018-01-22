@@ -36,6 +36,12 @@ type StringInterface map[string]interface{}
 type StringMap map[string]string
 type StringArray []string
 
+var translateFunc goi18n.TranslateFunc = nil
+
+func AppErrorInit(t goi18n.TranslateFunc) {
+	translateFunc = t
+}
+
 type AppError struct {
 	Id            string `json:"id"`
 	Message       string `json:"message"`               // Message to be display to the end user without debugging information
@@ -52,6 +58,11 @@ func (er *AppError) Error() string {
 }
 
 func (er *AppError) Translate(T goi18n.TranslateFunc) {
+	if T == nil {
+		er.Message = er.Id
+		return
+	}
+
 	if er.params == nil {
 		er.Message = T(er.Id)
 	} else {
@@ -105,6 +116,7 @@ func NewAppError(where string, id string, params map[string]interface{}, details
 	ap.DetailedError = details
 	ap.StatusCode = status
 	ap.IsOAuth = false
+	ap.Translate(translateFunc)
 	return ap
 }
 

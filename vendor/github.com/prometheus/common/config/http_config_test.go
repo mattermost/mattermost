@@ -114,7 +114,7 @@ func TestValidateHTTPConfig(t *testing.T) {
 	if err != nil {
 		t.Errorf("Error loading HTTP client config: %v", err)
 	}
-	err = cfg.validate()
+	err = cfg.Validate()
 	if err != nil {
 		t.Fatalf("Error validating %s: %s", "testdata/http.conf.good.yml", err)
 	}
