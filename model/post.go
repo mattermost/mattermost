@@ -46,18 +46,25 @@ const (
 )
 
 type Post struct {
-	Id            string          `json:"id"`
-	CreateAt      int64           `json:"create_at"`
-	UpdateAt      int64           `json:"update_at"`
-	EditAt        int64           `json:"edit_at"`
-	DeleteAt      int64           `json:"delete_at"`
-	IsPinned      bool            `json:"is_pinned"`
-	UserId        string          `json:"user_id"`
-	ChannelId     string          `json:"channel_id"`
-	RootId        string          `json:"root_id"`
-	ParentId      string          `json:"parent_id"`
-	OriginalId    string          `json:"original_id"`
-	Message       string          `json:"message"`
+	Id         string `json:"id"`
+	CreateAt   int64  `json:"create_at"`
+	UpdateAt   int64  `json:"update_at"`
+	EditAt     int64  `json:"edit_at"`
+	DeleteAt   int64  `json:"delete_at"`
+	IsPinned   bool   `json:"is_pinned"`
+	UserId     string `json:"user_id"`
+	ChannelId  string `json:"channel_id"`
+	RootId     string `json:"root_id"`
+	ParentId   string `json:"parent_id"`
+	OriginalId string `json:"original_id"`
+
+	Message string `json:"message"`
+
+	// MessageSource will contain the message as submitted by the user if Message has been modified
+	// by Mattermost for presentation (e.g if an image proxy is being used). It should be used to
+	// populate edit boxes if present.
+	MessageSource string `json:"message_source,omitempty" db:"-"`
+
 	Type          string          `json:"type"`
 	Props         StringInterface `json:"props"`
 	Hashtags      string          `json:"hashtags"`
@@ -417,6 +424,9 @@ var markdownDestinationEscaper = strings.NewReplacer(
 func (o *Post) WithRewrittenImageURLs(f func(string) string) *Post {
 	copy := *o
 	copy.Message = RewriteImageURLs(o.Message, f)
+	if copy.MessageSource == "" && copy.Message != o.Message {
+		copy.MessageSource = o.Message
+	}
 	return &copy
 }
 
