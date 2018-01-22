@@ -25,17 +25,17 @@ Then, one or more of the labels is applied:
  - Any Mattermost Core Committer can add the label.
  - Core Committer will assign PM under Assignees.
    - Assign PRs related to end user features to @esethna, others to @jasonblais.
-   - When in doubt, look for a related Jira ticket or Github issue.
+   - When in doubt, look for a related Jira ticket or GitHub issue.
    - If still unclear, assign based on best judgment.
    - PM to re-assign to proper owner if needed.
- - In some instances it makes sense to skip this stage, if, for example, it is an internal code change from a core commmitter and doesn't need PM review.
+ - In some instances it makes sense to skip this stage, if, for example, it is an internal code change from a core committer and doesn't need PM review.
    - In this case the core committer will submit the PR and assign the appropriate devs for review.
    
  - A PM will review the pull request to make sure it:
    - Fits with our product roadmap.
    - Works as described in the ticket.
    - Meets [user experience guidelines](https://docs.mattermost.com/developer/fx-guidelines.html).
- - This step is sometimes skipped for bugs or small improvements with a well defined ticket.
+ - This step is sometimes skipped for bugs or small improvements with a well-defined ticket.
  
  - When the review process begins, the PM applies a milestone:
    - Set for next release if the PM thinks there is enough time for the PR to be merged and sufficiently tested on `master` before code complete.
@@ -45,7 +45,7 @@ Then, one or more of the labels is applied:
  - Initial review should be completed within 24-48 hrs (1-2 business days).
  - PM to follow up if the CLA has not been signed.
    - If no response after 7 days, PM to close the issue.
- - PM to verify there is a corresponding Jira ticket or Github issue.
+ - PM to verify there is a corresponding Jira ticket or GitHub issue.
    - If no corresponding issue is found, PM will do extra vetting. However, this is lower priority.
  
  - PM tests and verifies pull requests utilizing the Setup Test Server.
