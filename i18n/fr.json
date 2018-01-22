@@ -5336,7 +5336,7 @@
   },
   {
     "id": "model.user.is_valid.position.app_error",
-    "translation": "Rôle invalide : ne doit pas faire plus de 35 caractères."
+    "translation": "Rôle invalide : ne doit pas faire plus de 128 caractères."
   },
   {
     "id": "model.user.is_valid.pwd.app_error",

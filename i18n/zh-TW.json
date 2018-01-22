@@ -5336,7 +5336,7 @@
   },
   {
     "id": "model.user.is_valid.position.app_error",
-    "translation": "無效的位置：不能超過35個字元。"
+    "translation": "無效的位置：不能超過128個字元。"
   },
   {
     "id": "model.user.is_valid.pwd.app_error",

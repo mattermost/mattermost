@@ -5336,7 +5336,7 @@
   },
   {
     "id": "model.user.is_valid.position.app_error",
-    "translation": "Posição inválida: não pode ter mais que 35 caracteres."
+    "translation": "Posição inválida: não pode ter mais que 128 caracteres."
   },
   {
     "id": "model.user.is_valid.pwd.app_error",

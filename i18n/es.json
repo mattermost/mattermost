@@ -5336,7 +5336,7 @@
   },
   {
     "id": "model.user.is_valid.position.app_error",
-    "translation": "Cargo no válido: no debe ser más de 35 caracteres."
+    "translation": "Cargo no válido: no debe ser más de 128 caracteres."
   },
   {
     "id": "model.user.is_valid.pwd.app_error",

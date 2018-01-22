@@ -405,7 +405,7 @@ func TestImportValidateUserImportData(t *testing.T) {
 	}
 	data.LastName = ptrStr("Blob")
 
-	data.Position = ptrStr(strings.Repeat("abcdefghij", 7))
+	data.Position = ptrStr(strings.Repeat("abcdefghij", 13))
 	if err := validateUserImportData(&data); err == nil {
 		t.Fatal("Validation should have failed due to too long Position.")
 	}

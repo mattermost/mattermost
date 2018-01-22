@@ -5336,7 +5336,7 @@
   },
   {
     "id": "model.user.is_valid.position.app_error",
-    "translation": "Konum geçersiz: 35 karakterden uzun olmamalıdır."
+    "translation": "Konum geçersiz: 128 karakterden uzun olmamalıdır."
   },
   {
     "id": "model.user.is_valid.pwd.app_error",

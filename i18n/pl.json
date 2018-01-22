@@ -5336,7 +5336,7 @@
   },
   {
     "id": "model.user.is_valid.position.app_error",
-    "translation": "Nieprawidłowa pozycja: nie może być dłuższa niż 35 znaków."
+    "translation": "Nieprawidłowa pozycja: nie może być dłuższa niż 128 znaków."
   },
   {
     "id": "model.user.is_valid.pwd.app_error",

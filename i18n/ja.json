@@ -5336,7 +5336,7 @@
   },
   {
     "id": "model.user.is_valid.position.app_error",
-    "translation": "不正な役職: 35文字以上にはできません"
+    "translation": "不正な役職: 128文字以上にはできません"
   },
   {
     "id": "model.user.is_valid.pwd.app_error",
