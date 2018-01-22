@@ -8,8 +8,11 @@ import (
 	"io"
 	"net/http"
 	"regexp"
+	"sort"
 	"strings"
 	"unicode/utf8"
+
+	"github.com/mattermost/mattermost-server/utils/markdown"
 )
 
 const (
@@ -43,18 +46,25 @@ const (
 )
 
 type Post struct {
-	Id            string          `json:"id"`
-	CreateAt      int64           `json:"create_at"`
-	UpdateAt      int64           `json:"update_at"`
-	EditAt        int64           `json:"edit_at"`
-	DeleteAt      int64           `json:"delete_at"`
-	IsPinned      bool            `json:"is_pinned"`
-	UserId        string          `json:"user_id"`
-	ChannelId     string          `json:"channel_id"`
-	RootId        string          `json:"root_id"`
-	ParentId      string          `json:"parent_id"`
-	OriginalId    string          `json:"original_id"`
-	Message       string          `json:"message"`
+	Id         string `json:"id"`
+	CreateAt   int64  `json:"create_at"`
+	UpdateAt   int64  `json:"update_at"`
+	EditAt     int64  `json:"edit_at"`
+	DeleteAt   int64  `json:"delete_at"`
+	IsPinned   bool   `json:"is_pinned"`
+	UserId     string `json:"user_id"`
+	ChannelId  string `json:"channel_id"`
+	RootId     string `json:"root_id"`
+	ParentId   string `json:"parent_id"`
+	OriginalId string `json:"original_id"`
+
+	Message string `json:"message"`
+
+	// MessageSource will contain the message as submitted by the user if Message has been modified
+	// by Mattermost for presentation (e.g if an image proxy is being used). It should be used to
+	// populate edit boxes if present.
+	MessageSource string `json:"message_source,omitempty" db:"-"`
+
 	Type          string          `json:"type"`
 	Props         StringInterface `json:"props"`
 	Hashtags      string          `json:"hashtags"`
@@ -70,6 +80,14 @@ type PostPatch struct {
 	Props        *StringInterface `json:"props"`
 	FileIds      *StringArray     `json:"file_ids"`
 	HasReactions *bool            `json:"has_reactions"`
+}
+
+func (o *PostPatch) WithRewrittenImageURLs(f func(string) string) *PostPatch {
+	copy := *o
+	if copy.Message != nil {
+		*copy.Message = RewriteImageURLs(*o.Message, f)
+	}
+	return &copy
 }
 
 type PostForIndexing struct {
@@ -391,4 +409,88 @@ func (o *Post) GenerateActionIds() {
 			}
 		}
 	}
+}
+
+var markdownDestinationEscaper = strings.NewReplacer(
+	`\`, `\\`,
+	`<`, `\<`,
+	`>`, `\>`,
+	`(`, `\(`,
+	`)`, `\)`,
+)
+
+// WithRewrittenImageURLs returns a new shallow copy of the post where the message has been
+// rewritten via RewriteImageURLs.
+func (o *Post) WithRewrittenImageURLs(f func(string) string) *Post {
+	copy := *o
+	copy.Message = RewriteImageURLs(o.Message, f)
+	if copy.MessageSource == "" && copy.Message != o.Message {
+		copy.MessageSource = o.Message
+	}
+	return &copy
+}
+
+// RewriteImageURLs takes a message and returns a copy that has all of the image URLs replaced
+// according to the function f. For each image URL, f will be invoked, and the resulting markdown
+// will contain the URL returned by that invocation instead.
+//
+// Image URLs are destination URLs used in inline images or reference definitions that are used
+// anywhere in the input markdown as an image.
+func RewriteImageURLs(message string, f func(string) string) string {
+	if !strings.Contains(message, "![") {
+		return message
+	}
+
+	var ranges []markdown.Range
+
+	markdown.Inspect(message, func(blockOrInline interface{}) bool {
+		switch v := blockOrInline.(type) {
+		case *markdown.ReferenceImage:
+			ranges = append(ranges, v.ReferenceDefinition.RawDestination)
+		case *markdown.InlineImage:
+			ranges = append(ranges, v.RawDestination)
+		default:
+			return true
+		}
+		return true
+	})
+
+	if ranges == nil {
+		return message
+	}
+
+	sort.Slice(ranges, func(i, j int) bool {
+		return ranges[i].Position < ranges[j].Position
+	})
+
+	copyRanges := make([]markdown.Range, 0, len(ranges))
+	urls := make([]string, 0, len(ranges))
+	resultLength := len(message)
+
+	start := 0
+	for i, r := range ranges {
+		switch {
+		case i == 0:
+		case r.Position != ranges[i-1].Position:
+			start = ranges[i-1].End
+		default:
+			continue
+		}
+		original := message[r.Position:r.End]
+		replacement := markdownDestinationEscaper.Replace(f(markdown.Unescape(original)))
+		resultLength += len(replacement) - len(original)
+		copyRanges = append(copyRanges, markdown.Range{Position: start, End: r.Position})
+		urls = append(urls, replacement)
+	}
+
+	result := make([]byte, resultLength)
+
+	offset := 0
+	for i, r := range copyRanges {
+		offset += copy(result[offset:], message[r.Position:r.End])
+		offset += copy(result[offset:], urls[i])
+	}
+	copy(result[offset:], message[ranges[len(ranges)-1].End:])
+
+	return string(result)
 }

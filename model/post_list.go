@@ -21,6 +21,15 @@ func NewPostList() *PostList {
 	}
 }
 
+func (o *PostList) WithRewrittenImageURLs(f func(string) string) *PostList {
+	copy := *o
+	copy.Posts = make(map[string]*Post)
+	for id, post := range o.Posts {
+		copy.Posts[id] = post.WithRewrittenImageURLs(f)
+	}
+	return &copy
+}
+
 func (o *PostList) StripActionIntegrations() {
 	posts := o.Posts
 	o.Posts = make(map[string]*Post)
