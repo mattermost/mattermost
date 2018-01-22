@@ -135,7 +135,7 @@ func saveIsPinnedPost(c *Context, w http.ResponseWriter, r *http.Request, isPinn
 			rpost := result.Data.(*model.Post)
 
 			message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POST_EDITED, "", rpost.ChannelId, "", nil)
-			message.Add("post", rpost.ToJson())
+			message.Add("post", c.App.PostWithProxyAddedToImageURLs(rpost).ToJson())
 
 			c.App.Go(func() {
 				c.App.Publish(message)

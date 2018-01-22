@@ -214,6 +214,9 @@ type ServiceSettings struct {
 	EnablePreviewFeatures                             *bool
 	EnableTutorial                                    *bool
 	ExperimentalEnableDefaultChannelLeaveJoinMessages *bool
+	ImageProxyType                                    *string
+	ImageProxyURL                                     *string
+	ImageProxyOptions                                 *string
 }
 
 func (s *ServiceSettings) SetDefaults() {
@@ -250,7 +253,7 @@ func (s *ServiceSettings) SetDefaults() {
 	}
 
 	if s.AllowedUntrustedInternalConnections == nil {
-		s.AllowedUntrustedInternalConnections = new(string)
+		s.AllowedUntrustedInternalConnections = NewString("")
 	}
 
 	if s.EnableMultifactorAuthentication == nil {
@@ -417,6 +420,18 @@ func (s *ServiceSettings) SetDefaults() {
 
 	if s.ExperimentalEnableDefaultChannelLeaveJoinMessages == nil {
 		s.ExperimentalEnableDefaultChannelLeaveJoinMessages = NewBool(true)
+	}
+
+	if s.ImageProxyType == nil {
+		s.ImageProxyType = NewString("")
+	}
+
+	if s.ImageProxyURL == nil {
+		s.ImageProxyURL = NewString("")
+	}
+
+	if s.ImageProxyOptions == nil {
+		s.ImageProxyOptions = NewString("")
 	}
 }
 
@@ -2048,6 +2063,16 @@ func (ss *ServiceSettings) isValid() *AppError {
 
 	if len(*ss.ListenAddress) == 0 {
 		return NewAppError("Config.IsValid", "model.config.is_valid.listen_address.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	switch *ss.ImageProxyType {
+	case "", "willnorris/imageproxy":
+	case "atmos/camo":
+		if *ss.ImageProxyOptions == "" {
+			return NewAppError("Config.IsValid", "model.config.is_valid.atmos_camo_image_proxy_options.app_error", nil, "", http.StatusBadRequest)
+		}
+	default:
+		return NewAppError("Config.IsValid", "model.config.is_valid.image_proxy_type.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	return nil
