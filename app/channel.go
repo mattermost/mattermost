@@ -73,6 +73,10 @@ func (a *App) JoinDefaultChannels(teamId string, user *model.User, channelRole s
 					l4g.Error(utils.T("api.channel.post_user_add_remove_message_and_forget.error"), err)
 				}
 			}
+		} else {
+			if err := a.postAddToTeamMessage(requestor, user, townSquare, ""); err != nil {
+				l4g.Error(utils.T("api.channel.post_user_add_remove_message_and_forget.error"), err)
+			}
 		}
 
 		a.InvalidateCacheForChannelMembers(result.Data.(*model.Channel).Id)
@@ -1105,7 +1109,7 @@ func (a *App) PostAddToChannelMessage(user *model.User, addedUser *model.User, c
 	return nil
 }
 
-func (a *App) PostAddToTeamMessage(user *model.User, addedUser *model.User, channel *model.Channel, postRootId string) *model.AppError {
+func (a *App) postAddToTeamMessage(user *model.User, addedUser *model.User, channel *model.Channel, postRootId string) *model.AppError {
 	post := &model.Post{
 		ChannelId: channel.Id,
 		Message:   fmt.Sprintf(utils.T("api.team.add_user_to_team.added"), addedUser.Username, user.Username),
@@ -1125,10 +1129,10 @@ func (a *App) PostAddToTeamMessage(user *model.User, addedUser *model.User, chan
 	return nil
 }
 
-func (a *App) PostRemoveFromChannelMessage(removerUserId string, removedUser *model.User, channel *model.Channel) *model.AppError {
+func (a *App) postRemoveFromChannelMessage(removerUserId string, removedUser *model.User, channel *model.Channel) *model.AppError {
 	post := &model.Post{
 		ChannelId: channel.Id,
-		Message:   fmt.Sprintf(utils.T("api.team.remove_user_from_team.removed"), removedUser.Username),
+		Message:   fmt.Sprintf(utils.T("api.channel.remove_member.removed"), removedUser.Username),
 		Type:      model.POST_REMOVE_FROM_CHANNEL,
 		UserId:    removerUserId,
 		Props: model.StringInterface{
@@ -1196,7 +1200,7 @@ func (a *App) RemoveUserFromChannel(userIdToRemove string, removerUserId string,
 		a.postLeaveChannelMessage(user, channel)
 	} else {
 		a.Go(func() {
-			a.PostRemoveFromChannelMessage(removerUserId, user, channel)
+			a.postRemoveFromChannelMessage(removerUserId, user, channel)
 		})
 	}
 
