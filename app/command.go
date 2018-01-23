@@ -274,26 +274,32 @@ func (a *App) HandleCommandResponse(command *model.Command, args *model.CommandA
 	post.Type = response.Type
 	post.Props = response.Props
 
-	if !builtIn {
-		post.AddProp("from_webhook", "true")
-	}
+	isBotPost := !builtIn
 
 	if a.Config().ServiceSettings.EnablePostUsernameOverride {
 		if len(command.Username) != 0 {
 			post.AddProp("override_username", command.Username)
+			isBotPost = true
 		} else if len(response.Username) != 0 {
 			post.AddProp("override_username", response.Username)
+			isBotPost = true
 		}
 	}
 
 	if a.Config().ServiceSettings.EnablePostIconOverride {
 		if len(command.IconURL) != 0 {
 			post.AddProp("override_icon_url", command.IconURL)
+			isBotPost = true
 		} else if len(response.IconURL) != 0 {
 			post.AddProp("override_icon_url", response.IconURL)
+			isBotPost = true
 		} else {
 			post.AddProp("override_icon_url", "")
 		}
+	}
+
+	if isBotPost {
+		post.AddProp("from_webhook", "true")
 	}
 
 	// Process Slack text replacements
