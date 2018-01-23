@@ -411,10 +411,6 @@ func TestImportValidateUserImportData(t *testing.T) {
 	}
 	data.Position = ptrStr("The Boss")
 
-	data.Roles = ptrStr("system_user wat")
-	if err := validateUserImportData(&data); err == nil {
-		t.Fatal("Validation should have failed due to too unrecognised role.")
-	}
 	data.Roles = nil
 	if err := validateUserImportData(&data); err != nil {
 		t.Fatal("Validation failed but should have been valid.")
@@ -478,12 +474,6 @@ func TestImportValidateUserTeamsImportData(t *testing.T) {
 	}
 	data[0].Name = ptrStr("teamname")
 
-	// Invalid Roles
-	data[0].Roles = ptrStr("wtf")
-	if err := validateUserTeamsImportData(&data); err == nil {
-		t.Fatal("Should have failed due to invalid roles.")
-	}
-
 	// Valid (nil roles)
 	data[0].Roles = nil
 	if err := validateUserTeamsImportData(&data); err != nil {
@@ -515,12 +505,6 @@ func TestImportValidateUserChannelsImportData(t *testing.T) {
 		t.Fatal("Should have failed due to invalid name.")
 	}
 	data[0].Name = ptrStr("channelname")
-
-	// Invalid Roles
-	data[0].Roles = ptrStr("wtf")
-	if err := validateUserChannelsImportData(&data); err == nil {
-		t.Fatal("Should have failed due to invalid roles.")
-	}
 
 	// Valid (nil roles)
 	data[0].Roles = nil

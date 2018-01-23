@@ -96,6 +96,8 @@ type Routes struct {
 
 	Reactions *mux.Router // 'api/v4/reactions'
 
+	Roles *mux.Router // 'api/v4/roles'
+
 	Emojis *mux.Router // 'api/v4/emoji'
 	Emoji  *mux.Router // 'api/v4/emoji/{emoji_id:[A-Za-z0-9]+}'
 
@@ -192,6 +194,8 @@ func Init(a *app.App, root *mux.Router, full bool) *API {
 
 	api.BaseRoutes.OpenGraph = api.BaseRoutes.ApiRoot.PathPrefix("/opengraph").Subrouter()
 
+	api.BaseRoutes.Roles = api.BaseRoutes.ApiRoot.PathPrefix("/roles").Subrouter()
+
 	api.InitUser()
 	api.InitTeam()
 	api.InitChannel()
@@ -217,6 +221,7 @@ func Init(a *app.App, root *mux.Router, full bool) *API {
 	api.InitWebrtc()
 	api.InitOpenGraph()
 	api.InitPlugin()
+	api.InitRole()
 
 	root.Handle("/api/v4/{anything:.*}", http.HandlerFunc(Handle404))
 

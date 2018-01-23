@@ -1230,6 +1230,15 @@ func (a *App) UpdateUserRoles(userId string, newRoles string, sendWebSocketEvent
 		return nil, err
 	}
 
+	// Allow "Empty" roles or an otherwise valid list of roles.
+	if len(newRoles) > 0 {
+		if exist, err := a.CheckRolesExist(strings.Split(newRoles, " ")); err != nil {
+			return nil, err
+		} else if !exist {
+			return nil, model.NewAppError("UpdateUserRoles", "app.user.update_user_roles.invalid_roles.app_error", nil, "", http.StatusBadRequest)
+		}
+	}
+
 	user.Roles = newRoles
 	uchan := a.Srv.Store.User().Update(user, true)
 	schan := a.Srv.Store.Session().UpdateRoles(user.Id, newRoles)

@@ -88,7 +88,12 @@ func TestOAuthRegisterApp(t *testing.T) {
 		t.Fatal("should have failed. not enough permissions")
 	}
 
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOnlyAdminIntegrations = false })
+	defaultRolePermissions := th.SaveDefaultRolePermissions()
+	defer func() {
+		th.RestoreDefaultRolePermissions(defaultRolePermissions)
+	}()
+	th.AddPermissionToRole(model.PERMISSION_MANAGE_OAUTH.Id, model.TEAM_USER_ROLE_ID)
+	th.AddPermissionToRole(model.PERMISSION_MANAGE_OAUTH.Id, model.SYSTEM_USER_ROLE_ID)
 
 	th.LoginBasic()
 
@@ -210,7 +215,12 @@ func TestOAuthGetAppsByUser(t *testing.T) {
 		t.Fatal("Should have failed.")
 	}
 
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOnlyAdminIntegrations = false })
+	defaultRolePermissions := th.SaveDefaultRolePermissions()
+	defer func() {
+		th.RestoreDefaultRolePermissions(defaultRolePermissions)
+	}()
+	th.AddPermissionToRole(model.PERMISSION_MANAGE_OAUTH.Id, model.TEAM_USER_ROLE_ID)
+	th.AddPermissionToRole(model.PERMISSION_MANAGE_OAUTH.Id, model.SYSTEM_USER_ROLE_ID)
 
 	if result, err := Client.GetOAuthAppsByUser(); err != nil {
 		t.Fatal(err)
@@ -250,7 +260,9 @@ func TestOAuthGetAppsByUser(t *testing.T) {
 
 	user := &model.User{Email: strings.ToLower("test+"+model.NewId()) + "@simulator.amazonses.com", Password: "hello1", Username: "n" + model.NewId(), EmailVerified: true}
 	ruser := Client.Must(AdminClient.CreateUser(user, "")).Data.(*model.User)
-	th.App.UpdateUserRoles(ruser.Id, "", false)
+	if _, err := th.App.UpdateUserRoles(ruser.Id, "", false); err != nil {
+		t.Fatal(err)
+	}
 
 	Client.Logout()
 	Client.Login(user.Email, user.Password)
@@ -437,7 +449,13 @@ func TestOAuthDeleteApp(t *testing.T) {
 	}
 
 	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = true })
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOnlyAdminIntegrations = false })
+
+	defaultRolePermissions := th.SaveDefaultRolePermissions()
+	defer func() {
+		th.RestoreDefaultRolePermissions(defaultRolePermissions)
+	}()
+	th.AddPermissionToRole(model.PERMISSION_MANAGE_OAUTH.Id, model.TEAM_USER_ROLE_ID)
+	th.AddPermissionToRole(model.PERMISSION_MANAGE_OAUTH.Id, model.SYSTEM_USER_ROLE_ID)
 
 	oauthApp := &model.OAuthApp{Name: "TestApp5" + model.NewId(), Homepage: "https://nowhere.com", Description: "test", CallbackUrls: []string{"https://nowhere.com"}}
 
@@ -492,13 +510,17 @@ func TestOAuthAccessToken(t *testing.T) {
 	Client := th.BasicClient
 
 	enableOAuth := th.App.Config().ServiceSettings.EnableOAuthServiceProvider
-	adminOnly := *th.App.Config().ServiceSettings.EnableOnlyAdminIntegrations
 	defer func() {
 		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = enableOAuth })
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOnlyAdminIntegrations = adminOnly })
 	}()
 	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = true })
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOnlyAdminIntegrations = false })
+
+	defaultRolePermissions := th.SaveDefaultRolePermissions()
+	defer func() {
+		th.RestoreDefaultRolePermissions(defaultRolePermissions)
+	}()
+	th.AddPermissionToRole(model.PERMISSION_MANAGE_OAUTH.Id, model.TEAM_USER_ROLE_ID)
+	th.AddPermissionToRole(model.PERMISSION_MANAGE_OAUTH.Id, model.SYSTEM_USER_ROLE_ID)
 
 	oauthApp := &model.OAuthApp{Name: "TestApp5" + model.NewId(), Homepage: "https://nowhere.com", Description: "test", CallbackUrls: []string{"https://nowhere.com"}}
 	oauthApp = Client.Must(Client.RegisterApp(oauthApp)).Data.(*model.OAuthApp)
@@ -739,7 +761,13 @@ func TestOAuthComplete(t *testing.T) {
 
 	// We are going to use mattermost as the provider emulating gitlab
 	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = true })
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOnlyAdminIntegrations = false })
+
+	defaultRolePermissions := th.SaveDefaultRolePermissions()
+	defer func() {
+		th.RestoreDefaultRolePermissions(defaultRolePermissions)
+	}()
+	th.AddPermissionToRole(model.PERMISSION_MANAGE_OAUTH.Id, model.TEAM_USER_ROLE_ID)
+	th.AddPermissionToRole(model.PERMISSION_MANAGE_OAUTH.Id, model.SYSTEM_USER_ROLE_ID)
 
 	oauthApp := &model.OAuthApp{
 		Name:        "TestApp5" + model.NewId(),
