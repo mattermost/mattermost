@@ -110,7 +110,8 @@ func (s SqlChannelMemberHistoryStore) getFromChannelMemberHistoryTable(startTime
 	query := `
 			SELECT
 				cmh.*,
-				u.Email
+				u.Email,
+				u.Username
 			FROM ChannelMemberHistory cmh
 			INNER JOIN Users u ON cmh.UserId = u.Id
 			WHERE cmh.ChannelId = :ChannelId
@@ -132,7 +133,8 @@ func (s SqlChannelMemberHistoryStore) getFromChannelMembersTable(startTime int64
 		SELECT DISTINCT
   			ch.ChannelId,
   			ch.UserId,
-  			u.email
+  			u.Email,
+            u.Username
 		FROM ChannelMembers AS ch
 		INNER JOIN Users AS u ON ch.UserId = u.id
 		WHERE ch.ChannelId = :ChannelId`
