@@ -200,6 +200,14 @@
     "translation": "Создание и управление Публичными Каналами возможно Командой и Системными Администраторами."
   },
   {
+    "id": "api.channel.change_channel_privacy.private_to_public",
+    "translation": "This channel has been converted to a Public Channel and can be joined by any team member."
+  },
+  {
+    "id": "api.channel.change_channel_privacy.public_to_private",
+    "translation": "This channel has been converted to a Private Channel."
+  },
+  {
     "id": "api.channel.create_channel.direct_channel.app_error",
     "translation": "Нужно использовать createDirectChannel из API для создания канала личных сообщений"
   },
@@ -1421,8 +1429,12 @@
     "translation": "Не удалось проверить адрес электронной почты err=%v"
   },
   {
-    "id": "api.incoming_webhook.disabled.app_errror",
+    "id": "api.incoming_webhook.disabled.app_error",
     "translation": "Входящие вебхуки были отключены системным администратором."
+  },
+  {
+    "id": "api.incoming_webhook.invalid_username.app_error",
+    "translation": "Неверное имя пользователя"
   },
   {
     "id": "api.ldap.init.debug",
@@ -2288,11 +2300,11 @@
   },
   {
     "id": "api.team.join_team.post_and_forget",
-    "translation": "%v joined the team."
+    "translation": "%v присоединился(-лась) к команде."
   },
   {
     "id": "api.team.leave.left",
-    "translation": "%v left the team."
+    "translation": "%v покинул(а) команду."
   },
   {
     "id": "api.team.permanent_delete_team.attempting.warn",
@@ -2308,7 +2320,7 @@
   },
   {
     "id": "api.team.remove_user_from_team.removed",
-    "translation": "%v удален из канала."
+    "translation": "%v удален из команды."
   },
   {
     "id": "api.team.signup_team.email_disabled.app_error",
@@ -3348,7 +3360,7 @@
   },
   {
     "id": "app.import.validate_post_import_data.create_at_zero.error",
-    "translation": "Post CreateAt property must not be zero if provided."
+    "translation": "Post CreateAt property must not be zero."
   },
   {
     "id": "app.import.validate_post_import_data.message_length.error",
@@ -3364,6 +3376,54 @@
   },
   {
     "id": "app.import.validate_post_import_data.user_missing.error",
+    "translation": "Отсутствует необходимое поле для Post: User."
+  },
+  {
+    "id": "app.import.validate_reaction_import_data.create_at_before_parent.error",
+    "translation": "Reactoin CreateAt property must be greater than the parent post CreateAt."
+  },
+  {
+    "id": "app.import.validate_reaction_import_data.create_at_missing.error",
+    "translation": "Отсутствует необходимое поле для Post: create_at."
+  },
+  {
+    "id": "app.import.validate_reaction_import_data.create_at_zero.error",
+    "translation": "Reaction CreateAt property must not be zero."
+  },
+  {
+    "id": "app.import.validate_reaction_import_data.emoji_name_length.error",
+    "translation": "Post Message длиннее, чем максимально разрешённая длина."
+  },
+  {
+    "id": "app.import.validate_reaction_import_data.emoji_name_missing.error",
+    "translation": "Отсутствует необходимое поле для Post: User."
+  },
+  {
+    "id": "app.import.validate_reaction_import_data.user_missing.error",
+    "translation": "Отсутствует необходимое поле для Post: User."
+  },
+  {
+    "id": "app.import.validate_reply_import_data.create_at_before_parent.error",
+    "translation": "Reply CreateAt property must be greater than the parent post CreateAt."
+  },
+  {
+    "id": "app.import.validate_reply_import_data.create_at_missing.error",
+    "translation": "Отсутствует необходимое поле для Post: create_at."
+  },
+  {
+    "id": "app.import.validate_reply_import_data.create_at_zero.error",
+    "translation": "Reply CreateAt property must not be zero."
+  },
+  {
+    "id": "app.import.validate_reply_import_data.message_length.error",
+    "translation": "Post Message длиннее, чем максимально разрешённая длина."
+  },
+  {
+    "id": "app.import.validate_reply_import_data.message_missing.error",
+    "translation": "Отсутствует необходимое поле для Post: Message."
+  },
+  {
+    "id": "app.import.validate_reply_import_data.user_missing.error",
     "translation": "Отсутствует необходимое поле для Post: User."
   },
   {
@@ -3501,6 +3561,10 @@
   {
     "id": "app.import.validate_user_import_data.position_length.error",
     "translation": "Расположение пользователя слишком длинное."
+  },
+  {
+    "id": "app.import.validate_user_import_data.profile_image.error",
+    "translation": "Invalid profile image."
   },
   {
     "id": "app.import.validate_user_import_data.roles_invalid.error",
@@ -4579,6 +4643,10 @@
     "translation": "\"До\" должно быть больше, чем \"С\""
   },
   {
+    "id": "model.config.is_valid.atmos_camo_image_proxy_options.app_error",
+    "translation": "Invalid atmos/camo image proxy options for service settings. Must be set to your shared key."
+  },
+  {
     "id": "model.config.is_valid.cluster_email_batching.app_error",
     "translation": "Невозможно включить пакетную обработку почты при включенной кластеризации."
   },
@@ -4689,6 +4757,10 @@
   {
     "id": "model.config.is_valid.file_thumb_width.app_error",
     "translation": "Неверная ширина миниатюры в настройках файлов. Число должно быть положительным."
+  },
+  {
+    "id": "model.config.is_valid.image_proxy_type.app_error",
+    "translation": "Invalid image proxy type for service settings."
   },
   {
     "id": "model.config.is_valid.ldap_basedn",
@@ -4975,6 +5047,10 @@
     "translation": "Недопустимый тип"
   },
   {
+    "id": "model.incoming_hook.icon_url.app_error",
+    "translation": "Неверный идентификатор сообщения"
+  },
+  {
     "id": "model.incoming_hook.id.app_error",
     "translation": "Некорректный идентификатор"
   },
@@ -4989,6 +5065,10 @@
   {
     "id": "model.incoming_hook.user_id.app_error",
     "translation": "Некорректный идентификатор пользователя"
+  },
+  {
+    "id": "model.incoming_hook.username.app_error",
+    "translation": "Неверное имя пользователя"
   },
   {
     "id": "model.job.is_valid.create_at.app_error",
@@ -6767,6 +6847,10 @@
     "translation": "Не удалось получить персональный токен доступа"
   },
   {
+    "id": "store.sql_user_access_token.get_all.app_error",
+    "translation": "Не удалось получить персональный токен доступа"
+  },
+  {
     "id": "store.sql_user_access_token.get_by_token.app_error",
     "translation": "Не удалось получить персональный токен доступа по токену"
   },
@@ -6777,6 +6861,10 @@
   {
     "id": "store.sql_user_access_token.save.app_error",
     "translation": "Не удалось сохранить персональный токен доступа"
+  },
+  {
+    "id": "store.sql_user_access_token.search.app_error",
+    "translation": "Возникла ошибка с обнаружением токена доступа"
   },
   {
     "id": "store.sql_webhooks.analytics_incoming_count.app_error",

@@ -200,6 +200,14 @@
     "translation": "Alleen team- en systeembeheerders mogen publieke kanalen beheren en aanmaken."
   },
   {
+    "id": "api.channel.change_channel_privacy.private_to_public",
+    "translation": "This channel has been converted to a Public Channel and can be joined by any team member."
+  },
+  {
+    "id": "api.channel.change_channel_privacy.public_to_private",
+    "translation": "This channel has been converted to a Private Channel."
+  },
+  {
     "id": "api.channel.create_channel.direct_channel.app_error",
     "translation": "U moet de 'createDirectChannel' API service gebruiken om een direct kanaal aan te maken"
   },
@@ -1421,8 +1429,12 @@
     "translation": "Fout tijdens het instellen van e-mail verificatie. Fout=%v"
   },
   {
-    "id": "api.incoming_webhook.disabled.app_errror",
+    "id": "api.incoming_webhook.disabled.app_error",
     "translation": "Commando's zijn uitgeschakeld door de beheerder."
+  },
+  {
+    "id": "api.incoming_webhook.invalid_username.app_error",
+    "translation": "Ongeldige gebruikersnaam"
   },
   {
     "id": "api.ldap.init.debug",
@@ -3348,7 +3360,7 @@
   },
   {
     "id": "app.import.validate_post_import_data.create_at_zero.error",
-    "translation": "Post CreateAt property must not be zero if provided."
+    "translation": "Post CreateAt property must not be zero."
   },
   {
     "id": "app.import.validate_post_import_data.message_length.error",
@@ -3365,6 +3377,54 @@
   {
     "id": "app.import.validate_post_import_data.user_missing.error",
     "translation": "Missing required Post property: User."
+  },
+  {
+    "id": "app.import.validate_reaction_import_data.create_at_before_parent.error",
+    "translation": "Reactoin CreateAt property must be greater than the parent post CreateAt."
+  },
+  {
+    "id": "app.import.validate_reaction_import_data.create_at_missing.error",
+    "translation": "Missing required Reaction property: create_at."
+  },
+  {
+    "id": "app.import.validate_reaction_import_data.create_at_zero.error",
+    "translation": "Reaction CreateAt property must not be zero."
+  },
+  {
+    "id": "app.import.validate_reaction_import_data.emoji_name_length.error",
+    "translation": "Reaction EmojiName property is longer than the maximum permitted length."
+  },
+  {
+    "id": "app.import.validate_reaction_import_data.emoji_name_missing.error",
+    "translation": "Missing required Reaction property: EmojiName."
+  },
+  {
+    "id": "app.import.validate_reaction_import_data.user_missing.error",
+    "translation": "Missing required Reaction property: User."
+  },
+  {
+    "id": "app.import.validate_reply_import_data.create_at_before_parent.error",
+    "translation": "Reply CreateAt property must be greater than the parent post CreateAt."
+  },
+  {
+    "id": "app.import.validate_reply_import_data.create_at_missing.error",
+    "translation": "Missing required Reply property: create_at."
+  },
+  {
+    "id": "app.import.validate_reply_import_data.create_at_zero.error",
+    "translation": "Reply CreateAt property must not be zero."
+  },
+  {
+    "id": "app.import.validate_reply_import_data.message_length.error",
+    "translation": "Reply Message property is longer than the maximum permitted length."
+  },
+  {
+    "id": "app.import.validate_reply_import_data.message_missing.error",
+    "translation": "Missing required Reply property: Message."
+  },
+  {
+    "id": "app.import.validate_reply_import_data.user_missing.error",
+    "translation": "Missing required Reply property: User."
   },
   {
     "id": "app.import.validate_team_import_data.allowed_domains_length.error",
@@ -3501,6 +3561,10 @@
   {
     "id": "app.import.validate_user_import_data.position_length.error",
     "translation": "User Position is too long."
+  },
+  {
+    "id": "app.import.validate_user_import_data.profile_image.error",
+    "translation": "Invalid profile image."
   },
   {
     "id": "app.import.validate_user_import_data.roles_invalid.error",
@@ -4579,6 +4643,10 @@
     "translation": "Tot en met, moet later zijn dan Vanaf"
   },
   {
+    "id": "model.config.is_valid.atmos_camo_image_proxy_options.app_error",
+    "translation": "Invalid atmos/camo image proxy options for service settings. Must be set to your shared key."
+  },
+  {
     "id": "model.config.is_valid.cluster_email_batching.app_error",
     "translation": "Niet mogelijk om bulk email aan te zetten als clustering aan staat."
   },
@@ -4689,6 +4757,10 @@
   {
     "id": "model.config.is_valid.file_thumb_width.app_error",
     "translation": "Ongeldige voorvertonings breedte bij bestands instellingen. Moet een getal groter dan 0 zijn."
+  },
+  {
+    "id": "model.config.is_valid.image_proxy_type.app_error",
+    "translation": "Invalid image proxy type for service settings."
   },
   {
     "id": "model.config.is_valid.ldap_basedn",
@@ -4975,6 +5047,10 @@
     "translation": "Ongeldige type"
   },
   {
+    "id": "model.incoming_hook.icon_url.app_error",
+    "translation": "Ongeldig start id"
+  },
+  {
     "id": "model.incoming_hook.id.app_error",
     "translation": "Ongeldig Id"
   },
@@ -4989,6 +5065,10 @@
   {
     "id": "model.incoming_hook.user_id.app_error",
     "translation": "Ongeldig gebruikers id"
+  },
+  {
+    "id": "model.incoming_hook.username.app_error",
+    "translation": "Ongeldige gebruikersnaam"
   },
   {
     "id": "model.job.is_valid.create_at.app_error",
@@ -6767,6 +6847,10 @@
     "translation": "Het access token kan niet verwijderd worden"
   },
   {
+    "id": "store.sql_user_access_token.get_all.app_error",
+    "translation": "Het access token kan niet verwijderd worden"
+  },
+  {
     "id": "store.sql_user_access_token.get_by_token.app_error",
     "translation": "Het access token kan niet verwijderd worden"
   },
@@ -6777,6 +6861,10 @@
   {
     "id": "store.sql_user_access_token.save.app_error",
     "translation": "Het access token kan niet opgeslagen worden."
+  },
+  {
+    "id": "store.sql_user_access_token.search.app_error",
+    "translation": "Er is een probleem opgetreden bij het ophalen van het access token"
   },
   {
     "id": "store.sql_webhooks.analytics_incoming_count.app_error",

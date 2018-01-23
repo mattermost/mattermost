@@ -200,6 +200,14 @@
     "translation": "公開チャンネルの作成と管理は、チーム管理者かシステム管理者しかできません。"
   },
   {
+    "id": "api.channel.change_channel_privacy.private_to_public",
+    "translation": "このチャンネルは公開チャンネルに変換されたため、全てのチームメンバーが参加できるようになりました。"
+  },
+  {
+    "id": "api.channel.change_channel_privacy.public_to_private",
+    "translation": "このチャンネルは非公開チャンネルに変換されました。"
+  },
+  {
     "id": "api.channel.create_channel.direct_channel.app_error",
     "translation": "ダイレクトメッセージチャンネルを作成するにはcreateDirectChannel APIを使用してください"
   },
@@ -1421,8 +1429,12 @@
     "translation": "電子メールを確認済みに設定できませんでした err=%v"
   },
   {
-    "id": "api.incoming_webhook.disabled.app_errror",
+    "id": "api.incoming_webhook.disabled.app_error",
     "translation": "内向きのウェブフックはシステム管理者によって無効にされています。"
+  },
+  {
+    "id": "api.incoming_webhook.invalid_username.app_error",
+    "translation": "不正なユーザー名です。"
   },
   {
     "id": "api.ldap.init.debug",
@@ -3367,6 +3379,54 @@
     "translation": "必須の投稿設定値 User が存在しません。"
   },
   {
+    "id": "app.import.validate_reaction_import_data.create_at_before_parent.error",
+    "translation": "リアクション作成日時の設定値は親に当たる投稿の作成日時よりも大きくなくてはなりません。"
+  },
+  {
+    "id": "app.import.validate_reaction_import_data.create_at_missing.error",
+    "translation": "必須のリアクション設定値 create_at が存在しません。"
+  },
+  {
+    "id": "app.import.validate_reaction_import_data.create_at_zero.error",
+    "translation": "リアクションの作成日時には0を設定できません。"
+  },
+  {
+    "id": "app.import.validate_reaction_import_data.emoji_name_length.error",
+    "translation": "リアクション絵文字名の設定値が許可された最大長を超えています。"
+  },
+  {
+    "id": "app.import.validate_reaction_import_data.emoji_name_missing.error",
+    "translation": "必須のリアクション設定値 EmojiName が存在しません。"
+  },
+  {
+    "id": "app.import.validate_reaction_import_data.user_missing.error",
+    "translation": "必須のリアクション設定値 User が存在しません。"
+  },
+  {
+    "id": "app.import.validate_reply_import_data.create_at_before_parent.error",
+    "translation": "返信作成日時の設定値は親に当たる投稿の作成日時よりも大きくなくてはなりません。"
+  },
+  {
+    "id": "app.import.validate_reply_import_data.create_at_missing.error",
+    "translation": "必須の返信設定値 create_at が存在しません。"
+  },
+  {
+    "id": "app.import.validate_reply_import_data.create_at_zero.error",
+    "translation": "返信の作成日時には0を設定できません。"
+  },
+  {
+    "id": "app.import.validate_reply_import_data.message_length.error",
+    "translation": "返信メッセージの設定値が許可された最大長を超えています。"
+  },
+  {
+    "id": "app.import.validate_reply_import_data.message_missing.error",
+    "translation": "必須の返信設定値 Message が存在しません。"
+  },
+  {
+    "id": "app.import.validate_reply_import_data.user_missing.error",
+    "translation": "必須の返信設定値 User が存在しません。"
+  },
+  {
     "id": "app.import.validate_team_import_data.allowed_domains_length.error",
     "translation": "チームの許可されたドメインが長すぎます。"
   },
@@ -3501,6 +3561,10 @@
   {
     "id": "app.import.validate_user_import_data.position_length.error",
     "translation": "ユーザーの役職が長すぎます。"
+  },
+  {
+    "id": "app.import.validate_user_import_data.profile_image.error",
+    "translation": "不正なプロフィール画像です。"
   },
   {
     "id": "app.import.validate_user_import_data.roles_invalid.error",
@@ -4579,6 +4643,10 @@
     "translation": "有効終了は有効開始の後でなくてはいけません"
   },
   {
+    "id": "model.config.is_valid.atmos_camo_image_proxy_options.app_error",
+    "translation": "Invalid atmos/camo image proxy options for service settings. Must be set to your shared key."
+  },
+  {
     "id": "model.config.is_valid.cluster_email_batching.app_error",
     "translation": "クラスタリングが有効化されている場合、電子メールバッチ処理は有効化できません。"
   },
@@ -4689,6 +4757,10 @@
   {
     "id": "model.config.is_valid.file_thumb_width.app_error",
     "translation": "ファイル設定のサムネイルの幅が不正です。ゼロ以上の数を指定してください。"
+  },
+  {
+    "id": "model.config.is_valid.image_proxy_type.app_error",
+    "translation": "Invalid image proxy type for service settings."
   },
   {
     "id": "model.config.is_valid.ldap_basedn",
@@ -4975,6 +5047,10 @@
     "translation": "不正なタイトルです"
   },
   {
+    "id": "model.incoming_hook.icon_url.app_error",
+    "translation": "不正な投稿アイコンです。"
+  },
+  {
     "id": "model.incoming_hook.id.app_error",
     "translation": "不正なIDです"
   },
@@ -4989,6 +5065,10 @@
   {
     "id": "model.incoming_hook.user_id.app_error",
     "translation": "不正なユーザーIDです"
+  },
+  {
+    "id": "model.incoming_hook.username.app_error",
+    "translation": "不正なユーザー名です。"
   },
   {
     "id": "model.job.is_valid.create_at.app_error",
@@ -6767,6 +6847,10 @@
     "translation": "パーソナルアクセストークンを取得できませんでした"
   },
   {
+    "id": "store.sql_user_access_token.get_all.app_error",
+    "translation": "パーソナルアクセストークンを取得できませんでした"
+  },
+  {
     "id": "store.sql_user_access_token.get_by_token.app_error",
     "translation": "トークンによってパーソナルアクセストークンを取得することができませんでした"
   },
@@ -6777,6 +6861,10 @@
   {
     "id": "store.sql_user_access_token.save.app_error",
     "translation": "パーソナルアクセストークンを保存できませんでした。"
+  },
+  {
+    "id": "store.sql_user_access_token.search.app_error",
+    "translation": "アクセストークンを探す際にエラーが発生しました"
   },
   {
     "id": "store.sql_webhooks.analytics_incoming_count.app_error",
