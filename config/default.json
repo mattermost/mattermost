@@ -57,6 +57,7 @@
         "CloseUnusedDirectMessages": false,
         "EnableTutorial": true,
         "ExperimentalEnableDefaultChannelLeaveJoinMessages": true,
+        "ExperimentalGroupUnreadChannels": false,
         "ImageProxyType": "",
         "ImageProxyURL": ""
     },
