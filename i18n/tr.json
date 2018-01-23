@@ -1421,8 +1421,12 @@
     "translation": "E-posta doğrulanmış olarak ayarlanamadı. Hata: %v"
   },
   {
-    "id": "api.incoming_webhook.disabled.app_errror",
+    "id": "api.incoming_webhook.disabled.app_error",
     "translation": "Gelen web bağlantıları sistem yöneticisi tarafından devre dışı bırakılmış."
+  },
+  {
+    "id": "api.incoming_webhook.invalid_username.app_error",
+    "translation": "Kullanıcı adı geçersiz."
   },
   {
     "id": "api.ldap.init.debug",
@@ -4975,6 +4979,10 @@
     "translation": "Başlık geçersiz"
   },
   {
+    "id": "model.incoming_hook.icon_url.app_error",
+    "translation": "İleti simgesi geçersiz"
+  },
+  {
     "id": "model.incoming_hook.id.app_error",
     "translation": "Kod geçersiz"
   },
@@ -4989,6 +4997,10 @@
   {
     "id": "model.incoming_hook.user_id.app_error",
     "translation": "Kullanıcı kodu geçersiz"
+  },
+  {
+    "id": "model.incoming_hook.username.app_error",
+    "translation": "Kullanıcı adı geçersiz"
   },
   {
     "id": "model.job.is_valid.create_at.app_error",
