@@ -214,6 +214,7 @@ type ServiceSettings struct {
 	EnablePreviewFeatures                             *bool
 	EnableTutorial                                    *bool
 	ExperimentalEnableDefaultChannelLeaveJoinMessages *bool
+	ExperimentalGroupUnreadChannels                   *bool
 	ImageProxyType                                    *string
 	ImageProxyURL                                     *string
 	ImageProxyOptions                                 *string
@@ -420,6 +421,10 @@ func (s *ServiceSettings) SetDefaults() {
 
 	if s.ExperimentalEnableDefaultChannelLeaveJoinMessages == nil {
 		s.ExperimentalEnableDefaultChannelLeaveJoinMessages = NewBool(true)
+	}
+
+	if s.ExperimentalGroupUnreadChannels == nil {
+		s.ExperimentalGroupUnreadChannels = NewBool(false)
 	}
 
 	if s.ImageProxyType == nil {
