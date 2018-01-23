@@ -18,6 +18,7 @@ func TestEmojiStore(t *testing.T, ss store.Store) {
 	t.Run("EmojiGet", func(t *testing.T) { testEmojiGet(t, ss) })
 	t.Run("EmojiGetByName", func(t *testing.T) { testEmojiGetByName(t, ss) })
 	t.Run("EmojiGetList", func(t *testing.T) { testEmojiGetList(t, ss) })
+	t.Run("EmojiSearch", func(t *testing.T) { testEmojiSearch(t, ss) })
 }
 
 func testEmojiSaveDelete(t *testing.T, ss store.Store) {
@@ -190,4 +191,71 @@ func testEmojiGetList(t *testing.T, ss store.Store) {
 	assert.Equal(t, emojis[1].Name, remojis[0].Name)
 	assert.Equal(t, emojis[2].Name, remojis[1].Name)
 
+}
+
+func testEmojiSearch(t *testing.T, ss store.Store) {
+	emojis := []model.Emoji{
+		{
+			CreatorId: model.NewId(),
+			Name:      "blargh_" + model.NewId(),
+		},
+		{
+			CreatorId: model.NewId(),
+			Name:      model.NewId() + "_blargh",
+		},
+		{
+			CreatorId: model.NewId(),
+			Name:      model.NewId() + "_blargh_" + model.NewId(),
+		},
+		{
+			CreatorId: model.NewId(),
+			Name:      model.NewId(),
+		},
+	}
+
+	for i, emoji := range emojis {
+		emojis[i] = *store.Must(ss.Emoji().Save(&emoji)).(*model.Emoji)
+	}
+	defer func() {
+		for _, emoji := range emojis {
+			store.Must(ss.Emoji().Delete(emoji.Id, time.Now().Unix()))
+		}
+	}()
+
+	shouldFind := []bool{true, false, false, false}
+
+	if result := <-ss.Emoji().Search("blargh", true, 100); result.Err != nil {
+		t.Fatal(result.Err)
+	} else {
+		for i, emoji := range emojis {
+			found := false
+
+			for _, savedEmoji := range result.Data.([]*model.Emoji) {
+				if emoji.Id == savedEmoji.Id {
+					found = true
+					break
+				}
+			}
+
+			assert.Equal(t, shouldFind[i], found, emoji.Name)
+		}
+	}
+
+	shouldFind = []bool{true, true, true, false}
+	if result := <-ss.Emoji().Search("blargh", false, 100); result.Err != nil {
+		t.Fatal(result.Err)
+	} else {
+		for i, emoji := range emojis {
+			found := false
+
+			for _, savedEmoji := range result.Data.([]*model.Emoji) {
+				if emoji.Id == savedEmoji.Id {
+					found = true
+					break
+				}
+			}
+
+			assert.Equal(t, shouldFind[i], found, emoji.Name)
+		}
+	}
 }
