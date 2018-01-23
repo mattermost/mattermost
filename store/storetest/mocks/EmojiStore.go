@@ -92,3 +92,19 @@ func (_m *EmojiStore) Save(emoji *model.Emoji) store.StoreChannel {
 
 	return r0
 }
+
+// Search provides a mock function with given fields: name, prefixOnly, limit
+func (_m *EmojiStore) Search(name string, prefixOnly bool, limit int) store.StoreChannel {
+	ret := _m.Called(name, prefixOnly, limit)
+
+	var r0 store.StoreChannel
+	if rf, ok := ret.Get(0).(func(string, bool, int) store.StoreChannel); ok {
+		r0 = rf(name, prefixOnly, limit)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.StoreChannel)
+		}
+	}
+
+	return r0
+}

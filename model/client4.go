@@ -3070,6 +3070,27 @@ func (c *Client4) GetEmojiImage(emojiId string) ([]byte, *Response) {
 	}
 }
 
+// SearchEmoji returns a list of emoji matching some search criteria.
+func (c *Client4) SearchEmoji(search *EmojiSearch) ([]*Emoji, *Response) {
+	if r, err := c.DoApiPost(c.GetEmojisRoute()+"/search", search.ToJson()); err != nil {
+		return nil, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return EmojiListFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// AutocompleteEmoji returns a list of emoji starting with or matching name.
+func (c *Client4) AutocompleteEmoji(name string, etag string) ([]*Emoji, *Response) {
+	query := fmt.Sprintf("?name=%v", name)
+	if r, err := c.DoApiGet(c.GetEmojisRoute()+"/autocomplete"+query, ""); err != nil {
+		return nil, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return EmojiListFromJson(r.Body), BuildResponse(r)
+	}
+}
+
 // Reaction Section
 
 // SaveReaction saves an emoji reaction for a post. Returns the saved reaction if successful, otherwise an error will be returned.

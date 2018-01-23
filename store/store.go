@@ -393,6 +393,7 @@ type EmojiStore interface {
 	GetByName(name string) StoreChannel
 	GetList(offset, limit int, sort string) StoreChannel
 	Delete(id string, time int64) StoreChannel
+	Search(name string, prefixOnly bool, limit int) StoreChannel
 }
 
 type StatusStore interface {

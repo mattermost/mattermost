@@ -11,6 +11,8 @@ import (
 
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestCreateEmoji(t *testing.T) {
@@ -431,4 +433,136 @@ func TestGetEmojiImage(t *testing.T) {
 
 	_, resp = Client.GetEmojiImage("")
 	CheckBadRequestStatus(t, resp)
+}
+
+func TestSearchEmoji(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+	Client := th.Client
+
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableCustomEmoji = true })
+
+	searchTerm1 := model.NewId()
+	searchTerm2 := model.NewId()
+
+	emojis := []*model.Emoji{
+		{
+			CreatorId: th.BasicUser.Id,
+			Name:      searchTerm1,
+		},
+		{
+			CreatorId: th.BasicUser.Id,
+			Name:      "blargh_" + searchTerm2,
+		},
+	}
+
+	for idx, emoji := range emojis {
+		emoji, resp := Client.CreateEmoji(emoji, utils.CreateTestGif(t, 10, 10), "image.gif")
+		CheckNoError(t, resp)
+		emojis[idx] = emoji
+	}
+
+	search := &model.EmojiSearch{Term: searchTerm1}
+	remojis, resp := Client.SearchEmoji(search)
+	CheckNoError(t, resp)
+	CheckOKStatus(t, resp)
+
+	found := false
+	for _, e := range remojis {
+		if e.Name == emojis[0].Name {
+			found = true
+		}
+	}
+
+	assert.True(t, found)
+
+	search.Term = searchTerm2
+	search.PrefixOnly = true
+	remojis, resp = Client.SearchEmoji(search)
+	CheckNoError(t, resp)
+	CheckOKStatus(t, resp)
+
+	found = false
+	for _, e := range remojis {
+		if e.Name == emojis[1].Name {
+			found = true
+		}
+	}
+
+	assert.False(t, found)
+
+	search.PrefixOnly = false
+	remojis, resp = Client.SearchEmoji(search)
+	CheckNoError(t, resp)
+	CheckOKStatus(t, resp)
+
+	found = false
+	for _, e := range remojis {
+		if e.Name == emojis[1].Name {
+			found = true
+		}
+	}
+
+	assert.True(t, found)
+
+	search.Term = ""
+	_, resp = Client.SearchEmoji(search)
+	CheckBadRequestStatus(t, resp)
+
+	Client.Logout()
+	_, resp = Client.SearchEmoji(search)
+	CheckUnauthorizedStatus(t, resp)
+}
+
+func TestAutocompleteEmoji(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+	Client := th.Client
+
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableCustomEmoji = true })
+
+	searchTerm1 := model.NewId()
+
+	emojis := []*model.Emoji{
+		{
+			CreatorId: th.BasicUser.Id,
+			Name:      searchTerm1,
+		},
+		{
+			CreatorId: th.BasicUser.Id,
+			Name:      "blargh_" + searchTerm1,
+		},
+	}
+
+	for idx, emoji := range emojis {
+		emoji, resp := Client.CreateEmoji(emoji, utils.CreateTestGif(t, 10, 10), "image.gif")
+		CheckNoError(t, resp)
+		emojis[idx] = emoji
+	}
+
+	remojis, resp := Client.AutocompleteEmoji(searchTerm1, "")
+	CheckNoError(t, resp)
+	CheckOKStatus(t, resp)
+
+	found1 := false
+	found2 := false
+	for _, e := range remojis {
+		if e.Name == emojis[0].Name {
+			found1 = true
+		}
+
+		if e.Name == emojis[1].Name {
+			found2 = true
+		}
+	}
+
+	assert.True(t, found1)
+	assert.False(t, found2)
+
+	_, resp = Client.AutocompleteEmoji("", "")
+	CheckBadRequestStatus(t, resp)
+
+	Client.Logout()
+	_, resp = Client.AutocompleteEmoji(searchTerm1, "")
+	CheckUnauthorizedStatus(t, resp)
 }
