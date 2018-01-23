@@ -10,7 +10,6 @@ import (
 	"net/http"
 	"net/url"
 	"path/filepath"
-	"regexp"
 	"sort"
 	"strings"
 	"time"
@@ -20,6 +19,7 @@ import (
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
 	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/utils/markdown"
 	"github.com/nicksnyder/go-i18n/i18n"
 )
 
@@ -71,8 +71,8 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 	} else {
 		keywords := a.GetMentionKeywordsInChannel(profileMap, post.Type != model.POST_HEADER_CHANGE && post.Type != model.POST_PURPOSE_CHANGE)
 
-		var potentialOtherMentions []string
-		mentionedUserIds, potentialOtherMentions, hereNotification, channelNotification, allNotification = GetExplicitMentions(post.Message, keywords)
+		m := GetExplicitMentions(post.Message, keywords)
+		mentionedUserIds, hereNotification, channelNotification, allNotification = m.MentionedUserIds, m.HereMentioned, m.ChannelMentioned, m.AllMentioned
 
 		// get users that have comment thread mentions enabled
 		if len(post.RootId) > 0 && parentPostList != nil {
@@ -89,8 +89,8 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 			delete(mentionedUserIds, post.UserId)
 		}
 
-		if len(potentialOtherMentions) > 0 {
-			if result := <-a.Srv.Store.User().GetProfilesByUsernames(potentialOtherMentions, team.Id); result.Err == nil {
+		if len(m.OtherPotentialMentions) > 0 {
+			if result := <-a.Srv.Store.User().GetProfilesByUsernames(m.OtherPotentialMentions, team.Id); result.Err == nil {
 				outOfChannelMentions := result.Data.([]*model.User)
 				if channel.Type != model.CHANNEL_GROUP {
 					a.Go(func() {
@@ -788,125 +788,133 @@ func (a *App) sendOutOfChannelMentions(sender *model.User, post *model.Post, cha
 	return nil
 }
 
+type ExplicitMentions struct {
+	// MentionedUserIds contains a key for each user mentioned by keyword.
+	MentionedUserIds map[string]bool
+
+	// OtherPotentialMentions contains a list of strings that looked like mentions, but didn't have
+	// a corresponding keyword.
+	OtherPotentialMentions []string
+
+	// HereMentioned is true if the message contained @here.
+	HereMentioned bool
+
+	// AllMentioned is true if the message contained @all.
+	AllMentioned bool
+
+	// ChannelMentioned is true if the message contained @channel.
+	ChannelMentioned bool
+}
+
 // Given a message and a map mapping mention keywords to the users who use them, returns a map of mentioned
 // users and a slice of potential mention users not in the channel and whether or not @here was mentioned.
-func GetExplicitMentions(message string, keywords map[string][]string) (map[string]bool, []string, bool, bool, bool) {
-	mentioned := make(map[string]bool)
-	potentialOthersMentioned := make([]string, 0)
+func GetExplicitMentions(message string, keywords map[string][]string) *ExplicitMentions {
+	ret := &ExplicitMentions{
+		MentionedUserIds: make(map[string]bool),
+	}
 	systemMentions := map[string]bool{"@here": true, "@channel": true, "@all": true}
-	hereMentioned := false
-	allMentioned := false
-	channelMentioned := false
 
 	addMentionedUsers := func(ids []string) {
 		for _, id := range ids {
-			mentioned[id] = true
+			ret.MentionedUserIds[id] = true
 		}
 	}
 
-	message = removeCodeFromMessage(message)
+	processText := func(text string) {
+		for _, word := range strings.FieldsFunc(text, func(c rune) bool {
+			// Split on any whitespace or punctuation that can't be part of an at mention or emoji pattern
+			return !(c == ':' || c == '.' || c == '-' || c == '_' || c == '@' || unicode.IsLetter(c) || unicode.IsNumber(c))
+		}) {
+			isMention := false
 
-	for _, word := range strings.FieldsFunc(message, func(c rune) bool {
-		// Split on any whitespace or punctuation that can't be part of an at mention or emoji pattern
-		return !(c == ':' || c == '.' || c == '-' || c == '_' || c == '@' || unicode.IsLetter(c) || unicode.IsNumber(c))
-	}) {
-		isMention := false
+			// skip word with format ':word:' with an assumption that it is an emoji format only
+			if word[0] == ':' && word[len(word)-1] == ':' {
+				continue
+			}
 
-		// skip word with format ':word:' with an assumption that it is an emoji format only
-		if word[0] == ':' && word[len(word)-1] == ':' {
-			continue
-		}
+			if word == "@here" {
+				ret.HereMentioned = true
+			}
 
-		if word == "@here" {
-			hereMentioned = true
-		}
+			if word == "@channel" {
+				ret.ChannelMentioned = true
+			}
 
-		if word == "@channel" {
-			channelMentioned = true
-		}
+			if word == "@all" {
+				ret.AllMentioned = true
+			}
 
-		if word == "@all" {
-			allMentioned = true
-		}
+			// Non-case-sensitive check for regular keys
+			if ids, match := keywords[strings.ToLower(word)]; match {
+				addMentionedUsers(ids)
+				isMention = true
+			}
 
-		// Non-case-sensitive check for regular keys
-		if ids, match := keywords[strings.ToLower(word)]; match {
-			addMentionedUsers(ids)
-			isMention = true
-		}
+			// Case-sensitive check for first name
+			if ids, match := keywords[word]; match {
+				addMentionedUsers(ids)
+				isMention = true
+			}
 
-		// Case-sensitive check for first name
-		if ids, match := keywords[word]; match {
-			addMentionedUsers(ids)
-			isMention = true
-		}
+			if isMention {
+				continue
+			}
 
-		if isMention {
-			continue
-		}
+			if strings.ContainsAny(word, ".-:") {
+				// This word contains a character that may be the end of a sentence, so split further
+				splitWords := strings.FieldsFunc(word, func(c rune) bool {
+					return c == '.' || c == '-' || c == ':'
+				})
 
-		if strings.ContainsAny(word, ".-:") {
-			// This word contains a character that may be the end of a sentence, so split further
-			splitWords := strings.FieldsFunc(word, func(c rune) bool {
-				return c == '.' || c == '-' || c == ':'
-			})
+				for _, splitWord := range splitWords {
+					if splitWord == "@here" {
+						ret.HereMentioned = true
+					}
 
-			for _, splitWord := range splitWords {
-				if splitWord == "@here" {
-					hereMentioned = true
-				}
+					if splitWord == "@all" {
+						ret.AllMentioned = true
+					}
 
-				if splitWord == "@all" {
-					allMentioned = true
-				}
+					if splitWord == "@channel" {
+						ret.ChannelMentioned = true
+					}
 
-				if splitWord == "@channel" {
-					channelMentioned = true
-				}
+					// Non-case-sensitive check for regular keys
+					if ids, match := keywords[strings.ToLower(splitWord)]; match {
+						addMentionedUsers(ids)
+					}
 
-				// Non-case-sensitive check for regular keys
-				if ids, match := keywords[strings.ToLower(splitWord)]; match {
-					addMentionedUsers(ids)
-				}
-
-				// Case-sensitive check for first name
-				if ids, match := keywords[splitWord]; match {
-					addMentionedUsers(ids)
-				} else if _, ok := systemMentions[splitWord]; !ok && strings.HasPrefix(splitWord, "@") {
-					username := splitWord[1:]
-					potentialOthersMentioned = append(potentialOthersMentioned, username)
+					// Case-sensitive check for first name
+					if ids, match := keywords[splitWord]; match {
+						addMentionedUsers(ids)
+					} else if _, ok := systemMentions[splitWord]; !ok && strings.HasPrefix(splitWord, "@") {
+						username := splitWord[1:]
+						ret.OtherPotentialMentions = append(ret.OtherPotentialMentions, username)
+					}
 				}
 			}
+
+			if _, ok := systemMentions[word]; !ok && strings.HasPrefix(word, "@") {
+				username := word[1:]
+				ret.OtherPotentialMentions = append(ret.OtherPotentialMentions, username)
+			}
 		}
+	}
 
-		if _, ok := systemMentions[word]; !ok && strings.HasPrefix(word, "@") {
-			username := word[1:]
-			potentialOthersMentioned = append(potentialOthersMentioned, username)
+	buf := ""
+	markdown.Inspect(message, func(node interface{}) bool {
+		text, ok := node.(*markdown.Text)
+		if !ok {
+			processText(buf)
+			buf = ""
+			return true
 		}
-	}
+		buf += text.Text
+		return false
+	})
+	processText(buf)
 
-	return mentioned, potentialOthersMentioned, hereMentioned, channelMentioned, allMentioned
-}
-
-// Matches a line containing only ``` and a potential language definition, any number of lines not containing ```,
-// and then either a line containing only ``` or the end of the text
-var codeBlockPattern = regexp.MustCompile("(?m)^[^\\S\n]*[\\`~]{3}.*$[\\s\\S]+?(^[^\\S\n]*[`~]{3}$|\\z)")
-
-// Matches a backquote, either some text or any number of non-empty lines, and then a final backquote
-var inlineCodePattern = regexp.MustCompile("(?m)\\`+(?:.+?|.*?\n(.*?\\S.*?\n)*.*?)\\`+")
-
-// Strips pre-formatted text and code blocks from a Markdown string by replacing them with whitespace
-func removeCodeFromMessage(message string) string {
-	if strings.Contains(message, "```") || strings.Contains(message, "~~~") {
-		message = codeBlockPattern.ReplaceAllString(message, "")
-	}
-
-	// Replace with a space to prevent cases like "user`code`name" from turning into "username"
-	if strings.Contains(message, "`") {
-		message = inlineCodePattern.ReplaceAllString(message, " ")
-	}
-
-	return message
+	return ret
 }
 
 // Given a map of user IDs to profiles, returns a list of mention
