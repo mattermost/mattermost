@@ -88,7 +88,11 @@ func uploadFile(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	resStruct, err := c.App.UploadFiles(FILE_TEAM_ID, channelId, c.Session.UserId, m.File["files"], m.Value["client_ids"])
+	var fileNameIsEncoded = false
+	if val, ok := props["encoded_filename"]; ok {
+		fileNameIsEncoded = val[0] == "true"
+	}
+	resStruct, err := c.App.UploadFiles(FILE_TEAM_ID, channelId, c.Session.UserId, m.File["files"], m.Value["client_ids"], fileNameIsEncoded)
 	if err != nil {
 		c.Err = err
 		return
