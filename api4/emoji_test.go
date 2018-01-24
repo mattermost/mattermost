@@ -316,6 +316,33 @@ func TestGetEmoji(t *testing.T) {
 	CheckNotFoundStatus(t, resp)
 }
 
+func TestGetEmojiByName(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+	Client := th.Client
+
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableCustomEmoji = true })
+
+	emoji := &model.Emoji{
+		CreatorId: th.BasicUser.Id,
+		Name:      model.NewId(),
+	}
+
+	newEmoji, resp := Client.CreateEmoji(emoji, utils.CreateTestGif(t, 10, 10), "image.gif")
+	CheckNoError(t, resp)
+
+	emoji, resp = Client.GetEmojiByName(newEmoji.Name)
+	CheckNoError(t, resp)
+	assert.Equal(t, newEmoji.Name, emoji.Name)
+
+	_, resp = Client.GetEmojiByName(model.NewId())
+	CheckNotFoundStatus(t, resp)
+
+	Client.Logout()
+	_, resp = Client.GetEmojiByName(newEmoji.Name)
+	CheckUnauthorizedStatus(t, resp)
+}
+
 func TestGetEmojiImage(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()

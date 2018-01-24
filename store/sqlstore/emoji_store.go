@@ -4,6 +4,7 @@
 package sqlstore
 
 import (
+	"database/sql"
 	"net/http"
 
 	"github.com/mattermost/mattermost-server/einterfaces"
@@ -118,6 +119,9 @@ func (es SqlEmojiStore) GetByName(name string) store.StoreChannel {
 				Name = :Name
 				AND DeleteAt = 0`, map[string]interface{}{"Name": name}); err != nil {
 			result.Err = model.NewAppError("SqlEmojiStore.GetByName", "store.sql_emoji.get_by_name.app_error", nil, "name="+name+", "+err.Error(), http.StatusInternalServerError)
+			if err == sql.ErrNoRows {
+				result.Err.StatusCode = http.StatusNotFound
+			}
 		} else {
 			result.Data = emoji
 		}
