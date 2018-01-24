@@ -96,8 +96,9 @@ type Routes struct {
 
 	Reactions *mux.Router // 'api/v4/reactions'
 
-	Emojis *mux.Router // 'api/v4/emoji'
-	Emoji  *mux.Router // 'api/v4/emoji/{emoji_id:[A-Za-z0-9]+}'
+	Emojis      *mux.Router // 'api/v4/emoji'
+	Emoji       *mux.Router // 'api/v4/emoji/{emoji_id:[A-Za-z0-9]+}'
+	EmojiByName *mux.Router // 'api/v4/emoji/name/{emoji_name:[A-Za-z0-9_-\.]+}'
 
 	ReactionByNameForPostForUser *mux.Router // 'api/v4/users/{user_id:[A-Za-z0-9]+}/posts/{post_id:[A-Za-z0-9]+}/reactions/{emoji_name:[A-Za-z0-9_-+]+}'
 
@@ -185,6 +186,7 @@ func Init(a *app.App, root *mux.Router, full bool) *API {
 
 	api.BaseRoutes.Emojis = api.BaseRoutes.ApiRoot.PathPrefix("/emoji").Subrouter()
 	api.BaseRoutes.Emoji = api.BaseRoutes.ApiRoot.PathPrefix("/emoji/{emoji_id:[A-Za-z0-9]+}").Subrouter()
+	api.BaseRoutes.EmojiByName = api.BaseRoutes.Emojis.PathPrefix("/name/{emoji_name:[A-Za-z0-9\\_\\-\\+]+}").Subrouter()
 
 	api.BaseRoutes.ReactionByNameForPostForUser = api.BaseRoutes.PostForUser.PathPrefix("/reactions/{emoji_name:[A-Za-z0-9\\_\\-\\+]+}").Subrouter()
 

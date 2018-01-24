@@ -22,6 +22,7 @@ func (api *API) InitEmoji() {
 	api.BaseRoutes.Emojis.Handle("/autocomplete", api.ApiSessionRequired(autocompleteEmojis)).Methods("GET")
 	api.BaseRoutes.Emoji.Handle("", api.ApiSessionRequired(deleteEmoji)).Methods("DELETE")
 	api.BaseRoutes.Emoji.Handle("", api.ApiSessionRequired(getEmoji)).Methods("GET")
+	api.BaseRoutes.EmojiByName.Handle("", api.ApiSessionRequired(getEmojiByName)).Methods("GET")
 	api.BaseRoutes.Emoji.Handle("/image", api.ApiSessionRequiredTrustRequester(getEmojiImage)).Methods("GET")
 }
 
@@ -134,6 +135,21 @@ func getEmoji(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	emoji, err := c.App.GetEmoji(c.Params.EmojiId)
+	if err != nil {
+		c.Err = err
+		return
+	} else {
+		w.Write([]byte(emoji.ToJson()))
+	}
+}
+
+func getEmojiByName(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireEmojiName()
+	if c.Err != nil {
+		return
+	}
+
+	emoji, err := c.App.GetEmojiByName(c.Params.EmojiName)
 	if err != nil {
 		c.Err = err
 		return
