@@ -95,7 +95,6 @@ func TestDoAdvancedPermissionsMigration(t *testing.T) {
 		"system_user_access_token",
 		"team_post_all",
 		"team_post_all_public",
-		"guest",
 	}
 
 	roles1, err1 := th.App.GetRolesByNames(roleNames)
@@ -117,7 +116,6 @@ func TestDoAdvancedPermissionsMigration(t *testing.T) {
 		"channel_admin": []string{
 			model.PERMISSION_MANAGE_CHANNEL_ROLES.Id,
 		},
-		"guest": []string{},
 		"team_user": []string{
 			model.PERMISSION_LIST_TEAM_CHANNELS.Id,
 			model.PERMISSION_JOIN_PUBLIC_CHANNELS.Id,
@@ -286,7 +284,6 @@ func TestDoAdvancedPermissionsMigration(t *testing.T) {
 		"channel_admin": []string{
 			model.PERMISSION_MANAGE_CHANNEL_ROLES.Id,
 		},
-		"guest": []string{},
 		"team_user": []string{
 			model.PERMISSION_LIST_TEAM_CHANNELS.Id,
 			model.PERMISSION_JOIN_PUBLIC_CHANNELS.Id,

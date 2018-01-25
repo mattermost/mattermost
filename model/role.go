@@ -23,7 +23,6 @@ const (
 
 	CHANNEL_USER_ROLE_ID  = "channel_user"
 	CHANNEL_ADMIN_ROLE_ID = "channel_admin"
-	CHANNEL_GUEST_ROLE_ID = "guest"
 
 	ROLE_NAME_MAX_LENGTH = 64
 )
@@ -146,14 +145,6 @@ func MakeDefaultRoles() map[string]*Role {
 		Permissions: []string{
 			PERMISSION_MANAGE_CHANNEL_ROLES.Id,
 		},
-		SchemeManaged: true,
-	}
-
-	roles[CHANNEL_GUEST_ROLE_ID] = &Role{
-		Name:          "guest",
-		DisplayName:   "authentication.roles.global_guest.name",
-		Description:   "authentication.roles.global_guest.description",
-		Permissions:   []string{},
 		SchemeManaged: true,
 	}
 
