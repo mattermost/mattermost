@@ -279,7 +279,7 @@ func GeneratePublicLinkHash(fileId, salt string) string {
 	return base64.RawURLEncoding.EncodeToString(hash.Sum(nil))
 }
 
-func (a *App) UploadFiles(teamId string, channelId string, userId string, fileHeaders []*multipart.FileHeader, clientIds []string) (*model.FileUploadResponse, *model.AppError) {
+func (a *App) UploadFiles(teamId string, channelId string, userId string, fileHeaders []*multipart.FileHeader, clientIds []string, fileNameIsEncoded bool) (*model.FileUploadResponse, *model.AppError) {
 	if len(*a.Config().FileSettings.DriverName) == 0 {
 		return nil, model.NewAppError("uploadFile", "api.file.upload_file.storage.app_error", nil, "", http.StatusNotImplemented)
 	}
@@ -303,6 +303,13 @@ func (a *App) UploadFiles(teamId string, channelId string, userId string, fileHe
 		buf := bytes.NewBuffer(nil)
 		io.Copy(buf, file)
 		data := buf.Bytes()
+
+		if fileNameIsEncoded {
+			unescapedFilename, unescapeFilenameErr := url.PathUnescape(fileHeader.Filename)
+			if unescapeFilenameErr == nil {
+				fileHeader.Filename = unescapedFilename
+			}
+		}
 
 		info, err := a.DoUploadFile(time.Now(), teamId, channelId, userId, fileHeader.Filename, data)
 		if err != nil {
