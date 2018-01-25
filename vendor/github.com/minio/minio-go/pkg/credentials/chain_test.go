@@ -1,6 +1,6 @@
 /*
  * Minio Go Library for Amazon S3 Compatible Cloud Storage
- * (C) 2017 Minio, Inc.
+ * Copyright 2017 Minio, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -76,7 +76,14 @@ func TestChainGet(t *testing.T) {
 }
 
 func TestChainIsExpired(t *testing.T) {
-	credProvider := &credProvider{expired: true}
+	credProvider := &credProvider{
+		creds: Value{
+			AccessKeyID:     "UXHW",
+			SecretAccessKey: "MYSECRET",
+			SessionToken:    "",
+		},
+		expired: true,
+	}
 	p := &Chain{
 		Providers: []Provider{
 			credProvider,

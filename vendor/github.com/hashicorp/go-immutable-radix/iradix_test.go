@@ -6,7 +6,7 @@ import (
 	"sort"
 	"testing"
 
-	"github.com/hashicorp/uuid"
+	"github.com/hashicorp/go-uuid"
 )
 
 func CopyTree(t *Tree) *Tree {
@@ -55,7 +55,10 @@ func TestRadix_HugeTxn(t *testing.T) {
 	txn1 := r.Txn()
 	var expect []string
 	for i := 0; i < defaultModifiedCache*100; i++ {
-		gen := uuid.GenerateUUID()
+		gen, err := uuid.GenerateUUID()
+		if err != nil {
+			t.Fatalf("err: %v", err)
+		}
 		txn1.Insert([]byte(gen), i)
 		expect = append(expect, gen)
 	}
@@ -85,7 +88,10 @@ func TestRadix(t *testing.T) {
 	var min, max string
 	inp := make(map[string]interface{})
 	for i := 0; i < 1000; i++ {
-		gen := uuid.GenerateUUID()
+		gen, err := uuid.GenerateUUID()
+		if err != nil {
+			t.Fatalf("err: %v", err)
+		}
 		inp[gen] = i
 		if gen < min || i == 0 {
 			min = gen

@@ -690,7 +690,7 @@ func TestKeyGroupArray(t *testing.T) {
 
 func TestQuotedKey(t *testing.T) {
 	testFlow(t, "\"a b\" = 42", []token{
-		{Position{1, 1}, tokenKey, "\"a b\""},
+		{Position{1, 1}, tokenKey, "a b"},
 		{Position{1, 7}, tokenEqual, "="},
 		{Position{1, 9}, tokenInteger, "42"},
 		{Position{1, 11}, tokenEOF, ""},

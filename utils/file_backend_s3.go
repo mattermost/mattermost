@@ -83,7 +83,7 @@ func (b *S3FileBackend) ReadFile(path string) ([]byte, *model.AppError) {
 	if err != nil {
 		return nil, model.NewAppError("ReadFile", "api.file.read_file.s3.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
-	minioObject, err := s3Clnt.GetObject(b.bucket, path)
+	minioObject, err := s3Clnt.GetObject(b.bucket, path, s3.GetObjectOptions{})
 	if err != nil {
 		return nil, model.NewAppError("ReadFile", "api.file.read_file.s3.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
@@ -138,13 +138,18 @@ func (b *S3FileBackend) WriteFile(f []byte, path string) *model.AppError {
 		return model.NewAppError("WriteFile", "api.file.write_file.s3.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	ext := filepath.Ext(path)
-	metaData := s3Metadata(b.encrypt, "binary/octet-stream")
-	if model.IsFileExtImage(ext) {
-		metaData = s3Metadata(b.encrypt, model.GetImageMimeType(ext))
+	options := s3.PutObjectOptions{}
+	if b.encrypt {
+		options.UserMetadata["x-amz-server-side-encryption"] = "AES256"
 	}
 
-	if _, err = s3Clnt.PutObjectWithMetadata(b.bucket, path, bytes.NewReader(f), metaData, nil); err != nil {
+	if ext := filepath.Ext(path); model.IsFileExtImage(ext) {
+		options.ContentType = model.GetImageMimeType(ext)
+	} else {
+		options.ContentType = "binary/octet-stream"
+	}
+
+	if _, err = s3Clnt.PutObject(b.bucket, path, bytes.NewReader(f), -1, options); err != nil {
 		return model.NewAppError("WriteFile", "api.file.write_file.s3.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
@@ -223,17 +228,6 @@ func (b *S3FileBackend) RemoveDirectory(path string) *model.AppError {
 
 	close(doneCh)
 	return nil
-}
-
-func s3Metadata(encrypt bool, contentType string) map[string][]string {
-	metaData := make(map[string][]string)
-	if contentType != "" {
-		metaData["Content-Type"] = []string{"contentType"}
-	}
-	if encrypt {
-		metaData["x-amz-server-side-encryption"] = []string{"AES256"}
-	}
-	return metaData
 }
 
 func s3CopyMetadata(encrypt bool) map[string]string {

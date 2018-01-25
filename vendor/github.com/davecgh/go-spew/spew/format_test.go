@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 Dave Collins <dave@davec.name>
+ * Copyright (c) 2013-2016 Dave Collins <dave@davec.name>
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -75,7 +75,7 @@ import (
 	"github.com/davecgh/go-spew/spew"
 )
 
-// formatterTest is used to describe a test to be perfomed against NewFormatter.
+// formatterTest is used to describe a test to be performed against NewFormatter.
 type formatterTest struct {
 	format string
 	in     interface{}
@@ -1536,14 +1536,14 @@ func TestPrintSortedKeys(t *testing.T) {
 		t.Errorf("Sorted keys mismatch 3:\n  %v %v", s, expected)
 	}
 
-	s = cfg.Sprint(map[testStruct]int{testStruct{1}: 1, testStruct{3}: 3, testStruct{2}: 2})
+	s = cfg.Sprint(map[testStruct]int{{1}: 1, {3}: 3, {2}: 2})
 	expected = "map[ts.1:1 ts.2:2 ts.3:3]"
 	if s != expected {
 		t.Errorf("Sorted keys mismatch 4:\n  %v %v", s, expected)
 	}
 
 	if !spew.UnsafeDisabled {
-		s = cfg.Sprint(map[testStructP]int{testStructP{1}: 1, testStructP{3}: 3, testStructP{2}: 2})
+		s = cfg.Sprint(map[testStructP]int{{1}: 1, {3}: 3, {2}: 2})
 		expected = "map[ts.1:1 ts.2:2 ts.3:3]"
 		if s != expected {
 			t.Errorf("Sorted keys mismatch 5:\n  %v %v", s, expected)

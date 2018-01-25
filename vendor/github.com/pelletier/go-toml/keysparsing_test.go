@@ -50,17 +50,10 @@ func TestBaseKeyPound(t *testing.T) {
 func TestQuotedKeys(t *testing.T) {
 	testResult(t, `hello."foo".bar`, []string{"hello", "foo", "bar"})
 	testResult(t, `"hello!"`, []string{"hello!"})
-	testResult(t, `"hello\tworld"`, []string{"hello\tworld"})
-	testResult(t, `"\U0001F914"`, []string{"\U0001F914"})
-	testResult(t, `"\u2764"`, []string{"\u2764"})
+	testResult(t, `foo."ba.r".baz`, []string{"foo", "ba.r", "baz"})
 
-	testResult(t, `hello.'foo'.bar`, []string{"hello", "foo", "bar"})
-	testResult(t, `'hello!'`, []string{"hello!"})
-	testResult(t, `'hello\tworld'`, []string{`hello\tworld`})
-
-	testError(t, `"\w"`, `invalid escape sequence \w`)
-	testError(t, `"\`, `unfinished escape sequence`)
-	testError(t, `"\t`, `mismatched quotes`)
+	// escape sequences must not be converted
+	testResult(t, `"hello\tworld"`, []string{`hello\tworld`})
 }
 
 func TestEmptyKey(t *testing.T) {
