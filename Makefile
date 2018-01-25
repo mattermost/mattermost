@@ -300,6 +300,9 @@ update-zoom-plugin: ## Updates Zoom plugin.
 check-licenses: ## Checks license status.
 	./scripts/license-check.sh $(TE_PACKAGES) $(EE_PACKAGES)
 
+check-prereqs: ## Checks prerequisite software status.
+	./scripts/prereq-check.sh
+	
 check-style: govet gofmt check-licenses ## Runs govet and gofmt against all packages.
 
 test-te-race: ## Checks for race conditions in the team edition.
@@ -400,7 +403,7 @@ run-client-fullmap: ## Runs the webapp with source code mapping (slower; better 
 
 	cd $(BUILD_WEBAPP_DIR) && $(MAKE) run-fullmap
 
-run: run-server run-client ## Runs the server and webapp.
+run: check-prereqs run-server run-client ## Runs the server and webapp.
 
 run-fullmap: run-server run-client-fullmap ## Same as run but with a full sourcemap for client.
 
