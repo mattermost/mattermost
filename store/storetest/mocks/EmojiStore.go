@@ -61,13 +61,13 @@ func (_m *EmojiStore) GetByName(name string) store.StoreChannel {
 	return r0
 }
 
-// GetList provides a mock function with given fields: offset, limit
-func (_m *EmojiStore) GetList(offset int, limit int) store.StoreChannel {
-	ret := _m.Called(offset, limit)
+// GetList provides a mock function with given fields: offset, limit, sort
+func (_m *EmojiStore) GetList(offset int, limit int, sort string) store.StoreChannel {
+	ret := _m.Called(offset, limit, sort)
 
 	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(int, int) store.StoreChannel); ok {
-		r0 = rf(offset, limit)
+	if rf, ok := ret.Get(0).(func(int, int, string) store.StoreChannel); ok {
+		r0 = rf(offset, limit, sort)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(store.StoreChannel)
@@ -84,6 +84,22 @@ func (_m *EmojiStore) Save(emoji *model.Emoji) store.StoreChannel {
 	var r0 store.StoreChannel
 	if rf, ok := ret.Get(0).(func(*model.Emoji) store.StoreChannel); ok {
 		r0 = rf(emoji)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.StoreChannel)
+		}
+	}
+
+	return r0
+}
+
+// Search provides a mock function with given fields: name, prefixOnly, limit
+func (_m *EmojiStore) Search(name string, prefixOnly bool, limit int) store.StoreChannel {
+	ret := _m.Called(name, prefixOnly, limit)
+
+	var r0 store.StoreChannel
+	if rf, ok := ret.Get(0).(func(string, bool, int) store.StoreChannel); ok {
+		r0 = rf(name, prefixOnly, limit)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(store.StoreChannel)

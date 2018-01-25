@@ -17,13 +17,6 @@ func TestCreateIncomingWebhookForChannel(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
 
-	enableIncomingHooks := th.App.Config().ServiceSettings.EnableIncomingWebhooks
-	defer th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableIncomingWebhooks = enableIncomingHooks })
-	enablePostUsernameOverride := th.App.Config().ServiceSettings.EnablePostUsernameOverride
-	defer th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnablePostUsernameOverride = enablePostUsernameOverride })
-	enablePostIconOverride := th.App.Config().ServiceSettings.EnablePostIconOverride
-	defer th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnablePostIconOverride = enablePostIconOverride })
-
 	type TestCase struct {
 		EnableIncomingHooks        bool
 		EnablePostUsernameOverride bool
@@ -154,13 +147,6 @@ func TestCreateIncomingWebhookForChannel(t *testing.T) {
 func TestUpdateIncomingWebhook(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
-
-	enableIncomingHooks := th.App.Config().ServiceSettings.EnableIncomingWebhooks
-	defer th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableIncomingWebhooks = enableIncomingHooks })
-	enablePostUsernameOverride := th.App.Config().ServiceSettings.EnablePostUsernameOverride
-	defer th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnablePostUsernameOverride = enablePostUsernameOverride })
-	enablePostIconOverride := th.App.Config().ServiceSettings.EnablePostIconOverride
-	defer th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnablePostIconOverride = enablePostIconOverride })
 
 	type TestCase struct {
 		EnableIncomingHooks        bool
@@ -300,8 +286,6 @@ func TestCreateWebhookPost(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
 
-	enableIncomingHooks := th.App.Config().ServiceSettings.EnableIncomingWebhooks
-	defer th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableIncomingWebhooks = enableIncomingHooks })
 	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableIncomingWebhooks = true })
 
 	hook, err := th.App.CreateIncomingWebhookForChannel(th.BasicUser.Id, th.BasicChannel, &model.IncomingWebhook{ChannelId: th.BasicChannel.Id})

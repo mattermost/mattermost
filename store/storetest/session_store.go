@@ -8,9 +8,14 @@ import (
 
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestSessionStore(t *testing.T, ss store.Store) {
+	// Run serially to prevent interfering with other tests
+	testSessionCleanup(t, ss)
+
 	t.Run("Save", func(t *testing.T) { testSessionStoreSave(t, ss) })
 	t.Run("SessionGet", func(t *testing.T) { testSessionGet(t, ss) })
 	t.Run("SessionGetWithDeviceId", func(t *testing.T) { testSessionGetWithDeviceId(t, ss) })
@@ -58,7 +63,7 @@ func testSessionGet(t *testing.T, ss store.Store) {
 	if rs2 := (<-ss.Session().GetSessions(s1.UserId)); rs2.Err != nil {
 		t.Fatal(rs2.Err)
 	} else {
-		if len(rs2.Data.([]*model.Session)) != 2 {
+		if len(rs2.Data.([]*model.Session)) != 3 {
 			t.Fatal("should match len")
 		}
 	}
@@ -247,4 +252,45 @@ func testSessionCount(t *testing.T, ss store.Store) {
 			t.Fatal("should have at least 1 session")
 		}
 	}
+}
+
+func testSessionCleanup(t *testing.T, ss store.Store) {
+	now := model.GetMillis()
+
+	s1 := model.Session{}
+	s1.UserId = model.NewId()
+	s1.ExpiresAt = 0 // never expires
+	store.Must(ss.Session().Save(&s1))
+
+	s2 := model.Session{}
+	s2.UserId = s1.UserId
+	s2.ExpiresAt = now + 1000000 // expires in the future
+	store.Must(ss.Session().Save(&s2))
+
+	s3 := model.Session{}
+	s3.UserId = model.NewId()
+	s3.ExpiresAt = 1 // expired
+	store.Must(ss.Session().Save(&s3))
+
+	s4 := model.Session{}
+	s4.UserId = model.NewId()
+	s4.ExpiresAt = 2 // expired
+	store.Must(ss.Session().Save(&s4))
+
+	ss.Session().Cleanup(now, 1)
+
+	err := (<-ss.Session().Get(s1.Id)).Err
+	assert.Nil(t, err)
+
+	err = (<-ss.Session().Get(s2.Id)).Err
+	assert.Nil(t, err)
+
+	err = (<-ss.Session().Get(s3.Id)).Err
+	assert.NotNil(t, err)
+
+	err = (<-ss.Session().Get(s4.Id)).Err
+	assert.NotNil(t, err)
+
+	store.Must(ss.Session().Remove(s1.Id))
+	store.Must(ss.Session().Remove(s2.Id))
 }

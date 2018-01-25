@@ -386,7 +386,7 @@ func getPinnedPosts(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	} else {
 		w.Header().Set(model.HEADER_ETAG_SERVER, posts.Etag())
-		w.Write([]byte(posts.ToJson()))
+		w.Write([]byte(c.App.PostListWithProxyAddedToImageURLs(posts).ToJson()))
 	}
 }
 

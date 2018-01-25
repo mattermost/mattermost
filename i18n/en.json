@@ -316,6 +316,14 @@
     "translation": "%v has left the channel."
   },
   {
+    "id": "api.channel.change_channel_privacy.private_to_public",
+    "translation": "This channel has been converted to a Public Channel and can be joined by any team member."
+  },
+  {
+    "id": "api.channel.change_channel_privacy.public_to_private",
+    "translation": "This channel has been converted to a Private Channel."
+  },
+  {
     "id": "api.channel.post_update_channel_displayname_message_and_forget.create_post.error",
     "translation": "Failed to post displayname update message"
   },
@@ -4805,6 +4813,14 @@
   {
     "id": "model.config.is_valid.listen_address.app_error",
     "translation": "Invalid listen address for service settings Must be set."
+  },
+  {
+    "id": "model.config.is_valid.image_proxy_type.app_error",
+    "translation": "Invalid image proxy type for service settings."
+  },
+  {
+    "id": "model.config.is_valid.atmos_camo_image_proxy_options.app_error",
+    "translation": "Invalid atmos/camo image proxy options for service settings. Must be set to your shared key."
   },
   {
     "id": "model.config.is_valid.localization.available_locales.app_error",

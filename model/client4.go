@@ -282,6 +282,10 @@ func (c *Client4) GetEmojiRoute(emojiId string) string {
 	return fmt.Sprintf(c.GetEmojisRoute()+"/%v", emojiId)
 }
 
+func (c *Client4) GetEmojiByNameRoute(name string) string {
+	return fmt.Sprintf(c.GetEmojisRoute()+"/name/%v", name)
+}
+
 func (c *Client4) GetReactionsRoute() string {
 	return fmt.Sprintf("/reactions")
 }
@@ -3023,6 +3027,18 @@ func (c *Client4) GetEmojiList(page, perPage int) ([]*Emoji, *Response) {
 	}
 }
 
+// GetSortedEmojiList returns a page of custom emoji on the system sorted based on the sort
+// parameter, blank for no sorting and "name" to sort by emoji names.
+func (c *Client4) GetSortedEmojiList(page, perPage int, sort string) ([]*Emoji, *Response) {
+	query := fmt.Sprintf("?page=%v&per_page=%v&sort=%v", page, perPage, sort)
+	if r, err := c.DoApiGet(c.GetEmojisRoute()+query, ""); err != nil {
+		return nil, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return EmojiListFromJson(r.Body), BuildResponse(r)
+	}
+}
+
 // DeleteEmoji delete an custom emoji on the provided emoji id string.
 func (c *Client4) DeleteEmoji(emojiId string) (bool, *Response) {
 	if r, err := c.DoApiDelete(c.GetEmojiRoute(emojiId)); err != nil {
@@ -3033,9 +3049,19 @@ func (c *Client4) DeleteEmoji(emojiId string) (bool, *Response) {
 	}
 }
 
-// GetEmoji returns a custom emoji in the system on the provided emoji id string.
+// GetEmoji returns a custom emoji based on the emojiId string.
 func (c *Client4) GetEmoji(emojiId string) (*Emoji, *Response) {
 	if r, err := c.DoApiGet(c.GetEmojiRoute(emojiId), ""); err != nil {
+		return nil, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return EmojiFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// GetEmojiByName returns a custom emoji based on the name string.
+func (c *Client4) GetEmojiByName(name string) (*Emoji, *Response) {
+	if r, err := c.DoApiGet(c.GetEmojiByNameRoute(name), ""); err != nil {
 		return nil, BuildErrorResponse(r, err)
 	} else {
 		defer closeBody(r)
@@ -3055,6 +3081,27 @@ func (c *Client4) GetEmojiImage(emojiId string) ([]byte, *Response) {
 		} else {
 			return data, BuildResponse(r)
 		}
+	}
+}
+
+// SearchEmoji returns a list of emoji matching some search criteria.
+func (c *Client4) SearchEmoji(search *EmojiSearch) ([]*Emoji, *Response) {
+	if r, err := c.DoApiPost(c.GetEmojisRoute()+"/search", search.ToJson()); err != nil {
+		return nil, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return EmojiListFromJson(r.Body), BuildResponse(r)
+	}
+}
+
+// AutocompleteEmoji returns a list of emoji starting with or matching name.
+func (c *Client4) AutocompleteEmoji(name string, etag string) ([]*Emoji, *Response) {
+	query := fmt.Sprintf("?name=%v", name)
+	if r, err := c.DoApiGet(c.GetEmojisRoute()+"/autocomplete"+query, ""); err != nil {
+		return nil, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return EmojiListFromJson(r.Body), BuildResponse(r)
 	}
 }
 

@@ -260,6 +260,7 @@ type SessionStore interface {
 	UpdateRoles(userId string, roles string) StoreChannel
 	UpdateDeviceId(id string, deviceId string, expiresAt int64) StoreChannel
 	AnalyticsSessionCount() StoreChannel
+	Cleanup(expiryTime int64, batchSize int64)
 }
 
 type AuditStore interface {
@@ -390,8 +391,9 @@ type EmojiStore interface {
 	Save(emoji *model.Emoji) StoreChannel
 	Get(id string, allowFromCache bool) StoreChannel
 	GetByName(name string) StoreChannel
-	GetList(offset, limit int) StoreChannel
+	GetList(offset, limit int, sort string) StoreChannel
 	Delete(id string, time int64) StoreChannel
+	Search(name string, prefixOnly bool, limit int) StoreChannel
 }
 
 type StatusStore interface {

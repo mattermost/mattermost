@@ -35,7 +35,6 @@ const (
 
 var originalDisableDebugLvl l4g.Level = l4g.DEBUG
 var siteURL = ""
-var Cfg *model.Config
 
 func GetSiteURL() string {
 	return siteURL
@@ -398,6 +397,7 @@ func GenerateClientConfig(c *model.Config, diagnosticId string) map[string]strin
 	props["EnablePreviewFeatures"] = strconv.FormatBool(*c.ServiceSettings.EnablePreviewFeatures)
 	props["EnableTutorial"] = strconv.FormatBool(*c.ServiceSettings.EnableTutorial)
 	props["ExperimentalEnableDefaultChannelLeaveJoinMessages"] = strconv.FormatBool(*c.ServiceSettings.ExperimentalEnableDefaultChannelLeaveJoinMessages)
+	props["ExperimentalGroupUnreadChannels"] = strconv.FormatBool(*c.ServiceSettings.ExperimentalGroupUnreadChannels)
 
 	props["SendEmailNotifications"] = strconv.FormatBool(c.EmailSettings.SendEmailNotifications)
 	props["SendPushNotifications"] = strconv.FormatBool(*c.EmailSettings.SendPushNotifications)

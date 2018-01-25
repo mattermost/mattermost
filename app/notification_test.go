@@ -7,6 +7,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
 )
@@ -82,147 +84,229 @@ func TestGetExplicitMentions(t *testing.T) {
 	id2 := model.NewId()
 	id3 := model.NewId()
 
-	// not mentioning anybody
-	message := "this is a message"
-	keywords := map[string][]string{}
-	if mentions, potential, _, _, _ := GetExplicitMentions(message, keywords); len(mentions) != 0 || len(potential) != 0 {
-		t.Fatal("shouldn't have mentioned anybody or have any potencial mentions")
-	}
-
-	// mentioning a user that doesn't exist
-	message = "this is a message for @user"
-	if mentions, _, _, _, _ := GetExplicitMentions(message, keywords); len(mentions) != 0 {
-		t.Fatal("shouldn't have mentioned user that doesn't exist")
-	}
-
-	// mentioning one person
-	keywords = map[string][]string{"@user": {id1}}
-	if mentions, _, _, _, _ := GetExplicitMentions(message, keywords); len(mentions) != 1 || !mentions[id1] {
-		t.Fatal("should've mentioned @user")
-	}
-
-	// mentioning one person without an @mention
-	message = "this is a message for @user"
-	keywords = map[string][]string{"this": {id1}}
-	if mentions, _, _, _, _ := GetExplicitMentions(message, keywords); len(mentions) != 1 || !mentions[id1] {
-		t.Fatal("should've mentioned this")
-	}
-
-	// mentioning multiple people with one word
-	message = "this is a message for @user"
-	keywords = map[string][]string{"@user": {id1, id2}}
-	if mentions, _, _, _, _ := GetExplicitMentions(message, keywords); len(mentions) != 2 || !mentions[id1] || !mentions[id2] {
-		t.Fatal("should've mentioned two users with @user")
-	}
-
-	// mentioning only one of multiple people
-	keywords = map[string][]string{"@user": {id1}, "@mention": {id2}}
-	if mentions, _, _, _, _ := GetExplicitMentions(message, keywords); len(mentions) != 1 || !mentions[id1] || mentions[id2] {
-		t.Fatal("should've mentioned @user and not @mention")
-	}
-
-	// mentioning multiple people with multiple words
-	message = "this is an @mention for @user"
-	keywords = map[string][]string{"@user": {id1}, "@mention": {id2}}
-	if mentions, _, _, _, _ := GetExplicitMentions(message, keywords); len(mentions) != 2 || !mentions[id1] || !mentions[id2] {
-		t.Fatal("should've mentioned two users with @user and @mention")
-	}
-
-	// mentioning @channel (not a special case, but it's good to double check)
-	message = "this is an message for @channel"
-	keywords = map[string][]string{"@channel": {id1, id2}}
-	if mentions, _, _, _, _ := GetExplicitMentions(message, keywords); len(mentions) != 2 || !mentions[id1] || !mentions[id2] {
-		t.Fatal("should've mentioned two users with @channel")
-	}
-
-	// mentioning @all (not a special case, but it's good to double check)
-	message = "this is an message for @all"
-	keywords = map[string][]string{"@all": {id1, id2}}
-	if mentions, _, _, _, _ := GetExplicitMentions(message, keywords); len(mentions) != 2 || !mentions[id1] || !mentions[id2] {
-		t.Fatal("should've mentioned two users with @all")
-	}
-
-	// mentioning user.period without mentioning user (PLT-3222)
-	message = "user.period doesn't complicate things at all by including periods in their username"
-	keywords = map[string][]string{"user.period": {id1}, "user": {id2}}
-	if mentions, _, _, _, _ := GetExplicitMentions(message, keywords); len(mentions) != 1 || !mentions[id1] || mentions[id2] {
-		t.Fatal("should've mentioned user.period and not user")
-	}
-
-	// mentioning a potential out of channel user
-	message = "this is an message for @potential and @user"
-	keywords = map[string][]string{"@user": {id1}}
-	if mentions, potential, _, _, _ := GetExplicitMentions(message, keywords); len(mentions) != 1 || !mentions[id1] || len(potential) != 1 {
-		t.Fatal("should've mentioned user and have a potential not in channel")
-	}
-
-	// words in inline code shouldn't trigger mentions
-	message = "`this shouldn't mention @channel at all`"
-	keywords = map[string][]string{}
-	if mentions, _, _, _, _ := GetExplicitMentions(message, keywords); len(mentions) != 0 {
-		t.Fatal("@channel in inline code shouldn't cause a mention")
-	}
-
-	// words in code blocks shouldn't trigger mentions
-	message = "```\nthis shouldn't mention @channel at all\n```"
-	keywords = map[string][]string{}
-	if mentions, _, _, _, _ := GetExplicitMentions(message, keywords); len(mentions) != 0 {
-		t.Fatal("@channel in code block shouldn't cause a mention")
-	}
-
-	// Markdown-formatted text that isn't code should trigger mentions
-	message = "*@aaa @bbb @ccc*"
-	keywords = map[string][]string{"@aaa": {id1}, "@bbb": {id2}, "@ccc": {id3}}
-	if mentions, _, _, _, _ := GetExplicitMentions(message, keywords); len(mentions) != 3 || !mentions[id1] || !mentions[id2] || !mentions[id3] {
-		t.Fatal("should've mentioned all 3 users", mentions)
-	}
-
-	message = "**@aaa @bbb @ccc**"
-	keywords = map[string][]string{"@aaa": {id1}, "@bbb": {id2}, "@ccc": {id3}}
-	if mentions, _, _, _, _ := GetExplicitMentions(message, keywords); len(mentions) != 3 || !mentions[id1] || !mentions[id2] || !mentions[id3] {
-		t.Fatal("should've mentioned all 3 users")
-	}
-
-	message = "~~@aaa @bbb @ccc~~"
-	keywords = map[string][]string{"@aaa": {id1}, "@bbb": {id2}, "@ccc": {id3}}
-	if mentions, _, _, _, _ := GetExplicitMentions(message, keywords); len(mentions) != 3 || !mentions[id1] || !mentions[id2] || !mentions[id3] {
-		t.Fatal("should've mentioned all 3 users")
-	}
-
-	message = "### @aaa"
-	keywords = map[string][]string{"@aaa": {id1}, "@bbb": {id2}, "@ccc": {id3}}
-	if mentions, _, _, _, _ := GetExplicitMentions(message, keywords); len(mentions) != 1 || !mentions[id1] || mentions[id2] || mentions[id3] {
-		t.Fatal("should've only mentioned aaa")
-	}
-
-	message = "> @aaa"
-	keywords = map[string][]string{"@aaa": {id1}, "@bbb": {id2}, "@ccc": {id3}}
-	if mentions, _, _, _, _ := GetExplicitMentions(message, keywords); len(mentions) != 1 || !mentions[id1] || mentions[id2] || mentions[id3] {
-		t.Fatal("should've only mentioned aaa")
-	}
-
-	message = ":smile:"
-	keywords = map[string][]string{"smile": {id1}, "smiley": {id2}, "smiley_cat": {id3}}
-	if mentions, _, _, _, _ := GetExplicitMentions(message, keywords); len(mentions) == 1 || mentions[id1] {
-		t.Fatal("should not mentioned smile")
-	}
-
-	message = "smile"
-	keywords = map[string][]string{"smile": {id1}, "smiley": {id2}, "smiley_cat": {id3}}
-	if mentions, _, _, _, _ := GetExplicitMentions(message, keywords); len(mentions) != 1 || !mentions[id1] || mentions[id2] || mentions[id3] {
-		t.Fatal("should've only mentioned smile")
-	}
-
-	message = ":smile"
-	keywords = map[string][]string{"smile": {id1}, "smiley": {id2}, "smiley_cat": {id3}}
-	if mentions, _, _, _, _ := GetExplicitMentions(message, keywords); len(mentions) != 1 || !mentions[id1] || mentions[id2] || mentions[id3] {
-		t.Fatal("should've only mentioned smile")
-	}
-
-	message = "smile:"
-	keywords = map[string][]string{"smile": {id1}, "smiley": {id2}, "smiley_cat": {id3}}
-	if mentions, _, _, _, _ := GetExplicitMentions(message, keywords); len(mentions) != 1 || !mentions[id1] || mentions[id2] || mentions[id3] {
-		t.Fatal("should've only mentioned smile")
+	for name, tc := range map[string]struct {
+		Message  string
+		Keywords map[string][]string
+		Expected *ExplicitMentions
+	}{
+		"Nobody": {
+			Message:  "this is a message",
+			Keywords: map[string][]string{},
+			Expected: &ExplicitMentions{},
+		},
+		"NonexistentUser": {
+			Message: "this is a message for @user",
+			Expected: &ExplicitMentions{
+				OtherPotentialMentions: []string{"user"},
+			},
+		},
+		"OnePerson": {
+			Message:  "this is a message for @user",
+			Keywords: map[string][]string{"@user": {id1}},
+			Expected: &ExplicitMentions{
+				MentionedUserIds: map[string]bool{
+					id1: true,
+				},
+			},
+		},
+		"OnePersonWithoutAtMention": {
+			Message:  "this is a message for @user",
+			Keywords: map[string][]string{"this": {id1}},
+			Expected: &ExplicitMentions{
+				MentionedUserIds: map[string]bool{
+					id1: true,
+				},
+				OtherPotentialMentions: []string{"user"},
+			},
+		},
+		"MultiplePeopleWithOneWord": {
+			Message:  "this is a message for @user",
+			Keywords: map[string][]string{"@user": {id1, id2}},
+			Expected: &ExplicitMentions{
+				MentionedUserIds: map[string]bool{
+					id1: true,
+					id2: true,
+				},
+			},
+		},
+		"OneOfMultiplePeople": {
+			Message:  "this is a message for @user",
+			Keywords: map[string][]string{"@user": {id1}, "@mention": {id2}},
+			Expected: &ExplicitMentions{
+				MentionedUserIds: map[string]bool{
+					id1: true,
+				},
+			},
+		},
+		"MultiplePeopleWithMultipleWords": {
+			Message:  "this is an @mention for @user",
+			Keywords: map[string][]string{"@user": {id1}, "@mention": {id2}},
+			Expected: &ExplicitMentions{
+				MentionedUserIds: map[string]bool{
+					id1: true,
+					id2: true,
+				},
+			},
+		},
+		"Channel": {
+			Message:  "this is an message for @channel",
+			Keywords: map[string][]string{"@channel": {id1, id2}},
+			Expected: &ExplicitMentions{
+				MentionedUserIds: map[string]bool{
+					id1: true,
+					id2: true,
+				},
+				ChannelMentioned: true,
+			},
+		},
+		"All": {
+			Message:  "this is an message for @all",
+			Keywords: map[string][]string{"@all": {id1, id2}},
+			Expected: &ExplicitMentions{
+				MentionedUserIds: map[string]bool{
+					id1: true,
+					id2: true,
+				},
+				AllMentioned: true,
+			},
+		},
+		"UserWithPeriod": {
+			Message:  "user.period doesn't complicate things at all by including periods in their username",
+			Keywords: map[string][]string{"user.period": {id1}, "user": {id2}},
+			Expected: &ExplicitMentions{
+				MentionedUserIds: map[string]bool{
+					id1: true,
+				},
+			},
+		},
+		"PotentialOutOfChannelUser": {
+			Message:  "this is an message for @potential and @user",
+			Keywords: map[string][]string{"@user": {id1}},
+			Expected: &ExplicitMentions{
+				MentionedUserIds: map[string]bool{
+					id1: true,
+				},
+				OtherPotentialMentions: []string{"potential"},
+			},
+		},
+		"InlineCode": {
+			Message:  "`this shouldn't mention @channel at all`",
+			Keywords: map[string][]string{},
+			Expected: &ExplicitMentions{},
+		},
+		"FencedCodeBlock": {
+			Message:  "```\nthis shouldn't mention @channel at all\n```",
+			Keywords: map[string][]string{},
+			Expected: &ExplicitMentions{},
+		},
+		"Emphasis": {
+			Message:  "*@aaa @bbb @ccc*",
+			Keywords: map[string][]string{"@aaa": {id1}, "@bbb": {id2}, "@ccc": {id3}},
+			Expected: &ExplicitMentions{
+				MentionedUserIds: map[string]bool{
+					id1: true,
+					id2: true,
+					id3: true,
+				},
+			},
+		},
+		"StrongEmphasis": {
+			Message:  "**@aaa @bbb @ccc**",
+			Keywords: map[string][]string{"@aaa": {id1}, "@bbb": {id2}, "@ccc": {id3}},
+			Expected: &ExplicitMentions{
+				MentionedUserIds: map[string]bool{
+					id1: true,
+					id2: true,
+					id3: true,
+				},
+			},
+		},
+		"Strikethrough": {
+			Message:  "~~@aaa @bbb @ccc~~",
+			Keywords: map[string][]string{"@aaa": {id1}, "@bbb": {id2}, "@ccc": {id3}},
+			Expected: &ExplicitMentions{
+				MentionedUserIds: map[string]bool{
+					id1: true,
+					id2: true,
+					id3: true,
+				},
+			},
+		},
+		"Heading": {
+			Message:  "### @aaa",
+			Keywords: map[string][]string{"@aaa": {id1}, "@bbb": {id2}, "@ccc": {id3}},
+			Expected: &ExplicitMentions{
+				MentionedUserIds: map[string]bool{
+					id1: true,
+				},
+			},
+		},
+		"BlockQuote": {
+			Message:  "> @aaa",
+			Keywords: map[string][]string{"@aaa": {id1}, "@bbb": {id2}, "@ccc": {id3}},
+			Expected: &ExplicitMentions{
+				MentionedUserIds: map[string]bool{
+					id1: true,
+				},
+			},
+		},
+		"Emoji": {
+			Message:  ":smile:",
+			Keywords: map[string][]string{"smile": {id1}, "smiley": {id2}, "smiley_cat": {id3}},
+			Expected: &ExplicitMentions{},
+		},
+		"NotEmoji": {
+			Message:  "smile",
+			Keywords: map[string][]string{"smile": {id1}, "smiley": {id2}, "smiley_cat": {id3}},
+			Expected: &ExplicitMentions{
+				MentionedUserIds: map[string]bool{
+					id1: true,
+				},
+			},
+		},
+		"UnclosedEmoji": {
+			Message:  ":smile",
+			Keywords: map[string][]string{"smile": {id1}, "smiley": {id2}, "smiley_cat": {id3}},
+			Expected: &ExplicitMentions{
+				MentionedUserIds: map[string]bool{
+					id1: true,
+				},
+			},
+		},
+		"UnopenedEmoji": {
+			Message:  "smile:",
+			Keywords: map[string][]string{"smile": {id1}, "smiley": {id2}, "smiley_cat": {id3}},
+			Expected: &ExplicitMentions{
+				MentionedUserIds: map[string]bool{
+					id1: true,
+				},
+			},
+		},
+		"IndentedCodeBlock": {
+			Message:  "    this shouldn't mention @channel at all",
+			Keywords: map[string][]string{},
+			Expected: &ExplicitMentions{},
+		},
+		"LinkTitle": {
+			Message:  `[foo](this "shouldn't mention @channel at all")`,
+			Keywords: map[string][]string{},
+			Expected: &ExplicitMentions{},
+		},
+		"MalformedInlineCode": {
+			Message:  "`this should mention @channel``",
+			Keywords: map[string][]string{},
+			Expected: &ExplicitMentions{
+				ChannelMentioned: true,
+			},
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			m := GetExplicitMentions(tc.Message, tc.Keywords)
+			if tc.Expected.MentionedUserIds == nil {
+				tc.Expected.MentionedUserIds = make(map[string]bool)
+			}
+			assert.EqualValues(t, tc.Expected, m)
+		})
 	}
 }
 
@@ -268,167 +352,21 @@ func TestGetExplicitMentionsAtHere(t *testing.T) {
 	}
 
 	for message, shouldMention := range cases {
-		if _, _, hereMentioned, _, _ := GetExplicitMentions(message, nil); hereMentioned && !shouldMention {
+		if m := GetExplicitMentions(message, nil); m.HereMentioned && !shouldMention {
 			t.Fatalf("shouldn't have mentioned @here with \"%v\"", message)
-		} else if !hereMentioned && shouldMention {
-			t.Fatalf("should've have mentioned @here with \"%v\"", message)
+		} else if !m.HereMentioned && shouldMention {
+			t.Fatalf("should've mentioned @here with \"%v\"", message)
 		}
 	}
 
 	// mentioning @here and someone
 	id := model.NewId()
-	if mentions, potential, hereMentioned, _, _ := GetExplicitMentions("@here @user @potential", map[string][]string{"@user": {id}}); !hereMentioned {
+	if m := GetExplicitMentions("@here @user @potential", map[string][]string{"@user": {id}}); !m.HereMentioned {
 		t.Fatal("should've mentioned @here with \"@here @user\"")
-	} else if len(mentions) != 1 || !mentions[id] {
+	} else if len(m.MentionedUserIds) != 1 || !m.MentionedUserIds[id] {
 		t.Fatal("should've mentioned @user with \"@here @user\"")
-	} else if len(potential) > 1 {
+	} else if len(m.OtherPotentialMentions) > 1 {
 		t.Fatal("should've potential mentions for @potential")
-	}
-}
-
-func TestRemoveCodeFromMessage(t *testing.T) {
-	input := "this is regular text"
-	expected := input
-	if actual := removeCodeFromMessage(input); actual != expected {
-		t.Fatalf("received incorrect output\n\nGot:\n%v\n\nExpected:\n%v\n", actual, expected)
-	}
-
-	input = "this is text with\n```\na code block\n```\nin it"
-	expected = "this is text with\n\nin it"
-	if actual := removeCodeFromMessage(input); actual != expected {
-		t.Fatalf("received incorrect output\n\nGot:\n%v\n\nExpected:\n%v\n", actual, expected)
-	}
-
-	input = "this is text with\n```javascript\na JS code block\n```\nin it"
-	expected = "this is text with\n\nin it"
-	if actual := removeCodeFromMessage(input); actual != expected {
-		t.Fatalf("received incorrect output\n\nGot:\n%v\n\nExpected:\n%v\n", actual, expected)
-	}
-
-	input = "this is text with\n```java script?\na JS code block\n```\nin it"
-	expected = "this is text with\n\nin it"
-	if actual := removeCodeFromMessage(input); actual != expected {
-		t.Fatalf("received incorrect output\n\nGot:\n%v\n\nExpected:\n%v\n", actual, expected)
-	}
-
-	input = "this is text with an empty\n```\n\n\n\n```\nin it"
-	expected = "this is text with an empty\n\nin it"
-	if actual := removeCodeFromMessage(input); actual != expected {
-		t.Fatalf("received incorrect output\n\nGot:\n%v\n\nExpected:\n%v\n", actual, expected)
-	}
-
-	input = "this is text with\n```\ntwo\n```\ncode\n```\nblocks\n```\nin it"
-	expected = "this is text with\n\ncode\n\nin it"
-	if actual := removeCodeFromMessage(input); actual != expected {
-		t.Fatalf("received incorrect output\n\nGot:\n%v\n\nExpected:\n%v\n", actual, expected)
-	}
-
-	input = "this is text with indented\n  ```\ncode\n  ```\nin it"
-	expected = "this is text with indented\n\nin it"
-	if actual := removeCodeFromMessage(input); actual != expected {
-		t.Fatalf("received incorrect output\n\nGot:\n%v\n\nExpected:\n%v\n", actual, expected)
-	}
-
-	input = "this is text ending with\n```\nan unfinished code block"
-	expected = "this is text ending with\n"
-	if actual := removeCodeFromMessage(input); actual != expected {
-		t.Fatalf("received incorrect output\n\nGot:\n%v\n\nExpected:\n%v\n", actual, expected)
-	}
-
-	input = "this is `code` in a sentence"
-	expected = "this is   in a sentence"
-	if actual := removeCodeFromMessage(input); actual != expected {
-		t.Fatalf("received incorrect output\n\nGot:\n%v\n\nExpected:\n%v\n", actual, expected)
-	}
-
-	input = "this is `two` things of `code` in a sentence"
-	expected = "this is   things of   in a sentence"
-	if actual := removeCodeFromMessage(input); actual != expected {
-		t.Fatalf("received incorrect output\n\nGot:\n%v\n\nExpected:\n%v\n", actual, expected)
-	}
-
-	input = "this is `code with spaces` in a sentence"
-	expected = "this is   in a sentence"
-	if actual := removeCodeFromMessage(input); actual != expected {
-		t.Fatalf("received incorrect output\n\nGot:\n%v\n\nExpected:\n%v\n", actual, expected)
-	}
-
-	input = "this is `code\nacross multiple` lines"
-	expected = "this is   lines"
-	if actual := removeCodeFromMessage(input); actual != expected {
-		t.Fatalf("received incorrect output\n\nGot:\n%v\n\nExpected:\n%v\n", actual, expected)
-	}
-
-	input = "this is `code\non\nmany\ndifferent` lines"
-	expected = "this is   lines"
-	if actual := removeCodeFromMessage(input); actual != expected {
-		t.Fatalf("received incorrect output\n\nGot:\n%v\n\nExpected:\n%v\n", actual, expected)
-	}
-
-	input = "this is `\ncode on its own line\n` across multiple lines"
-	expected = "this is   across multiple lines"
-	if actual := removeCodeFromMessage(input); actual != expected {
-		t.Fatalf("received incorrect output\n\nGot:\n%v\n\nExpected:\n%v\n", actual, expected)
-	}
-
-	input = "this is `\n    some more code    \n` across multiple lines"
-	expected = "this is   across multiple lines"
-	if actual := removeCodeFromMessage(input); actual != expected {
-		t.Fatalf("received incorrect output\n\nGot:\n%v\n\nExpected:\n%v\n", actual, expected)
-	}
-
-	input = "this is `\ncode` on its own line"
-	expected = "this is   on its own line"
-	if actual := removeCodeFromMessage(input); actual != expected {
-		t.Fatalf("received incorrect output\n\nGot:\n%v\n\nExpected:\n%v\n", actual, expected)
-	}
-
-	input = "this is `code\n` on its own line"
-	expected = "this is   on its own line"
-	if actual := removeCodeFromMessage(input); actual != expected {
-		t.Fatalf("received incorrect output\n\nGot:\n%v\n\nExpected:\n%v\n", actual, expected)
-	}
-
-	input = "this is *italics mixed with `code in a way that has the code` take precedence*"
-	expected = "this is *italics mixed with   take precedence*"
-	if actual := removeCodeFromMessage(input); actual != expected {
-		t.Fatalf("received incorrect output\n\nGot:\n%v\n\nExpected:\n%v\n", actual, expected)
-	}
-
-	input = "this is code within a wo` `rd for some reason"
-	expected = "this is code within a wo rd for some reason"
-	if actual := removeCodeFromMessage(input); actual != expected {
-		t.Fatalf("received incorrect output\n\nGot:\n%v\n\nExpected:\n%v\n", actual, expected)
-	}
-
-	input = "this is `not\n\ncode` because it has a blank line"
-	expected = input
-	if actual := removeCodeFromMessage(input); actual != expected {
-		t.Fatalf("received incorrect output\n\nGot:\n%v\n\nExpected:\n%v\n", actual, expected)
-	}
-
-	input = "this is `not\n    \ncode` because it has a line with only whitespace"
-	expected = input
-	if actual := removeCodeFromMessage(input); actual != expected {
-		t.Fatalf("received incorrect output\n\nGot:\n%v\n\nExpected:\n%v\n", actual, expected)
-	}
-
-	input = "this is just `` two backquotes"
-	expected = input
-	if actual := removeCodeFromMessage(input); actual != expected {
-		t.Fatalf("received incorrect output\n\nGot:\n%v\n\nExpected:\n%v\n", actual, expected)
-	}
-
-	input = "these are ``multiple backquotes`` around code"
-	expected = "these are   around code"
-	if actual := removeCodeFromMessage(input); actual != expected {
-		t.Fatalf("received incorrect output\n\nGot:\n%v\n\nExpected:\n%v\n", actual, expected)
-	}
-
-	input = "this is text with\n~~~\na code block\n~~~\nin it"
-	expected = "this is text with\n\nin it"
-	if actual := removeCodeFromMessage(input); actual != expected {
-		t.Fatalf("received incorrect output\n\nGot:\n%v\n\nExpected:\n%v\n", actual, expected)
 	}
 }
 

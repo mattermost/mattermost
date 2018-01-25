@@ -110,6 +110,7 @@ func init() {
 
 	modifyChannelCmd.Flags().Bool("private", false, "Convert the channel to a private channel")
 	modifyChannelCmd.Flags().Bool("public", false, "Convert the channel to a public channel")
+	modifyChannelCmd.Flags().String("username", "", "Required. Username who changes the channel privacy.")
 
 	channelCmd.AddCommand(
 		channelCreateCmd,
@@ -438,6 +439,11 @@ func modifyChannelCmdF(cmd *cobra.Command, args []string) error {
 		return errors.New("Enter at one channel to modify.")
 	}
 
+	username, erru := cmd.Flags().GetString("username")
+	if erru != nil || username == "" {
+		return errors.New("Username is required")
+	}
+
 	public, _ := cmd.Flags().GetBool("public")
 	private, _ := cmd.Flags().GetBool("private")
 
@@ -459,8 +465,9 @@ func modifyChannelCmdF(cmd *cobra.Command, args []string) error {
 		channel.Type = model.CHANNEL_PRIVATE
 	}
 
-	if _, err := a.UpdateChannel(channel); err != nil {
-		return errors.New("Failed to update channel '" + args[0] + "' - " + err.Error())
+	user := getUserFromUserArg(a, username)
+	if _, err := a.UpdateChannelPrivacy(channel, user); err != nil {
+		return errors.New("Failed to update channel ('" + args[0] + "') privacy - " + err.Error())
 	}
 
 	return nil

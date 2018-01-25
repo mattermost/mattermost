@@ -2292,11 +2292,11 @@
   },
   {
     "id": "api.team.join_team.post_and_forget",
-    "translation": "%v joined the team."
+    "translation": "%v присоединился(-лась) к команде."
   },
   {
     "id": "api.team.leave.left",
-    "translation": "%v left the team."
+    "translation": "%v покинул(а) команду."
   },
   {
     "id": "api.team.permanent_delete_team.attempting.warn",

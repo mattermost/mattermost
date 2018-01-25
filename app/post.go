@@ -4,6 +4,11 @@
 package app
 
 import (
+	"crypto/hmac"
+	"crypto/sha1"
+	"crypto/sha256"
+	"encoding/base64"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -309,7 +314,7 @@ func (a *App) SendEphemeralPost(userId string, post *model.Post) *model.Post {
 	}
 
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_EPHEMERAL_MESSAGE, "", post.ChannelId, userId, nil)
-	message.Add("post", post.ToJson())
+	message.Add("post", a.PostWithProxyAddedToImageURLs(post).ToJson())
 
 	a.Go(func() {
 		a.Publish(message)
@@ -419,7 +424,7 @@ func (a *App) PatchPost(postId string, patch *model.PostPatch) (*model.Post, *mo
 
 func (a *App) sendUpdatedPostEvent(post *model.Post) {
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POST_EDITED, "", post.ChannelId, "", nil)
-	message.Add("post", post.ToJson())
+	message.Add("post", a.PostWithProxyAddedToImageURLs(post).ToJson())
 
 	a.Go(func() {
 		a.Publish(message)
@@ -562,7 +567,7 @@ func (a *App) DeletePost(postId string) (*model.Post, *model.AppError) {
 		}
 
 		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POST_DELETED, "", post.ChannelId, "", nil)
-		message.Add("post", post.ToJson())
+		message.Add("post", a.PostWithProxyAddedToImageURLs(post).ToJson())
 
 		a.Go(func() {
 			a.Publish(message)
@@ -822,4 +827,125 @@ func (a *App) DoPostAction(postId string, actionId string, userId string) *model
 	}
 
 	return nil
+}
+
+func (a *App) PostListWithProxyAddedToImageURLs(list *model.PostList) *model.PostList {
+	if f := a.ImageProxyAdder(); f != nil {
+		return list.WithRewrittenImageURLs(f)
+	}
+	return list
+}
+
+func (a *App) PostWithProxyAddedToImageURLs(post *model.Post) *model.Post {
+	if f := a.ImageProxyAdder(); f != nil {
+		return post.WithRewrittenImageURLs(f)
+	}
+	return post
+}
+
+func (a *App) PostWithProxyRemovedFromImageURLs(post *model.Post) *model.Post {
+	if f := a.ImageProxyRemover(); f != nil {
+		return post.WithRewrittenImageURLs(f)
+	}
+	return post
+}
+
+func (a *App) PostPatchWithProxyRemovedFromImageURLs(patch *model.PostPatch) *model.PostPatch {
+	if f := a.ImageProxyRemover(); f != nil {
+		return patch.WithRewrittenImageURLs(f)
+	}
+	return patch
+}
+
+func (a *App) imageProxyConfig() (proxyType, proxyURL, options, siteURL string) {
+	cfg := a.Config()
+
+	if cfg.ServiceSettings.ImageProxyURL == nil || cfg.ServiceSettings.ImageProxyType == nil || cfg.ServiceSettings.SiteURL == nil {
+		return
+	}
+
+	proxyURL = *cfg.ServiceSettings.ImageProxyURL
+	proxyType = *cfg.ServiceSettings.ImageProxyType
+	siteURL = *cfg.ServiceSettings.SiteURL
+
+	if proxyURL == "" || proxyType == "" {
+		return "", "", "", ""
+	}
+
+	if proxyURL[len(proxyURL)-1] != '/' {
+		proxyURL += "/"
+	}
+
+	if cfg.ServiceSettings.ImageProxyOptions != nil {
+		options = *cfg.ServiceSettings.ImageProxyOptions
+	}
+
+	return
+}
+
+func (a *App) ImageProxyAdder() func(string) string {
+	proxyType, proxyURL, options, siteURL := a.imageProxyConfig()
+	if proxyType == "" {
+		return nil
+	}
+
+	return func(url string) string {
+		if strings.HasPrefix(url, proxyURL) {
+			return url
+		}
+
+		if url[0] == '/' {
+			url = siteURL + url
+		}
+
+		switch proxyType {
+		case "atmos/camo":
+			mac := hmac.New(sha1.New, []byte(options))
+			mac.Write([]byte(url))
+			digest := hex.EncodeToString(mac.Sum(nil))
+			return proxyURL + digest + "/" + hex.EncodeToString([]byte(url))
+		case "willnorris/imageproxy":
+			options := strings.Split(options, "|")
+			if len(options) > 1 {
+				mac := hmac.New(sha256.New, []byte(options[1]))
+				mac.Write([]byte(url))
+				digest := base64.URLEncoding.EncodeToString(mac.Sum(nil))
+				if options[0] == "" {
+					return proxyURL + "s" + digest + "/" + url
+				}
+				return proxyURL + options[0] + ",s" + digest + "/" + url
+			}
+			return proxyURL + options[0] + "/" + url
+		}
+
+		return url
+	}
+}
+
+func (a *App) ImageProxyRemover() (f func(string) string) {
+	proxyType, proxyURL, _, _ := a.imageProxyConfig()
+	if proxyType == "" {
+		return nil
+	}
+
+	return func(url string) string {
+		switch proxyType {
+		case "atmos/camo":
+			if strings.HasPrefix(url, proxyURL) {
+				if slash := strings.IndexByte(url[len(proxyURL):], '/'); slash >= 0 {
+					if decoded, err := hex.DecodeString(url[len(proxyURL)+slash+1:]); err == nil {
+						return string(decoded)
+					}
+				}
+			}
+		case "willnorris/imageproxy":
+			if strings.HasPrefix(url, proxyURL) {
+				if slash := strings.IndexByte(url[len(proxyURL):], '/'); slash >= 0 {
+					return url[len(proxyURL)+slash+1:]
+				}
+			}
+		}
+
+		return url
+	}
 }

@@ -8,53 +8,64 @@ import (
 	"io"
 	"net/http"
 	"regexp"
+	"sort"
 	"strings"
 	"unicode/utf8"
+
+	"github.com/mattermost/mattermost-server/utils/markdown"
 )
 
 const (
-	POST_SYSTEM_MESSAGE_PREFIX = "system_"
-	POST_DEFAULT               = ""
-	POST_SLACK_ATTACHMENT      = "slack_attachment"
-	POST_SYSTEM_GENERIC        = "system_generic"
-	POST_JOIN_LEAVE            = "system_join_leave" // Deprecated, use POST_JOIN_CHANNEL or POST_LEAVE_CHANNEL instead
-	POST_JOIN_CHANNEL          = "system_join_channel"
-	POST_LEAVE_CHANNEL         = "system_leave_channel"
-	POST_JOIN_TEAM             = "system_join_team"
-	POST_LEAVE_TEAM            = "system_leave_team"
-	POST_ADD_REMOVE            = "system_add_remove" // Deprecated, use POST_ADD_TO_CHANNEL or POST_REMOVE_FROM_CHANNEL instead
-	POST_ADD_TO_CHANNEL        = "system_add_to_channel"
-	POST_REMOVE_FROM_CHANNEL   = "system_remove_from_channel"
-	POST_ADD_TO_TEAM           = "system_add_to_team"
-	POST_REMOVE_FROM_TEAM      = "system_remove_from_team"
-	POST_HEADER_CHANGE         = "system_header_change"
-	POST_DISPLAYNAME_CHANGE    = "system_displayname_change"
-	POST_PURPOSE_CHANGE        = "system_purpose_change"
-	POST_CHANNEL_DELETED       = "system_channel_deleted"
-	POST_EPHEMERAL             = "system_ephemeral"
-	POST_FILEIDS_MAX_RUNES     = 150
-	POST_FILENAMES_MAX_RUNES   = 4000
-	POST_HASHTAGS_MAX_RUNES    = 1000
-	POST_MESSAGE_MAX_RUNES     = 4000
-	POST_PROPS_MAX_RUNES       = 8000
-	POST_PROPS_MAX_USER_RUNES  = POST_PROPS_MAX_RUNES - 400 // Leave some room for system / pre-save modifications
-	POST_CUSTOM_TYPE_PREFIX    = "custom_"
-	PROPS_ADD_CHANNEL_MEMBER   = "add_channel_member"
+	POST_SYSTEM_MESSAGE_PREFIX  = "system_"
+	POST_DEFAULT                = ""
+	POST_SLACK_ATTACHMENT       = "slack_attachment"
+	POST_SYSTEM_GENERIC         = "system_generic"
+	POST_JOIN_LEAVE             = "system_join_leave" // Deprecated, use POST_JOIN_CHANNEL or POST_LEAVE_CHANNEL instead
+	POST_JOIN_CHANNEL           = "system_join_channel"
+	POST_LEAVE_CHANNEL          = "system_leave_channel"
+	POST_JOIN_TEAM              = "system_join_team"
+	POST_LEAVE_TEAM             = "system_leave_team"
+	POST_ADD_REMOVE             = "system_add_remove" // Deprecated, use POST_ADD_TO_CHANNEL or POST_REMOVE_FROM_CHANNEL instead
+	POST_ADD_TO_CHANNEL         = "system_add_to_channel"
+	POST_REMOVE_FROM_CHANNEL    = "system_remove_from_channel"
+	POST_ADD_TO_TEAM            = "system_add_to_team"
+	POST_REMOVE_FROM_TEAM       = "system_remove_from_team"
+	POST_HEADER_CHANGE          = "system_header_change"
+	POST_DISPLAYNAME_CHANGE     = "system_displayname_change"
+	POST_PURPOSE_CHANGE         = "system_purpose_change"
+	POST_CHANNEL_DELETED        = "system_channel_deleted"
+	POST_EPHEMERAL              = "system_ephemeral"
+	POST_CHANGE_CHANNEL_PRIVACY = "system_change_chan_privacy"
+	POST_FILEIDS_MAX_RUNES      = 150
+	POST_FILENAMES_MAX_RUNES    = 4000
+	POST_HASHTAGS_MAX_RUNES     = 1000
+	POST_MESSAGE_MAX_RUNES      = 4000
+	POST_PROPS_MAX_RUNES        = 8000
+	POST_PROPS_MAX_USER_RUNES   = POST_PROPS_MAX_RUNES - 400 // Leave some room for system / pre-save modifications
+	POST_CUSTOM_TYPE_PREFIX     = "custom_"
+	PROPS_ADD_CHANNEL_MEMBER    = "add_channel_member"
 )
 
 type Post struct {
-	Id            string          `json:"id"`
-	CreateAt      int64           `json:"create_at"`
-	UpdateAt      int64           `json:"update_at"`
-	EditAt        int64           `json:"edit_at"`
-	DeleteAt      int64           `json:"delete_at"`
-	IsPinned      bool            `json:"is_pinned"`
-	UserId        string          `json:"user_id"`
-	ChannelId     string          `json:"channel_id"`
-	RootId        string          `json:"root_id"`
-	ParentId      string          `json:"parent_id"`
-	OriginalId    string          `json:"original_id"`
-	Message       string          `json:"message"`
+	Id         string `json:"id"`
+	CreateAt   int64  `json:"create_at"`
+	UpdateAt   int64  `json:"update_at"`
+	EditAt     int64  `json:"edit_at"`
+	DeleteAt   int64  `json:"delete_at"`
+	IsPinned   bool   `json:"is_pinned"`
+	UserId     string `json:"user_id"`
+	ChannelId  string `json:"channel_id"`
+	RootId     string `json:"root_id"`
+	ParentId   string `json:"parent_id"`
+	OriginalId string `json:"original_id"`
+
+	Message string `json:"message"`
+
+	// MessageSource will contain the message as submitted by the user if Message has been modified
+	// by Mattermost for presentation (e.g if an image proxy is being used). It should be used to
+	// populate edit boxes if present.
+	MessageSource string `json:"message_source,omitempty" db:"-"`
+
 	Type          string          `json:"type"`
 	Props         StringInterface `json:"props"`
 	Hashtags      string          `json:"hashtags"`
@@ -70,6 +81,14 @@ type PostPatch struct {
 	Props        *StringInterface `json:"props"`
 	FileIds      *StringArray     `json:"file_ids"`
 	HasReactions *bool            `json:"has_reactions"`
+}
+
+func (o *PostPatch) WithRewrittenImageURLs(f func(string) string) *PostPatch {
+	copy := *o
+	if copy.Message != nil {
+		*copy.Message = RewriteImageURLs(*o.Message, f)
+	}
+	return &copy
 }
 
 type PostForIndexing struct {
@@ -188,7 +207,8 @@ func (o *Post) IsValid() *AppError {
 		POST_HEADER_CHANGE,
 		POST_PURPOSE_CHANGE,
 		POST_DISPLAYNAME_CHANGE,
-		POST_CHANNEL_DELETED:
+		POST_CHANNEL_DELETED,
+		POST_CHANGE_CHANNEL_PRIVACY:
 	default:
 		if !strings.HasPrefix(o.Type, POST_CUSTOM_TYPE_PREFIX) {
 			return NewAppError("Post.IsValid", "model.post.is_valid.type.app_error", nil, "id="+o.Type, http.StatusBadRequest)
@@ -391,4 +411,88 @@ func (o *Post) GenerateActionIds() {
 			}
 		}
 	}
+}
+
+var markdownDestinationEscaper = strings.NewReplacer(
+	`\`, `\\`,
+	`<`, `\<`,
+	`>`, `\>`,
+	`(`, `\(`,
+	`)`, `\)`,
+)
+
+// WithRewrittenImageURLs returns a new shallow copy of the post where the message has been
+// rewritten via RewriteImageURLs.
+func (o *Post) WithRewrittenImageURLs(f func(string) string) *Post {
+	copy := *o
+	copy.Message = RewriteImageURLs(o.Message, f)
+	if copy.MessageSource == "" && copy.Message != o.Message {
+		copy.MessageSource = o.Message
+	}
+	return &copy
+}
+
+// RewriteImageURLs takes a message and returns a copy that has all of the image URLs replaced
+// according to the function f. For each image URL, f will be invoked, and the resulting markdown
+// will contain the URL returned by that invocation instead.
+//
+// Image URLs are destination URLs used in inline images or reference definitions that are used
+// anywhere in the input markdown as an image.
+func RewriteImageURLs(message string, f func(string) string) string {
+	if !strings.Contains(message, "![") {
+		return message
+	}
+
+	var ranges []markdown.Range
+
+	markdown.Inspect(message, func(blockOrInline interface{}) bool {
+		switch v := blockOrInline.(type) {
+		case *markdown.ReferenceImage:
+			ranges = append(ranges, v.ReferenceDefinition.RawDestination)
+		case *markdown.InlineImage:
+			ranges = append(ranges, v.RawDestination)
+		default:
+			return true
+		}
+		return true
+	})
+
+	if ranges == nil {
+		return message
+	}
+
+	sort.Slice(ranges, func(i, j int) bool {
+		return ranges[i].Position < ranges[j].Position
+	})
+
+	copyRanges := make([]markdown.Range, 0, len(ranges))
+	urls := make([]string, 0, len(ranges))
+	resultLength := len(message)
+
+	start := 0
+	for i, r := range ranges {
+		switch {
+		case i == 0:
+		case r.Position != ranges[i-1].Position:
+			start = ranges[i-1].End
+		default:
+			continue
+		}
+		original := message[r.Position:r.End]
+		replacement := markdownDestinationEscaper.Replace(f(markdown.Unescape(original)))
+		resultLength += len(replacement) - len(original)
+		copyRanges = append(copyRanges, markdown.Range{Position: start, End: r.Position})
+		urls = append(urls, replacement)
+	}
+
+	result := make([]byte, resultLength)
+
+	offset := 0
+	for i, r := range copyRanges {
+		offset += copy(result[offset:], message[r.Position:r.End])
+		offset += copy(result[offset:], urls[i])
+	}
+	copy(result[offset:], message[ranges[len(ranges)-1].End:])
+
+	return string(result)
 }

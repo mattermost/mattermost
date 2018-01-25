@@ -185,11 +185,11 @@
   },
   {
     "id": "api.channel.can_manage_channel.private_restricted_system_admin.app_error",
-    "translation": "La gestion et la création de canaux privés sont réservés aux administrateurs systèmes."
+    "translation": "La gestion et la création de canaux privés sont réservés aux administrateurs système."
   },
   {
     "id": "api.channel.can_manage_channel.private_restricted_team_admin.app_error",
-    "translation": "La gestion et la création de canaux privés sont réservés aux administrateurs d'équipes et administrateurs systèmes."
+    "translation": "La gestion et la création de canaux privés sont réservés aux administrateurs d'équipe et administrateurs système."
   },
   {
     "id": "api.channel.can_manage_channel.public_restricted_system_admin.app_error",
@@ -197,7 +197,7 @@
   },
   {
     "id": "api.channel.can_manage_channel.public_restricted_team_admin.app_error",
-    "translation": "La création et l'administration du canal public sont réservées aux administrateurs systèmes et administrateurs d'équipe."
+    "translation": "La gestion et la création de canaux publics sont réservés aux administrateurs système et administrateurs d'équipe."
   },
   {
     "id": "api.channel.create_channel.direct_channel.app_error",
@@ -1772,11 +1772,11 @@
   },
   {
     "id": "api.post.make_direct_channel_visible.save_pref.error",
-    "translation": "Échec de la sauvegarde des préférences du canal direct user_id=%v other_user_id=%v err=%v"
+    "translation": "Impossible de sauvegarder les préférences du canal de messages personnels user_id=%v other_user_id=%v err=%v"
   },
   {
     "id": "api.post.make_direct_channel_visible.update_pref.error",
-    "translation": "Échec de la mise à jour des préférences du canal direct user_id=%v other_user_id=%v err=%v"
+    "translation": "Impossible de mettre à jour les préférences du canal de messages personnels user_id=%v other_user_id=%v err=%v"
   },
   {
     "id": "api.post.notification.member_profile.warn",
@@ -5732,7 +5732,7 @@
   },
   {
     "id": "store.sql_channel.save.direct_channel.app_error",
-    "translation": "Utilisez SaveDirectChannel pour créer un canal direct"
+    "translation": "Utilisez SaveDirectChannel pour créer un canal de messages personnels"
   },
   {
     "id": "store.sql_channel.save.open_transaction.app_error",
@@ -5764,7 +5764,7 @@
   },
   {
     "id": "store.sql_channel.save_direct_channel.add_members.app_error",
-    "translation": "Impossible d'ajouter des membres au canal direct"
+    "translation": "Impossible d'ajouter des membres au canal de messages personnels"
   },
   {
     "id": "store.sql_channel.save_direct_channel.commit.app_error",
@@ -6588,7 +6588,7 @@
   },
   {
     "id": "store.sql_user.analytics_get_system_admin_count.app_error",
-    "translation": "Impossible de récupérer le nombre d'administrateurs systèmes"
+    "translation": "Impossible de récupérer le nombre d'administrateurs système"
   },
   {
     "id": "store.sql_user.analytics_unique_user_count.app_error",

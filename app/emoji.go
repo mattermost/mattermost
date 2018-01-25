@@ -66,8 +66,8 @@ func (a *App) CreateEmoji(sessionUserId string, emoji *model.Emoji, multiPartIma
 	}
 }
 
-func (a *App) GetEmojiList(page, perPage int) ([]*model.Emoji, *model.AppError) {
-	if result := <-a.Srv.Store.Emoji().GetList(page*perPage, perPage); result.Err != nil {
+func (a *App) GetEmojiList(page, perPage int, sort string) ([]*model.Emoji, *model.AppError) {
+	if result := <-a.Srv.Store.Emoji().GetList(page*perPage, perPage, sort); result.Err != nil {
 		return nil, result.Err
 	} else {
 		return result.Data.([]*model.Emoji), nil
@@ -134,14 +134,30 @@ func (a *App) DeleteEmoji(emoji *model.Emoji) *model.AppError {
 
 func (a *App) GetEmoji(emojiId string) (*model.Emoji, *model.AppError) {
 	if !*a.Config().ServiceSettings.EnableCustomEmoji {
-		return nil, model.NewAppError("deleteEmoji", "api.emoji.disabled.app_error", nil, "", http.StatusNotImplemented)
+		return nil, model.NewAppError("GetEmoji", "api.emoji.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
 	if len(*a.Config().FileSettings.DriverName) == 0 {
-		return nil, model.NewAppError("deleteImage", "api.emoji.storage.app_error", nil, "", http.StatusNotImplemented)
+		return nil, model.NewAppError("GetEmoji", "api.emoji.storage.app_error", nil, "", http.StatusNotImplemented)
 	}
 
 	if result := <-a.Srv.Store.Emoji().Get(emojiId, false); result.Err != nil {
+		return nil, result.Err
+	} else {
+		return result.Data.(*model.Emoji), nil
+	}
+}
+
+func (a *App) GetEmojiByName(emojiName string) (*model.Emoji, *model.AppError) {
+	if !*a.Config().ServiceSettings.EnableCustomEmoji {
+		return nil, model.NewAppError("GetEmoji", "api.emoji.disabled.app_error", nil, "", http.StatusNotImplemented)
+	}
+
+	if len(*a.Config().FileSettings.DriverName) == 0 {
+		return nil, model.NewAppError("GetEmoji", "api.emoji.storage.app_error", nil, "", http.StatusNotImplemented)
+	}
+
+	if result := <-a.Srv.Store.Emoji().GetByName(emojiName); result.Err != nil {
 		return nil, result.Err
 	} else {
 		return result.Data.(*model.Emoji), nil
@@ -166,6 +182,18 @@ func (a *App) GetEmojiImage(emojiId string) (imageByte []byte, imageType string,
 		}
 
 		return img, imageType, nil
+	}
+}
+
+func (a *App) SearchEmoji(name string, prefixOnly bool, limit int) ([]*model.Emoji, *model.AppError) {
+	if !*a.Config().ServiceSettings.EnableCustomEmoji {
+		return nil, model.NewAppError("SearchEmoji", "api.emoji.disabled.app_error", nil, "", http.StatusNotImplemented)
+	}
+
+	if result := <-a.Srv.Store.Emoji().Search(name, prefixOnly, limit); result.Err != nil {
+		return nil, result.Err
+	} else {
+		return result.Data.([]*model.Emoji), nil
 	}
 }
 

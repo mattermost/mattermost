@@ -31,7 +31,7 @@ func getEmoji(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	listEmoji, err := c.App.GetEmojiList(0, 100000)
+	listEmoji, err := c.App.GetEmojiList(0, 100000, "")
 	if err != nil {
 		c.Err = err
 		return
