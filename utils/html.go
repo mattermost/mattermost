@@ -23,7 +23,7 @@ type HTMLTemplateWatcher struct {
 
 func NewHTMLTemplateWatcher(directory string) (*HTMLTemplateWatcher, error) {
 	templatesDir, _ := FindDir(directory)
-	l4g.Debug(T("api.api.init.parsing_templates.debug"), templatesDir)
+	l4g.Debug("Parsing server templates at %v", templatesDir)
 
 	ret := &HTMLTemplateWatcher{
 		stop:    make(chan struct{}),
@@ -55,15 +55,15 @@ func NewHTMLTemplateWatcher(directory string) (*HTMLTemplateWatcher, error) {
 				return
 			case event := <-watcher.Events:
 				if event.Op&fsnotify.Write == fsnotify.Write {
-					l4g.Info(T("web.reparse_templates.info"), event.Name)
+					l4g.Info("Re-parsing templates because of modified file %v", event.Name)
 					if htmlTemplates, err := template.ParseGlob(templatesDir + "*.html"); err != nil {
-						l4g.Error(T("web.parsing_templates.error"), err)
+						l4g.Error("Failed to parse templates %v", err)
 					} else {
 						ret.templates.Store(htmlTemplates)
 					}
 				}
 			case err := <-watcher.Errors:
-				l4g.Error(T("web.dir_fail.error"), err)
+				l4g.Error("Failed in directory watcher %s", err)
 			}
 		}
 	}()

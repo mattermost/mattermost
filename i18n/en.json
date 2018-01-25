@@ -132,10 +132,6 @@
     "translation": "Unable to upload file. File is too large."
   },
   {
-    "id": "api.api.init.parsing_templates.debug",
-    "translation": "Parsing server templates at %v"
-  },
-  {
     "id": "api.api.init.parsing_templates.error",
     "translation": "Failed to parse server templates %v"
   },
@@ -7155,10 +7151,6 @@
     "translation": "Failed to create directory watcher %v"
   },
   {
-    "id": "web.dir_fail.error",
-    "translation": "Failed in directory watcher %v"
-  },
-  {
     "id": "web.do_load_channel.error",
     "translation": "Error in getting users profile for id=%v forcing logout"
   },
@@ -7263,16 +7255,8 @@
     "translation": "Parsing templates at %v"
   },
   {
-    "id": "web.parsing_templates.error",
-    "translation": "Failed to parse templates %v"
-  },
-  {
     "id": "web.post_permalink.app_error",
     "translation": "Invalid Post ID"
-  },
-  {
-    "id": "web.reparse_templates.info",
-    "translation": "Re-parsing templates because of modified file %v"
   },
   {
     "id": "web.reset_password.expired_link.app_error",
