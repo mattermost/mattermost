@@ -1407,7 +1407,6 @@ func (a *App) postChannelMoveMessage(user *model.User, channel *model.Channel, p
 	}
 
 	if _, err := a.CreatePost(post, channel, false); err != nil {
-		fmt.Println(err)
 		return model.NewAppError("postChannelMoveMessage", "api.team.move_channel.post.error", nil, err.Error(), http.StatusInternalServerError)
 	}
 

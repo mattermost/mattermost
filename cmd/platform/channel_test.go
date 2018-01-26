@@ -51,15 +51,16 @@ func TestMoveChannel(t *testing.T) {
 	channel := th.CreateChannel(th.BasicClient, th.BasicTeam)
 
 	adminEmail := th.BasicUser2.Email
+	adminUsername := th.BasicUser2.Username
 	origin := th.BasicTeam.Name + ":" + channel.Name
 	dest := th.BasicTeam2.Name
 
 	checkCommand(t, "channel", "add", origin, adminEmail)
 
 	// should fail with nill because errors are logged instead of returned when a channel does not exist
-	require.Nil(t, runCommand(t, "channel", "move", dest, th.BasicTeam.Name+":doesnotexist"))
+	require.Nil(t, runCommand(t, "channel", "move", dest, th.BasicTeam.Name+":doesnotexist", "--username", adminUsername))
 
-	checkCommand(t, "channel", "move", dest, origin)
+	checkCommand(t, "channel", "move", dest, origin, "--username", adminUsername)
 }
 
 func TestListChannels(t *testing.T) {
