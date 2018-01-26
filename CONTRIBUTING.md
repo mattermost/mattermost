@@ -19,78 +19,57 @@ Then, one or more of the labels is applied:
  - `Setup Test Server`: Applied if the PR is queued for PM testing.
  - `Work in Progress`: Applied if the PR is unfinished and needs further work before it's ready for review.
 
-#### Stage 1: Assign `1: PM Review` label
+#### Stage 1: PM Review
 
- - The label should be assigned within 1 business day.
- - Any Mattermost Core Committer can add the label.
- - Core Committer will assign PM under Assignees.
-   - Assign PRs related to end user features to @esethna, others to @jasonblais.
-   - When in doubt, look for a related Jira ticket or GitHub issue.
-   - If still unclear, assign based on best judgment.
-   - PM to re-assign to proper owner if needed.
- - In some instances it makes sense to skip this stage, if, for example, it is an internal code change from a core committer and doesn't need PM review.
-   - In this case the core committer will submit the PR and assign the appropriate devs for review.
-   
- - A PM will review the pull request to make sure it:
-   - Fits with our product roadmap.
-   - Works as described in the ticket.
-   - Meets [user experience guidelines](https://docs.mattermost.com/developer/fx-guidelines.html).
- - This step is sometimes skipped for bugs or small improvements with a well-defined ticket.
- 
- - When the review process begins, the PM applies a milestone:
-   - Set for next release if the PM thinks there is enough time for the PR to be merged and sufficiently tested on `master` before code complete.
-   - Set for a future release if PR is too large to test prior to the code complete date.
- - PM responds to submitter letting them know that PR may have a delay in review due to the release cycle.
+A product manager (PM) will review the pull request to make sure it:
+ - Fits with our product roadmap.
+ - Works as described in the ticket.
+ - Meets [user experience guidelines](https://docs.mattermost.com/developer/fx-guidelines.html).
 
- - Initial review should be completed within 24-48 hrs (1-2 business days).
- - PM to follow up if the CLA has not been signed.
-   - If no response after 7 days, PM to close the issue.
- - PM to verify there is a corresponding Jira ticket or GitHub issue.
-   - If no corresponding issue is found, PM will do extra vetting. However, this is lower priority.
- 
- - PM tests and verifies pull requests utilizing the Setup Test Server.
+This step is sometimes skipped for bugs or small improvements with a well-defined ticket. In this case the core committer will assign the appropriate devs for review. A PM can also ask developer support to set up a separate test instance if the PR cannot be easily tested.
+
+When the review process begins:
+ - Mattermost Core Committer
+    - Assigns `1: PM Review` label within 1 business day after the PR is submitted.
+    - Assigns PM reviewer under Assignees. Those related to end user features are assigned to @esethna, others to @jasonblais. PM re-assigns as needed.
+ - PM
+   - Applies milestone for next release if the PM thinks there is enough time for the PR to be merged and sufficiently tested on `master` before code complete. Otherwise to a future release, letting submitted know that PR may have a delay in review due to the release cycle.
+ - Follows up with contributor if the CLA has not been signed. If no response within 7 days, PM closes the issue.
+ - PM verifies there is a corresponding Jira ticket or GitHub issue.
+
+Next, the PM tests changes on a spinmint test server:
+ - PM tests and verifies pull requests via the `Setup Test Server` label. Initial review is completed within 2 business days.
  - If changes are required, PM submits review as "Changes Requested", with a comment on the areas that require updates. Comment explains why changes are needed linking back to design principles.
- - Not all pull requests can be tested so this step may be optional or PMs might require developer support to set up a test instance.
    - PM applies `Awaiting Submitter Action` label to more easily query the PR queue.
    - Once changes are made, PM regenerates test server and repeats testing.
  - If bugs are found that are also on `master`, a new bug report is submitted in JIRA and linked to the PR. Bugs that are also found on `master` will typically not block merging of PRs.
  - If PR is approved, PM submits review as "Approved", commenting with areas that were tested.
  
-#### Stage 2: Assign `2: Dev Review` label
+#### Stage 2: Dev Review
 
- - PM owner to add label and remove `1: PM Review` and `Setup Test Server` labels.
- - PM to assign 2 devs for review under Reviewers.
- - Primary dev should be assigned based on their feature area link.
- - Secondary dev should be assigned as well, but doesn't need to be in their feature area.
-   - When in doubt, devs should be assigned based on best guess, or person who appears to have cycles.
- - Devs will re-assign to proper owner if needed.
- - Initial review should be completed within 24-48 hrs (1-2 business days).
- - Devs to review the code and provide initial feedback.
-   - Things to look for:
-     - Proper Unit Tests
-     - API documentation
-     - Localization
- - After the submitter has addressed and satisfied all reviewers' comments, the PR will be marked as approved.
- - PRs require a minimum of 2 dev approvals. They will either give feedback or approve the PR. If changes are required:
-   - Dev submits review as "Changes Requested", with a comment on the areas that require tweaks.
-   - Once changes are made, dev reviews code changes.
- - Any comments should be addressed before the pull request moves on to the next stage.
+Two developers will review the pull request and either give feedback or approve the PR. Any comments should be addressed before the pull request moves on to the next stage.
+
+ - PM reviewer adds `2: Dev Review` label, removes `1: PM Review` and `Setup Test Server` labels, and assigns 2 developers for review under Reviewers.
+   - At least one dev is assigned based on their [feature area](https://docs.mattermost.com/developer/core-developer-handbook.html#current-core-developers). Devs re-assign as needed.
+ - Devs review the code and provide feedback, with initial review completed within 2 business days. Some areas to check include:
+   - Proper Unit Tests
+   - API documentation
+   - Localization
+ - After the submitter has addressed and satisfied all reviewers' comments, `3: Ready to Merge` label is applied.
 
 #### Stage 3: Ready to Merge
 
- - Assign `3: Ready to Merge` label.
- - Verify we are not in release mode and the PR can be merged into master.
- - If the PR is a major change we prefer to postpone the merge for the next release cycle.
-   - Call out on the issue that it is a major change and it will be merged after branching.
-   - Once the current release is branched the PR can be merged into master.
+Review process is complete and the pull request is merged.
 
-#### Step 4: Merge the PR
-
- - The review process is complete, and the pull request will be merged.
+ - Dev assigns `3: Ready to Merge` label.
+ - If Mattermost is not in release mode (between [major feature cut and release candidate cut](https://docs.mattermost.com/process/release-process.html), the PR is merged into `master`.
+ - If the PR is a major change, pmerge is postponed until the next release cycle.
+   - Dev calls out on the issue that it is a major change and it will be merged after branching.
+   - Once the current release is branched the PR can be merged into `master`.
 
 #### PR Merged
 
 After a PR is merged:
-- External Contributions: PM closes the [Help Wanted] issue and related Jira ticket.
+- External Contributions: PM closes the [Help Wanted] issue and related JIRA ticket.
 - Internal Contributions: Core committer resolves the JIRA ticket.
-- PM follows up for docs, changelog and release tests when working through the PR tracking spreadsheet.
+- PM follows up for docs and changelog, and QA for release tests.
