@@ -10,7 +10,7 @@ import (
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/spf13/cobra"
 )
-
+hello 1
 var channelCmd = &cobra.Command{
 	Use:   "channel",
 	Short: "Management of channels",

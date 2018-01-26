@@ -11,7 +11,7 @@ import (
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/stretchr/testify/require"
 )
-
+Peter
 func TestJoinChannel(t *testing.T) {
 	th := api.Setup().InitBasic()
 	defer th.TearDown()
