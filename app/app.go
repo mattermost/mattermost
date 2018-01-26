@@ -460,7 +460,7 @@ func (a *App) DoAdvancedPermissionsMigration() {
 
 	l4g.Info("Migrating roles to database.")
 	roles := model.MakeDefaultRoles()
-	roles = utils.SetRolePermissionsFromConfig(roles, a.Config())
+	roles = utils.SetRolePermissionsFromConfig(roles, a.Config(), utils.IsLicensed())
 
 	allSucceeded := true
 
