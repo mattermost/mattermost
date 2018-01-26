@@ -215,8 +215,8 @@ func SetRolePermissionsFromConfig(roles map[string]*model.Role, cfg *model.Confi
 				model.PERMISSION_ADD_USER_TO_TEAM.Id,
 			)
 		} else if *cfg.TeamSettings.RestrictTeamInvite == model.PERMISSIONS_ALL {
-			roles[model.SYSTEM_USER_ROLE_ID].Permissions = append(
-				roles[model.SYSTEM_USER_ROLE_ID].Permissions,
+			roles[model.TEAM_USER_ROLE_ID].Permissions = append(
+				roles[model.TEAM_USER_ROLE_ID].Permissions,
 				model.PERMISSION_INVITE_USER.Id,
 				model.PERMISSION_ADD_USER_TO_TEAM.Id,
 			)
@@ -235,11 +235,6 @@ func SetRolePermissionsFromConfig(roles map[string]*model.Role, cfg *model.Confi
 			roles[model.CHANNEL_USER_ROLE_ID].Permissions = append(
 				roles[model.CHANNEL_USER_ROLE_ID].Permissions,
 				model.PERMISSION_DELETE_POST.Id,
-			)
-			roles[model.CHANNEL_ADMIN_ROLE_ID].Permissions = append(
-				roles[model.CHANNEL_ADMIN_ROLE_ID].Permissions,
-				model.PERMISSION_DELETE_POST.Id,
-				model.PERMISSION_DELETE_OTHERS_POSTS.Id,
 			)
 			roles[model.TEAM_ADMIN_ROLE_ID].Permissions = append(
 				roles[model.TEAM_ADMIN_ROLE_ID].Permissions,
