@@ -132,12 +132,12 @@ func TestUserIsValid(t *testing.T) {
 	}
 
 	user.LastName = strings.Repeat("a", 64)
-	user.Position = strings.Repeat("a", 64)
+	user.Position = strings.Repeat("a", 128)
 	if err := user.IsValid(); err != nil {
 		t.Fatal(err)
 	}
 
-	user.Position = strings.Repeat("a", 65)
+	user.Position = strings.Repeat("a", 129)
 	if err := user.IsValid(); !HasExpectedUserIsValidError(err, "position", user.Id) {
 		t.Fatal(err)
 	}
