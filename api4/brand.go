@@ -26,6 +26,8 @@ func getBrandImage(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+Brady
+
 func uploadBrandImage(c *Context, w http.ResponseWriter, r *http.Request) {
 	if r.ContentLength > *c.App.Config().FileSettings.MaxFileSize {
 		c.Err = model.NewAppError("uploadBrandImage", "api.admin.upload_brand_image.too_large.app_error", nil, "", http.StatusRequestEntityTooLarge)
