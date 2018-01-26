@@ -157,6 +157,13 @@ func (a *App) UpdateTeamMemberRoles(teamId string, userId string, newRoles strin
 		return nil, err
 	}
 
+	if exist, err := a.CheckRolesExist(strings.Fields(newRoles)); err != nil {
+		return nil, err
+	} else if !exist {
+		err := model.NewAppError("UpdateTeamMemberRoles", "app.team.update_member_roles.invalid_roles", nil, "roles="+newRoles, http.StatusBadRequest)
+		return nil, err
+	}
+
 	member.Roles = newRoles
 
 	if result := <-a.Srv.Store.Team().UpdateMember(member); result.Err != nil {
