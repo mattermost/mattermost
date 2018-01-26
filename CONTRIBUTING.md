@@ -33,9 +33,9 @@ When the review process begins:
     - Assigns `1: PM Review` label within 1 business day after the PR is submitted.
     - Assigns PM reviewer under Assignees. Those related to end user features are assigned to @esethna, others to @jasonblais. PM re-assigns as needed.
  - PM
-   - Applies milestone for next release if the PM thinks there is enough time for the PR to be merged and sufficiently tested on `master` before code complete. Otherwise to a future release, letting submitted know that PR may have a delay in review due to the release cycle.
+   - Applies milestone for next release if the PM thinks there is enough time for the PR to be merged and sufficiently tested on `master` before code complete. Otherwise moved to a future release, letting submitter know that PR may have a delay in review due to the release cycle.
  - Follows up with contributor if the CLA has not been signed. If no response within 7 days, PM closes the issue.
- - PM verifies there is a corresponding Jira ticket or GitHub issue.
+ - PM verifies there is a corresponding JIRA ticket or GitHub issue.
 
 Next, the PM tests changes on a spinmint test server:
  - PM tests and verifies pull requests via the `Setup Test Server` label. Initial review is completed within 2 business days.
@@ -63,7 +63,7 @@ Review process is complete and the pull request is merged.
 
  - Dev assigns `3: Ready to Merge` label.
  - If Mattermost is not in release mode (between [major feature cut and release candidate cut](https://docs.mattermost.com/process/release-process.html), the PR is merged into `master`.
- - If the PR is a major change, pmerge is postponed until the next release cycle.
+ - If the PR is a major change, merge is postponed until the next release cycle.
    - Dev calls out on the issue that it is a major change and it will be merged after branching.
    - Once the current release is branched the PR can be merged into `master`.
 
