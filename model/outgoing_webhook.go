@@ -46,12 +46,13 @@ type OutgoingWebhookPayload struct {
 }
 
 type OutgoingWebhookResponse struct {
-	Text         *string         `json:"text"`
-	Username     string          `json:"username"`
-	IconURL      string          `json:"icon_url"`
-	Props        StringInterface `json:"props"`
-	Type         string          `json:"type"`
-	ResponseType string          `json:"response_type"`
+	Text         *string            `json:"text"`
+	Username     string             `json:"username"`
+	IconURL      string             `json:"icon_url"`
+	Props        StringInterface    `json:"props"`
+	Attachments  []*SlackAttachment `json:"attachments"`
+	Type         string             `json:"type"`
+	ResponseType string             `json:"response_type"`
 }
 
 const OUTGOING_HOOK_RESPONSE_TYPE_COMMENT = "comment"
