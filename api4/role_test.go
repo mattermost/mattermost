@@ -169,6 +169,10 @@ func TestPatchRole(t *testing.T) {
 	assert.EqualValues(t, received.Permissions, []string{"manage_system", "delete_public_channel"})
 	assert.Equal(t, received.SchemeManaged, role.SchemeManaged)
 
+	// Check a no-op patch succeeds.
+	received, resp = th.SystemAdminClient.PatchRole(role.Id, patch)
+	CheckNoError(t, resp)
+
 	received, resp = th.SystemAdminClient.PatchRole("junk", patch)
 	CheckBadRequestStatus(t, resp)
 

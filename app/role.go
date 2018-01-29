@@ -4,6 +4,8 @@
 package app
 
 import (
+	"reflect"
+
 	"github.com/mattermost/mattermost-server/model"
 )
 
@@ -32,6 +34,11 @@ func (a *App) GetRolesByNames(names []string) ([]*model.Role, *model.AppError) {
 }
 
 func (a *App) PatchRole(role *model.Role, patch *model.RolePatch) (*model.Role, *model.AppError) {
+	// If patch is a no-op then short-circuit the store.
+	if patch.Permissions != nil && reflect.DeepEqual(*patch.Permissions, role.Permissions) {
+		return role, nil
+	}
+
 	role.Patch(patch)
 	role, err := a.UpdateRole(role)
 	if err != nil {
