@@ -149,7 +149,7 @@
   },
   {
     "id": "api.channel.add_member.added",
-    "translation": "%v added to the channel by %v"
+    "translation": "%v added to the channel by %v."
   },
   {
     "id": "api.channel.add_member.find_channel.app_error",
@@ -229,7 +229,7 @@
   },
   {
     "id": "api.channel.delete_channel.archived",
-    "translation": "%v has archived the channel."
+    "translation": "%v archived the channel."
   },
   {
     "id": "api.channel.delete_channel.cannot.app_error",
@@ -293,7 +293,7 @@
   },
   {
     "id": "api.channel.join_channel.post_and_forget",
-    "translation": "%v has joined the channel."
+    "translation": "%v joined the channel."
   },
   {
     "id": "api.channel.leave.default.app_error",
@@ -309,7 +309,7 @@
   },
   {
     "id": "api.channel.leave.left",
-    "translation": "%v has left the channel."
+    "translation": "%v left the channel."
   },
   {
     "id": "api.channel.change_channel_privacy.private_to_public",
@@ -365,7 +365,7 @@
   },
   {
     "id": "api.channel.remove_member.removed",
-    "translation": "%v was removed from the channel."
+    "translation": "%v removed from the channel."
   },
   {
     "id": "api.channel.remove_member.unable.app_error",
@@ -2180,7 +2180,7 @@
   },
   {
     "id": "api.team.add_user_to_team.added",
-    "translation": "%v added to the team by %v"
+    "translation": "%v added to the team by %v."
   },
   {
     "id": "api.team.add_user_to_team.missing_parameter.app_error",
@@ -2316,7 +2316,7 @@
   },
   {
     "id": "api.team.remove_user_from_team.removed",
-    "translation": "%v was removed from the team."
+    "translation": "%v removed from the team."
   },
   {
     "id": "api.team.signup_team.email_disabled.app_error",
@@ -3368,7 +3368,7 @@
   },
   {
     "id": "app.import.validate_reaction_import_data.create_at_before_parent.error",
-    "translation": "Reactoin CreateAt property must be greater than the parent post CreateAt."
+    "translation": "Reaction CreateAt property must be greater than the parent post CreateAt."
   },
   {
     "id": "app.import.validate_reply_import_data.user_missing.error",
@@ -5400,7 +5400,7 @@
   },
   {
     "id": "model.user.is_valid.position.app_error",
-    "translation": "Invalid position: must not be longer than 35 characters."
+    "translation": "Invalid position: must not be longer than 128 characters."
   },
   {
     "id": "model.user.is_valid.pwd.app_error",
