@@ -10,13 +10,14 @@ import (
 	"io/ioutil"
 	"net"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 
 	l4g "github.com/alecthomas/log4go"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
-	"github.com/rsc/letsencrypt"
+	"golang.org/x/crypto/acme/autocert"
 	"gopkg.in/throttled/throttled.v2"
 	"gopkg.in/throttled/throttled.v2/store/memstore"
 
@@ -161,18 +162,34 @@ func (a *App) StartServer() {
 
 	l4g.Info(utils.T("api.server.start_server.listening.info"), listener.Addr().String())
 
-	if *a.Config().ServiceSettings.Forward80To443 {
-		go func() {
-			redirectListener, err := net.Listen("tcp", ":80")
-			if err != nil {
-				listener.Close()
-				l4g.Error("Unable to setup forwarding: " + err.Error())
-				return
-			}
-			defer redirectListener.Close()
+	// Migration from old let's encrypt library
+	if *a.Config().ServiceSettings.UseLetsEncrypt {
+		if stat, err := os.Stat(*a.Config().ServiceSettings.LetsEncryptCertificateCacheFile); err == nil && !stat.IsDir() {
+			os.Remove(*a.Config().ServiceSettings.LetsEncryptCertificateCacheFile)
+		}
+	}
 
-			http.Serve(redirectListener, http.HandlerFunc(redirectHTTPToHTTPS))
-		}()
+	m := &autocert.Manager{
+		Cache:  autocert.DirCache(*a.Config().ServiceSettings.LetsEncryptCertificateCacheFile),
+		Prompt: autocert.AcceptTOS,
+	}
+
+	if *a.Config().ServiceSettings.Forward80To443 {
+		if *a.Config().ServiceSettings.UseLetsEncrypt {
+			go http.ListenAndServe(":http", m.HTTPHandler(nil))
+		} else {
+			go func() {
+				redirectListener, err := net.Listen("tcp", ":80")
+				if err != nil {
+					listener.Close()
+					l4g.Error("Unable to setup forwarding: " + err.Error())
+					return
+				}
+				defer redirectListener.Close()
+
+				http.Serve(redirectListener, http.HandlerFunc(redirectHTTPToHTTPS))
+			}()
+		}
 	}
 
 	a.Srv.didFinishListen = make(chan struct{})
@@ -180,8 +197,6 @@ func (a *App) StartServer() {
 		var err error
 		if *a.Config().ServiceSettings.ConnectionSecurity == model.CONN_SECURITY_TLS {
 			if *a.Config().ServiceSettings.UseLetsEncrypt {
-				var m letsencrypt.Manager
-				m.CacheFile(*a.Config().ServiceSettings.LetsEncryptCertificateCacheFile)
 
 				tlsConfig := &tls.Config{
 					GetCertificate: m.GetCertificate,
