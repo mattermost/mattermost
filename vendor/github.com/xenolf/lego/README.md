@@ -229,7 +229,7 @@ myUser := MyUser{
 
 // A client facilitates communication with the CA server. This CA URL is
 // configured for a local dev instance of Boulder running in Docker in a VM.
-client, err := acme.NewClient("http://192.168.99.100:4000", &myUser, acme.RSA2048)
+client, err := acme.NewClient("http://192.168.99.100:4000/directory", &myUser, acme.RSA2048)
 if err != nil {
   log.Fatal(err)
 }

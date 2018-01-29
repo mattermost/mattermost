@@ -1,5 +1,6 @@
 /*
- * Minio Go Library for Amazon S3 Compatible Cloud Storage (C) 2015, 2016 Minio, Inc.
+ * Minio Go Library for Amazon S3 Compatible Cloud Storage
+ * Copyright 2015-2017 Minio, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +23,66 @@ import (
 	"testing"
 )
 
+// Tests get region from host URL.
+func TestGetRegionFromURL(t *testing.T) {
+	testCases := []struct {
+		u              url.URL
+		expectedRegion string
+	}{
+		{
+			u:              url.URL{Host: "storage.googleapis.com"},
+			expectedRegion: "",
+		},
+		{
+			u:              url.URL{Host: "s3.cn-north-1.amazonaws.com.cn"},
+			expectedRegion: "cn-north-1",
+		},
+		{
+			u:              url.URL{Host: "s3.cn-northwest-1.amazonaws.com.cn"},
+			expectedRegion: "cn-northwest-1",
+		},
+		{
+			u:              url.URL{Host: "s3-fips-us-gov-west-1.amazonaws.com"},
+			expectedRegion: "us-gov-west-1",
+		},
+		{
+			u:              url.URL{Host: "s3-us-gov-west-1.amazonaws.com"},
+			expectedRegion: "us-gov-west-1",
+		},
+		{
+			u:              url.URL{Host: "192.168.1.1"},
+			expectedRegion: "",
+		},
+		{
+			u:              url.URL{Host: "s3-eu-west-1.amazonaws.com"},
+			expectedRegion: "eu-west-1",
+		},
+		{
+			u:              url.URL{Host: "s3.eu-west-1.amazonaws.com"},
+			expectedRegion: "eu-west-1",
+		},
+		{
+			u:              url.URL{Host: "s3.dualstack.eu-west-1.amazonaws.com"},
+			expectedRegion: "eu-west-1",
+		},
+		{
+			u:              url.URL{Host: "s3.amazonaws.com"},
+			expectedRegion: "",
+		},
+		{
+			u:              url.URL{Host: "s3-external-1.amazonaws.com"},
+			expectedRegion: "",
+		},
+	}
+
+	for i, testCase := range testCases {
+		region := GetRegionFromURL(testCase.u)
+		if testCase.expectedRegion != region {
+			t.Errorf("Test %d: Expected region %s, got %s", i+1, testCase.expectedRegion, region)
+		}
+	}
+}
+
 // Tests for 'isValidDomain(host string) bool'.
 func TestIsValidDomain(t *testing.T) {
 	testCases := []struct {
@@ -32,6 +93,7 @@ func TestIsValidDomain(t *testing.T) {
 	}{
 		{"s3.amazonaws.com", true},
 		{"s3.cn-north-1.amazonaws.com.cn", true},
+		{"s3.cn-northwest-1.amazonaws.com.cn", true},
 		{"s3.amazonaws.com_", false},
 		{"%$$$", false},
 		{"s3.amz.test.com", true},
@@ -119,9 +181,17 @@ func TestIsAmazonEndpoint(t *testing.T) {
 		{"https://amazons3.amazonaws.com", false},
 		{"-192.168.1.1", false},
 		{"260.192.1.1", false},
+		{"https://s3-.amazonaws.com", false},
+		{"https://s3..amazonaws.com", false},
+		{"https://s3.dualstack.us-west-1.amazonaws.com.cn", false},
+		{"https://s3..us-west-1.amazonaws.com.cn", false},
 		// valid inputs.
 		{"https://s3.amazonaws.com", true},
+		{"https://s3-external-1.amazonaws.com", true},
 		{"https://s3.cn-north-1.amazonaws.com.cn", true},
+		{"https://s3-us-west-1.amazonaws.com", true},
+		{"https://s3.us-west-1.amazonaws.com", true},
+		{"https://s3.dualstack.us-west-1.amazonaws.com", true},
 	}
 
 	for i, testCase := range testCases {
@@ -130,41 +200,6 @@ func TestIsAmazonEndpoint(t *testing.T) {
 			t.Errorf("Test %d: Expected to pass, but failed with: <ERROR> %s", i+1, err)
 		}
 		result := IsAmazonEndpoint(*u)
-		if testCase.result != result {
-			t.Errorf("Test %d: Expected isAmazonEndpoint to be '%v' for input \"%s\", but found it to be '%v' instead", i+1, testCase.result, testCase.url, result)
-		}
-	}
-
-}
-
-// Tests validate Amazon S3 China endpoint validator.
-func TestIsAmazonChinaEndpoint(t *testing.T) {
-	testCases := []struct {
-		url string
-		// Expected result.
-		result bool
-	}{
-		{"https://192.168.1.1", false},
-		{"192.168.1.1", false},
-		{"http://storage.googleapis.com", false},
-		{"https://storage.googleapis.com", false},
-		{"storage.googleapis.com", false},
-		{"s3.amazonaws.com", false},
-		{"https://amazons3.amazonaws.com", false},
-		{"-192.168.1.1", false},
-		{"260.192.1.1", false},
-		// s3.amazonaws.com is not a valid Amazon S3 China end point.
-		{"https://s3.amazonaws.com", false},
-		// valid input.
-		{"https://s3.cn-north-1.amazonaws.com.cn", true},
-	}
-
-	for i, testCase := range testCases {
-		u, err := url.Parse(testCase.url)
-		if err != nil {
-			t.Errorf("Test %d: Expected to pass, but failed with: <ERROR> %s", i+1, err)
-		}
-		result := IsAmazonChinaEndpoint(*u)
 		if testCase.result != result {
 			t.Errorf("Test %d: Expected isAmazonEndpoint to be '%v' for input \"%s\", but found it to be '%v' instead", i+1, testCase.result, testCase.url, result)
 		}

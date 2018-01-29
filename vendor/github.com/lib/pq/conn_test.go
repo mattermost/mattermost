@@ -28,7 +28,7 @@ func forceBinaryParameters() bool {
 	}
 }
 
-func openTestConnConninfo(conninfo string) (*sql.DB, error) {
+func testConninfo(conninfo string) string {
 	defaultTo := func(envvar string, value string) {
 		if os.Getenv(envvar) == "" {
 			os.Setenv(envvar, value)
@@ -43,8 +43,11 @@ func openTestConnConninfo(conninfo string) (*sql.DB, error) {
 		!strings.HasPrefix(conninfo, "postgresql://") {
 		conninfo = conninfo + " binary_parameters=yes"
 	}
+	return conninfo
+}
 
-	return sql.Open("postgres", conninfo)
+func openTestConnConninfo(conninfo string) (*sql.DB, error) {
+	return sql.Open("postgres", testConninfo(conninfo))
 }
 
 func openTestConn(t Fatalistic) *sql.DB {
@@ -634,6 +637,57 @@ func TestErrorDuringStartup(t *testing.T) {
 		t.Fatalf("expected Error, got %#v", err)
 	} else if e.Code.Name() != "invalid_authorization_specification" && e.Code.Name() != "invalid_password" {
 		t.Fatalf("expected invalid_authorization_specification or invalid_password, got %s (%+v)", e.Code.Name(), err)
+	}
+}
+
+type testConn struct {
+	closed bool
+	net.Conn
+}
+
+func (c *testConn) Close() error {
+	c.closed = true
+	return c.Conn.Close()
+}
+
+type testDialer struct {
+	conns []*testConn
+}
+
+func (d *testDialer) Dial(ntw, addr string) (net.Conn, error) {
+	c, err := net.Dial(ntw, addr)
+	if err != nil {
+		return nil, err
+	}
+	tc := &testConn{Conn: c}
+	d.conns = append(d.conns, tc)
+	return tc, nil
+}
+
+func (d *testDialer) DialTimeout(ntw, addr string, timeout time.Duration) (net.Conn, error) {
+	c, err := net.DialTimeout(ntw, addr, timeout)
+	if err != nil {
+		return nil, err
+	}
+	tc := &testConn{Conn: c}
+	d.conns = append(d.conns, tc)
+	return tc, nil
+}
+
+func TestErrorDuringStartupClosesConn(t *testing.T) {
+	// Don't use the normal connection setup, this is intended to
+	// blow up in the startup packet from a non-existent user.
+	var d testDialer
+	c, err := DialOpen(&d, testConninfo("user=thisuserreallydoesntexist"))
+	if err == nil {
+		c.Close()
+		t.Fatal("expected dial error")
+	}
+	if len(d.conns) != 1 {
+		t.Fatalf("got len(d.conns) = %d, want = %d", len(d.conns), 1)
+	}
+	if !d.conns[0].closed {
+		t.Error("connection leaked")
 	}
 }
 

@@ -1,7 +1,8 @@
 // +build ignore
 
 /*
- * Minio Go Library for Amazon S3 Compatible Cloud Storage (C) 2015 Minio, Inc.
+ * Minio Go Library for Amazon S3 Compatible Cloud Storage
+ * Copyright 2015-2017 Minio, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +21,6 @@ package main
 
 import (
 	"log"
-	"strconv"
 
 	"github.com/minio/minio-go"
 )
@@ -44,8 +44,12 @@ func main() {
 	// Send object names that are needed to be removed to objectsCh
 	go func() {
 		defer close(objectsCh)
-		for i := 0; i < 10; i++ {
-			objectsCh <- "/path/to/my-objectname" + strconv.Itoa(i)
+		// List all objects from a bucket-name with a matching prefix.
+		for object := range s3Client.ListObjects("my-bucketname", "my-prefixname", true, doneCh) {
+			if object.Err != nil {
+				log.Fatalln(object.Err)
+			}
+			objectsCh <- object.Key
 		}
 	}()
 

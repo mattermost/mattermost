@@ -1,5 +1,6 @@
 /*
- * Minio Go Library for Amazon S3 Compatible Cloud Storage (C) 2015 Minio, Inc.
+ * Minio Go Library for Amazon S3 Compatible Cloud Storage
+ * Copyright 2015-2017 Minio, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,15 +18,15 @@
 package minio
 
 // awsS3EndpointMap Amazon S3 endpoint map.
-// "cn-north-1" adds support for AWS China.
 var awsS3EndpointMap = map[string]string{
 	"us-east-1":      "s3.amazonaws.com",
 	"us-east-2":      "s3-us-east-2.amazonaws.com",
 	"us-west-2":      "s3-us-west-2.amazonaws.com",
 	"us-west-1":      "s3-us-west-1.amazonaws.com",
-	"ca-central-1":   "s3.ca-central-1.amazonaws.com",
+	"ca-central-1":   "s3-ca-central-1.amazonaws.com",
 	"eu-west-1":      "s3-eu-west-1.amazonaws.com",
 	"eu-west-2":      "s3-eu-west-2.amazonaws.com",
+	"eu-west-3":      "s3-eu-west-3.amazonaws.com",
 	"eu-central-1":   "s3-eu-central-1.amazonaws.com",
 	"ap-south-1":     "s3-ap-south-1.amazonaws.com",
 	"ap-southeast-1": "s3-ap-southeast-1.amazonaws.com",
@@ -35,6 +36,7 @@ var awsS3EndpointMap = map[string]string{
 	"sa-east-1":      "s3-sa-east-1.amazonaws.com",
 	"us-gov-west-1":  "s3-us-gov-west-1.amazonaws.com",
 	"cn-north-1":     "s3.cn-north-1.amazonaws.com.cn",
+	"cn-northwest-1": "s3.cn-northwest-1.amazonaws.com.cn",
 }
 
 // getS3Endpoint get Amazon S3 endpoint based on the bucket location.

@@ -258,3 +258,21 @@ func TestDecodeSliceToEmptySliceWOZeroing(t *testing.T) {
 		}
 	}
 }
+
+// #70
+func TestNextSquashMapstructure(t *testing.T) {
+	data := &struct {
+		Level1 struct {
+			Level2 struct {
+				Foo string
+			} `mapstructure:",squash"`
+		} `mapstructure:",squash"`
+	}{}
+	err := Decode(map[interface{}]interface{}{"foo": "baz"}, &data)
+	if err != nil {
+		t.Fatalf("should not error: %s", err)
+	}
+	if data.Level1.Level2.Foo != "baz" {
+		t.Fatal("value should be baz")
+	}
+}

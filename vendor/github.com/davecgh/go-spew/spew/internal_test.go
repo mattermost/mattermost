@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 Dave Collins <dave@davec.name>
+ * Copyright (c) 2013-2016 Dave Collins <dave@davec.name>
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -36,10 +36,7 @@ type dummyFmtState struct {
 }
 
 func (dfs *dummyFmtState) Flag(f int) bool {
-	if f == int('+') {
-		return true
-	}
-	return false
+	return f == int('+')
 }
 
 func (dfs *dummyFmtState) Precision() (int, bool) {
