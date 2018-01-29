@@ -1,5 +1,6 @@
 /*
- * Minio Go Library for Amazon S3 Compatible Cloud Storage (C) 2015 Minio, Inc.
+ * Minio Go Library for Amazon S3 Compatible Cloud Storage
+ * Copyright 2015-2017 Minio, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,22 +40,23 @@ const (
 )
 
 // Encode input URL path to URL encoded path.
-func encodeURL2Path(u *url.URL) (path string) {
+func encodeURL2Path(req *http.Request) (path string) {
+	reqHost := getHostAddr(req)
 	// Encode URL path.
-	if isS3, _ := filepath.Match("*.s3*.amazonaws.com", u.Host); isS3 {
-		bucketName := u.Host[:strings.LastIndex(u.Host, ".s3")]
+	if isS3, _ := filepath.Match("*.s3*.amazonaws.com", reqHost); isS3 {
+		bucketName := reqHost[:strings.LastIndex(reqHost, ".s3")]
 		path = "/" + bucketName
-		path += u.Path
+		path += req.URL.Path
 		path = s3utils.EncodePath(path)
 		return
 	}
-	if strings.HasSuffix(u.Host, ".storage.googleapis.com") {
-		path = "/" + strings.TrimSuffix(u.Host, ".storage.googleapis.com")
-		path += u.Path
+	if strings.HasSuffix(reqHost, ".storage.googleapis.com") {
+		path = "/" + strings.TrimSuffix(reqHost, ".storage.googleapis.com")
+		path += req.URL.Path
 		path = s3utils.EncodePath(path)
 		return
 	}
-	path = s3utils.EncodePath(u.Path)
+	path = s3utils.EncodePath(req.URL.Path)
 	return
 }
 
@@ -76,7 +78,7 @@ func PreSignV2(req http.Request, accessKeyID, secretAccessKey string, expires in
 	}
 
 	// Get presigned string to sign.
-	stringToSign := preStringifyHTTPReq(req)
+	stringToSign := preStringToSignV2(req)
 	hm := hmac.New(sha1.New, []byte(secretAccessKey))
 	hm.Write([]byte(stringToSign))
 
@@ -85,7 +87,7 @@ func PreSignV2(req http.Request, accessKeyID, secretAccessKey string, expires in
 
 	query := req.URL.Query()
 	// Handle specially for Google Cloud Storage.
-	if strings.Contains(req.URL.Host, ".storage.googleapis.com") {
+	if strings.Contains(getHostAddr(&req), ".storage.googleapis.com") {
 		query.Set("GoogleAccessId", accessKeyID)
 	} else {
 		query.Set("AWSAccessKeyId", accessKeyID)
@@ -145,7 +147,7 @@ func SignV2(req http.Request, accessKeyID, secretAccessKey string) *http.Request
 	}
 
 	// Calculate HMAC for secretAccessKey.
-	stringToSign := stringifyHTTPReq(req)
+	stringToSign := stringToSignV2(req)
 	hm := hmac.New(sha1.New, []byte(secretAccessKey))
 	hm.Write([]byte(stringToSign))
 
@@ -170,15 +172,14 @@ func SignV2(req http.Request, accessKeyID, secretAccessKey string) *http.Request
 //	 Expires + "\n" +
 //	 CanonicalizedProtocolHeaders +
 //	 CanonicalizedResource;
-func preStringifyHTTPReq(req http.Request) string {
+func preStringToSignV2(req http.Request) string {
 	buf := new(bytes.Buffer)
 	// Write standard headers.
 	writePreSignV2Headers(buf, req)
 	// Write canonicalized protocol headers if any.
 	writeCanonicalizedHeaders(buf, req)
 	// Write canonicalized Query resources if any.
-	isPreSign := true
-	writeCanonicalizedResource(buf, req, isPreSign)
+	writeCanonicalizedResource(buf, req)
 	return buf.String()
 }
 
@@ -198,15 +199,14 @@ func writePreSignV2Headers(buf *bytes.Buffer, req http.Request) {
 //	 Date + "\n" +
 //	 CanonicalizedProtocolHeaders +
 //	 CanonicalizedResource;
-func stringifyHTTPReq(req http.Request) string {
+func stringToSignV2(req http.Request) string {
 	buf := new(bytes.Buffer)
 	// Write standard headers.
 	writeSignV2Headers(buf, req)
 	// Write canonicalized protocol headers if any.
 	writeCanonicalizedHeaders(buf, req)
 	// Write canonicalized Query resources if any.
-	isPreSign := false
-	writeCanonicalizedResource(buf, req, isPreSign)
+	writeCanonicalizedResource(buf, req)
 	return buf.String()
 }
 
@@ -253,17 +253,27 @@ func writeCanonicalizedHeaders(buf *bytes.Buffer, req http.Request) {
 	}
 }
 
-// The following list is already sorted and should always be, otherwise we could
-// have signature-related issues
+// AWS S3 Signature V2 calculation rule is give here:
+// http://docs.aws.amazon.com/AmazonS3/latest/dev/RESTAuthentication.html#RESTAuthenticationStringToSign
+
+// Whitelist resource list that will be used in query string for signature-V2 calculation.
+// The list should be alphabetically sorted
 var resourceList = []string{
 	"acl",
 	"delete",
+	"lifecycle",
 	"location",
 	"logging",
 	"notification",
 	"partNumber",
 	"policy",
 	"requestPayment",
+	"response-cache-control",
+	"response-content-disposition",
+	"response-content-encoding",
+	"response-content-language",
+	"response-content-type",
+	"response-expires",
 	"torrent",
 	"uploadId",
 	"uploads",
@@ -278,22 +288,11 @@ var resourceList = []string{
 // CanonicalizedResource = [ "/" + Bucket ] +
 // 	  <HTTP-Request-URI, from the protocol name up to the query string> +
 // 	  [ sub-resource, if present. For example "?acl", "?location", "?logging", or "?torrent"];
-func writeCanonicalizedResource(buf *bytes.Buffer, req http.Request, isPreSign bool) {
+func writeCanonicalizedResource(buf *bytes.Buffer, req http.Request) {
 	// Save request URL.
 	requestURL := req.URL
 	// Get encoded URL path.
-	path := encodeURL2Path(requestURL)
-	if isPreSign {
-		// Get encoded URL path.
-		if len(requestURL.Query()) > 0 {
-			// Keep the usual queries unescaped for string to sign.
-			query, _ := url.QueryUnescape(s3utils.QueryEncode(requestURL.Query()))
-			path = path + "?" + query
-		}
-		buf.WriteString(path)
-		return
-	}
-	buf.WriteString(path)
+	buf.WriteString(encodeURL2Path(&req))
 	if requestURL.RawQuery != "" {
 		var n int
 		vals, _ := url.ParseQuery(requestURL.RawQuery)

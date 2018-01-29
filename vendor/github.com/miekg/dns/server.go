@@ -472,11 +472,14 @@ func (srv *Server) serveTCP(l net.Listener) error {
 			}
 			return err
 		}
-		m, err := reader.ReadTCP(rw, rtimeout)
-		if err != nil {
-			continue
-		}
-		go srv.serve(rw.RemoteAddr(), handler, m, nil, nil, rw)
+		go func() {
+			m, err := reader.ReadTCP(rw, rtimeout)
+			if err != nil {
+				rw.Close()
+				return
+			}
+			srv.serve(rw.RemoteAddr(), handler, m, nil, nil, rw)
+		}()
 	}
 }
 

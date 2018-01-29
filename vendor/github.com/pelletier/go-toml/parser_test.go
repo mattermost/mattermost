@@ -2,6 +2,7 @@ package toml
 
 import (
 	"fmt"
+	"math"
 	"reflect"
 	"testing"
 	"time"
@@ -46,7 +47,7 @@ func assertTree(t *testing.T, tree *Tree, err error, ref map[string]interface{})
 func TestCreateSubTree(t *testing.T) {
 	tree := newTree()
 	tree.createSubTree([]string{"a", "b", "c"}, Position{})
-	tree.Set("a.b.c", "", false, 42)
+	tree.Set("a.b.c", 42)
 	if tree.Get("a.b.c") != 42 {
 		t.Fail()
 	}
@@ -72,6 +73,17 @@ func TestNumberInKey(t *testing.T) {
 	})
 }
 
+func TestIncorrectKeyExtraSquareBracket(t *testing.T) {
+	_, err := Load(`[a]b]
+zyx = 42`)
+	if err == nil {
+		t.Error("Error should have been returned.")
+	}
+	if err.Error() != "(1, 4): unexpected token" {
+		t.Error("Bad error message:", err.Error())
+	}
+}
+
 func TestSimpleNumbers(t *testing.T) {
 	tree, err := Load("a = +42\nb = -21\nc = +4.2\nd = -2.1")
 	assertTree(t, tree, err, map[string]interface{}{
@@ -79,6 +91,25 @@ func TestSimpleNumbers(t *testing.T) {
 		"b": int64(-21),
 		"c": float64(4.2),
 		"d": float64(-2.1),
+	})
+}
+
+func TestSpecialFloats(t *testing.T) {
+	tree, err := Load(`
+normalinf = inf
+plusinf = +inf
+minusinf = -inf
+normalnan = nan
+plusnan = +nan
+minusnan = -nan
+`)
+	assertTree(t, tree, err, map[string]interface{}{
+		"normalinf": math.Inf(1),
+		"plusinf":   math.Inf(1),
+		"minusinf":  math.Inf(-1),
+		"normalnan": math.NaN(),
+		"plusnan":   math.NaN(),
+		"minusnan":  math.NaN(),
 	})
 }
 
@@ -205,6 +236,36 @@ func TestSpaceKey(t *testing.T) {
 	tree, err := Load("\"a b\" = \"hello world\"")
 	assertTree(t, tree, err, map[string]interface{}{
 		"a b": "hello world",
+	})
+}
+
+func TestDoubleQuotedKey(t *testing.T) {
+	tree, err := Load(`
+	"key"        = "a"
+	"\t"         = "b"
+	"\U0001F914" = "c"
+	"\u2764"     = "d"
+	`)
+	assertTree(t, tree, err, map[string]interface{}{
+		"key":        "a",
+		"\t":         "b",
+		"\U0001F914": "c",
+		"\u2764":     "d",
+	})
+}
+
+func TestSingleQuotedKey(t *testing.T) {
+	tree, err := Load(`
+	'key'        = "a"
+	'\t'         = "b"
+	'\U0001F914' = "c"
+	'\u2764'     = "d"
+	`)
+	assertTree(t, tree, err, map[string]interface{}{
+		`key`:        "a",
+		`\t`:         "b",
+		`\U0001F914`: "c",
+		`\u2764`:     "d",
 	})
 }
 

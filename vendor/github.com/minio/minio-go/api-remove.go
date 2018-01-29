@@ -1,5 +1,6 @@
 /*
- * Minio Go Library for Amazon S3 Compatible Cloud Storage (C) 2015, 2016 Minio, Inc.
+ * Minio Go Library for Amazon S3 Compatible Cloud Storage
+ * Copyright 2015-2017 Minio, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +19,7 @@ package minio
 
 import (
 	"bytes"
+	"context"
 	"encoding/xml"
 	"io"
 	"net/http"
@@ -36,9 +38,9 @@ func (c Client) RemoveBucket(bucketName string) error {
 		return err
 	}
 	// Execute DELETE on bucket.
-	resp, err := c.executeMethod("DELETE", requestMetadata{
-		bucketName:         bucketName,
-		contentSHA256Bytes: emptySHA256,
+	resp, err := c.executeMethod(context.Background(), "DELETE", requestMetadata{
+		bucketName:       bucketName,
+		contentSHA256Hex: emptySHA256Hex,
 	})
 	defer closeResponse(resp)
 	if err != nil {
@@ -66,10 +68,10 @@ func (c Client) RemoveObject(bucketName, objectName string) error {
 		return err
 	}
 	// Execute DELETE on objectName.
-	resp, err := c.executeMethod("DELETE", requestMetadata{
-		bucketName:         bucketName,
-		objectName:         objectName,
-		contentSHA256Bytes: emptySHA256,
+	resp, err := c.executeMethod(context.Background(), "DELETE", requestMetadata{
+		bucketName:       bucketName,
+		objectName:       objectName,
+		contentSHA256Hex: emptySHA256Hex,
 	})
 	defer closeResponse(resp)
 	if err != nil {
@@ -187,13 +189,13 @@ func (c Client) RemoveObjects(bucketName string, objectsCh <-chan string) <-chan
 			// Generate remove multi objects XML request
 			removeBytes := generateRemoveMultiObjectsRequest(batch)
 			// Execute GET on bucket to list objects.
-			resp, err := c.executeMethod("POST", requestMetadata{
-				bucketName:         bucketName,
-				queryValues:        urlValues,
-				contentBody:        bytes.NewReader(removeBytes),
-				contentLength:      int64(len(removeBytes)),
-				contentMD5Bytes:    sumMD5(removeBytes),
-				contentSHA256Bytes: sum256(removeBytes),
+			resp, err := c.executeMethod(context.Background(), "POST", requestMetadata{
+				bucketName:       bucketName,
+				queryValues:      urlValues,
+				contentBody:      bytes.NewReader(removeBytes),
+				contentLength:    int64(len(removeBytes)),
+				contentMD5Base64: sumMD5Base64(removeBytes),
+				contentSHA256Hex: sum256Hex(removeBytes),
 			})
 			if err != nil {
 				for _, b := range batch {
@@ -227,7 +229,7 @@ func (c Client) RemoveIncompleteUpload(bucketName, objectName string) error {
 	}
 	if uploadID != "" {
 		// Upload id found, abort the incomplete multipart upload.
-		err := c.abortMultipartUpload(bucketName, objectName, uploadID)
+		err := c.abortMultipartUpload(context.Background(), bucketName, objectName, uploadID)
 		if err != nil {
 			return err
 		}
@@ -237,7 +239,7 @@ func (c Client) RemoveIncompleteUpload(bucketName, objectName string) error {
 
 // abortMultipartUpload aborts a multipart upload for the given
 // uploadID, all previously uploaded parts are deleted.
-func (c Client) abortMultipartUpload(bucketName, objectName, uploadID string) error {
+func (c Client) abortMultipartUpload(ctx context.Context, bucketName, objectName, uploadID string) error {
 	// Input validation.
 	if err := s3utils.CheckValidBucketName(bucketName); err != nil {
 		return err
@@ -251,11 +253,11 @@ func (c Client) abortMultipartUpload(bucketName, objectName, uploadID string) er
 	urlValues.Set("uploadId", uploadID)
 
 	// Execute DELETE on multipart upload.
-	resp, err := c.executeMethod("DELETE", requestMetadata{
-		bucketName:         bucketName,
-		objectName:         objectName,
-		queryValues:        urlValues,
-		contentSHA256Bytes: emptySHA256,
+	resp, err := c.executeMethod(ctx, "DELETE", requestMetadata{
+		bucketName:       bucketName,
+		objectName:       objectName,
+		queryValues:      urlValues,
+		contentSHA256Hex: emptySHA256Hex,
 	})
 	defer closeResponse(resp)
 	if err != nil {

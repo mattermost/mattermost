@@ -76,8 +76,32 @@ func Open(filename string) (image.Image, error) {
 	return img, err
 }
 
+type encodeConfig struct {
+	jpegQuality int
+}
+
+var defaultEncodeConfig = encodeConfig{
+	jpegQuality: 95,
+}
+
+// EncodeOption sets an optional parameter for the Encode and Save functions.
+type EncodeOption func(*encodeConfig)
+
+// JPEGQuality returns an EncodeOption that sets the output JPEG quality.
+// Quality ranges from 1 to 100 inclusive, higher is better. Default is 95.
+func JPEGQuality(quality int) EncodeOption {
+	return func(c *encodeConfig) {
+		c.jpegQuality = quality
+	}
+}
+
 // Encode writes the image img to w in the specified format (JPEG, PNG, GIF, TIFF or BMP).
-func Encode(w io.Writer, img image.Image, format Format) error {
+func Encode(w io.Writer, img image.Image, format Format, opts ...EncodeOption) error {
+	cfg := defaultEncodeConfig
+	for _, option := range opts {
+		option(&cfg)
+	}
+
 	var err error
 	switch format {
 	case JPEG:
@@ -92,9 +116,9 @@ func Encode(w io.Writer, img image.Image, format Format) error {
 			}
 		}
 		if rgba != nil {
-			err = jpeg.Encode(w, rgba, &jpeg.Options{Quality: 95})
+			err = jpeg.Encode(w, rgba, &jpeg.Options{Quality: cfg.jpegQuality})
 		} else {
-			err = jpeg.Encode(w, img, &jpeg.Options{Quality: 95})
+			err = jpeg.Encode(w, img, &jpeg.Options{Quality: cfg.jpegQuality})
 		}
 
 	case PNG:
@@ -113,7 +137,16 @@ func Encode(w io.Writer, img image.Image, format Format) error {
 
 // Save saves the image to file with the specified filename.
 // The format is determined from the filename extension: "jpg" (or "jpeg"), "png", "gif", "tif" (or "tiff") and "bmp" are supported.
-func Save(img image.Image, filename string) (err error) {
+//
+// Examples:
+//
+//	// Save the image as PNG.
+//	err := imaging.Save(img, "out.png")
+//
+//	// Save the image as JPEG with optional quality parameter set to 80.
+//	err := imaging.Save(img, "out.jpg", imaging.JPEGQuality(80))
+//
+func Save(img image.Image, filename string, opts ...EncodeOption) (err error) {
 	formats := map[string]Format{
 		".jpg":  JPEG,
 		".jpeg": JPEG,
@@ -136,7 +169,7 @@ func Save(img image.Image, filename string) (err error) {
 	}
 	defer file.Close()
 
-	return Encode(file, img, f)
+	return Encode(file, img, f, opts...)
 }
 
 // New creates a new image with the specified width and height, and fills it with the specified color.

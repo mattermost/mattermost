@@ -11,7 +11,7 @@ import (
 	"github.com/go-redis/redis/internal/proto"
 )
 
-// Redis nil reply, .e.g. when key does not exist.
+// Redis nil reply returned when key does not exist.
 const Nil = internal.Nil
 
 func init() {

@@ -172,7 +172,7 @@ func main() {
 		},
 		cli.StringSliceFlag{
 			Name:  "dns-resolvers",
-			Usage: "Set the resolvers to use for performing recursive DNS queries. Supported: host:port. The default is to use Google's DNS resolvers.",
+			Usage: "Set the resolvers to use for performing recursive DNS queries. Supported: host:port. The default is to use the system resolvers, or Google's DNS resolvers if the system's cannot be determined.",
 		},
 		cli.BoolFlag{
 			Name:  "pem",
