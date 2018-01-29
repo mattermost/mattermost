@@ -298,7 +298,8 @@ func (s SqlChannelStore) CreateIndexesIfNotExists() {
 	s.CreateIndexIfNotExists("idx_channelmembers_channel_id", "ChannelMembers", "ChannelId")
 	s.CreateIndexIfNotExists("idx_channelmembers_user_id", "ChannelMembers", "UserId")
 
-	s.CreateFullTextIndexIfNotExists("idx_channels_txt", "Channels", "Name, DisplayName, Purpose")
+	s.RemoveIndexIfExists("idx_channels_txt", "Channels")
+	s.CreateFullTextIndexIfNotExists("idx_channel_search_txt", "Channels", "Name, DisplayName, Purpose")
 }
 
 func (s SqlChannelStore) Save(channel *model.Channel, maxChannelsPerTeam int64) store.StoreChannel {
