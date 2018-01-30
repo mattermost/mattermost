@@ -1259,7 +1259,7 @@ func (s SqlChannelStore) GetMembersForUser(teamId string, userId string) store.S
 	})
 }
 
-func (s SqlChannelStore) SearchInTeam(teamId string, term string) store.StoreChannel {
+func (s SqlChannelStore) AutocompleteInTeam(teamId string, term string) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		queryFormat := `
 			SELECT
@@ -1277,7 +1277,7 @@ func (s SqlChannelStore) SearchInTeam(teamId string, term string) store.StoreCha
 
 		if likeClause, likeTerm := s.buildLIKEClause(term); likeClause == "" {
 			if _, err := s.GetReplica().Select(&channels, fmt.Sprintf(queryFormat, ""), map[string]interface{}{"TeamId": teamId}); err != nil {
-				result.Err = model.NewAppError("SqlChannelStore.Search", "store.sql_channel.search.app_error", nil, "term="+term+", "+", "+err.Error(), http.StatusInternalServerError)
+				result.Err = model.NewAppError("SqlChannelStore.AutocompleteInTeam", "store.sql_channel.search.app_error", nil, "term="+term+", "+", "+err.Error(), http.StatusInternalServerError)
 			}
 		} else {
 			// Using a UNION results in index_merge and fulltext queries and is much faster than the ref
@@ -1288,7 +1288,7 @@ func (s SqlChannelStore) SearchInTeam(teamId string, term string) store.StoreCha
 			query := fmt.Sprintf("(%v) UNION (%v) LIMIT 50", likeQuery, fulltextQuery)
 
 			if _, err := s.GetReplica().Select(&channels, query, map[string]interface{}{"TeamId": teamId, "LikeTerm": likeTerm, "FulltextTerm": fulltextTerm}); err != nil {
-				result.Err = model.NewAppError("SqlChannelStore.Search", "store.sql_channel.search.app_error", nil, "term="+term+", "+", "+err.Error(), http.StatusInternalServerError)
+				result.Err = model.NewAppError("SqlChannelStore.AutocompleteInTeam", "store.sql_channel.search.app_error", nil, "term="+term+", "+", "+err.Error(), http.StatusInternalServerError)
 			}
 		}
 
@@ -1296,7 +1296,25 @@ func (s SqlChannelStore) SearchInTeam(teamId string, term string) store.StoreCha
 			return channels[a].DisplayName < channels[b].DisplayName
 		})
 		result.Data = &channels
-		return
+	})
+}
+
+func (s SqlChannelStore) SearchInTeam(teamId string, term string) store.StoreChannel {
+	return store.Do(func(result *store.StoreResult) {
+		searchQuery := `
+			SELECT
+				*
+			FROM
+				Channels
+			WHERE
+				TeamId = :TeamId
+				AND Type = 'O'
+				AND DeleteAt = 0
+				SEARCH_CLAUSE
+			ORDER BY DisplayName
+			LIMIT 100`
+
+		*result = s.performSearch(searchQuery, term, map[string]interface{}{"TeamId": teamId})
 	})
 }
 
