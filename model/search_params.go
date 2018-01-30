@@ -21,12 +21,8 @@ type SearchParams struct {
 }
 
 func (o *SearchParams) ToJson() string {
-	b, err := json.Marshal(o)
-	if err != nil {
-		return ""
-	} else {
-		return string(b)
-	}
+	b, _ := json.Marshal(o)
+	return string(b)
 }
 
 var searchFlags = [...]string{"from", "channel", "in"}

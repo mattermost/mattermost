@@ -16,21 +16,12 @@ type ClusterStats struct {
 }
 
 func (me *ClusterStats) ToJson() string {
-	b, err := json.Marshal(me)
-	if err != nil {
-		return ""
-	} else {
-		return string(b)
-	}
+	b, _ := json.Marshal(me)
+	return string(b)
 }
 
 func ClusterStatsFromJson(data io.Reader) *ClusterStats {
-	decoder := json.NewDecoder(data)
-	var me ClusterStats
-	err := decoder.Decode(&me)
-	if err == nil {
-		return &me
-	} else {
-		return nil
-	}
+	var me *ClusterStats
+	json.NewDecoder(data).Decode(&me)
+	return me
 }

@@ -132,12 +132,7 @@ func (o *PostList) IsChannelId(channelId string) bool {
 }
 
 func PostListFromJson(data io.Reader) *PostList {
-	decoder := json.NewDecoder(data)
-	var o PostList
-	err := decoder.Decode(&o)
-	if err == nil {
-		return &o
-	} else {
-		return nil
-	}
+	var o *PostList
+	json.NewDecoder(data).Decode(&o)
+	return o
 }

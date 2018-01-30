@@ -18,11 +18,8 @@ type Reaction struct {
 }
 
 func (o *Reaction) ToJson() string {
-	if b, err := json.Marshal(o); err != nil {
-		return ""
-	} else {
-		return string(b)
-	}
+	b, _ := json.Marshal(o)
+	return string(b)
 }
 
 func ReactionFromJson(data io.Reader) *Reaction {
@@ -36,11 +33,8 @@ func ReactionFromJson(data io.Reader) *Reaction {
 }
 
 func ReactionsToJson(o []*Reaction) string {
-	if b, err := json.Marshal(o); err != nil {
-		return ""
-	} else {
-		return string(b)
-	}
+	b, _ := json.Marshal(o)
+	return string(b)
 }
 
 func ReactionsFromJson(data io.Reader) []*Reaction {

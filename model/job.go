@@ -71,11 +71,8 @@ func (j *Job) IsValid() *AppError {
 }
 
 func (js *Job) ToJson() string {
-	if b, err := json.Marshal(js); err != nil {
-		return ""
-	} else {
-		return string(b)
-	}
+	b, _ := json.Marshal(js)
+	return string(b)
 }
 
 func JobFromJson(data io.Reader) *Job {
@@ -88,11 +85,8 @@ func JobFromJson(data io.Reader) *Job {
 }
 
 func JobsToJson(jobs []*Job) string {
-	if b, err := json.Marshal(jobs); err != nil {
-		return ""
-	} else {
-		return string(b)
-	}
+	b, _ := json.Marshal(jobs)
+	return string(b)
 }
 
 func JobsFromJson(data io.Reader) []*Job {
@@ -105,11 +99,8 @@ func JobsFromJson(data io.Reader) []*Job {
 }
 
 func (js *Job) DataToJson() string {
-	if b, err := json.Marshal(js.Data); err != nil {
-		return ""
-	} else {
-		return string(b)
-	}
+	b, _ := json.Marshal(js.Data)
+	return string(b)
 }
 
 type Worker interface {

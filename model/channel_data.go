@@ -23,21 +23,12 @@ func (o *ChannelData) Etag() string {
 }
 
 func (o *ChannelData) ToJson() string {
-	b, err := json.Marshal(o)
-	if err != nil {
-		return ""
-	} else {
-		return string(b)
-	}
+	b, _ := json.Marshal(o)
+	return string(b)
 }
 
 func ChannelDataFromJson(data io.Reader) *ChannelData {
-	decoder := json.NewDecoder(data)
-	var o ChannelData
-	err := decoder.Decode(&o)
-	if err == nil {
-		return &o
-	} else {
-		return nil
-	}
+	var o *ChannelData
+	json.NewDecoder(data).Decode(&o)
+	return o
 }

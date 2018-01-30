@@ -23,21 +23,12 @@ type CommandArgs struct {
 }
 
 func (o *CommandArgs) ToJson() string {
-	b, err := json.Marshal(o)
-	if err != nil {
-		return ""
-	} else {
-		return string(b)
-	}
+	b, _ := json.Marshal(o)
+	return string(b)
 }
 
 func CommandArgsFromJson(data io.Reader) *CommandArgs {
-	decoder := json.NewDecoder(data)
-	var o CommandArgs
-	err := decoder.Decode(&o)
-	if err == nil {
-		return &o
-	} else {
-		return nil
-	}
+	var o *CommandArgs
+	json.NewDecoder(data).Decode(&o)
+	return o
 }
