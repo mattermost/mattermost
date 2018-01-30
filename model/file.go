@@ -23,21 +23,12 @@ type FileUploadResponse struct {
 }
 
 func FileUploadResponseFromJson(data io.Reader) *FileUploadResponse {
-	decoder := json.NewDecoder(data)
-	var o FileUploadResponse
-	err := decoder.Decode(&o)
-	if err == nil {
-		return &o
-	} else {
-		return nil
-	}
+	var o *FileUploadResponse
+	json.NewDecoder(data).Decode(&o)
+	return o
 }
 
 func (o *FileUploadResponse) ToJson() string {
-	b, err := json.Marshal(o)
-	if err != nil {
-		return ""
-	} else {
-		return string(b)
-	}
+	b, _ := json.Marshal(o)
+	return string(b)
 }

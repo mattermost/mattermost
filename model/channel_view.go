@@ -14,23 +14,14 @@ type ChannelView struct {
 }
 
 func (o *ChannelView) ToJson() string {
-	b, err := json.Marshal(o)
-	if err != nil {
-		return ""
-	} else {
-		return string(b)
-	}
+	b, _ := json.Marshal(o)
+	return string(b)
 }
 
 func ChannelViewFromJson(data io.Reader) *ChannelView {
-	decoder := json.NewDecoder(data)
-	var o ChannelView
-	err := decoder.Decode(&o)
-	if err == nil {
-		return &o
-	} else {
-		return nil
-	}
+	var o *ChannelView
+	json.NewDecoder(data).Decode(&o)
+	return o
 }
 
 type ChannelViewResponse struct {
@@ -39,21 +30,12 @@ type ChannelViewResponse struct {
 }
 
 func (o *ChannelViewResponse) ToJson() string {
-	b, err := json.Marshal(o)
-	if err != nil {
-		return ""
-	} else {
-		return string(b)
-	}
+	b, _ := json.Marshal(o)
+	return string(b)
 }
 
 func ChannelViewResponseFromJson(data io.Reader) *ChannelViewResponse {
-	decoder := json.NewDecoder(data)
-	var o ChannelViewResponse
-	err := decoder.Decode(&o)
-	if err == nil {
-		return &o
-	} else {
-		return nil
-	}
+	var o *ChannelViewResponse
+	json.NewDecoder(data).Decode(&o)
+	return o
 }

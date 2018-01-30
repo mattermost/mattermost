@@ -298,30 +298,18 @@ func (u *User) Patch(patch *UserPatch) {
 
 // ToJson convert a User to a json string
 func (u *User) ToJson() string {
-	b, err := json.Marshal(u)
-	if err != nil {
-		return ""
-	} else {
-		return string(b)
-	}
+	b, _ := json.Marshal(u)
+	return string(b)
 }
 
 func (u *UserPatch) ToJson() string {
-	b, err := json.Marshal(u)
-	if err != nil {
-		return ""
-	} else {
-		return string(b)
-	}
+	b, _ := json.Marshal(u)
+	return string(b)
 }
 
 func (u *UserAuth) ToJson() string {
-	b, err := json.Marshal(u)
-	if err != nil {
-		return ""
-	} else {
-		return string(b)
-	}
+	b, _ := json.Marshal(u)
+	return string(b)
 }
 
 // Generate a valid strong etag so the browser can cache the results
@@ -488,76 +476,43 @@ func (u *User) IsSAMLUser() bool {
 
 // UserFromJson will decode the input and return a User
 func UserFromJson(data io.Reader) *User {
-	decoder := json.NewDecoder(data)
-	var user User
-	err := decoder.Decode(&user)
-	if err == nil {
-		return &user
-	} else {
-		return nil
-	}
+	var user *User
+	json.NewDecoder(data).Decode(&user)
+	return user
 }
 
 func UserPatchFromJson(data io.Reader) *UserPatch {
-	decoder := json.NewDecoder(data)
-	var user UserPatch
-	err := decoder.Decode(&user)
-	if err == nil {
-		return &user
-	} else {
-		return nil
-	}
+	var user *UserPatch
+	json.NewDecoder(data).Decode(&user)
+	return user
 }
 
 func UserAuthFromJson(data io.Reader) *UserAuth {
-	decoder := json.NewDecoder(data)
-	var user UserAuth
-	err := decoder.Decode(&user)
-	if err == nil {
-		return &user
-	} else {
-		return nil
-	}
+	var user *UserAuth
+	json.NewDecoder(data).Decode(&user)
+	return user
 }
 
 func UserMapToJson(u map[string]*User) string {
-	b, err := json.Marshal(u)
-	if err != nil {
-		return ""
-	} else {
-		return string(b)
-	}
+	b, _ := json.Marshal(u)
+	return string(b)
 }
 
 func UserMapFromJson(data io.Reader) map[string]*User {
-	decoder := json.NewDecoder(data)
 	var users map[string]*User
-	err := decoder.Decode(&users)
-	if err == nil {
-		return users
-	} else {
-		return nil
-	}
+	json.NewDecoder(data).Decode(&users)
+	return users
 }
 
 func UserListToJson(u []*User) string {
-	b, err := json.Marshal(u)
-	if err != nil {
-		return ""
-	} else {
-		return string(b)
-	}
+	b, _ := json.Marshal(u)
+	return string(b)
 }
 
 func UserListFromJson(data io.Reader) []*User {
-	decoder := json.NewDecoder(data)
 	var users []*User
-	err := decoder.Decode(&users)
-	if err == nil {
-		return users
-	} else {
-		return nil
-	}
+	json.NewDecoder(data).Decode(&users)
+	return users
 }
 
 // HashPassword generates a hash using the bcrypt.GenerateFromPassword

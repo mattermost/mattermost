@@ -130,14 +130,9 @@ func (o *Post) ToJson() string {
 }
 
 func PostFromJson(data io.Reader) *Post {
-	decoder := json.NewDecoder(data)
-	var o Post
-	err := decoder.Decode(&o)
-	if err == nil {
-		return &o
-	} else {
-		return nil
-	}
+	var o *Post
+	json.NewDecoder(data).Decode(&o)
+	return o
 }
 
 func (o *Post) Etag() string {
@@ -349,12 +344,8 @@ func (o *Post) ChannelMentions() (names []string) {
 }
 
 func (r *PostActionIntegrationRequest) ToJson() string {
-	b, err := json.Marshal(r)
-	if err != nil {
-		return ""
-	} else {
-		return string(b)
-	}
+	b, _ := json.Marshal(r)
+	return string(b)
 }
 
 func (o *Post) Attachments() []*SlackAttachment {

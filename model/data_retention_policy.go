@@ -16,21 +16,12 @@ type DataRetentionPolicy struct {
 }
 
 func (me *DataRetentionPolicy) ToJson() string {
-	b, err := json.Marshal(me)
-	if err != nil {
-		return ""
-	} else {
-		return string(b)
-	}
+	b, _ := json.Marshal(me)
+	return string(b)
 }
 
 func DataRetentionPolicyFromJson(data io.Reader) *DataRetentionPolicy {
-	decoder := json.NewDecoder(data)
-	var me DataRetentionPolicy
-	err := decoder.Decode(&me)
-	if err == nil {
-		return &me
-	} else {
-		return nil
-	}
+	var me *DataRetentionPolicy
+	json.NewDecoder(data).Decode(&me)
+	return me
 }
