@@ -74,41 +74,23 @@ func (me *AccessData) IsExpired() bool {
 }
 
 func (ad *AccessData) ToJson() string {
-	b, err := json.Marshal(ad)
-	if err != nil {
-		return ""
-	} else {
-		return string(b)
-	}
+	b, _ := json.Marshal(ad)
+	return string(b)
 }
 
 func AccessDataFromJson(data io.Reader) *AccessData {
-	decoder := json.NewDecoder(data)
-	var ad AccessData
-	err := decoder.Decode(&ad)
-	if err == nil {
-		return &ad
-	} else {
-		return nil
-	}
+	var ad *AccessData
+	json.NewDecoder(data).Decode(&ad)
+	return ad
 }
 
 func (ar *AccessResponse) ToJson() string {
-	b, err := json.Marshal(ar)
-	if err != nil {
-		return ""
-	} else {
-		return string(b)
-	}
+	b, _ := json.Marshal(ar)
+	return string(b)
 }
 
 func AccessResponseFromJson(data io.Reader) *AccessResponse {
-	decoder := json.NewDecoder(data)
-	var ar AccessResponse
-	err := decoder.Decode(&ar)
-	if err == nil {
-		return &ar
-	} else {
-		return nil
-	}
+	var ar *AccessResponse
+	json.NewDecoder(data).Decode(&ar)
+	return ar
 }

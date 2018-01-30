@@ -19,21 +19,12 @@ type Audit struct {
 }
 
 func (o *Audit) ToJson() string {
-	b, err := json.Marshal(o)
-	if err != nil {
-		return ""
-	} else {
-		return string(b)
-	}
+	b, _ := json.Marshal(o)
+	return string(b)
 }
 
 func AuditFromJson(data io.Reader) *Audit {
-	decoder := json.NewDecoder(data)
-	var o Audit
-	err := decoder.Decode(&o)
-	if err == nil {
-		return &o
-	} else {
-		return nil
-	}
+	var o *Audit
+	json.NewDecoder(data).Decode(&o)
+	return o
 }

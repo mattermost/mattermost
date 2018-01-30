@@ -11,12 +11,8 @@ import (
 type Preferences []Preference
 
 func (o *Preferences) ToJson() string {
-	b, err := json.Marshal(o)
-	if err != nil {
-		return ""
-	} else {
-		return string(b)
-	}
+	b, _ := json.Marshal(o)
+	return string(b)
 }
 
 func PreferencesFromJson(data io.Reader) (Preferences, error) {

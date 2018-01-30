@@ -23,21 +23,12 @@ type WebSocketRequest struct {
 }
 
 func (o *WebSocketRequest) ToJson() string {
-	b, err := json.Marshal(o)
-	if err != nil {
-		return ""
-	} else {
-		return string(b)
-	}
+	b, _ := json.Marshal(o)
+	return string(b)
 }
 
 func WebSocketRequestFromJson(data io.Reader) *WebSocketRequest {
-	decoder := json.NewDecoder(data)
-	var o WebSocketRequest
-	err := decoder.Decode(&o)
-	if err == nil {
-		return &o
-	} else {
-		return nil
-	}
+	var o *WebSocketRequest
+	json.NewDecoder(data).Decode(&o)
+	return o
 }

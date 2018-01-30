@@ -19,21 +19,12 @@ type InitialLoad struct {
 }
 
 func (me *InitialLoad) ToJson() string {
-	b, err := json.Marshal(me)
-	if err != nil {
-		return ""
-	} else {
-		return string(b)
-	}
+	b, _ := json.Marshal(me)
+	return string(b)
 }
 
 func InitialLoadFromJson(data io.Reader) *InitialLoad {
-	decoder := json.NewDecoder(data)
-	var o InitialLoad
-	err := decoder.Decode(&o)
-	if err == nil {
-		return &o
-	} else {
-		return nil
-	}
+	var o *InitialLoad
+	json.NewDecoder(data).Decode(&o)
+	return o
 }

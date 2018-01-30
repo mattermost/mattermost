@@ -14,21 +14,12 @@ type SuggestCommand struct {
 }
 
 func (o *SuggestCommand) ToJson() string {
-	b, err := json.Marshal(o)
-	if err != nil {
-		return ""
-	} else {
-		return string(b)
-	}
+	b, _ := json.Marshal(o)
+	return string(b)
 }
 
 func SuggestCommandFromJson(data io.Reader) *SuggestCommand {
-	decoder := json.NewDecoder(data)
-	var o SuggestCommand
-	err := decoder.Decode(&o)
-	if err == nil {
-		return &o
-	} else {
-		return nil
-	}
+	var o *SuggestCommand
+	json.NewDecoder(data).Decode(&o)
+	return o
 }
