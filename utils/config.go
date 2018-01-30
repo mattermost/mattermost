@@ -239,6 +239,7 @@ func ReadConfig(r io.Reader, allowEnvironmentOverrides bool) (*model.Config, err
 		config.PluginSettings = model.PluginSettings{}
 		unmarshalErr = v.UnmarshalKey("pluginsettings", &config.PluginSettings)
 	}
+
 	return &config, unmarshalErr
 }
 
@@ -330,8 +331,8 @@ func LoadConfig(fileName string) (config *model.Config, configPath string, appEr
 	return config, configPath, nil
 }
 
-func GenerateClientConfig(c *model.Config, diagnosticId string, license *model.License) map[string]string {
-	props := make(map[string]string)
+func GenerateClientConfig(c *model.Config, diagnosticId string, license *model.License) map[string]interface{} {
+	props := make(map[string]interface{})
 
 	props["Version"] = model.CurrentVersion
 	props["BuildNumber"] = model.BuildNumber
@@ -445,6 +446,7 @@ func GenerateClientConfig(c *model.Config, diagnosticId string, license *model.L
 	props["DiagnosticsEnabled"] = strconv.FormatBool(*c.LogSettings.EnableDiagnostics)
 
 	props["PluginsEnabled"] = strconv.FormatBool(*c.PluginSettings.Enable)
+	props["SupportedTimezones"] = c.SupportedTimezones
 
 	hasImageProxy := c.ServiceSettings.ImageProxyType != nil && *c.ServiceSettings.ImageProxyType != "" && c.ServiceSettings.ImageProxyURL != nil && *c.ServiceSettings.ImageProxyURL != ""
 	props["HasImageProxy"] = strconv.FormatBool(hasImageProxy)

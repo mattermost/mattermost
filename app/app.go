@@ -79,7 +79,7 @@ type App struct {
 	pluginCommands     []*PluginCommand
 	pluginCommandsLock sync.RWMutex
 
-	clientConfig     map[string]string
+	clientConfig     map[string]interface{}
 	clientConfigHash string
 	diagnosticId     string
 }
@@ -102,7 +102,7 @@ func New(options ...Option) (outApp *App, outErr error) {
 		sessionCache:     utils.NewLru(model.SESSION_CACHE_SIZE),
 		configFile:       "config.json",
 		configListeners:  make(map[string]func(*model.Config, *model.Config)),
-		clientConfig:     make(map[string]string),
+		clientConfig:     make(map[string]interface{}),
 		licenseListeners: map[string]func(){},
 	}
 	defer func() {

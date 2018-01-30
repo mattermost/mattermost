@@ -4,6 +4,7 @@
 package sqlstore
 
 import (
+	"encoding/json"
 	"os"
 	"strings"
 	"time"
@@ -352,6 +353,17 @@ func UpgradeDatabaseToVersion47(sqlStore SqlStore) {
 		sqlStore.AlterColumnTypeIfExists("OAuthAuthData", "State", "varchar(1024)", "varchar(1024)")
 		sqlStore.RemoveColumnIfExists("ChannelMemberHistory", "Email")
 		sqlStore.RemoveColumnIfExists("ChannelMemberHistory", "Username")
+
+		defaultTimezone := make(map[string]string)
+		defaultTimezone["useAutomaticTimezone"] = "true"
+		defaultTimezone["automaticTimezone"] = ""
+		defaultTimezone["manualTimezone"] = ""
+
+		defaultTimezoneValue, err := json.Marshal(defaultTimezone)
+		if err != nil {
+			l4g.Critical(err)
+		}
+		sqlStore.CreateColumnIfNotExists("Users", "Timezone", "varchar(150)", "varchar(150)", string(defaultTimezoneValue))
 		saveSchemaVersion(sqlStore, VERSION_4_7_0)
 	}
 }
