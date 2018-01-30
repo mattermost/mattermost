@@ -6,36 +6,16 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"strconv"
 	"unicode"
 )
 
-var escapeSequenceMap = map[rune]rune{
-	'b':  '\b',
-	't':  '\t',
-	'n':  '\n',
-	'f':  '\f',
-	'r':  '\r',
-	'"':  '"',
-	'\\': '\\',
-}
-
-type parseKeyState int
-
-const (
-	bare parseKeyState = iota
-	basic
-	literal
-	esc
-	unicode4
-	unicode8
-)
-
+// Convert the bare key group string to an array.
+// The input supports double quotation to allow "." inside the key name,
+// but escape sequences are not supported. Lexers must unescape them beforehand.
 func parseKey(key string) ([]string, error) {
 	groups := []string{}
 	var buffer bytes.Buffer
-	var hex bytes.Buffer
-	state := bare
+	inQuotes := false
 	wasInQuotes := false
 	ignoreSpace := true
 	expectDot := false
@@ -47,67 +27,17 @@ func parseKey(key string) ([]string, error) {
 			}
 			ignoreSpace = false
 		}
-
-		if state == esc {
-			if char == 'u' {
-				state = unicode4
-				hex.Reset()
-			} else if char == 'U' {
-				state = unicode8
-				hex.Reset()
-			} else if newChar, ok := escapeSequenceMap[char]; ok {
-				buffer.WriteRune(newChar)
-				state = basic
-			} else {
-				return nil, fmt.Errorf(`invalid escape sequence \%c`, char)
-			}
-			continue
-		}
-
-		if state == unicode4 || state == unicode8 {
-			if isHexDigit(char) {
-				hex.WriteRune(char)
-			}
-			if (state == unicode4 && hex.Len() == 4) || (state == unicode8 && hex.Len() == 8) {
-				if value, err := strconv.ParseInt(hex.String(), 16, 32); err == nil {
-					buffer.WriteRune(rune(value))
-				} else {
-					return nil, err
-				}
-				state = basic
-			}
-			continue
-		}
-
 		switch char {
-		case '\\':
-			if state == basic {
-				state = esc
-			} else if state == literal {
-				buffer.WriteRune(char)
-			}
-		case '\'':
-			if state == bare {
-				state = literal
-			} else if state == literal {
-				groups = append(groups, buffer.String())
-				buffer.Reset()
-				wasInQuotes = true
-				state = bare
-			}
-			expectDot = false
 		case '"':
-			if state == bare {
-				state = basic
-			} else if state == basic {
+			if inQuotes {
 				groups = append(groups, buffer.String())
 				buffer.Reset()
-				state = bare
 				wasInQuotes = true
 			}
+			inQuotes = !inQuotes
 			expectDot = false
 		case '.':
-			if state != bare {
+			if inQuotes {
 				buffer.WriteRune(char)
 			} else {
 				if !wasInQuotes {
@@ -122,31 +52,25 @@ func parseKey(key string) ([]string, error) {
 				wasInQuotes = false
 			}
 		case ' ':
-			if state == basic {
+			if inQuotes {
 				buffer.WriteRune(char)
 			} else {
 				expectDot = true
 			}
 		default:
-			if state == bare {
-				if !isValidBareChar(char) {
-					return nil, fmt.Errorf("invalid bare character: %c", char)
-				} else if expectDot {
-					return nil, errors.New("what?")
-				}
+			if !inQuotes && !isValidBareChar(char) {
+				return nil, fmt.Errorf("invalid bare character: %c", char)
+			}
+			if !inQuotes && expectDot {
+				return nil, errors.New("what?")
 			}
 			buffer.WriteRune(char)
 			expectDot = false
 		}
 	}
-
-	// state must be bare at the end
-	if state == esc {
-		return nil, errors.New("unfinished escape sequence")
-	} else if state != bare {
+	if inQuotes {
 		return nil, errors.New("mismatched quotes")
 	}
-
 	if buffer.Len() > 0 {
 		groups = append(groups, buffer.String())
 	}

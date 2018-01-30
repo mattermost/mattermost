@@ -200,6 +200,14 @@
     "translation": "只有團隊和系統管理員能建立與管理公開頻道。"
   },
   {
+    "id": "api.channel.change_channel_privacy.private_to_public",
+    "translation": "This channel has been converted to a Public Channel and can be joined by any team member."
+  },
+  {
+    "id": "api.channel.change_channel_privacy.public_to_private",
+    "translation": "This channel has been converted to a Private Channel."
+  },
+  {
     "id": "api.channel.create_channel.direct_channel.app_error",
     "translation": "必須使用 createDirectChannel API 服務來建立直接訊息頻道"
   },
@@ -3371,6 +3379,54 @@
     "translation": "缺少必要的訊息屬性：使用者。"
   },
   {
+    "id": "app.import.validate_reaction_import_data.create_at_before_parent.error",
+    "translation": "Reaction CreateAt property must be greater than the parent post CreateAt."
+  },
+  {
+    "id": "app.import.validate_reaction_import_data.create_at_missing.error",
+    "translation": "缺少必要的訊息屬性：建立日期。"
+  },
+  {
+    "id": "app.import.validate_reaction_import_data.create_at_zero.error",
+    "translation": "如果有提供訊息建立時間，該值不能為 0。"
+  },
+  {
+    "id": "app.import.validate_reaction_import_data.emoji_name_length.error",
+    "translation": "訊息屬性長度超過允許的最大長度"
+  },
+  {
+    "id": "app.import.validate_reaction_import_data.emoji_name_missing.error",
+    "translation": "缺少必要的訊息屬性：使用者。"
+  },
+  {
+    "id": "app.import.validate_reaction_import_data.user_missing.error",
+    "translation": "缺少必要的訊息屬性：使用者。"
+  },
+  {
+    "id": "app.import.validate_reply_import_data.create_at_before_parent.error",
+    "translation": "Reply CreateAt property must be greater than the parent post CreateAt."
+  },
+  {
+    "id": "app.import.validate_reply_import_data.create_at_missing.error",
+    "translation": "缺少必要的訊息屬性：建立日期。"
+  },
+  {
+    "id": "app.import.validate_reply_import_data.create_at_zero.error",
+    "translation": "如果有提供訊息建立時間，該值不能為 0。"
+  },
+  {
+    "id": "app.import.validate_reply_import_data.message_length.error",
+    "translation": "訊息屬性長度超過允許的最大長度"
+  },
+  {
+    "id": "app.import.validate_reply_import_data.message_missing.error",
+    "translation": "缺少必要的訊息屬性：訊息。"
+  },
+  {
+    "id": "app.import.validate_reply_import_data.user_missing.error",
+    "translation": "缺少必要的訊息屬性：使用者。"
+  },
+  {
     "id": "app.import.validate_team_import_data.allowed_domains_length.error",
     "translation": "團隊允許網域過長。"
   },
@@ -3505,6 +3561,10 @@
   {
     "id": "app.import.validate_user_import_data.position_length.error",
     "translation": "使用者職位過長。"
+  },
+  {
+    "id": "app.import.validate_user_import_data.profile_image.error",
+    "translation": "Invalid profile image."
   },
   {
     "id": "app.import.validate_user_import_data.roles_invalid.error",
@@ -4583,6 +4643,10 @@
     "translation": "\"到\"必須大於\"起始\""
   },
   {
+    "id": "model.config.is_valid.atmos_camo_image_proxy_options.app_error",
+    "translation": "Invalid atmos/camo image proxy options for service settings. Must be set to your shared key."
+  },
+  {
     "id": "model.config.is_valid.cluster_email_batching.app_error",
     "translation": "啟用叢集時無法啟用批次郵件"
   },
@@ -4693,6 +4757,10 @@
   {
     "id": "model.config.is_valid.file_thumb_width.app_error",
     "translation": "檔案設定中縮圖寬度無效。必須為正數。"
+  },
+  {
+    "id": "model.config.is_valid.image_proxy_type.app_error",
+    "translation": "Invalid image proxy type for service settings."
   },
   {
     "id": "model.config.is_valid.ldap_basedn",
@@ -6779,6 +6847,10 @@
     "translation": "無法取得個人存取 Token"
   },
   {
+    "id": "store.sql_user_access_token.get_all.app_error",
+    "translation": "無法取得個人存取 Token"
+  },
+  {
     "id": "store.sql_user_access_token.get_by_token.app_error",
     "translation": "無法根據 Token 取得個人存取 Token"
   },
@@ -6789,6 +6861,10 @@
   {
     "id": "store.sql_user_access_token.save.app_error",
     "translation": "無法刪除儲存個人存取 Token"
+  },
+  {
+    "id": "store.sql_user_access_token.search.app_error",
+    "translation": "尋找存取 Token 時遇到錯誤"
   },
   {
     "id": "store.sql_webhooks.analytics_incoming_count.app_error",

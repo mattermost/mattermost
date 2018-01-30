@@ -1,7 +1,8 @@
 // +build ignore
 
 /*
- * Minio Go Library for Amazon S3 Compatible Cloud Storage (C) 2015 Minio, Inc.
+ * Minio Go Library for Amazon S3 Compatible Cloud Storage
+ * Copyright 2015-2017 Minio, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,7 +39,7 @@ func main() {
 		log.Fatalln(err)
 	}
 
-	if err := s3Client.FGetObject("my-bucketname", "my-objectname", "my-filename.csv"); err != nil {
+	if err := s3Client.FGetObject("my-bucketname", "my-objectname", "my-filename.csv", minio.GetObjectOptions{}); err != nil {
 		log.Fatalln(err)
 	}
 	log.Println("Successfully saved my-filename.csv")

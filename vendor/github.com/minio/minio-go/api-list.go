@@ -1,5 +1,6 @@
 /*
- * Minio Go Library for Amazon S3 Compatible Cloud Storage (C) 2015, 2016 Minio, Inc.
+ * Minio Go Library for Amazon S3 Compatible Cloud Storage
+ * Copyright 2015-2017 Minio, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +18,7 @@
 package minio
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net/http"
@@ -38,7 +40,7 @@ import (
 //
 func (c Client) ListBuckets() ([]BucketInfo, error) {
 	// Execute GET on service.
-	resp, err := c.executeMethod("GET", requestMetadata{contentSHA256Bytes: emptySHA256})
+	resp, err := c.executeMethod(context.Background(), "GET", requestMetadata{contentSHA256Hex: emptySHA256Hex})
 	defer closeResponse(resp)
 	if err != nil {
 		return nil, err
@@ -215,10 +217,10 @@ func (c Client) listObjectsV2Query(bucketName, objectPrefix, continuationToken s
 	urlValues.Set("max-keys", fmt.Sprintf("%d", maxkeys))
 
 	// Execute GET on bucket to list objects.
-	resp, err := c.executeMethod("GET", requestMetadata{
-		bucketName:         bucketName,
-		queryValues:        urlValues,
-		contentSHA256Bytes: emptySHA256,
+	resp, err := c.executeMethod(context.Background(), "GET", requestMetadata{
+		bucketName:       bucketName,
+		queryValues:      urlValues,
+		contentSHA256Hex: emptySHA256Hex,
 	})
 	defer closeResponse(resp)
 	if err != nil {
@@ -393,10 +395,10 @@ func (c Client) listObjectsQuery(bucketName, objectPrefix, objectMarker, delimit
 	urlValues.Set("max-keys", fmt.Sprintf("%d", maxkeys))
 
 	// Execute GET on bucket to list objects.
-	resp, err := c.executeMethod("GET", requestMetadata{
-		bucketName:         bucketName,
-		queryValues:        urlValues,
-		contentSHA256Bytes: emptySHA256,
+	resp, err := c.executeMethod(context.Background(), "GET", requestMetadata{
+		bucketName:       bucketName,
+		queryValues:      urlValues,
+		contentSHA256Hex: emptySHA256Hex,
 	})
 	defer closeResponse(resp)
 	if err != nil {
@@ -572,10 +574,10 @@ func (c Client) listMultipartUploadsQuery(bucketName, keyMarker, uploadIDMarker,
 	urlValues.Set("max-uploads", fmt.Sprintf("%d", maxUploads))
 
 	// Execute GET on bucketName to list multipart uploads.
-	resp, err := c.executeMethod("GET", requestMetadata{
-		bucketName:         bucketName,
-		queryValues:        urlValues,
-		contentSHA256Bytes: emptySHA256,
+	resp, err := c.executeMethod(context.Background(), "GET", requestMetadata{
+		bucketName:       bucketName,
+		queryValues:      urlValues,
+		contentSHA256Hex: emptySHA256Hex,
 	})
 	defer closeResponse(resp)
 	if err != nil {
@@ -690,11 +692,11 @@ func (c Client) listObjectPartsQuery(bucketName, objectName, uploadID string, pa
 	urlValues.Set("max-parts", fmt.Sprintf("%d", maxParts))
 
 	// Execute GET on objectName to get list of parts.
-	resp, err := c.executeMethod("GET", requestMetadata{
-		bucketName:         bucketName,
-		objectName:         objectName,
-		queryValues:        urlValues,
-		contentSHA256Bytes: emptySHA256,
+	resp, err := c.executeMethod(context.Background(), "GET", requestMetadata{
+		bucketName:       bucketName,
+		objectName:       objectName,
+		queryValues:      urlValues,
+		contentSHA256Hex: emptySHA256Hex,
 	})
 	defer closeResponse(resp)
 	if err != nil {

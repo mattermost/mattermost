@@ -2,10 +2,13 @@ package mock
 
 import (
 	"errors"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
+	"fmt"
+	"sync"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 /*
@@ -40,6 +43,26 @@ func (i *TestExampleImplementation) TheExampleMethod3(et *ExampleType) error {
 	return args.Error(0)
 }
 
+func (i *TestExampleImplementation) TheExampleMethod4(v ExampleInterface) error {
+	args := i.Called(v)
+	return args.Error(0)
+}
+
+func (i *TestExampleImplementation) TheExampleMethod5(ch chan struct{}) error {
+	args := i.Called(ch)
+	return args.Error(0)
+}
+
+func (i *TestExampleImplementation) TheExampleMethod6(m map[string]bool) error {
+	args := i.Called(m)
+	return args.Error(0)
+}
+
+func (i *TestExampleImplementation) TheExampleMethod7(slice []bool) error {
+	args := i.Called(slice)
+	return args.Error(0)
+}
+
 func (i *TestExampleImplementation) TheExampleMethodFunc(fn func(string) error) error {
 	args := i.Called(fn)
 	return args.Error(0)
@@ -52,6 +75,11 @@ func (i *TestExampleImplementation) TheExampleMethodVariadic(a ...int) error {
 
 func (i *TestExampleImplementation) TheExampleMethodVariadicInterface(a ...interface{}) error {
 	args := i.Called(a)
+	return args.Error(0)
+}
+
+func (i *TestExampleImplementation) TheExampleMethodMixedVariadic(a int, b ...int) error {
+	args := i.Called(a, b)
 	return args.Error(0)
 }
 
@@ -174,15 +202,20 @@ func Test_Mock_On_WithPtrArgMatcher(t *testing.T) {
 	var mockedService TestExampleImplementation
 
 	mockedService.On("TheExampleMethod3",
-		MatchedBy(func(a *ExampleType) bool { return a.ran == true }),
+		MatchedBy(func(a *ExampleType) bool { return a != nil && a.ran == true }),
 	).Return(nil)
 
 	mockedService.On("TheExampleMethod3",
-		MatchedBy(func(a *ExampleType) bool { return a.ran == false }),
+		MatchedBy(func(a *ExampleType) bool { return a != nil && a.ran == false }),
 	).Return(errors.New("error"))
+
+	mockedService.On("TheExampleMethod3",
+		MatchedBy(func(a *ExampleType) bool { return a == nil }),
+	).Return(errors.New("error2"))
 
 	assert.Equal(t, mockedService.TheExampleMethod3(&ExampleType{true}), nil)
 	assert.EqualError(t, mockedService.TheExampleMethod3(&ExampleType{false}), "error")
+	assert.EqualError(t, mockedService.TheExampleMethod3(nil), "error2")
 }
 
 func Test_Mock_On_WithFuncArgMatcher(t *testing.T) {
@@ -191,17 +224,62 @@ func Test_Mock_On_WithFuncArgMatcher(t *testing.T) {
 	fixture1, fixture2 := errors.New("fixture1"), errors.New("fixture2")
 
 	mockedService.On("TheExampleMethodFunc",
-		MatchedBy(func(a func(string) error) bool { return a("string") == fixture1 }),
+		MatchedBy(func(a func(string) error) bool { return a != nil && a("string") == fixture1 }),
 	).Return(errors.New("fixture1"))
 
 	mockedService.On("TheExampleMethodFunc",
-		MatchedBy(func(a func(string) error) bool { return a("string") == fixture2 }),
+		MatchedBy(func(a func(string) error) bool { return a != nil && a("string") == fixture2 }),
 	).Return(errors.New("fixture2"))
+
+	mockedService.On("TheExampleMethodFunc",
+		MatchedBy(func(a func(string) error) bool { return a == nil }),
+	).Return(errors.New("fixture3"))
 
 	assert.EqualError(t, mockedService.TheExampleMethodFunc(
 		func(string) error { return fixture1 }), "fixture1")
 	assert.EqualError(t, mockedService.TheExampleMethodFunc(
 		func(string) error { return fixture2 }), "fixture2")
+	assert.EqualError(t, mockedService.TheExampleMethodFunc(nil), "fixture3")
+}
+
+func Test_Mock_On_WithInterfaceArgMatcher(t *testing.T) {
+	var mockedService TestExampleImplementation
+
+	mockedService.On("TheExampleMethod4",
+		MatchedBy(func(a ExampleInterface) bool { return a == nil }),
+	).Return(errors.New("fixture1"))
+
+	assert.EqualError(t, mockedService.TheExampleMethod4(nil), "fixture1")
+}
+
+func Test_Mock_On_WithChannelArgMatcher(t *testing.T) {
+	var mockedService TestExampleImplementation
+
+	mockedService.On("TheExampleMethod5",
+		MatchedBy(func(ch chan struct{}) bool { return ch == nil }),
+	).Return(errors.New("fixture1"))
+
+	assert.EqualError(t, mockedService.TheExampleMethod5(nil), "fixture1")
+}
+
+func Test_Mock_On_WithMapArgMatcher(t *testing.T) {
+	var mockedService TestExampleImplementation
+
+	mockedService.On("TheExampleMethod6",
+		MatchedBy(func(m map[string]bool) bool { return m == nil }),
+	).Return(errors.New("fixture1"))
+
+	assert.EqualError(t, mockedService.TheExampleMethod6(nil), "fixture1")
+}
+
+func Test_Mock_On_WithSliceArgMatcher(t *testing.T) {
+	var mockedService TestExampleImplementation
+
+	mockedService.On("TheExampleMethod7",
+		MatchedBy(func(slice []bool) bool { return slice == nil }),
+	).Return(errors.New("fixture1"))
+
+	assert.EqualError(t, mockedService.TheExampleMethod7(nil), "fixture1")
 }
 
 func Test_Mock_On_WithVariadicFunc(t *testing.T) {
@@ -222,6 +300,29 @@ func Test_Mock_On_WithVariadicFunc(t *testing.T) {
 	})
 	assert.Panics(t, func() {
 		mockedService.TheExampleMethodVariadic(1, 2)
+	})
+
+}
+
+func Test_Mock_On_WithMixedVariadicFunc(t *testing.T) {
+
+	// make a test impl object
+	var mockedService = new(TestExampleImplementation)
+
+	c := mockedService.
+		On("TheExampleMethodMixedVariadic", 1, []int{2, 3, 4}).
+		Return(nil)
+
+	assert.Equal(t, []*Call{c}, mockedService.ExpectedCalls)
+	assert.Equal(t, 2, len(c.Arguments))
+	assert.Equal(t, 1, c.Arguments[0])
+	assert.Equal(t, []int{2, 3, 4}, c.Arguments[1])
+
+	assert.NotPanics(t, func() {
+		mockedService.TheExampleMethodMixedVariadic(1, 2, 3, 4)
+	})
+	assert.Panics(t, func() {
+		mockedService.TheExampleMethodMixedVariadic(1, 2, 3, 5)
 	})
 
 }
@@ -726,7 +827,7 @@ func Test_AssertExpectationsForObjects_Helper(t *testing.T) {
 	mockedService2.Called(2)
 	mockedService3.Called(3)
 
-	assert.True(t, AssertExpectationsForObjects(t, mockedService1.Mock, mockedService2.Mock, mockedService3.Mock))
+	assert.True(t, AssertExpectationsForObjects(t, &mockedService1.Mock, &mockedService2.Mock, &mockedService3.Mock))
 	assert.True(t, AssertExpectationsForObjects(t, mockedService1, mockedService2, mockedService3))
 
 }
@@ -745,7 +846,7 @@ func Test_AssertExpectationsForObjects_Helper_Failed(t *testing.T) {
 	mockedService3.Called(3)
 
 	tt := new(testing.T)
-	assert.False(t, AssertExpectationsForObjects(tt, mockedService1.Mock, mockedService2.Mock, mockedService3.Mock))
+	assert.False(t, AssertExpectationsForObjects(tt, &mockedService1.Mock, &mockedService2.Mock, &mockedService3.Mock))
 	assert.False(t, AssertExpectationsForObjects(tt, mockedService1, mockedService2, mockedService3))
 
 }
@@ -969,6 +1070,31 @@ func Test_Mock_AssertNotCalled(t *testing.T) {
 
 }
 
+func Test_Mock_AssertOptional(t *testing.T) {
+	// Optional called
+	var ms1 = new(TestExampleImplementation)
+	ms1.On("TheExampleMethod", 1, 2, 3).Maybe().Return(4, nil)
+	ms1.TheExampleMethod(1, 2, 3)
+
+	tt1 := new(testing.T)
+	assert.Equal(t, true, ms1.AssertExpectations(tt1))
+
+	// Optional not called
+	var ms2 = new(TestExampleImplementation)
+	ms2.On("TheExampleMethod", 1, 2, 3).Maybe().Return(4, nil)
+
+	tt2 := new(testing.T)
+	assert.Equal(t, true, ms2.AssertExpectations(tt2))
+
+	// Non-optional called
+	var ms3 = new(TestExampleImplementation)
+	ms3.On("TheExampleMethod", 1, 2, 3).Return(4, nil)
+	ms3.TheExampleMethod(1, 2, 3)
+
+	tt3 := new(testing.T)
+	assert.Equal(t, true, ms3.AssertExpectations(tt3))
+}
+
 /*
 	Arguments helper methods
 */
@@ -1129,4 +1255,98 @@ func Test_Arguments_Bool(t *testing.T) {
 	var args = Arguments([]interface{}{"string", 123, true})
 	assert.Equal(t, true, args.Bool(2))
 
+}
+
+func Test_WaitUntil_Parallel(t *testing.T) {
+
+	// make a test impl object
+	var mockedService *TestExampleImplementation = new(TestExampleImplementation)
+
+	ch1 := make(chan time.Time)
+	ch2 := make(chan time.Time)
+
+	mockedService.Mock.On("TheExampleMethod2", true).Return().WaitUntil(ch2).Run(func(args Arguments) {
+		ch1 <- time.Now()
+	})
+
+	mockedService.Mock.On("TheExampleMethod2", false).Return().WaitUntil(ch1)
+
+	// Lock both goroutines on the .WaitUntil method
+	go func() {
+		mockedService.TheExampleMethod2(false)
+	}()
+	go func() {
+		mockedService.TheExampleMethod2(true)
+	}()
+
+	// Allow the first call to execute, so the second one executes afterwards
+	ch2 <- time.Now()
+}
+
+func Test_MockMethodCalled(t *testing.T) {
+	m := new(Mock)
+	m.On("foo", "hello").Return("world")
+
+	retArgs := m.MethodCalled("foo", "hello")
+	require.True(t, len(retArgs) == 1)
+	require.Equal(t, "world", retArgs[0])
+	m.AssertExpectations(t)
+}
+
+// Test to validate fix for racy concurrent call access in MethodCalled()
+func Test_MockReturnAndCalledConcurrent(t *testing.T) {
+	iterations := 1000
+	m := &Mock{}
+	call := m.On("ConcurrencyTestMethod")
+
+	wg := sync.WaitGroup{}
+	wg.Add(2)
+
+	go func() {
+		for i := 0; i < iterations; i++ {
+			call.Return(10)
+		}
+		wg.Done()
+	}()
+	go func() {
+		for i := 0; i < iterations; i++ {
+			ConcurrencyTestMethod(m)
+		}
+		wg.Done()
+	}()
+	wg.Wait()
+}
+
+type timer struct{ Mock }
+
+func (s *timer) GetTime(i int) string {
+	return s.Called(i).Get(0).(string)
+}
+
+func TestAfterTotalWaitTimeWhileExecution(t *testing.T) {
+	waitDuration := 1
+	total, waitMs := 5, time.Millisecond*time.Duration(waitDuration)
+	aTimer := new(timer)
+	for i := 0; i < total; i++ {
+		aTimer.On("GetTime", i).After(waitMs).Return(fmt.Sprintf("Time%d", i)).Once()
+	}
+	time.Sleep(waitMs)
+	start := time.Now()
+	var results []string
+
+	for i := 0; i < total; i++ {
+		results = append(results, aTimer.GetTime(i))
+	}
+
+	end := time.Now()
+	elapsedTime := end.Sub(start)
+	assert.True(t, elapsedTime > waitMs, fmt.Sprintf("Total elapsed time:%v should be atleast greater than %v", elapsedTime, waitMs))
+	assert.Equal(t, total, len(results))
+	for i, _ := range results {
+		assert.Equal(t, fmt.Sprintf("Time%d", i), results[i], "Return value of method should be same")
+	}
+}
+
+func ConcurrencyTestMethod(m *Mock) {
+	m.Called()
 }

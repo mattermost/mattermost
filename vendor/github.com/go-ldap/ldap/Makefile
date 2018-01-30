@@ -1,5 +1,15 @@
 .PHONY: default install build test quicktest fmt vet lint 
 
+GO_VERSION := $(shell go version | cut -d' ' -f3 | cut -d. -f2)
+
+# Only use the `-race` flag on newer versions of Go
+IS_OLD_GO := $(shell test $(GO_VERSION) -le 2 && echo true)
+ifeq ($(IS_OLD_GO),true)
+	RACE_FLAG :=
+else
+	RACE_FLAG := -race -cpu 1,2,4
+endif
+
 default: fmt vet lint build quicktest
 
 install:
@@ -9,7 +19,7 @@ build:
 	go build -v ./...
 
 test:
-	go test -v -cover ./...
+	go test -v $(RACE_FLAG) -cover ./...
 
 quicktest:
 	go test ./...

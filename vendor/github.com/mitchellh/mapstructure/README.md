@@ -1,4 +1,4 @@
-# mapstructure
+# mapstructure [![Godoc](https://godoc.org/github.com/mitchell/mapstructure?status.svg)](https://godoc.org/github.com/mitchell/mapstructure)
 
 mapstructure is a Go library for decoding generic map values to structures
 and vice versa, while providing helpful error handling.

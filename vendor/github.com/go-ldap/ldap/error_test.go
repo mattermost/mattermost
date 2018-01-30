@@ -49,7 +49,7 @@ func TestConnReadErr(t *testing.T) {
 	// Send the signal after a short amount of time.
 	time.AfterFunc(10*time.Millisecond, func() { conn.signals <- expectedError })
 
-	// This should block until the underlyiny conn gets the error signal
+	// This should block until the underlying conn gets the error signal
 	// which should bubble up through the reader() goroutine, close the
 	// connection, and
 	_, err := ldapConn.Search(searchReq)
@@ -58,7 +58,7 @@ func TestConnReadErr(t *testing.T) {
 	}
 }
 
-// signalErrConn is a helful type used with TestConnReadErr. It implements the
+// signalErrConn is a helpful type used with TestConnReadErr. It implements the
 // net.Conn interface to be used as a connection for the test. Most methods are
 // no-ops but the Read() method blocks until it receives a signal which it
 // returns as an error.

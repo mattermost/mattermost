@@ -27,6 +27,8 @@ The name mux stands for "HTTP request multiplexer". Like the standard `http.Serv
 * [Static Files](#static-files)
 * [Registered URLs](#registered-urls)
 * [Walking Routes](#walking-routes)
+* [Graceful Shutdown](#graceful-shutdown)
+* [Middleware](#middleware)
 * [Full Example](#full-example)
 
 ---
@@ -45,11 +47,11 @@ Let's start registering a couple of URL paths and handlers:
 
 ```go
 func main() {
-	r := mux.NewRouter()
-	r.HandleFunc("/", HomeHandler)
-	r.HandleFunc("/products", ProductsHandler)
-	r.HandleFunc("/articles", ArticlesHandler)
-	http.Handle("/", r)
+    r := mux.NewRouter()
+    r.HandleFunc("/", HomeHandler)
+    r.HandleFunc("/products", ProductsHandler)
+    r.HandleFunc("/articles", ArticlesHandler)
+    http.Handle("/", r)
 }
 ```
 
@@ -68,9 +70,9 @@ The names are used to create a map of route variables which can be retrieved cal
 
 ```go
 func ArticlesCategoryHandler(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	w.WriteHeader(http.StatusOK)
-	fmt.Fprintf(w, "Category: %v\n", vars["category"])
+    vars := mux.Vars(r)
+    w.WriteHeader(http.StatusOK)
+    fmt.Fprintf(w, "Category: %v\n", vars["category"])
 }
 ```
 
@@ -122,7 +124,7 @@ r.Queries("key", "value")
 
 ```go
 r.MatcherFunc(func(r *http.Request, rm *RouteMatch) bool {
-	return r.ProtoMajor == 0
+    return r.ProtoMajor == 0
 })
 ```
 
@@ -243,24 +245,24 @@ request that matches "/static/*". This makes it easy to serve static files with 
 
 ```go
 func main() {
-	var dir string
+    var dir string
 
-	flag.StringVar(&dir, "dir", ".", "the directory to serve files from. Defaults to the current dir")
-	flag.Parse()
-	r := mux.NewRouter()
+    flag.StringVar(&dir, "dir", ".", "the directory to serve files from. Defaults to the current dir")
+    flag.Parse()
+    r := mux.NewRouter()
 
-	// This will serve files under http://localhost:8000/static/<filename>
-	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir(dir))))
+    // This will serve files under http://localhost:8000/static/<filename>
+    r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir(dir))))
 
-	srv := &http.Server{
-		Handler:      r,
-		Addr:         "127.0.0.1:8000",
-		// Good practice: enforce timeouts for servers you create!
-		WriteTimeout: 15 * time.Second,
-		ReadTimeout:  15 * time.Second,
-	}
+    srv := &http.Server{
+        Handler:      r,
+        Addr:         "127.0.0.1:8000",
+        // Good practice: enforce timeouts for servers you create!
+        WriteTimeout: 15 * time.Second,
+        ReadTimeout:  15 * time.Second,
+    }
 
-	log.Fatal(srv.ListenAndServe())
+    log.Fatal(srv.ListenAndServe())
 }
 ```
 
@@ -383,6 +385,149 @@ r.Walk(func(route *mux.Route, router *mux.Router, ancestors []*mux.Route) error 
 })
 ```
 
+### Graceful Shutdown
+
+Go 1.8 introduced the ability to [gracefully shutdown](https://golang.org/doc/go1.8#http_shutdown) a `*http.Server`. Here's how to do that alongside `mux`:
+
+```go
+package main
+
+import (
+    "context"
+    "flag"
+    "log"
+    "net/http"
+    "os"
+    "os/signal"
+
+    "github.com/gorilla/mux"
+)
+
+func main() {
+    var wait time.Duration
+    flag.DurationVar(&wait, "graceful-timeout", time.Second * 15, "the duration for which the server gracefully wait for existing connections to finish - e.g. 15s or 1m")
+    flag.Parse()
+
+    r := mux.NewRouter()
+    // Add your routes as needed
+    
+    srv := &http.Server{
+        Addr:         "0.0.0.0:8080",
+        // Good practice to set timeouts to avoid Slowloris attacks.
+        WriteTimeout: time.Second * 15,
+        ReadTimeout:  time.Second * 15,
+        IdleTimeout:  time.Second * 60,
+        Handler: r, // Pass our instance of gorilla/mux in.
+    }
+
+    // Run our server in a goroutine so that it doesn't block.
+    go func() {
+        if err := srv.ListenAndServe(); err != nil {
+            log.Println(err)
+        }
+    }()
+    
+    c := make(chan os.Signal, 1)
+    // We'll accept graceful shutdowns when quit via SIGINT (Ctrl+C)
+    // SIGKILL, SIGQUIT or SIGTERM (Ctrl+/) will not be caught.
+    signal.Notify(c, os.Interrupt)
+
+    // Block until we receive our signal.
+    <-c
+
+    // Create a deadline to wait for.
+    ctx, cancel := context.WithTimeout(ctx, wait)
+    // Doesn't block if no connections, but will otherwise wait
+    // until the timeout deadline.
+    srv.Shutdown(ctx)
+    // Optionally, you could run srv.Shutdown in a goroutine and block on
+    // <-ctx.Done() if your application should wait for other services
+    // to finalize based on context cancellation.
+    log.Println("shutting down")
+    os.Exit(0)
+}
+```
+
+### Middleware
+
+Mux supports the addition of middlewares to a [Router](https://godoc.org/github.com/gorilla/mux#Router), which are executed in the order they are added if a match is found, including its subrouters.
+Middlewares are (typically) small pieces of code which take one request, do something with it, and pass it down to another middleware or the final handler. Some common use cases for middleware are request logging, header manipulation, or `ResponseWriter` hijacking.
+
+Mux middlewares are defined using the de facto standard type:
+
+```go
+type MiddlewareFunc func(http.Handler) http.Handler
+```
+
+Typically, the returned handler is a closure which does something with the http.ResponseWriter and http.Request passed to it, and then calls the handler passed as parameter to the MiddlewareFunc. This takes advantage of closures being able access variables from the context where they are created, while retaining the signature enforced by the receivers.
+
+A very basic middleware which logs the URI of the request being handled could be written as:
+
+```go
+func simpleMw(next http.Handler) http.Handler {
+    return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+        // Do stuff here
+        log.Println(r.RequestURI)
+        // Call the next handler, which can be another middleware in the chain, or the final handler.
+        next.ServeHTTP(w, r)
+    })
+}
+```
+
+Middlewares can be added to a router using `Router.AddMiddlewareFunc()`:
+
+```go
+r := mux.NewRouter()
+r.HandleFunc("/", handler)
+r.AddMiddleware(simpleMw)
+```
+
+A more complex authentication middleware, which maps session token to users, could be written as:
+
+```go
+// Define our struct
+type authenticationMiddleware struct {
+	tokenUsers map[string]string
+}
+
+// Initialize it somewhere
+func (amw *authenticationMiddleware) Populate() {
+	amw.tokenUsers["00000000"] = "user0"
+	amw.tokenUsers["aaaaaaaa"] = "userA"
+	amw.tokenUsers["05f717e5"] = "randomUser"
+	amw.tokenUsers["deadbeef"] = "user0"
+}
+
+// Middleware function, which will be called for each request
+func (amw *authenticationMiddleware) Middleware(next http.Handler) http.Handler {
+    return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+        token := r.Header.Get("X-Session-Token")
+        
+        if user, found := amw.tokenUsers[token]; found {
+        	// We found the token in our map
+        	log.Printf("Authenticated user %s\n", user)
+        	// Pass down the request to the next middleware (or final handler)
+        	next.ServeHTTP(w, r)
+        } else {
+        	// Write an error and stop the handler chain
+        	http.Error(w, "Forbidden", 403)
+        }
+    })
+}
+```
+
+```go
+r := mux.NewRouter()
+r.HandleFunc("/", handler)
+
+amw := authenticationMiddleware{}
+amw.Populate()
+
+r.AddMiddlewareFunc(amw.Middleware)
+```
+
+Note: The handler chain will be stopped if your middleware doesn't call `next.ServeHTTP()` with the corresponding parameters. This can be used to abort a request if the middleware writer wants to. Middlewares *should* write to `ResponseWriter` if they *are* going to terminate the request, and they *should not* write to `ResponseWriter` if they *are not* going to terminate it.
+
 ## Full Example
 
 Here's a complete, runnable example of a small `mux` based server:
@@ -391,22 +536,22 @@ Here's a complete, runnable example of a small `mux` based server:
 package main
 
 import (
-	"net/http"
-	"log"
-	"github.com/gorilla/mux"
+    "net/http"
+    "log"
+    "github.com/gorilla/mux"
 )
 
 func YourHandler(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Gorilla!\n"))
+    w.Write([]byte("Gorilla!\n"))
 }
 
 func main() {
-	r := mux.NewRouter()
-	// Routes consist of a path and a handler function.
-	r.HandleFunc("/", YourHandler)
+    r := mux.NewRouter()
+    // Routes consist of a path and a handler function.
+    r.HandleFunc("/", YourHandler)
 
-	// Bind to a port and pass our router in
-	log.Fatal(http.ListenAndServe(":8000", r))
+    // Bind to a port and pass our router in
+    log.Fatal(http.ListenAndServe(":8000", r))
 }
 ```
 

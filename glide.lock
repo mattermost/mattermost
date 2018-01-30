@@ -1,23 +1,19 @@
-hash: fa27dd8f4fd1b15c505a3d6f2023662471391e4a3ea22e67c829376c7e6e90c8
-updated: 2018-01-05T10:08:00.418197689+01:00
+hash: 5e8ab6acb5c3bb7dbedfc6e837cc529e72affea22384ec59e82f0e3c13379b6f
+updated: 2018-01-25T15:20:13.899302483-08:00
 imports:
 - name: github.com/alecthomas/log4go
   version: 3fbce08846379ec7f4f6bc7fce6dd01ce28fae4c
   repo: https://github.com/mattermost/log4go.git
 - name: github.com/armon/go-metrics
   version: 7aa49fde808223f8dadfdbfd3a20ff6c19e5f9ec
-- name: github.com/avct/uasurfer
-  version: 7b6f7205267b5b81d20da3f09ec3dea3b3d90cf8
 - name: github.com/beorn7/perks
   version: 4c0e84591b9aa9e6dcfdf3e020114cd81f89d5f9
   subpackages:
   - quantile
 - name: github.com/corpix/uarand
   version: 2b8494104d86337cdd41d0a49cbed8e4583c0ab4
-- name: github.com/cpanato/html2text
-  version: d47a5532a7bc36ad7b2b8ec3eebe24e975154f94
 - name: github.com/davecgh/go-spew
-  version: 6d212800a42e8ab5c146b8ace3490ee17e5225f9
+  version: ecdeabc65495df2dec95d7c4a4c3e021903035e5
   subpackages:
   - spew
 - name: github.com/dgryski/dgoogauth
@@ -25,19 +21,19 @@ imports:
 - name: github.com/dimchansky/utfbom
   version: 6c6132ff69f0f6c088739067407b5d32c52e1d0f
 - name: github.com/disintegration/imaging
-  version: dd50a3ee9985ccd313a2f03c398fcaedc96dc707
+  version: 1884593a19ddc6f2ea050403430d02c1d0fc1283
 - name: github.com/dyatlov/go-opengraph
   version: 41a3523719dfbe7e8f853fbd4061867543db5270
   subpackages:
   - opengraph
 - name: github.com/fsnotify/fsnotify
-  version: 629574ca2a5df945712d3079857300b5e4da0236
+  version: c2828203cd70a50dcccfb2761f8b1f8ceef9a8e9
 - name: github.com/go-ini/ini
   version: 32e4c1e6bc4e7d0d8451aa6b75200d19e37a536a
 - name: github.com/go-ldap/ldap
-  version: 8168ee085ee43257585e50c6441aadf54ecb2c9f
+  version: bb7a9ca6e4fbc2129e3db588a34bc970ffe811a9
 - name: github.com/go-redis/redis
-  version: d0f86971b5d61de9cebd2616b932acb7ba14d957
+  version: 4021ace05686f632ff17fd824bbed229fc474cf8
   subpackages:
   - internal
   - internal/consistenthash
@@ -45,14 +41,14 @@ imports:
   - internal/pool
   - internal/proto
 - name: github.com/go-sql-driver/mysql
-  version: a0583e0143b1624142adab07e0e97fe106d99561
+  version: bc14601d1bd56421dd60f561e6052c9ed77f9daf
 - name: github.com/golang/freetype
   version: e2365dfdc4a05e4b8299a783240d4a7d5a65d4e4
   subpackages:
   - raster
   - truetype
 - name: github.com/golang/protobuf
-  version: 1e59b77b52bf8e4b449a57e6f79f21226d571845
+  version: 925541529c1fa6821df4e44ce2723319eb2be768
   subpackages:
   - proto
 - name: github.com/gorilla/context
@@ -60,13 +56,13 @@ imports:
 - name: github.com/gorilla/handlers
   version: 90663712d74cb411cbef281bc1e08c19d1a76145
 - name: github.com/gorilla/mux
-  version: 7f08801859139f86dfafd1c296e2cba9a80d292e
+  version: 53c1911da2b537f792e7cafcb446b05ffe33b996
 - name: github.com/gorilla/websocket
-  version: ea4d1f681babbce9545c9c5f3d5194a789c89f5b
+  version: 91f589db023d66e4aba7112d44cc0d2fb091c553
 - name: github.com/hashicorp/errwrap
   version: 7554cd9344cec97297fa6649b055a8c98c2a1e55
 - name: github.com/hashicorp/go-immutable-radix
-  version: 8aac2701530899b64bdea735a1de8da899815220
+  version: 59b67882ec612f43b9d4c4fd97cebd507be4b3ee
 - name: github.com/hashicorp/go-msgpack
   version: fa3f63826f7c23912c15263591e65d54d080b458
   subpackages:
@@ -92,23 +88,25 @@ imports:
   - json/scanner
   - json/token
 - name: github.com/hashicorp/memberlist
-<<<<<<< HEAD
-  version: caa5d20d6a642b7543b3745e54031a96008bee57
+  version: 3d8438da9589e7b608a83ffac1ef8211486bcb7c
 - name: github.com/icrowley/fake
   version: e64cc2cf92049a299f359734c6ea76073f2a8b2c
-=======
-  version: 3d8438da9589e7b608a83ffac1ef8211486bcb7c
->>>>>>> Updated dependencies and added avct/uasurfer
 - name: github.com/inconshreveable/mousetrap
   version: 76626ae9c91c4f2a10f34cad8ce83ea42c93bb75
 - name: github.com/jehiah/go-strftime
   version: 834e15c05a45371503440cc195bbd05c9a0968d9
 - name: github.com/lib/pq
-  version: 83612a56d3dd153a94a629cd64925371c9adad78
+  version: 19c8e9ad00952ce0c64489b60e8df88bb16dd514
   subpackages:
   - oid
 - name: github.com/magiconair/properties
   version: 49d762b9817ba1c2e9d0c69183c2b4a8b8f1d934
+- name: github.com/mailru/easyjson
+  version: 32fa128f234d041f196a9f3e0fea5ac9772c08e1
+  subpackages:
+  - buffer
+  - jlexer
+  - jwriter
 - name: github.com/mattermost/gorp
   version: 995ddf2264c4ad45fbaf342f7500e4787ebae84a
 - name: github.com/mattermost/html2text
@@ -120,15 +118,13 @@ imports:
   - qr
   - qr/coding
 - name: github.com/matttproud/golang_protobuf_extensions
-  version: 3247c84500bff8d9fb6d579d800f20b3e091582c
+  version: c12348ce28de40eed0136aa2b644d0ee0650e56c
   subpackages:
   - pbutil
 - name: github.com/miekg/dns
-  version: f5ac34d755eb6975958108413c7802a782ca16c8
-- name: github.com/minio/go-homedir
-  version: 4d76aabb80b22bad8695d3904e943f1fb5e6199f
+  version: 5364553f1ee9cddc7ac8b62dce148309c386695b
 - name: github.com/minio/minio-go
-  version: 4e0f567303d4cc90ceb055a451959fb9fc391fb9
+  version: 14f1d472d115bac5ca4804094aa87484a72ced61
   subpackages:
   - pkg/credentials
   - pkg/encrypt
@@ -136,8 +132,10 @@ imports:
   - pkg/s3signer
   - pkg/s3utils
   - pkg/set
+- name: github.com/mitchellh/go-homedir
+  version: b8bc1bf767474819792c23f32d8286a45736f1c6
 - name: github.com/mitchellh/mapstructure
-  version: 06020f85339e21b2478f756a78e295255ffa4d6a
+  version: b4575eea38cca1123ec2dc90c26529b5c5acfcff
 - name: github.com/mssola/user_agent
   version: 5243daae23628aeae9b6268541406bd5e95d5964
 - name: github.com/nicksnyder/go-i18n
@@ -148,21 +146,27 @@ imports:
   - i18n/language
   - i18n/translation
 - name: github.com/NYTimes/gziphandler
-  version: 47ca22a0aeea4c9ceddfb935d818d636d934c312
+  version: 289a3b81f5aedc99f8d6eb0f67827c142f1310d8
+- name: github.com/olivere/elastic
+  version: c51e74f9bcab8906a2f6cf5660dac396ba51b3d6
+  subpackages:
+  - config
+  - uritemplates
 - name: github.com/pborman/uuid
   version: e790cca94e6cc75c7064b1332e63811d4aae1a53
 - name: github.com/pelletier/go-toml
-  version: 0131db6d737cfbbfb678f8b7d92e55e27ce46224
+  version: acdc4509485b587f5e675510c4f2c63e90ff68a8
 - name: github.com/pkg/errors
-  version: e881fd58d78e04cf6d0de1217f8707c8cc2249bc
+  version: 645ef00459ed84a119197bfb8d8205042c6df63d
 - name: github.com/pmezard/go-difflib
-  version: d8ed2627bdf02c080bf22230dbb337003b7aba2d
+  version: 792786c7400a136282c1664665ae0a8db921c6c2
   subpackages:
   - difflib
 - name: github.com/prometheus/client_golang
-  version: c5b7fccd204277076155f10851dad72b76a49317
+  version: 06bc6e01f4baf4ee783ffcd23abfcb0b0f9dfada
   subpackages:
   - prometheus
+  - prometheus/promhttp
 - name: github.com/prometheus/client_model
   version: 99fa1f4be8e564e8a6b613da7fa6f46c9edafc6c
   subpackages:
@@ -171,8 +175,14 @@ imports:
   version: 89604d197083d4781071d3c65855d24ecfb0a563
   subpackages:
   - expfmt
+  - internal/bitbucket.org/ww/goautoneg
+  - model
 - name: github.com/prometheus/procfs
-  version: b15cd069a83443be3154b719d0cc9fe8117f09fb
+  version: cb4147076ac75738c9a7d279075a253c0cc5acbd
+  subpackages:
+  - internal/util
+  - nfs
+  - xfs
 - name: github.com/rsc/letsencrypt
   version: 33926faef6d434b854ea994228f11d0185faa0c1
 - name: github.com/rwcarlsen/goexif
@@ -187,38 +197,38 @@ imports:
 - name: github.com/segmentio/backo-go
   version: 204274ad699c0983a70203a566887f17a717fef4
 - name: github.com/spf13/afero
-  version: 57afd63c68602b63ed976de00dd066ccb3c319db
+  version: bb8f1927f2a9d3ab41c9340aa034f6b803f4359c
   subpackages:
   - mem
 - name: github.com/spf13/cast
   version: acbeb36b902d72a7a4c18e8f3241075e7ab763e4
 - name: github.com/spf13/cobra
-  version: b95ab734e27d33e0d8fbabf71ca990568d4e2020
+  version: f91529fc609202eededff4de2dc0ba2f662240a3
 - name: github.com/spf13/jwalterweatherman
   version: 7c0cea34c8ece3fbeb2b27ab9b59511d360fb394
 - name: github.com/spf13/pflag
-  version: e57e3eeb33f795204c1ca35f56c44f83227c6e66
+  version: 4c012f6dcd9546820e378d0bdda4d8fc772cdfea
 - name: github.com/spf13/viper
   version: aafc9e6bc7b7bb53ddaa75a5ef49a17d6e654be5
 - name: github.com/stretchr/objx
-  version: cbeaeb16a013161a98496fad62933b1d21786672
+  version: 477a77ecc69700c7cdeb1fa9e129548e1c1c393c
 - name: github.com/stretchr/testify
-  version: 69483b4bd14f5845b5a1e55bca19e954e827f1d0
+  version: b91bfb9ebec76498946beb6af7c0230c7cc7ba6c
   subpackages:
   - assert
   - mock
   - require
   - suite
 - name: github.com/tylerb/graceful
-  version: 4654dfbb6ad53cb5e27f37d99b02e16c1872fbbb
+  version: d72b0151351a13d0421b763b88f791469c4f5dc7
 - name: github.com/xenolf/lego
-  version: b929aa5aab5ad2e197bb3d74ef99fac61bfa47bc
+  version: 6bddbfd17a6e1ab782617eeab2f2007c6550b160
   subpackages:
   - acme
 - name: github.com/xtgo/uuid
   version: a0b114877d4caeffbd7f87e3757c17fce570fea7
 - name: golang.org/x/crypto
-  version: b3c9a1d25cfbbbab0ff4780b71c4f54e6e92a0de
+  version: 3d37316aaa6bd9929127ac9a527abf408178ea7b
   subpackages:
   - bcrypt
   - blowfish
@@ -234,29 +244,37 @@ imports:
   - tiff
   - tiff/lzw
 - name: golang.org/x/net
-  version: 434ec0c7fe3742c984919a691b2018a6e9694425
+  version: 0ed95abb35c445290478a5348a7b38bb154135fd
   subpackages:
   - bpf
   - context
   - html
   - html/atom
+  - idna
   - internal/iana
   - internal/socket
   - ipv4
   - ipv6
+  - lex/httplex
 - name: golang.org/x/sys
-  version: 810d7000345868fc619eb81f46307107118f4ae1
+  version: 03467258950d845cd1877eab69461b98e8c09219
   subpackages:
   - unix
 - name: golang.org/x/text
   version: e19ae1496984b1c655b8044a65c0300a3c878dd3
   subpackages:
+  - secure/bidirule
   - transform
+  - unicode/bidi
   - unicode/norm
 - name: golang.org/x/time
   version: 6dc17368e09b0e8634d71cac8168d853e869a0c7
   subpackages:
   - rate
+- name: google.golang.org/appengine
+  version: 5bee14b453b4c71be47ec1781b0fa61c2ea182db
+  subpackages:
+  - cloudsql
 - name: gopkg.in/alexcesaro/quotedprintable.v3
   version: 2caba252f4dc53eaf6b553000885530023f54623
 - name: gopkg.in/asn1-ber.v1
@@ -264,10 +282,7 @@ imports:
 - name: gopkg.in/gomail.v2
   version: 41f3572897373c5538c50a2402db15db079fa4fd
 - name: gopkg.in/olivere/elastic.v5
-  version: 171ce647da4acfb30ffc99981d66d80bdea6bcee
-  subpackages:
-  - config
-  - uritemplates
+  version: c51e74f9bcab8906a2f6cf5660dac396ba51b3d6
 - name: gopkg.in/square/go-jose.v1
   version: aa2e30fdd1fe9dd3394119af66451ae790d50e0d
   subpackages:
