@@ -380,6 +380,14 @@ cover: ## Runs the golang coverage tool. You must run the unit tests first.
 	$(GO) tool cover -html=cover.out
 	$(GO) tool cover -html=ecover.out
 
+test-data: start-docker ## Add test data to the local instance.
+	$(GO) run $(GOFLAGS) $(GO_LINKER_FLAGS) $(PLATFORM_FILES) sampledata -w 1
+
+	@echo You may need to restart the Mattermost server before using the following
+	@echo ==============================================================================
+	@echo Login with the system admin email=user-0@sample.mattermost.com password=user-0
+	@echo ==============================================================================
+
 run-server: start-docker ## Starts the server.
 	@echo Running mattermost for development
 
