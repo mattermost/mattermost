@@ -6,8 +6,6 @@ package store
 import (
 	"context"
 
-	l4g "github.com/alecthomas/log4go"
-
 	"github.com/mattermost/mattermost-server/model"
 )
 
@@ -44,24 +42,12 @@ func (s *LocalCacheSupplier) RoleGetByName(ctx context.Context, name string, hin
 
 func (s *LocalCacheSupplier) RoleGetByNames(ctx context.Context, roleNames []string, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
 	var foundRoles []*model.Role
+	var rolesToQuery []string
 
 	for _, roleName := range roleNames {
 		if result := s.doStandardReadCache(ctx, s.roleCache, roleName, hints...); result != nil {
 			foundRoles = append(foundRoles, result.Data.(*model.Role))
-		}
-	}
-
-	var rolesToQuery []string
-	for _, roleName := range roleNames {
-		found := false
-		for _, role := range foundRoles {
-			if roleName == role.Name {
-				l4g.Debug("Found a role in the cache")
-				found = true
-				break
-			}
-		}
-		if !found {
+		} else {
 			rolesToQuery = append(rolesToQuery, roleName)
 		}
 	}

@@ -894,6 +894,13 @@ func (me *TestHelper) AddPermissionToRole(permission string, roleName string) {
 		panic(err1)
 	}
 
+	for _, existingPermission := range role.Permissions {
+		if existingPermission == permission {
+			utils.EnableDebugLogForTest()
+			return
+		}
+	}
+
 	role.Permissions = append(role.Permissions, permission)
 
 	_, err2 := me.App.UpdateRole(role)

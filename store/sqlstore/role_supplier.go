@@ -24,12 +24,22 @@ type Role struct {
 }
 
 func FromRole(role *model.Role) *Role {
+	permissionsMap := make(map[string]bool)
+	permissions := ""
+
+	for _, permission := range role.Permissions {
+		if _, ok := permissionsMap[permission]; !ok {
+			permissions += fmt.Sprintf(" %v", permission)
+			permissionsMap[permission] = true
+		}
+	}
+
 	return &Role{
 		Id:            role.Id,
 		Name:          role.Name,
 		DisplayName:   role.DisplayName,
 		Description:   role.Description,
-		Permissions:   strings.Join(role.Permissions, " "),
+		Permissions:   permissions,
 		SchemeManaged: role.SchemeManaged,
 	}
 }

@@ -108,7 +108,7 @@ func (o *Role) Patch(patch *RolePatch) {
 var validRoleNameCharacters = regexp.MustCompile(`^[a-z0-9_]+$`)
 
 func IsValidRoleName(roleName string) bool {
-	if len(roleName) <= 0 || len(roleName) > 64 {
+	if len(roleName) <= 0 || len(roleName) > ROLE_NAME_MAX_LENGTH {
 		return false
 	}
 

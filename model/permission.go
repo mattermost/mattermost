@@ -218,7 +218,7 @@ func initializePermissions() {
 		"read_public_channel",
 		"authentication.permissions.read_public_channel.name",
 		"authentication.permissions.read_public_channel.description",
-		PERMISSION_SCOPE_TEAM, // WTF???
+		PERMISSION_SCOPE_TEAM,
 	}
 	PERMISSION_PERMANENT_DELETE_USER = &Permission{
 		"permanent_delete_user",
@@ -236,7 +236,7 @@ func initializePermissions() {
 		"get_public_link",
 		"authentication.permissions.get_public_link.name",
 		"authentication.permissions.get_public_link.description",
-		PERMISSION_SCOPE_SYSTEM, // WTF???
+		PERMISSION_SCOPE_SYSTEM,
 	}
 	PERMISSION_MANAGE_WEBHOOKS = &Permission{
 		"manage_webhooks",

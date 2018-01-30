@@ -52,6 +52,13 @@ func getRolesByNames(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	for _, rolename := range rolenames {
+		if !model.IsValidRoleName(rolename) {
+			c.SetInvalidParam("rolename")
+			return
+		}
+	}
+
 	if roles, err := c.App.GetRolesByNames(rolenames); err != nil {
 		c.Err = err
 		return

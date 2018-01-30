@@ -29,7 +29,7 @@ func TestCheckIfRolesGrantPermission(t *testing.T) {
 	}
 
 	for testnum, testcase := range cases {
-		if th.App.CheckIfRolesGrantPermission(testcase.roles, testcase.permissionId) != testcase.shouldGrant {
+		if th.App.RolesGrantPermission(testcase.roles, testcase.permissionId) != testcase.shouldGrant {
 			t.Fatal("Failed test case ", testnum)
 		}
 	}
