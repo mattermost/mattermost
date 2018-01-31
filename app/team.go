@@ -820,6 +820,8 @@ func (a *App) PermanentDeleteTeam(team *model.Team) *model.AppError {
 		return result.Err
 	}
 
+	a.sendTeamEvent(team, model.WEBSOCKET_EVENT_DELETE_TEAM)
+
 	return nil
 }
 
