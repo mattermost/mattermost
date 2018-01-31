@@ -19,11 +19,15 @@ func (a *App) IsPasswordValid(password string) *model.AppError {
 }
 
 func (a *App) CheckPasswordAndAllCriteria(user *model.User, password string, mfaToken string) *model.AppError {
-	if err := a.CheckUserAdditionalAuthenticationCriteria(user, mfaToken); err != nil {
+	if err := a.CheckUserPreflightAuthenticationCriteria(user, mfaToken); err != nil {
 		return err
 	}
 
 	if err := a.checkUserPassword(user, password); err != nil {
+		return err
+	}
+
+	if err := a.CheckUserPostflightAuthenticationCriteria(user); err != nil {
 		return err
 	}
 
@@ -85,13 +89,21 @@ func (a *App) checkLdapUserPasswordAndAllCriteria(ldapId *string, password strin
 	return user, nil
 }
 
-func (a *App) CheckUserAdditionalAuthenticationCriteria(user *model.User, mfaToken string) *model.AppError {
-	if err := a.CheckUserMfa(user, mfaToken); err != nil {
+func (a *App) CheckUserAllAuthenticationCriteria(user *model.User, mfaToken string) *model.AppError {
+	if err := a.CheckUserPreflightAuthenticationCriteria(user, mfaToken); err != nil {
 		return err
 	}
 
-	if !user.EmailVerified && a.Config().EmailSettings.RequireEmailVerification {
-		return model.NewAppError("Login", "api.user.login.not_verified.app_error", nil, "user_id="+user.Id, http.StatusUnauthorized)
+	if err := a.CheckUserPostflightAuthenticationCriteria(user); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (a *App) CheckUserPreflightAuthenticationCriteria(user *model.User, mfaToken string) *model.AppError {
+	if err := a.CheckUserMfa(user, mfaToken); err != nil {
+		return err
 	}
 
 	if err := checkUserNotDisabled(user); err != nil {
@@ -100,6 +112,14 @@ func (a *App) CheckUserAdditionalAuthenticationCriteria(user *model.User, mfaTok
 
 	if err := checkUserLoginAttempts(user, *a.Config().ServiceSettings.MaximumLoginAttempts); err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func (a *App) CheckUserPostflightAuthenticationCriteria(user *model.User) *model.AppError {
+	if !user.EmailVerified && a.Config().EmailSettings.RequireEmailVerification {
+		return model.NewAppError("Login", "api.user.login.not_verified.app_error", nil, "user_id="+user.Id, http.StatusUnauthorized)
 	}
 
 	return nil

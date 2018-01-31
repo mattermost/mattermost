@@ -16,6 +16,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
+
 	"github.com/mattermost/mattermost-server/app"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
@@ -204,6 +206,41 @@ func TestLogin(t *testing.T) {
 
 	if _, err := Client.Login(user3.Id, user3.Password); err == nil {
 		t.Fatal("AD/LDAP user should not be able to log in with AD/LDAP disabled")
+	}
+}
+
+func TestLoginUnverifiedEmail(t *testing.T) {
+	assert := assert.New(t)
+
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	Client := th.BasicClient
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.EmailSettings.EnableSignInWithEmail = true
+		cfg.EmailSettings.RequireEmailVerification = true
+	})
+
+	Client.Logout()
+
+	user := &model.User{
+		Email:         strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com",
+		Nickname:      "Corey Hulen",
+		Username:      "corey" + model.NewId(),
+		Password:      "passwd1",
+		EmailVerified: false,
+	}
+	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
+
+	_, err := Client.Login(user.Email, user.Password+"invalid")
+	if assert.NotNil(err) {
+		assert.Equal("api.user.check_user_password.invalid.app_error", err.Id)
+	}
+
+	_, err = Client.Login(user.Email, "passwd1")
+	if assert.NotNil(err) {
+		assert.Equal("api.user.login.not_verified.app_error", err.Id)
 	}
 }
 
