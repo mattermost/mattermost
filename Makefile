@@ -468,7 +468,7 @@ clean: stop-docker ## Clean up everything except persistant server data.
 
 	cd $(BUILD_WEBAPP_DIR) && $(MAKE) clean
 
-	find . -type d -name data | xargs rm -r
+	find . -type d -name data -not -path './vendor/*' | xargs rm -r
 	rm -rf logs
 
 	rm -f mattermost.log
