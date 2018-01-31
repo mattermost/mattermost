@@ -142,43 +142,25 @@ type ManifestWebapp struct {
 }
 
 func (m *Manifest) ToJson() string {
-	b, err := json.Marshal(m)
-	if err != nil {
-		return ""
-	} else {
-		return string(b)
-	}
+	b, _ := json.Marshal(m)
+	return string(b)
 }
 
 func ManifestListToJson(m []*Manifest) string {
-	b, err := json.Marshal(m)
-	if err != nil {
-		return ""
-	} else {
-		return string(b)
-	}
+	b, _ := json.Marshal(m)
+	return string(b)
 }
 
 func ManifestFromJson(data io.Reader) *Manifest {
-	decoder := json.NewDecoder(data)
-	var m Manifest
-	err := decoder.Decode(&m)
-	if err == nil {
-		return &m
-	} else {
-		return nil
-	}
+	var m *Manifest
+	json.NewDecoder(data).Decode(&m)
+	return m
 }
 
 func ManifestListFromJson(data io.Reader) []*Manifest {
-	decoder := json.NewDecoder(data)
 	var manifests []*Manifest
-	err := decoder.Decode(&manifests)
-	if err == nil {
-		return manifests
-	} else {
-		return nil
-	}
+	json.NewDecoder(data).Decode(&manifests)
+	return manifests
 }
 
 func (m *Manifest) HasClient() bool {

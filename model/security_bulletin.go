@@ -16,23 +16,14 @@ type SecurityBulletin struct {
 type SecurityBulletins []SecurityBulletin
 
 func (me *SecurityBulletin) ToJson() string {
-	b, err := json.Marshal(me)
-	if err != nil {
-		return ""
-	} else {
-		return string(b)
-	}
+	b, _ := json.Marshal(me)
+	return string(b)
 }
 
 func SecurityBulletinFromJson(data io.Reader) *SecurityBulletin {
-	decoder := json.NewDecoder(data)
-	var o SecurityBulletin
-	err := decoder.Decode(&o)
-	if err == nil {
-		return &o
-	} else {
-		return nil
-	}
+	var o *SecurityBulletin
+	json.NewDecoder(data).Decode(&o)
+	return o
 }
 
 func (me SecurityBulletins) ToJson() string {
@@ -44,12 +35,7 @@ func (me SecurityBulletins) ToJson() string {
 }
 
 func SecurityBulletinsFromJson(data io.Reader) SecurityBulletins {
-	decoder := json.NewDecoder(data)
 	var o SecurityBulletins
-	err := decoder.Decode(&o)
-	if err == nil {
-		return o
-	} else {
-		return nil
-	}
+	json.NewDecoder(data).Decode(&o)
+	return o
 }

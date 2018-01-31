@@ -61,43 +61,25 @@ func (o *Channel) DeepCopy() *Channel {
 }
 
 func (o *Channel) ToJson() string {
-	b, err := json.Marshal(o)
-	if err != nil {
-		return ""
-	} else {
-		return string(b)
-	}
+	b, _ := json.Marshal(o)
+	return string(b)
 }
 
 func (o *ChannelPatch) ToJson() string {
-	b, err := json.Marshal(o)
-	if err != nil {
-		return ""
-	} else {
-		return string(b)
-	}
+	b, _ := json.Marshal(o)
+	return string(b)
 }
 
 func ChannelFromJson(data io.Reader) *Channel {
-	decoder := json.NewDecoder(data)
-	var o Channel
-	err := decoder.Decode(&o)
-	if err == nil {
-		return &o
-	} else {
-		return nil
-	}
+	var o *Channel
+	json.NewDecoder(data).Decode(&o)
+	return o
 }
 
 func ChannelPatchFromJson(data io.Reader) *ChannelPatch {
-	decoder := json.NewDecoder(data)
-	var o ChannelPatch
-	err := decoder.Decode(&o)
-	if err == nil {
-		return &o
-	} else {
-		return nil
-	}
+	var o *ChannelPatch
+	json.NewDecoder(data).Decode(&o)
+	return o
 }
 
 func (o *Channel) Etag() string {

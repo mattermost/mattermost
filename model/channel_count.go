@@ -43,21 +43,12 @@ func (o *ChannelCounts) Etag() string {
 }
 
 func (o *ChannelCounts) ToJson() string {
-	b, err := json.Marshal(o)
-	if err != nil {
-		return ""
-	} else {
-		return string(b)
-	}
+	b, _ := json.Marshal(o)
+	return string(b)
 }
 
 func ChannelCountsFromJson(data io.Reader) *ChannelCounts {
-	decoder := json.NewDecoder(data)
-	var o ChannelCounts
-	err := decoder.Decode(&o)
-	if err == nil {
-		return &o
-	} else {
-		return nil
-	}
+	var o *ChannelCounts
+	json.NewDecoder(data).Decode(&o)
+	return o
 }

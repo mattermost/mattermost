@@ -41,23 +41,13 @@ func (o *ChannelList) Etag() string {
 }
 
 func ChannelListFromJson(data io.Reader) *ChannelList {
-	decoder := json.NewDecoder(data)
-	var o ChannelList
-	err := decoder.Decode(&o)
-	if err == nil {
-		return &o
-	} else {
-		return nil
-	}
+	var o *ChannelList
+	json.NewDecoder(data).Decode(&o)
+	return o
 }
 
 func ChannelSliceFromJson(data io.Reader) []*Channel {
-	decoder := json.NewDecoder(data)
 	var o []*Channel
-	err := decoder.Decode(&o)
-	if err == nil {
-		return o
-	} else {
-		return nil
-	}
+	json.NewDecoder(data).Decode(&o)
+	return o
 }

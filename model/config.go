@@ -1692,12 +1692,8 @@ func (o *Config) Clone() *Config {
 }
 
 func (o *Config) ToJson() string {
-	b, err := json.Marshal(o)
-	if err != nil {
-		return ""
-	} else {
-		return string(b)
-	}
+	b, _ := json.Marshal(o)
+	return string(b)
 }
 
 func (o *Config) GetSSOService(service string) *SSOSettings {
@@ -1714,14 +1710,9 @@ func (o *Config) GetSSOService(service string) *SSOSettings {
 }
 
 func ConfigFromJson(data io.Reader) *Config {
-	decoder := json.NewDecoder(data)
-	var o Config
-	err := decoder.Decode(&o)
-	if err == nil {
-		return &o
-	} else {
-		return nil
-	}
+	var o *Config
+	json.NewDecoder(data).Decode(&o)
+	return o
 }
 
 func (o *Config) SetDefaults() {

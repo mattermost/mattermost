@@ -22,32 +22,18 @@ type GatewayResponse struct {
 }
 
 func GatewayResponseFromJson(data io.Reader) *GatewayResponse {
-	decoder := json.NewDecoder(data)
-	var o GatewayResponse
-	err := decoder.Decode(&o)
-	if err == nil {
-		return &o
-	} else {
-		return nil
-	}
+	var o *GatewayResponse
+	json.NewDecoder(data).Decode(&o)
+	return o
 }
 
 func (o *WebrtcInfoResponse) ToJson() string {
-	b, err := json.Marshal(o)
-	if err != nil {
-		return ""
-	} else {
-		return string(b)
-	}
+	b, _ := json.Marshal(o)
+	return string(b)
 }
 
 func WebrtcInfoResponseFromJson(data io.Reader) *WebrtcInfoResponse {
-	decoder := json.NewDecoder(data)
-	var o WebrtcInfoResponse
-	err := decoder.Decode(&o)
-	if err == nil {
-		return &o
-	} else {
-		return nil
-	}
+	var o *WebrtcInfoResponse
+	json.NewDecoder(data).Decode(&o)
+	return o
 }

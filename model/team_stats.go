@@ -15,21 +15,12 @@ type TeamStats struct {
 }
 
 func (o *TeamStats) ToJson() string {
-	b, err := json.Marshal(o)
-	if err != nil {
-		return ""
-	} else {
-		return string(b)
-	}
+	b, _ := json.Marshal(o)
+	return string(b)
 }
 
 func TeamStatsFromJson(data io.Reader) *TeamStats {
-	decoder := json.NewDecoder(data)
-	var o TeamStats
-	err := decoder.Decode(&o)
-	if err == nil {
-		return &o
-	} else {
-		return nil
-	}
+	var o *TeamStats
+	json.NewDecoder(data).Decode(&o)
+	return o
 }

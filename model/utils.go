@@ -79,12 +79,8 @@ func (er *AppError) SystemMessage(T goi18n.TranslateFunc) string {
 }
 
 func (er *AppError) ToJson() string {
-	b, err := json.Marshal(er)
-	if err != nil {
-		return ""
-	} else {
-		return string(b)
-	}
+	b, _ := json.Marshal(er)
+	return string(b)
 }
 
 // AppErrorFromJson will decode the input and return an AppError
@@ -152,20 +148,14 @@ func GetMillis() int64 {
 
 // MapToJson converts a map to a json string
 func MapToJson(objmap map[string]string) string {
-	if b, err := json.Marshal(objmap); err != nil {
-		return ""
-	} else {
-		return string(b)
-	}
+	b, _ := json.Marshal(objmap)
+	return string(b)
 }
 
 // MapToJson converts a map to a json string
 func MapBoolToJson(objmap map[string]bool) string {
-	if b, err := json.Marshal(objmap); err != nil {
-		return ""
-	} else {
-		return string(b)
-	}
+	b, _ := json.Marshal(objmap)
+	return string(b)
 }
 
 // MapFromJson will decode the key/value pair map
@@ -193,11 +183,8 @@ func MapBoolFromJson(data io.Reader) map[string]bool {
 }
 
 func ArrayToJson(objmap []string) string {
-	if b, err := json.Marshal(objmap); err != nil {
-		return ""
-	} else {
-		return string(b)
-	}
+	b, _ := json.Marshal(objmap)
+	return string(b)
 }
 
 func ArrayFromJson(data io.Reader) []string {
@@ -229,11 +216,8 @@ func ArrayFromInterface(data interface{}) []string {
 }
 
 func StringInterfaceToJson(objmap map[string]interface{}) string {
-	if b, err := json.Marshal(objmap); err != nil {
-		return ""
-	} else {
-		return string(b)
-	}
+	b, _ := json.Marshal(objmap)
+	return string(b)
 }
 
 func StringInterfaceFromJson(data io.Reader) map[string]interface{} {
@@ -248,12 +232,8 @@ func StringInterfaceFromJson(data io.Reader) map[string]interface{} {
 }
 
 func StringToJson(s string) string {
-	b, err := json.Marshal(s)
-	if err != nil {
-		return ""
-	} else {
-		return string(b)
-	}
+	b, _ := json.Marshal(s)
+	return string(b)
 }
 
 func StringFromJson(data io.Reader) string {
