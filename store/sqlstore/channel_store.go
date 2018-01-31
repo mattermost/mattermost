@@ -1293,7 +1293,7 @@ func (s SqlChannelStore) AutocompleteInTeam(teamId string, term string) store.St
 		}
 
 		sort.Slice(channels, func(a, b int) bool {
-			return channels[a].DisplayName < channels[b].DisplayName
+			return strings.ToLower(channels[a].DisplayName) < strings.ToLower(channels[b].DisplayName)
 		})
 		result.Data = &channels
 	})
