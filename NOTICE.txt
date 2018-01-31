@@ -2899,7 +2899,7 @@ SOFTWARE.
 
 ## uasurfer
 
-This product contains a modified portion of `uasurfer`, a Golang library for parsing User-Agent strings.
+This product contains a modified portion of `uasurfer`, a Golang library for parsing User-Agent strings, built by Avocet.
 
 * HOMEPAGE
   * https://github.com/avct/uasurfer
@@ -3102,7 +3102,7 @@ This product contains a modified portion of `uasurfer`, a Golang library for par
 
 ## fake
 
-Fake is a fake data generator for Go (Golang), heavily inspired by the forgery and ffaker Ruby gems.
+Fake is a fake data generator for Go (Golang), heavily inspired by the forgery and ffaker Ruby gems, built by Dmitry Afanasyev.
 
 * HOMEPAGE:
   * https://github.com/icrowley/fake
@@ -3135,7 +3135,7 @@ SOFTWARE.
 
 ## memberlist
 
-memberlist is a Go library that manages cluster membership and member failure detection using a gossip based protocol.
+memberlist is a Go library that manages cluster membership and member failure detection using a gossip based protocol, built by HashiCorp.
 
 * HOMEPAGE
   * github.com/hashicorp/memberlist
@@ -3534,7 +3534,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ## errors
 
-Package errors provides simple error handling primitives.
+Package errors provides simple error handling primitives, built by pkg.
 
 * HOMEPAGE
   * github.com/pkg/errors
