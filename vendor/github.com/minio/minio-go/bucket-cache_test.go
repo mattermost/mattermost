@@ -1,6 +1,6 @@
 /*
- * Minio Go Library for Amazon S3 Compatible Cloud Storage
- * (C) 2015, 2016, 2017 Minio, Inc.
+ * Copyright
+ *  2015, 2016, 2017 Minio, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,6 @@ package minio
 
 import (
 	"bytes"
-	"encoding/hex"
 	"encoding/xml"
 	"io/ioutil"
 	"net/http"
@@ -116,11 +115,9 @@ func TestGetBucketLocationRequest(t *testing.T) {
 		// with signature version '4'.
 		switch {
 		case signerType.IsV4():
-			var contentSha256 string
+			contentSha256 := emptySHA256Hex
 			if c.secure {
 				contentSha256 = unsignedPayload
-			} else {
-				contentSha256 = hex.EncodeToString(sum256([]byte{}))
 			}
 			req.Header.Set("X-Amz-Content-Sha256", contentSha256)
 			req = s3signer.SignV4(*req, accessKeyID, secretAccessKey, sessionToken, "us-east-1")

@@ -238,5 +238,70 @@ as well:
 	url, err := r.Get("article").URL("subdomain", "news",
 	                                 "category", "technology",
 	                                 "id", "42")
+
+Since **vX.Y.Z**, mux supports the addition of middlewares to a [Router](https://godoc.org/github.com/gorilla/mux#Router), which are executed if a
+match is found (including subrouters). Middlewares are defined using the de facto standard type:
+
+	type MiddlewareFunc func(http.Handler) http.Handler
+
+Typically, the returned handler is a closure which does something with the http.ResponseWriter and http.Request passed to it, and then calls the handler passed as parameter to the MiddlewareFunc (closures can access variables from the context where they are created).
+
+A very basic middleware which logs the URI of the request being handled could be written as:
+
+	func simpleMw(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			// Do stuff here
+			log.Println(r.RequestURI)
+			// Call the next handler, which can be another middleware in the chain, or the final handler.
+			next.ServeHTTP(w, r)
+		})
+	}
+
+Middlewares can be added to a router using `Router.Use()`:
+
+	r := mux.NewRouter()
+	r.HandleFunc("/", handler)
+	r.AddMiddleware(simpleMw)
+
+A more complex authentication middleware, which maps session token to users, could be written as:
+
+	// Define our struct
+	type authenticationMiddleware struct {
+		tokenUsers map[string]string
+	}
+
+	// Initialize it somewhere
+	func (amw *authenticationMiddleware) Populate() {
+		amw.tokenUsers["00000000"] = "user0"
+		amw.tokenUsers["aaaaaaaa"] = "userA"
+		amw.tokenUsers["05f717e5"] = "randomUser"
+		amw.tokenUsers["deadbeef"] = "user0"
+	}
+
+	// Middleware function, which will be called for each request
+	func (amw *authenticationMiddleware) Middleware(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			token := r.Header.Get("X-Session-Token")
+
+			if user, found := amw.tokenUsers[token]; found {
+				// We found the token in our map
+				log.Printf("Authenticated user %s\n", user)
+				next.ServeHTTP(w, r)
+			} else {
+				http.Error(w, "Forbidden", 403)
+			}
+		})
+	}
+
+	r := mux.NewRouter()
+	r.HandleFunc("/", handler)
+
+	amw := authenticationMiddleware{}
+	amw.Populate()
+
+	r.Use(amw.Middleware)
+
+Note: The handler chain will be stopped if your middleware doesn't call `next.ServeHTTP()` with the corresponding parameters. This can be used to abort a request if the middleware writer wants to.
+
 */
 package mux

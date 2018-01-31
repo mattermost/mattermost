@@ -10,15 +10,14 @@ import (
 	"io/ioutil"
 	"net"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 
 	l4g "github.com/alecthomas/log4go"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
-	"github.com/rsc/letsencrypt"
-	"gopkg.in/throttled/throttled.v2"
-	"gopkg.in/throttled/throttled.v2/store/memstore"
+	"golang.org/x/crypto/acme/autocert"
 
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
@@ -31,6 +30,7 @@ type Server struct {
 	Router          *mux.Router
 	Server          *http.Server
 	ListenAddr      *net.TCPAddr
+	RateLimiter     *RateLimiter
 
 	didFinishListen chan struct{}
 }
@@ -83,10 +83,26 @@ func (cw *CorsWrapper) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 const TIME_TO_WAIT_FOR_CONNECTIONS_TO_CLOSE_ON_SERVER_SHUTDOWN = time.Second
 
-type VaryBy struct{}
+type VaryBy struct {
+	useIP   bool
+	useAuth bool
+}
 
 func (m *VaryBy) Key(r *http.Request) string {
-	return utils.GetIpAddress(r)
+	key := ""
+
+	if m.useAuth {
+		token, tokenLocation := ParseAuthTokenFromRequest(r)
+		if tokenLocation != TokenLocationNotFound {
+			key += token
+		} else if m.useIP { // If we don't find an authentication token and IP based is enabled, fall back to IP
+			key += utils.GetIpAddress(r)
+		}
+	} else if m.useIP { // Only if Auth based is not enabed do we use a plain IP based
+		key = utils.GetIpAddress(r)
+	}
+
+	return key
 }
 
 func redirectHTTPToHTTPS(w http.ResponseWriter, r *http.Request) {
@@ -108,33 +124,9 @@ func (a *App) StartServer() {
 	if *a.Config().RateLimitSettings.Enable {
 		l4g.Info(utils.T("api.server.start_server.rate.info"))
 
-		store, err := memstore.New(*a.Config().RateLimitSettings.MemoryStoreSize)
-		if err != nil {
-			l4g.Critical(utils.T("api.server.start_server.rate_limiting_memory_store"))
-			return
-		}
+		a.Srv.RateLimiter = NewRateLimiter(&a.Config().RateLimitSettings)
 
-		quota := throttled.RateQuota{
-			MaxRate:  throttled.PerSec(*a.Config().RateLimitSettings.PerSec),
-			MaxBurst: *a.Config().RateLimitSettings.MaxBurst,
-		}
-
-		rateLimiter, err := throttled.NewGCRARateLimiter(store, quota)
-		if err != nil {
-			l4g.Critical(utils.T("api.server.start_server.rate_limiting_rate_limiter"))
-			return
-		}
-
-		httpRateLimiter := throttled.HTTPRateLimiter{
-			RateLimiter: rateLimiter,
-			VaryBy:      &VaryBy{},
-			DeniedHandler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				l4g.Error("%v: Denied due to throttling settings code=429 ip=%v", r.URL.Path, utils.GetIpAddress(r))
-				throttled.DefaultDeniedHandler.ServeHTTP(w, r)
-			}),
-		}
-
-		handler = httpRateLimiter.RateLimit(handler)
+		handler = a.Srv.RateLimiter.RateLimitHandler(handler)
 	}
 
 	a.Srv.Server = &http.Server{
@@ -161,18 +153,34 @@ func (a *App) StartServer() {
 
 	l4g.Info(utils.T("api.server.start_server.listening.info"), listener.Addr().String())
 
-	if *a.Config().ServiceSettings.Forward80To443 {
-		go func() {
-			redirectListener, err := net.Listen("tcp", ":80")
-			if err != nil {
-				listener.Close()
-				l4g.Error("Unable to setup forwarding: " + err.Error())
-				return
-			}
-			defer redirectListener.Close()
+	// Migration from old let's encrypt library
+	if *a.Config().ServiceSettings.UseLetsEncrypt {
+		if stat, err := os.Stat(*a.Config().ServiceSettings.LetsEncryptCertificateCacheFile); err == nil && !stat.IsDir() {
+			os.Remove(*a.Config().ServiceSettings.LetsEncryptCertificateCacheFile)
+		}
+	}
 
-			http.Serve(redirectListener, http.HandlerFunc(redirectHTTPToHTTPS))
-		}()
+	m := &autocert.Manager{
+		Cache:  autocert.DirCache(*a.Config().ServiceSettings.LetsEncryptCertificateCacheFile),
+		Prompt: autocert.AcceptTOS,
+	}
+
+	if *a.Config().ServiceSettings.Forward80To443 {
+		if *a.Config().ServiceSettings.UseLetsEncrypt {
+			go http.ListenAndServe(":http", m.HTTPHandler(nil))
+		} else {
+			go func() {
+				redirectListener, err := net.Listen("tcp", ":80")
+				if err != nil {
+					listener.Close()
+					l4g.Error("Unable to setup forwarding: " + err.Error())
+					return
+				}
+				defer redirectListener.Close()
+
+				http.Serve(redirectListener, http.HandlerFunc(redirectHTTPToHTTPS))
+			}()
+		}
 	}
 
 	a.Srv.didFinishListen = make(chan struct{})
@@ -180,8 +188,6 @@ func (a *App) StartServer() {
 		var err error
 		if *a.Config().ServiceSettings.ConnectionSecurity == model.CONN_SECURITY_TLS {
 			if *a.Config().ServiceSettings.UseLetsEncrypt {
-				var m letsencrypt.Manager
-				m.CacheFile(*a.Config().ServiceSettings.LetsEncryptCertificateCacheFile)
 
 				tlsConfig := &tls.Config{
 					GetCertificate: m.GetCertificate,

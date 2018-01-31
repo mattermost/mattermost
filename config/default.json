@@ -180,6 +180,7 @@
         "MaxBurst": 100,
         "MemoryStoreSize": 10000,
         "VaryByRemoteAddr": true,
+        "VaryByUser": false,
         "VaryByHeader": ""
     },
     "PrivacySettings": {

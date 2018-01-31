@@ -5,8 +5,10 @@ import (
 	"io/ioutil"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 // SuiteRequireTwice is intended to test the usage of suite.Require in two
@@ -18,7 +20,7 @@ type SuiteRequireTwice struct{ Suite }
 // A regression would result on these tests panicking rather than failing.
 func TestSuiteRequireTwice(t *testing.T) {
 	ok := testing.RunTests(
-		func(_, _ string) (bool, error) { return true, nil },
+		allTestsFilter,
 		[]testing.InternalTest{{
 			Name: "TestSuiteRequireTwice",
 			F: func(t *testing.T) {
@@ -58,6 +60,15 @@ type SuiteTester struct {
 	TestOneRunCount       int
 	TestTwoRunCount       int
 	NonTestMethodRunCount int
+
+	SuiteNameBefore []string
+	TestNameBefore  []string
+
+	SuiteNameAfter []string
+	TestNameAfter  []string
+
+	TimeBefore []time.Time
+	TimeAfter  []time.Time
 }
 
 type SuiteSkipTester struct {
@@ -73,6 +84,18 @@ type SuiteSkipTester struct {
 // start of the testing suite, before any tests are run.
 func (suite *SuiteTester) SetupSuite() {
 	suite.SetupSuiteRunCount++
+}
+
+func (suite *SuiteTester) BeforeTest(suiteName, testName string) {
+	suite.SuiteNameBefore = append(suite.SuiteNameBefore, suiteName)
+	suite.TestNameBefore = append(suite.TestNameBefore, testName)
+	suite.TimeBefore = append(suite.TimeBefore, time.Now())
+}
+
+func (suite *SuiteTester) AfterTest(suiteName, testName string) {
+	suite.SuiteNameAfter = append(suite.SuiteNameAfter, suiteName)
+	suite.TestNameAfter = append(suite.TestNameAfter, testName)
+	suite.TimeAfter = append(suite.TimeAfter, time.Now())
 }
 
 func (suite *SuiteSkipTester) SetupSuite() {
@@ -145,6 +168,35 @@ func TestRunSuite(t *testing.T) {
 	assert.Equal(t, suiteTester.SetupSuiteRunCount, 1)
 	assert.Equal(t, suiteTester.TearDownSuiteRunCount, 1)
 
+	assert.Equal(t, len(suiteTester.SuiteNameAfter), 3)
+	assert.Equal(t, len(suiteTester.SuiteNameBefore), 3)
+	assert.Equal(t, len(suiteTester.TestNameAfter), 3)
+	assert.Equal(t, len(suiteTester.TestNameBefore), 3)
+
+	assert.Contains(t, suiteTester.TestNameAfter, "TestOne")
+	assert.Contains(t, suiteTester.TestNameAfter, "TestTwo")
+	assert.Contains(t, suiteTester.TestNameAfter, "TestSkip")
+
+	assert.Contains(t, suiteTester.TestNameBefore, "TestOne")
+	assert.Contains(t, suiteTester.TestNameBefore, "TestTwo")
+	assert.Contains(t, suiteTester.TestNameBefore, "TestSkip")
+
+	for _, suiteName := range suiteTester.SuiteNameAfter {
+		assert.Equal(t, "SuiteTester", suiteName)
+	}
+
+	for _, suiteName := range suiteTester.SuiteNameBefore {
+		assert.Equal(t, "SuiteTester", suiteName)
+	}
+
+	for _, when := range suiteTester.TimeAfter {
+		assert.False(t, when.IsZero())
+	}
+
+	for _, when := range suiteTester.TimeBefore {
+		assert.False(t, when.IsZero())
+	}
+
 	// There are three test methods (TestOne, TestTwo, and TestSkip), so
 	// the SetupTest and TearDownTest methods (which should be run once for
 	// each test) should have been run three times.
@@ -216,16 +268,19 @@ func (sc *StdoutCapture) StopCapture() (string, error) {
 }
 
 func TestSuiteLogging(t *testing.T) {
-	testT := testing.T{}
-
 	suiteLoggingTester := new(SuiteLoggingTester)
-
 	capture := StdoutCapture{}
+	internalTest := testing.InternalTest{
+		Name: "SomeTest",
+		F: func(subT *testing.T) {
+			Run(subT, suiteLoggingTester)
+		},
+	}
 	capture.StartCapture()
-	Run(&testT, suiteLoggingTester)
+	testing.RunTests(allTestsFilter, []testing.InternalTest{internalTest})
 	output, err := capture.StopCapture()
-
-	assert.Nil(t, err, "Got an error trying to capture stdout!")
+	require.NoError(t, err, "Got an error trying to capture stdout and stderr!")
+	require.NotEmpty(t, output, "output content must not be empty")
 
 	// Failed tests' output is always printed
 	assert.Contains(t, output, "TESTLOGFAIL")

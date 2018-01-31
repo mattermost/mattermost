@@ -1848,6 +1848,17 @@ var _ = Describe("Commands", func() {
 			Expect(sMembers.Val()).To(ConsistOf([]string{"Hello", "World"}))
 		})
 
+		It("should SMembersMap", func() {
+			sAdd := client.SAdd("set", "Hello")
+			Expect(sAdd.Err()).NotTo(HaveOccurred())
+			sAdd = client.SAdd("set", "World")
+			Expect(sAdd.Err()).NotTo(HaveOccurred())
+
+			sMembersMap := client.SMembersMap("set")
+			Expect(sMembersMap.Err()).NotTo(HaveOccurred())
+			Expect(sMembersMap.Val()).To(Equal(map[string]struct{}{"Hello": struct{}{}, "World": struct{}{}}))
+		})
+
 		It("should SMove", func() {
 			sAdd := client.SAdd("set1", "one")
 			Expect(sAdd.Err()).NotTo(HaveOccurred())

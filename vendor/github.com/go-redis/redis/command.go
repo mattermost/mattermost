@@ -82,13 +82,13 @@ func cmdFirstKeyPos(cmd Cmder, info *CommandInfo) int {
 		if cmd.stringArg(2) != "0" {
 			return 3
 		} else {
-			return -1
+			return 0
 		}
 	case "publish":
 		return 1
 	}
 	if info == nil {
-		return -1
+		return 0
 	}
 	return int(info.FirstKeyPos)
 }
@@ -670,6 +670,44 @@ func (cmd *StringIntMapCmd) readReply(cn *pool.Conn) error {
 		return cmd.err
 	}
 	cmd.val = v.(map[string]int64)
+	return nil
+}
+
+//------------------------------------------------------------------------------
+
+type StringStructMapCmd struct {
+	baseCmd
+
+	val map[string]struct{}
+}
+
+var _ Cmder = (*StringStructMapCmd)(nil)
+
+func NewStringStructMapCmd(args ...interface{}) *StringStructMapCmd {
+	return &StringStructMapCmd{
+		baseCmd: baseCmd{_args: args},
+	}
+}
+
+func (cmd *StringStructMapCmd) Val() map[string]struct{} {
+	return cmd.val
+}
+
+func (cmd *StringStructMapCmd) Result() (map[string]struct{}, error) {
+	return cmd.val, cmd.err
+}
+
+func (cmd *StringStructMapCmd) String() string {
+	return cmdString(cmd, cmd.val)
+}
+
+func (cmd *StringStructMapCmd) readReply(cn *pool.Conn) error {
+	var v interface{}
+	v, cmd.err = cn.Rd.ReadArrayReply(stringStructMapParser)
+	if cmd.err != nil {
+		return cmd.err
+	}
+	cmd.val = v.(map[string]struct{})
 	return nil
 }
 

@@ -35,12 +35,8 @@ type FileInfo struct {
 }
 
 func (info *FileInfo) ToJson() string {
-	b, err := json.Marshal(info)
-	if err != nil {
-		return ""
-	} else {
-		return string(b)
-	}
+	b, _ := json.Marshal(info)
+	return string(b)
 }
 
 func FileInfoFromJson(data io.Reader) *FileInfo {
@@ -55,12 +51,8 @@ func FileInfoFromJson(data io.Reader) *FileInfo {
 }
 
 func FileInfosToJson(infos []*FileInfo) string {
-	b, err := json.Marshal(infos)
-	if err != nil {
-		return ""
-	} else {
-		return string(b)
-	}
+	b, _ := json.Marshal(infos)
+	return string(b)
 }
 
 func FileInfosFromJson(data io.Reader) []*FileInfo {
