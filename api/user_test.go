@@ -189,7 +189,7 @@ func TestLogin(t *testing.T) {
 	}
 
 	if _, err := Client.Login(ruser2.Data.(*model.User).Email, user2.Password); err != nil {
-		t.Fatal("From verfied hash")
+		t.Fatal("From verified hash")
 	}
 
 	Client.AuthToken = authToken
@@ -201,10 +201,10 @@ func TestLogin(t *testing.T) {
 		Password:    "passwd1",
 		AuthService: model.USER_AUTH_SERVICE_LDAP,
 	}
-	user3 = Client.Must(Client.CreateUser(user3, "")).Data.(*model.User)
-	store.Must(th.App.Srv.Store.User().VerifyEmail(user3.Id))
+	ruser3 := Client.Must(Client.CreateUser(user3, "")).Data.(*model.User)
+	store.Must(th.App.Srv.Store.User().VerifyEmail(ruser3.Id))
 
-	if _, err := Client.Login(user3.Id, user3.Password); err == nil {
+	if _, err := Client.Login(ruser3.Id, user3.Password); err == nil {
 		t.Fatal("AD/LDAP user should not be able to log in with AD/LDAP disabled")
 	}
 }
