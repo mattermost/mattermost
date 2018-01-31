@@ -4851,6 +4851,14 @@
     "translation": "Message export job BatchSize must be a positive integer"
   },
   {
+    "id": "model.config.is_valid.message_export.export_type.app_error",
+    "translation": "Message export job ExportFormat must be one of either 'actiance' or 'globalrelay'"
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay_email_address.app_error",
+    "translation": "Message export job GlobalRelayEmailAddress must be set to a valid email address"
+  },
+  {
     "id": "model.config.is_valid.message_export.daily_runtime.app_error",
     "translation": "Message export job DailyRuntime must be a 24-hour time stamp in the form HH:MM."
   },

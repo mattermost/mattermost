@@ -131,10 +131,10 @@ func (s SqlChannelMemberHistoryStore) getFromChannelMemberHistoryTable(startTime
 func (s SqlChannelMemberHistoryStore) getFromChannelMembersTable(startTime int64, endTime int64, channelId string) ([]*model.ChannelMemberHistory, error) {
 	query := `
 		SELECT DISTINCT
-  			ch.ChannelId,
-  			ch.UserId,
-  			u.Email,
-            u.Username
+			ch.ChannelId,
+			ch.UserId,
+			u.Email,
+			u.Username
 		FROM ChannelMembers AS ch
 		INNER JOIN Users AS u ON ch.UserId = u.id
 		WHERE ch.ChannelId = :ChannelId`
@@ -160,7 +160,7 @@ func (s SqlChannelMemberHistoryStore) PermanentDeleteBatch(endTime int64, limit 
 			query =
 				`DELETE FROM ChannelMemberHistory
 				 WHERE ctid IN (
-				 	SELECT ctid FROM ChannelMemberHistory
+					SELECT ctid FROM ChannelMemberHistory
 					WHERE LeaveTime IS NOT NULL
 					AND LeaveTime <= :EndTime
 					LIMIT :Limit

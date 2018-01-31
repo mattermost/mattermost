@@ -104,15 +104,23 @@ func TestConnection(config *model.Config) {
 }
 
 func SendMailUsingConfig(to, subject, htmlBody string, config *model.Config) *model.AppError {
+	fromMail := mail.Address{Name: config.EmailSettings.FeedbackName, Address: config.EmailSettings.FeedbackEmail}
+	return sendMail(to, to, fromMail, subject, htmlBody, nil, nil, config)
+}
+
+// allows for sending an email with attachments and differing MIME/SMTP recipients
+func SendMailUsingConfigAdvanced(mimeTo, smtpTo string, from mail.Address, subject, htmlBody string, attachments []*model.FileInfo, mimeHeaders map[string]string, config *model.Config) *model.AppError {
+	return sendMail(mimeTo, smtpTo, from, subject, htmlBody, attachments, mimeHeaders, config)
+}
+
+func sendMail(mimeTo, smtpTo string, from mail.Address, subject, htmlBody string, attachments []*model.FileInfo, mimeHeaders map[string]string, config *model.Config) *model.AppError {
 	if !config.EmailSettings.SendEmailNotifications || len(config.EmailSettings.SMTPServer) == 0 {
 		return nil
 	}
 
-	l4g.Debug(T("utils.mail.send_mail.sending.debug"), to, subject)
+	l4g.Debug(T("utils.mail.send_mail.sending.debug"), mimeTo, subject)
 
 	htmlMessage := "\r\n<html><body>" + htmlBody + "</body></html>"
-
-	fromMail := mail.Address{Name: config.EmailSettings.FeedbackName, Address: config.EmailSettings.FeedbackEmail}
 
 	txtBody, err := html2text.FromString(htmlBody)
 	if err != nil {
@@ -120,19 +128,31 @@ func SendMailUsingConfig(to, subject, htmlBody string, config *model.Config) *mo
 		txtBody = ""
 	}
 
-	m := gomail.NewMessage(gomail.SetCharset("UTF-8"))
-	m.SetHeaders(map[string][]string{
-		"From":                      {fromMail.String()},
-		"To":                        {to},
+	headers := map[string][]string{
+		"From":                      {from.String()},
+		"To":                        {mimeTo},
 		"Subject":                   {encodeRFC2047Word(subject)},
 		"Content-Transfer-Encoding": {"8bit"},
 		"Auto-Submitted":            {"auto-generated"},
 		"Precedence":                {"bulk"},
-	})
-	m.SetDateHeader("Date", time.Now())
+	}
+	if mimeHeaders != nil {
+		for k, v := range mimeHeaders {
+			headers[k] = []string{encodeRFC2047Word(v)}
+		}
+	}
 
+	m := gomail.NewMessage(gomail.SetCharset("UTF-8"))
+	m.SetHeaders(headers)
+	m.SetDateHeader("Date", time.Now())
 	m.SetBody("text/plain", txtBody)
 	m.AddAlternative("text/html", htmlMessage)
+
+	if attachments != nil {
+		for _, fileInfo := range attachments {
+			m.Attach(fileInfo.Path)
+		}
+	}
 
 	conn, err1 := connectToSMTPServer(config)
 	if err1 != nil {
@@ -147,11 +167,11 @@ func SendMailUsingConfig(to, subject, htmlBody string, config *model.Config) *mo
 	defer c.Quit()
 	defer c.Close()
 
-	if err := c.Mail(fromMail.Address); err != nil {
+	if err := c.Mail(from.Address); err != nil {
 		return model.NewAppError("SendMail", "utils.mail.send_mail.from_address.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	if err := c.Rcpt(to); err != nil {
+	if err := c.Rcpt(smtpTo); err != nil {
 		return model.NewAppError("SendMail", "utils.mail.send_mail.to_address.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
