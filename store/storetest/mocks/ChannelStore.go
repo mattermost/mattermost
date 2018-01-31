@@ -45,6 +45,22 @@ func (_m *ChannelStore) AnalyticsTypeCount(teamId string, channelType string) st
 	return r0
 }
 
+// AutocompleteInTeam provides a mock function with given fields: teamId, term
+func (_m *ChannelStore) AutocompleteInTeam(teamId string, term string) store.StoreChannel {
+	ret := _m.Called(teamId, term)
+
+	var r0 store.StoreChannel
+	if rf, ok := ret.Get(0).(func(string, string) store.StoreChannel); ok {
+		r0 = rf(teamId, term)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.StoreChannel)
+		}
+	}
+
+	return r0
+}
+
 // CreateDirectChannel provides a mock function with given fields: userId, otherUserId
 func (_m *ChannelStore) CreateDirectChannel(userId string, otherUserId string) store.StoreChannel {
 	ret := _m.Called(userId, otherUserId)

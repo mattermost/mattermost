@@ -61,13 +61,13 @@ func (_m *UserAccessTokenStore) Get(tokenId string) store.StoreChannel {
 	return r0
 }
 
-// GetAll provides a mock function with given fields:
-func (_m *UserAccessTokenStore) GetAll(page int, perPage int) store.StoreChannel {
-	ret := _m.Called(page, perPage)
+// GetAll provides a mock function with given fields: offset, limit
+func (_m *UserAccessTokenStore) GetAll(offset int, limit int) store.StoreChannel {
+	ret := _m.Called(offset, limit)
 
 	var r0 store.StoreChannel
 	if rf, ok := ret.Get(0).(func(int, int) store.StoreChannel); ok {
-		r0 = rf(page, perPage)
+		r0 = rf(offset, limit)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(store.StoreChannel)
@@ -109,13 +109,13 @@ func (_m *UserAccessTokenStore) GetByUser(userId string, page int, perPage int) 
 	return r0
 }
 
-// Search provides a mock function with given fields:
-func (_m *UserAccessTokenStore) Search(term string) store.StoreChannel {
-	ret := _m.Called(term)
+// Save provides a mock function with given fields: token
+func (_m *UserAccessTokenStore) Save(token *model.UserAccessToken) store.StoreChannel {
+	ret := _m.Called(token)
 
 	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string) store.StoreChannel); ok {
-		r0 = rf(term)
+	if rf, ok := ret.Get(0).(func(*model.UserAccessToken) store.StoreChannel); ok {
+		r0 = rf(token)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(store.StoreChannel)
@@ -125,13 +125,13 @@ func (_m *UserAccessTokenStore) Search(term string) store.StoreChannel {
 	return r0
 }
 
-// Save provides a mock function with given fields: token
-func (_m *UserAccessTokenStore) Save(token *model.UserAccessToken) store.StoreChannel {
-	ret := _m.Called(token)
+// Search provides a mock function with given fields: term
+func (_m *UserAccessTokenStore) Search(term string) store.StoreChannel {
+	ret := _m.Called(term)
 
 	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(*model.UserAccessToken) store.StoreChannel); ok {
-		r0 = rf(token)
+	if rf, ok := ret.Get(0).(func(string) store.StoreChannel); ok {
+		r0 = rf(term)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(store.StoreChannel)
