@@ -805,7 +805,8 @@ type RateLimitSettings struct {
 	PerSec           *int
 	MaxBurst         *int
 	MemoryStoreSize  *int
-	VaryByRemoteAddr bool
+	VaryByRemoteAddr *bool
+	VaryByUser       *bool
 	VaryByHeader     string
 }
 
@@ -824,6 +825,14 @@ func (s *RateLimitSettings) SetDefaults() {
 
 	if s.MemoryStoreSize == nil {
 		s.MemoryStoreSize = NewInt(10000)
+	}
+
+	if s.VaryByRemoteAddr == nil {
+		s.VaryByRemoteAddr = NewBool(true)
+	}
+
+	if s.VaryByUser == nil {
+		s.VaryByUser = NewBool(false)
 	}
 }
 

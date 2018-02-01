@@ -114,38 +114,14 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		metrics.IncrementHttpRequest()
 	}
 
-	token := ""
-	isTokenFromQueryString := false
+	token, tokenLocation := app.ParseAuthTokenFromRequest(r)
 
-	// Attempt to parse token out of the header
-	authHeader := r.Header.Get(model.HEADER_AUTH)
-	if len(authHeader) > 6 && strings.ToUpper(authHeader[0:6]) == model.HEADER_BEARER {
-		// Default session token
-		token = authHeader[7:]
-
-	} else if len(authHeader) > 5 && strings.ToLower(authHeader[0:5]) == model.HEADER_TOKEN {
-		// OAuth token
-		token = authHeader[6:]
-	}
-
-	// Attempt to parse the token from the cookie
-	if len(token) == 0 {
-		if cookie, err := r.Cookie(model.SESSION_COOKIE_TOKEN); err == nil {
-			token = cookie.Value
-
-			if (h.requireSystemAdmin || h.requireUser) && !h.trustRequester {
-				if r.Header.Get(model.HEADER_REQUESTED_WITH) != model.HEADER_REQUESTED_WITH_XML {
-					c.Err = model.NewAppError("ServeHTTP", "api.context.session_expired.app_error", nil, "token="+token+" Appears to be a CSRF attempt", http.StatusUnauthorized)
-					token = ""
-				}
-			}
+	// CSRF Check
+	if tokenLocation == app.TokenLocationCookie && (h.requireSystemAdmin || h.requireUser) && !h.trustRequester {
+		if r.Header.Get(model.HEADER_REQUESTED_WITH) != model.HEADER_REQUESTED_WITH_XML {
+			c.Err = model.NewAppError("ServeHTTP", "api.context.session_expired.app_error", nil, "token="+token+" Appears to be a CSRF attempt", http.StatusUnauthorized)
+			token = ""
 		}
-	}
-
-	// Attempt to parse token out of the query string
-	if len(token) == 0 {
-		token = r.URL.Query().Get("access_token")
-		isTokenFromQueryString = true
 	}
 
 	c.SetSiteURLHeader(app.GetProtocol(r) + "://" + r.Host)
@@ -175,10 +151,15 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			if h.requireUser || h.requireSystemAdmin {
 				c.Err = model.NewAppError("ServeHTTP", "api.context.session_expired.app_error", nil, "token="+token, http.StatusUnauthorized)
 			}
-		} else if !session.IsOAuth && isTokenFromQueryString {
+		} else if !session.IsOAuth && tokenLocation == app.TokenLocationQueryString {
 			c.Err = model.NewAppError("ServeHTTP", "api.context.token_provided.app_error", nil, "token="+token, http.StatusUnauthorized)
 		} else {
 			c.Session = *session
+		}
+
+		// Rate limit by UserID
+		if c.App.Srv.RateLimiter != nil && c.App.Srv.RateLimiter.UserIdRateLimit(c.Session.UserId, w) {
+			return
 		}
 	}
 
