@@ -49,5 +49,5 @@ func RenderWebError(err *model.AppError, w http.ResponseWriter, r *http.Request)
 	fmt.Fprintln(w, `<body onload="window.location = '`+template.HTMLEscapeString(template.JSEscapeString(destination))+`'">`)
 	fmt.Fprintln(w, `<noscript><meta http-equiv="refresh" content="0; url=`+template.HTMLEscapeString(destination)+`"></noscript>`)
 	fmt.Fprintln(w, `<a href="`+template.HTMLEscapeString(destination)+`" style="color: #c0c0c0;">...</a>`)
-	fmt.Fprintln(w, `<body></html>`)
+	fmt.Fprintln(w, `</body></html>`)
 }
