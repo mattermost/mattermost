@@ -7,6 +7,7 @@ import (
 	"reflect"
 
 	"github.com/mattermost/mattermost-server/model"
+	"net/http"
 )
 
 func (a *App) GetRole(id string) (*model.Role, *model.AppError) {
@@ -58,10 +59,10 @@ func (a *App) UpdateRole(role *model.Role) (*model.Role, *model.AppError) {
 	}
 }
 
-func (a *App) CheckRolesExist(roleNames []string) (bool, *model.AppError) {
-	roles, err1 := a.GetRolesByNames(roleNames)
-	if err1 != nil {
-		return false, err1
+func (a *App) CheckRolesExist(roleNames []string) *model.AppError {
+	roles, err := a.GetRolesByNames(roleNames)
+	if err != nil {
+		return err
 	}
 
 	for _, name := range roleNames {
@@ -73,11 +74,11 @@ func (a *App) CheckRolesExist(roleNames []string) (bool, *model.AppError) {
 			}
 		}
 		if !nameFound {
-			return false, nil
+			return model.NewAppError("CheckRolesExist", "app.role.check_roles_exist.role_not_found", nil, "role="+name, http.StatusBadRequest)
 		}
 	}
 
-	return true, nil
+	return nil
 }
 
 func (a *App) sendUpdatedRoleEvent(role *model.Role) {

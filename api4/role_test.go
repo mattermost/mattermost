@@ -20,7 +20,7 @@ func TestGetRole(t *testing.T) {
 		Name:          model.NewId(),
 		DisplayName:   model.NewId(),
 		Description:   model.NewId(),
-		Permissions:   []string{"manage_system create_public_channel"},
+		Permissions:   []string{"manage_system", "create_public_channel"},
 		SchemeManaged: true,
 	}
 
@@ -54,7 +54,7 @@ func TestGetRoleByName(t *testing.T) {
 		Name:          model.NewId(),
 		DisplayName:   model.NewId(),
 		Description:   model.NewId(),
-		Permissions:   []string{"manage_system create_public_channel"},
+		Permissions:   []string{"manage_system", "create_public_channel"},
 		SchemeManaged: true,
 	}
 
@@ -88,21 +88,21 @@ func TestGetRolesByNames(t *testing.T) {
 		Name:          model.NewId(),
 		DisplayName:   model.NewId(),
 		Description:   model.NewId(),
-		Permissions:   []string{"manage_system create_public_channel"},
+		Permissions:   []string{"manage_system", "create_public_channel"},
 		SchemeManaged: true,
 	}
 	role2 := &model.Role{
 		Name:          model.NewId(),
 		DisplayName:   model.NewId(),
 		Description:   model.NewId(),
-		Permissions:   []string{"manage_system delete_private_channel"},
+		Permissions:   []string{"manage_system", "delete_private_channel"},
 		SchemeManaged: true,
 	}
 	role3 := &model.Role{
 		Name:          model.NewId(),
 		DisplayName:   model.NewId(),
 		Description:   model.NewId(),
-		Permissions:   []string{"manage_system manage_public_channels"},
+		Permissions:   []string{"manage_system", "manage_public_channel_properties"},
 		SchemeManaged: true,
 	}
 
@@ -146,7 +146,7 @@ func TestPatchRole(t *testing.T) {
 		Name:          model.NewId(),
 		DisplayName:   model.NewId(),
 		Description:   model.NewId(),
-		Permissions:   []string{"manage_system create_public_channel"},
+		Permissions:   []string{"manage_system", "create_public_channel"},
 		SchemeManaged: true,
 	}
 

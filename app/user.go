@@ -1230,10 +1230,8 @@ func (a *App) UpdateUserRoles(userId string, newRoles string, sendWebSocketEvent
 		return nil, err
 	}
 
-	if exist, err := a.CheckRolesExist(strings.Fields(newRoles)); err != nil {
+	if err := a.CheckRolesExist(strings.Fields(newRoles)); err != nil {
 		return nil, err
-	} else if !exist {
-		return nil, model.NewAppError("UpdateUserRoles", "app.user.update_user_roles.invalid_roles.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	user.Roles = newRoles

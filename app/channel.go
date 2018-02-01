@@ -431,10 +431,7 @@ func (a *App) UpdateChannelMemberRoles(channelId string, userId string, newRoles
 		return nil, err
 	}
 
-	if exist, err := a.CheckRolesExist(strings.Fields(newRoles)); err != nil {
-		return nil, err
-	} else if !exist {
-		err := model.NewAppError("UpdateChannelMemberRoles", "app.channel.update_member_roles.invalid_roles", nil, "roles="+newRoles, http.StatusBadRequest)
+	if err := a.CheckRolesExist(strings.Fields(newRoles)); err != nil {
 		return nil, err
 	}
 

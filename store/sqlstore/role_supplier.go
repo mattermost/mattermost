@@ -23,12 +23,12 @@ type Role struct {
 	SchemeManaged bool
 }
 
-func FromRole(role *model.Role) *Role {
+func NewRoleFromModel(role *model.Role) *Role {
 	permissionsMap := make(map[string]bool)
 	permissions := ""
 
 	for _, permission := range role.Permissions {
-		if _, ok := permissionsMap[permission]; !ok {
+		if !permissionsMap[permission] {
 			permissions += fmt.Sprintf(" %v", permission)
 			permissionsMap[permission] = true
 		}
@@ -44,7 +44,7 @@ func FromRole(role *model.Role) *Role {
 	}
 }
 
-func (role Role) ToRole() *model.Role {
+func (role Role) ToModel() *model.Role {
 	return &model.Role{
 		Id:            role.Id,
 		Name:          role.Name,
@@ -68,7 +68,13 @@ func initSqlSupplierRoles(sqlStore SqlStore) {
 func (s *SqlSupplier) RoleSave(ctx context.Context, role *model.Role, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
 	result := store.NewSupplierResult()
 
-	dbRole := FromRole(role)
+	// Check the role is valid before proceeding.
+	if !role.IsValidWithoutId() {
+		result.Err = model.NewAppError("SqlRoleStore.Save", "store.sql_role.save.invalid_role.app_error", nil, "", http.StatusBadRequest)
+		return result
+	}
+
+	dbRole := NewRoleFromModel(role)
 	if len(dbRole.Id) == 0 {
 		dbRole.Id = model.NewId()
 		if err := s.GetMaster().Insert(dbRole); err != nil {
@@ -82,7 +88,7 @@ func (s *SqlSupplier) RoleSave(ctx context.Context, role *model.Role, hints ...s
 		}
 	}
 
-	result.Data = dbRole.ToRole()
+	result.Data = dbRole.ToModel()
 
 	return result
 }
@@ -100,7 +106,7 @@ func (s *SqlSupplier) RoleGet(ctx context.Context, roleId string, hints ...store
 		}
 	}
 
-	result.Data = dbRole.ToRole()
+	result.Data = dbRole.ToModel()
 
 	return result
 }
@@ -118,7 +124,7 @@ func (s *SqlSupplier) RoleGetByName(ctx context.Context, name string, hints ...s
 		}
 	}
 
-	result.Data = dbRole.ToRole()
+	result.Data = dbRole.ToModel()
 
 	return result
 }
@@ -148,7 +154,7 @@ func (s *SqlSupplier) RoleGetByNames(ctx context.Context, names []string, hints 
 
 	var roles []*model.Role
 	for _, dbRole := range dbRoles {
-		roles = append(roles, dbRole.ToRole())
+		roles = append(roles, dbRole.ToModel())
 	}
 
 	result.Data = roles

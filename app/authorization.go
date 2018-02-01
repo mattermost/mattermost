@@ -194,16 +194,13 @@ func (a *App) HasPermissionToUser(askingUserId string, userId string) bool {
 }
 
 func (a *App) RolesGrantPermission(roleNames []string, permissionId string) bool {
-	var roles []*model.Role
-
-	if result := <-a.Srv.Store.Role().GetByNames(roleNames); result.Err != nil {
+	roles, err := a.GetRolesByNames(roleNames)
+	if err != nil {
 		// This should only happen if something is very broken. We can't realistically
 		// recover the situation, so deny permission and log an error.
 		l4g.Error("Failed to get roles from database with role names: " + strings.Join(roleNames, ","))
-		l4g.Error(result.Err)
+		l4g.Error(err)
 		return false
-	} else {
-		roles = result.Data.([]*model.Role)
 	}
 
 	for _, role := range roles {

@@ -7,6 +7,7 @@ import (
 	"html/template"
 	"net"
 	"net/http"
+	"reflect"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -64,7 +65,6 @@ type App struct {
 
 	htmlTemplateWatcher *utils.HTMLTemplateWatcher
 	sessionCache        *utils.Cache
-	roles               map[string]*model.Role
 	configListenerId    string
 	licenseListenerId   string
 	disableConfigWatch  bool
@@ -466,11 +466,26 @@ func (a *App) DoAdvancedPermissionsMigration() {
 
 	for _, role := range roles {
 		if result := <-a.Srv.Store.Role().Save(role); result.Err != nil {
-			l4g.Critical("Failed to migrate role to database.")
-			l4g.Critical(result.Err)
 			// If this failed for reasons other than the role already existing, don't mark the migration as done.
 			if result2 := <-a.Srv.Store.Role().GetByName(role.Name); result2.Err != nil {
+				l4g.Critical("Failed to migrate role to database.")
+				l4g.Critical(result.Err)
 				allSucceeded = false
+			} else {
+				// If the role already existed, check it is the same and update if not.
+				fetchedRole := result.Data.(*model.Role)
+				if !reflect.DeepEqual(fetchedRole.Permissions, role.Permissions) ||
+					fetchedRole.DisplayName != role.DisplayName ||
+					fetchedRole.Description != role.Description ||
+					fetchedRole.SchemeManaged != role.SchemeManaged {
+					role.Id = fetchedRole.Id
+					if result := <-a.Srv.Store.Role().Save(role); result.Err != nil {
+						// Role is not the same, but failed to update.
+						l4g.Critical("Failed to migrate role to database.")
+						l4g.Critical(result.Err)
+						allSucceeded = false
+					}
+				}
 			}
 		}
 	}

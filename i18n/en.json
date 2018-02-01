@@ -2343,8 +2343,16 @@
     "translation": "Your email address for {{.TeamDisplayName}} has been changed to {{.NewEmail}}.<br>If you did not make this change, please contact the system administrator."
   },
   {
+    "id": "app.role.check_roles_exist.role_not_found",
+    "translation": "The provided role does not exist"
+  },
+  {
     "id": "api.templates.email_change_body.title",
     "translation": "You updated your email"
+  },
+  {
+    "id": "store.sql_role.save.invalid_role.app_error",
+    "translation": "The role was not valid"
   },
   {
     "id": "api.templates.email_change_subject",

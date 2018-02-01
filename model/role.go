@@ -6,7 +6,7 @@ package model
 import (
 	"encoding/json"
 	"io"
-	"regexp"
+	"strings"
 )
 
 const (
@@ -24,7 +24,9 @@ const (
 	CHANNEL_USER_ROLE_ID  = "channel_user"
 	CHANNEL_ADMIN_ROLE_ID = "channel_admin"
 
-	ROLE_NAME_MAX_LENGTH = 64
+	ROLE_NAME_MAX_LENGTH         = 64
+	ROLE_DISPLAY_NAME_MAX_LENGTH = 128
+	ROLE_DESCRIPTION_MAX_LENGTH  = 1024
 )
 
 type Role struct {
@@ -41,62 +43,36 @@ type RolePatch struct {
 }
 
 func (role *Role) ToJson() string {
-	if b, err := json.Marshal(role); err != nil {
-		return ""
-	} else {
-		return string(b)
-	}
+	b, _ := json.Marshal(role)
+	return string(b)
 }
 
 func RoleFromJson(data io.Reader) *Role {
-	decoder := json.NewDecoder(data)
-	var role Role
-	err := decoder.Decode(&role)
-	if err == nil {
-		return &role
-	} else {
-		return nil
-	}
+	var role *Role
+	json.NewDecoder(data).Decode(&role)
+	return role
 }
 
 func RoleListToJson(r []*Role) string {
-	b, err := json.Marshal(r)
-	if err != nil {
-		return ""
-	} else {
-		return string(b)
-	}
+	b, _ := json.Marshal(r)
+	return string(b)
 }
 
 func RoleListFromJson(data io.Reader) []*Role {
-	decoder := json.NewDecoder(data)
 	var roles []*Role
-	err := decoder.Decode(&roles)
-	if err == nil {
-		return roles
-	} else {
-		return nil
-	}
+	json.NewDecoder(data).Decode(&roles)
+	return roles
 }
 
 func (r *RolePatch) ToJson() string {
-	b, err := json.Marshal(r)
-	if err != nil {
-		return ""
-	} else {
-		return string(b)
-	}
+	b, _ := json.Marshal(r)
+	return string(b)
 }
 
 func RolePatchFromJson(data io.Reader) *RolePatch {
-	decoder := json.NewDecoder(data)
-	var o RolePatch
-	err := decoder.Decode(&o)
-	if err == nil {
-		return &o
-	} else {
-		return nil
-	}
+	var rolePatch *RolePatch
+	json.NewDecoder(data).Decode(&rolePatch)
+	return rolePatch
 }
 
 func (o *Role) Patch(patch *RolePatch) {
@@ -105,14 +81,50 @@ func (o *Role) Patch(patch *RolePatch) {
 	}
 }
 
-var validRoleNameCharacters = regexp.MustCompile(`^[a-z0-9_]+$`)
+func (role *Role) IsValid() bool {
+	if len(role.Id) != 26 {
+		return false
+	}
+
+	return role.IsValidWithoutId()
+}
+
+func (role *Role) IsValidWithoutId() bool {
+	if !IsValidRoleName(role.Name) {
+		return false
+	}
+
+	if len(role.DisplayName) == 0 || len(role.DisplayName) > ROLE_DISPLAY_NAME_MAX_LENGTH {
+		return false
+	}
+
+	if len(role.Description) > ROLE_DESCRIPTION_MAX_LENGTH {
+		return false
+	}
+
+	for _, permission := range role.Permissions {
+		permissionValidated := false
+		for _, p := range ALL_PERMISSIONS {
+			if permission == p.Id {
+				permissionValidated = true
+				break
+			}
+		}
+
+		if !permissionValidated {
+			return false
+		}
+	}
+
+	return true
+}
 
 func IsValidRoleName(roleName string) bool {
 	if len(roleName) <= 0 || len(roleName) > ROLE_NAME_MAX_LENGTH {
 		return false
 	}
 
-	if !validRoleNameCharacters.MatchString(roleName) {
+	if strings.TrimLeft(roleName, "abcdefghijklmnopqrstuvwxyz0123456789_") != "" {
 		return false
 	}
 
