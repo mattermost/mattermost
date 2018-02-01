@@ -239,7 +239,6 @@ func ReadConfig(r io.Reader, allowEnvironmentOverrides bool) (*model.Config, err
 		config.PluginSettings = model.PluginSettings{}
 		unmarshalErr = v.UnmarshalKey("pluginsettings", &config.PluginSettings)
 	}
-
 	return &config, unmarshalErr
 }
 
