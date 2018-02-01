@@ -399,7 +399,7 @@ func (us SqlUserStore) GetProfilesInChannel(channelId string, offset int, limit 
 
 		query := `
 			SELECT 
-				Users.*, Status.Status, Status.LastActivityAt
+				Users.*
 			FROM Users
 				INNER JOIN ChannelMembers ON Users.Id = ChannelMembers.UserId
 				LEFT JOIN Status  ON Users.Id = Status.UserId
