@@ -7083,6 +7083,10 @@
     "translation": "Failed to authenticate on SMTP server"
   },
   {
+    "id": "utils.mail.sendMail.attachments.write_error",
+    "translation": "Failed to write attachment to email"
+  },
+  {
     "id": "utils.mail.new_client.helo.error",
     "translation": "Failed to to set the HELO to SMTP server %v"
   },

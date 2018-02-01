@@ -15,6 +15,8 @@ import (
 
 	"net/http"
 
+	"io"
+
 	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/html2text"
 	"github.com/mattermost/mattermost-server/model"
@@ -149,9 +151,25 @@ func sendMail(mimeTo, smtpTo string, from mail.Address, subject, htmlBody string
 	m.AddAlternative("text/html", htmlMessage)
 
 	if attachments != nil {
-		for _, fileInfo := range attachments {
-			m.Attach(fileInfo.Path)
+		fileBackend, err := NewFileBackend(&config.FileSettings)
+		if err != nil {
+			return err
 		}
+
+		for _, fileInfo := range attachments {
+			m.Attach(fileInfo.Name, gomail.SetCopyFunc(func(writer io.Writer) error {
+				bytes, err := fileBackend.ReadFile(fileInfo.Path)
+				if err != nil {
+					return err
+				}
+				if _, err := writer.Write(bytes); err != nil {
+					return model.NewAppError("SendMail", "utils.mail.sendMail.attachments.write_error", nil, err.Error(), http.StatusInternalServerError)
+				}
+				return nil
+			}))
+
+		}
+
 	}
 
 	conn, err1 := connectToSMTPServer(config)

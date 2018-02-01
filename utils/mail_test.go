@@ -7,10 +7,6 @@ import (
 	"strings"
 	"testing"
 
-	"io/ioutil"
-
-	"path"
-
 	"net/mail"
 
 	"github.com/mattermost/mattermost-server/model"
@@ -98,25 +94,18 @@ func TestSendMailUsingConfigAdvanced(t *testing.T) {
 	//Delete all the messages before check the sample email
 	DeleteMailBox(smtpTo)
 
-	// make a file backend that writes to a temp directory
-	tempDirectory, tempDirError := ioutil.TempDir("", "")
-	assert.Nil(t, tempDirError)
-	fileSettings := &model.FileSettings{
-		DriverName: model.NewString(model.IMAGE_DRIVER_LOCAL),
-		Directory:  tempDirectory,
-	}
-	fileBackend, err := NewFileBackend(fileSettings)
+	// create a file that will be attached to the email
+	fileBackend, err := NewFileBackend(&cfg.FileSettings)
 	assert.Nil(t, err)
-
-	// create a file that will be copied to the export directory
 	fileContents := []byte("hello world")
 	fileName := "file.txt"
 	assert.Nil(t, fileBackend.WriteFile(fileContents, fileName))
-	defer fileBackend.RemoveDirectory(tempDirectory)
+	defer fileBackend.RemoveFile(fileName)
 
 	attachments := make([]*model.FileInfo, 1)
 	attachments[0] = &model.FileInfo{
-		Path: path.Join(tempDirectory, fileName),
+		Name: fileName,
+		Path: fileName,
 	}
 
 	headers := make(map[string]string)
