@@ -396,15 +396,21 @@ func (us SqlUserStore) InvalidateProfilesInChannelCache(channelId string) {
 func (us SqlUserStore) GetProfilesInChannel(channelId string, offset int, limit int) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		var users []*model.User
+
 		query := `
 			SELECT 
-				u.* ,
-				s.LastActivityAt
-			FROM Users As u
-				INNER JOIN ChannelMembers AS c
-				INNER JOIN Status AS s ON s.UserId = c.UserId
-			WHERE c.ChannelId = :ChannelId 
-			ORDER BY s.LastActivityAt DESC
+				Users.*, Status.Status, Status.LastActivityAt
+			FROM Users
+				INNER JOIN ChannelMembers ON Users.Id = ChannelMembers.UserId
+				LEFT JOIN Status  ON Users.Id = Status.UserId
+			WHERE
+				ChannelMembers.ChannelId = :ChannelId
+			ORDER BY CASE Status
+				WHEN 'online' THEN 1
+				WHEN 'away' THEN 2
+				WHEN 'dnd' THEN 3
+				ELSE 4
+			END
 			LIMIT :Limit OFFSET :Offset
 		`
 
