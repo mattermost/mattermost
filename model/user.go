@@ -162,6 +162,14 @@ func InvalidUserError(fieldName string, userId string) *AppError {
 	return NewAppError("User.IsValid", id, nil, details, http.StatusBadRequest)
 }
 
+func NormalizeUsername(username string) string {
+	return strings.ToLower(username)
+}
+
+func NormalizeEmail(email string) string {
+	return strings.ToLower(email)
+}
+
 // PreSave will set the Id and Username if missing.  It will also fill
 // in the CreateAt, UpdateAt times.  It will also hash the password.  It should
 // be run before saving the user to the db.
@@ -178,8 +186,8 @@ func (u *User) PreSave() {
 		u.AuthData = nil
 	}
 
-	u.Username = strings.ToLower(u.Username)
-	u.Email = strings.ToLower(u.Email)
+	u.Username = NormalizeUsername(u.Username)
+	u.Email = NormalizeEmail(u.Email)
 
 	u.CreateAt = GetMillis()
 	u.UpdateAt = u.CreateAt
@@ -207,8 +215,8 @@ func (u *User) PreSave() {
 
 // PreUpdate should be run before updating the user in the db.
 func (u *User) PreUpdate() {
-	u.Username = strings.ToLower(u.Username)
-	u.Email = strings.ToLower(u.Email)
+	u.Username = NormalizeUsername(u.Username)
+	u.Email = NormalizeEmail(u.Email)
 	u.UpdateAt = GetMillis()
 
 	if u.AuthData != nil && *u.AuthData == "" {
@@ -563,7 +571,7 @@ func IsValidUsername(s string) bool {
 }
 
 func CleanUsername(s string) string {
-	s = strings.ToLower(strings.Replace(s, " ", "-", -1))
+	s = NormalizeUsername(strings.Replace(s, " ", "-", -1))
 
 	for _, value := range reservedName {
 		if s == value {
