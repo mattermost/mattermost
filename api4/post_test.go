@@ -489,16 +489,13 @@ func TestUpdatePost(t *testing.T) {
 
 	isLicensed := utils.IsLicensed()
 	license := utils.License()
-	allowEditPost := *th.App.Config().ServiceSettings.AllowEditPost
 	defer func() {
 		utils.SetIsLicensed(isLicensed)
 		utils.SetLicense(license)
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowEditPost = allowEditPost })
 	}()
 	utils.SetIsLicensed(true)
 	utils.SetLicense(&model.License{Features: &model.Features{}})
 	utils.License().Features.SetDefaults()
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowEditPost = model.ALLOW_EDIT_POST_ALWAYS })
 
 	post := &model.Post{ChannelId: channel.Id, Message: "zz" + model.NewId() + "a"}
 	rpost, resp := Client.CreatePost(post)
@@ -571,17 +568,13 @@ func TestPatchPost(t *testing.T) {
 
 	isLicensed := utils.IsLicensed()
 	license := utils.License()
-	allowEditPost := *th.App.Config().ServiceSettings.AllowEditPost
 	defer func() {
 		utils.SetIsLicensed(isLicensed)
 		utils.SetLicense(license)
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowEditPost = allowEditPost })
 	}()
 	utils.SetIsLicensed(true)
 	utils.SetLicense(&model.License{Features: &model.Features{}})
 	utils.License().Features.SetDefaults()
-
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowEditPost = model.ALLOW_EDIT_POST_ALWAYS })
 
 	post := &model.Post{
 		ChannelId:    channel.Id,
