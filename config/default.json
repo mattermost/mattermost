@@ -59,6 +59,7 @@
         "ExperimentalEnableDefaultChannelLeaveJoinMessages": true,
         "ExperimentalGroupUnreadChannels": false,
         "ImageProxyType": "",
+        "ImageProxyOptions": "",
         "ImageProxyURL": ""
     },
     "TeamSettings": {
