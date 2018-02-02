@@ -28,9 +28,10 @@ const (
 var MaxNotificationsPerChannelDefault int64 = 1000000
 
 var serverCmd = &cobra.Command{
-	Use:   "server",
-	Short: "Run the Mattermost server",
-	RunE:  runServerCmd,
+	Use:          "server",
+	Short:        "Run the Mattermost server",
+	RunE:         runServerCmd,
+	SilenceUsage: true,
 }
 
 func runServerCmd(cmd *cobra.Command, args []string) error {
@@ -41,11 +42,10 @@ func runServerCmd(cmd *cobra.Command, args []string) error {
 
 	disableConfigWatch, _ := cmd.Flags().GetBool("disableconfigwatch")
 
-	runServer(config, disableConfigWatch)
-	return nil
+	return runServer(config, disableConfigWatch)
 }
 
-func runServer(configFileLocation string, disableConfigWatch bool) {
+func runServer(configFileLocation string, disableConfigWatch bool) error {
 	options := []app.Option{app.ConfigFile(configFileLocation)}
 	if disableConfigWatch {
 		options = append(options, app.DisableConfigWatch)
@@ -54,7 +54,7 @@ func runServer(configFileLocation string, disableConfigWatch bool) {
 	a, err := app.New(options...)
 	if err != nil {
 		l4g.Error(err.Error())
-		return
+		return err
 	}
 	defer a.Shutdown()
 
@@ -172,6 +172,8 @@ func runServer(configFileLocation string, disableConfigWatch bool) {
 
 	a.Jobs.StopSchedulers()
 	a.Jobs.StopWorkers()
+
+	return nil
 }
 
 func runSecurityJob(a *app.App) {
