@@ -4,6 +4,7 @@
 package app
 
 import (
+	"crypto/ecdsa"
 	"html/template"
 	"net"
 	"net/http"
@@ -60,13 +61,14 @@ type App struct {
 
 	newStore func() store.Store
 
-	htmlTemplateWatcher *utils.HTMLTemplateWatcher
-	sessionCache        *utils.Cache
-	roles               map[string]*model.Role
-	configListenerId    string
-	licenseListenerId   string
-	disableConfigWatch  bool
-	configWatcher       *utils.ConfigWatcher
+	htmlTemplateWatcher  *utils.HTMLTemplateWatcher
+	sessionCache         *utils.Cache
+	roles                map[string]*model.Role
+	configListenerId     string
+	licenseListenerId    string
+	disableConfigWatch   bool
+	configWatcher        *utils.ConfigWatcher
+	asymmetricSigningKey *ecdsa.PrivateKey
 
 	pluginCommands     []*PluginCommand
 	pluginCommandsLock sync.RWMutex
@@ -139,6 +141,10 @@ func New(options ...Option) (*App, error) {
 	}
 
 	app.Srv.Store = app.newStore()
+	if err := app.ensureAsymmetricSigningKey(); err != nil {
+		return nil, errors.Wrapf(err, "unable to ensure asymmetric signing key")
+	}
+
 	app.initJobs()
 
 	app.initBuiltInPlugins()
@@ -448,5 +454,5 @@ func (a *App) Handle404(w http.ResponseWriter, r *http.Request) {
 
 	l4g.Debug("%v: code=404 ip=%v", r.URL.Path, utils.GetIpAddress(r))
 
-	utils.RenderWebError(err, w, r)
+	utils.RenderWebAppError(w, r, err, a.AsymmetricSigningKey())
 }
