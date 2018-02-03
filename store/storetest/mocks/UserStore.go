@@ -349,6 +349,22 @@ func (_m *UserStore) GetProfilesInChannel(channelId string, offset int, limit in
 	return r0
 }
 
+// GetProfilesInChannelByStatus provides a mock function with given fields: channelId, offset, limit
+func (_m *UserStore) GetProfilesInChannelByStatus(channelId string, offset int, limit int) store.StoreChannel {
+	ret := _m.Called(channelId, offset, limit)
+
+	var r0 store.StoreChannel
+	if rf, ok := ret.Get(0).(func(string, int, int) store.StoreChannel); ok {
+		r0 = rf(channelId, offset, limit)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.StoreChannel)
+		}
+	}
+
+	return r0
+}
+
 // GetProfilesNotInChannel provides a mock function with given fields: teamId, channelId, offset, limit
 func (_m *UserStore) GetProfilesNotInChannel(teamId string, channelId string, offset int, limit int) store.StoreChannel {
 	ret := _m.Called(teamId, channelId, offset, limit)

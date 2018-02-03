@@ -398,6 +398,36 @@ func (us SqlUserStore) GetProfilesInChannel(channelId string, offset int, limit 
 		var users []*model.User
 
 		query := `
+				SELECT 
+					Users.* 
+				FROM 
+					Users, ChannelMembers 
+				WHERE 
+					ChannelMembers.ChannelId = :ChannelId 
+					AND Users.Id = ChannelMembers.UserId 
+				ORDER BY 
+					Users.Username ASC 
+				LIMIT :Limit OFFSET :Offset
+		`
+
+		if _, err := us.GetReplica().Select(&users, query, map[string]interface{}{"ChannelId": channelId, "Offset": offset, "Limit": limit}); err != nil {
+			result.Err = model.NewAppError("SqlUserStore.GetProfilesInChannel", "store.sql_user.get_profiles.app_error", nil, err.Error(), http.StatusInternalServerError)
+		} else {
+
+			for _, u := range users {
+				u.Sanitize(map[string]bool{})
+			}
+
+			result.Data = users
+		}
+	})
+}
+
+func (us SqlUserStore) GetProfilesInChannelByStatus(channelId string, offset int, limit int) store.StoreChannel {
+	return store.Do(func(result *store.StoreResult) {
+		var users []*model.User
+
+		query := `
 			SELECT 
 				Users.*
 			FROM Users
@@ -405,17 +435,19 @@ func (us SqlUserStore) GetProfilesInChannel(channelId string, offset int, limit 
 				LEFT JOIN Status  ON Users.Id = Status.UserId
 			WHERE
 				ChannelMembers.ChannelId = :ChannelId
-			ORDER BY CASE Status
-				WHEN 'online' THEN 1
-				WHEN 'away' THEN 2
-				WHEN 'dnd' THEN 4
-				ELSE 3
-			END
+			ORDER BY 
+				CASE Status
+					WHEN 'online' THEN 1
+					WHEN 'away' THEN 2
+					WHEN 'dnd' THEN 4
+					ELSE 3
+				END,
+				Users.Username ASC 
 			LIMIT :Limit OFFSET :Offset
 		`
 
 		if _, err := us.GetReplica().Select(&users, query, map[string]interface{}{"ChannelId": channelId, "Offset": offset, "Limit": limit}); err != nil {
-			result.Err = model.NewAppError("SqlUserStore.GetProfilesInChannel", "store.sql_user.get_profiles.app_error", nil, err.Error(), http.StatusInternalServerError)
+			result.Err = model.NewAppError("SqlUserStore.GetProfilesInChannelByStatus", "store.sql_user.get_profiles.app_error", nil, err.Error(), http.StatusInternalServerError)
 		} else {
 
 			for _, u := range users {
