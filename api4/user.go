@@ -297,9 +297,7 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Currently only supports sorting on a team
-	if  (sort == "status" && inChannelId == "") ||
-		(sort == "last_activity_at" || sort == "create_at") &&
-		(inTeamId == "" || notInTeamId != "" || inChannelId != "" || notInChannelId != "" || withoutTeam != "") {
+	if  (sort == "status" && inChannelId == "") || ((sort == "last_activity_at" || sort == "create_at") && (inTeamId == "" || notInTeamId != "" || inChannelId != "" || notInChannelId != "" || withoutTeam != "")) {
 		c.SetInvalidUrlParam("sort")
 		return
 	}
