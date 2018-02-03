@@ -38,7 +38,7 @@ func (api *API) InitUser() {
 	api.BaseRoutes.Users.Handle("/initial_load", api.ApiAppHandler(getInitialLoad)).Methods("GET")
 	api.BaseRoutes.Users.Handle("/{offset:[0-9]+}/{limit:[0-9]+}", api.ApiUserRequired(getProfiles)).Methods("GET")
 	api.BaseRoutes.NeedTeam.Handle("/users/{offset:[0-9]+}/{limit:[0-9]+}", api.ApiUserRequired(getProfilesInTeam)).Methods("GET")
-	api.BaseRoutes.NeedChannel.Handle("/users/{offset:[0-9]+}/{limit:[0-9]+}/{limit:[0-9]+}", api.ApiUserRequired(getProfilesInChannel)).Methods("GET")
+	api.BaseRoutes.NeedChannel.Handle("/users/{offset:[0-9]+}/{limit:[0-9]+}}", api.ApiUserRequired(getProfilesInChannel)).Methods("GET")
 	api.BaseRoutes.NeedChannel.Handle("/users/not_in_channel/{offset:[0-9]+}/{limit:[0-9]+}", api.ApiUserRequired(getProfilesNotInChannel)).Methods("GET")
 	api.BaseRoutes.Users.Handle("/search", api.ApiUserRequired(searchUsers)).Methods("POST")
 	api.BaseRoutes.Users.Handle("/ids", api.ApiUserRequired(getProfilesByIds)).Methods("POST")
