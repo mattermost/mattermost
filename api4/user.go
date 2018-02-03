@@ -359,7 +359,6 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		if sort != "" {
-			fmt.Println("HURRAH")
 			profiles, err = c.App.GetUsersInChannelPageByStatus(inChannelId, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin())
 		} else {
 			profiles, err = c.App.GetUsersInChannelPage(inChannelId, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin())
