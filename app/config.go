@@ -137,6 +137,7 @@ func (a *App) ensureAsymmetricSigningKey() error {
 		}
 	}
 
+	// If we don't already have a key, try to generate one.
 	if key == nil {
 		newECDSAKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
 		if err != nil {
@@ -158,11 +159,14 @@ func (a *App) ensureAsymmetricSigningKey() error {
 			return err
 		}
 		system.Value = string(v)
-		if result = <-a.Srv.Store.System().Save(system); result.Err != nil {
+		if result = <-a.Srv.Store.System().Save(system); result.Err == nil {
+			// If we were able to save the key, use it, otherwise ignore the error.
 			key = newKey
 		}
 	}
 
+	// If we weren't able to save a new key above, another server must have beat us to it. Get the
+	// key from the database, and if that fails, error out.
 	if key == nil {
 		result := <-a.Srv.Store.System().GetByName(model.SYSTEM_ASYMMETRIC_SIGNING_KEY)
 		if result.Err != nil {
