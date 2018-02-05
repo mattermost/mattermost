@@ -153,7 +153,7 @@
   },
   {
     "id": "api.channel.add_member.added",
-    "translation": "%v kanala %v tarafından eklendi"
+    "translation": "%v kanala %v tarafından eklendi."
   },
   {
     "id": "api.channel.add_member.find_channel.app_error",
@@ -2184,7 +2184,7 @@
   },
   {
     "id": "api.team.add_user_to_team.added",
-    "translation": "%v takıma %v tarafından eklendi"
+    "translation": "%v takıma %v tarafından eklendi."
   },
   {
     "id": "api.team.add_user_to_team.missing_parameter.app_error",
@@ -5404,7 +5404,7 @@
   },
   {
     "id": "model.user.is_valid.position.app_error",
-    "translation": "Konum geçersiz: 35 karakterden uzun olmamalıdır."
+    "translation": "Konum geçersiz: 128 karakterden kısa olmalıdır."
   },
   {
     "id": "model.user.is_valid.pwd.app_error",
