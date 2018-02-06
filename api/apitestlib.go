@@ -111,6 +111,7 @@ func setupTestHelper(enterprise bool) *TestHelper {
 	Init(th.App, th.App.Srv.Router)
 	wsapi.Init(th.App, th.App.Srv.WebSocketRouter)
 	th.App.Srv.Store.MarkSystemRanUnitTests()
+	th.App.DoAdvancedPermissionsMigration()
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableOpenServer = true })
 
@@ -388,4 +389,115 @@ func (me *TestHelper) TearDown() {
 		StopTestStore()
 		panic(err)
 	}
+}
+
+func (me *TestHelper) SaveDefaultRolePermissions() map[string][]string {
+	utils.DisableDebugLogForTest()
+
+	results := make(map[string][]string)
+
+	for _, roleName := range []string{
+		"system_user",
+		"system_admin",
+		"team_user",
+		"team_admin",
+		"channel_user",
+		"channel_admin",
+	} {
+		role, err1 := me.App.GetRoleByName(roleName)
+		if err1 != nil {
+			utils.EnableDebugLogForTest()
+			panic(err1)
+		}
+
+		results[roleName] = role.Permissions
+	}
+
+	utils.EnableDebugLogForTest()
+	return results
+}
+
+func (me *TestHelper) RestoreDefaultRolePermissions(data map[string][]string) {
+	utils.DisableDebugLogForTest()
+
+	for roleName, permissions := range data {
+		role, err1 := me.App.GetRoleByName(roleName)
+		if err1 != nil {
+			utils.EnableDebugLogForTest()
+			panic(err1)
+		}
+
+		if strings.Join(role.Permissions, " ") == strings.Join(permissions, " ") {
+			continue
+		}
+
+		role.Permissions = permissions
+
+		_, err2 := me.App.UpdateRole(role)
+		if err2 != nil {
+			utils.EnableDebugLogForTest()
+			panic(err2)
+		}
+	}
+
+	utils.EnableDebugLogForTest()
+}
+
+func (me *TestHelper) RemovePermissionFromRole(permission string, roleName string) {
+	utils.DisableDebugLogForTest()
+
+	role, err1 := me.App.GetRoleByName(roleName)
+	if err1 != nil {
+		utils.EnableDebugLogForTest()
+		panic(err1)
+	}
+
+	var newPermissions []string
+	for _, p := range role.Permissions {
+		if p != permission {
+			newPermissions = append(newPermissions, p)
+		}
+	}
+
+	if strings.Join(role.Permissions, " ") == strings.Join(newPermissions, " ") {
+		utils.EnableDebugLogForTest()
+		return
+	}
+
+	role.Permissions = newPermissions
+
+	_, err2 := me.App.UpdateRole(role)
+	if err2 != nil {
+		utils.EnableDebugLogForTest()
+		panic(err2)
+	}
+
+	utils.EnableDebugLogForTest()
+}
+
+func (me *TestHelper) AddPermissionToRole(permission string, roleName string) {
+	utils.DisableDebugLogForTest()
+
+	role, err1 := me.App.GetRoleByName(roleName)
+	if err1 != nil {
+		utils.EnableDebugLogForTest()
+		panic(err1)
+	}
+
+	for _, existingPermission := range role.Permissions {
+		if existingPermission == permission {
+			utils.EnableDebugLogForTest()
+			return
+		}
+	}
+
+	role.Permissions = append(role.Permissions, permission)
+
+	_, err2 := me.App.UpdateRole(role)
+	if err2 != nil {
+		utils.EnableDebugLogForTest()
+		panic(err2)
+	}
+
+	utils.EnableDebugLogForTest()
 }

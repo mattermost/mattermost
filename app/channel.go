@@ -431,6 +431,10 @@ func (a *App) UpdateChannelMemberRoles(channelId string, userId string, newRoles
 		return nil, err
 	}
 
+	if err := a.CheckRolesExist(strings.Fields(newRoles)); err != nil {
+		return nil, err
+	}
+
 	member.Roles = newRoles
 
 	if result := <-a.Srv.Store.Channel().UpdateMember(member); result.Err != nil {

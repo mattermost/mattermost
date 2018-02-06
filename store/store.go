@@ -61,6 +61,7 @@ type Store interface {
 	Status() StatusStore
 	FileInfo() FileInfoStore
 	Reaction() ReactionStore
+	Role() RoleStore
 	Job() JobStore
 	UserAccessToken() UserAccessTokenStore
 	ChannelMemberHistory() ChannelMemberHistoryStore
@@ -460,4 +461,11 @@ type PluginStore interface {
 	SaveOrUpdate(keyVal *model.PluginKeyValue) StoreChannel
 	Get(pluginId, key string) StoreChannel
 	Delete(pluginId, key string) StoreChannel
+}
+
+type RoleStore interface {
+	Save(role *model.Role) StoreChannel
+	Get(roleId string) StoreChannel
+	GetByName(name string) StoreChannel
+	GetByNames(names []string) StoreChannel
 }

@@ -13,7 +13,6 @@ import (
 	"github.com/gorilla/mux"
 
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils"
 )
 
 func (api *API) InitTeam() {
@@ -117,15 +116,8 @@ func getAll(c *Context, w http.ResponseWriter, r *http.Request) {
 func inviteMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 	invites := model.InvitesFromJson(r.Body)
 
-	if utils.IsLicensed() && !c.App.SessionHasPermissionToTeam(c.Session, c.TeamId, model.PERMISSION_INVITE_USER) {
-		errorId := ""
-		if *c.App.Config().TeamSettings.RestrictTeamInvite == model.PERMISSIONS_SYSTEM_ADMIN {
-			errorId = "api.team.invite_members.restricted_system_admin.app_error"
-		} else if *c.App.Config().TeamSettings.RestrictTeamInvite == model.PERMISSIONS_TEAM_ADMIN {
-			errorId = "api.team.invite_members.restricted_team_admin.app_error"
-		}
-
-		c.Err = model.NewAppError("inviteMembers", errorId, nil, "", http.StatusForbidden)
+	if !c.App.SessionHasPermissionToTeam(c.Session, c.TeamId, model.PERMISSION_INVITE_USER) {
+		c.SetPermissionError(model.PERMISSION_INVITE_USER)
 		return
 	}
 
