@@ -12,6 +12,7 @@ import (
 	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
+	"github.com/pkg/errors"
 	throttled "gopkg.in/throttled/throttled.v2"
 	"gopkg.in/throttled/throttled.v2/store/memstore"
 )
@@ -23,11 +24,10 @@ type RateLimiter struct {
 	header               string
 }
 
-func NewRateLimiter(settings *model.RateLimitSettings) *RateLimiter {
+func NewRateLimiter(settings *model.RateLimitSettings) (*RateLimiter, error) {
 	store, err := memstore.New(*settings.MemoryStoreSize)
 	if err != nil {
-		l4g.Critical(utils.T("api.server.start_server.rate_limiting_memory_store"))
-		return nil
+		return nil, errors.Wrap(err, utils.T("api.server.start_server.rate_limiting_memory_store"))
 	}
 
 	quota := throttled.RateQuota{
@@ -37,8 +37,7 @@ func NewRateLimiter(settings *model.RateLimitSettings) *RateLimiter {
 
 	throttledRateLimiter, err := throttled.NewGCRARateLimiter(store, quota)
 	if err != nil {
-		l4g.Critical(utils.T("api.server.start_server.rate_limiting_rate_limiter"))
-		return nil
+		return nil, errors.Wrap(err, utils.T("api.server.start_server.rate_limiting_rate_limiter"))
 	}
 
 	return &RateLimiter{
@@ -46,7 +45,7 @@ func NewRateLimiter(settings *model.RateLimitSettings) *RateLimiter {
 		useAuth:              *settings.VaryByUser,
 		useIP:                *settings.VaryByRemoteAddr,
 		header:               settings.VaryByHeader,
-	}
+	}, nil
 }
 
 func (rl *RateLimiter) GenerateKey(r *http.Request) string {
