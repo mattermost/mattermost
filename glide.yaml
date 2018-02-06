@@ -79,3 +79,4 @@ import:
   subpackages:
   - store/memstore
 - package: gopkg.in/yaml.v2
+- package: github.com/ccbrown/go-immutable

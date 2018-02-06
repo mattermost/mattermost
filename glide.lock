@@ -10,6 +10,8 @@ imports:
   version: 4c0e84591b9aa9e6dcfdf3e020114cd81f89d5f9
   subpackages:
   - quantile
+- name: github.com/ccbrown/go-immutable
+  version: e9015daa17c46c136f648b80536c5f1814002fea
 - name: github.com/corpix/uarand
   version: 2b8494104d86337cdd41d0a49cbed8e4583c0ab4
 - name: github.com/davecgh/go-spew

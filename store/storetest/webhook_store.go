@@ -296,11 +296,11 @@ func testWebhookStoreGetOutgoingList(t *testing.T, ss store.Store) {
 		found2 := false
 
 		for _, hook := range hooks {
-			if hook.CreateAt != o1.CreateAt {
+			if hook.Id == o1.Id {
 				found1 = true
 			}
 
-			if hook.CreateAt != o2.CreateAt {
+			if hook.Id != o2.Id {
 				found2 = true
 			}
 		}
