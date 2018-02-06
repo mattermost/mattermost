@@ -54,14 +54,9 @@ type Invites struct {
 }
 
 func InvitesFromJson(data io.Reader) *Invites {
-	decoder := json.NewDecoder(data)
-	var o Invites
-	err := decoder.Decode(&o)
-	if err == nil {
-		return &o
-	} else {
-		return nil
-	}
+	var o *Invites
+	json.NewDecoder(data).Decode(&o)
+	return o
 }
 
 func (o *Invites) ToEmailList() []string {
@@ -73,72 +68,41 @@ func (o *Invites) ToEmailList() []string {
 }
 
 func (o *Invites) ToJson() string {
-	b, err := json.Marshal(o)
-	if err != nil {
-		return ""
-	} else {
-		return string(b)
-	}
+	b, _ := json.Marshal(o)
+	return string(b)
 }
 
 func (o *Team) ToJson() string {
-	b, err := json.Marshal(o)
-	if err != nil {
-		return ""
-	} else {
-		return string(b)
-	}
+	b, _ := json.Marshal(o)
+	return string(b)
 }
 
 func TeamFromJson(data io.Reader) *Team {
-	decoder := json.NewDecoder(data)
-	var o Team
-	err := decoder.Decode(&o)
-	if err == nil {
-		return &o
-	} else {
-		return nil
-	}
+	var o *Team
+	json.NewDecoder(data).Decode(&o)
+	return o
 }
 
 func TeamMapToJson(u map[string]*Team) string {
-	b, err := json.Marshal(u)
-	if err != nil {
-		return ""
-	} else {
-		return string(b)
-	}
+	b, _ := json.Marshal(u)
+	return string(b)
 }
 
 func TeamMapFromJson(data io.Reader) map[string]*Team {
-	decoder := json.NewDecoder(data)
 	var teams map[string]*Team
-	err := decoder.Decode(&teams)
-	if err == nil {
-		return teams
-	} else {
-		return nil
-	}
+	json.NewDecoder(data).Decode(&teams)
+	return teams
 }
 
 func TeamListToJson(t []*Team) string {
-	b, err := json.Marshal(t)
-	if err != nil {
-		return ""
-	} else {
-		return string(b)
-	}
+	b, _ := json.Marshal(t)
+	return string(b)
 }
 
 func TeamListFromJson(data io.Reader) []*Team {
-	decoder := json.NewDecoder(data)
 	var teams []*Team
-	err := decoder.Decode(&teams)
-	if err == nil {
-		return teams
-	} else {
-		return nil
-	}
+	json.NewDecoder(data).Decode(&teams)
+	return teams
 }
 
 func (o *Team) Etag() string {

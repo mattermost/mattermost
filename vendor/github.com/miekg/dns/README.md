@@ -62,6 +62,8 @@ A not-so-up-to-date-list-that-may-be-actually-current:
 * https://dnssectest.net/
 * https://dns.apebits.com
 * https://github.com/oif/apex
+* https://github.com/jedisct1/dnscrypt-proxy
+* https://github.com/jedisct1/rpdns
 
 Send pull request if you want to be listed here.
 

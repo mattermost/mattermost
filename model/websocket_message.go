@@ -22,6 +22,7 @@ const (
 	WEBSOCKET_EVENT_ADDED_TO_TEAM       = "added_to_team"
 	WEBSOCKET_EVENT_LEAVE_TEAM          = "leave_team"
 	WEBSOCKET_EVENT_UPDATE_TEAM         = "update_team"
+	WEBSOCKET_EVENT_DELETE_TEAM         = "delete_team"
 	WEBSOCKET_EVENT_USER_ADDED          = "user_added"
 	WEBSOCKET_EVENT_USER_UPDATED        = "user_updated"
 	WEBSOCKET_EVENT_USER_ROLE_UPDATED   = "user_role_updated"
@@ -83,23 +84,14 @@ func (o *WebSocketEvent) EventType() string {
 }
 
 func (o *WebSocketEvent) ToJson() string {
-	b, err := json.Marshal(o)
-	if err != nil {
-		return ""
-	} else {
-		return string(b)
-	}
+	b, _ := json.Marshal(o)
+	return string(b)
 }
 
 func WebSocketEventFromJson(data io.Reader) *WebSocketEvent {
-	decoder := json.NewDecoder(data)
-	var o WebSocketEvent
-	err := decoder.Decode(&o)
-	if err == nil {
-		return &o
-	} else {
-		return nil
-	}
+	var o *WebSocketEvent
+	json.NewDecoder(data).Decode(&o)
+	return o
 }
 
 type WebSocketResponse struct {
@@ -130,21 +122,12 @@ func (o *WebSocketResponse) EventType() string {
 }
 
 func (o *WebSocketResponse) ToJson() string {
-	b, err := json.Marshal(o)
-	if err != nil {
-		return ""
-	} else {
-		return string(b)
-	}
+	b, _ := json.Marshal(o)
+	return string(b)
 }
 
 func WebSocketResponseFromJson(data io.Reader) *WebSocketResponse {
-	decoder := json.NewDecoder(data)
-	var o WebSocketResponse
-	err := decoder.Decode(&o)
-	if err == nil {
-		return &o
-	} else {
-		return nil
-	}
+	var o *WebSocketResponse
+	json.NewDecoder(data).Decode(&o)
+	return o
 }

@@ -1,5 +1,6 @@
 /*
- * Minio Go Library for Amazon S3 Compatible Cloud Storage (C) 2015 Minio, Inc.
+ * Minio Go Library for Amazon S3 Compatible Cloud Storage
+ * Copyright 2015-2017 Minio, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -128,7 +129,7 @@ type initiator struct {
 // copyObjectResult container for copy object response.
 type copyObjectResult struct {
 	ETag         string
-	LastModified string // time string format "2006-01-02T15:04:05.000Z"
+	LastModified time.Time // time string format "2006-01-02T15:04:05.000Z"
 }
 
 // ObjectPart container for particular part of an object.

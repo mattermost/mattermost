@@ -2,8 +2,9 @@ sudo: false
 language: go
 
 go:
- - 1.5.4
- - 1.6.2
+ - 1.7.x
+ - 1.8.x
+ - 1.9.x
 
 script:
- - go test -short ./... 
+ - go test -short ./...

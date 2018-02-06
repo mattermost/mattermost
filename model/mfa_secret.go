@@ -14,21 +14,12 @@ type MfaSecret struct {
 }
 
 func (me *MfaSecret) ToJson() string {
-	b, err := json.Marshal(me)
-	if err != nil {
-		return ""
-	} else {
-		return string(b)
-	}
+	b, _ := json.Marshal(me)
+	return string(b)
 }
 
 func MfaSecretFromJson(data io.Reader) *MfaSecret {
-	decoder := json.NewDecoder(data)
-	var me MfaSecret
-	err := decoder.Decode(&me)
-	if err == nil {
-		return &me
-	} else {
-		return nil
-	}
+	var me *MfaSecret
+	json.NewDecoder(data).Decode(&me)
+	return me
 }

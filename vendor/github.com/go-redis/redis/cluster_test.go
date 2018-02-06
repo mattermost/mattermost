@@ -536,6 +536,32 @@ var _ = Describe("ClusterClient", func() {
 			Expect(nodesList).Should(HaveLen(1))
 		})
 
+		It("should RANDOMKEY", func() {
+			const nkeys = 100
+
+			for i := 0; i < nkeys; i++ {
+				err := client.Set(fmt.Sprintf("key%d", i), "value", 0).Err()
+				Expect(err).NotTo(HaveOccurred())
+			}
+
+			var keys []string
+			addKey := func(key string) {
+				for _, k := range keys {
+					if k == key {
+						return
+					}
+				}
+				keys = append(keys, key)
+			}
+
+			for i := 0; i < nkeys*10; i++ {
+				key := client.RandomKey().Val()
+				addKey(key)
+			}
+
+			Expect(len(keys)).To(BeNumerically("~", nkeys, nkeys/10))
+		})
+
 		assertClusterClient()
 	})
 

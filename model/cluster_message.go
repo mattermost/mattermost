@@ -36,21 +36,12 @@ type ClusterMessage struct {
 }
 
 func (o *ClusterMessage) ToJson() string {
-	b, err := json.Marshal(o)
-	if err != nil {
-		return ""
-	} else {
-		return string(b)
-	}
+	b, _ := json.Marshal(o)
+	return string(b)
 }
 
 func ClusterMessageFromJson(data io.Reader) *ClusterMessage {
-	decoder := json.NewDecoder(data)
-	var o ClusterMessage
-	err := decoder.Decode(&o)
-	if err == nil {
-		return &o
-	} else {
-		return nil
-	}
+	var o *ClusterMessage
+	json.NewDecoder(data).Decode(&o)
+	return o
 }

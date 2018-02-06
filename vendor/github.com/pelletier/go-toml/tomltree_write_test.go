@@ -309,6 +309,24 @@ func TestTreeWriteToFloat(t *testing.T) {
 	}
 }
 
+func TestTreeWriteToSpecialFloat(t *testing.T) {
+	expected := `a = +inf
+b = -inf
+c = nan`
+
+	tree, err := Load(expected)
+	if err != nil {
+		t.Fatal(err)
+	}
+	str, err := tree.ToTomlString()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if strings.TrimSpace(str) != strings.TrimSpace(expected) {
+		t.Fatalf("Expected:\n%s\nGot:\n%s", expected, str)
+	}
+}
+
 func BenchmarkTreeToTomlString(b *testing.B) {
 	toml, err := Load(sampleHard)
 	if err != nil {

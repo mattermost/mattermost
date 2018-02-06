@@ -1159,7 +1159,7 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	} else {
-		if err := c.App.CheckUserAdditionalAuthenticationCriteria(user, ""); err != nil {
+		if err := c.App.CheckUserAllAuthenticationCriteria(user, ""); err != nil {
 			c.Err = err
 			c.Err.StatusCode = http.StatusFound
 			return

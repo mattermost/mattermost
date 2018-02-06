@@ -20,7 +20,6 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -46,7 +45,7 @@ func WriteReader(fs Fs, path string, r io.Reader) (err error) {
 		err = fs.MkdirAll(ospath, 0777) // rwx, rw, r
 		if err != nil {
 			if err != os.ErrExist {
-				log.Panicln(err)
+				return err
 			}
 		}
 	}

@@ -1,7 +1,8 @@
 // +build ignore
 
 /*
- * Minio Go Library for Amazon S3 Compatible Cloud Storage (C) 2017 Minio, Inc.
+ * Minio Go Library for Amazon S3 Compatible Cloud Storage
+ * Copyright 2017 Minio, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +25,6 @@ import (
 	"encoding/base64"
 	"io/ioutil"
 	"log"
-	"net/http"
 
 	minio "github.com/minio/minio-go"
 )
@@ -54,24 +54,24 @@ func main() {
 	// of the encryption key or to decrypt the contents of the
 	// encrypted object. That means, if you lose the encryption
 	// key, you lose the object.
-	var metadata = map[string][]string{
-		"x-amz-server-side-encryption-customer-algorithm": []string{"AES256"},
-		"x-amz-server-side-encryption-customer-key":       []string{encryptionKey},
-		"x-amz-server-side-encryption-customer-key-MD5":   []string{encryptionKeyMD5},
+	var metadata = map[string]string{
+		"x-amz-server-side-encryption-customer-algorithm": "AES256",
+		"x-amz-server-side-encryption-customer-key":       encryptionKey,
+		"x-amz-server-side-encryption-customer-key-MD5":   encryptionKeyMD5,
 	}
 
 	// minioClient.TraceOn(os.Stderr) // Enable to debug.
-	_, err = minioClient.PutObjectWithMetadata("mybucket", "my-encrypted-object.txt", content, metadata, nil)
+	_, err = minioClient.PutObject("mybucket", "my-encrypted-object.txt", content, 11, minio.PutObjectOptions{UserMetadata: metadata})
 	if err != nil {
 		log.Fatalln(err)
 	}
 
-	var reqHeaders = minio.RequestHeaders{Header: http.Header{}}
+	opts := minio.GetObjectOptions{}
 	for k, v := range metadata {
-		reqHeaders.Set(k, v[0])
+		opts.Set(k, v)
 	}
 	coreClient := minio.Core{minioClient}
-	reader, _, err := coreClient.GetObject("mybucket", "my-encrypted-object.txt", reqHeaders)
+	reader, _, err := coreClient.GetObject("mybucket", "my-encrypted-object.txt", opts)
 	if err != nil {
 		log.Fatalln(err)
 	}

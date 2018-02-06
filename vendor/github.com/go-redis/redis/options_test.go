@@ -71,7 +71,7 @@ func TestParseURL(t *testing.T) {
 		t.Run(c.u, func(t *testing.T) {
 			o, err := ParseURL(c.u)
 			if c.err == nil && err != nil {
-				t.Fatalf("unexpected error: '%q'", err)
+				t.Fatalf("unexpected error: %q", err)
 				return
 			}
 			if c.err != nil && err != nil {

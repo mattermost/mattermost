@@ -1,7 +1,8 @@
-language: go 
+language: go
 
-go: 
-  - 1.8.1
-  
+go:
+  - 1.9.x
+  - tip
+
 script:
-  - go test 
+  - go test
