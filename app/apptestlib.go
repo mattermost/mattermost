@@ -13,6 +13,7 @@ import (
 
 	l4g "github.com/alecthomas/log4go"
 
+	"github.com/mattermost/mattermost-server/einterfaces"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/plugin"
 	"github.com/mattermost/mattermost-server/plugin/pluginenv"
@@ -43,12 +44,16 @@ func (*persistentTestStore) Close() {}
 
 var testStoreContainer *storetest.RunningContainer
 var testStore *persistentTestStore
+var testStoreSqlSupplier *sqlstore.SqlSupplier
+var testClusterInterface *FakeClusterInterface
 
 // UseTestStore sets the container and corresponding settings to use for tests. Once the tests are
 // complete (e.g. at the end of your TestMain implementation), you should call StopTestStore.
 func UseTestStore(container *storetest.RunningContainer, settings *model.SqlSettings) {
+	testClusterInterface = &FakeClusterInterface{}
 	testStoreContainer = container
-	testStore = &persistentTestStore{store.NewLayeredStore(sqlstore.NewSqlSupplier(*settings, nil), nil, nil)}
+	testStoreSqlSupplier = sqlstore.NewSqlSupplier(*settings, nil)
+	testStore = &persistentTestStore{store.NewLayeredStore(testStoreSqlSupplier, nil, testClusterInterface)}
 }
 
 func StopTestStore() {
@@ -98,6 +103,9 @@ func setupTestHelper(enterprise bool) *TestHelper {
 	}
 	th.App.StartServer()
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = prevListenAddress })
+
+	th.App.DoAdvancedPermissionsMigration()
+
 	th.App.Srv.Store.MarkSystemRanUnitTests()
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableOpenServer = true })
@@ -312,4 +320,46 @@ func (me *TestHelper) InstallPlugin(manifest *model.Manifest, hooks plugin.Hooks
 	if err := ioutil.WriteFile(filepath.Join(pluginDir, manifest.Id, "plugin.json"), manifestBytes, 0600); err != nil {
 		panic(err)
 	}
+}
+
+func (me *TestHelper) ResetRoleMigration() {
+	if _, err := testStoreSqlSupplier.GetMaster().Exec("DELETE from Roles"); err != nil {
+		panic(err)
+	}
+
+	testClusterInterface.sendClearRoleCacheMessage()
+
+	if _, err := testStoreSqlSupplier.GetMaster().Exec("DELETE from Systems where Name = :Name", map[string]interface{}{"Name": ADVANCED_PERMISSIONS_MIGRATION_KEY}); err != nil {
+		panic(err)
+	}
+}
+
+type FakeClusterInterface struct {
+	clusterMessageHandler einterfaces.ClusterMessageHandler
+}
+
+func (me *FakeClusterInterface) StartInterNodeCommunication() {}
+func (me *FakeClusterInterface) StopInterNodeCommunication()  {}
+func (me *FakeClusterInterface) RegisterClusterMessageHandler(event string, crm einterfaces.ClusterMessageHandler) {
+	me.clusterMessageHandler = crm
+}
+func (me *FakeClusterInterface) GetClusterId() string                             { return "" }
+func (me *FakeClusterInterface) IsLeader() bool                                   { return false }
+func (me *FakeClusterInterface) GetMyClusterInfo() *model.ClusterInfo             { return nil }
+func (me *FakeClusterInterface) GetClusterInfos() []*model.ClusterInfo            { return nil }
+func (me *FakeClusterInterface) SendClusterMessage(cluster *model.ClusterMessage) {}
+func (me *FakeClusterInterface) NotifyMsg(buf []byte)                             {}
+func (me *FakeClusterInterface) GetClusterStats() ([]*model.ClusterStats, *model.AppError) {
+	return nil, nil
+}
+func (me *FakeClusterInterface) GetLogs(page, perPage int) ([]string, *model.AppError) {
+	return []string{}, nil
+}
+func (me *FakeClusterInterface) ConfigChanged(previousConfig *model.Config, newConfig *model.Config, sendToOtherServer bool) *model.AppError {
+	return nil
+}
+func (me *FakeClusterInterface) sendClearRoleCacheMessage() {
+	me.clusterMessageHandler(&model.ClusterMessage{
+		Event: model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_ROLES,
+	})
 }
