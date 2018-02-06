@@ -20,9 +20,12 @@ func TestFchmodat(t *testing.T) {
 	defer chtmpdir(t)()
 
 	touch(t, "file1")
-	os.Symlink("file1", "symlink1")
+	err := os.Symlink("file1", "symlink1")
+	if err != nil {
+		t.Fatal(err)
+	}
 
-	err := unix.Fchmodat(unix.AT_FDCWD, "symlink1", 0444, 0)
+	err = unix.Fchmodat(unix.AT_FDCWD, "symlink1", 0444, 0)
 	if err != nil {
 		t.Fatalf("Fchmodat: unexpected error: %v", err)
 	}
@@ -239,7 +242,10 @@ func TestFstatat(t *testing.T) {
 		t.Errorf("Fstatat: returned stat does not match Stat")
 	}
 
-	os.Symlink("file1", "symlink1")
+	err = os.Symlink("file1", "symlink1")
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	err = unix.Lstat("symlink1", &st1)
 	if err != nil {
@@ -305,6 +311,96 @@ func TestSchedSetaffinity(t *testing.T) {
 	err = unix.SchedSetaffinity(0, &oldMask)
 	if err != nil {
 		t.Fatalf("SchedSetaffinity: %v", err)
+	}
+}
+
+func TestStatx(t *testing.T) {
+	var stx unix.Statx_t
+	err := unix.Statx(unix.AT_FDCWD, ".", 0, 0, &stx)
+	if err == unix.ENOSYS {
+		t.Skip("statx syscall is not available, skipping test")
+	} else if err != nil {
+		t.Fatalf("Statx: %v", err)
+	}
+
+	defer chtmpdir(t)()
+	touch(t, "file1")
+
+	var st unix.Stat_t
+	err = unix.Stat("file1", &st)
+	if err != nil {
+		t.Fatalf("Stat: %v", err)
+	}
+
+	flags := unix.AT_STATX_SYNC_AS_STAT
+	err = unix.Statx(unix.AT_FDCWD, "file1", flags, unix.STATX_ALL, &stx)
+	if err != nil {
+		t.Fatalf("Statx: %v", err)
+	}
+
+	if uint32(stx.Mode) != st.Mode {
+		t.Errorf("Statx: returned stat mode does not match Stat")
+	}
+
+	atime := unix.StatxTimestamp{Sec: int64(st.Atim.Sec), Nsec: uint32(st.Atim.Nsec)}
+	ctime := unix.StatxTimestamp{Sec: int64(st.Ctim.Sec), Nsec: uint32(st.Ctim.Nsec)}
+	mtime := unix.StatxTimestamp{Sec: int64(st.Mtim.Sec), Nsec: uint32(st.Mtim.Nsec)}
+
+	if stx.Atime != atime {
+		t.Errorf("Statx: returned stat atime does not match Stat")
+	}
+	if stx.Ctime != ctime {
+		t.Errorf("Statx: returned stat ctime does not match Stat")
+	}
+	if stx.Mtime != mtime {
+		t.Errorf("Statx: returned stat mtime does not match Stat")
+	}
+
+	err = os.Symlink("file1", "symlink1")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	err = unix.Lstat("symlink1", &st)
+	if err != nil {
+		t.Fatalf("Lstat: %v", err)
+	}
+
+	err = unix.Statx(unix.AT_FDCWD, "symlink1", flags, unix.STATX_BASIC_STATS, &stx)
+	if err != nil {
+		t.Fatalf("Statx: %v", err)
+	}
+
+	// follow symlink, expect a regulat file
+	if stx.Mode&unix.S_IFREG == 0 {
+		t.Errorf("Statx: didn't follow symlink")
+	}
+
+	err = unix.Statx(unix.AT_FDCWD, "symlink1", flags|unix.AT_SYMLINK_NOFOLLOW, unix.STATX_ALL, &stx)
+	if err != nil {
+		t.Fatalf("Statx: %v", err)
+	}
+
+	// follow symlink, expect a symlink
+	if stx.Mode&unix.S_IFLNK == 0 {
+		t.Errorf("Statx: unexpectedly followed symlink")
+	}
+	if uint32(stx.Mode) != st.Mode {
+		t.Errorf("Statx: returned stat mode does not match Lstat")
+	}
+
+	atime = unix.StatxTimestamp{Sec: int64(st.Atim.Sec), Nsec: uint32(st.Atim.Nsec)}
+	ctime = unix.StatxTimestamp{Sec: int64(st.Ctim.Sec), Nsec: uint32(st.Ctim.Nsec)}
+	mtime = unix.StatxTimestamp{Sec: int64(st.Mtim.Sec), Nsec: uint32(st.Mtim.Nsec)}
+
+	if stx.Atime != atime {
+		t.Errorf("Statx: returned stat atime does not match Lstat")
+	}
+	if stx.Ctime != ctime {
+		t.Errorf("Statx: returned stat ctime does not match Lstat")
+	}
+	if stx.Mtime != mtime {
+		t.Errorf("Statx: returned stat mtime does not match Lstat")
 	}
 }
 

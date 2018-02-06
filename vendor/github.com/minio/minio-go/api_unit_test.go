@@ -1,6 +1,6 @@
 /*
  * Minio Go Library for Amazon S3 Compatible Cloud Storage
- * (C) 2015, 2016, 2017 Minio, Inc.
+ * Copyright 2015-2017 Minio, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,13 +18,8 @@
 package minio
 
 import (
-	"bytes"
-	"io"
-	"io/ioutil"
 	"net/http"
 	"net/url"
-	"os"
-	"strings"
 	"testing"
 
 	"github.com/minio/minio-go/pkg/credentials"
@@ -39,173 +34,6 @@ func (c *customReader) Read(p []byte) (n int, err error) {
 
 func (c *customReader) Size() (n int64) {
 	return 10
-}
-
-// Tests getReaderSize() for various Reader types.
-func TestGetReaderSize(t *testing.T) {
-	var reader io.Reader
-	size, err := getReaderSize(reader)
-	if err != nil {
-		t.Fatal("Error:", err)
-	}
-	if size != -1 {
-		t.Fatal("Reader shouldn't have any length.")
-	}
-
-	bytesReader := bytes.NewReader([]byte("Hello World"))
-	size, err = getReaderSize(bytesReader)
-	if err != nil {
-		t.Fatal("Error:", err)
-	}
-	if size != int64(len("Hello World")) {
-		t.Fatalf("Reader length doesn't match got: %v, want: %v", size, len("Hello World"))
-	}
-
-	size, err = getReaderSize(new(customReader))
-	if err != nil {
-		t.Fatal("Error:", err)
-	}
-	if size != int64(10) {
-		t.Fatalf("Reader length doesn't match got: %v, want: %v", size, 10)
-	}
-
-	stringsReader := strings.NewReader("Hello World")
-	size, err = getReaderSize(stringsReader)
-	if err != nil {
-		t.Fatal("Error:", err)
-	}
-	if size != int64(len("Hello World")) {
-		t.Fatalf("Reader length doesn't match got: %v, want: %v", size, len("Hello World"))
-	}
-
-	// Create request channel.
-	reqCh := make(chan getRequest, 1)
-	// Create response channel.
-	resCh := make(chan getResponse, 1)
-	// Create done channel.
-	doneCh := make(chan struct{})
-
-	objectInfo := ObjectInfo{Size: 10}
-	// Create the first request.
-	firstReq := getRequest{
-		isReadOp:   false, // Perform only a HEAD object to get objectInfo.
-		isFirstReq: true,
-	}
-	// Create the expected response.
-	firstRes := getResponse{
-		objectInfo: objectInfo,
-	}
-	// Send the expected response.
-	resCh <- firstRes
-
-	// Test setting size on the first request.
-	objectReaderFirstReq := newObject(reqCh, resCh, doneCh)
-	defer objectReaderFirstReq.Close()
-	// Not checking the response here...just that the reader size is correct.
-	_, err = objectReaderFirstReq.doGetRequest(firstReq)
-	if err != nil {
-		t.Fatal("Error:", err)
-	}
-
-	// Validate that the reader size is the objectInfo size.
-	size, err = getReaderSize(objectReaderFirstReq)
-	if err != nil {
-		t.Fatal("Error:", err)
-	}
-	if size != int64(10) {
-		t.Fatalf("Reader length doesn't match got: %d, wanted %d", size, objectInfo.Size)
-	}
-
-	fileReader, err := ioutil.TempFile(os.TempDir(), "prefix")
-	if err != nil {
-		t.Fatal("Error:", err)
-	}
-	defer fileReader.Close()
-	defer os.RemoveAll(fileReader.Name())
-
-	size, err = getReaderSize(fileReader)
-	if err != nil {
-		t.Fatal("Error:", err)
-	}
-	if size == -1 {
-		t.Fatal("Reader length for file cannot be -1.")
-	}
-
-	// Verify for standard input, output and error file descriptors.
-	size, err = getReaderSize(os.Stdin)
-	if err != nil {
-		t.Fatal("Error:", err)
-	}
-	if size != -1 {
-		t.Fatal("Stdin should have length of -1.")
-	}
-	size, err = getReaderSize(os.Stdout)
-	if err != nil {
-		t.Fatal("Error:", err)
-	}
-	if size != -1 {
-		t.Fatal("Stdout should have length of -1.")
-	}
-	size, err = getReaderSize(os.Stderr)
-	if err != nil {
-		t.Fatal("Error:", err)
-	}
-	if size != -1 {
-		t.Fatal("Stderr should have length of -1.")
-	}
-	file, err := os.Open(os.TempDir())
-	if err != nil {
-		t.Fatal("Error:", err)
-	}
-	defer file.Close()
-	_, err = getReaderSize(file)
-	if err == nil {
-		t.Fatal("Input file as directory should throw an error.")
-	}
-}
-
-// Tests get region from host URL.
-func TestGetRegionFromURL(t *testing.T) {
-	testCases := []struct {
-		u              url.URL
-		expectedRegion string
-	}{
-		{
-			u:              url.URL{Host: "storage.googleapis.com"},
-			expectedRegion: "",
-		},
-		{
-			u:              url.URL{Host: "s3.cn-north-1.amazonaws.com.cn"},
-			expectedRegion: "cn-north-1",
-		},
-		{
-			u:              url.URL{Host: "s3-fips-us-gov-west-1.amazonaws.com"},
-			expectedRegion: "us-gov-west-1",
-		},
-		{
-			u:              url.URL{Host: "s3-us-gov-west-1.amazonaws.com"},
-			expectedRegion: "us-gov-west-1",
-		},
-		{
-			u:              url.URL{Host: "192.168.1.1"},
-			expectedRegion: "",
-		},
-		{
-			u:              url.URL{Host: "s3-eu-west-1.amazonaws.com"},
-			expectedRegion: "eu-west-1",
-		},
-		{
-			u:              url.URL{Host: "s3.amazonaws.com"},
-			expectedRegion: "",
-		},
-	}
-
-	for i, testCase := range testCases {
-		region := getRegionFromURL(testCase.u)
-		if testCase.expectedRegion != region {
-			t.Errorf("Test %d: Expected region %s, got %s", i+1, testCase.expectedRegion, region)
-		}
-	}
 }
 
 // Tests valid hosts for location.
@@ -352,7 +180,7 @@ func TestMakeTargetURL(t *testing.T) {
 		// Test 6
 		{"localhost:9000", false, "mybucket", "myobject", "", nil, url.URL{Host: "localhost:9000", Scheme: "http", Path: "/mybucket/myobject"}, nil},
 		// Test 7, testing with query
-		{"localhost:9000", false, "mybucket", "myobject", "", map[string][]string{"param": []string{"val"}}, url.URL{Host: "localhost:9000", Scheme: "http", Path: "/mybucket/myobject", RawQuery: "param=val"}, nil},
+		{"localhost:9000", false, "mybucket", "myobject", "", map[string][]string{"param": {"val"}}, url.URL{Host: "localhost:9000", Scheme: "http", Path: "/mybucket/myobject", RawQuery: "param=val"}, nil},
 		// Test 8, testing with port 80
 		{"localhost:80", false, "mybucket", "myobject", "", nil, url.URL{Host: "localhost", Scheme: "http", Path: "/mybucket/myobject"}, nil},
 		// Test 9, testing with port 443

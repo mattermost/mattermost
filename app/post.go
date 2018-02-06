@@ -890,7 +890,7 @@ func (a *App) ImageProxyAdder() func(string) string {
 	}
 
 	return func(url string) string {
-		if strings.HasPrefix(url, proxyURL) {
+		if url == "" || strings.HasPrefix(url, proxyURL) {
 			return url
 		}
 

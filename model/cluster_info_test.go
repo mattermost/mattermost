@@ -28,5 +28,4 @@ func TestClusterInfosJson(t *testing.T) {
 	if clusterInfos[0].IpAddress != result[0].IpAddress {
 		t.Fatal("Ids do not match")
 	}
-
 }

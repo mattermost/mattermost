@@ -584,16 +584,16 @@ func (a *App) sendPushNotification(post *model.Post, user *model.User, channel *
 	msg.ChannelName = channel.Name
 	msg.SenderId = post.UserId
 
-	if ou, ok := post.Props["override_username"]; ok && ou != nil {
-		msg.OverrideUsername = ou.(string)
+	if ou, ok := post.Props["override_username"].(string); ok {
+		msg.OverrideUsername = ou
 	}
 
-	if oi, ok := post.Props["override_icon_url"]; ok && oi != nil {
-		msg.OverrideIconUrl = oi.(string)
+	if oi, ok := post.Props["override_icon_url"].(string); ok {
+		msg.OverrideIconUrl = oi
 	}
 
-	if fw, ok := post.Props["from_webhook"]; ok && fw != nil {
-		msg.FromWebhook = fw.(string)
+	if fw, ok := post.Props["from_webhook"].(string); ok {
+		msg.FromWebhook = fw
 	}
 
 	if *a.Config().EmailSettings.PushNotificationContents == model.FULL_NOTIFICATION {

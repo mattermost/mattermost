@@ -9,7 +9,7 @@ import (
 	"io/ioutil"
 	"os"
 
-	ber "gopkg.in/asn1-ber.v1"
+	"gopkg.in/asn1-ber.v1"
 )
 
 // LDAP Application Codes

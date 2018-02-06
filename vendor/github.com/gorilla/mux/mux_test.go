@@ -25,7 +25,7 @@ func (r *Route) GoString() string {
 }
 
 func (r *routeRegexp) GoString() string {
-	return fmt.Sprintf("&routeRegexp{template: %q, matchHost: %t, matchQuery: %t, strictSlash: %t, regexp: regexp.MustCompile(%q), reverse: %q, varsN: %v, varsR: %v", r.template, r.matchHost, r.matchQuery, r.strictSlash, r.regexp.String(), r.reverse, r.varsN, r.varsR)
+	return fmt.Sprintf("&routeRegexp{template: %q, regexpType: %v, options: %v, regexp: regexp.MustCompile(%q), reverse: %q, varsN: %v, varsR: %v", r.template, r.regexpType, r.options, r.regexp.String(), r.reverse, r.varsN, r.varsR)
 }
 
 type routeTest struct {
@@ -1964,6 +1964,318 @@ func TestErrMatchNotFound(t *testing.T) {
 	// But MatchErr should be set to ErrNotFound anyway
 	if match.MatchErr != ErrNotFound {
 		t.Errorf("Expected ErrNotFound MatchErr, but was %v", match.MatchErr)
+	}
+}
+
+// methodsSubrouterTest models the data necessary for testing handler
+// matching for subrouters created after HTTP methods matcher registration.
+type methodsSubrouterTest struct {
+	title    string
+	wantCode int
+	router   *Router
+	// method is the input into the request and expected response
+	method string
+	// input request path
+	path string
+	// redirectTo is the expected location path for strict-slash matches
+	redirectTo string
+}
+
+// methodHandler writes the method string in response.
+func methodHandler(method string) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte(method))
+	}
+}
+
+// TestMethodsSubrouterCatchall matches handlers for subrouters where a
+// catchall handler is set for a mis-matching method.
+func TestMethodsSubrouterCatchall(t *testing.T) {
+	t.Parallel()
+
+	router := NewRouter()
+	router.Methods("PATCH").Subrouter().PathPrefix("/").HandlerFunc(methodHandler("PUT"))
+	router.Methods("GET").Subrouter().HandleFunc("/foo", methodHandler("GET"))
+	router.Methods("POST").Subrouter().HandleFunc("/foo", methodHandler("POST"))
+	router.Methods("DELETE").Subrouter().HandleFunc("/foo", methodHandler("DELETE"))
+
+	tests := []methodsSubrouterTest{
+		{
+			title:    "match GET handler",
+			router:   router,
+			path:     "http://localhost/foo",
+			method:   "GET",
+			wantCode: http.StatusOK,
+		},
+		{
+			title:    "match POST handler",
+			router:   router,
+			method:   "POST",
+			path:     "http://localhost/foo",
+			wantCode: http.StatusOK,
+		},
+		{
+			title:    "match DELETE handler",
+			router:   router,
+			method:   "DELETE",
+			path:     "http://localhost/foo",
+			wantCode: http.StatusOK,
+		},
+		{
+			title:    "disallow PUT method",
+			router:   router,
+			method:   "PUT",
+			path:     "http://localhost/foo",
+			wantCode: http.StatusMethodNotAllowed,
+		},
+	}
+
+	for _, test := range tests {
+		testMethodsSubrouter(t, test)
+	}
+}
+
+// TestMethodsSubrouterStrictSlash matches handlers on subrouters with
+// strict-slash matchers.
+func TestMethodsSubrouterStrictSlash(t *testing.T) {
+	t.Parallel()
+
+	router := NewRouter()
+	sub := router.PathPrefix("/").Subrouter()
+	sub.StrictSlash(true).Path("/foo").Methods("GET").Subrouter().HandleFunc("", methodHandler("GET"))
+	sub.StrictSlash(true).Path("/foo/").Methods("PUT").Subrouter().HandleFunc("/", methodHandler("PUT"))
+	sub.StrictSlash(true).Path("/foo/").Methods("POST").Subrouter().HandleFunc("/", methodHandler("POST"))
+
+	tests := []methodsSubrouterTest{
+		{
+			title:    "match POST handler",
+			router:   router,
+			method:   "POST",
+			path:     "http://localhost/foo/",
+			wantCode: http.StatusOK,
+		},
+		{
+			title:    "match GET handler",
+			router:   router,
+			method:   "GET",
+			path:     "http://localhost/foo",
+			wantCode: http.StatusOK,
+		},
+		{
+			title:      "match POST handler, redirect strict-slash",
+			router:     router,
+			method:     "POST",
+			path:       "http://localhost/foo",
+			redirectTo: "http://localhost/foo/",
+			wantCode:   http.StatusMovedPermanently,
+		},
+		{
+			title:      "match GET handler, redirect strict-slash",
+			router:     router,
+			method:     "GET",
+			path:       "http://localhost/foo/",
+			redirectTo: "http://localhost/foo",
+			wantCode:   http.StatusMovedPermanently,
+		},
+		{
+			title:    "disallow DELETE method",
+			router:   router,
+			method:   "DELETE",
+			path:     "http://localhost/foo",
+			wantCode: http.StatusMethodNotAllowed,
+		},
+	}
+
+	for _, test := range tests {
+		testMethodsSubrouter(t, test)
+	}
+}
+
+// TestMethodsSubrouterPathPrefix matches handlers on subrouters created
+// on a router with a path prefix matcher and method matcher.
+func TestMethodsSubrouterPathPrefix(t *testing.T) {
+	t.Parallel()
+
+	router := NewRouter()
+	router.PathPrefix("/1").Methods("POST").Subrouter().HandleFunc("/2", methodHandler("POST"))
+	router.PathPrefix("/1").Methods("DELETE").Subrouter().HandleFunc("/2", methodHandler("DELETE"))
+	router.PathPrefix("/1").Methods("PUT").Subrouter().HandleFunc("/2", methodHandler("PUT"))
+	router.PathPrefix("/1").Methods("POST").Subrouter().HandleFunc("/2", methodHandler("POST2"))
+
+	tests := []methodsSubrouterTest{
+		{
+			title:    "match first POST handler",
+			router:   router,
+			method:   "POST",
+			path:     "http://localhost/1/2",
+			wantCode: http.StatusOK,
+		},
+		{
+			title:    "match DELETE handler",
+			router:   router,
+			method:   "DELETE",
+			path:     "http://localhost/1/2",
+			wantCode: http.StatusOK,
+		},
+		{
+			title:    "match PUT handler",
+			router:   router,
+			method:   "PUT",
+			path:     "http://localhost/1/2",
+			wantCode: http.StatusOK,
+		},
+		{
+			title:    "disallow PATCH method",
+			router:   router,
+			method:   "PATCH",
+			path:     "http://localhost/1/2",
+			wantCode: http.StatusMethodNotAllowed,
+		},
+	}
+
+	for _, test := range tests {
+		testMethodsSubrouter(t, test)
+	}
+}
+
+// TestMethodsSubrouterSubrouter matches handlers on subrouters produced
+// from method matchers registered on a root subrouter.
+func TestMethodsSubrouterSubrouter(t *testing.T) {
+	t.Parallel()
+
+	router := NewRouter()
+	sub := router.PathPrefix("/1").Subrouter()
+	sub.Methods("POST").Subrouter().HandleFunc("/2", methodHandler("POST"))
+	sub.Methods("GET").Subrouter().HandleFunc("/2", methodHandler("GET"))
+	sub.Methods("PATCH").Subrouter().HandleFunc("/2", methodHandler("PATCH"))
+	sub.HandleFunc("/2", methodHandler("PUT")).Subrouter().Methods("PUT")
+	sub.HandleFunc("/2", methodHandler("POST2")).Subrouter().Methods("POST")
+
+	tests := []methodsSubrouterTest{
+		{
+			title:    "match first POST handler",
+			router:   router,
+			method:   "POST",
+			path:     "http://localhost/1/2",
+			wantCode: http.StatusOK,
+		},
+		{
+			title:    "match GET handler",
+			router:   router,
+			method:   "GET",
+			path:     "http://localhost/1/2",
+			wantCode: http.StatusOK,
+		},
+		{
+			title:    "match PATCH handler",
+			router:   router,
+			method:   "PATCH",
+			path:     "http://localhost/1/2",
+			wantCode: http.StatusOK,
+		},
+		{
+			title:    "match PUT handler",
+			router:   router,
+			method:   "PUT",
+			path:     "http://localhost/1/2",
+			wantCode: http.StatusOK,
+		},
+		{
+			title:    "disallow DELETE method",
+			router:   router,
+			method:   "DELETE",
+			path:     "http://localhost/1/2",
+			wantCode: http.StatusMethodNotAllowed,
+		},
+	}
+
+	for _, test := range tests {
+		testMethodsSubrouter(t, test)
+	}
+}
+
+// TestMethodsSubrouterPathVariable matches handlers on matching paths
+// with path variables in them.
+func TestMethodsSubrouterPathVariable(t *testing.T) {
+	t.Parallel()
+
+	router := NewRouter()
+	router.Methods("GET").Subrouter().HandleFunc("/foo", methodHandler("GET"))
+	router.Methods("POST").Subrouter().HandleFunc("/{any}", methodHandler("POST"))
+	router.Methods("DELETE").Subrouter().HandleFunc("/1/{any}", methodHandler("DELETE"))
+	router.Methods("PUT").Subrouter().HandleFunc("/1/{any}", methodHandler("PUT"))
+
+	tests := []methodsSubrouterTest{
+		{
+			title:    "match GET handler",
+			router:   router,
+			method:   "GET",
+			path:     "http://localhost/foo",
+			wantCode: http.StatusOK,
+		},
+		{
+			title:    "match POST handler",
+			router:   router,
+			method:   "POST",
+			path:     "http://localhost/foo",
+			wantCode: http.StatusOK,
+		},
+		{
+			title:    "match DELETE handler",
+			router:   router,
+			method:   "DELETE",
+			path:     "http://localhost/1/foo",
+			wantCode: http.StatusOK,
+		},
+		{
+			title:    "match PUT handler",
+			router:   router,
+			method:   "PUT",
+			path:     "http://localhost/1/foo",
+			wantCode: http.StatusOK,
+		},
+		{
+			title:    "disallow PATCH method",
+			router:   router,
+			method:   "PATCH",
+			path:     "http://localhost/1/foo",
+			wantCode: http.StatusMethodNotAllowed,
+		},
+	}
+
+	for _, test := range tests {
+		testMethodsSubrouter(t, test)
+	}
+}
+
+// testMethodsSubrouter runs an individual methodsSubrouterTest.
+func testMethodsSubrouter(t *testing.T, test methodsSubrouterTest) {
+	// Execute request
+	req, _ := http.NewRequest(test.method, test.path, nil)
+	resp := NewRecorder()
+	test.router.ServeHTTP(resp, req)
+
+	switch test.wantCode {
+	case http.StatusMethodNotAllowed:
+		if resp.Code != http.StatusMethodNotAllowed {
+			t.Errorf(`(%s) Expected "405 Method Not Allowed", but got %d code`, test.title, resp.Code)
+		} else if matchedMethod := resp.Body.String(); matchedMethod != "" {
+			t.Errorf(`(%s) Expected "405 Method Not Allowed", but %q handler was called`, test.title, matchedMethod)
+		}
+
+	case http.StatusMovedPermanently:
+		if gotLocation := resp.HeaderMap.Get("Location"); gotLocation != test.redirectTo {
+			t.Errorf("(%s) Expected %q route-match to redirect to %q, but got %q", test.title, test.method, test.redirectTo, gotLocation)
+		}
+
+	case http.StatusOK:
+		if matchedMethod := resp.Body.String(); matchedMethod != test.method {
+			t.Errorf("(%s) Expected %q handler to be called, but %q handler was called", test.title, test.method, matchedMethod)
+		}
+
+	default:
+		expectedCodes := []int{http.StatusMethodNotAllowed, http.StatusMovedPermanently, http.StatusOK}
+		t.Errorf("(%s) Expected wantCode to be one of: %v, but got %d", test.title, expectedCodes, test.wantCode)
 	}
 }
 

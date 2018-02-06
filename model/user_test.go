@@ -243,6 +243,30 @@ func TestValidUsername(t *testing.T) {
 	}
 }
 
+func TestNormalizeUsername(t *testing.T) {
+	if NormalizeUsername("Spin-punch") != "spin-punch" {
+		t.Fatal("didn't normalize username properly")
+	}
+	if NormalizeUsername("PUNCH") != "punch" {
+		t.Fatal("didn't normalize username properly")
+	}
+	if NormalizeUsername("spin") != "spin" {
+		t.Fatal("didn't normalize username properly")
+	}
+}
+
+func TestNormalizeEmail(t *testing.T) {
+	if NormalizeEmail("TEST@EXAMPLE.COM") != "test@example.com" {
+		t.Fatal("didn't normalize email properly")
+	}
+	if NormalizeEmail("TEST2@example.com") != "test2@example.com" {
+		t.Fatal("didn't normalize email properly")
+	}
+	if NormalizeEmail("test3@example.com") != "test3@example.com" {
+		t.Fatal("didn't normalize email properly")
+	}
+}
+
 func TestCleanUsername(t *testing.T) {
 	if CleanUsername("Spin-punch") != "spin-punch" {
 		t.Fatal("didn't clean name properly")

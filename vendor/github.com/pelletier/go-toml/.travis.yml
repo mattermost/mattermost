@@ -1,8 +1,8 @@
 sudo: false
 language: go
 go:
-  - 1.8.4
-  - 1.9.1
+  - 1.8.5
+  - 1.9.2
   - tip
 matrix:
   allow_failures:

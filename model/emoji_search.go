@@ -14,21 +14,12 @@ type EmojiSearch struct {
 }
 
 func (es *EmojiSearch) ToJson() string {
-	b, err := json.Marshal(es)
-	if err != nil {
-		return ""
-	} else {
-		return string(b)
-	}
+	b, _ := json.Marshal(es)
+	return string(b)
 }
 
 func EmojiSearchFromJson(data io.Reader) *EmojiSearch {
-	decoder := json.NewDecoder(data)
-	var es EmojiSearch
-	err := decoder.Decode(&es)
-	if err == nil {
-		return &es
-	} else {
-		return nil
-	}
+	var es *EmojiSearch
+	json.NewDecoder(data).Decode(&es)
+	return es
 }

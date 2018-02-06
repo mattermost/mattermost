@@ -132,6 +132,36 @@ type Statfs_t struct {
 	_       [4]byte
 }
 
+type StatxTimestamp struct {
+	Sec  int64
+	Nsec uint32
+	_    int32
+}
+
+type Statx_t struct {
+	Mask            uint32
+	Blksize         uint32
+	Attributes      uint64
+	Nlink           uint32
+	Uid             uint32
+	Gid             uint32
+	Mode            uint16
+	_               [1]uint16
+	Ino             uint64
+	Size            uint64
+	Blocks          uint64
+	Attributes_mask uint64
+	Atime           StatxTimestamp
+	Btime           StatxTimestamp
+	Ctime           StatxTimestamp
+	Mtime           StatxTimestamp
+	Rdev_major      uint32
+	Rdev_minor      uint32
+	Dev_major       uint32
+	Dev_minor       uint32
+	_               [14]uint64
+}
+
 type Dirent struct {
 	Ino    uint64
 	Off    int64
@@ -225,6 +255,15 @@ type RawSockaddrHCI struct {
 	Family  uint16
 	Dev     uint16
 	Channel uint16
+}
+
+type RawSockaddrL2 struct {
+	Family      uint16
+	Psm         uint16
+	Bdaddr      [6]uint8
+	Cid         uint16
+	Bdaddr_type uint8
+	_           [1]byte
 }
 
 type RawSockaddrCAN struct {
@@ -381,6 +420,7 @@ const (
 	SizeofSockaddrLinklayer = 0x14
 	SizeofSockaddrNetlink   = 0xc
 	SizeofSockaddrHCI       = 0x6
+	SizeofSockaddrL2        = 0xe
 	SizeofSockaddrCAN       = 0x10
 	SizeofSockaddrALG       = 0x58
 	SizeofSockaddrVM        = 0x10
@@ -667,9 +707,15 @@ type EpollEvent struct {
 }
 
 const (
-	AT_FDCWD            = -0x64
-	AT_NO_AUTOMOUNT     = 0x800
-	AT_REMOVEDIR        = 0x200
+	AT_EMPTY_PATH   = 0x1000
+	AT_FDCWD        = -0x64
+	AT_NO_AUTOMOUNT = 0x800
+	AT_REMOVEDIR    = 0x200
+
+	AT_STATX_SYNC_AS_STAT = 0x0
+	AT_STATX_FORCE_SYNC   = 0x2000
+	AT_STATX_DONT_SYNC    = 0x4000
+
 	AT_SYMLINK_FOLLOW   = 0x400
 	AT_SYMLINK_NOFOLLOW = 0x100
 )
@@ -840,4 +886,10 @@ type cpuMask uint64
 const (
 	_CPU_SETSIZE = 0x400
 	_NCPUBITS    = 0x40
+)
+
+const (
+	BDADDR_BREDR     = 0x0
+	BDADDR_LE_PUBLIC = 0x1
+	BDADDR_LE_RANDOM = 0x2
 )

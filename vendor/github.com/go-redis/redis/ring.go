@@ -298,6 +298,9 @@ func (c *Ring) cmdInfo(name string) *CommandInfo {
 	if err != nil {
 		return nil
 	}
+	if c.cmdsInfo == nil {
+		return nil
+	}
 	info := c.cmdsInfo[name]
 	if info == nil {
 		internal.Logf("info for cmd=%s not found", name)
@@ -343,7 +346,11 @@ func (c *Ring) shardByName(name string) (*ringShard, error) {
 
 func (c *Ring) cmdShard(cmd Cmder) (*ringShard, error) {
 	cmdInfo := c.cmdInfo(cmd.Name())
-	firstKey := cmd.stringArg(cmdFirstKeyPos(cmd, cmdInfo))
+	pos := cmdFirstKeyPos(cmd, cmdInfo)
+	if pos == 0 {
+		return c.randomShard()
+	}
+	firstKey := cmd.stringArg(pos)
 	return c.shardByKey(firstKey)
 }
 
