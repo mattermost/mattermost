@@ -233,7 +233,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 	sendPushNotifications := false
 	if *a.Config().EmailSettings.SendPushNotifications {
 		pushServer := *a.Config().EmailSettings.PushNotificationServer
-		if pushServer == model.MHPNS && (!utils.IsLicensed() || !*utils.License().Features.MHPNS) {
+		if license := a.License(); pushServer == model.MHPNS && (license == nil || !*license.Features.MHPNS) {
 			l4g.Warn(utils.T("api.post.send_notifications_and_forget.push_notification.mhpnsWarn"))
 			sendPushNotifications = false
 		} else {
@@ -358,7 +358,7 @@ func (a *App) sendNotificationEmail(post *model.Post, user *model.User, channel 
 	}
 
 	emailNotificationContentsType := model.EMAIL_NOTIFICATION_CONTENTS_FULL
-	if utils.IsLicensed() && *utils.License().Features.EmailNotificationContents {
+	if license := a.License(); license != nil && *license.Features.EmailNotificationContents {
 		emailNotificationContentsType = *a.Config().EmailSettings.EmailNotificationContentsType
 	}
 
