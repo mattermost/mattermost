@@ -4,6 +4,8 @@
 package utils
 
 import (
+	"fmt"
+	"html/template"
 	"net/http"
 	"net/url"
 	"strings"
@@ -31,18 +33,21 @@ func OriginChecker(allowedOrigins string) func(*http.Request) bool {
 }
 
 func RenderWebError(err *model.AppError, w http.ResponseWriter, r *http.Request) {
-	message := err.Message
-	details := err.DetailedError
-
 	status := http.StatusTemporaryRedirect
 	if err.StatusCode != http.StatusInternalServerError {
 		status = err.StatusCode
 	}
 
-	http.Redirect(
-		w,
-		r,
-		"/error?message="+url.QueryEscape(message)+
-			"&details="+url.QueryEscape(details),
-		status)
+	destination := strings.TrimRight(GetSiteURL(), "/") + "/error?message=" + url.QueryEscape(err.Message)
+	if status >= 300 && status < 400 {
+		http.Redirect(w, r, destination, status)
+		return
+	}
+
+	w.WriteHeader(status)
+	fmt.Fprintln(w, `<!DOCTYPE html><html><head></head>`)
+	fmt.Fprintln(w, `<body onload="window.location = '`+template.HTMLEscapeString(template.JSEscapeString(destination))+`'">`)
+	fmt.Fprintln(w, `<noscript><meta http-equiv="refresh" content="0; url=`+template.HTMLEscapeString(destination)+`"></noscript>`)
+	fmt.Fprintln(w, `<a href="`+template.HTMLEscapeString(destination)+`" style="color: #c0c0c0;">...</a>`)
+	fmt.Fprintln(w, `</body></html>`)
 }

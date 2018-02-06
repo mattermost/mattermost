@@ -124,9 +124,14 @@ func (a *App) StartServer() {
 	if *a.Config().RateLimitSettings.Enable {
 		l4g.Info(utils.T("api.server.start_server.rate.info"))
 
-		a.Srv.RateLimiter = NewRateLimiter(&a.Config().RateLimitSettings)
+		rateLimiter, err := NewRateLimiter(&a.Config().RateLimitSettings)
+		if err != nil {
+			l4g.Critical(err.Error())
+			return
+		}
 
-		handler = a.Srv.RateLimiter.RateLimitHandler(handler)
+		a.Srv.RateLimiter = rateLimiter
+		handler = rateLimiter.RateLimitHandler(handler)
 	}
 
 	a.Srv.Server = &http.Server{

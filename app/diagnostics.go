@@ -241,6 +241,9 @@ func (a *App) trackConfig() {
 		"enable_tutorial":                                         *cfg.ServiceSettings.EnableTutorial,
 		"experimental_enable_default_channel_leave_join_messages": *cfg.ServiceSettings.ExperimentalEnableDefaultChannelLeaveJoinMessages,
 		"experimental_group_unread_channels":                      *cfg.ServiceSettings.ExperimentalGroupUnreadChannels,
+		"isdefault_image_proxy_type":                              isDefault(*cfg.ServiceSettings.ImageProxyType, ""),
+		"isdefault_image_proxy_url":                               isDefault(*cfg.ServiceSettings.ImageProxyURL, ""),
+		"isdefault_image_proxy_options":                           isDefault(*cfg.ServiceSettings.ImageProxyOptions, ""),
 	})
 
 	a.SendDiagnostic(TRACK_CONFIG_TEAM, map[string]interface{}{
@@ -347,7 +350,8 @@ func (a *App) trackConfig() {
 
 	a.SendDiagnostic(TRACK_CONFIG_RATE, map[string]interface{}{
 		"enable_rate_limiter":      *cfg.RateLimitSettings.Enable,
-		"vary_by_remote_address":   cfg.RateLimitSettings.VaryByRemoteAddr,
+		"vary_by_remote_address":   *cfg.RateLimitSettings.VaryByRemoteAddr,
+		"vary_by_user":             *cfg.RateLimitSettings.VaryByUser,
 		"per_sec":                  *cfg.RateLimitSettings.PerSec,
 		"max_burst":                *cfg.RateLimitSettings.MaxBurst,
 		"memory_store_size":        *cfg.RateLimitSettings.MemoryStoreSize,

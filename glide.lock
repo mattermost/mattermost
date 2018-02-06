@@ -90,7 +90,7 @@ imports:
 - name: github.com/hashicorp/memberlist
   version: 3d8438da9589e7b608a83ffac1ef8211486bcb7c
 - name: github.com/icrowley/fake
-  version: e64cc2cf92049a299f359734c6ea76073f2a8b2c
+  version: 4178557ae428460c3780a381c824a1f3aceb6325
 - name: github.com/inconshreveable/mousetrap
   version: 76626ae9c91c4f2a10f34cad8ce83ea42c93bb75
 - name: github.com/jehiah/go-strftime
