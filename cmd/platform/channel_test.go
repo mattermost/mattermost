@@ -49,16 +49,22 @@ func TestMoveChannel(t *testing.T) {
 	defer th.TearDown()
 
 	channel := th.CreateChannel(th.BasicClient, th.BasicTeam)
+	basicTeam1 := th.CreateTeam(th.BasicClient)
+	basicTeam2 := th.CreateTeam(th.BasicClient)
+	basicUser := th.CreateUser(th.BasicClient)
 
-	adminEmail := th.BasicUser2.Email
-	adminUsername := th.BasicUser2.Username
-	origin := th.BasicTeam.Name + ":" + channel.Name
-	dest := th.BasicTeam2.Name
+	th.LinkUserToTeam(basicUser, basicTeam1)
+	th.LinkUserToTeam(basicUser, basicTeam2)
+
+	adminEmail := basicUser.Email
+	adminUsername := basicUser.Username
+	origin := basicTeam1.Name + ":" + channel.Name
+	dest := basicTeam2.Name
 
 	checkCommand(t, "channel", "add", origin, adminEmail)
 
 	// should fail with nill because errors are logged instead of returned when a channel does not exist
-	require.Nil(t, runCommand(t, "channel", "move", dest, th.BasicTeam.Name+":doesnotexist", "--username", adminUsername))
+	require.Nil(t, runCommand(t, "channel", "move", dest, basicTeam1.Name+":doesnotexist", "--username", adminUsername))
 
 	checkCommand(t, "channel", "move", dest, origin, "--username", adminUsername)
 }
