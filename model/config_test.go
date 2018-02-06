@@ -36,6 +36,38 @@ func TestConfigDefaultFileSettingsS3SSE(t *testing.T) {
 	}
 }
 
+func TestConfigDefaultServiceSettingsExperimentalGroupUnreadChannels(t *testing.T) {
+	c1 := Config{}
+	c1.SetDefaults()
+
+	if *c1.ServiceSettings.ExperimentalGroupUnreadChannels != GROUP_UNREAD_CHANNELS_DISABLED {
+		t.Fatal("ServiceSettings.ExperimentalGroupUnreadChannels should default to 'disabled'")
+	}
+
+	// This setting was briefly a boolean, so ensure that those values still work as expected
+	c1 = Config{
+		ServiceSettings: ServiceSettings{
+			ExperimentalGroupUnreadChannels: NewString("1"),
+		},
+	}
+	c1.SetDefaults()
+
+	if *c1.ServiceSettings.ExperimentalGroupUnreadChannels != GROUP_UNREAD_CHANNELS_DEFAULT_ON {
+		t.Fatal("ServiceSettings.ExperimentalGroupUnreadChannels should set true to 'default on'")
+	}
+
+	c1 = Config{
+		ServiceSettings: ServiceSettings{
+			ExperimentalGroupUnreadChannels: NewString("0"),
+		},
+	}
+	c1.SetDefaults()
+
+	if *c1.ServiceSettings.ExperimentalGroupUnreadChannels != GROUP_UNREAD_CHANNELS_DISABLED {
+		t.Fatal("ServiceSettings.ExperimentalGroupUnreadChannels should set false to 'disabled'")
+	}
+}
+
 func TestMessageExportSettingsIsValidEnableExportNotSet(t *testing.T) {
 	fs := &FileSettings{}
 	mes := &MessageExportSettings{}
