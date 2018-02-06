@@ -124,7 +124,7 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 		user = result.Data.(*model.User)
 	}
 
-	if utils.IsLicensed() && *a.Config().TeamSettings.ExperimentalTownSquareIsReadOnly &&
+	if a.License() != nil && *a.Config().TeamSettings.ExperimentalTownSquareIsReadOnly &&
 		!post.IsSystemMessage() &&
 		channel.Name == model.DEFAULT_CHANNEL &&
 		!a.CheckIfRolesGrantPermission(user.GetRoles(), model.PERMISSION_MANAGE_SYSTEM.Id) {
@@ -332,7 +332,7 @@ func (a *App) UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model
 	} else {
 		oldPost = result.Data.(*model.PostList).Posts[post.Id]
 
-		if utils.IsLicensed() {
+		if a.License() != nil {
 			if *a.Config().ServiceSettings.AllowEditPost == model.ALLOW_EDIT_POST_NEVER && post.Message != oldPost.Message {
 				err := model.NewAppError("UpdatePost", "api.post.update_post.permissions_denied.app_error", nil, "", http.StatusForbidden)
 				return nil, err
@@ -354,7 +354,7 @@ func (a *App) UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model
 			return nil, err
 		}
 
-		if utils.IsLicensed() {
+		if a.License() != nil {
 			if *a.Config().ServiceSettings.AllowEditPost == model.ALLOW_EDIT_POST_TIME_LIMIT && model.GetMillis() > oldPost.CreateAt+int64(*a.Config().ServiceSettings.PostEditTimeLimit*1000) && post.Message != oldPost.Message {
 				err := model.NewAppError("UpdatePost", "api.post.update_post.permissions_time_limit.app_error", map[string]interface{}{"timeLimit": *a.Config().ServiceSettings.PostEditTimeLimit}, "", http.StatusBadRequest)
 				return nil, err
@@ -613,7 +613,7 @@ func (a *App) SearchPostsInTeam(terms string, userId string, teamId string, isOr
 	paramsList := model.ParseSearchParams(terms)
 
 	esInterface := a.Elasticsearch
-	if esInterface != nil && *a.Config().ElasticsearchSettings.EnableSearching && utils.IsLicensed() && *utils.License().Features.Elasticsearch {
+	if license := a.License(); esInterface != nil && *a.Config().ElasticsearchSettings.EnableSearching && license != nil && *license.Features.Elasticsearch {
 		finalParamsList := []*model.SearchParams{}
 
 		for _, params := range paramsList {

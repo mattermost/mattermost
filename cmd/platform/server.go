@@ -93,14 +93,16 @@ func runServer(configFileLocation string, disableConfigWatch bool) error {
 	wsapi.Init(a, a.Srv.WebSocketRouter)
 	web.Init(api3)
 
-	if !utils.IsLicensed() && len(a.Config().SqlSettings.DataSourceReplicas) > 1 {
+	license := a.License()
+
+	if license == nil && len(a.Config().SqlSettings.DataSourceReplicas) > 1 {
 		l4g.Warn(utils.T("store.sql.read_replicas_not_licensed.critical"))
 		a.UpdateConfig(func(cfg *model.Config) {
 			cfg.SqlSettings.DataSourceReplicas = cfg.SqlSettings.DataSourceReplicas[:1]
 		})
 	}
 
-	if !utils.IsLicensed() {
+	if license == nil {
 		a.UpdateConfig(func(cfg *model.Config) {
 			cfg.TeamSettings.MaxNotificationsPerChannel = &MaxNotificationsPerChannelDefault
 		})

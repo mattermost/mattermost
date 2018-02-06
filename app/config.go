@@ -166,3 +166,11 @@ func (a *App) Desanitize(cfg *model.Config) {
 		cfg.SqlSettings.DataSourceSearchReplicas[i] = actual.SqlSettings.DataSourceSearchReplicas[i]
 	}
 }
+
+// License returns the currently active license or nil if the application is unlicensed.
+func (a *App) License() *model.License {
+	if utils.IsLicensed() {
+		return utils.License()
+	}
+	return nil
+}
