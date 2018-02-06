@@ -53,7 +53,7 @@ func runServer(configFileLocation string, disableConfigWatch bool) error {
 
 	a, err := app.New(options...)
 	if err != nil {
-		l4g.Error(err.Error())
+		l4g.Critical(err.Error())
 		return err
 	}
 	defer a.Shutdown()
@@ -87,7 +87,12 @@ func runServer(configFileLocation string, disableConfigWatch bool) error {
 		}
 	})
 
-	a.StartServer()
+	serverErr := a.StartServer()
+	if serverErr != nil {
+		l4g.Critical(serverErr.Error())
+		return serverErr
+	}
+
 	api4.Init(a, a.Srv.Router, false)
 	api3 := api.Init(a, a.Srv.Router)
 	wsapi.Init(a, a.Srv.WebSocketRouter)
