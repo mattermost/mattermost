@@ -53,7 +53,7 @@ func runServer(configFileLocation string, disableConfigWatch bool) error {
 
 	a, err := app.New(options...)
 	if err != nil {
-		l4g.Error(err.Error())
+		l4g.Critical(err.Error())
 		return err
 	}
 	defer a.Shutdown()
@@ -89,20 +89,27 @@ func runServer(configFileLocation string, disableConfigWatch bool) error {
 		}
 	})
 
-	a.StartServer()
+	serverErr := a.StartServer()
+	if serverErr != nil {
+		l4g.Critical(serverErr.Error())
+		return serverErr
+	}
+
 	api4.Init(a, a.Srv.Router, false)
 	api3 := api.Init(a, a.Srv.Router)
 	wsapi.Init(a, a.Srv.WebSocketRouter)
 	web.Init(api3)
 
-	if !utils.IsLicensed() && len(a.Config().SqlSettings.DataSourceReplicas) > 1 {
+	license := a.License()
+
+	if license == nil && len(a.Config().SqlSettings.DataSourceReplicas) > 1 {
 		l4g.Warn(utils.T("store.sql.read_replicas_not_licensed.critical"))
 		a.UpdateConfig(func(cfg *model.Config) {
 			cfg.SqlSettings.DataSourceReplicas = cfg.SqlSettings.DataSourceReplicas[:1]
 		})
 	}
 
-	if !utils.IsLicensed() {
+	if license == nil {
 		a.UpdateConfig(func(cfg *model.Config) {
 			cfg.TeamSettings.MaxNotificationsPerChannel = &MaxNotificationsPerChannelDefault
 		})

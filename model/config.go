@@ -69,6 +69,10 @@ const (
 	ALLOW_EDIT_POST_NEVER      = "never"
 	ALLOW_EDIT_POST_TIME_LIMIT = "time_limit"
 
+	GROUP_UNREAD_CHANNELS_DISABLED    = "disabled"
+	GROUP_UNREAD_CHANNELS_DEFAULT_ON  = "default_on"
+	GROUP_UNREAD_CHANNELS_DEFAULT_OFF = "default_off"
+
 	EMAIL_BATCHING_BUFFER_SIZE = 256
 	EMAIL_BATCHING_INTERVAL    = 30
 
@@ -154,6 +158,9 @@ const (
 
 	PLUGIN_SETTINGS_DEFAULT_DIRECTORY        = "./plugins"
 	PLUGIN_SETTINGS_DEFAULT_CLIENT_DIRECTORY = "./client/plugins"
+
+	COMPLIANCE_EXPORT_TYPE_ACTIANCE    = "actiance"
+	COMPLIANCE_EXPORT_TYPE_GLOBALRELAY = "globalrelay"
 )
 
 type ServiceSettings struct {
@@ -214,7 +221,7 @@ type ServiceSettings struct {
 	EnablePreviewFeatures                             *bool
 	EnableTutorial                                    *bool
 	ExperimentalEnableDefaultChannelLeaveJoinMessages *bool
-	ExperimentalGroupUnreadChannels                   *bool
+	ExperimentalGroupUnreadChannels                   *string
 	ImageProxyType                                    *string
 	ImageProxyURL                                     *string
 	ImageProxyOptions                                 *string
@@ -424,7 +431,11 @@ func (s *ServiceSettings) SetDefaults() {
 	}
 
 	if s.ExperimentalGroupUnreadChannels == nil {
-		s.ExperimentalGroupUnreadChannels = NewBool(false)
+		s.ExperimentalGroupUnreadChannels = NewString(GROUP_UNREAD_CHANNELS_DISABLED)
+	} else if *s.ExperimentalGroupUnreadChannels == "0" {
+		s.ExperimentalGroupUnreadChannels = NewString(GROUP_UNREAD_CHANNELS_DISABLED)
+	} else if *s.ExperimentalGroupUnreadChannels == "1" {
+		s.ExperimentalGroupUnreadChannels = NewString(GROUP_UNREAD_CHANNELS_DEFAULT_ON)
 	}
 
 	if s.ImageProxyType == nil {
@@ -1615,14 +1626,22 @@ func (s *PluginSettings) SetDefaults() {
 
 type MessageExportSettings struct {
 	EnableExport        *bool
+	ExportFormat        *string
 	DailyRunTime        *string
 	ExportFromTimestamp *int64
 	BatchSize           *int
+
+	// formatter-specific settings - these are only expected to be non-nil if ExportFormat is set to the associated format
+	GlobalRelayEmailAddress *string
 }
 
 func (s *MessageExportSettings) SetDefaults() {
 	if s.EnableExport == nil {
 		s.EnableExport = NewBool(false)
+	}
+
+	if s.ExportFormat == nil {
+		s.ExportFormat = NewString(COMPLIANCE_EXPORT_TYPE_ACTIANCE)
 	}
 
 	if s.DailyRunTime == nil {
@@ -2070,6 +2089,12 @@ func (ss *ServiceSettings) isValid() *AppError {
 		return NewAppError("Config.IsValid", "model.config.is_valid.listen_address.app_error", nil, "", http.StatusBadRequest)
 	}
 
+	if *ss.ExperimentalGroupUnreadChannels != GROUP_UNREAD_CHANNELS_DISABLED &&
+		*ss.ExperimentalGroupUnreadChannels != GROUP_UNREAD_CHANNELS_DEFAULT_ON &&
+		*ss.ExperimentalGroupUnreadChannels != GROUP_UNREAD_CHANNELS_DEFAULT_OFF {
+		return NewAppError("Config.IsValid", "model.config.is_valid.group_unread_channels.app_error", nil, "", http.StatusBadRequest)
+	}
+
 	switch *ss.ImageProxyType {
 	case "", "willnorris/imageproxy":
 	case "atmos/camo":
@@ -2156,6 +2181,16 @@ func (mes *MessageExportSettings) isValid(fs FileSettings) *AppError {
 			return NewAppError("Config.IsValid", "model.config.is_valid.message_export.daily_runtime.app_error", nil, err.Error(), http.StatusBadRequest)
 		} else if mes.BatchSize == nil || *mes.BatchSize < 0 {
 			return NewAppError("Config.IsValid", "model.config.is_valid.message_export.batch_size.app_error", nil, "", http.StatusBadRequest)
+		} else if mes.ExportFormat == nil || (*mes.ExportFormat != COMPLIANCE_EXPORT_TYPE_ACTIANCE && *mes.ExportFormat != COMPLIANCE_EXPORT_TYPE_GLOBALRELAY) {
+			return NewAppError("Config.IsValid", "model.config.is_valid.message_export.export_type.app_error", nil, "", http.StatusBadRequest)
+		}
+
+		if *mes.ExportFormat == COMPLIANCE_EXPORT_TYPE_GLOBALRELAY {
+			// validating email addresses is hard - just make sure it contains an '@' sign
+			// see https://stackoverflow.com/questions/201323/using-a-regular-expression-to-validate-an-email-address
+			if mes.GlobalRelayEmailAddress == nil || !strings.Contains(*mes.GlobalRelayEmailAddress, "@") {
+				return NewAppError("Config.IsValid", "model.config.is_valid.message_export.global_relay_email_address.app_error", nil, "", http.StatusBadRequest)
+			}
 		}
 	}
 	return nil
