@@ -174,12 +174,12 @@ func getPublicFile(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		if hash != correctHash {
 			c.Err = model.NewAppError("getPublicFile", "api.file.get_file.public_invalid.app_error", nil, "", http.StatusBadRequest)
-			http.Redirect(w, r, c.GetSiteURLHeader()+"/error?message="+utils.T(c.Err.Message), http.StatusTemporaryRedirect)
+			utils.RenderWebAppError(w, r, c.Err, c.App.AsymmetricSigningKey())
 			return
 		}
 	} else {
 		c.Err = model.NewAppError("getPublicFile", "api.file.get_file.public_invalid.app_error", nil, "", http.StatusBadRequest)
-		http.Redirect(w, r, c.GetSiteURLHeader()+"/error?message="+utils.T(c.Err.Message), http.StatusTemporaryRedirect)
+		utils.RenderWebAppError(w, r, c.Err, c.App.AsymmetricSigningKey())
 		return
 	}
 
