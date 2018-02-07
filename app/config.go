@@ -4,7 +4,12 @@
 package app
 
 import (
+	"crypto/ecdsa"
+	"crypto/elliptic"
 	"crypto/md5"
+	"crypto/rand"
+	"crypto/x509"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"runtime/debug"
@@ -116,8 +121,91 @@ func (a *App) InvokeConfigListeners(old, current *model.Config) {
 	}
 }
 
+// EnsureAsymmetricSigningKey ensures that an asymmetric signing key exists and future calls to
+// AsymmetricSigningKey will always return a valid signing key.
+func (a *App) ensureAsymmetricSigningKey() error {
+	if a.asymmetricSigningKey != nil {
+		return nil
+	}
+
+	var key *model.SystemAsymmetricSigningKey
+
+	result := <-a.Srv.Store.System().GetByName(model.SYSTEM_ASYMMETRIC_SIGNING_KEY)
+	if result.Err == nil {
+		if err := json.Unmarshal([]byte(result.Data.(*model.System).Value), &key); err != nil {
+			return err
+		}
+	}
+
+	// If we don't already have a key, try to generate one.
+	if key == nil {
+		newECDSAKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+		if err != nil {
+			return err
+		}
+		newKey := &model.SystemAsymmetricSigningKey{
+			ECDSAKey: &model.SystemECDSAKey{
+				Curve: "P-256",
+				X:     newECDSAKey.X,
+				Y:     newECDSAKey.Y,
+				D:     newECDSAKey.D,
+			},
+		}
+		system := &model.System{
+			Name: model.SYSTEM_ASYMMETRIC_SIGNING_KEY,
+		}
+		v, err := json.Marshal(newKey)
+		if err != nil {
+			return err
+		}
+		system.Value = string(v)
+		if result = <-a.Srv.Store.System().Save(system); result.Err == nil {
+			// If we were able to save the key, use it, otherwise ignore the error.
+			key = newKey
+		}
+	}
+
+	// If we weren't able to save a new key above, another server must have beat us to it. Get the
+	// key from the database, and if that fails, error out.
+	if key == nil {
+		result := <-a.Srv.Store.System().GetByName(model.SYSTEM_ASYMMETRIC_SIGNING_KEY)
+		if result.Err != nil {
+			return result.Err
+		} else if err := json.Unmarshal([]byte(result.Data.(*model.System).Value), &key); err != nil {
+			return err
+		}
+	}
+
+	var curve elliptic.Curve
+	switch key.ECDSAKey.Curve {
+	case "P-256":
+		curve = elliptic.P256()
+	default:
+		return fmt.Errorf("unknown curve: " + key.ECDSAKey.Curve)
+	}
+	a.asymmetricSigningKey = &ecdsa.PrivateKey{
+		PublicKey: ecdsa.PublicKey{
+			Curve: curve,
+			X:     key.ECDSAKey.X,
+			Y:     key.ECDSAKey.Y,
+		},
+		D: key.ECDSAKey.D,
+	}
+	a.regenerateClientConfig()
+	return nil
+}
+
+// AsymmetricSigningKey will return a private key that can be used for asymmetric signing.
+func (a *App) AsymmetricSigningKey() *ecdsa.PrivateKey {
+	return a.asymmetricSigningKey
+}
+
 func (a *App) regenerateClientConfig() {
 	a.clientConfig = utils.GenerateClientConfig(a.Config(), a.DiagnosticId())
+	if key := a.AsymmetricSigningKey(); key != nil {
+		der, _ := x509.MarshalPKIXPublicKey(&key.PublicKey)
+		a.clientConfig["AsymmetricSigningPublicKey"] = base64.StdEncoding.EncodeToString(der)
+	}
 	clientConfigJSON, _ := json.Marshal(a.clientConfig)
 	a.clientConfigHash = fmt.Sprintf("%x", md5.Sum(clientConfigJSON))
 }
