@@ -3131,6 +3131,14 @@
     "translation": "Cannot move a channel unless all its members are already members of the destination team."
   },
   {
+    "id": "api.team.move_channel.success",
+    "translation": "This channel has been moved to this team from %v."
+  },
+  {
+    "id": "api.team.move_channel.post.error",
+    "translation": "Failed to post channel move message."
+  },
+  {
     "id": "app.channel.post_update_channel_purpose_message.post.error",
     "translation": "Failed to post channel purpose message"
   },
