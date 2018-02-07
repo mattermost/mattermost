@@ -302,8 +302,7 @@ func (me *TestHelper) CreateUserWithClient(client *model.Client4) *model.User {
 	}
 
 	utils.DisableDebugLogForTest()
-	ruser, r := client.CreateUser(user)
-	fmt.Println(r)
+	ruser, _ := client.CreateUser(user)
 	ruser.Password = "Password1"
 	store.Must(me.App.Srv.Store.User().VerifyEmail(ruser.Id))
 	utils.EnableDebugLogForTest()
