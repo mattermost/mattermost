@@ -182,7 +182,6 @@ func TestDoAdvancedPermissionsMigration(t *testing.T) {
 			model.PERMISSION_CREATE_PRIVATE_CHANNEL.Id,
 			model.PERMISSION_MANAGE_SYSTEM_WIDE_OAUTH.Id,
 			model.PERMISSION_MANAGE_OTHERS_WEBHOOKS.Id,
-			model.PERMISSION_EDIT_POST.Id,
 			model.PERMISSION_EDIT_OTHER_USERS.Id,
 			model.PERMISSION_MANAGE_OAUTH.Id,
 			model.PERMISSION_INVITE_USER.Id,
@@ -214,6 +213,7 @@ func TestDoAdvancedPermissionsMigration(t *testing.T) {
 			model.PERMISSION_MANAGE_SLASH_COMMANDS.Id,
 			model.PERMISSION_MANAGE_OTHERS_SLASH_COMMANDS.Id,
 			model.PERMISSION_MANAGE_WEBHOOKS.Id,
+			model.PERMISSION_EDIT_POST.Id,
 		},
 	}
 
@@ -347,7 +347,6 @@ func TestDoAdvancedPermissionsMigration(t *testing.T) {
 			model.PERMISSION_CREATE_PRIVATE_CHANNEL.Id,
 			model.PERMISSION_MANAGE_SYSTEM_WIDE_OAUTH.Id,
 			model.PERMISSION_MANAGE_OTHERS_WEBHOOKS.Id,
-			model.PERMISSION_EDIT_POST.Id,
 			model.PERMISSION_EDIT_OTHER_USERS.Id,
 			model.PERMISSION_MANAGE_OAUTH.Id,
 			model.PERMISSION_INVITE_USER.Id,
@@ -379,6 +378,7 @@ func TestDoAdvancedPermissionsMigration(t *testing.T) {
 			model.PERMISSION_MANAGE_SLASH_COMMANDS.Id,
 			model.PERMISSION_MANAGE_OTHERS_SLASH_COMMANDS.Id,
 			model.PERMISSION_MANAGE_WEBHOOKS.Id,
+			model.PERMISSION_EDIT_POST.Id,
 		},
 	}
 
