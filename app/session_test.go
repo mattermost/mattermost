@@ -48,18 +48,7 @@ func TestGetSessionIdleTimeoutInMinutes(t *testing.T) {
 
 	session, _ = th.App.CreateSession(session)
 
-	isLicensed := utils.IsLicensed()
-	license := utils.License()
-	timeout := *th.App.Config().ServiceSettings.SessionIdleTimeoutInMinutes
-	defer func() {
-		utils.SetIsLicensed(isLicensed)
-		utils.SetLicense(license)
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.SessionIdleTimeoutInMinutes = timeout })
-	}()
-	utils.SetIsLicensed(true)
-	utils.SetLicense(&model.License{Features: &model.Features{}})
-	utils.License().Features.SetDefaults()
-	*utils.License().Features.Compliance = true
+	th.App.SetLicense(model.NewTestLicense("compliance"))
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.SessionIdleTimeoutInMinutes = 5 })
 
 	rsession, err := th.App.GetSession(session.Token)

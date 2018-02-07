@@ -88,6 +88,9 @@ func New(options ...Option) (*App, error) {
 		panic("Only one App should exist at a time. Did you forget to call Shutdown()?")
 	}
 
+	// TODO: remove this once utils global license state is eliminated
+	utils.SetLicense(nil)
+
 	app := &App{
 		goroutineExitSignal: make(chan struct{}, 1),
 		Srv: &Server{
