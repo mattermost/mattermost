@@ -5,14 +5,12 @@ package store
 
 import (
 	"bytes"
-	"context"
 	"encoding/gob"
 
 	"time"
 
 	l4g "github.com/alecthomas/log4go"
 	"github.com/go-redis/redis"
-	"github.com/mattermost/mattermost-server/model"
 )
 
 const REDIS_EXPIRY_TIME = 30 * time.Minute
@@ -86,69 +84,4 @@ func (s *RedisSupplier) SetChainNext(next LayeredStoreSupplier) {
 
 func (s *RedisSupplier) Next() LayeredStoreSupplier {
 	return s.next
-}
-
-func (s *RedisSupplier) ReactionSave(ctx context.Context, reaction *model.Reaction, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
-	if err := s.client.Del("reactions:" + reaction.PostId).Err(); err != nil {
-		l4g.Error("Redis failed to remove key reactions:" + reaction.PostId + " Error: " + err.Error())
-	}
-	return s.Next().ReactionSave(ctx, reaction, hints...)
-}
-
-func (s *RedisSupplier) ReactionDelete(ctx context.Context, reaction *model.Reaction, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
-	if err := s.client.Del("reactions:" + reaction.PostId).Err(); err != nil {
-		l4g.Error("Redis failed to remove key reactions:" + reaction.PostId + " Error: " + err.Error())
-	}
-	return s.Next().ReactionDelete(ctx, reaction, hints...)
-}
-
-func (s *RedisSupplier) ReactionGetForPost(ctx context.Context, postId string, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
-	var resultdata []*model.Reaction
-	found, err := s.load("reactions:"+postId, &resultdata)
-	if found {
-		result := NewSupplierResult()
-		result.Data = resultdata
-		return result
-	}
-	if err != nil {
-		l4g.Error("Redis encountered an error on read: " + err.Error())
-	}
-
-	result := s.Next().ReactionGetForPost(ctx, postId, hints...)
-
-	if err := s.save("reactions:"+postId, result.Data, REDIS_EXPIRY_TIME); err != nil {
-		l4g.Error("Redis encountered and error on write: " + err.Error())
-	}
-
-	return result
-}
-
-func (s *RedisSupplier) ReactionDeleteAllWithEmojiName(ctx context.Context, emojiName string, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
-	// Ignoring this. It's probably OK to have the emoji slowly expire from Redis.
-	return s.Next().ReactionDeleteAllWithEmojiName(ctx, emojiName, hints...)
-}
-
-func (s *RedisSupplier) ReactionPermanentDeleteBatch(ctx context.Context, endTime int64, limit int64, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
-	// Ignoring this. It's probably OK to have the emoji slowly expire from Redis.
-	return s.Next().ReactionPermanentDeleteBatch(ctx, endTime, limit, hints...)
-}
-
-func (s *RedisSupplier) RoleSave(ctx context.Context, role *model.Role, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
-	// TODO: Redis Caching.
-	return s.Next().RoleSave(ctx, role, hints...)
-}
-
-func (s *RedisSupplier) RoleGet(ctx context.Context, roleId string, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
-	// TODO: Redis Caching.
-	return s.Next().RoleGet(ctx, roleId, hints...)
-}
-
-func (s *RedisSupplier) RoleGetByName(ctx context.Context, name string, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
-	// TODO: Redis Caching.
-	return s.Next().RoleGetByName(ctx, name, hints...)
-}
-
-func (s *RedisSupplier) RoleGetByNames(ctx context.Context, roleNames []string, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
-	// TODO: Redis Caching.
-	return s.Next().RoleGetByNames(ctx, roleNames, hints...)
 }

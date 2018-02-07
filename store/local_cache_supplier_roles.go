@@ -25,6 +25,8 @@ func (s *LocalCacheSupplier) RoleSave(ctx context.Context, role *model.Role, hin
 }
 
 func (s *LocalCacheSupplier) RoleGet(ctx context.Context, roleId string, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
+	// Roles are cached by name, as that is most commonly how they are looked up.
+	// This means that no caching is supported on roles being looked up by ID.
 	return s.Next().RoleGet(ctx, roleId, hints...)
 }
 
