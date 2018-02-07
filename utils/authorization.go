@@ -59,6 +59,10 @@ func SetRolePermissionsFromConfig(roles map[string]*model.Role, cfg *model.Confi
 			roles[model.TEAM_USER_ROLE_ID].Permissions,
 			model.PERMISSION_MANAGE_PUBLIC_CHANNEL_PROPERTIES.Id,
 		)
+		roles[model.CHANNEL_USER_ROLE_ID].Permissions = append(
+			roles[model.CHANNEL_USER_ROLE_ID].Permissions,
+			model.PERMISSION_MANAGE_PUBLIC_CHANNEL_PROPERTIES.Id,
+		)
 	}
 
 	if isLicensed {
@@ -90,6 +94,10 @@ func SetRolePermissionsFromConfig(roles map[string]*model.Role, cfg *model.Confi
 	} else {
 		roles[model.TEAM_USER_ROLE_ID].Permissions = append(
 			roles[model.TEAM_USER_ROLE_ID].Permissions,
+			model.PERMISSION_DELETE_PUBLIC_CHANNEL.Id,
+		)
+		roles[model.CHANNEL_USER_ROLE_ID].Permissions = append(
+			roles[model.CHANNEL_USER_ROLE_ID].Permissions,
 			model.PERMISSION_DELETE_PUBLIC_CHANNEL.Id,
 		)
 	}
@@ -145,6 +153,10 @@ func SetRolePermissionsFromConfig(roles map[string]*model.Role, cfg *model.Confi
 			roles[model.TEAM_USER_ROLE_ID].Permissions,
 			model.PERMISSION_MANAGE_PRIVATE_CHANNEL_PROPERTIES.Id,
 		)
+		roles[model.CHANNEL_USER_ROLE_ID].Permissions = append(
+			roles[model.CHANNEL_USER_ROLE_ID].Permissions,
+			model.PERMISSION_MANAGE_PRIVATE_CHANNEL_PROPERTIES.Id,
+		)
 	}
 
 	if isLicensed {
@@ -176,6 +188,10 @@ func SetRolePermissionsFromConfig(roles map[string]*model.Role, cfg *model.Confi
 	} else {
 		roles[model.TEAM_USER_ROLE_ID].Permissions = append(
 			roles[model.TEAM_USER_ROLE_ID].Permissions,
+			model.PERMISSION_DELETE_PRIVATE_CHANNEL.Id,
+		)
+		roles[model.CHANNEL_USER_ROLE_ID].Permissions = append(
+			roles[model.CHANNEL_USER_ROLE_ID].Permissions,
 			model.PERMISSION_DELETE_PRIVATE_CHANNEL.Id,
 		)
 	}
