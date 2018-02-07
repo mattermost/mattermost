@@ -13,9 +13,12 @@ import (
 )
 
 func (s *RedisSupplier) RoleSave(ctx context.Context, role *model.Role, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
-	if err := s.client.Del(buildRedisKeyForRoleName(role.Name)).Err(); err != nil {
-		l4g.Error("Redis failed to remove key roles:" + role.Name + " Error: " + err.Error())
+	key := buildRedisKeyForRoleName(role.Name)
+
+	if err := s.client.Del(key).Err(); err != nil {
+		l4g.Error("Redis failed to remove key " + key + " Error: " + err.Error())
 	}
+
 	return s.Next().RoleSave(ctx, role, hints...)
 }
 
@@ -26,8 +29,10 @@ func (s *RedisSupplier) RoleGet(ctx context.Context, roleId string, hints ...Lay
 }
 
 func (s *RedisSupplier) RoleGetByName(ctx context.Context, name string, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
+	key := buildRedisKeyForRoleName(name)
+
 	var role *model.Role
-	found, err := s.load(buildRedisKeyForRoleName(name), &role)
+	found, err := s.load(key, &role)
 	if err != nil {
 		l4g.Error("Redis encountered an error on read: " + err.Error())
 	} else if found {
@@ -39,7 +44,7 @@ func (s *RedisSupplier) RoleGetByName(ctx context.Context, name string, hints ..
 	result := s.Next().RoleGetByName(ctx, name, hints...)
 
 	if result.Err == nil {
-		if err := s.save(buildRedisKeyForRoleName(name), result.Data, REDIS_EXPIRY_TIME); err != nil {
+		if err := s.save(key, result.Data, REDIS_EXPIRY_TIME); err != nil {
 			l4g.Error("Redis encountered and error on write: " + err.Error())
 		}
 	}
