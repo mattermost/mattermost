@@ -1306,6 +1306,7 @@ func TestAddTeamMember(t *testing.T) {
 	th.UpdateUserToTeamAdmin(th.BasicUser, th.BasicTeam)
 	th.App.InvalidateAllCaches()
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.RestrictTeamInvite = model.PERMISSIONS_TEAM_ADMIN })
+	th.App.SetLicense(model.NewTestLicense())
 	th.LoginBasic()
 
 	// Should work as a team admin.
@@ -1327,6 +1328,7 @@ func TestAddTeamMember(t *testing.T) {
 	th.UpdateUserToNonTeamAdmin(th.BasicUser, th.BasicTeam)
 	th.App.InvalidateAllCaches()
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.RestrictTeamInvite = model.PERMISSIONS_ALL })
+	th.App.SetLicense(model.NewTestLicense())
 	th.LoginBasic()
 
 	// Should work as a regular user.
@@ -1491,6 +1493,7 @@ func TestAddTeamMembers(t *testing.T) {
 	th.UpdateUserToTeamAdmin(th.BasicUser, th.BasicTeam)
 	th.App.InvalidateAllCaches()
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.RestrictTeamInvite = model.PERMISSIONS_TEAM_ADMIN })
+	th.App.SetLicense(model.NewTestLicense())
 	th.LoginBasic()
 
 	// Should work as a team admin.
@@ -1512,6 +1515,7 @@ func TestAddTeamMembers(t *testing.T) {
 	th.UpdateUserToNonTeamAdmin(th.BasicUser, th.BasicTeam)
 	th.App.InvalidateAllCaches()
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.RestrictTeamInvite = model.PERMISSIONS_ALL })
+	th.App.SetLicense(model.NewTestLicense())
 	th.LoginBasic()
 
 	// Should work as a regular user.

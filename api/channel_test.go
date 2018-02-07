@@ -409,6 +409,7 @@ func TestUpdateChannel(t *testing.T) {
 		*cfg.TeamSettings.RestrictPublicChannelManagement = model.PERMISSIONS_TEAM_ADMIN
 		*cfg.TeamSettings.RestrictPrivateChannelManagement = model.PERMISSIONS_TEAM_ADMIN
 	})
+	th.App.SetLicense(model.NewTestLicense())
 
 	if _, err := Client.UpdateChannel(channel2); err == nil {
 		t.Fatal("should have errored not team admin")
@@ -1571,6 +1572,7 @@ func TestAddChannelMember(t *testing.T) {
 
 	th.MakeUserChannelAdmin(user1, channel5)
 	th.App.InvalidateAllCaches()
+	th.App.SetLicense(model.NewTestLicense())
 
 	if _, err := Client.AddChannelMember(channel5.Id, user2.Id); err != nil {
 		t.Fatal(err)
@@ -1590,6 +1592,7 @@ func TestAddChannelMember(t *testing.T) {
 
 	th.UpdateUserToTeamAdmin(user1, team)
 	th.App.InvalidateAllCaches()
+	th.App.SetLicense(model.NewTestLicense())
 
 	if _, err := Client.AddChannelMember(channel6.Id, user2.Id); err != nil {
 		t.Fatal(err)
@@ -1722,6 +1725,7 @@ func TestRemoveChannelMember(t *testing.T) {
 
 	th.MakeUserChannelAdmin(user1, channel5)
 	th.App.InvalidateAllCaches()
+	th.App.SetLicense(model.NewTestLicense())
 
 	if _, err := Client.RemoveChannelMember(channel5.Id, user2.Id); err != nil {
 		t.Fatal(err)
@@ -1742,6 +1746,7 @@ func TestRemoveChannelMember(t *testing.T) {
 
 	th.UpdateUserToTeamAdmin(user1, team)
 	th.App.InvalidateAllCaches()
+	th.App.SetLicense(model.NewTestLicense())
 
 	if _, err := Client.RemoveChannelMember(channel6.Id, user2.Id); err != nil {
 		t.Fatal(err)

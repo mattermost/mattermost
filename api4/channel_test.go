@@ -927,6 +927,7 @@ func TestDeleteChannel(t *testing.T) {
 	// successful delete by team admin
 	th.UpdateUserToTeamAdmin(user, team)
 	th.App.InvalidateAllCaches()
+	th.App.SetLicense(model.NewTestLicense())
 
 	_, resp = Client.DeleteChannel(publicChannel6.Id)
 	CheckNoError(t, resp)
@@ -940,6 +941,7 @@ func TestDeleteChannel(t *testing.T) {
 	})
 	th.UpdateUserToNonTeamAdmin(user, team)
 	th.App.InvalidateAllCaches()
+	th.App.SetLicense(model.NewTestLicense())
 
 	// channels created by SystemAdmin
 	publicChannel6 = th.CreateChannelWithClient(th.SystemAdminClient, model.CHANNEL_OPEN)
@@ -969,6 +971,7 @@ func TestDeleteChannel(t *testing.T) {
 	// successful delete by team admin
 	th.UpdateUserToTeamAdmin(th.BasicUser, team)
 	th.App.InvalidateAllCaches()
+	th.App.SetLicense(model.NewTestLicense())
 
 	_, resp = Client.DeleteChannel(publicChannel6.Id)
 	CheckNoError(t, resp)
@@ -1009,6 +1012,7 @@ func TestDeleteChannel(t *testing.T) {
 	// cannot delete by team admin
 	th.UpdateUserToTeamAdmin(th.BasicUser, team)
 	th.App.InvalidateAllCaches()
+	th.App.SetLicense(model.NewTestLicense())
 
 	_, resp = Client.DeleteChannel(publicChannel6.Id)
 	CheckForbiddenStatus(t, resp)
@@ -1814,6 +1818,7 @@ func TestAddChannelMember(t *testing.T) {
 
 	th.MakeUserChannelAdmin(user, privateChannel)
 	th.App.InvalidateAllCaches()
+	th.App.SetLicense(model.NewTestLicense())
 
 	Client.Login(user.Username, user.Password)
 	_, resp = Client.AddChannelMember(privateChannel.Id, user3.Id)
@@ -1838,6 +1843,7 @@ func TestAddChannelMember(t *testing.T) {
 
 	th.UpdateUserToTeamAdmin(user, team)
 	th.App.InvalidateAllCaches()
+	th.App.SetLicense(model.NewTestLicense())
 
 	Client.Login(user.Username, user.Password)
 	_, resp = Client.AddChannelMember(privateChannel.Id, user3.Id)

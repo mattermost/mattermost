@@ -160,6 +160,7 @@ func TestAddUserToTeam(t *testing.T) {
 	// Should work as team admin.
 	th.UpdateUserToTeamAdmin(th.BasicUser, th.BasicTeam)
 	th.App.InvalidateAllCaches()
+	th.App.SetLicense(model.NewTestLicense())
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.RestrictTeamInvite = model.PERMISSIONS_TEAM_ADMIN })
 
 	user5 := th.CreateUser(th.BasicClient)
