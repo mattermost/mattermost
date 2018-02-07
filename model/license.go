@@ -177,6 +177,7 @@ func (l *License) ToJson() string {
 func NewTestLicense(features ...string) *License {
 	ret := &License{
 		ExpiresAt: GetMillis() + 90*24*60*60*1000,
+		Features:  &Features{},
 	}
 	ret.Features.SetDefaults()
 
