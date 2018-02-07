@@ -4755,6 +4755,10 @@
     "translation": "Invalid thumbnail width for file settings.  Must be a positive number."
   },
   {
+    "id": "model.config.is_valid.group_unread_channels.app_error",
+    "translation": "Invalid group unread channels for service settings. Must be 'disabled', 'default_on', or 'default_off'."
+  },
+  {
     "id": "model.config.is_valid.image_proxy_type.app_error",
     "translation": "Invalid image proxy type for service settings."
   },

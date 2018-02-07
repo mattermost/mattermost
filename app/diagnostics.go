@@ -11,7 +11,6 @@ import (
 	"sync/atomic"
 
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils"
 	"github.com/segmentio/analytics-go"
 )
 
@@ -510,17 +509,17 @@ func (a *App) trackConfig() {
 }
 
 func (a *App) trackLicense() {
-	if utils.IsLicensed() {
+	if license := a.License(); license != nil {
 		data := map[string]interface{}{
-			"customer_id": utils.License().Customer.Id,
-			"license_id":  utils.License().Id,
-			"issued":      utils.License().IssuedAt,
-			"start":       utils.License().StartsAt,
-			"expire":      utils.License().ExpiresAt,
-			"users":       *utils.License().Features.Users,
+			"customer_id": license.Customer.Id,
+			"license_id":  license.Id,
+			"issued":      license.IssuedAt,
+			"start":       license.StartsAt,
+			"expire":      license.ExpiresAt,
+			"users":       *license.Features.Users,
 		}
 
-		features := utils.License().Features.ToMap()
+		features := license.Features.ToMap()
 		for featureName, featureValue := range features {
 			data["feature_"+featureName] = featureValue
 		}

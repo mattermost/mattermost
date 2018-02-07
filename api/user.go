@@ -1057,7 +1057,7 @@ func updateMfa(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func checkMfa(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !utils.IsLicensed() || !*utils.License().Features.MFA || !*c.App.Config().ServiceSettings.EnableMultifactorAuthentication {
+	if license := c.App.License(); license == nil || !*license.Features.MFA || !*c.App.Config().ServiceSettings.EnableMultifactorAuthentication {
 		rdata := map[string]string{}
 		rdata["mfa_required"] = "false"
 		w.Write([]byte(model.MapToJson(rdata)))

@@ -69,6 +69,10 @@ const (
 	ALLOW_EDIT_POST_NEVER      = "never"
 	ALLOW_EDIT_POST_TIME_LIMIT = "time_limit"
 
+	GROUP_UNREAD_CHANNELS_DISABLED    = "disabled"
+	GROUP_UNREAD_CHANNELS_DEFAULT_ON  = "default_on"
+	GROUP_UNREAD_CHANNELS_DEFAULT_OFF = "default_off"
+
 	EMAIL_BATCHING_BUFFER_SIZE = 256
 	EMAIL_BATCHING_INTERVAL    = 30
 
@@ -217,7 +221,7 @@ type ServiceSettings struct {
 	EnablePreviewFeatures                             *bool
 	EnableTutorial                                    *bool
 	ExperimentalEnableDefaultChannelLeaveJoinMessages *bool
-	ExperimentalGroupUnreadChannels                   *bool
+	ExperimentalGroupUnreadChannels                   *string
 	ImageProxyType                                    *string
 	ImageProxyURL                                     *string
 	ImageProxyOptions                                 *string
@@ -427,7 +431,11 @@ func (s *ServiceSettings) SetDefaults() {
 	}
 
 	if s.ExperimentalGroupUnreadChannels == nil {
-		s.ExperimentalGroupUnreadChannels = NewBool(false)
+		s.ExperimentalGroupUnreadChannels = NewString(GROUP_UNREAD_CHANNELS_DISABLED)
+	} else if *s.ExperimentalGroupUnreadChannels == "0" {
+		s.ExperimentalGroupUnreadChannels = NewString(GROUP_UNREAD_CHANNELS_DISABLED)
+	} else if *s.ExperimentalGroupUnreadChannels == "1" {
+		s.ExperimentalGroupUnreadChannels = NewString(GROUP_UNREAD_CHANNELS_DEFAULT_ON)
 	}
 
 	if s.ImageProxyType == nil {
@@ -2079,6 +2087,12 @@ func (ss *ServiceSettings) isValid() *AppError {
 
 	if len(*ss.ListenAddress) == 0 {
 		return NewAppError("Config.IsValid", "model.config.is_valid.listen_address.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if *ss.ExperimentalGroupUnreadChannels != GROUP_UNREAD_CHANNELS_DISABLED &&
+		*ss.ExperimentalGroupUnreadChannels != GROUP_UNREAD_CHANNELS_DEFAULT_ON &&
+		*ss.ExperimentalGroupUnreadChannels != GROUP_UNREAD_CHANNELS_DEFAULT_OFF {
+		return NewAppError("Config.IsValid", "model.config.is_valid.group_unread_channels.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	switch *ss.ImageProxyType {

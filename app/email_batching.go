@@ -220,7 +220,7 @@ func (a *App) sendBatchedEmailNotification(userId string, notifications []*batch
 		}
 
 		emailNotificationContentsType := model.EMAIL_NOTIFICATION_CONTENTS_FULL
-		if utils.IsLicensed() && *utils.License().Features.EmailNotificationContents {
+		if license := a.License(); license != nil && *license.Features.EmailNotificationContents {
 			emailNotificationContentsType = *a.Config().EmailSettings.EmailNotificationContentsType
 		}
 

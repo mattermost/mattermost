@@ -6,8 +6,6 @@ package app
 import (
 	//"github.com/mattermost/mattermost-server/model"
 	"testing"
-
-	"github.com/mattermost/mattermost-server/utils"
 )
 
 func TestLoadLicense(t *testing.T) {
@@ -15,7 +13,7 @@ func TestLoadLicense(t *testing.T) {
 	defer th.TearDown()
 
 	th.App.LoadLicense()
-	if utils.IsLicensed() {
+	if th.App.License() != nil {
 		t.Fatal("shouldn't have a valid license")
 	}
 }
