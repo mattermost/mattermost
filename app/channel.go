@@ -1363,7 +1363,7 @@ func (a *App) PermanentDeleteChannel(channel *model.Channel) *model.AppError {
 
 // This function is intended for use from the CLI. It is not robust against people joining the channel while the move
 // is in progress, and therefore should not be used from the API without first fixing this potential race condition.
-func (a *App) MoveChannel(team *model.Team, channel *model.Channel) *model.AppError {
+func (a *App) MoveChannel(team *model.Team, channel *model.Channel, user *model.User) *model.AppError {
 	// Check that all channel members are in the destination team.
 	if channelMembers, err := a.GetChannelMembersPage(channel.Id, 0, 10000000); err != nil {
 		return err
@@ -1382,10 +1382,36 @@ func (a *App) MoveChannel(team *model.Team, channel *model.Channel) *model.AppEr
 		}
 	}
 
-	// Change the Team ID of the channel.
+	// keep instance of the previous team
+	var previousTeam *model.Team
+	if result := <-a.Srv.Store.Team().Get(channel.TeamId); result.Err != nil {
+		return result.Err
+	} else {
+		previousTeam = result.Data.(*model.Team)
+	}
 	channel.TeamId = team.Id
 	if result := <-a.Srv.Store.Channel().Update(channel); result.Err != nil {
 		return result.Err
+	}
+	a.postChannelMoveMessage(user, channel, previousTeam)
+
+	return nil
+}
+
+func (a *App) postChannelMoveMessage(user *model.User, channel *model.Channel, previousTeam *model.Team) *model.AppError {
+
+	post := &model.Post{
+		ChannelId: channel.Id,
+		Message:   fmt.Sprintf(utils.T("api.team.move_channel.success"), previousTeam.Name),
+		Type:      model.POST_MOVE_CHANNEL,
+		UserId:    user.Id,
+		Props: model.StringInterface{
+			"username": user.Username,
+		},
+	}
+
+	if _, err := a.CreatePost(post, channel, false); err != nil {
+		return model.NewAppError("postChannelMoveMessage", "api.team.move_channel.post.error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	return nil

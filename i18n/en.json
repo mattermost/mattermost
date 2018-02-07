@@ -132,10 +132,6 @@
     "translation": "Unable to upload file. File is too large."
   },
   {
-    "id": "api.api.init.parsing_templates.debug",
-    "translation": "Parsing server templates at %v"
-  },
-  {
     "id": "api.api.init.parsing_templates.error",
     "translation": "Failed to parse server templates %v"
   },
@@ -3143,6 +3139,14 @@
     "translation": "Cannot move a channel unless all its members are already members of the destination team."
   },
   {
+    "id": "api.team.move_channel.success",
+    "translation": "This channel has been moved to this team from %v."
+  },
+  {
+    "id": "api.team.move_channel.post.error",
+    "translation": "Failed to post channel move message."
+  },
+  {
     "id": "app.channel.post_update_channel_purpose_message.post.error",
     "translation": "Failed to post channel purpose message"
   },
@@ -4767,6 +4771,10 @@
     "translation": "Invalid thumbnail width for file settings.  Must be a positive number."
   },
   {
+    "id": "model.config.is_valid.group_unread_channels.app_error",
+    "translation": "Invalid group unread channels for service settings. Must be 'disabled', 'default_on', or 'default_off'."
+  },
+  {
     "id": "model.config.is_valid.image_proxy_type.app_error",
     "translation": "Invalid image proxy type for service settings."
   },
@@ -4861,6 +4869,14 @@
   {
     "id": "model.config.is_valid.message_export.batch_size.app_error",
     "translation": "Message export job BatchSize must be a positive integer"
+  },
+  {
+    "id": "model.config.is_valid.message_export.export_type.app_error",
+    "translation": "Message export job ExportFormat must be one of either 'actiance' or 'globalrelay'"
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay_email_address.app_error",
+    "translation": "Message export job GlobalRelayEmailAddress must be set to a valid email address"
   },
   {
     "id": "model.config.is_valid.message_export.daily_runtime.app_error",
@@ -7107,6 +7123,10 @@
     "translation": "Failed to authenticate on SMTP server"
   },
   {
+    "id": "utils.mail.sendMail.attachments.write_error",
+    "translation": "Failed to write attachment to email"
+  },
+  {
     "id": "utils.mail.new_client.helo.error",
     "translation": "Failed to to set the HELO to SMTP server %v"
   },
@@ -7181,10 +7201,6 @@
   {
     "id": "web.create_dir.error",
     "translation": "Failed to create directory watcher %v"
-  },
-  {
-    "id": "web.dir_fail.error",
-    "translation": "Failed in directory watcher %v"
   },
   {
     "id": "web.do_load_channel.error",
@@ -7291,16 +7307,8 @@
     "translation": "Parsing templates at %v"
   },
   {
-    "id": "web.parsing_templates.error",
-    "translation": "Failed to parse templates %v"
-  },
-  {
     "id": "web.post_permalink.app_error",
     "translation": "Invalid Post ID"
-  },
-  {
-    "id": "web.reparse_templates.info",
-    "translation": "Re-parsing templates because of modified file %v"
   },
   {
     "id": "web.reset_password.expired_link.app_error",

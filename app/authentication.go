@@ -36,7 +36,7 @@ func (tl TokenLocation) String() string {
 }
 
 func (a *App) IsPasswordValid(password string) *model.AppError {
-	if utils.IsLicensed() && *utils.License().Features.PasswordRequirements {
+	if license := a.License(); license != nil && *license.Features.PasswordRequirements {
 		return utils.IsPasswordValidWithSettings(password, &a.Config().PasswordSettings)
 	}
 	return utils.IsPasswordValid(password)
@@ -150,7 +150,7 @@ func (a *App) CheckUserPostflightAuthenticationCriteria(user *model.User) *model
 }
 
 func (a *App) CheckUserMfa(user *model.User, token string) *model.AppError {
-	if !user.MfaActive || !utils.IsLicensed() || !*utils.License().Features.MFA || !*a.Config().ServiceSettings.EnableMultifactorAuthentication {
+	if license := a.License(); !user.MfaActive || license == nil || !*license.Features.MFA || !*a.Config().ServiceSettings.EnableMultifactorAuthentication {
 		return nil
 	}
 
@@ -183,7 +183,8 @@ func checkUserNotDisabled(user *model.User) *model.AppError {
 }
 
 func (a *App) authenticateUser(user *model.User, password, mfaToken string) (*model.User, *model.AppError) {
-	ldapAvailable := *a.Config().LdapSettings.Enable && a.Ldap != nil && utils.IsLicensed() && *utils.License().Features.LDAP
+	license := a.License()
+	ldapAvailable := *a.Config().LdapSettings.Enable && a.Ldap != nil && license != nil && *license.Features.LDAP
 
 	if user.AuthService == model.USER_AUTH_SERVICE_LDAP {
 		if !ldapAvailable {
