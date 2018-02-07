@@ -59,7 +59,7 @@ func (a *App) SaveLicense(licenseBytes []byte) (*model.License, *model.AppError)
 			}
 		}
 
-		if ok := utils.SetLicense(license); !ok {
+		if ok := a.SetLicense(license); !ok {
 			return nil, model.NewAppError("addLicense", model.EXPIRED_LICENSE_ERROR, nil, "", http.StatusBadRequest)
 		}
 
@@ -100,6 +100,20 @@ func (a *App) SaveLicense(licenseBytes []byte) (*model.License, *model.AppError)
 	}
 
 	return license, nil
+}
+
+// License returns the currently active license or nil if the application is unlicensed.
+func (a *App) License() *model.License {
+	if utils.IsLicensed() {
+		return utils.License()
+	}
+	return nil
+}
+
+func (a *App) SetLicense(license *model.License) bool {
+	ok := utils.SetLicense(license)
+	a.SetDefaultRolesBasedOnConfig()
+	return ok
 }
 
 func (a *App) RemoveLicense() *model.AppError {
