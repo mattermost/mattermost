@@ -512,7 +512,7 @@ func testUserStoreGetProfilesInChannelByStatus(t *testing.T, ss store.Store) {
 	store.Must(ss.Channel().SaveMember(&m2))
 	store.Must(ss.Channel().SaveMember(&m3))
 
-	if r1 := <-ss.User().GetProfilesInChannel(c1.Id, 0, 100); r1.Err != nil {
+	if r1 := <-ss.User().GetProfilesInChannelByStatus(c1.Id, 0, 100); r1.Err != nil {
 		t.Fatal(r1.Err)
 	} else {
 		users := r1.Data.([]*model.User)
