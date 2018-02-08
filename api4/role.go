@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/utils"
 )
 
 func (api *API) InitRole() {
@@ -83,6 +84,31 @@ func patchRole(c *Context, w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		c.Err = err
 		return
+	}
+
+	if !utils.IsLicensed() && patch.Permissions != nil {
+		allowedPermissions := []string{
+			model.PERMISSION_CREATE_TEAM.Id,
+			model.PERMISSION_MANAGE_WEBHOOKS.Id,
+			model.PERMISSION_MANAGE_SLASH_COMMANDS.Id,
+			model.PERMISSION_MANAGE_OAUTH.Id,
+			model.PERMISSION_MANAGE_SYSTEM_WIDE_OAUTH.Id,
+		}
+
+		changedPermissions := model.PermissionsChangedByPatch(oldRole, patch)
+		for _, permission := range changedPermissions {
+			allowed := false
+			for _, allowedPermission := range allowedPermissions {
+				if permission == allowedPermission {
+					allowed = true
+				}
+			}
+
+			if !allowed {
+				c.Err = model.NewAppError("Api4.PatchRoles", "api.roles.patch_roles.license.error", nil, "", http.StatusNotImplemented)
+				return
+			}
+		}
 	}
 
 	if !c.App.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
