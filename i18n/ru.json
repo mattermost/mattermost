@@ -2320,7 +2320,7 @@
   },
   {
     "id": "api.team.remove_user_from_team.removed",
-    "translation": "%v удален из команды."
+    "translation": " %v удален из команды."
   },
   {
     "id": "api.team.signup_team.email_disabled.app_error",

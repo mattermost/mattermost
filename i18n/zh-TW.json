@@ -153,7 +153,7 @@
   },
   {
     "id": "api.channel.add_member.added",
-    "translation": "%v 由 %v 邀請加入頻道"
+    "translation": "%v 已被 %v 加入頻道。"
   },
   {
     "id": "api.channel.add_member.find_channel.app_error",
@@ -201,11 +201,11 @@
   },
   {
     "id": "api.channel.change_channel_privacy.private_to_public",
-    "translation": "This channel has been converted to a Public Channel and can be joined by any team member."
+    "translation": "此頻道已轉為公開頻道，任意團隊成員將可加入。"
   },
   {
     "id": "api.channel.change_channel_privacy.public_to_private",
-    "translation": "This channel has been converted to a Private Channel."
+    "translation": "此頻道已轉為私人頻道。"
   },
   {
     "id": "api.channel.create_channel.direct_channel.app_error",
@@ -2184,7 +2184,7 @@
   },
   {
     "id": "api.team.add_user_to_team.added",
-    "translation": "%v 由 %v 邀請加入頻道"
+    "translation": "%v 已被 %v 加入頻道。"
   },
   {
     "id": "api.team.add_user_to_team.missing_parameter.app_error",
@@ -2320,7 +2320,7 @@
   },
   {
     "id": "api.team.remove_user_from_team.removed",
-    "translation": "%v 已從頻道中移除。"
+    "translation": "%v 已從團隊中移除。"
   },
   {
     "id": "api.team.signup_team.email_disabled.app_error",
@@ -3360,7 +3360,7 @@
   },
   {
     "id": "app.import.validate_post_import_data.create_at_zero.error",
-    "translation": "如果有提供訊息建立時間，該值不能為 0。"
+    "translation": "訊息建立時間不能為 0。"
   },
   {
     "id": "app.import.validate_post_import_data.message_length.error",
@@ -3380,51 +3380,51 @@
   },
   {
     "id": "app.import.validate_reaction_import_data.create_at_before_parent.error",
-    "translation": "Reaction CreateAt property must be greater than the parent post CreateAt."
+    "translation": "互動建立時間必須大於隸屬訊息的建立時間。"
   },
   {
     "id": "app.import.validate_reaction_import_data.create_at_missing.error",
-    "translation": "缺少必要的訊息屬性：建立日期。"
+    "translation": "缺少必要的互動屬性：建立日期。"
   },
   {
     "id": "app.import.validate_reaction_import_data.create_at_zero.error",
-    "translation": "如果有提供訊息建立時間，該值不能為 0。"
+    "translation": "互動建立時間不能為 0。"
   },
   {
     "id": "app.import.validate_reaction_import_data.emoji_name_length.error",
-    "translation": "訊息屬性長度超過允許的最大長度"
+    "translation": "互動屬性 繪文字名稱 長度超過允許的最大長度"
   },
   {
     "id": "app.import.validate_reaction_import_data.emoji_name_missing.error",
-    "translation": "缺少必要的訊息屬性：使用者。"
+    "translation": "缺少必要的互動屬性：繪文字名稱。"
   },
   {
     "id": "app.import.validate_reaction_import_data.user_missing.error",
-    "translation": "缺少必要的訊息屬性：使用者。"
+    "translation": "缺少必要的互動屬性：使用者。"
   },
   {
     "id": "app.import.validate_reply_import_data.create_at_before_parent.error",
-    "translation": "Reply CreateAt property must be greater than the parent post CreateAt."
+    "translation": "回應建立時間必須大於隸屬訊息的建立時間。"
   },
   {
     "id": "app.import.validate_reply_import_data.create_at_missing.error",
-    "translation": "缺少必要的訊息屬性：建立日期。"
+    "translation": "缺少必要的回應屬性：建立日期。"
   },
   {
     "id": "app.import.validate_reply_import_data.create_at_zero.error",
-    "translation": "如果有提供訊息建立時間，該值不能為 0。"
+    "translation": "回應建立時間不能為 0。"
   },
   {
     "id": "app.import.validate_reply_import_data.message_length.error",
-    "translation": "訊息屬性長度超過允許的最大長度"
+    "translation": "回應訊息屬性長度超過允許的最大長度"
   },
   {
     "id": "app.import.validate_reply_import_data.message_missing.error",
-    "translation": "缺少必要的訊息屬性：訊息。"
+    "translation": "缺少必要的回應屬性：訊息。"
   },
   {
     "id": "app.import.validate_reply_import_data.user_missing.error",
-    "translation": "缺少必要的訊息屬性：使用者。"
+    "translation": "缺少必要的回應屬性：使用者。"
   },
   {
     "id": "app.import.validate_team_import_data.allowed_domains_length.error",
