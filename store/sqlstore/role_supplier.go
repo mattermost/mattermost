@@ -19,6 +19,9 @@ type Role struct {
 	Name          string
 	DisplayName   string
 	Description   string
+	CreateAt      int64
+	UpdateAt      int64
+	DeleteAt      int64
 	Permissions   string
 	SchemeManaged bool
 }
@@ -39,6 +42,9 @@ func NewRoleFromModel(role *model.Role) *Role {
 		Name:          role.Name,
 		DisplayName:   role.DisplayName,
 		Description:   role.Description,
+		CreateAt:      role.CreateAt,
+		UpdateAt:      role.UpdateAt,
+		DeleteAt:      role.DeleteAt,
 		Permissions:   permissions,
 		SchemeManaged: role.SchemeManaged,
 	}
@@ -50,6 +56,9 @@ func (role Role) ToModel() *model.Role {
 		Name:          role.Name,
 		DisplayName:   role.DisplayName,
 		Description:   role.Description,
+		CreateAt:      role.CreateAt,
+		UpdateAt:      role.UpdateAt,
+		DeleteAt:      role.DeleteAt,
 		Permissions:   strings.Fields(role.Permissions),
 		SchemeManaged: role.SchemeManaged,
 	}
@@ -77,10 +86,13 @@ func (s *SqlSupplier) RoleSave(ctx context.Context, role *model.Role, hints ...s
 	dbRole := NewRoleFromModel(role)
 	if len(dbRole.Id) == 0 {
 		dbRole.Id = model.NewId()
+		dbRole.CreateAt = model.GetMillis()
+		dbRole.UpdateAt = dbRole.CreateAt
 		if err := s.GetMaster().Insert(dbRole); err != nil {
 			result.Err = model.NewAppError("SqlRoleStore.Save", "store.sql_role.save.insert.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 	} else {
+		dbRole.UpdateAt = model.GetMillis()
 		if rowsChanged, err := s.GetMaster().Update(dbRole); err != nil {
 			result.Err = model.NewAppError("SqlRoleStore.Save", "store.sql_role.save.update.app_error", nil, err.Error(), http.StatusInternalServerError)
 		} else if rowsChanged != 1 {
