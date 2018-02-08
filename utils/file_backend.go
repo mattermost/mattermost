@@ -22,7 +22,7 @@ type FileBackend interface {
 	RemoveDirectory(path string) *model.AppError
 }
 
-func NewFileBackend(settings *model.FileSettings) (FileBackend, *model.AppError) {
+func NewFileBackend(settings *model.FileSettings, enableComplianceFeatures bool) (FileBackend, *model.AppError) {
 	switch *settings.DriverName {
 	case model.IMAGE_DRIVER_S3:
 		return &S3FileBackend{
@@ -33,7 +33,7 @@ func NewFileBackend(settings *model.FileSettings) (FileBackend, *model.AppError)
 			signV2:    settings.AmazonS3SignV2 != nil && *settings.AmazonS3SignV2,
 			region:    settings.AmazonS3Region,
 			bucket:    settings.AmazonS3Bucket,
-			encrypt:   settings.AmazonS3SSE != nil && *settings.AmazonS3SSE && IsLicensed() && *License().Features.Compliance,
+			encrypt:   settings.AmazonS3SSE != nil && *settings.AmazonS3SSE && enableComplianceFeatures,
 			trace:     settings.AmazonS3Trace != nil && *settings.AmazonS3Trace,
 		}, nil
 	case model.IMAGE_DRIVER_LOCAL:

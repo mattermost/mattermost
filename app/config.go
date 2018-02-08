@@ -201,7 +201,7 @@ func (a *App) AsymmetricSigningKey() *ecdsa.PrivateKey {
 }
 
 func (a *App) regenerateClientConfig() {
-	a.clientConfig = utils.GenerateClientConfig(a.Config(), a.DiagnosticId())
+	a.clientConfig = utils.GenerateClientConfig(a.Config(), a.DiagnosticId(), a.License())
 	if key := a.AsymmetricSigningKey(); key != nil {
 		der, _ := x509.MarshalPKIXPublicKey(&key.PublicKey)
 		a.clientConfig["AsymmetricSigningPublicKey"] = base64.StdEncoding.EncodeToString(der)
