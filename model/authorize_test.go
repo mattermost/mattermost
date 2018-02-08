@@ -115,7 +115,7 @@ func TestAuthIsValid(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	ad.Scope = NewRandomString(129)
+	ad.Scope = NewRandomString(1025)
 	if err := ad.IsValid(); err == nil {
 		t.Fatal("Should have failed invalid Scope")
 	}
