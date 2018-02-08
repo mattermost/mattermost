@@ -8,9 +8,11 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 
+	"github.com/dyatlov/go-opengraph/opengraph"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -246,6 +248,84 @@ func TestImageProxy(t *testing.T) {
 			assert.Equal(t, "![foo]("+tc.ImageURL+")", th.App.PostWithProxyRemovedFromImageURLs(post).Message)
 			post.Message = "![foo](" + tc.ProxiedImageURL + ")"
 			assert.Equal(t, "![foo]("+tc.ImageURL+")", th.App.PostWithProxyRemovedFromImageURLs(post).Message)
+		})
+	}
+}
+
+func TestMakeOpenGraphURLsAbsolute(t *testing.T) {
+	for name, tc := range map[string]struct {
+		HTML       string
+		RequestURL string
+		URL        string
+		ImageURL   string
+	}{
+		"absolute URLs": {
+			HTML: `
+				<html>
+					<head>
+						<meta property="og:url" content="https://example.com/apps/mattermost">
+						<meta property="og:image" content="https://images.example.com/image.png">
+					</head>
+				</html>`,
+			RequestURL: "https://example.com",
+			URL:        "https://example.com/apps/mattermost",
+			ImageURL:   "https://images.example.com/image.png",
+		},
+		"relative URLs": {
+			HTML: `
+				<html>
+					<head>
+						<meta property="og:url" content="/apps/mattermost">
+						<meta property="og:image" content="/image.png">
+					</head>
+				</html>`,
+			RequestURL: "http://example.com",
+			URL:        "http://example.com/apps/mattermost",
+			ImageURL:   "http://example.com/image.png",
+		},
+		"relative URLs with HTTPS": {
+			HTML: `
+				<html>
+					<head>
+						<meta property="og:url" content="/apps/mattermost">
+						<meta property="og:image" content="/image.png">
+					</head>
+				</html>`,
+			RequestURL: "https://example.com",
+			URL:        "https://example.com/apps/mattermost",
+			ImageURL:   "https://example.com/image.png",
+		},
+		"missing image URL": {
+			HTML: `
+				<html>
+					<head>
+						<meta property="og:url" content="/apps/mattermost">
+					</head>
+				</html>`,
+			RequestURL: "http://example.com",
+			URL:        "http://example.com/apps/mattermost",
+			ImageURL:   "",
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			og := opengraph.NewOpenGraph()
+			if err := og.ProcessHTML(strings.NewReader(tc.HTML)); err != nil {
+				t.Fatal(err)
+			}
+
+			og = makeOpenGraphURLsAbsolute(og, tc.RequestURL)
+
+			if og.URL != tc.URL {
+				t.Fatalf("incorrect url, expected %v, got %v", tc.URL, og.URL)
+			}
+
+			if len(og.Images) > 0 {
+				if og.Images[0].URL != tc.ImageURL {
+					t.Fatalf("incorrect image url, expected %v, got %v", tc.ImageURL, og.Images[0].URL)
+				}
+			} else if tc.ImageURL != "" {
+				t.Fatal("missing image url, expected %v, got nothing", tc.ImageURL)
+			}
 		})
 	}
 }
