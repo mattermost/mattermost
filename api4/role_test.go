@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/utils"
 )
 
 func TestGetRole(t *testing.T) {
@@ -146,7 +147,7 @@ func TestPatchRole(t *testing.T) {
 		Name:          model.NewId(),
 		DisplayName:   model.NewId(),
 		Description:   model.NewId(),
-		Permissions:   []string{"manage_system", "create_public_channel"},
+		Permissions:   []string{"manage_system", "create_public_channel", "manage_slash_commands"},
 		SchemeManaged: true,
 	}
 
@@ -156,7 +157,7 @@ func TestPatchRole(t *testing.T) {
 	defer th.App.Srv.Store.Job().Delete(role.Id)
 
 	patch := &model.RolePatch{
-		Permissions: &[]string{"manage_system", "delete_public_channel"},
+		Permissions: &[]string{"manage_system", "create_public_channel", "manage_webhooks"},
 	}
 
 	received, resp := th.SystemAdminClient.PatchRole(role.Id, patch)
@@ -166,7 +167,7 @@ func TestPatchRole(t *testing.T) {
 	assert.Equal(t, received.Name, role.Name)
 	assert.Equal(t, received.DisplayName, role.DisplayName)
 	assert.Equal(t, received.Description, role.Description)
-	assert.EqualValues(t, received.Permissions, []string{"manage_system", "delete_public_channel"})
+	assert.EqualValues(t, received.Permissions, []string{"manage_system", "create_public_channel", "manage_webhooks"})
 	assert.Equal(t, received.SchemeManaged, role.SchemeManaged)
 
 	// Check a no-op patch succeeds.
@@ -181,4 +182,34 @@ func TestPatchRole(t *testing.T) {
 
 	received, resp = th.Client.PatchRole(role.Id, patch)
 	CheckForbiddenStatus(t, resp)
+
+	// Check a change that the license would not allow.
+	patch = &model.RolePatch{
+		Permissions: &[]string{"manage_system", "manage_webhooks"},
+	}
+
+	received, resp = th.SystemAdminClient.PatchRole(role.Id, patch)
+	CheckNotImplementedStatus(t, resp)
+
+	// Add a license.
+	isLicensed := utils.IsLicensed()
+	license := utils.License()
+	defer func() {
+		utils.SetIsLicensed(isLicensed)
+		utils.SetLicense(license)
+	}()
+	utils.SetIsLicensed(true)
+	utils.SetLicense(&model.License{Features: &model.Features{}})
+	utils.License().Features.SetDefaults()
+
+	// Try again, should succeed
+	received, resp = th.SystemAdminClient.PatchRole(role.Id, patch)
+	CheckNoError(t, resp)
+
+	assert.Equal(t, received.Id, role.Id)
+	assert.Equal(t, received.Name, role.Name)
+	assert.Equal(t, received.DisplayName, role.DisplayName)
+	assert.Equal(t, received.Description, role.Description)
+	assert.EqualValues(t, received.Permissions, []string{"manage_system", "manage_webhooks"})
+	assert.Equal(t, received.SchemeManaged, role.SchemeManaged)
 }

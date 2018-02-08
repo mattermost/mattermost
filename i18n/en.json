@@ -48,6 +48,10 @@
     "translation": "September"
   },
   {
+    "id": "api.roles.patch_roles.license.error",
+    "translation": "Your current license does not support advanced permissions."
+  },
+  {
     "id": "api.admin.add_certificate.no_file.app_error",
     "translation": "No file under 'certificate' in request."
   },

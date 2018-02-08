@@ -81,6 +81,41 @@ func (o *Role) Patch(patch *RolePatch) {
 	}
 }
 
+// Returns an array of permissions that are in either role.Permissions
+// or patch.Permissions, but not both.
+func PermissionsChangedByPatch(role *Role, patch *RolePatch) []string {
+	var result []string
+
+	if patch.Permissions == nil {
+		return result
+	}
+
+	roleMap := make(map[string]bool)
+	patchMap := make(map[string]bool)
+
+	for _, permission := range role.Permissions {
+		roleMap[permission] = true
+	}
+
+	for _, permission := range *patch.Permissions {
+		patchMap[permission] = true
+	}
+
+	for _, permission := range role.Permissions {
+		if !patchMap[permission] {
+			result = append(result, permission)
+		}
+	}
+
+	for _, permission := range *patch.Permissions {
+		if !roleMap[permission] {
+			result = append(result, permission)
+		}
+	}
+
+	return result
+}
+
 func (role *Role) IsValid() bool {
 	if len(role.Id) != 26 {
 		return false
