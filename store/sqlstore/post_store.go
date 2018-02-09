@@ -439,8 +439,8 @@ func (s SqlPostStore) GetPosts(channelId string, offset int, limit int, allowFro
 			return
 		}
 
-		if allowFromCache && offset == 0 && limit == 60 {
-			if cacheItem, ok := lastPostsCache.Get(channelId); ok {
+		if allowFromCache && offset == 0 {
+			if cacheItem, ok := lastPostsCache.Get(fmt.Sprintf("%s%v", channelId, limit)); ok {
 				if s.metrics != nil {
 					s.metrics.IncrementMemCacheHitCounter("Last Posts Cache")
 				}
@@ -482,8 +482,8 @@ func (s SqlPostStore) GetPosts(channelId string, offset int, limit int, allowFro
 
 			list.MakeNonNil()
 
-			if offset == 0 && limit == 60 {
-				lastPostsCache.AddWithExpiresInSecs(channelId, list, LAST_POSTS_CACHE_SEC)
+			if offset == 0 {
+				lastPostsCache.AddWithExpiresInSecs(fmt.Sprintf("%s%v", channelId, limit), list, LAST_POSTS_CACHE_SEC)
 			}
 
 			result.Data = list
