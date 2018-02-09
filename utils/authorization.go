@@ -260,27 +260,6 @@ func SetRolePermissionsFromConfig(roles map[string]*model.Role, cfg *model.Confi
 		)
 	}
 
-	// Grant permissions for editing posts.
-	if isLicensed {
-		switch *cfg.ServiceSettings.AllowEditPost {
-		case model.ALLOW_EDIT_POST_NEVER:
-			index := indexInSlice(model.PERMISSION_EDIT_POST.Id, roles[model.SYSTEM_ADMIN_ROLE_ID].Permissions)
-			if index != -1 {
-				roles[model.SYSTEM_ADMIN_ROLE_ID].Permissions = append(
-					roles[model.SYSTEM_ADMIN_ROLE_ID].Permissions[:index],
-					roles[model.SYSTEM_ADMIN_ROLE_ID].Permissions[index+1:]...,
-				)
-			}
-			index = indexInSlice(model.PERMISSION_EDIT_POST.Id, roles[model.CHANNEL_USER_ROLE_ID].Permissions)
-			if index != -1 {
-				roles[model.CHANNEL_USER_ROLE_ID].Permissions = append(
-					roles[model.CHANNEL_USER_ROLE_ID].Permissions[:index],
-					roles[model.CHANNEL_USER_ROLE_ID].Permissions[index+1:]...,
-				)
-			}
-		}
-	}
-
 	if cfg.TeamSettings.EnableTeamCreation {
 		roles[model.SYSTEM_USER_ROLE_ID].Permissions = append(
 			roles[model.SYSTEM_USER_ROLE_ID].Permissions,
@@ -288,7 +267,7 @@ func SetRolePermissionsFromConfig(roles map[string]*model.Role, cfg *model.Confi
 		)
 	}
 
-	if IsLicensed() {
+	if isLicensed {
 		switch *cfg.ServiceSettings.AllowEditPost {
 		case model.ALLOW_EDIT_POST_ALWAYS, model.ALLOW_EDIT_POST_TIME_LIMIT:
 			roles[model.CHANNEL_USER_ROLE_ID].Permissions = append(
