@@ -271,7 +271,7 @@ func TestMakeOpenGraphURLsAbsolute(t *testing.T) {
 			URL:        "https://example.com/apps/mattermost",
 			ImageURL:   "https://images.example.com/image.png",
 		},
-		"relative URLs": {
+		"URLs starting with /": {
 			HTML: `
 				<html>
 					<head>
@@ -283,7 +283,7 @@ func TestMakeOpenGraphURLsAbsolute(t *testing.T) {
 			URL:        "http://example.com/apps/mattermost",
 			ImageURL:   "http://example.com/image.png",
 		},
-		"relative URLs with HTTPS": {
+		"HTTPS URLs starting with /": {
 			HTML: `
 				<html>
 					<head>
@@ -306,6 +306,18 @@ func TestMakeOpenGraphURLsAbsolute(t *testing.T) {
 			URL:        "http://example.com/apps/mattermost",
 			ImageURL:   "",
 		},
+		"relative URLs": {
+			HTML: `
+				<html>
+					<head>
+						<meta property="og:url" content="index.html">
+						<meta property="og:image" content="../resources/image.png">
+					</head>
+				</html>`,
+			RequestURL: "http://example.com/content/index.html",
+			URL:        "http://example.com/content/index.html",
+			ImageURL:   "http://example.com/resources/image.png",
+		},
 	} {
 		t.Run(name, func(t *testing.T) {
 			og := opengraph.NewOpenGraph()
@@ -313,7 +325,7 @@ func TestMakeOpenGraphURLsAbsolute(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			og = makeOpenGraphURLsAbsolute(og, tc.RequestURL)
+			makeOpenGraphURLsAbsolute(og, tc.RequestURL)
 
 			if og.URL != tc.URL {
 				t.Fatalf("incorrect url, expected %v, got %v", tc.URL, og.URL)

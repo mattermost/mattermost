@@ -749,16 +749,16 @@ func (a *App) GetOpenGraphMetadata(requestURL string) *opengraph.OpenGraph {
 		l4g.Error("GetOpenGraphMetadata processing failed for url=%v with err=%v", requestURL, err.Error())
 	}
 
-	og = makeOpenGraphURLsAbsolute(og, requestURL)
+	makeOpenGraphURLsAbsolute(og, requestURL)
 
 	return og
 }
 
-func makeOpenGraphURLsAbsolute(og *opengraph.OpenGraph, requestURL string) *opengraph.OpenGraph {
+func makeOpenGraphURLsAbsolute(og *opengraph.OpenGraph, requestURL string) {
 	parsedRequestURL, err := url.Parse(requestURL)
 	if err != nil {
 		l4g.Warn("makeOpenGraphURLsAbsolute failed to parse url=%v", requestURL)
-		return og
+		return
 	}
 
 	makeURLAbsolute := func(resultURL string) string {
@@ -776,10 +776,7 @@ func makeOpenGraphURLsAbsolute(og *opengraph.OpenGraph, requestURL string) *open
 			return resultURL
 		}
 
-		parsedResultURL.Scheme = parsedRequestURL.Scheme
-		parsedResultURL.Host = parsedRequestURL.Host
-
-		return parsedResultURL.String()
+		return parsedRequestURL.ResolveReference(parsedResultURL).String()
 	}
 
 	og.URL = makeURLAbsolute(og.URL)
@@ -798,8 +795,6 @@ func makeOpenGraphURLsAbsolute(og *opengraph.OpenGraph, requestURL string) *open
 		video.URL = makeURLAbsolute(video.URL)
 		video.SecureURL = makeURLAbsolute(video.SecureURL)
 	}
-
-	return og
 }
 
 func (a *App) DoPostAction(postId string, actionId string, userId string) *model.AppError {
