@@ -292,12 +292,3 @@ func SetRolePermissionsFromConfig(roles map[string]*model.Role, cfg *model.Confi
 
 	return roles
 }
-
-func indexInSlice(item string, items []string) int {
-	for i, v := range items {
-		if v == item {
-			return i
-		}
-	}
-	return -1
-}
