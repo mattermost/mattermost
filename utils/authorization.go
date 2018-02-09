@@ -7,7 +7,7 @@ import (
 	"github.com/mattermost/mattermost-server/model"
 )
 
-func DefaultRolesBasedOnConfig(cfg *model.Config) map[string]*model.Role {
+func DefaultRolesBasedOnConfig(cfg *model.Config, isLicensed bool) map[string]*model.Role {
 	roles := make(map[string]*model.Role)
 	for id, role := range model.DefaultRoles {
 		copy := &model.Role{}
@@ -15,7 +15,7 @@ func DefaultRolesBasedOnConfig(cfg *model.Config) map[string]*model.Role {
 		roles[id] = copy
 	}
 
-	if IsLicensed() {
+	if isLicensed {
 		switch *cfg.TeamSettings.RestrictPublicChannelCreation {
 		case model.PERMISSIONS_ALL:
 			roles[model.TEAM_USER_ROLE_ID].Permissions = append(
@@ -35,7 +35,7 @@ func DefaultRolesBasedOnConfig(cfg *model.Config) map[string]*model.Role {
 		)
 	}
 
-	if IsLicensed() {
+	if isLicensed {
 		switch *cfg.TeamSettings.RestrictPublicChannelManagement {
 		case model.PERMISSIONS_ALL:
 			roles[model.TEAM_USER_ROLE_ID].Permissions = append(
@@ -64,7 +64,7 @@ func DefaultRolesBasedOnConfig(cfg *model.Config) map[string]*model.Role {
 		)
 	}
 
-	if IsLicensed() {
+	if isLicensed {
 		switch *cfg.TeamSettings.RestrictPublicChannelDeletion {
 		case model.PERMISSIONS_ALL:
 			roles[model.TEAM_USER_ROLE_ID].Permissions = append(
@@ -93,7 +93,7 @@ func DefaultRolesBasedOnConfig(cfg *model.Config) map[string]*model.Role {
 		)
 	}
 
-	if IsLicensed() {
+	if isLicensed {
 		switch *cfg.TeamSettings.RestrictPrivateChannelCreation {
 		case model.PERMISSIONS_ALL:
 			roles[model.TEAM_USER_ROLE_ID].Permissions = append(
@@ -113,7 +113,7 @@ func DefaultRolesBasedOnConfig(cfg *model.Config) map[string]*model.Role {
 		)
 	}
 
-	if IsLicensed() {
+	if isLicensed {
 		switch *cfg.TeamSettings.RestrictPrivateChannelManagement {
 		case model.PERMISSIONS_ALL:
 			roles[model.TEAM_USER_ROLE_ID].Permissions = append(
@@ -142,7 +142,7 @@ func DefaultRolesBasedOnConfig(cfg *model.Config) map[string]*model.Role {
 		)
 	}
 
-	if IsLicensed() {
+	if isLicensed {
 		switch *cfg.TeamSettings.RestrictPrivateChannelDeletion {
 		case model.PERMISSIONS_ALL:
 			roles[model.TEAM_USER_ROLE_ID].Permissions = append(
@@ -172,7 +172,7 @@ func DefaultRolesBasedOnConfig(cfg *model.Config) map[string]*model.Role {
 	}
 
 	// Restrict permissions for Private Channel Manage Members
-	if IsLicensed() {
+	if isLicensed {
 		switch *cfg.TeamSettings.RestrictPrivateChannelManageMembers {
 		case model.PERMISSIONS_ALL:
 			roles[model.CHANNEL_USER_ROLE_ID].Permissions = append(
@@ -214,7 +214,7 @@ func DefaultRolesBasedOnConfig(cfg *model.Config) map[string]*model.Role {
 	}
 
 	// Grant permissions for inviting and adding users to a team.
-	if IsLicensed() {
+	if isLicensed {
 		if *cfg.TeamSettings.RestrictTeamInvite == model.PERMISSIONS_TEAM_ADMIN {
 			roles[model.TEAM_ADMIN_ROLE_ID].Permissions = append(
 				roles[model.TEAM_ADMIN_ROLE_ID].Permissions,
@@ -236,7 +236,7 @@ func DefaultRolesBasedOnConfig(cfg *model.Config) map[string]*model.Role {
 		)
 	}
 
-	if IsLicensed() {
+	if isLicensed {
 		switch *cfg.ServiceSettings.RestrictPostDelete {
 		case model.PERMISSIONS_DELETE_POST_ALL:
 			roles[model.CHANNEL_USER_ROLE_ID].Permissions = append(

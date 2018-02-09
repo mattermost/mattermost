@@ -59,6 +59,10 @@ type App struct {
 	configFile      string
 	configListeners map[string]func(*model.Config, *model.Config)
 
+	licenseValue       atomic.Value
+	clientLicenseValue atomic.Value
+	licenseListeners   map[string]func()
+
 	newStore func() store.Store
 
 	htmlTemplateWatcher  *utils.HTMLTemplateWatcher
@@ -88,18 +92,16 @@ func New(options ...Option) (*App, error) {
 		panic("Only one App should exist at a time. Did you forget to call Shutdown()?")
 	}
 
-	// TODO: remove this once utils global license state is eliminated
-	utils.SetLicense(nil)
-
 	app := &App{
 		goroutineExitSignal: make(chan struct{}, 1),
 		Srv: &Server{
 			Router: mux.NewRouter(),
 		},
-		sessionCache:    utils.NewLru(model.SESSION_CACHE_SIZE),
-		configFile:      "config.json",
-		configListeners: make(map[string]func(*model.Config, *model.Config)),
-		clientConfig:    make(map[string]string),
+		sessionCache:     utils.NewLru(model.SESSION_CACHE_SIZE),
+		configFile:       "config.json",
+		configListeners:  make(map[string]func(*model.Config, *model.Config)),
+		clientConfig:     make(map[string]string),
+		licenseListeners: map[string]func(){},
 	}
 
 	for _, option := range options {
@@ -123,9 +125,9 @@ func New(options ...Option) (*App, error) {
 	app.configListenerId = app.AddConfigListener(func(_, _ *model.Config) {
 		app.configOrLicenseListener()
 	})
-	app.licenseListenerId = utils.AddLicenseListener(app.configOrLicenseListener)
+	app.licenseListenerId = app.AddLicenseListener(app.configOrLicenseListener)
 	app.regenerateClientConfig()
-	app.SetDefaultRolesBasedOnConfig()
+	app.setDefaultRolesBasedOnConfig()
 
 	l4g.Info(utils.T("api.server.new_server.init.info"))
 
@@ -166,7 +168,7 @@ func New(options ...Option) (*App, error) {
 
 func (a *App) configOrLicenseListener() {
 	a.regenerateClientConfig()
-	a.SetDefaultRolesBasedOnConfig()
+	a.setDefaultRolesBasedOnConfig()
 }
 
 func (a *App) Shutdown() {
@@ -188,7 +190,7 @@ func (a *App) Shutdown() {
 	}
 
 	a.RemoveConfigListener(a.configListenerId)
-	utils.RemoveLicenseListener(a.licenseListenerId)
+	a.RemoveLicenseListener(a.licenseListenerId)
 	l4g.Info(utils.T("api.server.stop_server.stopped.info"))
 
 	a.DisableConfigWatch()

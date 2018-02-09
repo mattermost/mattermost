@@ -50,7 +50,7 @@ func TestSendMailUsingConfig(t *testing.T) {
 	//Delete all the messages before check the sample email
 	DeleteMailBox(emailTo)
 
-	if err := SendMailUsingConfig(emailTo, emailSubject, emailBody, cfg); err != nil {
+	if err := SendMailUsingConfig(emailTo, emailSubject, emailBody, cfg, true); err != nil {
 		t.Log(err)
 		t.Fatal("Should connect to the STMP Server")
 	} else {
@@ -95,7 +95,7 @@ func TestSendMailUsingConfigAdvanced(t *testing.T) {
 	DeleteMailBox(smtpTo)
 
 	// create a file that will be attached to the email
-	fileBackend, err := NewFileBackend(&cfg.FileSettings)
+	fileBackend, err := NewFileBackend(&cfg.FileSettings, true)
 	assert.Nil(t, err)
 	fileContents := []byte("hello world")
 	fileName := "file.txt"
@@ -111,7 +111,7 @@ func TestSendMailUsingConfigAdvanced(t *testing.T) {
 	headers := make(map[string]string)
 	headers["TestHeader"] = "TestValue"
 
-	if err := SendMailUsingConfigAdvanced(mimeTo, smtpTo, from, emailSubject, emailBody, attachments, headers, cfg); err != nil {
+	if err := SendMailUsingConfigAdvanced(mimeTo, smtpTo, from, emailSubject, emailBody, attachments, headers, cfg, true); err != nil {
 		t.Log(err)
 		t.Fatal("Should connect to the STMP Server")
 	} else {
