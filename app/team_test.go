@@ -7,7 +7,15 @@ import (
 	"strings"
 	"testing"
 
+	"fmt"
+
+	"sync/atomic"
+
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/store"
+	"github.com/mattermost/mattermost-server/store/storetest"
+	"github.com/mattermost/mattermost-server/utils"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestCreateTeam(t *testing.T) {
@@ -392,4 +400,63 @@ func TestSanitizeTeams(t *testing.T) {
 			t.Fatal("shouldn't have sanitized second team")
 		}
 	})
+}
+
+func TestAddUserToTeamByHashMismatchedInviteId(t *testing.T) {
+	mockStore := &storetest.Store{}
+	defer mockStore.AssertExpectations(t)
+
+	teamId := model.NewId()
+	userId := model.NewId()
+	inviteSalt := model.NewId()
+
+	inviteId := model.NewId()
+	teamInviteId := model.NewId()
+
+	// generate a fake email invite - stolen from SendInviteEmails() in email.go
+	props := make(map[string]string)
+	props["email"] = model.NewId() + "@mattermost.com"
+	props["id"] = teamId
+	props["display_name"] = model.NewId()
+	props["name"] = model.NewId()
+	props["time"] = fmt.Sprintf("%v", model.GetMillis())
+	props["invite_id"] = inviteId
+	data := model.MapToJson(props)
+	hash := utils.HashSha256(fmt.Sprintf("%v:%v", data, inviteSalt))
+
+	// when the server tries to validate the invite, it will pull the user from our mock store
+	// this can return nil, because we'll fail before we get to trying to use it
+	mockStore.UserStore.On("Get", userId).Return(
+		storetest.NewStoreChannel(store.StoreResult{
+			Data: nil,
+			Err:  nil,
+		}),
+	)
+
+	// the server will also pull the team. the one we return has a different invite id than the one in the email invite we made above
+	mockStore.TeamStore.On("Get", teamId).Return(
+		storetest.NewStoreChannel(store.StoreResult{
+			Data: &model.Team{
+				InviteId: teamInviteId,
+			},
+			Err: nil,
+		}),
+	)
+
+	app := App{
+		Srv: &Server{
+			Store: mockStore,
+		},
+		config: atomic.Value{},
+	}
+	app.config.Store(&model.Config{
+		EmailSettings: model.EmailSettings{
+			InviteSalt: inviteSalt,
+		},
+	})
+
+	// this should fail because the invite ids are mismatched
+	team, err := app.AddUserToTeamByHash(userId, hash, data)
+	assert.Nil(t, team)
+	assert.Equal(t, "api.user.create_user.signup_link_mismatched_invite_id.app_error", err.Id)
 }

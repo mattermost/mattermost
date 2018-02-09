@@ -276,6 +276,7 @@ func (a *App) SendInviteEmails(team *model.Team, senderName string, invites []st
 			props["display_name"] = team.DisplayName
 			props["name"] = team.Name
 			props["time"] = fmt.Sprintf("%v", model.GetMillis())
+			props["invite_id"] = team.InviteId
 			data := model.MapToJson(props)
 			hash := utils.HashSha256(fmt.Sprintf("%v:%v", data, a.Config().EmailSettings.InviteSalt))
 			bodyPage.Props["Link"] = fmt.Sprintf("%s/signup_user_complete/?d=%s&h=%s", siteURL, url.QueryEscape(data), url.QueryEscape(hash))
