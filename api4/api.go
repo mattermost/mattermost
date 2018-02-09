@@ -76,6 +76,8 @@ type Routes struct {
 	Compliance *mux.Router // 'api/v4/compliance'
 	Cluster    *mux.Router // 'api/v4/cluster'
 
+	Image *mux.Router // 'api/v4/image'
+
 	LDAP *mux.Router // 'api/v4/ldap'
 
 	Elasticsearch *mux.Router // 'api/v4/elasticsearch'
@@ -194,6 +196,8 @@ func Init(a *app.App, root *mux.Router, full bool) *API {
 
 	api.BaseRoutes.OpenGraph = api.BaseRoutes.ApiRoot.PathPrefix("/opengraph").Subrouter()
 
+	api.BaseRoutes.Image = api.BaseRoutes.ApiRoot.PathPrefix("/image").Subrouter()
+
 	api.InitUser()
 	api.InitTeam()
 	api.InitChannel()
@@ -219,6 +223,7 @@ func Init(a *app.App, root *mux.Router, full bool) *API {
 	api.InitWebrtc()
 	api.InitOpenGraph()
 	api.InitPlugin()
+	api.InitImage()
 
 	root.Handle("/api/v4/{anything:.*}", http.HandlerFunc(Handle404))
 
