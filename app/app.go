@@ -110,15 +110,18 @@ func New(options ...Option) (*App, error) {
 
 	if utils.T == nil {
 		if err := utils.TranslationsPreInit(); err != nil {
+			app.Shutdown()
 			return nil, errors.Wrapf(err, "unable to load Mattermost translation files")
 		}
 	}
 	model.AppErrorInit(utils.T)
 	if err := app.LoadConfig(app.configFile); err != nil {
+		app.Shutdown()
 		return nil, err
 	}
 	app.EnableConfigWatch()
 	if err := utils.InitTranslations(app.Config().LocalizationSettings); err != nil {
+		app.Shutdown()
 		return nil, errors.Wrapf(err, "unable to load Mattermost translation files")
 	}
 
@@ -147,6 +150,7 @@ func New(options ...Option) (*App, error) {
 
 	app.Srv.Store = app.newStore()
 	if err := app.ensureAsymmetricSigningKey(); err != nil {
+		app.Shutdown()
 		return nil, errors.Wrapf(err, "unable to ensure asymmetric signing key")
 	}
 
@@ -182,7 +186,9 @@ func (a *App) Shutdown() {
 	a.ShutDownPlugins()
 	a.WaitForGoroutines()
 
-	a.Srv.Store.Close()
+	if a.Srv.Store != nil {
+		a.Srv.Store.Close()
+	}
 	a.Srv = nil
 
 	if a.htmlTemplateWatcher != nil {
