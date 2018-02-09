@@ -105,17 +105,17 @@ func TestConnection(config *model.Config) {
 	defer c.Close()
 }
 
-func SendMailUsingConfig(to, subject, htmlBody string, config *model.Config) *model.AppError {
+func SendMailUsingConfig(to, subject, htmlBody string, config *model.Config, enableComplianceFeatures bool) *model.AppError {
 	fromMail := mail.Address{Name: config.EmailSettings.FeedbackName, Address: config.EmailSettings.FeedbackEmail}
-	return sendMail(to, to, fromMail, subject, htmlBody, nil, nil, config)
+	return sendMail(to, to, fromMail, subject, htmlBody, nil, nil, config, enableComplianceFeatures)
 }
 
 // allows for sending an email with attachments and differing MIME/SMTP recipients
-func SendMailUsingConfigAdvanced(mimeTo, smtpTo string, from mail.Address, subject, htmlBody string, attachments []*model.FileInfo, mimeHeaders map[string]string, config *model.Config) *model.AppError {
-	return sendMail(mimeTo, smtpTo, from, subject, htmlBody, attachments, mimeHeaders, config)
+func SendMailUsingConfigAdvanced(mimeTo, smtpTo string, from mail.Address, subject, htmlBody string, attachments []*model.FileInfo, mimeHeaders map[string]string, config *model.Config, enableComplianceFeatures bool) *model.AppError {
+	return sendMail(mimeTo, smtpTo, from, subject, htmlBody, attachments, mimeHeaders, config, enableComplianceFeatures)
 }
 
-func sendMail(mimeTo, smtpTo string, from mail.Address, subject, htmlBody string, attachments []*model.FileInfo, mimeHeaders map[string]string, config *model.Config) *model.AppError {
+func sendMail(mimeTo, smtpTo string, from mail.Address, subject, htmlBody string, attachments []*model.FileInfo, mimeHeaders map[string]string, config *model.Config, enableComplianceFeatures bool) *model.AppError {
 	if !config.EmailSettings.SendEmailNotifications || len(config.EmailSettings.SMTPServer) == 0 {
 		return nil
 	}
@@ -151,7 +151,7 @@ func sendMail(mimeTo, smtpTo string, from mail.Address, subject, htmlBody string
 	m.AddAlternative("text/html", htmlMessage)
 
 	if attachments != nil {
-		fileBackend, err := NewFileBackend(&config.FileSettings)
+		fileBackend, err := NewFileBackend(&config.FileSettings, enableComplianceFeatures)
 		if err != nil {
 			return err
 		}
