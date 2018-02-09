@@ -4187,6 +4187,18 @@
     "translation": "Unable to find user on AD/LDAP server: "
   },
   {
+    "id": "ent.migration.migratetosaml.user_not_found_in_users_mapping_file",
+    "translation": "User not found in the users file."
+  },
+  {
+    "id": "ent.migration.migratetosaml.username_already_used_by_other_user",
+    "translation": "Username already used by other mattermost user."
+  },
+  {
+    "id": "ent.migration.migratetosaml.email_already_used_by_other_user",
+    "translation": "Email already used by other SAML user."
+  },
+  {
     "id": "ent.saml.attribute.app_error",
     "translation": "SAML login was unsuccessful because one of the attributes is incorrect. Please contact your System Administrator."
   },
