@@ -86,7 +86,7 @@ var appCount = 0
 
 // New creates a new App. You must call Shutdown when you're done with it.
 // XXX: For now, only one at a time is allowed as some resources are still shared.
-func New(options ...Option) (*App, error) {
+func New(options ...Option) (outApp *App, outErr error) {
 	appCount++
 	if appCount > 1 {
 		panic("Only one App should exist at a time. Did you forget to call Shutdown()?")
@@ -103,6 +103,11 @@ func New(options ...Option) (*App, error) {
 		clientConfig:     make(map[string]string),
 		licenseListeners: map[string]func(){},
 	}
+	defer func() {
+		if outErr != nil {
+			app.Shutdown()
+		}
+	}()
 
 	for _, option := range options {
 		option(app)
@@ -110,18 +115,15 @@ func New(options ...Option) (*App, error) {
 
 	if utils.T == nil {
 		if err := utils.TranslationsPreInit(); err != nil {
-			app.Shutdown()
 			return nil, errors.Wrapf(err, "unable to load Mattermost translation files")
 		}
 	}
 	model.AppErrorInit(utils.T)
 	if err := app.LoadConfig(app.configFile); err != nil {
-		app.Shutdown()
 		return nil, err
 	}
 	app.EnableConfigWatch()
 	if err := utils.InitTranslations(app.Config().LocalizationSettings); err != nil {
-		app.Shutdown()
 		return nil, errors.Wrapf(err, "unable to load Mattermost translation files")
 	}
 
@@ -150,7 +152,6 @@ func New(options ...Option) (*App, error) {
 
 	app.Srv.Store = app.newStore()
 	if err := app.ensureAsymmetricSigningKey(); err != nil {
-		app.Shutdown()
 		return nil, errors.Wrapf(err, "unable to ensure asymmetric signing key")
 	}
 
