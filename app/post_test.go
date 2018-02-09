@@ -15,6 +15,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/utils"
 )
 
 func TestUpdatePostEditAt(t *testing.T) {
@@ -41,6 +42,51 @@ func TestUpdatePostEditAt(t *testing.T) {
 	} else if saved.EditAt == post.EditAt {
 		t.Fatal("should have updated post.EditAt when updating post message")
 	}
+}
+
+func TestUpdatePostTimeLimit(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	post := &model.Post{}
+	*post = *th.BasicPost
+
+	isLicensed := utils.IsLicensed()
+	license := utils.License()
+	defer func() {
+		utils.SetIsLicensed(isLicensed)
+		utils.SetLicense(license)
+	}()
+	utils.SetIsLicensed(true)
+	utils.SetLicense(&model.License{Features: &model.Features{}})
+	utils.License().Features.SetDefaults()
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.PostEditTimeLimit = -1
+	})
+	if _, err := th.App.UpdatePost(post, true); err != nil {
+		t.Fatal(err)
+	}
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.PostEditTimeLimit = 1000000000
+	})
+	post.Message = model.NewId()
+	if _, err := th.App.UpdatePost(post, true); err != nil {
+		t.Fatal("should allow you to edit the post")
+	}
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.PostEditTimeLimit = 1
+	})
+	post.Message = model.NewId()
+	if _, err := th.App.UpdatePost(post, true); err == nil {
+		t.Fatal("should fail on update old post")
+	}
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.PostEditTimeLimit = -1
+	})
 }
 
 func TestPostReplyToPostWhereRootPosterLeftChannel(t *testing.T) {

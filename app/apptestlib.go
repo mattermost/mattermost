@@ -232,6 +232,7 @@ func (me *TestHelper) CreatePost(channel *model.Channel) *model.Post {
 		UserId:    me.BasicUser.Id,
 		ChannelId: channel.Id,
 		Message:   "message_" + id,
+		CreateAt:  model.GetMillis() - 10000,
 	}
 
 	utils.DisableDebugLogForTest()

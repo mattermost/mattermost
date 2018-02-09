@@ -109,10 +109,10 @@ func TestDoAdvancedPermissionsMigration(t *testing.T) {
 			model.PERMISSION_UPLOAD_FILE.Id,
 			model.PERMISSION_GET_PUBLIC_LINK.Id,
 			model.PERMISSION_CREATE_POST.Id,
-			model.PERMISSION_EDIT_POST.Id,
 			model.PERMISSION_USE_SLASH_COMMANDS.Id,
 			model.PERMISSION_MANAGE_PRIVATE_CHANNEL_MEMBERS.Id,
 			model.PERMISSION_DELETE_POST.Id,
+			model.PERMISSION_EDIT_POST.Id,
 		},
 		"channel_admin": []string{
 			model.PERMISSION_MANAGE_CHANNEL_ROLES.Id,
@@ -203,7 +203,6 @@ func TestDoAdvancedPermissionsMigration(t *testing.T) {
 			model.PERMISSION_UPLOAD_FILE.Id,
 			model.PERMISSION_GET_PUBLIC_LINK.Id,
 			model.PERMISSION_CREATE_POST.Id,
-			model.PERMISSION_EDIT_POST.Id,
 			model.PERMISSION_USE_SLASH_COMMANDS.Id,
 			model.PERMISSION_EDIT_OTHERS_POSTS.Id,
 			model.PERMISSION_REMOVE_USER_FROM_TEAM.Id,
@@ -214,6 +213,7 @@ func TestDoAdvancedPermissionsMigration(t *testing.T) {
 			model.PERMISSION_MANAGE_SLASH_COMMANDS.Id,
 			model.PERMISSION_MANAGE_OTHERS_SLASH_COMMANDS.Id,
 			model.PERMISSION_MANAGE_WEBHOOKS.Id,
+			model.PERMISSION_EDIT_POST.Id,
 		},
 	}
 
@@ -274,10 +274,10 @@ func TestDoAdvancedPermissionsMigration(t *testing.T) {
 			model.PERMISSION_UPLOAD_FILE.Id,
 			model.PERMISSION_GET_PUBLIC_LINK.Id,
 			model.PERMISSION_CREATE_POST.Id,
-			model.PERMISSION_EDIT_POST.Id,
 			model.PERMISSION_USE_SLASH_COMMANDS.Id,
 			model.PERMISSION_MANAGE_PRIVATE_CHANNEL_MEMBERS.Id,
 			model.PERMISSION_DELETE_POST.Id,
+			model.PERMISSION_EDIT_POST.Id,
 		},
 		"channel_admin": []string{
 			model.PERMISSION_MANAGE_CHANNEL_ROLES.Id,
@@ -368,7 +368,6 @@ func TestDoAdvancedPermissionsMigration(t *testing.T) {
 			model.PERMISSION_UPLOAD_FILE.Id,
 			model.PERMISSION_GET_PUBLIC_LINK.Id,
 			model.PERMISSION_CREATE_POST.Id,
-			model.PERMISSION_EDIT_POST.Id,
 			model.PERMISSION_USE_SLASH_COMMANDS.Id,
 			model.PERMISSION_EDIT_OTHERS_POSTS.Id,
 			model.PERMISSION_REMOVE_USER_FROM_TEAM.Id,
@@ -379,6 +378,7 @@ func TestDoAdvancedPermissionsMigration(t *testing.T) {
 			model.PERMISSION_MANAGE_SLASH_COMMANDS.Id,
 			model.PERMISSION_MANAGE_OTHERS_SLASH_COMMANDS.Id,
 			model.PERMISSION_MANAGE_WEBHOOKS.Id,
+			model.PERMISSION_EDIT_POST.Id,
 		},
 	}
 

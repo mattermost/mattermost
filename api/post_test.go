@@ -395,7 +395,13 @@ func TestUpdatePost(t *testing.T) {
 	Client := th.BasicClient
 	channel1 := th.BasicChannel
 
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowEditPost = model.ALLOW_EDIT_POST_ALWAYS })
+	// Check the appropriate permissions are enforced.
+	defaultRolePermissions := th.SaveDefaultRolePermissions()
+	defer func() {
+		th.RestoreDefaultRolePermissions(defaultRolePermissions)
+	}()
+
+	th.AddPermissionToRole(model.PERMISSION_EDIT_POST.Id, model.CHANNEL_USER_ROLE_ID)
 
 	post1 := &model.Post{ChannelId: channel1.Id, Message: "zz" + model.NewId() + "a"}
 	rpost1, err := Client.CreatePost(post1)
@@ -474,8 +480,7 @@ func TestUpdatePost(t *testing.T) {
 	utils.SetLicense(&model.License{Features: &model.Features{}})
 	utils.License().Features.SetDefaults()
 
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowEditPost = model.ALLOW_EDIT_POST_NEVER })
-
+	th.RemovePermissionFromRole(model.PERMISSION_EDIT_POST.Id, model.CHANNEL_USER_ROLE_ID)
 	post4 := &model.Post{ChannelId: channel1.Id, Message: "zz" + model.NewId() + "a", RootId: rpost1.Data.(*model.Post).Id}
 	rpost4, err := Client.CreatePost(post4)
 	if err != nil {
@@ -487,7 +492,7 @@ func TestUpdatePost(t *testing.T) {
 		t.Fatal("shouldn't have been able to update a message when not allowed")
 	}
 
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowEditPost = model.ALLOW_EDIT_POST_TIME_LIMIT })
+	th.AddPermissionToRole(model.PERMISSION_EDIT_POST.Id, model.CHANNEL_USER_ROLE_ID)
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.PostEditTimeLimit = 1 }) //seconds
 
 	post5 := &model.Post{ChannelId: channel1.Id, Message: "zz" + model.NewId() + "a", RootId: rpost1.Data.(*model.Post).Id}
