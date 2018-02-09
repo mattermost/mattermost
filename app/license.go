@@ -154,6 +154,10 @@ func (a *App) ClientLicense() map[string]string {
 }
 
 func (a *App) RemoveLicense() *model.AppError {
+	if license, _ := a.licenseValue.Load().(*model.License); license == nil {
+		return nil
+	}
+
 	sysVar := &model.System{}
 	sysVar.Name = model.SYSTEM_ACTIVE_LICENSE_ID
 	sysVar.Value = ""
