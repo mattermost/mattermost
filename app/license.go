@@ -16,7 +16,7 @@ import (
 )
 
 func (a *App) LoadLicense() {
-	a.RemoveLicense()
+	a.SetLicense(nil)
 
 	licenseId := ""
 	if result := <-a.Srv.Store.System().Get(); result.Err == nil {
