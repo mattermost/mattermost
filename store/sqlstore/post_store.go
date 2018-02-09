@@ -322,6 +322,8 @@ type etagPosts struct {
 
 func (s SqlPostStore) InvalidateLastPostTimeCache(channelId string) {
 	lastPostTimeCache.Remove(channelId)
+
+	// Keys are "{channelid}{limit}" and caching only occurs on limits of 30 and 60
 	lastPostsCache.Remove(channelId + "30")
 	lastPostsCache.Remove(channelId + "60")
 }
@@ -440,6 +442,7 @@ func (s SqlPostStore) GetPosts(channelId string, offset int, limit int, allowFro
 			return
 		}
 
+		// Caching only occurs on limits of 30 and 60, the common limits requested by MM clients
 		if allowFromCache && offset == 0 && (limit == 60 || limit == 30) {
 			if cacheItem, ok := lastPostsCache.Get(fmt.Sprintf("%s%v", channelId, limit)); ok {
 				if s.metrics != nil {
@@ -483,6 +486,7 @@ func (s SqlPostStore) GetPosts(channelId string, offset int, limit int, allowFro
 
 			list.MakeNonNil()
 
+			// Caching only occurs on limits of 30 and 60, the common limits requested by MM clients
 			if offset == 0 && (limit == 60 || limit == 30) {
 				lastPostsCache.AddWithExpiresInSecs(fmt.Sprintf("%s%v", channelId, limit), list, LAST_POSTS_CACHE_SEC)
 			}
