@@ -876,7 +876,7 @@ func (a *App) imageProxyConfig() (proxyType, proxyURL, options, siteURL string) 
 		proxyURL += "/"
 	}
 
-	if siteURL[len(siteURL)-1] != '/' {
+	if siteURL == "" || siteURL[len(siteURL)-1] != '/' {
 		siteURL += "/"
 	}
 
