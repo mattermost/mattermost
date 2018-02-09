@@ -876,6 +876,10 @@ func (a *App) imageProxyConfig() (proxyType, proxyURL, options, siteURL string) 
 		proxyURL += "/"
 	}
 
+	if siteURL[len(siteURL)-1] != '/' {
+		siteURL += "/"
+	}
+
 	if cfg.ServiceSettings.ImageProxyOptions != nil {
 		options = *cfg.ServiceSettings.ImageProxyOptions
 	}
@@ -890,12 +894,12 @@ func (a *App) ImageProxyAdder() func(string) string {
 	}
 
 	return func(url string) string {
-		if url == "" || strings.HasPrefix(url, proxyURL) {
+		if url == "" || strings.HasPrefix(url, siteURL) || strings.HasPrefix(url, proxyURL) {
 			return url
 		}
 
 		if url[0] == '/' {
-			url = siteURL + url
+			url = siteURL + url[1:]
 		}
 
 		switch proxyType {
