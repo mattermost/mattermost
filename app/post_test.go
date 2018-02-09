@@ -190,6 +190,10 @@ func TestImageProxy(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
 
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.SiteURL = "http://mymattermost.com"
+	})
+
 	for name, tc := range map[string]struct {
 		ProxyType       string
 		ProxyURL        string
@@ -210,6 +214,12 @@ func TestImageProxy(t *testing.T) {
 			ProxyOptions:    "x1000",
 			ImageURL:        "http://mydomain.com/myimage",
 			ProxiedImageURL: "https://127.0.0.1/x1000/http://mydomain.com/myimage",
+		},
+		"willnorris/imageproxy_SameSite": {
+			ProxyType:       "willnorris/imageproxy",
+			ProxyURL:        "https://127.0.0.1",
+			ImageURL:        "http://mymattermost.com/myimage",
+			ProxiedImageURL: "http://mymattermost.com/myimage",
 		},
 		"willnorris/imageproxy_EmptyImageURL": {
 			ProxyType:       "willnorris/imageproxy",
