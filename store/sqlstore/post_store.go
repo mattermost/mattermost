@@ -322,7 +322,8 @@ type etagPosts struct {
 
 func (s SqlPostStore) InvalidateLastPostTimeCache(channelId string) {
 	lastPostTimeCache.Remove(channelId)
-	lastPostsCache.Remove(channelId)
+	lastPostsCache.Remove(channelId + "30")
+	lastPostsCache.Remove(channelId + "60")
 }
 
 func (s SqlPostStore) GetEtag(channelId string, allowFromCache bool) store.StoreChannel {
@@ -439,7 +440,7 @@ func (s SqlPostStore) GetPosts(channelId string, offset int, limit int, allowFro
 			return
 		}
 
-		if allowFromCache && offset == 0 {
+		if allowFromCache && offset == 0 && (limit == 60 || limit == 30) {
 			if cacheItem, ok := lastPostsCache.Get(fmt.Sprintf("%s%v", channelId, limit)); ok {
 				if s.metrics != nil {
 					s.metrics.IncrementMemCacheHitCounter("Last Posts Cache")
@@ -482,7 +483,7 @@ func (s SqlPostStore) GetPosts(channelId string, offset int, limit int, allowFro
 
 			list.MakeNonNil()
 
-			if offset == 0 {
+			if offset == 0 && (limit == 60 || limit == 30) {
 				lastPostsCache.AddWithExpiresInSecs(fmt.Sprintf("%s%v", channelId, limit), list, LAST_POSTS_CACHE_SEC)
 			}
 
