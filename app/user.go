@@ -142,6 +142,17 @@ func (a *App) CreateUserFromSignup(user *model.User) (*model.User, *model.AppErr
 	if err != nil {
 		return nil, err
 	}
+	if *a.Config().TeamSettings.ExperimentalPrimaryTeam != "" {
+		var team *model.Team
+		var err *model.AppError
+		if team, err = a.GetTeamByName(*a.Config().TeamSettings.ExperimentalPrimaryTeam); err != nil {
+			return nil, err
+		}
+
+		if err := a.JoinUserToTeam(team, ruser, ""); err != nil {
+			return nil, err
+		}
+	}
 
 	if err := a.SendWelcomeEmail(ruser.Id, ruser.Email, ruser.EmailVerified, ruser.Locale, utils.GetSiteURL()); err != nil {
 		l4g.Error(err.Error())
