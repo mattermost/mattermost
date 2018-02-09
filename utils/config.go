@@ -456,6 +456,9 @@ func GenerateClientConfig(c *model.Config, diagnosticId string, license *model.L
 
 	props["PluginsEnabled"] = strconv.FormatBool(*c.PluginSettings.Enable)
 
+	hasImageProxy := c.ServiceSettings.ImageProxyType != nil && *c.ServiceSettings.ImageProxyType != "" && c.ServiceSettings.ImageProxyURL != nil && *c.ServiceSettings.ImageProxyURL != ""
+	props["HasImageProxy"] = strconv.FormatBool(hasImageProxy)
+
 	if license != nil {
 		props["ExperimentalTownSquareIsReadOnly"] = strconv.FormatBool(*c.TeamSettings.ExperimentalTownSquareIsReadOnly)
 		props["ExperimentalEnableAuthenticationTransfer"] = strconv.FormatBool(*c.ServiceSettings.ExperimentalEnableAuthenticationTransfer)

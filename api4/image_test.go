@@ -34,8 +34,7 @@ func TestGetImage(t *testing.T) {
 
 	resp, err := th.Client.HttpClient.Do(r)
 	require.NoError(t, err)
-	assert.Equal(t, http.StatusFound, resp.StatusCode)
-	assert.Equal(t, originURL, resp.Header.Get("Location"))
+	assert.Equal(t, http.StatusNotFound, resp.StatusCode)
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		cfg.ServiceSettings.ImageProxyType = model.NewString("willnorris/imageproxy")
