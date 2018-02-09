@@ -419,7 +419,7 @@ func (s *ServiceSettings) SetDefaults() {
 	}
 
 	if s.PostEditTimeLimit == nil {
-		s.PostEditTimeLimit = NewInt(300)
+		s.PostEditTimeLimit = NewInt(-1)
 	}
 
 	if s.EnablePreviewFeatures == nil {

@@ -182,7 +182,6 @@ func MakeDefaultRoles() map[string]*Role {
 			PERMISSION_UPLOAD_FILE.Id,
 			PERMISSION_GET_PUBLIC_LINK.Id,
 			PERMISSION_CREATE_POST.Id,
-			PERMISSION_EDIT_POST.Id,
 			PERMISSION_USE_SLASH_COMMANDS.Id,
 		},
 		SchemeManaged: true,

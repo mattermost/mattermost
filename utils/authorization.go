@@ -267,5 +267,28 @@ func SetRolePermissionsFromConfig(roles map[string]*model.Role, cfg *model.Confi
 		)
 	}
 
+	if IsLicensed() {
+		switch *cfg.ServiceSettings.AllowEditPost {
+		case model.ALLOW_EDIT_POST_ALWAYS, model.ALLOW_EDIT_POST_TIME_LIMIT:
+			roles[model.CHANNEL_USER_ROLE_ID].Permissions = append(
+				roles[model.CHANNEL_USER_ROLE_ID].Permissions,
+				model.PERMISSION_EDIT_POST.Id,
+			)
+			roles[model.SYSTEM_ADMIN_ROLE_ID].Permissions = append(
+				roles[model.SYSTEM_ADMIN_ROLE_ID].Permissions,
+				model.PERMISSION_EDIT_POST.Id,
+			)
+		}
+	} else {
+		roles[model.CHANNEL_USER_ROLE_ID].Permissions = append(
+			roles[model.CHANNEL_USER_ROLE_ID].Permissions,
+			model.PERMISSION_EDIT_POST.Id,
+		)
+		roles[model.SYSTEM_ADMIN_ROLE_ID].Permissions = append(
+			roles[model.SYSTEM_ADMIN_ROLE_ID].Permissions,
+			model.PERMISSION_EDIT_POST.Id,
+		)
+	}
+
 	return roles
 }
