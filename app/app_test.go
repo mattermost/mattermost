@@ -5,6 +5,7 @@ package app
 
 import (
 	"flag"
+	"fmt"
 	"os"
 	"testing"
 
@@ -275,6 +276,8 @@ func TestDoAdvancedPermissionsMigration(t *testing.T) {
 			model.PERMISSION_GET_PUBLIC_LINK.Id,
 			model.PERMISSION_CREATE_POST.Id,
 			model.PERMISSION_USE_SLASH_COMMANDS.Id,
+			model.PERMISSION_DELETE_PUBLIC_CHANNEL.Id,
+			model.PERMISSION_DELETE_PRIVATE_CHANNEL.Id,
 			model.PERMISSION_MANAGE_PRIVATE_CHANNEL_MEMBERS.Id,
 			model.PERMISSION_DELETE_POST.Id,
 			model.PERMISSION_EDIT_POST.Id,
@@ -389,7 +392,7 @@ func TestDoAdvancedPermissionsMigration(t *testing.T) {
 	for name, permissions := range expected2 {
 		role, err := th.App.GetRoleByName(name)
 		assert.Nil(t, err)
-		assert.Equal(t, permissions, role.Permissions)
+		assert.Equal(t, permissions, role.Permissions, fmt.Sprintf("'%v' did not have expected permissions", name))
 	}
 
 	// Remove the license.
