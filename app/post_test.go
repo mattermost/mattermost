@@ -221,6 +221,12 @@ func TestImageProxy(t *testing.T) {
 			ImageURL:        "http://mymattermost.com/myimage",
 			ProxiedImageURL: "http://mymattermost.com/myimage",
 		},
+		"willnorris/imageproxy_PathOnly": {
+			ProxyType:       "willnorris/imageproxy",
+			ProxyURL:        "https://127.0.0.1",
+			ImageURL:        "/myimage",
+			ProxiedImageURL: "/myimage",
+		},
 		"willnorris/imageproxy_EmptyImageURL": {
 			ProxyType:       "willnorris/imageproxy",
 			ProxyURL:        "https://127.0.0.1",

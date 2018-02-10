@@ -894,12 +894,8 @@ func (a *App) ImageProxyAdder() func(string) string {
 	}
 
 	return func(url string) string {
-		if url == "" || strings.HasPrefix(url, siteURL) || strings.HasPrefix(url, proxyURL) {
+		if url == "" || url[0] == '/' || strings.HasPrefix(url, siteURL) || strings.HasPrefix(url, proxyURL) {
 			return url
-		}
-
-		if url[0] == '/' {
-			url = siteURL + url[1:]
 		}
 
 		switch proxyType {
