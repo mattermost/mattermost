@@ -6,10 +6,11 @@ package app
 import (
 	"testing"
 
+	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/utils"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
-	"github.com/mattermost/mattermost-server/model"
 )
 
 func TestCache(t *testing.T) {
@@ -47,7 +48,18 @@ func TestGetSessionIdleTimeoutInMinutes(t *testing.T) {
 
 	session, _ = th.App.CreateSession(session)
 
-	th.App.SetLicense(model.NewTestLicense("compliance"))
+	isLicensed := utils.IsLicensed()
+	license := utils.License()
+	timeout := *th.App.Config().ServiceSettings.SessionIdleTimeoutInMinutes
+	defer func() {
+		utils.SetIsLicensed(isLicensed)
+		utils.SetLicense(license)
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.SessionIdleTimeoutInMinutes = timeout })
+	}()
+	utils.SetIsLicensed(true)
+	utils.SetLicense(&model.License{Features: &model.Features{}})
+	utils.License().Features.SetDefaults()
+	*utils.License().Features.Compliance = true
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.SessionIdleTimeoutInMinutes = 5 })
 
 	rsession, err := th.App.GetSession(session.Token)
@@ -110,7 +122,7 @@ func TestGetSessionIdleTimeoutInMinutes(t *testing.T) {
 	assert.Nil(t, err)
 
 	// Test regular session with license off, should not timeout
-	th.App.SetLicense(nil)
+	*utils.License().Features.Compliance = false
 
 	session = &model.Session{
 		UserId: model.NewId(),
@@ -124,7 +136,7 @@ func TestGetSessionIdleTimeoutInMinutes(t *testing.T) {
 	_, err = th.App.GetSession(session.Token)
 	assert.Nil(t, err)
 
-	th.App.SetLicense(model.NewTestLicense("compliance"))
+	*utils.License().Features.Compliance = true
 
 	// Test regular session with timeout set to 0, should not timeout
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.SessionIdleTimeoutInMinutes = 0 })

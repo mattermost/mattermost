@@ -28,7 +28,6 @@ const (
 	POST_ADD_REMOVE             = "system_add_remove" // Deprecated, use POST_ADD_TO_CHANNEL or POST_REMOVE_FROM_CHANNEL instead
 	POST_ADD_TO_CHANNEL         = "system_add_to_channel"
 	POST_REMOVE_FROM_CHANNEL    = "system_remove_from_channel"
-	POST_MOVE_CHANNEL           = "system_move_channel"
 	POST_ADD_TO_TEAM            = "system_add_to_team"
 	POST_REMOVE_FROM_TEAM       = "system_remove_from_team"
 	POST_HEADER_CHANGE          = "system_header_change"
@@ -122,13 +121,12 @@ type PostActionIntegrationResponse struct {
 func (o *Post) ToJson() string {
 	copy := *o
 	copy.StripActionIntegrations()
-	b, _ := json.Marshal(&copy)
-	return string(b)
-}
-
-func (o *Post) ToUnsanitizedJson() string {
-	b, _ := json.Marshal(o)
-	return string(b)
+	b, err := json.Marshal(&copy)
+	if err != nil {
+		return ""
+	} else {
+		return string(b)
+	}
 }
 
 func PostFromJson(data io.Reader) *Post {
@@ -198,7 +196,6 @@ func (o *Post) IsValid() *AppError {
 		POST_LEAVE_TEAM,
 		POST_ADD_TO_CHANNEL,
 		POST_REMOVE_FROM_CHANNEL,
-		POST_MOVE_CHANNEL,
 		POST_ADD_TO_TEAM,
 		POST_REMOVE_FROM_TEAM,
 		POST_SLACK_ATTACHMENT,

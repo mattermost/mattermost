@@ -276,7 +276,7 @@ store-mocks: ## Creates mock files.
 	GOPATH=$(shell go env GOPATH) $(shell go env GOPATH)/bin/mockery -dir store -all -output store/storetest/mocks -note 'Regenerate this file using `make store-mocks`.'
 
 update-jira-plugin: ## Updates Jira plugin.
-	go get github.com/mattermost/go-bindata/...
+	go get github.com/jteeuwen/go-bindata/...
 	curl -s https://api.github.com/repos/mattermost/mattermost-plugin-jira/releases/latest | grep browser_download_url | grep darwin-amd64 | cut -d '"' -f 4 | wget -qi - -O plugin.tar.gz
 	$(shell go env GOPATH)/bin/go-bindata -pkg jira -o app/plugin/jira/plugin_darwin_amd64.go plugin.tar.gz
 	curl -s https://api.github.com/repos/mattermost/mattermost-plugin-jira/releases/latest | grep browser_download_url | grep linux-amd64 | cut -d '"' -f 4 | wget -qi - -O plugin.tar.gz
@@ -287,7 +287,7 @@ update-jira-plugin: ## Updates Jira plugin.
 	gofmt -s -w ./app/plugin/jira
 
 update-zoom-plugin: ## Updates Zoom plugin.
-	go get github.com/mattermost/go-bindata/...
+	go get github.com/jteeuwen/go-bindata/...
 	curl -s https://api.github.com/repos/mattermost/mattermost-plugin-zoom/releases/latest | grep browser_download_url | grep darwin-amd64 | cut -d '"' -f 4 | wget -qi - -O plugin.tar.gz
 	$(shell go env GOPATH)/bin/go-bindata -pkg zoom -o app/plugin/zoom/plugin_darwin_amd64.go plugin.tar.gz
 	curl -s https://api.github.com/repos/mattermost/mattermost-plugin-zoom/releases/latest | grep browser_download_url | grep linux-amd64 | cut -d '"' -f 4 | wget -qi - -O plugin.tar.gz

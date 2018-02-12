@@ -342,7 +342,7 @@ func LoadConfig(fileName string) (config *model.Config, configPath string, appEr
 	return config, configPath, nil
 }
 
-func GenerateClientConfig(c *model.Config, diagnosticId string, license *model.License) map[string]string {
+func GenerateClientConfig(c *model.Config, diagnosticId string) map[string]string {
 	props := make(map[string]string)
 
 	props["Version"] = model.CurrentVersion
@@ -459,17 +459,18 @@ func GenerateClientConfig(c *model.Config, diagnosticId string, license *model.L
 	hasImageProxy := c.ServiceSettings.ImageProxyType != nil && *c.ServiceSettings.ImageProxyType != "" && c.ServiceSettings.ImageProxyURL != nil && *c.ServiceSettings.ImageProxyURL != ""
 	props["HasImageProxy"] = strconv.FormatBool(hasImageProxy)
 
-	if license != nil {
+	if IsLicensed() {
+		License := License()
 		props["ExperimentalTownSquareIsReadOnly"] = strconv.FormatBool(*c.TeamSettings.ExperimentalTownSquareIsReadOnly)
 		props["ExperimentalEnableAuthenticationTransfer"] = strconv.FormatBool(*c.ServiceSettings.ExperimentalEnableAuthenticationTransfer)
 
-		if *license.Features.CustomBrand {
+		if *License.Features.CustomBrand {
 			props["EnableCustomBrand"] = strconv.FormatBool(*c.TeamSettings.EnableCustomBrand)
 			props["CustomBrandText"] = *c.TeamSettings.CustomBrandText
 			props["CustomDescriptionText"] = *c.TeamSettings.CustomDescriptionText
 		}
 
-		if *license.Features.LDAP {
+		if *License.Features.LDAP {
 			props["EnableLdap"] = strconv.FormatBool(*c.LdapSettings.Enable)
 			props["LdapLoginFieldName"] = *c.LdapSettings.LoginFieldName
 			props["LdapNicknameAttributeSet"] = strconv.FormatBool(*c.LdapSettings.NicknameAttribute != "")
@@ -480,16 +481,16 @@ func GenerateClientConfig(c *model.Config, diagnosticId string, license *model.L
 			props["LdapLoginButtonTextColor"] = *c.LdapSettings.LoginButtonTextColor
 		}
 
-		if *license.Features.MFA {
+		if *License.Features.MFA {
 			props["EnableMultifactorAuthentication"] = strconv.FormatBool(*c.ServiceSettings.EnableMultifactorAuthentication)
 			props["EnforceMultifactorAuthentication"] = strconv.FormatBool(*c.ServiceSettings.EnforceMultifactorAuthentication)
 		}
 
-		if *license.Features.Compliance {
+		if *License.Features.Compliance {
 			props["EnableCompliance"] = strconv.FormatBool(*c.ComplianceSettings.Enable)
 		}
 
-		if *license.Features.SAML {
+		if *License.Features.SAML {
 			props["EnableSaml"] = strconv.FormatBool(*c.SamlSettings.Enable)
 			props["SamlLoginButtonText"] = *c.SamlSettings.LoginButtonText
 			props["SamlFirstNameAttributeSet"] = strconv.FormatBool(*c.SamlSettings.FirstNameAttribute != "")
@@ -500,23 +501,23 @@ func GenerateClientConfig(c *model.Config, diagnosticId string, license *model.L
 			props["SamlLoginButtonTextColor"] = *c.SamlSettings.LoginButtonTextColor
 		}
 
-		if *license.Features.Cluster {
+		if *License.Features.Cluster {
 			props["EnableCluster"] = strconv.FormatBool(*c.ClusterSettings.Enable)
 		}
 
-		if *license.Features.Cluster {
+		if *License.Features.Cluster {
 			props["EnableMetrics"] = strconv.FormatBool(*c.MetricsSettings.Enable)
 		}
 
-		if *license.Features.GoogleOAuth {
+		if *License.Features.GoogleOAuth {
 			props["EnableSignUpWithGoogle"] = strconv.FormatBool(c.GoogleSettings.Enable)
 		}
 
-		if *license.Features.Office365OAuth {
+		if *License.Features.Office365OAuth {
 			props["EnableSignUpWithOffice365"] = strconv.FormatBool(c.Office365Settings.Enable)
 		}
 
-		if *license.Features.PasswordRequirements {
+		if *License.Features.PasswordRequirements {
 			props["PasswordMinimumLength"] = fmt.Sprintf("%v", *c.PasswordSettings.MinimumLength)
 			props["PasswordRequireLowercase"] = strconv.FormatBool(*c.PasswordSettings.Lowercase)
 			props["PasswordRequireUppercase"] = strconv.FormatBool(*c.PasswordSettings.Uppercase)
@@ -524,7 +525,7 @@ func GenerateClientConfig(c *model.Config, diagnosticId string, license *model.L
 			props["PasswordRequireSymbol"] = strconv.FormatBool(*c.PasswordSettings.Symbol)
 		}
 
-		if *license.Features.Announcement {
+		if *License.Features.Announcement {
 			props["EnableBanner"] = strconv.FormatBool(*c.AnnouncementSettings.EnableBanner)
 			props["BannerText"] = *c.AnnouncementSettings.BannerText
 			props["BannerColor"] = *c.AnnouncementSettings.BannerColor
@@ -532,14 +533,14 @@ func GenerateClientConfig(c *model.Config, diagnosticId string, license *model.L
 			props["AllowBannerDismissal"] = strconv.FormatBool(*c.AnnouncementSettings.AllowBannerDismissal)
 		}
 
-		if *license.Features.ThemeManagement {
+		if *License.Features.ThemeManagement {
 			props["EnableThemeSelection"] = strconv.FormatBool(*c.ThemeSettings.EnableThemeSelection)
 			props["DefaultTheme"] = *c.ThemeSettings.DefaultTheme
 			props["AllowCustomThemes"] = strconv.FormatBool(*c.ThemeSettings.AllowCustomThemes)
 			props["AllowedThemes"] = strings.Join(c.ThemeSettings.AllowedThemes, ",")
 		}
 
-		if *license.Features.DataRetention {
+		if *License.Features.DataRetention {
 			props["DataRetentionEnableMessageDeletion"] = strconv.FormatBool(*c.DataRetentionSettings.EnableMessageDeletion)
 			props["DataRetentionMessageRetentionDays"] = strconv.FormatInt(int64(*c.DataRetentionSettings.MessageRetentionDays), 10)
 			props["DataRetentionEnableFileDeletion"] = strconv.FormatBool(*c.DataRetentionSettings.EnableFileDeletion)

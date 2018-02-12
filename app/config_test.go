@@ -6,8 +6,6 @@ package app
 import (
 	"testing"
 
-	"github.com/stretchr/testify/assert"
-
 	"github.com/mattermost/mattermost-server/model"
 )
 
@@ -55,11 +53,4 @@ func TestConfigListener(t *testing.T) {
 	} else if !listener2Called {
 		t.Fatal("listener 2 should've been called")
 	}
-}
-
-func TestAsymmetricSigningKey(t *testing.T) {
-	th := Setup().InitBasic()
-	defer th.TearDown()
-	assert.NotNil(t, th.App.AsymmetricSigningKey())
-	assert.NotEmpty(t, th.App.ClientConfig()["AsymmetricSigningPublicKey"])
 }

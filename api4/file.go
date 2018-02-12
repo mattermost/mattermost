@@ -281,13 +281,13 @@ func getPublicFile(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if len(hash) == 0 {
 		c.Err = model.NewAppError("getPublicFile", "api.file.get_file.public_invalid.app_error", nil, "", http.StatusBadRequest)
-		utils.RenderWebAppError(w, r, c.Err, c.App.AsymmetricSigningKey())
+		http.Redirect(w, r, c.GetSiteURLHeader()+"/error?message="+utils.T(c.Err.Message), http.StatusTemporaryRedirect)
 		return
 	}
 
 	if hash != app.GeneratePublicLinkHash(info.Id, *c.App.Config().FileSettings.PublicLinkSalt) {
 		c.Err = model.NewAppError("getPublicFile", "api.file.get_file.public_invalid.app_error", nil, "", http.StatusBadRequest)
-		utils.RenderWebAppError(w, r, c.Err, c.App.AsymmetricSigningKey())
+		http.Redirect(w, r, c.GetSiteURLHeader()+"/error?message="+utils.T(c.Err.Message), http.StatusTemporaryRedirect)
 		return
 	}
 
