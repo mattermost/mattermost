@@ -142,20 +142,21 @@ func TestUpdateConfig(t *testing.T) {
 		}
 	}
 
-	// Should not be able to modify PluginSettings.EnableUploads
-	oldEnableUploads := *th.App.GetConfig().PluginSettings.EnableUploads
-	*cfg.PluginSettings.EnableUploads = !oldEnableUploads
+	t.Run("Should not be able to modify PluginSettings.EnableUploads", func(t *testing.T) {
+		oldEnableUploads := *th.App.GetConfig().PluginSettings.EnableUploads
+		*cfg.PluginSettings.EnableUploads = !oldEnableUploads
 
-	cfg, resp = th.SystemAdminClient.UpdateConfig(cfg)
-	CheckNoError(t, resp)
-	assert.Equal(t, oldEnableUploads, *cfg.PluginSettings.EnableUploads)
-	assert.Equal(t, oldEnableUploads, *th.App.GetConfig().PluginSettings.EnableUploads)
+		cfg, resp = th.SystemAdminClient.UpdateConfig(cfg)
+		CheckNoError(t, resp)
+		assert.Equal(t, oldEnableUploads, *cfg.PluginSettings.EnableUploads)
+		assert.Equal(t, oldEnableUploads, *th.App.GetConfig().PluginSettings.EnableUploads)
 
-	cfg.PluginSettings.EnableUploads = nil
-	cfg, resp = th.SystemAdminClient.UpdateConfig(cfg)
-	CheckNoError(t, resp)
-	assert.Equal(t, oldEnableUploads, *cfg.PluginSettings.EnableUploads)
-	assert.Equal(t, oldEnableUploads, *th.App.GetConfig().PluginSettings.EnableUploads)
+		cfg.PluginSettings.EnableUploads = nil
+		cfg, resp = th.SystemAdminClient.UpdateConfig(cfg)
+		CheckNoError(t, resp)
+		assert.Equal(t, oldEnableUploads, *cfg.PluginSettings.EnableUploads)
+		assert.Equal(t, oldEnableUploads, *th.App.GetConfig().PluginSettings.EnableUploads)
+	})
 }
 
 func TestGetOldClientConfig(t *testing.T) {
