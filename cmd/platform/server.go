@@ -42,10 +42,11 @@ func runServerCmd(cmd *cobra.Command, args []string) error {
 
 	disableConfigWatch, _ := cmd.Flags().GetBool("disableconfigwatch")
 
-	return runServer(config, disableConfigWatch)
+	interruptChan := make(chan os.Signal, 1)
+	return runServer(config, disableConfigWatch, interruptChan)
 }
 
-func runServer(configFileLocation string, disableConfigWatch bool) error {
+func runServer(configFileLocation string, disableConfigWatch bool, interruptChan chan os.Signal) error {
 	options := []app.Option{app.ConfigFile(configFileLocation)}
 	if disableConfigWatch {
 		options = append(options, app.DisableConfigWatch)
@@ -165,9 +166,8 @@ func runServer(configFileLocation string, disableConfigWatch bool) error {
 
 	// wait for kill signal before attempting to gracefully shutdown
 	// the running service
-	c := make(chan os.Signal, 1)
-	signal.Notify(c, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
-	<-c
+	signal.Notify(interruptChan, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
+	<-interruptChan
 
 	if a.Cluster != nil {
 		a.Cluster.StopInterNodeCommunication()

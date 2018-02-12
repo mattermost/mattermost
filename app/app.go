@@ -86,7 +86,7 @@ var appCount = 0
 
 // New creates a new App. You must call Shutdown when you're done with it.
 // XXX: For now, only one at a time is allowed as some resources are still shared.
-func New(options ...Option) (*App, error) {
+func New(options ...Option) (outApp *App, outErr error) {
 	appCount++
 	if appCount > 1 {
 		panic("Only one App should exist at a time. Did you forget to call Shutdown()?")
@@ -103,6 +103,11 @@ func New(options ...Option) (*App, error) {
 		clientConfig:     make(map[string]string),
 		licenseListeners: map[string]func(){},
 	}
+	defer func() {
+		if outErr != nil {
+			app.Shutdown()
+		}
+	}()
 
 	for _, option := range options {
 		option(app)
@@ -182,7 +187,9 @@ func (a *App) Shutdown() {
 	a.ShutDownPlugins()
 	a.WaitForGoroutines()
 
-	a.Srv.Store.Close()
+	if a.Srv.Store != nil {
+		a.Srv.Store.Close()
+	}
 	a.Srv = nil
 
 	if a.htmlTemplateWatcher != nil {
