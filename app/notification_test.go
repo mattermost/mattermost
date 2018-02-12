@@ -1345,6 +1345,30 @@ func TestGetPushNotificationMessage(t *testing.T) {
 			ExpectedMessage:          "user sent you a direct message",
 			ExpectedCategory:         model.CATEGORY_CAN_REPLY,
 		},
+		"only files, public channel": {
+			HasFiles:         true,
+			ChannelType:      model.CHANNEL_OPEN,
+			ExpectedMessage:  "user uploaded one or more files in channel",
+			ExpectedCategory: model.CATEGORY_CAN_REPLY,
+		},
+		"only files, private channel": {
+			HasFiles:         true,
+			ChannelType:      model.CHANNEL_PRIVATE,
+			ExpectedMessage:  "user uploaded one or more files in channel",
+			ExpectedCategory: model.CATEGORY_CAN_REPLY,
+		},
+		"only files, group message channel": {
+			HasFiles:         true,
+			ChannelType:      model.CHANNEL_GROUP,
+			ExpectedMessage:  "user uploaded one or more files in channel",
+			ExpectedCategory: model.CATEGORY_CAN_REPLY,
+		},
+		"only files, direct message channel": {
+			HasFiles:         true,
+			ChannelType:      model.CHANNEL_DIRECT,
+			ExpectedMessage:  "user uploaded one or more files in a direct message",
+			ExpectedCategory: model.CATEGORY_CAN_REPLY,
+		},
 	} {
 		t.Run(name, func(t *testing.T) {
 			locale := tc.Locale
