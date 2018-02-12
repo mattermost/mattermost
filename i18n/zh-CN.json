@@ -2203,10 +2203,6 @@
     "translation": "注册链接已过期"
   },
   {
-    "id": "api.team.create_team_from_signup.invalid_link.app_error",
-    "translation": "注册链接无效"
-  },
-  {
     "id": "api.team.create_team_from_signup.unavailable.app_error",
     "translation": "该URL无效。请尝试其他。"
   },
@@ -2709,6 +2705,10 @@
   {
     "id": "api.user.create_user.signup_link_invalid.app_error",
     "translation": "注册链接无效"
+  },
+  {
+    "id": "api.user.create_user.signup_link_mismatched_invite_id.app_error",
+    "translation": "The signup link does not appear to be valid"
   },
   {
     "id": "api.user.create_user.team_name.app_error",
@@ -4757,6 +4757,10 @@
   {
     "id": "model.config.is_valid.file_thumb_width.app_error",
     "translation": "文件设置时缩略图宽度无效。必须是正数。"
+  },
+  {
+    "id": "model.config.is_valid.group_unread_channels.app_error",
+    "translation": "Invalid group unread channels for service settings. Must be 'disabled', 'default_on', or 'default_off'."
   },
   {
     "id": "model.config.is_valid.image_proxy_type.app_error",
@@ -7291,10 +7295,6 @@
     "translation": "注册"
   },
   {
-    "id": "web.signup_team_complete.invalid_link.app_error",
-    "translation": "注册链接无效"
-  },
-  {
     "id": "web.signup_team_complete.link_expired.app_error",
     "translation": "注册链接已过期"
   },
@@ -7309,10 +7309,6 @@
   {
     "id": "web.signup_user_complete.link_expired.app_error",
     "translation": "注册链接已过期"
-  },
-  {
-    "id": "web.signup_user_complete.link_invalid.app_error",
-    "translation": "注册链接无效"
   },
   {
     "id": "web.signup_user_complete.no_invites.app_error",
