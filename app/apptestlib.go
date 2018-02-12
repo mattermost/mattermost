@@ -96,15 +96,20 @@ func setupTestHelper(enterprise bool) *TestHelper {
 	if testStore != nil {
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = ":0" })
 	}
-	th.App.StartServer()
+	serverErr := th.App.StartServer()
+	if serverErr != nil {
+		panic(serverErr)
+	}
+
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = prevListenAddress })
 	th.App.Srv.Store.MarkSystemRanUnitTests()
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableOpenServer = true })
 
-	utils.SetIsLicensed(enterprise)
 	if enterprise {
-		utils.License().Features.SetDefaults()
+		th.App.SetLicense(model.NewTestLicense())
+	} else {
+		th.App.SetLicense(nil)
 	}
 
 	return th
