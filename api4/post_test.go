@@ -131,17 +131,14 @@ func testCreatePostWithOutgoingHook(
 	channel := th.BasicChannel
 
 	enableOutgoingHooks := th.App.Config().ServiceSettings.EnableOutgoingWebhooks
-	enableAdminOnlyHooks := th.App.Config().ServiceSettings.EnableOnlyAdminIntegrations
 	allowedInternalConnections := *th.App.Config().ServiceSettings.AllowedUntrustedInternalConnections
 	defer func() {
 		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOutgoingWebhooks = enableOutgoingHooks })
-		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOnlyAdminIntegrations = enableAdminOnlyHooks })
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			cfg.ServiceSettings.AllowedUntrustedInternalConnections = &allowedInternalConnections
 		})
 	}()
 	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOutgoingWebhooks = true })
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOnlyAdminIntegrations = true })
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost 127.0.0.1"
 	})
