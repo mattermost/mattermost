@@ -4,13 +4,18 @@
 package app
 
 import (
+	"bytes"
 	"fmt"
+	"image"
+	"image/png"
+	"mime/multipart"
 	"net/http"
 	"net/url"
 	"strconv"
 	"strings"
 
 	l4g "github.com/alecthomas/log4go"
+	"github.com/disintegration/imaging"
 
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
@@ -918,4 +923,80 @@ func (a *App) SanitizeTeams(session model.Session, teams []*model.Team) []*model
 	}
 
 	return teams
+}
+
+func (a *App) GetTeamIcon(team *model.Team) ([]byte, *model.AppError) {
+	if len(*a.Config().FileSettings.DriverName) == 0 {
+		return nil, model.NewAppError("GetTeamIcon", "api.team.get_team_icon.filesettings_no_driver.app_error", nil, "", http.StatusNotImplemented)
+	} else {
+		path := "teams/" + team.Id + "/teamIcon.png"
+		if data, err := a.ReadFile(path); err != nil {
+			return nil, model.NewAppError("GetTeamIcon", "api.team.get_team_icon.read_file.app_error", nil, err.Error(), http.StatusNotFound)
+		} else {
+			return data, nil
+		}
+	}
+}
+
+func (a *App) SetTeamIcon(teamId string, imageData *multipart.FileHeader) *model.AppError {
+	file, err := imageData.Open()
+	if err != nil {
+		return model.NewAppError("SetTeamIcon", "api.team.set_team_icon.open.app_error", nil, err.Error(), http.StatusBadRequest)
+	}
+	defer file.Close()
+	return a.SetTeamIconFromFile(teamId, file)
+}
+
+func (a *App) SetTeamIconFromFile(teamId string, file multipart.File) *model.AppError {
+
+	if len(*a.Config().FileSettings.DriverName) == 0 {
+		return model.NewAppError("setTeamIcon", "api.team.set_team_icon.storage.app_error", nil, "", http.StatusNotImplemented)
+	}
+
+	// Decode image config first to check dimensions before loading the whole thing into memory later on
+	config, _, err := image.DecodeConfig(file)
+	if err != nil {
+		return model.NewAppError("SetTeamIcon", "api.team.set_team_icon.decode_config.app_error", nil, err.Error(), http.StatusBadRequest)
+	} else if config.Width*config.Height > model.MaxImageSize {
+		return model.NewAppError("SetTeamIcon", "api.team.set_team_icon.too_large.app_error", nil, err.Error(), http.StatusBadRequest)
+	}
+
+	file.Seek(0, 0)
+
+	// Decode image into Image object
+	img, _, err := image.Decode(file)
+	if err != nil {
+		return model.NewAppError("SetTeamIcon", "api.team.set_team_icon.decode.app_error", nil, err.Error(), http.StatusBadRequest)
+	}
+
+	file.Seek(0, 0)
+
+	orientation, _ := getImageOrientation(file)
+	img = makeImageUpright(img, orientation)
+
+	// Scale team icon
+	teamIconWidthAndHeight := 128
+	img = imaging.Fill(img, teamIconWidthAndHeight, teamIconWidthAndHeight, imaging.Center, imaging.Lanczos)
+
+	buf := new(bytes.Buffer)
+	err = png.Encode(buf, img)
+	if err != nil {
+		return model.NewAppError("SetTeamIcon", "api.team.set_team_icon.encode.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	path := "teams/" + teamId + "/teamIcon.png"
+
+	if err := a.WriteFile(buf.Bytes(), path); err != nil {
+		return model.NewAppError("SetTeamIcon", "api.team.set_team_icon.write_file.app_error", nil, "", http.StatusInternalServerError)
+	}
+
+	<-a.Srv.Store.Team().UpdateLastTeamIconUpdate(teamId)
+
+	if team, err := a.GetTeam(teamId); err != nil {
+		l4g.Error(utils.T("api.team.get.error"), teamId)
+	} else {
+		a.sendTeamEvent(team, model.WEBSOCKET_EVENT_UPDATE_TEAM)
+	}
+
+	return nil
 }
