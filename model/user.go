@@ -210,6 +210,10 @@ func (u *User) PreSave() {
 		u.SetDefaultNotifications()
 	}
 
+	if u.Timezone == nil {
+		u.Props = make(map[string]string)
+	}
+
 	if len(u.Password) > 0 {
 		u.Password = HashPassword(u.Password)
 	}
