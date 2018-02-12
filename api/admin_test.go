@@ -10,6 +10,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestGetLogs(t *testing.T) {
@@ -149,6 +150,18 @@ func TestSaveConfig(t *testing.T) {
 	}
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableOpenServer = true })
+
+	// Should not be able to modify PluginSettings.EnableUploads
+	oldEnableUploads := *th.App.GetConfig().PluginSettings.EnableUploads
+	cfg := &model.Config{}
+	cfg.SetDefaults()
+	*cfg.PluginSettings.EnableUploads = !oldEnableUploads
+
+	if _, err := th.SystemAdminClient.SaveConfig(cfg); err != nil {
+		t.Fatal(err)
+	}
+
+	assert.Equal(t, oldEnableUploads, *th.App.Config().PluginSettings.EnableUploads)
 }
 
 func TestRecycleDatabaseConnection(t *testing.T) {
