@@ -94,7 +94,7 @@ func root(c *api.Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if api.IsApiCall(r) {
-		api.Handle404(c.App, w, r)
+		api.Handle404(w, r)
 		return
 	}
 

@@ -317,6 +317,5 @@ func (a *App) NewEmailTemplate(name, locale string) *utils.HTMLTemplate {
 }
 
 func (a *App) SendMail(to, subject, htmlBody string) *model.AppError {
-	license := a.License()
-	return utils.SendMailUsingConfig(to, subject, htmlBody, a.Config(), license != nil && *license.Features.Compliance)
+	return utils.SendMailUsingConfig(to, subject, htmlBody, a.Config())
 }

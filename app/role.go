@@ -12,6 +12,8 @@ func (a *App) Role(id string) *model.Role {
 	return a.roles[id]
 }
 
-func (a *App) setDefaultRolesBasedOnConfig() {
-	a.roles = utils.DefaultRolesBasedOnConfig(a.Config(), a.License() != nil)
+// Updates the roles based on the app config and the global license check. You may need to invoke
+// this when license changes are made.
+func (a *App) SetDefaultRolesBasedOnConfig() {
+	a.roles = utils.DefaultRolesBasedOnConfig(a.Config())
 }

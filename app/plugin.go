@@ -565,7 +565,6 @@ func (a *App) RegisterPluginCommand(pluginId string, command *model.Command) err
 		TeamId:           command.TeamId,
 		AutoComplete:     command.AutoComplete,
 		AutoCompleteDesc: command.AutoCompleteDesc,
-		AutoCompleteHint: command.AutoCompleteHint,
 		DisplayName:      command.DisplayName,
 	}
 
