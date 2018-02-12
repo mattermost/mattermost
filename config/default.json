@@ -211,6 +211,9 @@
         "AllowCustomThemes": true,
         "AllowedThemes": []
     },
+    "DisplaySettings": {
+        "EnableTimezoneSelection": false
+    },
     "GitLabSettings": {
         "Enable": false,
         "Secret": "",
