@@ -3,9 +3,13 @@
 
 package model
 
-type ChannelMemberHistory struct {
+type ChannelMemberHistoryResult struct {
 	ChannelId string
 	UserId    string
 	JoinTime  int64
 	LeaveTime *int64
+
+	// these two fields are never set in the database - when we SELECT, we join on Users to get them
+	UserEmail string `db:"Email"`
+	Username  string
 }
