@@ -53,11 +53,7 @@ func webClientTestsCmdF(cmd *cobra.Command, args []string) error {
 	defer a.Shutdown()
 
 	utils.InitTranslations(a.Config().LocalizationSettings)
-	serverErr := a.StartServer()
-	if serverErr != nil {
-		return serverErr
-	}
-
+	a.StartServer()
 	api4.Init(a, a.Srv.Router, false)
 	api.Init(a, a.Srv.Router)
 	wsapi.Init(a, a.Srv.WebSocketRouter)
@@ -75,11 +71,7 @@ func serverForWebClientTestsCmdF(cmd *cobra.Command, args []string) error {
 	defer a.Shutdown()
 
 	utils.InitTranslations(a.Config().LocalizationSettings)
-	serverErr := a.StartServer()
-	if serverErr != nil {
-		return serverErr
-	}
-
+	a.StartServer()
 	api4.Init(a, a.Srv.Router, false)
 	api.Init(a, a.Srv.Router)
 	wsapi.Init(a, a.Srv.WebSocketRouter)

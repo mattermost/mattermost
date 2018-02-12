@@ -15,8 +15,6 @@ import (
 
 	"net/http"
 
-	"io"
-
 	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/html2text"
 	"github.com/mattermost/mattermost-server/model"
@@ -105,24 +103,16 @@ func TestConnection(config *model.Config) {
 	defer c.Close()
 }
 
-func SendMailUsingConfig(to, subject, htmlBody string, config *model.Config, enableComplianceFeatures bool) *model.AppError {
-	fromMail := mail.Address{Name: config.EmailSettings.FeedbackName, Address: config.EmailSettings.FeedbackEmail}
-	return sendMail(to, to, fromMail, subject, htmlBody, nil, nil, config, enableComplianceFeatures)
-}
-
-// allows for sending an email with attachments and differing MIME/SMTP recipients
-func SendMailUsingConfigAdvanced(mimeTo, smtpTo string, from mail.Address, subject, htmlBody string, attachments []*model.FileInfo, mimeHeaders map[string]string, config *model.Config, enableComplianceFeatures bool) *model.AppError {
-	return sendMail(mimeTo, smtpTo, from, subject, htmlBody, attachments, mimeHeaders, config, enableComplianceFeatures)
-}
-
-func sendMail(mimeTo, smtpTo string, from mail.Address, subject, htmlBody string, attachments []*model.FileInfo, mimeHeaders map[string]string, config *model.Config, enableComplianceFeatures bool) *model.AppError {
+func SendMailUsingConfig(to, subject, htmlBody string, config *model.Config) *model.AppError {
 	if !config.EmailSettings.SendEmailNotifications || len(config.EmailSettings.SMTPServer) == 0 {
 		return nil
 	}
 
-	l4g.Debug(T("utils.mail.send_mail.sending.debug"), mimeTo, subject)
+	l4g.Debug(T("utils.mail.send_mail.sending.debug"), to, subject)
 
 	htmlMessage := "\r\n<html><body>" + htmlBody + "</body></html>"
+
+	fromMail := mail.Address{Name: config.EmailSettings.FeedbackName, Address: config.EmailSettings.FeedbackEmail}
 
 	txtBody, err := html2text.FromString(htmlBody)
 	if err != nil {
@@ -130,47 +120,19 @@ func sendMail(mimeTo, smtpTo string, from mail.Address, subject, htmlBody string
 		txtBody = ""
 	}
 
-	headers := map[string][]string{
-		"From":                      {from.String()},
-		"To":                        {mimeTo},
+	m := gomail.NewMessage(gomail.SetCharset("UTF-8"))
+	m.SetHeaders(map[string][]string{
+		"From":                      {fromMail.String()},
+		"To":                        {to},
 		"Subject":                   {encodeRFC2047Word(subject)},
 		"Content-Transfer-Encoding": {"8bit"},
 		"Auto-Submitted":            {"auto-generated"},
 		"Precedence":                {"bulk"},
-	}
-	if mimeHeaders != nil {
-		for k, v := range mimeHeaders {
-			headers[k] = []string{encodeRFC2047Word(v)}
-		}
-	}
-
-	m := gomail.NewMessage(gomail.SetCharset("UTF-8"))
-	m.SetHeaders(headers)
+	})
 	m.SetDateHeader("Date", time.Now())
+
 	m.SetBody("text/plain", txtBody)
 	m.AddAlternative("text/html", htmlMessage)
-
-	if attachments != nil {
-		fileBackend, err := NewFileBackend(&config.FileSettings, enableComplianceFeatures)
-		if err != nil {
-			return err
-		}
-
-		for _, fileInfo := range attachments {
-			m.Attach(fileInfo.Name, gomail.SetCopyFunc(func(writer io.Writer) error {
-				bytes, err := fileBackend.ReadFile(fileInfo.Path)
-				if err != nil {
-					return err
-				}
-				if _, err := writer.Write(bytes); err != nil {
-					return model.NewAppError("SendMail", "utils.mail.sendMail.attachments.write_error", nil, err.Error(), http.StatusInternalServerError)
-				}
-				return nil
-			}))
-
-		}
-
-	}
 
 	conn, err1 := connectToSMTPServer(config)
 	if err1 != nil {
@@ -185,11 +147,11 @@ func sendMail(mimeTo, smtpTo string, from mail.Address, subject, htmlBody string
 	defer c.Quit()
 	defer c.Close()
 
-	if err := c.Mail(from.Address); err != nil {
+	if err := c.Mail(fromMail.Address); err != nil {
 		return model.NewAppError("SendMail", "utils.mail.send_mail.from_address.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	if err := c.Rcpt(smtpTo); err != nil {
+	if err := c.Rcpt(to); err != nil {
 		return model.NewAppError("SendMail", "utils.mail.send_mail.to_address.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 

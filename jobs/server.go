@@ -4,9 +4,12 @@
 package jobs
 
 import (
+	l4g "github.com/alecthomas/log4go"
+
 	ejobs "github.com/mattermost/mattermost-server/einterfaces/jobs"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
+	"github.com/mattermost/mattermost-server/utils"
 )
 
 type ConfigService interface {
@@ -45,6 +48,36 @@ func NewJobServer(configService ConfigService, store store.Store) *JobServer {
 
 func (srv *JobServer) Config() *model.Config {
 	return srv.ConfigService.Config()
+}
+
+func (srv *JobServer) LoadLicense() {
+	licenseId := ""
+	if result := <-srv.Store.System().Get(); result.Err == nil {
+		props := result.Data.(model.StringMap)
+		licenseId = props[model.SYSTEM_ACTIVE_LICENSE_ID]
+	}
+
+	var licenseBytes []byte
+
+	if len(licenseId) != 26 {
+		// Lets attempt to load the file from disk since it was missing from the DB
+		_, licenseBytes = utils.GetAndValidateLicenseFileFromDisk(*srv.ConfigService.Config().ServiceSettings.LicenseFileLocation)
+	} else {
+		if result := <-srv.Store.License().Get(licenseId); result.Err == nil {
+			record := result.Data.(*model.LicenseRecord)
+			licenseBytes = []byte(record.Bytes)
+			l4g.Info("License key valid unlocking enterprise features.")
+		} else {
+			l4g.Info(utils.T("mattermost.load_license.find.warn"))
+		}
+	}
+
+	if licenseBytes != nil {
+		utils.LoadLicense(licenseBytes)
+		l4g.Info("License key valid unlocking enterprise features.")
+	} else {
+		l4g.Info(utils.T("mattermost.load_license.find.warn"))
+	}
 }
 
 func (srv *JobServer) StartWorkers() {

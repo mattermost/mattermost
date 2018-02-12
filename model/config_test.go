@@ -136,7 +136,7 @@ func TestMessageExportSettingsIsValidBatchSizeInvalid(t *testing.T) {
 	require.Error(t, mes.isValid(*fs))
 }
 
-func TestMessageExportSettingsIsValidExportFormatInvalid(t *testing.T) {
+func TestMessageExportSettingsIsValid(t *testing.T) {
 	fs := &FileSettings{
 		DriverName: NewString("foo"), // bypass file location check
 	}
@@ -145,55 +145,6 @@ func TestMessageExportSettingsIsValidExportFormatInvalid(t *testing.T) {
 		ExportFromTimestamp: NewInt64(0),
 		DailyRunTime:        NewString("15:04"),
 		BatchSize:           NewInt(100),
-	}
-
-	// should fail fast because export format isn't set
-	require.Error(t, mes.isValid(*fs))
-}
-
-func TestMessageExportSettingsIsValidGlobalRelayEmailAddressInvalid(t *testing.T) {
-	fs := &FileSettings{
-		DriverName: NewString("foo"), // bypass file location check
-	}
-	mes := &MessageExportSettings{
-		EnableExport:        NewBool(true),
-		ExportFormat:        NewString(COMPLIANCE_EXPORT_TYPE_GLOBALRELAY),
-		ExportFromTimestamp: NewInt64(0),
-		DailyRunTime:        NewString("15:04"),
-		BatchSize:           NewInt(100),
-	}
-
-	// should fail fast because global relay email address isn't set
-	require.Error(t, mes.isValid(*fs))
-}
-
-func TestMessageExportSettingsIsValidActiance(t *testing.T) {
-	fs := &FileSettings{
-		DriverName: NewString("foo"), // bypass file location check
-	}
-	mes := &MessageExportSettings{
-		EnableExport:        NewBool(true),
-		ExportFormat:        NewString(COMPLIANCE_EXPORT_TYPE_ACTIANCE),
-		ExportFromTimestamp: NewInt64(0),
-		DailyRunTime:        NewString("15:04"),
-		BatchSize:           NewInt(100),
-	}
-
-	// should pass because everything is valid
-	require.Nil(t, mes.isValid(*fs))
-}
-
-func TestMessageExportSettingsIsValidGlobalRelay(t *testing.T) {
-	fs := &FileSettings{
-		DriverName: NewString("foo"), // bypass file location check
-	}
-	mes := &MessageExportSettings{
-		EnableExport:            NewBool(true),
-		ExportFormat:            NewString(COMPLIANCE_EXPORT_TYPE_GLOBALRELAY),
-		ExportFromTimestamp:     NewInt64(0),
-		DailyRunTime:            NewString("15:04"),
-		BatchSize:               NewInt(100),
-		GlobalRelayEmailAddress: NewString("test@mattermost.com"),
 	}
 
 	// should pass because everything is valid
@@ -208,7 +159,6 @@ func TestMessageExportSetDefaults(t *testing.T) {
 	require.Equal(t, "01:00", *mes.DailyRunTime)
 	require.Equal(t, int64(0), *mes.ExportFromTimestamp)
 	require.Equal(t, 10000, *mes.BatchSize)
-	require.Equal(t, COMPLIANCE_EXPORT_TYPE_ACTIANCE, *mes.ExportFormat)
 }
 
 func TestMessageExportSetDefaultsExportEnabledExportFromTimestampNil(t *testing.T) {
