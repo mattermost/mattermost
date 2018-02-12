@@ -2199,10 +2199,6 @@
     "translation": "The signup link has expired"
   },
   {
-    "id": "api.team.create_team_from_signup.invalid_link.app_error",
-    "translation": "The signup link does not appear to be valid"
-  },
-  {
     "id": "api.team.create_team_from_signup.unavailable.app_error",
     "translation": "This URL is unavailable. Please try another."
   },
@@ -2701,6 +2697,10 @@
   {
     "id": "api.user.create_user.signup_link_expired.app_error",
     "translation": "The signup link has expired"
+  },
+  {
+    "id": "api.user.create_user.signup_link_mismatched_invite_id.app_error",
+    "translation": "The signup link does not appear to be valid"
   },
   {
     "id": "api.user.create_user.signup_link_invalid.app_error",
@@ -7299,10 +7299,6 @@
     "translation": "Signup"
   },
   {
-    "id": "web.signup_team_complete.invalid_link.app_error",
-    "translation": "The signup link does not appear to be valid"
-  },
-  {
     "id": "web.signup_team_complete.link_expired.app_error",
     "translation": "The signup link has expired"
   },
@@ -7317,10 +7313,6 @@
   {
     "id": "web.signup_user_complete.link_expired.app_error",
     "translation": "The signup link has expired"
-  },
-  {
-    "id": "web.signup_user_complete.link_invalid.app_error",
-    "translation": "The signup link does not appear to be valid"
   },
   {
     "id": "web.signup_user_complete.no_invites.app_error",
