@@ -770,12 +770,6 @@ func TestDeleteChannel(t *testing.T) {
 	_, resp = Client.DeleteChannel(publicChannel3.Id)
 	CheckNoError(t, resp)
 
-	// successful delete by TeamAdmin of channel created by user
-	publicChannel4 := th.CreatePublicChannel()
-	th.LoginTeamAdmin()
-	_, resp = Client.DeleteChannel(publicChannel4.Id)
-	CheckNoError(t, resp)
-
 	// default channel cannot be deleted.
 	defaultChannel, _ := th.App.GetChannelByName(model.DEFAULT_CHANNEL, team.Id)
 	pass, resp = Client.DeleteChannel(defaultChannel.Id)
@@ -837,8 +831,6 @@ func TestDeleteChannel(t *testing.T) {
 
 	th.AddPermissionToRole(model.PERMISSION_DELETE_PUBLIC_CHANNEL.Id, model.CHANNEL_USER_ROLE_ID)
 	th.AddPermissionToRole(model.PERMISSION_DELETE_PRIVATE_CHANNEL.Id, model.CHANNEL_USER_ROLE_ID)
-	th.RemovePermissionFromRole(model.PERMISSION_DELETE_PUBLIC_CHANNEL.Id, model.TEAM_USER_ROLE_ID)
-	th.RemovePermissionFromRole(model.PERMISSION_DELETE_PRIVATE_CHANNEL.Id, model.TEAM_USER_ROLE_ID)
 
 	Client = th.Client
 	team = th.BasicTeam
