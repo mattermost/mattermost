@@ -198,6 +198,10 @@ func (c *Client4) GetTestEmailRoute() string {
 	return fmt.Sprintf("/email/test")
 }
 
+func (c *Client4) GetTestS3Route() string {
+	return fmt.Sprintf("/file/s3_test")
+}
+
 func (c *Client4) GetDatabaseRoute() string {
 	return fmt.Sprintf("/database")
 }
@@ -2085,6 +2089,16 @@ func (c *Client4) GetPing() (string, *Response) {
 // TestEmail will attempt to connect to the configured SMTP server.
 func (c *Client4) TestEmail() (bool, *Response) {
 	if r, err := c.DoApiPost(c.GetTestEmailRoute(), ""); err != nil {
+		return false, BuildErrorResponse(r, err)
+	} else {
+		defer closeBody(r)
+		return CheckStatusOK(r), BuildResponse(r)
+	}
+}
+
+// TestS3Connection will attempt to connect to the AWS S3.
+func (c *Client4) TestS3Connection(config *Config) (bool, *Response) {
+	if r, err := c.DoApiPost(c.GetTestS3Route(), config.ToJson()); err != nil {
 		return false, BuildErrorResponse(r, err)
 	} else {
 		defer closeBody(r)
