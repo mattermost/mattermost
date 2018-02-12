@@ -607,7 +607,7 @@ func (a *App) sendPushNotification(post *model.Post, user *model.User, channel *
 		if channel.Type == model.CHANNEL_DIRECT {
 			msg.Category = model.CATEGORY_CAN_REPLY
 			msg.Message = senderName + userLocale("api.post.send_notifications_and_forget.push_message")
-		} else if wasMentioned || channel.Type == model.CHANNEL_GROUP {
+		} else if wasMentioned {
 			msg.Message = senderName + userLocale("api.post.send_notifications_and_forget.push_mention_no_channel")
 		} else {
 			msg.Message = senderName + userLocale("api.post.send_notifications_and_forget.push_non_mention_no_channel")
@@ -616,7 +616,7 @@ func (a *App) sendPushNotification(post *model.Post, user *model.User, channel *
 		if channel.Type == model.CHANNEL_DIRECT {
 			msg.Category = model.CATEGORY_CAN_REPLY
 			msg.Message = senderName + userLocale("api.post.send_notifications_and_forget.push_message")
-		} else if wasMentioned || channel.Type == model.CHANNEL_GROUP {
+		} else if wasMentioned {
 			msg.Category = model.CATEGORY_CAN_REPLY
 			msg.Message = senderName + userLocale("api.post.send_notifications_and_forget.push_mention") + channelName
 		} else {
