@@ -336,7 +336,7 @@ func TestMakeOpenGraphURLsAbsolute(t *testing.T) {
 					t.Fatalf("incorrect image url, expected %v, got %v", tc.ImageURL, og.Images[0].URL)
 				}
 			} else if tc.ImageURL != "" {
-				t.Fatal("missing image url, expected %v, got nothing", tc.ImageURL)
+				t.Fatalf("missing image url, expected %v, got nothing", tc.ImageURL)
 			}
 		})
 	}
