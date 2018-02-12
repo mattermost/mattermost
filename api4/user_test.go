@@ -1566,7 +1566,18 @@ func TestUpdateUserMfa(t *testing.T) {
 	defer th.TearDown()
 	Client := th.Client
 
-	th.App.SetLicense(model.NewTestLicense("mfa"))
+	isLicensed := utils.IsLicensed()
+	license := utils.License()
+	enableMfa := *th.App.Config().ServiceSettings.EnableMultifactorAuthentication
+	defer func() {
+		utils.SetIsLicensed(isLicensed)
+		utils.SetLicense(license)
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableMultifactorAuthentication = enableMfa })
+	}()
+	utils.SetIsLicensed(true)
+	utils.SetLicense(&model.License{Features: &model.Features{}})
+	utils.License().Features.SetDefaults()
+	*utils.License().Features.MFA = true
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableMultifactorAuthentication = true })
 
 	session, _ := th.App.GetSession(Client.AuthToken)
@@ -1601,7 +1612,18 @@ func TestCheckUserMfa(t *testing.T) {
 		t.Fatal("should be false - mfa not active")
 	}
 
-	th.App.SetLicense(model.NewTestLicense("mfa"))
+	isLicensed := utils.IsLicensed()
+	license := utils.License()
+	enableMfa := *th.App.Config().ServiceSettings.EnableMultifactorAuthentication
+	defer func() {
+		utils.SetIsLicensed(isLicensed)
+		utils.SetLicense(license)
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableMultifactorAuthentication = enableMfa })
+	}()
+	utils.SetIsLicensed(true)
+	utils.SetLicense(&model.License{Features: &model.Features{}})
+	utils.License().Features.SetDefaults()
+	*utils.License().Features.MFA = true
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableMultifactorAuthentication = true })
 
 	th.LoginBasic()
@@ -1637,7 +1659,18 @@ func TestGenerateMfaSecret(t *testing.T) {
 	_, resp = Client.GenerateMfaSecret("junk")
 	CheckBadRequestStatus(t, resp)
 
-	th.App.SetLicense(model.NewTestLicense("mfa"))
+	isLicensed := utils.IsLicensed()
+	license := utils.License()
+	enableMfa := *th.App.Config().ServiceSettings.EnableMultifactorAuthentication
+	defer func() {
+		utils.SetIsLicensed(isLicensed)
+		utils.SetLicense(license)
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableMultifactorAuthentication = enableMfa })
+	}()
+	utils.SetIsLicensed(true)
+	utils.SetLicense(&model.License{Features: &model.Features{}})
+	utils.License().Features.SetDefaults()
+	*utils.License().Features.MFA = true
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableMultifactorAuthentication = true })
 
 	_, resp = Client.GenerateMfaSecret(model.NewId())
@@ -2154,7 +2187,19 @@ func TestSwitchAccount(t *testing.T) {
 		t.Fatal("bad link")
 	}
 
-	th.App.SetLicense(model.NewTestLicense())
+	isLicensed := utils.IsLicensed()
+	license := utils.License()
+	enableAuthenticationTransfer := *th.App.Config().ServiceSettings.ExperimentalEnableAuthenticationTransfer
+	defer func() {
+		utils.SetIsLicensed(isLicensed)
+		utils.SetLicense(license)
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.ExperimentalEnableAuthenticationTransfer = enableAuthenticationTransfer
+		})
+	}()
+	utils.SetIsLicensed(true)
+	utils.SetLicense(&model.License{Features: &model.Features{}})
+	utils.License().Features.SetDefaults()
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ExperimentalEnableAuthenticationTransfer = false })
 
 	sr = &model.SwitchRequest{

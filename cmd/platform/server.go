@@ -42,11 +42,10 @@ func runServerCmd(cmd *cobra.Command, args []string) error {
 
 	disableConfigWatch, _ := cmd.Flags().GetBool("disableconfigwatch")
 
-	interruptChan := make(chan os.Signal, 1)
-	return runServer(config, disableConfigWatch, interruptChan)
+	return runServer(config, disableConfigWatch)
 }
 
-func runServer(configFileLocation string, disableConfigWatch bool, interruptChan chan os.Signal) error {
+func runServer(configFileLocation string, disableConfigWatch bool) error {
 	options := []app.Option{app.ConfigFile(configFileLocation)}
 	if disableConfigWatch {
 		options = append(options, app.DisableConfigWatch)
@@ -54,7 +53,7 @@ func runServer(configFileLocation string, disableConfigWatch bool, interruptChan
 
 	a, err := app.New(options...)
 	if err != nil {
-		l4g.Critical(err.Error())
+		l4g.Error(err.Error())
 		return err
 	}
 	defer a.Shutdown()
@@ -88,12 +87,7 @@ func runServer(configFileLocation string, disableConfigWatch bool, interruptChan
 		}
 	})
 
-	serverErr := a.StartServer()
-	if serverErr != nil {
-		l4g.Critical(serverErr.Error())
-		return serverErr
-	}
-
+	a.StartServer()
 	api4.Init(a, a.Srv.Router, false)
 	api3 := api.Init(a, a.Srv.Router)
 	wsapi.Init(a, a.Srv.WebSocketRouter)
@@ -166,8 +160,9 @@ func runServer(configFileLocation string, disableConfigWatch bool, interruptChan
 
 	// wait for kill signal before attempting to gracefully shutdown
 	// the running service
-	signal.Notify(interruptChan, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
-	<-interruptChan
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
+	<-c
 
 	if a.Cluster != nil {
 		a.Cluster.StopInterNodeCommunication()

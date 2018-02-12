@@ -4,7 +4,6 @@
 package utils
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -37,12 +36,6 @@ type JSONMessageInbucket struct {
 	Body                struct {
 		Text string
 		HTML string `json:"Html"`
-	}
-	Attachments []struct {
-		Filename     string
-		ContentType  string `json:"content-type"`
-		DownloadLink string `json:"download-link"`
-		Bytes        []byte `json:"-"`
 	}
 }
 
@@ -96,54 +89,21 @@ func GetMessageFromMailbox(email, id string) (results JSONMessageInbucket, err e
 	var record JSONMessageInbucket
 
 	url := fmt.Sprintf("%s%s%s/%s", getInbucketHost(), INBUCKET_API, parsedEmail, id)
-	emailResponse, err := get(url)
+	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return record, err
 	}
-	defer emailResponse.Body.Close()
-
-	err = json.NewDecoder(emailResponse.Body).Decode(&record)
-
-	// download attachments
-	if record.Attachments != nil && len(record.Attachments) > 0 {
-		for i := range record.Attachments {
-			if bytes, err := downloadAttachment(record.Attachments[i].DownloadLink); err != nil {
-				return record, err
-			} else {
-				record.Attachments[i].Bytes = make([]byte, len(bytes))
-				copy(record.Attachments[i].Bytes, bytes)
-			}
-		}
-	}
-
-	return record, err
-}
-
-func downloadAttachment(url string) ([]byte, error) {
-	attachmentResponse, err := get(url)
-	if err != nil {
-		return nil, err
-	}
-	defer attachmentResponse.Body.Close()
-
-	buf := new(bytes.Buffer)
-	io.Copy(buf, attachmentResponse.Body)
-	return buf.Bytes(), nil
-}
-
-func get(url string) (*http.Response, error) {
-	req, err := http.NewRequest("GET", url, nil)
-	if err != nil {
-		return nil, err
-	}
 
 	client := &http.Client{}
+
 	resp, err := client.Do(req)
 	if err != nil {
-		return nil, err
+		return record, err
 	}
+	defer resp.Body.Close()
 
-	return resp, nil
+	err = json.NewDecoder(resp.Body).Decode(&record)
+	return record, err
 }
 
 func DeleteMailBox(email string) (err error) {
