@@ -832,6 +832,9 @@ func GetExplicitMentions(message string, keywords map[string][]string) *Explicit
 				continue
 			}
 
+			// remove trailing '.', as that is the end of a sentence
+			word = strings.TrimSuffix(word, ".")
+
 			if word == "@here" {
 				ret.HereMentioned = true
 			}
