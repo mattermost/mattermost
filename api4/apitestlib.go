@@ -113,7 +113,11 @@ func setupTestHelper(enterprise bool) *TestHelper {
 	if testStore != nil {
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = ":0" })
 	}
-	th.App.StartServer()
+	serverErr := th.App.StartServer()
+	if serverErr != nil {
+		panic(serverErr)
+	}
+
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = prevListenAddress })
 	Init(th.App, th.App.Srv.Router, true)
 	wsapi.Init(th.App, th.App.Srv.WebSocketRouter)
@@ -121,9 +125,10 @@ func setupTestHelper(enterprise bool) *TestHelper {
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableOpenServer = true })
 
-	utils.SetIsLicensed(enterprise)
 	if enterprise {
-		utils.License().Features.SetDefaults()
+		th.App.SetLicense(model.NewTestLicense())
+	} else {
+		th.App.SetLicense(nil)
 	}
 
 	th.Client = th.CreateClient()
@@ -298,8 +303,7 @@ func (me *TestHelper) CreateUserWithClient(client *model.Client4) *model.User {
 	}
 
 	utils.DisableDebugLogForTest()
-	ruser, r := client.CreateUser(user)
-	fmt.Println(r)
+	ruser, _ := client.CreateUser(user)
 	ruser.Password = "Password1"
 	store.Must(me.App.Srv.Store.User().VerifyEmail(ruser.Id))
 	utils.EnableDebugLogForTest()
