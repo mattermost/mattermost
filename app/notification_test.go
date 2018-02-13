@@ -109,6 +109,24 @@ func TestGetExplicitMentions(t *testing.T) {
 				},
 			},
 		},
+		"OnePersonWithPeriodAtEndOfUsername": {
+			Message:  "this is a message for @user.name.",
+			Keywords: map[string][]string{"@user.name.": {id1}},
+			Expected: &ExplicitMentions{
+				MentionedUserIds: map[string]bool{
+					id1: true,
+				},
+			},
+		},
+		"OnePersonWithPeriodAtEndOfUsernameButNotSimilarName": {
+			Message:  "this is a message for @user.name.",
+			Keywords: map[string][]string{"@user.name.": {id1}, "@user.name": {id2}},
+			Expected: &ExplicitMentions{
+				MentionedUserIds: map[string]bool{
+					id1: true,
+				},
+			},
+		},
 		"OnePersonAtEndOfSentence": {
 			Message:  "this is a message for @user.",
 			Keywords: map[string][]string{"@user": {id1}},
