@@ -247,7 +247,7 @@ func (a *App) trackConfig() {
 
 	a.SendDiagnostic(TRACK_CONFIG_TEAM, map[string]interface{}{
 		"enable_user_creation":                    cfg.TeamSettings.EnableUserCreation,
-		"enable_team_creation":                    cfg.TeamSettings.EnableTeamCreation,
+		"enable_team_creation":                    *cfg.TeamSettings.EnableTeamCreation,
 		"restrict_team_invite":                    *cfg.TeamSettings.RestrictTeamInvite,
 		"restrict_public_channel_creation":        *cfg.TeamSettings.RestrictPublicChannelCreation,
 		"restrict_private_channel_creation":       *cfg.TeamSettings.RestrictPrivateChannelCreation,

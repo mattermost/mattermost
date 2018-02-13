@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"reflect"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -112,7 +113,14 @@ func updateConfig(config *model.Config, key string, value string) {
 		v = reflect.ValueOf(config.TeamSettings)
 		field = v.FieldByName(key)
 	}
-	field.Elem().SetString(value)
+
+	switch value {
+	case "true", "false":
+		b, _ := strconv.ParseBool(value)
+		field.Elem().SetBool(b)
+	default:
+		field.Elem().SetString(value)
+	}
 }
 
 func roleHasPermission(role *model.Role, permission string) bool {
