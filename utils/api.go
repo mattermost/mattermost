@@ -4,9 +4,6 @@
 package utils
 
 import (
-	"crypto"
-	"crypto/rand"
-	"encoding/base64"
 	"fmt"
 	"html/template"
 	"net/http"
@@ -35,25 +32,13 @@ func OriginChecker(allowedOrigins string) func(*http.Request) bool {
 	}
 }
 
-func RenderWebAppError(w http.ResponseWriter, r *http.Request, err *model.AppError, s crypto.Signer) {
-	RenderWebError(w, r, err.StatusCode, url.Values{
-		"message": []string{err.Message},
-	}, s)
-}
-
-func RenderWebError(w http.ResponseWriter, r *http.Request, status int, params url.Values, s crypto.Signer) {
-	queryString := params.Encode()
-
-	h := crypto.SHA256
-	sum := h.New()
-	sum.Write([]byte("/error?" + queryString))
-	signature, err := s.Sign(rand.Reader, sum.Sum(nil), h)
-	if err != nil {
-		http.Error(w, "", http.StatusInternalServerError)
-		return
+func RenderWebError(err *model.AppError, w http.ResponseWriter, r *http.Request) {
+	status := http.StatusTemporaryRedirect
+	if err.StatusCode != http.StatusInternalServerError {
+		status = err.StatusCode
 	}
-	destination := strings.TrimRight(GetSiteURL(), "/") + "/error?" + queryString + "&s=" + base64.URLEncoding.EncodeToString(signature)
 
+	destination := strings.TrimRight(GetSiteURL(), "/") + "/error?message=" + url.QueryEscape(err.Message)
 	if status >= 300 && status < 400 {
 		http.Redirect(w, r, destination, status)
 		return

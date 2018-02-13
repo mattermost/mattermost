@@ -35,7 +35,7 @@ func jobserverCmdF(cmd *cobra.Command, args []string) {
 	defer l4g.Close()
 	defer a.Shutdown()
 
-	a.LoadLicense()
+	a.Jobs.LoadLicense()
 
 	// Run jobs
 	l4g.Info("Starting Mattermost job server")

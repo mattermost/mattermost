@@ -9,7 +9,6 @@ type MessageExport struct {
 
 	UserId    *string
 	UserEmail *string
-	Username  *string
 
 	PostId       *string
 	PostCreateAt *int64

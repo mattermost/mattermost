@@ -10,6 +10,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
 	"regexp"
 	"strings"
 
@@ -732,21 +733,66 @@ func (a *App) GetFileInfosForPost(postId string, readFromMaster bool) ([]*model.
 	return infos, nil
 }
 
-func (a *App) GetOpenGraphMetadata(url string) *opengraph.OpenGraph {
+func (a *App) GetOpenGraphMetadata(requestURL string) *opengraph.OpenGraph {
 	og := opengraph.NewOpenGraph()
 
-	res, err := a.HTTPClient(false).Get(url)
+	res, err := a.HTTPClient(false).Get(requestURL)
 	if err != nil {
-		l4g.Error("GetOpenGraphMetadata request failed for url=%v with err=%v", url, err.Error())
+		l4g.Error("GetOpenGraphMetadata request failed for url=%v with err=%v", requestURL, err.Error())
 		return og
 	}
 	defer consumeAndClose(res)
 
 	if err := og.ProcessHTML(res.Body); err != nil {
-		l4g.Error("GetOpenGraphMetadata processing failed for url=%v with err=%v", url, err.Error())
+		l4g.Error("GetOpenGraphMetadata processing failed for url=%v with err=%v", requestURL, err.Error())
 	}
 
+	makeOpenGraphURLsAbsolute(og, requestURL)
+
 	return og
+}
+
+func makeOpenGraphURLsAbsolute(og *opengraph.OpenGraph, requestURL string) {
+	parsedRequestURL, err := url.Parse(requestURL)
+	if err != nil {
+		l4g.Warn("makeOpenGraphURLsAbsolute failed to parse url=%v", requestURL)
+		return
+	}
+
+	makeURLAbsolute := func(resultURL string) string {
+		if resultURL == "" {
+			return resultURL
+		}
+
+		parsedResultURL, err := url.Parse(resultURL)
+		if err != nil {
+			l4g.Warn("makeOpenGraphURLsAbsolute failed to parse result url=%v", resultURL)
+			return resultURL
+		}
+
+		if parsedResultURL.IsAbs() {
+			return resultURL
+		}
+
+		return parsedRequestURL.ResolveReference(parsedResultURL).String()
+	}
+
+	og.URL = makeURLAbsolute(og.URL)
+
+	for _, image := range og.Images {
+		image.URL = makeURLAbsolute(image.URL)
+		image.SecureURL = makeURLAbsolute(image.SecureURL)
+	}
+
+	for _, audio := range og.Audios {
+		audio.URL = makeURLAbsolute(audio.URL)
+		audio.SecureURL = makeURLAbsolute(audio.SecureURL)
+	}
+
+	for _, video := range og.Videos {
+		video.URL = makeURLAbsolute(video.URL)
+		video.SecureURL = makeURLAbsolute(video.SecureURL)
+	}
 }
 
 func (a *App) DoPostAction(postId string, actionId string, userId string) *model.AppError {
