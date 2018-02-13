@@ -158,9 +158,6 @@ const (
 
 	PLUGIN_SETTINGS_DEFAULT_DIRECTORY        = "./plugins"
 	PLUGIN_SETTINGS_DEFAULT_CLIENT_DIRECTORY = "./client/plugins"
-
-	COMPLIANCE_EXPORT_TYPE_ACTIANCE    = "actiance"
-	COMPLIANCE_EXPORT_TYPE_GLOBALRELAY = "globalrelay"
 )
 
 type ServiceSettings struct {
@@ -1626,22 +1623,14 @@ func (s *PluginSettings) SetDefaults() {
 
 type MessageExportSettings struct {
 	EnableExport        *bool
-	ExportFormat        *string
 	DailyRunTime        *string
 	ExportFromTimestamp *int64
 	BatchSize           *int
-
-	// formatter-specific settings - these are only expected to be non-nil if ExportFormat is set to the associated format
-	GlobalRelayEmailAddress *string
 }
 
 func (s *MessageExportSettings) SetDefaults() {
 	if s.EnableExport == nil {
 		s.EnableExport = NewBool(false)
-	}
-
-	if s.ExportFormat == nil {
-		s.ExportFormat = NewString(COMPLIANCE_EXPORT_TYPE_ACTIANCE)
 	}
 
 	if s.DailyRunTime == nil {
@@ -2096,7 +2085,7 @@ func (ss *ServiceSettings) isValid() *AppError {
 	}
 
 	switch *ss.ImageProxyType {
-	case "", "willnorris/imageproxy":
+	case "":
 	case "atmos/camo":
 		if *ss.ImageProxyOptions == "" {
 			return NewAppError("Config.IsValid", "model.config.is_valid.atmos_camo_image_proxy_options.app_error", nil, "", http.StatusBadRequest)
@@ -2181,16 +2170,6 @@ func (mes *MessageExportSettings) isValid(fs FileSettings) *AppError {
 			return NewAppError("Config.IsValid", "model.config.is_valid.message_export.daily_runtime.app_error", nil, err.Error(), http.StatusBadRequest)
 		} else if mes.BatchSize == nil || *mes.BatchSize < 0 {
 			return NewAppError("Config.IsValid", "model.config.is_valid.message_export.batch_size.app_error", nil, "", http.StatusBadRequest)
-		} else if mes.ExportFormat == nil || (*mes.ExportFormat != COMPLIANCE_EXPORT_TYPE_ACTIANCE && *mes.ExportFormat != COMPLIANCE_EXPORT_TYPE_GLOBALRELAY) {
-			return NewAppError("Config.IsValid", "model.config.is_valid.message_export.export_type.app_error", nil, "", http.StatusBadRequest)
-		}
-
-		if *mes.ExportFormat == COMPLIANCE_EXPORT_TYPE_GLOBALRELAY {
-			// validating email addresses is hard - just make sure it contains an '@' sign
-			// see https://stackoverflow.com/questions/201323/using-a-regular-expression-to-validate-an-email-address
-			if mes.GlobalRelayEmailAddress == nil || !strings.Contains(*mes.GlobalRelayEmailAddress, "@") {
-				return NewAppError("Config.IsValid", "model.config.is_valid.message_export.global_relay_email_address.app_error", nil, "", http.StatusBadRequest)
-			}
 		}
 	}
 	return nil
