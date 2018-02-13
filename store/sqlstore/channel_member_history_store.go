@@ -106,7 +106,7 @@ func (s SqlChannelMemberHistoryStore) hasDataAtOrBefore(time int64) (bool, error
 	}
 }
 
-func (s SqlChannelMemberHistoryStore) getFromChannelMemberHistoryTable(startTime int64, endTime int64, channelId string) ([]*model.ChannelMemberHistory, error) {
+func (s SqlChannelMemberHistoryStore) getFromChannelMemberHistoryTable(startTime int64, endTime int64, channelId string) ([]*model.ChannelMemberHistoryResult, error) {
 	query := `
 			SELECT
 				cmh.*,
@@ -120,7 +120,7 @@ func (s SqlChannelMemberHistoryStore) getFromChannelMemberHistoryTable(startTime
 			ORDER BY cmh.JoinTime ASC`
 
 	params := map[string]interface{}{"ChannelId": channelId, "StartTime": startTime, "EndTime": endTime}
-	var histories []*model.ChannelMemberHistory
+	var histories []*model.ChannelMemberHistoryResult
 	if _, err := s.GetReplica().Select(&histories, query, params); err != nil {
 		return nil, err
 	} else {
@@ -128,7 +128,7 @@ func (s SqlChannelMemberHistoryStore) getFromChannelMemberHistoryTable(startTime
 	}
 }
 
-func (s SqlChannelMemberHistoryStore) getFromChannelMembersTable(startTime int64, endTime int64, channelId string) ([]*model.ChannelMemberHistory, error) {
+func (s SqlChannelMemberHistoryStore) getFromChannelMembersTable(startTime int64, endTime int64, channelId string) ([]*model.ChannelMemberHistoryResult, error) {
 	query := `
 		SELECT DISTINCT
 			ch.ChannelId,
@@ -140,7 +140,7 @@ func (s SqlChannelMemberHistoryStore) getFromChannelMembersTable(startTime int64
 		WHERE ch.ChannelId = :ChannelId`
 
 	params := map[string]interface{}{"ChannelId": channelId}
-	var histories []*model.ChannelMemberHistory
+	var histories []*model.ChannelMemberHistoryResult
 	if _, err := s.GetReplica().Select(&histories, query, params); err != nil {
 		return nil, err
 	} else {
