@@ -823,8 +823,6 @@ func GetExplicitMentions(message string, keywords map[string][]string) *Explicit
 	checkForMention := func(word string) bool {
 		isMention := false
 
-		fmt.Printf("New Word: %v\n", word)
-
 		if word == "@here" {
 			ret.HereMentioned = true
 		}
