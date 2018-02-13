@@ -5,6 +5,8 @@ package api
 
 import (
 	"testing"
+
+	"github.com/mattermost/mattermost-server/utils"
 )
 
 func TestGetLicenceConfig(t *testing.T) {
@@ -30,7 +32,7 @@ func TestGetLicenceConfig(t *testing.T) {
 			t.Fatal("cache should be empty")
 		}
 
-		th.App.SetClientLicense(map[string]string{"IsLicensed": "true"})
+		utils.SetClientLicense(map[string]string{"IsLicensed": "true"})
 
 		if cache_result, err := Client.GetClientLicenceConfig(result.Etag); err != nil {
 			t.Fatal(err)
@@ -38,7 +40,7 @@ func TestGetLicenceConfig(t *testing.T) {
 			t.Fatal("result should not be empty")
 		}
 
-		th.App.SetClientLicense(map[string]string{"SomeFeature": "true", "IsLicensed": "true"})
+		utils.SetClientLicense(map[string]string{"SomeFeature": "true", "IsLicensed": "true"})
 
 		if cache_result, err := Client.GetClientLicenceConfig(result.Etag); err != nil {
 			t.Fatal(err)
@@ -46,6 +48,6 @@ func TestGetLicenceConfig(t *testing.T) {
 			t.Fatal("result should not be empty")
 		}
 
-		th.App.SetClientLicense(map[string]string{"IsLicensed": "false"})
+		utils.SetClientLicense(map[string]string{"IsLicensed": "false"})
 	}
 }
