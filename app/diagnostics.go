@@ -501,7 +501,6 @@ func (a *App) trackConfig() {
 
 	a.SendDiagnostic(TRACK_CONFIG_MESSAGE_EXPORT, map[string]interface{}{
 		"enable_message_export":         *cfg.MessageExportSettings.EnableExport,
-		"export_format":                 *cfg.MessageExportSettings.ExportFormat,
 		"daily_run_time":                *cfg.MessageExportSettings.DailyRunTime,
 		"default_export_from_timestamp": *cfg.MessageExportSettings.ExportFromTimestamp,
 		"batch_size":                    *cfg.MessageExportSettings.BatchSize,

@@ -299,9 +299,9 @@ func getInitialLoad(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	il.ClientCfg = c.App.ClientConfig()
 	if c.App.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
-		il.LicenseCfg = c.App.ClientLicense()
+		il.LicenseCfg = utils.ClientLicense()
 	} else {
-		il.LicenseCfg = c.App.GetSanitizedClientLicense()
+		il.LicenseCfg = utils.GetSanitizedClientLicense()
 	}
 
 	w.Write([]byte(il.ToJson()))

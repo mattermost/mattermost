@@ -97,7 +97,7 @@ func TestMoveChannel(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err := th.App.MoveChannel(targetTeam, channel1, th.BasicUser); err == nil {
+	if err := th.App.MoveChannel(targetTeam, channel1); err == nil {
 		t.Fatal("Should have failed due to mismatched members.")
 	}
 
@@ -105,7 +105,7 @@ func TestMoveChannel(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err := th.App.MoveChannel(targetTeam, channel1, th.BasicUser); err != nil {
+	if err := th.App.MoveChannel(targetTeam, channel1); err != nil {
 		t.Fatal(err)
 	}
 }
