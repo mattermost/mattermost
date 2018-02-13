@@ -849,6 +849,7 @@ func GetExplicitMentions(message string, keywords map[string][]string) *Explicit
 
 		return isMention
 	}
+	
 	processText := func(text string) {
 		for _, word := range strings.FieldsFunc(text, func(c rune) bool {
 			// Split on any whitespace or punctuation that can't be part of an at mention or emoji pattern
