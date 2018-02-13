@@ -58,8 +58,7 @@ const (
 )
 
 func (a *App) FileBackend() (utils.FileBackend, *model.AppError) {
-	license := a.License()
-	return utils.NewFileBackend(&a.Config().FileSettings, license != nil && *license.Features.Compliance)
+	return utils.NewFileBackend(&a.Config().FileSettings)
 }
 
 func (a *App) ReadFile(path string) ([]byte, *model.AppError) {

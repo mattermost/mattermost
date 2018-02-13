@@ -5,20 +5,27 @@ package utils
 
 import (
 	"crypto"
+	"crypto/md5"
 	"crypto/rsa"
 	"crypto/sha512"
 	"crypto/x509"
 	"encoding/base64"
 	"encoding/pem"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"strconv"
 	"strings"
+	"sync/atomic"
 
 	l4g "github.com/alecthomas/log4go"
 
 	"github.com/mattermost/mattermost-server/model"
 )
+
+var isLicensedInt32 int32
+var licenseValue atomic.Value
+var clientLicenseValue atomic.Value
 
 var publicKey []byte = []byte(`-----BEGIN PUBLIC KEY-----
 MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAyZmShlU8Z8HdG0IWSZ8r
@@ -29,6 +36,92 @@ HrKmR/4Yi71EqAvkhk7ZjQFuF0osSWJMEEGGCSUYQnTEqUzcZSh1BhVpkIkeu8Kk
 a0v85XL6i9ote2P+fLZ3wX9EoioHzgdgB7arOxY50QRJO7OyCqpKFKv6lRWTXuSt
 hwIDAQAB
 -----END PUBLIC KEY-----`)
+
+func init() {
+	SetLicense(nil)
+}
+
+func IsLicensed() bool {
+	return atomic.LoadInt32(&isLicensedInt32) == 1
+}
+
+func SetIsLicensed(v bool) {
+	if v {
+		atomic.StoreInt32(&isLicensedInt32, 1)
+	} else {
+		atomic.StoreInt32(&isLicensedInt32, 0)
+	}
+}
+
+func License() *model.License {
+	return licenseValue.Load().(*model.License)
+}
+
+func SetClientLicense(m map[string]string) {
+	clientLicenseValue.Store(m)
+}
+
+func ClientLicense() map[string]string {
+	return clientLicenseValue.Load().(map[string]string)
+}
+
+func LoadLicense(licenseBytes []byte) {
+	if success, licenseStr := ValidateLicense(licenseBytes); success {
+		license := model.LicenseFromJson(strings.NewReader(licenseStr))
+		SetLicense(license)
+		return
+	}
+
+	l4g.Warn(T("utils.license.load_license.invalid.warn"))
+}
+
+var licenseListeners = map[string]func(){}
+
+func AddLicenseListener(listener func()) string {
+	id := model.NewId()
+	licenseListeners[id] = listener
+	return id
+}
+
+func RemoveLicenseListener(id string) {
+	delete(licenseListeners, id)
+}
+
+func SetLicense(license *model.License) bool {
+	defer func() {
+		for _, listener := range licenseListeners {
+			listener()
+		}
+	}()
+
+	if license == nil {
+		SetIsLicensed(false)
+		license = &model.License{
+			Features: new(model.Features),
+		}
+		license.Features.SetDefaults()
+		licenseValue.Store(license)
+
+		SetClientLicense(map[string]string{"IsLicensed": "false"})
+
+		return false
+	} else {
+		license.Features.SetDefaults()
+
+		if !license.IsExpired() {
+			licenseValue.Store(license)
+			SetIsLicensed(true)
+			clientLicenseValue.Store(getClientLicense(license))
+			return true
+		}
+
+		return false
+	}
+}
+
+func RemoveLicense() {
+	SetLicense(nil)
+}
 
 func ValidateLicense(signed []byte) (bool, string) {
 	decoded := make([]byte, base64.StdEncoding.DecodedLen(len(signed)))
@@ -120,12 +213,12 @@ func GetLicenseFileLocation(fileLocation string) string {
 	}
 }
 
-func GetClientLicense(l *model.License) map[string]string {
+func getClientLicense(l *model.License) map[string]string {
 	props := make(map[string]string)
 
-	props["IsLicensed"] = strconv.FormatBool(l != nil)
+	props["IsLicensed"] = strconv.FormatBool(IsLicensed())
 
-	if l != nil {
+	if IsLicensed() {
 		props["Id"] = l.Id
 		props["Users"] = strconv.Itoa(*l.Features.Users)
 		props["LDAP"] = strconv.FormatBool(*l.Features.LDAP)
@@ -154,4 +247,40 @@ func GetClientLicense(l *model.License) map[string]string {
 	}
 
 	return props
+}
+
+func GetClientLicenseEtag(useSanitized bool) string {
+	value := ""
+
+	lic := ClientLicense()
+
+	if useSanitized {
+		lic = GetSanitizedClientLicense()
+	}
+
+	for k, v := range lic {
+		value += fmt.Sprintf("%s:%s;", k, v)
+	}
+
+	return model.Etag(fmt.Sprintf("%x", md5.Sum([]byte(value))))
+}
+
+func GetSanitizedClientLicense() map[string]string {
+	sanitizedLicense := make(map[string]string)
+
+	for k, v := range ClientLicense() {
+		sanitizedLicense[k] = v
+	}
+
+	if IsLicensed() {
+		delete(sanitizedLicense, "Id")
+		delete(sanitizedLicense, "Name")
+		delete(sanitizedLicense, "Email")
+		delete(sanitizedLicense, "PhoneNumber")
+		delete(sanitizedLicense, "IssuedAt")
+		delete(sanitizedLicense, "StartsAt")
+		delete(sanitizedLicense, "ExpiresAt")
+	}
+
+	return sanitizedLicense
 }

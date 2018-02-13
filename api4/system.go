@@ -269,7 +269,7 @@ func getClientLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	etag := c.App.GetClientLicenseEtag(true)
+	etag := utils.GetClientLicenseEtag(true)
 	if c.HandleEtag(etag, "Get Client License", w, r) {
 		return
 	}
@@ -277,9 +277,9 @@ func getClientLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 	var clientLicense map[string]string
 
 	if c.App.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
-		clientLicense = c.App.ClientLicense()
+		clientLicense = utils.ClientLicense()
 	} else {
-		clientLicense = c.App.GetSanitizedClientLicense()
+		clientLicense = utils.GetSanitizedClientLicense()
 	}
 
 	w.Header().Set(model.HEADER_ETAG_SERVER, etag)

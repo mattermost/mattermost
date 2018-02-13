@@ -225,8 +225,7 @@ func (s SqlComplianceStore) MessageExport(after int64, limit int) store.StoreCha
 				Channels.Id AS ChannelId,
 				Channels.DisplayName AS ChannelDisplayName,
 				Users.Id AS UserId,
-				Users.Email AS UserEmail,
-				Users.Username
+				Users.Email AS UserEmail
 			FROM
 				Posts
 				LEFT OUTER JOIN Channels ON Posts.ChannelId = Channels.Id

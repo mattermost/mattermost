@@ -63,7 +63,7 @@ func TestS3FileBackendTestSuite(t *testing.T) {
 func (s *FileBackendTestSuite) SetupTest() {
 	TranslationsPreInit()
 
-	backend, err := NewFileBackend(&s.settings, true)
+	backend, err := NewFileBackend(&s.settings)
 	require.Nil(s.T(), err)
 	s.backend = backend
 }

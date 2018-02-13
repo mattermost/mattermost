@@ -160,8 +160,20 @@ func TestCreatePost(t *testing.T) {
 		}
 	}
 
+	isLicensed := utils.IsLicensed()
+	license := utils.License()
+	disableTownSquareReadOnly := th.App.Config().TeamSettings.ExperimentalTownSquareIsReadOnly
+	defer func() {
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.TeamSettings.ExperimentalTownSquareIsReadOnly = disableTownSquareReadOnly })
+		utils.SetIsLicensed(isLicensed)
+		utils.SetLicense(license)
+		th.App.SetDefaultRolesBasedOnConfig()
+	}()
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.ExperimentalTownSquareIsReadOnly = true })
-	th.App.SetLicense(model.NewTestLicense())
+	th.App.SetDefaultRolesBasedOnConfig()
+	utils.SetIsLicensed(true)
+	utils.SetLicense(&model.License{Features: &model.Features{}})
+	utils.License().Features.SetDefaults()
 
 	defaultChannel := store.Must(th.App.Srv.Store.Channel().GetByName(team.Id, model.DEFAULT_CHANNEL, true)).(*model.Channel)
 	defaultPost := &model.Post{
@@ -454,7 +466,16 @@ func TestUpdatePost(t *testing.T) {
 	}
 
 	// Test licensed policy controls for edit post
-	th.App.SetLicense(model.NewTestLicense())
+	isLicensed := utils.IsLicensed()
+	license := utils.License()
+	defer func() {
+		utils.SetIsLicensed(isLicensed)
+		utils.SetLicense(license)
+	}()
+	utils.SetIsLicensed(true)
+	utils.SetLicense(&model.License{Features: &model.Features{}})
+	utils.License().Features.SetDefaults()
+
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowEditPost = model.ALLOW_EDIT_POST_NEVER })
 
 	post4 := &model.Post{ChannelId: channel1.Id, Message: "zz" + model.NewId() + "a", RootId: rpost1.Data.(*model.Post).Id}
@@ -945,6 +966,7 @@ func TestDeletePosts(t *testing.T) {
 	team1 := th.BasicTeam
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.RestrictPostDelete = model.PERMISSIONS_DELETE_POST_ALL })
+	th.App.SetDefaultRolesBasedOnConfig()
 
 	time.Sleep(10 * time.Millisecond)
 	post1 := &model.Post{ChannelId: channel1.Id, Message: "zz" + model.NewId() + "a"}
@@ -999,7 +1021,15 @@ func TestDeletePosts(t *testing.T) {
 	}
 
 	// Test licensed policy controls for delete post
-	th.App.SetLicense(model.NewTestLicense())
+	isLicensed := utils.IsLicensed()
+	license := utils.License()
+	defer func() {
+		utils.SetIsLicensed(isLicensed)
+		utils.SetLicense(license)
+	}()
+	utils.SetIsLicensed(true)
+	utils.SetLicense(&model.License{Features: &model.Features{}})
+	utils.License().Features.SetDefaults()
 
 	th.UpdateUserToTeamAdmin(th.BasicUser2, th.BasicTeam)
 
@@ -1014,6 +1044,7 @@ func TestDeletePosts(t *testing.T) {
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.RestrictPostDelete = model.PERMISSIONS_DELETE_POST_TEAM_ADMIN
 	})
+	th.App.SetDefaultRolesBasedOnConfig()
 
 	th.LoginBasic()
 
@@ -1038,6 +1069,7 @@ func TestDeletePosts(t *testing.T) {
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.RestrictPostDelete = model.PERMISSIONS_DELETE_POST_SYSTEM_ADMIN
 	})
+	th.App.SetDefaultRolesBasedOnConfig()
 
 	th.LoginBasic()
 
@@ -1056,7 +1088,9 @@ func TestDeletePosts(t *testing.T) {
 	}
 
 	// Check that if unlicensed the policy restriction is not enforced.
-	th.App.SetLicense(nil)
+	utils.SetIsLicensed(false)
+	utils.SetLicense(nil)
+	th.App.SetDefaultRolesBasedOnConfig()
 
 	time.Sleep(10 * time.Millisecond)
 	post7 := &model.Post{ChannelId: channel1.Id, Message: "zz" + model.NewId() + "a"}
