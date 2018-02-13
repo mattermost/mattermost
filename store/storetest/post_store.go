@@ -27,7 +27,7 @@ func TestPostStore(t *testing.T, ss store.Store) {
 	t.Run("PermDelete1Level", func(t *testing.T) { testPostStorePermDelete1Level(t, ss) })
 	t.Run("PermDelete1Level2", func(t *testing.T) { testPostStorePermDelete1Level2(t, ss) })
 	t.Run("GetWithChildren", func(t *testing.T) { testPostStoreGetWithChildren(t, ss) })
-	t.Run("GetPostsWtihDetails", func(t *testing.T) { testPostStoreGetPostsWtihDetails(t, ss) })
+	t.Run("GetPostsWithDetails", func(t *testing.T) { testPostStoreGetPostsWithDetails(t, ss) })
 	t.Run("GetPostsBeforeAfter", func(t *testing.T) { testPostStoreGetPostsBeforeAfter(t, ss) })
 	t.Run("GetPostsSince", func(t *testing.T) { testPostStoreGetPostsSince(t, ss) })
 	t.Run("Search", func(t *testing.T) { testPostStoreSearch(t, ss) })
@@ -490,7 +490,7 @@ func testPostStoreGetWithChildren(t *testing.T, ss store.Store) {
 	}
 }
 
-func testPostStoreGetPostsWtihDetails(t *testing.T, ss store.Store) {
+func testPostStoreGetPostsWithDetails(t *testing.T, ss store.Store) {
 	o1 := &model.Post{}
 	o1.ChannelId = model.NewId()
 	o1.UserId = model.NewId()
@@ -591,6 +591,25 @@ func testPostStoreGetPostsWtihDetails(t *testing.T, ss store.Store) {
 	if r2.Posts[o1.Id].Message != o1.Message {
 		t.Fatal("Missing parent")
 	}
+
+	// Run once to fill cache
+	<-ss.Post().GetPosts(o1.ChannelId, 0, 30, true)
+
+	o6 := &model.Post{}
+	o6.ChannelId = o1.ChannelId
+	o6.UserId = model.NewId()
+	o6.Message = "zz" + model.NewId() + "b"
+	o6 = (<-ss.Post().Save(o6)).Data.(*model.Post)
+
+	// Should only be 6 since we hit the cache
+	r3 := (<-ss.Post().GetPosts(o1.ChannelId, 0, 30, true)).Data.(*model.PostList)
+	assert.Equal(t, 6, len(r3.Order))
+
+	ss.Post().InvalidateLastPostTimeCache(o1.ChannelId)
+
+	// Cache was invalidated, we should get all the posts
+	r4 := (<-ss.Post().GetPosts(o1.ChannelId, 0, 30, true)).Data.(*model.PostList)
+	assert.Equal(t, 7, len(r4.Order))
 }
 
 func testPostStoreGetPostsBeforeAfter(t *testing.T, ss store.Store) {

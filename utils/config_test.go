@@ -197,7 +197,7 @@ func TestGetClientConfig(t *testing.T) {
 	cfg, _, err := LoadConfig("config.json")
 	require.Nil(t, err)
 
-	configMap := GenerateClientConfig(cfg, "")
+	configMap := GenerateClientConfig(cfg, "", nil)
 	if configMap["EmailNotificationContentsType"] != *cfg.EmailSettings.EmailNotificationContentsType {
 		t.Fatal("EmailSettings.EmailNotificationContentsType not exposed to client config")
 	}

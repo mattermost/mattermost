@@ -109,7 +109,7 @@ func Init(a *app.App, root *mux.Router) *API {
 	api.InitReaction()
 
 	// 404 on any api route before web.go has a chance to serve it
-	root.Handle("/api/{anything:.*}", http.HandlerFunc(Handle404))
+	root.Handle("/api/{anything:.*}", http.HandlerFunc(api.Handle404))
 
 	a.InitEmailBatching()
 
@@ -118,6 +118,10 @@ func Init(a *app.App, root *mux.Router) *API {
 	}
 
 	return api
+}
+
+func (api *API) Handle404(w http.ResponseWriter, r *http.Request) {
+	Handle404(api.App, w, r)
 }
 
 func ReturnStatusOK(w http.ResponseWriter) {

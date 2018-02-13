@@ -35,7 +35,7 @@ func NewSqlOAuthStore(sqlStore SqlStore) store.OAuthStore {
 		tableAuth.ColMap("ClientId").SetMaxSize(26)
 		tableAuth.ColMap("Code").SetMaxSize(128)
 		tableAuth.ColMap("RedirectUri").SetMaxSize(256)
-		tableAuth.ColMap("State").SetMaxSize(128)
+		tableAuth.ColMap("State").SetMaxSize(1024)
 		tableAuth.ColMap("Scope").SetMaxSize(128)
 
 		tableAccess := db.AddTableWithName(model.AccessData{}, "OAuthAccessData").SetKeys(false, "Token")

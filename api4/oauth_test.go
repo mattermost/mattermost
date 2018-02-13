@@ -18,16 +18,15 @@ func TestCreateOAuthApp(t *testing.T) {
 	Client := th.Client
 	AdminClient := th.SystemAdminClient
 
-	enableOAuth := th.App.Config().ServiceSettings.EnableOAuthServiceProvider
 	defaultRolePermissions := th.SaveDefaultRolePermissions()
 	defer func() {
-		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = enableOAuth })
 		th.RestoreDefaultRolePermissions(defaultRolePermissions)
 	}()
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = true })
 
 	// Grant permission to regular users.
 	th.AddPermissionToRole(model.PERMISSION_MANAGE_OAUTH.Id, model.SYSTEM_USER_ROLE_ID)
+
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = true })
 
 	oapp := &model.OAuthApp{Name: GenerateTestAppName(), Homepage: "https://nowhere.com", Description: "test", CallbackUrls: []string{"https://nowhere.com"}, IsTrusted: true}
 
@@ -90,16 +89,14 @@ func TestUpdateOAuthApp(t *testing.T) {
 	Client := th.Client
 	AdminClient := th.SystemAdminClient
 
-	enableOAuth := th.App.Config().ServiceSettings.EnableOAuthServiceProvider
 	defaultRolePermissions := th.SaveDefaultRolePermissions()
 	defer func() {
-		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = enableOAuth })
 		th.RestoreDefaultRolePermissions(defaultRolePermissions)
 	}()
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = true })
 
 	// Grant permission to regular users.
 	th.AddPermissionToRole(model.PERMISSION_MANAGE_OAUTH.Id, model.SYSTEM_USER_ROLE_ID)
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = true })
 
 	oapp := &model.OAuthApp{
 		Name:         "oapp",
@@ -207,16 +204,14 @@ func TestGetOAuthApps(t *testing.T) {
 	Client := th.Client
 	AdminClient := th.SystemAdminClient
 
-	enableOAuth := th.App.Config().ServiceSettings.EnableOAuthServiceProvider
 	defaultRolePermissions := th.SaveDefaultRolePermissions()
 	defer func() {
-		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = enableOAuth })
 		th.RestoreDefaultRolePermissions(defaultRolePermissions)
 	}()
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = true })
 
 	// Grant permission to regular users.
 	th.AddPermissionToRole(model.PERMISSION_MANAGE_OAUTH.Id, model.SYSTEM_USER_ROLE_ID)
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = true })
 
 	oapp := &model.OAuthApp{Name: GenerateTestAppName(), Homepage: "https://nowhere.com", Description: "test", CallbackUrls: []string{"https://nowhere.com"}}
 
@@ -281,16 +276,14 @@ func TestGetOAuthApp(t *testing.T) {
 	Client := th.Client
 	AdminClient := th.SystemAdminClient
 
-	enableOAuth := th.App.Config().ServiceSettings.EnableOAuthServiceProvider
 	defaultRolePermissions := th.SaveDefaultRolePermissions()
 	defer func() {
-		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = enableOAuth })
 		th.RestoreDefaultRolePermissions(defaultRolePermissions)
 	}()
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = true })
 
 	// Grant permission to regular users.
 	th.AddPermissionToRole(model.PERMISSION_MANAGE_OAUTH.Id, model.SYSTEM_USER_ROLE_ID)
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = true })
 
 	oapp := &model.OAuthApp{Name: GenerateTestAppName(), Homepage: "https://nowhere.com", Description: "test", CallbackUrls: []string{"https://nowhere.com"}}
 
@@ -357,16 +350,14 @@ func TestGetOAuthAppInfo(t *testing.T) {
 	Client := th.Client
 	AdminClient := th.SystemAdminClient
 
-	enableOAuth := th.App.Config().ServiceSettings.EnableOAuthServiceProvider
 	defaultRolePermissions := th.SaveDefaultRolePermissions()
 	defer func() {
-		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = enableOAuth })
 		th.RestoreDefaultRolePermissions(defaultRolePermissions)
 	}()
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = true })
 
 	// Grant permission to regular users.
 	th.AddPermissionToRole(model.PERMISSION_MANAGE_OAUTH.Id, model.SYSTEM_USER_ROLE_ID)
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = true })
 
 	oapp := &model.OAuthApp{Name: GenerateTestAppName(), Homepage: "https://nowhere.com", Description: "test", CallbackUrls: []string{"https://nowhere.com"}}
 
@@ -433,16 +424,14 @@ func TestDeleteOAuthApp(t *testing.T) {
 	Client := th.Client
 	AdminClient := th.SystemAdminClient
 
-	enableOAuth := th.App.Config().ServiceSettings.EnableOAuthServiceProvider
 	defaultRolePermissions := th.SaveDefaultRolePermissions()
 	defer func() {
-		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = enableOAuth })
 		th.RestoreDefaultRolePermissions(defaultRolePermissions)
 	}()
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = true })
 
 	// Grant permission to regular users.
 	th.AddPermissionToRole(model.PERMISSION_MANAGE_OAUTH.Id, model.SYSTEM_USER_ROLE_ID)
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = true })
 
 	oapp := &model.OAuthApp{Name: GenerateTestAppName(), Homepage: "https://nowhere.com", Description: "test", CallbackUrls: []string{"https://nowhere.com"}}
 
@@ -503,16 +492,14 @@ func TestRegenerateOAuthAppSecret(t *testing.T) {
 	Client := th.Client
 	AdminClient := th.SystemAdminClient
 
-	enableOAuth := th.App.Config().ServiceSettings.EnableOAuthServiceProvider
 	defaultRolePermissions := th.SaveDefaultRolePermissions()
 	defer func() {
-		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = enableOAuth })
 		th.RestoreDefaultRolePermissions(defaultRolePermissions)
 	}()
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = true })
 
 	// Grant permission to regular users.
 	th.AddPermissionToRole(model.PERMISSION_MANAGE_OAUTH.Id, model.SYSTEM_USER_ROLE_ID)
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = true })
 
 	oapp := &model.OAuthApp{Name: GenerateTestAppName(), Homepage: "https://nowhere.com", Description: "test", CallbackUrls: []string{"https://nowhere.com"}}
 
@@ -637,10 +624,6 @@ func TestAuthorizeOAuthApp(t *testing.T) {
 	Client := th.Client
 	AdminClient := th.SystemAdminClient
 
-	enableOAuth := th.App.Config().ServiceSettings.EnableOAuthServiceProvider
-	defer func() {
-		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = enableOAuth })
-	}()
 	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = true })
 
 	oapp := &model.OAuthApp{Name: GenerateTestAppName(), Homepage: "https://nowhere.com", Description: "test", CallbackUrls: []string{"https://nowhere.com"}}

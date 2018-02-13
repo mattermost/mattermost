@@ -4,6 +4,7 @@
 package app
 
 import (
+	"crypto/ecdsa"
 	"html/template"
 	"net"
 	"net/http"
@@ -61,14 +62,19 @@ type App struct {
 	configFile      string
 	configListeners map[string]func(*model.Config, *model.Config)
 
+	licenseValue       atomic.Value
+	clientLicenseValue atomic.Value
+	licenseListeners   map[string]func()
+
 	newStore func() store.Store
 
-	htmlTemplateWatcher *utils.HTMLTemplateWatcher
-	sessionCache        *utils.Cache
-	configListenerId    string
-	licenseListenerId   string
-	disableConfigWatch  bool
-	configWatcher       *utils.ConfigWatcher
+	htmlTemplateWatcher  *utils.HTMLTemplateWatcher
+	sessionCache         *utils.Cache
+	configListenerId     string
+	licenseListenerId    string
+	disableConfigWatch   bool
+	configWatcher        *utils.ConfigWatcher
+	asymmetricSigningKey *ecdsa.PrivateKey
 
 	pluginCommands     []*PluginCommand
 	pluginCommandsLock sync.RWMutex
@@ -82,7 +88,7 @@ var appCount = 0
 
 // New creates a new App. You must call Shutdown when you're done with it.
 // XXX: For now, only one at a time is allowed as some resources are still shared.
-func New(options ...Option) (*App, error) {
+func New(options ...Option) (outApp *App, outErr error) {
 	appCount++
 	if appCount > 1 {
 		panic("Only one App should exist at a time. Did you forget to call Shutdown()?")
@@ -93,11 +99,17 @@ func New(options ...Option) (*App, error) {
 		Srv: &Server{
 			Router: mux.NewRouter(),
 		},
-		sessionCache:    utils.NewLru(model.SESSION_CACHE_SIZE),
-		configFile:      "config.json",
-		configListeners: make(map[string]func(*model.Config, *model.Config)),
-		clientConfig:    make(map[string]string),
+		sessionCache:     utils.NewLru(model.SESSION_CACHE_SIZE),
+		configFile:       "config.json",
+		configListeners:  make(map[string]func(*model.Config, *model.Config)),
+		clientConfig:     make(map[string]string),
+		licenseListeners: map[string]func(){},
 	}
+	defer func() {
+		if outErr != nil {
+			app.Shutdown()
+		}
+	}()
 
 	for _, option := range options {
 		option(app)
@@ -120,7 +132,7 @@ func New(options ...Option) (*App, error) {
 	app.configListenerId = app.AddConfigListener(func(_, _ *model.Config) {
 		app.configOrLicenseListener()
 	})
-	app.licenseListenerId = utils.AddLicenseListener(app.configOrLicenseListener)
+	app.licenseListenerId = app.AddLicenseListener(app.configOrLicenseListener)
 	app.regenerateClientConfig()
 
 	l4g.Info(utils.T("api.server.new_server.init.info"))
@@ -140,6 +152,10 @@ func New(options ...Option) (*App, error) {
 	}
 
 	app.Srv.Store = app.newStore()
+	if err := app.ensureAsymmetricSigningKey(); err != nil {
+		return nil, errors.Wrapf(err, "unable to ensure asymmetric signing key")
+	}
+
 	app.initJobs()
 
 	app.initBuiltInPlugins()
@@ -171,7 +187,9 @@ func (a *App) Shutdown() {
 	a.ShutDownPlugins()
 	a.WaitForGoroutines()
 
-	a.Srv.Store.Close()
+	if a.Srv.Store != nil {
+		a.Srv.Store.Close()
+	}
 	a.Srv = nil
 
 	if a.htmlTemplateWatcher != nil {
@@ -179,7 +197,7 @@ func (a *App) Shutdown() {
 	}
 
 	a.RemoveConfigListener(a.configListenerId)
-	utils.RemoveLicenseListener(a.licenseListenerId)
+	a.RemoveLicenseListener(a.licenseListenerId)
 	l4g.Info(utils.T("api.server.stop_server.stopped.info"))
 
 	a.DisableConfigWatch()
@@ -448,7 +466,7 @@ func (a *App) Handle404(w http.ResponseWriter, r *http.Request) {
 
 	l4g.Debug("%v: code=404 ip=%v", r.URL.Path, utils.GetIpAddress(r))
 
-	utils.RenderWebError(err, w, r)
+	utils.RenderWebAppError(w, r, err, a.AsymmetricSigningKey())
 }
 
 // This function migrates the default built in roles from code/config to the database.
@@ -460,7 +478,7 @@ func (a *App) DoAdvancedPermissionsMigration() {
 
 	l4g.Info("Migrating roles to database.")
 	roles := model.MakeDefaultRoles()
-	roles = utils.SetRolePermissionsFromConfig(roles, a.Config(), utils.IsLicensed())
+	roles = utils.SetRolePermissionsFromConfig(roles, a.Config(), a.License() != nil)
 
 	allSucceeded := true
 

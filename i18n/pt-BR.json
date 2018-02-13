@@ -153,7 +153,7 @@
   },
   {
     "id": "api.channel.add_member.added",
-    "translation": "%v adicionado ao canal por %v"
+    "translation": "%v adicionado ao canal por %v."
   },
   {
     "id": "api.channel.add_member.find_channel.app_error",
@@ -2184,7 +2184,7 @@
   },
   {
     "id": "api.team.add_user_to_team.added",
-    "translation": "%v adicionado a equipe por %v"
+    "translation": "%v adicionado a equipe por %v."
   },
   {
     "id": "api.team.add_user_to_team.missing_parameter.app_error",
@@ -4644,7 +4644,7 @@
   },
   {
     "id": "model.config.is_valid.atmos_camo_image_proxy_options.app_error",
-    "translation": "Invalid atmos/camo image proxy options for service settings. Must be set to your shared key."
+    "translation": "Opções inválidas de proxy de imagem atmos/camo nas configurações de serviço. Deve ser configurado para sua chave compartilhada."
   },
   {
     "id": "model.config.is_valid.cluster_email_batching.app_error",
@@ -4760,7 +4760,7 @@
   },
   {
     "id": "model.config.is_valid.image_proxy_type.app_error",
-    "translation": "Invalid image proxy type for service settings."
+    "translation": "Tipo de proxy de imagem inválido nas configurações de serviços."
   },
   {
     "id": "model.config.is_valid.ldap_basedn",
@@ -5404,7 +5404,7 @@
   },
   {
     "id": "model.user.is_valid.position.app_error",
-    "translation": "Posição inválida: não pode ter mais que 35 caracteres."
+    "translation": "Posição inválida: não pode ter mais que 128 caracteres."
   },
   {
     "id": "model.user.is_valid.pwd.app_error",

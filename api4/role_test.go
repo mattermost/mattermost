@@ -10,7 +10,6 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils"
 )
 
 func TestGetRole(t *testing.T) {
@@ -192,15 +191,7 @@ func TestPatchRole(t *testing.T) {
 	CheckNotImplementedStatus(t, resp)
 
 	// Add a license.
-	isLicensed := utils.IsLicensed()
-	license := utils.License()
-	defer func() {
-		utils.SetIsLicensed(isLicensed)
-		utils.SetLicense(license)
-	}()
-	utils.SetIsLicensed(true)
-	utils.SetLicense(&model.License{Features: &model.Features{}})
-	utils.License().Features.SetDefaults()
+	th.App.SetLicense(model.NewTestLicense())
 
 	// Try again, should succeed
 	received, resp = th.SystemAdminClient.PatchRole(role.Id, patch)

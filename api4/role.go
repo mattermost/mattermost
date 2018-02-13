@@ -7,7 +7,6 @@ import (
 	"net/http"
 
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils"
 )
 
 func (api *API) InitRole() {
@@ -86,7 +85,7 @@ func patchRole(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !utils.IsLicensed() && patch.Permissions != nil {
+	if c.App.License() == nil && patch.Permissions != nil {
 		allowedPermissions := []string{
 			model.PERMISSION_CREATE_TEAM.Id,
 			model.PERMISSION_MANAGE_WEBHOOKS.Id,
