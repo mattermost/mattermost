@@ -110,7 +110,7 @@ func TestMoveChannel(t *testing.T) {
 	}
 }
 
-func TestJoinDefaultChannelsTownSquare(t *testing.T) {
+func TestJoinDefaultChannelsCreatesChannelMemberHistoryRecordTownSquare(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
 
@@ -136,7 +136,7 @@ func TestJoinDefaultChannelsTownSquare(t *testing.T) {
 	assert.True(t, found)
 }
 
-func TestJoinDefaultChannelsOffTopic(t *testing.T) {
+func TestJoinDefaultChannelsCreatesChannelMemberHistoryRecordOffTopic(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
 
@@ -162,7 +162,7 @@ func TestJoinDefaultChannelsOffTopic(t *testing.T) {
 	assert.True(t, found)
 }
 
-func TestCreateChannelPublic(t *testing.T) {
+func TestCreateChannelPublicCreatesChannelMemberHistoryRecord(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
 
@@ -176,7 +176,7 @@ func TestCreateChannelPublic(t *testing.T) {
 	assert.Equal(t, publicChannel.Id, histories[0].ChannelId)
 }
 
-func TestCreateChannelPrivate(t *testing.T) {
+func TestCreateChannelPrivateCreatesChannelMemberHistoryRecord(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
 
@@ -205,7 +205,7 @@ func TestUpdateChannelPrivacy(t *testing.T) {
 	}
 }
 
-func TestCreateGroupChannel(t *testing.T) {
+func TestCreateGroupChannelCreatesChannelMemberHistoryRecord(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
 
@@ -233,7 +233,62 @@ func TestCreateGroupChannel(t *testing.T) {
 	}
 }
 
-func TestAddUserToChannel(t *testing.T) {
+func TestCreateDirectChannelCreatesChannelMemberHistoryRecord(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	user1 := th.CreateUser()
+	user2 := th.CreateUser()
+
+	if channel, err := th.App.CreateDirectChannel(user1.Id, user2.Id); err != nil {
+		t.Fatal("Failed to create direct channel. Error: " + err.Message)
+	} else {
+		// there should be a ChannelMemberHistory record for both users
+		histories := store.Must(th.App.Srv.Store.ChannelMemberHistory().GetUsersInChannelDuring(model.GetMillis()-100, model.GetMillis()+100, channel.Id)).([]*model.ChannelMemberHistory)
+		assert.Len(t, histories, 2)
+
+		historyId0 := histories[0].UserId
+		historyId1 := histories[1].UserId
+		switch historyId0 {
+		case user1.Id:
+			assert.Equal(t, user2.Id, historyId1)
+		case user2.Id:
+			assert.Equal(t, user1.Id, historyId1)
+		default:
+			t.Fatal("Unexpected user id %s in ChannelMemberHistory table", historyId0)
+		}
+	}
+}
+
+func TestGetDirectChannelCreatesChannelMemberHistoryRecord(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	user1 := th.CreateUser()
+	user2 := th.CreateUser()
+
+	// this function call implicitly creates a direct channel between the two users if one doesn't already exist
+	if channel, err := th.App.GetDirectChannel(user1.Id, user2.Id); err != nil {
+		t.Fatal("Failed to create direct channel. Error: " + err.Message)
+	} else {
+		// there should be a ChannelMemberHistory record for both users
+		histories := store.Must(th.App.Srv.Store.ChannelMemberHistory().GetUsersInChannelDuring(model.GetMillis()-100, model.GetMillis()+100, channel.Id)).([]*model.ChannelMemberHistory)
+		assert.Len(t, histories, 2)
+
+		historyId0 := histories[0].UserId
+		historyId1 := histories[1].UserId
+		switch historyId0 {
+		case user1.Id:
+			assert.Equal(t, user2.Id, historyId1)
+		case user2.Id:
+			assert.Equal(t, user1.Id, historyId1)
+		default:
+			t.Fatal("Unexpected user id %s in ChannelMemberHistory table", historyId0)
+		}
+	}
+}
+
+func TestAddUserToChannelCreatesChannelMemberHistoryRecord(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
 
@@ -263,7 +318,7 @@ func TestAddUserToChannel(t *testing.T) {
 	assert.Equal(t, groupUserIds, channelMemberHistoryUserIds)
 }
 
-func TestRemoveUserFromChannel(t *testing.T) {
+func TestRemoveUserFromChannelUpdatesChannelMemberHistoryRecord(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
 
