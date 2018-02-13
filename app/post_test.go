@@ -15,7 +15,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils"
 )
 
 func TestUpdatePostEditAt(t *testing.T) {
@@ -51,15 +50,7 @@ func TestUpdatePostTimeLimit(t *testing.T) {
 	post := &model.Post{}
 	*post = *th.BasicPost
 
-	isLicensed := utils.IsLicensed()
-	license := utils.License()
-	defer func() {
-		utils.SetIsLicensed(isLicensed)
-		utils.SetLicense(license)
-	}()
-	utils.SetIsLicensed(true)
-	utils.SetLicense(&model.License{Features: &model.Features{}})
-	utils.License().Features.SetDefaults()
+	th.App.SetLicense(model.NewTestLicense())
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.PostEditTimeLimit = -1
@@ -236,6 +227,10 @@ func TestImageProxy(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
 
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.SiteURL = "http://mymattermost.com"
+	})
+
 	for name, tc := range map[string]struct {
 		ProxyType       string
 		ProxyURL        string
@@ -256,6 +251,18 @@ func TestImageProxy(t *testing.T) {
 			ProxyOptions:    "x1000",
 			ImageURL:        "http://mydomain.com/myimage",
 			ProxiedImageURL: "https://127.0.0.1/x1000/http://mydomain.com/myimage",
+		},
+		"willnorris/imageproxy_SameSite": {
+			ProxyType:       "willnorris/imageproxy",
+			ProxyURL:        "https://127.0.0.1",
+			ImageURL:        "http://mymattermost.com/myimage",
+			ProxiedImageURL: "http://mymattermost.com/myimage",
+		},
+		"willnorris/imageproxy_PathOnly": {
+			ProxyType:       "willnorris/imageproxy",
+			ProxyURL:        "https://127.0.0.1",
+			ImageURL:        "/myimage",
+			ProxiedImageURL: "/myimage",
 		},
 		"willnorris/imageproxy_EmptyImageURL": {
 			ProxyType:       "willnorris/imageproxy",

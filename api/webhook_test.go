@@ -9,7 +9,6 @@ import (
 	"testing"
 
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils"
 )
 
 func TestCreateIncomingHook(t *testing.T) {
@@ -980,10 +979,6 @@ func TestIncomingWebhooks(t *testing.T) {
 	user2 := th.CreateUser(Client)
 	th.LinkUserToTeam(user2, team)
 
-	enableIncomingHooks := th.App.Config().ServiceSettings.EnableIncomingWebhooks
-	defer func() {
-		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableIncomingWebhooks = enableIncomingHooks })
-	}()
 	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableIncomingWebhooks = true })
 
 	hook := &model.IncomingWebhook{ChannelId: channel1.Id}
@@ -1025,18 +1020,8 @@ func TestIncomingWebhooks(t *testing.T) {
 		t.Fatal("should not have failed -- ExperimentalTownSquareIsReadOnly is false and it's not a read only channel")
 	}
 
-	isLicensed := utils.IsLicensed()
-	license := utils.License()
-	disableTownSquareReadOnly := th.App.Config().TeamSettings.ExperimentalTownSquareIsReadOnly
-	defer func() {
-		th.App.UpdateConfig(func(cfg *model.Config) { cfg.TeamSettings.ExperimentalTownSquareIsReadOnly = disableTownSquareReadOnly })
-		utils.SetIsLicensed(isLicensed)
-		utils.SetLicense(license)
-	}()
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.ExperimentalTownSquareIsReadOnly = true })
-	utils.SetIsLicensed(true)
-	utils.SetLicense(&model.License{Features: &model.Features{}})
-	utils.License().Features.SetDefaults()
+	th.App.SetLicense(model.NewTestLicense())
 
 	if _, err := th.BasicClient.DoPost(url, fmt.Sprintf("{\"text\":\"this is a test\", \"channel\":\"%s\"}", model.DEFAULT_CHANNEL), "application/json"); err == nil {
 		t.Fatal("should have failed -- ExperimentalTownSquareIsReadOnly is true and it's a read only channel")

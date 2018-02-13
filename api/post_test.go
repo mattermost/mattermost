@@ -160,18 +160,8 @@ func TestCreatePost(t *testing.T) {
 		}
 	}
 
-	isLicensed := utils.IsLicensed()
-	license := utils.License()
-	disableTownSquareReadOnly := th.App.Config().TeamSettings.ExperimentalTownSquareIsReadOnly
-	defer func() {
-		th.App.UpdateConfig(func(cfg *model.Config) { cfg.TeamSettings.ExperimentalTownSquareIsReadOnly = disableTownSquareReadOnly })
-		utils.SetIsLicensed(isLicensed)
-		utils.SetLicense(license)
-	}()
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.ExperimentalTownSquareIsReadOnly = true })
-	utils.SetIsLicensed(true)
-	utils.SetLicense(&model.License{Features: &model.Features{}})
-	utils.License().Features.SetDefaults()
+	th.App.SetLicense(model.NewTestLicense())
 
 	defaultChannel := store.Must(th.App.Srv.Store.Channel().GetByName(team.Id, model.DEFAULT_CHANNEL, true)).(*model.Channel)
 	defaultPost := &model.Post{
@@ -400,6 +390,7 @@ func TestUpdatePost(t *testing.T) {
 	defer func() {
 		th.RestoreDefaultRolePermissions(defaultRolePermissions)
 	}()
+	th.App.SetLicense(model.NewTestLicense())
 
 	th.AddPermissionToRole(model.PERMISSION_EDIT_POST.Id, model.CHANNEL_USER_ROLE_ID)
 
@@ -470,17 +461,8 @@ func TestUpdatePost(t *testing.T) {
 	}
 
 	// Test licensed policy controls for edit post
-	isLicensed := utils.IsLicensed()
-	license := utils.License()
-	defer func() {
-		utils.SetIsLicensed(isLicensed)
-		utils.SetLicense(license)
-	}()
-	utils.SetIsLicensed(true)
-	utils.SetLicense(&model.License{Features: &model.Features{}})
-	utils.License().Features.SetDefaults()
-
 	th.RemovePermissionFromRole(model.PERMISSION_EDIT_POST.Id, model.CHANNEL_USER_ROLE_ID)
+
 	post4 := &model.Post{ChannelId: channel1.Id, Message: "zz" + model.NewId() + "a", RootId: rpost1.Data.(*model.Post).Id}
 	rpost4, err := Client.CreatePost(post4)
 	if err != nil {

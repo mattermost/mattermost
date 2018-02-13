@@ -122,12 +122,13 @@ type PostActionIntegrationResponse struct {
 func (o *Post) ToJson() string {
 	copy := *o
 	copy.StripActionIntegrations()
-	b, err := json.Marshal(&copy)
-	if err != nil {
-		return ""
-	} else {
-		return string(b)
-	}
+	b, _ := json.Marshal(&copy)
+	return string(b)
+}
+
+func (o *Post) ToUnsanitizedJson() string {
+	b, _ := json.Marshal(o)
+	return string(b)
 }
 
 func PostFromJson(data io.Reader) *Post {

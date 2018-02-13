@@ -1733,7 +1733,7 @@ func (c *Client4) RemoveUserFromChannel(channelId, userId string) (bool, *Respon
 
 // CreatePost creates a post based on the provided post struct.
 func (c *Client4) CreatePost(post *Post) (*Post, *Response) {
-	if r, err := c.DoApiPost(c.GetPostsRoute(), post.ToJson()); err != nil {
+	if r, err := c.DoApiPost(c.GetPostsRoute(), post.ToUnsanitizedJson()); err != nil {
 		return nil, BuildErrorResponse(r, err)
 	} else {
 		defer closeBody(r)
@@ -1743,7 +1743,7 @@ func (c *Client4) CreatePost(post *Post) (*Post, *Response) {
 
 // UpdatePost updates a post based on the provided post struct.
 func (c *Client4) UpdatePost(postId string, post *Post) (*Post, *Response) {
-	if r, err := c.DoApiPut(c.GetPostRoute(postId), post.ToJson()); err != nil {
+	if r, err := c.DoApiPut(c.GetPostRoute(postId), post.ToUnsanitizedJson()); err != nil {
 		return nil, BuildErrorResponse(r, err)
 	} else {
 		defer closeBody(r)

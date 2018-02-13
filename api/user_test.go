@@ -1889,17 +1889,7 @@ func TestUpdateMfa(t *testing.T) {
 
 	Client := th.BasicClient
 
-	isLicensed := utils.IsLicensed()
-	license := utils.License()
-	defer func() {
-		utils.SetIsLicensed(isLicensed)
-		utils.SetLicense(license)
-	}()
-	utils.SetIsLicensed(false)
-	utils.SetLicense(&model.License{Features: &model.Features{}})
-	if utils.License().Features.MFA == nil {
-		utils.License().Features.MFA = new(bool)
-	}
+	th.App.SetLicense(nil)
 
 	team := model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
 	rteam, _ := Client.CreateTeam(&team)
@@ -1925,8 +1915,7 @@ func TestUpdateMfa(t *testing.T) {
 		t.Fatal("should have failed - not licensed")
 	}
 
-	utils.SetIsLicensed(true)
-	*utils.License().Features.MFA = true
+	th.App.SetLicense(model.NewTestLicense("mfa"))
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableMultifactorAuthentication = true })
 
 	if _, err := Client.UpdateMfa(true, "123456"); err == nil {

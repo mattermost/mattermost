@@ -226,16 +226,12 @@ func TestDoAdvancedPermissionsMigration(t *testing.T) {
 	}
 
 	// Add a license and change the policy config.
-	isLicensed := utils.IsLicensed()
-	license := utils.License()
 	restrictPublicChannel := *th.App.Config().TeamSettings.RestrictPublicChannelManagement
 	restrictPrivateChannel := *th.App.Config().TeamSettings.RestrictPrivateChannelManagement
 
 	defer func() {
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.RestrictPublicChannelManagement = restrictPublicChannel })
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.RestrictPrivateChannelManagement = restrictPrivateChannel })
-		utils.SetIsLicensed(isLicensed)
-		utils.SetLicense(license)
 	}()
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -244,9 +240,7 @@ func TestDoAdvancedPermissionsMigration(t *testing.T) {
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.TeamSettings.RestrictPrivateChannelManagement = model.PERMISSIONS_TEAM_ADMIN
 	})
-	utils.SetIsLicensed(true)
-	utils.SetLicense(&model.License{Features: &model.Features{}})
-	utils.License().Features.SetDefaults()
+	th.App.SetLicense(model.NewTestLicense())
 
 	// Check the migration doesn't change anything if run again.
 	th.App.DoAdvancedPermissionsMigration()
@@ -394,7 +388,7 @@ func TestDoAdvancedPermissionsMigration(t *testing.T) {
 	}
 
 	// Remove the license.
-	utils.SetIsLicensed(false)
+	th.App.SetLicense(nil)
 
 	// Do the migration again.
 	th.ResetRoleMigration()
