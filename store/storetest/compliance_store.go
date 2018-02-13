@@ -341,8 +341,7 @@ func testComplianceMessageExport(t *testing.T, ss store.Store) {
 
 	// and two users that are a part of that team
 	user1 := &model.User{
-		Email:    model.NewId(),
-		Username: model.NewId(),
+		Email: model.NewId(),
 	}
 	user1 = store.Must(ss.User().Save(user1)).(*model.User)
 	store.Must(ss.Team().SaveMember(&model.TeamMember{
@@ -351,8 +350,7 @@ func testComplianceMessageExport(t *testing.T, ss store.Store) {
 	}, -1))
 
 	user2 := &model.User{
-		Email:    model.NewId(),
-		Username: model.NewId(),
+		Email: model.NewId(),
 	}
 	user2 = store.Must(ss.User().Save(user2)).(*model.User)
 	store.Must(ss.Team().SaveMember(&model.TeamMember{
@@ -417,7 +415,6 @@ func testComplianceMessageExport(t *testing.T, ss store.Store) {
 	assert.Equal(t, channel.DisplayName, *messageExportMap[post1.Id].ChannelDisplayName)
 	assert.Equal(t, user1.Id, *messageExportMap[post1.Id].UserId)
 	assert.Equal(t, user1.Email, *messageExportMap[post1.Id].UserEmail)
-	assert.Equal(t, user1.Username, *messageExportMap[post1.Id].Username)
 
 	// post2 was made by user1 in channel1 and team1
 	assert.Equal(t, post2.Id, *messageExportMap[post2.Id].PostId)
@@ -427,7 +424,6 @@ func testComplianceMessageExport(t *testing.T, ss store.Store) {
 	assert.Equal(t, channel.DisplayName, *messageExportMap[post2.Id].ChannelDisplayName)
 	assert.Equal(t, user1.Id, *messageExportMap[post2.Id].UserId)
 	assert.Equal(t, user1.Email, *messageExportMap[post2.Id].UserEmail)
-	assert.Equal(t, user1.Username, *messageExportMap[post2.Id].Username)
 
 	// post3 is a DM between user1 and user2
 	assert.Equal(t, post3.Id, *messageExportMap[post3.Id].PostId)
@@ -436,5 +432,4 @@ func testComplianceMessageExport(t *testing.T, ss store.Store) {
 	assert.Equal(t, directMessageChannel.Id, *messageExportMap[post3.Id].ChannelId)
 	assert.Equal(t, user1.Id, *messageExportMap[post3.Id].UserId)
 	assert.Equal(t, user1.Email, *messageExportMap[post3.Id].UserEmail)
-	assert.Equal(t, user1.Username, *messageExportMap[post3.Id].Username)
 }

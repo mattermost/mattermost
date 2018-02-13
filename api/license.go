@@ -9,6 +9,7 @@ import (
 	"net/http"
 
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/utils"
 )
 
 func (api *API) InitLicense() {
@@ -82,7 +83,7 @@ func removeLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 func getClientLicenceConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	useSanitizedLicense := !c.App.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM)
 
-	etag := c.App.GetClientLicenseEtag(useSanitizedLicense)
+	etag := utils.GetClientLicenseEtag(useSanitizedLicense)
 	if c.HandleEtag(etag, "Get Client License Config", w, r) {
 		return
 	}
@@ -90,9 +91,9 @@ func getClientLicenceConfig(c *Context, w http.ResponseWriter, r *http.Request) 
 	var clientLicense map[string]string
 
 	if useSanitizedLicense {
-		clientLicense = c.App.ClientLicense()
+		clientLicense = utils.ClientLicense()
 	} else {
-		clientLicense = c.App.GetSanitizedClientLicense()
+		clientLicense = utils.GetSanitizedClientLicense()
 	}
 
 	w.Header().Set(model.HEADER_ETAG_SERVER, etag)

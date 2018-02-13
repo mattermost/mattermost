@@ -14,6 +14,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store/sqlstore"
+	"github.com/mattermost/mattermost-server/utils"
 )
 
 func TestCreateChannel(t *testing.T) {
@@ -81,9 +82,23 @@ func TestCreateChannel(t *testing.T) {
 	th.LoginBasic()
 
 	// Check permissions with policy config changes
+	isLicensed := utils.IsLicensed()
+	license := utils.License()
+	restrictPublicChannel := *th.App.Config().TeamSettings.RestrictPublicChannelCreation
+	restrictPrivateChannel := *th.App.Config().TeamSettings.RestrictPrivateChannelCreation
+	defer func() {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.RestrictPublicChannelCreation = restrictPublicChannel })
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.RestrictPrivateChannelCreation = restrictPrivateChannel })
+		utils.SetIsLicensed(isLicensed)
+		utils.SetLicense(license)
+		th.App.SetDefaultRolesBasedOnConfig()
+	}()
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.RestrictPublicChannelCreation = model.PERMISSIONS_ALL })
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.RestrictPrivateChannelCreation = model.PERMISSIONS_ALL })
-	th.App.SetLicense(model.NewTestLicense())
+	utils.SetIsLicensed(true)
+	utils.SetLicense(&model.License{Features: &model.Features{}})
+	utils.License().Features.SetDefaults()
+	th.App.SetDefaultRolesBasedOnConfig()
 
 	channel.Name = GenerateTestChannelName()
 	_, resp = Client.CreateChannel(channel)
@@ -95,8 +110,11 @@ func TestCreateChannel(t *testing.T) {
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.TeamSettings.RestrictPublicChannelCreation = model.PERMISSIONS_TEAM_ADMIN
+	})
+	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.TeamSettings.RestrictPrivateChannelCreation = model.PERMISSIONS_TEAM_ADMIN
 	})
+	th.App.SetDefaultRolesBasedOnConfig()
 
 	_, resp = Client.CreateChannel(channel)
 	CheckForbiddenStatus(t, resp)
@@ -124,8 +142,11 @@ func TestCreateChannel(t *testing.T) {
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.TeamSettings.RestrictPublicChannelCreation = model.PERMISSIONS_SYSTEM_ADMIN
+	})
+	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.TeamSettings.RestrictPrivateChannelCreation = model.PERMISSIONS_SYSTEM_ADMIN
 	})
+	th.App.SetDefaultRolesBasedOnConfig()
 
 	th.LoginBasic()
 
@@ -152,7 +173,9 @@ func TestCreateChannel(t *testing.T) {
 	CheckNoError(t, resp)
 
 	// Check that if unlicensed the policy restriction is not enforced.
-	th.App.SetLicense(nil)
+	utils.SetIsLicensed(false)
+	utils.SetLicense(nil)
+	th.App.SetDefaultRolesBasedOnConfig()
 
 	channel.Name = GenerateTestChannelName()
 	_, resp = Client.CreateChannel(channel)
@@ -864,9 +887,23 @@ func TestDeleteChannel(t *testing.T) {
 
 	th.InitBasic().InitSystemAdmin()
 
+	isLicensed := utils.IsLicensed()
+	license := utils.License()
+	restrictPublicChannel := *th.App.Config().TeamSettings.RestrictPublicChannelManagement
+	restrictPrivateChannel := *th.App.Config().TeamSettings.RestrictPrivateChannelManagement
+	defer func() {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.RestrictPublicChannelManagement = restrictPublicChannel })
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.RestrictPrivateChannelManagement = restrictPrivateChannel })
+		utils.SetIsLicensed(isLicensed)
+		utils.SetLicense(license)
+		th.App.SetDefaultRolesBasedOnConfig()
+	}()
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.RestrictPublicChannelManagement = model.PERMISSIONS_ALL })
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.RestrictPrivateChannelManagement = model.PERMISSIONS_ALL })
-	th.App.SetLicense(model.NewTestLicense())
+	utils.SetIsLicensed(true)
+	utils.SetLicense(&model.License{Features: &model.Features{}})
+	utils.License().Features.SetDefaults()
+	th.App.SetDefaultRolesBasedOnConfig()
 
 	Client = th.Client
 	team = th.BasicTeam
@@ -889,8 +926,11 @@ func TestDeleteChannel(t *testing.T) {
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.TeamSettings.RestrictPublicChannelDeletion = model.PERMISSIONS_CHANNEL_ADMIN
+	})
+	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.TeamSettings.RestrictPrivateChannelDeletion = model.PERMISSIONS_CHANNEL_ADMIN
 	})
+	th.App.SetDefaultRolesBasedOnConfig()
 
 	// channels created by SystemAdmin
 	publicChannel6 = th.CreateChannelWithClient(th.SystemAdminClient, model.CHANNEL_OPEN)
@@ -927,7 +967,9 @@ func TestDeleteChannel(t *testing.T) {
 	// successful delete by team admin
 	th.UpdateUserToTeamAdmin(user, team)
 	th.App.InvalidateAllCaches()
-	th.App.SetLicense(model.NewTestLicense())
+	utils.SetIsLicensed(true)
+	utils.SetLicense(&model.License{Features: &model.Features{}})
+	utils.License().Features.SetDefaults()
 
 	_, resp = Client.DeleteChannel(publicChannel6.Id)
 	CheckNoError(t, resp)
@@ -937,11 +979,16 @@ func TestDeleteChannel(t *testing.T) {
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.TeamSettings.RestrictPublicChannelDeletion = model.PERMISSIONS_TEAM_ADMIN
+	})
+	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.TeamSettings.RestrictPrivateChannelDeletion = model.PERMISSIONS_TEAM_ADMIN
 	})
+	th.App.SetDefaultRolesBasedOnConfig()
 	th.UpdateUserToNonTeamAdmin(user, team)
 	th.App.InvalidateAllCaches()
-	th.App.SetLicense(model.NewTestLicense())
+	utils.SetIsLicensed(true)
+	utils.SetLicense(&model.License{Features: &model.Features{}})
+	utils.License().Features.SetDefaults()
 
 	// channels created by SystemAdmin
 	publicChannel6 = th.CreateChannelWithClient(th.SystemAdminClient, model.CHANNEL_OPEN)
@@ -971,7 +1018,9 @@ func TestDeleteChannel(t *testing.T) {
 	// successful delete by team admin
 	th.UpdateUserToTeamAdmin(th.BasicUser, team)
 	th.App.InvalidateAllCaches()
-	th.App.SetLicense(model.NewTestLicense())
+	utils.SetIsLicensed(true)
+	utils.SetLicense(&model.License{Features: &model.Features{}})
+	utils.License().Features.SetDefaults()
 
 	_, resp = Client.DeleteChannel(publicChannel6.Id)
 	CheckNoError(t, resp)
@@ -981,8 +1030,11 @@ func TestDeleteChannel(t *testing.T) {
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.TeamSettings.RestrictPublicChannelDeletion = model.PERMISSIONS_SYSTEM_ADMIN
+	})
+	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.TeamSettings.RestrictPrivateChannelDeletion = model.PERMISSIONS_SYSTEM_ADMIN
 	})
+	th.App.SetDefaultRolesBasedOnConfig()
 
 	// channels created by SystemAdmin
 	publicChannel6 = th.CreateChannelWithClient(th.SystemAdminClient, model.CHANNEL_OPEN)
@@ -1012,7 +1064,9 @@ func TestDeleteChannel(t *testing.T) {
 	// cannot delete by team admin
 	th.UpdateUserToTeamAdmin(th.BasicUser, team)
 	th.App.InvalidateAllCaches()
-	th.App.SetLicense(model.NewTestLicense())
+	utils.SetIsLicensed(true)
+	utils.SetLicense(&model.License{Features: &model.Features{}})
+	utils.License().Features.SetDefaults()
 
 	_, resp = Client.DeleteChannel(publicChannel6.Id)
 	CheckForbiddenStatus(t, resp)
@@ -1769,9 +1823,16 @@ func TestAddChannelMember(t *testing.T) {
 	CheckNoError(t, resp)
 
 	// Test policy does not apply to TE.
+	restrictPrivateChannel := *th.App.Config().TeamSettings.RestrictPrivateChannelManageMembers
+	defer func() {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.TeamSettings.RestrictPrivateChannelManageMembers = restrictPrivateChannel
+		})
+	}()
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.TeamSettings.RestrictPrivateChannelManageMembers = model.PERMISSIONS_CHANNEL_ADMIN
 	})
+	th.App.SetDefaultRolesBasedOnConfig()
 
 	Client.Login(user2.Username, user2.Password)
 	privateChannel = th.CreatePrivateChannel()
@@ -1785,8 +1846,18 @@ func TestAddChannelMember(t *testing.T) {
 	Client.Logout()
 
 	// Add a license
+	isLicensed := utils.IsLicensed()
+	license := utils.License()
+	defer func() {
+		utils.SetIsLicensed(isLicensed)
+		utils.SetLicense(license)
+		th.App.SetDefaultRolesBasedOnConfig()
+	}()
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.RestrictPrivateChannelManageMembers = model.PERMISSIONS_ALL })
-	th.App.SetLicense(model.NewTestLicense())
+	utils.SetIsLicensed(true)
+	utils.SetLicense(&model.License{Features: &model.Features{}})
+	utils.License().Features.SetDefaults()
+	th.App.SetDefaultRolesBasedOnConfig()
 
 	// Check that a regular channel user can add other users.
 	Client.Login(user2.Username, user2.Password)
@@ -1804,6 +1875,10 @@ func TestAddChannelMember(t *testing.T) {
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.TeamSettings.RestrictPrivateChannelManageMembers = model.PERMISSIONS_CHANNEL_ADMIN
 	})
+	utils.SetIsLicensed(true)
+	utils.SetLicense(&model.License{Features: &model.Features{}})
+	utils.License().Features.SetDefaults()
+	th.App.SetDefaultRolesBasedOnConfig()
 
 	Client.Login(user2.Username, user2.Password)
 	privateChannel = th.CreatePrivateChannel()
@@ -1818,7 +1893,10 @@ func TestAddChannelMember(t *testing.T) {
 
 	th.MakeUserChannelAdmin(user, privateChannel)
 	th.App.InvalidateAllCaches()
-	th.App.SetLicense(model.NewTestLicense())
+	utils.SetIsLicensed(true)
+	utils.SetLicense(&model.License{Features: &model.Features{}})
+	utils.License().Features.SetDefaults()
+	th.App.SetDefaultRolesBasedOnConfig()
 
 	Client.Login(user.Username, user.Password)
 	_, resp = Client.AddChannelMember(privateChannel.Id, user3.Id)
@@ -1829,6 +1907,10 @@ func TestAddChannelMember(t *testing.T) {
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.TeamSettings.RestrictPrivateChannelManageMembers = model.PERMISSIONS_TEAM_ADMIN
 	})
+	utils.SetIsLicensed(true)
+	utils.SetLicense(&model.License{Features: &model.Features{}})
+	utils.License().Features.SetDefaults()
+	th.App.SetDefaultRolesBasedOnConfig()
 
 	Client.Login(user2.Username, user2.Password)
 	privateChannel = th.CreatePrivateChannel()
@@ -1843,7 +1925,10 @@ func TestAddChannelMember(t *testing.T) {
 
 	th.UpdateUserToTeamAdmin(user, team)
 	th.App.InvalidateAllCaches()
-	th.App.SetLicense(model.NewTestLicense())
+	utils.SetIsLicensed(true)
+	utils.SetLicense(&model.License{Features: &model.Features{}})
+	utils.License().Features.SetDefaults()
+	th.App.SetDefaultRolesBasedOnConfig()
 
 	Client.Login(user.Username, user.Password)
 	_, resp = Client.AddChannelMember(privateChannel.Id, user3.Id)
@@ -1854,6 +1939,10 @@ func TestAddChannelMember(t *testing.T) {
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.TeamSettings.RestrictPrivateChannelManageMembers = model.PERMISSIONS_SYSTEM_ADMIN
 	})
+	utils.SetIsLicensed(true)
+	utils.SetLicense(&model.License{Features: &model.Features{}})
+	utils.License().Features.SetDefaults()
+	th.App.SetDefaultRolesBasedOnConfig()
 
 	Client.Login(user2.Username, user2.Password)
 	privateChannel = th.CreatePrivateChannel()
@@ -1930,9 +2019,16 @@ func TestRemoveChannelMember(t *testing.T) {
 	th.App.InvalidateAllCaches()
 
 	// Test policy does not apply to TE.
+	restrictPrivateChannel := *th.App.Config().TeamSettings.RestrictPrivateChannelManageMembers
+	defer func() {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.TeamSettings.RestrictPrivateChannelManageMembers = restrictPrivateChannel
+		})
+	}()
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.TeamSettings.RestrictPrivateChannelManageMembers = model.PERMISSIONS_CHANNEL_ADMIN
 	})
+	th.App.SetDefaultRolesBasedOnConfig()
 
 	privateChannel := th.CreateChannelWithClient(th.SystemAdminClient, model.CHANNEL_PRIVATE)
 	_, resp = th.SystemAdminClient.AddChannelMember(privateChannel.Id, user1.Id)
@@ -1944,8 +2040,18 @@ func TestRemoveChannelMember(t *testing.T) {
 	CheckNoError(t, resp)
 
 	// Add a license
+	isLicensed := utils.IsLicensed()
+	license := utils.License()
+	defer func() {
+		utils.SetIsLicensed(isLicensed)
+		utils.SetLicense(license)
+		th.App.SetDefaultRolesBasedOnConfig()
+	}()
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.RestrictPrivateChannelManageMembers = model.PERMISSIONS_ALL })
-	th.App.SetLicense(model.NewTestLicense())
+	utils.SetIsLicensed(true)
+	utils.SetLicense(&model.License{Features: &model.Features{}})
+	utils.License().Features.SetDefaults()
+	th.App.SetDefaultRolesBasedOnConfig()
 
 	// Check that a regular channel user can remove other users.
 	privateChannel = th.CreateChannelWithClient(th.SystemAdminClient, model.CHANNEL_PRIVATE)
@@ -1961,6 +2067,10 @@ func TestRemoveChannelMember(t *testing.T) {
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.TeamSettings.RestrictPrivateChannelManageMembers = model.PERMISSIONS_CHANNEL_ADMIN
 	})
+	utils.SetIsLicensed(true)
+	utils.SetLicense(&model.License{Features: &model.Features{}})
+	utils.License().Features.SetDefaults()
+	th.App.SetDefaultRolesBasedOnConfig()
 
 	privateChannel = th.CreateChannelWithClient(th.SystemAdminClient, model.CHANNEL_PRIVATE)
 	_, resp = th.SystemAdminClient.AddChannelMember(privateChannel.Id, user1.Id)
@@ -1973,7 +2083,9 @@ func TestRemoveChannelMember(t *testing.T) {
 
 	th.MakeUserChannelAdmin(user1, privateChannel)
 	th.App.InvalidateAllCaches()
-	th.App.SetLicense(model.NewTestLicense())
+	utils.SetIsLicensed(true)
+	utils.SetLicense(&model.License{Features: &model.Features{}})
+	utils.License().Features.SetDefaults()
 
 	_, resp = Client.RemoveUserFromChannel(privateChannel.Id, user2.Id)
 	CheckNoError(t, resp)
@@ -1982,6 +2094,10 @@ func TestRemoveChannelMember(t *testing.T) {
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.TeamSettings.RestrictPrivateChannelManageMembers = model.PERMISSIONS_TEAM_ADMIN
 	})
+	utils.SetIsLicensed(true)
+	utils.SetLicense(&model.License{Features: &model.Features{}})
+	utils.License().Features.SetDefaults()
+	th.App.SetDefaultRolesBasedOnConfig()
 
 	privateChannel = th.CreateChannelWithClient(th.SystemAdminClient, model.CHANNEL_PRIVATE)
 	_, resp = th.SystemAdminClient.AddChannelMember(privateChannel.Id, user1.Id)
@@ -1994,7 +2110,9 @@ func TestRemoveChannelMember(t *testing.T) {
 
 	th.UpdateUserToTeamAdmin(user1, team)
 	th.App.InvalidateAllCaches()
-	th.App.SetLicense(model.NewTestLicense())
+	utils.SetIsLicensed(true)
+	utils.SetLicense(&model.License{Features: &model.Features{}})
+	utils.License().Features.SetDefaults()
 
 	_, resp = Client.RemoveUserFromChannel(privateChannel.Id, user2.Id)
 	CheckNoError(t, resp)
@@ -2003,6 +2121,10 @@ func TestRemoveChannelMember(t *testing.T) {
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.TeamSettings.RestrictPrivateChannelManageMembers = model.PERMISSIONS_SYSTEM_ADMIN
 	})
+	utils.SetIsLicensed(true)
+	utils.SetLicense(&model.License{Features: &model.Features{}})
+	utils.License().Features.SetDefaults()
+	th.App.SetDefaultRolesBasedOnConfig()
 
 	privateChannel = th.CreateChannelWithClient(th.SystemAdminClient, model.CHANNEL_PRIVATE)
 	_, resp = th.SystemAdminClient.AddChannelMember(privateChannel.Id, user1.Id)

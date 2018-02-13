@@ -51,8 +51,7 @@ func TestAppRace(t *testing.T) {
 		a, err := New()
 		require.NoError(t, err)
 		a.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = ":0" })
-		serverErr := a.StartServer()
-		require.NoError(t, serverErr)
+		a.StartServer()
 		a.Shutdown()
 	}
 }

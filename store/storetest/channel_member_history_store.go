@@ -35,7 +35,6 @@ func testLogJoinEvent(t *testing.T, ss store.Store) {
 	user := model.User{
 		Email:    model.NewId() + "@mattermost.com",
 		Nickname: model.NewId(),
-		Username: model.NewId(),
 	}
 	user = *store.Must(ss.User().Save(&user)).(*model.User)
 
@@ -58,7 +57,6 @@ func testLogLeaveEvent(t *testing.T, ss store.Store) {
 	user := model.User{
 		Email:    model.NewId() + "@mattermost.com",
 		Nickname: model.NewId(),
-		Username: model.NewId(),
 	}
 	user = *store.Must(ss.User().Save(&user)).(*model.User)
 
@@ -84,7 +82,6 @@ func testGetUsersInChannelAtChannelMemberHistory(t *testing.T, ss store.Store) {
 	user := model.User{
 		Email:    model.NewId() + "@mattermost.com",
 		Nickname: model.NewId(),
-		Username: model.NewId(),
 	}
 	user = *store.Must(ss.User().Save(&user)).(*model.User)
 
@@ -111,7 +108,6 @@ func testGetUsersInChannelAtChannelMemberHistory(t *testing.T, ss store.Store) {
 	assert.Equal(t, channel.Id, channelMembers[0].ChannelId)
 	assert.Equal(t, user.Id, channelMembers[0].UserId)
 	assert.Equal(t, user.Email, channelMembers[0].UserEmail)
-	assert.Equal(t, user.Username, channelMembers[0].Username)
 	assert.Equal(t, joinTime, channelMembers[0].JoinTime)
 	assert.Nil(t, channelMembers[0].LeaveTime)
 
@@ -121,7 +117,6 @@ func testGetUsersInChannelAtChannelMemberHistory(t *testing.T, ss store.Store) {
 	assert.Equal(t, channel.Id, channelMembers[0].ChannelId)
 	assert.Equal(t, user.Id, channelMembers[0].UserId)
 	assert.Equal(t, user.Email, channelMembers[0].UserEmail)
-	assert.Equal(t, user.Username, channelMembers[0].Username)
 	assert.Equal(t, joinTime, channelMembers[0].JoinTime)
 	assert.Nil(t, channelMembers[0].LeaveTime)
 
@@ -134,7 +129,6 @@ func testGetUsersInChannelAtChannelMemberHistory(t *testing.T, ss store.Store) {
 	assert.Equal(t, channel.Id, channelMembers[0].ChannelId)
 	assert.Equal(t, user.Id, channelMembers[0].UserId)
 	assert.Equal(t, user.Email, channelMembers[0].UserEmail)
-	assert.Equal(t, user.Username, channelMembers[0].Username)
 	assert.Equal(t, joinTime, channelMembers[0].JoinTime)
 	assert.Equal(t, leaveTime, *channelMembers[0].LeaveTime)
 
@@ -144,7 +138,6 @@ func testGetUsersInChannelAtChannelMemberHistory(t *testing.T, ss store.Store) {
 	assert.Equal(t, channel.Id, channelMembers[0].ChannelId)
 	assert.Equal(t, user.Id, channelMembers[0].UserId)
 	assert.Equal(t, user.Email, channelMembers[0].UserEmail)
-	assert.Equal(t, user.Username, channelMembers[0].Username)
 	assert.Equal(t, joinTime, channelMembers[0].JoinTime)
 	assert.Equal(t, leaveTime, *channelMembers[0].LeaveTime)
 
@@ -167,7 +160,6 @@ func testGetUsersInChannelAtChannelMembers(t *testing.T, ss store.Store) {
 	user := model.User{
 		Email:    model.NewId() + "@mattermost.com",
 		Nickname: model.NewId(),
-		Username: model.NewId(),
 	}
 	user = *store.Must(ss.User().Save(&user)).(*model.User)
 
@@ -200,7 +192,6 @@ func testGetUsersInChannelAtChannelMembers(t *testing.T, ss store.Store) {
 	assert.Equal(t, channel.Id, channelMembers[0].ChannelId)
 	assert.Equal(t, user.Id, channelMembers[0].UserId)
 	assert.Equal(t, user.Email, channelMembers[0].UserEmail)
-	assert.Equal(t, user.Username, channelMembers[0].Username)
 	assert.Equal(t, joinTime-500, channelMembers[0].JoinTime)
 	assert.Equal(t, joinTime-100, *channelMembers[0].LeaveTime)
 
@@ -210,7 +201,6 @@ func testGetUsersInChannelAtChannelMembers(t *testing.T, ss store.Store) {
 	assert.Equal(t, channel.Id, channelMembers[0].ChannelId)
 	assert.Equal(t, user.Id, channelMembers[0].UserId)
 	assert.Equal(t, user.Email, channelMembers[0].UserEmail)
-	assert.Equal(t, user.Username, channelMembers[0].Username)
 	assert.Equal(t, joinTime-100, channelMembers[0].JoinTime)
 	assert.Equal(t, joinTime+500, *channelMembers[0].LeaveTime)
 
@@ -220,7 +210,6 @@ func testGetUsersInChannelAtChannelMembers(t *testing.T, ss store.Store) {
 	assert.Equal(t, channel.Id, channelMembers[0].ChannelId)
 	assert.Equal(t, user.Id, channelMembers[0].UserId)
 	assert.Equal(t, user.Email, channelMembers[0].UserEmail)
-	assert.Equal(t, user.Username, channelMembers[0].Username)
 	assert.Equal(t, joinTime+100, channelMembers[0].JoinTime)
 	assert.Equal(t, joinTime+500, *channelMembers[0].LeaveTime)
 
@@ -230,7 +219,6 @@ func testGetUsersInChannelAtChannelMembers(t *testing.T, ss store.Store) {
 	assert.Equal(t, channel.Id, channelMembers[0].ChannelId)
 	assert.Equal(t, user.Id, channelMembers[0].UserId)
 	assert.Equal(t, user.Email, channelMembers[0].UserEmail)
-	assert.Equal(t, user.Username, channelMembers[0].Username)
 	assert.Equal(t, joinTime+100, channelMembers[0].JoinTime)
 	assert.Equal(t, leaveTime-100, *channelMembers[0].LeaveTime)
 
@@ -240,7 +228,6 @@ func testGetUsersInChannelAtChannelMembers(t *testing.T, ss store.Store) {
 	assert.Equal(t, channel.Id, channelMembers[0].ChannelId)
 	assert.Equal(t, user.Id, channelMembers[0].UserId)
 	assert.Equal(t, user.Email, channelMembers[0].UserEmail)
-	assert.Equal(t, user.Username, channelMembers[0].Username)
 	assert.Equal(t, joinTime-100, channelMembers[0].JoinTime)
 	assert.Equal(t, leaveTime+100, *channelMembers[0].LeaveTime)
 
@@ -250,7 +237,6 @@ func testGetUsersInChannelAtChannelMembers(t *testing.T, ss store.Store) {
 	assert.Equal(t, channel.Id, channelMembers[0].ChannelId)
 	assert.Equal(t, user.Id, channelMembers[0].UserId)
 	assert.Equal(t, user.Email, channelMembers[0].UserEmail)
-	assert.Equal(t, user.Username, channelMembers[0].Username)
 	assert.Equal(t, leaveTime+100, channelMembers[0].JoinTime)
 	assert.Equal(t, leaveTime+200, *channelMembers[0].LeaveTime)
 }
@@ -269,14 +255,12 @@ func testPermanentDeleteBatch(t *testing.T, ss store.Store) {
 	user := model.User{
 		Email:    model.NewId() + "@mattermost.com",
 		Nickname: model.NewId(),
-		Username: model.NewId(),
 	}
 	user = *store.Must(ss.User().Save(&user)).(*model.User)
 
 	user2 := model.User{
 		Email:    model.NewId() + "@mattermost.com",
 		Nickname: model.NewId(),
-		Username: model.NewId(),
 	}
 	user2 = *store.Must(ss.User().Save(&user2)).(*model.User)
 
