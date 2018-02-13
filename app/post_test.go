@@ -210,37 +210,26 @@ func TestImageProxy(t *testing.T) {
 			ImageURL:        "http://mydomain.com/myimage",
 			ProxiedImageURL: "https://127.0.0.1/f8dace906d23689e8d5b12c3cefbedbf7b9b72f5/687474703a2f2f6d79646f6d61696e2e636f6d2f6d79696d616765",
 		},
-		"willnorris/imageproxy": {
-			ProxyType:       "willnorris/imageproxy",
+		"atmos/camo_SameSite": {
+			ProxyType:       "atmos/camo",
 			ProxyURL:        "https://127.0.0.1",
-			ProxyOptions:    "x1000",
-			ImageURL:        "http://mydomain.com/myimage",
-			ProxiedImageURL: "https://127.0.0.1/x1000/http://mydomain.com/myimage",
-		},
-		"willnorris/imageproxy_SameSite": {
-			ProxyType:       "willnorris/imageproxy",
-			ProxyURL:        "https://127.0.0.1",
+			ProxyOptions:    "foo",
 			ImageURL:        "http://mymattermost.com/myimage",
 			ProxiedImageURL: "http://mymattermost.com/myimage",
 		},
-		"willnorris/imageproxy_PathOnly": {
-			ProxyType:       "willnorris/imageproxy",
+		"atmos/camo_PathOnly": {
+			ProxyType:       "atmos/camo",
 			ProxyURL:        "https://127.0.0.1",
+			ProxyOptions:    "foo",
 			ImageURL:        "/myimage",
 			ProxiedImageURL: "/myimage",
 		},
-		"willnorris/imageproxy_EmptyImageURL": {
-			ProxyType:       "willnorris/imageproxy",
+		"atmos/camo_EmptyImageURL": {
+			ProxyType:       "atmos/camo",
 			ProxyURL:        "https://127.0.0.1",
+			ProxyOptions:    "foo",
 			ImageURL:        "",
 			ProxiedImageURL: "",
-		},
-		"willnorris/imageproxy_WithSigning": {
-			ProxyType:       "willnorris/imageproxy",
-			ProxyURL:        "https://127.0.0.1",
-			ProxyOptions:    "x1000|foo",
-			ImageURL:        "http://mydomain.com/myimage",
-			ProxiedImageURL: "https://127.0.0.1/x1000,sbhHVoG5d60UvnNtGh6Iy6x4PaMmnsh8JfZ7JfErKjGU=/http://mydomain.com/myimage",
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
@@ -355,28 +344,5 @@ func TestMakeOpenGraphURLsAbsolute(t *testing.T) {
 				t.Fatalf("missing image url, expected %v, got nothing", tc.ImageURL)
 			}
 		})
-	}
-}
-
-var imageProxyBenchmarkSink *model.Post
-
-func BenchmarkPostWithProxyRemovedFromImageURLs(b *testing.B) {
-	th := Setup().InitBasic()
-	defer th.TearDown()
-
-	th.App.UpdateConfig(func(cfg *model.Config) {
-		cfg.ServiceSettings.ImageProxyType = model.NewString("willnorris/imageproxy")
-		cfg.ServiceSettings.ImageProxyOptions = model.NewString("x1000|foo")
-		cfg.ServiceSettings.ImageProxyURL = model.NewString("https://127.0.0.1")
-	})
-
-	post := &model.Post{
-		Message: "![foo](http://mydomain.com/myimage)",
-	}
-
-	b.ResetTimer()
-
-	for i := 0; i < b.N; i++ {
-		imageProxyBenchmarkSink = th.App.PostWithProxyAddedToImageURLs(post)
 	}
 }

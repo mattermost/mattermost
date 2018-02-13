@@ -6,8 +6,6 @@ package app
 import (
 	"crypto/hmac"
 	"crypto/sha1"
-	"crypto/sha256"
-	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
@@ -950,18 +948,6 @@ func (a *App) ImageProxyAdder() func(string) string {
 			mac.Write([]byte(url))
 			digest := hex.EncodeToString(mac.Sum(nil))
 			return proxyURL + digest + "/" + hex.EncodeToString([]byte(url))
-		case "willnorris/imageproxy":
-			options := strings.Split(options, "|")
-			if len(options) > 1 {
-				mac := hmac.New(sha256.New, []byte(options[1]))
-				mac.Write([]byte(url))
-				digest := base64.URLEncoding.EncodeToString(mac.Sum(nil))
-				if options[0] == "" {
-					return proxyURL + "s" + digest + "/" + url
-				}
-				return proxyURL + options[0] + ",s" + digest + "/" + url
-			}
-			return proxyURL + options[0] + "/" + url
 		}
 
 		return url
@@ -982,12 +968,6 @@ func (a *App) ImageProxyRemover() (f func(string) string) {
 					if decoded, err := hex.DecodeString(url[len(proxyURL)+slash+1:]); err == nil {
 						return string(decoded)
 					}
-				}
-			}
-		case "willnorris/imageproxy":
-			if strings.HasPrefix(url, proxyURL) {
-				if slash := strings.IndexByte(url[len(proxyURL):], '/'); slash >= 0 {
-					return url[len(proxyURL)+slash+1:]
 				}
 			}
 		}
