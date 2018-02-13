@@ -432,16 +432,6 @@
                 "shouldHave": true
             },
             {
-                "roleName": "channel_admin",
-                "permission": "delete_post",
-                "shouldHave": false
-            },
-            {
-                "roleName": "channel_admin",
-                "permission": "delete_others_posts",
-                "shouldHave": false
-            },
-            {
                 "roleName": "team_admin",
                 "permission": "delete_post",
                 "shouldHave": true
@@ -456,16 +446,6 @@
             {
                 "roleName": "channel_user",
                 "permission": "delete_post",
-                "shouldHave": false
-            },
-            {
-                "roleName": "channel_admin",
-                "permission": "delete_post",
-                "shouldHave": false
-            },
-            {
-                "roleName": "channel_admin",
-                "permission": "delete_others_posts",
                 "shouldHave": false
             },
             {
@@ -486,16 +466,6 @@
                 "shouldHave": false
             },
             {
-                "roleName": "channel_admin",
-                "permission": "delete_post",
-                "shouldHave": false
-            },
-            {
-                "roleName": "channel_admin",
-                "permission": "delete_others_posts",
-                "shouldHave": false
-            },
-            {
                 "roleName": "team_admin",
                 "permission": "delete_post",
                 "shouldHave": false
@@ -504,6 +474,58 @@
                 "roleName": "team_admin",
                 "permission": "delete_others_posts",
                 "shouldHave": false
+            }
+        ]
+    },
+    "enableTeamCreation": {
+        "true": [
+            {
+                "roleName": "system_user",
+                "permission": "create_team",
+                "shouldHave": true
+            }
+        ],
+        "false": [
+            {
+                "roleName": "system_user",
+                "permission": "create_team",
+                "shouldHave": false
+            }
+        ]
+    },
+    "enableOnlyAdminIntegrations": {
+        "true": [
+            {
+                "roleName": "team_user",
+                "permission": "manage_webhooks",
+                "shouldHave": false
+            },
+            {
+                "roleName": "team_user",
+                "permission": "manage_slash_commands",
+                "shouldHave": false
+            },
+            {
+                "roleName": "system_user",
+                "permission": "manage_oauth",
+                "shouldHave": false
+            }
+        ],
+        "false": [
+            {
+                "roleName": "team_user",
+                "permission": "manage_webhooks",
+                "shouldHave": true
+            },
+            {
+                "roleName": "team_user",
+                "permission": "manage_slash_commands",
+                "shouldHave": true
+            },
+            {
+                "roleName": "system_user",
+                "permission": "manage_oauth",
+                "shouldHave": true
             }
         ]
     }
