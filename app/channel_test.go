@@ -255,7 +255,7 @@ func TestCreateDirectChannelCreatesChannelMemberHistoryRecord(t *testing.T) {
 		case user2.Id:
 			assert.Equal(t, user1.Id, historyId1)
 		default:
-			t.Fatal("Unexpected user id %s in ChannelMemberHistory table", historyId0)
+			t.Fatal("Unexpected user id " + historyId0 + " in ChannelMemberHistory table")
 		}
 	}
 }
@@ -283,7 +283,7 @@ func TestGetDirectChannelCreatesChannelMemberHistoryRecord(t *testing.T) {
 		case user2.Id:
 			assert.Equal(t, user1.Id, historyId1)
 		default:
-			t.Fatal("Unexpected user id %s in ChannelMemberHistory table", historyId0)
+			t.Fatal("Unexpected user id " + historyId0 + " in ChannelMemberHistory table")
 		}
 	}
 }
