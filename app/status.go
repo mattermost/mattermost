@@ -238,18 +238,7 @@ func (a *App) SetStatusOffline(userId string, manual bool) {
 
 	status = &model.Status{UserId: userId, Status: model.STATUS_OFFLINE, Manual: manual, LastActivityAt: model.GetMillis(), ActiveChannel: ""}
 
-	a.AddStatusCache(status)
-
-	if result := <-a.Srv.Store.Status().SaveOrUpdate(status); result.Err != nil {
-		l4g.Error(utils.T("api.status.save_status.error"), userId, result.Err)
-	}
-
-	event := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_STATUS_CHANGE, "", "", status.UserId, nil)
-	event.Add("status", model.STATUS_OFFLINE)
-	event.Add("user_id", status.UserId)
-	a.Go(func() {
-		a.Publish(event)
-	})
+	a.SaveAndBroadcastStatus(status)
 }
 
 func (a *App) SetStatusAwayIfNeeded(userId string, manual bool) {
@@ -281,18 +270,7 @@ func (a *App) SetStatusAwayIfNeeded(userId string, manual bool) {
 	status.Manual = manual
 	status.ActiveChannel = ""
 
-	a.AddStatusCache(status)
-
-	if result := <-a.Srv.Store.Status().SaveOrUpdate(status); result.Err != nil {
-		l4g.Error(utils.T("api.status.save_status.error"), userId, result.Err)
-	}
-
-	event := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_STATUS_CHANGE, "", "", status.UserId, nil)
-	event.Add("status", model.STATUS_AWAY)
-	event.Add("user_id", status.UserId)
-	a.Go(func() {
-		a.Publish(event)
-	})
+	a.SaveAndBroadcastStatus(status)
 }
 
 func (a *App) SetStatusDoNotDisturb(userId string) {
@@ -309,10 +287,15 @@ func (a *App) SetStatusDoNotDisturb(userId string) {
 	status.Status = model.STATUS_DND
 	status.Manual = true
 
+	a.SaveAndBroadcastStatus(status)
+}
+
+func (a *App) SaveAndBroadcastStatus(status *model.Status) *model.AppError {
 	a.AddStatusCache(status)
 
 	if result := <-a.Srv.Store.Status().SaveOrUpdate(status); result.Err != nil {
-		l4g.Error(utils.T("api.status.save_status.error"), userId, result.Err)
+		l4g.Error(utils.T("api.status.save_status.error"), status.UserId, result.Err)
+		return result.Err
 	}
 
 	event := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_STATUS_CHANGE, "", "", status.UserId, nil)
@@ -321,6 +304,8 @@ func (a *App) SetStatusDoNotDisturb(userId string) {
 	a.Go(func() {
 		a.Publish(event)
 	})
+
+	return nil
 }
 
 func GetStatusFromCache(userId string) *model.Status {
