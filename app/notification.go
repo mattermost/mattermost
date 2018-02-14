@@ -566,8 +566,6 @@ func (a *App) sendPushNotification(post *model.Post, user *model.User, channel *
 		channelName = senderName
 	}
 
-	userLocale := utils.GetUserTranslations(user.Locale)
-
 	msg := model.PushNotification{}
 	if badge := <-a.Srv.Store.User().GetUnreadCount(user.Id); badge.Err != nil {
 		msg.Badge = 1
@@ -596,44 +594,10 @@ func (a *App) sendPushNotification(post *model.Post, user *model.User, channel *
 		msg.FromWebhook = fw
 	}
 
-	if *a.Config().EmailSettings.PushNotificationContents == model.FULL_NOTIFICATION {
-		msg.Category = model.CATEGORY_CAN_REPLY
-		if channel.Type == model.CHANNEL_DIRECT {
-			msg.Message = senderName + ": " + model.ClearMentionTags(post.Message)
-		} else {
-			msg.Message = senderName + userLocale("api.post.send_notifications_and_forget.push_in") + channelName + ": " + model.ClearMentionTags(post.Message)
-		}
-	} else if *a.Config().EmailSettings.PushNotificationContents == model.GENERIC_NO_CHANNEL_NOTIFICATION {
-		if channel.Type == model.CHANNEL_DIRECT {
-			msg.Category = model.CATEGORY_CAN_REPLY
-			msg.Message = senderName + userLocale("api.post.send_notifications_and_forget.push_message")
-		} else if wasMentioned || channel.Type == model.CHANNEL_GROUP {
-			msg.Message = senderName + userLocale("api.post.send_notifications_and_forget.push_mention_no_channel")
-		} else {
-			msg.Message = senderName + userLocale("api.post.send_notifications_and_forget.push_non_mention_no_channel")
-		}
-	} else {
-		if channel.Type == model.CHANNEL_DIRECT {
-			msg.Category = model.CATEGORY_CAN_REPLY
-			msg.Message = senderName + userLocale("api.post.send_notifications_and_forget.push_message")
-		} else if wasMentioned || channel.Type == model.CHANNEL_GROUP {
-			msg.Category = model.CATEGORY_CAN_REPLY
-			msg.Message = senderName + userLocale("api.post.send_notifications_and_forget.push_mention") + channelName
-		} else {
-			msg.Message = senderName + userLocale("api.post.send_notifications_and_forget.push_non_mention") + channelName
-		}
-	}
+	userLocale := utils.GetUserTranslations(user.Locale)
+	hasFiles := post.FileIds != nil && len(post.FileIds) > 0
 
-	// If the post only has images then push an appropriate message
-	if len(post.Message) == 0 && post.FileIds != nil && len(post.FileIds) > 0 {
-		if channel.Type == model.CHANNEL_DIRECT {
-			msg.Message = senderName + userLocale("api.post.send_notifications_and_forget.push_image_only_dm")
-		} else {
-			msg.Message = senderName + userLocale("api.post.send_notifications_and_forget.push_image_only") + channelName
-		}
-	}
-
-	//l4g.Debug("Sending push notification for user %v with msg of '%v'", user.Id, msg.Message)
+	msg.Message, msg.Category = a.getPushNotificationMessage(post.Message, wasMentioned, hasFiles, senderName, channelName, channel.Type, userLocale)
 
 	for _, session := range sessions {
 		tmpMessage := *model.PushNotificationFromJson(strings.NewReader(msg.ToJson()))
@@ -653,6 +617,54 @@ func (a *App) sendPushNotification(post *model.Post, user *model.User, channel *
 	}
 
 	return nil
+}
+
+func (a *App) getPushNotificationMessage(postMessage string, wasMentioned bool, hasFiles bool, senderName string, channelName string, channelType string, userLocale i18n.TranslateFunc) (string, string) {
+	message := ""
+	category := ""
+
+	if *a.Config().EmailSettings.PushNotificationContents == model.FULL_NOTIFICATION {
+		category = model.CATEGORY_CAN_REPLY
+
+		if channelType == model.CHANNEL_DIRECT {
+			message = senderName + ": " + model.ClearMentionTags(postMessage)
+		} else {
+			message = senderName + userLocale("api.post.send_notifications_and_forget.push_in") + channelName + ": " + model.ClearMentionTags(postMessage)
+		}
+	} else if *a.Config().EmailSettings.PushNotificationContents == model.GENERIC_NO_CHANNEL_NOTIFICATION {
+		if channelType == model.CHANNEL_DIRECT {
+			category = model.CATEGORY_CAN_REPLY
+
+			message = senderName + userLocale("api.post.send_notifications_and_forget.push_message")
+		} else if wasMentioned {
+			message = senderName + userLocale("api.post.send_notifications_and_forget.push_mention_no_channel")
+		} else {
+			message = senderName + userLocale("api.post.send_notifications_and_forget.push_non_mention_no_channel")
+		}
+	} else {
+		if channelType == model.CHANNEL_DIRECT {
+			category = model.CATEGORY_CAN_REPLY
+
+			message = senderName + userLocale("api.post.send_notifications_and_forget.push_message")
+		} else if wasMentioned {
+			category = model.CATEGORY_CAN_REPLY
+
+			message = senderName + userLocale("api.post.send_notifications_and_forget.push_mention") + channelName
+		} else {
+			message = senderName + userLocale("api.post.send_notifications_and_forget.push_non_mention") + channelName
+		}
+	}
+
+	// If the post only has images then push an appropriate message
+	if len(postMessage) == 0 && hasFiles {
+		if channelType == model.CHANNEL_DIRECT {
+			message = senderName + userLocale("api.post.send_notifications_and_forget.push_image_only_dm")
+		} else {
+			message = senderName + userLocale("api.post.send_notifications_and_forget.push_image_only") + channelName
+		}
+	}
+
+	return message, category
 }
 
 func (a *App) ClearPushNotification(userId string, channelId string) {
