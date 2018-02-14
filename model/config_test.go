@@ -183,20 +183,171 @@ func TestMessageExportSettingsIsValidActiance(t *testing.T) {
 	require.Nil(t, mes.isValid(*fs))
 }
 
+func TestMessageExportSettingsIsValidGlobalRelaySettingsMissing(t *testing.T) {
+	fs := &FileSettings{
+		DriverName: NewString("foo"), // bypass file location check
+	}
+	mes := &MessageExportSettings{
+		EnableExport:        NewBool(true),
+		ExportFormat:        NewString(COMPLIANCE_EXPORT_TYPE_GLOBALRELAY),
+		ExportFromTimestamp: NewInt64(0),
+		DailyRunTime:        NewString("15:04"),
+		BatchSize:           NewInt(100),
+	}
+
+	// should fail because globalrelay settings are missing
+	require.Error(t, mes.isValid(*fs))
+}
+
+func TestMessageExportSettingsIsValidGlobalRelaySettingsInvalidCustomerType(t *testing.T) {
+	fs := &FileSettings{
+		DriverName: NewString("foo"), // bypass file location check
+	}
+	mes := &MessageExportSettings{
+		EnableExport:        NewBool(true),
+		ExportFormat:        NewString(COMPLIANCE_EXPORT_TYPE_GLOBALRELAY),
+		ExportFromTimestamp: NewInt64(0),
+		DailyRunTime:        NewString("15:04"),
+		BatchSize:           NewInt(100),
+		GlobalRelaySettings: &GlobalRelayMessageExportSettings{
+			CustomerType: NewString("Invalid"),
+			EmailAddress: NewString("valid@mattermost.com"),
+			SmtpUsername: NewString("SomeUsername"),
+			SmtpPassword: NewString("SomePassword"),
+		},
+	}
+
+	// should fail because customer type is invalid
+	require.Error(t, mes.isValid(*fs))
+}
+
+func TestMessageExportSettingsIsValidGlobalRelaySettingsInvalidEmailAddress(t *testing.T) {
+	fs := &FileSettings{
+		DriverName: NewString("foo"), // bypass file location check
+	}
+	mes := &MessageExportSettings{
+		EnableExport:        NewBool(true),
+		ExportFormat:        NewString(COMPLIANCE_EXPORT_TYPE_GLOBALRELAY),
+		ExportFromTimestamp: NewInt64(0),
+		DailyRunTime:        NewString("15:04"),
+		BatchSize:           NewInt(100),
+		GlobalRelaySettings: &GlobalRelayMessageExportSettings{
+			CustomerType: NewString(GLOBALRELAY_CUSTOMER_TYPE_A9),
+			EmailAddress: NewString("invalidEmailAddress"),
+			SmtpUsername: NewString("SomeUsername"),
+			SmtpPassword: NewString("SomePassword"),
+		},
+	}
+
+	// should fail because email address is invalid
+	require.Error(t, mes.isValid(*fs))
+}
+
+func TestMessageExportSettingsIsValidGlobalRelaySettingsMissingSmtpUsername(t *testing.T) {
+	fs := &FileSettings{
+		DriverName: NewString("foo"), // bypass file location check
+	}
+	mes := &MessageExportSettings{
+		EnableExport:        NewBool(true),
+		ExportFormat:        NewString(COMPLIANCE_EXPORT_TYPE_GLOBALRELAY),
+		ExportFromTimestamp: NewInt64(0),
+		DailyRunTime:        NewString("15:04"),
+		BatchSize:           NewInt(100),
+		GlobalRelaySettings: &GlobalRelayMessageExportSettings{
+			CustomerType: NewString(GLOBALRELAY_CUSTOMER_TYPE_A10),
+			EmailAddress: NewString("valid@mattermost.com"),
+			SmtpPassword: NewString("SomePassword"),
+		},
+	}
+
+	// should fail because smtp username is undefined
+	require.Error(t, mes.isValid(*fs))
+}
+
+func TestMessageExportSettingsIsValidGlobalRelaySettingsInvalidSmtpUsername(t *testing.T) {
+	fs := &FileSettings{
+		DriverName: NewString("foo"), // bypass file location check
+	}
+	mes := &MessageExportSettings{
+		EnableExport:        NewBool(true),
+		ExportFormat:        NewString(COMPLIANCE_EXPORT_TYPE_GLOBALRELAY),
+		ExportFromTimestamp: NewInt64(0),
+		DailyRunTime:        NewString("15:04"),
+		BatchSize:           NewInt(100),
+		GlobalRelaySettings: &GlobalRelayMessageExportSettings{
+			CustomerType: NewString(GLOBALRELAY_CUSTOMER_TYPE_A10),
+			EmailAddress: NewString("valid@mattermost.com"),
+			SmtpUsername: NewString(""),
+			SmtpPassword: NewString("SomePassword"),
+		},
+	}
+
+	// should fail because smtp username is invalid
+	require.Error(t, mes.isValid(*fs))
+}
+
+func TestMessageExportSettingsIsValidGlobalRelaySettingsMissingSmtpPassword(t *testing.T) {
+	fs := &FileSettings{
+		DriverName: NewString("foo"), // bypass file location check
+	}
+	mes := &MessageExportSettings{
+		EnableExport:        NewBool(true),
+		ExportFormat:        NewString(COMPLIANCE_EXPORT_TYPE_GLOBALRELAY),
+		ExportFromTimestamp: NewInt64(0),
+		DailyRunTime:        NewString("15:04"),
+		BatchSize:           NewInt(100),
+		GlobalRelaySettings: &GlobalRelayMessageExportSettings{
+			CustomerType: NewString(GLOBALRELAY_CUSTOMER_TYPE_A9),
+			EmailAddress: NewString("valid@mattermost.com"),
+			SmtpUsername: NewString("SomeUsername"),
+		},
+	}
+
+	// should fail because smtp password is undefined
+	require.Error(t, mes.isValid(*fs))
+}
+
+func TestMessageExportSettingsIsValidGlobalRelaySettingsInvalidSmtpPassword(t *testing.T) {
+	fs := &FileSettings{
+		DriverName: NewString("foo"), // bypass file location check
+	}
+	mes := &MessageExportSettings{
+		EnableExport:        NewBool(true),
+		ExportFormat:        NewString(COMPLIANCE_EXPORT_TYPE_GLOBALRELAY),
+		ExportFromTimestamp: NewInt64(0),
+		DailyRunTime:        NewString("15:04"),
+		BatchSize:           NewInt(100),
+		GlobalRelaySettings: &GlobalRelayMessageExportSettings{
+			CustomerType: NewString(GLOBALRELAY_CUSTOMER_TYPE_A10),
+			EmailAddress: NewString("valid@mattermost.com"),
+			SmtpUsername: NewString("SomeUsername"),
+			SmtpPassword: NewString(""),
+		},
+	}
+
+	// should fail because smtp password is invalid
+	require.Error(t, mes.isValid(*fs))
+}
+
 func TestMessageExportSettingsIsValidGlobalRelay(t *testing.T) {
 	fs := &FileSettings{
 		DriverName: NewString("foo"), // bypass file location check
 	}
 	mes := &MessageExportSettings{
-		EnableExport:            NewBool(true),
-		ExportFormat:            NewString(COMPLIANCE_EXPORT_TYPE_GLOBALRELAY),
-		ExportFromTimestamp:     NewInt64(0),
-		DailyRunTime:            NewString("15:04"),
-		BatchSize:               NewInt(100),
-		GlobalRelayEmailAddress: NewString("test@mattermost.com"),
+		EnableExport:        NewBool(true),
+		ExportFormat:        NewString(COMPLIANCE_EXPORT_TYPE_GLOBALRELAY),
+		ExportFromTimestamp: NewInt64(0),
+		DailyRunTime:        NewString("15:04"),
+		BatchSize:           NewInt(100),
+		GlobalRelaySettings: &GlobalRelayMessageExportSettings{
+			CustomerType: NewString(GLOBALRELAY_CUSTOMER_TYPE_A9),
+			EmailAddress: NewString("valid@mattermost.com"),
+			SmtpUsername: NewString("SomeUsername"),
+			SmtpPassword: NewString("SomePassword"),
+		},
 	}
 
-	// should pass because everything is valid
+	// should pass
 	require.Nil(t, mes.isValid(*fs))
 }
 
