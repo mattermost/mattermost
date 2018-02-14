@@ -130,11 +130,21 @@ func runServer(configFileLocation string, disableConfigWatch bool, interruptChan
 
 	a.EnsureDiagnosticId()
 
-	go runSecurityJob(a)
-	go runDiagnosticsJob(a)
-	go runSessionCleanupJob(a)
-	go runTokenCleanupJob(a)
-	go runCommandWebhookCleanupJob(a)
+	a.Go(func() {
+		runSecurityJob(a)
+	})
+	a.Go(func() {
+		runDiagnosticsJob(a)
+	})
+	a.Go(func() {
+		runSessionCleanupJob(a)
+	})
+	a.Go(func() {
+		runTokenCleanupJob(a)
+	})
+	a.Go(func() {
+		runCommandWebhookCleanupJob(a)
+	})
 
 	if complianceI := a.Compliance; complianceI != nil {
 		complianceI.StartComplianceDailyJob()
