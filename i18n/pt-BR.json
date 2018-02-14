@@ -2203,10 +2203,6 @@
     "translation": "O link de inscrição expirou"
   },
   {
-    "id": "api.team.create_team_from_signup.invalid_link.app_error",
-    "translation": "O link de inscrição não parece ser válido"
-  },
-  {
     "id": "api.team.create_team_from_signup.unavailable.app_error",
     "translation": "Esta URL não está disponível. Por favor, tente outra."
   },
@@ -2709,6 +2705,10 @@
   {
     "id": "api.user.create_user.signup_link_invalid.app_error",
     "translation": "O link de inscrição não parece ser válido"
+  },
+  {
+    "id": "api.user.create_user.signup_link_mismatched_invite_id.app_error",
+    "translation": "The signup link does not appear to be valid"
   },
   {
     "id": "api.user.create_user.team_name.app_error",
@@ -4757,6 +4757,10 @@
   {
     "id": "model.config.is_valid.file_thumb_width.app_error",
     "translation": "Definição da largura do thumbnail inválida.  Deve ser um número positivo."
+  },
+  {
+    "id": "model.config.is_valid.group_unread_channels.app_error",
+    "translation": "Grupo de canais não lidos inválido nas configurações do serviço. Deve ser 'disabled', 'default_on', ou 'default_off'."
   },
   {
     "id": "model.config.is_valid.image_proxy_type.app_error",
@@ -7291,10 +7295,6 @@
     "translation": "Inscrever-se"
   },
   {
-    "id": "web.signup_team_complete.invalid_link.app_error",
-    "translation": "O link de inscrição não parece ser válido"
-  },
-  {
     "id": "web.signup_team_complete.link_expired.app_error",
     "translation": "O link de inscrição expirou"
   },
@@ -7309,10 +7309,6 @@
   {
     "id": "web.signup_user_complete.link_expired.app_error",
     "translation": "O link de inscrição expirou"
-  },
-  {
-    "id": "web.signup_user_complete.link_invalid.app_error",
-    "translation": "O link de inscrição não parece ser válido"
   },
   {
     "id": "web.signup_user_complete.no_invites.app_error",
