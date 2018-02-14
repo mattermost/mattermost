@@ -244,7 +244,7 @@ func TestCreateDirectChannelCreatesChannelMemberHistoryRecord(t *testing.T) {
 		t.Fatal("Failed to create direct channel. Error: " + err.Message)
 	} else {
 		// there should be a ChannelMemberHistory record for both users
-		histories := store.Must(th.App.Srv.Store.ChannelMemberHistory().GetUsersInChannelDuring(model.GetMillis()-100, model.GetMillis()+100, channel.Id)).([]*model.ChannelMemberHistory)
+		histories := store.Must(th.App.Srv.Store.ChannelMemberHistory().GetUsersInChannelDuring(model.GetMillis()-100, model.GetMillis()+100, channel.Id)).([]*model.ChannelMemberHistoryResult)
 		assert.Len(t, histories, 2)
 
 		historyId0 := histories[0].UserId
@@ -272,7 +272,7 @@ func TestGetDirectChannelCreatesChannelMemberHistoryRecord(t *testing.T) {
 		t.Fatal("Failed to create direct channel. Error: " + err.Message)
 	} else {
 		// there should be a ChannelMemberHistory record for both users
-		histories := store.Must(th.App.Srv.Store.ChannelMemberHistory().GetUsersInChannelDuring(model.GetMillis()-100, model.GetMillis()+100, channel.Id)).([]*model.ChannelMemberHistory)
+		histories := store.Must(th.App.Srv.Store.ChannelMemberHistory().GetUsersInChannelDuring(model.GetMillis()-100, model.GetMillis()+100, channel.Id)).([]*model.ChannelMemberHistoryResult)
 		assert.Len(t, histories, 2)
 
 		historyId0 := histories[0].UserId
