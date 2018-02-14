@@ -6,12 +6,11 @@ package app
 import (
 	"crypto/hmac"
 	"crypto/sha1"
-	"crypto/sha256"
-	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
 	"regexp"
 	"strings"
 
@@ -734,21 +733,66 @@ func (a *App) GetFileInfosForPost(postId string, readFromMaster bool) ([]*model.
 	return infos, nil
 }
 
-func (a *App) GetOpenGraphMetadata(url string) *opengraph.OpenGraph {
+func (a *App) GetOpenGraphMetadata(requestURL string) *opengraph.OpenGraph {
 	og := opengraph.NewOpenGraph()
 
-	res, err := a.HTTPClient(false).Get(url)
+	res, err := a.HTTPClient(false).Get(requestURL)
 	if err != nil {
-		l4g.Error("GetOpenGraphMetadata request failed for url=%v with err=%v", url, err.Error())
+		l4g.Error("GetOpenGraphMetadata request failed for url=%v with err=%v", requestURL, err.Error())
 		return og
 	}
 	defer consumeAndClose(res)
 
 	if err := og.ProcessHTML(res.Body); err != nil {
-		l4g.Error("GetOpenGraphMetadata processing failed for url=%v with err=%v", url, err.Error())
+		l4g.Error("GetOpenGraphMetadata processing failed for url=%v with err=%v", requestURL, err.Error())
 	}
 
+	makeOpenGraphURLsAbsolute(og, requestURL)
+
 	return og
+}
+
+func makeOpenGraphURLsAbsolute(og *opengraph.OpenGraph, requestURL string) {
+	parsedRequestURL, err := url.Parse(requestURL)
+	if err != nil {
+		l4g.Warn("makeOpenGraphURLsAbsolute failed to parse url=%v", requestURL)
+		return
+	}
+
+	makeURLAbsolute := func(resultURL string) string {
+		if resultURL == "" {
+			return resultURL
+		}
+
+		parsedResultURL, err := url.Parse(resultURL)
+		if err != nil {
+			l4g.Warn("makeOpenGraphURLsAbsolute failed to parse result url=%v", resultURL)
+			return resultURL
+		}
+
+		if parsedResultURL.IsAbs() {
+			return resultURL
+		}
+
+		return parsedRequestURL.ResolveReference(parsedResultURL).String()
+	}
+
+	og.URL = makeURLAbsolute(og.URL)
+
+	for _, image := range og.Images {
+		image.URL = makeURLAbsolute(image.URL)
+		image.SecureURL = makeURLAbsolute(image.SecureURL)
+	}
+
+	for _, audio := range og.Audios {
+		audio.URL = makeURLAbsolute(audio.URL)
+		audio.SecureURL = makeURLAbsolute(audio.SecureURL)
+	}
+
+	for _, video := range og.Videos {
+		video.URL = makeURLAbsolute(video.URL)
+		video.SecureURL = makeURLAbsolute(video.SecureURL)
+	}
 }
 
 func (a *App) DoPostAction(postId string, actionId string, userId string) *model.AppError {
@@ -904,18 +948,6 @@ func (a *App) ImageProxyAdder() func(string) string {
 			mac.Write([]byte(url))
 			digest := hex.EncodeToString(mac.Sum(nil))
 			return proxyURL + digest + "/" + hex.EncodeToString([]byte(url))
-		case "willnorris/imageproxy":
-			options := strings.Split(options, "|")
-			if len(options) > 1 {
-				mac := hmac.New(sha256.New, []byte(options[1]))
-				mac.Write([]byte(url))
-				digest := base64.URLEncoding.EncodeToString(mac.Sum(nil))
-				if options[0] == "" {
-					return proxyURL + "s" + digest + "/" + url
-				}
-				return proxyURL + options[0] + ",s" + digest + "/" + url
-			}
-			return proxyURL + options[0] + "/" + url
 		}
 
 		return url
@@ -936,12 +968,6 @@ func (a *App) ImageProxyRemover() (f func(string) string) {
 					if decoded, err := hex.DecodeString(url[len(proxyURL)+slash+1:]); err == nil {
 						return string(decoded)
 					}
-				}
-			}
-		case "willnorris/imageproxy":
-			if strings.HasPrefix(url, proxyURL) {
-				if slash := strings.IndexByte(url[len(proxyURL):], '/'); slash >= 0 {
-					return url[len(proxyURL)+slash+1:]
 				}
 			}
 		}
