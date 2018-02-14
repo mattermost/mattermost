@@ -17,6 +17,7 @@ import (
 	l4g "github.com/alecthomas/log4go"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
+	"github.com/pkg/errors"
 	"golang.org/x/crypto/acme/autocert"
 
 	"github.com/mattermost/mattermost-server/model"
@@ -116,7 +117,7 @@ func redirectHTTPToHTTPS(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, url.String(), http.StatusFound)
 }
 
-func (a *App) StartServer() {
+func (a *App) StartServer() error {
 	l4g.Info(utils.T("api.server.start_server.starting.info"))
 
 	var handler http.Handler = &CorsWrapper{a.Config, a.Srv.Router}
@@ -124,9 +125,13 @@ func (a *App) StartServer() {
 	if *a.Config().RateLimitSettings.Enable {
 		l4g.Info(utils.T("api.server.start_server.rate.info"))
 
-		a.Srv.RateLimiter = NewRateLimiter(&a.Config().RateLimitSettings)
+		rateLimiter, err := NewRateLimiter(&a.Config().RateLimitSettings)
+		if err != nil {
+			return err
+		}
 
-		handler = a.Srv.RateLimiter.RateLimitHandler(handler)
+		a.Srv.RateLimiter = rateLimiter
+		handler = rateLimiter.RateLimitHandler(handler)
 	}
 
 	a.Srv.Server = &http.Server{
@@ -146,8 +151,8 @@ func (a *App) StartServer() {
 
 	listener, err := net.Listen("tcp", addr)
 	if err != nil {
-		l4g.Critical(utils.T("api.server.start_server.starting.critical"), err)
-		return
+		errors.Wrapf(err, utils.T("api.server.start_server.starting.critical"), err)
+		return err
 	}
 	a.Srv.ListenAddr = listener.Addr().(*net.TCPAddr)
 
@@ -209,6 +214,8 @@ func (a *App) StartServer() {
 		}
 		close(a.Srv.didFinishListen)
 	}()
+
+	return nil
 }
 
 type tcpKeepAliveListener struct {

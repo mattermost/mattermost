@@ -234,6 +234,11 @@ func (a *App) AddUserToTeamByHash(userId string, hash string, data string) (*mod
 		team = result.Data.(*model.Team)
 	}
 
+	// verify that the team's invite id hasn't been changed since the invite was sent
+	if team.InviteId != props["invite_id"] {
+		return nil, model.NewAppError("JoinUserToTeamByHash", "api.user.create_user.signup_link_mismatched_invite_id.app_error", nil, "", http.StatusBadRequest)
+	}
+
 	var user *model.User
 	if result := <-uchan; result.Err != nil {
 		return nil, result.Err

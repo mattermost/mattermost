@@ -44,7 +44,10 @@ func Setup() *app.App {
 	}
 	prevListenAddress := *a.Config().ServiceSettings.ListenAddress
 	a.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = ":0" })
-	a.StartServer()
+	serverErr := a.StartServer()
+	if serverErr != nil {
+		panic(serverErr)
+	}
 	a.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = prevListenAddress })
 	api4.Init(a, a.Srv.Router, false)
 	api3 := api.Init(a, a.Srv.Router)

@@ -42,10 +42,11 @@ func runServerCmd(cmd *cobra.Command, args []string) error {
 
 	disableConfigWatch, _ := cmd.Flags().GetBool("disableconfigwatch")
 
-	return runServer(config, disableConfigWatch)
+	interruptChan := make(chan os.Signal, 1)
+	return runServer(config, disableConfigWatch, interruptChan)
 }
 
-func runServer(configFileLocation string, disableConfigWatch bool) error {
+func runServer(configFileLocation string, disableConfigWatch bool, interruptChan chan os.Signal) error {
 	options := []app.Option{app.ConfigFile(configFileLocation)}
 	if disableConfigWatch {
 		options = append(options, app.DisableConfigWatch)
@@ -53,7 +54,7 @@ func runServer(configFileLocation string, disableConfigWatch bool) error {
 
 	a, err := app.New(options...)
 	if err != nil {
-		l4g.Error(err.Error())
+		l4g.Critical(err.Error())
 		return err
 	}
 	defer a.Shutdown()
@@ -87,20 +88,27 @@ func runServer(configFileLocation string, disableConfigWatch bool) error {
 		}
 	})
 
-	a.StartServer()
+	serverErr := a.StartServer()
+	if serverErr != nil {
+		l4g.Critical(serverErr.Error())
+		return serverErr
+	}
+
 	api4.Init(a, a.Srv.Router, false)
 	api3 := api.Init(a, a.Srv.Router)
 	wsapi.Init(a, a.Srv.WebSocketRouter)
 	web.Init(api3)
 
-	if !utils.IsLicensed() && len(a.Config().SqlSettings.DataSourceReplicas) > 1 {
+	license := a.License()
+
+	if license == nil && len(a.Config().SqlSettings.DataSourceReplicas) > 1 {
 		l4g.Warn(utils.T("store.sql.read_replicas_not_licensed.critical"))
 		a.UpdateConfig(func(cfg *model.Config) {
 			cfg.SqlSettings.DataSourceReplicas = cfg.SqlSettings.DataSourceReplicas[:1]
 		})
 	}
 
-	if !utils.IsLicensed() {
+	if license == nil {
 		a.UpdateConfig(func(cfg *model.Config) {
 			cfg.TeamSettings.MaxNotificationsPerChannel = &MaxNotificationsPerChannelDefault
 		})
@@ -158,9 +166,8 @@ func runServer(configFileLocation string, disableConfigWatch bool) error {
 
 	// wait for kill signal before attempting to gracefully shutdown
 	// the running service
-	c := make(chan os.Signal, 1)
-	signal.Notify(c, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
-	<-c
+	signal.Notify(interruptChan, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
+	<-interruptChan
 
 	if a.Cluster != nil {
 		a.Cluster.StopInterNodeCommunication()

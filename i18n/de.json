@@ -153,7 +153,7 @@
   },
   {
     "id": "api.channel.add_member.added",
-    "translation": "%v wurde von %v zum Kanal hinzugefügt"
+    "translation": "%v wurde von %v zum Kanal hinzugefügt."
   },
   {
     "id": "api.channel.add_member.find_channel.app_error",
@@ -337,7 +337,7 @@
   },
   {
     "id": "api.channel.post_update_channel_header_message_and_forget.post.error",
-    "translation": "Fehler beim Senden der Aktualisierung der Kanalüberschrift-Mitteilung"
+    "translation": "Fehler bei der Aktualisierung der Kanalüberschrift"
   },
   {
     "id": "api.channel.post_update_channel_header_message_and_forget.removed",
@@ -4644,7 +4644,7 @@
   },
   {
     "id": "model.config.is_valid.atmos_camo_image_proxy_options.app_error",
-    "translation": "Invalid atmos/camo image proxy options for service settings. Must be set to your shared key."
+    "translation": "Ungültiger atmos-/camo-Bild-Proxy-Typ für Diensteinstellungen. Muss auf ihren Shared Key gesetzt sein."
   },
   {
     "id": "model.config.is_valid.cluster_email_batching.app_error",
@@ -5404,7 +5404,7 @@
   },
   {
     "id": "model.user.is_valid.position.app_error",
-    "translation": "Ungültige Position: Darf nicht länger als 35 Zeichen sein."
+    "translation": "Ungültige Position: Darf nicht länger als 128 Zeichen sein."
   },
   {
     "id": "model.user.is_valid.pwd.app_error",
@@ -5768,7 +5768,7 @@
   },
   {
     "id": "store.sql_channel.get_unread.app_error",
-    "translation": "Die ungelesenen Mitteilungen des Kanals konnten nicht abgerufen werden"
+    "translation": "Die ungelesenen Nachrichten des Kanals konnten nicht abgerufen werden"
   },
   {
     "id": "store.sql_channel.increment_mention_count.app_error",
@@ -6592,7 +6592,7 @@
   },
   {
     "id": "store.sql_team.get_unread.app_error",
-    "translation": "Die ungelesenen Mitteilungen des Teams konnten nicht abgerufen werden"
+    "translation": "Die ungelesenen Nachrichten des Teams konnten nicht abgerufen werden"
   },
   {
     "id": "store.sql_team.permanent_delete.app_error",

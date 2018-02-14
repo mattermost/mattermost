@@ -16,6 +16,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
+
 	"github.com/mattermost/mattermost-server/app"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
@@ -187,7 +189,7 @@ func TestLogin(t *testing.T) {
 	}
 
 	if _, err := Client.Login(ruser2.Data.(*model.User).Email, user2.Password); err != nil {
-		t.Fatal("From verfied hash")
+		t.Fatal("From verified hash")
 	}
 
 	Client.AuthToken = authToken
@@ -199,11 +201,46 @@ func TestLogin(t *testing.T) {
 		Password:    "passwd1",
 		AuthService: model.USER_AUTH_SERVICE_LDAP,
 	}
-	user3 = Client.Must(Client.CreateUser(user3, "")).Data.(*model.User)
-	store.Must(th.App.Srv.Store.User().VerifyEmail(user3.Id))
+	ruser3 := Client.Must(Client.CreateUser(user3, "")).Data.(*model.User)
+	store.Must(th.App.Srv.Store.User().VerifyEmail(ruser3.Id))
 
-	if _, err := Client.Login(user3.Id, user3.Password); err == nil {
+	if _, err := Client.Login(ruser3.Id, user3.Password); err == nil {
 		t.Fatal("AD/LDAP user should not be able to log in with AD/LDAP disabled")
+	}
+}
+
+func TestLoginUnverifiedEmail(t *testing.T) {
+	assert := assert.New(t)
+
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	Client := th.BasicClient
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.EmailSettings.EnableSignInWithEmail = true
+		cfg.EmailSettings.RequireEmailVerification = true
+	})
+
+	Client.Logout()
+
+	user := &model.User{
+		Email:         strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com",
+		Nickname:      "Corey Hulen",
+		Username:      "corey" + model.NewId(),
+		Password:      "passwd1",
+		EmailVerified: false,
+	}
+	user = Client.Must(Client.CreateUser(user, "")).Data.(*model.User)
+
+	_, err := Client.Login(user.Email, user.Password+"invalid")
+	if assert.NotNil(err) {
+		assert.Equal("api.user.check_user_password.invalid.app_error", err.Id)
+	}
+
+	_, err = Client.Login(user.Email, "passwd1")
+	if assert.NotNil(err) {
+		assert.Equal("api.user.login.not_verified.app_error", err.Id)
 	}
 }
 
@@ -1852,17 +1889,7 @@ func TestUpdateMfa(t *testing.T) {
 
 	Client := th.BasicClient
 
-	isLicensed := utils.IsLicensed()
-	license := utils.License()
-	defer func() {
-		utils.SetIsLicensed(isLicensed)
-		utils.SetLicense(license)
-	}()
-	utils.SetIsLicensed(false)
-	utils.SetLicense(&model.License{Features: &model.Features{}})
-	if utils.License().Features.MFA == nil {
-		utils.License().Features.MFA = new(bool)
-	}
+	th.App.SetLicense(nil)
 
 	team := model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
 	rteam, _ := Client.CreateTeam(&team)
@@ -1888,8 +1915,7 @@ func TestUpdateMfa(t *testing.T) {
 		t.Fatal("should have failed - not licensed")
 	}
 
-	utils.SetIsLicensed(true)
-	*utils.License().Features.MFA = true
+	th.App.SetLicense(model.NewTestLicense("mfa"))
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableMultifactorAuthentication = true })
 
 	if _, err := Client.UpdateMfa(true, "123456"); err == nil {

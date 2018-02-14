@@ -237,7 +237,8 @@ func (a *App) TestEmail(userId string, cfg *model.Config) *model.AppError {
 		return err
 	} else {
 		T := utils.GetUserTranslations(user.Locale)
-		if err := utils.SendMailUsingConfig(user.Email, T("api.admin.test_email.subject"), T("api.admin.test_email.body"), cfg); err != nil {
+		license := a.License()
+		if err := utils.SendMailUsingConfig(user.Email, T("api.admin.test_email.subject"), T("api.admin.test_email.body"), cfg, license != nil && *license.Features.Compliance); err != nil {
 			return err
 		}
 	}

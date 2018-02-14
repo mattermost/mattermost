@@ -52,7 +52,7 @@ func (me *Compliance) PreSave() {
 	}
 
 	me.Count = 0
-	me.Emails = strings.ToLower(me.Emails)
+	me.Emails = NormalizeEmail(me.Emails)
 	me.Keywords = strings.ToLower(me.Keywords)
 
 	me.CreateAt = GetMillis()

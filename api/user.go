@@ -299,9 +299,9 @@ func getInitialLoad(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	il.ClientCfg = c.App.ClientConfig()
 	if c.App.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
-		il.LicenseCfg = utils.ClientLicense()
+		il.LicenseCfg = c.App.ClientLicense()
 	} else {
-		il.LicenseCfg = utils.GetSanitizedClientLicense()
+		il.LicenseCfg = c.App.GetSanitizedClientLicense()
 	}
 
 	w.Write([]byte(il.ToJson()))
@@ -1057,7 +1057,7 @@ func updateMfa(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func checkMfa(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !utils.IsLicensed() || !*utils.License().Features.MFA || !*c.App.Config().ServiceSettings.EnableMultifactorAuthentication {
+	if license := c.App.License(); license == nil || !*license.Features.MFA || !*c.App.Config().ServiceSettings.EnableMultifactorAuthentication {
 		rdata := map[string]string{}
 		rdata["mfa_required"] = "false"
 		w.Write([]byte(model.MapToJson(rdata)))
@@ -1159,7 +1159,7 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	} else {
-		if err := c.App.CheckUserAdditionalAuthenticationCriteria(user, ""); err != nil {
+		if err := c.App.CheckUserAllAuthenticationCriteria(user, ""); err != nil {
 			c.Err = err
 			c.Err.StatusCode = http.StatusFound
 			return

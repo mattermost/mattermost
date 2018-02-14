@@ -127,7 +127,7 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	c.SetSiteURLHeader(app.GetProtocol(r) + "://" + r.Host)
 
 	w.Header().Set(model.HEADER_REQUEST_ID, c.RequestId)
-	w.Header().Set(model.HEADER_VERSION_ID, fmt.Sprintf("%v.%v.%v.%v", model.CurrentVersion, model.BuildNumber, c.App.ClientConfigHash(), utils.IsLicensed()))
+	w.Header().Set(model.HEADER_VERSION_ID, fmt.Sprintf("%v.%v.%v.%v", model.CurrentVersion, model.BuildNumber, c.App.ClientConfigHash(), c.App.License() != nil))
 
 	// Instruct the browser not to display us in an iframe unless is the same origin for anti-clickjacking
 	if !h.isApi {
@@ -229,7 +229,7 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			if c.Err.StatusCode == http.StatusUnauthorized {
 				http.Redirect(w, r, c.GetTeamURL()+"/?redirect="+url.QueryEscape(r.URL.Path), http.StatusTemporaryRedirect)
 			} else {
-				utils.RenderWebError(c.Err, w, r)
+				utils.RenderWebAppError(w, r, c.Err, c.App.AsymmetricSigningKey())
 			}
 		}
 
@@ -292,7 +292,7 @@ func (c *Context) UserRequired() {
 
 func (c *Context) MfaRequired() {
 	// Must be licensed for MFA and have it configured for enforcement
-	if !utils.IsLicensed() || !*utils.License().Features.MFA || !*c.App.Config().ServiceSettings.EnableMultifactorAuthentication || !*c.App.Config().ServiceSettings.EnforceMultifactorAuthentication {
+	if license := c.App.License(); license == nil || !*license.Features.MFA || !*c.App.Config().ServiceSettings.EnableMultifactorAuthentication || !*c.App.Config().ServiceSettings.EnforceMultifactorAuthentication {
 		return
 	}
 
@@ -434,7 +434,7 @@ func IsApiCall(r *http.Request) bool {
 	return strings.Index(r.URL.Path, "/api/") == 0
 }
 
-func Handle404(w http.ResponseWriter, r *http.Request) {
+func Handle404(a *app.App, w http.ResponseWriter, r *http.Request) {
 	err := model.NewAppError("Handle404", "api.context.404.app_error", nil, "", http.StatusNotFound)
 
 	l4g.Debug("%v: code=404 ip=%v", r.URL.Path, utils.GetIpAddress(r))
@@ -444,7 +444,7 @@ func Handle404(w http.ResponseWriter, r *http.Request) {
 		err.DetailedError = "There doesn't appear to be an api call for the url='" + r.URL.Path + "'.  Typo? are you missing a team_id or user_id as part of the url?"
 		w.Write([]byte(err.ToJson()))
 	} else {
-		utils.RenderWebError(err, w, r)
+		utils.RenderWebAppError(w, r, err, a.AsymmetricSigningKey())
 	}
 }
 
