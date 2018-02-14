@@ -299,3 +299,115 @@ func createGitlabUser(t *testing.T, a *App, email string, username string) (*mod
 
 	return user, gitlabUserObj
 }
+
+func TestGetUsersByStatus(t *testing.T) {
+	th := Setup()
+	defer th.TearDown()
+
+	team := th.CreateTeam()
+	channel, err := th.App.CreateChannel(&model.Channel{
+		DisplayName: "dn_" + model.NewId(),
+		Name:        "name_" + model.NewId(),
+		Type:        model.CHANNEL_OPEN,
+		TeamId:      team.Id,
+		CreatorId:   model.NewId(),
+	}, false)
+	if err != nil {
+		t.Fatalf("failed to create channel: %v", err)
+	}
+
+	createUserWithStatus := func(username string, status string) *model.User {
+		id := model.NewId()
+
+		user, err := th.App.CreateUser(&model.User{
+			Email:    "success+" + id + "@simulator.amazonses.com",
+			Username: "un_" + username + "_" + id,
+			Nickname: "nn_" + id,
+			Password: "Password1",
+		})
+		if err != nil {
+			t.Fatalf("failed to create user: %v", err)
+		}
+
+		th.LinkUserToTeam(user, team)
+		th.AddUserToChannel(user, channel)
+
+		th.App.SaveAndBroadcastStatus(&model.Status{
+			UserId: user.Id,
+			Status: status,
+			Manual: true,
+		})
+
+		return user
+	}
+
+	// Creating these out of order in case that affects results
+	awayUser1 := createUserWithStatus("away1", model.STATUS_AWAY)
+	awayUser2 := createUserWithStatus("away2", model.STATUS_AWAY)
+	dndUser1 := createUserWithStatus("dnd1", model.STATUS_DND)
+	dndUser2 := createUserWithStatus("dnd2", model.STATUS_DND)
+	offlineUser1 := createUserWithStatus("offline1", model.STATUS_OFFLINE)
+	offlineUser2 := createUserWithStatus("offline2", model.STATUS_OFFLINE)
+	onlineUser1 := createUserWithStatus("online1", model.STATUS_ONLINE)
+	onlineUser2 := createUserWithStatus("online2", model.STATUS_ONLINE)
+
+	t.Run("sorting by status then alphabetical", func(t *testing.T) {
+		usersByStatus, err := th.App.GetUsersInChannelPageByStatus(channel.Id, 0, 8, true)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		expectedUsersByStatus := []*model.User{
+			onlineUser1,
+			onlineUser2,
+			awayUser1,
+			awayUser2,
+			offlineUser1,
+			offlineUser2,
+			dndUser1,
+			dndUser2,
+		}
+
+		if len(usersByStatus) != len(expectedUsersByStatus) {
+			t.Fatalf("received only %v users, expected %v", len(usersByStatus), len(expectedUsersByStatus))
+		}
+
+		for i := range usersByStatus {
+			if usersByStatus[i].Id != expectedUsersByStatus[i].Id {
+				t.Fatalf("received user %v at index %v, expected %v", usersByStatus[i].Username, i, expectedUsersByStatus[i].Username)
+			}
+		}
+	})
+
+	t.Run("paging", func(t *testing.T) {
+		usersByStatus, err := th.App.GetUsersInChannelPageByStatus(channel.Id, 0, 3, true)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if len(usersByStatus) != 3 {
+			t.Fatal("received too many users")
+		}
+
+		if usersByStatus[0].Id != onlineUser1.Id && usersByStatus[1].Id != onlineUser2.Id {
+			t.Fatal("expected to receive online users first")
+		}
+
+		if usersByStatus[2].Id != awayUser1.Id {
+			t.Fatal("expected to receive away users second")
+		}
+
+		usersByStatus, err = th.App.GetUsersInChannelPageByStatus(channel.Id, 1, 3, true)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if usersByStatus[0].Id != awayUser2.Id {
+			t.Fatal("expected to receive away users second")
+		}
+
+		if usersByStatus[1].Id != offlineUser1.Id && usersByStatus[2].Id != offlineUser2.Id {
+			t.Fatal("expected to receive offline users third")
+		}
+	})
+}
