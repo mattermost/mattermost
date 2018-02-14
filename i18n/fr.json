@@ -153,7 +153,7 @@
   },
   {
     "id": "api.channel.add_member.added",
-    "translation": "%v a été ajouté au canal par %v"
+    "translation": "%v a été ajouté au canal par %v."
   },
   {
     "id": "api.channel.add_member.find_channel.app_error",
@@ -201,11 +201,11 @@
   },
   {
     "id": "api.channel.change_channel_privacy.private_to_public",
-    "translation": "This channel has been converted to a Public Channel and can be joined by any team member."
+    "translation": "Ce canal a été converti en canal public et peut être rejoint par tout membre de l'équipe."
   },
   {
     "id": "api.channel.change_channel_privacy.public_to_private",
-    "translation": "This channel has been converted to a Private Channel."
+    "translation": "Ce canal a été converti en canal privé."
   },
   {
     "id": "api.channel.create_channel.direct_channel.app_error",
@@ -2184,7 +2184,7 @@
   },
   {
     "id": "api.team.add_user_to_team.added",
-    "translation": "%v a été ajouté à l'équipe par %v"
+    "translation": "%v a été ajouté à l'équipe par %v."
   },
   {
     "id": "api.team.add_user_to_team.missing_parameter.app_error",
@@ -2201,10 +2201,6 @@
   {
     "id": "api.team.create_team_from_signup.expired_link.app_error",
     "translation": "Le lien d'inscription a expiré."
-  },
-  {
-    "id": "api.team.create_team_from_signup.invalid_link.app_error",
-    "translation": "Le lien d'inscription semble ne pas être valide."
   },
   {
     "id": "api.team.create_team_from_signup.unavailable.app_error",
@@ -2711,6 +2707,10 @@
     "translation": "Le lien d'enregistrement n'est pas valide."
   },
   {
+    "id": "api.user.create_user.signup_link_mismatched_invite_id.app_error",
+    "translation": "The signup link does not appear to be valid"
+  },
+  {
     "id": "api.user.create_user.team_name.app_error",
     "translation": "Nom d'équipe incorrect"
   },
@@ -2956,7 +2956,7 @@
   },
   {
     "id": "api.user.upload_profile_user.decode_config.app_error",
-    "translation": "Impossible de sauvegarder l'image de profile. Le fichier ne semble pas être un fichier d'image valide."
+    "translation": "Impossible de sauvegarder l'image de profil. Le fichier ne semble pas être un fichier d'image valide."
   },
   {
     "id": "api.user.upload_profile_user.encode.app_error",
@@ -3360,7 +3360,7 @@
   },
   {
     "id": "app.import.validate_post_import_data.create_at_zero.error",
-    "translation": "La propriété de message CreateAt ne doit pas être 0 si ce champ est défini."
+    "translation": "La propriété de message CreateAt ne doit pas être 0."
   },
   {
     "id": "app.import.validate_post_import_data.message_length.error",
@@ -3380,51 +3380,51 @@
   },
   {
     "id": "app.import.validate_reaction_import_data.create_at_before_parent.error",
-    "translation": "Reaction CreateAt property must be greater than the parent post CreateAt."
+    "translation": "La propriété de réponse CreateAt doit être plus grande que la valeur de la propriété CreateAt parente."
   },
   {
     "id": "app.import.validate_reaction_import_data.create_at_missing.error",
-    "translation": "La propriété requise pour un message est manquante : create_at."
+    "translation": "La propriété requise de réaction est manquante : create_at."
   },
   {
     "id": "app.import.validate_reaction_import_data.create_at_zero.error",
-    "translation": "La propriété de message CreateAt ne doit pas être 0 si ce champ est défini."
+    "translation": "La propriété de réaction CreateAt ne doit pas être 0."
   },
   {
     "id": "app.import.validate_reaction_import_data.emoji_name_length.error",
-    "translation": "La propriété Message du message est plus longue que la longueur maximale autorisée."
+    "translation": "La propriété de réaction EmojiName est plus longue que la longueur maximale autorisée."
   },
   {
     "id": "app.import.validate_reaction_import_data.emoji_name_missing.error",
-    "translation": "La propriété requise du message est manquante : User."
+    "translation": "La propriété requise de réaction est manquante : EmojiName."
   },
   {
     "id": "app.import.validate_reaction_import_data.user_missing.error",
-    "translation": "La propriété requise du message est manquante : User."
+    "translation": "La propriété requise de réaction est manquante : User."
   },
   {
     "id": "app.import.validate_reply_import_data.create_at_before_parent.error",
-    "translation": "Reply CreateAt property must be greater than the parent post CreateAt."
+    "translation": "La propriété de réponse CreateAt doit être plus grande que la valeur de la propriété CreateAt parente."
   },
   {
     "id": "app.import.validate_reply_import_data.create_at_missing.error",
-    "translation": "La propriété requise pour un message est manquante : create_at."
+    "translation": "La propriété requise de réponse est manquante : create_at."
   },
   {
     "id": "app.import.validate_reply_import_data.create_at_zero.error",
-    "translation": "La propriété de message CreateAt ne doit pas être 0 si ce champ est défini."
+    "translation": "La propriété de message CreateAt ne doit pas être 0."
   },
   {
     "id": "app.import.validate_reply_import_data.message_length.error",
-    "translation": "La propriété Message du message est plus longue que la longueur maximale autorisée."
+    "translation": "La propriété de réponse Message est plus longue que la longueur maximale autorisée."
   },
   {
     "id": "app.import.validate_reply_import_data.message_missing.error",
-    "translation": "La propriété requise du message est manquante : Message."
+    "translation": "La propriété requise de réponse est manquante : Message."
   },
   {
     "id": "app.import.validate_reply_import_data.user_missing.error",
-    "translation": "La propriété requise du message est manquante : User."
+    "translation": "La propriété requise de réponse est manquante : User."
   },
   {
     "id": "app.import.validate_team_import_data.allowed_domains_length.error",
@@ -3564,7 +3564,7 @@
   },
   {
     "id": "app.import.validate_user_import_data.profile_image.error",
-    "translation": "Invalid profile image."
+    "translation": "Image de profil invalide."
   },
   {
     "id": "app.import.validate_user_import_data.roles_invalid.error",
@@ -4644,7 +4644,7 @@
   },
   {
     "id": "model.config.is_valid.atmos_camo_image_proxy_options.app_error",
-    "translation": "Invalid atmos/camo image proxy options for service settings. Must be set to your shared key."
+    "translation": "Les paramètres d'options du proxy d'image atmos/camo sont invalides. Votre clé partagée doit être définie comme paramètre."
   },
   {
     "id": "model.config.is_valid.cluster_email_batching.app_error",
@@ -4759,8 +4759,12 @@
     "translation": "Largeur des miniatures invalide dans les paramètres de fichiers. Doit être un entier positif."
   },
   {
+    "id": "model.config.is_valid.group_unread_channels.app_error",
+    "translation": "Le paramètre de groupement de canaux non lus est invalide. Doit être défini sur « disabled », « default_on » ou « default_off »."
+  },
+  {
     "id": "model.config.is_valid.image_proxy_type.app_error",
-    "translation": "Invalid image proxy type for service settings."
+    "translation": "Paramètre de type de proxy d'image invalide."
   },
   {
     "id": "model.config.is_valid.ldap_basedn",
@@ -5404,7 +5408,7 @@
   },
   {
     "id": "model.user.is_valid.position.app_error",
-    "translation": "Rôle invalide : ne doit pas faire plus de 35 caractères."
+    "translation": "Rôle invalide : ne doit pas faire plus de 128 caractères."
   },
   {
     "id": "model.user.is_valid.pwd.app_error",
@@ -6848,7 +6852,7 @@
   },
   {
     "id": "store.sql_user_access_token.get_all.app_error",
-    "translation": "Impossible de récupérer le jeton d'accès personnel"
+    "translation": "Impossible de récupérer tous les jetons d'accès personnel"
   },
   {
     "id": "store.sql_user_access_token.get_by_token.app_error",
@@ -6864,7 +6868,7 @@
   },
   {
     "id": "store.sql_user_access_token.search.app_error",
-    "translation": "Nous avons rencontré une erreur lors de la recherche du jeton d'accès"
+    "translation": "Nous avons rencontré une erreur lors de la recherche des jetons d'accès personnel"
   },
   {
     "id": "store.sql_webhooks.analytics_incoming_count.app_error",
@@ -7291,10 +7295,6 @@
     "translation": "Inscription"
   },
   {
-    "id": "web.signup_team_complete.invalid_link.app_error",
-    "translation": "Le lien d'inscription ne semble pas être valide"
-  },
-  {
     "id": "web.signup_team_complete.link_expired.app_error",
     "translation": "Le lien d'inscription a expiré"
   },
@@ -7309,10 +7309,6 @@
   {
     "id": "web.signup_user_complete.link_expired.app_error",
     "translation": "Le lien d'inscription a expiré"
-  },
-  {
-    "id": "web.signup_user_complete.link_invalid.app_error",
-    "translation": "Le lien d'inscription ne semble pas être valide"
   },
   {
     "id": "web.signup_user_complete.no_invites.app_error",

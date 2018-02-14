@@ -201,11 +201,11 @@
   },
   {
     "id": "api.channel.change_channel_privacy.private_to_public",
-    "translation": "This channel has been converted to a Public Channel and can be joined by any team member."
+    "translation": "Канал преобразован в публичный и к нему может присоединиться любой участник."
   },
   {
     "id": "api.channel.change_channel_privacy.public_to_private",
-    "translation": "This channel has been converted to a Private Channel."
+    "translation": "Канал преобразован в приватный."
   },
   {
     "id": "api.channel.create_channel.direct_channel.app_error",
@@ -2203,10 +2203,6 @@
     "translation": "Ссылка на регистрацию устарела"
   },
   {
-    "id": "api.team.create_team_from_signup.invalid_link.app_error",
-    "translation": "Неправильная ссылка на регистрацию"
-  },
-  {
     "id": "api.team.create_team_from_signup.unavailable.app_error",
     "translation": "Этот URL-адрес недоступен. Пожалуйста, попробуйте другой."
   },
@@ -2709,6 +2705,10 @@
   {
     "id": "api.user.create_user.signup_link_invalid.app_error",
     "translation": "Ссылка для регистрации, похоже, неверна."
+  },
+  {
+    "id": "api.user.create_user.signup_link_mismatched_invite_id.app_error",
+    "translation": "The signup link does not appear to be valid"
   },
   {
     "id": "api.user.create_user.team_name.app_error",
@@ -3248,7 +3248,7 @@
   },
   {
     "id": "app.import.import_user_channels.save_preferences.error",
-    "translation": "Error importing user channel memberships. Failed to save preferences."
+    "translation": "Ошибка импорта участия пользователя в каналах. Не удалось сохранить настройки."
   },
   {
     "id": "app.import.validate_channel_import_data.create_at_zero.error",
@@ -3296,7 +3296,7 @@
   },
   {
     "id": "app.import.validate_direct_channel_import_data.header_length.error",
-    "translation": "Direct channel header is too long"
+    "translation": "Заголовок личного канала слишком длинный."
   },
   {
     "id": "app.import.validate_direct_channel_import_data.members_required.error",
@@ -3304,11 +3304,11 @@
   },
   {
     "id": "app.import.validate_direct_channel_import_data.members_too_few.error",
-    "translation": "Direct channel members list contains too few items"
+    "translation": "В списке пользователей личного канала слишком мало элементов."
   },
   {
     "id": "app.import.validate_direct_channel_import_data.members_too_many.error",
-    "translation": "Direct channel members list contains too many items"
+    "translation": "В списке пользователей личного канала слишком много элементов."
   },
   {
     "id": "app.import.validate_direct_channel_import_data.unknown_favoriter.error",
@@ -3320,11 +3320,11 @@
   },
   {
     "id": "app.import.validate_direct_post_import_data.channel_members_too_few.error",
-    "translation": "Direct post channel members list contains too few items"
+    "translation": "В списке пользователей личного канала слишком мало элементов."
   },
   {
     "id": "app.import.validate_direct_post_import_data.channel_members_too_many.error",
-    "translation": "Direct post channel members list contains too many items"
+    "translation": "В списке пользователей личного канала слишком много элементов."
   },
   {
     "id": "app.import.validate_direct_post_import_data.create_at_missing.error",
@@ -4757,6 +4757,10 @@
   {
     "id": "model.config.is_valid.file_thumb_width.app_error",
     "translation": "Неверная ширина миниатюры в настройках файлов. Число должно быть положительным."
+  },
+  {
+    "id": "model.config.is_valid.group_unread_channels.app_error",
+    "translation": "Invalid group unread channels for service settings. Must be 'disabled', 'default_on', or 'default_off'."
   },
   {
     "id": "model.config.is_valid.image_proxy_type.app_error",
@@ -7291,10 +7295,6 @@
     "translation": "Регистрация"
   },
   {
-    "id": "web.signup_team_complete.invalid_link.app_error",
-    "translation": "Ссылка для регистрации, похоже, недействительна"
-  },
-  {
     "id": "web.signup_team_complete.link_expired.app_error",
     "translation": "Ссылка для регистрации устарела"
   },
@@ -7309,10 +7309,6 @@
   {
     "id": "web.signup_user_complete.link_expired.app_error",
     "translation": "Ссылка для регистрации устарела"
-  },
-  {
-    "id": "web.signup_user_complete.link_invalid.app_error",
-    "translation": "Ссылка для регистрации, похоже, недействительна"
   },
   {
     "id": "web.signup_user_complete.no_invites.app_error",

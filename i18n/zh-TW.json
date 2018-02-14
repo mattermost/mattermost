@@ -2203,10 +2203,6 @@
     "translation": "註冊連結已過期"
   },
   {
-    "id": "api.team.create_team_from_signup.invalid_link.app_error",
-    "translation": "此註冊連結不是有效連結"
-  },
-  {
     "id": "api.team.create_team_from_signup.unavailable.app_error",
     "translation": "這個網址不存在。請嘗試其他的。"
   },
@@ -2709,6 +2705,10 @@
   {
     "id": "api.user.create_user.signup_link_invalid.app_error",
     "translation": "此註冊連結不是有效連結"
+  },
+  {
+    "id": "api.user.create_user.signup_link_mismatched_invite_id.app_error",
+    "translation": "The signup link does not appear to be valid"
   },
   {
     "id": "api.user.create_user.team_name.app_error",
@@ -3564,7 +3564,7 @@
   },
   {
     "id": "app.import.validate_user_import_data.profile_image.error",
-    "translation": "Invalid profile image."
+    "translation": "無效的個人頭像。"
   },
   {
     "id": "app.import.validate_user_import_data.roles_invalid.error",
@@ -4644,7 +4644,7 @@
   },
   {
     "id": "model.config.is_valid.atmos_camo_image_proxy_options.app_error",
-    "translation": "Invalid atmos/camo image proxy options for service settings. Must be set to your shared key."
+    "translation": "服務設定中的 atmos/camo 圖片代理無效。必須設定為分享金鑰。"
   },
   {
     "id": "model.config.is_valid.cluster_email_batching.app_error",
@@ -4759,8 +4759,12 @@
     "translation": "檔案設定中縮圖寬度無效。必須為正數。"
   },
   {
+    "id": "model.config.is_valid.group_unread_channels.app_error",
+    "translation": "服務設定中的未讀頻道分組無效。必須為 'disabled' 、 'default_on' 或 'default_off'。"
+  },
+  {
     "id": "model.config.is_valid.image_proxy_type.app_error",
-    "translation": "Invalid image proxy type for service settings."
+    "translation": "服務設定中的圖片代理類型無效。"
   },
   {
     "id": "model.config.is_valid.ldap_basedn",
@@ -5404,7 +5408,7 @@
   },
   {
     "id": "model.user.is_valid.position.app_error",
-    "translation": "無效的位置：不能超過35個字元。"
+    "translation": "無效的位置：不能超過128個字元。"
   },
   {
     "id": "model.user.is_valid.pwd.app_error",
@@ -6848,7 +6852,7 @@
   },
   {
     "id": "store.sql_user_access_token.get_all.app_error",
-    "translation": "無法取得個人存取 Token"
+    "translation": "無法取得全部的個人存取 Token"
   },
   {
     "id": "store.sql_user_access_token.get_by_token.app_error",
@@ -7291,10 +7295,6 @@
     "translation": "註冊"
   },
   {
-    "id": "web.signup_team_complete.invalid_link.app_error",
-    "translation": "此註冊連結不是有效連結"
-  },
-  {
     "id": "web.signup_team_complete.link_expired.app_error",
     "translation": "註冊連結已過期"
   },
@@ -7309,10 +7309,6 @@
   {
     "id": "web.signup_user_complete.link_expired.app_error",
     "translation": "註冊連結已過期"
-  },
-  {
-    "id": "web.signup_user_complete.link_invalid.app_error",
-    "translation": "此註冊連結不是有效連結"
   },
   {
     "id": "web.signup_user_complete.no_invites.app_error",
