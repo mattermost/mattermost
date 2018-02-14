@@ -113,13 +113,13 @@ var migrateAuthCmd = &cobra.Command{
 
 		if toAuth == "saml" && autoFlag {
 			if len(args) != 2 {
-				return errors.New("Saml migration requires two argument when use --auto flag. See help text for details.")
+				return errors.New("Saml migration requires two arguments when using the --auto flag. See help text for details.")
 			}
 		}
 
 		if toAuth == "saml" && !autoFlag {
 			if len(args) != 3 {
-				return errors.New("Saml migration requires three arguments when not use --auto flag. See help text for details.")
+				return errors.New("Saml migration requires three arguments when not using the --auto flag. See help text for details.")
 			}
 		}
 		return nil
@@ -157,8 +157,8 @@ func init() {
 
 	deleteAllUsersCmd.Flags().Bool("confirm", false, "Confirm you really want to delete the user and a DB backup has been performed.")
 
-	migrateAuthCmd.Flags().Bool("force", false, "Force the migration to occour even if there are duplicates on the LDAP server. Duplicates will not be migrated. (ldap only)")
-	migrateAuthCmd.Flags().Bool("auto", false, "Auto migrate all users assuming that the SAML service usernames and emails are identical to the mattermost usernames and emails. (saml only)")
+	migrateAuthCmd.Flags().Bool("force", false, "Force the migration to occur even if there are duplicates on the LDAP server. Duplicates will not be migrated. (ldap only)")
+	migrateAuthCmd.Flags().Bool("auto", false, "Automatically migrate all users. Assumes the usernames and emails are identical between Mattermost and SAML services. (saml only)")
 	migrateAuthCmd.Flags().Bool("dryRun", false, "Run a simulation of the migration process without changing the database.")
 	migrateAuthCmd.SetUsageTemplate(`Usage:
   platform user migrate_auth [from_auth] [to_auth] [migration-options] [flags]
@@ -169,7 +169,7 @@ Examples:
 Arguments:
   from_auth:
     The authentication service to migrate users accounts from.
-    Supported options: email, gitlab, ldap.
+    Supported options: email, gitlab, ldap, saml.
 
   to_auth:
     The authentication service to migrate users to.
@@ -193,7 +193,7 @@ Examples:
 Arguments:
   from_auth:
     The authentication service to migrate users accounts from.
-    Supported options: email, gitlab, ldap.
+    Supported options: email, gitlab, ldap, saml.
 
   to_auth:
     The authentication service to migrate users to.
@@ -570,7 +570,7 @@ func migrateAuthToSamlCmdF(cmd *cobra.Command, args []string) error {
 
 	if autoFlag && !dryRunFlag {
 		var confirm string
-		CommandPrettyPrintln("You are about to perform an automatic \"" + fromAuth + " to saml\" migration, this must be done only if you are sure your current mattermost users using " + fromAuth + " auth have the same username and email in your SAML service, otherwise you must provide the users and emails from your Saml Service using the \"users file\" instead of \"--auto\" option. Do you want to proceed with auto migration anyway? (YES/NO): ")
+		CommandPrettyPrintln("You are about to perform an automatic \"" + fromAuth + " to saml\" migration. This must only be done if your current Mattermost users with " + fromAuth + " auth have the same username and email in your SAML service. Otherwise, provide the usernames and emails from your SAML Service using the \"users file\" without the \"--auto\" option.\n\nDo you want to proceed with automatic migration anyway? (YES/NO):")
 		fmt.Scanln(&confirm)
 
 		if confirm != "YES" {
