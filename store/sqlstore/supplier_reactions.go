@@ -217,13 +217,10 @@ func updatePostForReactionsOnInsert(transaction *gorp.Transaction, postId string
 		`UPDATE
 			Posts
 		SET
-			UpdateAt = (CASE
-				WHEN HasReactions != True THEN :UpdateAt
-				ELSE UpdateAt
-			END),
-			HasReactions = True
+			HasReactions = True,
+			UpdateAt = :UpdateAt
 		WHERE
-			Id = :PostId`,
+			Id = :PostId AND HasReactions = False`,
 		map[string]interface{}{"PostId": postId, "UpdateAt": model.GetMillis()})
 
 	return err
