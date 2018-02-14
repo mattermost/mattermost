@@ -831,44 +831,52 @@ func GetExplicitMentions(message string, keywords map[string][]string) *Explicit
 			ret.MentionedUserIds[id] = true
 		}
 	}
+	checkForMention := func(word string) bool {
+		isMention := false
 
+		if word == "@here" {
+			ret.HereMentioned = true
+		}
+
+		if word == "@channel" {
+			ret.ChannelMentioned = true
+		}
+
+		if word == "@all" {
+			ret.AllMentioned = true
+		}
+
+		// Non-case-sensitive check for regular keys
+		if ids, match := keywords[strings.ToLower(word)]; match {
+			addMentionedUsers(ids)
+			isMention = true
+		}
+
+		// Case-sensitive check for first name
+		if ids, match := keywords[word]; match {
+			addMentionedUsers(ids)
+			isMention = true
+		}
+
+		return isMention
+	}
 	processText := func(text string) {
 		for _, word := range strings.FieldsFunc(text, func(c rune) bool {
 			// Split on any whitespace or punctuation that can't be part of an at mention or emoji pattern
 			return !(c == ':' || c == '.' || c == '-' || c == '_' || c == '@' || unicode.IsLetter(c) || unicode.IsNumber(c))
 		}) {
-			isMention := false
-
 			// skip word with format ':word:' with an assumption that it is an emoji format only
 			if word[0] == ':' && word[len(word)-1] == ':' {
 				continue
 			}
 
-			if word == "@here" {
-				ret.HereMentioned = true
+			if checkForMention(word) {
+				continue
 			}
 
-			if word == "@channel" {
-				ret.ChannelMentioned = true
-			}
-
-			if word == "@all" {
-				ret.AllMentioned = true
-			}
-
-			// Non-case-sensitive check for regular keys
-			if ids, match := keywords[strings.ToLower(word)]; match {
-				addMentionedUsers(ids)
-				isMention = true
-			}
-
-			// Case-sensitive check for first name
-			if ids, match := keywords[word]; match {
-				addMentionedUsers(ids)
-				isMention = true
-			}
-
-			if isMention {
+			// remove trailing '.', as that is the end of a sentence
+			word = strings.TrimSuffix(word, ".")
+			if checkForMention(word) {
 				continue
 			}
 
@@ -879,27 +887,10 @@ func GetExplicitMentions(message string, keywords map[string][]string) *Explicit
 				})
 
 				for _, splitWord := range splitWords {
-					if splitWord == "@here" {
-						ret.HereMentioned = true
+					if checkForMention(splitWord) {
+						continue
 					}
-
-					if splitWord == "@all" {
-						ret.AllMentioned = true
-					}
-
-					if splitWord == "@channel" {
-						ret.ChannelMentioned = true
-					}
-
-					// Non-case-sensitive check for regular keys
-					if ids, match := keywords[strings.ToLower(splitWord)]; match {
-						addMentionedUsers(ids)
-					}
-
-					// Case-sensitive check for first name
-					if ids, match := keywords[splitWord]; match {
-						addMentionedUsers(ids)
-					} else if _, ok := systemMentions[splitWord]; !ok && strings.HasPrefix(splitWord, "@") {
+					if _, ok := systemMentions[splitWord]; !ok && strings.HasPrefix(splitWord, "@") {
 						username := splitWord[1:]
 						ret.OtherPotentialMentions = append(ret.OtherPotentialMentions, username)
 					}
