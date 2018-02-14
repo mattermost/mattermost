@@ -8,9 +8,11 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 
+	"github.com/dyatlov/go-opengraph/opengraph"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -208,37 +210,26 @@ func TestImageProxy(t *testing.T) {
 			ImageURL:        "http://mydomain.com/myimage",
 			ProxiedImageURL: "https://127.0.0.1/f8dace906d23689e8d5b12c3cefbedbf7b9b72f5/687474703a2f2f6d79646f6d61696e2e636f6d2f6d79696d616765",
 		},
-		"willnorris/imageproxy": {
-			ProxyType:       "willnorris/imageproxy",
+		"atmos/camo_SameSite": {
+			ProxyType:       "atmos/camo",
 			ProxyURL:        "https://127.0.0.1",
-			ProxyOptions:    "x1000",
-			ImageURL:        "http://mydomain.com/myimage",
-			ProxiedImageURL: "https://127.0.0.1/x1000/http://mydomain.com/myimage",
-		},
-		"willnorris/imageproxy_SameSite": {
-			ProxyType:       "willnorris/imageproxy",
-			ProxyURL:        "https://127.0.0.1",
+			ProxyOptions:    "foo",
 			ImageURL:        "http://mymattermost.com/myimage",
 			ProxiedImageURL: "http://mymattermost.com/myimage",
 		},
-		"willnorris/imageproxy_PathOnly": {
-			ProxyType:       "willnorris/imageproxy",
+		"atmos/camo_PathOnly": {
+			ProxyType:       "atmos/camo",
 			ProxyURL:        "https://127.0.0.1",
+			ProxyOptions:    "foo",
 			ImageURL:        "/myimage",
 			ProxiedImageURL: "/myimage",
 		},
-		"willnorris/imageproxy_EmptyImageURL": {
-			ProxyType:       "willnorris/imageproxy",
+		"atmos/camo_EmptyImageURL": {
+			ProxyType:       "atmos/camo",
 			ProxyURL:        "https://127.0.0.1",
+			ProxyOptions:    "foo",
 			ImageURL:        "",
 			ProxiedImageURL: "",
-		},
-		"willnorris/imageproxy_WithSigning": {
-			ProxyType:       "willnorris/imageproxy",
-			ProxyURL:        "https://127.0.0.1",
-			ProxyOptions:    "x1000|foo",
-			ImageURL:        "http://mydomain.com/myimage",
-			ProxiedImageURL: "https://127.0.0.1/x1000,sbhHVoG5d60UvnNtGh6Iy6x4PaMmnsh8JfZ7JfErKjGU=/http://mydomain.com/myimage",
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
@@ -266,25 +257,92 @@ func TestImageProxy(t *testing.T) {
 	}
 }
 
-var imageProxyBenchmarkSink *model.Post
+func TestMakeOpenGraphURLsAbsolute(t *testing.T) {
+	for name, tc := range map[string]struct {
+		HTML       string
+		RequestURL string
+		URL        string
+		ImageURL   string
+	}{
+		"absolute URLs": {
+			HTML: `
+				<html>
+					<head>
+						<meta property="og:url" content="https://example.com/apps/mattermost">
+						<meta property="og:image" content="https://images.example.com/image.png">
+					</head>
+				</html>`,
+			RequestURL: "https://example.com",
+			URL:        "https://example.com/apps/mattermost",
+			ImageURL:   "https://images.example.com/image.png",
+		},
+		"URLs starting with /": {
+			HTML: `
+				<html>
+					<head>
+						<meta property="og:url" content="/apps/mattermost">
+						<meta property="og:image" content="/image.png">
+					</head>
+				</html>`,
+			RequestURL: "http://example.com",
+			URL:        "http://example.com/apps/mattermost",
+			ImageURL:   "http://example.com/image.png",
+		},
+		"HTTPS URLs starting with /": {
+			HTML: `
+				<html>
+					<head>
+						<meta property="og:url" content="/apps/mattermost">
+						<meta property="og:image" content="/image.png">
+					</head>
+				</html>`,
+			RequestURL: "https://example.com",
+			URL:        "https://example.com/apps/mattermost",
+			ImageURL:   "https://example.com/image.png",
+		},
+		"missing image URL": {
+			HTML: `
+				<html>
+					<head>
+						<meta property="og:url" content="/apps/mattermost">
+					</head>
+				</html>`,
+			RequestURL: "http://example.com",
+			URL:        "http://example.com/apps/mattermost",
+			ImageURL:   "",
+		},
+		"relative URLs": {
+			HTML: `
+				<html>
+					<head>
+						<meta property="og:url" content="index.html">
+						<meta property="og:image" content="../resources/image.png">
+					</head>
+				</html>`,
+			RequestURL: "http://example.com/content/index.html",
+			URL:        "http://example.com/content/index.html",
+			ImageURL:   "http://example.com/resources/image.png",
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			og := opengraph.NewOpenGraph()
+			if err := og.ProcessHTML(strings.NewReader(tc.HTML)); err != nil {
+				t.Fatal(err)
+			}
 
-func BenchmarkPostWithProxyRemovedFromImageURLs(b *testing.B) {
-	th := Setup().InitBasic()
-	defer th.TearDown()
+			makeOpenGraphURLsAbsolute(og, tc.RequestURL)
 
-	th.App.UpdateConfig(func(cfg *model.Config) {
-		cfg.ServiceSettings.ImageProxyType = model.NewString("willnorris/imageproxy")
-		cfg.ServiceSettings.ImageProxyOptions = model.NewString("x1000|foo")
-		cfg.ServiceSettings.ImageProxyURL = model.NewString("https://127.0.0.1")
-	})
+			if og.URL != tc.URL {
+				t.Fatalf("incorrect url, expected %v, got %v", tc.URL, og.URL)
+			}
 
-	post := &model.Post{
-		Message: "![foo](http://mydomain.com/myimage)",
-	}
-
-	b.ResetTimer()
-
-	for i := 0; i < b.N; i++ {
-		imageProxyBenchmarkSink = th.App.PostWithProxyAddedToImageURLs(post)
+			if len(og.Images) > 0 {
+				if og.Images[0].URL != tc.ImageURL {
+					t.Fatalf("incorrect image url, expected %v, got %v", tc.ImageURL, og.Images[0].URL)
+				}
+			} else if tc.ImageURL != "" {
+				t.Fatalf("missing image url, expected %v, got nothing", tc.ImageURL)
+			}
+		})
 	}
 }
