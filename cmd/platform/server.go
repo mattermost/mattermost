@@ -93,7 +93,7 @@ func runServer(configFileLocation string, disableConfigWatch bool, interruptChan
 		l4g.Critical(serverErr.Error())
 		return serverErr
 	}
-	
+
 	api4.Init(a, a.Srv.Router, false)
 	api3 := api.Init(a, a.Srv.Router)
 	wsapi.Init(a, a.Srv.WebSocketRouter)
