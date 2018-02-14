@@ -1,4 +1,4 @@
-Per Mattermost guidelines, GitHub issues are for bug reports: http://www.mattermost.org/filing-issues/
+Per Mattermost guidelines, GitHub issues are for bug reports: http://www.mattermost.org/filing-issues/. Follow the steps in this link before proceeding with filing an issue below as JIRA is where existing issues are tracked and worked on.
 
 For troubleshooting see: http://forum.mattermost.org/.
 For feature proposals see: http://www.mattermost.org/feature-requests/
