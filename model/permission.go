@@ -40,6 +40,9 @@ var PERMISSION_DELETE_PRIVATE_CHANNEL *Permission
 var PERMISSION_EDIT_OTHER_USERS *Permission
 var PERMISSION_READ_CHANNEL *Permission
 var PERMISSION_READ_PUBLIC_CHANNEL *Permission
+var PERMISSION_ADD_REACTION *Permission
+var PERMISSION_REMOVE_REACTION *Permission
+var PERMISSION_REMOVE_OTHERS_REACTIONS *Permission
 var PERMISSION_PERMANENT_DELETE_USER *Permission
 var PERMISSION_UPLOAD_FILE *Permission
 var PERMISSION_GET_PUBLIC_LINK *Permission
@@ -222,6 +225,24 @@ func initializePermissions() {
 		"authentication.permissions.read_public_channel.description",
 		PERMISSION_SCOPE_TEAM,
 	}
+	PERMISSION_ADD_REACTION = &Permission{
+		"add_reaction",
+		"authentication.permissions.add_reaction.name",
+		"authentication.permissions.add_reaction.description",
+		PERMISSION_SCOPE_CHANNEL,
+	}
+	PERMISSION_REMOVE_REACTION = &Permission{
+		"remove_reaction",
+		"authentication.permissions.remove_reaction.name",
+		"authentication.permissions.remove_reaction.description",
+		PERMISSION_SCOPE_CHANNEL,
+	}
+	PERMISSION_REMOVE_OTHERS_REACTIONS = &Permission{
+		"remove_others_reactions",
+		"authentication.permissions.remove_others_reactions.name",
+		"authentication.permissions.remove_others_reactions.description",
+		PERMISSION_SCOPE_CHANNEL,
+	}
 	PERMISSION_PERMANENT_DELETE_USER = &Permission{
 		"permanent_delete_user",
 		"authentication.permissions.permanent_delete_user.name",
@@ -386,6 +407,9 @@ func initializePermissions() {
 		PERMISSION_EDIT_OTHER_USERS,
 		PERMISSION_READ_CHANNEL,
 		PERMISSION_READ_PUBLIC_CHANNEL,
+		PERMISSION_ADD_REACTION,
+		PERMISSION_REMOVE_REACTION,
+		PERMISSION_REMOVE_OTHERS_REACTIONS,
 		PERMISSION_PERMANENT_DELETE_USER,
 		PERMISSION_UPLOAD_FILE,
 		PERMISSION_GET_PUBLIC_LINK,
