@@ -58,11 +58,34 @@ type WebsocketBroadcast struct {
 	TeamId    string          `json:"team_id"`    // broadcast only occurs for users in this team
 }
 
+type precomputedWebSocketEventJSON struct {
+	*WebSocketEvent
+	Event     json.RawMessage `json:"event"`
+	Data      json.RawMessage `json:"data"`
+	Broadcast json.RawMessage `json:"broadcast"`
+}
+
 type WebSocketEvent struct {
 	Event     string                 `json:"event"`
 	Data      map[string]interface{} `json:"data"`
 	Broadcast *WebsocketBroadcast    `json:"broadcast"`
 	Sequence  int64                  `json:"seq"`
+
+	precomputedJSON *precomputedWebSocketEventJSON
+}
+
+// PrecomputeJSON precomputes and stores the serialized JSON for all fields other than Sequence.
+// This makes ToJson much more efficient when sending the same event to multiple connections.
+func (m *WebSocketEvent) PrecomputeJSON() {
+	event, _ := json.Marshal(m.Event)
+	data, _ := json.Marshal(m.Data)
+	broadcast, _ := json.Marshal(m.Broadcast)
+	m.precomputedJSON = &precomputedWebSocketEventJSON{
+		WebSocketEvent: m,
+		Event:          json.RawMessage(event),
+		Data:           json.RawMessage(data),
+		Broadcast:      json.RawMessage(broadcast),
+	}
 }
 
 func (m *WebSocketEvent) Add(key string, value interface{}) {
@@ -83,6 +106,10 @@ func (o *WebSocketEvent) EventType() string {
 }
 
 func (o *WebSocketEvent) ToJson() string {
+	if o.precomputedJSON != nil {
+		b, _ := json.Marshal(o.precomputedJSON)
+		return string(b)
+	}
 	b, _ := json.Marshal(o)
 	return string(b)
 }
