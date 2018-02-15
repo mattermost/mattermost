@@ -178,6 +178,8 @@ func MakeDefaultRoles() map[string]*Role {
 		Description: "authentication.roles.channel_user.description",
 		Permissions: []string{
 			PERMISSION_READ_CHANNEL.Id,
+			PERMISSION_ADD_REACTION.Id,
+			PERMISSION_REMOVE_REACTION.Id,
 			PERMISSION_MANAGE_PUBLIC_CHANNEL_MEMBERS.Id,
 			PERMISSION_UPLOAD_FILE.Id,
 			PERMISSION_GET_PUBLIC_LINK.Id,
@@ -331,6 +333,7 @@ func MakeDefaultRoles() map[string]*Role {
 							PERMISSION_CREATE_USER_ACCESS_TOKEN.Id,
 							PERMISSION_READ_USER_ACCESS_TOKEN.Id,
 							PERMISSION_REVOKE_USER_ACCESS_TOKEN.Id,
+							PERMISSION_REMOVE_OTHERS_REACTIONS.Id,
 						},
 						roles[TEAM_USER_ROLE_ID].Permissions...,
 					),
