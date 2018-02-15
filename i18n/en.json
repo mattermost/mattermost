@@ -1808,11 +1808,11 @@
   },
   {
     "id": "api.post.send_notifications_and_forget.push_image_only",
-    "translation": " Uploaded one or more files in "
+    "translation": " uploaded one or more files in "
   },
   {
     "id": "api.post.send_notifications_and_forget.push_image_only_dm",
-    "translation": " Uploaded one or more files in a direct message"
+    "translation": " uploaded one or more files in a direct message"
   },
   {
     "id": "api.post.send_notifications_and_forget.push_in",
@@ -2699,11 +2699,11 @@
     "translation": "The signup link has expired"
   },
   {
-    "id": "api.user.create_user.signup_link_mismatched_invite_id.app_error",
+    "id": "api.user.create_user.signup_link_invalid.app_error",
     "translation": "The signup link does not appear to be valid"
   },
   {
-    "id": "api.user.create_user.signup_link_invalid.app_error",
+    "id": "api.user.create_user.signup_link_mismatched_invite_id.app_error",
     "translation": "The signup link does not appear to be valid"
   },
   {
@@ -3121,6 +3121,10 @@
   {
     "id": "api.websocket_handler.invalid_param.app_error",
     "translation": "Invalid {{.Name}} parameter"
+  },
+  {
+    "id": "app.team.join_user_to_team.max_accounts.app_error",
+    "translation": "This team has reached the maximum number of allowed accounts. Contact your systems administrator to set a higher limit."
   },
   {
     "id": "app.channel.create_channel.no_team_id.app_error",
