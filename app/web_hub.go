@@ -170,7 +170,9 @@ func (a *App) Publish(message *model.WebSocketEvent) {
 
 func (a *App) PublishSkipClusterSend(message *model.WebSocketEvent) {
 	if message.Broadcast.UserId != "" {
-		a.GetHubForUserId(message.Broadcast.UserId).Broadcast(message)
+		if len(a.Hubs) != 0 {
+			a.GetHubForUserId(message.Broadcast.UserId).Broadcast(message)
+		}
 	} else {
 		for _, hub := range a.Hubs {
 			hub.Broadcast(message)
