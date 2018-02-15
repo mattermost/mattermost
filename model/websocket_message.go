@@ -5,6 +5,7 @@ package model
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 )
 
@@ -59,10 +60,9 @@ type WebsocketBroadcast struct {
 }
 
 type precomputedWebSocketEventJSON struct {
-	*WebSocketEvent
-	Event     json.RawMessage `json:"event"`
-	Data      json.RawMessage `json:"data"`
-	Broadcast json.RawMessage `json:"broadcast"`
+	Event     json.RawMessage
+	Data      json.RawMessage
+	Broadcast json.RawMessage
 }
 
 type WebSocketEvent struct {
@@ -106,10 +106,7 @@ func (o *WebSocketEvent) EventType() string {
 
 func (o *WebSocketEvent) ToJson() string {
 	if o.precomputedJSON != nil {
-		precomputedJSON := *o.precomputedJSON
-		precomputedJSON.WebSocketEvent = o
-		b, _ := json.Marshal(&precomputedJSON)
-		return string(b)
+		return fmt.Sprintf(`{"event": %s, "data": %s, "broadcast": %s, "seq": %d}`, o.precomputedJSON.Event, o.precomputedJSON.Data, o.precomputedJSON.Broadcast, o.Sequence)
 	}
 	b, _ := json.Marshal(o)
 	return string(b)

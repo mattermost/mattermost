@@ -76,14 +76,27 @@ func BenchmarkWebSocketEvent_ToJson(b *testing.B) {
 		event.Data[NewId()] = NewId()
 	}
 
-	b.Run("OnDemand", func(b *testing.B) {
+	b.Run("SerializedNTimes", func(b *testing.B) {
 		for i := 0; i < b.N; i++ {
 			stringSink = event.ToJson()
 		}
 	})
 
+	b.Run("PrecomputedNTimes", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			event.PrecomputeJSON()
+		}
+	})
+
+	b.Run("PrecomputedAndSerializedNTimes", func(b *testing.B) {
+		for i := 0; i < b.N; i++ {
+			event.PrecomputeJSON()
+			stringSink = event.ToJson()
+		}
+	})
+
 	event.PrecomputeJSON()
-	b.Run("Precomputed", func(b *testing.B) {
+	b.Run("PrecomputedOnceAndSerializedNTimes", func(b *testing.B) {
 		for i := 0; i < b.N; i++ {
 			stringSink = event.ToJson()
 		}
