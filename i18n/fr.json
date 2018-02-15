@@ -2708,7 +2708,7 @@
   },
   {
     "id": "api.user.create_user.signup_link_mismatched_invite_id.app_error",
-    "translation": "The signup link does not appear to be valid"
+    "translation": "Le lien d'inscription semble ne pas être valide."
   },
   {
     "id": "api.user.create_user.team_name.app_error",
@@ -3689,6 +3689,10 @@
   {
     "id": "app.plugin.upload_disabled.app_error",
     "translation": "Les plugins et/ou l'envoi de plugins ont été désactivés."
+  },
+  {
+    "id": "app.team.join_user_to_team.max_accounts.app_error",
+    "translation": "Cette équipe a atteint la limite du nombre maximum de comptes autorisés. Contactez votre administrateur système pour augmenter cette limite."
   },
   {
     "id": "app.user_access_token.disabled",

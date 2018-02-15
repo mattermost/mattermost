@@ -1812,11 +1812,11 @@
   },
   {
     "id": "api.post.send_notifications_and_forget.push_image_only",
-    "translation": " Uploaded one or more files in "
+    "translation": " uploaded one or more files in "
   },
   {
     "id": "api.post.send_notifications_and_forget.push_image_only_dm",
-    "translation": " Uploaded one or more files in a direct message"
+    "translation": " uploaded one or more files in a direct message"
   },
   {
     "id": "api.post.send_notifications_and_forget.push_in",
@@ -2708,7 +2708,7 @@
   },
   {
     "id": "api.user.create_user.signup_link_mismatched_invite_id.app_error",
-    "translation": "The signup link does not appear to be valid"
+    "translation": "De aanmeld link is niet geldig"
   },
   {
     "id": "api.user.create_user.team_name.app_error",
@@ -3208,11 +3208,11 @@
   },
   {
     "id": "app.import.import_line.null_direct_channel.error",
-    "translation": "Import data line has type \"direct_channel\" but the direct_channel object is null."
+    "translation": "Geimporteerde lijn met type \"user\", maar het \"user\" object is null."
   },
   {
     "id": "app.import.import_line.null_direct_post.error",
-    "translation": "Import data line has type \"direct_post\" but the direct_post object is null."
+    "translation": "Geimporteerde lijn met type \"user\", maar het \"user\" object is null."
   },
   {
     "id": "app.import.import_line.null_post.error",
@@ -3260,7 +3260,7 @@
   },
   {
     "id": "app.import.validate_channel_import_data.display_name_missing.error",
-    "translation": "Missing required channel property: display_name"
+    "translation": "Mist vereiste team kenmerk: naam."
   },
   {
     "id": "app.import.validate_channel_import_data.header_length.error",
@@ -3284,7 +3284,7 @@
   },
   {
     "id": "app.import.validate_channel_import_data.team_missing.error",
-    "translation": "Missing required channel property: team"
+    "translation": "Mist vereiste team kenmerk: naam."
   },
   {
     "id": "app.import.validate_channel_import_data.type_invalid.error",
@@ -3300,7 +3300,7 @@
   },
   {
     "id": "app.import.validate_direct_channel_import_data.members_required.error",
-    "translation": "Missing required direct channel property: members"
+    "translation": "Mist vereiste team kenmerk: naam."
   },
   {
     "id": "app.import.validate_direct_channel_import_data.members_too_few.error",
@@ -3316,7 +3316,7 @@
   },
   {
     "id": "app.import.validate_direct_post_import_data.channel_members_required.error",
-    "translation": "Missing required direct post property: channel_members"
+    "translation": "Mist vereiste team kenmerk: naam."
   },
   {
     "id": "app.import.validate_direct_post_import_data.channel_members_too_few.error",
@@ -3328,7 +3328,7 @@
   },
   {
     "id": "app.import.validate_direct_post_import_data.create_at_missing.error",
-    "translation": "Missing required direct post property: create_at"
+    "translation": "Mist vereiste team kenmerk: naam."
   },
   {
     "id": "app.import.validate_direct_post_import_data.create_at_zero.error",
@@ -3340,7 +3340,7 @@
   },
   {
     "id": "app.import.validate_direct_post_import_data.message_missing.error",
-    "translation": "Missing required direct post property: message"
+    "translation": "Mist vereiste team kenmerk: naam."
   },
   {
     "id": "app.import.validate_direct_post_import_data.unknown_flagger.error",
@@ -3348,7 +3348,7 @@
   },
   {
     "id": "app.import.validate_direct_post_import_data.user_missing.error",
-    "translation": "Missing required direct post property: user"
+    "translation": "Mist vereiste team kenmerk: naam."
   },
   {
     "id": "app.import.validate_post_import_data.channel_missing.error",
@@ -3356,7 +3356,7 @@
   },
   {
     "id": "app.import.validate_post_import_data.create_at_missing.error",
-    "translation": "Missing required Post property: create_at."
+    "translation": "Mist vereiste team kenmerk: naam."
   },
   {
     "id": "app.import.validate_post_import_data.create_at_zero.error",
@@ -3384,7 +3384,7 @@
   },
   {
     "id": "app.import.validate_reaction_import_data.create_at_missing.error",
-    "translation": "Missing required Reaction property: create_at."
+    "translation": "Mist vereiste team kenmerk: naam."
   },
   {
     "id": "app.import.validate_reaction_import_data.create_at_zero.error",
@@ -3396,7 +3396,7 @@
   },
   {
     "id": "app.import.validate_reaction_import_data.emoji_name_missing.error",
-    "translation": "Missing required Reaction property: EmojiName."
+    "translation": "Mist vereiste team kenmerk: naam."
   },
   {
     "id": "app.import.validate_reaction_import_data.user_missing.error",
@@ -3408,7 +3408,7 @@
   },
   {
     "id": "app.import.validate_reply_import_data.create_at_missing.error",
-    "translation": "Missing required Reply property: create_at."
+    "translation": "Mist vereiste team kenmerk: naam."
   },
   {
     "id": "app.import.validate_reply_import_data.create_at_zero.error",
@@ -3689,6 +3689,10 @@
   {
     "id": "app.plugin.upload_disabled.app_error",
     "translation": "Plugins and/or plugin uploads have been disabled."
+  },
+  {
+    "id": "app.team.join_user_to_team.max_accounts.app_error",
+    "translation": "Het maximaal aantal leden voor dit team is bereikt. Neem contact op met de beheerder voor een hoger limiet."
   },
   {
     "id": "app.user_access_token.disabled",

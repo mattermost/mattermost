@@ -1162,7 +1162,7 @@
   },
   {
     "id": "api.emoji.delete.delete_reactions.app_error",
-    "translation": "无法删除表情符 %v 时删除反应"
+    "translation": "无法删除表情符 %v 时删除互动"
   },
   {
     "id": "api.emoji.delete.permissions.app_error",
@@ -1904,31 +1904,31 @@
   },
   {
     "id": "api.reaction.delete_reaction.mismatched_channel_id.app_error",
-    "translation": "因网址中频道 ID 与消息 ID不符而删除反应失败"
+    "translation": "因网址中频道 ID 与消息 ID不符而删除互动失败"
   },
   {
     "id": "api.reaction.init.debug",
-    "translation": "正在初始化反应 API 路由"
+    "translation": "正在初始化互动 API 路由"
   },
   {
     "id": "api.reaction.list_reactions.mismatched_channel_id.app_error",
-    "translation": "因网址中频道 ID 与消息 ID不符而获取反应失败"
+    "translation": "因网址中频道 ID 与消息 ID不符而获取互动失败"
   },
   {
     "id": "api.reaction.save_reaction.invalid.app_error",
-    "translation": "无效反应。"
+    "translation": "无效互动。"
   },
   {
     "id": "api.reaction.save_reaction.mismatched_channel_id.app_error",
-    "translation": "因网址中频道 ID 与消息 ID不符而保存反应失败"
+    "translation": "因网址中频道 ID 与消息 ID不符而保存互动失败"
   },
   {
     "id": "api.reaction.save_reaction.user_id.app_error",
-    "translation": "您不能保存其他用户的反应。"
+    "translation": "您不能保存其他用户的互动。"
   },
   {
     "id": "api.reaction.send_reaction_event.post.app_error",
-    "translation": "发送 websocket 反应事件时获取消息失败"
+    "translation": "发送 websocket 互动事件时获取消息失败"
   },
   {
     "id": "api.saml.save_certificate.app_error",
@@ -2708,7 +2708,7 @@
   },
   {
     "id": "api.user.create_user.signup_link_mismatched_invite_id.app_error",
-    "translation": "The signup link does not appear to be valid"
+    "translation": "注册链接无效"
   },
   {
     "id": "api.user.create_user.team_name.app_error",
@@ -3380,31 +3380,31 @@
   },
   {
     "id": "app.import.validate_reaction_import_data.create_at_before_parent.error",
-    "translation": "Reaction CreateAt property must be greater than the parent post CreateAt."
+    "translation": "互动 CreateAt 属性必须大于父消息 CreateAt。"
   },
   {
     "id": "app.import.validate_reaction_import_data.create_at_missing.error",
-    "translation": "缺少反应必须属性：create_at。"
+    "translation": "缺少互动必须属性：create_at。"
   },
   {
     "id": "app.import.validate_reaction_import_data.create_at_zero.error",
-    "translation": "反应 CreateAt 属性不能为零。"
+    "translation": "互动 CreateAt 属性不能为零。"
   },
   {
     "id": "app.import.validate_reaction_import_data.emoji_name_length.error",
-    "translation": "反应 EmojiName 属性超过允许的最大长度。"
+    "translation": "互动 EmojiName 属性超过允许的最大长度。"
   },
   {
     "id": "app.import.validate_reaction_import_data.emoji_name_missing.error",
-    "translation": "缺少反应必须属性：User。"
+    "translation": "缺少互动必须属性：User。"
   },
   {
     "id": "app.import.validate_reaction_import_data.user_missing.error",
-    "translation": "缺少反应必须属性：User。"
+    "translation": "缺少互动必须属性：User。"
   },
   {
     "id": "app.import.validate_reply_import_data.create_at_before_parent.error",
-    "translation": "Reply CreateAt property must be greater than the parent post CreateAt."
+    "translation": "回复 CreateAt 属性必须大于父消息 CreateAt。"
   },
   {
     "id": "app.import.validate_reply_import_data.create_at_missing.error",
@@ -3689,6 +3689,10 @@
   {
     "id": "app.plugin.upload_disabled.app_error",
     "translation": "插件上传已禁用。"
+  },
+  {
+    "id": "app.team.join_user_to_team.max_accounts.app_error",
+    "translation": "这个团队已经达到允许的最大用户数量。请与系统管理员联系以设置更高的限制。"
   },
   {
     "id": "app.user_access_token.disabled",
@@ -4760,7 +4764,7 @@
   },
   {
     "id": "model.config.is_valid.group_unread_channels.app_error",
-    "translation": "Invalid group unread channels for service settings. Must be 'disabled', 'default_on', or 'default_off'."
+    "translation": "无效未读频道分组的服务设定。必须为 'disabled'、'default_on' 或 'default_off'。"
   },
   {
     "id": "model.config.is_valid.image_proxy_type.app_error",
@@ -6384,47 +6388,47 @@
   },
   {
     "id": "store.sql_reaction.delete.begin.app_error",
-    "translation": "删除反应时无法打开事务"
+    "translation": "删除互动时无法打开事务"
   },
   {
     "id": "store.sql_reaction.delete.commit.app_error",
-    "translation": "删除反应时无法提交事务"
+    "translation": "删除互动时无法提交事务"
   },
   {
     "id": "store.sql_reaction.delete.save.app_error",
-    "translation": "无法删除反应"
+    "translation": "无法删除互动"
   },
   {
     "id": "store.sql_reaction.delete_all_with_emoj_name.delete_reactions.app_error",
-    "translation": "无法用提供的表情符删除反应"
+    "translation": "无法用提供的表情符删除互动"
   },
   {
     "id": "store.sql_reaction.delete_all_with_emoj_name.get_reactions.app_error",
-    "translation": "无法用提供的表情符获取反应"
+    "translation": "无法用提供的表情符获取互动"
   },
   {
     "id": "store.sql_reaction.delete_all_with_emoji_name.update_post.warn",
-    "translation": "无法删除反应时更新 Post.HasReactions post_id=%v, error=%v"
+    "translation": "无法删除互动时更新 Post.HasReactions post_id=%v, error=%v"
   },
   {
     "id": "store.sql_reaction.get_for_post.app_error",
-    "translation": "无法获取消息的反应"
+    "translation": "无法获取消息的互动"
   },
   {
     "id": "store.sql_reaction.permanent_delete_batch.app_error",
-    "translation": "批量永久删除反应时遇到错误"
+    "translation": "批量永久删除互动时遇到错误"
   },
   {
     "id": "store.sql_reaction.save.begin.app_error",
-    "translation": "无法保存反应时打开事务"
+    "translation": "无法保存互动时打开事务"
   },
   {
     "id": "store.sql_reaction.save.commit.app_error",
-    "translation": "无法保存反应时提交事务"
+    "translation": "无法保存互动时提交事务"
   },
   {
     "id": "store.sql_reaction.save.save.app_error",
-    "translation": "无法保存反应"
+    "translation": "无法保存互动"
   },
   {
     "id": "store.sql_session.analytics_session_count.app_error",
