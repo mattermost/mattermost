@@ -3127,10 +3127,6 @@
     "translation": "Invalid {{.Name}} parameter"
   },
   {
-    "id": "app.team.join_user_to_team.max_accounts.app_error",
-    "translation": "This team has reached the maximum number of allowed accounts. Contact your systems administrator to set a higher limit."
-  },
-  {
     "id": "app.channel.create_channel.no_team_id.app_error",
     "translation": "Must specify the team ID to create a channel"
   },
@@ -3693,6 +3689,10 @@
   {
     "id": "app.plugin.upload_disabled.app_error",
     "translation": "Plugins and/or plugin uploads have been disabled."
+  },
+  {
+    "id": "app.team.join_user_to_team.max_accounts.app_error",
+    "translation": "This team has reached the maximum number of allowed accounts. Contact your systems administrator to set a higher limit."
   },
   {
     "id": "app.user_access_token.disabled",

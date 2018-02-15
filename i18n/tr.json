@@ -2708,7 +2708,7 @@
   },
   {
     "id": "api.user.create_user.signup_link_mismatched_invite_id.app_error",
-    "translation": "The signup link does not appear to be valid"
+    "translation": "Hesap açma bağlantısı geçersiz görünüyor"
   },
   {
     "id": "api.user.create_user.team_name.app_error",
@@ -3689,6 +3689,10 @@
   {
     "id": "app.plugin.upload_disabled.app_error",
     "translation": "Uygulama ekleri ya da uygulama eki yüklemeleri devre dışı bırakılmış. "
+  },
+  {
+    "id": "app.team.join_user_to_team.max_accounts.app_error",
+    "translation": "Bu takım izin verilen en fazla hesap sayısına ulaşmış. Sınırı yükseltmesi için sistem yöneticinizle görüşün."
   },
   {
     "id": "app.user_access_token.disabled",
