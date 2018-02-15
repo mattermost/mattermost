@@ -30,7 +30,6 @@ type Hub struct {
 	// See https://github.com/mattermost/mattermost-server/pull/7281
 	connectionCount int64
 	app             *App
-	connections     []*WebConn
 	connectionIndex int
 	register        chan *WebConn
 	unregister      chan *WebConn
@@ -376,7 +375,7 @@ func (h *Hub) Start() {
 			select {
 			case webCon := <-h.register:
 				connections.Add(webCon)
-				atomic.StoreInt64(&h.connectionCount, int64(len(h.connections)))
+				atomic.StoreInt64(&h.connectionCount, int64(len(connections.All())))
 			case webCon := <-h.unregister:
 				connections.Remove(webCon)
 
