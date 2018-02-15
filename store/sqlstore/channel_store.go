@@ -30,6 +30,8 @@ const (
 	CHANNEL_MEMBERS_COUNTS_CACHE_SEC  = 1800 // 30 mins
 
 	CHANNEL_CACHE_SEC = 900 // 15 mins
+
+	TOTAL_ROLE_COUNT = 11
 )
 
 type SqlChannelStore struct {
@@ -1477,4 +1479,62 @@ func (s SqlChannelStore) GetMembersByIds(channelId string, userIds []string) sto
 
 		}
 	})
+}
+
+// ChannelsWithChannelContextPermission retrieves the channels for a given user with an associated channel-context of a permission.
+func (s SqlChannelStore) ChannelsWithChannelContextPermission(userID string, permissionName string) store.StoreChannel {
+	var query string
+
+	if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+		query = channelsWithChannelContextPermissionPostgresQuery(permissionName)
+	} else {
+		// TODO, Phase 3 Advanced Permissions: role count will need to be queried with something like `select count(*) from roles` because of custom roles.
+		query = channelsWithChannelContextPermissionMysqlQuery(permissionName, TOTAL_ROLE_COUNT)
+	}
+
+	return store.Do(func(result *store.StoreResult) {
+		var channels model.ChannelList
+		_, err := s.GetReplica().Select(&channels, query, map[string]interface{}{"UserId": userID})
+		if err != nil {
+			fmt.Printf("err: %v", err)
+			result.Err = model.NewAppError("SqlChannelStore.ChannelsWithChannelContextPermission", "store.sql_channel.search.app_error", nil, "", http.StatusInternalServerError)
+		} else {
+			result.Data = &channels
+		}
+	})
+}
+
+func channelsWithChannelContextPermissionMysqlQuery(permissionName string, roleCount int) string {
+	query := `
+			SELECT Channels.* FROM (
+			SELECT
+			ChannelId, UserId, TRIM(SUBSTRING_INDEX(SUBSTRING_INDEX(B.Roles, ' ', ns.n), ' ', -1)) AS rolename
+			FROM (
+			SELECT 1 AS n UNION ALL `
+
+	for i := 2; i < roleCount; i++ {
+		query += fmt.Sprintf("SELECT %v UNION ALL\n", i)
+	}
+
+	query += `SELECT ` + fmt.Sprintf("%v", roleCount) + `
+			) ns
+			INNER JOIN ChannelMembers B ON ns.n <= CHAR_LENGTH(B.Roles) - CHAR_LENGTH(REPLACE(B.Roles, ' ', '')) + 1
+			) x
+			LEFT JOIN Channels ON ChannelId = Channels.Id
+			LEFT JOIN Roles ON Roles.name = x.rolename
+			WHERE Roles.Permissions REGEXP '[[:<:]]` + permissionName + `[[:>:]]'
+			AND UserId = :UserId`
+
+	return query
+}
+
+func channelsWithChannelContextPermissionPostgresQuery(permissionName string) string {
+	return `
+		SELECT channels.* FROM (
+			SELECT userid, channelid, UNNEST(STRING_TO_ARRAY(roles, ' ')) AS rolename FROM channelmembers
+		) x
+		LEFT JOIN channels ON channelid = channels.id
+		LEFT JOIN roles ON roles.name = x.rolename
+		WHERE STRING_TO_ARRAY(roles.permissions, ' ') && '{` + permissionName + `}'::text[]
+		AND userid = :UserId`
 }

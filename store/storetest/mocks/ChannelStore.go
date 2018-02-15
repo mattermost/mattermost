@@ -806,3 +806,19 @@ func (_m *ChannelStore) UpdateMember(member *model.ChannelMember) store.StoreCha
 
 	return r0
 }
+
+// ChannelsWithChannelContextPermission provides a mock function with given fields: channelIds
+func (_m *ChannelStore) ChannelsWithChannelContextPermission(userID string, permissionName string) store.StoreChannel {
+	ret := _m.Called(userID, permissionName)
+
+	var r0 store.StoreChannel
+	if rf, ok := ret.Get(0).(func(string, string) store.StoreChannel); ok {
+		r0 = rf(userID, permissionName)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.StoreChannel)
+		}
+	}
+
+	return r0
+}

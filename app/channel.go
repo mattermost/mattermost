@@ -1032,6 +1032,14 @@ func (a *App) JoinChannel(channel *model.Channel, userId string) *model.AppError
 	return nil
 }
 
+func (a *App) ChannelsWithChannelContextPermission(userId string, permissionName string) (*model.ChannelList, *model.AppError) {
+	if result := <-a.Srv.Store.Channel().ChannelsWithChannelContextPermission(userId, permissionName); result.Err != nil {
+		return nil, result.Err
+	} else {
+		return result.Data.(*model.ChannelList), nil
+	}
+}
+
 func (a *App) postJoinChannelMessage(user *model.User, channel *model.Channel) *model.AppError {
 	post := &model.Post{
 		ChannelId: channel.Id,
