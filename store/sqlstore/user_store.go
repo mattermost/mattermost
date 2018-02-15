@@ -439,8 +439,8 @@ func (us SqlUserStore) GetProfilesInChannelByStatus(channelId string, offset int
 				CASE Status
 					WHEN 'online' THEN 1
 					WHEN 'away' THEN 2
-					WHEN 'dnd' THEN 4
-					ELSE 3
+					WHEN 'dnd' THEN 3
+					ELSE 4
 				END,
 				Users.Username ASC 
 			LIMIT :Limit OFFSET :Offset

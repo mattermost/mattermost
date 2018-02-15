@@ -2702,14 +2702,14 @@ func TestGetUsersByStatus(t *testing.T) {
 	}
 
 	// Creating these out of order in case that affects results
-	awayUser1 := createUserWithStatus("away1", model.STATUS_AWAY)
-	awayUser2 := createUserWithStatus("away2", model.STATUS_AWAY)
-	dndUser1 := createUserWithStatus("dnd1", model.STATUS_DND)
-	dndUser2 := createUserWithStatus("dnd2", model.STATUS_DND)
 	offlineUser1 := createUserWithStatus("offline1", model.STATUS_OFFLINE)
 	offlineUser2 := createUserWithStatus("offline2", model.STATUS_OFFLINE)
+	awayUser1 := createUserWithStatus("away1", model.STATUS_AWAY)
+	awayUser2 := createUserWithStatus("away2", model.STATUS_AWAY)
 	onlineUser1 := createUserWithStatus("online1", model.STATUS_ONLINE)
 	onlineUser2 := createUserWithStatus("online2", model.STATUS_ONLINE)
+	dndUser1 := createUserWithStatus("dnd1", model.STATUS_DND)
+	dndUser2 := createUserWithStatus("dnd2", model.STATUS_DND)
 
 	client := th.CreateClient()
 	if _, resp := client.Login(onlineUser2.Username, "Password1"); resp.Error != nil {
@@ -2727,10 +2727,10 @@ func TestGetUsersByStatus(t *testing.T) {
 			onlineUser2,
 			awayUser1,
 			awayUser2,
-			offlineUser1,
-			offlineUser2,
 			dndUser1,
 			dndUser2,
+			offlineUser1,
+			offlineUser2,
 		}
 
 		if len(usersByStatus) != len(expectedUsersByStatus) {
@@ -2771,8 +2771,25 @@ func TestGetUsersByStatus(t *testing.T) {
 			t.Fatal("expected to receive away users second")
 		}
 
-		if usersByStatus[1].Id != offlineUser1.Id && usersByStatus[2].Id != offlineUser2.Id {
-			t.Fatal("expected to receive offline users third")
+		if usersByStatus[1].Id != dndUser1.Id && usersByStatus[2].Id != dndUser2.Id {
+			t.Fatal("expected to receive dnd users third")
+		}
+
+		usersByStatus, resp = client.GetUsersInChannelByStatus(channel.Id, 1, 4, "")
+		if resp.Error != nil {
+			t.Fatal(resp.Error)
+		}
+
+		if len(usersByStatus) != 4 {
+			t.Fatal("received too many users")
+		}
+
+		if usersByStatus[0].Id != dndUser1.Id && usersByStatus[1].Id != dndUser2.Id {
+			t.Fatal("expected to receive dnd users third")
+		}
+
+		if usersByStatus[2].Id != offlineUser1.Id && usersByStatus[3].Id != offlineUser2.Id {
+			t.Fatal("expected to receive offline users last")
 		}
 	})
 }

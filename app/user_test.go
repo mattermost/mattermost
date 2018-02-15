@@ -362,10 +362,10 @@ func TestGetUsersByStatus(t *testing.T) {
 			onlineUser2,
 			awayUser1,
 			awayUser2,
-			offlineUser1,
-			offlineUser2,
 			dndUser1,
 			dndUser2,
+			offlineUser1,
+			offlineUser2,
 		}
 
 		if len(usersByStatus) != len(expectedUsersByStatus) {
@@ -406,8 +406,25 @@ func TestGetUsersByStatus(t *testing.T) {
 			t.Fatal("expected to receive away users second")
 		}
 
-		if usersByStatus[1].Id != offlineUser1.Id && usersByStatus[2].Id != offlineUser2.Id {
-			t.Fatal("expected to receive offline users third")
+		if usersByStatus[1].Id != dndUser1.Id && usersByStatus[2].Id != dndUser2.Id {
+			t.Fatal("expected to receive dnd users third")
+		}
+
+		usersByStatus, err = th.App.GetUsersInChannelPageByStatus(channel.Id, 1, 4, true)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if len(usersByStatus) != 4 {
+			t.Fatal("received too many users")
+		}
+
+		if usersByStatus[0].Id != dndUser1.Id && usersByStatus[1].Id != dndUser2.Id {
+			t.Fatal("expected to receive dnd users third")
+		}
+
+		if usersByStatus[2].Id != offlineUser1.Id && usersByStatus[3].Id != offlineUser2.Id {
+			t.Fatal("expected to receive offline users last")
 		}
 	})
 }
