@@ -27,6 +27,7 @@ type ApiParams struct {
 	ChannelId      string
 	PostId         string
 	FileId         string
+	Filename       string
 	PluginId       string
 	CommandId      string
 	HookId         string
@@ -54,6 +55,7 @@ func ApiParamsFromRequest(r *http.Request) *ApiParams {
 	params := &ApiParams{}
 
 	props := mux.Vars(r)
+	query := r.URL.Query()
 
 	if val, ok := props["user_id"]; ok {
 		params.UserId = val
@@ -73,6 +75,8 @@ func ApiParamsFromRequest(r *http.Request) *ApiParams {
 
 	if val, ok := props["channel_id"]; ok {
 		params.ChannelId = val
+	} else {
+		params.ChannelId = query.Get("channel_id")
 	}
 
 	if val, ok := props["post_id"]; ok {
@@ -82,6 +86,8 @@ func ApiParamsFromRequest(r *http.Request) *ApiParams {
 	if val, ok := props["file_id"]; ok {
 		params.FileId = val
 	}
+
+	params.Filename = query.Get("filename")
 
 	if val, ok := props["plugin_id"]; ok {
 		params.PluginId = val
@@ -151,17 +157,17 @@ func ApiParamsFromRequest(r *http.Request) *ApiParams {
 		params.ActionId = val
 	}
 
-	if val, err := strconv.Atoi(r.URL.Query().Get("page")); err != nil || val < 0 {
+	if val, err := strconv.Atoi(query.Get("page")); err != nil || val < 0 {
 		params.Page = PAGE_DEFAULT
 	} else {
 		params.Page = val
 	}
 
-	if val, err := strconv.ParseBool(r.URL.Query().Get("permanent")); err != nil {
+	if val, err := strconv.ParseBool(query.Get("permanent")); err != nil {
 		params.Permanent = val
 	}
 
-	if val, err := strconv.Atoi(r.URL.Query().Get("per_page")); err != nil || val < 0 {
+	if val, err := strconv.Atoi(query.Get("per_page")); err != nil || val < 0 {
 		params.PerPage = PER_PAGE_DEFAULT
 	} else if val > PER_PAGE_MAXIMUM {
 		params.PerPage = PER_PAGE_MAXIMUM
@@ -169,7 +175,7 @@ func ApiParamsFromRequest(r *http.Request) *ApiParams {
 		params.PerPage = val
 	}
 
-	if val, err := strconv.Atoi(r.URL.Query().Get("logs_per_page")); err != nil || val < 0 {
+	if val, err := strconv.Atoi(query.Get("logs_per_page")); err != nil || val < 0 {
 		params.LogsPerPage = LOGS_PER_PAGE_DEFAULT
 	} else if val > LOGS_PER_PAGE_MAXIMUM {
 		params.LogsPerPage = LOGS_PER_PAGE_MAXIMUM
