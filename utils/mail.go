@@ -157,19 +157,18 @@ func sendMail(mimeTo, smtpTo string, from mail.Address, subject, htmlBody string
 		}
 
 		for _, fileInfo := range attachments {
+			bytes, err := fileBackend.ReadFile(fileInfo.Path)
+			if err != nil {
+				return err
+			}
+
 			m.Attach(fileInfo.Name, gomail.SetCopyFunc(func(writer io.Writer) error {
-				bytes, err := fileBackend.ReadFile(fileInfo.Path)
-				if err != nil {
-					return err
-				}
 				if _, err := writer.Write(bytes); err != nil {
 					return model.NewAppError("SendMail", "utils.mail.sendMail.attachments.write_error", nil, err.Error(), http.StatusInternalServerError)
 				}
 				return nil
 			}))
-
 		}
-
 	}
 
 	conn, err1 := connectToSMTPServer(config)
