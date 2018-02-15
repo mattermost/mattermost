@@ -81,10 +81,9 @@ func (m *WebSocketEvent) PrecomputeJSON() {
 	data, _ := json.Marshal(m.Data)
 	broadcast, _ := json.Marshal(m.Broadcast)
 	m.precomputedJSON = &precomputedWebSocketEventJSON{
-		WebSocketEvent: m,
-		Event:          json.RawMessage(event),
-		Data:           json.RawMessage(data),
-		Broadcast:      json.RawMessage(broadcast),
+		Event:     json.RawMessage(event),
+		Data:      json.RawMessage(data),
+		Broadcast: json.RawMessage(broadcast),
 	}
 }
 
@@ -107,7 +106,9 @@ func (o *WebSocketEvent) EventType() string {
 
 func (o *WebSocketEvent) ToJson() string {
 	if o.precomputedJSON != nil {
-		b, _ := json.Marshal(o.precomputedJSON)
+		precomputedJSON := *o.precomputedJSON
+		precomputedJSON.WebSocketEvent = o
+		b, _ := json.Marshal(&precomputedJSON)
 		return string(b)
 	}
 	b, _ := json.Marshal(o)
