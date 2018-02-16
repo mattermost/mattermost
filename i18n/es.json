@@ -2203,10 +2203,6 @@
     "translation": "El enlace de registro ha expirado"
   },
   {
-    "id": "api.team.create_team_from_signup.invalid_link.app_error",
-    "translation": "El enlace de registro parece ser inválido"
-  },
-  {
     "id": "api.team.create_team_from_signup.unavailable.app_error",
     "translation": "Este URL no está disponible. Por favor, prueba con otra."
   },
@@ -2708,6 +2704,10 @@
   },
   {
     "id": "api.user.create_user.signup_link_invalid.app_error",
+    "translation": "El enlace de registro parece ser inválido"
+  },
+  {
+    "id": "api.user.create_user.signup_link_mismatched_invite_id.app_error",
     "translation": "El enlace de registro parece ser inválido"
   },
   {
@@ -3689,6 +3689,10 @@
   {
     "id": "app.plugin.upload_disabled.app_error",
     "translation": "Los Complementos y/o la carga de complementos han sido deshabilitados."
+  },
+  {
+    "id": "app.team.join_user_to_team.max_accounts.app_error",
+    "translation": "Este equipo ha alcanzado el número máximo de cuentas permitidas. Contacta a un administrador de sistema para que asigne un límite mayor."
   },
   {
     "id": "app.user_access_token.disabled",
@@ -4757,6 +4761,10 @@
   {
     "id": "model.config.is_valid.file_thumb_width.app_error",
     "translation": "El ancho para la imagen de miniatura es inválido en la configuración de archivos.  Debe ser un número positivo."
+  },
+  {
+    "id": "model.config.is_valid.group_unread_channels.app_error",
+    "translation": "Ajuste invalido para el agrupamiento de canales no leídos en la configuración de servicio. Debe ser 'disabled', 'default_on' o 'default_off'."
   },
   {
     "id": "model.config.is_valid.image_proxy_type.app_error",
@@ -7291,10 +7299,6 @@
     "translation": "Registrar"
   },
   {
-    "id": "web.signup_team_complete.invalid_link.app_error",
-    "translation": "El enlace de registro parece ser inválido"
-  },
-  {
     "id": "web.signup_team_complete.link_expired.app_error",
     "translation": "El enlace de registro ha expirado"
   },
@@ -7309,10 +7313,6 @@
   {
     "id": "web.signup_user_complete.link_expired.app_error",
     "translation": "El enlace de registro ha expirado"
-  },
-  {
-    "id": "web.signup_user_complete.link_invalid.app_error",
-    "translation": "El enlace de registro parece ser inválido"
   },
   {
     "id": "web.signup_user_complete.no_invites.app_error",

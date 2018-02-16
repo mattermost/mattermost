@@ -302,10 +302,16 @@ func (a *App) joinUserToTeam(team *model.Team, user *model.User) (*model.TeamMem
 			return rtm, true, nil
 		}
 
-		if tmr := <-a.Srv.Store.Team().UpdateMember(tm); tmr.Err != nil {
-			return nil, false, tmr.Err
+		if membersCount := <-a.Srv.Store.Team().GetActiveMemberCount(tm.TeamId); membersCount.Err != nil {
+			return nil, false, membersCount.Err
+		} else if membersCount.Data.(int64) >= int64(*a.Config().TeamSettings.MaxUsersPerTeam) {
+			return nil, false, model.NewAppError("joinUserToTeam", "app.team.join_user_to_team.max_accounts.app_error", nil, "teamId="+tm.TeamId, http.StatusBadRequest)
 		} else {
-			return tmr.Data.(*model.TeamMember), false, nil
+			if tmr := <-a.Srv.Store.Team().UpdateMember(tm); tmr.Err != nil {
+				return nil, false, tmr.Err
+			} else {
+				return tmr.Data.(*model.TeamMember), false, nil
+			}
 		}
 	} else {
 		// Membership appears to be missing.  Lets try to add.
