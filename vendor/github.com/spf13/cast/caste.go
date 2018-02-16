@@ -6,6 +6,7 @@
 package cast
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"html/template"
@@ -872,6 +873,9 @@ func ToStringMapStringE(i interface{}) (map[string]string, error) {
 			m[ToString(k)] = ToString(val)
 		}
 		return m, nil
+	case string:
+		err := jsonStringToObject(v, &m)
+		return m, err
 	default:
 		return m, fmt.Errorf("unable to cast %#v of type %T to map[string]string", i, i)
 	}
@@ -932,6 +936,9 @@ func ToStringMapStringSliceE(i interface{}) (map[string][]string, error) {
 			}
 			m[key] = value
 		}
+	case string:
+		err := jsonStringToObject(v, &m)
+		return m, err
 	default:
 		return m, fmt.Errorf("unable to cast %#v of type %T to map[string][]string", i, i)
 	}
@@ -955,6 +962,9 @@ func ToStringMapBoolE(i interface{}) (map[string]bool, error) {
 		return m, nil
 	case map[string]bool:
 		return v, nil
+	case string:
+		err := jsonStringToObject(v, &m)
+		return m, err
 	default:
 		return m, fmt.Errorf("unable to cast %#v of type %T to map[string]bool", i, i)
 	}
@@ -972,6 +982,9 @@ func ToStringMapE(i interface{}) (map[string]interface{}, error) {
 		return m, nil
 	case map[string]interface{}:
 		return v, nil
+	case string:
+		err := jsonStringToObject(v, &m)
+		return m, err
 	default:
 		return m, fmt.Errorf("unable to cast %#v of type %T to map[string]interface{}", i, i)
 	}
@@ -1143,4 +1156,11 @@ func parseDateWith(s string, dates []string) (d time.Time, e error) {
 		}
 	}
 	return d, fmt.Errorf("unable to parse date: %s", s)
+}
+
+// jsonStringToObject attempts to unmarshall a string as JSON into
+// the object passed as pointer.
+func jsonStringToObject(s string, v interface{}) error {
+	data := []byte(s)
+	return json.Unmarshal(data, v)
 }

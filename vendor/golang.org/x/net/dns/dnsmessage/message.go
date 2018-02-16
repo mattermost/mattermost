@@ -436,7 +436,13 @@ func (p *Parser) Question() (Question, error) {
 
 // AllQuestions parses all Questions.
 func (p *Parser) AllQuestions() ([]Question, error) {
-	qs := make([]Question, 0, p.header.questions)
+	// Multiple questions are valid according to the spec,
+	// but servers don't actually support them. There will
+	// be at most one question here.
+	//
+	// Do not pre-allocate based on info in p.header, since
+	// the data is untrusted.
+	qs := []Question{}
 	for {
 		q, err := p.Question()
 		if err == ErrSectionDone {
@@ -492,7 +498,16 @@ func (p *Parser) Answer() (Resource, error) {
 
 // AllAnswers parses all Answer Resources.
 func (p *Parser) AllAnswers() ([]Resource, error) {
-	as := make([]Resource, 0, p.header.answers)
+	// The most common query is for A/AAAA, which usually returns
+	// a handful of IPs.
+	//
+	// Pre-allocate up to a certain limit, since p.header is
+	// untrusted data.
+	n := int(p.header.answers)
+	if n > 20 {
+		n = 20
+	}
+	as := make([]Resource, 0, n)
 	for {
 		a, err := p.Answer()
 		if err == ErrSectionDone {
@@ -533,7 +548,16 @@ func (p *Parser) Authority() (Resource, error) {
 
 // AllAuthorities parses all Authority Resources.
 func (p *Parser) AllAuthorities() ([]Resource, error) {
-	as := make([]Resource, 0, p.header.authorities)
+	// Authorities contains SOA in case of NXDOMAIN and friends,
+	// otherwise it is empty.
+	//
+	// Pre-allocate up to a certain limit, since p.header is
+	// untrusted data.
+	n := int(p.header.authorities)
+	if n > 10 {
+		n = 10
+	}
+	as := make([]Resource, 0, n)
 	for {
 		a, err := p.Authority()
 		if err == ErrSectionDone {
@@ -574,7 +598,16 @@ func (p *Parser) Additional() (Resource, error) {
 
 // AllAdditionals parses all Additional Resources.
 func (p *Parser) AllAdditionals() ([]Resource, error) {
-	as := make([]Resource, 0, p.header.additionals)
+	// Additionals usually contain OPT, and sometimes A/AAAA
+	// glue records.
+	//
+	// Pre-allocate up to a certain limit, since p.header is
+	// untrusted data.
+	n := int(p.header.additionals)
+	if n > 10 {
+		n = 10
+	}
+	as := make([]Resource, 0, n)
 	for {
 		a, err := p.Additional()
 		if err == ErrSectionDone {

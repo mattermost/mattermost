@@ -281,6 +281,16 @@ func (t *testResponseWriter) ReadFrom(io.Reader) (int64, error) {
 	return 0, nil
 }
 
+// testFlusher is an http.ResponseWriter that also implements http.Flusher.
+type testFlusher struct {
+	flushCalled bool
+}
+
+func (t *testFlusher) Header() http.Header       { return nil }
+func (t *testFlusher) Write([]byte) (int, error) { return 0, nil }
+func (t *testFlusher) WriteHeader(int)           {}
+func (t *testFlusher) Flush()                    { t.flushCalled = true }
+
 func TestInterfaceUpgrade(t *testing.T) {
 	w := &testResponseWriter{}
 	d := newDelegator(w, nil)
@@ -295,6 +305,22 @@ func TestInterfaceUpgrade(t *testing.T) {
 	d.(io.ReaderFrom).ReadFrom(nil)
 	if !w.readFromCalled {
 		t.Error("ReadFrom not called")
+	}
+	if _, ok := d.(http.Hijacker); ok {
+		t.Error("delegator unexpectedly implements http.Hijacker")
+	}
+
+	f := &testFlusher{}
+	d = newDelegator(f, nil)
+	if _, ok := d.(http.CloseNotifier); ok {
+		t.Error("delegator unexpectedly implements http.CloseNotifier")
+	}
+	d.(http.Flusher).Flush()
+	if !w.flushCalled {
+		t.Error("Flush not called")
+	}
+	if _, ok := d.(io.ReaderFrom); ok {
+		t.Error("delegator unexpectedly implements io.ReaderFrom")
 	}
 	if _, ok := d.(http.Hijacker); ok {
 		t.Error("delegator unexpectedly implements http.Hijacker")

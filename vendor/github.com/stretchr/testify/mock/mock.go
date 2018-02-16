@@ -405,13 +405,14 @@ func (m *Mock) AssertExpectations(t TestingT) bool {
 		if !expectedCall.optional && !m.methodWasCalled(expectedCall.Method, expectedCall.Arguments) && expectedCall.totalCalls == 0 {
 			somethingMissing = true
 			failedExpectations++
-			t.Logf("\u274C\t%s(%s)", expectedCall.Method, expectedCall.Arguments.String())
+			t.Logf("FAIL:\t%s(%s)", expectedCall.Method, expectedCall.Arguments.String())
 		} else {
 			if expectedCall.Repeatability > 0 {
 				somethingMissing = true
 				failedExpectations++
+				t.Logf("FAIL:\t%s(%s)", expectedCall.Method, expectedCall.Arguments.String())
 			} else {
-				t.Logf("\u2705\t%s(%s)", expectedCall.Method, expectedCall.Arguments.String())
+				t.Logf("PASS:\t%s(%s)", expectedCall.Method, expectedCall.Arguments.String())
 			}
 		}
 	}
@@ -624,10 +625,10 @@ func (args Arguments) Diff(objects []interface{}) (string, int) {
 
 		if matcher, ok := expected.(argumentMatcher); ok {
 			if matcher.Matches(actual) {
-				output = fmt.Sprintf("%s\t%d: \u2705  %s matched by %s\n", output, i, actual, matcher)
+				output = fmt.Sprintf("%s\t%d: PASS:  %s matched by %s\n", output, i, actual, matcher)
 			} else {
 				differences++
-				output = fmt.Sprintf("%s\t%d: \u2705  %s not matched by %s\n", output, i, actual, matcher)
+				output = fmt.Sprintf("%s\t%d: PASS:  %s not matched by %s\n", output, i, actual, matcher)
 			}
 		} else if reflect.TypeOf(expected) == reflect.TypeOf((*AnythingOfTypeArgument)(nil)).Elem() {
 
@@ -635,7 +636,7 @@ func (args Arguments) Diff(objects []interface{}) (string, int) {
 			if reflect.TypeOf(actual).Name() != string(expected.(AnythingOfTypeArgument)) && reflect.TypeOf(actual).String() != string(expected.(AnythingOfTypeArgument)) {
 				// not match
 				differences++
-				output = fmt.Sprintf("%s\t%d: \u274C  type %s != type %s - %s\n", output, i, expected, reflect.TypeOf(actual).Name(), actual)
+				output = fmt.Sprintf("%s\t%d: FAIL:  type %s != type %s - %s\n", output, i, expected, reflect.TypeOf(actual).Name(), actual)
 			}
 
 		} else {
@@ -644,11 +645,11 @@ func (args Arguments) Diff(objects []interface{}) (string, int) {
 
 			if assert.ObjectsAreEqual(expected, Anything) || assert.ObjectsAreEqual(actual, Anything) || assert.ObjectsAreEqual(actual, expected) {
 				// match
-				output = fmt.Sprintf("%s\t%d: \u2705  %s == %s\n", output, i, actual, expected)
+				output = fmt.Sprintf("%s\t%d: PASS:  %s == %s\n", output, i, actual, expected)
 			} else {
 				// not match
 				differences++
-				output = fmt.Sprintf("%s\t%d: \u274C  %s != %s\n", output, i, actual, expected)
+				output = fmt.Sprintf("%s\t%d: FAIL:  %s != %s\n", output, i, actual, expected)
 			}
 		}
 

@@ -81,12 +81,25 @@ type Client struct {
 
 	// Random seed.
 	random *rand.Rand
+
+	// lookup indicates type of url lookup supported by server. If not specified,
+	// default to Auto.
+	lookup BucketLookupType
+}
+
+// Options for New method
+type Options struct {
+	Creds        *credentials.Credentials
+	Secure       bool
+	Region       string
+	BucketLookup BucketLookupType
+	// Add future fields here
 }
 
 // Global constants.
 const (
 	libraryName    = "minio-go"
-	libraryVersion = "4.0.6"
+	libraryVersion = "4.0.7"
 )
 
 // User Agent should always following the below style.
@@ -98,11 +111,21 @@ const (
 	libraryUserAgent       = libraryUserAgentPrefix + libraryName + "/" + libraryVersion
 )
 
+// BucketLookupType is type of url lookup supported by server.
+type BucketLookupType int
+
+// Different types of url lookup supported by the server.Initialized to BucketLookupAuto
+const (
+	BucketLookupAuto BucketLookupType = iota
+	BucketLookupDNS
+	BucketLookupPath
+)
+
 // NewV2 - instantiate minio client with Amazon S3 signature version
 // '2' compatibility.
 func NewV2(endpoint string, accessKeyID, secretAccessKey string, secure bool) (*Client, error) {
 	creds := credentials.NewStaticV2(accessKeyID, secretAccessKey, "")
-	clnt, err := privateNew(endpoint, creds, secure, "")
+	clnt, err := privateNew(endpoint, creds, secure, "", BucketLookupAuto)
 	if err != nil {
 		return nil, err
 	}
@@ -114,7 +137,7 @@ func NewV2(endpoint string, accessKeyID, secretAccessKey string, secure bool) (*
 // '4' compatibility.
 func NewV4(endpoint string, accessKeyID, secretAccessKey string, secure bool) (*Client, error) {
 	creds := credentials.NewStaticV4(accessKeyID, secretAccessKey, "")
-	clnt, err := privateNew(endpoint, creds, secure, "")
+	clnt, err := privateNew(endpoint, creds, secure, "", BucketLookupAuto)
 	if err != nil {
 		return nil, err
 	}
@@ -125,7 +148,7 @@ func NewV4(endpoint string, accessKeyID, secretAccessKey string, secure bool) (*
 // New - instantiate minio client, adds automatic verification of signature.
 func New(endpoint, accessKeyID, secretAccessKey string, secure bool) (*Client, error) {
 	creds := credentials.NewStaticV4(accessKeyID, secretAccessKey, "")
-	clnt, err := privateNew(endpoint, creds, secure, "")
+	clnt, err := privateNew(endpoint, creds, secure, "", BucketLookupAuto)
 	if err != nil {
 		return nil, err
 	}
@@ -144,7 +167,7 @@ func New(endpoint, accessKeyID, secretAccessKey string, secure bool) (*Client, e
 // for retrieving credentials from various credentials provider such as
 // IAM, File, Env etc.
 func NewWithCredentials(endpoint string, creds *credentials.Credentials, secure bool, region string) (*Client, error) {
-	return privateNew(endpoint, creds, secure, region)
+	return privateNew(endpoint, creds, secure, region, BucketLookupAuto)
 }
 
 // NewWithRegion - instantiate minio client, with region configured. Unlike New(),
@@ -152,7 +175,12 @@ func NewWithCredentials(endpoint string, creds *credentials.Credentials, secure 
 // Use this function when if your application deals with single region.
 func NewWithRegion(endpoint, accessKeyID, secretAccessKey string, secure bool, region string) (*Client, error) {
 	creds := credentials.NewStaticV4(accessKeyID, secretAccessKey, "")
-	return privateNew(endpoint, creds, secure, region)
+	return privateNew(endpoint, creds, secure, region, BucketLookupAuto)
+}
+
+// NewWithOptions - instantiate minio client with options
+func NewWithOptions(endpoint string, opts *Options) (*Client, error) {
+	return privateNew(endpoint, opts.Creds, opts.Secure, opts.Region, opts.BucketLookup)
 }
 
 // lockedRandSource provides protected rand source, implements rand.Source interface.
@@ -239,7 +267,7 @@ func (c *Client) redirectHeaders(req *http.Request, via []*http.Request) error {
 	return nil
 }
 
-func privateNew(endpoint string, creds *credentials.Credentials, secure bool, region string) (*Client, error) {
+func privateNew(endpoint string, creds *credentials.Credentials, secure bool, region string, lookup BucketLookupType) (*Client, error) {
 	// construct endpoint.
 	endpointURL, err := getEndpointURL(endpoint, secure)
 	if err != nil {
@@ -276,6 +304,9 @@ func privateNew(endpoint string, creds *credentials.Credentials, secure bool, re
 	// Introduce a new locked random seed.
 	clnt.random = rand.New(&lockedRandSource{src: rand.NewSource(time.Now().UTC().UnixNano())})
 
+	// Sets bucket lookup style, whether server accepts DNS or Path lookup. Default is Auto - determined
+	// by the SDK. When Auto is specified, DNS lookup is used for Amazon/Google cloud endpoints and Path for all other endpoints.
+	clnt.lookup = lookup
 	// Return.
 	return clnt, nil
 }
@@ -824,8 +855,7 @@ func (c Client) makeTargetURL(bucketName, objectName, bucketLocation string, que
 	// endpoint URL.
 	if bucketName != "" {
 		// Save if target url will have buckets which suppport virtual host.
-		isVirtualHostStyle := s3utils.IsVirtualHostSupported(*c.endpointURL, bucketName)
-
+		isVirtualHostStyle := c.isVirtualHostStyleRequest(*c.endpointURL, bucketName)
 		// If endpoint supports virtual host style use that always.
 		// Currently only S3 and Google Cloud Storage would support
 		// virtual host style.
@@ -849,4 +879,17 @@ func (c Client) makeTargetURL(bucketName, objectName, bucketLocation string, que
 	}
 
 	return url.Parse(urlStr)
+}
+
+// returns true if virtual hosted style requests are to be used.
+func (c *Client) isVirtualHostStyleRequest(url url.URL, bucketName string) bool {
+	if c.lookup == BucketLookupDNS {
+		return true
+	}
+	if c.lookup == BucketLookupPath {
+		return false
+	}
+	// default to virtual only for Amazon/Google  storage. In all other cases use
+	// path style requests
+	return s3utils.IsVirtualHostSupported(url, bucketName)
 }

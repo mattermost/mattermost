@@ -12,4 +12,4 @@ services:
   - docker
 before_install:
   - sudo sysctl -w vm.max_map_count=262144
-  - docker run -d --rm -p 9200:9200  -e "http.host=0.0.0.0" -e "transport.host=127.0.0.1" -e "bootstrap.memory_lock=true" -e "ES_JAVA_OPTS=-Xms1g -Xmx1g" docker.elastic.co/elasticsearch/elasticsearch:6.1.2 elasticsearch -Expack.security.enabled=false -Enetwork.host=_local_,_site_ -Enetwork.publish_host=_local_
+  - docker run -d --rm -p 9200:9200  -e "http.host=0.0.0.0" -e "transport.host=127.0.0.1" -e "bootstrap.memory_lock=true" -e "ES_JAVA_OPTS=-Xms1g -Xmx1g" docker.elastic.co/elasticsearch/elasticsearch-oss:6.2.1 elasticsearch -Enetwork.host=_local_,_site_ -Enetwork.publish_host=_local_

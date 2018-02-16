@@ -46,8 +46,8 @@ func (fs FS) XFSStats() (*xfs.Stats, error) {
 	return xfs.ParseStats(f)
 }
 
-// NFSdClientRPCStats retrieves NFS daemon RPC statistics.
-func (fs FS) NFSdClientRPCStats() (*nfs.ClientRPCStats, error) {
+// NFSClientRPCStats retrieves NFS client RPC statistics.
+func (fs FS) NFSClientRPCStats() (*nfs.ClientRPCStats, error) {
 	f, err := os.Open(fs.Path("net/rpc/nfs"))
 	if err != nil {
 		return nil, err

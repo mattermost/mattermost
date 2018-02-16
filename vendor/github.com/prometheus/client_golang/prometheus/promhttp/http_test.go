@@ -19,7 +19,9 @@ import (
 	"log"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
+	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
 )
@@ -35,6 +37,23 @@ func (e errorCollector) Collect(ch chan<- prometheus.Metric) {
 		prometheus.NewDesc("invalid_metric", "not helpful", nil, nil),
 		errors.New("collect error"),
 	)
+}
+
+type blockingCollector struct {
+	CollectStarted, Block chan struct{}
+}
+
+func (b blockingCollector) Describe(ch chan<- *prometheus.Desc) {
+	ch <- prometheus.NewDesc("dummy_desc", "not helpful", nil, nil)
+}
+
+func (b blockingCollector) Collect(ch chan<- prometheus.Metric) {
+	select {
+	case b.CollectStarted <- struct{}{}:
+	default:
+	}
+	// Collects nothing, just waits for a channel receive.
+	<-b.Block
 }
 
 func TestHandlerErrorHandling(t *testing.T) {
@@ -128,4 +147,104 @@ the_count 0
 		}
 	}()
 	panicHandler.ServeHTTP(writer, request)
+}
+
+func TestInstrumentMetricHandler(t *testing.T) {
+	reg := prometheus.NewRegistry()
+	handler := InstrumentMetricHandler(reg, HandlerFor(reg, HandlerOpts{}))
+	// Do it again to test idempotency.
+	InstrumentMetricHandler(reg, HandlerFor(reg, HandlerOpts{}))
+	writer := httptest.NewRecorder()
+	request, _ := http.NewRequest("GET", "/", nil)
+	request.Header.Add("Accept", "test/plain")
+
+	handler.ServeHTTP(writer, request)
+	if got, want := writer.Code, http.StatusOK; got != want {
+		t.Errorf("got HTTP status code %d, want %d", got, want)
+	}
+
+	want := "promhttp_metric_handler_requests_in_flight 1\n"
+	if got := writer.Body.String(); !strings.Contains(got, want) {
+		t.Errorf("got body %q, does not contain %q", got, want)
+	}
+	want = "promhttp_metric_handler_requests_total{code=\"200\"} 0\n"
+	if got := writer.Body.String(); !strings.Contains(got, want) {
+		t.Errorf("got body %q, does not contain %q", got, want)
+	}
+
+	writer.Body.Reset()
+	handler.ServeHTTP(writer, request)
+	if got, want := writer.Code, http.StatusOK; got != want {
+		t.Errorf("got HTTP status code %d, want %d", got, want)
+	}
+
+	want = "promhttp_metric_handler_requests_in_flight 1\n"
+	if got := writer.Body.String(); !strings.Contains(got, want) {
+		t.Errorf("got body %q, does not contain %q", got, want)
+	}
+	want = "promhttp_metric_handler_requests_total{code=\"200\"} 1\n"
+	if got := writer.Body.String(); !strings.Contains(got, want) {
+		t.Errorf("got body %q, does not contain %q", got, want)
+	}
+}
+
+func TestHandlerMaxRequestsInFlight(t *testing.T) {
+	reg := prometheus.NewRegistry()
+	handler := HandlerFor(reg, HandlerOpts{MaxRequestsInFlight: 1})
+	w1 := httptest.NewRecorder()
+	w2 := httptest.NewRecorder()
+	w3 := httptest.NewRecorder()
+	request, _ := http.NewRequest("GET", "/", nil)
+	request.Header.Add("Accept", "test/plain")
+
+	c := blockingCollector{Block: make(chan struct{}), CollectStarted: make(chan struct{}, 1)}
+	reg.MustRegister(c)
+
+	rq1Done := make(chan struct{})
+	go func() {
+		handler.ServeHTTP(w1, request)
+		close(rq1Done)
+	}()
+	<-c.CollectStarted
+
+	handler.ServeHTTP(w2, request)
+
+	if got, want := w2.Code, http.StatusServiceUnavailable; got != want {
+		t.Errorf("got HTTP status code %d, want %d", got, want)
+	}
+	if got, want := w2.Body.String(), "Limit of concurrent requests reached (1), try again later.\n"; got != want {
+		t.Errorf("got body %q, want %q", got, want)
+	}
+
+	close(c.Block)
+	<-rq1Done
+
+	handler.ServeHTTP(w3, request)
+
+	if got, want := w3.Code, http.StatusOK; got != want {
+		t.Errorf("got HTTP status code %d, want %d", got, want)
+	}
+}
+
+func TestHandlerTimeout(t *testing.T) {
+	reg := prometheus.NewRegistry()
+	handler := HandlerFor(reg, HandlerOpts{Timeout: time.Millisecond})
+	w := httptest.NewRecorder()
+
+	request, _ := http.NewRequest("GET", "/", nil)
+	request.Header.Add("Accept", "test/plain")
+
+	c := blockingCollector{Block: make(chan struct{}), CollectStarted: make(chan struct{}, 1)}
+	reg.MustRegister(c)
+
+	handler.ServeHTTP(w, request)
+
+	if got, want := w.Code, http.StatusServiceUnavailable; got != want {
+		t.Errorf("got HTTP status code %d, want %d", got, want)
+	}
+	if got, want := w.Body.String(), "Exceeded configured timeout of 1ms.\n"; got != want {
+		t.Errorf("got body %q, want %q", got, want)
+	}
+
+	close(c.Block) // To not leak a goroutine.
 }
