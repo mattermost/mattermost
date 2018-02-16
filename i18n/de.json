@@ -2184,7 +2184,7 @@
   },
   {
     "id": "api.team.add_user_to_team.added",
-    "translation": "%v wurde von %v zum Team hinzugefügt"
+    "translation": "%v wurde von %v zum Team hinzugefügt."
   },
   {
     "id": "api.team.add_user_to_team.missing_parameter.app_error",
@@ -2201,10 +2201,6 @@
   {
     "id": "api.team.create_team_from_signup.expired_link.app_error",
     "translation": "Der Link ist abgelaufen"
-  },
-  {
-    "id": "api.team.create_team_from_signup.invalid_link.app_error",
-    "translation": "Der Einladungslink scheint nicht gültig zu sein"
   },
   {
     "id": "api.team.create_team_from_signup.unavailable.app_error",
@@ -2709,6 +2705,10 @@
   {
     "id": "api.user.create_user.signup_link_invalid.app_error",
     "translation": "Der Registrierungslink scheint nicht gültig zu sein"
+  },
+  {
+    "id": "api.user.create_user.signup_link_mismatched_invite_id.app_error",
+    "translation": "Der Einladungslink scheint nicht gültig zu sein"
   },
   {
     "id": "api.user.create_user.team_name.app_error",
@@ -3689,6 +3689,10 @@
   {
     "id": "app.plugin.upload_disabled.app_error",
     "translation": "Plugins und/oder Plugin-Uploads wurden deaktiviert."
+  },
+  {
+    "id": "app.team.join_user_to_team.max_accounts.app_error",
+    "translation": "Dieses Team hat die maximale Anzahl erlaubter Konten erreicht. Kontaktieren Sie Ihren Systemadministrator, um eine höhere Begrenzung setzen zu lassen."
   },
   {
     "id": "app.user_access_token.disabled",
@@ -4757,6 +4761,10 @@
   {
     "id": "model.config.is_valid.file_thumb_width.app_error",
     "translation": "Ungültige Thumbnauilbreite in Dateieinstellungen.  Muss eine positive Zahl sein."
+  },
+  {
+    "id": "model.config.is_valid.group_unread_channels.app_error",
+    "translation": "Ungültige Diensteinstellungen für Gruppierung von ungelesenen Kanälen. Muss 'disabled', 'default_on' oder default_off' sein."
   },
   {
     "id": "model.config.is_valid.image_proxy_type.app_error",
@@ -7291,10 +7299,6 @@
     "translation": "Registrieren"
   },
   {
-    "id": "web.signup_team_complete.invalid_link.app_error",
-    "translation": "Der Registrierungslink scheint nicht gültig zu sein"
-  },
-  {
     "id": "web.signup_team_complete.link_expired.app_error",
     "translation": "Der Registrierungslink ist abgelaufen"
   },
@@ -7309,10 +7313,6 @@
   {
     "id": "web.signup_user_complete.link_expired.app_error",
     "translation": "Der Registrierungslink ist abgelaufen"
-  },
-  {
-    "id": "web.signup_user_complete.link_invalid.app_error",
-    "translation": "Der Registrierungslink scheint nicht gültig zu sein"
   },
   {
     "id": "web.signup_user_complete.no_invites.app_error",
