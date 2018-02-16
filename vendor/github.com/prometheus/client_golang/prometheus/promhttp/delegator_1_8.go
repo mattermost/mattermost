@@ -28,7 +28,7 @@ func (d *pusherDelegator) Push(target string, opts *http.PushOptions) error {
 
 func init() {
 	pickDelegator[pusher] = func(d *responseWriterDelegator) delegator { // 16
-		return pusherDelegator{d}
+		return &pusherDelegator{d}
 	}
 	pickDelegator[pusher+closeNotifier] = func(d *responseWriterDelegator) delegator { // 17
 		return struct {

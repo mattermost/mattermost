@@ -653,6 +653,23 @@ func (a Aggregations) SerialDiff(name string) (*AggregationPipelineSimpleValue, 
 	return nil, false
 }
 
+// Composite returns composite bucket aggregation results.
+//
+// See https://www.elastic.co/guide/en/elasticsearch/reference/6.1/search-aggregations-bucket-composite-aggregation.html
+// for details.
+func (a Aggregations) Composite(name string) (*AggregationBucketCompositeItems, bool) {
+	if raw, found := a[name]; found {
+		agg := new(AggregationBucketCompositeItems)
+		if raw == nil {
+			return agg, true
+		}
+		if err := json.Unmarshal(*raw, agg); err == nil {
+			return agg, true
+		}
+	}
+	return nil, false
+}
+
 // -- Single value metric --
 
 // AggregationValueMetric is a single-value metric, returned e.g. by a
@@ -1444,6 +1461,59 @@ func (a *AggregationPipelinePercentilesMetric) UnmarshalJSON(data []byte) error 
 	}
 	if v, ok := aggs["meta"]; ok && v != nil {
 		json.Unmarshal(*v, &a.Meta)
+	}
+	a.Aggregations = aggs
+	return nil
+}
+
+// -- Composite key items --
+
+// AggregationBucketCompositeItems implements the response structure
+// for a bucket aggregation of type composite.
+type AggregationBucketCompositeItems struct {
+	Aggregations
+
+	Buckets []*AggregationBucketCompositeItem //`json:"buckets"`
+	Meta    map[string]interface{}            // `json:"meta,omitempty"`
+}
+
+// UnmarshalJSON decodes JSON data and initializes an AggregationBucketCompositeItems structure.
+func (a *AggregationBucketCompositeItems) UnmarshalJSON(data []byte) error {
+	var aggs map[string]*json.RawMessage
+	if err := json.Unmarshal(data, &aggs); err != nil {
+		return err
+	}
+	if v, ok := aggs["buckets"]; ok && v != nil {
+		json.Unmarshal(*v, &a.Buckets)
+	}
+	if v, ok := aggs["meta"]; ok && v != nil {
+		json.Unmarshal(*v, &a.Meta)
+	}
+	a.Aggregations = aggs
+	return nil
+}
+
+// AggregationBucketCompositeItem is a single bucket of an AggregationBucketCompositeItems structure.
+type AggregationBucketCompositeItem struct {
+	Aggregations
+
+	Key      map[string]interface{} //`json:"key"`
+	DocCount int64                  //`json:"doc_count"`
+}
+
+// UnmarshalJSON decodes JSON data and initializes an AggregationBucketCompositeItem structure.
+func (a *AggregationBucketCompositeItem) UnmarshalJSON(data []byte) error {
+	var aggs map[string]*json.RawMessage
+	dec := json.NewDecoder(bytes.NewReader(data))
+	dec.UseNumber()
+	if err := dec.Decode(&aggs); err != nil {
+		return err
+	}
+	if v, ok := aggs["key"]; ok && v != nil {
+		json.Unmarshal(*v, &a.Key)
+	}
+	if v, ok := aggs["doc_count"]; ok && v != nil {
+		json.Unmarshal(*v, &a.DocCount)
 	}
 	a.Aggregations = aggs
 	return nil

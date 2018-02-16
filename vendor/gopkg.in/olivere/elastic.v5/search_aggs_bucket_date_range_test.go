@@ -10,7 +10,7 @@ import (
 )
 
 func TestDateRangeAggregation(t *testing.T) {
-	agg := NewDateRangeAggregation().Field("created_at")
+	agg := NewDateRangeAggregation().Field("created_at").TimeZone("UTC")
 	agg = agg.AddRange(nil, "2012-12-31")
 	agg = agg.AddRange("2013-01-01", "2013-12-31")
 	agg = agg.AddRange("2014-01-01", nil)
@@ -23,7 +23,7 @@ func TestDateRangeAggregation(t *testing.T) {
 		t.Fatalf("marshaling to JSON failed: %v", err)
 	}
 	got := string(data)
-	expected := `{"date_range":{"field":"created_at","ranges":[{"to":"2012-12-31"},{"from":"2013-01-01","to":"2013-12-31"},{"from":"2014-01-01"}]}}`
+	expected := `{"date_range":{"field":"created_at","ranges":[{"to":"2012-12-31"},{"from":"2013-01-01","to":"2013-12-31"},{"from":"2014-01-01"}],"time_zone":"UTC"}}`
 	if got != expected {
 		t.Errorf("expected\n%s\n,got:\n%s", expected, got)
 	}

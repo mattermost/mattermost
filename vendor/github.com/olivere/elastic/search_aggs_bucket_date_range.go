@@ -23,6 +23,7 @@ type DateRangeAggregation struct {
 	meta            map[string]interface{}
 	keyed           *bool
 	unmapped        *bool
+	timeZone        string
 	format          string
 	entries         []DateRangeAggregationEntry
 }
@@ -68,6 +69,11 @@ func (a *DateRangeAggregation) Keyed(keyed bool) *DateRangeAggregation {
 
 func (a *DateRangeAggregation) Unmapped(unmapped bool) *DateRangeAggregation {
 	a.unmapped = &unmapped
+	return a
+}
+
+func (a *DateRangeAggregation) TimeZone(timeZone string) *DateRangeAggregation {
+	a.timeZone = timeZone
 	return a
 }
 
@@ -177,6 +183,9 @@ func (a *DateRangeAggregation) Source() (interface{}, error) {
 	}
 	if a.unmapped != nil {
 		opts["unmapped"] = *a.unmapped
+	}
+	if a.timeZone != "" {
+		opts["time_zone"] = a.timeZone
 	}
 	if a.format != "" {
 		opts["format"] = a.format

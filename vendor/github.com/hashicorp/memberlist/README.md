@@ -65,7 +65,7 @@ For complete documentation, see the associated [Godoc](http://godoc.org/github.c
 
 ## Protocol
 
-memberlist is based on ["SWIM: Scalable Weakly-consistent Infection-style Process Group Membership Protocol"](http://www.cs.cornell.edu/~asdas/research/dsn02-swim.pdf). However, we extend the protocol in a number of ways:
+memberlist is based on ["SWIM: Scalable Weakly-consistent Infection-style Process Group Membership Protocol"](http://ieeexplore.ieee.org/document/1028914/). However, we extend the protocol in a number of ways:
 
 * Several extensions are made to increase propagation speed and
 convergence rate.

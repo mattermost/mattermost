@@ -26,7 +26,7 @@ import (
 
 const (
 	// Version is the current version of Elastic.
-	Version = "6.1.4"
+	Version = "6.1.7"
 
 	// DefaultURL is the default endpoint of Elasticsearch on the local machine.
 	// It is used e.g. when initializing a new Client without a specific URL.
@@ -1777,10 +1777,4 @@ func (c *Client) WaitForGreenStatus(timeout string) error {
 // See WaitForStatus for more details.
 func (c *Client) WaitForYellowStatus(timeout string) error {
 	return c.WaitForStatus("yellow", timeout)
-}
-
-// IsConnError unwraps the given error value and checks if it is equal to
-// elastic.ErrNoClient.
-func IsConnErr(err error) bool {
-	return errors.Cause(err) == ErrNoClient
 }

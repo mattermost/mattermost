@@ -11,10 +11,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package prometheus provides metrics primitives to instrument code for
-// monitoring. It also offers a registry for metrics. Sub-packages allow to
-// expose the registered metrics via HTTP (package promhttp) or push them to a
-// Pushgateway (package push).
+// Package prometheus is the core instrumentation package. It provides metrics
+// primitives to instrument code for monitoring. It also offers a registry for
+// metrics. Sub-packages allow to expose the registered metrics via HTTP
+// (package promhttp) or push them to a Pushgateway (package push).
 //
 // All exported functions and methods are safe to be used concurrently unless
 // specified otherwise.

@@ -127,7 +127,7 @@ func (c *PubSub) Close() error {
 	return nil
 }
 
-// Subscribes the client to the specified channels. It returns
+// Subscribe the client to the specified channels. It returns
 // empty subscription if there are no channels.
 func (c *PubSub) Subscribe(channels ...string) error {
 	c.mu.Lock()
@@ -137,7 +137,7 @@ func (c *PubSub) Subscribe(channels ...string) error {
 	return err
 }
 
-// Subscribes the client to the given patterns. It returns
+// PSubscribe the client to the given patterns. It returns
 // empty subscription if there are no patterns.
 func (c *PubSub) PSubscribe(patterns ...string) error {
 	c.mu.Lock()
@@ -147,7 +147,7 @@ func (c *PubSub) PSubscribe(patterns ...string) error {
 	return err
 }
 
-// Unsubscribes the client from the given channels, or from all of
+// Unsubscribe the client from the given channels, or from all of
 // them if none is given.
 func (c *PubSub) Unsubscribe(channels ...string) error {
 	c.mu.Lock()
@@ -157,7 +157,7 @@ func (c *PubSub) Unsubscribe(channels ...string) error {
 	return err
 }
 
-// Unsubscribes the client from the given patterns, or from all of
+// PUnsubscribe the client from the given patterns, or from all of
 // them if none is given.
 func (c *PubSub) PUnsubscribe(patterns ...string) error {
 	c.mu.Lock()
@@ -196,7 +196,7 @@ func (c *PubSub) Ping(payload ...string) error {
 	return err
 }
 
-// Message received after a successful subscription to channel.
+// Subscription received after a successful subscription to channel.
 type Subscription struct {
 	// Can be "subscribe", "unsubscribe", "psubscribe" or "punsubscribe".
 	Kind string

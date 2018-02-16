@@ -153,6 +153,36 @@ func TestStringToTimeDurationHookFunc(t *testing.T) {
 	}
 }
 
+func TestStringToTimeHookFunc(t *testing.T) {
+	strType := reflect.TypeOf("")
+	timeType := reflect.TypeOf(time.Time{})
+	cases := []struct {
+		f, t   reflect.Type
+		layout string
+		data   interface{}
+		result interface{}
+		err    bool
+	}{
+		{strType, timeType, time.RFC3339, "2006-01-02T15:04:05Z",
+			time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC), false},
+		{strType, timeType, time.RFC3339, "5", time.Time{}, true},
+		{strType, strType, time.RFC3339, "5", "5", false},
+	}
+
+	for i, tc := range cases {
+		f := StringToTimeHookFunc(tc.layout)
+		actual, err := DecodeHookExec(f, tc.f, tc.t, tc.data)
+		if tc.err != (err != nil) {
+			t.Fatalf("case %d: expected err %#v", i, tc.err)
+		}
+		if !reflect.DeepEqual(actual, tc.result) {
+			t.Fatalf(
+				"case %d: expected %#v, got %#v",
+				i, tc.result, actual)
+		}
+	}
+}
+
 func TestWeaklyTypedHook(t *testing.T) {
 	var f DecodeHookFunc = WeaklyTypedHook
 

@@ -8,7 +8,7 @@ func TestLRU(t *testing.T) {
 		if k != v {
 			t.Fatalf("Evict values not equal (%v!=%v)", k, v)
 		}
-		evictCounter += 1
+		evictCounter++
 	}
 	l, err := NewLRU(128, onEvicted)
 	if err != nil {
@@ -112,7 +112,7 @@ func TestLRU_GetOldest_RemoveOldest(t *testing.T) {
 func TestLRU_Add(t *testing.T) {
 	evictCounter := 0
 	onEvicted := func(k interface{}, v interface{}) {
-		evictCounter += 1
+		evictCounter++
 	}
 
 	l, err := NewLRU(1, onEvicted)
