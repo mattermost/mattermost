@@ -25,6 +25,9 @@ import (
 	_ "github.com/prometheus/client_golang/prometheus/promhttp"
 	_ "github.com/tylerb/graceful"
 	_ "gopkg.in/olivere/elastic.v5"
+
+	// Temp imports for new dependencies
+	_ "github.com/gorilla/schema"
 )
 
 func main() {

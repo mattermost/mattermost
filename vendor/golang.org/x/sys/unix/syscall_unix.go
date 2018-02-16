@@ -50,8 +50,7 @@ func errnoErr(e syscall.Errno) error {
 	return e
 }
 
-// clen returns the index of the first NULL byte in n or len(n) if n contains no
-// NULL byte or len(n) if n contains no NULL byte
+// clen returns the index of the first NULL byte in n or len(n) if n contains no NULL byte.
 func clen(n []byte) int {
 	for i := 0; i < len(n); i++ {
 		if n[i] == 0 {

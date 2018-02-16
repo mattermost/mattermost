@@ -13,13 +13,15 @@ import (
 )
 
 func TestAggs(t *testing.T) {
-	// client := setupTestClientAndCreateIndex(t, SetTraceLog(log.New(os.Stdout, "", log.LstdFlags)))
+	//client := setupTestClientAndCreateIndex(t, SetTraceLog(log.New(os.Stdout, "", log.LstdFlags)))
 	client := setupTestClientAndCreateIndex(t)
 
-	esversion, err := client.ElasticsearchVersion(DefaultURL)
-	if err != nil {
-		t.Fatal(err)
-	}
+	/*
+		esversion, err := client.ElasticsearchVersion(DefaultURL)
+		if err != nil {
+			t.Fatal(err)
+		}
+	*/
 
 	tweet1 := tweet{
 		User:     "olivere",
@@ -48,7 +50,7 @@ func TestAggs(t *testing.T) {
 	}
 
 	// Add all documents
-	_, err = client.Index().Index(testIndexName).Type("doc").Id("1").BodyJson(&tweet1).Do(context.TODO())
+	_, err := client.Index().Index(testIndexName).Type("doc").Id("1").BodyJson(&tweet1).Do(context.TODO())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -102,6 +104,11 @@ func TestAggs(t *testing.T) {
 	topTagsAgg := NewTermsAggregation().Field("tags").Size(3).SubAggregation("top_tag_hits", topTagsHitsAgg)
 	geoBoundsAgg := NewGeoBoundsAggregation().Field("location")
 	geoHashAgg := NewGeoHashGridAggregation().Field("location").Precision(5)
+	composite := NewCompositeAggregation().Sources(
+		NewCompositeAggregationTermsValuesSource("composite_users").Field("user"),
+		NewCompositeAggregationHistogramValuesSource("composite_retweets", 1).Field("retweets"),
+		NewCompositeAggregationDateHistogramValuesSource("composite_created", "1m").Field("created"),
+	)
 
 	// Run query
 	builder := client.Search().Index(testIndexName).Query(all).Pretty(true)
@@ -109,9 +116,7 @@ func TestAggs(t *testing.T) {
 	builder = builder.Aggregation("users", usersAgg)
 	builder = builder.Aggregation("retweets", retweetsAgg)
 	builder = builder.Aggregation("avgRetweets", avgRetweetsAgg)
-	if esversion >= "2.0" {
-		builder = builder.Aggregation("avgRetweetsWithMeta", avgRetweetsWithMetaAgg)
-	}
+	builder = builder.Aggregation("avgRetweetsWithMeta", avgRetweetsWithMetaAgg)
 	builder = builder.Aggregation("minRetweets", minRetweetsAgg)
 	builder = builder.Aggregation("maxRetweets", maxRetweetsAgg)
 	builder = builder.Aggregation("sumRetweets", sumRetweetsAgg)
@@ -134,44 +139,41 @@ func TestAggs(t *testing.T) {
 	builder = builder.Aggregation("top-tags", topTagsAgg)
 	builder = builder.Aggregation("viewport", geoBoundsAgg)
 	builder = builder.Aggregation("geohashed", geoHashAgg)
-	if esversion >= "1.4" {
-		// Unnamed filters
-		countByUserAgg := NewFiltersAggregation().
-			Filters(NewTermQuery("user", "olivere"), NewTermQuery("user", "sandrae"))
-		builder = builder.Aggregation("countByUser", countByUserAgg)
-		// Named filters
-		countByUserAgg2 := NewFiltersAggregation().
-			FilterWithName("olivere", NewTermQuery("user", "olivere")).
-			FilterWithName("sandrae", NewTermQuery("user", "sandrae"))
-		builder = builder.Aggregation("countByUser2", countByUserAgg2)
-	}
-	if esversion >= "2.0" {
-		// AvgBucket
-		dateHisto := NewDateHistogramAggregation().Field("created").Interval("year")
-		dateHisto = dateHisto.SubAggregation("sumOfRetweets", NewSumAggregation().Field("retweets"))
-		builder = builder.Aggregation("avgBucketDateHisto", dateHisto)
-		builder = builder.Aggregation("avgSumOfRetweets", NewAvgBucketAggregation().BucketsPath("avgBucketDateHisto>sumOfRetweets"))
-		// MinBucket
-		dateHisto = NewDateHistogramAggregation().Field("created").Interval("year")
-		dateHisto = dateHisto.SubAggregation("sumOfRetweets", NewSumAggregation().Field("retweets"))
-		builder = builder.Aggregation("minBucketDateHisto", dateHisto)
-		builder = builder.Aggregation("minBucketSumOfRetweets", NewMinBucketAggregation().BucketsPath("minBucketDateHisto>sumOfRetweets"))
-		// MaxBucket
-		dateHisto = NewDateHistogramAggregation().Field("created").Interval("year")
-		dateHisto = dateHisto.SubAggregation("sumOfRetweets", NewSumAggregation().Field("retweets"))
-		builder = builder.Aggregation("maxBucketDateHisto", dateHisto)
-		builder = builder.Aggregation("maxBucketSumOfRetweets", NewMaxBucketAggregation().BucketsPath("maxBucketDateHisto>sumOfRetweets"))
-		// SumBucket
-		dateHisto = NewDateHistogramAggregation().Field("created").Interval("year")
-		dateHisto = dateHisto.SubAggregation("sumOfRetweets", NewSumAggregation().Field("retweets"))
-		builder = builder.Aggregation("sumBucketDateHisto", dateHisto)
-		builder = builder.Aggregation("sumBucketSumOfRetweets", NewSumBucketAggregation().BucketsPath("sumBucketDateHisto>sumOfRetweets"))
-		// MovAvg
-		dateHisto = NewDateHistogramAggregation().Field("created").Interval("year")
-		dateHisto = dateHisto.SubAggregation("sumOfRetweets", NewSumAggregation().Field("retweets"))
-		dateHisto = dateHisto.SubAggregation("movingAvg", NewMovAvgAggregation().BucketsPath("sumOfRetweets"))
-		builder = builder.Aggregation("movingAvgDateHisto", dateHisto)
-	}
+	// Unnamed filters
+	countByUserAgg := NewFiltersAggregation().
+		Filters(NewTermQuery("user", "olivere"), NewTermQuery("user", "sandrae"))
+	builder = builder.Aggregation("countByUser", countByUserAgg)
+	// Named filters
+	countByUserAgg2 := NewFiltersAggregation().
+		FilterWithName("olivere", NewTermQuery("user", "olivere")).
+		FilterWithName("sandrae", NewTermQuery("user", "sandrae"))
+	builder = builder.Aggregation("countByUser2", countByUserAgg2)
+	// AvgBucket
+	dateHisto := NewDateHistogramAggregation().Field("created").Interval("year")
+	dateHisto = dateHisto.SubAggregation("sumOfRetweets", NewSumAggregation().Field("retweets"))
+	builder = builder.Aggregation("avgBucketDateHisto", dateHisto)
+	builder = builder.Aggregation("avgSumOfRetweets", NewAvgBucketAggregation().BucketsPath("avgBucketDateHisto>sumOfRetweets"))
+	// MinBucket
+	dateHisto = NewDateHistogramAggregation().Field("created").Interval("year")
+	dateHisto = dateHisto.SubAggregation("sumOfRetweets", NewSumAggregation().Field("retweets"))
+	builder = builder.Aggregation("minBucketDateHisto", dateHisto)
+	builder = builder.Aggregation("minBucketSumOfRetweets", NewMinBucketAggregation().BucketsPath("minBucketDateHisto>sumOfRetweets"))
+	// MaxBucket
+	dateHisto = NewDateHistogramAggregation().Field("created").Interval("year")
+	dateHisto = dateHisto.SubAggregation("sumOfRetweets", NewSumAggregation().Field("retweets"))
+	builder = builder.Aggregation("maxBucketDateHisto", dateHisto)
+	builder = builder.Aggregation("maxBucketSumOfRetweets", NewMaxBucketAggregation().BucketsPath("maxBucketDateHisto>sumOfRetweets"))
+	// SumBucket
+	dateHisto = NewDateHistogramAggregation().Field("created").Interval("year")
+	dateHisto = dateHisto.SubAggregation("sumOfRetweets", NewSumAggregation().Field("retweets"))
+	builder = builder.Aggregation("sumBucketDateHisto", dateHisto)
+	builder = builder.Aggregation("sumBucketSumOfRetweets", NewSumBucketAggregation().BucketsPath("sumBucketDateHisto>sumOfRetweets"))
+	// MovAvg
+	dateHisto = NewDateHistogramAggregation().Field("created").Interval("year")
+	dateHisto = dateHisto.SubAggregation("sumOfRetweets", NewSumAggregation().Field("retweets"))
+	dateHisto = dateHisto.SubAggregation("movingAvg", NewMovAvgAggregation().BucketsPath("sumOfRetweets"))
+	builder = builder.Aggregation("movingAvgDateHisto", dateHisto)
+	builder = builder.Aggregation("composite", composite)
 	searchResult, err := builder.Do(context.TODO())
 	if err != nil {
 		t.Fatal(err)
@@ -308,26 +310,24 @@ func TestAggs(t *testing.T) {
 	}
 
 	// avgRetweetsWithMeta
-	if esversion >= "2.0" {
-		avgMetaAggRes, found := agg.Avg("avgRetweetsWithMeta")
-		if !found {
-			t.Errorf("expected %v; got: %v", true, found)
-		}
-		if avgMetaAggRes == nil {
-			t.Fatalf("expected != nil; got: nil")
-		}
-		if avgMetaAggRes.Meta == nil {
-			t.Fatalf("expected != nil; got: %v", avgMetaAggRes.Meta)
-		}
-		metaDataValue, found := avgMetaAggRes.Meta["meta"]
-		if !found {
-			t.Fatalf("expected to return meta data key %q; got: %v", "meta", found)
-		}
-		if flag, ok := metaDataValue.(bool); !ok {
-			t.Fatalf("expected to return meta data key type %T; got: %T", true, metaDataValue)
-		} else if flag != true {
-			t.Fatalf("expected to return meta data key value %v; got: %v", true, flag)
-		}
+	avgMetaAggRes, found := agg.Avg("avgRetweetsWithMeta")
+	if !found {
+		t.Errorf("expected %v; got: %v", true, found)
+	}
+	if avgMetaAggRes == nil {
+		t.Fatalf("expected != nil; got: nil")
+	}
+	if avgMetaAggRes.Meta == nil {
+		t.Fatalf("expected != nil; got: %v", avgMetaAggRes.Meta)
+	}
+	metaDataValue, found := avgMetaAggRes.Meta["meta"]
+	if !found {
+		t.Fatalf("expected to return meta data key %q; got: %v", "meta", found)
+	}
+	if flag, ok := metaDataValue.(bool); !ok {
+		t.Fatalf("expected to return meta data key type %T; got: %T", true, metaDataValue)
+	} else if flag != true {
+		t.Fatalf("expected to return meta data key value %v; got: %v", true, flag)
 	}
 
 	// minRetweets
@@ -817,13 +817,11 @@ func TestAggs(t *testing.T) {
 	if topTags == nil {
 		t.Fatalf("expected != nil; got: nil")
 	}
-	if esversion >= "1.4.0" {
-		if topTags.DocCountErrorUpperBound != 0 {
-			t.Errorf("expected %v; got: %v", 0, topTags.DocCountErrorUpperBound)
-		}
-		if topTags.SumOfOtherDocCount != 1 {
-			t.Errorf("expected %v; got: %v", 1, topTags.SumOfOtherDocCount)
-		}
+	if topTags.DocCountErrorUpperBound != 0 {
+		t.Errorf("expected %v; got: %v", 0, topTags.DocCountErrorUpperBound)
+	}
+	if topTags.SumOfOtherDocCount != 1 {
+		t.Errorf("expected %v; got: %v", 1, topTags.SumOfOtherDocCount)
 	}
 	if len(topTags.Buckets) != 3 {
 		t.Fatalf("expected %d; got: %d", 3, len(topTags.Buckets))
@@ -924,62 +922,71 @@ func TestAggs(t *testing.T) {
 		t.Fatalf("expected != nil; got: nil")
 	}
 
-	if esversion >= "1.4" {
-		// Filters agg "countByUser" (unnamed)
-		countByUserAggRes, found := agg.Filters("countByUser")
-		if !found {
-			t.Errorf("expected %v; got: %v", true, found)
-		}
-		if countByUserAggRes == nil {
-			t.Fatalf("expected != nil; got: nil")
-		}
-		if len(countByUserAggRes.Buckets) != 2 {
-			t.Fatalf("expected %d; got: %d", 2, len(countByUserAggRes.Buckets))
-		}
-		if len(countByUserAggRes.NamedBuckets) != 0 {
-			t.Fatalf("expected %d; got: %d", 0, len(countByUserAggRes.NamedBuckets))
-		}
-		if countByUserAggRes.Buckets[0].DocCount != 2 {
-			t.Errorf("expected %d; got: %d", 2, countByUserAggRes.Buckets[0].DocCount)
-		}
-		if countByUserAggRes.Buckets[1].DocCount != 1 {
-			t.Errorf("expected %d; got: %d", 1, countByUserAggRes.Buckets[1].DocCount)
-		}
+	// Filters agg "countByUser" (unnamed)
+	countByUserAggRes, found := agg.Filters("countByUser")
+	if !found {
+		t.Errorf("expected %v; got: %v", true, found)
+	}
+	if countByUserAggRes == nil {
+		t.Fatalf("expected != nil; got: nil")
+	}
+	if len(countByUserAggRes.Buckets) != 2 {
+		t.Fatalf("expected %d; got: %d", 2, len(countByUserAggRes.Buckets))
+	}
+	if len(countByUserAggRes.NamedBuckets) != 0 {
+		t.Fatalf("expected %d; got: %d", 0, len(countByUserAggRes.NamedBuckets))
+	}
+	if countByUserAggRes.Buckets[0].DocCount != 2 {
+		t.Errorf("expected %d; got: %d", 2, countByUserAggRes.Buckets[0].DocCount)
+	}
+	if countByUserAggRes.Buckets[1].DocCount != 1 {
+		t.Errorf("expected %d; got: %d", 1, countByUserAggRes.Buckets[1].DocCount)
+	}
 
-		// Filters agg "countByUser2" (named)
-		countByUser2AggRes, found := agg.Filters("countByUser2")
-		if !found {
-			t.Errorf("expected %v; got: %v", true, found)
-		}
-		if countByUser2AggRes == nil {
-			t.Fatalf("expected != nil; got: nil")
-		}
-		if len(countByUser2AggRes.Buckets) != 0 {
-			t.Fatalf("expected %d; got: %d", 0, len(countByUser2AggRes.Buckets))
-		}
-		if len(countByUser2AggRes.NamedBuckets) != 2 {
-			t.Fatalf("expected %d; got: %d", 2, len(countByUser2AggRes.NamedBuckets))
-		}
-		b, found := countByUser2AggRes.NamedBuckets["olivere"]
-		if !found {
-			t.Fatalf("expected bucket %q; got: %v", "olivere", found)
-		}
-		if b == nil {
-			t.Fatalf("expected bucket %q; got: %v", "olivere", b)
-		}
-		if b.DocCount != 2 {
-			t.Errorf("expected %d; got: %d", 2, b.DocCount)
-		}
-		b, found = countByUser2AggRes.NamedBuckets["sandrae"]
-		if !found {
-			t.Fatalf("expected bucket %q; got: %v", "sandrae", found)
-		}
-		if b == nil {
-			t.Fatalf("expected bucket %q; got: %v", "sandrae", b)
-		}
-		if b.DocCount != 1 {
-			t.Errorf("expected %d; got: %d", 1, b.DocCount)
-		}
+	// Filters agg "countByUser2" (named)
+	countByUser2AggRes, found := agg.Filters("countByUser2")
+	if !found {
+		t.Errorf("expected %v; got: %v", true, found)
+	}
+	if countByUser2AggRes == nil {
+		t.Fatalf("expected != nil; got: nil")
+	}
+	if len(countByUser2AggRes.Buckets) != 0 {
+		t.Fatalf("expected %d; got: %d", 0, len(countByUser2AggRes.Buckets))
+	}
+	if len(countByUser2AggRes.NamedBuckets) != 2 {
+		t.Fatalf("expected %d; got: %d", 2, len(countByUser2AggRes.NamedBuckets))
+	}
+	b, found := countByUser2AggRes.NamedBuckets["olivere"]
+	if !found {
+		t.Fatalf("expected bucket %q; got: %v", "olivere", found)
+	}
+	if b == nil {
+		t.Fatalf("expected bucket %q; got: %v", "olivere", b)
+	}
+	if b.DocCount != 2 {
+		t.Errorf("expected %d; got: %d", 2, b.DocCount)
+	}
+	b, found = countByUser2AggRes.NamedBuckets["sandrae"]
+	if !found {
+		t.Fatalf("expected bucket %q; got: %v", "sandrae", found)
+	}
+	if b == nil {
+		t.Fatalf("expected bucket %q; got: %v", "sandrae", b)
+	}
+	if b.DocCount != 1 {
+		t.Errorf("expected %d; got: %d", 1, b.DocCount)
+	}
+
+	compositeAggRes, found := agg.Composite("composite")
+	if !found {
+		t.Errorf("expected %v; got: %v", true, found)
+	}
+	if compositeAggRes == nil {
+		t.Fatalf("expected != nil; got: nil")
+	}
+	if want, have := 3, len(compositeAggRes.Buckets); want != have {
+		t.Fatalf("expected %d; got: %d", want, have)
 	}
 }
 
@@ -3229,5 +3236,181 @@ func TestAggsPipelineSerialDiff(t *testing.T) {
 	}
 	if *agg.Value != float64(-722.0) {
 		t.Fatalf("expected aggregation value = %v; got: %v", float64(20), *agg.Value)
+	}
+}
+
+func TestAggsComposite(t *testing.T) {
+	s := `{
+	"the_composite" : {
+		"buckets" : [
+		  {
+			"key" : {
+			  "composite_users" : "olivere",
+			  "composite_retweets" : 0.0,
+			  "composite_created" : 1349856720000
+			},
+			"doc_count" : 1
+		  },
+		  {
+			"key" : {
+			  "composite_users" : "olivere",
+			  "composite_retweets" : 108.0,
+			  "composite_created" : 1355333880000
+			},
+			"doc_count" : 1
+		  },
+		  {
+			"key" : {
+			  "composite_users" : "sandrae",
+			  "composite_retweets" : 12.0,
+			  "composite_created" : 1321009080000
+			},
+			"doc_count" : 1
+		  }
+		]
+	  }
+	}`
+
+	aggs := new(Aggregations)
+	err := json.Unmarshal([]byte(s), &aggs)
+	if err != nil {
+		t.Fatalf("expected no error decoding; got: %v", err)
+	}
+
+	agg, found := aggs.Composite("the_composite")
+	if !found {
+		t.Fatalf("expected aggregation to be found; got: %v", found)
+	}
+	if agg == nil {
+		t.Fatalf("expected aggregation != nil; got: %v", agg)
+	}
+	if want, have := 3, len(agg.Buckets); want != have {
+		t.Fatalf("expected aggregation buckets length = %v; got: %v", want, have)
+	}
+
+	// 1st bucket
+	bucket := agg.Buckets[0]
+	if want, have := int64(1), bucket.DocCount; want != have {
+		t.Fatalf("expected aggregation bucket doc count = %v; got: %v", want, have)
+	}
+	if want, have := 3, len(bucket.Key); want != have {
+		t.Fatalf("expected aggregation bucket key length = %v; got: %v", want, have)
+	}
+	v, found := bucket.Key["composite_users"]
+	if !found {
+		t.Fatalf("expected to find bucket key %q", "composite_users")
+	}
+	s, ok := v.(string)
+	if !ok {
+		t.Fatalf("expected to have bucket key of type string; got: %T", v)
+	}
+	if want, have := "olivere", s; want != have {
+		t.Fatalf("expected to find bucket key value %q; got: %q", want, have)
+	}
+	v, found = bucket.Key["composite_retweets"]
+	if !found {
+		t.Fatalf("expected to find bucket key %q", "composite_retweets")
+	}
+	f, ok := v.(float64)
+	if !ok {
+		t.Fatalf("expected to have bucket key of type string; got: %T", v)
+	}
+	if want, have := 0.0, f; want != have {
+		t.Fatalf("expected to find bucket key value %v; got: %v", want, have)
+	}
+	v, found = bucket.Key["composite_created"]
+	if !found {
+		t.Fatalf("expected to find bucket key %q", "composite_created")
+	}
+	f, ok = v.(float64)
+	if !ok {
+		t.Fatalf("expected to have bucket key of type string; got: %T", v)
+	}
+	if want, have := 1349856720000.0, f; want != have {
+		t.Fatalf("expected to find bucket key value %v; got: %v", want, have)
+	}
+
+	// 2nd bucket
+	bucket = agg.Buckets[1]
+	if want, have := int64(1), bucket.DocCount; want != have {
+		t.Fatalf("expected aggregation bucket doc count = %v; got: %v", want, have)
+	}
+	if want, have := 3, len(bucket.Key); want != have {
+		t.Fatalf("expected aggregation bucket key length = %v; got: %v", want, have)
+	}
+	v, found = bucket.Key["composite_users"]
+	if !found {
+		t.Fatalf("expected to find bucket key %q", "composite_users")
+	}
+	s, ok = v.(string)
+	if !ok {
+		t.Fatalf("expected to have bucket key of type string; got: %T", v)
+	}
+	if want, have := "olivere", s; want != have {
+		t.Fatalf("expected to find bucket key value %q; got: %q", want, have)
+	}
+	v, found = bucket.Key["composite_retweets"]
+	if !found {
+		t.Fatalf("expected to find bucket key %q", "composite_retweets")
+	}
+	f, ok = v.(float64)
+	if !ok {
+		t.Fatalf("expected to have bucket key of type string; got: %T", v)
+	}
+	if want, have := 108.0, f; want != have {
+		t.Fatalf("expected to find bucket key value %v; got: %v", want, have)
+	}
+	v, found = bucket.Key["composite_created"]
+	if !found {
+		t.Fatalf("expected to find bucket key %q", "composite_created")
+	}
+	f, ok = v.(float64)
+	if !ok {
+		t.Fatalf("expected to have bucket key of type string; got: %T", v)
+	}
+	if want, have := 1355333880000.0, f; want != have {
+		t.Fatalf("expected to find bucket key value %v; got: %v", want, have)
+	}
+
+	// 3rd bucket
+	bucket = agg.Buckets[2]
+	if want, have := int64(1), bucket.DocCount; want != have {
+		t.Fatalf("expected aggregation bucket doc count = %v; got: %v", want, have)
+	}
+	if want, have := 3, len(bucket.Key); want != have {
+		t.Fatalf("expected aggregation bucket key length = %v; got: %v", want, have)
+	}
+	v, found = bucket.Key["composite_users"]
+	if !found {
+		t.Fatalf("expected to find bucket key %q", "composite_users")
+	}
+	s, ok = v.(string)
+	if !ok {
+		t.Fatalf("expected to have bucket key of type string; got: %T", v)
+	}
+	if want, have := "sandrae", s; want != have {
+		t.Fatalf("expected to find bucket key value %q; got: %q", want, have)
+	}
+	v, found = bucket.Key["composite_retweets"]
+	if !found {
+		t.Fatalf("expected to find bucket key %q", "composite_retweets")
+	}
+	f, ok = v.(float64)
+	if !ok {
+		t.Fatalf("expected to have bucket key of type string; got: %T", v)
+	}
+	if want, have := 12.0, f; want != have {
+		t.Fatalf("expected to find bucket key value %v; got: %v", want, have)
+	}
+	v, found = bucket.Key["composite_created"]
+	if !found {
+		t.Fatalf("expected to find bucket key %q", "composite_created")
+	}
+	f, ok = v.(float64)
+	if !ok {
+		t.Fatalf("expected to have bucket key of type string; got: %T", v)
+	}
+	if want, have := 1321009080000.0, f; want != have {
+		t.Fatalf("expected to find bucket key value %v; got: %v", want, have)
 	}
 }
