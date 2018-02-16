@@ -2203,10 +2203,6 @@
     "translation": "Hesap açma bağlantısının süresi geçmiş"
   },
   {
-    "id": "api.team.create_team_from_signup.invalid_link.app_error",
-    "translation": "Hesap açma bağlantısı geçersiz görünüyor"
-  },
-  {
     "id": "api.team.create_team_from_signup.unavailable.app_error",
     "translation": "Adres kullanılamıyor. Lütfen yeniden deneyin."
   },
@@ -2708,6 +2704,10 @@
   },
   {
     "id": "api.user.create_user.signup_link_invalid.app_error",
+    "translation": "Hesap açma bağlantısı geçersiz görünüyor"
+  },
+  {
+    "id": "api.user.create_user.signup_link_mismatched_invite_id.app_error",
     "translation": "Hesap açma bağlantısı geçersiz görünüyor"
   },
   {
@@ -3689,6 +3689,10 @@
   {
     "id": "app.plugin.upload_disabled.app_error",
     "translation": "Uygulama ekleri ya da uygulama eki yüklemeleri devre dışı bırakılmış. "
+  },
+  {
+    "id": "app.team.join_user_to_team.max_accounts.app_error",
+    "translation": "Bu takım izin verilen en fazla hesap sayısına ulaşmış. Sınırı yükseltmesi için sistem yöneticinizle görüşün."
   },
   {
     "id": "app.user_access_token.disabled",
@@ -4757,6 +4761,10 @@
   {
     "id": "model.config.is_valid.file_thumb_width.app_error",
     "translation": "Küçük görsel genişliği dosya ayarı geçersiz. Sıfır ya da pozitif bir sayı olmalı."
+  },
+  {
+    "id": "model.config.is_valid.group_unread_channels.app_error",
+    "translation": "Hizmet ayarları okunmamış kanallar gruplansın geçersiz. 'disabled', 'default_on' ya da 'default_off' olmalıdır."
   },
   {
     "id": "model.config.is_valid.image_proxy_type.app_error",
@@ -7291,10 +7299,6 @@
     "translation": "Hesap Açın"
   },
   {
-    "id": "web.signup_team_complete.invalid_link.app_error",
-    "translation": "Hesap açma bağlantısı geçersiz görünüyor"
-  },
-  {
     "id": "web.signup_team_complete.link_expired.app_error",
     "translation": "Hesap açma bağlantısının süresi geçmiş"
   },
@@ -7309,10 +7313,6 @@
   {
     "id": "web.signup_user_complete.link_expired.app_error",
     "translation": "Hesap açma bağlantısının süresi geçmiş"
-  },
-  {
-    "id": "web.signup_user_complete.link_invalid.app_error",
-    "translation": "Hesap açma bağlantısı geçersiz görünüyor"
   },
   {
     "id": "web.signup_user_complete.no_invites.app_error",
