@@ -204,3 +204,12 @@ func IncomingWebhookRequestFromJson(data io.Reader) (*IncomingWebhookRequest, *A
 
 	return o, nil
 }
+
+func (o *IncomingWebhookRequest) ToJson() string {
+	b, err := json.Marshal(o)
+	if err != nil {
+		return ""
+	} else {
+		return string(b)
+	}
+}
