@@ -2203,10 +2203,6 @@
     "translation": "利用登録リンクは有効期限が切れています"
   },
   {
-    "id": "api.team.create_team_from_signup.invalid_link.app_error",
-    "translation": "利用登録リンクが不正です"
-  },
-  {
     "id": "api.team.create_team_from_signup.unavailable.app_error",
     "translation": "このURLは利用できません。他のURLを試してみてください。"
   },
@@ -2708,6 +2704,10 @@
   },
   {
     "id": "api.user.create_user.signup_link_invalid.app_error",
+    "translation": "利用登録リンクが不正です"
+  },
+  {
+    "id": "api.user.create_user.signup_link_mismatched_invite_id.app_error",
     "translation": "利用登録リンクが不正です"
   },
   {
@@ -3689,6 +3689,10 @@
   {
     "id": "app.plugin.upload_disabled.app_error",
     "translation": "プラグインのアップロードは無効化されています。"
+  },
+  {
+    "id": "app.team.join_user_to_team.max_accounts.app_error",
+    "translation": "このチームは登録ユーザー数の上限に達しました。システム管理者に上限値の設定を変更するように依頼してください。"
   },
   {
     "id": "app.user_access_token.disabled",
@@ -4757,6 +4761,10 @@
   {
     "id": "model.config.is_valid.file_thumb_width.app_error",
     "translation": "ファイル設定のサムネイルの幅が不正です。ゼロ以上の数を指定してください。"
+  },
+  {
+    "id": "model.config.is_valid.group_unread_channels.app_error",
+    "translation": "未読チャンネルのグループ化設定が不正です。'disabled', 'default_on', 'default_off'のいずれかでなくてはなりません。"
   },
   {
     "id": "model.config.is_valid.image_proxy_type.app_error",
@@ -7291,10 +7299,6 @@
     "translation": "利用登録"
   },
   {
-    "id": "web.signup_team_complete.invalid_link.app_error",
-    "translation": "利用登録リンクが不正です"
-  },
-  {
     "id": "web.signup_team_complete.link_expired.app_error",
     "translation": "利用登録リンクの期限が切れています"
   },
@@ -7309,10 +7313,6 @@
   {
     "id": "web.signup_user_complete.link_expired.app_error",
     "translation": "利用登録リンクの期限が切れています"
-  },
-  {
-    "id": "web.signup_user_complete.link_invalid.app_error",
-    "translation": "利用登録リンクが不正です"
   },
   {
     "id": "web.signup_user_complete.no_invites.app_error",
