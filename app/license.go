@@ -130,7 +130,7 @@ func (a *App) SetLicense(license *model.License) bool {
 	}
 
 	a.licenseValue.Store((*model.License)(nil))
-	a.SetClientLicense(map[string]string{"IsLicensed": "false"})
+	a.clientLicenseValue.Store(map[string]string(nil))
 	return false
 }
 
@@ -149,8 +149,10 @@ func (a *App) SetClientLicense(m map[string]string) {
 }
 
 func (a *App) ClientLicense() map[string]string {
-	clientLicense, _ := a.clientLicenseValue.Load().(map[string]string)
-	return clientLicense
+	if clientLicense, _ := a.clientLicenseValue.Load().(map[string]string); clientLicense != nil {
+		return clientLicense
+	}
+	return map[string]string{"IsLicensed": "false"}
 }
 
 func (a *App) RemoveLicense() *model.AppError {
