@@ -2203,10 +2203,6 @@
     "translation": "가입 링크가 만료되었습니다."
   },
   {
-    "id": "api.team.create_team_from_signup.invalid_link.app_error",
-    "translation": "유효하지 않은 가입 링크입니다."
-  },
-  {
     "id": "api.team.create_team_from_signup.unavailable.app_error",
     "translation": "유효하지 않는 URL 입니다. 변경 후 다시 시도해주세요."
   },
@@ -2711,6 +2707,10 @@
     "translation": "유효하지 않은 가입 링크입니다."
   },
   {
+    "id": "api.user.create_user.signup_link_mismatched_invite_id.app_error",
+    "translation": "The signup link does not appear to be valid"
+  },
+  {
     "id": "api.user.create_user.team_name.app_error",
     "translation": "올바르지 않은 팀 이름"
   },
@@ -3136,7 +3136,7 @@
   },
   {
     "id": "app.channel.post_update_channel_purpose_message.post.error",
-    "translation": "Failed to post channel purpose message"
+    "translation": "들어옴/나감 메시지를 등록하는 데 실패함"
   },
   {
     "id": "app.channel.post_update_channel_purpose_message.removed",
@@ -4757,6 +4757,10 @@
   {
     "id": "model.config.is_valid.file_thumb_width.app_error",
     "translation": "파일 세팅에 대한 잘못된 썸네일 너비값입니다. 0보다 큰 값이여야 합니다."
+  },
+  {
+    "id": "model.config.is_valid.group_unread_channels.app_error",
+    "translation": "Invalid group unread channels for service settings. Must be 'disabled', 'default_on', or 'default_off'."
   },
   {
     "id": "model.config.is_valid.image_proxy_type.app_error",
@@ -7291,10 +7295,6 @@
     "translation": "가입"
   },
   {
-    "id": "web.signup_team_complete.invalid_link.app_error",
-    "translation": "유효하지 않은 가입 링크입니다."
-  },
-  {
     "id": "web.signup_team_complete.link_expired.app_error",
     "translation": "가입 링크가 만료되었습니다."
   },
@@ -7309,10 +7309,6 @@
   {
     "id": "web.signup_user_complete.link_expired.app_error",
     "translation": "가입 링크가 만료되었습니다."
-  },
-  {
-    "id": "web.signup_user_complete.link_invalid.app_error",
-    "translation": "유효하지 않은 가입 링크입니다."
   },
   {
     "id": "web.signup_user_complete.no_invites.app_error",
