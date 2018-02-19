@@ -36,8 +36,8 @@ func saveReaction(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToChannel(c.Session, channelId, model.PERMISSION_READ_CHANNEL) {
-		c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
+	if !c.App.SessionHasPermissionToChannel(c.Session, channelId, model.PERMISSION_ADD_REACTION) {
+		c.SetPermissionError(model.PERMISSION_ADD_REACTION)
 		return
 	}
 
@@ -87,8 +87,8 @@ func deleteReaction(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToChannel(c.Session, channelId, model.PERMISSION_READ_CHANNEL) {
-		c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
+	if !c.App.SessionHasPermissionToChannel(c.Session, channelId, model.PERMISSION_REMOVE_REACTION) {
+		c.SetPermissionError(model.PERMISSION_REMOVE_REACTION)
 		return
 	}
 
