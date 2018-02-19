@@ -18,7 +18,7 @@ func (api *API) InitGeneral() {
 }
 
 func getClientConfig(c *Context, w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte(model.StringInterfaceToJson(c.App.ClientConfig())))
+	w.Write([]byte(model.MapToJson(c.App.ClientConfig())))
 }
 
 func logClient(c *Context, w http.ResponseWriter, r *http.Request) {

@@ -330,8 +330,8 @@ func LoadConfig(fileName string) (config *model.Config, configPath string, appEr
 	return config, configPath, nil
 }
 
-func GenerateClientConfig(c *model.Config, diagnosticId string, license *model.License) map[string]interface{} {
-	props := make(map[string]interface{})
+func GenerateClientConfig(c *model.Config, diagnosticId string, license *model.License) map[string]string {
+	props := make(map[string]string)
 
 	props["Version"] = model.CurrentVersion
 	props["BuildNumber"] = model.BuildNumber
@@ -446,7 +446,7 @@ func GenerateClientConfig(c *model.Config, diagnosticId string, license *model.L
 
 	props["PluginsEnabled"] = strconv.FormatBool(*c.PluginSettings.Enable)
 	props["EnableTimezoneSelection"] = strconv.FormatBool(*c.DisplaySettings.EnableTimezoneSelection)
-	props["SupportedTimezones"] = c.SupportedTimezones
+	props["SupportedTimezones"] = strings.Join(c.SupportedTimezones, ",")
 
 	hasImageProxy := c.ServiceSettings.ImageProxyType != nil && *c.ServiceSettings.ImageProxyType != "" && c.ServiceSettings.ImageProxyURL != nil && *c.ServiceSettings.ImageProxyURL != ""
 	props["HasImageProxy"] = strconv.FormatBool(hasImageProxy)
