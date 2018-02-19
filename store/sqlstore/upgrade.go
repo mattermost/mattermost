@@ -16,6 +16,7 @@ import (
 
 const (
 	VERSION_4_8_0            = "4.8.0"
+	VERSION_4_7_1            = "4.7.1"
 	VERSION_4_7_0            = "4.7.0"
 	VERSION_4_6_0            = "4.6.0"
 	VERSION_4_5_0            = "4.5.0"
@@ -65,6 +66,7 @@ func UpgradeDatabase(sqlStore SqlStore) {
 	UpgradeDatabaseToVersion45(sqlStore)
 	UpgradeDatabaseToVersion46(sqlStore)
 	UpgradeDatabaseToVersion47(sqlStore)
+	UpgradeDatabaseToVersion471(sqlStore)
 	UpgradeDatabaseToVersion48(sqlStore)
 
 	// If the SchemaVersion is empty this this is the first time it has ran
@@ -349,6 +351,16 @@ func UpgradeDatabaseToVersion47(sqlStore SqlStore) {
 		sqlStore.RemoveColumnIfExists("ChannelMemberHistory", "Email")
 		sqlStore.RemoveColumnIfExists("ChannelMemberHistory", "Username")
 		saveSchemaVersion(sqlStore, VERSION_4_7_0)
+	}
+}
+
+// If any new instances started with 4.7, they would have the bad Email column on the
+// ChannelMemberHistory table. So for those cases we need to do an upgrade between
+// 4.7.0 and 4.7.1
+func UpgradeDatabaseToVersion471(sqlStore SqlStore) {
+	if shouldPerformUpgrade(sqlStore, VERSION_4_7_0, VERSION_4_7_1) {
+		sqlStore.RemoveColumnIfExists("ChannelMemberHistory", "Email")
+		saveSchemaVersion(sqlStore, VERSION_4_7_1)
 	}
 }
 
