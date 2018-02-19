@@ -4,6 +4,7 @@
 package main
 
 import (
+	"net"
 	"os"
 	"os/signal"
 	"syscall"
@@ -132,11 +133,21 @@ func runServer(configFileLocation string, disableConfigWatch bool, interruptChan
 
 	a.EnsureDiagnosticId()
 
-	go runSecurityJob(a)
-	go runDiagnosticsJob(a)
-	go runSessionCleanupJob(a)
-	go runTokenCleanupJob(a)
-	go runCommandWebhookCleanupJob(a)
+	a.Go(func() {
+		runSecurityJob(a)
+	})
+	a.Go(func() {
+		runDiagnosticsJob(a)
+	})
+	a.Go(func() {
+		runSessionCleanupJob(a)
+	})
+	a.Go(func() {
+		runTokenCleanupJob(a)
+	})
+	a.Go(func() {
+		runCommandWebhookCleanupJob(a)
+	})
 
 	if complianceI := a.Compliance; complianceI != nil {
 		complianceI.StartComplianceDailyJob()
@@ -165,6 +176,8 @@ func runServer(configFileLocation string, disableConfigWatch bool, interruptChan
 	if *a.Config().JobSettings.RunScheduler {
 		a.Jobs.StartSchedulers()
 	}
+
+	notifyReady()
 
 	// wait for kill signal before attempting to gracefully shutdown
 	// the running service
@@ -234,6 +247,35 @@ func doDiagnostics(a *app.App) {
 	if *a.Config().LogSettings.EnableDiagnostics {
 		a.SendDailyDiagnostics()
 	}
+}
+
+func notifyReady() {
+	// If the environment vars provide a systemd notification socket,
+	// notify systemd that the server is ready.
+	systemdSocket := os.Getenv("NOTIFY_SOCKET")
+	if systemdSocket != "" {
+		l4g.Info("Sending systemd READY notification.")
+
+		err := sendSystemdReadyNotification(systemdSocket)
+		if err != nil {
+			l4g.Error(err.Error())
+		}
+	}
+}
+
+func sendSystemdReadyNotification(socketPath string) error {
+	msg := "READY=1"
+	addr := &net.UnixAddr{
+		Name: socketPath,
+		Net:  "unixgram",
+	}
+	conn, err := net.DialUnix(addr.Net, nil, addr)
+	if err != nil {
+		return err
+	}
+	defer conn.Close()
+	_, err = conn.Write([]byte(msg))
+	return err
 }
 
 func doTokenCleanup(a *app.App) {

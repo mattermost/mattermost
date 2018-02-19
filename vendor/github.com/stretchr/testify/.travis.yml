@@ -12,4 +12,4 @@ script:
   - ./.travis.gogenerate.sh
   - ./.travis.gofmt.sh
   - ./.travis.govet.sh
-  - go test -v -race ./...
+  - go test -v -race $(go list ./... | grep -v vendor)

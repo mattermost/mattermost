@@ -817,6 +817,12 @@ func (a *App) ImportUserTeams(user *model.User, data *[]UserTeamImportData) *mod
 			}
 		}
 
+		if defaultChannel, err := a.GetChannelByName(model.DEFAULT_CHANNEL, team.Id); err != nil {
+			return err
+		} else if _, err = a.addUserToChannel(user, defaultChannel, member); err != nil {
+			return err
+		}
+
 		if err := a.ImportUserChannels(user, team, member, tdata.Channels); err != nil {
 			return err
 		}

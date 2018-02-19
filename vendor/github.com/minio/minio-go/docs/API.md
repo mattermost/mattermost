@@ -86,16 +86,27 @@ __Parameters__
 ### NewWithRegion(endpoint, accessKeyID, secretAccessKey string, ssl bool, region string) (*Client, error)
 Initializes minio client, with region configured. Unlike New(), NewWithRegion avoids bucket-location lookup operations and it is slightly faster. Use this function when your application deals with a single region.
 
+### NewWithOptions(endpoint string, options *Options) (*Client, error)
+Initializes minio client with options configured.
+
 __Parameters__
 
 |Param   |Type   |Description   |
 |:---|:---| :---|
 |`endpoint`   | _string_  |S3 compatible object storage endpoint |
-|`accessKeyID`  |_string_   |Access key for the object storage |
-|`secretAccessKey`  | _string_  |Secret key for the object storage |
-|`ssl` | _bool_  | If 'true' API requests will be secure (HTTPS), and insecure (HTTP) otherwise |
-|`region`| _string_ | Region for the object storage |
+|`opts`  |_minio.Options_   | Options for constructing a new client|
 
+__minio.Options__
+
+|Field | Type | Description |
+|:--- |:--- | :--- |
+| `opts.Creds` | _*credentials.Credentials_ | Access Credentials|
+| `opts.Secure` | _bool_ | If 'true' API requests will be secure (HTTPS), and insecure (HTTP) otherwise |
+| `opts.Region` | _string_ | region |
+| `opts.BucketLookup` | _BucketLookupType_ | Bucket lookup type can be one of the following values |
+| |  | _minio.BucketLookupDNS_ |
+| |  | _minio.BucketLookupPath_ |
+| |  | _minio.BucketLookupAuto_ |
 ## 2. Bucket operations
 
 <a name="MakeBucket"></a>

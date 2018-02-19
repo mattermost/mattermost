@@ -20,6 +20,7 @@ type ReindexService struct {
 	waitForActiveShards string
 	waitForCompletion   *bool
 	requestsPerSecond   *int
+	slices              *int
 	body                interface{}
 	source              *ReindexSource
 	destination         *ReindexDestination
@@ -48,6 +49,12 @@ func (s *ReindexService) WaitForActiveShards(waitForActiveShards string) *Reinde
 // -1 means set no throttle as does "unlimited" which is the only non-float this accepts.
 func (s *ReindexService) RequestsPerSecond(requestsPerSecond int) *ReindexService {
 	s.requestsPerSecond = &requestsPerSecond
+	return s
+}
+
+// Slices specifies the number of slices this task should be divided into. Defaults to 1.
+func (s *ReindexService) Slices(slices int) *ReindexService {
+	s.slices = &slices
 	return s
 }
 
@@ -178,6 +185,9 @@ func (s *ReindexService) buildURL() (string, url.Values, error) {
 	}
 	if s.requestsPerSecond != nil {
 		params.Set("requests_per_second", fmt.Sprintf("%v", *s.requestsPerSecond))
+	}
+	if s.slices != nil {
+		params.Set("slices", fmt.Sprintf("%v", *s.slices))
 	}
 	if s.waitForActiveShards != "" {
 		params.Set("wait_for_active_shards", s.waitForActiveShards)

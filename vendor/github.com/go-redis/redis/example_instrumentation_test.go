@@ -2,58 +2,47 @@ package redis_test
 
 import (
 	"fmt"
-	"sync/atomic"
-	"time"
 
 	"github.com/go-redis/redis"
 )
 
 func Example_instrumentation() {
-	ring := redis.NewRing(&redis.RingOptions{
-		Addrs: map[string]string{
-			"shard1": ":6379",
-		},
+	cl := redis.NewClient(&redis.Options{
+		Addr: ":6379",
 	})
-	ring.ForEachShard(func(client *redis.Client) error {
-		wrapRedisProcess(client)
-		return nil
-	})
-
-	for {
-		ring.Ping()
-	}
-}
-
-func wrapRedisProcess(client *redis.Client) {
-	const precision = time.Microsecond
-	var count, avgDur uint32
-
-	go func() {
-		for range time.Tick(3 * time.Second) {
-			n := atomic.LoadUint32(&count)
-			dur := time.Duration(atomic.LoadUint32(&avgDur)) * precision
-			fmt.Printf("%s: processed=%d avg_dur=%s\n", client, n, dur)
-		}
-	}()
-
-	client.WrapProcess(func(oldProcess func(redis.Cmder) error) func(redis.Cmder) error {
+	cl.WrapProcess(func(old func(cmd redis.Cmder) error) func(cmd redis.Cmder) error {
 		return func(cmd redis.Cmder) error {
-			start := time.Now()
-			err := oldProcess(cmd)
-			dur := time.Since(start)
-
-			const decay = float64(1) / 100
-			ms := float64(dur / precision)
-			for {
-				avg := atomic.LoadUint32(&avgDur)
-				newAvg := uint32((1-decay)*float64(avg) + decay*ms)
-				if atomic.CompareAndSwapUint32(&avgDur, avg, newAvg) {
-					break
-				}
-			}
-			atomic.AddUint32(&count, 1)
-
+			fmt.Printf("starting processing: <%s>\n", cmd)
+			err := old(cmd)
+			fmt.Printf("finished processing: <%s>\n", cmd)
 			return err
 		}
 	})
+
+	cl.Ping()
+	// Output: starting processing: <ping: >
+	// finished processing: <ping: PONG>
+}
+
+func Example_Pipeline_instrumentation() {
+	client := redis.NewClient(&redis.Options{
+		Addr: ":6379",
+	})
+
+	client.WrapProcessPipeline(func(old func([]redis.Cmder) error) func([]redis.Cmder) error {
+		return func(cmds []redis.Cmder) error {
+			fmt.Printf("pipeline starting processing: %v\n", cmds)
+			err := old(cmds)
+			fmt.Printf("pipeline finished processing: %v\n", cmds)
+			return err
+		}
+	})
+
+	client.Pipelined(func(pipe redis.Pipeliner) error {
+		pipe.Ping()
+		pipe.Ping()
+		return nil
+	})
+	// Output: pipeline starting processing: [ping:  ping: ]
+	// pipeline finished processing: [ping: PONG ping: PONG]
 }
