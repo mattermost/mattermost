@@ -16,9 +16,16 @@ import (
 
 func TestConfig(t *testing.T) {
 	TranslationsPreInit()
-	cfg, _, err := LoadConfig("config.json")
+	cfg, _, err := LoadConfig("config.json", false)
 	require.Nil(t, err)
 	InitTranslations(cfg.LocalizationSettings)
+}
+
+func TestTimezoneConfig(t *testing.T) {
+	TranslationsPreInit()
+	cfg, _, err := LoadConfig("timezones.json", true)
+	require.Nil(t, err)
+	assert.Equal(t, len(cfg.SupportedTimezones) > 0, true)
 }
 
 func TestFindConfigFile(t *testing.T) {
@@ -45,7 +52,7 @@ func TestConfigFromEnviroVars(t *testing.T) {
 	os.Setenv("MM_SERVICESETTINGS_READTIMEOUT", "400")
 
 	TranslationsPreInit()
-	cfg, cfgPath, err := LoadConfig("config.json")
+	cfg, cfgPath, err := LoadConfig("config.json", false)
 	require.Nil(t, err)
 
 	if cfg.TeamSettings.SiteName != "From Enviroment" {
@@ -75,7 +82,7 @@ func TestConfigFromEnviroVars(t *testing.T) {
 	*cfg.ServiceSettings.ReadTimeout = 300
 	SaveConfig(cfgPath, cfg)
 
-	cfg, _, err = LoadConfig("config.json")
+	cfg, _, err = LoadConfig("config.json", false)
 	require.Nil(t, err)
 
 	if cfg.TeamSettings.SiteName != "Mattermost" {
@@ -85,7 +92,7 @@ func TestConfigFromEnviroVars(t *testing.T) {
 
 func TestValidateLocales(t *testing.T) {
 	TranslationsPreInit()
-	cfg, _, err := LoadConfig("config.json")
+	cfg, _, err := LoadConfig("config.json", false)
 	require.Nil(t, err)
 
 	*cfg.LocalizationSettings.DefaultServerLocale = "en"
@@ -194,7 +201,7 @@ func TestValidateLocales(t *testing.T) {
 
 func TestGetClientConfig(t *testing.T) {
 	TranslationsPreInit()
-	cfg, _, err := LoadConfig("config.json")
+	cfg, _, err := LoadConfig("config.json", false)
 	require.Nil(t, err)
 
 	configMap := GenerateClientConfig(cfg, "", nil)

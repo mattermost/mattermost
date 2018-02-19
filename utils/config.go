@@ -281,7 +281,7 @@ func EnsureConfigFile(fileName string) (string, error) {
 // LoadConfig will try to search around for the corresponding config file.  It will search
 // /tmp/fileName then attempt ./config/fileName, then ../config/fileName and last it will look at
 // fileName.
-func LoadConfig(fileName string) (config *model.Config, configPath string, appErr *model.AppError) {
+func LoadConfig(fileName string, isTimezoneConfig bool) (config *model.Config, configPath string, appErr *model.AppError) {
 	if fileName != filepath.Base(fileName) {
 		configPath = fileName
 	} else {
@@ -297,6 +297,10 @@ func LoadConfig(fileName string) (config *model.Config, configPath string, appEr
 	if err != nil {
 		appErr = model.NewAppError("LoadConfig", "utils.config.load_config.decoding.panic", map[string]interface{}{"Filename": fileName, "Error": err.Error()}, "", 0)
 		return
+	}
+
+	if isTimezoneConfig {
+		return config, "", nil
 	}
 
 	needSave := len(config.SqlSettings.AtRestEncryptKey) == 0 || len(*config.FileSettings.PublicLinkSalt) == 0 ||
