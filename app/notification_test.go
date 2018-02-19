@@ -109,6 +109,33 @@ func TestGetExplicitMentions(t *testing.T) {
 				},
 			},
 		},
+		"OnePersonWithPeriodAtEndOfUsername": {
+			Message:  "this is a message for @user.name.",
+			Keywords: map[string][]string{"@user.name.": {id1}},
+			Expected: &ExplicitMentions{
+				MentionedUserIds: map[string]bool{
+					id1: true,
+				},
+			},
+		},
+		"OnePersonWithPeriodAtEndOfUsernameButNotSimilarName": {
+			Message:  "this is a message for @user.name.",
+			Keywords: map[string][]string{"@user.name.": {id1}, "@user.name": {id2}},
+			Expected: &ExplicitMentions{
+				MentionedUserIds: map[string]bool{
+					id1: true,
+				},
+			},
+		},
+		"OnePersonAtEndOfSentence": {
+			Message:  "this is a message for @user.",
+			Keywords: map[string][]string{"@user": {id1}},
+			Expected: &ExplicitMentions{
+				MentionedUserIds: map[string]bool{
+					id1: true,
+				},
+			},
+		},
 		"OnePersonWithoutAtMention": {
 			Message:  "this is a message for @user",
 			Keywords: map[string][]string{"this": {id1}},
@@ -173,6 +200,24 @@ func TestGetExplicitMentions(t *testing.T) {
 		"UserWithPeriod": {
 			Message:  "user.period doesn't complicate things at all by including periods in their username",
 			Keywords: map[string][]string{"user.period": {id1}, "user": {id2}},
+			Expected: &ExplicitMentions{
+				MentionedUserIds: map[string]bool{
+					id1: true,
+				},
+			},
+		},
+		"AtUserWithPeriodAtEndOfSentence": {
+			Message:  "this is a message for @user.period.",
+			Keywords: map[string][]string{"@user.period": {id1}},
+			Expected: &ExplicitMentions{
+				MentionedUserIds: map[string]bool{
+					id1: true,
+				},
+			},
+		},
+		"UserWithPeriodAtEndOfSentence": {
+			Message:  "this is a message for user.period.",
+			Keywords: map[string][]string{"user.period": {id1}},
 			Expected: &ExplicitMentions{
 				MentionedUserIds: map[string]bool{
 					id1: true,
@@ -1164,5 +1209,240 @@ func TestGetNotificationEmailBodyGenericNotificationDirectChannel(t *testing.T) 
 	}
 	if !strings.Contains(body, teamURL) {
 		t.Fatal("Expected email text '" + teamURL + "'. Got " + body)
+	}
+}
+
+func TestGetPushNotificationMessage(t *testing.T) {
+	th := Setup()
+	defer th.TearDown()
+
+	for name, tc := range map[string]struct {
+		Message                  string
+		WasMentioned             bool
+		HasFiles                 bool
+		Locale                   string
+		PushNotificationContents string
+		ChannelType              string
+
+		ExpectedMessage  string
+		ExpectedCategory string
+	}{
+		"full message, public channel, no mention": {
+			Message:          "this is a message",
+			ChannelType:      model.CHANNEL_OPEN,
+			ExpectedMessage:  "user in channel: this is a message",
+			ExpectedCategory: model.CATEGORY_CAN_REPLY,
+		},
+		"full message, public channel, mention": {
+			Message:          "this is a message",
+			WasMentioned:     true,
+			ChannelType:      model.CHANNEL_OPEN,
+			ExpectedMessage:  "user in channel: this is a message",
+			ExpectedCategory: model.CATEGORY_CAN_REPLY,
+		},
+		"full message, private channel, no mention": {
+			Message:          "this is a message",
+			ChannelType:      model.CHANNEL_PRIVATE,
+			ExpectedMessage:  "user in channel: this is a message",
+			ExpectedCategory: model.CATEGORY_CAN_REPLY,
+		},
+		"full message, private channel, mention": {
+			Message:          "this is a message",
+			WasMentioned:     true,
+			ChannelType:      model.CHANNEL_PRIVATE,
+			ExpectedMessage:  "user in channel: this is a message",
+			ExpectedCategory: model.CATEGORY_CAN_REPLY,
+		},
+		"full message, group message channel, no mention": {
+			Message:          "this is a message",
+			ChannelType:      model.CHANNEL_GROUP,
+			ExpectedMessage:  "user in channel: this is a message",
+			ExpectedCategory: model.CATEGORY_CAN_REPLY,
+		},
+		"full message, group message channel, mention": {
+			Message:          "this is a message",
+			WasMentioned:     true,
+			ChannelType:      model.CHANNEL_GROUP,
+			ExpectedMessage:  "user in channel: this is a message",
+			ExpectedCategory: model.CATEGORY_CAN_REPLY,
+		},
+		"full message, direct message channel, no mention": {
+			Message:          "this is a message",
+			ChannelType:      model.CHANNEL_DIRECT,
+			ExpectedMessage:  "user: this is a message",
+			ExpectedCategory: model.CATEGORY_CAN_REPLY,
+		},
+		"full message, direct message channel, mention": {
+			Message:          "this is a message",
+			WasMentioned:     true,
+			ChannelType:      model.CHANNEL_DIRECT,
+			ExpectedMessage:  "user: this is a message",
+			ExpectedCategory: model.CATEGORY_CAN_REPLY,
+		},
+		"generic message with channel, public channel, no mention": {
+			Message:                  "this is a message",
+			PushNotificationContents: model.GENERIC_NOTIFICATION,
+			ChannelType:              model.CHANNEL_OPEN,
+			ExpectedMessage:          "user posted in channel",
+		},
+		"generic message with channel, public channel, mention": {
+			Message:                  "this is a message",
+			WasMentioned:             true,
+			PushNotificationContents: model.GENERIC_NOTIFICATION,
+			ChannelType:              model.CHANNEL_OPEN,
+			ExpectedMessage:          "user mentioned you in channel",
+			ExpectedCategory:         model.CATEGORY_CAN_REPLY,
+		},
+		"generic message with channel, private channel, no mention": {
+			Message:                  "this is a message",
+			PushNotificationContents: model.GENERIC_NOTIFICATION,
+			ChannelType:              model.CHANNEL_PRIVATE,
+			ExpectedMessage:          "user posted in channel",
+		},
+		"generic message with channel, private channel, mention": {
+			Message:                  "this is a message",
+			WasMentioned:             true,
+			PushNotificationContents: model.GENERIC_NOTIFICATION,
+			ChannelType:              model.CHANNEL_PRIVATE,
+			ExpectedMessage:          "user mentioned you in channel",
+			ExpectedCategory:         model.CATEGORY_CAN_REPLY,
+		},
+		"generic message with channel, group message channel, no mention": {
+			Message:                  "this is a message",
+			PushNotificationContents: model.GENERIC_NOTIFICATION,
+			ChannelType:              model.CHANNEL_GROUP,
+			ExpectedMessage:          "user posted in channel",
+		},
+		"generic message with channel, group message channel, mention": {
+			Message:                  "this is a message",
+			WasMentioned:             true,
+			PushNotificationContents: model.GENERIC_NOTIFICATION,
+			ChannelType:              model.CHANNEL_GROUP,
+			ExpectedMessage:          "user mentioned you in channel",
+			ExpectedCategory:         model.CATEGORY_CAN_REPLY,
+		},
+		"generic message with channel, direct message channel, no mention": {
+			Message:                  "this is a message",
+			PushNotificationContents: model.GENERIC_NOTIFICATION,
+			ChannelType:              model.CHANNEL_DIRECT,
+			ExpectedMessage:          "user sent you a direct message",
+			ExpectedCategory:         model.CATEGORY_CAN_REPLY,
+		},
+		"generic message with channel, direct message channel, mention": {
+			Message:                  "this is a message",
+			WasMentioned:             true,
+			PushNotificationContents: model.GENERIC_NOTIFICATION,
+			ChannelType:              model.CHANNEL_DIRECT,
+			ExpectedMessage:          "user sent you a direct message",
+			ExpectedCategory:         model.CATEGORY_CAN_REPLY,
+		},
+		"generic message without channel, public channel, no mention": {
+			Message:                  "this is a message",
+			PushNotificationContents: model.GENERIC_NO_CHANNEL_NOTIFICATION,
+			ChannelType:              model.CHANNEL_OPEN,
+			ExpectedMessage:          "user posted a message",
+		},
+		"generic message without channel, public channel, mention": {
+			Message:                  "this is a message",
+			WasMentioned:             true,
+			PushNotificationContents: model.GENERIC_NO_CHANNEL_NOTIFICATION,
+			ChannelType:              model.CHANNEL_OPEN,
+			ExpectedMessage:          "user mentioned you",
+		},
+		"generic message without channel, private channel, no mention": {
+			Message:                  "this is a message",
+			PushNotificationContents: model.GENERIC_NO_CHANNEL_NOTIFICATION,
+			ChannelType:              model.CHANNEL_PRIVATE,
+			ExpectedMessage:          "user posted a message",
+		},
+		"generic message without channel, private channel, mention": {
+			Message:                  "this is a message",
+			WasMentioned:             true,
+			PushNotificationContents: model.GENERIC_NO_CHANNEL_NOTIFICATION,
+			ChannelType:              model.CHANNEL_PRIVATE,
+			ExpectedMessage:          "user mentioned you",
+		},
+		"generic message without channel, group message channel, no mention": {
+			Message:                  "this is a message",
+			PushNotificationContents: model.GENERIC_NO_CHANNEL_NOTIFICATION,
+			ChannelType:              model.CHANNEL_GROUP,
+			ExpectedMessage:          "user posted a message",
+		},
+		"generic message without channel, group message channel, mention": {
+			Message:                  "this is a message",
+			WasMentioned:             true,
+			PushNotificationContents: model.GENERIC_NO_CHANNEL_NOTIFICATION,
+			ChannelType:              model.CHANNEL_GROUP,
+			ExpectedMessage:          "user mentioned you",
+		},
+		"generic message without channel, direct message channel, no mention": {
+			Message:                  "this is a message",
+			PushNotificationContents: model.GENERIC_NO_CHANNEL_NOTIFICATION,
+			ChannelType:              model.CHANNEL_DIRECT,
+			ExpectedMessage:          "user sent you a direct message",
+			ExpectedCategory:         model.CATEGORY_CAN_REPLY,
+		},
+		"generic message without channel, direct message channel, mention": {
+			Message:                  "this is a message",
+			WasMentioned:             true,
+			PushNotificationContents: model.GENERIC_NO_CHANNEL_NOTIFICATION,
+			ChannelType:              model.CHANNEL_DIRECT,
+			ExpectedMessage:          "user sent you a direct message",
+			ExpectedCategory:         model.CATEGORY_CAN_REPLY,
+		},
+		"only files, public channel": {
+			HasFiles:         true,
+			ChannelType:      model.CHANNEL_OPEN,
+			ExpectedMessage:  "user uploaded one or more files in channel",
+			ExpectedCategory: model.CATEGORY_CAN_REPLY,
+		},
+		"only files, private channel": {
+			HasFiles:         true,
+			ChannelType:      model.CHANNEL_PRIVATE,
+			ExpectedMessage:  "user uploaded one or more files in channel",
+			ExpectedCategory: model.CATEGORY_CAN_REPLY,
+		},
+		"only files, group message channel": {
+			HasFiles:         true,
+			ChannelType:      model.CHANNEL_GROUP,
+			ExpectedMessage:  "user uploaded one or more files in channel",
+			ExpectedCategory: model.CATEGORY_CAN_REPLY,
+		},
+		"only files, direct message channel": {
+			HasFiles:         true,
+			ChannelType:      model.CHANNEL_DIRECT,
+			ExpectedMessage:  "user uploaded one or more files in a direct message",
+			ExpectedCategory: model.CATEGORY_CAN_REPLY,
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			locale := tc.Locale
+			if locale == "" {
+				locale = "en"
+			}
+
+			pushNotificationContents := tc.PushNotificationContents
+			if pushNotificationContents == "" {
+				pushNotificationContents = model.FULL_NOTIFICATION
+			}
+
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				*cfg.EmailSettings.PushNotificationContents = pushNotificationContents
+			})
+
+			if actualMessage, actualCategory := th.App.getPushNotificationMessage(
+				tc.Message,
+				tc.WasMentioned,
+				tc.HasFiles,
+				"user",
+				"channel",
+				tc.ChannelType,
+				utils.GetUserTranslations(locale),
+			); actualMessage != tc.ExpectedMessage {
+				t.Fatalf("Received incorrect push notification message `%v`, expected `%v`", actualMessage, tc.ExpectedMessage)
+			} else if actualCategory != tc.ExpectedCategory {
+				t.Fatalf("Received incorrect push notification category `%v`, expected `%v`", actualCategory, tc.ExpectedCategory)
+			}
+		})
 	}
 }
