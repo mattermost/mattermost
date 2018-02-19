@@ -481,7 +481,6 @@ func TestJoinUserToTeam(t *testing.T) {
 	maxUsersPerTeam := th.App.Config().TeamSettings.MaxUsersPerTeam
 	defer func() {
 		th.App.UpdateConfig(func(cfg *model.Config) { cfg.TeamSettings.MaxUsersPerTeam = maxUsersPerTeam })
-		th.App.SetDefaultRolesBasedOnConfig()
 		th.App.PermanentDeleteTeam(team)
 	}()
 	one := 1
