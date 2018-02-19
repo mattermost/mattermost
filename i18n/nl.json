@@ -49,7 +49,7 @@
   },
   {
     "id": "api.admin.add_certificate.no_file.app_error",
-    "translation": "Geen bestand in 'certificate' veld in aanvraag"
+    "translation": "Geen bestand gevonden in 'certificate' veld in verzoek"
   },
   {
     "id": "api.admin.add_certificate.open.app_error",
@@ -57,15 +57,15 @@
   },
   {
     "id": "api.admin.add_certificate.saving.app_error",
-    "translation": "Kon het certificaat-bestand niet opslaan"
+    "translation": "Kon het certificaat-bestand niet opslaan."
   },
   {
     "id": "api.admin.file_read_error",
-    "translation": "Fout bij lezen van logbestand"
+    "translation": "Fout bij lezen van logbestand."
   },
   {
     "id": "api.admin.get_brand_image.not_available.app_error",
-    "translation": "Personaliseren is niet ondersteund, of niet geconfigureerd op deze server"
+    "translation": "Personalisatie is niet ondersteund of niet geconfigureerd op deze server."
   },
   {
     "id": "api.admin.get_brand_image.storage.app_error",
@@ -73,15 +73,15 @@
   },
   {
     "id": "api.admin.init.debug",
-    "translation": "Initialisatie van de admin API routes"
+    "translation": "Initialisatie van de admin API routes."
   },
   {
     "id": "api.admin.recycle_db_end.warn",
-    "translation": "Klaar met herstarten van de databaseverbinding"
+    "translation": "Klaar met herstarten van de databaseverbinding."
   },
   {
     "id": "api.admin.recycle_db_start.warn",
-    "translation": "Proberen om de databaseverbinding te herstarten"
+    "translation": "Proberen om de databaseverbinding te herstarten."
   },
   {
     "id": "api.admin.remove_certificate.delete.app_error",
@@ -89,7 +89,7 @@
   },
   {
     "id": "api.admin.saml.metadata.app_error",
-    "translation": "Er is een fout opgetreden tijdens het opstellen van Service Provider Metadata."
+    "translation": "Er is een fout opgetreden tijdens het opzetten van Service Provider Metadata."
   },
   {
     "id": "api.admin.test_email.body",
@@ -132,10 +132,6 @@
     "translation": "Kan bestand niet uploaden. Bestand is te groot."
   },
   {
-    "id": "api.api.init.parsing_templates.debug",
-    "translation": "Server-templates aan het verwerken voor %v"
-  },
-  {
     "id": "api.api.init.parsing_templates.error",
     "translation": "Verwerken van server-template %v is mislukt"
   },
@@ -153,7 +149,7 @@
   },
   {
     "id": "api.channel.add_member.added",
-    "translation": "%v is door %v aan het kanaal toegevoegd"
+    "translation": "%v is door %v aan het kanaal toegevoegd."
   },
   {
     "id": "api.channel.add_member.find_channel.app_error",
@@ -185,11 +181,11 @@
   },
   {
     "id": "api.channel.can_manage_channel.private_restricted_system_admin.app_error",
-    "translation": "Alleen systeembeheerders mogen publieke kanalen beheren en aanmaken."
+    "translation": "Alleen systeembeheerders mogen privékanalen beheren en aanmaken."
   },
   {
     "id": "api.channel.can_manage_channel.private_restricted_team_admin.app_error",
-    "translation": "Alleen team- en systeembeheerders mogen publieke kanalen beheren en aanmaken."
+    "translation": "Alleen team- en systeembeheerders mogen privékanalen beheren en aanmaken."
   },
   {
     "id": "api.channel.can_manage_channel.public_restricted_system_admin.app_error",
@@ -201,11 +197,11 @@
   },
   {
     "id": "api.channel.change_channel_privacy.private_to_public",
-    "translation": "This channel has been converted to a Public Channel and can be joined by any team member."
+    "translation": "Dit kanaal is omgezet naar een publiek kanaal en is open voor ieder teamlid."
   },
   {
     "id": "api.channel.change_channel_privacy.public_to_private",
-    "translation": "This channel has been converted to a Private Channel."
+    "translation": "This kanaal is omgezet naar een privékanaal."
   },
   {
     "id": "api.channel.create_channel.direct_channel.app_error",
@@ -229,15 +225,15 @@
   },
   {
     "id": "api.channel.create_direct_channel.invalid_user.app_error",
-    "translation": "Invalid user ID for direct channel creation"
+    "translation": "Onjuiste gebruikers ID voor het aanmaken van een direct kanaal."
   },
   {
     "id": "api.channel.create_group.bad_size.app_error",
-    "translation": "Group message channels must contain at least 3 and no more than 8 users"
+    "translation": "Groep bericht kanalen moeten tenminste 3 en niet meer dan 8 gebruikers bevatten"
   },
   {
     "id": "api.channel.create_group.bad_user.app_error",
-    "translation": "One of the provided users does not exist"
+    "translation": "Een van de opgegeven gebruikers bestaat niet"
   },
   {
     "id": "api.channel.delete_channel.archived",
@@ -305,7 +301,7 @@
   },
   {
     "id": "api.channel.join_channel.post_and_forget",
-    "translation": "%v is het kanaal binnengekomen."
+    "translation": "%v is nu lid van het kanaal."
   },
   {
     "id": "api.channel.leave.default.app_error",
@@ -317,7 +313,7 @@
   },
   {
     "id": "api.channel.leave.last_member.app_error",
-    "translation": "U bent het laatste lid, probeer de privégroep te verwijderen in plaats van die te verlaten."
+    "translation": "U bent het laatste lid, probeer de privékanaalte verwijderen in plaats van die te verlaten."
   },
   {
     "id": "api.channel.leave.left",
@@ -329,7 +325,7 @@
   },
   {
     "id": "api.channel.post_update_channel_displayname_message_and_forget.retrieve_user.error",
-    "translation": "Kon de gebruiker niet ophalen tijdens het bewaren van de nieuwe kanaalkoptekst %v"
+    "translation": "Kon de gebruiker niet ophalen tijdens het bijwerken van het kanaal weergavenaam veld"
   },
   {
     "id": "api.channel.post_update_channel_displayname_message_and_forget.updated_from",
@@ -337,7 +333,7 @@
   },
   {
     "id": "api.channel.post_update_channel_header_message_and_forget.post.error",
-    "translation": "Failed to post update channel header message"
+    "translation": "Kanaalkoptekst bijwerken mislukt"
   },
   {
     "id": "api.channel.post_update_channel_header_message_and_forget.removed",
@@ -2203,10 +2199,6 @@
     "translation": "De aanmeld link is verlopen"
   },
   {
-    "id": "api.team.create_team_from_signup.invalid_link.app_error",
-    "translation": "De aanmeld link is niet geldig"
-  },
-  {
     "id": "api.team.create_team_from_signup.unavailable.app_error",
     "translation": "Deze URL is niet beschikbaar. Probeer een andere."
   },
@@ -2305,6 +2297,14 @@
   {
     "id": "api.team.leave.left",
     "translation": "%v left the team."
+  },
+  {
+    "id": "api.team.move_channel.post.error",
+    "translation": "Plaatsen van bericht over binnenkomen/verlaten %v is mislukt"
+  },
+  {
+    "id": "api.team.move_channel.success",
+    "translation": "This channel has been moved to this team from %v."
   },
   {
     "id": "api.team.permanent_delete_team.attempting.warn",
@@ -2711,6 +2711,10 @@
     "translation": "De aanmeld link is niet geldig"
   },
   {
+    "id": "api.user.create_user.signup_link_mismatched_invite_id.app_error",
+    "translation": "De aanmeld link is niet geldig"
+  },
+  {
     "id": "api.user.create_user.team_name.app_error",
     "translation": "Ongeldige team naam"
   },
@@ -3067,6 +3071,10 @@
     "translation": "Kan inhoud van inkomende webhook niet lezen."
   },
   {
+    "id": "api.webhook.incoming.error",
+    "translation": "Could not decode the multipart payload of incoming webhook."
+  },
+  {
     "id": "api.webhook.init.debug",
     "translation": "Initialisatie van de webhook api"
   },
@@ -3136,7 +3144,7 @@
   },
   {
     "id": "app.channel.post_update_channel_purpose_message.post.error",
-    "translation": "Failed to post channel purpose message"
+    "translation": "Plaatsen van bericht over binnenkomen/verlaten %v is mislukt"
   },
   {
     "id": "app.channel.post_update_channel_purpose_message.removed",
@@ -3204,27 +3212,27 @@
   },
   {
     "id": "app.import.import_line.null_channel.error",
-    "translation": "Import data line has type \"channel\" but the channel object is null."
+    "translation": "Geimporteerde lijn met type \"user\", maar het \"user\" object is null."
   },
   {
     "id": "app.import.import_line.null_direct_channel.error",
-    "translation": "Import data line has type \"direct_channel\" but the direct_channel object is null."
+    "translation": "Geimporteerde lijn met type \"user\", maar het \"user\" object is null."
   },
   {
     "id": "app.import.import_line.null_direct_post.error",
-    "translation": "Import data line has type \"direct_post\" but the direct_post object is null."
+    "translation": "Geimporteerde lijn met type \"user\", maar het \"user\" object is null."
   },
   {
     "id": "app.import.import_line.null_post.error",
-    "translation": "Import data line has type \"post\" but the post object is null."
+    "translation": "Geimporteerde lijn met type \"user\", maar het \"user\" object is null."
   },
   {
     "id": "app.import.import_line.null_team.error",
-    "translation": "Import data line has type \"team\" but the team object is null."
+    "translation": "Geimporteerde lijn met type \"user\", maar het \"user\" object is null."
   },
   {
     "id": "app.import.import_line.null_user.error",
-    "translation": "Import data line has type \"user\" but the user object is null."
+    "translation": "Geimporteerde lijn met type \"user\", maar het \"user\" object is null."
   },
   {
     "id": "app.import.import_line.unknown_line_type.error",
@@ -3252,7 +3260,7 @@
   },
   {
     "id": "app.import.validate_channel_import_data.create_at_zero.error",
-    "translation": "Channel create_at must not be zero if provided."
+    "translation": "Kanaaleigenschap create_at mag niet 0 zijn indien opgegeven."
   },
   {
     "id": "app.import.validate_channel_import_data.display_name_length.error",
@@ -3260,7 +3268,7 @@
   },
   {
     "id": "app.import.validate_channel_import_data.display_name_missing.error",
-    "translation": "Missing required channel property: display_name"
+    "translation": "Mist vereiste team kenmerk: naam."
   },
   {
     "id": "app.import.validate_channel_import_data.header_length.error",
@@ -3276,7 +3284,7 @@
   },
   {
     "id": "app.import.validate_channel_import_data.name_missing.error",
-    "translation": "Missing required channel property: name"
+    "translation": "Mist vereiste team kenmerk: naam."
   },
   {
     "id": "app.import.validate_channel_import_data.purpose_length.error",
@@ -3284,7 +3292,7 @@
   },
   {
     "id": "app.import.validate_channel_import_data.team_missing.error",
-    "translation": "Missing required channel property: team"
+    "translation": "Mist vereiste team kenmerk: naam."
   },
   {
     "id": "app.import.validate_channel_import_data.type_invalid.error",
@@ -3292,7 +3300,7 @@
   },
   {
     "id": "app.import.validate_channel_import_data.type_missing.error",
-    "translation": "Missing required channel property: type."
+    "translation": "Mist vereiste team kenmerk: naam."
   },
   {
     "id": "app.import.validate_direct_channel_import_data.header_length.error",
@@ -3300,7 +3308,7 @@
   },
   {
     "id": "app.import.validate_direct_channel_import_data.members_required.error",
-    "translation": "Missing required direct channel property: members"
+    "translation": "Mist vereiste team kenmerk: naam."
   },
   {
     "id": "app.import.validate_direct_channel_import_data.members_too_few.error",
@@ -3316,7 +3324,7 @@
   },
   {
     "id": "app.import.validate_direct_post_import_data.channel_members_required.error",
-    "translation": "Missing required direct post property: channel_members"
+    "translation": "Mist vereiste team kenmerk: naam."
   },
   {
     "id": "app.import.validate_direct_post_import_data.channel_members_too_few.error",
@@ -3328,7 +3336,7 @@
   },
   {
     "id": "app.import.validate_direct_post_import_data.create_at_missing.error",
-    "translation": "Missing required direct post property: create_at"
+    "translation": "Mist vereiste team kenmerk: naam."
   },
   {
     "id": "app.import.validate_direct_post_import_data.create_at_zero.error",
@@ -3340,7 +3348,7 @@
   },
   {
     "id": "app.import.validate_direct_post_import_data.message_missing.error",
-    "translation": "Missing required direct post property: message"
+    "translation": "Mist vereiste team kenmerk: naam."
   },
   {
     "id": "app.import.validate_direct_post_import_data.unknown_flagger.error",
@@ -3348,15 +3356,15 @@
   },
   {
     "id": "app.import.validate_direct_post_import_data.user_missing.error",
-    "translation": "Missing required direct post property: user"
+    "translation": "Mist vereiste team kenmerk: naam."
   },
   {
     "id": "app.import.validate_post_import_data.channel_missing.error",
-    "translation": "Missing required Post property: Channel."
+    "translation": "Mist vereiste team kenmerk: naam."
   },
   {
     "id": "app.import.validate_post_import_data.create_at_missing.error",
-    "translation": "Missing required Post property: create_at."
+    "translation": "Mist vereiste team kenmerk: naam."
   },
   {
     "id": "app.import.validate_post_import_data.create_at_zero.error",
@@ -3368,23 +3376,23 @@
   },
   {
     "id": "app.import.validate_post_import_data.message_missing.error",
-    "translation": "Missing required Post property: Message."
+    "translation": "Mist vereiste team kenmerk: naam."
   },
   {
     "id": "app.import.validate_post_import_data.team_missing.error",
-    "translation": "Missing required Post property: Team."
+    "translation": "Mist vereiste team kenmerk: naam."
   },
   {
     "id": "app.import.validate_post_import_data.user_missing.error",
-    "translation": "Missing required Post property: User."
+    "translation": "Mist vereiste team kenmerk: naam."
   },
   {
     "id": "app.import.validate_reaction_import_data.create_at_before_parent.error",
-    "translation": "Reaction CreateAt property must be greater than the parent post CreateAt."
+    "translation": "Reactie CreateAt eigenschap moet groter zijn dan het hoofdbericht CreateAt"
   },
   {
     "id": "app.import.validate_reaction_import_data.create_at_missing.error",
-    "translation": "Missing required Reaction property: create_at."
+    "translation": "Mist vereiste team kenmerk: naam."
   },
   {
     "id": "app.import.validate_reaction_import_data.create_at_zero.error",
@@ -3396,19 +3404,19 @@
   },
   {
     "id": "app.import.validate_reaction_import_data.emoji_name_missing.error",
-    "translation": "Missing required Reaction property: EmojiName."
+    "translation": "Mist vereiste team kenmerk: naam."
   },
   {
     "id": "app.import.validate_reaction_import_data.user_missing.error",
-    "translation": "Missing required Reaction property: User."
+    "translation": "Mist vereiste team kenmerk: naam."
   },
   {
     "id": "app.import.validate_reply_import_data.create_at_before_parent.error",
-    "translation": "Reply CreateAt property must be greater than the parent post CreateAt."
+    "translation": "Reactie CreateAt eigenschap moet groter zijn dan het hoofdbericht CreateAt"
   },
   {
     "id": "app.import.validate_reply_import_data.create_at_missing.error",
-    "translation": "Missing required Reply property: create_at."
+    "translation": "Mist vereiste team kenmerk: naam."
   },
   {
     "id": "app.import.validate_reply_import_data.create_at_zero.error",
@@ -3420,11 +3428,11 @@
   },
   {
     "id": "app.import.validate_reply_import_data.message_missing.error",
-    "translation": "Missing required Reply property: Message."
+    "translation": "Mist vereiste team kenmerk: naam."
   },
   {
     "id": "app.import.validate_reply_import_data.user_missing.error",
-    "translation": "Missing required Reply property: User."
+    "translation": "Mist vereiste team kenmerk: naam."
   },
   {
     "id": "app.import.validate_team_import_data.allowed_domains_length.error",
@@ -3432,7 +3440,7 @@
   },
   {
     "id": "app.import.validate_team_import_data.create_at_zero.error",
-    "translation": "Team create_at must not be zero if provided."
+    "translation": "Kanaaleigenschap create_at mag niet 0 zijn indien opgegeven."
   },
   {
     "id": "app.import.validate_team_import_data.description_length.error",
@@ -3444,7 +3452,7 @@
   },
   {
     "id": "app.import.validate_team_import_data.display_name_missing.error",
-    "translation": "Missing required team property: display_name."
+    "translation": "Mist vereiste team kenmerk: naam."
   },
   {
     "id": "app.import.validate_team_import_data.name_characters.error",
@@ -3456,7 +3464,7 @@
   },
   {
     "id": "app.import.validate_team_import_data.name_missing.error",
-    "translation": "Missing required team property: name."
+    "translation": "Mist vereiste team kenmerk: naam."
   },
   {
     "id": "app.import.validate_team_import_data.name_reserved.error",
@@ -3468,7 +3476,7 @@
   },
   {
     "id": "app.import.validate_team_import_data.type_missing.error",
-    "translation": "Missing required team property: type."
+    "translation": "Mist vereiste team kenmerk: naam."
   },
   {
     "id": "app.import.validate_user_channels_import_data.channel_name_missing.error",
@@ -3508,7 +3516,7 @@
   },
   {
     "id": "app.import.validate_user_import_data.email_missing.error",
-    "translation": "Missing required user property: email."
+    "translation": "Mist vereiste team kenmerk: naam."
   },
   {
     "id": "app.import.validate_user_import_data.first_name_length.error",
@@ -3576,7 +3584,7 @@
   },
   {
     "id": "app.import.validate_user_import_data.username_missing.error",
-    "translation": "Missing require user property: username."
+    "translation": "Mist vereiste team kenmerk: naam."
   },
   {
     "id": "app.import.validate_user_teams_import_data.invalid_roles.error",
@@ -4028,7 +4036,7 @@
   },
   {
     "id": "ent.elasticsearch.test_config.connect_failed",
-    "translation": "Connecting to Elasticsearch server failed."
+    "translation": "Connectie naar Elasticsearch server is mislukt."
   },
   {
     "id": "ent.elasticsearch.test_config.indexing_disabled.error",
@@ -4672,7 +4680,7 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.connection_url.app_error",
-    "translation": "Elastic Search ConnectionUrl setting must be provided when Elastic Search indexing is enabled."
+    "translation": "Elastic Search Username instelling moet ingevuld zijn wanneer Elastic Search indexing is ingeschakeld."
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_searching.app_error",
@@ -4684,7 +4692,7 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.password.app_error",
-    "translation": "Elastic Search Password setting must be provided when Elastic Search indexing is enabled."
+    "translation": "Elastic Search Username instelling moet ingevuld zijn wanneer Elastic Search indexing is ingeschakeld."
   },
   {
     "id": "model.config.is_valid.elastic_search.posts_aggregator_job_start_time.app_error",
@@ -4696,7 +4704,7 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.username.app_error",
-    "translation": "Elastic Search Username setting must be provided when Elastic Search indexing is enabled."
+    "translation": "Elastic Search Username instelling moet ingevuld zijn wanneer Elastic Search indexing is ingeschakeld."
   },
   {
     "id": "model.config.is_valid.email_batching_buffer_size.app_error",
@@ -4757,6 +4765,10 @@
   {
     "id": "model.config.is_valid.file_thumb_width.app_error",
     "translation": "Ongeldige voorvertonings breedte bij bestands instellingen. Moet een getal groter dan 0 zijn."
+  },
+  {
+    "id": "model.config.is_valid.group_unread_channels.app_error",
+    "translation": "Invalid group unread channels for service settings. Must be 'disabled', 'default_on', or 'default_off'."
   },
   {
     "id": "model.config.is_valid.image_proxy_type.app_error",
@@ -4867,12 +4879,20 @@
     "translation": "Message export job ExportFromTimestamp must be a timestamp (expressed in seconds since unix epoch). Only messages sent after this timestamp will be exported."
   },
   {
+    "id": "model.config.is_valid.message_export.export_type.app_error",
+    "translation": "Message export job ExportFormat must be one of either 'actiance' or 'globalrelay'"
+  },
+  {
     "id": "model.config.is_valid.message_export.file_location.app_error",
     "translation": "Message export job FileLocation must be a writable directory that export data will be written to"
   },
   {
     "id": "model.config.is_valid.message_export.file_location.relative",
     "translation": "Message export job FileLocation must be a sub-directory of FileSettings.Directory"
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay_email_address.app_error",
+    "translation": "Message export job GlobalRelayEmailAddress must be set to a valid email address"
   },
   {
     "id": "model.config.is_valid.password_length.app_error",
@@ -7087,6 +7107,10 @@
     "translation": "Kan geen verbinding opzetten naa de SMTP server, fout=%v"
   },
   {
+    "id": "utils.mail.sendMail.attachments.write_error",
+    "translation": "Failed to write attachment to email"
+  },
+  {
     "id": "utils.mail.send_mail.close.app_error",
     "translation": "Er is een probleem opgetreden bij het afsluiten van de verbinding naar de SMTP server"
   },
@@ -7153,10 +7177,6 @@
   {
     "id": "web.create_dir.error",
     "translation": "Toevoegen van een directory om te controleren is mislukt %v"
-  },
-  {
-    "id": "web.dir_fail.error",
-    "translation": "Fout tijdens het bekijken van de directory %v"
   },
   {
     "id": "web.do_load_channel.error",
@@ -7263,16 +7283,8 @@
     "translation": "Server template aan het verwerken voor %v"
   },
   {
-    "id": "web.parsing_templates.error",
-    "translation": "Server template %v is niet te verwerken"
-  },
-  {
     "id": "web.post_permalink.app_error",
     "translation": "Ongeldige bericht ID"
-  },
-  {
-    "id": "web.reparse_templates.info",
-    "translation": "Templates opnieuw verwerken, door aangepast bestand %v"
   },
   {
     "id": "web.reset_password.expired_link.app_error",
@@ -7291,10 +7303,6 @@
     "translation": "Aanmelden"
   },
   {
-    "id": "web.signup_team_complete.invalid_link.app_error",
-    "translation": "De aanmeld link is niet geldig"
-  },
-  {
     "id": "web.signup_team_complete.link_expired.app_error",
     "translation": "De aanmeld link is verlopen"
   },
@@ -7309,10 +7317,6 @@
   {
     "id": "web.signup_user_complete.link_expired.app_error",
     "translation": "De aanmeld link is verlopen"
-  },
-  {
-    "id": "web.signup_user_complete.link_invalid.app_error",
-    "translation": "De aanmeld link is niet geldig"
   },
   {
     "id": "web.signup_user_complete.no_invites.app_error",

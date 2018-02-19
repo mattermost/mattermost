@@ -132,10 +132,6 @@
     "translation": "Impossibile caricare il file. Il file è troppo grande."
   },
   {
-    "id": "api.api.init.parsing_templates.debug",
-    "translation": "Analisi dei template del server: %v"
-  },
-  {
     "id": "api.api.init.parsing_templates.error",
     "translation": "Impossibile analizzare i modelli del server %v"
   },
@@ -2203,10 +2199,6 @@
     "translation": "Il collegamento per l'iscrizione è scaduto"
   },
   {
-    "id": "api.team.create_team_from_signup.invalid_link.app_error",
-    "translation": "Il collegamento per l'iscrizione non sembra essere valido"
-  },
-  {
     "id": "api.team.create_team_from_signup.unavailable.app_error",
     "translation": "L'URL non è disponibile. Provane un altro."
   },
@@ -2305,6 +2297,14 @@
   {
     "id": "api.team.leave.left",
     "translation": "%v ha lasciato il gruppo."
+  },
+  {
+    "id": "api.team.move_channel.post.error",
+    "translation": "Impossibile pubblicare il messaggio di spostamento del canale."
+  },
+  {
+    "id": "api.team.move_channel.success",
+    "translation": "Questo canale è stato spostato in questo gruppo da %v."
   },
   {
     "id": "api.team.permanent_delete_team.attempting.warn",
@@ -2711,6 +2711,10 @@
     "translation": "Il collegamento per l'iscrizione non sembra essere valido"
   },
   {
+    "id": "api.user.create_user.signup_link_mismatched_invite_id.app_error",
+    "translation": "Il collegamento per l'iscrizione non sembra essere valido"
+  },
+  {
     "id": "api.user.create_user.team_name.app_error",
     "translation": "Nome gruppo non valido"
   },
@@ -3065,6 +3069,10 @@
   {
     "id": "api.webhook.incoming.debug.error",
     "translation": "Impossibile leggere il contenuto del webhook in ingresso."
+  },
+  {
+    "id": "api.webhook.incoming.error",
+    "translation": "Could not decode the multipart payload of incoming webhook."
   },
   {
     "id": "api.webhook.init.debug",
@@ -4759,6 +4767,10 @@
     "translation": "Larghezza antemprima non valida per le impostazioni file.  Deve essere un numero positivo."
   },
   {
+    "id": "model.config.is_valid.group_unread_channels.app_error",
+    "translation": "Canali non letti del gruppo non validi per le impostazioni del servizio. Dev'essere 'disabled', 'default_on' oppure 'default_off'."
+  },
+  {
     "id": "model.config.is_valid.image_proxy_type.app_error",
     "translation": "Tipo proxy immagine non valido nelle impostazioni del servizio."
   },
@@ -4867,12 +4879,20 @@
     "translation": "Lavoro esportazione messaggi il valore ExportFromTimestamp deve essere un timestamp (espresso in secondi dall'epoca unix). Solo i messaggi successivi a questo valore saranno esportati."
   },
   {
+    "id": "model.config.is_valid.message_export.export_type.app_error",
+    "translation": "ExportFormat del lavoro di esportazione messaggi deve essere 'actianve' oppure 'globalrelay'"
+  },
+  {
     "id": "model.config.is_valid.message_export.file_location.app_error",
     "translation": "Lavoro esportazione messaggi il valore FileLocation deve essere una cartella accessibile in scrittura in cui verranno salvati i dati esportati"
   },
   {
     "id": "model.config.is_valid.message_export.file_location.relative",
     "translation": "Lavoro esportazione messaggi il valore FileLocation deve essere una sottocartella di FileSettings.Directory"
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay_email_address.app_error",
+    "translation": "GlobalRelayEmailAddress del lavoro di esportazione messaggi deve essere un indirizzo email valido"
   },
   {
     "id": "model.config.is_valid.password_length.app_error",
@@ -7087,6 +7107,10 @@
     "translation": "Impossibile aprire una connessione al server SMTP %v"
   },
   {
+    "id": "utils.mail.sendMail.attachments.write_error",
+    "translation": "Impossibile aggiungere l'allegato all'email"
+  },
+  {
     "id": "utils.mail.send_mail.close.app_error",
     "translation": "Impossibile chiudere la connessione al server SMTP"
   },
@@ -7153,10 +7177,6 @@
   {
     "id": "web.create_dir.error",
     "translation": "Impossibile creare osservatore cartella %v"
-  },
-  {
-    "id": "web.dir_fail.error",
-    "translation": "Fallito nell'osservatore cartella %v"
   },
   {
     "id": "web.do_load_channel.error",
@@ -7263,16 +7283,8 @@
     "translation": "Analisi dei template del server: %v"
   },
   {
-    "id": "web.parsing_templates.error",
-    "translation": "Impossibile analizzare i modelli %v"
-  },
-  {
     "id": "web.post_permalink.app_error",
     "translation": "ID pubblicazione non valido"
-  },
-  {
-    "id": "web.reparse_templates.info",
-    "translation": "Rianalisi dei modelli in corso a causa della modifica al file %v"
   },
   {
     "id": "web.reset_password.expired_link.app_error",
@@ -7291,10 +7303,6 @@
     "translation": "Iscrizione"
   },
   {
-    "id": "web.signup_team_complete.invalid_link.app_error",
-    "translation": "Il collegamento per l'iscrizione non sembra essere valido"
-  },
-  {
     "id": "web.signup_team_complete.link_expired.app_error",
     "translation": "Il collegamento per l'iscrizione è scaduto"
   },
@@ -7309,10 +7317,6 @@
   {
     "id": "web.signup_user_complete.link_expired.app_error",
     "translation": "Il collegamento per l'iscrizione è scaduto"
-  },
-  {
-    "id": "web.signup_user_complete.link_invalid.app_error",
-    "translation": "Il collegamento per l'iscrizione non sembra essere valido"
   },
   {
     "id": "web.signup_user_complete.no_invites.app_error",

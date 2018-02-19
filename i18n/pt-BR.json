@@ -132,10 +132,6 @@
     "translation": "Não foi possível enviar o arquivo. Arquivo é muito grande."
   },
   {
-    "id": "api.api.init.parsing_templates.debug",
-    "translation": "Analisando modelos no servidor %v"
-  },
-  {
     "id": "api.api.init.parsing_templates.error",
     "translation": "Falha ao processar os modelos do servidor %v"
   },
@@ -1812,11 +1808,11 @@
   },
   {
     "id": "api.post.send_notifications_and_forget.push_image_only",
-    "translation": " Enviados um ou mais arquivos em "
+    "translation": " enviado um ou mais arquivos em "
   },
   {
     "id": "api.post.send_notifications_and_forget.push_image_only_dm",
-    "translation": " Enviado um ou mais arquivos em uma mensagem direta"
+    "translation": " enviado um ou mais arquivos em uma mensagem direta"
   },
   {
     "id": "api.post.send_notifications_and_forget.push_in",
@@ -2203,10 +2199,6 @@
     "translation": "O link de inscrição expirou"
   },
   {
-    "id": "api.team.create_team_from_signup.invalid_link.app_error",
-    "translation": "O link de inscrição não parece ser válido"
-  },
-  {
     "id": "api.team.create_team_from_signup.unavailable.app_error",
     "translation": "Esta URL não está disponível. Por favor, tente outra."
   },
@@ -2307,6 +2299,14 @@
     "translation": "%v deixou a equipe."
   },
   {
+    "id": "api.team.move_channel.post.error",
+    "translation": "Falha ao postar a mensagem de mover o canal."
+  },
+  {
+    "id": "api.team.move_channel.success",
+    "translation": "Este canal foi movido desta equipe para %v."
+  },
+  {
     "id": "api.team.permanent_delete_team.attempting.warn",
     "translation": "Tentando permanentemente deletar a equipe %v id=%v"
   },
@@ -2372,7 +2372,7 @@
   },
   {
     "id": "api.templates.email_info",
-    "translation": "Qualquer dúvida, envie-nos a qualquer momento: <a href='mailto:{{.SupportEmail}}' style='text-decoration: none; color:#2389D7;'>{{.SupportEmail}}</a>.<br>Nossos melhores cumprimentos,<br>Equipe {{.SiteName}}<br>"
+    "translation": "Se tiver qualquer dúvida, envie-nos um e-mail a qualquer momento: <a href='mailto:{{.SupportEmail}}' style='text-decoration: none; color:#2389D7;'>{{.SupportEmail}}</a>.<br>Nossos melhores cumprimentos,<br>Equipe {{.SiteName}}<br>"
   },
   {
     "id": "api.templates.email_organization",
@@ -2709,6 +2709,10 @@
   {
     "id": "api.user.create_user.signup_link_invalid.app_error",
     "translation": "O link de inscrição não parece ser válido"
+  },
+  {
+    "id": "api.user.create_user.signup_link_mismatched_invite_id.app_error",
+    "translation": "O link de inscrição não parece estar válido"
   },
   {
     "id": "api.user.create_user.team_name.app_error",
@@ -3065,6 +3069,10 @@
   {
     "id": "api.webhook.incoming.debug.error",
     "translation": "Não foi possível ler o payload do webhook de entrada."
+  },
+  {
+    "id": "api.webhook.incoming.error",
+    "translation": "Could not decode the multipart payload of incoming webhook."
   },
   {
     "id": "api.webhook.init.debug",
@@ -4759,6 +4767,10 @@
     "translation": "Definição da largura do thumbnail inválida.  Deve ser um número positivo."
   },
   {
+    "id": "model.config.is_valid.group_unread_channels.app_error",
+    "translation": "Grupo de canais não lidos inválido nas configurações do serviço. Deve ser 'disabled', 'default_on', ou 'default_off'."
+  },
+  {
     "id": "model.config.is_valid.image_proxy_type.app_error",
     "translation": "Tipo de proxy de imagem inválido nas configurações de serviços."
   },
@@ -4867,12 +4879,20 @@
     "translation": "O trabalho de exportação de mensagens ExportFromTimestamp deve ser data e hora (expresso em segundos unix epoch). Somente mensagens enviadas após está data e hora serão exportadas."
   },
   {
+    "id": "model.config.is_valid.message_export.export_type.app_error",
+    "translation": "Message export job ExportFormat must be one of either 'actiance' or 'globalrelay'"
+  },
+  {
     "id": "model.config.is_valid.message_export.file_location.app_error",
     "translation": "Trabalho de exportação de mensagens FileLocation deve ser um diretório gravável onde os dados de exportação serão gravados"
   },
   {
     "id": "model.config.is_valid.message_export.file_location.relative",
     "translation": "Trabalho de exportação de mensagens FileLocation deve ser um subdiretório de FileSettings.Directory"
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay_email_address.app_error",
+    "translation": "Message export job GlobalRelayEmailAddress must be set to a valid email address"
   },
   {
     "id": "model.config.is_valid.password_length.app_error",
@@ -7087,6 +7107,10 @@
     "translation": "Falha ao abrir a conexão SMTP para o servidor %v"
   },
   {
+    "id": "utils.mail.sendMail.attachments.write_error",
+    "translation": "Failed to write attachment to email"
+  },
+  {
     "id": "utils.mail.send_mail.close.app_error",
     "translation": "Falha ao fechar a conexão com servidor SMTP"
   },
@@ -7153,10 +7177,6 @@
   {
     "id": "web.create_dir.error",
     "translation": "Falha ao criar o diretório observador %v"
-  },
-  {
-    "id": "web.dir_fail.error",
-    "translation": "Falha no diretório observador %v"
   },
   {
     "id": "web.do_load_channel.error",
@@ -7263,16 +7283,8 @@
     "translation": "Analisando modelos no %v"
   },
   {
-    "id": "web.parsing_templates.error",
-    "translation": "Falha ao processar os modelos %v"
-  },
-  {
     "id": "web.post_permalink.app_error",
     "translation": "Post ID Inválido"
-  },
-  {
-    "id": "web.reparse_templates.info",
-    "translation": "Re-análise dos modelos por causa da modificação do arquivo %v"
   },
   {
     "id": "web.reset_password.expired_link.app_error",
@@ -7291,10 +7303,6 @@
     "translation": "Inscrever-se"
   },
   {
-    "id": "web.signup_team_complete.invalid_link.app_error",
-    "translation": "O link de inscrição não parece ser válido"
-  },
-  {
     "id": "web.signup_team_complete.link_expired.app_error",
     "translation": "O link de inscrição expirou"
   },
@@ -7309,10 +7317,6 @@
   {
     "id": "web.signup_user_complete.link_expired.app_error",
     "translation": "O link de inscrição expirou"
-  },
-  {
-    "id": "web.signup_user_complete.link_invalid.app_error",
-    "translation": "O link de inscrição não parece ser válido"
   },
   {
     "id": "web.signup_user_complete.no_invites.app_error",
