@@ -1812,11 +1812,11 @@
   },
   {
     "id": "api.post.send_notifications_and_forget.push_image_only",
-    "translation": " Uploaded one or more files in "
+    "translation": " uploaded one or more files in "
   },
   {
     "id": "api.post.send_notifications_and_forget.push_image_only_dm",
-    "translation": " Uploaded one or more files in a direct message"
+    "translation": " uploaded one or more files in a direct message"
   },
   {
     "id": "api.post.send_notifications_and_forget.push_in",
@@ -2201,10 +2201,6 @@
   {
     "id": "api.team.create_team_from_signup.expired_link.app_error",
     "translation": "가입 링크가 만료되었습니다."
-  },
-  {
-    "id": "api.team.create_team_from_signup.invalid_link.app_error",
-    "translation": "유효하지 않은 가입 링크입니다."
   },
   {
     "id": "api.team.create_team_from_signup.unavailable.app_error",
@@ -2711,6 +2707,10 @@
     "translation": "유효하지 않은 가입 링크입니다."
   },
   {
+    "id": "api.user.create_user.signup_link_mismatched_invite_id.app_error",
+    "translation": "유효하지 않은 가입 링크입니다."
+  },
+  {
     "id": "api.user.create_user.team_name.app_error",
     "translation": "올바르지 않은 팀 이름"
   },
@@ -3136,7 +3136,7 @@
   },
   {
     "id": "app.channel.post_update_channel_purpose_message.post.error",
-    "translation": "Failed to post channel purpose message"
+    "translation": "들어옴/나감 메시지를 등록하는 데 실패함"
   },
   {
     "id": "app.channel.post_update_channel_purpose_message.removed",
@@ -3689,6 +3689,10 @@
   {
     "id": "app.plugin.upload_disabled.app_error",
     "translation": "Plugins and/or plugin uploads have been disabled."
+  },
+  {
+    "id": "app.team.join_user_to_team.max_accounts.app_error",
+    "translation": "This team has reached the maximum number of allowed accounts. Contact your systems administrator to set a higher limit."
   },
   {
     "id": "app.user_access_token.disabled",
@@ -4757,6 +4761,10 @@
   {
     "id": "model.config.is_valid.file_thumb_width.app_error",
     "translation": "파일 세팅에 대한 잘못된 썸네일 너비값입니다. 0보다 큰 값이여야 합니다."
+  },
+  {
+    "id": "model.config.is_valid.group_unread_channels.app_error",
+    "translation": "Invalid group unread channels for service settings. Must be 'disabled', 'default_on', or 'default_off'."
   },
   {
     "id": "model.config.is_valid.image_proxy_type.app_error",
@@ -7291,10 +7299,6 @@
     "translation": "가입"
   },
   {
-    "id": "web.signup_team_complete.invalid_link.app_error",
-    "translation": "유효하지 않은 가입 링크입니다."
-  },
-  {
     "id": "web.signup_team_complete.link_expired.app_error",
     "translation": "가입 링크가 만료되었습니다."
   },
@@ -7309,10 +7313,6 @@
   {
     "id": "web.signup_user_complete.link_expired.app_error",
     "translation": "가입 링크가 만료되었습니다."
-  },
-  {
-    "id": "web.signup_user_complete.link_invalid.app_error",
-    "translation": "유효하지 않은 가입 링크입니다."
   },
   {
     "id": "web.signup_user_complete.no_invites.app_error",
