@@ -9,6 +9,8 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+
+	"github.com/pkg/errors"
 )
 
 // checkResponse will return an error if the request/response indicates
@@ -87,6 +89,12 @@ func (e *Error) Error() string {
 	} else {
 		return fmt.Sprintf("elastic: Error %d (%s)", e.Status, http.StatusText(e.Status))
 	}
+}
+
+// IsConnErr returns true if the error indicates that Elastic could not
+// find an Elasticsearch host to connect to.
+func IsConnErr(err error) bool {
+	return err == ErrNoClient || errors.Cause(err) == ErrNoClient
 }
 
 // IsNotFound returns true if the given error indicates that Elasticsearch

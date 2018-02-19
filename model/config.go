@@ -2100,7 +2100,7 @@ func (ss *ServiceSettings) isValid() *AppError {
 	}
 
 	switch *ss.ImageProxyType {
-	case "", "willnorris/imageproxy":
+	case "":
 	case "atmos/camo":
 		if *ss.ImageProxyOptions == "" {
 			return NewAppError("Config.IsValid", "model.config.is_valid.atmos_camo_image_proxy_options.app_error", nil, "", http.StatusBadRequest)

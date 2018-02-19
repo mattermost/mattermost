@@ -338,6 +338,11 @@ func (t *Txn) delete(parent, n *Node, search []byte) (*Node, *leafNode) {
 		if !n.isLeaf() {
 			return nil, nil
 		}
+		// Copy the pointer in case we are in a transaction that already
+		// modified this node since the node will be reused. Any changes
+		// made to the node will not affect returning the original leaf
+		// value.
+		oldLeaf := n.leaf
 
 		// Remove the leaf node
 		nc := t.writeNode(n, true)
@@ -347,7 +352,7 @@ func (t *Txn) delete(parent, n *Node, search []byte) (*Node, *leafNode) {
 		if n != t.root && len(nc.edges) == 1 {
 			t.mergeChild(nc)
 		}
-		return nc, n.leaf
+		return nc, oldLeaf
 	}
 
 	// Look for an edge

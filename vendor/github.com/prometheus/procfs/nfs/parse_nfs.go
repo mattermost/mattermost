@@ -32,12 +32,12 @@ func ParseClientRPCStats(r io.Reader) (*ClientRPCStats, error) {
 		parts := strings.Fields(scanner.Text())
 		// require at least <key> <value>
 		if len(parts) < 2 {
-			return nil, fmt.Errorf("invalid NFSd metric line %q", line)
+			return nil, fmt.Errorf("invalid NFS metric line %q", line)
 		}
 
 		values, err := util.ParseUint64s(parts[1:])
 		if err != nil {
-			return nil, fmt.Errorf("error parsing NFSd metric line: %s", err)
+			return nil, fmt.Errorf("error parsing NFS metric line: %s", err)
 		}
 
 		switch metricLine := parts[0]; metricLine {
@@ -52,15 +52,15 @@ func ParseClientRPCStats(r io.Reader) (*ClientRPCStats, error) {
 		case "proc4":
 			stats.ClientV4Stats, err = parseClientV4Stats(values)
 		default:
-			return nil, fmt.Errorf("unknown NFSd metric line %q", metricLine)
+			return nil, fmt.Errorf("unknown NFS metric line %q", metricLine)
 		}
 		if err != nil {
-			return nil, fmt.Errorf("errors parsing NFSd metric line: %s", err)
+			return nil, fmt.Errorf("errors parsing NFS metric line: %s", err)
 		}
 	}
 
 	if err := scanner.Err(); err != nil {
-		return nil, fmt.Errorf("error scanning NFSd file: %s", err)
+		return nil, fmt.Errorf("error scanning NFS file: %s", err)
 	}
 
 	return stats, nil

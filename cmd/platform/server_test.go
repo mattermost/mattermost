@@ -5,6 +5,7 @@ package main
 
 import (
 	"io/ioutil"
+	"net"
 	"os"
 	"syscall"
 	"testing"
@@ -69,4 +70,67 @@ func TestRunServerInvalidConfigFile(t *testing.T) {
 
 	err = runServer(unreadableConfigFile.Name(), th.disableConfigWatch, th.interruptChan)
 	require.Error(t, err)
+}
+
+func TestRunServerSystemdNotification(t *testing.T) {
+	th := SetupServerTest()
+	defer th.TearDownServerTest()
+
+	// Get a random temporary filename for using as a mock systemd socket
+	socketFile, err := ioutil.TempFile("", "mattermost-systemd-mock-socket-")
+	if err != nil {
+		panic(err)
+	}
+	socketPath := socketFile.Name()
+	os.Remove(socketPath)
+
+	// Set the socket path in the process environment
+	originalSocket := os.Getenv("NOTIFY_SOCKET")
+	os.Setenv("NOTIFY_SOCKET", socketPath)
+	defer os.Setenv("NOTIFY_SOCKET", originalSocket)
+
+	// Open the socket connection
+	addr := &net.UnixAddr{
+		Name: socketPath,
+		Net:  "unixgram",
+	}
+	connection, err := net.ListenUnixgram("unixgram", addr)
+	if err != nil {
+		panic(err)
+	}
+	defer connection.Close()
+	defer os.Remove(socketPath)
+
+	// Listen for socket data
+	socketReader := make(chan string)
+	go func(ch chan string) {
+		buffer := make([]byte, 512)
+		count, err := connection.Read(buffer)
+		if err != nil {
+			panic(err)
+		}
+		data := buffer[0:count]
+		ch<- string(data)
+	}(socketReader)
+
+	// Start and stop the server
+	err = runServer(th.configPath, th.disableConfigWatch, th.interruptChan)
+	require.NoError(t, err)
+
+	// Ensure the notification has been sent on the socket and is correct
+	notification := <-socketReader
+	require.Equal(t, notification, "READY=1")
+}
+
+func TestRunServerNoSystemd(t *testing.T) {
+	th := SetupServerTest()
+	defer th.TearDownServerTest()
+
+	// Temporarily remove any Systemd socket defined in the environment
+	originalSocket := os.Getenv("NOTIFY_SOCKET")
+	os.Unsetenv("NOTIFY_SOCKET")
+	defer os.Setenv("NOTIFY_SOCKET", originalSocket)
+
+	err := runServer(th.configPath, th.disableConfigWatch, th.interruptChan)
+	require.NoError(t, err)
 }

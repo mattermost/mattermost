@@ -9,6 +9,8 @@ import (
 
 	"net/mail"
 
+	"fmt"
+
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -94,18 +96,28 @@ func TestSendMailUsingConfigAdvanced(t *testing.T) {
 	//Delete all the messages before check the sample email
 	DeleteMailBox(smtpTo)
 
-	// create a file that will be attached to the email
 	fileBackend, err := NewFileBackend(&cfg.FileSettings, true)
 	assert.Nil(t, err)
-	fileContents := []byte("hello world")
-	fileName := "file.txt"
-	assert.Nil(t, fileBackend.WriteFile(fileContents, fileName))
-	defer fileBackend.RemoveFile(fileName)
 
-	attachments := make([]*model.FileInfo, 1)
+	// create two files with the same name that will both be attached to the email
+	fileName := "file.txt"
+	filePath1 := fmt.Sprintf("test1/%s", fileName)
+	filePath2 := fmt.Sprintf("test2/%s", fileName)
+	fileContents1 := []byte("hello world")
+	fileContents2 := []byte("foo bar")
+	assert.Nil(t, fileBackend.WriteFile(fileContents1, filePath1))
+	assert.Nil(t, fileBackend.WriteFile(fileContents2, filePath2))
+	defer fileBackend.RemoveFile(filePath1)
+	defer fileBackend.RemoveFile(filePath2)
+
+	attachments := make([]*model.FileInfo, 2)
 	attachments[0] = &model.FileInfo{
 		Name: fileName,
-		Path: fileName,
+		Path: filePath1,
+	}
+	attachments[1] = &model.FileInfo{
+		Name: fileName,
+		Path: filePath2,
 	}
 
 	headers := make(map[string]string)
@@ -145,10 +157,19 @@ func TestSendMailUsingConfigAdvanced(t *testing.T) {
 					// check that the custom mime headers came through - header case seems to get mutated
 					assert.Equal(t, "TestValue", resultsEmail.Header["Testheader"][0])
 
-					// ensure that the attachment was successfully sent
-					assert.Len(t, resultsEmail.Attachments, 1)
+					// ensure that the attachments were successfully sent
+					assert.Len(t, resultsEmail.Attachments, 2)
 					assert.Equal(t, fileName, resultsEmail.Attachments[0].Filename)
-					assert.Equal(t, fileContents, resultsEmail.Attachments[0].Bytes)
+					assert.Equal(t, fileName, resultsEmail.Attachments[1].Filename)
+					attachment1 := string(resultsEmail.Attachments[0].Bytes)
+					attachment2 := string(resultsEmail.Attachments[1].Bytes)
+					if attachment1 == string(fileContents1) {
+						assert.Equal(t, attachment2, string(fileContents2))
+					} else if attachment1 == string(fileContents2) {
+						assert.Equal(t, attachment2, string(fileContents1))
+					} else {
+						assert.Fail(t, "Unrecognized attachment contents")
+					}
 				}
 			}
 		}

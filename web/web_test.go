@@ -135,6 +135,12 @@ func TestIncomingWebhook(t *testing.T) {
 		if _, err := ApiClient.PostToWebhook("abc123", payload); err == nil {
 			t.Fatal("should have errored - bad hook")
 		}
+
+		payloadMultiPart := "------WebKitFormBoundary7MA4YWxkTrZu0gW\r\nContent-Disposition: form-data; name=\"username\"\r\n\r\nwebhook-bot\r\n------WebKitFormBoundary7MA4YWxkTrZu0gW\r\nContent-Disposition: form-data; name=\"text\"\r\n\r\nthis is a test :tada:\r\n------WebKitFormBoundary7MA4YWxkTrZu0gW--"
+		if _, err := ApiClient.DoPost("/hooks/"+hook1.Id, payloadMultiPart, "multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW"); err != nil {
+			t.Fatal("should have errored - bad hook")
+		}
+
 	} else {
 		if _, err := ApiClient.PostToWebhook("123", "123"); err == nil {
 			t.Fatal("should have failed - webhooks turned off")

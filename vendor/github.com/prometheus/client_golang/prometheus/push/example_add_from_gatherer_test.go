@@ -11,12 +11,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Copyright (c) 2013, The Prometheus Authors
-// All rights reserved.
-//
-// Use of this source code is governed by a BSD-style license that can be found
-// in the LICENSE file.
-
 package push_test
 
 import (
@@ -53,10 +47,14 @@ func performBackup() (int, error) {
 	return 42, nil
 }
 
-func ExampleAddFromGatherer() {
+func ExamplePusher_Add() {
+	// We use a registry here to benefit from the consistency checks that
+	// happen during registration.
 	registry := prometheus.NewRegistry()
 	registry.MustRegister(completionTime, duration, records)
-	// Note that successTime is not registered at this time.
+	// Note that successTime is not registered.
+
+	pusher := push.New("http://pushgateway:9091", "db_backup").Gatherer(registry)
 
 	start := time.Now()
 	n, err := performBackup()
@@ -67,18 +65,16 @@ func ExampleAddFromGatherer() {
 	if err != nil {
 		fmt.Println("DB backup failed:", err)
 	} else {
-		// Only now register successTime.
-		registry.MustRegister(successTime)
+		// Add successTime to pusher only in case of success.
+		// We could as well register it with the registry.
+		// This example, however, demonstrates that you can
+		// mix Gatherers and Collectors when handling a Pusher.
+		pusher.Collector(successTime)
 		successTime.SetToCurrentTime()
 	}
-	// AddFromGatherer is used here rather than FromGatherer to not delete a
-	// previously pushed success timestamp in case of a failure of this
-	// backup.
-	if err := push.AddFromGatherer(
-		"db_backup", nil,
-		"http://pushgateway:9091",
-		registry,
-	); err != nil {
+	// Add is used here rather than Push to not delete a previously pushed
+	// success timestamp in case of a failure of this backup.
+	if err := pusher.Add(); err != nil {
 		fmt.Println("Could not push to Pushgateway:", err)
 	}
 }

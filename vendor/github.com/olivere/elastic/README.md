@@ -199,6 +199,7 @@ See the [wiki](https://github.com/olivere/elastic/wiki) for more details.
   - [x] Significant Terms
   - [x] Significant Text
   - [x] Terms
+  - [x] Composite
 - Pipeline Aggregations
   - [x] Avg Bucket
   - [x] Derivative
@@ -212,6 +213,7 @@ See the [wiki](https://github.com/olivere/elastic/wiki) for more details.
   - [x] Cumulative Sum
   - [x] Bucket Script
   - [x] Bucket Selector
+  - [ ] Bucket Sort
   - [x] Serial Differencing
 - [x] Matrix Aggregations
   - [x] Matrix Stats
@@ -234,17 +236,17 @@ See the [wiki](https://github.com/olivere/elastic/wiki) for more details.
 - [x] Update Indices Settings
 - [x] Get Settings
 - [x] Analyze
+  - [x] Explain Analyze
 - [x] Index Templates
-- [ ] Shadow Replica Indices
 - [x] Indices Stats
 - [x] Indices Segments
 - [ ] Indices Recovery
 - [ ] Indices Shard Stores
 - [ ] Clear Cache
 - [x] Flush
+  - [x] Synced Flush
 - [x] Refresh
 - [x] Force Merge
-- [ ] Upgrade
 
 ### cat APIs
 
@@ -267,6 +269,7 @@ The cat APIs are not implemented as of now. We think they are better suited for 
 - [ ] cat shards
 - [ ] cat segments
 - [ ] cat snapshots
+- [ ] cat templates
 
 ### Cluster APIs
 
@@ -278,6 +281,8 @@ The cat APIs are not implemented as of now. We think they are better suited for 
 - [ ] Cluster Update Settings
 - [x] Nodes Stats
 - [x] Nodes Info
+- [ ] Nodes Feature Usage
+- [ ] Remote Cluster Info
 - [x] Task Management API
 - [ ] Nodes hot_threads
 - [ ] Cluster Allocation Explain API
@@ -297,6 +302,7 @@ The cat APIs are not implemented as of now. We think they are better suited for 
 - Term level queries
   - [x] Term Query
   - [x] Terms Query
+  - [x] Terms Set Query
   - [x] Range Query
   - [x] Exists Query
   - [x] Prefix Query
@@ -311,7 +317,6 @@ The cat APIs are not implemented as of now. We think they are better suited for 
   - [x] Dis Max Query
   - [x] Function Score Query
   - [x] Boosting Query
-  - [x] Indices Query
 - Joining queries
   - [x] Nested Query
   - [x] Has Child Query
@@ -321,12 +326,9 @@ The cat APIs are not implemented as of now. We think they are better suited for 
   - [ ] GeoShape Query
   - [x] Geo Bounding Box Query
   - [x] Geo Distance Query
-  - [ ] Geo Distance Range Query
   - [x] Geo Polygon Query
-  - [ ] Geohash Cell Query
 - Specialized queries
   - [x] More Like This Query
-  - [x] Template Query
   - [x] Script Query
   - [x] Percolate Query
 - Span queries
@@ -346,7 +348,7 @@ The cat APIs are not implemented as of now. We think they are better suited for 
 
 - Snapshot and Restore
   - [x] Repositories
-  - [ ] Snapshot
+  - [x] Snapshot
   - [ ] Restore
   - [ ] Snapshot status
   - [ ] Monitoring snapshot/restore status
