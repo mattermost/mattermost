@@ -132,10 +132,6 @@
     "translation": "Невозможно загрузить файл. Он слишком большой."
   },
   {
-    "id": "api.api.init.parsing_templates.debug",
-    "translation": "Разбор шаблонов сервера на %v"
-  },
-  {
     "id": "api.api.init.parsing_templates.error",
     "translation": "Не удалось разобрать шаблоны сервера %v"
   },
@@ -201,11 +197,11 @@
   },
   {
     "id": "api.channel.change_channel_privacy.private_to_public",
-    "translation": "This channel has been converted to a Public Channel and can be joined by any team member."
+    "translation": "Канал преобразован в публичный и к нему может присоединиться любой участник."
   },
   {
     "id": "api.channel.change_channel_privacy.public_to_private",
-    "translation": "This channel has been converted to a Private Channel."
+    "translation": "Канал преобразован в приватный."
   },
   {
     "id": "api.channel.create_channel.direct_channel.app_error",
@@ -2203,10 +2199,6 @@
     "translation": "Ссылка на регистрацию устарела"
   },
   {
-    "id": "api.team.create_team_from_signup.invalid_link.app_error",
-    "translation": "Неправильная ссылка на регистрацию"
-  },
-  {
     "id": "api.team.create_team_from_signup.unavailable.app_error",
     "translation": "Этот URL-адрес недоступен. Пожалуйста, попробуйте другой."
   },
@@ -2305,6 +2297,14 @@
   {
     "id": "api.team.leave.left",
     "translation": "%v покинул(а) команду."
+  },
+  {
+    "id": "api.team.move_channel.post.error",
+    "translation": "Не удалось обновить заголовок канала."
+  },
+  {
+    "id": "api.team.move_channel.success",
+    "translation": "Канал перемещен в эту команду из %v."
   },
   {
     "id": "api.team.permanent_delete_team.attempting.warn",
@@ -2711,6 +2711,10 @@
     "translation": "Ссылка для регистрации, похоже, неверна."
   },
   {
+    "id": "api.user.create_user.signup_link_mismatched_invite_id.app_error",
+    "translation": "Неправильная ссылка на регистрацию"
+  },
+  {
     "id": "api.user.create_user.team_name.app_error",
     "translation": "Неверное имя команды"
   },
@@ -3067,6 +3071,10 @@
     "translation": "Не удалось прочитать полезную нагрузку входящего вебхука."
   },
   {
+    "id": "api.webhook.incoming.error",
+    "translation": "Could not decode the multipart payload of incoming webhook."
+  },
+  {
     "id": "api.webhook.init.debug",
     "translation": "Инициализация API вебхуков"
   },
@@ -3248,7 +3256,7 @@
   },
   {
     "id": "app.import.import_user_channels.save_preferences.error",
-    "translation": "Error importing user channel memberships. Failed to save preferences."
+    "translation": "Ошибка импорта участия пользователя в каналах. Не удалось сохранить настройки."
   },
   {
     "id": "app.import.validate_channel_import_data.create_at_zero.error",
@@ -3296,7 +3304,7 @@
   },
   {
     "id": "app.import.validate_direct_channel_import_data.header_length.error",
-    "translation": "Direct channel header is too long"
+    "translation": "Заголовок личного канала слишком длинный."
   },
   {
     "id": "app.import.validate_direct_channel_import_data.members_required.error",
@@ -3304,11 +3312,11 @@
   },
   {
     "id": "app.import.validate_direct_channel_import_data.members_too_few.error",
-    "translation": "Direct channel members list contains too few items"
+    "translation": "В списке пользователей личного канала слишком мало элементов."
   },
   {
     "id": "app.import.validate_direct_channel_import_data.members_too_many.error",
-    "translation": "Direct channel members list contains too many items"
+    "translation": "В списке пользователей личного канала слишком много элементов."
   },
   {
     "id": "app.import.validate_direct_channel_import_data.unknown_favoriter.error",
@@ -3320,11 +3328,11 @@
   },
   {
     "id": "app.import.validate_direct_post_import_data.channel_members_too_few.error",
-    "translation": "Direct post channel members list contains too few items"
+    "translation": "В списке пользователей личного канала слишком мало элементов."
   },
   {
     "id": "app.import.validate_direct_post_import_data.channel_members_too_many.error",
-    "translation": "Direct post channel members list contains too many items"
+    "translation": "В списке пользователей личного канала слишком много элементов."
   },
   {
     "id": "app.import.validate_direct_post_import_data.create_at_missing.error",
@@ -4759,6 +4767,10 @@
     "translation": "Неверная ширина миниатюры в настройках файлов. Число должно быть положительным."
   },
   {
+    "id": "model.config.is_valid.group_unread_channels.app_error",
+    "translation": "Invalid group unread channels for service settings. Must be 'disabled', 'default_on', or 'default_off'."
+  },
+  {
     "id": "model.config.is_valid.image_proxy_type.app_error",
     "translation": "Invalid image proxy type for service settings."
   },
@@ -4867,12 +4879,20 @@
     "translation": "Message export job ExportFromTimestamp must be a timestamp (expressed in seconds since unix epoch). Only messages sent after this timestamp will be exported."
   },
   {
+    "id": "model.config.is_valid.message_export.export_type.app_error",
+    "translation": "Message export job ExportFormat must be one of either 'actiance' or 'globalrelay'"
+  },
+  {
     "id": "model.config.is_valid.message_export.file_location.app_error",
     "translation": "Message export job FileLocation must be a writable directory that export data will be written to"
   },
   {
     "id": "model.config.is_valid.message_export.file_location.relative",
     "translation": "Message export job FileLocation must be a sub-directory of FileSettings.Directory"
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay_email_address.app_error",
+    "translation": "Message export job GlobalRelayEmailAddress must be set to a valid email address"
   },
   {
     "id": "model.config.is_valid.password_length.app_error",
@@ -7087,6 +7107,10 @@
     "translation": "Не удалось установить соединение с SMTP сервером %v"
   },
   {
+    "id": "utils.mail.sendMail.attachments.write_error",
+    "translation": "Failed to write attachment to email"
+  },
+  {
     "id": "utils.mail.send_mail.close.app_error",
     "translation": "Не удалось закрыть соединение с SMTP сервером"
   },
@@ -7153,10 +7177,6 @@
   {
     "id": "web.create_dir.error",
     "translation": "Не удалось создать наблюдатель каталога %v"
-  },
-  {
-    "id": "web.dir_fail.error",
-    "translation": "Сбой в наблюдателе каталога %v"
   },
   {
     "id": "web.do_load_channel.error",
@@ -7263,16 +7283,8 @@
     "translation": "Разбор шаблонов на %v"
   },
   {
-    "id": "web.parsing_templates.error",
-    "translation": "Не удалось разобрать шаблоны %v"
-  },
-  {
     "id": "web.post_permalink.app_error",
     "translation": "Неверный идентификатор поста"
-  },
-  {
-    "id": "web.reparse_templates.info",
-    "translation": "Повторный разбор шаблонов из-за модификации файла %v"
   },
   {
     "id": "web.reset_password.expired_link.app_error",
@@ -7291,10 +7303,6 @@
     "translation": "Регистрация"
   },
   {
-    "id": "web.signup_team_complete.invalid_link.app_error",
-    "translation": "Ссылка для регистрации, похоже, недействительна"
-  },
-  {
     "id": "web.signup_team_complete.link_expired.app_error",
     "translation": "Ссылка для регистрации устарела"
   },
@@ -7309,10 +7317,6 @@
   {
     "id": "web.signup_user_complete.link_expired.app_error",
     "translation": "Ссылка для регистрации устарела"
-  },
-  {
-    "id": "web.signup_user_complete.link_invalid.app_error",
-    "translation": "Ссылка для регистрации, похоже, недействительна"
   },
   {
     "id": "web.signup_user_complete.no_invites.app_error",

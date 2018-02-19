@@ -2299,6 +2299,14 @@
     "translation": "%v left the team."
   },
   {
+    "id": "api.team.move_channel.post.error",
+    "translation": "Failed to post channel move message."
+  },
+  {
+    "id": "api.team.move_channel.success",
+    "translation": "This channel has been moved to this team from %v."
+  },
+  {
     "id": "api.team.permanent_delete_team.attempting.warn",
     "translation": "Attempting to permanently delete team %v id=%v"
   },
@@ -2699,11 +2707,11 @@
     "translation": "The signup link has expired"
   },
   {
-    "id": "api.user.create_user.signup_link_mismatched_invite_id.app_error",
+    "id": "api.user.create_user.signup_link_invalid.app_error",
     "translation": "The signup link does not appear to be valid"
   },
   {
-    "id": "api.user.create_user.signup_link_invalid.app_error",
+    "id": "api.user.create_user.signup_link_mismatched_invite_id.app_error",
     "translation": "The signup link does not appear to be valid"
   },
   {
@@ -3133,14 +3141,6 @@
   {
     "id": "app.channel.move_channel.members_do_not_match.error",
     "translation": "Cannot move a channel unless all its members are already members of the destination team."
-  },
-  {
-    "id": "api.team.move_channel.success",
-    "translation": "This channel has been moved to this team from %v."
-  },
-  {
-    "id": "api.team.move_channel.post.error",
-    "translation": "Failed to post channel move message."
   },
   {
     "id": "app.channel.post_update_channel_purpose_message.post.error",
@@ -4867,14 +4867,6 @@
     "translation": "Message export job BatchSize must be a positive integer"
   },
   {
-    "id": "model.config.is_valid.message_export.export_type.app_error",
-    "translation": "Message export job ExportFormat must be one of either 'actiance' or 'globalrelay'"
-  },
-  {
-    "id": "model.config.is_valid.message_export.global_relay_email_address.app_error",
-    "translation": "Message export job GlobalRelayEmailAddress must be set to a valid email address"
-  },
-  {
     "id": "model.config.is_valid.message_export.daily_runtime.app_error",
     "translation": "Message export job DailyRuntime must be a 24-hour time stamp in the form HH:MM."
   },
@@ -4887,12 +4879,20 @@
     "translation": "Message export job ExportFromTimestamp must be a timestamp (expressed in seconds since unix epoch). Only messages sent after this timestamp will be exported."
   },
   {
+    "id": "model.config.is_valid.message_export.export_type.app_error",
+    "translation": "Message export job ExportFormat must be one of either 'actiance' or 'globalrelay'"
+  },
+  {
     "id": "model.config.is_valid.message_export.file_location.app_error",
     "translation": "Message export job FileLocation must be a writable directory that export data will be written to"
   },
   {
     "id": "model.config.is_valid.message_export.file_location.relative",
     "translation": "Message export job FileLocation must be a sub-directory of FileSettings.Directory"
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay_email_address.app_error",
+    "translation": "Message export job GlobalRelayEmailAddress must be set to a valid email address"
   },
   {
     "id": "model.config.is_valid.password_length.app_error",
@@ -7099,16 +7099,16 @@
     "translation": "Failed to authenticate on SMTP server"
   },
   {
-    "id": "utils.mail.sendMail.attachments.write_error",
-    "translation": "Failed to write attachment to email"
-  },
-  {
     "id": "utils.mail.new_client.helo.error",
     "translation": "Failed to to set the HELO to SMTP server %v"
   },
   {
     "id": "utils.mail.new_client.open.error",
     "translation": "Failed to open a connection to SMTP server %v"
+  },
+  {
+    "id": "utils.mail.sendMail.attachments.write_error",
+    "translation": "Failed to write attachment to email"
   },
   {
     "id": "utils.mail.send_mail.close.app_error",
