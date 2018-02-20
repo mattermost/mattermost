@@ -11,7 +11,6 @@ import (
 
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
-	"github.com/mattermost/mattermost-server/store/sqlstore"
 )
 
 func TestCreateChannel(t *testing.T) {
@@ -374,7 +373,7 @@ func TestUpdateChannel(t *testing.T) {
 	})
 	th.MakeUserChannelUser(th.BasicUser, channel2)
 	th.MakeUserChannelUser(th.BasicUser, channel3)
-	sqlstore.ClearChannelCaches()
+	th.App.Srv.Store.Channel().ClearCaches()
 
 	if _, err := Client.UpdateChannel(channel2); err == nil {
 		t.Fatal("should have errored not channel admin")
@@ -396,7 +395,7 @@ func TestUpdateChannel(t *testing.T) {
 
 	th.MakeUserChannelAdmin(th.BasicUser, channel2)
 	th.MakeUserChannelAdmin(th.BasicUser, channel3)
-	sqlstore.ClearChannelCaches()
+	th.App.Srv.Store.Channel().ClearCaches()
 
 	if _, err := Client.UpdateChannel(channel2); err != nil {
 		t.Fatal(err)
@@ -596,7 +595,7 @@ func TestUpdateChannelHeader(t *testing.T) {
 	})
 	th.MakeUserChannelUser(th.BasicUser, channel2)
 	th.MakeUserChannelUser(th.BasicUser, channel3)
-	sqlstore.ClearChannelCaches()
+	th.App.Srv.Store.Channel().ClearCaches()
 
 	if _, err := Client.UpdateChannelHeader(data2); err == nil {
 		t.Fatal("should have errored not channel admin")
@@ -607,7 +606,7 @@ func TestUpdateChannelHeader(t *testing.T) {
 
 	th.MakeUserChannelAdmin(th.BasicUser, channel2)
 	th.MakeUserChannelAdmin(th.BasicUser, channel3)
-	sqlstore.ClearChannelCaches()
+	th.App.Srv.Store.Channel().ClearCaches()
 
 	if _, err := Client.UpdateChannelHeader(data2); err != nil {
 		t.Fatal(err)
@@ -767,7 +766,7 @@ func TestUpdateChannelPurpose(t *testing.T) {
 	})
 	th.MakeUserChannelUser(th.BasicUser, channel2)
 	th.MakeUserChannelUser(th.BasicUser, channel3)
-	sqlstore.ClearChannelCaches()
+	th.App.Srv.Store.Channel().ClearCaches()
 
 	if _, err := Client.UpdateChannelPurpose(data2); err == nil {
 		t.Fatal("should have errored not channel admin")
@@ -778,7 +777,7 @@ func TestUpdateChannelPurpose(t *testing.T) {
 
 	th.MakeUserChannelAdmin(th.BasicUser, channel2)
 	th.MakeUserChannelAdmin(th.BasicUser, channel3)
-	sqlstore.ClearChannelCaches()
+	th.App.Srv.Store.Channel().ClearCaches()
 
 	if _, err := Client.UpdateChannelPurpose(data2); err != nil {
 		t.Fatal(err)
@@ -1344,7 +1343,7 @@ func TestDeleteChannel(t *testing.T) {
 
 	th.MakeUserChannelAdmin(th.BasicUser, channel2)
 	th.MakeUserChannelAdmin(th.BasicUser, channel3)
-	sqlstore.ClearChannelCaches()
+	th.App.Srv.Store.Channel().ClearCaches()
 
 	if _, err := Client.DeleteChannel(channel2.Id); err != nil {
 		t.Fatal(err)
