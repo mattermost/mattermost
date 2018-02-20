@@ -132,10 +132,6 @@
     "translation": "無法上傳檔案。檔案過大。"
   },
   {
-    "id": "api.api.init.parsing_templates.debug",
-    "translation": "解析伺服器樣版：%v"
-  },
-  {
     "id": "api.api.init.parsing_templates.error",
     "translation": "解析伺服器樣板 %v 失敗"
   },
@@ -2303,6 +2299,14 @@
     "translation": "%v 已離開團隊。 "
   },
   {
+    "id": "api.team.move_channel.post.error",
+    "translation": "發送頻道用途訊息失敗"
+  },
+  {
+    "id": "api.team.move_channel.success",
+    "translation": "This channel has been moved to this team from %v."
+  },
+  {
     "id": "api.team.permanent_delete_team.attempting.warn",
     "translation": "正在嘗試永久刪除團隊 %v id=%v"
   },
@@ -3065,6 +3069,10 @@
   {
     "id": "api.webhook.incoming.debug.error",
     "translation": "無法讀取傳入的 Webhook 的內容。"
+  },
+  {
+    "id": "api.webhook.incoming.error",
+    "translation": "Could not decode the multipart payload of incoming webhook."
   },
   {
     "id": "api.webhook.init.debug",
@@ -4875,12 +4883,20 @@
     "translation": "匯出訊息工作 ExportFromTimestamp 設定必須為時間戳記 (以 Unix Epoch 以來的秒數表示)。只有在此時間戳記之後發送的訊息會被匯出。"
   },
   {
+    "id": "model.config.is_valid.message_export.export_type.app_error",
+    "translation": "Message export job ExportFormat must be one of either 'actiance' or 'globalrelay'"
+  },
+  {
     "id": "model.config.is_valid.message_export.file_location.app_error",
     "translation": "匯出訊息工作 FileLocation 設定必須為可寫入的目錄，匯出資料將寫入此處"
   },
   {
     "id": "model.config.is_valid.message_export.file_location.relative",
     "translation": "匯出訊息工作 FileLocation 設定必須為 FileSettings.Directory 的子目錄"
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay_email_address.app_error",
+    "translation": "Message export job GlobalRelayEmailAddress must be set to a valid email address"
   },
   {
     "id": "model.config.is_valid.password_length.app_error",
@@ -7095,6 +7111,10 @@
     "translation": "開啟對 SMTP 伺服器 %v 的連線時失敗"
   },
   {
+    "id": "utils.mail.sendMail.attachments.write_error",
+    "translation": "Failed to write attachment to email"
+  },
+  {
     "id": "utils.mail.send_mail.close.app_error",
     "translation": "關閉對 SMTP 伺服器的連線失敗"
   },
@@ -7160,10 +7180,6 @@
   },
   {
     "id": "web.create_dir.error",
-    "translation": "建立目錄監控 %v 失敗"
-  },
-  {
-    "id": "web.dir_fail.error",
     "translation": "建立目錄監控 %v 失敗"
   },
   {
@@ -7271,16 +7287,8 @@
     "translation": "於 %v 解析樣板"
   },
   {
-    "id": "web.parsing_templates.error",
-    "translation": "解析樣板 %v 失敗"
-  },
-  {
     "id": "web.post_permalink.app_error",
     "translation": "無效的張貼 ID"
-  },
-  {
-    "id": "web.reparse_templates.info",
-    "translation": "因檔案 %v 變動因此重新解析樣板"
   },
   {
     "id": "web.reset_password.expired_link.app_error",

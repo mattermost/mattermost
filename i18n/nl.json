@@ -132,10 +132,6 @@
     "translation": "Kan bestand niet uploaden. Bestand is te groot."
   },
   {
-    "id": "api.api.init.parsing_templates.debug",
-    "translation": "Server-templates aan het verwerken voor %v"
-  },
-  {
     "id": "api.api.init.parsing_templates.error",
     "translation": "Verwerken van server-template %v is mislukt"
   },
@@ -2303,6 +2299,14 @@
     "translation": "%v left the team."
   },
   {
+    "id": "api.team.move_channel.post.error",
+    "translation": "Plaatsen van bericht over binnenkomen/verlaten %v is mislukt"
+  },
+  {
+    "id": "api.team.move_channel.success",
+    "translation": "This channel has been moved to this team from %v."
+  },
+  {
     "id": "api.team.permanent_delete_team.attempting.warn",
     "translation": "Poging om team %v permanent te verwijderen, id=%v"
   },
@@ -3065,6 +3069,10 @@
   {
     "id": "api.webhook.incoming.debug.error",
     "translation": "Kan inhoud van inkomende webhook niet lezen."
+  },
+  {
+    "id": "api.webhook.incoming.error",
+    "translation": "Could not decode the multipart payload of incoming webhook."
   },
   {
     "id": "api.webhook.init.debug",
@@ -4875,12 +4883,20 @@
     "translation": "Message export job ExportFromTimestamp must be a timestamp (expressed in seconds since unix epoch). Only messages sent after this timestamp will be exported."
   },
   {
+    "id": "model.config.is_valid.message_export.export_type.app_error",
+    "translation": "Message export job ExportFormat must be one of either 'actiance' or 'globalrelay'"
+  },
+  {
     "id": "model.config.is_valid.message_export.file_location.app_error",
     "translation": "Message export job FileLocation must be a writable directory that export data will be written to"
   },
   {
     "id": "model.config.is_valid.message_export.file_location.relative",
     "translation": "Message export job FileLocation must be a sub-directory of FileSettings.Directory"
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay_email_address.app_error",
+    "translation": "Message export job GlobalRelayEmailAddress must be set to a valid email address"
   },
   {
     "id": "model.config.is_valid.password_length.app_error",
@@ -7095,6 +7111,10 @@
     "translation": "Kan geen verbinding opzetten naa de SMTP server, fout=%v"
   },
   {
+    "id": "utils.mail.sendMail.attachments.write_error",
+    "translation": "Failed to write attachment to email"
+  },
+  {
     "id": "utils.mail.send_mail.close.app_error",
     "translation": "Er is een probleem opgetreden bij het afsluiten van de verbinding naar de SMTP server"
   },
@@ -7161,10 +7181,6 @@
   {
     "id": "web.create_dir.error",
     "translation": "Toevoegen van een directory om te controleren is mislukt %v"
-  },
-  {
-    "id": "web.dir_fail.error",
-    "translation": "Fout tijdens het bekijken van de directory %v"
   },
   {
     "id": "web.do_load_channel.error",
@@ -7271,16 +7287,8 @@
     "translation": "Server template aan het verwerken voor %v"
   },
   {
-    "id": "web.parsing_templates.error",
-    "translation": "Server template %v is niet te verwerken"
-  },
-  {
     "id": "web.post_permalink.app_error",
     "translation": "Ongeldige bericht ID"
-  },
-  {
-    "id": "web.reparse_templates.info",
-    "translation": "Templates opnieuw verwerken, door aangepast bestand %v"
   },
   {
     "id": "web.reset_password.expired_link.app_error",
