@@ -132,10 +132,6 @@
     "translation": "Невозможно загрузить файл. Он слишком большой."
   },
   {
-    "id": "api.api.init.parsing_templates.debug",
-    "translation": "Разбор шаблонов сервера на %v"
-  },
-  {
     "id": "api.api.init.parsing_templates.error",
     "translation": "Не удалось разобрать шаблоны сервера %v"
   },
@@ -2303,6 +2299,14 @@
     "translation": "%v покинул(а) команду."
   },
   {
+    "id": "api.team.move_channel.post.error",
+    "translation": "Не удалось обновить заголовок канала."
+  },
+  {
+    "id": "api.team.move_channel.success",
+    "translation": "Канал перемещен в эту команду из %v."
+  },
+  {
     "id": "api.team.permanent_delete_team.attempting.warn",
     "translation": "Попытка безвозвратно удалить команду %v id=%v"
   },
@@ -3065,6 +3069,10 @@
   {
     "id": "api.webhook.incoming.debug.error",
     "translation": "Не удалось прочитать полезную нагрузку входящего вебхука."
+  },
+  {
+    "id": "api.webhook.incoming.error",
+    "translation": "Could not decode the multipart payload of incoming webhook."
   },
   {
     "id": "api.webhook.init.debug",
@@ -4875,12 +4883,20 @@
     "translation": "Message export job ExportFromTimestamp must be a timestamp (expressed in seconds since unix epoch). Only messages sent after this timestamp will be exported."
   },
   {
+    "id": "model.config.is_valid.message_export.export_type.app_error",
+    "translation": "Message export job ExportFormat must be one of either 'actiance' or 'globalrelay'"
+  },
+  {
     "id": "model.config.is_valid.message_export.file_location.app_error",
     "translation": "Message export job FileLocation must be a writable directory that export data will be written to"
   },
   {
     "id": "model.config.is_valid.message_export.file_location.relative",
     "translation": "Message export job FileLocation must be a sub-directory of FileSettings.Directory"
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay_email_address.app_error",
+    "translation": "Message export job GlobalRelayEmailAddress must be set to a valid email address"
   },
   {
     "id": "model.config.is_valid.password_length.app_error",
@@ -7095,6 +7111,10 @@
     "translation": "Не удалось установить соединение с SMTP сервером %v"
   },
   {
+    "id": "utils.mail.sendMail.attachments.write_error",
+    "translation": "Failed to write attachment to email"
+  },
+  {
     "id": "utils.mail.send_mail.close.app_error",
     "translation": "Не удалось закрыть соединение с SMTP сервером"
   },
@@ -7161,10 +7181,6 @@
   {
     "id": "web.create_dir.error",
     "translation": "Не удалось создать наблюдатель каталога %v"
-  },
-  {
-    "id": "web.dir_fail.error",
-    "translation": "Сбой в наблюдателе каталога %v"
   },
   {
     "id": "web.do_load_channel.error",
@@ -7271,16 +7287,8 @@
     "translation": "Разбор шаблонов на %v"
   },
   {
-    "id": "web.parsing_templates.error",
-    "translation": "Не удалось разобрать шаблоны %v"
-  },
-  {
     "id": "web.post_permalink.app_error",
     "translation": "Неверный идентификатор поста"
-  },
-  {
-    "id": "web.reparse_templates.info",
-    "translation": "Повторный разбор шаблонов из-за модификации файла %v"
   },
   {
     "id": "web.reset_password.expired_link.app_error",

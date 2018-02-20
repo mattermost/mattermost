@@ -132,10 +132,6 @@
     "translation": "Dateiupload nicht möglich. Datei ist zu groß."
   },
   {
-    "id": "api.api.init.parsing_templates.debug",
-    "translation": "Vorlagen in %v werden verarbeitet"
-  },
-  {
     "id": "api.api.init.parsing_templates.error",
     "translation": "Das Server-Template %v konnte nicht verarbeitet werden"
   },
@@ -2303,6 +2299,14 @@
     "translation": "%v hat das Team verlassen."
   },
   {
+    "id": "api.team.move_channel.post.error",
+    "translation": "Fehler beim Senden des Kanalzwecks"
+  },
+  {
+    "id": "api.team.move_channel.success",
+    "translation": "This channel has been moved to this team from %v."
+  },
+  {
     "id": "api.team.permanent_delete_team.attempting.warn",
     "translation": "Versuche Team permanent zu löschen %v id=%v"
   },
@@ -3065,6 +3069,10 @@
   {
     "id": "api.webhook.incoming.debug.error",
     "translation": "Konnte Payload des eingehenden Webhooks nicht verarbeiten."
+  },
+  {
+    "id": "api.webhook.incoming.error",
+    "translation": "Could not decode the multipart payload of incoming webhook."
   },
   {
     "id": "api.webhook.init.debug",
@@ -4875,12 +4883,20 @@
     "translation": "Nachrichten-Export-Aufgabe \"ExportFromTimestamp\" muss ein Zeitstempel (angegeben in Sekunden seit der Unix-Epoche) sein. Nur Nachrichten nach diesem Zeitpunkt werden exportiert."
   },
   {
+    "id": "model.config.is_valid.message_export.export_type.app_error",
+    "translation": "Message export job ExportFormat must be one of either 'actiance' or 'globalrelay'"
+  },
+  {
     "id": "model.config.is_valid.message_export.file_location.app_error",
     "translation": "Nachrichten-Export-Aufgabe \"FileLocation\" muss ein beschreibbares Verzeichnis sein in welches die Exportdaten geschrieben werden"
   },
   {
     "id": "model.config.is_valid.message_export.file_location.relative",
     "translation": "Nachrichten-Export-Aufgabe \"FileLocation\" muss ein Unterverzeichnis von \"FileSettings.Directory\" sein"
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay_email_address.app_error",
+    "translation": "Message export job GlobalRelayEmailAddress must be set to a valid email address"
   },
   {
     "id": "model.config.is_valid.password_length.app_error",
@@ -7095,6 +7111,10 @@
     "translation": "Fehler beim Öffnen einer Verbindung zum SMTP-Server %v"
   },
   {
+    "id": "utils.mail.sendMail.attachments.write_error",
+    "translation": "Failed to write attachment to email"
+  },
+  {
     "id": "utils.mail.send_mail.close.app_error",
     "translation": "Fehler beim Schließen der Verbindung zum SMTP-Server"
   },
@@ -7160,10 +7180,6 @@
   },
   {
     "id": "web.create_dir.error",
-    "translation": "Fehler beim Erstellen der Ordner Überwachung %v"
-  },
-  {
-    "id": "web.dir_fail.error",
     "translation": "Fehler beim Erstellen der Ordner Überwachung %v"
   },
   {
@@ -7271,16 +7287,8 @@
     "translation": "Templates in %v werden geparst"
   },
   {
-    "id": "web.parsing_templates.error",
-    "translation": "Die Templates in %v konnte nicht verarbeitet werden"
-  },
-  {
     "id": "web.post_permalink.app_error",
     "translation": "Ungültige Nachrichten-ID"
-  },
-  {
-    "id": "web.reparse_templates.info",
-    "translation": "Erneute Analyze des Templates aufgrund veränderter Datei %v"
   },
   {
     "id": "web.reset_password.expired_link.app_error",

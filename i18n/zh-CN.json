@@ -132,10 +132,6 @@
     "translation": "无法上传文件。文件太大。"
   },
   {
-    "id": "api.api.init.parsing_templates.debug",
-    "translation": "解析服务模板 %v"
-  },
-  {
     "id": "api.api.init.parsing_templates.error",
     "translation": "解析服务模板出错 %v"
   },
@@ -2303,6 +2299,14 @@
     "translation": "%v 离开了团队。"
   },
   {
+    "id": "api.team.move_channel.post.error",
+    "translation": "发送频道作用消息失败"
+  },
+  {
+    "id": "api.team.move_channel.success",
+    "translation": "This channel has been moved to this team from %v."
+  },
+  {
     "id": "api.team.permanent_delete_team.attempting.warn",
     "translation": "试图永久删除团队 %v id=%v"
   },
@@ -3065,6 +3069,10 @@
   {
     "id": "api.webhook.incoming.debug.error",
     "translation": "不能读取传入的webhook的负载。"
+  },
+  {
+    "id": "api.webhook.incoming.error",
+    "translation": "Could not decode the multipart payload of incoming webhook."
   },
   {
     "id": "api.webhook.init.debug",
@@ -4875,12 +4883,20 @@
     "translation": "消息导出任务 ExportFromTimestamp 必须为时间戳 (unix 时间)。只有在此时间后发送的消息会被导出。"
   },
   {
+    "id": "model.config.is_valid.message_export.export_type.app_error",
+    "translation": "Message export job ExportFormat must be one of either 'actiance' or 'globalrelay'"
+  },
+  {
     "id": "model.config.is_valid.message_export.file_location.app_error",
     "translation": "消息导出任务 FileLocation 比如为可写的目录"
   },
   {
     "id": "model.config.is_valid.message_export.file_location.relative",
     "translation": "消息导出任务 FileLocation 必须为 FileSettings.Directory 的子目录"
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay_email_address.app_error",
+    "translation": "Message export job GlobalRelayEmailAddress must be set to a valid email address"
   },
   {
     "id": "model.config.is_valid.password_length.app_error",
@@ -7095,6 +7111,10 @@
     "translation": "无法打开一个SMTP服务器连接 %v"
   },
   {
+    "id": "utils.mail.sendMail.attachments.write_error",
+    "translation": "Failed to write attachment to email"
+  },
+  {
     "id": "utils.mail.send_mail.close.app_error",
     "translation": "未能关闭连接到SMTP服务器"
   },
@@ -7161,10 +7181,6 @@
   {
     "id": "web.create_dir.error",
     "translation": "创建目录监视器失败 %v"
-  },
-  {
-    "id": "web.dir_fail.error",
-    "translation": "目录中的监视器失败 %v"
   },
   {
     "id": "web.do_load_channel.error",
@@ -7271,16 +7287,8 @@
     "translation": "解析模板 %v"
   },
   {
-    "id": "web.parsing_templates.error",
-    "translation": "解析模板失败 %v"
-  },
-  {
     "id": "web.post_permalink.app_error",
     "translation": "无效Post ID"
-  },
-  {
-    "id": "web.reparse_templates.info",
-    "translation": "修改文件后重新解析模板 %v"
   },
   {
     "id": "web.reset_password.expired_link.app_error",
