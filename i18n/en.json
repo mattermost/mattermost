@@ -3648,7 +3648,7 @@
   },
   {
     "id": "app.plugin.disabled.app_error",
-    "translation": "Plugins have been disabled."
+    "translation": "Plugins have been disabled. Please check your logs for details."
   },
   {
     "id": "app.plugin.extract.app_error",
