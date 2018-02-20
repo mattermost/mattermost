@@ -353,6 +353,7 @@ func GenerateClientConfig(c *model.Config, diagnosticId string, license *model.L
 	props["BuildEnterpriseReady"] = model.BuildEnterpriseReady
 
 	props["SiteURL"] = strings.TrimRight(*c.ServiceSettings.SiteURL, "/")
+	props["WebsocketURL"] = strings.TrimRight(*c.ServiceSettings.WebsocketURL, "/")
 	props["SiteName"] = c.TeamSettings.SiteName
 	props["EnableTeamCreation"] = strconv.FormatBool(c.TeamSettings.EnableTeamCreation)
 	props["EnableUserCreation"] = strconv.FormatBool(c.TeamSettings.EnableUserCreation)

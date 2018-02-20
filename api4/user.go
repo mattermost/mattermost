@@ -1076,6 +1076,7 @@ func attachDeviceId(c *Context, w http.ResponseWriter, r *http.Request) {
 		MaxAge:   maxAge,
 		Expires:  expiresAt,
 		HttpOnly: true,
+		Domain:   c.App.GetCookieDomain(),
 		Secure:   secure,
 	}
 

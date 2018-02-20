@@ -113,6 +113,7 @@ func (a *App) DoLogin(w http.ResponseWriter, r *http.Request, user *model.User, 
 		secure = true
 	}
 
+	domain := a.GetCookieDomain()
 	expiresAt := time.Unix(model.GetMillis()/1000+int64(maxAge), 0)
 	sessionCookie := &http.Cookie{
 		Name:     model.SESSION_COOKIE_TOKEN,
@@ -121,6 +122,7 @@ func (a *App) DoLogin(w http.ResponseWriter, r *http.Request, user *model.User, 
 		MaxAge:   maxAge,
 		Expires:  expiresAt,
 		HttpOnly: true,
+		Domain:   domain,
 		Secure:   secure,
 	}
 
@@ -130,6 +132,7 @@ func (a *App) DoLogin(w http.ResponseWriter, r *http.Request, user *model.User, 
 		Path:    "/",
 		MaxAge:  maxAge,
 		Expires: expiresAt,
+		Domain:  domain,
 		Secure:  secure,
 	}
 
