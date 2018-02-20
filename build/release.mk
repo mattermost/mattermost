@@ -20,7 +20,9 @@ build-client:
 
 	cd $(BUILD_WEBAPP_DIR) && $(MAKE) build
 
-package:
+package: package-common package-osx package-windows package-linux
+
+package-common:
 	@ echo Packaging mattermost
 
 	@# Remove any old files
@@ -61,6 +63,7 @@ endif
 
 	@# ----- PLATFORM SPECIFIC -----
 
+package-osx: package-common
 	@# Make osx package
 	@# Copy binary
 ifeq ($(BUILDER_GOOS_GOARCH),"darwin_amd64")
@@ -73,6 +76,7 @@ endif
 	@# Cleanup
 	rm -f $(DIST_PATH)/bin/platform
 
+package-windows: package-common
 	@# Make windows package
 	@# Copy binary
 ifeq ($(BUILDER_GOOS_GOARCH),"windows_amd64")
@@ -85,6 +89,7 @@ endif
 	@# Cleanup
 	rm -f $(DIST_PATH)/bin/platform.exe
 
+package-linux: package-common
 	@# Make linux package
 	@# Copy binary
 ifeq ($(BUILDER_GOOS_GOARCH),"linux_amd64")
