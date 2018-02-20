@@ -132,10 +132,6 @@
     "translation": "No se pudo cargar el archivo. El archivo es muy grande."
   },
   {
-    "id": "api.api.init.parsing_templates.debug",
-    "translation": "Analizando el contenido plantillas del servidor en %v"
-  },
-  {
     "id": "api.api.init.parsing_templates.error",
     "translation": "Falla al analizar el contenido de las plantillas de servidor %v"
   },
@@ -1812,11 +1808,11 @@
   },
   {
     "id": "api.post.send_notifications_and_forget.push_image_only",
-    "translation": " Cargó uno o más archivos en "
+    "translation": " Subió uno o más archivos en "
   },
   {
     "id": "api.post.send_notifications_and_forget.push_image_only_dm",
-    "translation": " Cargó uno o más archivos en un mensaje directo"
+    "translation": " subió uno o más archivos en un mensaje directo"
   },
   {
     "id": "api.post.send_notifications_and_forget.push_in",
@@ -2301,6 +2297,14 @@
   {
     "id": "api.team.leave.left",
     "translation": "%v abandonó el equipo."
+  },
+  {
+    "id": "api.team.move_channel.post.error",
+    "translation": "No pudo publicar el mensaje de que el canal fue movido."
+  },
+  {
+    "id": "api.team.move_channel.success",
+    "translation": "Este canal ha sido movido a este equipo desde %v."
   },
   {
     "id": "api.team.permanent_delete_team.attempting.warn",
@@ -3065,6 +3069,10 @@
   {
     "id": "api.webhook.incoming.debug.error",
     "translation": "No se pudo leer la carga del webhook de entrada."
+  },
+  {
+    "id": "api.webhook.incoming.error",
+    "translation": "No se pudo codificar la carga del multipart en el webhook entrante."
   },
   {
     "id": "api.webhook.init.debug",
@@ -4875,12 +4883,20 @@
     "translation": "El ajuste ExportFromTimestamp para realizar el trabajo de Exportación de Mensajes debe ser una marca de tiempo (expresada en segundos desde la época unix). Sólo los mensajes enviados después de esa fecha serán exportados."
   },
   {
+    "id": "model.config.is_valid.message_export.export_type.app_error",
+    "translation": "El trabajo de exportación de Mensaje ExportFormat debe ser 'actiance' o 'globalrelay'"
+  },
+  {
     "id": "model.config.is_valid.message_export.file_location.app_error",
     "translation": "El ajuste FileLocation para realizar el trabajo de Exportación de Mensajes debe ser un directorio con permiso de escritura donde la data de exportación será almacenada."
   },
   {
     "id": "model.config.is_valid.message_export.file_location.relative",
     "translation": "El ajuste FileLocation para realizar el trabajo de Exportación de Mensajes debe ser un sub-directorio de FileSettings.Directory"
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay_email_address.app_error",
+    "translation": "El trabajo de exportación de Mensaje GlobalRelayEmailAddress debe estar asignado a una dirección de correo electrónico válido."
   },
   {
     "id": "model.config.is_valid.password_length.app_error",
@@ -7095,6 +7111,10 @@
     "translation": "Falla al abrir la conexión al servidor SMTP %v"
   },
   {
+    "id": "utils.mail.sendMail.attachments.write_error",
+    "translation": "Error al escribir el archivo adjunto al correo electrónico"
+  },
+  {
     "id": "utils.mail.send_mail.close.app_error",
     "translation": "Falla al cerrar la conexión al servidor SMTP"
   },
@@ -7161,10 +7181,6 @@
   {
     "id": "web.create_dir.error",
     "translation": "Falla al crear el vigilante de directorio %v"
-  },
-  {
-    "id": "web.dir_fail.error",
-    "translation": "Falla al vigilar el directorio %v"
   },
   {
     "id": "web.do_load_channel.error",
@@ -7271,16 +7287,8 @@
     "translation": "Analizando el contenido de las plantillas en %v"
   },
   {
-    "id": "web.parsing_templates.error",
-    "translation": "Falla al analizar el contenido de las plantillas %v"
-  },
-  {
     "id": "web.post_permalink.app_error",
     "translation": "El ID del Mensaje es inválido"
-  },
-  {
-    "id": "web.reparse_templates.info",
-    "translation": "Re-analizando el contenido de las plantillas porque el archivo %v fue modificado"
   },
   {
     "id": "web.reset_password.expired_link.app_error",
