@@ -161,6 +161,7 @@ type ChannelStore interface {
 	GetMembersByIds(channelId string, userIds []string) StoreChannel
 	AnalyticsDeletedTypeCount(teamId string, channelType string) StoreChannel
 	GetChannelUnread(channelId, userId string) StoreChannel
+	ClearCaches()
 }
 
 type ChannelMemberHistoryStore interface {
@@ -190,6 +191,7 @@ type PostStore interface {
 	AnalyticsUserCountsWithPostsByDay(teamId string) StoreChannel
 	AnalyticsPostCountsByDay(teamId string) StoreChannel
 	AnalyticsPostCount(teamId string, mustHaveFile bool, mustHaveHashtag bool) StoreChannel
+	ClearCaches()
 	InvalidateLastPostTimeCache(channelId string)
 	GetPostsCreatedAt(channelId string, time int64) StoreChannel
 	Overwrite(post *model.Post) StoreChannel
@@ -210,6 +212,7 @@ type UserStore interface {
 	UpdateMfaActive(userId string, active bool) StoreChannel
 	Get(id string) StoreChannel
 	GetAll() StoreChannel
+	ClearCaches()
 	InvalidateProfilesInChannelCacheByUser(userId string)
 	InvalidateProfilesInChannelCache(channelId string)
 	GetProfilesInChannel(channelId string, offset int, limit int) StoreChannel
@@ -343,6 +346,7 @@ type WebhookStore interface {
 	AnalyticsIncomingCount(teamId string) StoreChannel
 	AnalyticsOutgoingCount(teamId string) StoreChannel
 	InvalidateWebhookCache(webhook string)
+	ClearCaches()
 }
 
 type CommandStore interface {
@@ -420,6 +424,7 @@ type FileInfoStore interface {
 	DeleteForPost(postId string) StoreChannel
 	PermanentDelete(fileId string) StoreChannel
 	PermanentDeleteBatch(endTime int64, limit int64) StoreChannel
+	ClearCaches()
 }
 
 type ReactionStore interface {

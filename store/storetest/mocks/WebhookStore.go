@@ -45,6 +45,11 @@ func (_m *WebhookStore) AnalyticsOutgoingCount(teamId string) store.StoreChannel
 	return r0
 }
 
+// ClearCaches provides a mock function with given fields:
+func (_m *WebhookStore) ClearCaches() {
+	_m.Called()
+}
+
 // DeleteIncoming provides a mock function with given fields: webhookId, time
 func (_m *WebhookStore) DeleteIncoming(webhookId string, time int64) store.StoreChannel {
 	ret := _m.Called(webhookId, time)
