@@ -121,6 +121,11 @@ func inviteMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if !c.App.SessionHasPermissionToTeam(c.Session, c.TeamId, model.PERMISSION_ADD_USER_TO_TEAM) {
+		c.SetPermissionError(model.PERMISSION_INVITE_USER)
+		return
+	}
+
 	if err := c.App.InviteNewUsersToTeam(invites.ToEmailList(), c.TeamId, c.Session.UserId); err != nil {
 		c.Err = err
 		return
