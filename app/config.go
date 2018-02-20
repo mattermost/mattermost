@@ -12,6 +12,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"net/url"
 	"runtime/debug"
 
 	l4g "github.com/alecthomas/log4go"
@@ -253,4 +254,13 @@ func (a *App) Desanitize(cfg *model.Config) {
 	for i := range cfg.SqlSettings.DataSourceSearchReplicas {
 		cfg.SqlSettings.DataSourceSearchReplicas[i] = actual.SqlSettings.DataSourceSearchReplicas[i]
 	}
+}
+
+func (a *App) GetCookieDomain() string {
+	if *a.Config().ServiceSettings.AllowCookiesForSubdomains {
+		if siteURL, err := url.Parse(*a.Config().ServiceSettings.SiteURL); err == nil {
+			return siteURL.Hostname()
+		}
+	}
+	return ""
 }
