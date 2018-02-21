@@ -2187,8 +2187,8 @@
     "translation": "The number of running goroutines is over the health threshold %v of %v"
   },
   {
-    "id": "api.team.get.error",
-    "translation": "An error occurred getting team with team_id=%v."
+    "id": "api.team.set_team_icon.get_team.app_error",
+    "translation": "An error occurred getting the team"
   },
   {
     "id": "api.team.set_team_icon.storage.app_error",

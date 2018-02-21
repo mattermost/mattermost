@@ -949,6 +949,12 @@ func (a *App) SetTeamIcon(teamId string, imageData *multipart.FileHeader) *model
 
 func (a *App) SetTeamIconFromFile(teamId string, file multipart.File) *model.AppError {
 
+	team, getTeamErr := a.GetTeam(teamId)
+
+	if getTeamErr != nil {
+		return model.NewAppError("SetTeamIcon", "api.team.set_team_icon.get_team.app_error", nil, getTeamErr.Error(), http.StatusBadRequest)
+	}
+
 	if len(*a.Config().FileSettings.DriverName) == 0 {
 		return model.NewAppError("setTeamIcon", "api.team.set_team_icon.storage.app_error", nil, "", http.StatusNotImplemented)
 	}
@@ -990,13 +996,15 @@ func (a *App) SetTeamIconFromFile(teamId string, file multipart.File) *model.App
 		return model.NewAppError("SetTeamIcon", "api.team.set_team_icon.write_file.app_error", nil, "", http.StatusInternalServerError)
 	}
 
-	<-a.Srv.Store.Team().UpdateLastTeamIconUpdate(teamId)
-
-	if team, err := a.GetTeam(teamId); err != nil {
-		l4g.Error(utils.T("api.team.get.error"), teamId)
-	} else {
-		a.sendTeamEvent(team, model.WEBSOCKET_EVENT_UPDATE_TEAM)
+	if result := <-a.Srv.Store.Team().UpdateLastTeamIconUpdate(teamId); result.Err != nil {
+		return model.NewAppError("SetTeamIcon", "api.team.set_team_icon.update.app_error", nil, result.Err.Error(), http.StatusBadRequest)
 	}
+
+	// manually set time to avoid possible cluster inconsistencies
+	curTime := model.GetMillis()
+	team.LastTeamIconUpdate = curTime
+
+	a.sendTeamEvent(team, model.WEBSOCKET_EVENT_UPDATE_TEAM)
 
 	return nil
 }
