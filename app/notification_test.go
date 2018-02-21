@@ -1414,6 +1414,12 @@ func TestGetPushNotificationMessage(t *testing.T) {
 			ExpectedMessage:  "user uploaded one or more files in a direct message",
 			ExpectedCategory: model.CATEGORY_CAN_REPLY,
 		},
+		"only files without channel, public channel": {
+			HasFiles:                 true,
+			PushNotificationContents: model.GENERIC_NO_CHANNEL_NOTIFICATION,
+			ChannelType:              model.CHANNEL_OPEN,
+			ExpectedMessage:          "user uploaded one or more files",
+		},
 	} {
 		t.Run(name, func(t *testing.T) {
 			locale := tc.Locale
