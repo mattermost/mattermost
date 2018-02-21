@@ -996,12 +996,13 @@ func (a *App) SetTeamIconFromFile(teamId string, file multipart.File) *model.App
 		return model.NewAppError("SetTeamIcon", "api.team.set_team_icon.write_file.app_error", nil, "", http.StatusInternalServerError)
 	}
 
-	if result := <-a.Srv.Store.Team().UpdateLastTeamIconUpdate(teamId); result.Err != nil {
+	curTime := model.GetMillis()
+
+	if result := <-a.Srv.Store.Team().UpdateLastTeamIconUpdate(teamId, curTime); result.Err != nil {
 		return model.NewAppError("SetTeamIcon", "api.team.set_team_icon.update.app_error", nil, result.Err.Error(), http.StatusBadRequest)
 	}
 
 	// manually set time to avoid possible cluster inconsistencies
-	curTime := model.GetMillis()
 	team.LastTeamIconUpdate = curTime
 
 	a.sendTeamEvent(team, model.WEBSOCKET_EVENT_UPDATE_TEAM)

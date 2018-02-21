@@ -561,10 +561,8 @@ func (s SqlTeamStore) RemoveAllMembersByUser(userId string) store.StoreChannel {
 	})
 }
 
-func (us SqlTeamStore) UpdateLastTeamIconUpdate(teamId string) store.StoreChannel {
+func (us SqlTeamStore) UpdateLastTeamIconUpdate(teamId string, curTime int64) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
-		curTime := model.GetMillis()
-
 		if _, err := us.GetMaster().Exec("UPDATE Teams SET LastTeamIconUpdate = :Time, UpdateAt = :Time WHERE Id = :teamId", map[string]interface{}{"Time": curTime, "teamId": teamId}); err != nil {
 			result.Err = model.NewAppError("SqlTeamStore.UpdateLastTeamIconUpdate", "store.sql_team.update_last_team_icon_update.app_error", nil, "team_id="+teamId, http.StatusInternalServerError)
 		} else {

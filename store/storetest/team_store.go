@@ -1018,7 +1018,9 @@ func testUpdateLastTeamIconUpdate(t *testing.T, ss store.Store) {
 	o1.LastTeamIconUpdate = lastTeamIconUpdateInitial
 	o1 = (<-ss.Team().Save(o1)).Data.(*model.Team)
 
-	if err := (<-ss.Team().UpdateLastTeamIconUpdate(o1.Id)).Err; err != nil {
+	curTime := model.GetMillis()
+
+	if err := (<-ss.Team().UpdateLastTeamIconUpdate(o1.Id, curTime)).Err; err != nil {
 		t.Fatal(err)
 	}
 

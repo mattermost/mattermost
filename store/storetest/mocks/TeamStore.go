@@ -478,12 +478,12 @@ func (_m *TeamStore) UpdateMember(member *model.TeamMember) store.StoreChannel {
 }
 
 // UpdateLastTeamIconUpdate provides a mock function with given fields: teamId
-func (_m *TeamStore) UpdateLastTeamIconUpdate(teamId string) store.StoreChannel {
+func (_m *TeamStore) UpdateLastTeamIconUpdate(teamId string, curTime int64) store.StoreChannel {
 	ret := _m.Called(teamId)
 
 	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string) store.StoreChannel); ok {
-		r0 = rf(teamId)
+	if rf, ok := ret.Get(0).(func(string, int64) store.StoreChannel); ok {
+		r0 = rf(teamId, curTime)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(store.StoreChannel)
